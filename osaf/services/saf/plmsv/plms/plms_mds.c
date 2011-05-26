@@ -265,7 +265,7 @@ SaUint32T plms_mds_cpy(struct ncsmds_callback_info *clbk_info)
 	dst_msg->cmd = src_msg->cmd;
 	dst_msg->arg = src_msg->arg;
 	
-	clbk_info->info.cpy.o_cpy = (uns8*)dst_msg;
+	clbk_info->info.cpy.o_cpy = (uint8_t*)dst_msg;
 
 	return NCSCC_RC_SUCCESS;
 }

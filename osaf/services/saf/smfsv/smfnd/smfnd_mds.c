@@ -102,7 +102,7 @@ static uns32 mds_dec(struct ncsmds_callback_info *info)
 	}
 
 	/* Assign the allocated event */
-	info->info.dec.o_msg = (uns8 *) evt;
+	info->info.dec.o_msg = (uint8_t *) evt;
 
 	if (smfsv_evt_dec(uba, evt) != NCSCC_RC_SUCCESS) {
 		LOG_ER("decoding event %d failed", evt->type);

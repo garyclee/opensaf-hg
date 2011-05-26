@@ -101,7 +101,7 @@ HM_POOL gl_hpool[HM_POOL_CNT] = {
 #else
 /* Commented out function. Use this, if mapping for the poolID and unitID changes. */
 #define m_HM_POOL_ID(unit) hm_pool_id
-uns32 hm_pool_id(uns8 unit)
+uns32 hm_pool_id(uint8_t unit)
 {
 	uns32 i = 0;
 
@@ -264,7 +264,7 @@ void ncshm_delete(void)
                      it. Return the uns32 handle that leads to saved data.
 
 *****************************************************************************/
-uns32 ncshm_create_hdl(uns8 pool, NCS_SERVICE_ID id, NCSCONTEXT save)
+uns32 ncshm_create_hdl(uint8_t pool, NCS_SERVICE_ID id, NCSCONTEXT save)
 {
 	HM_FREE *free;
 	HM_CELL *cell;
@@ -362,7 +362,7 @@ NCSCONTEXT ncshm_destroy_hdl(NCS_SERVICE_ID id, uns32 uhdl)
 			data = cell->data;
 
 			if (cell->use_ct > 1) {
-				hm_block_me(cell, (uns8)pool_id);	/* must unlock inside */
+				hm_block_me(cell, (uint8_t)pool_id);	/* must unlock inside */
 				m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);	/* must lock again!!! */
 			}
 			hm_free_cell(cell, hdl, TRUE);
@@ -457,7 +457,7 @@ void ncshm_give_hdl(uns32 uhdl)
 
 *****************************************************************************/
 
-HM_FREE *hm_alloc_cell(uns8 id)
+HM_FREE *hm_alloc_cell(uint8_t id)
 {
 	HM_FREE *free;
 	HM_PMGR *pmgr = &gl_hm.pool[id];
@@ -526,7 +526,7 @@ void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, NCS_BOOL recycle)
 	if (free->hdl.seq_id == 0)
 		free->hdl.seq_id++;	/* seq_id must be non-zero always */
 
-	pmgr = &gl_hm.pool[m_HM_POOL_ID((uns8)free->hdl.idx1)];
+	pmgr = &gl_hm.pool[m_HM_POOL_ID((uint8_t)free->hdl.idx1)];
 	free->next = pmgr->free_pool;
 	pmgr->free_pool = free;
 	m_HM_STAT_ADD_TO_Q(pmgr->in_q);
@@ -619,7 +619,7 @@ HM_FREE *hm_target_cell(HM_HDL *hdl)
 
 	uns32 tgt = *((uns32 *)hdl);
 
-	pmgr = &gl_hm.pool[m_HM_POOL_ID((uns8)hdl->idx1)];	/* determine pool */
+	pmgr = &gl_hm.pool[m_HM_POOL_ID((uint8_t)hdl->idx1)];	/* determine pool */
 
 	if ((unit = gl_hm.unit[hdl->idx1]) == NULL) {
 		if ((unit = m_MMGR_ALLOC_HM_UNIT) == NULL) {
@@ -682,7 +682,7 @@ HM_FREE *hm_target_cell(HM_HDL *hdl)
 
 *****************************************************************************/
 
-void hm_block_me(HM_CELL *cell, uns8 pool_id)
+void hm_block_me(HM_CELL *cell, uint8_t pool_id)
 {
 	m_HM_STAT_CRASH(gl_hm.woulda_crashed);
 

@@ -91,7 +91,7 @@ typedef struct mqa_client_info {
 	/* Mailbox Queue to store the messages for the clients */
 	SYSF_MBX callbk_mbx;
 	NCS_PATRICIA_TREE mqa_track_tree;
-	uns8 finalize;
+	uint8_t finalize;
 	SaVersionT version;
 
 } MQA_CLIENT_INFO;
@@ -101,7 +101,7 @@ typedef struct mqa_queue_info {
 	SaMsgQueueHandleT queueHandle;
 	SaMsgQueueHandleT listenerHandle;
 	SaMsgQueueOpenFlagsT openFlags;
-	uns8 msg_get_count;
+	uint8_t msg_get_count;
 	MQA_CLIENT_INFO *client_info;
 	NCSCONTEXT task_handle;
 	NCS_BOOL is_closed;	/* Set to TRUE after invoking the close */
@@ -122,7 +122,7 @@ typedef struct mqa_cb {
 	/* Identification Information about the MQA */
 	uns32 process_id;
 	uns32 agent_handle_id;
-	uns8 pool_id;
+	uint8_t pool_id;
 	uns32 mqa_mds_hdl;
 	MDS_DEST mqa_mds_dest;
 	NCS_LOCK cb_lock;

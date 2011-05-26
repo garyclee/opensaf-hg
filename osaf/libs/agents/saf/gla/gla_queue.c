@@ -124,7 +124,7 @@ uns32 glsv_gla_callback_queue_write(GLA_CB *gla_cb, SaLckHandleT handle, GLSV_GL
 
 	m_NCS_LOCK(&gla_cb->cb_lock, NCS_LOCK_READ);
 	/* Search for the node from the client tree */
-	client_info = (GLA_CLIENT_INFO *)ncs_patricia_tree_get(&gla_cb->gla_client_tree, (uns8 *)&handle);
+	client_info = (GLA_CLIENT_INFO *)ncs_patricia_tree_get(&gla_cb->gla_client_tree, (uint8_t *)&handle);
 
 	if (client_info == NULL) {
 		/* recieved a callback for an non-existant client. so return failure */

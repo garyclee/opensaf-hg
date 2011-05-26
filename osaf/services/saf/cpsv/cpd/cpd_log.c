@@ -87,7 +87,7 @@ void cpd_flx_log_dereg(void)
    
   ARGUMENTS       :  hdln_id : Headline ID      
 *****************************************************************************/
-void cpd_headline_log(uns8 hdln_id, uns8 sev)
+void cpd_headline_log(uint8_t hdln_id, uint8_t sev)
 {
 	/* Log headlines */
 	ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_HEADLINE, CPD_FC_HDLN, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, hdln_id);
@@ -102,9 +102,9 @@ void cpd_headline_log(uns8 hdln_id, uns8 sev)
   ARGUMENT        :  db_id - Database id
                      str   - log string
 *****************************************************************************/
-void cpd_db_status_log(uns8 db_id, char *str)
+void cpd_db_status_log(uint8_t db_id, char *str)
 {
-	uns8 sev = 0;
+	uint8_t sev = 0;
 
 	switch (db_id) {
 	case CPD_DB_ADD_FAILED:
@@ -129,7 +129,7 @@ void cpd_db_status_log(uns8 db_id, char *str)
   DESCRIPTION:       memory failure logging info
 
 *****************************************************************************/
-void cpd_memfail_log(uns8 mf_id)
+void cpd_memfail_log(uint8_t mf_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_MEMFAIL, CPD_FC_MEMFAIL,
 		   NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TI, mf_id);
@@ -143,7 +143,7 @@ void cpd_memfail_log(uns8 mf_id)
 
 *****************************************************************************/
 
-void cpd_mbcsv_log(uns8 mbcsv_id, uns8 sev)
+void cpd_mbcsv_log(uint8_t mbcsv_id, uint8_t sev)
 {
 	ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_MBCSV, CPD_FC_MBCSV, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, mbcsv_id);
 }
@@ -155,7 +155,7 @@ void cpd_mbcsv_log(uns8 mbcsv_id, uns8 sev)
   DESCRIPTION:       cpd failure logging info
 
 *****************************************************************************/
-void _cpd_log(uns8 severity, const char *function, const char *format, ...)
+void _cpd_log(uint8_t severity, const char *function, const char *format, ...)
 {
       char preamble[128];
        char str[128];

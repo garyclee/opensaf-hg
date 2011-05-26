@@ -318,8 +318,8 @@ uns32 avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 	if (clc_evt->exec_ctxt) {
 		/* => cmd successfully launched (scan the entire comp-database) */
 		for (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb,
-								   (uns8 *)0); comp;
-		     comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name)) {
+								   (uint8_t *)0); comp;
+		     comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name)) {
 			if (comp->clc_info.cmd_exec_ctxt == clc_evt->exec_ctxt)
 				break;
 			if (comp->clc_info.am_cmd_exec_ctxt == clc_evt->exec_ctxt) {
@@ -720,7 +720,7 @@ static int all_comps_terminated(void)
 	assert(avnd_cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN);
 
 	/* Scan all components to see if we're done terminating all comps */
-	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb, (uns8 *)0);
+	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb, (uint8_t *)0);
 	while (comp != 0) {
 		if ((comp->pres != SA_AMF_PRESENCE_UNINSTANTIATED) &&
 		    (comp->pres != SA_AMF_PRESENCE_INSTANTIATION_FAILED)) {
@@ -728,7 +728,7 @@ static int all_comps_terminated(void)
 			TRACE("'%s' not terminated, pres.st=%u", comp->name.value, comp->pres);
 		}
 
-		comp = (AVND_COMP *) ncs_patricia_tree_getnext(&avnd_cb->compdb, (uns8 *)&comp->name);
+		comp = (AVND_COMP *) ncs_patricia_tree_getnext(&avnd_cb->compdb, (uint8_t *)&comp->name);
 	}
 
 	TRACE_LEAVE2("%d", all_comps_terminated);

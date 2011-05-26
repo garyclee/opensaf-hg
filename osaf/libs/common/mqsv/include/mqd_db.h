@@ -62,8 +62,8 @@ typedef struct mqd_queue_param {
 	MDS_DEST dest;		/* Queue Destination */
 	MQSV_QUEUE_OWN_STATE owner;	/* Orphan/Owned */
 	uns32 hdl;		/* Queue Handle */
-	uns8 adv;		/* Advertisement flag */
-	uns8 is_mqnd_down;	/* TRUE if mqnd is down else FALSE */
+	uint8_t adv;		/* Advertisement flag */
+	uint8_t is_mqnd_down;	/* TRUE if mqnd is down else FALSE */
 	SaMsgQueueCreationFlagsT creationFlags;	/* Queue creation flags */
 	SaSizeT size[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];	/* Priority queue sizes */
 } MQD_QUEUE_PARAM;
@@ -151,7 +151,7 @@ typedef struct mqd_cb {
 	uns32 hdl;		/* CB Struct Handle */
 	NCS_BOOL active;	/* Component Active Flag */
 	EDU_HDL edu_hdl;	/* Edu Handle */
-	uns8 hmpool;		/* Handle Manager Pool ID for this Service Part */
+	uint8_t hmpool;		/* Handle Manager Pool ID for this Service Part */
 
 	SaNameT safSpecVer;
 	SaNameT safAgtVen;

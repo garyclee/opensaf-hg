@@ -53,7 +53,7 @@ typedef enum ncs_db_link_list_order {
 typedef struct ncs_db_link_list_node {
 	struct ncs_db_link_list_node *next;
 	struct ncs_db_link_list_node *prev;
-	uns8 *key;
+	uint8_t *key;
 } NCS_DB_LINK_LIST_NODE;
 
 /*****************************************************************************
@@ -63,7 +63,7 @@ typedef struct ncs_db_link_list_node {
  *                              (<0)   2, if key2 is greater than key1
  *****************************************************************************/
 
-typedef uns32 (*NCS_DB_LINK_LIST_CMP) (uns8 *key1, uns8 *key2);
+typedef uns32 (*NCS_DB_LINK_LIST_CMP) (uint8_t *key1, uint8_t *key2);
 
 /*****************************************************************************
  * Typedef for freeing the data which has been stored in the doubly linked 
@@ -94,17 +94,17 @@ uns32 ncs_db_link_list_add(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *no
 /*****************************************************************************
  * This is the API used to find the node in the doubly linked list.  
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find(NCS_DB_LINK_LIST *list_ptr, uns8 *key);
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find(NCS_DB_LINK_LIST *list_ptr, uint8_t *key);
 
 /*****************************************************************************
  * This is the API used to find the next node for the given key
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_next(NCS_DB_LINK_LIST *list_ptr, uns8 *prev_key);
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_next(NCS_DB_LINK_LIST *list_ptr, uint8_t *prev_key);
 
 /*****************************************************************************
  * This is the API used to find the prev node for the given key
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_prev(NCS_DB_LINK_LIST *list_ptr, uns8 *pres_key);
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_prev(NCS_DB_LINK_LIST *list_ptr, uint8_t *pres_key);
 
 /*****************************************************************************
  * This is the API used to delete the node for the given key. This API will use
@@ -115,7 +115,7 @@ NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_prev(NCS_DB_LINK_LIST *list_ptr, un
  * If you just want to remove the node from the list then call the API 
  * "ncs_db_link_list_remove()".
  *****************************************************************************/
-uns32 ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, uns8 *key);
+uns32 ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, uint8_t *key);
 
 /*****************************************************************************
  * This is the API used to just delink the node from the doubly linked list 
@@ -123,7 +123,7 @@ uns32 ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, uns8 *key);
  * NOTE:
        It is the users responsibility to free the node pointer.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_remove(NCS_DB_LINK_LIST *list_ptr, uns8 *key);
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_remove(NCS_DB_LINK_LIST *list_ptr, uint8_t *key);
 
 /*****************************************************************************
  * This is the API used to just delink the node from the doubly linked list 

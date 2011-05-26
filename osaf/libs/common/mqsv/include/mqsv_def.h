@@ -67,7 +67,7 @@ typedef struct mqsv_dsend_info {
 	MDS_SENDTYPES stype;	/* Send type */
 	MDS_DEST dest;		/* Who to send */
 	MDS_SYNC_SND_CTXT ctxt;	/* MDS Opaque context */
-	uns8 padding[3];	/*Req for proper alignment in 32/64 arch */
+	uint8_t padding[3];	/*Req for proper alignment in 32/64 arch */
 } MQSV_DSEND_INFO;
 
 /*** Macro used to get the AMF version used ****/

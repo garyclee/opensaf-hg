@@ -46,7 +46,7 @@
 #include "patricia.h"
 #include "sysf_pat.h"
 
-const static uns8 BitMasks[9] = {
+const static uint8_t BitMasks[9] = {
 	0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff
 };
 
@@ -66,7 +66,7 @@ const static uns8 BitMasks[9] = {
   ARGUMENTS:
 
     NCS_PATRICIA_TREE * - Pointer to the table structure
-    uns8 *key: Key of the data to insert
+    uint8_t *key: Key of the data to insert
 
   RETURNS:
 
@@ -75,7 +75,7 @@ const static uns8 BitMasks[9] = {
   NOTES:
 
 *****************************************************************************/
-static NCS_PATRICIA_NODE *search(const NCS_PATRICIA_TREE *const pTree, const uns8 *const key)
+static NCS_PATRICIA_NODE *search(const NCS_PATRICIA_TREE *const pTree, const uint8_t *const key)
 {
 	NCS_PATRICIA_NODE *pNode;
 	NCS_PATRICIA_NODE *pPrevNode;
@@ -100,7 +100,7 @@ static NCS_PATRICIA_NODE *search(const NCS_PATRICIA_TREE *const pTree, const uns
  * KeyBitMatch:  compares 'n' bits of the keys.
  *               Returns 'TRUE' if they're equal.
  ****************************************************************************/
-static int KeyBitMatch(const uns8 *p1, const uns8 *p2, unsigned int bitcount)
+static int KeyBitMatch(const uint8_t *p1, const uint8_t *p2, unsigned int bitcount)
 {
 	while (bitcount > 8) {
 		if (*p1 != *p2) {
@@ -155,7 +155,7 @@ unsigned int ncs_patricia_tree_init(NCS_PATRICIA_TREE *const pTree, const NCS_PA
 	pTree->params = *pParams;
 
 	/* Initialize the root node, which is actually part of the tree structure. */
-	pTree->root_node.key_info = (uns8 *)0;
+	pTree->root_node.key_info = (uint8_t *)0;
 	pTree->root_node.bit = -1;
 	pTree->root_node.left = pTree->root_node.right = &pTree->root_node;
 	if ((pTree->root_node.key_info = m_MMGR_ALLOC_PATRICIA_STACK(pTree->params.key_size)) == NULL) {
@@ -410,7 +410,7 @@ unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_
   ARGUMENTS:
 
     NCS_PATRICIA_TREE *pTree: Pointer to the Patricia table
-    uns8 *key: Pointer to the key
+    uint8_t *key: Pointer to the key
 
   RETURNS:
 
@@ -420,7 +420,7 @@ unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_
 
 *****************************************************************************/
 
-NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree, const uns8 *const pKey)
+NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree, const uint8_t *const pKey)
 {
 	NCS_PATRICIA_NODE *pNode;
 
@@ -452,7 +452,7 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree, c
   ARGUMENTS:
 
     NCS_PATRICIA_TREE *pTree: Pointer to the Patricia table
-    uns8 *key: Pointer to the key
+    uint8_t *key: Pointer to the key
            (NULL pointer requests 1st node in table)
 
   RETURNS:
@@ -463,16 +463,16 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree, c
 
 *****************************************************************************/
 
-NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, const uns8 *const pKey)
+NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, const uint8_t *const pKey)
 {
-	uns8 Target[NCS_PATRICIA_MAX_KEY_SIZE];
+	uint8_t Target[NCS_PATRICIA_MAX_KEY_SIZE];
 	NCS_PATRICIA_NODE *pSrch;
 	NCS_PATRICIA_NODE *pPrev;
-	register uns8 *p1;
-	register uns8 *p2;
+	register uint8_t *p1;
+	register uint8_t *p2;
 	register int bit;
 
-	if (pKey == (const uns8 *)0) {
+	if (pKey == (const uint8_t *)0) {
 		/* Start at root of tree. */
 		memset(Target, '\0', pTree->params.key_size);
 	} else {
@@ -524,9 +524,9 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 						*p2++ = *p1++;
 					}
 					/* Bring over SOME of the bits from pSrch. */
-					*p2 = (uns8)(*p1 & ((uns8)(BitMasks[bit])));
+					*p2 = (uint8_t)(*p1 & ((uint8_t)(BitMasks[bit])));
 
-					*p2 |= (uns8)(0x80 >> bit);
+					*p2 |= (uint8_t)(0x80 >> bit);
 
 					p2++;
 
@@ -547,9 +547,9 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 						*p2++ = *p1++;
 					}
 					if (bit > 0) {
-						*p2 = (uns8)(*p1 & BitMasks[bit]);
+						*p2 = (uint8_t)(*p1 & BitMasks[bit]);
 					}
-					*p2 |= (uns8)(0xff >> bit);
+					*p2 |= (uint8_t)(0xff >> bit);
 					for (p1 = p2 + 1; p1 < (Target + pTree->params.key_size); p1++) {
 						*p1 = '\0';
 					}
@@ -601,7 +601,7 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 					*p2++ = *p1++;
 				}
 				if (bit != 0) {
-					*p2++ = ((uns8)(*p1 & BitMasks[bit]));
+					*p2++ = ((uint8_t)(*p1 & BitMasks[bit]));
 				}
 				while (p2 < Target + pTree->params.key_size) {
 					*p2++ = '\0';
@@ -623,9 +623,9 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 							*p2++ = *p1++;
 						}
 						/* Bring over SOME of the bits from pSrch. */
-						*p2 = (uns8)(*p1 & ((uns8)(BitMasks[bit])));
+						*p2 = (uint8_t)(*p1 & ((uint8_t)(BitMasks[bit])));
 
-						*p2 |= (uns8)(0x80 >> bit);
+						*p2 |= (uint8_t)(0x80 >> bit);
 
 						p2++;
 
@@ -646,9 +646,9 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 							*p2++ = *p1++;
 						}
 						if (bit > 0) {
-							*p2 = (uns8)(*p1 & BitMasks[bit]);
+							*p2 = (uint8_t)(*p1 & BitMasks[bit]);
 						}
-						*p2 |= (uns8)(0xff >> bit);
+						*p2 |= (uint8_t)(0xff >> bit);
 						for (p1 = p2 + 1; p1 < (Target + pTree->params.key_size); p1++) {
 							*p1 = '\0';
 						}

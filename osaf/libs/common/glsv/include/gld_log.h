@@ -19,7 +19,7 @@
 #define GLD_LOG_H
 
 #define gld_log(severity, format, args...) _gld_log((severity), __FUNCTION__, (format), ##args)
-void _gld_log(uns8 severity, const char *function, const char *format, ...);
+void _gld_log(uint8_t severity, const char *function, const char *format, ...);
 
 /******************************************************************************
  Logging offset indexes for Headline logging
@@ -212,15 +212,15 @@ typedef enum gld_log_ids {
 void gld_flx_log_reg();
 void gld_flx_log_dereg();
 
-void gld_log_headline(uns8 hdln_id, uns8 sev, char *file_name, uns32 line_no, SaUint32T node_id);
-void gld_log_memfail(uns8 mf_id, char *file_name, uns32 line_no);
-void gld_log_api(uns8 api_id, uns8 sev, char *file_name, uns32 line_no);
-void gld_log_evt(uns8 evt_id, uns8 sev, char *file_name, uns32 line_no, uns32 rsc_id, uns32 node_id);
-void gld_log_svc_prvdr(uns8 sp_id, uns8 sev, char *file_name, uns32 line_no);
-void gld_log_lck_oper(uns8 lck_id, uns8 sev, char *file_name, uns32 line_no,
+void gld_log_headline(uint8_t hdln_id, uint8_t sev, char *file_name, uns32 line_no, SaUint32T node_id);
+void gld_log_memfail(uint8_t mf_id, char *file_name, uns32 line_no);
+void gld_log_api(uint8_t api_id, uint8_t sev, char *file_name, uns32 line_no);
+void gld_log_evt(uint8_t evt_id, uint8_t sev, char *file_name, uns32 line_no, uns32 rsc_id, uns32 node_id);
+void gld_log_svc_prvdr(uint8_t sp_id, uint8_t sev, char *file_name, uns32 line_no);
+void gld_log_lck_oper(uint8_t lck_id, uint8_t sev, char *file_name, uns32 line_no,
 			       char *rsc_name, uns32 rsc_id, uns32 node_id);
-void gld_mbcsv_log(uns8 id, uns8 sev, char *file_name, uns32 line_no);
-void gld_log_timer(uns8 id, uns32 type, char *file_name, uns32 line_no);
+void gld_mbcsv_log(uint8_t id, uint8_t sev, char *file_name, uns32 line_no);
+void gld_log_timer(uint8_t id, uns32 type, char *file_name, uns32 line_no);
 
 void gld_flx_log_reg(void);
 

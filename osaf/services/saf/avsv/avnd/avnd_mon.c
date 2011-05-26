@@ -124,7 +124,7 @@ AVND_MON_REQ *avnd_mon_req_add(AVND_CB *cb, AVND_COMP_PM_REC *pm_rec)
 	m_NCS_LOCK(&cb->mon_lock, NCS_LOCK_WRITE);
 
 	/* get the record, if any */
-	mon_req = (AVND_MON_REQ *) ncs_db_link_list_find(pid_mon_list, (uns8 *)&pm_rec->pid);
+	mon_req = (AVND_MON_REQ *) ncs_db_link_list_find(pid_mon_list, (uint8_t *)&pm_rec->pid);
 	if (!mon_req) {
 		/* a new record.. alloc & link it to the dll */
 		mon_req = (AVND_MON_REQ *) malloc(sizeof(AVND_MON_REQ));
@@ -134,7 +134,7 @@ AVND_MON_REQ *avnd_mon_req_add(AVND_CB *cb, AVND_COMP_PM_REC *pm_rec)
 			mon_req->pid = pm_rec->pid;
 
 			/* update the record key */
-			mon_req->mon_dll_node.key = (uns8 *)&mon_req->pid;
+			mon_req->mon_dll_node.key = (uint8_t *)&mon_req->pid;
 
 			rc = ncs_db_link_list_add(pid_mon_list, &mon_req->mon_dll_node);
 			if (NCSCC_RC_SUCCESS != rc) {
@@ -193,7 +193,7 @@ uns32 avnd_mon_req_del(AVND_CB *cb, SaUint64T pid)
 
 	m_NCS_LOCK(&cb->mon_lock, NCS_LOCK_WRITE);
 
-	rc = ncs_db_link_list_del(pid_mon_list, (uns8 *)&pid);
+	rc = ncs_db_link_list_del(pid_mon_list, (uint8_t *)&pid);
 
 	TRACE_1("PID: %lld deleted from (passive) Monitoring", pid);
 

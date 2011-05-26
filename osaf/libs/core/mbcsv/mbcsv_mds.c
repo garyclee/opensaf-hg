@@ -457,7 +457,7 @@ uns32 mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 		    SS_SVC_ID to_svc, NCS_UBAID *uba,
 		    MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver)
 {
-	uns8 *data;
+	uint8_t *data;
 	MBCSV_EVT *mm;
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
@@ -639,9 +639,9 @@ uns32 mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 uns32 mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 		    SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver)
 {
-	uns8 *data;
+	uint8_t *data;
 	MBCSV_EVT *mm;
-	uns8 data_buff[MBCSV_MAX_SIZE_DATA];
+	uint8_t data_buff[MBCSV_MAX_SIZE_DATA];
 
 	if (0 == m_NCS_MSG_FORMAT_IS_VALID(msg_fmat_ver,
 					   MBCSV_WRT_PEER_SUBPART_VER_MIN,
@@ -890,7 +890,7 @@ uns32 mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 
 uns32 mbcsv_encode_version(NCS_UBAID *uba, uns16 version)
 {
-	uns8 *data;
+	uint8_t *data;
 
 	if (uba == NULL)
 		return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "mbcsv_encode_version: User buff is NULL");
@@ -922,8 +922,8 @@ uns32 mbcsv_encode_version(NCS_UBAID *uba, uns16 version)
 
 uns32 mbcsv_decode_version(NCS_UBAID *uba, uns16 *version)
 {
-	uns8 *data;
-	uns8 data_buff[MBCSV_MAX_SIZE_DATA];
+	uint8_t *data;
+	uint8_t data_buff[MBCSV_MAX_SIZE_DATA];
 
 	if (uba == NULL)
 		return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "mbcsv_decode_version : User buffer is NULL");

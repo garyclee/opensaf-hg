@@ -129,7 +129,7 @@
 #define m_MMGR_FREE_DTS_SVC_KEY(p)  m_NCS_MEM_FREE(p, NCS_MEM_REGION_TRANSIENT, \
                                    NCS_SERVICE_ID_DTSV, DTS_MEM_SVC_KEY)
 
-#define m_MMGR_ALLOC_CIR_BUFF(s)   m_NCS_MEM_ALLOC((s * sizeof(uns8)), \
+#define m_MMGR_ALLOC_CIR_BUFF(s)   m_NCS_MEM_ALLOC((s * sizeof(uint8_t)), \
                                    NCS_MEM_REGION_TRANSIENT, \
                                    NCS_SERVICE_ID_DTSV, DTS_MEM_CIR_BUFFER)
 

@@ -420,7 +420,7 @@ static uns32 cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 
 	}
 
-	/*   ncs_encode_n_octets_in_uba(uba,(uns8*)evt,size);   */
+	/*   ncs_encode_n_octets_in_uba(uba,(uint8_t*)evt,size);   */
 
 	/* Based on the event type copy the internal pointers TBD */
 
@@ -466,7 +466,7 @@ static uns32 cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 			return rc;
 		}
 
-/*   ncs_decode_n_octets(uba->ub,(uns8*)evt,sizeof(CPSV_EVT)); */
+/*   ncs_decode_n_octets(uba->ub,(uint8_t*)evt,sizeof(CPSV_EVT)); */
 		/* Based on the event type copy the internal pointers TBD */
 		return rc;
 	} else {

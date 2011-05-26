@@ -219,7 +219,7 @@ uns32 immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo,
 	IMMD_MBCSV_MSG mbcp_msg;
 	uns32 proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_FEVS *fevs_req = &evt->info.fevsReq;
-	uns8 isResend = FALSE;
+	uint8_t isResend = FALSE;
 	TRACE_ENTER();
 
 	/* First check that source IMMND is in legal state 

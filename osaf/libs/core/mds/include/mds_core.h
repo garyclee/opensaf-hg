@@ -82,7 +82,7 @@ typedef struct mds_await_disc_queue {
 } MDS_AWAIT_DISC_QUEUE;
 
 typedef struct mds_mcm_sync_send_queue {
-	uns8 msg_snd_type;	/* Type of send if this is just ack, no data is searched on */
+	uint8_t msg_snd_type;	/* Type of send if this is just ack, no data is searched on */
 	MDS_SYNC_TXN_ID txn_id;	/* A Key : Looked up when response received */
 	NCS_SEL_OBJ sel_obj;	/* Raised when a response is received */
 	uns32 status;		/* Result sent by remote if any */
@@ -255,7 +255,7 @@ typedef struct mds_svc_info {
 	   combination.
 	 */
 	MDS_MCM_SYNC_SEND_QUEUE *sync_send_queue;
-	uns8 sync_count;
+	uint8_t sync_count;
 	MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver;
 	NCS_BOOL i_fail_no_active_sends;	/* Default messages will be buufered in MDS when destination is
 						   in No-Active state, else dropped */

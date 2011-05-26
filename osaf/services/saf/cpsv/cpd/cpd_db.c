@@ -63,7 +63,7 @@ uns32 cpd_ckpt_tree_init(CPD_CB *cb)
 uns32 cpd_ckpt_node_get(NCS_PATRICIA_TREE *ckpt_tree, SaCkptCheckpointHandleT *ckpt_hdl, CPD_CKPT_INFO_NODE **ckpt_node)
 {
 	*ckpt_node = (CPD_CKPT_INFO_NODE *)
-	    ncs_patricia_tree_get(ckpt_tree, (uns8 *)ckpt_hdl);
+	    ncs_patricia_tree_get(ckpt_tree, (uint8_t *)ckpt_hdl);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -80,9 +80,9 @@ void cpd_ckpt_node_getnext(NCS_PATRICIA_TREE *ckpt_tree,
 			   SaCkptCheckpointHandleT *ckpt_hdl, CPD_CKPT_INFO_NODE **ckpt_node)
 {
 	if (ckpt_hdl) {
-		*ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(ckpt_tree, (uns8 *)ckpt_hdl);
+		*ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(ckpt_tree, (uint8_t *)ckpt_hdl);
 	} else {
-		*ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(ckpt_tree, (uns8 *)NULL);
+		*ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(ckpt_tree, (uint8_t *)NULL);
 	}
 	return;
 }
@@ -100,7 +100,7 @@ uns32 cpd_ckpt_node_add(NCS_PATRICIA_TREE *ckpt_tree, CPD_CKPT_INFO_NODE *ckpt_n
 {
 	SaAisErrorT err = SA_AIS_OK;
 	/* Store the client_info pointer as msghandle. */
-	ckpt_node->patnode.key_info = (uns8 *)&ckpt_node->ckpt_id;
+	ckpt_node->patnode.key_info = (uint8_t *)&ckpt_node->ckpt_id;
 
 	/*create the imm runtime object */
 	if (ha_state == SA_AMF_HA_ACTIVE) {
@@ -234,13 +234,13 @@ void cpd_ckpt_tree_cleanup(CPD_CB *cb)
 	SaCkptCheckpointHandleT prev_ckpt_id = 0;
 
 	/* Get the First Node */
-	ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree, (uns8 *)&prev_ckpt_id);
+	ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree, (uint8_t *)&prev_ckpt_id);
 	while (ckpt_node) {
 		prev_ckpt_id = ckpt_node->ckpt_id;
 
 		cpd_ckpt_node_delete(cb, ckpt_node);
 
-		ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree, (uns8 *)&prev_ckpt_id);
+		ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree, (uint8_t *)&prev_ckpt_id);
 	}
 
 	return;
@@ -333,7 +333,7 @@ uns32 cpd_ckpt_reploc_get(NCS_PATRICIA_TREE *ckpt_reploc_tree,
 	key_info->ckpt_name.length = m_NCS_OS_HTONS(key_info->ckpt_name.length);
 	key_info->node_name.length = m_NCS_OS_HTONS(key_info->node_name.length);
 
-	*ckpt_reploc_node = (CPD_CKPT_REPLOC_INFO *)ncs_patricia_tree_get(ckpt_reploc_tree, (uns8 *)key_info);
+	*ckpt_reploc_node = (CPD_CKPT_REPLOC_INFO *)ncs_patricia_tree_get(ckpt_reploc_tree, (uint8_t *)key_info);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -353,9 +353,9 @@ void cpd_ckpt_reploc_getnext(NCS_PATRICIA_TREE *ckpt_reploc_tree,
 		key_info->ckpt_name.length = m_NCS_OS_HTONS(key_info->ckpt_name.length);
 		key_info->node_name.length = m_NCS_OS_HTONS(key_info->node_name.length);
 		*ckpt_reploc_node =
-		    (CPD_CKPT_REPLOC_INFO *)ncs_patricia_tree_getnext(ckpt_reploc_tree, (uns8 *)key_info);
+		    (CPD_CKPT_REPLOC_INFO *)ncs_patricia_tree_getnext(ckpt_reploc_tree, (uint8_t *)key_info);
 	} else {
-		*ckpt_reploc_node = (CPD_CKPT_REPLOC_INFO *)ncs_patricia_tree_getnext(ckpt_reploc_tree, (uns8 *)NULL);
+		*ckpt_reploc_node = (CPD_CKPT_REPLOC_INFO *)ncs_patricia_tree_getnext(ckpt_reploc_tree, (uint8_t *)NULL);
 	}
 	return;
 }
@@ -387,7 +387,7 @@ uns32 cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REP
 	/* node name is obtained from cluster info which always returns in network order, so no need of the conversion for the node_name length */
 	ckpt_reploc_node->rep_key.node_name.length = m_NCS_OS_HTONS(ckpt_reploc_node->rep_key.node_name.length);
 
-	ckpt_reploc_node->patnode.key_info = (uns8 *)&ckpt_reploc_node->rep_key;
+	ckpt_reploc_node->patnode.key_info = (uint8_t *)&ckpt_reploc_node->rep_key;
 	if (ncs_patricia_tree_add(ckpt_reploc_tree, &ckpt_reploc_node->patnode) != NCSCC_RC_SUCCESS) {
 		/* m_LOG_CPD_HEADLINE(CPD_CKPT_REPLOC_INFO_ADD_FAILED, NCSFL_SEV_ERROR); */
 		/* delete reploc imm runtime object */
@@ -464,14 +464,14 @@ void cpd_ckpt_reploc_cleanup(CPD_CB *cb)
 	memset(&key_info, 0, sizeof(CPD_REP_KEY_INFO));
 
 	/*  Get the 1st Node */
-	ckpt_reploc_node = (CPD_CKPT_REPLOC_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_reploc_tree, (uns8 *)&key_info);
+	ckpt_reploc_node = (CPD_CKPT_REPLOC_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_reploc_tree, (uint8_t *)&key_info);
 	while (ckpt_reploc_node) {
 		key_info = ckpt_reploc_node->rep_key;
 
 		cpd_ckpt_reploc_node_delete(cb, ckpt_reploc_node, FALSE);
 
 		ckpt_reploc_node =
-		    (CPD_CKPT_REPLOC_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_reploc_tree, (uns8 *)&key_info);
+		    (CPD_CKPT_REPLOC_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_reploc_tree, (uint8_t *)&key_info);
 
 	}
 	return;
@@ -534,7 +534,7 @@ uns32 cpd_ckpt_map_node_get(NCS_PATRICIA_TREE *ckpt_map_tree, SaNameT *ckpt_name
 
 /*   ckpt_name->length = m_NCS_OS_HTONS(ckpt_name->length); */
 	*ckpt_map_node = (CPD_CKPT_MAP_INFO *)
-	    ncs_patricia_tree_get(ckpt_map_tree, (uns8 *)ckpt_name);
+	    ncs_patricia_tree_get(ckpt_map_tree, (uint8_t *)ckpt_name);
 
 	ckpt_name->length = m_NCS_OS_NTOHS(ckpt_name->length);
 
@@ -555,12 +555,12 @@ void cpd_ckpt_map_node_getnext(NCS_PATRICIA_TREE *ckpt_map_tree, SaNameT *ckpt_n
 
 	if (ckpt_name) {
 		ckpt_name->length = m_NCS_OS_HTONS(ckpt_name->length);
-		*ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(ckpt_map_tree, (uns8 *)ckpt_name);
+		*ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(ckpt_map_tree, (uint8_t *)ckpt_name);
 		ckpt_name->length = m_NCS_OS_NTOHS(ckpt_name->length);
 	}
 
 	else {
-		*ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(ckpt_map_tree, (uns8 *)NULL);
+		*ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(ckpt_map_tree, (uint8_t *)NULL);
 	}
 
 	return;
@@ -577,7 +577,7 @@ void cpd_ckpt_map_node_getnext(NCS_PATRICIA_TREE *ckpt_map_tree, SaNameT *ckpt_n
 uns32 cpd_ckpt_map_node_add(NCS_PATRICIA_TREE *ckpt_map_tree, CPD_CKPT_MAP_INFO *ckpt_map_node)
 {
 	ckpt_map_node->ckpt_name.length = m_NCS_OS_HTONS(ckpt_map_node->ckpt_name.length);
-	ckpt_map_node->patnode.key_info = (uns8 *)&ckpt_map_node->ckpt_name;
+	ckpt_map_node->patnode.key_info = (uint8_t *)&ckpt_map_node->ckpt_name;
 
 	if (ncs_patricia_tree_add(ckpt_map_tree, &ckpt_map_node->patnode) != NCSCC_RC_SUCCESS) {
 
@@ -631,13 +631,13 @@ void cpd_ckpt_map_tree_cleanup(CPD_CB *cb)
 	memset(&name, 0, sizeof(SaNameT));
 
 	/* Get the First Node */
-	ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree, (uns8 *)&name);
+	ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree, (uint8_t *)&name);
 	while (ckpt_map_node) {
 		name = ckpt_map_node->ckpt_name;
 
 		cpd_ckpt_map_node_delete(cb, ckpt_map_node);
 
-		ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree, (uns8 *)&name);
+		ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree, (uint8_t *)&name);
 	}
 
 	return;
@@ -702,7 +702,7 @@ uns32 cpd_cpnd_info_node_get(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *dest, CPD_C
 	key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
 
 	*cpnd_info_node = (CPD_CPND_INFO_NODE *)
-	    ncs_patricia_tree_get(cpnd_tree, (uns8 *)&key);
+	    ncs_patricia_tree_get(cpnd_tree, (uint8_t *)&key);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -726,10 +726,10 @@ void cpd_cpnd_info_node_getnext(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *dest, CP
 		key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
 
 		*cpnd_info_node = (CPD_CPND_INFO_NODE *)
-		    ncs_patricia_tree_getnext(cpnd_tree, (uns8 *)&key);
+		    ncs_patricia_tree_getnext(cpnd_tree, (uint8_t *)&key);
 	} else
 		*cpnd_info_node = (CPD_CPND_INFO_NODE *)
-		    ncs_patricia_tree_getnext(cpnd_tree, (uns8 *)NULL);
+		    ncs_patricia_tree_getnext(cpnd_tree, (uint8_t *)NULL);
 
 	return;
 
@@ -750,8 +750,8 @@ uns32 cpd_cpnd_info_node_add(NCS_PATRICIA_TREE *cpnd_tree, CPD_CPND_INFO_NODE *c
 
 	key = m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_info_node->cpnd_dest);
 
-	/*  cpnd_info_node->patnode.key_info = (uns8*)(m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_info_node->cpnd_dest));  */
-	cpnd_info_node->patnode.key_info = (uns8 *)&key;
+	/*  cpnd_info_node->patnode.key_info = (uint8_t*)(m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_info_node->cpnd_dest));  */
+	cpnd_info_node->patnode.key_info = (uint8_t *)&key;
 
 	if (ncs_patricia_tree_add(cpnd_tree, &cpnd_info_node->patnode) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPD_CL(CPD_CPND_INFO_NODE_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
@@ -781,7 +781,7 @@ uns32 cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *dest,
 	key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
 
 	*cpnd_info_node = (CPD_CPND_INFO_NODE *)
-	    ncs_patricia_tree_get(cpnd_tree, (uns8 *)&key);
+	    ncs_patricia_tree_get(cpnd_tree, (uint8_t *)&key);
 	if ((*cpnd_info_node == NULL) && (*add_flag == TRUE)) {
 		*cpnd_info_node = m_MMGR_ALLOC_CPD_CPND_INFO_NODE;
 		if (*cpnd_info_node == NULL) {
@@ -793,8 +793,8 @@ uns32 cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *dest,
 		/* Store the client_info pointer as msghandle. */
 		(*cpnd_info_node)->cpnd_dest = *dest;
 		(*cpnd_info_node)->cpnd_key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
-		/*  (*cpnd_info_node)->patnode.key_info = (uns8*)&(m_NCS_NODE_ID_FROM_MDS_DEST((*cpnd_info_node)->cpnd_dest)); */
-		(*cpnd_info_node)->patnode.key_info = (uns8 *)&((*cpnd_info_node)->cpnd_key);
+		/*  (*cpnd_info_node)->patnode.key_info = (uint8_t*)&(m_NCS_NODE_ID_FROM_MDS_DEST((*cpnd_info_node)->cpnd_dest)); */
+		(*cpnd_info_node)->patnode.key_info = (uint8_t *)&((*cpnd_info_node)->cpnd_key);
 
 		if (ncs_patricia_tree_add(cpnd_tree, &(*cpnd_info_node)->patnode) != NCSCC_RC_SUCCESS) {
 			m_LOG_CPD_FCL(CPD_CPND_INFO_NODE_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, *dest, __FILE__,
@@ -866,13 +866,13 @@ void cpd_cpnd_info_tree_cleanup(CPD_CB *cb)
 	memset(&key, 0, sizeof(NODE_ID));
 
 	/* Get the First Node */
-	cpnd_info_node = (CPD_CPND_INFO_NODE *)ncs_patricia_tree_getnext(&cb->cpnd_tree, (uns8 *)&key);
+	cpnd_info_node = (CPD_CPND_INFO_NODE *)ncs_patricia_tree_getnext(&cb->cpnd_tree, (uint8_t *)&key);
 	while (cpnd_info_node) {
 		key = m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_info_node->cpnd_dest);
 
 		cpd_cpnd_info_node_delete(cb, cpnd_info_node);
 
-		cpnd_info_node = (CPD_CPND_INFO_NODE *)ncs_patricia_tree_getnext(&cb->cpnd_tree, (uns8 *)&key);
+		cpnd_info_node = (CPD_CPND_INFO_NODE *)ncs_patricia_tree_getnext(&cb->cpnd_tree, (uint8_t *)&key);
 	}
 
 	return;
@@ -1234,7 +1234,7 @@ void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificatio
 					node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
 					key = node_id;
 					cpnd_info_node = (CPD_CPND_INFO_NODE *)
-					    ncs_patricia_tree_get(&cb->cpnd_tree, (uns8 *)&key);
+					    ncs_patricia_tree_get(&cb->cpnd_tree, (uint8_t *)&key);
 					if (cpnd_info_node) {
 						cpd_process_cpnd_down(cb, &cpnd_info_node->cpnd_dest);
 					}
@@ -1242,7 +1242,7 @@ void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificatio
 					node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
 					key = node_id;
 					cpnd_info_node = (CPD_CPND_INFO_NODE *)
-					    ncs_patricia_tree_get(&cb->cpnd_tree, (uns8 *)&key);
+					    ncs_patricia_tree_get(&cb->cpnd_tree, (uint8_t *)&key);
 					if (cpnd_info_node) {
 						cpnd_info_node->timer_state = 2;
 					}

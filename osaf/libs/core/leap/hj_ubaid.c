@@ -140,7 +140,7 @@ int32 ncs_enc_init_space(NCS_UBAID *uba)
 
 *****************************************************************************/
 
-int32 ncs_enc_init_space_pp(NCS_UBAID *uba, uns8 pool_id, uns8 priority)
+int32 ncs_enc_init_space_pp(NCS_UBAID *uba, uint8_t pool_id, uint8_t priority)
 {
 	if ((uba->start = m_MMGR_ALLOC_POOLBUFR(pool_id, priority)) == BNULL)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -224,7 +224,7 @@ void ncs_enc_append_usrbuf(NCS_UBAID *uba, USRBUF *ub)
 
 *****************************************************************************/
 
-uns8 *ncs_enc_reserve_space(NCS_UBAID *uba, int32 res)
+uint8_t *ncs_enc_reserve_space(NCS_UBAID *uba, int32 res)
 {
 	if (res > PAYLOAD_BUF_SIZE) {	/* can never reserve > min payload of USRBUF */
 		res = PAYLOAD_BUF_SIZE;
@@ -237,7 +237,7 @@ uns8 *ncs_enc_reserve_space(NCS_UBAID *uba, int32 res)
 	 ** As a patch, we post an out-of-memory message so that 
 	 ** there is some indication as to where the crash came from.
 	 */
-	uba->bufp = m_MMGR_RESERVE_AT_END(&(uba->ub), (uns32)res, uns8 *);
+	uba->bufp = m_MMGR_RESERVE_AT_END(&(uba->ub), (uns32)res, uint8_t *);
 
 #ifdef _DEBUG
 	if (uba->bufp == NULL)
@@ -327,14 +327,14 @@ void ncs_dec_init_space(NCS_UBAID *uba, USRBUF *ub)
 
 *****************************************************************************/
 
-uns8 *ncs_dec_flatten_space(NCS_UBAID *uba, uns8 *os, int32 count)
+uint8_t *ncs_dec_flatten_space(NCS_UBAID *uba, uint8_t *os, int32 count)
 {
 	if (uba->ub == BNULL) {
 		m_LEAP_DBG_SINK(NULL);
 		return NULL;
 	}
 
-	return (uns8 *)m_MMGR_DATA_AT_START(uba->ub, (uns32)count, (char *)os);
+	return (uint8_t *)m_MMGR_DATA_AT_START(uba->ub, (uns32)count, (char *)os);
 }
 
 /*****************************************************************************
@@ -502,9 +502,9 @@ void ncs_reset_uba(NCS_UBAID *uba)
 \***************************************************************/
 USRBUF *mds_encode_mds_dest(USRBUF *i_ub, MDS_DEST *i_mds_dest)
 {
-	uns8 *p;
+	uint8_t *p;
 
-	if ((p = m_MMGR_RESERVE_AT_END(&i_ub, 8, uns8 *)) != (uns8 *)0) {
+	if ((p = m_MMGR_RESERVE_AT_END(&i_ub, 8, uint8_t *)) != (uint8_t *)0) {
 		ncs_encode_64bit(&p, *i_mds_dest);
 		return i_ub;
 	} else
@@ -514,9 +514,9 @@ USRBUF *mds_encode_mds_dest(USRBUF *i_ub, MDS_DEST *i_mds_dest)
 USRBUF *mds_decode_mds_dest(USRBUF *i_ub, MDS_DEST *o_mds_dest)
 {
 	char buff[8];
-	uns8 *s;
+	uint8_t *s;
 
-	s = (uns8 *)m_MMGR_DATA_AT_START(i_ub, 8, buff);
+	s = (uint8_t *)m_MMGR_DATA_AT_START(i_ub, 8, buff);
 	*o_mds_dest = ncs_decode_64bit(&s);
 	m_MMGR_REMOVE_FROM_START(&i_ub, 8);
 
@@ -535,7 +535,7 @@ USRBUF *mds_decode_mds_dest(USRBUF *i_ub, MDS_DEST *o_mds_dest)
 \***************************************************************/
 uns32 mds_uba_encode_mds_dest(NCS_UBAID *uba, MDS_DEST *i_mds_dest)
 {
-	uns8 *p;
+	uint8_t *p;
 
 	p = ncs_enc_reserve_space(uba, 8);
 	ncs_encode_64bit(&p, *i_mds_dest);
@@ -545,8 +545,8 @@ uns32 mds_uba_encode_mds_dest(NCS_UBAID *uba, MDS_DEST *i_mds_dest)
 
 uns32 mds_uba_decode_mds_dest(NCS_UBAID *uba, MDS_DEST *o_mds_dest)
 {
-	uns8 buff[8];
-	uns8 *s;
+	uint8_t buff[8];
+	uint8_t *s;
 
 	s = ncs_dec_flatten_space(uba, buff, 8);
 	*o_mds_dest = ncs_decode_64bit(&s);
@@ -555,7 +555,7 @@ uns32 mds_uba_decode_mds_dest(NCS_UBAID *uba, MDS_DEST *o_mds_dest)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 mds_st_encode_mds_dest(uns8 **stream, MDS_DEST *idest)
+uns32 mds_st_encode_mds_dest(uint8_t **stream, MDS_DEST *idest)
 {
 	if ((stream == NULL) || (*stream == NULL) || (idest == NULL))
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -564,7 +564,7 @@ uns32 mds_st_encode_mds_dest(uns8 **stream, MDS_DEST *idest)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 mds_st_decode_mds_dest(uns8 **stream, MDS_DEST *odest)
+uns32 mds_st_decode_mds_dest(uint8_t **stream, MDS_DEST *odest)
 {
 	if ((stream == NULL) || (*stream == NULL) || (odest == NULL))
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -586,11 +586,11 @@ uns32 mds_st_decode_mds_dest(uns8 **stream, MDS_DEST *odest)
 
 USRBUF *ncs_encode_pointer(USRBUF *i_ub, NCSCONTEXT i_pointer)
 {
-	uns8 *p;
+	uint8_t *p;
 	uns16 p_len;
 
 	p_len = sizeof(NCSCONTEXT);
-	if ((p = m_MMGR_RESERVE_AT_END(&i_ub, (int32)(p_len + sizeof(uns8)), uns8 *)) != (uns8 *)0) {
+	if ((p = m_MMGR_RESERVE_AT_END(&i_ub, (int32)(p_len + sizeof(uint8_t)), uint8_t *)) != (uint8_t *)0) {
 		ncs_encode_8bit(&p, p_len);
 		if (p_len == sizeof(uns32))
 			ncs_encode_32bit(&p, NCS_PTR_TO_INT32_CAST(i_pointer));
@@ -601,20 +601,20 @@ USRBUF *ncs_encode_pointer(USRBUF *i_ub, NCSCONTEXT i_pointer)
 		return NULL;
 }
 
-USRBUF *ncs_decode_pointer(USRBUF *i_ub, uns64 *o_recvd_ptr, uns8 *o_ptr_size_in_bytes)
+USRBUF *ncs_decode_pointer(USRBUF *i_ub, uns64 *o_recvd_ptr, uint8_t *o_ptr_size_in_bytes)
 {
-	uns8 *s;
-	uns8 p_len;
+	uint8_t *s;
+	uint8_t p_len;
 
 	*o_recvd_ptr = 0;
 	*o_ptr_size_in_bytes = 0;
 
-	s = (uns8 *)m_MMGR_DATA_AT_START(i_ub, (int32)(sizeof(uns8)), (char *)o_ptr_size_in_bytes);
+	s = (uint8_t *)m_MMGR_DATA_AT_START(i_ub, (int32)(sizeof(uint8_t)), (char *)o_ptr_size_in_bytes);
 	p_len = ncs_decode_8bit(&s);
 	*o_ptr_size_in_bytes = p_len;
-	m_MMGR_REMOVE_FROM_START(&i_ub, sizeof(uns8));
+	m_MMGR_REMOVE_FROM_START(&i_ub, sizeof(uint8_t));
 
-	s = (uns8 *)m_MMGR_DATA_AT_START(i_ub, (int32)p_len, (char *)o_recvd_ptr);
+	s = (uint8_t *)m_MMGR_DATA_AT_START(i_ub, (int32)p_len, (char *)o_recvd_ptr);
 
 	if (p_len == sizeof(uns32))
 		*o_recvd_ptr = ncs_decode_32bit(&s);
@@ -641,11 +641,11 @@ USRBUF *ncs_decode_pointer(USRBUF *i_ub, uns64 *o_recvd_ptr, uns8 *o_ptr_size_in
 \***************************************************************/
 uns32 ncs_uba_encode_pointer(NCS_UBAID *uba, NCSCONTEXT i_pointer)
 {
-	uns8 *p;
-	uns8 p_len;
+	uint8_t *p;
+	uint8_t p_len;
 
 	p_len = sizeof(NCSCONTEXT);
-	p = ncs_enc_reserve_space(uba, (int32)(p_len + sizeof(uns8)));
+	p = ncs_enc_reserve_space(uba, (int32)(p_len + sizeof(uint8_t)));
 
 	ncs_encode_8bit(&p, p_len);
 	if (p_len == sizeof(uns32))
@@ -653,23 +653,23 @@ uns32 ncs_uba_encode_pointer(NCS_UBAID *uba, NCSCONTEXT i_pointer)
 	else
 		ncs_encode_64bit(&p, NCS_PTR_TO_UNS64_CAST(i_pointer));
 
-	ncs_enc_claim_space(uba, (int32)(p_len + sizeof(uns8)));
+	ncs_enc_claim_space(uba, (int32)(p_len + sizeof(uint8_t)));
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr, uns8 *o_ptr_size_in_bytes)
+uns32 ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr, uint8_t *o_ptr_size_in_bytes)
 {
-	uns8 *s;
-	uns8 p_len;
+	uint8_t *s;
+	uint8_t p_len;
 
 	*o_recvd_ptr = 0;
 	*o_ptr_size_in_bytes = 0;
-	s = ncs_dec_flatten_space(uba, (uns8 *)o_ptr_size_in_bytes, (int32)(sizeof(uns8)));
+	s = ncs_dec_flatten_space(uba, (uint8_t *)o_ptr_size_in_bytes, (int32)(sizeof(uint8_t)));
 	p_len = ncs_decode_8bit(&s);
-	ncs_dec_skip_space(uba, (int32)(sizeof(uns8)));
+	ncs_dec_skip_space(uba, (int32)(sizeof(uint8_t)));
 
 	*o_ptr_size_in_bytes = p_len;
-	s = ncs_dec_flatten_space(uba, (uns8 *)o_recvd_ptr, (int32)p_len);
+	s = ncs_dec_flatten_space(uba, (uint8_t *)o_recvd_ptr, (int32)p_len);
 	if (p_len == sizeof(uns32))
 		*o_recvd_ptr = ncs_decode_32bit(&s);
 	else {
@@ -704,9 +704,9 @@ uns32 ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr, uns8 *o_ptr_siz
   NOTES:
 
 *****************************************************************************/
-uns32 ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uns8 *os, unsigned int count)
+uns32 ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uint8_t *os, unsigned int count)
 {
-	uns8 *p;
+	uint8_t *p;
 	uns32 remaining;
 	uns32 try_put;
 
@@ -734,13 +734,13 @@ uns32 ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uns8 *os, unsigned int count)
 		   needs more than PAYLOAD_BUF_SIZE bytes anyway. 
 		 */
 		try_put = remaining;
-		p = m_MMGR_RESERVE_AT_END_AMAP(&(uba->ub), &try_put, uns8 *);	/* Total=FALSE, i.e. only as much as possible */
+		p = m_MMGR_RESERVE_AT_END_AMAP(&(uba->ub), &try_put, uint8_t *);	/* Total=FALSE, i.e. only as much as possible */
 		if (p != NULL) {
 			/*
 			 * Build the octet string...Remember a NULL pointer
 			 * indicates an all-zero octet-string...
 			 */
-			if (os == (uns8 *)0)
+			if (os == (uint8_t *)0)
 				memset((char *)p, '\0', try_put);
 			else
 				memcpy((char *)p, (char *)(os + count - remaining), try_put);
@@ -773,9 +773,9 @@ uns32 ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uns8 *os, unsigned int count)
   NOTES:
 
 *****************************************************************************/
-uns32 ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uns8 *os, unsigned int count)
+uns32 ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uint8_t *os, unsigned int count)
 {
-	uns8 *p8;
+	uint8_t *p8;
 
 	if (uba->start != NULL) {
 		/* We perform "ncs_dec_init_space" operation on the uba now. */

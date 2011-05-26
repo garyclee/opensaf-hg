@@ -75,7 +75,7 @@ typedef struct mqnd_queue_info {
 	SaSizeT size[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];	/* Size of the queue */
 	SaMsgQueueStatusT queueStatus;	/* Status info of the queue */
 	SaMsgQueueSendingStateT sendingState;	/* Sending state is removed from B.1.1, but used internally */
-	uns8 owner_flag;	/* Orphan or Owned */
+	uint8_t owner_flag;	/* Orphan or Owned */
 	SaMsgHandleT msgHandle;	/* Message hdl of receiver application */
 	MDS_DEST rcvr_mqa;	/* Agent info of Receiver */
 
@@ -131,7 +131,7 @@ typedef struct mqnd_queue_ckpt_info {
 	SaTimeT closeTime;
 	SaMsgQueueSendingStateT sendingState;	/* Sending state is removed from B.1.1, but used internally */
 	uns32 numberOfFullErrors[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];
-	uns8 owner_flag;	/* Orphan or Owned */
+	uint8_t owner_flag;	/* Orphan or Owned */
 	SaMsgHandleT msgHandle;	/* Message hdl of receiver application */
 	MDS_DEST rcvr_mqa;	/* Agent info of Receiver */
 	/* Current message queue implimentation requires the unique key
@@ -167,7 +167,7 @@ typedef struct mqnd_cb {
 	SYSF_MBX mbx;		/* Mail box of this Service Part */
 	NCSCONTEXT task_hdl;	/* Task Handle */
 	uns32 cb_hdl;		/* CB Struct Handle */
-	uns8 hm_pool;		/* Handle Manager Pool ID for this
+	uint8_t hm_pool;		/* Handle Manager Pool ID for this
 				   Service Part */
 	MDS_HDL my_mds_hdl;	/* MDS PWE handle   */
 	MDS_DEST my_dest;	/* MDS Destination ID of self */

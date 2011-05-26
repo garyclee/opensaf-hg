@@ -75,7 +75,7 @@ uns32 avnd_sudb_destroy(AVND_CB *cb)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* scan & delete each su */
-	while (0 != (su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0))) {
+	while (0 != (su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0))) {
 		/* delete the record 
 		   m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
 		   AvND is going down, but don't send any async update even for 
@@ -186,7 +186,7 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
 	 * Add to the patricia tree.
 	 */
 	su->tree_node.bit = 0;
-	su->tree_node.key_info = (uns8 *)&su->name;
+	su->tree_node.key_info = (uint8_t *)&su->name;
 	*rc = ncs_patricia_tree_add(&cb->sudb, &su->tree_node);
 	if (NCSCC_RC_SUCCESS != *rc) {
 		*rc = AVND_ERR_TREE;

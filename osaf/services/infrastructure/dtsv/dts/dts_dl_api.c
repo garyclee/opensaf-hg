@@ -307,7 +307,7 @@ static NCS_BOOL dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg)
 *                                                                            *
 *  Description:   To load/unload the Application specific ASCII Spec table in DTS *  
 *                                                                            *
-*  Arguments:     uns8* - Name of the Configuration File                     *
+*  Arguments:     uint8_t* - Name of the Configuration File                     *
 *                 uns32 - what_to_do                                         *
 *                          1 - REGISTER the ASCII Spec table                 *
 *                          0 - UNREGISTER the ASCII spec table               *
@@ -315,7 +315,7 @@ static NCS_BOOL dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg)
 *  Returns:       NCSCC_RC_SUCCESS   - everything is OK                      *
 *                 NCSCC_RC_FAILURE   -  failure                              *
 \****************************************************************************/
-uns32 dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
+uns32 dts_apps_ascii_spec_load(uint8_t *file_name, uns32 what_to_do)
 {
 	/* get the instruments ready */
 	FILE *fp = NULL;
@@ -342,7 +342,7 @@ uns32 dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
 		/* Check if lib is already loaded or not */
 		if ((lib_entry =
 		     (ASCII_SPEC_LIB *)ncs_patricia_tree_get(&dts_cb.libname_asciispec_tree,
-							     (const uns8 *)lib_name)) != NULL) {
+							     (const uint8_t *)lib_name)) != NULL) {
 			memset(func_name, 0, DTS_MAX_FUNCNAME);
 			memset(lib_name, 0, DTS_MAX_LIBNAME);
 			continue;
@@ -403,7 +403,7 @@ uns32 dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
 				}
 				memset(lib_entry, '\0', sizeof(ASCII_SPEC_LIB));
 				strcpy((char *)lib_entry->lib_name, lib_name);
-				lib_entry->libname_node.key_info = (uns8 *)lib_entry->lib_name;
+				lib_entry->libname_node.key_info = (uint8_t *)lib_entry->lib_name;
 				lib_entry->lib_hdl = lib_hdl;
 				lib_entry->use_count++;
 				/* Add node to patricia tree table */

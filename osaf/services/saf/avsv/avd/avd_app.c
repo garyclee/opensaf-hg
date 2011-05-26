@@ -48,7 +48,7 @@ AVD_APP *avd_app_new(const SaNameT *dn)
 
 	memcpy(app->name.value, dn->value, dn->length);
 	app->name.length = dn->length;
-	app->tree_node.key_info = (uns8 *)&(app->name);
+	app->tree_node.key_info = (uint8_t *)&(app->name);
 
 	return app;
 }
@@ -69,7 +69,7 @@ AVD_APP *avd_app_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_APP *)ncs_patricia_tree_get(&app_db, (uns8 *)&tmp);
+	return (AVD_APP *)ncs_patricia_tree_get(&app_db, (uint8_t *)&tmp);
 }
 
 AVD_APP *avd_app_getnext(const SaNameT *dn)
@@ -79,7 +79,7 @@ AVD_APP *avd_app_getnext(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_APP *)ncs_patricia_tree_getnext(&app_db, (uns8 *)&tmp);
+	return (AVD_APP *)ncs_patricia_tree_getnext(&app_db, (uint8_t *)&tmp);
 }
 
 static void app_add_to_model(AVD_APP *app)

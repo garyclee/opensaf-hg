@@ -341,14 +341,14 @@ extern "C" {
 
 	typedef struct ncs_os_file_op_open {
 		char *i_file_name;
-		uns8 i_read_write_mask;	/* to specify read-write permissions */
+		uint8_t i_read_write_mask;	/* to specify read-write permissions */
 		void *o_file_handle;	/* handle for future reference */
 	} NCS_OS_FILE_OP_OPEN;
 
 	typedef struct ncs_os_file_op_read {
 		void *i_file_handle;
 		uns32 i_buf_size;
-		uns8 *i_buffer;
+		uint8_t *i_buffer;
 		uns32 o_bytes_read;
 	} NCS_OS_FILE_OP_READ;
 
@@ -359,7 +359,7 @@ extern "C" {
 	typedef struct ncs_os_file_op_write {
 		void *i_file_handle;
 		uns32 i_buf_size;
-		uns8 *i_buffer;
+		uint8_t *i_buffer;
 		uns32 o_bytes_written;
 	} NCS_OS_FILE_OP_WRITE;
 
@@ -370,12 +370,12 @@ extern "C" {
 
 	typedef struct ncs_os_file_op_copy {
 		char *i_file_name;
-		uns8 *i_new_file_name;
+		uint8_t *i_new_file_name;
 	} NCS_OS_FILE_OP_COPY;
 
 	typedef struct ncs_os_file_op_rename {
 		char *i_file_name;
-		uns8 *i_new_file_name;
+		uint8_t *i_new_file_name;
 	} NCS_OS_FILE_OP_RENAME;
 
 	typedef struct ncs_os_file_op_remove {
@@ -395,7 +395,7 @@ extern "C" {
 	typedef struct ncs_os_file_op_dir_path {
 		char *i_main_dir;
 		char *i_sub_dir;
-		uns8 *io_buffer;
+		uint8_t *io_buffer;
 		uns32 i_buf_size;
 	} NCS_OS_FILE_OP_DIR_PATH;
 
@@ -420,7 +420,7 @@ extern "C" {
 	typedef struct ncs_os_file_op_get_next {
 		char *i_dir_name;
 		char *i_file_name;
-		uns8 *io_next_file;
+		uint8_t *io_next_file;
 		uns32 i_buf_size;
 	} NCS_OS_FILE_OP_GET_NEXT;
 
@@ -536,9 +536,9 @@ extern "C" {
  *
  ***************************************************************************/
 
-	typedef void *(*NCS_POOL_MALLOC)(uns32 nbytes, uns8 pool_id, uns8 priority);
+	typedef void *(*NCS_POOL_MALLOC)(uns32 nbytes, uint8_t pool_id, uint8_t priority);
 
-	typedef void (*NCS_POOL_MFREE) (void *data, uns8 pool_id);
+	typedef void (*NCS_POOL_MFREE) (void *data, uint8_t pool_id);
 
 /****************************************************************************
  * User Defined Pool Memory Allocate Primitive definition
@@ -558,7 +558,7 @@ extern "C" {
 #ifndef m_OS_UDEF_ALLOC
 
 #define m_OS_UDEF_ALLOC  ncs_os_udef_alloc
-	void *ncs_os_udef_alloc(uns32 size, uns8 pool_id, uns8 pri);
+	void *ncs_os_udef_alloc(uns32 size, uint8_t pool_id, uint8_t pri);
 #endif
 
 /****************************************************************************
@@ -576,7 +576,7 @@ extern "C" {
 #ifndef m_OS_UDEF_FREE
 
 #define m_OS_UDEF_FREE   ncs_os_udef_free
-	void ncs_os_udef_free(void *ptr, uns8 pool);
+	void ncs_os_udef_free(void *ptr, uint8_t pool);
 #endif
 
 /****************************************************************************
@@ -829,7 +829,7 @@ extern "C" {
 		   to fill in the "data" portion only.
 		 */
 		NCS_OS_MQ_MSG_LL_HDR ll_hdr;
-		uns8 data[NCS_OS_MQ_MAX_PAYLOAD];
+		uint8_t data[NCS_OS_MQ_MAX_PAYLOAD];
 	} NCS_OS_MQ_MSG;
 
 /*-----------------------------------*/
@@ -967,7 +967,7 @@ extern "C" {
 
 /*-----------------------------------*/
 	typedef struct ncs_mq_req_unlink_info {
-		uns8 *qname;
+		uint8_t *qname;
 		uns32 node;
 	} NCS_OS_POSIX_MQ_REQ_UNLINK_INFO;
 
@@ -1681,7 +1681,7 @@ extern "C" {
    EXAMPLE :   
                { 
                   SaInt64T  my_long_long;
-                  uns8      buff_64bit[8];
+                  uint8_t      buff_64bit[8];
       
                   ...
                   m_NCS_OS_HTONLL_P(buff_64bit, my_long_long);
@@ -1697,14 +1697,14 @@ extern "C" {
 \*********************************************************/
 #ifndef m_NCS_OS_HTONLL_P
 #define m_NCS_OS_HTONLL_P(p8, in_long_long) {    \
-     ((uns8*)p8)[0] = (uns8)(in_long_long>>56);  \
-     ((uns8*)p8)[1] = (uns8)(in_long_long>>48);  \
-     ((uns8*)p8)[2] = (uns8)(in_long_long>>40);  \
-     ((uns8*)p8)[3] = (uns8)(in_long_long>>32);  \
-     ((uns8*)p8)[4] = (uns8)(in_long_long>>24);  \
-     ((uns8*)p8)[5] = (uns8)(in_long_long>>16);  \
-     ((uns8*)p8)[6] = (uns8)(in_long_long>> 8);  \
-     ((uns8*)p8)[7] = (uns8)(in_long_long    );  \
+     ((uint8_t*)p8)[0] = (uint8_t)(in_long_long>>56);  \
+     ((uint8_t*)p8)[1] = (uint8_t)(in_long_long>>48);  \
+     ((uint8_t*)p8)[2] = (uint8_t)(in_long_long>>40);  \
+     ((uint8_t*)p8)[3] = (uint8_t)(in_long_long>>32);  \
+     ((uint8_t*)p8)[4] = (uint8_t)(in_long_long>>24);  \
+     ((uint8_t*)p8)[5] = (uint8_t)(in_long_long>>16);  \
+     ((uint8_t*)p8)[6] = (uint8_t)(in_long_long>> 8);  \
+     ((uint8_t*)p8)[7] = (uint8_t)(in_long_long    );  \
 }
 #endif
 
@@ -1715,7 +1715,7 @@ extern "C" {
    EXAMPLE :   
                { 
                   SaInt64T  my_long_long;
-                  uns8      buff_64bit[8];
+                  uint8_t      buff_64bit[8];
       
                   ...
                   my_long_long = m_NCS_OS_NTOHLL_P(buff_64bit);
@@ -1730,14 +1730,14 @@ extern "C" {
 \*********************************************************/
 #ifndef m_NCS_OS_NTOHLL_P
 #define m_NCS_OS_NTOHLL_P(p8) (               \
-      ((uns64)((uns8*)(p8))[0] <<56) |        \
-      ((uns64)((uns8*)(p8))[1] <<48) |        \
-      ((uns64)((uns8*)(p8))[2] <<40) |        \
-      ((uns64)((uns8*)(p8))[3] <<32) |        \
-      ((uns64)((uns8*)(p8))[4] <<24) |        \
-      ((uns64)((uns8*)(p8))[5] <<16) |        \
-      ((uns64)((uns8*)(p8))[6] <<8 ) |        \
-      ((uns64)((uns8*)(p8))[7]     )          \
+      ((uns64)((uint8_t*)(p8))[0] <<56) |        \
+      ((uns64)((uint8_t*)(p8))[1] <<48) |        \
+      ((uns64)((uint8_t*)(p8))[2] <<40) |        \
+      ((uns64)((uint8_t*)(p8))[3] <<32) |        \
+      ((uns64)((uint8_t*)(p8))[4] <<24) |        \
+      ((uns64)((uint8_t*)(p8))[5] <<16) |        \
+      ((uns64)((uint8_t*)(p8))[6] <<8 ) |        \
+      ((uns64)((uint8_t*)(p8))[7]     )          \
      )
 #endif
 
@@ -1761,26 +1761,26 @@ extern "C" {
 #else				/* CPU requires alignment access */
 
 #ifndef m_NCS_OS_NTOHL_P
-#define m_NCS_OS_NTOHL_P(p8) (uns32)((*(uns8*)p8<<24)|(*(uns8*)(p8+1)<<16)| \
-                           (*(uns8*)(p8+2)<<8)|(*(uns8*)(p8+3)))
+#define m_NCS_OS_NTOHL_P(p8) (uns32)((*(uint8_t*)p8<<24)|(*(uint8_t*)(p8+1)<<16)| \
+                           (*(uint8_t*)(p8+2)<<8)|(*(uint8_t*)(p8+3)))
 #endif
 
 #ifndef m_NCS_OS_NTOHS_P
-#define m_NCS_OS_NTOHS_P(p8) (uns16)((*(uns8*)p8<<8)|*((uns8*)(p8+1)))
+#define m_NCS_OS_NTOHS_P(p8) (uns16)((*(uint8_t*)p8<<8)|*((uint8_t*)(p8+1)))
 #endif
 
 #ifndef m_NCS_OS_HTONL_P
 #define m_NCS_OS_HTONL_P(p8,v32) { \
-     *p8     = (uns8)(v32>>24); \
-     *(p8+1) = (uns8)(v32>>16); \
-     *(p8+2) = (uns8)(v32>>8);  \
-     *(p8+3) = (uns8)v32; }
+     *p8     = (uint8_t)(v32>>24); \
+     *(p8+1) = (uint8_t)(v32>>16); \
+     *(p8+2) = (uint8_t)(v32>>8);  \
+     *(p8+3) = (uint8_t)v32; }
 #endif
 
 #ifndef m_NCS_OS_HTONS_P
 #define m_NCS_OS_HTONS_P(p8,v16) { \
-     *p8     = (uns8)(v16>>8); \
-     *(p8+1) = (uns8)v16; }
+     *p8     = (uint8_t)(v16>>8); \
+     *(p8+1) = (uint8_t)v16; }
 #endif
 #endif   /* CPU alignment */
 

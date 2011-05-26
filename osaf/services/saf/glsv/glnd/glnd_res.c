@@ -60,7 +60,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_find(GLND_CB *glnd_cb, SaLckResourceIdT r
 {
 	GLND_RESOURCE_INFO *res_info = NULL;
 
-	res_info = (GLND_RESOURCE_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_res_tree, (uns8 *)&res_id);
+	res_info = (GLND_RESOURCE_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_res_tree, (uint8_t *)&res_id);
 
 	return res_info;
 }
@@ -83,14 +83,14 @@ GLND_RESOURCE_INFO *glnd_resource_node_find_by_name(GLND_CB *glnd_cb, SaNameT *r
 	GLND_RESOURCE_INFO *res_info = NULL;
 	SaLckResourceIdT prev_rsc_info;
 
-	res_info = (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uns8 *)0);
+	res_info = (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uint8_t *)0);
 	while (res_info) {
 		prev_rsc_info = res_info->resource_id;
 		if (memcmp(res_name, &res_info->resource_name, sizeof(SaNameT)) == 0) {
 			return res_info;
 		}
 		res_info =
-		    (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uns8 *)&prev_rsc_info);
+		    (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uint8_t *)&prev_rsc_info);
 	}
 	return NULL;
 }
@@ -143,7 +143,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_add(GLND_CB *glnd_cb,
 	res_info->master_status = GLND_OPERATIONAL_STATE;
 
 	/* add it to the tree */
-	res_info->patnode.key_info = (uns8 *)&res_info->resource_id;
+	res_info->patnode.key_info = (uint8_t *)&res_info->resource_id;
 	if (ncs_patricia_tree_add(&glnd_cb->glnd_res_tree, &res_info->patnode) != NCSCC_RC_SUCCESS) {
 		m_LOG_GLND_API(GLND_RSC_NODE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		m_MMGR_FREE_GLND_RESOURCE_INFO(res_info);
@@ -305,7 +305,7 @@ uns32 glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info,
 		glnd_resource_lock_req_delete(res_info, prev_lock_info);
 	}
 
-	client_info = (GLND_CLIENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_client_tree, (uns8 *)0);
+	client_info = (GLND_CLIENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_client_tree, (uint8_t *)0);
 	while (client_info) {
 		prev_app_handle_id = client_info->app_handle_id;
 
@@ -318,7 +318,7 @@ uns32 glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info,
 
 		client_info =
 		    (GLND_CLIENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_client_tree,
-								  (uns8 *)&prev_app_handle_id);
+								  (uint8_t *)&prev_app_handle_id);
 	}
 
 	glnd_res_shm_section_invalidate(glnd_cb, res_info);
@@ -644,7 +644,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 	}
 	memset(lck_list_info, 0, sizeof(GLND_RES_LOCK_LIST_INFO));
 	lck_list_info->lck_info_hdl_id =
-	    ncshm_create_hdl((uns8)cb->pool_id, NCS_SERVICE_ID_GLND, (NCSCONTEXT)lck_list_info);
+	    ncshm_create_hdl((uint8_t)cb->pool_id, NCS_SERVICE_ID_GLND, (NCSCONTEXT)lck_list_info);
 
 	lck_list_info->lock_info = lock_info;
 	lck_list_info->req_mdest_id = req_node_mds_dest;
@@ -892,7 +892,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_lock_req(GLND_CB *cb,
 	lck_list_info->res_info = res_info;
 	lck_list_info->req_mdest_id = cb->glnd_mdest_id;
 	lck_list_info->lck_info_hdl_id =
-	    ncshm_create_hdl((uns8)cb->pool_id, NCS_SERVICE_ID_GLND, (NCSCONTEXT)lck_list_info);
+	    ncshm_create_hdl((uint8_t)cb->pool_id, NCS_SERVICE_ID_GLND, (NCSCONTEXT)lck_list_info);
 	lck_list_info->lock_info.lockid = m_ASSIGN_LCK_HANDLE_ID(NCS_PTR_TO_UNS64_CAST(lck_list_info));
 
 	/* add it to the list */
@@ -1594,7 +1594,7 @@ void glnd_resource_master_process_resend_lock_req(GLND_CB *glnd_cb,
 	memset(lck_list_info, 0, sizeof(GLND_RES_LOCK_LIST_INFO));
 
 	lck_list_info->lck_info_hdl_id =
-	    ncshm_create_hdl((uns8)glnd_cb->pool_id, NCS_SERVICE_ID_GLND, (NCSCONTEXT)lck_list_info);
+	    ncshm_create_hdl((uint8_t)glnd_cb->pool_id, NCS_SERVICE_ID_GLND, (NCSCONTEXT)lck_list_info);
 	lck_list_info->lock_info = lock_info;
 	lck_list_info->req_mdest_id = req_node_mds_id;
 	lck_list_info->res_info = res_node;

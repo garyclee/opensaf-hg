@@ -52,7 +52,7 @@ extern char gl_log_string[];
 uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		       uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	NCS_BOOL u32 = 0;
 	NCS_BOOL *uptr = NULL;
 
@@ -65,7 +65,7 @@ uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			ncs_encode_32bit(&p8, u32);
 			ncs_enc_claim_space(buf_env->info.uba, 4);
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			ncs_encode_tlv_32bit(&p8, u32);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 4);
 		}
@@ -91,11 +91,11 @@ uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				uptr = *((NCS_BOOL **)ptr);
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u32, 4);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
 				u32 = ncs_decode_32bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 4);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u32 = ncs_decode_tlv_32bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 4);
 			}
@@ -123,11 +123,11 @@ uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				memset(uptr, '\0', sizeof(NCS_BOOL));
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u32, 4);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
 				u32 = ncs_decode_32bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 4);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u32 = ncs_decode_tlv_32bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 4);
 			}
@@ -165,8 +165,8 @@ uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		   uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8;
-	uns8 u8 = 0x00;
+	uint8_t *p8;
+	uint8_t u8 = 0x00;
 	uns16 len = 0;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 	uns32 i = 0;
@@ -176,20 +176,20 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 	case EDP_OP_TYPE_ENC:
 		if (buf_env->is_ubaid) {
 			p8 = ncs_enc_reserve_space(buf_env->info.uba, 1);
-			ncs_encode_8bit(&p8, *(uns8 *)ptr);
+			ncs_encode_8bit(&p8, *(uint8_t *)ptr);
 			ncs_enc_claim_space(buf_env->info.uba, 1);
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-			sprintf(gl_log_string, "Encoded uns8: 0x%x \n", *(uns8 *)ptr);
+			sprintf(gl_log_string, "Encoded uns8: 0x%x \n", *(uint8_t *)ptr);
 			ncs_edu_log_msg(gl_log_string);
 #endif
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			if (*ptr_data_len <= 1) {
 				*ptr_data_len = 1;
 			}
 			/* Multiple instances of "uns8" to be encoded */
-			ncs_encode_tlv_n_octets(&p8, (uns8 *)ptr, (uns8)*ptr_data_len);
+			ncs_encode_tlv_n_octets(&p8, (uint8_t *)ptr, (uint8_t)*ptr_data_len);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + (*ptr_data_len));
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
@@ -198,9 +198,9 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			for (i = 0; i < *ptr_data_len; i++) {
 				memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 				if (i == 0)
-					sprintf(gl_log_string, "Encoded uns8: 0x%x \n", *(uns8 *)ptr);
+					sprintf(gl_log_string, "Encoded uns8: 0x%x \n", *(uint8_t *)ptr);
 				else
-					sprintf(gl_log_string, "        uns8: 0x%x \n", *(uns8 *)((uns8 *)ptr + i));
+					sprintf(gl_log_string, "        uns8: 0x%x \n", *(uint8_t *)((uint8_t *)ptr + i));
 				ncs_edu_log_msg(gl_log_string);
 			}
 #endif
@@ -208,29 +208,29 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		break;
 	case EDP_OP_TYPE_DEC:
 		{
-			uns8 *uptr = NULL;
+			uint8_t *uptr = NULL;
 
 			len = 1;	/* default */
 			if (!buf_env->is_ubaid) {
 				/* Look into length of the Octet-stream first. */
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				p8++;
 				len = ((uns16)*(p8)++) << 8;
 				len |= (uns16)*(p8)++;
 			}
 
-			if (*(uns8 **)ptr == NULL) {
+			if (*(uint8_t **)ptr == NULL) {
 				/* Since "ncs_edp_uns8" is the responsibility of LEAP, LEAP
 				   is supposed to malloc this memory. */
-				(*(uns8 **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(len);
+				(*(uint8_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(len);
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
 					return NCSCC_RC_FAILURE;
 				}
-				memset(uptr, '\0', len * sizeof(uns8));
+				memset(uptr, '\0', len * sizeof(uint8_t));
 			} else {
-				uptr = *((uns8 **)ptr);
+				uptr = *((uint8_t **)ptr);
 			}
 			if (buf_env->is_ubaid) {
 				p8 = ncs_dec_flatten_space(buf_env->info.uba, &u8, 1);
@@ -243,8 +243,8 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				ncs_edu_log_msg(gl_log_string);
 #endif
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
-				ncs_decode_tlv_n_octets(p8, (uns8 *)uptr, len);
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
+				ncs_decode_tlv_n_octets(p8, (uint8_t *)uptr, len);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + len);
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
@@ -254,10 +254,10 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				for (i = 0; i < len; i++) {
 					memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 					if (i == 0)
-						sprintf(gl_log_string, "Decoded uns8: 0x%x \n", *(uns8 *)uptr);
+						sprintf(gl_log_string, "Decoded uns8: 0x%x \n", *(uint8_t *)uptr);
 					else
 						sprintf(gl_log_string,
-							"        uns8: 0x%x \n", *(uns8 *)((uns8 *)uptr + i));
+							"        uns8: 0x%x \n", *(uint8_t *)((uint8_t *)uptr + i));
 					ncs_edu_log_msg(gl_log_string);
 				}
 #endif
@@ -267,12 +267,12 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 	case EDP_OP_TYPE_PP:
 		{
-			uns8 *uptr = NULL;
+			uint8_t *uptr = NULL;
 
 			len = 1;	/* default */
 			if (!buf_env->is_ubaid) {
 				/* Look into length of the Octet-stream first. */
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				p8++;
 				len = ((uns16)*(p8)++) << 8;
 				len |= (uns16)*(p8)++;
@@ -297,8 +297,8 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				ncs_edu_log_msg(gl_log_string);
 #endif
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
-				ncs_decode_tlv_n_octets(p8, (uns8 *)uptr, len);
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
+				ncs_decode_tlv_n_octets(p8, (uint8_t *)uptr, len);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + len);
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
@@ -308,18 +308,18 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				for (i = 0; i < len; i++) {
 					memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 					if (i == 0)
-						sprintf(gl_log_string, "PP uns8: 0x%x \n", *(uns8 *)uptr);
+						sprintf(gl_log_string, "PP uns8: 0x%x \n", *(uint8_t *)uptr);
 					else
-						sprintf(gl_log_string, "   uns8: 0x%x \n", *(uns8 *)((uns8 *)uptr + i));
+						sprintf(gl_log_string, "   uns8: 0x%x \n", *(uint8_t *)((uint8_t *)uptr + i));
 					ncs_edu_log_msg(gl_log_string);
 				}
 #endif
 			}
 
 			if (ptr != NULL) {
-				(*(uns8 **)ptr) = uptr;
+				(*(uint8_t **)ptr) = uptr;
 				memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-				sprintf(gl_log_string, "Populated uns8 in PPDB: len = %d\n", len);
+				sprintf(gl_log_string, "Populated uint8_t in PPDB: len = %d\n", len);
 				ncs_edu_log_msg(gl_log_string);
 			} else {
 				/* Free uptr */
@@ -349,7 +349,7 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns16 u16, len = 1, byte_cnt = 0;
 
 	switch (op) {
@@ -365,7 +365,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			ncs_edu_log_msg(gl_log_string);
 #endif
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			if (*ptr_data_len <= 1) {
 				*ptr_data_len = 1;
 			}
@@ -386,7 +386,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			len = 1;	/* default */
 			if (!buf_env->is_ubaid) {
 				/* Look into length of the Octet-stream first. */
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				p8++;
 				len = ((uns16)*(p8)++) << 8;
 				len |= (uns16)*(p8)++;
@@ -406,7 +406,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				uptr = *((uns16 **)ptr);
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u16, 2);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u16, 2);
 				u16 = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 2);
 				*uptr = u16;
@@ -418,7 +418,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			} else {
 				uns32 uns16_cnt = 0;
 
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				uns16_cnt = ncs_decode_tlv_n_16bit(&p8, uptr);
 				ncs_edu_skip_space(&buf_env->info.tlv_env,
 						   EDU_TLV_HDR_SIZE + (sizeof(uns16) * uns16_cnt));
@@ -438,7 +438,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			len = 1;	/* default */
 			if (!buf_env->is_ubaid) {
 				/* Look into length of the Octet-stream first. */
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				p8++;
 				len = ((uns16)*(p8)++) << 8;
 				len |= (uns16)*(p8)++;
@@ -453,7 +453,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			memset(uptr, '\0', sizeof(uns16) * len);
 
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u16, 2);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u16, 2);
 				u16 = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 2);
 				*uptr = u16;
@@ -463,7 +463,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			} else {
 				uns32 uns16_cnt = 0;
 
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				uns16_cnt = ncs_decode_tlv_n_16bit(&p8, uptr);
 				ncs_edu_skip_space(&buf_env->info.tlv_env,
 						   EDU_TLV_HDR_SIZE + (sizeof(uns16) * uns16_cnt));
@@ -504,9 +504,9 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 u32 = 0x00000000;
-	uns16 len = sizeof(uns8);
+	uns16 len = sizeof(uint8_t);
 
 	switch (op) {
 	case EDP_OP_TYPE_ENC:
@@ -522,7 +522,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 #endif
 		} else {
 			uns32 byte_cnt = 0;
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			if (*ptr_data_len <= 1) {
 				*ptr_data_len = 1;
 			}
@@ -541,7 +541,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 			if (!buf_env->is_ubaid) {
 				/* Look into length of the "uns32" first. */
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				p8++;
 				len = ((uns16)*(p8)++) << 8;
 				len |= (uns16)*(p8)++;
@@ -561,7 +561,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				uptr = *((uns32 **)ptr);
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u32, 4);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
 				u32 = ncs_decode_32bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 4);
 				*uptr = u32;
@@ -573,7 +573,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			} else {
 				uns32 uns32_cnt = 0;
 
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				uns32_cnt = ncs_decode_tlv_n_32bit(&p8, uptr);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + (4 * uns32_cnt));
 #if(NCS_EDU_VERBOSE_PRINT == 1)
@@ -591,7 +591,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 			if (!buf_env->is_ubaid) {
 				/* Look into length of the "uns32" first. */
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				p8++;
 				len = ((uns16)*(p8)++) << 8;
 				len |= (uns16)*(p8)++;
@@ -604,7 +604,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			}
 			memset(uptr, '\0', 4 * len);
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u32, 4);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
 				u32 = ncs_decode_32bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 4);
 				*uptr = u32;
@@ -614,7 +614,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			} else {
 				uns32 uns32_cnt = 0;
 
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				uns32_cnt = ncs_decode_tlv_n_32bit(&p8, uptr);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + (4 * uns32_cnt));
 				memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
@@ -653,18 +653,18 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		   uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8;
+	uint8_t *p8;
 
 	switch (op) {
 	case EDP_OP_TYPE_ENC:
 		{
 			if (buf_env->is_ubaid) {
 				p8 = ncs_enc_reserve_space(buf_env->info.uba, 1);
-				ncs_encode_8bit(&p8, *(uns8 *)ptr);
+				ncs_encode_8bit(&p8, *(uint8_t *)ptr);
 				ncs_enc_claim_space(buf_env->info.uba, 1);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
-				ncs_encode_tlv_8bit(&p8, *(uns8 *)ptr);
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
+				ncs_encode_tlv_8bit(&p8, *(uint8_t *)ptr);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 1);
 			}
 #if(NCS_EDU_VERBOSE_PRINT == 1)
@@ -682,7 +682,7 @@ uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 			*ptr_data_len = 1;
 
-			if (*(uns8 **)ptr == NULL) {
+			if (*(uint8_t **)ptr == NULL) {
 				/* Since "ncs_edp_char" is the responsibility of LEAP, LEAP
 				   is supposed to malloc this memory. */
 				(*(char **)ptr) = uptr = m_MMGR_ALLOC_EDP_CHAR(*ptr_data_len);
@@ -696,11 +696,11 @@ uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				uptr = *((char **)ptr);
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)uptr, *ptr_data_len);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, *ptr_data_len);
 				memcpy(uptr, p8, *ptr_data_len);
 				ncs_dec_skip_space(buf_env->info.uba, *ptr_data_len);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				*uptr = ncs_decode_tlv_8bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + (*ptr_data_len));
 			}
@@ -728,11 +728,11 @@ uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			memset(uptr, '\0', (sizeof(char) * (*ptr_data_len)));
 
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)uptr, *ptr_data_len);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, *ptr_data_len);
 				memcpy(uptr, p8, *ptr_data_len);
 				ncs_dec_skip_space(buf_env->info.uba, *ptr_data_len);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				*uptr = ncs_decode_tlv_8bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + (*ptr_data_len));
 			}
@@ -775,7 +775,7 @@ uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		     uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8, *src_p8;
+	uint8_t *p8, *src_p8;
 	uns16 len = 0, byte_cnt = 0;
 
 	switch (op) {
@@ -785,7 +785,7 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 		/* Length of data to be encoded is "*ptr_data_len" */
 		len = (uns16)(*ptr_data_len);
-		src_p8 = (uns8 *)ptr;
+		src_p8 = (uint8_t *)ptr;
 		if (buf_env->is_ubaid) {
 			p8 = ncs_enc_reserve_space(buf_env->info.uba, 2);
 			ncs_encode_16bit(&p8, len);
@@ -794,8 +794,8 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				ncs_encode_n_octets_in_uba(buf_env->info.uba, src_p8, len);
 			}
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
-			byte_cnt = (uns16)ncs_encode_tlv_n_octets(&p8, src_p8, (uns8)len);
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
+			byte_cnt = (uns16)ncs_encode_tlv_n_octets(&p8, src_p8, (uint8_t)len);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, byte_cnt);
 		}
 #if(NCS_EDU_VERBOSE_PRINT == 1)
@@ -812,13 +812,13 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			return NCSCC_RC_FAILURE;
 
 		if (buf_env->is_ubaid) {
-			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&len, 2);
+			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&len, 2);
 			len = ncs_decode_16bit(&p8);
 			ncs_dec_skip_space(buf_env->info.uba, 2);
 			*ptr_data_len = len;
 		} else {
 			/* Look into length of the string first. */
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			p8++;
 			len = ((uns16)*(p8)++) << 8;
 			len |= (uns16)*(p8)++;
@@ -851,13 +851,13 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 			if (buf_env->is_ubaid) {
 				if (ncs_decode_n_octets_from_uba(buf_env->info.uba,
-								 (uns8 *)uptr, len) != NCSCC_RC_SUCCESS) {
+								 (uint8_t *)uptr, len) != NCSCC_RC_SUCCESS) {
 					*o_err = EDU_ERR_MEM_FAIL;
 					return NCSCC_RC_FAILURE;
 				}
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
-				ncs_decode_tlv_n_octets(p8, (uns8 *)uptr, (uns32)len);
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
+				ncs_decode_tlv_n_octets(p8, (uint8_t *)uptr, (uns32)len);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + len);
 			}
 
@@ -878,12 +878,12 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				return NCSCC_RC_FAILURE;
 
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&len, 2);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&len, 2);
 				len = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 2);
 			} else {
 				/* Look into length of the string first. */
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				p8++;
 				len = (uns16)*(p8)++ << 8;
 				len |= (uns16)*(p8)++;
@@ -910,13 +910,13 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 				if (buf_env->is_ubaid) {
 					if (ncs_decode_n_octets_from_uba(buf_env->info.uba,
-									 (uns8 *)uptr, len) != NCSCC_RC_SUCCESS) {
+									 (uint8_t *)uptr, len) != NCSCC_RC_SUCCESS) {
 						*o_err = EDU_ERR_MEM_FAIL;
 						return NCSCC_RC_FAILURE;
 					}
 				} else {
-					p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
-					ncs_decode_tlv_n_octets(p8, (uns8 *)uptr, (uns32)len);
+					p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
+					ncs_decode_tlv_n_octets(p8, (uint8_t *)uptr, (uns32)len);
 					ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + len);
 				}
 
@@ -957,7 +957,7 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	short u16;
 
 	switch (op) {
@@ -968,7 +968,7 @@ uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			ncs_encode_16bit(&p8, u16);
 			ncs_enc_claim_space(buf_env->info.uba, 2);
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			ncs_encode_tlv_16bit(&p8, u16);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 2);
 		}
@@ -996,11 +996,11 @@ uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				uptr = *((short **)ptr);
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u16, 2);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u16, 2);
 				u16 = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 2);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u16 = ncs_decode_tlv_16bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 2);
 			}
@@ -1030,11 +1030,11 @@ uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				memset(uptr, '\0', sizeof(short));
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u16, 2);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u16, 2);
 				u16 = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 2);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u16 = ncs_decode_tlv_16bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 2);
 			}
@@ -1073,7 +1073,7 @@ uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		  uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 u32 = 0x00000000;
 
 	switch (op) {
@@ -1084,7 +1084,7 @@ uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			ncs_encode_32bit(&p8, u32);
 			ncs_enc_claim_space(buf_env->info.uba, 4);
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			ncs_encode_tlv_32bit(&p8, u32);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 4);
 		}
@@ -1113,11 +1113,11 @@ uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				uptr = *((int **)ptr);
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u32, 4);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
 				u32 = ncs_decode_32bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 4);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u32 = ncs_decode_tlv_32bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 4);
 			}
@@ -1147,11 +1147,11 @@ uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				memset(uptr, '\0', sizeof(int));
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u32, 4);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
 				u32 = ncs_decode_32bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 4);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u32 = ncs_decode_tlv_32bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 4);
 			}
@@ -1190,47 +1190,47 @@ uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		   uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8;
-	int8 u8 = 0x00;
+	uint8_t *p8;
+	int8_t u8 = 0x00;
 
 	switch (op) {
 	case EDP_OP_TYPE_ENC:
 		if (buf_env->is_ubaid) {
 			p8 = ncs_enc_reserve_space(buf_env->info.uba, 1);
-			ncs_encode_8bit(&p8, *(int8 *)ptr);
+			ncs_encode_8bit(&p8, *(int8_t *)ptr);
 			ncs_enc_claim_space(buf_env->info.uba, 1);
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
-			ncs_encode_tlv_8bit(&p8, *(int8 *)ptr);
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
+			ncs_encode_tlv_8bit(&p8, *(int8_t *)ptr);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 1);
 		}
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 		memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-		sprintf(gl_log_string, "Encoded int8: 0x%x \n", *(int8 *)ptr);
+		sprintf(gl_log_string, "Encoded int8: 0x%x \n", *(int8_t *)ptr);
 		ncs_edu_log_msg(gl_log_string);
 #endif
 		break;
 	case EDP_OP_TYPE_DEC:
 		{
-			int8 *uptr = NULL;
+			int8_t *uptr = NULL;
 
-			if (*(int8 **)ptr == NULL) {
-				(*(int8 **)ptr) = uptr = m_MMGR_ALLOC_EDP_INT8;
+			if (*(int8_t **)ptr == NULL) {
+				(*(int8_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_INT8;
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
 					return NCSCC_RC_FAILURE;
 				}
-				memset(uptr, '\0', sizeof(int8));
+				memset(uptr, '\0', sizeof(int8_t));
 			} else {
-				uptr = *((int8 **)ptr);
+				uptr = *((int8_t **)ptr);
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u8, 1);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u8, 1);
 				u8 = ncs_decode_8bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 1);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u8 = ncs_decode_tlv_8bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 1);
 			}
@@ -1245,7 +1245,7 @@ uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 	case EDP_OP_TYPE_PP:
 		{
-			int8 *uptr = NULL;
+			int8_t *uptr = NULL;
 
 			if (ptr != NULL) {
 				/* We need populate the pointer here, so that it can
@@ -1257,23 +1257,23 @@ uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 					*o_err = EDU_ERR_MEM_FAIL;
 					return NCSCC_RC_FAILURE;
 				}
-				memset(uptr, '\0', sizeof(uns8));
+				memset(uptr, '\0', sizeof(uint8_t));
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u8, 1);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u8, 1);
 				u8 = ncs_decode_8bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 1);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u8 = ncs_decode_tlv_8bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 1);
 			}
 
 			if (uptr != NULL) {
 				*uptr = u8;
-				(*(int8 **)ptr) = uptr;
+				(*(int8_t **)ptr) = uptr;
 				memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-				sprintf(gl_log_string, "Populated int8 in PPDB: 0x%x \n", u8);
+				sprintf(gl_log_string, "Populated int8_t in PPDB: 0x%x \n", u8);
 				ncs_edu_log_msg(gl_log_string);
 			}
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
@@ -1303,7 +1303,7 @@ uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	int16 u16;
 
 	switch (op) {
@@ -1314,7 +1314,7 @@ uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			ncs_encode_16bit(&p8, u16);
 			ncs_enc_claim_space(buf_env->info.uba, 2);
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			ncs_encode_tlv_16bit(&p8, u16);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 2);
 		}
@@ -1340,11 +1340,11 @@ uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				uptr = *((int16 **)ptr);
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u16, 2);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u16, 2);
 				u16 = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 2);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u16 = ncs_decode_tlv_16bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 2);
 			}
@@ -1374,11 +1374,11 @@ uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				memset(uptr, '\0', sizeof(int16));
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u16, 2);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u16, 2);
 				u16 = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 2);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u16 = ncs_decode_tlv_16bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 2);
 			}
@@ -1417,7 +1417,7 @@ uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	int32 u32 = 0x00000000;
 
 	switch (op) {
@@ -1428,7 +1428,7 @@ uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			ncs_encode_32bit(&p8, u32);
 			ncs_enc_claim_space(buf_env->info.uba, 4);
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			ncs_encode_tlv_32bit(&p8, u32);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 4);
 		}
@@ -1454,11 +1454,11 @@ uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				uptr = *((int32 **)ptr);
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u32, 4);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
 				u32 = ncs_decode_32bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 4);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u32 = ncs_decode_tlv_32bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 4);
 			}
@@ -1488,11 +1488,11 @@ uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				memset(uptr, '\0', sizeof(int32));
 			}
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u32, 4);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
 				u32 = ncs_decode_32bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 4);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u32 = ncs_decode_tlv_32bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 4);
 			}
@@ -1589,9 +1589,9 @@ int ncs_edu_ncs_key_test_fmat_fnc(NCSCONTEXT arg)
 		LCL_TEST_JUMP_OFFSET_FMT_STR = NCS_FMT_STR,
 		LCL_TEST_JUMP_OFFSET_FMT_OCT = NCS_FMT_OCT
 	} LCL_TEST_JUMP_OFFSET;
-	uns8 fmat;
+	uint8_t fmat;
 
-	fmat = *(uns8 *)arg;
+	fmat = *(uint8_t *)arg;
 
 	switch (fmat) {
 	case NCS_FMT_NUM:
@@ -1619,10 +1619,10 @@ int ncs_edu_ncs_key_test_fmat_fnc(NCSCONTEXT arg)
 uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns64 *uptr = NULL;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
-	uns8 *src_p8;
+	uint8_t *src_p8;
 	uns32 cnt = 0;
 #endif
 
@@ -1636,7 +1636,7 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			ncs_encode_64bit(&p8, *(uns64 *)ptr);
 			ncs_enc_claim_space(buf_env->info.uba, sizeof(uns64));
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			ncs_encode_tlv_64bit(&p8, *(uns64 *)ptr);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(uns64));
 		}
@@ -1659,7 +1659,7 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		if (*(uns64 **)ptr == NULL) {
 			/* Since "uns64" is the responsibility of LEAP, LEAP
 			   is supposed to malloc this memory. */
-			(*(uns64 **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(uns64) / sizeof(uns8));
+			(*(uns64 **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(uns64) / sizeof(uint8_t));
 			if (uptr == NULL) {
 				/* Memory failure. */
 				*o_err = EDU_ERR_MEM_FAIL;
@@ -1670,11 +1670,11 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			uptr = *((uns64 **)ptr);
 		}
 		if (buf_env->is_ubaid) {
-			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)uptr, sizeof(uns64));
+			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, sizeof(uns64));
 			*uptr = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(buf_env->info.uba, sizeof(uns64));
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			*uptr = ncs_decode_tlv_64bit(&p8);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(uns64));
 		}
@@ -1683,7 +1683,7 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 		sprintf(gl_log_string, "Decoded uns64: len = 0x%x : ", sizeof(uns64));
 		ncs_edu_log_msg(gl_log_string);
-		src_p8 = (uns8 *)uptr;
+		src_p8 = (uint8_t *)uptr;
 		for (cnt = 0; cnt < sizeof(uns64); cnt++) {
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 			if (cnt == (sizeof(uns64) - 1))
@@ -1699,7 +1699,7 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		/* We need populate the pointer here, so that it can
 		   be sent back to the parent invoker(most likely
 		   to be able to perform the TEST condition). */
-		uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(uns64) / sizeof(uns8));
+		uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(uns64) / sizeof(uint8_t));
 		if (uptr == NULL) {
 			/* Memory failure. */
 			*o_err = EDU_ERR_MEM_FAIL;
@@ -1707,16 +1707,16 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		}
 		memset(uptr, '\0', sizeof(uns64));
 		if (buf_env->is_ubaid) {
-			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)uptr, sizeof(uns64));
+			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, sizeof(uns64));
 			*uptr = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(buf_env->info.uba, sizeof(uns64));
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			*uptr = ncs_decode_tlv_64bit(&p8);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(uns64));
 		}
 
-		src_p8 = (uns8 *)uptr;
+		src_p8 = (uint8_t *)uptr;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 		memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 		sprintf(gl_log_string, "PP uns64: len = 0x%x : ", sizeof(uns64));
@@ -1771,10 +1771,10 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	int64 *uptr = NULL;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
-	uns8 *src_p8;
+	uint8_t *src_p8;
 	uns32 cnt = 0;
 #endif
 
@@ -1788,7 +1788,7 @@ uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			ncs_encode_64bit(&p8, *(int64 *)ptr);
 			ncs_enc_claim_space(buf_env->info.uba, sizeof(int64));
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			ncs_encode_tlv_64bit(&p8, *(int64 *)ptr);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(int64));
 		}
@@ -1811,7 +1811,7 @@ uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		if (*(int64 **)ptr == NULL) {
 			/* Since "int64" is the responsibility of LEAP, LEAP
 			   is supposed to malloc this memory. */
-			(*(int64 **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(int64) / sizeof(uns8));
+			(*(int64 **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(int64) / sizeof(uint8_t));
 			if (uptr == NULL) {
 				/* Memory failure. */
 				*o_err = EDU_ERR_MEM_FAIL;
@@ -1822,11 +1822,11 @@ uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			uptr = *((int64 **)ptr);
 		}
 		if (buf_env->is_ubaid) {
-			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)uptr, sizeof(int64));
+			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, sizeof(int64));
 			*uptr = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(buf_env->info.uba, sizeof(int64));
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			*uptr = ncs_decode_tlv_64bit(&p8);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(int64));
 		}
@@ -1835,7 +1835,7 @@ uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 		sprintf(gl_log_string, "Decoded int64: len = 0x%x : ", sizeof(int64));
 		ncs_edu_log_msg(gl_log_string);
-		src_p8 = (uns8 *)uptr;
+		src_p8 = (uint8_t *)uptr;
 		for (cnt = 0; cnt < sizeof(int64); cnt++) {
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 			if (cnt == (sizeof(int64) - 1))
@@ -1851,7 +1851,7 @@ uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		/* We need populate the pointer here, so that it can
 		   be sent back to the parent invoker(most likely
 		   to be able to perform the TEST condition). */
-		uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(int64) / sizeof(uns8));
+		uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(int64) / sizeof(uint8_t));
 		if (uptr == NULL) {
 			/* Memory failure. */
 			*o_err = EDU_ERR_MEM_FAIL;
@@ -1859,16 +1859,16 @@ uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		}
 		memset(uptr, '\0', sizeof(int64));
 		if (buf_env->is_ubaid) {
-			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)uptr, sizeof(int64));
+			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, sizeof(int64));
 			*uptr = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(buf_env->info.uba, sizeof(int64));
 		} else {
-			p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			*uptr = ncs_decode_tlv_64bit(&p8);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(int64));
 		}
 
-		src_p8 = (uns8 *)uptr;
+		src_p8 = (uint8_t *)uptr;
 		memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 		sprintf(gl_log_string, "PP int64: len = 0x%x : ", sizeof(int64));
 		ncs_edu_log_msg(gl_log_string);

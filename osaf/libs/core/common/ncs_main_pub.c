@@ -1015,7 +1015,7 @@ char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix)
 
   Notes         :  None.
 ******************************************************************************/
-uns8 ncs_get_node_id_from_phyinfo(NCS_CHASSIS_ID i_chassis_id, NCS_PHY_SLOT_ID i_phy_slot_id,
+uint8_t ncs_get_node_id_from_phyinfo(NCS_CHASSIS_ID i_chassis_id, NCS_PHY_SLOT_ID i_phy_slot_id,
 				  NCS_SUB_SLOT_ID i_sub_slot_id, NCS_NODE_ID *o_node_id)
 {
 	if (o_node_id == NULL)
@@ -1043,7 +1043,7 @@ uns8 ncs_get_node_id_from_phyinfo(NCS_CHASSIS_ID i_chassis_id, NCS_PHY_SLOT_ID i
 
   Notes         :  None.
 ******************************************************************************/
-uns8 ncs_get_phyinfo_from_node_id(NCS_NODE_ID i_node_id, NCS_CHASSIS_ID *o_chassis_id,
+uint8_t ncs_get_phyinfo_from_node_id(NCS_NODE_ID i_node_id, NCS_CHASSIS_ID *o_chassis_id,
 				  NCS_PHY_SLOT_ID *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id)
 {
 	if (o_sub_slot_id != NULL)

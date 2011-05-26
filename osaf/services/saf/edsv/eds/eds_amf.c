@@ -672,11 +672,11 @@ void eds_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificati
 		TRACE("After processing, clust list contains: %d nodes",ncs_patricia_tree_size(&cb->eds_cluster_nodes_list));
 		TRACE("=======================================");
 		NODE_INFO *tmp=NULL;
-		tmp = (NODE_INFO *)ncs_patricia_tree_getnext(&cb->eds_cluster_nodes_list, (uns8 *)0);
+		tmp = (NODE_INFO *)ncs_patricia_tree_getnext(&cb->eds_cluster_nodes_list, (uint8_t *)0);
 		while (tmp != NULL)
 		{
 			TRACE("NODE = %d\n", tmp->node_id);
-			tmp=(NODE_INFO *)ncs_patricia_tree_getnext(&cb->eds_cluster_nodes_list, (uns8 *)&tmp->node_id);
+			tmp=(NODE_INFO *)ncs_patricia_tree_getnext(&cb->eds_cluster_nodes_list, (uint8_t *)&tmp->node_id);
 		}
 		TRACE("=======================================");
 		ncshm_give_hdl(gl_eds_hdl);
@@ -708,7 +708,7 @@ SaBoolT update_node_db(EDS_CB *cb, NODE_ID node_id, SaBoolT is_member)
 {
 	NODE_INFO *cn = NULL;
 	if (is_member) {
-		if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uns8 *)&node_id)) == NULL) {
+		if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uint8_t *)&node_id)) == NULL) {
 			TRACE("Node = %d not existing in the DB",node_id);
 			cn = (NODE_INFO *)malloc(sizeof(NODE_INFO));
 			if (cn == NULL) {
@@ -716,7 +716,7 @@ SaBoolT update_node_db(EDS_CB *cb, NODE_ID node_id, SaBoolT is_member)
 				return SA_FALSE;
 			}
 			cn->node_id = node_id;
-			cn->pat_node.key_info = (uns8 *)&cn->node_id;
+			cn->pat_node.key_info = (uint8_t *)&cn->node_id;
 			if (ncs_patricia_tree_add(&cb->eds_cluster_nodes_list,&cn->pat_node) != NCSCC_RC_SUCCESS) {
 				free(cn);
 				LOG_ER("Patricia add failed for cluster node %d",cn->node_id);
@@ -731,7 +731,7 @@ SaBoolT update_node_db(EDS_CB *cb, NODE_ID node_id, SaBoolT is_member)
 		}
 	}
 	else {
-		if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uns8 *)&node_id)) == NULL) {
+		if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uint8_t *)&node_id)) == NULL) {
 			TRACE("Node = %d not in the DB, no change to DB",node_id);
 			return SA_FALSE;
 		}
@@ -765,7 +765,7 @@ void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NOD
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	m_EDS_EDSV_CLM_STATUS_CB_MSG_FILL(msg, cluster_change);
-	reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)0);
+	reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
 	while (reg_rec != NULL) {
 		if (node_id == (m_EDS_GET_NODE_ID_FROM_ADEST(reg_rec->eda_client_dest))) {
 			rc = eds_mds_msg_send(cb, &msg, &reg_rec->eda_client_dest, NULL, MDS_SEND_PRIORITY_MEDIUM);
@@ -775,7 +775,7 @@ void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NOD
 			else
 				TRACE("Sending ClusterNodeUpdate = %d for %d Success", cluster_change, node_id);
 		}
-		reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)&reg_rec->reg_id_Net);
+		reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)&reg_rec->reg_id_Net);
 	}
 
 }
@@ -794,7 +794,7 @@ NCS_BOOL is_node_a_member(EDS_CB *cb, NODE_ID node_id)
 {
 	NODE_INFO *cn = NULL;
 
-	if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uns8 *)&node_id)) == NULL)
+	if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uint8_t *)&node_id)) == NULL)
 		return FALSE;
 	else
 		return TRUE;

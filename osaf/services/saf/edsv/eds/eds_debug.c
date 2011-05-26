@@ -41,7 +41,7 @@ void eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
 {
 	SaEvtEventPatternT *pEventPattern;
 	int32 x = 0;
-	int8 buf[256];
+	int8_t buf[256];
 
 	if (patternArray == NULL)
 		return;
@@ -77,11 +77,11 @@ void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray, SaEvtEventFi
 {
 	int32 x;
 	int32 match = 0;
-	uns8 *p = NULL;
+	uint8_t *p = NULL;
 	SaEvtEventFilterT *filter;
 	SaEvtEventPatternT *pattern;
 	SaEvtEventPatternT emptyPattern = { 0, 0, NULL };
-	int8 buf[256];
+	int8_t buf[256];
 
 	if ((patternArray == NULL) || (filterArray == NULL))
 		return;
@@ -178,7 +178,7 @@ void eds_dump_reglist()
 		return;
 	}
 
-	rl = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)0);
+	rl = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
 
 	while (rl) {		/* While there are registration entries... */
 		num_registrations++;
@@ -211,7 +211,7 @@ void eds_dump_reglist()
 		}
 		TRACE("%s\n", buff);
 
-		rl = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)&rl->reg_id_Net);
+		rl = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)&rl->reg_id_Net);
 	}
 	temp = 0;
 	down_rec = cb->eda_down_list_head;
@@ -284,7 +284,7 @@ void eds_dump_worklist()
 		TRACE("\n");
 		bp = buff;
 
-		co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uns8 *)0);
+		co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uint8_t *)0);
 		while (co) {	/* While there are channelOpen entries... */
 			snprintf(bp, BUFF_SIZE_80 - 1, "%10d:%-6d", co->chan_open_id, co->reg_id);
 			bp = buff + (strlen(buff));
@@ -310,7 +310,7 @@ void eds_dump_worklist()
 			TRACE("%s\n", buff);
 			bp = buff;
 
-			co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uns8 *)&co->copen_id_Net);
+			co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uint8_t *)&co->copen_id_Net);
 		}
 		wp = wp->next;
 	}
@@ -319,12 +319,12 @@ void eds_dump_worklist()
 
 /* Code for CB DUMP */
 	TRACE("\nEDS DATA BASE \n");
-	cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list, (uns8 *)NULL);
+	cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list, (uint8_t *)NULL);
 
 	while (cn) {
 		if (cn->wp_rec)
 			TRACE("\nDB : %s                 Actual: %s", cn->chan_name.value, (cn->wp_rec)->cname);
-		cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list, (uns8 *)&cn->chan_name);
+		cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list, (uint8_t *)&cn->chan_name);
 	}
 
 	/* Give back the handle */

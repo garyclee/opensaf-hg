@@ -60,7 +60,7 @@
  * structure which holds the create information.
  *****************************************************************************/
 typedef struct cpnd_create_info {
-	uns8 pool_id;		/* Handle manager Pool ID */
+	uint8_t pool_id;		/* Handle manager Pool ID */
 } CPND_CREATE_INFO;
 
 /*****************************************************************************

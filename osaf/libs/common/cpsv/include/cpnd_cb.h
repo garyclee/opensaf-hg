@@ -285,7 +285,7 @@ typedef struct cpnd_cb_tag {
 	SaSelectionObjectT clm_sel_obj;
 	SaClmNodeIdT nodeid;
 	SaAmfHandleT amf_hdl;	/* AMF handle, obtained thru AMF init        */
-	uns8 *cpnd_res_shm_name;
+	uint8_t *cpnd_res_shm_name;
 	NCS_BOOL cpnd_first_time;
 	NCS_BOOL read_lck_flag;
 

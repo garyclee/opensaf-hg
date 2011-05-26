@@ -103,7 +103,7 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	SaAisErrorT amf_error;
 	uns32 res = NCSCC_RC_SUCCESS;
 	SaAmfHealthcheckKeyT Healthy;
-	int8 *health_key;
+	int8_t *health_key;
 
 	/* Register with Logging subsystem */
 	if (NCS_GLSV_LOG == 1)
@@ -205,7 +205,7 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 
    /** start the AMF health check **/
 	memset(&Healthy, 0, sizeof(Healthy));
-	health_key = (int8 *)getenv("GLSV_ENV_HEALTHCHECK_KEY");
+	health_key = (int8_t *)getenv("GLSV_ENV_HEALTHCHECK_KEY");
 	if (health_key == NULL) {
 		if (strlen("A1B2") < sizeof(Healthy.key))
 			strncpy((char *)Healthy.key, "A1B2", sizeof(Healthy.key));
@@ -341,9 +341,9 @@ uns32 gld_cb_destroy(GLSV_GLD_CB *gld_cb)
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc;
 
 	/* destroy the patricia trees */
-	while ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details, (uns8 *)0))) {
+	while ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details, (uint8_t *)0))) {
 		while ((glnd_rsc =
-			(GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uns8 *)0))) {
+			(GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uint8_t *)0))) {
 			if (ncs_patricia_tree_del(&node_details->rsc_info_tree, (NCS_PATRICIA_NODE *)glnd_rsc) !=
 			    NCSCC_RC_SUCCESS) {
 				m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__,
@@ -362,7 +362,7 @@ uns32 gld_cb_destroy(GLSV_GLD_CB *gld_cb)
 		m_MMGR_FREE_GLSV_GLD_GLND_DETAILS(node_details);
 	}
 
-	while ((rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(&gld_cb->rsc_info_id, (uns8 *)0))) {
+	while ((rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(&gld_cb->rsc_info_id, (uint8_t *)0))) {
 		/* Free the node list */
 		while (rsc_info->node_list != NULL) {
 			node_list = rsc_info->node_list;
@@ -590,13 +590,13 @@ void gld_dump_cb()
 	/* print the Node details */
 	TRACE("GLND info :");
 	while ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details,
-										  (uns8 *)&node_id))) {
+										  (uint8_t *)&node_id))) {
 		node_id = node_details->node_id;
 		TRACE("Node Id - :%d ", node_details->node_id);
 	}
 
 	/* print the Resource details */
-	while ((rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(&gld_cb->rsc_info_id, (uns8 *)&rsc_id))) {
+	while ((rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(&gld_cb->rsc_info_id, (uint8_t *)&rsc_id))) {
 		GLSV_NODE_LIST *list;
 		rsc_id = rsc_info->rsc_id;
 		TRACE("Resource Id - : %d  Resource Name - %.10s ", (uns32)rsc_info->rsc_id, rsc_info->lck_name.value);

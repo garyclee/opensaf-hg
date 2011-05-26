@@ -48,7 +48,7 @@ uns32 mqnd_mq_create(MQND_QUEUE_INFO *q_info)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
 	char queue_name[SA_MAX_NAME_LENGTH];
-	uns8 i;
+	uint8_t i;
 	uns32 size = 0;
 	MQND_QUEUE_INFO zero_q;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -121,7 +121,7 @@ uns32 mqnd_mq_open(MQND_QUEUE_INFO *q_info)
 uns32 mqnd_mq_destroy(MQND_QUEUE_INFO *q_info)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
-	uns8 qName[SA_MAX_NAME_LENGTH] = { 0 };
+	uint8_t qName[SA_MAX_NAME_LENGTH] = { 0 };
 
 	/* No queuehdl present so return success */
 	if (q_info->queueHandle == 0)
@@ -308,7 +308,7 @@ uns32 mqnd_listenerq_create(MQND_QUEUE_INFO *q_info)
 uns32 mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
-	uns8 qName[SA_MAX_NAME_LENGTH] = { 0 };
+	uint8_t qName[SA_MAX_NAME_LENGTH] = { 0 };
 
 	/* No listener queue present, return */
 	if (!q_info->listenerHandle)

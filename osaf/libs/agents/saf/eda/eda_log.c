@@ -43,7 +43,7 @@
                      dataa - Miscellineousdata
 *****************************************************************************/
 
-void eda_log(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno, uns32 data)
+void eda_log(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *fname, uns32 fno, uns32 data)
 {
 
 	/* Log New type logs */
@@ -68,7 +68,7 @@ void eda_log(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno
                      handle - uns64 handle
 *****************************************************************************/
 
-void eda_log_f(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno, uns32 dataa, uns64 handle)
+void eda_log_f(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *fname, uns32 fno, uns32 dataa, uns64 handle)
 {
 
 	/* Log New type logs */

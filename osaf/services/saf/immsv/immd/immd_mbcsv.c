@@ -448,10 +448,10 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	IMMD_MBCSV_MSG *immd_msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 *immd_type_ptr;
-	uns8 *uns32_ptr;
-	uns8 *uns64_ptr;
-	uns8 *uns8_ptr;
+	uint8_t *immd_type_ptr;
+	uint8_t *uns32_ptr;
+	uint8_t *uns64_ptr;
+	uint8_t *uns8_ptr;
 	TRACE_ENTER();
 
 	/*  Increment the update count cb->immd_sync_cnt
@@ -462,14 +462,14 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 	TRACE_5("************ENC SYNC COUNT %u", cb->immd_sync_cnt);
 
-	immd_type_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+	immd_type_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	if (immd_type_ptr == NULL) {
 		LOG_ER("IMMD - Encode Reserve Space for sync count Failed");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	ncs_encode_8bit(&immd_type_ptr, arg->info.encode.io_reo_type);
 
 	switch (arg->info.encode.io_reo_type) {
@@ -540,19 +540,19 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.ndExecPid);
 
-		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		assert(uns8_ptr);
-		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.canBeCoord);
 
-		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		assert(uns8_ptr);
-		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.isCoord);
 
-		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		assert(uns8_ptr);
-		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.syncStarted);
 
 		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
@@ -560,9 +560,9 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.nodeEpoch);
 
-		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		assert(uns8_ptr);
-		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.pbeEnabled);
 
 		break;
@@ -599,8 +599,8 @@ static uns32 mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	TRACE_ENTER();
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 *header, num_fevs = 0, *sync_cnt_ptr;
-	uns8 *uns32_ptr, *uns64_ptr, *uns8_ptr;
+	uint8_t *header, num_fevs = 0, *sync_cnt_ptr;
+	uint8_t *uns32_ptr, *uns64_ptr, *uns8_ptr;
 
 	/* COLD_SYNC_RESP IS DONE BY THE ACTIVE */
 	if (cb->ha_state == SA_AMF_HA_STANDBY) {
@@ -618,10 +618,10 @@ static uns32 mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 	/* First reserve space to store the number of X that will be sent */
 
-	header = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+	header = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	assert(header);
 
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 
 	/* Count fevs messages in local buffer and send count to sby.
 	   Then send the fevs messages. Or ? is that really practical ?
@@ -670,9 +670,9 @@ static uns32 mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 		while (immnd_info_node) {
 			/* Encode continue marker. */
-			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			assert(uns8_ptr);
-			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			ncs_encode_8bit(&uns8_ptr, 0x1);
 
 			uns64_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns64));
@@ -690,24 +690,24 @@ static uns32 mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
 			ncs_encode_32bit(&uns32_ptr, immnd_info_node->epoch);
 
-			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			assert(uns8_ptr);
-			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			ncs_encode_8bit(&uns8_ptr, immnd_info_node->isOnController);
 
-			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			assert(uns8_ptr);
-			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			ncs_encode_8bit(&uns8_ptr, immnd_info_node->isCoord);
 
-			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			assert(uns8_ptr);
-			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			ncs_encode_8bit(&uns8_ptr, immnd_info_node->syncRequested);
 
-			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			assert(uns8_ptr);
-			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			ncs_encode_8bit(&uns8_ptr, immnd_info_node->syncStarted);
 
 			TRACE_5("Cold sync encoded node:%x Pid:%u Epoch:%u syncR:%u "
@@ -726,9 +726,9 @@ static uns32 mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	}
 
 	/* Encode termination marker. */
-	uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+	uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	assert(uns8_ptr);
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	ncs_encode_8bit(&uns8_ptr, 0x0);
 
 	/* Alter this to follow same pattern as logsv */
@@ -830,8 +830,8 @@ uns32 immd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 
 static uns32 mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns8 *ptr;
-	uns8 data[4];
+	uint8_t *ptr;
+	uint8_t data[4];
 	IMMD_MBCSV_MSG *immd_msg;
 	uns32 evt_type, rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
@@ -850,10 +850,10 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	   only the first field and based on the type then decode the entire 
 	   message */
 
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 	evt_type = ncs_decode_8bit(&ptr);
 	immd_msg->type = evt_type;
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
 	switch (evt_type) {
 	case IMMD_A2S_MSG_FEVS:
@@ -923,25 +923,25 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		immd_msg->info.ctrl.ndExecPid = ncs_decode_32bit(&ptr);
 		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		immd_msg->info.ctrl.canBeCoord = ncs_decode_8bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		immd_msg->info.ctrl.isCoord = ncs_decode_8bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		immd_msg->info.ctrl.syncStarted = ncs_decode_8bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
 		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
 		immd_msg->info.ctrl.nodeEpoch = ncs_decode_32bit(&ptr);
 		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		immd_msg->info.ctrl.pbeEnabled = ncs_decode_8bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
 		rc = immd_process_node_accept(cb, &immd_msg->info.ctrl);
 		if (rc != NCSCC_RC_SUCCESS) {
@@ -978,7 +978,7 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 ******************************************************************************/
 static uns32 mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns8 *ptr, num_fevs, continue_marker, data[16];
+	uint8_t *ptr, num_fevs, continue_marker, data[16];
 	uns32 count = 0, rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -989,10 +989,10 @@ static uns32 mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		return NCSCC_RC_SUCCESS;
 	}
 
-	/* 1. Decode the 1st uns8 region ,  to get the num of fevs msgs to sync */
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+	/* 1. Decode the 1st uint8_t region ,  to get the num of fevs msgs to sync */
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 	num_fevs = ncs_decode_8bit(&ptr);
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
 	/* Decode the data */
 
@@ -1030,9 +1030,9 @@ static uns32 mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 	/* OBTAIN THE IMMND TREE. */
 	/* Get first continue marker. */
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 	continue_marker = ncs_decode_8bit(&ptr);
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
 	while (continue_marker) {
 		MDS_DEST dest;
@@ -1055,25 +1055,25 @@ static uns32 mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		node_info->epoch = ncs_decode_32bit(&ptr);
 		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		node_info->isOnController = ncs_decode_8bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		node_info->isCoord = ncs_decode_8bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
 		if (node_info->isCoord) {
 			cb->immnd_coord = node_info->immnd_key;
 		}
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		node_info->syncRequested = ncs_decode_8bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		node_info->syncStarted = ncs_decode_8bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
 		TRACE_5("Cold sync decoded Pid:%u Epoch:%u syncR:%u syncS:%u "
 			"onCtrlr:%u isCoord:%u", node_info->immnd_execPid,
@@ -1082,9 +1082,9 @@ static uns32 mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			node_info->syncStarted, node_info->isOnController, node_info->isCoord);
 
 		/* Obtain next continue marker. */
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		continue_marker = ncs_decode_8bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 	}
 
 	TRACE_LEAVE();

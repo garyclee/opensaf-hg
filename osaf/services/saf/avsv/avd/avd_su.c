@@ -58,7 +58,7 @@ AVD_SU *avd_su_new(const SaNameT *dn)
 	
 	memcpy(su->name.value, dn->value, dn->length);
 	su->name.length = dn->length;
-	su->tree_node.key_info = (uns8 *)&(su->name);
+	su->tree_node.key_info = (uint8_t *)&(su->name);
 	avsv_sanamet_init(dn, &sg_name, "safSg");
 	su->sg_of_su = avd_sg_get(&sg_name);
 	su->saAmfSUFailover = FALSE;
@@ -108,7 +108,7 @@ AVD_SU *avd_su_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_SU *)ncs_patricia_tree_get(&su_db, (uns8 *)&tmp);
+	return (AVD_SU *)ncs_patricia_tree_get(&su_db, (uint8_t *)&tmp);
 }
 
 AVD_SU *avd_su_getnext(const SaNameT *dn)
@@ -118,7 +118,7 @@ AVD_SU *avd_su_getnext(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_SU *)ncs_patricia_tree_getnext(&su_db, (uns8 *)&tmp);
+	return (AVD_SU *)ncs_patricia_tree_getnext(&su_db, (uint8_t *)&tmp);
 }
 /**
  * @brief   gets the current no of assignmnents on a SU for a particular state
@@ -1422,7 +1422,7 @@ static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT)) {
-		memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
+		memset(((uint8_t *)&param), '\0', sizeof(AVSV_PARAM_INFO));
 		param.class_id = AVSV_SA_AMF_SU;
 		param.act = AVSV_OBJ_OPR_DEL;
 		param.name = su->name;

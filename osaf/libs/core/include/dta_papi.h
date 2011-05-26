@@ -97,12 +97,12 @@ typedef struct ncs_dtsv_rq {
 uns32 ncs_dtsv_su_req(NCS_DTSV_RQ *arg);
 
 uns32 ncs_logmsg(SS_SVC_ID svc_id,
-				     uns8 fmat_id,
-				     uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, ...);
+				     uint8_t fmat_id,
+				     uint8_t str_table_id, uns32 category, uint8_t severity, char *fmat_type, ...);
 
 uns32 ncs_logmsg_v2(SS_SVC_ID svc_id,
 					uns32 inst_id,
-					uns8 fmat_id,
-					uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, ...);
+					uint8_t fmat_id,
+					uint8_t str_table_id, uns32 category, uint8_t severity, char *fmat_type, ...);
 
 #endif   /* DTA_PAPI_H */

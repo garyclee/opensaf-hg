@@ -101,21 +101,21 @@ typedef struct mbcsv_peer_up {
 
 /* PEER DOWN Message */
 typedef struct mbcsv_peer_down {
-	uns8 dummy;
+	uint8_t dummy;
 } MBCSV_PEER_DOWN;
 
 /* PEER INFO Message */
 typedef struct mbcsv_peer_info {
 	uns16 peer_version;	/* Software version of the peer */
 	uns32 my_peer_inst_hdl;
-	uns8 compatible;	/* Flag to tell whether peer is compatible */
+	uint8_t compatible;	/* Flag to tell whether peer is compatible */
 } MBCSV_PEER_INFO;
 
 /* PEER INFO RSP Message */
 typedef struct mbcsv_peer_info_rsp {
 	uns16 peer_version;	/* Software version of the peer */
 	uns32 my_peer_inst_hdl;
-	uns8 compatible;	/* Flag to tell whether peer is compatible */
+	uint8_t compatible;	/* Flag to tell whether peer is compatible */
 } MBCSV_PEER_INFO_RSP;
 
 /* PEER CHG ROLE Message */

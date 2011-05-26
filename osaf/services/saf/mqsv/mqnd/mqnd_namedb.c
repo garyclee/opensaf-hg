@@ -42,7 +42,7 @@ void mqnd_qname_node_get(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE **o_qnode)
 	if (cb->is_qname_db_up) {
 		if (qname.length)
 			qname.length = m_HTON_SANAMET_LEN(qname.length);
-		*o_qnode = (MQND_QNAME_NODE *)ncs_patricia_tree_get(&cb->qname_db, (uns8 *)&qname);
+		*o_qnode = (MQND_QNAME_NODE *)ncs_patricia_tree_get(&cb->qname_db, (uint8_t *)&qname);
 	}
 	return;
 }
@@ -64,9 +64,9 @@ void mqnd_qname_node_getnext(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE **o_qno
 	if (cb->is_qname_db_up) {
 		if (qname.length) {
 			qname.length = m_HTON_SANAMET_LEN(qname.length);
-			*o_qnode = (MQND_QNAME_NODE *)ncs_patricia_tree_getnext(&cb->qname_db, (uns8 *)&qname);
+			*o_qnode = (MQND_QNAME_NODE *)ncs_patricia_tree_getnext(&cb->qname_db, (uint8_t *)&qname);
 		} else
-			*o_qnode = (MQND_QNAME_NODE *)ncs_patricia_tree_getnext(&cb->qname_db, (uns8 *)NULL);
+			*o_qnode = (MQND_QNAME_NODE *)ncs_patricia_tree_getnext(&cb->qname_db, (uint8_t *)NULL);
 	}
 	return;
 }
@@ -87,7 +87,7 @@ uns32 mqnd_qname_node_add(MQND_CB *cb, MQND_QNAME_NODE *qnode)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 	qnode->qname.length = m_HTON_SANAMET_LEN(qnode->qname.length);
-	qnode->pnode.key_info = (uns8 *)&qnode->qname;
+	qnode->pnode.key_info = (uint8_t *)&qnode->qname;
 
 	if (cb->is_qname_db_up)
 		rc = ncs_patricia_tree_add(&cb->qname_db, (NCS_PATRICIA_NODE *)qnode);

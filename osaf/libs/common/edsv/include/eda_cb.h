@@ -45,14 +45,14 @@ struct eda_client_hdl_rec_tag;
 
 typedef struct event_handle_rec_tag {
 	uns32 event_hdl;	/* The hdl for this event allocated by the hdl-mgr */
-	uns8 priority;
+	uint8_t priority;
 	SaTimeT retention_time;
 	SaTimeT publish_time;
 	SaNameT publisher_name;
 	SaEvtEventPatternArrayT *pattern_array;
 	SaSizeT event_data_size;	/* size of the evt data */
-	uns8 *evt_data;		/* Event-specific data  */
-	uns8 evt_type;		/* published or rcvd     */
+	uint8_t *evt_data;		/* Event-specific data  */
+	uint8_t evt_type;		/* published or rcvd     */
 	struct eda_channel_hdl_rec_tag *parent_chan;
 	struct event_handle_rec_tag *next;
 	uns32 pub_evt_id;	/*The event ID sent to EDS ias part of Publish */
@@ -73,7 +73,7 @@ typedef struct eda_channel_hdl_rec_tag {
 	uns32 eds_chan_id;	/* server reference for this channel */
 	uns32 eds_chan_open_id;	/* server reference for this instance of channel open */
 	uns32 last_pub_evt_id;	/* Last Published event ID */
-	uns8 ulink;
+	uint8_t ulink;
 	struct event_handle_rec_tag *chan_event_anchor;
 	struct eda_subsc_rec_tag *subsc_list;	/* List of subscriptions off this channel */
 	struct eda_channel_hdl_rec_tag *next;
@@ -103,7 +103,7 @@ typedef struct eda_eds_intf_tag {
 
 typedef struct eda_cb_tag {
 	uns32 cb_hdl;		/* CB hdl returned by hdl mngr */
-	uns8 pool_id;		/* pool-id used by hdl mngr */
+	uint8_t pool_id;		/* pool-id used by hdl mngr */
 	uns32 prc_id;		/* process identifier */
 	EDA_EDS_INTF eds_intf;	/* EDS interface (mds address & hdl) */
 	NCS_LOCK cb_lock;	/* CB lock */

@@ -63,7 +63,7 @@ static uns32 ckpt_proc_finalize_client(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
 static uns32 ckpt_proc_agent_down(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
 static uns32 ckpt_proc_log_write(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
 static uns32 ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
-static void enc_ckpt_header(uns8 *pdata, lgsv_ckpt_header_t header);
+static void enc_ckpt_header(uint8_t *pdata, lgsv_ckpt_header_t header);
 static uns32 dec_ckpt_header(NCS_UBAID *uba, lgsv_ckpt_header_t *header);
 static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
 static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg);	/* Common Callback interface to mbcsv */
@@ -390,7 +390,7 @@ static uns32 ckpt_enc_cold_sync_data(lgs_cb_t *lgs_cb, NCS_MBCSV_CB_ARG *cbk_arg
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	/* asynsc Update Count */
-	uns8 *async_upd_cnt = NULL;
+	uint8_t *async_upd_cnt = NULL;
 
 	/* Currently, we shall send all data in one send.
 	 * This shall avoid "delta data" problems that are associated during
@@ -459,7 +459,7 @@ static uns32 edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba)
 	lgs_ckpt_stream_open_t *ckpt_stream_rec;
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
-	uns8 *pheader = NULL;
+	uint8_t *pheader = NULL;
 	lgsv_ckpt_header_t ckpt_hdr;
 
 	/* Prepare reg. structure to encode */
@@ -528,7 +528,7 @@ static uns32 edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba)
 	lgs_ckpt_initialize_msg_t *ckpt_reg_rec;
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
-	uns8 *pheader = NULL;
+	uint8_t *pheader = NULL;
 	lgsv_ckpt_header_t ckpt_hdr;
 
 	TRACE_ENTER();
@@ -548,7 +548,7 @@ static uns32 edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba)
 	}
 	ncs_enc_claim_space(uba, sizeof(lgsv_ckpt_header_t));
 
-	client = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)0);
+	client = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uint8_t *)0);
 
 	/* Walk through the reg list and encode record by record */
 	while (client != NULL) {
@@ -567,7 +567,7 @@ static uns32 edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba)
 		++num_rec;
 
 		/* length+=lgs_edp_ed_reg_rec(reg_rec,o_ub); */
-		client = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)&client->client_id_net);
+		client = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uint8_t *)&client->client_id_net);
 	}			/* End while RegRec */
 
 	/* Encode RegHeader */
@@ -885,8 +885,8 @@ static uns32 ckpt_decode_cold_sync(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	lgs_ckpt_initialize_msg_t *reg_rec = NULL;
 	lgs_ckpt_stream_open_t *stream_rec = NULL;
 	uns32 num_of_async_upd;
-	uns8 *ptr;
-	uns8 data_cnt[16];
+	uint8_t *ptr;
+	uint8_t data_cnt[16];
 	TRACE_ENTER();
 
 	/* 
@@ -2036,7 +2036,7 @@ static uns32 edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-static void enc_ckpt_header(uns8 *pdata, lgsv_ckpt_header_t header)
+static void enc_ckpt_header(uint8_t *pdata, lgsv_ckpt_header_t header)
 {
 	ncs_encode_32bit(&pdata, header.ckpt_rec_type);
 	ncs_encode_32bit(&pdata, header.num_ckpt_records);
@@ -2059,8 +2059,8 @@ static void enc_ckpt_header(uns8 *pdata, lgsv_ckpt_header_t header)
 
 static uns32 dec_ckpt_header(NCS_UBAID *uba, lgsv_ckpt_header_t *header)
 {
-	uns8 *p8;
-	uns8 local_data[256];
+	uint8_t *p8;
+	uint8_t local_data[256];
 	TRACE_ENTER();
 	if ((uba == NULL) || (header == NULL)) {
 		TRACE("NULL pointer, FAILED");

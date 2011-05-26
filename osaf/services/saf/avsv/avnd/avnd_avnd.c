@@ -256,7 +256,7 @@ uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 *****************************************************************************/
 
 	/* We have to fprwrd this message to AvA.  */
-	res = avnd_amf_resp_send(cb, resp_info->type, resp_info->rc, (uns8 *)ha_state,
+	res = avnd_amf_resp_send(cb, resp_info->type, resp_info->rc, (uint8_t *)ha_state,
 				 &reg_dest, &avnd_msg->mds_ctxt, NULL, FALSE);
 
 	if (NCSCC_RC_SUCCESS != res) {

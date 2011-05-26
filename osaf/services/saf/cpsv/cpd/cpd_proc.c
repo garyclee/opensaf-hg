@@ -1070,7 +1070,7 @@ void cpd_cb_dump(void)
 			CPD_CPND_INFO_NODE *cpnd_info_node;
 			CPD_CKPT_REF_INFO *list = NULL;
 			memset(&key, 0, sizeof(MDS_DEST));
-			cpnd_info_node = (CPD_CPND_INFO_NODE *)ncs_patricia_tree_getnext(&cb->cpnd_tree, (uns8 *)&key);
+			cpnd_info_node = (CPD_CPND_INFO_NODE *)ncs_patricia_tree_getnext(&cb->cpnd_tree, (uint8_t *)&key);
 			while (cpnd_info_node) {
 				key = cpnd_info_node->cpnd_dest;
 				TRACE("-------------------------------------------------------");
@@ -1084,7 +1084,7 @@ void cpd_cb_dump(void)
 				}
 				TRACE(" End of CKPT IDs List ");
 				cpnd_info_node =
-				    (CPD_CPND_INFO_NODE *)ncs_patricia_tree_getnext(&cb->cpnd_tree, (uns8 *)&key);
+				    (CPD_CPND_INFO_NODE *)ncs_patricia_tree_getnext(&cb->cpnd_tree, (uint8_t *)&key);
 			}
 			TRACE(" End of CPND Info");
 		}
@@ -1104,7 +1104,7 @@ void cpd_cb_dump(void)
 
 			/* Get the First Node */
 			ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree,
-										    (uns8 *)&prev_ckpt_id);
+										    (uint8_t *)&prev_ckpt_id);
 
 			while (ckpt_node) {
 				uns32 i = 0;
@@ -1146,7 +1146,7 @@ void cpd_cb_dump(void)
 				}
 				TRACE(" End of CKPT NODE s List ");
 				ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree,
-											    (uns8 *)&prev_ckpt_id);
+											    (uint8_t *)&prev_ckpt_id);
 			}
 			TRACE(" End of CKPT Info");
 		}
@@ -1167,7 +1167,7 @@ void cpd_cb_dump(void)
 
 			/* Get the First Node */
 			ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree,
-										       (uns8 *)name.value);
+										       (uint8_t *)name.value);
 			while (ckpt_map_node != NULL) {
 				uns32 i;
 
@@ -1191,7 +1191,7 @@ void cpd_cb_dump(void)
 				TRACE(" maxSectionIdSize: %d, ", (uns32)ckpt_map_node->attributes.maxSectionIdSize);
 				ckpt_map_node =
 				    (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree,
-										   (uns8 *)name.value);
+										   (uint8_t *)name.value);
 			}
 			TRACE(" End of CKPT Info");
 		}

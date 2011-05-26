@@ -41,7 +41,7 @@
 void immnd_client_node_get(IMMND_CB *cb, SaImmHandleT imm_client_hdl, IMMND_IMM_CLIENT_NODE **imm_client_node)
 {
 	*imm_client_node = (IMMND_IMM_CLIENT_NODE *)
-	    ncs_patricia_tree_get(&cb->client_info_db, (uns8 *)&imm_client_hdl);
+	    ncs_patricia_tree_get(&cb->client_info_db, (uint8_t *)&imm_client_hdl);
 	return;
 }
 
@@ -61,10 +61,10 @@ void immnd_client_node_getnext(IMMND_CB *cb, SaImmHandleT imm_client_hdl, IMMND_
 {
 	if (imm_client_hdl)
 		*imm_client_node = (IMMND_IMM_CLIENT_NODE *)
-		    ncs_patricia_tree_getnext(&cb->client_info_db, (uns8 *)&imm_client_hdl);
+		    ncs_patricia_tree_getnext(&cb->client_info_db, (uint8_t *)&imm_client_hdl);
 	else
 		*imm_client_node = (IMMND_IMM_CLIENT_NODE *)
-		    ncs_patricia_tree_getnext(&cb->client_info_db, (uns8 *)NULL);
+		    ncs_patricia_tree_getnext(&cb->client_info_db, (uint8_t *)NULL);
 	return;
 }
 
@@ -83,7 +83,7 @@ uns32 immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 
-	cl_node->patnode.key_info = (uns8 *)&cl_node->imm_app_hdl;
+	cl_node->patnode.key_info = (uint8_t *)&cl_node->imm_app_hdl;
 
 	rc = ncs_patricia_tree_add(&cb->client_info_db, (NCS_PATRICIA_NODE *)&cl_node->patnode);
 	return rc;
@@ -146,7 +146,7 @@ void immnd_client_node_tree_cleanup(IMMND_CB *cb)
 	IMMND_IMM_CLIENT_NODE *cl_node;
 
 	while ((cl_node = (IMMND_IMM_CLIENT_NODE *)
-		ncs_patricia_tree_getnext(&cb->client_info_db, (uns8 *)0))) {
+		ncs_patricia_tree_getnext(&cb->client_info_db, (uint8_t *)0))) {
 		ncs_patricia_tree_del(&cb->client_info_db, (NCS_PATRICIA_NODE *)&cl_node->patnode);
 		free(cl_node);
 	}

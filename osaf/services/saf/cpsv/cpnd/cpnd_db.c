@@ -39,7 +39,7 @@
  *****************************************************************************/
 void cpnd_ckpt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, CPND_CKPT_NODE **ckpt_node)
 {
-	*ckpt_node = (CPND_CKPT_NODE *)ncs_patricia_tree_get(&cb->ckpt_info_db, (uns8 *)&ckpt_hdl);
+	*ckpt_node = (CPND_CKPT_NODE *)ncs_patricia_tree_get(&cb->ckpt_info_db, (uint8_t *)&ckpt_hdl);
 	return;
 }
 
@@ -58,9 +58,9 @@ void cpnd_ckpt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, CPND_CKPT
 void cpnd_ckpt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, CPND_CKPT_NODE **ckpt_node)
 {
 	if (ckpt_hdl)
-		*ckpt_node = (CPND_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_info_db, (uns8 *)&ckpt_hdl);
+		*ckpt_node = (CPND_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_info_db, (uint8_t *)&ckpt_hdl);
 	else
-		*ckpt_node = (CPND_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_info_db, (uns8 *)NULL);
+		*ckpt_node = (CPND_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_info_db, (uint8_t *)NULL);
 	return;
 }
 
@@ -79,7 +79,7 @@ uns32 cpnd_ckpt_node_add(CPND_CB *cb, CPND_CKPT_NODE *ckpt_node)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 
-	ckpt_node->patnode.key_info = (uns8 *)&ckpt_node->ckpt_id;
+	ckpt_node->patnode.key_info = (uint8_t *)&ckpt_node->ckpt_id;
 
 	rc = ncs_patricia_tree_add(&cb->ckpt_info_db, (NCS_PATRICIA_NODE *)&ckpt_node->patnode);
 	return rc;
@@ -173,7 +173,7 @@ void cpnd_ckpt_node_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 void cpnd_client_node_get(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl, CPND_CKPT_CLIENT_NODE **ckpt_client_node)
 {
 	*ckpt_client_node = (CPND_CKPT_CLIENT_NODE *)ncs_patricia_tree_get(&cb->client_info_db,
-									   (uns8 *)&ckpt_client_hdl);
+									   (uint8_t *)&ckpt_client_hdl);
 	return;
 }
 
@@ -193,10 +193,10 @@ void cpnd_client_node_getnext(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl, CPND_C
 {
 	if (ckpt_client_hdl)
 		*ckpt_client_node = (CPND_CKPT_CLIENT_NODE *)ncs_patricia_tree_getnext(&cb->client_info_db,
-										       (uns8 *)&ckpt_client_hdl);
+										       (uint8_t *)&ckpt_client_hdl);
 	else
 		*ckpt_client_node = (CPND_CKPT_CLIENT_NODE *)ncs_patricia_tree_getnext(&cb->client_info_db,
-										       (uns8 *)NULL);
+										       (uint8_t *)NULL);
 	return;
 }
 
@@ -215,7 +215,7 @@ uns32 cpnd_client_node_add(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *ckpt_node)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 
-	ckpt_node->patnode.key_info = (uns8 *)&ckpt_node->ckpt_app_hdl;
+	ckpt_node->patnode.key_info = (uint8_t *)&ckpt_node->ckpt_app_hdl;
 
 	rc = ncs_patricia_tree_add(&cb->client_info_db, (NCS_PATRICIA_NODE *)&ckpt_node->patnode);
 	return rc;
@@ -283,7 +283,7 @@ CPND_CKPT_NODE *cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaNameT ckpt_name)
  *****************************************************************************/
 void cpnd_evt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT checkpointHandle, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node)
 {
-	*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_get(&cb->writeevt_db, (uns8 *)&checkpointHandle);
+	*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_get(&cb->writeevt_db, (uint8_t *)&checkpointHandle);
 	return;
 }
 
@@ -301,9 +301,9 @@ void cpnd_evt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT checkpointHandle, CP
 void cpnd_evt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT checkpointHandle, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node)
 {
 	if (checkpointHandle)
-		*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_getnext(&cb->writeevt_db, (uns8 *)&checkpointHandle);
+		*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_getnext(&cb->writeevt_db, (uint8_t *)&checkpointHandle);
 	else
-		*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_getnext(&cb->writeevt_db, (uns8 *)NULL);
+		*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_getnext(&cb->writeevt_db, (uint8_t *)NULL);
 	return;
 }
 
@@ -322,7 +322,7 @@ uns32 cpnd_evt_node_add(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 
-	evt_node->patnode.key_info = (uns8 *)&evt_node->ckpt_id;
+	evt_node->patnode.key_info = (uint8_t *)&evt_node->ckpt_id;
 
 	rc = ncs_patricia_tree_add(&cb->writeevt_db, (NCS_PATRICIA_NODE *)&evt_node->patnode);
 	return rc;
@@ -765,7 +765,7 @@ void cpnd_ckpt_node_tree_cleanup(CPND_CB *cb)
 	CPSV_CPND_DEST_INFO *cpnd_dest_list = NULL, *tmp_dest = NULL;
 	SaAisErrorT error;
 
-	while ((cp_node = (CPND_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_info_db, (uns8 *)0))) {
+	while ((cp_node = (CPND_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_info_db, (uint8_t *)0))) {
 
 		cp_cl_ref = cp_node->clist;
 		while (cp_cl_ref != NULL) {
@@ -825,7 +825,7 @@ void cpnd_client_node_tree_cleanup(CPND_CB *cb)
 	CPND_CKPT_CLIENT_NODE *cl_node = NULL;
 	CPND_CKPT_CKPT_LIST_NODE *cl_ckpt_ref = NULL, *tmp_ref = NULL;
 
-	while ((cl_node = (CPND_CKPT_CLIENT_NODE *)ncs_patricia_tree_getnext(&cb->client_info_db, (uns8 *)0))) {
+	while ((cl_node = (CPND_CKPT_CLIENT_NODE *)ncs_patricia_tree_getnext(&cb->client_info_db, (uint8_t *)0))) {
 
 		cl_ckpt_ref = cl_node->ckpt_list;
 		while (cl_ckpt_ref != NULL) {
@@ -895,7 +895,7 @@ void cpnd_allrepl_write_evt_node_tree_cleanup(CPND_CB *cb)
 	CPSV_CPND_ALL_REPL_EVT_NODE *evt_node = NULL;
 	CPSV_CPND_UPDATE_DEST *evt_ckpt_ref = NULL, *tmp_ref = NULL;
 
-	while ((evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_getnext(&cb->writeevt_db, (uns8 *)0))) {
+	while ((evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_getnext(&cb->writeevt_db, (uint8_t *)0))) {
 
 		evt_ckpt_ref = evt_node->cpnd_update_dest_list;
 		while (evt_ckpt_ref != NULL) {

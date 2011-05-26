@@ -77,15 +77,15 @@ typedef struct ncs_mbcsv_tmr {
 	NCS_MBCSV_TMR_HDL xdb;
 	uns32 period;
 	uns16 is_active;
-	uns8 curr_exp_count;
-	uns8 has_expired;
-	uns8 type;
+	uint8_t curr_exp_count;
+	uint8_t has_expired;
+	uint8_t type;
 } NCS_MBCSV_TMR;
 
 typedef struct ncs_mbcsv_tmr_db {
 	char name[12];
 	TMR_CALLBACK cb_func;
-	uns8 event;
+	uint8_t event;
 } NCS_MBCSV_TMR_DB;
 
 /*

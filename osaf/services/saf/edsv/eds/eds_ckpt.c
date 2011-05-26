@@ -411,7 +411,7 @@ uns32 eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS
 
 	uns32 rc = NCSCC_RC_SUCCESS;
 	/* asynsc Update Count */
-	uns8 *async_upd_cnt = NULL;
+	uint8_t *async_upd_cnt = NULL;
 
 /* Currently, we shall send all data in one send.
  * This shall avoid "delta data" problems that are associated during
@@ -496,7 +496,7 @@ uns32 eds_edu_enc_reg_list(EDS_CB *cb, NCS_UBAID *uba)
 	EDS_CKPT_REG_MSG *ckpt_reg_rec = NULL;
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
-	uns8 *pheader = NULL;
+	uint8_t *pheader = NULL;
 	EDS_CKPT_HEADER ckpt_hdr;
 
 	/* Prepare reg. structure to encode */
@@ -516,7 +516,7 @@ uns32 eds_edu_enc_reg_list(EDS_CB *cb, NCS_UBAID *uba)
 	}
 	ncs_enc_claim_space(uba, sizeof(EDS_CKPT_HEADER));
 
-	reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)0);
+	reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
 
 	/* Walk through the reg list and encode record by record */
 	while (reg_rec != NULL) {
@@ -532,7 +532,7 @@ uns32 eds_edu_enc_reg_list(EDS_CB *cb, NCS_UBAID *uba)
 		++num_rec;
 
 		/* length+=eds_edp_ed_reg_rec(reg_rec,o_ub); */
-		reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)&reg_rec->reg_id_Net);
+		reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)&reg_rec->reg_id_Net);
 	}			/* End while RegRec */
 
 	/* Encode RegHeader */
@@ -568,7 +568,7 @@ uns32 eds_edu_enc_chan_rec(EDS_CB *cb, NCS_UBAID *uba)
 {
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
-	uns8 *pheader = NULL;
+	uint8_t *pheader = NULL;
 	EDS_CKPT_CHAN_MSG *chan_rec = NULL;
 	EDS_CKPT_HEADER ckpt_hdr;
 	EDS_WORKLIST *wp = NULL;
@@ -641,7 +641,7 @@ uns32 eds_edu_enc_chan_open_list(EDS_CB *cb, NCS_UBAID *uba)
 	EDS_CKPT_CHAN_OPEN_MSG *ckpt_copen_rec = NULL;
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
-	uns8 *pheader = NULL;
+	uint8_t *pheader = NULL;
 	EDS_WORKLIST *wp = NULL;
 	EDS_CKPT_HEADER ckpt_hdr;
 
@@ -667,7 +667,7 @@ uns32 eds_edu_enc_chan_open_list(EDS_CB *cb, NCS_UBAID *uba)
 
 	while (wp) {
 
-		copen_rec = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uns8 *)0);
+		copen_rec = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uint8_t *)0);
 		while (copen_rec != NULL) {
 			m_EDS_COPY_CHAN_OPEN_REC(ckpt_copen_rec, copen_rec, wp);
 			rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_chan_open_rec, uba,
@@ -684,7 +684,7 @@ uns32 eds_edu_enc_chan_open_list(EDS_CB *cb, NCS_UBAID *uba)
 			++num_rec;
 
 			copen_rec = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec,
-									       (uns8 *)&copen_rec->copen_id_Net);
+									       (uint8_t *)&copen_rec->copen_id_Net);
 		}		/* End while copen_rec */
 		wp = wp->next;
 	}			/*Enc while wp */
@@ -720,7 +720,7 @@ uns32 eds_edu_enc_subsc_list(EDS_CB *cb, NCS_UBAID *uba)
 	CHAN_OPEN_REC *copen_rec = NULL;
 	EDS_CKPT_SUBSCRIBE_MSG *ckpt_srec = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
-	uns8 *pheader = NULL;
+	uint8_t *pheader = NULL;
 	EDS_CKPT_HEADER ckpt_hdr;
 	EDS_WORKLIST *wp = NULL;
 
@@ -744,7 +744,7 @@ uns32 eds_edu_enc_subsc_list(EDS_CB *cb, NCS_UBAID *uba)
 	wp = cb->eds_work_list;	/* Get root pointer to worklist */
 
 	while (wp) {
-		copen_rec = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uns8 *)0);
+		copen_rec = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uint8_t *)0);
 		while (copen_rec) {
 			/* First fill the reg_id associated with this copen */
 			ckpt_srec->data.reg_id = copen_rec->reg_id;
@@ -765,7 +765,7 @@ uns32 eds_edu_enc_subsc_list(EDS_CB *cb, NCS_UBAID *uba)
 				sub_rec = sub_rec->next;
 			}	/*End while sub_rec */
 			copen_rec = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec,
-									       (uns8 *)&copen_rec->copen_id_Net);
+									       (uint8_t *)&copen_rec->copen_id_Net);
 		}		/*End while co */
 		wp = wp->next;
 	}			/*End while wp */
@@ -800,7 +800,7 @@ uns32 eds_edu_enc_reten_list(EDS_CB *cb, NCS_UBAID *uba)
 	EDS_RETAINED_EVT_REC *ret_rec = NULL;
 	EDS_CKPT_RETAIN_EVT_MSG *ckpt_reten_rec = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
-	uns8 *pheader = NULL;
+	uint8_t *pheader = NULL;
 	EDS_CKPT_HEADER ckpt_hdr;
 	uns32 remaining_time = 0;
 	SaUint8T list_iter;
@@ -1280,8 +1280,8 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	EDS_CKPT_CHAN_MSG *chan_rec = NULL;
 	EDS_CKPT_CHAN_OPEN_MSG *copen_rec = NULL;
 	uns32 num_of_async_upd;
-	uns8 *ptr;
-	uns8 data_cnt[16];
+	uint8_t *ptr;
+	uint8_t data_cnt[16];
 
 	/* EDS_CKPT_RETAIN_EVT_MSG *reten_rec=NULL; */
 
@@ -1800,7 +1800,7 @@ uns32 eds_ckpt_proc_reten_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 
 	/* Grab the chan_open_rec for this id */
 	copen_id_Net = m_NCS_OS_HTONL(param->chan_open_id);
-	if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec, (uns8 *)&copen_id_Net))) {
+	if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec, (uint8_t *)&copen_id_Net))) {
 		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, (long)co, __FILE__, __LINE__, 0);
 	}
 
@@ -2009,7 +2009,7 @@ uns32 eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB *cb, NCS_UBAID *uba)
 
 /*warm sync encode routine used before */
 	uns32 num_of_async_upd, rc = NCSCC_RC_SUCCESS;
-	uns8 data[16], *ptr;
+	uint8_t data[16], *ptr;
 	NCS_MBCSV_ARG mbcsv_arg;
 
 	/*TBD check for the validity of eds_cb arg */
@@ -2061,7 +2061,7 @@ uns32 eds_ckpt_warm_sync_csum_enc_hdlr(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 /*warm sync encode routine used before */
 
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 *wsync_ptr = NULL;
+	uint8_t *wsync_ptr = NULL;
 
 	/* Reserve space to send the async update counter */
 	wsync_ptr = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
@@ -2918,7 +2918,7 @@ uns32 eds_edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-void eds_enc_ckpt_header(uns8 *pdata, EDS_CKPT_HEADER header)
+void eds_enc_ckpt_header(uint8_t *pdata, EDS_CKPT_HEADER header)
 {
 	ncs_encode_32bit(&pdata, header.ckpt_rec_type);
 	ncs_encode_32bit(&pdata, header.num_ckpt_records);
@@ -2941,8 +2941,8 @@ void eds_enc_ckpt_header(uns8 *pdata, EDS_CKPT_HEADER header)
 
 uns32 eds_dec_ckpt_header(NCS_UBAID *uba, EDS_CKPT_HEADER *header)
 {
-	uns8 *p8;
-	uns8 local_data[256];
+	uint8_t *p8;
+	uint8_t local_data[256];
 
 	if ((uba == NULL) || (header == NULL)) {
 		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
@@ -2979,7 +2979,7 @@ uns32 eds_dec_ckpt_header(NCS_UBAID *uba, EDS_CKPT_HEADER *header)
 
 uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg)
 {
-	uns8 *p8 = NULL;
+	uint8_t *p8 = NULL;
 	uns32 total_bytes = 0;
 	uns32 x = 0;
 	SaEvtEventPatternT *pattern_ptr;
@@ -3086,7 +3086,7 @@ uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg)
 
 uns32 eds_ckpt_enc_subscribe_msg(NCS_UBAID *uba, EDS_CKPT_SUBSCRIBE_MSG *msg)
 {
-	uns8 *p8 = NULL;
+	uint8_t *p8 = NULL;
 	uns32 x = 0;
 	uns32 total_bytes = 0;
 	SaEvtEventFilterT *filter_ptr;

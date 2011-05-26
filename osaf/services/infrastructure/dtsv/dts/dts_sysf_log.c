@@ -37,7 +37,7 @@
 
 static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time, NCS_UBAID *uba,
 				    NCSFL_ASCII_SPEC *spec, NCSFL_SET *set, long *arg_list,
-				    uns32 *log_msg_len, uns8 msg_fmat_ver);
+				    uns32 *log_msg_len, uint8_t msg_fmat_ver);
 
 /*****************************************************************************
 
@@ -78,7 +78,7 @@ uns32 dts_ascii_spec_register(NCSFL_ASCII_SPEC *spec)
 	/* using new key to index to ASCII_SPEC patricia tree */
 	if ((spec_entry =
 	     (SYSF_ASCII_SPECS *)ncs_patricia_tree_get(&dts_cb.svcid_asciispec_tree,
-						       (const uns8 *)&spec_key)) != NULL) {
+						       (const uint8_t *)&spec_key)) != NULL) {
 		m_LOG_DTS_DBGSTR(DTS_SERVICE, "ASCII_SPEC table already registered for svc ", 0, spec->ss_id);
 		return NCSCC_RC_SUCCESS;
 	}
@@ -163,7 +163,7 @@ uns32 dts_ascii_spec_register(NCSFL_ASCII_SPEC *spec)
 	/*  Network order key added */
 	spec_entry->key.svc_id = nt_svc_id;
 	spec_entry->key.ss_ver = spec->ss_ver;
-	spec_entry->svcid_node.key_info = (uns8 *)&spec_entry->key;
+	spec_entry->svcid_node.key_info = (uint8_t *)&spec_entry->key;
 
 	if (ncs_patricia_tree_add(&dts_cb.svcid_asciispec_tree, (NCS_PATRICIA_NODE *)spec_entry) != NCSCC_RC_SUCCESS) {
 		ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_SPEC_REG, DTS_FC_EVT, NCSFL_LC_EVENT, NCSFL_SEV_NOTICE, "TILCL",
@@ -215,7 +215,7 @@ uns32 dts_ascii_spec_deregister(SS_SVC_ID ss_id, uns16 version)
 	 */
 	if ((spec_entry =
 	     (SYSF_ASCII_SPECS *)ncs_patricia_tree_get(&dts_cb.svcid_asciispec_tree,
-						       (const uns8 *)&spec_key)) == NULL) {
+						       (const uint8_t *)&spec_key)) == NULL) {
 		m_LOG_DTS_DBGSTR(DTS_SERVICE, "No ASCII_SPEC table corresponding to the service id", 0, ss_id);
 		return NCSCC_RC_FAILURE;
 	} else if (spec_entry->use_count == 0) {
@@ -291,7 +291,7 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION ac
 		/* If lib name is already present just bump the use_count */
 		if ((lib_entry =
 		     (ASCII_SPEC_LIB *)ncs_patricia_tree_get(&dts_cb.libname_asciispec_tree,
-							     (const uns8 *)lib_name)) != NULL) {
+							     (const uint8_t *)lib_name)) != NULL) {
 			lib_entry->use_count++;
 			TRACE("\ndts_ascii_spec_load(): Library: %s already loaded\n", lib_name);
 			return lib_entry;
@@ -300,7 +300,7 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION ac
 		/* If lib name is not present return */
 		if ((lib_entry =
 		     (ASCII_SPEC_LIB *)ncs_patricia_tree_get(&dts_cb.libname_asciispec_tree,
-							     (const uns8 *)lib_name)) == NULL) {
+							     (const uint8_t *)lib_name)) == NULL) {
 			m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_ascii_spec_load: Failed to unload library");
 			return NULL;
 		}
@@ -355,7 +355,7 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION ac
 				}
 				memset(lib_entry, '\0', sizeof(ASCII_SPEC_LIB));
 				strcpy((char *)lib_entry->lib_name, lib_name);
-				lib_entry->libname_node.key_info = (uns8 *)lib_entry->lib_name;
+				lib_entry->libname_node.key_info = (uint8_t *)lib_entry->lib_name;
 				lib_entry->lib_hdl = lib_hdl;
 				/* Add node to patricia tree table */
 				if (ncs_patricia_tree_add
@@ -535,10 +535,10 @@ uns32 dts_log_msg_to_str(DTA_LOG_MSG *logmsg, char *str, NODE_ID node, uns32 pro
 
 static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 				    NCS_UBAID *uba, NCSFL_ASCII_SPEC *spec,
-				    NCSFL_SET *set, long *arg_list, uns32 *log_msg_len, uns8 msg_fmat_ver)
+				    NCSFL_SET *set, long *arg_list, uns32 *log_msg_len, uint8_t msg_fmat_ver)
 {
-	uns8 *data = NULL;
-	uns8 data_buff[DTS_MAX_SIZE_DATA];
+	uint8_t *data = NULL;
+	uint8_t data_buff[DTS_MAX_SIZE_DATA];
 	uns32 cnt = 0;
 
 	while (*ch != '\0') {
@@ -609,14 +609,14 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 			}
 		case 'S':
 			{
-				uns8 u8_val;
+				uint8_t u8_val;
 
-				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns8));
+				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint8_t));
 				if (data == NULL)
 					return NCSCC_RC_FAILURE;
 
 				u8_val = ncs_decode_8bit(&data);
-				ncs_dec_skip_space(uba, sizeof(uns8));
+				ncs_dec_skip_space(uba, sizeof(uint8_t));
 
 				arg_list[cnt] = (long)u8_val;
 				*log_msg_len += 3;
@@ -657,11 +657,11 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 								       spec->svc_name);
 				}
 				memset(mem_d.dump, '\0', mem_d.len);
-				ncs_decode_n_octets_from_uba(uba, (uns8 *)mem_d.dump, mem_d.len);
+				ncs_decode_n_octets_from_uba(uba, (uint8_t *)mem_d.dump, mem_d.len);
 
 				{
 					m_NCSFL_MAKE_STR_FROM_MEM_64(t_str, (mem_addr),
-								     (mem_d.len), (uns8 *)(mem_d.dump));
+								     (mem_d.len), (uint8_t *)(mem_d.dump));
 				}
 
 				m_MMGR_FREE_OCT(mem_d.dump);
@@ -689,9 +689,9 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 								       spec->svc_name);
 				}
 				memset(pdu.dump, '\0', pdu.len);
-				ncs_decode_n_octets_from_uba(uba, (uns8 *)pdu.dump, pdu.len);
+				ncs_decode_n_octets_from_uba(uba, (uint8_t *)pdu.dump, pdu.len);
 
-				m_NCSFL_MAKE_STR_FROM_PDU(t_str, pdu.len, (uns8 *)pdu.dump);
+				m_NCSFL_MAKE_STR_FROM_PDU(t_str, pdu.len, (uint8_t *)pdu.dump);
 
 				m_MMGR_FREE_OCT(pdu.dump);
 
@@ -714,8 +714,8 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 		case 'C':
 			{
 				uns32 length;
-				uns8 *data;
-				uns8 data_buff[DTS_MAX_SIZE_DATA];
+				uint8_t *data;
+				uint8_t data_buff[DTS_MAX_SIZE_DATA];
 
 				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
 				if (data == NULL)
@@ -724,7 +724,7 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 				length = ncs_decode_32bit(&data);
 				ncs_dec_skip_space(uba, sizeof(uns32));
 
-				ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
+				ncs_decode_n_octets_from_uba(uba, (uint8_t *)t_str, length);
 
 				arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
 				t_str += (strlen(t_str) + 1);
@@ -735,8 +735,8 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 		case 'F':
 			{
 				uns32 length;
-				uns8 *data;
-				uns8 data_buff[DTS_MAX_SIZE_DATA];
+				uint8_t *data;
+				uint8_t data_buff[DTS_MAX_SIZE_DATA];
 
 				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
 				if (data == NULL)
@@ -745,7 +745,7 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 				length = ncs_decode_32bit(&data);
 				ncs_dec_skip_space(uba, sizeof(uns32));
 
-				ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
+				ncs_decode_n_octets_from_uba(uba, (uint8_t *)t_str, length);
 				arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
 				t_str += (strlen(t_str) + 1);
 				*log_msg_len += length;
@@ -754,8 +754,8 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 		case 'N':
 			{
 				uns32 length;
-				uns8 *data;
-				uns8 data_buff[DTS_MAX_DBL_DIGITS];
+				uint8_t *data;
+				uint8_t data_buff[DTS_MAX_DBL_DIGITS];
 
 				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
 				if (data == NULL)
@@ -764,7 +764,7 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 				length = ncs_decode_32bit(&data);
 				ncs_dec_skip_space(uba, sizeof(uns32));
 
-				ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
+				ncs_decode_n_octets_from_uba(uba, (uint8_t *)t_str, length);
 				arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
 				t_str += (strlen(t_str) + 1);
 				*log_msg_len += length;
@@ -773,8 +773,8 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 		case 'U':
 			{
 				uns32 length;
-				uns8 *data;
-				uns8 data_buff[DTS_MAX_DBL_DIGITS];
+				uint8_t *data;
+				uint8_t data_buff[DTS_MAX_DBL_DIGITS];
 
 				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
 				if (data == NULL)
@@ -783,7 +783,7 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 				length = ncs_decode_32bit(&data);
 				ncs_dec_skip_space(uba, sizeof(uns32));
 
-				ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
+				ncs_decode_n_octets_from_uba(uba, (uint8_t *)t_str, length);
 				arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
 				t_str += (strlen(t_str) + 1);
 				*log_msg_len += length;
@@ -792,8 +792,8 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 		case 'X':
 			{
 				uns32 length;
-				uns8 *data;
-				uns8 data_buff[DTS_MAX_DBL_DIGITS];
+				uint8_t *data;
+				uint8_t data_buff[DTS_MAX_DBL_DIGITS];
 
 				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
 				if (data == NULL)
@@ -802,7 +802,7 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 				length = ncs_decode_32bit(&data);
 				ncs_dec_skip_space(uba, sizeof(uns32));
 
-				ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
+				ncs_decode_n_octets_from_uba(uba, (uint8_t *)t_str, length);
 				arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
 				t_str += (strlen(t_str) + 1);
 				*log_msg_len += length;

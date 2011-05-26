@@ -248,7 +248,7 @@ uns32 avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 			memset(&api_info, 0, sizeof(AVSV_AMF_API_INFO));
 			m_AVND_COMP_REG_MSG_FILL(api_info, comp->reg_dest,
 						 comp->reg_hdl, &comp->name, &comp->pxy_comp->name);
-			rc = avnd_avnd_msg_send(cb, (uns8 *)&(api_info), AVSV_AMF_COMP_REG,
+			rc = avnd_avnd_msg_send(cb, (uint8_t *)&(api_info), AVSV_AMF_COMP_REG,
 						&comp->mds_ctxt, comp->node_id);
 
 			if (rc != NCSCC_RC_SUCCESS) {
@@ -320,7 +320,7 @@ uns32 avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_avnd_msg_send(AVND_CB *cb, uns8 *msg_info, AVSV_AMF_API_TYPE type, MDS_SYNC_SND_CTXT *ctxt, NODE_ID node_id)
+uns32 avnd_avnd_msg_send(AVND_CB *cb, uint8_t *msg_info, AVSV_AMF_API_TYPE type, MDS_SYNC_SND_CTXT *ctxt, NODE_ID node_id)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVND_MSG msg;
@@ -562,7 +562,7 @@ resp to originator AvND.
 /************************* Section 2 Ends *********************************/
 
 		/* We need to forward this req to other AvND */
-		rc = avnd_avnd_msg_send(cb, (uns8 *)api_info, api_info->type, ctxt, o_comp->node_id);
+		rc = avnd_avnd_msg_send(cb, (uint8_t *)api_info, api_info->type, ctxt, o_comp->node_id);
 		if (NCSCC_RC_SUCCESS != rc) {
 			/* We couldn't send this to other AvND, tell user to try again.  */
 			*o_amf_rc = SA_AIS_ERR_TRY_AGAIN;

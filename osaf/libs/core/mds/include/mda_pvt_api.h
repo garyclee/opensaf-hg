@@ -48,8 +48,8 @@ uns32 vda_chg_role_vdest(MDS_DEST *i_vdest, V_DEST_RL i_new_role);
 
 uns32 vda_create_vdest_locally(uns32 i_policy, MDS_DEST *i_vdest, MDS_HDL *o_mds_vdest_hdl);
 
-uns32 vda_util_enc_8bit(NCS_UBAID *uba, uns8 data);
-uns8 vda_util_dec_8bit(NCS_UBAID *uba);
+uns32 vda_util_enc_8bit(NCS_UBAID *uba, uint8_t data);
+uint8_t vda_util_dec_8bit(NCS_UBAID *uba);
 
 #define vda_util_enc_n_octets(uba, size, buff) ncs_encode_n_octets_in_uba(uba, buff, size)
 #define vda_util_dec_n_octets(uba, size, buff) ncs_decode_n_octets_from_uba(uba, buff, size)

@@ -188,17 +188,17 @@ typedef enum glnd_log_ids {
 void glnd_flx_log_reg(void);
 void glnd_flx_log_dereg(void);
 
-void glnd_log_headline(uns8 hdln_id, uns8 sev, char *file_name, uns32 line_no);
-void glnd_log_headline_TIL(uns8 hdln_id, char *file_name, uns32 line_no, uns32 p1);
-void glnd_log_headline_TILL(uns8 hdln_id, char *file_name, uns32 line_no, uns32 p1, uns32 p2);
-void glnd_log_headline_TILLL(uns8 hdln_id, char *file_name, uns32 line_no, uns32 p1, uns32 p2, uns32 p3);
-void glnd_log_memfail(uns8 mf_id, char *file_name, uns32 line_no);
-void glnd_log_api(uns8 api_id, uns8 sev, char *file_name, uns32 line_no);
-void glnd_log_evt(uns8 evt_id, char *file_name, uns32 line_no, uns32 type, uns32 node, uns32 hdl, uns32 rsc,
+void glnd_log_headline(uint8_t hdln_id, uint8_t sev, char *file_name, uns32 line_no);
+void glnd_log_headline_TIL(uint8_t hdln_id, char *file_name, uns32 line_no, uns32 p1);
+void glnd_log_headline_TILL(uint8_t hdln_id, char *file_name, uns32 line_no, uns32 p1, uns32 p2);
+void glnd_log_headline_TILLL(uint8_t hdln_id, char *file_name, uns32 line_no, uns32 p1, uns32 p2, uns32 p3);
+void glnd_log_memfail(uint8_t mf_id, char *file_name, uns32 line_no);
+void glnd_log_api(uint8_t api_id, uint8_t sev, char *file_name, uns32 line_no);
+void glnd_log_evt(uint8_t evt_id, char *file_name, uns32 line_no, uns32 type, uns32 node, uns32 hdl, uns32 rsc,
 			   uns32 lck);
-void glnd_log_data_send(uns8 id, char *file_name, uns32 line_no, uns32 node, uns32 evt);
-void glnd_log_timer(uns8 id, uns32 type, char *file_name, uns32 line_no);
-void glnd_log(uns8 id, uns32 category, uns8 sev, uns32 rc, char *file_name, uns32 line_no, SaUint64T handle_id,
+void glnd_log_data_send(uint8_t id, char *file_name, uns32 line_no, uns32 node, uns32 evt);
+void glnd_log_timer(uint8_t id, uns32 type, char *file_name, uns32 line_no);
+void glnd_log(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *file_name, uns32 line_no, SaUint64T handle_id,
 		       SaUint32T res_id, SaUint64T lock_id);
 
 #define m_LOG_GLND_HEADLINE(id,sev,file_name,line_no)            glnd_log_headline(id,sev,file_name,line_no)

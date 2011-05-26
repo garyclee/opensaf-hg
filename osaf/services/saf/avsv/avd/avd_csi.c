@@ -141,7 +141,7 @@ AVD_CSI *avd_csi_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 	
-	return (AVD_CSI *)ncs_patricia_tree_get(&csi_db, (uns8 *)&tmp);
+	return (AVD_CSI *)ncs_patricia_tree_get(&csi_db, (uint8_t *)&tmp);
 }
 
 /**
@@ -240,7 +240,7 @@ static AVD_CSI *csi_create(const SaNameT *csi_name, const SaImmAttrValuesT_2 **a
 
 	memcpy(csi->name.value, csi_name->value, csi_name->length);
 	csi->name.length = csi_name->length;
-	csi->tree_node.key_info = (uns8 *)&(csi->name);
+	csi->tree_node.key_info = (uint8_t *)&(csi->name);
 
 	/* initialize the pg node-list */
 	csi->pg_node_list.order = NCS_DBLIST_ANY_ORDER;

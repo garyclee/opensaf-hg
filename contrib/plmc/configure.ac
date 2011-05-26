@@ -104,13 +104,15 @@ AC_CHECK_HEADERS([ \
         netdb.h \
         netinet/in.h \
         sys/ioctl.h \
-	sys/socket.h \
-	syslog.h])
+        sys/socket.h \
+        syslog.h])
 
 AC_FUNC_FORK
 AC_HEADER_STDBOOL
 AC_PROG_CXX
 AC_TYPE_PID_T
+AC_TYPE_UINT8_T
+AC_TYPE_INT8_T
 
 
 #

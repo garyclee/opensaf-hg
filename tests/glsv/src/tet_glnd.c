@@ -89,7 +89,7 @@ void print_resource_cb_info() {
    GLND_CB       *glnd_cb;
    GLND_RESOURCE_INFO *glnd_rsc;
    uns32 res = NCSCC_RC_SUCCESS;
-   uns8 *key=NULL;
+   uint8_t *key=NULL;
 
    printf("print_resource_cb_info  %x\n",glnd_rsc);
 
@@ -101,7 +101,7 @@ void print_resource_cb_info() {
       printf("GLND Startup Success ... %x\n",glnd_cb);
    }
 
-   glnd_rsc=(GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree,(uns8 *)0);
+   glnd_rsc=(GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree,(uint8_t *)0);
    while(glnd_rsc != NULL) {
 
       printf("\n********************************************\n");
@@ -112,7 +112,7 @@ void print_resource_cb_info() {
       printf("Locks on this resource ...\n");
       printf("\n********************************************\n");
 
-      key=(uns8 *)&glnd_rsc->resource_id;
+      key=(uint8_t *)&glnd_rsc->resource_id;
       glnd_rsc=(GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree,key);
    }
 }

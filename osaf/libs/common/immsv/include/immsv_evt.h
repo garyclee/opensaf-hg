@@ -263,7 +263,7 @@ typedef struct immsv_fevs {
 	SaImmHandleT client_hdl;	//Needed for aborting callbacks
 	/* Holds nodeId and connection */
 	IMMSV_OCTET_STRING msg;
-	uns8 isObjSync;   /* Used by coord to avoid unpacking, saves exec.*/
+	uint8_t isObjSync;   /* Used by coord to avoid unpacking, saves exec.*/
 } IMMSV_FEVS;
 
 /****************************************************************************
@@ -369,11 +369,11 @@ typedef struct immsv_d2nd_control {
 	SaUint32T rulingEpoch;
 	SaUint64T fevsMsgStart;
 	SaUint32T ndExecPid;
-	uns8 canBeCoord;
-	uns8 isCoord;
-	uns8 syncStarted;
+	uint8_t canBeCoord;
+	uint8_t isCoord;
+	uint8_t syncStarted;
 	SaUint32T nodeEpoch;
-	uns8 pbeEnabled;
+	uint8_t pbeEnabled;
 } IMMSV_D2ND_CONTROL;
 
 /****************************************************************************
@@ -383,8 +383,8 @@ typedef struct immsv_d2nd_control {
 typedef struct immsv_nd2d_control {
 	SaUint32T ndExecPid;
 	SaUint32T epoch;
-	uns8 refresh;		//TRUE=> This is a refresh of epoch.
-	uns8 pbeEnabled;
+	uint8_t refresh;		//TRUE=> This is a refresh of epoch.
+	uint8_t pbeEnabled;
 } IMMSV_ND2D_CONTROL;
 
 typedef struct immsv_nd2d_adminit_req {

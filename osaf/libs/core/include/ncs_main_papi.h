@@ -153,7 +153,7 @@ Description:
  Notes         :  None.
  ******************************************************************************/
 
-	uns8 ncs_get_node_id_from_phyinfo(NCS_CHASSIS_ID i_chassis_id,
+	uint8_t ncs_get_node_id_from_phyinfo(NCS_CHASSIS_ID i_chassis_id,
 						   NCS_PHY_SLOT_ID i_phy_slot_id,
 						   NCS_SUB_SLOT_ID i_sub_slot_id, NCS_NODE_ID *o_node_id);
 
@@ -176,7 +176,7 @@ Description:
 
   Notes         :  None.
 ******************************************************************************/
-	uns8 ncs_get_phyinfo_from_node_id(NCS_NODE_ID i_node_id,
+	uint8_t ncs_get_phyinfo_from_node_id(NCS_NODE_ID i_node_id,
 						   NCS_CHASSIS_ID *o_chassis_id,
 						   NCS_PHY_SLOT_ID *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id);
 

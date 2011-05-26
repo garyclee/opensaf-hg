@@ -64,7 +64,7 @@ extern "C" {
 	typedef struct lh_ose {	/* OSE Extended Userdata info             */
 		SIGSELECT sig_no;	/* Signal number              (OSE based) */
 		uns32 key;	/* distinguishing attribute               */
-		uns8 pool_id;	/* id must align across environments      */
+		uint8_t pool_id;	/* id must align across environments      */
 		uns16 ttl;	/* total bytes in this USRDATA            */
 		uns16 cur;
 		uns32 used_octets;
@@ -180,7 +180,7 @@ extern "C" {
 			uns32 opaque;
 			struct sig_3x {
 				uns32 nps;
-				uns8 rts;
+				uint8_t rts;
 			} uni_sig_3x;
 		} specific;
 

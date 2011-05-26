@@ -911,7 +911,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 
 		memset(&hc_key, 0, sizeof(AVSV_HLT_KEY));
 
-		hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uns8 *)&hc_key);
+		hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uint8_t *)&hc_key);
 		while (hc_config != 0) {
 			memcpy(&hc_key, &hc_config->key, sizeof(AVSV_HLT_KEY));
 			if (TRUE == hc_config->is_ext) {
@@ -921,7 +921,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 				}
 
 			}	/* if(TRUE == hc_config->is_ext) */
-			hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uns8 *)&hc_key);
+			hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uint8_t *)&hc_key);
 		}		/* while(hc_config != 0) */
 	}
   /****************** Destroy healthcheck db ends here***********************/
@@ -936,7 +936,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 		SaNameT comp_name;
 		AVND_COMP_PXIED_REC *rec = 0, *curr_rec = 0;
 
-		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uns8 *)0);
+		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uint8_t *)0);
 		while (comp != 0) {
 			comp_name = comp->name;
 
@@ -954,14 +954,14 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 						del_rec =
 						    (AVND_COMP_PXIED_REC *)
 						    ncs_db_link_list_remove(&del_proxy->pxied_list,
-									    (uns8 *)&del_comp->name);
+									    (uint8_t *)&del_comp->name);
 						free(del_rec);
 					}
 				}
 				rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(comp_name));
 			}
 			comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db,
-								      (uns8 *)&comp_name);
+								      (uint8_t *)&comp_name);
 		}		/* while */
 	}
   /****************** Destroy Internode db ends here ***********************/
@@ -973,7 +973,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 		AVND_COMP_CSI_REC *csi_rec = NULL;
 		SaNameT su_name;
 
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 		while (su != 0) {
 			su_name = su->name;
 			if (TRUE == su->su_is_external) {
@@ -1007,7 +1007,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 					free(curr_su_si);
 				}	/* while(0 != curr_su_si) */
 			}	/* if(TRUE == su->su_is_external) */
-			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su_name);
+			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su_name);
 		}		/* while(su != 0) */
 	}
 
@@ -1019,7 +1019,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 		AVND_SU_SIQ_REC *su_siq = NULL;
 		SaNameT su_name;
 
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 		while (su != 0) {
 			su_name = su->name;
 			if (TRUE == su->su_is_external) {
@@ -1034,7 +1034,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 					}
 				}	/* while(0 != su_siq) */
 			}	/* if(TRUE == su->su_is_external) */
-			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su_name);
+			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su_name);
 		}		/* while(su != 0) */
 
 	}
@@ -1045,7 +1045,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 		AVND_COMP *comp = NULL;
 		SaNameT comp_name;
 
-		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0);
+		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
 		while (comp != 0) {
 			comp_name = comp->name;
 			if (TRUE == comp->su->su_is_external) {
@@ -1056,7 +1056,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 				}
 			}	/* if(TRUE == comp->su->su_is_external) */
 			comp = (AVND_COMP *)
-			    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp_name);
+			    ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp_name);
 		}		/* while(comp != 0) */
 	}
   /**************** Delete Component, its HC and CBK Record ends here *******/
@@ -1066,7 +1066,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 		AVND_SU *su = NULL;
 		SaNameT su_name;
 
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 		while (su != 0) {
 			su_name = su->name;
 			if (TRUE == su->su_is_external) {
@@ -1077,7 +1077,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 				}
 			}	/* if(TRUE == su->su_is_external) */
 			su = (AVND_SU *)
-			    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su_name);
+			    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su_name);
 		}		/* while(su != 0) */
 	}
 	/* Reset the cold sync done counter */

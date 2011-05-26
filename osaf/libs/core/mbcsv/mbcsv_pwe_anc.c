@@ -69,7 +69,7 @@ uns32 mbcsv_add_new_pwe_anc(uns32 pwe_hdl, MBCSV_ANCHOR anchor)
 
 	m_NCS_LOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
 
-	if (NULL != ncs_patricia_tree_get(&mbcsv_cb.peer_list, (const uns8 *)&key)) {
+	if (NULL != ncs_patricia_tree_get(&mbcsv_cb.peer_list, (const uint8_t *)&key)) {
 		rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Unable to add new entry in the peer's list.");
 
 		goto done;
@@ -84,7 +84,7 @@ uns32 mbcsv_add_new_pwe_anc(uns32 pwe_hdl, MBCSV_ANCHOR anchor)
 
 	new_entry->key.pwe_hdl = pwe_hdl;
 	new_entry->key.anchor = anchor;
-	new_entry->pat_node.key_info = (uns8 *)&new_entry->key;
+	new_entry->pat_node.key_info = (uint8_t *)&new_entry->key;
 
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&mbcsv_cb.peer_list, (NCS_PATRICIA_NODE *)new_entry)) {
 		m_MMGR_FREE_PEER_LIST_IN(new_entry);
@@ -123,7 +123,7 @@ uns32 mbcsv_rmv_pwe_anc_entry(uns32 pwe_hdl, MBCSV_ANCHOR anchor)
 
 	m_NCS_LOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
 
-	if (NULL == (tree_entry = (MBCSV_PEER_LIST *)ncs_patricia_tree_get(&mbcsv_cb.peer_list, (const uns8 *)&key))) {
+	if (NULL == (tree_entry = (MBCSV_PEER_LIST *)ncs_patricia_tree_get(&mbcsv_cb.peer_list, (const uint8_t *)&key))) {
 		rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Unable to remove entry from the peer list.");
 		goto done;
 	}
@@ -190,7 +190,7 @@ uns32 mbcsv_destroy_peer_list(void)
 	key.anchor = 0;
 
 	while (NULL != (tree_entry =
-			(MBCSV_PEER_LIST *)ncs_patricia_tree_getnext(&mbcsv_cb.peer_list, (const uns8 *)&key))) {
+			(MBCSV_PEER_LIST *)ncs_patricia_tree_getnext(&mbcsv_cb.peer_list, (const uint8_t *)&key))) {
 		key = tree_entry->key;
 
 		ncs_patricia_tree_del(&mbcsv_cb.peer_list, (NCS_PATRICIA_NODE *)tree_entry);
@@ -230,7 +230,7 @@ uns32 mbcsv_get_next_anchor_for_pwe(uns32 pwe_hdl, MBCSV_ANCHOR *anchor)
 	m_NCS_LOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
 
 	if ((NULL == (tree_entry = (MBCSV_PEER_LIST *)ncs_patricia_tree_getnext(&mbcsv_cb.peer_list,
-										(const uns8 *)&key)))
+										(const uint8_t *)&key)))
 	    || (tree_entry->key.pwe_hdl != pwe_hdl)) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -298,7 +298,7 @@ uns32 mbcsv_rmv_ancs_for_pwe(uns32 pwe_hdl)
 		key.anchor = anchor;
 
 		if (NULL == (tree_entry = (MBCSV_PEER_LIST *)ncs_patricia_tree_get(&mbcsv_cb.peer_list,
-										   (const uns8 *)&key))) {
+										   (const uint8_t *)&key))) {
 			rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Unable to remove entry from the peer list.");
 			goto done;
 		}

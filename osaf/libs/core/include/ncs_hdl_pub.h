@@ -84,7 +84,7 @@ extern "C" {
 	void ncshm_delete(void);
 
 /* p_id is the pool ID from where the handles would be created from. */
-	uns32 ncshm_create_hdl(uns8 p_id, NCS_SERVICE_ID id, NCSCONTEXT save);
+	uns32 ncshm_create_hdl(uint8_t p_id, NCS_SERVICE_ID id, NCSCONTEXT save);
 
 	uns32 ncshm_declare_hdl(uns32 hdl, NCS_SERVICE_ID id, NCSCONTEXT save);
 
@@ -100,7 +100,7 @@ extern "C" {
 
 	typedef struct ncslpg_obj {
 		NCS_BOOL open;	/* Is the object (still) open/available     */
-		uns8 inhere;	/* use-count of clients 'inside' object now */
+		uint8_t inhere;	/* use-count of clients 'inside' object now */
 
 	} NCSLPG_OBJ;		/* Local Persistence Guard */
 

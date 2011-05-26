@@ -104,7 +104,7 @@ typedef uns32 NCS_SPL_INSTANTIATION_FLAGS;
 
 /**** S P L R      S T U F F  ******/
 typedef struct ncs_splr_key {
-	uns8 sp_abstract_name[NCS_MAX_SP_ABSTRACT_NAME_LEN + 1];
+	uint8_t sp_abstract_name[NCS_MAX_SP_ABSTRACT_NAME_LEN + 1];
 } NCS_SPLR_KEY;
 
 /*----*/
@@ -131,7 +131,7 @@ typedef struct ncs_splr_cb {
 
 /************ S P I R      S T U F F    ******/
 typedef struct ncs_spir_key {
-	uns8 sp_abstract_name[NCS_MAX_SP_ABSTRACT_NAME_LEN + 1];
+	uint8_t sp_abstract_name[NCS_MAX_SP_ABSTRACT_NAME_LEN + 1];
 	SaNameT instance_name;
 	uns32 environment_id;	/* Should we use PW_ENV_ID instead of uns32? */
 } NCS_SPIR_KEY;
@@ -231,7 +231,7 @@ uns32 ncs_splr_api(NCS_SPLR_REQ_INFO *info)
 	/* Start processing */
 	switch (info->type) {
 	case NCS_SPLR_REQ_REG:
-		if (ncs_patricia_tree_get(&sprr_cb->splr_cb.spl_list, (uns8 *)&splr_key)
+		if (ncs_patricia_tree_get(&sprr_cb->splr_cb.spl_list, (uint8_t *)&splr_key)
 		    != NULL) {
 			/* This is a duplicate entry. Reject this request */
 			rc = m_NCS_SPRR_DBG_SINK(NCSCC_RC_DUPLICATE_ENTRY, "SPLR duplication attempted");
@@ -260,7 +260,7 @@ uns32 ncs_splr_api(NCS_SPLR_REQ_INFO *info)
 		memset(splr_entry, 0, sizeof(*splr_entry));
 
 		/* Set it up */
-		splr_entry->pat_node.key_info = (uns8 *)&splr_entry->key;
+		splr_entry->pat_node.key_info = (uint8_t *)&splr_entry->key;
 		splr_entry->key = splr_key;
 		splr_entry->inst_api = info->info.reg.instantiation_api;
 		splr_entry->inst_flags = info->info.reg.instantiation_flags;
@@ -274,7 +274,7 @@ uns32 ncs_splr_api(NCS_SPLR_REQ_INFO *info)
 	case NCS_SPLR_REQ_DEREG:
 
 		/* Check for presence of such an entry */
-		splr_entry = (NCS_SPLR_ENTRY *)ncs_patricia_tree_get(&sprr_cb->splr_cb.spl_list, (uns8 *)&splr_key);
+		splr_entry = (NCS_SPLR_ENTRY *)ncs_patricia_tree_get(&sprr_cb->splr_cb.spl_list, (uint8_t *)&splr_key);
 
 		if (splr_entry == NULL) {
 			/* There is no such entry. Reject this request */
@@ -362,7 +362,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 
    /*---STEP : Check if this service-provider has registered */
 	splr_entry = (NCS_SPLR_ENTRY *)ncs_patricia_tree_get(&sprr_cb->splr_cb.spl_list,
-							     (uns8 *)spir_key.sp_abstract_name);
+							     (uint8_t *)spir_key.sp_abstract_name);
 	if (splr_entry == NULL) {
 		/* Service provider library has not registered */
 		rc = NCSCC_RC_FAILURE;
@@ -396,7 +396,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 	switch (info->type) {
 	case NCS_SPIR_REQ_ADD_INST:
 
-		if (ncs_patricia_tree_get(&sprr_cb->spir_cb.spi_list, (uns8 *)&spir_key)
+		if (ncs_patricia_tree_get(&sprr_cb->spir_cb.spi_list, (uint8_t *)&spir_key)
 
 		    != NULL) {
 			/* This is a duplicate entry. Reject this request */
@@ -416,7 +416,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 		memset(spir_entry, 0, sizeof(*spir_entry));
 
 		/* Set it up */
-		spir_entry->pat_node.key_info = (uns8 *)&spir_entry->key;
+		spir_entry->pat_node.key_info = (uint8_t *)&spir_entry->key;
 		spir_entry->key = spir_key;
 		spir_entry->use_count = 1;
 		splr_entry->inst_count++;	/*Note:Splr-entry */
@@ -431,7 +431,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 
 	case NCS_SPIR_REQ_RMV_INST:
 		/* Check for presence of such an entry */
-		spir_entry = (NCS_SPIR_ENTRY *)ncs_patricia_tree_get(&sprr_cb->spir_cb.spi_list, (uns8 *)&spir_key);
+		spir_entry = (NCS_SPIR_ENTRY *)ncs_patricia_tree_get(&sprr_cb->spir_cb.spi_list, (uint8_t *)&spir_key);
 
 		if (spir_entry == NULL) {
 			/* There is no such entry. Reject this request */
@@ -461,7 +461,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 
 	case NCS_SPIR_REQ_LOOKUP_INST:
 		/* Check for presence of such an entry */
-		spir_entry = (NCS_SPIR_ENTRY *)ncs_patricia_tree_get(&sprr_cb->spir_cb.spi_list, (uns8 *)&spir_key);
+		spir_entry = (NCS_SPIR_ENTRY *)ncs_patricia_tree_get(&sprr_cb->spir_cb.spi_list, (uint8_t *)&spir_key);
 
 		if (spir_entry == NULL) {
 			/* There is no such entry. Reject this request */
@@ -477,7 +477,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 
 	case NCS_SPIR_REQ_LOOKUP_NEXT_INST:
 		/* Check for presence of such an entry */
-		spir_entry = (NCS_SPIR_ENTRY *)ncs_patricia_tree_getnext(&sprr_cb->spir_cb.spi_list, (uns8 *)&spir_key);
+		spir_entry = (NCS_SPIR_ENTRY *)ncs_patricia_tree_getnext(&sprr_cb->spir_cb.spi_list, (uint8_t *)&spir_key);
 
 		if ((spir_entry == NULL) ||
 		    (0 !=
@@ -497,7 +497,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 
 	case NCS_SPIR_REQ_LOOKUP_CREATE_INST:
 		/* Check for presence of such an entry */
-		spir_entry = (NCS_SPIR_ENTRY *)ncs_patricia_tree_get(&sprr_cb->spir_cb.spi_list, (uns8 *)&spir_key);
+		spir_entry = (NCS_SPIR_ENTRY *)ncs_patricia_tree_get(&sprr_cb->spir_cb.spi_list, (uint8_t *)&spir_key);
 
 		if (spir_entry == NULL) {
 			info->info.lookup_create_inst.o_created = TRUE;
@@ -511,7 +511,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 			memset(spir_entry, 0, sizeof(*spir_entry));
 
 			/* Set it up */
-			spir_entry->pat_node.key_info = (uns8 *)&spir_entry->key;
+			spir_entry->pat_node.key_info = (uint8_t *)&spir_entry->key;
 			spir_entry->key = spir_key;
 			spir_entry->use_count = 0;
 
@@ -556,7 +556,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 
 	case NCS_SPIR_REQ_REL_INST:
 		/* Check for presence of such an entry */
-		spir_entry = (NCS_SPIR_ENTRY *)ncs_patricia_tree_get(&sprr_cb->spir_cb.spi_list, (uns8 *)&spir_key);
+		spir_entry = (NCS_SPIR_ENTRY *)ncs_patricia_tree_get(&sprr_cb->spir_cb.spi_list, (uint8_t *)&spir_key);
 
 		/* Do we need to check for instantiation flags here ? */
 		if (spir_entry == NULL) {

@@ -464,7 +464,7 @@ static uns32 mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg)
 {
 	MQA_TRACK_INFO *track_info;
 	MQA_CLIENT_INFO *client_info;
-	uns8 *temp_name_ptr = 0;
+	uint8_t *temp_name_ptr = 0;
 	SaNameT temp_name;
 	SaMsgHandleT *temp_hdl_ptr = 0;
 	SaMsgHandleT temp_hdl;
@@ -493,13 +493,13 @@ static uns32 mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg)
 		return NCSCC_RC_FAILURE;
 	}
 	while ((client_info =
-		(MQA_CLIENT_INFO *)ncs_patricia_tree_getnext(&mqa_cb->mqa_client_tree, (uns8 *const)temp_hdl_ptr))) {
+		(MQA_CLIENT_INFO *)ncs_patricia_tree_getnext(&mqa_cb->mqa_client_tree, (uint8_t *const)temp_hdl_ptr))) {
 		temp_hdl = client_info->msgHandle;
 		temp_hdl_ptr = &temp_hdl;
 		/* scan the entire group track db & delete each record */
 		while ((track_info =
 			(MQA_TRACK_INFO *)ncs_patricia_tree_getnext(&client_info->mqa_track_tree,
-								    (uns8 *const)temp_name_ptr))) {
+								    (uint8_t *const)temp_name_ptr))) {
 			/* delete the track info */
 			temp_name = track_info->queueGroupName;
 			temp_name_ptr = temp_name.value;
@@ -990,7 +990,7 @@ uns32 mqsv_mqa_callback_queue_write(MQA_CB *mqa_cb, SaMsgHandleT handle, MQP_ASY
 	uns32 rc = NCSCC_RC_FAILURE;
 
 	/* Search for the node from the client tree */
-	client_info = (MQA_CLIENT_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_client_tree, (uns8 *)&handle);
+	client_info = (MQA_CLIENT_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_client_tree, (uint8_t *)&handle);
 
 	if (client_info == NULL) {
 		/* recieved a callback for an non-existant client. so dump the callback info */

@@ -49,11 +49,11 @@ uns32 glnd_restart_lock_event_info_ckpt_write(GLND_CB *glnd_cb,
 						       GLSV_RESTART_BACKUP_EVT_INFO restart_backup_evt);
 uns32 glnd_restart_res_lock_list_ckpt_write(GLND_CB *glnd_cb, GLND_RES_LOCK_LIST_INFO *res_lock_list,
 						     SaLckResourceIdT res_id, SaLckHandleT app_handle_id,
-						     uns8 to_which_list);
+						     uint8_t to_which_list);
 
 uns32 glnd_restart_res_lock_list_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RES_LOCK_LIST_INFO *res_lock_list,
 							 SaLckResourceIdT res_id, SaLckHandleT app_handle_id,
-							 uns8 to_which_list);
+							 uint8_t to_which_list);
 
 uns32 glnd_restart_res_lock_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_LOCK_LIST_INFO *restart_res_lock_info,
 					       uns32 offset);

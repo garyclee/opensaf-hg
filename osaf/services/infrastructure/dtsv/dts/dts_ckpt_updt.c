@@ -93,7 +93,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 
 			/* Find svc entry in  svc_tbl patricia tree */
 			if ((svc =
-			     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uns8 *)&nt_key)) == NULL) {
+			     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uint8_t *)&nt_key)) == NULL) {
 				m_DTS_UNLK(&cb->lock);
 				m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
 				m_LOG_DTS_EVT(DTS_EV_SVC_REG_NOTFOUND, key.ss_svc_id, key.node, (uns32)dta_key);
@@ -105,7 +105,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 
 			/* Check if dta is already present in dta_dest patricia tree */
 			if ((to_reg =
-			     (DTA_DEST_LIST *)ncs_patricia_tree_get(&cb->dta_list, (const uns8 *)&dta_key)) == NULL) {
+			     (DTA_DEST_LIST *)ncs_patricia_tree_get(&cb->dta_list, (const uint8_t *)&dta_key)) == NULL) {
 				to_reg = m_MMGR_ALLOC_VCARD_TBL;
 				if (to_reg == NULL) {
 					m_DTS_UNLK(&cb->lock);
@@ -120,7 +120,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 				to_reg->updt_req = dtadest->updt_req;
 				to_reg->dta_num_svcs = 0;
 				/*ncs_create_queue(&to_reg->svc_list); */
-				to_reg->node.key_info = (uns8 *)&to_reg->dta_addr;
+				to_reg->node.key_info = (uint8_t *)&to_reg->dta_addr;
 				to_reg->svc_list = NULL;
 
 				if (ncs_patricia_tree_add(&cb->dta_list, (NCS_PATRICIA_NODE *)&to_reg->node) !=
@@ -184,7 +184,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 			 * If no, read the config file */
 			if ((spec_entry =
 			     (SYSF_ASCII_SPECS *)ncs_patricia_tree_get(&cb->svcid_asciispec_tree,
-								       (const uns8 *)&spec_key)) == NULL) {
+								       (const uint8_t *)&spec_key)) == NULL) {
 				/* If ASCII_SPEC table is versioning enabled, this means
 				 * service name & version specified was incorrect.
 				 */
@@ -231,7 +231,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 			m_DTS_LK(&cb->lock);
 			m_LOG_DTS_LOCK(DTS_LK_LOCKED, &cb->lock);
 			if ((to_reg =
-			     (DTA_DEST_LIST *)ncs_patricia_tree_get(&cb->dta_list, (const uns8 *)&dta_key)) == NULL) {
+			     (DTA_DEST_LIST *)ncs_patricia_tree_get(&cb->dta_list, (const uint8_t *)&dta_key)) == NULL) {
 				m_DTS_UNLK(&cb->lock);
 				m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -251,7 +251,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 			m_DTS_LK(&cb->lock);
 			m_LOG_DTS_LOCK(DTS_LK_LOCKED, &cb->lock);
 			if ((to_reg =
-			     (DTA_DEST_LIST *)ncs_patricia_tree_get(&cb->dta_list, (const uns8 *)&dta_key)) != NULL) {
+			     (DTA_DEST_LIST *)ncs_patricia_tree_get(&cb->dta_list, (const uint8_t *)&dta_key)) != NULL) {
 				to_reg = (DTA_DEST_LIST *)((long)to_reg - DTA_DEST_LIST_OFFSET);
 				svc_entry = to_reg->svc_list;
 				/* Remove dta entry frm the svc->v_cd_lists for all svcs */
@@ -264,7 +264,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 					}
 					if ((svc =
 					     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl,
-										      (const uns8 *)&nt_key)) == NULL) {
+										      (const uint8_t *)&nt_key)) == NULL) {
 						m_DTS_UNLK(&cb->lock);
 						m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
 						m_LOG_DTS_EVT(DTS_EV_SVC_REG_NOTFOUND, svc_key.ss_svc_id, svc_key.node,
@@ -395,7 +395,7 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 			 * if yes, do nothing else create new entry in table and 
 			 * fill the datastructure*/
 			if ((node_reg_ptr =
-			     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uns8 *)&nt_key)) == NULL) {
+			     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uint8_t *)&nt_key)) == NULL) {
 				node_reg_ptr = m_MMGR_ALLOC_SVC_REG_TBL;
 				if (node_reg_ptr == NULL) {
 					m_DTS_UNLK(&cb->lock);
@@ -411,7 +411,7 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 
 				/*  Network order key added */
 				node_reg_ptr->ntwk_key = nt_key;
-				node_reg_ptr->node.key_info = (uns8 *)&node_reg_ptr->ntwk_key;
+				node_reg_ptr->node.key_info = (uint8_t *)&node_reg_ptr->ntwk_key;
 				node_reg_ptr->v_cd_list = NULL;
 				node_reg_ptr->dta_count = 0;
 				node_reg_ptr->my_node = node_reg_ptr;
@@ -464,7 +464,7 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 			 * If NO then create new entry in the table. Initialize it with
 			 * the default.Enqueue the v-card in the v-card table. */
 			if ((svc_ptr =
-			     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uns8 *)&nt_key)) != NULL) {
+			     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uint8_t *)&nt_key)) != NULL) {
 				/* Do nothing */
 				m_LOG_DTS_EVT(DTS_EV_SVC_ALREADY_REG, key.ss_svc_id, key.node, 0);
 			} /* end of if svc_ptr */
@@ -484,7 +484,7 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 
 				/*  Network order key added */
 				svc_ptr->ntwk_key = nt_key;
-				svc_ptr->node.key_info = (uns8 *)&svc_ptr->ntwk_key;
+				svc_ptr->node.key_info = (uint8_t *)&svc_ptr->ntwk_key;
 
 				svc_ptr->v_cd_list = NULL;
 				svc_ptr->dta_count = 0;
@@ -529,7 +529,7 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 					/* update the policy for all services in the node */
 					if ((svc_ptr =
 					     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl,
-										      (const uns8 *)&nt_key)) == NULL) {
+										      (const uint8_t *)&nt_key)) == NULL) {
 						m_DTS_UNLK(&cb->lock);
 						m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
 						m_LOG_DTS_EVT(DTS_EV_SVC_REG_NOTFOUND, key.ss_svc_id, key.node, 0);
@@ -584,7 +584,7 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 
 					if ((svc_ptr =
 					     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl,
-										      (const uns8 *)&nt_key)) == NULL) {
+										      (const uint8_t *)&nt_key)) == NULL) {
 						m_DTS_UNLK(&cb->lock);
 						m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
 						m_LOG_DTS_EVT(DTS_EV_SVC_REG_NOTFOUND, key.ss_svc_id, key.node, 0);
@@ -619,7 +619,7 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 				m_LOG_DTS_LOCK(DTS_LK_LOCKED, &cb->lock);
 				if ((svc_ptr =
 				     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl,
-									      (const uns8 *)&nt_key)) == NULL) {
+									      (const uint8_t *)&nt_key)) == NULL) {
 					m_DTS_UNLK(&cb->lock);
 					m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
 					m_LOG_DTS_EVT(DTS_EV_SVC_REG_NOTFOUND, key.ss_svc_id, key.node, 0);
@@ -818,7 +818,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dts_log(DTS_CB *cb, DTS_LOG_CKPT_DATA *data, NCS_MB
 	if (data->key.node == 0)	/*global policy device */
 		device = &cb->g_policy.device;
 	else if (data->key.ss_svc_id == 0) {	/*node policy device */
-		if ((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uns8 *)&nt_key)) == NULL) {
+		if ((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uint8_t *)&nt_key)) == NULL) {
 			m_DTS_UNLK(&cb->lock);
 			m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -827,7 +827,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dts_log(DTS_CB *cb, DTS_LOG_CKPT_DATA *data, NCS_MB
 		device = &svc->device;
 	} else {		/*service policy device */
 
-		if ((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uns8 *)&nt_key)) == NULL) {
+		if ((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uint8_t *)&nt_key)) == NULL) {
 			m_DTS_UNLK(&cb->lock);
 			m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -993,7 +993,7 @@ static uns32 dts_stby_global_filtering_policy_change(DTS_CB *cb)
 		if (cb->cli_bit_map == osafDtsvGlobalMessageLogging_ID) {
 			service->device.new_file = TRUE;
 		}
-		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)&nt_key);
+		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uint8_t *)&nt_key);
 	}			/* end of while */
 	return status;
 }

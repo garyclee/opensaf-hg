@@ -131,7 +131,7 @@ static uns32 dtsv_encode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_EN
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
-	uns8 *encoded_cli_map, *encoded_dta_dest;
+	uint8_t *encoded_cli_map, *encoded_dta_dest;
 
 	switch (enc->io_action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -155,12 +155,12 @@ static uns32 dtsv_encode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_EN
 
 	case NCS_MBCSV_ACT_UPDATE:
 		/* Send encoded cli_bit_map information */
-		encoded_cli_map = ncs_enc_reserve_space(&enc->io_uba, sizeof(uns8));
+		encoded_cli_map = ncs_enc_reserve_space(&enc->io_uba, sizeof(uint8_t));
 		if (!encoded_cli_map) {
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					      "dtsv_encode_ckpt_dts_svc_reg_tbl_config: Encode(cli_bit_map) failed");
 		}
-		ncs_enc_claim_space(&enc->io_uba, sizeof(uns8));
+		ncs_enc_claim_space(&enc->io_uba, sizeof(uint8_t));
 
 		if (encoded_cli_map != NULL) {
 			ncs_encode_8bit(&encoded_cli_map, cb->cli_bit_map);
@@ -203,8 +203,8 @@ static uns32 dtsv_encode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC 
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
-	uns8 *enc_svc;		/*To encode the svc corspdng to dta being added/deleted */
-	uns8 *enc_spec;		/* To encode the corr. ASCII_SPEC name and version */
+	uint8_t *enc_svc;		/*To encode the svc corspdng to dta being added/deleted */
+	uint8_t *enc_spec;		/* To encode the corr. ASCII_SPEC name and version */
 	DTA_DEST_LIST *dta;
 	SVC_KEY svc_key;
 
@@ -257,7 +257,7 @@ static uns32 dtsv_encode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC 
 	 * table correspondind to the DTA being added. For removal this doesn't
 	 * matter.
 	 */
-	if (ncs_encode_n_octets_in_uba(&enc->io_uba, (uns8 *)cb->last_spec_loaded.svc_name, DTSV_SVC_NAME_MAX) !=
+	if (ncs_encode_n_octets_in_uba(&enc->io_uba, (uint8_t *)cb->last_spec_loaded.svc_name, DTSV_SVC_NAME_MAX) !=
 	    NCSCC_RC_SUCCESS)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				      "dtsv_encode_ckpt_dta_dest_list_config: ncs_encode_n_octets_in_uba returns NULL");
@@ -343,15 +343,15 @@ static uns32 dtsv_encode_ckpt_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_ENC 
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
-	uns8 *encoded_cli_map;
+	uint8_t *encoded_cli_map;
 
 	/* Smik - Encode DTS_CB->cli_bit__map before encoding global policy */
-	encoded_cli_map = ncs_enc_reserve_space(&enc->io_uba, sizeof(uns8));
+	encoded_cli_map = ncs_enc_reserve_space(&enc->io_uba, sizeof(uint8_t));
 	if (!encoded_cli_map) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				      "dtsv_encode_ckpt_global_policy_config: Encode(cli_bit_map) failed");
 	}
-	ncs_enc_claim_space(&enc->io_uba, sizeof(uns8));
+	ncs_enc_claim_space(&enc->io_uba, sizeof(uint8_t));
 
 	if (encoded_cli_map != NULL) {
 		ncs_encode_8bit(&encoded_cli_map, cb->cli_bit_map);
@@ -433,7 +433,7 @@ uns32 dtsv_encode_all(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOOL csync)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 num_of_obj = 0;
-	uns8 *encoded_cnt_loc;
+	uint8_t *encoded_cnt_loc;
 
 	/* 
 	 * Since at decode we need to find out how many objects of particular data
@@ -509,7 +509,7 @@ static uns32 dtsv_encode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MB
 		/*if(dts_svc_reg_ptr->my_key.ss_svc_id == 0)
 		   {
 		   key = dts_svc_reg_ptr->my_key; 
-		   dts_svc_reg_ptr =(DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8*)&key);
+		   dts_svc_reg_ptr =(DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uint8_t*)&key);
 		   } */
 		status =
 		    m_NCS_EDU_EXEC(&cb->edu_hdl, dtsv_edp_ckpt_msg_dts_svc_reg_tbl_config, &enc->io_uba,
@@ -535,7 +535,7 @@ static uns32 dtsv_encode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MB
 
 		/*  Network order key added */
 		nt_key = dts_svc_reg_ptr->ntwk_key;
-		dts_svc_reg_ptr = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)&nt_key);
+		dts_svc_reg_ptr = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uint8_t *)&nt_key);
 		(*num_of_obj)++;
 		/* Point to the next service entry */
 	}
@@ -562,7 +562,7 @@ static uns32 dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 	DTA_DEST_LIST *dta_dest;
 	MDS_DEST dta_key;
 	EDU_ERR ederror = 0;
-	uns8 *enc_data;		/*Introduced to send num of svc with a DTA */
+	uint8_t *enc_data;		/*Introduced to send num of svc with a DTA */
 	SVC_ENTRY *svc_entry;
 	SPEC_ENTRY *spec_entry = NULL;
 
@@ -627,7 +627,7 @@ static uns32 dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 				ncs_encode_16bit(&enc_data, spec_entry->spec_struct->ss_spec->ss_ver);
 				ncs_enc_claim_space(&enc->io_uba, sizeof(uns32));
 				/* Now encode the service name */
-				if (ncs_encode_n_octets_in_uba(&enc->io_uba, (uns8 *)spec_entry->svc_name, DTSV_SVC_NAME_MAX) !=
+				if (ncs_encode_n_octets_in_uba(&enc->io_uba, (uint8_t *)spec_entry->svc_name, DTSV_SVC_NAME_MAX) !=
 				    NCSCC_RC_SUCCESS)
 					m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						       "dtsv_encode_cold_sync_rsp_dta_dest_list_config: ncs_encode_n_octets_in_uba returns failure");
@@ -645,7 +645,7 @@ static uns32 dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 		}
 
 		(*num_of_obj)++;
-		dta_dest = (DTA_DEST_LIST *)ncs_patricia_tree_getnext(&cb->dta_list, (const uns8 *)&dta_key);
+		dta_dest = (DTA_DEST_LIST *)ncs_patricia_tree_getnext(&cb->dta_list, (const uint8_t *)&dta_key);
 	}			/*end of while */
 	return status;
 }
@@ -669,7 +669,7 @@ static uns32 dtsv_encode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCS
 	uns32 status = NCSCC_RC_SUCCESS;
 	GLOBAL_POLICY *gp;
 	EDU_ERR ederror = 0;
-	uns8 *enc_data;		/*Introduced to encode log directory */
+	uint8_t *enc_data;		/*Introduced to encode log directory */
 	uns32 len = 0, i;
 	DTS_FILE_LIST *file_list;
 

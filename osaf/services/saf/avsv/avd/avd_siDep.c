@@ -989,12 +989,12 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 	rec->indx.si_name_sec.length = indx->si_name_prim.length;
 	memcpy(rec->indx.si_name_sec.value, indx->si_name_prim.value, si_prim_len);
 
-	rec->tree_node_imm.key_info = (uns8 *)&(rec->indx_imm);
+	rec->tree_node_imm.key_info = (uint8_t *)&(rec->indx_imm);
 	rec->tree_node_imm.bit = 0;
 	rec->tree_node_imm.left = NCS_PATRICIA_NODE_NULL;
 	rec->tree_node_imm.right = NCS_PATRICIA_NODE_NULL;
 
-	rec->tree_node.key_info = (uns8 *)&(rec->indx);
+	rec->tree_node.key_info = (uint8_t *)&(rec->indx);
 	rec->tree_node.bit = 0;
 	rec->tree_node.left = NCS_PATRICIA_NODE_NULL;
 	rec->tree_node.right = NCS_PATRICIA_NODE_NULL;
@@ -1038,9 +1038,9 @@ AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_B
 	TRACE_ENTER();
 
 	if (isImmIdx) {
-		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_get(&si_dep.spons_anchor, (uns8 *)indx);
+		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_get(&si_dep.spons_anchor, (uint8_t *)indx);
 	} else {
-		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_get(&si_dep.dep_anchor, (uns8 *)indx);
+		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_get(&si_dep.dep_anchor, (uint8_t *)indx);
 		if (rec != NULL) {
 			/* Adjust the pointer */
 			rec = (AVD_SI_SI_DEP *)(((char *)rec)
@@ -1075,9 +1075,9 @@ AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, 
 	TRACE_ENTER();
 
 	if (isImmIdx) {
-		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_getnext(&si_dep.spons_anchor, (uns8 *)indx);
+		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_getnext(&si_dep.spons_anchor, (uint8_t *)indx);
 	} else {
-		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_getnext(&si_dep.dep_anchor, (uns8 *)indx);
+		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_getnext(&si_dep.dep_anchor, (uint8_t *)indx);
 		if (rec != NULL) {
 			/* Adjust the pointer */
 			rec = (AVD_SI_SI_DEP *)(((char *)rec)

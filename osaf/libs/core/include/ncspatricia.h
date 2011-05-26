@@ -60,12 +60,12 @@ extern "C" {
 		int bit;	/* must be signed type (bits start at -1) */
 		struct ncs_patricia_node *left;
 		struct ncs_patricia_node *right;
-		uns8 *key_info;
+		uint8_t *key_info;
 	} NCS_PATRICIA_NODE;
 
 #define NCS_PATRICIA_NODE_NULL ((NCS_PATRICIA_NODE *)0)
 
-	typedef uns8 NCS_PATRICIA_LEXICAL_STACK;	/* ancient history... */
+	typedef uint8_t NCS_PATRICIA_LEXICAL_STACK;	/* ancient history... */
 
 	typedef struct ncs_patricia_tree {
 		NCS_PATRICIA_NODE root_node;	/* A tree always has a root node. */
@@ -82,9 +82,9 @@ extern "C" {
 	unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree,
 								NCS_PATRICIA_NODE *const pNode);
 	NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree,
-								      const uns8 *const pKey);
-	NCS_PATRICIA_NODE *ncs_patricia_tree_get_best(const NCS_PATRICIA_TREE *const pTree, const uns8 *const pKey, uns16 KeyLen);	/* Length of key (in BITS) */
-	NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, const uns8 *const pKey);	/* NULL means get 1st */
+								      const uint8_t *const pKey);
+	NCS_PATRICIA_NODE *ncs_patricia_tree_get_best(const NCS_PATRICIA_TREE *const pTree, const uint8_t *const pKey, uns16 KeyLen);	/* Length of key (in BITS) */
+	NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, const uint8_t *const pKey);	/* NULL means get 1st */
 
 	int ncs_patricia_tree_size(const NCS_PATRICIA_TREE *const pTree);
 

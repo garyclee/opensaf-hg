@@ -73,7 +73,7 @@ log_client_t *lgs_client_get_by_id(uns32 client_id)
 	log_client_t *rec;
 
 	client_id_net = m_NCS_OS_HTONL(client_id);
-	rec = (log_client_t *)ncs_patricia_tree_get(&lgs_cb->client_tree, (uns8 *)&client_id_net);
+	rec = (log_client_t *)ncs_patricia_tree_get(&lgs_cb->client_tree, (uint8_t *)&client_id_net);
 
 	if (NULL == rec)
 		TRACE("client_id: %u lookup failed", client_id);
@@ -112,7 +112,7 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uns32 client_id, lgs_stream_list
 	client->client_id = lgs_cb->last_client_id;
 	client->mds_dest = mds_dest;
 	client->client_id_net = m_NCS_OS_HTONL(client->client_id);
-	client->pat_node.key_info = (uns8 *)&client->client_id_net;
+	client->pat_node.key_info = (uint8_t *)&client->client_id_net;
 	client->stream_list_root = stream_list;
 
     /** Insert the record into the patricia tree **/
@@ -272,7 +272,7 @@ int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest)
 	uns32 client_id_net;
 
 	TRACE_ENTER2("mds_dest %" PRIx64, mds_dest);
-	rp = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree, (uns8 *)0);
+	rp = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree, (uint8_t *)0);
 
 	while (rp != NULL) {
 	/** Store the client_id_net for get Next  */
@@ -280,7 +280,7 @@ int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest)
 		if (m_NCS_MDS_DEST_EQUAL(&rp->mds_dest, &mds_dest))
 			rc = lgs_client_delete(rp->client_id);
 
-		rp = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree, (uns8 *)&client_id_net);
+		rp = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree, (uint8_t *)&client_id_net);
 	}
 	TRACE_LEAVE();
 	return rc;

@@ -28,14 +28,14 @@ extern uns32 dtm_dgram_bcast_sender(DTM_INTERNODE_CB * dtms_cb);
 extern uns32 dtm_dgram_sendto_bcast(DTM_INTERNODE_CB * dtms_cb, const void *buffer, int buffer_len);
 extern uns32 dtm_dgram_sendto_mcast(DTM_INTERNODE_CB * dtms_cb, const void *buffer, int buffer_len);
 extern uns32 dtm_sockdesc_close(int sock_desc);
-extern int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uns8 *buffer, uns16 len);
+extern int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uint8_t *buffer, uns16 len);
 extern int dtm_process_accept(DTM_INTERNODE_CB * dtms_cb, int stream_sock);
 extern int dtm_dgram_recvfrom_bmcast(DTM_INTERNODE_CB * dtms_cb, char *node_ip, void *buffer, int buffer_len);
 /*extern uns32 dtm_get_sa_family(DTM_INTERNODE_CB * dtms_cb);*/
 extern uns32 dtm_comm_socket_send(int sock_desc, const void *buffer, int buffer_len);
 extern uns32 dtm_comm_socket_recv(int sock_desc, void *buffer, int buffer_len);
 extern uns32 dtm_comm_socket_close(int *comm_socket);
-extern uns32 dtm_process_node_up_down(NODE_ID node_id, char *node_name, uns8 comm_status);
+extern uns32 dtm_process_node_up_down(NODE_ID node_id, char *node_name, uint8_t comm_status);
 uns32 dtm_internode_set_poll_fdlist(int fd, uns16 event);
 uns32 dtm_internode_reset_poll_fdlist(int fd);
 

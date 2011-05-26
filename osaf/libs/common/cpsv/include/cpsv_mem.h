@@ -109,7 +109,7 @@ typedef enum {
                                                 CPSV_SVC_SUB_ID_CPSV_SaCkptSectionIdT)
 
 #define m_MMGR_ALLOC_CPSV_DEFAULT_VAL(cnt, svc_id)                          \
-                                          (uns8 *)m_NCS_MEM_ALLOC(cnt, \
+                                          (uint8_t *)m_NCS_MEM_ALLOC(cnt, \
                                                  NCS_MEM_REGION_PERSISTENT, \
                                                  svc_id, \
                                                  CPSV_SVC_SUB_ID_CPSV_DEFAULT_VAL)

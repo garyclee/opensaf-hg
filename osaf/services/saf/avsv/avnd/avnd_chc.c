@@ -43,7 +43,7 @@
             (rec->inv == SA_AMF_HEALTHCHECK_AMF_INVOKED)
 
 /*** static function declarations */
-static void avnd_comp_hc_param_val(AVND_CB *, AVSV_AMF_API_TYPE, uns8 *,
+static void avnd_comp_hc_param_val(AVND_CB *, AVSV_AMF_API_TYPE, uint8_t *,
 				   AVND_COMP **, AVND_COMP_HC_REC **, SaAisErrorT *);
 
 static AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *, AVND_COMP *, AVSV_AMF_HC_START_PARAM *, MDS_DEST *);
@@ -96,7 +96,7 @@ uns32 avnd_evt_ava_hc_start_evh(AVND_CB *cb, AVND_EVT *evt)
 		}
 	}
 	/* validate the healthcheck start message */
-	avnd_comp_hc_param_val(cb, AVSV_AMF_HC_START, (uns8 *)hc_start, &comp, 0, &amf_rc);
+	avnd_comp_hc_param_val(cb, AVSV_AMF_HC_START, (uint8_t *)hc_start, &comp, 0, &amf_rc);
 
 	/* send the response back to AvA */
 	rc = avnd_amf_resp_send(cb, AVSV_AMF_HC_START, amf_rc, 0, &api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
@@ -159,7 +159,7 @@ uns32 avnd_evt_ava_hc_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	/* validate the healthcheck stop message */
-	avnd_comp_hc_param_val(cb, AVSV_AMF_HC_STOP, (uns8 *)hc_stop, &comp, &rec, &amf_rc);
+	avnd_comp_hc_param_val(cb, AVSV_AMF_HC_STOP, (uint8_t *)hc_stop, &comp, &rec, &amf_rc);
 
 	/* send the response back to AvA */
 	rc = avnd_amf_resp_send(cb, AVSV_AMF_HC_STOP, amf_rc, 0, &api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
@@ -217,7 +217,7 @@ uns32 avnd_evt_ava_hc_confirm_evh(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	/* validate the healthcheck confirm message */
-	avnd_comp_hc_param_val(cb, AVSV_AMF_HC_CONFIRM, (uns8 *)hc_confirm, &comp, &rec, &amf_rc);
+	avnd_comp_hc_param_val(cb, AVSV_AMF_HC_CONFIRM, (uint8_t *)hc_confirm, &comp, &rec, &amf_rc);
 
 	/* send the response back to AvA */
 	rc = avnd_amf_resp_send(cb, AVSV_AMF_HC_CONFIRM, amf_rc, 0,
@@ -299,7 +299,7 @@ done:
 ******************************************************************************/
 void avnd_comp_hc_param_val(AVND_CB *cb,
 			    AVSV_AMF_API_TYPE api_type,
-			    uns8 *param, AVND_COMP **o_comp, AVND_COMP_HC_REC **o_hc_rec, SaAisErrorT *o_amf_rc)
+			    uint8_t *param, AVND_COMP **o_comp, AVND_COMP_HC_REC **o_hc_rec, SaAisErrorT *o_amf_rc)
 {
 	*o_amf_rc = SA_AIS_OK;
 	AVSV_HLT_KEY hlt_chk;
@@ -860,7 +860,7 @@ void avnd_comp_hc_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl, MDS_D
    
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_dblist_hc_rec_cmp(uns8 *key1, uns8 *key2)
+uns32 avnd_dblist_hc_rec_cmp(uint8_t *key1, uint8_t *key2)
 {
 	int i = 0;
 	AVND_COMP_HC_REC *rec1, *rec2;
@@ -868,10 +868,10 @@ uns32 avnd_dblist_hc_rec_cmp(uns8 *key1, uns8 *key2)
 	rec1 = (AVND_COMP_HC_REC *)key1;
 	rec2 = (AVND_COMP_HC_REC *)key2;
 
-	i = avsv_dblist_sahckey_cmp((uns8 *)&rec1->key, (uns8 *)&rec2->key);
+	i = avsv_dblist_sahckey_cmp((uint8_t *)&rec1->key, (uint8_t *)&rec2->key);
 
 	if (i == 0)
-		return avsv_dblist_uns64_cmp((uns8 *)&rec1->req_hdl, (uns8 *)&rec2->req_hdl);
+		return avsv_dblist_uns64_cmp((uint8_t *)&rec1->req_hdl, (uint8_t *)&rec2->req_hdl);
 
 	return ((i > 0) ? 1 : 2);
 }

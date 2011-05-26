@@ -60,7 +60,7 @@ uns32 socket_domain = AF_UNIX;
 /* Get the pid of the process */
 pid_t mdtm_pid;
 
-static void mds_mdtm_enc_init(MDS_MDTM_DTM_MSG * init, uns8 *buff);
+static void mds_mdtm_enc_init(MDS_MDTM_DTM_MSG * init, uint8_t *buff);
 static uns32 mdtm_create_rcv_task(void);
 static uns32 mdtm_destroy_rcv_task_tcp(void);
 uns32 mdtm_process_recv_events_tcp(void);
@@ -81,7 +81,7 @@ uns32 mds_mdtm_init_tcp(NODE_ID nodeid, uns32 *mds_tcp_ref)
 	struct sockaddr_un client_addr_un, dhserver_addr_un;
 	struct sockaddr_in server_addr_in;
 	struct sockaddr_in6 server_addr_in6;
-	uns8 buffer[MDS_MDTM_DTM_PID_BUFFER_SIZE];
+	uint8_t buffer[MDS_MDTM_DTM_PID_BUFFER_SIZE];
 	char sun_path[MDS_MDTM_SUN_PATH];
 	char sun_path_connect[MDS_MDTM_SUN_PATH];
 
@@ -351,7 +351,7 @@ uns32 mds_mdtm_destroy_tcp(void)
 	}
 
 	/* Delete the pat tree for the reassembly */
-	reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_getnext(&mdtm_reassembly_list, (uns8 *)NULL);
+	reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_getnext(&mdtm_reassembly_list, (uint8_t *)NULL);
 
 	while (NULL != reassem_queue) {
 		/* stop timer and free memory */
@@ -375,7 +375,7 @@ uns32 mds_mdtm_destroy_tcp(void)
 		m_MMGR_FREE_REASSEM_QUEUE(reassem_queue);
 
 		reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_getnext
-			(&mdtm_reassembly_list, (uns8 *)&reassembly_key);
+			(&mdtm_reassembly_list, (uint8_t *)&reassembly_key);
 	}
 
 	ncs_patricia_tree_destroy(&mdtm_reassembly_list);
@@ -407,9 +407,9 @@ uns32 mdtm_destroy_rcv_task_tcp(void)
  * @param Send buffer, Data packet
  *
  */
-static void mds_mdtm_enc_init(MDS_MDTM_DTM_MSG * init, uns8 *data)
+static void mds_mdtm_enc_init(MDS_MDTM_DTM_MSG * init, uint8_t *data)
 {
-	uns8 *buff = data;
+	uint8_t *buff = data;
 	ncs_encode_16bit(&buff, init->size);
 	ncs_encode_32bit(&buff, init->mds_indentifire);
 	ncs_encode_8bit(&buff, init->mds_version);

@@ -15,7 +15,7 @@ typedef struct tet_task{
 
 typedef struct tet_subscr{
   NCSMDS_SCOPE_TYPE  scope;
-  uns8               num_svcs;
+  uint8_t               num_svcs;
   MDS_SVC_ID         *svc_ids;
   EVT_FLTR           evt_map;
 }TET_SUBSCR;
@@ -152,8 +152,8 @@ int                    gl_RECEIVE_CB_FAIL;
 int                    gl_COPY_CB_FAIL;
 
 
-uns32 ncs_encode_16bit(uns8 **,uns32);
-uns16 ncs_decode_16bit(uns8 **);
+uns32 ncs_encode_16bit(uint8_t **,uns32);
+uns16 ncs_decode_16bit(uint8_t **);
 
 uns32 tet_mds_svc_callback(NCSMDS_CALLBACK_INFO *);
 /******************MDS call back routines *********************************/
@@ -196,12 +196,12 @@ int is_vdest_sel_obj_found(int ,int );
 void tet_mds_free_msg(NCSCONTEXT msg_to_be_freed);
 
 uns32 mds_service_install(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_PVT_SUB_PART_VER ,NCSMDS_SCOPE_TYPE,NCS_BOOL,NCS_BOOL);
-uns32 mds_service_subscribe(MDS_HDL,MDS_SVC_ID ,NCSMDS_SCOPE_TYPE ,uns8 ,
+uns32 mds_service_subscribe(MDS_HDL,MDS_SVC_ID ,NCSMDS_SCOPE_TYPE ,uint8_t ,
                             MDS_SVC_ID *);
 uns32 mds_service_redundant_subscribe(MDS_HDL ,MDS_SVC_ID ,
-                                      NCSMDS_SCOPE_TYPE ,uns8 ,MDS_SVC_ID *);
+                                      NCSMDS_SCOPE_TYPE ,uint8_t ,MDS_SVC_ID *);
 uns32 mds_service_system_subscribe(MDS_HDL ,MDS_SVC_ID ,EVT_FLTR );
-uns32 mds_service_cancel_subscription(MDS_HDL ,MDS_SVC_ID ,uns8 ,
+uns32 mds_service_cancel_subscription(MDS_HDL ,MDS_SVC_ID ,uint8_t ,
                                       MDS_SVC_ID *);
 uns32 mds_service_uninstall(MDS_HDL ,MDS_SVC_ID);
 

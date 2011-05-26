@@ -181,7 +181,7 @@ uns32 mbcsv_lib_destroy(void)
 	/* 
 	 * Walk through MBCSv reg list and destroy all the registration instances.
 	 */
-	while (NULL != (mbc_reg = (MBCSV_REG *)ncs_patricia_tree_getnext(&mbcsv_cb.reg_list, (const uns8 *)&svc_id))) {
+	while (NULL != (mbc_reg = (MBCSV_REG *)ncs_patricia_tree_getnext(&mbcsv_cb.reg_list, (const uint8_t *)&svc_id))) {
 		svc_id = mbc_reg->svc_id;
 
 		if (NCSCC_RC_SUCCESS != mbcsv_rmv_reg_inst((MBCSV_REG *)&mbcsv_cb.reg_list, mbc_reg)) {

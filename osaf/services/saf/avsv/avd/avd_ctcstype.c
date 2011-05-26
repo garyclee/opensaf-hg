@@ -77,7 +77,7 @@ static AVD_CTCS_TYPE *ctcstype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 	memcpy(ctcstype->name.value, dn->value, dn->length);
 	ctcstype->name.length = dn->length;
-	ctcstype->tree_node.key_info = (uns8 *)&(ctcstype->name);
+	ctcstype->tree_node.key_info = (uint8_t *)&(ctcstype->name);
 
 	error = immutil_getAttr("saAmfCtCompCapability", attributes, 0, &ctcstype->saAmfCtCompCapability);
 	assert(error == SA_AIS_OK);
@@ -115,7 +115,7 @@ AVD_CTCS_TYPE *avd_ctcstype_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_CTCS_TYPE *)ncs_patricia_tree_get(&ctcstype_db, (uns8 *)&tmp);
+	return (AVD_CTCS_TYPE *)ncs_patricia_tree_get(&ctcstype_db, (uint8_t *)&tmp);
 }
 
 SaAisErrorT avd_ctcstype_config_get(const SaNameT *comp_type_dn, AVD_COMP_TYPE *comp_type)

@@ -280,7 +280,7 @@ static uns32 eds_add_subscription_to_worklist(EDS_CB *cb, SUBSC_REC *subrec)
 			/* Get the chan open rec from the patricia tree */
 			copen_id_Net = m_NCS_OS_HTONL(subrec->chan_open_id);
 			if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec,
-										 (uns8 *)&copen_id_Net))) {
+										 (uint8_t *)&copen_id_Net))) {
 				m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
 					     NCSCC_RC_FAILURE, __FILE__, __LINE__, subrec->chan_open_id);
 				return NCSCC_RC_FAILURE;
@@ -382,7 +382,7 @@ static uns32 eds_remove_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp)
 	memcpy(chan_name_del.value, wp->cname, wp->cname_len);
 
 	/* Get the record pointer from the patricia tree */
-	if (NULL == (rec_to_del = (EDS_CNAME_REC *)ncs_patricia_tree_get(&cb->eds_cname_list, (uns8 *)&chan_name_del))) {
+	if (NULL == (rec_to_del = (EDS_CNAME_REC *)ncs_patricia_tree_get(&cb->eds_cname_list, (uint8_t *)&chan_name_del))) {
 		/* Log It */
 		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
 			     __LINE__, 0);
@@ -488,7 +488,7 @@ uns32 eds_remove_worklist_entry(EDS_CB *cb, uns32 chan_id)
  * is_active_channel - Determines if chan_name exists and is still linked.
  *
  ***************************************************************************/
-static NCS_BOOL is_active_channel(EDS_WORKLIST *wp, uns32 chan_name_len, uns8 *chan_name)
+static NCS_BOOL is_active_channel(EDS_WORKLIST *wp, uns32 chan_name_len, uint8_t *chan_name)
 {
 	/* Do the name lengths match? */
 	if (wp->cname_len == chan_name_len) {
@@ -509,7 +509,7 @@ static NCS_BOOL is_active_channel(EDS_WORKLIST *wp, uns32 chan_name_len, uns8 *c
  * Every channel entry has a entry in the channel name tree. 
  *
  ***************************************************************************/
-static uns32 eds_add_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp, uns8 *chan_name, uns16 chan_name_len)
+static uns32 eds_add_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp, uint8_t *chan_name, uns16 chan_name_len)
 {
 	EDS_CNAME_REC *cn;
 
@@ -524,7 +524,7 @@ static uns32 eds_add_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp, uns8 *chan_name, un
 	cn->chan_name.length = m_NCS_OS_HTONS(chan_name_len);
 	memcpy(cn->chan_name.value, chan_name, chan_name_len);
 	cn->wp_rec = wp;
-	cn->pat_node.key_info = (uns8 *)&cn->chan_name;
+	cn->pat_node.key_info = (uint8_t *)&cn->chan_name;
 
 	/* Insert the record into the patricia tree */
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&cb->eds_cname_list, &cn->pat_node)) {
@@ -573,7 +573,7 @@ eds_add_chan_open_rec(EDS_WORKLIST *wp, uns32 reg_id, uns32 chan_id, MDS_DEST de
 		co->chan_open_id = ++wp->last_copen_id;
 
 	co->copen_id_Net = m_NCS_OS_HTONL(co->chan_open_id);
-	co->pat_node.key_info = (uns8 *)&co->copen_id_Net;
+	co->pat_node.key_info = (uint8_t *)&co->copen_id_Net;
 
 	/* Insert the record into the patricia tree */
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&wp->chan_open_rec, &co->pat_node)) {
@@ -684,7 +684,7 @@ static uns32 eds_remove_chan_open_rec(EDS_WORKLIST *wp, CHAN_OPEN_REC *co)
 
 	/* Get the record pointer from the patricia tree */
 	if (NULL == (rec_to_del =
-		     (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec, (uns8 *)&co->copen_id_Net))) {
+		     (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec, (uint8_t *)&co->copen_id_Net))) {
 		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
 			     __LINE__, 0);
 		return (NCSCC_RC_FAILURE);
@@ -785,7 +785,7 @@ uns32 eds_add_reglist_entry(EDS_CB *cb, MDS_DEST dest, uns32 reg_id)
 	rec->reg_id = reg_id;
 	rec->eda_client_dest = dest;
 	rec->reg_id_Net = m_NCS_OS_HTONL(rec->reg_id);
-	rec->pat_node.key_info = (uns8 *)&rec->reg_id_Net;
+	rec->pat_node.key_info = (uint8_t *)&rec->reg_id_Net;
 
    /** Insert the record into the patricia tree **/
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&cb->eda_reg_list, &rec->pat_node)) {
@@ -847,7 +847,7 @@ uns32 eds_remove_reglist_entry(EDS_CB *cb, uns32 reg_id, NCS_BOOL remove_all)
    /** decide if all records are to be deleted **/
 	if ((reg_id == 0) && (remove_all == TRUE)) {
 		rec_to_del = (EDA_REG_REC *)
-		    ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)0);
+		    ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
 
 		if (rec_to_del) {
 			while (rec_to_del) {
@@ -871,7 +871,7 @@ uns32 eds_remove_reglist_entry(EDS_CB *cb, uns32 reg_id, NCS_BOOL remove_all)
 	   /** Fetch the next record 
             **/
 				rec_to_del =
-				    (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)&regId_Net);
+				    (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)&regId_Net);
 			}
 		}
 
@@ -899,7 +899,7 @@ uns32 eds_remove_reglist_entry(EDS_CB *cb, uns32 reg_id, NCS_BOOL remove_all)
 
       /** Get the node pointer from the patricia tree 
        **/
-		if (NULL == (rec_to_del = (EDA_REG_REC *)ncs_patricia_tree_get(&cb->eda_reg_list, (uns8 *)&regId_Net))) {
+		if (NULL == (rec_to_del = (EDA_REG_REC *)ncs_patricia_tree_get(&cb->eda_reg_list, (uint8_t *)&regId_Net))) {
 			m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
 				     __FILE__, __LINE__, 0);
 			return NCSCC_RC_FAILURE;
@@ -939,14 +939,14 @@ NCS_BOOL eds_eda_entry_valid(EDS_CB *cb, MDS_DEST mds_dest)
 {
 	EDA_REG_REC *rp = NULL;
 
-	rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)0);
+	rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
 
 	while (rp != NULL) {
 		if (m_NCS_MDS_DEST_EQUAL(&rp->eda_client_dest, &mds_dest)) {
 			return TRUE;
 		}
 
-		rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)&rp->reg_id_Net);
+		rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)&rp->reg_id_Net);
 	}
 
 	return FALSE;
@@ -1017,7 +1017,7 @@ uns32 eds_remove_regid_by_mds_dest(EDS_CB *cb, MDS_DEST mds_dest)
 	EDA_REG_REC *rp = NULL;
 	uns32 regId_Net;
 
-	rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)0);
+	rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
 
 	while (rp != NULL) {
       /** Store the regId_Net for get Next
@@ -1027,7 +1027,7 @@ uns32 eds_remove_regid_by_mds_dest(EDS_CB *cb, MDS_DEST mds_dest)
 			rc = eds_remove_reglist_entry(cb, rp->reg_id, FALSE);
 		}
 
-		rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)&regId_Net);
+		rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)&regId_Net);
 	}
 
 	return rc;
@@ -1050,7 +1050,7 @@ EDA_REG_REC *eds_get_reglist_entry(EDS_CB *cb, uns32 reg_id)
 
 	regId_Net = m_NCS_OS_HTONL(reg_id);
 
-	if (NULL == (rp = (EDA_REG_REC *)ncs_patricia_tree_get(&cb->eda_reg_list, (uns8 *)&regId_Net))) {
+	if (NULL == (rp = (EDA_REG_REC *)ncs_patricia_tree_get(&cb->eda_reg_list, (uint8_t *)&regId_Net))) {
 		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
 			     __LINE__, 0);
 		return ((EDA_REG_REC *)NULL);
@@ -1251,7 +1251,7 @@ uns32 eds_copen_patricia_init(EDS_WORKLIST *wp)
  ***************************************************************************/
 uns32
 eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
-		 uns16 chan_name_len, uns8 *chan_name, MDS_DEST dest,
+		 uns16 chan_name_len, uint8_t *chan_name, MDS_DEST dest,
 		 uns32 *chan_id, uns32 *chan_open_id, SaTimeT chan_create_time)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -1334,7 +1334,7 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
 				/* Get the chan open rec from the patricia tree */
 				copen_id_Net = m_NCS_OS_HTONL(*chan_open_id);
 				if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec,
-											 (uns8 *)&copen_id_Net))) {
+											 (uint8_t *)&copen_id_Net))) {
 					m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
 						     NCSCC_RC_FAILURE, __FILE__, __LINE__, 0);
 					return NCSCC_RC_FAILURE;
@@ -1372,7 +1372,7 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
 				/* Get the chan open rec from the patricia tree */
 				copen_id_Net = m_NCS_OS_HTONL(*chan_open_id);
 				if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec,
-											 (uns8 *)&copen_id_Net))) {
+											 (uint8_t *)&copen_id_Net))) {
 					m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
 						     NCSCC_RC_FAILURE, __FILE__, __LINE__, wp->chan_id);
 					return NCSCC_RC_FAILURE;
@@ -1462,7 +1462,7 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
 				/* Get the chan open rec from the patricia tree */
 				copen_id_Net = m_NCS_OS_HTONL(*chan_open_id);
 				if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec,
-											 (uns8 *)&copen_id_Net))) {
+											 (uint8_t *)&copen_id_Net))) {
 					m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
 						     NCSCC_RC_FAILURE, __FILE__, __LINE__, 0);
 					return NCSCC_RC_FAILURE;
@@ -1513,7 +1513,7 @@ uns32 eds_channel_close(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open
 	}
 	/* Get the chan open rec from the patricia tree */
 	copen_id_Net = m_NCS_OS_HTONL(chan_open_id);
-	if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec, (uns8 *)&copen_id_Net))) {
+	if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec, (uint8_t *)&copen_id_Net))) {
 		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
 			     __LINE__, 0);
 		return NCSCC_RC_FAILURE;
@@ -1569,7 +1569,7 @@ uns32 eds_channel_close(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open
  * with the same name which are unlinked.
  *
  ***************************************************************************/
-uns32 eds_channel_unlink(EDS_CB *cb, uns32 chan_name_len, uns8 *chan_name)
+uns32 eds_channel_unlink(EDS_CB *cb, uns32 chan_name_len, uint8_t *chan_name)
 {
 	EDS_WORKLIST *wp;
 	SaNameT channel_name;

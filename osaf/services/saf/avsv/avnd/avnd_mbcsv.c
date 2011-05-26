@@ -1362,7 +1362,7 @@ uns32 avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 \**************************************************************************/
 uns32 avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uns32 reo_type)
 {
-	uns8 *reo_hdl_ptr = NULL;
+	uint8_t *reo_hdl_ptr = NULL;
 	uns32 rc = NCSCC_RC_FAILURE;
 
 	reo_hdl_ptr = NCS_INT64_TO_PTR_CAST(reo_hdl);
@@ -1590,7 +1590,7 @@ uns32 avnd_ha_state_act_hdlr(AVND_CB *cb)
 /******************  Starting SU Timers  *******************************/
 	{
 
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 		while (su != 0) {
 			if (TRUE == su->su_is_external) {
 				if ((AVND_ERR_ESC_LEVEL_0 == su->su_err_esc_level) &&
@@ -1610,14 +1610,14 @@ uns32 avnd_ha_state_act_hdlr(AVND_CB *cb)
 				}
 
 			}	/* if(TRUE == su->su_is_external) */
-			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
+			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 		}		/* while(su != 0) */
 	}
 /******************  Starting SU Timers ends here *******************************/
 
 /******************  Starting Component Timers  *******************************/
 	{
-		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0);
+		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
 
 		while (comp != 0) {
 			if (TRUE == comp->su->su_is_external) {
@@ -1683,7 +1683,7 @@ uns32 avnd_ha_state_act_hdlr(AVND_CB *cb)
 
 			}	/* if(TRUE == comp->su->su_is_external) */
 			comp = (AVND_COMP *)
-			    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name);
+			    ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name);
 		}		/* while(comp != 0) */
 	}
 /******************  Starting Component Timers ends here ********************/

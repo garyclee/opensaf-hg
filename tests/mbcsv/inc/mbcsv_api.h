@@ -250,8 +250,8 @@ MBCSTM_CB    mbcstm_cb;
 V_DEST_QA    MBCSTM_SSN_ANC1,MBCSTM_SSN_ANC2,MBCSTM_SSN_ANC3,MBCSTM_SSN_ANC4;
 
 /*Rajesh*/
-uns32 ncs_encode_32bit(uns8 **,uns32);
-uns32 ncs_decode_32bit(uns8 **);
+uns32 ncs_encode_32bit(uint8_t **,uns32);
+uns32 ncs_decode_32bit(uint8_t **);
 /*     API declarations   */
 /* initializtion and configuration related api */
 uns32  mbcstm_input(void);

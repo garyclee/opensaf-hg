@@ -60,7 +60,7 @@ typedef struct ncs_mqsv_mq_msg {
 	   to fill in the "data" portion only.
 	 */
 	NCS_OS_MQ_MSG_LL_HDR ll_hdr;
-	uns8 data[5];
+	uint8_t data[5];
 } NCS_MQSV_MQ_MSG;
 
 /* function prototypes for client handling*/

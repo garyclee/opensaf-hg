@@ -117,7 +117,7 @@ typedef struct asapi_queue_param {
 	SaMsgQueueSendingStateT status;	/* Sending status of the Queue */
 	uns32 hdl;		/* Queue handle */
 	MQSV_QUEUE_OWN_STATE owner;	/* Queue is owned or Orphan */
-	uns8 is_mqnd_down;	/* TRUE if mqnd is down else FALSE */
+	uint8_t is_mqnd_down;	/* TRUE if mqnd is down else FALSE */
 	SaMsgQueueCreationFlagsT creationFlags;	/* Queue creation flags */
 	SaSizeT size[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];	/* Priority queue sizes */
 } ASAPi_QUEUE_PARAM;
@@ -160,7 +160,7 @@ typedef struct asapi_cache_info {
 \*****************************************************************************/
 typedef struct asapi_err_info {
 	SaAisErrorT errcode;	/* Error code */
-	uns8 flag;		/* Error marker */
+	uint8_t flag;		/* Error marker */
 } ASAPi_ERR_INFO;
 
 /*###########################################################################*\
@@ -213,7 +213,7 @@ typedef struct asapi_dereg_resp_info {
 \*****************************************************************************/
 typedef struct asapi_nresolve_info {
 	SaNameT object;		/* Queue/Group Name */
-	uns8 track;		/* Track Flag */
+	uint8_t track;		/* Track Flag */
 } ASAPi_NRESOLVE_INFO;
 
 /*****************************************************************************\
@@ -254,7 +254,7 @@ typedef struct asapi_getqueue_resp_info {
 \*****************************************************************************/
 typedef struct asapi_track_info {
 	SaNameT object;		/* Object Name */
-	uns8 val;		/* Enable/Disable Tracking */
+	uint8_t val;		/* Enable/Disable Tracking */
 } ASAPi_TRACK_INFO;
 
 /*****************************************************************************\
@@ -339,7 +339,7 @@ typedef struct asapi_dest_info {
 	SaNameT i_object;	/* Queue Group Name */
 	MQSV_SEND_INFO i_sinfo;	/* Destination information, Only required
 				   while sending message */
-	uns8 i_track;
+	uint8_t i_track;
 	ASAPi_CACHE_INFO *o_cache;	/* Cache Entry */
 } ASAPi_DEST_INFO;
 
@@ -370,7 +370,7 @@ typedef struct asapi_grp_track_info {
 	SaNameT i_group;	/* Queue Group Name */
 	SaUint8T i_flags;	/* Track Flag */
 	ASAPi_GROUP_TRACK_INFO o_ginfo;	/* Group Information Node */
-	uns8 i_option;		/* Track Option (0x01 - ENABLE, 0x02 - DISABLE) */
+	uint8_t i_option;		/* Track Option (0x01 - ENABLE, 0x02 - DISABLE) */
 	MQSV_SEND_INFO i_sinfo;	/* Destination information, Only required
 				   while sending message */
 } ASAPi_GRP_TRACK_INFO;

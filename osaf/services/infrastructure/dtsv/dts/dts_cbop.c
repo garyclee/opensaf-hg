@@ -50,14 +50,14 @@
  Returns:  NCSCC_RC_SUCCESSS/NCSCC_RC_FAILURE
  Notes:  
 **************************************************************************/
-uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file)
+uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uint8_t device, char *file)
 {
-	uns8 i, num;
+	uint8_t i, num;
 	uns32 j;
 	FILE *fh;
 	char *str = dts_cb.cb_log_str;
 	char *ptr;
-	uns8 inuse_buff = 0;
+	uint8_t inuse_buff = 0;
 	NCS_BOOL found = FALSE;
 
 	if (cir_buff->buff_allocated == FALSE)
@@ -477,10 +477,10 @@ uns32 dts_buff_size_decreased(CIR_BUFFER *cir_buff, uns32 new_size)
 \**************************************************************************/
 uns32 dts_dump_buffer_to_buffer(CIR_BUFFER *src_cir_buff, CIR_BUFFER *dst_cir_buff, uns32 number)
 {
-	uns8 i = 0, num = 0;
+	uint8_t i = 0, num = 0;
 	uns32 j = 0;
 	char *ptr = NULL;
-	uns8 inuse_buff = 0;
+	uint8_t inuse_buff = 0;
 	NCS_BOOL found = FALSE;
 
 	if ((src_cir_buff->buff_allocated == FALSE) || (dst_cir_buff->buff_allocated == FALSE))

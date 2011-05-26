@@ -58,7 +58,7 @@
 void avd_mds_d_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	NCS_UBAID *uba = NULL;
-	uns8 *data;
+	uint8_t *data;
 	AVD_D2D_MSG *msg = 0;
 
 	msg = (AVD_D2D_MSG *)enc_info->i_msg;
@@ -99,8 +99,8 @@ void avd_mds_d_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 
 void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 {
-	uns8 *data;
-	uns8 data_buff[24];
+	uint8_t *data;
+	uint8_t data_buff[24];
 	AVD_D2D_MSG *d2d_msg = 0;
 	NCS_UBAID *uba = dec_info->io_uba;
 

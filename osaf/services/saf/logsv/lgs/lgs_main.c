@@ -150,7 +150,7 @@ static void sigusr1_handler(int sig)
 			s = s->next;
 		}
 		client = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree,
-								   (uns8 *)&client->client_id_net);
+								   (uint8_t *)&client->client_id_net);
 	}
 
 	TRACE("Streams information");

@@ -133,7 +133,7 @@ uns32 plm_process_single_dispatch(PLMA_CLIENT_INFO *client_info)
 			
 			group_info = (PLMA_ENTITY_GROUP_INFO *)
 			ncs_patricia_tree_get(&plma_cb->entity_group_info,
-					      (uns8 *)&grp_hdl);
+					      (uint8_t *)&grp_hdl);
 			if(!group_info){
 				LOG_ER("PLMA : INVALID GRP HDL.");
 				goto end;
@@ -203,7 +203,7 @@ uns32 plm_process_dispatch_all(PLMA_CLIENT_INFO *client_info)
 			grp_hdl = msg->req_evt.agent_track.grp_handle;
 			group_info = (PLMA_ENTITY_GROUP_INFO *)
 			ncs_patricia_tree_get(&plma_cb->entity_group_info,
-					      (uns8 *)&grp_hdl);
+					      (uint8_t *)&grp_hdl);
 			if(!group_info){
 				LOG_ER("PLMA : INVALID GRP HDL.");
 				plms_free_evt(msg);
@@ -271,7 +271,7 @@ uns32 plm_process_blocking_dispatch(PLMA_CLIENT_INFO *client_info)
 			grp_hdl = msg->req_evt.agent_track.grp_handle;
 			group_info = (PLMA_ENTITY_GROUP_INFO *)
 			ncs_patricia_tree_get(&plma_cb->entity_group_info,
-					      (uns8 *)&grp_hdl);
+					      (uint8_t *)&grp_hdl);
 			if(!group_info){
 				LOG_ER("PLMA : INVALID GRP HDL.");
 				plms_free_evt(msg);
@@ -492,7 +492,7 @@ SaUint32T saPlmInitialize  (SaPlmHandleT *plmHandle,
 
 		/** Add client info to patricia tree in CB */
 		client_info->pat_node.key_info = 
-					(uns8 *)&client_info->plm_handle;
+					(uint8_t *)&client_info->plm_handle;
 		proc_rc = ncs_patricia_tree_add(&plma_cb->client_info, 
 						&client_info->pat_node);
 		m_NCS_UNLOCK(&plma_cb->cb_lock, NCS_LOCK_WRITE);
@@ -613,7 +613,7 @@ SaUint32T saPlmSelectionObjectGet(SaPlmHandleT plmHandle,
 	/** Find the client_info record from pat tree */
 	client_info = (PLMA_CLIENT_INFO *)
 			ncs_patricia_tree_get(&plma_cb->client_info,
-					      (uns8 *)&plmHandle);
+					      (uint8_t *)&plmHandle);
 	/** Release lock for CB */
 	m_NCS_UNLOCK(&plma_cb->cb_lock, NCS_LOCK_READ);
 	
@@ -686,7 +686,7 @@ SaAisErrorT saPlmDispatch(SaPlmHandleT plmHandle,
 	
 	client_info = (PLMA_CLIENT_INFO *)
 			ncs_patricia_tree_get(&plma_cb->client_info,
-					      (uns8 *)&plmHandle);
+					      (uint8_t *)&plmHandle);
 	m_NCS_UNLOCK(&plma_cb->cb_lock, NCS_LOCK_READ);
 	if (!client_info){
 		/** Release lock for CB */
@@ -796,7 +796,7 @@ SaAisErrorT saPlmFinalize(SaPlmHandleT plmHandle)
 	}
 	/** Find the client_info record from pat tree */
 
-	client_info = (PLMA_CLIENT_INFO *)ncs_patricia_tree_get(&plma_cb->client_info,(uns8 *)&plmHandle);
+	client_info = (PLMA_CLIENT_INFO *)ncs_patricia_tree_get(&plma_cb->client_info,(uint8_t *)&plmHandle);
 
 	m_NCS_UNLOCK(&plma_cb->cb_lock, NCS_LOCK_READ);
 	
@@ -977,7 +977,7 @@ SaAisErrorT saPlmEntityGroupCreate(SaPlmHandleT plmHandle,
 	/* Search for client info using plm handle given */
 	client_info = (PLMA_CLIENT_INFO *)
 				ncs_patricia_tree_get(&plma_cb->client_info,
-						      (uns8 *)&plmHandle);
+						      (uint8_t *)&plmHandle);
 	/* Release lock for CB */
 	m_NCS_UNLOCK(&plma_cb->cb_lock, NCS_LOCK_READ);
 	if (!client_info){
@@ -1034,7 +1034,7 @@ SaAisErrorT saPlmEntityGroupCreate(SaPlmHandleT plmHandle,
 		goto lock_fail2;
 		}
 		
-		group_info->pat_node.key_info = (uns8 *)&group_info->entity_group_handle;
+		group_info->pat_node.key_info = (uint8_t *)&group_info->entity_group_handle;
 		
 		proc_rc = ncs_patricia_tree_add(&plma_cb->entity_group_info,
 						&group_info->pat_node);
@@ -1144,7 +1144,7 @@ SaAisErrorT saPlmEntityGroupAdd(SaPlmEntityGroupHandleT entityGroupHandle,
 	/* Search for entity group info using the group handle */
 	group_info = (PLMA_ENTITY_GROUP_INFO *)
 			ncs_patricia_tree_get(&plma_cb->entity_group_info,
-					      (uns8 *)&entityGroupHandle);
+					      (uint8_t *)&entityGroupHandle);
 
 	m_NCS_UNLOCK(&plma_cb->cb_lock,NCS_LOCK_READ);
 	if (!group_info){
@@ -1298,7 +1298,7 @@ SaAisErrorT saPlmEntityGroupRemove(SaPlmEntityGroupHandleT entityGroupHandle,
 	/* Search for entity group info using the group handle */
 	group_info = (PLMA_ENTITY_GROUP_INFO *)
 			ncs_patricia_tree_get(&plma_cb->entity_group_info,
-					      (uns8 *)&entityGroupHandle);
+					      (uint8_t *)&entityGroupHandle);
 	m_NCS_UNLOCK(&plma_cb->cb_lock,NCS_LOCK_READ);
 	if (!group_info){
 		LOG_ER("PLMA: PLMA_ENTITY_GROUP_INFO NODE GET FAILED"); 
@@ -1485,7 +1485,7 @@ SaAisErrorT saPlmEntityGroupDelete(SaPlmEntityGroupHandleT entityGroupHandle)
 	/* Search for entity group info using the group handle */
 	group_info = (PLMA_ENTITY_GROUP_INFO *)
 			ncs_patricia_tree_get(&plma_cb->entity_group_info,
-					      (uns8 *)&entityGroupHandle);
+					      (uint8_t *)&entityGroupHandle);
 	
 	m_NCS_UNLOCK(&plma_cb->cb_lock,NCS_LOCK_READ);
 	if (!group_info){
@@ -1708,7 +1708,7 @@ SaAisErrorT saPlmReadinessTrack(SaPlmEntityGroupHandleT entityGroupHandle,
 	/** Search for entity group info using the group handle */
 	group_info = (PLMA_ENTITY_GROUP_INFO *)
 			ncs_patricia_tree_get(&plma_cb->entity_group_info,
-					      (uns8 *)&entityGroupHandle);
+					      (uint8_t *)&entityGroupHandle);
 
 	m_NCS_UNLOCK(&plma_cb->cb_lock,NCS_LOCK_READ);
 	if(!group_info){
@@ -1898,7 +1898,7 @@ SaAisErrorT saPlmReadinessTrackResponse(SaPlmEntityGroupHandleT entityGrpHdl,
 	/* Search for entity group info using the group handle */
 	group_info = (PLMA_ENTITY_GROUP_INFO *)
 			ncs_patricia_tree_get(&plma_cb->entity_group_info,
-					      (uns8 *)&entityGrpHdl);
+					      (uint8_t *)&entityGrpHdl);
 	m_NCS_UNLOCK(&plma_cb->cb_lock,NCS_LOCK_READ);
 	
 	if (!group_info || !(group_info->client_info)){
@@ -1987,7 +1987,7 @@ SaAisErrorT saPlmReadinessTrackStop(SaPlmEntityGroupHandleT entityGroupHandle)
 	/* Search for entity group info using the group handle */
 	group_info = (PLMA_ENTITY_GROUP_INFO *)
 			ncs_patricia_tree_get(&plma_cb->entity_group_info,
-					      (uns8 *)&entityGroupHandle);
+					      (uint8_t *)&entityGroupHandle);
 	m_NCS_UNLOCK(&plma_cb->cb_lock,NCS_LOCK_READ);
 
 	if (!group_info){
@@ -2141,7 +2141,7 @@ SaAisErrorT saPlmReadinessNotificationFree(
 	/* Search for entity group info using the group handle */
 	group_info = (PLMA_ENTITY_GROUP_INFO *)
 			ncs_patricia_tree_get(&plma_cb->entity_group_info,
-					      (uns8 *)&entityGroupHandle);
+					      (uint8_t *)&entityGroupHandle);
 
 	m_NCS_UNLOCK(&plma_cb->cb_lock,NCS_LOCK_READ);
 	if ((!group_info) || (!group_info->client_info)){
@@ -2233,7 +2233,7 @@ SaAisErrorT saPlmEntityReadinessImpact(SaPlmHandleT plmHandle,
 	/* Find the client_info record from pat tree */
 	client_info = (PLMA_CLIENT_INFO *)
 			ncs_patricia_tree_get(&plma_cb->client_info,
-					      (uns8 *)&plmHandle);
+					      (uint8_t *)&plmHandle);
 	/* Release lock for CB */
 	m_NCS_UNLOCK(&plma_cb->cb_lock, NCS_LOCK_READ);
 	

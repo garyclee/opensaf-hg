@@ -82,7 +82,7 @@ uns32 avnd_hcdb_destroy(AVND_CB *cb)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* scan & delete each healthcheck record */
-	while (0 != (hc = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uns8 *)0))) {
+	while (0 != (hc = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uint8_t *)0))) {
 		/*AvND is going down, but don't send any async update even for 
 		   external components, otherwise external components will be deleted
 		   from ACT. */
@@ -111,7 +111,7 @@ AVND_HC *avnd_hcdb_rec_get(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
 	memset(&dn, 0, sizeof(dn));
 	dn.length = snprintf((char *)dn.value, SA_MAX_NAME_LENGTH, "safHealthcheckKey=%s,%s",
 		hc_key->name.key, hc_key->comp_name.value);
-	return (AVND_HC *)ncs_patricia_tree_get(&cb->hcdb, (uns8 *)&dn);
+	return (AVND_HC *)ncs_patricia_tree_get(&cb->hcdb, (uint8_t *)&dn);
 }
 
 AVND_HCTYPE *avnd_hctypedb_rec_get(const SaNameT *comp_type_dn, const SaAmfHealthcheckKeyT *key)
@@ -121,7 +121,7 @@ AVND_HCTYPE *avnd_hctypedb_rec_get(const SaNameT *comp_type_dn, const SaAmfHealt
 	memset(&dn, 0, sizeof(dn));
 	dn.length = snprintf((char *)dn.value, SA_MAX_NAME_LENGTH, "safHealthcheckKey=%s,%s",
 			     key->key, comp_type_dn->value);
-	return (AVND_HCTYPE *)ncs_patricia_tree_get(&hctypedb, (uns8 *)&dn);
+	return (AVND_HCTYPE *)ncs_patricia_tree_get(&hctypedb, (uint8_t *)&dn);
 }
 
 /****************************************************************************
@@ -167,7 +167,7 @@ AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uns32 *rc)
 
 	/* Add to the patricia tree */
 	hc->tree_node.bit = 0;
-	hc->tree_node.key_info = (uns8 *)&hc->key;
+	hc->tree_node.key_info = (uint8_t *)&hc->key;
 	*rc = ncs_patricia_tree_add(&cb->hcdb, &hc->tree_node);
 	if (NCSCC_RC_SUCCESS != *rc) {
 		*rc = AVND_ERR_TREE;
@@ -250,7 +250,7 @@ static AVND_HC *hc_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValuesT_2 **a
 	memset(&hc->name, 0, sizeof(hc->name));
 	memcpy(hc->name.value, dn->value, dn->length);
 	hc->name.length = dn->length;
-	hc->tree_node.key_info = (uns8 *)&hc->name;
+	hc->tree_node.key_info = (uint8_t *)&hc->name;
 	rc = ncs_patricia_tree_add(&cb->hcdb, &hc->tree_node);
 
  done:
@@ -325,7 +325,7 @@ static AVND_HCTYPE *hctype_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValue
 		goto done;
 	}
 
-	hc->tree_node.key_info = (uns8 *)&hc->name;
+	hc->tree_node.key_info = (uint8_t *)&hc->name;
 	rc = ncs_patricia_tree_add(&hctypedb, &hc->tree_node);
 
  done:
@@ -381,7 +381,7 @@ uns32 avnd_hc_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 
 	TRACE_ENTER2("'%s'", param->name.value);
 	
-	AVND_HC *hc = (AVND_HC *)ncs_patricia_tree_get(&cb->hcdb, (uns8 *)&param->name);
+	AVND_HC *hc = (AVND_HC *)ncs_patricia_tree_get(&cb->hcdb, (uint8_t *)&param->name);
 
 	switch (param->act) {
 	case AVSV_OBJ_OPR_MOD: {

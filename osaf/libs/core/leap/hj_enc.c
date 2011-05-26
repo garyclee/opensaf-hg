@@ -72,9 +72,9 @@ The following set does NOT do buffer chaining management
 /** A NULL os implies "count" number of zeros...
  **/
 
-USRBUF *ncs_encode_n_octets(USRBUF *u, uns8 *os, unsigned int count)
+USRBUF *ncs_encode_n_octets(USRBUF *u, uint8_t *os, unsigned int count)
 {
-	uns8 *p;
+	uint8_t *p;
 	unsigned int remaining = count;
 	unsigned int offset = 0;
 
@@ -84,12 +84,12 @@ USRBUF *ncs_encode_n_octets(USRBUF *u, uns8 *os, unsigned int count)
 		count = remaining;
 
 	do {
-		if ((p = m_MMGR_RESERVE_AT_END(&u, count, uns8 *)) != (uns8 *)0) {
+		if ((p = m_MMGR_RESERVE_AT_END(&u, count, uint8_t *)) != (uint8_t *)0) {
 			/*
 			 * Build the octet string...Remember a NULL pointer
 			 * indicates an all-zero octet-string...
 			 */
-			if (os == (uns8 *)0)
+			if (os == (uint8_t *)0)
 				memset((char *)p, '\0', (size_t)count);
 			else
 				memcpy((char *)p, (char *)(os + offset), (size_t)count);
@@ -108,11 +108,11 @@ USRBUF *ncs_encode_n_octets(USRBUF *u, uns8 *os, unsigned int count)
 	return u;
 }
 
-USRBUF *ncs_encode_uns8(USRBUF *u, uns8 val8)
+USRBUF *ncs_encode_uns8(USRBUF *u, uint8_t val8)
 {
-	uns8 *p8;
+	uint8_t *p8;
 
-	if ((p8 = m_MMGR_RESERVE_AT_END(&u, 1, uns8 *)) != (uns8 *)0)
+	if ((p8 = m_MMGR_RESERVE_AT_END(&u, 1, uint8_t *)) != (uint8_t *)0)
 		*p8 = val8;
 
 	return u;
@@ -120,11 +120,11 @@ USRBUF *ncs_encode_uns8(USRBUF *u, uns8 val8)
 
 USRBUF *ncs_encode_uns16(USRBUF *u, uns16 val16)
 {
-	uns8 *p16;
+	uint8_t *p16;
 
-	if ((p16 = m_MMGR_RESERVE_AT_END(&u, 2, uns8 *)) != (uns8 *)0) {
-		*p16++ = (uns8)(val16 >> 8);
-		*p16 = (uns8)(val16);
+	if ((p16 = m_MMGR_RESERVE_AT_END(&u, 2, uint8_t *)) != (uint8_t *)0) {
+		*p16++ = (uint8_t)(val16 >> 8);
+		*p16 = (uint8_t)(val16);
 	}
 
 	return u;
@@ -132,13 +132,13 @@ USRBUF *ncs_encode_uns16(USRBUF *u, uns16 val16)
 
 USRBUF *ncs_encode_uns32(USRBUF *u, uns32 val32)
 {
-	uns8 *p32;
+	uint8_t *p32;
 
-	if ((p32 = m_MMGR_RESERVE_AT_END(&u, 4, uns8 *)) != (uns8 *)0) {
-		*p32++ = (uns8)(val32 >> 24);
-		*p32++ = (uns8)(val32 >> 16);
-		*p32++ = (uns8)(val32 >> 8);
-		*p32 = (uns8)(val32);
+	if ((p32 = m_MMGR_RESERVE_AT_END(&u, 4, uint8_t *)) != (uint8_t *)0) {
+		*p32++ = (uint8_t)(val32 >> 24);
+		*p32++ = (uint8_t)(val32 >> 16);
+		*p32++ = (uint8_t)(val32 >> 8);
+		*p32 = (uint8_t)(val32);
 	}
 
 	return u;
@@ -146,9 +146,9 @@ USRBUF *ncs_encode_uns32(USRBUF *u, uns32 val32)
 
 USRBUF *ncs_encode_uns64(USRBUF *u, uns64 val64)
 {
-	uns8 *p64;
+	uint8_t *p64;
 
-	if ((p64 = m_MMGR_RESERVE_AT_END(&u, 8, uns8 *)) != (uns8 *)0) {
+	if ((p64 = m_MMGR_RESERVE_AT_END(&u, 8, uint8_t *)) != (uint8_t *)0) {
 		m_NCS_OS_HTONLL_P(p64, val64);
 	}
 
@@ -165,11 +165,11 @@ USRBUF *ncs_encode_float(USRBUF *u, float obj_val)
 	return u;
 }
 
-USRBUF *ncs_prepend_n_octets(USRBUF *pbuf, uns8 *os, unsigned int length)
+USRBUF *ncs_prepend_n_octets(USRBUF *pbuf, uint8_t *os, unsigned int length)
 {
-	uns8 *pch;
+	uint8_t *pch;
 
-	pch = m_MMGR_RESERVE_AT_START(&pbuf, length, uns8 *);
+	pch = m_MMGR_RESERVE_AT_START(&pbuf, length, uint8_t *);
 	if (pch == NULL) {
 		m_LEAP_DBG_SINK((long)BNULL);
 		return BNULL;
@@ -181,41 +181,41 @@ USRBUF *ncs_prepend_n_octets(USRBUF *pbuf, uns8 *os, unsigned int length)
 
 USRBUF *ncs_prepend_uns16(USRBUF *pbuf, uns16 val16)
 {
-	uns8 *p16;
+	uint8_t *p16;
 
-	p16 = m_MMGR_RESERVE_AT_START(&pbuf, (uns32)sizeof(uns16), uns8 *);
+	p16 = m_MMGR_RESERVE_AT_START(&pbuf, (uns32)sizeof(uns16), uint8_t *);
 	if (p16 == NULL) {
 		m_LEAP_DBG_SINK((long)BNULL);
 		return BNULL;
 	}
-	*p16++ = (uns8)(val16 >> 8);
-	*p16 = (uns8)(val16);
+	*p16++ = (uint8_t)(val16 >> 8);
+	*p16 = (uint8_t)(val16);
 
 	return (pbuf);
 }
 
 USRBUF *ncs_prepend_uns32(USRBUF *pbuf, uns32 val32)
 {
-	uns8 *p32;
+	uint8_t *p32;
 
-	p32 = m_MMGR_RESERVE_AT_START(&pbuf, (uns32)sizeof(uns32), uns8 *);
+	p32 = m_MMGR_RESERVE_AT_START(&pbuf, (uns32)sizeof(uns32), uint8_t *);
 	if (p32 == NULL) {
 		m_LEAP_DBG_SINK((long)BNULL);
 		return BNULL;
 	}
-	*p32++ = (uns8)(val32 >> 24);
-	*p32++ = (uns8)(val32 >> 16);
-	*p32++ = (uns8)(val32 >> 8);
-	*p32 = (uns8)(val32);
+	*p32++ = (uint8_t)(val32 >> 24);
+	*p32++ = (uint8_t)(val32 >> 16);
+	*p32++ = (uint8_t)(val32 >> 8);
+	*p32 = (uint8_t)(val32);
 
 	return (pbuf);
 }
 
 USRBUF *ncs_prepend_uns64(USRBUF *pbuf, uns64 val64)
 {
-	uns8 *p64;
+	uint8_t *p64;
 
-	p64 = m_MMGR_RESERVE_AT_START(&pbuf, 8, uns8 *);
+	p64 = m_MMGR_RESERVE_AT_START(&pbuf, 8, uint8_t *);
 	if (p64 == NULL) {
 		m_LEAP_DBG_SINK((long)BNULL);
 		return BNULL;
@@ -236,7 +236,7 @@ USRBUF *ncs_prepend_uns64(USRBUF *pbuf, uns64 val64)
  *
  *****************************************************************************/
 
-uns64 ncs_encode_64bit(uns8 **stream, uns64 val)
+uns64 ncs_encode_64bit(uint8_t **stream, uns64 val)
 {
 
 	m_NCS_OS_HTONLL_P((*stream), val);
@@ -244,50 +244,50 @@ uns64 ncs_encode_64bit(uns8 **stream, uns64 val)
 	return 8;
 }
 
-uns32 ncs_encode_32bit(uns8 **stream, uns32 val)
+uns32 ncs_encode_32bit(uint8_t **stream, uns32 val)
 {
-	*(*stream)++ = (uns8)(val >> 24);
-	*(*stream)++ = (uns8)(val >> 16);
-	*(*stream)++ = (uns8)(val >> 8);
-	*(*stream)++ = (uns8)(val);
+	*(*stream)++ = (uint8_t)(val >> 24);
+	*(*stream)++ = (uint8_t)(val >> 16);
+	*(*stream)++ = (uint8_t)(val >> 8);
+	*(*stream)++ = (uint8_t)(val);
 	return 4;
 }
 
-uns32 ncs_encode_24bit(uns8 **stream, uns32 val)
+uns32 ncs_encode_24bit(uint8_t **stream, uns32 val)
 {
-	*(*stream)++ = (uns8)(val >> 16);
-	*(*stream)++ = (uns8)(val >> 8);
-	*(*stream)++ = (uns8)(val);
+	*(*stream)++ = (uint8_t)(val >> 16);
+	*(*stream)++ = (uint8_t)(val >> 8);
+	*(*stream)++ = (uint8_t)(val);
 	return 3;
 }
 
-uns32 ncs_encode_16bit(uns8 **stream, uns32 val)
+uns32 ncs_encode_16bit(uint8_t **stream, uns32 val)
 {
-	*(*stream)++ = (uns8)(val >> 8);
-	*(*stream)++ = (uns8)(val);
+	*(*stream)++ = (uint8_t)(val >> 8);
+	*(*stream)++ = (uint8_t)(val);
 	return 2;
 }
 
-uns32 ncs_encode_8bit(uns8 **stream, uns32 val)
+uns32 ncs_encode_8bit(uint8_t **stream, uns32 val)
 {
-	*(*stream)++ = (uns8)(val);
+	*(*stream)++ = (uint8_t)(val);
 	return 1;
 }
 
-uns32 ncs_encode_key(uns8 **stream, NCS_KEY *key)
+uns32 ncs_encode_key(uint8_t **stream, NCS_KEY *key)
 {
-	uns8 len;
+	uint8_t len;
 
-	*(*stream)++ = (uns8)(key->svc);
-	*(*stream)++ = (uns8)(key->fmat);
-	*(*stream)++ = (uns8)(key->type);
+	*(*stream)++ = (uint8_t)(key->svc);
+	*(*stream)++ = (uint8_t)(key->fmat);
+	*(*stream)++ = (uint8_t)(key->type);
 
 	switch (key->fmat) {
 	case NCS_FMT_NUM:
 		break;
 
 	case NCS_FMT_STR:
-		len = (uns8)strlen((char *)key->val.str);
+		len = (uint8_t)strlen((char *)key->val.str);
 		ncs_encode_8bit(stream, len);
 		ncs_encode_octets(stream, key->val.str, len);
 		return (3 + len + 1);
@@ -303,7 +303,7 @@ uns32 ncs_encode_key(uns8 **stream, NCS_KEY *key)
 	return m_LEAP_DBG_SINK(0);
 }
 
-uns32 ncs_encode_octets(uns8 **stream, uns8 *val, uns32 count)
+uns32 ncs_encode_octets(uint8_t **stream, uint8_t *val, uns32 count)
 {
 	uns32 i;
 	for (i = 0; i < count; i++)

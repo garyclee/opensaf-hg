@@ -237,7 +237,7 @@ SaUint32T plms_build_ent_grp_tree()
 				ckpt_grp_info->entity_group_handle;
 			grp_info->agent_mdest_id=ckpt_grp_info->agent_mdest_id;
 			grp_info->pat_node.key_info = 
-				(uns8*)&grp_info->entity_grp_hdl;
+				(uint8_t*)&grp_info->entity_grp_hdl;
 			grp_info->track_flags =ckpt_grp_info->track_flags;
 			grp_info->track_cookie = ckpt_grp_info->track_cookie;
 

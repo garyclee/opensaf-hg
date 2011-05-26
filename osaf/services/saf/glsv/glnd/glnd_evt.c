@@ -3014,7 +3014,7 @@ static uns32 glnd_process_gld_non_master_status(GLND_CB *glnd_cb, GLSV_GLND_EVT 
 
 	/* search thru all the resource tree and if it is the master then go about orphaning 
 	   the locks */
-	res_node = (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uns8 *)&res_id);
+	res_node = (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uint8_t *)&res_id);
 	while (res_node) {
 		res_id = res_node->resource_id;
 		if (res_node->status == GLND_RESOURCE_ACTIVE_MASTER) {
@@ -3073,7 +3073,7 @@ static uns32 glnd_process_gld_non_master_status(GLND_CB *glnd_cb, GLSV_GLND_EVT 
 									       node_status);
 			}
 		}
-		res_node = (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uns8 *)&res_id);
+		res_node = (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uint8_t *)&res_id);
 	}
 	return NCSCC_RC_SUCCESS;
 }

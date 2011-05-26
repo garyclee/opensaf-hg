@@ -113,7 +113,7 @@ uns32 mbcsv_prt_inv(void)
 	/* 
 	 * Walk through MBCSv reg list.
 	 */
-	while (NULL != (mbc_reg = (MBCSV_REG *)ncs_patricia_tree_getnext(&mbcsv_cb.reg_list, (const uns8 *)&svc_id))) {
+	while (NULL != (mbc_reg = (MBCSV_REG *)ncs_patricia_tree_getnext(&mbcsv_cb.reg_list, (const uint8_t *)&svc_id))) {
 		m_NCS_LOCK(&mbc_reg->svc_lock, NCS_LOCK_READ);
 
 		m_LOG_MBCSV_SVC_LOCK(MBCSV_LK_LOCKED, mbc_reg->svc_id, &mbc_reg->svc_lock);
@@ -126,7 +126,7 @@ uns32 mbcsv_prt_inv(void)
 		pwe_hdl = 0;
 
 		while (NULL != (ckpt = (CKPT_INST *)ncs_patricia_tree_getnext(&mbc_reg->ckpt_ssn_list,
-									      (const uns8 *)&pwe_hdl))) {
+									      (const uint8_t *)&pwe_hdl))) {
 			c_count++;
 			pwe_hdl = ckpt->pwe_hdl;
 

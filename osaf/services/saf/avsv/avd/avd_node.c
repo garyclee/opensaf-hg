@@ -34,7 +34,7 @@ uns32 avd_node_add_nodeid(AVD_AVND *node)
 
 	if ((avd_node_find_nodeid(node->node_info.nodeId) == NULL) && (node->node_info.nodeId != 0)) {
 
-		node->tree_node_id_node.key_info = (uns8 *)&(node->node_info.nodeId);
+		node->tree_node_id_node.key_info = (uint8_t *)&(node->node_info.nodeId);
 		node->tree_node_id_node.bit = 0;
 		node->tree_node_id_node.left = NCS_PATRICIA_NODE_NULL;
 		node->tree_node_id_node.right = NCS_PATRICIA_NODE_NULL;
@@ -73,7 +73,7 @@ AVD_AVND *avd_node_new(const SaNameT *dn)
 
 	memcpy(node->name.value, dn->value, dn->length);
 	node->name.length = dn->length;
-	node->tree_node_name_node.key_info = (uns8 *)&(node->name);
+	node->tree_node_name_node.key_info = (uint8_t *)&(node->name);
 	node->pg_csi_list.order = NCS_DBLIST_ANY_ORDER;
 	node->pg_csi_list.cmp_cookie = avsv_dblist_uns32_cmp;
 	node->saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
@@ -122,7 +122,7 @@ AVD_AVND *avd_node_get(const SaNameT *dn)
         tmp.length = dn->length;
         memcpy(tmp.value, dn->value, tmp.length);
 
-        node = (AVD_AVND *)ncs_patricia_tree_get(&node_name_db, (uns8 *)&tmp);
+        node = (AVD_AVND *)ncs_patricia_tree_get(&node_name_db, (uint8_t *)&tmp);
 
         if (node != NULL) {
                 /* Adjust the pointer
@@ -137,7 +137,7 @@ AVD_AVND *avd_node_get(const SaNameT *dn)
 
 AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id)
 {
-	return (AVD_AVND *)ncs_patricia_tree_get(&node_id_db, (uns8 *)&node_id);
+	return (AVD_AVND *)ncs_patricia_tree_get(&node_id_db, (uint8_t *)&node_id);
 }
 
 AVD_AVND *avd_node_getnext(const SaNameT *dn)
@@ -148,9 +148,9 @@ AVD_AVND *avd_node_getnext(const SaNameT *dn)
         if (dn != NULL) {
                 tmp.length = dn->length;
                 memcpy(tmp.value, dn->value, tmp.length);
-                node = (AVD_AVND *)ncs_patricia_tree_getnext(&node_name_db, (uns8 *)&tmp);
+                node = (AVD_AVND *)ncs_patricia_tree_getnext(&node_name_db, (uint8_t *)&tmp);
         } else 
-                node = (AVD_AVND *)ncs_patricia_tree_getnext(&node_name_db, (uns8 *)0);
+                node = (AVD_AVND *)ncs_patricia_tree_getnext(&node_name_db, (uint8_t *)0);
 
 
 	if (node != NULL) {
@@ -165,7 +165,7 @@ AVD_AVND *avd_node_getnext(const SaNameT *dn)
 
 AVD_AVND *avd_node_getnext_nodeid(SaClmNodeIdT node_id)
 {
-	return (AVD_AVND *)ncs_patricia_tree_getnext(&node_id_db, (uns8 *)&node_id);
+	return (AVD_AVND *)ncs_patricia_tree_getnext(&node_id_db, (uint8_t *)&node_id);
 }
 
 /**
@@ -579,7 +579,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			m_NCS_OS_HTONLL_P(&temp_su_prob, su_failover_prob);
 			su_failover_prob = temp_su_prob;
 
-			memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
+			memset(((uint8_t *)&param), '\0', sizeof(AVSV_PARAM_INFO));
 			param.class_id = AVSV_SA_AMF_NODE;
 			param.attr_id = saAmfNodeSuFailoverProb_ID;
 			param.act = AVSV_OBJ_OPR_MOD;
@@ -605,7 +605,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 			failover_val = *((SaUint32T *)value);
 
-			memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
+			memset(((uint8_t *)&param), '\0', sizeof(AVSV_PARAM_INFO));
 			param.class_id = AVSV_SA_AMF_NODE;
 			param.attr_id = saAmfNodeSuFailoverMax_ID;
 			param.act = AVSV_OBJ_OPR_MOD;

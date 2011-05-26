@@ -973,7 +973,7 @@ SaUint32T plms_mbcsv_dec_async_update(NCS_MBCSV_CB_ARG *arg)
  * Notes         : None.
  *****************************************************************************/
 
-void plms_enc_mbcsv_header(uns8 *pdata, PLMS_MBCSV_HEADER header)
+void plms_enc_mbcsv_header(uint8_t *pdata, PLMS_MBCSV_HEADER header)
 {
 	ncs_encode_32bit(&pdata, header.msg_type);
 	ncs_encode_32bit(&pdata, header.num_records);
@@ -996,8 +996,8 @@ void plms_enc_mbcsv_header(uns8 *pdata, PLMS_MBCSV_HEADER header)
 
 SaUint32T plms_dec_mbcsv_header(NCS_UBAID *uba, PLMS_MBCSV_HEADER *header)
 {
-	uns8 *p8;
-	uns8 local_data[256];
+	uint8_t *p8;
+	uint8_t local_data[256];
 
 	if ((uba == NULL) || (header == NULL)) {
 		LOG_ER("Null Pointer received");
@@ -1026,7 +1026,7 @@ SaUint32T plms_edu_enc_trk_step_info_data(NCS_MBCSV_CB_ARG *arg)
 	PLMS_CB * cb = plms_cb;
 	EDU_ERR ederror = 0;
         uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
-        uns8 *pheader = NULL;
+        uint8_t *pheader = NULL;
         PLMS_MBCSV_HEADER msg_hdr;
 	PLMS_CKPT_TRACK_STEP_INFO *ckpt_ptr, * ptr;
 	PLMS_ENTITY_GROUP_INFO * entity_grp_ptr;
@@ -1036,7 +1036,7 @@ SaUint32T plms_edu_enc_trk_step_info_data(NCS_MBCSV_CB_ARG *arg)
 	/* First see that if there are any records to be check pointed. If there are no trk step info records and entity grp info records, then just send the complete response */
 	if (!cb->step_info)
 	{
-		entity_grp_ptr = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(&cb->entity_group_info, (uns8 *)0);
+		entity_grp_ptr = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(&cb->entity_group_info, (uint8_t *)0);
 		if (!entity_grp_ptr)
 		{
 			/* If there are no entity grp info recs to be checkpointed close it */ 
@@ -1113,7 +1113,7 @@ SaUint32T plms_edu_enc_trk_step_info_data(NCS_MBCSV_CB_ARG *arg)
 
 	plms_enc_mbcsv_header(pheader,msg_hdr);
 
-	entity_grp_ptr = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(&cb->entity_group_info, (uns8 *)0);
+	entity_grp_ptr = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(&cb->entity_group_info, (uint8_t *)0);
 	
 	/* If there are no entity grp info recs to be checkpointed close it */ 
 	if ((num_rec < MAX_NO_OF_ENTITY_GRP_INFO_RECS) && (entity_grp_ptr == NULL)) {
@@ -1244,12 +1244,12 @@ SaUint32T plms_edu_enc_entity_grp_info_data(NCS_MBCSV_CB_ARG *arg)
 	PLMS_CB * cb = plms_cb;
 	EDU_ERR ederror = 0;
         uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
-        uns8 *pheader = NULL;
+        uint8_t *pheader = NULL;
         PLMS_MBCSV_HEADER msg_hdr;
 	PLMS_CKPT_ENTITY_GROUP_INFO *ckpt_ptr;
 	PLMS_ENTITY_GROUP_INFO    *ptr;
 	NCS_UBAID * uba = &arg->info.encode.io_uba; 
-	uns8 *async_upd_cnt = NULL;
+	uint8_t *async_upd_cnt = NULL;
 
 	TRACE_ENTER();
 
@@ -1270,9 +1270,9 @@ SaUint32T plms_edu_enc_entity_grp_info_data(NCS_MBCSV_CB_ARG *arg)
 
 	if (cb->prev_ent_grp_hdl)
 	{
-		ptr = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(&cb->entity_group_info, (uns8 *)&cb->prev_ent_grp_hdl);
+		ptr = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(&cb->entity_group_info, (uint8_t *)&cb->prev_ent_grp_hdl);
 	} else {
-		ptr = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(&cb->entity_group_info, (uns8 *)0);
+		ptr = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(&cb->entity_group_info, (uint8_t *)0);
 	}
 
 	/* Now walk through the complete list and encode */
@@ -1298,7 +1298,7 @@ SaUint32T plms_edu_enc_entity_grp_info_data(NCS_MBCSV_CB_ARG *arg)
 		if ( num_rec == MAX_NO_OF_ENTITY_GRP_INFO_RECS)
 			break;
 			
-		ptr = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(&cb->entity_group_info, (uns8 *)&ptr->entity_grp_hdl);
+		ptr = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(&cb->entity_group_info, (uint8_t *)&ptr->entity_grp_hdl);
 	}
 
 	if(ptr != NULL)
@@ -1349,13 +1349,13 @@ SaUint32T plms_edu_enc_client_info_data(NCS_MBCSV_CB_ARG *arg)
 	PLMS_CB * cb = plms_cb;
 	EDU_ERR ederror = 0;
         uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
-        uns8 *pheader = NULL;
+        uint8_t *pheader = NULL;
         PLMS_MBCSV_HEADER msg_hdr;
 	PLMS_CLIENT_INFO *client_info = NULL;
 	PLMS_CKPT_CLIENT_INFO_LIST *ckpt_client_info;
 	NCS_UBAID * uba = &arg->info.encode.io_uba; 
 	PLMS_ENTITY_GROUP_INFO * entity_grp_ptr;
-	uns8 *async_upd_cnt = NULL;
+	uint8_t *async_upd_cnt = NULL;
 
 	TRACE_ENTER();
 
@@ -1376,9 +1376,9 @@ SaUint32T plms_edu_enc_client_info_data(NCS_MBCSV_CB_ARG *arg)
 
 	if (cb->prev_client_info_hdl)
 	{
-		client_info = (PLMS_CLIENT_INFO *)ncs_patricia_tree_getnext(&cb->client_info, (uns8 *)&cb->prev_client_info_hdl);
+		client_info = (PLMS_CLIENT_INFO *)ncs_patricia_tree_getnext(&cb->client_info, (uint8_t *)&cb->prev_client_info_hdl);
 	} else {
-		client_info = (PLMS_CLIENT_INFO *)ncs_patricia_tree_getnext(&cb->client_info, (uns8 *)0);
+		client_info = (PLMS_CLIENT_INFO *)ncs_patricia_tree_getnext(&cb->client_info, (uint8_t *)0);
 		if (!client_info)
 		{
 			if (arg->info.encode.io_msg_type == 
@@ -1428,7 +1428,7 @@ SaUint32T plms_edu_enc_client_info_data(NCS_MBCSV_CB_ARG *arg)
 		if ( num_rec == MAX_NO_OF_CLIENT_INFO_RECS)
 			break;
 			
-		client_info = (PLMS_CLIENT_INFO *)ncs_patricia_tree_getnext(&cb->client_info, (uns8 *)&client_info->plm_handle);
+		client_info = (PLMS_CLIENT_INFO *)ncs_patricia_tree_getnext(&cb->client_info, (uint8_t *)&client_info->plm_handle);
 	}
 	if(client_info != NULL)
 	{
@@ -1442,7 +1442,7 @@ SaUint32T plms_edu_enc_client_info_data(NCS_MBCSV_CB_ARG *arg)
 	plms_enc_mbcsv_header(pheader,msg_hdr);
 	free(ckpt_client_info);
 
-	entity_grp_ptr = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(&cb->entity_group_info, (uns8 *)0);
+	entity_grp_ptr = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(&cb->entity_group_info, (uint8_t *)0);
 	
 	if (num_rec < MAX_NO_OF_CLIENT_INFO_RECS)
 	{
@@ -1518,8 +1518,8 @@ SaUint32T plms_mbcsv_decode_cold_sync_data(NCS_MBCSV_CB_ARG *cbk_arg)
 	PLMS_CKPT_ENTITY_GROUP_INFO *entity_grp_info = NULL;
 	PLMS_CKPT_CLIENT_INFO_LIST *client_info;
 	PLMS_CKPT_ENTITY_LIST *list_ptr1,*list_ptr2;
-	uns8 * ptr;
-	uns8 data_cnt[16];
+	uint8_t * ptr;
+	uint8_t data_cnt[16];
 
 	TRACE_ENTER();
 	
@@ -2171,7 +2171,7 @@ SaUint32T plms_mbcsv_add_client_info(PLMS_MBCSV_MSG *msg)
 	client_info->plm_handle = msg->info.client_info.plm_handle;
 	client_info->mdest_id = msg->info.client_info.mdest_id; 
 
-	client_info->pat_node.key_info = (uns8*)&client_info->plm_handle;
+	client_info->pat_node.key_info = (uint8_t*)&client_info->plm_handle;
 
         if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&cb->client_info,
                                                &client_info->pat_node))
@@ -2194,7 +2194,7 @@ SaUint32T plms_mbcsv_rmv_client_info(PLMS_MBCSV_MSG *msg)
 
 	client_info = (PLMS_CLIENT_INFO *)ncs_patricia_tree_get(
 			&cb->client_info,
-			(uns8 *)&msg->info.client_info.plm_handle);
+			(uint8_t *)&msg->info.client_info.plm_handle);
 	if (!client_info)
 	{
 		/* LOG ERROR */
@@ -2347,7 +2347,7 @@ SaUint32T plms_process_mbcsv_data(PLMS_MBCSV_MSG *msg,NCS_MBCSV_ACT_TYPE action)
 SaUint32T plms_mbcsv_enc_warm_sync_resp(PLMS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 *wsync_ptr;
+	uint8_t *wsync_ptr;
 
 	/* Reserve space to send the async update counter */
 	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
@@ -2376,7 +2376,7 @@ SaUint32T plms_mbcsv_dec_warm_sync_resp(NCS_MBCSV_CB_ARG *arg)
 {
 	PLMS_CB * cb = plms_cb;
 	uns32 num_of_async_upd, rc = NCSCC_RC_SUCCESS;
-	uns8 data[16], *ptr;
+	uint8_t data[16], *ptr;
 	NCS_MBCSV_ARG ncs_arg;
 
 	TRACE_ENTER();

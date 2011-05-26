@@ -93,7 +93,7 @@ uns32 mqnd_add_node_to_mqalist(MQND_CB *cb, MDS_DEST dest)
 	}
 	memset(mqa_node, 0, sizeof(MQND_MQA_LIST_NODE));
 	mqa_node->mqa_dest = dest;
-	mqa_node->lnode.key = (uns8 *)&mqa_node->mqa_dest;
+	mqa_node->lnode.key = (uint8_t *)&mqa_node->mqa_dest;
 
 	rc = ncs_db_link_list_add(&cb->mqa_list_info, &mqa_node->lnode);
 	if (rc != NCSCC_RC_SUCCESS)
@@ -357,7 +357,7 @@ static uns32 mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 		SaAisErrorT err = 1;
 
 		mqa_list_node = (MQND_MQA_LIST_NODE *)ncs_db_link_list_find(&cb->mqa_list_info,
-									    (uns8 *)&qnode->qinfo.rcvr_mqa);
+									    (uint8_t *)&qnode->qinfo.rcvr_mqa);
 		if (mqa_list_node == NULL) {
 			/* That MQA is down so close all the queues of that agent */
 			mqnd_proc_queue_close(cb, qnode, &err);

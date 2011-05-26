@@ -532,7 +532,7 @@ void tet_mds_free_msg(NCSCONTEXT msg_to_be_freed)
 uns32 mds_service_subscribe(MDS_HDL mds_hdl,
                             MDS_SVC_ID svc_id,
                             NCSMDS_SCOPE_TYPE scope,
-                            uns8 num_svcs,
+                            uint8_t num_svcs,
                             MDS_SVC_ID *svc_ids)
 {
   int i,j,k,l,FOUND;
@@ -660,7 +660,7 @@ uns32 mds_service_subscribe(MDS_HDL mds_hdl,
 uns32 mds_service_redundant_subscribe(MDS_HDL mds_hdl,
                                       MDS_SVC_ID svc_id,
                                       NCSMDS_SCOPE_TYPE scope,
-                                      uns8 num_svcs,
+                                      uint8_t num_svcs,
                                       MDS_SVC_ID *svc_ids)
 {
   int i,j,k,l,FOUND;
@@ -788,7 +788,7 @@ uns32 mds_service_redundant_subscribe(MDS_HDL mds_hdl,
 
 uns32 mds_service_cancel_subscription(MDS_HDL mds_hdl,
                                       MDS_SVC_ID svc_id,
-                                      uns8 num_svcs,
+                                      uint8_t num_svcs,
                                       MDS_SVC_ID *svc_ids)
 {
   int i,j,k,FOUND;
@@ -1242,7 +1242,7 @@ uns32 mds_direct_send_message(MDS_HDL mds_hdl,
     }
   if(direct_buff&&message)
     {
-      memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
+      memcpy(direct_buff,(uint8_t *)message,strlen(message)+1);
       direct_buff_len=strlen(message)+1;
     }
   MDS_DIRECT_BUFF rsp;
@@ -1338,7 +1338,7 @@ uns32 mds_direct_response(MDS_HDL mds_hdl,
   if(direct_buff==NULL)
     perror("Direct Buffer not allocated properly");
 
-  memcpy(direct_buff,(uns8 *)msg,sizeof(msg));
+  memcpy(direct_buff,(uint8_t *)msg,sizeof(msg));
   direct_buff_len=sizeof(msg);
   
   svc_to_mds_info.i_mds_hdl=mds_hdl;
@@ -1430,7 +1430,7 @@ uns32 mds_direct_broadcast_message(MDS_HDL mds_hdl,
 
   if(direct_buff)
     {
-      memcpy(direct_buff,(uns8 *)msg,sizeof(msg));
+      memcpy(direct_buff,(uint8_t *)msg,sizeof(msg));
       direct_buff_len=sizeof(msg);
     }
   svc_to_mds_info.i_mds_hdl=mds_hdl;
@@ -1775,7 +1775,7 @@ uns32 tet_mds_cb_cpy(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 }
 uns32 tet_mds_cb_enc(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
-  uns8 *p8;
+  uint8_t *p8;
   TET_MDS_MSG *msg;
   
   msg = (TET_MDS_MSG*)mds_to_svc_info->info.enc.i_msg;
@@ -1790,7 +1790,7 @@ uns32 tet_mds_cb_enc(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   
   /* ENCODE data */
   ncs_encode_n_octets_in_uba(mds_to_svc_info->info.enc.io_uba, 
-                             (uns8*)msg->send_data, msg->send_len);
+                             (uint8_t*)msg->send_data, msg->send_len);
   
   printf("Successfully encoded message for Receiver svc = %d\n",
          mds_to_svc_info->info.enc.i_to_svc_id);
@@ -1798,7 +1798,7 @@ uns32 tet_mds_cb_enc(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 }
 uns32 tet_mds_cb_dec(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
-  uns8 *p8;
+  uint8_t *p8;
   TET_MDS_MSG *msg;
   
   printf("Decoding the message from Sender svc = %d with msg fmt ver = %d on Node =%x\n",
@@ -1815,12 +1815,12 @@ uns32 tet_mds_cb_dec(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
       /* We are receiving an asynchronous message! */
       msg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
       memset(msg, 0, sizeof(TET_MDS_MSG));
-      mds_to_svc_info->info.dec.o_msg = (uns8*)msg;
+      mds_to_svc_info->info.dec.o_msg = (uint8_t*)msg;
     }
   
   /* DECODE length */
   p8 = ncs_dec_flatten_space(mds_to_svc_info->info.dec.io_uba, 
-                             (uns8*)&msg->recvd_len, 2);
+                             (uint8_t*)&msg->recvd_len, 2);
   msg->recvd_len = ncs_decode_16bit(&p8);
   ncs_dec_skip_space(mds_to_svc_info->info.dec.io_uba, 2);
   
@@ -1828,7 +1828,7 @@ uns32 tet_mds_cb_dec(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   /*msg->recvd_data = (char *) malloc(msg->recvd_len+1);*/
   memset(msg->recvd_data, 0, sizeof(msg->recvd_len+1));
   ncs_decode_n_octets_from_uba(mds_to_svc_info->info.dec.io_uba, 
-                               (uns8*)msg->recvd_data, msg->recvd_len);
+                               (uint8_t*)msg->recvd_data, msg->recvd_len);
   msg->recvd_data[msg->recvd_len] = 0; /* NULL termination for string */
   if(mds_to_svc_info->info.dec.i_is_resp)
     printf("This is a Response");
@@ -1839,7 +1839,7 @@ uns32 tet_mds_cb_dec(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 
 uns32 tet_mds_cb_enc_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
-  uns8 *p8;
+  uint8_t *p8;
   TET_MDS_MSG *msg;
   
   msg = (TET_MDS_MSG*)mds_to_svc_info->info.enc_flat.i_msg;
@@ -1854,7 +1854,7 @@ uns32 tet_mds_cb_enc_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   
   /* ENCODE data */
   ncs_encode_n_octets_in_uba(mds_to_svc_info->info.enc_flat.io_uba, 
-                             (uns8*)msg->send_data, msg->send_len);
+                             (uint8_t*)msg->send_data, msg->send_len);
   /*
     printf("Successfully flat encoded message for Receiver svc = %d\n\n",
     mds_to_svc_info->info.enc_flat.i_to_svc_id);*/
@@ -1862,7 +1862,7 @@ uns32 tet_mds_cb_enc_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 }
 uns32 tet_mds_cb_dec_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
-  uns8 *p8;
+  uint8_t *p8;
   TET_MDS_MSG *msg;
   
   printf("\nFlat Decoding the message from Sender svc = %d with msg fmt ver=%d" ,
@@ -1878,12 +1878,12 @@ uns32 tet_mds_cb_dec_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
       /* We are receiving an asynchronous message! */
       msg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
       memset(msg, 0, sizeof(TET_MDS_MSG));
-      mds_to_svc_info->info.dec_flat.o_msg = (uns8*)msg;
+      mds_to_svc_info->info.dec_flat.o_msg = (uint8_t*)msg;
     }
   
   /* DECODE length */
   p8 = ncs_dec_flatten_space(mds_to_svc_info->info.dec_flat.io_uba, 
-                             (uns8*)&msg->recvd_len, 2);
+                             (uint8_t*)&msg->recvd_len, 2);
   msg->recvd_len = ncs_decode_16bit(&p8);
   ncs_dec_skip_space(mds_to_svc_info->info.dec_flat.io_uba, 2);
   
@@ -1891,7 +1891,7 @@ uns32 tet_mds_cb_dec_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   /*msg->recvd_data = (char *) malloc(msg->recvd_len+1);*/
   memset(msg->recvd_data, 0, sizeof(msg->recvd_len+1));
   ncs_decode_n_octets_from_uba(mds_to_svc_info->info.dec_flat.io_uba, 
-                               (uns8*)msg->recvd_data, msg->recvd_len);
+                               (uint8_t*)msg->recvd_data, msg->recvd_len);
   msg->recvd_data[msg->recvd_len] = 0; /* NULL termination for string */
   if(mds_to_svc_info->info.dec_flat.i_is_resp)
     printf("\nThis is a RESPONSE");

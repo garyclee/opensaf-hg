@@ -35,7 +35,7 @@ CLMS_CLUSTER_NODE *clms_node_get_by_name(const SaNameT *name)
 
 	TRACE_ENTER2("name input %s length %d", name->value, name->length);
 
-	clms_node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_get(&clms_cb->nodes_db, (uns8 *)name);
+	clms_node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_get(&clms_cb->nodes_db, (uint8_t *)name);
 	if (clms_node != NULL) {
 		/* Adjust the pointer */
 		clms_node = (CLMS_CLUSTER_NODE *) (((char *)clms_node)
@@ -60,9 +60,9 @@ CLMS_CLUSTER_NODE *clms_node_getnext_by_name(const SaNameT *name)
 	TRACE_ENTER();
 
 	if (name->length == 0) {
-		clms_node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_getnext(&clms_cb->nodes_db, (uns8 *)0);
+		clms_node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_getnext(&clms_cb->nodes_db, (uint8_t *)0);
 	} else
-		clms_node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_getnext(&clms_cb->nodes_db, (uns8 *)name);
+		clms_node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_getnext(&clms_cb->nodes_db, (uint8_t *)name);
 	if (clms_node != NULL) {
 		/* Adjust the pointer */
 		clms_node = (CLMS_CLUSTER_NODE *) (((char *)clms_node)
@@ -86,7 +86,7 @@ CLMS_CLUSTER_NODE *clms_node_get_by_eename(SaNameT *name)
 
 	TRACE_ENTER2("name->value %s,name->length %d", name->value, name->length);
 
-	clms_node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_get(&clms_cb->ee_lookup, (uns8 *)name);
+	clms_node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_get(&clms_cb->ee_lookup, (uint8_t *)name);
 
 	if (clms_node != NULL) {
 		/* Adjust the pointer */
@@ -111,7 +111,7 @@ CLMS_CLUSTER_NODE *clms_node_get_by_id(SaUint32T nodeid)
 	CLMS_CLUSTER_NODE *node = NULL;
 	TRACE_ENTER();
 
-	node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_get(&clms_cb->id_lookup, (uns8 *)&nodeid);
+	node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_get(&clms_cb->id_lookup, (uint8_t *)&nodeid);
 	if (node != (CLMS_CLUSTER_NODE *) NULL) {
 		/* Adjust the pointer */
 		node = (CLMS_CLUSTER_NODE *) (((char *)node)
@@ -135,9 +135,9 @@ CLMS_CLUSTER_NODE *clms_node_getnext_by_id(SaUint32T node_id)
 
 	if (node_id == 0) {
 
-		node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_getnext(&clms_cb->id_lookup, (uns8 *)0);
+		node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_getnext(&clms_cb->id_lookup, (uint8_t *)0);
 	} else
-		node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_getnext(&clms_cb->id_lookup, (uns8 *)&node_id);
+		node = (CLMS_CLUSTER_NODE *) ncs_patricia_tree_getnext(&clms_cb->id_lookup, (uint8_t *)&node_id);
 
 	if (node != (CLMS_CLUSTER_NODE *) NULL) {
 		/* Adjust the pointer */
@@ -165,7 +165,7 @@ uns32 clms_node_add(CLMS_CLUSTER_NODE * node, int i)
 
 	case 0:
 		TRACE("Adding node_id to the patricia tree with node_id %u as key", node->node_id);
-		node->pat_node_id.key_info = (uns8 *)&(node->node_id);
+		node->pat_node_id.key_info = (uint8_t *)&(node->node_id);
 		rc = ncs_patricia_tree_add(&clms_cb->id_lookup, &node->pat_node_id);
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_WA("ncs_patricia_tree_add for node_id  FAILED for '%d' %u", node->node_id, rc);
@@ -175,7 +175,7 @@ uns32 clms_node_add(CLMS_CLUSTER_NODE * node, int i)
 		break;
 	case 1:
 		TRACE("Adding eename to the patricia tree");
-		node->pat_node_eename.key_info = (uns8 *)&(node->ee_name);
+		node->pat_node_eename.key_info = (uint8_t *)&(node->ee_name);
 		rc = ncs_patricia_tree_add(&clms_cb->ee_lookup, &node->pat_node_eename);
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_WA("ncs_patricia_tree_add for eename FAILED for eename = %s as key,rc =  %u",
@@ -186,7 +186,7 @@ uns32 clms_node_add(CLMS_CLUSTER_NODE * node, int i)
 		break;
 	case 2:
 		TRACE("Adding nodename to the patricia tree");
-		node->pat_node_name.key_info = (uns8 *)&(node->node_name);
+		node->pat_node_name.key_info = (uint8_t *)&(node->node_name);
 		rc = ncs_patricia_tree_add(&clms_cb->nodes_db, &node->pat_node_name);
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_WA("ncs_patricia_tree_add for nodename FAILED for nodename %s as key, rc = %u",
@@ -503,7 +503,7 @@ uns32 clms_client_del_trackresp(SaUint32T client_id)
 	while (NULL != (node = clms_node_getnext_by_id(nodeid))) {
 		nodeid = node->node_id;
 		if (ncs_patricia_tree_size(&node->trackresp) != 0) {
-			trkrsp_rec = (CLMS_TRACK_INFO *) ncs_patricia_tree_getnext(&node->trackresp, (uns8 *)0);
+			trkrsp_rec = (CLMS_TRACK_INFO *) ncs_patricia_tree_getnext(&node->trackresp, (uint8_t *)0);
 			while (trkrsp_rec != NULL) {
 				inv_id = trkrsp_rec->inv_id;
 				if (trkrsp_rec->client_id == client_id) {
@@ -528,7 +528,7 @@ uns32 clms_client_del_trackresp(SaUint32T client_id)
 					break;
 				}
 				trkrsp_rec =
-					(CLMS_TRACK_INFO *) ncs_patricia_tree_getnext(&node->trackresp, (uns8 *)&inv_id);
+					(CLMS_TRACK_INFO *) ncs_patricia_tree_getnext(&node->trackresp, (uint8_t *)&inv_id);
 			}
 		}
 	}
@@ -548,7 +548,7 @@ uns32 clms_node_trackresplist_empty(CLMS_CLUSTER_NODE * op_node)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-	trkrec = (CLMS_TRACK_INFO *) ncs_patricia_tree_getnext(&op_node->trackresp, (uns8 *)0);
+	trkrec = (CLMS_TRACK_INFO *) ncs_patricia_tree_getnext(&op_node->trackresp, (uint8_t *)0);
 	while (trkrec != NULL) {
 		inv_id = trkrec->inv_id;
 		if (NCSCC_RC_SUCCESS != ncs_patricia_tree_del(&op_node->trackresp, &trkrec->pat_node)) {
@@ -557,7 +557,7 @@ uns32 clms_node_trackresplist_empty(CLMS_CLUSTER_NODE * op_node)
 			goto done;
 		}
 		free(trkrec);
-		trkrec = (CLMS_TRACK_INFO *) ncs_patricia_tree_getnext(&op_node->trackresp, (uns8 *)&inv_id);
+		trkrec = (CLMS_TRACK_INFO *) ncs_patricia_tree_getnext(&op_node->trackresp, (uint8_t *)&inv_id);
 	}
  done:
 	TRACE_LEAVE();

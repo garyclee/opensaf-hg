@@ -35,7 +35,7 @@
 
 typedef struct ncsdta_create {
 	NCSCONTEXT i_mds_hdl;	/* MDS hdl for 'installing'                    */
-	uns8 i_hmpool_id;	/* Handle Manager Pool Id                      */
+	uint8_t i_hmpool_id;	/* Handle Manager Pool Id                      */
 
 } NCSDTA_CREATE;
 

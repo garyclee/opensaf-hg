@@ -546,7 +546,7 @@ void avnd_pg_finalize(AVND_CB *cb, SaAmfHandleT hdl, MDS_DEST *dest)
 	key.mds_dest = *dest;
 	key.req_hdl = hdl;
 
-	curr = (AVND_PG *)ncs_patricia_tree_getnext(&cb->pgdb, (uns8 *)0);
+	curr = (AVND_PG *)ncs_patricia_tree_getnext(&cb->pgdb, (uint8_t *)0);
 
 	/* scan the entire pg db & delete the matching track recs */
 	while (curr) {
@@ -557,7 +557,7 @@ void avnd_pg_finalize(AVND_CB *cb, SaAmfHandleT hdl, MDS_DEST *dest)
 		if (!curr->trk_list.n_nodes) {
 			avnd_pg_track_stop(cb, curr);
 			curr = (prv) ? m_AVND_PGDB_REC_GET_NEXT(cb->pgdb, prv->csi_name) :
-			    (AVND_PG *)ncs_patricia_tree_getnext(&cb->pgdb, (uns8 *)0);
+			    (AVND_PG *)ncs_patricia_tree_getnext(&cb->pgdb, (uint8_t *)0);
 		} else {
 			prv = curr;
 			curr = m_AVND_PGDB_REC_GET_NEXT(cb->pgdb, curr->csi_name);

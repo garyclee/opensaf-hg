@@ -112,7 +112,7 @@ uns32 plma_client_tree_destroy()
 	TRACE_ENTER();	
 	/** scan the entire handle db & delete each record */
 	while ((client_node = (PLMA_CLIENT_INFO *)
-		ncs_patricia_tree_getnext(&cb->client_info, (uns8 *)temp_ptr)))
+		ncs_patricia_tree_getnext(&cb->client_info, (uint8_t *)temp_ptr)))
 	{		
 		/** delete the client info */
 		temp_hdl = client_node->plm_handle;
@@ -155,7 +155,7 @@ uns32 plma_group_tree_destroy()
 	TRACE_ENTER();	
 	/* scan the entire handle db & delete each record */
 	while ((grp_info_node = (PLMA_ENTITY_GROUP_INFO *)
-		ncs_patricia_tree_getnext(&cb->entity_group_info, (uns8 *)temp_ptr)))
+		ncs_patricia_tree_getnext(&cb->entity_group_info, (uint8_t *)temp_ptr)))
 	{		
 		/* delete the client info */
 		temp_hdl = grp_info_node->entity_group_handle;

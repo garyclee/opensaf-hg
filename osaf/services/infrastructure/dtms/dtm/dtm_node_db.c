@@ -134,7 +134,7 @@ DTM_NODE_DB *dtm_node_get_by_id(uns32 nodeid)
 	TRACE_ENTER();
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
 
-	node = (DTM_NODE_DB *) ncs_patricia_tree_get(&dtms_cb->nodeid_tree, (uns8 *)&nodeid);
+	node = (DTM_NODE_DB *) ncs_patricia_tree_get(&dtms_cb->nodeid_tree, (uint8_t *)&nodeid);
 	if (node != (DTM_NODE_DB *) NULL) {
 		/* Adjust the pointer */
 		node = (DTM_NODE_DB *) (((char *)node)
@@ -163,9 +163,9 @@ DTM_NODE_DB *dtm_node_getnext_by_id(uns32 node_id)
 
 	if (node_id == 0) {
 
-		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->nodeid_tree, (uns8 *)0);
+		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->nodeid_tree, (uint8_t *)0);
 	} else
-		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->nodeid_tree, (uns8 *)&node_id);
+		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->nodeid_tree, (uint8_t *)&node_id);
 
 	if (node != (DTM_NODE_DB *) NULL) {
 		/* Adjust the pointer */
@@ -194,7 +194,7 @@ DTM_NODE_DB *dtm_node_get_by_comm_socket(uns32 comm_socket)
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
 	TRACE_ENTER();
 
-	node = (DTM_NODE_DB *) ncs_patricia_tree_get(&dtms_cb->comm_sock_tree, (uns8 *)&comm_socket);
+	node = (DTM_NODE_DB *) ncs_patricia_tree_get(&dtms_cb->comm_sock_tree, (uint8_t *)&comm_socket);
 	if (node != (DTM_NODE_DB *) NULL) {
 		/* Adjust the pointer */
 		node = (DTM_NODE_DB *) (((char *)node)
@@ -224,9 +224,9 @@ DTM_NODE_DB *dtm_node_getnext_by_comm_socket(uns32 comm_socket)
 
 	if (comm_socket == 0) {
 
-		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->comm_sock_tree, (uns8 *)0);
+		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->comm_sock_tree, (uint8_t *)0);
 	} else
-		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->comm_sock_tree, (uns8 *)&comm_socket);
+		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->comm_sock_tree, (uint8_t *)&comm_socket);
 
 	if (node != (DTM_NODE_DB *) NULL) {
 		/* Adjust the pointer */
@@ -249,13 +249,13 @@ DTM_NODE_DB *dtm_node_getnext_by_comm_socket(uns32 comm_socket)
  * @return NCSCC_RC_FAILURE
  *
  */
-DTM_NODE_DB *dtm_node_get_by_node_ip(uns8 *node_ip)
+DTM_NODE_DB *dtm_node_get_by_node_ip(uint8_t *node_ip)
 {
 	DTM_NODE_DB *node = NULL;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
 	TRACE_ENTER();
 
-	node = (DTM_NODE_DB *) ncs_patricia_tree_get(&dtms_cb->ip_addr_tree, (uns8 *)node_ip);
+	node = (DTM_NODE_DB *) ncs_patricia_tree_get(&dtms_cb->ip_addr_tree, (uint8_t *)node_ip);
 	if (node != (DTM_NODE_DB *) NULL) {
 		/* Adjust the pointer */
 		node = (DTM_NODE_DB *) (((char *)node)
@@ -277,7 +277,7 @@ DTM_NODE_DB *dtm_node_get_by_node_ip(uns8 *node_ip)
  * @return NCSCC_RC_FAILURE
  *
  */
-DTM_NODE_DB *dtm_node_getnext_by_nodeaddr(uns8 *node_ip)
+DTM_NODE_DB *dtm_node_getnext_by_nodeaddr(uint8_t *node_ip)
 {
 	DTM_NODE_DB *node = NULL;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
@@ -285,9 +285,9 @@ DTM_NODE_DB *dtm_node_getnext_by_nodeaddr(uns8 *node_ip)
 
 	if (node_ip == NULL) {
 
-		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->ip_addr_tree, (uns8 *)0);
+		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->ip_addr_tree, (uint8_t *)0);
 	} else {
-		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->ip_addr_tree, (uns8 *)node_ip);
+		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->ip_addr_tree, (uint8_t *)node_ip);
 	}
 	if (node != (DTM_NODE_DB *) NULL) {
 		/* Adjust the pointer */
@@ -323,7 +323,7 @@ uns32 dtm_node_add(DTM_NODE_DB * node, int i)
 
 	case 0:
 		TRACE("DTM:Adding node_id to the patricia tree with node_id :%u as key", node->node_id);
-		node->pat_nodeid.key_info = (uns8 *)&(node->node_id);
+		node->pat_nodeid.key_info = (uint8_t *)&(node->node_id);
 		rc = ncs_patricia_tree_add(&dtms_cb->nodeid_tree, &node->pat_nodeid);
 		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE("DTM:ncs_patricia_tree_add for node_id  FAILED for :%d :%u", node->node_id, rc);
@@ -333,7 +333,7 @@ uns32 dtm_node_add(DTM_NODE_DB * node, int i)
 		break;
 	case 1:
 		TRACE("DTM:Adding node_id to the patricia tree with comm_socket :%u as key", node->comm_socket);
-		node->pat_comm_socket.key_info = (uns8 *)&(node->comm_socket);
+		node->pat_comm_socket.key_info = (uint8_t *)&(node->comm_socket);
 		rc = ncs_patricia_tree_add(&dtms_cb->comm_sock_tree, &node->pat_comm_socket);
 		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE("DTM:ncs_patricia_tree_add for node_id  FAILED for :%d :%u", node->comm_socket, rc);
@@ -344,7 +344,7 @@ uns32 dtm_node_add(DTM_NODE_DB * node, int i)
 
 	case 2:
 		TRACE("DTM:Adding node_ip to the patricia tree with node_ip :%s as key", node->node_ip);
-		node->pat_ip_address.key_info = (uns8 *)&(node->node_ip);
+		node->pat_ip_address.key_info = (uint8_t *)&(node->node_ip);
 		rc = ncs_patricia_tree_add(&dtms_cb->ip_addr_tree, &node->pat_ip_address);
 		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE("DTM:ncs_patricia_tree_add for node_id  FAILED for :%s :%u", node->node_ip, rc);

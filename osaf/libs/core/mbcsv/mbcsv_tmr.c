@@ -77,7 +77,7 @@ const NCS_MBCSV_TMR_DB ncs_mbcsv_tmr_db[] = {
   NOTES:
 
 *****************************************************************************/
-void ncs_mbcsv_start_timer(PEER_INST *peer, uns8 timer_type)
+void ncs_mbcsv_start_timer(PEER_INST *peer, uint8_t timer_type)
 {
 	NCS_MBCSV_TMR *tmr;
 
@@ -211,8 +211,8 @@ void ncs_mbcsv_tmr_expiry(void *uarg)
 {
 	NCS_MBCSV_TMR *tmr;
 	PEER_INST *peer;
-	uns8 type;
-	uns8 event;
+	uint8_t type;
+	uint8_t event;
 	MBCSV_EVT *mbc_evt;	/* MBCSV event to be posted */
 
 	if (NULL == (mbc_evt = m_MMGR_ALLOC_MBCSV_EVT)) {

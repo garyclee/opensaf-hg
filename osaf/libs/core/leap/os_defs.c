@@ -1909,7 +1909,7 @@ void ncs_stty_reset(void)
  *
  ****************************************************************************/
 
-void *ncs_os_udef_alloc(uns32 size, uns8 pool_id, uns8 pri)
+void *ncs_os_udef_alloc(uns32 size, uint8_t pool_id, uint8_t pri)
 {
 	return m_NCS_OS_MEMALLOC(size, NULL);
 }
@@ -1937,7 +1937,7 @@ void *ncs_os_udef_alloc(uns32 size, uns8 pool_id, uns8 pri)
  *
  ****************************************************************************/
 
-void ncs_os_udef_free(void *ptr, uns8 pool_id)
+void ncs_os_udef_free(void *ptr, uint8_t pool_id)
 {
 	m_NCS_OS_MEMFREE(ptr, NULL);
 }

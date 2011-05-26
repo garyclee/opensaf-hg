@@ -42,13 +42,13 @@
   FUNCTIONS INCLUDED in this module:
 
 The following set does buffer chaining management
-  ncs_decode_n_octets(USRBUF *u, uns8 *os, uns32 count)
+  ncs_decode_n_octets(USRBUF *u, uint8_t *os, uns32 count)
   ncs_skip_n_octets( USRBUF *u, uns32 count)
 
 The following set does NOT do buffer chaining management
-  ncs_decode_short( uns8 **stream)
-  ncs_decode_24bit( uns8 **stream)
-  ncs_decode_32bit( uns8 **stream)
+  ncs_decode_short( uint8_t **stream)
+  ncs_decode_24bit( uint8_t **stream)
+  ncs_decode_32bit( uint8_t **stream)
 
 *******************************************************************************
 */
@@ -59,7 +59,7 @@ The following set does NOT do buffer chaining management
 #include "ncs_svd.h"
 #include "ncsencdec_pub.h"
 
-USRBUF *ncs_decode_n_octets(USRBUF *u, uns8 *os, uns32 count)
+USRBUF *ncs_decode_n_octets(USRBUF *u, uint8_t *os, uns32 count)
 {
 
 	char *s;
@@ -81,14 +81,14 @@ USRBUF *ncs_decode_n_octets(USRBUF *u, uns8 *os, uns32 count)
 
 }
 
-uns8 *ncs_flatten_n_octets(USRBUF *u, uns8 *os, uns32 count)
+uint8_t *ncs_flatten_n_octets(USRBUF *u, uint8_t *os, uns32 count)
 {
 	if (u == BNULL) {
 		m_LEAP_DBG_SINK(0);
 		return NULL;
 	}
 
-	return (uns8 *)m_MMGR_DATA_AT_START(u, count, (char *)os);
+	return (uint8_t *)m_MMGR_DATA_AT_START(u, count, (char *)os);
 }
 
 USRBUF *ncs_skip_n_octets(USRBUF *u, uns32 count)
@@ -122,7 +122,7 @@ USRBUF *ncs_skip_n_octets(USRBUF *u, uns32 count)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns32 ncs_decode_short(uns8 **stream)
+uns32 ncs_decode_short(uint8_t **stream)
 {
 
 	uns32 val = 0;		/* Accumulator */
@@ -155,7 +155,7 @@ uns32 ncs_decode_short(uns8 **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns32 ncs_decode_24bit(uns8 **stream)
+uns32 ncs_decode_24bit(uint8_t **stream)
 {
 
 	uns32 val = 0;		/* Accumulator */
@@ -189,7 +189,7 @@ uns32 ncs_decode_24bit(uns8 **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns32 ncs_decode_32bit(uns8 **stream)
+uns32 ncs_decode_32bit(uint8_t **stream)
 {
 
 	uns32 val = 0;		/* Accumulator */
@@ -224,7 +224,7 @@ uns32 ncs_decode_32bit(uns8 **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns64 ncs_decode_64bit(uns8 **stream)
+uns64 ncs_decode_64bit(uint8_t **stream)
 {
 	uns64 val;
 
@@ -255,7 +255,7 @@ uns64 ncs_decode_64bit(uns8 **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns16 ncs_decode_16bit(uns8 **stream)
+uns16 ncs_decode_16bit(uint8_t **stream)
 {
 
 	uns32 val = 0;		/* Accumulator */
@@ -288,14 +288,14 @@ uns16 ncs_decode_16bit(uns8 **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns8 ncs_decode_8bit(uns8 **stream)
+uint8_t ncs_decode_8bit(uint8_t **stream)
 {
 
 	uns32 val = 0;		/* Accumulator */
 
 	val = (uns32)*(*stream)++;
 
-	return (uns8)(val & 0x000000FF);
+	return (uint8_t)(val & 0x000000FF);
 
 }
 
@@ -324,9 +324,9 @@ uns8 ncs_decode_8bit(uns8 **stream)
 
 *****************************************************************************/
 
-uns32 ncs_decode_key(uns8 **stream, NCS_KEY *key)
+uns32 ncs_decode_key(uint8_t **stream, NCS_KEY *key)
 {
-	uns8 len;
+	uint8_t len;
 
 	key->svc = *(*stream)++;
 	key->fmat = *(*stream)++;
@@ -378,7 +378,7 @@ uns32 ncs_decode_key(uns8 **stream, NCS_KEY *key)
   Convert a 4 byte IEEE Float object to host format.
 
 *****************************************************************************/
-float ncs_decode_float(uns8 **stream)
+float ncs_decode_float(uint8_t **stream)
 {
 	uns32 val;
 	float ret_val = 0;

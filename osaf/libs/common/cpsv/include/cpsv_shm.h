@@ -47,7 +47,7 @@ typedef struct cpsv_ckpt_hdr {
 typedef struct cpsv_sect_hdr {
 	uns32 lcl_sec_id;
 	uns16 idLen;
-	uns8 id[MAX_SIZE];
+	uint8_t id[MAX_SIZE];
 	SaCkptSectionStateT sec_state;
 	SaSizeT sec_size;
 	SaTimeT exp_tmr;

@@ -262,7 +262,7 @@ static uns32 cpnd_mds_enc(CPND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 	CPSV_EVT *pevt = NULL;
 	EDU_ERR ederror = 0;
 	NCS_UBAID *io_uba = enc_info->io_uba;
-	uns8 *pstream = NULL;
+	uint8_t *pstream = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
@@ -367,8 +367,8 @@ static uns32 cpnd_mds_enc(CPND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 \*****************************************************************************/
 uns32 cpsv_ckpt_access_decode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 {
-	uns8 *pstream = NULL;
-	uns8 local_data[150];
+	uint8_t *pstream = NULL;
+	uint8_t local_data[150];
 	uns32 space = 4 + 8 + 8 + 8 + 4 + 4;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
@@ -400,7 +400,7 @@ uns32 cpsv_ckpt_access_decode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	ckpt_data->ckpt_sync.cpa_sinfo.to_svc = ncs_decode_32bit(&pstream);
 	ckpt_data->ckpt_sync.cpa_sinfo.ctxt.length = ncs_decode_8bit(&pstream);
 	ncs_dec_skip_space(io_uba, space);
-	ncs_decode_n_octets_from_uba(io_uba, (uns8 *)ckpt_data->ckpt_sync.cpa_sinfo.ctxt.data,
+	ncs_decode_n_octets_from_uba(io_uba, (uint8_t *)ckpt_data->ckpt_sync.cpa_sinfo.ctxt.data,
 				     (uns32)MDS_SYNC_SND_CTXT_LEN_MAX);
 
 	return rc;
@@ -425,8 +425,8 @@ static uns32 cpnd_mds_dec(CPND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	CPSV_EVT *msg_ptr = NULL;
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 *pstream;
-	uns8 local_data[20];
+	uint8_t *pstream;
+	uint8_t local_data[20];
 	NCS_BOOL is_valid_msg_fmt = FALSE;
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_CPA) {

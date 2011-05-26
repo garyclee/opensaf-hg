@@ -86,7 +86,7 @@ static AVD_SUS_PER_SI_RANK *avd_sirankedsu_create(AVD_CL_CB *cb, AVD_SUS_PER_SI_
 
 	ranked_su_per_si->indx.su_rank = indx.su_rank;
 
-	ranked_su_per_si->tree_node.key_info = (uns8 *)(&ranked_su_per_si->indx);
+	ranked_su_per_si->tree_node.key_info = (uint8_t *)(&ranked_su_per_si->indx);
 	ranked_su_per_si->tree_node.bit = 0;
 	ranked_su_per_si->tree_node.left = NULL;
 	ranked_su_per_si->tree_node.right = NULL;
@@ -120,7 +120,7 @@ static AVD_SUS_PER_SI_RANK *avd_sirankedsu_find(AVD_CL_CB *cb, AVD_SUS_PER_SI_RA
 	memcpy(rank_indx.si_name.value, indx.si_name.value, indx.si_name.length);
 	rank_indx.su_rank = indx.su_rank;
 
-	ranked_su_per_si = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_get(&sirankedsu_db, (uns8 *)&rank_indx);
+	ranked_su_per_si = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_get(&sirankedsu_db, (uint8_t *)&rank_indx);
 
 	return ranked_su_per_si;
 }
@@ -151,7 +151,7 @@ AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_I
 	memcpy(rank_indx.si_name.value, indx.si_name.value, indx.si_name.length);
 	rank_indx.su_rank = indx.su_rank;
 
-	ranked_su_per_si = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_getnext(&sirankedsu_db, (uns8 *)&rank_indx);
+	ranked_su_per_si = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_getnext(&sirankedsu_db, (uint8_t *)&rank_indx);
 
 	return ranked_su_per_si;
 }
@@ -189,7 +189,7 @@ AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext_valid(AVD_CL_CB *cb,
 	memcpy(rank_indx.si_name.value, indx.si_name.value, indx.si_name.length);
 	rank_indx.su_rank = indx.su_rank;
 
-	ranked_su_per_si = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_getnext(&sirankedsu_db, (uns8 *)&rank_indx);
+	ranked_su_per_si = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_getnext(&sirankedsu_db, (uint8_t *)&rank_indx);
 
 	if (ranked_su_per_si == NULL) {
 		/*  return NULL */
@@ -455,7 +455,7 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 	avd_susi_namet_init(opdata->param.deleteOp.objectName, &su_name, &si_name);
 
 	/* determine if the su is ranked per si */
-	memset((uns8 *)&indx, '\0', sizeof(indx));
+	memset((uint8_t *)&indx, '\0', sizeof(indx));
 	indx.si_name = si_name;
 	indx.su_rank = 0;
 	for (su_rank_rec = avd_sirankedsu_getnext(avd_cb, indx);

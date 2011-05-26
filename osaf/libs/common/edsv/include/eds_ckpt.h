@@ -83,7 +83,7 @@ typedef struct edsv_ckpt_chan_msg {
 	uns32 last_copen_id;	/* Last assigned chan_open_id */
 	uns32 chan_attrib;	/* Attributes of this channel */
 	uns16 cname_len;	/* Length of channel name */
-	uns8 cname[SA_MAX_NAME_LENGTH];	/* Channel name. NULL terminated if ascii */
+	uint8_t cname[SA_MAX_NAME_LENGTH];	/* Channel name. NULL terminated if ascii */
 	MDS_DEST chan_opener_dest;
 	SaTimeT chan_create_time;
 	/* Is it chan_name_len or MAX_SANAME_LEN? */
@@ -97,7 +97,7 @@ typedef struct edsv_ckpt_chan_open_msg {
 	uns32 chan_attrib;	/* Attributes of this channel */
 	MDS_DEST chan_opener_dest;
 	uns16 cname_len;	/* Length of channel name */
-	uns8 cname[SA_MAX_NAME_LENGTH];	/* Channel name. NULL terminated if ascii */
+	uint8_t cname[SA_MAX_NAME_LENGTH];	/* Channel name. NULL terminated if ascii */
 	SaTimeT chan_create_time;
 } EDS_CKPT_CHAN_OPEN_MSG;
 
@@ -567,7 +567,7 @@ uns32 eds_edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 int32 eds_ckpt_msg_test_type(NCSCONTEXT arg);
 uns32 eds_edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-void eds_enc_ckpt_header(uns8 *pdata, EDS_CKPT_HEADER header);
+void eds_enc_ckpt_header(uint8_t *pdata, EDS_CKPT_HEADER header);
 uns32 eds_enc_ckpt_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg);
 uns32 eds_ckpt_enc_subscribe_msg(NCS_UBAID *uba, EDS_CKPT_SUBSCRIBE_MSG *msg);
 uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg);

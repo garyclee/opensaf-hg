@@ -102,7 +102,7 @@ void mqd_flx_log_dereg(void)
                      fno  - filenumber 
 *****************************************************************************/
 
-void mqd_log(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno)
+void mqd_log(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *fname, uns32 fno)
 {
 
 	/* Log New type logs */
@@ -110,7 +110,7 @@ void mqd_log(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno
 
 }	/* End of mqd_new_log()  */
 
-void _mqd_genlog(uns8 severity, const char *function, const char *format, ...)
+void _mqd_genlog(uint8_t severity, const char *function, const char *format, ...)
 {
 	char preamble[128];
 	char str[128];

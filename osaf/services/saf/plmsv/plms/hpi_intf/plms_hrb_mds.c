@@ -216,7 +216,7 @@ SaUint32T hrb_mds_cpy(struct ncsmds_callback_info *clbk_info)
 	TRACE_ENTER();
 
 	dst_msg    = (PLMS_HPI_RSP *)clbk_info->info.cpy.i_msg;
-   	clbk_info->info.cpy.o_cpy = (uns8*)dst_msg;
+   	clbk_info->info.cpy.o_cpy = (uint8_t*)dst_msg;
 
 	/* TBD need to see whether we need to allocate memory for data*/
 	TRACE_LEAVE();

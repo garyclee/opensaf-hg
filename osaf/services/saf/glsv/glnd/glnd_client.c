@@ -47,7 +47,7 @@
 GLND_CLIENT_INFO *glnd_client_node_find(GLND_CB *glnd_cb, SaLckHandleT handle_id)
 {
 	/* search for the agent id */
-	return (GLND_CLIENT_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_client_tree, (uns8 *)&handle_id);
+	return (GLND_CLIENT_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_client_tree, (uint8_t *)&handle_id);
 }
 
 /*****************************************************************************
@@ -67,13 +67,13 @@ GLND_CLIENT_INFO *glnd_client_node_find_next(GLND_CB *glnd_cb, SaLckHandleT hand
 	GLND_CLIENT_INFO *client_info;
 
 	/* search for the agent id */
-	client_info = (GLND_CLIENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_client_tree, (uns8 *)&handle_id);
+	client_info = (GLND_CLIENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_client_tree, (uint8_t *)&handle_id);
 
 	while (client_info) {
 		if (memcmp(&client_info->agent_mds_dest, &agent_mds_dest, sizeof(MDS_DEST)) == 0)
 			return client_info;
 		else
-			client_info = (GLND_CLIENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_client_tree, (uns8 *)
+			client_info = (GLND_CLIENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_client_tree, (uint8_t *)
 										    &client_info->app_handle_id);
 	}
 	return NULL;
@@ -112,7 +112,7 @@ GLND_CLIENT_INFO *glnd_client_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest
 	}
 	client_info->agent_mds_dest = agent_mds_dest;
 
-	client_info->patnode.key_info = (uns8 *)&client_info->app_handle_id;
+	client_info->patnode.key_info = (uint8_t *)&client_info->app_handle_id;
 	if (ncs_patricia_tree_add(&glnd_cb->glnd_client_tree, &client_info->patnode) != NCSCC_RC_SUCCESS) {
 		m_LOG_GLND_API(GLND_CLIENT_TREE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		/* free and return */

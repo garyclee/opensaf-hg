@@ -51,7 +51,7 @@ static uns32 ckpt_proc_unsubscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
 static uns32 ckpt_proc_not_log_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
 static uns32 ckpt_proc_not_send_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
 
-static void enc_ckpt_header(uns8 *pdata, ntfsv_ckpt_header_t header);
+static void enc_ckpt_header(uint8_t *pdata, ntfsv_ckpt_header_t header);
 static uns32 dec_ckpt_header(NCS_UBAID *uba, ntfsv_ckpt_header_t *header);
 static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
 static uns32 decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param);
@@ -375,7 +375,7 @@ static uns32 ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cbk_a
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	/* asynsc Update Count */
-	uns8 *async_upd_cnt = NULL;
+	uint8_t *async_upd_cnt = NULL;
 
 	/* Currently, we shall send all data in one send.
 	 * This shall avoid "delta data" problems that are associated during
@@ -406,7 +406,7 @@ static uns32 ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cbk_a
 
 uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 
 	TRACE_ENTER();
@@ -434,7 +434,7 @@ static uns32 enc_mbcsv_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *para
 
 static uns32 enc_mbcsv_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 
 	TRACE_ENTER();
@@ -454,7 +454,7 @@ static uns32 enc_mbcsv_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm
 
 static uns32 enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 
 	TRACE_ENTER();
@@ -495,7 +495,7 @@ static uns32 ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NCS_M
 {
 	ntfsv_ckpt_msg_t *data = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS, num_bytes;
-	uns8 *pheader = NULL;
+	uint8_t *pheader = NULL;
 	ntfsv_ckpt_header_t ckpt_hdr;
 	NCS_UBAID *uba = &cbk_arg->info.encode.io_uba;
 
@@ -857,9 +857,9 @@ static uns32 ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 
 static uns32 decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[12];
+	uint8_t local_data[12];
 
 	/* releaseCode, majorVersion, minorVersion */
 	p8 = ncs_dec_flatten_space(uba, local_data, 12);
@@ -878,9 +878,9 @@ static uns32 decode_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 
 static uns32 decode_not_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[8];
+	uint8_t local_data[8];
 
 	/* releaseCode, majorVersion, minorVersion */
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
@@ -893,9 +893,9 @@ static uns32 decode_not_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confir
 
 static uns32 decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[20];
+	uint8_t local_data[20];
 
 	/* releaseCode, majorVersion, minorVersion */
 	p8 = ncs_dec_flatten_space(uba, local_data, 20);
@@ -939,8 +939,8 @@ static uns32 ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	uns32 num_rec = 0, num_bytes = 0, num_clients;
 	ntfs_ckpt_reg_msg_t *reg_rec = NULL;
 	uns32 num_of_async_upd;
-	uns8 *ptr;
-	uns8 data_cnt[16];
+	uint8_t *ptr;
+	uint8_t data_cnt[16];
 	struct NtfGlobals ntfGlobals;
 	SaNtfNotificationHeaderT *header;
 	memset(&ntfGlobals, 0, sizeof(struct NtfGlobals));
@@ -1557,7 +1557,7 @@ static uns32 edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 uns32 enc_ckpt_reserv_header(NCS_UBAID *uba, ntfsv_ckpt_msg_type_t type, uns32 num_rec, uns32 len)
 {
 	ntfsv_ckpt_header_t ckpt_hdr;
-	uns8 *pheader = NULL;
+	uint8_t *pheader = NULL;
 	unsigned int ckp_size = sizeof(ntfsv_ckpt_header_t);
 	/*Reserve space for "Checkpoint Header" */
 	pheader = ncs_enc_reserve_space(uba, sizeof(ntfsv_ckpt_header_t));
@@ -1590,7 +1590,7 @@ uns32 enc_ckpt_reserv_header(NCS_UBAID *uba, ntfsv_ckpt_msg_type_t type, uns32 n
  * Notes         : None.
  *****************************************************************************/
 
-static void enc_ckpt_header(uns8 *pdata, ntfsv_ckpt_header_t header)
+static void enc_ckpt_header(uint8_t *pdata, ntfsv_ckpt_header_t header)
 {
 	ncs_encode_32bit(&pdata, header.ckpt_rec_type);
 	ncs_encode_32bit(&pdata, header.num_ckpt_records);
@@ -1613,8 +1613,8 @@ static void enc_ckpt_header(uns8 *pdata, ntfsv_ckpt_header_t header)
 
 static uns32 dec_ckpt_header(NCS_UBAID *uba, ntfsv_ckpt_header_t *header)
 {
-	uns8 *p8;
-	uns8 local_data[4];
+	uint8_t *p8;
+	uint8_t local_data[4];
 	TRACE_ENTER();
 	if ((uba == NULL) || (header == NULL)) {
 		TRACE("NULL pointer, FAILED");

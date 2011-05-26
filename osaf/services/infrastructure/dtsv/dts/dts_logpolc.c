@@ -49,14 +49,14 @@ static unsigned int dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node,
 static void dts_manage_node_objects(DTS_CB *inst, DTS_SVC_REG_TBL *node, enum CcbUtilOperationType opType);
 
 static unsigned int dts_handle_node_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node,
-				       unsigned int paramid, uns8 old_log_device, unsigned int old_buff_size);
+				       unsigned int paramid, uint8_t old_log_device, unsigned int old_buff_size);
 
 static unsigned int dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsigned int param_id, unsigned int node_id);
 
 static unsigned int dts_manage_service_objects(DTS_CB *inst, DTS_SVC_REG_TBL *node, enum CcbUtilOperationType opType);
 
 static unsigned int dts_handle_service_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsigned int paramid,
-					  uns8 old_log_device, unsigned int old_buff_size);
+					  uint8_t old_log_device, unsigned int old_buff_size);
 
 /**************************************************************************
  Function: dts_log_policy_change
@@ -134,7 +134,7 @@ void dts_filter_policy_change(DTS_SVC_REG_TBL *node, POLICY *old_plcy, POLICY *n
 
  Notes:  
 **************************************************************************/
-unsigned int dts_log_device_set(POLICY *policy, OP_DEVICE *device, uns8 old_value)
+unsigned int dts_log_device_set(POLICY *policy, OP_DEVICE *device, uint8_t old_value)
 {
 	unsigned int rc = NCSCC_RC_SUCCESS;
 
@@ -218,7 +218,7 @@ unsigned int dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attri
 	SaImmAttrModificationT_2 *attrMod, **attrMods = (SaImmAttrModificationT_2 **)attrib_info;
 	SaImmAttrValuesT_2 *attribute = NULL, **attributes = (SaImmAttrValuesT_2 **)attrib_info;
 	unsigned int paramid = 0, old_buff_size = 0, rc = NCSCC_RC_SUCCESS;
-	uns8 old_log_device = 0;
+	uint8_t old_log_device = 0;
 	int i = 0;
 
 	memset(&key, 0, sizeof(SVC_KEY));
@@ -233,7 +233,7 @@ unsigned int dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attri
 	nt_key.node = m_NCS_OS_HTONL(key.node);
 	nt_key.ss_svc_id = m_NCS_OS_HTONL(key.ss_svc_id);
 
-	service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uns8 *)&nt_key);
+	service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uint8_t *)&nt_key);
 
 	if (!service) {
 		rc = dts_create_new_pat_entry(inst, &service, key.node, key.ss_svc_id, FALSE);
@@ -278,7 +278,7 @@ unsigned int dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attri
 		if (!strcmp(attribute->attrName, "osafDtsvServiceLogDevice")) {
 			paramid = osafDtsvServiceLogDevice_ID;
 			old_log_device = service->svc_policy.log_dev;
-			service->svc_policy.log_dev = *(uns8 *)&value;
+			service->svc_policy.log_dev = *(uint8_t *)&value;
 			dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceLogDevice = %d\n", service->svc_policy.log_dev);
 		} else if (!strcmp(attribute->attrName, "osafDtsvServiceLogFileSize")) {
 			if ((value < 100) || (value > 10000)) {
@@ -330,7 +330,7 @@ unsigned int dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attri
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvServiceSeverityBitMap_ID;
-			service->svc_policy.severity_bit_map = *(uns8 *)&value;
+			service->svc_policy.severity_bit_map = *(uint8_t *)&value;
 			dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceSeverityBitMap = %d\n", service->svc_policy.severity_bit_map);
 		} else if (!strcmp(attribute->attrName, "opensafServiceLogPolicy")) {
 			dts_log(NCSFL_SEV_DEBUG, "RDN = %s\n", (char *)value);
@@ -406,7 +406,7 @@ unsigned int dtsv_svc_filtering_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *ser
  Notes:  
 **************************************************************************/
 static unsigned int dts_handle_service_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *service,
-					  unsigned int paramid, uns8 old_log_device, unsigned int old_buff_size)
+					  unsigned int paramid, uint8_t old_log_device, unsigned int old_buff_size)
 {
 	unsigned int rc = NCSCC_RC_SUCCESS;
 
@@ -529,7 +529,7 @@ static unsigned int dts_manage_service_objects(DTS_CB *inst, DTS_SVC_REG_TBL *se
 unsigned int dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUtilOperationData)
 {
 	unsigned int rc = NCSCC_RC_SUCCESS, old_buff_size = 0;
-	uns8 old_log_device = 0;
+	uint8_t old_log_device = 0;
 	unsigned int old_num_log_files = 0, i = 0;
 	DTS_SVC_REG_TBL *node;
 	OP_DEVICE *device;
@@ -568,9 +568,9 @@ unsigned int dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData
 					return NCSCC_RC_FAILURE;
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogDevice")) {
-			if (inst->g_policy.g_policy.log_dev != *(uns8 *)&value) {
+			if (inst->g_policy.g_policy.log_dev != *(uint8_t *)&value) {
 				old_log_device = inst->g_policy.g_policy.log_dev;
-				inst->g_policy.g_policy.log_dev = *(uns8 *)&value;
+				inst->g_policy.g_policy.log_dev = *(uint8_t *)&value;
 
 				rc = dts_log_device_set(&inst->g_policy.g_policy, &inst->g_policy.device,
 							old_log_device);
@@ -614,8 +614,8 @@ unsigned int dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData
 				dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCategoryBitMap %d\n", value);
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalSeverityBitMap")) {
-			if (inst->g_policy.g_policy.severity_bit_map != *(uns8 *)&value) {
-				inst->g_policy.g_policy.severity_bit_map = *(uns8 *)&value;
+			if (inst->g_policy.g_policy.severity_bit_map != *(uint8_t *)&value) {
+				inst->g_policy.g_policy.severity_bit_map = *(uint8_t *)&value;
 				/* Smik - update the cli_bit_map field in DTS_CB */
 				inst->cli_bit_map = osafDtsvGlobalSeverityBitMap_ID;
 				if (NCSCC_RC_SUCCESS !=
@@ -652,7 +652,7 @@ unsigned int dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData
 					}
 
 					node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl,
-											    (const uns8 *)
+											    (const uint8_t *)
 											    &node->ntwk_key);
 				}
 			}
@@ -747,7 +747,7 @@ unsigned int dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int para
 			}
 		}
 
-		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uns8 *)&nt_key);
+		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uint8_t *)&nt_key);
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -766,7 +766,7 @@ unsigned int dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_i
 {
 	DTS_SVC_REG_TBL *node;
 	unsigned int paramid = 0, old_buff_size = 0, rc = NCSCC_RC_SUCCESS;
-	uns8 log_device = 0;
+	uint8_t log_device = 0;
 	SVC_KEY key, nt_key;
 	SaImmAttrModificationT_2 *attrMod, **attrMods = (SaImmAttrModificationT_2 **)attrib_info;
 	SaImmAttrValuesT_2 *attribute = NULL, **attributes = (SaImmAttrValuesT_2 **)attrib_info;
@@ -781,7 +781,7 @@ unsigned int dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_i
 	nt_key.node = m_NCS_OS_HTONL(key.node);
 	nt_key.ss_svc_id = 0;
 
-	node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uns8 *)&nt_key);
+	node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uint8_t *)&nt_key);
 
 	if (!node) {
 		rc = dts_create_new_pat_entry(inst, &node, key.node, key.ss_svc_id, NODE_LOGGING);
@@ -829,7 +829,7 @@ unsigned int dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_i
 		} else if (!strcmp(attribute->attrName, "osafDtsvNodeLogDevice")) {
 			paramid = osafDtsvNodeLogDevice_ID;
 			log_device = node->svc_policy.log_dev;
-			node->svc_policy.log_dev = *(uns8 *)&value;
+			node->svc_policy.log_dev = *(uint8_t *)&value;
 			dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeLogDevice = %d\n", node->svc_policy.log_dev);
 		} else if (!strcmp(attribute->attrName, "osafDtsvNodeLogFileSize")) {
 			if ((value < 100) || (value > 100000)) {
@@ -881,7 +881,7 @@ unsigned int dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_i
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvNodeSeverityBitMap_ID;
-			node->svc_policy.severity_bit_map = *(uns8 *)&value;
+			node->svc_policy.severity_bit_map = *(uint8_t *)&value;
 			dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeSeverityBitMap = %d\n", node->svc_policy.severity_bit_map);
 		} else {
 			LOG_ER("Invalid attribute value");
@@ -989,7 +989,7 @@ static unsigned int dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node,
  Notes:  
 **************************************************************************/
 static unsigned int dts_handle_node_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node,
-				       unsigned int paramid, uns8 old_log_device, unsigned int old_buff_size)
+				       unsigned int paramid, uint8_t old_log_device, unsigned int old_buff_size)
 {
 	unsigned int rc = NCSCC_RC_SUCCESS;
 

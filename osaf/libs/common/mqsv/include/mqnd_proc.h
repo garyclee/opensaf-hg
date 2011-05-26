@@ -63,7 +63,7 @@
 
 #define m_MQND_HTON_MQSV_MESSAGE(mqsv_message); \
         { \
-           uns8 buff[8]; \
+           uint8_t buff[8]; \
            MQSV_MESSAGE *mqsv_msg = (MQSV_MESSAGE *)mqsv_message; \
 \
            mqsv_msg->type = m_NCS_OS_HTONL(mqsv_msg->type); \

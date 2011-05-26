@@ -43,12 +43,10 @@ extern "C" {
 
  ****************************************************************************/
 
-	typedef uint8_t uns8;	/*  8-bit */
 	typedef uint16_t uns16;	/* 16-bit */
 	typedef uint32_t uns32;	/* 32-bit */
 	typedef uint64_t uns64;	/* 64-bit */
 
-	typedef int8_t int8;
 	typedef int16_t int16;
 	typedef int32_t int32;
 	typedef int64_t int64;
@@ -132,9 +130,9 @@ extern "C" {
 
 	typedef uns64 MDS_DEST;
 	typedef uns32 NCS_NODE_ID;
-	typedef uns8 NCS_CHASSIS_ID;
-	typedef uns8 NCS_PHY_SLOT_ID;
-	typedef uns8 NCS_SUB_SLOT_ID;
+	typedef uint8_t NCS_CHASSIS_ID;
+	typedef uint8_t NCS_PHY_SLOT_ID;
+	typedef uint8_t NCS_SUB_SLOT_ID;
 
 /* m_NCS_NODE_ID_FROM_MDS_DEST: Returns node-id if the MDS_DEST provided
                                 is an absolute destination. Returns 0

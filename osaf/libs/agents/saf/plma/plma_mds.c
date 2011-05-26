@@ -208,7 +208,7 @@ static uns32 plma_mds_rcv(MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 				SaPlmEntityGroupHandleT grp_hdl = 
 					pEvt->req_evt.agent_track.grp_handle;
 					
-				grp_info = (PLMA_ENTITY_GROUP_INFO *)ncs_patricia_tree_get(&plma_cb->entity_group_info, (uns8 *)&grp_hdl); 
+				grp_info = (PLMA_ENTITY_GROUP_INFO *)ncs_patricia_tree_get(&plma_cb->entity_group_info, (uint8_t *)&grp_hdl); 
 
 				if(!grp_info){
 					/** FIXME : free the evt structure */

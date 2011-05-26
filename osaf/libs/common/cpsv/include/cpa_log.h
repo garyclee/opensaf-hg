@@ -213,11 +213,11 @@ uns32 cpa_reg_strings();
 uns32 cpa_log_ascii_reg(void);
 void cpa_log_ascii_dereg(void);
 
-void cpa_log_headline(uns8 hdln_id, uns8 sev);
-void cpa_log_memfail(uns8 mf_id);
-void cpa_log_api(uns8 api_id, uns8 sev);
-void cpa_log_data_send(uns8 id, uns32 node, uns32 evt_id);
-void cpa_log_db(uns8 id, uns8 sev);
+void cpa_log_headline(uint8_t hdln_id, uint8_t sev);
+void cpa_log_memfail(uint8_t mf_id);
+void cpa_log_api(uint8_t api_id, uint8_t sev);
+void cpa_log_data_send(uint8_t id, uns32 node, uns32 evt_id);
+void cpa_log_db(uint8_t id, uint8_t sev);
 
 #define m_LOG_CPA_HEADLINE(id, sev)       cpa_log_headline(id,sev)
 #define m_LOG_CPA_MEMFAIL(id)             cpa_log_memfail(id)

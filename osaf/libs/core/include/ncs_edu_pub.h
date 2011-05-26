@@ -204,7 +204,7 @@ extern "C" {
 					   memory is malloc'ed by EDU
 					   while Pretty-printing. */
 		uns32 data_size;	/* Size of the data present. */
-		uns8 refcount;	/* Number of instructions
+		uint8_t refcount;	/* Number of instructions
 				   referencing this node. */
 	} EDU_PPDB_NODE_INFO;
 #endif
@@ -217,7 +217,7 @@ extern "C" {
 					   encoding/decoding. */
 
 		EDU_PROG_HANDLER parent_edp;	/* EDP of the parent message envelope */
-		uns8 var_cnt;	/* Variable number of "selected-rules"(user-provided) for 
+		uint8_t var_cnt;	/* Variable number of "selected-rules"(user-provided) for 
 				   performing encode/decode operation. */
 
 		int *var_array;	/* Alloc'ed Array of "selected-rules"(user-provided) */
@@ -325,11 +325,11 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 	uns32
 	 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 			  EDP_OP_TYPE op, NCSCONTEXT arg, EDU_ERR *o_err, EDU_MSG_VERSION to_version,
-			  uns8 var_cnt, ...);
+			  uint8_t var_cnt, ...);
 
 	uns32
 	 ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCSCONTEXT bufp,
-			  uns32 buf_size, EDP_OP_TYPE op, NCSCONTEXT data_ptr, EDU_ERR *o_err, uns8 var_cnt, ...);
+			  uns32 buf_size, EDP_OP_TYPE op, NCSCONTEXT data_ptr, EDU_ERR *o_err, uint8_t var_cnt, ...);
 
 	void ncs_edu_print_error_string(int enum_val);
 /************ EDU external macro-related functions. ************/

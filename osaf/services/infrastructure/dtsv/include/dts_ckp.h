@@ -76,7 +76,7 @@
 typedef struct dts_log_ckpt_data {
 	char file_name[250];
 	SVC_KEY key;
-	uns8 new_file;
+	uint8_t new_file;
 } DTS_LOG_CKPT_DATA;
 /*
  * Prototype for the DTSV checkpoint encode function pointer.

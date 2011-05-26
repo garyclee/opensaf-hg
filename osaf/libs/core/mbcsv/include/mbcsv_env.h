@@ -213,7 +213,7 @@ typedef struct peer_inst {
 	uns32 call_again_reo_type;
 	MBCSV_REO_HDL call_again_reo_hdl;
 	NCS_MBCSV_ACT_TYPE call_again_action;
-	uns8 call_again_event;
+	uint8_t call_again_event;
 
 	/* Some runtime boolean variables */
 	uns32 incompatible:1;
@@ -306,7 +306,7 @@ typedef struct mbcsv_reg {
 ***********************************************************************************/
 typedef struct mbcsv_cb {
 	NCS_BOOL created;
-	uns8 hmpool_id;
+	uint8_t hmpool_id;
 	NCS_PATRICIA_TREE reg_list;	/* Base pointer of the MBC registration list; 
 					   contains link list of the services registered with the MBCSv */
 	NCS_LOCK global_lock;	/* MBCSv global control block lock */
@@ -398,7 +398,7 @@ ncshm_take_hdl(NCS_SERVICE_ID_MBCSV, hdl)
 /*
  * Timer function prototypes.
  */
-void ncs_mbcsv_start_timer(PEER_INST *peer, uns8 timer_type);
+void ncs_mbcsv_start_timer(PEER_INST *peer, uint8_t timer_type);
 
 void ncs_mbcsv_tmr_expiry(void *uarg);
 
@@ -439,7 +439,7 @@ void ncs_mbcsv_state_to_kstby_sync(PEER_INST *peer, MBCSV_EVT *evt);
 /* 
  * Timer Prototypes
  */
-void ncs_mbcsv_start_timer(PEER_INST *peer, uns8 timer_type);
+void ncs_mbcsv_start_timer(PEER_INST *peer, uint8_t timer_type);
 void ncs_mbcsv_stop_timer(PEER_INST *peer, uns32 timer_type);
 void ncs_mbcsv_stop_all_timers(PEER_INST *peer);
 void ncs_mbcsv_send_cold_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt);
@@ -478,9 +478,9 @@ uns32 mbcsv_send_ckpt_data_to_all_peers(NCS_MBCSV_SEND_CKPT *msg_to_send,
 						 CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst);
 uns32 mbcsv_send_notify_msg(uns32 msg_dest, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst, NCSCONTEXT i_msg);
 uns32 mbcsv_send_data_req(NCS_UBAID *uba, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst);
-uns32 mbcsv_send_client_msg(PEER_INST *peer, uns8 evt, uns32 action);
-uns32 ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uns8 *event, NCS_UBAID *uba);
-uns32 mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uns8 event);
+uns32 mbcsv_send_client_msg(PEER_INST *peer, uint8_t evt, uns32 action);
+uns32 ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t *event, NCS_UBAID *uba);
+uns32 mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t event);
 uns32 mbcsv_subscribe_oneshot(NCS_MBCSV_FLTR *fltr, uns16 time_10ms);
 uns32 mbcsv_subscribe_persist(NCS_MBCSV_FLTR *fltr);
 uns32 mbcsv_subscribe_cancel(uns32 sub_hdl);
@@ -514,7 +514,7 @@ void mbcsv_clear_multiple_active_state(CKPT_INST *ckpt);
 void mbcsv_close_old_session(PEER_INST *active_peer);
 void mbcsv_set_up_new_session(CKPT_INST *ckpt, PEER_INST *new_act_peer);
 void mbcsv_set_peer_state(CKPT_INST *ckpt, PEER_INST *peer, NCS_BOOL peer_up);
-uns32 mbcsv_process_peer_up_info(MBCSV_EVT *msg, CKPT_INST *ckpt, uns8 peer_up);
+uns32 mbcsv_process_peer_up_info(MBCSV_EVT *msg, CKPT_INST *ckpt, uint8_t peer_up);
 void mbcsv_update_peer_info(MBCSV_EVT *msg, CKPT_INST *ckpt, PEER_INST *peer);
 uns32 mbcsv_process_peer_down(MBCSV_EVT *msg, CKPT_INST *ckpt);
 uns32 mbcsv_process_peer_info_rsp(MBCSV_EVT *msg, CKPT_INST *ckpt);

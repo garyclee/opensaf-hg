@@ -1093,13 +1093,13 @@ uns32 avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 		return rc;
 	}
 
-	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 
 	/* scan & drive the SU term by PRES_STATE FSM on each su */
 	while (su != 0) {
 		if ((su->is_ncs == SA_TRUE) || (TRUE == su->su_is_external)) {
 			su = (AVND_SU *)
-			    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
+			    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 			continue;
 		}
 
@@ -1121,7 +1121,7 @@ uns32 avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 		}
 
 		su = (AVND_SU *)
-		    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
+		    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 	}
 
 	if (empty_sulist == TRUE) {

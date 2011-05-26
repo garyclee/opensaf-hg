@@ -127,8 +127,8 @@ typedef struct mqa_sender_context {
 	MDS_DEST sender_dest;
 	SaSizeT reply_buffer_size;
 	MDS_SYNC_SND_CTXT context;
-	uns8 src_dest_version;
-	uns8 padding[2];	/*Req for proper alignment in 32/64 arch */
+	uint8_t src_dest_version;
+	uint8_t padding[2];	/*Req for proper alignment in 32/64 arch */
 } MQA_SENDER_CONTEXT;
 
 typedef struct mqa_senderid_info {
@@ -309,7 +309,7 @@ typedef struct mqp_send_msg {
 	SaMsgQueueHandleT queueHandle;
 	SaMsgAckFlagsT ackFlags;	/* Type of Ack Required */
 	SaNameT destination;	/* Queue Name */
-	uns8 padding[2];
+	uint8_t padding[2];
 	QUEUE_MESSAGE_INFO messageInfo;
 	QUEUE_MESSAGE message;
 } MQP_SEND_MSG;
@@ -577,7 +577,7 @@ typedef struct mqnd_ctrl_msg {
 
 typedef struct mqsv_evt {
 	uns64 hook_for_ipc;
-	uns8 evt_type;
+	uint8_t evt_type;
 	MQSV_EVT_TYPE type;
 	MQSV_SEND_INFO sinfo;
 	union {
@@ -593,10 +593,10 @@ typedef struct mqsv_evt {
 /*Event Structure involving Direct Sends*/
 typedef struct mqsv_direct_send_event {
 	uns64 hook_for_ipc;
-	uns8 evt_type;
-	uns8 endianness;
-	uns8 msg_fmt_version;
-	uns8 src_dest_version;
+	uint8_t evt_type;
+	uint8_t endianness;
+	uint8_t msg_fmt_version;
+	uint8_t src_dest_version;
 	union {
 		uns32 raw;
 		MQP_RSP_TYPE rsp_type;

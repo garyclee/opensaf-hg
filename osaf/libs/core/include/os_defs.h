@@ -230,19 +230,19 @@ extern "C" {
 #define m_NCS_OS_LOG_FOPEN(fname,fmode) ncs_os_fopen(fname,fmode)
 #endif
 
-#define m_NCS_OS_NTOHL_P(p8) (uns32)((*(uns8*)p8<<24)|(*(uns8*)(p8+1)<<16)| \
-    (*(uns8*)(p8+2)<<8)|(*(uns8*)(p8+3)))
-#define m_NCS_OS_NTOHS_P(p8) (uns16)((*(uns8*)p8<<8)|*((uns8*)(p8+1)))
+#define m_NCS_OS_NTOHL_P(p8) (uns32)((*(uint8_t*)p8<<24)|(*(uint8_t*)(p8+1)<<16)| \
+    (*(uint8_t*)(p8+2)<<8)|(*(uint8_t*)(p8+3)))
+#define m_NCS_OS_NTOHS_P(p8) (uns16)((*(uint8_t*)p8<<8)|*((uint8_t*)(p8+1)))
 
 #define m_NCS_OS_HTONL_P(p8,v32) { \
-   *p8     = (uns8)(v32>>24); \
-   *(p8+1) = (uns8)(v32>>16); \
-   *(p8+2) = (uns8)(v32>>8);  \
-   *(p8+3) = (uns8)v32; }
+   *p8     = (uint8_t)(v32>>24); \
+   *(p8+1) = (uint8_t)(v32>>16); \
+   *(p8+2) = (uint8_t)(v32>>8);  \
+   *(p8+3) = (uint8_t)v32; }
 
 #define m_NCS_OS_HTONS_P(p8,v16) { \
-   *p8     = (uns8)(v16>>8); \
-   *(p8+1) = (uns8)v16; }
+   *p8     = (uint8_t)(v16>>8); \
+   *(p8+1) = (uint8_t)v16; }
 
 /****************************************************************************
  * m_NCS_OS_TARGET_INIT

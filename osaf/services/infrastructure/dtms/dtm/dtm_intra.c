@@ -340,7 +340,7 @@ static uns32 dtm_intranode_create_rcv_task(int task_hdl)
 uns32 dtm_intranode_process_poll_rcv_msg_common(DTM_INTRANODE_PID_INFO *pid_node)
 {
 	uns32 identifier = 0;
-	uns8 version = 0 , *data = NULL; 
+	uint8_t version = 0 , *data = NULL; 
 	DTM_INTRANODE_RCV_MSG_TYPES msg_type = 0;
 
 	pid_node->buffer[pid_node->buff_total_len + 2] = '\0';
@@ -430,7 +430,7 @@ void dtm_intranode_process_poll_rcv_msg(int fd)
 	}
 	if (0 == node->bytes_tb_read) {
 		if (0 == node->num_by_read_for_len_buff) {
-			uns8 *data;
+			uint8_t *data;
 			int recd_bytes = 0;
 
 			/*******************************************************/
@@ -498,7 +498,7 @@ void dtm_intranode_process_poll_rcv_msg(int fd)
 				return;
 			} else if (1 == recd_bytes) {
 				/* We recd one byte(remaining) of the length part */
-				uns8 *data = node->len_buff;
+				uint8_t *data = node->len_buff;
 				node->num_by_read_for_len_buff = 2;
 				node->buff_total_len = ncs_decode_16bit(&data);
 				return;
@@ -843,7 +843,7 @@ static uns32 dtm_intranode_create_pid_info(int fd)
 	pid_node->accepted_fd = fd;
 	pid_node->pid = 0; /* Yet to be filled from the PID Message which is yet to come */
 	pid_node->node_id = m_NCS_GET_NODE_ID;
-	pid_node->fd_node.key_info = (uns8 *)&pid_node->accepted_fd;
+	pid_node->fd_node.key_info = (uint8_t *)&pid_node->accepted_fd;
 
 	if (m_NCS_IPC_CREATE(&pid_node->mbx) != NCSCC_RC_SUCCESS) {
 		/* Mail box creation failed */

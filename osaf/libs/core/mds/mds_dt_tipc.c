@@ -86,13 +86,13 @@ uns32 mds_mdtm_tx_hdl_unregister_tipc(MDS_DEST adest);
 uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req);
 
 /* Tipc actual send, can be made as Macro even*/
-static uns32 mdtm_sendto(uns8 *buffer, uns16 buff_len, struct tipc_portid tipc_id);
+static uns32 mdtm_sendto(uint8_t *buffer, uns16 buff_len, struct tipc_portid tipc_id);
 
 uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid id);
 
-static uns32 mdtm_add_mds_hdr(uns8 *buffer, MDTM_SEND_REQ *req);
+static uns32 mdtm_add_mds_hdr(uint8_t *buffer, MDTM_SEND_REQ *req);
 
-uns16 mds_checksum(uns32 length, uns8 buff[]);
+uns16 mds_checksum(uns32 length, uint8_t buff[]);
 
 uns32 mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
 uns32 mds_mdtm_node_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val);
@@ -393,7 +393,7 @@ uns32 mdtm_tipc_destroy(void)
 	}
 
 	/* Delete the pat tree for the reassembly */
-	reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_getnext(&mdtm_reassembly_list, (uns8 *)NULL);
+	reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_getnext(&mdtm_reassembly_list, (uint8_t *)NULL);
 
 	while (NULL != reassem_queue) {
 		/* stop timer and free memory */
@@ -417,7 +417,7 @@ uns32 mdtm_tipc_destroy(void)
 		m_MMGR_FREE_REASSEM_QUEUE(reassem_queue);
 
 		reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_getnext
-		    (&mdtm_reassembly_list, (uns8 *)&reassembly_key);
+		    (&mdtm_reassembly_list, (uint8_t *)&reassembly_key);
 	}
 
 	ncs_patricia_tree_destroy(&mdtm_reassembly_list);
@@ -608,8 +608,8 @@ static uns32 mdtm_process_recv_events(void)
 
 				/* Data Received */
 
-				uns8 inbuf[MDTM_RECV_BUFFER_SIZE];
-				uns8 *data;	/* Used for decoding */
+				uint8_t inbuf[MDTM_RECV_BUFFER_SIZE];
+				uint8_t *data;	/* Used for decoding */
 				uns16 recd_bytes = 0;
 #ifdef MDS_CHECKSUM_ENABLE_FLAG
 				uns16 old_checksum = 0;
@@ -1953,8 +1953,8 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 
 		/* Only for the ack and not for any other message */
 		if (req->snd_type == MDS_SENDTYPE_ACK || req->snd_type == MDS_SENDTYPE_RACK) {
-			uns8 len = SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN;
-			uns8 buffer_ack[len];
+			uint8_t len = SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN;
+			uint8_t buffer_ack[len];
 
 			/* Add mds_hdr */
 			if (NCSCC_RC_SUCCESS != mdtm_add_mds_hdr(buffer_ack, req)) {
@@ -2000,10 +2000,10 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 					return status;
 
 				} else {
-					uns8 *p8;
-					uns8 body[len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN];
+					uint8_t *p8;
+					uint8_t body[len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN];
 
-					p8 = (uns8 *)m_MMGR_DATA_AT_START(usrbuf, len, (char *)
+					p8 = (uint8_t *)m_MMGR_DATA_AT_START(usrbuf, len, (char *)
 									  &body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN]);
 
 					if (p8 != &body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN])
@@ -2052,7 +2052,7 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 				m_MDS_LOG_INFO("MDTM: User Sending Data len=%d Fr_svc=%d to_svc=%d\n",
 					       req->msg.data.buff_info.len, req->src_svc_id, req->dest_svc_id);
 
-				uns8 body[req->msg.data.buff_info.len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN];
+				uint8_t body[req->msg.data.buff_info.len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN];
 
 				if (NCSCC_RC_SUCCESS != mdtm_add_mds_hdr(body, req)) {
 					m_MDS_LOG_ERR("MDTM: Unable to add the mds Hdr to the send msg\n");
@@ -2124,7 +2124,7 @@ uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid i
 	USRBUF *usrbuf;
 	uns32 len = 0;
 	uns16 len_buf = 0;
-	uns8 *p8;
+	uint8_t *p8;
 	uns16 i = 1;
 	uns16 frag_val = 0;
 
@@ -2170,9 +2170,9 @@ uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid i
 			frag_val = NO_FRAG_BIT | i;
 		}
 		{
-			uns8 body[len_buf];
+			uint8_t body[len_buf];
 			if (i == 1) {
-				p8 = (uns8 *)m_MMGR_DATA_AT_START(usrbuf,
+				p8 = (uint8_t *)m_MMGR_DATA_AT_START(usrbuf,
 								  (len_buf - SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN),
 								  (char *)&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN]);
 
@@ -2197,7 +2197,7 @@ uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid i
 				m_MMGR_REMOVE_FROM_START(&usrbuf, len_buf - SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN);
 				len = len - (len_buf - SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN);
 			} else {
-				p8 = (uns8 *)m_MMGR_DATA_AT_START(usrbuf, len_buf - MDTM_FRAG_HDR_PLUS_LEN_2,
+				p8 = (uint8_t *)m_MMGR_DATA_AT_START(usrbuf, len_buf - MDTM_FRAG_HDR_PLUS_LEN_2,
 								  (char *)&body[MDTM_FRAG_HDR_PLUS_LEN_2]);
 				if (p8 != &body[MDTM_FRAG_HDR_PLUS_LEN_2])
 					memcpy(&body[MDTM_FRAG_HDR_PLUS_LEN_2], p8, len_buf - MDTM_FRAG_HDR_PLUS_LEN_2);
@@ -2236,10 +2236,10 @@ uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid i
 
 *********************************************************/
 
-uns32 mdtm_add_frag_hdr(uns8 *buf_ptr, uns16 len, uns32 seq_num, uns16 frag_byte)
+uns32 mdtm_add_frag_hdr(uint8_t *buf_ptr, uns16 len, uns32 seq_num, uns16 frag_byte)
 {
 	/* Add the FRAG HDR to the Buffer */
-	uns8 *data;
+	uint8_t *data;
 	data = buf_ptr;
 	ncs_encode_16bit(&data, len);
 #ifdef MDS_CHECKSUM_ENABLE_FLAG
@@ -2269,7 +2269,7 @@ uns32 mdtm_add_frag_hdr(uns8 *buf_ptr, uns16 len, uns32 seq_num, uns16 frag_byte
 
 *********************************************************/
 
-static uns32 mdtm_sendto(uns8 *buffer, uns16 buff_len, struct tipc_portid id)
+static uns32 mdtm_sendto(uint8_t *buffer, uns16 buff_len, struct tipc_portid id)
 {
 	/* Can be made as macro even */
 	struct sockaddr_tipc server_addr;
@@ -2317,11 +2317,11 @@ static uns32 mdtm_sendto(uns8 *buffer, uns16 buff_len, struct tipc_portid id)
  *
  ****************************************************************************/
 
-static uns32 mdtm_add_mds_hdr(uns8 *buffer, MDTM_SEND_REQ *req)
+static uns32 mdtm_add_mds_hdr(uint8_t *buffer, MDTM_SEND_REQ *req)
 {
-	uns8 prot_ver = 0, enc_snd_type = 0;
+	uint8_t prot_ver = 0, enc_snd_type = 0;
 #ifdef MDS_CHECKSUM_ENABLE_FLAG
-	uns8 zero_8 = 0;
+	uint8_t zero_8 = 0;
 #endif
 
 	uns16 zero_16 = 0;
@@ -2329,12 +2329,12 @@ static uns32 mdtm_add_mds_hdr(uns8 *buffer, MDTM_SEND_REQ *req)
 
 	uns32 xch_id = 0;
 
-	uns8 *ptr;
+	uint8_t *ptr;
 	ptr = buffer;
 
-	prot_ver |= MDS_PROT | MDS_VERSION | ((uns8)(req->pri - 1));
+	prot_ver |= MDS_PROT | MDS_VERSION | ((uint8_t)(req->pri - 1));
 	enc_snd_type = (req->msg.encoding << 6);
-	enc_snd_type |= (uns8)req->snd_type;
+	enc_snd_type |= (uint8_t)req->snd_type;
 
 	/* Message length */
 	ncs_encode_16bit(&ptr, zero_16);

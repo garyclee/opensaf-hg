@@ -61,7 +61,7 @@ uns32 immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest, IM
 	key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
 
 	*immnd_info_node = (IMMD_IMMND_INFO_NODE *)
-	    ncs_patricia_tree_get(immnd_tree, (uns8 *)&key);
+	    ncs_patricia_tree_get(immnd_tree, (uint8_t *)&key);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -85,10 +85,10 @@ void immd_immnd_info_node_getnext(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest,
 		key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
 
 		*immnd_info_node = (IMMD_IMMND_INFO_NODE *)
-		    ncs_patricia_tree_getnext(immnd_tree, (uns8 *)&key);
+		    ncs_patricia_tree_getnext(immnd_tree, (uint8_t *)&key);
 	} else
 		*immnd_info_node = (IMMD_IMMND_INFO_NODE *)
-		    ncs_patricia_tree_getnext(immnd_tree, (uns8 *)NULL);
+		    ncs_patricia_tree_getnext(immnd_tree, (uint8_t *)NULL);
 
 	return;
 
@@ -110,7 +110,7 @@ uns32 immd_immnd_info_node_add(NCS_PATRICIA_TREE *immnd_tree, IMMD_IMMND_INFO_NO
 
 	key = m_NCS_NODE_ID_FROM_MDS_DEST(immnd_info_node->immnd_dest);
 
-	immnd_info_node->patnode.key_info = (uns8 *)&key;
+	immnd_info_node->patnode.key_info = (uint8_t *)&key;
 
 	if (ncs_patricia_tree_add(immnd_tree, &immnd_info_node->patnode) != NCSCC_RC_SUCCESS) {
 		LOG_ER("IMMD - ncs_patricia_tree_add failed");
@@ -138,7 +138,7 @@ uns32 immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
 	key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
 
 	*immnd_info_node = (IMMD_IMMND_INFO_NODE *)
-	    ncs_patricia_tree_get(immnd_tree, (uns8 *)&key);
+	    ncs_patricia_tree_get(immnd_tree, (uint8_t *)&key);
 	if ((*immnd_info_node == NULL) && (*add_flag == TRUE)) {
 		*immnd_info_node = calloc(1, sizeof(IMMD_IMMND_INFO_NODE));
 		if (*immnd_info_node == NULL) {
@@ -148,7 +148,7 @@ uns32 immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
 
 		(*immnd_info_node)->immnd_dest = *dest;
 		(*immnd_info_node)->immnd_key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
-		(*immnd_info_node)->patnode.key_info = (uns8 *)&((*immnd_info_node)->immnd_key);
+		(*immnd_info_node)->patnode.key_info = (uint8_t *)&((*immnd_info_node)->immnd_key);
 
 		if (ncs_patricia_tree_add(immnd_tree, &(*immnd_info_node)->patnode) != NCSCC_RC_SUCCESS) {
 			LOG_ER("ncs_patricia_tree_add FAILED");
@@ -202,14 +202,14 @@ void immd_immnd_info_tree_cleanup(IMMD_CB *cb)
 
 	/* Get the First Node */
 	immnd_info_node = (IMMD_IMMND_INFO_NODE *)
-	    ncs_patricia_tree_getnext(&cb->immnd_tree, (uns8 *)&key);
+	    ncs_patricia_tree_getnext(&cb->immnd_tree, (uint8_t *)&key);
 	while (immnd_info_node) {
 		key = m_NCS_NODE_ID_FROM_MDS_DEST(immnd_info_node->immnd_dest);
 
 		immd_immnd_info_node_delete(cb, immnd_info_node);
 
 		immnd_info_node = (IMMD_IMMND_INFO_NODE *)
-		    ncs_patricia_tree_getnext(&cb->immnd_tree, (uns8 *)&key);
+		    ncs_patricia_tree_getnext(&cb->immnd_tree, (uint8_t *)&key);
 	}
 
 	return;

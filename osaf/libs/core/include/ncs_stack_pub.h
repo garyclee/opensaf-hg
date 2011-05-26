@@ -72,8 +72,8 @@ extern "C" {
 		/* P R I V A T E fields should not be referenced by client            */
 
 		uns32 max_len;	/* start len of passed buffer (HEAP or STACK)       */
-		uns8 *cur_ptr;	/* current place for getting memory                 */
-		uns8 *bgn_ptr;	/* original buffer ptr; if from HEAP, use to free   */
+		uint8_t *cur_ptr;	/* current place for getting memory                 */
+		uint8_t *bgn_ptr;	/* original buffer ptr; if from HEAP, use to free   */
 
 		/* P U B L I C   inspectable by client; set by NCSMEM_AID member funcs */
 
@@ -85,11 +85,11 @@ extern "C" {
  * NCSMEM_AID  public member function prototypes
  ***************************************************************************/
 
-	void ncsmem_aid_init(NCSMEM_AID *ma, uns8 *space, uns32 len);
+	void ncsmem_aid_init(NCSMEM_AID *ma, uint8_t *space, uns32 len);
 
-	uns8 *ncsmem_aid_alloc(NCSMEM_AID *ma, uns32 size);
+	uint8_t *ncsmem_aid_alloc(NCSMEM_AID *ma, uns32 size);
 
-	uns8 *ncsmem_aid_cpy(NCSMEM_AID *ma, const uns8 *ref, uns32 len);
+	uint8_t *ncsmem_aid_cpy(NCSMEM_AID *ma, const uint8_t *ref, uns32 len);
 
 /***************************************************************************
  ***************************************************************************
@@ -133,7 +133,7 @@ extern "C" {
  *
  ***************************************************************************/
 
-#define m_NCSSTACK_SPACE(se)        ((uns8*)((uns8*)se + sizeof(NCS_SE)))
+#define m_NCSSTACK_SPACE(se)        ((uint8_t*)((uint8_t*)se + sizeof(NCS_SE)))
 
 	void ncsstack_init(NCS_STACK *st, uns16 max_size);
 

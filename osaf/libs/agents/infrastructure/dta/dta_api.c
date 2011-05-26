@@ -315,7 +315,7 @@ uns32 dta_reg_svc(NCS_BIND_SVC *bind_svc)
 	/* Search the patricia tree for exisiting entries */
 	/*if ((svc = (REG_TBL_ENTRY *) ncs_find_item(&inst->reg_tbl, 
 	   (NCSCONTEXT)&svc_id, dta_match_service)) != NULL) */
-	if ((svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uns8 *)&svc_id)) != NULL) {
+	if ((svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uint8_t *)&svc_id)) != NULL) {
 		m_DTA_UNLK(&inst->lock);
 		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
 					  "dta_reg_svc: Service is already registered with DTSv", svc_id);
@@ -337,7 +337,7 @@ uns32 dta_reg_svc(NCS_BIND_SVC *bind_svc)
 	svc->version = bind_svc->version;
 	strcpy(svc->svc_name, bind_svc->svc_name);
 
-	svc->node.key_info = (uns8 *)&svc->svc_id;
+	svc->node.key_info = (uint8_t *)&svc->svc_id;
 
 	/* Add to the patricia tree */
 	if (ncs_patricia_tree_add(&inst->reg_tbl, (NCS_PATRICIA_NODE *)svc) != NCSCC_RC_SUCCESS) {
@@ -399,7 +399,7 @@ uns32 dta_dereg_svc(SS_SVC_ID svc_id)
 	/* If DTS is deregistering from DTS means that DTS is going down,
 	 * So don't send any registration message to DTS */
 	if (NCS_SERVICE_ID_DTSV == svc_id) {
-		if ((rmv_svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uns8 *)&svc_id)) == NULL) {
+		if ((rmv_svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uint8_t *)&svc_id)) == NULL) {
 			m_DTA_UNLK(&inst->lock);
 			return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
 						  "dta_dereg_svc: Specified service registration entry doesn't exist in patricia tree",
@@ -415,7 +415,7 @@ uns32 dta_dereg_svc(SS_SVC_ID svc_id)
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if ((rmv_svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uns8 *)&svc_id)) == NULL) {
+	if ((rmv_svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uint8_t *)&svc_id)) == NULL) {
 		m_DTA_UNLK(&inst->lock);
 		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
 					  "dta_dereg_svc: Specified service registration entry doesn't exist in patricia tree",
@@ -515,7 +515,7 @@ NCS_BOOL dta_match_service(void *key, void *qelem)
                      NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uns16 version, const char *svc_name, uns8 operation)
+uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uns16 version, const char *svc_name, uint8_t operation)
 {
 	msg->msg_type = operation;
 
@@ -561,7 +561,7 @@ uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uns16 version, con
  * Notes         : None.
 \*****************************************************************************/
 uns32 ncs_logmsg_v2(SS_SVC_ID svc_id,
-		    uns32 inst_id, uns8 fmat_id, uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, ...)
+		    uns32 inst_id, uint8_t fmat_id, uint8_t str_table_id, uns32 category, uint8_t severity, char *fmat_type, ...)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	va_list argp;
@@ -589,7 +589,7 @@ uns32 ncs_logmsg_v2(SS_SVC_ID svc_id,
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 ncs_logmsg(SS_SVC_ID svc_id, uns8 fmat_id, uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, ...)
+uns32 ncs_logmsg(SS_SVC_ID svc_id, uint8_t fmat_id, uint8_t str_table_id, uns32 category, uint8_t severity, char *fmat_type, ...)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	va_list argp;
@@ -619,7 +619,7 @@ uns32 ncs_logmsg(SS_SVC_ID svc_id, uns8 fmat_id, uns8 str_table_id, uns32 catego
 \*****************************************************************************/
 uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 		     uns32 inst_id,
-		     uns8 fmat_id, uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, va_list argp)
+		     uint8_t fmat_id, uint8_t str_table_id, uns32 category, uint8_t severity, char *fmat_type, va_list argp)
 {
 	uns32 i = 0, length = 0;
 	DTA_CB *inst = &dta_cb;
@@ -627,7 +627,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 	NCSFL_HDR *hdr;
 	REG_TBL_ENTRY *svc;
 	NCS_UBAID *uba = NULL;
-	uns8 *data;
+	uint8_t *data;
 	uns32 send_pri;
 	int warning_rmval = 0;
 
@@ -667,7 +667,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 	 * Check whether the Sevice is registered with the DTSv. If not already
 	 * bound return failure.
 	 */
-	if (((svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uns8 *)&svc_id)) == NULL)) {
+	if (((svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uint8_t *)&svc_id)) == NULL)) {
 		m_DTA_UNLK(&inst->lock);
 		return NCSCC_RC_FAILURE;
 	}
@@ -812,7 +812,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				ncs_encode_32bit(&data, length);
 				ncs_enc_claim_space(uba, sizeof(uns32));
 
-				ncs_encode_n_octets_in_uba(uba, (uns8 *)str, length);
+				ncs_encode_n_octets_in_uba(uba, (uint8_t *)str, length);
 
 				break;
 			}
@@ -884,7 +884,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 					ncs_enc_claim_space(uba, (sizeof(uns16) + sizeof(uns64)));
 				}
 
-				ncs_encode_n_octets_in_uba(uba, (uns8 *)mem_d.dump, (uns32)mem_d.len);
+				ncs_encode_n_octets_in_uba(uba, (uint8_t *)mem_d.dump, (uns32)mem_d.len);
 
 				break;
 			}
@@ -901,7 +901,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				ncs_encode_16bit(&data, pdu.len);
 				ncs_enc_claim_space(uba, sizeof(uns16));
 
-				ncs_encode_n_octets_in_uba(uba, (uns8 *)pdu.dump, (uns32)pdu.len);
+				ncs_encode_n_octets_in_uba(uba, (uint8_t *)pdu.dump, (uns32)pdu.len);
 
 				break;
 			}
@@ -912,11 +912,11 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 			}
 		case 'S':
 			{
-				data = ncs_enc_reserve_space(uba, sizeof(uns8));
+				data = ncs_enc_reserve_space(uba, sizeof(uint8_t));
 				if (data == NULL)
 					goto reserve_error;
-				ncs_encode_8bit(&data, (uns8)va_arg(argp, uns32));
-				ncs_enc_claim_space(uba, sizeof(uns8));
+				ncs_encode_8bit(&data, (uint8_t)va_arg(argp, uns32));
+				ncs_enc_claim_space(uba, sizeof(uint8_t));
 
 				break;
 			}
@@ -938,7 +938,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				ncs_encode_32bit(&data, length);
 				ncs_enc_claim_space(uba, sizeof(uns32));
 
-				ncs_encode_n_octets_in_uba(uba, (uns8 *)str, length);
+				ncs_encode_n_octets_in_uba(uba, (uint8_t *)str, length);
 				break;
 			}
 		case 'N':
@@ -973,7 +973,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				ncs_encode_32bit(&data, length);
 				ncs_enc_claim_space(uba, sizeof(uns32));
 
-				ncs_encode_n_octets_in_uba(uba, (uns8 *)str, length);
+				ncs_encode_n_octets_in_uba(uba, (uint8_t *)str, length);
 				break;
 			}
 		case 'U':
@@ -1007,7 +1007,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				ncs_encode_32bit(&data, length);
 				ncs_enc_claim_space(uba, sizeof(uns32));
 
-				ncs_encode_n_octets_in_uba(uba, (uns8 *)str, length);
+				ncs_encode_n_octets_in_uba(uba, (uint8_t *)str, length);
 				break;
 			}
 		case 'X':
@@ -1042,7 +1042,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				ncs_encode_32bit(&data, length);
 				ncs_enc_claim_space(uba, sizeof(uns32));
 
-				ncs_encode_n_octets_in_uba(uba, (uns8 *)str, length);
+				ncs_encode_n_octets_in_uba(uba, (uint8_t *)str, length);
 				break;
 			}
 		default:

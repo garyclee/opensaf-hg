@@ -262,7 +262,7 @@ uns32 mbcsv_process_peer_discovery_message(MBCSV_EVT *msg, MBCSV_REG *mbc_reg)
 	CKPT_INST *ckpt;
 
 	if (NULL != (ckpt = (CKPT_INST *)ncs_patricia_tree_get(&mbc_reg->ckpt_ssn_list,
-							       (const uns8 *)&msg->rcvr_peer_key.pwe_hdl))) {
+							       (const uint8_t *)&msg->rcvr_peer_key.pwe_hdl))) {
 		switch (msg->info.peer_msg.info.peer_disc.msg_sub_type) {
 		case MBCSV_PEER_UP_MSG:
 			m_LOG_MBCSV_PEER_EVT(ckpt->my_role, ckpt->my_mbcsv_inst->svc_id,
@@ -603,7 +603,7 @@ void mbcsv_set_peer_state(CKPT_INST *ckpt, PEER_INST *peer, NCS_BOOL peer_up)
 *                     FAILURE - fail to process PEER_UP.
 *
 *****************************************************************************/
-uns32 mbcsv_process_peer_up_info(MBCSV_EVT *msg, CKPT_INST *ckpt, uns8 peer_up)
+uns32 mbcsv_process_peer_up_info(MBCSV_EVT *msg, CKPT_INST *ckpt, uint8_t peer_up)
 {
 	PEER_INST *peer;
 

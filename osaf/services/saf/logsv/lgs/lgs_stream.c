@@ -125,7 +125,7 @@ static uns32 log_stream_add(NCS_PATRICIA_NODE *node, const char *key)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	node->key_info = (uns8 *)key;
+	node->key_info = (uint8_t *)key;
 
 	if ( NULL == ncs_patricia_tree_get(&stream_dn_tree,node->key_info)){
 		rc = ncs_patricia_tree_add(&stream_dn_tree, node);
@@ -145,7 +145,7 @@ static uns32 log_stream_remove(const char *key)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	log_stream_t *stream;
 
-	stream = (log_stream_t *)ncs_patricia_tree_get(&stream_dn_tree, (uns8 *)key);
+	stream = (log_stream_t *)ncs_patricia_tree_get(&stream_dn_tree, (uint8_t *)key);
 	if (stream == NULL) {
 		TRACE_2("ncs_patricia_tree_get FAILED");
 		rc = NCSCC_RC_FAILURE;
@@ -171,7 +171,7 @@ log_stream_t *log_stream_get_by_name(const char *name)
 	strcpy(nname, name);
 	memset(&nname[strlen(name)], 0, SA_MAX_NAME_LENGTH + 1 - strlen(name));
 
-	return (log_stream_t *)ncs_patricia_tree_get(&stream_dn_tree, (uns8 *)nname);
+	return (log_stream_t *)ncs_patricia_tree_get(&stream_dn_tree, (uint8_t *)nname);
 }
 
 log_stream_t *log_stream_getnext_by_name(const char *name)
@@ -182,7 +182,7 @@ log_stream_t *log_stream_getnext_by_name(const char *name)
 		/* Create SA_MAX_NAME_LENGTH stream name */
 		strcpy(nname, name);
 		memset(&nname[strlen(name)], 0, SA_MAX_NAME_LENGTH + 1 - strlen(name));
-		return (log_stream_t *)ncs_patricia_tree_getnext(&stream_dn_tree, (uns8 *)nname);
+		return (log_stream_t *)ncs_patricia_tree_getnext(&stream_dn_tree, (uint8_t *)nname);
 	} else
 		return (log_stream_t *)ncs_patricia_tree_getnext(&stream_dn_tree, NULL);
 }

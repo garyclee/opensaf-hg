@@ -45,7 +45,7 @@ uns32 mdtm_global_frag_num_tcp;
 extern struct pollfd pfd[2];
 extern pid_t mdtm_pid;
 
-static uns32 mds_mdtm_process_recvdata(uns32 rcv_bytes, uns8 *buffer);
+static uns32 mds_mdtm_process_recvdata(uns32 rcv_bytes, uint8_t *buffer);
 
 
 /**
@@ -57,7 +57,7 @@ static uns32 mds_mdtm_process_recvdata(uns32 rcv_bytes, uns8 *buffer);
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 mds_mdtm_queue_add_unsent_msg(uns8 *tcp_buffer, uns32 bufflen)
+static uns32 mds_mdtm_queue_add_unsent_msg(uint8_t *tcp_buffer, uns32 bufflen)
 {
 	/* If there is any message in queue the next message needs to queued only !! */
 	MDTM_INTRANODE_UNSENT_MSGS *tmp = NULL, *hdr = tcp_cb->mds_mdtm_msg_unsent_hdr, *tail =
@@ -137,7 +137,7 @@ static uns32 mds_mdtm_del_unsent_msg(void)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 mds_mdtm_unsent_queue_add_send(uns8 *tcp_buffer, uns32 bufflen)
+uns32 mds_mdtm_unsent_queue_add_send(uint8_t *tcp_buffer, uns32 bufflen)
 {
 	ssize_t send_len = 0;
 
@@ -199,28 +199,28 @@ static uns32 mds_mdtm_process_poll_out(void)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 mdtm_add_mds_hdr_tcp(uns8 *buffer, MDTM_SEND_REQ *req, uns32 len)
+static uns32 mdtm_add_mds_hdr_tcp(uint8_t *buffer, MDTM_SEND_REQ *req, uns32 len)
 {
-	uns8 prot_ver = 0, enc_snd_type = 0;
+	uint8_t prot_ver = 0, enc_snd_type = 0;
 	uns16 zero_16 = 0;
 	uns32 zero_32 = 0;
 
 	uns32 xch_id = 0;
 
-	uns8 *ptr;
+	uint8_t *ptr;
 	ptr = buffer;
 
-	prot_ver |= MDS_PROT_TCP | MDS_VERSION | ((uns8)(req->pri - 1));
+	prot_ver |= MDS_PROT_TCP | MDS_VERSION | ((uint8_t)(req->pri - 1));
 	enc_snd_type = (req->msg.encoding << 6);
-	enc_snd_type |= (uns8)req->snd_type;
+	enc_snd_type |= (uint8_t)req->snd_type;
 
 	/* Message length */
 	ncs_encode_16bit(&ptr, (len - 2));
 
 	/* Identifier and message type */
 	ncs_encode_32bit(&ptr, (uns32)MDS_IDENTIFIRE);
-	ncs_encode_8bit(&ptr, (uns8)MDS_SND_VERSION);
-	ncs_encode_8bit(&ptr, (uns8)MDS_MDTM_DTM_MESSAGE_TYPE);
+	ncs_encode_8bit(&ptr, (uint8_t)MDS_SND_VERSION);
+	ncs_encode_8bit(&ptr, (uint8_t)MDS_MDTM_DTM_MESSAGE_TYPE);
 
 	/* TCP header */
 	ncs_encode_32bit(&ptr, (uns32)m_MDS_GET_NODE_ID_FROM_ADEST(req->adest));
@@ -278,12 +278,12 @@ static uns32 mdtm_add_mds_hdr_tcp(uns8 *buffer, MDTM_SEND_REQ *req, uns32 len)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 mdtm_fill_frag_hdr_tcp(uns8 *buffer, MDTM_SEND_REQ *req, uns32 len)
+static uns32 mdtm_fill_frag_hdr_tcp(uint8_t *buffer, MDTM_SEND_REQ *req, uns32 len)
 {
 	uns16 zero_16 = 0;
 	uns32 zero_32 = 0;
 
-	uns8 *ptr;
+	uint8_t *ptr;
 	ptr = buffer;
 
 	/* Message length */
@@ -291,8 +291,8 @@ static uns32 mdtm_fill_frag_hdr_tcp(uns8 *buffer, MDTM_SEND_REQ *req, uns32 len)
 
 	/* Identifier and message type */
 	ncs_encode_32bit(&ptr, (uns32)MDS_IDENTIFIRE);
-	ncs_encode_8bit(&ptr, (uns8)MDS_SND_VERSION);
-	ncs_encode_8bit(&ptr, (uns8)MDS_MDTM_DTM_MESSAGE_TYPE);
+	ncs_encode_8bit(&ptr, (uint8_t)MDS_SND_VERSION);
+	ncs_encode_8bit(&ptr, (uint8_t)MDS_MDTM_DTM_MESSAGE_TYPE);
 
 	/* TCP header */
 	ncs_encode_32bit(&ptr, (uns32)m_MDS_GET_NODE_ID_FROM_ADEST(req->adest));
@@ -317,10 +317,10 @@ static uns32 mdtm_fill_frag_hdr_tcp(uns8 *buffer, MDTM_SEND_REQ *req, uns32 len)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 mdtm_add_frag_hdr_tcp(uns8 *buf_ptr, uns16 len, uns32 seq_num, uns16 frag_byte)
+static uns32 mdtm_add_frag_hdr_tcp(uint8_t *buf_ptr, uns16 len, uns32 seq_num, uns16 frag_byte)
 {
 	/* Add the FRAG HDR to the Buffer */
-	uns8 *data;
+	uint8_t *data;
 	data = buf_ptr;
 	ncs_encode_32bit(&data, seq_num);
 	ncs_encode_16bit(&data, frag_byte);
@@ -342,7 +342,7 @@ static uns32 mdtm_frag_and_send_tcp(MDTM_SEND_REQ *req, uns32 seq_num, MDS_MDTM_
 	USRBUF *usrbuf;
 	uns32 len = 0;
 	uns16 len_buf = 0;
-	uns8 *p8;
+	uint8_t *p8;
 	uns16 i = 1;
 	uns16 frag_val = 0;
 
@@ -388,9 +388,9 @@ static uns32 mdtm_frag_and_send_tcp(MDTM_SEND_REQ *req, uns32 seq_num, MDS_MDTM_
 			frag_val = NO_FRAG_BIT | i;
 		}
 		{
-			uns8 body[len_buf];
+			uint8_t body[len_buf];
 			if (i == 1) {
-				p8 = (uns8 *)m_MMGR_DATA_AT_START(usrbuf,
+				p8 = (uint8_t *)m_MMGR_DATA_AT_START(usrbuf,
 								  (len_buf - SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP),
 								  (char *)
 								  &body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP]);
@@ -416,7 +416,7 @@ static uns32 mdtm_frag_and_send_tcp(MDTM_SEND_REQ *req, uns32 seq_num, MDS_MDTM_
 				m_MMGR_REMOVE_FROM_START(&usrbuf, len_buf - SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP);
 				len = len - (len_buf - SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP);
 			} else {
-				p8 = (uns8 *)m_MMGR_DATA_AT_START(usrbuf, len_buf - MDTM_FRAG_HDR_PLUS_LEN_2_TCP,
+				p8 = (uint8_t *)m_MMGR_DATA_AT_START(usrbuf, len_buf - MDTM_FRAG_HDR_PLUS_LEN_2_TCP,
 								  (char *)&body[MDTM_FRAG_HDR_PLUS_LEN_2_TCP]);
 				if (p8 != &body[MDTM_FRAG_HDR_PLUS_LEN_2_TCP])
 					memcpy(&body[MDTM_FRAG_HDR_PLUS_LEN_2_TCP], p8,
@@ -508,8 +508,8 @@ uns32 mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 
 		/* Only for the ack and not for any other message */
 		if (req->snd_type == MDS_SENDTYPE_ACK || req->snd_type == MDS_SENDTYPE_RACK) {
-			uns8 len = SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP;
-			uns8 buffer_ack[len];
+			uint8_t len = SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP;
+			uint8_t buffer_ack[len];
 
 			/* Add mds_hdr */
 			if (NCSCC_RC_SUCCESS != mdtm_add_mds_hdr_tcp(buffer_ack, req, len)) {
@@ -556,10 +556,10 @@ uns32 mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 					return status;
 
 				} else {
-					uns8 *p8;
-					uns8 body[len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP];
+					uint8_t *p8;
+					uint8_t body[len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP];
 
-					p8 = (uns8 *)m_MMGR_DATA_AT_START(usrbuf, len, (char *)
+					p8 = (uint8_t *)m_MMGR_DATA_AT_START(usrbuf, len, (char *)
 									  &body
 									  [SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP]);
 
@@ -614,7 +614,7 @@ uns32 mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 				m_MDS_LOG_INFO("MDTM: User Sending Data len=%d Fr_svc=%d to_svc=%d\n",
 					       req->msg.data.buff_info.len, req->src_svc_id, req->dest_svc_id);
 
-				uns8 body[req->msg.data.buff_info.len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP];
+				uint8_t body[req->msg.data.buff_info.len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP];
 
 				if (NCSCC_RC_SUCCESS !=
 				    mdtm_add_mds_hdr_tcp(body, req,
@@ -669,7 +669,7 @@ void mdtm_process_poll_recv_data_tcp(void)
 	TRACE_ENTER();
 	if (0 == tcp_cb->bytes_tb_read) {
 		if (0 == tcp_cb->num_by_read_for_len_buff) {
-			uns8 *data;
+			uint8_t *data;
 			int recd_bytes = 0;
 
 			/*******************************************************/
@@ -742,7 +742,7 @@ void mdtm_process_poll_recv_data_tcp(void)
 				return;
 			} else if (1 == recd_bytes) {
 				/* We recd one byte(remaining) of the length part */
-				uns8 *data = tcp_cb->len_buff;
+				uint8_t *data = tcp_cb->len_buff;
 				tcp_cb->num_by_read_for_len_buff = 2;
 				tcp_cb->buff_total_len = ncs_decode_16bit(&data);
 				return;
@@ -897,7 +897,7 @@ uns32 mdtm_process_recv_events_tcp(void)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 mds_mdtm_process_recvdata(uns32 rcv_bytes, uns8 *buff_in)
+static uns32 mds_mdtm_process_recvdata(uns32 rcv_bytes, uint8_t *buff_in)
 {
 	PW_ENV_ID pwe_id;
 	MDS_SVC_ID svc_id;
@@ -921,7 +921,7 @@ static uns32 mds_mdtm_process_recvdata(uns32 rcv_bytes, uns8 *buff_in)
 	uns32 dest_nodeid, dest_process_id, src_nodeid, src_process_id;
 	uns32 buff_dump = 0;
 	uns64 tcp_id;
-	uns8 *buffer = buff_in;
+	uint8_t *buffer = buff_in;
 
 	mds_indentifire = ncs_decode_32bit(&buffer);
 	mds_version = ncs_decode_8bit(&buffer);

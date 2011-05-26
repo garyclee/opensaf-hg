@@ -237,7 +237,7 @@ uns32 cpa_ckpt_finalize_proc(CPA_CB *cb, CPA_CLIENT_NODE *cl_node)
 
 	/* Scan the entire checkpoint DB and close the checkpoints opened by this client */
 	while ((lc_node = (CPA_LOCAL_CKPT_NODE *)
-		ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree, (uns8 *)temp_ptr))) {
+		ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree, (uint8_t *)temp_ptr))) {
 		temp_hdl = lc_node->lcl_ckpt_hdl;
 		temp_ptr = &temp_hdl;
 
@@ -1249,7 +1249,7 @@ uns32 cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
 				if (m_CPA_VER_IS_ABOVE_B_1_1(version))
 					ioVector[iter].dataBuffer = m_MMGR_ALLOC_CPA_DEFAULT(read_data[iter].read_size);
 				else
-					ioVector[iter].dataBuffer = (uns8 *)malloc(read_data[iter].read_size);
+					ioVector[iter].dataBuffer = (uint8_t *)malloc(read_data[iter].read_size);
 				if (ioVector[iter].dataBuffer == NULL) {
 					m_LOG_CPA_MEMFAIL(CPA_DATA_BUFF_ALLOC_FAILED);
 					return NCSCC_RC_FAILURE;
@@ -1374,7 +1374,7 @@ void cpa_cb_dump(void)
 
 			/* scan the entire handle db & delete each record */
 			while ((clnode = (CPA_CLIENT_NODE *)
-				ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr))) {
+				ncs_patricia_tree_getnext(&cb->client_tree, (uint8_t *)temp_ptr))) {
 				/* delete the client info */
 				temp_hdl = clnode->cl_hdl;
 
@@ -1398,7 +1398,7 @@ void cpa_cb_dump(void)
 
 			/* Get the First Node */
 			lc_node = (CPA_LOCAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree,
-										   (uns8 *)&prev_ckpt_id);
+										   (uint8_t *)&prev_ckpt_id);
 
 			while (lc_node) {
 				prev_ckpt_id = lc_node->lcl_ckpt_hdl;
@@ -1416,7 +1416,7 @@ void cpa_cb_dump(void)
 				TRACE(" End of Local CKPT Info");
 
 				lc_node = (CPA_LOCAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree,
-											   (uns8 *)&prev_ckpt_id);
+											   (uint8_t *)&prev_ckpt_id);
 			}
 			TRACE(" End of Local CKPT nodes information ");
 		}
@@ -1435,7 +1435,7 @@ void cpa_cb_dump(void)
 
 			/* Get the First Node */
 			gc_node = (CPA_GLOBAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->gbl_ckpt_tree,
-										    (uns8 *)&prev_ckpt_id);
+										    (uint8_t *)&prev_ckpt_id);
 
 			while (gc_node) {
 				prev_ckpt_id = gc_node->gbl_ckpt_hdl;
@@ -1447,7 +1447,7 @@ void cpa_cb_dump(void)
 				TRACE(" End of Local CKPT Info");
 
 				gc_node = (CPA_GLOBAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->gbl_ckpt_tree,
-											    (uns8 *)&prev_ckpt_id);
+											    (uint8_t *)&prev_ckpt_id);
 			}
 
 			TRACE(" End of Local CKPT nodes information ");

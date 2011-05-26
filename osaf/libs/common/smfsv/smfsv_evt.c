@@ -64,7 +64,7 @@ void smfsv_evt_destroy(SMFSV_EVT *evt)
 uns32 smfd_enc_cmd_rsp(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
+    uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
     {
@@ -101,8 +101,8 @@ err:
 uns32 smfd_dec_cmd_rsp(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
-    uns8       local_data[20];
+    uint8_t       *p8;
+    uint8_t       local_data[20];
 
     if (i_ub == NULL || o_evt == NULL)
     {
@@ -123,7 +123,7 @@ err:
 uns32 smf_enc_cbk_rsp(SMF_RESP_EVT *i_evt, NCS_UBAID *o_ub)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
+    uint8_t       *p8;
 
     p8 = ncs_enc_reserve_space(o_ub, sizeof(SMF_RESP_EVT));
     if (p8 == NULL)
@@ -154,7 +154,7 @@ err:
 uns32 smfd_enc_cbk_rsp(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
+    uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
     {
@@ -180,8 +180,8 @@ err:
 uns32 smf_dec_cbk_rsp(NCS_UBAID *i_ub, SMF_RESP_EVT *o_evt)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
-    uns8       local_data[256];
+    uint8_t       *p8;
+    uint8_t       local_data[256];
 
     if (i_ub == NULL || o_evt == NULL)
     {
@@ -214,8 +214,8 @@ err:
 uns32 smfd_dec_cbk_rsp(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
-    uns8       local_data[256];
+    uint8_t       *p8;
+    uint8_t       local_data[256];
 
     if (i_ub == NULL || o_evt == NULL)
     {
@@ -247,7 +247,7 @@ err:
 uns32 smfd_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
+    uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
     {
@@ -306,8 +306,8 @@ err:
 uns32 smfd_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
     uns32     rc = NCSCC_RC_SUCCESS;
-    uns8      local_data[20];
-    uns8      *p8;
+    uint8_t      local_data[20];
+    uint8_t      *p8;
 
     /* Decode SMFD event type */ 
 
@@ -358,7 +358,7 @@ err:
 uns32 smfnd_enc_cmd_req(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
+    uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
     {
@@ -377,7 +377,7 @@ uns32 smfnd_enc_cmd_req(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
     ncs_enc_claim_space(o_ub, 4);
 
     /** encode the cmd **/
-    ncs_encode_n_octets_in_uba(o_ub, (uns8*) i_evt->info.smfnd.event.cmd_req.cmd, i_evt->info.smfnd.event.cmd_req.cmd_len);
+    ncs_encode_n_octets_in_uba(o_ub, (uint8_t*) i_evt->info.smfnd.event.cmd_req.cmd, i_evt->info.smfnd.event.cmd_req.cmd_len);
 
     return rc;
 err:
@@ -398,8 +398,8 @@ err:
 uns32 smfnd_dec_cmd_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
-    uns8       local_data[20];
+    uint8_t       *p8;
+    uint8_t       local_data[20];
 
     if (i_ub == NULL || o_evt == NULL)
     {
@@ -427,7 +427,7 @@ uns32 smfnd_dec_cmd_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
             goto err;
         }
 
-        ncs_decode_n_octets_from_uba(i_ub,(uns8 *)cmd, o_evt->info.smfnd.event.cmd_req.cmd_len);
+        ncs_decode_n_octets_from_uba(i_ub,(uint8_t *)cmd, o_evt->info.smfnd.event.cmd_req.cmd_len);
         cmd[o_evt->info.smfnd.event.cmd_req.cmd_len] = 0; /* NULL terminate */
         o_evt->info.smfnd.event.cmd_req.cmd = cmd;
     }
@@ -440,7 +440,7 @@ err:
 uns32 smf_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
+    uint8_t       *p8;
 
     p8 = ncs_enc_reserve_space(o_ub, 8);
     if (p8 == NULL)
@@ -469,7 +469,7 @@ uns32 smf_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
     ncs_encode_32bit(&p8, i_evt->object_name.length);
     ncs_enc_claim_space(o_ub, 4);
     
-    ncs_encode_n_octets_in_uba(o_ub, (uns8*) i_evt->object_name.value, 
+    ncs_encode_n_octets_in_uba(o_ub, (uint8_t*) i_evt->object_name.value, 
 				i_evt->object_name.length);
     //ncs_enc_claim_space(o_ub, i_evt->object_name.length);
 
@@ -491,7 +491,7 @@ uns32 smf_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
     ncs_encode_64bit(&p8, i_evt->cbk_label.labelSize);
     ncs_enc_claim_space(o_ub, 8);
     
-    ncs_encode_n_octets_in_uba(o_ub, (uns8*) i_evt->cbk_label.label, 
+    ncs_encode_n_octets_in_uba(o_ub, (uint8_t*) i_evt->cbk_label.label, 
 				i_evt->cbk_label.labelSize);
 
     p8 = ncs_enc_reserve_space(o_ub, 4);
@@ -504,7 +504,7 @@ uns32 smf_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
     ncs_enc_claim_space(o_ub, 4);
 
    if (i_evt->params_len != 0) {
-	    ncs_encode_n_octets_in_uba(o_ub, (uns8*) i_evt->params, 
+	    ncs_encode_n_octets_in_uba(o_ub, (uint8_t*) i_evt->params, 
 					i_evt->params_len);
     }
     return rc;
@@ -549,7 +549,7 @@ err:
 uns32 smfnd_enc_cbk_req_rsp(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
+    uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
     {
@@ -591,8 +591,8 @@ err:
 uns32 smf_dec_cbk_req(NCS_UBAID *i_ub, SMF_CBK_EVT *o_evt)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
-    uns8       local_data[256];
+    uint8_t       *p8;
+    uint8_t       local_data[256];
 
     p8 =  ncs_dec_flatten_space(i_ub, local_data, 8);
     o_evt->inv_id = ncs_decode_64bit(&p8);
@@ -608,7 +608,7 @@ uns32 smf_dec_cbk_req(NCS_UBAID *i_ub, SMF_CBK_EVT *o_evt)
 
     if (o_evt->object_name.length != 0)
     {
-        ncs_decode_n_octets_from_uba(i_ub,(uns8 *)o_evt->object_name.value, o_evt->object_name.length);
+        ncs_decode_n_octets_from_uba(i_ub,(uint8_t *)o_evt->object_name.value, o_evt->object_name.length);
     }
 
     p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
@@ -631,7 +631,7 @@ uns32 smf_dec_cbk_req(NCS_UBAID *i_ub, SMF_CBK_EVT *o_evt)
             goto err;
         }
 
-        ncs_decode_n_octets_from_uba(i_ub,(uns8 *)label, o_evt->cbk_label.labelSize);
+        ncs_decode_n_octets_from_uba(i_ub,(uint8_t *)label, o_evt->cbk_label.labelSize);
         label[o_evt->cbk_label.labelSize] = 0; /* NULL terminate */
         o_evt->cbk_label.label = (unsigned char *)label;
     }
@@ -651,7 +651,7 @@ uns32 smf_dec_cbk_req(NCS_UBAID *i_ub, SMF_CBK_EVT *o_evt)
             goto err;
         }
 
-        ncs_decode_n_octets_from_uba(i_ub,(uns8 *)str, o_evt->params_len);
+        ncs_decode_n_octets_from_uba(i_ub,(uint8_t *)str, o_evt->params_len);
         str[o_evt->params_len] = 0; /* NULL terminate */
         o_evt->params = str;
     }
@@ -697,8 +697,8 @@ err:
 uns32 smfnd_dec_cbk_req_rsp(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
-    uns8       local_data[20];
+    uint8_t       *p8;
+    uint8_t       local_data[20];
 
     if (i_ub == NULL || o_evt == NULL)
     {
@@ -743,7 +743,7 @@ err:
 uns32 smfnd_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
+    uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
     {
@@ -801,8 +801,8 @@ err:
 uns32 smfnd_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
     uns32     rc = NCSCC_RC_SUCCESS;
-    uns8      local_data[20];
-    uns8      *p8;
+    uint8_t      local_data[20];
+    uint8_t      *p8;
 
     /* Decode SMFND event type */ 
 
@@ -842,7 +842,7 @@ err:
 uns32 smfa_enc_cbk_req(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
+    uint8_t       *p8;
 
     p8 = ncs_enc_reserve_space(o_ub, 4);
     if (p8 == NULL)
@@ -862,8 +862,8 @@ err:
 uns32 smfa_dec_cbk_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8      local_data[20];
-    uns8      *p8;
+    uint8_t      local_data[20];
+    uint8_t      *p8;
 
     /* Decode SMFA event type */ 
 
@@ -889,7 +889,7 @@ uns32 smfa_dec_cbk_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 uns32 smfa_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
+    uint8_t       *p8;
 
     /** encode the type of SMFA event **/
     p8 = ncs_enc_reserve_space(o_ub, 4);
@@ -936,8 +936,8 @@ err:
 uns32 smfa_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
     uns32     rc = NCSCC_RC_SUCCESS;
-    uns8      local_data[20];
-    uns8      *p8;
+    uint8_t      local_data[20];
+    uint8_t      *p8;
 
     /* Decode SMFA event type */ 
 
@@ -993,7 +993,7 @@ uns32 smfsv_evt_enc_flat(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
     size = sizeof(SMFSV_EVT);
 
     /* Encode the Top level evt without byte-order correction. */
-    ncs_encode_n_octets_in_uba(o_ub,(uns8*)i_evt,size);
+    ncs_encode_n_octets_in_uba(o_ub,(uint8_t*)i_evt,size);
 
     return NCSCC_RC_SUCCESS;
 }
@@ -1019,7 +1019,7 @@ uns32 smfsv_evt_dec_flat(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
     size = sizeof(SMFSV_EVT);
    
     /* Decode the Top level evt without byte order correction */
-    ncs_decode_n_octets_from_uba(i_ub,(uns8*)o_evt, size);
+    ncs_decode_n_octets_from_uba(i_ub,(uint8_t*)o_evt, size);
 
     return NCSCC_RC_SUCCESS;
 }
@@ -1038,7 +1038,7 @@ uns32 smfsv_evt_dec_flat(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 uns32 smfsv_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
-    uns8       *p8;
+    uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
     {
@@ -1101,8 +1101,8 @@ err:
 uns32 smfsv_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
     uns32     rc = NCSCC_RC_SUCCESS;
-    uns8      local_data[20];
-    uns8      *p8;
+    uint8_t      local_data[20];
+    uint8_t      *p8;
 
     /* Decode SMFSV event type */ 
     p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);

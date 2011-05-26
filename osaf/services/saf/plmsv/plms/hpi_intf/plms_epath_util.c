@@ -184,7 +184,7 @@ static PLMS_ENTITY_TYPE_LIST  hpi_ent_type_list[] = {
  * Description   : This function converts entitypath to string format
  *
  * Arguments     : SaHpiEntityPathT*    - Pointer to entity path
- *                 uns8*  - Pointer to destination string
+ *                 uint8_t*  - Pointer to destination string
  *
  * Return Values : NCSCC_RC_SUCCESS
  *                 NCSCC_RC_FAILURE.

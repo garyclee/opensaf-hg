@@ -38,7 +38,7 @@
 NCS_BOOL eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterArrayT *filterArray)
 {
 	uns32 x;
-	uns8 *p = NULL;
+	uint8_t *p = NULL;
 	SaEvtEventFilterT *filter;
 	SaEvtEventPatternT *pattern;
 	SaEvtEventPatternT emptyPattern = { 0, 0, NULL };
