@@ -2001,7 +2001,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 	CPSV_CKPT_ACCESS ckpt_access;
 	CPSV_CKPT_DATA *ckpt_data = NULL;
 	SaTimeT now, duration;
-	int64 time_stamp, giga_sec, result;
+	int64_t time_stamp, giga_sec, result;
 
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 

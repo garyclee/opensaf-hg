@@ -559,7 +559,7 @@ static uint32_t eda_dec_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	uint8_t *p8;
 	uint32_t x;
 	uint32_t fake_value;
-	uns64 num_patterns;
+	uint64_t num_patterns;
 	uint32_t total_bytes = 0;
 	SaEvtEventPatternT *pattern_ptr;
 	EDSV_EDA_EVT_DELIVER_CBK_PARAM *param = &msg->info.cbk_info.param.evt_deliver_cbk;

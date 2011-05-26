@@ -160,7 +160,7 @@ uint32_t mds_tmr_mailbox_processing(void);
 uint32_t mdtm_get_from_ref_tbl(MDS_SUBTN_REF_VAL ref, MDS_SVC_HDL *svc_hdl);
 uint32_t mdtm_add_frag_hdr(uint8_t *buf_ptr, uint16_t len, uint32_t seq_num, uint16_t frag_byte);
 uint32_t mdtm_free_reassem_msg_mem(MDS_ENCODED_MSG *msg);
-uint32_t mdtm_process_recv_data(uint8_t *buf, uint16_t len, uns64 tipc_id, uint32_t *buff_dump);
+uint32_t mdtm_process_recv_data(uint8_t *buf, uint16_t len, uint64_t tipc_id, uint32_t *buff_dump);
 
 typedef enum {
 	MDTM_TX_TYPE_TIPC = 1,

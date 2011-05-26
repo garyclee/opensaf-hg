@@ -567,6 +567,8 @@ AC_TYPE_UINT16_T
 AC_TYPE_INT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_INT32_T
+AC_TYPE_UINT64_T
+AC_TYPE_INT64_T
 
 
 #############################################

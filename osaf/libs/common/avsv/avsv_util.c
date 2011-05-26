@@ -205,7 +205,7 @@ uint32_t avsv_dblist_uns32_cmp(uint8_t *key1, uint8_t *key2)
 /****************************************************************************
   Name          : avsv_dblist_uns64_cmp
  
-  Description   : This routine compares the uns64 keys. It is used by DLL 
+  Description   : This routine compares the uint64_t keys. It is used by DLL 
                   library.
  
   Arguments     : key1 - ptr to the 1st key
@@ -219,10 +219,10 @@ uint32_t avsv_dblist_uns32_cmp(uint8_t *key1, uint8_t *key2)
 ******************************************************************************/
 uint32_t avsv_dblist_uns64_cmp(uint8_t *key1, uint8_t *key2)
 {
-	uns64 val1, val2;
+	uint64_t val1, val2;
 
-	val1 = *((uns64 *)key1);
-	val2 = *((uns64 *)key2);
+	val1 = *((uint64_t *)key1);
+	val2 = *((uint64_t *)key2);
 
 	return ((val1 == val2) ? 0 : ((val1 > val2) ? 1 : 2));
 }

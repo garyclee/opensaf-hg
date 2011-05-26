@@ -55,7 +55,7 @@ typedef struct dtm_lib_up_msg {
 	uint32_t server_type;
 	uint32_t server_instance_lower;
 	uint32_t server_instance_upper;
-	uns64 ref_val;
+	uint64_t ref_val;
 	NODE_ID node_id;
 	uint32_t process_id;
 } DTM_LIB_UP_MSG;
@@ -64,7 +64,7 @@ typedef DTM_LIB_UP_MSG DTM_LIB_DOWN_MSG;
 
 typedef struct dtm_lib_node_up_msg {
 	NODE_ID node_id;
-	uns64 ref_val;
+	uint64_t ref_val;
 } DTM_LIB_NODE_UP_MSG;
 
 typedef DTM_LIB_NODE_UP_MSG DTM_LIB_NODE_DOWN_MSG;
@@ -80,7 +80,7 @@ typedef struct dtm_pid_svc_installed_info {
 typedef struct dtm_pid_svc_subscr_info {
 	struct dtm_pid_svc_subscr_info *next;
 	uint32_t server_type;
-	uns64 ref_hdl;
+	uint64_t ref_hdl;
 } DTM_PID_SVC_SUSBCR_INFO;
 
 typedef struct dtm_intranode_unsent_msgs {
@@ -143,7 +143,7 @@ typedef struct dtm_subscriber_list {
 	struct dtm_subscriber_list *next;
 	uint32_t pid;
 	int connected_fd;
-	uns64 subscr_ref_hdl;
+	uint64_t subscr_ref_hdl;
 	SYSF_MBX mbx;
 	DTM_SVC_SUBSCR_SCOPE subscr_scope;
 } DTM_SUBSCRIBER_LIST;
@@ -160,7 +160,7 @@ typedef struct dtm_node_subscr_info {
 	struct dtm_node_subscr_info *next;
 	NODE_ID node_id;
 	uint32_t process_id;
-	uns64 subtn_ref_val;
+	uint64_t subtn_ref_val;
 } DTM_NODE_SUBSCR_INFO;
 
 extern DTM_NODE_SUBSCR_INFO *dtm_node_subscr_list;

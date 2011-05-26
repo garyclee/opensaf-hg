@@ -224,9 +224,9 @@ uint32_t ncs_decode_32bit(uint8_t **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns64 ncs_decode_64bit(uint8_t **stream)
+uint64_t ncs_decode_64bit(uint8_t **stream)
 {
-	uns64 val;
+	uint64_t val;
 
 	val = m_NCS_OS_NTOHLL_P((*stream));
 	(*stream) += 8;

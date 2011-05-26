@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
 	int eventCount = 0;	/* Used to regulate progress of background 
 				   server task when we are very bussy. */
 	int maxEvt = 100;
-	int64 start_time = 0LL;
+	int64_t start_time = 0LL;
 	struct pollfd fds[2];
 
 	daemonize(argc, argv);

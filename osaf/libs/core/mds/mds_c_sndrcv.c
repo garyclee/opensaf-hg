@@ -2733,7 +2733,7 @@ static uint32_t mcm_pvt_normal_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id
 	 */
 	uint8_t *data;
 	uint32_t xch_id = 0;
-	uns64 msg_dest_adest = 0;
+	uint64_t msg_dest_adest = 0;
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue;
 	uint8_t len_sync_ctxt = 0;
 
@@ -3349,7 +3349,7 @@ static uint32_t mcm_pvt_red_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 	 */
 	uint8_t *data;
 	uint32_t xch_id = 0;
-	uns64 msg_dest_adest = 0;
+	uint64_t msg_dest_adest = 0;
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue;
 	uint8_t len_sync_ctxt = 0;
 
@@ -5222,7 +5222,7 @@ static uint32_t mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr
 {
 	uint8_t *data;
 	uint32_t xch_id = 0, ret_status = 0;
-	uns64 msg_dest_adest = 0;
+	uint64_t msg_dest_adest = 0;
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue;
 	uint8_t len_sync_ctxt = 0;
 
@@ -5460,7 +5460,7 @@ static uint32_t mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_sv
 {
 	uint8_t *data;
 	uint32_t xch_id = 0, ret_status = 0;
-	uns64 msg_dest_adest = 0;
+	uint64_t msg_dest_adest = 0;
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue;
 
 	NCS_SEL_OBJ sel_obj;

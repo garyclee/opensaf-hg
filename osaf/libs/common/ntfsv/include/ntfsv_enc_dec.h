@@ -41,8 +41,8 @@ extern "C" {
 	uint32_t ntfsv_dec_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param);
 	uint32_t ntfsv_enc_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *param);
 	uint32_t ntfsv_dec_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *param);
-	uint32_t ntfsv_enc_64bit_msg(NCS_UBAID *uba, uns64 param);
-	uint32_t ntfsv_dec_64bit_msg(NCS_UBAID *uba, uns64 *param);
+	uint32_t ntfsv_enc_64bit_msg(NCS_UBAID *uba, uint64_t param);
+	uint32_t ntfsv_dec_64bit_msg(NCS_UBAID *uba, uint64_t *param);
 	uint32_t ntfsv_enc_32bit_msg(NCS_UBAID *uba, uint32_t param);
 	uint32_t ntfsv_dec_32bit_msg(NCS_UBAID *uba, uint32_t *param);
 

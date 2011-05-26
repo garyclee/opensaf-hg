@@ -151,14 +151,14 @@ static uint32_t dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Decode MDS_DEST of DTA to be removed */
-		ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&cb->svc_rmv_mds_dest, sizeof(uns64));
+		ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&cb->svc_rmv_mds_dest, sizeof(uint64_t));
 		if (ptr == NULL) {
 			m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					      "dtsv_decode_ckpt_dts_svc_reg_tbl_config: Decode flatten space failed");
 		}
 		cb->svc_rmv_mds_dest = ncs_decode_64bit(&ptr);
-		ncs_dec_skip_space(&dec->i_uba, sizeof(uns64));
+		ncs_dec_skip_space(&dec->i_uba, sizeof(uint64_t));
 
 	case NCS_MBCSV_ACT_UPDATE:
 		/* Decode cli_bit_map first */

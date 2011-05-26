@@ -3224,9 +3224,9 @@ NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uint32_t *o_size
 	else if (prog == ncs_edp_float)
 		*o_size = sizeof(float);
 	else if (prog == ncs_edp_uns64)
-		*o_size = sizeof(uns64);
+		*o_size = sizeof(uint64_t);
 	else if (prog == ncs_edp_int64)
-		*o_size = sizeof(int64);
+		*o_size = sizeof(int64_t);
 	else if (prog == ncs_edp_string)
 		*o_size = 0;	/* variable length */
 	else
@@ -3558,7 +3558,7 @@ uint32_t ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uint16_t count)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uint32_t ncs_encode_tlv_64bit(uint8_t **stream, uns64 val)
+uint32_t ncs_encode_tlv_64bit(uint8_t **stream, uint64_t val)
 {
 	uint16_t len = 8;
 
@@ -3581,9 +3581,9 @@ uint32_t ncs_encode_tlv_64bit(uint8_t **stream, uns64 val)
   RETURNS:          Decoded "64bit" value.
 
 *****************************************************************************/
-uns64 ncs_decode_tlv_64bit(uint8_t **stream)
+uint64_t ncs_decode_tlv_64bit(uint8_t **stream)
 {
-	uns64 val = 0;		/* Accumulator */
+	uint64_t val = 0;		/* Accumulator */
 
 	(*stream)++;
 	(*stream)++;
@@ -3797,9 +3797,9 @@ static uint32_t ncs_edu_get_size_of_var_len_data(EDU_PROG_HANDLER edp, NCSCONTEX
 	else if (edp == ncs_edp_double)
 		*p_data_len = (uint32_t)(*(double *)cptr);
 	else if (edp == ncs_edp_uns64)
-		*p_data_len = (uint32_t)(*(uns64 *)cptr);	/* Downsizing 64-bit to 32-bit */
+		*p_data_len = (uint32_t)(*(uint64_t *)cptr);	/* Downsizing 64-bit to 32-bit */
 	else if (edp == ncs_edp_int64)
-		*p_data_len = (uint32_t)(*(int64 *)cptr);	/* Downsizing 64-bit to 32-bit */
+		*p_data_len = (uint32_t)(*(int64_t *)cptr);	/* Downsizing 64-bit to 32-bit */
 	else {
 		/* Failure. */
 		*o_err = EDU_ERR_INV_LEN_SIZE_FOUND_FOR_VAR_SIZED_DATA;

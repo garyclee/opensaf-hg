@@ -840,7 +840,7 @@ int tet_test_ckptSectionCreate(int i,CONFIG_FLAG cfg_flg)
   SaAisErrorT rc;
   int result;
   SaTimeT now, duration,temp;
-  int64 gigasec = 1000000000;
+  int64_t gigasec = 1000000000;
 
   duration = m_GET_TIME_STAMP(now) * gigasec;
   if(API_SectionCreate[i].sectionCreationAttributes != NULL)
@@ -904,7 +904,7 @@ int tet_test_red_ckptSectionCreate(int i,CONFIG_FLAG cfg_flg)
   int prev_rc = SA_AIS_OK;
   int err_not_exist_cnt=0;
   SaTimeT now, duration,temp;
-  int64 gigasec = 1000000000;
+  int64_t gigasec = 1000000000;
 
   duration = m_GET_TIME_STAMP(now) * gigasec;
   if(API_SectionCreate[i].sectionCreationAttributes != NULL)
@@ -1011,7 +1011,7 @@ int tet_test_ckptExpirationSet(int i,CONFIG_FLAG cfg_flg)
   SaAisErrorT rc;
   int result;
   SaTimeT now, duration;
-  int64 gigasec = 1000000000;
+  int64_t gigasec = 1000000000;
                                                                                                                             
   duration = m_GET_TIME_STAMP(now) * gigasec;
                                                                                                                             
@@ -1035,7 +1035,7 @@ int tet_test_red_ckptExpirationSet(int i,CONFIG_FLAG cfg_flg)
   int result;
   gl_try_again_cnt=0;
   SaTimeT now, duration;
-  int64 gigasec = 1000000000;
+  int64_t gigasec = 1000000000;
                                                                                                                             
   duration = m_GET_TIME_STAMP(now) * gigasec;
   duration = API_ExpirationSet[i].expirationTime + duration ;
@@ -1822,7 +1822,7 @@ int tet_test_ckptIterationInit(int i,CONFIG_FLAG cfg_flg)
 {
   SaAisErrorT rc;
   SaTimeT now, duration;
-  int64 gigasec = 1000000000;
+  int64_t gigasec = 1000000000;
                                                                                                                             
   duration = m_GET_TIME_STAMP(now) * gigasec;
 
@@ -1844,7 +1844,7 @@ int tet_test_red_ckptIterationInit(int i,CONFIG_FLAG cfg_flg)
   SaAisErrorT rc;
   SaTimeT now, duration;
   gl_try_again_cnt=0;
-  int64 gigasec = 1000000000;
+  int64_t gigasec = 1000000000;
   int result;
                                                                                                                             
   duration = m_GET_TIME_STAMP(now) * gigasec;

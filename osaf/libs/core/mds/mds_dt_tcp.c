@@ -153,7 +153,7 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 		}
 	}
 
-	tcp_cb->adest = ((uns64)(nodeid)) << 32;
+	tcp_cb->adest = ((uint64_t)(nodeid)) << 32;
 	tcp_cb->adest |= mdtm_pid;
 	tcp_cb->node_id = nodeid;
 

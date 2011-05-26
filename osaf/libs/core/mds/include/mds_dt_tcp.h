@@ -35,7 +35,7 @@ typedef struct mdtm_tcp_cb {
 	int DBSRsock;
 
 	void *mdtm_hdle_task;
-	uns64 adest;
+	uint64_t adest;
 
 	SYSF_MBX tmr_mbx;
 	int tmr_fd;

@@ -166,6 +166,6 @@ do { \
    (m).info.cbk_info.param.clm_status_cbk.node_status = (cluster_change); \
 } while (0);
 
-#define m_EDS_GET_NODE_ID_FROM_ADEST(adest) (NODE_ID) ((uns64)adest >> 32)
+#define m_EDS_GET_NODE_ID_FROM_ADEST(adest) (NODE_ID) ((uint64_t)adest >> 32)
 
 #endif   /* !EDS_MDS_H */

@@ -6,7 +6,7 @@ uint32_t mbcstm_event_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t 
                             uint32_t bsys, MBCSTM_TEST_ACTION action,
                             uint32_t act_on_sys,uint32_t act_val,
                             MBCSTM_CB_TEST cb_check,uint32_t wait,
-                            uint32_t peer_count,uns64 peer_anchor, 
+                            uint32_t peer_count,uint64_t peer_anchor, 
                             MBCSTM_FSM_STATES state_check);
 
 
@@ -14,7 +14,7 @@ uint32_t mbcstm_event_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t 
                             uint32_t bsys, MBCSTM_TEST_ACTION action,
                             uint32_t act_on_sys,uint32_t act_val,
                             MBCSTM_CB_TEST cb_check,uint32_t wait,
-                            uint32_t peer_count,uns64 peer_anchor, 
+                            uint32_t peer_count,uint64_t peer_anchor, 
                             MBCSTM_FSM_STATES state_check)
 {
   uint32_t test_result = NCSCC_RC_FAILURE;

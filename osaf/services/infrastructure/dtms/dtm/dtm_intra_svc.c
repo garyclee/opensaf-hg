@@ -43,13 +43,13 @@ static uint32_t dtm_lib_prepare_svc_down_msg(DTM_LIB_UP_MSG * up_msg, uint8_t *b
 static uint32_t dtm_intranode_del_svclist_from_svc_tree(DTM_SVC_INSTALL_INFO * svc_node, DTM_SVC_LIST * del_list);
 static uint32_t dtm_internode_del_svclist_from_svc_tree(DTM_INTRANODE_NODE_DB * node_info, DTM_SVC_INSTALL_INFO * svc_node,
 						     DTM_SVC_LIST * del_list);
-static uint32_t dtm_intranode_del_subscrlist_from_subscr_tree(DTM_SVC_SUBSCR_INFO * subscr_node, uns64 ref_val, uint32_t pid);
+static uint32_t dtm_intranode_del_subscrlist_from_subscr_tree(DTM_SVC_SUBSCR_INFO * subscr_node, uint64_t ref_val, uint32_t pid);
 static uint32_t dtm_intranode_add_subscrlist_to_subscr_tree(DTM_SVC_SUBSCR_INFO * subscr_node,
 							 DTM_SUBSCRIBER_LIST * add_info);
 static uint32_t dtm_add_to_node_subscr_list(DTM_NODE_SUBSCR_INFO * node_subscr_info);
 static DTM_NODE_SUBSCR_INFO *dtm_get_from_node_subscr_list(uint32_t pid);
 static uint32_t dtm_lib_prepare_node_up_msg(DTM_LIB_NODE_UP_MSG * up_msg, uint8_t *buffer);
-static uint32_t dtm_del_from_node_subscr_list(uint32_t pid, uns64 ref_val);
+static uint32_t dtm_del_from_node_subscr_list(uint32_t pid, uint64_t ref_val);
 
 static uint32_t dtm_deliver_svc_down(NODE_ID node_id);
 static uint32_t dtm_internode_delete_svc_installed_list_from_svc_tree(DTM_INTRANODE_NODE_DB * node);
@@ -60,7 +60,7 @@ static uint32_t dtm_intranode_del_subscr_from_pid_info(DTM_INTRANODE_PID_INFO * 
 static uint32_t dtm_intranode_add_subscr_to_pid_info(DTM_INTRANODE_PID_INFO * pid_node, DTM_PID_SVC_SUSBCR_INFO * data);
 
 static DTM_PID_SVC_SUSBCR_INFO *dtm_intranode_get_subscr_from_pid_info(DTM_INTRANODE_PID_INFO * pid_node,
-								       uns64 ref_val);
+								       uint64_t ref_val);
 
 static DTM_SVC_INSTALL_INFO *dtm_intranode_get_svc_node(uint32_t server_type);
 static DTM_SVC_SUBSCR_INFO *dtm_intranode_get_subscr_node(uint32_t server_type);
@@ -597,7 +597,7 @@ uint32_t dtm_intranode_process_unsubscribe_msg(uint8_t *buff, int fd)
 		/* Decode the message  */
 		uint8_t *data = buff;
 		DTM_SVC_SUBSCR_INFO *subscr_node = NULL;
-		uns64 ref_val = 0;
+		uint64_t ref_val = 0;
 		uint32_t server_type = 0;
 		DTM_PID_SVC_SUSBCR_INFO *data_subscr = NULL;
 		ref_val = ncs_decode_64bit(&data);
@@ -700,7 +700,7 @@ uint32_t dtm_intranode_process_node_unsubscribe_msg(uint8_t *buff, int fd)
 		uint8_t *data = buff;
 		NODE_ID node_id = ncs_decode_32bit(&data);
 		uint32_t process_id = ncs_decode_32bit(&data);
-		uns64 ref_val = ncs_decode_64bit(&data);
+		uint64_t ref_val = ncs_decode_64bit(&data);
 		node_id = node_id;	/* Just to avoid compilation error */
 		TRACE_1("DTM: INTRA: node unsubscribe pid=%d", pid_node->pid);
 		dtm_del_from_node_subscr_list(process_id, ref_val);
@@ -924,7 +924,7 @@ static uint32_t dtm_intranode_add_subscr_to_pid_info(DTM_INTRANODE_PID_INFO * pi
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static DTM_PID_SVC_SUSBCR_INFO *dtm_intranode_get_subscr_from_pid_info(DTM_INTRANODE_PID_INFO * pid_node, uns64 ref_val)
+static DTM_PID_SVC_SUSBCR_INFO *dtm_intranode_get_subscr_from_pid_info(DTM_INTRANODE_PID_INFO * pid_node, uint64_t ref_val)
 {
 	DTM_PID_SVC_SUSBCR_INFO *hdr = pid_node->subscr_list;
 	TRACE_ENTER();
@@ -1011,7 +1011,7 @@ static uint32_t dtm_intranode_add_subscrlist_to_subscr_tree(DTM_SVC_SUBSCR_INFO 
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uint32_t dtm_intranode_del_subscrlist_from_subscr_tree(DTM_SVC_SUBSCR_INFO * subscr_node, uns64 ref_val, uint32_t pid)
+static uint32_t dtm_intranode_del_subscrlist_from_subscr_tree(DTM_SVC_SUBSCR_INFO * subscr_node, uint64_t ref_val, uint32_t pid)
 {
 	DTM_SUBSCRIBER_LIST *back, *mov_ptr;
 	TRACE_ENTER();
@@ -1161,7 +1161,7 @@ static DTM_NODE_SUBSCR_INFO *dtm_get_from_node_subscr_list(uint32_t pid)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uint32_t dtm_del_from_node_subscr_list(uint32_t pid, uns64 ref_val)
+static uint32_t dtm_del_from_node_subscr_list(uint32_t pid, uint64_t ref_val)
 {
 	DTM_NODE_SUBSCR_INFO *back, *mov_ptr;
 

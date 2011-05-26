@@ -168,7 +168,7 @@ uint32_t mdtm_del_from_ref_tbl(MDS_SUBTN_REF_VAL ref)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_t len, uns64 transport_adest, uint32_t seq_num_check,
+uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_t len, uint64_t transport_adest, uint32_t seq_num_check,
 				       uint32_t *buff_dump)
 {
 	MDTM_REASSEMBLY_QUEUE *reassem_queue = NULL;
@@ -188,7 +188,7 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 
 		if (NCSCC_RC_SUCCESS == node_status) {
 			adest =
-			    ((((uns64)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID((NODE_ID)(transport_adest >> 32)))) << 32) |
+			    ((((uint64_t)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID((NODE_ID)(transport_adest >> 32)))) << 32) |
 			     (uint32_t)(transport_adest));
 		} else {
 			m_MDS_LOG_ERR
@@ -767,7 +767,7 @@ uint32_t mds_tmr_mailbox_processing(void)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uint32_t mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uns64 transport_adest, uint32_t *buff_dump)
+uint32_t mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uint64_t transport_adest, uint32_t *buff_dump)
 {
 	/*
 	   Get the MDS Header from the data received

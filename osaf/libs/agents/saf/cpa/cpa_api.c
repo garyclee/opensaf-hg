@@ -2521,7 +2521,7 @@ SaAisErrorT saCkptSectionExpirationTimeSet(SaCkptCheckpointHandleT checkpointHan
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CB *cb = NULL;
 	SaTimeT now, duration;
-	int64 time_stamp, giga_sec, result;
+	int64_t time_stamp, giga_sec, result;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
 	/* Validate the Input Parameters */

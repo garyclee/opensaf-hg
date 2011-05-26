@@ -143,12 +143,12 @@ static uint32_t dtsv_encode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Encode MDS_DEST of DTA to be removed */
-		encoded_dta_dest = ncs_enc_reserve_space(&enc->io_uba, sizeof(uns64));
+		encoded_dta_dest = ncs_enc_reserve_space(&enc->io_uba, sizeof(uint64_t));
 		if (!encoded_dta_dest) {
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					      "dtsv_encode_ckpt_fls_svc_reg_tbl_config: Encode(DTA MDS_DEST) failed");
 		}
-		ncs_enc_claim_space(&enc->io_uba, sizeof(uns64));
+		ncs_enc_claim_space(&enc->io_uba, sizeof(uint64_t));
 		if (encoded_dta_dest != NULL) {
 			ncs_encode_64bit(&encoded_dta_dest, cb->svc_rmv_mds_dest);
 		}

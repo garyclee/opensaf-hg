@@ -315,7 +315,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 	memset(&cp_info, '\0', sizeof(CKPT_INFO));
 	NCS_OS_POSIX_SHM_REQ_INFO ckpt_rep_open;
 	SaTimeT presentTime, timeout = 0;
-	int64 now, diff_time, giga_sec;
+	int64_t now, diff_time, giga_sec;
 	uint32_t max_client_hdl = 0;
 	SaTimeT tmpTime = 0;
 	CPND_SHM_VERSION cpnd_shm_version;

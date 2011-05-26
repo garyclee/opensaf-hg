@@ -212,7 +212,7 @@ typedef struct dtsv_msg_data {	/* The union of all data types in a DTSV_MSG */
 		SVC_REG reg;	/* Service registration message */
 		SVC_UNREG unreg;	/* Service deregistration Message */
 		DTA_LOG_MSG msg;	/* Log Message */
-		uns64 dta_ptr;	/* Pointer to DTA node in patricia tree */
+		uint64_t dta_ptr;	/* Pointer to DTA node in patricia tree */
 	} data;
 
 } DTSV_MSG_DATA;

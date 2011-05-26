@@ -459,7 +459,7 @@ FUNC_DECLARATION(DS)
 		{
 		EDU_START, FUNC_NAME(CPSV_CKPT_STATUS), 0, 0, 0, sizeof(DS), 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->error, 0, NULL}, {
-		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns64)(long)&((DS *) 0)->ckpt_id, 0, NULL}, {
+		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uint64_t)(long)&((DS *) 0)->ckpt_id, 0, NULL}, {
 		EDU_EXEC, FUNC_NAME(SaCkptCheckpointDescriptorT), 0, 0, 0, (long)&((DS *) 0)->status, 0, NULL}, {
 	EDU_END, 0, 0, 0, 0, 0, 0, NULL},};
 	NCS_ENC_DEC_REM_FLOW(DS)
@@ -554,7 +554,7 @@ FUNC_DECLARATION(DS)
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->num_of_elmts, 0, NULL},
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->size, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error_index, 0, NULL},
       {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->from_svc, 0, NULL},
       {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0, (void *)TEST_FUNC(CPSV_ND2A_DATA_ACCESS_RSP)},

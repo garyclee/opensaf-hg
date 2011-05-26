@@ -182,7 +182,7 @@ typedef enum eds_log_ids {
 void eds_flx_log_reg(void);
 void eds_flx_log_dereg(void);
 void eds_log(uint8_t id, uint32_t category, uint8_t sev, long rc, char *fname, uint32_t fno, uint32_t data);
-void eds_log_f(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fname, uint32_t fno, uint32_t data, uns64 dest);
+void eds_log_f(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fname, uint32_t fno, uint32_t data, uint64_t dest);
 void eds_log_event(uint8_t id, int8_t *pub_name, uint32_t evt_id, uint32_t pubtime, uint32_t pri, uint32_t rettime);
 void eds_log_lost_event(uint8_t id, int8_t *pub_name, uint32_t evt_id, uint32_t pubtime, uint32_t pri);
 #endif   /* ((NCS_DTA == 1) && (NCS_EDSV_LOG == 1)) */

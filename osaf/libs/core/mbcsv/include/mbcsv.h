@@ -63,7 +63,7 @@
 
 #include "saAis.h"
 
-typedef uns64 MBCSV_ANCHOR;
+typedef uint64_t MBCSV_ANCHOR;
 
 /* From /base/products/rms/inc */
 #include "mbcsv_papi.h"

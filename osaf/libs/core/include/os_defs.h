@@ -104,7 +104,7 @@ extern "C" {
 	extern void get_msec_time(uint32_t *seconds, uint32_t *millisec);
 
 #ifndef m_NCS_OS_GET_UPTIME
-	extern uint32_t ncs_get_uptime(uns64 *o_uptime);
+	extern uint32_t ncs_get_uptime(uint64_t *o_uptime);
 #define m_NCS_OS_GET_UPTIME(p_uptime)  ncs_get_uptime(p_uptime)
 #endif
 
@@ -166,10 +166,10 @@ extern "C" {
  **                                                                         **
  ****************************************************************************/
 
-	int64 ncs_os_time_ms(void);
+	int64_t ncs_os_time_ms(void);
 #define m_NCS_OS_GET_TIME_MS   ncs_os_time_ms()
 
-	uns64 ncs_os_time_ns(void);
+	uint64_t ncs_os_time_ns(void);
 #define m_NCS_OS_GET_TIME_NS   ncs_os_time_ns()
 
 /* Over riding macros for linux */

@@ -70,7 +70,7 @@ extern MBCSV_CB mbcsv_cb;
 #define m_MBCSV_PRT_PEER_INFO(peer_ptr) \
 { \
    printf("\n|               |                       |%16" PRIX64 "|%8X|%8X|  |", \
-   (uns64)peer_ptr->peer_anchor,(uint32_t)peer_ptr->hdl, (uint32_t)peer_ptr->peer_hdl); \
+   (uint64_t)peer_ptr->peer_anchor,(uint32_t)peer_ptr->hdl, (uint32_t)peer_ptr->peer_hdl); \
    \
    printf("\n|               |                       |%c|%s|%c| %c |%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d|%2d |    |", \
    mbcsv_prt_role[peer_ptr->peer_role],  \
@@ -134,7 +134,7 @@ uint32_t mbcsv_prt_inv(void)
 			       ckpt->pwe_hdl, ckpt->ckpt_hdl, (ckpt->warm_sync_on ? 'T' : 'F'),
 			       mbcsv_prt_role[ckpt->my_role]);
 			printf("\n|               |%16" PRIX64 "|%1d%1d%1d%1d%1d |           MY   PEERS              |",
-			       (uns64)ckpt->my_anchor, ckpt->in_quiescing, ckpt->peer_up_sent, ckpt->ftm_role_set,
+			       (uint64_t)ckpt->my_anchor, ckpt->in_quiescing, ckpt->peer_up_sent, ckpt->ftm_role_set,
 			       ckpt->role_set, ckpt->data_req_sent);
 
 			p_count = 0;

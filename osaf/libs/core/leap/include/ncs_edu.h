@@ -248,7 +248,7 @@ uint32_t ncs_encode_tlv_16bit(uint8_t **stream, uint32_t val);
 
 uint32_t ncs_encode_tlv_32bit(uint8_t **stream, uint32_t val);
 
-uint32_t ncs_encode_tlv_64bit(uint8_t **stream, uns64 val);
+uint32_t ncs_encode_tlv_64bit(uint8_t **stream, uint64_t val);
 
 uint32_t ncs_encode_tlv_n_32bit(uint8_t **stream, uint32_t *val_ptr, uint16_t n_count);
 
@@ -258,7 +258,7 @@ uint32_t ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uint16_t count)
 
 uint32_t ncs_decode_tlv_32bit(uint8_t **stream);
 
-uns64 ncs_decode_tlv_64bit(uint8_t **stream);
+uint64_t ncs_decode_tlv_64bit(uint8_t **stream);
 
 uint16_t ncs_decode_tlv_16bit(uint8_t **stream);
 

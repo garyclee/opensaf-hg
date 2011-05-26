@@ -207,7 +207,7 @@ typedef struct peer_inst {
 
 	/* We need to store data request context and pass it
 	   back to user in data resp encode */
-	uns64 req_context;
+	uint64_t req_context;
 
 	/* Call again parameters to be preserved */
 	uint32_t call_again_reo_type;

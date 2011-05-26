@@ -188,7 +188,7 @@ uint32_t mqnd_mq_empty(SaMsgQueueHandleT handle)
 	NCS_OS_POSIX_MQ_REQ_INFO mq_req;
 	NCS_OS_MQ_MSG mq_msg;
 	uint32_t num_messages;
-	uns64 count;
+	uint64_t count;
 
 	memset(&mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
 	memset(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));

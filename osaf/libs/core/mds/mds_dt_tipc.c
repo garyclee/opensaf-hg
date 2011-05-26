@@ -103,7 +103,7 @@ typedef struct mdtm_tipc_cb {
 
 	void *mdtm_hdle_task;
 	int hdle_mdtm;
-	uns64 adest;
+	uint64_t adest;
 
 	SYSF_MBX tmr_mbx;
 	int tmr_fd;
@@ -216,7 +216,7 @@ uint32_t mdtm_tipc_init(NODE_ID nodeid, uint32_t *mds_tipc_ref)
 	}
 	*mds_tipc_ref = addr.addr.id.ref;
 
-	tipc_cb.adest = ((uns64)(nodeid)) << 32;
+	tipc_cb.adest = ((uint64_t)(nodeid)) << 32;
 	tipc_cb.adest |= addr.addr.id.ref;
 	tipc_cb.node_id = nodeid;
 
@@ -637,9 +637,9 @@ static uint32_t mdtm_process_recv_events(void)
 					m_MDS_LOG_ERR("MDTM: Error Recd:tipc_id=<0x%08x:%u>:errno=0x%08x",
 						      client_addr.addr.id.node, client_addr.addr.id.ref, errno);
 				} else if (recd_buf_len == recd_bytes) {
-					uns64 tipc_id = 0;
+					uint64_t tipc_id = 0;
 					uint32_t buff_dump = 0;
-					tipc_id = ((uns64)client_addr.addr.id.node) << 32;	/* TIPC_ID=<NODE,REF> */
+					tipc_id = ((uint64_t)client_addr.addr.id.node) << 32;	/* TIPC_ID=<NODE,REF> */
 					tipc_id |= client_addr.addr.id.ref;
 
 #ifdef MDS_CHECKSUM_ENABLE_FLAG
@@ -678,8 +678,8 @@ static uint32_t mdtm_process_recv_events(void)
 					mdtm_process_recv_data(&inbuf[2], recd_bytes - 2, tipc_id, &buff_dump);
 #endif
 				} else {
-					uns64 tipc_id;
-					tipc_id = ((uns64)client_addr.addr.id.node) << 32;	/* TIPC_ID=<NODE,REF> */
+					uint64_t tipc_id;
+					tipc_id = ((uint64_t)client_addr.addr.id.node) << 32;	/* TIPC_ID=<NODE,REF> */
 					tipc_id |= client_addr.addr.id.ref;
 
 					/* Log message that we are dropping the data */
@@ -789,7 +789,7 @@ static uint32_t mdtm_process_discovery_events(uint32_t discovery_event, struct t
 	lower = NTOHL(event.found_lower);
 	node = NTOHL(event.port.node);
 	ref = NTOHL(event.port.ref);
-	subtn_ref_val = *((uns64 *)(event.s.usr_handle));
+	subtn_ref_val = *((uint64_t *)(event.s.usr_handle));
 
 	inst_type = type & 0x00ff0000;	/* To get which type event
 					   either SVC,VDEST, PCON, NODE OR process */
@@ -861,7 +861,7 @@ static uint32_t mdtm_process_discovery_events(uint32_t discovery_event, struct t
 			node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE(node);
 
 			if (NCSCC_RC_SUCCESS == node_status) {
-				adest = ((((uns64)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node))) << 32) | ref);
+				adest = ((((uint64_t)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node))) << 32) | ref);
 			} else {
 				m_MDS_LOG_ERR
 				    ("MDTM: Dropping  the svc event for SVC id = %d, subscribed by SVC id = %d as the TIPC NODEid is not in the prescribed range=0x%08x, SVC Event type=%d",
@@ -916,7 +916,7 @@ static uint32_t mdtm_process_discovery_events(uint32_t discovery_event, struct t
 			node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE(node);
 
 			if (NCSCC_RC_SUCCESS == node_status) {
-				adest = ((((uns64)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node))) << 32) | ref);
+				adest = ((((uint64_t)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node))) << 32) | ref);
 			} else {
 				m_MDS_LOG_ERR
 				    ("MDTM: Dropping  the vdest event, vdest id = %d, as the TIPC NODEid is not in the prescribed range=0x%08x,  Event type=%d",
@@ -1481,7 +1481,7 @@ uint32_t mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS
 	subscr.filter = HTONL(TIPC_SUB_PORTS);
 	*subtn_ref_val = 0;
 	*subtn_ref_val = ++handle;
-	*((uns64 *)subscr.usr_handle) = *subtn_ref_val;
+	*((uint64_t *)subscr.usr_handle) = *subtn_ref_val;
 
 	if (send(tipc_cb.Dsock, &subscr, sizeof(subscr), 0) != sizeof(subscr)) {
 		m_MDS_LOG_ERR("MDTM: SVC-SUBSCRIBE Failure\n");
@@ -1523,7 +1523,7 @@ uint32_t mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *su
 	net_subscr.filter = HTONL(TIPC_SUB_PORTS);
 	*subtn_ref_val = 0;
 	*subtn_ref_val = ++handle;
-	*((uns64 *)net_subscr.usr_handle) = *subtn_ref_val;
+	*((uint64_t *)net_subscr.usr_handle) = *subtn_ref_val;
 
 	if (send(tipc_cb.Dsock, &net_subscr, sizeof(net_subscr), 0) != sizeof(net_subscr)) {
 		perror("failed to send network subscription");
@@ -1776,7 +1776,7 @@ uint32_t mds_mdtm_vdest_subscribe_tipc(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL 
 	subscr.filter = HTONL(TIPC_SUB_PORTS);
 	*subtn_ref_val = 0;
 	*subtn_ref_val = ++handle;
-	*((uns64 *)subscr.usr_handle) = *subtn_ref_val;
+	*((uint64_t *)subscr.usr_handle) = *subtn_ref_val;
 
 	if (send(tipc_cb.Dsock, &subscr, sizeof(subscr), 0) != sizeof(subscr)) {
 		m_MDS_LOG_ERR("MDTM: VDEST-SUBSCRIBE Failure\n");

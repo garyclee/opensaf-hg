@@ -66,12 +66,12 @@ extern "C" {
 	typedef uint16_t PW_ENV_ID;	/* Private World Environment ID        */
 
 /* MDS-DEST is defined globally in "ncsgl_defs.h" */
-	typedef uns64 V_DEST_QA;
+	typedef uint64_t V_DEST_QA;
 	typedef uint16_t MDS_VDEST_ID;
 
 /* Typedefs for the 64-BIT Changes */
 	typedef uint32_t MDS_HDL;
-	typedef uns64 MDS_CLIENT_HDL;
+	typedef uint64_t MDS_CLIENT_HDL;
 
 /* Added for the version/in-service changes */
 	typedef uint8_t MDS_SVC_PVT_SUB_PART_VER;	/*MDS svc private sub part ver */

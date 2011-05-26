@@ -916,11 +916,11 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 	uint32_t server_instance_upper;
 	NODE_ID node_id;
 	uint32_t process_id;
-	uns64 ref_val;
+	uint64_t ref_val;
 	MDS_DEST adest = 0;
 	uint32_t dest_nodeid, dest_process_id, src_nodeid, src_process_id;
 	uint32_t buff_dump = 0;
-	uns64 tcp_id;
+	uint64_t tcp_id;
 	uint8_t *buffer = buff_in;
 
 	mds_indentifire = ncs_decode_32bit(&buffer);
@@ -982,7 +982,7 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 			else
 				policy = NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN;
 
-			adest = (uns64)node_id << 32;
+			adest = (uint64_t)node_id << 32;
 			adest |= process_id;
 
 			if (msg_type == MDTM_LIB_UP_TYPE) {
@@ -1040,7 +1040,7 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 			src_nodeid = ncs_decode_32bit(&buffer);
 			src_process_id = ncs_decode_32bit(&buffer);
 
-			tcp_id = ((uns64)src_nodeid) << 32;
+			tcp_id = ((uint64_t)src_nodeid) << 32;
 			tcp_id |= src_process_id;
 
 			mdtm_process_recv_data(&buff_in[22], rcv_bytes - 22, tcp_id, &buff_dump);

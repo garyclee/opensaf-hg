@@ -99,7 +99,7 @@ void get_msec_time(uint32_t *seconds, uint32_t *millisec)
 
 /***************************************************************************
  *
- * ncs_get_uptime(uns64)
+ * ncs_get_uptime(uint64_t)
  *
  * Description:
  *     This routine reads uptime from /proc/uptime file. 
@@ -108,7 +108,7 @@ void get_msec_time(uint32_t *seconds, uint32_t *millisec)
  *   Gets the uptime in time-ticks i.e centiseconds
  *
  * Call Arguments:
- *      pointer to a uns64 is an "out" Argument 
+ *      pointer to a uint64_t is an "out" Argument 
         
  * Returns:
  *   Returns NCSCC_RC_FAILURE
@@ -116,7 +116,7 @@ void get_msec_time(uint32_t *seconds, uint32_t *millisec)
  *
  *
  ****************************************************************************/
-uint32_t ncs_get_uptime(uns64 *o_uptime)
+uint32_t ncs_get_uptime(uint64_t *o_uptime)
 {
 	int result = 0;
 	double i_uptime = 0;
@@ -142,7 +142,7 @@ uint32_t ncs_get_uptime(uns64 *o_uptime)
 		return NCSCC_RC_FAILURE;
 	}
 
-	*o_uptime = (uns64)(i_uptime * 100);
+	*o_uptime = (uint64_t)(i_uptime * 100);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -317,9 +317,9 @@ int ncs_dbg_logscreen(const char *fmt, ...)
  *
  *
  ****************************************************************************/
-uns64 ncs_os_time_ns(void)
+uint64_t ncs_os_time_ns(void)
 {
-	uns64 retval = 0;
+	uint64_t retval = 0;
 	struct timespec ts;
 
 	if (0 == clock_gettime(CLOCK_REALTIME, &ts)) {
@@ -350,9 +350,9 @@ uns64 ncs_os_time_ns(void)
  *   the timezone argument is ununsed by Linux(tm)
  *
  ****************************************************************************/
-int64 ncs_os_time_ms(void)
+int64_t ncs_os_time_ms(void)
 {
-	int64 retval = 0;	/* let 0 be an error */
+	int64_t retval = 0;	/* let 0 be an error */
 	struct timeval tv;
 
 	if (0 == gettimeofday(&tv, 0)) {

@@ -57,7 +57,7 @@ void eds_log(uint8_t id, uint32_t category, uint8_t sev, long rc, char *fname, u
 
   PROCEDURE NAME  :  eds_log_f
 
-  DESCRIPTION     :  EDS logs with the uns64 MDSDEST
+  DESCRIPTION     :  EDS logs with the uint64_t MDSDEST
 
   ARGUMENT        :  id - Canned string id
                      category- Category of the log
@@ -66,10 +66,10 @@ void eds_log(uint8_t id, uint32_t category, uint8_t sev, long rc, char *fname, u
                      fname- filename
                      fno  - filenumber
                      dataa - Miscellineousdata
-                     dest - uns64 mdsdest
+                     dest - uint64_t mdsdest
 *****************************************************************************/
 
-void eds_log_f(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fname, uint32_t fno, uint32_t dataa, uns64 dest)
+void eds_log_f(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fname, uint32_t fno, uint32_t dataa, uint64_t dest)
 {
 
 	/* Log New type logs */

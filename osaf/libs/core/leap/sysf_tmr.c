@@ -130,7 +130,7 @@ typedef struct sysf_tmr {
 	struct sysf_tmr *keep;	/* just to know where you are !! */
 
 	uint8_t state;
-	uns64 key;
+	uint64_t key;
 	TMR_CALLBACK tmrCB;
 	NCSCONTEXT tmrUarg;
 	TMR_DBG_LEAK dbg;
@@ -140,7 +140,7 @@ typedef struct sysf_tmr {
 /* SYSF_TMR_PAT_NODE holds timer list info available in a pat node */
 typedef struct sysf_tmr_pat_node {
 	NCS_PATRICIA_NODE pat_node;
-	uns64 key;
+	uint64_t key;
 	SYSF_TMR *tmr_list_start;
 	SYSF_TMR *tmr_list_end;
 } SYSF_TMR_PAT_NODE;
@@ -202,9 +202,9 @@ static uint32_t ncs_tmr_add_pat_node(SYSF_TMR *tmr)
 }
 
 /* This routine returns the time elapsed in units of NCS_MILLISECONDS_PER_TICK */
-static uns64 get_time_elapsed_in_ticks(struct timespec *temp_ts_start)
+static uint64_t get_time_elapsed_in_ticks(struct timespec *temp_ts_start)
 {
-	uns64 time_elapsed = 0;
+	uint64_t time_elapsed = 0;
 	struct timespec ts_current = { 0, 0 };
 
 	if (clock_gettime(CLOCK_MONOTONIC, &ts_current)) {
@@ -306,10 +306,10 @@ static NCS_BOOL sysfTmrExpiry(SYSF_TMR_PAT_NODE *tmp)
 }
 
 static uint32_t ncs_tmr_select_intr_process(struct timeval *tv, struct
-					 timespec *ts_current, uns64 next_delay)
+					 timespec *ts_current, uint64_t next_delay)
 {
-	uns64 tmr_restart = 0;
-	uns64 time_left = 0;
+	uint64_t tmr_restart = 0;
+	uint64_t time_left = 0;
 	struct timespec ts_curr = *ts_current;
 	struct timespec ts_eint = { 0, 0 };
 
@@ -336,10 +336,10 @@ static uint32_t ncs_tmr_select_intr_process(struct timeval *tv, struct
 	return NCSCC_RC_SUCCESS;
 }
 
-static uint32_t ncs_tmr_engine(struct timeval *tv, uns64 *next_delay)
+static uint32_t ncs_tmr_engine(struct timeval *tv, uint64_t *next_delay)
 {
-	uns64 next_expiry = 0;
-	uns64 ticks_elapsed = 0;
+	uint64_t next_expiry = 0;
+	uint64_t ticks_elapsed = 0;
 	SYSF_TMR_PAT_NODE *tmp = NULL;
 
 #if ENABLE_SYSLOG_TMR_STATS
@@ -347,7 +347,7 @@ static uint32_t ncs_tmr_engine(struct timeval *tv, uns64 *next_delay)
 	struct timespec tmr_exp_prev_finish = { 0, 0 };
 	struct timespec tmr_exp_curr_start = { 0, 0 };
 	uint32_t tot_tmr_exp = 0;
-	uns64 sum_of_tmr_exp_gaps = 0;	/* Avg = sum_of_tmr_exp_gaps/tot_tmr_exp */
+	uint64_t sum_of_tmr_exp_gaps = 0;	/* Avg = sum_of_tmr_exp_gaps/tot_tmr_exp */
 #endif
 
 	while (TRUE) {
@@ -420,7 +420,7 @@ static uint32_t ncs_tmr_wait(void)
 	int inds_rmvd;
 	int save_errno = 0;
 
-	uns64 next_delay = 0;
+	uint64_t next_delay = 0;
 
 	NCS_SEL_OBJ mbx_fd = gl_tcb.sel_obj;
 	NCS_SEL_OBJ highest_sel_obj;
@@ -535,7 +535,7 @@ NCS_BOOL sysfTmrCreate(void)
 
 	memset((void *)&pat_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-	pat_param.key_size = sizeof(uns64);
+	pat_param.key_size = sizeof(uint64_t);
 
 	rc = ncs_patricia_tree_init(&gl_tcb.tmr_pat_tree, &pat_param);
 	if (rc != NCSCC_RC_SUCCESS) {
@@ -720,8 +720,8 @@ tmr_t ncs_tmr_start(tmr_t tid, uint32_t tmrDelay,	/* timer period in number of 1
 {
 	SYSF_TMR *tmr;
 	SYSF_TMR *new_tmr;
-	uns64 scaled;
-	uns64 temp_key_value;
+	uint64_t scaled;
+	uint64_t temp_key_value;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (((tmr = (SYSF_TMR *)tid) == NULL) || (tmr_destroying == TRUE))	/* NULL tmrs are no good! */

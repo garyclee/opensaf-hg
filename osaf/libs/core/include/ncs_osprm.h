@@ -1043,7 +1043,7 @@ extern "C" {
 		char *i_name;
 		uint32_t i_flags;
 		uint32_t i_map_flags;
-		uns64 i_size;
+		uint64_t i_size;
 		int32_t i_offset;
 		void *o_addr;
 		int32_t o_fd;
@@ -1054,7 +1054,7 @@ extern "C" {
 		uint32_t i_hdl;
 		void *i_addr;
 		int32_t i_fd;
-		uns64 i_size;
+		uint64_t i_size;
 	} NCS_OS_POSIX_SHM_REQ_CLOSE_INFO;
 
 	typedef struct ncs_os_posix_shm_req_unlink_info_tag {
@@ -1730,14 +1730,14 @@ extern "C" {
 \*********************************************************/
 #ifndef m_NCS_OS_NTOHLL_P
 #define m_NCS_OS_NTOHLL_P(p8) (               \
-      ((uns64)((uint8_t*)(p8))[0] <<56) |        \
-      ((uns64)((uint8_t*)(p8))[1] <<48) |        \
-      ((uns64)((uint8_t*)(p8))[2] <<40) |        \
-      ((uns64)((uint8_t*)(p8))[3] <<32) |        \
-      ((uns64)((uint8_t*)(p8))[4] <<24) |        \
-      ((uns64)((uint8_t*)(p8))[5] <<16) |        \
-      ((uns64)((uint8_t*)(p8))[6] <<8 ) |        \
-      ((uns64)((uint8_t*)(p8))[7]     )          \
+      ((uint64_t)((uint8_t*)(p8))[0] <<56) |        \
+      ((uint64_t)((uint8_t*)(p8))[1] <<48) |        \
+      ((uint64_t)((uint8_t*)(p8))[2] <<40) |        \
+      ((uint64_t)((uint8_t*)(p8))[3] <<32) |        \
+      ((uint64_t)((uint8_t*)(p8))[4] <<24) |        \
+      ((uint64_t)((uint8_t*)(p8))[5] <<16) |        \
+      ((uint64_t)((uint8_t*)(p8))[6] <<8 ) |        \
+      ((uint64_t)((uint8_t*)(p8))[7]     )          \
      )
 #endif
 
@@ -1809,8 +1809,8 @@ extern "C" {
  **                                                                        **
  ***************************************************************************/
 
-	typedef uns64 NCS_EXEC_HDL;
-	typedef uns64 NCS_EXEC_USR_HDL;
+	typedef uint64_t NCS_EXEC_HDL;
+	typedef uint64_t NCS_EXEC_USR_HDL;
 
 	/* This Structure assists in passing the environment arguments needed to be
 	   set in the newly created process. */

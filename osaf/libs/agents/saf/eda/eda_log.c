@@ -56,7 +56,7 @@ void eda_log(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fnam
 
   PROCEDURE NAME  :  eda_log_f
 
-  DESCRIPTION     :  EDA logs with the uns64 handle
+  DESCRIPTION     :  EDA logs with the uint64_t handle
 
   ARGUMENT        :  id - Canned string id
                      category- Category of the log
@@ -65,10 +65,10 @@ void eda_log(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fnam
                      fname- filename
                      fno  - filenumber
                      dataa - Miscellineousdata
-                     handle - uns64 handle
+                     handle - uint64_t handle
 *****************************************************************************/
 
-void eda_log_f(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fname, uint32_t fno, uint32_t dataa, uns64 handle)
+void eda_log_f(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fname, uint32_t fno, uint32_t dataa, uint64_t handle)
 {
 
 	/* Log New type logs */

@@ -56,7 +56,7 @@ MDS_DEST get_vdest_anchor()
 uint32_t mbcstm_config()
 {
   uint32_t    svc_count, ssn_count, ssn_index;
-  uns64    anc_index;
+  uint64_t    anc_index;
   uint32_t    vdest_id = NCSVDA_EXTERNAL_UNNAMED_MIN;
   uint32_t    svc_id =  MBCSTM_SVC_ID1;
   
@@ -141,7 +141,7 @@ uint32_t mbcstm_config()
 uint32_t tet_mbcsv_config()
 {
   uint32_t    svc_count, ssn_count, ssn_index;
-  uns64    anc_index;
+  uint64_t    anc_index;
   uint32_t    vdest_id = NCSVDA_EXTERNAL_UNNAMED_MIN;
   uint32_t    svc_id =  MBCSTM_SVC_ID1;
   
