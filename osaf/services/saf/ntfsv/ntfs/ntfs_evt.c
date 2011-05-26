@@ -237,7 +237,7 @@ static uns32 proc_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	SaVersionT *version;
 
-	TRACE_ENTER2("dest %llx", evt->fr_dest);
+	TRACE_ENTER2("dest %" PRIx64, evt->fr_dest);
 
 	/* Validate the version */
 	version = &(evt->info.msg.info.api_info.param.init.version);

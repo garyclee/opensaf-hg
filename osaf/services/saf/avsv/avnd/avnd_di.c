@@ -386,7 +386,7 @@ done:
 ******************************************************************************/
 uns32 avnd_evt_mds_avd_up_evh(AVND_CB *cb, AVND_EVT *evt)
 {
-	TRACE_ENTER2("%llx", evt->info.mds.mds_dest);
+	TRACE_ENTER2("%" PRIx64, evt->info.mds.mds_dest);
 	
 	/* Validate whether this is a ADEST or VDEST */
 	if (m_MDS_DEST_IS_AN_ADEST(evt->info.mds.mds_dest)) {
@@ -719,7 +719,7 @@ uns32 avnd_di_msg_send(AVND_CB *cb, AVND_MSG *msg)
 	} else if (m_AVSV_N2D_MSG_IS_VER_ACK_NACK(msg->info.avd)) {
 		/*send the response to active AvD (In case MDS has not updated its
 		   tables by this time) */
-		TRACE_1("%s, Active AVD Adest: %llu",__FUNCTION__,cb->active_avd_adest);
+		TRACE_1("%s, Active AVD Adest: %" PRIu64, __FUNCTION__, cb->active_avd_adest);
 		rc = avnd_mds_red_send(cb, msg, &cb->avd_dest, &cb->active_avd_adest);
 		goto done;
 	}

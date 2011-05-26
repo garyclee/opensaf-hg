@@ -375,7 +375,7 @@ void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 void avd_mds_avnd_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	TRACE("Local node director is up, start sending heart beats to %llx", cb->local_avnd_adest);
+	TRACE("Local node director is up, start sending heart beats to %" PRIx64, cb->local_avnd_adest);
 	avd_tmr_snd_hb_evh(cb, evt);
 }
 

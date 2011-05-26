@@ -548,7 +548,7 @@ static void immd_req_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 		goto done;
 	}
 
-	TRACE_5("Send-1 SYNC_REQ back to requesting IMMND  to dest:%llu", node_info->immnd_dest);
+	TRACE_5("Send-1 SYNC_REQ back to requesting IMMND  to dest:%" PRIu64, node_info->immnd_dest);
 	TRACE_5("nodeid:%x epoch:%u isOnController:%u",
 		node_info->immnd_key, cb->mRulingEpoch, node_info->isOnController);
 	proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, node_info->immnd_dest, &rqsync_evt);
@@ -565,7 +565,7 @@ static void immd_req_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 		}
 
 		/*Send rqsync message to immnd at active SC. */
-		TRACE_5("Send-2 SYNC_REQ to local coord IMMND at active SC, dest: %llu", cb->loc_immnd_dest);
+		TRACE_5("Send-2 SYNC_REQ to local coord IMMND at active SC, dest: %" PRIu64, cb->loc_immnd_dest);
 		TRACE_5("nodeid:%x epoch:%u isOnController:%u",
 			node_info->immnd_key, cb->mRulingEpoch, node_info->isOnController);
 
@@ -583,11 +583,11 @@ static void immd_req_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 			goto done;
 		}
 
-		TRACE_5("Send-3 SYNC_REQ to remote coord IMMND at standby SC, dest:%llu", cb->rem_immnd_dest);
+		TRACE_5("Send-3 SYNC_REQ to remote coord IMMND at standby SC, dest:%" PRIu64, cb->rem_immnd_dest);
 		proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, cb->rem_immnd_dest, &rqsync_evt);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
 			LOG_WA("Failed to send rqsync message err:%u to coord IMMND "
-			       "at standby dest:%llu", proc_rc, cb->rem_immnd_dest);
+			       "at standby dest:%" PRIu64, proc_rc, cb->rem_immnd_dest);
 			goto done;
 		}
 	}
@@ -672,7 +672,7 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, NCS_B
 				proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, cb->rem_immnd_dest, &accept_evt);
 				if (proc_rc != NCSCC_RC_SUCCESS) {
 					LOG_WA("Failed to send immnd-act accept message to IMMND at "
-					       "sby %llu error:%u", cb->rem_immnd_dest, proc_rc);
+					       "sby %" PRIu64 " error:%u", cb->rem_immnd_dest, proc_rc);
 					goto done;
 				}
 			}
@@ -694,7 +694,7 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, NCS_B
 				proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, cb->rem_immnd_dest, &accept_evt);
 				if (proc_rc != NCSCC_RC_SUCCESS) {
 					LOG_WA("Failed to send immnd-payload accept message to IMMND at "
-						"sby %llu error:%u", cb->rem_immnd_dest, proc_rc);
+						"sby %" PRIu64 " error:%u", cb->rem_immnd_dest, proc_rc);
 					goto done;
 				}
 			}
@@ -778,7 +778,7 @@ static uns32 immd_evt_proc_immnd_announce_dump(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
 			}
 		}
 	} else {
-		LOG_WA("Node not found %llu", sinfo->dest);
+		LOG_WA("Node not found %" PRIu64, sinfo->dest);
 		proc_rc = NCSCC_RC_FAILURE;
 	}
 	TRACE_LEAVE();
@@ -842,7 +842,7 @@ static uns32 immd_evt_proc_immnd_announce_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
 			LOG_NO("Successfully announced sync. New ruling epoch:%u", cb->mRulingEpoch);
 		}
 	} else {
-		LOG_WA("Node not found %llu", sinfo->dest);
+		LOG_WA("Node not found %" PRIu64, sinfo->dest);
 		proc_rc = NCSCC_RC_FAILURE;
 	}
 	TRACE_LEAVE();
@@ -890,7 +890,7 @@ uns32 immd_evt_proc_immnd_abort_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO
 			LOG_WA("Successfully aborted sync. Epoch:%u", cb->mRulingEpoch);
 		}
 	} else {
-		LOG_WA("Node not found %llu", sinfo->dest);
+		LOG_WA("Node not found %" PRIu64, sinfo->dest);
 		proc_rc = NCSCC_RC_FAILURE;
 	}
 	TRACE_LEAVE();
@@ -928,7 +928,7 @@ uns32 immd_evt_proc_immnd_loading_failed(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_
 
 		LOG_ER("******** LOADING FAILED. File(s) possibly missing, inaccessible or corrupt .. ? *********");
 	} else {
-		LOG_ER("Node not found %llu", sinfo->dest);
+		LOG_ER("Node not found %" PRIu64, sinfo->dest);
 		proc_rc = NCSCC_RC_FAILURE;
 	}
 	TRACE_LEAVE();
@@ -984,7 +984,7 @@ uns32 immd_evt_proc_immnd_prto_purge_mutations(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
 			LOG_IN("Purge prto mutations broadcast. Epoch:%u", cb->mRulingEpoch);
 		}
 	} else {
-		LOG_WA("Node not found %llu", sinfo->dest);
+		LOG_WA("Node not found %" PRIu64, sinfo->dest);
 		proc_rc = NCSCC_RC_FAILURE;
 	}
 	TRACE_LEAVE();
@@ -1046,7 +1046,7 @@ static uns32 immd_evt_proc_immnd_announce_load(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
 		immd_announce_load_ok(cb, cb->mRulingEpoch);
 		LOG_NO("Successfully announced loading. New ruling epoch:%u", cb->mRulingEpoch);
 	} else {
-		LOG_WA("Node not found %llu", sinfo->dest);
+		LOG_WA("Node not found %" PRIu64, sinfo->dest);
 		proc_rc = NCSCC_RC_FAILURE;
 	}
  fail:
@@ -1111,7 +1111,7 @@ static uns32 immd_evt_proc_immnd_req_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 		LOG_NO("Node %x request sync sync-pid:%d epoch:%u ",
 		       node_info->immnd_key, node_info->immnd_execPid, node_info->epoch);
 	} else {
-		LOG_WA("Node not found %llu", sinfo->dest);
+		LOG_WA("Node not found %" PRIu64, sinfo->dest);
 		proc_rc = NCSCC_RC_FAILURE;
 	}
 
@@ -1213,7 +1213,7 @@ static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_IN
 			immd_accept_node(cb, node_info, TRUE);
 		}
 	} else {
-		LOG_WA("Node not found %llu", sinfo->dest);
+		LOG_WA("Node not found %" PRIu64, sinfo->dest);
 		proc_rc = NCSCC_RC_FAILURE;
 	}
 	TRACE_LEAVE();
@@ -1463,7 +1463,7 @@ static uns32 immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 	char *tmpData = NULL;
 	uba.start = NULL;
 
-	TRACE_5("Sync Fevs Base:%llu", 	evt->info.syncFevsBase.fevsBase);
+	TRACE_5("Sync Fevs Base:%llu", evt->info.syncFevsBase.fevsBase);
 
 	/*First create and pack the core message for fevs. */
 
@@ -2175,7 +2175,7 @@ static uns32 immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 			immd_immnd_info_node_get(&cb->immnd_tree, &mds_info->dest, &node_info);
 			if (!node_info) {
 				TRACE_5("NCSMDS_DOWN and I AM ACTIVE, no info on this "
-					"immnd node %llu.", mds_info->dest);
+					"immnd node %" PRIu64, mds_info->dest);
 				goto done;
 			} else {
 				TRACE_5("IMMND DOWN PROCESS detected by IMMD");
@@ -2187,7 +2187,7 @@ static uns32 immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 			immd_immnd_info_node_get(&cb->immnd_tree, &mds_info->dest, &node_info);
 			if (!node_info) {
 				TRACE_5("NCSMDS_DOWN detected by SBY IMMD, no info on "
-					"immnd node %llu", mds_info->dest);
+					"immnd node %" PRIu64, mds_info->dest);
 				goto done;
 			} else {
 				TRACE_5("IMMND DOWN PROCESS detected by STANDBY IMMD");
@@ -2199,7 +2199,7 @@ static uns32 immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 			immd_immnd_info_node_get(&cb->immnd_tree,&mds_info->dest, &node_info);
 			if (!node_info) {
 				TRACE_5("NCSMDS_DOWN detected by QUIESCED  IMMD, "
-					"no info on immnd node %llu", mds_info->dest);
+					"no info on immnd node %" PRIu64, mds_info->dest);
 				goto done;
 			} else {
 				TRACE_5("IMMND DOWN PROCESS detected by QUIESCED IMMD");

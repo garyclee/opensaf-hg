@@ -413,7 +413,7 @@ static uns32 mqd_cb_dump(void)
 
 	TRACE(" Self MDS Handle is : %u ", (uns32)pMqd->my_mds_hdl);
 	TRACE("MQD MDS dest Nodeid is : %u", m_NCS_NODE_ID_FROM_MDS_DEST(pMqd->my_dest));
-	TRACE("MQD MDS dest is        : %llu ", pMqd->my_dest);
+	TRACE("MQD MDS dest is        : %" PRIu64, pMqd->my_dest);
 	TRACE("Service ID of MQD is : %u ", pMqd->my_svc_id);
 	TRACE("Component name of MQD: %s ", pMqd->my_name);
 	TRACE("Async update counter : %u ", pMqd->mqd_sync_updt_count);
@@ -630,7 +630,7 @@ static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode)
 		else if (qnode->oinfo.info.q.send_state == MSG_QUEUE_UNAVAILABLE)
 			TRACE("The sending state is : MSG_QUEUE_UNAVAILABLE ");
 		TRACE(" Retention Time is : %llu ", qnode->oinfo.info.q.retentionTime);
-		TRACE(" MDS Destination is :%llu ", qnode->oinfo.info.q.dest);
+		TRACE(" MDS Destination is : %" PRIu64, qnode->oinfo.info.q.dest);
 		TRACE(" Node id from the MDS Destination of the queue is :%u ",
 			m_NCS_NODE_ID_FROM_MDS_DEST(qnode->oinfo.info.q.dest));
 		switch (qnode->oinfo.info.q.owner) {
@@ -667,7 +667,7 @@ static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode)
 	itr.state = 0;
 	while ((pTrack = (MQD_TRACK_OBJ *)ncs_walk_items(&qnode->oinfo.tlist, &itr))) {
 		TRACE(" To service is :%u ", pTrack->to_svc);
-		TRACE(" The MDSdest destination of the track subscibed element is: %llu ", pTrack->dest);
+		TRACE(" The MDSdest destination of the track subscibed element is: %" PRIu64, pTrack->dest);
 		TRACE(" The Nodeid from MDSdest of the track subscibed element is: %u ",
 			m_NCS_NODE_ID_FROM_MDS_DEST(pTrack->dest));
 	}

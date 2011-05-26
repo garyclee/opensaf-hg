@@ -166,17 +166,17 @@ static uns32 mds_callback(struct ncsmds_callback_info *info)
 			goto done;
 
 		if (info->info.svc_evt.i_change == NCSMDS_DOWN) {
-			TRACE("MDS DOWN dest: %llx, node ID: %x, svc_id: %d",
+			TRACE("MDS DOWN dest: %" PRIx64 ", node ID: %x, svc_id: %d",
 				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
 			peer_dest = 0;
 			rc = mbx_send(RDE_MSG_PEER_DOWN, info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id);
 		} else if (info->info.svc_evt.i_change == NCSMDS_UP) {
-			TRACE("MDS UP dest: %llx, node ID: %x, svc_id: %d",
+			TRACE("MDS UP dest: %" PRIx64 ", node ID: %x, svc_id: %d",
 				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
 			peer_dest = info->info.svc_evt.i_dest;
 			rc = mbx_send(RDE_MSG_PEER_UP, info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id);
 		} else {
-			TRACE("MDS %u dest: %llx, node ID: %x, svc_id: %d", info->info.svc_evt.i_change,
+			TRACE("MDS %u dest: %" PRIx64 ", node ID: %x, svc_id: %d", info->info.svc_evt.i_change,
 				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
 		}
 
@@ -238,7 +238,7 @@ uns32 rde_mds_register(RDE_CONTROL_BLOCK *cb)
 		return NCSCC_RC_FAILURE;
 	}
 
-	TRACE_LEAVE2("NodeId:%x, mds_adest:%llx", ncs_get_node_id(), mds_adest);
+	TRACE_LEAVE2("NodeId:%x, mds_adest:%" PRIx64, ncs_get_node_id(), mds_adest);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -248,7 +248,7 @@ uns32 rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest)
 	NCSMDS_INFO info;
 	uns32 rc;
 
-	TRACE("Sending %s to %llx", rde_msg_name[msg->type], to_dest);
+	TRACE("Sending %s to %" PRIx64, rde_msg_name[msg->type], to_dest);
 	memset(&info, 0, sizeof(info));
 
 	info.i_mds_hdl = mds_hdl;

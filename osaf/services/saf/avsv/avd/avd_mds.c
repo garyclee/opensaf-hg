@@ -437,7 +437,7 @@ static uns32 avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 				assert(evt);
 				evt->rcv_evt = AVD_EVT_MDS_AVND_DOWN;
 				evt->info.node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt_info->i_dest);
-				TRACE("avnd %llx down", evt_info->i_dest);
+				TRACE("avnd %" PRIx64 " down", evt_info->i_dest);
 				if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) 
 						!= NCSCC_RC_SUCCESS) {
 					LOG_ER("%s: ncs_ipc_send failed", __FUNCTION__);
@@ -617,7 +617,7 @@ uns32 avd_mds_send(MDS_SVC_ID i_to_svc, MDS_DEST i_to_dest, NCSCONTEXT i_msg)
 	snd_mds.info.svc_send.info.snd.i_to_dest = i_to_dest;
 
 	if ((rc = ncsmds_api(&snd_mds)) != NCSCC_RC_SUCCESS)
-		LOG_WA("%s: failed %u, to %u@%llx", __FUNCTION__, rc, i_to_svc, i_to_dest);
+		LOG_WA("%s: failed %u, to %u@%" PRIx64, __FUNCTION__, rc, i_to_svc, i_to_dest);
 
 	return rc;
 }

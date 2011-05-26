@@ -1712,7 +1712,7 @@ void avd_file_dump(const char *path)
 		fprintf(f, "\tsaAmfNodeOperState=%u\n", node->saAmfNodeOperState);
 		fprintf(f, "\tnode_state=%u\n", node->node_state);
 		fprintf(f, "\ttype=%u\n", node->type);
-		fprintf(f, "\tadest=%llx\n", node->adest);
+		fprintf(f, "\tadest=%" PRIx64 "\n", node->adest);
 		fprintf(f, "\trcv_msg_id=%u\n", node->rcv_msg_id);
 		fprintf(f, "\tsnd_msg_id=%u\n", node->snd_msg_id);
 		fprintf(f, "\tnodeId=%x\n", node->node_info.nodeId);

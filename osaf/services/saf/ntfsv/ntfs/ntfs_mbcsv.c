@@ -1007,9 +1007,9 @@ static uns32 ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	}
 
 	/* decode highest notification id */
-	ntfsv_dec_64bit_msg(&cbk_arg->info.decode.i_uba, &ntfGlobals.notificationId);
+	ntfsv_dec_64bit_msg(&cbk_arg->info.decode.i_uba, (uns64 *)&ntfGlobals.notificationId);
 	TRACE_8("notification_id: %llu", ntfGlobals.notificationId);
-	ntfsv_dec_64bit_msg(&cbk_arg->info.decode.i_uba, &ntfGlobals.clientIdCounter);
+	ntfsv_dec_64bit_msg(&cbk_arg->info.decode.i_uba, (uns64 *)&ntfGlobals.clientIdCounter);
 	TRACE_8("client_id: %llu", ntfGlobals.clientIdCounter);
 	syncGlobals(&ntfGlobals);
 

@@ -93,7 +93,7 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uns32 client_id, lgs_stream_list
 {
 	log_client_t *client;
 
-	TRACE_ENTER2("MDS dest %llx", mds_dest);
+	TRACE_ENTER2("MDS dest %" PRIx64, mds_dest);
 
 	if (client_id == 0) {
 		lgs_cb->last_client_id++;
@@ -271,7 +271,7 @@ int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest)
 	log_client_t *rp = NULL;
 	uns32 client_id_net;
 
-	TRACE_ENTER2("mds_dest %llx", mds_dest);
+	TRACE_ENTER2("mds_dest %" PRIx64, mds_dest);
 	rp = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree, (uns8 *)0);
 
 	while (rp != NULL) {
@@ -612,7 +612,7 @@ static uns32 proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	lgsv_ckpt_msg_t ckpt;
 	log_client_t *client = NULL;
 
-	TRACE_ENTER2("dest %llx", evt->fr_dest);
+	TRACE_ENTER2("dest %" PRIx64, evt->fr_dest);
 
 	/* Validate the version */
 	version = &(evt->info.msg.info.api_info.param.init.version);

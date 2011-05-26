@@ -1616,7 +1616,6 @@ int ncs_edu_ncs_key_test_fmat_fnc(NCSCONTEXT arg)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-#if(NCS_UNS64_DEFINED == 1)
 uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
@@ -1757,7 +1756,6 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 	}
 	return NCSCC_RC_SUCCESS;
 }
-#endif
 
 /*****************************************************************************
 
@@ -1770,7 +1768,6 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-#if(NCS_UNS64_DEFINED == 1)
 uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
@@ -1909,5 +1906,3 @@ uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 	}
 	return NCSCC_RC_SUCCESS;
 }
-
-#endif

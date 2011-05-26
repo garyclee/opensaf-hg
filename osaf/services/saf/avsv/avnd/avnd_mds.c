@@ -419,7 +419,7 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		if ((AVSV_D2N_NODE_UP_MSG == ((AVSV_DND_MSG *)(rcv_info->i_msg))->msg_type) ||
 		    (AVSV_D2N_DATA_VERIFY_MSG == ((AVSV_DND_MSG *)(rcv_info->i_msg))->msg_type)) {
 			cb->active_avd_adest = rcv_info->i_fr_dest;
-			TRACE_1("Active AVD Adest = %llu",cb->active_avd_adest);
+			TRACE_1("Active AVD Adest = %" PRIu64 ,cb->active_avd_adest);
 		}
 
 		msg.type = AVND_MSG_AVD;
@@ -433,7 +433,7 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		if ((rcv_info->i_fr_dest != cb->active_avd_adest) &&
 		    (msg.info.avd->msg_type != AVSV_D2N_HEARTBEAT_MSG))
 		{
-			LOG_ER("Received dest: %llu and cb active AVD adest:%llu mismatch, message type = %u",
+			LOG_ER("Received dest: %" PRIu64 " and cb active AVD adest:%" PRIu64 " mismatch, message type = %u",
 			rcv_info->i_fr_dest, cb->active_avd_adest, ((AVSV_DND_MSG *)(rcv_info->i_msg))->msg_type);
 			avsv_dnd_msg_free(((AVSV_DND_MSG *)rcv_info->i_msg));
 			rcv_info->i_msg = 0;
@@ -1192,9 +1192,9 @@ uns32 avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTX
 	if (NCSCC_RC_SUCCESS != rc) {
 		if (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN) {
 			/* Don't log anything if we are shutting down */
-			TRACE("ncsmds_api for %u FAILED, dest=%llx", send_info->i_sendtype, *dest);
+			TRACE("ncsmds_api for %u FAILED, dest=%" PRIx64, send_info->i_sendtype, *dest);
 		} else
-			LOG_ER("ncsmds_api for %u FAILED, dest=%llx", send_info->i_sendtype, *dest);
+			LOG_ER("ncsmds_api for %u FAILED, dest=%" PRIx64, send_info->i_sendtype, *dest);
 	}
 
 	TRACE_LEAVE2("%u", rc);
@@ -1255,10 +1255,10 @@ uns32 avnd_mds_red_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_DEST *ad
 	if (NCSCC_RC_SUCCESS != rc) {
 		if (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN) {
 			/* Don't log anything if we are shutting down */
-			TRACE("AVND MDS send failed: Msg type = %u, vdest = %llu, anchor = %llu",
+			TRACE("AVND MDS send failed: Msg type = %u, vdest = %" PRIu64 ", anchor = %" PRIu64,
 				msg->type,send->i_to_vdest,send->i_to_anc);
 		} else
-			LOG_CR("AVND MDS send failed: Msg type = %u, vdest = %llu, anchor = %llu",
+			LOG_CR("AVND MDS send failed: Msg type = %u, vdest = %" PRIu64 ", anchor = %" PRIu64,
 				msg->type,send->i_to_vdest,send->i_to_anc);
 	}
 

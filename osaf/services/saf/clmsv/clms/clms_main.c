@@ -541,7 +541,7 @@ void clms_cb_dump(void)
 	while ((client = clms_client_getnext_by_id(client_id)) != NULL) {
 		client_id = client->client_id;
 		TRACE("Client_id %u", client->client_id);
-		TRACE("MDS Dest %llx", client->mds_dest);
+		TRACE("MDS Dest %" PRIx64, client->mds_dest);
 		TRACE("Track flags %d", client->track_flags);
 	}
 	TRACE("\n***********************************************************************************");

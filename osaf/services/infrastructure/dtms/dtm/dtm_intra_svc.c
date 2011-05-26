@@ -609,7 +609,7 @@ uns32 dtm_intranode_process_unsubscribe_msg(uns8 *buff, int fd)
 			server_type = data_subscr->server_type;
 			dtm_intranode_del_subscr_from_pid_info(pid_node, data_subscr);
 		}
-		TRACE_1("DTM: INTRA: svc unsubscribe type=%d, ref_hdl =%llu pid=%d", data_subscr->server_type, ref_val,
+		TRACE_1("DTM: INTRA: svc unsubscribe type=%d, ref_hdl =%" PRIu64 " pid=%d", data_subscr->server_type, ref_val,
 		       pid_node->pid);
 		subscr_node = dtm_intranode_get_subscr_node(server_type);
 

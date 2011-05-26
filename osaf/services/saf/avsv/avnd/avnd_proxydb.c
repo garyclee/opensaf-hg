@@ -48,7 +48,7 @@ uns32 avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 
 	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uns8 *)&(node_id));
 	if (rec != NULL) {
-		LOG_ER("nodeid_mdsdest rec already exists, Rec Add Failed: MdsDest:%lld, NodeId:%u",
+		LOG_ER("nodeid_mdsdest rec already exists, Rec Add Failed: MdsDest:%" PRId64 ", NodeId:%u",
 				    mds_dest, node_id);
 		return NCSCC_RC_FAILURE;
 	} else {
@@ -65,7 +65,7 @@ uns32 avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 			res = ncs_patricia_tree_add(&cb->nodeid_mdsdest_db, &rec->tree_node);
 
 			if (NCSCC_RC_SUCCESS != res) {
-				LOG_ER("Couldn't add nodeid_mdsdest rec, patricia add failed:MdsDest:%lld, NodeId:%u",
+				LOG_ER("Couldn't add nodeid_mdsdest rec, patricia add failed:MdsDest:%" PRId64 ", NodeId:%u",
 				     mds_dest, node_id);
 				free(rec);
 				return res;
@@ -102,14 +102,14 @@ uns32 avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest)
 
 	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uns8 *)&(node_id));
 	if (rec == NULL) {
-		LOG_ER("nodeid_mdsdest rec doesn't exist, Rec del failed: MdsDest:%lld NodeId:%u",
+		LOG_ER("nodeid_mdsdest rec doesn't exist, Rec del failed: MdsDest:%" PRId64 " NodeId:%u",
 				    mds_dest, node_id);
 		return NCSCC_RC_FAILURE;
 	} else {
 		res = ncs_patricia_tree_del(&cb->nodeid_mdsdest_db, &rec->tree_node);
 
 		if (NCSCC_RC_SUCCESS != res) {
-			LOG_ER("Couldn't del nodeid_mdsdest rec, patricia del failed: MdsDest:%lld,NodeId:%u, res%u",
+			LOG_ER("Couldn't del nodeid_mdsdest rec, patricia del failed: MdsDest:%" PRId64 ",NodeId:%u, res%u",
 			     mds_dest, node_id, res);
 			return res;
 		}
