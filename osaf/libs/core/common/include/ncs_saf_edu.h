@@ -38,13 +38,7 @@
         SaUint16T       ->  "unsigned short"
         SaUint32T       ->  "unsigned long"
         SaUint64T       ->  "uns64"
-                (if NCS_UNS64_DEFINED is set, uns64 is 64bit data type.
-                 else, uns64 - defaults to uns32.)
         SaInt64T        ->  "int64"
-                (if NCS_64BIT_DATA_TYPE_SUPPORT is set, int64 is 64bit
-                            data type.
-                 else, int64 - SHOULD BE defaulting to uns32.)
-
         SaAmfHealthcheckInvocationT     ->  "uns32"
         SaAmfErrorImpactAndSeverityT    ->  "uns32"
         SaAmfRecommendedRecoveryT       ->  "uns32"
@@ -72,23 +66,8 @@
 #define m_NCS_EDP_SAUINT16T                         ncs_edp_uns16
 #define m_NCS_EDP_SAUINT32T                         ncs_edp_uns32
 #define m_NCS_EDP_SAINT32T                          ncs_edp_int
-
-/* Note : 
- *      m_NCS_EDP_ULONG is mapped to "ncs_edp_uns32" for 32-bits only(
- *      defined in ncs_edu_pub.h). 
- *      Need modify this function for 64-bit machines later, if needed. 
- */
-#if(NCS_UNS64_DEFINED == 1)
 #define m_NCS_EDP_SAUINT64T                         ncs_edp_uns64
 #define m_NCS_EDP_SAINT64T                          ncs_edp_int64
-#else
-    /*  
-     *  Purposefully left for builds to fail, so that it is tracked 
-     *  when we move to 64-bit machines.
-     */
-#define m_NCS_EDP_SAUINT64T                         ncs_edp_64bit_fail
-#define m_NCS_EDP_SAINT64T                          ncs_edp_64bit_fail
-#endif
 
 #define m_NCS_EDP_SAAMFHEALTHCHECKINVOCATIONT       ncs_edp_uns32
 #define m_NCS_EDP_SAAMFRECOMMENDEDRECOVERYT         ncs_edp_uns32

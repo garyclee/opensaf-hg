@@ -205,7 +205,7 @@ SaAisErrorT saLckSelectionObjectGet(SaLckHandleT lckHandle, SaSelectionObjectT *
 	GLA_CLIENT_INFO *client_info = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
 
-	TRACE("saLckSelectionObjectGet Called with Handle %llu", (uns64)lckHandle);
+	TRACE("saLckSelectionObjectGet Called with Handle %" PRIu64, (uns64)lckHandle);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -274,7 +274,7 @@ SaAisErrorT saLckOptionCheck(SaLckHandleT hdl, SaLckOptionsT *lckOptions)
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	GLA_CLIENT_INFO *client_info = NULL;
 
-	TRACE("saLckOptionCheck Called with Handle %llu", (uns64)hdl);
+	TRACE("saLckOptionCheck Called with Handle %" PRIu64, (uns64)hdl);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -340,7 +340,7 @@ SaAisErrorT saLckDispatch(SaLckHandleT lckHandle, const SaDispatchFlagsT flags)
 	GLA_CLIENT_INFO *client_info = NULL;
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 
-	TRACE("saLckDispatch Called with Handle %llu", (uns64)lckHandle);
+	TRACE("saLckDispatch Called with Handle %" PRIu64, (uns64)lckHandle);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -418,7 +418,7 @@ SaAisErrorT saLckFinalize(SaLckHandleT hdl)
 	GLA_CLIENT_INFO *client_info = NULL;
 	uns32 ret;
 
-	TRACE("SaLckFinalize Called with Handle %llu", (uns64)hdl);
+	TRACE("SaLckFinalize Called with Handle %" PRIu64, (uns64)hdl);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -559,7 +559,7 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 		goto done;
 	}
 
-	TRACE("saLckResourceOpen Called with Handle %llu and Name %.7s", (uns64)lckHandle, lockResourceName->value);
+	TRACE("saLckResourceOpen Called with Handle %" PRIu64 " and Name %.7s", (uns64)lckHandle, lockResourceName->value);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -658,7 +658,7 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 			m_LOG_GLA_API(GLA_API_LCK_RESOURCE_OPEN_SYNC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 	}
 	if (rc == SA_AIS_OK)
-		TRACE("saLckResourceOpen SUCCESS Res_id %llu", (uns64)*lockResourceHandle);
+		TRACE("saLckResourceOpen SUCCESS Res_id %" PRIu64, (uns64)*lockResourceHandle);
 	else
 		TRACE("saLckResourceOpen FAILURE");
 	return rc;
@@ -706,7 +706,7 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 		goto done;
 	}
 
-	TRACE("saLckResourceOpenAsync Called with Handle %llu and Name %s", (uns64)lckHandle, lockResourceName->value);
+	TRACE("saLckResourceOpenAsync Called with Handle %" PRIu64 " and Name %s", (uns64)lckHandle, lockResourceName->value);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -822,7 +822,7 @@ SaAisErrorT saLckResourceClose(SaLckResourceHandleT lockResourceHandle)
 	GLA_CLIENT_INFO *client_info = NULL;
 	GLA_CLIENT_RES_INFO *client_res_info = NULL;
 
-	TRACE("saLckResourceClose Called with Res_handle %llu", (uns64)lockResourceHandle);
+	TRACE("saLckResourceClose Called with Res_handle %" PRIu64, (uns64)lockResourceHandle);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -1551,7 +1551,7 @@ SaAisErrorT saLckLockPurge(SaLckResourceHandleT lockResourceHandle)
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
 	uns32 ret;
 
-	TRACE("saLckLockPurge Called with Res Handle %llu", (uns64)lockResourceHandle);
+	TRACE("saLckLockPurge Called with Res Handle %" PRIu64, (uns64)lockResourceHandle);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;

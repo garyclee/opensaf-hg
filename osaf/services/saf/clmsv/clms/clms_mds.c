@@ -1090,7 +1090,7 @@ static uns32 clms_mds_svc_event(struct ncsmds_callback_info *info)
 	/* If this evt was sent from CLMA act on this */
 	if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_CLMA) {
 		if (info->info.svc_evt.i_change == NCSMDS_DOWN) {
-			TRACE_8("MDS DOWN for CLMA dest: %llx, node ID: %x, svc_id: %d",
+			TRACE_8("MDS DOWN for CLMA dest: %" PRIx64 ", node ID: %x, svc_id: %d",
 				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
 
 			/* As of now we are only interested in CLMA events */

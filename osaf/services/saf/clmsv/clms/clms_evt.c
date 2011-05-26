@@ -153,7 +153,7 @@ uns32 clms_client_delete_by_mds_dest(MDS_DEST mds_dest)
 	CLMS_CLIENT_INFO *client = NULL;
 	uns32 client_id;
 
-	TRACE_ENTER2("mds_dest %llx", mds_dest);
+	TRACE_ENTER2("mds_dest %" PRIx64, mds_dest);
 
 	client = (CLMS_CLIENT_INFO *) ncs_patricia_tree_getnext(&clms_cb->client_db, (uns8 *)0);
 
@@ -223,7 +223,7 @@ CLMS_CLIENT_INFO *clms_client_new(MDS_DEST mds_dest, uns32 client_id)
 {
 	CLMS_CLIENT_INFO *client = NULL;
 
-	TRACE_ENTER2("MDS dest %llx", mds_dest);
+	TRACE_ENTER2("MDS dest %" PRIx64, mds_dest);
 
 	if (NULL == (client = calloc(1, sizeof(CLMS_CLIENT_INFO)))) {
 		LOG_ER("clms_client_new calloc FAILED");
@@ -1058,7 +1058,7 @@ static uns32 proc_initialize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	SaUint32T node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest);
 	CLMS_CLUSTER_NODE *node = NULL;
 
-	TRACE_ENTER2("dest %llx", evt->fr_dest);
+	TRACE_ENTER2("dest %" PRIx64, evt->fr_dest);
 
 	/*Handle the wrap around */
 	if (clms_cb->last_client_id == INT_MAX)

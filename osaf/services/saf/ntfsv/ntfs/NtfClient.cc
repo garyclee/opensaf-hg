@@ -39,7 +39,7 @@ NtfClient::NtfClient(unsigned int clientId,
 {
     clientId_ = clientId;
     mdsDest_ = mds_dest;
-    TRACE_3("NtfClient::NtfClient NtfClient %u created mdest: %llu",
+    TRACE_3("NtfClient::NtfClient NtfClient %u created mdest: %" PRIu64,
             clientId_, mdsDest_);
 }
 
@@ -73,7 +73,7 @@ NtfClient::~NtfClient()
             delete reader;
         }
     }
-    TRACE_3("NtfClient::~NtfClient NtfClient %u destroyed, mdest %llu",
+    TRACE_3("NtfClient::~NtfClient NtfClient %u destroyed, mdest %" PRIu64,
             clientId_, mdsDest_);
 }
 
@@ -443,7 +443,7 @@ void NtfClient::printInfo()
 {
     TRACE("Client information");
     TRACE("  clientId:              %u", clientId_);
-    TRACE("  mdsDest                %llu", mdsDest_);
+    TRACE("  mdsDest                %" PRIu64, mdsDest_);
     SubscriptionMap::iterator pos;
     for (pos = subscriptionMap.begin(); pos != subscriptionMap.end(); pos++)
     {

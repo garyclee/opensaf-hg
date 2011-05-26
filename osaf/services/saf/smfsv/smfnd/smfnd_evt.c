@@ -44,7 +44,7 @@ static void proc_cmd_req(smfnd_cb_t * cb, SMFSV_EVT * evt)
 	SMFSV_EVT result_evt;
 	uns32 rc;
 
-	TRACE_ENTER2("dest %llx", evt->fr_dest);
+	TRACE_ENTER2("dest %" PRIx64, evt->fr_dest);
 
 	if ((evt->info.smfnd.event.cmd_req.cmd_len == 0) || (evt->info.smfnd.event.cmd_req.cmd == NULL)) {
 		LOG_ER("SMFND received empty command");

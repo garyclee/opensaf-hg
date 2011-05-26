@@ -286,7 +286,7 @@ ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_HDLN, MBCSV_FC_HDLN, \
 #define m_LOG_MBCSV_SVC_PRVDR(pwe, anch, sp_id)  \
 { \
    char log_str[32]; \
-   snprintf(log_str,sizeof(log_str),"0x%llX",(uns64)anch); \
+   snprintf(log_str,sizeof(log_str),"0x%" PRIX64,(uns64)anch); \
    ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_SVC_PRVDR_FLEX, MBCSV_FC_SVC_PRVDR_FLEX, \
            NCSFL_LC_SVC_PRVDR, NCSFL_SEV_INFO, "TLCI", pwe, log_str, sp_id); \
 }
@@ -314,7 +314,7 @@ ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_API, MBCSV_FC_API, NCSFL_LC_API, \
 #define m_LOG_MBCSV_PEER_EVT(ha_state, svc, ckpt, anch, evt)  \
 { \
    char log_str[32]; \
-   snprintf(log_str,sizeof(log_str),"0x%llX",(uns64)anch); \
+   snprintf(log_str,sizeof(log_str),"0x%" PRIX64,(uns64)anch); \
    ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_PEER_EVT, MBCSV_FC_PEER_EVT, NCSFL_LC_EVENT, \
          NCSFL_SEV_NOTICE, "TILLCI", ha_state, svc, ckpt, log_str, evt); \
 }
@@ -322,7 +322,7 @@ ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_API, MBCSV_FC_API, NCSFL_LC_API, \
 #define m_LOG_MBCSV_FSM_EVT(ha_state, svc, ckpt, p_anch, f_state, evt)   \
 { \
    char log_str[32]; \
-   snprintf(log_str,sizeof(log_str),"0x%llX",(uns64)p_anch); \
+   snprintf(log_str,sizeof(log_str),"0x%" PRIX64,(uns64)p_anch); \
    ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_FSM_EVT, MBCSV_FC_FSM_EVT, NCSFL_LC_STATE,  \
            NCSFL_SEV_INFO, "TILLCII", ha_state, svc, ckpt, log_str, \
           (f_state + ((ha_state==MBCSV_HA_ROLE_INIT)?MBCSV_FSM_STATE_NONE: \
@@ -334,7 +334,7 @@ ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_API, MBCSV_FC_API, NCSFL_LC_API, \
 #define m_LOG_MBCSV_TMR(ha_state, svc, ckpt, p_anch, type, state)  \
 { \
    char log_str[32]; \
-   snprintf(log_str,sizeof(log_str),"0x%llX",(uns64)p_anch); \
+   snprintf(log_str,sizeof(log_str),"0x%" PRIX64,(uns64)p_anch); \
    ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_TMR, MBCSV_FC_TMR, NCSFL_LC_TIMER,  \
            NCSFL_SEV_INFO, "TILLCII", ha_state, svc, ckpt, log_str, type, state); \
 }

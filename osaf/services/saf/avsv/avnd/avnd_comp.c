@@ -998,7 +998,7 @@ uns32 avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 		   will come. So, we need to delete the proxied information. */
 
 		if (NCSCC_RC_SUCCESS != rc) {
-			LOG_ER("avnd_int_ext_comp_hdlr fail:'%s' Type=%u Hdl=%llx Dest=%llu",
+			LOG_ER("avnd_int_ext_comp_hdlr fail:'%s' Type=%u Hdl=%llx Dest=%" PRIu64,
 					    comp->name.value, api_info.type, api_info.param.reg.hdl, api_info.dest);
 			goto err;
 		}
@@ -1007,7 +1007,7 @@ uns32 avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 		rc = avnd_comp_proxied_del(cb, comp, comp->pxy_comp, FALSE, NULL);
 
 		if (NCSCC_RC_SUCCESS != rc) {
-			LOG_ER("avnd_comp_proxied_del fail:'%s' Type=%u Hdl='%llx' Dest=%lld",
+			LOG_ER("avnd_comp_proxied_del fail:'%s' Type=%u Hdl='%llx' Dest=%" PRId64,
 					    comp->name.value, api_info.type, api_info.param.reg.hdl, api_info.dest);
 			goto err;
 		}
@@ -1016,7 +1016,7 @@ uns32 avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 		rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(comp_name));
 
 		if (NCSCC_RC_SUCCESS != rc) {
-			LOG_ER("avnd_internode_comp_del fail:'%s' Type=%u, Hdl='%llx' Dest=%lld",
+			LOG_ER("avnd_internode_comp_del fail:'%s' Type=%u, Hdl='%llx' Dest=%" PRId64,
 					    comp->name.value, api_info.type, api_info.param.reg.hdl, api_info.dest);
 			goto err;
 		}
@@ -2560,7 +2560,7 @@ uns32 avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 			   will come. So, we need to delete the proxied information. */
 
 			if (NCSCC_RC_SUCCESS != rc) {
-				LOG_ER("avnd_int_ext_comp_hdlr failed:'%s' Type=%u Hdl=%llx Dest=%lld",
+				LOG_ER("avnd_int_ext_comp_hdlr failed:'%s' Type=%u Hdl=%llx Dest=%" PRId64,
 				     pxd_comp->name.value, api_info.type, api_info.param.reg.hdl, api_info.dest);
 				goto err;
 			}
@@ -2569,7 +2569,7 @@ uns32 avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 			rc = avnd_comp_proxied_del(cb, pxd_comp, pxd_comp->pxy_comp, FALSE, rec);
 
 			if (NCSCC_RC_SUCCESS != rc) {
-				LOG_ER("avnd_comp_proxied_del failed:'%s' Type=%u Hdl=%llx Dest=%lld",
+				LOG_ER("avnd_comp_proxied_del failed:'%s' Type=%u Hdl=%llx Dest=%" PRId64,
 				     pxd_comp->name.value, api_info.type, api_info.param.reg.hdl, api_info.dest);
 				goto err;
 			}
@@ -2578,7 +2578,7 @@ uns32 avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 			rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(comp_name));
 
 			if (NCSCC_RC_SUCCESS != rc) {
-				LOG_ER("avnd_internode_comp_del failed:'%s' Type=%u Hdl=%llx Dest=%lld",
+				LOG_ER("avnd_internode_comp_del failed:'%s' Type=%u Hdl=%llx Dest=%" PRId64,
 				     comp_name.value, api_info.type, api_info.param.reg.hdl, api_info.dest);
 				goto err;
 			}

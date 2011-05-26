@@ -500,7 +500,7 @@ void NtfAdmin::clientRemoved(unsigned int clientId)
  */
 void NtfAdmin::clientRemoveMDS(MDS_DEST mds_dest)
 {
-	TRACE_ENTER2("REMOVE mdsDest: %llu", mds_dest);
+	TRACE_ENTER2("REMOVE mdsDest: %" PRIu64, mds_dest);
 	ClientMap::iterator pos;
 	bool found = false;
 	do {

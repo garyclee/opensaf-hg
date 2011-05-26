@@ -21,7 +21,7 @@ AM_CPPFLAGS = \
 	$(all_includes)
 
 AM_CFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC
-AM_CXXFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC
+AM_CXXFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC -D__STDC_FORMAT_MACROS
 AM_LDFLAGS = -ldl -lrt -lpthread
 
 #

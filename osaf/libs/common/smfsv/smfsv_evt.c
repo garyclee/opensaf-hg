@@ -1284,7 +1284,7 @@ uns32 smfsv_mds_msg_send (uns32        mds_handle,
 
    if ( rc != NCSCC_RC_SUCCESS)
    {
-      LOG_NO("Failed to send mds message, rc = %d, SMFD DEST %llu", rc, to_dest);
+      LOG_NO("Failed to send mds message, rc = %d, SMFD DEST %" PRIu64, rc, to_dest);
    }
 
    return rc;

@@ -502,19 +502,6 @@ extern "C" {
 #error "Define mkdir for your os"
 #endif
 
-#ifndef NCS_UNS64_DEFINED
-/* Undefine  NCS_64BIT_DATA_TYPE_SUPPORT */
-#ifdef NCS_64BIT_DATA_TYPE_SUPPORT
-#undef NCS_64BIT_DATA_TYPE_SUPPORT
-#endif
-/* Set NCS_64BIT_DATA_TYPE_SUPPORT to off */
-#define NCS_64BIT_DATA_TYPE_SUPPORT 0
-/* Set uns64 to uns32. That is the best we could do */
-#warning "uns64 not defined. Setting it to uns32"
-	typedef uns32 uns64;
-	typedef int32 int64;
-#endif
-
 /****************************************************************************
  * General definitions
  ***************************************************************************/
@@ -1705,13 +1692,6 @@ extern "C" {
 #define m_NCS_OS_HTONS(s)            htons(s)
 #endif
 
-/* NCS_64BIT_DATA_TYPE_SUPPORT value depends on the platform. Right now
-** Linux has a 64-bit, but VisualStudio does not : PM : 02/March/04
-*/
-#ifndef NCS_64BIT_DATA_TYPE_SUPPORT
-#define NCS_64BIT_DATA_TYPE_SUPPORT 0
-#endif
-
 /*********************************************************\
    m_NCS_OS_HTONLL_P :  Encodes a  64-bit integer into a 
                         byte stream in big-endian format.
@@ -1734,7 +1714,6 @@ extern "C" {
 
 \*********************************************************/
 #ifndef m_NCS_OS_HTONLL_P
-#if (NCS_64BIT_DATA_TYPE_SUPPORT == 1)
 #define m_NCS_OS_HTONLL_P(p8, in_long_long) {    \
      ((uns8*)p8)[0] = (uns8)(in_long_long>>56);  \
      ((uns8*)p8)[1] = (uns8)(in_long_long>>48);  \
@@ -1745,18 +1724,6 @@ extern "C" {
      ((uns8*)p8)[6] = (uns8)(in_long_long>> 8);  \
      ((uns8*)p8)[7] = (uns8)(in_long_long    );  \
 }
-#else
-#define m_NCS_OS_HTONLL_P(p8, in_long_long) {    \
-     ((uns8*)p8)[0] = (uns8)(0               );  \
-     ((uns8*)p8)[1] = (uns8)(0               );  \
-     ((uns8*)p8)[2] = (uns8)(0               );  \
-     ((uns8*)p8)[3] = (uns8)(0               );  \
-     ((uns8*)p8)[4] = (uns8)(in_long_long>>24);  \
-     ((uns8*)p8)[5] = (uns8)(in_long_long>>16);  \
-     ((uns8*)p8)[6] = (uns8)(in_long_long>> 8);  \
-     ((uns8*)p8)[7] = (uns8)(in_long_long    );  \
-}
-#endif
 #endif
 
 /*********************************************************\
@@ -1780,7 +1747,6 @@ extern "C" {
                         flag.
 \*********************************************************/
 #ifndef m_NCS_OS_NTOHLL_P
-#if (NCS_64BIT_DATA_TYPE_SUPPORT == 1)
 #define m_NCS_OS_NTOHLL_P(p8) (               \
       ((uns64)((uns8*)(p8))[0] <<56) |        \
       ((uns64)((uns8*)(p8))[1] <<48) |        \
@@ -1791,14 +1757,6 @@ extern "C" {
       ((uns64)((uns8*)(p8))[6] <<8 ) |        \
       ((uns64)((uns8*)(p8))[7]     )          \
      )
-#else
-#define m_NCS_OS_NTOHLL_P(p8) (               \
-      ((uns64)((uns8*)(p8))[4] <<24) |        \
-      ((uns64)((uns8*)(p8))[5] <<16) |        \
-      ((uns64)((uns8*)(p8))[6] <<8 ) |        \
-      ((uns64)((uns8*)(p8))[7]     )          \
-      )
-#endif
 #endif
 
 #if (NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT == 0)	/* no CPU alignment requirement */

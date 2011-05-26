@@ -84,10 +84,6 @@ extern "C" {
 
  ****************************************************************************/
 
-/* Linux supports "long long" which is a 64-bit data type */
-#define NCS_64BIT_DATA_TYPE_SUPPORT 1
-#define NCS_UNS64_DEFINED 1
-
 	extern void ncs_os_atomic_init(void);
 	extern void ncs_os_atomic_destroy(void);
 

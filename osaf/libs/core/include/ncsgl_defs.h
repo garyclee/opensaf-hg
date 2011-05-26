@@ -43,6 +43,8 @@
 #ifndef NCSGL_DEFS_H
 #define NCSGL_DEFS_H
 
+#include <inttypes.h>
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -65,12 +67,12 @@ extern "C" {
 	typedef unsigned char uns8;	/*  8-bit */
 	typedef unsigned short uns16;	/* 16-bit */
 	typedef unsigned int uns32;	/* 32-bit */
-	typedef unsigned long long uns64;	/* 64-bit */
+	typedef uint64_t uns64;	/* 64-bit */
 
 	typedef signed char int8;
 	typedef signed short int16;
 	typedef signed int int32;
-	typedef long long int64;
+	typedef int64_t int64;
 
 	typedef float ncsfloat32;
 

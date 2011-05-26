@@ -260,7 +260,7 @@ uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 				 &reg_dest, &avnd_msg->mds_ctxt, NULL, FALSE);
 
 	if (NCSCC_RC_SUCCESS != res) {
-		LOG_ER("%s: Msg Send to AvA Failed:Comp:%s ,Type: %u, rc:%u, Dest:%llu",__FUNCTION__,avnd_msg->comp_name.value, resp_info->type, resp_info->rc, reg_dest);
+		LOG_ER("%s: Msg Send to AvA Failed:Comp:%s ,Type: %u, rc:%u, Dest:%" PRIu64 ,__FUNCTION__,avnd_msg->comp_name.value, resp_info->type, resp_info->rc, reg_dest);
 	}
 
  done:
@@ -294,7 +294,7 @@ uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 	AVSV_AMF_CBK_INFO *cbk_rec = NULL;
 	AVND_COMP_CBK *rec = NULL;
 
-	TRACE_ENTER2("Type:%u, Hdl:%llu, Inv:%llu",cbk_info->type, cbk_info->hdl, cbk_info->inv);
+	TRACE_ENTER2("Type:%u, Hdl:%llu, Inv:%llu", cbk_info->type, cbk_info->hdl, cbk_info->inv);
 
 	/* Create a callback record for storing purpose. */
 	rc = avsv_amf_cbk_copy(&cbk_rec, cbk_info);
@@ -347,7 +347,7 @@ uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 		}
 	} else {
 		rc = NCSCC_RC_FAILURE;
-		LOG_ER("%s Cbk Rec Add Failed:Dest: %llu",comp->name.value,comp->reg_dest);
+		LOG_ER("%s Cbk Rec Add Failed:Dest: %" PRIu64, comp->name.value, comp->reg_dest);
 	}
 
 	if (NCSCC_RC_SUCCESS != rc && rec) {
@@ -363,7 +363,7 @@ uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
  done:
 
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("avnd_evt_avnd_avnd_cbk_msg_hdl():Failure:Type:%u Hdl:%llu and Inv:%llu",cbk_info->type,cbk_info->hdl, cbk_info->inv);
+		LOG_ER("avnd_evt_avnd_avnd_cbk_msg_hdl():Failure:Type:%u Hdl:%llu and Inv:%llu", cbk_info->type, cbk_info->hdl, cbk_info->inv);
 	}
 
 	TRACE_LEAVE2("%u", rc);

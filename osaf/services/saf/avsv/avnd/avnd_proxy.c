@@ -394,7 +394,7 @@ uns32 avnd_avnd_msg_send(AVND_CB *cb, uns8 *msg_info, AVSV_AMF_API_TYPE type, MD
 
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("%s,AvND Send Failure:Type:%u,NodeID:%u, Mds:%lld, rc:%u",
+		LOG_ER("%s,AvND Send Failure:Type:%u,NodeID:%u, Mds:%" PRId64 ", rc:%u",
 				    __FUNCTION__, type, node_id, i_to_dest, rc);
 	}
 
@@ -503,7 +503,7 @@ uns32 avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
 	default:
 		rc = NCSCC_RC_FAILURE;
 		*o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
-		LOG_ER("avnd_int_ext_comp_hdlr:Wrong Type: Type:%u,Mds Dest:%lld",
+		LOG_ER("avnd_int_ext_comp_hdlr:Wrong Type: Type:%u,Mds Dest:%" PRId64,
 				    api_info->type, api_info->dest);
 		goto done;
 		break;
@@ -532,7 +532,7 @@ resp to originator AvND.
 			m_AVND_COMP_CBQ_INV_GET(o_comp, resp->inv, cbk_rec);
 
 			if (!cbk_rec) {
-				LOG_ER("avnd_int_ext_comp_hdlr:Couldn't get cbk_rec:%s,Type:%u,Mds:%lld", comp_name.value,
+				LOG_ER("avnd_int_ext_comp_hdlr:Couldn't get cbk_rec:%s,Type:%u,Mds:%" PRId64, comp_name.value,
 				     api_info->type, api_info->dest);
 				rc = NCSCC_RC_FAILURE;
 				goto done;
@@ -566,7 +566,7 @@ resp to originator AvND.
 		if (NCSCC_RC_SUCCESS != rc) {
 			/* We couldn't send this to other AvND, tell user to try again.  */
 			*o_amf_rc = SA_AIS_ERR_TRY_AGAIN;
-			LOG_ER("avnd_int_ext_comp_hdlr:Msg Send Failed:%s:Type:%u,Mds:%lld",
+			LOG_ER("avnd_int_ext_comp_hdlr:Msg Send Failed:%s:Type:%u,Mds:%" PRId64,
 					    comp_name.value, api_info->type, api_info->dest);
 			goto resp_send;
 		} else {
@@ -587,7 +587,7 @@ resp to originator AvND.
 
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("avnd_int_ext_comp_hdlr():Failure:%s,Type:%u,Mds Dest:%lld",
+		LOG_ER("avnd_int_ext_comp_hdlr():Failure:%s,Type:%u,Mds Dest:%" PRId64,
 				    comp_name.value, api_info->type, api_info->dest);
 	}
 	return rc;
@@ -673,7 +673,7 @@ uns32 avnd_avnd_cbk_del_send(AVND_CB *cb, SaNameT *comp_name, uns32 *opq_hdl, NO
 
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("AvND Send Failure:%s:NodeID:%u,opq_hdl:%u,MdsDest:%lld",
+		LOG_ER("AvND Send Failure:%s:NodeID:%u,opq_hdl:%u,MdsDest:%" PRId64,
 				    comp_name->value, *node_id, *opq_hdl, i_to_dest);
 	}
 

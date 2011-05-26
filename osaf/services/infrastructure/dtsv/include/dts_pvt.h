@@ -1173,7 +1173,7 @@ uns32 dts_ascii_spec_reload(DTS_CB *cb);
 #define m_NCSFL_MAKE_STR_FROM_MEM_64(str, addr, len, mem) \
 { \
    char *str1; \
-   sprintf((str), "0x%08llX\n", (uns64)(addr));\
+   sprintf((str), "0x%08" PRIX64 "\n", (uns64)(addr));\
    /* Now get to the end of the string */ \
    str1 = (str) + strlen((str)); \
    /* Fill in the memory dump now */ \

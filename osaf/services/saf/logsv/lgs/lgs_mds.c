@@ -927,7 +927,7 @@ static uns32 mds_svc_event(struct ncsmds_callback_info *info)
 	/* If this evt was sent from LGA act on this */
 	if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_LGA) {
 		if (info->info.svc_evt.i_change == NCSMDS_DOWN) {
-			TRACE_8("MDS DOWN dest: %llx, node ID: %x, svc_id: %d",
+			TRACE_8("MDS DOWN dest: %" PRIx64 ", node ID: %x, svc_id: %d",
 				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
 
 			/* As of now we are only interested in LGA events */

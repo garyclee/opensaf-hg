@@ -322,12 +322,6 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 
 	uns32 ncs_edu_hdl_flush(EDU_HDL *edu_hdl);
 
-#if 0
-	uns32
-	 ncs_edu_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
-		      EDP_OP_TYPE op, NCSCONTEXT data_ptr, EDU_ERR *o_err, uns8 var_cnt, ...);
-#endif
-
 	uns32
 	 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 			  EDP_OP_TYPE op, NCSCONTEXT arg, EDU_ERR *o_err, EDU_MSG_VERSION to_version,
@@ -353,21 +347,13 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 	 uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					NCSCONTEXT ptr, uns32 *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-#if 0
-#define m_NCS_EDP_ULONG         ncs_edp_long	/* The data size for "long" and "unsigned long" is same. */
-#endif
 
-#if(NCS_UNS64_DEFINED == 1)
 	 uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					NCSCONTEXT ptr, uns32 *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 	 uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					NCSCONTEXT ptr, uns32 *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-#else
-#define ncs_edp_uns64           ncs_edp_uns32	/* macro-convention ignored */
-#define ncs_edp_int64           ncs_edp_int32	/* macro-convention ignored */
-#endif
 
 	 uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				       NCSCONTEXT ptr, uns32 *ptr_data_len,
@@ -381,11 +367,6 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 	 uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				      NCSCONTEXT ptr, uns32 *ptr_data_len,
 				      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-#if 0
-	 uns32 ncs_edp_long(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				       NCSCONTEXT ptr, uns32 *ptr_data_len,
-				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-#endif
 
 	 uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				       NCSCONTEXT ptr, uns32 *ptr_data_len,
@@ -397,21 +378,9 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 					NCSCONTEXT ptr, uns32 *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-#if 0
-	 uns32 ncs_edp_double(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					 NCSCONTEXT ptr, uns32 *ptr_data_len,
-					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	 uns32 ncs_edp_float(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					NCSCONTEXT ptr, uns32 *ptr_data_len,
-					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	 uns32 ncs_edp_ncsfloat32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					     NCSCONTEXT ptr, uns32 *ptr_data_len,
-					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-#else
 #define ncs_edp_double ncs_edp_int64
 #define ncs_edp_float ncs_edp_int32
 #define ncs_edp_ncsfloat32 ncs_edp_int32
-#endif
 
 #define ncs_edp_mds_dest ncs_edp_uns64
 

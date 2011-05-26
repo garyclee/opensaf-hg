@@ -3353,7 +3353,7 @@ static uns32 immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 
 	immModel_fetchAdmOpContinuations(cb, evt->info.admOpRsp.invocation, local, &implConn, &reqConn, &reply_dest);
 
-	TRACE_2("invocation:%llu, result:%u\n impl:%u req:%u dest:%llu me:%llu",
+	TRACE_2("invocation:%llu, result:%u\n impl:%u req:%u dest:%llu me:%" PRIu64,
 		evt->info.admOpRsp.invocation,
 		evt->info.admOpRsp.result, implConn, reqConn, reply_dest, cb->immnd_mdest_id);
 
