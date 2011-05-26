@@ -1125,13 +1125,6 @@ uns32 encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa)
 		ncs_encode_32bit(&data, ipa.info.v4);
 		ncs_enc_claim_space(uba, sizeof(uns32));
 	}
-#if (NCS_IPV6 == 1)
-	else if (ipa.type == NCS_IP_ADDR_TYPE_IPV6) {
-		data = ncs_enc_reserve_space(uba, (NCS_IPV6_ADDR_UNS8_CNT * sizeof(uns8)));
-		ncs_encode_octets(&data, ipa.info.v6, NCS_IPV6_ADDR_UNS8_CNT);
-		ncs_enc_claim_space(uba, (NCS_IPV6_ADDR_UNS8_CNT * sizeof(uns8)));
-	}
-#endif
 	else {
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "encode_ip_address: Incorrect IP address type passed.");
 	}

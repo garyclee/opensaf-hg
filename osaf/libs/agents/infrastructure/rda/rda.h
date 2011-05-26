@@ -59,7 +59,6 @@
 #include "ncs_mds_def.h"
 
 #include "ncs_queue.h"
-#include "ncs_scktprm.h"
 #include "ncssysf_lck.h"
 #include "ncs_main_papi.h"
 

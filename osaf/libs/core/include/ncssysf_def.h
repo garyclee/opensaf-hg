@@ -219,47 +219,6 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
 
 /*****************************************************************************
  **                                                                         **
- **                   Socket Interface Macros                               **
- **                                                                         **
- ****************************************************************************/
-#define NCSSOCK_ERROR                       NCS_TS_SOCK_ERROR
-#define NCSSOCK_INVALID                     NCS_TS_SOCK_INVALID
-#define m_NCSSOCK_DESTROY                   m_NCS_TS_SOCK_DESTROY
-#define m_NCSSOCK_SOCKET              m_NCS_TS_SOCK_SOCKET
-#define m_NCSSOCK_BIND                      m_NCS_TS_SOCK_BIND
-#define m_NCSSOCK_CONNECT                   m_NCS_TS_SOCK_CONNECT
-#define m_NCSSOCK_ACCEPT                    m_NCS_TS_SOCK_ACCEPT
-#define m_NCSSOCK_LISTEN                    m_NCS_TS_SOCK_LISTEN
-#define m_NCSSOCK_SELECT                    m_NCS_TS_SOCK_SELECT
-#define m_NCSSOCK_RECV                      m_NCS_TS_SOCK_RECV
-#define m_NCSSOCK_RECVFROM                  m_NCS_TS_SOCK_RECVFROM
-#define m_NCSSOCK_SENDTO                    m_NCS_TS_SOCK_SENDTO
-#define m_NCSSOCK_SEND                      m_NCS_TS_SOCK_SEND
-#define m_NCSSOCK_CLOSE                     m_NCS_TS_SOCK_CLOSE
-#define m_NCSSOCK_IOCTL                     m_NCS_TS_SOCK_IOCTL
-#define m_NCSSOCK_FIONBIO                   m_NCS_TS_SOCK_FIONBIO
-#define m_NCSSOCK_FIONREAD                  m_NCS_TS_SOCK_FIONREAD
-#define m_NCSSOCK_SETSOCKOPT                m_NCS_TS_SOCK_SETSOCKOPT
-#define m_NCSSOCK_GETSOCKOPT                m_NCS_TS_SOCK_GETSOCKOPT
-#define m_NCSSOCK_GETSOCKNAME               m_NCS_TS_SOCK_GETSOCKNAME
-#define m_NCSSOCK_FD_ISSET                  m_NCS_TS_SOCK_FD_ISSET
-#define m_NCSSOCK_FD_ISSET                  m_NCS_TS_SOCK_FD_ISSET
-#define m_NCSSOCK_FD_ZERO                   m_NCS_TS_SOCK_FD_ZERO
-
-#define m_NCSSOCK_SET_UDP_SADDR             m_NCS_TS_SOCK_SET_UDP_SADDR
-#if (NCS_IPV6 == 1)
-#define m_NCSSOCK_SET_IPV6_UDP_SADDR        m_NCS_TS_SOCK_SET_IPV6_UDP_SADDR
-#define m_NCSSOCK_IPV6_MREQ_OBJ             m_NCS_TS_SOCK_IPV6_MREQ_OBJ
-#define m_NCSSOCK_SET_IPV6_MULTIADDR        m_NCS_TS_SOCK_SET_IPV6_MULTIADDR
-#endif
-
-#define NCSSOCK_MREQ_OBJ                    NCS_TS_SOCK_MREQ_OBJ
-#define m_NCSSOCK_SET_MULTIADDR             m_NCS_TS_SOCK_SET_MULTIADDR
-#define m_NCSSOCK_SHARE                     m_NCS_TS_SOCK_SHARE
-#define m_NCSSOCK_NEW_OWNER                 m_NCS_TS_SOCK_NEW_OWNER
-
-/*****************************************************************************
- **                                                                         **
  **                   Supplemental Macros                                   **
  **                                                                         **
  ****************************************************************************/

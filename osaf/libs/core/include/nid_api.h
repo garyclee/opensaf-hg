@@ -36,7 +36,6 @@
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
 #include "ncssysf_def.h"
-#include "ncs_scktprm.h"
 #include "ncssysf_tsk.h"
 
 /* API Error Codes */

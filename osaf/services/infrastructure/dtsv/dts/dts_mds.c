@@ -1046,16 +1046,6 @@ uns32 decode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR *ipa)
 		ipa->info.v4 = ncs_decode_32bit(&data);
 		ncs_dec_skip_space(uba, sizeof(uns32));
 	}
-#if (NCS_IPV6 == 1)
-	else if (ipa->type == NCS_IP_ADDR_TYPE_IPV6) {
-		data = ncs_dec_flatten_space(uba, data_buff, NCS_IPV6_ADDR_UNS8_CNT);
-		if (data == NULL) {
-			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "decode_ip_address: Decode flatten space failed");
-		}
-		memcpy((uns8 *)&ipa->info.v6, data, NCS_IPV6_ADDR_UNS8_CNT);
-		ncs_dec_skip_space(uba, NCS_IPV6_ADDR_UNS8_CNT);
-	}
-#endif
 	else {
 		return NCSCC_RC_FAILURE;
 	}

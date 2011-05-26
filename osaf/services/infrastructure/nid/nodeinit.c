@@ -127,7 +127,7 @@ void nid_sleep(uns32 time_in_msec)
 	tv.tv_sec = time_in_msec / 1000;
 	tv.tv_usec = ((time_in_msec) % 1000) * 1000;
 
-	while (m_NCSSOCK_SELECT(0, 0, 0, 0, &tv) != 0)
+	while (select(0, 0, 0, 0, &tv) != 0)
 		if (errno == EINTR)
 			continue;
 
@@ -681,7 +681,7 @@ int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuf
 	tv.tv_sec = 5;
 	tv.tv_usec = 0;
 
-	while ((n = m_NCSSOCK_SELECT(filedes[0] + 1, &set, NULL, NULL, &tv)) <= 0) {
+	while ((n = select(filedes[0] + 1, &set, NULL, NULL, &tv)) <= 0) {
 		if (n == 0) {
 			LOG_ER("Writer couldn't return PID");
 			close(filedes[0]);
@@ -988,7 +988,7 @@ uns32 spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 	tv.tv_sec = (service->time_out) / 100;
 	tv.tv_usec = ((service->time_out) % 100) * 10000;
 
-	while ((n = m_NCSSOCK_SELECT(select_fd + 1, &set, NULL, NULL, &tv)) <= 0) {
+	while ((n = select(select_fd + 1, &set, NULL, NULL, &tv)) <= 0) {
 		if ((errno == EINTR) && (n < 0)) {
 			FD_ZERO(&set);
 			FD_SET(select_fd, &set);

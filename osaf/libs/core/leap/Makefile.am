@@ -39,7 +39,6 @@ libleap_la_SOURCES = \
 	sysf_str.c \
 	sysf_tmr.c \
 	sysf_tsk.c \
-	hj_iplib.c \
 	nid_api.c \
 	sysf_file.c \
 	nid_ipc.c \
@@ -52,7 +51,6 @@ libleap_la_SOURCES = \
 	hj_tmr.c \
 	hj_stack.c \
 	hj_ubaid.c \
-	hj_ipv6.c \
 	sysf_exc_scr.c \
 	os_defs.c
 

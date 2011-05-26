@@ -35,7 +35,6 @@
 
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
-#include "ncs_iplib.h"
 #include "os_defs.h"
 #include "ncs_main_papi.h"
 #include "ncssysf_tsk.h"
