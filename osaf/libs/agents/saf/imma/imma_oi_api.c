@@ -904,7 +904,7 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	SaUint32T proc_rc = NCSCC_RC_SUCCESS;
-	SaBoolT locked = SA_TRUE;
+	NCS_BOOL locked = TRUE;
 	SaUint32T nameLen = 0;
 
 	if (cb->sv_id == 0) {
@@ -1148,7 +1148,7 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT locked = SA_TRUE;
+	NCS_BOOL locked = TRUE;
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
@@ -1311,7 +1311,7 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmCl
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT locked = SA_TRUE;
+	NCS_BOOL locked = TRUE;
 	SaUint32T nameLen = 0;
 
 	if (cb->sv_id == 0) {
@@ -1484,7 +1484,7 @@ SaAisErrorT saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaI
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT locked = SA_TRUE;
+	NCS_BOOL locked = TRUE;
 	SaUint32T nameLen = 0;
 
 	if (cb->sv_id == 0) {
@@ -1647,7 +1647,7 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT locked = SA_TRUE;
+	NCS_BOOL locked = TRUE;
 	SaUint32T nameLen = 0;
 
 	if (cb->sv_id == 0) {
@@ -1825,7 +1825,7 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT locked = SA_TRUE;
+	NCS_BOOL locked = TRUE;
 	SaUint32T nameLen = 0;
 
 	if (cb->sv_id == 0) {
@@ -2688,7 +2688,7 @@ static SaBoolT imma_implementer_set(IMMA_CB *cb, SaImmOiHandleT immOiHandle)
 	unsigned int msecs_waited = 0;
 	SaImmOiImplementerNameT implName;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT locked = SA_FALSE;
+	NCS_BOOL locked = FALSE;
 	TRACE_ENTER();
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {

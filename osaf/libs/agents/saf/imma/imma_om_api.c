@@ -826,7 +826,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	IMMA_ADMIN_OWNER_NODE *ao_node = NULL;
 	SaUint32T proc_rc = NCSCC_RC_SUCCESS;
-	SaBoolT locked = SA_TRUE;
+	NCS_BOOL locked = TRUE;
 	SaBoolT isLoaderName = SA_FALSE;
 	SaUint32T nameLen = 0;
 	TRACE_ENTER();
@@ -1212,7 +1212,7 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	IMMA_ADMIN_OWNER_NODE *ao_node = NULL;
 	IMMA_CCB_NODE *ccb_node = NULL;
-	SaBoolT locked = SA_FALSE;
+	NCS_BOOL locked = FALSE;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
 	TRACE_ENTER();
