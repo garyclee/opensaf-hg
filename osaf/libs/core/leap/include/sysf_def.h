@@ -268,7 +268,7 @@ struct ncs_sar_ctrl_info_tag;
 #define m_MMGR_ALLOC_EDP_INT32  m_NCS_MEM_ALLOC(sizeof(int32),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
-#define m_MMGR_ALLOC_EDP_NCSFLOAT32 m_NCS_MEM_ALLOC(sizeof(ncsfloat32),\
+#define m_MMGR_ALLOC_EDP_NCSFLOAT32 m_NCS_MEM_ALLOC(sizeof(float),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
 /*

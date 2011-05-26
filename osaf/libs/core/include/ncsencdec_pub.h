@@ -28,7 +28,7 @@
 
  * 
  * 14    4/04/01 10:36a Fengh
- * float to ncsfloat32
+ * float to float
  * 
  * 13    10/24/00 11:53a Pseverin
  * 
@@ -111,7 +111,7 @@ extern "C" {
 	USRBUF *ncs_prepend_uns16(USRBUF *u, uns16);
 	USRBUF *ncs_prepend_uns32(USRBUF *u, uns32);
 	USRBUF *ncs_prepend_uns64(USRBUF *u, uns64);
-	USRBUF *ncs_encode_float(USRBUF *u, ncsfloat32 obj_val);
+	USRBUF *ncs_encode_float(USRBUF *u, float obj_val);
 
 	uns64 ncs_encode_64bit(uns8 **stream, uns64);
 	uns32 ncs_encode_32bit(uns8 **stream, uns32);
@@ -138,7 +138,7 @@ extern "C" {
 	uns8 ncs_decode_8bit(uns8 **stream);
 	uns32 ncs_decode_key(uns8 **stream, NCS_KEY *key);
 
-	ncsfloat32 ncs_decode_float(uns8 **stream);
+	float ncs_decode_float(uns8 **stream);
 
 /*****************************************************************************
  * STRUCTURE NAME:     USRFRAME
@@ -159,7 +159,7 @@ extern "C" {
 		char *bufp;	/* ptr to a (flat) buffer containing the frame */
 	} USRFRAME;
 
-/* encode ncsfloat32 */
+/* encode float */
 #if defined(__NCSINC_PSOS__)
 #define m_NCS_ENCODE_FLOAT(f, enc) {\
           *((uns32 *)(enc)) = htonl(*((uns32 *)&(f))); \
@@ -170,7 +170,7 @@ extern "C" {
          }
 #endif
 
-/* decode ncsfloat32 */
+/* decode float */
 #if defined(__NCSINC_PSOS__)
 #define m_NCS_DECODE_FLOAT(n, dec) {\
           *((uns32 *) (dec)) = (n); \

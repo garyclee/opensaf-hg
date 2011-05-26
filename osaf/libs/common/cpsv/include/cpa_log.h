@@ -235,21 +235,21 @@ void cpa_log_db(uns8 id, uns8 sev);
 
 #define m_LOG_CPA_CCLLF(id, category, severity, str1, fname, fno, rc, fl1) ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_TICCLLF,   \
                                                                CPA_FC_GEN, category, severity, NCSFL_TYPE_TICCLLF, \
-                                                               id, str1, fname, fno, rc, (DOUBLE)fl1)
+                                                               id, str1, fname, fno, rc, fl1)
 
 #define m_LOG_CPA_CCLLFF(id, category, severity, str1, fname, fno, rc, fl1, fl2)            \
                                                            ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_TICCLLFF,   \
                                                            CPA_FC_GEN, category, severity, NCSFL_TYPE_TICCLLFF, \
-                                                           id, str1, fname, fno, rc, (DOUBLE)fl1, (DOUBLE)fl2)
+                                                           id, str1, fname, fno, rc, fl1, fl2)
 
 #define m_LOG_CPA_CCLFFF(id, category, severity, str1, fname, fno, fl1, fl2, fl3)            \
                                                            ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_TICCLFFF,   \
                                                            CPA_FC_GEN, category, severity, NCSFL_TYPE_TICCLFFF, \
-                                                           id, str1, fname, fno, (DOUBLE)fl1, (DOUBLE)fl2, (DOUBLE)fl3)
+                                                           id, str1, fname, fno, fl1, fl2, fl3)
 
 #define m_LOG_CPA_CCLLFFF(id, category, severity, str1, fname, fno, rc, fl1, fl2, fl3)            \
                                                            ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_TICCLLFFF,   \
                                                            CPA_FC_GEN, category, severity, NCSFL_TYPE_TICCLLFFF, \
-                                                           id, str1, fname, fno, rc, (DOUBLE)fl1, (DOUBLE)fl2, (DOUBLE)fl3)
+                                                           id, str1, fname, fno, rc, fl1, fl2, fl3)
 
 #endif
