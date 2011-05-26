@@ -59,9 +59,7 @@
 
 /* From targsvcs/common/inc */
 
-#if (NCS_MDS == 1)
 #include "mds_papi.h"
-#endif
 
 #include "saAis.h"
 

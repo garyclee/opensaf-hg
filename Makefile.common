@@ -1,9 +1,6 @@
 #
 # Define a common string for core CPP defines
 #
-CORE_CPP_DEFINES = \
-    -DNCS_MDS=1
-
 CORE_INCLUDES = \
 	-I$(top_srcdir)/osaf/libs/saf/include \
 	-I$(top_srcdir)/osaf/libs/core/include \
@@ -12,7 +9,6 @@ CORE_INCLUDES = \
 	-I$(top_srcdir)/osaf/libs/core/common/include
 
 AM_CPPFLAGS = \
-	$(CORE_CPP_DEFINES) \
 	$(CORE_INCLUDES) \
 	$(all_includes)
 

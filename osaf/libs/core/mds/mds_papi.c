@@ -28,8 +28,6 @@
 ******************************************************************************
 */
 
-#if (NCS_MDS == 1)
-
 #include <configmake.h>
 #include "mds_papi.h"
 #include "mds_core.h"
@@ -277,6 +275,3 @@ void mds_free_direct_buff(MDS_DIRECT_BUFF buff)
 		m_MDS_LOG_ERR("MDS_PAPI : Trying to free the direct buffer with pointer as NULL\n");
 	}
 }
-
-
-#endif   /* (NCS_MDS == 1) */
