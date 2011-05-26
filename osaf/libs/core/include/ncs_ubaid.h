@@ -142,7 +142,7 @@ extern "C" {
  
 \***************************************************************/
 	USRBUF *ncs_encode_pointer(USRBUF *i_ub, NCSCONTEXT i_pointer);
-	USRBUF *ncs_decode_pointer(USRBUF *i_ub, uns64 *o_recvd_ptr, uint8_t *o_ptr_size_in_bytes);
+	USRBUF *ncs_decode_pointer(USRBUF *i_ub, uint64_t *o_recvd_ptr, uint8_t *o_ptr_size_in_bytes);
 
 /***************************************************************\
       ncs_uba_encode_pointer: Encodes a pointer  into a UBA.
@@ -155,7 +155,7 @@ extern "C" {
  
 \***************************************************************/
 	uint32_t ncs_uba_encode_pointer(NCS_UBAID *uba, NCSCONTEXT i_pointer);
-	uint32_t ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr,
+	uint32_t ncs_uba_decode_pointer(NCS_UBAID *uba, uint64_t *o_recvd_ptr,
 							  uint8_t *o_ptr_size_in_bytes);
 
 #ifdef  __cplusplus

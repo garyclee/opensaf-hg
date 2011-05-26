@@ -268,7 +268,7 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	uns64 num_patterns;
+	uint64_t num_patterns;
 	uint32_t fake_value;
 	uint32_t x;
 	SaEvtEventPatternT *pattern_ptr;
@@ -436,7 +436,7 @@ uint32_t eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 	uint8_t *p8;
 	uint32_t x;
 	uint32_t fake_value;
-	uns64 num_filters;
+	uint64_t num_filters;
 	uint32_t total_bytes = 0;
 	SaEvtEventFilterT *filter_ptr;
 	EDSV_EDA_SUBSCRIBE_PARAM *param = NULL;

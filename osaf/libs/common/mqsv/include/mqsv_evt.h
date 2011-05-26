@@ -576,7 +576,7 @@ typedef struct mqnd_ctrl_msg {
 } MQND_CTRL_MSG;
 
 typedef struct mqsv_evt {
-	uns64 hook_for_ipc;
+	uint64_t hook_for_ipc;
 	uint8_t evt_type;
 	MQSV_EVT_TYPE type;
 	MQSV_SEND_INFO sinfo;
@@ -592,7 +592,7 @@ typedef struct mqsv_evt {
 
 /*Event Structure involving Direct Sends*/
 typedef struct mqsv_direct_send_event {
-	uns64 hook_for_ipc;
+	uint64_t hook_for_ipc;
 	uint8_t evt_type;
 	uint8_t endianness;
 	uint8_t msg_fmt_version;

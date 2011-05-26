@@ -160,7 +160,7 @@ uint32_t mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uint32_t svc_index,
   MBCSTM_PEERS_DATA *peers = (MBCSTM_PEERS_DATA *)data;
   char  buf[256];
   uint32_t svc_id, to_svc_id;
-  uns64 to_anchor;
+  uint64_t to_anchor;
   uint32_t len,inc = 1;
   uint32_t ssn_count, peer_count;
   uint32_t get_peer_info;
@@ -216,7 +216,7 @@ uint32_t mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uint32_t svc_index,
           char warm_sync_on;
           char role;
 
-          uns64 my_anchor;
+          uint64_t my_anchor;
           uint32_t in_quiescing,peer_up_sent,ftm_role_set,role_set,data_req_sent;
           uint32_t peer = 1;
           uint32_t ssn = 1;
@@ -272,7 +272,7 @@ uint32_t mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uint32_t svc_index,
 
               while(peer)
                 {
-                  uns64 peer_anchor;
+                  uint64_t peer_anchor;
                   uint32_t hdl,peer_hdl;
                   char peer_role,peer_state[5],peer_comp[2],peer_cold[2];
 
@@ -356,7 +356,7 @@ uint32_t mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uint32_t svc_index,
               get_peer_info = 0; 
               if(active_peer)        
                 {
-                  uns64 peer_anchor;
+                  uint64_t peer_anchor;
                   uint32_t hdl,peer_hdl;
                   char peer_role,peer_state[8];
 

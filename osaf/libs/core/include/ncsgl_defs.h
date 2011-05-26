@@ -43,16 +43,12 @@ extern "C" {
 
  ****************************************************************************/
 
-	typedef uint64_t uns64;	/* 64-bit */
-
-	typedef int64_t int64;
-
 	typedef bool NCS_BOOL;	/* move to this solves BOOLEAN problem */
 
 	typedef void* NCSCONTEXT;	/* opaque context between svc-usr/svc-provider */
 
 #define NCS_PTR_TO_INT32_CAST(x)   ((int32_t)(long)(x))
-#define NCS_PTR_TO_UNS64_CAST(x)   ((uns64)(long)(x))
+#define NCS_PTR_TO_UNS64_CAST(x)   ((uint64_t)(long)(x))
 #define NCS_PTR_TO_UNS32_CAST(x)   ((uint32_t)(long)(x))
 #define NCS_INT32_TO_PTR_CAST(x)   ((void*)(long)(x))
 #define NCS_INT64_TO_PTR_CAST(x)   ((void*)(long)(x))
@@ -124,7 +120,7 @@ extern "C" {
 
 #define NCS_MAX_SLOTS ((NCS_SLOT_MAX *  NCS_SUB_SLOT_MAX) + NCS_SLOT_MAX)
 
-	typedef uns64 MDS_DEST;
+	typedef uint64_t MDS_DEST;
 	typedef uint32_t NCS_NODE_ID;
 	typedef uint8_t NCS_CHASSIS_ID;
 	typedef uint8_t NCS_PHY_SLOT_ID;
@@ -135,7 +131,7 @@ extern "C" {
                                 if the MDS_DEST provided is a virtual
                                 destination.
 */
-#define m_NCS_NODE_ID_FROM_MDS_DEST(mdsdest) ((uint32_t) (((uns64)(mdsdest))>>32))
+#define m_NCS_NODE_ID_FROM_MDS_DEST(mdsdest) ((uint32_t) (((uint64_t)(mdsdest))>>32))
 
 #ifdef  __cplusplus
 }

@@ -1620,7 +1620,7 @@ uint32_t ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
-	uns64 *uptr = NULL;
+	uint64_t *uptr = NULL;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 	uint8_t *src_p8;
 	uint32_t cnt = 0;
@@ -1632,22 +1632,22 @@ uint32_t ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 	switch (op) {
 	case EDP_OP_TYPE_ENC:
 		if (buf_env->is_ubaid) {
-			p8 = ncs_enc_reserve_space(buf_env->info.uba, sizeof(uns64));
-			ncs_encode_64bit(&p8, *(uns64 *)ptr);
-			ncs_enc_claim_space(buf_env->info.uba, sizeof(uns64));
+			p8 = ncs_enc_reserve_space(buf_env->info.uba, sizeof(uint64_t));
+			ncs_encode_64bit(&p8, *(uint64_t *)ptr);
+			ncs_enc_claim_space(buf_env->info.uba, sizeof(uint64_t));
 		} else {
 			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
-			ncs_encode_tlv_64bit(&p8, *(uns64 *)ptr);
-			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(uns64));
+			ncs_encode_tlv_64bit(&p8, *(uint64_t *)ptr);
+			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(uint64_t));
 		}
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 		memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-		sprintf(gl_log_string, "Encoded uns64: len = 0x%x : ", sizeof(uns64));
+		sprintf(gl_log_string, "Encoded uns64: len = 0x%x : ", sizeof(uint64_t));
 		ncs_edu_log_msg(gl_log_string);
-		for (cnt = 0; cnt < sizeof(uns64); cnt++) {
+		for (cnt = 0; cnt < sizeof(uint64_t); cnt++) {
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-			if (cnt == (sizeof(uns64) - 1))
+			if (cnt == (sizeof(uint64_t) - 1))
 				sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
 			else
 				sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
@@ -1656,37 +1656,37 @@ uint32_t ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 #endif
 		break;
 	case EDP_OP_TYPE_DEC:
-		if (*(uns64 **)ptr == NULL) {
+		if (*(uint64_t **)ptr == NULL) {
 			/* Since "uns64" is the responsibility of LEAP, LEAP
 			   is supposed to malloc this memory. */
-			(*(uns64 **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(uns64) / sizeof(uint8_t));
+			(*(uint64_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(uint64_t) / sizeof(uint8_t));
 			if (uptr == NULL) {
 				/* Memory failure. */
 				*o_err = EDU_ERR_MEM_FAIL;
 				return NCSCC_RC_FAILURE;
 			}
-			memset(uptr, '\0', sizeof(uns64));
+			memset(uptr, '\0', sizeof(uint64_t));
 		} else {
-			uptr = *((uns64 **)ptr);
+			uptr = *((uint64_t **)ptr);
 		}
 		if (buf_env->is_ubaid) {
-			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, sizeof(uns64));
+			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, sizeof(uint64_t));
 			*uptr = ncs_decode_64bit(&p8);
-			ncs_dec_skip_space(buf_env->info.uba, sizeof(uns64));
+			ncs_dec_skip_space(buf_env->info.uba, sizeof(uint64_t));
 		} else {
 			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			*uptr = ncs_decode_tlv_64bit(&p8);
-			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(uns64));
+			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(uint64_t));
 		}
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 		memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-		sprintf(gl_log_string, "Decoded uns64: len = 0x%x : ", sizeof(uns64));
+		sprintf(gl_log_string, "Decoded uns64: len = 0x%x : ", sizeof(uint64_t));
 		ncs_edu_log_msg(gl_log_string);
 		src_p8 = (uint8_t *)uptr;
-		for (cnt = 0; cnt < sizeof(uns64); cnt++) {
+		for (cnt = 0; cnt < sizeof(uint64_t); cnt++) {
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-			if (cnt == (sizeof(uns64) - 1))
+			if (cnt == (sizeof(uint64_t) - 1))
 				sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
 			else
 				sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
@@ -1699,31 +1699,31 @@ uint32_t ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		/* We need populate the pointer here, so that it can
 		   be sent back to the parent invoker(most likely
 		   to be able to perform the TEST condition). */
-		uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(uns64) / sizeof(uint8_t));
+		uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(uint64_t) / sizeof(uint8_t));
 		if (uptr == NULL) {
 			/* Memory failure. */
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}
-		memset(uptr, '\0', sizeof(uns64));
+		memset(uptr, '\0', sizeof(uint64_t));
 		if (buf_env->is_ubaid) {
-			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, sizeof(uns64));
+			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, sizeof(uint64_t));
 			*uptr = ncs_decode_64bit(&p8);
-			ncs_dec_skip_space(buf_env->info.uba, sizeof(uns64));
+			ncs_dec_skip_space(buf_env->info.uba, sizeof(uint64_t));
 		} else {
 			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			*uptr = ncs_decode_tlv_64bit(&p8);
-			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(uns64));
+			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(uint64_t));
 		}
 
 		src_p8 = (uint8_t *)uptr;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 		memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-		sprintf(gl_log_string, "PP uns64: len = 0x%x : ", sizeof(uns64));
+		sprintf(gl_log_string, "PP uns64: len = 0x%x : ", sizeof(uint64_t));
 		ncs_edu_log_msg(gl_log_string);
-		for (cnt = 0; cnt < sizeof(uns64); cnt++) {
+		for (cnt = 0; cnt < sizeof(uint64_t); cnt++) {
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-			if (cnt == (sizeof(uns64) - 1))
+			if (cnt == (sizeof(uint64_t) - 1))
 				sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
 			else
 				sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
@@ -1732,14 +1732,14 @@ uint32_t ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 #endif
 
 		if (ptr != NULL) {
-			(*(uns64 **)ptr) = uptr;
+			(*(uint64_t **)ptr) = uptr;
 
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-			sprintf(gl_log_string, "Populated uns64 in PPDB: len = 0x%x : ", sizeof(uns64));
+			sprintf(gl_log_string, "Populated uint64_t in PPDB: len = 0x%x : ", sizeof(uint64_t));
 			ncs_edu_log_msg(gl_log_string);
-			for (cnt = 0; cnt < sizeof(uns64); cnt++) {
+			for (cnt = 0; cnt < sizeof(uint64_t); cnt++) {
 				memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-				if (cnt == (sizeof(uns64) - 1))
+				if (cnt == (sizeof(uint64_t) - 1))
 					sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
 				else
 					sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
@@ -1772,7 +1772,7 @@ uint32_t ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
-	int64 *uptr = NULL;
+	int64_t *uptr = NULL;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 	uint8_t *src_p8;
 	uint32_t cnt = 0;
@@ -1784,22 +1784,22 @@ uint32_t ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 	switch (op) {
 	case EDP_OP_TYPE_ENC:
 		if (buf_env->is_ubaid) {
-			p8 = ncs_enc_reserve_space(buf_env->info.uba, sizeof(int64));
-			ncs_encode_64bit(&p8, *(int64 *)ptr);
-			ncs_enc_claim_space(buf_env->info.uba, sizeof(int64));
+			p8 = ncs_enc_reserve_space(buf_env->info.uba, sizeof(int64_t));
+			ncs_encode_64bit(&p8, *(int64_t *)ptr);
+			ncs_enc_claim_space(buf_env->info.uba, sizeof(int64_t));
 		} else {
 			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
-			ncs_encode_tlv_64bit(&p8, *(int64 *)ptr);
-			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(int64));
+			ncs_encode_tlv_64bit(&p8, *(int64_t *)ptr);
+			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(int64_t));
 		}
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 		memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-		sprintf(gl_log_string, "Encoded int64: len = 0x%x : ", sizeof(int64));
+		sprintf(gl_log_string, "Encoded int64: len = 0x%x : ", sizeof(int64_t));
 		ncs_edu_log_msg(gl_log_string);
-		for (cnt = 0; cnt < sizeof(int64); cnt++) {
+		for (cnt = 0; cnt < sizeof(int64_t); cnt++) {
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-			if (cnt == (sizeof(int64) - 1))
+			if (cnt == (sizeof(int64_t) - 1))
 				sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
 			else
 				sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
@@ -1808,37 +1808,37 @@ uint32_t ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 #endif
 		break;
 	case EDP_OP_TYPE_DEC:
-		if (*(int64 **)ptr == NULL) {
+		if (*(int64_t **)ptr == NULL) {
 			/* Since "int64" is the responsibility of LEAP, LEAP
 			   is supposed to malloc this memory. */
-			(*(int64 **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(int64) / sizeof(uint8_t));
+			(*(int64_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(int64_t) / sizeof(uint8_t));
 			if (uptr == NULL) {
 				/* Memory failure. */
 				*o_err = EDU_ERR_MEM_FAIL;
 				return NCSCC_RC_FAILURE;
 			}
-			memset(uptr, '\0', sizeof(int64));
+			memset(uptr, '\0', sizeof(int64_t));
 		} else {
-			uptr = *((int64 **)ptr);
+			uptr = *((int64_t **)ptr);
 		}
 		if (buf_env->is_ubaid) {
-			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, sizeof(int64));
+			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, sizeof(int64_t));
 			*uptr = ncs_decode_64bit(&p8);
-			ncs_dec_skip_space(buf_env->info.uba, sizeof(int64));
+			ncs_dec_skip_space(buf_env->info.uba, sizeof(int64_t));
 		} else {
 			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			*uptr = ncs_decode_tlv_64bit(&p8);
-			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(int64));
+			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(int64_t));
 		}
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 		memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-		sprintf(gl_log_string, "Decoded int64: len = 0x%x : ", sizeof(int64));
+		sprintf(gl_log_string, "Decoded int64: len = 0x%x : ", sizeof(int64_t));
 		ncs_edu_log_msg(gl_log_string);
 		src_p8 = (uint8_t *)uptr;
-		for (cnt = 0; cnt < sizeof(int64); cnt++) {
+		for (cnt = 0; cnt < sizeof(int64_t); cnt++) {
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-			if (cnt == (sizeof(int64) - 1))
+			if (cnt == (sizeof(int64_t) - 1))
 				sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
 			else
 				sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
@@ -1851,30 +1851,30 @@ uint32_t ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		/* We need populate the pointer here, so that it can
 		   be sent back to the parent invoker(most likely
 		   to be able to perform the TEST condition). */
-		uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(int64) / sizeof(uint8_t));
+		uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(int64_t) / sizeof(uint8_t));
 		if (uptr == NULL) {
 			/* Memory failure. */
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}
-		memset(uptr, '\0', sizeof(int64));
+		memset(uptr, '\0', sizeof(int64_t));
 		if (buf_env->is_ubaid) {
-			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, sizeof(int64));
+			p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)uptr, sizeof(int64_t));
 			*uptr = ncs_decode_64bit(&p8);
-			ncs_dec_skip_space(buf_env->info.uba, sizeof(int64));
+			ncs_dec_skip_space(buf_env->info.uba, sizeof(int64_t));
 		} else {
 			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			*uptr = ncs_decode_tlv_64bit(&p8);
-			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(int64));
+			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + sizeof(int64_t));
 		}
 
 		src_p8 = (uint8_t *)uptr;
 		memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-		sprintf(gl_log_string, "PP int64: len = 0x%x : ", sizeof(int64));
+		sprintf(gl_log_string, "PP int64: len = 0x%x : ", sizeof(int64_t));
 		ncs_edu_log_msg(gl_log_string);
-		for (cnt = 0; cnt < sizeof(int64); cnt++) {
+		for (cnt = 0; cnt < sizeof(int64_t); cnt++) {
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-			if (cnt == (sizeof(int64) - 1))
+			if (cnt == (sizeof(int64_t) - 1))
 				sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
 			else
 				sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
@@ -1882,14 +1882,14 @@ uint32_t ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		}
 
 		if (ptr != NULL) {
-			(*(int64 **)ptr) = uptr;
+			(*(int64_t **)ptr) = uptr;
 
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-			sprintf(gl_log_string, "Populated int64 in PPDB: len = 0x%x : ", sizeof(int64));
+			sprintf(gl_log_string, "Populated int64_t in PPDB: len = 0x%x : ", sizeof(int64_t));
 			ncs_edu_log_msg(gl_log_string);
-			for (cnt = 0; cnt < sizeof(int64); cnt++) {
+			for (cnt = 0; cnt < sizeof(int64_t); cnt++) {
 				memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-				if (cnt == (sizeof(int64) - 1))
+				if (cnt == (sizeof(int64_t) - 1))
 					sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
 				else
 					sprintf(gl_log_string, "0x%x ", src_p8[cnt]);

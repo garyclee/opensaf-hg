@@ -68,14 +68,14 @@ typedef struct {
 	/* correspond to SaLogFileCreateAttributes */
 	char *logFile;		/* logfile name */
 	char *logPath;		/* logfile path */
-	uns64 maxFileSize;	/* max file size configurable */
+	uint64_t maxFileSize;	/* max file size configurable */
 	int32_t maxLogRecordSize;	/* constant size of the records */
 	int32_t logFileFullAction;
 	int32_t maxFilesRotated;	/* max number of rotation files configurable */
 	char *fileFmt;
 	/* end correspond to SaLogFileCreateAttributes */
 	char *logStreamName;
-	uns64 creationTimeStamp;
+	uint64_t creationTimeStamp;
 	uint32_t numOpeners;
 	char *logFileCurrent;
 	logStreamTypeT streamType;

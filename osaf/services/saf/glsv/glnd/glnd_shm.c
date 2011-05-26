@@ -51,7 +51,7 @@
 static uint32_t glnd_shm_open(GLND_CB *cb, char *shm_name)
 {
 	NCS_OS_POSIX_SHM_REQ_INFO glnd_open_req;
-	uns64 shm_size;
+	uint64_t shm_size;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLND_SHM_VERSION glnd_shm_version;
 

@@ -33,11 +33,11 @@ extern "C" {
 #include "saAis.h"
 #include "ncs_saf.h"
 
-	typedef uns64 NCS_MBCSV_CLIENT_HDL;
+	typedef uint64_t NCS_MBCSV_CLIENT_HDL;
 	typedef uint32_t NCS_MBCSV_HDL;
 	typedef uint32_t NCS_MBCSV_CKPT_HDL;
 	typedef SS_SVC_ID NCS_MBCSV_CLIENT_SVCID;
-	typedef uns64 MBCSV_REO_HDL;
+	typedef uint64_t MBCSV_REO_HDL;
 
 /***************************************************************************
 
@@ -100,7 +100,7 @@ extern "C" {
 		uint32_t io_reo_type;	/* client's (private) object type      */
 		MBCSV_REO_HDL io_reo_hdl;	/* client's (private) object hdl       */
 		NCS_UBAID io_uba;	/* Encoded data added to this          */
-		uns64 io_req_context;	/* decoded request info */
+		uint64_t io_req_context;	/* decoded request info */
 		uint16_t i_peer_version;	/* version info of peer as per SAF */
 
 	} NCS_MBCSV_CB_ENC;
@@ -114,7 +114,7 @@ extern "C" {
 		NCS_MBCSV_ACT_TYPE i_action;	/* checkpoint action: ADD,RMV,UPDATE   */
 		uint32_t i_reo_type;	/* Value passed during encode operation */
 		NCS_UBAID i_uba;	/* data to decode                      */
-		uns64 o_req_context;	/* Keep decoded request information. */
+		uint64_t o_req_context;	/* Keep decoded request information. */
 		uint16_t i_peer_version;	/* version info of peer as per SAF */
 
 	} NCS_MBCSV_CB_DEC;

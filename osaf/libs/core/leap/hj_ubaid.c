@@ -601,7 +601,7 @@ USRBUF *ncs_encode_pointer(USRBUF *i_ub, NCSCONTEXT i_pointer)
 		return NULL;
 }
 
-USRBUF *ncs_decode_pointer(USRBUF *i_ub, uns64 *o_recvd_ptr, uint8_t *o_ptr_size_in_bytes)
+USRBUF *ncs_decode_pointer(USRBUF *i_ub, uint64_t *o_recvd_ptr, uint8_t *o_ptr_size_in_bytes)
 {
 	uint8_t *s;
 	uint8_t p_len;
@@ -657,7 +657,7 @@ uint32_t ncs_uba_encode_pointer(NCS_UBAID *uba, NCSCONTEXT i_pointer)
 	return NCSCC_RC_SUCCESS;
 }
 
-uint32_t ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr, uint8_t *o_ptr_size_in_bytes)
+uint32_t ncs_uba_decode_pointer(NCS_UBAID *uba, uint64_t *o_recvd_ptr, uint8_t *o_ptr_size_in_bytes)
 {
 	uint8_t *s;
 	uint8_t p_len;

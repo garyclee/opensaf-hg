@@ -52,15 +52,15 @@ typedef enum {
 
 typedef uint16_t MDS_PWE_ID;
 
-typedef uns64 MDS_SUBTN_REF_VAL;
+typedef uint64_t MDS_SUBTN_REF_VAL;
 
 typedef NCS_VDEST_TYPE MDS_POLICY;
 
 typedef uint32_t MDS_VDEST_HDL;	/* <0,vdestid> */
-typedef uns64 MDS_SVC_HDL;	/* <pweid,vdestid,svcid> */
+typedef uint64_t MDS_SVC_HDL;	/* <pweid,vdestid,svcid> */
 typedef uint32_t MDS_PWE_HDL;	/* <pweid,vdestid> */
 /* typedef uint32_t MDS_SUBTN_HDL; */
-typedef uns64 MDS_TX_HDL;
+typedef uint64_t MDS_TX_HDL;
 typedef enum {
 	MDS_SUBTN_IMPLICIT,
 	MDS_SUBTN_EXPLICIT
@@ -436,7 +436,7 @@ extern uint32_t mds_mcm_subtn_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 			       MDS_VIEW view, MDS_SUBTN_TYPE subtn_type);
 
 #define m_MDS_GET_PWE_HDL_FROM_VDEST_HDL_AND_PWE_ID(vdest_hdl,pwe_id) ((uint32_t)pwe_id << 16 | (uint32_t) vdest_hdl)
-#define m_MDS_GET_SVC_HDL_FROM_PWE_ID_VDEST_ID_AND_SVC_ID(pwe_id,vdest_id,svc_id) (((uns64)pwe_id << 48) | ((uns64)vdest_id << 32) | ((uns64)svc_id))
+#define m_MDS_GET_SVC_HDL_FROM_PWE_ID_VDEST_ID_AND_SVC_ID(pwe_id,vdest_id,svc_id) (((uint64_t)pwe_id << 48) | ((uint64_t)vdest_id << 32) | ((uint64_t)svc_id))
 
 /* Lock Macros */
 #define m_MDS_UNLOCK(p,q) m_NCS_UNLOCK(p,q)
@@ -447,11 +447,11 @@ extern MDS_VDEST_ID ncs_get_internal_vdest_id_from_mds_dest(MDS_DEST mdsdest);
 #define m_MDS_GET_INTERNAL_VDEST_ID_FROM_MDS_DEST(mdsdest) (ncs_get_internal_vdest_id_from_mds_dest(mdsdest))
 
 /* Macros to Get NODE_ID and PROCESS_ID from ADEST */
-#define m_MDS_GET_NODE_ID_FROM_ADEST(adest) (NODE_ID) ((uns64)adest >> 32)
-#define m_MDS_GET_PROCESS_ID_FROM_ADEST(adest) (uint32_t) ((uns64)adest & 0x00000000ffffffff)
+#define m_MDS_GET_NODE_ID_FROM_ADEST(adest) (NODE_ID) ((uint64_t)adest >> 32)
+#define m_MDS_GET_PROCESS_ID_FROM_ADEST(adest) (uint32_t) ((uint64_t)adest & 0x00000000ffffffff)
 
 /* Macros to get SVC_ID from SVC_HDL */
-#define m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl) (MDS_SVC_ID)(((uns64)svc_hdl & 0x00000000ffffffff))
+#define m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl) (MDS_SVC_ID)(((uint64_t)svc_hdl & 0x00000000ffffffff))
 
 /* for defining the MDS internal return values */
 typedef enum {

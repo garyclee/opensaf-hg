@@ -1753,7 +1753,7 @@ error_free:
 	goto done;
 }
 
-uint32_t ntfsv_enc_64bit_msg(NCS_UBAID *uba, uns64 param)
+uint32_t ntfsv_enc_64bit_msg(NCS_UBAID *uba, uint64_t param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -1775,7 +1775,7 @@ uint32_t ntfsv_enc_64bit_msg(NCS_UBAID *uba, uns64 param)
 	return total_bytes;
     }
 
-uint32_t ntfsv_dec_64bit_msg(NCS_UBAID *uba, uns64 *param)
+uint32_t ntfsv_dec_64bit_msg(NCS_UBAID *uba, uint64_t *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;

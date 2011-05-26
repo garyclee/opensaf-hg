@@ -98,7 +98,7 @@ typedef struct cpd_ckpt_info_node {
 	uint32_t num_corrupt_sections;
 	uint8_t *sec_id;
 	uint32_t sec_state;
-	uns64 sec_size;
+	uint64_t sec_size;
 	SaTimeT sec_last_update;
 	SaTimeT sec_exp_time;
 } CPD_CKPT_INFO_NODE;
@@ -198,7 +198,7 @@ typedef struct cpd_cb_tag {
 
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component */
 	EDU_HDL edu_hdl;	/* EDU Handle for encode decodes        */
-	uns64 nxt_ckpt_id;	/* Next ckpt id to be generated         */
+	uint64_t nxt_ckpt_id;	/* Next ckpt id to be generated         */
 
 	SaInvocationT amf_invocation;
 

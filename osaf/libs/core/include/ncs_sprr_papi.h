@@ -125,7 +125,7 @@ extern "C" {
 
 	typedef struct {
 		void *o_user_se_api;
-		uns64 o_handle;
+		uint64_t o_handle;
 		void *o_arg;	/* Cookie */
 	} NCS_SPIR_REQ_LOOKUP_INST_INFO;
 
@@ -137,7 +137,7 @@ extern "C" {
 
 		/* Date on the next instance */
 		void *o_user_se_api;
-		uns64 o_handle;
+		uint64_t o_handle;
 		void *o_arg;	/* Cookie */
 
 	} NCS_SPIR_REQ_LOOKUP_NEXT_INST_INFO;
@@ -147,7 +147,7 @@ extern "C" {
 
 		NCS_BOOL o_created;	/* TRUE if instance not preexisting */
 		void *o_user_se_api;
-		uns64 o_handle;
+		uint64_t o_handle;
 		void *o_arg;	/* Cookie */
 	} NCS_SPIR_REQ_LOOKUP_CREATE_INST_INFO;
 

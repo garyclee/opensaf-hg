@@ -876,12 +876,12 @@ uint32_t ncs_logmsg_int(SS_SVC_ID svc_id,
 					if (min_dts_ver < 2)
 						min_dts_ver = 2;
 
-					data = ncs_enc_reserve_space(uba, (sizeof(uint16_t) + sizeof(uns64)));
+					data = ncs_enc_reserve_space(uba, (sizeof(uint16_t) + sizeof(uint64_t)));
 					if (data == NULL)
 						goto reserve_error;
 					ncs_encode_16bit(&data, mem_d.len);
-					ncs_encode_64bit(&data, (uns64)(long)mem_d.addr);
-					ncs_enc_claim_space(uba, (sizeof(uint16_t) + sizeof(uns64)));
+					ncs_encode_64bit(&data, (uint64_t)(long)mem_d.addr);
+					ncs_enc_claim_space(uba, (sizeof(uint16_t) + sizeof(uint64_t)));
 				}
 
 				ncs_encode_n_octets_in_uba(uba, (uint8_t *)mem_d.dump, (uint32_t)mem_d.len);

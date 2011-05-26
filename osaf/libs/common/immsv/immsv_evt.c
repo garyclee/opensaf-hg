@@ -195,7 +195,7 @@ static void immsv_evt_enc_att_val(NCS_UBAID *o_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 {
 	uint8_t *p8;
 	uint32_t helper32;
-	uns64 helper64;
+	uint64_t helper64;
 	void* anonymous;
 	IMMSV_OCTET_STRING *os = NULL;
 
@@ -246,9 +246,9 @@ static void immsv_evt_enc_att_val(NCS_UBAID *o_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 		ncs_enc_claim_space(o_ub, 4);
 		break;
 	case SA_IMM_ATTR_SADOUBLET:
-		//helper64 = *((uns64 *)&(v->val.sadouble));
+		//helper64 = *((uint64_t *)&(v->val.sadouble));
 		anonymous = &(v->val.sadouble);
-		helper64 = *((uns64 *) anonymous);
+		helper64 = *((uint64_t *) anonymous);
 		IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
 		ncs_encode_64bit(&p8, helper64);
 		ncs_enc_claim_space(o_ub, 8);
@@ -264,7 +264,7 @@ static void immsv_evt_dec_att_val(NCS_UBAID *i_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 {
 	uint8_t *p8;
 	uint32_t helper32;
-	uns64 helper64;
+	uint64_t helper64;
 	uint8_t local_data[8];
 	void* anonymous;
 	IMMSV_OCTET_STRING *os = NULL;

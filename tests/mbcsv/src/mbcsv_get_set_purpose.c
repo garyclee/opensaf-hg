@@ -4,13 +4,13 @@ uint32_t mbcstm_get_set_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_
                               uint32_t action,NCS_MBCSV_OBJ obj_type, 
                               uint32_t obj_val, MBCSTM_CB_TEST cb_check,
                               uint32_t wait, uint32_t peer_count,
-                              uns64 peer_anchor, MBCSTM_FSM_STATES state_check);
+                              uint64_t peer_anchor, MBCSTM_FSM_STATES state_check);
 
 uint32_t mbcstm_get_set_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys,
                               uint32_t action,NCS_MBCSV_OBJ obj_type, 
                               uint32_t obj_val, MBCSTM_CB_TEST cb_check,
                               uint32_t wait, uint32_t peer_count,
-                              uns64 peer_anchor, MBCSTM_FSM_STATES state_check)
+                              uint64_t peer_anchor, MBCSTM_FSM_STATES state_check)
 {
   uint32_t test_result = NCSCC_RC_FAILURE;
   MBCSTM_PEERS_DATA peers;

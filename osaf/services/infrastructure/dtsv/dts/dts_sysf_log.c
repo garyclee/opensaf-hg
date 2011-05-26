@@ -626,7 +626,7 @@ static uint32_t dts_get_and_return_val(char *t_str, char *ch, char *time,
 			{
 				NCSFL_MEM mem_d;
 				/* Added for printing 64-bit addresses */
-				uns64 mem_addr = 0;
+				uint64_t mem_addr = 0;
 
 				/* Support for DTA version 1 */
 				if (msg_fmat_ver == 1) {
@@ -641,13 +641,13 @@ static uint32_t dts_get_and_return_val(char *t_str, char *ch, char *time,
 				/* Versioning changes : New code for 64-bit support */
 				else {
 					assert(msg_fmat_ver == 2);
-					data = ncs_dec_flatten_space(uba, data_buff, (sizeof(uint16_t) + sizeof(uns64)));
+					data = ncs_dec_flatten_space(uba, data_buff, (sizeof(uint16_t) + sizeof(uint64_t)));
 					if (data == NULL)
 						return NCSCC_RC_FAILURE;
 
 					mem_d.len = ncs_decode_16bit(&data);
 					mem_addr = ncs_decode_64bit(&data);
-					ncs_dec_skip_space(uba, (sizeof(uint16_t) + sizeof(uns64)));
+					ncs_dec_skip_space(uba, (sizeof(uint16_t) + sizeof(uint64_t)));
 				}
 
 				mem_d.dump = m_MMGR_ALLOC_OCT(mem_d.len);

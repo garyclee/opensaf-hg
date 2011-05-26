@@ -633,15 +633,15 @@ typedef struct mds_mcm_msg_elem {
 
 #define m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(hdl) (MDS_VDEST_ID)((uint32_t)hdl & 0x0000ffff)
 #define m_MDS_GET_VDEST_ID_FROM_PWE_HDL(hdl) (MDS_VDEST_ID)((uint32_t)hdl & 0x0000ffff)
-#define m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_hdl) (MDS_VDEST_ID)(((uns64)svc_hdl >> 32) & 0x0000ffff)
+#define m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_hdl) (MDS_VDEST_ID)(((uint64_t)svc_hdl >> 32) & 0x0000ffff)
 
 #define m_MDS_GET_PWE_ID_FROM_PWE_HDL(hdl) (MDS_PWE_ID)((uint32_t)hdl>>16)
-#define m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl) (MDS_PWE_ID)(((uns64)svc_hdl >> 48))
+#define m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl) (MDS_PWE_ID)(((uint64_t)svc_hdl >> 48))
 
 #define m_MDS_GET_PWE_HDL_FROM_PWE_ID_AND_VDEST_ID(pwe_id,vdest_id) (((uint32_t)pwe_id << 16) | (uint32_t)vdest_id)
-#define m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_hdl) (MDS_PWE_HDL)(((uns64)svc_hdl >> 32))
+#define m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_hdl) (MDS_PWE_HDL)(((uint64_t)svc_hdl >> 32))
 
-#define m_MDS_GET_SVC_HDL_FROM_PWE_HDL_AND_SVC_ID(pwe_hdl,svc_id) (MDS_SVC_HDL)(((uns64)pwe_hdl << 32) | (uns64)svc_id)
+#define m_MDS_GET_SVC_HDL_FROM_PWE_HDL_AND_SVC_ID(pwe_hdl,svc_id) (MDS_SVC_HDL)(((uint64_t)pwe_hdl << 32) | (uint64_t)svc_id)
 
 #define m_MDS_GET_VDEST_HDL_FROM_VDEST_ID(vdest_id) ((MDS_VDEST_HDL)vdest_id)
 #define m_MDS_GET_VDEST_HDL_FROM_PWE_HDL(pwe_hdl) (MDS_VDEST_HDL)((uint32_t)pwe_hdl & 0x0000ffff)
@@ -651,6 +651,6 @@ typedef struct mds_mcm_msg_elem {
 #define m_MDS_GET_ADEST (gl_mds_mcm_cb->adest)
 #define m_MDS_GET_PCON_ID (gl_mds_mcm_cb->pcon_id)
 
-#define m_MDS_GET_ADEST_FROM_NODE_ID_AND_PROCESS_ID(node_id, process_id) (MDS_DEST)(((uns64)node_id << 32) | (uns64)process_id)
+#define m_MDS_GET_ADEST_FROM_NODE_ID_AND_PROCESS_ID(node_id, process_id) (MDS_DEST)(((uint64_t)node_id << 32) | (uint64_t)process_id)
 
 #endif

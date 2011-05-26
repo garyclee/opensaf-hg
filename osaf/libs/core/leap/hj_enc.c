@@ -45,11 +45,11 @@ The following set does buffer chaining management
   ncs_encode_n_octets....Encode "n" octets in the control frame
   ncs_encode_uint16_t   ....Encode short
   ncs_encode_uint32_t   ....Encode long
-  ncs_encode_uns64   ....Encode long long
+  ncs_encode_uint64_t   ....Encode long long
   ncs_prepend_n_octets...Encode "n" octets encapsulating given frame
   ncs_prepend_uint16_t   ...Encode 16 bit unsigned encapsulating given frame
   ncs_prepend_uint32_t   ...Encode 32 bit unsigned encapsulating given frame
-  ncs_prepend_uns64   ...Encode 64 bit unsigned encapsulating given frame
+  ncs_prepend_uint64_t   ...Encode 64 bit unsigned encapsulating given frame
 
 The following set does NOT do buffer chaining management
   ncs_encode_64bit   ....Encode 64 bits of a 64 bit value
@@ -144,7 +144,7 @@ USRBUF *ncs_encode_uns32(USRBUF *u, uint32_t val32)
 	return u;
 }
 
-USRBUF *ncs_encode_uns64(USRBUF *u, uns64 val64)
+USRBUF *ncs_encode_uns64(USRBUF *u, uint64_t val64)
 {
 	uint8_t *p64;
 
@@ -211,7 +211,7 @@ USRBUF *ncs_prepend_uns32(USRBUF *pbuf, uint32_t val32)
 	return (pbuf);
 }
 
-USRBUF *ncs_prepend_uns64(USRBUF *pbuf, uns64 val64)
+USRBUF *ncs_prepend_uns64(USRBUF *pbuf, uint64_t val64)
 {
 	uint8_t *p64;
 
@@ -236,7 +236,7 @@ USRBUF *ncs_prepend_uns64(USRBUF *pbuf, uns64 val64)
  *
  *****************************************************************************/
 
-uns64 ncs_encode_64bit(uint8_t **stream, uns64 val)
+uint64_t ncs_encode_64bit(uint8_t **stream, uint64_t val)
 {
 
 	m_NCS_OS_HTONLL_P((*stream), val);
