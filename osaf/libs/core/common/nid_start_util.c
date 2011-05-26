@@ -16,6 +16,10 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+
 #include <saAis.h>
 #include <logtrace.h>
 #include <ncsgl_defs.h>

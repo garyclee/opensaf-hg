@@ -16,26 +16,13 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-    @@@@@  @               @@@@@@  @@@@@@@ @@@@@@@  @@@@@          @     @
-   @     @ @               @     @ @       @       @     @         @     @
-   @       @               @     @ @       @       @               @     @
-   @  @@@@ @               @     @ @@@@@   @@@@@    @@@@@          @@@@@@@
-   @     @ @               @     @ @       @             @   @@@   @     @
-   @     @ @               @     @ @       @       @     @   @@@   @     @
-    @@@@@  @@@@@@@ @@@@@@@ @@@@@@  @@@@@@@ @        @@@@@    @@@   @     @
-
-..............................................................................
-
   DESCRIPTION:
 
   This module contains data type defs usable throughout the system.
   Inclusion of this module into all C-source modules is strongly
   recommended.
 
-******************************************************************************
-*/
+******************************************************************************/
 
 /*
  * Module Inclusion Control...
@@ -56,15 +43,6 @@ extern "C" {
 
  ****************************************************************************/
 
-/*
- * The following typedefs are dependent upon the target system processor and the
- * C-compiler. A change in the processor or the compiler *may* entail changes
- * to the following sections.
- */
-
-
-/* Native typedef declarations.... */
-
 	typedef uint8_t uns8;	/*  8-bit */
 	typedef uint16_t uns16;	/* 16-bit */
 	typedef uint32_t uns32;	/* 32-bit */
@@ -75,18 +53,9 @@ extern "C" {
 	typedef int32_t int32;
 	typedef int64_t int64;
 
-	typedef unsigned short cfgflag;	/* Usually a YES/NO or T/F boolean */
-	typedef unsigned short cfgenum;	/* An enumerated value */
-
 	typedef bool NCS_BOOL;	/* move to this solves BOOLEAN problem */
-	typedef unsigned char bcd;	/* Binary-Coded-Decimal */
 
 	typedef void* NCSCONTEXT;	/* opaque context between svc-usr/svc-provider */
-
-	typedef uns32 IE_DESC[2];	/* IE Descriptor for ATM Signallng */
-	typedef uns32 FIE_DESC;	/* IE Descriptor for FR Signalling. */
-
-	typedef uns32 ncs_oid;	/* Basic data type for ILMI Object Sub-ids... */
 
 #define NCS_PTR_TO_INT32_CAST(x)   ((int32)(long)(x))
 #define NCS_PTR_TO_UNS64_CAST(x)   ((uns64)(long)(x))
@@ -116,10 +85,6 @@ extern "C" {
 #define m_IPV6_ADDR_SIZE         sizeof (NCS_IPV6_ADDR)
 #endif
 
-/* prototype for registered function to 'Probe' protocol values */
-
-	typedef void (*PROBER) (uns32 dir_flag, void *, const void *);
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         Manifest Constants
@@ -133,97 +98,6 @@ extern "C" {
 #ifndef FALSE
 #define FALSE   false
 #endif
-
-#ifndef NULL
-#define NULL    0
-#endif
-
-#ifndef EOF
-#define EOF  (-1)
-#endif
-
-#ifndef YES
-#define YES     1
-#endif
-
-#ifndef NO
-#define NO      0
-#endif
-
-#ifndef ON
-#define ON      1
-#endif
-
-#ifndef OFF
-#define OFF     0
-#endif
-
-#ifndef ENABLE
-#define ENABLE  1
-#endif
-
-#ifndef DISABLE
-#define DISABLE 0
-#endif
-
-#ifndef RX
-#define RX      1
-#endif
-
-#ifndef TX
-#define TX      2
-#endif
-
-/* H&J Constants aligned with  Admin and Oper STATUS values */
-
-	typedef enum ncs_status {
-		NCS_STATUS_UP = 1,
-		NCS_STATUS_DOWN = 2,
-		NCS_STATUS_TESTING = 3,
-		NCS_STATUS_UNKNOWN = 4,
-		NCS_STATUS_DORMANT = 5,
-		NCS_STATUS_NOT_PRESENT = 6,
-		NCS_STATUS_LL_DOWN = 7
-	} NCS_STATUS;
-
-/* X.731 admin state values */
-	typedef enum ncs_admin_state_tag {
-		NCS_ADMIN_STATE_LOCK = 1,
-		NCS_ADMIN_STATE_UNLOCK,
-		NCS_ADMIN_STATE_SHUTDOWN
-	} NCS_ADMIN_STATE;
-
-/* X.731 operational state values */
-	typedef enum ncs_oper_state_tag {
-		NCS_OPER_STATE_ENABLE = 1,
-		NCS_OPER_STATE_DISABLE
-	} NCS_OPER_STATE;
-
-/* X.731 usage state values */
-	typedef enum ncs_usage_state_tag {
-		NCS_USAGE_STATE_IDLE = 1,
-		NCS_USAGE_STATE_ACTIVE,
-		NCS_USAGE_STATE_BUSY
-	} NCS_USAGE_STATE;
-
-/* Format types, proprietory to NCS), 
-   used in EDU */
-	typedef enum ncs_edu_fmat_tag {
-		NCS_EDU_FMAT_8BIT,	/* 8 bit    */
-		NCS_EDU_FMAT_16BIT,	/* 16 bit   */
-		NCS_EDU_FMAT_32BIT,	/* 32 bit   */
-		NCS_EDU_FMAT_64BIT,	/* 64 bit   */
-		NCS_EDU_FMAT_OCT,	/* Octet */
-		NCS_EDU_FMAT_CNT	/* Count of instances */
-	} NCS_EDU_FMAT;
-
-/* type definition for SNMP-like IFINDEX, an abstraction for an interface */
-
-	typedef unsigned int NCS_IFINDEX;
-
-/* type definition for SNMP-like TUNNEL ID, an abstraction for a tunnel */
-
-	typedef unsigned int NCS_TUNNEL_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -263,7 +137,7 @@ extern "C" {
 #define NCSCC_RC_OUT_OF_MEM           21	/* Out of memory                    */
 #define NCSCC_RC_CALL_GATED           22	/* NCSCC_CALL_DATA passed on         */
 #define NCSCC_RC_SIG_FREE_CD          23	/* Signalling alloc'ed the call data */
-						/* Signalling should free it        */
+											/* Signalling should free it        */
 
 #define NCSCC_RC_SIG_CLEARS_ALL       24	/* Signalling drives iface clearing */
 #define NCSCC_RC_USR_CLEARS_ALL       25	/* Application drives iface clearing */
@@ -279,7 +153,7 @@ extern "C" {
 
 #define NCSCC_RC_ENQUEUED            125
 #define NCSCC_RC_INOPPORTUNE_REQUEST 126
-#define NCSCC_RC_DISABLED  127
+#define NCSCC_RC_DISABLED            127
 
 #define NCSCC_RC_TMR_STOPPED         128
 #define NCSCC_RC_TMR_DESTROYED       129
@@ -330,7 +204,7 @@ extern "C" {
 #define NCSCC_RC_FRS_BASE      2400	/* up to  3072 */
 #define NCSCC_RC_LEC_BASE      3073	/* up to  4096 */
 #define NCSCC_RC_IPOA_BASE     4097	/* up to  5120 */
-#define NCSCC_RC_NCSLES_BASE    5121	/* up to  6144 */
+#define NCSCC_RC_NCSLES_BASE   5121	/* up to  6144 */
 #define NCSCC_RC_FRF5_BASE     6145	/* up to  7168 */
 #define NCSCC_RC_PNNI_BASE     7169	/* up to  8192 */
 #define NCSCC_RC_FRF8_BASE     8193	/* up to  9216 */
@@ -349,14 +223,6 @@ extern "C" {
                     MACROS
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
-#define NP_MAX_FILENAME_LEN         32
-#define NP_MAX_PATHNAME_LEN         128
-
-#define m_tst(v,f)  ((v) & (f))
-#define m_set(v,f)  ((v) |= (f))
-#define m_rst(v,f)  ((v) &= ~(f))
-#define m_tog(v,f)  ((v) ^= (f))
 
 /*************************************************
  * Maximum Slots (Including sub slots) supported
@@ -377,28 +243,9 @@ extern "C" {
  * gl_defs.h, and remove the include defenations from this file 
  *****************************************************************************/
 
-/* NEEDS_TO_BE_REMOVED_FROM_LEAP */
-#if (NCS_IP_SERVICES==1)
-#include "ncs_iplib.h"
-
-	/* The below two includes were added to overcome the issues
-	   rely upon LEAP to include the files they need. i.e. below
-	 */
-#include "ncs_ipprm.h"		/* Req'd for primitive interfaces */
-#include "ncs_ip.h"
-#endif
-
-#ifndef NCS_SAF
-#define NCS_SAF  0
-#endif
-
 #define NCS_MDS  1
-#define NCS_CLI  1
 
 #define NCS_IPV6 0
-#define NCS_MTREE_PAT_STYLE_SUPPORTED 1
-
-#include "ncs_osprm.h"
 
 	typedef uns64 MDS_DEST;
 
@@ -413,18 +260,6 @@ extern "C" {
                                 destination.
 */
 #define m_NCS_NODE_ID_FROM_MDS_DEST(mdsdest) ((uns32) (((uns64)(mdsdest))>>32))
-
-#ifndef NAME_MAX
-#define NAME_MAX 255
-#endif
-
-#ifndef HOST_NAME_MAX
-#define HOST_NAME_MAX 64
-#endif
-
-#ifndef PTHREAD_MUTEX_RECURSIVE
-#define PTHREAD_MUTEX_RECURSIVE 1
-#endif
 
 #ifdef  __cplusplus
 }

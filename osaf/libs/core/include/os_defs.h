@@ -66,7 +66,6 @@ struct msgbuf {
 #include <semaphore.h>
 
 #include <errno.h>
-/*#include <asm/ioctls.h>*/
 #include <sys/ioctl.h>
 #include <ctype.h>
 #include <termios.h>
@@ -111,8 +110,6 @@ extern "C" {
 
 	extern NCS_BOOL ncs_is_root(void);
 #define m_GET_MSEC_TIME_STAMP(seconds, millisec) get_msec_time(seconds, millisec)
-
-#define NCS_MKDIR_DEFINED
 
 /*****************************************************************************
  **                                                                         **

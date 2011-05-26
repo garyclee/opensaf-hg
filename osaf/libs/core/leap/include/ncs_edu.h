@@ -61,6 +61,16 @@
 #endif
 #define EDP_OP_TYPE_ADMIN   0xffff0002
 
+/* Format types, proprietory to NCS used in EDU */
+typedef enum ncs_edu_fmat_tag {
+	NCS_EDU_FMAT_8BIT,  /* 8 bit    */
+	NCS_EDU_FMAT_16BIT, /* 16 bit   */
+	NCS_EDU_FMAT_32BIT, /* 32 bit   */
+	NCS_EDU_FMAT_64BIT, /* 64 bit   */
+	NCS_EDU_FMAT_OCT,   /* Octet */
+	NCS_EDU_FMAT_CNT    /* Count of instances */
+} NCS_EDU_FMAT;
+
 /* Administrative operations on the EDU programs. Responsibility of EDU
    only. */
 typedef enum {

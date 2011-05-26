@@ -316,7 +316,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
 					i_su = i_su->avnd_list_su_next;
 				}
-			}	/* if(n2d_msg->msg_info.n2d_opr_state.node_oper_state == NCS_OPER_STATE_DISABLE) */
+			}	/* if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 		} /* if(cb->init_state == AVD_INIT_DONE) */
 		else if (cb->init_state == AVD_APP_STATE) {
 			avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
@@ -408,7 +408,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					i_su = i_su->avnd_list_su_next;
 				}	/* while(i_su != AVD_SU_NULL) */
 
-			} else {	/* if(n2d_msg->msg_info.n2d_opr_state.node_oper_state == NCS_OPER_STATE_DISABLE) */
+			} else { /* if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 
 				if (su->list_of_susi != AVD_SU_SI_REL_NULL) {
 					/* Since assignments exists call the SG FSM.
@@ -483,11 +483,11 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					goto done;
 				}
 
-			}	/*else (n2d_msg->msg_info.n2d_opr_state.node_oper_state == NCS_OPER_STATE_DISABLE) */
+			} /* else (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 
 		}
 		/* else if(cb->init_state == AVD_APP_STATE) */
-	} /* if(n2d_msg->msg_info.n2d_opr_state.su_oper_state == NCS_OPER_STATE_DISABLE) */
+	} /* if (n2d_msg->msg_info.n2d_opr_state.su_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 	else if (n2d_msg->msg_info.n2d_opr_state.su_oper_state == SA_AMF_OPERATIONAL_ENABLED) {
 		avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
 		/* if the SU is NCS SU, mark the SU readiness state as in service and call
