@@ -56,7 +56,7 @@ uint32_t plma_mds_get_handle()
 	plma_cb->mds_hdl = arg.info.adest_get_hdls.o_mds_pwe1_hdl;
 	plma_cb->mdest_id = arg.info.adest_get_hdls.o_adest;
 	TRACE_5("PLM agent handle got : %d", plma_cb->mds_hdl);
-	TRACE_5("PLM agent mdest ID got : %llu", plma_cb->mdest_id);
+	TRACE_5("PLM agent mdest ID got : %" PRIu64, plma_cb->mdest_id);
 
 	
 	TRACE_LEAVE();

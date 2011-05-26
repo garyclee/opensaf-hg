@@ -27,6 +27,7 @@
 #include <time.h>
 #include <signal.h>
 #include <poll.h>
+#include <dlfcn.h>
 #include <configmake.h>
 
 #include <rda_papi.h>

@@ -22,6 +22,7 @@
 
 @author	:  Emerson Network Power.
 *****************************************************************************/
+#include <dlfcn.h>
 
 #include "plms.h"
 #include "plms_utils.h"

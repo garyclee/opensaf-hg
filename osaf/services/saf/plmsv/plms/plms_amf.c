@@ -26,6 +26,8 @@ DESCRIPTION:
 This include file contains AMF interaction logic for health-check and other
 stuff.
 *******************************************************************************/
+#include <dlfcn.h>
+
 #include "plms.h"
 #include "plms_hsm.h"
 #include "plms_mbcsv.h"
