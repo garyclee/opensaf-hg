@@ -140,25 +140,25 @@ static void asapi_reg_enc(ASAPi_REG_INFO *msg, NCS_UBAID *pBuff)
 	ncs_enc_claim_space(pBuff, sizeof(uint8_t));
 
 	/* Encode Total Length of the Message */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 	pLength = pStream;
 	/* As of now encode 0 coz we donno the total length of the msg yet */
 	ncs_encode_16bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns16));
+	ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 	if (ASAPi_OBJ_GROUP == msg->objtype) {
 		/* Encode Group Information */
 		asapi_ginfo_enc(&msg->group, msg->policy, pBuff);
 
 		/* Encode Queue Name Length */
-		pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+		pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 		ncs_encode_16bit(&pStream, 0);
-		ncs_enc_claim_space(pBuff, sizeof(uns16));
+		ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 	} else if (ASAPi_OBJ_QUEUE == msg->objtype) {
 		/* Encode Group Name Length */
-		pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+		pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 		ncs_encode_16bit(&pStream, 0);
-		ncs_enc_claim_space(pBuff, sizeof(uns16));
+		ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 		/* Encode Queue Information */
 		asapi_qinfo_enc(&msg->queue, pBuff);
@@ -174,7 +174,7 @@ static void asapi_reg_enc(ASAPi_REG_INFO *msg, NCS_UBAID *pBuff)
 	   Now encode the total length of the registration message 
 	 */
 	fval += pBuff->ttl;
-	ncs_encode_16bit(&pLength, ((uns16)(fval - ival)));
+	ncs_encode_16bit(&pLength, ((uint16_t)(fval - ival)));
 }	/* End of asapi_reg_enc() */
 
 /****************************************************************************\
@@ -200,25 +200,25 @@ static void asapi_reg_resp_enc(ASAPi_REG_RESP_INFO *msg, NCS_UBAID *pBuff)
 	ncs_enc_claim_space(pBuff, sizeof(msg->err.flag));
 
 	/* Encode Total Length of the Message */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 	pLength = pStream;
 	/* As of now encode 0 coz we donno the total length of the msg yet */
 	ncs_encode_16bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns16));
+	ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 	if (ASAPi_OBJ_GROUP == msg->objtype) {
 		/* Encode Group Name & Length */
 		asapi_name_enc(&msg->group, pBuff);
 
 		/* Encode Queue Name Length */
-		pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+		pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 		ncs_encode_16bit(&pStream, 0);
-		ncs_enc_claim_space(pBuff, sizeof(uns16));
+		ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 	} else if (ASAPi_OBJ_QUEUE == msg->objtype) {
 		/* Encode Group Name Length */
-		pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+		pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 		ncs_encode_16bit(&pStream, 0);
-		ncs_enc_claim_space(pBuff, sizeof(uns16));
+		ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 		/* Encode Queue Name & Length */
 		asapi_name_enc(&msg->queue, pBuff);
@@ -242,7 +242,7 @@ static void asapi_reg_resp_enc(ASAPi_REG_RESP_INFO *msg, NCS_UBAID *pBuff)
 	   Now encode the total length of the registration message 
 	 */
 	fval += pBuff->ttl;
-	ncs_encode_16bit(&pLength, ((uns16)(fval - ival)));
+	ncs_encode_16bit(&pLength, ((uint16_t)(fval - ival)));
 
 }	/* End of asapi_reg_resp_enc() */
 
@@ -269,11 +269,11 @@ static void asapi_dereg_enc(ASAPi_DEREG_INFO *msg, NCS_UBAID *pBuff)
 	ncs_enc_claim_space(pBuff, sizeof(uint8_t));
 
 	/* Encode Total Length of the Message */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 	pLength = pStream;
 	/* As of now encode 0 coz we donno the total length of the msg yet */
 	ncs_encode_16bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns16));
+	ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 	if (ASAPi_OBJ_GROUP == msg->objtype) {
 		/* Encode Group Name & Length */
@@ -281,9 +281,9 @@ static void asapi_dereg_enc(ASAPi_DEREG_INFO *msg, NCS_UBAID *pBuff)
 		asapi_name_enc(&msg->queue, pBuff);
 	} else if (ASAPi_OBJ_QUEUE == msg->objtype) {
 		/* Encode Group Name & Length */
-		pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+		pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 		ncs_encode_16bit(&pStream, 0);
-		ncs_enc_claim_space(pBuff, sizeof(uns16));
+		ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 		/* Encode Queue Name & Length */
 		asapi_name_enc(&msg->queue, pBuff);
@@ -299,7 +299,7 @@ static void asapi_dereg_enc(ASAPi_DEREG_INFO *msg, NCS_UBAID *pBuff)
 	   Now encode the total length of the de-registration message 
 	 */
 	fval += pBuff->ttl;
-	ncs_encode_16bit(&pLength, ((uns16)(fval - ival)));
+	ncs_encode_16bit(&pLength, ((uint16_t)(fval - ival)));
 }	/* End of asapi_dereg_enc() */
 
 /****************************************************************************\
@@ -325,25 +325,25 @@ static void asapi_dereg_resp_enc(ASAPi_DEREG_RESP_INFO *msg, NCS_UBAID *pBuff)
 	ncs_enc_claim_space(pBuff, sizeof(msg->err.flag));
 
 	/* Encode Total Length of the Message */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 	pLength = pStream;
 	/* As of now encode 0 coz we donno the total length of the msg yet */
 	ncs_encode_16bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns16));
+	ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 	if (ASAPi_OBJ_GROUP == msg->objtype) {
 		/* Encode Group Name & Length */
 		asapi_name_enc(&msg->group, pBuff);
 
 		/* Encode Queue Name Length */
-		pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+		pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 		ncs_encode_16bit(&pStream, 0);
-		ncs_enc_claim_space(pBuff, sizeof(uns16));
+		ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 	} else if (ASAPi_OBJ_QUEUE == msg->objtype) {
 		/* Encode Group Name Length */
-		pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+		pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 		ncs_encode_16bit(&pStream, 0);
-		ncs_enc_claim_space(pBuff, sizeof(uns16));
+		ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 		/* Encode Queue Name & Length */
 		asapi_name_enc(&msg->queue, pBuff);
@@ -367,7 +367,7 @@ static void asapi_dereg_resp_enc(ASAPi_DEREG_RESP_INFO *msg, NCS_UBAID *pBuff)
 	   Now encode the total length of the de-registration message 
 	 */
 	fval += pBuff->ttl;
-	ncs_encode_16bit(&pLength, ((uns16)(fval - ival)));
+	ncs_encode_16bit(&pLength, ((uint16_t)(fval - ival)));
 }	/* End of asapi_dereg_resp_enc() */
 
 /****************************************************************************\
@@ -393,11 +393,11 @@ static void asapi_nreslove_enc(ASAPi_NRESOLVE_INFO *msg, NCS_UBAID *pBuff)
 	ncs_enc_claim_space(pBuff, sizeof(msg->track));
 
 	/* Encode Total Length of the Message */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 	pLength = pStream;
 	/* As of now encode 0 coz we donno the total length of the msg yet */
 	ncs_encode_16bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns16));
+	ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 	/* Encode Name */
 	asapi_name_enc(&msg->object, pBuff);
@@ -406,7 +406,7 @@ static void asapi_nreslove_enc(ASAPi_NRESOLVE_INFO *msg, NCS_UBAID *pBuff)
 	   Now encode the total length of the Name Resolution message 
 	 */
 	fval += pBuff->ttl;
-	ncs_encode_16bit(&pLength, ((uns16)(fval - ival)));
+	ncs_encode_16bit(&pLength, ((uint16_t)(fval - ival)));
 }	/* End of asapi_nreslove_enc() */
 
 /****************************************************************************\
@@ -447,11 +447,11 @@ static void asapi_getqueue_enc(ASAPi_GETQUEUE_INFO *msg, NCS_UBAID *pBuff)
 	ncs_enc_claim_space(pBuff, sizeof(uint8_t));
 
 	/* Encode Total Length of the Message */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 	pLength = pStream;
 	/* As of now encode 0 coz we donno the total length of the msg yet */
 	ncs_encode_16bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns16));
+	ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 	/* Encode Queue name & length */
 	asapi_name_enc(&msg->queue, pBuff);
@@ -460,7 +460,7 @@ static void asapi_getqueue_enc(ASAPi_GETQUEUE_INFO *msg, NCS_UBAID *pBuff)
 	   Now encode the total length of the Name Resolution message 
 	 */
 	fval += pBuff->ttl;
-	ncs_encode_16bit(&pLength, ((uns16)(fval - ival)));
+	ncs_encode_16bit(&pLength, ((uint16_t)(fval - ival)));
 }	/* End of asapi_getqueue_enc() */
 
 /****************************************************************************\
@@ -486,11 +486,11 @@ static void asapi_getqueue_resp_enc(ASAPi_GETQUEUE_RESP_INFO *msg, NCS_UBAID *pB
 	ncs_enc_claim_space(pBuff, sizeof(msg->err.flag));
 
 	/* Encode Total Length of the Message */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 	pLength = pStream;
 	/* As of now encode 0 coz we donno the total length of the msg yet */
 	ncs_encode_16bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns16));
+	ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 	/* Encode Queue information */
 	asapi_qinfo_enc(&msg->queue, pBuff);
@@ -507,7 +507,7 @@ static void asapi_getqueue_resp_enc(ASAPi_GETQUEUE_RESP_INFO *msg, NCS_UBAID *pB
 	   Now encode the total length of the Name Resolution message 
 	 */
 	fval += pBuff->ttl;
-	ncs_encode_16bit(&pLength, ((uns16)(fval - ival)));
+	ncs_encode_16bit(&pLength, ((uint16_t)(fval - ival)));
 }	/* End of asapi_getqueue_resp_enc() */
 
 /****************************************************************************\
@@ -533,11 +533,11 @@ static void asapi_track_enc(ASAPi_TRACK_INFO *msg, NCS_UBAID *pBuff)
 	ncs_enc_claim_space(pBuff, sizeof(msg->val));
 
 	/* Encode Total Length of the Message */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 	pLength = pStream;
 	/* As of now encode 0 coz we donno the total length of the msg yet */
 	ncs_encode_16bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns16));
+	ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 	/* Encode Object name & length */
 	asapi_name_enc(&msg->object, pBuff);
@@ -546,7 +546,7 @@ static void asapi_track_enc(ASAPi_TRACK_INFO *msg, NCS_UBAID *pBuff)
 	   Now encode the total length of the registration message 
 	 */
 	fval += pBuff->ttl;
-	ncs_encode_16bit(&pLength, ((uns16)(fval - ival)));
+	ncs_encode_16bit(&pLength, ((uint16_t)(fval - ival)));
 }	/* End of asapi_track_enc() */
 
 /****************************************************************************\
@@ -578,7 +578,7 @@ static void asapi_track_resp_enc(ASAPi_TRACK_RESP_INFO *msg, NCS_UBAID *pBuff)
 static void asapi_obj_info_enc(ASAPi_OBJECT_INFO *info, ASAPi_ERR_INFO *err, NCS_UBAID *pBuff)
 {
 	uint8_t *pStream = 0, *pLength = 0;
-	uns16 idx = 0;
+	uint16_t idx = 0;
 	int32 ival = 0, fval = 0;
 
 	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
@@ -589,18 +589,18 @@ static void asapi_obj_info_enc(ASAPi_OBJECT_INFO *info, ASAPi_ERR_INFO *err, NCS
 	ncs_enc_claim_space(pBuff, sizeof(err->flag));
 
 	/* Encode Total Length of the Message */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 	pLength = pStream;
 	/* As of now encode 0 coz we donno the total length of the msg yet */
 	ncs_encode_16bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns16));
+	ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 	/* Encode Group Information */
 	asapi_ginfo_enc(&info->group, info->policy, pBuff);
 
 	/* Encode number of sources */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(info->qcnt));
-	ncs_encode_16bit(&pStream, ((uns16)(info->qcnt)));
+	ncs_encode_16bit(&pStream, ((uint16_t)(info->qcnt)));
 	ncs_enc_claim_space(pBuff, sizeof(info->qcnt));
 
 	/* Encode Queue information */
@@ -620,7 +620,7 @@ static void asapi_obj_info_enc(ASAPi_OBJECT_INFO *info, ASAPi_ERR_INFO *err, NCS
 	   Now encode the total length of the Name Resolution message 
 	 */
 	fval += pBuff->ttl;
-	ncs_encode_16bit(&pLength, ((uns16)(fval - ival)));
+	ncs_encode_16bit(&pLength, ((uint16_t)(fval - ival)));
 }	/* End of asapi_obj_info_enc() */
 
 /****************************************************************************\
@@ -636,7 +636,7 @@ static void asapi_obj_info_enc(ASAPi_OBJECT_INFO *info, ASAPi_ERR_INFO *err, NCS
 static void asapi_track_ntfy_enc(ASAPi_TRACK_NTFY_INFO *msg, NCS_UBAID *pBuff)
 {
 	uint8_t *pStream = 0, *pLength = 0;
-	uns16 idx = 0;
+	uint16_t idx = 0;
 	int32 ival = 0, fval = 0;
 
 	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
@@ -647,11 +647,11 @@ static void asapi_track_ntfy_enc(ASAPi_TRACK_NTFY_INFO *msg, NCS_UBAID *pBuff)
 	ncs_enc_claim_space(pBuff, sizeof(uint8_t));
 
 	/* Encode Total Length of the Message */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint16_t));
 	pLength = pStream;
 	/* As of now encode 0 coz we donno the total length of the msg yet */
 	ncs_encode_16bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns16));
+	ncs_enc_claim_space(pBuff, sizeof(uint16_t));
 
 	/* Encode Track Operation */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(msg->opr));
@@ -663,7 +663,7 @@ static void asapi_track_ntfy_enc(ASAPi_TRACK_NTFY_INFO *msg, NCS_UBAID *pBuff)
 
 	/* Encode number of sources */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(msg->oinfo.qcnt));
-	ncs_encode_16bit(&pStream, ((uns16)(msg->oinfo.qcnt)));
+	ncs_encode_16bit(&pStream, ((uint16_t)(msg->oinfo.qcnt)));
 	ncs_enc_claim_space(pBuff, sizeof(msg->oinfo.qcnt));
 
 	/* Encode Queue information */
@@ -675,7 +675,7 @@ static void asapi_track_ntfy_enc(ASAPi_TRACK_NTFY_INFO *msg, NCS_UBAID *pBuff)
 	   Now encode the total length of the Name Resolution message 
 	 */
 	fval += pBuff->ttl;
-	ncs_encode_16bit(&pLength, ((uns16)(fval - ival)));
+	ncs_encode_16bit(&pLength, ((uint16_t)(fval - ival)));
 }	/* End of asapi_track_ntfy_enc() */
 
 /****************************************************************************\
@@ -695,7 +695,7 @@ static void asapi_ginfo_enc(SaNameT *group, SaMsgQueueGroupPolicyT policy, NCS_U
 
 	/* Encode Group Name Length */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(group->length));
-	ncs_encode_16bit(&pStream, ((uns16)(group->length)));
+	ncs_encode_16bit(&pStream, ((uint16_t)(group->length)));
 	ncs_enc_claim_space(pBuff, sizeof(group->length));
 
 	if (group->length) {
@@ -788,7 +788,7 @@ static void asapi_name_enc(SaNameT *name, NCS_UBAID *pBuff)
 
 	/* Encode Name Length */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(name->length));
-	ncs_encode_16bit(&pStream, ((uns16)(name->length)));
+	ncs_encode_16bit(&pStream, ((uint16_t)(name->length)));
 	ncs_enc_claim_space(pBuff, sizeof(name->length));
 
 	/* Encode Name */

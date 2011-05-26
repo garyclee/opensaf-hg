@@ -51,7 +51,7 @@ static uns32 mqd_asapi_nresolve_hdlr(MQD_CB *, ASAPi_NRESOLVE_INFO *, MQSV_SEND_
 static uns32 mqd_asapi_getqueue_hdlr(MQD_CB *, ASAPi_GETQUEUE_INFO *, MQSV_SEND_INFO *);
 static uns32 mqd_asapi_track_hdlr(MQD_CB *, ASAPi_TRACK_INFO *, MQSV_SEND_INFO *);
 static NCS_BOOL mqd_asapi_obj_validate(MQD_CB *, SaNameT *, MQD_OBJ_NODE **);
-static uns32 mqd_asapi_queue_make(MQD_OBJ_INFO *, ASAPi_QUEUE_PARAM **, uns16 *, NCS_BOOL);
+static uns32 mqd_asapi_queue_make(MQD_OBJ_INFO *, ASAPi_QUEUE_PARAM **, uint16_t *, NCS_BOOL);
 static uns32 mqd_asapi_resp_send(ASAPi_MSG_INFO *, MQSV_SEND_INFO *);
 static uns32 mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *, ASAPi_OBJECT_OPR);
 static NCS_BOOL mqd_check_for_namespace_collision(MQD_OBJ_NODE *, MQSV_OBJ_TYPE);
@@ -559,7 +559,7 @@ static uns32 mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nresolve
 	MQD_OBJ_NODE *pObjNode = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	ASAPi_QUEUE_PARAM *pQueue = 0;
-	uns16 qcnt = 0;
+	uint16_t qcnt = 0;
 	ASAPi_MSG_INFO msg;
 	MQD_A2S_TRACK_INFO track;
 
@@ -768,7 +768,7 @@ static uns32 mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SE
 	uns32 rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO msg;
 	ASAPi_QUEUE_PARAM *pQueue = 0;
-	uns16 qcnt = 0;
+	uint16_t qcnt = 0;
 	MQD_A2S_TRACK_INFO async_track;
 
 	memset(&msg, 0, sizeof(msg));
@@ -971,7 +971,7 @@ uns32 mqd_asapi_track_db_upd(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND_IN
 static uns32 mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_OPR opr)
 {
 	ASAPi_QUEUE_PARAM *pQueue = 0;
-	uns16 qcnt = 0;
+	uint16_t qcnt = 0;
 	ASAPi_MSG_INFO msg;
 	MQSV_SEND_INFO info = {0};
 	NCS_Q_ITR itr;
@@ -1095,9 +1095,9 @@ static uns32 mqd_asapi_resp_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *info)
                      FAILURE - internal processing didn't like something.
                      <ERR_CODE> Specific errors
 \****************************************************************************/
-static uns32 mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM **o_queue, uns16 *o_cnt, NCS_BOOL select)
+static uns32 mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM **o_queue, uint16_t *o_cnt, NCS_BOOL select)
 {
-	uns16 qcnt = 0;
+	uint16_t qcnt = 0;
 	ASAPi_QUEUE_PARAM *pQueue = 0;
 	MQD_OBJECT_ELEM *pOelm = 0;
 	uns32 idx = 0;

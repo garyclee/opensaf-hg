@@ -86,7 +86,7 @@ typedef struct ncsdts_arg {
 /* New structure to act as index for loaded ASCII_SPEC library patricia tree */
 typedef struct ascii_spec_index {
 	SS_SVC_ID svc_id;	/* The service id corres. to the spec */
-	uns16 ss_ver;		/* The version id of the spec */
+	uint16_t ss_ver;		/* The version id of the spec */
 } ASCII_SPEC_INDEX;
 
 /***************************************************************************

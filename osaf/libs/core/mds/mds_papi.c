@@ -247,7 +247,7 @@ MDS_VDEST_ID ncs_get_vdest_id_from_mds_dest(MDS_DEST mdsdest)
                                                   NCS_MEM_REGION_PERSISTENT,\
                                                   NCS_SERVICE_ID_MDS,\
                                                   MDS_DIRECT_BUFF_AL)
-MDS_DIRECT_BUFF mds_alloc_direct_buff(uns16 size)
+MDS_DIRECT_BUFF mds_alloc_direct_buff(uint16_t size)
 {
 	if (size > MDS_DIRECT_BUF_MAXSIZE) {
 		m_MDS_LOG_ERR

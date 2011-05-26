@@ -62,7 +62,7 @@ typedef struct ncs_unbind_svc {
 
 typedef struct ncs_bind_svc {
 	SS_SVC_ID svc_id;	/* Service ID of the service wants to register with dtsv */
-	uns16 version;		/* version of the ASCII_SPEC service intends to use */
+	uint16_t version;		/* version of the ASCII_SPEC service intends to use */
 	char svc_name[15];	/* Service name as is given in corr ASCII_SPEC table */
 
 } NCS_BIND_SVC;

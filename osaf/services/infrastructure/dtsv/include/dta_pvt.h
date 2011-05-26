@@ -57,7 +57,7 @@ typedef struct reg_tbl_entry {
 	/* Add all the other new filter elements above this */
 
 	/* version field */
-	uns16 version;
+	uint16_t version;
 	/* Service name */
 	char svc_name[DTSV_SVC_NAME_MAX];
 
@@ -192,7 +192,7 @@ uns32 encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa);
 
 uns32 dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba);
 
-uns32 dta_copy_octets(char **dest, char *src, uns16 length);
+uns32 dta_copy_octets(char **dest, char *src, uint16_t length);
 
 NCS_BOOL dta_match_service(void *key, void *qelem);
 
@@ -209,7 +209,7 @@ uns32 dta_svc_reg_updt(DTA_CB *inst, uns32 svc_id, uns32 enable_log,
 *     Flex Log policy rrelated functions 
 ************************************************************************/
 uns32 dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg);
-uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uns16 version, const char *svc_name,
+uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uint16_t version, const char *svc_name,
 				uint8_t operation);
 
 #define MAX_OCT_LEN             255

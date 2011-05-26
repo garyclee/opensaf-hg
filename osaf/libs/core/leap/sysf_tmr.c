@@ -88,7 +88,7 @@
 /* Timer Debug data points to see who left timers dangling               */
 
 typedef struct sysf_tmr_leak {
-	uns16 isa;		/* validation marker for SYSF_TMR instances */
+	uint16_t isa;		/* validation marker for SYSF_TMR instances */
 	char *file;		/* File name of CREATE or START operation   */
 	uns32 line;		/* File line of CREATE or START operation   */
 	uns32 stamp;		/* Marks loop count to help determine age   */

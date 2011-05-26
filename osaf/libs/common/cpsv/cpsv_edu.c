@@ -678,7 +678,7 @@ FUNC_DECLARATION(DS)
 #define DS  CPSV_ND2D_CKPT_CREATE
 FUNC_DECLARATION(DS)
 {
-	uns16 ver_compare = 0;
+	uint16_t ver_compare = 0;
 	ver_compare = 3;	/* CPD_MDS_PVT_SUBPART_VERSION/CPND_MDS_PVT_SUBPART_VERSION */
 	NCS_ENC_DEC_DECLARATION(DS);
 	NCS_ENC_DEC_ARRAY(DS) {
@@ -689,7 +689,7 @@ FUNC_DECLARATION(DS)
 		EDU_EXEC, FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0,
 			    (long)&((DS *) 0)->attributes, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->ckpt_flags, 0, NULL}, {
-		EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(ver_compare)))}, {
+		EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(ver_compare)))}, {
 		EDU_EXEC, FUNC_NAME(SaVersionT), 0, 0, 0, (long)&((DS *) 0)->client_version, 0, NULL}, {
 	EDU_END, 0, 0, 0, 0, 0, 0, NULL},};
 	NCS_ENC_DEC_REM_FLOW(DS)
@@ -761,7 +761,7 @@ FUNC_DECLARATION(DS)
 #define DS  CPSV_CKPT_RDSET
 FUNC_DECLARATION(DS)
 {
-	uns16 ver_compare = 0;
+	uint16_t ver_compare = 0;
 	ver_compare = 3;	/* CPD_MDS_PVT_SUBPART_VERSION/CPND_MDS_PVT_SUBPART_VERSION */
 	NCS_ENC_DEC_DECLARATION(DS);
 	NCS_ENC_DEC_ARRAY(DS) {
@@ -770,7 +770,7 @@ FUNC_DECLARATION(DS)
 		EDU_START, FUNC_NAME(CPSV_CKPT_RDSET), 0, 0, 0, sizeof(DS), 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS *) 0)->ckpt_id, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS *) 0)->reten_time, 0, NULL}, {
-		EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(ver_compare)))}, {
+		EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(ver_compare)))}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->type, 0, NULL}, {
 	EDU_END, 0, 0, 0, 0, 0, 0, NULL},};
 	NCS_ENC_DEC_REM_FLOW(DS)

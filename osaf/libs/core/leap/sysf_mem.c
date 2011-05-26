@@ -227,7 +227,7 @@ UB_POOL_MGR gl_ub_pool_mgr = {
 
 static uns32 mmgr_ub_svc_init(NCSMMGR_UB_INIT *init)
 {
-	uns16 i;
+	uint16_t i;
 
 	m_PMGR_LK_INIT;
 
@@ -604,21 +604,21 @@ uns32 sysf_get_chain_len(const USRBUF *my_len)
  *
  * Returns: void
  ***************************************************************************/
-void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uns16 *const pCksum)
+void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16_t *const pCksum)
 {
 	uns32 Cksum32 = 0;
 	int bufLen = 0;
-	uns16 *p_operand = NULL, work_var = 0;
+	uint16_t *p_operand = NULL, work_var = 0;
 	NCS_BOOL byte_swapped = FALSE;
 	USRBUF *pUBuf = u;
 	NCS_BOOL is_odd_boundary = FALSE;
 
 	union {
 		uint8_t c[2];
-		uns16 s;
+		uint16_t s;
 	} s_util;
 	union {
-		uns16 s[2];
+		uint16_t s[2];
 		uns32 l;
 	} l_util;
 
@@ -626,14 +626,14 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uns16 
 #define REDUCE   {l_util.l = Cksum32; Cksum32 = l_util.s[0] + l_util.s[1]; ADDCARRY(Cksum32);}
 
 #if (USE_LITTLE_ENDIAN==1)
-#define m_ODD_BYTE_BOUNDARY_CONVERTION(flag, val, pDest16) (*pDest16 = (uns16)((!flag)?m_NCS_OS_NTOHS_P((uint8_t*)(val)):(*val)))
+#define m_ODD_BYTE_BOUNDARY_CONVERTION(flag, val, pDest16) (*pDest16 = (uint16_t)((!flag)?m_NCS_OS_NTOHS_P((uint8_t*)(val)):(*val)))
 #define m_ROTATE_BYTES(num) ((num & 0x0000ff00)>>8)|((num & 0x000000ff)<<8)
 #else
-#define m_ODD_BYTE_BOUNDARY_CONVERTION(flag, val, pDest16) ({if(flag){m_NCS_OS_HTONS_P((uint8_t*)pDest16, (uns16)(*val));}else{((*pDest16) = (*val));}})
+#define m_ODD_BYTE_BOUNDARY_CONVERTION(flag, val, pDest16) ({if(flag){m_NCS_OS_HTONS_P((uint8_t*)pDest16, (uint16_t)(*val));}else{((*pDest16) = (*val));}})
 #define m_ROTATE_BYTES(num)  (num)
 #endif
 
-	s_util.s = (uns16)0;
+	s_util.s = (uint16_t)0;
 
 	/* Do computation of check sum on cumulative of each link in the usrbuf chain */
 	for (; pUBuf && PktLen; pUBuf = pUBuf->link) {
@@ -642,7 +642,7 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uns16 
 			continue;
 
 		/* Get a pointer ot the first 2 bytes in this usrbuf */
-		p_operand = (uns16 *)(pUBuf->payload->Data + pUBuf->start);
+		p_operand = (uint16_t *)(pUBuf->payload->Data + pUBuf->start);
 
 		is_odd_boundary = (1 & (long)(p_operand));
 
@@ -656,7 +656,7 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uns16 
 
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &s_util.s, &work_var);
 			Cksum32 += (uns32)work_var;
-			p_operand = (uns16 *)((uint8_t *)p_operand + 1);
+			p_operand = (uint16_t *)((uint8_t *)p_operand + 1);
 			bufLen = pUBuf->count - 1;
 			PktLen--;
 		} else
@@ -678,7 +678,7 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uns16 
 			REDUCE;
 			Cksum32 <<= 8;
 			s_util.c[0] = *(uint8_t *)p_operand;
-			p_operand = (uns16 *)((uint8_t *)p_operand + 1);
+			p_operand = (uint16_t *)((uint8_t *)p_operand + 1);
 			bufLen--;
 			byte_swapped = TRUE;
 		}
@@ -777,7 +777,7 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uns16 
 	}
 
 	/* Return the ones compliment */
-	*pCksum = (uns16)(~Cksum32);
+	*pCksum = (uint16_t)(~Cksum32);
 }
 
 /***************************************************************************

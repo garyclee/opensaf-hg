@@ -219,7 +219,7 @@ NOTE: is designed to be small (32 bits). Don't mess with this!!!
 	typedef struct ftcc_name {
 		uint8_t ncs_ss;	/* entity type/subsystem; an NCS_SERVICE_ID value   */
 		uint8_t ncs_qual;	/* entity qualifier (ex. SIG = UNI31_NET, PNNI,etc. */
-		uns16 ncs_inst;	/* some assigned value                             */
+		uint16_t ncs_inst;	/* some assigned value                             */
 	} NCSSS_NAME;
 
 /************************************************************************

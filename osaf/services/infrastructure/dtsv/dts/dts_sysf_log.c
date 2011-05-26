@@ -52,7 +52,7 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time, NCS_UBAID
 
 uns32 dts_ascii_spec_register(NCSFL_ASCII_SPEC *spec)
 {
-	uns16 i, j;
+	uint16_t i, j;
 	NCSFL_SET *set = spec->str_set;
 	NCSFL_FMAT *fmat = spec->fmat_set;
 	NCSFL_STR *str;
@@ -199,7 +199,7 @@ uns32 dts_ascii_spec_register(NCSFL_ASCII_SPEC *spec)
                      count goes to 0.
 *****************************************************************************/
 
-uns32 dts_ascii_spec_deregister(SS_SVC_ID ss_id, uns16 version)
+uns32 dts_ascii_spec_deregister(SS_SVC_ID ss_id, uint16_t version)
 {
 	SYSF_ASCII_SPECS *spec_entry;
 	ASCII_SPEC_INDEX spec_key;
@@ -239,7 +239,7 @@ uns32 dts_ascii_spec_deregister(SS_SVC_ID ss_id, uns16 version)
                      char pointer: having the service name. (Should be identical
                      to the service name in the ASCII_SPEC table being loaded.)i
 
-                     uns16 version no. of the ASCII_SPEC table. (Shared
+                     uint16_t version no. of the ASCII_SPEC table. (Shared
                      library should have the identical version no.)
 
                      action to be performed.
@@ -259,7 +259,7 @@ uns32 dts_ascii_spec_deregister(SS_SVC_ID ss_id, uns16 version)
                      functions.
 
 *****************************************************************************/
-NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION action)
+NCSCONTEXT dts_ascii_spec_load(char *svc_name, uint16_t version, DTS_SPEC_ACTION action)
 {
 	char lib_name[DTS_MAX_LIBNAME] = { 0 };
 	char func_name[DTS_MAX_FUNCNAME] = { 0 };
@@ -594,14 +594,14 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 			}
 		case 'M':
 			{
-				uns16 u16_val;
+				uint16_t u16_val;
 
-				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns16));
+				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint16_t));
 				if (data == NULL)
 					return NCSCC_RC_FAILURE;
 
 				u16_val = ncs_decode_16bit(&data);
-				ncs_dec_skip_space(uba, sizeof(uns16));
+				ncs_dec_skip_space(uba, sizeof(uint16_t));
 
 				arg_list[cnt] = (long)u16_val;
 				*log_msg_len += 10;
@@ -630,24 +630,24 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 
 				/* Support for DTA version 1 */
 				if (msg_fmat_ver == 1) {
-					data = ncs_dec_flatten_space(uba, data_buff, (sizeof(uns16) + sizeof(uns32)));
+					data = ncs_dec_flatten_space(uba, data_buff, (sizeof(uint16_t) + sizeof(uns32)));
 					if (data == NULL)
 						return NCSCC_RC_FAILURE;
 
 					mem_d.len = ncs_decode_16bit(&data);
 					mem_addr = ncs_decode_32bit(&data);
-					ncs_dec_skip_space(uba, (sizeof(uns16) + sizeof(uns32)));
+					ncs_dec_skip_space(uba, (sizeof(uint16_t) + sizeof(uns32)));
 				}
 				/* Versioning changes : New code for 64-bit support */
 				else {
 					assert(msg_fmat_ver == 2);
-					data = ncs_dec_flatten_space(uba, data_buff, (sizeof(uns16) + sizeof(uns64)));
+					data = ncs_dec_flatten_space(uba, data_buff, (sizeof(uint16_t) + sizeof(uns64)));
 					if (data == NULL)
 						return NCSCC_RC_FAILURE;
 
 					mem_d.len = ncs_decode_16bit(&data);
 					mem_addr = ncs_decode_64bit(&data);
-					ncs_dec_skip_space(uba, (sizeof(uns16) + sizeof(uns64)));
+					ncs_dec_skip_space(uba, (sizeof(uint16_t) + sizeof(uns64)));
 				}
 
 				mem_d.dump = m_MMGR_ALLOC_OCT(mem_d.len);
@@ -675,12 +675,12 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 			{
 				NCSFL_PDU pdu;
 
-				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns16));
+				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint16_t));
 				if (data == NULL)
 					return NCSCC_RC_FAILURE;
 
 				pdu.len = ncs_decode_16bit(&data);
-				ncs_dec_skip_space(uba, sizeof(uns16));
+				ncs_dec_skip_space(uba, sizeof(uint16_t));
 
 				pdu.dump = m_MMGR_ALLOC_OCT(pdu.len);
 				if (pdu.dump == NULL) {

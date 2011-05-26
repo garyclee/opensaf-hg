@@ -75,12 +75,12 @@
 
 #define m_MQSV_REVERSE_ENDIAN_S(p8, endianness) (        \
    (!endianness ? (                            \
-      ((uns16)((uint8_t*)(p8))[0] <<8 ) |        \
-      ((uns16)((uint8_t*)(p8))[1]     )          \
+      ((uint16_t)((uint8_t*)(p8))[0] <<8 ) |        \
+      ((uint16_t)((uint8_t*)(p8))[1]     )          \
      )                                        \
     :(                                        \
-      ((uns16)((uint8_t*)(p8))[1] <<8 ) |        \
-      ((uns16)((uint8_t*)(p8))[0]     )          \
+      ((uint16_t)((uint8_t*)(p8))[1] <<8 ) |        \
+      ((uint16_t)((uint8_t*)(p8))[0]     )          \
      )                                        \
    ))
 

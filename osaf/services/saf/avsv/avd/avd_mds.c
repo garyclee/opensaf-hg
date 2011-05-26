@@ -247,7 +247,7 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 		if ((info->info.receive.i_fr_svc_id == NCSMDS_SVC_ID_AVND) &&
 		    (info->info.receive.i_to_svc_id == NCSMDS_SVC_ID_AVD)) {
 			NODE_ID node_id = 0;
-			uns16 msg_fmt_ver = 0;
+			uint16_t msg_fmt_ver = 0;
 			node_id = m_NCS_NODE_ID_FROM_MDS_DEST(info->info.receive.i_fr_dest);
 			msg_fmt_ver = info->info.receive.i_msg_fmt_ver;
 			rc = avd_n2d_msg_rcv((AVD_DND_MSG *)info->info.receive.i_msg, node_id, msg_fmt_ver);

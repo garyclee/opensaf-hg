@@ -188,7 +188,7 @@ static uns32 encodeSaNtfAttributeChangeT(NCS_UBAID *uba, uint8_t *p8, uns32 tota
 		return 0;
 	}
 	ncs_encode_16bit(&p8, ntfAttr->attributeId);
-	ncs_encode_16bit(&p8, (uns16)ntfAttr->attributeType);
+	ncs_encode_16bit(&p8, (uint16_t)ntfAttr->attributeType);
 	ncs_encode_32bit(&p8, ntfAttr->oldAttributePresent);
 	ncs_enc_claim_space(uba, 8);
 	total_bytes += 8;
@@ -208,7 +208,7 @@ static uns32 encodeSaNtfAttribute(NCS_UBAID *uba, uint8_t *p8, uns32 total_bytes
 		return 0;
 	}
 	ncs_encode_16bit(&p8, ntfAttr->attributeId);
-	ncs_encode_16bit(&p8, (uns16)ntfAttr->attributeType);
+	ncs_encode_16bit(&p8, (uint16_t)ntfAttr->attributeType);
 	ncs_enc_claim_space(uba, 4);
 	total_bytes += 4;
 	total_bytes += encodeSaNtfValueT(uba, p8, total_bytes, ntfAttr->attributeType, &ntfAttr->attributeValue);

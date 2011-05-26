@@ -50,7 +50,7 @@ typedef enum {
 	MDS_VIEW_RED
 } MDS_VIEW;
 
-typedef uns16 MDS_PWE_ID;
+typedef uint16_t MDS_PWE_ID;
 
 typedef uns64 MDS_SUBTN_REF_VAL;
 
@@ -74,7 +74,7 @@ typedef enum {
 } MDS_ENC_TYPES;
 
 typedef struct mds_direct_buff_info {
-	uns16 len;
+	uint16_t len;
 	MDS_DIRECT_BUFF buff;
 } MDS_DIRECT_BUFF_INFO;
 
@@ -94,9 +94,9 @@ typedef struct mds_encoded_msg {
 typedef struct mds_data_recv {
 
 	MDS_ENCODED_MSG msg;
-	uns16 src_svc_id;
-	uns16 src_pwe_id;
-	uns16 src_vdest;
+	uint16_t src_svc_id;
+	uint16_t src_pwe_id;
+	uint16_t src_vdest;
 	uns32 exchange_id;
 	MDS_SVC_HDL dest_svc_hdl;	/* Got from upper layer by passing SVC,PWE and VDEST */
 	MDS_DEST src_adest;

@@ -771,7 +771,7 @@ void immnd_abortSync(IMMND_CB *cb)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
-	uns16 retryCount = 0;
+	uint16_t retryCount = 0;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 	TRACE_ENTER();
 	TRACE("ME:%u RE:%u", cb->mMyEpoch, cb->mRulingEpoch);

@@ -587,7 +587,7 @@ uns32 mds_st_decode_mds_dest(uint8_t **stream, MDS_DEST *odest)
 USRBUF *ncs_encode_pointer(USRBUF *i_ub, NCSCONTEXT i_pointer)
 {
 	uint8_t *p;
-	uns16 p_len;
+	uint16_t p_len;
 
 	p_len = sizeof(NCSCONTEXT);
 	if ((p = m_MMGR_RESERVE_AT_END(&i_ub, (int32)(p_len + sizeof(uint8_t)), uint8_t *)) != (uint8_t *)0) {

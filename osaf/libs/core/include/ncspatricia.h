@@ -83,7 +83,7 @@ extern "C" {
 								NCS_PATRICIA_NODE *const pNode);
 	NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree,
 								      const uint8_t *const pKey);
-	NCS_PATRICIA_NODE *ncs_patricia_tree_get_best(const NCS_PATRICIA_TREE *const pTree, const uint8_t *const pKey, uns16 KeyLen);	/* Length of key (in BITS) */
+	NCS_PATRICIA_NODE *ncs_patricia_tree_get_best(const NCS_PATRICIA_TREE *const pTree, const uint8_t *const pKey, uint16_t KeyLen);	/* Length of key (in BITS) */
 	NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, const uint8_t *const pKey);	/* NULL means get 1st */
 
 	int ncs_patricia_tree_size(const NCS_PATRICIA_TREE *const pTree);

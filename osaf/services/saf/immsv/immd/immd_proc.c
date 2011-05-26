@@ -370,7 +370,7 @@ uns32 immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, NCS
 		if (res == 0) {
 			if (!active) {
 				IMMSV_FEVS *old_msg = NULL;
-				uns16 back_count = 2;
+				uint16_t back_count = 2;
 				TRACE_5("Re-broadcast the last two fevs messages received over mbcpsv");
 				do {
 					old_msg = immd_db_get_fevs(cb, back_count);

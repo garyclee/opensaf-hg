@@ -31,13 +31,13 @@ typedef enum dtm_ip_addr_type {
 
 typedef struct dtm_internode_unsent_msgs {
 	struct dtm_internode_unsent_msgs *next;
-	uns16 len;
+	uint16_t len;
 	uint8_t *buffer;
 } DTM_INTERNODE_UNSENT_MSGS;
 
 /* Node structure */
 typedef struct node_list {
-	uns16 cluster_id;
+	uint16_t cluster_id;
 	NODE_ID node_id;
 	char node_name[MAX_NAME_LENGTH];
 	char node_ip[IPV6_ADDR_UNS8_CNT];
@@ -53,8 +53,8 @@ typedef struct node_list {
 	DTM_INTERNODE_UNSENT_MSGS *msgs_hdr;
 	DTM_INTERNODE_UNSENT_MSGS *msgs_tail;
 	/* Message related */
-	uns16 bytes_tb_read;
-	uns16 buff_total_len;
+	uint16_t bytes_tb_read;
+	uint16_t buff_total_len;
 	uint8_t len_buff[2];
 	uint8_t num_by_read_for_len_buff;
 	uint8_t *buffer;
@@ -64,7 +64,7 @@ char remoteIP[INET6_ADDRSTRLEN];
 
 /*  control block */
 typedef struct dtm_internode_cb {
-	uns16 cluster_id;
+	uint16_t cluster_id;
 	NODE_ID node_id;	/* Self  Node Id  */
 	char node_name[MAX_NAME_LENGTH];	/* optional */
 	char ip_addr[INET6_ADDRSTRLEN];	/* ipv4 ipv6 addrBuffer */

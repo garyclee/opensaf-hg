@@ -795,7 +795,7 @@ uns32 clms_send_async_update(CLMS_CB * cb, CLMS_CKPT_REC * ckpt_rec, uns32 actio
 static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 mbcsv_version;
+	uint16_t mbcsv_version;
 
 	TRACE_ENTER();
 	assert(cbk_arg != NULL);
@@ -1940,7 +1940,7 @@ uns32 enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
 static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 msg_fmt_version;
+	uint16_t msg_fmt_version;
 
 	TRACE_ENTER();
 
@@ -2655,7 +2655,7 @@ static uns32 decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER * param)
  ***************************************************************************/
 static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
-	uns16 peer_version;
+	uint16_t peer_version;
 
 	peer_version = arg->info.peer.i_peer_version;
 	if (peer_version < CLMS_MBCSV_VERSION_MIN) {

@@ -80,7 +80,7 @@ typedef struct plms_mbcsv_header {
 	PLMS_MBCSV_MSG_TYPE    msg_type; /* Type of mbcsv data */
 	uns32 num_records; /* =1 for async updates,>=1 for cold/warm sync **/
 	uns32 data_len;         /* Total length of encoded data */
-	/* uns16               checksum;  Checksum calculated on the message */
+	/* uint16_t               checksum;  Checksum calculated on the message */
 } PLMS_MBCSV_HEADER;
 
 #if 0

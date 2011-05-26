@@ -150,10 +150,10 @@ typedef struct glsv_glnd_restart_backup_evt_info_tag {
 } GLSV_RESTART_BACKUP_EVT_INFO;
 
 typedef struct glnd_shm_version_tag {
-	uns16 shm_version;	/* Added to provide support for SAF Inservice upgrade facilty */
-	uns16 dummy_version1;	/* Not in use */
-	uns16 dummy_version2;	/* Not in use */
-	uns16 dummy_version3;	/* Not in use */
+	uint16_t shm_version;	/* Added to provide support for SAF Inservice upgrade facilty */
+	uint16_t dummy_version1;	/* Not in use */
+	uint16_t dummy_version2;	/* Not in use */
+	uint16_t dummy_version3;	/* Not in use */
 } GLND_SHM_VERSION;
 
 /*****************************************************************************

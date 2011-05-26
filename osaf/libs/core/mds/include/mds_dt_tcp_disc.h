@@ -77,7 +77,7 @@ server_instance_upper + sub_ref_val + sub_ref_val  + node_id  +process_id */
 #define MDS_MDTM_UPPER_INSTANCE 0xffffffff
 
 typedef struct dtm_intranode_unsent_msgs {
-	uns16 len;
+	uint16_t len;
 	uint8_t *buffer;
 	struct dtm_intranode_unsent_msgs *next;
 } MDTM_INTRANODE_UNSENT_MSGS;

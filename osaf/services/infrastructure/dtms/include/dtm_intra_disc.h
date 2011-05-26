@@ -85,7 +85,7 @@ typedef struct dtm_pid_svc_subscr_info {
 
 typedef struct dtm_intranode_unsent_msgs {
 	struct dtm_intranode_unsent_msgs *next;
-	uns16 len;
+	uint16_t len;
 	uint8_t *buffer;
 } DTM_INTRANODE_UNSENT_MSGS;
 
@@ -104,8 +104,8 @@ typedef struct dtm_intranode_pid_info {
 	DTM_PID_SVC_INSTALLED_INFO *svc_installed_list;
 	DTM_PID_SVC_SUSBCR_INFO *subscr_list;
 	/* Message related */
-	uns16 bytes_tb_read;
-	uns16 buff_total_len;
+	uint16_t bytes_tb_read;
+	uint16_t buff_total_len;
 	uint8_t len_buff[2];
 	uint8_t num_by_read_for_len_buff;
 	uint8_t *buffer;
@@ -173,8 +173,8 @@ uns32 dtm_intranode_process_unsubscribe_msg(uint8_t *buff, int fd);
 uns32 dtm_intranode_process_node_subscribe_msg(uint8_t *buff, int fd);
 uns32 dtm_intranode_process_node_unsubscribe_msg(uint8_t *buff, int fd);
 
-uns32 dtm_process_internode_service_up_msg(uint8_t *buffer, uns16 len, NODE_ID node_id);
-uns32 dtm_process_internode_service_down_msg(uint8_t *buffer, uns16 len, NODE_ID node_id);
+uns32 dtm_process_internode_service_up_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id);
+uns32 dtm_process_internode_service_down_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id);
 uns32 dtm_intranode_process_node_up(NODE_ID node_id, char *node_name, SYSF_MBX mbx);
 uns32 dtm_intranode_process_node_down(NODE_ID node_id);
 

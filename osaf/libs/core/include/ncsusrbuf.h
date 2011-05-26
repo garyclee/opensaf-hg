@@ -65,8 +65,8 @@ extern "C" {
 		SIGSELECT sig_no;	/* Signal number              (OSE based) */
 		uns32 key;	/* distinguishing attribute               */
 		uint8_t pool_id;	/* id must align across environments      */
-		uns16 ttl;	/* total bytes in this USRDATA            */
-		uns16 cur;
+		uint16_t ttl;	/* total bytes in this USRDATA            */
+		uint16_t cur;
 		uns32 used_octets;
 		uns32 d_start;
 

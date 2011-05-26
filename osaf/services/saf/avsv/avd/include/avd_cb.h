@@ -212,8 +212,8 @@ typedef struct cl_cb_tag {
 
 	/********Peer AvD related*********************/
 	AVD_EXT_COMP_INFO ext_comp_info;
-	uns16 peer_msg_fmt_ver;
-	uns16 avd_peer_ver;
+	uint16_t peer_msg_fmt_ver;
+	uint16_t avd_peer_ver;
 
 	/******** IMM related ********/
 	SaImmOiHandleT immOiHandle;

@@ -169,61 +169,61 @@ static uns32 mcm_pvt_red_svc_bcast(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 
 /* Direct Send*/
 static uns32 mcm_pvt_normal_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					   MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					   MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					   MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 
 static uns32 mcm_pvt_red_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					V_DEST_QA anchor,
 					MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 
 static uns32 mcm_pvt_normal_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					      MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					      MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					      MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					      MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 static uns32 mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					      MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					      MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					      MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					      MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 static uns32 mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					       MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					       MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					       MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 static uns32 mcm_pvt_normal_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					       MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					       MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					       MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 static uns32 mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					   MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					   MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					   V_DEST_QA anchor,
 					   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					   MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 static uns32 mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					    MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					    MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					    V_DEST_QA anchor,
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					    MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 static uns32 mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					   MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					   MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					   V_DEST_QA anchor,
 					   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					   MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 static uns32 mcm_pvt_red_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					    MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					    MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					    V_DEST_QA anchor,
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					    MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 
 static uns32 mcm_pvt_normal_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					     MDS_DIRECT_BUFF buff, uns16 len,
+					     MDS_DIRECT_BUFF buff, uint16_t len,
 					     MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					     NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri,
 					     MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 
 static uns32 mcm_pvt_red_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					  MDS_DIRECT_BUFF buff, uns16 len,
+					  MDS_DIRECT_BUFF buff, uint16_t len,
 					  MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					  NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri,
 					  MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
@@ -4981,7 +4981,7 @@ static uns32 mds_mcm_send_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv, uint8_t 
  *
  ****************************************************************************/
 static uns32 mcm_pvt_normal_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					   MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					   MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					   MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
@@ -5008,7 +5008,7 @@ static uns32 mcm_pvt_normal_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id
  *
  ****************************************************************************/
 static uns32 mcm_pvt_red_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					V_DEST_QA anchor,
 					MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
@@ -5037,7 +5037,7 @@ static uns32 mcm_pvt_red_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
  *
  ****************************************************************************/
 static uns32 mcm_pvt_normal_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					      MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					      MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					      MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					      MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
@@ -5129,7 +5129,7 @@ static uns32 mcm_pvt_normal_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc
  *
  ****************************************************************************/
 static uns32 mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					      MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					      MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					      MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					      MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
@@ -5216,7 +5216,7 @@ static uns32 mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc
  *
  ****************************************************************************/
 static uns32 mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					       MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					       MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					       MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
@@ -5316,7 +5316,7 @@ static uns32 mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_sv
  *
  ****************************************************************************/
 static uns32 mcm_pvt_normal_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					       MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					       MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					       MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
@@ -5359,7 +5359,7 @@ static uns32 mcm_pvt_normal_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_sv
  *
  ****************************************************************************/
 static uns32 mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					   MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					   MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					   V_DEST_QA anchor,
 					   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					   MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
@@ -5453,7 +5453,7 @@ static uns32 mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id
  *
  ****************************************************************************/
 static uns32 mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					    MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					    MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					    V_DEST_QA anchor,
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					    MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
@@ -5554,7 +5554,7 @@ static uns32 mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_i
  *
  ****************************************************************************/
 static uns32 mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					   MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					   MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					   V_DEST_QA anchor,
 					   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					   MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
@@ -5642,7 +5642,7 @@ static uns32 mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id
  *
  ****************************************************************************/
 static uns32 mcm_pvt_red_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					    MDS_DIRECT_BUFF buff, uns16 len, MDS_DEST to_dest,
+					    MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					    V_DEST_QA anchor,
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					    MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
@@ -5686,7 +5686,7 @@ static uns32 mcm_pvt_red_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_i
  *
  ****************************************************************************/
 static uns32 mcm_pvt_normal_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					     MDS_DIRECT_BUFF buff, uns16 len,
+					     MDS_DIRECT_BUFF buff, uint16_t len,
 					     MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					     NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri,
 					     MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
@@ -5714,7 +5714,7 @@ static uns32 mcm_pvt_normal_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_
  *
  ****************************************************************************/
 static uns32 mcm_pvt_red_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					  MDS_DIRECT_BUFF buff, uns16 len,
+					  MDS_DIRECT_BUFF buff, uint16_t len,
 					  MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					  NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri,
 					  MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)

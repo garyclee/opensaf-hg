@@ -202,7 +202,7 @@ static uns32 mds_mdtm_process_poll_out(void)
 static uns32 mdtm_add_mds_hdr_tcp(uint8_t *buffer, MDTM_SEND_REQ *req, uns32 len)
 {
 	uint8_t prot_ver = 0, enc_snd_type = 0;
-	uns16 zero_16 = 0;
+	uint16_t zero_16 = 0;
 	uns32 zero_32 = 0;
 
 	uns32 xch_id = 0;
@@ -235,7 +235,7 @@ static uns32 mdtm_add_mds_hdr_tcp(uint8_t *buffer, MDTM_SEND_REQ *req, uns32 len
 
 	/* MDS HDR */
 	ncs_encode_8bit(&ptr, prot_ver);
-	ncs_encode_16bit(&ptr, (uns16)(MDS_HDR_LEN));	/* Will be updated if any additional options are being added at the end */
+	ncs_encode_16bit(&ptr, (uint16_t)(MDS_HDR_LEN));	/* Will be updated if any additional options are being added at the end */
 	ncs_encode_32bit(&ptr, req->svc_seq_num);
 	ncs_encode_8bit(&ptr, enc_snd_type);
 	ncs_encode_16bit(&ptr, req->src_pwe_id);
@@ -280,7 +280,7 @@ static uns32 mdtm_add_mds_hdr_tcp(uint8_t *buffer, MDTM_SEND_REQ *req, uns32 len
  */
 static uns32 mdtm_fill_frag_hdr_tcp(uint8_t *buffer, MDTM_SEND_REQ *req, uns32 len)
 {
-	uns16 zero_16 = 0;
+	uint16_t zero_16 = 0;
 	uns32 zero_32 = 0;
 
 	uint8_t *ptr;
@@ -317,7 +317,7 @@ static uns32 mdtm_fill_frag_hdr_tcp(uint8_t *buffer, MDTM_SEND_REQ *req, uns32 l
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 mdtm_add_frag_hdr_tcp(uint8_t *buf_ptr, uns16 len, uns32 seq_num, uns16 frag_byte)
+static uns32 mdtm_add_frag_hdr_tcp(uint8_t *buf_ptr, uint16_t len, uns32 seq_num, uint16_t frag_byte)
 {
 	/* Add the FRAG HDR to the Buffer */
 	uint8_t *data;
@@ -341,10 +341,10 @@ static uns32 mdtm_frag_and_send_tcp(MDTM_SEND_REQ *req, uns32 seq_num, MDS_MDTM_
 {
 	USRBUF *usrbuf;
 	uns32 len = 0;
-	uns16 len_buf = 0;
+	uint16_t len_buf = 0;
 	uint8_t *p8;
-	uns16 i = 1;
-	uns16 frag_val = 0;
+	uint16_t i = 1;
+	uint16_t frag_val = 0;
 
 	switch (req->msg.encoding) {
 	case MDS_ENC_TYPE_FULL:
@@ -682,7 +682,7 @@ void mdtm_process_poll_recv_data_tcp(void)
 				close(tcp_cb->DBSRsock);
 				exit(0);
 			} else if (2 == recd_bytes) {
-				uns16 local_len_buf = 0;
+				uint16_t local_len_buf = 0;
 
 				data = tcp_cb->len_buff;
 				local_len_buf = ncs_decode_16bit(&data);
@@ -944,7 +944,7 @@ static uns32 mds_mdtm_process_recvdata(uns32 rcv_bytes, uint8_t *buff_in)
 			node_id = ncs_decode_32bit(&buffer);
 			process_id = ncs_decode_32bit(&buffer);
 
-			svc_id = (uns16)(server_type & MDS_EVENT_MASK_FOR_SVCID);
+			svc_id = (uint16_t)(server_type & MDS_EVENT_MASK_FOR_SVCID);
 			vdest = (MDS_VDEST_ID)server_instance_lower;
 			archword_type =
 			    (MDS_SVC_ARCHWORD_TYPE)((server_instance_lower & MDS_ARCHWORD_MASK) >>

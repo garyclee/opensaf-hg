@@ -37,11 +37,11 @@
 * DTSV encode decode message format sizes.
 ***************************************************************************/
 
-#define DTSV_DTS_DTA_MSG_HDR_SIZE    ((sizeof(uns16)) + (sizeof(uint8_t)))
+#define DTSV_DTS_DTA_MSG_HDR_SIZE    ((sizeof(uint16_t)) + (sizeof(uint8_t)))
 #define DTSV_REG_CONF_MSG_SIZE       ((2 * sizeof(uns32)) + sizeof(uint8_t) + sizeof(NCS_BOOL))
 #define DTSV_FLTR_MSG_SIZE           ((2 * sizeof(uns32)) + sizeof(uint8_t) + sizeof(NCS_BOOL))
-#define DTSV_DTA_DTS_HDR_SIZE        (sizeof(uns16) + sizeof(uint8_t))
-#define DTS_LOG_MSG_HDR_SIZE         ((5 * sizeof(uns32)) + (sizeof(uns16)) + (2 * sizeof(uint8_t)))
+#define DTSV_DTA_DTS_HDR_SIZE        (sizeof(uint16_t) + sizeof(uint8_t))
+#define DTS_LOG_MSG_HDR_SIZE         ((5 * sizeof(uns32)) + (sizeof(uint16_t)) + (2 * sizeof(uint8_t)))
 #define DTS_MAX_SIZE_DATA             512
 #define DTS_MAX_DBL_DIGITS            30
 /**************************************************************************
@@ -150,7 +150,7 @@ typedef struct ncsfl_msg {
 typedef struct svc_reg {	/* Data associated with Service Registration with DTS  */
 
 	SS_SVC_ID svc_id;
-	uns16 version;
+	uint16_t version;
 	char svc_name[DTSV_SVC_NAME_MAX];
 
 } SVC_REG;
@@ -158,7 +158,7 @@ typedef struct svc_reg {	/* Data associated with Service Registration with DTS  
 typedef struct svc_unreg {	/* Data associated with Service Unregistration */
 
 	SS_SVC_ID svc_id;
-	uns16 version;
+	uint16_t version;
 	char svc_name[DTSV_SVC_NAME_MAX];
 
 } SVC_UNREG;

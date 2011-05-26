@@ -164,7 +164,7 @@ typedef struct spec_entry {
 **************************************************************************/
 typedef struct spec_ckpt {
 	char svc_name[DTSV_SVC_NAME_MAX];	/*Service name used to load ASCII_SPEC */
-	uns16 version;		/* Version used to load ASCII_SPEC */
+	uint16_t version;		/* Version used to load ASCII_SPEC */
 } SPEC_CKPT;
 
 /*************************************************************************
@@ -300,7 +300,7 @@ typedef struct op_device {
 	uns32 cur_file_size;	/* Current file size */
 	uint8_t new_file;		/* TRUE : Create new file. Set to FALSE after creating file */
 	CIR_BUFFER cir_buffer;	/* Circular buffer */
-	uns16 last_rec_id;
+	uint16_t last_rec_id;
 
 	uint8_t file_log_fmt_change;
 	uint8_t buff_log_fmt_change;
@@ -470,7 +470,7 @@ typedef struct dts_cb {
 	SaSelectionObjectT dts_sel_obj;
 	SaSelectionObjectT dts_amf_sel_obj;
 	uns32 csi_set;
-	uns16 dts_mbcsv_version;
+	uint16_t dts_mbcsv_version;
 	MDS_SVC_PVT_SUB_PART_VER dts_mds_version;
 	SaAmfHealthcheckKeyT health_chk_key;
 	NCS_BOOL healthCheckStarted;
@@ -1077,8 +1077,8 @@ uns32 dts_ascii_spec_reload(DTS_CB *cb);
 * Defines used for converting the log data into strings 
 ************************************************************************/
 #define MAX_OCT_LEN            255
-#define m_S_SET(i)             (uns16)((i&0xffff0000)>>16)
-#define m_S_STR(i)             (uns16)((i)&0x0000ffff)
+#define m_S_SET(i)             (uint16_t)((i&0xffff0000)>>16)
+#define m_S_STR(i)             (uint16_t)((i)&0x0000ffff)
 
 #define m_NCSFL_MAKE_STR(s,p) (s[m_S_SET(p)].set_vals[m_S_STR(p)].str_val)
 
@@ -1099,8 +1099,8 @@ uns32 dts_ascii_spec_reload(DTS_CB *cb);
 
 #define m_NCSFL_MAKE_STR_FROM_PDU(str, len, mem) \
 { \
-   uns16 index; \
-   uns16 mlen; \
+   uint16_t index; \
+   uint16_t mlen; \
    char  buf[10]; \
    \
    *str = '\0'; \

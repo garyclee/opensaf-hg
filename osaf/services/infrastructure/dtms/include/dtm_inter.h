@@ -34,9 +34,9 @@ typedef enum dtm_msg_types {
 } DTM_MSG_TYPES;
 
 extern uns32 dtm_node_up(NODE_ID node_id, char *node_name, SYSF_MBX mbx);
-extern uns32 dtm_internode_process_rcv_up_msg(uint8_t *buffer, uns16 len, NODE_ID node_id);
-extern uns32 dtm_internode_process_rcv_down_msg(uint8_t *buffer, uns16 len, NODE_ID node_id);
+extern uns32 dtm_internode_process_rcv_up_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id);
+extern uns32 dtm_internode_process_rcv_down_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id);
 extern uns32 dtm_node_down(NODE_ID node_id, char *node_name, SYSF_MBX mbx);
-extern uns32 dtm_internode_process_rcv_data_msg(uint8_t *buffer, uns32 dst_pid, uns16 len);
+extern uns32 dtm_internode_process_rcv_data_msg(uint8_t *buffer, uns32 dst_pid, uint16_t len);
 
 #endif

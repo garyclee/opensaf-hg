@@ -22,7 +22,7 @@
 #include <unistd.h>
 
 
-uns16 mdtm_num_subscriptions;
+uint16_t mdtm_num_subscriptions;
 MDS_SUBTN_REF_VAL mdtm_handle;
 extern pid_t mdtm_pid;
 

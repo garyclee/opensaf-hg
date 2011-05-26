@@ -248,7 +248,7 @@ typedef struct edsv_eda_evt_deliver_cb_param_tag {
 } EDSV_EDA_EVT_DELIVER_CBK_PARAM;
 
 typedef struct edsv_eda_clm_status_param_tag {
-	uns16 node_status;
+	uint16_t node_status;
 } EDSV_EDA_CLM_STATUS_CBK_PARAM;
 
 /* wrapper structure for all the callbacks */

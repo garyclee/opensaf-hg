@@ -86,13 +86,13 @@ uns32 mds_mdtm_tx_hdl_unregister_tipc(MDS_DEST adest);
 uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req);
 
 /* Tipc actual send, can be made as Macro even*/
-static uns32 mdtm_sendto(uint8_t *buffer, uns16 buff_len, struct tipc_portid tipc_id);
+static uns32 mdtm_sendto(uint8_t *buffer, uint16_t buff_len, struct tipc_portid tipc_id);
 
 uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid id);
 
 static uns32 mdtm_add_mds_hdr(uint8_t *buffer, MDTM_SEND_REQ *req);
 
-uns16 mds_checksum(uns32 length, uint8_t buff[]);
+uint16_t mds_checksum(uns32 length, uint8_t buff[]);
 
 uns32 mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
 uns32 mds_mdtm_node_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val);
@@ -120,7 +120,7 @@ struct sockaddr_tipc topsrv;
 #define FOREVER ~0
 
 static MDS_SUBTN_REF_VAL handle;
-static uns16 num_subscriptions;
+static uint16_t num_subscriptions;
 
 uns32 mdtm_global_frag_num;
 /*********************************************************
@@ -610,15 +610,15 @@ static uns32 mdtm_process_recv_events(void)
 
 				uint8_t inbuf[MDTM_RECV_BUFFER_SIZE];
 				uint8_t *data;	/* Used for decoding */
-				uns16 recd_bytes = 0;
+				uint16_t recd_bytes = 0;
 #ifdef MDS_CHECKSUM_ENABLE_FLAG
-				uns16 old_checksum = 0;
-				uns16 new_checksum = 0;
+				uint16_t old_checksum = 0;
+				uint16_t new_checksum = 0;
 #endif
 				struct sockaddr_tipc client_addr;
 				socklen_t alen = sizeof(client_addr);
 
-				uns16 recd_buf_len = 0;
+				uint16_t recd_buf_len = 0;
 				m_MDS_LOG_INFO("MDTM: Data received: Processing data ");
 
 				recd_bytes = recvfrom(tipc_cb.BSRsock, inbuf, sizeof(inbuf), 0,
@@ -644,7 +644,7 @@ static uns32 mdtm_process_recv_events(void)
 
 #ifdef MDS_CHECKSUM_ENABLE_FLAG
 					if (inbuf[2] == 1) {
-						old_checksum = ((uns16)inbuf[3] << 8 | inbuf[4]);
+						old_checksum = ((uint16_t)inbuf[3] << 8 | inbuf[4]);
 						inbuf[3] = 0;
 						inbuf[4] = 0;
 						new_checksum = mds_checksum(recd_bytes, inbuf);
@@ -809,7 +809,7 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 
 			uns32 node_status = 0;
 
-			svc_id = (uns16)(type & MDS_EVENT_MASK_FOR_SVCID);
+			svc_id = (uint16_t)(type & MDS_EVENT_MASK_FOR_SVCID);
 			vdest = (MDS_VDEST_ID)(lower);
 			archword_type =
 			    (MDS_SVC_ARCHWORD_TYPE)((lower & MDS_ARCHWORD_MASK) >> (LEN_4_BYTES -
@@ -911,7 +911,7 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 			MDS_VDEST_ID vdest_id;
 			uns32 node_status = 0;
 
-			vdest_id = (uns16)lower;
+			vdest_id = (uint16_t)lower;
 
 			node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE(node);
 
@@ -2123,10 +2123,10 @@ uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid i
 {
 	USRBUF *usrbuf;
 	uns32 len = 0;
-	uns16 len_buf = 0;
+	uint16_t len_buf = 0;
 	uint8_t *p8;
-	uns16 i = 1;
-	uns16 frag_val = 0;
+	uint16_t i = 1;
+	uint16_t frag_val = 0;
 
 	switch (req->msg.encoding) {
 	case MDS_ENC_TYPE_FULL:
@@ -2236,7 +2236,7 @@ uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid i
 
 *********************************************************/
 
-uns32 mdtm_add_frag_hdr(uint8_t *buf_ptr, uns16 len, uns32 seq_num, uns16 frag_byte)
+uns32 mdtm_add_frag_hdr(uint8_t *buf_ptr, uint16_t len, uns32 seq_num, uint16_t frag_byte)
 {
 	/* Add the FRAG HDR to the Buffer */
 	uint8_t *data;
@@ -2269,13 +2269,13 @@ uns32 mdtm_add_frag_hdr(uint8_t *buf_ptr, uns16 len, uns32 seq_num, uns16 frag_b
 
 *********************************************************/
 
-static uns32 mdtm_sendto(uint8_t *buffer, uns16 buff_len, struct tipc_portid id)
+static uns32 mdtm_sendto(uint8_t *buffer, uint16_t buff_len, struct tipc_portid id)
 {
 	/* Can be made as macro even */
 	struct sockaddr_tipc server_addr;
 	int send_len = 0;
 #ifdef MDS_CHECKSUM_ENABLE_FLAG
-	uns16 checksum = 0;
+	uint16_t checksum = 0;
 #endif
 
 	memset(&server_addr, 0, sizeof(server_addr));
@@ -2324,7 +2324,7 @@ static uns32 mdtm_add_mds_hdr(uint8_t *buffer, MDTM_SEND_REQ *req)
 	uint8_t zero_8 = 0;
 #endif
 
-	uns16 zero_16 = 0;
+	uint16_t zero_16 = 0;
 	uns32 zero_32 = 0;
 
 	uns32 xch_id = 0;
@@ -2351,7 +2351,7 @@ static uns32 mdtm_add_mds_hdr(uint8_t *buffer, MDTM_SEND_REQ *req)
 
 	/* MDS HDR */
 	ncs_encode_8bit(&ptr, prot_ver);
-	ncs_encode_16bit(&ptr, (uns16)MDS_HDR_LEN);	/* Will be updated if any additional options are being added at the end */
+	ncs_encode_16bit(&ptr, (uint16_t)MDS_HDR_LEN);	/* Will be updated if any additional options are being added at the end */
 	ncs_encode_32bit(&ptr, req->svc_seq_num);
 	ncs_encode_8bit(&ptr, enc_snd_type);
 	ncs_encode_16bit(&ptr, req->src_pwe_id);

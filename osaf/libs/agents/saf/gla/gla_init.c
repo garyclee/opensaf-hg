@@ -470,7 +470,7 @@ uns32 gla_client_info_send(GLA_CB *gla_cb)
 	SaLckHandleT hdl_id = 0;
 	uns32 ret;
 	hdl_id = 0;
-	uns16 lck_clbk = 0;
+	uint16_t lck_clbk = 0;
 
 	/* take the cb lock */
 	client_info = (GLA_CLIENT_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_client_tree, (uint8_t *)0);
@@ -483,11 +483,11 @@ uns32 gla_client_info_send(GLA_CB *gla_cb)
 		restart_client_info_evt.info.restart_client_info.app_proc_id = gla_cb->process_id;
 		restart_client_info_evt.info.restart_client_info.agent_mds_dest = gla_cb->gla_mds_dest;
 		/* compute the reg_info */
-		lck_clbk |= (uns16)((client_info->lckCallbk.saLckResourceOpenCallback) ? GLSV_LOCK_OPEN_CBK_REG : 0);
-		lck_clbk |= (uns16)((client_info->lckCallbk.saLckLockGrantCallback) ? GLSV_LOCK_GRANT_CBK_REG : 0);
-		lck_clbk |= (uns16)((client_info->lckCallbk.saLckLockWaiterCallback) ? GLSV_LOCK_WAITER_CBK_REG : 0);
+		lck_clbk |= (uint16_t)((client_info->lckCallbk.saLckResourceOpenCallback) ? GLSV_LOCK_OPEN_CBK_REG : 0);
+		lck_clbk |= (uint16_t)((client_info->lckCallbk.saLckLockGrantCallback) ? GLSV_LOCK_GRANT_CBK_REG : 0);
+		lck_clbk |= (uint16_t)((client_info->lckCallbk.saLckLockWaiterCallback) ? GLSV_LOCK_WAITER_CBK_REG : 0);
 		lck_clbk |=
-		    (uns16)((client_info->lckCallbk.saLckResourceUnlockCallback) ? GLSV_LOCK_UNLOCK_CBK_REG : 0);
+		    (uint16_t)((client_info->lckCallbk.saLckResourceUnlockCallback) ? GLSV_LOCK_UNLOCK_CBK_REG : 0);
 
 		restart_client_info_evt.info.restart_client_info.cbk_reg_info = lck_clbk;
 

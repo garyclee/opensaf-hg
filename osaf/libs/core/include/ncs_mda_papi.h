@@ -52,7 +52,7 @@ extern "C" {
 
    Usage:
       MDS_DEST abc;
-      uns16    some_external_unnamed_value = NCSVDA_EXTERNAL_UNNAMED_MIN;
+      uint16_t    some_external_unnamed_value = NCSVDA_EXTERNAL_UNNAMED_MIN;
 
       memset(&abc, 0, sizeof(abc));
       m_NCSVDA_SET_VDEST(abc, some_external_unnamed_value);

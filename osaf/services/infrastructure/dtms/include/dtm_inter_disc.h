@@ -36,7 +36,7 @@ typedef struct dtm_svc_data {
 typedef struct dtm_svc_distribution_list {
 	DTM_SVC_DATA *data_ptr_hdr;
 	DTM_SVC_DATA *data_ptr_tail;
-	uns16 num_elem;
+	uint16_t num_elem;
 } DTM_SVC_DISTRIBUTION_LIST;
 
 extern DTM_SVC_DISTRIBUTION_LIST *dtm_svc_dist_list;

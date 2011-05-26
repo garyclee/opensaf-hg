@@ -101,7 +101,7 @@ extern "C" {
 		MBCSV_REO_HDL io_reo_hdl;	/* client's (private) object hdl       */
 		NCS_UBAID io_uba;	/* Encoded data added to this          */
 		uns64 io_req_context;	/* decoded request info */
-		uns16 i_peer_version;	/* version info of peer as per SAF */
+		uint16_t i_peer_version;	/* version info of peer as per SAF */
 
 	} NCS_MBCSV_CB_ENC;
 
@@ -115,7 +115,7 @@ extern "C" {
 		uns32 i_reo_type;	/* Value passed during encode operation */
 		NCS_UBAID i_uba;	/* data to decode                      */
 		uns64 o_req_context;	/* Keep decoded request information. */
-		uns16 i_peer_version;	/* version info of peer as per SAF */
+		uint16_t i_peer_version;	/* version info of peer as per SAF */
 
 	} NCS_MBCSV_CB_DEC;
 
@@ -126,7 +126,7 @@ extern "C" {
 
 	typedef struct ncs_mbcsv_peer {	/* ncsre_enc::op == NCSRE_PEER_INFO  */
 		NCS_MBCSV_CLIENT_SVCID i_service;	/* The clients NCS_SERVICE_ID */
-		uns16 i_peer_version;	/* version info as per SAF */
+		uint16_t i_peer_version;	/* version info as per SAF */
 
 	} NCS_MBCSV_CB_PEER;
 
@@ -136,7 +136,7 @@ extern "C" {
  ***************************************************************************/
 	typedef struct ncs_mbcsv_cb_notify {
 		NCS_UBAID i_uba;	/* encoded message from my peer */
-		uns16 i_peer_version;	/* version info as per SAF */
+		uint16_t i_peer_version;	/* version info as per SAF */
 		NCSCONTEXT i_msg;	/* Notif context to for notif message */
 
 	} NCS_MBCSV_CB_NOTIFY;
@@ -160,7 +160,7 @@ extern "C" {
 		NCS_MBCSV_ERR_CODES i_code;	/* notification code ID              */
 		NCS_BOOL i_err;	/* if TRUE then ERROR else its INFO  */
 		NCSCONTEXT i_arg;	/* value type mapped to code id      */
-		uns16 i_peer_version;	/* version info as per SAF        */
+		uint16_t i_peer_version;	/* version info as per SAF        */
 
 	} NCS_MBCSV_CB_ERR_IND;
 
@@ -223,7 +223,7 @@ extern "C" {
 
 	typedef struct ncs_mbcsv_initialize {
 		NCS_MBCSV_CB i_mbcsv_cb;	/* client gives callback funcs        */
-		uns16 i_version;	/* client version info as per SAF     */
+		uint16_t i_version;	/* client version info as per SAF     */
 		NCS_MBCSV_CLIENT_SVCID i_service;	/* service id of client               */
 		NCS_MBCSV_HDL o_mbcsv_hdl;	/* MBCSv returns handle for calls       */
 
@@ -252,7 +252,7 @@ extern "C" {
  ***************************************************************************/
 
 	typedef struct ncs_mbcsv_finalize {
-		uns16 i_dummy;	/* noop; dummy keeps struct viable    */
+		uint16_t i_dummy;	/* noop; dummy keeps struct viable    */
 
 	} NCS_MBCSV_FINALIZE;
 

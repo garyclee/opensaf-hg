@@ -150,7 +150,7 @@ static uns32 asapi_reg_dec(NCS_UBAID *pBuff, ASAPi_REG_INFO *msg)
 	uint8_t *stream = 0;
 	uint8_t space[64], flag = 0;	/* sufficient space to decode data */
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 len = 0;
+	uint16_t len = 0;
 	NCS_BOOL gflag = FALSE;
 
 	/* Decode the flag */
@@ -204,7 +204,7 @@ static uns32 asapi_reg_resp_dec(NCS_UBAID *pBuff, ASAPi_REG_RESP_INFO *msg)
 	uint8_t *stream = 0;
 	uint8_t space[64];		/* sufficient space to decode data */
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 len = 0;
+	uint16_t len = 0;
 	NCS_BOOL gflag = FALSE;
 
 	/* Decode the Error flag */
@@ -266,7 +266,7 @@ static uns32 asapi_dereg_dec(NCS_UBAID *pBuff, ASAPi_DEREG_INFO *msg)
 	uint8_t *stream = 0;
 	uint8_t space[64], flag = 0;	/* sufficient space to decode data */
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 len = 0;
+	uint16_t len = 0;
 	NCS_BOOL gflag = FALSE;
 
 	/* Decode the flag */
@@ -320,7 +320,7 @@ static uns32 asapi_dereg_resp_dec(NCS_UBAID *pBuff, ASAPi_DEREG_RESP_INFO *msg)
 	uint8_t *stream = 0;
 	uint8_t space[64];		/* sufficient space to decode data */
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 len = 0;
+	uint16_t len = 0;
 	NCS_BOOL gflag = FALSE;
 
 	/* Decode the Error flag */
@@ -382,7 +382,7 @@ static uns32 asapi_nreslove_dec(NCS_UBAID *pBuff, ASAPi_NRESOLVE_INFO *msg)
 	uint8_t *stream = 0;
 	uint8_t space[64];		/* sufficient space to decode data */
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 len = 0;
+	uint16_t len = 0;
 
 	/* Decode the flag */
 	stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->track));
@@ -435,7 +435,7 @@ static uns32 asapi_getqueue_dec(NCS_UBAID *pBuff, ASAPi_GETQUEUE_INFO *msg)
 	uint8_t *stream = 0;
 	uint8_t space[64], flag = 0;	/* sufficient space to decode data */
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 len = 0;
+	uint16_t len = 0;
 
 	/* Decode the flag */
 	stream = ncs_dec_flatten_space(pBuff, space, sizeof(flag));
@@ -470,7 +470,7 @@ static uns32 asapi_getqueue_resp_dec(NCS_UBAID *pBuff, ASAPi_GETQUEUE_RESP_INFO 
 	uint8_t *stream = 0;
 	uint8_t space[64];		/* sufficient space to decode data */
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 len = 0;
+	uint16_t len = 0;
 
 	/* Decode the Error flag */
 	stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.flag));
@@ -513,7 +513,7 @@ static uns32 asapi_track_dec(NCS_UBAID *pBuff, ASAPi_TRACK_INFO *msg)
 	uint8_t *stream = 0;
 	uint8_t space[64];		/* sufficient space to decode data */
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 len = 0;
+	uint16_t len = 0;
 
 	/* Decode the flag */
 	stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->val));
@@ -568,7 +568,7 @@ static uns32 asapi_obj_info_dec(NCS_UBAID *pBuff, ASAPi_OBJECT_INFO *info, ASAPi
 	uint8_t *stream = 0;
 	uint8_t space[64];		/* sufficient space to decode data */
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 len = 0, idx = 0;
+	uint16_t len = 0, idx = 0;
 
 	/* Decode the Error flag */
 	stream = ncs_dec_flatten_space(pBuff, space, sizeof(err->flag));
@@ -631,7 +631,7 @@ static uns32 asapi_track_ntfy_dec(NCS_UBAID *pBuff, ASAPi_TRACK_NTFY_INFO *msg)
 	uint8_t *stream = 0;
 	uint8_t space[64], flag = 0;	/* sufficient space to decode data */
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 len = 0, idx = 0;
+	uint16_t len = 0, idx = 0;
 
 	/* Decode the flag */
 	stream = ncs_dec_flatten_space(pBuff, space, sizeof(flag));

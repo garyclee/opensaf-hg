@@ -51,7 +51,7 @@ static uns32 dtm_construct_node_info_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *bu
 
 	*pack_size = NODE_INFO_HDR_SIZE + strlen(dtms_cb->node_name);
 
-	ncs_encode_16bit(&data, (uns16)(*pack_size - 2));	/*pkt_type  */
+	ncs_encode_16bit(&data, (uint16_t)(*pack_size - 2));	/*pkt_type  */
 	ncs_encode_32bit(&data, (uns32)(DTM_INTERNODE_SND_MSG_IDENTIFIER));
 	ncs_encode_8bit(&data, (uint8_t)DTM_INTERNODE_SND_MSG_VER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_CONN_DETAILS_MSG_TYPE);
@@ -257,8 +257,8 @@ uns32 dtm_process_node_up_down(NODE_ID node_id, char *node_name, uint8_t comm_st
  * @return NCSCC_RC_FAILURE
  *
  */
-void dtm_internode_process_poll_rcv_msg_common(DTM_NODE_DB * node, uns16 local_len_buf, uint8_t *node_info_hrd,
-					       uns16 node_info_buffer_len, int fd, int *close_conn)
+void dtm_internode_process_poll_rcv_msg_common(DTM_NODE_DB * node, uint16_t local_len_buf, uint8_t *node_info_hrd,
+					       uint16_t node_info_buffer_len, int fd, int *close_conn)
 {
 	DTM_MSG_TYPES pkt_type = 0;
 	uns32 identifier = 0;
@@ -333,7 +333,7 @@ void dtm_internode_process_poll_rcv_msg_common(DTM_NODE_DB * node, uns16 local_l
  * @return NCSCC_RC_FAILURE
  *
  */
-void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uint8_t *node_info_hrd, uns16 node_info_buffer_len)
+void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uint8_t *node_info_hrd, uint16_t node_info_buffer_len)
 {
 	DTM_NODE_DB *node = NULL;
 	TRACE_ENTER();
@@ -359,7 +359,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uint8_t *node_i
 				*close_conn = TRUE;
 				return;
 			} else if (2 == recd_bytes) {
-				uns16 local_len_buf = 0;
+				uint16_t local_len_buf = 0;
 
 				data = node->len_buff;
 				local_len_buf = ncs_decode_16bit(&data);
@@ -508,8 +508,8 @@ void node_discovery_process(void *arg)
 	/* Data Received */
 	uint8_t inbuf[DTM_INTERNODE_RECV_BUFFER_SIZE];
 	uint8_t *data1;		/* Used for DATAGRAM decoding */
-	uns16 recd_bytes = 0;
-	uns16 recd_buf_len = 0;
+	uint16_t recd_bytes = 0;
+	uint16_t recd_buf_len = 0;
 	int node_info_buffer_len = 0;
 	uint8_t node_info_hrd[NODE_INFO_PKT_SIZE];
 	char node_ip[INET6_ADDRSTRLEN];
@@ -844,7 +844,7 @@ void node_discovery_process(void *arg)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_set_poll_fdlist(int fd, uns16 events)
+uns32 dtm_internode_set_poll_fdlist(int fd, uint16_t events)
 {
 	int i = 0;
 

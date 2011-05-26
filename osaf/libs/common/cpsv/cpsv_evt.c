@@ -132,7 +132,7 @@ uns32 cpsv_ckpt_data_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *data)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	uint8_t *header = NULL;
 	CPSV_CKPT_DATA *pdata = data;
-	uns16 num_of_nodes = 0;
+	uint16_t num_of_nodes = 0;
 
 	header = ncs_enc_reserve_space(i_ub, 2);
 	if (!header)
@@ -621,7 +621,7 @@ uns32 cpsv_ckpt_data_decode(CPSV_CKPT_DATA **data, NCS_UBAID *io_uba)
 {
 	uint8_t *pstream = NULL;
 	uint8_t local_data[5];
-	uns16 num_of_nodes;
+	uint16_t num_of_nodes;
 	uns32 rc;
 	CPSV_CKPT_DATA *pdata;
 

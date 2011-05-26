@@ -32,7 +32,7 @@
 extern DTM_INTERNODE_CB *dtms_gl_cb;
 extern uint8_t initial_discovery_phase;
 
-#define BMCAST_MSG_LEN ( sizeof(uns16) + sizeof(uns32) + sizeof(uns32) + sizeof(uns16)
+#define BMCAST_MSG_LEN ( sizeof(uint16_t) + sizeof(uns32) + sizeof(uns32) + sizeof(uint16_t)
 
 #define m_NODE_DISCOVERY_TASKNAME       "NODE_DISCOVERY"
 #define m_NODE_DISCOVERY_TASK_PRIORITY   NCS_TASK_PRIORITY_4
@@ -54,13 +54,13 @@ typedef struct dtm_rcv_msg_elem {
 	uint8_t pri;
 	union {
 		struct {
-			uns16 len;
+			uint16_t len;
 			uint8_t *buffer;
 			uns32 dst_pid;
 		} data;
 
 		struct {
-			uns16 len;
+			uint16_t len;
 			uint8_t *buffer;
 			NODE_ID node_id;
 		} svc_event;
@@ -92,7 +92,7 @@ typedef struct dtm_snd_msg_elem {
 		} svc_event;
 		struct {
 			NODE_ID dst_nodeid;
-			uns16 buff_len;
+			uint16_t buff_len;
 			uint8_t *buffer;
 		} data;
 	} info;

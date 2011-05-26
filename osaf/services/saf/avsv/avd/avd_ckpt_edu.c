@@ -375,7 +375,7 @@ uns32 avsv_edp_ckpt_msg_su(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVD_SU *struct_ptr = NULL, **d_ptr = NULL;
-	uns16 ver_compare = 0;
+	uint16_t ver_compare = 0;
 
 	ver_compare = AVSV_AVD_AVND_MSG_FMT_VER_2;
 
@@ -397,7 +397,7 @@ uns32 avsv_edp_ckpt_msg_su(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SU *)0)->su_switch, 0, NULL},
 		{EDU_EXEC, ncs_edp_int, 0, 0, 0, (long)&((AVD_SU *)0)->su_act_state, 0, NULL},
 
-		{EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(ver_compare)))},
+		{EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(ver_compare)))},
 
 		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0,
 		 (long)&((AVD_SU *)0)->su_is_external, 0, NULL},
@@ -540,7 +540,7 @@ uns32 avsv_edp_ckpt_msg_siass(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVSV_SU_SI_REL_CKPT_MSG *struct_ptr = NULL, **d_ptr = NULL;
-        uns16 base_ver = 0;
+        uint16_t base_ver = 0;
         base_ver = AVSV_AVD_AVND_MSG_FMT_VER_3;
 
 	EDU_INST_SET avsv_ckpt_msg_su_si_rel_rules[] = {
@@ -551,7 +551,7 @@ uns32 avsv_edp_ckpt_msg_siass(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->si_name, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAAMFHASTATET, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->state, 0, NULL},
 		{EDU_EXEC, ncs_edp_int, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->fsm, 0, NULL},
-		{EDU_VER_GE, NULL,   0, 0, 4, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(base_ver)))},
+		{EDU_VER_GE, NULL,   0, 0, 4, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(base_ver)))},
 		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->csi_add_rem, 0, NULL},
 		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->comp_name, 0, NULL},
 		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->csi_name, 0, NULL},
@@ -774,7 +774,7 @@ uns32 avsv_edp_ckpt_msg_si_trans(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVSV_SI_TRANS_CKPT_MSG *struct_ptr = NULL, **d_ptr = NULL;
-        uns16 base_ver = 0;
+        uint16_t base_ver = 0;
         base_ver = AVSV_AVD_AVND_MSG_FMT_VER_3;
 
 	EDU_INST_SET avsv_ckpt_msg_si_trans_rules[] = {

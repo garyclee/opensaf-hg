@@ -45,7 +45,7 @@ SaEvtEventPatternArrayT *edsv_copy_evt_pattern_array(const SaEvtEventPatternArra
 {
 	SaEvtEventPatternArrayT *dst_pattern_array = NULL;
 	SaEvtEventPatternT *src_pattern = NULL, *dst_pattern = NULL;
-	uns16 n = 0;
+	uint16_t n = 0;
 		/** Tracker for the number of patterns **/
 
 	if (NULL == src_pattern_array) {
@@ -175,7 +175,7 @@ SaEvtEventFilterArrayT *edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT 
 {
 	SaEvtEventFilterArrayT *dst_filter_array = NULL;
 	SaEvtEventFilterT *src_filter = NULL, *dst_filter = NULL;
-	uns16 n = 0;
+	uint16_t n = 0;
 		/** Tracker for the number of patterns **/
 
    /** Vaidate the passed in filter array **/
@@ -271,7 +271,7 @@ SaEvtEventFilterArrayT *edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT 
 ******************************************************************************/
 void edsv_free_evt_filter_array(SaEvtEventFilterArrayT *free_filter_array)
 {
-	uns16 n;
+	uint16_t n;
 	SaEvtEventFilterT *free_filter;
 
 	if (NULL == free_filter_array)
@@ -322,7 +322,7 @@ MDS_SEND_PRIORITY_TYPE edsv_map_ais_prio_to_mds_snd_prio(uns32 evt_prio)
 
 void eda_free_event_patterns(SaEvtEventPatternT *patterns, SaSizeT patternsNumber)
 {
-	uns16 n;
+	uint16_t n;
 	SaEvtEventPatternT *free_pattern;
 
 	if (patternsNumber != 0) {

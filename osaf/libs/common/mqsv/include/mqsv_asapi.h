@@ -223,7 +223,7 @@ typedef struct asapi_object_info {
 	SaNameT group;		/* Queue Group Name */
 	SaMsgQueueGroupPolicyT policy;	/* Member Selection Policy */
 	ASAPi_QUEUE_PARAM *qparam;	/* Queue Parameters */
-	uns16 qcnt;		/* Number of Queues */
+	uint16_t qcnt;		/* Number of Queues */
 } ASAPi_OBJECT_INFO;
 
 /*****************************************************************************\
@@ -292,7 +292,7 @@ typedef struct asapi_msg_info {
 		ASAPi_TRACK_RESP_INFO tresp;	/* Track Response Message */
 		ASAPi_TRACK_NTFY_INFO tntfy;	/* Track Notification Message */
 	} info;
-	uns16 usg_cnt;		/* Usage count */
+	uint16_t usg_cnt;		/* Usage count */
 } ASAPi_MSG_INFO;
 
 /***************************************************************************

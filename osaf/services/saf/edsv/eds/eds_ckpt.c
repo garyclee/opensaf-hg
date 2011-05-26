@@ -303,7 +303,7 @@ uns32 eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	EDS_CB *cb = NULL;
-	uns16 mbcsv_version;
+	uint16_t mbcsv_version;
 
 	if (cbk_arg == NULL)
 		return NCSCC_RC_FAILURE;
@@ -961,7 +961,7 @@ uns32 eds_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	EDS_CB *cb = NULL;
-	uns16 msg_fmt_version;
+	uint16_t msg_fmt_version;
 
 	if (cbk_arg == NULL) {
 		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
@@ -2143,7 +2143,7 @@ uns32 send_async_update(EDS_CB *cb, EDS_CKPT_DATA *ckpt_rec, uns32 action)
  ***************************************************************************/
 uns32 eds_ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
-	uns16 peer_version;
+	uint16_t peer_version;
 
 	if (arg == NULL)
 		return NCSCC_RC_FAILURE;

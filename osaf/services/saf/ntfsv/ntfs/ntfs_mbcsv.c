@@ -296,7 +296,7 @@ static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 mbcsv_version;
+	uint16_t mbcsv_version;
 
 	assert(cbk_arg != NULL);
 
@@ -649,7 +649,7 @@ static uns32 ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NCS_M
 static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns16 msg_fmt_version;
+	uint16_t msg_fmt_version;
 
 	assert(cbk_arg != NULL);
 
@@ -1400,7 +1400,7 @@ uns32 ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec, uns32 ac
  ***************************************************************************/
 static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
-	uns16 peer_version;
+	uint16_t peer_version;
 	assert(arg != NULL);
 
 	peer_version = arg->info.peer.i_peer_version;

@@ -145,9 +145,9 @@ uns32 create_named_vdest(NCS_BOOL persistent,
   if(vname)
     {
       vda_info.info.vdest_create.info.named.i_name.length =
-        (uns16)(strlen(vname)+1);/*FIX THIS*/
+        (uint16_t)(strlen(vname)+1);/*FIX THIS*/
       memcpy(vda_info.info.vdest_create.info.named.i_name.value,vname,
-                      (uns16)(strlen(vname)+1));
+                      (uint16_t)(strlen(vname)+1));
     }
   else
     {
@@ -191,9 +191,9 @@ uns32 destroy_named_vdest(NCS_BOOL non_persistent,
   vda_info.info.vdest_destroy.i_create_type=NCSVDA_VDEST_CREATE_NAMED;
   vda_info.info.vdest_destroy.i_vdest=vdest;
   vda_info.info.vdest_destroy.i_make_vdest_non_persistent=non_persistent;
-  vda_info.info.vdest_destroy.i_name.length=(uns16)(strlen(vname)+1);
+  vda_info.info.vdest_destroy.i_name.length=(uint16_t)(strlen(vname)+1);
   memcpy(vda_info.info.vdest_destroy.i_name.value,vname,
-                  (uns16)(strlen(vname)+1));
+                  (uint16_t)(strlen(vname)+1));
 
   if(ncsvda_api(&vda_info)==NCSCC_RC_SUCCESS)
     {
@@ -217,9 +217,9 @@ MDS_DEST vdest_lookup(char *vname)
 
   if(vname)
     {
-      vda_info.info.vdest_lookup.i_name.length =(uns16)(strlen(vname)+1);
+      vda_info.info.vdest_lookup.i_name.length =(uint16_t)(strlen(vname)+1);
       memcpy(vda_info.info.vdest_lookup.i_name.value,vname,
-                      (uns16)(strlen(vname)+1));
+                      (uint16_t)(strlen(vname)+1));
     }
   else
     {
@@ -1230,7 +1230,7 @@ uns32 mds_direct_send_message(MDS_HDL mds_hdl,
                               char *message)
 {
   uns32 rs;
-  uns16 direct_buff_len=0;
+  uint16_t direct_buff_len=0;
   if(message)
     {
       /*Allocating memory for the direct buffer*/
@@ -1246,7 +1246,7 @@ uns32 mds_direct_send_message(MDS_HDL mds_hdl,
       direct_buff_len=strlen(message)+1;
     }
   MDS_DIRECT_BUFF rsp;
-  uns16 rsp_len=0;
+  uint16_t rsp_len=0;
   
   svc_to_mds_info.i_mds_hdl=mds_hdl;
   svc_to_mds_info.i_svc_id=svc_id;
@@ -1331,7 +1331,7 @@ uns32 mds_direct_response(MDS_HDL mds_hdl,
 {
   uns32 rs;
   char msg[]="Resp Message";
-  uns16 direct_buff_len;
+  uint16_t direct_buff_len;
   /*Before Sending the Message: Allocate the Direct Buffer*/
   direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(msg)+1);
   memset(direct_buff, 0, sizeof(direct_buff));
@@ -1418,7 +1418,7 @@ uns32 mds_direct_broadcast_message(MDS_HDL mds_hdl,
                                    MDS_SEND_PRIORITY_TYPE priority)
 {
   char msg[]="Direct Message";
-  uns16 direct_buff_len;
+  uint16_t direct_buff_len;
  /* if(msg)*/
     {
       /*Allocating memory for the direct buffer*/
@@ -1955,7 +1955,7 @@ uns32 tet_mds_cb_direct_rcv(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   /* this call is not preceded by cb_dec or cb_dec_flat:what about cb_cpy*/
 #if 0
   MDS_DIRECT_BUFF msg;
-  uns16 recvd_len;
+  uint16_t recvd_len;
   msg=mds_to_svc_info->info.direct_receive.i_direct_buff;
   recvd_len=mds_to_svc_info->info.direct_receive.i_direct_buff_len;
 #endif

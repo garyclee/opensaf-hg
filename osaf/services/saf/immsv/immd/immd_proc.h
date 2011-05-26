@@ -45,7 +45,7 @@ uns32 immd_mbcsv_close(IMMD_CB *cb);
 uns32 immd_mbcsv_dispatch(IMMD_CB *cb);
 
 void immd_db_save_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg);
-IMMSV_FEVS *immd_db_get_fevs(IMMD_CB *cb, const uns16 back_count);
+IMMSV_FEVS *immd_db_get_fevs(IMMD_CB *cb, const uint16_t back_count);
 void immd_db_purge_fevs(IMMD_CB *cb);
 void immd_db_purg_fevs(IMMD_CB *cb);
 

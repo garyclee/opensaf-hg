@@ -232,7 +232,7 @@ extern "C" {
 
 #define m_NCS_OS_NTOHL_P(p8) (uns32)((*(uint8_t*)p8<<24)|(*(uint8_t*)(p8+1)<<16)| \
     (*(uint8_t*)(p8+2)<<8)|(*(uint8_t*)(p8+3)))
-#define m_NCS_OS_NTOHS_P(p8) (uns16)((*(uint8_t*)p8<<8)|*((uint8_t*)(p8+1)))
+#define m_NCS_OS_NTOHS_P(p8) (uint16_t)((*(uint8_t*)p8<<8)|*((uint8_t*)(p8+1)))
 
 #define m_NCS_OS_HTONL_P(p8,v32) { \
    *p8     = (uint8_t)(v32>>24); \
