@@ -196,7 +196,7 @@ typedef struct svc_reg_conf {	/* Data associated with registration confirmation 
 
 typedef struct dts_dta_evt {	/*Event change received from DTA */
 
-	NCS_BOOL change;
+	NCSMDS_CHG change;
 } DTS_DTA_EVT;
 
 /***************************************************************************

@@ -44,6 +44,7 @@
 #define NCSGL_DEFS_H
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #ifdef  __cplusplus
 extern "C" {
@@ -77,7 +78,7 @@ extern "C" {
 	typedef unsigned short cfgflag;	/* Usually a YES/NO or T/F boolean */
 	typedef unsigned short cfgenum;	/* An enumerated value */
 
-	typedef unsigned int NCS_BOOL;	/* move to this solves BOOLEAN problem */
+	typedef bool NCS_BOOL;	/* move to this solves BOOLEAN problem */
 	typedef unsigned char bcd;	/* Binary-Coded-Decimal */
 
 	typedef void* NCSCONTEXT;	/* opaque context between svc-usr/svc-provider */
@@ -126,11 +127,11 @@ extern "C" {
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
 #ifndef TRUE
-#define TRUE    1
+#define TRUE    true
 #endif
 
 #ifndef FALSE
-#define FALSE   0
+#define FALSE   false
 #endif
 
 #ifndef NULL
