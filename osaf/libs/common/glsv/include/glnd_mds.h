@@ -59,9 +59,9 @@
 /********************************************************************/
 /*** Extern function declarations ***/
 
-EXTERN_C uns32 glnd_mds_register(struct glnd_cb_tag *cb);
+uns32 glnd_mds_register(struct glnd_cb_tag *cb);
 
-EXTERN_C void glnd_mds_unregister(struct glnd_cb_tag *cb);
+void glnd_mds_unregister(struct glnd_cb_tag *cb);
 
 uns32 glnd_mds_msg_send_gla(struct glnd_cb_tag *cb, GLSV_GLA_EVT *i_evt, MDS_DEST to_mds_dest);
 

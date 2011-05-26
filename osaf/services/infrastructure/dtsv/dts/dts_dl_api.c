@@ -35,6 +35,8 @@
 
 #include <configmake.h>
 
+#include <dlfcn.h>
+
 #include "rda_papi.h"
 #include "ncs_tasks.h"
 #include "ncs_main_pub.h"
@@ -326,7 +328,7 @@ uns32 dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
 	char *dl_error = NULL;
 	NCS_LIB_REQ_INFO req_info;
 	ASCII_SPEC_LIB *lib_entry;
-	NCS_OS_DLIB_HDL *lib_hdl = NULL;
+	void *lib_hdl = NULL;
 	char dbg_str[DTS_MAX_LIB_DBG];
 
 	/* open the file */
@@ -349,12 +351,12 @@ uns32 dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
 
 		/* Load the library if REGISTRATION is to be peformed */
 		if (what_to_do == 1) {
-			lib_hdl = m_NCS_OS_DLIB_LOAD(lib_name, m_NCS_OS_DLIB_ATTR);
-			if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) {
+			lib_hdl = dlopen(lib_name, RTLD_LAZY|RTLD_GLOBAL);
+			if ((dl_error = dlerror()) != NULL) {
 				/* log the error returned from dlopen() */
 				m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_apps_ascii_spec_load: Unable to load library.");
 
-				dts_log(NCSFL_SEV_ERROR, "\ndts_apps_ascii_spec_load(): m_NCS_OS_DLIB_LOAD() failed: %s\n", lib_name);
+				dts_log(NCSFL_SEV_ERROR, "\ndts_apps_ascii_spec_load(): dlopen() failed: %s\n", lib_name);
 				reg_unreg_routine = NULL;
 				lib_hdl = NULL;
 				memset(func_name, 0, DTS_MAX_FUNCNAME);
@@ -364,13 +366,13 @@ uns32 dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
 		}
 
 		/* load the symbol into DTS Engine process space */
-		reg_unreg_routine = m_NCS_OS_DLIB_SYMBOL(lib_hdl, func_name);
-		if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) {
+		reg_unreg_routine = dlsym(lib_hdl, func_name);
+		if ((dl_error = dlerror()) != NULL) {
 			/* log the error returned from dlopen() */
 			m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_apps_ascii_spec_load: Unable to load symbol");
 
 			dts_log
-			    (NCSFL_SEV_ERROR, "\ndts_apps_ascii_spec_load(): m_NCS_OS_DLIB_SYMBOL()  failed(lib name, func name, error): %s, %s, %s\n",
+			    (NCSFL_SEV_ERROR, "\ndts_apps_ascii_spec_load(): dlsym()  failed(lib name, func name, error): %s, %s, %s\n",
 			     lib_name, func_name, dl_error);
 
 			reg_unreg_routine = NULL;

@@ -39,18 +39,18 @@
 typedef uns32 (*MQD_EVT_HANDLER) (struct mqsv_evt *, struct mqd_cb *);
 /****************************************************************************/
 
-EXTERN_C uns32 mqd_track_add(NCS_QUEUE *, MDS_DEST *, MDS_SVC_ID);
-EXTERN_C uns32 mqd_track_del(NCS_QUEUE *, MDS_DEST *);
-EXTERN_C uns32 mqd_mds_init(MQD_CB *);
-EXTERN_C uns32 mqd_mds_shut(MQD_CB *);
-EXTERN_C uns32 mqd_evt_process(MQSV_EVT *);
-EXTERN_C uns32 mqd_asapi_evt_hdlr(MQSV_EVT *, MQD_CB *);
-EXTERN_C uns32 mqd_ctrl_evt_hdlr(MQSV_EVT *, MQD_CB *);
+uns32 mqd_track_add(NCS_QUEUE *, MDS_DEST *, MDS_SVC_ID);
+uns32 mqd_track_del(NCS_QUEUE *, MDS_DEST *);
+uns32 mqd_mds_init(MQD_CB *);
+uns32 mqd_mds_shut(MQD_CB *);
+uns32 mqd_evt_process(MQSV_EVT *);
+uns32 mqd_asapi_evt_hdlr(MQSV_EVT *, MQD_CB *);
+uns32 mqd_ctrl_evt_hdlr(MQSV_EVT *, MQD_CB *);
 
-EXTERN_C uns32 mqd_asapi_dereg_hdlr(MQD_CB *, ASAPi_DEREG_INFO *, MQSV_SEND_INFO *);
-EXTERN_C uns32 mqd_mds_send_rsp(MQD_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt);
-EXTERN_C void mqd_nd_restart_update_dest_info(MQD_CB *pMqd, MDS_DEST dest);
-EXTERN_C void mqd_nd_down_update_info(MQD_CB *pMqd, MDS_DEST dest);
-EXTERN_C NCS_BOOL mqd_obj_cmp(void *key, void *elem);
+uns32 mqd_asapi_dereg_hdlr(MQD_CB *, ASAPi_DEREG_INFO *, MQSV_SEND_INFO *);
+uns32 mqd_mds_send_rsp(MQD_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt);
+void mqd_nd_restart_update_dest_info(MQD_CB *pMqd, MDS_DEST dest);
+void mqd_nd_down_update_info(MQD_CB *pMqd, MDS_DEST dest);
+NCS_BOOL mqd_obj_cmp(void *key, void *elem);
 
 #endif   /* MQD_API_H */

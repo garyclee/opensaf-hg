@@ -146,18 +146,18 @@ typedef struct imma_cb {
 /* IMMA Function Declerations */
 /* function prototypes for client handling*/
 
-EXTERN_C uns32 imma_db_init(IMMA_CB *cb);
-EXTERN_C uns32 imma_db_destroy(IMMA_CB *cb);
+uns32 imma_db_init(IMMA_CB *cb);
+uns32 imma_db_destroy(IMMA_CB *cb);
 
 /*client tree*/
-EXTERN_C uns32 imma_client_tree_init(IMMA_CB *cb);
-EXTERN_C void imma_client_node_get(NCS_PATRICIA_TREE *client_tree, SaImmHandleT *cl_hdl, IMMA_CLIENT_NODE **cl_node);
-EXTERN_C uns32 imma_client_node_add(NCS_PATRICIA_TREE *client_tree, IMMA_CLIENT_NODE *cl_node);
-EXTERN_C uns32 imma_client_node_delete(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node);
-EXTERN_C void imma_client_tree_destroy(IMMA_CB *cb);
-EXTERN_C void imma_client_tree_cleanup(IMMA_CB *cb);
-EXTERN_C void imma_mark_clients_stale(IMMA_CB *cb);
-EXTERN_C int  isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode);
+uns32 imma_client_tree_init(IMMA_CB *cb);
+void imma_client_node_get(NCS_PATRICIA_TREE *client_tree, SaImmHandleT *cl_hdl, IMMA_CLIENT_NODE **cl_node);
+uns32 imma_client_node_add(NCS_PATRICIA_TREE *client_tree, IMMA_CLIENT_NODE *cl_node);
+uns32 imma_client_node_delete(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node);
+void imma_client_tree_destroy(IMMA_CB *cb);
+void imma_client_tree_cleanup(IMMA_CB *cb);
+void imma_mark_clients_stale(IMMA_CB *cb);
+int  isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode);
 void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUint32T inv);
 int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUint32T inv);
 int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUint32T inv);
@@ -166,36 +166,36 @@ int imma_oi_ccb_record_exists(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
 
 
 /*admin_owner tree*/
-EXTERN_C uns32 imma_admin_owner_tree_init(IMMA_CB *cb);
-EXTERN_C uns32 imma_admin_owner_node_get(NCS_PATRICIA_TREE *admin_owner_tree,
+uns32 imma_admin_owner_tree_init(IMMA_CB *cb);
+uns32 imma_admin_owner_node_get(NCS_PATRICIA_TREE *admin_owner_tree,
 					 SaImmAdminOwnerHandleT *adm_hdl, IMMA_ADMIN_OWNER_NODE **adm_node);
-EXTERN_C void imma_admin_owner_node_getnext(IMMA_CB *cb,
+void imma_admin_owner_node_getnext(IMMA_CB *cb,
 					    SaImmAdminOwnerHandleT *adm_hdl, IMMA_ADMIN_OWNER_NODE **adm_node);
-EXTERN_C uns32 imma_admin_owner_node_add(NCS_PATRICIA_TREE *admin_owner_tree, IMMA_ADMIN_OWNER_NODE *adm_node);
-EXTERN_C void imma_admin_owner_node_delete(IMMA_CB *cb, IMMA_ADMIN_OWNER_NODE *adm_node);
-EXTERN_C void imma_admin_owner_tree_destroy(IMMA_CB *cb);
-EXTERN_C void imma_admin_owner_tree_cleanup(IMMA_CB *cb);
+uns32 imma_admin_owner_node_add(NCS_PATRICIA_TREE *admin_owner_tree, IMMA_ADMIN_OWNER_NODE *adm_node);
+void imma_admin_owner_node_delete(IMMA_CB *cb, IMMA_ADMIN_OWNER_NODE *adm_node);
+void imma_admin_owner_tree_destroy(IMMA_CB *cb);
+void imma_admin_owner_tree_cleanup(IMMA_CB *cb);
 
 /*ccb tree */
-EXTERN_C uns32 imma_ccb_tree_init(IMMA_CB *cb);
-EXTERN_C void imma_ccb_node_get(NCS_PATRICIA_TREE *ccb_tree, SaImmCcbHandleT *ccb_hdl, IMMA_CCB_NODE **ccb_node);
-EXTERN_C void imma_ccb_node_getnext(IMMA_CB *cb, SaImmCcbHandleT *ccb_hdl, IMMA_CCB_NODE **ccb_node);
-EXTERN_C uns32 imma_ccb_node_add(NCS_PATRICIA_TREE *ccb_tree, IMMA_CCB_NODE *ccb_node);
-EXTERN_C uns32 imma_ccb_node_delete(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node);
-EXTERN_C void imma_ccb_tree_destroy(IMMA_CB *cb);
-EXTERN_C void imma_ccb_tree_cleanup(IMMA_CB *cb);
+uns32 imma_ccb_tree_init(IMMA_CB *cb);
+void imma_ccb_node_get(NCS_PATRICIA_TREE *ccb_tree, SaImmCcbHandleT *ccb_hdl, IMMA_CCB_NODE **ccb_node);
+void imma_ccb_node_getnext(IMMA_CB *cb, SaImmCcbHandleT *ccb_hdl, IMMA_CCB_NODE **ccb_node);
+uns32 imma_ccb_node_add(NCS_PATRICIA_TREE *ccb_tree, IMMA_CCB_NODE *ccb_node);
+uns32 imma_ccb_node_delete(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node);
+void imma_ccb_tree_destroy(IMMA_CB *cb);
+void imma_ccb_tree_cleanup(IMMA_CB *cb);
 
 /*search tree */
-EXTERN_C uns32 imma_search_tree_init(IMMA_CB *cb);
-EXTERN_C uns32 imma_search_node_get(NCS_PATRICIA_TREE *search_tree,
+uns32 imma_search_tree_init(IMMA_CB *cb);
+uns32 imma_search_node_get(NCS_PATRICIA_TREE *search_tree,
 				    SaImmSearchHandleT *search_hdl, IMMA_SEARCH_NODE **search_node);
-EXTERN_C void imma_search_node_getnext(IMMA_CB *cb, SaImmSearchHandleT *search_hdl, IMMA_SEARCH_NODE **search_node);
-EXTERN_C uns32 imma_search_node_add(NCS_PATRICIA_TREE *search_tree, IMMA_SEARCH_NODE *search_node);
-EXTERN_C uns32 imma_search_node_delete(IMMA_CB *cb, IMMA_SEARCH_NODE *search_node);
-EXTERN_C void imma_search_tree_destroy(IMMA_CB *cb);
-EXTERN_C void imma_search_tree_cleanup(IMMA_CB *cb);
+void imma_search_node_getnext(IMMA_CB *cb, SaImmSearchHandleT *search_hdl, IMMA_SEARCH_NODE **search_node);
+uns32 imma_search_node_add(NCS_PATRICIA_TREE *search_tree, IMMA_SEARCH_NODE *search_node);
+uns32 imma_search_node_delete(IMMA_CB *cb, IMMA_SEARCH_NODE *search_node);
+void imma_search_tree_destroy(IMMA_CB *cb);
+void imma_search_tree_cleanup(IMMA_CB *cb);
 
-EXTERN_C void imma_process_stale_clients(IMMA_CB *cb);
+void imma_process_stale_clients(IMMA_CB *cb);
 
 /*30B Versioning Changes */
 #define IMMA_MDS_PVT_SUBPART_VERSION 1

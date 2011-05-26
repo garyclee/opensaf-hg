@@ -173,7 +173,7 @@ typedef struct mqa_cb {
 	uns32 clm_node_joined;
 } MQA_CB;
 
-EXTERN_C NCS_BOOL mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *group);
-EXTERN_C NCS_BOOL mqa_is_track_enabled(MQA_CB *mqa_cb, SaNameT *queueGroupName);
+NCS_BOOL mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *group);
+NCS_BOOL mqa_is_track_enabled(MQA_CB *mqa_cb, SaNameT *queueGroupName);
 
 #endif   /* MQA_DB_H */

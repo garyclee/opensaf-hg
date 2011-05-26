@@ -67,16 +67,16 @@
   
 *************************************************************************/
 
-EXTERN_C uns32 dts_log_init(void);
+uns32 dts_log_init(void);
 
-EXTERN_C uns32 dts_ascii_spec_register(NCSFL_ASCII_SPEC *spec);
+uns32 dts_ascii_spec_register(NCSFL_ASCII_SPEC *spec);
 
-EXTERN_C uns32 dts_ascii_spec_deregister(SS_SVC_ID ss_id, uns16 version);
+uns32 dts_ascii_spec_deregister(SS_SVC_ID ss_id, uns16 version);
 
-EXTERN_C uns32 dts_log_msg_to_str(DTA_LOG_MSG *msg, char *str,
+uns32 dts_log_msg_to_str(DTA_LOG_MSG *msg, char *str,
 				  NODE_ID node, uns32 proc_id, uns32 *len, NCSFL_ASCII_SPEC *spec);
 
-EXTERN_C void dts_to_lowercase(char *str);
+void dts_to_lowercase(char *str);
 
 /************************************************************************
 

@@ -34,26 +34,26 @@
 #define DTS_CKPT_EDU_H
 
 /* Function Definitions of dts_ckpt_edu.c */
-EXTERN_C uns32 dts_compile_ckpt_edp(DTS_CB *cb);
-EXTERN_C uns32 dtsv_edp_ckpt_msg_dts_log_ckpt_data_config(EDU_HDL *hdl,
+uns32 dts_compile_ckpt_edp(DTS_CB *cb);
+uns32 dtsv_edp_ckpt_msg_dts_log_ckpt_data_config(EDU_HDL *hdl,
 							  EDU_TKN *edu_tkn, NCSCONTEXT ptr, uns32 *ptr_data_len,
 							  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 dtsv_edp_ckpt_msg_dts_ll_file_config(EDU_HDL *hdl,
+uns32 dtsv_edp_ckpt_msg_dts_ll_file_config(EDU_HDL *hdl,
 						    EDU_TKN *edu_tkn, NCSCONTEXT ptr, uns32 *ptr_data_len,
 						    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 dtsv_edp_ckpt_msg_dts_file_list_config(EDU_HDL *hdl,
+uns32 dtsv_edp_ckpt_msg_dts_file_list_config(EDU_HDL *hdl,
 						      EDU_TKN *edu_tkn, NCSCONTEXT ptr, uns32 *ptr_data_len,
 						      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 dtsv_edp_ckpt_msg_dts_svc_reg_tbl_config(EDU_HDL *hdl,
+uns32 dtsv_edp_ckpt_msg_dts_svc_reg_tbl_config(EDU_HDL *hdl,
 							EDU_TKN *edu_tkn, NCSCONTEXT ptr, uns32 *ptr_data_len,
 							EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 dtsv_edp_ckpt_msg_dta_dest_list_config(EDU_HDL *hdl,
+uns32 dtsv_edp_ckpt_msg_dta_dest_list_config(EDU_HDL *hdl,
 						      EDU_TKN *edu_tkn, NCSCONTEXT ptr, uns32 *ptr_data_len,
 						      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 dtsv_edp_ckpt_msg_global_policy_config(EDU_HDL *hdl,
+uns32 dtsv_edp_ckpt_msg_global_policy_config(EDU_HDL *hdl,
 						      EDU_TKN *edu_tkn, NCSCONTEXT ptr, uns32 *ptr_data_len,
 						      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 dtsv_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl,
+uns32 dtsv_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl,
 						EDU_TKN *edu_tkn, NCSCONTEXT ptr, uns32 *ptr_data_len,
 						EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 

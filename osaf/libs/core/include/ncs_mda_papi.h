@@ -216,7 +216,7 @@ extern "C" {
 	} NCSVDA_INFO;
 
 	typedef uns32 (*NCSVDA_API) (NCSVDA_INFO *vda_info);
-	EXTERN_C uns32 ncsvda_api(NCSVDA_INFO *vda_info);
+	uns32 ncsvda_api(NCSVDA_INFO *vda_info);
 
 /*************************************************************************
     Absolute-destination-library APIs (requests into LEAP by services)
@@ -288,7 +288,7 @@ extern "C" {
 	} NCSADA_INFO;
 
 	typedef uns32 (*NCSADA_API) (NCSADA_INFO *ada_info);
-	EXTERN_C uns32 ncsada_api(NCSADA_INFO *ada_info);
+	uns32 ncsada_api(NCSADA_INFO *ada_info);
 
 #ifdef  __cplusplus
 }

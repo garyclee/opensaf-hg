@@ -49,12 +49,12 @@ extern "C" {
 
 	struct ncs_ip_request_info_tag;
 
-	EXTERN_C uns32 sysf_ip_request(struct ncs_ip_request_info_tag *ip_request);
+	uns32 sysf_ip_request(struct ncs_ip_request_info_tag *ip_request);
 
-	EXTERN_C int ncssock_ipv6_send_msg(NCS_SOCKET_ENTRY * se, char *bufp, uns32 total_len,
+	int ncssock_ipv6_send_msg(NCS_SOCKET_ENTRY * se, char *bufp, uns32 total_len,
 					   struct sockaddr_in6 *saddr);
 
-	EXTERN_C uns32 ncssock_ipv6_rcv_msg(NCS_SOCKET_ENTRY * se, char *buf, uns32 buf_len,
+	uns32 ncssock_ipv6_rcv_msg(NCS_SOCKET_ENTRY * se, char *buf, uns32 buf_len,
 					    struct sockaddr_in6 *p_saddr, NCS_IP_PKT_INFO * pkt_info);
 
 #ifdef __NCSINC_OSE__

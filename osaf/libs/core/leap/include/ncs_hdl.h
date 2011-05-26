@@ -313,23 +313,23 @@ typedef struct hm_core {
  *
  ***************************************************************************/
 
-EXTERN_C uns32 hm_pool_id(uns8 unit);
+uns32 hm_pool_id(uns8 unit);
 
-EXTERN_C uns32 hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool);
+uns32 hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool);
 
-EXTERN_C HM_FREE *hm_alloc_cell(uns8 id);
+HM_FREE *hm_alloc_cell(uns8 id);
 
-EXTERN_C HM_CELL *hm_find_cell(HM_HDL *hdl);
+HM_CELL *hm_find_cell(HM_HDL *hdl);
 
-EXTERN_C HM_FREE *hm_target_cell(HM_HDL *hdl);
+HM_FREE *hm_target_cell(HM_HDL *hdl);
 
-EXTERN_C void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, NCS_BOOL recycle);
+void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, NCS_BOOL recycle);
 
-EXTERN_C uns32 hm_make_free_cells(HM_PMGR *pmgr);
+uns32 hm_make_free_cells(HM_PMGR *pmgr);
 
-EXTERN_C void hm_block_me(HM_CELL *cell, uns8 pool_id);
+void hm_block_me(HM_CELL *cell, uns8 pool_id);
 
-EXTERN_C void hm_unblock_him(HM_CELL *cell);
+void hm_unblock_him(HM_CELL *cell);
 
 /***************************************************************************
 

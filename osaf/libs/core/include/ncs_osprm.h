@@ -527,20 +527,6 @@ extern "C" {
 #define NCS_OS_PATH_MAX                    255
 #endif
 
-/******* Macros for DLL's ********/
-#ifndef NCS_USE_DLIB
-#define NCS_USE_DLIB (0)
-#endif
-
-#if (NCS_USE_DLIB != 1)
-#define NCS_OS_DLIB_HDL     void *
-#define m_NCS_OS_DLLB_ATTR  (0)
-#define m_NCS_OS_DLIB_LOAD(file,attr)
-#define m_NCS_OS_DLIB_SYMBOL(lib_hdl,symbol)
-#define m_NCS_OS_DLIB_ERROR()
-#define m_NCS_OS_DLIB_CLOSE(lib_hdl)
-#endif
-
 /****************************************************************************
  ****************************************************************************
  ****************************************************************************
@@ -603,7 +589,7 @@ extern "C" {
 #ifndef m_OS_UDEF_ALLOC
 
 #define m_OS_UDEF_ALLOC  ncs_os_udef_alloc
-	EXTERN_C void *ncs_os_udef_alloc(uns32 size, uns8 pool_id, uns8 pri);
+	void *ncs_os_udef_alloc(uns32 size, uns8 pool_id, uns8 pri);
 #endif
 
 /****************************************************************************
@@ -621,7 +607,7 @@ extern "C" {
 #ifndef m_OS_UDEF_FREE
 
 #define m_OS_UDEF_FREE   ncs_os_udef_free
-	EXTERN_C void ncs_os_udef_free(void *ptr, uns8 pool);
+	void ncs_os_udef_free(void *ptr, uns8 pool);
 #endif
 
 /****************************************************************************
@@ -675,7 +661,7 @@ extern "C" {
 #ifndef m_NCS_OS_TASK
 
 #define m_NCS_OS_TASK(pncs_os_task,req) ncs_os_task (pncs_os_task,req)
-	EXTERN_C unsigned int ncs_os_task(NCS_OS_TASK *, NCS_OS_TASK_REQUEST);
+	unsigned int ncs_os_task(NCS_OS_TASK *, NCS_OS_TASK_REQUEST);
 #endif
 
 /****************************************************************************
@@ -696,7 +682,7 @@ extern "C" {
 #ifndef m_NCS_OS_FILE
 
 #define m_NCS_OS_FILE(pncs_os_file,req) ncs_os_file (pncs_os_file,req)
-	EXTERN_C unsigned int ncs_os_file(NCS_OS_FILE *, NCS_OS_FILE_REQUEST);
+	unsigned int ncs_os_file(NCS_OS_FILE *, NCS_OS_FILE_REQUEST);
 #endif
 
 /****************************************************************************
@@ -732,7 +718,7 @@ extern "C" {
 #ifndef m_NCS_OS_CLEANUP
 
 #define m_NCS_OS_CLEANUP ncs_os_cleanup()
-	EXTERN_C void ncs_os_cleanup(void);
+	void ncs_os_cleanup(void);
 #endif
 
 /****************************************************************************
@@ -753,7 +739,7 @@ extern "C" {
 #ifndef m_NCS_OS_TIMER
 
 #define m_NCS_OS_TIMER(pncs_os_timer,req) ncs_os_timer(pncs_os_timer,req)
-	EXTERN_C unsigned int ncs_os_timer(NCS_OS_TIMER *, NCS_OS_TIMER_REQUEST);
+	unsigned int ncs_os_timer(NCS_OS_TIMER *, NCS_OS_TIMER_REQUEST);
 #endif
 #endif
 
@@ -780,7 +766,7 @@ extern "C" {
 #ifndef m_NCS_OS_LOCK
 
 #define m_NCS_OS_LOCK(pncs_os_lock,req,type) ncs_os_lock(pncs_os_lock,req,type)
-	EXTERN_C unsigned int ncs_os_lock(NCS_OS_LOCK *, NCS_OS_LOCK_REQUEST, unsigned int);
+	unsigned int ncs_os_lock(NCS_OS_LOCK *, NCS_OS_LOCK_REQUEST, unsigned int);
 #endif
 
 /****************************************************************************
@@ -801,7 +787,7 @@ extern "C" {
 #ifndef m_NCS_OS_SEM
 
 #define m_NCS_OS_SEM(pncs_os_sem,req) ncs_os_sem(pncs_os_sem,req)
-	EXTERN_C unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
+	unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
 #endif
 
 /*****************************************************************************
@@ -817,12 +803,12 @@ extern "C" {
 
 #ifndef m_NCS_OS_START_TASK_LOCK
 #define m_NCS_OS_START_TASK_LOCK   ncs_os_start_task_lock()
-	EXTERN_C void ncs_os_start_task_lock(void);
+	void ncs_os_start_task_lock(void);
 #endif
 
 #ifndef m_NCS_OS_END_TASK_LOCK
 #define m_NCS_OS_END_TASK_LOCK     ncs_os_end_task_lock()
-	EXTERN_C void ncs_os_end_task_lock(void);
+	void ncs_os_end_task_lock(void);
 #endif
 
 /****************************************************************************
@@ -931,7 +917,7 @@ extern "C" {
 	} NCS_OS_MQ_REQ_INFO;
 
 #define m_NCS_OS_MQ ncs_os_mq
-	EXTERN_C uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *req);
+	uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *req);
 
 /****************************************************************************
  * POSIX Message-queues Primitive definition
@@ -1059,7 +1045,7 @@ extern "C" {
 	} NCS_OS_POSIX_MQ_REQ_INFO;
 
 #define m_NCS_OS_POSIX_MQ ncs_os_posix_mq
-	EXTERN_C uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
+	uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
 
 /****************************************************************************
  * POSIX shm_memory Primitive definition
@@ -1477,7 +1463,7 @@ extern "C" {
 
 #ifndef m_NCS_OS_CUR_CPU_USAGE
 #define m_NCS_OS_CUR_CPU_USAGE  os_cur_cpu_usage()
-	EXTERN_C unsigned int os_cur_cpu_usage(void);
+	unsigned int os_cur_cpu_usage(void);
 #endif
 
 /****************************************************************************
@@ -1489,12 +1475,12 @@ extern "C" {
 
 #ifndef m_NCS_OS_INIT_CPU_MON
 #define m_NCS_OS_INIT_CPU_MON  ncs_cpu_mon_init()
-	EXTERN_C unsigned int ncs_cpu_mon_init(void);
+	unsigned int ncs_cpu_mon_init(void);
 #endif
 
 #ifndef m_NCS_OS_SHUTDOWN_CPU_MON
 #define m_NCS_OS_SHUTDOWN_CPU_MON  ncs_cpu_mon_shutdown()
-	EXTERN_C unsigned int ncs_cpu_mon_shutdown(void);
+	unsigned int ncs_cpu_mon_shutdown(void);
 #endif
 
 /****************************************************************************
@@ -1577,7 +1563,7 @@ extern "C" {
 #ifndef m_NCS_OS_MEMALLOC
 #if (USE_MY_MALLOC==1)
 #define m_NCS_OS_MEMALLOC(nbytes, region) my_malloc(nbytes)
-	EXTERN_C void *my_malloc(size_t nbytes);
+	void *my_malloc(size_t nbytes);
 #else
 #define m_NCS_OS_MEMALLOC(nbytes, region) malloc(nbytes)
 #endif
@@ -1597,7 +1583,7 @@ extern "C" {
 #ifndef m_NCS_OS_MEMFREE
 #if (USE_MY_MALLOC==1)
 #define m_NCS_OS_MEMFREE(mem_p, region)  my_free(mem_p)
-	EXTERN_C void my_free(void *mem_p);
+	void my_free(void *mem_p);
 #else
 #define m_NCS_OS_MEMFREE(mem_p, region)  free(mem_p)
 #endif
@@ -1966,13 +1952,13 @@ extern "C" {
 #define m_NCS_SIGNAL(signal,handler)                  ncs_os_signal(signal,handler)
 
 /* declarations */
-	EXTERN_C uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
+	uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
 
-	EXTERN_C unsigned int ncs_os_process_execute(char *exec_mod, char *argv[], NCS_OS_ENVIRON_ARGS *set_env_args);
+	unsigned int ncs_os_process_execute(char *exec_mod, char *argv[], NCS_OS_ENVIRON_ARGS *set_env_args);
 
-	EXTERN_C int ncs_os_process_terminate(unsigned int proc_id);
+	int ncs_os_process_terminate(unsigned int proc_id);
 
-	EXTERN_C sighandler_t ncs_os_signal(int signalnum, sighandler_t handler);
+	sighandler_t ncs_os_signal(int signalnum, sighandler_t handler);
 
 /****************************************************************************
  **                                                                        **

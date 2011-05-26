@@ -159,8 +159,8 @@ extern AVND_CB *avnd_cb;
 
 extern AVND_CB *avnd_cb;
 
-EXTERN_C void avnd_dnd_list_destroy(AVND_CB *);
+void avnd_dnd_list_destroy(AVND_CB *);
 
-EXTERN_C uns32 avnd_cb_destroy(AVND_CB *);
+uns32 avnd_cb_destroy(AVND_CB *);
 
 #endif

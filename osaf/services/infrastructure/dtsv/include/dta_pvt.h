@@ -116,7 +116,7 @@ typedef struct dta_cb {
 
 } DTA_CB;
 
-EXTERN_C DTA_CB dta_cb;
+DTA_CB dta_cb;
 
 /* Limit of 1000 logs can be buffered */
 #define DTA_BUF_LIMIT 1000
@@ -134,83 +134,83 @@ EXTERN_C DTA_CB dta_cb;
   Basic Layer Management Service entry points off std LM API
 *************************************************************************/
 
-EXTERN_C uns32 dta_svc_create(NCSDTA_CREATE *create);
-EXTERN_C uns32 dta_svc_destroy(NCSDTA_DESTROY *destroy);
+uns32 dta_svc_create(NCSDTA_CREATE *create);
+uns32 dta_svc_destroy(NCSDTA_DESTROY *destroy);
 
 /************************************************************************
   DTA tasking loop functions.
 *************************************************************************/
-EXTERN_C void dta_do_evts(SYSF_MBX *mbx);
-EXTERN_C uns32 dta_do_evt(DTSV_MSG *msg);
+void dta_do_evts(SYSF_MBX *mbx);
+uns32 dta_do_evt(DTSV_MSG *msg);
 
 /************************************************************************
   SE_API entry functions.
 *************************************************************************/
-EXTERN_C uns32 dta_log_msg(NCSFL_NORMAL *msg);
-EXTERN_C uns32 dta_reg_svc(NCS_BIND_SVC *bind_svc);
-EXTERN_C uns32 dta_dereg_svc(SS_SVC_ID svc_id);
+uns32 dta_log_msg(NCSFL_NORMAL *msg);
+uns32 dta_reg_svc(NCS_BIND_SVC *bind_svc);
+uns32 dta_dereg_svc(SS_SVC_ID svc_id);
 
 /************************************************************************
   MDS bindary stuff for DTA
 *************************************************************************/
-EXTERN_C uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
+uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 			      uns32 inst_id,
 			      uns8 fmat_id,
 			      uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, va_list argp);
 
-EXTERN_C uns32 dta_get_ada_hdl(void);
+uns32 dta_get_ada_hdl(void);
 
-EXTERN_C uns32 dta_mds_install_and_subscribe(void);
+uns32 dta_mds_install_and_subscribe(void);
 
-EXTERN_C uns32 dta_mds_uninstall(void);
+uns32 dta_mds_uninstall(void);
 
-EXTERN_C uns32 dta_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo);
+uns32 dta_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo);
 
 #if (DTA_FLOW == 1)
-EXTERN_C uns32 dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uns32 timeout, NCS_BOOL svc_reg);
+uns32 dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uns32 timeout, NCS_BOOL svc_reg);
 #else
-EXTERN_C uns32 dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uns32 timeout);
+uns32 dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uns32 timeout);
 #endif
 
-EXTERN_C uns32 dta_mds_async_send(DTSV_MSG *msg, DTA_CB *inst);
+uns32 dta_mds_async_send(DTSV_MSG *msg, DTA_CB *inst);
 
-EXTERN_C uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg);
+uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg);
 
-EXTERN_C void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl);
+void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl);
 
-EXTERN_C uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			   SS_SVC_ID to_svc, NCS_UBAID *uba,
 			   MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver);
 
-EXTERN_C uns32 dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
+uns32 dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			   SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver);
 
-EXTERN_C uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			   SS_SVC_ID to_svc, NCSCONTEXT *cpy,
 			   NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver);
 
-EXTERN_C uns32 encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa);
+uns32 encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa);
 
-EXTERN_C uns32 dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba);
+uns32 dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba);
 
-EXTERN_C uns32 dta_copy_octets(char **dest, char *src, uns16 length);
+uns32 dta_copy_octets(char **dest, char *src, uns16 length);
 
-EXTERN_C NCS_BOOL dta_match_service(void *key, void *qelem);
+NCS_BOOL dta_match_service(void *key, void *qelem);
 
-EXTERN_C void copy_ip_addr(NCS_IP_ADDR *ipa, va_list argp);
+void copy_ip_addr(NCS_IP_ADDR *ipa, va_list argp);
 
-EXTERN_C uns32 dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg);
+uns32 dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg);
 
-EXTERN_C uns32 dta_svc_reg_check(DTA_CB *inst);
+uns32 dta_svc_reg_check(DTA_CB *inst);
 
-EXTERN_C uns32 dta_svc_reg_updt(DTA_CB *inst, uns32 svc_id, uns32 enable_log,
+uns32 dta_svc_reg_updt(DTA_CB *inst, uns32 svc_id, uns32 enable_log,
 				uns32 category_bit_map, uns8 severity_bit_map);
 
 /***********************************************************************
 *     Flex Log policy rrelated functions 
 ************************************************************************/
-EXTERN_C uns32 dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg);
-EXTERN_C uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uns16 version, const char *svc_name,
+uns32 dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg);
+uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uns16 version, const char *svc_name,
 				uns8 operation);
 
 #define MAX_OCT_LEN             255

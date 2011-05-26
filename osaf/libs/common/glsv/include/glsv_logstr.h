@@ -34,13 +34,13 @@
 #include "glsv_defs.h"
 
 #if (NCS_DTS == 1)
-EXTERN_C uns32 glnd_reg_strings(void);
-EXTERN_C uns32 gla_reg_strings(void);
-EXTERN_C uns32 gld_reg_strings(void);
-EXTERN_C uns32 glnd_unreg_strings(void);
-EXTERN_C uns32 gld_unreg_strings(void);
-EXTERN_C uns32 gla_unreg_strings(void);
-EXTERN_C uns32 glsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+uns32 glnd_reg_strings(void);
+uns32 gla_reg_strings(void);
+uns32 gld_reg_strings(void);
+uns32 glnd_unreg_strings(void);
+uns32 gld_unreg_strings(void);
+uns32 gla_unreg_strings(void);
+uns32 glsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
 #endif   /* (NCS_DTS == 1) */
 
 #endif   /* !AVA_LOGSTR_H */

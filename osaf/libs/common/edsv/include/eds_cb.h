@@ -38,7 +38,7 @@
 #include "ncssysf_tmr.h"
 
 /* global variables */
-EXTERN_C uns32 gl_eds_hdl;
+uns32 gl_eds_hdl;
 
 struct eda_reg_list_tag;
 
@@ -272,69 +272,69 @@ typedef struct eds_cb_tag {
       wp->chan_row.num_ret_evts=0; \
       wp->chan_row.num_lost_evts=0;
 
-EXTERN_C uns32 eds_cb_init(EDS_CB *eds_cb);
+uns32 eds_cb_init(EDS_CB *eds_cb);
 
-EXTERN_C void eds_cb_destroy(EDS_CB *eds_cb);
+void eds_cb_destroy(EDS_CB *eds_cb);
 
-EXTERN_C void eds_main_process(SYSF_MBX *mbx);
+void eds_main_process(SYSF_MBX *mbx);
 
-EXTERN_C EDS_WORKLIST *eds_get_worklist_entry(EDS_WORKLIST *, uns32);
+EDS_WORKLIST *eds_get_worklist_entry(EDS_WORKLIST *, uns32);
 
-EXTERN_C EDA_REG_REC *eds_get_reglist_entry(EDS_CB *, uns32);
+EDA_REG_REC *eds_get_reglist_entry(EDS_CB *, uns32);
 
-EXTERN_C uns32 eds_add_reglist_entry(EDS_CB *, MDS_DEST, uns32);
+uns32 eds_add_reglist_entry(EDS_CB *, MDS_DEST, uns32);
 
-EXTERN_C uns32 eds_remove_reglist_entry(EDS_CB *, uns32, NCS_BOOL);
+uns32 eds_remove_reglist_entry(EDS_CB *, uns32, NCS_BOOL);
 
-EXTERN_C uns32 eds_remove_regid_by_mds_dest(EDS_CB *, MDS_DEST);
+uns32 eds_remove_regid_by_mds_dest(EDS_CB *, MDS_DEST);
 
-EXTERN_C NCS_BOOL eds_eda_entry_valid(EDS_CB *, MDS_DEST);
+NCS_BOOL eds_eda_entry_valid(EDS_CB *, MDS_DEST);
 
-EXTERN_C uns32 eds_remove_eda_down_rec(EDS_CB *, MDS_DEST);
+uns32 eds_remove_eda_down_rec(EDS_CB *, MDS_DEST);
 
-EXTERN_C uns32 eds_channel_open(EDS_CB *, uns32, uns32, uns16, uns8 *, MDS_DEST, uns32 *, uns32 *, SaTimeT);
+uns32 eds_channel_open(EDS_CB *, uns32, uns32, uns16, uns8 *, MDS_DEST, uns32 *, uns32 *, SaTimeT);
 
-EXTERN_C uns32 eds_copen_patricia_init(EDS_WORKLIST *);
+uns32 eds_copen_patricia_init(EDS_WORKLIST *);
 
-EXTERN_C uns32 eds_channel_close(EDS_CB *, uns32, uns32, uns32, NCS_BOOL);
+uns32 eds_channel_close(EDS_CB *, uns32, uns32, uns32, NCS_BOOL);
 
-EXTERN_C uns32 eds_channel_unlink(EDS_CB *, uns32, uns8 *);
+uns32 eds_channel_unlink(EDS_CB *, uns32, uns8 *);
 
-EXTERN_C uns32 eds_add_subscription(EDS_CB *, uns32, SUBSC_REC *);
+uns32 eds_add_subscription(EDS_CB *, uns32, SUBSC_REC *);
 
-EXTERN_C uns32 eds_remove_subscription(EDS_CB *, uns32, uns32, uns32, uns32);
+uns32 eds_remove_subscription(EDS_CB *, uns32, uns32, uns32, uns32);
 
-EXTERN_C uns32 eds_remove_worklist_entry(EDS_CB *cb, uns32 chan_id);
+uns32 eds_remove_worklist_entry(EDS_CB *cb, uns32 chan_id);
 
-EXTERN_C NCS_BOOL eds_pattern_match(SaEvtEventPatternArrayT *, SaEvtEventFilterArrayT *);
+NCS_BOOL eds_pattern_match(SaEvtEventPatternArrayT *, SaEvtEventFilterArrayT *);
 
-EXTERN_C uns32 eds_store_retained_event(EDS_CB *, EDS_WORKLIST *, CHAN_OPEN_REC *, EDSV_EDA_PUBLISH_PARAM *, SaTimeT);
+uns32 eds_store_retained_event(EDS_CB *, EDS_WORKLIST *, CHAN_OPEN_REC *, EDSV_EDA_PUBLISH_PARAM *, SaTimeT);
 
-EXTERN_C uns32 eds_clear_retained_event(EDS_CB *, uns32, uns32, uns32, NCS_BOOL);
+uns32 eds_clear_retained_event(EDS_CB *, uns32, uns32, uns32, NCS_BOOL);
 
-EXTERN_C void eds_remove_retained_events(EDS_RETAINED_EVT_REC **, EDS_RETAINED_EVT_REC **);
+void eds_remove_retained_events(EDS_RETAINED_EVT_REC **, EDS_RETAINED_EVT_REC **);
 
-EXTERN_C void eds_dump_event_patterns(SaEvtEventPatternArrayT *);
+void eds_dump_event_patterns(SaEvtEventPatternArrayT *);
 
-EXTERN_C void eds_dump_pattern_filter(SaEvtEventPatternArrayT *, SaEvtEventFilterArrayT *);
+void eds_dump_pattern_filter(SaEvtEventPatternArrayT *, SaEvtEventFilterArrayT *);
 
-EXTERN_C void eds_dump_reglist(void);
+void eds_dump_reglist(void);
 
-EXTERN_C void eds_dump_worklist(void);
+void eds_dump_worklist(void);
 
-EXTERN_C uns32 eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT period, uns32 uarg);
-EXTERN_C void eds_stop_tmr(EDS_TMR *tmr);
-EXTERN_C void eds_tmr_exp(void *uarg);
+uns32 eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT period, uns32 uarg);
+void eds_stop_tmr(EDS_TMR *tmr);
+void eds_tmr_exp(void *uarg);
 
-EXTERN_C SaBoolT update_node_db(EDS_CB *, NODE_ID, SaBoolT);
+SaBoolT update_node_db(EDS_CB *, NODE_ID, SaBoolT);
 
-EXTERN_C void send_clm_status_change(EDS_CB *, SaClmClusterChangesT, NODE_ID);
+void send_clm_status_change(EDS_CB *, SaClmClusterChangesT, NODE_ID);
 
-EXTERN_C NCS_BOOL is_node_a_member(EDS_CB *, NODE_ID);
+NCS_BOOL is_node_a_member(EDS_CB *, NODE_ID);
 
-EXTERN_C EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name);
-EXTERN_C SaAisErrorT eds_imm_init(EDS_CB *cb);
-EXTERN_C void eds_imm_reinit_bg(EDS_CB * cb);
-EXTERN_C void eds_imm_declare_implementer(SaImmOiHandleT *OiHandle);
+EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name);
+SaAisErrorT eds_imm_init(EDS_CB *cb);
+void eds_imm_reinit_bg(EDS_CB * cb);
+void eds_imm_declare_implementer(SaImmOiHandleT *OiHandle);
 
 #endif

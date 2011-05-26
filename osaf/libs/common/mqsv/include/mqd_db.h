@@ -170,14 +170,14 @@ typedef struct mqd_cb {
 #define MQD_CB_NULL  ((MQD_CB *)0)
 #define MQD_OBJ_INFO_NULL ((MQD_OBJ_INFO *)0)
 
-EXTERN_C void mqd_db_node_del(MQD_CB *, MQD_OBJ_NODE *);
-EXTERN_C uns32 mqd_db_node_add(MQD_CB *, MQD_OBJ_NODE *);
-EXTERN_C uns32 mqd_db_node_create(MQD_CB *, MQD_OBJ_NODE **);
-EXTERN_C uns32 mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid);
-EXTERN_C uns32 mqd_red_db_node_add(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode);
-EXTERN_C uns32 mqd_red_db_node_create(MQD_CB *pMqd, MQD_ND_DB_NODE **o_pnode);
-EXTERN_C void mqd_red_db_node_del(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode);
-EXTERN_C void mqd_qparam_upd(MQD_OBJ_NODE *, ASAPi_QUEUE_PARAM *);
-EXTERN_C void mqd_qparam_fill(MQD_QUEUE_PARAM *, ASAPi_QUEUE_PARAM *);
+void mqd_db_node_del(MQD_CB *, MQD_OBJ_NODE *);
+uns32 mqd_db_node_add(MQD_CB *, MQD_OBJ_NODE *);
+uns32 mqd_db_node_create(MQD_CB *, MQD_OBJ_NODE **);
+uns32 mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid);
+uns32 mqd_red_db_node_add(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode);
+uns32 mqd_red_db_node_create(MQD_CB *pMqd, MQD_ND_DB_NODE **o_pnode);
+void mqd_red_db_node_del(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode);
+void mqd_qparam_upd(MQD_OBJ_NODE *, ASAPi_QUEUE_PARAM *);
+void mqd_qparam_fill(MQD_QUEUE_PARAM *, ASAPi_QUEUE_PARAM *);
 
 #endif   /* MQD_DB_H */

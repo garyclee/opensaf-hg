@@ -31,15 +31,15 @@
 #define AVND_MON_H
 
 
-EXTERN_C uns32 gl_avnd_hdl;
+uns32 gl_avnd_hdl;
 
-EXTERN_C void avnd_pid_mon_list_init(struct avnd_cb_tag *);
-EXTERN_C void avnd_pid_mon_list_destroy(struct avnd_cb_tag *);
-EXTERN_C void avnd_mon_process(void *);
-EXTERN_C uns32 avnd_mon_task_create(void);
-EXTERN_C uns32 avnd_mon_req_del(struct avnd_cb_tag *, SaUint64T);
-EXTERN_C uns32 avnd_mon_req_free(NCS_DB_LINK_LIST_NODE *);
-EXTERN_C uns32 avnd_evt_pid_exit_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
-EXTERN_C struct avnd_mon_req_tag *avnd_mon_req_add(struct avnd_cb_tag *, AVND_COMP_PM_REC *);
+void avnd_pid_mon_list_init(struct avnd_cb_tag *);
+void avnd_pid_mon_list_destroy(struct avnd_cb_tag *);
+void avnd_mon_process(void *);
+uns32 avnd_mon_task_create(void);
+uns32 avnd_mon_req_del(struct avnd_cb_tag *, SaUint64T);
+uns32 avnd_mon_req_free(NCS_DB_LINK_LIST_NODE *);
+uns32 avnd_evt_pid_exit_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
+struct avnd_mon_req_tag *avnd_mon_req_add(struct avnd_cb_tag *, AVND_COMP_PM_REC *);
 
 #endif   /* !AVND_MON_H */

@@ -39,6 +39,6 @@
 #include "immd_sbedu.h"
 #include "ncs_mda_pvt.h"
 
-EXTERN_C IMMD_CB *immd_cb;
+IMMD_CB *immd_cb;
 
 #endif   /* IMMD_H */

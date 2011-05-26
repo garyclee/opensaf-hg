@@ -68,25 +68,25 @@
 /*
  * MBCSv MDS function prototypes.
  */
-EXTERN_C uns32 mbcsv_mds_reg(uns32 pwe_hdl, uns32 svc_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest);
-EXTERN_C void mbcsv_mds_unreg(uns32 pwe_hdl);
-EXTERN_C uns32 mbcsv_query_mds(uns32 pwe_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest);
-EXTERN_C uns32 mbcsv_mds_send_msg(uns32 send_type, MBCSV_EVT *msg, CKPT_INST *ckpt, MBCSV_ANCHOR anchor);
+uns32 mbcsv_mds_reg(uns32 pwe_hdl, uns32 svc_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest);
+void mbcsv_mds_unreg(uns32 pwe_hdl);
+uns32 mbcsv_query_mds(uns32 pwe_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest);
+uns32 mbcsv_mds_send_msg(uns32 send_type, MBCSV_EVT *msg, CKPT_INST *ckpt, MBCSV_ANCHOR anchor);
 
-EXTERN_C uns32 mbcsv_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo);
-EXTERN_C uns32 mbcsv_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo);
-EXTERN_C uns32 mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl);
-EXTERN_C uns32 mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uns32 mbcsv_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo);
+uns32 mbcsv_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo);
+uns32 mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl);
+uns32 mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			     SS_SVC_ID to_svc, NCS_UBAID *uba,
 			     MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver);
-EXTERN_C uns32 mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
+uns32 mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			     SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver);
-EXTERN_C uns32 mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uns32 mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			     SS_SVC_ID to_svc, NCSCONTEXT *cpy,
 			     NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver,
 			     MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver);
-EXTERN_C uns32 mbcsv_encode_version(NCS_UBAID *uba, uns16 version);
-EXTERN_C uns32 mbcsv_decode_version(NCS_UBAID *uba, uns16 *version);
+uns32 mbcsv_encode_version(NCS_UBAID *uba, uns16 version);
+uns32 mbcsv_decode_version(NCS_UBAID *uba, uns16 *version);
 
 /*
  * Internally used macros for sending message with different send types.

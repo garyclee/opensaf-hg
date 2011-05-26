@@ -177,24 +177,24 @@ typedef struct ava_hdl_db_tag {
 
 struct ava_cb_tag;
 
-EXTERN_C uns32 ava_hdl_cbk_param_add(struct ava_cb_tag *, AVA_HDL_REC *, AVSV_AMF_CBK_INFO *);
+uns32 ava_hdl_cbk_param_add(struct ava_cb_tag *, AVA_HDL_REC *, AVSV_AMF_CBK_INFO *);
 
-EXTERN_C uns32 ava_hdl_init(AVA_HDL_DB *);
+uns32 ava_hdl_init(AVA_HDL_DB *);
 
-EXTERN_C void ava_hdl_del(struct ava_cb_tag *);
+void ava_hdl_del(struct ava_cb_tag *);
 
-EXTERN_C void ava_hdl_rec_del(struct ava_cb_tag *, AVA_HDL_DB *, AVA_HDL_REC *);
+void ava_hdl_rec_del(struct ava_cb_tag *, AVA_HDL_DB *, AVA_HDL_REC *);
 
-EXTERN_C AVA_HDL_REC *ava_hdl_rec_add(struct ava_cb_tag *, AVA_HDL_DB *, const SaAmfCallbacksT *);
+AVA_HDL_REC *ava_hdl_rec_add(struct ava_cb_tag *, AVA_HDL_DB *, const SaAmfCallbacksT *);
 
-EXTERN_C uns32 ava_hdl_cbk_dispatch(struct ava_cb_tag **, AVA_HDL_REC **, SaDispatchFlagsT);
+uns32 ava_hdl_cbk_dispatch(struct ava_cb_tag **, AVA_HDL_REC **, SaDispatchFlagsT);
 
-EXTERN_C void ava_hdl_cbk_rec_del(AVA_PEND_CBK_REC *);
+void ava_hdl_cbk_rec_del(AVA_PEND_CBK_REC *);
 
-EXTERN_C AVA_PEND_RESP_REC *ava_hdl_pend_resp_pop(AVA_PEND_RESP *, SaInvocationT);
+AVA_PEND_RESP_REC *ava_hdl_pend_resp_pop(AVA_PEND_RESP *, SaInvocationT);
 
-EXTERN_C AVA_PEND_RESP_REC *ava_hdl_pend_resp_get(AVA_PEND_RESP *, SaInvocationT);
+AVA_PEND_RESP_REC *ava_hdl_pend_resp_get(AVA_PEND_RESP *, SaInvocationT);
 
-EXTERN_C uns32 ava_callback_ipc_init(AVA_HDL_REC *hdl_rec);
+uns32 ava_callback_ipc_init(AVA_HDL_REC *hdl_rec);
 
 #endif   /* !AVA_HDL_H */

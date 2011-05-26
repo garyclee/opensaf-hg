@@ -170,10 +170,10 @@ typedef struct avnd_tmr {
 
 /*** Extern function declarations ***/
 
-EXTERN_C void avnd_tmr_exp(void *);
+void avnd_tmr_exp(void *);
 
-EXTERN_C uns32 avnd_start_tmr(struct avnd_cb_tag *, AVND_TMR *, AVND_TMR_TYPE, SaTimeT, uns32);
+uns32 avnd_start_tmr(struct avnd_cb_tag *, AVND_TMR *, AVND_TMR_TYPE, SaTimeT, uns32);
 
-EXTERN_C void avnd_stop_tmr(struct avnd_cb_tag *, AVND_TMR *);
+void avnd_stop_tmr(struct avnd_cb_tag *, AVND_TMR *);
 
 #endif   /* !AVND_TMR_H */

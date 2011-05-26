@@ -206,18 +206,18 @@ typedef enum cpa_log_ids {
 	CPA_LID_TICCLLFFF
 } CPA_LOG_IDS;
 
-EXTERN_C void cpa_flx_log_reg(void);
-EXTERN_C void cpa_flx_log_dereg(void);
-EXTERN_C uns32 cpa_reg_strings();
+void cpa_flx_log_reg(void);
+void cpa_flx_log_dereg(void);
+uns32 cpa_reg_strings();
 
-EXTERN_C uns32 cpa_log_ascii_reg(void);
-EXTERN_C void cpa_log_ascii_dereg(void);
+uns32 cpa_log_ascii_reg(void);
+void cpa_log_ascii_dereg(void);
 
-EXTERN_C void cpa_log_headline(uns8 hdln_id, uns8 sev);
-EXTERN_C void cpa_log_memfail(uns8 mf_id);
-EXTERN_C void cpa_log_api(uns8 api_id, uns8 sev);
-EXTERN_C void cpa_log_data_send(uns8 id, uns32 node, uns32 evt_id);
-EXTERN_C void cpa_log_db(uns8 id, uns8 sev);
+void cpa_log_headline(uns8 hdln_id, uns8 sev);
+void cpa_log_memfail(uns8 mf_id);
+void cpa_log_api(uns8 api_id, uns8 sev);
+void cpa_log_data_send(uns8 id, uns32 node, uns32 evt_id);
+void cpa_log_db(uns8 id, uns8 sev);
 
 #define m_LOG_CPA_HEADLINE(id, sev)       cpa_log_headline(id,sev)
 #define m_LOG_CPA_MEMFAIL(id)             cpa_log_memfail(id)

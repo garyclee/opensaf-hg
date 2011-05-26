@@ -32,7 +32,7 @@
 #include <saClm.h>
 #include "immsv_evt_model.h"
 
-EXTERN_C IMMND_CB *immnd_cb;
+extern IMMND_CB *immnd_cb;
 
 /* internal helping function declaration */
 

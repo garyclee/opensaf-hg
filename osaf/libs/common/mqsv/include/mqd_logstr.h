@@ -32,9 +32,9 @@
 #define MQD_LOGSTR_H
 
 #if (NCS_DTS == 1)
-EXTERN_C uns32 mqd_log_ascii_reg(void);
-EXTERN_C void mqd_log_ascii_dereg(void);
-EXTERN_C uns32 mqsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+uns32 mqd_log_ascii_reg(void);
+void mqd_log_ascii_dereg(void);
+uns32 mqsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
 #endif   /* (NCS_DTS == 1) */
 
 #endif   /* MQD_LOGSTR_H */

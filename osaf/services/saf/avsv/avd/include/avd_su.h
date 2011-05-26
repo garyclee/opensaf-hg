@@ -210,9 +210,9 @@ extern AVD_SU *avd_su_getnext(const SaNameT *dn);
 extern void avd_su_remove_comp(struct avd_comp_tag *comp);
 extern void avd_su_add_comp(struct avd_comp_tag *comp);
 
-EXTERN_C void avd_su_add_sg_list(AVD_CL_CB *cb, AVD_SU *su);
-EXTERN_C void avd_su_del_sg_list(AVD_CL_CB *cb, AVD_SU *su);
-EXTERN_C void avd_su_del_avnd_list(AVD_CL_CB *cb, AVD_SU *su);
+void avd_su_add_sg_list(AVD_CL_CB *cb, AVD_SU *su);
+void avd_su_del_sg_list(AVD_CL_CB *cb, AVD_SU *su);
+void avd_su_del_avnd_list(AVD_CL_CB *cb, AVD_SU *su);
 
 /**
  * Get SUs from IMM and create internal objects

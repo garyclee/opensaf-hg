@@ -118,35 +118,35 @@ typedef struct immd_cb_tag {
 	SaImmRepositoryInitModeT mRim; /* Should be the rim obtained from coord. */
 } IMMD_CB;
 
-EXTERN_C uns32 immd_immnd_info_tree_init(IMMD_CB *cb);
+uns32 immd_immnd_info_tree_init(IMMD_CB *cb);
 
-EXTERN_C uns32 immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree,
+uns32 immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree,
 					MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node);
 
-EXTERN_C void immd_immnd_info_node_getnext(NCS_PATRICIA_TREE *immnd_tree,
+void immd_immnd_info_node_getnext(NCS_PATRICIA_TREE *immnd_tree,
 					   MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node);
 
-/*EXTERN_C uns32 immd_immnd_info_node_add(NCS_PATRICIA_TREE *immnd_tree, IMMD_IMMND_INFO_NODE *immnd_info_node);*/
+/*uns32 immd_immnd_info_node_add(NCS_PATRICIA_TREE *immnd_tree, IMMD_IMMND_INFO_NODE *immnd_info_node);*/
 
-EXTERN_C uns32 immd_immnd_info_node_delete(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info_node);
+uns32 immd_immnd_info_node_delete(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info_node);
 
-EXTERN_C void immd_immnd_info_tree_cleanup(IMMD_CB *cb);
+void immd_immnd_info_tree_cleanup(IMMD_CB *cb);
 
-EXTERN_C void immd_immnd_info_tree_destroy(IMMD_CB *cb);
+void immd_immnd_info_tree_destroy(IMMD_CB *cb);
 
-EXTERN_C uns32 immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
+uns32 immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
 					     MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node,
 					     NCS_BOOL *add_flag);
 
-EXTERN_C uns32 immd_cb_db_init(IMMD_CB *cb);
+uns32 immd_cb_db_init(IMMD_CB *cb);
 
-EXTERN_C uns32 immd_cb_db_destroy(IMMD_CB *cb);
+uns32 immd_cb_db_destroy(IMMD_CB *cb);
 
-EXTERN_C void immd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer,
+void immd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer,
 					SaUint32T numberOfMembers, SaAisErrorT error);
 
-EXTERN_C uns32 immd_mds_change_role(IMMD_CB *cb);
+uns32 immd_mds_change_role(IMMD_CB *cb);
 
-EXTERN_C void immd_proc_immd_reset(IMMD_CB *cb, NCS_BOOL active);
+void immd_proc_immd_reset(IMMD_CB *cb, NCS_BOOL active);
 
 #endif

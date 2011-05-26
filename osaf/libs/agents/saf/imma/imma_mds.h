@@ -31,14 +31,14 @@
 #ifndef IMMA_MDS_H
 #define IMMA_MDS_H
 
-EXTERN_C uns32 imma_mds_callback(struct ncsmds_callback_info *info);
-EXTERN_C uns32 imma_mds_register(IMMA_CB *cb);
-EXTERN_C void imma_mds_unregister(IMMA_CB *cb);
-EXTERN_C uns32 imma_mds_callback(struct ncsmds_callback_info *info);
-/* EXTERN_C uns32 imma_mds_msg_sync_send (NCSCONTEXT imma_mds_hdl, */
-EXTERN_C uns32 imma_mds_msg_sync_send(uns32 imma_mds_hdl,
+uns32 imma_mds_callback(struct ncsmds_callback_info *info);
+uns32 imma_mds_register(IMMA_CB *cb);
+void imma_mds_unregister(IMMA_CB *cb);
+uns32 imma_mds_callback(struct ncsmds_callback_info *info);
+/* uns32 imma_mds_msg_sync_send (NCSCONTEXT imma_mds_hdl, */
+uns32 imma_mds_msg_sync_send(uns32 imma_mds_hdl,
 				      MDS_DEST *destination, IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, uns32 timeout);
-/* EXTERN_C uns32 imma_mds_msg_send (NCSCONTEXT imma_mds_hdl,  */
-EXTERN_C uns32 imma_mds_msg_send(uns32 imma_mds_hdl, MDS_DEST *destination, IMMSV_EVT *i_evt, uns32 to_svc);
+/* uns32 imma_mds_msg_send (NCSCONTEXT imma_mds_hdl,  */
+uns32 imma_mds_msg_send(uns32 imma_mds_hdl, MDS_DEST *destination, IMMSV_EVT *i_evt, uns32 to_svc);
 
 #endif   /* IMMA_DL_API_H */

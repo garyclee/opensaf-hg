@@ -45,7 +45,7 @@ static uns32 mqa_mds_get_handle(MQA_CB *cb);
 MSG_FRMT_VER mqa_mqnd_msg_fmt_table[MQA_WRT_MQND_SUBPART_VER_RANGE] = { 0, 2 };	/*With version 1 it is not backward compatible */
 MSG_FRMT_VER mqa_mqd_msg_fmt_table[MQA_WRT_MQD_SUBPART_VER_RANGE] = { 0, 2 };	/*With version 1 it is not backward compatible */
 
-EXTERN_C uns32 mqa_mqa_msg_fmt_table[];
+extern uns32 mqa_mqa_msg_fmt_table[];
 /****************************************************************************
  * Name          : mqa_mds_get_handle
  *

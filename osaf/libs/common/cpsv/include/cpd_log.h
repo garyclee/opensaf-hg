@@ -252,18 +252,18 @@ typedef enum cpd_log_ids {
                           CPD Logging Control
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-EXTERN_C void cpd_flx_log_reg(void);
-EXTERN_C void cpd_flx_log_dereg(void);
+void cpd_flx_log_reg(void);
+void cpd_flx_log_dereg(void);
 
-EXTERN_C void cpd_log_ascii_dereg(void);
-EXTERN_C uns32 cpd_log_ascii_reg(void);
-EXTERN_C uns32 cpsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+void cpd_log_ascii_dereg(void);
+uns32 cpd_log_ascii_reg(void);
+uns32 cpsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
 
-EXTERN_C void cpd_headline_log(uns8, uns8);
-EXTERN_C void cpd_db_status_log(uns8, char *);
-EXTERN_C void cpd_memfail_log(uns8);
-EXTERN_C void cpd_mbcsv_log(uns8, uns8);
-EXTERN_C void _cpd_log(uns8 severity, const char *function, const char *format, ...);
+void cpd_headline_log(uns8, uns8);
+void cpd_db_status_log(uns8, char *);
+void cpd_memfail_log(uns8);
+void cpd_mbcsv_log(uns8, uns8);
+void _cpd_log(uns8 severity, const char *function, const char *format, ...);
 #define m_LOG_CPD_HEADLINE(id, sev) cpd_headline_log(id, sev)
 #define m_LOG_CPD_DB_STATUS(id, str) cpd_db_status_log(id, str)
 #define m_LOG_CPD_MEMFAIL(id) cpd_memfail_log(id)

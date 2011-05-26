@@ -811,20 +811,20 @@ typedef struct cpsv_evt {
 } CPSV_EVT;
 
 /* Event Declerations */
-EXTERN_C uns32 cpsv_evt_cpy(CPSV_EVT *src, CPSV_EVT *dest, uns32 svc_id);
-EXTERN_C uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub);
-EXTERN_C uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt);
-EXTERN_C uns32 cpsv_ckpt_data_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *data);
-EXTERN_C uns32 cpsv_ref_cnt_encode(NCS_UBAID *i_ub, CPSV_A2ND_REFCNTSET *data);
-EXTERN_C uns32 cpsv_refcnt_ckptid_decode(CPSV_A2ND_REFCNTSET *data, NCS_UBAID *io_uba);
-EXTERN_C uns32 cpsv_ckpt_node_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *pdata);
-EXTERN_C uns32 cpsv_ckpt_data_decode(CPSV_CKPT_DATA **data, NCS_UBAID *io_uba);
-EXTERN_C uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba);
-EXTERN_C uns32 cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba);
-EXTERN_C uns32 cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba);
-EXTERN_C uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba);
-EXTERN_C uns32 cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba);
-EXTERN_C uns32 cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba);
+uns32 cpsv_evt_cpy(CPSV_EVT *src, CPSV_EVT *dest, uns32 svc_id);
+uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub);
+uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt);
+uns32 cpsv_ckpt_data_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *data);
+uns32 cpsv_ref_cnt_encode(NCS_UBAID *i_ub, CPSV_A2ND_REFCNTSET *data);
+uns32 cpsv_refcnt_ckptid_decode(CPSV_A2ND_REFCNTSET *data, NCS_UBAID *io_uba);
+uns32 cpsv_ckpt_node_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *pdata);
+uns32 cpsv_ckpt_data_decode(CPSV_CKPT_DATA **data, NCS_UBAID *io_uba);
+uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba);
+uns32 cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba);
+uns32 cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba);
+uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba);
+uns32 cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba);
+uns32 cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba);
 
 /*
  * m_CPSV_DBG_SINK
@@ -843,7 +843,7 @@ EXTERN_C uns32 cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, 
 
 #if ((NCS_CPND == 1) || (NCS_CPD == 1))
 
-EXTERN_C uns32 cpsv_dbg_sink(uns32, char *, uns32, char *);
+uns32 cpsv_dbg_sink(uns32, char *, uns32, char *);
 #define m_CPSV_DBG_SINK(r, s)  cpsv_dbg_sink(__LINE__,__FILE__,(uns32)r, (char*)s)
 #define m_CPSV_DBG_VOID     cpsv_dbg_sink(__LINE__,__FILE__,1)
 #else

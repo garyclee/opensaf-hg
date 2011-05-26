@@ -45,18 +45,18 @@ typedef struct
 }PLMS_HSM_CB;
 
 
-EXTERN_C PLMS_HSM_CB *hsm_cb;
+PLMS_HSM_CB *hsm_cb;
 
-EXTERN_C HSM_HA_STATE hsm_ha_state;
+HSM_HA_STATE hsm_ha_state;
 
 /* Function Declarations */
-EXTERN_C SaUint32T plms_hsm_initialize(PLMS_HPI_CONFIG *hpi_cfg);
-EXTERN_C SaUint32T plms_hsm_finalize(void);
-EXTERN_C SaUint32T hsm_get_idr_info(SaHpiRptEntryT  *rpt_entry,
+SaUint32T plms_hsm_initialize(PLMS_HPI_CONFIG *hpi_cfg);
+SaUint32T plms_hsm_finalize(void);
+SaUint32T hsm_get_idr_info(SaHpiRptEntryT  *rpt_entry,
                                 PLMS_INV_DATA  *inv_data);
 
-EXTERN_C SaUint32T convert_entitypath_to_string(SaHpiEntityPathT *entity_path,
+SaUint32T convert_entitypath_to_string(SaHpiEntityPathT *entity_path,
                                         SaInt8T **ent_path_str);
-EXTERN_C SaUint32T plms_hsm_session_close();
+SaUint32T plms_hsm_session_close();
 #endif   /* PLMS_HSM_H */
 

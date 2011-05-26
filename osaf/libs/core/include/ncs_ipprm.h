@@ -464,7 +464,7 @@ extern "C" {
 
 #ifndef m_NCS_OS_IPV4_TO_IFIDX
 #define m_NCS_OS_IPV4_TO_IFIDX(hbo_ipv4)  os_ipv4_to_ifidx(hbo_ipv4)
-	EXTERN_C int os_ipv4_to_ifidx(unsigned int hbo_ipv4);
+	int os_ipv4_to_ifidx(unsigned int hbo_ipv4);
 #endif
 
 #ifndef NCS_OS_IPSVC_AIO_OP_TYPE

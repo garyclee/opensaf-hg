@@ -398,134 +398,134 @@ ncshm_take_hdl(NCS_SERVICE_ID_MBCSV, hdl)
 /*
  * Timer function prototypes.
  */
-EXTERN_C void ncs_mbcsv_start_timer(PEER_INST *peer, uns8 timer_type);
+void ncs_mbcsv_start_timer(PEER_INST *peer, uns8 timer_type);
 
-EXTERN_C void ncs_mbcsv_tmr_expiry(void *uarg);
+void ncs_mbcsv_tmr_expiry(void *uarg);
 
 /*
  * FSM Function prototypes.
  */
 
-EXTERN_C void ncs_mbcsv_null_func(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_async_update(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_cold_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_warm_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_warm_sync_resp(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_data_resp(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_data_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_data_req(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_cold_sync(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_cold_sync_resp(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_warm_sync(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C uns32 ncs_mbscv_rcv_decode(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_null_func(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_async_update(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_cold_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_warm_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_warm_sync_resp(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_data_resp(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_data_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_data_req(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_cold_sync(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_cold_sync_resp(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_warm_sync(PEER_INST *peer, MBCSV_EVT *evt);
+uns32 ncs_mbscv_rcv_decode(PEER_INST *peer, MBCSV_EVT *evt);
 
-EXTERN_C void ncs_mbcsv_rcv_async_update(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_rcv_cold_sync_resp(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_rcv_cold_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_rcv_warm_sync_resp(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_rcv_warm_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_rcv_entity_in_sync(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_rcv_data_resp(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_rcv_data_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_rcv_cold_sync(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_rcv_warm_sync(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_rcv_data_req(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_notify(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_rcv_notify(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_state_to_mul_act(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_state_to_wfcs(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_state_to_kstby_sync(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_rcv_async_update(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_rcv_cold_sync_resp(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_rcv_cold_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_rcv_warm_sync_resp(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_rcv_warm_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_rcv_entity_in_sync(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_rcv_data_resp(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_rcv_data_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_rcv_cold_sync(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_rcv_warm_sync(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_rcv_data_req(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_notify(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_rcv_notify(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_state_to_mul_act(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_state_to_wfcs(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_state_to_kstby_sync(PEER_INST *peer, MBCSV_EVT *evt);
 
 /* 
  * Timer Prototypes
  */
-EXTERN_C void ncs_mbcsv_start_timer(PEER_INST *peer, uns8 timer_type);
-EXTERN_C void ncs_mbcsv_stop_timer(PEER_INST *peer, uns32 timer_type);
-EXTERN_C void ncs_mbcsv_stop_all_timers(PEER_INST *peer);
-EXTERN_C void ncs_mbcsv_send_cold_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_warm_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_send_data_req_tmr(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_cold_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_warm_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt);
-EXTERN_C void ncs_mbcsv_transmit_tmr(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_start_timer(PEER_INST *peer, uns8 timer_type);
+void ncs_mbcsv_stop_timer(PEER_INST *peer, uns32 timer_type);
+void ncs_mbcsv_stop_all_timers(PEER_INST *peer);
+void ncs_mbcsv_send_cold_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_warm_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_send_data_req_tmr(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_cold_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_warm_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt);
+void ncs_mbcsv_transmit_tmr(PEER_INST *peer, MBCSV_EVT *evt);
 
 /*
  * API processing function prototypes.
  */
-EXTERN_C uns32 mbcsv_process_initialize_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_finalize_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_get_sel_obj_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_dispatch_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_open_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_close_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_chg_role_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_snd_ckpt_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_snd_ntfy_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_snd_data_req(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_sub_osh_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_sub_per_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_sub_cancel_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_get_request(NCS_MBCSV_ARG *arg);
-EXTERN_C uns32 mbcsv_process_set_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_initialize_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_finalize_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_get_sel_obj_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_dispatch_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_open_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_close_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_chg_role_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_snd_ckpt_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_snd_ntfy_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_snd_data_req(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_sub_osh_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_sub_per_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_sub_cancel_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_get_request(NCS_MBCSV_ARG *arg);
+uns32 mbcsv_process_set_request(NCS_MBCSV_ARG *arg);
 
 /*
  * Utility function prototypes.
  */
-EXTERN_C uns32 mbcsv_rmv_reg_inst(MBCSV_REG *reg_list, MBCSV_REG *mbc_reg);
-EXTERN_C uns32 mbcsv_remove_ckpt_inst(CKPT_INST *ckpt);
-EXTERN_C uns32 mbcsv_process_chg_role(MBCSV_EVT *rcvd_evt, MBCSV_REG *mbc_inst);
-EXTERN_C uns32 mbcsv_send_ckpt_data_to_all_peers(NCS_MBCSV_SEND_CKPT *msg_to_send,
+uns32 mbcsv_rmv_reg_inst(MBCSV_REG *reg_list, MBCSV_REG *mbc_reg);
+uns32 mbcsv_remove_ckpt_inst(CKPT_INST *ckpt);
+uns32 mbcsv_process_chg_role(MBCSV_EVT *rcvd_evt, MBCSV_REG *mbc_inst);
+uns32 mbcsv_send_ckpt_data_to_all_peers(NCS_MBCSV_SEND_CKPT *msg_to_send,
 						 CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst);
-EXTERN_C uns32 mbcsv_send_notify_msg(uns32 msg_dest, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst, NCSCONTEXT i_msg);
-EXTERN_C uns32 mbcsv_send_data_req(NCS_UBAID *uba, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst);
-EXTERN_C uns32 mbcsv_send_client_msg(PEER_INST *peer, uns8 evt, uns32 action);
-EXTERN_C uns32 ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uns8 *event, NCS_UBAID *uba);
-EXTERN_C uns32 mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uns8 event);
-EXTERN_C uns32 mbcsv_subscribe_oneshot(NCS_MBCSV_FLTR *fltr, uns16 time_10ms);
-EXTERN_C uns32 mbcsv_subscribe_persist(NCS_MBCSV_FLTR *fltr);
-EXTERN_C uns32 mbcsv_subscribe_cancel(uns32 sub_hdl);
+uns32 mbcsv_send_notify_msg(uns32 msg_dest, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst, NCSCONTEXT i_msg);
+uns32 mbcsv_send_data_req(NCS_UBAID *uba, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst);
+uns32 mbcsv_send_client_msg(PEER_INST *peer, uns8 evt, uns32 action);
+uns32 ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uns8 *event, NCS_UBAID *uba);
+uns32 mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uns8 event);
+uns32 mbcsv_subscribe_oneshot(NCS_MBCSV_FLTR *fltr, uns16 time_10ms);
+uns32 mbcsv_subscribe_persist(NCS_MBCSV_FLTR *fltr);
+uns32 mbcsv_subscribe_cancel(uns32 sub_hdl);
 
 /*
  * MBCSv queue prototypes.
  */
-EXTERN_C NCS_BOOL mbcsv_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
-EXTERN_C uns32 mbcsv_client_queue_init(MBCSV_REG *mbc_reg);
-EXTERN_C void mbcsv_client_queue_destroy(MBCSV_REG *mbc_reg);
+NCS_BOOL mbcsv_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+uns32 mbcsv_client_queue_init(MBCSV_REG *mbc_reg);
+void mbcsv_client_queue_destroy(MBCSV_REG *mbc_reg);
 
 /*
  * Process events prototypes.
  */
-EXTERN_C uns32 mbcsv_process_events(MBCSV_EVT *rcvd_evt, uns32 mbcsv_hdl);
-EXTERN_C uns32 mbcsv_hdl_dispatch_one(uns32 mbcsv_hdl, SYSF_MBX mbx);
-EXTERN_C uns32 mbcsv_hdl_dispatch_all(uns32 mbcsv_hdl, SYSF_MBX mbx);
-EXTERN_C uns32 mbcsv_hdl_dispatch_block(uns32 mbcsv_hdl, SYSF_MBX mbx);
+uns32 mbcsv_process_events(MBCSV_EVT *rcvd_evt, uns32 mbcsv_hdl);
+uns32 mbcsv_hdl_dispatch_one(uns32 mbcsv_hdl, SYSF_MBX mbx);
+uns32 mbcsv_hdl_dispatch_all(uns32 mbcsv_hdl, SYSF_MBX mbx);
+uns32 mbcsv_hdl_dispatch_block(uns32 mbcsv_hdl, SYSF_MBX mbx);
 
 /*
  * Peer discovery function prototypes.
  */
-EXTERN_C PEER_INST *mbcsv_search_and_return_peer(PEER_INST *peer_list, MBCSV_ANCHOR anchor);
-EXTERN_C PEER_INST *mbcsv_add_new_peer(CKPT_INST *ckpt, MBCSV_ANCHOR anchor);
-EXTERN_C uns32 mbcsv_shutdown_peer(PEER_INST *peer_ptr);
-EXTERN_C uns32 mbcsv_rmv_peer(CKPT_INST *ckpt, MBCSV_ANCHOR anchor);
-EXTERN_C uns32 mbcsv_empty_peers_list(CKPT_INST *ckpt);
-EXTERN_C uns32 mbcsv_process_peer_discovery_message(MBCSV_EVT *msg, MBCSV_REG *mbc_reg);
-EXTERN_C PEER_INST *mbcsv_my_active_peer(CKPT_INST *ckpt);
-EXTERN_C void mbcsv_clear_multiple_active_state(CKPT_INST *ckpt);
-EXTERN_C void mbcsv_close_old_session(PEER_INST *active_peer);
-EXTERN_C void mbcsv_set_up_new_session(CKPT_INST *ckpt, PEER_INST *new_act_peer);
-EXTERN_C void mbcsv_set_peer_state(CKPT_INST *ckpt, PEER_INST *peer, NCS_BOOL peer_up);
-EXTERN_C uns32 mbcsv_process_peer_up_info(MBCSV_EVT *msg, CKPT_INST *ckpt, uns8 peer_up);
-EXTERN_C void mbcsv_update_peer_info(MBCSV_EVT *msg, CKPT_INST *ckpt, PEER_INST *peer);
-EXTERN_C uns32 mbcsv_process_peer_down(MBCSV_EVT *msg, CKPT_INST *ckpt);
-EXTERN_C uns32 mbcsv_process_peer_info_rsp(MBCSV_EVT *msg, CKPT_INST *ckpt);
-EXTERN_C uns32 mbcsv_process_peer_chg_role(MBCSV_EVT *msg, CKPT_INST *ckpt);
-EXTERN_C uns32 mbcsv_send_peer_disc_msg(uns32 type, MBCSV_REG *mbc, CKPT_INST *ckpt,
+PEER_INST *mbcsv_search_and_return_peer(PEER_INST *peer_list, MBCSV_ANCHOR anchor);
+PEER_INST *mbcsv_add_new_peer(CKPT_INST *ckpt, MBCSV_ANCHOR anchor);
+uns32 mbcsv_shutdown_peer(PEER_INST *peer_ptr);
+uns32 mbcsv_rmv_peer(CKPT_INST *ckpt, MBCSV_ANCHOR anchor);
+uns32 mbcsv_empty_peers_list(CKPT_INST *ckpt);
+uns32 mbcsv_process_peer_discovery_message(MBCSV_EVT *msg, MBCSV_REG *mbc_reg);
+PEER_INST *mbcsv_my_active_peer(CKPT_INST *ckpt);
+void mbcsv_clear_multiple_active_state(CKPT_INST *ckpt);
+void mbcsv_close_old_session(PEER_INST *active_peer);
+void mbcsv_set_up_new_session(CKPT_INST *ckpt, PEER_INST *new_act_peer);
+void mbcsv_set_peer_state(CKPT_INST *ckpt, PEER_INST *peer, NCS_BOOL peer_up);
+uns32 mbcsv_process_peer_up_info(MBCSV_EVT *msg, CKPT_INST *ckpt, uns8 peer_up);
+void mbcsv_update_peer_info(MBCSV_EVT *msg, CKPT_INST *ckpt, PEER_INST *peer);
+uns32 mbcsv_process_peer_down(MBCSV_EVT *msg, CKPT_INST *ckpt);
+uns32 mbcsv_process_peer_info_rsp(MBCSV_EVT *msg, CKPT_INST *ckpt);
+uns32 mbcsv_process_peer_chg_role(MBCSV_EVT *msg, CKPT_INST *ckpt);
+uns32 mbcsv_send_peer_disc_msg(uns32 type, MBCSV_REG *mbc, CKPT_INST *ckpt,
 					PEER_INST *peer, uns32 mds_send_type, MBCSV_ANCHOR anchor);
 
 /*
  * Library create and destroy functions.
  */
-EXTERN_C uns32 mbcsv_lib_init(NCS_LIB_REQ_INFO *req_info);
-EXTERN_C uns32 mbcsv_lib_destroy(void);
+uns32 mbcsv_lib_init(NCS_LIB_REQ_INFO *req_info);
+uns32 mbcsv_lib_destroy(void);
 
 #endif

@@ -289,7 +289,7 @@ struct ncs_sar_ctrl_info_tag;
 #define NCSFAIL_MEM_REC_CORRUPTED 6
 #define NCSFAIL_OWNER_CONFLICT    7
 
-EXTERN_C uns32 leap_failure(uns32 l, char *f, uns32 e, uns32 ret);
+uns32 leap_failure(uns32 l, char *f, uns32 e, uns32 ret);
 
 #define m_LEAP_FAILURE(e,r) leap_failure(__LINE__,__FILE__,(uns32)e,(uns32)r)
 

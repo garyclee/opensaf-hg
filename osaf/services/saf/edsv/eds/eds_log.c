@@ -69,7 +69,7 @@ void eds_log(uns8 id, uns32 category, uns8 sev, long rc, char *fname, uns32 fno,
                      dest - uns64 mdsdest
 *****************************************************************************/
 
-EXTERN_C void eds_log_f(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno, uns32 dataa, uns64 dest)
+void eds_log_f(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno, uns32 dataa, uns64 dest)
 {
 
 	/* Log New type logs */

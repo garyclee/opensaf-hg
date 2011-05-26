@@ -18,7 +18,7 @@
 #ifndef FM_CB_H
 #define FM_CB_H
 
-EXTERN_C uns32 gl_fm_hdl;
+uns32 gl_fm_hdl;
 
 typedef enum {
 	FM_TMR_TYPE_MIN,
@@ -75,8 +75,8 @@ extern FM_CB *fm_cb;
 /*****************************************************************
 *         Prototypes for extern functions                       *
 *****************************************************************/
-EXTERN_C uns32 fm_rda_init(FM_CB *);
-EXTERN_C uns32 fm_rda_finalize(FM_CB *);
-EXTERN_C uns32 fm_rda_set_role(FM_CB *, PCS_RDA_ROLE);
+uns32 fm_rda_init(FM_CB *);
+uns32 fm_rda_finalize(FM_CB *);
+uns32 fm_rda_set_role(FM_CB *, PCS_RDA_ROLE);
 
 #endif

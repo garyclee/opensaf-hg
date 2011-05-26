@@ -28,10 +28,10 @@
 #include "plms_mbcsv.h"
 #include "plms_utils.h"
 
-EXTERN_C PLMS_ADM_FUNC_PTR plm_HE_adm_state_op[SA_PLM_HE_ADMIN_STATE_MAX]
+PLMS_ADM_FUNC_PTR plm_HE_adm_state_op[SA_PLM_HE_ADMIN_STATE_MAX]
 						[SA_PLM_ADMIN_OP_MAX];
 
-EXTERN_C PLMS_ADM_FUNC_PTR plm_EE_adm_state_op[SA_PLM_EE_ADMIN_STATE_MAX]
+PLMS_ADM_FUNC_PTR plm_EE_adm_state_op[SA_PLM_EE_ADMIN_STATE_MAX]
 						[SA_PLM_ADMIN_OP_MAX];
 
 /* HE adm FP.*/

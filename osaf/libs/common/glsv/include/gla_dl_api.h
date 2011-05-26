@@ -19,7 +19,7 @@
 #define GLA_DL_API_H
 
  uns32 gla_lib_req(NCS_LIB_REQ_INFO *req_info);
-EXTERN_C unsigned int ncs_gla_startup(void);
-EXTERN_C unsigned int ncs_gla_shutdown(void);
+unsigned int ncs_gla_startup(void);
+unsigned int ncs_gla_shutdown(void);
 
 #endif

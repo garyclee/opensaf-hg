@@ -568,9 +568,9 @@ extern "C" {
 /* 3) function entry point and prototype for MBCSv service                   */
 
 /*typedef uns32 (*NCS_MBCSV) (NCS_MBCSV_ARG* arg);  function prototype           */
-	EXTERN_C uns32 ncs_mbcsv_svc(NCS_MBCSV_ARG *arg);	/* MBCSv function instance        */
+	uns32 ncs_mbcsv_svc(NCS_MBCSV_ARG *arg);	/* MBCSv function instance        */
 
-	EXTERN_C uns32 mbcsv_prt_inv(void);
+	uns32 mbcsv_prt_inv(void);
 
 #ifdef  __cplusplus
 }

@@ -93,16 +93,16 @@ typedef struct avsv_nda_ava_msg {
 
 /* Extern Function Prototypes */
 
-EXTERN_C void avsv_nda_ava_msg_free(AVSV_NDA_AVA_MSG *);
-EXTERN_C void avsv_nda_ava_msg_content_free(AVSV_NDA_AVA_MSG *);
+void avsv_nda_ava_msg_free(AVSV_NDA_AVA_MSG *);
+void avsv_nda_ava_msg_content_free(AVSV_NDA_AVA_MSG *);
 
-EXTERN_C uns32 avsv_nda_ava_msg_copy(AVSV_NDA_AVA_MSG *, AVSV_NDA_AVA_MSG *);
+uns32 avsv_nda_ava_msg_copy(AVSV_NDA_AVA_MSG *, AVSV_NDA_AVA_MSG *);
 
-EXTERN_C uns32 avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **, AVSV_AMF_CBK_INFO *);
-EXTERN_C uns32 avsv_amf_csi_attr_list_copy(SaAmfCSIAttributeListT *, SaAmfCSIAttributeListT *);
-EXTERN_C void avsv_amf_cbk_free(AVSV_AMF_CBK_INFO *);
-EXTERN_C void avsv_amf_csi_attr_list_free(SaAmfCSIAttributeListT *);
+uns32 avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **, AVSV_AMF_CBK_INFO *);
+uns32 avsv_amf_csi_attr_list_copy(SaAmfCSIAttributeListT *, SaAmfCSIAttributeListT *);
+void avsv_amf_cbk_free(AVSV_AMF_CBK_INFO *);
+void avsv_amf_csi_attr_list_free(SaAmfCSIAttributeListT *);
 
-EXTERN_C uns32 avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *);
+uns32 avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *);
 
 #endif   /* !AVSV_N2AVAMSG_H */

@@ -263,7 +263,7 @@ typedef struct glsv_glnd_evt {
 } GLSV_GLND_EVT;
 
 /* prototypes */
-EXTERN_C void glnd_evt_destroy(GLSV_GLND_EVT *evt);
-EXTERN_C uns32 glnd_process_evt(NCSCONTEXT cb, GLSV_GLND_EVT *evt);
+void glnd_evt_destroy(GLSV_GLND_EVT *evt);
+uns32 glnd_process_evt(NCSCONTEXT cb, GLSV_GLND_EVT *evt);
 
 #endif

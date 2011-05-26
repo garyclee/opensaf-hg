@@ -45,7 +45,7 @@ char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix);
 uns32 file_get_word(FILE **fp, char *o_chword);
 uns32 file_get_string(FILE **fp, char *o_chword);
 
-EXTERN_C char *gl_pargv[NCS_MAIN_MAX_INPUT];
-EXTERN_C uns32 gl_pargc;
+char *gl_pargv[NCS_MAIN_MAX_INPUT];
+uns32 gl_pargc;
 
 #endif	/* NCS_MAIN_PUB_H */

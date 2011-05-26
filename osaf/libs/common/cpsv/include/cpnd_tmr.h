@@ -44,6 +44,6 @@ typedef struct cpnd_tmr {
 	NCS_BOOL is_active_sync_err;
 } CPND_TMR;
 
-EXTERN_C uns32 cpnd_tmr_start(CPND_TMR *tmr, SaTimeT duration);
+uns32 cpnd_tmr_start(CPND_TMR *tmr, SaTimeT duration);
 
 #endif

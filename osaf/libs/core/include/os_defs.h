@@ -71,9 +71,6 @@ struct msgbuf {
 #include <ctype.h>
 #include <termios.h>
 
-/* includes for DLL */
-#include <dlfcn.h>
-
 #include <assert.h>
 #include <sys/wait.h>
 
@@ -95,7 +92,7 @@ extern "C" {
 	extern void ncs_os_atomic_destroy(void);
 
 #ifndef m_NCS_OS_DBG_PRINTF
-	EXTERN_C int ncs_dbg_logscreen(const char *str, ...);
+	int ncs_dbg_logscreen(const char *str, ...);
 #define m_NCS_OS_DBG_PRINTF         ncs_dbg_logscreen
 #endif
 
@@ -216,20 +213,6 @@ extern "C" {
     timestamp=(time_t) (time((time_t *) 0)); \
     strftime((char *)(asc_timestamp), 40, "%d %B %Y %H:%M:%S", localtime_r(&timestamp, &IR58027_temp_tm)); \
 }
-
-/******* Macros for DLL's ********/
-#ifndef NCS_USE_DLIB
-#define NCS_USE_DLIB (1)
-#endif
-
-#if (NCS_USE_DLIB == 1)
-#define NCS_OS_DLIB_HDL                        void *
-#define m_NCS_OS_DLIB_ATTR                     (RTLD_LAZY|RTLD_GLOBAL)
-#define m_NCS_OS_DLIB_LOAD(file,attr)          dlopen(file,attr)
-#define m_NCS_OS_DLIB_SYMBOL(lib_hdl,symbol)   dlsym(lib_hdl,symbol)
-#define m_NCS_OS_DLIB_ERROR()                  dlerror()
-#define m_NCS_OS_DLIB_CLOSE(lib_hdl)           dlclose(lib_hdl)
-#endif
 
 /****************************************************************************
  *

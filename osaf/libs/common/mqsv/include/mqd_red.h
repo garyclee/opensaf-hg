@@ -115,14 +115,14 @@ typedef struct mqd_a2s_msg {
 	} info;
 } MQD_A2S_MSG;
 
-EXTERN_C void mqd_a2s_async_update(MQD_CB *pMqd, MQD_A2S_MSG_TYPE type, void *pmesg);
-EXTERN_C uns32 mqd_mbcsv_register(MQD_CB *pMqd);
-EXTERN_C uns32 mqd_mbcsv_finalize(MQD_CB *pMqd);
-EXTERN_C uns32 mqd_mbcsv_chgrole(MQD_CB *pMqd);
-EXTERN_C uns32 mqd_process_a2s_event(MQD_CB *pMqd, MQD_A2S_MSG *msg);
-EXTERN_C uns32 mqd_asapi_db_upd(MQD_CB *, ASAPi_REG_INFO *, MQD_OBJ_NODE **, ASAPi_OBJECT_OPR *);
-EXTERN_C uns32 mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_INFO *msg);
-EXTERN_C uns32 mqd_asapi_track_db_upd(MQD_CB *, ASAPi_TRACK_INFO *, MQSV_SEND_INFO *info, MQD_OBJ_NODE **);
-EXTERN_C uns32 mqd_user_evt_track_delete(MQD_CB *pMqd, MDS_DEST *dest);
+void mqd_a2s_async_update(MQD_CB *pMqd, MQD_A2S_MSG_TYPE type, void *pmesg);
+uns32 mqd_mbcsv_register(MQD_CB *pMqd);
+uns32 mqd_mbcsv_finalize(MQD_CB *pMqd);
+uns32 mqd_mbcsv_chgrole(MQD_CB *pMqd);
+uns32 mqd_process_a2s_event(MQD_CB *pMqd, MQD_A2S_MSG *msg);
+uns32 mqd_asapi_db_upd(MQD_CB *, ASAPi_REG_INFO *, MQD_OBJ_NODE **, ASAPi_OBJECT_OPR *);
+uns32 mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_INFO *msg);
+uns32 mqd_asapi_track_db_upd(MQD_CB *, ASAPi_TRACK_INFO *, MQSV_SEND_INFO *info, MQD_OBJ_NODE **);
+uns32 mqd_user_evt_track_delete(MQD_CB *pMqd, MDS_DEST *dest);
 
 #endif   /* MQD_RED.H  */

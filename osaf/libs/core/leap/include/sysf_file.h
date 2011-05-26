@@ -48,6 +48,6 @@
  */
 #define m_NCS_FILE_OP(file, file_request)    ncs_file_op(file, file_request)
 
-EXTERN_C uns32 ncs_file_op(NCS_OS_FILE *file, NCS_OS_FILE_REQUEST file_request);
+uns32 ncs_file_op(NCS_OS_FILE *file, NCS_OS_FILE_REQUEST file_request);
 
 #endif   /* SYSF_FILE_H */

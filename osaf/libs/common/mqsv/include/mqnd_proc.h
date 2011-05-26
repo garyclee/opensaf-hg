@@ -97,38 +97,38 @@
         }
 
 /* Function Prototypes written in mqnd_util.c */
-EXTERN_C NCS_BOOL mqnd_compare_create_attr(SaMsgQueueCreationAttributesT *open_ca,
+NCS_BOOL mqnd_compare_create_attr(SaMsgQueueCreationAttributesT *open_ca,
 					   SaMsgQueueCreationAttributesT *curr_ca);
 
-EXTERN_C uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
+uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 				 MDS_DEST *rcvr_mqa, SaMsgQueueHandleT *qhdl,
 				 MQP_TRANSFERQ_RSP *transfer_rspi, SaAisErrorT *err);
 
-EXTERN_C uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *err, NCS_BOOL is_q_reopen);
+uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *err, NCS_BOOL is_q_reopen);
 
 /* Function Prototypes written in mqnd_proc.c */
 
-EXTERN_C uns32 mqnd_proc_queue_open(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
+uns32 mqnd_proc_queue_open(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
 				    MQSV_SEND_INFO *sinfo, ASAPi_NRESOLVE_RESP_INFO *qinfo);
 
-EXTERN_C uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *err);
-EXTERN_C uns32 mqnd_send_mqp_ulink_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, MQP_UNLINK_REQ *ulink_req);
+uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *err);
+uns32 mqnd_send_mqp_ulink_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, MQP_UNLINK_REQ *ulink_req);
 
-EXTERN_C uns32 mqnd_send_mqp_open_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo,
+uns32 mqnd_send_mqp_open_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo,
 				      MQP_REQ_MSG *mqp_req, SaAisErrorT err, uns32 qhdl, uns32 existing_msg_count);
 
-EXTERN_C uns32 mqnd_send_mqp_close_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, uns32 qhdl);
+uns32 mqnd_send_mqp_close_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, uns32 qhdl);
 
-EXTERN_C uns32 mqnd_evt_proc_mqp_qtransfer_response(MQND_CB *cb, MQSV_EVT *evt);
+uns32 mqnd_evt_proc_mqp_qtransfer_response(MQND_CB *cb, MQSV_EVT *evt);
 
-EXTERN_C uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req);
+uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req);
 
-EXTERN_C uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req);
+uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req);
 
-EXTERN_C uns32 mqnd_fill_queue_from_transfered_buffer(MQND_CB *cb, MQND_QUEUE_NODE *qnode,
+uns32 mqnd_fill_queue_from_transfered_buffer(MQND_CB *cb, MQND_QUEUE_NODE *qnode,
 						      MQP_TRANSFERQ_RSP *transfer_rsp);
 
-EXTERN_C void mqnd_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificationBuffer,
+void mqnd_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificationBuffer,
 					 SaUint32T numberOfMembers, SaAisErrorT error);
 
 #endif

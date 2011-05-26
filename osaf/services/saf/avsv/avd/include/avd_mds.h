@@ -45,12 +45,12 @@
 #define AVD_AVD_MSG_FMT_VER_2    2
 #define AVD_AVD_MSG_FMT_VER_3    3
 
-EXTERN_C uns32 avd_mds_set_vdest_role(struct cl_cb_tag *cb, SaAmfHAStateT role);
-EXTERN_C uns32 avd_mds_init(struct cl_cb_tag *cb);
-EXTERN_C void avd_mds_unreg(struct cl_cb_tag *cb);
+uns32 avd_mds_set_vdest_role(struct cl_cb_tag *cb, SaAmfHAStateT role);
+uns32 avd_mds_init(struct cl_cb_tag *cb);
+void avd_mds_unreg(struct cl_cb_tag *cb);
 
-EXTERN_C uns32 avd_mds_cbk(struct ncsmds_callback_info *info);
-EXTERN_C uns32 avd_avnd_mds_send(struct cl_cb_tag *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg);
+uns32 avd_mds_cbk(struct ncsmds_callback_info *info);
+uns32 avd_avnd_mds_send(struct cl_cb_tag *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg);
 extern void avd_mds_avd_up_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 extern void avd_mds_avd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 extern void avd_standby_avd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt);

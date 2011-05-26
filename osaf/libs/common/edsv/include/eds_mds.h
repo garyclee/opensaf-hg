@@ -39,20 +39,20 @@
         (EDS_WRT_EDA_SUBPART_VER_AT_MAX_MSG_FMT - \
          EDS_WRT_EDA_SUBPART_VER_AT_MIN_MSG_FMT +1)
 
-EXTERN_C uns32 eds_mds_init(EDS_CB *);
-EXTERN_C uns32 eds_mds_vdest_create(EDS_CB *);
-EXTERN_C uns32 eds_mds_finalize(EDS_CB *cb);
-EXTERN_C uns32 eds_mds_vdest_destroy(EDS_CB *cb);
-EXTERN_C uns32 eds_mds_change_role(EDS_CB *cb);
-EXTERN_C uns32 eds_mds_msg_send(EDS_CB *cb,
+uns32 eds_mds_init(EDS_CB *);
+uns32 eds_mds_vdest_create(EDS_CB *);
+uns32 eds_mds_finalize(EDS_CB *cb);
+uns32 eds_mds_vdest_destroy(EDS_CB *cb);
+uns32 eds_mds_change_role(EDS_CB *cb);
+uns32 eds_mds_msg_send(EDS_CB *cb,
 				EDSV_MSG *msg,
 				MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio);
 
-EXTERN_C uns32 eds_mds_ack_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST dest, uns32 timeout, MDS_SEND_PRIORITY_TYPE prio);
+uns32 eds_mds_ack_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST dest, uns32 timeout, MDS_SEND_PRIORITY_TYPE prio);
 
-EXTERN_C uns32 eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uns8 ckpt_flag);
+uns32 eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uns8 ckpt_flag);
 
-EXTERN_C uns32 eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uns8 ckpt_flag);
+uns32 eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uns8 ckpt_flag);
 
 /*****************************************************************************
                  Macros to fill the MDS message structure

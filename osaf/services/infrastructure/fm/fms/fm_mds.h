@@ -35,16 +35,16 @@ msg_fmt_version,rem_ver_min,rem_ver_max,msg_fmt_array) \
 (((msg_fmt_version) > (msg_fmt_array)[(rem_ver_max) - (rem_ver_min)])?\
 0:(((msg_fmt_version) < (msg_fmt_array)[0])?0:1))
 
-EXTERN_C uns32 fm_mds_init(FM_CB *cb);
+uns32 fm_mds_init(FM_CB *cb);
 
-EXTERN_C uns32 fm_mds_finalize(FM_CB *cb);
+uns32 fm_mds_finalize(FM_CB *cb);
 
-EXTERN_C uns32 fm_mds_sync_send(FM_CB *fm_cb, NCSCONTEXT msg,
+uns32 fm_mds_sync_send(FM_CB *fm_cb, NCSCONTEXT msg,
 				NCSMDS_SVC_ID svc_id,
 				MDS_SEND_PRIORITY_TYPE priority,
 				MDS_SENDTYPES send_type, MDS_DEST *i_to_dest, MDS_SYNC_SND_CTXT *mds_ctxt);
 
-EXTERN_C uns32 fm_mds_async_send(FM_CB *fm_cb, NCSCONTEXT msg,
+uns32 fm_mds_async_send(FM_CB *fm_cb, NCSCONTEXT msg,
 				 NCSMDS_SVC_ID svc_id,
 				 MDS_SEND_PRIORITY_TYPE priority,
 				 MDS_SENDTYPES send_type, MDS_DEST i_to_dest, NCSMDS_SCOPE_TYPE bcast_scope);

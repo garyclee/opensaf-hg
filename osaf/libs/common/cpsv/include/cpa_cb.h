@@ -117,7 +117,7 @@ typedef struct cpa_cb {
 
 } CPA_CB;
 
-EXTERN_C uns32 gl_cpa_hdl;
+uns32 gl_cpa_hdl;
 
 typedef struct cpa_prcess_evt_sync {
 	NCS_QELEM qelem;
@@ -167,41 +167,41 @@ typedef struct cpa_prcess_evt_sync {
 /* CPA Function Declerations */
 /* function prototypes for client handling*/
 
-EXTERN_C uns32 cpa_db_init(CPA_CB *cb);
-EXTERN_C uns32 cpa_db_destroy(CPA_CB *cb);
+uns32 cpa_db_init(CPA_CB *cb);
+uns32 cpa_db_destroy(CPA_CB *cb);
 
-EXTERN_C uns32 cpa_client_tree_init(CPA_CB *cb);
-EXTERN_C uns32 cpa_client_node_get(NCS_PATRICIA_TREE *client_tree, SaCkptHandleT *cl_hdl, CPA_CLIENT_NODE **cl_node);
-EXTERN_C uns32 cpa_client_node_add(NCS_PATRICIA_TREE *client_tree, CPA_CLIENT_NODE *cl_node);
-EXTERN_C uns32 cpa_client_node_delete(CPA_CB *cb, CPA_CLIENT_NODE *cl_node);
-EXTERN_C void cpa_client_tree_destroy(CPA_CB *cb);
-EXTERN_C void cpa_client_tree_cleanup(CPA_CB *cb);
-EXTERN_C uns32 cpa_lcl_ckpt_tree_init(CPA_CB *cb);
-EXTERN_C uns32 cpa_lcl_ckpt_node_get(NCS_PATRICIA_TREE *lcl_ckpt_tree,
+uns32 cpa_client_tree_init(CPA_CB *cb);
+uns32 cpa_client_node_get(NCS_PATRICIA_TREE *client_tree, SaCkptHandleT *cl_hdl, CPA_CLIENT_NODE **cl_node);
+uns32 cpa_client_node_add(NCS_PATRICIA_TREE *client_tree, CPA_CLIENT_NODE *cl_node);
+uns32 cpa_client_node_delete(CPA_CB *cb, CPA_CLIENT_NODE *cl_node);
+void cpa_client_tree_destroy(CPA_CB *cb);
+void cpa_client_tree_cleanup(CPA_CB *cb);
+uns32 cpa_lcl_ckpt_tree_init(CPA_CB *cb);
+uns32 cpa_lcl_ckpt_node_get(NCS_PATRICIA_TREE *lcl_ckpt_tree,
 				     SaCkptCheckpointHandleT *lc_hdl, CPA_LOCAL_CKPT_NODE **lc_node);
-EXTERN_C void cpa_lcl_ckpt_node_getnext(CPA_CB *cb, SaCkptCheckpointHandleT *lc_hdl, CPA_LOCAL_CKPT_NODE **lc_node);
-EXTERN_C uns32 cpa_lcl_ckpt_node_add(NCS_PATRICIA_TREE *lcl_ckpt_tree, CPA_LOCAL_CKPT_NODE *lc_node);
-EXTERN_C uns32 cpa_lcl_ckpt_node_delete(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node);
-EXTERN_C void cpa_lcl_ckpt_tree_destroy(CPA_CB *cb);
-EXTERN_C void cpa_lcl_ckpt_tree_cleanup(CPA_CB *cb);
-EXTERN_C uns32 cpa_gbl_ckpt_tree_init(CPA_CB *cb);
-EXTERN_C void cpa_gbl_ckpt_tree_destroy(CPA_CB *cb);
-EXTERN_C uns32 cpa_gbl_ckpt_node_find_add(NCS_PATRICIA_TREE *gbl_ckpt_tree,
+void cpa_lcl_ckpt_node_getnext(CPA_CB *cb, SaCkptCheckpointHandleT *lc_hdl, CPA_LOCAL_CKPT_NODE **lc_node);
+uns32 cpa_lcl_ckpt_node_add(NCS_PATRICIA_TREE *lcl_ckpt_tree, CPA_LOCAL_CKPT_NODE *lc_node);
+uns32 cpa_lcl_ckpt_node_delete(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node);
+void cpa_lcl_ckpt_tree_destroy(CPA_CB *cb);
+void cpa_lcl_ckpt_tree_cleanup(CPA_CB *cb);
+uns32 cpa_gbl_ckpt_tree_init(CPA_CB *cb);
+void cpa_gbl_ckpt_tree_destroy(CPA_CB *cb);
+uns32 cpa_gbl_ckpt_node_find_add(NCS_PATRICIA_TREE *gbl_ckpt_tree,
 					  SaCkptCheckpointHandleT *gc_hdl,
 					  CPA_GLOBAL_CKPT_NODE **gc_node, NCS_BOOL *add_flag);
-EXTERN_C uns32 cpa_gbl_ckpt_node_add(NCS_PATRICIA_TREE *gbl_ckpt_tree, CPA_GLOBAL_CKPT_NODE *gc_node);
-EXTERN_C uns32 cpa_gbl_ckpt_node_delete(CPA_CB *cb, CPA_GLOBAL_CKPT_NODE *gc_node);
+uns32 cpa_gbl_ckpt_node_add(NCS_PATRICIA_TREE *gbl_ckpt_tree, CPA_GLOBAL_CKPT_NODE *gc_node);
+uns32 cpa_gbl_ckpt_node_delete(CPA_CB *cb, CPA_GLOBAL_CKPT_NODE *gc_node);
 
-EXTERN_C uns32 cpa_sect_iter_tree_init(CPA_CB *cb);
-EXTERN_C uns32 cpa_sect_iter_node_get(NCS_PATRICIA_TREE *sect_iter_tree,
+uns32 cpa_sect_iter_tree_init(CPA_CB *cb);
+uns32 cpa_sect_iter_node_get(NCS_PATRICIA_TREE *sect_iter_tree,
 				      SaCkptSectionIterationHandleT *sect_iter_hdl,
 				      CPA_SECT_ITER_NODE **sect_iter_node);
-EXTERN_C uns32 cpa_sect_iter_node_add(NCS_PATRICIA_TREE *sect_iter_tree, CPA_SECT_ITER_NODE *sect_iter_node);
-EXTERN_C uns32 cpa_sect_iter_node_delete(CPA_CB *cb, CPA_SECT_ITER_NODE *sect_iter_node);
-EXTERN_C void cpa_sect_iter_tree_destroy(CPA_CB *cb);
-EXTERN_C void cpa_sect_iter_node_getnext(NCS_PATRICIA_TREE *sect_iter_tree,
+uns32 cpa_sect_iter_node_add(NCS_PATRICIA_TREE *sect_iter_tree, CPA_SECT_ITER_NODE *sect_iter_node);
+uns32 cpa_sect_iter_node_delete(CPA_CB *cb, CPA_SECT_ITER_NODE *sect_iter_node);
+void cpa_sect_iter_tree_destroy(CPA_CB *cb);
+void cpa_sect_iter_node_getnext(NCS_PATRICIA_TREE *sect_iter_tree,
 					 SaCkptSectionIterationHandleT *sect_iter_hdl,
 					 CPA_SECT_ITER_NODE **sect_iter_node);
 
-EXTERN_C void cpa_client_tree_mark_stale(CPA_CB *cb);
+void cpa_client_tree_mark_stale(CPA_CB *cb);
 #endif

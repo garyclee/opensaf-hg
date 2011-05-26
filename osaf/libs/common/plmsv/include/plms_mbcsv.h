@@ -106,11 +106,11 @@ typedef struct plms_mbcsv_msg {
 SaUint32T plms_edp_client_info_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 NCSCONTEXT ptr,uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,
 EDU_ERR *o_err);
-EXTERN_C SaUint32T plms_mbcsv_register();
-EXTERN_C SaUint32T plms_mbcsv_finalize();
-EXTERN_C SaUint32T plms_mbcsv_chgrole();
-EXTERN_C SaUint32T plms_mbcsv_dispatch();
-EXTERN_C SaUint32T plms_mbcsv_send_async_update(PLMS_MBCSV_MSG *msg, 
+SaUint32T plms_mbcsv_register();
+SaUint32T plms_mbcsv_finalize();
+SaUint32T plms_mbcsv_chgrole();
+SaUint32T plms_mbcsv_dispatch();
+SaUint32T plms_mbcsv_send_async_update(PLMS_MBCSV_MSG *msg, 
 						uns32 action);
 #endif
 

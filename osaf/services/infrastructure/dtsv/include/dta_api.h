@@ -77,14 +77,14 @@ typedef struct ncsdta_arg {
  * Global Instance of Layer Management
  ***************************************************************************/
 
-EXTERN_C uns32 dta_lm(DTA_LM_ARG *arg);
+uns32 dta_lm(DTA_LM_ARG *arg);
 
 /***************************************************************************
  * Global Instance of DTA mailbox
  ***************************************************************************/
-EXTERN_C SYSF_MBX gl_dta_mbx;
+SYSF_MBX gl_dta_mbx;
 
-EXTERN_C uns32 dta_cleanup_seq(void);
+uns32 dta_cleanup_seq(void);
 
 #define DTA_CONGESTION_LOG_LIMIT 50
 #define DTA_UNCONGESTED_LOG_LIMIT 100

@@ -47,6 +47,6 @@
 #include<logtrace.h>
 
 /* AvA CB global handle declaration */
-EXTERN_C uns32 gl_ava_hdl;
+uns32 gl_ava_hdl;
 
 #endif   /* !AVA_H */

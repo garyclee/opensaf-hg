@@ -273,11 +273,11 @@ typedef enum mbcsv_log_ids {
 #define MBCSV_LOG_VERSION 2
 
 #if (MBCSV_LOG == 1)
-EXTERN_C uns32 mbcsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
-EXTERN_C uns32 mbcsv_reg_strings(void);
-EXTERN_C uns32 mbcsv_dereg_strings(void);
-EXTERN_C uns32 mbcsv_log_bind(void);
-EXTERN_C uns32 mbcsv_log_unbind(void);
+uns32 mbcsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+uns32 mbcsv_reg_strings(void);
+uns32 mbcsv_dereg_strings(void);
+uns32 mbcsv_log_bind(void);
+uns32 mbcsv_log_unbind(void);
 
 #define m_LOG_MBCSV_HEADLINE(hdln_id) \
 ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_HDLN, MBCSV_FC_HDLN, \

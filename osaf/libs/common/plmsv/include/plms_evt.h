@@ -325,5 +325,5 @@ typedef struct plms_hpi_rsp
 	SaUint8T        *data;       /* generic return data */
 } PLMS_HPI_RSP;
 
-EXTERN_C SaUint32T plms_process_event();
+SaUint32T plms_process_event();
 #endif

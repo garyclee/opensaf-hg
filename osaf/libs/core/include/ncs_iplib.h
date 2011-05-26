@@ -110,15 +110,15 @@ extern "C" {
 
 #define m_NCS_IS_IP_ADDR_ZERO(i_addr) ncs_is_ip_addr_zero(i_addr)
 
-	EXTERN_C int32 ncs_cmp_ip_addr(NCS_IP_ADDR *addr1, NCS_IP_ADDR *addr2);
+	int32 ncs_cmp_ip_addr(NCS_IP_ADDR *addr1, NCS_IP_ADDR *addr2);
 
-	EXTERN_C NCS_BOOL ncs_is_ip_addr_all_zero(NCS_IP_ADDR *addr);
+	NCS_BOOL ncs_is_ip_addr_all_zero(NCS_IP_ADDR *addr);
 
-	EXTERN_C NCS_BOOL ncs_is_ip_addr_zero(NCS_IP_ADDR *addr);
+	NCS_BOOL ncs_is_ip_addr_zero(NCS_IP_ADDR *addr);
 
-	EXTERN_C uns16 ncs_ip_addr_to_octdata(uns8 *o_oct_data, NCS_IP_ADDR *i_addr, NCS_BOOL is_nwk_order);
+	uns16 ncs_ip_addr_to_octdata(uns8 *o_oct_data, NCS_IP_ADDR *i_addr, NCS_BOOL is_nwk_order);
 
-	EXTERN_C void ncs_oct_data_to_ip_addr(uns8 *i_oct_data, NCS_IP_ADDR *o_addr, NCS_BOOL is_nwk_order);
+	void ncs_oct_data_to_ip_addr(uns8 *i_oct_data, NCS_IP_ADDR *o_addr, NCS_BOOL is_nwk_order);
 #ifdef  __cplusplus
 }
 #endif

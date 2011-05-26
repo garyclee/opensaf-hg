@@ -30,13 +30,13 @@
 #ifndef MQD_SAF_H
 #define MQD_SAF_H
 
-EXTERN_C void mqd_saf_hlth_chk_cb(SaInvocationT, const SaNameT *, SaAmfHealthcheckKeyT *);
-EXTERN_C void mqd_saf_csi_set_cb(SaInvocationT invocation,
+void mqd_saf_hlth_chk_cb(SaInvocationT, const SaNameT *, SaAmfHealthcheckKeyT *);
+void mqd_saf_csi_set_cb(SaInvocationT invocation,
 				 const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor);
 
-EXTERN_C void mqd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
+void mqd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
 
-EXTERN_C void mqd_amf_csi_rmv_callback(SaInvocationT invocation,
+void mqd_amf_csi_rmv_callback(SaInvocationT invocation,
 				       const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags);
 
 #endif   /* MQD_SAF_H */

@@ -608,7 +608,7 @@ extern "C" {
    NCSCC_RC_REQ_TIMEOUT : The API call timed out
 */
 	typedef uns32 (*NCSMDS_API) (NCSMDS_INFO *svc_to_mds_info);
-	EXTERN_C uns32 ncsmds_api(NCSMDS_INFO *svc_to_mds_info);
+	uns32 ncsmds_api(NCSMDS_INFO *svc_to_mds_info);
 
 /************************************************************************
     3) SVC APIs out of MDS (indications out of MDS to Services(clients) )
@@ -842,7 +842,7 @@ unpack individual structure members. */
 #define m_SPRR_VDEST_POLICY_ATTR_NAME "NCS_MDS_VDEST_POLICY"
 
 /* Reserved instance names for SPIR interface */
-	EXTERN_C const SaNameT glmds_adest_inst_name;
+	extern const SaNameT glmds_adest_inst_name;
 #define m_MDS_SPIR_ADEST_NAME  glmds_adest_inst_name
 
 #define m_MDS_FIXED_VDEST_TO_INST_NAME(i_vdest_id, o_name)   \
@@ -851,8 +851,8 @@ unpack individual structure members. */
 #define m_MDS_INST_NAME_TO_FIXED_VDEST(i_name, o_vdest_id)   \
         mds_inst_name_to_fixed_vdest(i_name, o_vdest_id)
 
-	EXTERN_C void mds_fixed_vdest_to_inst_name(uns32 vdest_id, SaNameT *o_name);
-	EXTERN_C uns32 mds_inst_name_to_fixed_vdest(SaNameT *i_name, uns32 *o_vdest_id);
+	void mds_fixed_vdest_to_inst_name(uns32 vdest_id, SaNameT *o_name);
+	uns32 mds_inst_name_to_fixed_vdest(SaNameT *i_name, uns32 *o_vdest_id);
 
 /* Single-entry API  to be used by service-users of MDS is  :"ncsmds_api()" */
 
@@ -861,7 +861,7 @@ unpack individual structure members. */
 *************************************************************************/
 #ifdef NCS_DEBUG
 
-	EXTERN_C void ncsmds_pp(void);
+	void ncsmds_pp(void);
 #endif
 
 /***********************************************************************\

@@ -96,10 +96,10 @@ typedef struct ava_cb_tag {
 
 /*** Extern function declarations ***/
 
-EXTERN_C uns32 ava_create(NCS_LIB_CREATE *);
+uns32 ava_create(NCS_LIB_CREATE *);
 
-EXTERN_C void ava_destroy(NCS_LIB_DESTROY *);
+void ava_destroy(NCS_LIB_DESTROY *);
 
-EXTERN_C uns32 ava_avnd_msg_prc(AVA_CB *, AVSV_NDA_AVA_MSG *);
+uns32 ava_avnd_msg_prc(AVA_CB *, AVSV_NDA_AVA_MSG *);
 
 #endif   /* !AVA_CB_H */

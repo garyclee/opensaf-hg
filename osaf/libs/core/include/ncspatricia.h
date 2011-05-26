@@ -73,20 +73,20 @@ extern "C" {
 		unsigned int n_nodes;
 	} NCS_PATRICIA_TREE;
 
-	EXTERN_C unsigned int ncs_patricia_tree_init(NCS_PATRICIA_TREE *const pTree,
+	unsigned int ncs_patricia_tree_init(NCS_PATRICIA_TREE *const pTree,
 								 const NCS_PATRICIA_PARAMS *const pParams);
-	EXTERN_C unsigned int ncs_patricia_tree_destroy(NCS_PATRICIA_TREE *const pTree);
-	EXTERN_C void ncs_patricia_tree_clear(NCS_PATRICIA_TREE *const pTree);
-	EXTERN_C unsigned int ncs_patricia_tree_add(NCS_PATRICIA_TREE *const pTree,
+	unsigned int ncs_patricia_tree_destroy(NCS_PATRICIA_TREE *const pTree);
+	void ncs_patricia_tree_clear(NCS_PATRICIA_TREE *const pTree);
+	unsigned int ncs_patricia_tree_add(NCS_PATRICIA_TREE *const pTree,
 								NCS_PATRICIA_NODE *const pNode);
-	EXTERN_C unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree,
+	unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree,
 								NCS_PATRICIA_NODE *const pNode);
-	EXTERN_C NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree,
+	NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree,
 								      const uns8 *const pKey);
-	EXTERN_C NCS_PATRICIA_NODE *ncs_patricia_tree_get_best(const NCS_PATRICIA_TREE *const pTree, const uns8 *const pKey, uns16 KeyLen);	/* Length of key (in BITS) */
-	EXTERN_C NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, const uns8 *const pKey);	/* NULL means get 1st */
+	NCS_PATRICIA_NODE *ncs_patricia_tree_get_best(const NCS_PATRICIA_TREE *const pTree, const uns8 *const pKey, uns16 KeyLen);	/* Length of key (in BITS) */
+	NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, const uns8 *const pKey);	/* NULL means get 1st */
 
-	EXTERN_C int ncs_patricia_tree_size(const NCS_PATRICIA_TREE *const pTree);
+	int ncs_patricia_tree_size(const NCS_PATRICIA_TREE *const pTree);
 
 #ifdef  __cplusplus
 }
