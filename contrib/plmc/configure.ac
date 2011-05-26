@@ -96,18 +96,24 @@ AC_CHECK_FUNCS([ \
         bzero \
         inet_ntoa \
         memset \
+        select \
         socket \
+        strerror \
         strstr])
 
 AC_CHECK_HEADERS([ \
         arpa/inet.h \
+        fcntl.h \
+        limits.h \
         netdb.h \
         netinet/in.h \
+        sys/file.h \
         sys/ioctl.h \
         sys/socket.h \
         syslog.h])
 
 AC_FUNC_FORK
+AC_FUNC_MALLOC
 AC_HEADER_STDBOOL
 AC_PROG_CXX
 AC_TYPE_PID_T
