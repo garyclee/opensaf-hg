@@ -96,7 +96,7 @@ typedef struct mbcsv_chg_role_req {
 
 /* PEER UP Message */
 typedef struct mbcsv_peer_up {
-	uns16 peer_version;	/* Software version of the peer */
+	uint16_t peer_version;	/* Software version of the peer */
 } MBCSV_PEER_UP;
 
 /* PEER DOWN Message */
@@ -106,21 +106,21 @@ typedef struct mbcsv_peer_down {
 
 /* PEER INFO Message */
 typedef struct mbcsv_peer_info {
-	uns16 peer_version;	/* Software version of the peer */
+	uint16_t peer_version;	/* Software version of the peer */
 	uns32 my_peer_inst_hdl;
 	uint8_t compatible;	/* Flag to tell whether peer is compatible */
 } MBCSV_PEER_INFO;
 
 /* PEER INFO RSP Message */
 typedef struct mbcsv_peer_info_rsp {
-	uns16 peer_version;	/* Software version of the peer */
+	uint16_t peer_version;	/* Software version of the peer */
 	uns32 my_peer_inst_hdl;
 	uint8_t compatible;	/* Flag to tell whether peer is compatible */
 } MBCSV_PEER_INFO_RSP;
 
 /* PEER CHG ROLE Message */
 typedef struct mbcsv_peer_chg_role {
-	uns16 peer_version;	/* Software version of the peer */
+	uint16_t peer_version;	/* Software version of the peer */
 } MBCSV_PEER_CHG_ROLE;
 
 typedef enum {

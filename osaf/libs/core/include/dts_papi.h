@@ -110,7 +110,7 @@
  ************************************************************************/
 
 typedef struct ncsfl_str {
-	uns16 str_id;
+	uint16_t str_id;
 	char *str_val;
 
 } NCSFL_STR;
@@ -133,8 +133,8 @@ typedef struct ncsfl_str {
 ************************************************************************/
 
 typedef struct ncsfl_set {
-	uns16 set_id;
-	uns16 set_cnt;
+	uint16_t set_id;
+	uint16_t set_cnt;
 	NCSFL_STR *set_vals;
 
 } NCSFL_SET;
@@ -177,7 +177,7 @@ typedef struct ncsfl_ascii_spec {
 	/* PUBLIC part of ASCII SPEC data struct filled in by subsystem */
 
 	SS_SVC_ID ss_id;	/* subsystem Identifier             */
-	uns16 ss_ver;		/* subsystem version identifier */
+	uint16_t ss_ver;		/* subsystem version identifier */
 	char *svc_name;		/* Service name of the service; Should 
 				   be as concise as possible,
 				   Ex. "DTSV" for distributed tracing service */
@@ -188,8 +188,8 @@ typedef struct ncsfl_ascii_spec {
 
 	/* PRIVATE part of the ASCII SPEC data struct used by Flexlog   */
 
-	uns16 str_set_cnt;	/* count of canned string sets      */
-	uns16 fmat_set_cnt;	/* count of format string sets      */
+	uint16_t str_set_cnt;	/* count of canned string sets      */
+	uint16_t fmat_set_cnt;	/* count of format string sets      */
 
 } NCSFL_ASCII_SPEC;
 
@@ -199,7 +199,7 @@ typedef struct ncsfl_ascii_spec {
 
 typedef struct ncs_deregister_ascii_spec {
 	SS_SVC_ID svc_id;	/* Service ID of the service wants to de-register ascii spec */
-	uns16 version;		/* Version of ASCII_SPEC being de-registered. */
+	uint16_t version;		/* Version of ASCII_SPEC being de-registered. */
 
 } NCS_DEREGISTER_ASCII_SPEC;
 /***************************************************************************

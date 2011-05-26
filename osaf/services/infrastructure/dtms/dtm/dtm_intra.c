@@ -59,7 +59,7 @@ static int  dtm_intranode_max_fd;
 
 static uns32 dtm_intra_processing_init(void);
 static void dtm_intranode_processing(void);
-static uns32 dtm_intranode_add_poll_fdlist(int fd, uns16 event);
+static uns32 dtm_intranode_add_poll_fdlist(int fd, uint16_t event);
 static uns32 dtm_intranode_create_rcv_task(int task_hdl);
 static uns32 dtm_intranode_process_incoming_conn(void);
 static uns32 dtm_intranode_del_poll_fdlist(int fd);
@@ -444,7 +444,7 @@ void dtm_intranode_process_poll_rcv_msg(int fd)
 				dtm_intranode_del_poll_fdlist(fd);
 				return;
 			} else if (2 == recd_bytes) {
-				uns16 local_len_buf = 0;
+				uint16_t local_len_buf = 0;
 
 				data = node->len_buff;
 				local_len_buf = ncs_decode_16bit(&data);
@@ -669,7 +669,7 @@ static void dtm_intranode_processing(void)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_intranode_add_poll_fdlist(int fd, uns16 event)
+static uns32 dtm_intranode_add_poll_fdlist(int fd, uint16_t event)
 {
 	DTM_INTRANODE_POLLFD_LIST *alloc_ptr = NULL, *head_ptr = NULL, *tail_ptr = NULL;
 
@@ -751,7 +751,7 @@ static uns32 dtm_intranode_del_poll_fdlist(int fd)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_intranode_set_poll_fdlist(int fd, uns16 events)
+uns32 dtm_intranode_set_poll_fdlist(int fd, uint16_t events)
 {
 	DTM_INTRANODE_POLLFD_LIST *mov_ptr = dtm_intranode_cb->fd_list_ptr_head;
 

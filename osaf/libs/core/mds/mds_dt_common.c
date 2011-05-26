@@ -23,7 +23,7 @@
 
 static SYSF_MBX mdtm_mbx_common;
 static MDTM_TX_TYPE mdtm_transport;
-static uns32 mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uint8_t *buffer, uns16 len, uint8_t enc_type);
+static uns32 mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uint8_t *buffer, uint16_t len, uint8_t enc_type);
 static MDTM_REASSEMBLY_QUEUE *mdtm_check_reassem_queue(uns32 seq_num, MDS_DEST id);
 static MDTM_REASSEMBLY_QUEUE *mdtm_add_reassemble_queue(uns32 seq_num, MDS_DEST id);
 static uns32 mdtm_del_reassemble_queue(uns32 seq_num, MDS_DEST id);
@@ -168,16 +168,16 @@ uns32 mdtm_del_from_ref_tbl(MDS_SUBTN_REF_VAL ref)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uns16 len, uns64 transport_adest, uns32 seq_num_check,
+uns32 mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_t len, uns64 transport_adest, uns32 seq_num_check,
 				       uns32 *buff_dump)
 {
 	MDTM_REASSEMBLY_QUEUE *reassem_queue = NULL;
 	MDS_PWE_HDL pwe_hdl;
 	MDS_SVC_HDL dest_svc_hdl = 0;
 	uns32 seq_num = 0;
-	uns16 dest_svc_id = 0, src_svc_id = 0;
-	uns16 pwe_id = 0;
-	uns16 dest_vdest_id = 0, src_vdest_id = 0;
+	uint16_t dest_svc_id = 0, src_svc_id = 0;
+	uint16_t pwe_id = 0;
+	uint16_t dest_vdest_id = 0, src_vdest_id = 0;
 	uint8_t msg_snd_type, enc_type;
 
 	uns32 node_status = 0;
@@ -210,7 +210,7 @@ uns32 mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uns16 len,
 		/* We receive buffer pointer starting from MDS HDR only */
 		uint8_t *data = NULL;
 		uns32 svc_seq_num = 0;
-		uns16 len_mds_hdr = 0;
+		uint16_t len_mds_hdr = 0;
 
 		data = buffer;
 
@@ -419,7 +419,7 @@ uns32 mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uns16 len,
 
 		uint8_t *data = NULL;
 		uns32 svc_seq_num = 0;
-		uns16 len_mds_hdr = 0;
+		uint16_t len_mds_hdr = 0;
 		MDS_TMR_REQ_INFO *tmr_req_info = NULL;
 
 		/* Added for seqnum check */
@@ -767,7 +767,7 @@ uns32 mds_tmr_mailbox_processing(void)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_process_recv_data(uint8_t *buffer, uns16 len, uns64 transport_adest, uns32 *buff_dump)
+uns32 mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uns64 transport_adest, uns32 *buff_dump)
 {
 	/*
 	   Get the MDS Header from the data received
@@ -788,7 +788,7 @@ uns32 mdtm_process_recv_data(uint8_t *buffer, uns16 len, uns64 transport_adest, 
 	 */
 
 	/* If the data is recd over here, it means its a fragmented or non-fragmented pkt) */
-	uns16 pkt_type = 0;
+	uint16_t pkt_type = 0;
 	uint8_t *data;
 
 	/* Added for seq number check */
@@ -809,8 +809,8 @@ uns32 mdtm_process_recv_data(uint8_t *buffer, uns16 len, uns64 transport_adest, 
 	} else {
 		/* We got a fragmented pkt, reassemble */
 		/* Check in reasssebly queue whether any pkts are present */
-		uns16 more_frag = 0;
-		uns16 frag_num = 0;
+		uint16_t more_frag = 0;
+		uint16_t frag_num = 0;
 		uns32 seq_num = 0;
 		MDTM_REASSEMBLY_QUEUE *reassem_queue = NULL;
 
@@ -1024,7 +1024,7 @@ uns32 mdtm_process_recv_data(uint8_t *buffer, uns16 len, uns64 transport_adest, 
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uint8_t *buffer, uns16 len, uint8_t enc_type)
+static uns32 mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uint8_t *buffer, uint16_t len, uint8_t enc_type)
 {
 	m_MDS_LOG_INFO("MDTM: User Recd msg len=%d", len);
 	switch (enc_type) {
@@ -1267,9 +1267,9 @@ uns32 mdtm_free_reassem_msg_mem(MDS_ENCODED_MSG *msg)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns16 mds_checksum(uns32 length, uint8_t buff[])
+uint16_t mds_checksum(uns32 length, uint8_t buff[])
 {
-	uns16 word16 = 0;
+	uint16_t word16 = 0;
 	uns32 sum = 0;
 	uns32 i;
 	uns32 loop_count;
@@ -1279,16 +1279,16 @@ uns16 mds_checksum(uns32 length, uint8_t buff[])
 	if (length % 2 == 0) {
 		loop_count = length;
 		for (i = 0; i < loop_count; i = i + 2) {
-			word16 = (((uns16)buff[i] << 8) + ((uns16)buff[i + 1]));
+			word16 = (((uint16_t)buff[i] << 8) + ((uint16_t)buff[i + 1]));
 			sum = sum + (uns32)word16;
 		}
 	} else {
 		loop_count = length - 2;
 		for (i = 0; i < loop_count; i = i + 2) {
-			word16 = (((uns16)buff[i] << 8) + ((uns16)buff[i + 1]));
+			word16 = (((uint16_t)buff[i] << 8) + ((uint16_t)buff[i + 1]));
 			sum = sum + (uns32)word16;
 		}
-		word16 = (((uns16)buff[i] << 8) + ((uns16)0));
+		word16 = (((uint16_t)buff[i] << 8) + ((uint16_t)0));
 		sum = sum + (uns32)word16;
 
 	}
@@ -1301,7 +1301,7 @@ uns16 mds_checksum(uns32 length, uint8_t buff[])
 	/* Take the one's complement of sum */
 	sum = ~sum;
 
-	return ((uns16)sum);
+	return ((uint16_t)sum);
 }
 
 /****************************************************************************

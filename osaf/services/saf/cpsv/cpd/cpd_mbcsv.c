@@ -626,7 +626,7 @@ uns32 cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	CPD_CB *cb;
-	uns16 msg_fmt_version;
+	uint16_t msg_fmt_version;
 
 	m_CPD_RETRIEVE_CB(cb);	/* finally give up the handle */
 	if (cb == NULL) {
@@ -1021,7 +1021,7 @@ uns32 cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 uns32 cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 {
 	CPD_CB *cb;
-	uns16 msg_fmt_version;
+	uint16_t msg_fmt_version;
 	uns32 status;
 	m_CPD_RETRIEVE_CB(cb);	/* finally give up the handle */
 	if (cb == NULL) {

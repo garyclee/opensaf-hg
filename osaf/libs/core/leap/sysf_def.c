@@ -142,7 +142,7 @@ uns32 encode_32bitOS_inc(uint8_t **stream, uns32 val)
 uns32 encode_16bitOS_inc(uint8_t **stream, uns32 val)
 {
 	m_NCS_OS_HTONS_P(*stream, val);
-	*stream += sizeof(uns16);
+	*stream += sizeof(uint16_t);
 	return 2;
 }
 
@@ -168,13 +168,13 @@ uns32 encode_16bitOS_inc(uint8_t **stream, uns32 val)
   increments the pointer to the datastore
 
 *****************************************************************************/
-uns16 decode_16bitOS_inc(uint8_t **stream)
+uint16_t decode_16bitOS_inc(uint8_t **stream)
 {
 
 	uns32 val = 0;		/* Accumulator */
 	val = m_NCS_OS_NTOHS_P(*stream);
-	*stream += sizeof(uns16);
-	return (uns16)(val & 0x0000FFFF);
+	*stream += sizeof(uint16_t);
+	return (uint16_t)(val & 0x0000FFFF);
 
 }
 

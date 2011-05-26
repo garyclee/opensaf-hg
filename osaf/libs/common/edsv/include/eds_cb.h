@@ -191,7 +191,7 @@ typedef struct eds_worklist_tag {
 	uns32 last_copen_id;	/* Last assigned chan_open_id */
 	uns32 chan_attrib;	/* Attributes of this channel */
 	uns32 use_cnt;
-	uns16 cname_len;	/* Length of channel name */
+	uint16_t cname_len;	/* Length of channel name */
 	uint8_t *cname;		/* Channel name. NULL terminated if ascii */
 
 	/*  Channel runtime info */
@@ -292,7 +292,7 @@ NCS_BOOL eds_eda_entry_valid(EDS_CB *, MDS_DEST);
 
 uns32 eds_remove_eda_down_rec(EDS_CB *, MDS_DEST);
 
-uns32 eds_channel_open(EDS_CB *, uns32, uns32, uns16, uint8_t *, MDS_DEST, uns32 *, uns32 *, SaTimeT);
+uns32 eds_channel_open(EDS_CB *, uns32, uns32, uint16_t, uint8_t *, MDS_DEST, uns32 *, uns32 *, SaTimeT);
 
 uns32 eds_copen_patricia_init(EDS_WORKLIST *);
 

@@ -515,7 +515,7 @@ NCS_BOOL dta_match_service(void *key, void *qelem)
                      NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uns16 version, const char *svc_name, uint8_t operation)
+uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uint16_t version, const char *svc_name, uint8_t operation)
 {
 	msg->msg_type = operation;
 
@@ -725,7 +725,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if (NCSCC_RC_SUCCESS != dta_copy_octets(&hdr->fmat_type, fmat_type, (uns16)(1 + strlen(fmat_type)))) {
+	if (NCSCC_RC_SUCCESS != dta_copy_octets(&hdr->fmat_type, fmat_type, (uint16_t)(1 + strlen(fmat_type)))) {
 		m_DTA_UNLK(&inst->lock);
 		m_MMGR_FREE_DTSV_MSG(msg);
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg_int: Copy octet failed.");
@@ -818,11 +818,11 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 			}
 		case 'M':
 			{
-				data = ncs_enc_reserve_space(uba, sizeof(uns16));
+				data = ncs_enc_reserve_space(uba, sizeof(uint16_t));
 				if (data == NULL)
 					goto reserve_error;
-				ncs_encode_16bit(&data, (uns16)va_arg(argp, uns32));
-				ncs_enc_claim_space(uba, sizeof(uns16));
+				ncs_encode_16bit(&data, (uint16_t)va_arg(argp, uns32));
+				ncs_enc_claim_space(uba, sizeof(uint16_t));
 				break;
 			}
 		case 'D':
@@ -854,7 +854,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 					if (min_dts_ver < 1)
 						min_dts_ver = 1;
 
-					data = ncs_enc_reserve_space(uba, (sizeof(uns16) + sizeof(uns32)));
+					data = ncs_enc_reserve_space(uba, (sizeof(uint16_t) + sizeof(uns32)));
 					if (data == NULL)
 						goto reserve_error;
 					ncs_encode_16bit(&data, mem_d.len);
@@ -868,7 +868,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 						/* Do it the old way */
 						ncs_encode_32bit(&data, NCS_PTR_TO_UNS32_CAST(mem_d.addr));
 					}
-					ncs_enc_claim_space(uba, (sizeof(uns16) + sizeof(uns32)));
+					ncs_enc_claim_space(uba, (sizeof(uint16_t) + sizeof(uns32)));
 				}
 				/* Act DTS on version 2 or higher , then encode all 64-bits */
 				else {
@@ -876,12 +876,12 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 					if (min_dts_ver < 2)
 						min_dts_ver = 2;
 
-					data = ncs_enc_reserve_space(uba, (sizeof(uns16) + sizeof(uns64)));
+					data = ncs_enc_reserve_space(uba, (sizeof(uint16_t) + sizeof(uns64)));
 					if (data == NULL)
 						goto reserve_error;
 					ncs_encode_16bit(&data, mem_d.len);
 					ncs_encode_64bit(&data, (uns64)(long)mem_d.addr);
-					ncs_enc_claim_space(uba, (sizeof(uns16) + sizeof(uns64)));
+					ncs_enc_claim_space(uba, (sizeof(uint16_t) + sizeof(uns64)));
 				}
 
 				ncs_encode_n_octets_in_uba(uba, (uint8_t *)mem_d.dump, (uns32)mem_d.len);
@@ -895,11 +895,11 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				if (pdu.len > DTS_MAX_SIZE_DATA)
 					pdu.len = DTS_MAX_SIZE_DATA;
 
-				data = ncs_enc_reserve_space(uba, sizeof(uns16));
+				data = ncs_enc_reserve_space(uba, sizeof(uint16_t));
 				if (data == NULL)
 					goto reserve_error;
 				ncs_encode_16bit(&data, pdu.len);
-				ncs_enc_claim_space(uba, sizeof(uns16));
+				ncs_enc_claim_space(uba, sizeof(uint16_t));
 
 				ncs_encode_n_octets_in_uba(uba, (uint8_t *)pdu.dump, (uns32)pdu.len);
 

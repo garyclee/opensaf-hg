@@ -40,7 +40,7 @@ uns32 dtm_prepare_svc_down_msg(uint8_t *buffer, uns32 server_type, uns32 server_
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_process_rcv_up_msg(uint8_t *buffer, uns16 len, NODE_ID node_id)
+uns32 dtm_internode_process_rcv_up_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id)
 {
 	/* Post the event to the mailbox of the intra_thread */
 	DTM_RCV_MSG_ELEM *dtm_msg_elem = NULL;
@@ -76,7 +76,7 @@ uns32 dtm_internode_process_rcv_up_msg(uint8_t *buffer, uns16 len, NODE_ID node_
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_process_rcv_down_msg(uint8_t *buffer, uns16 len, NODE_ID node_id)
+uns32 dtm_internode_process_rcv_down_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id)
 {
 	/* Post the event to the mailbox of the intra_thread */
 	DTM_RCV_MSG_ELEM *dtm_msg_elem = NULL;
@@ -316,7 +316,7 @@ uns32 dtm_internode_add_to_svc_dist_list(uns32 server_type, uns32 server_inst, u
 
 	/* Now send this info to all the connected nodes */
 	dtm_prepare_svc_up_msg(buffer, server_type, server_inst, pid);
-	dtm_internode_snd_msg_to_all_nodes(buffer, (uns16)DTM_UP_MSG_SIZE_FULL);
+	dtm_internode_snd_msg_to_all_nodes(buffer, (uint16_t)DTM_UP_MSG_SIZE_FULL);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -380,7 +380,7 @@ uns32 dtm_internode_del_from_svc_dist_list(uns32 server_type, uns32 server_inst,
 		}
 		/* Now send this info to all the connected nodes */
 		dtm_prepare_svc_down_msg(buffer, server_type, server_inst, pid);
-		dtm_internode_snd_msg_to_all_nodes(buffer, (uns16)DTM_DOWN_MSG_SIZE_FULL);
+		dtm_internode_snd_msg_to_all_nodes(buffer, (uint16_t)DTM_DOWN_MSG_SIZE_FULL);
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	} else {
@@ -406,11 +406,11 @@ uns32 dtm_prepare_svc_up_msg(uint8_t *buffer, uns32 server_type, uns32 server_in
 {
 	uint8_t *data = buffer;
 	TRACE_ENTER();
-	ncs_encode_16bit(&data, (uns16)DTM_UP_MSG_SIZE);
+	ncs_encode_16bit(&data, (uint16_t)DTM_UP_MSG_SIZE);
 	ncs_encode_32bit(&data, (uns32)DTM_INTERNODE_SND_MSG_IDENTIFIER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_INTERNODE_SND_MSG_VER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_UP_MSG_TYPE);
-	ncs_encode_16bit(&data, (uns16)0x01);
+	ncs_encode_16bit(&data, (uint16_t)0x01);
 	ncs_encode_32bit(&data, server_type);
 	ncs_encode_32bit(&data, server_inst);
 	ncs_encode_32bit(&data, pid);
@@ -431,11 +431,11 @@ uns32 dtm_prepare_svc_down_msg(uint8_t *buffer, uns32 server_type, uns32 server_
 {
 	uint8_t *data = buffer;
 	TRACE_ENTER();
-	ncs_encode_16bit(&data, (uns16)DTM_DOWN_MSG_SIZE);
+	ncs_encode_16bit(&data, (uint16_t)DTM_DOWN_MSG_SIZE);
 	ncs_encode_32bit(&data, (uns32)DTM_INTERNODE_SND_MSG_IDENTIFIER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_INTERNODE_SND_MSG_VER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_DOWN_MSG_TYPE);
-	ncs_encode_16bit(&data, (uns16)0x01);
+	ncs_encode_16bit(&data, (uint16_t)0x01);
 	ncs_encode_32bit(&data, server_type);
 	ncs_encode_32bit(&data, server_inst);
 	ncs_encode_32bit(&data, pid);
@@ -454,7 +454,7 @@ uns32 dtm_prepare_svc_down_msg(uint8_t *buffer, uns32 server_type, uns32 server_
  */
 static uns32 dtm_prepare_and_send_svc_up_msg_for_node_up(NODE_ID node_id)
 {
-	uns16 num_elem = 0, buff_len = 0;
+	uint16_t num_elem = 0, buff_len = 0;
 	uint8_t *data = NULL;
 	DTM_SVC_DATA *mov_ptr = NULL;
 
@@ -470,7 +470,7 @@ static uns32 dtm_prepare_and_send_svc_up_msg_for_node_up(NODE_ID node_id)
 		TRACE("DTM :No services to be updated to remote node");
 		return NCSCC_RC_SUCCESS;
 	}
-	buff_len = (uns16)(DTM_UP_MSG_SIZE_FULL + ((num_elem - 1) * 12));
+	buff_len = (uint16_t)(DTM_UP_MSG_SIZE_FULL + ((num_elem - 1) * 12));
 
 	if (NULL == mov_ptr) {
 		TRACE("DTM :No services to be updated to remote node");
@@ -482,7 +482,7 @@ static uns32 dtm_prepare_and_send_svc_up_msg_for_node_up(NODE_ID node_id)
 			return NCSCC_RC_FAILURE;
 		}
 		data = buffer;
-		ncs_encode_16bit(&data, (uns16)(buff_len - 2));
+		ncs_encode_16bit(&data, (uint16_t)(buff_len - 2));
 		ncs_encode_32bit(&data, (uns32)DTM_INTERNODE_SND_MSG_IDENTIFIER);
 		ncs_encode_8bit(&data, (uint8_t)DTM_INTERNODE_SND_MSG_VER);
 		ncs_encode_8bit(&data, (uint8_t)DTM_UP_MSG_TYPE);

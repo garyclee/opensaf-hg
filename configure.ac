@@ -563,6 +563,8 @@ AC_TYPE_SIZE_T
 AC_TYPE_UID_T
 AC_TYPE_UINT8_T
 AC_TYPE_INT8_T
+AC_TYPE_UINT16_T
+AC_TYPE_INT16_T
 
 
 #############################################

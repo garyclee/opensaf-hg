@@ -63,11 +63,11 @@ extern "C" {
 
 	typedef NCS_NODE_ID NODE_ID;	/* Node ID to distinguish among blades */
 	typedef uns32 MDS_SVC_ID;	/* MDS Service ID replaces SS_SVC_ID(an uint8_t) */
-	typedef uns16 PW_ENV_ID;	/* Private World Environment ID        */
+	typedef uint16_t PW_ENV_ID;	/* Private World Environment ID        */
 
 /* MDS-DEST is defined globally in "ncsgl_defs.h" */
 	typedef uns64 V_DEST_QA;
-	typedef uns16 MDS_VDEST_ID;
+	typedef uint16_t MDS_VDEST_ID;
 
 /* Typedefs for the 64-BIT Changes */
 	typedef uns32 MDS_HDL;
@@ -75,7 +75,7 @@ extern "C" {
 
 /* Added for the version/in-service changes */
 	typedef uint8_t MDS_SVC_PVT_SUB_PART_VER;	/*MDS svc private sub part ver */
-	typedef uns16 MDS_CLIENT_MSG_FORMAT_VER;	/* Message format version included in mds header */
+	typedef uint16_t MDS_CLIENT_MSG_FORMAT_VER;	/* Message format version included in mds header */
 
 /* MDS return Types */
 	typedef enum {
@@ -212,7 +212,7 @@ extern "C" {
 	typedef uint8_t *MDS_DIRECT_BUFF;
 #define m_MDS_ALLOC_DIRECT_BUFF(size) mds_alloc_direct_buff(size)
 #define m_MDS_FREE_DIRECT_BUFF(x) mds_free_direct_buff(x)
-	MDS_DIRECT_BUFF mds_alloc_direct_buff(uns16 size);
+	MDS_DIRECT_BUFF mds_alloc_direct_buff(uint16_t size);
 	void mds_free_direct_buff(MDS_DIRECT_BUFF buff);
 
 /************************************************************************
@@ -245,7 +245,7 @@ extern "C" {
 		uns32 i_time_to_wait;	/* Timeout duration in 10ms units */
 		NCSCONTEXT o_rsp;	/* Place for the response for normal message   */
 		MDS_DIRECT_BUFF buff;	/* For response of type direct send */
-		uns16 len;
+		uint16_t len;
 		MDS_CLIENT_MSG_FORMAT_VER o_msg_fmt_ver;	/* For the message format ver */
 	} MDS_SENDTYPE_SNDRSP_INFO;
 
@@ -276,7 +276,7 @@ extern "C" {
 		uns32 i_time_to_wait;	/* in 10ms units                  */
 		NCSCONTEXT o_rsp;	/* Place for the message context  */
 		MDS_DIRECT_BUFF buff;	/* For response of type direct send */
-		uns16 len;
+		uint16_t len;
 		MDS_CLIENT_MSG_FORMAT_VER o_msg_fmt_ver;	/* For the message format ver */
 	} MDS_SENDTYPE_REDRSP_INFO;
 
@@ -468,7 +468,7 @@ extern "C" {
 
 	typedef struct mds_direct_send_info {
 		MDS_DIRECT_BUFF i_direct_buff;	/* Pointer to the message */
-		uns16 i_direct_buff_len;
+		uint16_t i_direct_buff_len;
 		MDS_SVC_ID i_to_svc;	/* The service at the destination  */
 		MDS_SEND_PRIORITY_TYPE i_priority;
 		MDS_SENDTYPES i_sendtype;
@@ -732,7 +732,7 @@ unpack individual structure members. */
 		   (See also: MDS_INSTALL structure)
 		 */
 		MDS_DIRECT_BUFF i_direct_buff;	/* Pointer to the message */
-		uns16 i_direct_buff_len;
+		uint16_t i_direct_buff_len;
 		NCS_BOOL i_rsp_reqd;	/* TRUE if send is awaiting a response */
 		MDS_SYNC_SND_CTXT i_msg_ctxt;	/* Valid only if "i_rsp_expected == TRUE" */
 		MDS_DEST i_fr_dest;

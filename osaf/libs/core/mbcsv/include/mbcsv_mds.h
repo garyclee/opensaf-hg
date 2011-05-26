@@ -55,7 +55,7 @@
 #define MBCSV_PEER_INFO_RSP_MSG_SIZE        (sizeof(uint8_t) + (3 * sizeof(uns32)))
 #define MBCSV_PEER_CHG_ROLE_MSG_SIZE        (2 * sizeof(uns32))
 #define MBCSV_INT_CLIENT_MSG_SIZE           ((3 * sizeof(uint8_t)) + (3 * sizeof(uns32)))
-#define MBCSV_MSG_VER_SIZE                  sizeof(uns16)
+#define MBCSV_MSG_VER_SIZE                  sizeof(uint16_t)
 
 /* Versioning changes */
 #define MBCSV_MDS_SUB_PART_VERSION 1
@@ -85,8 +85,8 @@ uns32 mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			     SS_SVC_ID to_svc, NCSCONTEXT *cpy,
 			     NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver,
 			     MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver);
-uns32 mbcsv_encode_version(NCS_UBAID *uba, uns16 version);
-uns32 mbcsv_decode_version(NCS_UBAID *uba, uns16 *version);
+uns32 mbcsv_encode_version(NCS_UBAID *uba, uint16_t version);
+uns32 mbcsv_decode_version(NCS_UBAID *uba, uint16_t *version);
 
 /*
  * Internally used macros for sending message with different send types.

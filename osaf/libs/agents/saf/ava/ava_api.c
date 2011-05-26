@@ -152,7 +152,7 @@ SaAisErrorT saAmfInitialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg_cbks
 		if (getenv("SA_AMF_COMPONENT_NAME")) {
 			if (strlen(getenv("SA_AMF_COMPONENT_NAME")) < SA_MAX_NAME_LENGTH) {
 				strcpy((char *)cb->comp_name.value, getenv("SA_AMF_COMPONENT_NAME"));
-				cb->comp_name.length = (uns16)strlen((char *)cb->comp_name.value);
+				cb->comp_name.length = (uint16_t)strlen((char *)cb->comp_name.value);
 				m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
 			} else {
 				TRACE_2("Length of SA_AMF_COMPONENT_NAME exceeds SA_MAX_NAME_LENGTH bytes");

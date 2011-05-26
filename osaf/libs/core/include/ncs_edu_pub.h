@@ -58,7 +58,7 @@ extern "C" {
 
 #define GL_LOG_STRING_LEN       64
 
-	typedef uns16 EDU_MSG_VERSION;
+	typedef uint16_t EDU_MSG_VERSION;
 
 /* EDU operation type */
 	typedef enum {

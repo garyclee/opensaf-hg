@@ -543,7 +543,7 @@ extern "C" {
 
 /** Computational routines **/
 	uns32 sysf_get_chain_len(const USRBUF *);
-	void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const, unsigned int, uns16 *const);
+	void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const, unsigned int, uint16_t *const);
 
 	void sysf_usrbuf_hexdump(USRBUF *buf, char *fname);
 

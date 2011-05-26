@@ -358,8 +358,8 @@ typedef struct mqp_stats_rsp {
 
 typedef struct mqsv_message {
 	MQSV_MESSAGE_TYPE type;
-	uns16 padding;		/* Do not use */
-	uns16 mqsv_version;
+	uint16_t padding;		/* Do not use */
+	uint16_t mqsv_version;
 
 	union {
 		MQP_CANCEL_REQ cancel_req;

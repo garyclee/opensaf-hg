@@ -698,9 +698,9 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			ncs_enc_claim_space(uba, sizeof(SS_SVC_ID));
 
 			/* Now encode the version for the service */
-			data = ncs_enc_reserve_space(uba, sizeof(uns16));
+			data = ncs_enc_reserve_space(uba, sizeof(uint16_t));
 			ncs_encode_16bit(&data, mm->data.data.reg.version);
-			ncs_enc_claim_space(uba, sizeof(uns16));
+			ncs_enc_claim_space(uba, sizeof(uint16_t));
 
 			/* Now encode the service name for the service */
 			if (*mm->data.data.reg.svc_name != '\0') {
@@ -732,9 +732,9 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			ncs_enc_claim_space(uba, sizeof(SS_SVC_ID));
 
 			/* Now encode the version for the service */
-			data = ncs_enc_reserve_space(uba, sizeof(uns16));
+			data = ncs_enc_reserve_space(uba, sizeof(uint16_t));
 			ncs_encode_16bit(&data, mm->data.data.unreg.version);
-			ncs_enc_claim_space(uba, sizeof(uns16));
+			ncs_enc_claim_space(uba, sizeof(uint16_t));
 
 			/* Now encode the service name for the service */
 			if (*mm->data.data.unreg.svc_name != '\0') {
@@ -991,7 +991,7 @@ uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 
 		if (NCSCC_RC_SUCCESS != dta_copy_octets(&mm->data.data.msg.log_msg.hdr.fmat_type,
 							((DTSV_MSG *)msg)->data.data.msg.log_msg.hdr.fmat_type,
-							(uns16)(1 +
+							(uint16_t)(1 +
 								strlen(((DTSV_MSG *)msg)->data.data.msg.log_msg.hdr.
 								       fmat_type)))) {
 			if (mm != NULL)
@@ -1023,7 +1023,7 @@ uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 dta_copy_octets(char **dest, char *src, uns16 length)
+uns32 dta_copy_octets(char **dest, char *src, uint16_t length)
 {
 	if ((dest == NULL) || (src == NULL) || (length == 0)) {
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_copy_octets : failed to copy.");

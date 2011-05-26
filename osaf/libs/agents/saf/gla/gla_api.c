@@ -54,7 +54,7 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 	GLA_CB *gla_cb = NULL;
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	uns32 ret;
-	uns16 reg_info = 0;
+	uint16_t reg_info = 0;
 	GLSV_GLA_EVT *out_evt = NULL;
 	GLA_CLIENT_INFO *client_info = NULL;
 
@@ -102,10 +102,10 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 
 	/* compute the reg_info */
 	if (lckCallbacks != NULL) {
-		reg_info |= (uns16)((lckCallbacks->saLckResourceOpenCallback) ? GLSV_LOCK_OPEN_CBK_REG : 0);
-		reg_info |= (uns16)((lckCallbacks->saLckLockGrantCallback) ? GLSV_LOCK_GRANT_CBK_REG : 0);
-		reg_info |= (uns16)((lckCallbacks->saLckLockWaiterCallback) ? GLSV_LOCK_WAITER_CBK_REG : 0);
-		reg_info |= (uns16)((lckCallbacks->saLckResourceUnlockCallback) ? GLSV_LOCK_UNLOCK_CBK_REG : 0);
+		reg_info |= (uint16_t)((lckCallbacks->saLckResourceOpenCallback) ? GLSV_LOCK_OPEN_CBK_REG : 0);
+		reg_info |= (uint16_t)((lckCallbacks->saLckLockGrantCallback) ? GLSV_LOCK_GRANT_CBK_REG : 0);
+		reg_info |= (uint16_t)((lckCallbacks->saLckLockWaiterCallback) ? GLSV_LOCK_WAITER_CBK_REG : 0);
+		reg_info |= (uint16_t)((lckCallbacks->saLckResourceUnlockCallback) ? GLSV_LOCK_UNLOCK_CBK_REG : 0);
 	}
 
 	/* populate the structure */

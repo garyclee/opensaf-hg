@@ -262,7 +262,7 @@ static uns32 dtsv_encode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC 
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				      "dtsv_encode_ckpt_dta_dest_list_config: ncs_encode_n_octets_in_uba returns NULL");
 
-	enc_spec = ncs_enc_reserve_space(&enc->io_uba, sizeof(uns16));
+	enc_spec = ncs_enc_reserve_space(&enc->io_uba, sizeof(uint16_t));
 
 	if (enc_spec == NULL)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -270,7 +270,7 @@ static uns32 dtsv_encode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC 
 
 	ncs_encode_16bit(&enc_spec, cb->last_spec_loaded.version);
 
-	ncs_enc_claim_space(&enc->io_uba, sizeof(uns16));
+	ncs_enc_claim_space(&enc->io_uba, sizeof(uint16_t));
 
 	/* Now encode the DTA_DEST_LIST using edp */
 	status =
@@ -632,14 +632,14 @@ static uns32 dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 					m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						       "dtsv_encode_cold_sync_rsp_dta_dest_list_config: ncs_encode_n_octets_in_uba returns failure");
 			} else {
-				enc_data = ncs_enc_reserve_space(&enc->io_uba, sizeof(uns16));
+				enc_data = ncs_enc_reserve_space(&enc->io_uba, sizeof(uint16_t));
 				if (enc_data == NULL)
 					return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 							      "dtsv_encode_cold_sync_rsp_dta_dest_list_config: ncs_enc_reserve_space returns NULL");
 
 				/*Encode 1 here to indicate spec_entry for this DTA to decode side */
 				ncs_encode_16bit(&enc_data, 0);
-				ncs_enc_claim_space(&enc->io_uba, sizeof(uns16));
+				ncs_enc_claim_space(&enc->io_uba, sizeof(uint16_t));
 			}
 			svc_entry = svc_entry->next_in_dta_entry;
 		}

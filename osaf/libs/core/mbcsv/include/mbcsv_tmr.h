@@ -76,7 +76,7 @@ typedef struct ncs_mbcsv_tmr {
 	tmr_t tmr_id;
 	NCS_MBCSV_TMR_HDL xdb;
 	uns32 period;
-	uns16 is_active;
+	uint16_t is_active;
 	uint8_t curr_exp_count;
 	uint8_t has_expired;
 	uint8_t type;

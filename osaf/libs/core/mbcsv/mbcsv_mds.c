@@ -888,7 +888,7 @@ uns32 mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 mbcsv_encode_version(NCS_UBAID *uba, uns16 version)
+uns32 mbcsv_encode_version(NCS_UBAID *uba, uint16_t version)
 {
 	uint8_t *data;
 
@@ -920,7 +920,7 @@ uns32 mbcsv_encode_version(NCS_UBAID *uba, uns16 version)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 mbcsv_decode_version(NCS_UBAID *uba, uns16 *version)
+uns32 mbcsv_decode_version(NCS_UBAID *uba, uint16_t *version)
 {
 	uint8_t *data;
 	uint8_t data_buff[MBCSV_MAX_SIZE_DATA];

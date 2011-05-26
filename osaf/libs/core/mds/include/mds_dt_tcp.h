@@ -40,10 +40,10 @@ typedef struct mdtm_tcp_cb {
 	SYSF_MBX tmr_mbx;
 	int tmr_fd;
 	uns32 node_id;
-	uns16 mdtm_tcp_unsent_counter;
+	uint16_t mdtm_tcp_unsent_counter;
 	/* Added for message reception */
-	uns16 bytes_tb_read;
-	uns16 buff_total_len;
+	uint16_t bytes_tb_read;
+	uint16_t buff_total_len;
 	uint8_t len_buff[2];
 	uint8_t num_by_read_for_len_buff;
 	uint8_t *buffer;
@@ -76,7 +76,7 @@ typedef struct mds_mdtm_processid_msg {
 
 typedef struct mds_mdtm_dtm_msg {
 
-	uns16 size;
+	uint16_t size;
 	uns32 mds_indentifire;
 	uint8_t mds_version;
 	MDS_MDTM_DTM_MSG_TYPE type;

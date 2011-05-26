@@ -82,7 +82,7 @@ typedef struct edsv_ckpt_chan_msg {
 	uns32 chan_id;
 	uns32 last_copen_id;	/* Last assigned chan_open_id */
 	uns32 chan_attrib;	/* Attributes of this channel */
-	uns16 cname_len;	/* Length of channel name */
+	uint16_t cname_len;	/* Length of channel name */
 	uint8_t cname[SA_MAX_NAME_LENGTH];	/* Channel name. NULL terminated if ascii */
 	MDS_DEST chan_opener_dest;
 	SaTimeT chan_create_time;
@@ -96,7 +96,7 @@ typedef struct edsv_ckpt_chan_open_msg {
 	uns32 chan_open_id;
 	uns32 chan_attrib;	/* Attributes of this channel */
 	MDS_DEST chan_opener_dest;
-	uns16 cname_len;	/* Length of channel name */
+	uint16_t cname_len;	/* Length of channel name */
 	uint8_t cname[SA_MAX_NAME_LENGTH];	/* Channel name. NULL terminated if ascii */
 	SaTimeT chan_create_time;
 } EDS_CKPT_CHAN_OPEN_MSG;
@@ -145,10 +145,10 @@ typedef struct edsv_ckpt_retention_time_clear_msg {
  * with a checksum.
 */
 typedef struct eds_ckpt_data_csum {
-	uns16 reg_csum;
-	uns16 copen_csum;
-/*  uns16 reten_csum; */
-	uns16 subsc_csum;
+	uint16_t reg_csum;
+	uint16_t copen_csum;
+/*  uint16_t reten_csum; */
+	uint16_t subsc_csum;
 } EDS_CKPT_DATA_CHECKSUM;
 
 /* Checkpoint message containing eds data of a particular type.
@@ -159,7 +159,7 @@ typedef struct edsv_ckpt_header {
 	EDS_CKPT_DATA_TYPE ckpt_rec_type;	/* Type of eds data carried in this checkpoint */
 	uns32 num_ckpt_records;	/* =1 for async updates,>=1 for cold/warm sync */
 	uns32 data_len;		/* Total length of encoded checkpoint data of this type */
-/* uns16               checksum;  Checksum calculated on the message */
+/* uint16_t               checksum;  Checksum calculated on the message */
 } EDS_CKPT_HEADER;
 
 typedef struct edsv_ckpt_msg {
@@ -529,9 +529,9 @@ uns32 eds_ckpt_proc_agent_down_rec(EDS_CB *cb, EDS_CKPT_DATA *data);
 uns32 eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB *cb, NCS_UBAID *uba);
 uns32 eds_ckpt_warm_sync_csum_enc_hdlr(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg);
 uns32 eds_ckpt_enc_warm_sync_csum(EDS_CB *cb, NCS_UBAID *uba);
-uns32 compute_reg_csum(EDS_CB *cb, uns16 *cksum);
-uns32 compute_copen_csum(EDS_CB *cb, uns16 *cksum);
-uns32 compute_subsc_csum(EDS_CB *cb, uns16 *cksum);
+uns32 compute_reg_csum(EDS_CB *cb, uint16_t *cksum);
+uns32 compute_copen_csum(EDS_CB *cb, uint16_t *cksum);
+uns32 compute_subsc_csum(EDS_CB *cb, uint16_t *cksum);
 uns32 send_async_update(EDS_CB *cb, EDS_CKPT_DATA *ckpt_rec, uns32 action);
 uns32 edsv_ckpt_send_cold_sync(EDS_CB *eds_cb);
 uns32 eds_ckpt_send_async_update(EDS_CB *eds_cb);

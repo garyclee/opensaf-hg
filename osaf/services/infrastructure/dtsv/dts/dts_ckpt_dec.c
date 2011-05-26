@@ -244,7 +244,7 @@ static uns32 dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC 
 		memset(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_ckpt_dta_dest_list_config: Decode octets failed");
 	}
-	dec_spec = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&cb->last_spec_loaded.version, sizeof(uns16));
+	dec_spec = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&cb->last_spec_loaded.version, sizeof(uint16_t));
 	if (dec_spec == NULL) {
 		m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
 		memset(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
@@ -252,7 +252,7 @@ static uns32 dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC 
 				      "dtsv_decode_ckpt_dta_dest_list_config: Decode flatten space failed");
 	}
 	cb->last_spec_loaded.version = ncs_decode_16bit(&dec_spec);
-	ncs_dec_skip_space(&dec->i_uba, sizeof(uns16));
+	ncs_dec_skip_space(&dec->i_uba, sizeof(uint16_t));
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -565,7 +565,7 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 count = 0, svc_count = 0, i;
-	uns16 spec_present = 0;
+	uint16_t spec_present = 0;
 	EDU_ERR ederror = 0;
 	DTA_DEST_LIST *dta_dest_ptr;
 	DTA_DEST_LIST dec_dta_dest;
@@ -615,26 +615,26 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 			svc_key.node = m_NCS_NODE_ID_FROM_MDS_DEST(dta_dest_ptr->dta_addr);
 
 			/* Check whether any spec_entry was sent by the sender */
-			dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&spec_present, sizeof(uns16));
+			dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&spec_present, sizeof(uint16_t));
 			if (dec_svc == NULL) {
 				m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						      "dtsv_decode_cold_sync_rsp_dta_dest_list_config: Decode flatten space failed");
 			}
 			spec_present = ncs_decode_16bit(&dec_svc);
-			ncs_dec_skip_space(&dec->i_uba, sizeof(uns16));
+			ncs_dec_skip_space(&dec->i_uba, sizeof(uint16_t));
 			if (spec_present != 0) {
 				/*Now decode the version and service no. asscociated with this DTA */
 				dec_svc =
 				    ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&cb->last_spec_loaded.version,
-							  sizeof(uns16));
+							  sizeof(uint16_t));
 				if (dec_svc == NULL) {
 					m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
 					return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 							      "dtsv_decode_cold_sync_rsp_dta_dest_list_config: Decode flatten space failed");
 				}
 				cb->last_spec_loaded.version = ncs_decode_16bit(&dec_svc);
-				ncs_dec_skip_space(&dec->i_uba, sizeof(uns16));
+				ncs_dec_skip_space(&dec->i_uba, sizeof(uint16_t));
 
 				if (ncs_decode_n_octets_from_uba
 				    (&dec->i_uba, (uint8_t *)&cb->last_spec_loaded.svc_name,

@@ -654,7 +654,7 @@ static void immsv_evt_dec_attributes(NCS_UBAID *i_ub, IMMSV_ATTR_VALUES_LIST **p
 static uns32 immsv_evt_enc_name_list(NCS_UBAID *o_ub, IMMSV_OBJ_NAME_LIST *p)
 {
 	uint8_t *p8;
-	uns16 objs = 0;
+	uint16_t objs = 0;
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
 	ncs_encode_8bit(&p8, p ? 1 : 0);

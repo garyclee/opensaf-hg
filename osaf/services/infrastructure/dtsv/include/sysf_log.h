@@ -71,7 +71,7 @@ uns32 dts_log_init(void);
 
 uns32 dts_ascii_spec_register(NCSFL_ASCII_SPEC *spec);
 
-uns32 dts_ascii_spec_deregister(SS_SVC_ID ss_id, uns16 version);
+uns32 dts_ascii_spec_deregister(SS_SVC_ID ss_id, uint16_t version);
 
 uns32 dts_log_msg_to_str(DTA_LOG_MSG *msg, char *str,
 				  NODE_ID node, uns32 proc_id, uns32 *len, NCSFL_ASCII_SPEC *spec);

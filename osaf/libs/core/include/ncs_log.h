@@ -81,21 +81,21 @@ typedef char *NCSFL_TYPE;
    Where xxx is a sequence of characters that mean:
 
  S     : (small)  uint8_t  value
- M     : (medium) uns16 value
+ M     : (medium) uint16_t value
  L     : (large)  uns32 value
  F     : double value
  I     : Index value pair to find a canned string in a NCSFL_SET
  T     : Time value
  A     : IPV4 Address or mask to be printed in xxx.xxx.xxx.xxx format
  D     : Dump of memory stored as Octet string, of the form
-         uns16 = length,
+         uint16_t = length,
          char* = 4 bytes of address + (length - 4) bytes of raw data.
          To be printed as...
          <mem addr> <16 bytes in hex format>                        <ascii form>
     ex.  0x098af44  33 34 35 36 20 20 20 20 33 34 35 36 2e 2e 2e 2e 3456    3456....
 
  P     : PDU as Octet string, of the form
-         uns16 = length,
+         uint16_t = length,
          char* = length bytes of raw data
          To be printed as...
          <16 bytes in hex format>                        <ascii form>
@@ -103,7 +103,7 @@ typedef char *NCSFL_TYPE;
 
  C     : Character string, NULL terminate stored as octet string
          of the form
-         uns16 = length,
+         uint16_t = length,
          char* = strlen + 1 (the NULL).
 
 ************************************************************************/
@@ -206,14 +206,14 @@ typedef char *NCSFL_TYPE;
  ************************************************************************/
 
 typedef struct ncsfl_mem {
-	uns16 len;		/* number of bytes of raw data in dump */
+	uint16_t len;		/* number of bytes of raw data in dump */
 	char *addr;		/* address to be printed */
 	char *dump;		/* contains the raw data to be printed */
 
 } NCSFL_MEM;
 
 typedef struct ncsfl_pdu {
-	uns16 len;
+	uint16_t len;
 	char *dump;		/* dump contains len bytes of raw data */
 
 } NCSFL_PDU;

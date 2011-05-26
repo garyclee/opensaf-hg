@@ -563,8 +563,8 @@ uns32 mbcsv_send_notify_msg(uns32 msg_dest, CKPT_INST *ckpt_inst, MBCSV_REG *mbc
 	case NCS_MBCSV_STANDBY:
 	case NCS_MBCSV_ALL_PEERS:
 		{
-			uns16 peer_count = 0;
-			uns16 tmp_peer_version = 0;
+			uint16_t peer_count = 0;
+			uint16_t tmp_peer_version = 0;
 			uint8_t set_peer_version = TRUE;
 			USRBUF *dup_ub = NULL;
 			PEER_INST *peer = ckpt_inst->peer_list;
@@ -969,7 +969,7 @@ uns32 mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t event)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_subscribe_oneshot(NCS_MBCSV_FLTR *fltr, uns16 time_10ms)
+uns32 mbcsv_subscribe_oneshot(NCS_MBCSV_FLTR *fltr, uint16_t time_10ms)
 {
 	return NCSCC_RC_SUCCESS;
 }

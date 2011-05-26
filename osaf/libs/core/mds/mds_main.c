@@ -45,7 +45,7 @@
 #include "mds_dt_tipc.h"
 #endif
 
-extern uns16 socket_domain;
+extern uint16_t socket_domain;
 void mds_init_transport(void);
 
 /* MDS Control Block */

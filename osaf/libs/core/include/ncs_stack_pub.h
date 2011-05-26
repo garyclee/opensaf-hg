@@ -110,10 +110,10 @@ extern "C" {
  ***************************************************************************/
 
 	typedef struct ncs_stack {
-		uns16 se_cnt;	/* Number of elements in stack     */
-		uns16 max_depth;	/* Maximum Depth                   */
-		uns16 cur_depth;	/* Current Depth                   */
-		uns16 pad;	/* To 32 bit boundary...           */
+		uint16_t se_cnt;	/* Number of elements in stack     */
+		uint16_t max_depth;	/* Maximum Depth                   */
+		uint16_t cur_depth;	/* Current Depth                   */
+		uint16_t pad;	/* To 32 bit boundary...           */
 
 	} NCS_STACK;
 
@@ -122,8 +122,8 @@ extern "C" {
  ***************************************************************************/
 
 	typedef struct ncs_se {
-		uns16 type;	/* Stack element type              */
-		uns16 length;	/* lenght of stack element         */
+		uint16_t type;	/* Stack element type              */
+		uint16_t length;	/* lenght of stack element         */
 
 	} NCS_SE;
 
@@ -135,11 +135,11 @@ extern "C" {
 
 #define m_NCSSTACK_SPACE(se)        ((uint8_t*)((uint8_t*)se + sizeof(NCS_SE)))
 
-	void ncsstack_init(NCS_STACK *st, uns16 max_size);
+	void ncsstack_init(NCS_STACK *st, uint16_t max_size);
 
 	NCS_SE *ncsstack_peek(NCS_STACK *st);
 
-	NCS_SE *ncsstack_push(NCS_STACK *st, uns16 type, uns16 size);
+	NCS_SE *ncsstack_push(NCS_STACK *st, uint16_t type, uint16_t size);
 
 	NCS_SE *ncsstack_pop(NCS_STACK *st);
 	uns32 ncsstack_get_utilization(NCS_STACK *st);

@@ -250,21 +250,21 @@ uns32 ncs_encode_tlv_32bit(uint8_t **stream, uns32 val);
 
 uns32 ncs_encode_tlv_64bit(uint8_t **stream, uns64 val);
 
-uns32 ncs_encode_tlv_n_32bit(uint8_t **stream, uns32 *val_ptr, uns16 n_count);
+uns32 ncs_encode_tlv_n_32bit(uint8_t **stream, uns32 *val_ptr, uint16_t n_count);
 
-uns32 ncs_encode_tlv_n_16bit(uint8_t **stream, uns16 *val_ptr, uns16 n_count);
+uns32 ncs_encode_tlv_n_16bit(uint8_t **stream, uint16_t *val_ptr, uint16_t n_count);
 
-uns32 ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uns16 count);
+uns32 ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uint16_t count);
 
 uns32 ncs_decode_tlv_32bit(uint8_t **stream);
 
 uns64 ncs_decode_tlv_64bit(uint8_t **stream);
 
-uns16 ncs_decode_tlv_16bit(uint8_t **stream);
+uint16_t ncs_decode_tlv_16bit(uint8_t **stream);
 
-uns16 ncs_decode_tlv_n_32bit(uint8_t **stream, uns32 *dest);
+uint16_t ncs_decode_tlv_n_32bit(uint8_t **stream, uns32 *dest);
 
-uns16 ncs_decode_tlv_n_16bit(uint8_t **stream, uns16 *dest);
+uint16_t ncs_decode_tlv_n_16bit(uint8_t **stream, uint16_t *dest);
 
 uint8_t ncs_decode_tlv_8bit(uint8_t **stream);
 

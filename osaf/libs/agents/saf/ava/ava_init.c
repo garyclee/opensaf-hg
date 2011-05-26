@@ -142,7 +142,7 @@ uns32 ava_create(NCS_LIB_CREATE *create_info)
 	if (getenv("SA_AMF_COMPONENT_NAME")) {
 		if (strlen(getenv("SA_AMF_COMPONENT_NAME")) < SA_MAX_NAME_LENGTH) {
 			strcpy((char *)cb->comp_name.value, getenv("SA_AMF_COMPONENT_NAME"));
-			cb->comp_name.length = (uns16)strlen((char *)cb->comp_name.value);
+			cb->comp_name.length = (uint16_t)strlen((char *)cb->comp_name.value);
 			m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
 			TRACE("Component name = %s",cb->comp_name.value);
 		} else {

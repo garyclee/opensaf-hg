@@ -1231,7 +1231,7 @@ uns32   mbcstm_svc_enc_notify_cb(NCS_MBCSV_CB_ARG *arg)
   char  str[100]="Hello Peer";
   int len=strlen(str)+1;
   NCS_UBAID  *uba = &arg->info.notify.i_uba;
-  uns16  peer_version = arg->info.notify.i_peer_version;
+  uint16_t  peer_version = arg->info.notify.i_peer_version;
 /*  NCSCONTEXT msg = &arg->info.notify.i_msg; how to use this*/
   printf("\nCallback Enc Notify Msg: Peer's Version = %d \n",peer_version);
 
@@ -1256,7 +1256,7 @@ uns32   mbcstm_svc_notify_cb(NCS_MBCSV_CB_ARG *arg)
   uint8_t  data_buff[1024];
   char  str[100];
   NCS_UBAID  *uba = &arg->info.notify.i_uba;
-  uns16  peer_version = arg->info.notify.i_peer_version;
+  uint16_t  peer_version = arg->info.notify.i_peer_version;
 /*  NCSCONTEXT msg = &arg->info.notify.i_msg; how to use this*/
 
   data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));

@@ -1766,7 +1766,7 @@ extern "C" {
 #endif
 
 #ifndef m_NCS_OS_NTOHS_P
-#define m_NCS_OS_NTOHS_P(p8) (uns16)((*(uint8_t*)p8<<8)|*((uint8_t*)(p8+1)))
+#define m_NCS_OS_NTOHS_P(p8) (uint16_t)((*(uint8_t*)p8<<8)|*((uint8_t*)(p8+1)))
 #endif
 
 #ifndef m_NCS_OS_HTONL_P

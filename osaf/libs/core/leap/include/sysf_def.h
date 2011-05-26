@@ -199,10 +199,10 @@ struct ncs_sar_ctrl_info_tag;
     - float     (C-type)
     - ncs_bool  (NCS-type, unsigned int.)
     - uint8_t      (NCS-type. unsigned char.)
-    - uns16     (NCS-type. unsigned short.)
+    - uint16_t     (NCS-type. unsigned short.)
     - uns32     (NCS-type. unsigned int.)
     - int8_t      (NCS-type. signed char.)
-    - int16     (NCS-type. signed short.)
+    - int16_t     (NCS-type. signed short.)
     - int32     (NCS-type. signed long.)
     - ncsfloat  (C/NCS-type. float.)
     - octet     (C/NCS-type, uint8_t *)
@@ -231,7 +231,7 @@ struct ncs_sar_ctrl_info_tag;
 #define m_MMGR_ALLOC_EDP_UNS8(n)   m_NCS_MEM_ALLOC(n*sizeof(uint8_t),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
-#define m_MMGR_ALLOC_EDP_UNS16  m_NCS_MEM_ALLOC(sizeof(uns16),\
+#define m_MMGR_ALLOC_EDP_UNS16  m_NCS_MEM_ALLOC(sizeof(uint16_t),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
 #define m_MMGR_ALLOC_EDP_UNS32  m_NCS_MEM_ALLOC(sizeof(uns32),\
@@ -240,7 +240,7 @@ struct ncs_sar_ctrl_info_tag;
 #define m_MMGR_ALLOC_EDP_INT8   m_NCS_MEM_ALLOC(sizeof(int8_t),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
-#define m_MMGR_ALLOC_EDP_INT16  m_NCS_MEM_ALLOC(sizeof(int16),\
+#define m_MMGR_ALLOC_EDP_INT16  m_NCS_MEM_ALLOC(sizeof(int16_t),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
 #define m_MMGR_ALLOC_EDP_INT32  m_NCS_MEM_ALLOC(sizeof(int32),\

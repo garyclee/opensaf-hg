@@ -203,7 +203,7 @@ typedef struct mbcstm_svc {
   NCS_MBCSV_CLIENT_SVCID svc_id;    /* service id of client               */
   NCS_MBCSV_HDL          mbcsv_hdl; /* MBCSv returns handle for calls     */
  /* SaVersionT             version;    client version info as per SAF     */
-  uns16                  version;
+  uint16_t                  version;
   SaSelectionObjectT     sel_obj;   /* slection object of queue           */
   SaDispatchFlagsT       disp_flags;/* one of ONE, ALL or BLOCKING        */
   uns32                  task_flag;

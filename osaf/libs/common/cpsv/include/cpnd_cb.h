@@ -217,7 +217,7 @@ typedef struct cpnd_ckpt_client_node {
 	MDS_DEST agent_mds_dest;	/* mds dest of the agent */
 	uns32 proc_id;		/* TBD Delete this */
 	SaVersionT version;
-	uns16 cbk_reg_info;	/* bit-wise data */
+	uint16_t cbk_reg_info;	/* bit-wise data */
 	NCS_BOOL arrival_cb_flag;
 
 	CPND_CKPT_CKPT_LIST_NODE *ckpt_list;	/* List of ckpts opened by this client */

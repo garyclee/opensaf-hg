@@ -101,7 +101,7 @@ extern "C" {
 	uns32 decode_32bitOS_inc(uint8_t **stream);
 	uns32 encode_32bitOS_inc(uint8_t **stream, uns32 val);
 	uns32 encode_16bitOS_inc(uint8_t **stream, uns32 val);
-	uns16 decode_16bitOS_inc(uint8_t **stream);
+	uint16_t decode_16bitOS_inc(uint8_t **stream);
 
 #define m_NCS_OS_HTONL_P_INC(p8,v32) encode_32bitOS_inc(&p8, v32)
 #define m_NCS_OS_HTONS_P_INC(p8,v16) encode_16bitOS_inc(&p8, v16)

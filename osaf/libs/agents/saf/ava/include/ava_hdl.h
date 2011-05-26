@@ -53,7 +53,7 @@ typedef struct ava_pend_resp_rec {
 
 /* Pending response list */
 typedef struct ava_resp_cbk {
-	uns16 num;		/* no of pending callbacks */
+	uint16_t num;		/* no of pending callbacks */
 	AVA_PEND_RESP_REC *head;
 	AVA_PEND_RESP_REC *tail;
 } AVA_PEND_RESP;

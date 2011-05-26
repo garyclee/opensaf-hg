@@ -416,7 +416,7 @@ uns32 ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
 	NCS_EDU_ADMIN_OP_INFO admin_op;
 	uns32 next_offset = 0, cnt = 0;	/* for linked list */
 	uint8_t *p8, u8 = 0;
-	uns16 u16 = 0;
+	uint16_t u16 = 0;
 
 	if (edp == NULL) {
 		*o_err = EDU_ERR_EDP_NULL;
@@ -844,7 +844,7 @@ uns32 ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
 		newptr = (NCSCONTEXT)((long)ptr + (long)rule->fld5);
 		if (rule->fld1 == ncs_edp_char) {
-			uns16 str_len = strlen((char *)newptr);
+			uint16_t str_len = strlen((char *)newptr);
 
 			/* Encode in the form of character string, rather than an array of
 			   characters. */
@@ -1111,7 +1111,7 @@ uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		uns32 loop_cnt = rule->fld6;	/* Array size */
 
 		if (rule->fld1 == ncs_edp_char) {
-			uns16 u16 = 0;
+			uint16_t u16 = 0;
 			uint8_t *p8 = NULL;
 
 			/* Decode in the form of character string, rather than an array of
@@ -1301,7 +1301,7 @@ uns32 ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		uns32 loop_cnt = rule->fld6;	/* Array size */
 
 		if (rule->fld1 == ncs_edp_char) {
-			uns16 u16 = 0;
+			uint16_t u16 = 0;
 			uint8_t *p8 = NULL;
 
 			/* Decode in the form of character string, rather than an array of
@@ -1470,7 +1470,7 @@ int ncs_edu_run_version_ge(EDU_HDL *edu_hdl,
 		return rc_lbl;
 	}
 
-	rc_lbl = edu_chk_ver_ge(((uns16 *)rule->fld7), &edu_hdl->to_version, rule->nxt_lbl);
+	rc_lbl = edu_chk_ver_ge(((uint16_t *)rule->fld7), &edu_hdl->to_version, rule->nxt_lbl);
 
 	return rc_lbl;
 }
@@ -1533,7 +1533,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 {
 	int cur_inst_indx = 0;
 	uns32 dtype_attrb = 0;
-	uns16 cnt = 0, ptr_cnt = 0;
+	uint16_t cnt = 0, ptr_cnt = 0;
 	NCS_EDU_ADMIN_OP_INFO admin_op;
 	int rc_lbl = EDU_NEXT;
 	uint8_t *encoded_cnt_loc = NULL, *encoded_ptr_cnt_loc = NULL;
@@ -3202,13 +3202,13 @@ NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uns32 *o_size)
 	else if (prog == ncs_edp_uns8)
 		*o_size = sizeof(uint8_t);
 	else if (prog == ncs_edp_uns16)
-		*o_size = sizeof(uns16);
+		*o_size = sizeof(uint16_t);
 	else if (prog == ncs_edp_uns32)
 		*o_size = sizeof(uns32);
 	else if (prog == ncs_edp_int8)
 		*o_size = sizeof(int8_t);
 	else if (prog == ncs_edp_int16)
-		*o_size = sizeof(int16);
+		*o_size = sizeof(int16_t);
 	else if (prog == ncs_edp_int32)
 		*o_size = sizeof(int32);
 	else if (prog == ncs_edp_char)
@@ -3408,7 +3408,7 @@ void ncs_edu_skip_space(EDU_TLV_ENV *tlv_env, uns32 cnt)
 *****************************************************************************/
 uns32 ncs_encode_tlv_8bit(uint8_t **stream, uns32 val)
 {
-	uns16 len = 1;
+	uint16_t len = 1;
 
 	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_8BIT);	/* type */
 	*(*stream)++ = (uint8_t)(len >> 8);	/* length */
@@ -3428,7 +3428,7 @@ uns32 ncs_encode_tlv_8bit(uint8_t **stream, uns32 val)
 *****************************************************************************/
 uns32 ncs_encode_tlv_16bit(uint8_t **stream, uns32 val)
 {
-	uns16 len = 2;
+	uint16_t len = 2;
 
 	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_16BIT);	/* type */
 	*(*stream)++ = (uint8_t)(len >> 8);	/* length */
@@ -3447,9 +3447,9 @@ uns32 ncs_encode_tlv_16bit(uint8_t **stream, uns32 val)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_n_16bit(uint8_t **stream, uns16 *val_ptr, uns16 n_count)
+uns32 ncs_encode_tlv_n_16bit(uint8_t **stream, uint16_t *val_ptr, uint16_t n_count)
 {
-	uns16 lcnt = 0, len = n_count, val = 0;
+	uint16_t lcnt = 0, len = n_count, val = 0;
 
 	if (n_count == 0)
 		return 0;
@@ -3477,7 +3477,7 @@ uns32 ncs_encode_tlv_n_16bit(uint8_t **stream, uns16 *val_ptr, uns16 n_count)
 *****************************************************************************/
 uns32 ncs_encode_tlv_32bit(uint8_t **stream, uns32 val)
 {
-	uns16 len = 4;
+	uint16_t len = 4;
 
 	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_32BIT);	/* type */
 	*(*stream)++ = (uint8_t)(len >> 8);	/* length */
@@ -3498,9 +3498,9 @@ uns32 ncs_encode_tlv_32bit(uint8_t **stream, uns32 val)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_n_32bit(uint8_t **stream, uns32 *val_ptr, uns16 n_count)
+uns32 ncs_encode_tlv_n_32bit(uint8_t **stream, uns32 *val_ptr, uint16_t n_count)
 {
-	uns16 lcnt = 0, len = n_count;
+	uint16_t lcnt = 0, len = n_count;
 	uns32 val = 0;
 
 	if (n_count == 0)
@@ -3529,10 +3529,10 @@ uns32 ncs_encode_tlv_n_32bit(uint8_t **stream, uns32 *val_ptr, uns16 n_count)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uns16 count)
+uns32 ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uint16_t count)
 {
 	int i;
-	uns16 lcnt = count;
+	uint16_t lcnt = count;
 
 	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_OCT);	/* type */
 	*(*stream)++ = (uint8_t)(lcnt >> 8);	/* length */
@@ -3560,7 +3560,7 @@ uns32 ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uns16 count)
 *****************************************************************************/
 uns32 ncs_encode_tlv_64bit(uint8_t **stream, uns64 val)
 {
-	uns16 len = 8;
+	uint16_t len = 8;
 
 	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_64BIT);	/* type */
 	*(*stream)++ = (uint8_t)(len >> 8);	/* length */
@@ -3626,15 +3626,15 @@ uns32 ncs_decode_tlv_32bit(uint8_t **stream)
   RETURNS:          Number of "uns32" decoded.
 
 *****************************************************************************/
-uns16 ncs_decode_tlv_n_32bit(uint8_t **stream, uns32 *dest)
+uint16_t ncs_decode_tlv_n_32bit(uint8_t **stream, uns32 *dest)
 {
 	uns32 val = 0;		/* Accumulator */
-	uns16 lcnt = 0, len = 0;
+	uint16_t lcnt = 0, len = 0;
 
 	(*stream)++;		/* type */
 
-	len = (uns16)((uint8_t)(*(*stream)++) << 8);
-	len |= (uns16)*(*stream)++;
+	len = (uint16_t)((uint8_t)(*(*stream)++) << 8);
+	len |= (uint16_t)*(*stream)++;
 
 	for (; lcnt < len; lcnt++) {
 		val = (uns32)*(*stream)++ << 24;
@@ -3657,7 +3657,7 @@ uns16 ncs_decode_tlv_n_32bit(uint8_t **stream, uns32 *dest)
   RETURNS:          Decoded "16bit" value.
 
 *****************************************************************************/
-uns16 ncs_decode_tlv_16bit(uint8_t **stream)
+uint16_t ncs_decode_tlv_16bit(uint8_t **stream)
 {
 	uns32 val = 0;		/* Accumulator */
 
@@ -3667,7 +3667,7 @@ uns16 ncs_decode_tlv_16bit(uint8_t **stream)
 	val = (uns32)*(*stream)++ << 8;
 	val |= (uns32)*(*stream)++;
 
-	return (uns16)(val & 0x0000FFFF);
+	return (uint16_t)(val & 0x0000FFFF);
 }
 
 /*****************************************************************************
@@ -3679,19 +3679,19 @@ uns16 ncs_decode_tlv_16bit(uint8_t **stream)
   RETURNS:          Number of "uns16" decoded.
 
 *****************************************************************************/
-uns16 ncs_decode_tlv_n_16bit(uint8_t **stream, uns16 *dest)
+uint16_t ncs_decode_tlv_n_16bit(uint8_t **stream, uint16_t *dest)
 {
-	uns16 val = 0;		/* Accumulator */
-	uns16 lcnt = 0, len = 0;
+	uint16_t val = 0;		/* Accumulator */
+	uint16_t lcnt = 0, len = 0;
 
 	(*stream)++;		/* type */
 
-	len = (uns16)((uint8_t)(*(*stream)++) << 8);
-	len |= (uns16)*(*stream)++;
+	len = (uint16_t)((uint8_t)(*(*stream)++) << 8);
+	len |= (uint16_t)*(*stream)++;
 
 	for (; lcnt < len; lcnt++) {
-		val = (uns16)((uns16)*(*stream)++ << 8);
-		val |= (uns16)*(*stream)++;
+		val = (uint16_t)((uint16_t)*(*stream)++ << 8);
+		val |= (uint16_t)*(*stream)++;
 		/* Convert to host-order and Write it back */
 		dest[lcnt] = val;
 	}
@@ -3783,9 +3783,9 @@ static uns32 ncs_edu_get_size_of_var_len_data(EDU_PROG_HANDLER edp, NCSCONTEXT c
 	else if (edp == ncs_edp_int8)
 		*p_data_len = (uns32)(*(int8_t *)cptr);
 	else if (edp == ncs_edp_uns16)
-		*p_data_len = (uns32)(*(uns16 *)cptr);
+		*p_data_len = (uns32)(*(uint16_t *)cptr);
 	else if (edp == ncs_edp_int16)
-		*p_data_len = (uns32)(*(int16 *)cptr);
+		*p_data_len = (uns32)(*(int16_t *)cptr);
 	else if (edp == ncs_edp_short)
 		*p_data_len = (uns32)(*(short *)cptr);
 	else if (edp == ncs_edp_int)

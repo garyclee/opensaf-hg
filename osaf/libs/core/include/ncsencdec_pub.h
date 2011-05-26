@@ -104,11 +104,11 @@ extern "C" {
  */
 	USRBUF *ncs_encode_n_octets(USRBUF *, uint8_t *, unsigned int);
 	USRBUF *ncs_encode_uns8(USRBUF *u, uint8_t val8);
-	USRBUF *ncs_encode_uns16(USRBUF *u, uns16 val16);
+	USRBUF *ncs_encode_uns16(USRBUF *u, uint16_t val16);
 	USRBUF *ncs_encode_uns32(USRBUF *u, uns32 val32);
 	USRBUF *ncs_encode_uns64(USRBUF *u, uns64 val64);
 	USRBUF *ncs_prepend_n_octets(USRBUF *pbuf, uint8_t *os, unsigned int);
-	USRBUF *ncs_prepend_uns16(USRBUF *u, uns16);
+	USRBUF *ncs_prepend_uns16(USRBUF *u, uint16_t);
 	USRBUF *ncs_prepend_uns32(USRBUF *u, uns32);
 	USRBUF *ncs_prepend_uns64(USRBUF *u, uns64);
 	USRBUF *ncs_encode_float(USRBUF *u, float obj_val);
@@ -133,7 +133,7 @@ extern "C" {
 	uns32 ncs_decode_short(uint8_t **stream);
 	uns32 ncs_decode_24bit(uint8_t **stream);
 	uns32 ncs_decode_32bit(uint8_t **stream);
-	uns16 ncs_decode_16bit(uint8_t **stream);
+	uint16_t ncs_decode_16bit(uint8_t **stream);
 	uns64 ncs_decode_64bit(uint8_t **stream);
 	uint8_t ncs_decode_8bit(uint8_t **stream);
 	uns32 ncs_decode_key(uint8_t **stream, NCS_KEY *key);

@@ -126,7 +126,7 @@ typedef struct tet_mds_recvd_msg_info{
                                       resides */
   MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver;
   MDS_DIRECT_BUFF        buff;
-  uns16                  len;
+  uint16_t                  len;
 }TET_MDS_RECVD_MSG_INFO;
 
 /********************* GLOBAL variables ********************/
@@ -153,7 +153,7 @@ int                    gl_COPY_CB_FAIL;
 
 
 uns32 ncs_encode_16bit(uint8_t **,uns32);
-uns16 ncs_decode_16bit(uint8_t **);
+uint16_t ncs_decode_16bit(uint8_t **);
 
 uns32 tet_mds_svc_callback(NCSMDS_CALLBACK_INFO *);
 /******************MDS call back routines *********************************/
@@ -207,7 +207,7 @@ uns32 mds_service_uninstall(MDS_HDL ,MDS_SVC_ID);
 
 uns32 mds_send_message(MDS_HDL ,MDS_SVC_ID ,NCSCONTEXT ,MDS_SVC_ID ,
                        MDS_SEND_PRIORITY_TYPE ,MDS_SENDTYPES,MDS_DEST ,uns32 ,
-                       MDS_DIRECT_BUFF ,uns16 ,MDS_SYNC_SND_CTXT ,
+                       MDS_DIRECT_BUFF ,uint16_t ,MDS_SYNC_SND_CTXT ,
                        NCSMDS_SCOPE_TYPE ,V_DEST_QA );
 
 /* Non Redundant */

@@ -29,7 +29,7 @@ DTM_NODE_SUBSCR_INFO *dtm_node_subscr_list = NULL;
 DTM_INTRANODE_NODE_DB *dtm_intranode_node_list_db = NULL;
 
 
-static uns32 dtm_lib_msg_snd_common(uint8_t *buffer, uns32 pid, uns16 msg_size);
+static uns32 dtm_lib_msg_snd_common(uint8_t *buffer, uns32 pid, uint16_t msg_size);
 static uns32 dtm_intranode_del_svclist_from_pid_tree(DTM_INTRANODE_PID_INFO * pid_node,
 						     DTM_PID_SVC_INSTALLED_INFO * del_info);
 
@@ -129,7 +129,7 @@ uns32 dtm_intranode_process_pid_msg(uint8_t *buffer, int fd)
 uns32 dtm_intranode_process_pid_down(int fd)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
-	uns16 local_pid = 0;
+	uint16_t local_pid = 0;
 	pid_node = dtm_intranode_get_pid_info_using_fd(fd);
 	TRACE_ENTER();
 	if (NULL == pid_node) {
@@ -1056,7 +1056,7 @@ static uns32 dtm_lib_prepare_svc_up_msg(DTM_LIB_UP_MSG * up_msg, uint8_t *buffer
 {
 	uint8_t *data = buffer;
 	TRACE_ENTER();
-	ncs_encode_16bit(&data, (uns16)DTM_LIB_UP_MSG_SIZE);
+	ncs_encode_16bit(&data, (uint16_t)DTM_LIB_UP_MSG_SIZE);
 	ncs_encode_32bit(&data, (uns32)DTM_INTRANODE_SND_MSG_IDENTIFIER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_INTRANODE_SND_MSG_VER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_LIB_UP_TYPE);
@@ -1085,7 +1085,7 @@ static uns32 dtm_lib_prepare_svc_down_msg(DTM_LIB_DOWN_MSG * down_msg, uint8_t *
 {
 	uint8_t *data = buffer;
 	TRACE_ENTER();
-	ncs_encode_16bit(&data, (uns16)DTM_LIB_DOWN_MSG_SIZE);
+	ncs_encode_16bit(&data, (uint16_t)DTM_LIB_DOWN_MSG_SIZE);
 	ncs_encode_32bit(&data, (uns32)DTM_INTRANODE_SND_MSG_IDENTIFIER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_INTRANODE_SND_MSG_VER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_LIB_DOWN_TYPE);
@@ -1338,7 +1338,7 @@ static uns32 dtm_internode_delete_svc_installed_list_from_svc_tree(DTM_INTRANODE
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 dtm_lib_msg_snd_common(uint8_t *buffer, uns32 pid, uns16 msg_size)
+static uns32 dtm_lib_msg_snd_common(uint8_t *buffer, uns32 pid, uint16_t msg_size)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	TRACE_ENTER();
@@ -1369,7 +1369,7 @@ static uns32 dtm_lib_prepare_node_up_msg(DTM_LIB_NODE_UP_MSG * up_msg, uint8_t *
 {
 	uint8_t *data = buffer;
 	TRACE_ENTER();
-	ncs_encode_16bit(&data, (uns16)DTM_LIB_NODE_UP_MSG_SIZE);
+	ncs_encode_16bit(&data, (uint16_t)DTM_LIB_NODE_UP_MSG_SIZE);
 	ncs_encode_32bit(&data, (uns32)DTM_INTRANODE_SND_MSG_IDENTIFIER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_INTRANODE_SND_MSG_VER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_LIB_NODE_UP_TYPE);
@@ -1394,7 +1394,7 @@ static uns32 dtm_lib_prepare_node_down_msg(DTM_LIB_NODE_DOWN_MSG * up_msg, uint8
 {
 	uint8_t *data = buffer;
 	TRACE_ENTER();
-	ncs_encode_16bit(&data, (uns16)DTM_LIB_NODE_DOWN_MSG_SIZE);
+	ncs_encode_16bit(&data, (uint16_t)DTM_LIB_NODE_DOWN_MSG_SIZE);
 	ncs_encode_32bit(&data, (uns32)DTM_INTRANODE_SND_MSG_IDENTIFIER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_INTRANODE_SND_MSG_VER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_LIB_NODE_DOWN_TYPE);
@@ -1667,9 +1667,9 @@ static DTM_SVC_INSTALL_INFO *dtm_intranode_get_remote_install_svc(DTM_INTRANODE_
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 dtm_process_internode_service_up_msg(uint8_t *buffer, uns16 len, NODE_ID node_id)
+uns32 dtm_process_internode_service_up_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id)
 {
-	uns16 num_of_elements = 0;
+	uint16_t num_of_elements = 0;
 	uint8_t *data = buffer;
 	DTM_INTRANODE_NODE_DB *node_info = NULL;
 	DTM_SVC_SUBSCR_INFO *subscr_node = NULL;
@@ -1795,9 +1795,9 @@ uns32 dtm_process_internode_service_up_msg(uint8_t *buffer, uns16 len, NODE_ID n
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 dtm_process_internode_service_down_msg(uint8_t *buffer, uns16 len, NODE_ID node_id)
+uns32 dtm_process_internode_service_down_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id)
 {
-	uns16 num_of_elements = 0;
+	uint16_t num_of_elements = 0;
 	uint8_t *data = buffer;
 	DTM_INTRANODE_NODE_DB *node_info = NULL;
 

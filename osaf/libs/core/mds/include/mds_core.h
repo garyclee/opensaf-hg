@@ -238,7 +238,7 @@ typedef struct mds_svc_info {
 	MDS_SVC_HDL svc_hdl;
 
 	/* Information */
-	uns16 svc_id;		/* Client service id */
+	uint16_t svc_id;		/* Client service id */
 	NCSMDS_SCOPE_TYPE install_scope;
 	NCSMDS_CALLBACK_API cback_ptr;	/* Client's callback pointer */
 	MDS_CLIENT_HDL yr_svc_hdl;	/* Client's context handle */

@@ -798,14 +798,14 @@ uns32 dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			ncs_dec_skip_space(uba, sizeof(SS_SVC_ID));
 
 			/* Decode the version no. */
-			data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns16));
+			data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint16_t));
 			if (data == NULL) {
 				m_MMGR_FREE_DTSV_MSG(mm);
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						      "dts_mds_dec: DTS decode: ncs_dec_flatten_space returns NULL");
 			}
 			mm->data.data.reg.version = ncs_decode_16bit(&data);
-			ncs_dec_skip_space(uba, sizeof(uns16));
+			ncs_dec_skip_space(uba, sizeof(uint16_t));
 
 			/* Decode the service name */
 			data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
@@ -840,14 +840,14 @@ uns32 dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			ncs_dec_skip_space(uba, sizeof(SS_SVC_ID));
 
 			/* Decode the version no. */
-			data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns16));
+			data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint16_t));
 			if (data == NULL) {
 				m_MMGR_FREE_DTSV_MSG(mm);
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						      "dts_mds_dec: DTS decode: ncs_dec_flatten_space returns NULL");
 			}
 			mm->data.data.unreg.version = ncs_decode_16bit(&data);
-			ncs_dec_skip_space(uba, sizeof(uns16));
+			ncs_dec_skip_space(uba, sizeof(uint16_t));
 
 			/* Decode the service name */
 			data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));

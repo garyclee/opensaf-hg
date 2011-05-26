@@ -399,7 +399,7 @@ SaUint32T plms_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
         PLMS_CB *cb = plms_cb;
-        uns16 msg_fmt_version;
+        uint16_t msg_fmt_version;
 
         TRACE_ENTER();
 
@@ -463,7 +463,7 @@ SaUint32T plms_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 	
 SaUint32T plms_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 {
-        uns16 msg_fmt_version;
+        uint16_t msg_fmt_version;
 
         TRACE_ENTER();
 

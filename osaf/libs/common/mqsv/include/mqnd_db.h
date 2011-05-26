@@ -150,10 +150,10 @@ typedef struct mqnd_shm_info {
 } MQND_SHM_INFO;
 
 typedef struct mqnd_shm_version {
-	uns16 shm_version;	/* Added to provide support for SAF Inservice upgrade facilty */
-	uns16 dummy_verson1;	/* Not in use */
-	uns16 dummy_verson2;	/* Not in use */
-	uns16 dummy_verson3;	/* Not in use */
+	uint16_t shm_version;	/* Added to provide support for SAF Inservice upgrade facilty */
+	uint16_t dummy_verson1;	/* Not in use */
+	uint16_t dummy_verson2;	/* Not in use */
+	uint16_t dummy_verson3;	/* Not in use */
 } MQND_SHM_VERSION;
 
 typedef struct mqa_rsp_cntxt {

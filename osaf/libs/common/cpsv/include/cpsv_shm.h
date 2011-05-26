@@ -46,7 +46,7 @@ typedef struct cpsv_ckpt_hdr {
 
 typedef struct cpsv_sect_hdr {
 	uns32 lcl_sec_id;
-	uns16 idLen;
+	uint16_t idLen;
 	uint8_t id[MAX_SIZE];
 	SaCkptSectionStateT sec_state;
 	SaSizeT sec_size;
@@ -76,7 +76,7 @@ typedef struct client_info {
 	SaCkptHandleT ckpt_app_hdl;
 	MDS_DEST agent_mds_dest;
 	SaVersionT version;
-	uns16 cbk_reg_info;
+	uint16_t cbk_reg_info;
 	NCS_BOOL is_valid;
 	uns32 offset;
 	NCS_BOOL arr_flag;
@@ -91,10 +91,10 @@ typedef struct gbl_shm_ptr {
 } GBL_SHM_PTR;
 
 typedef struct cpnd_shm_version {
-	uns16 shm_version;	/* Added to provide support for SAF Inservice upgrade facilty */
-	uns16 dummy_version1;	/* Not in use */
-	uns16 dummy_version2;	/* Not in use */
-	uns16 dummy_version3;	/* Not in use */
+	uint16_t shm_version;	/* Added to provide support for SAF Inservice upgrade facilty */
+	uint16_t dummy_version1;	/* Not in use */
+	uint16_t dummy_version2;	/* Not in use */
+	uint16_t dummy_version3;	/* Not in use */
 } CPND_SHM_VERSION;
 
 typedef struct client_hdr {

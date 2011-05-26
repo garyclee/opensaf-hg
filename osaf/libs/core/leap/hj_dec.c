@@ -255,7 +255,7 @@ uns64 ncs_decode_64bit(uint8_t **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns16 ncs_decode_16bit(uint8_t **stream)
+uint16_t ncs_decode_16bit(uint8_t **stream)
 {
 
 	uns32 val = 0;		/* Accumulator */
@@ -263,7 +263,7 @@ uns16 ncs_decode_16bit(uint8_t **stream)
 	val = (uns32)*(*stream)++ << 8;
 	val |= (uns32)*(*stream)++;
 
-	return (uns16)(val & 0x0000FFFF);
+	return (uint16_t)(val & 0x0000FFFF);
 
 }
 

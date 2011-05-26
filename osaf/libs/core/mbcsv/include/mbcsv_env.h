@@ -170,7 +170,7 @@ typedef uns32 (*MBCSV_PROCESS_REQ_FUNC_PTR) (struct ncs_mbcsv_arg *);
 
 typedef struct mbcsv_s_desc {
 	struct mbcsv_s_desc *next;	/* Downstream ptr within chain */
-	uns16 msg_id;
+	uint16_t msg_id;
 	NCS_MBCSV_SUB_CB cb_func;
 	NCSCONTEXT usr_ctxt;
 	NCS_MBCSV_DIR dir;
@@ -203,7 +203,7 @@ typedef struct peer_inst {
 	MBCSV_ANCHOR peer_anchor;
 	MDS_DEST peer_adest;
 	SaAmfHAStateT peer_role;
-	uns16 version;		/* peer version info as per SAF */
+	uint16_t version;		/* peer version info as per SAF */
 
 	/* We need to store data request context and pass it
 	   back to user in data resp encode */
@@ -289,7 +289,7 @@ typedef struct mbcsv_reg {
 	NCS_PATRICIA_NODE pat_node;	/* Downstream ptr within chain */
 	SS_SVC_ID svc_id;	/* Service ID of the service registered with MBCSv */
 	NCS_LOCK svc_lock;	/* MBCSv service lock */
-	uns16 version;		/* client version info as per SAF */
+	uint16_t version;		/* client version info as per SAF */
 	SYSF_MBX mbx;
 	NCS_MBCSV_CB mbcsv_cb_func;
 	uns32 mbcsv_hdl;	/* Handle to this data structure; to be passed back to 
@@ -481,7 +481,7 @@ uns32 mbcsv_send_data_req(NCS_UBAID *uba, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_i
 uns32 mbcsv_send_client_msg(PEER_INST *peer, uint8_t evt, uns32 action);
 uns32 ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t *event, NCS_UBAID *uba);
 uns32 mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t event);
-uns32 mbcsv_subscribe_oneshot(NCS_MBCSV_FLTR *fltr, uns16 time_10ms);
+uns32 mbcsv_subscribe_oneshot(NCS_MBCSV_FLTR *fltr, uint16_t time_10ms);
 uns32 mbcsv_subscribe_persist(NCS_MBCSV_FLTR *fltr);
 uns32 mbcsv_subscribe_cancel(uns32 sub_hdl);
 

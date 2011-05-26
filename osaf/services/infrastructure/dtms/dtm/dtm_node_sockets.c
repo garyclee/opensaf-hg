@@ -1048,7 +1048,7 @@ uns32 dtm_dgram_bcast_sender(DTM_INTERNODE_CB * dtms_cb)
  * @return NCSCC_RC_FAILURE
  *
  */
-int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uint8_t *data, uns16 len)
+int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uint8_t *data, uint16_t len)
 {
 
 	in_port_t foreign_port;

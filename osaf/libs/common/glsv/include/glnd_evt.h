@@ -83,7 +83,7 @@ typedef struct glsv_evt_client_info_tag {
 	uns32 client_proc_id;
 	MDS_DEST agent_mds_dest;
 	SaVersionT version;
-	uns16 cbk_reg_info;	/* bit-wise data */
+	uint16_t cbk_reg_info;	/* bit-wise data */
 } GLSV_EVT_CLIENT_INFO;
 
 typedef struct glsv_evt_finalize_info_tag {
@@ -115,7 +115,7 @@ typedef struct glsv_evt_restart_client_info {
 	uns32 app_proc_id;
 	MDS_DEST agent_mds_dest;
 	SaVersionT version;
-	uns16 cbk_reg_info;	/* bit-wise data */
+	uint16_t cbk_reg_info;	/* bit-wise data */
 	uns32 no_of_res;
 	SaLckResourceIdT resource_id;
 } GLSV_EVT_RESTART_CLIENT_INFO;

@@ -509,7 +509,7 @@ static NCS_BOOL is_active_channel(EDS_WORKLIST *wp, uns32 chan_name_len, uint8_t
  * Every channel entry has a entry in the channel name tree. 
  *
  ***************************************************************************/
-static uns32 eds_add_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp, uint8_t *chan_name, uns16 chan_name_len)
+static uns32 eds_add_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp, uint8_t *chan_name, uint16_t chan_name_len)
 {
 	EDS_CNAME_REC *cn;
 
@@ -1251,7 +1251,7 @@ uns32 eds_copen_patricia_init(EDS_WORKLIST *wp)
  ***************************************************************************/
 uns32
 eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
-		 uns16 chan_name_len, uint8_t *chan_name, MDS_DEST dest,
+		 uint16_t chan_name_len, uint8_t *chan_name, MDS_DEST dest,
 		 uns32 *chan_id, uns32 *chan_open_id, SaTimeT chan_create_time)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;

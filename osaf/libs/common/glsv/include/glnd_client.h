@@ -36,7 +36,7 @@ typedef struct glnd_client_info_tag {
 	MDS_DEST agent_mds_dest;	/* mds dest of the agent */
 	uns32 app_proc_id;
 	SaVersionT version;
-	uns16 cbk_reg_info;	/* bit-wise data */
+	uint16_t cbk_reg_info;	/* bit-wise data */
 	GLND_CLIENT_LIST_RESOURCE *res_list;	/* this list will be used for the deadlock algo */
 } GLND_CLIENT_INFO;
 

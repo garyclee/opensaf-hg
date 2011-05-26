@@ -313,7 +313,7 @@ uns32 immd_get_slot_and_subslot_id_from_node_id(NCS_NODE_ID node_id)
 
 void immd_db_save_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
 {
-	uns16 nrof_msgs = 1;
+	uint16_t nrof_msgs = 1;
 	IMMD_SAVED_FEVS_MSG *prior = NULL;
 	IMMD_SAVED_FEVS_MSG *new_msg = calloc(1, sizeof(IMMD_SAVED_FEVS_MSG));
 	TRACE_ENTER();
@@ -354,9 +354,9 @@ void immd_db_save_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
 	TRACE_LEAVE();
 }
 
-IMMSV_FEVS *immd_db_get_fevs(IMMD_CB *cb, const uns16 back_count)
+IMMSV_FEVS *immd_db_get_fevs(IMMD_CB *cb, const uint16_t back_count)
 {
-	uns16 ix = 0;
+	uint16_t ix = 0;
 	IMMD_SAVED_FEVS_MSG *old_msgs[back_count];
 	for (; ix < back_count; ++ix) {
 		old_msgs[ix] = NULL;

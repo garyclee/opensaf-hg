@@ -43,11 +43,11 @@
 
 The following set does buffer chaining management
   ncs_encode_n_octets....Encode "n" octets in the control frame
-  ncs_encode_uns16   ....Encode short
+  ncs_encode_uint16_t   ....Encode short
   ncs_encode_uns32   ....Encode long
   ncs_encode_uns64   ....Encode long long
   ncs_prepend_n_octets...Encode "n" octets encapsulating given frame
-  ncs_prepend_uns16   ...Encode 16 bit unsigned encapsulating given frame
+  ncs_prepend_uint16_t   ...Encode 16 bit unsigned encapsulating given frame
   ncs_prepend_uns32   ...Encode 32 bit unsigned encapsulating given frame
   ncs_prepend_uns64   ...Encode 64 bit unsigned encapsulating given frame
 
@@ -118,7 +118,7 @@ USRBUF *ncs_encode_uns8(USRBUF *u, uint8_t val8)
 	return u;
 }
 
-USRBUF *ncs_encode_uns16(USRBUF *u, uns16 val16)
+USRBUF *ncs_encode_uns16(USRBUF *u, uint16_t val16)
 {
 	uint8_t *p16;
 
@@ -179,11 +179,11 @@ USRBUF *ncs_prepend_n_octets(USRBUF *pbuf, uint8_t *os, unsigned int length)
 	return (pbuf);
 }
 
-USRBUF *ncs_prepend_uns16(USRBUF *pbuf, uns16 val16)
+USRBUF *ncs_prepend_uns16(USRBUF *pbuf, uint16_t val16)
 {
 	uint8_t *p16;
 
-	p16 = m_MMGR_RESERVE_AT_START(&pbuf, (uns32)sizeof(uns16), uint8_t *);
+	p16 = m_MMGR_RESERVE_AT_START(&pbuf, (uns32)sizeof(uint16_t), uint8_t *);
 	if (p16 == NULL) {
 		m_LEAP_DBG_SINK((long)BNULL);
 		return BNULL;

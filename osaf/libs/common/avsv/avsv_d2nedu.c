@@ -55,7 +55,7 @@ uns32 avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVSV_DND_MSG *struct_ptr = NULL, **d_ptr = NULL;
-	uns16 base_ver = 0;
+	uint16_t base_ver = 0;
 	base_ver = AVSV_AVD_AVND_MSG_FMT_VER_3;
 
 	EDU_INST_SET avsv_dnd_msg_rules[] = {
@@ -123,7 +123,7 @@ uns32 avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_su_si_assign.si_name, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAAMFHASTATET, 0, 0, 0,
 		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_su_si_assign.ha_state, 0, NULL},
-		{EDU_VER_GE, NULL,   0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(base_ver)))},
+		{EDU_VER_GE, NULL,   0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(base_ver)))},
 		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0,
 		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_su_si_assign.single_csi, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT,
@@ -220,7 +220,7 @@ uns32 avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_su_si_assign.si_name, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAAMFHASTATET, 0, 0, 0,
 		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_su_si_assign.ha_state, 0, NULL},
-		{EDU_VER_GE, NULL,   0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(base_ver)))},
+		{EDU_VER_GE, NULL,   0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(base_ver)))},
 		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0,
 		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_su_si_assign.single_csi, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
@@ -568,7 +568,7 @@ uns32 avsv_edp_su_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVSV_SU_INFO_MSG *struct_ptr = NULL, **d_ptr = NULL;
-	uns16 ver_compare = 0;
+	uint16_t ver_compare = 0;
 
 	ver_compare = AVSV_AVD_AVND_MSG_FMT_VER_2;
 
@@ -591,7 +591,7 @@ uns32 avsv_edp_su_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0,
 		 (long)&((AVSV_SU_INFO_MSG *)0)->is_ncs, 0, NULL},
 
-		{EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(ver_compare)))},
+		{EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(ver_compare)))},
 
 		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0,
 		 (long)&((AVSV_SU_INFO_MSG *)0)->su_is_external, 0, NULL},

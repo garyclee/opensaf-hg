@@ -758,7 +758,7 @@ uns32 immd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	IMMD_CB *cb = immd_cb;
-	uns16 msg_fmt_version;
+	uint16_t msg_fmt_version;
 	TRACE_ENTER();
 
 	msg_fmt_version = m_NCS_MBCSV_FMT_GET(arg->info.encode.i_peer_version,
@@ -1104,7 +1104,7 @@ static uns32 mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 static uns32 immd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 {
 	IMMD_CB *cb = immd_cb;
-	uns16 msg_fmt_version;
+	uint16_t msg_fmt_version;
 	TRACE_ENTER();
 
 	msg_fmt_version = m_NCS_MBCSV_FMT_GET(arg->info.decode.i_peer_version,

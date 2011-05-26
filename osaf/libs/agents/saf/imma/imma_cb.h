@@ -110,7 +110,7 @@ typedef struct imma_cb {
 	/* Information about IMMND */
 	MDS_DEST immnd_mds_dest;
 	NCS_BOOL is_immnd_up;
-	uns16    dispatch_clients_to_resurrect;  /* Nrof clients pending
+	uint16_t    dispatch_clients_to_resurrect;  /* Nrof clients pending
 						    active resurrect.  */
 
 	/* IMMA data */	/* Used for both OM and OI */

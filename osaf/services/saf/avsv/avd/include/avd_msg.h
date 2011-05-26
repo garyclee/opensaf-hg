@@ -78,7 +78,7 @@ struct avd_csi_tag;
 
 uns32 avd_d2n_msg_dequeue(struct cl_cb_tag *cb);
 uns32 avd_d2n_msg_snd(struct cl_cb_tag *cb, struct avd_avnd_tag *nd_node, AVD_DND_MSG *snd_msg);
-uns32 avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16 msg_fmt_ver);
+uns32 avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt_ver);
 uns32 avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info);
 uns32 avd_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info);
 uns32 avd_mds_enc_flat(MDS_CALLBACK_ENC_FLAT_INFO *enc_info);

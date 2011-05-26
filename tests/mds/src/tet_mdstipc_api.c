@@ -8962,8 +8962,8 @@ void tet_VDS(int choice)
         {
           printf("saAmfInitialize Successful\n");
           /*error report*/
-          compName.length=(uns16)strlen(name);
-          memcpy(compName.value,name,(uns16)strlen(name));
+          compName.length=(uint16_t)strlen(name);
+          memcpy(compName.value,name,(uint16_t)strlen(name));
           if(SA_AIS_OK==saAmfComponentErrorReport(amfHandle,&compName,0,
                                                   SA_AMF_COMPONENT_FAILOVER,0))
             printf("saAmfComponentErrorReport Successful\n");
