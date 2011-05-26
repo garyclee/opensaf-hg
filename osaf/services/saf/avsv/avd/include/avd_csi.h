@@ -57,13 +57,13 @@ typedef struct avd_csi_tag {
         SaBoolT dep_csi_added; /* Used when the saAmfCSIDependencies is getting added in the si rank list*/
         /* Rank is calculated based on CSI dependency. If no dependency configured then rank will be 1. 
            Else rank will one more than rank of saAmfCSIDependencies. */
-	uns32 rank;		/* The rank of the CSI in the SI 
+	uint32_t rank;		/* The rank of the CSI in the SI 
 				 * Checkpointing - Sent as a one time update.
 				 */
 
 	AVD_SI *si;		/* SI encompassing this csi */
 
-	uns32 num_attributes;	/* The number of attributes in the list. */
+	uint32_t num_attributes;	/* The number of attributes in the list. */
 	AVD_CSI_ATTR *list_attributes;	/* list of all the attributes of this CSI. */
 
 	NCS_DB_LINK_LIST pg_node_list;	/* list of nodes on which pg is 
@@ -72,7 +72,7 @@ typedef struct avd_csi_tag {
 							 * instances in the Service instance  */
 	struct avd_comp_csi_rel_tag *list_compcsi;	/* The list of compcsi relationship
 							 * wrt to this CSI. */
-	uns32 compcsi_cnt;	/* no of comp-csi rels */
+	uint32_t compcsi_cnt;	/* no of comp-csi rels */
 	struct avd_csi_tag *csi_list_cs_type_next;
 	struct avd_cstype *cstype;
 	NCS_BOOL assign_flag;   /* Flag used while assigning. to mark this csi has been assigned a Comp 
@@ -135,7 +135,7 @@ extern AVD_COMP_CSI_REL *avd_compcsi_create(struct avd_su_si_rel_tag *susi, AVD_
  * 
  * @return uns32
  */
-extern uns32 avd_compcsi_delete(AVD_CL_CB *cb, struct avd_su_si_rel_tag *susi, NCS_BOOL ckpt);
+extern uint32_t avd_compcsi_delete(AVD_CL_CB *cb, struct avd_su_si_rel_tag *susi, NCS_BOOL ckpt);
 
 extern SaAisErrorT avd_cstype_config_get(void);
 extern SaAisErrorT avd_csi_config_get(const SaNameT *si_name, AVD_SI *si);
@@ -151,7 +151,7 @@ extern void avd_cstype_constructor(void);
 
 extern SaAisErrorT avd_csiattr_config_get(const SaNameT *csi_name, AVD_CSI *csi);
 extern void avd_csiattr_constructor(void);
-extern uns32 avd_compcsi_from_csi_and_susi_delete(struct avd_su_si_rel_tag *susi, struct avd_comp_csi_rel_tag *comp_csi, NCS_BOOL ckpt);
+extern uint32_t avd_compcsi_from_csi_and_susi_delete(struct avd_su_si_rel_tag *susi, struct avd_comp_csi_rel_tag *comp_csi, NCS_BOOL ckpt);
 extern void avd_csi_delete(struct avd_csi_tag *csi);
 extern void csi_cmplt_delete(struct avd_csi_tag *csi, SaBoolT ckpt);
 

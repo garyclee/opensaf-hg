@@ -297,21 +297,21 @@ typedef enum dts_log_ids {
 
 #if (DTS_LOG == 1)
 
-uns32 dts_reg_strings(void);
-uns32 dts_dereg_strings(void);
-uns32 dts_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
-uns32 dts_log_bind(void);
-uns32 dts_log_unbind(void);
+uint32_t dts_reg_strings(void);
+uint32_t dts_dereg_strings(void);
+uint32_t dts_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+uint32_t dts_log_bind(void);
+uint32_t dts_log_unbind(void);
 
 void log_dts_headline(uint8_t hdln_id);
 void log_dts_svc_prvdr(uint8_t sp_id);
 void log_dts_lock(uint8_t lck_id, void *lck);
 void log_dts_memfail(uint8_t mf_id);
 void log_dts_api(uint8_t api_id);
-void log_dts_evt(uint8_t evt_id, SS_SVC_ID svc_id, uns32 node, uns32 adest);
-void log_dts_cbop(uint8_t op_id, SS_SVC_ID svc_id, uns32 node);
+void log_dts_evt(uint8_t evt_id, SS_SVC_ID svc_id, uint32_t node, uint32_t adest);
+void log_dts_cbop(uint8_t op_id, SS_SVC_ID svc_id, uint32_t node);
 void log_dts_dbg(uint8_t id, char *str, NODE_ID node, SS_SVC_ID svc);
-void log_dts_dbg_name(uint8_t id, char *str, uns32 svc_id, char *svc);
+void log_dts_dbg_name(uint8_t id, char *str, uint32_t svc_id, char *svc);
 void log_dts_chkp_evt(uint8_t id);
 
 #define dts_log(severity, format, args...) _dts_log((severity), __FUNCTION__, (format), ##args)
@@ -338,7 +338,7 @@ void _dts_log(uint8_t severity, const char *function, const char *format, ...);
 #define m_LOG_DTS_SVCREG_ADD_FAIL(id, sid, node, ad) ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_EVT, DTS_FC_EVT, NCSFL_LC_EVENT, NCSFL_SEV_ERROR, "TILLL", id, sid, node, ad);
 #else
 
-uns32 dts_reg_strings(char *fname);
+uint32_t dts_reg_strings(char *fname);
 
 #define m_LOG_DTS_HEADLINE(id)
 #define m_LOG_DTS_SVC_PRVDR(id)

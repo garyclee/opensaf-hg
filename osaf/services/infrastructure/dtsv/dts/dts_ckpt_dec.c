@@ -38,17 +38,17 @@
 #include "dts.h"
 
 /* Declaration of async update functions */
-static uns32 dtsv_decode_ckpt_null(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 dtsv_decode_ckpt_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 dtsv_decode_ckpt_log_file_ckpt_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dtsv_decode_ckpt_null(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dtsv_decode_ckpt_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dtsv_decode_ckpt_log_file_ckpt_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
 /* Declaration of static cold sync decode functions */
-static uns32 dtsv_decode_cold_sync_null(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 dtsv_decode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 dtsv_decode_cold_sync_rsp_dts_async_updt_cnt(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
+static uint32_t dtsv_decode_cold_sync_null(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dtsv_decode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dtsv_decode_cold_sync_rsp_dts_async_updt_cnt(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
 
 /*
  * Function list for decoding the async data.
@@ -92,7 +92,7 @@ const DTSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR dtsv_dec_cold_sync_rsp_data_func_l
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_decode_ckpt_null(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dtsv_decode_ckpt_null(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	return m_DTS_DBG_SINK(NCSCC_RC_SUCCESS, "dtsv_encode_ckpt_null: Received decode for reo_type of 0. Do nothing");
 }
@@ -108,7 +108,7 @@ static uns32 dtsv_decode_ckpt_null(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_decode_cold_sync_null(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t dtsv_decode_cold_sync_null(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	return m_DTS_DBG_SINK(NCSCC_RC_SUCCESS, "dtsv_encode_ckpt_null: Received decode for reo_type of 0. Do nothing");
 }
@@ -127,9 +127,9 @@ static uns32 dtsv_decode_cold_sync_null(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	DTS_SVC_REG_TBL *svc_reg_ptr;
 	DTS_SVC_REG_TBL dec_svc_reg;
@@ -189,7 +189,7 @@ static uns32 dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DE
 	}
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_ASYNC_UPDT, DTS_FC_UPDT, NCSFL_LC_EVENT, NCSFL_SEV_NOTICE, "TILLLL",
 		   DTS_ASYNC_SVC_REG, dec->i_action, svc_reg_ptr->my_key.node, svc_reg_ptr->my_key.ss_svc_id,
-		   (uns32)cb->svc_rmv_mds_dest);
+		   (uint32_t)cb->svc_rmv_mds_dest);
 	status = dtsv_ckpt_add_rmv_updt_svc_reg(cb, svc_reg_ptr, dec->i_action);
 
 	memset(&cb->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST));
@@ -216,9 +216,9 @@ static uns32 dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DE
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	DTA_DEST_LIST *dta_dest_ptr;
 	DTA_DEST_LIST dec_dta_dest;
 	EDU_ERR ederror = 0;
@@ -228,7 +228,7 @@ static uns32 dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC 
 
 	dta_dest_ptr = &dec_dta_dest;
 
-	dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&svc_key.ss_svc_id, sizeof(uns32));
+	dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&svc_key.ss_svc_id, sizeof(uint32_t));
 	if (dec_svc == NULL) {
 		m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
 		memset(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
@@ -236,7 +236,7 @@ static uns32 dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC 
 				      "dtsv_decode_ckpt_dta_dest_list_config: Decode flatten space failed");
 	}
 	svc_key.ss_svc_id = ncs_decode_32bit(&dec_svc);
-	ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
+	ncs_dec_skip_space(&dec->i_uba, sizeof(uint32_t));
 
 	/* Versioning support: Now decode the SPEC_CKPT struct */
 	if (ncs_decode_n_octets_from_uba(&dec->i_uba, (uint8_t *)cb->last_spec_loaded.svc_name, DTSV_SVC_NAME_MAX) !=
@@ -290,7 +290,7 @@ static uns32 dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC 
 
 	svc_key.node = m_NCS_NODE_ID_FROM_MDS_DEST(dta_dest_ptr->dta_addr);
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_ASYNC_UPDT, DTS_FC_UPDT, NCSFL_LC_EVENT, NCSFL_SEV_NOTICE, "TILLLL",
-		   DTS_ASYNC_DTA_DEST, dec->i_action, svc_key.node, svc_key.ss_svc_id, (uns32)dta_dest_ptr->dta_addr);
+		   DTS_ASYNC_DTA_DEST, dec->i_action, svc_key.node, svc_key.ss_svc_id, (uint32_t)dta_dest_ptr->dta_addr);
 	status = dtsv_ckpt_add_rmv_updt_dta_dest(cb, dta_dest_ptr, dec->i_action, svc_key);
 
 	/* If update is successful, update async update count */
@@ -319,9 +319,9 @@ static uns32 dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC 
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_decode_ckpt_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dtsv_decode_ckpt_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	GLOBAL_POLICY *gp_ptr;
 	GLOBAL_POLICY dec_gp;
 	EDU_ERR ederror = 0;
@@ -397,9 +397,9 @@ static uns32 dtsv_decode_ckpt_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_DEC 
  * NOTES:
  * 
 \**************************************************************************/
-static uns32 dtsv_decode_ckpt_log_file_ckpt_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dtsv_decode_ckpt_log_file_ckpt_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	DTS_LOG_CKPT_DATA *data_ptr;
 	DTS_LOG_CKPT_DATA dec_data;
 	EDU_ERR ederror = 0;
@@ -446,10 +446,10 @@ static uns32 dtsv_decode_ckpt_log_file_ckpt_config(DTS_CB *cb, NCS_MBCSV_CB_DEC 
  *
  * 
 \**************************************************************************/
-uns32 dtsv_decode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
+uint32_t dtsv_decode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 num_of_obj;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t num_of_obj;
 	uint8_t *ptr = NULL;
 
 	m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_START);
@@ -457,13 +457,13 @@ uns32 dtsv_decode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Since at decode we need to find out how many objects of particular data
 	 * type are sent, decode that information at the begining of the message.
 	 */
-	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_obj, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_obj, sizeof(uint32_t));
 	if (ptr == NULL) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_cold_sync_rsp: Decode flatten space failed");
 	}
 
 	num_of_obj = ncs_decode_32bit(&ptr);
-	ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
+	ncs_dec_skip_space(&dec->i_uba, sizeof(uint32_t));
 
 	/* 
 	 * Decode data received in the message.
@@ -488,14 +488,14 @@ uns32 dtsv_decode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_decode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t dtsv_decode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	DTS_SVC_REG_TBL *svc_reg_ptr;
 	DTS_SVC_REG_TBL dec_svc_reg;
 	DTS_FILE_LIST *file_list;
-	uns32 count;
+	uint32_t count;
 	OP_DEVICE *dev = NULL;
 
 	m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_SVC_REG);
@@ -561,10 +561,10 @@ static uns32 dtsv_decode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MB
  *        with dta_count = 0 i.e. no corresponding DTA entry.
  * 
 \**************************************************************************/
-static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 count = 0, svc_count = 0, i;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t count = 0, svc_count = 0, i;
 	uint16_t spec_present = 0;
 	EDU_ERR ederror = 0;
 	DTA_DEST_LIST *dta_dest_ptr;
@@ -594,24 +594,24 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 		}
 
 		/* Now decode the num of svcs and svc_ids associated with DTA */
-		dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&svc_count, sizeof(uns32));
+		dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&svc_count, sizeof(uint32_t));
 		if (dec_svc == NULL) {
 			m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					      "dtsv_decode_cold_sync_rsp_dta_dest_list_config: Decode flatten space failed");
 		}
 		svc_count = ncs_decode_32bit(&dec_svc);
-		ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
+		ncs_dec_skip_space(&dec->i_uba, sizeof(uint32_t));
 
 		for (i = 0; i < svc_count; i++) {
-			dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&svc_key.ss_svc_id, sizeof(uns32));
+			dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&svc_key.ss_svc_id, sizeof(uint32_t));
 			if (dec_svc == NULL) {
 				m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						      "dtsv_decode_cold_sync_rsp_dta_dest_list_config: Decode flatten space failed");
 			}
 			svc_key.ss_svc_id = ncs_decode_32bit(&dec_svc);
-			ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
+			ncs_dec_skip_space(&dec->i_uba, sizeof(uint32_t));
 			svc_key.node = m_NCS_NODE_ID_FROM_MDS_DEST(dta_dest_ptr->dta_addr);
 
 			/* Check whether any spec_entry was sent by the sender */
@@ -695,16 +695,16 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 count = 0;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t count = 0;
 	EDU_ERR ederror = 0;
 	GLOBAL_POLICY *gp_ptr;
 	GLOBAL_POLICY dec_gp;
 	DTS_FILE_LIST *file_list;
 	uint8_t tmp, *dec_path = NULL;	/*Added to decode log directory path */
-	uns32 len, i;
+	uint32_t len, i;
 	char str[200] = "", *c = NULL;
 	OP_DEVICE *dev = NULL;
 
@@ -713,7 +713,7 @@ static uns32 dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCS
 
 	m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_GLOBAL_POLICY);
 	/* Start decoding the log directory path */
-	dec_path = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&len, sizeof(uns32));
+	dec_path = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&len, sizeof(uint32_t));
 	if (dec_path == NULL) {
 		m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -722,7 +722,7 @@ static uns32 dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCS
 
 	/* Decode the length of the string */
 	len = ncs_decode_32bit(&dec_path);
-	ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
+	ncs_dec_skip_space(&dec->i_uba, sizeof(uint32_t));
 
 	for (i = 0; i < len; i++) {
 		dec_path = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&tmp, sizeof(uint8_t));
@@ -799,9 +799,9 @@ static uns32 dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCS
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_decode_cold_sync_rsp_dts_async_updt_cnt(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t dtsv_decode_cold_sync_rsp_dts_async_updt_cnt(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	DTSV_ASYNC_UPDT_CNT *updt_cnt;
 	EDU_ERR ederror = 0;
 
@@ -836,9 +836,9 @@ static uns32 dtsv_decode_cold_sync_rsp_dts_async_updt_cnt(DTS_CB *cb, NCS_MBCSV_
  *
  * 
 \**************************************************************************/
-uns32 dtsv_decode_warm_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
+uint32_t dtsv_decode_warm_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	DTSV_ASYNC_UPDT_CNT *updt_cnt;
 	DTSV_ASYNC_UPDT_CNT dec_updt_cnt;
 	EDU_ERR ederror = 0;
@@ -904,10 +904,10 @@ uns32 dtsv_decode_warm_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-uns32 dtsv_decode_data_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
+uint32_t dtsv_decode_data_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 num_of_obj;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t num_of_obj;
 	uint8_t *ptr = NULL;
 
 	m_LOG_DTS_CHKOP(DTS_DEC_DATA_RESP);
@@ -915,12 +915,12 @@ uns32 dtsv_decode_data_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Since at decode we need to find out how many objects of particular data
 	 * type are sent, decode that information at the begining of the message.
 	 */
-	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_obj, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_obj, sizeof(uint32_t));
 	if (ptr == NULL) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_data_sync_rsp: Decode flatten space failed");
 	}
 	num_of_obj = ncs_decode_32bit(&ptr);
-	ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
+	ncs_dec_skip_space(&dec->i_uba, sizeof(uint32_t));
 
 	/*
 	 * Decode data received in the message.
@@ -944,9 +944,9 @@ uns32 dtsv_decode_data_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-uns32 dtsv_decode_data_req(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
+uint32_t dtsv_decode_data_req(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	/* 
 	 * Do nothing here. Any data req will be treated as initiation for 

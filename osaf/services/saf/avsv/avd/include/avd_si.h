@@ -58,7 +58,7 @@ typedef enum {
 
 typedef struct avd_sirankedsu {
 	SaNameT suname;
-	uns32 saAmfRank;
+	uint32_t saAmfRank;
 	struct avd_sirankedsu *next;
 } avd_sirankedsu_t;
 
@@ -74,23 +74,23 @@ typedef struct avd_si_tag {
    /******************** B.04 model *************************************************/
 	SaNameT saAmfSvcType;
 	SaNameT saAmfSIProtectedbySG;
-	uns32 saAmfSIRank;
+	uint32_t saAmfSIRank;
 	char **saAmfSIActiveWeight;
 	char **saAmfSIStandbyWeight;
-	uns32 saAmfSIPrefActiveAssignments;  /* only applicable for the N-way active redundancy model */
-	uns32 saAmfSIPrefStandbyAssignments; /* only applicable for the N-way active redundancy model */
+	uint32_t saAmfSIPrefActiveAssignments;  /* only applicable for the N-way active redundancy model */
+	uint32_t saAmfSIPrefStandbyAssignments; /* only applicable for the N-way active redundancy model */
 	SaAmfAdminStateT saAmfSIAdminState;
 	SaAmfAssignmentStateT saAmfSIAssignmentState;
-	uns32 saAmfSINumCurrActiveAssignments;
-	uns32 saAmfSINumCurrStandbyAssignments;
+	uint32_t saAmfSINumCurrActiveAssignments;
+	uint32_t saAmfSINumCurrStandbyAssignments;
    /******************** B.04 model *************************************************/
 
-	uns32 max_num_csi;	/* The number of CSIs that will
+	uint32_t max_num_csi;	/* The number of CSIs that will
 				 * be part of this SI.
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns32 num_csi;		/* The number of CSIs this SI
+	uint32_t num_csi;		/* The number of CSIs this SI
 				 * currently has.
 				 * Checkpointing - Calculated at the Standby.
 				 */
@@ -106,8 +106,8 @@ typedef struct avd_si_tag {
 	struct avd_su_si_rel_tag *list_of_sisu;	/* the list of su si relationship elements */
 	AVD_SI_DEP_STATE si_dep_state;	/* SI-SI dep state of this SI */
 	struct avd_spons_si_tag *spons_si_list;
-	uns32 num_dependents; /* number of dependent SIs */
-	uns32 tol_timer_count;
+	uint32_t num_dependents; /* number of dependent SIs */
+	uint32_t tol_timer_count;
 	struct avd_amf_svc_type_tag *svc_type;
 	struct avd_si_tag *si_list_svc_type_next;
 	struct avd_app_tag *app;
@@ -116,7 +116,7 @@ typedef struct avd_si_tag {
 	avd_sirankedsu_t *rankedsu_list_head;
 	SaInvocationT invocation;
 	
-	uns32 alarm_sent; /* SI unassigned alarm has been sent */
+	uint32_t alarm_sent; /* SI unassigned alarm has been sent */
 } AVD_SI;
 
 typedef struct avd_amf_svc_type_tag {
@@ -180,8 +180,8 @@ extern void avd_si_inc_curr_stdby_dec_act_ass(AVD_SI *si);
 extern void avd_si_inc_curr_act_dec_std_ass(AVD_SI *si);
 extern void avd_si_admin_state_set(AVD_SI* si, SaAmfAdminStateT state);
 extern void avd_si_assignments_delete(AVD_CL_CB *cb, AVD_SI *si);
-extern void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uns32 saAmfRank);
+extern void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uint32_t saAmfRank);
 extern void avd_si_remove_rankedsu(AVD_SI *si, const SaNameT *suname);
-extern avd_sirankedsu_t *avd_si_getnext_rankedsu(const AVD_SI *si, uns32 saAmfRank);
+extern avd_sirankedsu_t *avd_si_getnext_rankedsu(const AVD_SI *si, uint32_t saAmfRank);
 
 #endif

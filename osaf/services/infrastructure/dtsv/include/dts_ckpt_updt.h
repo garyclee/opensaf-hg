@@ -34,16 +34,16 @@
 #define DTS_CKPT_UPDT_H
 
 /* Function Definations of avd_ckpt_updt.c */
-uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb,
+uint32_t dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb,
 					       DTA_DEST_LIST *dtadest, NCS_MBCSV_ACT_TYPE action, SVC_KEY key);
-uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb,
+uint32_t dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb,
 					      DTS_SVC_REG_TBL *svcreg,
 					      NCS_MBCSV_ACT_TYPE action);
-uns32 dtsv_ckpt_add_rmv_updt_global_policy(DTS_CB *cb,
+uint32_t dtsv_ckpt_add_rmv_updt_global_policy(DTS_CB *cb,
 						    GLOBAL_POLICY *gp, DTS_FILE_LIST *file_list,
 						    NCS_MBCSV_ACT_TYPE action);
-uns32 dtsv_ckpt_add_rmv_updt_dts_log(DTS_CB *cb, DTS_LOG_CKPT_DATA *data, NCS_MBCSV_ACT_TYPE action);
-uns32 dts_data_clean_up(DTS_CB *cb);
+uint32_t dtsv_ckpt_add_rmv_updt_dts_log(DTS_CB *cb, DTS_LOG_CKPT_DATA *data, NCS_MBCSV_ACT_TYPE action);
+uint32_t dts_data_clean_up(DTS_CB *cb);
 
 /* Macro to set dts_svc_reg_tbl attributes */
 #define m_DTS_SET_SVC_REG_TBL(svc, param) \

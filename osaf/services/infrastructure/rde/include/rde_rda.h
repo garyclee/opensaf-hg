@@ -96,10 +96,10 @@ typedef struct {
 \***************************************************************/
 
 const char *rde_rda_sock_name(RDE_RDA_CB *rde_rda_cb);
-uns32 rde_rda_open(const char *sockname, RDE_RDA_CB *rde_rda_cb);
-uns32 rde_rda_close(RDE_RDA_CB *rde_rda_cb);
-uns32 rde_rda_process_msg(RDE_RDA_CB *rde_rda_cb);
-uns32 rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index, int *disconnect);
-uns32 rde_rda_send_role(int role);
+uint32_t rde_rda_open(const char *sockname, RDE_RDA_CB *rde_rda_cb);
+uint32_t rde_rda_close(RDE_RDA_CB *rde_rda_cb);
+uint32_t rde_rda_process_msg(RDE_RDA_CB *rde_rda_cb);
+uint32_t rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index, int *disconnect);
+uint32_t rde_rda_send_role(int role);
 
 #endif   /* RDE_RDA_H */

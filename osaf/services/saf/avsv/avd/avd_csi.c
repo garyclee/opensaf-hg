@@ -982,7 +982,7 @@ static void avd_delete_csiassignment_from_imm(const SaNameT *comp_dn, const SaNa
  * 
  **************************************************************************/
 
-uns32 avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
+uint32_t avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 {
 	AVD_COMP_CSI_REL *lcomp_csi;
 	AVD_COMP_CSI_REL *i_compcsi, *prev_compcsi = NULL;
@@ -1045,7 +1045,7 @@ uns32 avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
  *
  * 
  **************************************************************************/
-uns32 avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_REL *comp_csi, NCS_BOOL ckpt)
+uint32_t avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_REL *comp_csi, NCS_BOOL ckpt)
 {
 	AVD_COMP_CSI_REL *t_compcsi, *t_compcsi_susi, *prev_compcsi = NULL;
 

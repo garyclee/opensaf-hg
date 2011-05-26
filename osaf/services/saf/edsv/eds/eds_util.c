@@ -37,7 +37,7 @@
  ***************************************************************************/
 NCS_BOOL eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterArrayT *filterArray)
 {
-	uns32 x;
+	uint32_t x;
 	uint8_t *p = NULL;
 	SaEvtEventFilterT *filter;
 	SaEvtEventPatternT *pattern;
@@ -127,17 +127,17 @@ NCS_BOOL eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilt
  * of the structures, then adding in the size of each individual pattern.
  *
  ***************************************************************************/
-uns32 eds_calc_filter_size(SaEvtEventFilterArrayT *filterArray)
+uint32_t eds_calc_filter_size(SaEvtEventFilterArrayT *filterArray)
 {
-	uns32 size = 0;
-	uns32 x;
+	uint32_t size = 0;
+	uint32_t x;
 	SaEvtEventFilterT *filterp;
 
 	if (filterArray == NULL)
 		return (0);
 
 	/* First compute how much space is needed to hold the structures */
-	size = sizeof(SaEvtEventFilterArrayT) + ((uns32)filterArray->filtersNumber * sizeof(SaEvtEventFilterT));
+	size = sizeof(SaEvtEventFilterArrayT) + ((uint32_t)filterArray->filtersNumber * sizeof(SaEvtEventFilterT));
 
 	/*
 	 * Now add in the individual pattern data sizes.
@@ -146,7 +146,7 @@ uns32 eds_calc_filter_size(SaEvtEventFilterArrayT *filterArray)
 	/* Point to first filter in the array */
 	filterp = filterArray->filters;
 	for (x = 1; x <= filterArray->filtersNumber; x++) {
-		size += (uns32)filterp->filter.patternSize;
+		size += (uint32_t)filterp->filter.patternSize;
 		filterp++;
 	}
 

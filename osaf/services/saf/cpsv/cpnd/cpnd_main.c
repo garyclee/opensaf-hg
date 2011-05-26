@@ -49,7 +49,7 @@ static int __init_cpnd(void)
 int main(int argc, char *argv[])
 {
 	CPND_CB *cpnd_cb = NULL;
-	uns32 cb_hdl = 0;
+	uint32_t cb_hdl = 0;
 	daemonize(argc, argv);
 
 	if (__init_cpnd() != NCSCC_RC_SUCCESS) {

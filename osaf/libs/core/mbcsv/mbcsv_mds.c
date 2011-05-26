@@ -54,7 +54,7 @@ MDS_CLIENT_MSG_FORMAT_VER
  
   Notes         : None.
 ******************************************************************************/
-uns32 mbcsv_mds_reg(uns32 pwe_hdl, uns32 svc_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest)
+uint32_t mbcsv_mds_reg(uint32_t pwe_hdl, uint32_t svc_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest)
 {
 	NCSMDS_INFO svc_to_mds_info;
 	MDS_SVC_ID svc_ids_array[1];
@@ -113,7 +113,7 @@ uns32 mbcsv_mds_reg(uns32 pwe_hdl, uns32 svc_hdl, MBCSV_ANCHOR *anchor, MDS_DEST
  
   Notes         : None.
 ******************************************************************************/
-uns32 mbcsv_query_mds(uns32 pwe_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest)
+uint32_t mbcsv_query_mds(uint32_t pwe_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest)
 {
 	NCSMDS_INFO mds_info;
 
@@ -149,7 +149,7 @@ uns32 mbcsv_query_mds(uns32 pwe_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest)
  
   Notes         : None.
 ******************************************************************************/
-void mbcsv_mds_unreg(uns32 pwe_hdl)
+void mbcsv_mds_unreg(uint32_t pwe_hdl)
 {
 	NCSMDS_INFO svc_to_mds_info;
 
@@ -176,7 +176,7 @@ void mbcsv_mds_unreg(uns32 pwe_hdl)
  
   Notes         : None.
 ******************************************************************************/
-uns32 mbcsv_mds_send_msg(uns32 send_type, MBCSV_EVT *msg, CKPT_INST *ckpt, MBCSV_ANCHOR anchor)
+uint32_t mbcsv_mds_send_msg(uint32_t send_type, MBCSV_EVT *msg, CKPT_INST *ckpt, MBCSV_ANCHOR anchor)
 {
 	NCSMDS_INFO mds_info;
 
@@ -250,9 +250,9 @@ uns32 mbcsv_mds_send_msg(uns32 send_type, MBCSV_EVT *msg, CKPT_INST *ckpt, MBCSV
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mbcsv_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
+uint32_t mbcsv_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
 {
-	uns32 status;
+	uint32_t status;
 
 	switch (cbinfo->i_op) {
 	case MDS_CALLBACK_COPY:
@@ -329,16 +329,16 @@ uns32 mbcsv_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 mbcsv_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo)
+uint32_t mbcsv_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo)
 {
 	MBCSV_EVT *msg = (MBCSV_EVT *)cbinfo->info.receive.i_msg;
 	SYSF_MBX mbx;
-	uns32 send_pri;
+	uint32_t send_pri;
 
 	if (NULL == msg)
 		return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "mbcsv_mds_rcv: NULL message received.");
 
-	msg->rcvr_peer_key.pwe_hdl = (uns32)cbinfo->i_yr_svc_hdl;
+	msg->rcvr_peer_key.pwe_hdl = (uint32_t)cbinfo->i_yr_svc_hdl;
 	msg->rcvr_peer_key.peer_anchor = cbinfo->info.receive.i_fr_anc;
 
 	/* Is used during sync send only but will be copied always. */
@@ -381,7 +381,7 @@ uns32 mbcsv_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl)
+uint32_t mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl)
 {
 	MBCSV_EVT *evt;
 	SYSF_MBX mbx;
@@ -395,7 +395,7 @@ uns32 mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_
 	 * First find out whether MBCSv is registered on this VDEST 
 	 * If no then return success.
 	 */
-	if (NCSCC_RC_SUCCESS != mbcsv_query_mds((uns32)svc_info.svc_pwe_hdl, &anchor, &vdest))
+	if (NCSCC_RC_SUCCESS != mbcsv_query_mds((uint32_t)svc_info.svc_pwe_hdl, &anchor, &vdest))
 		return NCSCC_RC_FAILURE;
 
 	/* If VDEST not equal, then discard message.(message from other VDESTs) */
@@ -409,14 +409,14 @@ uns32 mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_
 	if (svc_info.i_change == NCSMDS_RED_UP) {
 		m_LOG_MBCSV_SVC_PRVDR(svc_info.svc_pwe_hdl, svc_info.i_anc, MBCSV_SP_MDS_RCV_EVT_UP);
 
-		mbcsv_add_new_pwe_anc((uns32)svc_info.svc_pwe_hdl, svc_info.i_anc);
+		mbcsv_add_new_pwe_anc((uint32_t)svc_info.svc_pwe_hdl, svc_info.i_anc);
 	} else {
 		m_LOG_MBCSV_SVC_PRVDR(svc_info.svc_pwe_hdl, svc_info.i_anc, MBCSV_SP_MDS_RCV_EVT_DN);
 
-		mbcsv_rmv_pwe_anc_entry((uns32)svc_info.svc_pwe_hdl, svc_info.i_anc);
+		mbcsv_rmv_pwe_anc_entry((uint32_t)svc_info.svc_pwe_hdl, svc_info.i_anc);
 	}
 
-	while (0 != (mbx = mbcsv_get_next_entry_for_pwe((uns32)svc_info.svc_pwe_hdl, &svc_id))) {
+	while (0 != (mbx = mbcsv_get_next_entry_for_pwe((uint32_t)svc_info.svc_pwe_hdl, &svc_id))) {
 		if (NULL == (evt = m_MMGR_ALLOC_MBCSV_EVT)) {
 			return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE,
 						"Memory allocation failure for m_MMGR_ALLOC_MBCSV_EVT");
@@ -427,7 +427,7 @@ uns32 mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_
 		evt->msg_type = MBCSV_EVT_MDS_SUBSCR;
 
 		evt->rcvr_peer_key.svc_id = svc_id;
-		evt->rcvr_peer_key.pwe_hdl = (uns32)svc_info.svc_pwe_hdl;
+		evt->rcvr_peer_key.pwe_hdl = (uint32_t)svc_info.svc_pwe_hdl;
 		evt->rcvr_peer_key.peer_anchor = svc_info.i_anc;
 
 		evt->info.mds_sub_evt.evt_type = svc_info.i_change;
@@ -453,7 +453,7 @@ uns32 mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uint32_t mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 		    SS_SVC_ID to_svc, NCS_UBAID *uba,
 		    MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver)
 {
@@ -525,7 +525,7 @@ uns32 mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 						return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE,
 									"mbcsv_mds_enc: ncs_enc_reserve_space returns NULL");
 
-					ncs_encode_32bit(&data, (uns32)mm->rcvr_peer_key.peer_inst_hdl);
+					ncs_encode_32bit(&data, (uint32_t)mm->rcvr_peer_key.peer_inst_hdl);
 					ncs_encode_32bit(&data, mm->info.peer_msg.info.peer_disc.peer_role);
 					ncs_enc_claim_space(uba, MBCSV_PEER_DOWN_MSG_SIZE);
 
@@ -560,7 +560,7 @@ uns32 mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 						return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE,
 									"mbcsv_mds_enc: ncs_enc_reserve_space returns NULL");
 
-					ncs_encode_32bit(&data, (uns32)mm->rcvr_peer_key.peer_inst_hdl);
+					ncs_encode_32bit(&data, (uint32_t)mm->rcvr_peer_key.peer_inst_hdl);
 					ncs_encode_32bit(&data,
 							 mm->info.peer_msg.info.peer_disc.info.peer_info_rsp.
 							 my_peer_inst_hdl);
@@ -583,7 +583,7 @@ uns32 mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 						return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE,
 									"mbcsv_mds_enc: ncs_enc_reserve_space returns NULL");
 
-					ncs_encode_32bit(&data, (uns32)mm->rcvr_peer_key.peer_inst_hdl);
+					ncs_encode_32bit(&data, (uint32_t)mm->rcvr_peer_key.peer_inst_hdl);
 					ncs_encode_32bit(&data, mm->info.peer_msg.info.peer_disc.peer_role);
 					ncs_enc_claim_space(uba, MBCSV_PEER_CHG_ROLE_MSG_SIZE);
 
@@ -609,7 +609,7 @@ uns32 mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			ncs_encode_32bit(&data, mm->info.peer_msg.info.client_msg.reo_type);
 			ncs_encode_32bit(&data, mm->info.peer_msg.info.client_msg.first_rsp);
 			ncs_encode_8bit(&data, mm->info.peer_msg.info.client_msg.snd_type);
-			ncs_encode_32bit(&data, (uns32)mm->rcvr_peer_key.peer_inst_hdl);
+			ncs_encode_32bit(&data, (uint32_t)mm->rcvr_peer_key.peer_inst_hdl);
 			ncs_enc_claim_space(uba, MBCSV_INT_CLIENT_MSG_SIZE);
 
 			/* Append user buffer */
@@ -636,7 +636,7 @@ uns32 mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
+uint32_t mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 		    SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver)
 {
 	uint8_t *data;
@@ -837,7 +837,7 @@ uns32 mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uint32_t mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 		    SS_SVC_ID to_svc, NCSCONTEXT *cpy,
 		    NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver)
 {
@@ -888,7 +888,7 @@ uns32 mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 mbcsv_encode_version(NCS_UBAID *uba, uint16_t version)
+uint32_t mbcsv_encode_version(NCS_UBAID *uba, uint16_t version)
 {
 	uint8_t *data;
 
@@ -920,7 +920,7 @@ uns32 mbcsv_encode_version(NCS_UBAID *uba, uint16_t version)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 mbcsv_decode_version(NCS_UBAID *uba, uint16_t *version)
+uint32_t mbcsv_decode_version(NCS_UBAID *uba, uint16_t *version)
 {
 	uint8_t *data;
 	uint8_t data_buff[MBCSV_MAX_SIZE_DATA];

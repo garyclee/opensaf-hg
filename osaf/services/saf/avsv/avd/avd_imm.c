@@ -978,7 +978,7 @@ done:
 SaAisErrorT avd_imm_impl_set(void)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 i;
+	uint32_t i;
 
 	TRACE_ENTER();
 
@@ -1082,7 +1082,7 @@ SaAisErrorT avd_imm_default_OK_completed_cb(CcbUtilOperationData_t *opdata)
 
 unsigned int avd_imm_config_get(void)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER();
 

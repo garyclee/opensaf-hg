@@ -55,7 +55,7 @@
 				(ver->majorVersion > 0)) )
 
 
-uns32 plm_process_dispatch_cbk(PLMA_CLIENT_INFO *client_info,
+uint32_t plm_process_dispatch_cbk(PLMA_CLIENT_INFO *client_info,
                                SaDispatchFlagsT  flags);
 
 /***********************************************************************//**
@@ -111,9 +111,9 @@ SaAisErrorT  plm_add_entity_addr_to_list(PLMA_RDNS_TRK_MEM_LIST** listHead,
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE. 
 ***************************************************************************/
-uns32 plm_process_single_dispatch(PLMA_CLIENT_INFO *client_info)
+uint32_t plm_process_single_dispatch(PLMA_CLIENT_INFO *client_info)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	/** Info. for callback */   
 	PLMS_EVT *msg = NULL;
 	SaPlmEntityGroupHandleT grp_hdl;
@@ -181,9 +181,9 @@ end:
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE. 
 ***************************************************************************/
-uns32 plm_process_dispatch_all(PLMA_CLIENT_INFO *client_info)
+uint32_t plm_process_dispatch_all(PLMA_CLIENT_INFO *client_info)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
         /** Info. for callback */
         PLMS_EVT *msg;
 	PLMA_CB *plma_cb = plma_ctrlblk;
@@ -251,9 +251,9 @@ uns32 plm_process_dispatch_all(PLMA_CLIENT_INFO *client_info)
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE. 
 ***************************************************************************/
-uns32 plm_process_blocking_dispatch(PLMA_CLIENT_INFO *client_info)
+uint32_t plm_process_blocking_dispatch(PLMA_CLIENT_INFO *client_info)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
         PLMS_EVT *msg;
         SaPlmEntityGroupHandleT grp_hdl;
 	PLMA_CB *plma_cb = plma_ctrlblk;
@@ -314,11 +314,11 @@ uns32 plm_process_blocking_dispatch(PLMA_CLIENT_INFO *client_info)
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE. 
 ***************************************************************************/
-uns32 plm_process_dispatch_cbk(
+uint32_t plm_process_dispatch_cbk(
                          PLMA_CLIENT_INFO *client_info,
                          SaDispatchFlagsT  flags)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	switch (flags)
 	{
@@ -372,7 +372,7 @@ SaUint32T saPlmInitialize  (SaPlmHandleT *plmHandle,
 	PLMS_EVT          plm_init_evt;
 	PLMS_EVT          *plm_init_resp = NULL;
 	PLMS_EVT          plm_fin_evt, *plm_fin_res;
-	uns32             proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t             proc_rc = NCSCC_RC_SUCCESS;
 	SaUint32T         rc = SA_AIS_OK;
 
 
@@ -765,7 +765,7 @@ SaAisErrorT saPlmFinalize(SaPlmHandleT plmHandle)
 	PLMS_EVT                  plm_fin_evt;
 	PLMS_EVT                  *plm_fin_resp = NULL;
 	SaAisErrorT               rc = SA_AIS_OK;
-	uns32                     proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t                     proc_rc = NCSCC_RC_SUCCESS;
 	
 	TRACE_ENTER();
 	
@@ -933,7 +933,7 @@ SaAisErrorT saPlmEntityGroupCreate(SaPlmHandleT plmHandle,
 	PLMS_EVT  		 plm_in_evt;
 	PLMS_EVT  		 *plm_out_res = NULL;
 	SaAisErrorT              rc = SA_AIS_OK;
-	uns32		 	 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t		 	 proc_rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	if(!plma_cb){
@@ -1091,9 +1091,9 @@ SaAisErrorT saPlmEntityGroupAdd(SaPlmEntityGroupHandleT entityGroupHandle,
 	PLMS_EVT                 plm_in_evt;
 	PLMS_EVT                 *plm_out_res = NULL;
 	SaAisErrorT              rc = SA_AIS_OK;
-	uns32			 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t			 proc_rc = NCSCC_RC_SUCCESS;
 	PLMA_ENTITY_GROUP_INFO   *group_info;
-	uns32                    ii,i;
+	uint32_t                    ii,i;
 
 	TRACE_ENTER();
 	if(!plma_cb){
@@ -1256,9 +1256,9 @@ SaAisErrorT saPlmEntityGroupRemove(SaPlmEntityGroupHandleT entityGroupHandle,
 	PLMS_EVT                 plm_in_evt;
 	PLMS_EVT                 *plm_out_res = NULL;
 	SaAisErrorT              rc = SA_AIS_OK;
-	uns32			 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t			 proc_rc = NCSCC_RC_SUCCESS;
 	PLMA_ENTITY_GROUP_INFO   *group_info;
-	uns32                    ii, i;
+	uint32_t                    ii, i;
 	
 	TRACE_ENTER();
 	if(!plma_cb){
@@ -1455,7 +1455,7 @@ SaAisErrorT saPlmEntityGroupDelete(SaPlmEntityGroupHandleT entityGroupHandle)
 	PLMS_EVT                 plm_in_evt;
 	PLMS_EVT                 *plm_out_res = NULL;
 	SaAisErrorT              rc = SA_AIS_OK;
-	uns32			 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t			 proc_rc = NCSCC_RC_SUCCESS;
 	PLMA_ENTITY_GROUP_INFO   *group_info;
 
 	TRACE_ENTER();
@@ -1635,7 +1635,7 @@ SaAisErrorT saPlmReadinessTrack(SaPlmEntityGroupHandleT entityGroupHandle,
 	PLMS_EVT                 plm_in_evt;
 	PLMS_EVT                 *plm_out_res = NULL;
 	SaAisErrorT              rc = SA_AIS_OK;
-	uns32			 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t			 proc_rc = NCSCC_RC_SUCCESS;
 	PLMA_ENTITY_GROUP_INFO   *group_info;
 	SaUint32T                entities_num = 0; 
 	
@@ -1862,7 +1862,7 @@ SaAisErrorT saPlmReadinessTrackResponse(SaPlmEntityGroupHandleT entityGrpHdl,
 	PLMA_CB                  *plma_cb = plma_ctrlblk;
 	PLMS_EVT                 plm_in_evt;
 	SaAisErrorT              rc = SA_AIS_OK;
-	uns32			 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t			 proc_rc = NCSCC_RC_SUCCESS;
 	PLMA_ENTITY_GROUP_INFO   *group_info;
 
 	TRACE_ENTER();
@@ -1956,7 +1956,7 @@ SaAisErrorT saPlmReadinessTrackStop(SaPlmEntityGroupHandleT entityGroupHandle)
 	PLMS_EVT                 plm_in_evt;
 	PLMS_EVT                 *plm_out_res = NULL;
 	SaAisErrorT              rc = SA_AIS_OK;
-	uns32			 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t			 proc_rc = NCSCC_RC_SUCCESS;
 	PLMA_ENTITY_GROUP_INFO   *group_info;
 	
 	TRACE_ENTER();
@@ -2061,7 +2061,7 @@ end:
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ****************************************************************************/
-uns32 validate_entities_ptr(PLMA_RDNS_TRK_MEM_LIST **entity_list, 
+uint32_t validate_entities_ptr(PLMA_RDNS_TRK_MEM_LIST **entity_list, 
 			    SaPlmReadinessTrackedEntityT *entity_ptr)
 {
 	PLMA_RDNS_TRK_MEM_LIST *temp = *entity_list, *prev = NULL;
@@ -2115,7 +2115,7 @@ SaAisErrorT saPlmReadinessNotificationFree(
 {
 	PLMA_CB                  *plma_cb = plma_ctrlblk;
 	SaAisErrorT              rc = SA_AIS_OK;
-	uns32			 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t			 proc_rc = NCSCC_RC_SUCCESS;
 	PLMA_ENTITY_GROUP_INFO   *group_info;
 
 	TRACE_ENTER();
@@ -2194,7 +2194,7 @@ SaAisErrorT saPlmEntityReadinessImpact(SaPlmHandleT plmHandle,
 	PLMS_EVT                 plm_in_evt;
 	PLMS_EVT                 *plm_out_res = NULL;
 	SaAisErrorT              rc = SA_AIS_OK;
-	uns32			 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t			 proc_rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	if(!plma_cb){

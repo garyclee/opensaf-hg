@@ -57,15 +57,15 @@ static struct pollfd pfd_list[DTM_INTRANODE_MAX_PROCESSES];
 
 static int  dtm_intranode_max_fd;
 
-static uns32 dtm_intra_processing_init(void);
+static uint32_t dtm_intra_processing_init(void);
 static void dtm_intranode_processing(void);
-static uns32 dtm_intranode_add_poll_fdlist(int fd, uint16_t event);
-static uns32 dtm_intranode_create_rcv_task(int task_hdl);
-static uns32 dtm_intranode_process_incoming_conn(void);
-static uns32 dtm_intranode_del_poll_fdlist(int fd);
+static uint32_t dtm_intranode_add_poll_fdlist(int fd, uint16_t event);
+static uint32_t dtm_intranode_create_rcv_task(int task_hdl);
+static uint32_t dtm_intranode_process_incoming_conn(void);
+static uint32_t dtm_intranode_del_poll_fdlist(int fd);
 
-static uns32 dtm_intranode_fill_fd_set(void);
-uns32 socket_domain = AF_UNIX;
+static uint32_t dtm_intranode_fill_fd_set(void);
+uint32_t socket_domain = AF_UNIX;
 
 
 /**
@@ -76,7 +76,7 @@ uns32 socket_domain = AF_UNIX;
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_service_discovery_init(void)
+uint32_t dtm_service_discovery_init(void)
 {
 	return dtm_intra_processing_init();
 }
@@ -91,7 +91,7 @@ uns32 dtm_service_discovery_init(void)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_intra_processing_init(void)
+uint32_t dtm_intra_processing_init(void)
 {
 
 	int servlen, sock_opt, size = DTM_INTRANODE_SOCK_SIZE;	/* For socket fd and server len */
@@ -102,7 +102,7 @@ uns32 dtm_intra_processing_init(void)
 	struct sockaddr_in6 serveraddr6;
 	char *inet_or_unix = NULL;
 	struct addrinfo *addr_list;
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE_ENTER();
 
@@ -220,7 +220,7 @@ uns32 dtm_intra_processing_init(void)
 
 	listen(dtm_intranode_cb->server_sockfd, 20);
 	memset(&pat_tree_params, 0, sizeof(pat_tree_params));
-	pat_tree_params.key_size = sizeof(uns32);
+	pat_tree_params.key_size = sizeof(uint32_t);
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&dtm_intranode_cb->dtm_intranode_pid_list, &pat_tree_params)) {
 		LOG_ER("DTM: ncs_patricia_tree_init failed for dtm_intranode_pid_list");
 		close(dtm_intranode_cb->server_sockfd);
@@ -236,7 +236,7 @@ uns32 dtm_intra_processing_init(void)
 		return NCSCC_RC_FAILURE;
 	}
 
-	pat_tree_params.key_size = sizeof(uns32);
+	pat_tree_params.key_size = sizeof(uint32_t);
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&dtm_intranode_cb->dtm_svc_subscr_list, &pat_tree_params)) {
 		LOG_ER("DTM: ncs_patricia_tree_init failed for dtm_intranode_pid_list");
 		close(dtm_intranode_cb->server_sockfd);
@@ -244,7 +244,7 @@ uns32 dtm_intra_processing_init(void)
 		return NCSCC_RC_FAILURE;
 	}
 
-	pat_tree_params.key_size = sizeof(uns32);
+	pat_tree_params.key_size = sizeof(uint32_t);
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&dtm_intranode_cb->dtm_svc_install_list, &pat_tree_params)) {
 		LOG_ER("DTM: ncs_patricia_tree_init failed for dtm_intranode_pid_list");
 		close(dtm_intranode_cb->server_sockfd);
@@ -303,7 +303,7 @@ uns32 dtm_intra_processing_init(void)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_intranode_create_rcv_task(int task_hdl)
+static uint32_t dtm_intranode_create_rcv_task(int task_hdl)
 {
 	/*
 	   STEP 1: Create a recv task which will accept the connections, recv data from the local nodes */
@@ -337,9 +337,9 @@ static uns32 dtm_intranode_create_rcv_task(int task_hdl)
  *
  *
  */
-uns32 dtm_intranode_process_poll_rcv_msg_common(DTM_INTRANODE_PID_INFO *pid_node)
+uint32_t dtm_intranode_process_poll_rcv_msg_common(DTM_INTRANODE_PID_INFO *pid_node)
 {
-	uns32 identifier = 0;
+	uint32_t identifier = 0;
 	uint8_t version = 0 , *data = NULL; 
 	DTM_INTRANODE_RCV_MSG_TYPES msg_type = 0;
 
@@ -383,7 +383,7 @@ uns32 dtm_intranode_process_poll_rcv_msg_common(DTM_INTRANODE_PID_INFO *pid_node
 	} else if (DTM_INTRANODE_RCV_MESSAGE_TYPE == msg_type) {
 		/* Get the Destination Node ID */
 		NODE_ID dst_nodeid = 0;
-		uns32 dst_processid = 0;
+		uint32_t dst_processid = 0;
 		dst_nodeid = ncs_decode_32bit(&data);
 		dst_processid = ncs_decode_32bit(&data);
 		if (dtm_intranode_cb->nodeid == dst_nodeid) {
@@ -669,7 +669,7 @@ static void dtm_intranode_processing(void)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_intranode_add_poll_fdlist(int fd, uint16_t event)
+static uint32_t dtm_intranode_add_poll_fdlist(int fd, uint16_t event)
 {
 	DTM_INTRANODE_POLLFD_LIST *alloc_ptr = NULL, *head_ptr = NULL, *tail_ptr = NULL;
 
@@ -707,7 +707,7 @@ static uns32 dtm_intranode_add_poll_fdlist(int fd, uint16_t event)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_intranode_del_poll_fdlist(int fd)
+static uint32_t dtm_intranode_del_poll_fdlist(int fd)
 {
 	DTM_INTRANODE_POLLFD_LIST *back = NULL, *mov_ptr = NULL;
 
@@ -751,7 +751,7 @@ static uns32 dtm_intranode_del_poll_fdlist(int fd)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_intranode_set_poll_fdlist(int fd, uint16_t events)
+uint32_t dtm_intranode_set_poll_fdlist(int fd, uint16_t events)
 {
 	DTM_INTRANODE_POLLFD_LIST *mov_ptr = dtm_intranode_cb->fd_list_ptr_head;
 
@@ -782,7 +782,7 @@ uns32 dtm_intranode_set_poll_fdlist(int fd, uint16_t events)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_intranode_reset_poll_fdlist(int fd)
+uint32_t dtm_intranode_reset_poll_fdlist(int fd)
 {
 	DTM_INTRANODE_POLLFD_LIST *mov_ptr = dtm_intranode_cb->fd_list_ptr_head;
 
@@ -812,7 +812,7 @@ uns32 dtm_intranode_reset_poll_fdlist(int fd)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_intranode_fill_fd_set(void)
+static uint32_t dtm_intranode_fill_fd_set(void)
 {
 	int i = 0;
 	DTM_INTRANODE_POLLFD_LIST *mov_ptr = dtm_intranode_cb->fd_list_ptr_head;
@@ -831,7 +831,7 @@ static uns32 dtm_intranode_fill_fd_set(void)
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
-static uns32 dtm_intranode_create_pid_info(int fd)
+static uint32_t dtm_intranode_create_pid_info(int fd)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	TRACE_ENTER();
@@ -879,7 +879,7 @@ static uns32 dtm_intranode_create_pid_info(int fd)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_intranode_process_incoming_conn(void)
+static uint32_t dtm_intranode_process_incoming_conn(void)
 {
 	/* Accept processing */
 	int accept_fd = 0, sock_opt = 0, retry_count = 0, size = DTM_INTRANODE_SOCK_SIZE;

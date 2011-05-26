@@ -35,41 +35,41 @@ NTFSV_CKPT_COLD_SYNC_MSG
 -----------------------------------------------------------------------------------------------------------------------
 */
 
-static uns32 edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-static uns32 edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			       NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 			       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 ckpt_proc_reg_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
-static uns32 ckpt_proc_finalize_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
-static uns32 ckpt_proc_agent_down_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
-static uns32 ckpt_proc_notification(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
-static uns32 ckpt_proc_subscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
-static uns32 ckpt_proc_unsubscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
-static uns32 ckpt_proc_not_log_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
-static uns32 ckpt_proc_not_send_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_reg_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_finalize_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_agent_down_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_notification(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_subscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_unsubscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_not_log_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_not_send_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
 
 static void enc_ckpt_header(uint8_t *pdata, ntfsv_ckpt_header_t header);
-static uns32 dec_ckpt_header(NCS_UBAID *uba, ntfsv_ckpt_header_t *header);
-static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param);
-static uns32 decode_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param);
-static uns32 decode_not_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param);
-static uns32 decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param);
-static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg);	/* Common Callback interface to mbcsv */
-static uns32 ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t dec_ckpt_header(NCS_UBAID *uba, ntfsv_ckpt_header_t *header);
+static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param);
+static uint32_t decode_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param);
+static uint32_t decode_not_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param);
+static uint32_t decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param);
+static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg);	/* Common Callback interface to mbcsv */
+static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg);
 
-static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req);
-static uns32 ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg);
-static uns32 ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg);
-static uns32 ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg);
+static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req);
+static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg);
+static uint32_t ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg);
+static uint32_t ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg);
 
-static uns32 process_ckpt_data(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+static uint32_t process_ckpt_data(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
 static void ntfs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr);
 
 static NTFS_CKPT_HDLR ckpt_data_handler[NTFS_CKPT_MSG_MAX] = {
@@ -96,9 +96,9 @@ static NTFS_CKPT_HDLR ckpt_data_handler[NTFS_CKPT_MSG_MAX] = {
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 ntfs_mbcsv_init(ntfs_cb_t *cb)
+uint32_t ntfs_mbcsv_init(ntfs_cb_t *cb)
 {
-	uns32 rc;
+	uint32_t rc;
 	NCS_MBCSV_ARG arg;
 
 	TRACE_ENTER();
@@ -119,7 +119,7 @@ uns32 ntfs_mbcsv_init(ntfs_cb_t *cb)
 	/* Open a checkpoint */
 	arg.i_op = NCS_MBCSV_OP_OPEN;
 	arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-	arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
+	arg.info.open.i_pwe_hdl = (uint32_t)cb->mds_hdl;
 	arg.info.open.i_client_hdl = 0;
 
 	if ((rc = ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS)) {
@@ -173,10 +173,10 @@ uns32 ntfs_mbcsv_init(ntfs_cb_t *cb)
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
 
-uns32 ntfs_mbcsv_change_HA_state(ntfs_cb_t *cb)
+uint32_t ntfs_mbcsv_change_HA_state(ntfs_cb_t *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -209,7 +209,7 @@ uns32 ntfs_mbcsv_change_HA_state(ntfs_cb_t *cb)
  * Notes         : This function should be ideally called only once, i.e.
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
-uns32 ntfs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
+uint32_t ntfs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -235,9 +235,9 @@ uns32 ntfs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
  * Notes         : Based on the mbcsv message type, the corresponding mbcsv
  *                 message handler shall be invoked.
  *****************************************************************************/
-static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
+static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	assert(arg != NULL);
 
@@ -293,9 +293,9 @@ static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t mbcsv_version;
 
 	assert(cbk_arg != NULL);
@@ -371,9 +371,9 @@ static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
+static uint32_t ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* asynsc Update Count */
 	uint8_t *async_upd_cnt = NULL;
 
@@ -387,13 +387,13 @@ static uns32 ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cbk_a
 
 	/* This will have the count of async updates that have been sent,
 	   this will be 0 initially */
-	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
 	if (async_upd_cnt == NULL) {
 		TRACE("ncs_enc_reserve_space FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 	ncs_encode_32bit(&async_upd_cnt, ntfs_cb->async_upd_cnt);
-	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
 
 	/* Set response mbcsv msg type to complete */
 	if (data_req == TRUE)
@@ -404,10 +404,10 @@ static uns32 ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cbk_a
 	return rc;
 }	/*End  ckpt_enc_cold_sync_data() */
 
-uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
+uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
@@ -427,15 +427,15 @@ uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 	return total_bytes;
 }
 
-static uns32 enc_mbcsv_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
+static uint32_t enc_mbcsv_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 {
 	return ntfsv_enc_subscribe_msg(uba, param);
 }
 
-static uns32 enc_mbcsv_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param)
+static uint32_t enc_mbcsv_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 	assert(uba != NULL);
@@ -452,10 +452,10 @@ static uns32 enc_mbcsv_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm
 	return total_bytes;
 }
 
-static uns32 enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param)
+static uint32_t enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 	assert(uba != NULL);
@@ -491,10 +491,10 @@ static uns32 enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confi
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	ntfsv_ckpt_msg_t *data = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS, num_bytes;
+	uint32_t rc = NCSCC_RC_SUCCESS, num_bytes;
 	uint8_t *pheader = NULL;
 	ntfsv_ckpt_header_t ckpt_hdr;
 	NCS_UBAID *uba = &cbk_arg->info.encode.io_uba;
@@ -646,9 +646,9 @@ static uns32 ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NCS_M
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t msg_fmt_version;
 
 	assert(cbk_arg != NULL);
@@ -723,9 +723,9 @@ static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, num_bytes = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, num_bytes = 0;
 	EDU_ERR ederror = 0;
 	ntfsv_ckpt_msg_t *ckpt_msg;
 	ntfsv_ckpt_header_t *hdr = NULL;
@@ -855,10 +855,10 @@ static uns32 ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	/* if failure, should an indication be sent to active ? */
 }
 
-static uns32 decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
+static uint32_t decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[12];
 
 	/* releaseCode, majorVersion, minorVersion */
@@ -871,15 +871,15 @@ static uns32 decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 	return total_bytes;
 }
 
-static uns32 decode_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
+static uint32_t decode_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 {
 	return ntfsv_dec_subscribe_msg(uba, param);
 }
 
-static uns32 decode_not_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param)
+static uint32_t decode_not_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[8];
 
 	/* releaseCode, majorVersion, minorVersion */
@@ -891,10 +891,10 @@ static uns32 decode_not_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confir
 	return total_bytes;
 }
 
-static uns32 decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param)
+static uint32_t decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[20];
 
 	/* releaseCode, majorVersion, minorVersion */
@@ -930,15 +930,15 @@ static uns32 decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_conf
  *                        header->num_records times, 
  *****************************************************************************/
 
-static uns32 ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ntfsv_ckpt_msg_t msg;
 	ntfsv_ckpt_msg_t *data = &msg;
 	/*  NCS_UBAID *uba=NULL; */
-	uns32 num_rec = 0, num_bytes = 0, num_clients;
+	uint32_t num_rec = 0, num_bytes = 0, num_clients;
 	ntfs_ckpt_reg_msg_t *reg_rec = NULL;
-	uns32 num_of_async_upd;
+	uint32_t num_of_async_upd;
 	uint8_t *ptr;
 	uint8_t data_cnt[16];
 	struct NtfGlobals ntfGlobals;
@@ -1031,7 +1031,7 @@ static uns32 ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	num_rec = data->header.num_ckpt_records;
 	TRACE_2("Notifications num_rec: %u", num_rec);
 	while (num_rec) {
-		uns32 noOfSubscriptions = 0, logged = 0;
+		uint32_t noOfSubscriptions = 0, logged = 0;
 		/* freed in NtfNotification destructor */
 		ntfsv_send_not_req_t *notification_rec = calloc(1, sizeof(ntfsv_send_not_req_t));
 
@@ -1069,7 +1069,7 @@ static uns32 ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	}
 
 	/* Get the async update count */
-	ptr = ncs_dec_flatten_space(&cbk_arg->info.decode.i_uba, data_cnt, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&cbk_arg->info.decode.i_uba, data_cnt, sizeof(uint32_t));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
 	cb->async_upd_cnt = num_of_async_upd;
 	ncs_dec_skip_space(&cbk_arg->info.decode.i_uba, 4);
@@ -1099,9 +1099,9 @@ static uns32 ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 process_ckpt_data(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
+static uint32_t process_ckpt_data(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	if ((!cb) || (data == NULL)) {
 		TRACE("FAILED: (!cb) || (data == NULL)");
 		return (rc = NCSCC_RC_FAILURE);
@@ -1135,7 +1135,7 @@ static uns32 process_ckpt_data(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_reg_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_reg_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 {
 	ntfs_ckpt_reg_msg_t *param = &data->ckpt_rec.reg_rec;
 
@@ -1166,9 +1166,9 @@ static uns32 ckpt_proc_reg_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_notification(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_notification(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	ntfsv_send_not_req_t *param = data->ckpt_rec.notification.arg;
 	notificationReceivedUpdate(param->client_id, param->notificationType, param);
@@ -1176,9 +1176,9 @@ static uns32 ckpt_proc_notification(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 	return rc;
 }
 
-static uns32 ckpt_proc_not_log_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_not_log_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	notificationLoggedConfirmed(data->ckpt_rec.log_confirm.notificationId);
 	TRACE_LEAVE();
@@ -1200,7 +1200,7 @@ static uns32 ckpt_proc_not_log_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_not_send_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_not_send_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 {
 	TRACE_ENTER2("discarded %d", data->ckpt_rec.send_confirm.discarded);
 	if (data->ckpt_rec.send_confirm.discarded == NTFS_NOTIFICATION_OK) {	
@@ -1238,7 +1238,7 @@ static uns32 ckpt_proc_not_send_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_unsubscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_unsubscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 {
 	ntfsv_unsubscribe_req_t *param = &data->ckpt_rec.unsubscribe.arg;
 
@@ -1270,7 +1270,7 @@ static uns32 ckpt_proc_unsubscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 ckpt_proc_subscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
+uint32_t ckpt_proc_subscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 {
 	ntfsv_subscribe_req_t *param = &data->ckpt_rec.subscribe.arg;
 
@@ -1301,7 +1301,7 @@ uns32 ckpt_proc_subscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_finalize_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_finalize_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 {
 	ntfsv_ckpt_finalize_msg_t *param = &data->ckpt_rec.finalize_rec;
 	TRACE_ENTER();
@@ -1326,7 +1326,7 @@ static uns32 ckpt_proc_finalize_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
  * Notes         : None 
  ****************************************************************************/
 
-static uns32 ckpt_proc_agent_down_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_agent_down_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 {
 	TRACE_ENTER();
 	/* Remove this NTFA entry */
@@ -1356,9 +1356,9 @@ static uns32 ckpt_proc_agent_down_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
  *                 retrieve the record for encoding the same.
  *****************************************************************************/
 
-uns32 ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec, uns32 action)
+uint32_t ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec, uint32_t action)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_MBCSV_ARG mbcsv_arg;
 	TRACE_ENTER();
 	/* Fill mbcsv specific data */
@@ -1398,7 +1398,7 @@ uns32 ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec, uns32 ac
  *
  * Notes         : None.
  ***************************************************************************/
-static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	uint16_t peer_version;
 	assert(arg != NULL);
@@ -1423,7 +1423,7 @@ static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  *
  * Notes         : None.
  ***************************************************************************/
-static uns32 ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+static uint32_t ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	/* Currently nothing to be done */
 	return NCSCC_RC_SUCCESS;
@@ -1442,7 +1442,7 @@ static uns32 ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  *
  * Notes         : None.
  ***************************************************************************/
-static uns32 ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+static uint32_t ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	/* Currently nothing to be done. */
 	return NCSCC_RC_SUCCESS;
@@ -1467,11 +1467,11 @@ static uns32 ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ntfsv_ckpt_finalize_msg_t *ckpt_final_msg_ptr = NULL, **ckpt_final_msg_dec_ptr;
 
 	EDU_INST_SET ckpt_final_rec_ed_rules[] = {
@@ -1518,11 +1518,11 @@ static uns32 edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			       NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 			       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ntfsv_ckpt_header_t *ckpt_header_ptr = NULL, **ckpt_header_dec_ptr;
 
 	EDU_INST_SET ckpt_header_rec_ed_rules[] = {
@@ -1554,7 +1554,7 @@ static uns32 edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
 /* Non EDU routines */
 
-uns32 enc_ckpt_reserv_header(NCS_UBAID *uba, ntfsv_ckpt_msg_type_t type, uns32 num_rec, uns32 len)
+uint32_t enc_ckpt_reserv_header(NCS_UBAID *uba, ntfsv_ckpt_msg_type_t type, uint32_t num_rec, uint32_t len)
 {
 	ntfsv_ckpt_header_t ckpt_hdr;
 	uint8_t *pheader = NULL;
@@ -1611,7 +1611,7 @@ static void enc_ckpt_header(uint8_t *pdata, ntfsv_ckpt_header_t header)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 dec_ckpt_header(NCS_UBAID *uba, ntfsv_ckpt_header_t *header)
+static uint32_t dec_ckpt_header(NCS_UBAID *uba, ntfsv_ckpt_header_t *header)
 {
 	uint8_t *p8;
 	uint8_t local_data[4];

@@ -40,10 +40,10 @@
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_sudb_init(AVND_CB *cb)
+uint32_t avnd_sudb_init(AVND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS params;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
@@ -69,10 +69,10 @@ uns32 avnd_sudb_init(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_sudb_destroy(AVND_CB *cb)
+uint32_t avnd_sudb_destroy(AVND_CB *cb)
 {
 	AVND_SU *su = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* scan & delete each su */
 	while (0 != (su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0))) {
@@ -114,7 +114,7 @@ uns32 avnd_sudb_destroy(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
+AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uint32_t *rc)
 {
 	AVND_SU *su = 0;
 	TRACE_ENTER2("SU'%s'", info->name.value);
@@ -221,10 +221,10 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
                   deleted before deleting the SU record. Also no SIs should be
                   attached to this record.
 ******************************************************************************/
-uns32 avnd_sudb_rec_del(AVND_CB *cb, SaNameT *name)
+uint32_t avnd_sudb_rec_del(AVND_CB *cb, SaNameT *name)
 {
 	AVND_SU *su = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP *comp;
 
 	TRACE_ENTER2("%s", name->value);
@@ -273,10 +273,10 @@ done:
 	return rc;
 }
 
-uns32 avnd_su_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
+uint32_t avnd_su_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	AVND_SU *su;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s'", param->name.value);
 

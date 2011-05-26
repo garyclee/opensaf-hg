@@ -38,14 +38,14 @@
 #define EDS_HA_INVALID 0	/*Invalid HA state */
 #define MAX_HA_STATE 4
 
-typedef uns32 (*eds_HAStateHandler) (EDS_CB *cb, SaInvocationT invocation);
+typedef uint32_t (*eds_HAStateHandler) (EDS_CB *cb, SaInvocationT invocation);
 
 /* AMF HA state handler routines */
-uns32 eds_invalid_state_handler(EDS_CB *cb, SaInvocationT invocation);
-uns32 eds_active_state_handler(EDS_CB *cb, SaInvocationT invocation);
-uns32 eds_standby_state_handler(EDS_CB *cb, SaInvocationT invocation);
-uns32 eds_quiescing_state_handler(EDS_CB *cb, SaInvocationT invocation);
-uns32 eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation);
+uint32_t eds_invalid_state_handler(EDS_CB *cb, SaInvocationT invocation);
+uint32_t eds_active_state_handler(EDS_CB *cb, SaInvocationT invocation);
+uint32_t eds_standby_state_handler(EDS_CB *cb, SaInvocationT invocation);
+uint32_t eds_quiescing_state_handler(EDS_CB *cb, SaInvocationT invocation);
+uint32_t eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation);
 struct next_HAState {
 	uint8_t nextState1;
 	uint8_t nextState2;
@@ -55,7 +55,7 @@ struct next_HAState {
 ((curr > MAX_HA_STATE)||(next > MAX_HA_STATE)) ? EDS_HA_INVALID : \
 (((validStates[curr].nextState1 == next)||(validStates[curr].nextState2 == next))?next: EDS_HA_INVALID)
 
-uns32 eds_amf_init(EDS_CB *);
+uint32_t eds_amf_init(EDS_CB *);
 
 /* Declarations for the amf callback routines */
 
@@ -70,7 +70,7 @@ void eds_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 void
 eds_amf_csi_rmv_callback(SaInvocationT invocation,
 			 const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags);
-uns32 eds_amf_register(EDS_CB *);
+uint32_t eds_amf_register(EDS_CB *);
 
 SaAisErrorT eds_clm_init(EDS_CB *cb);
 void eds_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificationBuffer,

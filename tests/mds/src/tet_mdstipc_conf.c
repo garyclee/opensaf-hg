@@ -4,7 +4,7 @@
 #include "tet_mdstipc.h"
 extern int fill_syncparameters(int);
 /****************** ADEST WRAPPERS ***********************/
-uns32 adest_get_handle(void)
+uint32_t adest_get_handle(void)
 {
   memset(&ada_info,'\0', sizeof(ada_info));
   memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest));
@@ -27,7 +27,7 @@ uns32 adest_get_handle(void)
     }
 }
 
-uns32 create_pwe_on_adest(MDS_HDL mds_adest_hdl,
+uint32_t create_pwe_on_adest(MDS_HDL mds_adest_hdl,
                           PW_ENV_ID  pwe_id)
 {
   ada_info.req=NCSADA_PWE_CREATE;
@@ -52,7 +52,7 @@ uns32 create_pwe_on_adest(MDS_HDL mds_adest_hdl,
     }
 }
 
-uns32 destroy_pwe_on_adest(MDS_HDL mds_pwe_hdl)
+uint32_t destroy_pwe_on_adest(MDS_HDL mds_pwe_hdl)
 {
 
   ada_info.req=NCSADA_PWE_DESTROY;    
@@ -74,7 +74,7 @@ uns32 destroy_pwe_on_adest(MDS_HDL mds_pwe_hdl)
 
 /*********************** VDEST WRAPPERS **********************/
 
-uns32 create_vdest(NCS_VDEST_TYPE policy,
+uint32_t create_vdest(NCS_VDEST_TYPE policy,
                    MDS_DEST vdest)
 {
   memset(&vda_info,'\0', sizeof(vda_info));
@@ -105,7 +105,7 @@ uns32 create_vdest(NCS_VDEST_TYPE policy,
       return NCSCC_RC_FAILURE;
     }
 }
-uns32 destroy_vdest(MDS_DEST vdest)
+uint32_t destroy_vdest(MDS_DEST vdest)
 {
   memset(&vda_info,'\0', sizeof(vda_info)); /*zeroizing*/
   /*request*/
@@ -129,7 +129,7 @@ uns32 destroy_vdest(MDS_DEST vdest)
     }
 }
 
-uns32 create_named_vdest(NCS_BOOL persistent,
+uint32_t create_named_vdest(NCS_BOOL persistent,
                          NCS_VDEST_TYPE policy,
                          char *vname)
 {
@@ -179,7 +179,7 @@ uns32 create_named_vdest(NCS_BOOL persistent,
       return NCSCC_RC_FAILURE;
     }
 }
-uns32 destroy_named_vdest(NCS_BOOL non_persistent,
+uint32_t destroy_named_vdest(NCS_BOOL non_persistent,
                           MDS_DEST vdest,
                           char *vname)
 {
@@ -240,7 +240,7 @@ MDS_DEST vdest_lookup(char *vname)
   return(vda_info.info.vdest_lookup.o_vdest);
 }
 
-uns32 vdest_change_role(MDS_DEST vdest,
+uint32_t vdest_change_role(MDS_DEST vdest,
                         V_DEST_RL new_role)
 {
   memset(&vda_info,'\0', sizeof(vda_info));
@@ -259,7 +259,7 @@ uns32 vdest_change_role(MDS_DEST vdest,
     return NCSCC_RC_FAILURE;
 }
 
-uns32 create_pwe_on_vdest(MDS_HDL mds_vdest_hdl,
+uint32_t create_pwe_on_vdest(MDS_HDL mds_vdest_hdl,
                           PW_ENV_ID pwe_id)
 {
   int i;
@@ -293,7 +293,7 @@ uns32 create_pwe_on_vdest(MDS_HDL mds_vdest_hdl,
     }
 }
 
-uns32 destroy_pwe_on_vdest(MDS_HDL mds_pwe_hdl)
+uint32_t destroy_pwe_on_vdest(MDS_HDL mds_pwe_hdl)
 { 
   int i,j;
   memset(&vda_info,'\0',sizeof(vda_info)); 
@@ -323,7 +323,7 @@ uns32 destroy_pwe_on_vdest(MDS_HDL mds_pwe_hdl)
       return NCSCC_RC_FAILURE;
     }
 }
-uns32 tet_mds_svc_callback(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
+uint32_t tet_mds_svc_callback(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
   switch(mds_to_svc_info->i_op)
     {
@@ -384,7 +384,7 @@ uns32 tet_mds_svc_callback(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 }
 
 /************ SERVICE RELATED WRAPPERS **********************/
-uns32 mds_service_install(MDS_HDL mds_hdl,
+uint32_t mds_service_install(MDS_HDL mds_hdl,
                           MDS_SVC_ID svc_id,
                           MDS_SVC_PVT_SUB_PART_VER svc_pvt_ver,
                           NCSMDS_SCOPE_TYPE install_scope,
@@ -437,11 +437,11 @@ uns32 mds_service_install(MDS_HDL mds_hdl,
       return NCSCC_RC_FAILURE;
     }
 }
-uns32 mds_service_uninstall(MDS_HDL mds_hdl,
+uint32_t mds_service_uninstall(MDS_HDL mds_hdl,
                             MDS_SVC_ID svc_id)
 {
   int i,j,k,FOUND;
-  uns32 YES_ADEST;
+  uint32_t YES_ADEST;
   /*Find whether this Service is on Adest or Vdest*/
   YES_ADEST=is_service_on_adest(mds_hdl,svc_id);
 
@@ -529,14 +529,14 @@ void tet_mds_free_msg(NCSCONTEXT msg_to_be_freed)
     }
 }
 
-uns32 mds_service_subscribe(MDS_HDL mds_hdl,
+uint32_t mds_service_subscribe(MDS_HDL mds_hdl,
                             MDS_SVC_ID svc_id,
                             NCSMDS_SCOPE_TYPE scope,
                             uint8_t num_svcs,
                             MDS_SVC_ID *svc_ids)
 {
   int i,j,k,l,FOUND;
-  uns32 YES_ADEST;
+  uint32_t YES_ADEST;
   /*Find whether this Service is on Adest or Vdest*/
   YES_ADEST=is_service_on_adest(mds_hdl,svc_id);
 
@@ -657,14 +657,14 @@ uns32 mds_service_subscribe(MDS_HDL mds_hdl,
     }
 }
 
-uns32 mds_service_redundant_subscribe(MDS_HDL mds_hdl,
+uint32_t mds_service_redundant_subscribe(MDS_HDL mds_hdl,
                                       MDS_SVC_ID svc_id,
                                       NCSMDS_SCOPE_TYPE scope,
                                       uint8_t num_svcs,
                                       MDS_SVC_ID *svc_ids)
 {
   int i,j,k,l,FOUND;
-  uns32 YES_ADEST;
+  uint32_t YES_ADEST;
   /*Find whether this Service is on Adest or Vdest*/
   YES_ADEST=is_service_on_adest(mds_hdl,svc_id);
 
@@ -786,7 +786,7 @@ uns32 mds_service_redundant_subscribe(MDS_HDL mds_hdl,
     }
 }
 
-uns32 mds_service_cancel_subscription(MDS_HDL mds_hdl,
+uint32_t mds_service_cancel_subscription(MDS_HDL mds_hdl,
                                       MDS_SVC_ID svc_id,
                                       uint8_t num_svcs,
                                       MDS_SVC_ID *svc_ids)
@@ -855,14 +855,14 @@ uns32 mds_service_cancel_subscription(MDS_HDL mds_hdl,
 /*******************************  SEND WRAPPERS   ***************************/
 
 
-uns32 mds_just_send(MDS_HDL mds_hdl,
+uint32_t mds_just_send(MDS_HDL mds_hdl,
                     MDS_SVC_ID svc_id,
                     MDS_SVC_ID to_svc,
                     MDS_DEST to_dest,
                     MDS_SEND_PRIORITY_TYPE priority,
                     TET_MDS_MSG *message)
 {
-  uns32 rs;
+  uint32_t rs;
   svc_to_mds_info.i_mds_hdl=mds_hdl;
   svc_to_mds_info.i_svc_id=svc_id;
   svc_to_mds_info.i_op=MDS_SEND;    
@@ -906,15 +906,15 @@ uns32 mds_just_send(MDS_HDL mds_hdl,
     }
 #endif
 }
-uns32 mds_send_get_ack(MDS_HDL mds_hdl,
+uint32_t mds_send_get_ack(MDS_HDL mds_hdl,
                        MDS_SVC_ID svc_id,
                        MDS_SVC_ID to_svc,
                        MDS_DEST to_dest,
-                       uns32 time_to_wait,
+                       uint32_t time_to_wait,
                        MDS_SEND_PRIORITY_TYPE priority,
                        TET_MDS_MSG *message)
 {
-  uns32 rs;
+  uint32_t rs;
 
   svc_to_mds_info.i_mds_hdl=mds_hdl;
   svc_to_mds_info.i_svc_id=svc_id;
@@ -952,15 +952,15 @@ uns32 mds_send_get_ack(MDS_HDL mds_hdl,
         }
     }
 }
-uns32 mds_send_get_response(MDS_HDL mds_hdl,
+uint32_t mds_send_get_response(MDS_HDL mds_hdl,
                             MDS_SVC_ID svc_id,
                             MDS_SVC_ID to_svc,
                             MDS_DEST to_dest,
-                            uns32 time_to_wait,
+                            uint32_t time_to_wait,
                             MDS_SEND_PRIORITY_TYPE priority,
                             TET_MDS_MSG *message)
 {
-  uns32 rs;
+  uint32_t rs;
   TET_MDS_MSG *rsp;
 
   svc_to_mds_info.i_mds_hdl=mds_hdl;
@@ -1011,16 +1011,16 @@ uns32 mds_send_get_response(MDS_HDL mds_hdl,
     }
 }
 
-uns32 mds_send_get_redack(MDS_HDL mds_hdl,
+uint32_t mds_send_get_redack(MDS_HDL mds_hdl,
                           MDS_SVC_ID svc_id,
                           MDS_SVC_ID to_svc,
                           MDS_DEST to_vdest,
                           V_DEST_QA to_anc,
-                          uns32 time_to_wait,
+                          uint32_t time_to_wait,
                           MDS_SEND_PRIORITY_TYPE priority,
                           TET_MDS_MSG *message)
 {
-  uns32 rs;
+  uint32_t rs;
   svc_to_mds_info.i_mds_hdl=mds_hdl;
   svc_to_mds_info.i_svc_id=svc_id;
   svc_to_mds_info.i_op=MDS_SEND;    
@@ -1056,7 +1056,7 @@ uns32 mds_send_get_redack(MDS_HDL mds_hdl,
 
 
 
-uns32 mds_broadcast_to_svc(MDS_HDL mds_hdl,
+uint32_t mds_broadcast_to_svc(MDS_HDL mds_hdl,
                            MDS_SVC_ID svc_id,
                            MDS_SVC_ID to_svc,
                            NCSMDS_SCOPE_TYPE bcast_scope,
@@ -1086,11 +1086,11 @@ uns32 mds_broadcast_to_svc(MDS_HDL mds_hdl,
       return NCSCC_RC_FAILURE;
     }
 }
-uns32 mds_send_response(MDS_HDL mds_hdl,
+uint32_t mds_send_response(MDS_HDL mds_hdl,
                         MDS_SVC_ID svc_id,
                         TET_MDS_MSG *response)
 {
-  uns32 rs;
+  uint32_t rs;
   svc_to_mds_info.i_mds_hdl=mds_hdl;
   svc_to_mds_info.i_svc_id=svc_id;
   svc_to_mds_info.i_op=MDS_SEND;    
@@ -1129,12 +1129,12 @@ uns32 mds_send_response(MDS_HDL mds_hdl,
         }
     }
 }
-uns32 mds_sendrsp_getack(MDS_HDL mds_hdl,
+uint32_t mds_sendrsp_getack(MDS_HDL mds_hdl,
                          MDS_SVC_ID svc_id,
-                         uns32 time_to_wait,
+                         uint32_t time_to_wait,
                          TET_MDS_MSG *response)
 {
-  uns32 rs;
+  uint32_t rs;
   svc_to_mds_info.i_mds_hdl=mds_hdl;
   svc_to_mds_info.i_svc_id=svc_id;
   svc_to_mds_info.i_op=MDS_SEND;    
@@ -1175,12 +1175,12 @@ uns32 mds_sendrsp_getack(MDS_HDL mds_hdl,
     }
 }
 
-uns32 mds_send_redrsp_getack(MDS_HDL mds_hdl,
+uint32_t mds_send_redrsp_getack(MDS_HDL mds_hdl,
                              MDS_SVC_ID svc_id,
-                             uns32 time_to_wait,
+                             uint32_t time_to_wait,
                              TET_MDS_MSG *response)
 {
-  uns32 rs;
+  uint32_t rs;
   svc_to_mds_info.i_mds_hdl=mds_hdl;
   svc_to_mds_info.i_svc_id=svc_id;
   svc_to_mds_info.i_op=MDS_SEND;    
@@ -1219,17 +1219,17 @@ uns32 mds_send_redrsp_getack(MDS_HDL mds_hdl,
 
 /***************************  DIRECT SEND WRAPPERS *******************/
 
-uns32 mds_direct_send_message(MDS_HDL mds_hdl,
+uint32_t mds_direct_send_message(MDS_HDL mds_hdl,
                               MDS_SVC_ID svc_id,
                               MDS_SVC_ID to_svc,
                               MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver,
                               MDS_SENDTYPES sendtype,
                               MDS_DEST to_dest,
-                              uns32 time_to_wait,
+                              uint32_t time_to_wait,
                               MDS_SEND_PRIORITY_TYPE priority,
                               char *message)
 {
-  uns32 rs;
+  uint32_t rs;
   uint16_t direct_buff_len=0;
   if(message)
     {
@@ -1323,13 +1323,13 @@ uns32 mds_direct_send_message(MDS_HDL mds_hdl,
     }
 }
 
-uns32 mds_direct_response(MDS_HDL mds_hdl,
+uint32_t mds_direct_response(MDS_HDL mds_hdl,
                           MDS_SVC_ID svc_id,
                           MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver,
                           MDS_SENDTYPES sendtype,
-                          uns32 time_to_wait)
+                          uint32_t time_to_wait)
 {
-  uns32 rs;
+  uint32_t rs;
   char msg[]="Resp Message";
   uint16_t direct_buff_len;
   /*Before Sending the Message: Allocate the Direct Buffer*/
@@ -1409,7 +1409,7 @@ uns32 mds_direct_response(MDS_HDL mds_hdl,
         }
     }
 }
-uns32 mds_direct_broadcast_message(MDS_HDL mds_hdl,
+uint32_t mds_direct_broadcast_message(MDS_HDL mds_hdl,
                                    MDS_SVC_ID svc_id,
                                    MDS_SVC_ID to_svc,
                                    MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver,
@@ -1471,7 +1471,7 @@ uns32 mds_direct_broadcast_message(MDS_HDL mds_hdl,
 #if 0
 int is_sel_obj_found(int indx)
 {
-  uns32 count=0;
+  uint32_t count=0;
   /* int count=0;*/
   NCS_SEL_OBJ numfds;
   NCS_SEL_OBJ_SET readfd;
@@ -1501,7 +1501,7 @@ int is_sel_obj_found(int indx)
 #endif
 int is_vdest_sel_obj_found(int vi,int si)
 {
-  uns32 count=0;
+  uint32_t count=0;
   /*int count=0;*/
   NCS_SEL_OBJ numfds;
   NCS_SEL_OBJ_SET readfd;
@@ -1532,7 +1532,7 @@ int is_vdest_sel_obj_found(int vi,int si)
 }
 int is_adest_sel_obj_found(int si)
 {
-  uns32 count=0;
+  uint32_t count=0;
   /*  int count=0;*/
   NCS_SEL_OBJ numfds;
   NCS_SEL_OBJ_SET readfd;
@@ -1560,7 +1560,7 @@ int is_adest_sel_obj_found(int si)
   else
     return 0; 
 }
-uns32 tet_create_task(NCS_OS_CB task_startup,
+uint32_t tet_create_task(NCS_OS_CB task_startup,
                       NCSCONTEXT t_handle)
 {
   char taskname[]="My Task";
@@ -1574,7 +1574,7 @@ uns32 tet_create_task(NCS_OS_CB task_startup,
   else
     return NCSCC_RC_FAILURE;
 }
-uns32 mds_service_retrieve(MDS_HDL mds_hdl,
+uint32_t mds_service_retrieve(MDS_HDL mds_hdl,
                            MDS_SVC_ID svc_id,
                            SaDispatchFlagsT dispatchFlags)
 {
@@ -1603,7 +1603,7 @@ uns32 mds_service_retrieve(MDS_HDL mds_hdl,
     }
 }
 
-uns32 mds_query_vdest_for_role(MDS_HDL mds_hdl,
+uint32_t mds_query_vdest_for_role(MDS_HDL mds_hdl,
                                MDS_SVC_ID svc_id,
                                MDS_DEST dest,
                                MDS_SVC_ID query_svc_id,
@@ -1645,7 +1645,7 @@ ADEST = <%llx>\n",svc_to_mds_info.info.query_dest.o_node_id,
 
   
 }
-uns32 mds_query_vdest_for_anchor(MDS_HDL mds_hdl,
+uint32_t mds_query_vdest_for_anchor(MDS_HDL mds_hdl,
                                  MDS_SVC_ID svc_id,
                                  MDS_DEST dest,
                                  MDS_SVC_ID query_svc_id,
@@ -1690,7 +1690,7 @@ its ADEST = <%llx>\n",svc_to_mds_info.info.query_dest.o_node_id,
   
 }
 
-uns32 is_service_on_adest(MDS_HDL mds_hdl,
+uint32_t is_service_on_adest(MDS_HDL mds_hdl,
                           MDS_SVC_ID svc_id)
 {
   svc_to_mds_info.i_mds_hdl=mds_hdl;
@@ -1704,7 +1704,7 @@ uns32 is_service_on_adest(MDS_HDL mds_hdl,
   else
     return NCSCC_RC_FAILURE;
 }
-uns32 mds_service_query_for_pwe(MDS_HDL mds_hdl,
+uint32_t mds_service_query_for_pwe(MDS_HDL mds_hdl,
                                 MDS_SVC_ID svc_id)
 {
 
@@ -1746,7 +1746,7 @@ uns32 mds_service_query_for_pwe(MDS_HDL mds_hdl,
 /*******************CALL BACK ROUTINES*********************************/
 
 /* call back routine's definition */
-uns32 tet_mds_cb_cpy(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
+uint32_t tet_mds_cb_cpy(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
   TET_MDS_MSG *out_msg,*in_msg;
   
@@ -1773,7 +1773,7 @@ uns32 tet_mds_cb_cpy(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   */
   return NCSCC_RC_SUCCESS;
 }
-uns32 tet_mds_cb_enc(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
+uint32_t tet_mds_cb_enc(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
   uint8_t *p8;
   TET_MDS_MSG *msg;
@@ -1796,7 +1796,7 @@ uns32 tet_mds_cb_enc(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
          mds_to_svc_info->info.enc.i_to_svc_id);
   return NCSCC_RC_SUCCESS;
 }
-uns32 tet_mds_cb_dec(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
+uint32_t tet_mds_cb_dec(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
   uint8_t *p8;
   TET_MDS_MSG *msg;
@@ -1837,7 +1837,7 @@ uns32 tet_mds_cb_dec(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   return NCSCC_RC_SUCCESS;
 }
 
-uns32 tet_mds_cb_enc_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
+uint32_t tet_mds_cb_enc_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
   uint8_t *p8;
   TET_MDS_MSG *msg;
@@ -1860,7 +1860,7 @@ uns32 tet_mds_cb_enc_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
     mds_to_svc_info->info.enc_flat.i_to_svc_id);*/
   return NCSCC_RC_SUCCESS;
 }
-uns32 tet_mds_cb_dec_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
+uint32_t tet_mds_cb_dec_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
   uint8_t *p8;
   TET_MDS_MSG *msg;
@@ -1901,7 +1901,7 @@ uns32 tet_mds_cb_dec_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   return NCSCC_RC_SUCCESS;
   
 }
-uns32 tet_mds_cb_rcv(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
+uint32_t tet_mds_cb_rcv(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
   /*as usal this is preceded by one of cb_cpy or cb_dec or cb_dec_flat*/
   TET_MDS_MSG *msg;
@@ -1948,7 +1948,7 @@ uns32 tet_mds_cb_rcv(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   
   return NCSCC_RC_SUCCESS;
 }
-uns32 tet_mds_cb_direct_rcv(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
+uint32_t tet_mds_cb_direct_rcv(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
   /*when the message is not encoded, no need for decode. this is called in 
     case of a direct send*/
@@ -2003,7 +2003,7 @@ uns32 tet_mds_cb_direct_rcv(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   return NCSCC_RC_SUCCESS;
 }
 
-uns32 tet_mds_svc_event(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
+uint32_t tet_mds_svc_event(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
   int i,j,k;
   gl_event_data.ur_svc_id=mds_to_svc_info->info.svc_evt.i_your_id;
@@ -2148,7 +2148,7 @@ uns32 tet_mds_svc_event(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
     }
   return NCSCC_RC_SUCCESS;
 }
-uns32 tet_mds_sys_event(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
+uint32_t tet_mds_sys_event(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
   printf("The Subscriber Service id = %d\n",
          mds_to_svc_info->info.svc_evt.i_your_id);
@@ -2166,7 +2166,7 @@ uns32 tet_mds_sys_event(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   return NCSCC_RC_SUCCESS;
 }
 
-uns32 tet_mds_cb_quiesced_ack(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
+uint32_t tet_mds_cb_quiesced_ack(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
 {
   /*just to ackowledge the user that role got changed to quiesced*/
   printf("The Callback for Quiesced Ack got acknowledgement\n");
@@ -2174,7 +2174,7 @@ uns32 tet_mds_cb_quiesced_ack(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   return NCSCC_RC_SUCCESS;
 }
 #if 0
-uns32 mds_service_system_subscribe(MDS_HDL mds_hdl,MDS_SVC_ID svc_id,
+uint32_t mds_service_system_subscribe(MDS_HDL mds_hdl,MDS_SVC_ID svc_id,
                                    EVT_FLTR evt_map)
 {
   /*request*/
@@ -2197,7 +2197,7 @@ uns32 mds_service_system_subscribe(MDS_HDL mds_hdl,MDS_SVC_ID svc_id,
     }
 }
 
-uns32 change_role(MDS_HDL mds_hdl,MDS_SVC_ID svc_id,V_DEST_RL new_role)
+uint32_t change_role(MDS_HDL mds_hdl,MDS_SVC_ID svc_id,V_DEST_RL new_role)
 {
   /*request*/
   svc_to_mds_info.i_mds_hdl=mds_hdl;
@@ -2218,9 +2218,9 @@ uns32 change_role(MDS_HDL mds_hdl,MDS_SVC_ID svc_id,V_DEST_RL new_role)
       return NCSCC_RC_FAILURE;
     }    
 }
-static uns32 sys_names[] = {0,1};
+static uint32_t sys_names[] = {0,1};
 #endif
-uns32   tet_sync_point()
+uint32_t   tet_sync_point()
 {
 #if 0
   if (tet_remsync(0, sys_names, 4 ,30,

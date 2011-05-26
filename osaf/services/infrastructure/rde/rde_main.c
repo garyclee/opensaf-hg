@@ -75,7 +75,7 @@ static void sigusr1_handler(int sig)
 	ncs_sel_obj_ind(usr1_sel_obj);
 }
 
-uns32 rde_set_role(PCS_RDA_ROLE role)
+uint32_t rde_set_role(PCS_RDA_ROLE role)
 {
 	LOG_NO("rde_rde_set_role: role set to %d", role);
 
@@ -136,12 +136,12 @@ static void handle_mbx_event(void)
 	TRACE_LEAVE();
 }
 
-static uns32 discover_peer(int mbx_fd)
+static uint32_t discover_peer(int mbx_fd)
 {
 	struct pollfd fds[1];
 	struct rde_msg *msg;
 	int ret;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -194,12 +194,12 @@ done:
 	return rc;
 }
 
-static uns32 determine_role(int mbx_fd)
+static uint32_t determine_role(int mbx_fd)
 {
 	struct pollfd fds[1];
 	struct rde_msg *msg;
 	int ret;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -348,7 +348,7 @@ static int initialize_rde(void)
 
 int main(int argc, char *argv[])
 {
-	uns32 rc;
+	uint32_t rc;
 	nfds_t nfds = 3;
 	struct pollfd fds[nfds + RDA_MAX_CLIENTS];
 	int i, ret;

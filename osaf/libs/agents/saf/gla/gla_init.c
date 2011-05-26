@@ -34,11 +34,11 @@
 #include "glnd.h"
 
 /* global cb handle */
-uns32 gl_gla_hdl = 0;
-static uns32 gla_use_count = 0;
+uint32_t gl_gla_hdl = 0;
+static uint32_t gla_use_count = 0;
 
 /* GLA Agent creation specific LOCK */
-static uns32 gla_agent_lock_create = 0;
+static uint32_t gla_agent_lock_create = 0;
 NCS_LOCK gla_agent_lock;
 
 #define m_GLA_AGENT_LOCK                        \
@@ -52,8 +52,8 @@ NCS_LOCK gla_agent_lock;
 #define m_GLA_AGENT_UNLOCK m_NCS_UNLOCK(&gla_agent_lock, NCS_LOCK_WRITE)
 
 static void gla_sync_with_glnd(GLA_CB *cb);
-static uns32 gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT hdl_id);
-static uns32 gla_client_res_tree_cleanup(GLA_CLIENT_INFO *client_info);
+static uint32_t gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT hdl_id);
+static uint32_t gla_client_res_tree_cleanup(GLA_CLIENT_INFO *client_info);
 
 /****************************************************************************
   Name          : gla_lib_req
@@ -67,9 +67,9 @@ static uns32 gla_client_res_tree_cleanup(GLA_CLIENT_INFO *client_info);
  
   Notes         : None
 ******************************************************************************/
-uns32 gla_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t gla_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -104,7 +104,7 @@ uns32 gla_lib_req(NCS_LIB_REQ_INFO *req_info)
 void gla_sync_with_glnd(GLA_CB *cb)
 {
 	NCS_SEL_OBJ_SET set;
-	uns32 timeout = 3000;
+	uint32_t timeout = 3000;
 
 	m_NCS_LOCK(&cb->glnd_sync_lock, NCS_LOCK_WRITE);
 
@@ -143,10 +143,10 @@ void gla_sync_with_glnd(GLA_CB *cb)
  
   Notes         : None
 ******************************************************************************/
-uns32 gla_create(NCS_LIB_CREATE *create_info)
+uint32_t gla_create(NCS_LIB_CREATE *create_info)
 {
 	GLA_CB *cb = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* validate create info */
 	if (create_info == NULL)
@@ -257,7 +257,7 @@ uns32 gla_create(NCS_LIB_CREATE *create_info)
  
   Notes         : None
 ******************************************************************************/
-uns32 gla_destroy(NCS_LIB_DESTROY *destroy_info)
+uint32_t gla_destroy(NCS_LIB_DESTROY *destroy_info)
 {
 	GLA_CB *cb = 0;
 
@@ -312,7 +312,7 @@ uns32 gla_destroy(NCS_LIB_DESTROY *destroy_info)
  
   Notes         : None
 ******************************************************************************/
-uns32 gla_client_tree_init(GLA_CB *cb)
+uint32_t gla_client_tree_init(GLA_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -463,12 +463,12 @@ GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_i
 
   Notes         : None
 ******************************************************************************/
-uns32 gla_client_info_send(GLA_CB *gla_cb)
+uint32_t gla_client_info_send(GLA_CB *gla_cb)
 {
 	GLA_CLIENT_INFO *client_info;
 	GLSV_GLND_EVT restart_client_info_evt;
 	SaLckHandleT hdl_id = 0;
-	uns32 ret;
+	uint32_t ret;
 	hdl_id = 0;
 	uint16_t lck_clbk = 0;
 
@@ -519,11 +519,11 @@ uns32 gla_client_info_send(GLA_CB *gla_cb)
 
   Notes         : None
 ******************************************************************************/
-static uns32 gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT hdl_id)
+static uint32_t gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT hdl_id)
 {
 	GLA_RESOURCE_ID_INFO *res_info;
 	GLSV_GLND_EVT restart_res_info_evt;
-	uns32 ret;
+	uint32_t ret;
 
 	/* take the cb lock */
 	res_info = (GLA_RESOURCE_ID_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_resource_id_tree, (uint8_t *)0);
@@ -563,7 +563,7 @@ static uns32 gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT hdl_id)
  
   Notes         : None
 ******************************************************************************/
-uns32 gla_client_tree_delete_node(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, NCS_BOOL give_hdl)
+uint32_t gla_client_tree_delete_node(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, NCS_BOOL give_hdl)
 {
 	/* clean the queue */
 	glsv_gla_callback_queue_destroy(client_info);
@@ -592,7 +592,7 @@ uns32 gla_client_tree_delete_node(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, 
  
   Notes         : None
 ******************************************************************************/
-uns32 gla_res_tree_init(GLA_CB *cb)
+uint32_t gla_res_tree_init(GLA_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -636,7 +636,7 @@ void gla_res_tree_destroy(GLA_CB *gla_cb)
 
   Notes         : None
 ******************************************************************************/
-uns32 gla_client_res_tree_destroy(GLA_CLIENT_INFO *client_info)
+uint32_t gla_client_res_tree_destroy(GLA_CLIENT_INFO *client_info)
 {
 	/* cleanup the client tree */
 	gla_client_res_tree_cleanup(client_info);
@@ -684,7 +684,7 @@ void gla_res_tree_cleanup(GLA_CB *gla_cb)
 
   Notes         : None
 ******************************************************************************/
-static uns32 gla_client_res_tree_cleanup(GLA_CLIENT_INFO *client_info)
+static uint32_t gla_client_res_tree_cleanup(GLA_CLIENT_INFO *client_info)
 {
 	GLA_CLIENT_RES_INFO *client_res_info = NULL;
 	SaLckResourceIdT res_id = 0;
@@ -802,7 +802,7 @@ GLA_CLIENT_RES_INFO *gla_client_res_tree_find_and_add(GLA_CLIENT_INFO *client_in
  
   Notes         : None
 ******************************************************************************/
-uns32 gla_res_tree_delete_node(GLA_CB *gla_cb, GLA_RESOURCE_ID_INFO *res_info)
+uint32_t gla_res_tree_delete_node(GLA_CB *gla_cb, GLA_RESOURCE_ID_INFO *res_info)
 {
 	/* delete from the tree */
 	if (ncs_patricia_tree_del(&gla_cb->gla_resource_id_tree, &res_info->patnode) != NCSCC_RC_SUCCESS) {
@@ -884,7 +884,7 @@ void gla_res_tree_cleanup_client_down(GLA_CB *gla_cb, SaLckHandleT handle)
  
   Notes         : None
 ******************************************************************************/
-uns32 gla_lock_tree_init(GLA_CB *cb)
+uint32_t gla_lock_tree_init(GLA_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -997,7 +997,7 @@ GLA_LOCK_ID_INFO *gla_lock_tree_find_and_add(GLA_CB *gla_cb, SaLckLockIdT lock_i
  
   Notes         : None
 ******************************************************************************/
-uns32 gla_lock_tree_delete_node(GLA_CB *gla_cb, GLA_LOCK_ID_INFO *lock_info)
+uint32_t gla_lock_tree_delete_node(GLA_CB *gla_cb, GLA_LOCK_ID_INFO *lock_info)
 {
 
 	/* delete from the tree */
@@ -1171,7 +1171,7 @@ unsigned int ncs_gla_startup(void)
 ******************************************************************************/
 unsigned int ncs_gla_shutdown(void)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_GLA_AGENT_LOCK;
 	if (gla_use_count > 1) {

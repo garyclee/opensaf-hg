@@ -24,15 +24,15 @@
 
 extern SMFA_CB _smfa_cb;
 
-uns32 smfa_mds_callback(struct ncsmds_callback_info *);
-uns32 smfa_mds_rcv_cbk(MDS_CALLBACK_RECEIVE_INFO *);
-uns32 smfa_mds_svc_evt_cbk(MDS_CALLBACK_SVC_EVENT_INFO *);
+uint32_t smfa_mds_callback(struct ncsmds_callback_info *);
+uint32_t smfa_mds_rcv_cbk(MDS_CALLBACK_RECEIVE_INFO *);
+uint32_t smfa_mds_svc_evt_cbk(MDS_CALLBACK_SVC_EVENT_INFO *);
 
 /*************************************************************************** 
 @brief		: Register with MDS and Subscribe to SMFND svc evts.
 @return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 *****************************************************************************/
-uns32 smfa_mds_register()
+uint32_t smfa_mds_register()
 {
 	NCSADA_INFO arg;
 	NCSMDS_INFO svc_info;
@@ -85,7 +85,7 @@ uns32 smfa_mds_register()
 @brief		: Unregister with MDS.
 @return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 *****************************************************************************/
-uns32 smfa_mds_unregister()
+uint32_t smfa_mds_unregister()
 {
 	NCSMDS_INFO svc_info;
 	SMFA_CB *cb = &_smfa_cb;
@@ -106,7 +106,7 @@ uns32 smfa_mds_unregister()
 @param[in]	: evt - evt to be sent.
 @return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 *****************************************************************************/
-uns32 smfa_to_smfnd_mds_async_send(NCSCONTEXT evt)
+uint32_t smfa_to_smfnd_mds_async_send(NCSCONTEXT evt)
 {
 	NCSMDS_INFO   info;
 	SMFA_CB *cb = &_smfa_cb;
@@ -131,9 +131,9 @@ uns32 smfa_to_smfnd_mds_async_send(NCSCONTEXT evt)
 @param[in]	: info - MDS callback info.
 @return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 *****************************************************************************/
-uns32 smfa_mds_callback(struct ncsmds_callback_info *info)
+uint32_t smfa_mds_callback(struct ncsmds_callback_info *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SMFSV_EVT *evt;
 	NCS_UBAID *uba;
 	
@@ -181,7 +181,7 @@ uns32 smfa_mds_callback(struct ncsmds_callback_info *info)
 @param[in]	: svc_evt - MDS svc event callback info.
 @return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 *****************************************************************************/
-uns32 smfa_mds_svc_evt_cbk(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+uint32_t smfa_mds_svc_evt_cbk(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
 	SMFA_CB *cb = &_smfa_cb;
 
@@ -222,13 +222,13 @@ uns32 smfa_mds_svc_evt_cbk(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 @param[in]	: rcv_evt - MDS rcv callback info.
 @return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 *****************************************************************************/
-uns32 smfa_mds_rcv_cbk(MDS_CALLBACK_RECEIVE_INFO *rcv_evt)
+uint32_t smfa_mds_rcv_cbk(MDS_CALLBACK_RECEIVE_INFO *rcv_evt)
 {
 	SMFSV_EVT *smfsv_evt = rcv_evt->i_msg;
 	SMF_EVT *evt = &smfsv_evt->info.smfa.event.cbk_req_rsp;
 	SMFA_CLIENT_INFO *client_info = NULL;
 	SMFA_CB *cb = &_smfa_cb;
-	uns32 filter_match = FALSE;
+	uint32_t filter_match = FALSE;
 	SMFSV_EVT resp_evt;
 
 	if (NULL == evt){

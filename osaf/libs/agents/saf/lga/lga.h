@@ -81,10 +81,10 @@ typedef struct {
 extern lga_cb_t lga_cb;
 
 /* lga_mds.c */
-extern uns32 lga_mds_init(lga_cb_t *cb);
+extern uint32_t lga_mds_init(lga_cb_t *cb);
 extern void lga_mds_finalize(lga_cb_t *cb);
-extern uns32 lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_msg, uns32 timeout,uns32 prio);
-extern uns32 lga_mds_msg_async_send(lga_cb_t *cb, lgsv_msg_t *i_msg, uns32 prio);
+extern uint32_t lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_msg, uint32_t timeout,uint32_t prio);
+extern uint32_t lga_mds_msg_async_send(lga_cb_t *cb, lgsv_msg_t *i_msg, uint32_t prio);
 extern void lgsv_lga_evt_free(struct lgsv_msg *);
 
 /* lga_init.c */
@@ -93,18 +93,18 @@ extern unsigned int lga_shutdown(void);
 
 /* lga_hdl.c */
 extern SaAisErrorT lga_hdl_cbk_dispatch(lga_cb_t *, lga_client_hdl_rec_t *, SaDispatchFlagsT);
-extern lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *lga_cb, const SaLogCallbacksT *reg_cbks, uns32 client_id);
+extern lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *lga_cb, const SaLogCallbacksT *reg_cbks, uint32_t client_id);
 extern lga_log_stream_hdl_rec_t *lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t **hdl_rec,
-							    uns32 log_stream_id,
-							    uns32 log_stream_open_flags,
-							    const SaNameT *logStreamName, uns32 log_header_type);
+							    uint32_t log_stream_id,
+							    uint32_t log_stream_open_flags,
+							    const SaNameT *logStreamName, uint32_t log_header_type);
 extern void lga_hdl_list_del(lga_client_hdl_rec_t **);
-extern uns32 lga_hdl_rec_del(lga_client_hdl_rec_t **, lga_client_hdl_rec_t *);
-extern uns32 lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **, lga_log_stream_hdl_rec_t *);
+extern uint32_t lga_hdl_rec_del(lga_client_hdl_rec_t **, lga_client_hdl_rec_t *);
+extern uint32_t lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **, lga_log_stream_hdl_rec_t *);
 extern NCS_BOOL lga_validate_lga_client_hdl(lga_cb_t *lga_cb, lga_client_hdl_rec_t *find_hdl_rec);
 
 /* lga_util.c */
-extern lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uns32 client_id);
+extern lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uint32_t client_id);
 extern void lga_msg_destroy(lgsv_msg_t *msg);
 
 #endif   /* !LGA_H */

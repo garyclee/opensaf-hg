@@ -40,93 +40,93 @@
 #include "avnd_ckpt_edu.h"
 
 /* Declaration of async update functions */
-static uns32 avnd_decode_ckpt_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
-static uns32 avnd_decode_ckpt_hc_period(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_hc_max_dur(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_hc_period(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_hc_max_dur(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
-static uns32 avnd_decode_ckpt_su_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_err_esc_level(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_comp_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_comp_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_comp_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_err_esc_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_err_esc_level(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_comp_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_comp_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_comp_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_err_esc_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
-static uns32 avnd_decode_ckpt_comp_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_reg_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_reg_dest(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_term_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_csi_set_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_quies_cmplt_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_csi_rmv_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_pxied_inst_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_pxied_clean_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_err_info(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_def_recovery(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_pend_evt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_orph_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_node_id(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_type(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_reg_resp_pending(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_inst_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_term_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_inst_retry_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_inst_retry_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_exec_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_cmd_exec_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_inst_cmd_ts(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_clc_reg_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_inst_code_rcvd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_reg_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_reg_dest(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_term_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_csi_set_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_quies_cmplt_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_csi_rmv_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_pxied_inst_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_pxied_clean_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_err_info(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_def_recovery(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_pend_evt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_orph_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_node_id(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_type(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_reg_resp_pending(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_inst_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_term_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_inst_retry_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_inst_retry_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_exec_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_cmd_exec_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_inst_cmd_ts(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_clc_reg_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_inst_code_rcvd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
-static uns32 avnd_decode_ckpt_su_si_rec_curr_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_si_rec_curr_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
-static uns32 avnd_decode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_csi_prv_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_csi_prv_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
-static uns32 avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
-static uns32 avnd_decode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avnd_decode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avnd_decode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
 /* Declaration of static cold sync decode functions */
-static uns32 avnd_decode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 avnd_decode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 avnd_decode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 avnd_decode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 avnd_decode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 avnd_decode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 avnd_decode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 avnd_decode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
+static uint32_t avnd_decode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t avnd_decode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t avnd_decode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t avnd_decode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t avnd_decode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t avnd_decode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t avnd_decode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t avnd_decode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
 
-static uns32 avnd_decode_cold_sync_rsp_async_updt_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
+static uint32_t avnd_decode_cold_sync_rsp_async_updt_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
 
 /*
  * Function list for decoding the async data.
@@ -252,10 +252,10 @@ const AVND_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR avnd_dec_cold_sync_rsp_data_func_l
  *
  *
 \**************************************************************************/
-uns32 avnd_decode_cold_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+uint32_t avnd_decode_cold_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 num_of_obj;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t num_of_obj;
 	uint8_t *ptr;
 
 
@@ -263,9 +263,9 @@ uns32 avnd_decode_cold_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Since at decode we need to find out how many objects of particular data
 	 * type are sent, decode that information at the begining of the message.
 	 */
-	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_obj, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_obj, sizeof(uint32_t));
 	num_of_obj = ncs_decode_32bit(&ptr);
-	ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
+	ncs_dec_skip_space(&dec->i_uba, sizeof(uint32_t));
 
 	/*
 	 * Decode data received in the message.
@@ -290,10 +290,10 @@ uns32 avnd_decode_cold_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-uns32 avnd_decode_data_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+uint32_t avnd_decode_data_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 num_of_obj;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t num_of_obj;
 	uint8_t *ptr;
 
 
@@ -301,9 +301,9 @@ uns32 avnd_decode_data_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Since at decode we need to find out how many objects of particular data
 	 * type are sent, decode that information at the begining of the message.
 	 */
-	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_obj, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_obj, sizeof(uint32_t));
 	num_of_obj = ncs_decode_32bit(&ptr);
-	ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
+	ncs_dec_skip_space(&dec->i_uba, sizeof(uint32_t));
 
 	/*
 	 * Decode data received in the message.
@@ -329,10 +329,10 @@ uns32 avnd_decode_data_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uns32 avnd_decode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t avnd_decode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 count = 0;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t count = 0;
 	EDU_ERR ederror = 0;
 	AVND_SU *su_ptr = NULL;
 	AVND_SU dec_su;
@@ -376,10 +376,10 @@ static uns32 avnd_decode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *
  *
  * 
 \**************************************************************************/
-static uns32 avnd_decode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t avnd_decode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 count = 0;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t count = 0;
 	EDU_ERR ederror = 0;
 	AVND_SU_SI_REC *su_si_ckpt;
 	AVND_SU_SI_REC dec_su_si_ckpt;
@@ -420,10 +420,10 @@ static uns32 avnd_decode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *
  *
  * 
 \**************************************************************************/
-static uns32 avnd_decode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t avnd_decode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 count = 0;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t count = 0;
 	EDU_ERR ederror = 0;
 	AVND_SU_SIQ_REC *su_siq_ckpt;
 	AVND_SU_SIQ_REC dec_su_siq_ckpt;
@@ -467,10 +467,10 @@ static uns32 avnd_decode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
  *
  * 
 \**************************************************************************/
-static uns32 avnd_decode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t avnd_decode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 count = 0;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t count = 0;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_ptr;
 	AVND_COMP dec_comp;
@@ -511,10 +511,10 @@ static uns32 avnd_decode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC
  *
  * 
 \**************************************************************************/
-static uns32 avnd_decode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t avnd_decode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 count = 0;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t count = 0;
 	EDU_ERR ederror = 0;
 	AVND_COMP_CSI_REC *csi_ptr_dec;
 	AVND_COMP_CSI_REC dec_csi;
@@ -558,10 +558,10 @@ static uns32 avnd_decode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
  *
  * 
 \**************************************************************************/
-static uns32 avnd_decode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t avnd_decode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 count = 0;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t count = 0;
 	EDU_ERR ederror = 0;
 	AVND_COMP_HC_REC *hlt_ptr;
 	AVND_COMP_HC_REC dec_hlt;
@@ -603,10 +603,10 @@ static uns32 avnd_decode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DE
  *
  * 
 \**************************************************************************/
-static uns32 avnd_decode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t avnd_decode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 count = 0;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t count = 0;
 	EDU_ERR ederror = 0;
 	AVND_COMP_CBK *cbk_ptr;
 	AVND_COMP_CBK cbk_info;
@@ -648,13 +648,13 @@ static uns32 avnd_decode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DE
  *
  * 
 \**************************************************************************/
-static uns32 avnd_decode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t avnd_decode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_HC *hlt_ptr;
 	AVND_HC dec_hlt;
-	uns32 count = 0;
+	uint32_t count = 0;
 
 
 	hlt_ptr = &dec_hlt;
@@ -696,9 +696,9 @@ static uns32 avnd_decode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC 
  *
  *
 \**************************************************************************/
-uns32 avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+uint32_t avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_ASYNC_UPDT_CNT *updt_cnt;
 	AVND_ASYNC_UPDT_CNT dec_updt_cnt;
 	EDU_ERR ederror = 0;
@@ -779,7 +779,7 @@ uns32 avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-uns32 avnd_decode_data_req(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+uint32_t avnd_decode_data_req(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	/*
 	 * Don't decode anything...just return success.
@@ -802,9 +802,9 @@ uns32 avnd_decode_data_req(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_cold_sync_rsp_async_updt_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uint32_t avnd_decode_cold_sync_rsp_async_updt_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_ASYNC_UPDT_CNT *updt_cnt;
 	EDU_ERR ederror = 0;
 
@@ -837,9 +837,9 @@ static uns32 avnd_decode_cold_sync_rsp_async_updt_cnt(AVND_CB *cb, NCS_MBCSV_CB_
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_HC *hlt_config_ptr;
 	AVND_HC dec_hlt_config;
 	EDU_ERR ederror = 0;
@@ -901,9 +901,9 @@ static uns32 avnd_decode_ckpt_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_SU *su_ptr;
 	AVND_SU dec_su;
 	EDU_ERR ederror = 0;
@@ -965,9 +965,9 @@ static uns32 avnd_decode_ckpt_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_COMP *comp_ptr;
 	AVND_COMP dec_comp;
 	EDU_ERR ederror = 0;
@@ -1029,9 +1029,9 @@ static uns32 avnd_decode_ckpt_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_SU_SI_REC *su_si_ptr;
 	AVND_SU_SI_REC dec_su_si;
 	EDU_ERR ederror = 0;
@@ -1093,9 +1093,9 @@ static uns32 avnd_decode_ckpt_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_SU_SIQ_REC *siq_ptr;
 	AVND_SU_SIQ_REC dec_siq;
 	AVND_SU_SI_PARAM *su_si_param_ptr = NULL;
@@ -1160,9 +1160,9 @@ static uns32 avnd_decode_ckpt_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_COMP_CSI_REC *csi_ptr;
 	AVND_COMP_CSI_REC dec_csi;
 	EDU_ERR ederror = 0;
@@ -1225,9 +1225,9 @@ static uns32 avnd_decode_ckpt_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_COMP_HC_REC *comp_hc_ptr;
 	AVND_COMP_HC_REC dec_comp_hc;
 	EDU_ERR ederror = 0;
@@ -1290,9 +1290,9 @@ static uns32 avnd_decode_ckpt_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_COMP_CBK *comp_cbk_ptr;
 	AVND_COMP_CBK dec_comp_cbk;
 	EDU_ERR ederror = 0;
@@ -1354,9 +1354,9 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_hc_period(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_hc_period(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_HC *hc_ptr = NULL;
 	AVND_HC dec_hc;
@@ -1404,9 +1404,9 @@ static uns32 avnd_decode_ckpt_hc_period(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_hc_max_dur(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_hc_max_dur(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_HC *hc_ptr = NULL;
 	AVND_HC dec_hc;
@@ -1454,9 +1454,9 @@ static uns32 avnd_decode_ckpt_hc_max_dur(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU *su_dec_ptr = NULL;
 	AVND_SU dec_su;
@@ -1504,9 +1504,9 @@ static uns32 avnd_decode_ckpt_su_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_err_esc_level(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_err_esc_level(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU *su_dec_ptr = NULL;
 	AVND_SU dec_su;
@@ -1554,9 +1554,9 @@ static uns32 avnd_decode_ckpt_su_err_esc_level(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_comp_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_comp_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU *su_dec_ptr = NULL;
 	AVND_SU dec_su;
@@ -1604,9 +1604,9 @@ static uns32 avnd_decode_ckpt_su_comp_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_comp_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_comp_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU *su_dec_ptr = NULL;
 	AVND_SU dec_su;
@@ -1654,9 +1654,9 @@ static uns32 avnd_decode_ckpt_su_comp_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC 
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU *su_dec_ptr = NULL;
 	AVND_SU dec_su;
@@ -1704,9 +1704,9 @@ static uns32 avnd_decode_ckpt_su_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU *su_dec_ptr = NULL;
 	AVND_SU dec_su;
@@ -1754,9 +1754,9 @@ static uns32 avnd_decode_ckpt_su_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_comp_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_comp_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU *su_dec_ptr = NULL;
 	AVND_SU dec_su;
@@ -1804,9 +1804,9 @@ static uns32 avnd_decode_ckpt_su_comp_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC 
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU *su_dec_ptr = NULL;
 	AVND_SU dec_su;
@@ -1854,9 +1854,9 @@ static uns32 avnd_decode_ckpt_su_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_err_esc_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_err_esc_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU *su_dec_ptr = NULL;
 	AVND_SU dec_su;
@@ -1905,9 +1905,9 @@ static uns32 avnd_decode_ckpt_su_err_esc_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU *su_dec_ptr = NULL;
 	AVND_SU dec_su;
@@ -1955,9 +1955,9 @@ static uns32 avnd_decode_ckpt_su_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU *su_dec_ptr = NULL;
 	AVND_SU dec_su;
@@ -2005,9 +2005,9 @@ static uns32 avnd_decode_ckpt_su_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2055,9 +2055,9 @@ static uns32 avnd_decode_ckpt_comp_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_reg_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_reg_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2105,9 +2105,9 @@ static uns32 avnd_decode_ckpt_comp_reg_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_reg_dest(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_reg_dest(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2155,9 +2155,9 @@ static uns32 avnd_decode_ckpt_comp_reg_dest(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2205,9 +2205,9 @@ static uns32 avnd_decode_ckpt_comp_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2255,9 +2255,9 @@ static uns32 avnd_decode_ckpt_comp_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_term_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_term_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2305,9 +2305,9 @@ static uns32 avnd_decode_ckpt_comp_term_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DE
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_csi_set_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_csi_set_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2355,9 +2355,9 @@ static uns32 avnd_decode_ckpt_comp_csi_set_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_quies_cmplt_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_quies_cmplt_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2405,9 +2405,9 @@ static uns32 avnd_decode_ckpt_comp_quies_cmplt_cbk_timeout(AVND_CB *cb, NCS_MBCS
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_csi_rmv_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_csi_rmv_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2455,9 +2455,9 @@ static uns32 avnd_decode_ckpt_comp_csi_rmv_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_pxied_inst_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_pxied_inst_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2505,9 +2505,9 @@ static uns32 avnd_decode_ckpt_comp_pxied_inst_cbk_timeout(AVND_CB *cb, NCS_MBCSV
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_pxied_clean_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_pxied_clean_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2555,9 +2555,9 @@ static uns32 avnd_decode_ckpt_comp_pxied_clean_cbk_timeout(AVND_CB *cb, NCS_MBCS
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_err_info(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_err_info(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2608,9 +2608,9 @@ static uns32 avnd_decode_ckpt_comp_err_info(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_def_recovery(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_def_recovery(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2658,9 +2658,9 @@ static uns32 avnd_decode_ckpt_comp_def_recovery(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_pend_evt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_pend_evt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2708,9 +2708,9 @@ static uns32 avnd_decode_ckpt_comp_pend_evt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_orph_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_orph_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2758,9 +2758,9 @@ static uns32 avnd_decode_ckpt_comp_orph_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_node_id(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_node_id(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2808,9 +2808,9 @@ static uns32 avnd_decode_ckpt_comp_node_id(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_type(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_type(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2858,9 +2858,9 @@ static uns32 avnd_decode_ckpt_comp_type(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2909,9 +2909,9 @@ static uns32 avnd_decode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_reg_resp_pending(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_reg_resp_pending(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -2959,9 +2959,9 @@ static uns32 avnd_decode_ckpt_comp_reg_resp_pending(AVND_CB *cb, NCS_MBCSV_CB_DE
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3015,9 +3015,9 @@ static uns32 avnd_decode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3071,9 +3071,9 @@ static uns32 avnd_decode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_inst_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_inst_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3122,9 +3122,9 @@ static uns32 avnd_decode_ckpt_comp_inst_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_term_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_term_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3173,9 +3173,9 @@ static uns32 avnd_decode_ckpt_comp_term_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_inst_retry_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_inst_retry_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3223,9 +3223,9 @@ static uns32 avnd_decode_ckpt_comp_inst_retry_max(AVND_CB *cb, NCS_MBCSV_CB_DEC 
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_inst_retry_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_inst_retry_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3273,9 +3273,9 @@ static uns32 avnd_decode_ckpt_comp_inst_retry_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC 
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_exec_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_exec_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3323,9 +3323,9 @@ static uns32 avnd_decode_ckpt_comp_exec_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_cmd_exec_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_cmd_exec_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3373,9 +3373,9 @@ static uns32 avnd_decode_ckpt_comp_cmd_exec_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_inst_cmd_ts(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_inst_cmd_ts(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3423,9 +3423,9 @@ static uns32 avnd_decode_ckpt_comp_inst_cmd_ts(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_clc_reg_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_clc_reg_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3474,9 +3474,9 @@ static uns32 avnd_decode_ckpt_comp_clc_reg_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_inst_code_rcvd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_inst_code_rcvd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3524,9 +3524,9 @@ static uns32 avnd_decode_ckpt_comp_inst_code_rcvd(AVND_CB *cb, NCS_MBCSV_CB_DEC 
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3594,9 +3594,9 @@ static uns32 avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_CB_D
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP *comp_dec_ptr = NULL;
 	AVND_COMP dec_comp;
@@ -3664,9 +3664,9 @@ static uns32 avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_CB_D
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_si_rec_curr_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_si_rec_curr_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU_SI_REC *su_si_dec_ptr = NULL;
 	AVND_SU_SI_REC dec_su_si;
@@ -3714,9 +3714,9 @@ static uns32 avnd_decode_ckpt_su_si_rec_curr_state(AVND_CB *cb, NCS_MBCSV_CB_DEC
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU_SI_REC *su_si_dec_ptr = NULL;
 	AVND_SU_SI_REC dec_su_si;
@@ -3764,9 +3764,9 @@ static uns32 avnd_decode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_DEC 
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU_SI_REC *su_si_dec_ptr = NULL;
 	AVND_SU_SI_REC dec_su_si;
@@ -3814,9 +3814,9 @@ static uns32 avnd_decode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MBCSV
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_SU_SI_REC *su_si_dec_ptr = NULL;
 	AVND_SU_SI_REC dec_su_si;
@@ -3864,9 +3864,9 @@ static uns32 avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP_CSI_REC *csi_dec_ptr = NULL;
 	AVND_COMP_CSI_REC dec_csi;
@@ -3914,9 +3914,9 @@ static uns32 avnd_decode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_D
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP_CSI_REC *csi_dec_ptr = NULL;
 	AVND_COMP_CSI_REC dec_csi;
@@ -3964,9 +3964,9 @@ static uns32 avnd_decode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_DEC 
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP_CSI_REC *csi_dec_ptr = NULL;
 	AVND_COMP_CSI_REC dec_csi;
@@ -4014,9 +4014,9 @@ static uns32 avnd_decode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB_DE
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP_CSI_REC *csi_dec_ptr = NULL;
 	AVND_COMP_CSI_REC dec_csi;
@@ -4064,9 +4064,9 @@ static uns32 avnd_decode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBCSV_
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_csi_prv_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_csi_prv_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP_CSI_REC *csi_dec_ptr = NULL;
 	AVND_COMP_CSI_REC dec_csi;
@@ -4114,9 +4114,9 @@ static uns32 avnd_decode_ckpt_comp_csi_prv_assign_state(AVND_CB *cb, NCS_MBCSV_C
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP_HC_REC *comp_hc_dec_ptr = NULL;
 	AVND_COMP_HC_REC *comp_hc_rec = NULL;
@@ -4176,9 +4176,9 @@ static uns32 avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DEC *
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP_HC_REC *comp_hc_dec_ptr = NULL;
 	AVND_COMP_HC_REC *comp_hc_rec = NULL;
@@ -4238,9 +4238,9 @@ static uns32 avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP_CBK *comp_cbk_dec_ptr = NULL;
 	AVND_COMP_CBK *comp_cbk_rec = NULL;
@@ -4309,9 +4309,9 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP_CBK *comp_cbk_dec_ptr = NULL;
 	AVND_COMP_CBK *comp_cbk_rec = NULL;
@@ -4380,9 +4380,9 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP_CBK *comp_cbk_dec_ptr = NULL;
 	AVND_COMP_CBK *comp_cbk_rec = NULL;
@@ -4451,9 +4451,9 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avnd_decode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	AVND_COMP_CBK *comp_cbk_dec_ptr = NULL;
 	AVND_COMP_CBK *comp_cbk_rec = NULL;

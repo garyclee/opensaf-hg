@@ -40,9 +40,9 @@ SaEvtEventFilterArrayT *edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT 
 
 void edsv_free_evt_filter_array(SaEvtEventFilterArrayT *free_filter_array);
 
-MDS_SEND_PRIORITY_TYPE edsv_map_ais_prio_to_mds_snd_prio(uns32 evt_prio);
+MDS_SEND_PRIORITY_TYPE edsv_map_ais_prio_to_mds_snd_prio(uint32_t evt_prio);
 
-uns32 eds_calc_filter_size(SaEvtEventFilterArrayT *);
+uint32_t eds_calc_filter_size(SaEvtEventFilterArrayT *);
 
 void eda_free_event_patterns(SaEvtEventPatternT *, SaSizeT);
 

@@ -90,8 +90,8 @@ typedef struct tet_vdest{
 typedef struct mds_tet_msg{
 #define TET_MSG_SIZE_MAX  45875200
 #define TET_MSG_SIZE_MIN  3000
-  uns32 send_len;
-  uns32 recvd_len;
+  uint32_t send_len;
+  uint32_t recvd_len;
   /*char *send_data; this is best approach*/
   /*char *recvd_data;this is best approach*/
   char  send_data[TET_MSG_SIZE_MIN];
@@ -152,97 +152,97 @@ int                    gl_RECEIVE_CB_FAIL;
 int                    gl_COPY_CB_FAIL;
 
 
-uns32 ncs_encode_16bit(uint8_t **,uns32);
+uint32_t ncs_encode_16bit(uint8_t **,uint32_t);
 uint16_t ncs_decode_16bit(uint8_t **);
 
-uns32 tet_mds_svc_callback(NCSMDS_CALLBACK_INFO *);
+uint32_t tet_mds_svc_callback(NCSMDS_CALLBACK_INFO *);
 /******************MDS call back routines *********************************/
-uns32 tet_mds_cb_cpy         (NCSMDS_CALLBACK_INFO *);
-uns32 tet_mds_cb_enc         (NCSMDS_CALLBACK_INFO *);
-uns32 tet_mds_cb_dec         (NCSMDS_CALLBACK_INFO *);
-uns32 tet_mds_cb_enc_flat    (NCSMDS_CALLBACK_INFO *);
-uns32 tet_mds_cb_dec_flat    (NCSMDS_CALLBACK_INFO *);
-uns32 tet_mds_cb_rcv         (NCSMDS_CALLBACK_INFO *);
-uns32 tet_mds_svc_event      (NCSMDS_CALLBACK_INFO *);
-uns32 tet_mds_sys_event      (NCSMDS_CALLBACK_INFO *);
-uns32 tet_mds_cb_quiesced_ack(NCSMDS_CALLBACK_INFO *);
-uns32 tet_mds_cb_direct_rcv  (NCSMDS_CALLBACK_INFO *);
-/*uns32 tet_mds_svc_max   (NCSMDS_CALLBACK_INFO *mds_to_svc_info);*/
+uint32_t tet_mds_cb_cpy         (NCSMDS_CALLBACK_INFO *);
+uint32_t tet_mds_cb_enc         (NCSMDS_CALLBACK_INFO *);
+uint32_t tet_mds_cb_dec         (NCSMDS_CALLBACK_INFO *);
+uint32_t tet_mds_cb_enc_flat    (NCSMDS_CALLBACK_INFO *);
+uint32_t tet_mds_cb_dec_flat    (NCSMDS_CALLBACK_INFO *);
+uint32_t tet_mds_cb_rcv         (NCSMDS_CALLBACK_INFO *);
+uint32_t tet_mds_svc_event      (NCSMDS_CALLBACK_INFO *);
+uint32_t tet_mds_sys_event      (NCSMDS_CALLBACK_INFO *);
+uint32_t tet_mds_cb_quiesced_ack(NCSMDS_CALLBACK_INFO *);
+uint32_t tet_mds_cb_direct_rcv  (NCSMDS_CALLBACK_INFO *);
+/*uint32_t tet_mds_svc_max   (NCSMDS_CALLBACK_INFO *mds_to_svc_info);*/
 /**********************************************************************/
-uns32 tet_initialize_setup(NCS_BOOL);
-uns32 tet_cleanup_setup(void);
+uint32_t tet_initialize_setup(NCS_BOOL);
+uint32_t tet_cleanup_setup(void);
 
 /***************  USER DEFINED WRAPPERS FOR MDS DEST APIs     *************/
 
-uns32 adest_get_handle(void);
-uns32 create_pwe_on_adest(MDS_HDL,PW_ENV_ID);
-uns32 destroy_pwe_on_adest(MDS_HDL);
-uns32 create_vdest(NCS_VDEST_TYPE,MDS_DEST);
-uns32 create_named_vdest(NCS_BOOL,NCS_VDEST_TYPE,char *);
+uint32_t adest_get_handle(void);
+uint32_t create_pwe_on_adest(MDS_HDL,PW_ENV_ID);
+uint32_t destroy_pwe_on_adest(MDS_HDL);
+uint32_t create_vdest(NCS_VDEST_TYPE,MDS_DEST);
+uint32_t create_named_vdest(NCS_BOOL,NCS_VDEST_TYPE,char *);
 MDS_DEST vdest_lookup(char *);
-uns32 vdest_change_role(MDS_DEST ,V_DEST_RL);
-uns32 destroy_vdest(MDS_DEST);
-uns32 destroy_named_vdest(NCS_BOOL,MDS_DEST,char *);
-uns32 create_pwe_on_vdest(MDS_HDL,PW_ENV_ID);
-uns32 destroy_pwe_on_vdest(MDS_HDL);
+uint32_t vdest_change_role(MDS_DEST ,V_DEST_RL);
+uint32_t destroy_vdest(MDS_DEST);
+uint32_t destroy_named_vdest(NCS_BOOL,MDS_DEST,char *);
+uint32_t create_pwe_on_vdest(MDS_HDL,PW_ENV_ID);
+uint32_t destroy_pwe_on_vdest(MDS_HDL);
 
 
 /**************     USER DEFINED WRAPPERS FOR MDS SERVICE APIs **************/
 
-uns32 tet_create_task(NCS_OS_CB ,NCSCONTEXT );
+uint32_t tet_create_task(NCS_OS_CB ,NCSCONTEXT );
 int is_adest_sel_obj_found(int );
 int is_sel_obj_found(int);
 int is_vdest_sel_obj_found(int ,int );
 void tet_mds_free_msg(NCSCONTEXT msg_to_be_freed);
 
-uns32 mds_service_install(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_PVT_SUB_PART_VER ,NCSMDS_SCOPE_TYPE,NCS_BOOL,NCS_BOOL);
-uns32 mds_service_subscribe(MDS_HDL,MDS_SVC_ID ,NCSMDS_SCOPE_TYPE ,uint8_t ,
+uint32_t mds_service_install(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_PVT_SUB_PART_VER ,NCSMDS_SCOPE_TYPE,NCS_BOOL,NCS_BOOL);
+uint32_t mds_service_subscribe(MDS_HDL,MDS_SVC_ID ,NCSMDS_SCOPE_TYPE ,uint8_t ,
                             MDS_SVC_ID *);
-uns32 mds_service_redundant_subscribe(MDS_HDL ,MDS_SVC_ID ,
+uint32_t mds_service_redundant_subscribe(MDS_HDL ,MDS_SVC_ID ,
                                       NCSMDS_SCOPE_TYPE ,uint8_t ,MDS_SVC_ID *);
-uns32 mds_service_system_subscribe(MDS_HDL ,MDS_SVC_ID ,EVT_FLTR );
-uns32 mds_service_cancel_subscription(MDS_HDL ,MDS_SVC_ID ,uint8_t ,
+uint32_t mds_service_system_subscribe(MDS_HDL ,MDS_SVC_ID ,EVT_FLTR );
+uint32_t mds_service_cancel_subscription(MDS_HDL ,MDS_SVC_ID ,uint8_t ,
                                       MDS_SVC_ID *);
-uns32 mds_service_uninstall(MDS_HDL ,MDS_SVC_ID);
+uint32_t mds_service_uninstall(MDS_HDL ,MDS_SVC_ID);
 
-uns32 mds_send_message(MDS_HDL ,MDS_SVC_ID ,NCSCONTEXT ,MDS_SVC_ID ,
-                       MDS_SEND_PRIORITY_TYPE ,MDS_SENDTYPES,MDS_DEST ,uns32 ,
+uint32_t mds_send_message(MDS_HDL ,MDS_SVC_ID ,NCSCONTEXT ,MDS_SVC_ID ,
+                       MDS_SEND_PRIORITY_TYPE ,MDS_SENDTYPES,MDS_DEST ,uint32_t ,
                        MDS_DIRECT_BUFF ,uint16_t ,MDS_SYNC_SND_CTXT ,
                        NCSMDS_SCOPE_TYPE ,V_DEST_QA );
 
 /* Non Redundant */
-uns32 mds_just_send(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,MDS_DEST,
+uint32_t mds_just_send(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,MDS_DEST,
                     MDS_SEND_PRIORITY_TYPE,TET_MDS_MSG * );
-uns32 mds_send_get_ack(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,MDS_DEST ,uns32 ,
+uint32_t mds_send_get_ack(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,MDS_DEST ,uint32_t ,
                        MDS_SEND_PRIORITY_TYPE,TET_MDS_MSG *);
-uns32 mds_send_get_response(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,MDS_DEST ,
-                            uns32 ,MDS_SEND_PRIORITY_TYPE,TET_MDS_MSG *);
-uns32 mds_send_response(MDS_HDL ,MDS_SVC_ID ,TET_MDS_MSG *);
-uns32 mds_sendrsp_getack(MDS_HDL,MDS_SVC_ID ,uns32,TET_MDS_MSG *);
-uns32 mds_broadcast_to_svc(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,
+uint32_t mds_send_get_response(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,MDS_DEST ,
+                            uint32_t ,MDS_SEND_PRIORITY_TYPE,TET_MDS_MSG *);
+uint32_t mds_send_response(MDS_HDL ,MDS_SVC_ID ,TET_MDS_MSG *);
+uint32_t mds_sendrsp_getack(MDS_HDL,MDS_SVC_ID ,uint32_t,TET_MDS_MSG *);
+uint32_t mds_broadcast_to_svc(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,
                            NCSMDS_SCOPE_TYPE ,MDS_SEND_PRIORITY_TYPE,
                            TET_MDS_MSG *);
 
 
 /*Direct Send*/
-uns32 mds_direct_send_message(MDS_HDL,MDS_SVC_ID,MDS_SVC_ID,
+uint32_t mds_direct_send_message(MDS_HDL,MDS_SVC_ID,MDS_SVC_ID,
                               MDS_CLIENT_MSG_FORMAT_VER,MDS_SENDTYPES,
-                              MDS_DEST,uns32,MDS_SEND_PRIORITY_TYPE,char *);
-uns32 mds_direct_broadcast_message(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,
+                              MDS_DEST,uint32_t,MDS_SEND_PRIORITY_TYPE,char *);
+uint32_t mds_direct_broadcast_message(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,
                                    MDS_CLIENT_MSG_FORMAT_VER,
                                    MDS_SENDTYPES ,NCSMDS_SCOPE_TYPE,
                                    MDS_SEND_PRIORITY_TYPE);
-uns32 mds_direct_response(MDS_HDL ,MDS_SVC_ID, MDS_CLIENT_MSG_FORMAT_VER, MDS_SENDTYPES ,uns32 );
+uint32_t mds_direct_response(MDS_HDL ,MDS_SVC_ID, MDS_CLIENT_MSG_FORMAT_VER, MDS_SENDTYPES ,uint32_t );
 
 /*General Purpose*/
-uns32 mds_service_retrieve(MDS_HDL ,MDS_SVC_ID ,SaDispatchFlagsT );
-uns32 mds_query_vdest_for_anchor(MDS_HDL ,MDS_SVC_ID ,MDS_DEST ,MDS_SVC_ID ,
+uint32_t mds_service_retrieve(MDS_HDL ,MDS_SVC_ID ,SaDispatchFlagsT );
+uint32_t mds_query_vdest_for_anchor(MDS_HDL ,MDS_SVC_ID ,MDS_DEST ,MDS_SVC_ID ,
                                  V_DEST_RL );
-uns32 mds_query_vdest_for_role(MDS_HDL ,MDS_SVC_ID ,MDS_DEST ,MDS_SVC_ID ,
+uint32_t mds_query_vdest_for_role(MDS_HDL ,MDS_SVC_ID ,MDS_DEST ,MDS_SVC_ID ,
                                V_DEST_QA );
-uns32 mds_service_query_for_pwe(MDS_HDL ,MDS_SVC_ID );
-uns32 is_service_on_adest(MDS_HDL ,MDS_SVC_ID );
-uns32 change_role(MDS_HDL ,MDS_SVC_ID ,V_DEST_RL );
+uint32_t mds_service_query_for_pwe(MDS_HDL ,MDS_SVC_ID );
+uint32_t is_service_on_adest(MDS_HDL ,MDS_SVC_ID );
+uint32_t change_role(MDS_HDL ,MDS_SVC_ID ,V_DEST_RL );
 
 /************** TEST CASE FUNCTION DECLARATIONS ************/
 void tet_adest_rcvr_thread(void);
@@ -335,7 +335,7 @@ void tet_vdest_install_thread(void);
  void tet_vdest_uninstall_thread(void);
  void tet_adest_cancel_thread(void);
  void tet_adest_retrieve_thread(void);
- uns32 tet_initialise_setup(NCS_BOOL fail_no_active_sends); 
+ uint32_t tet_initialise_setup(NCS_BOOL fail_no_active_sends); 
  void tet_adest_rcvr_thread(void);
  void tet_adest_rcvr_svc_thread(void);
  void tet_vdest_rcvr_resp_thread(void);
@@ -366,7 +366,7 @@ void tet_vdest_install_thread(void);
  void tet_create_PWE_upto_MAX_tp(void);
  void tet_create_PWE_upto_MAX_VDEST(void);
  void tet_create_default_PWE_VDEST_tp(void);
- void Print_return_status(uns32 rs); 
+ void Print_return_status(uint32_t rs); 
 void tet_vdest_install_thread(void);
  void tet_svc_install_upto_MAX(void);
  void tet_vdest_uninstall_thread(void);
@@ -402,18 +402,18 @@ void tet_vdest_install_thread(void);
  void tet_create_PWE_upto_MAX_tp(void);
  void tet_create_PWE_upto_MAX_VDEST(void);
  void tet_create_default_PWE_VDEST_tp(void);
-uns32 mds_send_get_redack(MDS_HDL mds_hdl,
+uint32_t mds_send_get_redack(MDS_HDL mds_hdl,
                           MDS_SVC_ID svc_id,
                           MDS_SVC_ID to_svc,
                           MDS_DEST to_vdest,
                           V_DEST_QA to_anc,
-                          uns32 time_to_wait,
+                          uint32_t time_to_wait,
                           MDS_SEND_PRIORITY_TYPE priority,
                           TET_MDS_MSG *message);
-uns32 mds_send_redrsp_getack(MDS_HDL mds_hdl,
+uint32_t mds_send_redrsp_getack(MDS_HDL mds_hdl,
                              MDS_SVC_ID svc_id,
-                             uns32 time_to_wait,
+                             uint32_t time_to_wait,
                              TET_MDS_MSG *response);
-uns32   tet_sync_point(void);
+uint32_t   tet_sync_point(void);
 
 #endif

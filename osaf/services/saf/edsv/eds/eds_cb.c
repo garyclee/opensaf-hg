@@ -55,7 +55,7 @@ static nfds_t nfds = 5;
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 eds_cb_init(EDS_CB *eds_cb)
+uint32_t eds_cb_init(EDS_CB *eds_cb)
 {
 	NCS_PATRICIA_PARAMS reg_param, cname_param, nodelist_param;
 
@@ -63,9 +63,9 @@ uns32 eds_cb_init(EDS_CB *eds_cb)
 	memset(&cname_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	memset(&nodelist_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-	reg_param.key_size = sizeof(uns32);
+	reg_param.key_size = sizeof(uint32_t);
 	cname_param.key_size = sizeof(SaNameT);
-	nodelist_param.key_size = sizeof(uns32);
+	nodelist_param.key_size = sizeof(uint32_t);
 
 	/* Assign Initial HA state */
 	eds_cb->ha_state = EDS_HA_INIT_STATE;

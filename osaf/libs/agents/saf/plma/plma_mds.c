@@ -28,19 +28,19 @@
 
 MDS_CLIENT_MSG_FORMAT_VER plma_plms_msg_fmt_table[PLMA_WRT_PLMS_SUBPART_VER_RANGE] = { 1 };
 
-uns32 plma_mds_callback(struct ncsmds_callback_info *info);
-static uns32 plma_mds_rcv(MDS_CALLBACK_RECEIVE_INFO *rcv_info);
-static uns32 plma_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt); 
+uint32_t plma_mds_callback(struct ncsmds_callback_info *info);
+static uint32_t plma_mds_rcv(MDS_CALLBACK_RECEIVE_INFO *rcv_info);
+static uint32_t plma_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt); 
 
 /***********************************************************************//**
 * @brief	This routine gets MDS handle for PLMA.
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-uns32 plma_mds_get_handle()
+uint32_t plma_mds_get_handle()
 {
 	NCSADA_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 	PLMA_CB *plma_cb = plma_ctrlblk;
 	
 	TRACE_ENTER();
@@ -69,9 +69,9 @@ uns32 plma_mds_get_handle()
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-uns32 plma_mds_register()
+uint32_t plma_mds_register()
 {
-        uns32 rc = NCSCC_RC_SUCCESS;
+        uint32_t rc = NCSCC_RC_SUCCESS;
         NCSMDS_INFO svc_info;
         MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_PLMS};
 	PLMA_CB *plma_cb = plma_ctrlblk;
@@ -132,10 +132,10 @@ Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 Notes         : None.
 *****************************************************************************/
-uns32 plma_mds_callback(struct ncsmds_callback_info *info)
+uint32_t plma_mds_callback(struct ncsmds_callback_info *info)
 {
 	PLMA_CB *plma_cb = plma_ctrlblk;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	assert(info != NULL);
@@ -193,9 +193,9 @@ uns32 plma_mds_callback(struct ncsmds_callback_info *info)
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-static uns32 plma_mds_rcv(MDS_CALLBACK_RECEIVE_INFO *rcv_info)
+static uint32_t plma_mds_rcv(MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	PLMA_ENTITY_GROUP_INFO *grp_info;
 	PLMA_CB *plma_cb = plma_ctrlblk;
 	PLMS_EVT *pEvt = (PLMS_EVT *)rcv_info->i_msg;
@@ -251,9 +251,9 @@ static uns32 plma_mds_rcv(MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-static uns32 plma_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+static uint32_t plma_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
-	uns32    rc = NCSCC_RC_SUCCESS;
+	uint32_t    rc = NCSCC_RC_SUCCESS;
 	PLMA_CB *plma_cb = plma_ctrlblk;
 	
 	TRACE_ENTER();
@@ -302,7 +302,7 @@ static uns32 plma_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 void plma_mds_unregister()
 {
 	NCSMDS_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 	PLMA_CB *plma_cb = plma_ctrlblk;
 
 	TRACE_ENTER();
@@ -335,7 +335,7 @@ done:
 void plma_sync_with_plms()
 {
 	NCS_SEL_OBJ_SET set;
-	uns32 timeout = 3000;
+	uint32_t timeout = 3000;
 	PLMA_CB *cb = plma_ctrlblk;
 	
 	TRACE_ENTER();

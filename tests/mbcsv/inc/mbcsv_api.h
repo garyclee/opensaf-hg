@@ -144,9 +144,9 @@ typedef enum mbcstm_fsm_states {
 /* structure definations */
 
 typedef struct mbcstm_csi_data {
-  uns32   data_id;
-  uns32   sec;
-  uns32   usec;    
+  uint32_t   data_id;
+  uint32_t   sec;
+  uint32_t   usec;    
 } MBCSTM_CSI_DATA;
 
 typedef enum  mbcstm_csi_data_type {
@@ -161,41 +161,41 @@ typedef struct mbcstm_peer {
 } MBCSTM_PEER;
 
 typedef struct mbcstm_ssn {
-  uns32           svc_index;
+  uint32_t           svc_index;
   MDS_DEST        dest_id;
   V_DEST_QA       anchor;
   V_DEST_RL       dest_role;
-  uns32           dest_status;
+  uint32_t           dest_status;
   SaAmfHAStateT   csi_role;    
   MDS_HDL      pwe_hdl;
-  uns32           ckpt_hdl;
-  uns32           ssn_index;
-  uns32           ws_flag;
-  uns32           ws_timer;
+  uint32_t           ckpt_hdl;
+  uint32_t           ssn_index;
+  uint32_t           ws_flag;
+  uint32_t           ws_timer;
   /* cold or work sync related varibles */
-  uns32           data_count;
-  uns32           sync_count;
+  uint32_t           data_count;
+  uint32_t           sync_count;
   MBCSTM_SYNC     cold_flag;
   MBCSTM_SYNC     warm_flag;
-  uns32           data_req;
-  uns32           data_req_count;
+  uint32_t           data_req;
+  uint32_t           data_req_count;
   MBCSTM_CSI_DATA data[MBCSTM_CSI_DATA_MAX];
   /* call back routine cases related */
   MBCSTM_CB_TEST  cb_test;
-  uns32           cb_test_result;
-  uns32           cb_flag;
+  uint32_t           cb_test_result;
+  uint32_t           cb_flag;
   
   /* performance time */
-  uns32           perf_flag;
+  uint32_t           perf_flag;
   double          perf_init_time;
   double          perf_final_time;
-  uns32           perf_data_size;
-  uns32           perf_data_sent;
-  uns32           perf_msg_size;
-  uns32           perf_msg_inc;
+  uint32_t           perf_data_size;
+  uint32_t           perf_data_sent;
+  uint32_t           perf_msg_size;
+  uint32_t           perf_msg_inc;
   
   /* peer data */
-  uns32           peer_count;
+  uint32_t           peer_count;
   MBCSTM_PEER     peers[MBCSTM_SSN_PEER_MAX];
 } MBCSTM_SSN;
 
@@ -206,8 +206,8 @@ typedef struct mbcstm_svc {
   uint16_t                  version;
   SaSelectionObjectT     sel_obj;   /* slection object of queue           */
   SaDispatchFlagsT       disp_flags;/* one of ONE, ALL or BLOCKING        */
-  uns32                  task_flag;
-  uns32                  ssn_count;
+  uint32_t                  task_flag;
+  uint32_t                  ssn_count;
   MBCSTM_SSN             ssns[MBCSTM_SSN_MAX];
   
 } MBCSTM_SVC;
@@ -215,17 +215,17 @@ typedef struct mbcstm_svc {
 typedef struct mbcstm_vdests {
   MDS_DEST    dest_id;
   V_DEST_QA   anchor;
-  uns32       status;
+  uint32_t       status;
 } MBCSTM_VDESTS;
 
 typedef struct mbcstm_cb {
   MBCSTM_SYS    sys;
-  uns32         flag;
-  uns32         log_file_fd;
+  uint32_t         flag;
+  uint32_t         log_file_fd;
   NCS_LOCK      mbcstm_lock;
-  uns32         vdest_count;
+  uint32_t         vdest_count;
   MBCSTM_VDESTS vdests[MBCSTM_SSN_MAX];
-  uns32         svc_count;
+  uint32_t         svc_count;
   MBCSTM_SVC    svces[MBCSTM_SVC_MAX]; 
 } MBCSTM_CB;
 
@@ -235,12 +235,12 @@ typedef struct mbcstm_peer_inst_data {
   MBCSTM_FSM_STATES    state;  /* State Machines Current State */
   V_DEST_QA            peer_anchor;
   MDS_DEST             peer_adest;
-  uns32                peer_role;
+  uint32_t                peer_role;
   SaVersionT           version;  /* peer version info as per SAF*/
 }MBCSTM_PEER_INST;
 
 typedef struct mbcstm_peers {
-  uns32            peer_count;
+  uint32_t            peer_count;
   MBCSTM_PEER_INST peers[MBCSTM_SSN_PEER_MAX]; /* NEW MDS: changed on 21st november */
 } MBCSTM_PEERS_DATA;
 
@@ -250,70 +250,70 @@ MBCSTM_CB    mbcstm_cb;
 V_DEST_QA    MBCSTM_SSN_ANC1,MBCSTM_SSN_ANC2,MBCSTM_SSN_ANC3,MBCSTM_SSN_ANC4;
 
 /*Rajesh*/
-uns32 ncs_encode_32bit(uint8_t **,uns32);
-uns32 ncs_decode_32bit(uint8_t **);
+uint32_t ncs_encode_32bit(uint8_t **,uint32_t);
+uint32_t ncs_decode_32bit(uint8_t **);
 /*     API declarations   */
 /* initializtion and configuration related api */
-uns32  mbcstm_input(void);
-uns32  mbcstm_config(void);
+uint32_t  mbcstm_input(void);
+uint32_t  mbcstm_config(void);
 
 /* start up and mds related API */
-uns32   mbcstm_system_startup(void);
-uns32   mbcstm_system_close(void);
-uns32   mbcstm_dest_start(void);
-uns32   mbcstm_specific_dest_start(uns32 ssn_index);
-uns32   mbcstm_specific_dest_close(uns32 ssn_index);
-uns32   mbcstm_dest_close(void);
-uns32   mbcstm_dest_change_role(uns32 svc_index, uns32 ssn_index);  
-uns32   mbcstm_start_process_thread(uns32 svc_index);
+uint32_t   mbcstm_system_startup(void);
+uint32_t   mbcstm_system_close(void);
+uint32_t   mbcstm_dest_start(void);
+uint32_t   mbcstm_specific_dest_start(uint32_t ssn_index);
+uint32_t   mbcstm_specific_dest_close(uint32_t ssn_index);
+uint32_t   mbcstm_dest_close(void);
+uint32_t   mbcstm_dest_change_role(uint32_t svc_index, uint32_t ssn_index);  
+uint32_t   mbcstm_start_process_thread(uint32_t svc_index);
 
 /* syncronization related API */
-uns32   mbcstm_sync_point(void);
+uint32_t   mbcstm_sync_point(void);
 
 /* svc installation related API */
-uns32  mbcstm_svc_start(uns32 svc_index);
-uns32  mbcstm_svc_close(uns32 svc_index);
+uint32_t  mbcstm_svc_start(uint32_t svc_index);
+uint32_t  mbcstm_svc_close(uint32_t svc_index);
 
 /* svc, mbcsv operations related API */
-uns32   mbcstm_svc_registration(uns32 svc_index);
-uns32   mbcstm_svc_finalize (uns32 svc_index);
-uns32   mbcstm_ssn_open(uns32 svc_index, uns32 ssn_index);
-uns32   mbcstm_ssn_close(uns32 svc_index, uns32 ssn_index);
-uns32   mbcstm_ssn_set_role (uns32 svc_index, uns32 ssn_index);
-uns32   mbcstm_ssn_get_select(uns32 svc_index);
-uns32   mbcstm_svc_dispatch (uns32  svc_index);
-uns32   mbcstm_svc_obj(uns32 svc_index, uns32 ssn_index, uns32 action,NCS_MBCSV_OBJ obj);
-uns32   mbcstm_svc_cp_send(uns32 svc_index, uns32 ssn_index, NCS_MBCSV_ACT_TYPE action, uns32 reo_type, long reo_hanle, NCS_MBCSV_MSG_TYPE send_type);
-uns32   mbcstm_svc_data_request(uns32 svc_index, uns32 ssn_index);
-uns32   mbcstm_svc_notify(uns32 svc_index, uns32 ssn_index); 
-uns32   mbcsv_svc_err_ind(NCS_MBCSV_CB_ARG *arg);
+uint32_t   mbcstm_svc_registration(uint32_t svc_index);
+uint32_t   mbcstm_svc_finalize (uint32_t svc_index);
+uint32_t   mbcstm_ssn_open(uint32_t svc_index, uint32_t ssn_index);
+uint32_t   mbcstm_ssn_close(uint32_t svc_index, uint32_t ssn_index);
+uint32_t   mbcstm_ssn_set_role (uint32_t svc_index, uint32_t ssn_index);
+uint32_t   mbcstm_ssn_get_select(uint32_t svc_index);
+uint32_t   mbcstm_svc_dispatch (uint32_t  svc_index);
+uint32_t   mbcstm_svc_obj(uint32_t svc_index, uint32_t ssn_index, uint32_t action,NCS_MBCSV_OBJ obj);
+uint32_t   mbcstm_svc_cp_send(uint32_t svc_index, uint32_t ssn_index, NCS_MBCSV_ACT_TYPE action, uint32_t reo_type, long reo_hanle, NCS_MBCSV_MSG_TYPE send_type);
+uint32_t   mbcstm_svc_data_request(uint32_t svc_index, uint32_t ssn_index);
+uint32_t   mbcstm_svc_notify(uint32_t svc_index, uint32_t ssn_index); 
+uint32_t   mbcsv_svc_err_ind(NCS_MBCSV_CB_ARG *arg);
 
 /* CALL BACK ROUTINES */   
-uns32   mbcstm_svc_cb(NCS_MBCSV_CB_ARG *arg);
-uns32   mbcstm_svc_encode_cb(NCS_MBCSV_CB_ARG *arg);
-uns32   mbcstm_svc_decode_cb(NCS_MBCSV_CB_ARG *arg);
-uns32   mbcstm_svc_peer_cb(NCS_MBCSV_CB_ARG *arg);
-uns32   mbcstm_svc_notify_cb(NCS_MBCSV_CB_ARG *arg);
-uns32   mbcstm_svc_enc_notify_cb(NCS_MBCSV_CB_ARG *arg);
+uint32_t   mbcstm_svc_cb(NCS_MBCSV_CB_ARG *arg);
+uint32_t   mbcstm_svc_encode_cb(NCS_MBCSV_CB_ARG *arg);
+uint32_t   mbcstm_svc_decode_cb(NCS_MBCSV_CB_ARG *arg);
+uint32_t   mbcstm_svc_peer_cb(NCS_MBCSV_CB_ARG *arg);
+uint32_t   mbcstm_svc_notify_cb(NCS_MBCSV_CB_ARG *arg);
+uint32_t   mbcstm_svc_enc_notify_cb(NCS_MBCSV_CB_ARG *arg);
 
 /* util apis */
-uns32 mbcstm_print(char *file, char *fun_name, uns32 line_num, char *call, uns32 status); 
+uint32_t mbcstm_print(char *file, char *fun_name, uint32_t line_num, char *call, uint32_t status); 
 void  mbcsv_print_data(void);
-uns32 mbcstm_config_print(void);
-uns32 mbcstm_crc(char *str, uns32 len);
-uns32    mbcstm_system_startup(void);
-uns32     mbcstm_system_close(void);
-uns32     mbcstm_dest_start(void);
-uns32 mbcstm_dest_close(void);
-uns32    mbcstm_ssn_open_all(uns32 svc_index);
-uns32   mbcstm_svc_send_notify(uns32 svc_index, uns32 ssn_index,
+uint32_t mbcstm_config_print(void);
+uint32_t mbcstm_crc(char *str, uint32_t len);
+uint32_t    mbcstm_system_startup(void);
+uint32_t     mbcstm_system_close(void);
+uint32_t     mbcstm_dest_start(void);
+uint32_t mbcstm_dest_close(void);
+uint32_t    mbcstm_ssn_open_all(uint32_t svc_index);
+uint32_t   mbcstm_svc_send_notify(uint32_t svc_index, uint32_t ssn_index,
                                NCS_MBCSV_NTFY_MSG_DEST msg_dest, 
-                               char *str, uns32 len);
-uns32  mbcstm_svc_err_ind(NCS_MBCSV_CB_ARG *arg);
-uns32 mbcstm_config_print(void);
-uns32   mbcstm_sync_point(void);
+                               char *str, uint32_t len);
+uint32_t  mbcstm_svc_err_ind(NCS_MBCSV_CB_ARG *arg);
+uint32_t mbcstm_config_print(void);
+uint32_t   mbcstm_sync_point(void);
 MDS_DEST get_vdest_anchor(void);
-uns32 tet_mbcsv_config(void);
+uint32_t tet_mbcsv_config(void);
 void tet_mbcsv_test(void);
 void tet_mbcsv_send_checkpoint(int choice);
 void tet_mbcsv_data_request(int choice);
@@ -325,12 +325,12 @@ void tet_mbcsv_change_role(int choice);
 void tet_mbcsv_open_close(int choice);
 void tet_mbcsv_initialize(int choice);
 void tet_mbcsv_op(int choice);
-uns32 mbcstm_csync_perf_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys);
-uns32 mbcstm_disc_perf_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys, uns32 nrepeat,MBCSTM_CB_TEST sync);
-uns32 mbcstm_msg_check_purposes(uns32 svc_index, uns32 ssn_index,NCS_MBCSV_MSG_TYPE send_type);
-uns32 mbcstm_verify_sync_msg(SSN_PERF_DATA *data, MBCSTM_SSN *ssn);
-uns32 mbcstm_perf_sync_msg(uns32 svc_index, uns32 ssn_index,uns32 size,uns32 send_type);
-uns32 mbcstm_check_inv(MBCSTM_CHECK check, uns32 svc_index, uns32 ssn_index, 
+uint32_t mbcstm_csync_perf_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys);
+uint32_t mbcstm_disc_perf_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys, uint32_t nrepeat,MBCSTM_CB_TEST sync);
+uint32_t mbcstm_msg_check_purposes(uint32_t svc_index, uint32_t ssn_index,NCS_MBCSV_MSG_TYPE send_type);
+uint32_t mbcstm_verify_sync_msg(SSN_PERF_DATA *data, MBCSTM_SSN *ssn);
+uint32_t mbcstm_perf_sync_msg(uint32_t svc_index, uint32_t ssn_index,uint32_t size,uint32_t send_type);
+uint32_t mbcstm_check_inv(MBCSTM_CHECK check, uint32_t svc_index, uint32_t ssn_index, 
                        void *data);
 
 #endif

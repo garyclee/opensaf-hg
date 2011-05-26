@@ -100,7 +100,7 @@ extern "C" {
 #define NCS_LOCK_EXISTS 0xAABBCCDD
 
 	typedef struct ncs_lock_dbg {
-		uns32 exists;	/* exists marker   */
+		uint32_t exists;	/* exists marker   */
 		NCS_OS_LOCK lock;	/* the 'real' lock */
 
 	} NCS_LOCK_DBG;
@@ -114,8 +114,8 @@ extern "C" {
 /****************************************************************************
  * Initialize a LOCK
  *
- * uns32 m_NCS_LOCK_INIT(lock)
- * uns32 m_NCS_LOCK_INIT_V2(lock,sid,lid)
+ * uint32_t m_NCS_LOCK_INIT(lock)
+ * uint32_t m_NCS_LOCK_INIT_V2(lock,sid,lid)
  * This function must be invoked before using a lock for the first time.
  *
  * Function arguments
@@ -142,8 +142,8 @@ extern "C" {
 /****************************************************************************
  * Destroy a LOCK 
  *
- * uns32 m_NCS_LOCK_DESTROY(lock)
- * uns32 m_NCS_LOCK_DESROY_V2(lock,sid,lid)
+ * uint32_t m_NCS_LOCK_DESTROY(lock)
+ * uint32_t m_NCS_LOCK_DESROY_V2(lock,sid,lid)
  * This function must be invoked to release any resources.
  *
  * Function arguments
@@ -170,8 +170,8 @@ extern "C" {
 /****************************************************************************
  * LOCK a Resource
  *
- * uns32 m_NCS_LOCK(lock, flag)
- * uns32 m_NCS_LOCK_V2(lock, flag, sid, lid)
+ * uint32_t m_NCS_LOCK(lock, flag)
+ * uint32_t m_NCS_LOCK_V2(lock, flag, sid, lid)
  * This function must be invoked to lock a resource based on the flag:
  *
  *   flag= NCS_LOCK_READ:  Requests a read-only lock.  Any number of
@@ -207,8 +207,8 @@ extern "C" {
 /****************************************************************************
  * UNLOCK a Resource
  *
- * uns32 m_NCS_UNLOCK(lock, flag)
- * uns32 m_NCS_UNLOCK_V2(lock, flag, sid, lid)
+ * uint32_t m_NCS_UNLOCK(lock, flag)
+ * uint32_t m_NCS_UNLOCK_V2(lock, flag, sid, lid)
  * This function must be invoked to unlock a resource
 Your code
  *                          must be capable of UNBLOCKING any processes 
@@ -277,8 +277,8 @@ Your code
 						     NCS_SERVICE_ID service_id,
 						     unsigned int local_id, unsigned int line, char *file);
 #endif
-	uns32 ncs_lock_get_init_count(NCS_SERVICE_ID service_id);
-	uns32 ncs_lock_get_destroy_count(NCS_SERVICE_ID service_id);
+	uint32_t ncs_lock_get_init_count(NCS_SERVICE_ID service_id);
+	uint32_t ncs_lock_get_destroy_count(NCS_SERVICE_ID service_id);
 	void ncs_lock_stats(char *filename);
 
 #ifdef  __cplusplus

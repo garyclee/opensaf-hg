@@ -33,19 +33,19 @@
 
 #include "mqa.h"
 
-extern uns32 mqa_mds_callback(struct ncsmds_callback_info *info);
+extern uint32_t mqa_mds_callback(struct ncsmds_callback_info *info);
 
-static uns32 mqa_mds_cpy(MQA_CB *cb, MDS_CALLBACK_COPY_INFO *cpy);
-static uns32 mqa_mds_enc(MQA_CB *cb, MDS_CALLBACK_ENC_INFO *info);
-static uns32 mqa_mds_dec(MQA_CB *cb, MDS_CALLBACK_DEC_INFO *info);
-static uns32 mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
-static uns32 mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
-static uns32 mqa_mds_get_handle(MQA_CB *cb);
+static uint32_t mqa_mds_cpy(MQA_CB *cb, MDS_CALLBACK_COPY_INFO *cpy);
+static uint32_t mqa_mds_enc(MQA_CB *cb, MDS_CALLBACK_ENC_INFO *info);
+static uint32_t mqa_mds_dec(MQA_CB *cb, MDS_CALLBACK_DEC_INFO *info);
+static uint32_t mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
+static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
+static uint32_t mqa_mds_get_handle(MQA_CB *cb);
 
 MSG_FRMT_VER mqa_mqnd_msg_fmt_table[MQA_WRT_MQND_SUBPART_VER_RANGE] = { 0, 2 };	/*With version 1 it is not backward compatible */
 MSG_FRMT_VER mqa_mqd_msg_fmt_table[MQA_WRT_MQD_SUBPART_VER_RANGE] = { 0, 2 };	/*With version 1 it is not backward compatible */
 
-extern uns32 mqa_mqa_msg_fmt_table[];
+extern uint32_t mqa_mqa_msg_fmt_table[];
 /****************************************************************************
  * Name          : mqa_mds_get_handle
  *
@@ -58,10 +58,10 @@ extern uns32 mqa_mqa_msg_fmt_table[];
  * Notes         : None.
  *****************************************************************************/
 
-uns32 mqa_mds_get_handle(MQA_CB *cb)
+uint32_t mqa_mds_get_handle(MQA_CB *cb)
 {
 	NCSADA_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&arg, 0, sizeof(NCSADA_INFO));
 	arg.req = NCSADA_GET_HDLS;
@@ -87,11 +87,11 @@ uns32 mqa_mds_get_handle(MQA_CB *cb)
   Notes         : None.
 ******************************************************************************/
 
-uns32 mqa_mds_register(MQA_CB *cb)
+uint32_t mqa_mds_register(MQA_CB *cb)
 {
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID subs_id[2] = { NCSMDS_SVC_ID_MQND, NCSMDS_SVC_ID_MQD };
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* STEP1: Get the MDS Handle */
 	if (mqa_mds_get_handle(cb) != NCSCC_RC_SUCCESS)
@@ -165,7 +165,7 @@ uns32 mqa_mds_register(MQA_CB *cb)
 void mqa_mds_unregister(MQA_CB *cb)
 {
 	NCSMDS_INFO arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Un-install your service into MDS. 
 	   No need to cancel the services that are subscribed */
@@ -192,10 +192,10 @@ void mqa_mds_unregister(MQA_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 mqa_mds_callback(struct ncsmds_callback_info *info)
+uint32_t mqa_mds_callback(struct ncsmds_callback_info *info)
 {
 	MQA_CB *mqa_cb = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (info == NULL)
 		return rc;
@@ -259,10 +259,10 @@ uns32 mqa_mds_callback(struct ncsmds_callback_info *info)
  NOTES          : 
 \*****************************************************************************/
 
-static uns32 mqa_mds_cpy(MQA_CB *cb, MDS_CALLBACK_COPY_INFO *cpy)
+static uint32_t mqa_mds_cpy(MQA_CB *cb, MDS_CALLBACK_COPY_INFO *cpy)
 {
 	MQSV_EVT *pEvt = 0, *src;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	src = (MQSV_EVT *)cpy->i_msg;
 
@@ -296,11 +296,11 @@ static uns32 mqa_mds_cpy(MQA_CB *cb, MDS_CALLBACK_COPY_INFO *cpy)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 mqa_mds_enc(MQA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
+static uint32_t mqa_mds_enc(MQA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	MQSV_EVT *msg_ptr;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	msg_ptr = (MQSV_EVT *)enc_info->i_msg;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
@@ -347,11 +347,11 @@ static uns32 mqa_mds_enc(MQA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 mqa_mds_dec(MQA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
+static uint32_t mqa_mds_dec(MQA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
 	MQSV_EVT *msg_ptr;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_MQND) {
@@ -410,9 +410,9 @@ static uns32 mqa_mds_dec(MQA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
+static uint32_t mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	MQSV_EVT *evt = (MQSV_EVT *)rcv_info->i_msg;
 	MQP_ASYNC_RSP_MSG *mqa_callbk_info;
@@ -492,9 +492,9 @@ static uns32 mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
-	uns32 to_dest_slotid, o_msg_fmt_ver;
+	uint32_t to_dest_slotid, o_msg_fmt_ver;
 
 	/* TBD: The MQND and MQD restarts are to be implemented post April release */
 	switch (svc_evt->i_change) {
@@ -607,11 +607,11 @@ static uns32 mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 mqa_mds_msg_sync_send(uns32 mqa_mds_hdl, MDS_DEST *destination, MQSV_EVT *i_evt, MQSV_EVT **o_evt, uns32 timeout)
+uint32_t mqa_mds_msg_sync_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQSV_EVT *i_evt, MQSV_EVT **o_evt, uint32_t timeout)
 {
 
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 	MQA_CB *mqa_cb;
 
 	if (!i_evt)
@@ -680,12 +680,12 @@ uns32 mqa_mds_msg_sync_send(uns32 mqa_mds_hdl, MDS_DEST *destination, MQSV_EVT *
  
   Notes         : None.
 ******************************************************************************/
-uns32 mqa_mds_msg_sync_send_direct(uns32 mqa_mds_hdl,
+uint32_t mqa_mds_msg_sync_send_direct(uint32_t mqa_mds_hdl,
 				   MDS_DEST *destination,
-				   MQSV_DSEND_EVT *i_evt, MQSV_DSEND_EVT **o_evt, uns32 timeout, uns32 length)
+				   MQSV_DSEND_EVT *i_evt, MQSV_DSEND_EVT **o_evt, uint32_t timeout, uint32_t length)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 	MQA_CB *mqa_cb;
 	MQSV_DSEND_EVT *pEvt = NULL;
 	NCS_BOOL endianness = machineEndianness(), is_valid_msg_fmt = FALSE;
@@ -867,7 +867,7 @@ uns32 mqa_mds_msg_sync_send_direct(uns32 mqa_mds_hdl,
   Description   : This routine sends the MQA message to MQND.
  
   Arguments     : 
-                  uns32 mqa_mds_hdl Handle of MQA
+                  uint32_t mqa_mds_hdl Handle of MQA
                   MDS_DEST  *destination - destintion to send to
                   MQSV_EVT   *i_evt - MQSV_EVT pointer
                   timeout - timeout value in 10 ms 
@@ -877,12 +877,12 @@ uns32 mqa_mds_msg_sync_send_direct(uns32 mqa_mds_hdl,
  
   Notes         : None.
 ******************************************************************************/
-uns32 mqa_mds_msg_sync_reply_direct(uns32 mqa_mds_hdl,
+uint32_t mqa_mds_msg_sync_reply_direct(uint32_t mqa_mds_hdl,
 				    MDS_DEST *destination,
-				    MQSV_DSEND_EVT *i_evt, uns32 timeout, MDS_SYNC_SND_CTXT *context, uns32 length)
+				    MQSV_DSEND_EVT *i_evt, uint32_t timeout, MDS_SYNC_SND_CTXT *context, uint32_t length)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 	MQA_CB *mqa_cb;
 
 	if (!i_evt)
@@ -943,7 +943,7 @@ uns32 mqa_mds_msg_sync_reply_direct(uns32 mqa_mds_hdl,
  
   Description   : This routine sends the MQA message to MQND.
  
-  Arguments     : uns32 mqa_mds_hdl Handle of MQA
+  Arguments     : uint32_t mqa_mds_hdl Handle of MQA
                   MDS_DEST  *destination - destintion to send to
                   MQSV_EVT   *i_evt - MQSV_EVT pointer
                   
@@ -951,11 +951,11 @@ uns32 mqa_mds_msg_sync_reply_direct(uns32 mqa_mds_hdl,
  
   Notes         : None.
 ******************************************************************************/
-uns32 mqa_mds_msg_async_send(uns32 mqa_mds_hdl, MDS_DEST *destination, MQSV_EVT *i_evt, uns32 to_svc)
+uint32_t mqa_mds_msg_async_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQSV_EVT *i_evt, uint32_t to_svc)
 {
 
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 	MQA_CB *mqa_cb;
 
 	if (!i_evt)
@@ -1011,7 +1011,7 @@ uns32 mqa_mds_msg_async_send(uns32 mqa_mds_hdl, MDS_DEST *destination, MQSV_EVT 
 
   Description   : This routine sends the MQA message to MQND.
 
-  Arguments     : uns32 mqa_mds_hdl Handle of MQA
+  Arguments     : uint32_t mqa_mds_hdl Handle of MQA
                   MDS_DEST  *destination - destintion to send to
                   MQSV_EVT   *i_evt - MQSV_EVT pointer
 
@@ -1020,12 +1020,12 @@ uns32 mqa_mds_msg_async_send(uns32 mqa_mds_hdl, MDS_DEST *destination, MQSV_EVT 
   Notes         : None.
 ******************************************************************************/
 
-uns32 mqa_mds_msg_async_send_direct(uns32 mqa_mds_hdl,
+uint32_t mqa_mds_msg_async_send_direct(uint32_t mqa_mds_hdl,
 				    MDS_DEST *destination,
-				    MQSV_DSEND_EVT *i_evt, uns32 to_svc, MDS_SEND_PRIORITY_TYPE priority, uns32 length)
+				    MQSV_DSEND_EVT *i_evt, uint32_t to_svc, MDS_SEND_PRIORITY_TYPE priority, uint32_t length)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 	MQA_CB *mqa_cb;
 
 	if (!i_evt)
@@ -1082,7 +1082,7 @@ uns32 mqa_mds_msg_async_send_direct(uns32 mqa_mds_hdl,
   Description   : This routine sends the MQA message to MQND.
  
   Arguments     :
-                  uns32 mqa_mds_hdl Handle of MQA
+                  uint32_t mqa_mds_hdl Handle of MQA
                   MDS_DEST  *destination - destintion to send to
                   MQSV_EVT   *i_evt - MQSV_EVT pointer
                  MDS_SYNC_SND_CTXT *context - context of MDS
@@ -1091,12 +1091,12 @@ uns32 mqa_mds_msg_async_send_direct(uns32 mqa_mds_hdl,
  
   Notes         : None.
 ******************************************************************************/
-uns32 mqa_mds_msg_async_reply_direct(uns32 mqa_mds_hdl,
+uint32_t mqa_mds_msg_async_reply_direct(uint32_t mqa_mds_hdl,
 				     MDS_DEST *destination,
-				     MQSV_DSEND_EVT *i_evt, MDS_SYNC_SND_CTXT *context, uns32 length)
+				     MQSV_DSEND_EVT *i_evt, MDS_SYNC_SND_CTXT *context, uint32_t length)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 	MQA_CB *mqa_cb;
 
 	if (!i_evt)

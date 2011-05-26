@@ -45,7 +45,7 @@ typedef struct smfa_client_info{
 
 typedef struct smfa_cbk_hdl_list{
 	SaSmfHandleT			hdl;
-	uns32				cnt;
+	uint32_t				cnt;
 	struct smfa_cbk_hdl_list 	*next_hdl;
 }SMFA_CBK_HDL_LIST;
 
@@ -67,8 +67,8 @@ typedef struct smfa_cb{
 
 extern SMFA_CB _smfa_cb;
 
-uns32 smfa_init();
-uns32 smfa_finalize();
+uint32_t smfa_init();
+uint32_t smfa_finalize();
 void smfa_client_info_add(SMFA_CLIENT_INFO *);
 NCS_BOOL smfa_client_mbx_clnup(NCSCONTEXT , NCSCONTEXT );
 SMFA_CLIENT_INFO * smfa_client_info_get(SaSmfHandleT );
@@ -78,16 +78,16 @@ void smfa_scope_info_add(SMFA_CLIENT_INFO *, SMFA_SCOPE_INFO *);
 SaAisErrorT smfa_dispatch_cbk_one(SMFA_CLIENT_INFO *);
 SaAisErrorT smfa_dispatch_cbk_all(SMFA_CLIENT_INFO *);
 SaAisErrorT smfa_dispatch_cbk_block(SMFA_CLIENT_INFO *);
-uns32 smfa_cbk_err_resp_process(SaInvocationT,SaSmfHandleT);
-uns32 smfa_cbk_ok_resp_process(SaSmfHandleT smfHandle,SaInvocationT );
-uns32 smfa_to_smfnd_mds_async_send(NCSCONTEXT );
-uns32 smfa_scope_info_rmv(SMFA_CLIENT_INFO *, SaSmfCallbackScopeIdT );
+uint32_t smfa_cbk_err_resp_process(SaInvocationT,SaSmfHandleT);
+uint32_t smfa_cbk_ok_resp_process(SaSmfHandleT smfHandle,SaInvocationT );
+uint32_t smfa_to_smfnd_mds_async_send(NCSCONTEXT );
+uint32_t smfa_scope_info_rmv(SMFA_CLIENT_INFO *, SaSmfCallbackScopeIdT );
 void smfa_client_info_clean(SMFA_CLIENT_INFO *);
-uns32 smfa_cbk_list_cleanup(SaSmfHandleT );
-uns32 smfa_client_info_rmv(SaSmfHandleT );
-uns32 smfa_mds_register();
-uns32 smfa_mds_unregister();
+uint32_t smfa_cbk_list_cleanup(SaSmfHandleT );
+uint32_t smfa_client_info_rmv(SaSmfHandleT );
+uint32_t smfa_mds_register();
+uint32_t smfa_mds_unregister();
 void smfa_evt_free(SMF_EVT *);
-uns32 smfa_cbk_filter_type_match(SaSmfLabelFilterT *,SaSmfCallbackLabelT *);
-uns32 smfa_cbk_filter_match(SMFA_CLIENT_INFO *,SMF_CBK_EVT *);
+uint32_t smfa_cbk_filter_type_match(SaSmfLabelFilterT *,SaSmfCallbackLabelT *);
+uint32_t smfa_cbk_filter_match(SMFA_CLIENT_INFO *,SMF_CBK_EVT *);
 #endif

@@ -28,9 +28,9 @@
 
 typedef struct dtm_svc_data {
 	struct dtm_svc_data *next;
-	uns32 type;
-	uns32 inst;
-	uns32 pid;
+	uint32_t type;
+	uint32_t inst;
+	uint32_t pid;
 } DTM_SVC_DATA;
 
 typedef struct dtm_svc_distribution_list {
@@ -42,19 +42,19 @@ typedef struct dtm_svc_distribution_list {
 extern DTM_SVC_DISTRIBUTION_LIST *dtm_svc_dist_list;
 
 typedef struct dtm_up_msg {
-	uns32 type;
-	uns32 inst;
-	uns32 process_id;
+	uint32_t type;
+	uint32_t inst;
+	uint32_t process_id;
 } DTM_UP_MSG;
 
 typedef DTM_UP_MSG DTM_DOWN_MSG;
 
-uns32 dtm_del_from_svc_dist_list(uns32 server_type, uns32 server_inst, uns32 pid);
-uns32 dtm_add_to_svc_dist_list(uns32 server_type, uns32 server_inst, uns32 pid);
+uint32_t dtm_del_from_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid);
+uint32_t dtm_add_to_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid);
 
 
-uns32 dtm_internode_add_to_svc_dist_list(uns32 server_type, uns32 server_inst, uns32 pid);
-uns32 dtm_internode_del_from_svc_dist_list(uns32 server_type, uns32 server_inst, uns32 pid);
+uint32_t dtm_internode_add_to_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid);
+uint32_t dtm_internode_del_from_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid);
 
 
 #endif

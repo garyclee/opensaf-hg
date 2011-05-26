@@ -41,18 +41,18 @@
 #include "dts.h"
 #include "dts_imm.h"
 
-static uns32 dtsv_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
-static uns32 dtsv_mbcsv_process_enc_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 dtsv_mbcsv_process_peer_info_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 dtsv_mbcsv_process_notify(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 dtsv_mbcsv_process_err_ind(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 dtsv_mbcsv_initialize(DTS_CB *cb);
-static uns32 dtsv_mbcsv_open_ckpt(DTS_CB *cb);
-static uns32 dtsv_get_mbcsv_sel_obj(DTS_CB *cb);
-static uns32 dtsv_mbcsv_close_ckpt(DTS_CB *cb);
-static uns32 dtsv_mbcsv_finalize(DTS_CB *cb);
-static uns32 dtsv_validate_reo_type_in_csync(DTS_CB *cb, uns32 reo_type);
+static uint32_t dtsv_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
+static uint32_t dtsv_mbcsv_process_enc_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t dtsv_mbcsv_process_peer_info_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t dtsv_mbcsv_process_notify(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t dtsv_mbcsv_process_err_ind(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t dtsv_mbcsv_initialize(DTS_CB *cb);
+static uint32_t dtsv_mbcsv_open_ckpt(DTS_CB *cb);
+static uint32_t dtsv_get_mbcsv_sel_obj(DTS_CB *cb);
+static uint32_t dtsv_mbcsv_close_ckpt(DTS_CB *cb);
+static uint32_t dtsv_mbcsv_finalize(DTS_CB *cb);
+static uint32_t dtsv_validate_reo_type_in_csync(DTS_CB *cb, uint32_t reo_type);
 
 extern const DTSV_ENCODE_CKPT_DATA_FUNC_PTR dtsv_enc_ckpt_data_func_list[DTSV_CKPT_MSG_MAX];
 
@@ -71,7 +71,7 @@ extern const DTSV_DECODE_CKPT_DATA_FUNC_PTR dtsv_dec_ckpt_data_func_list[DTSV_CK
  *
  * 
 \**************************************************************************/
-uns32 dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
+uint32_t dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
 {
 	SaAmfHAStateT prev_haState = cb->ha_state;
 	SaAisErrorT error = SA_AIS_OK;
@@ -281,9 +281,9 @@ uns32 dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
  *
  * 
 \**************************************************************************/
-uns32 dtsv_mbcsv_register(DTS_CB *cb)
+uint32_t dtsv_mbcsv_register(DTS_CB *cb)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	/*
 	 * Send Async Update count to zero.
@@ -352,9 +352,9 @@ uns32 dtsv_mbcsv_register(DTS_CB *cb)
  *
  * 
 \**************************************************************************/
-uns32 dtsv_mbcsv_deregister(DTS_CB *cb)
+uint32_t dtsv_mbcsv_deregister(DTS_CB *cb)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	/*
 	 * First close and then finalize.
@@ -385,9 +385,9 @@ uns32 dtsv_mbcsv_deregister(DTS_CB *cb)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
+static uint32_t dtsv_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	DTS_CB *cb;
 
 	/* Smik - get the CB from the global variable for dts_cb in this context */
@@ -446,9 +446,9 @@ static uns32 dtsv_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_mbcsv_process_enc_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t dtsv_mbcsv_process_enc_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 status = NCSCC_RC_SUCCESS, msg_fmt_version;
+	uint32_t status = NCSCC_RC_SUCCESS, msg_fmt_version;
 
 	msg_fmt_version = m_NCS_MBCSV_FMT_GET(arg->info.encode.i_peer_version,
 					      DTS_MBCSV_VERSION, DTS_MBCSV_VERSION_MIN);
@@ -535,9 +535,9 @@ static uns32 dtsv_mbcsv_process_enc_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 status = NCSCC_RC_SUCCESS, msg_fmt_version;
+	uint32_t status = NCSCC_RC_SUCCESS, msg_fmt_version;
 
 	msg_fmt_version = m_NCS_MBCSV_FMT_GET(arg->info.decode.i_peer_version,
 					      DTS_MBCSV_VERSION, DTS_MBCSV_VERSION_MIN);
@@ -682,7 +682,7 @@ static uns32 dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_mbcsv_process_peer_info_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t dtsv_mbcsv_process_peer_info_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	/* Compare versions of the peer with self */
 	return NCSCC_RC_SUCCESS;
@@ -701,7 +701,7 @@ static uns32 dtsv_mbcsv_process_peer_info_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_mbcsv_process_notify(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t dtsv_mbcsv_process_notify(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -719,7 +719,7 @@ static uns32 dtsv_mbcsv_process_notify(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_mbcsv_process_err_ind(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t dtsv_mbcsv_process_err_ind(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	switch (arg->info.error.i_code) {
 	case NCS_MBCSV_COLD_SYNC_TMR_EXP:
@@ -778,7 +778,7 @@ static uns32 dtsv_mbcsv_process_err_ind(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_mbcsv_initialize(DTS_CB *cb)
+static uint32_t dtsv_mbcsv_initialize(DTS_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -811,7 +811,7 @@ static uns32 dtsv_mbcsv_initialize(DTS_CB *cb)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_mbcsv_open_ckpt(DTS_CB *cb)
+static uint32_t dtsv_mbcsv_open_ckpt(DTS_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -819,7 +819,7 @@ static uns32 dtsv_mbcsv_open_ckpt(DTS_CB *cb)
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-	mbcsv_arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
+	mbcsv_arg.info.open.i_pwe_hdl = (uint32_t)cb->mds_hdl;
 	    if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_mbcsv_open_ckpt: MBCSV Open operation failed");
 	}
@@ -843,7 +843,7 @@ static uns32 dtsv_mbcsv_open_ckpt(DTS_CB *cb)
  *
  * 
 \**************************************************************************/
-uns32 dtsv_set_ckpt_role(DTS_CB *cb, uns32 role)
+uint32_t dtsv_set_ckpt_role(DTS_CB *cb, uint32_t role)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -875,7 +875,7 @@ uns32 dtsv_set_ckpt_role(DTS_CB *cb, uns32 role)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_get_mbcsv_sel_obj(DTS_CB *cb)
+static uint32_t dtsv_get_mbcsv_sel_obj(DTS_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -908,7 +908,7 @@ static uns32 dtsv_get_mbcsv_sel_obj(DTS_CB *cb)
  *
  * 
 \**************************************************************************/
-uns32 dtsv_mbcsv_dispatch(DTS_CB *cb, uns32 flag)
+uint32_t dtsv_mbcsv_dispatch(DTS_CB *cb, uint32_t flag)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -942,7 +942,7 @@ uns32 dtsv_mbcsv_dispatch(DTS_CB *cb, uns32 flag)
  *
  * 
 \**************************************************************************/
-uns32 dtsv_send_ckpt_data(DTS_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, uns32 reo_type, uns32 send_type)
+uint32_t dtsv_send_ckpt_data(DTS_CB *cb, uint32_t action, MBCSV_REO_HDL reo_hdl, uint32_t reo_type, uint32_t send_type)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -1008,7 +1008,7 @@ uns32 dtsv_send_ckpt_data(DTS_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, uns32
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_mbcsv_close_ckpt(DTS_CB *cb)
+static uint32_t dtsv_mbcsv_close_ckpt(DTS_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -1038,7 +1038,7 @@ static uns32 dtsv_mbcsv_close_ckpt(DTS_CB *cb)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_mbcsv_finalize(DTS_CB *cb)
+static uint32_t dtsv_mbcsv_finalize(DTS_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -1067,7 +1067,7 @@ static uns32 dtsv_mbcsv_finalize(DTS_CB *cb)
  *
  * 
 \**************************************************************************/
-uns32 dtsv_mbcsv_obj_set(DTS_CB *cb, uns32 obj, uns32 val)
+uint32_t dtsv_mbcsv_obj_set(DTS_CB *cb, uint32_t obj, uint32_t val)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -1099,7 +1099,7 @@ uns32 dtsv_mbcsv_obj_set(DTS_CB *cb, uns32 obj, uns32 val)
  *
  * 
 \**************************************************************************/
-uns32 dtsv_send_data_req(DTS_CB *cb)
+uint32_t dtsv_send_data_req(DTS_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 	NCS_UBAID *uba = NULL;
@@ -1137,9 +1137,9 @@ uns32 dtsv_send_data_req(DTS_CB *cb)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_validate_reo_type_in_csync(DTS_CB *cb, uns32 reo_type)
+static uint32_t dtsv_validate_reo_type_in_csync(DTS_CB *cb, uint32_t reo_type)
 {
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 
 	switch (reo_type) {
 	case DTSV_CKPT_DTS_SVC_REG_TBL_CONFIG:

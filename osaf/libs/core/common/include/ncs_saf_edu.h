@@ -93,30 +93,30 @@
 #define m_NCS_EDP_SABOOLT                           ncs_edp_uns32
 #define m_NCS_EDP_SACLMCLUSTERCHANGEST              ncs_edp_uns32
 
- uns32 ncs_edp_sanamet(EDU_HDL *edu_hdl,
+ uint32_t ncs_edp_sanamet(EDU_HDL *edu_hdl,
 				  EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-				  uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
- uns32 ncs_edp_sanamet_net(EDU_HDL *edu_hdl,
+				  uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+ uint32_t ncs_edp_sanamet_net(EDU_HDL *edu_hdl,
 				      EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-				      uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
- uns32 ncs_edp_saversiont(EDU_HDL *edu_hdl,
+				      uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+ uint32_t ncs_edp_saversiont(EDU_HDL *edu_hdl,
 				     EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-				     uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
- uns32 ncs_edp_saamfhealthcheckkeyt(EDU_HDL *edu_hdl,
+				     uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+ uint32_t ncs_edp_saamfhealthcheckkeyt(EDU_HDL *edu_hdl,
 					       EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-					       uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,
+					       uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
 					       EDP_OP_TYPE op, EDU_ERR *o_err);
- uns32 ncs_edp_saclmnodeaddresst(EDU_HDL *edu_hdl,
+ uint32_t ncs_edp_saclmnodeaddresst(EDU_HDL *edu_hdl,
 					    EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-					    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
- uns32 ncs_edp_saamfprotectiongroupmembert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-						      NCSCONTEXT ptr, uns32 *ptr_data_len,
+					    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+ uint32_t ncs_edp_saamfprotectiongroupmembert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+						      NCSCONTEXT ptr, uint32_t *ptr_data_len,
 						      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
- uns32 ncs_edp_saamfprotectiongroupnotificationt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-							    NCSCONTEXT ptr, uns32 *ptr_data_len,
+ uint32_t ncs_edp_saamfprotectiongroupnotificationt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+							    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 							    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
- uns32 avsv_edp_saamfprotectiongroupnotificationbuffert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-								   NCSCONTEXT ptr, uns32 *ptr_data_len,
+ uint32_t avsv_edp_saamfprotectiongroupnotificationbuffert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+								   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 								   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
 								   EDU_ERR *o_err);
 

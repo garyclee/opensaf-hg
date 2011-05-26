@@ -129,7 +129,7 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	case AVND_EVT_TMR_CLC_PXIED_COMP_REG:
 	case AVND_EVT_TMR_HB_DURATION:
 		evt->priority = NCS_IPC_PRIORITY_HIGH;	/* bump up the priority */
-		evt->info.tmr.opq_hdl = *(uns32 *)info;
+		evt->info.tmr.opq_hdl = *(uint32_t *)info;
 		break;
 
 		/* mds event types */
@@ -197,7 +197,7 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 ******************************************************************************/
 void avnd_evt_destroy(AVND_EVT *evt)
 {
-	uns32 type = 0;
+	uint32_t type = 0;
 
 	if (!evt)
 		return;
@@ -312,10 +312,10 @@ void avnd_evt_destroy(AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_send(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_send(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_EVT_TYPE type = evt->type;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* send the event */
 	m_AVSV_MBX_SEND(cb, evt, evt->priority, rc);

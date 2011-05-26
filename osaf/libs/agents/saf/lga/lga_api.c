@@ -119,7 +119,7 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle, const SaLogCallbacksT *call
 	lga_client_hdl_rec_t *lga_hdl_rec;
 	lgsv_msg_t i_msg, *o_msg;
 	SaAisErrorT rc;
-	uns32 client_id;
+	uint32_t client_id;
 
 	TRACE_ENTER();
 
@@ -354,7 +354,7 @@ SaAisErrorT saLogFinalize(SaLogHandleT logHandle)
 	lga_client_hdl_rec_t *hdl_rec;
 	lgsv_msg_t msg, *o_msg = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	TRACE_ENTER();
 
@@ -426,7 +426,7 @@ static SaAisErrorT validate_open_params(SaLogHandleT logHandle,
 					const SaNameT *logStreamName,
 					const SaLogFileCreateAttributesT_2 *logFileCreateAttributes,
 					SaLogStreamOpenFlagsT logStreamOpenFlags,
-					SaTimeT timeOut, SaLogStreamHandleT *logStreamHandle, uns32 *header_type)
+					SaTimeT timeOut, SaLogStreamHandleT *logStreamHandle, uint32_t *header_type)
 {
 	size_t len;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -454,9 +454,9 @@ static SaAisErrorT validate_open_params(SaLogHandleT logHandle,
 		}
 		if (strcmp((const char *)logStreamName->value,	/* Well known log streams */
 			   SA_LOG_STREAM_SYSTEM) == 0) {
-			*header_type = (uns32)SA_LOG_GENERIC_HEADER;
+			*header_type = (uint32_t)SA_LOG_GENERIC_HEADER;
 		} else {
-			*header_type = (uns32)SA_LOG_NTF_HEADER;
+			*header_type = (uint32_t)SA_LOG_NTF_HEADER;
 		}
 	} else {		/* Application log stream */
 
@@ -490,7 +490,7 @@ static SaAisErrorT validate_open_params(SaLogHandleT logHandle,
 		}
 
 		/* SA_AIS_ERR_BAD_FLAGS */
-		if (logStreamOpenFlags > (uns32)SA_LOG_STREAM_CREATE) {
+		if (logStreamOpenFlags > (uint32_t)SA_LOG_STREAM_CREATE) {
 			TRACE("logStreamOpenFlags");
 			return SA_AIS_ERR_BAD_FLAGS;
 		}
@@ -529,7 +529,7 @@ static SaAisErrorT validate_open_params(SaLogHandleT logHandle,
                         }
 		}
 
-		*header_type = (uns32)SA_LOG_GENERIC_HEADER;
+		*header_type = (uint32_t)SA_LOG_GENERIC_HEADER;
 	}
 
 	/* Check implementation specific string length */
@@ -575,9 +575,9 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 	lgsv_msg_t msg, *o_msg = NULL;
 	lgsv_stream_open_req_t *open_param;
 	SaAisErrorT rc;
-	uns32 timeout;
-	uns32 log_stream_id;
-	uns32 log_header_type = 0;
+	uint32_t timeout;
+	uint32_t log_stream_id;
+	uint32_t log_header_type = 0;
 
 	TRACE_ENTER();
 
@@ -607,7 +607,7 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 			     hdl_rec, (SaLogFileCreateAttributesT_2 *)logFileCreateAttributes, logStreamOpenFlags);
 
 	/* Normalize the timeOut value */
-	timeout = (uns32)(timeOut / LGSV_NANOSEC_TO_LEAPTM);
+	timeout = (uint32_t)(timeOut / LGSV_NANOSEC_TO_LEAPTM);
 
 	if (timeout < NCS_SAF_MIN_ACCEPT_TIME) {
 		TRACE("Timeout");
@@ -916,8 +916,8 @@ SaAisErrorT saLogStreamClose(SaLogStreamHandleT logStreamHandle)
 	lga_client_hdl_rec_t *hdl_rec;
 	lgsv_msg_t msg, *o_msg = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 lstr_id;
-	uns32 mds_rc;
+	uint32_t lstr_id;
+	uint32_t mds_rc;
 
 	TRACE_ENTER();
 

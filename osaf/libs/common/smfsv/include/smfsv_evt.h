@@ -72,11 +72,11 @@ typedef enum {
 
 typedef struct smf_cbk_evt{
         SaInvocationT         inv_id;
-	SaSmfCallbackScopeIdT	scope_id;
+		SaSmfCallbackScopeIdT	scope_id;
         SaNameT               object_name;
         SaSmfPhaseT           camp_phase;
         SaSmfCallbackLabelT   cbk_label;
-	uns32			params_len;
+		uint32_t			params_len;
         SaStringT             params;
 }SMF_CBK_EVT;
 
@@ -111,7 +111,7 @@ typedef struct {
 
 /*** SMFD event definitions ***/
 typedef struct {
-	uns32 result;
+	uint32_t result;
 } smfd_evt_cmd_rsp;
 
 typedef struct {
@@ -129,7 +129,7 @@ typedef struct {
 
 /*** SMFND event definitions ***/
 typedef struct {
-	uns32 cmd_len;
+	uint32_t cmd_len;
 	char *cmd;
 } smfnd_evt_cmd_req;
 
@@ -162,7 +162,7 @@ typedef struct {
 typedef struct smfsv_evt {
 	struct smfsv_evt *next;
 	SMFSV_EVT_TYPE type;	/* api type */
-	uns32 cb_hdl;
+	uint32_t cb_hdl;
 	MDS_SYNC_SND_CTXT mds_ctxt;	/* Relevant when this event has to be responded to
 					 * in a synchronous fashion.
 					 */
@@ -185,28 +185,28 @@ typedef struct smfsv_evt {
 extern "C" {
 #endif
 
-	uns32 smfsv_evt_enc(SMFSV_EVT * i_evt, NCS_UBAID * o_ub);
-	uns32 smfsv_evt_dec(NCS_UBAID * i_ub, SMFSV_EVT * o_evt);
+	uint32_t smfsv_evt_enc(SMFSV_EVT * i_evt, NCS_UBAID * o_ub);
+	uint32_t smfsv_evt_dec(NCS_UBAID * i_ub, SMFSV_EVT * o_evt);
 	void smfsv_evt_destroy(SMFSV_EVT * evt);
 
-	uns32 smfsv_mds_send_rsp(uns32 mds_handle,
+	uint32_t smfsv_mds_send_rsp(uint32_t mds_handle,
 				 MDS_SYNC_SND_CTXT mds_ctxt,
-				 uns32 to_svc,
+				 uint32_t to_svc,
 				 MDS_DEST to_dest,
-				 uns32 fr_svc,
+				 uint32_t fr_svc,
 				 MDS_DEST fr_dest, SMFSV_EVT * evt);
 
-	uns32 smfsv_mds_msg_sync_send(uns32 mds_handle,
-				      uns32 to_svc,
+	uint32_t smfsv_mds_msg_sync_send(uint32_t mds_handle,
+				      uint32_t to_svc,
 				      MDS_DEST to_dest,
-				      uns32 fr_svc,
+				      uint32_t fr_svc,
 				      SMFSV_EVT * i_evt,
-				      SMFSV_EVT ** o_evt, uns32 timeout);
+				      SMFSV_EVT ** o_evt, uint32_t timeout);
 
-	uns32 smfsv_mds_msg_send(uns32 mds_handle,
-				 uns32 to_svc,
+	uint32_t smfsv_mds_msg_send(uint32_t mds_handle,
+				 uint32_t to_svc,
 				 MDS_DEST to_dest,
-				 uns32 from_svc, SMFSV_EVT * evt);
+				 uint32_t from_svc, SMFSV_EVT * evt);
 
 #ifdef __cplusplus
 }

@@ -83,22 +83,22 @@ extern CLMS_CB *clms_cb;
 extern CLMS_CLUSTER_INFO *osaf_cluster;
 extern const SaNameT *clmSvcUsrName;
 
-extern uns32 clms_amf_init(CLMS_CB *);
-extern uns32 clms_mds_init(CLMS_CB * cb);
-extern uns32 clms_cb_init(CLMS_CB * clms_cb);
-extern uns32 clms_mds_finalize(CLMS_CB * cb);
-extern uns32 clms_mds_change_role(CLMS_CB * cb);
+extern uint32_t clms_amf_init(CLMS_CB *);
+extern uint32_t clms_mds_init(CLMS_CB * cb);
+extern uint32_t clms_cb_init(CLMS_CB * clms_cb);
+extern uint32_t clms_mds_finalize(CLMS_CB * cb);
+extern uint32_t clms_mds_change_role(CLMS_CB * cb);
 
-extern uns32 clms_mds_msg_send(CLMS_CB * cb,
+extern uint32_t clms_mds_msg_send(CLMS_CB * cb,
 			       CLMSV_MSG * msg,
 			       MDS_DEST *dest,
 			       MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio, NCSMDS_SVC_ID svc_id);
 
 extern SaAisErrorT clms_imm_activate(CLMS_CB * cb);
-extern uns32 clms_node_trackresplist_empty(CLMS_CLUSTER_NODE * op_node);
-extern uns32 clms_send_cbk_start_sub(CLMS_CB * cb, CLMS_CLUSTER_NODE * node);
+extern uint32_t clms_node_trackresplist_empty(CLMS_CLUSTER_NODE * op_node);
+extern uint32_t clms_send_cbk_start_sub(CLMS_CB * cb, CLMS_CLUSTER_NODE * node);
 extern void clms_clear_node_dep_list(CLMS_CLUSTER_NODE * node);
-extern uns32 clms_client_del_trackresp(SaUint32T client_id);
+extern uint32_t clms_client_del_trackresp(SaUint32T client_id);
 extern CLMS_CLUSTER_NODE *clms_node_get_by_name(const SaNameT *name);
 extern CLMS_CLUSTER_NODE *clms_node_getnext_by_name(const SaNameT *name);
 extern CLMS_CLUSTER_NODE *clms_node_get_by_id(SaUint32T nodeid);
@@ -110,13 +110,13 @@ extern SaAisErrorT clms_plm_init(CLMS_CB * cb);
 extern void clms_node_add_to_model(CLMS_CLUSTER_NODE * node);
 extern SaTimeT clms_get_SaTime(void);
 extern void clms_imm_impl_set(CLMS_CB * cb);
-extern uns32 clms_rda_init(CLMS_CB * cb);
+extern uint32_t clms_rda_init(CLMS_CB * cb);
 extern void clms_adminop_pending(void);
 extern void ckpt_node_rec(CLMS_CLUSTER_NODE * node);
 extern void ckpt_node_down_rec(CLMS_CLUSTER_NODE * node);
 extern void ckpt_cluster_rec(void);
 extern void clms_cb_dump(void);
-extern uns32 clms_send_is_member_info(CLMS_CB * cb, SaClmNodeIdT node_id,  SaBoolT member, SaBoolT is_configured);
+extern uint32_t clms_send_is_member_info(CLMS_CB * cb, SaClmNodeIdT node_id,  SaBoolT member, SaBoolT is_configured);
 extern void clm_imm_reinit_bg(CLMS_CB * cb);
 
 #endif   /* ifndef CLMS_H */

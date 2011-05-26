@@ -40,7 +40,7 @@
 #include "mbcsv.h"
 
 typedef struct {
-	uns32 pwe_hdl;		/* Handle supplied by application with OPEN call */
+	uint32_t pwe_hdl;		/* Handle supplied by application with OPEN call */
 	SS_SVC_ID svc_id;
 } MBCSV_MBX_KEY;
 
@@ -61,11 +61,11 @@ typedef struct mbcsv_mbx_info {
 *                     FAILURE - fail to add new entry. 
 *
 *****************************************************************************/
-uns32 mbcsv_add_new_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id, SYSF_MBX mbx)
+uint32_t mbcsv_add_new_mbx(uint32_t pwe_hdl, SS_SVC_ID svc_id, SYSF_MBX mbx)
 {
 	MBCSV_MBX_KEY key;
 	MBCSV_MBX_INFO *new_entry;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&key, '\0', sizeof(MBCSV_MBX_KEY));
 
@@ -115,11 +115,11 @@ uns32 mbcsv_add_new_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id, SYSF_MBX mbx)
 *                     FAILURE - fail to add new entry. 
 *
 *****************************************************************************/
-uns32 mbcsv_rmv_entry(uns32 pwe_hdl, SS_SVC_ID svc_id)
+uint32_t mbcsv_rmv_entry(uint32_t pwe_hdl, SS_SVC_ID svc_id)
 {
 	MBCSV_MBX_KEY key;
 	MBCSV_MBX_INFO *tree_entry;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&key, '\0', sizeof(MBCSV_MBX_KEY));
 
@@ -154,10 +154,10 @@ uns32 mbcsv_rmv_entry(uns32 pwe_hdl, SS_SVC_ID svc_id)
 *  RETURNS:           SUCCESS - All went well
 *
 *****************************************************************************/
-uns32 mbcsv_initialize_mbx_list(void)
+uint32_t mbcsv_initialize_mbx_list(void)
 {
 	NCS_PATRICIA_PARAMS pt_params;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* 
 	 * Create patricia tree for the mail boxes 
@@ -184,7 +184,7 @@ uns32 mbcsv_initialize_mbx_list(void)
 *  RETURNS:           SUCCESS - All went well
 *
 *****************************************************************************/
-uns32 mbcsv_destroy_mbx_list(void)
+uint32_t mbcsv_destroy_mbx_list(void)
 {
 	MBCSV_MBX_KEY key;
 	MBCSV_MBX_INFO *tree_entry;
@@ -219,7 +219,7 @@ uns32 mbcsv_destroy_mbx_list(void)
 *  RETURNS:           mbx - mailbox or NULL if unable to find the entry.
 *
 *****************************************************************************/
-SYSF_MBX mbcsv_get_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id)
+SYSF_MBX mbcsv_get_mbx(uint32_t pwe_hdl, SS_SVC_ID svc_id)
 {
 	SYSF_MBX mbx;
 	MBCSV_MBX_KEY key;
@@ -264,7 +264,7 @@ SYSF_MBX mbcsv_get_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id)
 *                           same pwe_hdl.
 *
 *****************************************************************************/
-SYSF_MBX mbcsv_get_next_entry_for_pwe(uns32 pwe_hdl, SS_SVC_ID *svc_id)
+SYSF_MBX mbcsv_get_next_entry_for_pwe(uint32_t pwe_hdl, SS_SVC_ID *svc_id)
 {
 	SYSF_MBX mbx;
 	MBCSV_MBX_KEY key;

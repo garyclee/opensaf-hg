@@ -100,7 +100,7 @@ typedef enum {
  * Private structure definitions 
 \****************************************************************************/
 
-typedef uns32 NCS_SPL_INSTANTIATION_FLAGS;
+typedef uint32_t NCS_SPL_INSTANTIATION_FLAGS;
 
 /**** S P L R      S T U F F  ******/
 typedef struct ncs_splr_key {
@@ -119,7 +119,7 @@ typedef struct ncs_splr_entry {
 	NCS_SPL_INSTANTIATION_FLAGS inst_flags;
 	NCS_LIB_REQUEST inst_api;
 	void *user_se_api;
-	uns32 inst_count;
+	uint32_t inst_count;
 
 } NCS_SPLR_ENTRY;
 
@@ -133,7 +133,7 @@ typedef struct ncs_splr_cb {
 typedef struct ncs_spir_key {
 	uint8_t sp_abstract_name[NCS_MAX_SP_ABSTRACT_NAME_LEN + 1];
 	SaNameT instance_name;
-	uns32 environment_id;	/* Should we use PW_ENV_ID instead of uns32? */
+	uint32_t environment_id;	/* Should we use PW_ENV_ID instead of uns32? */
 } NCS_SPIR_KEY;
 
 /*----*/
@@ -145,8 +145,8 @@ typedef struct ncs_spir_entry {
 	NCS_SPIR_KEY key;
 
 	/* Data */
-	uns32 use_count;
-	uns32 handle;
+	uint32_t use_count;
+	uint32_t handle;
 	void *arg;
 } NCS_SPIR_ENTRY;
 
@@ -169,21 +169,21 @@ typedef struct ncs_sprr_cb {
 \****************************************************************************/
 
 /* Handle to the SPRR-CB. Only valid between sprr create and destroy calls */
-static uns32 gl_sprr_hdl;
+static uint32_t gl_sprr_hdl;
 
 /****************************************************************************\
  * Private functions 
 \****************************************************************************/
 
-static uns32 sprr_create(NCS_LIB_REQ_INFO *create_req);
-static uns32 sprr_destroy(NCS_LIB_REQ_INFO *destroy_req);
+static uint32_t sprr_create(NCS_LIB_REQ_INFO *create_req);
+static uint32_t sprr_destroy(NCS_LIB_REQ_INFO *destroy_req);
 
 /****************************************************************************\
  * Function: sprr_lib_req  (NCS-PRIVATE-API)
 \****************************************************************************/
-uns32 sprr_lib_req(NCS_LIB_REQ_INFO *req)
+uint32_t sprr_lib_req(NCS_LIB_REQ_INFO *req)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	switch (req->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -204,13 +204,13 @@ uns32 sprr_lib_req(NCS_LIB_REQ_INFO *req)
 /****************************************************************************\
  * Function: ncs_splr_api  (NCS-PUBLIC-API)
 \****************************************************************************/
-uns32 ncs_splr_api(NCS_SPLR_REQ_INFO *info)
+uint32_t ncs_splr_api(NCS_SPLR_REQ_INFO *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_SPRR_CB *sprr_cb;
 	NCS_SPLR_KEY splr_key;
 	NCS_SPLR_ENTRY *splr_entry;
-	uns32 sp_abs_name_len;
+	uint32_t sp_abs_name_len;
 
 	/* Validate  service-providers abstract name-length */
 	sp_abs_name_len = strlen((char *)info->i_sp_abstract_name);
@@ -318,14 +318,14 @@ uns32 ncs_splr_api(NCS_SPLR_REQ_INFO *info)
 /****************************************************************************\
  * Function: ncs_spir_api  (NCS-PUBLIC-API)
 \****************************************************************************/
-uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
+uint32_t ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_SPRR_CB *sprr_cb;
 	NCS_SPIR_KEY spir_key;
 	NCS_SPIR_ENTRY *spir_entry;
 	NCS_SPLR_ENTRY *splr_entry;
-	uns32 sp_abs_name_len;
+	uint32_t sp_abs_name_len;
 	NCS_LIB_REQ_INFO lib_req;
 
 	memset(&lib_req, 0, sizeof(lib_req));
@@ -615,7 +615,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 /****************************************************************************\
  * Function: sprr_create  (FILE-PRIVATE)
 \****************************************************************************/
-static uns32 sprr_create(NCS_LIB_REQ_INFO *create_req)
+static uint32_t sprr_create(NCS_LIB_REQ_INFO *create_req)
 {
 	NCS_PATRICIA_PARAMS params;
 	NCS_SPRR_CB *sprr_cb;
@@ -667,7 +667,7 @@ static uns32 sprr_create(NCS_LIB_REQ_INFO *create_req)
  *
  * Notes: Responsibility of ensuring 
 \****************************************************************************/
-static uns32 sprr_destroy(NCS_LIB_REQ_INFO *destroy_req)
+static uint32_t sprr_destroy(NCS_LIB_REQ_INFO *destroy_req)
 {
 	NCS_SPRR_CB *sprr_cb;
 
@@ -703,7 +703,7 @@ static uns32 sprr_destroy(NCS_LIB_REQ_INFO *destroy_req)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_environment_setup(uns32 env_id)
+uint32_t ncs_environment_setup(uint32_t env_id)
 {
 	/* Stub the function until there is some meat to put in here */
 	if ((env_id < 0) || (env_id >= NCSMDS_MAX_PWES))
@@ -712,7 +712,7 @@ uns32 ncs_environment_setup(uns32 env_id)
 		return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_environment_clear(uns32 env_id)
+uint32_t ncs_environment_clear(uint32_t env_id)
 {
 	/* Stub the function until there is some meat to put in here */
 	if ((env_id < 0) || (env_id >= NCSMDS_MAX_PWES))

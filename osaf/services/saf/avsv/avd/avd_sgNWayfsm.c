@@ -52,16 +52,16 @@
 
 /* static function declarations */
 
-static uns32 avd_sg_nway_su_fault_stable(AVD_CL_CB *, AVD_SU *);
-static uns32 avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *, AVD_SU *);
-static uns32 avd_sg_nway_su_fault_su_oper(AVD_CL_CB *, AVD_SU *);
-static uns32 avd_sg_nway_su_fault_si_oper(AVD_CL_CB *, AVD_SU *);
-static uns32 avd_sg_nway_su_fault_sg_admin(AVD_CL_CB *, AVD_SU *);
+static uint32_t avd_sg_nway_su_fault_stable(AVD_CL_CB *, AVD_SU *);
+static uint32_t avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *, AVD_SU *);
+static uint32_t avd_sg_nway_su_fault_su_oper(AVD_CL_CB *, AVD_SU *);
+static uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *, AVD_SU *);
+static uint32_t avd_sg_nway_su_fault_sg_admin(AVD_CL_CB *, AVD_SU *);
 
-static uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *, AVSV_SUSI_ACT, SaAmfHAStateT);
-static uns32 avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *, AVSV_SUSI_ACT, SaAmfHAStateT);
-static uns32 avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *, AVSV_SUSI_ACT, SaAmfHAStateT);
-static uns32 avd_sg_nway_susi_succ_sg_admin(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *, AVSV_SUSI_ACT, SaAmfHAStateT);
+static uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *, AVSV_SUSI_ACT, SaAmfHAStateT);
+static uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *, AVSV_SUSI_ACT, SaAmfHAStateT);
+static uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *, AVSV_SUSI_ACT, SaAmfHAStateT);
+static uint32_t avd_sg_nway_susi_succ_sg_admin(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *, AVSV_SUSI_ACT, SaAmfHAStateT);
 
 static void avd_sg_nway_node_fail_stable(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *);
 static void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *, AVD_SU *);
@@ -117,9 +117,9 @@ static void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *, AVD_SU *);
  * failure.
  *
  **************************************************************************/
-uns32 avd_sg_nway_si_func(AVD_CL_CB *cb, AVD_SI *si)
+uint32_t avd_sg_nway_si_func(AVD_CL_CB *cb, AVD_SI *si)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* If the SG FSM state is not stable just return success. */
 	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE)
@@ -152,12 +152,12 @@ uns32 avd_sg_nway_si_func(AVD_CL_CB *cb, AVD_SI *si)
  * Notes: This is a N-Way redundancy model specific function.
  *
  **************************************************************************/
-uns32 avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
+uint32_t avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%u", si->sg_of_si->sg_fsm_state);
 
@@ -228,9 +228,9 @@ uns32 avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
  * Notes: None.
  *
  **************************************************************************/
-uns32 avd_sg_nway_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t avd_sg_nway_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
@@ -282,9 +282,9 @@ uns32 avd_sg_nway_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
  * Notes: none.
  *
  **************************************************************************/
-uns32 avd_sg_nway_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t avd_sg_nway_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
 
@@ -339,10 +339,10 @@ uns32 avd_sg_nway_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
  * Notes: This is a N-Way redundancy model specific function.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_susi_sucss_func(AVD_CL_CB *cb,
+uint32_t avd_sg_nway_susi_sucss_func(AVD_CL_CB *cb,
 				  AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
@@ -408,14 +408,14 @@ uns32 avd_sg_nway_susi_sucss_func(AVD_CL_CB *cb,
  * Notes: This is a N-Way redundancy model specific function.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
+uint32_t avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	AVD_SG *sg = su->sg_of_su;
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
 	NCS_BOOL is_eng = FALSE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
@@ -598,7 +598,7 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		break;
 
 	default:
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uns32)su->sg_of_su->sg_fsm_state));
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
 		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 		return NCSCC_RC_FAILURE;
 	}			/* switch */
@@ -626,7 +626,7 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
  * Notes: none.
  *
  **************************************************************************/
-uns32 avd_sg_nway_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
+uint32_t avd_sg_nway_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	TRACE_ENTER2("'%s'", sg->name.value);
 
@@ -702,7 +702,7 @@ void avd_sg_nway_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 		break;
 
 	default:
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uns32)su->sg_of_su->sg_fsm_state));
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
 		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 		return;
 	}			/* switch */
@@ -738,13 +738,13 @@ void avd_sg_nway_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
  * admin change.
  *
  **************************************************************************/
-uns32 avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
+uint32_t avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	AVD_SU_SI_STATE old_fsm_state;
 	SaAmfHAStateT old_state, state;
 	NCS_BOOL is_all_stdby = TRUE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
@@ -851,7 +851,7 @@ uns32 avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 		break;
 
 	default:
-		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uns32)su->sg_of_su->sg_fsm_state));
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
 		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 		return NCSCC_RC_FAILURE;
 	}			/* switch */
@@ -874,12 +874,12 @@ uns32 avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
  * Notes: This is a N-Way redundancy model specific function.
  *
  **************************************************************************/
-uns32 avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
+uint32_t avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	AVD_SU_SI_STATE old_fsm_state;
 	SaAmfHAStateT old_state;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%u", si->sg_of_si->sg_fsm_state);
 
@@ -963,7 +963,7 @@ uns32 avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 		break;
 
 	default:
-		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uns32)si->sg_of_si->sg_fsm_state));
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)si->sg_of_si->sg_fsm_state));
 		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, si->name.value, si->name.length);
 		return NCSCC_RC_FAILURE;
 	}			/* switch */
@@ -986,7 +986,7 @@ uns32 avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
  * Notes: This is a N-Way redundancy model specific function.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
+uint32_t avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	AVD_SU *curr_su = 0;
@@ -994,7 +994,7 @@ uns32 avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 	AVD_SU_SI_STATE old_fsm_state;
 	SaAmfHAStateT old_state;
 	NCS_BOOL is_act_asgn;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%u", sg->sg_fsm_state);
 
@@ -1096,7 +1096,7 @@ uns32 avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 		break;
 
 	default:
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uns32)sg->sg_fsm_state));
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)sg->sg_fsm_state));
 		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, sg->name.value, sg->name.length);
 		return NCSCC_RC_FAILURE;
 	}			/* switch */
@@ -1218,7 +1218,7 @@ avd_sirankedsu_t *avd_si_find_sirankedsu(AVD_SI *si, AVD_SU *su)
  *
  * @returns TRUE/FALSE
  */
-static uns32 su_has_any_non_ranked_assignment_with_state( AVD_SU *su, SaAmfHAStateT ha_state)
+static uint32_t su_has_any_non_ranked_assignment_with_state(AVD_SU *su, SaAmfHAStateT ha_state)
 {
 	AVD_SU_SI_REL *susi;
 	NCS_BOOL   found = FALSE;
@@ -1589,7 +1589,7 @@ AVD_SU *avd_sg_nway_si_find_highest_sirankedsu(AVD_CL_CB *cb, AVD_SI *si, AVD_SU
  *            state if any su-si assignment message is sent to AvND.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
+uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SI *curr_si = 0;
 	AVD_SU *curr_su = NULL;
@@ -1597,7 +1597,7 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 	AVD_SUS_PER_SI_RANK_INDX i_idx;
 	AVD_SUS_PER_SI_RANK *su_rank_rec = 0;
 	NCS_BOOL is_act_ass_sent = FALSE, is_all_su_oos = TRUE, is_all_si_ok = FALSE, su_found = TRUE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SU_SI_REL *tmp_susi;
 
 	TRACE_ENTER2("%s", sg->name.value);
@@ -1876,13 +1876,13 @@ done:
  * Notes    : None.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_su_fault_stable(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t avd_sg_nway_su_fault_stable(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
 	NCS_BOOL is_all_stdby = TRUE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (!su->list_of_susi)
 		return rc;
@@ -1947,7 +1947,7 @@ uns32 avd_sg_nway_su_fault_stable(AVD_CL_CB *cb, AVD_SU *su)
  * Notes    : None.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	SaAmfHAStateT old_state;
@@ -1955,7 +1955,7 @@ uns32 avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 	AVD_SG *sg = su->sg_of_su;
 	AVD_SI *si = sg->admin_si;
 	NCS_BOOL is_su_present, flag;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *su_node_ptr = NULL;
 
 	/* check if su is present in the su-oper list */
@@ -2171,13 +2171,13 @@ uns32 avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
  * Notes    : None.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t avd_sg_nway_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
 	NCS_BOOL is_all_stdby = TRUE, flag;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *su_node_ptr = NULL;
 
 	if (su->sg_of_su->su_oper_list.su == su) {
@@ -2281,14 +2281,14 @@ uns32 avd_sg_nway_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
  * Notes    : None.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
 	AVD_SG *sg = su->sg_of_su;
 	AVD_SI *si = sg->admin_si;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* process the failure of su while there is an si transfer 
 	 * going in this SG */
@@ -2679,12 +2679,12 @@ process_remaining:
  * Notes    : None.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_su_fault_sg_admin(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t avd_sg_nway_su_fault_sg_admin(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* if already locked, do nothing */
 	if (SA_AMF_ADMIN_LOCKED == su->sg_of_su->saAmfSGAdminState)
@@ -2736,7 +2736,7 @@ uns32 avd_sg_nway_su_fault_sg_admin(AVD_CL_CB *cb, AVD_SU *su)
  * Notes    : None.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
+uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 				       AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *curr_susi = 0, *curr_sisu = 0, tmp_susi;
@@ -2744,7 +2744,7 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
 	NCS_BOOL is_su_present, is_eng, flag;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *su_node_ptr = NULL;
 
 	if (susi && (SA_AMF_HA_ACTIVE == state) && (AVSV_SUSI_ACT_DEL != act)) {
@@ -3174,7 +3174,7 @@ static AVD_SU_SI_REL * find_pref_standby_susi(AVD_SU_SI_REL *sisu)
  * Notes    : None.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
+uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 				    AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *curr_susi = 0, *curr_sisu = 0;
@@ -3182,7 +3182,7 @@ uns32 avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
 	NCS_BOOL is_eng = FALSE, flag;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *su_node_ptr = NULL;
 	TRACE_ENTER2("SU '%s'  ",su->name.value);
 
@@ -3363,14 +3363,14 @@ done:
  * Notes    : None.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
+uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 				    AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	AVD_SG *sg = su->sg_of_su;
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (susi && (SA_AMF_HA_QUIESCED == state) && (AVSV_SUSI_ACT_DEL != act)) {
 		if (sg->admin_si != susi->si && susi->si->sg_of_si->si_tobe_redistributed != susi->si ) {
@@ -3636,12 +3636,12 @@ uns32 avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
  * Notes    : None.
  * 
  **************************************************************************/
-uns32 avd_sg_nway_susi_succ_sg_admin(AVD_CL_CB *cb,
+uint32_t avd_sg_nway_susi_succ_sg_admin(AVD_CL_CB *cb,
 				     AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	AVD_SG *sg = su->sg_of_su;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (susi && (SA_AMF_HA_QUIESCED == state) && (AVSV_SUSI_ACT_DEL != act)) {
 		/* => single quiesced success */
@@ -3705,7 +3705,7 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 	AVD_SG *sg = su->sg_of_su;
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
 
 	if (!su->list_of_susi)
@@ -3797,7 +3797,7 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
 	NCS_BOOL is_su_present, flag;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *su_node_ptr = NULL;
 
 	/* check if su is present in the su-oper list */
@@ -3947,7 +3947,7 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 	AVD_SG *sg = su->sg_of_su;
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* process the failure of su while there is an si transfer 
 	 * going in this SG */

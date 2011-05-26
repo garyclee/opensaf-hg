@@ -20,56 +20,56 @@
 #include "clms_mbcsv.h"
 #include "clms_evt.h"
 
-static uns32 ckpt_proc_cluster_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uns32 ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uns32 ckpt_proc_finalize_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uns32 ckpt_proc_track_changes_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uns32 ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uns32 ckpt_proc_node_config_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uns32 ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uns32 ckpt_proc_node_del_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uns32 ckpt_proc_agent_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uns32 ckpt_proc_node_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uint32_t ckpt_proc_cluster_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uint32_t ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uint32_t ckpt_proc_finalize_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uint32_t ckpt_proc_track_changes_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uint32_t ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uint32_t ckpt_proc_node_config_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uint32_t ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uint32_t ckpt_proc_node_del_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uint32_t ckpt_proc_agent_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uint32_t ckpt_proc_node_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
 /* Common Callback interface to mbcsv */
-static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
-static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req);
-uns32 clms_cold_sync(NCS_UBAID *uba);
-uns32 encode_client_rec(NCS_UBAID *uba);
-uns32 encode_node_rec(NCS_UBAID *uba);
-uns32 encode_cluster_rec(NCS_UBAID *uba);
-uns32 cluster_rec_(NCS_UBAID *uba);
-static uns32 ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
+static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req);
+uint32_t clms_cold_sync(NCS_UBAID *uba);
+uint32_t encode_client_rec(NCS_UBAID *uba);
+uint32_t encode_node_rec(NCS_UBAID *uba);
+uint32_t encode_cluster_rec(NCS_UBAID *uba);
+uint32_t cluster_rec_(NCS_UBAID *uba);
+static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg);
 static void enc_ckpt_header(uint8_t *pdata, CLMSV_CKPT_HEADER header);
-uns32 enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param);
-uns32 enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param);
-uns32 enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
-uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
-uns32 enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param);
-uns32 enc_mbcsv_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
-uns32 enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param);
-uns32 enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param);
-uns32 enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param);
-uns32 enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param);
-uns32 enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param);
-static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg);
-uns32 decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param);
-uns32 decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
-static uns32 decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param);
-static uns32 decode_node_down_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param);
-static uns32 decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
-static uns32 decode_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param);
-static uns32 decode_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
-static uns32 decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param);
-uns32 decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param);
-uns32 decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param);
-uns32 decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param);
-static uns32 decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER * param);
-static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg);
-static uns32 ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg);
-static uns32 ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg);
+uint32_t enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param);
+uint32_t enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param);
+uint32_t enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
+uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
+uint32_t enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param);
+uint32_t enc_mbcsv_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
+uint32_t enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param);
+uint32_t enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param);
+uint32_t enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param);
+uint32_t enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param);
+uint32_t enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param);
+static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg);
+uint32_t decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param);
+uint32_t decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
+static uint32_t decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param);
+static uint32_t decode_node_down_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param);
+static uint32_t decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
+static uint32_t decode_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param);
+static uint32_t decode_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
+static uint32_t decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param);
+uint32_t decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param);
+uint32_t decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param);
+uint32_t decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param);
+static uint32_t decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER * param);
+static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg);
+static uint32_t ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg);
+static uint32_t ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg);
 
 static CLMS_CKPT_HDLR ckpt_data_handler[CLMS_CKPT_MSG_MAX] = {
 	ckpt_proc_cluster_rec,	/*CLMS_CKPT_CLUSTER_REC */
@@ -99,7 +99,7 @@ static CLMS_CKPT_HDLR ckpt_data_handler[CLMS_CKPT_MSG_MAX] = {
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_cluster_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_cluster_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 	CLMSV_CKPT_CLUSTER_INFO *param = &data->param.cluster_rec;
 
@@ -126,7 +126,7 @@ static uns32 ckpt_proc_cluster_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 	CLMSV_CKPT_CLIENT_INFO *param = &data->param.client_rec;
 	CLMS_CLIENT_INFO *client = NULL;
@@ -168,10 +168,10 @@ static uns32 ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_finalize_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_finalize_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 	CLMSV_CKPT_FINALIZE_INFO *param = &data->param.finalize_rec;
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE_ENTER2("client: %d", param->client_id);
 	if (!param->client_id) {
@@ -211,7 +211,7 @@ static uns32 ckpt_proc_finalize_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_track_changes_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_track_changes_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 	CLMSV_CKPT_CLIENT_INFO *param = &data->param.client_rec;
 	CLMS_CLIENT_INFO *client;
@@ -250,11 +250,11 @@ static uns32 ckpt_proc_track_changes_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 	CLMSV_CKPT_NODE *param = &data->param.node_csync_rec;
 	CLMS_CLUSTER_NODE *node = NULL, *tmp_node = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("node_name:%s", param->node_name.value);
 
@@ -304,7 +304,7 @@ static uns32 ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_node_del_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_node_del_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 	CLMSV_CKPT_NODE_DEL_REC *param = &data->param.node_del_rec;
 	CLMS_CLUSTER_NODE *node = NULL;
@@ -336,7 +336,7 @@ static uns32 ckpt_proc_node_del_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 ckpt_proc_node_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_node_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 
 	SaClmNodeIdT node_id = data->param.node_down_rec.node_id;
@@ -377,7 +377,7 @@ static uns32 ckpt_proc_node_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_agent_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_agent_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 	CLMSV_CKPT_AGENT_DOWN_REC *param = &data->param.agent_rec;
 
@@ -404,7 +404,7 @@ static uns32 ckpt_proc_agent_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_node_config_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_node_config_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 	CLMSV_CKPT_NODE_CONFIG_REC *param = &data->param.node_config_rec;
 	CLMS_CLUSTER_NODE *node = NULL;
@@ -446,7 +446,7 @@ static uns32 ckpt_proc_node_config_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 	CLMSV_CKPT_NODE_RUNTIME_INFO *param = &data->param.node_rec;
 	CLMS_CLUSTER_NODE *node = NULL;
@@ -504,9 +504,9 @@ static uns32 ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 process_ckpt_data(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t process_ckpt_data(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	if ((!cb) || (data == NULL)) {
 		TRACE("FAILED: (!cb) || (data == NULL)");
 		return (rc = NCSCC_RC_FAILURE);
@@ -541,9 +541,9 @@ static uns32 process_ckpt_data(CLMS_CB * cb, CLMS_CKPT_REC * data)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 clms_mbcsv_init(CLMS_CB * cb)
+uint32_t clms_mbcsv_init(CLMS_CB * cb)
 {
-	uns32 rc;
+	uint32_t rc;
 	NCS_MBCSV_ARG arg;
 
 	TRACE_ENTER();
@@ -564,7 +564,7 @@ uns32 clms_mbcsv_init(CLMS_CB * cb)
 	/* Open a checkpoint */
 	arg.i_op = NCS_MBCSV_OP_OPEN;
 	arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-	arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
+	arg.info.open.i_pwe_hdl = (uint32_t)cb->mds_hdl;
 	arg.info.open.i_client_hdl = 0;
 
 	if ((rc = ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS)) {
@@ -620,10 +620,10 @@ uns32 clms_mbcsv_init(CLMS_CB * cb)
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
 
-uns32 clms_mbcsv_change_HA_state(CLMS_CB * cb)
+uint32_t clms_mbcsv_change_HA_state(CLMS_CB * cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -654,7 +654,7 @@ uns32 clms_mbcsv_change_HA_state(CLMS_CB * cb)
  * Notes         : This function should be ideally called only once, i.e.
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
-uns32 clms_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
+uint32_t clms_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -680,9 +680,9 @@ uns32 clms_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
  * Notes         : Based on the mbcsv message type, the corresponding mbcsv
  *                 message handler shall be invoked.
  *****************************************************************************/
-static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
+static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -749,9 +749,9 @@ static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
  *                 retrieve the record for encoding the same.
  *****************************************************************************/
 
-uns32 clms_send_async_update(CLMS_CB * cb, CLMS_CKPT_REC * ckpt_rec, uns32 action)
+uint32_t clms_send_async_update(CLMS_CB * cb, CLMS_CKPT_REC * ckpt_rec, uint32_t action)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_MBCSV_ARG mbcsv_arg;
 	TRACE_ENTER();
 	/* Fill mbcsv specific data */
@@ -792,9 +792,9 @@ uns32 clms_send_async_update(CLMS_CB * cb, CLMS_CKPT_REC * ckpt_rec, uns32 actio
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t mbcsv_version;
 
 	TRACE_ENTER();
@@ -873,9 +873,9 @@ static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
+static uint32_t ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* asynsc Update Count */
 	uint8_t *async_upd_cnt = NULL;
 
@@ -892,13 +892,13 @@ static uns32 ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_ar
 
 	/* This will have the count of async updates that have been sent,
 	   this will be 0 initially */
-	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
 	if (async_upd_cnt == NULL) {
 		LOG_ER("ncs_enc_reserve_space FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 	ncs_encode_32bit(&async_upd_cnt, clms_cb->async_upd_cnt);
-	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
 
 	/* Set response mbcsv msg type to complete */
 	if (data_req == TRUE)
@@ -909,9 +909,9 @@ static uns32 ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_ar
 	return rc;
 }	/*End  ckpt_enc_cold_sync_data() */
 
-uns32 clms_cold_sync(NCS_UBAID *uba)
+uint32_t clms_cold_sync(NCS_UBAID *uba)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/*encoding cluster runtime data */
@@ -941,14 +941,14 @@ uns32 clms_cold_sync(NCS_UBAID *uba)
 	return rc;
 }
 
-uns32 encode_client_rec(NCS_UBAID *uba)
+uint32_t encode_client_rec(NCS_UBAID *uba)
 {
 	CLMSV_CKPT_HEADER ckpt_hdr;
 	CLMSV_CKPT_CLIENT_INFO *client;
 	CLMS_CLIENT_INFO *client_db = NULL;
-	uns32 client_id = 0;
+	uint32_t client_id = 0;
 	uint8_t *pheader = NULL;
-	uns32 count = 0;
+	uint32_t count = 0;
 
 	client = malloc(sizeof(CLMSV_CKPT_CLIENT_INFO));
 	if (client == NULL) {
@@ -989,13 +989,13 @@ uns32 encode_client_rec(NCS_UBAID *uba)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 encode_node_rec(NCS_UBAID *uba)
+uint32_t encode_node_rec(NCS_UBAID *uba)
 {
 	CLMSV_CKPT_HEADER ckpt_hdr;
 	CLMSV_CKPT_NODE *node = NULL;
 	CLMS_CLUSTER_NODE *cluster_node = NULL;
 	uint8_t *pheader = NULL;
-	uns32 count = 0;
+	uint32_t count = 0;
 
 	node = malloc(sizeof(CLMSV_CKPT_NODE));
 	if (node == NULL) {
@@ -1146,7 +1146,7 @@ void prepare_ckpt_to_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC * node, CLMSV_C
 	node->admin_state = cluster_node->admin_state;
 }
 
-uns32 encode_cluster_rec(NCS_UBAID *uba)
+uint32_t encode_cluster_rec(NCS_UBAID *uba)
 {
 	CLMSV_CKPT_HEADER ckpt_hdr;
 	uint8_t *pheader = NULL;
@@ -1172,7 +1172,7 @@ uns32 encode_cluster_rec(NCS_UBAID *uba)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 cluster_rec_(NCS_UBAID *uba)
+uint32_t cluster_rec_(NCS_UBAID *uba)
 {
 	CLMSV_CKPT_CLUSTER_INFO cluster_rec;
 	cluster_rec.num_nodes = osaf_cluster->num_nodes;
@@ -1200,10 +1200,10 @@ uns32 cluster_rec_(NCS_UBAID *uba)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	CLMS_CKPT_REC *data = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS, num_bytes;
+	uint32_t rc = NCSCC_RC_SUCCESS, num_bytes;
 	uint8_t *pheader = NULL;
 	CLMSV_CKPT_HEADER ckpt_hdr;
 	NCS_UBAID *uba = &cbk_arg->info.encode.io_uba;
@@ -1438,10 +1438,10 @@ static void enc_ckpt_header(uint8_t *pdata, CLMSV_CKPT_HEADER header)
 	ncs_encode_32bit(&pdata, header.data_len);
 }
 
-uns32 enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param)
+uint32_t enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
@@ -1461,10 +1461,10 @@ uns32 enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param)
 	return total_bytes;
 }
 
-uns32 enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param)
+uint32_t enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
@@ -1482,10 +1482,10 @@ uns32 enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * pa
 	return total_bytes;
 }
 
-uns32 enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+uint32_t enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	SaUint32T mds_dest1 = 0;
 	SaUint32T mds_dest2 = 0;
 
@@ -1512,10 +1512,10 @@ uns32 enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 	return total_bytes;
 }
 
-uns32 enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param)
+uint32_t enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	SaUint32T mds_dest1 = 0;
 	SaUint32T mds_dest2 = 0;
 
@@ -1540,10 +1540,10 @@ uns32 enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param
 	return total_bytes;
 }
 
-uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	SaUint32T mds_dest1 = 0;
 	SaUint32T mds_dest2 = 0;
 
@@ -1569,10 +1569,10 @@ uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 	return total_bytes;
 }
 
-uns32 enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param)
+uint32_t enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
@@ -1590,10 +1590,10 @@ uns32 enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param)
 	return total_bytes;
 }
 
-uns32 enc_mbcsv_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+uint32_t enc_mbcsv_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
@@ -1612,10 +1612,10 @@ uns32 enc_mbcsv_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param
 	return total_bytes;
 }
 
-uns32 enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param)
+uint32_t enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
@@ -1709,10 +1709,10 @@ uns32 enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * para
 	return total_bytes;
 }
 
-uns32 enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param)
+uint32_t enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	SaUint32T lck_timeout1 = 0;
 	SaUint32T lck_timeout2 = 0;
 
@@ -1759,10 +1759,10 @@ uns32 enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * par
 	return total_bytes;
 }
 
-uns32 enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
+uint32_t enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	SaUint32T lck_timeout1 = 0;
 	SaUint32T lck_timeout2 = 0;
 
@@ -1910,9 +1910,9 @@ uns32 enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
 	return total_bytes;
 }
 
-uns32 enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
+uint32_t enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
 {
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
@@ -1937,9 +1937,9 @@ uns32 enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t msg_fmt_version;
 
 	TRACE_ENTER();
@@ -2024,12 +2024,12 @@ static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  *                        header->num_records times, 
  *****************************************************************************/
 
-static uns32 ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CLMS_CKPT_REC msg;
 	CLMS_CKPT_REC *data = NULL;
-	uns32 num_rec = 0;
+	uint32_t num_rec = 0;
 	TRACE_ENTER();
 
 	/* 
@@ -2146,9 +2146,9 @@ static uns32 ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, num_bytes = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, num_bytes = 0;
 	CLMS_CKPT_REC *ckpt_msg = NULL;
 	CLMSV_CKPT_HEADER *hdr = NULL;
 	CLMSV_CKPT_CLIENT_INFO *ckpt_client_rec = NULL;
@@ -2297,10 +2297,10 @@ static uns32 ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	/* if failure, should an indication be sent to active ? */
 }
 
-static uns32 decode_node_down_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param)
+static uint32_t decode_node_down_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[12];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -2311,10 +2311,10 @@ static uns32 decode_node_down_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * pa
 	return total_bytes;
 }
 
-uns32 decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param)
+uint32_t decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[12];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 20);
@@ -2327,10 +2327,10 @@ uns32 decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param)
 	return total_bytes;
 }
 
-uns32 decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+uint32_t decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[13];
 	SaUint32T mds_dest1 = 0;
 	SaUint32T mds_dest2 = 0;
@@ -2348,10 +2348,10 @@ uns32 decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 	return total_bytes;
 }
 
-static uns32 decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param)
+static uint32_t decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[8];
 	SaUint32T mds_dest1 = 0;
 	SaUint32T mds_dest2 = 0;
@@ -2376,10 +2376,10 @@ static uns32 decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * p
 
 }
 
-static uns32 decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+static uint32_t decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[12];
 	SaUint32T mds_dest1 = 0;
 	SaUint32T mds_dest2 = 0;
@@ -2399,10 +2399,10 @@ static uns32 decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 	return total_bytes;
 }
 
-static uns32 decode_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param)
+static uint32_t decode_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[4];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -2413,10 +2413,10 @@ static uns32 decode_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * para
 	return total_bytes;
 }
 
-static uns32 decode_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+static uint32_t decode_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[5];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 5);
@@ -2428,10 +2428,10 @@ static uns32 decode_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * p
 	return total_bytes;
 }
 
-static uns32 decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param)
+static uint32_t decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[8];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -2487,10 +2487,10 @@ static uns32 decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * 
 	return total_bytes;
 }
 
-uns32 decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param)
+uint32_t decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[8];
 	SaUint32T lck_timeout1 = 0;
 	SaUint32T lck_timeout2 = 0;
@@ -2522,9 +2522,9 @@ uns32 decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param)
 	return total_bytes;
 }
 
-uns32 decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
+uint32_t decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
 {
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	total_bytes += clmsv_decodeSaNameT(uba, &param->node_name);
 
@@ -2532,10 +2532,10 @@ uns32 decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
 	return total_bytes;
 }
 
-uns32 decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
+uint32_t decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[12];
 	SaUint32T lck_timeout1 = 0;
 	SaUint32T lck_timeout2 = 0;
@@ -2624,10 +2624,10 @@ uns32 decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
 	return total_bytes;
 }
 
-static uns32 decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER * param)
+static uint32_t decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER * param)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[12];
 
 	/* releaseCode, majorVersion, minorVersion */
@@ -2653,7 +2653,7 @@ static uns32 decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER * param)
  *
  * Notes         : None.
  ***************************************************************************/
-static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	uint16_t peer_version;
 
@@ -2677,7 +2677,7 @@ static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  *
  * Notes         : None.
  ***************************************************************************/
-static uns32 ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+static uint32_t ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	/* Currently nothing to be done */
 	return NCSCC_RC_SUCCESS;
@@ -2694,7 +2694,7 @@ static uns32 ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  *
  * Notes         : None.
  ***************************************************************************/
-static uns32 ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+static uint32_t ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	/* Currently nothing to be done. */
 	return NCSCC_RC_SUCCESS;

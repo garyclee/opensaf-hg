@@ -29,17 +29,17 @@
   ckpt.ckpt_rec.finalize_rec.client_id= client_id;\
 }
 
-static uns32 process_api_evt(ntfsv_ntfs_evt_t *evt);
-static uns32 proc_ntfa_updn_mds_msg(ntfsv_ntfs_evt_t *evt);
-static uns32 proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt);
-static uns32 proc_initialize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
-static uns32 proc_finalize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
-static uns32 proc_subscribe_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
-static uns32 proc_unsubscribe_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
-static uns32 proc_send_not_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
-static uns32 proc_reader_initialize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
-static uns32 proc_reader_finalize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
-static uns32 proc_read_next_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
+static uint32_t process_api_evt(ntfsv_ntfs_evt_t *evt);
+static uint32_t proc_ntfa_updn_mds_msg(ntfsv_ntfs_evt_t *evt);
+static uint32_t proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt);
+static uint32_t proc_initialize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
+static uint32_t proc_finalize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
+static uint32_t proc_subscribe_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
+static uint32_t proc_unsubscribe_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
+static uint32_t proc_send_not_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
+static uint32_t proc_reader_initialize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
+static uint32_t proc_reader_finalize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
+static uint32_t proc_read_next_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 
 static int ntf_version_is_valid(SaVersionT *ver) {
 /* TODO: remove after upgrade to version A.02.01 */       
@@ -90,7 +90,7 @@ NTFSV_NTFS_NTFA_API_MSG_HANDLER ntfs_ntfa_api_msg_dispatcher[NTFSV_API_MAX] = {
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 proc_ntfa_updn_mds_msg(ntfsv_ntfs_evt_t *evt)
+static uint32_t proc_ntfa_updn_mds_msg(ntfsv_ntfs_evt_t *evt)
 {
 	TRACE_ENTER();
 
@@ -122,7 +122,7 @@ static uns32 proc_ntfa_updn_mds_msg(ntfsv_ntfs_evt_t *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt)
+static uint32_t proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt)
 {
 	TRACE_ENTER();
 	if (ntfs_cb->is_quisced_set == TRUE) {
@@ -151,9 +151,9 @@ static uns32 proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 proc_rda_cb_msg(ntfsv_ntfs_evt_t *evt)
+static uint32_t proc_rda_cb_msg(ntfsv_ntfs_evt_t *evt)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE_ENTER();
 
@@ -199,7 +199,7 @@ done:
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 ntfs_cb_init(ntfs_cb_t *ntfs_cb)
+uint32_t ntfs_cb_init(ntfs_cb_t *ntfs_cb)
 {
 	TRACE_ENTER();
 	/* Assign Initial HA state */
@@ -213,9 +213,9 @@ uns32 ntfs_cb_init(ntfs_cb_t *ntfs_cb)
 	return NCSCC_RC_SUCCESS;
 }
 
-void update_standby(ntfsv_ckpt_msg_t *ckpt, uns32 action)
+void update_standby(ntfsv_ckpt_msg_t *ckpt, uint32_t action)
 {
-	uns32 async_rc = NCSCC_RC_SUCCESS;
+	uint32_t async_rc = NCSCC_RC_SUCCESS;
 
 	if (ntfs_cb->ha_state == SA_AMF_HA_ACTIVE) {
 		async_rc = ntfs_send_async_update(ntfs_cb, ckpt, action);
@@ -231,9 +231,9 @@ void update_standby(ntfsv_ckpt_msg_t *ckpt, uns32 action)
  * 
  * @return uns32
  */
-static uns32 proc_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
+static uint32_t proc_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	SaVersionT *version;
 
@@ -261,9 +261,9 @@ static uns32 proc_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
  * 
  * @return uns32
  */
-static uns32 proc_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
+static uint32_t proc_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-	uns32 client_id = evt->info.msg.info.api_info.param.finalize.client_id;
+	uint32_t client_id = evt->info.msg.info.api_info.param.finalize.client_id;
 
 	TRACE_ENTER2("client_id %u", client_id);
 	clientRemoved(client_id);
@@ -285,9 +285,9 @@ static uns32 proc_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 proc_subscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
+static uint32_t proc_subscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	ntfsv_subscribe_req_t *subscribe_param = &(evt->info.msg.info.api_info.param.subscribe);
@@ -306,9 +306,9 @@ static uns32 proc_subscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
  * 
  * @return uns32
  */
-static uns32 proc_unsubscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
+static uint32_t proc_unsubscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	ntfsv_unsubscribe_req_t *param = &(evt->info.msg.info.api_info.param.unsubscribe);
 
@@ -370,9 +370,9 @@ static void print_header(SaNtfNotificationHeaderT *notificationHeader)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 proc_send_not_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
+static uint32_t proc_send_not_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	ntfsv_send_not_req_t *param = evt->info.msg.info.api_info.param.send_notification;
@@ -400,9 +400,9 @@ static uns32 proc_send_not_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 proc_reader_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
+static uint32_t proc_reader_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	ntfsv_reader_init_req_t *reader_initialize_param = &(evt->info.msg.info.api_info.param.reader_init);
@@ -426,9 +426,9 @@ static uns32 proc_reader_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 proc_reader_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
+static uint32_t proc_reader_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	ntfsv_reader_finalize_req_t *reader_finalize_param = &(evt->info.msg.info.api_info.param.reader_finalize);
@@ -460,9 +460,9 @@ static uns32 proc_reader_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 proc_read_next_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
+static uint32_t proc_read_next_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	ntfsv_read_next_req_t *read_next_param = &(evt->info.msg.info.api_info.param.read_next);
@@ -494,7 +494,7 @@ static uns32 proc_read_next_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 process_api_evt(ntfsv_ntfs_evt_t *evt)
+static uint32_t process_api_evt(ntfsv_ntfs_evt_t *evt)
 {
 	if (evt->evt_type == NTFSV_NTFS_NTFSV_MSG) {
 		/* ignore one level... */

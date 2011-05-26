@@ -53,7 +53,7 @@ static void dts_tmrcb(void *arg);
   RETURNS         : None.
   NOTES:
 *****************************************************************************/
-void dts_sort_msgs(SEQ_ARRAY *msg_seq, uns32 array_size)
+void dts_sort_msgs(SEQ_ARRAY *msg_seq, uint32_t array_size)
 {
 	int i;
 
@@ -82,9 +82,9 @@ void dts_sort_msgs(SEQ_ARRAY *msg_seq, uns32 array_size)
   RETURNS         : None.
   NOTES:
 *****************************************************************************/
-void dts_sift_down(SEQ_ARRAY *msg_seq, uns32 root, uns32 bottom)
+void dts_sift_down(SEQ_ARRAY *msg_seq, uint32_t root, uint32_t bottom)
 {
-	uns32 done, maxchild;
+	uint32_t done, maxchild;
 	SEQ_ARRAY temp;
 
 	done = 0;
@@ -124,9 +124,9 @@ void dts_sift_down(SEQ_ARRAY *msg_seq, uns32 root, uns32 bottom)
                     NCSCC_RC_FAILURE.
   NOTES:
 *****************************************************************************/
-#define DTSV_MSG_TIME_STAMP   (2 * sizeof(uns32))
+#define DTSV_MSG_TIME_STAMP   (2 * sizeof(uint32_t))
 #define DTS_MAX_SIZE_DATA  512
-uns32 dts_queue_seq_msg(DTS_CB *inst, DTSV_MSG *msg)
+uint32_t dts_queue_seq_msg(DTS_CB *inst, DTSV_MSG *msg)
 {
 	/*
 	 * Copy the time stamp portion of the mssage received 
@@ -174,9 +174,9 @@ uns32 dts_queue_seq_msg(DTS_CB *inst, DTSV_MSG *msg)
                     NCSCC_RC_FAILURE.
   NOTES:
 *****************************************************************************/
-uns32 dts_dump_seq_msg(DTS_CB *inst, NCS_BOOL all)
+uint32_t dts_dump_seq_msg(DTS_CB *inst, NCS_BOOL all)
 {
-	uns32 i, j = 0, num_msg_dump = 0;
+	uint32_t i, j = 0, num_msg_dump = 0;
 	SEQ_BUFFER *buffer = &inst->s_buffer;
 
 	m_DTS_LK(&inst->lock);
@@ -253,7 +253,7 @@ uns32 dts_dump_seq_msg(DTS_CB *inst, NCS_BOOL all)
                     NCSCC_RC_FAILURE.
   NOTES:
 *****************************************************************************/
-uns32 dts_enable_sequencing(DTS_CB *inst)
+uint32_t dts_enable_sequencing(DTS_CB *inst)
 {
 	/* 
 	 * User has enabled the sequencing. So allocate the sequencing buffer.
@@ -292,7 +292,7 @@ uns32 dts_enable_sequencing(DTS_CB *inst)
                     NCSCC_RC_FAILURE.
   NOTES:
 *****************************************************************************/
-uns32 dts_disable_sequencing(DTS_CB *inst)
+uint32_t dts_disable_sequencing(DTS_CB *inst)
 {
 	/*
 	 * User has disable the sequencing, so dump remaining 

@@ -42,8 +42,8 @@
   FUNCTIONS INCLUDED in this module:
 
 The following set does buffer chaining management
-  ncs_decode_n_octets(USRBUF *u, uint8_t *os, uns32 count)
-  ncs_skip_n_octets( USRBUF *u, uns32 count)
+  ncs_decode_n_octets(USRBUF *u, uint8_t *os, uint32_t count)
+  ncs_skip_n_octets( USRBUF *u, uint32_t count)
 
 The following set does NOT do buffer chaining management
   ncs_decode_short( uint8_t **stream)
@@ -59,7 +59,7 @@ The following set does NOT do buffer chaining management
 #include "ncs_svd.h"
 #include "ncsencdec_pub.h"
 
-USRBUF *ncs_decode_n_octets(USRBUF *u, uint8_t *os, uns32 count)
+USRBUF *ncs_decode_n_octets(USRBUF *u, uint8_t *os, uint32_t count)
 {
 
 	char *s;
@@ -81,7 +81,7 @@ USRBUF *ncs_decode_n_octets(USRBUF *u, uint8_t *os, uns32 count)
 
 }
 
-uint8_t *ncs_flatten_n_octets(USRBUF *u, uint8_t *os, uns32 count)
+uint8_t *ncs_flatten_n_octets(USRBUF *u, uint8_t *os, uint32_t count)
 {
 	if (u == BNULL) {
 		m_LEAP_DBG_SINK(0);
@@ -91,7 +91,7 @@ uint8_t *ncs_flatten_n_octets(USRBUF *u, uint8_t *os, uns32 count)
 	return (uint8_t *)m_MMGR_DATA_AT_START(u, count, (char *)os);
 }
 
-USRBUF *ncs_skip_n_octets(USRBUF *u, uns32 count)
+USRBUF *ncs_skip_n_octets(USRBUF *u, uint32_t count)
 {
 
   /** Strip off "count" number of octets from the packet...
@@ -122,13 +122,13 @@ USRBUF *ncs_skip_n_octets(USRBUF *u, uns32 count)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns32 ncs_decode_short(uint8_t **stream)
+uint32_t ncs_decode_short(uint8_t **stream)
 {
 
-	uns32 val = 0;		/* Accumulator */
+	uint32_t val = 0;		/* Accumulator */
 
-	val = (uns32)*(*stream)++ << 8;
-	val |= (uns32)*(*stream)++;
+	val = (uint32_t)*(*stream)++ << 8;
+	val |= (uint32_t)*(*stream)++;
 
 	return (val & 0x0000FFFF);
 
@@ -155,14 +155,14 @@ uns32 ncs_decode_short(uint8_t **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns32 ncs_decode_24bit(uint8_t **stream)
+uint32_t ncs_decode_24bit(uint8_t **stream)
 {
 
-	uns32 val = 0;		/* Accumulator */
+	uint32_t val = 0;		/* Accumulator */
 
-	val = (uns32)*(*stream)++ << 16;
-	val |= (uns32)*(*stream)++ << 8;
-	val |= (uns32)*(*stream)++;
+	val = (uint32_t)*(*stream)++ << 16;
+	val |= (uint32_t)*(*stream)++ << 8;
+	val |= (uint32_t)*(*stream)++;
 
 	return (val & 0x00FFFFFF);
 
@@ -189,15 +189,15 @@ uns32 ncs_decode_24bit(uint8_t **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns32 ncs_decode_32bit(uint8_t **stream)
+uint32_t ncs_decode_32bit(uint8_t **stream)
 {
 
-	uns32 val = 0;		/* Accumulator */
+	uint32_t val = 0;		/* Accumulator */
 
-	val = (uns32)*(*stream)++ << 24;
-	val |= (uns32)*(*stream)++ << 16;
-	val |= (uns32)*(*stream)++ << 8;
-	val |= (uns32)*(*stream)++;
+	val = (uint32_t)*(*stream)++ << 24;
+	val |= (uint32_t)*(*stream)++ << 16;
+	val |= (uint32_t)*(*stream)++ << 8;
+	val |= (uint32_t)*(*stream)++;
 
 	return val;
 
@@ -258,10 +258,10 @@ uns64 ncs_decode_64bit(uint8_t **stream)
 uint16_t ncs_decode_16bit(uint8_t **stream)
 {
 
-	uns32 val = 0;		/* Accumulator */
+	uint32_t val = 0;		/* Accumulator */
 
-	val = (uns32)*(*stream)++ << 8;
-	val |= (uns32)*(*stream)++;
+	val = (uint32_t)*(*stream)++ << 8;
+	val |= (uint32_t)*(*stream)++;
 
 	return (uint16_t)(val & 0x0000FFFF);
 
@@ -291,9 +291,9 @@ uint16_t ncs_decode_16bit(uint8_t **stream)
 uint8_t ncs_decode_8bit(uint8_t **stream)
 {
 
-	uns32 val = 0;		/* Accumulator */
+	uint32_t val = 0;		/* Accumulator */
 
-	val = (uns32)*(*stream)++;
+	val = (uint32_t)*(*stream)++;
 
 	return (uint8_t)(val & 0x000000FF);
 
@@ -324,7 +324,7 @@ uint8_t ncs_decode_8bit(uint8_t **stream)
 
 *****************************************************************************/
 
-uns32 ncs_decode_key(uint8_t **stream, NCS_KEY *key)
+uint32_t ncs_decode_key(uint8_t **stream, NCS_KEY *key)
 {
 	uint8_t len;
 
@@ -380,13 +380,13 @@ uns32 ncs_decode_key(uint8_t **stream, NCS_KEY *key)
 *****************************************************************************/
 float ncs_decode_float(uint8_t **stream)
 {
-	uns32 val;
+	uint32_t val;
 	float ret_val = 0;
 
-	val = (uns32)*(*stream)++ << 24;
-	val |= (uns32)*(*stream)++ << 16;
-	val |= (uns32)*(*stream)++ << 8;
-	val |= (uns32)*(*stream)++;
+	val = (uint32_t)*(*stream)++ << 24;
+	val |= (uint32_t)*(*stream)++ << 16;
+	val |= (uint32_t)*(*stream)++ << 8;
+	val |= (uint32_t)*(*stream)++;
 	m_NCS_DECODE_FLOAT(val, &ret_val);
 	return ret_val;
 }

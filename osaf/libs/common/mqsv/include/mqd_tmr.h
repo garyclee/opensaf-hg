@@ -29,12 +29,12 @@ typedef struct mqd_tmr {
 	MQD_TMR_TYPE type;
 	tmr_t tmr_id;
 	NODE_ID nodeid;
-	uns32 uarg;
+	uint32_t uarg;
 	NCS_BOOL is_active;
 	NCS_BOOL is_expired;
 } MQD_TMR;
 
-uns32 mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration);
+uint32_t mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration);
 void mqd_tmr_stop(MQD_TMR *tmr);
 void mqd_timer_expiry(NCSCONTEXT uarg);
 

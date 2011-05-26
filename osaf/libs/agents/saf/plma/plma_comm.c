@@ -32,9 +32,9 @@ static NCS_BOOL plma_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-uns32 plma_callback_ipc_init(PLMA_CLIENT_INFO *client_info)
+uint32_t plma_callback_ipc_init(PLMA_CLIENT_INFO *client_info)
 {
-        uns32 rc = NCSCC_RC_SUCCESS;
+        uint32_t rc = NCSCC_RC_SUCCESS;
 	
 	TRACE_ENTER();
 	

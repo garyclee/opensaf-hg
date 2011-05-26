@@ -76,14 +76,14 @@ typedef struct avnd_cerr_info_tag {
 	AVND_ERR_SRC src;	/* error source */
 	AVSV_ERR_RCVR def_rec;	/* default comp recovery */
 	SaTimeT detect_time;	/* error detection time */
-	uns32 restart_cnt;	/* restart counter */
+	uint32_t restart_cnt;	/* restart counter */
 } AVND_CERR_INFO;
 
 /* wrapper structure used to carry error info across routines */
 typedef struct avnd_err_tag {
 	AVND_ERR_SRC src;	/* err-src */
 	union {
-		uns32 raw;
+		uint32_t raw;
 		AVSV_ERR_RCVR avsv_ext;
 		SaAmfRecommendedRecoveryT saf_amf;
 	} rec_rcvr;
@@ -112,8 +112,8 @@ struct avnd_cb_tag;
 struct avnd_comp_tag;
 struct avnd_su_tag;
 
-extern uns32 avnd_err_process(struct avnd_cb_tag *, struct avnd_comp_tag *, AVND_ERR_INFO *);
-extern uns32 avnd_err_su_repair(struct avnd_cb_tag *, struct avnd_su_tag *);
-extern uns32 avnd_err_rcvr_comp_restart(struct avnd_cb_tag *cb, struct avnd_comp_tag *comp);
+extern uint32_t avnd_err_process(struct avnd_cb_tag *, struct avnd_comp_tag *, AVND_ERR_INFO *);
+extern uint32_t avnd_err_su_repair(struct avnd_cb_tag *, struct avnd_su_tag *);
+extern uint32_t avnd_err_rcvr_comp_restart(struct avnd_cb_tag *cb, struct avnd_comp_tag *comp);
 
 #endif   /* !AVND_ERR_H */

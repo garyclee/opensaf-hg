@@ -28,6 +28,6 @@
 #ifndef _MDS_DL_API_H_
 #define _MDS_DL_API_H_
 
-uns32 mds_lib_req(NCS_LIB_REQ_INFO *req);
+uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req);
 
 #endif

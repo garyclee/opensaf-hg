@@ -53,7 +53,7 @@ static NCS_BOOL match_all(void *key, void *qelem);
   Notes         : None
 ******************************************************************************/
 
-uns32 mqa_timer_table_init(MQA_CB *mqa_cb)
+uint32_t mqa_timer_table_init(MQA_CB *mqa_cb)
 {
 
 	NCS_RP_TMR_INIT tmr_init_info;
@@ -253,13 +253,13 @@ static void mqa_node_timeout_handler(void *arg)
   Notes         : None
 ******************************************************************************/
 
-uns32 mqa_create_and_start_timer(MQP_ASYNC_RSP_MSG *mqa_callback, SaInvocationT invocation)
+uint32_t mqa_create_and_start_timer(MQP_ASYNC_RSP_MSG *mqa_callback, SaInvocationT invocation)
 {
 
 	MQA_TMR_NODE *node;
 	NCS_RP_TMR_HDL tmr_id;
 	MQP_ASYNC_RSP_MSG *callback;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQA_CB *mqa_cb;
 
 	/* retrieve MQA CB */
@@ -381,12 +381,12 @@ static NCS_BOOL match_node(void *key, void *qelem)
   Notes         : None
 ******************************************************************************/
 
-uns32 mqa_stop_and_delete_timer(MQP_ASYNC_RSP_MSG *mqa_callbk_info)
+uint32_t mqa_stop_and_delete_timer(MQP_ASYNC_RSP_MSG *mqa_callbk_info)
 {
 	MQA_CB *mqa_cb;
 	SaInvocationT key;
 	MQA_TMR_NODE *tmr_node;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -457,11 +457,11 @@ uns32 mqa_stop_and_delete_timer(MQP_ASYNC_RSP_MSG *mqa_callbk_info)
  
   Notes         : None
 ******************************************************************************/
-uns32 mqa_stop_and_delete_timer_by_invocation(void *key)
+uint32_t mqa_stop_and_delete_timer_by_invocation(void *key)
 {
 	MQA_CB *mqa_cb;
 	MQA_TMR_NODE *tmr_node;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -568,11 +568,11 @@ static void mqa_cleanup_senderid(void *arg)
   Notes         : None
 ******************************************************************************/
 
-uns32 mqa_create_and_start_senderid_timer()
+uint32_t mqa_create_and_start_senderid_timer()
 {
 	MQA_CB *mqa_cb;
 	NCS_RP_TMR_HDL tmr_id;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -630,11 +630,11 @@ static NCS_BOOL match_all(void *key, void *qelem)
   Notes         : None
 ******************************************************************************/
 
-uns32 mqa_destroy_senderid_timers(MQA_CB *mqa_cb)
+uint32_t mqa_destroy_senderid_timers(MQA_CB *mqa_cb)
 {
 
 	MQA_SENDERID_INFO *senderid_node = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	while ((senderid_node = ncs_remove_item(&(mqa_cb->mqa_senderid_list), NULL, match_all)) != NULL) {
 		m_MMGR_FREE_MQA_SENDERID(senderid_node);

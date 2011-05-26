@@ -1291,7 +1291,7 @@ int tet_test_red_lckLockPurge(int i,GLSV_CONFIG_FLAG flg)
 void glsv_selection_thread (NCSCONTEXT arg)
 {
    SaLckHandleT *lck_Handle = (SaLckHandleT *)arg;
-   uns32 rc;
+   uint32_t rc;
 
    rc = saLckDispatch(*lck_Handle, SA_DISPATCH_BLOCKING);
    if(rc != SA_AIS_OK)
@@ -1330,7 +1330,7 @@ void glsv_createthread(SaLckHandleT *lck_Handle)
 void glsv_selection_thread_one (NCSCONTEXT arg)
 {
    SaLckHandleT *lck_Handle = (SaLckHandleT *)arg;
-   uns32 rc;
+   uint32_t rc;
 
    rc = saLckDispatch(*lck_Handle, SA_DISPATCH_ONE);
    if(rc != SA_AIS_OK)
@@ -1367,7 +1367,7 @@ void glsv_createthread_one(SaLckHandleT *lck_Handle)
 void glsv_selection_thread_all (NCSCONTEXT arg)
 {
    SaLckHandleT *lck_Handle = (SaLckHandleT *)arg;
-   uns32 rc;
+   uint32_t rc;
 
    rc = saLckDispatch(*lck_Handle, SA_DISPATCH_ALL);
    if(rc != SA_AIS_OK)

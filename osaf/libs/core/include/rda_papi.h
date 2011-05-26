@@ -35,7 +35,7 @@
 */
 #include <stdio.h>
 #include <saAmf.h>
-#include "ncsgl_defs.h"		/* uns32 */
+#include "ncsgl_defs.h"		/* uint32_t */
 
 #ifdef  __cplusplus
 extern "C" {
@@ -100,11 +100,11 @@ typedef struct {
 /*
 ** Callback Declaration
 */
-typedef void (*PCS_RDA_CB_PTR) (uns32 callback_handle, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code);
+typedef void (*PCS_RDA_CB_PTR) (uint32_t callback_handle, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code);
 
 typedef struct {
 	PCS_RDA_REQ_TYPE req_type;
-	uns32 callback_handle;
+	uint32_t callback_handle;
 	union {
 		PCS_RDA_CB_PTR call_back;
 		PCS_RDA_ROLE io_role;
@@ -122,18 +122,18 @@ int pcs_rda_request(PCS_RDA_REQ *pcs_rda_req);
  * Get AMF style HA role from RDE
  * @param ha_state [out]
  * 
- * @return uns32 NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ * @return uint32_t NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  */
-extern uns32 rda_get_role(SaAmfHAStateT *ha_state);
+extern uint32_t rda_get_role(SaAmfHAStateT *ha_state);
 
 /**
  * Install callback that will be called when role/state of the controller change
  * @param cb_handle passed to callback function
  * @param rda_cb_ptr callback function
  * 
- * @return uns32 NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ * @return uint32_t NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  */
-extern uns32 rda_register_callback(uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr);
+extern uint32_t rda_register_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr);
 
 #ifdef  __cplusplus
 }

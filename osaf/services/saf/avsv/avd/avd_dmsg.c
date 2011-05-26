@@ -64,7 +64,7 @@ void avd_mds_d_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 	msg = (AVD_D2D_MSG *)enc_info->i_msg;
 	uba = enc_info->io_uba;
 
-	data = ncs_enc_reserve_space(uba, 3 * sizeof(uns32));
+	data = ncs_enc_reserve_space(uba, 3 * sizeof(uint32_t));
 	ncs_encode_32bit(&data, msg->msg_type);
 	switch (msg->msg_type) {
 	case AVD_D2D_CHANGE_ROLE_REQ:
@@ -79,7 +79,7 @@ void avd_mds_d_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 		LOG_ER("%s: unknown msg %u", __FUNCTION__, msg->msg_type);
 		break;
 	}
-	ncs_enc_claim_space(uba, 3 * sizeof(uns32));
+	ncs_enc_claim_space(uba, 3 * sizeof(uint32_t));
 }
 
 /*****************************************************************************
@@ -110,7 +110,7 @@ void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 		assert(0);
 	}
 
-	data = ncs_dec_flatten_space(uba, data_buff, 3 * sizeof(uns32));
+	data = ncs_dec_flatten_space(uba, data_buff, 3 * sizeof(uint32_t));
 	d2d_msg->msg_type = ncs_decode_32bit(&data);
 
 	switch (d2d_msg->msg_type) {
@@ -127,7 +127,7 @@ void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 		break;
 	}
 
-	ncs_dec_skip_space(uba, 3 * sizeof(uns32));
+	ncs_dec_skip_space(uba, 3 * sizeof(uint32_t));
 	dec_info->o_msg = (NCSCONTEXT)d2d_msg;
 }
 
@@ -145,10 +145,10 @@ void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *dec_info)
   Notes         : None.
 ******************************************************************************/
 
-uns32 avd_d2d_msg_snd(AVD_CL_CB *cb, AVD_D2D_MSG *snd_msg)
+uint32_t avd_d2d_msg_snd(AVD_CL_CB *cb, AVD_D2D_MSG *snd_msg)
 {
 	NCSMDS_INFO snd_mds = {0};
-	uns32 rc;
+	uint32_t rc;
 
 	snd_mds.i_mds_hdl = cb->adest_hdl;
 	snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;
@@ -179,7 +179,7 @@ uns32 avd_d2d_msg_snd(AVD_CL_CB *cb, AVD_D2D_MSG *snd_msg)
   Notes         : None.
 ******************************************************************************/
 
-uns32 avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg)
+uint32_t avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg)
 {
 	AVD_CL_CB *cb = avd_cb;
 

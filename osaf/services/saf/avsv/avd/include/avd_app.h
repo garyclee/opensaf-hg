@@ -38,7 +38,7 @@ typedef struct avd_app_type_tag {
 	NCS_PATRICIA_NODE tree_node;	/* key is name */
 	SaNameT name;
 	SaNameT *sgAmfApptSGTypes;
-	uns32 no_sg_types;
+	uint32_t no_sg_types;
 	struct avd_app_tag *list_of_app;
 } AVD_APP_TYPE;
 

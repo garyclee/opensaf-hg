@@ -38,7 +38,7 @@
 #include "cpd_log.h"
 #define NCS_2_0 1
 #if NCS_2_0			/* Required for NCS 2.0 */
-extern uns32 gl_cpd_cb_hdl;
+extern uint32_t gl_cpd_cb_hdl;
 extern const SaImmOiImplementerNameT implementer_name;
 
 
@@ -124,7 +124,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 	V_DEST_RL mds_role;
 	/*  V_CARD_QA   anchor; */
 	NCSVDA_INFO vda_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPD_CPND_INFO_NODE *node_info = NULL;
 	MDS_DEST prev_dest;
 
@@ -261,12 +261,12 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_amf_init(CPD_CB *cpd_cb)
+uint32_t cpd_amf_init(CPD_CB *cpd_cb)
 {
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
 	SaAisErrorT error;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
@@ -317,7 +317,7 @@ void cpd_amf_de_init(CPD_CB *cpd_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_amf_register(CPD_CB *cpd_cb)
+uint32_t cpd_amf_register(CPD_CB *cpd_cb)
 {
 	SaAisErrorT error;
 
@@ -348,7 +348,7 @@ uns32 cpd_amf_register(CPD_CB *cpd_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_amf_deregister(CPD_CB *cpd_cb)
+uint32_t cpd_amf_deregister(CPD_CB *cpd_cb)
 {
 	SaNameT comp_name = { 5, "CPD" };
 	if (saAmfComponentUnregister(cpd_cb->amf_hdl, &comp_name, (SaNameT *)NULL) == SA_AIS_OK)

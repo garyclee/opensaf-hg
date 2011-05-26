@@ -59,13 +59,13 @@
   NOTES         : The timer related info needs to be filled in the 
   timer block before calling this routine.
 *****************************************************************************/
-uns32 avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
+uint32_t avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
 {
-	uns32 tmr_period;
+	uint32_t tmr_period;
 
 	TRACE_ENTER2("%u", tmr->type);
 
-	tmr_period = (uns32)(period / AVSV_NANOSEC_TO_LEAPTM);
+	tmr_period = (uint32_t)(period / AVSV_NANOSEC_TO_LEAPTM);
 
 	if (AVD_TMR_MAX <= tmr->type) {
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, tmr->type);

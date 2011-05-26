@@ -100,7 +100,7 @@ static void usr2_sig_handler(int sig)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_db_init()
+uint32_t plms_db_init()
 {
 	NCS_PATRICIA_PARAMS  params;
 	PLMS_CB * cb = plms_cb; 
@@ -239,10 +239,10 @@ SaUint32T plms_hsm_hrb_init()
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 plms_init()
+static uint32_t plms_init()
 {
 	PLMS_CB *cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaVersionT ntf_version = { 'A', 0x01, 0x01 };
 	SaNtfCallbacksT ntf_callbacks = { NULL, NULL };
 

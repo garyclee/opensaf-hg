@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <libgen.h>
+#include <assert.h>
 
 #include <saAis.h>
 #include <saImmOm.h>

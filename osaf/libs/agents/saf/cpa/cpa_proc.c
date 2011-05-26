@@ -46,7 +46,7 @@ static void cpa_process_callback_info(CPA_CB *cb, CPA_CLIENT_NODE *cl_node, CPA_
  
   Notes         : None
 ******************************************************************************/
-uns32 cpa_version_validate(SaVersionT *version)
+uint32_t cpa_version_validate(SaVersionT *version)
 {
 	if (version->releaseCode == CPA_RELEASE_CODE &&
 	    (version->majorVersion == CPA_MAJOR_VERSION || version->majorVersion == CPA_BASE_MAJOR_VERSION)) {
@@ -83,7 +83,7 @@ uns32 cpa_version_validate(SaVersionT *version)
  
   Notes         : None
 ******************************************************************************/
-uns32 cpa_open_attr_validate(const SaCkptCheckpointCreationAttributesT
+uint32_t cpa_open_attr_validate(const SaCkptCheckpointCreationAttributesT
 			     *checkpointCreationAttributes,
 			     SaCkptCheckpointOpenFlagsT checkpointOpenFlags, const SaNameT *checkpointName)
 {
@@ -152,9 +152,9 @@ uns32 cpa_open_attr_validate(const SaCkptCheckpointCreationAttributesT
  
   Notes         : None
 ******************************************************************************/
-uns32 cpa_callback_ipc_init(CPA_CLIENT_NODE *client_info)
+uint32_t cpa_callback_ipc_init(CPA_CLIENT_NODE *client_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	if ((rc = m_NCS_IPC_CREATE(&client_info->callbk_mbx)) == NCSCC_RC_SUCCESS) {
 		if (m_NCS_IPC_ATTACH(&client_info->callbk_mbx) == NCSCC_RC_SUCCESS) {
 			return NCSCC_RC_SUCCESS;
@@ -225,7 +225,7 @@ void cpa_callback_ipc_destroy(CPA_CLIENT_NODE *cl_node)
  
   Notes         : None
 ******************************************************************************/
-uns32 cpa_ckpt_finalize_proc(CPA_CB *cb, CPA_CLIENT_NODE *cl_node)
+uint32_t cpa_ckpt_finalize_proc(CPA_CB *cb, CPA_CLIENT_NODE *cl_node)
 {
 	SaCkptHandleT temp_hdl, *temp_ptr = NULL;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
@@ -287,7 +287,7 @@ uns32 cpa_ckpt_finalize_proc(CPA_CB *cb, CPA_CLIENT_NODE *cl_node)
 ******************************************************************************/
 static void cpa_proc_async_open_rsp(CPA_CB *cb, CPA_EVT *evt)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT rc = SA_AIS_OK;
 	NCS_BOOL add_flag = TRUE;
 	CPA_CALLBACK_INFO *callback;
@@ -415,7 +415,7 @@ static void cpa_proc_async_open_rsp(CPA_CB *cb, CPA_EVT *evt)
 ******************************************************************************/
 static void cpa_proc_async_sync_rsp(CPA_CB *cb, CPA_EVT *evt)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_CALLBACK_INFO *callback = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
@@ -472,7 +472,7 @@ static void cpa_proc_async_sync_rsp(CPA_CB *cb, CPA_EVT *evt)
 ***************************************************************************************************/
 static void cpa_proc_ckpt_arrival_ntfy(CPA_CB *cb, CPA_EVT *evt)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS, i = 0;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS, i = 0;
 	CPA_CALLBACK_INFO *callback = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
@@ -566,7 +566,7 @@ static void cpa_proc_ckpt_arrival_ntfy(CPA_CB *cb, CPA_EVT *evt)
 
 }
 
-static uns32 cpa_proc_ckpt_clm_status_changed(CPA_CB *cb, CPSV_EVT *evt)
+static uint32_t cpa_proc_ckpt_clm_status_changed(CPA_CB *cb, CPSV_EVT *evt)
 {
 	NCS_BOOL locked = TRUE;
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
@@ -595,7 +595,7 @@ static uns32 cpa_proc_ckpt_clm_status_changed(CPA_CB *cb, CPSV_EVT *evt)
 ******************************************************************************/
 static void cpa_proc_tmr_expiry(CPA_CB *cb, CPA_EVT *evt)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_TMR_INFO *tmr_info = &evt->info.tmr_info;
 	CPA_CALLBACK_INFO *callback = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
@@ -660,7 +660,7 @@ static void cpa_proc_active_ckpt_info_bcast(CPA_CB *cb, CPA_EVT *evt)
 {
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
 	NCS_BOOL add_flag = FALSE;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
 	/* Get the Global Ckpt node */
 	proc_rc = cpa_gbl_ckpt_node_find_add(&cb->gbl_ckpt_tree, &evt->info.ackpt_info.ckpt_id, &gc_node, &add_flag);
@@ -724,9 +724,9 @@ static void cpa_proc_active_nd_down_bcast(CPA_CB *cb, CPA_EVT *evt)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt)
+uint32_t cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	switch (evt->info.cpa.type) {
 	case CPA_EVT_ND2A_CKPT_OPEN_RSP:
 		cpa_proc_async_open_rsp(cb, &evt->info.cpa);
@@ -797,10 +797,10 @@ CPA_CALLBACK_INFO *cpa_callback_ipc_rcv(CPA_CLIENT_NODE *cl_node)
  
   Notes         : None
 ******************************************************************************/
-uns32 cpa_hdl_callbk_dispatch_one(CPA_CB *cb, SaCkptHandleT ckptHandle)
+uint32_t cpa_hdl_callbk_dispatch_one(CPA_CB *cb, SaCkptHandleT ckptHandle)
 {
 	CPA_CALLBACK_INFO *callback = NULL;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
@@ -855,7 +855,7 @@ uns32 cpa_hdl_callbk_dispatch_one(CPA_CB *cb, SaCkptHandleT ckptHandle)
  
   Notes         : None
 ******************************************************************************/
-uns32 cpa_hdl_callbk_dispatch_all(CPA_CB *cb, SaCkptHandleT ckptHandle)
+uint32_t cpa_hdl_callbk_dispatch_all(CPA_CB *cb, SaCkptHandleT ckptHandle)
 {
 	CPA_CALLBACK_INFO *callback = NULL;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
@@ -914,7 +914,7 @@ uns32 cpa_hdl_callbk_dispatch_all(CPA_CB *cb, SaCkptHandleT ckptHandle)
  
   Notes         : None
 ******************************************************************************/
-uns32 cpa_hdl_callbk_dispatch_block(CPA_CB *cb, SaCkptHandleT ckptHandle)
+uint32_t cpa_hdl_callbk_dispatch_block(CPA_CB *cb, SaCkptHandleT ckptHandle)
 {
 	CPA_CALLBACK_INFO *callback = NULL;
 	SYSF_MBX *callbk_mbx = NULL;
@@ -1011,7 +1011,7 @@ static void cpa_process_callback_info(CPA_CB *cb, CPA_CLIENT_NODE *cl_node, CPA_
 		break;
 	case CPA_CALLBACK_TYPE_ARRIVAL_NTFY:
 		if (cl_node->ckptArrivalCallback) {
-			uns32 i = 0;
+			uint32_t i = 0;
 			cl_node->ckptArrivalCallback(callback->lcl_ckpt_hdl, callback->ioVector,
 						     callback->num_of_elmts);
 			for (i = 0; i < callback->num_of_elmts; i++) {
@@ -1044,8 +1044,8 @@ static void cpa_process_callback_info(CPA_CB *cb, CPA_CLIENT_NODE *cl_node, CPA_
   Return Values : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
   Notes         : None
 ******************************************************************************/
-uns32 cpa_proc_build_data_access_evt(const SaCkptIOVectorElementT *ioVector,
-				     uns32 numberOfElements, uns32 data_access_type,
+uint32_t cpa_proc_build_data_access_evt(const SaCkptIOVectorElementT *ioVector,
+				     uint32_t numberOfElements, uint32_t data_access_type,
 				     SaSizeT maxSectionSize, SaUint32T *errflag, CPSV_CKPT_DATA **ckpt_data)
 {
 	CPSV_CKPT_DATA *tmp_ckpt_data = NULL;
@@ -1146,7 +1146,7 @@ void cpa_proc_free_cpsv_ckpt_data(CPSV_CKPT_DATA *ckpt_data)
 
 void cpa_proc_free_read_data(CPSV_ND2A_DATA_ACCESS_RSP *rmt_read_rsp)
 {
-	uns32 iter = 0;
+	uint32_t iter = 0;
 	if (rmt_read_rsp != NULL && rmt_read_rsp->info.read_data != NULL) {
 		for (; iter < rmt_read_rsp->size; iter++) {
 			if (rmt_read_rsp->info.read_data[iter].data != NULL) {
@@ -1170,12 +1170,12 @@ void cpa_proc_free_read_data(CPSV_ND2A_DATA_ACCESS_RSP *rmt_read_rsp)
   Return Values : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
   Notes         : None
 ******************************************************************************/
-uns32 cpa_proc_replica_read(CPA_CB *cb, SaUint32T numberOfElements,
+uint32_t cpa_proc_replica_read(CPA_CB *cb, SaUint32T numberOfElements,
 			    SaCkptCheckpointHandleT gbl_ckpt_hdl,
 			    SaCkptIOVectorElementT **ioVector, CPSV_ND2A_READ_MAP *read_map,
 			    SaUint32T **erroneousVectorIndex)
 {
-	uns32 iter = 0, rc = NCSCC_RC_SUCCESS;
+	uint32_t iter = 0, rc = NCSCC_RC_SUCCESS;
 	NCS_OS_POSIX_SHM_REQ_INFO shm_info;
 	CPA_GLOBAL_CKPT_NODE *gc_node;
 	NCS_BOOL add_flag = FALSE;
@@ -1231,16 +1231,16 @@ uns32 cpa_proc_replica_read(CPA_CB *cb, SaUint32T numberOfElements,
   Return Values : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
   Notes         : None
 ******************************************************************************/
-uns32 cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
+uint32_t cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
 				SaCkptIOVectorElementT *ioVector, CPSV_ND2A_READ_DATA *read_data,
 				SaUint32T **erroneousVectorIndex, SaVersionT *version)
 {
-	uns32 iter = 0, rc = NCSCC_RC_SUCCESS;
+	uint32_t iter = 0, rc = NCSCC_RC_SUCCESS;
 
 	for (iter = 0; iter < numberOfElements; iter++) {
 		if (read_data[iter].err == 1) {
 			if (*erroneousVectorIndex != NULL) 
-				(**erroneousVectorIndex) = (uns32)iter;
+				(**erroneousVectorIndex) = (uint32_t)iter;
 			return NCSCC_RC_FAILURE;
 		} else {
 			if (read_data[iter].read_size == 0)
@@ -1270,11 +1270,11 @@ uns32 cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
   Return Values : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
   Notes         : None
 ******************************************************************************/
-uns32 cpa_proc_check_iovector(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node, const SaCkptIOVectorElementT *iovector,
-			      uns32 num_of_elmts, uns32 *errflag)
+uint32_t cpa_proc_check_iovector(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node, const SaCkptIOVectorElementT *iovector,
+			      uint32_t num_of_elmts, uint32_t *errflag)
 {
-	uns32 iter, rc = NCSCC_RC_SUCCESS;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t iter, rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL add_flag = FALSE;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
 
@@ -1302,7 +1302,7 @@ uns32 cpa_proc_check_iovector(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node, const Sa
 void cpa_sync_with_cpd_for_active_replica_set(CPA_GLOBAL_CKPT_NODE *gc_node)
 {
 	NCS_SEL_OBJ_SET set;
-	uns32 timeout = 5000;
+	uint32_t timeout = 5000;
 
 	m_NCS_LOCK(&gc_node->cpd_active_sync_lock, NCS_LOCK_WRITE);
 	if (gc_node->is_active_bcast_came == TRUE) {
@@ -1379,7 +1379,7 @@ void cpa_cb_dump(void)
 				temp_hdl = clnode->cl_hdl;
 
 				TRACE("------------------------------------------------------");
-				TRACE(" CLient Handle   = %d", (uns32)clnode->cl_hdl);
+				TRACE(" CLient Handle   = %d", (uint32_t)clnode->cl_hdl);
 			}
 			TRACE(" End of Info for this client");
 		}
@@ -1404,10 +1404,10 @@ void cpa_cb_dump(void)
 				prev_ckpt_id = lc_node->lcl_ckpt_hdl;
 
 				TRACE("------------------------------------------------------");
-				TRACE(" Lcl CKPT Hdl:  = %d", (uns32)lc_node->lcl_ckpt_hdl);
-				TRACE(" Client CKPT Hdl:  = %d", (uns32)lc_node->cl_hdl);
-				TRACE(" Global CKPT Hdl:  = %d", (uns32)lc_node->gbl_ckpt_hdl);
-				TRACE(" Open Flags:  = %d", (uns32)lc_node->open_flags);
+				TRACE(" Lcl CKPT Hdl:  = %d", (uint32_t)lc_node->lcl_ckpt_hdl);
+				TRACE(" Client CKPT Hdl:  = %d", (uint32_t)lc_node->cl_hdl);
+				TRACE(" Global CKPT Hdl:  = %d", (uint32_t)lc_node->gbl_ckpt_hdl);
+				TRACE(" Open Flags:  = %d", (uint32_t)lc_node->open_flags);
 				if (lc_node->async_req_tmr.is_active)
 					TRACE("Timer Type %d is active", lc_node->async_req_tmr.type);
 				else
@@ -1441,7 +1441,7 @@ void cpa_cb_dump(void)
 				prev_ckpt_id = gc_node->gbl_ckpt_hdl;
 
 				TRACE("------------------------------------------------------");
-				TRACE(" Lcl CKPT Hdl:  = %d", (uns32)gc_node->gbl_ckpt_hdl);
+				TRACE(" Lcl CKPT Hdl:  = %d", (uint32_t)gc_node->gbl_ckpt_hdl);
 				TRACE(" No of Clients = %d", gc_node->ref_cnt);
 
 				TRACE(" End of Local CKPT Info");

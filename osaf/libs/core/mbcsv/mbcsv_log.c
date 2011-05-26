@@ -46,7 +46,7 @@
 
 *****************************************************************************/
 
-uns32 mbcsv_log_bind(void)
+uint32_t mbcsv_log_bind(void)
 {
 	NCS_DTSV_RQ reg;
 
@@ -70,7 +70,7 @@ uns32 mbcsv_log_bind(void)
 
 *****************************************************************************/
 
-uns32 mbcsv_log_unbind(void)
+uint32_t mbcsv_log_unbind(void)
 {
 	NCS_DTSV_RQ dereg;
 

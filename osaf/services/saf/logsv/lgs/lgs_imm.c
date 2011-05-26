@@ -53,10 +53,10 @@ extern struct ImmutilWrapperProfile immutilWrapperProfile;
  * 
  * @return uns32
  */
-static uns32 lgs_ckpt_stream(log_stream_t *stream)
+static uint32_t lgs_ckpt_stream(log_stream_t *stream)
 {
 	lgsv_ckpt_msg_t ckpt;
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE_ENTER();
 

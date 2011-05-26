@@ -31,7 +31,7 @@
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 *****************************************************************************/
-uns32 immd_immnd_info_tree_init(IMMD_CB *cb)
+uint32_t immd_immnd_info_tree_init(IMMD_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -52,7 +52,7 @@ uns32 immd_immnd_info_tree_init(IMMD_CB *cb)
   Return Values : immnd_info_node - IMMND Node
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 *****************************************************************************/
-uns32 immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node)
+uint32_t immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node)
 {
 	NODE_ID key;
 
@@ -103,7 +103,7 @@ void immd_immnd_info_node_getnext(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest,
   Notes         : The caller takes the cb lock before calling this function
 *****************************************************************************/
 #if 0 /*CURRENTLY NOT CALLED */
-uns32 immd_immnd_info_node_add(NCS_PATRICIA_TREE *immnd_tree, IMMD_IMMND_INFO_NODE *immnd_info_node)
+uint32_t immd_immnd_info_node_add(NCS_PATRICIA_TREE *immnd_tree, IMMD_IMMND_INFO_NODE *immnd_info_node)
 {
 	/* Store the client_info pointer as msghandle. */
 	NODE_ID key;
@@ -128,7 +128,7 @@ uns32 immd_immnd_info_node_add(NCS_PATRICIA_TREE *immnd_tree, IMMD_IMMND_INFO_NO
                   immnd_info_node -  IMMND Node.
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 *****************************************************************************/
-uns32 immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
+uint32_t immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
 				    MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node, NCS_BOOL *add_flag)
 {
 	NODE_ID key;
@@ -169,9 +169,9 @@ uns32 immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
                 : IMMD_IMMND_INFO_NODE *immnd_info - IMMND Info Node.
   Return Values : None
 *****************************************************************************/
-uns32 immd_immnd_info_node_delete(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info_node)
+uint32_t immd_immnd_info_node_delete(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info_node)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Remove the Node from the client tree */
 	if (ncs_patricia_tree_del(&cb->immnd_tree, &immnd_info_node->patnode) != NCSCC_RC_SUCCESS) {
@@ -245,9 +245,9 @@ void immd_immnd_info_tree_destroy(IMMD_CB *cb)
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 *****************************************************************************/
-uns32 immd_cb_db_init(IMMD_CB *cb)
+uint32_t immd_cb_db_init(IMMD_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = immd_immnd_info_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
@@ -271,7 +271,7 @@ uns32 immd_cb_db_init(IMMD_CB *cb)
  *
  * Notes         : None.
  ****************************************************************************/
-uns32 immd_cb_db_destroy(IMMD_CB *cb)
+uint32_t immd_cb_db_destroy(IMMD_CB *cb)
 {
 	immd_immnd_info_tree_destroy(cb);
 	return NCSCC_RC_SUCCESS;
@@ -284,7 +284,7 @@ uns32 immd_cb_db_destroy(IMMD_CB *cb)
 
  Arguments   :
 *****************************************************************************/
-uns32 immd_get_slot_and_subslot_id_from_mds_dest(MDS_DEST dest)
+uint32_t immd_get_slot_and_subslot_id_from_mds_dest(MDS_DEST dest)
 {
 	NCS_PHY_SLOT_ID phy_slot;
 	NCS_SUB_SLOT_ID sub_slot;
@@ -301,7 +301,7 @@ uns32 immd_get_slot_and_subslot_id_from_mds_dest(MDS_DEST dest)
 
  Arguments   :
 *****************************************************************************/
-uns32 immd_get_slot_and_subslot_id_from_node_id(NCS_NODE_ID node_id)
+uint32_t immd_get_slot_and_subslot_id_from_node_id(NCS_NODE_ID node_id)
 {
 	NCS_PHY_SLOT_ID phy_slot;
 	NCS_SUB_SLOT_ID sub_slot;

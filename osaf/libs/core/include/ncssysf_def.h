@@ -98,9 +98,9 @@ extern "C" {
  **                                                                         **
  ****************************************************************************/
 
-	uns32 decode_32bitOS_inc(uint8_t **stream);
-	uns32 encode_32bitOS_inc(uint8_t **stream, uns32 val);
-	uns32 encode_16bitOS_inc(uint8_t **stream, uns32 val);
+	uint32_t decode_32bitOS_inc(uint8_t **stream);
+	uint32_t encode_32bitOS_inc(uint8_t **stream, uint32_t val);
+	uint32_t encode_16bitOS_inc(uint8_t **stream, uint32_t val);
 	uint16_t decode_16bitOS_inc(uint8_t **stream);
 
 #define m_NCS_OS_HTONL_P_INC(p8,v32) encode_32bitOS_inc(&p8, v32)
@@ -205,7 +205,7 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
 
 #define m_KEY_CHK_FMT(k,f)  { if (k.fmat != f) m_LEAP_DBG_SINK(0);}
 #define m_KEY_CHK_LEN(l)    { if (l > SYSF_MAX_KEY_LEN) m_LEAP_DBG_SINK(0); }
-#define m_KEY_CHK_SLEN(s)   { uns32 l = m_NCS_STRLEN(s); m_KEY_CHK_LEN(l); }
+#define m_KEY_CHK_SLEN(s)   { uint32_t l = m_NCS_STRLEN(s); m_KEY_CHK_LEN(l); }
 
 /*
  * m_LEAP_DBG_SINK
@@ -293,8 +293,8 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
  **                                                                         **
  ****************************************************************************/
 
-	int32 sysf_strrcspn(const uint8_t *s, const int32 start_pos, const uint8_t *reject);
-	int32 sysf_strincmp(const uint8_t *s1, const uint8_t *s2, uns32 n);
+	int32_t sysf_strrcspn(const uint8_t *s, const int32_t start_pos, const uint8_t *reject);
+	int32_t sysf_strincmp(const uint8_t *s1, const uint8_t *s2, uint32_t n);
 
 #ifdef  __cplusplus
 }
@@ -304,7 +304,7 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
  **             LEAP ENVIRONMENT INITIALIZATION AND CLEAN UP                **
  **                                                                         **
  ****************************************************************************/
-    uns32 leap_env_init(void);
-uns32 leap_env_destroy(void);
+    uint32_t leap_env_init(void);
+uint32_t leap_env_destroy(void);
 
 #endif

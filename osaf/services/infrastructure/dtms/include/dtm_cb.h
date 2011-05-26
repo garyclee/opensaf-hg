@@ -79,8 +79,8 @@ typedef struct dtm_internode_cb {
 	int dgram_sock_rcvr;	/*  */
 	DTM_IP_ADDR_TYPE i_addr_family;	/* Indicates V4 or V6 */
 	uint8_t mcast_flag;	/* Indicates mcast */
-	int32 initial_dis_timeout;
-	int32 bcast_msg_freq;
+	int32_t initial_dis_timeout;
+	int32_t bcast_msg_freq;
 	NCS_PATRICIA_TREE nodeid_tree;	/* NODE_DB information of Nodes */
 	NCS_PATRICIA_TREE comm_sock_tree;	/* NODE_DB information of Nodes */
 	NCS_PATRICIA_TREE ip_addr_tree;	/* NODE_DB information of Nodes */

@@ -22,7 +22,7 @@
 #include "ncs_main_papi.h"
 #include "mbcsv_api.h"
 
-uns32 mbcstm_startup(void);
+uint32_t mbcstm_startup(void);
 
 void tet_mbcsv_startup(void);
 void tet_mbcsv_cleanup(void);
@@ -252,7 +252,7 @@ struct tet_testlist tet_testlist[]={
 };
 #endif
 
-uns32 mbcstm_startup()
+uint32_t mbcstm_startup()
 {
 #if (TET_PATCH==1)
 

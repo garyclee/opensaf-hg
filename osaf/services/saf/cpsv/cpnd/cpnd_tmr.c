@@ -38,7 +38,7 @@ void cpnd_timer_expiry(NCSCONTEXT uarg)
 	NCS_IPC_PRIORITY priority = NCS_IPC_PRIORITY_HIGH;
 	CPND_CB *cb = NULL;
 	CPSV_EVT *evt = NULL;
-	uns32 cpnd_hdl;
+	uint32_t cpnd_hdl;
 
 	if (tmr != NULL) {
 		if (tmr->is_active == TRUE) {
@@ -115,18 +115,18 @@ void cpnd_timer_expiry(NCSCONTEXT uarg)
  * Description   : This function which is used to start the CPND Timer
  *
  *****************************************************************************/
-uns32 cpnd_tmr_start(CPND_TMR *tmr, SaTimeT duration)
+uint32_t cpnd_tmr_start(CPND_TMR *tmr, SaTimeT duration)
 {
 	if (tmr->tmr_id == TMR_T_NULL) {
 		m_NCS_TMR_CREATE(tmr->tmr_id, duration, cpnd_timer_expiry, (void *)tmr);
 	}
 
 	if (tmr->is_active == FALSE) {
-		m_NCS_TMR_START(tmr->tmr_id, (uns32)duration, cpnd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, cpnd_timer_expiry, (void *)tmr);
 		tmr->is_active = TRUE;
 	} else if (tmr->is_active == TRUE) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		m_NCS_TMR_START(tmr->tmr_id, (uns32)duration, cpnd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, cpnd_timer_expiry, (void *)tmr);
 	}
 
 	return (NCSCC_RC_SUCCESS);

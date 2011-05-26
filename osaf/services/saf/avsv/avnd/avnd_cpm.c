@@ -75,7 +75,7 @@ void avnd_pm_list_init(AVND_COMP *comp)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *node)
+uint32_t avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *node)
 {
 	AVND_COMP_PM_REC *pm_rec = (AVND_COMP_PM_REC *)node;
 
@@ -96,9 +96,9 @@ uns32 avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *node)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
+uint32_t avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/*update the key */
 	rec->comp_dll_node.key = (uint8_t *)&rec->pid;
@@ -134,7 +134,7 @@ uns32 avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 ******************************************************************************/
 void avnd_comp_pm_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaUint64T pid = rec->pid;
 	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
@@ -206,11 +206,11 @@ void avnd_comp_pm_rec_del_all(AVND_CB *cb, AVND_COMP *comp)
   Notes         : As of Now AvSv does not validate the stop qualifiers and
                   other param. It just stops the PM for the matching PID
 ******************************************************************************/
-uns32 avnd_comp_pm_stop_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_STOP_PARAM *pm_stop, SaAisErrorT *sa_err)
+uint32_t avnd_comp_pm_stop_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_STOP_PARAM *pm_stop, SaAisErrorT *sa_err)
 {
 	AVND_COMP_PM_REC *rec = 0;
 	SaUint64T pid;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* get the pid */
 	pid = pm_stop->pid;
@@ -242,11 +242,11 @@ uns32 avnd_comp_pm_stop_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_STOP_P
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_pm_start_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_START_PARAM *pm_start, SaAisErrorT *sa_err)
+uint32_t avnd_comp_pm_start_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_START_PARAM *pm_start, SaAisErrorT *sa_err)
 {
 	AVND_COMP_PM_REC *rec = 0;
 	SaUint64T pid;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	*sa_err = SA_AIS_OK;
 
 	/* get the pid */
@@ -285,10 +285,10 @@ uns32 avnd_comp_pm_start_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_START
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_pmstart_modify(AVND_CB *cb, AVSV_AMF_PM_START_PARAM *pm_start, AVND_COMP_PM_REC *rec,
+uint32_t avnd_comp_pmstart_modify(AVND_CB *cb, AVSV_AMF_PM_START_PARAM *pm_start, AVND_COMP_PM_REC *rec,
 			       SaAisErrorT *sa_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* check whether the hdl for start & modify match */
 	if (pm_start->hdl != rec->req_hdl) {
@@ -324,7 +324,7 @@ AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_
 {
 
 	AVND_COMP_PM_REC *rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	*sa_err = SA_AIS_OK;
 
 	if ((0 == (rec = calloc(1, sizeof(AVND_COMP_PM_REC)))))
@@ -392,12 +392,12 @@ NCS_BOOL avnd_comp_pm_rec_cmp(AVSV_AMF_PM_START_PARAM *pm_start, AVND_COMP_PM_RE
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_pm_start_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_pm_start_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_PM_START_PARAM *pm_start = &api_info->param.pm_start;
 	AVND_COMP *comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 
@@ -451,13 +451,13 @@ uns32 avnd_evt_ava_pm_start_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_pm_stop_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_pm_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_PM_STOP_PARAM *pm_stop = &api_info->param.pm_stop;
 	AVND_COMP *comp = 0;
 	AVND_COMP_PM_REC *rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 

@@ -38,9 +38,9 @@
  */
 /*typedef struct dtsv_async_updt_cnt
 {
-   uns32     dts_svc_reg_tbl_updt;
-   uns32     dta_dest_list_updt;
-   uns32     global_policy_updt;
+   uint32_t     dts_svc_reg_tbl_updt;
+   uint32_t     dta_dest_list_updt;
+   uint32_t     global_policy_updt;
 }DTSV_ASYNC_UPDT_CNT;*/
 
 /*
@@ -49,17 +49,17 @@
 /*Smik - Not sure if we need this */
 /*typedef struct avd_red_data_req_bit_map
 {
-   uns32     cb_updt:1;
-   uns32     avnd_updt:1;
-   uns32     sg_updt:1;
-   uns32     su_updt:1;
-   uns32     si_updt:1;
-   uns32     sg_su_oprlist_updt:1;
-   uns32     sg_admin_si_updt:1;
-   uns32     su_si_rel_updt:1;
-   uns32     comp_updt:1;
-   uns32     csi_updt:1;
-   uns32     hlt_updt:1;
+   uint32_t     cb_updt:1;
+   uint32_t     avnd_updt:1;
+   uint32_t     sg_updt:1;
+   uint32_t     su_updt:1;
+   uint32_t     si_updt:1;
+   uint32_t     sg_su_oprlist_updt:1;
+   uint32_t     sg_admin_si_updt:1;
+   uint32_t     su_si_rel_updt:1;
+   uint32_t     comp_updt:1;
+   uint32_t     csi_updt:1;
+   uint32_t     hlt_updt:1;
 }AVD_RED_DATA_REQ_BIT_MAP;*/
 
 /*
@@ -81,44 +81,44 @@ typedef struct dts_log_ckpt_data {
 /*
  * Prototype for the DTSV checkpoint encode function pointer.
  */
-typedef uns32 (*DTSV_ENCODE_CKPT_DATA_FUNC_PTR) (struct dts_cb * cb, NCS_MBCSV_CB_ENC *enc);
+typedef uint32_t (*DTSV_ENCODE_CKPT_DATA_FUNC_PTR) (struct dts_cb * cb, NCS_MBCSV_CB_ENC *enc);
 
 /*
  * Prototype for the DTSV checkpoint Decode function pointer.
  */
-typedef uns32 (*DTSV_DECODE_CKPT_DATA_FUNC_PTR) (struct dts_cb * cb, NCS_MBCSV_CB_DEC *dec);
+typedef uint32_t (*DTSV_DECODE_CKPT_DATA_FUNC_PTR) (struct dts_cb * cb, NCS_MBCSV_CB_DEC *dec);
 
 /*
  * Prototype for the DTSV checkpoint cold sync response encode function pointer.
  */
-typedef uns32 (*DTSV_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR) (struct dts_cb * cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj);
+typedef uint32_t (*DTSV_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR) (struct dts_cb * cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
 
 /*
  * Prototype for the DTSV checkpoint cold sync response encode function pointer.
  */
-typedef uns32 (*DTSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR) (struct dts_cb * cb, NCS_MBCSV_CB_DEC *enc, uns32 num_of_obj);
+typedef uint32_t (*DTSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR) (struct dts_cb * cb, NCS_MBCSV_CB_DEC *enc, uint32_t num_of_obj);
 
 /* Function Definitions of dts_chkop.c */
-uns32 dts_role_change(struct dts_cb *cb, SaAmfHAStateT haState);
-uns32 dtsv_mbcsv_register(struct dts_cb *cb);
-uns32 dtsv_mbcsv_deregister(struct dts_cb *cb);
-uns32 dtsv_set_ckpt_role(struct dts_cb *cb, uns32 role);
-uns32 dtsv_mbcsv_dispatch(struct dts_cb *cb, uns32 flag);
-uns32 dtsv_send_ckpt_data(struct dts_cb *cb,
-				   uns32 action, MBCSV_REO_HDL reo_hdl, uns32 reo_type, uns32 send_type);
-uns32 dtsv_mbcsv_obj_set(struct dts_cb *cb, uns32 obj, uns32 val);
-uns32 dtsv_send_data_req(struct dts_cb *cb);
+uint32_t dts_role_change(struct dts_cb *cb, SaAmfHAStateT haState);
+uint32_t dtsv_mbcsv_register(struct dts_cb *cb);
+uint32_t dtsv_mbcsv_deregister(struct dts_cb *cb);
+uint32_t dtsv_set_ckpt_role(struct dts_cb *cb, uint32_t role);
+uint32_t dtsv_mbcsv_dispatch(struct dts_cb *cb, uint32_t flag);
+uint32_t dtsv_send_ckpt_data(struct dts_cb *cb,
+				   uint32_t action, MBCSV_REO_HDL reo_hdl, uint32_t reo_type, uint32_t send_type);
+uint32_t dtsv_mbcsv_obj_set(struct dts_cb *cb, uint32_t obj, uint32_t val);
+uint32_t dtsv_send_data_req(struct dts_cb *cb);
 
 /* Function Definitions of dts_ckpt_enc.c */
-uns32 dtsv_encode_cold_sync_rsp(struct dts_cb *cb, NCS_MBCSV_CB_ENC *enc);
-uns32 dtsv_encode_warm_sync_rsp(struct dts_cb *cb, NCS_MBCSV_CB_ENC *enc);
-uns32 dtsv_encode_data_sync_rsp(struct dts_cb *cb, NCS_MBCSV_CB_ENC *enc);
-uns32 dtsv_encode_all(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOOL csync);
+uint32_t dtsv_encode_cold_sync_rsp(struct dts_cb *cb, NCS_MBCSV_CB_ENC *enc);
+uint32_t dtsv_encode_warm_sync_rsp(struct dts_cb *cb, NCS_MBCSV_CB_ENC *enc);
+uint32_t dtsv_encode_data_sync_rsp(struct dts_cb *cb, NCS_MBCSV_CB_ENC *enc);
+uint32_t dtsv_encode_all(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOOL csync);
 
 /* Function Definitions of dts_ckpt_dec.c */
-uns32 dtsv_decode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
-uns32 dtsv_decode_warm_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
-uns32 dtsv_decode_data_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
-uns32 dtsv_decode_data_req(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
+uint32_t dtsv_decode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
+uint32_t dtsv_decode_warm_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
+uint32_t dtsv_decode_data_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
+uint32_t dtsv_decode_data_req(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
 #endif

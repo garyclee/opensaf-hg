@@ -19,25 +19,25 @@
 
 const MDS_CLIENT_MSG_FORMAT_VER fm_fm_msg_fmt_map_table[FM_SUBPART_VER_MAX] = { FM_FM_MSG_FMT_VER_1 };
 
-static uns32 fm_mds_callback(NCSMDS_CALLBACK_INFO *info);
-static uns32 fm_mds_get_adest_hdls(FM_CB *cb);
-static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
-static uns32 fm_mds_rcv_evt(FM_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
+static uint32_t fm_mds_callback(NCSMDS_CALLBACK_INFO *info);
+static uint32_t fm_mds_get_adest_hdls(FM_CB *cb);
+static uint32_t fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
+static uint32_t fm_mds_rcv_evt(FM_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
 
-static uns32 fm_encode(MDS_CALLBACK_ENC_INFO *enc_info);
-static uns32 fm_decode(MDS_CALLBACK_DEC_INFO *dec_info);
-static uns32 fm_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info);
-static uns32 fm_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info);
-static uns32 fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_evt);
-static uns32 fm_fill_mds_evt_post_fm_mbx(FM_CB *cb, FM_EVT *fm_evt, NODE_ID node_id, FM_FSM_EVT_CODE evt_code);
+static uint32_t fm_encode(MDS_CALLBACK_ENC_INFO *enc_info);
+static uint32_t fm_decode(MDS_CALLBACK_DEC_INFO *dec_info);
+static uint32_t fm_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info);
+static uint32_t fm_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info);
+static uint32_t fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_evt);
+static uint32_t fm_fill_mds_evt_post_fm_mbx(FM_CB *cb, FM_EVT *fm_evt, NODE_ID node_id, FM_FSM_EVT_CODE evt_code);
 
-uns32
+uint32_t
 fm_mds_sync_send(FM_CB *fm_cb, NCSCONTEXT msg,
 		 NCSMDS_SVC_ID svc_id,
 		 MDS_SEND_PRIORITY_TYPE priority,
 		 MDS_SENDTYPES send_type, MDS_DEST *i_to_dest, MDS_SYNC_SND_CTXT *mds_ctxt);
 
-uns32
+uint32_t
 fm_mds_async_send(FM_CB *fm_cb, NCSCONTEXT msg,
 		  NCSMDS_SVC_ID svc_id,
 		  MDS_SEND_PRIORITY_TYPE priority,
@@ -54,7 +54,7 @@ fm_mds_async_send(FM_CB *fm_cb, NCSCONTEXT msg,
 *
 * Notes         : None.
 *****************************************************************************/
-uns32 fm_mds_init(FM_CB *cb)
+uint32_t fm_mds_init(FM_CB *cb)
 {
 	NCSMDS_INFO arg;
 	MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_GFM };
@@ -129,10 +129,10 @@ uns32 fm_mds_init(FM_CB *cb)
 *
 * Notes         : None.
 *****************************************************************************/
-uns32 fm_mds_finalize(FM_CB *cb)
+uint32_t fm_mds_finalize(FM_CB *cb)
 {
 	NCSMDS_INFO arg;
-	uns32 return_val;
+	uint32_t return_val;
 
 	memset(&arg, 0, sizeof(NCSMDS_INFO));
 	arg.i_mds_hdl = (MDS_HDL)cb->adest_pwe1_hdl;
@@ -155,7 +155,7 @@ uns32 fm_mds_finalize(FM_CB *cb)
 *
 * Notes         : None.
 *****************************************************************************/
-static uns32 fm_mds_get_adest_hdls(FM_CB *cb)
+static uint32_t fm_mds_get_adest_hdls(FM_CB *cb)
 {
 	NCSADA_INFO arg;
 
@@ -185,18 +185,18 @@ static uns32 fm_mds_get_adest_hdls(FM_CB *cb)
 *
 * Notes         : None.
 *****************************************************************************/
-static uns32 fm_mds_callback(NCSMDS_CALLBACK_INFO *info)
+static uint32_t fm_mds_callback(NCSMDS_CALLBACK_INFO *info)
 {
-	uns32 cb_hdl;
+	uint32_t cb_hdl;
 	FM_CB *cb;
-	uns32 return_val = NCSCC_RC_SUCCESS;
+	uint32_t return_val = NCSCC_RC_SUCCESS;
 
 	if (info == NULL) {
 		syslog(LOG_INFO, "fm_mds_callback: Invalid param info");
 		return NCSCC_RC_SUCCESS;
 	}
 
-	cb_hdl = (uns32)info->i_yr_svc_hdl;
+	cb_hdl = (uint32_t)info->i_yr_svc_hdl;
 	cb = (FM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GFM, cb_hdl);
 	if (cb == NULL) {
 		syslog(LOG_INFO, "fm_mds_callback: CB retrieve failed");
@@ -259,9 +259,9 @@ static uns32 fm_mds_callback(NCSMDS_CALLBACK_INFO *info)
 *
 * Notes         : None.
 *****************************************************************************/
-static uns32 fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_evt)
+static uint32_t fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_evt)
 {
-	uns32 return_val = NCSCC_RC_SUCCESS;
+	uint32_t return_val = NCSCC_RC_SUCCESS;
 	FM_EVT *fm_evt;
 	TRACE_ENTER();
 	if (NULL == node_evt) {
@@ -311,9 +311,9 @@ static uns32 fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_evt)
 *
 * Notes         : None.
 *****************************************************************************/
-static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+static uint32_t fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
-	uns32 return_val = NCSCC_RC_SUCCESS;
+	uint32_t return_val = NCSCC_RC_SUCCESS;
 	FM_EVT *fm_evt;
         TRACE_ENTER();
 	if (NULL == svc_evt) {
@@ -381,9 +381,9 @@ static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 *                                                                           
 * Notes         : None.   
 ***************************************************************************/
-static uns32 fm_mds_rcv_evt(FM_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
+static uint32_t fm_mds_rcv_evt(FM_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
-	uns32 return_val = NCSCC_RC_SUCCESS;
+	uint32_t return_val = NCSCC_RC_SUCCESS;
 	GFM_GFM_MSG *gfm_rcv_msg = NULL;
 
 	if (NULL == rcv_info) {
@@ -426,7 +426,7 @@ static uns32 fm_mds_rcv_evt(FM_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 *                                                                           
 * Notes         :   None.
 ***************************************************************************/
-static uns32 fm_fill_mds_evt_post_fm_mbx(FM_CB *cb, FM_EVT *fm_evt, NODE_ID node_id, FM_FSM_EVT_CODE evt_code)
+static uint32_t fm_fill_mds_evt_post_fm_mbx(FM_CB *cb, FM_EVT *fm_evt, NODE_ID node_id, FM_FSM_EVT_CODE evt_code)
 {
 	fm_evt->evt_code = evt_code;
 	fm_evt->node_id = node_id;
@@ -449,12 +449,12 @@ static uns32 fm_fill_mds_evt_post_fm_mbx(FM_CB *cb, FM_EVT *fm_evt, NODE_ID node
 *                                                                           
 * Notes         :  None.  
 ***************************************************************************/
-uns32 fm_mds_sync_send(FM_CB *fm_cb, NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
+uint32_t fm_mds_sync_send(FM_CB *fm_cb, NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
 		       MDS_SEND_PRIORITY_TYPE priority, MDS_SENDTYPES send_type,
 		       MDS_DEST *i_to_dest, MDS_SYNC_SND_CTXT *mds_ctxt)
 {
 	NCSMDS_INFO info;
-	uns32 return_val;
+	uint32_t return_val;
 
 	memset(&info, '\0', sizeof(NCSMDS_INFO));
 
@@ -493,12 +493,12 @@ uns32 fm_mds_sync_send(FM_CB *fm_cb, NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
 *                                                                           
 * Notes         : None 
 ***************************************************************************/
-uns32 fm_mds_async_send(FM_CB *fm_cb, NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
+uint32_t fm_mds_async_send(FM_CB *fm_cb, NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
 			MDS_SEND_PRIORITY_TYPE priority, MDS_SENDTYPES send_type,
 			MDS_DEST i_to_dest, NCSMDS_SCOPE_TYPE bcast_scope)
 {
 	NCSMDS_INFO info;
-	uns32 return_val;
+	uint32_t return_val;
 
 	if (NCSMDS_SVC_ID_GFM == svc_id) {
 		memset(&info, 0, sizeof(info));
@@ -543,7 +543,7 @@ uns32 fm_mds_async_send(FM_CB *fm_cb, NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
 * 
 * Notes         : None.  
 ********************************************************************************/
-static uns32 fm_encode(MDS_CALLBACK_ENC_INFO *enc_info)
+static uint32_t fm_encode(MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	if (NCSMDS_SVC_ID_GFM == enc_info->i_to_svc_id) {
 		enc_info->o_msg_fmt_ver = m_MSG_FMT_VER_GET(enc_info->i_rem_svc_pvt_ver,
@@ -574,7 +574,7 @@ static uns32 fm_encode(MDS_CALLBACK_ENC_INFO *enc_info)
 *                                                                           
 * Notes         : None.
 *********************************************************************************/
-static uns32 fm_decode(MDS_CALLBACK_DEC_INFO *dec_info)
+static uint32_t fm_decode(MDS_CALLBACK_DEC_INFO *dec_info)
 {
 	if (NCSMDS_SVC_ID_GFM == dec_info->i_fr_svc_id) {
 		if (!m_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
@@ -602,7 +602,7 @@ static uns32 fm_decode(MDS_CALLBACK_DEC_INFO *dec_info)
 *                                                                           
 * Notes         :    None.
 ***************************************************************************/
-static uns32 fm_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
+static uint32_t fm_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	GFM_GFM_MSG *msg;
 	NCS_UBAID *uba;
@@ -626,16 +626,16 @@ static uns32 fm_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 
 	switch (msg->msg_type) {
 	case GFM_GFM_EVT_NODE_INFO_EXCHANGE:
-		data = ncs_enc_reserve_space(uba, (2 * sizeof(uns32)));
+		data = ncs_enc_reserve_space(uba, (2 * sizeof(uint32_t)));
 		if (data == NULL) {
 			m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 		}
 
 		ncs_encode_32bit(&data, msg->info.node_info.node_id);
 		ncs_encode_32bit(&data, msg->info.node_info.node_name.length);
-		ncs_enc_claim_space(uba, 2 * sizeof(uns32));
+		ncs_enc_claim_space(uba, 2 * sizeof(uint32_t));
 		ncs_encode_n_octets_in_uba(uba, msg->info.node_info.node_name.value,
-					   (uns32)msg->info.node_info.node_name.length);
+					   (uint32_t)msg->info.node_info.node_name.length);
 		break;
 
 	default:
@@ -658,7 +658,7 @@ static uns32 fm_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 *                                                                           
 * Notes         : None.
 ***************************************************************************/
-static uns32 fm_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
+static uint32_t fm_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 {
 	GFM_GFM_MSG *msg;
 	NCS_UBAID *uba;
@@ -687,14 +687,14 @@ static uns32 fm_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 
 	switch (msg->msg_type) {
 	case GFM_GFM_EVT_NODE_INFO_EXCHANGE:
-		data = ncs_dec_flatten_space(uba, data_buff, 2 * sizeof(uns32));
+		data = ncs_dec_flatten_space(uba, data_buff, 2 * sizeof(uint32_t));
 		if (data == NULL) {
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 		}
 
-		msg->info.node_info.node_id = (uns32)ncs_decode_32bit(&data);
-		msg->info.node_info.node_name.length = (uns32)ncs_decode_32bit(&data);
-		ncs_dec_skip_space(uba, 2 * sizeof(uns32));
+		msg->info.node_info.node_id = (uint32_t)ncs_decode_32bit(&data);
+		msg->info.node_info.node_name.length = (uint32_t)ncs_decode_32bit(&data);
+		ncs_dec_skip_space(uba, 2 * sizeof(uint32_t));
 
 		ncs_decode_n_octets_from_uba(uba, msg->info.node_info.node_name.value,
 					     msg->info.node_info.node_name.length);

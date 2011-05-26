@@ -136,9 +136,9 @@ void avsv_nda_ava_msg_content_free(AVSV_NDA_AVA_MSG *msg)
  
   Notes         : None
 ******************************************************************************/
-uns32 avsv_ndnd_avnd_msg_copy(AVSV_ND2ND_AVND_MSG *dmsg, AVSV_ND2ND_AVND_MSG *smsg)
+uint32_t avsv_ndnd_avnd_msg_copy(AVSV_ND2ND_AVND_MSG *dmsg, AVSV_ND2ND_AVND_MSG *smsg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (!dmsg || !smsg) {
 		rc = NCSCC_RC_FAILURE;
@@ -166,9 +166,9 @@ uns32 avsv_ndnd_avnd_msg_copy(AVSV_ND2ND_AVND_MSG *dmsg, AVSV_ND2ND_AVND_MSG *sm
  
   Notes         : None
 ******************************************************************************/
-uns32 avsv_nda_ava_msg_copy(AVSV_NDA_AVA_MSG *dmsg, AVSV_NDA_AVA_MSG *smsg)
+uint32_t avsv_nda_ava_msg_copy(AVSV_NDA_AVA_MSG *dmsg, AVSV_NDA_AVA_MSG *smsg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (!dmsg || !smsg) {
 		rc = NCSCC_RC_FAILURE;
@@ -207,9 +207,9 @@ uns32 avsv_nda_ava_msg_copy(AVSV_NDA_AVA_MSG *dmsg, AVSV_NDA_AVA_MSG *smsg)
  
   Notes         : None
 ******************************************************************************/
-uns32 avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
+uint32_t avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (!o_dcbk || !scbk)
 		return NCSCC_RC_FAILURE;
@@ -352,10 +352,10 @@ void avsv_amf_cbk_free(AVSV_AMF_CBK_INFO *cbk_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avsv_amf_csi_attr_list_copy(SaAmfCSIAttributeListT *dattr, SaAmfCSIAttributeListT *sattr)
+uint32_t avsv_amf_csi_attr_list_copy(SaAmfCSIAttributeListT *dattr, SaAmfCSIAttributeListT *sattr)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 cnt;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t cnt;
 
 	if (!dattr || !sattr)
 		goto done;
@@ -412,7 +412,7 @@ uns32 avsv_amf_csi_attr_list_copy(SaAmfCSIAttributeListT *dattr, SaAmfCSIAttribu
 ******************************************************************************/
 void avsv_amf_csi_attr_list_free(SaAmfCSIAttributeListT *attrs)
 {
-	uns32 cnt;
+	uint32_t cnt;
 
 	if (!attrs)
 		return;
@@ -442,11 +442,11 @@ void avsv_amf_csi_attr_list_free(SaAmfCSIAttributeListT *attrs)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *cbk_info)
+uint32_t avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *cbk_info)
 {
 	SaAmfCSIAttributeListT *amf_attrs = 0;
 	AVSV_CSI_ATTRS *avsv_attrs = 0;
-	uns32 cnt, rc = NCSCC_RC_SUCCESS;
+	uint32_t cnt, rc = NCSCC_RC_SUCCESS;
 
 	if ((!cbk_info) || (AVSV_AMF_CSI_SET != cbk_info->type) ||
 	    (SA_AMF_CSI_ADD_ONE != cbk_info->param.csi_set.csi_desc.csiFlags))

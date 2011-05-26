@@ -40,7 +40,7 @@
 void eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
 {
 	SaEvtEventPatternT *pEventPattern;
-	int32 x = 0;
+	int32_t x = 0;
 	int8_t buf[256];
 
 	if (patternArray == NULL)
@@ -49,10 +49,10 @@ void eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
 		return;
 
 	pEventPattern = patternArray->patterns;	/* Point to first pattern */
-	for (x = 0; x < (int32)patternArray->patternsNumber; x++) {
-		memcpy(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
+	for (x = 0; x < (int32_t)patternArray->patternsNumber; x++) {
+		memcpy(buf, pEventPattern->pattern, (uint32_t)pEventPattern->patternSize);
 		buf[pEventPattern->patternSize] = '\0';
-		TRACE("     pattern[%d] =    {%2u, \"%s\"}\n", x, (uns32)pEventPattern->patternSize, buf);
+		TRACE("     pattern[%d] =    {%2u, \"%s\"}\n", x, (uint32_t)pEventPattern->patternSize, buf);
 		pEventPattern++;
 	}
 }
@@ -75,8 +75,8 @@ void eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
  ***************************************************************************/
 void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterArrayT *filterArray)
 {
-	int32 x;
-	int32 match = 0;
+	int32_t x;
+	int32_t match = 0;
 	uint8_t *p = NULL;
 	SaEvtEventFilterT *filter;
 	SaEvtEventPatternT *pattern;
@@ -91,11 +91,11 @@ void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray, SaEvtEventFi
 
 	TRACE("          PATTERN            FILTER\n");
 
-	for (x = 1; x <= (int32)filterArray->filtersNumber; x++) {
+	for (x = 1; x <= (int32_t)filterArray->filtersNumber; x++) {
 		/* NULL terminate for printing */
-		memcpy(buf, pattern->pattern, (uns32)pattern->patternSize);
-		buf[(uns32)pattern->patternSize] = '\0';
-		TRACE(" {%14s, %3u} ,  {", buf, (uns32)pattern->patternSize);
+		memcpy(buf, pattern->pattern, (uint32_t)pattern->patternSize);
+		buf[(uint32_t)pattern->patternSize] = '\0';
+		TRACE(" {%14s, %3u} ,  {", buf, (uint32_t)pattern->patternSize);
 
 		match = 0;
 		switch (filter->filterType) {
@@ -131,16 +131,16 @@ void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray, SaEvtEventFi
 		}
 
 		/* NULL terminate for printing */
-		memcpy(buf, filter->filter.pattern, (uns32)filter->filter.patternSize);
-		buf[(uns32)filter->filter.patternSize] = '\0';
-		TRACE(", %14s, %3u}", buf, (uns32)filter->filter.patternSize);
+		memcpy(buf, filter->filter.pattern, (uint32_t)filter->filter.patternSize);
+		buf[(uint32_t)filter->filter.patternSize] = '\0';
+		TRACE(", %14s, %3u}", buf, (uint32_t)filter->filter.patternSize);
 		if (match)
 			TRACE(" [MATCH]\n");
 		else
 			TRACE(" [no]\n");
 
 		filter++;
-		if (x < (int32)patternArray->patternsNumber)
+		if (x < (int32_t)patternArray->patternsNumber)
 			pattern++;
 		else
 			pattern = &emptyPattern;
@@ -159,15 +159,15 @@ void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray, SaEvtEventFi
  ***************************************************************************/
 void eds_dump_reglist()
 {
-	uns32 num_registrations = 0;
-	uns32 num_subscriptions = 0;
+	uint32_t num_registrations = 0;
+	uint32_t num_subscriptions = 0;
 	CHAN_OPEN_LIST *co = NULL;
 	SUBSC_LIST *s = NULL;
 	char *bp;
 	EDA_REG_REC *rl;
 	char buff[60];
 	EDS_CB *cb = NULL;
-	uns32 temp;
+	uint32_t temp;
 	EDA_DOWN_LIST *down_rec = NULL;
 
 	TRACE("\n-=-=-=-=- REGLIST SUBSCRIPTION IDs -=-=-=-=-\n");
@@ -237,8 +237,8 @@ void eds_dump_reglist()
  ***************************************************************************/
 void eds_dump_worklist()
 {
-	uns32 num_events = 0;
-	uns32 num_subscriptions = 0;
+	uint32_t num_events = 0;
+	uint32_t num_subscriptions = 0;
 	CHAN_OPEN_REC *co = NULL;
 	SUBSC_REC *s = NULL;
 	EDS_RETAINED_EVT_REC *retd_evt_rec = NULL;

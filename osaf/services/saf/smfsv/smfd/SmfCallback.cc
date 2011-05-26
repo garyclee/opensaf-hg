@@ -105,7 +105,7 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
 	struct pollfd fds[1];
 	SMFD_SMFND_ADEST_INVID_MAP *temp=NULL, *new_inv_id=NULL;
 	SMF_RESP_EVT *rsp_evt;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT ais_err = SA_AIS_OK;
 	SaInvocationT inv_id_sent;
 

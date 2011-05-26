@@ -33,7 +33,7 @@
 #ifndef MQA_DL_API_H
 #define MQA_DL_API_H
 
-uns32 mqa_lib_req(NCS_LIB_REQ_INFO *);
+uint32_t mqa_lib_req(NCS_LIB_REQ_INFO *);
 unsigned int ncs_mqa_startup(void);
 unsigned int ncs_mqa_shutdown(void);
 

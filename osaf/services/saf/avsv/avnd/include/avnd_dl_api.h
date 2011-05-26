@@ -18,6 +18,6 @@
 #ifndef AVND_API_H
 #define AVND_API_H
 
-uns32 avnd_lib_req(NCS_LIB_REQ_INFO *);
+uint32_t avnd_lib_req(NCS_LIB_REQ_INFO *);
 
 #endif   /* !AVND_API_H */

@@ -47,12 +47,12 @@ extern "C" {
 	typedef void (*RP_TMR_CALLBACK) (void *);
 
 	typedef struct ncs_rp_tmr_cb_tag {
-		uns32 tmr_ganularity;	/* minimum granularity is 1 sec */
+		uint32_t tmr_ganularity;	/* minimum granularity is 1 sec */
 		tmr_t tmr_id;	/* Maps to OS timer ID */
 		TMR_CALLBACK tmr_callback;	/* call back which will be used to registered with the OS timer */
 		void *callback_arg;	/* argument for the above call back */
 		NCS_SERVICE_ID svc_id;	/* service id of the RP */
-		uns32 svc_sub_id;	/* sub id for the above service ID */
+		uint32_t svc_sub_id;	/* sub id for the above service ID */
 		struct ncs_rp_tmr_info_tag *start_list;	/* hold the pointer of the starting tmr list */
 		time_t last_trig_tmr;	/* this will hold the time stamp of last trigered value */
 		NCS_BOOL active;
@@ -64,16 +64,16 @@ extern "C" {
 		struct ncs_rp_tmr_info_tag *pprev;
 		RP_TMR_CALLBACK rp_tmr_callback;	/* this is the timer call back which the RP has to register, which will be invoked when the particular timer expires */
 		void *callback_arg;	/* this is the argument, which is used by the above callback */
-		uns32 tmr_value;	/* this is the tmr value which the RP needs to register for */
+		uint32_t tmr_value;	/* this is the tmr value which the RP needs to register for */
 		time_t tmr_trig_at;	/* this is the system timer, exactly when it has trigered this timer */
 	} NCS_RP_TMR_INFO;
 
 	typedef struct ncs_rp_tmr_init_tag {
-		uns32 tmr_ganularity;
+		uint32_t tmr_ganularity;
 		TMR_CALLBACK tmr_callback;
 		void *callback_arg;
 		NCS_SERVICE_ID svc_id;
-		uns32 svc_sub_id;
+		uint32_t svc_sub_id;
 	} NCS_RP_TMR_INIT;
 
 #define m_IS_TIME_STAMP_SAME(dest_tmr, src_tmr) memcmp (&dest_tmr, &src_tmr, sizeof(time_t))
@@ -82,7 +82,7 @@ extern "C" {
 
 #undef RP_LOG_ENB
 #ifdef RP_LOG_ENB
-#define m_RP_TMR_LOG_MSG(str, val) printf("%s :: %x\n", str, (uns32)val);
+#define m_RP_TMR_LOG_MSG(str, val) printf("%s :: %x\n", str, (uint32_t)val);
 #else
 #define m_RP_TMR_LOG_MSG(str, val)
 #endif
@@ -98,7 +98,7 @@ extern "C" {
 
 /* m_NCS_RP_TMR_START should be used to trigger a timer for the RP. This will 
  * inturn will fit in to one of the RP timer bucket, and starts the OS timer, 
- * if required. This macro will return timer id, which is of uns32, this 
+ * if required. This macro will return timer id, which is of uint32_t, this 
  * should be to refer the timer. RP timer will initiate only one OS timer 
  * irrespective of RP starting number of timers, so when the RP receives the 
  * OS timer expiry, then it should call the RP timer mcaro m_NCS_RP_TMR_EXP with
@@ -139,30 +139,30 @@ extern "C" {
 	NCS_RP_TMR_HDL
 	 ncs_rp_tmr_create(NCS_RP_TMR_CB *tmr_cb);
 
-	uns32
-	 ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, uns32 period, RP_TMR_CALLBACK callbk,
+	uint32_t
+	 ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, uint32_t period, RP_TMR_CALLBACK callbk,
 			  void *arg);
 
-	uns32
+	uint32_t
 	 ncs_rp_tmr_stop(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
 
-	uns32
+	uint32_t
 	 ncs_rp_tmr_delete(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
 
-	uns32
+	uint32_t
 	 ncs_rp_tmr_destory(NCS_RP_TMR_CB **tmr_cb);
 
-	uns32
+	uint32_t
 	 ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb);
 
-	uns32
+	uint32_t
 	 ncs_rp_tmr_left_over(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
 
 /* This is the utill function which will give the time left by taking in the 
  * time at which that particular timer is triggered 
  */
-	uns32
-	 rp_tmr_time_left_in_sec(time_t tmr_trig_at, uns32 tmr_val);
+	uint32_t
+	 rp_tmr_time_left_in_sec(time_t tmr_trig_at, uint32_t tmr_val);
 
 #ifdef  __cplusplus
 }

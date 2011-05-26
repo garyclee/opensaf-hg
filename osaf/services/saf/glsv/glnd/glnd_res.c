@@ -39,7 +39,7 @@ static void glnd_master_process_lock_initiate_waitercallbk(GLND_CB *cb,
 							   GLSV_LOCK_REQ_INFO lock_info, SaLckLockIdT lockid);
 static NCS_BOOL glnd_resource_grant_list_exclusive_locks(GLND_RESOURCE_INFO *res_info);
 
-static uns32 glnd_initiate_deadlock_algorithm(GLND_CB *cb,
+static uint32_t glnd_initiate_deadlock_algorithm(GLND_CB *cb,
 					      GLND_RESOURCE_INFO *res_info,
 					      GLSV_LOCK_REQ_INFO lock_info, GLND_RES_LOCK_LIST_INFO *lck_list_info);
 
@@ -149,9 +149,9 @@ GLND_RESOURCE_INFO *glnd_resource_node_add(GLND_CB *glnd_cb,
 		m_MMGR_FREE_GLND_RESOURCE_INFO(res_info);
 		return NULL;
 	}
-	TRACE("GLND_RESOURCE_NODE_ADD - %d", (uns32)res_id);
+	TRACE("GLND_RESOURCE_NODE_ADD - %d", (uint32_t)res_id);
 	/* log the Resource Add */
-	m_LOG_GLND_HEADLINE_TI(GLND_RSC_NODE_ADD_SUCCESS, __FILE__, __LINE__, (uns32)res_id);
+	m_LOG_GLND_HEADLINE_TI(GLND_RSC_NODE_ADD_SUCCESS, __FILE__, __LINE__, (uint32_t)res_id);
 	return res_info;
 }
 
@@ -169,7 +169,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_add(GLND_CB *glnd_cb,
   NOTES         : Decrements the reference count and deletes the node when it reaches
                   zero.
 *****************************************************************************/
-uns32 glnd_set_orphan_state(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
+uint32_t glnd_set_orphan_state(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
 {
 	GLND_RES_LOCK_LIST_INFO *grant_list = NULL;
 	if (res_info->lck_master_info.grant_list == NULL) {
@@ -265,7 +265,7 @@ void glnd_resource_lock_req_unset_orphan(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *r
   NOTES         : Decrements the reference count and deletes the node when it reaches
                   zero.
 *****************************************************************************/
-uns32 glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, NCS_BOOL orphan)
+uint32_t glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, NCS_BOOL orphan)
 {
 	GLSV_GLD_EVT evt;
 	GLND_CLIENT_INFO *client_info = NULL;
@@ -288,8 +288,8 @@ uns32 glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info,
 		return NCSCC_RC_FAILURE;
 	}
 
-	TRACE("GLND_RESOURCE_NODE_DESTROY - %d", (uns32)res_info->resource_id);
-	m_LOG_GLND_HEADLINE_TI(GLND_RSC_NODE_DESTROY_SUCCESS, __FILE__, __LINE__, (uns32)res_info->resource_id);
+	TRACE("GLND_RESOURCE_NODE_DESTROY - %d", (uint32_t)res_info->resource_id);
+	m_LOG_GLND_HEADLINE_TI(GLND_RSC_NODE_DESTROY_SUCCESS, __FILE__, __LINE__, (uint32_t)res_info->resource_id);
 
 	for (lock_info = res_info->lck_master_info.grant_list; lock_info != NULL;) {
 		prev_lock_info = lock_info;
@@ -537,10 +537,10 @@ void glnd_resource_lock_req_destroy(GLND_RESOURCE_INFO *res_info, GLND_RES_LOCK_
 	ncshm_destroy_hdl(NCS_SERVICE_ID_GLND, lck_list_info->lck_info_hdl_id);
 
 	TRACE("GLND_RESOURCE_LOCK_REQ_DESTROY res - %d lockid- %d",
-	      (uns32)res_info->resource_id, (uns32)lck_list_info->lock_info.lockid);
+	      (uint32_t)res_info->resource_id, (uint32_t)lck_list_info->lock_info.lockid);
 
-	m_LOG_GLND_HEADLINE_TIL(GLND_RSC_LOCK_REQ_DESTROY, __FILE__, __LINE__, (uns32)res_info->resource_id,
-				(uns32)lck_list_info->lock_info.lockid);
+	m_LOG_GLND_HEADLINE_TIL(GLND_RSC_LOCK_REQ_DESTROY, __FILE__, __LINE__, (uint32_t)res_info->resource_id,
+				(uint32_t)lck_list_info->lock_info.lockid);
 	m_MMGR_FREE_GLND_RES_LOCK_LIST_INFO(lck_list_info);
 	return;
 }
@@ -559,7 +559,7 @@ void glnd_resource_lock_req_destroy(GLND_RESOURCE_INFO *res_info, GLND_RES_LOCK_
 
     NOTES         : None
 *****************************************************************************/
-uns32 glnd_initiate_deadlock_algorithm(GLND_CB *cb,
+uint32_t glnd_initiate_deadlock_algorithm(GLND_CB *cb,
 				       GLND_RESOURCE_INFO *res_info,
 				       GLSV_LOCK_REQ_INFO lock_info, GLND_RES_LOCK_LIST_INFO *lck_list_info)
 {
@@ -664,11 +664,11 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 		    glnd_resource_grant_list_orphan_locks(res_info, &mode) == FALSE) {
 			/* add it to the grant list */
 			TRACE("LOCK_GRANTED handle - %d res - %d lockid- %d",
-			      (uns32)lock_info.handleId, (uns32)res_info->resource_id,
-			      (uns32)lck_list_info->lock_info.lockid);
+			      (uint32_t)lock_info.handleId, (uint32_t)res_info->resource_id,
+			      (uint32_t)lck_list_info->lock_info.lockid);
 
-			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_GRANTED, __FILE__, __LINE__, (uns32)lock_info.handleId,
-						 (uns32)res_info->resource_id, (uns32)lck_list_info->lock_info.lockid);
+			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_GRANTED, __FILE__, __LINE__, (uint32_t)lock_info.handleId,
+						 (uint32_t)res_info->resource_id, (uint32_t)lck_list_info->lock_info.lockid);
 
 			lck_list_info->lock_info.lockStatus = SA_LCK_LOCK_GRANTED;
 			res_info->lck_master_info.grant_list = lck_list_info;
@@ -683,11 +683,11 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 		} else {
 			/* add it to the exclusive wait list */
 			TRACE("LOCK_QUEUED in EX handle - %d res - %d lockid- %d",
-			      (uns32)lock_info.handleId, (uns32)res_info->resource_id,
-			      (uns32)lck_list_info->lock_info.lockid);
+			      (uint32_t)lock_info.handleId, (uint32_t)res_info->resource_id,
+			      (uint32_t)lck_list_info->lock_info.lockid);
 
-			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_QUEUED, __FILE__, __LINE__, (uns32)lock_info.handleId,
-						 (uns32)res_info->resource_id, (uns32)lck_list_info->lock_info.lockid);
+			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_QUEUED, __FILE__, __LINE__, (uint32_t)lock_info.handleId,
+						 (uint32_t)res_info->resource_id, (uint32_t)lck_list_info->lock_info.lockid);
 
 			lck_list_info->next = res_info->lck_master_info.wait_exclusive_list;
 			if (res_info->lck_master_info.wait_exclusive_list)
@@ -697,7 +697,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 
 				glnd_start_tmr(cb, &lck_list_info->timeout_tmr,
 					       GLND_TMR_RES_LOCK_REQ_TIMEOUT,
-					       lock_info.timeout, (uns32)lck_list_info->lck_info_hdl_id);
+					       lock_info.timeout, (uint32_t)lck_list_info->lck_info_hdl_id);
 			}
 
 			/* send back waitercallback requests to the lock holders in grant list */
@@ -774,11 +774,11 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 			res_info->lck_master_info.grant_list = lck_list_info;
 
 			TRACE("LOCK_GRANTED handle - %d res - %d lockid- %d",
-			      (uns32)lock_info.handleId, (uns32)res_info->resource_id,
-			      (uns32)lck_list_info->lock_info.lockid);
+			      (uint32_t)lock_info.handleId, (uint32_t)res_info->resource_id,
+			      (uint32_t)lck_list_info->lock_info.lockid);
 
-			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_GRANTED, __FILE__, __LINE__, (uns32)lock_info.handleId,
-						 (uns32)res_info->resource_id, (uns32)lck_list_info->lock_info.lockid);
+			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_GRANTED, __FILE__, __LINE__, (uint32_t)lock_info.handleId,
+						 (uint32_t)res_info->resource_id, (uint32_t)lck_list_info->lock_info.lockid);
 		} else if ((lock_info.lockFlags & SA_LCK_LOCK_NO_QUEUE) == SA_LCK_LOCK_NO_QUEUE) {
 			/* send back the request as it can't be queued */
 			lck_list_info->lock_info.lockStatus = SA_LCK_LOCK_NOT_QUEUED;
@@ -790,11 +790,11 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 		} else {
 
 			TRACE("LOCK_QUEUED handle - %d res - %d lockid- %d",
-			      (uns32)lock_info.handleId, (uns32)res_info->resource_id,
-			      (uns32)lck_list_info->lock_info.lockid);
+			      (uint32_t)lock_info.handleId, (uint32_t)res_info->resource_id,
+			      (uint32_t)lck_list_info->lock_info.lockid);
 
-			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_QUEUED, __FILE__, __LINE__, (uns32)lock_info.handleId,
-						 (uns32)res_info->resource_id, (uns32)lck_list_info->lock_info.lockid);
+			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_QUEUED, __FILE__, __LINE__, (uint32_t)lock_info.handleId,
+						 (uint32_t)res_info->resource_id, (uint32_t)lck_list_info->lock_info.lockid);
 
 			/* add it to the read wait list */
 			lck_list_info->next = res_info->lck_master_info.wait_read_list;
@@ -808,7 +808,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 			if (!memcmp(&cb->glnd_mdest_id, &req_node_mds_dest, sizeof(MDS_DEST))) {
 				glnd_start_tmr(cb, &lck_list_info->timeout_tmr,
 					       GLND_TMR_RES_LOCK_REQ_TIMEOUT,
-					       lock_info.timeout, (uns32)lck_list_info->lck_info_hdl_id);
+					       lock_info.timeout, (uint32_t)lck_list_info->lck_info_hdl_id);
 
 				if (client_info) {
 					if (client_info->res_list) {
@@ -903,7 +903,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_lock_req(GLND_CB *cb,
 
 	/* start the timer */
 	glnd_start_tmr(cb, &lck_list_info->timeout_tmr,
-		       GLND_TMR_RES_NM_LOCK_REQ_TIMEOUT, lock_info.timeout, (uns32)lck_list_info->lck_info_hdl_id);
+		       GLND_TMR_RES_NM_LOCK_REQ_TIMEOUT, lock_info.timeout, (uint32_t)lck_list_info->lck_info_hdl_id);
 
 	/*  send the request to the master node director */
 	memset(&evt, 0, sizeof(GLSV_GLND_EVT));
@@ -979,10 +979,10 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_unlock_req(GLND_CB *cb,
 			return NULL;
 		} else {
 			TRACE("UNLOCK_DONE handle - %d res - %d lockid- %d",
-			      (uns32)lock_info.handleId, (uns32)res_info->resource_id, (uns32)lock_info.lockid);
+			      (uint32_t)lock_info.handleId, (uint32_t)res_info->resource_id, (uint32_t)lock_info.lockid);
 
-			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_UNLOCK_SUCCESS, __FILE__, __LINE__, (uns32)lock_info.handleId,
-						 (uns32)res_info->resource_id, (uns32)lock_info.lockid);
+			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_UNLOCK_SUCCESS, __FILE__, __LINE__, (uint32_t)lock_info.handleId,
+						 (uint32_t)res_info->resource_id, (uint32_t)lock_info.lockid);
 
 			/* set the value of the lock status */
 			lock_list_info->lock_info.lockStatus = GLSV_LOCK_STATUS_RELEASED;
@@ -1015,7 +1015,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_unlock_req(GLND_CB *cb,
 	GLSV_GLND_EVT evt;
 	GLND_RES_LOCK_LIST_INFO *lck_list_info;
 	GLSV_RESTART_BACKUP_EVT_INFO restart_backup_evt;
-	uns32 shm_index;
+	uint32_t shm_index;
 
 	/* search for the lock info in the queues */
 	lck_list_info =
@@ -1027,7 +1027,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_unlock_req(GLND_CB *cb,
 
 	/* start the timer */
 	glnd_start_tmr(cb, &lck_list_info->timeout_tmr,
-		       GLND_TMR_RES_NM_UNLOCK_REQ_TIMEOUT, lock_info.timeout, (uns32)lck_list_info->lck_info_hdl_id);
+		       GLND_TMR_RES_NM_UNLOCK_REQ_TIMEOUT, lock_info.timeout, (uint32_t)lck_list_info->lck_info_hdl_id);
 
 	/*  send the request to the master node director */
 	memset(&evt, 0, sizeof(GLSV_GLND_EVT));
@@ -1254,11 +1254,11 @@ static void glnd_resource_master_grant_lock_send_notification(GLND_CB *glnd_cb,
 	GLSV_GLA_EVT gla_evt;
 
 	TRACE("LOCK_GRANTED handle - %d res - %d lockid- %d",
-	      (uns32)lock_list_node->lock_info.handleId,
-	      (uns32)res_info->resource_id, (uns32)lock_list_node->lock_info.lockid);
+	      (uint32_t)lock_list_node->lock_info.handleId,
+	      (uint32_t)res_info->resource_id, (uint32_t)lock_list_node->lock_info.lockid);
 
-	m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_GRANTED, __FILE__, __LINE__, (uns32)lock_list_node->lock_info.handleId,
-				 (uns32)res_info->resource_id, (uns32)lock_list_node->lock_info.lockid);
+	m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_GRANTED, __FILE__, __LINE__, (uint32_t)lock_list_node->lock_info.handleId,
+				 (uint32_t)res_info->resource_id, (uint32_t)lock_list_node->lock_info.lockid);
 
 	if (m_GLND_IS_LOCAL_NODE(&lock_list_node->req_mdest_id, &glnd_cb->glnd_mdest_id) == 0) {
 		/* local master */
@@ -1448,7 +1448,7 @@ void glnd_resource_convert_nonmaster_to_master(GLND_CB *glnd_cb, GLND_RESOURCE_I
 {
 	GLND_RES_LOCK_LIST_INFO *lck_list_nm_info;
 	GLND_RES_LOCK_LIST_INFO *lck_list_m_info;
-	uns32 remaining_time = 0;
+	uint32_t remaining_time = 0;
 	SaTimeT time;
 
 	for (lck_list_nm_info = res_node->lcl_lck_req_info; lck_list_nm_info != NULL;) {
@@ -1469,7 +1469,7 @@ void glnd_resource_convert_nonmaster_to_master(GLND_CB *glnd_cb, GLND_RESOURCE_I
 					time = time * 100000;
 					glnd_start_tmr(glnd_cb, &lck_list_m_info->timeout_tmr,
 						       GLND_TMR_RES_LOCK_REQ_TIMEOUT,
-						       time, (uns32)lck_list_m_info->lck_info_hdl_id);
+						       time, (uint32_t)lck_list_m_info->lck_info_hdl_id);
 					/* convert the remaining time to satimeT millsec to nanosec */
 				} else if (lck_list_m_info->timeout_tmr.type == GLND_TMR_RES_NM_UNLOCK_REQ_TIMEOUT) {
 					/* TBD: start the master unlock timer */
@@ -1525,7 +1525,7 @@ void glnd_resource_resend_nonmaster_info_to_newmaster(GLND_CB *glnd_cb, GLND_RES
 	GLND_RES_LOCK_LIST_INFO *lck_list_nm_info;
 	GLSV_GLND_EVT glnd_evt;
 	GLND_LOCK_LIST_INFO *lck_list_info = NULL, *new_list_info = NULL, *tmp_list = NULL;
-	uns32 count = 0;
+	uint32_t count = 0;
 
 	for (lck_list_nm_info = res_node->lcl_lck_req_info; lck_list_nm_info != NULL;
 	     lck_list_nm_info = lck_list_nm_info->next) {

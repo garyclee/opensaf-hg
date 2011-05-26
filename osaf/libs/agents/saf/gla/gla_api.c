@@ -53,7 +53,7 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 	GLSV_GLND_EVT initialize_evt;
 	GLA_CB *gla_cb = NULL;
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
-	uns32 ret;
+	uint32_t ret;
 	uint16_t reg_info = 0;
 	GLSV_GLA_EVT *out_evt = NULL;
 	GLA_CLIENT_INFO *client_info = NULL;
@@ -416,7 +416,7 @@ SaAisErrorT saLckFinalize(SaLckHandleT hdl)
 	GLSV_GLND_EVT finalize_evt;
 	GLSV_GLA_EVT *out_evt = NULL;
 	GLA_CLIENT_INFO *client_info = NULL;
-	uns32 ret;
+	uint32_t ret;
 
 	TRACE("SaLckFinalize Called with Handle %" PRIu64, (uns64)hdl);
 
@@ -534,7 +534,7 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 	GLSV_GLA_EVT *out_evt = NULL;
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	SaTimeT gla_timeout;
-	uns32 ret;
+	uint32_t ret;
 	GLA_CLIENT_RES_INFO *client_res_info = NULL;
 
 	/* validate the inputs */
@@ -606,7 +606,7 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 	}
 
 	/* send the event */
-	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_open_evt, &out_evt, (uns32)gla_timeout)) != NCSCC_RC_SUCCESS) {
+	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_open_evt, &out_evt, (uint32_t)gla_timeout)) != NCSCC_RC_SUCCESS) {
 		if (ret == NCSCC_RC_REQ_TIMOUT)
 			rc = SA_AIS_ERR_TIMEOUT;
 		else
@@ -818,7 +818,7 @@ SaAisErrorT saLckResourceClose(SaLckResourceHandleT lockResourceHandle)
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	GLSV_GLA_EVT *out_evt = NULL;
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
-	uns32 ret;
+	uint32_t ret;
 	GLA_CLIENT_INFO *client_info = NULL;
 	GLA_CLIENT_RES_INFO *client_res_info = NULL;
 
@@ -962,11 +962,11 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 	GLSV_GLA_EVT *out_evt = NULL;
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	SaTimeT gla_timeout = 0;
-	uns32 ret;
+	uint32_t ret;
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
 	GLA_LOCK_ID_INFO *lock_id_node = NULL;
 
-	TRACE("saLckResourceLock Called with Resource Handle %d", (uns32)lockResourceHandle);
+	TRACE("saLckResourceLock Called with Resource Handle %d", (uint32_t)lockResourceHandle);
 
 	if (!(lockMode == SA_LCK_PR_LOCK_MODE || lockMode == SA_LCK_EX_LOCK_MODE)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
@@ -1051,7 +1051,7 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 	gla_timeout = gla_timeout + LCK_TIMEOUT_LATENCY;
 
 	/* send the event */
-	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_lock_evt, &out_evt, (uns32)gla_timeout)) != NCSCC_RC_SUCCESS) {
+	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_lock_evt, &out_evt, (uint32_t)gla_timeout)) != NCSCC_RC_SUCCESS) {
 		if (ret == NCSCC_RC_REQ_TIMOUT) {
 			/* delete the lock node */
 			gla_lock_tree_delete_node(gla_cb, lock_id_node);
@@ -1102,7 +1102,7 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 		m_LOG_GLA_API(GLA_API_LCK_RESOURCE_LOCK_SYNC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 	}
 	if (rc == SA_AIS_OK)
-		TRACE("saLckResourceLock SUCCESS Lock id %d, Status %d", (uns32)*lockId, (uns32)*lockStatus);
+		TRACE("saLckResourceLock SUCCESS Lock id %d, Status %d", (uint32_t)*lockId, (uint32_t)*lockStatus);
 	else
 		TRACE("saLckResourceLock FAILURE %d", rc);
 
@@ -1138,9 +1138,9 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
 	GLSV_GLA_EVT *out_evt = NULL;
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
 	GLA_LOCK_ID_INFO *lock_id_node = NULL;
-	uns32 ret;
+	uint32_t ret;
 
-	TRACE("saLckResourceLockAsync Called with Res_id %d", (uns32)lockResourceHandle);
+	TRACE("saLckResourceLockAsync Called with Res_id %d", (uint32_t)lockResourceHandle);
 
 	/* validate the parameters */
 	if (!(lockMode == SA_LCK_PR_LOCK_MODE || lockMode == SA_LCK_EX_LOCK_MODE)) {
@@ -1297,12 +1297,12 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId, SaTimeT timeout)
 	GLSV_GLA_EVT *out_evt = NULL;
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	SaTimeT gla_timeout;
-	uns32 ret;
+	uint32_t ret;
 	GLA_LOCK_ID_INFO *lock_id_info = NULL;
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
 	SaLckResourceHandleT res_hdl = 0;
 
-	TRACE("saLckResourceUnlock Called with lock_id %d", (uns32)lockId);
+	TRACE("saLckResourceUnlock Called with lock_id %d", (uint32_t)lockId);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -1368,7 +1368,7 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId, SaTimeT timeout)
 	gla_timeout = gla_timeout + LCK_TIMEOUT_LATENCY;
 
 	/* send the event */
-	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_unlock_evt, &out_evt, (uns32)gla_timeout)) != NCSCC_RC_SUCCESS) {
+	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_unlock_evt, &out_evt, (uint32_t)gla_timeout)) != NCSCC_RC_SUCCESS) {
 		if (ret == NCSCC_RC_REQ_TIMOUT)
 			rc = SA_AIS_ERR_TIMEOUT;
 		else
@@ -1434,7 +1434,7 @@ SaAisErrorT saLckResourceUnlockAsync(SaInvocationT invocation, SaLckLockIdT lock
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	GLA_LOCK_ID_INFO *lock_id_info = NULL;
 
-	TRACE("saLckResourceUnlockAsync Called with lock_id %d", (uns32)lockId);
+	TRACE("saLckResourceUnlockAsync Called with lock_id %d", (uint32_t)lockId);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -1549,7 +1549,7 @@ SaAisErrorT saLckLockPurge(SaLckResourceHandleT lockResourceHandle)
 	GLSV_GLA_EVT *out_evt = NULL;
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
-	uns32 ret;
+	uint32_t ret;
 
 	TRACE("saLckLockPurge Called with Res Handle %" PRIu64, (uns64)lockResourceHandle);
 

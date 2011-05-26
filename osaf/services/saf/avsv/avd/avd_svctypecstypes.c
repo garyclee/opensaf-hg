@@ -52,7 +52,7 @@ static AVD_SVC_TYPE_CS_TYPE *svctypecstypes_create(SaNameT *dn, const SaImmAttrV
 
 static void svctypecstypes_delete(AVD_SVC_TYPE_CS_TYPE *svctypecstype)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	rc = ncs_patricia_tree_del(&svctypecstypes_db, &svctypecstype->tree_node);
 	assert(rc == NCSCC_RC_SUCCESS);

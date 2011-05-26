@@ -83,9 +83,9 @@ void mqnd_qname_node_getnext(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE **o_qno
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_qname_node_add(MQND_CB *cb, MQND_QNAME_NODE *qnode)
+uint32_t mqnd_qname_node_add(MQND_CB *cb, MQND_QNAME_NODE *qnode)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	qnode->qname.length = m_HTON_SANAMET_LEN(qnode->qname.length);
 	qnode->pnode.key_info = (uint8_t *)&qnode->qname;
 
@@ -106,9 +106,9 @@ uns32 mqnd_qname_node_add(MQND_CB *cb, MQND_QNAME_NODE *qnode)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_qname_node_del(MQND_CB *cb, MQND_QNAME_NODE *qnode)
+uint32_t mqnd_qname_node_del(MQND_CB *cb, MQND_QNAME_NODE *qnode)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	if (cb->is_qname_db_up && qnode) {
 		rc = ncs_patricia_tree_del(&cb->qname_db, (NCS_PATRICIA_NODE *)qnode);

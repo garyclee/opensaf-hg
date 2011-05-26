@@ -75,7 +75,7 @@ typedef struct {
 	NCSCONTEXT task_handle;
 	NCS_BOOL task_terminate;
 	PCS_RDA_CB_PTR callback_ptr;
-	uns32 callback_handle;
+	uint32_t callback_handle;
 	int sockfd;
 
 } RDA_CALLBACK_CB;

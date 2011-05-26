@@ -63,12 +63,12 @@ extern "C" {
 
 	typedef struct lh_ose {	/* OSE Extended Userdata info             */
 		SIGSELECT sig_no;	/* Signal number              (OSE based) */
-		uns32 key;	/* distinguishing attribute               */
+		uint32_t key;	/* distinguishing attribute               */
 		uint8_t pool_id;	/* id must align across environments      */
 		uint16_t ttl;	/* total bytes in this USRDATA            */
 		uint16_t cur;
-		uns32 used_octets;
-		uns32 d_start;
+		uint32_t used_octets;
+		uint32_t d_start;
 
 	} LH_OSE;		/* Link Handler for OSE */
 #endif
@@ -106,7 +106,7 @@ extern "C" {
 
 	typedef struct usrdata {
 		USRDATA_EXTENT ue;	/* UserData Extensions                  */
-		uns32 RefCnt;	/* # of USRBUFs pointing to this block. */
+		uint32_t RefCnt;	/* # of USRBUFs pointing to this block. */
 		char Data[PAYLOAD_BUF_SIZE];	/* payload area ie. The Data  . */
 
 	} USRDATA;
@@ -177,9 +177,9 @@ extern "C" {
    **/
 
 		union {
-			uns32 opaque;
+			uint32_t opaque;
 			struct sig_3x {
-				uns32 nps;
+				uint32_t nps;
 				uint8_t rts;
 			} uni_sig_3x;
 		} specific;

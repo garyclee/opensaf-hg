@@ -32,11 +32,11 @@
 #include "ncs_edu_pub.h"
 #include "ncs_saf_edu.h"
 
-uns32 avsv_edp_nda_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t avsv_edp_nda_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uns32 avsv_edp_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t avsv_edp_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #endif   /* AVSV_N2AVAEDU_H */

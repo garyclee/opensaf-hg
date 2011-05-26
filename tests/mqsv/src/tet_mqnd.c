@@ -2,7 +2,7 @@
 
 #include "tet_mqsv.h"
 
-uns32 mqnd_lib_req(NCS_LIB_REQ_INFO *);
+uint32_t mqnd_lib_req(NCS_LIB_REQ_INFO *);
 
 void tet_create_mqnd() 
 {

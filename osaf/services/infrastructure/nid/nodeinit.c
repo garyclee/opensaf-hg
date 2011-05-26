@@ -69,37 +69,37 @@
 #define NIDLOG PKGLOGDIR "/nid.log"
 
 /* NID FIFO file descriptor */
-int32 select_fd = -1;
+int32_t select_fd = -1;
 
 /* To track NID current priority */
-int32 nid_current_prio;
+int32_t nid_current_prio;
 
 /* NIS FIFO handler, created by NIS. NIS is waiting for us to write DONE */
-int32 nis_fifofd = -1;
+int32_t nis_fifofd = -1;
 
 /* List to store the info of application to be spawned */
 NID_CHILD_LIST spawn_list = { NULL, NULL, 0 };
 
 /* Used to depict if we are ACTIVE/STDBY */
-uns32 role = 0;
+uint32_t role = 0;
 char rolebuff[20];
 char svc_name[NID_MAXSNAME];
 
-static uns32 spawn_wait(NID_SPAWN_INFO *servicie, char *strbuff);
-int32 fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff);
-static int32 fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff);
-static int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff);
+static uint32_t spawn_wait(NID_SPAWN_INFO *servicie, char *strbuff);
+int32_t fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff);
+static int32_t fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff);
+static int32_t fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff);
 static void collect_param(char *, char *, char *args[]);
-static char *gettoken(char **, uns32);
+static char *gettoken(char **, uint32_t);
 static void add2spawnlist(NID_SPAWN_INFO *);
 static NID_APP_TYPE get_apptype(char *);
-static uns32 get_spawn_info(char *, NID_SPAWN_INFO *, char *);
-static uns32 parse_nodeinit_conf(char *strbuf);
-static uns32 check_process(NID_SPAWN_INFO *service);
+static uint32_t get_spawn_info(char *, NID_SPAWN_INFO *, char *);
+static uint32_t parse_nodeinit_conf(char *strbuf);
+static uint32_t check_process(NID_SPAWN_INFO *service);
 static void cleanup(NID_SPAWN_INFO *service);
-static uns32 recovery_action(NID_SPAWN_INFO *, char *);
-static uns32 spawn_services(char *);
-static void nid_sleep(uns32);
+static uint32_t recovery_action(NID_SPAWN_INFO *, char *);
+static uint32_t spawn_services(char *);
+static void nid_sleep(uint32_t);
 
 /* List of recovery strategies */
 NID_FUNC recovery_funcs[] = { spawn_wait  };
@@ -118,7 +118,7 @@ char *nid_recerr[NID_MAXREC][4] = {
  * Arguments     : time_in _msec- time to sleep for milli secs              *
  *                                                                          *
  ***************************************************************************/
-void nid_sleep(uns32 time_in_msec)
+void nid_sleep(uint32_t time_in_msec)
 {
 	struct timeval tv;
 
@@ -145,7 +145,7 @@ void nid_sleep(uns32 time_in_msec)
  * Return Values : token string seperated by "tok" or NULL if nothing       *
  *                                                                          *
  ****************************************************************************/
-char *gettoken(char **str, uns32 tok)
+char *gettoken(char **str, uint32_t tok)
 {
 	char *p, *q;
 
@@ -248,7 +248,7 @@ NID_APP_TYPE get_apptype(char *p)
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE                        *
  *                                                                          *
  ***************************************************************************/
-uns32 get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
+uint32_t get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
 {
 	char *p, *q;
 	NID_PLATCONF_PARS parse_state = NID_PLATCONF_SFILE;
@@ -511,11 +511,11 @@ uns32 get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE                        *
  *                                                                          *
  ***************************************************************************/
-uns32 parse_nodeinit_conf(char *strbuf)
+uint32_t parse_nodeinit_conf(char *strbuf)
 {
 	NID_SPAWN_INFO *childinfo;
 	char buff[256], sbuf[200], *ch, *ch1;
-	uns32 lineno = 0, retry = 0;
+	uint32_t lineno = 0, retry = 0;
 	struct nid_resetinfo info = { {""}, -1 };
 	NCS_OS_FILE plat_conf, plat_conf_close;
 
@@ -598,15 +598,15 @@ uns32 parse_nodeinit_conf(char *strbuf)
  * Return Values : Process ID of the daemon forked.                         *
  *                                                                          *
  ***************************************************************************/
-int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff)
+int32_t fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff)
 {
-	int32 pid = -1;
+	int32_t pid = -1;
 	int tmp_pid = -1;
-	int32 prio_stat = -1;
+	int32_t prio_stat = -1;
 	sigset_t nmask, omask;
 	struct sigaction sa;
 	int i = 0, filedes[2];
-	int32 n;
+	int32_t n;
 	fd_set set;
 	struct timeval tv;
 
@@ -717,11 +717,11 @@ int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuf
  * Return Values : Process ID of the script forked.(not usedful).           *
  *                                                                          *
  ***************************************************************************/
-int32 fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff)
+int32_t fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff)
 {
-	int32 pid = -1;
+	int32_t pid = -1;
 	int i = 0;
-	int32 prio_stat = -1;
+	int32_t prio_stat = -1;
 	sigset_t nmask, omask;
 	struct sigaction sa;
 
@@ -785,11 +785,11 @@ int32 fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuf
  * Return Values : Process ID of the process forked.                        *
  *                                                                          *
  ***************************************************************************/
-int32 fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff)
+int32_t fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff)
 {				/* DEL */
-	int32 pid = -1;
+	int32_t pid = -1;
 	int i;
-	int32 prio_stat = -1;
+	int32_t prio_stat = -1;
 	sigset_t nmask, omask;
 	struct sigaction sa;
 
@@ -856,7 +856,7 @@ int32 fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *strbu
  ***************************************************************************/
 void collect_param(char *params, char *s_name, char *args[])
 {
-	uns32 f;
+	uint32_t f;
 	char *ptr;
 
 	TRACE_ENTER();
@@ -906,10 +906,10 @@ void collect_param(char *params, char *s_name, char *args[])
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
  ***************************************************************************/
-uns32 spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
+uint32_t spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 {
-	int32 pid = -1, retry = 5;
-	int32 i = 0, n = 0;
+	int32_t pid = -1, retry = 5;
+	int32_t i = 0, n = 0;
 	fd_set set;
 	NCS_OS_FILE fd1;
 	struct timeval tv;
@@ -1079,7 +1079,7 @@ uns32 spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
  *                 1 - process running.                                     *
  *                                                                          *
  ***************************************************************************/
-uns32 check_process(NID_SPAWN_INFO *service)
+uint32_t check_process(NID_SPAWN_INFO *service)
 {
 	struct stat sb;
 	char buf[32];
@@ -1155,9 +1155,9 @@ void cleanup(NID_SPAWN_INFO *service)
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
  ***************************************************************************/
-uns32 recovery_action(NID_SPAWN_INFO *service, char *strbuff)
+uint32_t recovery_action(NID_SPAWN_INFO *service, char *strbuff)
 {
-	uns32 count = 0;
+	uint32_t count = 0;
 	NID_RECOVERY_OPT opt = NID_RESPAWN;
 
 	TRACE_ENTER();
@@ -1209,12 +1209,12 @@ uns32 recovery_action(NID_SPAWN_INFO *service, char *strbuff)
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
  ***************************************************************************/
-uns32 spawn_services(char *strbuf)
+uint32_t spawn_services(char *strbuf)
 {
 	NID_SPAWN_INFO *service;
 	NID_CHILD_LIST sp_list = spawn_list;
 	char sbuff[100];
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER();
 

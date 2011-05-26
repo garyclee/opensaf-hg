@@ -108,7 +108,7 @@ const char *avd_ha_state[] = {
  * 
  **************************************************************************/
 
-uns32 avd_snd_node_ack_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id)
+uint32_t avd_snd_node_ack_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id)
 {
 	AVD_DND_MSG *d2n_msg;
 
@@ -150,7 +150,7 @@ uns32 avd_snd_node_ack_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id)
  * 
  **************************************************************************/
 
-uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
+uint32_t avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_DND_MSG *d2n_msg;
 
@@ -214,7 +214,7 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
  * 
  **************************************************************************/
 
-uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
+uint32_t avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id_ack)
 {
 	AVD_DND_MSG *d2n_msg;
 
@@ -276,7 +276,7 @@ uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
  * 
  **************************************************************************/
 
-uns32 avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
+uint32_t avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id_ack)
 {
 	AVD_DND_MSG *d2n_msg;
 
@@ -336,9 +336,9 @@ uns32 avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
  * 
  **************************************************************************/
 
-uns32 avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL term_state)
+uint32_t avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL term_state)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_DND_MSG *d2n_msg;
 	AVD_AVND *node = NULL;
 
@@ -397,10 +397,10 @@ done:
  * 
  **************************************************************************/
 
-uns32 avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_info)
+uint32_t avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_info)
 {
 	AVD_DND_MSG *op_req_msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -470,7 +470,7 @@ done:
  * 
  **************************************************************************/
 
-static uns32 avd_prep_su_info(AVD_CL_CB *cb, AVD_SU *su, AVD_DND_MSG *su_msg)
+static uint32_t avd_prep_su_info(AVD_CL_CB *cb, AVD_SU *su, AVD_DND_MSG *su_msg)
 {
 	AVSV_SU_INFO_MSG *su_info;
 
@@ -520,7 +520,7 @@ static uns32 avd_prep_su_info(AVD_CL_CB *cb, AVD_SU *su, AVD_DND_MSG *su_msg)
  * 
  **************************************************************************/
 
-static uns32 avd_prep_comp_info(AVD_CL_CB *cb, AVD_COMP *comp, AVD_DND_MSG *comp_msg)
+static uint32_t avd_prep_comp_info(AVD_CL_CB *cb, AVD_COMP *comp, AVD_DND_MSG *comp_msg)
 {
 
 	AVSV_COMP_INFO_MSG *comp_info;
@@ -564,11 +564,11 @@ static uns32 avd_prep_comp_info(AVD_CL_CB *cb, AVD_COMP *comp, AVD_DND_MSG *comp
  * 
  **************************************************************************/
 
-uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NCS_BOOL fail_over)
+uint32_t avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NCS_BOOL fail_over)
 {
 	AVD_SU *i_su = NULL;
 	AVD_DND_MSG *su_msg, *comp_msg;
-	uns32 i, count = 0;
+	uint32_t i, count = 0;
 	SaNameT temp_su_name = {0};
 
 	TRACE_ENTER();
@@ -733,7 +733,7 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NC
  * 
  **************************************************************************/
 
-uns32 avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_DND_MSG *su_msg;
 	AVD_AVND *node = NULL;
@@ -809,7 +809,7 @@ uns32 avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
  * 
  **************************************************************************/
 
-uns32 avd_snd_comp_msg(AVD_CL_CB *cb, AVD_COMP *comp)
+uint32_t avd_snd_comp_msg(AVD_CL_CB *cb, AVD_COMP *comp)
 {
 	AVD_DND_MSG *comp_msg;
 	AVD_AVND *node = NULL;
@@ -886,7 +886,7 @@ uns32 avd_snd_comp_msg(AVD_CL_CB *cb, AVD_COMP *comp)
  * 
  **************************************************************************/
 
-static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_info, AVD_COMP_CSI_REL *compcsi)
+static uint32_t avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_info, AVD_COMP_CSI_REL *compcsi)
 {
 	AVSV_ATTR_NAME_VAL *i_ptr;
 	AVD_CSI_ATTR *attr_ptr;
@@ -945,7 +945,7 @@ static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_info,
  * 
  **************************************************************************/
 
-uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT actn, bool single_csi, 
+uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT actn, bool single_csi, 
 		AVD_COMP_CSI_REL *compcsi) {
 
 	AVD_DND_MSG *susi_msg;
@@ -1239,7 +1239,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
  * 
  **************************************************************************/
 
-uns32 avd_snd_shutdown_app_su_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
+uint32_t avd_snd_shutdown_app_su_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_DND_MSG *d2n_msg;
 
@@ -1299,10 +1299,10 @@ uns32 avd_snd_shutdown_app_su_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
  *
  * 
  **************************************************************************/
-static uns32 avd_prep_pg_mem_list(AVD_CL_CB *cb, AVD_CSI *csi, SaAmfProtectionGroupNotificationBufferT *mem_list)
+static uint32_t avd_prep_pg_mem_list(AVD_CL_CB *cb, AVD_CSI *csi, SaAmfProtectionGroupNotificationBufferT *mem_list)
 {
 	AVD_COMP_CSI_REL *curr = 0;
-	uns32 i = 0;
+	uint32_t i = 0;
 
 	TRACE_ENTER();
 
@@ -1344,10 +1344,10 @@ static uns32 avd_prep_pg_mem_list(AVD_CL_CB *cb, AVD_CSI *csi, SaAmfProtectionGr
  *
  * NOTES:    None.
  **************************************************************************/
-uns32 avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N2D_PG_TRACK_ACT_MSG_INFO *n2d_msg)
+uint32_t avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N2D_PG_TRACK_ACT_MSG_INFO *n2d_msg)
 {
 	AVD_DND_MSG *pg_msg = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *pg_msg_info = 0;
 
 	TRACE_ENTER();
@@ -1422,12 +1422,12 @@ uns32 avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N2D_
  *
  * NOTES:    None.
  **************************************************************************/
-uns32 avd_snd_pg_upd_msg(AVD_CL_CB *cb,
+uint32_t avd_snd_pg_upd_msg(AVD_CL_CB *cb,
 			 AVD_AVND *node,
 			 AVD_COMP_CSI_REL *comp_csi, SaAmfProtectionGroupChangesT change, SaNameT *csi_name)
 {
 	AVD_DND_MSG *pg_msg = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_D2N_PG_UPD_MSG_INFO *pg_msg_info = 0;
 
 	TRACE_ENTER();
@@ -1484,7 +1484,7 @@ uns32 avd_snd_pg_upd_msg(AVD_CL_CB *cb,
  * 
  **************************************************************************/
 
-uns32 avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
+uint32_t avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_DND_MSG *d2n_msg;
 
@@ -1553,7 +1553,7 @@ uns32 avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
  * 
  **************************************************************************/
 
-uns32 avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *comp_ptr, AVD_DND_MSG *n2d_msg)
+uint32_t avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *comp_ptr, AVD_DND_MSG *n2d_msg)
 {
 	AVD_DND_MSG *d2n_msg = NULL;
 	AVD_AVND *su_node_ptr = NULL;
@@ -1635,7 +1635,7 @@ int avd_admin_state_is_valid(SaAmfAdminStateT state)
 SaAisErrorT avd_object_name_create(SaNameT *rdn_attr_value, SaNameT *parentName, SaNameT *object_name)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 name_length = 0;
+	uint32_t name_length = 0;
 
 	memset(object_name, 0, sizeof(SaNameT));
 	object_name->length = rdn_attr_value->length;

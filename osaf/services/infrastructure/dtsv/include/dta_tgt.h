@@ -47,15 +47,15 @@
 
 #if (DTA_DEBUG == 1)
 
-uns32 dta_dbg_sink(uns32, char *, uns32, char *);
-uns32 dta_dbg_sink_svc(uns32, char *, uns32, char *, uns32);
+uint32_t dta_dbg_sink(uint32_t, char *, uint32_t, char *);
+uint32_t dta_dbg_sink_svc(uint32_t, char *, uint32_t, char *, uint32_t);
 
 /* m_DTA_DBG_VOID() used to keep compiler happy @ void return functions */
 
-#define m_DTA_DBG_SINK(r, s)  dta_dbg_sink(__LINE__,__FILE__,(uns32)r, (char*)s)
-#define m_DTA_DBG_SINK_SVC(r, s, svc)  dta_dbg_sink_svc(__LINE__,__FILE__,(uns32)r, (char*)s, svc)
+#define m_DTA_DBG_SINK(r, s)  dta_dbg_sink(__LINE__,__FILE__,(uint32_t)r, (char*)s)
+#define m_DTA_DBG_SINK_SVC(r, s, svc)  dta_dbg_sink_svc(__LINE__,__FILE__,(uint32_t)r, (char*)s, svc)
 #define m_DTA_DBG_VOID     dta_dbg_sink(__LINE__,__FILE__,1)
-#define m_DTA_DBG_SINK_VOID(r, s)  dta_dbg_sink(__LINE__,__FILE__,(uns32)r, (char*)s)
+#define m_DTA_DBG_SINK_VOID(r, s)  dta_dbg_sink(__LINE__,__FILE__,(uint32_t)r, (char*)s)
 #else
 
 #define m_DTA_DBG_SINK(r, s)  r

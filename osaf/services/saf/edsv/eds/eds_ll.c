@@ -176,7 +176,7 @@ static SaAisErrorT create_runtime_object(char *cname, SaTimeT create_time, SaImm
  * Returns NCSCC_RC_BAD_ATTR if either pointer argument is NULL.
  *
  ***************************************************************************/
-static uns32 eds_add_subrec_entry(CHAN_OPEN_REC *copen_rec, SUBSC_REC *subrec)
+static uint32_t eds_add_subrec_entry(CHAN_OPEN_REC *copen_rec, SUBSC_REC *subrec)
 {
 
 	/* Sanity check */
@@ -261,10 +261,10 @@ static void eds_remove_subrec_entry(EDS_CB *cb, SUBSC_REC **subrec)
  * in and add the subscription record to the subRec for that channel.
  *
  ***************************************************************************/
-static uns32 eds_add_subscription_to_worklist(EDS_CB *cb, SUBSC_REC *subrec)
+static uint32_t eds_add_subscription_to_worklist(EDS_CB *cb, SUBSC_REC *subrec)
 {
-	uns32 rs = NCSCC_RC_SUCCESS;
-	uns32 copen_id_Net;
+	uint32_t rs = NCSCC_RC_SUCCESS;
+	uint32_t copen_id_Net;
 	CHAN_OPEN_REC *co;
 	EDS_WORKLIST *wp;
 
@@ -314,7 +314,7 @@ static uns32 eds_add_subscription_to_worklist(EDS_CB *cb, SUBSC_REC *subrec)
  * Creates a subList record for this subscription in the regList.
  *
  ***************************************************************************/
-static uns32 eds_add_subscription_to_reglist(EDS_CB *cb, uns32 reg_id, SUBSC_REC *subrec)
+static uint32_t eds_add_subscription_to_reglist(EDS_CB *cb, uint32_t reg_id, SUBSC_REC *subrec)
 {
 	EDA_REG_REC *reglist = NULL;
 	SUBSC_LIST *sublist = NULL;
@@ -371,9 +371,9 @@ static uns32 eds_add_subscription_to_reglist(EDS_CB *cb, uns32 reg_id, SUBSC_REC
  * Removes a EDS_CNAME_REC from the channelname list .
  *
  ***************************************************************************/
-static uns32 eds_remove_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp)
+static uint32_t eds_remove_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp)
 {
-	uns32 rc;
+	uint32_t rc;
 	EDS_CNAME_REC *rec_to_del;
 	SaNameT chan_name_del;
 
@@ -407,7 +407,7 @@ static uns32 eds_remove_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp)
  * eds_remove_worklist_entry - Removes a workList entry.
  *
  ***************************************************************************/
-uns32 eds_remove_worklist_entry(EDS_CB *cb, uns32 chan_id)
+uint32_t eds_remove_worklist_entry(EDS_CB *cb, uint32_t chan_id)
 {
 	EDS_WORKLIST *wp = NULL;
 	EDS_WORKLIST *save_next;
@@ -488,7 +488,7 @@ uns32 eds_remove_worklist_entry(EDS_CB *cb, uns32 chan_id)
  * is_active_channel - Determines if chan_name exists and is still linked.
  *
  ***************************************************************************/
-static NCS_BOOL is_active_channel(EDS_WORKLIST *wp, uns32 chan_name_len, uint8_t *chan_name)
+static NCS_BOOL is_active_channel(EDS_WORKLIST *wp, uint32_t chan_name_len, uint8_t *chan_name)
 {
 	/* Do the name lengths match? */
 	if (wp->cname_len == chan_name_len) {
@@ -509,7 +509,7 @@ static NCS_BOOL is_active_channel(EDS_WORKLIST *wp, uns32 chan_name_len, uint8_t
  * Every channel entry has a entry in the channel name tree. 
  *
  ***************************************************************************/
-static uns32 eds_add_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp, uint8_t *chan_name, uint16_t chan_name_len)
+static uint32_t eds_add_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp, uint8_t *chan_name, uint16_t chan_name_len)
 {
 	EDS_CNAME_REC *cn;
 
@@ -547,9 +547,9 @@ static uns32 eds_add_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp, uint8_t *chan_name,
  * subscriptions for this channel are placed.
  *
  ***************************************************************************/
-static uns32
-eds_add_chan_open_rec(EDS_WORKLIST *wp, uns32 reg_id, uns32 chan_id, MDS_DEST dest,
-		      uns32 *chan_open_id, SaAmfHAStateT ha_state, uns32 open_flags)
+static uint32_t
+eds_add_chan_open_rec(EDS_WORKLIST *wp, uint32_t reg_id, uint32_t chan_id, MDS_DEST dest,
+		      uint32_t *chan_open_id, SaAmfHAStateT ha_state, uint32_t open_flags)
 {
 	CHAN_OPEN_REC *co;
 
@@ -607,7 +607,7 @@ eds_add_chan_open_rec(EDS_WORKLIST *wp, uns32 reg_id, uns32 chan_id, MDS_DEST de
  * the channel info in the reglist under the specified reg_id.
  *
  ***************************************************************************/
-static uns32 eds_add_chan_open_list(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open_id)
+static uint32_t eds_add_chan_open_list(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, uint32_t chan_open_id)
 {
 	EDA_REG_REC *rp;
 	CHAN_OPEN_LIST *saved_ptr;;
@@ -649,9 +649,9 @@ static uns32 eds_add_chan_open_list(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns
  * for all entries.
  * 
  ***************************************************************************/
-static void eds_channel_close_by_regid(EDS_CB *cb, uns32 reg_id, NCS_BOOL forced)
+static void eds_channel_close_by_regid(EDS_CB *cb, uint32_t reg_id, NCS_BOOL forced)
 {
-	uns32 rs;
+	uint32_t rs;
 	EDA_REG_REC *reglist;
 	CHAN_OPEN_LIST *cl;
 	CHAN_OPEN_LIST *next;
@@ -677,9 +677,9 @@ static void eds_channel_close_by_regid(EDS_CB *cb, uns32 reg_id, NCS_BOOL forced
  * Removes a CHAN_OPEN_REC from the worklist and decrements the use counter.
  *
  ***************************************************************************/
-static uns32 eds_remove_chan_open_rec(EDS_WORKLIST *wp, CHAN_OPEN_REC *co)
+static uint32_t eds_remove_chan_open_rec(EDS_WORKLIST *wp, CHAN_OPEN_REC *co)
 {
-	uns32 rc;
+	uint32_t rc;
 	CHAN_OPEN_REC *rec_to_del;
 
 	/* Get the record pointer from the patricia tree */
@@ -715,7 +715,7 @@ static uns32 eds_remove_chan_open_rec(EDS_WORKLIST *wp, CHAN_OPEN_REC *co)
  * Removes a CHAN_OPEN_LIST from the reglist.
  *
  ***************************************************************************/
-static void eds_remove_chan_open_list(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open_id)
+static void eds_remove_chan_open_list(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, uint32_t chan_open_id)
 {
 	EDA_REG_REC *reglist;
 	CHAN_OPEN_LIST *cl;
@@ -767,9 +767,9 @@ static void eds_remove_chan_open_list(EDS_CB *cb, uns32 reg_id, uns32 chan_id, u
  * eds_add_reglist_entry() - Inserts a EDA_REG_REC registration list element.
  *
  ***************************************************************************/
-uns32 eds_add_reglist_entry(EDS_CB *cb, MDS_DEST dest, uns32 reg_id)
+uint32_t eds_add_reglist_entry(EDS_CB *cb, MDS_DEST dest, uint32_t reg_id)
 {
-	uns32 rs = NCSCC_RC_SUCCESS;
+	uint32_t rs = NCSCC_RC_SUCCESS;
 	EDA_REG_REC *rec;
 
 	if (NULL == (rec = m_MMGR_ALLOC_EDS_REC(sizeof(EDA_REG_REC)))) {
@@ -837,11 +837,11 @@ static void eds_del_work_list(EDS_CB *cb, EDS_WORKLIST **p_work_list)
  *  upon a shutdown of EDS.
  *
  ***************************************************************************/
-uns32 eds_remove_reglist_entry(EDS_CB *cb, uns32 reg_id, NCS_BOOL remove_all)
+uint32_t eds_remove_reglist_entry(EDS_CB *cb, uint32_t reg_id, NCS_BOOL remove_all)
 {
 	EDA_REG_REC *rec_to_del;
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 regId_Net;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t regId_Net;
 	EDA_DOWN_LIST *eda_down_rec = NULL, *temp_eda_down_rec = NULL;
 
    /** decide if all records are to be deleted **/
@@ -963,7 +963,7 @@ NCS_BOOL eds_eda_entry_valid(EDS_CB *cb, MDS_DEST mds_dest)
  * EDA_DOWN_LIST as  EDA client has gone away.
  *
  ****************************************************************************/
-uns32 eds_remove_eda_down_rec(EDS_CB *cb, MDS_DEST mds_dest)
+uint32_t eds_remove_eda_down_rec(EDS_CB *cb, MDS_DEST mds_dest)
 {
 	EDA_DOWN_LIST *eda_down_rec = cb->eda_down_list_head;
 	EDA_DOWN_LIST *prev = NULL;
@@ -1011,11 +1011,11 @@ uns32 eds_remove_eda_down_rec(EDS_CB *cb, MDS_DEST mds_dest)
  * EDA client has gone away.
  *
  ****************************************************************************/
-uns32 eds_remove_regid_by_mds_dest(EDS_CB *cb, MDS_DEST mds_dest)
+uint32_t eds_remove_regid_by_mds_dest(EDS_CB *cb, MDS_DEST mds_dest)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDA_REG_REC *rp = NULL;
-	uns32 regId_Net;
+	uint32_t regId_Net;
 
 	rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
 
@@ -1043,10 +1043,10 @@ uns32 eds_remove_regid_by_mds_dest(EDS_CB *cb, MDS_DEST mds_dest)
  * Returns a pointer to the entry, or NULL if not found.
  *
  ***************************************************************************/
-EDA_REG_REC *eds_get_reglist_entry(EDS_CB *cb, uns32 reg_id)
+EDA_REG_REC *eds_get_reglist_entry(EDS_CB *cb, uint32_t reg_id)
 {
 	EDA_REG_REC *rp;
-	uns32 regId_Net;
+	uint32_t regId_Net;
 
 	regId_Net = m_NCS_OS_HTONL(reg_id);
 
@@ -1069,7 +1069,7 @@ EDA_REG_REC *eds_get_reglist_entry(EDS_CB *cb, uns32 reg_id)
  * Returns a pointer to the entry, or NULL if not found.
  *
  ***************************************************************************/
-EDS_WORKLIST *eds_get_worklist_entry(EDS_WORKLIST *wp_root, uns32 chan_id)
+EDS_WORKLIST *eds_get_worklist_entry(EDS_WORKLIST *wp_root, uint32_t chan_id)
 {
 	EDS_WORKLIST *wp;
 
@@ -1108,9 +1108,9 @@ EDS_WORKLIST *eds_get_worklist_entry(EDS_WORKLIST *wp_root, uns32 chan_id)
  *                          and reglist.
  *
  ***************************************************************************/
-uns32 eds_add_subscription(EDS_CB *cb, uns32 reg_id, SUBSC_REC *subrec)
+uint32_t eds_add_subscription(EDS_CB *cb, uint32_t reg_id, SUBSC_REC *subrec)
 {
-	uns32 rs = NCSCC_RC_SUCCESS;
+	uint32_t rs = NCSCC_RC_SUCCESS;
 
 	/* Add the subscription to the workList */
 	rs = eds_add_subscription_to_worklist(cb, subrec);
@@ -1137,9 +1137,9 @@ uns32 eds_add_subscription(EDS_CB *cb, uns32 reg_id, SUBSC_REC *subrec)
  * removed from the workList as well.
  *
  ***************************************************************************/
-uns32 eds_remove_subscription(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open_id, uns32 sub_id)
+uint32_t eds_remove_subscription(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, uint32_t chan_open_id, uint32_t sub_id)
 {
-	uns32 rs = NCSCC_RC_SUCCESS;
+	uint32_t rs = NCSCC_RC_SUCCESS;
 	EDA_REG_REC *reglist;
 	SUBSC_LIST *sublist = NULL;
 	SUBSC_LIST *prev = NULL;
@@ -1216,12 +1216,12 @@ uns32 eds_remove_subscription(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 cha
  * eds_copen_patricia_init - Init a channel open record patricia tree.
  *
  ****************************************************************************/
-uns32 eds_copen_patricia_init(EDS_WORKLIST *wp)
+uint32_t eds_copen_patricia_init(EDS_WORKLIST *wp)
 {
 	NCS_PATRICIA_PARAMS param;
 
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
-	param.key_size = sizeof(uns32);
+	param.key_size = sizeof(uint32_t);
 
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&wp->chan_open_rec, &param)) {
 		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
@@ -1249,19 +1249,19 @@ uns32 eds_copen_patricia_init(EDS_WORKLIST *wp)
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  ***************************************************************************/
-uns32
-eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
+uint32_t
+eds_channel_open(EDS_CB *cb, uint32_t reg_id, uint32_t flags,
 		 uint16_t chan_name_len, uint8_t *chan_name, MDS_DEST dest,
-		 uns32 *chan_id, uns32 *chan_open_id, SaTimeT chan_create_time)
+		 uint32_t *chan_id, uint32_t *chan_open_id, SaTimeT chan_create_time)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_WORKLIST *wp = NULL;
 	EDS_WORKLIST *prevp = NULL;
 	/* time_t          time_of_day; */
 	SaUint8T list_iter;
 	SaAmfHAStateT ha_state;
 	CHAN_OPEN_REC *co = NULL;
-	uns32 copen_id_Net;
+	uint32_t copen_id_Net;
 
 	wp = cb->eds_work_list;	/* Get root pointer to worklist */
 	ha_state = cb->ha_state;	/* Get the HA STATE from the CB */
@@ -1494,10 +1494,10 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
  * then the channel ID entry will also be removed from the worklist.
  *
  ***************************************************************************/
-uns32 eds_channel_close(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open_id, NCS_BOOL forced)
+uint32_t eds_channel_close(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, uint32_t chan_open_id, NCS_BOOL forced)
 {
-	uns32 rs;
-	uns32 copen_id_Net;
+	uint32_t rs;
+	uint32_t copen_id_Net;
 	EDS_WORKLIST *wp;
 	CHAN_OPEN_REC *co;
 	SUBSC_REC *subrec;
@@ -1569,7 +1569,7 @@ uns32 eds_channel_close(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open
  * with the same name which are unlinked.
  *
  ***************************************************************************/
-uns32 eds_channel_unlink(EDS_CB *cb, uns32 chan_name_len, uint8_t *chan_name)
+uint32_t eds_channel_unlink(EDS_CB *cb, uint32_t chan_name_len, uint8_t *chan_name)
 {
 	EDS_WORKLIST *wp;
 	SaNameT channel_name;
@@ -1611,7 +1611,7 @@ static void eds_retd_evt_del(EDS_RETAINED_EVT_REC **, EDS_RETAINED_EVT_REC **, E
  *                    to the EDS_RETAINED_EVT_REC for the specified channel.
  *
  ****************************************************************************/
-uns32
+uint32_t
 eds_store_retained_event(EDS_CB *cb,
 			 EDS_WORKLIST *wp,
 			 CHAN_OPEN_REC *co, EDSV_EDA_PUBLISH_PARAM *publish_param, SaTimeT orig_publish_time)
@@ -1793,14 +1793,14 @@ eds_retd_evt_del(EDS_RETAINED_EVT_REC **list_head,
                   list of events.
  
   Arguments     : EDS_WORKLIST *wp, 
-                  uns32 chan_open_id, 
-                  uns32 event_id
+                  uint32_t chan_open_id, 
+                  uint32_t event_id
  
   Return Values : None
  
   Notes         : 
 ******************************************************************************/
-static EDS_RETAINED_EVT_REC *eds_find_retd_evt_by_chan_open_id(EDS_WORKLIST *wp, uns32 chan_open_id, uns32 event_id)
+static EDS_RETAINED_EVT_REC *eds_find_retd_evt_by_chan_open_id(EDS_WORKLIST *wp, uint32_t chan_open_id, uint32_t event_id)
 {
 	EDS_RETAINED_EVT_REC *retd_evt;
 	SaUint8T list_iter;
@@ -1822,7 +1822,7 @@ static EDS_RETAINED_EVT_REC *eds_find_retd_evt_by_chan_open_id(EDS_WORKLIST *wp,
  *                            specified channel with a specified event_id.
  *
  ****************************************************************************/
-uns32 eds_clear_retained_event(EDS_CB *cb, uns32 chan_id, uns32 chan_open_id, uns32 event_id, NCS_BOOL give_hdl)
+uint32_t eds_clear_retained_event(EDS_CB *cb, uint32_t chan_id, uint32_t chan_open_id, uint32_t event_id, NCS_BOOL give_hdl)
 {
 	EDS_WORKLIST *wp;
 	EDS_RETAINED_EVT_REC *retained_evt;

@@ -62,18 +62,18 @@ static NCS_BOOL vda_vdest_create = FALSE;
 /***************************************************************************\
                          PRIVATE FUNCTION PROTOTYPES
 \***************************************************************************/
-static uns32 vda_create(NCS_LIB_REQ_INFO *req);
-static uns32 vda_destroy(NCS_LIB_REQ_INFO *req);
-static uns32 vda_instantiate(NCS_LIB_REQ_INFO *req);
-static uns32 vda_uninstantiate(NCS_LIB_REQ_INFO *req);
+static uint32_t vda_create(NCS_LIB_REQ_INFO *req);
+static uint32_t vda_destroy(NCS_LIB_REQ_INFO *req);
+static uint32_t vda_instantiate(NCS_LIB_REQ_INFO *req);
+static uint32_t vda_uninstantiate(NCS_LIB_REQ_INFO *req);
 
-static uns32 vda_destroy_vdest_locally(uns32 vdest_handle);
+static uint32_t vda_destroy_vdest_locally(uint32_t vdest_handle);
 
 
 /***************************************************************************\
                          PUBLIC VDA FUNCTIONS
 \***************************************************************************/
-uns32 vda_lib_req(NCS_LIB_REQ_INFO *req)
+uint32_t vda_lib_req(NCS_LIB_REQ_INFO *req)
 {
 	switch (req->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -97,11 +97,11 @@ uns32 vda_lib_req(NCS_LIB_REQ_INFO *req)
 	}
 }
 
-uns32 ncsvda_api(NCSVDA_INFO *vda_info)
+uint32_t ncsvda_api(NCSVDA_INFO *vda_info)
 {
 	NCS_SPIR_REQ_INFO spir_req;
 	NCSMDS_INFO svc_info;
-	uns32 policy;
+	uint32_t policy;
 	SaAmfCSIAttributeT attr[1];
 
 	switch (vda_info->req) {
@@ -117,7 +117,7 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
 		spir_req.info.lookup_create_inst.i_inst_attrs.attr = attr;
 		spir_req.info.lookup_create_inst.i_inst_attrs.attr[0].attrName = (SaUint8T *)m_SPRR_VDEST_POLICY_ATTR_NAME;	/* Name-value name */
 		/* typecasting to avoid warning in 64bit compilation */
-		spir_req.info.lookup_create_inst.i_inst_attrs.attr[0].attrValue = (SaUint8T *)&policy;	/* Must be an uns32 pointer */
+		spir_req.info.lookup_create_inst.i_inst_attrs.attr[0].attrValue = (SaUint8T *)&policy;	/* Must be an uint32_t pointer */
 
 		if (vda_info->info.vdest_create.i_create_type == NCSVDA_VDEST_CREATE_SPECIFIC) {
 			if ((vda_info->info.vdest_create.info.specified.i_vdest == 0)
@@ -240,7 +240,7 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
 /***************************************************************************\
                         PRIVATE ADA FUNCTIONS
 \***************************************************************************/
-static uns32 vda_create(NCS_LIB_REQ_INFO *req)
+static uint32_t vda_create(NCS_LIB_REQ_INFO *req)
 {
 	NCS_SPLR_REQ_INFO splr_req;
 	NCS_SPIR_REQ_INFO spir_req;
@@ -274,7 +274,7 @@ static uns32 vda_create(NCS_LIB_REQ_INFO *req)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 vda_destroy(NCS_LIB_REQ_INFO *req)
+static uint32_t vda_destroy(NCS_LIB_REQ_INFO *req)
 {
 	NCS_SPLR_REQ_INFO splr_req;
 	NCS_SPIR_REQ_INFO spir_req;
@@ -321,14 +321,14 @@ static uns32 vda_destroy(NCS_LIB_REQ_INFO *req)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 vda_instantiate(NCS_LIB_REQ_INFO *req)
+static uint32_t vda_instantiate(NCS_LIB_REQ_INFO *req)
 {
-	uns32 vdest_id;
+	uint32_t vdest_id;
 	NCS_BOOL is_named_vdest;
 	MDS_DEST new_vdest;
 	MDS_HDL new_vdest_hdl;
-	uns32 policy;
-	uns32 attr_num;
+	uint32_t policy;
+	uint32_t attr_num;
 
 	memset(&new_vdest, 0, sizeof(new_vdest));
 
@@ -353,7 +353,7 @@ static uns32 vda_instantiate(NCS_LIB_REQ_INFO *req)
 		if (0 ==
 		    memcmp(req->info.inst.i_inst_attrs.attr[attr_num].attrName, m_SPRR_VDEST_POLICY_ATTR_NAME,
 			   strlen(m_SPRR_VDEST_POLICY_ATTR_NAME))) {
-			policy = *(uns32 *)(req->info.inst.i_inst_attrs.attr[attr_num].attrValue);
+			policy = *(uint32_t *)(req->info.inst.i_inst_attrs.attr[attr_num].attrValue);
 		}
 	}
 
@@ -385,7 +385,7 @@ static uns32 vda_instantiate(NCS_LIB_REQ_INFO *req)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 vda_uninstantiate(NCS_LIB_REQ_INFO *req)
+static uint32_t vda_uninstantiate(NCS_LIB_REQ_INFO *req)
 {
 	MDS_DEST gone_vdest;
 	NCS_BOOL is_named_vdest;
@@ -420,7 +420,7 @@ static uns32 vda_uninstantiate(NCS_LIB_REQ_INFO *req)
 /*-------------------------------------------------------------------------*\
      FUNCTION NAME : vda_create_vdest_locally (public)
 \*-------------------------------------------------------------------------*/
-uns32 vda_create_vdest_locally(uns32 i_pol, MDS_DEST *i_vdest, MDS_HDL *o_mds_vdest_hdl)
+uint32_t vda_create_vdest_locally(uint32_t i_pol, MDS_DEST *i_vdest, MDS_HDL *o_mds_vdest_hdl)
 {
 	NCSMDS_ADMOP_INFO admop_info;
 
@@ -452,7 +452,7 @@ uns32 vda_create_vdest_locally(uns32 i_pol, MDS_DEST *i_vdest, MDS_HDL *o_mds_vd
 /*-------------------------------------------------------------------------*\
      FUNCTION NAME : vda_chg_role_vdest  (public)
 \*-------------------------------------------------------------------------*/
-uns32 vda_chg_role_vdest(MDS_DEST *i_vdest, V_DEST_RL i_new_role)
+uint32_t vda_chg_role_vdest(MDS_DEST *i_vdest, V_DEST_RL i_new_role)
 {
 	NCSMDS_ADMOP_INFO admop_info;
 
@@ -469,7 +469,7 @@ uns32 vda_chg_role_vdest(MDS_DEST *i_vdest, V_DEST_RL i_new_role)
 /*-------------------------------------------------------------------------*\
      FUNCTION NAME : vda_destroy_vdest_locally (private)
 \*-------------------------------------------------------------------------*/
-static uns32 vda_destroy_vdest_locally(uns32 vdest_handle)
+static uint32_t vda_destroy_vdest_locally(uint32_t vdest_handle)
 {
 	NCSMDS_ADMOP_INFO admop_info;
 

@@ -50,7 +50,7 @@ AVND_COMP_CBK *avnd_comp_cbq_rec_add(AVND_CB *, AVND_COMP *, AVSV_AMF_CBK_INFO *
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_CSI_QUIESCING_COMPL_PARAM *qsc = &api_info->param.csiq_compl;
@@ -58,7 +58,7 @@ uns32 avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_COMP_CBK *cbk_rec = 0;
 	AVND_COMP_CSI_REC *csi = 0;
 	AVND_ERR_INFO err_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 
@@ -182,7 +182,7 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_RESP_PARAM *resp = &api_info->param.resp;
@@ -191,7 +191,7 @@ uns32 avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_COMP_HC_REC *hc_rec = 0;
 	AVND_COMP_CSI_REC *csi = 0;
 	AVND_ERR_INFO err_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 
@@ -476,14 +476,14 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_cbk_resp_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_tmr_cbk_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_TMR_EVT *tmr = &evt->info.tmr;
 	AVND_COMP_CBK *rec = 0;
 	AVND_COMP_HC_REC *hc_rec = 0;
 	AVND_ERR_INFO err_info;
 	AVND_COMP_CSI_REC *csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -578,13 +578,13 @@ done:
                   routine returns failure, then the calling routine frees the
                   memory.
 ******************************************************************************/
-uns32 avnd_comp_cbq_send(AVND_CB *cb,
+uint32_t avnd_comp_cbq_send(AVND_CB *cb,
 			 AVND_COMP *comp,
 			 MDS_DEST *dest, SaAmfHandleT hdl, AVSV_AMF_CBK_INFO *cbk_info, SaTimeT timeout)
 {
 	AVND_COMP_CBK *rec = 0;
 	MDS_DEST mds_dest;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	/* determine the mds-dest */
@@ -609,7 +609,7 @@ uns32 avnd_comp_cbq_send(AVND_CB *cb,
 
 	if (NCSCC_RC_SUCCESS != rc && rec) {
 		/* pop & delete */
-		uns32 found;
+		uint32_t found;
 
 		m_AVND_COMP_CBQ_REC_POP(comp, rec, found);
 		rec->cbk_info = 0;
@@ -648,10 +648,10 @@ uns32 avnd_comp_cbq_send(AVND_CB *cb,
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec, NCS_BOOL timer_start)
+uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec, NCS_BOOL timer_start)
 {
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_ND2ND_AVND_MSG *avnd_msg = NULL;
 	AVSV_NDA_AVA_MSG *temp_ptr = NULL;
 
@@ -794,8 +794,8 @@ void avnd_comp_cbq_del(AVND_CB *cb, AVND_COMP *comp, NCS_BOOL send_del_cbk)
 ******************************************************************************/
 void avnd_comp_cbq_rec_pop_and_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec, NCS_BOOL send_del_cbk)
 {
-	uns32 found;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t found;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NODE_ID dest_node_id = 0;
 
 	/* pop the record */
@@ -1019,7 +1019,7 @@ void avnd_comp_unreg_cbk_process(AVND_CB *cb, AVND_COMP *comp)
 
 	AVND_COMP_CBK *cbk = 0, *temp_cbk_list = 0, *head = 0;
 	AVND_COMP_CSI_REC *csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS, found = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, found = 0;
 
 	while ((comp->cbk_list != NULL) && (comp->cbk_list != cbk)) {
 		cbk = comp->cbk_list;

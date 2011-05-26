@@ -36,28 +36,28 @@
 #define m_GLND_MBX_SEND(mbx,msg,prio) m_NCS_IPC_SEND(mbx,(NCSCONTEXT)msg,prio)
 #define m_GLND_MBX_RECV(mbx,evt)      m_NCS_IPC_RECEIVE(mbx,evt)
 
-uns32 glnd_mds_callback(struct ncsmds_callback_info *info);
-static uns32 glnd_mds_cpy(GLND_CB *cb, MDS_CALLBACK_COPY_INFO *info);
-static uns32 glnd_mds_enc(GLND_CB *cb, MDS_CALLBACK_ENC_INFO *info);
-static uns32 glnd_mds_dec(GLND_CB *cb, MDS_CALLBACK_DEC_INFO *info);
-static uns32 glnd_mds_enc_flat(GLND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
-static uns32 glnd_mds_dec_flat(GLND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
-static uns32 glnd_mds_rcv(GLND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
-static uns32 glnd_mds_svc_evt(GLND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
-static uns32 glnd_send_agent_going_down_event(GLND_CB *cb, MDS_DEST dest);
-static uns32 glsv_dec_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt);
-static uns32 glsv_dec_rsc_unlock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_UNLOCK_INFO *evt);
-static uns32 glsv_dec_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *evt);
-static uns32 glsv_dec_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt);
-static uns32 glsv_dec_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt);
-static uns32 glsv_dec_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *evt);
-static uns32 glsv_dec_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *evt);
-static uns32 glsv_dec_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO *evt);
-static uns32 glsv_dec_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_INFO *evt);
-static uns32 glsv_gla_enc_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt);
-static uns32 glsv_gla_enc_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *evt);
+uint32_t glnd_mds_callback(struct ncsmds_callback_info *info);
+static uint32_t glnd_mds_cpy(GLND_CB *cb, MDS_CALLBACK_COPY_INFO *info);
+static uint32_t glnd_mds_enc(GLND_CB *cb, MDS_CALLBACK_ENC_INFO *info);
+static uint32_t glnd_mds_dec(GLND_CB *cb, MDS_CALLBACK_DEC_INFO *info);
+static uint32_t glnd_mds_enc_flat(GLND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
+static uint32_t glnd_mds_dec_flat(GLND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
+static uint32_t glnd_mds_rcv(GLND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
+static uint32_t glnd_mds_svc_evt(GLND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
+static uint32_t glnd_send_agent_going_down_event(GLND_CB *cb, MDS_DEST dest);
+static uint32_t glsv_dec_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt);
+static uint32_t glsv_dec_rsc_unlock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_UNLOCK_INFO *evt);
+static uint32_t glsv_dec_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *evt);
+static uint32_t glsv_dec_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt);
+static uint32_t glsv_dec_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt);
+static uint32_t glsv_dec_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *evt);
+static uint32_t glsv_dec_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *evt);
+static uint32_t glsv_dec_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO *evt);
+static uint32_t glsv_dec_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_INFO *evt);
+static uint32_t glsv_gla_enc_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt);
+static uint32_t glsv_gla_enc_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *evt);
 
-uns32 glnd_mds_get_handle(GLND_CB *cb);
+uint32_t glnd_mds_get_handle(GLND_CB *cb);
 
 /*To store the message format versions*/
 static const MSG_FRMT_VER glnd_gla_msg_fmt_table[GLND_WRT_GLA_SUBPART_VER_RANGE] = { 1 };
@@ -76,10 +76,10 @@ static const MSG_FRMT_VER glnd_gld_msg_fmt_table[GLND_WRT_GLD_SUBPART_VER_RANGE]
  * Notes         : None.
  *****************************************************************************/
 
-uns32 glnd_mds_get_handle(GLND_CB *cb)
+uint32_t glnd_mds_get_handle(GLND_CB *cb)
 {
 	NCSADA_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&arg, 0, sizeof(NCSADA_INFO));
 	arg.req = NCSADA_GET_HDLS;
@@ -105,7 +105,7 @@ uns32 glnd_mds_get_handle(GLND_CB *cb)
   Notes         : None.
 ******************************************************************************/
 
-uns32 glnd_mds_register(GLND_CB *cb)
+uint32_t glnd_mds_register(GLND_CB *cb)
 {
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID svc_id[] = { NCSMDS_SVC_ID_GLND, NCSMDS_SVC_ID_GLD };
@@ -211,15 +211,15 @@ void glnd_mds_unregister(GLND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 glnd_mds_callback(struct ncsmds_callback_info *info)
+uint32_t glnd_mds_callback(struct ncsmds_callback_info *info)
 {
 	GLND_CB *glnd_cb = NULL;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	if (info == NULL)
 		return rc;
 
-	glnd_cb = (GLND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLND, (uns32)info->i_yr_svc_hdl);
+	glnd_cb = (GLND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLND, (uint32_t)info->i_yr_svc_hdl);
 	if (!glnd_cb) {
 		m_LOG_GLND_HEADLINE(GLND_CB_CREATE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return rc;
@@ -255,7 +255,7 @@ uns32 glnd_mds_callback(struct ncsmds_callback_info *info)
 	if (rc != NCSCC_RC_SUCCESS) {
 		m_LOG_GLND_HEADLINE(GLND_MDS_CALLBACK_PROCESS_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 	}
-	ncshm_give_hdl((uns32)info->i_yr_svc_hdl);
+	ncshm_give_hdl((uint32_t)info->i_yr_svc_hdl);
 	return rc;
 }
 
@@ -271,7 +271,7 @@ uns32 glnd_mds_callback(struct ncsmds_callback_info *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 glnd_mds_cpy(GLND_CB *cb, MDS_CALLBACK_COPY_INFO *info)
+static uint32_t glnd_mds_cpy(GLND_CB *cb, MDS_CALLBACK_COPY_INFO *info)
 {
 	info->o_cpy = (NCSCONTEXT)NULL;
 	if (info->i_to_svc_id != NCSMDS_SVC_ID_GLD) {
@@ -307,10 +307,10 @@ static uns32 glnd_mds_cpy(GLND_CB *cb, MDS_CALLBACK_COPY_INFO *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 glnd_mds_enc(GLND_CB *cb, MDS_CALLBACK_ENC_INFO *info)
+static uint32_t glnd_mds_enc(GLND_CB *cb, MDS_CALLBACK_ENC_INFO *info)
 {
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	NCS_UBAID *uba = info->io_uba;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
@@ -408,11 +408,11 @@ static uns32 glnd_mds_enc(GLND_CB *cb, MDS_CALLBACK_ENC_INFO *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 glnd_mds_dec(GLND_CB *cb, MDS_CALLBACK_DEC_INFO *info)
+static uint32_t glnd_mds_dec(GLND_CB *cb, MDS_CALLBACK_DEC_INFO *info)
 {
 	EDU_ERR ederror = 0;
 	GLSV_GLND_EVT *evt;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	uint8_t *p8, local_data[20];
 	NCS_BOOL is_valid_msg_fmt;
 	NCS_UBAID *uba = info->io_uba;
@@ -531,11 +531,11 @@ static uns32 glnd_mds_dec(GLND_CB *cb, MDS_CALLBACK_DEC_INFO *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 glnd_mds_enc_flat(GLND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
+static uint32_t glnd_mds_enc_flat(GLND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 {
 	NCS_UBAID *uba = info->io_uba;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
 	switch (info->i_to_svc_id) {
@@ -605,12 +605,12 @@ static uns32 glnd_mds_enc_flat(GLND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 glnd_mds_dec_flat(GLND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
+static uint32_t glnd_mds_dec_flat(GLND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 {
 	GLSV_GLND_EVT *evt;
 	NCS_UBAID *uba = info->io_uba;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
 	switch (info->i_fr_svc_id) {
@@ -708,7 +708,7 @@ static uns32 glnd_mds_dec_flat(GLND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 glnd_mds_rcv(GLND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
+static uint32_t glnd_mds_rcv(GLND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
 	GLSV_GLND_EVT *evt = (GLSV_GLND_EVT *)rcv_info->i_msg;
 
@@ -748,7 +748,7 @@ static uns32 glnd_mds_rcv(GLND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 glnd_mds_svc_evt(GLND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+static uint32_t glnd_mds_svc_evt(GLND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
 
 	switch (svc_evt->i_change) {
@@ -801,7 +801,7 @@ static uns32 glnd_mds_svc_evt(GLND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 glnd_mds_msg_send_gla(GLND_CB *cb, GLSV_GLA_EVT *i_evt, MDS_DEST to_mds_dest)
+uint32_t glnd_mds_msg_send_gla(GLND_CB *cb, GLSV_GLA_EVT *i_evt, MDS_DEST to_mds_dest)
 {
 	NCSMDS_INFO mds_info;
 
@@ -845,7 +845,7 @@ uns32 glnd_mds_msg_send_gla(GLND_CB *cb, GLSV_GLA_EVT *i_evt, MDS_DEST to_mds_de
  
   Notes         : None.
 ******************************************************************************/
-uns32 glnd_mds_msg_send_rsp_gla(GLND_CB *cb, GLSV_GLA_EVT *i_evt, MDS_DEST to_mds_dest, MDS_SYNC_SND_CTXT *mds_ctxt)
+uint32_t glnd_mds_msg_send_rsp_gla(GLND_CB *cb, GLSV_GLA_EVT *i_evt, MDS_DEST to_mds_dest, MDS_SYNC_SND_CTXT *mds_ctxt)
 {
 	NCSMDS_INFO mds_info;
 
@@ -887,7 +887,7 @@ uns32 glnd_mds_msg_send_rsp_gla(GLND_CB *cb, GLSV_GLA_EVT *i_evt, MDS_DEST to_md
  
   Notes         : None.
 ******************************************************************************/
-uns32 glnd_mds_msg_send_glnd(GLND_CB *cb, GLSV_GLND_EVT *i_evt, MDS_DEST to_mds_dest)
+uint32_t glnd_mds_msg_send_glnd(GLND_CB *cb, GLSV_GLND_EVT *i_evt, MDS_DEST to_mds_dest)
 {
 	NCSMDS_INFO mds_info;
 
@@ -929,7 +929,7 @@ uns32 glnd_mds_msg_send_glnd(GLND_CB *cb, GLSV_GLND_EVT *i_evt, MDS_DEST to_mds_
  
   Notes         : None.
 ******************************************************************************/
-uns32 glnd_mds_msg_send_gld(GLND_CB *cb, GLSV_GLD_EVT *i_evt, MDS_DEST to_mds_dest)
+uint32_t glnd_mds_msg_send_gld(GLND_CB *cb, GLSV_GLD_EVT *i_evt, MDS_DEST to_mds_dest)
 {
 	NCSMDS_INFO mds_info;
 
@@ -989,9 +989,9 @@ uns32 glnd_mds_msg_send_gld(GLND_CB *cb, GLSV_GLD_EVT *i_evt, MDS_DEST to_mds_de
 
   NOTES         : None
 *****************************************************************************/
-uns32 glnd_evt_local_send(GLND_CB *cb, GLSV_GLND_EVT *evt, uns32 priority)
+uint32_t glnd_evt_local_send(GLND_CB *cb, GLSV_GLND_EVT *evt, uint32_t priority)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = m_GLND_MBX_SEND(&cb->glnd_mbx, evt, priority);
 
@@ -1014,7 +1014,7 @@ uns32 glnd_evt_local_send(GLND_CB *cb, GLSV_GLND_EVT *evt, uns32 priority)
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_send_agent_going_down_event(GLND_CB *cb, MDS_DEST dest)
+static uint32_t glnd_send_agent_going_down_event(GLND_CB *cb, MDS_DEST dest)
 {
 	GLSV_GLND_EVT *evt = 0;
 
@@ -1046,7 +1046,7 @@ static uns32 glnd_send_agent_going_down_event(GLND_CB *cb, MDS_DEST dest)
 
   Notes         : None.
 ******************************************************************************/
-static uns32 glsv_dec_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO *evt)
+static uint32_t glsv_dec_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO *evt)
 {
 	uint8_t *p8, local_data[20], size;
 
@@ -1075,7 +1075,7 @@ static uns32 glsv_dec_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO *e
 
   Notes         : None.
 ******************************************************************************/
-static uns32 glsv_dec_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *evt)
+static uint32_t glsv_dec_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *evt)
 {
 	uint8_t *p8, local_data[20], size;
 
@@ -1108,7 +1108,7 @@ static uns32 glsv_dec_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *evt)
 
   Notes         : None.
 ******************************************************************************/
-static uns32 glsv_dec_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *evt)
+static uint32_t glsv_dec_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *evt)
 {
 	uint8_t *p8, local_data[20], size;
 
@@ -1138,7 +1138,7 @@ static uns32 glsv_dec_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *evt)
 
   Notes         : None.
 ******************************************************************************/
-static uns32 glsv_dec_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
+static uint32_t glsv_dec_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 {
 	uint8_t *p8, local_data[20], size;
 
@@ -1163,7 +1163,7 @@ static uns32 glsv_dec_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 	evt->resource_name.length = ncs_decode_16bit(&p8);
 	ncs_dec_skip_space(uba, size);
 
-	ncs_decode_n_octets_from_uba(uba, evt->resource_name.value, (uns32)evt->resource_name.length);
+	ncs_decode_n_octets_from_uba(uba, evt->resource_name.value, (uint32_t)evt->resource_name.length);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1178,7 +1178,7 @@ static uns32 glsv_dec_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 
   Notes         : None.
 ******************************************************************************/
-static uns32 glsv_dec_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
+static uint32_t glsv_dec_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 {
 	uint8_t *p8, local_data[20], size;
 
@@ -1216,7 +1216,7 @@ static uns32 glsv_dec_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 
   Notes         : None.
 ******************************************************************************/
-static uns32 glsv_dec_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *evt)
+static uint32_t glsv_dec_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *evt)
 {
 	uint8_t *p8, local_data[20], size;
 
@@ -1256,7 +1256,7 @@ static uns32 glsv_dec_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *evt)
 
   Notes         : None.
 ******************************************************************************/
-static uns32 glsv_dec_rsc_unlock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_UNLOCK_INFO *evt)
+static uint32_t glsv_dec_rsc_unlock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_UNLOCK_INFO *evt)
 {
 	uint8_t *p8, local_data[20], size;
 
@@ -1293,7 +1293,7 @@ static uns32 glsv_dec_rsc_unlock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_UNLOCK_INFO *e
 
   Notes         : None.
 ******************************************************************************/
-static uns32 glsv_dec_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
+static uint32_t glsv_dec_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 {
 	uint8_t *p8, local_data[20], size;
 
@@ -1325,7 +1325,7 @@ static uns32 glsv_dec_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 
   Notes         : None.
 ******************************************************************************/
-static uns32 glsv_dec_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_INFO *evt)
+static uint32_t glsv_dec_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_INFO *evt)
 {
 	uint8_t *p8, local_data[20], size;
 
@@ -1362,7 +1362,7 @@ static uns32 glsv_dec_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_IN
 
   Notes         : None.
 ******************************************************************************/
-static uns32 glsv_gla_enc_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt)
+static uint32_t glsv_gla_enc_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt)
 {
 	uint8_t *p8, size;
 
@@ -1466,7 +1466,7 @@ static uns32 glsv_gla_enc_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt
 
   Notes         : None.
 ******************************************************************************/
-static uns32 glsv_gla_enc_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *evt)
+static uint32_t glsv_gla_enc_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *evt)
 {
 	uint8_t *p8, size;
 

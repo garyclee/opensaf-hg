@@ -30,7 +30,7 @@ typedef enum ntfsv_ntfs_evt_type {
 } NTFSV_NTFS_EVT_TYPE;
 
 typedef struct ntfsv_ntfs_mds_info {
-	uns32 node_id;
+	uint32_t node_id;
 	MDS_DEST mds_dest_id;
 } ntfsv_ntfs_mds_info_t;
 
@@ -40,7 +40,7 @@ typedef struct {
 
 typedef struct ntfsv_ntfs_evt {
 	struct ntfsv_ntfs_evt *next;
-	uns32 cb_hdl;
+	uint32_t cb_hdl;
 	MDS_SYNC_SND_CTXT mds_ctxt;	/* Relevant when this event has to be responded to
 					 * in a synchronous fashion.
 					 */
@@ -56,7 +56,7 @@ typedef struct ntfsv_ntfs_evt {
 } ntfsv_ntfs_evt_t;
 
 /* These are the function prototypes for event handling */
-typedef uns32 (*NTFSV_NTFS_NTFA_API_MSG_HANDLER) (ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
-typedef uns32 (*NTFSV_NTFS_EVT_HANDLER) (ntfsv_ntfs_evt_t *evt);
+typedef uint32_t (*NTFSV_NTFS_NTFA_API_MSG_HANDLER) (ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
+typedef uint32_t (*NTFSV_NTFS_EVT_HANDLER) (ntfsv_ntfs_evt_t *evt);
 
 #endif   /*!NTFS_EVT_H */

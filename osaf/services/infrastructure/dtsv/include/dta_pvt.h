@@ -46,13 +46,13 @@ typedef struct reg_tbl_entry {
 	SS_SVC_ID svc_id;	/* Service ID registerd with the DTA & DTS */
 	NCS_BOOL log_msg;	/* Set to TRUE ifreceived reg-confirmation */
 	/* No need of policy handles */
-	/*uns32       policy_hdl; */
+	/*uint32_t       policy_hdl; */
 	/*Flag to indicate svc_reg entry on Active DTS upon DTS fail-over */
 	NCS_BOOL svc_flag;	/* Set to TRUE if new policy handles received, else setto FALSE */
 
 	/* Message Filter for the above defined service */
 	NCS_BOOL enable_log;	/* Enable or disable logging */
-	uns32 category_bit_map;	/* Category Filter bit map */
+	uint32_t category_bit_map;	/* Category Filter bit map */
 	uint8_t severity_bit_map;	/* Severity Filter bit map */
 	/* Add all the other new filter elements above this */
 
@@ -72,7 +72,7 @@ typedef struct dta_buffered_log {
 typedef struct dta_log_buffer {
 	DTA_BUFFERED_LOG *head;
 	DTA_BUFFERED_LOG *tail;
-	uns32 num_of_logs;
+	uint32_t num_of_logs;
 } DTA_LOG_BUFFER;
 
 typedef struct dta_cb {
@@ -103,9 +103,9 @@ typedef struct dta_cb {
 
 #if (DTA_FLOW == 1)
 	/* Additions for flow control */
-	uns32 logs_received;
+	uint32_t logs_received;
 	NCS_BOOL dts_congested;
-	uns32 msg_count;
+	uint32_t msg_count;
 #endif
 
 	/* DTA MDS sub-part version */
@@ -133,83 +133,83 @@ DTA_CB dta_cb;
   Basic Layer Management Service entry points off std LM API
 *************************************************************************/
 
-uns32 dta_svc_create(NCSDTA_CREATE *create);
-uns32 dta_svc_destroy(NCSDTA_DESTROY *destroy);
+uint32_t dta_svc_create(NCSDTA_CREATE *create);
+uint32_t dta_svc_destroy(NCSDTA_DESTROY *destroy);
 
 /************************************************************************
   DTA tasking loop functions.
 *************************************************************************/
 void dta_do_evts(SYSF_MBX *mbx);
-uns32 dta_do_evt(DTSV_MSG *msg);
+uint32_t dta_do_evt(DTSV_MSG *msg);
 
 /************************************************************************
   SE_API entry functions.
 *************************************************************************/
-uns32 dta_log_msg(NCSFL_NORMAL *msg);
-uns32 dta_reg_svc(NCS_BIND_SVC *bind_svc);
-uns32 dta_dereg_svc(SS_SVC_ID svc_id);
+uint32_t dta_log_msg(NCSFL_NORMAL *msg);
+uint32_t dta_reg_svc(NCS_BIND_SVC *bind_svc);
+uint32_t dta_dereg_svc(SS_SVC_ID svc_id);
 
 /************************************************************************
   MDS bindary stuff for DTA
 *************************************************************************/
-uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
-			      uns32 inst_id,
+uint32_t ncs_logmsg_int(SS_SVC_ID svc_id,
+			      uint32_t inst_id,
 			      uint8_t fmat_id,
-			      uint8_t str_table_id, uns32 category, uint8_t severity, char *fmat_type, va_list argp);
+			      uint8_t str_table_id, uint32_t category, uint8_t severity, char *fmat_type, va_list argp);
 
-uns32 dta_get_ada_hdl(void);
+uint32_t dta_get_ada_hdl(void);
 
-uns32 dta_mds_install_and_subscribe(void);
+uint32_t dta_mds_install_and_subscribe(void);
 
-uns32 dta_mds_uninstall(void);
+uint32_t dta_mds_uninstall(void);
 
-uns32 dta_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo);
+uint32_t dta_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo);
 
 #if (DTA_FLOW == 1)
-uns32 dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uns32 timeout, NCS_BOOL svc_reg);
+uint32_t dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uint32_t timeout, NCS_BOOL svc_reg);
 #else
-uns32 dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uns32 timeout);
+uint32_t dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uint32_t timeout);
 #endif
 
-uns32 dta_mds_async_send(DTSV_MSG *msg, DTA_CB *inst);
+uint32_t dta_mds_async_send(DTSV_MSG *msg, DTA_CB *inst);
 
-uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg);
+uint32_t dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg);
 
 void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl);
 
-uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uint32_t dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			   SS_SVC_ID to_svc, NCS_UBAID *uba,
 			   MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver);
 
-uns32 dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
+uint32_t dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			   SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver);
 
-uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uint32_t dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			   SS_SVC_ID to_svc, NCSCONTEXT *cpy,
 			   NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver);
 
-uns32 encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa);
+uint32_t encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa);
 
-uns32 dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba);
+uint32_t dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba);
 
-uns32 dta_copy_octets(char **dest, char *src, uint16_t length);
+uint32_t dta_copy_octets(char **dest, char *src, uint16_t length);
 
 NCS_BOOL dta_match_service(void *key, void *qelem);
 
 void copy_ip_addr(NCS_IP_ADDR *ipa, va_list argp);
 
-uns32 dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg);
+uint32_t dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg);
 
-uns32 dta_svc_reg_check(DTA_CB *inst);
+uint32_t dta_svc_reg_check(DTA_CB *inst);
 
-uns32 dta_svc_reg_updt(DTA_CB *inst, uns32 svc_id, uns32 enable_log,
-				uns32 category_bit_map, uint8_t severity_bit_map);
+uint32_t dta_svc_reg_updt(DTA_CB *inst, uint32_t svc_id, uint32_t enable_log,
+				uint32_t category_bit_map, uint8_t severity_bit_map);
 
 /***********************************************************************
 *     Flex Log policy rrelated functions 
 ************************************************************************/
-uns32 dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg);
-uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uint16_t version, const char *svc_name,
+uint32_t dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg);
+uint32_t dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uint16_t version, const char *svc_name,
 				uint8_t operation);
 
 #define MAX_OCT_LEN             255
@@ -241,14 +241,14 @@ uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uint16_t version, 
   One of the key types in Flexlog is the Index value, which leads to a
   canned printable string. This value is as follows:
 
-  uns32  index = byte1byte2byte3byte4
+  uint32_t  index = byte1byte2byte3byte4
   ===================================
   Most segnificant bytes-byte1byte2 : Table ID otherwise known as an NCSFL_SET.
   Least segnificant bytes-byte3byte4 : String ID offset in said table.
 
  ************************************************************************
  ************************************************************************/
-#define m_NCSFL_MAKE_IDX(i,j)   (uns32)((i<<16)|j)
+#define m_NCSFL_MAKE_IDX(i,j)   (uint32_t)((i<<16)|j)
 
 /************************************************************************
 

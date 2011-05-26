@@ -75,7 +75,7 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMSV_EVT init_evt;
 	IMMSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMA_CLIENT_NODE *cl_node = 0;
 	NCS_BOOL locked = TRUE;
 
@@ -419,8 +419,8 @@ SaAisErrorT saImmOiDispatch(SaImmOiHandleT immOiHandle, SaDispatchFlagsT dispatc
 	IMMA_CB *cb = &imma_cb;
 	IMMA_CLIENT_NODE *cl_node = 0;
 	NCS_BOOL locked = FALSE;
-	uns32 pend_fin = 0;
-   	uns32 pend_dis = 0;
+	uint32_t pend_fin = 0;
+   	uint32_t pend_dis = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -570,7 +570,7 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 	IMMSV_EVT finalize_evt;
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = 0;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = TRUE;
 	NCS_BOOL agent_flag = FALSE; /* flag = FALSE, we should not call agent shutdown */
 	TRACE_ENTER();
@@ -747,7 +747,7 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocation
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT adminOpRslt_evt;
 	IMMA_CLIENT_NODE *cl_node = 0;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = TRUE;
 
 	if (cb->sv_id == 0) {
@@ -1985,7 +1985,7 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 				    const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;

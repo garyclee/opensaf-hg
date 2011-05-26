@@ -50,10 +50,10 @@
  Returns:  NCSCC_RC_SUCCESSS/NCSCC_RC_FAILURE
  Notes:  
 **************************************************************************/
-uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uint8_t device, char *file)
+uint32_t dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uint8_t device, char *file)
 {
 	uint8_t i, num;
-	uns32 j;
+	uint32_t j;
 	FILE *fh;
 	char *str = dts_cb.cb_log_str;
 	char *ptr;
@@ -140,10 +140,10 @@ uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uint8_t device, char *file
 
  Notes:  
 \**************************************************************************/
-uns32 dts_circular_buffer_alloc(CIR_BUFFER *cir_buff, uns32 buffer_size)
+uint32_t dts_circular_buffer_alloc(CIR_BUFFER *cir_buff, uint32_t buffer_size)
 {
-	uns32 size = ((buffer_size * 1024) / NUM_BUFFS);
-	uns32 i;
+	uint32_t size = ((buffer_size * 1024) / NUM_BUFFS);
+	uint32_t i;
 
 	if (cir_buff == NULL)
 		return NCSCC_RC_FAILURE;
@@ -193,9 +193,9 @@ uns32 dts_circular_buffer_alloc(CIR_BUFFER *cir_buff, uns32 buffer_size)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_circular_buffer_free(CIR_BUFFER *cir_buff)
+uint32_t dts_circular_buffer_free(CIR_BUFFER *cir_buff)
 {
-	uns32 i;
+	uint32_t i;
 
 	if (cir_buff == NULL)
 		return NCSCC_RC_FAILURE;
@@ -235,9 +235,9 @@ uns32 dts_circular_buffer_free(CIR_BUFFER *cir_buff)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_circular_buffer_clear(CIR_BUFFER *cir_buff)
+uint32_t dts_circular_buffer_clear(CIR_BUFFER *cir_buff)
 {
-	uns32 i;
+	uint32_t i;
 
 	if (cir_buff == NULL)
 		return NCSCC_RC_FAILURE;
@@ -272,9 +272,9 @@ uns32 dts_circular_buffer_clear(CIR_BUFFER *cir_buff)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_cir_buff_set_default(CIR_BUFFER *cir_buff)
+uint32_t dts_cir_buff_set_default(CIR_BUFFER *cir_buff)
 {
-	uns32 i;
+	uint32_t i;
 
 	if (cir_buff == NULL)
 		return NCSCC_RC_FAILURE;
@@ -307,9 +307,9 @@ uns32 dts_cir_buff_set_default(CIR_BUFFER *cir_buff)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_dump_to_cir_buffer(CIR_BUFFER *cir_buff, char *str)
+uint32_t dts_dump_to_cir_buffer(CIR_BUFFER *cir_buff, char *str)
 {
-	uns32 str_len = strlen(str) + 1;
+	uint32_t str_len = strlen(str) + 1;
 
 	if (TRUE != cir_buff->buff_allocated)
 		return NCSCC_RC_FAILURE;
@@ -368,7 +368,7 @@ uns32 dts_dump_to_cir_buffer(CIR_BUFFER *cir_buff, char *str)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_buff_size_increased(CIR_BUFFER *cir_buff, uns32 new_size)
+uint32_t dts_buff_size_increased(CIR_BUFFER *cir_buff, uint32_t new_size)
 {
 	CIR_BUFFER tmp_buff = *cir_buff;
 
@@ -415,10 +415,10 @@ uns32 dts_buff_size_increased(CIR_BUFFER *cir_buff, uns32 new_size)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_buff_size_decreased(CIR_BUFFER *cir_buff, uns32 new_size)
+uint32_t dts_buff_size_decreased(CIR_BUFFER *cir_buff, uint32_t new_size)
 {
 	CIR_BUFFER tmp_buff = *cir_buff;
-	uns32 i = 0;
+	uint32_t i = 0;
 
 	if (cir_buff == NULL)
 		return NCSCC_RC_FAILURE;
@@ -475,10 +475,10 @@ uns32 dts_buff_size_decreased(CIR_BUFFER *cir_buff, uns32 new_size)
  Returns:  NCSCC_RC_SUCCESSS/NCSCC_RC_FAILURE
  Notes:  
 \**************************************************************************/
-uns32 dts_dump_buffer_to_buffer(CIR_BUFFER *src_cir_buff, CIR_BUFFER *dst_cir_buff, uns32 number)
+uint32_t dts_dump_buffer_to_buffer(CIR_BUFFER *src_cir_buff, CIR_BUFFER *dst_cir_buff, uint32_t number)
 {
 	uint8_t i = 0, num = 0;
-	uns32 j = 0;
+	uint32_t j = 0;
 	char *ptr = NULL;
 	uint8_t inuse_buff = 0;
 	NCS_BOOL found = FALSE;

@@ -210,7 +210,7 @@ typedef struct avd_amf_sg_type_tag {
 	SaUint32T saAmfSgtDefSuRestartMax;
    /******************** B.04 model *************************************************/
 
-	uns32 number_su_type;	/* size of array saAmfSGtValidSuTypes */
+	uint32_t number_su_type;	/* size of array saAmfSGtValidSuTypes */
 	struct avd_sg_tag *list_of_sg;
 
 } AVD_AMF_SG_TYPE;

@@ -46,7 +46,7 @@ typedef struct log_stream {
 	/* --- end correspond to IMM Class --- */
 
 	uint32_t streamId;	/* The unique stream id for this stream */
-	int32 fd;		/* The stream file descriptor */
+	int32_t fd;		/* The stream file descriptor */
 	char logFileCurrent[NAME_MAX];	/* Current file name */
 	uint32_t curFileSize;	/* Bytes written to current log file */
 	uint32_t logRecordId;	/* log record indentifier increased for each record */
@@ -55,7 +55,7 @@ typedef struct log_stream {
 	SaUint64T filtered;	/* discarded by server due to filtering */
 } log_stream_t;
 
-extern uns32 log_stream_init(void);
+extern uint32_t log_stream_init(void);
 
 extern void log_stream_delete(log_stream_t **s);
 
@@ -85,6 +85,6 @@ extern int log_stream_config_change(log_stream_t *stream, const char *current_fi
 extern log_stream_t *log_stream_get_by_name(const char *name);
 extern log_stream_t *log_stream_getnext_by_name(const char *name);
 extern void log_stream_print(log_stream_t *stream);
-extern log_stream_t *log_stream_get_by_id(uns32 id);
+extern log_stream_t *log_stream_get_by_id(uint32_t id);
 
 #endif

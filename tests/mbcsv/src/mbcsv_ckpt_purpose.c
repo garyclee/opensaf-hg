@@ -2,7 +2,7 @@
 #include "mbcsv_api.h"
 #include "tet_api.h"
 
-uns32 mbcstm_create_data_point(uns32 svc_index, uns32 ssn_index)
+uint32_t mbcstm_create_data_point(uint32_t svc_index, uint32_t ssn_index)
 {
   MBCSTM_SSN *ssn;
   MBCSTM_CSI_DATA *data;
@@ -33,7 +33,7 @@ Sec : %d Usec : %d",ssn->sync_count,
          ssn->data_count,data->data_id,data->sec,data->usec);
   return NCSCC_RC_SUCCESS;
 }
-uns32 mbcstm_destroy_data_point(uns32 svc_index, uns32 ssn_index)
+uint32_t mbcstm_destroy_data_point(uint32_t svc_index, uint32_t ssn_index)
 {
   MBCSTM_SSN *ssn;
   
@@ -47,7 +47,7 @@ uns32 mbcstm_destroy_data_point(uns32 svc_index, uns32 ssn_index)
   
   return NCSCC_RC_FAILURE;
 }
-uns32 mbcstm_print_data_points(uns32 svc_index, uns32 ssn_index)
+uint32_t mbcstm_print_data_points(uint32_t svc_index, uint32_t ssn_index)
 {
   MBCSTM_SSN *ssn;
   MBCSTM_CSI_DATA *data;
@@ -63,14 +63,14 @@ uns32 mbcstm_print_data_points(uns32 svc_index, uns32 ssn_index)
   printf("\n\t-----        END                 -----\n");
   return NCSCC_RC_SUCCESS;
 }
-uns32 mbcstm_ckpt_send_purpose(uns32 svc_index, uns32 ssn_index,uns32 asys,
-                               uns32 send_index, uns32 send_count,
+uint32_t mbcstm_ckpt_send_purpose(uint32_t svc_index, uint32_t ssn_index,uint32_t asys,
+                               uint32_t send_index, uint32_t send_count,
                                NCS_MBCSV_ACT_TYPE action, 
                                NCS_MBCSV_MSG_TYPE send_type,
                                MBCSTM_CB_TEST sync)
 {
-  uns32 index;
-  uns32  test_result = NCSCC_RC_FAILURE;
+  uint32_t index;
+  uint32_t  test_result = NCSCC_RC_FAILURE;
   
   if(mbcstm_cb.sys == MBCSTM_SVC_INS3 || mbcstm_cb.sys == MBCSTM_SVC_INS4)
     {
@@ -125,7 +125,7 @@ uns32 mbcstm_ckpt_send_purpose(uns32 svc_index, uns32 ssn_index,uns32 asys,
 
 void  mbcstm_ckpt_sendsync()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_ckpt_sendsync";
   char case_disc[] = "";
@@ -154,7 +154,7 @@ void  mbcstm_ckpt_sendsync()
 
 void  mbcstm_ckpt_standby_sendsync()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_ckpt_standby_sendsync";
   char case_disc[] = "";
@@ -184,7 +184,7 @@ void  mbcstm_ckpt_standby_sendsync()
 /*vishnu*/
 void  mbcstm_ckpt_idle_sendsync()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_ckpt_idle_sendsync";
   char case_disc[] = "";
@@ -214,7 +214,7 @@ void  mbcstm_ckpt_idle_sendsync()
 
 void mbcstm_ckpt_send_usrasync()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_ckpt_send_usrasync";
   char case_disc[] = "";
@@ -243,7 +243,7 @@ void mbcstm_ckpt_send_usrasync()
 
 void mbcstm_ckpt_send_mbcasync()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_ckpt_send_mbcasync";
   char case_disc[] = "";

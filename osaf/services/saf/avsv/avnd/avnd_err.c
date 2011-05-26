@@ -59,22 +59,22 @@
 
 /* static function declarations */
 
-static uns32 avnd_err_escalate(AVND_CB *, AVND_SU *, AVND_COMP *, AVSV_ERR_RCVR *);
+static uint32_t avnd_err_escalate(AVND_CB *, AVND_SU *, AVND_COMP *, AVSV_ERR_RCVR *);
 
-static uns32 avnd_err_recover(AVND_CB *, AVND_SU *, AVND_COMP *, AVSV_ERR_RCVR);
+static uint32_t avnd_err_recover(AVND_CB *, AVND_SU *, AVND_COMP *, AVSV_ERR_RCVR);
 
-uns32 avnd_err_rcvr_comp_restart(AVND_CB *, AVND_COMP *);
-static uns32 avnd_err_rcvr_su_restart(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_err_rcvr_comp_failover(AVND_CB *, AVND_COMP *);
-static uns32 avnd_err_rcvr_su_failover(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_err_rcvr_node_failover(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_err_rcvr_node_failfast(AVND_CB *, AVND_SU *, AVND_COMP *);
+uint32_t avnd_err_rcvr_comp_restart(AVND_CB *, AVND_COMP *);
+static uint32_t avnd_err_rcvr_su_restart(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_err_rcvr_comp_failover(AVND_CB *, AVND_COMP *);
+static uint32_t avnd_err_rcvr_su_failover(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_err_rcvr_node_failover(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_err_rcvr_node_failfast(AVND_CB *, AVND_SU *, AVND_COMP *);
 
 static AVSV_ERR_RCVR avnd_err_esc_comp_restart(AVND_CB *, AVND_SU *, AVSV_ERR_RCVR *);
 static AVSV_ERR_RCVR avnd_err_esc_su_failover(AVND_CB *, AVND_SU *, AVSV_ERR_RCVR *);
-static uns32 avnd_err_restart_esc_level_0(AVND_CB *, AVND_SU *, AVND_ERR_ESC_LEVEL *, AVSV_ERR_RCVR *);
-static uns32 avnd_err_restart_esc_level_1(AVND_CB *, AVND_SU *, AVND_ERR_ESC_LEVEL *, AVSV_ERR_RCVR *);
-static uns32 avnd_err_restart_esc_level_2(AVND_CB *, AVND_SU *, AVND_ERR_ESC_LEVEL *, AVSV_ERR_RCVR *);
+static uint32_t avnd_err_restart_esc_level_0(AVND_CB *, AVND_SU *, AVND_ERR_ESC_LEVEL *, AVSV_ERR_RCVR *);
+static uint32_t avnd_err_restart_esc_level_1(AVND_CB *, AVND_SU *, AVND_ERR_ESC_LEVEL *, AVSV_ERR_RCVR *);
+static uint32_t avnd_err_restart_esc_level_2(AVND_CB *, AVND_SU *, AVND_ERR_ESC_LEVEL *, AVSV_ERR_RCVR *);
 
 /* LSB Changes. Strings to represent source of component Error */
 
@@ -123,13 +123,13 @@ static const char *g_comp_rcvr[] = {
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_err_rep_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_err_rep_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_ERR_REP_PARAM *err_rep = &api_info->param.err_rep;
 	AVND_COMP *comp = 0;
 	AVND_ERR_INFO err;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 
@@ -215,13 +215,13 @@ uns32 avnd_evt_ava_err_rep_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_err_clear_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_err_clear_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_ERR_CLEAR_PARAM *err_clear = &api_info->param.err_clear;
 	AVND_COMP *comp = 0;
 	AVND_CERR_INFO *err_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 
@@ -289,10 +289,10 @@ uns32 avnd_evt_ava_err_clear_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
+uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 {
-	uns32 esc_rcvr = err_info->rec_rcvr.raw;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t esc_rcvr = err_info->rec_rcvr.raw;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Comp:'%s' esc_rcvr:'%u'", comp->name.value, esc_rcvr);
 
 	/* when undergoing admin oper do not process any component errors */
@@ -375,9 +375,9 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_err_escalate(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uns32 *io_esc_rcvr)
+uint32_t avnd_err_escalate(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t *io_esc_rcvr)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	if (comp->pres == SA_AMF_PRESENCE_UNINSTANTIATED ||
 	    comp->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED || comp->pres == SA_AMF_PRESENCE_TERMINATION_FAILED)
 		return NCSCC_RC_FAILURE;
@@ -429,9 +429,9 @@ uns32 avnd_err_escalate(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uns32 *io_esc
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uns32 rcvr)
+uint32_t avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t rcvr)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("SU:%s Comp:%s",su->name.value,comp->name.value);
 
 	if (comp->pres == SA_AMF_PRESENCE_INSTANTIATING) {
@@ -548,10 +548,10 @@ uns32 avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uns32 rcvr)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_err_rcvr_comp_restart(AVND_CB *cb, AVND_COMP *comp)
+uint32_t avnd_err_rcvr_comp_restart(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_CSI_REC *csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* mark the comp failed */
@@ -613,9 +613,9 @@ uns32 avnd_err_rcvr_comp_restart(AVND_CB *cb, AVND_COMP *comp)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
+uint32_t avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* mark the su & comp failed */
@@ -671,9 +671,9 @@ uns32 avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_err_rcvr_comp_failover(AVND_CB *cb, AVND_COMP *comp)
+uint32_t avnd_err_rcvr_comp_failover(AVND_CB *cb, AVND_COMP *comp)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	LOG_NO("%s, Unsupported",__FUNCTION__);
 
 	return rc;
@@ -693,9 +693,9 @@ uns32 avnd_err_rcvr_comp_failover(AVND_CB *cb, AVND_COMP *comp)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
+uint32_t avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* mark the comp failed */
@@ -765,9 +765,9 @@ uns32 avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp
   Notes         : None.
 
 ******************************************************************************/
-uns32 avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *failed_comp)
+uint32_t avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *failed_comp)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* mark the comp failed */
@@ -846,11 +846,11 @@ uns32 avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *fa
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_err_su_repair(AVND_CB *cb, AVND_SU *su)
+uint32_t avnd_err_su_repair(AVND_CB *cb, AVND_SU *su)
 {
 	AVND_COMP *comp = 0;
 	NCS_BOOL is_en;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	assert(m_AVND_SU_IS_FAILED(su));
@@ -912,10 +912,10 @@ uns32 avnd_err_su_repair(AVND_CB *cb, AVND_SU *su)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_err_esc_comp_restart(AVND_CB *cb, AVND_SU *su, AVSV_ERR_RCVR *esc_rcvr)
+uint32_t avnd_err_esc_comp_restart(AVND_CB *cb, AVND_SU *su, AVSV_ERR_RCVR *esc_rcvr)
 {
 	AVND_ERR_ESC_LEVEL *esc_level = &su->su_err_esc_level;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* taking care of a case where comp_restart_max is zero */
@@ -967,10 +967,10 @@ uns32 avnd_err_esc_comp_restart(AVND_CB *cb, AVND_SU *su, AVSV_ERR_RCVR *esc_rcv
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_err_restart_esc_level_0(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEVEL *esc_level, AVSV_ERR_RCVR *esc_rcvr)
+uint32_t avnd_err_restart_esc_level_0(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEVEL *esc_level, AVSV_ERR_RCVR *esc_rcvr)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	*esc_rcvr = SA_AMF_COMPONENT_RESTART;
 	TRACE_ENTER();
 
@@ -1038,10 +1038,10 @@ uns32 avnd_err_restart_esc_level_0(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEVEL 
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_err_restart_esc_level_1(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEVEL *esc_level, AVSV_ERR_RCVR *esc_rcvr)
+uint32_t avnd_err_restart_esc_level_1(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEVEL *esc_level, AVSV_ERR_RCVR *esc_rcvr)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* If the SU is still instantiating, do jump to next level */
@@ -1121,9 +1121,9 @@ uns32 avnd_err_restart_esc_level_1(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEVEL 
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_err_restart_esc_level_2(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEVEL *esc_level, AVSV_ERR_RCVR *esc_rcvr)
+uint32_t avnd_err_restart_esc_level_2(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEVEL *esc_level, AVSV_ERR_RCVR *esc_rcvr)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* first time in this level */
@@ -1185,7 +1185,7 @@ uns32 avnd_err_restart_esc_level_2(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEVEL 
 AVSV_ERR_RCVR avnd_err_esc_su_failover(AVND_CB *cb, AVND_SU *su, AVSV_ERR_RCVR *esc_rcvr)
 {
 	AVND_ERR_ESC_LEVEL *esc_level = &cb->node_err_esc_level;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* initalize */
@@ -1245,9 +1245,9 @@ AVSV_ERR_RCVR avnd_err_esc_su_failover(AVND_CB *cb, AVND_SU *su, AVSV_ERR_RCVR *
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_node_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_tmr_node_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -1273,9 +1273,9 @@ uns32 avnd_evt_tmr_node_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
   Notes         : None.
 
 ******************************************************************************/
-uns32 avnd_err_rcvr_node_failfast(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *failed_comp)
+uint32_t avnd_err_rcvr_node_failfast(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *failed_comp)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* mark the comp & su failed */

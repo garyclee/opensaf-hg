@@ -32,9 +32,9 @@ static int __init_avd(void)
 
 int main(int argc, char *argv[])
 {
-	uns32 error;
+	uint32_t error;
 	char * ee_id = NULL;
-        uns32 node_id;
+        uint32_t node_id;
 
 	daemonize(argc, argv);
 

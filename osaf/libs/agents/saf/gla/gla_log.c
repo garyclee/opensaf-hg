@@ -35,7 +35,7 @@
   DESCRIPTION:       Headline logging info
 
 *****************************************************************************/
-void gla_log_headline(uint8_t hdln_id, uint8_t sev, char *file_name, uns32 line_no)
+void gla_log_headline(uint8_t hdln_id, uint8_t sev, char *file_name, uint32_t line_no)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_HDLN, GLA_FC_HDLN,
 		   NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TICL, hdln_id, file_name, line_no);
@@ -48,7 +48,7 @@ void gla_log_headline(uint8_t hdln_id, uint8_t sev, char *file_name, uns32 line_
   DESCRIPTION:       memory failure logging info
 
 *****************************************************************************/
-void gla_log_memfail(uint8_t mf_id, char *file_name, uns32 line_no)
+void gla_log_memfail(uint8_t mf_id, char *file_name, uint32_t line_no)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_MEMFAIL, GLA_FC_MEMFAIL,
 		   NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TICL, mf_id, file_name, line_no);
@@ -61,7 +61,7 @@ void gla_log_memfail(uint8_t mf_id, char *file_name, uns32 line_no)
   DESCRIPTION:       API logging info
 
 *****************************************************************************/
-void gla_log_api(uint8_t api_id, uint8_t sev, char *file_name, uns32 line_no)
+void gla_log_api(uint8_t api_id, uint8_t sev, char *file_name, uint32_t line_no)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_API, GLA_FC_API,
 		   NCSFL_LC_API, sev, NCSFL_TYPE_TICL, api_id, file_name, line_no);
@@ -74,7 +74,7 @@ void gla_log_api(uint8_t api_id, uint8_t sev, char *file_name, uns32 line_no)
   DESCRIPTION:       API logging info
 
 *****************************************************************************/
-void gla_log_lockfail(uint8_t api_id, uint8_t sev, char *file_name, uns32 line_no)
+void gla_log_lockfail(uint8_t api_id, uint8_t sev, char *file_name, uint32_t line_no)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_NCS_LOCK, GLA_FC_NCS_LOCK,
 		   NCSFL_LC_LOCKS, sev, NCSFL_TYPE_TICL, api_id, file_name, line_no);
@@ -87,7 +87,7 @@ void gla_log_lockfail(uint8_t api_id, uint8_t sev, char *file_name, uns32 line_n
   DESCRIPTION:       System call logging info
 
 *****************************************************************************/
-void gla_log_sys_call(uint8_t id, char *file_name, uns32 line_no, SaUint64T handle_id)
+void gla_log_sys_call(uint8_t id, char *file_name, uint32_t line_no, SaUint64T handle_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_SYS_CALL, GLA_FC_SYS_CALL,
 		   NCSFL_LC_SYS_CALL_FAIL, NCSFL_SEV_ERROR, NCSFL_TYPE_TICLL, id, file_name, line_no, handle_id);
@@ -100,7 +100,7 @@ void gla_log_sys_call(uint8_t id, char *file_name, uns32 line_no, SaUint64T hand
   DESCRIPTION:       MDS send logging info
 
 *****************************************************************************/
-void gla_log_data_send(uint8_t id, char *file_name, uns32 line_no, uns32 node, uns32 evt_id)
+void gla_log_data_send(uint8_t id, char *file_name, uint32_t line_no, uint32_t node, uint32_t evt_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_DATA_SEND, GLA_FC_DATA_SEND,
 		   NCSFL_LC_DATA, NCSFL_SEV_ERROR, NCSFL_TYPE_TICLLL, id, file_name, line_no, node, evt_id);

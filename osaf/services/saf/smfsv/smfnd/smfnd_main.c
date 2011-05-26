@@ -83,7 +83,7 @@ static void usr1_sig_handler(int sig)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 smfnd_cb_init(smfnd_cb_t * smfnd_cb)
+uint32_t smfnd_cb_init(smfnd_cb_t * smfnd_cb)
 {
 	TRACE_ENTER();
 
@@ -106,9 +106,9 @@ uns32 smfnd_cb_init(smfnd_cb_t * smfnd_cb)
  * 
  * @return uns32
  */
-static uns32 initialize_smfnd(void)
+static uint32_t initialize_smfnd(void)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE_ENTER();
 
@@ -175,7 +175,7 @@ struct pollfd fds[SMFND_MAX_FD];
  * Restore USR1 signal handling.
  */
 #if 0
-uns32 smfnd_amf_disconnected(smfnd_cb_t * cb)
+uint32_t smfnd_amf_disconnected(smfnd_cb_t * cb)
 {
 	fds[SMFND_AMF_FD].fd = cb->usr1_sel_obj.rmv_obj;
 	cb->amf_hdl = 0;

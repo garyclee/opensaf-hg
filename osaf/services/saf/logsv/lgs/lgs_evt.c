@@ -35,14 +35,14 @@
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
-static uns32 process_api_evt(lgsv_lgs_evt_t *evt);
-static uns32 proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt);
-static uns32 proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt);
-static uns32 proc_initialize_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
-static uns32 proc_finalize_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
-static uns32 proc_stream_open_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
-static uns32 proc_stream_close_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
-static uns32 proc_write_log_async_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
+static uint32_t process_api_evt(lgsv_lgs_evt_t *evt);
+static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt);
+static uint32_t proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt);
+static uint32_t proc_initialize_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
+static uint32_t proc_finalize_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
+static uint32_t proc_stream_open_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
+static uint32_t proc_stream_close_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
+static uint32_t proc_write_log_async_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
 
 static const LGSV_LGS_EVT_HANDLER lgs_lgsv_top_level_evt_dispatch_tbl[] = {
 	process_api_evt,
@@ -67,9 +67,9 @@ LGSV_LGS_LGA_API_MSG_HANDLER lgs_lga_api_msg_dispatcher[] = {
  * 
  * @return log_client_t*
  */
-log_client_t *lgs_client_get_by_id(uns32 client_id)
+log_client_t *lgs_client_get_by_id(uint32_t client_id)
 {
-	uns32 client_id_net;
+	uint32_t client_id_net;
 	log_client_t *rec;
 
 	client_id_net = m_NCS_OS_HTONL(client_id);
@@ -89,7 +89,7 @@ log_client_t *lgs_client_get_by_id(uns32 client_id)
  * 
  * @return log_client_t*
  */
-log_client_t *lgs_client_new(MDS_DEST mds_dest, uns32 client_id, lgs_stream_list_t *stream_list)
+log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id, lgs_stream_list_t *stream_list)
 {
 	log_client_t *client;
 
@@ -137,10 +137,10 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uns32 client_id, lgs_stream_list
  * 
  * @return uns32
  */
-int lgs_client_delete(uns32 client_id)
+int lgs_client_delete(uint32_t client_id)
 {
 	log_client_t *client;
-	uns32 status = 0;
+	uint32_t status = 0;
 	lgs_stream_list_t *cur_rec;
 
 	TRACE_ENTER2("client_id %u", client_id);
@@ -182,9 +182,9 @@ int lgs_client_delete(uns32 client_id)
  * 
  * @return int
  */
-int lgs_client_stream_add(uns32 client_id, uns32 stream_id)
+int lgs_client_stream_add(uint32_t client_id, uint32_t stream_id)
 {
-	uns32 rs = 0;
+	uint32_t rs = 0;
 	log_client_t *client;
 	lgs_stream_list_t *stream;
 
@@ -217,7 +217,7 @@ int lgs_client_stream_add(uns32 client_id, uns32 stream_id)
  * 
  * @return int
  */
-int lgs_client_stream_rmv(uns32 client_id, uns32 stream_id)
+int lgs_client_stream_rmv(uint32_t client_id, uint32_t stream_id)
 {
 	int rc = 0;
 	lgs_stream_list_t *cur_rec;
@@ -267,9 +267,9 @@ int lgs_client_stream_rmv(uns32 client_id, uns32 stream_id)
  */
 int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest)
 {
-	uns32 rc = 0;
+	uint32_t rc = 0;
 	log_client_t *rp = NULL;
-	uns32 client_id_net;
+	uint32_t client_id_net;
 
 	TRACE_ENTER2("mds_dest %" PRIx64, mds_dest);
 	rp = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree, (uint8_t *)0);
@@ -297,7 +297,7 @@ int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest)
  * LGA_DOWN_LIST as  LGA client has gone away.
  * 
  ****************************************************************************/
-uns32 lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest)
+uint32_t lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest)
 {
 	LGA_DOWN_LIST *lga_down_rec = cb->lga_down_list_head;
 	LGA_DOWN_LIST *prev = NULL;
@@ -347,12 +347,12 @@ uns32 lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
+static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 {
 	TRACE_ENTER();
 	lgsv_ckpt_msg_t ckpt;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 async_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t async_rc = NCSCC_RC_SUCCESS;
 
 	switch (evt->evt_type) {
 	case LGSV_LGS_EVT_LGA_UP:
@@ -416,7 +416,7 @@ static uns32 proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt)
+static uint32_t proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt)
 {
 	TRACE_ENTER();
 
@@ -466,10 +466,10 @@ static void lgs_process_lga_down_list(void)
 }
 
 
-static uns32 proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
+static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 {
 	log_stream_t *stream;
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE_ENTER2("%u", evt->info.rda_info.io_role);
 
@@ -525,7 +525,7 @@ done:
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 lgs_cb_init(lgs_cb_t *lgs_cb)
+uint32_t lgs_cb_init(lgs_cb_t *lgs_cb)
 {
 	NCS_PATRICIA_PARAMS reg_param;
 	char *val;
@@ -535,7 +535,7 @@ uns32 lgs_cb_init(lgs_cb_t *lgs_cb)
 
 	memset(&reg_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-	reg_param.key_size = sizeof(uns32);
+	reg_param.key_size = sizeof(uint32_t);
 
 	/* Assign Initial HA state */
 	lgs_cb->ha_state = LGS_HA_INIT_STATE;
@@ -573,9 +573,9 @@ uns32 lgs_cb_init(lgs_cb_t *lgs_cb)
  * 
  * @return uns32
  */
-static uns32 send_write_log_ack(lgs_cb_t *cb, lgsv_lgs_evt_t *evt, SaAisErrorT error)
+static uint32_t send_write_log_ack(lgs_cb_t *cb, lgsv_lgs_evt_t *evt, SaAisErrorT error)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgsv_msg_t msg;
 
 	TRACE_ENTER();
@@ -602,10 +602,10 @@ static uns32 send_write_log_ack(lgs_cb_t *cb, lgsv_lgs_evt_t *evt, SaAisErrorT e
  * 
  * @return uns32
  */
-static uns32 proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
+static uint32_t proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 async_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t async_rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	SaVersionT *version;
 	lgsv_msg_t msg;
@@ -655,11 +655,11 @@ static uns32 proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
  * 
  * @return uns32
  */
-static uns32 proc_finalize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
+static uint32_t proc_finalize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 {
 	int rc;
 	lgsv_ckpt_msg_t ckpt;
-	uns32 client_id = evt->info.msg.info.api_info.param.finalize.client_id;
+	uint32_t client_id = evt->info.msg.info.api_info.param.finalize.client_id;
 	lgsv_msg_t msg;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 
@@ -689,10 +689,10 @@ static uns32 proc_finalize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	return rc;
 }
 
-static uns32 lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream, lgsv_stream_open_req_t *open_sync_param)
+static uint32_t lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream, lgsv_stream_open_req_t *open_sync_param)
 {
 	lgsv_ckpt_msg_t ckpt;
-	uns32 async_rc = NCSCC_RC_SUCCESS;
+	uint32_t async_rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 		memset(&ckpt, 0, sizeof(ckpt));
@@ -853,11 +853,11 @@ static SaAisErrorT file_attribute_cmp(lgsv_stream_open_req_t *open_sync_param, l
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
+static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, async_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS, async_rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT ais_rv = SA_AIS_OK;
-	uns32 lstr_id = (uns32)-1;
+	uint32_t lstr_id = (uint32_t)-1;
 	lgsv_msg_t msg;
 	lgsv_stream_open_req_t *open_sync_param = &(evt->info.msg.info.api_info.param.lstr_open_sync);
 	log_stream_t *logStream;
@@ -958,15 +958,15 @@ static uns32 proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
  * 
  * @return uns32
  */
-static uns32 proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
+static uint32_t proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgsv_stream_close_req_t *close_param = &(evt->info.msg.info.api_info.param.lstr_close);
 	lgsv_ckpt_msg_t ckpt;
 	log_stream_t *stream;
 	lgsv_msg_t msg;
 	SaAisErrorT ais_rc = SA_AIS_OK;
-	uns32 streamId;
+	uint32_t streamId;
 
 	TRACE_ENTER2("client_id %u, stream ID %u", close_param->client_id, close_param->lstr_id);
 
@@ -1024,7 +1024,7 @@ static uns32 proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
+static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 {
 	lgsv_write_log_async_req_t *param = &(evt->info.msg.info.api_info.param).write_log_async;
 	log_stream_t *stream;
@@ -1137,7 +1137,7 @@ static uns32 proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 process_api_evt(lgsv_lgs_evt_t *evt)
+static uint32_t process_api_evt(lgsv_lgs_evt_t *evt)
 {
 	if (evt->evt_type == LGSV_LGS_LGSV_MSG) {
 		/* ignore one level... */

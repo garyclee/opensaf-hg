@@ -18,7 +18,7 @@
 #include "smfd.h"
 #include "smfd_smfnd.h"
 
-uns32 mds_register(smfd_cb_t * cb);
+uint32_t mds_register(smfd_cb_t * cb);
 void mds_unregister(smfd_cb_t * cb);
 
 /****************************************************************************
@@ -33,7 +33,7 @@ void mds_unregister(smfd_cb_t * cb);
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mds_cpy(struct ncsmds_callback_info *info)
+static uint32_t mds_cpy(struct ncsmds_callback_info *info)
 {
 	return NCSCC_RC_FAILURE;
 }
@@ -50,7 +50,7 @@ static uns32 mds_cpy(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mds_enc(struct ncsmds_callback_info *info)
+static uint32_t mds_enc(struct ncsmds_callback_info *info)
 {
 	SMFSV_EVT *evt;
 	NCS_UBAID *uba;
@@ -86,7 +86,7 @@ static uns32 mds_enc(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mds_dec(struct ncsmds_callback_info *info)
+static uint32_t mds_dec(struct ncsmds_callback_info *info)
 {
 	SMFSV_EVT *evt;
 	NCS_UBAID *uba = info->info.dec.io_uba;
@@ -123,9 +123,9 @@ static uns32 mds_dec(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mds_enc_flat(struct ncsmds_callback_info *info)
+static uint32_t mds_enc_flat(struct ncsmds_callback_info *info)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	/* Retrieve info from the enc_flat */
 	MDS_CALLBACK_ENC_INFO enc = info->info.enc_flat;
@@ -151,9 +151,9 @@ static uns32 mds_enc_flat(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mds_dec_flat(struct ncsmds_callback_info *info)
+static uint32_t mds_dec_flat(struct ncsmds_callback_info *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* Retrieve info from the dec_flat */
 	MDS_CALLBACK_DEC_INFO dec = info->info.dec_flat;
 	/* Modify the MDS_INFO to populate dec */
@@ -178,12 +178,12 @@ static uns32 mds_dec_flat(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mds_rcv(struct ncsmds_callback_info *mds_info)
+static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 {
 	SMFSV_EVT *smfsv_evt = (SMFSV_EVT *) mds_info->info.receive.i_msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	smfsv_evt->cb_hdl = (uns32) mds_info->i_yr_svc_hdl;
+	smfsv_evt->cb_hdl = (uint32_t) mds_info->i_yr_svc_hdl;
 	smfsv_evt->fr_node_id = mds_info->info.receive.i_node_id;
 	smfsv_evt->fr_dest = mds_info->info.receive.i_fr_dest;
 	smfsv_evt->fr_svc = mds_info->info.receive.i_fr_svc_id;
@@ -211,7 +211,7 @@ static uns32 mds_rcv(struct ncsmds_callback_info *mds_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
+static uint32_t mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 {
 	SMFSV_EVT *smfsv_evt;
 
@@ -249,9 +249,9 @@ static uns32 mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mds_svc_event(struct ncsmds_callback_info *info)
+static uint32_t mds_svc_event(struct ncsmds_callback_info *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SMFSV_EVT *evt = NULL;
 	MDS_CALLBACK_SVC_EVENT_INFO *svc_evt = &info->info.svc_evt;
 
@@ -308,7 +308,7 @@ static uns32 mds_svc_event(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mds_sys_event(struct ncsmds_callback_info *mds_info)
+static uint32_t mds_sys_event(struct ncsmds_callback_info *mds_info)
 {
 	/* Not supported now */
 	TRACE("FAILED");
@@ -327,7 +327,7 @@ static uns32 mds_sys_event(struct ncsmds_callback_info *mds_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mds_callback(struct ncsmds_callback_info *info)
+static uint32_t mds_callback(struct ncsmds_callback_info *info)
 {
 	static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
 		mds_cpy,	/* MDS_CALLBACK_COPY      */
@@ -361,10 +361,10 @@ static uns32 mds_callback(struct ncsmds_callback_info *info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mds_vdest_create(smfd_cb_t * cb)
+static uint32_t mds_vdest_create(smfd_cb_t * cb)
 {
 	NCSVDA_INFO arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&arg, 0, sizeof(arg));
 
@@ -399,7 +399,7 @@ static uns32 mds_vdest_create(smfd_cb_t * cb)
   Notes         : None.
 ******************************************************************************/
 
-uns32 mds_register(smfd_cb_t * cb)
+uint32_t mds_register(smfd_cb_t * cb)
 {
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID smfnd_id[1] = { NCSMDS_SVC_ID_SMFND };
@@ -500,9 +500,9 @@ void mds_unregister(smfd_cb_t * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 smfd_mds_init(smfd_cb_t * cb)
+uint32_t smfd_mds_init(smfd_cb_t * cb)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE_ENTER();
 
@@ -548,7 +548,7 @@ uns32 smfd_mds_init(smfd_cb_t * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 smfd_mds_change_role(smfd_cb_t * cb)
+uint32_t smfd_mds_change_role(smfd_cb_t * cb)
 {
 	NCSVDA_INFO arg;
 
@@ -572,10 +572,10 @@ uns32 smfd_mds_change_role(smfd_cb_t * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mds_vdest_destroy(smfd_cb_t * cb)
+static uint32_t mds_vdest_destroy(smfd_cb_t * cb)
 {
 	NCSVDA_INFO vda_info;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&vda_info, 0, sizeof(NCSVDA_INFO));
 	vda_info.req = NCSVDA_VDEST_DESTROY;
@@ -600,9 +600,9 @@ static uns32 mds_vdest_destroy(smfd_cb_t * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 smfd_mds_finalize(smfd_cb_t * cb)
+uint32_t smfd_mds_finalize(smfd_cb_t * cb)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	/* Destroy the virtual Destination of SMFD */
 	rc = mds_vdest_destroy(cb);

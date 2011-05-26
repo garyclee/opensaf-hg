@@ -55,10 +55,10 @@ int avsv_nd_nd_test_type_fnc(NCSCONTEXT arg);
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_ND2ND_AVND_MSG *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avsv_ndnd_msg_rules[] = {

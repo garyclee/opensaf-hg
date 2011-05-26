@@ -24,10 +24,10 @@
 
 #include "mqnd.h"
 
-static uns32 mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
+static uint32_t mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
 static SaAisErrorT mqnd_build_database_from_shm(MQND_CB *cb);
 static SaAisErrorT mqnd_restart_ckpt_read(MQND_CB *cb, MQND_QUEUE_CKPT_INFO
-					  *ckpt_queue_info, uns32 offset);
+					  *ckpt_queue_info, uint32_t offset);
 static void mqnd_remove_mqalist(MQND_CB *cb);
 static void mqnd_fill_queue_node(MQND_QUEUE_CKPT_INFO *ckpt_queue_info, MQND_QUEUE_INFO *queue_info);
 /****************************************************************************
@@ -43,7 +43,7 @@ static void mqnd_fill_queue_node(MQND_QUEUE_CKPT_INFO *ckpt_queue_info, MQND_QUE
  * Notes         : None.
  *****************************************************************************/
 
-uns32 mqnd_restart_init(MQND_CB *cb)
+uint32_t mqnd_restart_init(MQND_CB *cb)
 {
 	SaAisErrorT rc = NCSCC_RC_SUCCESS;
 
@@ -80,10 +80,10 @@ uns32 mqnd_restart_init(MQND_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_add_node_to_mqalist(MQND_CB *cb, MDS_DEST dest)
+uint32_t mqnd_add_node_to_mqalist(MQND_CB *cb, MDS_DEST dest)
 {
 	MQND_MQA_LIST_NODE *mqa_node = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	mqa_node = m_MMGR_ALLOC_MQND_MQA_LIST_NODE;
 	if (mqa_node == NULL) {
 		/*Memory Failure Error */
@@ -141,7 +141,7 @@ static SaAisErrorT mqnd_build_database_from_shm(MQND_CB *cb)
 	MQND_QUEUE_NODE *qnode = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
-	uns32 i;
+	uint32_t i;
 
 	shm_base_addr = cb->mqnd_shm.shm_base_addr;
 
@@ -186,7 +186,7 @@ static SaAisErrorT mqnd_build_database_from_shm(MQND_CB *cb)
  * Notes         : None.
  *****************************************************************************/
 
-static SaAisErrorT mqnd_restart_ckpt_read(MQND_CB *cb, MQND_QUEUE_CKPT_INFO *ckpt_queue_info, uns32 offset)
+static SaAisErrorT mqnd_restart_ckpt_read(MQND_CB *cb, MQND_QUEUE_CKPT_INFO *ckpt_queue_info, uint32_t offset)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	NCS_OS_POSIX_SHM_REQ_INFO read_req;
@@ -222,7 +222,7 @@ static SaAisErrorT mqnd_restart_ckpt_read(MQND_CB *cb, MQND_QUEUE_CKPT_INFO *ckp
 
 static void mqnd_fill_queue_node(MQND_QUEUE_CKPT_INFO *ckpt_queue_info, MQND_QUEUE_INFO *queue_info)
 {
-	uns32 i = 0;
+	uint32_t i = 0;
 
 	queue_info->queueHandle = ckpt_queue_info->queueHandle;
 	queue_info->listenerHandle = ckpt_queue_info->listenerHandle;
@@ -271,11 +271,11 @@ static void mqnd_fill_queue_node(MQND_QUEUE_CKPT_INFO *ckpt_queue_info, MQND_QUE
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
+static uint32_t mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 {
 	/*Check for the Close Timer */
 	SaTimeT presentTime, timeout = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Add the queue to the MQND queue node, queue name DB */
 	if (1) {
@@ -384,7 +384,7 @@ static uns32 mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 
 void mqnd_cpy_qnodeinfo_to_ckptinfo(MQND_CB *cb, MQND_QUEUE_NODE *queue_info, MQND_QUEUE_CKPT_INFO *ckpt_queue_info)
 {
-	uns32 i = 0, offset;
+	uint32_t i = 0, offset;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
 	shm_base_addr = cb->mqnd_shm.shm_base_addr;
@@ -446,10 +446,10 @@ void mqnd_cpy_qnodeinfo_to_ckptinfo(MQND_CB *cb, MQND_QUEUE_NODE *queue_info, MQ
  * Notes         : None.
  *****************************************************************************/
 
-uns32 mqnd_ckpt_queue_info_write(MQND_CB *cb, MQND_QUEUE_CKPT_INFO *queue_ckpt_node, uns32 index)
+uint32_t mqnd_ckpt_queue_info_write(MQND_CB *cb, MQND_QUEUE_CKPT_INFO *queue_ckpt_node, uint32_t index)
 {
 	NCS_OS_POSIX_SHM_REQ_INFO queue_info_write;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&queue_info_write, '\0', sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
 

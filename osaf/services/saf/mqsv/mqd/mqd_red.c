@@ -50,7 +50,7 @@
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-uns32 mqd_red_db_node_add(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode)
+uint32_t mqd_red_db_node_add(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode)
 {
 	/*m_HTON_SANAMET_LEN(pNode->info.nodeid); */
 	pNode->node.key_info = (uint8_t *)&pNode->info.nodeid;
@@ -87,7 +87,7 @@ void mqd_red_db_node_del(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode)
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-uns32 mqd_red_db_node_create(MQD_CB *pMqd, MQD_ND_DB_NODE **o_pnode)
+uint32_t mqd_red_db_node_create(MQD_CB *pMqd, MQD_ND_DB_NODE **o_pnode)
 {
 	MQD_ND_DB_NODE *pNode = 0;
 

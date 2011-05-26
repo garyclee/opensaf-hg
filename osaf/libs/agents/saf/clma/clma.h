@@ -88,25 +88,25 @@ typedef struct {
 
 /* clma_api.c */
 extern clma_cb_t clma_cb;
-extern uns32 clma_validate_version(SaVersionT *version);
+extern uint32_t clma_validate_version(SaVersionT *version);
 
-extern uns32 clma_mds_init(clma_cb_t * cb);
-extern uns32 clma_mds_msg_sync_send(clma_cb_t * cb, CLMSV_MSG * i_msg, CLMSV_MSG ** o_msg, uns32 timeout);
-extern uns32 clma_mds_msg_async_send(clma_cb_t * cb, CLMSV_MSG * i_msg, uns32 prio);
+extern uint32_t clma_mds_init(clma_cb_t * cb);
+extern uint32_t clma_mds_msg_sync_send(clma_cb_t * cb, CLMSV_MSG * i_msg, CLMSV_MSG ** o_msg, uint32_t timeout);
+extern uint32_t clma_mds_msg_async_send(clma_cb_t * cb, CLMSV_MSG * i_msg, uint32_t prio);
 
 extern unsigned int clma_startup(void);
 extern unsigned int clma_shutdown(void);
 extern void clma_msg_destroy(CLMSV_MSG * msg);
 extern void clma_mds_finalize(clma_cb_t * cb);
 
-extern clma_client_hdl_rec_t *clma_find_hdl_rec_by_client_id(clma_cb_t * clma_cb, uns32 client_id);
+extern clma_client_hdl_rec_t *clma_find_hdl_rec_by_client_id(clma_cb_t * clma_cb, uint32_t client_id);
 extern clma_client_hdl_rec_t *clma_hdl_rec_add(clma_cb_t * cb, const SaClmCallbacksT *reg_cbks_1,
 					       const SaClmCallbacksT_4 * reg_cbks_4,
-					       SaVersionT *version, uns32 client_id);
-extern uns32 clma_hdl_rec_del(clma_client_hdl_rec_t ** list_head, clma_client_hdl_rec_t * rm_node);
+					       SaVersionT *version, uint32_t client_id);
+extern uint32_t clma_hdl_rec_del(clma_client_hdl_rec_t ** list_head, clma_client_hdl_rec_t * rm_node);
 extern SaAisErrorT clma_hdl_cbk_dispatch(clma_cb_t * cb, clma_client_hdl_rec_t * hdl_rec, SaDispatchFlagsT flags);
 
-extern uns32 clma_clms_msg_proc(clma_cb_t * cb, CLMSV_MSG * clmsv_msg, MDS_SEND_PRIORITY_TYPE prio);
+extern uint32_t clma_clms_msg_proc(clma_cb_t * cb, CLMSV_MSG * clmsv_msg, MDS_SEND_PRIORITY_TYPE prio);
 extern void clma_add_to_async_cbk_msg_list(CLMSV_MSG ** head, CLMSV_MSG * new_node);
 extern void clma_fill_clusterbuf_from_buf_4(SaClmClusterNotificationBufferT *buf,
 					    SaClmClusterNotificationBufferT_4 * buf_4);

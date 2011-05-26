@@ -51,7 +51,7 @@ typedef enum avnd_evnt_evt_type {
 
 typedef struct avsv_nd2nd_cbk_del {
 	SaNameT comp_name;
-	uns32 opq_hdl;
+	uint32_t opq_hdl;
 } AVSV_ND2ND_CBK_DEL;
 
 typedef struct avsv_nd2nd_avnd_msg {
@@ -69,9 +69,9 @@ typedef struct avsv_nd2nd_avnd_msg {
 } AVSV_ND2ND_AVND_MSG;
 
 void avsv_nd2nd_avnd_msg_free(AVSV_ND2ND_AVND_MSG *msg);
-uns32 avsv_ndnd_avnd_msg_copy(AVSV_ND2ND_AVND_MSG *dmsg, AVSV_ND2ND_AVND_MSG *smsg);
-uns32 avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t avsv_ndnd_avnd_msg_copy(AVSV_ND2ND_AVND_MSG *dmsg, AVSV_ND2ND_AVND_MSG *smsg);
+uint32_t avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #endif   /* !AVSV_ND2NDMSG_H */

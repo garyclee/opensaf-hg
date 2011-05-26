@@ -49,14 +49,14 @@ static void fill_ntf_header_part_clms(SaNtfNotificationHeaderT *notificationHead
 
 }
 
-static uns32 sendStateChangeNotificationClms(CLMS_CB * clms_cb,
+static uint32_t sendStateChangeNotificationClms(CLMS_CB * clms_cb,
 					     SaNameT node_name,
 					     SaUint8T *add_text,
 					     SaUint16T majorId,
 					     SaUint16T minorId,
-					     uns32 sourceIndicator, SaUint32T stateId, SaUint32T newState)
+					     uint32_t sourceIndicator, SaUint32T stateId, SaUint32T newState)
 {
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 	SaNtfStateChangeNotificationT myStateNotification;
 
 	status = saNtfStateChangeNotificationAllocate(clms_cb->ntf_hdl,	/* handle to Notification Service instance */
@@ -118,7 +118,7 @@ static uns32 sendStateChangeNotificationClms(CLMS_CB * clms_cb,
 *****************************************************************************/
 void clms_node_join_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 {
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 	SaNameT dn;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
@@ -160,7 +160,7 @@ void clms_node_join_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 *****************************************************************************/
 void clms_node_exit_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 {
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 	SaNameT dn;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
@@ -202,7 +202,7 @@ void clms_node_exit_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 *****************************************************************************/
 void clms_node_reconfigured_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 {
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 	SaNameT dn;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
@@ -242,7 +242,7 @@ void clms_node_reconfigured_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 *****************************************************************************/
 void clms_node_admin_state_change_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node, SaUint32T newState)
 {
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 	SaNameT dn;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 

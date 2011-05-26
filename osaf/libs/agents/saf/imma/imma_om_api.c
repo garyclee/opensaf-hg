@@ -143,7 +143,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMSV_EVT init_evt;
 	IMMSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMA_CLIENT_NODE *cl_node = 0;
 	NCS_BOOL locked = TRUE;
 	TRACE_ENTER();
@@ -495,8 +495,8 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
 	IMMA_CB *cb = &imma_cb;
 	IMMA_CLIENT_NODE *cl_node = 0;
 	NCS_BOOL locked = FALSE;
-	uns32 pend_fin = 0;
-   	uns32 pend_dis = 0;
+	uint32_t pend_fin = 0;
+	uint32_t pend_dis = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -645,7 +645,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 	IMMSV_EVT finalize_evt;
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = 0;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = TRUE;
 	NCS_BOOL agent_flag = FALSE; /* flag = FALSE, we should not call agent shutdown */
 	TRACE_ENTER();
@@ -2999,7 +2999,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_ADMIN_OWNER_NODE *ao_node = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = TRUE;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
@@ -3928,7 +3928,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 {
 	TRACE_ENTER();
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = FALSE;
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT evt;
@@ -4470,7 +4470,7 @@ SaAisErrorT saImmOmAccessorInitialize(SaImmHandleT immHandle, SaImmAccessorHandl
 {
 
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = TRUE;
 	IMMA_CB *cb = &imma_cb;
 	IMMA_CLIENT_NODE *cl_node = NULL;
@@ -4567,7 +4567,7 @@ SaAisErrorT saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 	NCS_BOOL locked = TRUE;
 	IMMA_CB *cb = &imma_cb;
 	IMMA_SEARCH_NODE *search_node = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -4624,7 +4624,7 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 				 const SaImmAttrNameT *attributeNames, SaImmAttrValuesT_2 ***attributes)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = TRUE;
 	IMMA_CB *cb = &imma_cb;
 	IMMA_SEARCH_NODE *search_node = NULL;
@@ -5079,7 +5079,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
 SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT finalize_evt;
 	IMMSV_EVT *out_evt = NULL;
@@ -5187,7 +5187,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 				      const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = TRUE;
 	NCS_BOOL isAccessor = FALSE;
 	IMMA_CB *cb = &imma_cb;
@@ -5527,7 +5527,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *objectName, SaImmAttrValuesT_2 ***attributes)
 {
 	SaAisErrorT error = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = TRUE;
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT evt;
@@ -5823,7 +5823,7 @@ void imma_freeSearchAttrs(SaImmAttrValuesT_2 **attr)
 SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 {
 	SaAisErrorT error = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = TRUE;
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT evt;
@@ -6478,7 +6478,7 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 SaAisErrorT saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT adminOwnerHandle)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	/*uns32                proc_rc = NCSCC_RC_SUCCESS; */
+	/*uint32_t                proc_rc = NCSCC_RC_SUCCESS; */
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT finalize_evt;
 	IMMSV_EVT *out_evt = NULL;

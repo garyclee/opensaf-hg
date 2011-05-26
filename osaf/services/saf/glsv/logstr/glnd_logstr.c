@@ -218,7 +218,7 @@ NCSFL_ASCII_SPEC glnd_ascii_spec = {
   DESCRIPTION:       Function is used for registering the canned strings with the DTS.
 
 *****************************************************************************/
-uns32 glnd_reg_strings()
+uint32_t glnd_reg_strings()
 {
 
 	NCS_DTSV_REG_CANNED_STR arg;
@@ -236,7 +236,7 @@ uns32 glnd_reg_strings()
   DESCRIPTION:       Function is used for deregistering the canned strings with the DTS.
 
 *****************************************************************************/
-uns32 glnd_unreg_strings()
+uint32_t glnd_unreg_strings()
 {
 
 	NCS_DTSV_REG_CANNED_STR arg;

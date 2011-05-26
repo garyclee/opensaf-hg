@@ -17,12 +17,12 @@
 
 #ifndef GLD_API_H
 #define GLD_API_H
-uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info);
-uns32 gld_se_lib_destroy(NCS_LIB_REQ_INFO *req_info);
+uint32_t gld_se_lib_init(NCS_LIB_REQ_INFO *req_info);
+uint32_t gld_se_lib_destroy(NCS_LIB_REQ_INFO *req_info);
 void gld_process_mbx(SYSF_MBX *mbx);
 
-uns32 gld_cb_init(GLSV_GLD_CB *gld_cb);
-uns32 gld_cb_destroy(GLSV_GLD_CB *gld_cb);
+uint32_t gld_cb_init(GLSV_GLD_CB *gld_cb);
+uint32_t gld_cb_destroy(GLSV_GLD_CB *gld_cb);
 NCS_BOOL gld_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 void gld_dump_cb();
 

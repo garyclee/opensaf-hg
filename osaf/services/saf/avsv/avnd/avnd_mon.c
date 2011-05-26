@@ -46,7 +46,7 @@ typedef struct avnd_mon_req_tag {
 #define AVND_PM_MONITORING_INTERVAL 1000
 
 NCSCONTEXT gl_avnd_mon_task_hdl = 0;
-static uns32 avnd_send_pid_exit_evt(AVND_CB *cb, AVND_COMP_PM_REC *pm_rec);
+static uint32_t avnd_send_pid_exit_evt(AVND_CB *cb, AVND_COMP_PM_REC *pm_rec);
 static void avnd_mon_pids(AVND_CB *cb);
 
 /****************************************************************************
@@ -119,7 +119,7 @@ AVND_MON_REQ *avnd_mon_req_add(AVND_CB *cb, AVND_COMP_PM_REC *pm_rec)
 {
 	NCS_DB_LINK_LIST *pid_mon_list = &cb->pid_mon_list;
 	AVND_MON_REQ *mon_req;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_NCS_LOCK(&cb->mon_lock, NCS_LOCK_WRITE);
 
@@ -185,10 +185,10 @@ AVND_MON_REQ *avnd_mon_req_add(AVND_CB *cb, AVND_COMP_PM_REC *pm_rec)
 
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mon_req_del(AVND_CB *cb, SaUint64T pid)
+uint32_t avnd_mon_req_del(AVND_CB *cb, SaUint64T pid)
 {
 	NCS_DB_LINK_LIST *pid_mon_list = &cb->pid_mon_list;
-	uns32 rc;
+	uint32_t rc;
 	AVND_MON_REQ *mon_rec;
 
 	m_NCS_LOCK(&cb->mon_lock, NCS_LOCK_WRITE);
@@ -228,7 +228,7 @@ uns32 avnd_mon_req_del(AVND_CB *cb, SaUint64T pid)
 
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mon_req_free(NCS_DB_LINK_LIST_NODE *node)
+uint32_t avnd_mon_req_free(NCS_DB_LINK_LIST_NODE *node)
 {
 	AVND_MON_REQ *mon_req = (AVND_MON_REQ *) node;
 
@@ -249,9 +249,9 @@ uns32 avnd_mon_req_free(NCS_DB_LINK_LIST_NODE *node)
 
   Notes         : None
 ******************************************************************************/
-uns32 avnd_mon_task_create(void)
+uint32_t avnd_mon_task_create(void)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	/* create avnd task */
 	rc = m_NCS_TASK_CREATE((NCS_OS_CB)avnd_mon_process, NULL,
@@ -297,10 +297,10 @@ uns32 avnd_mon_task_create(void)
 
   Notes         : None
 ******************************************************************************/
-uns32 avnd_send_pid_exit_evt(AVND_CB *cb, AVND_COMP_PM_REC *pm_rec)
+uint32_t avnd_send_pid_exit_evt(AVND_CB *cb, AVND_COMP_PM_REC *pm_rec)
 {
 	AVND_EVT *evt;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	/* create & send the timer event */
 	evt = avnd_evt_create(cb, AVND_EVT_PID_EXIT, 0, 0, (void *)pm_rec, 0, 0);
@@ -409,7 +409,7 @@ void avnd_mon_process(void *arg)
 
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_pid_exit_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_pid_exit_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_COMP_PM_REC *pm_rec;
 	AVND_COMP *comp;

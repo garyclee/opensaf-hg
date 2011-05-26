@@ -28,7 +28,7 @@
 static NCS_PATRICIA_TREE node_name_db;	/* SaNameT index */
 static NCS_PATRICIA_TREE node_id_db;	/* SaClmNodeIdT index */
 
-uns32 avd_node_add_nodeid(AVD_AVND *node)
+uint32_t avd_node_add_nodeid(AVD_AVND *node)
 {
 	unsigned int rc;
 
@@ -600,8 +600,8 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 
 		} else if (!strcmp(attribute->attrName, "saAmfNodeSuFailoverMax")) {
-			uns32 back_val;
-			uns32 failover_val;
+			uint32_t back_val;
+			uint32_t failover_val;
 
 			failover_val = *((SaUint32T *)value);
 
@@ -613,7 +613,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 			if (node->node_state != AVD_AVND_STATE_ABSENT) {
 				back_val = node->saAmfNodeSuFailoverMax;
-				param.value_len = sizeof(uns32);
+				param.value_len = sizeof(uint32_t);
 				m_NCS_OS_HTONL_P(&param.value[0], failover_val);
 				node->saAmfNodeSuFailoverMax = failover_val;
 
@@ -693,10 +693,10 @@ void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
  *
  * @param node
  */
-uns32 avd_node_admin_lock_instantiation(AVD_AVND *node)
+uint32_t avd_node_admin_lock_instantiation(AVD_AVND *node)
 {
 	AVD_SU *su;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%s", node->name.value);
 
@@ -727,10 +727,10 @@ uns32 avd_node_admin_lock_instantiation(AVD_AVND *node)
  *
  * @param node
  */
-uns32 node_admin_unlock_instantiation(AVD_AVND *node)
+uint32_t node_admin_unlock_instantiation(AVD_AVND *node)
 {
 	AVD_SU *su;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%s", node->name.value);
 

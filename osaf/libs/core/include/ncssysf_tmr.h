@@ -56,7 +56,7 @@ extern "C" {
 
 	typedef void (*TMR_CALLBACK) (void *);
 
-	uns32 gl_tmr_milliseconds;
+	uint32_t gl_tmr_milliseconds;
 
 /** Target system timer support functions...
  **/
@@ -84,12 +84,12 @@ extern "C" {
  @
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	tmr_t ncs_tmr_alloc(char *, uns32);
-	tmr_t ncs_tmr_start(tmr_t, uns32, TMR_CALLBACK, void *, char *, uns32);
-	uns32 ncs_tmr_stop_v2(tmr_t, void **);
+	tmr_t ncs_tmr_alloc(char *, uint32_t);
+	tmr_t ncs_tmr_start(tmr_t, uint32_t, TMR_CALLBACK, void *, char *, uint32_t);
+	uint32_t ncs_tmr_stop_v2(tmr_t, void **);
 	void ncs_tmr_stop(tmr_t);
 	void ncs_tmr_free(tmr_t);
-	uns32 ncs_tmr_remaining(tmr_t, uns32 *);
+	uint32_t ncs_tmr_remaining(tmr_t, uint32_t *);
 
 /* Keep old names for Create  and Destroy, as many places call these functions */
 
@@ -98,8 +98,8 @@ extern "C" {
 
 /* For now, I/O is done internally.. Later we can export data and do I/O outside */
 
-	uns32 ncs_tmr_whatsout(void);
-	uns32 ncs_tmr_getstats(void);
+	uint32_t ncs_tmr_whatsout(void);
+	uint32_t ncs_tmr_getstats(void);
 
 #ifdef  __cplusplus
 }

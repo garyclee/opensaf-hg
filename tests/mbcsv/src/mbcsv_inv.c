@@ -5,22 +5,22 @@
 
 typedef struct mbcstm_file
 {
-  uns32 fd;
-  uns32 loc;
+  uint32_t fd;
+  uint32_t loc;
 } MBCSTM_FILE;
 
-static uns32 mbcstm_get_output_descriptor(MBCSTM_FILE *fd,MBCSTM_FILE *out_fd);
-static uns32 mbcstm_close_output_descriptor(MBCSTM_FILE *fd,
+static uint32_t mbcstm_get_output_descriptor(MBCSTM_FILE *fd,MBCSTM_FILE *out_fd);
+static uint32_t mbcstm_close_output_descriptor(MBCSTM_FILE *fd,
                                             MBCSTM_FILE *out_fd);
-uns32 mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uns32 svc_index, 
-                      uns32 ssn_index, void *data);
-static uns32 mbcstm_header_compare(MBCSTM_FILE *fd);
-static uns32 mbcstm_footer_compare(MBCSTM_FILE *fd);
+uint32_t mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uint32_t svc_index, 
+                      uint32_t ssn_index, void *data);
+static uint32_t mbcstm_header_compare(MBCSTM_FILE *fd);
+static uint32_t mbcstm_footer_compare(MBCSTM_FILE *fd);
 static int mbcstm_getline(MBCSTM_FILE *fd,char *buf);
 static int mbcstm_line_compare(MBCSTM_FILE *fd,char *buf);
-uns32 mbcstm_goto_header(MBCSTM_FILE *fd);
+uint32_t mbcstm_goto_header(MBCSTM_FILE *fd);
 
-static uns32 mbcstm_get_output_descriptor(MBCSTM_FILE *fd,MBCSTM_FILE *out_fd)
+static uint32_t mbcstm_get_output_descriptor(MBCSTM_FILE *fd,MBCSTM_FILE *out_fd)
 {
   char str[256];
 
@@ -46,7 +46,7 @@ static uns32 mbcstm_get_output_descriptor(MBCSTM_FILE *fd,MBCSTM_FILE *out_fd)
 
 }
 
-static uns32 mbcstm_close_output_descriptor(MBCSTM_FILE *fd,
+static uint32_t mbcstm_close_output_descriptor(MBCSTM_FILE *fd,
                                             MBCSTM_FILE *out_fd)
 {
   char str[256];
@@ -91,7 +91,7 @@ MBCSTM_FSM_STATES  mbcstm_get_state_from_name(char *string)
   return 0;
 }
 
-uns32 mbcstm_get_role_from_name(char name)
+uint32_t mbcstm_get_role_from_name(char name)
 {
   switch(name)
     {
@@ -110,7 +110,7 @@ uns32 mbcstm_get_role_from_name(char name)
 #endif
 
 /* extern MBCSV_CB mbcsv_cb; */
-uns32 mbcstm_check_inv(MBCSTM_CHECK check, uns32 svc_index, uns32 ssn_index, 
+uint32_t mbcstm_check_inv(MBCSTM_CHECK check, uint32_t svc_index, uint32_t ssn_index, 
                        void *data)
 {
   char    fun_name[]  = "mbcstm_check_inv";
@@ -154,18 +154,18 @@ uns32 mbcstm_check_inv(MBCSTM_CHECK check, uns32 svc_index, uns32 ssn_index,
   return NCSCC_RC_SUCCESS;
 }
 /*change : Needs to be modified*/
-uns32 mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uns32 svc_index, 
-                      uns32 ssn_index, void *data)
+uint32_t mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uint32_t svc_index, 
+                      uint32_t ssn_index, void *data)
 {
   MBCSTM_PEERS_DATA *peers = (MBCSTM_PEERS_DATA *)data;
   char  buf[256];
-  uns32 svc_id, to_svc_id;
+  uint32_t svc_id, to_svc_id;
   uns64 to_anchor;
-  uns32 len,inc = 1;
-  uns32 ssn_count, peer_count;
-  uns32 get_peer_info;
+  uint32_t len,inc = 1;
+  uint32_t ssn_count, peer_count;
+  uint32_t get_peer_info;
   char is_incompatible,is_cold_sync_done;
-  uns32 peer_incompatible,warm_sync_sent,peer_disc,ckpt_msg_sent,
+  uint32_t peer_incompatible,warm_sync_sent,peer_disc,ckpt_msg_sent,
     okay_to_async_updt,okay_to_send_ntfy, ack_rcvd,cold_sync_done,
     data_resp_process,c_sync_resp_process,w_syn_resp_process,
     version_relasecode,version_majorversion,version_minorversion;
@@ -204,7 +204,7 @@ uns32 mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uns32 svc_index,
 
   while(inc)
     {
-      uns32 hdl;
+      uint32_t hdl;
       printf("\n parsing for required service ");
       len = mbcstm_getline(fd,buf);
       if(sscanf(buf,"\n|%6d|%8X|         MY  CSI       |                                  |",&svc_id,&hdl) != 2)
@@ -212,14 +212,14 @@ uns32 mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uns32 svc_index,
 
       if(svc_id == to_svc_id)
         {
-          uns32 pwe_hdl,ckpt_hdl;
+          uint32_t pwe_hdl,ckpt_hdl;
           char warm_sync_on;
           char role;
 
           uns64 my_anchor;
-          uns32 in_quiescing,peer_up_sent,ftm_role_set,role_set,data_req_sent;
-          uns32 peer = 1;
-          uns32 ssn = 1;
+          uint32_t in_quiescing,peer_up_sent,ftm_role_set,role_set,data_req_sent;
+          uint32_t peer = 1;
+          uint32_t ssn = 1;
 
           inc = 0;
           printf("sevice id matched going to  get session information");
@@ -233,7 +233,7 @@ uns32 mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uns32 svc_index,
           /* Parse session by session and get results */
           while(ssn)
             {
-              uns32 active_peer;
+              uint32_t active_peer;
 
               len = mbcstm_getline(fd,buf);
               if(sscanf(buf,"|               |%8X|%8X| %c |%c|                                  |",
@@ -273,7 +273,7 @@ uns32 mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uns32 svc_index,
               while(peer)
                 {
                   uns64 peer_anchor;
-                  uns32 hdl,peer_hdl;
+                  uint32_t hdl,peer_hdl;
                   char peer_role,peer_state[5],peer_comp[2],peer_cold[2];
 
                   peer_state[4] = '\0';
@@ -357,7 +357,7 @@ uns32 mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uns32 svc_index,
               if(active_peer)        
                 {
                   uns64 peer_anchor;
-                  uns32 hdl,peer_hdl;
+                  uint32_t hdl,peer_hdl;
                   char peer_role,peer_state[8];
 
                   len = mbcstm_getline(fd,buf);
@@ -428,7 +428,7 @@ uns32 mbcstm_get_info(MBCSTM_FILE *fd,MBCSTM_CHECK check, uns32 svc_index,
   return NCSCC_RC_SUCCESS;
 }
 
-static uns32 mbcstm_header_compare(MBCSTM_FILE *fd)
+static uint32_t mbcstm_header_compare(MBCSTM_FILE *fd)
 {
   /*
     if(mbcstm_line_compare(fd,"") != 0)
@@ -458,7 +458,7 @@ static uns32 mbcstm_header_compare(MBCSTM_FILE *fd)
   return NCSCC_RC_SUCCESS;
 }
 
-uns32 mbcstm_goto_header(MBCSTM_FILE *fd)
+uint32_t mbcstm_goto_header(MBCSTM_FILE *fd)
 {
   int loca,rc;
 
@@ -491,7 +491,7 @@ uns32 mbcstm_goto_header(MBCSTM_FILE *fd)
   return NCSCC_RC_SUCCESS;
 }
 
-static uns32 mbcstm_footer_compare(MBCSTM_FILE *fd)
+static uint32_t mbcstm_footer_compare(MBCSTM_FILE *fd)
 {
   if(mbcstm_line_compare(fd,"------------------------------------------------------------------------------")!=0) 
     return NCSCC_RC_FAILURE; 

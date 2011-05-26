@@ -1845,7 +1845,7 @@ subscribe for 600, 700");
     tet_result(TET_PASS);
   printf("\n*************************************************************\n");
 }
-uns32 tet_initialise_setup(NCS_BOOL fail_no_active_sends)
+uint32_t tet_initialise_setup(NCS_BOOL fail_no_active_sends)
 {
   int i,FAIL=0;
   gl_vdest_indx=0;
@@ -1925,7 +1925,7 @@ uns32 tet_initialise_setup(NCS_BOOL fail_no_active_sends)
   return FAIL;
   
 }
-uns32 tet_cleanup_setup()
+uint32_t tet_cleanup_setup()
 {
   int i,id,FAIL=0;
   tet_printf("\tUninstalling the services on both VDESTs and ADEST");
@@ -3753,7 +3753,7 @@ void tet_adest_all_rcvrack_thread()
 {
   int FAIL=0;
   MDS_SVC_ID svc_id;
-  uns32 rs;
+  uint32_t rs;
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
@@ -3791,7 +3791,7 @@ void tet_adest_all_rcvrack_chgrole_thread()
 {
   int FAIL=0;
   MDS_SVC_ID svc_id;
-  uns32 rs;
+  uint32_t rs;
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
@@ -3838,7 +3838,7 @@ void tet_Dadest_all_rcvrack_chgrole_thread()
 {
   int FAIL=0;
   MDS_SVC_ID svc_id;
-  uns32 rs;
+  uint32_t rs;
 
   printf("\n\tInside Receiver Thread");fflush(stdout);
   if( (svc_id=is_adest_sel_obj_found(1)) )
@@ -8881,7 +8881,7 @@ void tet_create_default_PWE_VDEST_tp()
   printf("\n**************************************************************\n");
 }
 
-void Print_return_status(uns32 rs)
+void Print_return_status(uint32_t rs)
 {
   switch(rs)
     {
@@ -8955,7 +8955,7 @@ void tet_VDS(int choice)
       SaVersionT   version={'B',1,0};
       SaNameT      compName;
       char name[]="safComp=CompT_VDS,safSu=SuT_NCS_SCXB,safNode=Node1_SCXB";
-      uns32 returnvalue;
+      uint32_t returnvalue;
 
       returnvalue=saAmfInitialize(&amfHandle,NULL,&version);
       if(SA_AIS_OK==returnvalue)

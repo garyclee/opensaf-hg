@@ -23,12 +23,12 @@ extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
 void clms_all_node_rattr_update(void);
 SaAisErrorT clms_node_ccb_comp_cb(CcbUtilOperationData_t * opdata);
-uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop);
-uns32 clms_imm_node_lock(CLMS_CLUSTER_NODE * nodeop);
-uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop);
+uint32_t clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop);
+uint32_t clms_imm_node_lock(CLMS_CLUSTER_NODE * nodeop);
+uint32_t clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop);
 static void clms_lock_send_start_cbk(CLMS_CLUSTER_NODE * nodeop);
 static void clms_timer_ipc_send(SaClmNodeIdT node_id);
-static uns32 clms_lock_send_no_start_cbk(CLMS_CLUSTER_NODE * nodeop);
+static uint32_t clms_lock_send_no_start_cbk(CLMS_CLUSTER_NODE * nodeop);
 
 static SaVersionT immVersion = { 'A', 2, 1 };
 
@@ -106,11 +106,11 @@ static void *imm_impl_set_node_down_proc(void *_cb)
 * Lookup the client db to find if any subscribers exist for the VALIDATE/START step
 * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 */
-uns32 clms_chk_sub_exist(SaUint8T track_flag)
+uint32_t clms_chk_sub_exist(SaUint8T track_flag)
 {
 
 	CLMS_CLIENT_INFO *rec = NULL;
-	uns32 client_id = 0;
+	uint32_t client_id = 0;
 
 	TRACE_ENTER();
 
@@ -242,7 +242,7 @@ CLMS_CLUSTER_NODE *clms_node_new(SaNameT *name, const SaImmAttrValuesT_2 **attrs
 SaAisErrorT clms_node_create_config(void)
 {
 	SaAisErrorT rc = SA_AIS_ERR_INVALID_PARAM;
-	uns32 rt;
+	uint32_t rt;
 	SaImmHandleT imm_om_hdl;
 	SaImmSearchHandleT search_hdl;
 	SaImmSearchParametersT_2 searchParam;
@@ -302,7 +302,7 @@ SaAisErrorT clms_node_create_config(void)
 SaAisErrorT clms_cluster_config_get(void)
 {
 	SaAisErrorT rc = SA_AIS_ERR_INVALID_PARAM;
-	uns32 rt = NCSCC_RC_SUCCESS;
+	uint32_t rt = NCSCC_RC_SUCCESS;
 	SaImmHandleT imm_om_hdl;
 	SaImmSearchHandleT search_hdl;
 	SaImmSearchParametersT_2 searchParam;
@@ -583,7 +583,7 @@ static void clms_imm_admin_op_callback(SaImmOiHandleT immOiHandle,
 				       SaImmAdminOperationIdT opId, const SaImmAdminOperationParamsT_2 **params)
 {
 	CLMS_CLUSTER_NODE *nodeop;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("Admin callback for nodename:%s, opId:%llu", objectName->value, opId);
 
@@ -702,10 +702,10 @@ static void clms_create_track_resp_list(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_IN
 void clms_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, SaClmChangeStepT step)
 {
 	CLMS_CLIENT_INFO *rec;
-	uns32 client_id = 0;
+	uint32_t client_id = 0;
 	SaClmClusterNotificationT_4 *notify_changes = NULL;
 	SaClmClusterNotificationT_4 *notify_changes_only = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaUint32T node_id;
 
 	TRACE_ENTER2("step: %d", step);
@@ -881,10 +881,10 @@ void clms_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, SaClmChangeStepT st
 * @param[in] client
 * @param[in] step       
 */
-uns32 clms_send_track_local(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client, SaClmChangeStepT step)
+uint32_t clms_send_track_local(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client, SaClmChangeStepT step)
 {
 	CLMSV_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -986,11 +986,11 @@ uns32 clms_send_track_local(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client,
 * @param[in] step	
 * @param[in] notification buffer
 */
-uns32 clms_prep_and_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client, SaClmChangeStepT step,
+uint32_t clms_prep_and_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client, SaClmChangeStepT step,
 			       SaClmClusterNotificationT_4 * notify)
 {
 	CLMSV_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -1073,7 +1073,7 @@ static SaAisErrorT clms_imm_ccb_obj_create_callback(SaImmOiHandleT immOiHandle,
 {
 
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 rt;
+	uint32_t rt;
 	CcbUtilCcbData_t *ccb_util_ccb_data;
 	CcbUtilOperationData_t *operation = NULL;
 
@@ -1285,7 +1285,7 @@ SaAisErrorT clms_node_ccb_comp_modify(CcbUtilOperationData_t * opdata)
 SaAisErrorT clms_node_ccb_comp_cb(CcbUtilOperationData_t * opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	uns32 rt = NCSCC_RC_SUCCESS;
+	uint32_t rt = NCSCC_RC_SUCCESS;
 	CLMS_CLUSTER_NODE *node;
 
 	TRACE_ENTER2("'%s', %u", opdata->objectName.value, (unsigned int)opdata->ccbId);
@@ -1590,9 +1590,9 @@ static const SaImmOiCallbacksT_2 callbacks = {
  * 
  * @return SaAisErrorT
  */
-uns32 clms_imm_init(CLMS_CB * cb)
+uint32_t clms_imm_init(CLMS_CB * cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	immutilWrapperProfile.errorsAreFatal = 0;
 	TRACE_ENTER();
@@ -1644,7 +1644,7 @@ void clms_lock_timer_exp(int signo, siginfo_t *info, void *context)
 static void clms_timer_ipc_send(SaClmNodeIdT node_id)
 {
 	CLMSV_CLMS_EVT *clmsv_evt;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/** allocate an CLMSV_CLMS_EVENT now **/
@@ -1671,9 +1671,9 @@ static void clms_timer_ipc_send(SaClmNodeIdT node_id)
 /**
 * This sends the track callback when there are no start step subscribers  
 */
-static uns32 clms_lock_send_no_start_cbk(CLMS_CLUSTER_NODE * nodeop)
+static uint32_t clms_lock_send_no_start_cbk(CLMS_CLUSTER_NODE * nodeop)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	nodeop->change = SA_CLM_NODE_LEFT;
@@ -1724,10 +1724,10 @@ static uns32 clms_lock_send_no_start_cbk(CLMS_CLUSTER_NODE * nodeop)
 /**
 * Performs the admin lock operation on the node
 */
-uns32 clms_imm_node_lock(CLMS_CLUSTER_NODE * nodeop)
+uint32_t clms_imm_node_lock(CLMS_CLUSTER_NODE * nodeop)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Node name: %s to lock", nodeop->node_name.value);
 
 	if (nodeop->admin_state == SA_CLM_ADMIN_LOCKED) {
@@ -1792,9 +1792,9 @@ uns32 clms_imm_node_lock(CLMS_CLUSTER_NODE * nodeop)
 /**
 * Perform the admin unlock operation on the node                                        
 */
-uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
+uint32_t clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Node name %s to unlock", nodeop->node_name.value);
 
 	if (nodeop->admin_state == SA_CLM_ADMIN_UNLOCKED) {
@@ -1900,9 +1900,9 @@ uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 /**
 * Perform the admin shutdown operation on the node
 */
-uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
+uint32_t clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	if ((nodeop->admin_state == SA_CLM_ADMIN_LOCKED) || (nodeop->admin_state == SA_CLM_ADMIN_SHUTTING_DOWN)) {

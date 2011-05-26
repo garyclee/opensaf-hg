@@ -54,13 +54,13 @@ AVND_CB *avnd_cb = &_avnd_cb;
 
 static AVND_CB *avnd_cb_create(void);
 
-static uns32 avnd_mbx_create(AVND_CB *);
+static uint32_t avnd_mbx_create(AVND_CB *);
 
-static uns32 avnd_ext_intf_create(AVND_CB *);
+static uint32_t avnd_ext_intf_create(AVND_CB *);
 
-static uns32 avnd_mbx_destroy(AVND_CB *);
+static uint32_t avnd_mbx_destroy(AVND_CB *);
 
-static uns32 avnd_ext_intf_destroy(AVND_CB *);
+static uint32_t avnd_ext_intf_destroy(AVND_CB *);
 
 static NCS_BOOL avnd_mbx_clean(NCSCONTEXT, NCSCONTEXT);
 
@@ -116,10 +116,10 @@ static int get_node_type(void)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_create(void)
+uint32_t avnd_create(void)
 {
 	AVND_CB *cb = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* create & initialize AvND cb */
@@ -175,10 +175,10 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_destroy()
+uint32_t avnd_destroy()
 {
 	AVND_CB *cb = avnd_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
         /* stop clm tracking and finalize */
@@ -219,7 +219,7 @@ done:
 AVND_CB *avnd_cb_create()
 {
 	AVND_CB *cb = avnd_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
 	SaNtfCallbacksT ntfCallbacks = { NULL, NULL };
 	SaVersionT immVersion = { 'A', 2, 1 };
@@ -324,9 +324,9 @@ AVND_CB *avnd_cb_create()
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_mbx_create(AVND_CB *cb)
+uint32_t avnd_mbx_create(AVND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* create the mail box */
@@ -367,9 +367,9 @@ uns32 avnd_mbx_create(AVND_CB *cb)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_ext_intf_create(AVND_CB *cb)
+uint32_t avnd_ext_intf_create(AVND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR err = EDU_NORMAL;
 	TRACE_ENTER();
 
@@ -440,9 +440,9 @@ uns32 avnd_ext_intf_create(AVND_CB *cb)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_cb_destroy(AVND_CB *cb)
+uint32_t avnd_cb_destroy(AVND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
    /*** destroy all databases ***/
@@ -515,9 +515,9 @@ done:
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_mbx_destroy(AVND_CB *cb)
+uint32_t avnd_mbx_destroy(AVND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* detach the mail box */
@@ -551,9 +551,9 @@ uns32 avnd_mbx_destroy(AVND_CB *cb)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_ext_intf_destroy(AVND_CB *cb)
+uint32_t avnd_ext_intf_destroy(AVND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* MDS unregistration */
@@ -625,7 +625,7 @@ NCS_BOOL avnd_mbx_clean(NCSCONTEXT arg, NCSCONTEXT msg)
 void avnd_sigterm_handler(void)
 {
 	AVND_EVT *evt = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* create the evt with evt type indicating last step of termination */
 	evt = avnd_evt_create(avnd_cb, AVND_EVT_LAST_STEP_TERM, NULL, NULL, NULL, 0, 0);

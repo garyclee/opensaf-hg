@@ -62,7 +62,7 @@ typedef struct immd_immnd_info_node {
 typedef struct immd_cb_tag {
 	SYSF_MBX mbx;
 	SaNameT comp_name;
-	uns32 mds_handle;
+	uint32_t mds_handle;
 	V_DEST_QA immd_anc;
 	V_DEST_RL mds_role;	/* Current MDS role - ACTIVE/STANDBY */
 	MDS_DEST immd_dest_id;
@@ -71,10 +71,10 @@ typedef struct immd_cb_tag {
 	SaSelectionObjectT mbcsv_sel_obj;	/* Needed for MBCKPT */
 	NCS_MBCSV_CKPT_HDL o_ckpt_hdl;	/* Needed for MBCKPT */
 
-	uns32 immd_sync_cnt;	//ABT 32 bit => wrapparround!!
+	uint32_t immd_sync_cnt;	//ABT 32 bit => wrapparround!!
 
-	uns32 immd_self_id;
-	uns32 immd_remote_id;
+	uint32_t immd_self_id;
+	uint32_t immd_remote_id;
 	NCS_BOOL immd_remote_up; //Ticket #1819
 
 	NCS_NODE_ID node_id;
@@ -118,34 +118,34 @@ typedef struct immd_cb_tag {
 	SaImmRepositoryInitModeT mRim; /* Should be the rim obtained from coord. */
 } IMMD_CB;
 
-uns32 immd_immnd_info_tree_init(IMMD_CB *cb);
+uint32_t immd_immnd_info_tree_init(IMMD_CB *cb);
 
-uns32 immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree,
+uint32_t immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree,
 					MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node);
 
 void immd_immnd_info_node_getnext(NCS_PATRICIA_TREE *immnd_tree,
 					   MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node);
 
-/*uns32 immd_immnd_info_node_add(NCS_PATRICIA_TREE *immnd_tree, IMMD_IMMND_INFO_NODE *immnd_info_node);*/
+/*uint32_t immd_immnd_info_node_add(NCS_PATRICIA_TREE *immnd_tree, IMMD_IMMND_INFO_NODE *immnd_info_node);*/
 
-uns32 immd_immnd_info_node_delete(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info_node);
+uint32_t immd_immnd_info_node_delete(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info_node);
 
 void immd_immnd_info_tree_cleanup(IMMD_CB *cb);
 
 void immd_immnd_info_tree_destroy(IMMD_CB *cb);
 
-uns32 immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
+uint32_t immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
 					     MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node,
 					     NCS_BOOL *add_flag);
 
-uns32 immd_cb_db_init(IMMD_CB *cb);
+uint32_t immd_cb_db_init(IMMD_CB *cb);
 
-uns32 immd_cb_db_destroy(IMMD_CB *cb);
+uint32_t immd_cb_db_destroy(IMMD_CB *cb);
 
 void immd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer,
 					SaUint32T numberOfMembers, SaAisErrorT error);
 
-uns32 immd_mds_change_role(IMMD_CB *cb);
+uint32_t immd_mds_change_role(IMMD_CB *cb);
 
 void immd_proc_immd_reset(IMMD_CB *cb, NCS_BOOL active);
 

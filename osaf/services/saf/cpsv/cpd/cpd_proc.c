@@ -39,11 +39,11 @@
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
+uint32_t cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
 				    MDS_DEST *cpnd_dest, CPD_CKPT_INFO_NODE *ckpt_node, CPD_CKPT_MAP_INFO *map_info)
 {
 	CPSV_EVT send_evt;
-	uns32 rc;
+	uint32_t rc;
 	CPSV_D2ND_CKPT_INFO *d2nd_info = NULL;
 	SaNameT ckpt_name;
 
@@ -80,7 +80,7 @@ uns32 cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
 
 	if (ckpt_node->dest_cnt) {
 		CPD_NODE_REF_INFO *node_list = ckpt_node->node_list;
-		uns32 i = 0;
+		uint32_t i = 0;
 
 		d2nd_info->dest_cnt = ckpt_node->dest_cnt;
 		d2nd_info->dest_list = m_MMGR_ALLOC_CPSV_CPND_DEST_INFO(ckpt_node->dest_cnt);
@@ -127,7 +127,7 @@ uns32 cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
+uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 			       MDS_DEST *cpnd_dest,
 			       CPSV_ND2D_CKPT_CREATE *ckpt_create,
 			       CPD_CKPT_INFO_NODE **o_ckpt_node, CPD_CKPT_MAP_INFO **io_map_info)
@@ -138,7 +138,7 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 	CPD_CKPT_REPLOC_INFO *reploc_info = NULL;
 	CPD_NODE_REF_INFO *nref_info = NULL;
 	CPD_CKPT_REF_INFO *cref_info = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	SaCkptCheckpointHandleT ckpt_id = 0;
 	NCS_BOOL add_flag = TRUE, create_reploc_node = FALSE;
 	SaClmClusterNodeT cluster_node;
@@ -312,16 +312,16 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 		if ((!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_create->attributes))
 		    && (m_CPND_IS_ON_SCXB(cb->cpd_self_id, cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest)))) {
 			if (!ckpt_node->ckpt_on_scxb1)
-				ckpt_node->ckpt_on_scxb1 = (uns32)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
+				ckpt_node->ckpt_on_scxb1 = (uint32_t)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
 			else
-				ckpt_node->ckpt_on_scxb2 = (uns32)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
+				ckpt_node->ckpt_on_scxb2 = (uint32_t)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
 		}
 		if ((!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_create->attributes))
 		    && m_CPND_IS_ON_SCXB(cb->cpd_remote_id, cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest))) {
 			if (!ckpt_node->ckpt_on_scxb1)
-				ckpt_node->ckpt_on_scxb1 = (uns32)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
+				ckpt_node->ckpt_on_scxb1 = (uint32_t)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
 			else
-				ckpt_node->ckpt_on_scxb2 = (uns32)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
+				ckpt_node->ckpt_on_scxb2 = (uint32_t)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
 		}
 		proc_rc = cpd_ckpt_node_add(&cb->ckpt_tree, ckpt_node, cb->ha_state, cb->immOiHandle);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
@@ -387,13 +387,13 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, CPD_CKPT_MAP_INFO *map_info)
+uint32_t cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, CPD_CKPT_MAP_INFO *map_info)
 {
 	CPSV_EVT send_evt;
 	CPD_NODE_REF_INFO *nref_info, *nref_next;
 	CPD_CKPT_REF_INFO *cref_info = NULL;
 	CPD_CPND_INFO_NODE *node_info = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL ckptid_flag = FALSE;
 	SaNameT ckpt_name, node_name;
 	CPD_REP_KEY_INFO key_info;
@@ -474,7 +474,7 @@ uns32 cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, C
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_process_ckpt_delete(CPD_CB *cb,
+uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
 			      CPD_CKPT_INFO_NODE *ckpt_node,
 			      CPSV_SEND_INFO *sinfo, NCS_BOOL *o_ckpt_node_deleted, NCS_BOOL *o_is_active_changed)
 {
@@ -647,11 +647,11 @@ uns32 cpd_process_ckpt_delete(CPD_CB *cb,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
+uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 {
 	CPD_CPND_INFO_NODE *cpnd_info = NULL;
 	CPD_CKPT_REF_INFO *cref_info;
-	uns32 proc_rc;
+	uint32_t proc_rc;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	NCS_BOOL ckptid_flag = TRUE;
 	NCS_BOOL add_flag = FALSE;
@@ -884,7 +884,7 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
  * Notes          : None
 **************************************************************************************/
 
-uns32 cpd_proc_active_set(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_id, MDS_DEST mds_dest,
+uint32_t cpd_proc_active_set(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_id, MDS_DEST mds_dest,
 			  CPD_CKPT_INFO_NODE **ckpt_node)
 {
 	SaAisErrorT rc = SA_AIS_OK;
@@ -950,7 +950,7 @@ uns32 cpd_proc_active_set(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_id, MDS_DEST 
  * Notes         : None
 ******************************************************************************************/
 
-uns32 cpd_proc_retention_set(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_id, SaTimeT reten_time,
+uint32_t cpd_proc_retention_set(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_id, SaTimeT reten_time,
 			     CPD_CKPT_INFO_NODE **ckpt_node)
 {
 	SaAisErrorT rc = SA_AIS_OK;
@@ -976,7 +976,7 @@ uns32 cpd_proc_retention_set(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_id, SaTime
  * Notes         : None
 **************************************************************************************/
 
-uns32 cpd_proc_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE **ckpt_node, CPD_CKPT_MAP_INFO *map_info, SaNameT *ckpt_name)
+uint32_t cpd_proc_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE **ckpt_node, CPD_CKPT_MAP_INFO *map_info, SaNameT *ckpt_name)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 
@@ -1054,7 +1054,7 @@ void cpd_cb_dump(void)
 
 	/* # if ( CPSV_DEBUG == 1)  */
 	TRACE("*****************Printing CPD CB Dump******************");
-	TRACE(" MDS Handle:             %x", (uns32)cb->mds_handle);
+	TRACE(" MDS Handle:             %x", (uint32_t)cb->mds_handle);
 	TRACE(" Handle Manager Pool ID: %d", cb->hm_poolid);
 	TRACE(" Handle Manager Handle:  %d", cb->cpd_hdl);
 	TRACE(" CPD State:  %d", cb->ha_state);
@@ -1079,7 +1079,7 @@ void cpd_cb_dump(void)
 				list = cpnd_info_node->ckpt_ref_list;
 				TRACE(" List of CKPT IDs: ");
 				while (list && cpnd_info_node->ckpt_cnt > 0) {
-					TRACE(" %d ", (uns32)list->ckpt_node->ckpt_id);
+					TRACE(" %d ", (uint32_t)list->ckpt_node->ckpt_id);
 					list = list->next;
 				}
 				TRACE(" End of CKPT IDs List ");
@@ -1107,11 +1107,11 @@ void cpd_cb_dump(void)
 										    (uint8_t *)&prev_ckpt_id);
 
 			while (ckpt_node) {
-				uns32 i = 0;
+				uint32_t i = 0;
 				prev_ckpt_id = ckpt_node->ckpt_id;
 
 				TRACE("------------------------------------------------------");
-				TRACE(" CKPT ID:  = %d", (uns32)ckpt_node->ckpt_id);
+				TRACE(" CKPT ID:  = %d", (uint32_t)ckpt_node->ckpt_id);
 				TRACE(" CKPT Name len  = %d", ckpt_node->ckpt_name.length);
 				TRACE(" CKPT Name: ");
 				for (i = 0; i < ckpt_node->ckpt_name.length; i++) {
@@ -1122,20 +1122,20 @@ void cpd_cb_dump(void)
 				       ckpt_node->is_active_exists);
 				if (ckpt_node->is_unlink_set) {
 					TRACE(" Create Attributes");
-					TRACE(" creationFlags: %d, ", (uns32)ckpt_node->attributes.creationFlags);
+					TRACE(" creationFlags: %d, ", (uint32_t)ckpt_node->attributes.creationFlags);
 					TRACE(" retentionDuration: %d, ",
-					       (uns32)ckpt_node->attributes.retentionDuration);
+					       (uint32_t)ckpt_node->attributes.retentionDuration);
 					TRACE(" maxSections: %d, ", ckpt_node->attributes.maxSections);
-					TRACE(" maxSectionSize: %d, ", (uns32)ckpt_node->attributes.maxSectionSize);
+					TRACE(" maxSectionSize: %d, ", (uint32_t)ckpt_node->attributes.maxSectionSize);
 					TRACE(" maxSectionIdSize: %d, ",
-					       (uns32)ckpt_node->attributes.maxSectionIdSize);
+					       (uint32_t)ckpt_node->attributes.maxSectionIdSize);
 				}
 
 				if (ckpt_node->is_active_exists)
 					TRACE(" Active DEST NODE ID: %d",
 					       m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_dest));
 
-				TRACE("Reteintion Time = %d", (uns32)ckpt_node->ret_time);
+				TRACE("Reteintion Time = %d", (uint32_t)ckpt_node->ret_time);
 
 				list = ckpt_node->node_list;
 				TRACE("No of Dest: %d", ckpt_node->dest_cnt);
@@ -1169,7 +1169,7 @@ void cpd_cb_dump(void)
 			ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree,
 										       (uint8_t *)name.value);
 			while (ckpt_map_node != NULL) {
-				uns32 i;
+				uint32_t i;
 
 				name = ckpt_map_node->ckpt_name;
 
@@ -1180,15 +1180,15 @@ void cpd_cb_dump(void)
 					TRACE("%c", ckpt_map_node->ckpt_name.value[i]);
 				}
 
-				TRACE(" CKPT ID:  = %d", (uns32)ckpt_map_node->ckpt_id);
+				TRACE(" CKPT ID:  = %d", (uint32_t)ckpt_map_node->ckpt_id);
 
 				TRACE("Create Attributes");
-				TRACE(" creationFlags: %d, ", (uns32)ckpt_map_node->attributes.creationFlags);
+				TRACE(" creationFlags: %d, ", (uint32_t)ckpt_map_node->attributes.creationFlags);
 				TRACE(" retentionDuration: %d, ",
-				       (uns32)ckpt_map_node->attributes.retentionDuration);
+				       (uint32_t)ckpt_map_node->attributes.retentionDuration);
 				TRACE(" maxSections: %d, ", ckpt_map_node->attributes.maxSections);
-				TRACE(" maxSectionSize: %d, ", (uns32)ckpt_map_node->attributes.maxSectionSize);
-				TRACE(" maxSectionIdSize: %d, ", (uns32)ckpt_map_node->attributes.maxSectionIdSize);
+				TRACE(" maxSectionSize: %d, ", (uint32_t)ckpt_map_node->attributes.maxSectionSize);
+				TRACE(" maxSectionIdSize: %d, ", (uint32_t)ckpt_map_node->attributes.maxSectionIdSize);
 				ckpt_map_node =
 				    (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree,
 										   (uint8_t *)name.value);
@@ -1210,7 +1210,7 @@ void cpd_cb_dump(void)
   Return Values : NCSCC_RC_FAILURE /NCSCC_RC_SUCCESS
   Notes         : None
 ******************************************************************************/
-uns32 cpd_ckpt_reploc_imm_object_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set)
+uint32_t cpd_ckpt_reploc_imm_object_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set)
 {
 
 	SaNameT replica_dn, node_name;

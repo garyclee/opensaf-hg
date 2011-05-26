@@ -77,7 +77,7 @@ void glnd_evt_backup_queue_add(GLND_CB *glnd_cb, GLSV_GLND_EVT *glnd_evt)
  
   Notes         : None
 ******************************************************************************/
-uns32 glnd_evt_backup_queue_delete_lock_req(GLND_CB *glnd_cb,
+uint32_t glnd_evt_backup_queue_delete_lock_req(GLND_CB *glnd_cb,
 					    SaLckHandleT hldId, SaLckResourceIdT resId, SaLckLockModeT type)
 {
 	GLSV_GLND_EVT *prev, *evt = glnd_cb->evt_bckup_q;

@@ -33,13 +33,13 @@
 
 #include "cpa.h"
 
-static uns32 cpa_mds_enc_flat(CPA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
-static uns32 cpa_mds_dec_flat(CPA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
-static uns32 cpa_mds_rcv(CPA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
-static uns32 cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
-static uns32 cpa_mds_get_handle(CPA_CB *cb);
-static uns32 cpa_mds_enc(CPA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
-static uns32 cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
+static uint32_t cpa_mds_enc_flat(CPA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
+static uint32_t cpa_mds_dec_flat(CPA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
+static uint32_t cpa_mds_rcv(CPA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
+static uint32_t cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
+static uint32_t cpa_mds_get_handle(CPA_CB *cb);
+static uint32_t cpa_mds_enc(CPA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
+static uint32_t cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
 
 FUNC_DECLARATION(CPSV_EVT);
 
@@ -64,10 +64,10 @@ MDS_CLIENT_MSG_FORMAT_VER cpa_cpd_msg_fmt_table[CPA_WRT_CPD_SUBPART_VER_RANGE] =
  * Notes         : None.
  *****************************************************************************/
 
-uns32 cpa_mds_get_handle(CPA_CB *cb)
+uint32_t cpa_mds_get_handle(CPA_CB *cb)
 {
 	NCSADA_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&arg, 0, sizeof(NCSADA_INFO));
 	arg.req = NCSADA_GET_HDLS;
@@ -95,11 +95,11 @@ uns32 cpa_mds_get_handle(CPA_CB *cb)
   Notes         : None.
 ******************************************************************************/
 
-uns32 cpa_mds_register(CPA_CB *cb)
+uint32_t cpa_mds_register(CPA_CB *cb)
 {
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID subs_id[2] = { NCSMDS_SVC_ID_CPND, NCSMDS_SVC_ID_CPD };
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* STEP1: Get the MDS Handle */
 	if (cpa_mds_get_handle(cb) != NCSCC_RC_SUCCESS)
@@ -160,7 +160,7 @@ uns32 cpa_mds_register(CPA_CB *cb)
 void cpa_mds_unregister(CPA_CB *cb)
 {
 	NCSMDS_INFO arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Un-install your service into MDS. 
 	   No need to cancel the services that are subscribed */
@@ -190,10 +190,10 @@ void cpa_mds_unregister(CPA_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 cpa_mds_callback(struct ncsmds_callback_info *info)
+uint32_t cpa_mds_callback(struct ncsmds_callback_info *info)
 {
 	CPA_CB *cpa_cb = NULL;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	if (info == NULL)
 		return rc;
@@ -262,11 +262,11 @@ uns32 cpa_mds_callback(struct ncsmds_callback_info *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 cpa_mds_enc_flat(CPA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
+static uint32_t cpa_mds_enc_flat(CPA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 {
 	CPSV_EVT *evt = NULL;
 	NCS_UBAID *uba = info->io_uba;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
 	if (info->i_to_svc_id == NCSMDS_SVC_ID_CPND) {
@@ -308,11 +308,11 @@ static uns32 cpa_mds_enc_flat(CPA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 cpa_mds_dec_flat(CPA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
+static uint32_t cpa_mds_dec_flat(CPA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 {
 	CPSV_EVT *evt = NULL;
 	NCS_UBAID *uba = info->io_uba;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
 
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_CPND) {
@@ -363,9 +363,9 @@ static uns32 cpa_mds_dec_flat(CPA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 cpa_mds_rcv(CPA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
+static uint32_t cpa_mds_rcv(CPA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	CPSV_EVT *evt = (CPSV_EVT *)rcv_info->i_msg;
 
@@ -398,12 +398,12 @@ static uns32 cpa_mds_rcv(CPA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+static uint32_t cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
     SaCkptCheckpointHandleT  prev_ckpt_id=0;
     CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
-    uns32 proc_rc = 0, i = 0, no_of_nodes = 0;
-    uns32 counter=cb->gbl_ckpt_tree.n_nodes;
+    uint32_t proc_rc = 0, i = 0, no_of_nodes = 0;
+    uint32_t counter=cb->gbl_ckpt_tree.n_nodes;
     CPSV_EVT send_evt;
     CPSV_REF_CNT   ref_cnt_array[100];
 
@@ -502,12 +502,12 @@ static uns32 cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 
   Notes         : None.
 ******************************************************************************/
-static uns32 cpa_mds_enc(CPA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
+static uint32_t cpa_mds_enc(CPA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	CPSV_EVT *pevt = NULL;
 	EDU_ERR ederror = 0;
 	NCS_UBAID *io_uba = enc_info->io_uba;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *pstream = NULL;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
@@ -585,11 +585,11 @@ static uns32 cpa_mds_enc(CPA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
   Notes         : None.
 ******************************************************************************/
-static uns32 cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
+static uint32_t cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
 	CPSV_EVT *msg_ptr = NULL;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t local_data[20];
 	uint8_t *pstream;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
@@ -646,7 +646,7 @@ static uns32 cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
   Description   : This routine sends the CPA message to CPND.
  
   Arguments     :
-                  uns32      cpa_mds_hdl Handle of CPA
+                  uint32_t      cpa_mds_hdl Handle of CPA
                   MDS_DEST  *destination - destintion to send to
                   CPSV_EVT   *i_evt - CPSV_EVT pointer
                   CPSV_EVT   **o_evt - CPSV_EVT pointer to result data
@@ -656,11 +656,11 @@ static uns32 cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 cpa_mds_msg_sync_send(uns32 cpa_mds_hdl, MDS_DEST *destination, CPSV_EVT *i_evt, CPSV_EVT **o_evt, uns32 timeout)
+uint32_t cpa_mds_msg_sync_send(uint32_t cpa_mds_hdl, MDS_DEST *destination, CPSV_EVT *i_evt, CPSV_EVT **o_evt, uint32_t timeout)
 {
 
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	if (!i_evt)
 		return NCSCC_RC_FAILURE;
@@ -694,7 +694,7 @@ uns32 cpa_mds_msg_sync_send(uns32 cpa_mds_hdl, MDS_DEST *destination, CPSV_EVT *
  
   Description   : This routine sends the CPA message to CPND.
  
-  Arguments     : uns32 cpa_mds_hdl Handle of CPA
+  Arguments     : uint32_t cpa_mds_hdl Handle of CPA
                   MDS_DEST  *destination - destintion to send to
                   CPSV_EVT   *i_evt - CPSV_EVT pointer
                   
@@ -702,11 +702,11 @@ uns32 cpa_mds_msg_sync_send(uns32 cpa_mds_hdl, MDS_DEST *destination, CPSV_EVT *
  
   Notes         : None.
 ******************************************************************************/
-uns32 cpa_mds_msg_send(uns32 cpa_mds_hdl, MDS_DEST *destination, CPSV_EVT *i_evt, uns32 to_svc)
+uint32_t cpa_mds_msg_send(uint32_t cpa_mds_hdl, MDS_DEST *destination, CPSV_EVT *i_evt, uint32_t to_svc)
 {
 
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	if (!i_evt)
 		return NCSCC_RC_FAILURE;

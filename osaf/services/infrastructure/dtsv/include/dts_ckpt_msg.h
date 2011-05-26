@@ -51,10 +51,10 @@ typedef enum dtsv_ckpt_msg_reo_type {
  * Async update count. It will be used for warm sync verification.
  */
 typedef struct dtsv_async_updt_cnt {
-	uns32 dts_svc_reg_tbl_updt;
-	uns32 dta_dest_list_updt;
-	uns32 global_policy_updt;
-	uns32 dts_log_updt;
+	uint32_t dts_svc_reg_tbl_updt;
+	uint32_t dta_dest_list_updt;
+	uint32_t global_policy_updt;
+	uint32_t dts_log_updt;
 } DTSV_ASYNC_UPDT_CNT;
 
 /* Macros for sending Async updates to standby */

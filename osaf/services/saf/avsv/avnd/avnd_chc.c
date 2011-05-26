@@ -49,13 +49,13 @@ static void avnd_comp_hc_param_val(AVND_CB *, AVSV_AMF_API_TYPE, uint8_t *,
 static AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *, AVND_COMP *, AVSV_AMF_HC_START_PARAM *, MDS_DEST *);
 static void avnd_comp_hc_rec_del(AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *);
 
-static uns32 avnd_comp_hc_rec_process(AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *, AVND_COMP_HC_OP, SaAisErrorT);
+static uint32_t avnd_comp_hc_rec_process(AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *, AVND_COMP_HC_OP, SaAisErrorT);
 
-static uns32 avnd_comp_hc_rec_stop(AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *);
+static uint32_t avnd_comp_hc_rec_stop(AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *);
 
-static uns32 avnd_comp_hc_rec_confirm(AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *, SaAisErrorT);
+static uint32_t avnd_comp_hc_rec_confirm(AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *, SaAisErrorT);
 
-static uns32 avnd_comp_hc_rec_tmr_exp(AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *);
+static uint32_t avnd_comp_hc_rec_tmr_exp(AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *);
 
 /****************************************************************************
   Name          : avnd_evt_ava_hc_start
@@ -70,13 +70,13 @@ static uns32 avnd_comp_hc_rec_tmr_exp(AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_hc_start_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_hc_start_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_HC_START_PARAM *hc_start = &api_info->param.hc_start;
 	AVND_COMP *comp = 0;
 	AVND_COMP_HC_REC *rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 
@@ -132,13 +132,13 @@ uns32 avnd_evt_ava_hc_start_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_hc_stop_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_hc_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_HC_STOP_PARAM *hc_stop = &api_info->param.hc_stop;
 	AVND_COMP *comp = 0;
 	AVND_COMP_HC_REC *rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 
@@ -190,13 +190,13 @@ uns32 avnd_evt_ava_hc_stop_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_hc_confirm_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_hc_confirm_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_HC_CONFIRM_PARAM *hc_confirm = &api_info->param.hc_confirm;
 	AVND_COMP *comp = 0;
 	AVND_COMP_HC_REC *rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 
@@ -249,11 +249,11 @@ uns32 avnd_evt_ava_hc_confirm_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_hc_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_tmr_hc_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_TMR_EVT *tmr = &evt->info.tmr;
 	AVND_COMP_HC_REC *rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -303,7 +303,7 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 {
 	*o_amf_rc = SA_AIS_OK;
 	AVSV_HLT_KEY hlt_chk;
-	uns32 l_num;
+	uint32_t l_num;
 	AVND_COMP_HC_REC tmp_hc_rec;
 
 	switch (api_type) {
@@ -487,8 +487,8 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_HC
 	AVND_COMP_HC_REC *rec = 0;
 	AVND_HC *hc = 0;
 	AVSV_HLT_KEY hlt_chk;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 l_num;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t l_num;
 
 	if ((0 == (rec = calloc(1, sizeof(AVND_COMP_HC_REC)))))
 		goto err;
@@ -620,9 +620,9 @@ void avnd_comp_hc_rec_del_all(AVND_CB *cb, AVND_COMP *comp)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_hc_rec_process(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec, AVND_COMP_HC_OP op, SaAisErrorT res)
+uint32_t avnd_comp_hc_rec_process(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec, AVND_COMP_HC_OP op, SaAisErrorT res)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (op) {
 	case AVND_COMP_HC_START:
@@ -670,9 +670,9 @@ uns32 avnd_comp_hc_rec_process(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *r
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_hc_rec_start(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
+uint32_t avnd_comp_hc_rec_start(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Invoke the hc callbk for AMF initiated healthcheck */
 	if (m_AVND_COMP_HC_REC_IS_AMF_INITIATED(rec)) {
@@ -705,10 +705,10 @@ uns32 avnd_comp_hc_rec_start(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_hc_rec_stop(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
+uint32_t avnd_comp_hc_rec_stop(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 {
 	AVND_COMP_CBK *cbk_rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* 
 	 * It may so happen that the callbk record is added to the callbk list 
@@ -746,10 +746,10 @@ uns32 avnd_comp_hc_rec_stop(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_hc_rec_confirm(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec, SaAisErrorT res)
+uint32_t avnd_comp_hc_rec_confirm(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec, SaAisErrorT res)
 {
 	AVND_ERR_INFO err_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* it has to be comp-initiated healthcheck */
 	assert(m_AVND_COMP_HC_REC_IS_COMP_INITIATED(rec));
@@ -783,10 +783,10 @@ uns32 avnd_comp_hc_rec_confirm(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *r
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_hc_rec_tmr_exp(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
+uint32_t avnd_comp_hc_rec_tmr_exp(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 {
 	AVND_ERR_INFO err_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (m_AVND_COMP_HC_REC_IS_AMF_INITIATED(rec)) {
 		if (rec->status == AVND_COMP_HC_STATUS_STABLE)
@@ -860,7 +860,7 @@ void avnd_comp_hc_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl, MDS_D
    
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_dblist_hc_rec_cmp(uint8_t *key1, uint8_t *key2)
+uint32_t avnd_dblist_hc_rec_cmp(uint8_t *key1, uint8_t *key2)
 {
 	int i = 0;
 	AVND_COMP_HC_REC *rec1, *rec2;
@@ -889,7 +889,7 @@ uns32 avnd_dblist_hc_rec_cmp(uint8_t *key1, uint8_t *key2)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mbcsv_comp_hc_rec_tmr_exp(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
+uint32_t avnd_mbcsv_comp_hc_rec_tmr_exp(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 {
 	return (avnd_comp_hc_rec_tmr_exp(cb, comp, rec));
 }

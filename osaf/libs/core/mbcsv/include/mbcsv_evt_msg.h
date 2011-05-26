@@ -52,7 +52,7 @@ typedef enum {
 } MBCSV_EVT_TYPE;
 
 typedef struct mbcsv_evt_tmr_info {
-	uns32 peer_inst_hdl;
+	uint32_t peer_inst_hdl;
 	TIMER_TYPE_ENUM type;
 } MBCSV_EVT_TMR_INFO;
 
@@ -69,21 +69,21 @@ typedef enum {
 
 typedef struct mbcsv_client_msg {
 	union {
-		uns32 raw;
+		uint32_t raw;
 		NCS_MBCSV_MSG_TYPE msg_sub_type;
 		NCSMBCSV_EVENTS evt_type;
 	} type;
 	NCS_UBAID uba;
 	NCS_MBCSV_ACT_TYPE action;
 	NCS_MBCSV_SND_TYPE snd_type;
-	uns32 reo_type;
-	uns32 first_rsp;	/* Field indicate that this in first responce message
+	uint32_t reo_type;
+	uint32_t first_rsp;	/* Field indicate that this in first responce message
 				   sent in the sequences of responces. Meaningful only
 				   in the case of cold, warm and data resp */
 } MBCSV_CLIENT_MSG;
 
 typedef struct mbcsv_chg_role_req {
-	uns32 ckpt_hdl;
+	uint32_t ckpt_hdl;
 	SaAmfHAStateT new_role;
 } MBCSV_CHG_ROLE_REQ;
 
@@ -107,14 +107,14 @@ typedef struct mbcsv_peer_down {
 /* PEER INFO Message */
 typedef struct mbcsv_peer_info {
 	uint16_t peer_version;	/* Software version of the peer */
-	uns32 my_peer_inst_hdl;
+	uint32_t my_peer_inst_hdl;
 	uint8_t compatible;	/* Flag to tell whether peer is compatible */
 } MBCSV_PEER_INFO;
 
 /* PEER INFO RSP Message */
 typedef struct mbcsv_peer_info_rsp {
 	uint16_t peer_version;	/* Software version of the peer */
-	uns32 my_peer_inst_hdl;
+	uint32_t my_peer_inst_hdl;
 	uint8_t compatible;	/* Flag to tell whether peer is compatible */
 } MBCSV_PEER_INFO_RSP;
 
@@ -164,7 +164,7 @@ typedef struct mbcsv_internal_msg {
 } MBCSV_INTERNAL_MSG;
 
 typedef struct pwe_svc_id {
-	uns32 pwe_hdl;
+	uint32_t pwe_hdl;
 	SS_SVC_ID svc_id;
 	MBCSV_ANCHOR peer_anchor;
 } PWE_SVC_ID;
@@ -177,9 +177,9 @@ typedef struct pwe_svc_id {
 ***********************************************************************************/
 typedef struct peer_inst_key {
 	SS_SVC_ID svc_id;
-	uns32 pwe_hdl;
+	uint32_t pwe_hdl;
 	MBCSV_ANCHOR peer_anchor;
-	uns32 peer_inst_hdl;
+	uint32_t peer_inst_hdl;
 } PEER_INST_KEY;
 
 typedef struct mbcsv_evt {

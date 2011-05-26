@@ -69,9 +69,9 @@ uint8_t initial_discovery_phase = TRUE;
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_init(DTM_INTERNODE_CB * dtms_cb)
+static uint32_t dtm_init(DTM_INTERNODE_CB * dtms_cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	memset(dtms_cb, 0, sizeof(DTM_INTERNODE_CB));
@@ -95,7 +95,7 @@ static uns32 dtm_init(DTM_INTERNODE_CB * dtms_cb)
 	return rc;
 }
 
-static uns32 dtm_construct_bcast_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *buf_ptr, int *pack_size)
+static uint32_t dtm_construct_bcast_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *buf_ptr, int *pack_size)
 {
 	TRACE_ENTER();
 
@@ -125,7 +125,7 @@ static uns32 dtm_construct_bcast_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *buf_pt
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_destroy_node_discovery_task(void)
+static uint32_t dtm_destroy_node_discovery_task(void)
 {
 	TRACE_ENTER();
 
@@ -150,7 +150,7 @@ static uns32 dtm_destroy_node_discovery_task(void)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_destroy_service_discovery_task(void)
+static uint32_t dtm_destroy_service_discovery_task(void)
 {
 	TRACE_ENTER();
 
@@ -175,9 +175,9 @@ static uns32 dtm_destroy_service_discovery_task(void)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_node_discovery_task_create(void)
+uint32_t dtm_node_discovery_task_create(void)
 {
-	uns32 rc;
+	uint32_t rc;
 	TRACE_ENTER();
 
 	/* create avnd task */

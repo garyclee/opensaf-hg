@@ -92,7 +92,7 @@ static const MBCSV_PROCESS_REQ_FUNC_PTR
 *
 *****************************************************************************/
 
-uns32 ncs_mbcsv_svc(NCS_MBCSV_ARG *arg)
+uint32_t ncs_mbcsv_svc(NCS_MBCSV_ARG *arg)
 {
 	if (mbcsv_cb.created == FALSE)
 		return m_MBCSV_DBG_SINK(SA_AIS_ERR_NOT_EXIST, "MBCA instance is not created. First call mbcsv dl api.");
@@ -119,7 +119,7 @@ uns32 ncs_mbcsv_svc(NCS_MBCSV_ARG *arg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_initialize_request(NCS_MBCSV_ARG *arg)
+uint32_t mbcsv_process_initialize_request(NCS_MBCSV_ARG *arg)
 {
 	MBCSV_REG *new_reg;
 	NCS_PATRICIA_PARAMS pt_params;
@@ -178,7 +178,7 @@ uns32 mbcsv_process_initialize_request(NCS_MBCSV_ARG *arg)
 	 * Create patricia tree for the checkpoint instance  Handle used for this tree
 	 * is the PWE handle.
 	 */
-	pt_params.key_size = sizeof(uns32);
+	pt_params.key_size = sizeof(uint32_t);
 
 	if (ncs_patricia_tree_init(&new_reg->ckpt_ssn_list, &pt_params) != NCSCC_RC_SUCCESS) {
 		rc = m_MBCSV_DBG_SINK_SVC(SA_AIS_ERR_FAILED_OPERATION,
@@ -266,7 +266,7 @@ uns32 mbcsv_process_initialize_request(NCS_MBCSV_ARG *arg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_finalize_request(NCS_MBCSV_ARG *arg)
+uint32_t mbcsv_process_finalize_request(NCS_MBCSV_ARG *arg)
 {
 	MBCSV_REG *mbc_reg;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -311,7 +311,7 @@ uns32 mbcsv_process_finalize_request(NCS_MBCSV_ARG *arg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_get_sel_obj_request(NCS_MBCSV_ARG *arg)
+uint32_t mbcsv_process_get_sel_obj_request(NCS_MBCSV_ARG *arg)
 {
 	MBCSV_REG *mbc_reg;
 
@@ -349,7 +349,7 @@ uns32 mbcsv_process_get_sel_obj_request(NCS_MBCSV_ARG *arg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_dispatch_request(NCS_MBCSV_ARG *arg)
+uint32_t mbcsv_process_dispatch_request(NCS_MBCSV_ARG *arg)
 {
 	MBCSV_REG *mbc_reg;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -400,12 +400,12 @@ uns32 mbcsv_process_dispatch_request(NCS_MBCSV_ARG *arg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_open_request(NCS_MBCSV_ARG *arg)
+uint32_t mbcsv_process_open_request(NCS_MBCSV_ARG *arg)
 {
 	MBCSV_REG *mbc_reg;
 	CKPT_INST *new_ckpt;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 pwe_hdl = arg->info.open.i_pwe_hdl;
+	uint32_t pwe_hdl = arg->info.open.i_pwe_hdl;
 	SS_SVC_ID svc_id = 0;
 
 	/*
@@ -540,7 +540,7 @@ uns32 mbcsv_process_open_request(NCS_MBCSV_ARG *arg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_close_request(NCS_MBCSV_ARG *arg)
+uint32_t mbcsv_process_close_request(NCS_MBCSV_ARG *arg)
 {
 	MBCSV_REG *mbc_reg;
 	CKPT_INST *ckpt_inst;
@@ -602,7 +602,7 @@ uns32 mbcsv_process_close_request(NCS_MBCSV_ARG *arg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_chg_role_request(NCS_MBCSV_ARG *arg)
+uint32_t mbcsv_process_chg_role_request(NCS_MBCSV_ARG *arg)
 {
 	MBCSV_REG *mbc_reg;
 	CKPT_INST *ckpt_inst;
@@ -712,7 +712,7 @@ uns32 mbcsv_process_chg_role_request(NCS_MBCSV_ARG *arg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_snd_ckpt_request(NCS_MBCSV_ARG *arg)
+uint32_t mbcsv_process_snd_ckpt_request(NCS_MBCSV_ARG *arg)
 {
 	MBCSV_REG *mbc_reg;
 	CKPT_INST *ckpt_inst;
@@ -833,7 +833,7 @@ uns32 mbcsv_process_snd_ckpt_request(NCS_MBCSV_ARG *arg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_snd_ntfy_request(NCS_MBCSV_ARG *arg)
+uint32_t mbcsv_process_snd_ntfy_request(NCS_MBCSV_ARG *arg)
 {
 	MBCSV_REG *mbc_reg;
 	CKPT_INST *ckpt_inst;
@@ -896,7 +896,7 @@ uns32 mbcsv_process_snd_ntfy_request(NCS_MBCSV_ARG *arg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_snd_data_req(NCS_MBCSV_ARG *arg)
+uint32_t mbcsv_process_snd_data_req(NCS_MBCSV_ARG *arg)
 {
 	MBCSV_REG *mbc_reg;
 	CKPT_INST *ckpt_inst;
@@ -983,7 +983,7 @@ uns32 mbcsv_process_snd_data_req(NCS_MBCSV_ARG *arg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_get_request(NCS_MBCSV_ARG *arg)
+uint32_t mbcsv_process_get_request(NCS_MBCSV_ARG *arg)
 {
 	MBCSV_REG *mbc_reg;
 	CKPT_INST *ckpt_inst;
@@ -1052,7 +1052,7 @@ uns32 mbcsv_process_get_request(NCS_MBCSV_ARG *arg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_set_request(NCS_MBCSV_ARG *arg)
+uint32_t mbcsv_process_set_request(NCS_MBCSV_ARG *arg)
 {
 	MBCSV_REG *mbc_reg;
 	CKPT_INST *ckpt_inst;

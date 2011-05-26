@@ -75,11 +75,11 @@
  * ========================================================================
  */
 extern lgs_cb_t *lgs_cb;
-extern uns32 lgs_amf_init(lgs_cb_t *);
-extern uns32 lgs_mds_init(lgs_cb_t *cb);
-extern uns32 lgs_mds_finalize(lgs_cb_t *cb);
-extern uns32 lgs_mds_change_role(lgs_cb_t *cb);
-extern uns32 lgs_mds_msg_send(lgs_cb_t *cb,
+extern uint32_t lgs_amf_init(lgs_cb_t *);
+extern uint32_t lgs_mds_init(lgs_cb_t *cb);
+extern uint32_t lgs_mds_finalize(lgs_cb_t *cb);
+extern uint32_t lgs_mds_change_role(lgs_cb_t *cb);
+extern uint32_t lgs_mds_msg_send(lgs_cb_t *cb,
 			      lgsv_msg_t *msg,
 			      MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio);
 

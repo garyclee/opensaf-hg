@@ -30,9 +30,9 @@
 #ifndef MQND_RESTART_H
 #define MQND_RESTART_H
 
-uns32 mqnd_restart_init(MQND_CB *cb);
-uns32 mqnd_add_node_to_mqalist(MQND_CB *cb, MDS_DEST dest);
-uns32 mqnd_ckpt_queue_info_write(MQND_CB *cb, MQND_QUEUE_CKPT_INFO *queue_ckpt_node, uns32 index);
+uint32_t mqnd_restart_init(MQND_CB *cb);
+uint32_t mqnd_add_node_to_mqalist(MQND_CB *cb, MDS_DEST dest);
+uint32_t mqnd_ckpt_queue_info_write(MQND_CB *cb, MQND_QUEUE_CKPT_INFO *queue_ckpt_node, uint32_t index);
 
 void mqnd_cpy_qnodeinfo_to_ckptinfo(MQND_CB *cb, MQND_QUEUE_NODE *queue_info,
 					     MQND_QUEUE_CKPT_INFO *ckpt_queue_info);

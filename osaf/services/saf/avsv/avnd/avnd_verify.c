@@ -34,7 +34,7 @@
 
 #include "avnd.h"
 
-static uns32 avnd_send_pg_start_on_fover(AVND_CB *cb);
+static uint32_t avnd_send_pg_start_on_fover(AVND_CB *cb);
 
 /****************************************************************************
   Name          : avnd_send_pg_start_on_fover
@@ -48,9 +48,9 @@ static uns32 avnd_send_pg_start_on_fover(AVND_CB *cb);
  
   Notes         : None.
 ******************************************************************************/
-static uns32 avnd_send_pg_start_on_fover(AVND_CB *cb)
+static uint32_t avnd_send_pg_start_on_fover(AVND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_PG *pg = 0;
 	SaNameT csi_name;
 	TRACE_ENTER();
@@ -83,12 +83,12 @@ static uns32 avnd_send_pg_start_on_fover(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_DND_LIST *list = &((cb)->dnd_list);
 	AVND_DND_MSG_LIST *rec = 0, t_rec;
 	AVSV_D2N_DATA_VERIFY_MSG_INFO *info;
-	uns32 rcv_id;
+	uint32_t rcv_id;
 	NCS_BOOL msg_found = FALSE;
 
 	TRACE_ENTER2("Data Verify message received from newly ACTIVE AVD");
@@ -145,15 +145,15 @@ uns32 avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
 		 * find this message with message id (rcv_id+1) then send all the messages
 		 * there in the queue after that.
 		 */
-		if ((rcv_id + 1) > (*((uns32 *)(&rec->msg.info.avd->msg_info)))) {
+		if ((rcv_id + 1) > (*((uint32_t *)(&rec->msg.info.avd->msg_info)))) {
 			/* pop & delete */
 			m_AVND_DIQ_REC_FIND_POP(cb, rec);
-			TRACE_1("AVND record %u deleted, upon fail-over", *((uns32 *)(&rec->msg.info.avd->msg_info)));
+			TRACE_1("AVND record %u deleted, upon fail-over", *((uint32_t *)(&rec->msg.info.avd->msg_info)));
 			avnd_diq_rec_del(cb, rec);
 		} else {
 			avnd_diq_rec_send(cb, rec);
 
-			TRACE_1("AVND record %u sent, upon fail-over", *((uns32 *)(&rec->msg.info.avd->msg_info)));
+			TRACE_1("AVND record %u sent, upon fail-over", *((uint32_t *)(&rec->msg.info.avd->msg_info)));
 
 			msg_found = TRUE;
 		}

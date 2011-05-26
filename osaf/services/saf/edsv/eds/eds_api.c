@@ -31,7 +31,7 @@ This include file contains SE api instrumentation for EDS
 #include "logtrace.h"
 
 /* global cb handle */
-uns32 gl_eds_hdl = 0;
+uint32_t gl_eds_hdl = 0;
 /****************************************************************************
  * Name          : eds_se_lib_init
  *
@@ -43,10 +43,10 @@ uns32 gl_eds_hdl = 0;
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
+static uint32_t eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 {
 	EDS_CB *eds_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Register with the Logging subsystem */
 	eds_flx_log_reg();
@@ -192,7 +192,7 @@ static NCS_BOOL eds_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
+static uint32_t eds_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
 {
     /** Code to destroy the EDS **/
 	EDS_CB *eds_cb;
@@ -267,9 +267,9 @@ static uns32 eds_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 ncs_edsv_eds_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t ncs_edsv_eds_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:

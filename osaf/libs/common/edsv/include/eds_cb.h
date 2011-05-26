@@ -38,7 +38,7 @@
 #include "ncssysf_tmr.h"
 
 /* global variables */
-uns32 gl_eds_hdl;
+uint32_t gl_eds_hdl;
 
 struct eda_reg_list_tag;
 
@@ -95,18 +95,18 @@ typedef enum checkpoint_status {
 typedef struct eds_tmr_tag {
 	tmr_t tmr_id;
 	EDS_TMR_TYPE type;	/* timer type */
-	uns32 cb_hdl;		/* cb hdl to retrieve the EDS cb ptr */
-	uns32 opq_hdl;		/* hdl to retrive the timer context */
+	uint32_t cb_hdl;		/* cb hdl to retrieve the EDS cb ptr */
+	uint32_t opq_hdl;		/* hdl to retrive the timer context */
 	NCS_BOOL is_active;
 } EDS_TMR;
 
 typedef struct edsv_retained_evt_list_tag {
-	uns32 event_id;		/* From the EDA */
+	uint32_t event_id;		/* From the EDA */
 
   /** hdl-mgr hdl, to be used for ret timer exp
    ** processing
    **/
-	uns32 retd_evt_hdl;
+	uint32_t retd_evt_hdl;
 
    /** Event details **/
 	uint8_t priority;
@@ -120,9 +120,9 @@ typedef struct edsv_retained_evt_list_tag {
   /** Fields to help delete the retained event 
    ** once the timer expires.
    **/
-	uns32 retd_evt_chan_open_id;
-	uns32 reg_id;
-	uns32 chan_id;
+	uint32_t retd_evt_chan_open_id;
+	uint32_t reg_id;
+	uint32_t chan_id;
 
 	/* Retention tmr */
 	struct eds_tmr_tag ret_tmr;
@@ -131,9 +131,9 @@ typedef struct edsv_retained_evt_list_tag {
 } EDS_RETAINED_EVT_REC;
 
 typedef struct subsc_rec_tag {
-	uns32 subscript_id;
-	uns32 chan_id;
-	uns32 chan_open_id;
+	uint32_t subscript_id;
+	uint32_t chan_id;
+	uint32_t chan_open_id;
 	SaEvtEventFilterArrayT *filters;
 	struct eda_reg_list_tag *reg_list;
 	struct chan_open_rec_tag *par_chan_open_inst;	/* Backpointer to the channel open instance */
@@ -148,9 +148,9 @@ typedef struct subsc_list_tag {
 
 /* This structure is used by regList/Hitlist */
 typedef struct chan_open_list_tag {
-	uns32 reg_id;
-	uns32 chan_id;
-	uns32 chan_open_id;	/* Channel Open ID */
+	uint32_t reg_id;
+	uint32_t chan_id;
+	uint32_t chan_open_id;	/* Channel Open ID */
 	SUBSC_LIST *subsc_list_head;	/* Head of Linked list of subscriptions */
 	SUBSC_LIST *subsc_list_tail;	/* Tail of Linked list of subscriptions */
 	struct chan_open_list_tag *next;	/* Linked list of channel Open recs */
@@ -159,11 +159,11 @@ typedef struct chan_open_list_tag {
 /* This structure is used by Worklist */
 typedef struct chan_open_rec_tag {
 	NCS_PATRICIA_NODE pat_node;
-	uns32 reg_id;
-	uns32 chan_id;
-	uns32 chan_open_id;
-	uns32 chan_open_flags;	/* storing the open flags */
-	uns32 copen_id_Net;	/* Network order Channel Open ID */
+	uint32_t reg_id;
+	uint32_t chan_id;
+	uint32_t chan_open_id;
+	uint32_t chan_open_flags;	/* storing the open flags */
+	uint32_t copen_id_Net;	/* Network order Channel Open ID */
 	MDS_DEST chan_opener_dest;
 	struct subsc_rec_tag *subsc_rec_head;	/* Head of  Linked list of subscriptions */
 	struct subsc_rec_tag *subsc_rec_tail;	/* Tail of  Linked list of subscriptions */
@@ -171,26 +171,26 @@ typedef struct chan_open_rec_tag {
 
 typedef struct eda_reg_list_tag {
 	NCS_PATRICIA_NODE pat_node;
-	uns32 reg_id;
-	uns32 reg_id_Net;
+	uint32_t reg_id;
+	uint32_t reg_id_Net;
 	MDS_DEST eda_client_dest;	/* Handy when an EDA instance goes away */
 	CHAN_OPEN_LIST *chan_open_list;	/* channels corresponding to this reg_id only */
 } EDA_REG_REC;
 typedef struct eds_mib_chan_tbl {
 	SaTimeT create_time;
-	uns32 num_users;
-	uns32 num_subscribers;
-	uns32 num_publishers;
-	uns32 num_ret_evts;
-	uns32 num_lost_evts;
+	uint32_t num_users;
+	uint32_t num_subscribers;
+	uint32_t num_publishers;
+	uint32_t num_ret_evts;
+	uint32_t num_lost_evts;
 } EDS_CHAN_TBL;
 
 
 typedef struct eds_worklist_tag {
-	uns32 chan_id;
-	uns32 last_copen_id;	/* Last assigned chan_open_id */
-	uns32 chan_attrib;	/* Attributes of this channel */
-	uns32 use_cnt;
+	uint32_t chan_id;
+	uint32_t last_copen_id;	/* Last assigned chan_open_id */
+	uint32_t chan_attrib;	/* Attributes of this channel */
+	uint32_t use_cnt;
 	uint16_t cname_len;	/* Length of channel name */
 	uint8_t *cname;		/* Channel name. NULL terminated if ascii */
 
@@ -227,8 +227,8 @@ typedef struct eds_cb_tag {
 	MDS_HDL mds_hdl;	/* PWE Handle for interacting with EDAs      */
 	MDS_HDL mds_vdest_hdl;	/* VDEST hdl for global services             */
 	V_DEST_RL mds_role;	/* Current MDS role - ACTIVE/STANDBY         */
-	uns32 pool_id;		/* Handle Manager pool id                    */
-	uns32 my_hdl;		/* Handle Manager hdl                        */
+	uint32_t pool_id;		/* Handle Manager pool id                    */
+	uint32_t my_hdl;		/* Handle Manager hdl                        */
 	NCSCONTEXT task_hdl;
 	V_DEST_QA my_anc;	/* Meaningful only if this is a VDEST        */
 	MDS_DEST vaddr;		/* My identification in MDS                  */
@@ -247,8 +247,8 @@ typedef struct eds_cb_tag {
 	NCS_BOOL healthCheckStarted;	/* Flag to check Health Check started or not */
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
 	NCS_LOCK cb_lock;	/* Lock for this control Block               */
-	uns32 last_reg_id;	/* Value of last reg_id assigned             */
-	uns32 async_upd_cnt;	/* Async Update Count for Warmsync */
+	uint32_t last_reg_id;	/* Value of last reg_id assigned             */
+	uint32_t async_upd_cnt;	/* Async Update Count for Warmsync */
 	CHECKPOINT_STATE ckpt_state;	/* Current record that has been checkpointed */
 	NCS_MBCSV_HDL mbcsv_hdl;	/* Handle obtained during mbcsv init */
 	SaSelectionObjectT mbcsv_sel_obj;	/* Selection object to wait for MBCSv events */
@@ -272,45 +272,45 @@ typedef struct eds_cb_tag {
       wp->chan_row.num_ret_evts=0; \
       wp->chan_row.num_lost_evts=0;
 
-uns32 eds_cb_init(EDS_CB *eds_cb);
+uint32_t eds_cb_init(EDS_CB *eds_cb);
 
 void eds_cb_destroy(EDS_CB *eds_cb);
 
 void eds_main_process(SYSF_MBX *mbx);
 
-EDS_WORKLIST *eds_get_worklist_entry(EDS_WORKLIST *, uns32);
+EDS_WORKLIST *eds_get_worklist_entry(EDS_WORKLIST *, uint32_t);
 
-EDA_REG_REC *eds_get_reglist_entry(EDS_CB *, uns32);
+EDA_REG_REC *eds_get_reglist_entry(EDS_CB *, uint32_t);
 
-uns32 eds_add_reglist_entry(EDS_CB *, MDS_DEST, uns32);
+uint32_t eds_add_reglist_entry(EDS_CB *, MDS_DEST, uint32_t);
 
-uns32 eds_remove_reglist_entry(EDS_CB *, uns32, NCS_BOOL);
+uint32_t eds_remove_reglist_entry(EDS_CB *, uint32_t, NCS_BOOL);
 
-uns32 eds_remove_regid_by_mds_dest(EDS_CB *, MDS_DEST);
+uint32_t eds_remove_regid_by_mds_dest(EDS_CB *, MDS_DEST);
 
 NCS_BOOL eds_eda_entry_valid(EDS_CB *, MDS_DEST);
 
-uns32 eds_remove_eda_down_rec(EDS_CB *, MDS_DEST);
+uint32_t eds_remove_eda_down_rec(EDS_CB *, MDS_DEST);
 
-uns32 eds_channel_open(EDS_CB *, uns32, uns32, uint16_t, uint8_t *, MDS_DEST, uns32 *, uns32 *, SaTimeT);
+uint32_t eds_channel_open(EDS_CB *, uint32_t, uint32_t, uint16_t, uint8_t *, MDS_DEST, uint32_t *, uint32_t *, SaTimeT);
 
-uns32 eds_copen_patricia_init(EDS_WORKLIST *);
+uint32_t eds_copen_patricia_init(EDS_WORKLIST *);
 
-uns32 eds_channel_close(EDS_CB *, uns32, uns32, uns32, NCS_BOOL);
+uint32_t eds_channel_close(EDS_CB *, uint32_t, uint32_t, uint32_t, NCS_BOOL);
 
-uns32 eds_channel_unlink(EDS_CB *, uns32, uint8_t *);
+uint32_t eds_channel_unlink(EDS_CB *, uint32_t, uint8_t *);
 
-uns32 eds_add_subscription(EDS_CB *, uns32, SUBSC_REC *);
+uint32_t eds_add_subscription(EDS_CB *, uint32_t, SUBSC_REC *);
 
-uns32 eds_remove_subscription(EDS_CB *, uns32, uns32, uns32, uns32);
+uint32_t eds_remove_subscription(EDS_CB *, uint32_t, uint32_t, uint32_t, uint32_t);
 
-uns32 eds_remove_worklist_entry(EDS_CB *cb, uns32 chan_id);
+uint32_t eds_remove_worklist_entry(EDS_CB *cb, uint32_t chan_id);
 
 NCS_BOOL eds_pattern_match(SaEvtEventPatternArrayT *, SaEvtEventFilterArrayT *);
 
-uns32 eds_store_retained_event(EDS_CB *, EDS_WORKLIST *, CHAN_OPEN_REC *, EDSV_EDA_PUBLISH_PARAM *, SaTimeT);
+uint32_t eds_store_retained_event(EDS_CB *, EDS_WORKLIST *, CHAN_OPEN_REC *, EDSV_EDA_PUBLISH_PARAM *, SaTimeT);
 
-uns32 eds_clear_retained_event(EDS_CB *, uns32, uns32, uns32, NCS_BOOL);
+uint32_t eds_clear_retained_event(EDS_CB *, uint32_t, uint32_t, uint32_t, NCS_BOOL);
 
 void eds_remove_retained_events(EDS_RETAINED_EVT_REC **, EDS_RETAINED_EVT_REC **);
 
@@ -322,7 +322,7 @@ void eds_dump_reglist(void);
 
 void eds_dump_worklist(void);
 
-uns32 eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT period, uns32 uarg);
+uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT period, uint32_t uarg);
 void eds_stop_tmr(EDS_TMR *tmr);
 void eds_tmr_exp(void *uarg);
 

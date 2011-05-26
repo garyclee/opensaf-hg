@@ -40,12 +40,12 @@
 /*
  * Prototypes of PWE anchor.
  */
-uns32 mbcsv_destroy_peer_list(void);
-uns32 mbcsv_add_new_pwe_anc(uns32 pwe_hdl, MBCSV_ANCHOR anchor);
-uns32 mbcsv_rmv_pwe_anc_entry(uns32 pwe_hdl, MBCSV_ANCHOR anchor);
-uns32 mbcsv_get_next_anchor_for_pwe(uns32 pwe_hdl, MBCSV_ANCHOR *anchor);
-uns32 mbcsv_send_brodcast_msg(uns32 pwe_hdl, MBCSV_EVT *msg, CKPT_INST *ckpt);
-uns32 mbcsv_rmv_ancs_for_pwe(uns32 pwe_hdl);
-uns32 mbcsv_initialize_peer_list(void);
+uint32_t mbcsv_destroy_peer_list(void);
+uint32_t mbcsv_add_new_pwe_anc(uint32_t pwe_hdl, MBCSV_ANCHOR anchor);
+uint32_t mbcsv_rmv_pwe_anc_entry(uint32_t pwe_hdl, MBCSV_ANCHOR anchor);
+uint32_t mbcsv_get_next_anchor_for_pwe(uint32_t pwe_hdl, MBCSV_ANCHOR *anchor);
+uint32_t mbcsv_send_brodcast_msg(uint32_t pwe_hdl, MBCSV_EVT *msg, CKPT_INST *ckpt);
+uint32_t mbcsv_rmv_ancs_for_pwe(uint32_t pwe_hdl);
+uint32_t mbcsv_initialize_peer_list(void);
 
 #endif

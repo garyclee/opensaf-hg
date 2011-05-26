@@ -20,14 +20,14 @@
 #include "dtm_inter.h"
 #include "dtm_node.h"
 
-uns32 dtm_internode_snd_msg_to_all_nodes(uint8_t *buffer, uint16_t len);
+uint32_t dtm_internode_snd_msg_to_all_nodes(uint8_t *buffer, uint16_t len);
 
-uns32 dtm_internode_snd_msg_to_node(uint8_t *buffer, uint16_t len, NODE_ID node_id);
+uint32_t dtm_internode_snd_msg_to_node(uint8_t *buffer, uint16_t len, NODE_ID node_id);
 
-uns32 dtm_internode_process_pollout(int fd);
-uns32 dtm_prepare_data_msg(uint8_t *buffer, uint16_t len);
-static uns32 dtm_internode_snd_unsent_msg(DTM_NODE_DB * node);
-static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer, uint16_t len);
+uint32_t dtm_internode_process_pollout(int fd);
+uint32_t dtm_prepare_data_msg(uint8_t *buffer, uint16_t len);
+static uint32_t dtm_internode_snd_unsent_msg(DTM_NODE_DB * node);
+static uint32_t dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer, uint16_t len);
 
 /**
  * Function to process rcv data message internode
@@ -38,7 +38,7 @@ static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer, u
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_process_rcv_data_msg(uint8_t *buffer, uns32 dst_pid, uint16_t len)
+uint32_t dtm_internode_process_rcv_data_msg(uint8_t *buffer, uint32_t dst_pid, uint16_t len)
 {
 	/* Post the event to the mailbox of the intra_thread */
 	DTM_RCV_MSG_ELEM *dtm_msg_elem = NULL;
@@ -73,7 +73,7 @@ uns32 dtm_internode_process_rcv_data_msg(uint8_t *buffer, uns32 dst_pid, uint16_
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_add_to_msg_dist_list(uint8_t *buffer, uint16_t len, NODE_ID node_id)
+uint32_t dtm_add_to_msg_dist_list(uint8_t *buffer, uint16_t len, NODE_ID node_id)
 {
 	/* Post the event to the mailbox of the inter_thread */
 	DTM_SND_MSG_ELEM *msg_elem = NULL;
@@ -108,12 +108,12 @@ uns32 dtm_add_to_msg_dist_list(uint8_t *buffer, uint16_t len, NODE_ID node_id)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_prepare_data_msg(uint8_t *buffer, uint16_t len)
+uint32_t dtm_prepare_data_msg(uint8_t *buffer, uint16_t len)
 {
 	uint8_t *data = buffer;
 	TRACE_ENTER();
 	ncs_encode_16bit(&data, (len - 2));
-	ncs_encode_32bit(&data, (uns32)DTM_INTERNODE_SND_MSG_IDENTIFIER);
+	ncs_encode_32bit(&data, (uint32_t)DTM_INTERNODE_SND_MSG_IDENTIFIER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_INTERNODE_SND_MSG_VER);
 	ncs_encode_8bit(&data, DTM_MESSAGE_MSG_TYPE);
 	/* Remaining data already in buffer */
@@ -130,7 +130,7 @@ uns32 dtm_prepare_data_msg(uint8_t *buffer, uint16_t len)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_snd_msg_to_all_nodes(uint8_t *buffer, uint16_t len)
+uint32_t dtm_internode_snd_msg_to_all_nodes(uint8_t *buffer, uint16_t len)
 {
 	/* Get each node and send message */
 	NODE_ID node_id = 0;
@@ -165,7 +165,7 @@ uns32 dtm_internode_snd_msg_to_all_nodes(uint8_t *buffer, uint16_t len)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer, uint16_t len)
+static uint32_t dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer, uint16_t len)
 {
 	DTM_INTERNODE_UNSENT_MSGS *add_ptr = NULL, *hdr = node->msgs_hdr, *tail = node->msgs_tail;
 	TRACE_ENTER();
@@ -220,7 +220,7 @@ static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer, u
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_snd_msg_to_node(uint8_t *buffer, uint16_t len, NODE_ID node_id)
+uint32_t dtm_internode_snd_msg_to_node(uint8_t *buffer, uint16_t len, NODE_ID node_id)
 {
 	DTM_NODE_DB *node = NULL;
 
@@ -252,12 +252,12 @@ uns32 dtm_internode_snd_msg_to_node(uint8_t *buffer, uint16_t len, NODE_ID node_
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_process_pollout(int fd)
+uint32_t dtm_internode_process_pollout(int fd)
 {
 	DTM_NODE_DB *node = NULL;
 
 	TRACE_ENTER();
-	node = dtm_node_get_by_comm_socket((uns32)fd);
+	node = dtm_node_get_by_comm_socket((uint32_t)fd);
 	if (NULL == node) {
 		TRACE("DTM :No node matching the fd for pollout, delete this fd from fd list ");
 		assert(0);
@@ -288,7 +288,7 @@ uns32 dtm_internode_process_pollout(int fd)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_internode_snd_unsent_msg(DTM_NODE_DB * node)
+static uint32_t dtm_internode_snd_unsent_msg(DTM_NODE_DB * node)
 {
 	DTM_INTERNODE_UNSENT_MSGS *hdr = node->msgs_hdr, *unsent_msg = node->msgs_hdr;
 	int snd_count = 0;

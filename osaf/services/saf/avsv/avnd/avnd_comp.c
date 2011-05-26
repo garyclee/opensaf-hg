@@ -44,9 +44,9 @@ static void avnd_comp_reg_val(AVND_CB *, AVSV_AMF_COMP_REG_PARAM *,
 
 static void avnd_comp_unreg_val(AVND_CB *, AVSV_AMF_COMP_UNREG_PARAM *, AVND_COMP **, AVND_COMP **, SaAisErrorT *);
 
-static uns32 avnd_comp_reg_prc(AVND_CB *, AVND_COMP *, AVND_COMP *, AVSV_AMF_COMP_REG_PARAM *, MDS_DEST *);
+static uint32_t avnd_comp_reg_prc(AVND_CB *, AVND_COMP *, AVND_COMP *, AVSV_AMF_COMP_REG_PARAM *, MDS_DEST *);
 
-static uns32 avnd_avd_comp_updt_on_fover(AVND_CB *cb, AVSV_D2N_REG_COMP_MSG_INFO *info);
+static uint32_t avnd_avd_comp_updt_on_fover(AVND_CB *cb, AVSV_D2N_REG_COMP_MSG_INFO *info);
 static void avnd_comp_hdl_finalize(AVND_CB *, AVND_COMP *, AVSV_AMF_FINALIZE_PARAM *, AVSV_AMF_API_INFO *);
 static SaAisErrorT  avnd_validate_comp_and_createdb(AVND_CB *cb, SaNameT *comp_dn);
 
@@ -64,12 +64,12 @@ static SaAisErrorT  avnd_validate_comp_and_createdb(AVND_CB *cb, SaNameT *comp_d
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_reg_comp_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_reg_comp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_REG_COMP_MSG_INFO *info = 0;
 	AVSV_COMP_INFO_MSG *comp_info = 0;
 	AVND_COMP *comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -166,11 +166,11 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-static uns32 avnd_avd_comp_updt_on_fover(AVND_CB *cb, AVSV_D2N_REG_COMP_MSG_INFO *info)
+static uint32_t avnd_avd_comp_updt_on_fover(AVND_CB *cb, AVSV_D2N_REG_COMP_MSG_INFO *info)
 {
 	AVSV_COMP_INFO_MSG *comp_info = 0;
 	AVND_COMP *comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaNameT comp_name;
 
 	TRACE_ENTER();
@@ -271,13 +271,13 @@ static uns32 avnd_avd_comp_updt_on_fover(AVND_CB *cb, AVSV_D2N_REG_COMP_MSG_INFO
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_finalize_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_finalize_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_FINALIZE_PARAM *fin = &api_info->param.finalize;
 	AVND_COMP *comp = 0;
 	AVND_COMP_PXIED_REC *rec = 0, *curr_rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -355,13 +355,13 @@ uns32 avnd_evt_ava_finalize_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_COMP_REG_PARAM *reg = &api_info->param.reg;
 	AVND_COMP *comp = 0;
 	AVND_COMP *pxy_comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp_flag = FALSE;
 	NODE_ID node_id;
@@ -436,13 +436,13 @@ uns32 avnd_evt_ava_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_comp_unreg_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_comp_unreg_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_COMP_UNREG_PARAM *unreg = &api_info->param.unreg;
 	AVND_COMP *comp = 0;
 	AVND_COMP *pxy_comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 
@@ -496,13 +496,13 @@ uns32 avnd_evt_ava_comp_unreg_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_ha_get_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_ha_get_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_HA_GET_PARAM *ha_get = &api_info->param.ha_get;
 	AVND_COMP *comp = 0;
 	AVND_COMP_CSI_REC *csi_rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 
@@ -566,13 +566,13 @@ uns32 avnd_evt_ava_ha_get_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_mds_ava_dn_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_mds_ava_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_MDS_EVT *mds_evt = &evt->info.mds;
 	AVND_ERR_INFO err_info;
 	AVND_COMP *comp = 0;
 	SaNameT name;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	memset(&name, 0, sizeof(SaNameT));
@@ -877,10 +877,10 @@ void avnd_comp_unreg_val(AVND_CB *cb,
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AVSV_AMF_COMP_REG_PARAM *reg, MDS_DEST *dest)
+uint32_t avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AVSV_AMF_COMP_REG_PARAM *reg, MDS_DEST *dest)
 {
 	NCS_BOOL su_is_enabled;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("comp: '%s'", comp->name.value);
 	
 	if (pxy_comp)
@@ -960,9 +960,9 @@ uns32 avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AVSV_
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
+uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("comp: '%s' : proxy_comp: '%p'", comp->name.value, pxy_comp);
 
 	/* Check if this component is an internode/ext component. */
@@ -1141,14 +1141,14 @@ done:
   Notes         : In orphaned state, proxied component is unregisted, but still
                   can take csi assignments. callbacks will be cached in orphan state
 ******************************************************************************/
-uns32 avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
+uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
 {
 	/* flags to indicate the prv & curr inst states of an npi comp */
 	NCS_BOOL npi_prv_inst = TRUE, npi_curr_inst = TRUE;
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	AVND_COMP_CLC_PRES_FSM_EV comp_ev = AVND_COMP_CLC_PRES_FSM_EV_MAX;
 	NCS_BOOL mark_csi = FALSE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("comp:'%s'", comp->name.value);
 
@@ -1377,11 +1377,11 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
+uint32_t avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
 {
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	NCS_BOOL is_assigned = FALSE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("comp: '%s' : csi: '%p'", comp->name.value, csi);
 	/* skip removal from failed / unregistered comp */
@@ -1503,11 +1503,11 @@ uns32 avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
  
   Notes         : This routine is invoked only for PI component.
 ******************************************************************************/
-uns32 avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
+uint32_t avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_CSI_REC *curr = 0, *prv = 0;
 	SaNameT csi_name;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	assert(m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp));
@@ -1602,7 +1602,7 @@ uns32 avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
  * 
  * @return bool
  */
-static bool all_csis_at_rank_assigned(struct avnd_su_si_rec *si, uns32 rank)
+static bool all_csis_at_rank_assigned(struct avnd_su_si_rec *si, uint32_t rank)
 {
 	AVND_COMP_CSI_REC *csi;
 	TRACE_ENTER2("'%s'rank=%u", si->name.value, rank);
@@ -1643,10 +1643,10 @@ static bool all_csis_at_rank_assigned(struct avnd_su_si_rec *si, uns32 rank)
  * 
  * @return int NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  */
-static int assign_all_csis_at_rank(struct avnd_su_si_rec *si, uns32 rank, bool single_csi)
+static int assign_all_csis_at_rank(struct avnd_su_si_rec *si, uint32_t rank, bool single_csi)
 {
 	AVND_COMP_CSI_REC *csi;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s' rank=%u", si->name.value, rank);
 
@@ -1672,7 +1672,7 @@ static int assign_all_csis_at_rank(struct avnd_su_si_rec *si, uns32 rank, bool s
  * 
  * @return AVND_COMP_CSI_REC*
  */
-static AVND_COMP_CSI_REC *find_csi_at_rank(struct avnd_su_si_rec *si, uns32 rank)
+static AVND_COMP_CSI_REC *find_csi_at_rank(struct avnd_su_si_rec *si, uint32_t rank)
 {
 	AVND_COMP_CSI_REC *csi = NULL;
 
@@ -1706,10 +1706,10 @@ static AVND_COMP_CSI_REC *find_csi_at_rank(struct avnd_su_si_rec *si, uns32 rank
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
+uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
 {
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("comp: '%s'", comp->name.value);
 
@@ -1766,7 +1766,7 @@ uns32 avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC 
 	 */
 	if (csi) {
 		if (all_csis_at_rank_assigned(csi->si, csi->rank)) {
-			uns32 rank = (SA_AMF_HA_ACTIVE == csi->si->curr_state) ?
+			uint32_t rank = (SA_AMF_HA_ACTIVE == csi->si->curr_state) ?
 				csi->rank + 1 : csi->rank - 1 ;
 
 			if (find_csi_at_rank(csi->si, rank) != NULL) {
@@ -1781,7 +1781,7 @@ uns32 avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC 
 		curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 
 		if (all_csis_at_rank_assigned(curr_csi->si, curr_csi->rank)) {
-			uns32 rank = (SA_AMF_HA_ACTIVE == curr_csi->si->curr_state) ?
+			uint32_t rank = (SA_AMF_HA_ACTIVE == curr_csi->si->curr_state) ?
 				curr_csi->rank + 1 : curr_csi->rank - 1 ;
 
 			if (find_csi_at_rank(curr_csi->si, rank) != NULL) {
@@ -1817,10 +1817,10 @@ done:
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
+uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
 {
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("comp:'%s' : csi:'%p'", comp->name.value, csi);
 
@@ -1930,9 +1930,9 @@ find_next:
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_comp_csi_qscd_assign_fail_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
+uint32_t avnd_comp_csi_qscd_assign_fail_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("comp: '%s' : csi: '%s", comp->name.value, csi ? csi->name.value : NULL);
 
 	/* mark the comp & su failed */
@@ -1996,10 +1996,10 @@ uns32 avnd_comp_csi_qscd_assign_fail_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP
                   terminate cbk) deletion is handled as a part of component 
                   FSM.
 ******************************************************************************/
-uns32 avnd_comp_curr_info_del(AVND_CB *cb, AVND_COMP *comp)
+uint32_t avnd_comp_curr_info_del(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/* unmark the previous csi assigned state of this compoonent */
@@ -2064,7 +2064,7 @@ uns32 avnd_comp_curr_info_del(AVND_CB *cb, AVND_COMP *comp)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_cbk_send(AVND_CB *cb,
+uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 			 AVND_COMP *comp, AVSV_AMF_CBK_TYPE type, AVND_COMP_HC_REC *hc_rec, AVND_COMP_CSI_REC *csi_rec)
 {
 	SaAmfCSIDescriptorT csi_desc;
@@ -2076,7 +2076,7 @@ uns32 avnd_comp_cbk_send(AVND_CB *cb,
 	MDS_DEST *dest = 0;
 	SaAmfHandleT hdl = 0;
 	SaTimeT per = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("'%s' %u", comp->name.value, type);
 	/* 
@@ -2250,14 +2250,14 @@ uns32 avnd_comp_cbk_send(AVND_CB *cb,
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_amf_resp_send(AVND_CB *cb,
+uint32_t avnd_amf_resp_send(AVND_CB *cb,
 			 AVSV_AMF_API_TYPE type,
 			 SaAisErrorT amf_rc,
 			 uint8_t *get_val, MDS_DEST *dest, MDS_SYNC_SND_CTXT *ctxt, AVND_COMP *comp, NCS_BOOL msg_to_avnd)
 {
 	AVND_MSG msg;
 	AVSV_ND2ND_AVND_MSG *avnd_msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MDS_DEST i_to_dest;
 	AVSV_NDA_AVA_MSG *temp_ptr = NULL;
 	NODE_ID node_id = 0;
@@ -2357,9 +2357,9 @@ void avnd_pxied_list_init(AVND_COMP *comp)
 
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_proxied_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, NCS_BOOL avd_upd_needed)
+uint32_t avnd_comp_proxied_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, NCS_BOOL avd_upd_needed)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_PXIED_REC *rec;
 	AVSV_PARAM_INFO param;
 	TRACE_ENTER2("'%s' : '%s'", comp->name.value, pxy_comp->name.value);	
@@ -2435,11 +2435,11 @@ uns32 avnd_comp_proxied_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, N
 
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_proxied_del(AVND_CB *cb,
+uint32_t avnd_comp_proxied_del(AVND_CB *cb,
 			    AVND_COMP *comp,
 			    AVND_COMP *pxy_comp, NCS_BOOL avd_upd_needed, AVND_COMP_PXIED_REC *rec_to_be_deleted)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_PXIED_REC *rec;
 	AVSV_PARAM_INFO param;
 
@@ -2513,10 +2513,10 @@ uns32 avnd_comp_proxied_del(AVND_CB *cb,
 
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
+uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 rc_send = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t rc_send = NCSCC_RC_SUCCESS;
 	AVND_COMP_PXIED_REC *rec = 0;
 	AVND_COMP *pxd_comp = NULL;
 	TRACE_ENTER2("Comp '%s'", comp->name.value);
@@ -2677,7 +2677,7 @@ void avnd_comp_cmplete_all_assignment(AVND_CB *cb, AVND_COMP *comp)
 
 	AVND_COMP_CBK *cbk = 0, *temp_cbk_list = 0, *head = 0;
 	AVND_COMP_CSI_REC *csi = 0, *temp_csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS, found = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, found = 0;
 	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/*
@@ -2778,7 +2778,7 @@ void avnd_comp_cmplete_all_csi_rec(AVND_CB *cb, AVND_COMP *comp)
 
 	AVND_COMP_CSI_REC *curr = 0, *prv = 0;
 	SaNameT csi_name;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Comp '%s'", comp->name.value);
 	/* go and look for all csi's in assigning state and complete the assignment.
 	 * take care of assign-one and assign-all flags
@@ -2824,11 +2824,11 @@ void avnd_comp_cmplete_all_csi_rec(AVND_CB *cb, AVND_COMP *comp)
  * @param cb
  * @param evt
  */
-uns32 avnd_evt_comp_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_comp_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_ADMIN_OP_REQ_MSG_INFO *info = &evt->info.avd->msg_info.d2n_admin_op_req_info;
 	AVND_COMP *comp;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("'%s' op=%u", info->dn.value, info->oper_id);
 

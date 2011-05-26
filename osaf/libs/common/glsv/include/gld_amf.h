@@ -29,6 +29,6 @@ void gld_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 void
 gld_amf_csi_rmv_callback(SaInvocationT invocation,
 			 const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags);
-uns32 gld_amf_init(GLSV_GLD_CB *gld_cb);
+uint32_t gld_amf_init(GLSV_GLD_CB *gld_cb);
 
 #endif

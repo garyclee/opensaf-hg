@@ -31,8 +31,8 @@
 #include "cpsv.h"
 
 FUNC_DECLARATION(CPSV_CKPT_DATA);
-static SaCkptSectionIdT *cpsv_evt_dec_sec_id(NCS_UBAID *i_ub, uns32 svc_id);
-static uns32 cpsv_evt_enc_sec_id(NCS_UBAID *o_ub, SaCkptSectionIdT *sec_id);
+static SaCkptSectionIdT *cpsv_evt_dec_sec_id(NCS_UBAID *i_ub, uint32_t svc_id);
+static uint32_t cpsv_evt_enc_sec_id(NCS_UBAID *o_ub, SaCkptSectionIdT *sec_id);
 
 /****************************************************************************\
  PROCEDURE NAME : cpsv_evt_cpy
@@ -47,9 +47,9 @@ static uns32 cpsv_evt_enc_sec_id(NCS_UBAID *o_ub, SaCkptSectionIdT *sec_id);
 
  NOTES          : 
 \*****************************************************************************/
-uns32 cpsv_evt_cpy(CPSV_EVT *src, CPSV_EVT *dest, uns32 svc_id)
+uint32_t cpsv_evt_cpy(CPSV_EVT *src, CPSV_EVT *dest, uint32_t svc_id)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	dest = m_MMGR_ALLOC_CPSV_EVT(svc_id);
 
@@ -64,11 +64,11 @@ uns32 cpsv_evt_cpy(CPSV_EVT *src, CPSV_EVT *dest, uns32 svc_id)
 	return rc;
 
 }
-uns32 cpsv_ref_cnt_encode(NCS_UBAID *i_ub, CPSV_A2ND_REFCNTSET *data)
+uint32_t cpsv_ref_cnt_encode(NCS_UBAID *i_ub, CPSV_A2ND_REFCNTSET *data)
 {
-   uns32 rc= NCSCC_RC_SUCCESS;
+   uint32_t rc= NCSCC_RC_SUCCESS;
    uint8_t *pStream = NULL; 
-   uns32 counter =0,array_cnt=0;
+   uint32_t counter =0,array_cnt=0;
 
    pStream = ncs_enc_reserve_space(i_ub, 4);
    ncs_encode_32bit(&pStream, data->no_of_nodes);
@@ -90,11 +90,11 @@ uns32 cpsv_ref_cnt_encode(NCS_UBAID *i_ub, CPSV_A2ND_REFCNTSET *data)
 }
 
 
-uns32 cpsv_refcnt_ckptid_decode(CPSV_A2ND_REFCNTSET *pdata , NCS_UBAID *io_uba)
+uint32_t cpsv_refcnt_ckptid_decode(CPSV_A2ND_REFCNTSET *pdata , NCS_UBAID *io_uba)
 {
    uint8_t *pstream = NULL;
    uint8_t local_data[50];
-   uns32 counter=0,array_cnt=0;
+   uint32_t counter=0,array_cnt=0;
  
 
    pstream = ncs_dec_flatten_space(io_uba,local_data, 4);
@@ -127,9 +127,9 @@ uns32 cpsv_refcnt_ckptid_decode(CPSV_A2ND_REFCNTSET *pdata , NCS_UBAID *io_uba)
  NOTES          : 
 \*****************************************************************************/
 
-uns32 cpsv_ckpt_data_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *data)
+uint32_t cpsv_ckpt_data_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *header = NULL;
 	CPSV_CKPT_DATA *pdata = data;
 	uint16_t num_of_nodes = 0;
@@ -165,10 +165,10 @@ uns32 cpsv_ckpt_data_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *data)
  NOTES          :
 \*****************************************************************************/
 
-uns32 cpsv_ckpt_node_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *pdata)
+uint32_t cpsv_ckpt_node_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *pdata)
 {
 	uint8_t *pStream = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS, size;
+	uint32_t rc = NCSCC_RC_SUCCESS, size;
 
 	pStream = ncs_enc_reserve_space(i_ub, 2);
 	if (!pStream)
@@ -178,7 +178,7 @@ uns32 cpsv_ckpt_node_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *pdata)
 	ncs_encode_16bit(&pStream, pdata->sec_id.idLen);
 	ncs_enc_claim_space(i_ub, 2);
 	if (pdata->sec_id.idLen)
-		ncs_encode_n_octets_in_uba(i_ub, (uint8_t *)pdata->sec_id.id, (uns32)pdata->sec_id.idLen);
+		ncs_encode_n_octets_in_uba(i_ub, (uint8_t *)pdata->sec_id.id, (uint32_t)pdata->sec_id.idLen);
 
 	size = 8 + 8 + 8;
 	pStream = ncs_enc_reserve_space(i_ub, size);
@@ -191,7 +191,7 @@ uns32 cpsv_ckpt_node_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *pdata)
 	ncs_enc_claim_space(i_ub, size);
 
 	if (pdata->dataSize)
-		ncs_encode_n_octets_in_uba(i_ub, pdata->data, (uns32)pdata->dataSize);
+		ncs_encode_n_octets_in_uba(i_ub, pdata->data, (uint32_t)pdata->dataSize);
 
 	pStream = ncs_enc_reserve_space(i_ub, 8);
 	if (!pStream)
@@ -216,12 +216,12 @@ uns32 cpsv_ckpt_node_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *pdata)
  NOTES          :
 \*****************************************************************************/
 
-uns32 cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
+uint32_t cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *pstream = NULL;
-	uns32 space;
+	uint32_t space;
 
 	space = 4 + 8 + 8 + 8 + 4 + 4;
 	pstream = ncs_enc_reserve_space(io_uba, space);
@@ -258,7 +258,7 @@ uns32 cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	ncs_encode_32bit(&pstream, ckpt_data->ckpt_sync.cpa_sinfo.to_svc);
 	ncs_encode_8bit(&pstream, ckpt_data->ckpt_sync.cpa_sinfo.ctxt.length);
 	ncs_enc_claim_space(io_uba, space);
-	ncs_encode_n_octets_in_uba(io_uba, ckpt_data->ckpt_sync.cpa_sinfo.ctxt.data, (uns32)MDS_SYNC_SND_CTXT_LEN_MAX);
+	ncs_encode_n_octets_in_uba(io_uba, ckpt_data->ckpt_sync.cpa_sinfo.ctxt.data, (uint32_t)MDS_SYNC_SND_CTXT_LEN_MAX);
 	return rc;
 }
 
@@ -275,7 +275,7 @@ uns32 cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
   Notes         : None.
 ******************************************************************************/
 
-uns32 cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba)
+uint32_t cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba)
 {
 	uint8_t *pstream = NULL;
 
@@ -287,7 +287,7 @@ uns32 cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_u
 	ncs_enc_claim_space(io_uba, 4);
 
 	if (read_data->read_size) {
-		ncs_encode_n_octets_in_uba(io_uba, read_data->data, (uns32)read_data->read_size);
+		ncs_encode_n_octets_in_uba(io_uba, read_data->data, (uint32_t)read_data->read_size);
 	}
 
 	pstream = ncs_enc_reserve_space(io_uba, 4);
@@ -312,11 +312,11 @@ uns32 cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_u
 
  NOTES          : 
 \*****************************************************************************/
-uns32 cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba)
+uint32_t cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba)
 {
 
 	uint8_t *pstream = NULL;
-	uns32 size, i;
+	uint32_t size, i;
 
    size = 4 + 4 + 4 + 4 + 8 + 4 + 8;   
    pstream = ncs_enc_reserve_space(io_uba, size);
@@ -379,10 +379,10 @@ uns32 cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID
 
  NOTES          : 
 \*****************************************************************************/
-uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-	uns32 size;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t size;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	size = sizeof(CPSV_EVT);
 
 	/* Encode the Top level evt envolop */
@@ -398,7 +398,7 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 					size = 0;
 				} else {
 					if (data_rsp->size > 0) {
-						uns32 iter = 0;
+						uint32_t iter = 0;
 						for (; iter < data_rsp->size; iter++) {
 							size = sizeof(CPSV_ND2A_READ_DATA);
 							ncs_encode_n_octets_in_uba(o_ub,
@@ -496,7 +496,7 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 		}
 		/* End of Added for 3.0.B , these events encoding is missing in 3.0.2 */
 		else if (i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_SECT_CREATE) {
-			uns32 size;
+			uint32_t size;
 			CPSV_CKPT_SECT_CREATE *create = &i_evt->info.cpnd.info.sec_creatReq;
 
 			if (create->sec_attri.sectionId) {
@@ -565,9 +565,9 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 cpsv_evt_enc_sec_id(NCS_UBAID *o_ub, SaCkptSectionIdT *sec_id)
+static uint32_t cpsv_evt_enc_sec_id(NCS_UBAID *o_ub, SaCkptSectionIdT *sec_id)
 {
-	uns32 size;
+	uint32_t size;
 
 	size = sizeof(SaCkptSectionIdT);
 	ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)sec_id, size);
@@ -578,9 +578,9 @@ static uns32 cpsv_evt_enc_sec_id(NCS_UBAID *o_ub, SaCkptSectionIdT *sec_id)
 	return NCSCC_RC_SUCCESS;
 }
 
-static SaCkptSectionIdT *cpsv_evt_dec_sec_id(NCS_UBAID *i_ub, uns32 svc_id)
+static SaCkptSectionIdT *cpsv_evt_dec_sec_id(NCS_UBAID *i_ub, uint32_t svc_id)
 {
-	uns32 size;
+	uint32_t size;
 	SaCkptSectionIdT *sec_id = NULL;
 
 	size = sizeof(SaCkptSectionIdT);
@@ -617,12 +617,12 @@ static SaCkptSectionIdT *cpsv_evt_dec_sec_id(NCS_UBAID *i_ub, uns32 svc_id)
  NOTES          : 
 \*****************************************************************************/
 
-uns32 cpsv_ckpt_data_decode(CPSV_CKPT_DATA **data, NCS_UBAID *io_uba)
+uint32_t cpsv_ckpt_data_decode(CPSV_CKPT_DATA **data, NCS_UBAID *io_uba)
 {
 	uint8_t *pstream = NULL;
 	uint8_t local_data[5];
 	uint16_t num_of_nodes;
-	uns32 rc;
+	uint32_t rc;
 	CPSV_CKPT_DATA *pdata;
 
 	pstream = ncs_dec_flatten_space(io_uba, local_data, 2);
@@ -669,11 +669,11 @@ uns32 cpsv_ckpt_data_decode(CPSV_CKPT_DATA **data, NCS_UBAID *io_uba)
  NOTES          : 
 \*****************************************************************************/
 
-uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba)
+uint32_t cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba)
 {
 	uint8_t *pstream = NULL;
 	uint8_t local_data[50];
-	uns32 size;
+	uint32_t size;
 
 	pstream = ncs_dec_flatten_space(io_uba, local_data, 2);
 	pdata->sec_id.idLen = ncs_decode_16bit(&pstream);
@@ -687,7 +687,7 @@ uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba)
 			return NCSCC_RC_FAILURE;
 		}
 		memset(pdata->sec_id.id, 0, pdata->sec_id.idLen + 1);
-		ncs_decode_n_octets_from_uba(io_uba, pdata->sec_id.id, (uns32)pdata->sec_id.idLen);
+		ncs_decode_n_octets_from_uba(io_uba, pdata->sec_id.id, (uint32_t)pdata->sec_id.idLen);
 	}
 	size = 8 + 8 + 8;
 	pstream = ncs_dec_flatten_space(io_uba, local_data, size);
@@ -706,7 +706,7 @@ uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba)
 		}
 		memset(pdata->data, 0, pdata->dataSize);
 
-		ncs_decode_n_octets_from_uba(io_uba, pdata->data, (uns32)pdata->dataSize);
+		ncs_decode_n_octets_from_uba(io_uba, pdata->data, (uint32_t)pdata->dataSize);
 	}
 	pstream = ncs_dec_flatten_space(io_uba, local_data, 8);
 	pdata->dataOffset = ncs_decode_64bit(&pstream);
@@ -729,7 +729,7 @@ uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba)
   Notes         : This is done as Replacement for EDU decode for Read Data.
 ******************************************************************************/
 
-uns32 cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba)
+uint32_t cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba)
 {
 
 	uint8_t *pstream = NULL;
@@ -749,7 +749,7 @@ uns32 cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_u
 					       "Memory alloc failed in cpsv_nd2a_read_data_decode \n");
 		}
 		memset(read_data->data, 0, read_data->read_size);
-		ncs_decode_n_octets_from_uba(io_uba, read_data->data, (uns32)read_data->read_size);
+		ncs_decode_n_octets_from_uba(io_uba, read_data->data, (uint32_t)read_data->read_size);
 
 	}
 	pstream = ncs_dec_flatten_space(io_uba, local_data, 4);
@@ -772,12 +772,12 @@ uns32 cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_u
 
  NOTES          : 
 \*****************************************************************************/
-uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba)
+uint32_t cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba)
 {
   
    uint8_t local_data[1024];
    uint8_t *pstream;
-   uns32 i,size , rc =NCSCC_RC_SUCCESS;
+   uint32_t i,size , rc =NCSCC_RC_SUCCESS;
    
    size = 4 + 4 + 4 + 4 + 8 + 4 +8;
    pstream = ncs_dec_flatten_space(io_uba, local_data , size);
@@ -849,10 +849,10 @@ uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID
 
  NOTES          : 
 \*****************************************************************************/
-uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
+uint32_t cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 {
-	uns32 size = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t size = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	size = sizeof(CPSV_EVT);
 
 	/* Decode the Top level evt envolop */
@@ -873,7 +873,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 						    m_MMGR_ALLOC_CPSV_ND2A_READ_DATA(data_rsp->num_of_elmts,
 										     NCS_SERVICE_ID_CPA);
 						if (data_rsp->info.read_data) {
-							uns32 iter = 0;
+							uint32_t iter = 0;
 							for (; iter < data_rsp->size; iter++) {
 								size = sizeof(CPSV_ND2A_READ_DATA);
 								ncs_decode_n_octets_from_uba(i_ub,
@@ -1077,7 +1077,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 			/* End of - Added for 3.0.B , these events decoding is missing in 3.0.2 */
 		case CPND_EVT_A2ND_CKPT_SECT_CREATE:
 			{
-				uns32 size;
+				uint32_t size;
 				CPSV_CKPT_SECT_CREATE *create = &o_evt->info.cpnd.info.sec_creatReq;
 
 				if (create->sec_attri.sectionId) {
@@ -1094,7 +1094,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 			}
 		case CPND_EVT_A2ND_CKPT_ITER_GETNEXT:
 			{
-				uns32 size = 0;
+				uint32_t size = 0;
 				SaCkptSectionIdT *sec_id = &o_evt->info.cpnd.info.iter_getnext.section_id;
 				if (sec_id) {
 					size = sec_id->idLen;
@@ -1115,7 +1115,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 
 			if (o_evt->info.cpnd.info.sec_delReq.sec_id.idLen) {
 				SaCkptSectionIdT *sec_id = &o_evt->info.cpnd.info.sec_delReq.sec_id;
-				uns32 size = o_evt->info.cpnd.info.sec_delReq.sec_id.idLen;
+				uint32_t size = o_evt->info.cpnd.info.sec_delReq.sec_id.idLen;
 				if (size) {
 					sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
 					if (sec_id->id) {
@@ -1131,7 +1131,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 
 			if (o_evt->info.cpnd.info.sec_expset.sec_id.idLen) {
 				SaCkptSectionIdT *sec_id = &o_evt->info.cpnd.info.sec_expset.sec_id;
-				uns32 size = o_evt->info.cpnd.info.sec_expset.sec_id.idLen;
+				uint32_t size = o_evt->info.cpnd.info.sec_expset.sec_id.idLen;
 				if (size) {
 					sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
 					if (sec_id->id) {
@@ -1147,7 +1147,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 
 			if (o_evt->info.cpnd.info.sec_exp_set.sec_id.idLen) {
 				SaCkptSectionIdT *sec_id = &o_evt->info.cpnd.info.sec_exp_set.sec_id;
-				uns32 size = o_evt->info.cpnd.info.sec_exp_set.sec_id.idLen;
+				uint32_t size = o_evt->info.cpnd.info.sec_exp_set.sec_id.idLen;
 				if (size) {
 					sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
 					if (sec_id->id) {
@@ -1164,7 +1164,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 
 			if (o_evt->info.cpnd.info.ckpt_info.dest_cnt) {
 				CPSV_CPND_DEST_INFO *dest_list = 0;
-				uns32 size = sizeof(CPSV_CPND_DEST_INFO) * o_evt->info.cpnd.info.ckpt_info.dest_cnt;
+				uint32_t size = sizeof(CPSV_CPND_DEST_INFO) * o_evt->info.cpnd.info.ckpt_info.dest_cnt;
 				if (size)
 					dest_list = m_MMGR_ALLOC_CPSV_SYS_MEMORY(size);
 				if (dest_list && size)
@@ -1177,7 +1177,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 
 			if (o_evt->info.cpnd.info.ckpt_create.ckpt_info.dest_cnt) {
 				CPSV_CPND_DEST_INFO *dest_list = 0;
-				uns32 size = sizeof(CPSV_CPND_DEST_INFO) *
+				uint32_t size = sizeof(CPSV_CPND_DEST_INFO) *
 				    o_evt->info.cpnd.info.ckpt_create.ckpt_info.dest_cnt;
 				if (size)
 					dest_list = m_MMGR_ALLOC_CPSV_SYS_MEMORY(size);
@@ -1191,7 +1191,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 
 			if (o_evt->info.cpnd.info.cpnd_restart_done.dest_cnt) {
 				CPSV_CPND_DEST_INFO *dest_list = 0;
-				uns32 size = sizeof(CPSV_CPND_DEST_INFO) *
+				uint32_t size = sizeof(CPSV_CPND_DEST_INFO) *
 				    o_evt->info.cpnd.info.cpnd_restart_done.dest_cnt;
 				if (size)
 					dest_list = m_MMGR_ALLOC_CPSV_SYS_MEMORY(size);
@@ -1205,7 +1205,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 
 			if (o_evt->info.cpnd.info.ckpt_add.dest_cnt) {
 				CPSV_CPND_DEST_INFO *dest_list = 0;
-				uns32 size = sizeof(CPSV_CPND_DEST_INFO) * o_evt->info.cpnd.info.ckpt_add.dest_cnt;
+				uint32_t size = sizeof(CPSV_CPND_DEST_INFO) * o_evt->info.cpnd.info.ckpt_add.dest_cnt;
 				if (size)
 					dest_list = m_MMGR_ALLOC_CPSV_SYS_MEMORY(size);
 				if (dest_list && size)
@@ -1237,7 +1237,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 
   ARGUMENTS:
 
-  uns32   l             line # in file
+  uint32_t   l             line # in file
   char*   f             file name where macro invoked
   code    code          Error code value.. Usually FAILURE
 
@@ -1249,7 +1249,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 
 #if ((NCS_CPND == 1) || (NCS_CPD == 1))
 
-uns32 cpsv_dbg_sink(uns32 l, char *f, uns32 code, char *str)
+uint32_t cpsv_dbg_sink(uint32_t l, char *f, uint32_t code, char *str)
 {
 	TRACE("In file %s at line %d ", f, l);
 

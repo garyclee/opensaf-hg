@@ -58,11 +58,11 @@
  
   Notes         : 
 ******************************************************************************/
-uns32 avd_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
+uint32_t avd_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	AVD_CL_CB *cb = avd_cb;
 	EDU_ERR ederror = 0;
-	uns32 rc;
+	uint32_t rc;
 
 	rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_dnd_msg, enc_info->io_uba,
 				EDP_OP_TYPE_ENC, enc_info->i_msg, &ederror, enc_info->o_msg_fmt_ver);
@@ -87,7 +87,7 @@ uns32 avd_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
  
   Notes         : 
 ******************************************************************************/
-uns32 avd_mds_enc_flat(MDS_CALLBACK_ENC_FLAT_INFO *enc_info)
+uint32_t avd_mds_enc_flat(MDS_CALLBACK_ENC_FLAT_INFO *enc_info)
 {
 	return avd_mds_enc((MDS_CALLBACK_ENC_INFO *)enc_info);
 }
@@ -104,7 +104,7 @@ uns32 avd_mds_enc_flat(MDS_CALLBACK_ENC_FLAT_INFO *enc_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
+uint32_t avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
 {
 	AVD_DND_MSG *dst_msg;
 
@@ -143,11 +143,11 @@ uns32 avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avd_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
+uint32_t avd_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 {
 	AVD_CL_CB *cb = avd_cb;
 	EDU_ERR ederror = 0;
-	uns32 rc;
+	uint32_t rc;
 
 	rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_dnd_msg, dec_info->io_uba,
 				EDP_OP_TYPE_DEC, &dec_info->o_msg, &ederror, dec_info->i_msg_fmt_ver);
@@ -178,7 +178,7 @@ uns32 avd_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avd_mds_dec_flat(MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
+uint32_t avd_mds_dec_flat(MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 {
 	return avd_mds_dec((MDS_CALLBACK_DEC_INFO *)dec_info);
 }
@@ -225,10 +225,10 @@ static void avd_d2n_msg_enqueue(AVD_CL_CB *cb, NCSMDS_INFO *snd_mds)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avd_d2n_msg_dequeue(AVD_CL_CB *cb)
+uint32_t avd_d2n_msg_dequeue(AVD_CL_CB *cb)
 {
 	AVSV_ND_MSG_QUEUE *queue_elem;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/*
 	 * De-queue messages from the Queue and then do the MDS send.
 	 */
@@ -270,7 +270,7 @@ uns32 avd_d2n_msg_dequeue(AVD_CL_CB *cb)
   Notes         : None.
 ******************************************************************************/
 
-uns32 avd_d2n_msg_snd(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
+uint32_t avd_d2n_msg_snd(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
 {
 	NCSMDS_INFO snd_mds = {0};
 
@@ -308,10 +308,10 @@ uns32 avd_d2n_msg_snd(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
   Notes         : None.
 ******************************************************************************/
 
-uns32 avd_d2n_msg_bcast(AVD_CL_CB *cb, AVD_DND_MSG *bcast_msg)
+uint32_t avd_d2n_msg_bcast(AVD_CL_CB *cb, AVD_DND_MSG *bcast_msg)
 {
 	NCSMDS_INFO snd_mds = {0};
-	uns32 rc;
+	uint32_t rc;
 
 	snd_mds.i_mds_hdl = cb->adest_hdl;
 	snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;
@@ -344,7 +344,7 @@ uns32 avd_d2n_msg_bcast(AVD_CL_CB *cb, AVD_DND_MSG *bcast_msg)
   Notes         : None.
 ******************************************************************************/
 
-uns32 avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt_ver)
+uint32_t avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt_ver)
 {
 	AVD_EVT *evt = AVD_EVT_NULL;
 	AVD_CL_CB *cb = avd_cb;

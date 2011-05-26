@@ -55,12 +55,12 @@ extern AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *, AVND_COMP *, AVSV_AMF_H
  *
  * 
 \**************************************************************************/
-uns32 avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_TYPE action)
+uint32_t avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_SU *su_ptr = NULL;
 	AVSV_SU_INFO_MSG su_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su->name);
 
@@ -151,13 +151,13 @@ uns32 avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_TYP
  *
  * 
 \**************************************************************************/
-uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, NCS_MBCSV_ACT_TYPE action)
+uint32_t avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_SU_SI_REC *su_si_rec_ptr = NULL;
 	AVND_SU_SI_PARAM info;
 	AVND_SU *su_ptr = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_CSI_REC *csi_rec = NULL;
 
 	su_si_rec_ptr = avnd_su_si_rec_get(cb, &su_si_ckpt->su_name, &su_si_ckpt->name);
@@ -264,12 +264,12 @@ uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, 
  *
  * 
 \**************************************************************************/
-uns32 avnd_ckpt_add_rmv_updt_su_siq_rec(AVND_CB *cb, AVND_SU_SIQ_REC *su_siq_ckpt, NCS_MBCSV_ACT_TYPE action)
+uint32_t avnd_ckpt_add_rmv_updt_su_siq_rec(AVND_CB *cb, AVND_SU_SIQ_REC *su_siq_ckpt, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_SU_SIQ_REC *siq_ptr = NULL;
 	AVND_SU *su_ptr;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -334,9 +334,9 @@ uns32 avnd_ckpt_add_rmv_updt_su_siq_rec(AVND_CB *cb, AVND_SU_SIQ_REC *su_siq_ckp
  *
  * 
 \**************************************************************************/
-uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_ACT_TYPE action)
+uint32_t avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_COMP *comp_ptr = NULL;
 	AVND_COMP *pxy_comp = NULL;
 	AVND_COMP_PARAM comp_info;
@@ -544,14 +544,14 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
  *
  * 
 \**************************************************************************/
-uns32 avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_MBCSV_ACT_TYPE action)
+uint32_t avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_COMP_CSI_REC *csi_ptr = NULL;
 	AVND_SU_SI_REC *su_si_rec = NULL;
 	AVSV_SUSI_ASGN csi_param;
 	AVND_SU *su = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	su_si_rec = avnd_su_si_rec_get(cb, &csi->su_name, &csi->si_name);
 	csi_ptr = avnd_compdb_csi_rec_get(cb, &csi->comp_name, &csi->name);
@@ -641,12 +641,12 @@ uns32 avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_M
  *
  * 
 \**************************************************************************/
-uns32 avnd_ckpt_add_rmv_updt_hlt_data(AVND_CB *cb, AVND_HC *hlt, NCS_MBCSV_ACT_TYPE action)
+uint32_t avnd_ckpt_add_rmv_updt_hlt_data(AVND_CB *cb, AVND_HC *hlt, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_HC *hlt_ptr = NULL;
 	AVSV_HLT_INFO_MSG hc_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	hlt_ptr = avnd_hcdb_rec_get(cb, &hlt->key);
 
@@ -713,9 +713,9 @@ uns32 avnd_ckpt_add_rmv_updt_hlt_data(AVND_CB *cb, AVND_HC *hlt, NCS_MBCSV_ACT_T
  *
  * 
 \**************************************************************************/
-uns32 avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt, NCS_MBCSV_ACT_TYPE action)
+uint32_t avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_COMP_HC_REC *hc_rec = NULL;
 	AVSV_AMF_HC_START_PARAM hc_info;
 	AVND_COMP *comp = NULL;
@@ -799,9 +799,9 @@ uns32 avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt, NC
  *
  * 
 \**************************************************************************/
-uns32 avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NCS_MBCSV_ACT_TYPE action)
+uint32_t avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_COMP_CBK *cbk_ptr = NULL;
 	AVND_COMP *comp = NULL;
 
@@ -864,7 +864,7 @@ uns32 avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NCS_M
 
 	case NCS_MBCSV_ACT_RMV:
 		{
-			uns32 found = 0;
+			uint32_t found = 0;
 			if (NULL != cbk_ptr) {
 				m_AVND_COMP_CBQ_REC_POP(comp, cbk_ptr, found);
 				if (found)
@@ -899,9 +899,9 @@ uns32 avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NCS_M
  *
  *
 \**************************************************************************/
-uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
+uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 
   /****************** Destroy healthcheck db *********************************/

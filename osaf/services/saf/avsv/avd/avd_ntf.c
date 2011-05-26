@@ -450,7 +450,7 @@ void avd_send_comp_proxy_status_proxied_ntf(const SaNameT *comp_name,
 
   Notes         :
 *****************************************************************************/
-void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uns32 probableCause)
+void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uint32_t probableCause)
 {
        char add_text[ADDITION_TEXT_LENGTH];
 
@@ -527,17 +527,17 @@ SaAisErrorT fill_ntf_header_part_avd(SaNtfNotificationHeaderT *notificationHeade
 
 }
 
-uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
+uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 			       SaNameT ntf_object,
 			       SaUint8T *add_text,
 			       SaUint16T majorId,
 			       SaUint16T minorId,
-			       uns32 probableCause,
-			       uns32 perceivedSeverity,
+			       uint32_t probableCause,
+			       uint32_t perceivedSeverity,
 			       NCSCONTEXT add_info,
 			       int type)
 {
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 	SaNtfAlarmNotificationT myAlarmNotification;
 	SaUint16T add_info_items = 0;
 	SaUint64T allocation_size = 0;
@@ -607,18 +607,18 @@ uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 
 }
 
-uns32 sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
+uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 				     SaNameT ntf_object,
 				     SaUint8T *add_text,
 				     SaUint16T majorId,
 				     SaUint16T minorId,
-				     uns32 sourceIndicator,
+				     uint32_t sourceIndicator,
 				     SaUint16T stateId,
 				     SaUint16T newState,
 				     NCSCONTEXT add_info,
 				     int type)
 {
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 	SaNtfStateChangeNotificationT myStateNotification;
 	SaUint16T add_info_items = 0;
 	SaUint64T allocation_size = 0;

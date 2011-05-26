@@ -45,9 +45,9 @@
  * Notes         : None.
  *****************************************************************************/
 		
-uns32 plms_edp_agent_lib_req(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr, 	uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+uint32_t plms_edp_agent_lib_req(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr, 	uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	 uns32 rc = NCSCC_RC_SUCCESS;
+	 uint32_t rc = NCSCC_RC_SUCCESS;
 	 PLMS_AGENT_LIB_REQ *struct_ptr = NULL, **d_ptr;
 
 	 EDU_INST_SET plms_agent_lib_req_rules[] = {
@@ -100,9 +100,9 @@ uns32 plms_edp_agent_lib_req(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr, 
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_edp_agent_grp_op(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr, 	uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+uint32_t plms_edp_agent_grp_op(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr, 	uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	 uns32 rc = NCSCC_RC_SUCCESS;
+	 uint32_t rc = NCSCC_RC_SUCCESS;
 	 PLMS_AGENT_GRP_OP *struct_ptr = NULL, **d_ptr;
 
 	 EDU_INST_SET plms_agent_grp_op_rules[] = {
@@ -162,9 +162,9 @@ uns32 plms_edp_agent_grp_op(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr, 	
  * Notes         : None.
  *****************************************************************************/
 		
-uns32 plms_edp_readiness_status(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+uint32_t plms_edp_readiness_status(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	 uns32 rc = NCSCC_RC_SUCCESS;
+	 uint32_t rc = NCSCC_RC_SUCCESS;
 	 SaPlmReadinessStatusT *struct_ptr = NULL, **d_ptr;
 
 	 EDU_INST_SET plms_readiness_status_rules[] = {
@@ -216,9 +216,9 @@ uns32 plms_edp_readiness_status(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT pt
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_edp_readiness_tracked_entity(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+uint32_t plms_edp_readiness_tracked_entity(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	 uns32 rc = NCSCC_RC_SUCCESS;
+	 uint32_t rc = NCSCC_RC_SUCCESS;
 	 SaPlmReadinessTrackedEntityT *struct_ptr = NULL, **d_ptr;
 
 	 EDU_INST_SET plms_readiness_tracked_entity_rules[] = {
@@ -272,9 +272,9 @@ uns32 plms_edp_readiness_tracked_entity(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCO
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_edp_readiness_tracked_entities(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+uint32_t plms_edp_readiness_tracked_entities(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	 uns32 rc = NCSCC_RC_SUCCESS;
+	 uint32_t rc = NCSCC_RC_SUCCESS;
 	 SaPlmReadinessTrackedEntitiesT *struct_ptr = NULL, **d_ptr;
 
 	 EDU_INST_SET plms_readiness_tracked_entities_rules[] = {
@@ -327,9 +327,9 @@ uns32 plms_edp_readiness_tracked_entities(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCS
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_edp_agent_track_start(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+uint32_t plms_edp_agent_track_start(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	 uns32 rc = NCSCC_RC_SUCCESS;
+	 uint32_t rc = NCSCC_RC_SUCCESS;
 	 PLMS_AGENT_TRACK_START *struct_ptr = NULL, **d_ptr;
 
 	 EDU_INST_SET plms_agent_track_start_rules[] = {
@@ -382,9 +382,9 @@ uns32 plms_edp_agent_track_start(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT p
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_edp_ntf_correlation_ids(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+uint32_t plms_edp_ntf_correlation_ids(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	 uns32 rc = NCSCC_RC_SUCCESS;
+	 uint32_t rc = NCSCC_RC_SUCCESS;
 	 SaNtfCorrelationIdsT *struct_ptr = NULL, **d_ptr;
 
 	 EDU_INST_SET plms_ntf_correlation_ids_rules[] = {
@@ -436,9 +436,9 @@ uns32 plms_edp_ntf_correlation_ids(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_edp_agent_readiness_impact(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+uint32_t plms_edp_agent_readiness_impact(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	 uns32 rc = NCSCC_RC_SUCCESS;
+	 uint32_t rc = NCSCC_RC_SUCCESS;
 	 PLMS_AGENT_READINESS_IMPACT *struct_ptr = NULL, **d_ptr;
 
 	 EDU_INST_SET plms_agent_readiness_impact_rules[] = {
@@ -492,9 +492,9 @@ uns32 plms_edp_agent_readiness_impact(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONT
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_edp_agent_track_cbk_resp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+uint32_t plms_edp_agent_track_cbk_resp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	 uns32 rc = NCSCC_RC_SUCCESS;
+	 uint32_t rc = NCSCC_RC_SUCCESS;
 	 PLMS_TRACK_CBK_RES *struct_ptr = NULL, **d_ptr;
 
 	 EDU_INST_SET plms_agent_track_cbk_resp_rules[] = {
@@ -545,9 +545,9 @@ uns32 plms_edp_agent_track_cbk_resp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEX
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_edp_agent_track_cbk(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+uint32_t plms_edp_agent_track_cbk(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	 uns32 rc = NCSCC_RC_SUCCESS;
+	 uint32_t rc = NCSCC_RC_SUCCESS;
 	 PLMS_AGENT_TRACK_CBK *struct_ptr = NULL, **d_ptr;
 
 	 EDU_INST_SET plms_agent_track_cbk_rules[] = {
@@ -596,7 +596,7 @@ uns32 plms_edp_agent_track_cbk(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_evt_test_type_func(NCSCONTEXT arg)
+uint32_t plms_evt_test_type_func(NCSCONTEXT arg)
 {
 	PLMS_EVT_REQ_RES type;
 	enum {
@@ -632,7 +632,7 @@ uns32 plms_evt_test_type_func(NCSCONTEXT arg)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_evt_test_req_type(NCSCONTEXT arg)
+uint32_t plms_evt_test_req_type(NCSCONTEXT arg)
 {
 	PLMS_EVT_TYPE  req_type;
 	enum {
@@ -670,7 +670,7 @@ uns32 plms_evt_test_req_type(NCSCONTEXT arg)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_evt_test_res_type(NCSCONTEXT arg)
+uint32_t plms_evt_test_res_type(NCSCONTEXT arg)
 {
 	PLMS_EVT_RES_TYPE  res_type;
 	enum {
@@ -712,7 +712,7 @@ uns32 plms_evt_test_res_type(NCSCONTEXT arg)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_test_track_op_type(NCSCONTEXT arg)
+uint32_t plms_test_track_op_type(NCSCONTEXT arg)
 {
 	PLMS_TRACK_EVT_TYPE  evt_type;
 	enum {
@@ -753,10 +753,10 @@ uns32 plms_test_track_op_type(NCSCONTEXT arg)
 *
 * Notes         : None.
 *****************************************************************************/
-uns32 plms_edp_agent_track_op(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV 				*buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t plms_edp_agent_track_op(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV 				*buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32       rc = NCSCC_RC_SUCCESS;
+	uint32_t       rc = NCSCC_RC_SUCCESS;
 	PLMS_AGENT_TRACK_OP   *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET    plms_edp_agent_track_op_rules[ ] = {
@@ -811,10 +811,10 @@ uns32 plms_edp_agent_track_op(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 *
 * Notes         : None.
 *****************************************************************************/
-uns32 plms_edp_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV 				*buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t plms_edp_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV 				*buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32       rc = NCSCC_RC_SUCCESS;
+	uint32_t       rc = NCSCC_RC_SUCCESS;
 	PLMS_EVT_REQ   *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET    plms_edp_req_info_rules[ ] = {
@@ -865,10 +865,10 @@ uns32 plms_edp_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 *
 * Notes         : None.
 *****************************************************************************/
-uns32 plms_edp_res_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV 				*buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t plms_edp_res_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV 				*buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32       rc = NCSCC_RC_SUCCESS;
+	uint32_t       rc = NCSCC_RC_SUCCESS;
 	PLMS_EVT_RES   *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET    plms_edp_res_info_rules[ ] = {
@@ -922,12 +922,12 @@ uns32 plms_edp_res_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 plms_edp_plms_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t plms_edp_plms_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			NCSCONTEXT ptr, uint32_t *ptr_data_len,
 			EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
 			EDU_ERR *o_err)
 {
-	uns32       rc = NCSCC_RC_SUCCESS;
+	uint32_t       rc = NCSCC_RC_SUCCESS;
 	PLMS_EVT   *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET    test_plms_evt_rules[ ] = {

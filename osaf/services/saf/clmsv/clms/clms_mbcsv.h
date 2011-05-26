@@ -130,8 +130,8 @@ typedef struct clms_ckpt_agent_down {
  */
 typedef struct clms_ckpt_header_t {
 	CLMS_CKPT_REC_TYPE type;	/* Checkpoint record type */
-	uns32 num_ckpt_records;
-	uns32 data_len;		/* Total length of encoded checkpoint data of this type */
+	uint32_t num_ckpt_records;
+	uint32_t data_len;		/* Total length of encoded checkpoint data of this type */
 } CLMSV_CKPT_HEADER;
 
 /* Top level structure for Checkpointing */
@@ -151,17 +151,17 @@ typedef struct clms_ckpt_rec_t {
 	} param;
 } CLMS_CKPT_REC;
 
-typedef uns32 (*CLMS_CKPT_HDLR) (CLMS_CB * cb, CLMS_CKPT_REC * data);
-extern uns32 clms_mbcsv_change_HA_state(CLMS_CB * cb);
-extern uns32 clms_send_async_update(CLMS_CB * cb, CLMS_CKPT_REC * ckpt_rec, uns32 action);
+typedef uint32_t (*CLMS_CKPT_HDLR) (CLMS_CB * cb, CLMS_CKPT_REC * data);
+extern uint32_t clms_mbcsv_change_HA_state(CLMS_CB * cb);
+extern uint32_t clms_send_async_update(CLMS_CB * cb, CLMS_CKPT_REC * ckpt_rec, uint32_t action);
 extern void prepare_ckpt_node(CLMSV_CKPT_NODE * node, CLMS_CLUSTER_NODE * cluster_node);
 extern void prepare_cluster_node(CLMS_CLUSTER_NODE * node, CLMSV_CKPT_NODE * cluster_node);
 extern void prepare_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC * node, CLMS_CLUSTER_NODE * cluster_node);
-extern uns32 clms_mbcsv_init(CLMS_CB * cb);
-extern uns32 clms_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
+extern uint32_t clms_mbcsv_init(CLMS_CB * cb);
+extern uint32_t clms_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 extern void prepare_ckpt_to_ckpt_node(CLMSV_CKPT_NODE * node, CLMSV_CKPT_NODE * cluster_node);
 extern void prepare_ckpt_to_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC * node,
 					     CLMSV_CKPT_NODE_CONFIG_REC * cluster_node);
-extern uns32 encodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress);
+extern uint32_t encodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress);
 
 #endif

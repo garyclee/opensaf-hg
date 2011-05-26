@@ -31,11 +31,11 @@
 /*****************************************************************************
  global data used by CPA
  *****************************************************************************/
-uns32 gl_cpa_hdl = 0;
-static uns32 cpa_use_count = 0;
+uint32_t gl_cpa_hdl = 0;
+static uint32_t cpa_use_count = 0;
 
 /* CPA Agent creation specific LOCK */
-static uns32 cpa_agent_lock_create = 0;
+static uint32_t cpa_agent_lock_create = 0;
 NCS_LOCK cpa_agent_lock;
 
 #define m_CPA_AGENT_LOCK                        \
@@ -48,8 +48,8 @@ NCS_LOCK cpa_agent_lock;
 
 #define m_CPA_AGENT_UNLOCK m_NCS_UNLOCK(&cpa_agent_lock, NCS_LOCK_WRITE)
 
-static uns32 cpa_create(NCS_LIB_CREATE *create_info);
-static uns32 cpa_destroy(NCS_LIB_DESTROY *destroy_info);
+static uint32_t cpa_create(NCS_LIB_CREATE *create_info);
+static uint32_t cpa_destroy(NCS_LIB_DESTROY *destroy_info);
 static void cpa_sync_with_cpnd(CPA_CB *cb);
 
 /****************************************************************************
@@ -64,9 +64,9 @@ static void cpa_sync_with_cpnd(CPA_CB *cb);
  
   Notes         : None
 ******************************************************************************/
-uns32 cpa_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t cpa_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -96,7 +96,7 @@ uns32 cpa_lib_req(NCS_LIB_REQ_INFO *req_info)
 void cpa_sync_with_cpnd(CPA_CB *cb)
 {
 	NCS_SEL_OBJ_SET set;
-	uns32 timeout = 3000;
+	uint32_t timeout = 3000;
 
 	m_NCS_LOCK(&cb->cpnd_sync_lock, NCS_LOCK_WRITE);
 
@@ -135,10 +135,10 @@ void cpa_sync_with_cpnd(CPA_CB *cb)
  
   Notes         : None
 ******************************************************************************/
-static uns32 cpa_create(NCS_LIB_CREATE *create_info)
+static uint32_t cpa_create(NCS_LIB_CREATE *create_info)
 {
 	CPA_CB *cb = NULL;
-	uns32 rc;
+	uint32_t rc;
 
 	/* validate create info */
 	if (create_info == NULL)
@@ -244,7 +244,7 @@ static uns32 cpa_create(NCS_LIB_CREATE *create_info)
  
   Notes         : None
 ******************************************************************************/
-static uns32 cpa_destroy(NCS_LIB_DESTROY *destroy_info)
+static uint32_t cpa_destroy(NCS_LIB_DESTROY *destroy_info)
 {
 	CPA_CB *cb = NULL;
 
@@ -347,7 +347,7 @@ unsigned int ncs_cpa_startup(void)
 ******************************************************************************/
 unsigned int ncs_cpa_shutdown(void)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_CPA_AGENT_LOCK;
 

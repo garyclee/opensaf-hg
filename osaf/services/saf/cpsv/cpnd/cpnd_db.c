@@ -49,7 +49,7 @@ void cpnd_ckpt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, CPND_CKPT
  * Description   : Function to get the ckpt node from Tree.
  *
  * Arguments     : CPND_CB *cb, - CPND Control Block
- *                 uns32 ckpt_hdl - ckpt handle
+ *                 uint32_t ckpt_hdl - ckpt handle
  *                 
  * Return Values : CPND_CKPT_NODE** ckpt_node - Ckpt Node at CPND
  *
@@ -75,9 +75,9 @@ void cpnd_ckpt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, CPND_
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_node_add(CPND_CB *cb, CPND_CKPT_NODE *ckpt_node)
+uint32_t cpnd_ckpt_node_add(CPND_CB *cb, CPND_CKPT_NODE *ckpt_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	ckpt_node->patnode.key_info = (uint8_t *)&ckpt_node->ckpt_id;
 
@@ -97,9 +97,9 @@ uns32 cpnd_ckpt_node_add(CPND_CB *cb, CPND_CKPT_NODE *ckpt_node)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_node_del(CPND_CB *cb, CPND_CKPT_NODE *ckpt_node)
+uint32_t cpnd_ckpt_node_del(CPND_CB *cb, CPND_CKPT_NODE *ckpt_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	rc = ncs_patricia_tree_del(&cb->ckpt_info_db, (NCS_PATRICIA_NODE *)&ckpt_node->patnode);
 	return rc;
@@ -164,7 +164,7 @@ void cpnd_ckpt_node_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
  * Description   : Function to get the client node from client db Tree.
  *
  * Arguments     : CPND_CB *cb, - CPND Control Block
- *               : uns32 ckpt_client_hdl - Client Handle.
+ *               : uint32_t ckpt_client_hdl - Client Handle.
  *                 
  client* Return Values : CPND_CKPT_CLIENT_NODE** ckpt_client_node
  *
@@ -183,7 +183,7 @@ void cpnd_client_node_get(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl, CPND_CKPT_
  * Description   : Function to get next ckpt node of a given ckpt from ckpt Tree.
  *
  * Arguments     : CPND_CB *cb, - CPND Control Block
- *                 uns32 ckpt_hdl - ckpt handle
+ *                 uint32_t ckpt_hdl - ckpt handle
  *                 
  * Return Values : CPND_CKPT_CLIENT_NODE** ckpt_node - Ckpt Node at CPND
  *
@@ -211,9 +211,9 @@ void cpnd_client_node_getnext(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl, CPND_C
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_client_node_add(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *ckpt_node)
+uint32_t cpnd_client_node_add(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *ckpt_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	ckpt_node->patnode.key_info = (uint8_t *)&ckpt_node->ckpt_app_hdl;
 
@@ -233,9 +233,9 @@ uns32 cpnd_client_node_add(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *ckpt_node)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_client_node_del(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *ckpt_client_node)
+uint32_t cpnd_client_node_del(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *ckpt_client_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	rc = ncs_patricia_tree_del(&cb->client_info_db, (NCS_PATRICIA_NODE *)&ckpt_client_node->patnode);
 	return rc;
@@ -318,9 +318,9 @@ void cpnd_evt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT checkpointHandle
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_evt_node_add(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node)
+uint32_t cpnd_evt_node_add(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	evt_node->patnode.key_info = (uint8_t *)&evt_node->ckpt_id;
 
@@ -340,9 +340,9 @@ uns32 cpnd_evt_node_add(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_evt_node_del(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node)
+uint32_t cpnd_evt_node_del(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	rc = ncs_patricia_tree_del(&cb->writeevt_db, (NCS_PATRICIA_NODE *)&evt_node->patnode);
 	return rc;
@@ -423,10 +423,10 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_create(CPND_CKPT_NODE *cp_node, SaCkpt
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_sec_find(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
+uint32_t cpnd_ckpt_sec_find(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
 
 	if (cp_node->replica_info.n_secs == 0) {
@@ -460,7 +460,7 @@ uns32 cpnd_ckpt_sec_find(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
 CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
 {
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	pSecPtr = cp_node->replica_info.section_info;
 	while (pSecPtr != NULL) {
@@ -508,12 +508,12 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node, SaCkptSection
  * Notes         : None.
  *****************************************************************************/
 CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id,
-					  SaTimeT exp_time, uns32 gen_flag)
+					  SaTimeT exp_time, uint32_t gen_flag)
 {
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
-	int32 lcl_sec_id = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 value = 0, i = 0, j = 0;
+	int32_t lcl_sec_id = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t value = 0, i = 0, j = 0;
 
 	/* get the lcl_sec_id */
 
@@ -681,7 +681,7 @@ void cpnd_evt_backup_queue_add(CPND_CKPT_NODE *cp_node, CPND_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-CPND_CKPT_SECTION_INFO *cpnd_get_sect_with_id(CPND_CKPT_NODE *cp_node, uns32 lcl_sec_id)
+CPND_CKPT_SECTION_INFO *cpnd_get_sect_with_id(CPND_CKPT_NODE *cp_node, uint32_t lcl_sec_id)
 {
 
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
@@ -715,7 +715,7 @@ CPND_CKPT_SECTION_INFO *cpnd_get_sect_with_id(CPND_CKPT_NODE *cp_node, uns32 lcl
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_node_tree_init(CPND_CB *cb)
+uint32_t cpnd_ckpt_node_tree_init(CPND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -737,7 +737,7 @@ uns32 cpnd_ckpt_node_tree_init(CPND_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_client_node_tree_init(CPND_CB *cb)
+uint32_t cpnd_client_node_tree_init(CPND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -870,7 +870,7 @@ void cpnd_client_node_tree_destroy(CPND_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_allrepl_write_evt_node_tree_init(CPND_CB *cb)
+uint32_t cpnd_allrepl_write_evt_node_tree_init(CPND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -935,7 +935,7 @@ void cpnd_allrepl_write_evt_node_tree_destroy(CPND_CB *cb)
  * Description     : To get the physical slot & sub slot  id from MDS_DEST
  *
  *********************************************************************************/
-uns32 cpnd_get_slot_sub_slot_id_from_mds_dest(MDS_DEST dest)
+uint32_t cpnd_get_slot_sub_slot_id_from_mds_dest(MDS_DEST dest)
 {
 	NCS_PHY_SLOT_ID phy_slot;
 	NCS_SUB_SLOT_ID sub_slot;
@@ -951,7 +951,7 @@ uns32 cpnd_get_slot_sub_slot_id_from_mds_dest(MDS_DEST dest)
  * Description     : To get the physical slot & sub slot  id from node id
  *
  *********************************************************************************/
-uns32 cpnd_get_slot_sub_slot_id_from_node_id(NCS_NODE_ID i_node_id)
+uint32_t cpnd_get_slot_sub_slot_id_from_node_id(NCS_NODE_ID i_node_id)
 {
 	NCS_PHY_SLOT_ID phy_slot;
 	NCS_SUB_SLOT_ID sub_slot;
@@ -1028,9 +1028,9 @@ void cpnd_agent_dest_del(CPND_CKPT_NODE *cp_node, MDS_DEST adest)
 void cpnd_proc_pending_writes(CPND_CB *cb, CPND_CKPT_NODE *cp_node, MDS_DEST adest)
 {
 	CPSV_EVT *bck_evt = NULL;
-	uns32 err_flag = 0;
+	uint32_t err_flag = 0;
 	CPSV_SEND_INFO *sinfo = NULL;
-	uns32 errflag = 0;
+	uint32_t errflag = 0;
 	/* This check is for one write and 1 local read and then kill the reader */
 
 	cpnd_agent_dest_del(cp_node, adest);
@@ -1056,7 +1056,7 @@ void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificati
 {
 	CPND_CB *cb = NULL;
 	SaClmNodeIdT node_id;
-	uns32 counter = 0;
+	uint32_t counter = 0;
 	if (error != SA_AIS_OK)
 		return;
 	m_CPND_RETRIEVE_CB(cb);

@@ -76,9 +76,9 @@ void rde_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb)
+static uint32_t rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_error;
 	SaAmfHealthcheckKeyT Healthy;
 	SaNameT SaCompName;
@@ -117,9 +117,9 @@ static uns32 rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb)
 	return rc;
 }
 
-uns32 rde_amf_init(RDE_AMF_CB *rde_amf_cb)
+uint32_t rde_amf_init(RDE_AMF_CB *rde_amf_cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_error = SA_AIS_OK;
 	SaNameT sname;
 	SaAmfCallbacksT amfCallbacks;

@@ -78,8 +78,8 @@ typedef enum plms_mbcsv_msg_type {
 typedef struct plms_mbcsv_header {
 	/* SaVersionT          version;  Active peer's Version */
 	PLMS_MBCSV_MSG_TYPE    msg_type; /* Type of mbcsv data */
-	uns32 num_records; /* =1 for async updates,>=1 for cold/warm sync **/
-	uns32 data_len;         /* Total length of encoded data */
+	uint32_t num_records; /* =1 for async updates,>=1 for cold/warm sync **/
+	uint32_t data_len;         /* Total length of encoded data */
 	/* uint16_t               checksum;  Checksum calculated on the message */
 } PLMS_MBCSV_HEADER;
 
@@ -104,13 +104,13 @@ typedef struct plms_mbcsv_msg {
 
 /****************** function prototypes *****************/
 SaUint32T plms_edp_client_info_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-NCSCONTEXT ptr,uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,
+NCSCONTEXT ptr,uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,
 EDU_ERR *o_err);
 SaUint32T plms_mbcsv_register();
 SaUint32T plms_mbcsv_finalize();
 SaUint32T plms_mbcsv_chgrole();
 SaUint32T plms_mbcsv_dispatch();
 SaUint32T plms_mbcsv_send_async_update(PLMS_MBCSV_MSG *msg, 
-						uns32 action);
+						uint32_t action);
 #endif
 

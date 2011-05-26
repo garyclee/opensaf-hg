@@ -54,9 +54,9 @@
 
   NOTES         : None
 *****************************************************************************/
-uns32 glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type, SaTimeT period, uns32 uarg)
+uint32_t glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type, SaTimeT period, uint32_t uarg)
 {
-	uns32 my_period = (uns32)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(period));
+	uint32_t my_period = (uint32_t)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(period));
 
 	if (GLND_TMR_MAX <= type) {
 		m_LOG_GLND_TIMER(GLND_TIMER_START_FAIL, type, __FILE__, __LINE__);
@@ -166,7 +166,7 @@ static GLSV_GLND_EVT_TYPE glnd_tmr_evt_map(GLND_TMR_TYPE tmr_type)
 *****************************************************************************/
 void glnd_tmr_exp(void *uarg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLND_CB *cb = 0;
 	GLND_TMR *tmr = (GLND_TMR *)uarg;
 	GLSV_GLND_EVT *evt = 0;

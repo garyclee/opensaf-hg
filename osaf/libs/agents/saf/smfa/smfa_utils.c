@@ -69,7 +69,7 @@ void smfa_client_info_add(SMFA_CLIENT_INFO *client_info)
 @param[in]	: hdl - Client to be removed. 
 @return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 *****************************************************************************/
-uns32 smfa_client_info_rmv(SaSmfHandleT hdl)
+uint32_t smfa_client_info_rmv(SaSmfHandleT hdl)
 {
 	SMFA_CB *cb = &_smfa_cb;
 	SMFA_CLIENT_INFO *client_info_list = cb->smfa_client_info_list;
@@ -143,7 +143,7 @@ void smfa_scope_info_add(SMFA_CLIENT_INFO *client_info, SMFA_SCOPE_INFO *scope_i
 *****************************************************************************/
 void smfa_scope_info_free(SMFA_SCOPE_INFO *scope_info)
 {
-	uns32 no_of_filters;
+	uint32_t no_of_filters;
 	for (no_of_filters=0; no_of_filters < scope_info->scope_of_interest.filtersNumber; no_of_filters++){
 		if (!scope_info->scope_of_interest.filters[no_of_filters].filter.label){
 			free(scope_info->scope_of_interest.filters[no_of_filters].filter.label);
@@ -161,7 +161,7 @@ void smfa_scope_info_free(SMFA_SCOPE_INFO *scope_info)
 @param[in]	: scope_id - Scope to be removed.
 @return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 *****************************************************************************/
-uns32 smfa_scope_info_rmv(SMFA_CLIENT_INFO *client_info, SaSmfCallbackScopeIdT scope_id)
+uint32_t smfa_scope_info_rmv(SMFA_CLIENT_INFO *client_info, SaSmfCallbackScopeIdT scope_id)
 {
 	SMFA_SCOPE_INFO *scope_info_list = client_info->scope_info_list;
 	SMFA_SCOPE_INFO *scope_info_prev = scope_info_list;
@@ -326,12 +326,12 @@ SaAisErrorT smfa_dispatch_cbk_block(SMFA_CLIENT_INFO *client_info)
 @param[in]	: invocation - Inv id sent in response by the application.
 @return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS.
 *****************************************************************************/
-uns32 smfa_cbk_ok_resp_process(SaSmfHandleT smfHandle,SaInvocationT invocation)
+uint32_t smfa_cbk_ok_resp_process(SaSmfHandleT smfHandle,SaInvocationT invocation)
 {
 	SMFA_CB *cb = &_smfa_cb;
 	SMFA_CBK_LIST *cbk_list = cb->cbk_list, *cbk_prev = NULL;
 	SMFA_CBK_HDL_LIST *hdl_list = NULL, *hdl_prev;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("Handle: %llu, ind_id: %llu.",smfHandle,invocation);
 	/* Find the invocation node.*/
@@ -399,13 +399,13 @@ done:
 @param[in]	: invocation - Inv id sent in response by the application.
 @return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS.
 *****************************************************************************/
-uns32 smfa_cbk_err_resp_process(SaInvocationT invocation,SaSmfHandleT hdl)
+uint32_t smfa_cbk_err_resp_process(SaInvocationT invocation,SaSmfHandleT hdl)
 {
 	SMFA_CB *cb = &_smfa_cb;
 	SMFA_CBK_LIST *cbk_list = cb->cbk_list, *cbk_prev = NULL;
 	SMFA_CBK_HDL_LIST *hdl_list = NULL ;
-	uns32 rc = NCSCC_RC_FAILURE;
-	uns32 is_delay_resp = 1;
+	uint32_t rc = NCSCC_RC_FAILURE;
+	uint32_t is_delay_resp = 1;
 	
 	TRACE_ENTER2("Handle: %llu, ind_id: %llu.",hdl,invocation);
 	/* Find the invocation node.*/
@@ -458,9 +458,9 @@ done:
 @param[in]	: passed_flt - Filters passed by SMFD part of XML file. 
 @return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS.
 ***************************************************************************/ 
-uns32 smfa_cbk_filter_type_match(SaSmfLabelFilterT *stored_flt,SaSmfCallbackLabelT *passed_flt)
+uint32_t smfa_cbk_filter_type_match(SaSmfLabelFilterT *stored_flt,SaSmfCallbackLabelT *passed_flt)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	switch(stored_flt->filterType){
 		case SA_SMF_PREFIX_FILTER:
@@ -571,11 +571,11 @@ SMFA_CBK_HDL_LIST * smfa_inv_hdl_add(SaInvocationT inv_id, SaSmfHandleT hdl)
 @param[in]	: cbk_evt - Evt received from SMFND.
 @return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS.
 ***************************************************************************/ 
-uns32 smfa_cbk_filter_match(SMFA_CLIENT_INFO *client_info,SMF_CBK_EVT *cbk_evt)
+uint32_t smfa_cbk_filter_match(SMFA_CLIENT_INFO *client_info,SMF_CBK_EVT *cbk_evt)
 {
 	SMFA_SCOPE_INFO *scope_info = client_info->scope_info_list;
-	uns32 rc = NCSCC_RC_FAILURE;
-	uns32 no_of_filters;
+	uint32_t rc = NCSCC_RC_FAILURE;
+	uint32_t no_of_filters;
 	SMF_EVT *evt;
 	SMFA_CBK_HDL_LIST *hdl_list = NULL;
 
@@ -650,13 +650,13 @@ uns32 smfa_cbk_filter_match(SMFA_CLIENT_INFO *client_info,SMF_CBK_EVT *cbk_evt)
 @param[in]	: hdl - Handle for which the cbk_list is to be cleaned up. 
 @return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS.
 ***************************************************************************/ 
-uns32 smfa_cbk_list_cleanup(SaSmfHandleT hdl)
+uint32_t smfa_cbk_list_cleanup(SaSmfHandleT hdl)
 {
 	SMFA_CB *cb = &_smfa_cb;
 	SMFA_CBK_LIST *cbk_list = cb->cbk_list, *prev_cbk = cb->cbk_list;
 	SMFA_CBK_HDL_LIST *hdl_list, *prev_hdl;
 	SMFSV_EVT resp_evt;
-	uns32 is_cbk_del;
+	uint32_t is_cbk_del;
 
 	while (cbk_list){
 		is_cbk_del = 0;

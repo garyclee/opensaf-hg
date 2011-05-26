@@ -57,10 +57,10 @@ static SaAisErrorT avd_d2n_reboot_snd(AVD_AVND *node);
  * 
  **************************************************************************/
 
-uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
+uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			 SaAmfHAStateT ha_state, NCS_BOOL ckpt, AVD_SU_SI_REL **ret_ptr)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_SU_SI_REL *susi;
 	AVD_COMP_CSI_REL *compcsi;
 	AVD_COMP *l_comp;
@@ -648,7 +648,7 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 	AVD_SU *i_su = NULL;
 	AVD_AVND *avnd_other = NULL;
 	SaBoolT ncs_done = SA_TRUE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -1577,12 +1577,12 @@ void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
  * 
  **************************************************************************/
 
-uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
+uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 {
-	uns32 num_insvc_su = 0;
-	uns32 num_asgd_su = 0;
-	uns32 num_su = 0;
-	uns32 num_try_insvc_su = 0;
+	uint32_t num_insvc_su = 0;
+	uint32_t num_asgd_su = 0;
+	uint32_t num_su = 0;
+	uint32_t num_try_insvc_su = 0;
 	AVD_SU *i_su;
 	AVD_AVND *su_node_ptr = NULL;
 
@@ -1706,9 +1706,9 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
  * 
  **************************************************************************/
 
-uns32 avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
+uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_SU *i_su;
 	AVD_AVND *i_su_node_ptr = NULL;
 
@@ -2143,9 +2143,9 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
  * 
  **************************************************************************/
 
-uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
+uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SG_OPER **i_su_opr;
 
 	TRACE_ENTER2("'%s'", su->name.value);
@@ -2212,7 +2212,7 @@ done:
  * 
  **************************************************************************/
 
-uns32 avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
+uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 {
 	AVD_SG_OPER **i_su_opr, *temp_su_opr;
 
@@ -2282,7 +2282,7 @@ uns32 avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
  * 
  **************************************************************************/
 
-uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_BOOL q_flag)
+uint32_t avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_BOOL q_flag)
 {
 	AVD_SU_SI_REL *i_susi;
 
@@ -2361,9 +2361,9 @@ uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_
  * 
  **************************************************************************/
 
-uns32 avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
+uint32_t avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_SU_SI_REL *i_susi;
 	SaAmfHAStateT old_ha_state = SA_AMF_HA_ACTIVE;
 	AVD_SU_SI_STATE old_state = AVD_SU_SI_STATE_ASGN;
@@ -2438,9 +2438,9 @@ done:
  * 
  **************************************************************************/
 
-uns32 avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_SU_SI_REL *i_susi;
 	AVD_SU_SI_STATE old_state = AVD_SU_SI_STATE_ASGN;
 

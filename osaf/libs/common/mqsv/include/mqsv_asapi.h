@@ -115,7 +115,7 @@ typedef struct asapi_queue_param {
 	SaTimeT retentionTime;	/* Lifetime of the Queue */
 	SaNameT name;		/* Queue Name */
 	SaMsgQueueSendingStateT status;	/* Sending status of the Queue */
-	uns32 hdl;		/* Queue handle */
+	uint32_t hdl;		/* Queue handle */
 	MQSV_QUEUE_OWN_STATE owner;	/* Queue is owned or Orphan */
 	uint8_t is_mqnd_down;	/* TRUE if mqnd is down else FALSE */
 	SaMsgQueueCreationFlagsT creationFlags;	/* Queue creation flags */
@@ -138,7 +138,7 @@ typedef struct asapi_group_info {
 	ASAPi_QUEUE_INFO *pQueue;	/* Current selected Queue */
 	ASAPi_QUEUE_INFO *plaQueue;	/* last selected Queue */
 	SaNameT group;		/* Group Name */
-	uns32 lcl_qcnt;		/* Number of local queues in queue qroup */
+	uint32_t lcl_qcnt;		/* Number of local queues in queue qroup */
 	SaMsgQueueGroupPolicyT policy;	/* Member selction policy */
 } ASAPi_GROUP_INFO;
 
@@ -298,7 +298,7 @@ typedef struct asapi_msg_info {
 /***************************************************************************
                      The Service User's Callback Prototype
 ****************************************************************************/
-typedef uns32 (*ASAPi_CALLBACK_HDLR) (struct asapi_msg_info *);
+typedef uint32_t (*ASAPi_CALLBACK_HDLR) (struct asapi_msg_info *);
 
 /*###########################################################################*\
                          
@@ -329,7 +329,7 @@ typedef struct asapi_bind_info {
                   A S A Pi - U N B I N D  I N F O 
 \*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 typedef struct asapi_unbind_info {
-	uns32 dummy;
+	uint32_t dummy;
 } ASAPi_UNBIND_INFO;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*\
@@ -406,7 +406,7 @@ extern  ASAPi_CB asapi;
  This API is used by the USER of the ASAPi layer, who want's to use the ASAPi
  functionality. This is a SE API with diffrent request options. 
 \*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-uns32 asapi_opr_hdlr(struct asapi_opr_info *);
+uint32_t asapi_opr_hdlr(struct asapi_opr_info *);
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*\
                       MDS ENCODE/DECODE/COPY ROUTINES
@@ -415,15 +415,15 @@ uns32 asapi_opr_hdlr(struct asapi_opr_info *);
  ASAPi messages.
 \*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 void asapi_msg_enc(ASAPi_MSG_INFO *, NCS_UBAID *);
-uns32 asapi_msg_dec(NCS_UBAID *, ASAPi_MSG_INFO **);
-uns32 asapi_msg_cpy(ASAPi_MSG_INFO *, ASAPi_MSG_INFO **);
+uint32_t asapi_msg_dec(NCS_UBAID *, ASAPi_MSG_INFO **);
+uint32_t asapi_msg_cpy(ASAPi_MSG_INFO *, ASAPi_MSG_INFO **);
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*\
                            ASAPi ROUTINES
         These routines are to be only used by ASAPi & MQSv internally
 \*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 void asapi_msg_free(ASAPi_MSG_INFO **);
-uns32 asapi_queue_select(ASAPi_GROUP_INFO *);
+uint32_t asapi_queue_select(ASAPi_GROUP_INFO *);
 
 /*
  * m_ASAPi_DBG_SINK
@@ -440,11 +440,11 @@ uns32 asapi_queue_select(ASAPi_GROUP_INFO *);
 */
 #if (ASAPi_DEBUG == 1)
 
-uns32 asapi_dbg_sink(uns32, char *, uns32);
+uint32_t asapi_dbg_sink(uint32_t, char *, uint32_t);
 
 /* m_ASAPi_DBG_VOID() used to keep compiler happy @ void return functions */
 
-#define m_ASAPi_DBG_SINK(r)  asapi_dbg_sink(__LINE__,__FILE__,(uns32)r)
+#define m_ASAPi_DBG_SINK(r)  asapi_dbg_sink(__LINE__,__FILE__,(uint32_t)r)
 #define m_ASAPi_DBG_VOID     asapi_dbg_sink(__LINE__,__FILE__,1)
 #else
 

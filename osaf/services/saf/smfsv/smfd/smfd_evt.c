@@ -141,7 +141,7 @@ void smfd_process_mbx(SYSF_MBX * mbx)
 void proc_callback_rsp(smfd_cb_t *cb, SMFSV_EVT *evt)
 {
 	SMF_EVT *cbk_rsp = &evt->info.smfd.event.cbk_rsp;
-	uns32      rc = NCSCC_RC_SUCCESS;
+	uint32_t      rc = NCSCC_RC_SUCCESS;
 	SMFSV_EVT *new_evt;
 	
 	TRACE_ENTER();

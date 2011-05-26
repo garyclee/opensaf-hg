@@ -40,7 +40,7 @@
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 cpd_ckpt_tree_init(CPD_CB *cb)
+uint32_t cpd_ckpt_tree_init(CPD_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -60,7 +60,7 @@ uns32 cpd_ckpt_tree_init(CPD_CB *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 cpd_ckpt_node_get(NCS_PATRICIA_TREE *ckpt_tree, SaCkptCheckpointHandleT *ckpt_hdl, CPD_CKPT_INFO_NODE **ckpt_node)
+uint32_t cpd_ckpt_node_get(NCS_PATRICIA_TREE *ckpt_tree, SaCkptCheckpointHandleT *ckpt_hdl, CPD_CKPT_INFO_NODE **ckpt_node)
 {
 	*ckpt_node = (CPD_CKPT_INFO_NODE *)
 	    ncs_patricia_tree_get(ckpt_tree, (uint8_t *)ckpt_hdl);
@@ -95,7 +95,7 @@ void cpd_ckpt_node_getnext(NCS_PATRICIA_TREE *ckpt_tree,
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 cpd_ckpt_node_add(NCS_PATRICIA_TREE *ckpt_tree, CPD_CKPT_INFO_NODE *ckpt_node, SaAmfHAStateT ha_state,
+uint32_t cpd_ckpt_node_add(NCS_PATRICIA_TREE *ckpt_tree, CPD_CKPT_INFO_NODE *ckpt_node, SaAmfHAStateT ha_state,
 			SaImmOiHandleT immOiHandle)
 {
 	SaAisErrorT err = SA_AIS_OK;
@@ -136,9 +136,9 @@ uns32 cpd_ckpt_node_add(NCS_PATRICIA_TREE *ckpt_tree, CPD_CKPT_INFO_NODE *ckpt_n
   Return Values : None
   Notes         : None
 ******************************************************************************/
-uns32 cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
+uint32_t cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPD_NODE_REF_INFO *nref_info, *next_info;
 
 	/* In case if the internal pointers present, delete them 
@@ -303,7 +303,7 @@ void cpd_ckpt_tree_node_destroy(CPD_CB *cb)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 cpd_ckpt_reploc_tree_init(CPD_CB *cb)
+uint32_t cpd_ckpt_reploc_tree_init(CPD_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -327,7 +327,7 @@ uns32 cpd_ckpt_reploc_tree_init(CPD_CB *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 cpd_ckpt_reploc_get(NCS_PATRICIA_TREE *ckpt_reploc_tree,
+uint32_t cpd_ckpt_reploc_get(NCS_PATRICIA_TREE *ckpt_reploc_tree,
 			  CPD_REP_KEY_INFO *key_info, CPD_CKPT_REPLOC_INFO **ckpt_reploc_node)
 {
 	key_info->ckpt_name.length = m_NCS_OS_HTONS(key_info->ckpt_name.length);
@@ -368,7 +368,7 @@ void cpd_ckpt_reploc_getnext(NCS_PATRICIA_TREE *ckpt_reploc_tree,
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node,
+uint32_t cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node,
 			       SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle)
 {
 	SaAisErrorT err = SA_AIS_OK;
@@ -414,9 +414,9 @@ uns32 cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REP
   Return Values : None
   Notes         : None
 ******************************************************************************/
-uns32 cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set)
+uint32_t cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 
@@ -505,7 +505,7 @@ void cpd_ckpt_reploc_tree_destroy(CPD_CB *cb)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 cpd_ckpt_map_tree_init(CPD_CB *cb)
+uint32_t cpd_ckpt_map_tree_init(CPD_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -526,7 +526,7 @@ uns32 cpd_ckpt_map_tree_init(CPD_CB *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 cpd_ckpt_map_node_get(NCS_PATRICIA_TREE *ckpt_map_tree, SaNameT *ckpt_name, CPD_CKPT_MAP_INFO **ckpt_map_node)
+uint32_t cpd_ckpt_map_node_get(NCS_PATRICIA_TREE *ckpt_map_tree, SaNameT *ckpt_name, CPD_CKPT_MAP_INFO **ckpt_map_node)
 {
 
 	/* stuffing the key with NULL as patricia tries to match the max keylen */
@@ -574,7 +574,7 @@ void cpd_ckpt_map_node_getnext(NCS_PATRICIA_TREE *ckpt_map_tree, SaNameT *ckpt_n
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 cpd_ckpt_map_node_add(NCS_PATRICIA_TREE *ckpt_map_tree, CPD_CKPT_MAP_INFO *ckpt_map_node)
+uint32_t cpd_ckpt_map_node_add(NCS_PATRICIA_TREE *ckpt_map_tree, CPD_CKPT_MAP_INFO *ckpt_map_node)
 {
 	ckpt_map_node->ckpt_name.length = m_NCS_OS_HTONS(ckpt_map_node->ckpt_name.length);
 	ckpt_map_node->patnode.key_info = (uint8_t *)&ckpt_map_node->ckpt_name;
@@ -597,9 +597,9 @@ uns32 cpd_ckpt_map_node_add(NCS_PATRICIA_TREE *ckpt_map_tree, CPD_CKPT_MAP_INFO 
   Return Values : None
   Notes         : None
 ******************************************************************************/
-uns32 cpd_ckpt_map_node_delete(CPD_CB *cb, CPD_CKPT_MAP_INFO *ckpt_map_node)
+uint32_t cpd_ckpt_map_node_delete(CPD_CB *cb, CPD_CKPT_MAP_INFO *ckpt_map_node)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Remove the Node from the client tree */
 	if (ncs_patricia_tree_del(&cb->ckpt_map_tree, &ckpt_map_node->patnode) != NCSCC_RC_SUCCESS) {
@@ -671,7 +671,7 @@ void cpd_ckpt_map_tree_destroy(CPD_CB *cb)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 cpd_cpnd_info_tree_init(CPD_CB *cb)
+uint32_t cpd_cpnd_info_tree_init(CPD_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -693,7 +693,7 @@ uns32 cpd_cpnd_info_tree_init(CPD_CB *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 cpd_cpnd_info_node_get(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *dest, CPD_CPND_INFO_NODE **cpnd_info_node)
+uint32_t cpd_cpnd_info_node_get(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *dest, CPD_CPND_INFO_NODE **cpnd_info_node)
 {
 	NODE_ID key;
 
@@ -743,7 +743,7 @@ void cpd_cpnd_info_node_getnext(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *dest, CP
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 cpd_cpnd_info_node_add(NCS_PATRICIA_TREE *cpnd_tree, CPD_CPND_INFO_NODE *cpnd_info_node)
+uint32_t cpd_cpnd_info_node_add(NCS_PATRICIA_TREE *cpnd_tree, CPD_CPND_INFO_NODE *cpnd_info_node)
 {
 	/* Store the client_info pointer as msghandle. */
 	NODE_ID key;
@@ -770,7 +770,7 @@ uns32 cpd_cpnd_info_node_add(NCS_PATRICIA_TREE *cpnd_tree, CPD_CPND_INFO_NODE *c
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *dest,
+uint32_t cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *dest,
 				  CPD_CPND_INFO_NODE **cpnd_info_node, NCS_BOOL *add_flag)
 {
 	/*MDS_DEST key; */
@@ -815,9 +815,9 @@ uns32 cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *dest,
   Return Values : None
   Notes         : None
 ******************************************************************************/
-uns32 cpd_cpnd_info_node_delete(CPD_CB *cb, CPD_CPND_INFO_NODE *cpnd_info_node)
+uint32_t cpd_cpnd_info_node_delete(CPD_CB *cb, CPD_CPND_INFO_NODE *cpnd_info_node)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPD_CKPT_REF_INFO *cref_info = NULL, *next_ref;
 
 	/* Remove the internal linked list, if exists, The while loop will be executed
@@ -911,9 +911,9 @@ void cpd_cpnd_info_tree_destroy(CPD_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_cb_db_init(CPD_CB *cb)
+uint32_t cpd_cb_db_init(CPD_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	cb->nxt_ckpt_id = 1;
 
@@ -955,7 +955,7 @@ uns32 cpd_cb_db_init(CPD_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_cb_db_destroy(CPD_CB *cb)
+uint32_t cpd_cb_db_destroy(CPD_CB *cb)
 {
 
 	cpd_ckpt_tree_destroy(cb);
@@ -1100,13 +1100,13 @@ void cpd_node_ref_info_del(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nre
 *
 * 
 *******************************************************************************************************/
-uns32 cpd_process_cpnd_del(CPD_CB *cb, MDS_DEST *cpnd_dest)
+uint32_t cpd_process_cpnd_del(CPD_CB *cb, MDS_DEST *cpnd_dest)
 {
 	CPD_CPND_INFO_NODE *cpnd_info = NULL;
 	CPD_CKPT_REF_INFO *cref_info, *temp;
 	CPD_NODE_REF_INFO *nref_info = NULL;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPD_REP_KEY_INFO key_info;
 	CPD_CKPT_REPLOC_INFO *rep_info = NULL;
 
@@ -1175,7 +1175,7 @@ uns32 cpd_process_cpnd_del(CPD_CB *cb, MDS_DEST *cpnd_dest)
 
 *************************************************************************************/
 
-uns32 cpd_get_slot_sub_id_from_mds_dest(MDS_DEST dest)
+uint32_t cpd_get_slot_sub_id_from_mds_dest(MDS_DEST dest)
 {
 	NCS_PHY_SLOT_ID phy_slot;
 	NCS_SUB_SLOT_ID sub_slot;
@@ -1194,7 +1194,7 @@ uns32 cpd_get_slot_sub_id_from_mds_dest(MDS_DEST dest)
 
 *************************************************************************************/
 
-uns32 cpd_get_slot_sub_slot_id_from_node_id(NCS_NODE_ID i_node_id)
+uint32_t cpd_get_slot_sub_slot_id_from_node_id(NCS_NODE_ID i_node_id)
 {
 	NCS_PHY_SLOT_ID phy_slot;
 	NCS_SUB_SLOT_ID sub_slot;
@@ -1220,7 +1220,7 @@ void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificatio
 	SaClmNodeIdT node_id;
 	CPD_CPND_INFO_NODE *cpnd_info_node = NULL;
 	NODE_ID key;
-	uns32 counter = 0;
+	uint32_t counter = 0;
 
 	/* 1. Get the CPD_CB */
 	m_CPD_RETRIEVE_CB(cb);

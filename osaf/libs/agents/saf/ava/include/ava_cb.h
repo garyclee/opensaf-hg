@@ -32,15 +32,15 @@
 
 /* AvA control block */
 typedef struct ava_cb_tag {
-	uns32 cb_hdl;		/* CB hdl returned by hdl mngr */
+	uint32_t cb_hdl;		/* CB hdl returned by hdl mngr */
 	EDU_HDL edu_hdl;	/* EDU handle */
 	uint8_t pool_id;		/* pool-id used by hdl mngr */
 	NCS_LOCK lock;		/* CB lock */
-	uns32 pend_dis;		/* Number of pending dispaches */
-	uns32 pend_fin;		/* Number of pending agent destroy */
+	uint32_t pend_dis;		/* Number of pending dispaches */
+	uint32_t pend_fin;		/* Number of pending agent destroy */
 
 	SaNameT comp_name;	/* comp-name */
-	uns32 flag;		/* flags */
+	uint32_t flag;		/* flags */
 
 	/* mds parameters */
 	MDS_HDL mds_hdl;	/* mds handle */
@@ -96,10 +96,10 @@ typedef struct ava_cb_tag {
 
 /*** Extern function declarations ***/
 
-uns32 ava_create(NCS_LIB_CREATE *);
+uint32_t ava_create(NCS_LIB_CREATE *);
 
 void ava_destroy(NCS_LIB_DESTROY *);
 
-uns32 ava_avnd_msg_prc(AVA_CB *, AVSV_NDA_AVA_MSG *);
+uint32_t ava_avnd_msg_prc(AVA_CB *, AVSV_NDA_AVA_MSG *);
 
 #endif   /* !AVA_CB_H */

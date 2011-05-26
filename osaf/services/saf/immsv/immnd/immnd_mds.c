@@ -24,15 +24,15 @@
 #include "immnd.h"
 #include "ncs_util.h"
 
-uns32 immnd_mds_callback(struct ncsmds_callback_info *info);
+uint32_t immnd_mds_callback(struct ncsmds_callback_info *info);
 
-static uns32 immnd_mds_enc(IMMND_CB *cb, MDS_CALLBACK_ENC_INFO *info);
-static uns32 immnd_mds_dec(IMMND_CB *cb, MDS_CALLBACK_DEC_INFO *info);
+static uint32_t immnd_mds_enc(IMMND_CB *cb, MDS_CALLBACK_ENC_INFO *info);
+static uint32_t immnd_mds_dec(IMMND_CB *cb, MDS_CALLBACK_DEC_INFO *info);
 
-static uns32 immnd_mds_rcv(IMMND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
-static uns32 immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
-static uns32 immnd_mds_enc_flat(IMMND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
-static uns32 immnd_mds_dec_flat(IMMND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
+static uint32_t immnd_mds_rcv(IMMND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
+static uint32_t immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
+static uint32_t immnd_mds_enc_flat(IMMND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
+static uint32_t immnd_mds_dec_flat(IMMND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
 
 /* Message Format Verion Tables at IMMND */
 MDS_CLIENT_MSG_FORMAT_VER immnd_imma_msg_fmt_table[IMMND_WRT_IMMA_SUBPART_VER_RANGE] = {
@@ -58,10 +58,10 @@ MDS_CLIENT_MSG_FORMAT_VER immnd_immd_msg_fmt_table[IMMND_WRT_IMMD_SUBPART_VER_RA
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 immnd_mds_get_handle(IMMND_CB *cb)
+uint32_t immnd_mds_get_handle(IMMND_CB *cb)
 {
 	NCSADA_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&arg, 0, sizeof(NCSADA_INFO));
 	arg.req = NCSADA_GET_HDLS;
@@ -87,9 +87,9 @@ uns32 immnd_mds_get_handle(IMMND_CB *cb)
   Notes         : None.
 ******************************************************************************/
 
-uns32 immnd_mds_register(IMMND_CB *cb)
+uint32_t immnd_mds_register(IMMND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_IMMD };
 	/*NCS_PHY_SLOT_ID phy_slot; */
@@ -212,10 +212,10 @@ void immnd_mds_unregister(IMMND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 immnd_mds_callback(struct ncsmds_callback_info *info)
+uint32_t immnd_mds_callback(struct ncsmds_callback_info *info)
 {
 	IMMND_CB *cb = immnd_cb;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	if (info == NULL)
 		return rc;
@@ -272,7 +272,7 @@ uns32 immnd_mds_callback(struct ncsmds_callback_info *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 immnd_mds_enc(IMMND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
+static uint32_t immnd_mds_enc(IMMND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	IMMSV_EVT *evt;
 
@@ -333,11 +333,11 @@ static uns32 immnd_mds_enc(IMMND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
   Notes         : None.
 ******************************************************************************/
 
-static uns32 immnd_mds_dec(IMMND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
+static uint32_t immnd_mds_dec(IMMND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
 
 	IMMSV_EVT *evt;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_IMMA_OM) {
@@ -405,10 +405,10 @@ static uns32 immnd_mds_dec(IMMND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 immnd_mds_enc_flat(IMMND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
+static uint32_t immnd_mds_enc_flat(IMMND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 {
 	IMMSV_EVT *evt;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_UBAID *uba = info->io_uba;
 
 	/* as all the event structures are flat */
@@ -470,11 +470,11 @@ static uns32 immnd_mds_enc_flat(IMMND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 immnd_mds_dec_flat(IMMND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
+static uint32_t immnd_mds_dec_flat(IMMND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 {
 	IMMSV_EVT *evt;
 	NCS_UBAID *uba = info->io_uba;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
 
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_IMMA_OM) {
@@ -541,9 +541,9 @@ static uns32 immnd_mds_dec_flat(IMMND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 immnd_mds_rcv(IMMND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
+static uint32_t immnd_mds_rcv(IMMND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT *pEvt = (IMMSV_EVT *)rcv_info->i_msg;
 	/*IMMND_SYNC_SEND_NODE *node = NULL; */
 
@@ -582,10 +582,10 @@ static uns32 immnd_mds_rcv(IMMND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+static uint32_t immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
 	IMMSV_EVT *evt;
-	uns32 rc = NCSCC_RC_SUCCESS, priority = NCS_IPC_PRIORITY_HIGH;
+	uint32_t rc = NCSCC_RC_SUCCESS, priority = NCS_IPC_PRIORITY_HIGH;
 	TRACE_ENTER();
 
 	if (svc_evt->i_svc_id == NCSMDS_SVC_ID_IMMD) {
@@ -697,10 +697,10 @@ static uns32 immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_ev
  *
  * Notes         :
  *****************************************************************************/
-uns32 immnd_mds_send_rsp(IMMND_CB *cb, IMMSV_SEND_INFO *s_info, IMMSV_EVT *evt)
+uint32_t immnd_mds_send_rsp(IMMND_CB *cb, IMMSV_SEND_INFO *s_info, IMMSV_EVT *evt)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->immnd_mds_hdl;
@@ -740,10 +740,10 @@ uns32 immnd_mds_send_rsp(IMMND_CB *cb, IMMSV_SEND_INFO *s_info, IMMSV_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 immnd_mds_msg_send(IMMND_CB *cb, uns32 to_svc, MDS_DEST to_dest, IMMSV_EVT *evt)
+uint32_t immnd_mds_msg_send(IMMND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, IMMSV_EVT *evt)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	if (!evt)
 		return NCSCC_RC_FAILURE;

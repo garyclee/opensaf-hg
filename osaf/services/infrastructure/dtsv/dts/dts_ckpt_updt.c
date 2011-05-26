@@ -38,7 +38,7 @@
 #include "dts.h"
 #include "dts_imm.h"
 
-static uns32 dts_stby_global_filtering_policy_change(DTS_CB *cb);
+static uint32_t dts_stby_global_filtering_policy_change(DTS_CB *cb);
 
 /****************************************************************************\
  * Function: dtsv_ckpt_add_rmv_updt_dta_dest
@@ -61,9 +61,9 @@ static uns32 dts_stby_global_filtering_policy_change(DTS_CB *cb);
  *        
  *        As per this IR param key is not passed in network order    
 \**************************************************************************/
-uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MBCSV_ACT_TYPE action, SVC_KEY key)
+uint32_t dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MBCSV_ACT_TYPE action, SVC_KEY key)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	DTA_DEST_LIST *to_reg = NULL, *del_reg = NULL;
 	DTS_SVC_REG_TBL *svc = NULL;
 	OP_DEVICE *device = NULL;
@@ -96,7 +96,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 			     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uint8_t *)&nt_key)) == NULL) {
 				m_DTS_UNLK(&cb->lock);
 				m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
-				m_LOG_DTS_EVT(DTS_EV_SVC_REG_NOTFOUND, key.ss_svc_id, key.node, (uns32)dta_key);
+				m_LOG_DTS_EVT(DTS_EV_SVC_REG_NOTFOUND, key.ss_svc_id, key.node, (uint32_t)dta_key);
 				/*Service should have already been added to patricia tree */
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						      "dtsv_ckpt_add_rmv_updt_dta_dest: No service entry in Patricia Tree");
@@ -128,14 +128,14 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 					m_DTS_UNLK(&cb->lock);
 					m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
 					m_LOG_DTS_EVT(DTS_EV_DTA_DEST_ADD_FAIL, 0, m_NCS_NODE_ID_FROM_MDS_DEST(dta_key),
-						      (uns32)dta_key);
+						      (uint32_t)dta_key);
 					if (NULL != to_reg)
 						m_MMGR_FREE_VCARD_TBL(to_reg);
 					return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 							      "dtsv_ckpt_add_rmv_updt_dta_dest: Failed to add DTA list in Patricia tree");
 				}
 				m_LOG_DTS_EVT(DTS_EV_DTA_DEST_ADD_SUCC, 0, m_NCS_NODE_ID_FROM_MDS_DEST(dta_key),
-					      (uns32)dta_key);
+					      (uint32_t)dta_key);
 			} else {
 				/* Not an error condition - DTA entry might already exist */
 				/* Adjust the pointer to to_reg with the offset */
@@ -152,11 +152,11 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 
 			/* If svc entry found, just add it to the dta */
 			dts_add_svc_to_dta(to_reg, svc);
-			m_LOG_DTS_EVT(DTS_EV_DTA_SVC_ADD, key.ss_svc_id, key.node, (uns32)dta_key);
+			m_LOG_DTS_EVT(DTS_EV_DTA_SVC_ADD, key.ss_svc_id, key.node, (uint32_t)dta_key);
 
 			/* Now add dta into the svc->v_cd_list */
 			dts_enqueue_dta(svc, to_reg);
-			m_LOG_DTS_EVT(DTS_EV_SVC_DTA_ADD, key.ss_svc_id, key.node, (uns32)dta_key);
+			m_LOG_DTS_EVT(DTS_EV_SVC_DTA_ADD, key.ss_svc_id, key.node, (uint32_t)dta_key);
 
 			/* Version support : Call to function to load ASCII_SPEC
 			 * library. This function will load all versioning enabled
@@ -201,7 +201,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 				if (per_dta_svc_spec == NULL) {
 					m_DTS_UNLK(&cb->lock);
 					m_LOG_DTS_EVT(DTS_EV_DTA_DEST_ADD_FAIL, 0, m_NCS_NODE_ID_FROM_MDS_DEST(dta_key),
-						      (uns32)dta_key);
+						      (uint32_t)dta_key);
 					/* Do rest of cleanup, cleaning service regsitration table etc */
 					return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 							      "dtsv_ckpt_add_rmv_updt_dta_dest: Memory allocation failed");
@@ -268,20 +268,20 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 						m_DTS_UNLK(&cb->lock);
 						m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
 						m_LOG_DTS_EVT(DTS_EV_SVC_REG_NOTFOUND, svc_key.ss_svc_id, svc_key.node,
-							      (uns32)to_reg->dta_addr);
+							      (uint32_t)to_reg->dta_addr);
 						return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 								      "dtsv_ckpt_add_rmv_updt_dta_dest: Service entry not found in Patricia tree");
 					}
 					/* remove dta from svc->v_cd_list */
 					if ((del_reg = (DTA_DEST_LIST *)dts_dequeue_dta(svc, to_reg)) == NULL) {
 						m_LOG_DTS_EVT(DTS_EV_SVC_DTA_RMV_FAIL, svc_key.ss_svc_id, svc_key.node,
-							      (uns32)to_reg->dta_addr);
+							      (uint32_t)to_reg->dta_addr);
 						/* Don't return failure, continue rmeoving service frm dta */
 						m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 							       "dtsv_ckpt_add_rmv_updt_dta_dest: Failed to remove dta entry frm svc->v_cd_list");
 					} else
 						m_LOG_DTS_EVT(DTS_EV_SVC_DTA_RMV, svc_key.ss_svc_id, svc_key.node,
-							      (uns32)to_reg->dta_addr);
+							      (uint32_t)to_reg->dta_addr);
 
 					/* Versioning support: Remove spec entry corresponding to the 
 					 * DTA from svc's spec_list. 
@@ -297,13 +297,13 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 					/* remove svc from dta->svc_list */
 					if ((svc = (DTS_SVC_REG_TBL *)dts_del_svc_frm_dta(to_reg, svc)) == NULL) {
 						m_LOG_DTS_EVT(DTS_EV_DTA_SVC_RMV_FAIL, svc_key.ss_svc_id, svc_key.node,
-							      (uns32)to_reg->dta_addr);
+							      (uint32_t)to_reg->dta_addr);
 						/* Don't return, continue */
 						m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 							       "dtsv_ckpt_add_rmv_updt_dta_dest: Failed to delete svc from dta->svc_list");
 					} else
 						m_LOG_DTS_EVT(DTS_EV_DTA_SVC_RMV, svc_key.ss_svc_id, svc_key.node,
-							      (uns32)to_reg->dta_addr);
+							      (uint32_t)to_reg->dta_addr);
 
 					/* Check if svc entry is required or not */
 					if (svc->dta_count == 0) {
@@ -313,7 +313,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 						m_DTS_FREE_FILE_LIST(device);
 						ncs_patricia_tree_del(&cb->svc_tbl, (NCS_PATRICIA_NODE *)svc);
 						m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_RMVD, svc_key.ss_svc_id, svc_key.node,
-							      (uns32)to_reg->dta_addr);
+							      (uint32_t)to_reg->dta_addr);
 						if (svc != NULL)
 							m_MMGR_FREE_SVC_REG_TBL(svc);
 					}
@@ -324,7 +324,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 					ncs_patricia_tree_del(&cb->dta_list, (NCS_PATRICIA_NODE *)&to_reg->node);
 					m_LOG_DTS_EVT(DTS_EV_DTA_DEST_RMV_SUCC, 0,
 						      m_NCS_NODE_ID_FROM_MDS_DEST(to_reg->dta_addr),
-						      (uns32)to_reg->dta_addr);
+						      (uint32_t)to_reg->dta_addr);
 					if (NULL != to_reg)
 						m_MMGR_FREE_VCARD_TBL(to_reg);
 				}
@@ -365,10 +365,10 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
  *        DTS_SVC_REG_TBL RMV takes care of removing svc entries from all DTAs 
  *        in its v_cd_list. 
 \**************************************************************************/
-uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
+uint32_t dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 				     NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	DTS_SVC_REG_TBL *svc_ptr = NULL, *node_reg_ptr = NULL;
 	DTA_DEST_LIST *to_reg = NULL;
 	SVC_KEY nt_key, key;
@@ -679,14 +679,14 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 								m_DTS_UNLK(&cb->lock);
 								m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
 								m_LOG_DTS_EVT(DTS_EV_DTA_SVC_RMV_FAIL, key.ss_svc_id,
-									      key.node, (uns32)to_reg->dta_addr);
+									      key.node, (uint32_t)to_reg->dta_addr);
 								m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id,
-									      key.node, (uns32)to_reg->dta_addr);
+									      key.node, (uint32_t)to_reg->dta_addr);
 								return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 										      "dtsv_ckpt_add_rmv_updt_svc_reg: Unable to remove svc reg entry from dta's list");
 							}
 							m_LOG_DTS_EVT(DTS_EV_DTA_SVC_RMV, key.ss_svc_id, key.node,
-								      (uns32)to_reg->dta_addr);
+								      (uint32_t)to_reg->dta_addr);
 
 							/* Remove dta entry frm svc_ptr->v_cd_list */
 							if ((to_reg =
@@ -695,14 +695,14 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 								m_DTS_UNLK(&cb->lock);
 								m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
 								m_LOG_DTS_EVT(DTS_EV_SVC_DTA_RMV_FAIL, key.ss_svc_id,
-									      key.node, (uns32)to_reg->dta_addr);
+									      key.node, (uint32_t)to_reg->dta_addr);
 								m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id,
-									      key.node, (uns32)to_reg->dta_addr);
+									      key.node, (uint32_t)to_reg->dta_addr);
 								return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 										      "dtsv_ckpt_add_rmv_updt_svc_reg: Unable to remove adest entry");
 							}
 							m_LOG_DTS_EVT(DTS_EV_SVC_DTA_RMV, key.ss_svc_id, key.node,
-								      (uns32)to_reg->dta_addr);
+								      (uint32_t)to_reg->dta_addr);
 
 							memset(&spec_info, '\0', sizeof(SPEC_CKPT));
 							/* Versioning support : Remove spec entry corresponding to
@@ -725,7 +725,7 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 										      (NCS_PATRICIA_NODE *)
 										      &to_reg->node);
 								m_LOG_DTS_EVT(DTS_EV_DTA_DEST_RMV_SUCC, 0, key.node,
-									      (uns32)to_reg->dta_addr);
+									      (uint32_t)to_reg->dta_addr);
 								if (NULL != to_reg)
 									m_MMGR_FREE_VCARD_TBL(to_reg);
 							}
@@ -800,7 +800,7 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
  * NOTES:
  * 
 \**************************************************************************/
-uns32 dtsv_ckpt_add_rmv_updt_dts_log(DTS_CB *cb, DTS_LOG_CKPT_DATA *data, NCS_MBCSV_ACT_TYPE action)
+uint32_t dtsv_ckpt_add_rmv_updt_dts_log(DTS_CB *cb, DTS_LOG_CKPT_DATA *data, NCS_MBCSV_ACT_TYPE action)
 {
 	DTS_SVC_REG_TBL *svc = NULL;
 	OP_DEVICE *device = NULL;
@@ -872,10 +872,10 @@ uns32 dtsv_ckpt_add_rmv_updt_dts_log(DTS_CB *cb, DTS_LOG_CKPT_DATA *data, NCS_MB
  *
  * 
 \**************************************************************************/
-uns32 dtsv_ckpt_add_rmv_updt_global_policy(DTS_CB *cb, GLOBAL_POLICY *gp, DTS_FILE_LIST *file_list,
+uint32_t dtsv_ckpt_add_rmv_updt_global_policy(DTS_CB *cb, GLOBAL_POLICY *gp, DTS_FILE_LIST *file_list,
 					   NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	/* Here we don't need to explicitly handle ADD and RMV functionality 
 	 * we only handle the UPDT functionality 
@@ -968,9 +968,9 @@ uns32 dtsv_ckpt_add_rmv_updt_global_policy(DTS_CB *cb, GLOBAL_POLICY *gp, DTS_FI
 
  Notes:  
 **************************************************************************/
-static uns32 dts_stby_global_filtering_policy_change(DTS_CB *cb)
+static uint32_t dts_stby_global_filtering_policy_change(DTS_CB *cb)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	SVC_KEY nt_key;
 	DTS_SVC_REG_TBL *service = NULL;
 
@@ -1012,9 +1012,9 @@ static uns32 dts_stby_global_filtering_policy_change(DTS_CB *cb)
  *
  * 
 \**************************************************************************/
-/*uns32 dts_data_clean_up(DTS_CB *cb)
+/*uint32_t dts_data_clean_up(DTS_CB *cb)
 {
-   uns32 status = NCSCC_RC_SUCCESS;
+   uint32_t status = NCSCC_RC_SUCCESS;
    TRACE("\n***Inside dts_data_clean_up***\n"); 
    m_DTS_LK(&cb->lock);
    dtsv_clear_registration_table(cb);

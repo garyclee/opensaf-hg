@@ -41,7 +41,7 @@ static void mqnd_timer_expiry(NCSCONTEXT uarg)
 	NCS_IPC_PRIORITY priority = NCS_IPC_PRIORITY_HIGH;
 	MQND_CB *cb;
 	MQSV_EVT *evt;
-	uns32 mqnd_hdl;
+	uint32_t mqnd_hdl;
 
 	if (tmr != NULL) {
 		mqnd_hdl = tmr->uarg;
@@ -89,7 +89,7 @@ static void mqnd_timer_expiry(NCSCONTEXT uarg)
  * Description   : This function which is used to start the MQND Timer
  *
  *****************************************************************************/
-uns32 mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration)
+uint32_t mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration)
 {
 	m_LOG_MQSV_ND(MQND_TMR_STARTED, NCSFL_LC_TIMER, NCSFL_SEV_INFO, NCSCC_RC_SUCCESS, __FILE__, __LINE__);
 	if (tmr->tmr_id == TMR_T_NULL) {
@@ -97,7 +97,7 @@ uns32 mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration)
 	}
 
 	if (tmr->is_active == FALSE) {
-		m_NCS_TMR_START(tmr->tmr_id, (uns32)duration, mqnd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, mqnd_timer_expiry, (void *)tmr);
 		tmr->is_active = TRUE;
 	}
 

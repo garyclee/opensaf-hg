@@ -58,7 +58,7 @@ void tware_evt_send(int evt_val);
 void tet_avsv_startup() 
 {
 
-uns32 rc = NCSCC_RC_SUCCESS ; 
+uint32_t rc = NCSCC_RC_SUCCESS ; 
 
 #ifdef TET_AVSV 
 #ifdef TET_A
@@ -194,7 +194,7 @@ tet_saf_Comp_Term_callback(SaInvocationT invocation,
 
 void tet_saf_selobject()
 {
-    /*uns32               comp_type;*/
+    /*uint32_t               comp_type;*/
     NCS_SEL_OBJ_SET     all_sel_obj;
     NCS_SEL_OBJ         mbx_fd = m_NCS_IPC_GET_SEL_OBJ(& g_tet_mbx);    
     SaSelectionObjectT  amf_sel_obj;
@@ -203,7 +203,7 @@ void tet_saf_selobject()
     NCS_SEL_OBJ         high_sel_obj;
     TWARE_EVT           *evt= NULL;
     /*char                *tmp_ptr = NULL;
-    uns32               succ_init_option= 3 ;*/
+    uint32_t               succ_init_option= 3 ;*/
     
 #if 1
    /* start  unit test ***/        
@@ -283,10 +283,10 @@ void tet_saf_succ_init(int depth, int fill_cbks)
     SaAmfCallbacksT amfCallbacks;
     SaVersionT      amf_version;   
     SaAisErrorT        error;
-    /*uns32           res = NCSCC_RC_SUCCESS;
-    uns32           Comp_type;*/
-        uns32           dummy=1;   
-        uns32           bit_count=0; 
+    /*uint32_t           res = NCSCC_RC_SUCCESS;
+    uint32_t           Comp_type;*/
+        uint32_t           dummy=1;   
+        uint32_t           bit_count=0; 
     SaNameT  SaCompName;
     SaAmfHealthcheckKeyT Healthy;
 
@@ -486,9 +486,9 @@ void tet_saf_cleanup(int depth)
 {
 
     SaAisErrorT     error;
-    /*uns32           Comp_type;*/
-        uns32           dummy=1;   
-        uns32           bit_count=0; 
+    /*uint32_t           Comp_type;*/
+        uint32_t           dummy=1;   
+        uint32_t           bit_count=0; 
     SaNameT         SaCompName;
     SaAmfHealthcheckKeyT Healthy;
 
@@ -770,7 +770,7 @@ void tet_avsv_thread_init()
 {
 
         char                *tmp_ptr = NULL;
-        uns32               succ_init_option= 3 ;
+        uint32_t               succ_init_option= 3 ;
 
   if((tmp_ptr = (char *) getenv("TET_SUCC_INIT")) != NULL)
         {
@@ -787,7 +787,7 @@ void tet_create_avsv_thread()
 {
 
  pthread_t new_thread;
- uns32     thread_id;
+ uint32_t     thread_id;
 
 
  tet_pthread_create(&new_thread, NULL, tet_avsv_thread_init,NULL,-1); 

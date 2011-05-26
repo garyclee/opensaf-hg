@@ -54,11 +54,11 @@
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_rmv_reg_inst(MBCSV_REG *reg_list, MBCSV_REG *mbc_reg)
+uint32_t mbcsv_rmv_reg_inst(MBCSV_REG *reg_list, MBCSV_REG *mbc_reg)
 {
 	CKPT_INST *ckpt = NULL;
-	uns32 pwe_hdl = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t pwe_hdl = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_MBCSV_DESTROY_HANDLE(mbc_reg->mbcsv_hdl);
 
@@ -114,7 +114,7 @@ uns32 mbcsv_rmv_reg_inst(MBCSV_REG *reg_list, MBCSV_REG *mbc_reg)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_remove_ckpt_inst(CKPT_INST *ckpt)
+uint32_t mbcsv_remove_ckpt_inst(CKPT_INST *ckpt)
 {
 	SS_SVC_ID svc_id = 0;
 
@@ -182,12 +182,12 @@ uns32 mbcsv_remove_ckpt_inst(CKPT_INST *ckpt)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_process_chg_role(MBCSV_EVT *rcvd_evt, MBCSV_REG *mbc_inst)
+uint32_t mbcsv_process_chg_role(MBCSV_EVT *rcvd_evt, MBCSV_REG *mbc_inst)
 {
 	SaAmfHAStateT old_role;
 	CKPT_INST *ckpt;
 	PEER_INST *peer;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/*
 	 * As per the new role, change the state machine.
 	 * Send this new role information to all the peers.
@@ -321,7 +321,7 @@ uns32 mbcsv_process_chg_role(MBCSV_EVT *rcvd_evt, MBCSV_REG *mbc_inst)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_send_ckpt_data_to_all_peers(NCS_MBCSV_SEND_CKPT *msg_to_send, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst)
+uint32_t mbcsv_send_ckpt_data_to_all_peers(NCS_MBCSV_SEND_CKPT *msg_to_send, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst)
 {
 	NCS_MBCSV_CB_ARG parg;
 	PEER_INST *peer_ptr = ckpt_inst->peer_list;
@@ -485,7 +485,7 @@ uns32 mbcsv_send_ckpt_data_to_all_peers(NCS_MBCSV_SEND_CKPT *msg_to_send, CKPT_I
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_send_notify_msg(uns32 msg_dest, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst, NCSCONTEXT i_msg)
+uint32_t mbcsv_send_notify_msg(uint32_t msg_dest, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst, NCSCONTEXT i_msg)
 {
 	NCS_MBCSV_CB_ARG parg;
 	MBCSV_EVT evt_msg;
@@ -690,7 +690,7 @@ uns32 mbcsv_send_notify_msg(uns32 msg_dest, CKPT_INST *ckpt_inst, MBCSV_REG *mbc
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_send_data_req(NCS_UBAID *uba, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst)
+uint32_t mbcsv_send_data_req(NCS_UBAID *uba, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_inst)
 {
 	MBCSV_EVT evt_msg;
 
@@ -725,7 +725,7 @@ uns32 mbcsv_send_data_req(NCS_UBAID *uba, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_i
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_send_client_msg(PEER_INST *peer, uint8_t evt, uns32 action)
+uint32_t mbcsv_send_client_msg(PEER_INST *peer, uint8_t evt, uint32_t action)
 {
 	MBCSV_EVT *evt_msg;
 
@@ -775,7 +775,7 @@ uns32 mbcsv_send_client_msg(PEER_INST *peer, uint8_t evt, uns32 action)
 * Notes:  
 *
 \**************************************************************************/
-uns32 ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t *io_event, NCS_UBAID *uba)
+uint32_t ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t *io_event, NCS_UBAID *uba)
 {
 	NCS_MBCSV_CB_ARG parg;
 	MBCSV_REG *mbc_inst = peer->my_ckpt_inst->my_mbcsv_inst;
@@ -882,10 +882,10 @@ uns32 ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t *io_
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t event)
+uint32_t mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t event)
 {
 	NCS_UBAID uba;
-	uns32 ret_val;
+	uint32_t ret_val;
 
 	/*
 	 * Generate the message to be sent.
@@ -969,7 +969,7 @@ uns32 mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t event)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_subscribe_oneshot(NCS_MBCSV_FLTR *fltr, uint16_t time_10ms)
+uint32_t mbcsv_subscribe_oneshot(NCS_MBCSV_FLTR *fltr, uint16_t time_10ms)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -987,7 +987,7 @@ uns32 mbcsv_subscribe_oneshot(NCS_MBCSV_FLTR *fltr, uint16_t time_10ms)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_subscribe_persist(NCS_MBCSV_FLTR *fltr)
+uint32_t mbcsv_subscribe_persist(NCS_MBCSV_FLTR *fltr)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -1005,7 +1005,7 @@ uns32 mbcsv_subscribe_persist(NCS_MBCSV_FLTR *fltr)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_subscribe_cancel(uns32 sub_hdl)
+uint32_t mbcsv_subscribe_cancel(uint32_t sub_hdl)
 {
 	return NCSCC_RC_SUCCESS;
 }

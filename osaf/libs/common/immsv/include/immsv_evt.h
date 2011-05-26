@@ -399,7 +399,7 @@ typedef struct immsv_nd2d_implset_req {
 
 /* IMMA Local Events */
 typedef struct imma_tmr_info {
-	uns32 type;
+	uint32_t type;
 	SaImmAdminOwnerHandleT adm_owner_hdl;
 	SaImmHandleT client_hdl;
 	SaInvocationT invocation;
@@ -489,7 +489,7 @@ typedef struct immnd_evt {
 
 /* IMMD Local Events */
 typedef struct immd_tmr_info {
-	uns32 type;
+	uint32_t type;
 	union {
 		MDS_DEST immnd_dest;
 	} info;
@@ -541,13 +541,13 @@ typedef struct immsv_evt {
 
 /* Event Declerations */
 
-uns32 immsv_evt_enc_flat( /*EDU_HDL *edu_hdl, */ IMMSV_EVT *i_evt,
+uint32_t immsv_evt_enc_flat( /*EDU_HDL *edu_hdl, */ IMMSV_EVT *i_evt,
 				  NCS_UBAID *o_ub);
-uns32 immsv_evt_dec_flat( /*EDU_HDL *edu_hdl, */ NCS_UBAID *i_ub,
+uint32_t immsv_evt_dec_flat( /*EDU_HDL *edu_hdl, */ NCS_UBAID *i_ub,
 				  IMMSV_EVT *o_evt);
-uns32 immsv_evt_enc( /*EDU_HDL *edu_hdl, */ IMMSV_EVT *i_evt,
+uint32_t immsv_evt_enc( /*EDU_HDL *edu_hdl, */ IMMSV_EVT *i_evt,
 			     NCS_UBAID *o_ub);
-uns32 immsv_evt_dec( /*EDU_HDL *edu_hdl, */ NCS_UBAID *i_ub,
+uint32_t immsv_evt_dec( /*EDU_HDL *edu_hdl, */ NCS_UBAID *i_ub,
 			     IMMSV_EVT *o_evt);
 
 void immsv_evt_enc_inline_string(NCS_UBAID *o_ub, IMMSV_OCTET_STRING *os);

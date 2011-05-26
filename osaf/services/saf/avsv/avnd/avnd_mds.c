@@ -44,22 +44,22 @@ const MDS_CLIENT_MSG_FORMAT_VER avnd_ava_msg_fmt_map_table[AVND_AVA_SUBPART_VER_
 
 /* static function declarations */
 
-static uns32 avnd_mds_param_get(AVND_CB *);
+static uint32_t avnd_mds_param_get(AVND_CB *);
 
-static uns32 avnd_mds_rcv(AVND_CB *, MDS_CALLBACK_RECEIVE_INFO *);
+static uint32_t avnd_mds_rcv(AVND_CB *, MDS_CALLBACK_RECEIVE_INFO *);
 
-static uns32 avnd_mds_cpy(AVND_CB *, MDS_CALLBACK_COPY_INFO *);
+static uint32_t avnd_mds_cpy(AVND_CB *, MDS_CALLBACK_COPY_INFO *);
 
-static uns32 avnd_mds_svc_evt(AVND_CB *, MDS_CALLBACK_SVC_EVENT_INFO *);
+static uint32_t avnd_mds_svc_evt(AVND_CB *, MDS_CALLBACK_SVC_EVENT_INFO *);
 
-static uns32 avnd_mds_enc(AVND_CB *, MDS_CALLBACK_ENC_INFO *);
-static uns32 avnd_mds_flat_enc(AVND_CB *, MDS_CALLBACK_ENC_INFO *);
-static uns32 avnd_mds_flat_ava_enc(AVND_CB *, MDS_CALLBACK_ENC_INFO *);
+static uint32_t avnd_mds_enc(AVND_CB *, MDS_CALLBACK_ENC_INFO *);
+static uint32_t avnd_mds_flat_enc(AVND_CB *, MDS_CALLBACK_ENC_INFO *);
+static uint32_t avnd_mds_flat_ava_enc(AVND_CB *, MDS_CALLBACK_ENC_INFO *);
 
-static uns32 avnd_mds_dec(AVND_CB *, MDS_CALLBACK_DEC_INFO *);
-static uns32 avnd_mds_flat_dec(AVND_CB *, MDS_CALLBACK_DEC_INFO *);
-static uns32 avnd_mds_flat_ava_dec(AVND_CB *, MDS_CALLBACK_DEC_INFO *);
-static uns32 avnd_mds_quiesced_process(AVND_CB *cb);
+static uint32_t avnd_mds_dec(AVND_CB *, MDS_CALLBACK_DEC_INFO *);
+static uint32_t avnd_mds_flat_dec(AVND_CB *, MDS_CALLBACK_DEC_INFO *);
+static uint32_t avnd_mds_flat_ava_dec(AVND_CB *, MDS_CALLBACK_DEC_INFO *);
+static uint32_t avnd_mds_quiesced_process(AVND_CB *cb);
 
 /****************************************************************************
   Name          : avnd_mds_reg
@@ -76,12 +76,12 @@ static uns32 avnd_mds_quiesced_process(AVND_CB *cb);
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mds_reg(AVND_CB *cb)
+uint32_t avnd_mds_reg(AVND_CB *cb)
 {
 	NCSMDS_INFO mds_info;
 	NCSADA_INFO ada_info;
 	MDS_SVC_ID svc_ids[2];
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* get the mds-hdl & avnd mds address */
 	rc = avnd_mds_param_get(cb);
@@ -205,7 +205,7 @@ uns32 avnd_mds_reg(AVND_CB *cb)
   Notes         : MDS messages are not used, we are only interested in MBCSV 
                   messages.
 ******************************************************************************/
-uns32 avnd_mds_vdest_reg(AVND_CB *cb)
+uint32_t avnd_mds_vdest_reg(AVND_CB *cb)
 {
 	NCSVDA_INFO vda_info;
 	NCSMDS_INFO svc_to_mds_info;
@@ -263,10 +263,10 @@ uns32 avnd_mds_vdest_reg(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mds_unreg(AVND_CB *cb)
+uint32_t avnd_mds_unreg(AVND_CB *cb)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
@@ -296,10 +296,10 @@ uns32 avnd_mds_unreg(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mds_cbk(NCSMDS_CALLBACK_INFO *info)
+uint32_t avnd_mds_cbk(NCSMDS_CALLBACK_INFO *info)
 {
 	AVND_CB *cb = avnd_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (!info)
 		goto done;
@@ -394,12 +394,12 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
+uint32_t avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
 	AVND_EVT_TYPE type = AVND_EVT_INVALID;
 	AVND_EVT *evt = 0;
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
@@ -521,10 +521,10 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mds_cpy(AVND_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
+uint32_t avnd_mds_cpy(AVND_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 {
 	AVND_MSG *msg = (AVND_MSG *)cpy_info->i_msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* the message may be destined to avd, ava */
 	switch (cpy_info->i_to_svc_id) {
@@ -568,10 +568,10 @@ uns32 avnd_mds_cpy(AVND_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
+uint32_t avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 {
 	AVND_EVT *evt = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* assign mds-dest for AVD, AVND & AVA as per the MDS event */
 	switch (evt_info->i_change) {
@@ -693,11 +693,11 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
   Notes         : This routine also frees the message after encoding it in 
                   the userbuf.
 ******************************************************************************/
-uns32 avnd_mds_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
+uint32_t avnd_mds_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	AVND_MSG *msg;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	msg = (AVND_MSG *)enc_info->i_msg;
 
@@ -772,10 +772,10 @@ uns32 avnd_mds_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
   Notes         : This routine also frees the message after encoding it in 
                   the userbuf.
 ******************************************************************************/
-uns32 avnd_mds_flat_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
+uint32_t avnd_mds_flat_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	AVND_MSG *msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
 	msg = (AVND_MSG *)enc_info->i_msg;
@@ -849,10 +849,10 @@ uns32 avnd_mds_flat_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
+uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	AVSV_NDA_AVA_MSG *ava;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	ava = ((AVND_MSG *)enc_info->i_msg)->info.ava;
 	assert(ava);
@@ -936,10 +936,10 @@ uns32 avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mds_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
+uint32_t avnd_mds_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (dec_info->i_fr_svc_id) {
 	case NCSMDS_SVC_ID_AVD:
@@ -1021,9 +1021,9 @@ uns32 avnd_mds_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mds_flat_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
+uint32_t avnd_mds_flat_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
 	switch (dec_info->i_fr_svc_id) {
@@ -1097,10 +1097,10 @@ uns32 avnd_mds_flat_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mds_flat_ava_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
+uint32_t avnd_mds_flat_ava_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
 	AVSV_NDA_AVA_MSG *ava_msg = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* alloc memory for ava-msg */
 	ava_msg = calloc(1, sizeof(AVSV_NDA_AVA_MSG));
@@ -1141,11 +1141,11 @@ uns32 avnd_mds_flat_ava_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt)
+uint32_t avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt)
 {
 	NCSMDS_INFO mds_info;
 	MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("Msg type '%u'", msg->type);
 	/* populate the mds params */
@@ -1223,12 +1223,12 @@ uns32 avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTX
                   With this funtion we are sending msg to the new active AvD
                   directly, without looking for its MDS role as seen by AvND. 
 ******************************************************************************/
-uns32 avnd_mds_red_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_DEST *adest)
+uint32_t avnd_mds_red_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_DEST *adest)
 {
 	NCSMDS_INFO mds_info;
 	MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
 	MDS_SENDTYPE_RED_INFO *send = &send_info->info.red;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Msg type '%u'", msg->type);
 
 	/* populate the mds params */
@@ -1277,10 +1277,10 @@ uns32 avnd_mds_red_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_DEST *ad
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 avnd_mds_param_get(AVND_CB *cb)
+uint32_t avnd_mds_param_get(AVND_CB *cb)
 {
 	NCSADA_INFO ada_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&ada_info, 0, sizeof(ada_info));
 
@@ -1314,10 +1314,10 @@ uns32 avnd_mds_param_get(AVND_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 avnd_avnd_mds_send(AVND_CB *cb, MDS_DEST mds_dest, AVND_MSG *i_msg)
+uint32_t avnd_avnd_mds_send(AVND_CB *cb, MDS_DEST mds_dest, AVND_MSG *i_msg)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MDS_SEND_INFO *send_info = NULL;
 	MDS_SENDTYPE_SNDRSP_INFO *send = NULL;
 
@@ -1364,7 +1364,7 @@ uns32 avnd_avnd_mds_send(AVND_CB *cb, MDS_DEST mds_dest, AVND_MSG *i_msg)
 
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_mds_set_vdest_role(AVND_CB *cb, SaAmfHAStateT role)
+uint32_t avnd_mds_set_vdest_role(AVND_CB *cb, SaAmfHAStateT role)
 {
 	NCSVDA_INFO vda_info;
 
@@ -1394,10 +1394,10 @@ uns32 avnd_mds_set_vdest_role(AVND_CB *cb, SaAmfHAStateT role)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-uns32 avnd_mds_quiesced_process(AVND_CB *cb)
+uint32_t avnd_mds_quiesced_process(AVND_CB *cb)
 {
 	AVND_EVT *evt = 0;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	evt = avnd_evt_create(cb, AVND_EVT_HA_STATE_CHANGE, 0, NULL, 0, 0, 0);
 	if (NULL == evt) {

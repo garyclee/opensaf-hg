@@ -264,10 +264,10 @@ NCSFL_ASCII_SPEC cpd_ascii_spec = {
   RETURNS        : SUCCESS - All went well
                    FAILURE - internal processing didn't like something.
 \*****************************************************************************/
-uns32 cpd_log_ascii_reg(void)
+uint32_t cpd_log_ascii_reg(void)
 {
 	NCS_DTSV_REG_CANNED_STR arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&arg, 0, sizeof(arg));
 
@@ -316,9 +316,9 @@ void cpd_log_ascii_dereg(void)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t cpsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:

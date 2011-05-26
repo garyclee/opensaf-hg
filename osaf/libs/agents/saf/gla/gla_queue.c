@@ -46,7 +46,7 @@ NCS_BOOL gla_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
  
   Notes         : None
 ******************************************************************************/
-uns32 glsv_gla_callback_queue_init(GLA_CLIENT_INFO *client_info)
+uint32_t glsv_gla_callback_queue_init(GLA_CLIENT_INFO *client_info)
 {
 	if (m_NCS_IPC_CREATE(&client_info->callbk_mbx) == NCSCC_RC_SUCCESS) {
 		if (m_NCS_IPC_ATTACH(&client_info->callbk_mbx) == NCSCC_RC_SUCCESS) {
@@ -117,10 +117,10 @@ void glsv_gla_callback_queue_destroy(GLA_CLIENT_INFO *client_info)
  
   Notes         : None
 ******************************************************************************/
-uns32 glsv_gla_callback_queue_write(GLA_CB *gla_cb, SaLckHandleT handle, GLSV_GLA_CALLBACK_INFO *clbk_info)
+uint32_t glsv_gla_callback_queue_write(GLA_CB *gla_cb, SaLckHandleT handle, GLSV_GLA_CALLBACK_INFO *clbk_info)
 {
 	GLA_CLIENT_INFO *client_info = NULL;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	m_NCS_LOCK(&gla_cb->cb_lock, NCS_LOCK_READ);
 	/* Search for the node from the client tree */

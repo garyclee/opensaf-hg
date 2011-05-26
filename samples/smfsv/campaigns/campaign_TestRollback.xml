@@ -423,8 +423,8 @@
 			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
 		</procWrapupAction>
 		<procWrapupAction>
-			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint32 4711" ></doCliCommand>
-			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint32 4711" ></undoCliCommand>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint32_t 4711" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint32_t 4711" ></undoCliCommand>
 			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
 		</procWrapupAction>
 		<procWrapupAction>
@@ -529,8 +529,8 @@
 			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
 		</campCompleteAction>
 		<campCompleteAction>
-			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint32 1234567" ></doCliCommand>
-			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint32 1234567" ></undoCliCommand>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint32_t 1234567" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint32_t 1234567" ></undoCliCommand>
 			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
 		</campCompleteAction>
 		<campCompleteAction>

@@ -115,10 +115,10 @@ typedef struct avnd_pg {
  ******  E X T E R N A L   F U N C T I O N   D E C L A R A T I O N S  ******
  ***************************************************************************/
 
-uns32 avnd_pgdb_init(struct avnd_cb_tag *);
-uns32 avnd_pgdb_destroy(struct avnd_cb_tag *);
-AVND_PG *avnd_pgdb_rec_add(struct avnd_cb_tag *, SaNameT *, uns32 *);
-uns32 avnd_pgdb_rec_del(struct avnd_cb_tag *, SaNameT *);
+uint32_t avnd_pgdb_init(struct avnd_cb_tag *);
+uint32_t avnd_pgdb_destroy(struct avnd_cb_tag *);
+AVND_PG *avnd_pgdb_rec_add(struct avnd_cb_tag *, SaNameT *, uint32_t *);
+uint32_t avnd_pgdb_rec_del(struct avnd_cb_tag *, SaNameT *);
 
 AVND_PG_TRK *avnd_pgdb_trk_rec_add(struct avnd_cb_tag *, AVND_PG *, AVND_PG_TRK_INFO *);
 void avnd_pgdb_trk_rec_del(struct avnd_cb_tag *, AVND_PG *, AVND_PG_TRK_KEY *);

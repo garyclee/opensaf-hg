@@ -117,11 +117,11 @@ typedef struct edsv_eda_dispatch_param_tag {
 } EDSV_EDA_DISPATCH_PARAM;
 
 typedef struct edsv_eda_finalize_param_tag {
-	uns32 reg_id;
+	uint32_t reg_id;
 } EDSV_EDA_FINALIZE_PARAM;
 
 typedef struct edsv_eda_chan_open_sync_param_tag {
-	uns32 reg_id;
+	uint32_t reg_id;
 	uint8_t chan_open_flags;
 	SaNameT chan_name;
 } EDSV_EDA_CHAN_OPEN_SYNC_PARAM;
@@ -132,19 +132,19 @@ typedef struct edsv_eda_chan_unlink_sync_rsp_tag {
 
 typedef struct edsv_eda_chan_open_async_param_tag {
 	SaInvocationT inv;
-	uns32 reg_id;
+	uint32_t reg_id;
 	uint8_t chan_open_flags;
 	SaNameT chan_name;
 } EDSV_EDA_CHAN_OPEN_ASYNC_PARAM;
 
 typedef struct edsv_eda_chan_close_param_tag {
-	uns32 reg_id;
-	uns32 chan_id;
-	uns32 chan_open_id;
+	uint32_t reg_id;
+	uint32_t chan_id;
+	uint32_t chan_open_id;
 } EDSV_EDA_CHAN_CLOSE_PARAM;
 
 typedef struct edsv_eda_chan_unlink_param_tag {
-	uns32 reg_id;
+	uint32_t reg_id;
 	SaNameT chan_name;
 } EDSV_EDA_CHAN_UNLINK_PARAM;
 
@@ -169,38 +169,38 @@ typedef struct edsv_eda_data_get_param_tag {
 } EDSV_EDA_DATA_GET_PARAM;
 
 typedef struct edsv_eda_publish_param_tag {
-	uns32 reg_id;
-	uns32 chan_id;
-	uns32 chan_open_id;
+	uint32_t reg_id;
+	uint32_t chan_id;
+	uint32_t chan_open_id;
 	SaEvtEventPatternArrayT *pattern_array;
 	uint8_t priority;
 	SaTimeT retention_time;
 	SaNameT publisher_name;
-	uns32 event_id;
+	uint32_t event_id;
 	SaSizeT data_len;
 	uint8_t *data;
 } EDSV_EDA_PUBLISH_PARAM;
 
 typedef struct edsv_eda_subscribe_param_tag {
-	uns32 reg_id;
-	uns32 chan_id;
-	uns32 chan_open_id;
-	uns32 sub_id;
+	uint32_t reg_id;
+	uint32_t chan_id;
+	uint32_t chan_open_id;
+	uint32_t sub_id;
 	SaEvtEventFilterArrayT *filter_array;
 } EDSV_EDA_SUBSCRIBE_PARAM;
 
 typedef struct edsv_eda_unsubscribe_param_tag {
-	uns32 reg_id;
-	uns32 chan_id;
-	uns32 chan_open_id;
-	uns32 sub_id;
+	uint32_t reg_id;
+	uint32_t chan_id;
+	uint32_t chan_open_id;
+	uint32_t sub_id;
 } EDSV_EDA_UNSUBSCRIBE_PARAM;
 
 typedef struct edsv_eda_retention_time_clr_param_tag {
-	uns32 reg_id;
-	uns32 chan_id;
-	uns32 chan_open_id;
-	uns32 event_id;
+	uint32_t reg_id;
+	uint32_t chan_id;
+	uint32_t chan_open_id;
+	uint32_t event_id;
 } EDSV_EDA_RETENTION_TIME_CLR_PARAM;
 
 /* API param definition */
@@ -224,25 +224,25 @@ typedef struct edsv_api_info_tag {
 
 typedef struct edsv_eda_chan_open_cb_param_tag {
 	SaNameT chan_name;
-	uns32 chan_id;
-	uns32 chan_open_id;
+	uint32_t chan_id;
+	uint32_t chan_open_id;
 	uint8_t chan_open_flags;
-	uns32 eda_chan_hdl;	/* filled in at the EDA with channelHandle, use 0 at EDS */
+	uint32_t eda_chan_hdl;	/* filled in at the EDA with channelHandle, use 0 at EDS */
 	SaAisErrorT error;
 } EDSV_EDA_CHAN_OPEN_CBK_PARAM;
 
 typedef struct edsv_eda_evt_deliver_cb_param_tag {
 	SaEvtSubscriptionIdT sub_id;
-	uns32 chan_id;
-	uns32 chan_open_id;
+	uint32_t chan_id;
+	uint32_t chan_open_id;
 	SaEvtEventPatternArrayT *pattern_array;
 	uint8_t priority;
 	SaNameT publisher_name;
 	SaTimeT publish_time;
 	SaTimeT retention_time;
-	uns32 eda_event_id;
-	uns32 event_hdl;	/* filled in at the EDA with eventHandle use 0 at EDS */
-	uns32 ret_evt_ch_oid;
+	uint32_t eda_event_id;
+	uint32_t event_hdl;	/* filled in at the EDA with eventHandle use 0 at EDS */
+	uint32_t ret_evt_ch_oid;
 	SaSizeT data_len;
 	uint8_t *data;
 } EDSV_EDA_EVT_DELIVER_CBK_PARAM;
@@ -254,7 +254,7 @@ typedef struct edsv_eda_clm_status_param_tag {
 /* wrapper structure for all the callbacks */
 typedef struct edsv_cbk_info {
 	EDSV_CBK_TYPE type;	/* callback type */
-	uns32 eds_reg_id;	/* eds reg_id */
+	uint32_t eds_reg_id;	/* eds reg_id */
 	SaInvocationT inv;	/* invocation value */
 
 	union {
@@ -266,7 +266,7 @@ typedef struct edsv_cbk_info {
 
 /* API Response parameter definitions */
 typedef struct edsv_eda_initialize_rsp_tag {
-	uns32 reg_id;		/* Map to evtHandle */
+	uint32_t reg_id;		/* Map to evtHandle */
 } EDSV_EDA_INITIALIZE_RSP;
 
 typedef struct edsv_eda_limit_get_rsp_tag {
@@ -279,8 +279,8 @@ typedef struct edsv_eda_limit_get_rsp_tag {
 } EDSV_EDA_LIMIT_GET_RSP;
 
 typedef struct edsv_eda_chan_open_sync_rsp_tag {
-	uns32 chan_id;
-	uns32 chan_open_id;
+	uint32_t chan_id;
+	uint32_t chan_open_id;
 } EDSV_EDA_CHAN_OPEN_SYNC_RSP;
 
 typedef struct edsv_eda_publish_rsp_tag {
@@ -291,7 +291,7 @@ typedef struct edsv_eda_publish_rsp_tag {
  */
 typedef struct edsv_api_rsp_info_tag {
 	union {
-		uns32 raw;
+		uint32_t raw;
 		EDSV_API_RSP_TYPE api_rsp;
 		EDSV_CBK_TYPE cbk;
 	} type;

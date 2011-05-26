@@ -70,11 +70,11 @@ typedef struct {
 } lgsv_initialize_req_t;
 
 typedef struct {
-	uns32 client_id;
+	uint32_t client_id;
 } lgsv_finalize_req_t;
 
 typedef struct {
-	uns32 client_id;
+	uint32_t client_id;
 	SaNameT lstr_name;
 	char logFileName[NAME_MAX];
 	char logFilePathName[PATH_MAX];
@@ -89,15 +89,15 @@ typedef struct {
 } lgsv_stream_open_req_t;
 
 typedef struct {
-	uns32 client_id;
-	uns32 lstr_id;
+	uint32_t client_id;
+	uint32_t lstr_id;
 } lgsv_stream_close_req_t;
 
 typedef struct {
 	SaInvocationT invocation;
-	uns32 ack_flags;
-	uns32 client_id;
-	uns32 lstr_id;
+	uint32_t ack_flags;
+	uint32_t client_id;
+	uint32_t lstr_id;
 	SaLogRecordT *logRecord;
 	SaNameT *logSvcUsrName;
 	SaTimeT *logTimeStamp;
@@ -124,28 +124,28 @@ typedef struct {
 /* wrapper structure for all the callbacks */
 typedef struct {
 	lgsv_cbk_msg_type_t type;	/* callback type */
-	uns32 lgs_client_id;	/* lgs client_id */
+	uint32_t lgs_client_id;	/* lgs client_id */
 	SaInvocationT inv;	/* invocation value */
 	lgsv_write_log_callback_ind_t write_cbk;
 } lgsv_cbk_info_t;
 
 /* API Response parameter definitions */
 typedef struct {
-	uns32 client_id;
+	uint32_t client_id;
 } lgsv_initialize_rsp_t;
 
 typedef struct {
-	uns32 client_id;
-	uns32 lstr_id;
+	uint32_t client_id;
+	uint32_t lstr_id;
 } lgsv_stream_open_rsp_t;
 
 typedef struct {
-	uns32 client_id;
+	uint32_t client_id;
 } lgsv_finalize_rsp_t;
 
 typedef struct {
-	uns32 client_id;
-	uns32 lstr_id;
+	uint32_t client_id;
+	uint32_t lstr_id;
 } lgsv_stream_close_rsp_t;
 
 /* wrapper structure for all API responses 

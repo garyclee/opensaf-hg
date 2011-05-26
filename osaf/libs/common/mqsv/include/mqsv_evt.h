@@ -117,7 +117,7 @@ typedef struct queue_message {
 	SaUint32T type;
 	SaUint32T version;
 	SaSizeT size;
-	uns32 padding;
+	uint32_t padding;
 	SaNameT senderName;
 	SaUint8T priority;
 	char data[1];
@@ -160,7 +160,7 @@ typedef struct mqp_init_req {
 } MQP_INIT_REQ;
 
 typedef struct mqp_init_rsp {
-	uns32 dummy;
+	uint32_t dummy;
 } MQP_INIT_RSP;
 
 /* saMsgFinalize(): */
@@ -183,7 +183,7 @@ typedef struct mqp_q_ret_time_set_req {
 } MQP_Q_RET_TIME_SET_REQ;
 
 typedef struct mqp_clm_req {
-	uns32 node_joined;
+	uint32_t node_joined;
 } MQP_CLM_NOTIFY;
 
 typedef struct mqp_q_ret_time_set_rsp {
@@ -206,7 +206,7 @@ typedef struct mqp_open_rsp {
 	SaNameT queueName;
 	SaMsgQueueHandleT queueHandle;
 	SaMsgQueueHandleT listenerHandle;
-	uns32 existing_msg_count;
+	uint32_t existing_msg_count;
 } MQP_OPEN_RSP;
 /* Owner transfer request: MQSV internal message */
 typedef struct mqp_transferq_req {
@@ -226,15 +226,15 @@ typedef struct mqp_transferq_rsp {
 	MQSV_SEND_INFO rcvr_mqa_sinfo;
 	MDS_DEST old_owner;
 	MQP_REQ_TYPE openType;
-	uns32 msg_count;
-	uns32 msg_bytes;
+	uint32_t msg_count;
+	uint32_t msg_bytes;
 	char *mqsv_message;
 	SaTimeT creationTime;
 } MQP_TRANSFERQ_RSP;
 
 typedef struct mqp_transferq_complete {
 	SaMsgQueueHandleT queueHandle;
-	uns32 error;
+	uint32_t error;
 } MQP_TRANSFERQ_COMPLETE;
 
 typedef struct mqp_openasync_req {
@@ -286,7 +286,7 @@ typedef struct mqp_unlink_rsp {
 
 typedef struct mqp_queue_reply_msg {
 	SaMsgAckFlagsT ackFlags;
-	uns32 padding;
+	uint32_t padding;
 	SaMsgHandleT msgHandle;
 	QUEUE_MESSAGE_INFO messageInfo;
 	QUEUE_MESSAGE message;
@@ -322,7 +322,7 @@ typedef struct mqp_send_msg_async {
 /* Structure used by MQSV to ack the delivery of the sent message to MQA in Sync send */
 typedef struct mqsv_send_msg_rsp {
 	SaAisErrorT error;
-	uns32 padding;
+	uint32_t padding;
 	SaMsgHandleT msgHandle;
 } MQP_SEND_MSG_RSP;
 
@@ -346,12 +346,12 @@ typedef struct mqp_cancel_req {
 
 typedef struct mqp_update_stats {
 	SaMsgQueueHandleT qhdl;
-	uns32 priority;
-	uns32 size;
+	uint32_t priority;
+	uint32_t size;
 } MQP_UPDATE_STATS;
 
 typedef struct mqp_stats_rsp {
-	uns32 dummy;
+	uint32_t dummy;
 } MQP_STATS_RSP;
 
 /* The format of message to be placed in the queue or sent from MQA to MQND */
@@ -378,7 +378,7 @@ typedef struct mqp_mqnd_restart_rsp {
 ******************************************************************************/
 typedef struct mqp_req_msg {
 	MQP_REQ_TYPE type;
-	uns32 padding;		/* DO NOT USE */
+	uint32_t padding;		/* DO NOT USE */
 	MDS_DEST agent_mds_dest;
 	union {
 		MQP_INIT_REQ initReq;
@@ -438,7 +438,7 @@ typedef struct mqsv_msgq_open_param {
 	SaAisErrorT error;
 	SaMsgQueueOpenFlagsT openFlags;
 	SaMsgQueueHandleT listenerHandle;
-	uns32 existing_msg_count;
+	uint32_t existing_msg_count;
 } MQSV_MSGQ_OPEN_PARAM;
 
 typedef struct mqsv_msgqgrp_track_param {
@@ -477,7 +477,7 @@ typedef struct mqp_async_rsp_msg {
 
 /* Data struct used to inform timer expiry info to MQND */
 typedef struct mqd_tmr_exp_info {
-	uns32 type;		/* Timer Type */
+	uint32_t type;		/* Timer Type */
 	NODE_ID nodeid;
 } MQD_TMR_EXP_INFO;
 
@@ -497,7 +497,7 @@ typedef struct qgrp_count_info {
 	SaAisErrorT error;
 	struct queue_info {
 		SaNameT queueName;
-		uns32 noOfQueueGroupMemOf;
+		uint32_t noOfQueueGroupMemOf;
 	} info;
 } MQSV_CTRL_EVT_QGRP_CNT;
 
@@ -540,7 +540,7 @@ typedef struct mqsv_qattr_info {
 
 /* Data struct used to inform timer expiry info to MQND */
 typedef struct mqnd_tmr_exp_info {
-	uns32 type;		/* Timer Type */
+	uint32_t type;		/* Timer Type */
 	SaMsgQueueHandleT qhdl;
 	tmr_t tmr_id;
 } MQND_TMR_EXP_INFO;
@@ -598,7 +598,7 @@ typedef struct mqsv_direct_send_event {
 	uint8_t msg_fmt_version;
 	uint8_t src_dest_version;
 	union {
-		uns32 raw;
+		uint32_t raw;
 		MQP_RSP_TYPE rsp_type;
 		MQP_REQ_TYPE req_type;
 	} type;

@@ -56,10 +56,10 @@ typedef uns64 MDS_SUBTN_REF_VAL;
 
 typedef NCS_VDEST_TYPE MDS_POLICY;
 
-typedef uns32 MDS_VDEST_HDL;	/* <0,vdestid> */
+typedef uint32_t MDS_VDEST_HDL;	/* <0,vdestid> */
 typedef uns64 MDS_SVC_HDL;	/* <pweid,vdestid,svcid> */
-typedef uns32 MDS_PWE_HDL;	/* <pweid,vdestid> */
-/* typedef uns32 MDS_SUBTN_HDL; */
+typedef uint32_t MDS_PWE_HDL;	/* <pweid,vdestid> */
+/* typedef uint32_t MDS_SUBTN_HDL; */
 typedef uns64 MDS_TX_HDL;
 typedef enum {
 	MDS_SUBTN_IMPLICIT,
@@ -97,7 +97,7 @@ typedef struct mds_data_recv {
 	uint16_t src_svc_id;
 	uint16_t src_pwe_id;
 	uint16_t src_vdest;
-	uns32 exchange_id;
+	uint32_t exchange_id;
 	MDS_SVC_HDL dest_svc_hdl;	/* Got from upper layer by passing SVC,PWE and VDEST */
 	MDS_DEST src_adest;
 	MDS_SENDTYPES snd_type;
@@ -126,8 +126,8 @@ typedef struct mdtm_send_req {
 	MDS_VDEST_ID src_vdest_id;
 	MDS_DEST src_adest;
 	MDS_SENDTYPES snd_type;
-	uns32 xch_id;
-	uns32 svc_seq_num;
+	uint32_t xch_id;
+	uint32_t svc_seq_num;
 
 	MDS_SVC_ID dest_svc_id;
 	PW_ENV_ID dest_pwe_id;
@@ -189,7 +189,7 @@ typedef struct mcm_svc_up_info {
 
 typedef MCM_SVC_UP_INFO MCM_SVC_DOWN_INFO;
 
-uns32 mds_dt2c_query_adest(MDS_MDTM_QUERY_ADEST_INFO * req);
+uint32_t mds_dt2c_query_adest(MDS_MDTM_QUERY_ADEST_INFO * req);
 
 /* ******************************************** */
 /* ******************************************** */
@@ -257,7 +257,7 @@ typedef struct mds_tmr_req_info {
 		} await_active_tmr_info;
 
 		struct {
-			uns32 seq_no;
+			uint32_t seq_no;
 			MDS_DEST id;
 		} reassembly_tmr_info;
 
@@ -280,7 +280,7 @@ typedef struct mds_mbx_evt_info {
 	MDS_MBX_EVT_TYPE type;
 
 	union {
-		uns32 tmr_info_hdl;	/* For use with MDS_MBX_EVT_TIMER_EXPIRY */
+		uint32_t tmr_info_hdl;	/* For use with MDS_MBX_EVT_TIMER_EXPIRY */
 		NCS_SEL_OBJ destroy_ack_obj;	/* For use with MDS_MBX_EVT_DESTROY      */
 	} info;
 } MDS_MBX_EVT_INFO;
@@ -308,10 +308,10 @@ typedef struct mds_mbx_evt_info {
 /* ******************************************** */
 
 /* Initialize Logging */
-extern uns32 mds_log_init(char *log_file_name, char *line_prefix);
+extern uint32_t mds_log_init(char *log_file_name, char *line_prefix);
 
 /* extern gl_mds_checksum */
-extern uns32 gl_mds_checksum;
+extern uint32_t gl_mds_checksum;
 
 /* ******************************************** */
 /* ******************************************** */
@@ -320,54 +320,54 @@ extern uns32 gl_mds_checksum;
 /* ******************************************** */
 
 /* Initialization of MDTM Module */
-uns32 (*mds_mdtm_init) (NODE_ID node_id, uns32 *mds_tipc_ref);
+uint32_t (*mds_mdtm_init) (NODE_ID node_id, uint32_t *mds_tipc_ref);
 
 /* Destroying the MDTM Module*/
-uns32 (*mds_mdtm_destroy) (void);
+uint32_t (*mds_mdtm_destroy) (void);
 
-uns32 (*mds_mdtm_send) (MDTM_SEND_REQ *req);
+uint32_t (*mds_mdtm_send) (MDTM_SEND_REQ *req);
 
 /* SVC Install */
-uns32 (*mds_mdtm_svc_install) (PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+uint32_t (*mds_mdtm_svc_install) (PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
 			       V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
 			       MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
 
 /* SVC Uninstall */
-uns32 (*mds_mdtm_svc_uninstall) (PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+uint32_t (*mds_mdtm_svc_uninstall) (PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
 				 V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
 				 MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
 
 /* SVC Subscribe */
-uns32 (*mds_mdtm_svc_subscribe) (PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE subscribe_scope,
+uint32_t (*mds_mdtm_svc_subscribe) (PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE subscribe_scope,
 				 MDS_SVC_HDL local_svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
 
 /*  added svc_hdl */
 /* SVC Unsubscribe */
-uns32 (*mds_mdtm_svc_unsubscribe) (MDS_SUBTN_REF_VAL subtn_ref_val);
+uint32_t (*mds_mdtm_svc_unsubscribe) (MDS_SUBTN_REF_VAL subtn_ref_val);
 
 /* VDEST Install */
-uns32 (*mds_mdtm_vdest_install) (MDS_VDEST_ID vdest_id);
+uint32_t (*mds_mdtm_vdest_install) (MDS_VDEST_ID vdest_id);
 
 /* VDEST Uninstall */
-uns32 (*mds_mdtm_vdest_uninstall) (MDS_VDEST_ID vdest_id);
+uint32_t (*mds_mdtm_vdest_uninstall) (MDS_VDEST_ID vdest_id);
 
 /* VDEST Subscribe */
-uns32 (*mds_mdtm_vdest_subscribe) (MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val);
+uint32_t (*mds_mdtm_vdest_subscribe) (MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val);
 
 /* VDEST Unsubscribe */
-uns32 (*mds_mdtm_vdest_unsubscribe) (MDS_SUBTN_REF_VAL subtn_ref_val);
+uint32_t (*mds_mdtm_vdest_unsubscribe) (MDS_SUBTN_REF_VAL subtn_ref_val);
 
 /* Tx Register (For incrementing the use count) */
-uns32 (*mds_mdtm_tx_hdl_register) (MDS_DEST adest);
+uint32_t (*mds_mdtm_tx_hdl_register) (MDS_DEST adest);
 
 /* Tx Unregister (For decrementing the use count) */
-uns32 (*mds_mdtm_tx_hdl_unregister) (MDS_DEST adest);
+uint32_t (*mds_mdtm_tx_hdl_unregister) (MDS_DEST adest);
 
 /* Node subscription */
-uns32 (*mds_mdtm_node_subscribe) (MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
+uint32_t (*mds_mdtm_node_subscribe) (MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
 
 /* Node unsubscription */
-uns32 (*mds_mdtm_node_unsubscribe) (MDS_SUBTN_REF_VAL subtn_ref_val);
+uint32_t (*mds_mdtm_node_unsubscribe) (MDS_SUBTN_REF_VAL subtn_ref_val);
 
 /* ******************************************** */
 /* ******************************************** */
@@ -376,66 +376,66 @@ uns32 (*mds_mdtm_node_unsubscribe) (MDS_SUBTN_REF_VAL subtn_ref_val);
 /* ******************************************** */
 
 /* Data receive from mdtm layer*/
-extern uns32 mds_mcm_ll_data_rcv(MDS_DATA_RECV *recv);
+extern uint32_t mds_mcm_ll_data_rcv(MDS_DATA_RECV *recv);
 
 /* SVC UP */
-extern uns32 mds_mcm_svc_up(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
+extern uint32_t mds_mcm_svc_up(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 			    NCSMDS_SCOPE_TYPE scope, MDS_VDEST_ID vdest,
 			    NCS_VDEST_TYPE vdest_policy, MDS_DEST adest, NCS_BOOL my_pcon,
 			    MDS_SVC_HDL local_svc_hdl, MDS_SUBTN_REF_VAL subtn_ref_val,
 			    MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type);
 
 /* SVC DOWN */
-extern uns32 mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
+extern uint32_t mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 			      NCSMDS_SCOPE_TYPE scope, MDS_VDEST_ID vdest,
 			      NCS_VDEST_TYPE vdest_policy, MDS_DEST adest, NCS_BOOL my_pcon,
 			      MDS_SVC_HDL local_svc_hdl, MDS_SUBTN_REF_VAL subtn_ref_val,
 			      MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type);
 
 /* NODE UP */
-extern uns32 mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id);
+extern uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id);
 
 /* NODE DOWN */
-extern uns32 mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id);
+extern uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id);
 
 /* VDEST UP */
-extern uns32 mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest);
+extern uint32_t mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest);
 
 					/* VDEST DOWN */	/* Presently Discarded */
-extern uns32 mds_mcm_vdest_down(MDS_VDEST_ID vdest_id, MDS_DEST adest);
+extern uint32_t mds_mcm_vdest_down(MDS_VDEST_ID vdest_id, MDS_DEST adest);
 
 /* Timer expiry functions of MCM */
 
 /* Quiesced timer expiry */
-extern uns32 mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id);
+extern uint32_t mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id);
 
 /* Subscription timer expiry */
-extern uns32 mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id);
+extern uint32_t mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id);
 
 /* Await Active timer expiry */
-extern uns32 mds_mcm_await_active_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id, MDS_VDEST_ID vdest_id);
+extern uint32_t mds_mcm_await_active_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id, MDS_VDEST_ID vdest_id);
 
 /* MDS Destroy event */
-extern uns32 mds_destroy_event(NCS_SEL_OBJ destroy_ack_obj);
+extern uint32_t mds_destroy_event(NCS_SEL_OBJ destroy_ack_obj);
 /* Timer callback event */
-extern uns32 mds_tmr_callback(NCSCONTEXT hdl);
+extern uint32_t mds_tmr_callback(NCSCONTEXT hdl);
 
 /* for pcon check for bcast send*/
-extern uns32 mdtm_check_pcon(MDS_DEST adest);
+extern uint32_t mdtm_check_pcon(MDS_DEST adest);
 
 /* SVC TABLE Operations */
-extern uns32 mds_svc_tbl_get(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSCONTEXT *svc_cb);
-extern uns32 mds_svc_tbl_get_role(MDS_SVC_HDL svc_hdl);	/*  returns 0 or 1 */
-extern uns32 mds_svc_tbl_get_svc_hdl(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, MDS_SVC_HDL *svc_hdl);
+extern uint32_t mds_svc_tbl_get(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSCONTEXT *svc_cb);
+extern uint32_t mds_svc_tbl_get_role(MDS_SVC_HDL svc_hdl);	/*  returns 0 or 1 */
+extern uint32_t mds_svc_tbl_get_svc_hdl(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, MDS_SVC_HDL *svc_hdl);
 /* AWAIT ACTIVE TABLE Operations */
-extern uns32 mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *queue, MDS_DEST adest);
-extern uns32 mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue);
+extern uint32_t mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *queue, MDS_DEST adest);
+extern uint32_t mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue);
 
 /* Adding Subscription */
-extern uns32 mds_mcm_subtn_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_SCOPE_TYPE scope,
+extern uint32_t mds_mcm_subtn_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_SCOPE_TYPE scope,
 			       MDS_VIEW view, MDS_SUBTN_TYPE subtn_type);
 
-#define m_MDS_GET_PWE_HDL_FROM_VDEST_HDL_AND_PWE_ID(vdest_hdl,pwe_id) ((uns32)pwe_id << 16 | (uns32) vdest_hdl)
+#define m_MDS_GET_PWE_HDL_FROM_VDEST_HDL_AND_PWE_ID(vdest_hdl,pwe_id) ((uint32_t)pwe_id << 16 | (uint32_t) vdest_hdl)
 #define m_MDS_GET_SVC_HDL_FROM_PWE_ID_VDEST_ID_AND_SVC_ID(pwe_id,vdest_id,svc_id) (((uns64)pwe_id << 48) | ((uns64)vdest_id << 32) | ((uns64)svc_id))
 
 /* Lock Macros */
@@ -448,7 +448,7 @@ extern MDS_VDEST_ID ncs_get_internal_vdest_id_from_mds_dest(MDS_DEST mdsdest);
 
 /* Macros to Get NODE_ID and PROCESS_ID from ADEST */
 #define m_MDS_GET_NODE_ID_FROM_ADEST(adest) (NODE_ID) ((uns64)adest >> 32)
-#define m_MDS_GET_PROCESS_ID_FROM_ADEST(adest) (uns32) ((uns64)adest & 0x00000000ffffffff)
+#define m_MDS_GET_PROCESS_ID_FROM_ADEST(adest) (uint32_t) ((uns64)adest & 0x00000000ffffffff)
 
 /* Macros to get SVC_ID from SVC_HDL */
 #define m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl) (MDS_SVC_ID)(((uns64)svc_hdl & 0x00000000ffffffff))

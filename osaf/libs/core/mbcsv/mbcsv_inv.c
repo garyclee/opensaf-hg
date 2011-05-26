@@ -70,7 +70,7 @@ extern MBCSV_CB mbcsv_cb;
 #define m_MBCSV_PRT_PEER_INFO(peer_ptr) \
 { \
    printf("\n|               |                       |%16" PRIX64 "|%8X|%8X|  |", \
-   (uns64)peer_ptr->peer_anchor,(uns32)peer_ptr->hdl, (uns32)peer_ptr->peer_hdl); \
+   (uns64)peer_ptr->peer_anchor,(uint32_t)peer_ptr->hdl, (uint32_t)peer_ptr->peer_hdl); \
    \
    printf("\n|               |                       |%c|%s|%c| %c |%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d|%2d |    |", \
    mbcsv_prt_role[peer_ptr->peer_role],  \
@@ -92,15 +92,15 @@ extern MBCSV_CB mbcsv_cb;
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mbcsv_prt_inv(void)
+uint32_t mbcsv_prt_inv(void)
 {
 	MBCSV_REG *mbc_reg;
 	CKPT_INST *ckpt;
 	PEER_INST *peer_ptr;
 	SS_SVC_ID svc_id = 0;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 pwe_hdl = 0;
-	uns32 c_count = 0, p_count = 0;
+	uint32_t pwe_hdl = 0;
+	uint32_t c_count = 0, p_count = 0;
 
 	if (mbcsv_cb.created == FALSE)
 		return m_MBCSV_DBG_SINK(SA_AIS_ERR_NOT_EXIST, "MBCA instance is not created. First call mbcsv dl api.");

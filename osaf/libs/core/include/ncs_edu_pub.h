@@ -161,8 +161,8 @@ extern "C" {
 /* Definition of EDU_TLV_ENV, used in EDU internal API. */
 	typedef struct edu_tlv_env_tag {
 		NCSCONTEXT cur_bufp;	/* Running buffer pointer */
-		uns32 size;
-		uns32 bytes_consumed;
+		uint32_t size;
+		uint32_t bytes_consumed;
 	} EDU_TLV_ENV;
 
 /* Definition of envelope of EDU_TLV_ENV and NCS_UBAID */
@@ -177,8 +177,8 @@ extern "C" {
 /* Prototype for function handler for test-functionality. This
    function is expected to return the label of the next 
    instruction to execute. */
-	typedef uns32 (*EDU_PROG_HANDLER) (EDU_HDL *edu_hdl, struct edu_tkn_tag * edu_tkn,
-					   NCSCONTEXT data_ptr, uns32 *ptr_data_len,
+	typedef uint32_t (*EDU_PROG_HANDLER) (EDU_HDL *edu_hdl, struct edu_tkn_tag * edu_tkn,
+					   NCSCONTEXT data_ptr, uint32_t *ptr_data_len,
 					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 	typedef int (*EDU_EXEC_RTINE) (NCSCONTEXT arg);
 
@@ -193,7 +193,7 @@ extern "C" {
 	typedef struct edu_ppdb_key {
 		EDU_PROG_HANDLER parent_edp;	/* EDP of parent structure containing this field */
 		EDU_PROG_HANDLER self_edp;	/* EDP of the data type of this field */
-		uns32 field_offset;	/* Offset of the field in the parent structure */
+		uint32_t field_offset;	/* Offset of the field in the parent structure */
 	} EDU_PPDB_KEY;
 
 /* Structure for a node of the EDU's prettyprint database. */
@@ -203,7 +203,7 @@ extern "C" {
 		NCSCONTEXT data_ptr;	/* Pointer to data memory. This
 					   memory is malloc'ed by EDU
 					   while Pretty-printing. */
-		uns32 data_size;	/* Size of the data present. */
+		uint32_t data_size;	/* Size of the data present. */
 		uint8_t refcount;	/* Number of instructions
 				   referencing this node. */
 	} EDU_PPDB_NODE_INFO;
@@ -233,7 +233,7 @@ extern "C" {
 
 		EDU_PROG_HANDLER fld1;
 
-		uns32 fld2;
+		uint32_t fld2;
 
 		EDU_PROG_HANDLER fld3;
 
@@ -248,9 +248,9 @@ extern "C" {
 
 /* EDU "test"able Instructions list(Internal use only) */
 	typedef struct edp_test_instr_rec_tag {
-		uns32 offset;	/* Of the "test"able field */
+		uint32_t offset;	/* Of the "test"able field */
 		EDU_PROG_HANDLER edp;	/* Of the "test"able field */
-		uns32 refcount;	/* Number of references by EDU_TEST instructions. */
+		uint32_t refcount;	/* Number of references by EDU_TEST instructions. */
 		struct edp_test_instr_rec_tag *next;
 	} EDP_TEST_INSTR_REC;
 
@@ -260,11 +260,11 @@ extern "C" {
 
 		EDU_PROG_HANDLER edp;	/* EDU Program handler(Key to Patricia-tree) */
 
-		uns32 size;	/* Size of data structure */
+		uint32_t size;	/* Size of data structure */
 
 		NCS_BOOL edcompile_pass;	/* Updated by EDU */
 
-		uns32 attrb;	/* EDP attributes */
+		uint32_t attrb;	/* EDP attributes */
 
 		EDP_TEST_INSTR_REC *test_instr_store;	/* Internal only */
 
@@ -309,73 +309,73 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 /************* EDU EXTERNAL API (to Service Users) *************/
 
 /************ EDU external macro-related functions. ************/
-	uns32
+	uint32_t
 	 ncs_edu_run_rules(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET prog[],
-			   NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,
+			   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
 			   EDP_OP_TYPE optype, EDU_ERR *o_err, int instr_count);
 
 	
-	    uns32 ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog,
+	    uint32_t ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog,
 				      EDU_HDL_NODE **p_hdl_node, EDU_ERR *o_err);
 
-	uns32 ncs_edu_hdl_init(EDU_HDL *edu_hdl);
+	uint32_t ncs_edu_hdl_init(EDU_HDL *edu_hdl);
 
-	uns32 ncs_edu_hdl_flush(EDU_HDL *edu_hdl);
+	uint32_t ncs_edu_hdl_flush(EDU_HDL *edu_hdl);
 
-	uns32
+	uint32_t
 	 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 			  EDP_OP_TYPE op, NCSCONTEXT arg, EDU_ERR *o_err, EDU_MSG_VERSION to_version,
 			  uint8_t var_cnt, ...);
 
-	uns32
+	uint32_t
 	 ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCSCONTEXT bufp,
-			  uns32 buf_size, EDP_OP_TYPE op, NCSCONTEXT data_ptr, EDU_ERR *o_err, uint8_t var_cnt, ...);
+			  uint32_t buf_size, EDP_OP_TYPE op, NCSCONTEXT data_ptr, EDU_ERR *o_err, uint8_t var_cnt, ...);
 
 	void ncs_edu_print_error_string(int enum_val);
 /************ EDU external macro-related functions. ************/
 
 /************* NCS Built-in EDU Program Prototypes *************/
-	 uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					   NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	 uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				       NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	 uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	 uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-	 uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	 uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-	 uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				       NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	 uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					 NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	 uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	 uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				      NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				      NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-	 uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				       NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	 uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	 uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					NCSCONTEXT ptr, uns32 *ptr_data_len,
+	 uint32_t ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #define ncs_edp_double ncs_edp_int64
@@ -384,8 +384,8 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 
 #define ncs_edp_mds_dest ncs_edp_uns64
 
-	uns32 ncs_edp_ncs_key(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					  NCSCONTEXT ptr, uns32 *ptr_data_len,
+	uint32_t ncs_edp_ncs_key(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					  NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 	int ncs_edu_ncs_key_test_fmat_fnc(NCSCONTEXT arg);

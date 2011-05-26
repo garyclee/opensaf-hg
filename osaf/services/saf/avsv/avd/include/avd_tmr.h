@@ -83,7 +83,7 @@ struct cl_cb_tag;
 
 void avd_tmr_exp(void *);
 
-uns32 avd_start_tmr(struct cl_cb_tag *, AVD_TMR *, SaTimeT);
+uint32_t avd_start_tmr(struct cl_cb_tag *, AVD_TMR *, SaTimeT);
 
 void avd_stop_tmr(struct cl_cb_tag *, AVD_TMR *);
 

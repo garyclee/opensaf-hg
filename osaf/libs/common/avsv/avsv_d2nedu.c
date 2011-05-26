@@ -50,10 +50,10 @@
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-		       NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+		       NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_DND_MSG *struct_ptr = NULL, **d_ptr = NULL;
 	uint16_t base_ver = 0;
 	base_ver = AVSV_AVD_AVND_MSG_FMT_VER_3;
@@ -508,10 +508,10 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avsv_edp_param_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avsv_edp_param_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			  NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_PARAM_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avsv_param_info_rules[] = {
@@ -563,10 +563,10 @@ uns32 avsv_edp_param_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avsv_edp_su_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			   NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avsv_edp_su_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_SU_INFO_MSG *struct_ptr = NULL, **d_ptr = NULL;
 	uint16_t ver_compare = 0;
 
@@ -632,10 +632,10 @@ uns32 avsv_edp_su_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avsv_edp_comp_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avsv_edp_comp_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			     NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_COMP_INFO_MSG *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avsv_comp_info_msg_rules[] = {
@@ -741,10 +741,10 @@ uns32 avsv_edp_comp_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avsv_edp_susi_asgn(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			 NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avsv_edp_susi_asgn(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			 NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_SUSI_ASGN *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avsv_susi_asgn_rules[] = {

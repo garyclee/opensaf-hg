@@ -28,11 +28,11 @@ FUNC_DECLARATION(CPD_A2S_CKPT_USR_INFO);
 
 FUNC_DECLARATION(CPD_MBCSV_MSG);
 
-#define TEST_FUNC_DECLARATION(DS) uns32 \
+#define TEST_FUNC_DECLARATION(DS) uint32_t \
                          TEST_FUNC(DS)(NCSCONTEXT arg)
 
 #define NCS_ENC_DEC_DECLARATION(DS) \
-                 uns32 rc = NCSCC_RC_SUCCESS; \
+                 uint32_t rc = NCSCC_RC_SUCCESS; \
                  DS   *struct_ptr = NULL, **d_ptr = NULL
 
 #define NCS_ENC_DEC_ARRAY(DS) \
@@ -155,7 +155,7 @@ TEST_FUNC_DECLARATION(DS)
 	} LCL_TEST_JUMP_OFFSET;
 
 	if (arg == NULL)
-		return (uns32)EDU_EXIT;
+		return (uint32_t)EDU_EXIT;
 
 	addr = *(SaUint32T *)arg;
 

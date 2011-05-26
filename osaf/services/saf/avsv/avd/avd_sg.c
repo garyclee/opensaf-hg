@@ -518,7 +518,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			} else if (!strcmp(attribute->attrName, "saAmfSGCompRestartProb")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGCompRestartMax")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefInserviceSUs")) {
-				uns32 pref_inservice_su;
+				uint32_t pref_inservice_su;
 				pref_inservice_su = *((SaUint32T *)value);
 
 				if ((pref_inservice_su == 0) ||
@@ -546,7 +546,7 @@ done:
  * @param attrib_id
  * @param value
  */
-static void sg_nd_attribute_update(AVD_SG *sg, uns32 attrib_id)
+static void sg_nd_attribute_update(AVD_SG *sg, uint32_t attrib_id)
 {
 	AVD_SU *su = NULL;
 	AVD_AVND *su_node_ptr = NULL;
@@ -729,7 +729,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				sg_nd_attribute_update(avd_sg, saAmfSGCompRestartMax_ID);
 
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefInserviceSUs")) {
-				uns32 pref_inservice_su, back_val;
+				uint32_t pref_inservice_su, back_val;
 				pref_inservice_su = *((SaUint32T *)value);
 
 				if ((pref_inservice_su == 0) ||
@@ -763,10 +763,10 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
  * @param cb
  * @param sg
  */
-static uns32 sg_app_sg_admin_lock_inst(AVD_CL_CB *cb, AVD_SG *sg)
+static uint32_t sg_app_sg_admin_lock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SU *su;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%s", sg->name.value);
 
@@ -797,10 +797,10 @@ static uns32 sg_app_sg_admin_lock_inst(AVD_CL_CB *cb, AVD_SG *sg)
  * @param cb
  * @param sg
  */
-static uns32 sg_app_sg_admin_unlock_inst(AVD_CL_CB *cb, AVD_SG *sg)
+static uint32_t sg_app_sg_admin_unlock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SU *su;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%s", sg->name.value);
 

@@ -34,11 +34,11 @@
 #include "ava.h"
 
 /* global cb handle */
-uns32 gl_ava_hdl = 0;
-static uns32 ava_use_count = 0;
+uint32_t gl_ava_hdl = 0;
+static uint32_t ava_use_count = 0;
 
 /* AVA Agent creation specific LOCK */
-static uns32 ava_agent_lock_create = 0;
+static uint32_t ava_agent_lock_create = 0;
 NCS_LOCK ava_agent_lock;
 
 #define m_AVA_AGENT_LOCK                        \
@@ -80,9 +80,9 @@ static void logtrace_init_constructor(void)
  
   Notes         : None
 ******************************************************************************/
-uns32 ava_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t ava_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	switch (req_info->i_op) {
@@ -123,11 +123,11 @@ uns32 ava_lib_req(NCS_LIB_REQ_INFO *req_info)
  
   Notes         : None
 ******************************************************************************/
-uns32 ava_create(NCS_LIB_CREATE *create_info)
+uint32_t ava_create(NCS_LIB_CREATE *create_info)
 {
 	AVA_CB *cb = 0;
 	NCS_SEL_OBJ_SET set;
-	uns32 rc = NCSCC_RC_SUCCESS, timeout = 300;
+	uint32_t rc = NCSCC_RC_SUCCESS, timeout = 300;
 	EDU_ERR err;
 	TRACE_ENTER();
 
@@ -256,7 +256,7 @@ uns32 ava_create(NCS_LIB_CREATE *create_info)
 void ava_destroy(NCS_LIB_DESTROY *destroy_info)
 {
 	AVA_CB *cb = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* retrieve AvA CB */
@@ -363,7 +363,7 @@ unsigned int ncs_ava_startup(void)
 ******************************************************************************/
 unsigned int ncs_ava_shutdown(void)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	m_AVA_AGENT_LOCK;

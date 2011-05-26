@@ -41,14 +41,14 @@ typedef enum edsv_eds_evt_type {
 } EDSV_EDS_EVT_TYPE;
 
 typedef struct edsv_eds_mds_info_tag {
-	uns32 node_id;
+	uint32_t node_id;
 	MDS_DEST mds_dest_id;
 } EDSV_EDS_MDS_INFO;
 
 typedef struct edsv_eds_evt_tag {
 	/* NCS_IPC_MSG       next; */
 	struct edsv_eds_evt_tag *next;
-	uns32 cb_hdl;
+	uint32_t cb_hdl;
 	MDS_SYNC_SND_CTXT mds_ctxt;	/* Relevant when this event has to be responded to
 					 * in a synchronous fashion.
 					 */
@@ -66,9 +66,9 @@ typedef struct edsv_eds_evt_tag {
 #define EDSV_EDS_EVT_NULL ((EDSV_EDS_EVT *)0)
 
 /* These are the function prototypes for event handling */
-typedef uns32 (*EDSV_EDS_EDA_API_MSG_HANDLER) (EDS_CB *, struct edsv_eds_evt_tag * evt);
-typedef uns32 (*EDSV_EDS_EVT_HANDLER) (struct edsv_eds_evt_tag * evt);
-uns32 eds_process_evt(EDSV_EDS_EVT *evt);
+typedef uint32_t (*EDSV_EDS_EDA_API_MSG_HANDLER) (EDS_CB *, struct edsv_eds_evt_tag * evt);
+typedef uint32_t (*EDSV_EDS_EVT_HANDLER) (struct edsv_eds_evt_tag * evt);
+uint32_t eds_process_evt(EDSV_EDS_EVT *evt);
 void eds_evt_destroy(struct edsv_eds_evt_tag *);
 
 #endif   /*!EDS_EVT_H */

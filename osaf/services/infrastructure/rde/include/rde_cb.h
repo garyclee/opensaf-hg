@@ -40,7 +40,7 @@ typedef struct {
 	NCS_BOOL task_terminate;
 	NCS_BOOL fabric_interface;
 	NCS_OS_SEM semaphore;
-	uns32 select_timeout;
+	uint32_t select_timeout;
 
 	PCS_RDA_ROLE ha_role;
 
@@ -80,8 +80,8 @@ extern NCS_NODE_ID rde_my_node_id;
 \*****************************************************************************/
 
 extern RDE_CONTROL_BLOCK *rde_get_control_block(void);
-extern uns32 rde_mds_register(RDE_CONTROL_BLOCK *cb);
-extern uns32 rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest);
-extern uns32 rde_set_role(PCS_RDA_ROLE role);
+extern uint32_t rde_mds_register(RDE_CONTROL_BLOCK *cb);
+extern uint32_t rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest);
+extern uint32_t rde_set_role(PCS_RDA_ROLE role);
 
 #endif   /* RDE_CB_H */

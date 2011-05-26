@@ -26,14 +26,14 @@
 #define MAX_SMFA_HDL LONG_MAX
 
 SMFA_CB _smfa_cb;
-uns32 smfa_use_count = 0;
+uint32_t smfa_use_count = 0;
 static pthread_mutex_t smfa_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /*************************************************************************** 
 @brief		: Init cb->cb_lock and register with MDS. 
 @return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 *****************************************************************************/
-uns32 smfa_create()
+uint32_t smfa_create()
 {
 	SMFA_CB *smfa_cb = &_smfa_cb;
 
@@ -59,7 +59,7 @@ uns32 smfa_create()
 @brief		: Agent start up. This is done once per process i.e. agent cb.
 @return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 *****************************************************************************/
-uns32 smfa_init()
+uint32_t smfa_init()
 {
 	if (0 != pthread_mutex_lock(&smfa_lock)){
 		LOG_ER("SMFA: pthread_mutex_lock FAILED.");
@@ -100,10 +100,10 @@ uns32 smfa_init()
 @brief		: MDS unregister and Destroy cb->cb_lock. 
 @return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 *****************************************************************************/
-uns32 smfa_destroy()
+uint32_t smfa_destroy()
 {
 	SMFA_CB *cb = &_smfa_cb;
-	uns32 rc;
+	uint32_t rc;
 	
 	rc = smfa_mds_unregister();
 	if (NCSCC_RC_SUCCESS != rc) {
@@ -118,9 +118,9 @@ uns32 smfa_destroy()
 @brief		: Agent shutdown only if all finalizes have been called. 
 @return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 *****************************************************************************/
-uns32 smfa_finalize()
+uint32_t smfa_finalize()
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SMFA_CB *cb = &_smfa_cb;
 
 	if (0 != pthread_mutex_lock(&smfa_lock)){

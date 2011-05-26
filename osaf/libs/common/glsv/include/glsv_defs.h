@@ -49,7 +49,7 @@ typedef unsigned int GLSV_TIMER_ID;
    ((ver->releaseCode == REQUIRED_RELEASECODE) && \
      (ver->majorVersion <= REQUIRED_MAJORVERSION))
 
-#define MSG_FRMT_VER uns32
+#define MSG_FRMT_VER uint32_t
 /*** Macro used to get the AMF version used ****/
 #define m_GLSV_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;
 

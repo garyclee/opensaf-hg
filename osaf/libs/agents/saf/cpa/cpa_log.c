@@ -132,7 +132,7 @@ void cpa_log_api(uint8_t api_id, uint8_t sev)
   DESCRIPTION:       MDS send logging info
 
 *****************************************************************************/
-void cpa_log_data_send(uint8_t id, uns32 node, uns32 evt_id)
+void cpa_log_data_send(uint8_t id, uint32_t node, uint32_t evt_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_DATA_SEND, CPA_FC_DATA_SEND,
 		   NCSFL_LC_DATA, NCSFL_SEV_ERROR, NCSFL_TYPE_TILL, id, node, evt_id);

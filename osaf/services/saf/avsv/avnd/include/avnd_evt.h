@@ -120,7 +120,7 @@ typedef struct avnd_ava_evt {
 
 /* timer event definition */
 typedef struct avnd_tmr_evt {
-	uns32 opq_hdl;
+	uint32_t opq_hdl;
 } AVND_TMR_EVT;
 
 /* mds event definition */
@@ -135,7 +135,7 @@ typedef struct avnd_ha_state_change_evt {
 
 /* clc event definition */
 typedef struct avnd_clc_evt {
-	uns32 exec_ctxt;	/* execution context */
+	uint32_t exec_ctxt;	/* execution context */
 	NCS_OS_PROC_EXEC_STATUS_INFO exec_stat;	/* cmd execution status */
 
 	/* valid only when cmd launch (fork, exec etc) fails */
@@ -145,7 +145,7 @@ typedef struct avnd_clc_evt {
 
 typedef struct avnd_comp_fsm_evt {
 	SaNameT comp_name;	/* comp-name */
-	uns32 ev;		/* comp fsm event */
+	uint32_t ev;		/* comp fsm event */
 } AVND_COMP_FSM_EVT;
 
 /* Event record to send PID exit event */
@@ -183,6 +183,6 @@ AVND_EVT *avnd_evt_create(struct avnd_cb_tag *, AVND_EVT_TYPE,
 
 void avnd_evt_destroy(AVND_EVT *);
 
-uns32 avnd_evt_send(struct avnd_cb_tag *, AVND_EVT *);
+uint32_t avnd_evt_send(struct avnd_cb_tag *, AVND_EVT *);
 
 #endif   /* !AVND_EVT_H */

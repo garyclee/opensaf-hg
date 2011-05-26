@@ -33,7 +33,7 @@
 #include <saClm.h>
 #include <saImmOi.h>
 /* Decleration for global variable */
-uns32 gl_mqnd_cb_hdl;
+uint32_t gl_mqnd_cb_hdl;
 
 /* Macros for reading global database */
 #define m_MQND_STORE_HDL(hdl) (gl_mqnd_cb_hdl = (hdl))
@@ -86,9 +86,9 @@ typedef struct mqnd_queue_info {
 	MQND_TMR tmr;		/* Retention Timer */
 	MQND_TMR qtransfer_complete_tmr;	/* Q Transfer Complete Timer */
 	SaTimeT creationTime;	/* Queue Creation time */
-	uns32 numberOfFullErrors[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];
+	uint32_t numberOfFullErrors[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];
 	SaUint64T totalQueueSize;
-	uns32 shm_queue_index;
+	uint32_t shm_queue_index;
 } MQND_QUEUE_INFO;
 
 typedef struct mqnd_qhndl_node {
@@ -130,23 +130,23 @@ typedef struct mqnd_queue_ckpt_info {
 	SaTimeT retentionTime;
 	SaTimeT closeTime;
 	SaMsgQueueSendingStateT sendingState;	/* Sending state is removed from B.1.1, but used internally */
-	uns32 numberOfFullErrors[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];
+	uint32_t numberOfFullErrors[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];
 	uint8_t owner_flag;	/* Orphan or Owned */
 	SaMsgHandleT msgHandle;	/* Message hdl of receiver application */
 	MDS_DEST rcvr_mqa;	/* Agent info of Receiver */
 	/* Current message queue implimentation requires the unique key
 	   for creating, accessing  & destroying queue */
 	NCS_OS_MQ_KEY q_key;	/* key that uniquely identify the msg queue */
-	uns32 shm_queue_index;	/*Index of queue info in shared memory */
+	uint32_t shm_queue_index;	/*Index of queue info in shared memory */
 	MQND_QUEUE_STATS_SHM QueueStatsShm;	/* Structure to store queue stats in shared memory */
 	MQND_TMR qtransfer_complete_tmr;	/* Q Transfer Complete Timer */
-	uns32 valid;		/* To verify whether the checkpoint info is valid or not */
+	uint32_t valid;		/* To verify whether the checkpoint info is valid or not */
 } MQND_QUEUE_CKPT_INFO;
 
 typedef struct mqnd_shm_info {
 	void *shm_start_addr;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
-	uns32 max_open_queues;
+	uint32_t max_open_queues;
 } MQND_SHM_INFO;
 
 typedef struct mqnd_shm_version {
@@ -166,7 +166,7 @@ typedef struct mqa_rsp_cntxt {
 typedef struct mqnd_cb {
 	SYSF_MBX mbx;		/* Mail box of this Service Part */
 	NCSCONTEXT task_hdl;	/* Task Handle */
-	uns32 cb_hdl;		/* CB Struct Handle */
+	uint32_t cb_hdl;		/* CB Struct Handle */
 	uint8_t hm_pool;		/* Handle Manager Pool ID for this
 				   Service Part */
 	MDS_HDL my_mds_hdl;	/* MDS PWE handle   */
@@ -196,15 +196,15 @@ typedef struct mqnd_cb {
 	MQND_TMR mqa_timer;
 	NCS_BOOL is_mqa_all_up;
 	NCS_BOOL is_create_ckpt;
-	uns32 mqa_counter;
+	uint32_t mqa_counter;
 	MQND_SHM_INFO mqnd_shm;
 	SaClmHandleT clm_hdl;
 	SaClmNodeIdT nodeid;
-	uns32 clm_node_joined;
-	uns32 gl_msg_max_q_size;
-	uns32 gl_msg_max_msg_size;
-	uns32 gl_msg_max_no_of_q;
-	uns32 gl_msg_max_prio_q_size;
+	uint32_t clm_node_joined;
+	uint32_t gl_msg_max_q_size;
+	uint32_t gl_msg_max_msg_size;
+	uint32_t gl_msg_max_no_of_q;
+	uint32_t gl_msg_max_prio_q_size;
 	SaImmOiHandleT immOiHandle;
 	SaSelectionObjectT imm_sel_obj;
 } MQND_CB;
@@ -215,41 +215,41 @@ typedef struct mqnd_cb {
 /* Function Declerations */
 /* Queue name to Handle mapping database related functions */
 void mqnd_qname_node_get(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE **o_qnode);
-uns32 mqnd_qname_node_add(MQND_CB *cb, MQND_QNAME_NODE *qnode);
-uns32 mqnd_qname_node_del(MQND_CB *cb, MQND_QNAME_NODE *qnode);
+uint32_t mqnd_qname_node_add(MQND_CB *cb, MQND_QNAME_NODE *qnode);
+uint32_t mqnd_qname_node_del(MQND_CB *cb, MQND_QNAME_NODE *qnode);
 void mqnd_qname_node_getnext(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE **o_qnode);
 /* end */
 
 void mqnd_queue_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NODE **o_qnode);
-uns32 mqnd_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
-uns32 mqnd_queue_node_del(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
+uint32_t mqnd_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
+uint32_t mqnd_queue_node_del(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
 void mqnd_queue_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NODE **o_qnode);
 void mqnd_qevt_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QTRANSFER_EVT_NODE **o_qnode);
 void mqnd_qevt_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QTRANSFER_EVT_NODE **o_qnode);
-uns32 mqnd_qevt_node_add(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node);
-uns32 mqnd_qevt_node_del(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node);
-uns32 mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa);
+uint32_t mqnd_qevt_node_add(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node);
+uint32_t mqnd_qevt_node_del(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node);
+uint32_t mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa);
 
-uns32 mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa);
+uint32_t mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa);
 
 /* Functions from mqnd_mq.c */
-uns32 mqnd_mq_create(MQND_QUEUE_INFO *q_info);
-uns32 mqnd_mq_open(MQND_QUEUE_INFO *q_info);
-uns32 mqnd_mq_destroy(MQND_QUEUE_INFO *q_info);
-uns32 mqnd_mq_msg_send(uns32 qhdl, MQSV_MESSAGE *i_msg, uns32 i_len);
-uns32 mqnd_mq_empty(SaMsgQueueHandleT handle);
-uns32 mqnd_mq_rcv(SaMsgQueueHandleT handle);
+uint32_t mqnd_mq_create(MQND_QUEUE_INFO *q_info);
+uint32_t mqnd_mq_open(MQND_QUEUE_INFO *q_info);
+uint32_t mqnd_mq_destroy(MQND_QUEUE_INFO *q_info);
+uint32_t mqnd_mq_msg_send(uint32_t qhdl, MQSV_MESSAGE *i_msg, uint32_t i_len);
+uint32_t mqnd_mq_empty(SaMsgQueueHandleT handle);
+uint32_t mqnd_mq_rcv(SaMsgQueueHandleT handle);
 
-uns32 mqnd_listenerq_create(MQND_QUEUE_INFO *q_info);
-uns32 mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info);
+uint32_t mqnd_listenerq_create(MQND_QUEUE_INFO *q_info);
+uint32_t mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info);
 
 /* AMF Functions */
-uns32 mqnd_amf_init(MQND_CB *mqnd_cb);
+uint32_t mqnd_amf_init(MQND_CB *mqnd_cb);
 void mqnd_amf_de_init(MQND_CB *mqnd_cb);
-uns32 mqnd_amf_register(MQND_CB *mqnd_cb);
-uns32 mqnd_amf_deregister(MQND_CB *mqnd_cb);
+uint32_t mqnd_amf_register(MQND_CB *mqnd_cb);
+uint32_t mqnd_amf_deregister(MQND_CB *mqnd_cb);
 
 /*OTHER FUNCTIONS*/
-uns32 mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt);
+uint32_t mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt);
 
 #endif   /* MQND_DB_H */

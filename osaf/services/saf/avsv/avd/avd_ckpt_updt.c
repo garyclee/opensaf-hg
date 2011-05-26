@@ -41,9 +41,9 @@ static char *action_name[] = {
  *
  * 
 \**************************************************************************/
-uns32 avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE action)
+uint32_t avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *node;
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_node->name.value);
@@ -109,9 +109,9 @@ done:
  *
  * 
 \**************************************************************************/
-uns32 avd_ckpt_app(AVD_CL_CB *cb, AVD_APP *ckpt_app, NCS_MBCSV_ACT_TYPE action)
+uint32_t avd_ckpt_app(AVD_CL_CB *cb, AVD_APP *ckpt_app, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_APP *app;
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_app->name.value);
@@ -166,9 +166,9 @@ done:
  *
  * 
 \**************************************************************************/
-uns32 avd_ckpt_sg(AVD_CL_CB *cb, AVD_SG *ckpt_sg, NCS_MBCSV_ACT_TYPE action)
+uint32_t avd_ckpt_sg(AVD_CL_CB *cb, AVD_SG *ckpt_sg, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SG *sg;
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_sg->name.value);
@@ -229,9 +229,9 @@ done:
  *
  * 
 \**************************************************************************/
-uns32 avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
+uint32_t avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SU *su;
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_su->name.value);
@@ -301,9 +301,9 @@ done:
  * NOTES:
  * 
 \**************************************************************************/
-uns32 avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
+uint32_t avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_SI *si;
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_si->name.value);
@@ -363,7 +363,7 @@ done:
  *
  * 
 \**************************************************************************/
-uns32 avd_ckpt_su_oper_list(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
+uint32_t avd_ckpt_su_oper_list(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 {
 	AVD_SU *su;
 
@@ -396,9 +396,9 @@ uns32 avd_ckpt_su_oper_list(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE a
  *
  * 
 \**************************************************************************/
-uns32 avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE action)
+uint32_t avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SI *si, *si_ptr_up;
 	AVD_SI dec_si;
 	EDU_ERR ederror = 0;
@@ -441,9 +441,9 @@ uns32 avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE act
  * @param[in] si_trans_ckpt
  * @param[in] action
  *******************************************************************/
-uns32 avd_ckpt_si_trans(AVD_CL_CB *cb, AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt, NCS_MBCSV_ACT_TYPE action)
+uint32_t avd_ckpt_si_trans(AVD_CL_CB *cb, AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SG *sg_ptr;
 
 	TRACE_ENTER2("'%s'", si_trans_ckpt->sg_name.value);
@@ -488,9 +488,9 @@ uns32 avd_ckpt_si_trans(AVD_CL_CB *cb, AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt, NC
  *
  * 
 \**************************************************************************/
-uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBCSV_ACT_TYPE action)
+uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU_SI_REL *su_si_rel_ptr;
 	AVD_SU *su_ptr;
 	AVD_SI *si_ptr_up;
@@ -569,9 +569,9 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
  *
  * 
 \**************************************************************************/
-uns32 avd_ckpt_comp(AVD_CL_CB *cb, AVD_COMP *ckpt_comp, NCS_MBCSV_ACT_TYPE action)
+uint32_t avd_ckpt_comp(AVD_CL_CB *cb, AVD_COMP *ckpt_comp, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_COMP *comp;
 	const SaNameT *dn = &ckpt_comp->comp_info.name;
 
@@ -626,9 +626,9 @@ done:
  *
  *
 \**************************************************************************/
-uns32 avd_ckpt_compcstype(AVD_CL_CB *cb, AVD_COMPCS_TYPE *ckpt_compcstype, NCS_MBCSV_ACT_TYPE action)
+uint32_t avd_ckpt_compcstype(AVD_CL_CB *cb, AVD_COMPCS_TYPE *ckpt_compcstype, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_COMPCS_TYPE *ccst;
 	const SaNameT *dn = &ckpt_compcstype->name;
 
@@ -680,7 +680,7 @@ done:
  *
  * 
 \**************************************************************************/
-uns32 avd_data_clean_up(AVD_CL_CB *cb)
+uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 {
 #if 0
 	AVD_HLT *hlt_chk = NULL;

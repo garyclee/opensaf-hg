@@ -44,7 +44,7 @@ size_t bcast_sen_addr_size;	/* Holder for bcast_dest_address size ip v4 or v6 ad
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_sockdesc_close(int sock_desc)
+uint32_t dtm_sockdesc_close(int sock_desc)
 {
 	TRACE_ENTER();
 
@@ -68,7 +68,7 @@ uns32 dtm_sockdesc_close(int sock_desc)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 set_keepalive(DTM_INTERNODE_CB * dtms_cb, int sock_desc)
+static uint32_t set_keepalive(DTM_INTERNODE_CB * dtms_cb, int sock_desc)
 {
 
 	TRACE_ENTER();
@@ -165,7 +165,7 @@ static uint8_t set_nonblocking(int sock_desc, uint8_t bNb)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dgram_enable_bcast(int sock_desc)
+static uint32_t dgram_enable_bcast(int sock_desc)
 {
 
 	TRACE_ENTER();
@@ -192,7 +192,7 @@ static uns32 dgram_enable_bcast(int sock_desc)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dgram_join_mcast_group(DTM_INTERNODE_CB * dtms_cb, struct addrinfo *mcast_receiver_addr)
+static uint32_t dgram_join_mcast_group(DTM_INTERNODE_CB * dtms_cb, struct addrinfo *mcast_receiver_addr)
 {
 
 	TRACE_ENTER();
@@ -247,7 +247,7 @@ static uns32 dgram_join_mcast_group(DTM_INTERNODE_CB * dtms_cb, struct addrinfo 
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_dgram_sendto_mcast(DTM_INTERNODE_CB * dtms_cb, const void *buffer, int buffer_len)
+uint32_t dtm_dgram_sendto_mcast(DTM_INTERNODE_CB * dtms_cb, const void *buffer, int buffer_len)
 {
 	TRACE_ENTER();
 	/* Multicast the string to all who have joined the group */
@@ -277,7 +277,7 @@ uns32 dtm_dgram_sendto_mcast(DTM_INTERNODE_CB * dtms_cb, const void *buffer, int
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_dgram_sendto_bcast(DTM_INTERNODE_CB * dtms_cb, const void *buffer, int buffer_len)
+uint32_t dtm_dgram_sendto_bcast(DTM_INTERNODE_CB * dtms_cb, const void *buffer, int buffer_len)
 {
 	TRACE_ENTER();
 
@@ -309,7 +309,7 @@ uns32 dtm_dgram_sendto_bcast(DTM_INTERNODE_CB * dtms_cb, const void *buffer, int
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dgram_set_mcast_ttl(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
+static uint32_t dgram_set_mcast_ttl(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
 {
 
 	TRACE_ENTER();
@@ -354,7 +354,7 @@ static uns32 dgram_set_mcast_ttl(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_comm_socket_close(int *comm_socket)
+uint32_t dtm_comm_socket_close(int *comm_socket)
 {
 
 	DTM_NODE_DB *node;
@@ -418,7 +418,7 @@ uns32 dtm_comm_socket_close(int *comm_socket)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_comm_socket_send(int sock_desc, const void *buffer, int buffer_len)
+uint32_t dtm_comm_socket_send(int sock_desc, const void *buffer, int buffer_len)
 {
 	TRACE_ENTER();
 	int rtn = 0;
@@ -446,7 +446,7 @@ uns32 dtm_comm_socket_send(int sock_desc, const void *buffer, int buffer_len)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_comm_socket_recv(int sock_desc, void *buffer, int buffer_len)
+uint32_t dtm_comm_socket_recv(int sock_desc, void *buffer, int buffer_len)
 {
 	int rtn = 0, err = 0;
 	int rc = NCSCC_RC_SUCCESS;
@@ -599,7 +599,7 @@ int comm_socket_setup_new(DTM_INTERNODE_CB * dtms_cb, const char *foreign_addres
  */
 #define MAXPENDING  20
 
-static uns32 stream_sock_bind(DTM_INTERNODE_CB * dtms_cb, struct addrinfo *stream_addr)
+static uint32_t stream_sock_bind(DTM_INTERNODE_CB * dtms_cb, struct addrinfo *stream_addr)
 {
 
 	/* Bind to the local address and set socket to list */
@@ -633,7 +633,7 @@ static uns32 stream_sock_bind(DTM_INTERNODE_CB * dtms_cb, struct addrinfo *strea
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_stream_nonblocking_listener(DTM_INTERNODE_CB * dtms_cb)
+uint32_t dtm_stream_nonblocking_listener(DTM_INTERNODE_CB * dtms_cb)
 {
 	struct addrinfo addr_criteria;	/* Criteria for address match */
 	char local_port_str[6];
@@ -727,7 +727,7 @@ uns32 dtm_stream_nonblocking_listener(DTM_INTERNODE_CB * dtms_cb)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_dgram_mcast_listener(DTM_INTERNODE_CB * dtms_cb)
+uint32_t dtm_dgram_mcast_listener(DTM_INTERNODE_CB * dtms_cb)
 {
 
 	/* Construct the serv address structure */
@@ -809,7 +809,7 @@ uns32 dtm_dgram_mcast_listener(DTM_INTERNODE_CB * dtms_cb)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_dgram_mcast_sender(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
+uint32_t dtm_dgram_mcast_sender(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
 {
 
 	/* Construct the serv address structure */
@@ -897,7 +897,7 @@ void *get_in_addr(struct sockaddr *sa)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_dgram_bcast_listener(DTM_INTERNODE_CB * dtms_cb)
+uint32_t dtm_dgram_bcast_listener(DTM_INTERNODE_CB * dtms_cb)
 {
 
 	struct addrinfo addr_criteria, *addr_list, *p;	// Criteria for address
@@ -976,7 +976,7 @@ uns32 dtm_dgram_bcast_listener(DTM_INTERNODE_CB * dtms_cb)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_dgram_bcast_sender(DTM_INTERNODE_CB * dtms_cb)
+uint32_t dtm_dgram_bcast_sender(DTM_INTERNODE_CB * dtms_cb)
 {
 
 	const char *IN6ADDR_ALLNODES = "FF02::1";	/* v6 addr not built in */
@@ -990,7 +990,7 @@ uns32 dtm_dgram_bcast_sender(DTM_INTERNODE_CB * dtms_cb)
 	if (dtms_cb->i_addr_family == DTM_IP_ADDR_TYPE_IPV4) {
 
 		/* Holder for bcast_dest_address address */
-		uns32 rc = 0;
+		uint32_t rc = 0;
 		struct sockaddr_in *bcast_sender_addr_in = (struct sockaddr_in *)&bcast_dest_storage;
 		bcast_sender_addr_in->sin_family = AF_INET;
 		bcast_sender_addr_in->sin_port = htons((dtms_cb->dgram_port_rcvr));
@@ -1347,10 +1347,10 @@ RETURNS:
 
  *********************************************************/
 
-uns32 dtm_get_sa_family(DTM_INTERNODE_CB * dtms_cb)
+uint32_t dtm_get_sa_family(DTM_INTERNODE_CB * dtms_cb)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	char local_port_str[INET6_ADDRSTRLEN];
 	struct addrinfo addr_criteria;	/* Criteria for address match */
 
@@ -1453,7 +1453,7 @@ ARGUMENTS:
 RETURNS: 
 
  *********************************************************/
-uns32 dgram_set_mcastloop(bool x)
+uint32_t dgram_set_mcastloop(bool x)
 {
 
 	TRACE_ENTER();

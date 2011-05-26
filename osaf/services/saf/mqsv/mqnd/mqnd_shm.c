@@ -47,10 +47,10 @@
  * Notes          : None
 **************************************************************************************************************/
 
-uns32 mqnd_shm_create(MQND_CB *cb)
+uint32_t mqnd_shm_create(MQND_CB *cb)
 {
 	NCS_OS_POSIX_SHM_REQ_INFO mqnd_open_req;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	char shm_name[] = SHM_NAME;
 	MQND_SHM_VERSION mqnd_shm_version;
 
@@ -114,10 +114,10 @@ uns32 mqnd_shm_create(MQND_CB *cb)
  * Notes          : None
 **************************************************************************************************************/
 
-uns32 mqnd_shm_destroy(MQND_CB *cb)
+uint32_t mqnd_shm_destroy(MQND_CB *cb)
 {
 	NCS_OS_POSIX_SHM_REQ_INFO mqnd_dest_req;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	char shm_name[] = SHM_NAME;
 
 	mqnd_dest_req.type = NCS_OS_POSIX_SHM_REQ_UNLINK;
@@ -139,7 +139,7 @@ uns32 mqnd_shm_destroy(MQND_CB *cb)
  * Notes          : None
 **************************************************************************************************************/
 
-void mqnd_reset_queue_stats(MQND_CB *cb, uns32 index)
+void mqnd_reset_queue_stats(MQND_CB *cb, uint32_t index)
 {
 	int j;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
@@ -165,11 +165,11 @@ void mqnd_reset_queue_stats(MQND_CB *cb, uns32 index)
  * Notes          : None
 **************************************************************************************************************/
 
-uns32 mqnd_find_shm_ckpt_empty_section(MQND_CB *cb, uns32 *index)
+uint32_t mqnd_find_shm_ckpt_empty_section(MQND_CB *cb, uint32_t *index)
 {
 	int i;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	shm_base_addr = cb->mqnd_shm.shm_base_addr;
 
@@ -200,9 +200,9 @@ uns32 mqnd_find_shm_ckpt_empty_section(MQND_CB *cb, uns32 *index)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaSizeT size, SaUint8T priority)
+uint32_t mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaSizeT size, SaUint8T priority)
 {
-	uns32 offset;
+	uint32_t offset;
 
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
@@ -236,10 +236,10 @@ uns32 mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaSize
  * Notes         : None.
  *****************************************************************************/
 
-uns32 mqnd_shm_queue_ckpt_section_invalidate(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
+uint32_t mqnd_shm_queue_ckpt_section_invalidate(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 {
 	SaAisErrorT err = SA_AIS_OK;
-	uns32 offset;
+	uint32_t offset;
 
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 

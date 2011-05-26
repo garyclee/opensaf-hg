@@ -194,7 +194,7 @@ static void clms_amf_csi_set_callback(SaInvocationT invocation,
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
 	NCS_BOOL role_change = TRUE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 

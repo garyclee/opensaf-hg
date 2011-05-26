@@ -19,29 +19,29 @@
 
 #include "clms.h"
 
-static uns32 process_api_evt(CLMSV_CLMS_EVT * evt);
-static uns32 proc_clma_updn_mds_msg(CLMSV_CLMS_EVT * evt);
-static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT * evt);
-static uns32 proc_rda_evt(CLMSV_CLMS_EVT * evt);
-static uns32 proc_mds_quiesced_ack_msg(CLMSV_CLMS_EVT * evt);
-static uns32 proc_node_lock_tmr_exp_msg(CLMSV_CLMS_EVT * evt);
-static uns32 proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
-static uns32 proc_initialize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
-static uns32 proc_finalize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
-static uns32 proc_track_start_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
-static uns32 proc_track_stop_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
-static uns32 proc_node_get_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
-static uns32 proc_node_get_async_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
-static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
-static uns32 clms_ack_to_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt, SaAisErrorT ais_rc);
-static uns32 clms_track_current_resp(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, uns32 sync_resp,
+static uint32_t process_api_evt(CLMSV_CLMS_EVT * evt);
+static uint32_t proc_clma_updn_mds_msg(CLMSV_CLMS_EVT * evt);
+static uint32_t proc_mds_node_evt(CLMSV_CLMS_EVT * evt);
+static uint32_t proc_rda_evt(CLMSV_CLMS_EVT * evt);
+static uint32_t proc_mds_quiesced_ack_msg(CLMSV_CLMS_EVT * evt);
+static uint32_t proc_node_lock_tmr_exp_msg(CLMSV_CLMS_EVT * evt);
+static uint32_t proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
+static uint32_t proc_initialize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
+static uint32_t proc_finalize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
+static uint32_t proc_track_start_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
+static uint32_t proc_track_stop_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
+static uint32_t proc_node_get_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
+static uint32_t proc_node_get_async_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
+static uint32_t proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
+static uint32_t clms_ack_to_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt, SaAisErrorT ais_rc);
+static uint32_t clms_track_current_resp(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, uint32_t sync_resp,
 				     MDS_DEST *dest, MDS_SYNC_SND_CTXT *ctxt,
-				     uns32 client_id, SaAisErrorT ais_rc);
-static void clms_track_current_apiresp(SaAisErrorT ais_rc, uns32 num_mem,
+				     uint32_t client_id, SaAisErrorT ais_rc);
+static void clms_track_current_apiresp(SaAisErrorT ais_rc, uint32_t num_mem,
 				       SaClmClusterNotificationT_4 * notify, MDS_DEST *dest, MDS_SYNC_SND_CTXT *ctxt);
-static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc, uns32 num_mem,
+static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc, uint32_t num_mem,
 					    SaClmClusterNotificationT_4 * notify, MDS_DEST *dest,
-					    uns32 client_id);
+					    uint32_t client_id);
 
 static const CLMSV_CLMS_EVT_HANDLER clms_clmsv_top_level_evt_dispatch_tbl[] = {
 	process_api_evt,
@@ -104,9 +104,9 @@ static void clms_process_clma_down_list(void)
  * 
  * @return CLMS_CLIENT_INFO *
  */
-CLMS_CLIENT_INFO *clms_client_get_by_id(uns32 client_id)
+CLMS_CLIENT_INFO *clms_client_get_by_id(uint32_t client_id)
 {
-	uns32 client_id_net;
+	uint32_t client_id_net;
 	CLMS_CLIENT_INFO *rec;
 
 	client_id_net = m_NCS_OS_HTONL(client_id);
@@ -124,9 +124,9 @@ CLMS_CLIENT_INFO *clms_client_get_by_id(uns32 client_id)
  * 
  * @return CLMS_CLIENT_INFO *
  */
-CLMS_CLIENT_INFO *clms_client_getnext_by_id(uns32 client_id)
+CLMS_CLIENT_INFO *clms_client_getnext_by_id(uint32_t client_id)
 {
-	uns32 client_id_net;
+	uint32_t client_id_net;
 	CLMS_CLIENT_INFO *rec;
 
 	if (client_id == 0) {
@@ -147,11 +147,11 @@ CLMS_CLIENT_INFO *clms_client_getnext_by_id(uns32 client_id)
  * 
  * @return int
  */
-uns32 clms_client_delete_by_mds_dest(MDS_DEST mds_dest)
+uint32_t clms_client_delete_by_mds_dest(MDS_DEST mds_dest)
 {
-	uns32 rc = 0;
+	uint32_t rc = 0;
 	CLMS_CLIENT_INFO *client = NULL;
-	uns32 client_id;
+	uint32_t client_id;
 
 	TRACE_ENTER2("mds_dest %" PRIx64, mds_dest);
 
@@ -184,10 +184,10 @@ uns32 clms_client_delete_by_mds_dest(MDS_DEST mds_dest)
  * 
  * @return uns32
  */
-uns32 clms_client_delete(uns32 client_id)
+uint32_t clms_client_delete(uint32_t client_id)
 {
 	CLMS_CLIENT_INFO *client;
-	uns32 status = 0;
+	uint32_t status = 0;
 
 	TRACE_ENTER2("client_id %u", client_id);
 
@@ -219,7 +219,7 @@ uns32 clms_client_delete(uns32 client_id)
  * @return CLMS_CLIENT_INFO *
  *
  */
-CLMS_CLIENT_INFO *clms_client_new(MDS_DEST mds_dest, uns32 client_id)
+CLMS_CLIENT_INFO *clms_client_new(MDS_DEST mds_dest, uint32_t client_id)
 {
 	CLMS_CLIENT_INFO *client = NULL;
 
@@ -259,12 +259,12 @@ CLMS_CLIENT_INFO *clms_client_new(MDS_DEST mds_dest, uns32 client_id)
  * @return  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE 
  *
  */
-uns32 proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
+uint32_t proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 {
 	clmsv_clms_node_up_info_t *nodeup_info = &(evt->info.msg.info.api_info.param).nodeup_info;
 	CLMS_CLUSTER_NODE *node = NULL;
 	SaUint32T nodeid;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaNameT node_name = { 0 };
 	CLMSV_MSG clm_msg;
 	SaBoolT check_member;
@@ -369,9 +369,9 @@ uns32 proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
  *
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  */
-static uns32 proc_node_lock_tmr_exp_msg(CLMSV_CLMS_EVT * evt)
+static uint32_t proc_node_lock_tmr_exp_msg(CLMSV_CLMS_EVT * evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaClmNodeIdT node_id;
 	CLMS_CLUSTER_NODE *op_node = NULL;
 
@@ -446,9 +446,9 @@ done:
 /**
 * Process the rda callback and change the role
 */
-static uns32 proc_rda_evt(CLMSV_CLMS_EVT * evt)
+static uint32_t proc_rda_evt(CLMSV_CLMS_EVT * evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAmfHAStateT prev_haState;
 	NCS_BOOL role_change = TRUE;
 
@@ -501,9 +501,9 @@ static uns32 proc_rda_evt(CLMSV_CLMS_EVT * evt)
  *
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  */
-static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT * evt)
+static uint32_t proc_mds_node_evt(CLMSV_CLMS_EVT * evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CLMS_CLUSTER_NODE *node = NULL;
 	SaUint32T node_id = evt->info.node_mds_info.node_id;
 
@@ -552,11 +552,11 @@ static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT * evt)
  *
  */
 
-static uns32 proc_clma_updn_mds_msg(CLMSV_CLMS_EVT * evt)
+static uint32_t proc_clma_updn_mds_msg(CLMSV_CLMS_EVT * evt)
 {
 	TRACE_ENTER();
 	CLMS_CKPT_REC ckpt;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (evt->type) {
 	case CLMSV_CLMS_CLMA_UP:
@@ -618,7 +618,7 @@ static uns32 proc_clma_updn_mds_msg(CLMSV_CLMS_EVT * evt)
  * @return  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  */
-static uns32 proc_mds_quiesced_ack_msg(CLMSV_CLMS_EVT * evt)
+static uint32_t proc_mds_quiesced_ack_msg(CLMSV_CLMS_EVT * evt)
 {
 	TRACE_ENTER();
 	if (clms_cb->is_quiesced_set == TRUE) {
@@ -645,14 +645,14 @@ static uns32 proc_mds_quiesced_ack_msg(CLMSV_CLMS_EVT * evt)
  *
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 */
-static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
+static uint32_t proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 {
 	clmsv_clm_response_param_t *param = &(evt->info.msg.info.api_info.param).clm_resp;
 	CLMS_CLUSTER_NODE *op_node = NULL;
 	CLMS_TRACK_INFO *trkrec = NULL;
 	SaUint32T nodeid;
 	SaAisErrorT ais_rc = SA_AIS_OK;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("param->resp %d", param->resp);
 
@@ -738,9 +738,9 @@ done:
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 */
 
-static uns32 proc_track_start_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
+static uint32_t proc_track_start_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	clmsv_track_start_param_t *param = &(evt->info.msg.info.api_info.param).track_start;
 	CLMS_CLIENT_INFO *client;
 	CLMS_CLUSTER_NODE *node = NULL;
@@ -836,9 +836,9 @@ static uns32 proc_track_start_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 */
 
-static uns32 proc_track_stop_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
+static uint32_t proc_track_stop_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	clmsv_track_stop_param_t *param = &(evt->info.msg.info.api_info.param).track_stop;
 	CLMS_CLIENT_INFO *client = NULL;
 	SaAisErrorT ais_rc = SA_AIS_OK;
@@ -911,7 +911,7 @@ static uns32 proc_track_stop_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
  *      
  * @return  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 */
-static uns32 proc_node_get_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
+static uint32_t proc_node_get_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 {
 	clmsv_node_get_param_t *param = &(evt->info.msg.info.api_info.param).node_get;
 	CLMSV_MSG clm_msg;
@@ -975,7 +975,7 @@ static uns32 proc_node_get_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
  *      
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 */
-static uns32 proc_node_get_async_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
+static uint32_t proc_node_get_async_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 {
 	clmsv_node_get_async_param_t *param = &(evt->info.msg.info.api_info.param).node_get_async;
 	CLMSV_MSG clm_msg;
@@ -1048,9 +1048,9 @@ static uns32 proc_node_get_async_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
  * 
  * @return uns32
  */
-static uns32 proc_initialize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
+static uint32_t proc_initialize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	CLMS_CKPT_REC ckpt;
 	CLMS_CLIENT_INFO *client;
@@ -1132,10 +1132,10 @@ static uns32 proc_initialize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
  * 
  * @return uns32
  */
-static uns32 proc_finalize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
+static uint32_t proc_finalize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 {
 	clmsv_finalize_param_t *param = &(evt->info.msg.info.api_info.param).finalize;
-	uns32 rc;
+	uint32_t rc;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	CLMS_CKPT_REC ckpt;
 	CLMSV_MSG msg;
@@ -1194,7 +1194,7 @@ static uns32 proc_finalize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
  * @return  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  */
-static uns32 process_api_evt(CLMSV_CLMS_EVT * evt)
+static uint32_t process_api_evt(CLMSV_CLMS_EVT * evt)
 {
 	TRACE_ENTER();
 
@@ -1287,12 +1287,12 @@ void clms_process_mbx(SYSF_MBX *mbx)
 * @param[in] ctxt     context for the sync call
 * @return             void 	
 */
-static void clms_track_current_apiresp(SaAisErrorT ais_rc, uns32 num_mem, SaClmClusterNotificationT_4 * notify,
+static void clms_track_current_apiresp(SaAisErrorT ais_rc, uint32_t num_mem, SaClmClusterNotificationT_4 * notify,
 				       MDS_DEST *dest, MDS_SYNC_SND_CTXT *ctxt)
 {
 	TRACE_ENTER2("ais_rc %d , num_mem %d", ais_rc, num_mem);
 	CLMSV_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(CLMSV_MSG));
 
@@ -1333,12 +1333,12 @@ static void clms_track_current_apiresp(SaAisErrorT ais_rc, uns32 num_mem, SaClmC
 * @param[in] client   CLM client 
 * @return             void 	
 */
-static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc, uns32 num_mem, SaClmClusterNotificationT_4 * notify,
-					    MDS_DEST *dest, uns32 client_id)
+static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc, uint32_t num_mem, SaClmClusterNotificationT_4 * notify,
+					    MDS_DEST *dest, uint32_t client_id)
 {
 	TRACE_ENTER();
 	CLMSV_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(CLMSV_MSG));
 
@@ -1385,14 +1385,14 @@ static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc, uns32 num_mem, S
  * @return        	  : NCSCC_RC_FAILURE
  *		   	    NCSCC_RC_SUCCESS	
  */
-static uns32 clms_track_current_resp(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, uns32 sync_resp, MDS_DEST *dest,
-				     MDS_SYNC_SND_CTXT *ctxt, uns32 client_id, SaAisErrorT ais_rc)
+static uint32_t clms_track_current_resp(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, uint32_t sync_resp, MDS_DEST *dest,
+				     MDS_SYNC_SND_CTXT *ctxt, uint32_t client_id, SaAisErrorT ais_rc)
 {
 
 	SaClmClusterNotificationT_4 *notify = NULL;
 	CLMS_CLUSTER_NODE *rp = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS, i = 0;
-	uns32 num_mem = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, i = 0;
+	uint32_t num_mem = 0;
 	SaUint32T node_id = 0;
 
 	TRACE_ENTER();
@@ -1499,7 +1499,7 @@ static uns32 clms_track_current_resp(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, uns
  * This routine is typically used to remove the clma down rec from standby 
  * CLMA_DOWN_LIST as  CLMA client has gone away.
  */
-uns32 clms_remove_clma_down_rec(CLMS_CB * cb, MDS_DEST mds_dest)
+uint32_t clms_remove_clma_down_rec(CLMS_CB * cb, MDS_DEST mds_dest)
 {
 	CLMA_DOWN_LIST *clma_down_rec = cb->clma_down_list_head;
 	CLMA_DOWN_LIST *prev = NULL;
@@ -1599,12 +1599,12 @@ void clms_evt_destroy(CLMSV_CLMS_EVT * evt)
 /*clms ack to response msg from clma
 * This is used to avoid mds timeout of saClmResponse
 * @param[in] clms evt,cb,ais rc
-* @return uns32 
+* @return uint32_t 
 */
 
-static uns32 clms_ack_to_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt, SaAisErrorT ais_rc)
+static uint32_t clms_ack_to_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt, SaAisErrorT ais_rc)
 {
-	uns32 mds_rc = NCSCC_RC_SUCCESS;
+	uint32_t mds_rc = NCSCC_RC_SUCCESS;
 	CLMSV_MSG msg;
 
 	TRACE_ENTER();

@@ -35,7 +35,7 @@
 ****************************************************************/
 #define NID_FIFO	PKGLOCALSTATEDIR "/nodeinit.fifo"
 
-int32 fifo_fd = -1;
+int32_t fifo_fd = -1;
 
 /****************************************************************************
  * Name          : nid_create_ipc                                           *
@@ -49,7 +49,7 @@ int32 fifo_fd = -1;
  *                                                                          *
  * Notes         : None.                                                    *
  ***************************************************************************/
-uns32 nid_create_ipc(char *strbuf)
+uint32_t nid_create_ipc(char *strbuf)
 {
 	/* Lets Remove any such file if it already exists */
 	unlink(NID_FIFO);
@@ -75,7 +75,7 @@ uns32 nid_create_ipc(char *strbuf)
  *                                                                          *
  * Notes         : None.                                                    *
  ***************************************************************************/
-uns32 nid_open_ipc(int32 *fd, char *strbuf)
+uint32_t nid_open_ipc(int32_t *fd, char *strbuf)
 {
 	/* Try to open FIFO if its not already open */
 	if (fifo_fd < 0) {
@@ -117,7 +117,7 @@ void nid_close_ipc(void)
  *                                                                          *
  * Notes         : None.                                                    *
  ***************************************************************************/
-uns32 nid_is_ipcopen(void)
+uint32_t nid_is_ipcopen(void)
 {
 	if (fifo_fd < 0)
 		return NCSCC_RC_FAILURE;

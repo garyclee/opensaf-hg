@@ -41,13 +41,13 @@
  char gl_log_string[GL_LOG_STRING_LEN];
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
-static uns32 ncs_edu_ppdb_init(EDU_PPDB * ppdb);
+static uint32_t ncs_edu_ppdb_init(EDU_PPDB * ppdb);
 static void ncs_edu_ppdb_destroy(EDU_PPDB * ppdb);
 static void
-edu_populate_ppdb_key(EDU_PPDB_KEY * key, EDU_PROG_HANDLER parent_edp, EDU_PROG_HANDLER self_edp, uns32 offset);
+edu_populate_ppdb_key(EDU_PPDB_KEY * key, EDU_PROG_HANDLER parent_edp, EDU_PROG_HANDLER self_edp, uint32_t offset);
 static EDU_PPDB_NODE_INFO *edu_ppdb_node_findadd(EDU_PPDB * ppdb,
 						 EDU_PROG_HANDLER parent_edp,
-						 EDU_PROG_HANDLER self_edp, uns32 offset, NCS_BOOL add);
+						 EDU_PROG_HANDLER self_edp, uint32_t offset, NCS_BOOL add);
 static void edu_ppdb_node_del(EDU_PPDB * ppdb, EDU_PPDB_NODE_INFO * node);
 #endif   /* #if(NCS_EDU_VERBOSE_PRINT == 1) */
 
@@ -55,7 +55,7 @@ static void ncs_edu_free_uba_contents(NCS_UBAID *p_uba);
 
 static void edu_hdl_node_del(EDU_HDL *edu_hdl, EDU_HDL_NODE *node);
 
-static uns32 ncs_edu_get_size_of_var_len_data(EDU_PROG_HANDLER edp, NCSCONTEXT cptr, uns32 *p_data_len, EDU_ERR *o_err);
+static uint32_t ncs_edu_get_size_of_var_len_data(EDU_PROG_HANDLER edp, NCSCONTEXT cptr, uint32_t *p_data_len, EDU_ERR *o_err);
 
 static int edu_chk_ver_ge(EDU_MSG_VERSION *local_version, EDU_MSG_VERSION *to_version, int skip_cnt_if_ne);
 
@@ -126,10 +126,10 @@ static int edu_chk_ver_ge(EDU_MSG_VERSION *local_version, EDU_MSG_VERSION *to_ve
      NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
+uint32_t ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 		       EDP_OP_TYPE op, NCSCONTEXT arg, EDU_ERR *o_err, EDU_MSG_VERSION to_version, uint8_t var_cnt, ...)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, lcl_cnt = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, lcl_cnt = 0;
 	EDU_BUF_ENV lcl_edu_buf;
 	va_list arguments;	/* A place to store the list of arguments */
 	int *var_array = NULL;
@@ -277,11 +277,11 @@ uns32 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
      NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
-		       NCSCONTEXT bufp, uns32 buf_size, EDP_OP_TYPE op,
+uint32_t ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
+		       NCSCONTEXT bufp, uint32_t buf_size, EDP_OP_TYPE op,
 		       NCSCONTEXT arg, EDU_ERR *o_err, uint8_t var_cnt, ...)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, lcl_cnt = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, lcl_cnt = 0;
 	EDU_BUF_ENV lcl_edu_buf;
 	va_list arguments;	/* A place to store the list of arguments */
 	int *var_array = NULL;
@@ -406,15 +406,15 @@ uns32 ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
-		      EDU_PROG_HANDLER edp, NCSCONTEXT ptr, uns32 *dcnt,
+uint32_t ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
+		      EDU_PROG_HANDLER edp, NCSCONTEXT ptr, uint32_t *dcnt,
 		      EDU_BUF_ENV *buf_env, EDP_OP_TYPE optype, EDU_ERR *o_err)
 {
 	NCSCONTEXT lcl_ptr = NULL;
 	EDU_HDL_NODE *lcl_hdl_node = NULL;
-	uns32 lcl_rc = NCSCC_RC_SUCCESS, dtype_attrb = 0x00000000;
+	uint32_t lcl_rc = NCSCC_RC_SUCCESS, dtype_attrb = 0x00000000;
 	NCS_EDU_ADMIN_OP_INFO admin_op;
-	uns32 next_offset = 0, cnt = 0;	/* for linked list */
+	uint32_t next_offset = 0, cnt = 0;	/* for linked list */
 	uint8_t *p8, u8 = 0;
 	uint16_t u16 = 0;
 
@@ -458,7 +458,7 @@ uns32 ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
 				u16 = ncs_decode_tlv_16bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 2);
 			}
-			cnt = (uns32)u16;
+			cnt = (uint32_t)u16;
 		} else if ((rule != NULL) && ((rule->fld2 & EDQ_POINTER) == EDQ_POINTER)) {
 			/* Decode the "ptr_count" from the USRBUF */
 			if (buf_env->is_ubaid) {
@@ -517,11 +517,11 @@ uns32 ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
      NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_run_rules(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+uint32_t ncs_edu_run_rules(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			EDU_INST_SET prog[], NCSCONTEXT ptr,
-			uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE optype, EDU_ERR *o_err, int instr_count)
+			uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE optype, EDU_ERR *o_err, int instr_count)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	int cur_inst_indx = 0;
 	EDU_HDL_NODE *hdl_node = NULL;
 	EDU_LABEL edu_ret = EDU_EXIT;
@@ -608,17 +608,17 @@ uns32 ncs_edu_run_rules(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
   DESCRIPTION:      Interprets and executes an individual EDP-rule.
 
-  RETURNS:          uns32(depicting the label to execute next)
+  RETURNS:          uint32_t(depicting the label to execute next)
                     - EDU_SAME, in case of looping for linked-lists.
                     - EDU_FAIL, in case failure is encountered.
                     - EDU_EXIT, in case EDP program is executed completely.
-                    - else, (uns32), i.e., label of next executable 
+                    - else, (uint32_t), i.e., label of next executable 
                       instruction.
 
 *****************************************************************************/
 int ncs_edu_exec_rule(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		      EDU_HDL_NODE *hdl_node, EDU_INST_SET *rule,
-		      NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE optype, EDU_ERR *o_err)
+		      NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE optype, EDU_ERR *o_err)
 {
 	int rc_lbl = EDU_NEXT;
 	EDU_LABEL ret_val = EDU_NEXT, rc = NCSCC_RC_SUCCESS;
@@ -717,13 +717,13 @@ int ncs_edu_exec_rule(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_perform_exec_action(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+uint32_t ncs_edu_perform_exec_action(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				  EDU_HDL_NODE *hdl_node,
 				  EDU_INST_SET *rule, EDP_OP_TYPE optype,
-				  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err)
+				  NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err)
 {
 	NCSCONTEXT newptr = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if ((rule->fld2 & EDQ_POINTER) == EDQ_POINTER) {
 		if (optype == EDP_OP_TYPE_ENC) {
@@ -745,10 +745,10 @@ uns32 ncs_edu_perform_exec_action(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			   - EDP of the program which we in now.
 			   - Offset of the field which is declared at 'test'able.
 			 */
-			uns32 *p_data_len = ptr_data_len;
+			uint32_t *p_data_len = ptr_data_len;
 			NCS_BOOL lcl_is_tested = FALSE;
 			EDU_PPDB_NODE_INFO *ppdb_node = NULL;
-			uns32 refcount = 0;
+			uint32_t refcount = 0;
 
 			refcount = m_NCS_EDU_GET_REFCOUNT_OF_TESTABLE_FIELD(hdl_node->test_instr_store, rule);
 			if (refcount != 0) {
@@ -797,12 +797,12 @@ uns32 ncs_edu_perform_exec_action(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32
+uint32_t
 ncs_edu_perform_exec_action_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				       EDU_HDL_NODE *hdl_node, EDU_INST_SET *rule, EDP_OP_TYPE optype,
-				       NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err)
+				       NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (optype == EDP_OP_TYPE_ENC) {
 		rc = ncs_edu_prfm_enc_on_non_ptr(edu_hdl, edu_tkn, hdl_node, rule, ptr, ptr_data_len, buf_env, o_err);
@@ -828,19 +828,19 @@ ncs_edu_perform_exec_action_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+uint32_t ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				  EDU_HDL_NODE *hdl_node,
 				  EDU_INST_SET *rule, NCSCONTEXT ptr,
-				  uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err)
+				  uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err)
 {
 	NCSCONTEXT newptr = NULL;
 	EDU_HDL_NODE *lcl_hdl_node = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS, lcnt = 0, l_size = 0;
-	uns32 lcl_cnt = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, lcnt = 0, l_size = 0;
+	uint32_t lcl_cnt = 0;
 	uint8_t *p8 = NULL;
 
 	if ((rule->fld2 & EDQ_ARRAY) == EDQ_ARRAY) {
-		uns32 loop_cnt = rule->fld6;	/* Array size */
+		uint32_t loop_cnt = rule->fld6;	/* Array size */
 
 		newptr = (NCSCONTEXT)((long)ptr + (long)rule->fld5);
 		if (rule->fld1 == ncs_edp_char) {
@@ -920,7 +920,7 @@ uns32 ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 						/* This is ncs_edp_string, can't be used with var-len-data attribute. */
 						return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 					} else {
-						uns32 loop_cnt = *ptr_data_len;
+						uint32_t loop_cnt = *ptr_data_len;
 
 						for (lcnt = 0; lcnt < loop_cnt; lcnt++) {
 							rc = m_NCS_EDU_RUN_EDP(edu_hdl, edu_tkn, rule, rule->fld1,
@@ -944,7 +944,7 @@ uns32 ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 					}
 				}
 			} else {
-				uns32 loop_cnt = *ptr_data_len;
+				uint32_t loop_cnt = *ptr_data_len;
 
 				for (lcnt = 0; lcnt < loop_cnt; lcnt++) {
 					rc = m_NCS_EDU_RUN_EDP(edu_hdl, edu_tkn, rule, rule->fld1,
@@ -957,7 +957,7 @@ uns32 ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			}
 		} else if (rule->fld1 == ncs_edp_string) {
 			char *lcl_str = NULL;
-			uns32 lcl_str_len = 0;
+			uint32_t lcl_str_len = 0;
 
 			/* Populate length of the source-data here. */
 			newptr = (NCSCONTEXT)(*(long **)((long)ptr + (long)rule->fld5));
@@ -992,15 +992,15 @@ uns32 ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+uint32_t ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				  EDU_HDL_NODE *hdl_node,
 				  EDU_INST_SET *rule, NCSCONTEXT ptr,
-				  uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err)
+				  uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err)
 {
 	NCSCONTEXT newptr = NULL;
 	EDU_HDL_NODE *lcl_hdl_node = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS, lcnt = 0, lcl_cnt = 0;
-	uns32 l_size = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, lcnt = 0, lcl_cnt = 0;
+	uint32_t l_size = 0;
 
 	if ((rule->fld2 & EDQ_VAR_LEN_DATA) == EDQ_VAR_LEN_DATA) {
 		NCS_BOOL is_builtin_edp = TRUE;
@@ -1048,7 +1048,7 @@ uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			if (buf_env->is_ubaid) {
 				/* Enc/dec optimization only for uint8_t or char var-len-data */
 				if ((l_size != 0) && ((rule->fld1 == ncs_edp_char) || (rule->fld1 == ncs_edp_uns8))) {
-					uns32 lcl_cnt = 0;
+					uint32_t lcl_cnt = 0;
 
 					/* For uint8_t*, or char*, compute effective
 					   bytes to encode in a single go. */
@@ -1068,7 +1068,7 @@ uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 					/* This is ncs_edp_string, can't be used with var-len-data attribute. */
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 				} else {
-					uns32 loop_cnt = *ptr_data_len;
+					uint32_t loop_cnt = *ptr_data_len;
 
 					for (lcnt = 0; lcnt < loop_cnt; lcnt++) {
 						rc = m_NCS_EDU_RUN_EDP(edu_hdl, edu_tkn, rule, rule->fld1,
@@ -1090,7 +1090,7 @@ uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				}
 			}
 		} else {
-			uns32 loop_cnt = *ptr_data_len;
+			uint32_t loop_cnt = *ptr_data_len;
 
 			for (lcnt = 0; lcnt < loop_cnt; lcnt++) {
 				rc = m_NCS_EDU_RUN_EDP(edu_hdl, edu_tkn, rule, rule->fld1,
@@ -1108,7 +1108,7 @@ uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		if (rc != NCSCC_RC_SUCCESS)
 			return rc;
 	} else if ((rule->fld2 & EDQ_ARRAY) == EDQ_ARRAY) {
-		uns32 loop_cnt = rule->fld6;	/* Array size */
+		uint32_t loop_cnt = rule->fld6;	/* Array size */
 
 		if (rule->fld1 == ncs_edp_char) {
 			uint16_t u16 = 0;
@@ -1175,19 +1175,19 @@ uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
 *****************************************************************************/
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-uns32 ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+uint32_t ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				 EDU_HDL_NODE *hdl_node,
 				 EDU_INST_SET *rule, NCSCONTEXT ptr,
-				 uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err)
+				 uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err)
 {
-	uns32 *p_data_len = ptr_data_len;
+	uint32_t *p_data_len = ptr_data_len;
 	NCSCONTEXT lclptr = ptr;
 	NCS_BOOL lcl_is_tested = FALSE;
 	EDU_PPDB_NODE_INFO *ppdb_node = NULL;
 	EDU_PROG_HANDLER lcl_edp;
-	uns32 lcl_offset = 0, lcl_cnt = 0, lcnt = 0;
-	uns32 refcount = 0, rc = NCSCC_RC_SUCCESS;
-	uns32 l_size = 0;
+	uint32_t lcl_offset = 0, lcl_cnt = 0, lcnt = 0;
+	uint32_t refcount = 0, rc = NCSCC_RC_SUCCESS;
+	uint32_t l_size = 0;
 
 	refcount = m_NCS_EDU_GET_REFCOUNT_OF_TESTABLE_FIELD(hdl_node->test_instr_store, rule);
 	if (refcount != 0) {
@@ -1232,7 +1232,7 @@ uns32 ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			if (buf_env->is_ubaid) {
 				/* Enc/dec optimization only for uint8_t or char var-len-data */
 				if ((l_size != 0) && ((rule->fld1 == ncs_edp_char) || (rule->fld1 == ncs_edp_uns8))) {
-					uns32 lcl_cnt = 0;
+					uint32_t lcl_cnt = 0;
 
 					/* For uns*, or uns16*, or int*, etc, compute effective
 					   bytes to encode in a single go. */
@@ -1253,7 +1253,7 @@ uns32 ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 					/* This is ncs_edp_string. */
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 				} else {
-					uns32 loop_cnt = *p_data_len;
+					uint32_t loop_cnt = *p_data_len;
 
 					for (lcnt = 0; lcnt < loop_cnt; lcnt++) {
 						if (refcount != 0)
@@ -1283,7 +1283,7 @@ uns32 ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				}
 			}
 		} else {
-			uns32 loop_cnt = *p_data_len;
+			uint32_t loop_cnt = *p_data_len;
 
 			for (lcnt = 0; lcnt < loop_cnt; lcnt++) {
 				if (refcount != 0)
@@ -1298,7 +1298,7 @@ uns32 ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		}
 	} /* if((rule->fld2 & EDQ_VAR_LEN_DATA) == EDQ_VAR_LEN_DATA) */
 	else if ((rule->fld2 & EDQ_ARRAY) == EDQ_ARRAY) {
-		uns32 loop_cnt = rule->fld6;	/* Array size */
+		uint32_t loop_cnt = rule->fld6;	/* Array size */
 
 		if (rule->fld1 == ncs_edp_char) {
 			uint16_t u16 = 0;
@@ -1482,7 +1482,7 @@ int ncs_edu_run_version_ge(EDU_HDL *edu_hdl,
   DESCRIPTION:      Utility function to test "next" pointer. If "next" pointer
                     is non-NULL, return EDU_SAME. Else, return EDU_NEXT.
 
-  RETURNS:          uns32, denoting the EDU return values.
+  RETURNS:          uint32_t, denoting the EDU return values.
 
 *****************************************************************************/
 EDU_LABEL ncs_edu_run_test_ll_rule(EDU_INST_SET *rule, NCSCONTEXT ptr, EDP_OP_TYPE optype, EDU_ERR *o_err)
@@ -1523,16 +1523,16 @@ EDU_LABEL ncs_edu_run_test_ll_rule(EDU_INST_SET *rule, NCSCONTEXT ptr, EDP_OP_TY
   DESCRIPTION:      EDU internal function to execute-EDP-rules during encode
                     operation.
 
-  RETURNS:          uns32, denoting the EDU return values.
+  RETURNS:          uint32_t, denoting the EDU return values.
 
 *****************************************************************************/
 EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				    EDU_HDL_NODE *hdl_node, EDU_INST_SET *prog,
-				    NCSCONTEXT ptr, uns32 *ptr_data_len,
+				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDU_ERR *o_err, int instr_count)
 {
 	int cur_inst_indx = 0;
-	uns32 dtype_attrb = 0;
+	uint32_t dtype_attrb = 0;
 	uint16_t cnt = 0, ptr_cnt = 0;
 	NCS_EDU_ADMIN_OP_INFO admin_op;
 	int rc_lbl = EDU_NEXT;
@@ -1573,7 +1573,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		if ((prog[cur_inst_indx].instr == EDU_EXEC) &&
 		    ((prog[cur_inst_indx].fld2 & EDQ_POINTER) == EDQ_POINTER)) {
 			/* For all pointers in a structure, we would have a "count"
-			   field of "uns32" size to denote whether the pointer is
+			   field of "uint32_t" size to denote whether the pointer is
 			   NULL or not. */
 			if ((lcl_hdl_node = (EDU_HDL_NODE *)
 			     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&prog[cur_inst_indx].fld1)) != NULL) {
@@ -1783,12 +1783,12 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
   DESCRIPTION:      EDU internal function to execute-EDP-rules during decode
                     operation.
 
-  RETURNS:          uns32, denoting the EDU return values.
+  RETURNS:          uint32_t, denoting the EDU return values.
 
 *****************************************************************************/
 EDU_LABEL ncs_edu_run_rules_for_dec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				    EDU_HDL_NODE *hdl_node, EDU_INST_SET *prog,
-				    NCSCONTEXT ptr, uns32 *ptr_data_len,
+				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDU_ERR *o_err, int instr_count)
 {
 	int cur_inst_indx = 0;
@@ -1919,14 +1919,14 @@ EDU_LABEL ncs_edu_run_rules_for_dec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
   DESCRIPTION:      EDU internal function to execute-EDP-rules during 
                     pretty-print operation.
 
-  RETURNS:          uns32, denoting the EDU return values.
+  RETURNS:          uint32_t, denoting the EDU return values.
 
 *****************************************************************************/
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 EDU_LABEL ncs_edu_run_rules_for_pp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				   EDU_HDL_NODE *hdl_node,
 				   EDU_INST_SET *prog, NCSCONTEXT ptr,
-				   uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err, int instr_count)
+				   uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err, int instr_count)
 {
 	int cur_inst_indx = 0;
 	int rc_lbl = EDU_NEXT;
@@ -2055,11 +2055,11 @@ EDU_LABEL ncs_edu_run_rules_for_pp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
+uint32_t ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 				    EDU_INST_SET *prog, NCSCONTEXT ptr,
-				    uns32 *ptr_data_len, EDU_ERR *o_err, int instr_count)
+				    uint32_t *ptr_data_len, EDU_ERR *o_err, int instr_count)
 {
-	uns32 l_size = 0;
+	uint32_t l_size = 0;
 	int i = 0;
 	NCS_BOOL start_fnd = FALSE, end_fnd = FALSE, testll_fnd = FALSE;
 	NCS_BOOL ptr_set = FALSE, ll_set = FALSE, arr_set = FALSE, var_len_set = FALSE;
@@ -2175,7 +2175,7 @@ uns32 ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 				} else {
 					testll_fnd = TRUE;
-					if ((prog[i].fld5 == 0) || ((prog[i].fld5 + sizeof(uns32 *)) > hdl_node->size)) {
+					if ((prog[i].fld5 == 0) || ((prog[i].fld5 + sizeof(uint32_t *)) > hdl_node->size)) {
 						/* The offset for the "next" pointer in the linked
 						   list structure is invalid. */
 						*o_err = EDU_ERR_FIELD_OFFSET_EXCEEDS_EDP_SIZE;
@@ -2283,13 +2283,13 @@ uns32 ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 							}
 						}	/* if(arr_set) */
 						if (ptr_set || var_len_set) {
-							if ((prog[i].fld5 + sizeof(uns32 *)) > hdl_node->size) {
+							if ((prog[i].fld5 + sizeof(uint32_t *)) > hdl_node->size) {
 								/* This is another failure case. */
 								*o_err = EDU_ERR_FIELD_OFFSET_EXCEEDS_EDP_SIZE;
 								return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 							}
 							if (var_len_set) {
-								uns32 t_size = 0;
+								uint32_t t_size = 0;
 
 								/* Check "fld3" and "fld6" also */
 								if (!ncs_edu_return_builtin_edp_size(prog[i].fld3,
@@ -2358,7 +2358,7 @@ uns32 ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 			   limits of the EDP data structure. 
 			 */
 			if (hdl_node->size != 0) {
-				if ((prog[i].fld5 + sizeof(uns32 *)) > hdl_node->size) {
+				if ((prog[i].fld5 + sizeof(uint32_t *)) > hdl_node->size) {
 					/* This exceeds the boundary of hdl_node */
 					*o_err = EDU_ERR_FIELD_OFFSET_EXCEEDS_EDP_SIZE;
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -2409,7 +2409,7 @@ uns32 ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
                     Default return value is 0.
 
 *****************************************************************************/
-uns32 ncs_edu_get_refcount_of_testable_field(EDP_TEST_INSTR_REC *inst_store, EDU_INST_SET *rule)
+uint32_t ncs_edu_get_refcount_of_testable_field(EDP_TEST_INSTR_REC *inst_store, EDU_INST_SET *rule)
 {
 	EDP_TEST_INSTR_REC *lrec = inst_store;
 
@@ -2434,7 +2434,7 @@ uns32 ncs_edu_get_refcount_of_testable_field(EDP_TEST_INSTR_REC *inst_store, EDU
   RETURNS:          NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 
 *****************************************************************************/
-uns32 ncs_edu_run_edcompile_on_edp(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node, EDU_ERR *o_err)
+uint32_t ncs_edu_run_edcompile_on_edp(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node, EDU_ERR *o_err)
 {
 	NCS_EDU_ADMIN_OP_INFO admin_op;
 	EDU_TKN edu_tkn;
@@ -2464,7 +2464,7 @@ uns32 ncs_edu_run_edcompile_on_edp(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node, EDU
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
+uint32_t ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 						   EDU_INST_SET *rules_head, int instr_count, EDU_ERR *o_err)
 {
 	int i, j = 0;
@@ -2616,7 +2616,7 @@ void ncs_edu_free_test_instr_rec_list(EDP_TEST_INSTR_REC *head)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 ncs_edu_ppdb_init(EDU_PPDB * ppdb)
+static uint32_t ncs_edu_ppdb_init(EDU_PPDB * ppdb)
 {
 	NCS_PATRICIA_PARAMS list_params;
 
@@ -2685,7 +2685,7 @@ static void ncs_edu_ppdb_destroy(EDU_PPDB * ppdb)
 
 *****************************************************************************/
 static void edu_populate_ppdb_key(EDU_PPDB_KEY * key,
-				  EDU_PROG_HANDLER parent_edp, EDU_PROG_HANDLER self_edp, uns32 offset)
+				  EDU_PROG_HANDLER parent_edp, EDU_PROG_HANDLER self_edp, uint32_t offset)
 {
 	memset(key, '\0', sizeof(EDU_PPDB_KEY));
 	key->parent_edp = parent_edp;
@@ -2705,11 +2705,11 @@ static void edu_populate_ppdb_key(EDU_PPDB_KEY * key,
 *****************************************************************************/
 static EDU_PPDB_NODE_INFO *edu_ppdb_node_findadd(EDU_PPDB * ppdb,
 						 EDU_PROG_HANDLER parent_edp,
-						 EDU_PROG_HANDLER self_edp, uns32 offset, NCS_BOOL add)
+						 EDU_PROG_HANDLER self_edp, uint32_t offset, NCS_BOOL add)
 {
 	EDU_PPDB_NODE_INFO *node = NULL, *new_node = NULL;
 	EDU_PPDB_KEY key;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (ppdb == (EDU_PPDB *) NULL)
 		return NULL;
@@ -2818,15 +2818,15 @@ void ncs_edu_log_msg(char *string)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
+uint32_t ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 			    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err, uint8_t var_cnt, int *var_array)
 {
 	EDU_TKN lcl_edu_tkn;
 	USRBUF *pp_ubuf = NULL;
 	NCS_UBAID pp_ubaid;
 	EDU_BUF_ENV lcl_buf_env;
-	uns32 lclrc = NCSCC_RC_SUCCESS;
-	uns32 lcl_cnt = 0;
+	uint32_t lclrc = NCSCC_RC_SUCCESS;
+	uint32_t lcl_cnt = 0;
 
 	memset(&lcl_buf_env, '\0', sizeof(lcl_buf_env));
 	memset(&pp_ubaid, '\0', sizeof(pp_ubaid));
@@ -2911,12 +2911,12 @@ uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
-			     EDU_BUF_ENV *buf_env, uns32 *cnt, NCSCONTEXT arg,
+uint32_t ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
+			     EDU_BUF_ENV *buf_env, uint32_t *cnt, NCSCONTEXT arg,
 			     EDU_ERR *o_err, uint8_t var_cnt, int *var_array)
 {
 	EDU_TKN tkn;
-	uns32 lclrc = NCSCC_RC_SUCCESS;
+	uint32_t lclrc = NCSCC_RC_SUCCESS;
 
 	memset(&tkn, '\0', sizeof(tkn));
 	m_NCS_EDU_TKN_INIT(&tkn);
@@ -2961,11 +2961,11 @@ uns32 ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_perform_dec_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
-			     EDU_BUF_ENV *buf_env, uns32 *cnt,
+uint32_t ncs_edu_perform_dec_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
+			     EDU_BUF_ENV *buf_env, uint32_t *cnt,
 			     NCSCONTEXT arg, EDU_ERR *o_err, uint8_t var_cnt, int *var_array)
 {
-	uns32 lclrc = NCSCC_RC_SUCCESS;
+	uint32_t lclrc = NCSCC_RC_SUCCESS;
 	EDU_TKN tkn;
 
 	/* Perform actual operation(Encode/Decode) below. */
@@ -3195,7 +3195,7 @@ NCS_BOOL ncs_edu_is_edp_builtin(EDU_PROG_HANDLER prog)
                     FALSE   - otherwise
 
 *****************************************************************************/
-NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uns32 *o_size)
+NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uint32_t *o_size)
 {
 	if (prog == ncs_edp_ncs_bool)
 		*o_size = sizeof(NCS_BOOL);
@@ -3204,13 +3204,13 @@ NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uns32 *o_size)
 	else if (prog == ncs_edp_uns16)
 		*o_size = sizeof(uint16_t);
 	else if (prog == ncs_edp_uns32)
-		*o_size = sizeof(uns32);
+		*o_size = sizeof(uint32_t);
 	else if (prog == ncs_edp_int8)
 		*o_size = sizeof(int8_t);
 	else if (prog == ncs_edp_int16)
 		*o_size = sizeof(int16_t);
 	else if (prog == ncs_edp_int32)
-		*o_size = sizeof(int32);
+		*o_size = sizeof(int32_t);
 	else if (prog == ncs_edp_char)
 		*o_size = sizeof(char);
 	else if (prog == ncs_edp_short)
@@ -3244,7 +3244,7 @@ NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uns32 *o_size)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog, EDU_HDL_NODE **hdl_node, EDU_ERR *o_err)
+uint32_t ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog, EDU_HDL_NODE **hdl_node, EDU_ERR *o_err)
 {
 	EDU_HDL_NODE *lcl_hdl_node = NULL, *new_node = NULL;
 
@@ -3292,7 +3292,7 @@ uns32 ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog, EDU_HDL_NODE 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_hdl_init(EDU_HDL *edu_hdl)
+uint32_t ncs_edu_hdl_init(EDU_HDL *edu_hdl)
 {
 	NCS_PATRICIA_PARAMS list_params;
 
@@ -3321,7 +3321,7 @@ uns32 ncs_edu_hdl_init(EDU_HDL *edu_hdl)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edu_hdl_flush(EDU_HDL *edu_hdl)
+uint32_t ncs_edu_hdl_flush(EDU_HDL *edu_hdl)
 {
 	EDU_PROG_HANDLER lcl_key, *key = NULL;
 	NCS_PATRICIA_NODE *pnode = NULL;
@@ -3384,7 +3384,7 @@ static void edu_hdl_node_del(EDU_HDL *edu_hdl, EDU_HDL_NODE *node)
   RETURNS:          void
 
 *****************************************************************************/
-void ncs_edu_skip_space(EDU_TLV_ENV *tlv_env, uns32 cnt)
+void ncs_edu_skip_space(EDU_TLV_ENV *tlv_env, uint32_t cnt)
 {
 	tlv_env->cur_bufp = (NCSCONTEXT)((uint8_t *)tlv_env->cur_bufp + cnt);
 	tlv_env->bytes_consumed += cnt;
@@ -3406,7 +3406,7 @@ void ncs_edu_skip_space(EDU_TLV_ENV *tlv_env, uns32 cnt)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_8bit(uint8_t **stream, uns32 val)
+uint32_t ncs_encode_tlv_8bit(uint8_t **stream, uint32_t val)
 {
 	uint16_t len = 1;
 
@@ -3426,7 +3426,7 @@ uns32 ncs_encode_tlv_8bit(uint8_t **stream, uns32 val)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_16bit(uint8_t **stream, uns32 val)
+uint32_t ncs_encode_tlv_16bit(uint8_t **stream, uint32_t val)
 {
 	uint16_t len = 2;
 
@@ -3447,7 +3447,7 @@ uns32 ncs_encode_tlv_16bit(uint8_t **stream, uns32 val)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_n_16bit(uint8_t **stream, uint16_t *val_ptr, uint16_t n_count)
+uint32_t ncs_encode_tlv_n_16bit(uint8_t **stream, uint16_t *val_ptr, uint16_t n_count)
 {
 	uint16_t lcnt = 0, len = n_count, val = 0;
 
@@ -3475,7 +3475,7 @@ uns32 ncs_encode_tlv_n_16bit(uint8_t **stream, uint16_t *val_ptr, uint16_t n_cou
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_32bit(uint8_t **stream, uns32 val)
+uint32_t ncs_encode_tlv_32bit(uint8_t **stream, uint32_t val)
 {
 	uint16_t len = 4;
 
@@ -3498,10 +3498,10 @@ uns32 ncs_encode_tlv_32bit(uint8_t **stream, uns32 val)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_n_32bit(uint8_t **stream, uns32 *val_ptr, uint16_t n_count)
+uint32_t ncs_encode_tlv_n_32bit(uint8_t **stream, uint32_t *val_ptr, uint16_t n_count)
 {
 	uint16_t lcnt = 0, len = n_count;
-	uns32 val = 0;
+	uint32_t val = 0;
 
 	if (n_count == 0)
 		return 0;
@@ -3529,7 +3529,7 @@ uns32 ncs_encode_tlv_n_32bit(uint8_t **stream, uns32 *val_ptr, uint16_t n_count)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uint16_t count)
+uint32_t ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uint16_t count)
 {
 	int i;
 	uint16_t lcnt = count;
@@ -3540,13 +3540,13 @@ uns32 ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uint16_t count)
 	if (count != 0) {
 		if (val == NULL) {
 			/* Source pointer is NULL. Still encode the "TL" part. */
-			return (uns32)EDU_TLV_HDR_SIZE;
+			return (uint32_t)EDU_TLV_HDR_SIZE;
 		}
 
 		for (i = 0; i < count; i++)
 			*(*stream)++ = *val++;
 	}
-	return (uns32)(EDU_TLV_HDR_SIZE + count);
+	return (uint32_t)(EDU_TLV_HDR_SIZE + count);
 }
 
 /*****************************************************************************
@@ -3558,7 +3558,7 @@ uns32 ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uint16_t count)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_64bit(uint8_t **stream, uns64 val)
+uint32_t ncs_encode_tlv_64bit(uint8_t **stream, uns64 val)
 {
 	uint16_t len = 8;
 
@@ -3602,17 +3602,17 @@ uns64 ncs_decode_tlv_64bit(uint8_t **stream)
   RETURNS:          Decoded "32bit" value.
 
 *****************************************************************************/
-uns32 ncs_decode_tlv_32bit(uint8_t **stream)
+uint32_t ncs_decode_tlv_32bit(uint8_t **stream)
 {
-	uns32 val = 0;		/* Accumulator */
+	uint32_t val = 0;		/* Accumulator */
 
 	(*stream)++;
 	(*stream)++;
 	(*stream)++;
-	val = (uns32)*(*stream)++ << 24;
-	val |= (uns32)*(*stream)++ << 16;
-	val |= (uns32)*(*stream)++ << 8;
-	val |= (uns32)*(*stream)++;
+	val = (uint32_t)*(*stream)++ << 24;
+	val |= (uint32_t)*(*stream)++ << 16;
+	val |= (uint32_t)*(*stream)++ << 8;
+	val |= (uint32_t)*(*stream)++;
 
 	return val;
 }
@@ -3623,12 +3623,12 @@ uns32 ncs_decode_tlv_32bit(uint8_t **stream)
 
   DESCRIPTION:      Encodes "n"-32bit data in "TLV" format. 
 
-  RETURNS:          Number of "uns32" decoded.
+  RETURNS:          Number of "uint32_t" decoded.
 
 *****************************************************************************/
-uint16_t ncs_decode_tlv_n_32bit(uint8_t **stream, uns32 *dest)
+uint16_t ncs_decode_tlv_n_32bit(uint8_t **stream, uint32_t *dest)
 {
-	uns32 val = 0;		/* Accumulator */
+	uint32_t val = 0;		/* Accumulator */
 	uint16_t lcnt = 0, len = 0;
 
 	(*stream)++;		/* type */
@@ -3637,10 +3637,10 @@ uint16_t ncs_decode_tlv_n_32bit(uint8_t **stream, uns32 *dest)
 	len |= (uint16_t)*(*stream)++;
 
 	for (; lcnt < len; lcnt++) {
-		val = (uns32)*(*stream)++ << 24;
-		val |= (uns32)*(*stream)++ << 16;
-		val |= (uns32)*(*stream)++ << 8;
-		val |= (uns32)*(*stream)++;
+		val = (uint32_t)*(*stream)++ << 24;
+		val |= (uint32_t)*(*stream)++ << 16;
+		val |= (uint32_t)*(*stream)++ << 8;
+		val |= (uint32_t)*(*stream)++;
 		/* Convert to host-order and Write it back */
 		dest[lcnt] = val;
 	}
@@ -3659,13 +3659,13 @@ uint16_t ncs_decode_tlv_n_32bit(uint8_t **stream, uns32 *dest)
 *****************************************************************************/
 uint16_t ncs_decode_tlv_16bit(uint8_t **stream)
 {
-	uns32 val = 0;		/* Accumulator */
+	uint32_t val = 0;		/* Accumulator */
 
 	(*stream)++;
 	(*stream)++;
 	(*stream)++;
-	val = (uns32)*(*stream)++ << 8;
-	val |= (uns32)*(*stream)++;
+	val = (uint32_t)*(*stream)++ << 8;
+	val |= (uint32_t)*(*stream)++;
 
 	return (uint16_t)(val & 0x0000FFFF);
 }
@@ -3710,12 +3710,12 @@ uint16_t ncs_decode_tlv_n_16bit(uint8_t **stream, uint16_t *dest)
 *****************************************************************************/
 uint8_t ncs_decode_tlv_8bit(uint8_t **stream)
 {
-	uns32 val = 0;		/* Accumulator */
+	uint32_t val = 0;		/* Accumulator */
 
 	(*stream)++;
 	(*stream)++;
 	(*stream)++;
-	val = (uns32)*(*stream)++;
+	val = (uint32_t)*(*stream)++;
 
 	return (uint8_t)(val & 0x000000FF);
 }
@@ -3729,7 +3729,7 @@ uint8_t ncs_decode_tlv_8bit(uint8_t **stream)
   RETURNS:          Decoded "octet" value.
 
 *****************************************************************************/
-uint8_t *ncs_decode_tlv_n_octets(uint8_t *src, uint8_t *dest, uns32 count)
+uint8_t *ncs_decode_tlv_n_octets(uint8_t *src, uint8_t *dest, uint32_t count)
 {
 	if (src == NULL)
 		return NULL;
@@ -3753,7 +3753,7 @@ uint8_t *ncs_decode_tlv_n_octets(uint8_t *src, uint8_t *dest, uns32 count)
   RETURNS:          Copied "octet" data.
 
 *****************************************************************************/
-uint8_t *ncs_copy_tlv_n_octets(uint8_t *src, uint8_t *dest, uns32 count)
+uint8_t *ncs_copy_tlv_n_octets(uint8_t *src, uint8_t *dest, uint32_t count)
 {
 	if (src == NULL)
 		return NULL;
@@ -3776,30 +3776,30 @@ uint8_t *ncs_copy_tlv_n_octets(uint8_t *src, uint8_t *dest, uns32 count)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 
 *****************************************************************************/
-static uns32 ncs_edu_get_size_of_var_len_data(EDU_PROG_HANDLER edp, NCSCONTEXT cptr, uns32 *p_data_len, EDU_ERR *o_err)
+static uint32_t ncs_edu_get_size_of_var_len_data(EDU_PROG_HANDLER edp, NCSCONTEXT cptr, uint32_t *p_data_len, EDU_ERR *o_err)
 {
 	if (edp == ncs_edp_uns8)
-		*p_data_len = (uns32)(*(uint8_t *)cptr);
+		*p_data_len = (uint32_t)(*(uint8_t *)cptr);
 	else if (edp == ncs_edp_int8)
-		*p_data_len = (uns32)(*(int8_t *)cptr);
+		*p_data_len = (uint32_t)(*(int8_t *)cptr);
 	else if (edp == ncs_edp_uns16)
-		*p_data_len = (uns32)(*(uint16_t *)cptr);
+		*p_data_len = (uint32_t)(*(uint16_t *)cptr);
 	else if (edp == ncs_edp_int16)
-		*p_data_len = (uns32)(*(int16_t *)cptr);
+		*p_data_len = (uint32_t)(*(int16_t *)cptr);
 	else if (edp == ncs_edp_short)
-		*p_data_len = (uns32)(*(short *)cptr);
+		*p_data_len = (uint32_t)(*(short *)cptr);
 	else if (edp == ncs_edp_int)
-		*p_data_len = (uns32)(*(int *)cptr);
+		*p_data_len = (uint32_t)(*(int *)cptr);
 	else if (edp == ncs_edp_uns32)
-		*p_data_len = (uns32)(*(uns32 *)cptr);
+		*p_data_len = (uint32_t)(*(uint32_t *)cptr);
 	else if (edp == ncs_edp_int32)
-		*p_data_len = (uns32)(*(int32 *)cptr);
+		*p_data_len = (uint32_t)(*(int32_t *)cptr);
 	else if (edp == ncs_edp_double)
-		*p_data_len = (uns32)(*(double *)cptr);
+		*p_data_len = (uint32_t)(*(double *)cptr);
 	else if (edp == ncs_edp_uns64)
-		*p_data_len = (uns32)(*(uns64 *)cptr);	/* Downsizing 64-bit to 32-bit */
+		*p_data_len = (uint32_t)(*(uns64 *)cptr);	/* Downsizing 64-bit to 32-bit */
 	else if (edp == ncs_edp_int64)
-		*p_data_len = (uns32)(*(int64 *)cptr);	/* Downsizing 64-bit to 32-bit */
+		*p_data_len = (uint32_t)(*(int64 *)cptr);	/* Downsizing 64-bit to 32-bit */
 	else {
 		/* Failure. */
 		*o_err = EDU_ERR_INV_LEN_SIZE_FOUND_FOR_VAR_SIZED_DATA;

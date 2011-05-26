@@ -122,7 +122,7 @@ static void avd_si_add_csi_db(struct avd_csi_tag* csi)
  * @param suname
  * @param saAmfRank
  */
-void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uns32 saAmfRank)
+void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uint32_t saAmfRank)
 {
 	avd_sirankedsu_t *tmp;
 	avd_sirankedsu_t *prev = NULL;
@@ -188,7 +188,7 @@ void avd_si_remove_rankedsu(AVD_SI *si, const SaNameT *suname)
  * 
  * @return avd_sirankedsu_t*
  */
-avd_sirankedsu_t *avd_si_getnext_rankedsu(const AVD_SI *si, uns32 saAmfRank)
+avd_sirankedsu_t *avd_si_getnext_rankedsu(const AVD_SI *si, uint32_t saAmfRank)
 {
 	avd_sirankedsu_t *tmp;
 
@@ -669,7 +669,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	const SaImmAdminOperationParamsT_2 **params)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 err = NCSCC_RC_FAILURE;
+	uint32_t err = NCSCC_RC_FAILURE;
 	AVD_SI *si;
 	SaAmfAdminStateT adm_state = 0;
 	SaAmfAdminStateT back_val;
@@ -917,9 +917,9 @@ done:
 static void avd_si_adjust_si_assignments(AVD_SI *si)
 {
 	AVD_SU_SI_REL *sisu, *tmp_sisu;
-	uns32 no_of_sisus_to_delete;
+	uint32_t no_of_sisus_to_delete;
 	AVD_SU_SI_STATE old_susi_state = AVD_SU_SI_STATE_ASGN;
-	uns32 i = 0;
+	uint32_t i = 0;
 
 	TRACE_ENTER2("for SI:%s ", si->name.value);
 	

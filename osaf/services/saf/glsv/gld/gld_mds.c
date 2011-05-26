@@ -35,10 +35,10 @@
       gld_mds_shut
 ******************************************************************************/
 
-static uns32 gld_mds_enc_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
-static uns32 gld_mds_dec_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
-static uns32 gld_mds_dec(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info);
-static uns32 gld_mds_enc(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info);
+static uint32_t gld_mds_enc_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
+static uint32_t gld_mds_dec_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
+static uint32_t gld_mds_dec(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info);
+static uint32_t gld_mds_enc(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info);
 
 static const MSG_FRMT_VER gld_glnd_msg_fmt_table[GLD_WRT_GLND_SUBPART_VER_RANGE] = { 1 };
 
@@ -54,16 +54,16 @@ static const MSG_FRMT_VER gld_glnd_msg_fmt_table[GLD_WRT_GLND_SUBPART_VER_RANGE]
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_mds_callback(NCSMDS_CALLBACK_INFO *info)
+uint32_t gld_mds_callback(NCSMDS_CALLBACK_INFO *info)
 {
-	uns32 cb_hdl;
+	uint32_t cb_hdl;
 	GLSV_GLD_CB *cb = NULL;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	if (info == NULL)
 		return rc;
 
-	cb_hdl = (uns32)info->i_yr_svc_hdl;
+	cb_hdl = (uint32_t)info->i_yr_svc_hdl;
 
 	if ((cb = (GLSV_GLD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLD, cb_hdl)) == NULL) {
 		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
@@ -108,7 +108,7 @@ uns32 gld_mds_callback(NCSMDS_CALLBACK_INFO *info)
 		m_LOG_GLD_SVC_PRVDR(GLD_MDS_CALL_BACK_ERROR, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 	}
 
-	ncshm_give_hdl((uns32)cb_hdl);
+	ncshm_give_hdl((uint32_t)cb_hdl);
 
 	return rc;
 
@@ -127,7 +127,7 @@ uns32 gld_mds_callback(NCSMDS_CALLBACK_INFO *info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_mds_quiesced_process(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info)
+uint32_t gld_mds_quiesced_process(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info)
 {
 	GLSV_GLD_EVT *evt;
 	evt = m_MMGR_ALLOC_GLSV_GLD_EVT;
@@ -161,7 +161,7 @@ uns32 gld_mds_quiesced_process(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_mds_svc_evt(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info)
+uint32_t gld_mds_svc_evt(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info)
 {
 	/* First make sure that is event is indeed for us */
 	if (rcv_info->i_your_id != NCSMDS_SVC_ID_GLD) {
@@ -221,7 +221,7 @@ uns32 gld_mds_svc_evt(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 gld_mds_rcv(GLSV_GLD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
+uint32_t gld_mds_rcv(GLSV_GLD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
 	GLSV_GLD_EVT *evt = (GLSV_GLD_EVT *)rcv_info->i_msg;
 
@@ -250,10 +250,10 @@ uns32 gld_mds_rcv(GLSV_GLD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
       
   NOTES:
 *****************************************************************************/
-static uns32 gld_mds_enc(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
+static uint32_t gld_mds_enc(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
 	if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_GLND) {
@@ -296,11 +296,11 @@ static uns32 gld_mds_enc(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
   NOTES:
 
 *****************************************************************************/
-static uns32 gld_mds_dec(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
+static uint32_t gld_mds_dec(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
 	EDU_ERR ederror = 0;
 	GLSV_GLD_EVT *evt;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_GLND) {
@@ -341,7 +341,7 @@ static uns32 gld_mds_dec(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 gld_mds_enc_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
+static uint32_t gld_mds_enc_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 {
 	NCS_UBAID *uba = info->io_uba;
 
@@ -389,7 +389,7 @@ static uns32 gld_mds_enc_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 gld_mds_dec_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
+static uint32_t gld_mds_dec_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 {
 	GLSV_GLD_EVT *evt;
 	NCS_UBAID *uba = info->io_uba;
@@ -438,7 +438,7 @@ static uns32 gld_mds_dec_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
   NOTES:
 
 *****************************************************************************/
-uns32 gld_mds_cpy(GLSV_GLD_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
+uint32_t gld_mds_cpy(GLSV_GLD_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 {
 	GLSV_GLND_EVT *src = (GLSV_GLND_EVT *)cpy_info->i_msg;
 	GLSV_GLND_EVT *cpy = m_MMGR_ALLOC_GLND_EVT;
@@ -474,12 +474,12 @@ uns32 gld_mds_cpy(GLSV_GLD_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_mds_vdest_create(GLSV_GLD_CB *cb)
+uint32_t gld_mds_vdest_create(GLSV_GLD_CB *cb)
 {
 	NCSVDA_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 	SaClmClusterNodeT cluster_node;
-	uns32 seed;
+	uint32_t seed;
 
 	memset(&cluster_node, 0, sizeof(SaClmClusterNodeT));
 
@@ -521,10 +521,10 @@ uns32 gld_mds_vdest_create(GLSV_GLD_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_mds_vdest_destroy(GLSV_GLD_CB *cb)
+uint32_t gld_mds_vdest_destroy(GLSV_GLD_CB *cb)
 {
 	NCSVDA_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 	SaNameT name = { 4, "GLD" };
 
 	memset(&arg, 0, sizeof(NCSVDA_INFO));
@@ -556,10 +556,10 @@ uns32 gld_mds_vdest_destroy(GLSV_GLD_CB *cb)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 gld_mds_init(GLSV_GLD_CB *cb)
+uint32_t gld_mds_init(GLSV_GLD_CB *cb)
 {
 	NCSMDS_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 	MDS_SVC_ID subscr_svc = NCSMDS_SVC_ID_GLND;
 
 	memset(&cb->my_dest_id, 0, sizeof(MDS_DEST));
@@ -622,10 +622,10 @@ uns32 gld_mds_init(GLSV_GLD_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_mds_shut(GLSV_GLD_CB *cb)
+uint32_t gld_mds_shut(GLSV_GLD_CB *cb)
 {
 	NCSMDS_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 
 	/* Un-install your service into MDS */
 	memset(&arg, 0, sizeof(NCSMDS_INFO));
@@ -657,7 +657,7 @@ uns32 gld_mds_shut(GLSV_GLD_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 gld_mds_change_role(GLSV_GLD_CB *cb, V_DEST_RL role)
+uint32_t gld_mds_change_role(GLSV_GLD_CB *cb, V_DEST_RL role)
 {
 	NCSVDA_INFO arg;
 
@@ -685,12 +685,12 @@ uns32 gld_mds_change_role(GLSV_GLD_CB *cb, V_DEST_RL role)
 
   NOTES         : None
 *****************************************************************************/
-uns32 gld_process_node_down_evts(GLSV_GLD_CB *gld_cb)
+uint32_t gld_process_node_down_evts(GLSV_GLD_CB *gld_cb)
 {
 	GLSV_GLD_GLND_DETAILS *node_details = NULL;
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc = NULL;
 	SaLckResourceIdT rsc_id;
-	uns32 node_id = 0;
+	uint32_t node_id = 0;
 
 	/* cleanup the  glnd details tree */
 	node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details, (uint8_t *)0);

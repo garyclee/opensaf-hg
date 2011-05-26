@@ -106,33 +106,33 @@ struct plma_client_info
 PLMA_CB *plma_ctrlblk;
 
 
-uns32 ncs_plma_startup();
-uns32 ncs_plma_shutdown();
+uint32_t ncs_plma_startup();
+uint32_t ncs_plma_shutdown();
 
 void plma_callback_ipc_destroy(PLMA_CLIENT_INFO *client_info);
-uns32 plma_callback_ipc_init(PLMA_CLIENT_INFO *client_info);
+uint32_t plma_callback_ipc_init(PLMA_CLIENT_INFO *client_info);
 
 /* MDS Public APIS */
-uns32 plma_mds_register();
+uint32_t plma_mds_register();
 void plma_mds_unregister();
-uns32 plm_mds_msg_sync_send(MDS_HDL mds_hdl, uns32 from_svc, 
-			uns32 to_svc, MDS_DEST to_dest, PLMS_EVT *i_evt,
-			PLMS_EVT **o_evt,uns32 timeout);
+uint32_t plm_mds_msg_sync_send(MDS_HDL mds_hdl, uint32_t from_svc, 
+			uint32_t to_svc, MDS_DEST to_dest, PLMS_EVT *i_evt,
+			PLMS_EVT **o_evt,uint32_t timeout);
 
-uns32 plms_mds_normal_send (MDS_HDL mds_hdl, NCSMDS_SVC_ID from_svc,
+uint32_t plms_mds_normal_send (MDS_HDL mds_hdl, NCSMDS_SVC_ID from_svc,
 		NCSCONTEXT evt, MDS_DEST dest, NCSMDS_SVC_ID to_svc);
 
 /* Function Declarations */
-extern uns32 plms_edp_plms_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                        NCSCONTEXT ptr, uns32 *ptr_data_len,
+extern uint32_t plms_edp_plms_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+                        NCSCONTEXT ptr, uint32_t *ptr_data_len,
                         EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
                         EDU_ERR *o_err);
 
 void clean_group_info_node(PLMA_ENTITY_GROUP_INFO *);
 void clean_client_info_node(PLMA_CLIENT_INFO *);
-uns32 plms_mds_enc(MDS_CALLBACK_ENC_INFO *info, EDU_HDL *edu_hdl);
-uns32 plms_mds_dec(MDS_CALLBACK_DEC_INFO *info, EDU_HDL *edu_hdl);
-uns32 plms_mds_enc_flat(struct ncsmds_callback_info *info, EDU_HDL *edu_hdl);
-uns32 plms_mds_dec_flat(struct ncsmds_callback_info *info, EDU_HDL *edu_hdl);
+uint32_t plms_mds_enc(MDS_CALLBACK_ENC_INFO *info, EDU_HDL *edu_hdl);
+uint32_t plms_mds_dec(MDS_CALLBACK_DEC_INFO *info, EDU_HDL *edu_hdl);
+uint32_t plms_mds_enc_flat(struct ncsmds_callback_info *info, EDU_HDL *edu_hdl);
+uint32_t plms_mds_dec_flat(struct ncsmds_callback_info *info, EDU_HDL *edu_hdl);
 SaUint32T  plms_free_evt(PLMS_EVT *evt);
 #endif /* PLMA_H */

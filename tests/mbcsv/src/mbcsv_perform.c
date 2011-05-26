@@ -5,7 +5,7 @@
 #define         M16     0xA001
 
 
-static uns32 updcrc(uns32 crc,uns32 c,uns32 mask)
+static uint32_t updcrc(uint32_t crc,uint32_t c,uint32_t mask)
 {
   int i;
   c<<=8;
@@ -18,10 +18,10 @@ static uns32 updcrc(uns32 crc,uns32 c,uns32 mask)
   return crc;
 }
                                                                                                                        
-uns32 mbcstm_crc(char *str, uns32 len)
+uint32_t mbcstm_crc(char *str, uint32_t len)
 {
   char ch;
-  uns32 crc = 0;
+  uint32_t crc = 0;
   int i;
   for(i = 0;i<len;i++)
     {
@@ -32,7 +32,7 @@ uns32 mbcstm_crc(char *str, uns32 len)
   return crc;                                                                                                    
 }
                                                                                                                        
-uns32 mbcstm_perf_sync_msg(uns32 svc_index, uns32 ssn_index,uns32 size,uns32 send_type)
+uint32_t mbcstm_perf_sync_msg(uint32_t svc_index, uint32_t ssn_index,uint32_t size,uint32_t send_type)
 {
   SSN_PERF_DATA *data;
 
@@ -53,9 +53,9 @@ uns32 mbcstm_perf_sync_msg(uns32 svc_index, uns32 ssn_index,uns32 size,uns32 sen
   return NCSCC_RC_SUCCESS;
 }
 
-uns32 mbcstm_verify_sync_msg(SSN_PERF_DATA *data, MBCSTM_SSN *ssn)
+uint32_t mbcstm_verify_sync_msg(SSN_PERF_DATA *data, MBCSTM_SSN *ssn)
 {
-  uns32 crc;
+  uint32_t crc;
   crc = mbcstm_crc(data->msg,data->length);
 
   /*    printf("\n msg len: %d", data->length);
@@ -74,11 +74,11 @@ uns32 mbcstm_verify_sync_msg(SSN_PERF_DATA *data, MBCSTM_SSN *ssn)
   return NCSCC_RC_SUCCESS;
 }
 
-uns32 mbcstm_msg_check_purposes(uns32 svc_index, uns32 ssn_index,NCS_MBCSV_MSG_TYPE send_type)
+uint32_t mbcstm_msg_check_purposes(uint32_t svc_index, uint32_t ssn_index,NCS_MBCSV_MSG_TYPE send_type)
 {
-  uns32 size = 2;
-  uns32 msg_count = 20,count = 20;
-  uns32 test_result = NCSCC_RC_FAILURE;
+  uint32_t size = 2;
+  uint32_t msg_count = 20,count = 20;
+  uint32_t test_result = NCSCC_RC_FAILURE;
   /* open session */
   if (mbcstm_cb.sys == MBCSTM_SVC_INS1)
     {
@@ -133,9 +133,9 @@ uns32 mbcstm_msg_check_purposes(uns32 svc_index, uns32 ssn_index,NCS_MBCSV_MSG_T
 }
 
 
-uns32 mbcstm_disc_perf_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys, uns32 nrepeat,MBCSTM_CB_TEST sync)
+uint32_t mbcstm_disc_perf_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys, uint32_t nrepeat,MBCSTM_CB_TEST sync)
 {
-  uns32 test_result = NCSCC_RC_FAILURE;
+  uint32_t test_result = NCSCC_RC_FAILURE;
   struct timeval open_time;
 
   if(mbcstm_cb.sys == MBCSTM_SVC_INS3 || mbcstm_cb.sys == MBCSTM_SVC_INS4)
@@ -207,9 +207,9 @@ uns32 mbcstm_disc_perf_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys, un
 }
 
 
-uns32 mbcstm_csync_perf_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys)
+uint32_t mbcstm_csync_perf_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys)
 {
-  uns32 test_result = NCSCC_RC_FAILURE;
+  uint32_t test_result = NCSCC_RC_FAILURE;
 
   if(mbcstm_cb.sys == MBCSTM_SVC_INS3 || mbcstm_cb.sys == MBCSTM_SVC_INS4)
     {
@@ -261,7 +261,7 @@ uns32 mbcstm_csync_perf_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys)
 
 void mbcstm_test_usrasync_send_messages()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
                                                                                                                        
   char case_name[] = "mbcstm_test_usrasync_send_messages";
   char case_disc[] = "";
@@ -287,7 +287,7 @@ void mbcstm_test_usrasync_send_messages()
 
 void mbcstm_test_sync_send_messages()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
                                                                                                                        
   char case_name[] = "mbcstm_test_sync_send_messages";
   char case_disc[] = "";
@@ -313,7 +313,7 @@ void mbcstm_test_sync_send_messages()
 
 void mbcstm_test_mbcasync_send_messages()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
                                                                                                                        
   char case_name[] = "mbcstm_test_mbcasync_send_messages";
   char case_disc[] = "";
@@ -337,7 +337,7 @@ void mbcstm_test_mbcasync_send_messages()
 
 void mbcstm_peer_discover_performance()
 {                                                                                                                
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
                                                                                                                        
   char case_name[] = "mbcstm_peer_discover_performance";
   char case_disc[] = "";

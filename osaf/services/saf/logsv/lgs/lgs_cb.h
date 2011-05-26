@@ -38,14 +38,14 @@ typedef enum checkpoint_status {
 } CHECKPOINT_STATE;
 
 typedef struct lgs_stream_list {
-	uns32 stream_id;
+	uint32_t stream_id;
 	struct lgs_stream_list *next;
 } lgs_stream_list_t;
 
 typedef struct {
 	NCS_PATRICIA_NODE pat_node;
-	uns32 client_id;
-	uns32 client_id_net;
+	uint32_t client_id;
+	uint32_t client_id_net;
 	MDS_DEST mds_dest;
 	lgs_stream_list_t *stream_list_root;
 } log_client_t;
@@ -73,8 +73,8 @@ typedef struct lgs_cb {
 	SaImmOiHandleT immOiHandle;	/* IMM OI handle                           */
 	SaSelectionObjectT immSelectionObject;	/* Selection Object to wait for IMM events */
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
-	uns32 last_client_id;	/* Value of last client_id assigned          */
-	uns32 async_upd_cnt;	/* Async Update Count for Warmsync */
+	uint32_t last_client_id;	/* Value of last client_id assigned          */
+	uint32_t async_upd_cnt;	/* Async Update Count for Warmsync */
 	CHECKPOINT_STATE ckpt_state;	/* Current record that has been checkpointed */
 	NCS_MBCSV_HDL mbcsv_hdl;	/* Handle obtained during mbcsv init */
 	SaSelectionObjectT mbcsv_sel_obj;	/* Selection object to wait for MBCSv events */
@@ -89,8 +89,8 @@ typedef struct lgs_cb {
 	unsigned int max_logrecsize;
 } lgs_cb_t;
 
-extern uns32 lgs_cb_init(lgs_cb_t *);
+extern uint32_t lgs_cb_init(lgs_cb_t *);
 extern void lgs_process_mbx(SYSF_MBX *mbx);
-extern uns32 lgs_stream_add(lgs_cb_t *cb, log_stream_t *stream);
+extern uint32_t lgs_stream_add(lgs_cb_t *cb, log_stream_t *stream);
 
 #endif

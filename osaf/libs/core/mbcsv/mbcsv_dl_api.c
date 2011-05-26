@@ -53,9 +53,9 @@ MBCSV_CB mbcsv_cb;
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mbcsv_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t mbcsv_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 res = SA_AIS_OK;
+	uint32_t res = SA_AIS_OK;
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -87,10 +87,10 @@ uns32 mbcsv_lib_req(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mbcsv_lib_init(NCS_LIB_REQ_INFO *req_info)
+uint32_t mbcsv_lib_init(NCS_LIB_REQ_INFO *req_info)
 {
 	NCS_PATRICIA_PARAMS pt_params;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	if (mbcsv_cb.created == TRUE) {
 		return m_MBCSV_DBG_SINK(SA_AIS_ERR_INIT, "Lib init request failed: MBCA already created.");
@@ -104,7 +104,7 @@ uns32 mbcsv_lib_init(NCS_LIB_REQ_INFO *req_info)
 	/* 
 	 * Create patricia tree for the MBCA registration instance 
 	 */
-	pt_params.key_size = sizeof(uns32);
+	pt_params.key_size = sizeof(uint32_t);
 
 	if (ncs_patricia_tree_init(&mbcsv_cb.reg_list, &pt_params) != NCSCC_RC_SUCCESS) {
 		rc = m_MBCSV_DBG_SINK(SA_AIS_ERR_FAILED_OPERATION, "Lib init request failed.");
@@ -164,7 +164,7 @@ uns32 mbcsv_lib_init(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mbcsv_lib_destroy(void)
+uint32_t mbcsv_lib_destroy(void)
 {
 	MBCSV_REG *mbc_reg;
 	SS_SVC_ID svc_id = 0;

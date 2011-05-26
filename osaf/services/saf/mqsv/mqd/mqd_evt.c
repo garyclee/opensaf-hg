@@ -46,12 +46,12 @@ MQD_EVT_HANDLER mqd_evt_tbl[MQSV_EVT_MAX] = {
 	mqd_ctrl_evt_hdlr,
 };
 
-static uns32 mqd_user_evt_process(MQD_CB *, MDS_DEST *);
-static uns32 mqd_comp_evt_process(MQD_CB *, NCS_BOOL *);
-static uns32 mqd_quisced_process(MQD_CB *pMqd, MQD_QUISCED_STATE_INFO *quisced_info);
-static uns32 mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt);
-static uns32 mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_info);
-static uns32 mqd_cb_dump(void);
+static uint32_t mqd_user_evt_process(MQD_CB *, MDS_DEST *);
+static uint32_t mqd_comp_evt_process(MQD_CB *, NCS_BOOL *);
+static uint32_t mqd_quisced_process(MQD_CB *pMqd, MQD_QUISCED_STATE_INFO *quisced_info);
+static uint32_t mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt);
+static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_info);
+static uint32_t mqd_cb_dump(void);
 static void mqd_dump_timer_info(MQD_TMR tmr);
 static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode);
 static void mqd_dump_nodedb_node(MQD_ND_DB_NODE *qnode);
@@ -69,11 +69,11 @@ static NCS_BOOL mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id, MQD_ND_
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-uns32 mqd_evt_process(MQSV_EVT *pEvt)
+uint32_t mqd_evt_process(MQSV_EVT *pEvt)
 {
 	MQD_EVT_HANDLER hdlr = 0;
 	MQD_CB *pMqd = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Get the Controll block */
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
@@ -117,9 +117,9 @@ uns32 mqd_evt_process(MQSV_EVT *pEvt)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-uns32 mqd_ctrl_evt_hdlr(MQSV_EVT *pEvt, MQD_CB *pMqd)
+uint32_t mqd_ctrl_evt_hdlr(MQSV_EVT *pEvt, MQD_CB *pMqd)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Check the message type and handle the message */
 	if (MQD_MSG_USER == pEvt->msg.mqd_ctrl.type) {
@@ -151,7 +151,7 @@ uns32 mqd_ctrl_evt_hdlr(MQSV_EVT *pEvt, MQD_CB *pMqd)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-static uns32 mqd_user_evt_process(MQD_CB *pMqd, MDS_DEST *dest)
+static uint32_t mqd_user_evt_process(MQD_CB *pMqd, MDS_DEST *dest)
 {
 	MQD_A2S_USER_EVENT_INFO user_evt;
 	if ((pMqd->active) && (pMqd->ha_state == SA_AMF_HA_ACTIVE)) {
@@ -179,7 +179,7 @@ static uns32 mqd_user_evt_process(MQD_CB *pMqd, MDS_DEST *dest)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-uns32 mqd_user_evt_track_delete(MQD_CB *pMqd, MDS_DEST *dest)
+uint32_t mqd_user_evt_track_delete(MQD_CB *pMqd, MDS_DEST *dest)
 {
 	MQD_OBJ_NODE *pNode = 0;
 	/* We need to scan the entire database and remove the track inforamtion
@@ -204,7 +204,7 @@ uns32 mqd_user_evt_track_delete(MQD_CB *pMqd, MDS_DEST *dest)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-static uns32 mqd_comp_evt_process(MQD_CB *pMqd, NCS_BOOL *init)
+static uint32_t mqd_comp_evt_process(MQD_CB *pMqd, NCS_BOOL *init)
 {
 	/* Set the Component status to ACTIVE */
 	pMqd->active = *init;
@@ -221,12 +221,12 @@ static uns32 mqd_comp_evt_process(MQD_CB *pMqd, NCS_BOOL *init)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-uns32 mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
+uint32_t mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 {
 	MQD_ND_DB_NODE *pNdNode = 0;
 	MQD_OBJ_NODE *pNode = 0;
 	MQD_A2S_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_LOG_MQSV_D(MQD_TMR_EXPIRED, NCSFL_LC_TIMER, NCSFL_SEV_NOTICE, NCS_PTR_TO_UNS32_CAST(nodeid), __FILE__,
 		     __LINE__);
@@ -290,9 +290,9 @@ uns32 mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-static uns32 mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_info)
+static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	void *ptr = 0;
 	MQD_ND_DB_NODE *pNdNode = 0;
 	SaTimeT timeout = m_NCS_CONVERT_SATIME_TO_TEN_MILLI_SEC(MQD_ND_EXPIRY_TIME_STANDBY);
@@ -361,10 +361,10 @@ static uns32 mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_info
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-static uns32 mqd_quisced_process(MQD_CB *pMqd, MQD_QUISCED_STATE_INFO *quisced_info)
+static uint32_t mqd_quisced_process(MQD_CB *pMqd, MQD_QUISCED_STATE_INFO *quisced_info)
 {
 	SaAisErrorT saErr = SA_AIS_OK;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	if (pMqd && pMqd->is_quisced_set) {
 		pMqd->ha_state = SA_AMF_HA_QUIESCED;
 		rc = mqd_mbcsv_chgrole(pMqd);
@@ -394,7 +394,7 @@ static uns32 mqd_quisced_process(MQD_CB *pMqd, MQD_QUISCED_STATE_INFO *quisced_i
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-static uns32 mqd_cb_dump(void)
+static uint32_t mqd_cb_dump(void)
 {
 	MQD_CB *pMqd = NULL;
 	MQD_OBJ_NODE *qnode = NULL;
@@ -411,7 +411,7 @@ static uns32 mqd_cb_dump(void)
 	TRACE("************ MQD CB Dump  *************** ");
 	TRACE("**** Global Control Block Details ***************");
 
-	TRACE(" Self MDS Handle is : %u ", (uns32)pMqd->my_mds_hdl);
+	TRACE(" Self MDS Handle is : %u ", (uint32_t)pMqd->my_mds_hdl);
 	TRACE("MQD MDS dest Nodeid is : %u", m_NCS_NODE_ID_FROM_MDS_DEST(pMqd->my_dest));
 	TRACE("MQD MDS dest is        : %" PRIu64, pMqd->my_dest);
 	TRACE("Service ID of MQD is : %u ", pMqd->my_svc_id);
@@ -468,11 +468,11 @@ static uns32 mqd_cb_dump(void)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-static uns32 mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt)
+static uint32_t mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt)
 {
 	MQD_OBJ_NODE *pObjNode = 0;
 	MQSV_EVT rsp;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQSV_CTRL_EVT_QGRP_CNT *qgrp_cnt_info = &pevt->msg.mqd_ctrl.info.qgrp_cnt_info;
 
 	memset(&rsp, 0, sizeof(MQSV_EVT));

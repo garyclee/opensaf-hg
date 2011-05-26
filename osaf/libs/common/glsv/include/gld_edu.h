@@ -32,55 +32,55 @@
 
 /*** Extern function declarations ***/
 
-uns32 glsv_edp_gld_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uns32 glsv_edp_glnd_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_glnd_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uns32 glsv_edp_gld_evt_rsc_open_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					      NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_rsc_open_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					      NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uns32 glsv_edp_gld_a2s_evt_rsc_open_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-						  NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_a2s_evt_rsc_open_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+						  NCSCONTEXT ptr, uint32_t *ptr_data_len,
 						  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uns32 glsv_edp_gld_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					    NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uns32 glsv_edp_gld_a2s_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-						NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_a2s_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+						NCSCONTEXT ptr, uint32_t *ptr_data_len,
 						EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uns32 glsv_edp_gld_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					  NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					  NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uns32 glsv_edp_gld_evt_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					  NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					  NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uns32 glsv_edp_gld_evt_a2s_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					      NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_a2s_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					      NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uns32 glsv_edp_gld_evt_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					 NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uns32 glsv_edp_gld_evt_glnd_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					      NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_glnd_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					      NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uns32 glsv_edp_gld_a2s_evt_glnd_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-						  NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_a2s_evt_glnd_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+						  NCSCONTEXT ptr, uint32_t *ptr_data_len,
 						  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uns32 glsv_edp_gld_evt_a2s_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-						NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_a2s_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+						NCSCONTEXT ptr, uint32_t *ptr_data_len,
 						EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #endif

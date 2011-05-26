@@ -3061,7 +3061,7 @@ int
 SmfSwapThread::start(void)
 {
 	TRACE_ENTER();
-	uns32 rc;
+	uint32_t rc;
 
 	/* Create the task */
 	if ((rc =

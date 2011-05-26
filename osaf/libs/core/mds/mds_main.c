@@ -65,14 +65,14 @@ NCS_LOCK *mds_lock(void)
 }
 
 /* global Log level variable */
-uns32 gl_mds_log_level = 2;
-uns32 gl_mds_checksum = 0;
+uint32_t gl_mds_log_level = 2;
+uint32_t gl_mds_checksum = 0;
 
-uns32 MDS_QUIESCED_TMR_VAL = 80;
-uns32 MDS_AWAIT_ACTIVE_TMR_VAL = 18000;
-uns32 MDS_SUBSCRIPTION_TMR_VAL = 500;
-uns32 MDTM_REASSEMBLE_TMR_VAL = 500;
-uns32 MDTM_CACHED_EVENTS_TMR_VAL = 24000;
+uint32_t MDS_QUIESCED_TMR_VAL = 80;
+uint32_t MDS_AWAIT_ACTIVE_TMR_VAL = 18000;
+uint32_t MDS_SUBSCRIPTION_TMR_VAL = 500;
+uint32_t MDTM_REASSEMBLE_TMR_VAL = 500;
+uint32_t MDTM_CACHED_EVENTS_TMR_VAL = 24000;
 
 /* ******************************************** */
 /* ******************************************** */
@@ -84,12 +84,12 @@ uns32 MDTM_CACHED_EVENTS_TMR_VAL = 24000;
 /* ******************************************** */
 /* ******************************************** */
 
-uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
+uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 {
 	char *p_field = NULL;
-	uns32 node_id = 0, cluster_id, mds_tipc_ref = 0;	/* this mds tipc ref is random num part of the TIPC id */
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 destroy_ack_tmout;
+	uint32_t node_id = 0, cluster_id, mds_tipc_ref = 0;	/* this mds tipc ref is random num part of the TIPC id */
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t destroy_ack_tmout;
 	NCS_SEL_OBJ destroy_ack_obj;
 	char *ptr;
 

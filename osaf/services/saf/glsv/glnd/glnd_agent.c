@@ -68,7 +68,7 @@ GLND_AGENT_INFO *glnd_agent_node_find(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest)
 
   NOTES         : None
 *****************************************************************************/
-GLND_AGENT_INFO *glnd_agent_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, uns32 process_id)
+GLND_AGENT_INFO *glnd_agent_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, uint32_t process_id)
 {
 	GLND_AGENT_INFO *agent_info;
 

@@ -31,6 +31,6 @@
 #ifndef SPRR_DL_API_H
 #define SPRR_DL_API_H
 
-uns32 sprr_lib_req(NCS_LIB_REQ_INFO *req_info);
+uint32_t sprr_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 #endif   /* SPRR_DL_API_H */

@@ -52,7 +52,7 @@ typedef enum avnd_tmr_type {
 typedef struct avnd_tmr {
 	tmr_t tmr_id;
 	AVND_TMR_TYPE type;	/* timer type */
-	uns32 opq_hdl;		/* hdl to retrive the timer context */
+	uint32_t opq_hdl;		/* hdl to retrive the timer context */
 	NCS_BOOL is_active;
 } AVND_TMR;
 
@@ -172,7 +172,7 @@ typedef struct avnd_tmr {
 
 void avnd_tmr_exp(void *);
 
-uns32 avnd_start_tmr(struct avnd_cb_tag *, AVND_TMR *, AVND_TMR_TYPE, SaTimeT, uns32);
+uint32_t avnd_start_tmr(struct avnd_cb_tag *, AVND_TMR *, AVND_TMR_TYPE, SaTimeT, uint32_t);
 
 void avnd_stop_tmr(struct avnd_cb_tag *, AVND_TMR *);
 

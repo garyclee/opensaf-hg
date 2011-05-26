@@ -93,6 +93,6 @@ typedef struct ascii_spec_index {
  * Global Instance of Layer Management
  ***************************************************************************/
 
-uns32 dts_lm(DTS_LM_ARG *arg);
+uint32_t dts_lm(DTS_LM_ARG *arg);
 
 #endif   /* DTS_API_H */

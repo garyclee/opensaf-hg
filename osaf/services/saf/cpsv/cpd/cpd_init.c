@@ -40,16 +40,16 @@
 
 static struct pollfd fds[5];
 static nfds_t nfds = 5;
-uns32 gl_cpd_cb_hdl = 0;
+uint32_t gl_cpd_cb_hdl = 0;
 
 /* Static Function Declerations */
-static uns32 cpd_extract_create_info(int argc, char *argv[], CPD_CREATE_INFO *create_info);
+static uint32_t cpd_extract_create_info(int argc, char *argv[], CPD_CREATE_INFO *create_info);
 
-static uns32 cpd_extract_destroy_info(int argc, char *argv[], CPD_DESTROY_INFO *destroy_info);
+static uint32_t cpd_extract_destroy_info(int argc, char *argv[], CPD_DESTROY_INFO *destroy_info);
 
-static uns32 cpd_lib_init(CPD_CREATE_INFO *info);
+static uint32_t cpd_lib_init(CPD_CREATE_INFO *info);
 
-static uns32 cpd_lib_destroy(CPD_DESTROY_INFO *info);
+static uint32_t cpd_lib_destroy(CPD_DESTROY_INFO *info);
 
 static NCS_BOOL cpd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 
@@ -68,9 +68,9 @@ void cpd_main_process(CPD_CB *cb);
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t cpd_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	CPD_CREATE_INFO create_info;
 	CPD_DESTROY_INFO destroy_info;
 
@@ -108,7 +108,7 @@ uns32 cpd_lib_req(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpd_extract_create_info(int argc, char *argv[], CPD_CREATE_INFO *create_info)
+static uint32_t cpd_extract_create_info(int argc, char *argv[], CPD_CREATE_INFO *create_info)
 {
 
 	memset(create_info, 0, sizeof(CPD_CREATE_INFO));
@@ -132,7 +132,7 @@ static uns32 cpd_extract_create_info(int argc, char *argv[], CPD_CREATE_INFO *cr
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpd_extract_destroy_info(int argc, char *argv[], CPD_DESTROY_INFO *destroy_info)
+static uint32_t cpd_extract_destroy_info(int argc, char *argv[], CPD_DESTROY_INFO *destroy_info)
 {
 
 	memset(destroy_info, 0, sizeof(CPD_DESTROY_INFO));
@@ -158,10 +158,10 @@ static uns32 cpd_extract_destroy_info(int argc, char *argv[], CPD_DESTROY_INFO *
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
+static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 {
 	CPD_CB *cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_error;
 	SaAmfHealthcheckKeyT healthy;
 	int8_t *health_key;
@@ -333,10 +333,10 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpd_lib_destroy(CPD_DESTROY_INFO *info)
+static uint32_t cpd_lib_destroy(CPD_DESTROY_INFO *info)
 {
 	CPD_CB *cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_CPD_RETRIEVE_CB(cb);
 	if (cb == NULL) {

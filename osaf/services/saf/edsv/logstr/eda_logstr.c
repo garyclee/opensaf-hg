@@ -122,7 +122,7 @@ NCSFL_ASCII_SPEC eda_ascii_spec = {
                      with the DTS.
 
 *****************************************************************************/
-uns32 eda_flx_log_ascii_set_reg()
+uint32_t eda_flx_log_ascii_set_reg()
 {
 
 	NCS_DTSV_REG_CANNED_STR arg;
@@ -142,7 +142,7 @@ uns32 eda_flx_log_ascii_set_reg()
                      with the DTS.
 
 *****************************************************************************/
-uns32 eda_flx_log_ascii_set_dereg()
+uint32_t eda_flx_log_ascii_set_dereg()
 {
 
 	NCS_DTSV_REG_CANNED_STR arg;
@@ -169,9 +169,9 @@ uns32 eda_flx_log_ascii_set_dereg()
   NOTES         : None.
  *****************************************************************************/
 
-uns32 eda_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t eda_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
 		res = eda_flx_log_ascii_set_reg();

@@ -35,7 +35,7 @@
 #include "mqnd.h"
 #include "ncs_osprm.h"
 
-uns32 gl_key = 1;
+uint32_t gl_key = 1;
 
 NCS_OS_MQ_MSG transfer_mq_msg;	/* used in queue owner ship */
 
@@ -44,14 +44,14 @@ NCS_OS_MQ_MSG transfer_mq_msg;	/* used in queue owner ship */
  * Purpose: Used to create the new physical message queue
  * Return Value:  NCSCC_RC_SUCCESS
  ****************************************************************************/
-uns32 mqnd_mq_create(MQND_QUEUE_INFO *q_info)
+uint32_t mqnd_mq_create(MQND_QUEUE_INFO *q_info)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
 	char queue_name[SA_MAX_NAME_LENGTH];
 	uint8_t i;
-	uns32 size = 0;
+	uint32_t size = 0;
 	MQND_QUEUE_INFO zero_q;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
 	info.req = NCS_OS_POSIX_MQ_REQ_OPEN;
@@ -91,7 +91,7 @@ uns32 mqnd_mq_create(MQND_QUEUE_INFO *q_info)
  * Purpose: Used to open the existing message queue
  * Return Value:  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  ****************************************************************************/
-uns32 mqnd_mq_open(MQND_QUEUE_INFO *q_info)
+uint32_t mqnd_mq_open(MQND_QUEUE_INFO *q_info)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
 	char queue_name[SA_MAX_NAME_LENGTH];
@@ -118,7 +118,7 @@ uns32 mqnd_mq_open(MQND_QUEUE_INFO *q_info)
  * Purpose: Used to destroy the existing message queue
  * Return Value:  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  ****************************************************************************/
-uns32 mqnd_mq_destroy(MQND_QUEUE_INFO *q_info)
+uint32_t mqnd_mq_destroy(MQND_QUEUE_INFO *q_info)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
 	uint8_t qName[SA_MAX_NAME_LENGTH] = { 0 };
@@ -152,7 +152,7 @@ uns32 mqnd_mq_destroy(MQND_QUEUE_INFO *q_info)
  * Purpose: Used to Send the message to message queue
  * Return Value:  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  ****************************************************************************/
-uns32 mqnd_mq_msg_send(uns32 qhdl, MQSV_MESSAGE *mqsv_msg, uns32 size)
+uint32_t mqnd_mq_msg_send(uint32_t qhdl, MQSV_MESSAGE *mqsv_msg, uint32_t size)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
 	NCS_OS_MQ_MSG mq_msg;
@@ -183,11 +183,11 @@ uns32 mqnd_mq_msg_send(uns32 qhdl, MQSV_MESSAGE *mqsv_msg, uns32 size)
  * Purpose: Used to empty the message queue
  * Return Value:  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  ****************************************************************************/
-uns32 mqnd_mq_empty(SaMsgQueueHandleT handle)
+uint32_t mqnd_mq_empty(SaMsgQueueHandleT handle)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO mq_req;
 	NCS_OS_MQ_MSG mq_msg;
-	uns32 num_messages;
+	uint32_t num_messages;
 	uns64 count;
 
 	memset(&mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
@@ -228,7 +228,7 @@ uns32 mqnd_mq_empty(SaMsgQueueHandleT handle)
  * Purpose: Used to read from the message queue
  * Return Value:  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  ****************************************************************************/
-uns32 mqnd_mq_rcv(SaMsgQueueHandleT handle)
+uint32_t mqnd_mq_rcv(SaMsgQueueHandleT handle)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO mq_req;
 
@@ -265,12 +265,12 @@ uns32 mqnd_mq_rcv(SaMsgQueueHandleT handle)
  * Purpose: Used to create the new listener queue
  * Return Value:  NCSCC_RC_SUCCESS
  ****************************************************************************/
-uns32 mqnd_listenerq_create(MQND_QUEUE_INFO *q_info)
+uint32_t mqnd_listenerq_create(MQND_QUEUE_INFO *q_info)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
 	char queue_name[SA_MAX_NAME_LENGTH];
 	MQND_QUEUE_INFO zero_q;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
 	info.req = NCS_OS_POSIX_MQ_REQ_OPEN;
@@ -305,7 +305,7 @@ uns32 mqnd_listenerq_create(MQND_QUEUE_INFO *q_info)
  * Purpose: Used to destroy the existing listener queue
  * Return Value:  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  ****************************************************************************/
-uns32 mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info)
+uint32_t mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
 	uint8_t qName[SA_MAX_NAME_LENGTH] = { 0 };

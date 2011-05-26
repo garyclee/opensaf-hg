@@ -48,11 +48,11 @@
  * Return Values  : SUCCESS/FAILURE
  * Notes          : None
 **************************************************************************************************************/
-static uns32 glnd_shm_open(GLND_CB *cb, char *shm_name)
+static uint32_t glnd_shm_open(GLND_CB *cb, char *shm_name)
 {
 	NCS_OS_POSIX_SHM_REQ_INFO glnd_open_req;
 	uns64 shm_size;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLND_SHM_VERSION glnd_shm_version;
 
 	/* Initializing shared memory vesion */
@@ -142,9 +142,9 @@ static uns32 glnd_shm_open(GLND_CB *cb, char *shm_name)
  * Return Values  : SUCCESS/FAILURE
  * Notes          : None
 **************************************************************************************************************/
-uns32 glnd_shm_create(GLND_CB *cb)
+uint32_t glnd_shm_create(GLND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Create NCS_GLND_RES_CKPT_INFO shared_memory */
 	rc = glnd_shm_open(cb, RES_SHM_NAME);
@@ -169,7 +169,7 @@ uns32 glnd_shm_create(GLND_CB *cb)
 		/* Node Restarted so start the timer to get get client info from agents */
 		cb->agent_info_get_tmr.cb_hdl = cb->cb_hdl_id;
 		glnd_start_tmr(cb, &cb->agent_info_get_tmr,
-			       GLND_TMR_AGENT_INFO_GET_WAIT, GLND_AGENT_INFO_GET_TIMEOUT, (uns32)cb->cb_hdl_id);
+			       GLND_TMR_AGENT_INFO_GET_WAIT, GLND_AGENT_INFO_GET_TIMEOUT, (uint32_t)cb->cb_hdl_id);
 		m_LOG_GLND(GLND_RESTARTED, NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__, 0, 0, 0);
 	} else
 		m_LOG_GLND(GLND_COMING_UP_FIRST_TIME, NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__, 0, 0,
@@ -188,10 +188,10 @@ uns32 glnd_shm_create(GLND_CB *cb)
  * Return Values  : SUCCESS/FAILURE
  * Notes          : None
 **************************************************************************************************************/
-uns32 glnd_shm_destroy(GLND_CB *cb, char *shm_name)
+uint32_t glnd_shm_destroy(GLND_CB *cb, char *shm_name)
 {
 	NCS_OS_POSIX_SHM_REQ_INFO glnd_dest_req;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	glnd_dest_req.type = NCS_OS_POSIX_SHM_REQ_UNLINK;
 
@@ -211,10 +211,10 @@ uns32 glnd_shm_destroy(GLND_CB *cb, char *shm_name)
  * Return Values  : Index value which is the offset to access the queue stats in shared memory
  * Notes          : None
 **************************************************************************************************************/
-uns32 glnd_find_res_shm_ckpt_empty_section(GLND_CB *cb, uns32 *index)
+uint32_t glnd_find_res_shm_ckpt_empty_section(GLND_CB *cb, uint32_t *index)
 {
 	GLND_RESTART_RES_INFO *shm_base_addr = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	int i;
 
 	shm_base_addr = cb->glnd_res_shm_base_addr;
@@ -243,10 +243,10 @@ uns32 glnd_find_res_shm_ckpt_empty_section(GLND_CB *cb, uns32 *index)
  * Return Values  : Index value which is the offset to access the queue stats in shared memory
  * Notes          : None
 **************************************************************************************************************/
-uns32 glnd_find_lck_shm_ckpt_empty_section(GLND_CB *cb, uns32 *index)
+uint32_t glnd_find_lck_shm_ckpt_empty_section(GLND_CB *cb, uint32_t *index)
 {
 	GLND_RESTART_RES_LOCK_LIST_INFO *shm_base_addr = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	int i;
 
 	shm_base_addr = cb->glnd_lck_shm_base_addr;
@@ -275,10 +275,10 @@ uns32 glnd_find_lck_shm_ckpt_empty_section(GLND_CB *cb, uns32 *index)
  * Return Values  : Index value which is the offset to access the queue stats in shared memory
  * Notes          : None
 **************************************************************************************************************/
-uns32 glnd_find_evt_shm_ckpt_empty_section(GLND_CB *cb, uns32 *index)
+uint32_t glnd_find_evt_shm_ckpt_empty_section(GLND_CB *cb, uint32_t *index)
 {
 	GLSV_RESTART_BACKUP_EVT_INFO *shm_base_addr = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	int i;
 
 	shm_base_addr = cb->glnd_evt_shm_base_addr;
@@ -310,10 +310,10 @@ uns32 glnd_find_evt_shm_ckpt_empty_section(GLND_CB *cb, uns32 *index)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glnd_res_shm_section_invalidate(GLND_CB *cb, GLND_RESOURCE_INFO *res_info)
+uint32_t glnd_res_shm_section_invalidate(GLND_CB *cb, GLND_RESOURCE_INFO *res_info)
 {
 	GLND_RESTART_RES_INFO *shm_base_addr = NULL;
-	uns32 offset;
+	uint32_t offset;
 
 	if (!res_info)
 		return NCSCC_RC_FAILURE;
@@ -341,10 +341,10 @@ uns32 glnd_res_shm_section_invalidate(GLND_CB *cb, GLND_RESOURCE_INFO *res_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glnd_lck_shm_section_invalidate(GLND_CB *cb, GLND_RES_LOCK_LIST_INFO *lock_info)
+uint32_t glnd_lck_shm_section_invalidate(GLND_CB *cb, GLND_RES_LOCK_LIST_INFO *lock_info)
 {
 	GLND_RESTART_RES_LOCK_LIST_INFO *shm_base_addr = NULL;
-	uns32 offset;
+	uint32_t offset;
 
 	if (!lock_info)
 		return NCSCC_RC_FAILURE;
@@ -372,10 +372,10 @@ uns32 glnd_lck_shm_section_invalidate(GLND_CB *cb, GLND_RES_LOCK_LIST_INFO *lock
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glnd_evt_shm_section_invalidate(GLND_CB *cb, GLSV_GLND_EVT *glnd_evt)
+uint32_t glnd_evt_shm_section_invalidate(GLND_CB *cb, GLSV_GLND_EVT *glnd_evt)
 {
 	GLSV_RESTART_BACKUP_EVT_INFO *shm_base_addr = NULL;
-	uns32 offset;
+	uint32_t offset;
 
 	if (!glnd_evt)
 		return NCSCC_RC_FAILURE;

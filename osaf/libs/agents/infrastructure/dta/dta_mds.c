@@ -56,7 +56,7 @@ DTA_CB dta_cb;
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dta_get_ada_hdl(void)
+uint32_t dta_get_ada_hdl(void)
 {
 	NCSADA_INFO ada_info;
 
@@ -86,7 +86,7 @@ uns32 dta_get_ada_hdl(void)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dta_mds_install_and_subscribe(void)
+uint32_t dta_mds_install_and_subscribe(void)
 {
 	NCSMDS_INFO mds_info;
 	MDS_SVC_ID svc_ids_array[2];
@@ -147,10 +147,10 @@ uns32 dta_mds_install_and_subscribe(void)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dta_mds_uninstall(void)
+uint32_t dta_mds_uninstall(void)
 {
 	NCSMDS_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 
 	/* Un-install your service into MDS. */
 	memset(&arg, 0, sizeof(NCSMDS_INFO));
@@ -180,9 +180,9 @@ uns32 dta_mds_uninstall(void)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dta_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
+uint32_t dta_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	switch (cbinfo->i_op) {
 	case MDS_CALLBACK_COPY:
@@ -255,7 +255,7 @@ uns32 dta_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg)
+uint32_t dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg)
 {
 	REG_TBL_ENTRY *svc;
 
@@ -301,7 +301,7 @@ uns32 dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dta_svc_reg_updt(DTA_CB *inst, uns32 svc_id, uns32 enable_log, uns32 category_bit_map, uint8_t severity_bit_map)
+uint32_t dta_svc_reg_updt(DTA_CB *inst, uint32_t svc_id, uint32_t enable_log, uint32_t category_bit_map, uint8_t severity_bit_map)
 {
 	REG_TBL_ENTRY *svc;
 
@@ -342,7 +342,7 @@ uns32 dta_svc_reg_updt(DTA_CB *inst, uns32 svc_id, uns32 enable_log, uns32 categ
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dta_svc_reg_check(DTA_CB *inst)
+uint32_t dta_svc_reg_check(DTA_CB *inst)
 {
 	REG_TBL_ENTRY *svc;
 	DTSV_MSG msg;
@@ -406,15 +406,15 @@ uns32 dta_svc_reg_check(DTA_CB *inst)
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
+uint32_t dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
 {
 	DTA_CB *inst = (DTA_CB *)(long)yr_svc_hdl;
 	REG_TBL_ENTRY *svc;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	NCS_UBAID *uba;
 	uint8_t severity_bit_map, data_buff[DTSV_DTS_DTA_MSG_HDR_SIZE];
 	uint8_t *data;
-	uns32 svc_count, count, svc_id, enable_log, category_bit_map;
+	uint32_t svc_count, count, svc_id, enable_log, category_bit_map;
 	int warning_rmval = 0;
 
 	if (inst->created == FALSE) {
@@ -470,7 +470,7 @@ uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
 
 			uba = &((DTSV_MSG *)msg)->data.data.msg.log_msg.uba;
 			ncs_dec_init_space(uba, uba->start);
-			data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+			data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 			if (data == NULL) {
 				if (((DTSV_MSG *)msg)->data.data.msg.log_msg.uba.ub != NULL)
 					m_MMGR_FREE_BUFR_LIST(((DTSV_MSG *)msg)->data.data.msg.log_msg.uba.ub);
@@ -481,7 +481,7 @@ uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
 			}
 			/* Smik - get the count of services */
 			svc_count = ncs_decode_32bit(&data);
-			ncs_dec_skip_space(uba, sizeof(uns32));
+			ncs_dec_skip_space(uba, sizeof(uint32_t));
 
 			/* Smik - Now reserve the required space */
 			data = ncs_dec_flatten_space(uba, data_buff, svc_count * DTSV_REG_CONF_MSG_SIZE);
@@ -538,7 +538,7 @@ uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
 void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl)
 {
 	DTA_CB *inst = (DTA_CB *)(long)yr_svc_hdl;
-	uns32 retval;
+	uint32_t retval;
 	int warning_rmval = 0;
 
 	if (inst->created == FALSE) {
@@ -660,13 +660,13 @@ void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uint32_t dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 		  SS_SVC_ID to_svc, NCS_UBAID *uba,
 		  MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver)
 {
 	uint8_t *data;
 	DTSV_MSG *mm;
-	uns32 lenn = 0;
+	uint32_t lenn = 0;
 
 	if (uba == NULL)
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_enc : user buffer is NULL");
@@ -705,22 +705,22 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			/* Now encode the service name for the service */
 			if (*mm->data.data.reg.svc_name != '\0') {
 				lenn = strlen(mm->data.data.reg.svc_name) + 1;
-				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 				if (data == NULL) {
 					return m_DTA_DBG_SINK(NCSCC_RC_FAILURE,
 							      "dta_mds_enc: Reserve space failed while encoding service registration message");
 				}
 				ncs_encode_32bit(&data, lenn);
-				ncs_enc_claim_space(uba, sizeof(uns32));
+				ncs_enc_claim_space(uba, sizeof(uint32_t));
 				ncs_encode_n_octets_in_uba(uba, (uint8_t *)mm->data.data.reg.svc_name, lenn);
 			} else {
-				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 				if (data == NULL) {
 					return m_DTA_DBG_SINK(NCSCC_RC_FAILURE,
 							      "dta_mds_enc: Reserve space failed while encoding service registration message");
 				}
 				ncs_encode_32bit(&data, lenn);
-				ncs_enc_claim_space(uba, sizeof(uns32));
+				ncs_enc_claim_space(uba, sizeof(uint32_t));
 			}
 
 			return NCSCC_RC_SUCCESS;
@@ -739,22 +739,22 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			/* Now encode the service name for the service */
 			if (*mm->data.data.unreg.svc_name != '\0') {
 				lenn = strlen(mm->data.data.unreg.svc_name) + 1;
-				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 				if (data == NULL) {
 					return m_DTA_DBG_SINK(NCSCC_RC_FAILURE,
 							      "dta_mds_enc: Reserve space failed while encoding service registration message");
 				}
 				ncs_encode_32bit(&data, lenn);
-				ncs_enc_claim_space(uba, sizeof(uns32));
+				ncs_enc_claim_space(uba, sizeof(uint32_t));
 				ncs_encode_n_octets_in_uba(uba, (uint8_t *)mm->data.data.unreg.svc_name, lenn);
 			} else {
-				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 				if (data == NULL) {
 					return m_DTA_DBG_SINK(NCSCC_RC_FAILURE,
 							      "dta_mds_enc: Reserve space failed while encoding service registration message");
 				}
 				ncs_encode_32bit(&data, lenn);
-				ncs_enc_claim_space(uba, sizeof(uns32));
+				ncs_enc_claim_space(uba, sizeof(uint32_t));
 			}
 
 			return NCSCC_RC_SUCCESS;
@@ -821,13 +821,13 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
+uint32_t dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 		  SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver)
 {
 	uint8_t *data;
 	DTSV_MSG *mm;
 	uint8_t data_buff[DTSV_DTS_DTA_MSG_HDR_SIZE];
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	NCS_UBAID *payload_uba;
 
 	if (uba == NULL)
@@ -937,7 +937,7 @@ uns32 dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uint32_t dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 		  SS_SVC_ID to_svc, NCSCONTEXT *cpy,
 		  NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver)
 {
@@ -1023,7 +1023,7 @@ uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 dta_copy_octets(char **dest, char *src, uint16_t length)
+uint32_t dta_copy_octets(char **dest, char *src, uint16_t length)
 {
 	if ((dest == NULL) || (src == NULL) || (length == 0)) {
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_copy_octets : failed to copy.");
@@ -1053,10 +1053,10 @@ uns32 dta_copy_octets(char **dest, char *src, uint16_t length)
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
+uint32_t dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
 {
 	uint8_t *data;
-	uns32 length;
+	uint32_t length;
 
 	if (uba == NULL)
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_log_msg_encode: User buffer is NULL");
@@ -1083,9 +1083,9 @@ uns32 dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
 
 	length = strlen(logmsg->hdr.fmat_type) + 1;
 
-	data = ncs_enc_reserve_space(uba, sizeof(uns32));
+	data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 	ncs_encode_32bit(&data, length);
-	ncs_enc_claim_space(uba, sizeof(uns32));
+	ncs_enc_claim_space(uba, sizeof(uint32_t));
 
 	ncs_encode_n_octets_in_uba(uba, (uint8_t *)logmsg->hdr.fmat_type, length);
 
@@ -1112,7 +1112,7 @@ uns32 dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
  
   Notes         : None.
 ******************************************************************************/
-uns32 encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa)
+uint32_t encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa)
 {
 	uint8_t *data;
 
@@ -1121,9 +1121,9 @@ uns32 encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa)
 	ncs_enc_claim_space(uba, sizeof(uint8_t));
 
 	if (ipa.type == NCS_IP_ADDR_TYPE_IPV4) {
-		data = ncs_enc_reserve_space(uba, sizeof(uns32));
+		data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 		ncs_encode_32bit(&data, ipa.info.v4);
-		ncs_enc_claim_space(uba, sizeof(uns32));
+		ncs_enc_claim_space(uba, sizeof(uint32_t));
 	}
 	else {
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "encode_ip_address: Incorrect IP address type passed.");
@@ -1149,13 +1149,13 @@ uns32 encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa)
   Notes         : None.
 ******************************************************************************/
 #if (DTA_FLOW == 1)
-uns32 dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uns32 timeout, NCS_BOOL svc_reg)
+uint32_t dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uint32_t timeout, NCS_BOOL svc_reg)
 #else
-uns32 dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uns32 timeout)
+uint32_t dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uint32_t timeout)
 #endif
 {
 	NCSMDS_INFO mds_info;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = inst->mds_hdl;
@@ -1211,7 +1211,7 @@ uns32 dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uns32 timeout)
  
   Notes         : None.
 ******************************************************************************/
-uns32 dta_mds_async_send(DTSV_MSG *msg, DTA_CB *inst)
+uint32_t dta_mds_async_send(DTSV_MSG *msg, DTA_CB *inst)
 {
 	NCSMDS_INFO mds_info;
 

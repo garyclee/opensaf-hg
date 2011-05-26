@@ -31,8 +31,8 @@ typedef enum checkpoint_status {
 
 typedef struct {
 	NCS_PATRICIA_NODE pat_node;
-	uns32 client_id;
-	uns32 client_id_net;
+	uint32_t client_id;
+	uint32_t client_id_net;
 	MDS_DEST mds_dest;
 } ntf_client_t;
 
@@ -49,7 +49,7 @@ typedef struct ntfs_cb {
 	SaSelectionObjectT amfSelectionObject;	/* Selection Object to wait for amf events */
 	SaSelectionObjectT logSelectionObject;	/* Selection Object to wait for log events */
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
-	uns32 async_upd_cnt;	/* Async Update Count for Warmsync */
+	uint32_t async_upd_cnt;	/* Async Update Count for Warmsync */
 	CHECKPOINT_STATE ckpt_state;	/* State if cold synched */
 	NCS_MBCSV_HDL mbcsv_hdl;	/* Handle obtained during mbcsv init */
 	SaSelectionObjectT mbcsv_sel_obj;	/* Selection object to wait for MBCSv events */
@@ -58,7 +58,7 @@ typedef struct ntfs_cb {
 	NCS_BOOL csi_assigned;
 } ntfs_cb_t;
 
-extern uns32 ntfs_cb_init(ntfs_cb_t *);
+extern uint32_t ntfs_cb_init(ntfs_cb_t *);
 extern void ntfs_process_mbx(SYSF_MBX *mbx);
 
 #endif

@@ -116,8 +116,8 @@ char *lgs_get_time(void)
 	struct tm *timeStampData;
 	static char timeStampString[LGS_CREATE_CLOSE_TIME_LEN];
 	char srcString[5];
-	uns32 stringSize;
-	uns32 characters = 0;
+	uint32_t stringSize;
+	uint32_t characters = 0;
 	time_t testTime;
 
 	time(&testTime);

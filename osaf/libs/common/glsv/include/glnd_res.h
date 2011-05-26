@@ -24,14 +24,14 @@ typedef struct glnd_resource_info_tag {
 	NCS_PATRICIA_NODE patnode;
 	SaLckResourceIdT resource_id;	/* index for identifying the resource */
 	SaNameT resource_name;
-	uns32 lcl_ref_cnt;
+	uint32_t lcl_ref_cnt;
 	MDS_DEST master_mds_dest;	/* master vcard id */
 	GLND_NODE_STATUS master_status;
 
 	GLND_LOCK_MASTER_INFO lck_master_info;
 	GLND_RES_LOCK_LIST_INFO *lcl_lck_req_info;	/* local lock info */
 	GLND_RESOURCE_STATUS status;	/* bit-wise data */
-	uns32 shm_index;
+	uint32_t shm_index;
 } GLND_RESOURCE_INFO;
 
 /* prototypes */
@@ -42,13 +42,13 @@ GLND_RESOURCE_INFO *glnd_resource_node_add(GLND_CB *glnd_cb,
 						    SaNameT *resource_name,
 						    NCS_BOOL is_master, MDS_DEST master_mds_dest);
 
-uns32 glnd_set_orphan_state(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info);
+uint32_t glnd_set_orphan_state(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info);
 
 void glnd_resource_lock_req_set_orphan(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, SaLckLockModeT type);
 
 void glnd_resource_lock_req_unset_orphan(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, SaLckLockModeT type);
 
-uns32 glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, NCS_BOOL orphan);
+uint32_t glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, NCS_BOOL orphan);
 
 GLND_RES_LOCK_LIST_INFO *glnd_resource_grant_lock_req_find(GLND_RESOURCE_INFO *res_info,
 								    GLSV_LOCK_REQ_INFO res_lock_info,

@@ -107,7 +107,7 @@
  * Default USRBUF Pool allocate/free function for default pool_id = 0
  ***************************************************************************/
 
-void *sysf_leap_alloc(uns32 b, uint8_t pool_id, uint8_t pri)
+void *sysf_leap_alloc(uint32_t b, uint8_t pool_id, uint8_t pri)
 {
 	return m_NCS_MEM_ALLOC(b, NULL, NCS_SERVICE_ID_OS_SVCS, 0);
 }
@@ -123,7 +123,7 @@ void sysf_leap_free(void *data, uint8_t pool_id)
  * USRBUF Pool allocate/free function for heap; assumed mapping of OS_PRIMS
  ***************************************************************************/
 
-void *sysf_heap_alloc(uns32 b, uint8_t pool_id, uint8_t pri)
+void *sysf_heap_alloc(uint32_t b, uint8_t pool_id, uint8_t pri)
 {
 	return m_NCS_OS_MEMALLOC(b, NULL);
 }
@@ -139,7 +139,7 @@ void sysf_heap_free(void *data, uint8_t pool_id)
  * Dummy USRBUF Pool alloc/free function for uninitialized pool references
  ***************************************************************************/
 
-void *sysf_stub_alloc(uns32 b, uint8_t pool_id, uint8_t pri)
+void *sysf_stub_alloc(uint32_t b, uint8_t pool_id, uint8_t pri)
 {
 	m_LEAP_DBG_SINK(0);
 	return NULL;
@@ -214,7 +214,7 @@ UB_POOL_MGR gl_ub_pool_mgr = {
 
 /***************************************************************************
  *
- * uns32 mmgr_ub_svc_init
+ * uint32_t mmgr_ub_svc_init
  *
  * Description:
  *   put the USRBUF Pool Manager in start state by putting in default
@@ -225,7 +225,7 @@ UB_POOL_MGR gl_ub_pool_mgr = {
  *
  ****************************************************************************/
 
-static uns32 mmgr_ub_svc_init(NCSMMGR_UB_INIT *init)
+static uint32_t mmgr_ub_svc_init(NCSMMGR_UB_INIT *init)
 {
 	uint16_t i;
 
@@ -253,7 +253,7 @@ static uns32 mmgr_ub_svc_init(NCSMMGR_UB_INIT *init)
 
 /***************************************************************************
  *
- * uns32 mmgr_ub_svc_delete
+ * uint32_t mmgr_ub_svc_delete
  *
  * Description:
  *   Free up all USRBUF Pool Manager resources, being the lock in this 
@@ -264,7 +264,7 @@ static uns32 mmgr_ub_svc_init(NCSMMGR_UB_INIT *init)
  *
  ****************************************************************************/
 
-static uns32 mmgr_ub_svc_delete(NCSMMGR_UB_DELETE *del)
+static uint32_t mmgr_ub_svc_delete(NCSMMGR_UB_DELETE *del)
 {
 	m_PMGR_LK_DLT(&gl_ub_pool_mgr.lock);
 
@@ -273,7 +273,7 @@ static uns32 mmgr_ub_svc_delete(NCSMMGR_UB_DELETE *del)
 
 /***************************************************************************
  *
- * uns32 mmgr_ub_svc_register
+ * uint32_t mmgr_ub_svc_register
  *
  * Description:
  *   Find an empty slot in the pool properties array and install pool memory
@@ -284,7 +284,7 @@ static uns32 mmgr_ub_svc_delete(NCSMMGR_UB_DELETE *del)
  *
  ****************************************************************************/
 
-static uns32 mmgr_ub_svc_register(NCSMMGR_UB_REGISTER *reg)
+static uint32_t mmgr_ub_svc_register(NCSMMGR_UB_REGISTER *reg)
 {
 	NCSUB_POOL *pool;
 
@@ -311,7 +311,7 @@ static uns32 mmgr_ub_svc_register(NCSMMGR_UB_REGISTER *reg)
 
 /***************************************************************************
  *
- * uns32 mmgr_ub_svc_deregister
+ * uint32_t mmgr_ub_svc_deregister
  *
  * Description:
  *   Find the identified pool and replace the malloc and free with dummy
@@ -322,7 +322,7 @@ static uns32 mmgr_ub_svc_register(NCSMMGR_UB_REGISTER *reg)
  *
  ****************************************************************************/
 
-static uns32 mmgr_ub_svc_deregister(NCSMMGR_UB_DEREGISTER *dereg)
+static uint32_t mmgr_ub_svc_deregister(NCSMMGR_UB_DEREGISTER *dereg)
 {
 	NCSUB_POOL *pool;
 
@@ -350,7 +350,7 @@ static uns32 mmgr_ub_svc_deregister(NCSMMGR_UB_DEREGISTER *dereg)
 
 /***************************************************************************
  *
- * uns32 ncsmmgr_ub_lm
+ * uint32_t ncsmmgr_ub_lm
  *
  * Description:
  *   Single entry point for USRBUF pool managment services.
@@ -360,7 +360,7 @@ static uns32 mmgr_ub_svc_deregister(NCSMMGR_UB_DEREGISTER *dereg)
  *
  ****************************************************************************/
 
-uns32 ncsmmgr_ub_lm(NCSMMGR_UB_LM_ARG *arg)
+uint32_t ncsmmgr_ub_lm(NCSMMGR_UB_LM_ARG *arg)
 {
 	switch (arg->i_op) {
 	case NCSMMGR_LM_OP_INIT:
@@ -583,10 +583,10 @@ USRBUF *sysf_copy_pkt(USRBUF *dup_me)
  *  sysf_get_chain_len
  ****************************************************************************/
 
-uns32 sysf_get_chain_len(const USRBUF *my_len)
+uint32_t sysf_get_chain_len(const USRBUF *my_len)
 {
 	const USRBUF *ub;
-	uns32 len;
+	uint32_t len;
 
 	for (len = 0, ub = my_len; (ub); ub = ub->link)
 		len += ub->count;
@@ -606,7 +606,7 @@ uns32 sysf_get_chain_len(const USRBUF *my_len)
  ***************************************************************************/
 void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16_t *const pCksum)
 {
-	uns32 Cksum32 = 0;
+	uint32_t Cksum32 = 0;
 	int bufLen = 0;
 	uint16_t *p_operand = NULL, work_var = 0;
 	NCS_BOOL byte_swapped = FALSE;
@@ -619,7 +619,7 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 	} s_util;
 	union {
 		uint16_t s[2];
-		uns32 l;
+		uint32_t l;
 	} l_util;
 
 #define ADDCARRY(x) ((x)>65535?(x)-=65535:(x))
@@ -655,7 +655,7 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 			s_util.c[1] = *(uint8_t *)p_operand;
 
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &s_util.s, &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			p_operand = (uint16_t *)((uint8_t *)p_operand + 1);
 			bufLen = pUBuf->count - 1;
 			PktLen--;
@@ -686,37 +686,37 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 		/* Unroll the loop to make the overhead less */
 		while ((bufLen -= 32) >= 0) {
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[0], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[1], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[2], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[3], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[4], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[5], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[6], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[7], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[8], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[9], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[10], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[11], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[12], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[13], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[14], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[15], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 
 			p_operand += 16;
 		}
@@ -724,13 +724,13 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 
 		while ((bufLen -= 8) >= 0) {
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[0], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[1], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[2], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[3], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			p_operand += 4;
 		}
 		bufLen += 8;
@@ -741,7 +741,7 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 		REDUCE;
 		while ((bufLen -= 2) >= 0) {
 			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[0], &work_var);
-			Cksum32 += (uns32)work_var;
+			Cksum32 += (uint32_t)work_var;
 			p_operand += 1;
 		}
 
@@ -752,7 +752,7 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 			if (bufLen == -1) {
 				s_util.c[1] = *(uint8_t *)p_operand;
 				m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &s_util.s, &work_var);
-				Cksum32 += (uns32)work_var;
+				Cksum32 += (uint32_t)work_var;
 				bufLen = 0;
 			} else
 				bufLen = -1;
@@ -766,7 +766,7 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 	if (bufLen == -1) {
 		s_util.c[1] = 0;
 		m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &s_util.s, &work_var);
-		Cksum32 += (uns32)work_var;
+		Cksum32 += (uint32_t)work_var;
 	}
 
 	REDUCE;
@@ -785,7 +785,7 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
  ****************************************************************************/
 char *sysf_reserve_at_end(USRBUF **ppb, unsigned int i_size)
 {
-	uns32 io_size = i_size;
+	uint32_t io_size = i_size;
 	char *ret_buf;
 	ret_buf = sysf_reserve_at_end_amap(ppb, &io_size, TRUE);
 	/* Warn people if reserved size is not equal to requested size */
@@ -803,10 +803,10 @@ char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size,
 {
 	USRBUF *ub;
 	char *pContiguousData;
-	uns32 ub_hdr_rsrv;
-	uns32 ub_trlr_rsrv;
-	int32 min_rsrv;
-	int32 space_left;
+	uint32_t ub_hdr_rsrv;
+	uint32_t ub_trlr_rsrv;
+	int32_t min_rsrv;
+	int32_t space_left;
 
 	ub = *ppb;
 
@@ -818,7 +818,7 @@ char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size,
 	ub_trlr_rsrv = gl_ub_pool_mgr.pools[ub->pool_ops->pool_id].trlr_reserve;
 
 	/* Determine the minimum bytes that need to be reserved in the least */
-	min_rsrv = (int32)(total ? *io_size : 1);
+	min_rsrv = (int32_t)(total ? *io_size : 1);
 	space_left = sizeof(ub->payload->Data) - (ub_trlr_rsrv + ub->start + ub->count);
 
 	/* Partial reservation is ok */
@@ -833,7 +833,7 @@ char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size,
 		space_left = sizeof(ub->payload->Data) - (ub_trlr_rsrv + ub->start + ub->count);
 	}
 
-	if (space_left < (int32)*io_size) {
+	if (space_left < (int32_t)*io_size) {
 		/* Cannot reserve so many bytes at a time */
 		if (total) {
 			assert(0);
@@ -1786,7 +1786,7 @@ USRBUF *sysf_copy_to_usrbuf(uint8_t *packet, unsigned int length)
 
 *****************************************************************************/
 
-uns32 sysf_copy_from_usrbuf(USRBUF *packet, uint8_t *buffer, uns32 buff_len)
+uint32_t sysf_copy_from_usrbuf(USRBUF *packet, uint8_t *buffer, uint32_t buff_len)
 {
 	if (NULL == m_MMGR_COPY_MID_DATA(packet, 0, buff_len, buffer))
 		return 0;
@@ -1814,13 +1814,13 @@ uns32 sysf_copy_from_usrbuf(USRBUF *packet, uint8_t *buffer, uns32 buff_len)
 *****************************************************************************/
 void sysf_usrbuf_hexdump(USRBUF *buf, char *fname)
 {
-	uns32 len;		/* length of payload */
-	uns32 loop;		/* how many times to loop */
-	uns32 left;		/* leftover data after loops */
-	uns32 offset;		/* offset for MID_DATA macro */
+	uint32_t len;		/* length of payload */
+	uint32_t loop;		/* how many times to loop */
+	uint32_t left;		/* leftover data after loops */
+	uint32_t offset;		/* offset for MID_DATA macro */
 	char space[200];	/* general purpose stack buffer */
 	uint8_t *data;		/* ptr to contiguous MID_DATA data */
-	uns32 i;		/* an interator counter */
+	uint32_t i;		/* an interator counter */
 
 	if (buf == NULL)
 		return;
@@ -1869,12 +1869,12 @@ void sysf_usrbuf_hexdump(USRBUF *buf, char *fname)
   NOTES:
 *****************************************************************************/
 
-uns32 sysf_str_hexdump(uint8_t *data, uns32 size, char *fname)
+uint32_t sysf_str_hexdump(uint8_t *data, uint32_t size, char *fname)
 {
 	char store[300] = { 0 };
 	char *curr = &store[0];
 	char cstr[40];
-	uns32 i;
+	uint32_t i;
 
 	/* protect function from various forms of API abuse */
 
@@ -1918,7 +1918,7 @@ uns32 sysf_str_hexdump(uint8_t *data, uns32 size, char *fname)
   NOTES:
 *****************************************************************************/
 
-uns32 sysf_pick_output(char *str, char *fname)
+uint32_t sysf_pick_output(char *str, char *fname)
 {
 	FILE *file;
 
@@ -1934,7 +1934,7 @@ uns32 sysf_pick_output(char *str, char *fname)
 }
 
 #if (USE_MY_MALLOC==1)
-uns32 gl_my_malloc_curr_size = 0;
+uint32_t gl_my_malloc_curr_size = 0;
 extern void *my_malloc(size_t nbytes)
 {
 	if ((gl_my_malloc_curr_size += nbytes) > MY_MALLOC_SIZE) {

@@ -33,7 +33,7 @@
 #ifndef CPA_DL_API_H
 #define CPA_DL_API_H
 
-uns32 cpa_lib_req(NCS_LIB_REQ_INFO *);
+uint32_t cpa_lib_req(NCS_LIB_REQ_INFO *);
 unsigned int ncs_cpa_shutdown(void);
 unsigned int ncs_cpa_startup(void);
 

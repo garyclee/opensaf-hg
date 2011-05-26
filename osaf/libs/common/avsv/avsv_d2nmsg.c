@@ -105,7 +105,7 @@ void avsv_free_d2n_clm_node_fover_info(AVSV_DND_MSG *node_up_msg)
  * 
  **************************************************************************/
 
-uns32 avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg)
+uint32_t avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg)
 {
 
 	return NCSCC_RC_SUCCESS;
@@ -127,7 +127,7 @@ uns32 avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG
  * 
  **************************************************************************/
 
-uns32 avsv_cpy_d2n_node_up_msg(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg)
+uint32_t avsv_cpy_d2n_node_up_msg(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg)
 {
         memset(d_node_up_msg, '\0', sizeof(AVSV_DND_MSG));
         memcpy(d_node_up_msg, s_node_up_msg, sizeof(AVSV_DND_MSG));
@@ -177,7 +177,7 @@ void avsv_free_d2n_su_msg_info(AVSV_DND_MSG *su_msg)
  * 
  **************************************************************************/
 
-uns32 avsv_cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg, AVSV_DND_MSG *s_su_msg)
+uint32_t avsv_cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg, AVSV_DND_MSG *s_su_msg)
 {
 	AVSV_SU_INFO_MSG *s_su_info, *d_su_info;
 
@@ -250,7 +250,7 @@ void avsv_free_d2n_comp_msg_info(AVSV_DND_MSG *comp_msg)
  * 
  **************************************************************************/
 
-uns32 avsv_cpy_d2n_comp_msg(AVSV_DND_MSG *d_comp_msg, AVSV_DND_MSG *s_comp_msg)
+uint32_t avsv_cpy_d2n_comp_msg(AVSV_DND_MSG *d_comp_msg, AVSV_DND_MSG *s_comp_msg)
 {
 
 	AVSV_COMP_INFO_MSG *s_comp_info, *d_comp_info;
@@ -329,7 +329,7 @@ void avsv_free_d2n_susi_msg_info(AVSV_DND_MSG *susi_msg)
  * 
  **************************************************************************/
 
-uns32 avsv_cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_msg)
+uint32_t avsv_cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_msg)
 {
 	AVSV_SUSI_ASGN *s_compcsi_info, *d_compcsi_info;
 
@@ -411,7 +411,7 @@ void avsv_free_d2n_pg_msg_info(AVSV_DND_MSG *pg_msg)
  * 
  **************************************************************************/
 
-uns32 avsv_cpy_d2n_pg_msg(AVSV_DND_MSG *d_pg_msg, AVSV_DND_MSG *s_pg_msg)
+uint32_t avsv_cpy_d2n_pg_msg(AVSV_DND_MSG *d_pg_msg, AVSV_DND_MSG *s_pg_msg)
 {
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *d_info = &d_pg_msg->msg_info.d2n_pg_track_act_rsp;
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *s_info = &s_pg_msg->msg_info.d2n_pg_track_act_rsp;
@@ -503,7 +503,7 @@ void avsv_dnd_msg_free(AVSV_DND_MSG *msg)
                   corresponding copy function which copies the list information
                   present in them also.
 ******************************************************************************/
-uns32 avsv_dnd_msg_copy(AVSV_DND_MSG *dmsg, AVSV_DND_MSG *smsg)
+uint32_t avsv_dnd_msg_copy(AVSV_DND_MSG *dmsg, AVSV_DND_MSG *smsg)
 {
 	/* array of copy function pointers */
 	AVSV_COPY_DND_MSG avsv_dnd_msg_cpy_ptr[(AVSV_D2N_PG_TRACK_ACT_RSP_MSG - AVSV_D2N_NODE_UP_MSG) + 1] = {

@@ -49,35 +49,35 @@ typedef enum {
 
 /*** PROCEDURE event definitions ***/
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } procedure_evt_terminate;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } procedure_evt_execute;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } procedure_evt_execute_init;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } procedure_evt_execute_step;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } procedure_evt_execute_wrapup;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } procedure_evt_suspend;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } procedure_evt_commit;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } procedure_evt_rollback;
 
 typedef struct {

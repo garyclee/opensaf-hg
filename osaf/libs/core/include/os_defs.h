@@ -101,10 +101,10 @@ extern "C" {
 #define m_NCS_OS_ATOMIC_DEC(p_uns32) ncs_os_atomic_dec(p_uns32);
 #endif
 
-	extern void get_msec_time(uns32 *seconds, uns32 *millisec);
+	extern void get_msec_time(uint32_t *seconds, uint32_t *millisec);
 
 #ifndef m_NCS_OS_GET_UPTIME
-	extern uns32 ncs_get_uptime(uns64 *o_uptime);
+	extern uint32_t ncs_get_uptime(uns64 *o_uptime);
 #define m_NCS_OS_GET_UPTIME(p_uptime)  ncs_get_uptime(p_uptime)
 #endif
 
@@ -142,7 +142,7 @@ extern "C" {
  **                                                                         **
  ****************************************************************************/
 
-#define NCS_OS_POSIX_MQD      uns32
+#define NCS_OS_POSIX_MQD      uint32_t
 #define NCS_OS_POSIX_TIMESPEC struct timespec
 
 /*****************************************************************************
@@ -230,7 +230,7 @@ extern "C" {
 #define m_NCS_OS_LOG_FOPEN(fname,fmode) ncs_os_fopen(fname,fmode)
 #endif
 
-#define m_NCS_OS_NTOHL_P(p8) (uns32)((*(uint8_t*)p8<<24)|(*(uint8_t*)(p8+1)<<16)| \
+#define m_NCS_OS_NTOHL_P(p8) (uint32_t)((*(uint8_t*)p8<<24)|(*(uint8_t*)(p8+1)<<16)| \
     (*(uint8_t*)(p8+2)<<8)|(*(uint8_t*)(p8+3)))
 #define m_NCS_OS_NTOHS_P(p8) (uint16_t)((*(uint8_t*)p8<<8)|*((uint8_t*)(p8+1)))
 

@@ -28,7 +28,7 @@
 
 #include "glnd.h"
 
-uns32 gl_glnd_hdl;
+uint32_t gl_glnd_hdl;
 NCSCONTEXT gl_glnd_task_hdl;
 
 /****************************************************************************
@@ -42,7 +42,7 @@ NCSCONTEXT gl_glnd_task_hdl;
  *
  * Notes         : None.
  *****************************************************************************/
-GLND_CB *glnd_cb_create(uns32 pool_id)
+GLND_CB *glnd_cb_create(uint32_t pool_id)
 {
 	GLND_CB *glnd_cb = NULL;
 	NCS_PATRICIA_PARAMS params = { 0 };
@@ -207,7 +207,7 @@ GLND_CB *glnd_cb_create(uns32 pool_id)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glnd_cb_destroy(GLND_CB *glnd_cb)
+uint32_t glnd_cb_destroy(GLND_CB *glnd_cb)
 {
 
 	GLND_AGENT_INFO *agent_info;
@@ -326,12 +326,12 @@ void glnd_dump_cb()
 
 		while ((client_info = glnd_client_node_find_next(glnd_cb, handle_id, agent_info->agent_mds_id))) {
 			handle_id = client_info->app_handle_id;
-			TRACE("Client Handle id - %d", (uns32)client_info->app_handle_id);
+			TRACE("Client Handle id - %d", (uint32_t)client_info->app_handle_id);
 
 			/*display the resource list */
 			for (resource_list = client_info->res_list; resource_list != NULL;
 			     resource_list = resource_list->next) {
-				TRACE("Resource id - %d", (uns32)resource_list->rsc_info->resource_id);
+				TRACE("Resource id - %d", (uint32_t)resource_list->rsc_info->resource_id);
 			}
 		}
 		TRACE("******************************************************** ");
@@ -344,7 +344,7 @@ void glnd_dump_cb()
 	while (res_info) {
 		res_id = res_info->resource_id;
 		TRACE("************ Resource info *************** ");
-		TRACE("resource id - %d \t Resource Name - %s ", (uns32)res_info->resource_id,
+		TRACE("resource id - %d \t Resource Name - %s ", (uint32_t)res_info->resource_id,
 		      res_info->resource_name.value);
 		TRACE("local ref count - %d \t Mds Node id - %d ", res_info->lcl_ref_cnt,
 		      m_NCS_NODE_ID_FROM_MDS_DEST(res_info->master_mds_dest));
@@ -360,32 +360,32 @@ void glnd_dump_cb()
 			list = res_info->lck_master_info.grant_list;
 			while (list) {
 				TRACE("Lock Id : %d   Node Id : %d  App Handle : %d ",
-				      (uns32)list->lock_info.lockid, m_NCS_NODE_ID_FROM_MDS_DEST(list->req_mdest_id),
-				      (uns32)list->lock_info.handleId);
+				      (uint32_t)list->lock_info.lockid, m_NCS_NODE_ID_FROM_MDS_DEST(list->req_mdest_id),
+				      (uint32_t)list->lock_info.handleId);
 				list = list->next;
 			}
 			TRACE("Wait Ex list : ");
 			list = res_info->lck_master_info.wait_exclusive_list;
 			while (list) {
 				TRACE("Lock Id : %d   Node Id : %d  App Handle : %d ",
-				      (uns32)list->lock_info.lockid, m_NCS_NODE_ID_FROM_MDS_DEST(list->req_mdest_id),
-				      (uns32)list->lock_info.handleId);
+				      (uint32_t)list->lock_info.lockid, m_NCS_NODE_ID_FROM_MDS_DEST(list->req_mdest_id),
+				      (uint32_t)list->lock_info.handleId);
 				list = list->next;
 			}
 			TRACE("Wait PR list : ");
 			list = res_info->lck_master_info.wait_read_list;
 			while (list) {
 				TRACE("Lock Id : %d   Node Id : %d  App Handle : %d ",
-				      (uns32)list->lock_info.lockid, m_NCS_NODE_ID_FROM_MDS_DEST(list->req_mdest_id),
-				      (uns32)list->lock_info.handleId);
+				      (uint32_t)list->lock_info.lockid, m_NCS_NODE_ID_FROM_MDS_DEST(list->req_mdest_id),
+				      (uint32_t)list->lock_info.handleId);
 				list = list->next;
 			}
 		} else {
 			GLND_RES_LOCK_LIST_INFO *lock_list = res_info->lcl_lck_req_info;
 			TRACE("############ Non-Master info #############");
 			while (lock_list) {
-				TRACE("Lock Id : %d  App Handle : %d ", (uns32)lock_list->lock_info.lockid,
-				      (uns32)lock_list->lock_info.handleId);
+				TRACE("Lock Id : %d  App Handle : %d ", (uint32_t)lock_list->lock_info.lockid,
+				      (uint32_t)lock_list->lock_info.handleId);
 				lock_list = lock_list->next;
 			}
 		}

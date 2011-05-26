@@ -21,6 +21,6 @@
 #include "ncsgl_defs.h"
 #include "ncs_lib.h"
 
-uns32 glnd_lib_req(NCS_LIB_REQ_INFO *req_info);
+uint32_t glnd_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 #endif

@@ -63,8 +63,8 @@
 
 #include "gld.h"
 
-static uns32 glsv_edp_lock_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				    NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_lock_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 /****************************************************************************
@@ -190,11 +190,11 @@ static int glsv_glnd_evt_test_type_fnc(NCSCONTEXT arg)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_agent_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					  NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_evt_agent_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					  NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_AGENT_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -233,11 +233,11 @@ static uns32 glsv_edp_glnd_evt_agent_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_client_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_evt_client_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_CLIENT_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -278,11 +278,11 @@ static uns32 glsv_edp_glnd_evt_client_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_restart_client_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-						   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_evt_restart_client_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+						   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 						   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_RESTART_CLIENT_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -328,11 +328,11 @@ static uns32 glsv_edp_glnd_evt_restart_client_info(EDU_HDL *edu_hdl, EDU_TKN *ed
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_finalize_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					     NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_evt_finalize_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_FINALIZE_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -370,11 +370,11 @@ static uns32 glsv_edp_glnd_evt_finalize_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_rsc_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_evt_rsc_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_RSC_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -421,11 +421,11 @@ static uns32 glsv_edp_glnd_evt_rsc_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_rsc_lock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					     NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_evt_rsc_lock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_RSC_LOCK_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -473,11 +473,11 @@ static uns32 glsv_edp_glnd_evt_rsc_lock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_rsc_unlock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					       NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_evt_rsc_unlock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_RSC_UNLOCK_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -521,11 +521,11 @@ static uns32 glsv_edp_glnd_evt_rsc_unlock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tk
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_node_lock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					      NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_evt_node_lock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					      NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_GLND_LCK_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -574,11 +574,11 @@ static uns32 glsv_edp_glnd_evt_node_lock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_lock_list_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					  NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_lock_list_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					  NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLND_LOCK_LIST_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -622,12 +622,12 @@ static uns32 glsv_edp_glnd_lock_list_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_glnd_rsc_info(EDU_HDL *edu_hdl,
+static uint32_t glsv_edp_glnd_evt_glnd_rsc_info(EDU_HDL *edu_hdl,
 					     EDU_TKN *edu_tkn,
-					     NCSCONTEXT ptr, uns32 *ptr_data_len,
+					     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_GLND_RSC_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -668,11 +668,11 @@ static uns32 glsv_edp_glnd_evt_glnd_rsc_info(EDU_HDL *edu_hdl,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_res_master_list_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-						NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_res_master_list_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+						NCSCONTEXT ptr, uint32_t *ptr_data_len,
 						EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_GLND_RSC_MASTER_INFO_LIST *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -713,12 +713,12 @@ static uns32 glsv_edp_glnd_res_master_list_info(EDU_HDL *edu_hdl, EDU_TKN *edu_t
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_rsc_master_info(EDU_HDL *edu_hdl,
+static uint32_t glsv_edp_glnd_evt_rsc_master_info(EDU_HDL *edu_hdl,
 					       EDU_TKN *edu_tkn,
-					       NCSCONTEXT ptr, uns32 *ptr_data_len,
+					       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_GLND_RSC_MASTER_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -759,11 +759,11 @@ static uns32 glsv_edp_glnd_evt_rsc_master_info(EDU_HDL *edu_hdl,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_dd_info_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_dd_info_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_GLND_DD_INFO_LIST *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -810,11 +810,11 @@ static uns32 glsv_edp_glnd_dd_info_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_dd_probe_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					     NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_evt_dd_probe_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_GLND_DD_PROBE_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -857,11 +857,11 @@ static uns32 glsv_edp_glnd_evt_dd_probe_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_rsc_gld_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					    NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_evt_rsc_gld_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_GLND_RSC_GLD_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -904,11 +904,11 @@ static uns32 glsv_edp_glnd_evt_rsc_gld_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_non_master_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					       NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_evt_non_master_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLND_EVT_GLND_NON_MASTER_STATUS *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -946,11 +946,11 @@ static uns32 glsv_edp_glnd_evt_non_master_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tk
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_glnd_evt_new_master_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					       NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_glnd_evt_new_master_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_EVT_GLND_NEW_MAST_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -992,11 +992,11 @@ static uns32 glsv_edp_glnd_evt_new_master_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tk
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_edp_lock_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				    NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t glsv_edp_lock_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_LOCK_REQ_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_create_rules[] = {
@@ -1042,10 +1042,10 @@ static uns32 glsv_edp_lock_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glsv_edp_glnd_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t glsv_edp_glnd_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_GLND_EVT *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_glnd_evt_rules[] = {
@@ -1179,11 +1179,11 @@ static int glsv_gld_evt_test_type_fnc(NCSCONTEXT arg)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glsv_edp_gld_evt_rsc_open_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				     NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_rsc_open_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_RSC_OPEN_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_gld_create_rules[] = {
@@ -1221,11 +1221,11 @@ uns32 glsv_edp_gld_evt_rsc_open_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glsv_edp_gld_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_RSC_DETAILS *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_gld_create_rules[] = {
@@ -1264,11 +1264,11 @@ uns32 glsv_edp_gld_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glsv_edp_gld_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t glsv_edp_gld_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			     NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	GLSV_NODE_LIST *struct_ptr = NULL, **d_ptr = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	EDU_INST_SET glsv_gld_create_rules[] = {
 		{EDU_START, glsv_edp_gld_node_list, EDQ_LNKLIST, 0, 0, sizeof(GLSV_NODE_LIST), 0, NULL},
@@ -1298,11 +1298,11 @@ uns32 glsv_edp_gld_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	return rc;
 }
 
-uns32 glsv_edp_gld_evt_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_NODE_LIST *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_gld_create_rules[] = {
@@ -1343,11 +1343,11 @@ uns32 glsv_edp_gld_evt_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glsv_edp_gld_evt_a2s_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				     NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_a2s_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_A2S_NODE_LIST *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_gld_create_rules[] = {
@@ -1392,11 +1392,11 @@ uns32 glsv_edp_gld_evt_a2s_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 glsv_edp_gld_evt_a2s_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				       NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_a2s_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_GLD_A2S_RSC_DETAILS *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_gld_create_rules[] = {
@@ -1436,11 +1436,11 @@ uns32 glsv_edp_gld_evt_a2s_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glsv_edp_gld_evt_glnd_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				     NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_evt_glnd_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_GLD_GLND_MDS_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_gld_create_rules[] = {
@@ -1476,10 +1476,10 @@ uns32 glsv_edp_gld_evt_glnd_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glsv_edp_gld_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-		       NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t glsv_edp_gld_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+		       NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_GLD_EVT *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_gld_evt_rules[] = {
@@ -1528,11 +1528,11 @@ uns32 glsv_edp_gld_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glsv_edp_gld_a2s_evt_rsc_open_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					 NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_a2s_evt_rsc_open_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_A2S_RSC_OPEN_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_gld_create_rules[] = {
@@ -1570,11 +1570,11 @@ uns32 glsv_edp_gld_a2s_evt_rsc_open_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glsv_edp_gld_a2s_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				       NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_a2s_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_A2S_RSC_DETAILS *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_gld_create_rules[] = {
@@ -1605,11 +1605,11 @@ uns32 glsv_edp_gld_a2s_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	return rc;
 }
 
-uns32 glsv_edp_gld_a2s_evt_glnd_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-					 NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t glsv_edp_gld_a2s_evt_glnd_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	GLSV_A2S_GLND_MDS_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET glsv_gld_create_rules[] = {

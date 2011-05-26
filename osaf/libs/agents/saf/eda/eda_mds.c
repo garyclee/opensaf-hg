@@ -32,14 +32,14 @@ MDS_CLIENT_MSG_FORMAT_VER
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_enc_initialize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_enc_initialize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	EDSV_EDA_INIT_PARAM *param = &msg->info.api_info.param.init;
 
 	if (uba == NULL) {
@@ -68,14 +68,14 @@ static uns32 eda_enc_initialize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_enc_finalize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_enc_finalize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	EDSV_EDA_FINALIZE_PARAM *param = &msg->info.api_info.param.finalize;
 
 	if (uba == NULL) {
@@ -103,14 +103,14 @@ static uns32 eda_enc_finalize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_enc_chan_open_sync_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_enc_chan_open_sync_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	EDSV_EDA_CHAN_OPEN_SYNC_PARAM *param = &msg->info.api_info.param.chan_open_sync;
 
 	if (uba == NULL) {
@@ -129,8 +129,8 @@ static uns32 eda_enc_chan_open_sync_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	ncs_enc_claim_space(uba, 7);
 	total_bytes += 7;
 
-	ncs_encode_n_octets_in_uba(uba, param->chan_name.value, (uns32)param->chan_name.length);
-	total_bytes += (uns32)param->chan_name.length;
+	ncs_encode_n_octets_in_uba(uba, param->chan_name.value, (uint32_t)param->chan_name.length);
+	total_bytes += (uint32_t)param->chan_name.length;
 
 	return total_bytes;
 }
@@ -143,14 +143,14 @@ static uns32 eda_enc_chan_open_sync_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_enc_chan_open_async_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_enc_chan_open_async_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	EDSV_EDA_CHAN_OPEN_ASYNC_PARAM *param = &msg->info.api_info.param.chan_open_async;
 
 	if (uba == NULL) {
@@ -170,8 +170,8 @@ static uns32 eda_enc_chan_open_async_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	ncs_enc_claim_space(uba, 15);
 	total_bytes += 15;
 
-	ncs_encode_n_octets_in_uba(uba, param->chan_name.value, (uns32)param->chan_name.length);
-	total_bytes += (uns32)param->chan_name.length;
+	ncs_encode_n_octets_in_uba(uba, param->chan_name.value, (uint32_t)param->chan_name.length);
+	total_bytes += (uint32_t)param->chan_name.length;
 
 	return total_bytes;
 }
@@ -184,14 +184,14 @@ static uns32 eda_enc_chan_open_async_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_enc_chan_close_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_enc_chan_close_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	EDSV_EDA_CHAN_CLOSE_PARAM *param = &msg->info.api_info.param.chan_close;
 
 	if (uba == NULL) {
@@ -221,14 +221,14 @@ static uns32 eda_enc_chan_close_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_enc_chan_unlink_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_enc_chan_unlink_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	EDSV_EDA_CHAN_UNLINK_PARAM *param = &msg->info.api_info.param.chan_unlink;
 
 	if (uba == NULL) {
@@ -246,8 +246,8 @@ static uns32 eda_enc_chan_unlink_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	ncs_enc_claim_space(uba, 6);
 	total_bytes += 6;
 
-	ncs_encode_n_octets_in_uba(uba, param->chan_name.value, (uns32)param->chan_name.length);
-	total_bytes += (uns32)param->chan_name.length;
+	ncs_encode_n_octets_in_uba(uba, param->chan_name.value, (uint32_t)param->chan_name.length);
+	total_bytes += (uint32_t)param->chan_name.length;
 
 	return total_bytes;
 }
@@ -260,15 +260,15 @@ static uns32 eda_enc_chan_unlink_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_enc_publish_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_enc_publish_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
-	uns32 x;
+	uint32_t total_bytes = 0;
+	uint32_t x;
 	SaEvtEventPatternT *pattern_ptr;
 	EDSV_EDA_PUBLISH_PARAM *param = &msg->info.api_info.param.publish;
 
@@ -291,7 +291,7 @@ static uns32 eda_enc_publish_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 	/* Encode the patterns */
 	pattern_ptr = param->pattern_array->patterns;
-	for (x = 0; x < (uns32)param->pattern_array->patternsNumber; x++) {
+	for (x = 0; x < (uint32_t)param->pattern_array->patternsNumber; x++) {
 		/* Save room for the patternSize field (8 bytes) */
 		p8 = ncs_enc_reserve_space(uba, 8);
 		if (!p8) {
@@ -312,8 +312,8 @@ static uns32 eda_enc_publish_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 			ncs_enc_claim_space(uba, 4);
 			total_bytes += 4;
 		} else {
-			ncs_encode_n_octets_in_uba(uba, pattern_ptr->pattern, (uns32)pattern_ptr->patternSize);
-			total_bytes += (uns32)pattern_ptr->patternSize;
+			ncs_encode_n_octets_in_uba(uba, pattern_ptr->pattern, (uint32_t)pattern_ptr->patternSize);
+			total_bytes += (uint32_t)pattern_ptr->patternSize;
 		}
 		pattern_ptr++;
 	}
@@ -328,8 +328,8 @@ static uns32 eda_enc_publish_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	ncs_enc_claim_space(uba, 11);
 	total_bytes += 11;
 
-	ncs_encode_n_octets_in_uba(uba, param->publisher_name.value, (uns32)param->publisher_name.length);
-	total_bytes += (uns32)param->publisher_name.length;
+	ncs_encode_n_octets_in_uba(uba, param->publisher_name.value, (uint32_t)param->publisher_name.length);
+	total_bytes += (uint32_t)param->publisher_name.length;
 
 	p8 = ncs_enc_reserve_space(uba, 12);
 	if (!p8) {
@@ -340,8 +340,8 @@ static uns32 eda_enc_publish_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	ncs_enc_claim_space(uba, 12);
 	total_bytes += 12;
 
-	ncs_encode_n_octets_in_uba(uba, param->data, (uns32)param->data_len);
-	total_bytes += (uns32)param->data_len;
+	ncs_encode_n_octets_in_uba(uba, param->data, (uint32_t)param->data_len);
+	total_bytes += (uint32_t)param->data_len;
 
 	return total_bytes;
 }
@@ -354,15 +354,15 @@ static uns32 eda_enc_publish_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_enc_subscribe_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_enc_subscribe_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 x;
-	uns32 total_bytes = 0;
+	uint32_t x;
+	uint32_t total_bytes = 0;
 	SaEvtEventFilterT *filter_ptr;
 	EDSV_EDA_SUBSCRIBE_PARAM *param = &msg->info.api_info.param.subscribe;
 
@@ -386,7 +386,7 @@ static uns32 eda_enc_subscribe_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 	/* Encode the filters */
 	filter_ptr = param->filter_array->filters;
-	for (x = 0; x < (uns32)param->filter_array->filtersNumber; x++) {
+	for (x = 0; x < (uint32_t)param->filter_array->filtersNumber; x++) {
 		/* Save room for the filterType(4 bytes), patternSize(8 bytes)
 		 */
 		p8 = ncs_enc_reserve_space(uba, 12);
@@ -399,7 +399,7 @@ static uns32 eda_enc_subscribe_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 		total_bytes = 12;
 
 		/* For zero length filters, fake encode zero */
-		if ((uns32)filter_ptr->filter.patternSize == 0) {
+		if ((uint32_t)filter_ptr->filter.patternSize == 0) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8) {
 				m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
@@ -410,8 +410,8 @@ static uns32 eda_enc_subscribe_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 			total_bytes += 4;
 		} else {
 			ncs_encode_n_octets_in_uba(uba, filter_ptr->filter.pattern,
-						   (uns32)filter_ptr->filter.patternSize);
-			total_bytes += (uns32)filter_ptr->filter.patternSize;
+						   (uint32_t)filter_ptr->filter.patternSize);
+			total_bytes += (uint32_t)filter_ptr->filter.patternSize;
 		}
 		filter_ptr++;
 	}
@@ -427,14 +427,14 @@ static uns32 eda_enc_subscribe_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_enc_unsubscribe_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_enc_unsubscribe_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	EDSV_EDA_UNSUBSCRIBE_PARAM *param = &msg->info.api_info.param.unsubscribe;
 
 	if (uba == NULL) {
@@ -465,14 +465,14 @@ static uns32 eda_enc_unsubscribe_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_enc_retention_time_clr_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_enc_retention_time_clr_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	EDSV_EDA_RETENTION_TIME_CLR_PARAM *param = &msg->info.api_info.param.rettimeclr;
 
 	if (uba == NULL) {
@@ -503,14 +503,14 @@ static uns32 eda_enc_retention_time_clr_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_dec_chan_open_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_dec_chan_open_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	int32 total_bytes = 0;
+	int32_t total_bytes = 0;
 	EDSV_EDA_CHAN_OPEN_CBK_PARAM *param = &msg->info.cbk_info.param.chan_open_cbk;
 	uint8_t local_data[256];
 
@@ -526,8 +526,8 @@ static uns32 eda_dec_chan_open_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	total_bytes += 2;
 
 	/* chan_name */
-	ncs_decode_n_octets_from_uba(uba, param->chan_name.value, (uns32)param->chan_name.length);
-	total_bytes += (uns32)param->chan_name.length;
+	ncs_decode_n_octets_from_uba(uba, param->chan_name.value, (uint32_t)param->chan_name.length);
+	total_bytes += (uint32_t)param->chan_name.length;
 
 	/* chan_id, chan_open_id, chan_open_flags, eda_chan_hdl, error */
 	p8 = ncs_dec_flatten_space(uba, local_data, 17);
@@ -550,17 +550,17 @@ static uns32 eda_dec_chan_open_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_dec_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_dec_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 x;
-	uns32 fake_value;
+	uint32_t x;
+	uint32_t fake_value;
 	uns64 num_patterns;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	SaEvtEventPatternT *pattern_ptr;
 	EDSV_EDA_EVT_DELIVER_CBK_PARAM *param = &msg->info.cbk_info.param.evt_deliver_cbk;
 	uint8_t local_data[1024];
@@ -595,7 +595,7 @@ static uns32 eda_dec_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	}
 	param->pattern_array->patternsNumber = num_patterns;
 	if (num_patterns) {
-		param->pattern_array->patterns = m_MMGR_ALLOC_EVENT_PATTERNS((uns32)num_patterns);
+		param->pattern_array->patterns = m_MMGR_ALLOC_EVENT_PATTERNS((uint32_t)num_patterns);
 		if (!param->pattern_array->patterns) {
 			m_LOG_EDSV_A(EDA_MEMALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
 				     0);
@@ -623,14 +623,14 @@ static uns32 eda_dec_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 			total_bytes += 4;
 		} else {
 			/* pattern */
-			pattern_ptr->pattern = m_MMGR_ALLOC_EDSV_EVENT_DATA((uns32)pattern_ptr->patternSize);
+			pattern_ptr->pattern = m_MMGR_ALLOC_EDSV_EVENT_DATA((uint32_t)pattern_ptr->patternSize);
 			if (!pattern_ptr->pattern) {
 				m_LOG_EDSV_A(EDA_MEMALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__,
 					     __LINE__, 0);
 				return 0;
 			}
-			ncs_decode_n_octets_from_uba(uba, pattern_ptr->pattern, (uns32)pattern_ptr->patternSize);
-			total_bytes += (uns32)pattern_ptr->patternSize;
+			ncs_decode_n_octets_from_uba(uba, pattern_ptr->pattern, (uint32_t)pattern_ptr->patternSize);
+			total_bytes += (uint32_t)pattern_ptr->patternSize;
 		}
 		pattern_ptr++;
 	}
@@ -648,8 +648,8 @@ static uns32 eda_dec_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	total_bytes += 2;
 
 	/* publisher_name */
-	ncs_decode_n_octets_from_uba(uba, param->publisher_name.value, (uns32)param->publisher_name.length);
-	total_bytes += (uns32)param->publisher_name.length;
+	ncs_decode_n_octets_from_uba(uba, param->publisher_name.value, (uint32_t)param->publisher_name.length);
+	total_bytes += (uint32_t)param->publisher_name.length;
 
 	/* publish_time, eda_event_id */
 	p8 = ncs_dec_flatten_space(uba, local_data, 24);
@@ -667,26 +667,26 @@ static uns32 eda_dec_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	total_bytes += 8;
 
 	/* data */
-	if ((uns32)param->data_len) {
-		param->data = m_MMGR_ALLOC_EDSV_EVENT_DATA((uns32)param->data_len);
+	if ((uint32_t)param->data_len) {
+		param->data = m_MMGR_ALLOC_EDSV_EVENT_DATA((uint32_t)param->data_len);
 		if (!param->data) {
 			m_LOG_EDSV_A(EDA_MEMALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
 				     0);
 			return 0;
 		}
-		ncs_decode_n_octets_from_uba(uba, param->data, (uns32)param->data_len);
+		ncs_decode_n_octets_from_uba(uba, param->data, (uint32_t)param->data_len);
 	} else
 		param->data = NULL;
 
-	total_bytes += (uns32)param->data_len;
+	total_bytes += (uint32_t)param->data_len;
 
 	return total_bytes;
 }
 
-static uns32 eda_dec_clm_status_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_dec_clm_status_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	int32 total_bytes = 0;
+	int32_t total_bytes = 0;
 	EDSV_EDA_CLM_STATUS_CBK_PARAM *param = &msg->info.cbk_info.param.clm_status_cbk;
 	uint8_t local_data[256];
 
@@ -715,7 +715,7 @@ static uns32 eda_dec_clm_status_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_eds_msg_proc(EDA_CB *eda_cb, EDSV_MSG *edsv_msg, MDS_SEND_PRIORITY_TYPE prio)
+static uint32_t eda_eds_msg_proc(EDA_CB *eda_cb, EDSV_MSG *edsv_msg, MDS_SEND_PRIORITY_TYPE prio)
 {
 
 	switch (edsv_msg->type) {
@@ -923,13 +923,13 @@ static uns32 eda_eds_msg_proc(EDA_CB *eda_cb, EDSV_MSG *edsv_msg, MDS_SEND_PRIOR
   Notes         : None.
 ******************************************************************************/
 
-static uns32 eda_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
+static uint32_t eda_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 {
-	uns32 eda_cb_hdl;
+	uint32_t eda_cb_hdl;
 	EDA_CB *eda_cb = NULL;
 
 	/* Retrieve the EDA_CB hdl */
-	eda_cb_hdl = (uns32)mds_cb_info->i_yr_svc_hdl;
+	eda_cb_hdl = (uint32_t)mds_cb_info->i_yr_svc_hdl;
 
 	TRACE("EDA Rcvd MDS subscribe evt from svc %d", mds_cb_info->info.svc_evt.i_svc_id);
 
@@ -984,7 +984,7 @@ static uns32 eda_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 	}
 
 	/* Give the hdl back */
-	ncshm_give_hdl((uns32)eda_cb_hdl);
+	ncshm_give_hdl((uint32_t)eda_cb_hdl);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1001,14 +1001,14 @@ static uns32 eda_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
   Notes         : None.
 ******************************************************************************/
 
-static uns32 eda_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
+static uint32_t eda_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 {
 	EDSV_MSG *edsv_msg = (EDSV_MSG *)mds_cb_info->info.receive.i_msg;
 	EDA_CB *eda_cb = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* retrieve EDA CB */
-	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, (uns32)mds_cb_info->i_yr_svc_hdl))) {
+	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, (uint32_t)mds_cb_info->i_yr_svc_hdl))) {
 		m_LOG_EDSV_A(EDA_CB_HDL_TAKE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
 		eda_msg_destroy(edsv_msg);
 		rc = NCSCC_RC_FAILURE;
@@ -1028,7 +1028,7 @@ static uns32 eda_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 	m_NCS_UNLOCK(&eda_cb->cb_lock, NCS_LOCK_WRITE);
 
 	/* return EDA CB */
-	ncshm_give_hdl((uns32)mds_cb_info->i_yr_svc_hdl);
+	ncshm_give_hdl((uint32_t)mds_cb_info->i_yr_svc_hdl);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -1045,12 +1045,12 @@ static uns32 eda_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_mds_enc(struct ncsmds_callback_info *info)
+static uint32_t eda_mds_enc(struct ncsmds_callback_info *info)
 {
 	EDSV_MSG *msg;
 	NCS_UBAID *uba;
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
 	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
@@ -1139,14 +1139,14 @@ static uns32 eda_mds_enc(struct ncsmds_callback_info *info)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_dec_initialize_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_dec_initialize_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	EDSV_EDA_INITIALIZE_RSP *param = &msg->info.api_resp_info.param.init_rsp;
 	uint8_t local_data[100];
 
@@ -1170,14 +1170,14 @@ static uns32 eda_dec_initialize_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_dec_limit_get_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_dec_limit_get_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	EDSV_EDA_LIMIT_GET_RSP *param = &msg->info.api_resp_info.param.limit_get_rsp;
 	uint8_t local_data[100];
 
@@ -1222,14 +1222,14 @@ static uns32 eda_dec_limit_get_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
   Arguments     : NCS_UBAID *msg,
                   EDSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_dec_chan_open_sync_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
+static uint32_t eda_dec_chan_open_sync_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	EDSV_EDA_CHAN_OPEN_SYNC_RSP *param = &msg->info.api_resp_info.param.chan_open_rsp;
 	uint8_t local_data[100];
 
@@ -1265,13 +1265,13 @@ static uns32 eda_dec_chan_open_sync_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_mds_dec(struct ncsmds_callback_info *info)
+static uint32_t eda_mds_dec(struct ncsmds_callback_info *info)
 {
 	uint8_t *p8;
 	EDSV_MSG *msg;
 	NCS_UBAID *uba = info->info.dec.io_uba;
 	uint8_t local_data[20];
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
 					   EDA_WRT_EDS_SUBPART_VER_AT_MIN_MSG_FMT,
@@ -1361,9 +1361,9 @@ static uns32 eda_mds_dec(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 eda_mds_enc_flat(struct ncsmds_callback_info *info)
+static uint32_t eda_mds_enc_flat(struct ncsmds_callback_info *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* Retrieve info from the enc_flat */
 	MDS_CALLBACK_ENC_INFO enc = info->info.enc_flat;
 	/* Modify the MDS_INFO to populate enc */
@@ -1387,9 +1387,9 @@ static uns32 eda_mds_enc_flat(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 eda_mds_dec_flat(struct ncsmds_callback_info *info)
+static uint32_t eda_mds_dec_flat(struct ncsmds_callback_info *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* Retrieve info from the dec_flat     */
 	MDS_CALLBACK_DEC_INFO dec = info->info.dec_flat;
 	/* Modify the MDS_INFO to populate dec */
@@ -1412,7 +1412,7 @@ static uns32 eda_mds_dec_flat(struct ncsmds_callback_info *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 eda_mds_cpy(struct ncsmds_callback_info *info)
+static uint32_t eda_mds_cpy(struct ncsmds_callback_info *info)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -1429,9 +1429,9 @@ static uns32 eda_mds_cpy(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 eda_mds_callback(struct ncsmds_callback_info *info)
+static uint32_t eda_mds_callback(struct ncsmds_callback_info *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
 		eda_mds_cpy,	/* MDS_CALLBACK_COPY      */
@@ -1464,11 +1464,11 @@ static uns32 eda_mds_callback(struct ncsmds_callback_info *info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 eda_mds_init(EDA_CB *cb)
+uint32_t eda_mds_init(EDA_CB *cb)
 {
 	NCSADA_INFO ada_info;
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MDS_SVC_ID svc = NCSMDS_SVC_ID_EDS;
 
    /** Create the ADEST for EDA and get the pwe hdl**/
@@ -1530,7 +1530,7 @@ uns32 eda_mds_init(EDA_CB *cb)
 void eda_sync_with_eds(EDA_CB *cb)
 {
 	NCS_SEL_OBJ_SET set;
-	uns32 timeout = 3000;
+	uint32_t timeout = 3000;
 
 	m_NCS_LOCK(&cb->eds_sync_lock, NCS_LOCK_WRITE);
 
@@ -1572,7 +1572,7 @@ void eda_sync_with_eds(EDA_CB *cb)
 void eda_mds_finalize(EDA_CB *cb)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* Un-install your service into MDS. 
 	   No need to cancel the services that are subscribed */
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
@@ -1602,10 +1602,10 @@ void eda_mds_finalize(EDA_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 eda_mds_msg_sync_send(EDA_CB *cb, EDSV_MSG *i_msg, EDSV_MSG **o_msg, uns32 timeout)
+uint32_t eda_mds_msg_sync_send(EDA_CB *cb, EDSV_MSG *i_msg, EDSV_MSG **o_msg, uint32_t timeout)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (NULL == i_msg) {
 		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
@@ -1654,10 +1654,10 @@ uns32 eda_mds_msg_sync_send(EDA_CB *cb, EDSV_MSG *i_msg, EDSV_MSG **o_msg, uns32
  
   Notes         : None.
 ******************************************************************************/
-uns32 eda_mds_msg_async_send(struct eda_cb_tag *cb, struct edsv_msg *i_msg, uns32 prio)
+uint32_t eda_mds_msg_async_send(struct eda_cb_tag *cb, struct edsv_msg *i_msg, uint32_t prio)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	if (NULL == i_msg) {
 		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;

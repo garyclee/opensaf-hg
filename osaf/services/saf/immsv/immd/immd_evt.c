@@ -29,34 +29,34 @@
 #include "immd.h"
 #include "ncssysf_mem.h"
 
-uns32 immd_evt_proc_cb_dump(IMMD_CB *cb);
+uint32_t immd_evt_proc_cb_dump(IMMD_CB *cb);
 
-static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
-static uns32 immd_evt_proc_immnd_req_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
-static uns32 immd_evt_proc_immnd_announce_load(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
-static uns32 immd_evt_proc_immnd_announce_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_immnd_req_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_immnd_announce_load(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_immnd_announce_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
-static uns32 immd_evt_proc_immnd_abort_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_immnd_abort_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
-static uns32 immd_evt_proc_immnd_loading_failed(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_immnd_loading_failed(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
-static uns32 immd_evt_proc_immnd_prto_purge_mutations(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_immnd_prto_purge_mutations(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
-static uns32 immd_evt_proc_immnd_announce_dump(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
-static uns32 immd_evt_proc_adminit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
-static uns32 immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
-static uns32 immd_evt_proc_ccbinit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
-static uns32 immd_evt_proc_rt_modify_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
-static uns32 immd_evt_proc_discard_impl(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
-static uns32 immd_evt_proc_abort_ccb(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
-static uns32 immd_evt_proc_admo_hard_finalize(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_immnd_announce_dump(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_adminit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_ccbinit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_rt_modify_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_discard_impl(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_abort_ccb(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_admo_hard_finalize(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
-static uns32 immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt);
+static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt);
 
-static uns32 immd_evt_mds_quiesced_ack_rsp(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
-static uns32 immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt);
+static uint32_t immd_evt_mds_quiesced_ack_rsp(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt);
 
-static uns32 immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
 /****************************************************************************
  * Name          : immd_process_evt
@@ -72,7 +72,7 @@ static uns32 immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 void immd_process_evt(void)
 {
 	IMMD_CB *cb = immd_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT *evt;
 
 	TRACE_ENTER();
@@ -181,7 +181,7 @@ void immd_process_evt(void)
 	return;
 }
 
-static uns32 immd_immnd_guard(IMMD_CB *cb, MDS_DEST *dest)
+static uint32_t immd_immnd_guard(IMMD_CB *cb, MDS_DEST *dest)
 {
 	IMMD_IMMND_INFO_NODE *node_info = NULL;
 
@@ -213,11 +213,11 @@ static uns32 immd_immnd_guard(IMMD_CB *cb, MDS_DEST *dest)
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *****************************************************************************/
 
-uns32 immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo, NCS_BOOL deallocate)
+uint32_t immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo, NCS_BOOL deallocate)
 {
 	IMMSV_EVT send_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_FEVS *fevs_req = &evt->info.fevsReq;
 	uint8_t isResend = FALSE;
 	TRACE_ENTER();
@@ -328,7 +328,7 @@ uns32 immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo,
 
 static void immd_start_sync_ok(IMMD_CB *cb, SaUint32T rulingEpoch, IMMD_IMMND_INFO_NODE *node_info)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT sync_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
 	TRACE_ENTER();
@@ -373,7 +373,7 @@ static void immd_start_sync_ok(IMMD_CB *cb, SaUint32T rulingEpoch, IMMD_IMMND_IN
 
 static void immd_abort_sync_ok(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT sync_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
 	TRACE_ENTER();
@@ -418,7 +418,7 @@ static void immd_abort_sync_ok(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 
 static void immd_prto_purge_mutations(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT sync_evt;
 	TRACE_ENTER();
 
@@ -449,7 +449,7 @@ static void immd_prto_purge_mutations(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_in
 
 static int immd_dump_ok(IMMD_CB *cb, SaUint32T rulingEpoch, IMMD_IMMND_INFO_NODE *node_info)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT dump_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
 	TRACE_ENTER();
@@ -493,7 +493,7 @@ static int immd_dump_ok(IMMD_CB *cb, SaUint32T rulingEpoch, IMMD_IMMND_INFO_NODE
 
 static void immd_announce_load_ok(IMMD_CB *cb, SaUint32T rulingEpoch)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT load_evt;
 	TRACE_ENTER();
 
@@ -520,7 +520,7 @@ static void immd_announce_load_ok(IMMD_CB *cb, SaUint32T rulingEpoch)
 
 static void immd_req_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT rqsync_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
 
@@ -598,7 +598,7 @@ static void immd_req_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 
 static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, NCS_BOOL doReply)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT accept_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
 	NCS_BOOL isOnController = node_info->isOnController;
@@ -721,9 +721,9 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, NCS_B
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
  *****************************************************************************/
-static uns32 immd_evt_proc_immnd_announce_dump(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_immnd_announce_dump(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMD_IMMND_INFO_NODE *node_info = NULL;
 	TRACE_ENTER();
 
@@ -797,9 +797,9 @@ static uns32 immd_evt_proc_immnd_announce_dump(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
  ****************************************************************************/
-static uns32 immd_evt_proc_immnd_announce_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_immnd_announce_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMD_IMMND_INFO_NODE *node_info = NULL;
 	TRACE_ENTER();
 	immd_immnd_info_node_get(&cb->immnd_tree, &sinfo->dest, &node_info);
@@ -860,9 +860,9 @@ static uns32 immd_evt_proc_immnd_announce_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
  ****************************************************************************/
-uns32 immd_evt_proc_immnd_abort_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+uint32_t immd_evt_proc_immnd_abort_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMD_IMMND_INFO_NODE *node_info = NULL;
 	TRACE_ENTER();
 	immd_immnd_info_node_get(&cb->immnd_tree, &sinfo->dest, &node_info);
@@ -908,9 +908,9 @@ uns32 immd_evt_proc_immnd_abort_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
  ****************************************************************************/
-uns32 immd_evt_proc_immnd_loading_failed(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+uint32_t immd_evt_proc_immnd_loading_failed(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMD_IMMND_INFO_NODE *node_info = NULL;
 	TRACE_ENTER();
 	immd_immnd_info_node_get(&cb->immnd_tree, &sinfo->dest, &node_info);
@@ -955,9 +955,9 @@ uns32 immd_evt_proc_immnd_loading_failed(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
  ****************************************************************************/
-uns32 immd_evt_proc_immnd_prto_purge_mutations(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+uint32_t immd_evt_proc_immnd_prto_purge_mutations(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMD_IMMND_INFO_NODE *node_info = NULL;
 	TRACE_ENTER();
 	immd_immnd_info_node_get(&cb->immnd_tree, &sinfo->dest, &node_info);
@@ -1003,9 +1003,9 @@ uns32 immd_evt_proc_immnd_prto_purge_mutations(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
  *****************************************************************************/
-static uns32 immd_evt_proc_immnd_announce_load(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_immnd_announce_load(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMD_IMMND_INFO_NODE *node_info = NULL;
 	TRACE_ENTER();
 
@@ -1065,9 +1065,9 @@ static uns32 immd_evt_proc_immnd_announce_load(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
  *****************************************************************************/
-static uns32 immd_evt_proc_immnd_req_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_immnd_req_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMD_IMMND_INFO_NODE *node_info = NULL;
 	int oldPid, newPid;
 	int oldEpoch, newEpoch;
@@ -1131,9 +1131,9 @@ static uns32 immd_evt_proc_immnd_req_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
  *
  *****************************************************************************/
 
-static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMD_IMMND_INFO_NODE *node_info = NULL;
 	int oldPid, newPid;
 	int oldEpoch, newEpoch;
@@ -1234,12 +1234,12 @@ static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_IN
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 immd_evt_proc_adminit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_adminit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	IMMSV_EVT fevs_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_ND2D_ADMINIT_REQ *adminit_req = &evt->info.admown_init;
 	SaUint32T globalId = 0;
 	NCS_UBAID uba;
@@ -1298,7 +1298,7 @@ static uns32 immd_evt_proc_adminit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_IN
 		goto fail;
 	}
 
-	int32 size = uba.ttl;
+	int32_t size = uba.ttl;
 	tmpData = malloc(size);
 	assert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
@@ -1341,12 +1341,12 @@ static uns32 immd_evt_proc_adminit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_IN
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *****************************************************************************/
 
-static uns32 immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	IMMSV_EVT fevs_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_OI_IMPLSET_REQ *impl_req = &evt->info.impl_set.r;
 	SaUint32T globalId = 0;
 	NCS_UBAID uba;
@@ -1407,7 +1407,7 @@ static uns32 immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_I
 		goto fail;
 	}
 
-	int32 size = uba.ttl;
+	int32_t size = uba.ttl;
 	tmpData = malloc(size);
 	assert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
@@ -1455,10 +1455,10 @@ static uns32 immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_I
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *****************************************************************************/
 
-static uns32 immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	IMMSV_EVT fevs_evt;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_UBAID uba;
 	char *tmpData = NULL;
 	uba.start = NULL;
@@ -1486,7 +1486,7 @@ static uns32 immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 		goto fail;
 	}
 
-	int32 size = uba.ttl;
+	int32_t size = uba.ttl;
 	tmpData = malloc(size);
 	assert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
@@ -1527,10 +1527,10 @@ static uns32 immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *****************************************************************************/
-static uns32 immd_evt_proc_discard_impl(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_discard_impl(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	IMMSV_EVT fevs_evt;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_OI_IMPLSET_REQ *impl_req = &evt->info.impl_set.r;
 	NCS_UBAID uba;
 	char *tmpData = NULL;
@@ -1559,7 +1559,7 @@ static uns32 immd_evt_proc_discard_impl(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_I
 		goto fail;
 	}
 
-	int32 size = uba.ttl;
+	int32_t size = uba.ttl;
 	tmpData = malloc(size);
 	assert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
@@ -1598,10 +1598,10 @@ static uns32 immd_evt_proc_discard_impl(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_I
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *****************************************************************************/
-static uns32 immd_evt_proc_abort_ccb(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_abort_ccb(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	IMMSV_EVT fevs_evt;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	SaUint32T ccbId = evt->info.ccbId;
 	NCS_UBAID uba;
 	char *tmpData = NULL;
@@ -1630,7 +1630,7 @@ static uns32 immd_evt_proc_abort_ccb(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO
 		goto fail;
 	}
 
-	int32 size = uba.ttl;
+	int32_t size = uba.ttl;
 	tmpData = malloc(size);
 	assert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
@@ -1669,10 +1669,10 @@ static uns32 immd_evt_proc_abort_ccb(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *****************************************************************************/
-static uns32 immd_evt_proc_admo_hard_finalize(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_admo_hard_finalize(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	IMMSV_EVT fevs_evt;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	SaUint32T admoId = evt->info.admoId;
 	NCS_UBAID uba;
 	char *tmpData = NULL;
@@ -1701,7 +1701,7 @@ static uns32 immd_evt_proc_admo_hard_finalize(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_
 		goto fail;
 	}
 
-	int32 size = uba.ttl;
+	int32_t size = uba.ttl;
 	tmpData = malloc(size);
 	assert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
@@ -1743,12 +1743,12 @@ static uns32 immd_evt_proc_admo_hard_finalize(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 immd_evt_proc_ccbinit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_ccbinit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	IMMSV_EVT fevs_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_OM_CCB_INITIALIZE *ccbinit_req = &evt->info.ccb_init;
 	SaUint32T globalId = 0;
 	NCS_UBAID uba;
@@ -1801,7 +1801,7 @@ static uns32 immd_evt_proc_ccbinit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_IN
 		goto fail;
 	}
 
-	int32 size = uba.ttl;
+	int32_t size = uba.ttl;
 	tmpData = malloc(size);
 	assert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
@@ -1845,11 +1845,11 @@ static uns32 immd_evt_proc_ccbinit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_IN
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 immd_evt_proc_rt_modify_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_proc_rt_modify_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	IMMSV_EVT fevs_evt;
 	IMMSV_OM_CCB_OBJECT_MODIFY *objModifyReq = &evt->info.objModify;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
 	NCS_UBAID uba;
 	char *tmpData = NULL;
@@ -1891,7 +1891,7 @@ static uns32 immd_evt_proc_rt_modify_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_
 		goto fail;
 	}
 
-	int32 size = uba.ttl;
+	int32_t size = uba.ttl;
 	tmpData = malloc(size);
 	assert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
@@ -1934,7 +1934,7 @@ static uns32 immd_evt_proc_rt_modify_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 immd_evt_proc_cb_dump(IMMD_CB *cb)
+uint32_t immd_evt_proc_cb_dump(IMMD_CB *cb)
 {
 
 	immd_cb_dump();
@@ -1953,9 +1953,9 @@ uns32 immd_evt_proc_cb_dump(IMMD_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt)
+static uint32_t immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	if ((cb->ha_state != SA_AMF_HA_ACTIVE) &&
@@ -1993,7 +1993,7 @@ done:
  * 
  * @return uns32
  */
-static uns32 immd_evt_mds_quiesced_ack_rsp(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uint32_t immd_evt_mds_quiesced_ack_rsp(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	TRACE_ENTER();
 
@@ -2028,17 +2028,17 @@ static uns32 immd_evt_mds_quiesced_ack_rsp(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEN
  *        pretend to understand what all of it does. Mainly cloned
  *        from CPSv.
  ****************************************************************************/
-static uns32 immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
+static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 {
 	IMMSV_MDS_INFO *mds_info;
 	IMMD_IMMND_INFO_NODE *node_info = NULL;
 	NCS_BOOL add_flag = TRUE;
-	uns32 phy_slot_sub_slot;
+	uint32_t phy_slot_sub_slot;
 	TRACE_ENTER();
 
 	mds_info = &evt->info.mds_info;
 
-	memset(&phy_slot_sub_slot, 0, sizeof(uns32));
+	memset(&phy_slot_sub_slot, 0, sizeof(uint32_t));
 
 	if (mds_info->svc_id == NCSMDS_SVC_ID_IMMND)
 		TRACE_5("Received IMMND service event");

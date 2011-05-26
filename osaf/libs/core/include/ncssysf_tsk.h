@@ -35,7 +35,7 @@
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
 
-extern uns32 ncs_task_join(void *task_handle);
+extern uint32_t ncs_task_join(void *task_handle);
 
 #ifdef  __cplusplus
 extern "C" {
@@ -204,13 +204,13 @@ extern "C" {
  
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	uns32 ncs_task_create(NCS_OS_CB, void *, char *, unsigned int, unsigned int, void **);
-	uns32 ncs_task_release(void *);
-	uns32 ncs_task_detach(void *);
-	uns32 ncs_task_start(void *);
-	uns32 ncs_task_stop(void *);
-	uns32 ncs_task_sleep(unsigned int);
-	uns32 ncs_task_current(void **);
+	uint32_t ncs_task_create(NCS_OS_CB, void *, char *, unsigned int, unsigned int, void **);
+	uint32_t ncs_task_release(void *);
+	uint32_t ncs_task_detach(void *);
+	uint32_t ncs_task_start(void *);
+	uint32_t ncs_task_stop(void *);
+	uint32_t ncs_task_sleep(unsigned int);
+	uint32_t ncs_task_current(void **);
 	int ncs_task_entry(NCS_OS_TASK *task);
 
 #ifdef  __cplusplus

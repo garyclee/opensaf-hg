@@ -361,12 +361,12 @@ plms_mds_bcast_send (MDS_HDL mds_hdl,
 ******************************************************************************/
 
 SaUint32T plm_mds_msg_sync_send (MDS_HDL mds_hdl,
-                              uns32       from_svc,
-                              uns32       to_svc,
+                              uint32_t       from_svc,
+                              uint32_t       to_svc,
                               MDS_DEST    to_dest,
                               PLMS_EVT     *i_evt,
                               PLMS_EVT     **o_evt,
-                              uns32       timeout)
+                              uint32_t       timeout)
 {
 
 

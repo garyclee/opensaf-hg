@@ -45,7 +45,7 @@ extern "C" {
 
 /** H&J SYSF_MBX Message Element
  **/
-	typedef uns32 SYSF_MBX;
+	typedef uint32_t SYSF_MBX;
 
 /** Prototype for "leave on queue" callback functions.  See description of
  ** m_NCS_IPC_FLUSH below for more information.
@@ -341,8 +341,8 @@ extern "C" {
  *
  * "i_p_mbx" is a pointer to a SYSF_MBX.
  * "i_prio"  relative priority  of type NCS_IPC_PRIORITY
- * "i_usr_counter" is a pointer to uns32 
- *               Holds the address of uns32 user counter 
+ * "i_usr_counter" is a pointer to uint32_t 
+ *               Holds the address of uint32_t user counter 
  * RETURNS:
  *
  * NCSCC_RC_SUCCESS:  if usr_counter addresses are set Successfully  .
@@ -359,19 +359,19 @@ extern "C" {
  
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	uns32 ncs_ipc_create(SYSF_MBX *mbx);
-	uns32 ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB cb);
+	uint32_t ncs_ipc_create(SYSF_MBX *mbx);
+	uint32_t ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB cb);
 	NCS_SEL_OBJ ncs_ipc_get_sel_obj(SYSF_MBX *mbx);
-	uns32 ncs_ipc_attach(SYSF_MBX *mbx);
-	uns32 ncs_ipc_attach_ext(SYSF_MBX *mbx, char *task_name);
-	uns32 ncs_ipc_detach(SYSF_MBX *mbx, NCS_IPC_CB cb, void *cb_arg);
+	uint32_t ncs_ipc_attach(SYSF_MBX *mbx);
+	uint32_t ncs_ipc_attach_ext(SYSF_MBX *mbx, char *task_name);
+	uint32_t ncs_ipc_detach(SYSF_MBX *mbx, NCS_IPC_CB cb, void *cb_arg);
 	NCS_IPC_MSG *ncs_ipc_recv(SYSF_MBX *mbx);
-	uns32 ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio);
+	uint32_t ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio);
 	NCS_IPC_MSG *ncs_ipc_non_blk_recv(SYSF_MBX *mbx);
-	uns32 ncs_ipc_non_blk_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio);
-	uns32 ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 max_limit);
-	uns32 ncs_ipc_config_usr_counters(SYSF_MBX *i_mbx, NCS_IPC_PRIORITY i_prio,
-							       uns32 *i_usr_counter);
+	uint32_t ncs_ipc_non_blk_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio);
+	uint32_t ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uint32_t max_limit);
+	uint32_t ncs_ipc_config_usr_counters(SYSF_MBX *i_mbx, NCS_IPC_PRIORITY i_prio,
+							       uint32_t *i_usr_counter);
 #ifdef  __cplusplus
 }
 #endif

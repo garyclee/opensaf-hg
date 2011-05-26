@@ -35,7 +35,7 @@
 int main(int argc, char **argv)
 {
 	SaAmfHAStateT ha_state = 0;
-	uns32 ret_val = NCSCC_RC_SUCCESS;
+	uint32_t ret_val = NCSCC_RC_SUCCESS;
 
 	ret_val = rda_get_role(&ha_state);
 

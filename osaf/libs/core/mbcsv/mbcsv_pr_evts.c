@@ -48,13 +48,13 @@
  
   Notes         : None
 ******************************************************************************/
-uns32 mbcsv_process_events(MBCSV_EVT *rcvd_evt, uns32 mbcsv_hdl)
+uint32_t mbcsv_process_events(MBCSV_EVT *rcvd_evt, uint32_t mbcsv_hdl)
 {
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	MBCSV_REG *mbc_reg = NULL;
 	PEER_INST *peer = NULL;
 	CKPT_INST *ckpt = NULL;
-	uns32 hdl_to_give;
+	uint32_t hdl_to_give;
 
 	if (NULL == (mbc_reg = (MBCSV_REG *)m_MBCSV_TAKE_HANDLE(mbcsv_hdl))) {
 		return m_MBCSV_DBG_SINK(SA_AIS_ERR_BAD_HANDLE, "mbcsv_process_events: Bad handle received.");
@@ -144,9 +144,9 @@ uns32 mbcsv_process_events(MBCSV_EVT *rcvd_evt, uns32 mbcsv_hdl)
 
 					if (NULL !=
 					    (peer =
-					     (PEER_INST *)m_MBCSV_TAKE_HANDLE((uns32)rcvd_evt->rcvr_peer_key.
+					     (PEER_INST *)m_MBCSV_TAKE_HANDLE((uint32_t)rcvd_evt->rcvr_peer_key.
 									      peer_inst_hdl))) {
-						hdl_to_give = (uns32)rcvd_evt->rcvr_peer_key.peer_inst_hdl;
+						hdl_to_give = (uint32_t)rcvd_evt->rcvr_peer_key.peer_inst_hdl;
 						ckpt = peer->my_ckpt_inst;
 
 						m_LOG_MBCSV_FSM_EVT(ckpt->my_role, mbc_reg->svc_id, ckpt->pwe_hdl,
@@ -223,10 +223,10 @@ uns32 mbcsv_process_events(MBCSV_EVT *rcvd_evt, uns32 mbcsv_hdl)
  
   Notes         : None
 ******************************************************************************/
-uns32 mbcsv_hdl_dispatch_one(uns32 mbcsv_hdl, SYSF_MBX mbx)
+uint32_t mbcsv_hdl_dispatch_one(uint32_t mbcsv_hdl, SYSF_MBX mbx)
 {
 	MBCSV_EVT *rcvd_evt;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	/* get it from the queue */
 	rcvd_evt = m_MBCSV_RCV_MSG(&mbx);
@@ -249,10 +249,10 @@ uns32 mbcsv_hdl_dispatch_one(uns32 mbcsv_hdl, SYSF_MBX mbx)
  
   Notes         : None
 ******************************************************************************/
-uns32 mbcsv_hdl_dispatch_all(uns32 mbcsv_hdl, SYSF_MBX mbx)
+uint32_t mbcsv_hdl_dispatch_all(uint32_t mbcsv_hdl, SYSF_MBX mbx)
 {
 	MBCSV_EVT *rcvd_evt;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	while ((rcvd_evt = m_MBCSV_RCV_MSG(&mbx))) {
 		if (SA_AIS_OK != (rc = mbcsv_process_events(rcvd_evt, mbcsv_hdl))) {
@@ -274,10 +274,10 @@ uns32 mbcsv_hdl_dispatch_all(uns32 mbcsv_hdl, SYSF_MBX mbx)
  
   Notes         : None
 ******************************************************************************/
-uns32 mbcsv_hdl_dispatch_block(uns32 mbcsv_hdl, SYSF_MBX mbx)
+uint32_t mbcsv_hdl_dispatch_block(uint32_t mbcsv_hdl, SYSF_MBX mbx)
 {
 	MBCSV_EVT *rcvd_evt;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	while ((rcvd_evt = m_MBCSV_BLK_RCV_MSG(&mbx))) {
 		if (SA_AIS_OK != (rc = mbcsv_process_events(rcvd_evt, mbcsv_hdl))) {

@@ -576,9 +576,9 @@ SaUint32T plms_ee_instantiate(PLMS_ENTITY *,SaUint32T,SaUint32T);
 SaUint32T plms_mbx_tmr_handler(PLMS_EVT *);
 SaUint32T plms_plmc_mbx_evt_process(PLMS_EVT *);
 SaUint32T plms_isolate_and_mngt_lost_clear(PLMS_ENTITY *);
-int32 plms_plmc_error_cbk(plmc_lib_error *);
-int32 plms_plmc_connect_cbk(char *,char *);
-int32 plms_plmc_udp_cbk(udp_msg *);
+int32_t plms_plmc_error_cbk(plmc_lib_error *);
+int32_t plms_plmc_connect_cbk(char *,char *);
+int32_t plms_plmc_udp_cbk(udp_msg *);
 
 /* Function declaration from plms_adm_fsm.c*/
 SaUint32T plms_cbk_call(PLMS_TRACK_INFO *,SaUint8T);
@@ -597,8 +597,8 @@ SaUint32T plms_timer_stop(PLMS_ENTITY *);
 void plms_get_str_from_dn_name(SaNameT *, SaStringT);
 
 /* Function Declarations */
-extern uns32 plms_edp_plms_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                        NCSCONTEXT ptr, uns32 *ptr_data_len,
+extern uint32_t plms_edp_plms_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+                        NCSCONTEXT ptr, uint32_t *ptr_data_len,
 	                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
 			         EDU_ERR *o_err);
 SaUint32T plms_amf_register();
@@ -617,7 +617,7 @@ void  plms_cb_dump_routine();
 SaUint32T  plms_free_evt(PLMS_EVT *evt);
 SaUint32T plms_cbk_validate_resp_ok_err_proc(PLMS_TRACK_INFO *);
 SaUint32T plms_cbk_start_resp_ok_err_proc(PLMS_TRACK_INFO *);
-uns32 plms_mds_normal_send(MDS_HDL, NCSMDS_SVC_ID,NCSCONTEXT, MDS_DEST,
+uint32_t plms_mds_normal_send(MDS_HDL, NCSMDS_SVC_ID,NCSCONTEXT, MDS_DEST,
 						NCSMDS_SVC_ID);
 SaUint32T plms_hrb_mds_msg_sync_send(MDS_HDL mds_hdl,
 					SaUint32T from_svc,

@@ -47,19 +47,19 @@
 #include <avd_proc.h>
 
 /* static function prototypes */
-static uns32 avd_check_si_dep_sponsors(AVD_CL_CB *cb, AVD_SI *si, NCS_BOOL take_action);
+static uint32_t avd_check_si_dep_sponsors(AVD_CL_CB *cb, AVD_SI *si, NCS_BOOL take_action);
 static void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, AVD_SI_SI_DEP *si_dep_rec);
-static uns32 avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si);
-static uns32 avd_check_si_state_enabled(AVD_CL_CB *cb, AVD_SI *si);
-static uns32 avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si);
-static uns32 avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep_idx);
+static uint32_t avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si);
+static uint32_t avd_check_si_state_enabled(AVD_CL_CB *cb, AVD_SI *si);
+static uint32_t avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si);
+static uint32_t avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep_idx);
 static void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep,
 					 AVD_SI_DEP_SPONSOR_SI_STATE spons_state);
-static uns32 avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx);
+static uint32_t avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx);
 static void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt);
 
 static AVD_SI_DEP si_dep; /* SI-SI dependency data */
-static uns32 is_config_valid(SaNameT *sidep_name);
+static uint32_t is_config_valid(SaNameT *sidep_name);
 
 /*****************************************************************************
  * Function: avd_check_si_state_enabled 
@@ -75,10 +75,10 @@ static uns32 is_config_valid(SaNameT *sidep_name);
  * NOTES:
  *
  **************************************************************************/
-uns32 avd_check_si_state_enabled(AVD_CL_CB *cb, AVD_SI *si)
+uint32_t avd_check_si_state_enabled(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU_SI_REL *susi = NULL;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	TRACE_ENTER2("%s",si->name.value);
 	susi = si->list_of_sisu;
 	while (susi != AVD_SU_SI_REL_NULL) {
@@ -182,7 +182,7 @@ void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
  * NOTES: 
  * 
  **************************************************************************/
-uns32 avd_si_dep_spons_list_add(AVD_CL_CB *avd_cb, AVD_SI *dep_si, AVD_SI *spons_si,
+uint32_t avd_si_dep_spons_list_add(AVD_CL_CB *avd_cb, AVD_SI *dep_si, AVD_SI *spons_si,
 		AVD_SI_SI_DEP *rec)
 {
 	AVD_SPONS_SI_NODE *spons_si_node;
@@ -271,10 +271,10 @@ void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si)
  * NOTES:
  *
  **************************************************************************/
-uns32 avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si)
+uint32_t avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU_SI_REL *susi = NULL;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_SU_SI_STATE old_fsm_state;
 
 	susi = si->list_of_sisu;
@@ -322,7 +322,7 @@ uns32 avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si)
  * NOTES:
  *
  **************************************************************************/
-uns32 avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
+uint32_t avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
 {
 	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
 		return NCSCC_RC_FAILURE;
@@ -387,7 +387,7 @@ uns32 avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
  * NOTES:
  * 
  **************************************************************************/
-uns32 avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep_idx)
+uint32_t avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep_idx)
 {
 	AVD_EVT *evt = NULL;
 
@@ -529,9 +529,9 @@ done:
  * NOTES:  
  * 
  **************************************************************************/
-uns32 avd_check_si_dep_sponsors(AVD_CL_CB *cb, AVD_SI *si, NCS_BOOL take_action)
+uint32_t avd_check_si_dep_sponsors(AVD_CL_CB *cb, AVD_SI *si, NCS_BOOL take_action)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SPONS_SI_NODE *spons_si_node = si->spons_si_list;
 	TRACE_ENTER2("%s", si->name.value);
 	while (spons_si_node) {
@@ -966,8 +966,8 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 {
 	AVD_SI_SI_DEP *rec = NULL;
-	uns32 si_prim_len = indx->si_name_prim.length;
-	uns32 si_sec_len = indx->si_name_sec.length;
+	uint32_t si_prim_len = indx->si_name_prim.length;
+	uint32_t si_sec_len = indx->si_name_sec.length;
 
 	TRACE_ENTER();
 
@@ -1103,7 +1103,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, 
  * NOTES:
  * 
  **************************************************************************/
-uns32 avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
+uint32_t avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
 {
 	AVD_SI_SI_DEP *si_dep_rec = NULL;
 
@@ -1151,13 +1151,13 @@ uns32 avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
  *        buffer is not sufficient to process this request.
  *
  **************************************************************************/
-uns32 avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
+uint32_t avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 {
 	AVD_SI_SI_DEP *rec = NULL;
 	AVD_SI_DEP_NAME_LIST *start = NULL;
 	AVD_SI_DEP_NAME_LIST *temp = NULL;
 	AVD_SI_DEP_NAME_LIST *last = NULL;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_SI_SI_DEP_INDX idx;
 
 	TRACE_ENTER();
@@ -1238,7 +1238,7 @@ static int avd_sidep_indx_init(const SaNameT *sidep_name, AVD_SI_SI_DEP_INDX *in
 {
 	char *p;
 	SaNameT tmp;
-	uns32 i = 0;
+	uint32_t i = 0;
 
 	memset(&tmp, 0, sizeof(SaNameT));
 	tmp.length = sidep_name->length;
@@ -1278,10 +1278,10 @@ static int avd_sidep_indx_init(const SaNameT *sidep_name, AVD_SI_SI_DEP_INDX *in
 	return TRUE;
 }
 
-static uns32 is_config_valid(SaNameT *sidep_name)
+static uint32_t is_config_valid(SaNameT *sidep_name)
 {
 	AVD_SI_SI_DEP_INDX indx;
-	uns32 rc = TRUE;
+	uint32_t rc = TRUE;
 	AVD_SI *spons_si, *dep_si;
 
 	TRACE_ENTER();

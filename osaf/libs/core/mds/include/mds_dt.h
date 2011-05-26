@@ -37,8 +37,8 @@
 /* This file is private to the MDTM layer. */
 
 /* Global ReAssembly TMR Value */
-extern uns32 MDTM_REASSEMBLE_TMR_VAL;
-extern uns32 MDTM_CACHED_EVENTS_TMR_VAL;
+extern uint32_t MDTM_REASSEMBLE_TMR_VAL;
+extern uint32_t MDTM_CACHED_EVENTS_TMR_VAL;
 
 /* Locks */
 extern NCS_LOCK gl_lock;
@@ -46,7 +46,7 @@ extern NCS_LOCK *mds_lock(void);
 
 typedef struct mdtm_reassembly_key {
 
-	uns32 frag_sequence_num;	/* Frag Sequence number of this message */
+	uint32_t frag_sequence_num;	/* Frag Sequence number of this message */
 	MDS_DEST id;
 
 } MDTM_REASSEMBLY_KEY;
@@ -64,7 +64,7 @@ typedef struct mdtm_reassembly_queue {
 				   donot reassemble any further data */
 	uint16_t next_frag_num;
 
-	uns32 svc_sequence_num;	/* SVC Sequence number of this message */
+	uint32_t svc_sequence_num;	/* SVC Sequence number of this message */
 
 	MDS_DATA_RECV recv;
 
@@ -72,7 +72,7 @@ typedef struct mdtm_reassembly_queue {
 
 	MDS_TMR_REQ_INFO *tmr_info;
 
-	uns32 tmr_hdl;
+	uint32_t tmr_hdl;
 
 } MDTM_REASSEMBLY_QUEUE;
 
@@ -154,13 +154,13 @@ typedef enum {
 #define MORE_FRAG_BIT  0x8000
 #define NO_FRAG_BIT    0x0000
 
-uns32 mdtm_add_to_ref_tbl(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL ref);
-uns32 mdtm_del_from_ref_tbl(MDS_SUBTN_REF_VAL ref);
-uns32 mds_tmr_mailbox_processing(void);
-uns32 mdtm_get_from_ref_tbl(MDS_SUBTN_REF_VAL ref, MDS_SVC_HDL *svc_hdl);
-uns32 mdtm_add_frag_hdr(uint8_t *buf_ptr, uint16_t len, uns32 seq_num, uint16_t frag_byte);
-uns32 mdtm_free_reassem_msg_mem(MDS_ENCODED_MSG *msg);
-uns32 mdtm_process_recv_data(uint8_t *buf, uint16_t len, uns64 tipc_id, uns32 *buff_dump);
+uint32_t mdtm_add_to_ref_tbl(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL ref);
+uint32_t mdtm_del_from_ref_tbl(MDS_SUBTN_REF_VAL ref);
+uint32_t mds_tmr_mailbox_processing(void);
+uint32_t mdtm_get_from_ref_tbl(MDS_SUBTN_REF_VAL ref, MDS_SVC_HDL *svc_hdl);
+uint32_t mdtm_add_frag_hdr(uint8_t *buf_ptr, uint16_t len, uint32_t seq_num, uint16_t frag_byte);
+uint32_t mdtm_free_reassem_msg_mem(MDS_ENCODED_MSG *msg);
+uint32_t mdtm_process_recv_data(uint8_t *buf, uint16_t len, uns64 tipc_id, uint32_t *buff_dump);
 
 typedef enum {
 	MDTM_TX_TYPE_TIPC = 1,
@@ -209,11 +209,11 @@ typedef struct mdtm_ref_hdl_list {
 } MDTM_REF_HDL_LIST;
 
 MDTM_REF_HDL_LIST *mdtm_ref_hdl_list_hdr;
-uns32 mdtm_attach_mbx(SYSF_MBX mbx);
-void mds_buff_dump(uint8_t *buff, uns32 len, uns32 max);
+uint32_t mdtm_attach_mbx(SYSF_MBX mbx);
+void mds_buff_dump(uint8_t *buff, uint32_t len, uint32_t max);
 NCS_PATRICIA_TREE mdtm_reassembly_list;
 
-uns32 mdtm_set_transport(MDTM_TX_TYPE transport);
+uint32_t mdtm_set_transport(MDTM_TX_TYPE transport);
 NCS_BOOL mdtm_mailbox_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg);
 
 #define MDTM_PKT_TYPE_OFFSET            4	/* Fragmented or normal */
@@ -282,11 +282,11 @@ NCS_BOOL mdtm_mailbox_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg);
 
 /* ADEST INFO TABLE Operations */
 /*
-extern uns32 mds_adest_info_tbl_add ();
-extern uns32 mds_adest_info_tbl_set ();
-extern uns32 mds_adest_info_tbl_get ();
-extern uns32 mds_adest_info_tbl_getnext ();
-extern uns32 mds_adest_info_tbl_query ();
+extern uint32_t mds_adest_info_tbl_add ();
+extern uint32_t mds_adest_info_tbl_set ();
+extern uint32_t mds_adest_info_tbl_get ();
+extern uint32_t mds_adest_info_tbl_getnext ();
+extern uint32_t mds_adest_info_tbl_query ();
 */
 
 /* DEFINE THESE THINGS*/

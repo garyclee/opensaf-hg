@@ -260,7 +260,7 @@ typedef struct cpsv_ckpt_destlist_info {
 	SaCkptCheckpointCreationAttributesT attributes;
 	SaCkptCheckpointOpenFlagsT ckpt_flags;
 	NCS_BOOL is_cpnd_restart;
-	uns32 dest_cnt;
+	uint32_t dest_cnt;
 	CPSV_CPND_DEST_INFO *dest_list;
 
 } CPSV_CKPT_DESTLIST_INFO;
@@ -361,7 +361,7 @@ typedef struct cpsv_a2nd_sect_iter_getnext {
 	SaCkptSectionIdT section_id;
 	SaCkptSectionIterationHandleT iter_id;	/* CPA expects this to pass this in resp */
 	SaCkptSectionsChosenT filter;
-	uns32 n_secs_trav;
+	uint32_t n_secs_trav;
 	SaTimeT exp_tmr;
 } CPSV_A2ND_SECT_ITER_GETNEXT;
 
@@ -447,7 +447,7 @@ typedef struct cpsv_nd2a_sect_iter_getnext_rsp {
 	SaCkptSectionIterationHandleT iter_id;	/* Passed by CPA */
 	SaAisErrorT error;
 	SaCkptSectionDescriptorT sect_desc;	/* Section Description */
-	uns32 n_secs_trav;
+	uint32_t n_secs_trav;
 
 } CPSV_ND2A_SECT_ITER_GETNEXT_RSP;
 
@@ -515,7 +515,7 @@ typedef struct cpsv_d2nd_ckpt_info {
 	SaCkptCheckpointHandleT ckpt_id;
 	NCS_BOOL is_active_exists;	/* TRUE/FALSE */
 	MDS_DEST active_dest;
-	uns32 dest_cnt;
+	uint32_t dest_cnt;
 	CPSV_CPND_DEST_INFO *dest_list;
 	SaCkptCheckpointCreationAttributesT attributes;
 	NCS_BOOL ckpt_rep_create;
@@ -596,18 +596,18 @@ typedef struct cpsv_nd2d_ckpt_unlink {
 typedef struct cpsv_ref_cnt 
 {
    SaCkptCheckpointHandleT  ckpt_id;
-   uns32  ckpt_ref_cnt;
+   uint32_t  ckpt_ref_cnt;
 }CPSV_REF_CNT;
 
 typedef struct cpsv_a2nd_refcntset
 {
-   uns32           		      no_of_nodes;      
+   uint32_t           		      no_of_nodes;      
    CPSV_REF_CNT                       ref_cnt_array[100];
 }CPSV_A2ND_REFCNTSET;
 typedef struct cpsv_ckpt_rdset {
 	SaCkptCheckpointHandleT ckpt_id;
 	SaTimeT reten_time;
-	uns32 type;
+	uint32_t type;
 } CPSV_CKPT_RDSET;
 
 typedef struct cpsv_nd2d_ckpt_name {
@@ -616,7 +616,7 @@ typedef struct cpsv_nd2d_ckpt_name {
 
 /* CPA Local Events */
 typedef struct cpa_tmr_info {
-	uns32 type;
+	uint32_t type;
 	SaCkptCheckpointHandleT lcl_ckpt_hdl;
 	SaCkptHandleT client_hdl;
 	SaInvocationT invocation;
@@ -658,9 +658,9 @@ typedef struct cpa_evt {
 
 /* CPND Local Events */
 typedef struct cpnd_tmr_info {
-	uns32 type;
+	uint32_t type;
 	SaCkptCheckpointHandleT ckpt_id;
-	uns32 lcl_sec_id;
+	uint32_t lcl_sec_id;
 	MDS_DEST agent_dest;
 	SaUint32T write_type;
 	CPSV_SEND_INFO sinfo;
@@ -764,7 +764,7 @@ typedef struct cpnd_evt
 
 /* CPD Local Events */
 typedef struct cpd_tmr_info {
-	uns32 type;
+	uint32_t type;
 	union {
 		MDS_DEST cpnd_dest;
 	} info;
@@ -811,20 +811,20 @@ typedef struct cpsv_evt {
 } CPSV_EVT;
 
 /* Event Declerations */
-uns32 cpsv_evt_cpy(CPSV_EVT *src, CPSV_EVT *dest, uns32 svc_id);
-uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub);
-uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt);
-uns32 cpsv_ckpt_data_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *data);
-uns32 cpsv_ref_cnt_encode(NCS_UBAID *i_ub, CPSV_A2ND_REFCNTSET *data);
-uns32 cpsv_refcnt_ckptid_decode(CPSV_A2ND_REFCNTSET *data, NCS_UBAID *io_uba);
-uns32 cpsv_ckpt_node_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *pdata);
-uns32 cpsv_ckpt_data_decode(CPSV_CKPT_DATA **data, NCS_UBAID *io_uba);
-uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba);
-uns32 cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba);
-uns32 cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba);
-uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba);
-uns32 cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba);
-uns32 cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba);
+uint32_t cpsv_evt_cpy(CPSV_EVT *src, CPSV_EVT *dest, uint32_t svc_id);
+uint32_t cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub);
+uint32_t cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt);
+uint32_t cpsv_ckpt_data_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *data);
+uint32_t cpsv_ref_cnt_encode(NCS_UBAID *i_ub, CPSV_A2ND_REFCNTSET *data);
+uint32_t cpsv_refcnt_ckptid_decode(CPSV_A2ND_REFCNTSET *data, NCS_UBAID *io_uba);
+uint32_t cpsv_ckpt_node_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *pdata);
+uint32_t cpsv_ckpt_data_decode(CPSV_CKPT_DATA **data, NCS_UBAID *io_uba);
+uint32_t cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba);
+uint32_t cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba);
+uint32_t cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba);
+uint32_t cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba);
+uint32_t cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba);
+uint32_t cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba);
 
 /*
  * m_CPSV_DBG_SINK
@@ -843,8 +843,8 @@ uns32 cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID
 
 #if ((NCS_CPND == 1) || (NCS_CPD == 1))
 
-uns32 cpsv_dbg_sink(uns32, char *, uns32, char *);
-#define m_CPSV_DBG_SINK(r, s)  cpsv_dbg_sink(__LINE__,__FILE__,(uns32)r, (char*)s)
+uint32_t cpsv_dbg_sink(uint32_t, char *, uint32_t, char *);
+#define m_CPSV_DBG_SINK(r, s)  cpsv_dbg_sink(__LINE__,__FILE__,(uint32_t)r, (char*)s)
 #define m_CPSV_DBG_VOID     cpsv_dbg_sink(__LINE__,__FILE__,1)
 #else
 

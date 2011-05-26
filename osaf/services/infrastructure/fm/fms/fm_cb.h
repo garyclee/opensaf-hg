@@ -18,7 +18,7 @@
 #ifndef FM_CB_H
 #define FM_CB_H
 
-uns32 gl_fm_hdl;
+uint32_t gl_fm_hdl;
 
 typedef enum {
 	FM_TMR_TYPE_MIN,
@@ -42,7 +42,7 @@ typedef struct fm_tmr {
 /* FM control block */
 typedef struct fm_cb {
 
-	uns32 cb_hdl;
+	uint32_t cb_hdl;
 	SYSF_MBX mbx;
 
 /* FM AMF CB */
@@ -66,7 +66,7 @@ typedef struct fm_cb {
 	FM_TMR promote_active_tmr;
 
 /* Time in terms of one hundredth of seconds (500 for 5 secs.) */
-	uns32 active_promote_tmr_val;
+	uint32_t active_promote_tmr_val;
 } FM_CB;
 
 extern char *role_string[];
@@ -75,8 +75,8 @@ extern FM_CB *fm_cb;
 /*****************************************************************
 *         Prototypes for extern functions                       *
 *****************************************************************/
-uns32 fm_rda_init(FM_CB *);
-uns32 fm_rda_finalize(FM_CB *);
-uns32 fm_rda_set_role(FM_CB *, PCS_RDA_ROLE);
+uint32_t fm_rda_init(FM_CB *);
+uint32_t fm_rda_finalize(FM_CB *);
+uint32_t fm_rda_set_role(FM_CB *, PCS_RDA_ROLE);
 
 #endif

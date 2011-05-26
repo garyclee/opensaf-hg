@@ -2930,7 +2930,7 @@ void mqsv_createcancelthread(SaMsgQueueHandleT *queueHandle)
 void mqsv_selection_thread_blocking (NCSCONTEXT arg)
 {
    SaMsgHandleT *msgHandle = (SaMsgHandleT *)arg;
-   uns32 rc;
+   uint32_t rc;
 
    rc = saMsgDispatch(*msgHandle, SA_DISPATCH_BLOCKING);
    if (rc != SA_AIS_OK)
@@ -2969,7 +2969,7 @@ void mqsv_createthread(SaMsgHandleT *msgHandle)
 void mqsv_selection_thread_one (NCSCONTEXT arg)
 {
    SaMsgHandleT *msgHandle = (SaMsgHandleT *)arg;
-   uns32 rc;
+   uint32_t rc;
 
    rc = saMsgDispatch(*msgHandle, SA_DISPATCH_ONE);
    if (rc != SA_AIS_OK)
@@ -3006,7 +3006,7 @@ void mqsv_createthread_one(SaMsgHandleT *msgHandle)
 void mqsv_selection_thread_all (NCSCONTEXT arg)
 {
    SaMsgHandleT *msgHandle = (SaMsgHandleT *)arg;
-   uns32 rc;
+   uint32_t rc;
 
    rc = saMsgDispatch(*msgHandle, SA_DISPATCH_ALL);
    if (rc != SA_AIS_OK)

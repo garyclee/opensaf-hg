@@ -44,35 +44,35 @@
 /***********************************************************************\
                     VDA-PRIVATE APIs used by VDS.
 \***********************************************************************/
-uns32 vda_chg_role_vdest(MDS_DEST *i_vdest, V_DEST_RL i_new_role);
+uint32_t vda_chg_role_vdest(MDS_DEST *i_vdest, V_DEST_RL i_new_role);
 
-uns32 vda_create_vdest_locally(uns32 i_policy, MDS_DEST *i_vdest, MDS_HDL *o_mds_vdest_hdl);
+uint32_t vda_create_vdest_locally(uint32_t i_policy, MDS_DEST *i_vdest, MDS_HDL *o_mds_vdest_hdl);
 
-uns32 vda_util_enc_8bit(NCS_UBAID *uba, uint8_t data);
+uint32_t vda_util_enc_8bit(NCS_UBAID *uba, uint8_t data);
 uint8_t vda_util_dec_8bit(NCS_UBAID *uba);
 
 #define vda_util_enc_n_octets(uba, size, buff) ncs_encode_n_octets_in_uba(uba, buff, size)
 #define vda_util_dec_n_octets(uba, size, buff) ncs_decode_n_octets_from_uba(uba, buff, size)
 
-uns32 vda_util_enc_vdest_name(NCS_UBAID *uba, SaNameT *name);
-uns32 vda_util_dec_vdest_name(NCS_UBAID *uba, SaNameT *name);
+uint32_t vda_util_enc_vdest_name(NCS_UBAID *uba, SaNameT *name);
+uint32_t vda_util_dec_vdest_name(NCS_UBAID *uba, SaNameT *name);
 
-uns32 vda_util_enc_vdest(NCS_UBAID *uba, MDS_DEST *dest);
-uns32 vda_util_dec_vdest(NCS_UBAID *uba, MDS_DEST *dest);
+uint32_t vda_util_enc_vdest(NCS_UBAID *uba, MDS_DEST *dest);
+uint32_t vda_util_dec_vdest(NCS_UBAID *uba, MDS_DEST *dest);
 
 /***********************************************************************\
     ada_lib_req :  This API initializes ADA (Absolute Destination Agent code)
 \***********************************************************************/
 /* Service provider abstract name */
 #define m_ADA_SP_ABST_NAME  "NCS_ADA"
-uns32 ada_lib_req(NCS_LIB_REQ_INFO *req);
+uint32_t ada_lib_req(NCS_LIB_REQ_INFO *req);
 
 /***********************************************************************\
     vda_lib_req :  This API initializes VDA (Virtual Destination Agent code)
 \***********************************************************************/
 /* Service provider abstract name */
 #define m_VDA_SP_ABST_NAME  "NCS_VDA"
-uns32 vda_lib_req(NCS_LIB_REQ_INFO *req);
+uint32_t vda_lib_req(NCS_LIB_REQ_INFO *req);
 
 typedef enum {
 	MDA_INST_NAME_TYPE_NULL,

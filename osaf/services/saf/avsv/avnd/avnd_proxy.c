@@ -24,7 +24,7 @@
   
 ****************************************************************************/
 #include "avnd.h"
-static uns32 avnd_int_ext_comp_val(AVND_CB *, SaNameT *, AVND_COMP **, SaAisErrorT *);
+static uint32_t avnd_int_ext_comp_val(AVND_CB *, SaNameT *, AVND_COMP **, SaAisErrorT *);
 /******************************************************************************
   Name          : avnd_evt_mds_avnd_up
  
@@ -37,9 +37,9 @@ static uns32 avnd_int_ext_comp_val(AVND_CB *, SaNameT *, AVND_COMP **, SaAisErro
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_mds_avnd_up_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_mds_avnd_up_evh(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 res = 0;
+	uint32_t res = 0;
 
 	TRACE_ENTER();
 
@@ -66,9 +66,9 @@ uns32 avnd_evt_mds_avnd_up_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_mds_avnd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_mds_avnd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 res = 0;
+	uint32_t res = 0;
 
 	TRACE_ENTER();
 
@@ -95,9 +95,9 @@ uns32 avnd_evt_mds_avnd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_DND_MSG_LIST *rec = 0;
 	AVND_MSG msg;
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
@@ -167,9 +167,9 @@ uns32 avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_DND_MSG_LIST *rec = 0;
 	AVSV_D2N_COMP_VALIDATION_RESP_INFO *info = NULL;
 	SaAisErrorT amf_rc = SA_AIS_OK;
@@ -320,9 +320,9 @@ uns32 avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_avnd_msg_send(AVND_CB *cb, uint8_t *msg_info, AVSV_AMF_API_TYPE type, MDS_SYNC_SND_CTXT *ctxt, NODE_ID node_id)
+uint32_t avnd_avnd_msg_send(AVND_CB *cb, uint8_t *msg_info, AVSV_AMF_API_TYPE type, MDS_SYNC_SND_CTXT *ctxt, NODE_ID node_id)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_MSG msg;
 	AVSV_ND2ND_AVA_MSG *nd_nd_ava_msg = NULL;
 	MDS_DEST i_to_dest = 0;
@@ -419,10 +419,10 @@ uns32 avnd_avnd_msg_send(AVND_CB *cb, uint8_t *msg_info, AVSV_AMF_API_TYPE type,
 
   Notes         : None
 ******************************************************************************/
-uns32 avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
+uint32_t avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
 			     MDS_SYNC_SND_CTXT *ctxt, SaAisErrorT *o_amf_rc, NCS_BOOL *int_ext_comp)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP *o_comp = NULL;
 	SaNameT comp_name;
 	NCS_BOOL send_resp = TRUE;
@@ -607,9 +607,9 @@ resp to originator AvND.
 
   Notes         : None
 ******************************************************************************/
-uns32 avnd_int_ext_comp_val(AVND_CB *cb, SaNameT *comp_name, AVND_COMP **o_comp, SaAisErrorT *o_amf_rc)
+uint32_t avnd_int_ext_comp_val(AVND_CB *cb, SaNameT *comp_name, AVND_COMP **o_comp, SaAisErrorT *o_amf_rc)
 {
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 	*o_amf_rc = SA_AIS_OK;
 
 	TRACE_ENTER2("%s",comp_name->value);
@@ -644,9 +644,9 @@ uns32 avnd_int_ext_comp_val(AVND_CB *cb, SaNameT *comp_name, AVND_COMP **o_comp,
 
   Notes         : None
 ******************************************************************************/
-uns32 avnd_avnd_cbk_del_send(AVND_CB *cb, SaNameT *comp_name, uns32 *opq_hdl, NODE_ID *node_id)
+uint32_t avnd_avnd_cbk_del_send(AVND_CB *cb, SaNameT *comp_name, uint32_t *opq_hdl, NODE_ID *node_id)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MDS_DEST i_to_dest = 0;
 	AVND_MSG msg;
 

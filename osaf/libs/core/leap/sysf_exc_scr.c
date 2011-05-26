@@ -171,7 +171,7 @@ void ncs_exec_module_timer_hdlr(void *uarg)
 void ncs_exec_mod_hdlr(void)
 {
 	EXEC_MOD_INFO info;
-	uns32 maxsize = sizeof(EXEC_MOD_INFO);
+	uint32_t maxsize = sizeof(EXEC_MOD_INFO);
 	int count = 0, ret_val = 0;
 	SYSF_PID_LIST *exec_pid = NULL;
 	int status = -1;
@@ -250,7 +250,7 @@ void ncs_exec_mod_hdlr(void)
  * Notes:
  *
 \**************************************************************************/
-void give_exec_mod_cb(int pid, uns32 status, int type)
+void give_exec_mod_cb(int pid, uint32_t status, int type)
 {
 	NCS_OS_PROC_EXECUTE_TIMED_CB_INFO cb_info;
 	SYSF_PID_LIST *exec_pid;
@@ -322,7 +322,7 @@ void give_exec_mod_cb(int pid, uns32 status, int type)
  * Notes:
  *
 \**************************************************************************/
-uns32 add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uns32 pid)
+uint32_t add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uint32_t pid)
 {
 	SYSF_PID_LIST *list_entry;
 
@@ -371,7 +371,7 @@ uns32 add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uns32 pid)
  * Notes:
  *
 \**************************************************************************/
-uns32 init_exec_mod_cb(void)
+uint32_t init_exec_mod_cb(void)
 {
 	memset(&module_cb, '\0', sizeof(SYSF_EXECUTE_MODULE_CB));
 	m_NCS_LOCK_INIT(&module_cb.tree_lock);
@@ -395,12 +395,12 @@ uns32 init_exec_mod_cb(void)
  * Notes:
  *
 \**************************************************************************/
-uns32 start_exec_mod_cb(void)
+uint32_t start_exec_mod_cb(void)
 {
 	NCS_PATRICIA_PARAMS pt_params;
 	int spair[2];
 
-	pt_params.key_size = sizeof(uns32);
+	pt_params.key_size = sizeof(uint32_t);
 
 	if (ncs_patricia_tree_init(&module_cb.pid_list, &pt_params) != NCSCC_RC_SUCCESS) {
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -451,7 +451,7 @@ uns32 start_exec_mod_cb(void)
  * Notes:
  *
 \**************************************************************************/
-uns32 exec_mod_cb_destroy(void)
+uint32_t exec_mod_cb_destroy(void)
 {
 	SYSF_PID_LIST *exec_pid = NULL;
 	uint8_t pid = 0;

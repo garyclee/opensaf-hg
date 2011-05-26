@@ -38,7 +38,7 @@
 typedef struct ava_pend_cbk_rec {
 	struct ava_pend_cbk_rec *next;
 	AVSV_AMF_CBK_INFO *cbk_info;	/* callbk info */
-	uns32 flag;		/* unused, dont remove it */
+	uint32_t flag;		/* unused, dont remove it */
 
 } AVA_PEND_CBK_REC;
 
@@ -46,7 +46,7 @@ typedef struct ava_pend_cbk_rec {
 typedef struct ava_pend_resp_rec {
 	struct ava_pend_resp_rec *next;
 	AVSV_AMF_CBK_INFO *cbk_info;	/* callbk info */
-	uns32 flag;		/* used to see, if we have responded
+	uint32_t flag;		/* used to see, if we have responded
 				   in callback itself */
 
 } AVA_PEND_RESP_REC;
@@ -62,7 +62,7 @@ typedef struct ava_resp_cbk {
 typedef struct ava_hdl_rec_tag {
 	NCS_PATRICIA_NODE hdl_node;	/* hdl-db tree node */
 
-	uns32 hdl;		/* AMF handle (derived from hdl-mngr) */
+	uint32_t hdl;		/* AMF handle (derived from hdl-mngr) */
 
 	SaAmfCallbacksT reg_cbk;	/* callbacks registered by the application */
 
@@ -73,7 +73,7 @@ typedef struct ava_hdl_rec_tag {
 /* AvA handle database top level structure */
 typedef struct ava_hdl_db_tag {
 	NCS_PATRICIA_TREE hdl_db_anchor;	/* root of the handle db */
-	uns32 num;		/* no of hdl db records */
+	uint32_t num;		/* no of hdl db records */
 } AVA_HDL_DB;
 
 /*** Macro Definitions */
@@ -81,7 +81,7 @@ typedef struct ava_hdl_db_tag {
 /* Macro to find the hdl rec */
 #define m_AVA_HDL_REC_FIND(db, hdl, o_rec) \
 { \
-   uns32 pat_hdl = (uns32)(hdl); \
+   uint32_t pat_hdl = (uint32_t)(hdl); \
    (o_rec) = (AVA_HDL_REC *)ncs_patricia_tree_get(&(db)->hdl_db_anchor, \
                                                   (uint8_t *)&pat_hdl); \
 }
@@ -177,9 +177,9 @@ typedef struct ava_hdl_db_tag {
 
 struct ava_cb_tag;
 
-uns32 ava_hdl_cbk_param_add(struct ava_cb_tag *, AVA_HDL_REC *, AVSV_AMF_CBK_INFO *);
+uint32_t ava_hdl_cbk_param_add(struct ava_cb_tag *, AVA_HDL_REC *, AVSV_AMF_CBK_INFO *);
 
-uns32 ava_hdl_init(AVA_HDL_DB *);
+uint32_t ava_hdl_init(AVA_HDL_DB *);
 
 void ava_hdl_del(struct ava_cb_tag *);
 
@@ -187,7 +187,7 @@ void ava_hdl_rec_del(struct ava_cb_tag *, AVA_HDL_DB *, AVA_HDL_REC *);
 
 AVA_HDL_REC *ava_hdl_rec_add(struct ava_cb_tag *, AVA_HDL_DB *, const SaAmfCallbacksT *);
 
-uns32 ava_hdl_cbk_dispatch(struct ava_cb_tag **, AVA_HDL_REC **, SaDispatchFlagsT);
+uint32_t ava_hdl_cbk_dispatch(struct ava_cb_tag **, AVA_HDL_REC **, SaDispatchFlagsT);
 
 void ava_hdl_cbk_rec_del(AVA_PEND_CBK_REC *);
 
@@ -195,6 +195,6 @@ AVA_PEND_RESP_REC *ava_hdl_pend_resp_pop(AVA_PEND_RESP *, SaInvocationT);
 
 AVA_PEND_RESP_REC *ava_hdl_pend_resp_get(AVA_PEND_RESP *, SaInvocationT);
 
-uns32 ava_callback_ipc_init(AVA_HDL_REC *hdl_rec);
+uint32_t ava_callback_ipc_init(AVA_HDL_REC *hdl_rec);
 
 #endif   /* !AVA_HDL_H */

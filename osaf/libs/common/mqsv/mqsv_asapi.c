@@ -41,21 +41,21 @@
 ASAPi_CB asapi;			/* Global ASAPi Control Block */
 
 /******************************** LOCAL ROUTINES *****************************/
-static uns32 asapi_msg_hdlr(ASAPi_MSG_ARG *);
-static uns32 asapi_dest_get(ASAPi_DEST_INFO *);
-static uns32 asapi_queue_get(ASAPi_Q_INFO *);
-static uns32 asapi_cache_update(ASAPi_OBJECT_INFO *, ASAPi_OBJECT_OPR, ASAPi_CACHE_INFO **);
-static uns32 asapi_msg_send(ASAPi_MSG_INFO *, MQSV_SEND_INFO *, NCSMDS_INFO *);
+static uint32_t asapi_msg_hdlr(ASAPi_MSG_ARG *);
+static uint32_t asapi_dest_get(ASAPi_DEST_INFO *);
+static uint32_t asapi_queue_get(ASAPi_Q_INFO *);
+static uint32_t asapi_cache_update(ASAPi_OBJECT_INFO *, ASAPi_OBJECT_OPR, ASAPi_CACHE_INFO **);
+static uint32_t asapi_msg_send(ASAPi_MSG_INFO *, MQSV_SEND_INFO *, NCSMDS_INFO *);
 static ASAPi_CACHE_INFO *asapi_object_find(SaNameT *);
 static void asapi_object_destroy(SaNameT *);
-static uns32 asapi_msg_process(ASAPi_MSG_INFO *, ASAPi_CACHE_INFO **);
+static uint32_t asapi_msg_process(ASAPi_MSG_INFO *, ASAPi_CACHE_INFO **);
 static NCS_BOOL asapi_obj_cmp(void *, void *);
 static NCS_BOOL asapi_queue_cmp(void *, void *);
-static uns32 asapi_grp_upd(ASAPi_GROUP_INFO *, ASAPi_OBJECT_INFO *, ASAPi_OBJECT_OPR);
+static uint32_t asapi_grp_upd(ASAPi_GROUP_INFO *, ASAPi_OBJECT_INFO *, ASAPi_OBJECT_OPR);
 static void asapi_usr_unbind(void);
-static uns32 aspai_fetch_info(ASAPi_MSG_INFO *, MQSV_SEND_INFO *, ASAPi_CACHE_INFO **);
-static uns32 asapi_track_process(ASAPi_GRP_TRACK_INFO *);
-static uns32 asapi_cpy_track_info(ASAPi_GROUP_INFO *, ASAPi_GROUP_TRACK_INFO *);
+static uint32_t aspai_fetch_info(ASAPi_MSG_INFO *, MQSV_SEND_INFO *, ASAPi_CACHE_INFO **);
+static uint32_t asapi_track_process(ASAPi_GRP_TRACK_INFO *);
+static uint32_t asapi_cpy_track_info(ASAPi_GROUP_INFO *, ASAPi_GROUP_TRACK_INFO *);
 /*****************************************************************************/
 
 /****************************************************************************\
@@ -73,9 +73,9 @@ static uns32 asapi_cpy_track_info(ASAPi_GROUP_INFO *, ASAPi_GROUP_TRACK_INFO *);
    RETURNS        :  SA_AIS_OK - All went well
                      SA_AIS_ERROR - internal processing didn't like something.
 \****************************************************************************/
-uns32 asapi_opr_hdlr(ASAPi_OPR_INFO *opr)
+uint32_t asapi_opr_hdlr(ASAPi_OPR_INFO *opr)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Do the required operation based on the request/operation type */
 	if (ASAPi_OPR_BIND == opr->type) {
@@ -157,9 +157,9 @@ static void asapi_usr_unbind(void)
                      FAILURE - internal processing didn't like something.
                      SA_AIS_ERROR
 \****************************************************************************/
-static uns32 asapi_msg_hdlr(ASAPi_MSG_ARG *msg)
+static uint32_t asapi_msg_hdlr(ASAPi_MSG_ARG *msg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_CACHE_INFO *pCache = 0;
 
 	/* Check what action needs to be carried out vis-a-vis message */
@@ -207,9 +207,9 @@ static uns32 asapi_msg_hdlr(ASAPi_MSG_ARG *msg)
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 asapi_dest_get(ASAPi_DEST_INFO *dinfo)
+static uint32_t asapi_dest_get(ASAPi_DEST_INFO *dinfo)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_CACHE_INFO *pNode = 0;
 
 	/* Check whether Object with that name exist in Local Cache */
@@ -278,9 +278,9 @@ static uns32 asapi_dest_get(ASAPi_DEST_INFO *dinfo)
                     FAILURE - internal processing didn't like something.
                     SA_AIS_ERROR
 \****************************************************************************/
-static uns32 asapi_queue_get(ASAPi_Q_INFO *qinfo)
+static uint32_t asapi_queue_get(ASAPi_Q_INFO *qinfo)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_CACHE_INFO *pNode = 0;
 
 	/* Check whether Object with that name exist in Local Cache */
@@ -357,9 +357,9 @@ static uns32 asapi_queue_get(ASAPi_Q_INFO *qinfo)
    RETURNS        :  MDS_DEST - All went well
                      NULL - internal processing didn't like something.
 \****************************************************************************/
-static uns32 aspai_fetch_info(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo, ASAPi_CACHE_INFO **o_cache)
+static uint32_t aspai_fetch_info(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo, ASAPi_CACHE_INFO **o_cache)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO *pMsg = 0;
 	NCSMDS_INFO mds;
 
@@ -404,10 +404,10 @@ static uns32 aspai_fetch_info(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo, ASAPi_
    RETURNS        :  NCSCC_RC_SUCCESS - All went well
                      SA_AIS_ERROR - internal processing didn't like something.
 \****************************************************************************/
-static uns32 asapi_track_process(ASAPi_GRP_TRACK_INFO *tinfo)
+static uint32_t asapi_track_process(ASAPi_GRP_TRACK_INFO *tinfo)
 {
 	ASAPi_CACHE_INFO *pNode = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (m_ASAPi_TRACK_IS_ENABLE(tinfo->i_option)) {
 		pNode = asapi_object_find(&tinfo->i_group);
@@ -492,9 +492,9 @@ static uns32 asapi_track_process(ASAPi_GRP_TRACK_INFO *tinfo)
                      FAILURE - internal processing didn't like something.
                      SA_AIS_ERR
 \****************************************************************************/
-static uns32 asapi_msg_process(ASAPi_MSG_INFO *msg, ASAPi_CACHE_INFO **o_cache)
+static uint32_t asapi_msg_process(ASAPi_MSG_INFO *msg, ASAPi_CACHE_INFO **o_cache)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Update the local cache with the received information */
 	*o_cache = 0;
@@ -541,10 +541,10 @@ static uns32 asapi_msg_process(ASAPi_MSG_INFO *msg, ASAPi_CACHE_INFO **o_cache)
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 asapi_cache_update(ASAPi_OBJECT_INFO *pInfo, ASAPi_OBJECT_OPR opr, ASAPi_CACHE_INFO **o_cache)
+static uint32_t asapi_cache_update(ASAPi_OBJECT_INFO *pInfo, ASAPi_OBJECT_OPR opr, ASAPi_CACHE_INFO **o_cache)
 {
 	ASAPi_CACHE_INFO *pCache = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaNameT *pObject = 0;
 
 	/* Check if cache entry exist with us or not */
@@ -638,10 +638,10 @@ static uns32 asapi_cache_update(ASAPi_OBJECT_INFO *pInfo, ASAPi_OBJECT_OPR opr, 
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 asapi_grp_upd(ASAPi_GROUP_INFO *pGrp, ASAPi_OBJECT_INFO *pInfo, ASAPi_OBJECT_OPR opr)
+static uint32_t asapi_grp_upd(ASAPi_GROUP_INFO *pGrp, ASAPi_OBJECT_INFO *pInfo, ASAPi_OBJECT_OPR opr)
 {
 	ASAPi_QUEUE_INFO *pQinfo = 0;
-	uns32 idx = 0;
+	uint32_t idx = 0;
 
 	/* Update the group policy ... */
 	pGrp->policy = pInfo->policy;
@@ -778,10 +778,10 @@ static uns32 asapi_grp_upd(ASAPi_GROUP_INFO *pGrp, ASAPi_OBJECT_INFO *pInfo, ASA
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 asapi_msg_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo, NCSMDS_INFO *mds)
+static uint32_t asapi_msg_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo, NCSMDS_INFO *mds)
 {
 	MQSV_EVT evt;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Populate the MDS envolpe & Send the message to destination */
 	evt.type = MQSV_EVT_ASAPI;
@@ -829,12 +829,12 @@ static uns32 asapi_msg_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo, NCSMDS_I
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something
 \****************************************************************************/
-static uns32 asapi_cpy_track_info(ASAPi_GROUP_INFO *pGinfo, ASAPi_GROUP_TRACK_INFO *pGTrackinfo)
+static uint32_t asapi_cpy_track_info(ASAPi_GROUP_INFO *pGinfo, ASAPi_GROUP_TRACK_INFO *pGTrackinfo)
 {
 	ASAPi_QUEUE_INFO *pQelm = 0;
 	NCS_Q_ITR itr;
-	uns32 q_cnt = 0;
-	uns32 i = 0;
+	uint32_t q_cnt = 0;
+	uint32_t i = 0;
 
 	itr.state = 0;
 	while ((pQelm = (ASAPi_QUEUE_INFO *)ncs_walk_items(&pGinfo->qlist, &itr))) {
@@ -882,12 +882,12 @@ static uns32 asapi_cpy_track_info(ASAPi_GROUP_INFO *pGinfo, ASAPi_GROUP_TRACK_IN
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something                     
 \****************************************************************************/
-uns32 asapi_queue_select(ASAPi_GROUP_INFO *pGinfo)
+uint32_t asapi_queue_select(ASAPi_GROUP_INFO *pGinfo)
 {
 	ASAPi_QUEUE_INFO *pQelm = 0;
 	NCS_Q_ITR itr;
-	uns32 q_cnt = pGinfo->qlist.count;
-	uns32 queue_open_flag = FALSE;
+	uint32_t q_cnt = pGinfo->qlist.count;
+	uint32_t queue_open_flag = FALSE;
 
 	/* Ignore the request if there is no queue under the group */
 	if (!pGinfo->qlist.count)
@@ -1064,7 +1064,7 @@ static NCS_BOOL asapi_obj_cmp(void *key, void *qelem)
 {
 	NCS_BOOL match = FALSE;
 	ASAPi_CACHE_INFO *pNode = (ASAPi_CACHE_INFO *)qelem;
-	uns32 cmp = 0;
+	uint32_t cmp = 0;
 
 	/* Match the object content */
 	if (ASAPi_OBJ_QUEUE == pNode->objtype) {
@@ -1153,7 +1153,7 @@ void asapi_msg_free(ASAPi_MSG_INFO **msg)
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something  
 \****************************************************************************/
-uns32 asapi_msg_cpy(ASAPi_MSG_INFO *from, ASAPi_MSG_INFO **to)
+uint32_t asapi_msg_cpy(ASAPi_MSG_INFO *from, ASAPi_MSG_INFO **to)
 {
 	ASAPi_MSG_INFO *pMsg = 0;
 	ASAPi_OBJECT_INFO *info = 0;
@@ -1202,7 +1202,7 @@ uns32 asapi_msg_cpy(ASAPi_MSG_INFO *from, ASAPi_MSG_INFO **to)
     
   ARGUMENTS:
 
-  uns32   l             line # in file
+  uint32_t   l             line # in file
   char*   f             file name where macro invoked
   code    code          Error code value.. Usually FAILURE
 
@@ -1214,7 +1214,7 @@ uns32 asapi_msg_cpy(ASAPi_MSG_INFO *from, ASAPi_MSG_INFO **to)
 
 #if (ASAPi_DEBUG == 1)
 
-uns32 asapi_dbg_sink(uns32 l, char *f, uns32 code)
+uint32_t asapi_dbg_sink(uint32_t l, char *f, uint32_t code)
 {
 	TRACE("IN ASAPi_DBG_SINK: line %d, file %s", l, f);
 	return code;

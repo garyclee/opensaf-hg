@@ -37,7 +37,7 @@
 static const char *loaderBase = "immload";
 static const char *pbeBase = BINDIR "/immdump";
 
-void immnd_ackToNid(uns32 rc)
+void immnd_ackToNid(uint32_t rc)
 {
 	if (immnd_cb->nid_started == 0)
 		return;
@@ -75,7 +75,7 @@ void immnd_proc_immd_down(IMMND_CB *cb)
  * Notes         : Policy used for handling immd down is to blindly cleanup 
  *                :immnd_cb 
  ****************************************************************************/
-uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node)
+uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node)
 {
 	SaUint32T client_id;
 	SaUint32T node_id;
@@ -360,9 +360,9 @@ void immnd_proc_imma_discard_stales(IMMND_CB *cb)
  * Return Values : NONE
  *
  *****************************************************************************/
-uns32 immnd_introduceMe(IMMND_CB *cb)
+uint32_t immnd_introduceMe(IMMND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
@@ -392,7 +392,7 @@ uns32 immnd_introduceMe(IMMND_CB *cb)
  *
  * Notes         : 
  *****************************************************************************/
-static int32 immnd_iAmCoordinator(IMMND_CB *cb)
+static int32_t immnd_iAmCoordinator(IMMND_CB *cb)
 {
 	if (!cb->mIntroduced)
 		return (-1);
@@ -408,7 +408,7 @@ static int32 immnd_iAmCoordinator(IMMND_CB *cb)
 	return 0;
 }
 
-static int32 immnd_iAmLoader(IMMND_CB *cb)
+static int32_t immnd_iAmLoader(IMMND_CB *cb)
 {
 	int coord = immnd_iAmCoordinator(cb);
 	if (coord == -1) {
@@ -435,10 +435,10 @@ static int32 immnd_iAmLoader(IMMND_CB *cb)
 	return 0;
 }
 
-static uns32 immnd_announceLoading(IMMND_CB *cb, int32 newEpoch)
+static uint32_t immnd_announceLoading(IMMND_CB *cb, int32_t newEpoch)
 {
 	TRACE_ENTER();
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
@@ -466,9 +466,9 @@ static uns32 immnd_announceLoading(IMMND_CB *cb, int32 newEpoch)
 	return rc;
 }
 
-static uns32 immnd_requestSync(IMMND_CB *cb)
+static uint32_t immnd_requestSync(IMMND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
@@ -488,7 +488,7 @@ static uns32 immnd_requestSync(IMMND_CB *cb)
 
 void immnd_announceDump(IMMND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	IMMSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
@@ -532,13 +532,13 @@ static SaInt32T immnd_syncNeeded(IMMND_CB *cb)
 	return 0;
 }
 
-static uns32 immnd_announceSync(IMMND_CB *cb, SaUint32T newEpoch)
+static uint32_t immnd_announceSync(IMMND_CB *cb, SaUint32T newEpoch)
 {
 	/* announceSync can get into a race on epoch with announceDump. This is because
 	   announcedump can be generated at the non-coord SC. The epoch sequence
 	   should be corrected by the IMMD before replying with dumpOk/syncOk. 
 	 */
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 	LOG_NO("Announce sync, epoch:%u", newEpoch);
@@ -688,7 +688,7 @@ void immnd_adjustEpoch(IMMND_CB *cb, SaBoolT increment)
 
 static void immnd_abortLoading(IMMND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
@@ -769,7 +769,7 @@ SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T jobDurat
 
 void immnd_abortSync(IMMND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
 	uint16_t retryCount = 0;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -828,7 +828,7 @@ static void immnd_pbePrtoPurgeMutations(IMMND_CB *cb)
 	   Set veteran to false.
 	   On receipt, clean-up. 
 	*/
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 	TRACE_ENTER();
@@ -888,7 +888,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 	unsigned int ix;
 	SaImmHandleT tmp_hdl = 0LL;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaBoolT ccbsStuckInCritical=SA_FALSE;
 	SaBoolT pbePrtoStuck=SA_FALSE;
 	SaUint32T stuck=0;
@@ -1430,14 +1430,14 @@ static int immnd_forkPbe(IMMND_CB *cb)
  *
  * Notes         : Error return => IMMND task should end.
  *****************************************************************************/
-uns32 immnd_proc_server(uns32 *timeout)
+uint32_t immnd_proc_server(uint32_t *timeout)
 {
 	IMMND_CB *cb = immnd_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	int32 coord, newEpoch;
-	int32 printFrq = (*timeout > 100) ? 5 : 50;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	int32_t coord, newEpoch;
+	int32_t printFrq = (*timeout > 100) ? 5 : 50;
 	time_t now = time(NULL);
-	uns32 jobDuration = now - cb->mJobStart;
+	uint32_t jobDuration = now - cb->mJobStart;
 	if(!jobDuration) {++jobDuration;} /* Avoid jobDuraton of zero */
 	/*TRACE_ENTER(); */
 
@@ -1940,7 +1940,7 @@ void immnd_dump_client_info(IMMND_IMM_CLIENT_NODE *cl_node)
 	TRACE_5("++++++++++++++++++++++++++++++++++++++++++++++++++");
 
 	TRACE_5("Client_hdl  %u\t MDS DEST %x ",
-		(uns32)(cl_node->imm_app_hdl), (uns32)m_NCS_NODE_ID_FROM_MDS_DEST(cl_node->agent_mds_dest));
+		(uint32_t)(cl_node->imm_app_hdl), (uint32_t)m_NCS_NODE_ID_FROM_MDS_DEST(cl_node->agent_mds_dest));
 	TRACE_5("++++++++++++++++++++++++++++++++++++++++++++++++++");
 }
 

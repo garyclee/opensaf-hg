@@ -25,7 +25,7 @@
 #include "immd.h"
 #include "ncs_util.h"
 
-static uns32 immd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg);
+static uint32_t immd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg);
 static int immd_silence_count = 0;
 
 /*************************************************************************
@@ -38,10 +38,10 @@ static int immd_silence_count = 0;
  *
  * Return Values          : Success / Error
  *************************************************************************/
-uns32 immd_mbcsv_sync_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg)
+uint32_t immd_mbcsv_sync_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 
 	/* populate the arg structure */
@@ -76,10 +76,10 @@ uns32 immd_mbcsv_sync_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg)
  *
  * Notes                  : None
 *************************************************************************/
-uns32 immd_mbcsv_async_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg)
+uint32_t immd_mbcsv_async_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 
 	/* populate the arg structure */
@@ -116,9 +116,9 @@ uns32 immd_mbcsv_async_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg)
 * Notes   : This function first calls the mbcsv_init then does an open and 
 *           does a selection object get
 *****************************************************************************/
-uns32 immd_mbcsv_register(IMMD_CB *cb)
+uint32_t immd_mbcsv_register(IMMD_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	rc = immd_mbcsv_init(cb);
@@ -159,10 +159,10 @@ uns32 immd_mbcsv_register(IMMD_CB *cb)
  *
  * Notes                  : None
 ******************************************************************************/
-uns32 immd_mbcsv_init(IMMD_CB *cb)
+uint32_t immd_mbcsv_init(IMMD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	TRACE_5("NCS_SERVICE_ID_IMMD:%u", NCS_SERVICE_ID_IMMD);
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
@@ -197,16 +197,16 @@ uns32 immd_mbcsv_init(IMMD_CB *cb)
  *                          entities. o_ckpt_hdl returned by the OPEN call 
  *                          will uniquely identify the checkpoint session.
 *****************************************************************************/
-uns32 immd_mbcsv_open(IMMD_CB *cb)
+uint32_t immd_mbcsv_open(IMMD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_OPEN;
 	arg.i_mbcsv_hdl = cb->mbcsv_handle;
-	arg.info.open.i_pwe_hdl = (uns32)cb->mds_handle;
+	arg.info.open.i_pwe_hdl = (uint32_t)cb->mds_handle;
 	arg.info.open.i_client_hdl = 0;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
@@ -245,11 +245,11 @@ uns32 immd_mbcsv_open(IMMD_CB *cb)
 * Notes  : To receive a handle from OS and can be used in further processing 
 *          of pending callbacks 
 ******************************************************************************/
-uns32 immd_mbcsv_selobj_get(IMMD_CB *cb)
+uint32_t immd_mbcsv_selobj_get(IMMD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
@@ -282,10 +282,10 @@ uns32 immd_mbcsv_selobj_get(IMMD_CB *cb)
  *                          Role Active - send ckpt data to multiple standby
  *                           peers
 ******************************************************************************/
-uns32 immd_mbcsv_chgrole(IMMD_CB *cb)
+uint32_t immd_mbcsv_chgrole(IMMD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	TRACE_ENTER();
 
@@ -314,10 +314,10 @@ uns32 immd_mbcsv_chgrole(IMMD_CB *cb)
  *
  * Return Values : Success / Error
 ****************************************************************************/
-uns32 immd_mbcsv_close(IMMD_CB *cb)
+uint32_t immd_mbcsv_close(IMMD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	TRACE_ENTER();
 
@@ -344,10 +344,10 @@ uns32 immd_mbcsv_close(IMMD_CB *cb)
  * Notes          : Closes the association, represented by i_mbc_hdl, 
  *                  between the invoking process and MBCSV
 *****************************************************************************/
-uns32 immd_mbcsv_finalize(IMMD_CB *cb)
+uint32_t immd_mbcsv_finalize(IMMD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	TRACE_ENTER();
 
@@ -361,10 +361,10 @@ uns32 immd_mbcsv_finalize(IMMD_CB *cb)
 	return rc;
 }
 
-uns32 immd_mbcsv_dispatch(IMMD_CB *cb)
+uint32_t immd_mbcsv_dispatch(IMMD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	TRACE_ENTER();
@@ -393,9 +393,9 @@ uns32 immd_mbcsv_dispatch(IMMD_CB *cb)
  *
  * Notes           : Callbacks from MBCSV to user
 *****************************************************************************/
-uns32 immd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
+uint32_t immd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	if (arg == NULL) {
@@ -444,10 +444,10 @@ uns32 immd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
  *                   the event we encode the MBCSv_MSG
  *                  This is called at the active side
 ************************************************************************/
-static uns32 mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	IMMD_MBCSV_MSG *immd_msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *immd_type_ptr;
 	uint8_t *uns32_ptr;
 	uint8_t *uns64_ptr;
@@ -495,9 +495,9 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns64));
 		ncs_encode_64bit(&uns64_ptr, immd_msg->info.fevsReq.client_hdl);
 
-		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		assert(uns32_ptr);
-		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.fevsReq.msg.size);
 
 		IMMSV_OCTET_STRING *os = &(immd_msg->info.fevsReq.msg);
@@ -512,9 +512,9 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 		/*TRACE_5("ENCODE COUNT: %u", immd_msg->info.count); */
 
-		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		assert(uns32_ptr);
-		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.count);
 		break;
 
@@ -525,19 +525,19 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		immd_msg = (IMMD_MBCSV_MSG *)
 		    NCS_INT64_TO_PTR_CAST(arg->info.encode.io_reo_hdl);
 
-		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		assert(uns32_ptr);
-		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.nodeId);
 
-		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		assert(uns32_ptr);
-		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.rulingEpoch);
 
-		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		assert(uns32_ptr);
-		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.ndExecPid);
 
 		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
@@ -555,9 +555,9 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.syncStarted);
 
-		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		assert(uns32_ptr);
-		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.nodeEpoch);
 
 		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
@@ -595,10 +595,10 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
  |-----------------|---------------------------|------|-----------|-----------|
  *****************************************************************************/
 
-static uns32 mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	TRACE_ENTER();
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *header, num_fevs = 0, *sync_cnt_ptr;
 	uint8_t *uns32_ptr, *uns64_ptr, *uns8_ptr;
 
@@ -631,9 +631,9 @@ static uns32 mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 	/* This will have the count of async updates that have been sent,
 	   this will be 0 initially */
-	sync_cnt_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+	sync_cnt_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	assert(sync_cnt_ptr);
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&sync_cnt_ptr, cb->immd_sync_cnt);
 
 	uns64_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns64));
@@ -641,24 +641,24 @@ static uns32 mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns64));
 	ncs_encode_64bit(&uns64_ptr, cb->fevsSendCount);
 
-	uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+	uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	assert(uns32_ptr);
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&uns32_ptr, cb->admo_id_count);
 
-	uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+	uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	assert(uns32_ptr);
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&uns32_ptr, cb->impl_count);
 
-	uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+	uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	assert(uns32_ptr);
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&uns32_ptr, cb->ccb_id_count);
 
-	uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+	uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	assert(uns32_ptr);
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&uns32_ptr, cb->mRulingEpoch);
 
 	if (cb->is_immnd_tree_up && cb->immnd_tree.n_nodes > 0) {
@@ -680,14 +680,14 @@ static uns32 mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns64));
 			ncs_encode_64bit(&uns64_ptr, immnd_info_node->immnd_dest);
 
-			uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+			uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 			assert(uns32_ptr);
-			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 			ncs_encode_32bit(&uns32_ptr, immnd_info_node->immnd_execPid);
 
-			uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+			uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 			assert(uns32_ptr);
-			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 			ncs_encode_32bit(&uns32_ptr, immnd_info_node->epoch);
 
 			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
@@ -754,9 +754,9 @@ static uns32 mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
  * Return Values   : Success / Error
  *
 ******************************************************************************/
-uns32 immd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
+uint32_t immd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMD_CB *cb = immd_cb;
 	uint16_t msg_fmt_version;
 	TRACE_ENTER();
@@ -828,12 +828,12 @@ uns32 immd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
  * Return Values : Success / Error
 ******************************************************************************/
 
-static uns32 mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uint8_t *ptr;
 	uint8_t data[4];
 	IMMD_MBCSV_MSG *immd_msg;
-	uns32 evt_type, rc = NCSCC_RC_SUCCESS;
+	uint32_t evt_type, rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	immd_msg = (IMMD_MBCSV_MSG *)calloc(1, sizeof(IMMD_MBCSV_MSG));
@@ -870,9 +870,9 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns64));
 
 		IMMSV_OCTET_STRING *os = &(immd_msg->info.fevsReq.msg);
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 		os->size = ncs_decode_32bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
 		TRACE_5("DECODE IMMD_A2S_MSG_FEVS count:%llu handle:%llu",
 			immd_msg->info.fevsReq.sender_count, immd_msg->info.fevsReq.client_hdl);
@@ -896,9 +896,9 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	case IMMD_A2S_MSG_ADMINIT:
 	case IMMD_A2S_MSG_IMPLSET:
 	case IMMD_A2S_MSG_CCBINIT:
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 		immd_msg->info.count = ncs_decode_32bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
 		rc = immd_process_sb_count(cb, immd_msg->info.count, evt_type);
 		if (rc != NCSCC_RC_SUCCESS) {
@@ -911,17 +911,17 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	case IMMD_A2S_MSG_SYNC_START:
 	case IMMD_A2S_MSG_SYNC_ABORT:
 	case IMMD_A2S_MSG_DUMP_OK:
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 		immd_msg->info.ctrl.nodeId = ncs_decode_32bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 		immd_msg->info.ctrl.rulingEpoch = ncs_decode_32bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 		immd_msg->info.ctrl.ndExecPid = ncs_decode_32bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
 		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		immd_msg->info.ctrl.canBeCoord = ncs_decode_8bit(&ptr);
@@ -935,9 +935,9 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		immd_msg->info.ctrl.syncStarted = ncs_decode_8bit(&ptr);
 		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 		immd_msg->info.ctrl.nodeEpoch = ncs_decode_32bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
 		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		immd_msg->info.ctrl.pbeEnabled = ncs_decode_8bit(&ptr);
@@ -976,10 +976,10 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * Return Values  : Success / Error
 ******************************************************************************/
-static uns32 mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uint8_t *ptr, num_fevs, continue_marker, data[16];
-	uns32 count = 0, rc = NCSCC_RC_SUCCESS;
+	uint32_t count = 0, rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	TRACE_5("RECEIVED COLD SYNC MESSAGE");
@@ -1004,29 +1004,29 @@ static uns32 mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	}
 
 	/* Get the counters */
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 	cb->immd_sync_cnt = ncs_decode_32bit(&ptr);
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
 	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns64));
 	cb->fevsSendCount = ncs_decode_64bit(&ptr);
 	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns64));
 
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 	cb->admo_id_count = ncs_decode_32bit(&ptr);
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 	cb->impl_count = ncs_decode_32bit(&ptr);
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 	cb->ccb_id_count = ncs_decode_32bit(&ptr);
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 	cb->mRulingEpoch = ncs_decode_32bit(&ptr);
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
 	/* OBTAIN THE IMMND TREE. */
 	/* Get first continue marker. */
@@ -1047,13 +1047,13 @@ static uns32 mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		immd_immnd_info_node_find_add(&cb->immnd_tree, &dest, &node_info, &add_flag);
 		assert(node_info);
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 		node_info->immnd_execPid = ncs_decode_32bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
-		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 		node_info->epoch = ncs_decode_32bit(&ptr);
-		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
 		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		node_info->isOnController = ncs_decode_8bit(&ptr);
@@ -1101,7 +1101,7 @@ static uns32 mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * Return Values : Success / Error
 ******************************************************************************/
-static uns32 immd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
+static uint32_t immd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 {
 	IMMD_CB *cb = immd_cb;
 	uint16_t msg_fmt_version;

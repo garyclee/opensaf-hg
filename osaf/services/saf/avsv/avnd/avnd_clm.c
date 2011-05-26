@@ -41,7 +41,7 @@
 static void clm_node_left(SaClmNodeIdT node_id)
 {
 	AVND_COMP *comp = NULL;
-	uns32 rc;
+	uint32_t rc;
 	SaNameT name;
 	AVND_COMP_PXIED_REC *pxd_rec = 0, *curr_rec = 0;
 	memset(&name, 0, sizeof(SaNameT));
@@ -154,10 +154,10 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_node_up_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_node_up_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_NODE_UP_MSG_INFO *info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -178,7 +178,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
         SaClmChangeStepT step, SaTimeT timeSupervision, SaAisErrorT error)
 {
 	SaClmClusterNotificationT_4 *notifItem;
-	uns32 i;
+	uint32_t i;
 	TRACE_ENTER2("'%llu' '%u' '%u'",invocation, step, error);
 
 	if (error != SA_AIS_OK) {

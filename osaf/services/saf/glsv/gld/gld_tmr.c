@@ -54,9 +54,9 @@
 
   NOTES         : None
 *****************************************************************************/
-uns32 gld_start_tmr(GLSV_GLD_CB *cb, GLD_TMR *tmr, GLD_TMR_TYPE type, SaTimeT period, uns32 uarg)
+uint32_t gld_start_tmr(GLSV_GLD_CB *cb, GLD_TMR *tmr, GLD_TMR_TYPE type, SaTimeT period, uint32_t uarg)
 {
-	uns32 my_period = (uns32)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(period));
+	uint32_t my_period = (uint32_t)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(period));
 
 	if (tmr == NULL)
 		return NCSCC_RC_FAILURE;
@@ -167,7 +167,7 @@ void gld_tmr_exp(void *uarg)
 	GLSV_GLD_CB *cb = 0;
 	GLD_TMR *tmr = (GLD_TMR *)uarg;
 	GLSV_GLD_EVT *evt = 0;
-	uns32 cb_hdl;
+	uint32_t cb_hdl;
 
 	cb_hdl = tmr->cb_hdl;
 	/* retrieve GLD CB */

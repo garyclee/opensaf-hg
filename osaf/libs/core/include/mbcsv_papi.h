@@ -34,8 +34,8 @@ extern "C" {
 #include "ncs_saf.h"
 
 	typedef uns64 NCS_MBCSV_CLIENT_HDL;
-	typedef uns32 NCS_MBCSV_HDL;
-	typedef uns32 NCS_MBCSV_CKPT_HDL;
+	typedef uint32_t NCS_MBCSV_HDL;
+	typedef uint32_t NCS_MBCSV_CKPT_HDL;
 	typedef SS_SVC_ID NCS_MBCSV_CLIENT_SVCID;
 	typedef uns64 MBCSV_REO_HDL;
 
@@ -97,7 +97,7 @@ extern "C" {
 	typedef struct ncs_mbcsv_cb_enc {
 		NCS_MBCSV_MSG_TYPE io_msg_type;	/* reinvoke during sync. till xxx_COMPLETE */
 		NCS_MBCSV_ACT_TYPE io_action;	/* action: ADD,RMV,UPDATE              */
-		uns32 io_reo_type;	/* client's (private) object type      */
+		uint32_t io_reo_type;	/* client's (private) object type      */
 		MBCSV_REO_HDL io_reo_hdl;	/* client's (private) object hdl       */
 		NCS_UBAID io_uba;	/* Encoded data added to this          */
 		uns64 io_req_context;	/* decoded request info */
@@ -112,7 +112,7 @@ extern "C" {
 	typedef struct ncs_mbcsv_cb_dec {
 		NCS_MBCSV_MSG_TYPE i_msg_type;	/* type of message to decode           */
 		NCS_MBCSV_ACT_TYPE i_action;	/* checkpoint action: ADD,RMV,UPDATE   */
-		uns32 i_reo_type;	/* Value passed during encode operation */
+		uint32_t i_reo_type;	/* Value passed during encode operation */
 		NCS_UBAID i_uba;	/* data to decode                      */
 		uns64 o_req_context;	/* Keep decoded request information. */
 		uint16_t i_peer_version;	/* version info of peer as per SAF */
@@ -205,7 +205,7 @@ extern "C" {
 
 /* 3) the func prototype of callback; client provides & of a function      */
 
-	typedef uns32 (*NCS_MBCSV_CB) (NCS_MBCSV_CB_ARG *arg);
+	typedef uint32_t (*NCS_MBCSV_CB) (NCS_MBCSV_CB_ARG *arg);
 
 /***************************************************************************
 
@@ -275,7 +275,7 @@ extern "C" {
  ***************************************************************************/
 
 	typedef struct ncs_mbcsv_open {
-		uns32 i_pwe_hdl;	/* MBCSv assumes MDS; PWE/Global/etc    */
+		uint32_t i_pwe_hdl;	/* MBCSv assumes MDS; PWE/Global/etc    */
 		NCS_MBCSV_CLIENT_HDL i_client_hdl;	/* MBCSv passes back in callbacks       */
 		NCS_MBCSV_CKPT_HDL o_ckpt_hdl;	/* MBCSv binding value for this open    */
 
@@ -335,7 +335,7 @@ extern "C" {
 	typedef struct ncs_mbcsv_send_ckpt {
 		NCS_MBCSV_CKPT_HDL i_ckpt_hdl;	/* Send message to my peer            */
 		NCS_MBCSV_SND_TYPE i_send_type;	/* SYNC or flavor of ASYNC            */
-		uns32 i_reo_type;	/* pvt REO type; pass to ENCODE       */
+		uint32_t i_reo_type;	/* pvt REO type; pass to ENCODE       */
 		MBCSV_REO_HDL i_reo_hdl;	/* pvt REO ptr/hdl; pass to ENCODE    */
 		NCS_MBCSV_ACT_TYPE i_action;	/* ckpt action: ADD,RMV,UPDATE        */
 		NCS_BOOL io_no_peer;	/* Appl wants to know about peer existance */
@@ -465,7 +465,7 @@ extern "C" {
 	typedef struct ncs_mbcsv_obj_set {
 		NCS_MBCSV_CKPT_HDL i_ckpt_hdl;	/* the client instance changing      */
 		NCS_MBCSV_OBJ i_obj;	/* the OBJ ID whose value is to SET  */
-		uns32 i_val;	/* the value the OBJ is to be SET to */
+		uint32_t i_val;	/* the value the OBJ is to be SET to */
 
 	} NCS_MBCSV_OBJ_SET;
 
@@ -476,7 +476,7 @@ extern "C" {
 	typedef struct ncs_mbcsv_obj_get {
 		NCS_MBCSV_CKPT_HDL i_ckpt_hdl;	/* Fetched value is from this client */
 		NCS_MBCSV_OBJ i_obj;	/* the OBJID of value to fetch       */
-		uns32 o_val;	/* the value fetched goes here       */
+		uint32_t o_val;	/* the value fetched goes here       */
 
 	} NCS_MBCSV_OBJ_GET;
 
@@ -567,10 +567,10 @@ extern "C" {
 
 /* 3) function entry point and prototype for MBCSv service                   */
 
-/*typedef uns32 (*NCS_MBCSV) (NCS_MBCSV_ARG* arg);  function prototype           */
-	uns32 ncs_mbcsv_svc(NCS_MBCSV_ARG *arg);	/* MBCSv function instance        */
+/*typedef uint32_t (*NCS_MBCSV) (NCS_MBCSV_ARG* arg);  function prototype           */
+	uint32_t ncs_mbcsv_svc(NCS_MBCSV_ARG *arg);	/* MBCSv function instance        */
 
-	uns32 mbcsv_prt_inv(void);
+	uint32_t mbcsv_prt_inv(void);
 
 #ifdef  __cplusplus
 }

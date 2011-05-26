@@ -28,10 +28,10 @@
  * 
  * Notes         : None. 
  *****************************************************************************/
-uns32 fm_rda_init(FM_CB *fm_cb)
+uint32_t fm_rda_init(FM_CB *fm_cb)
 {
-	uns32 rc;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t rc;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	PCS_RDA_REQ rda_req;
 	TRACE_ENTER();
 
@@ -94,10 +94,10 @@ uns32 fm_rda_init(FM_CB *fm_cb)
  * 
  * Notes         : None. 
  *****************************************************************************/
-uns32 fm_rda_finalize(FM_CB *fm_cb)
+uint32_t fm_rda_finalize(FM_CB *fm_cb)
 {
-	uns32 rc;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t rc;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	PCS_RDA_REQ rda_req;
 	TRACE_ENTER();
 	memset(&rda_req, 0, sizeof(PCS_RDA_REQ));
@@ -122,10 +122,10 @@ uns32 fm_rda_finalize(FM_CB *fm_cb)
  * 
  * Notes         : None. 
  *****************************************************************************/
-uns32 fm_rda_set_role(FM_CB *fm_cb, PCS_RDA_ROLE role)
+uint32_t fm_rda_set_role(FM_CB *fm_cb, PCS_RDA_ROLE role)
 {
 	PCS_RDA_REQ rda_req;
-	uns32 rc;
+	uint32_t rc;
 	TRACE_ENTER();
 	/* set the RDA role to active */
 	memset(&rda_req, 0, sizeof(PCS_RDA_REQ));

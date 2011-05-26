@@ -63,7 +63,7 @@
   RETURNS:
 *****************************************************************************/
 
-void ncsmem_aid_init(NCSMEM_AID *ma, uint8_t *space, uns32 len)
+void ncsmem_aid_init(NCSMEM_AID *ma, uint8_t *space, uint32_t len)
 {
 	ma->cur_ptr = space;
 	ma->bgn_ptr = space;
@@ -84,7 +84,7 @@ void ncsmem_aid_init(NCSMEM_AID *ma, uint8_t *space, uns32 len)
     PTR         - the ptr of where the copy lives.
 *****************************************************************************/
 
-uint8_t *ncsmem_aid_cpy(NCSMEM_AID *ma, const uint8_t *ref, uns32 len)
+uint8_t *ncsmem_aid_cpy(NCSMEM_AID *ma, const uint8_t *ref, uint32_t len)
 {
 	uint8_t *answer;
 
@@ -110,7 +110,7 @@ uint8_t *ncsmem_aid_cpy(NCSMEM_AID *ma, const uint8_t *ref, uns32 len)
     PTR         - the ptr of where the copy lives.
 *****************************************************************************/
 
-uint8_t *ncsmem_aid_alloc(NCSMEM_AID *ma, uns32 size)
+uint8_t *ncsmem_aid_alloc(NCSMEM_AID *ma, uint32_t size)
 {
 	uint8_t *answer;
 
@@ -188,7 +188,7 @@ void ncsstack_init(NCS_STACK *st, uint16_t max_size)
 
 *****************************************************************************/
 
-uns32 ncsstack_get_utilization(NCS_STACK *st)
+uint32_t ncsstack_get_utilization(NCS_STACK *st)
 {
 	if (st->max_depth == 0)
 		return 0;
@@ -208,7 +208,7 @@ uns32 ncsstack_get_utilization(NCS_STACK *st)
 
 *****************************************************************************/
 
-uns32 ncsstack_get_element_count(NCS_STACK *st)
+uint32_t ncsstack_get_element_count(NCS_STACK *st)
 {
 	return (st->se_cnt);
 }
@@ -312,7 +312,7 @@ NCS_SE *ncsstack_pop(NCS_STACK *st)
 
 *****************************************************************************/
 
-uns32 ncsstack_encode(NCS_STACK *st, struct ncs_ubaid *uba)
+uint32_t ncsstack_encode(NCS_STACK *st, struct ncs_ubaid *uba)
 {
 	uint16_t cur_offset;
 	uint16_t cur_count;
@@ -417,7 +417,7 @@ uns32 ncsstack_encode(NCS_STACK *st, struct ncs_ubaid *uba)
 
 *****************************************************************************/
 
-uns32 ncsstack_decode(NCS_STACK *st, NCS_UBAID *uba)
+uint32_t ncsstack_decode(NCS_STACK *st, NCS_UBAID *uba)
 {
 	uint16_t cur_offset;
 	uint16_t cur_count;

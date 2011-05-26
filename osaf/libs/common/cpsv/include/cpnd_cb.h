@@ -23,7 +23,7 @@
 #include "ncs_queue.h"
 
 /* global variables */
-uns32 gl_cpnd_cb_hdl;
+uint32_t gl_cpnd_cb_hdl;
 
 /* macros for the CB handle */
 #define m_CPND_TAKE_CPND_CB      ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl)
@@ -124,7 +124,7 @@ typedef enum cpnd_state_info {
 } CPND_STATE_INFO;
 
 typedef struct cpnd_ckpt_section_info {
-	uns32 lcl_sec_id;	/* index to shm segment(index == sec) */
+	uint32_t lcl_sec_id;	/* index to shm segment(index == sec) */
 	SaCkptSectionIdT sec_id;	/* section Id */
 	CPND_TMR ckpt_sec_exptmr;	/* timer to delete the section */
 	SaCkptSectionStateT sec_state;	/* state of the checkpoint section -                                               * will be used for marking deletion */
@@ -143,7 +143,7 @@ typedef struct cpnd_ckpt_replica_info_tag {
 	SaUint32T n_secs;	/* Used for status */
 	SaUint32T mem_used;	/* Used for status */
 	NCS_OS_POSIX_SHM_REQ_INFO open;	/* for shm open */
-	uns32 *shm_sec_mapping;	/* for validity of sec */
+	uint32_t *shm_sec_mapping;	/* for validity of sec */
 	CPND_CKPT_SECTION_INFO *section_info;	/* Sections in the shared memory */
 } CPND_CKPT_REPLICA_INFO;
 
@@ -151,7 +151,7 @@ typedef struct cpnd_ckpt_replica_info_tag {
 typedef struct cpnd_all_repl_write_evt_node {
 	NCS_PATRICIA_NODE patnode;
 	SaCkptCheckpointHandleT ckpt_id;
-	uns32 write_rsp_cnt;	/*Keeps track of the responses awaited during ALL_REPL_WRITE */
+	uint32_t write_rsp_cnt;	/*Keeps track of the responses awaited during ALL_REPL_WRITE */
 	CPND_TMR write_rsp_tmr;	/*Used in ALL_REPL_WRITE to await rsp from remote nodes */
 	CPSV_CPND_UPDATE_DEST *cpnd_update_dest_list;
 	CPSV_SEND_INFO sinfo;
@@ -167,9 +167,9 @@ typedef struct cpnd_ckpt_node {
 	SaNameT ckpt_name;
 	SaCkptCheckpointCreationAttributesT create_attrib;
 	SaCkptCheckpointOpenFlagsT open_flags;
-	uns32 ckpt_lcl_ref_cnt;
+	uint32_t ckpt_lcl_ref_cnt;
 	MDS_DEST active_mds_dest;	/* Active Replica vcard id */
-	uns32 is_active_exist;
+	uint32_t is_active_exist;
 
 	CPND_CKPT_REPLICA_INFO replica_info;	/* Replica info about the Shared memory */
 	struct cpnd_ckpt_cllist_node *clist;	/* List of the clients */
@@ -182,14 +182,14 @@ typedef struct cpnd_ckpt_node {
 	CPND_TMR ret_tmr;
 	NCS_BOOL is_restart;
 	NCS_BOOL is_ckpt_onscxb;
-	uns32 cur_state;
-	uns32 oth_state;
-/*   uns32                               read_lck_cnt; */
+	uint32_t cur_state;
+	uint32_t oth_state;
+/*   uint32_t                               read_lck_cnt; */
 	CPSV_CPND_DEST_INFO *agent_dest_list;
 	SaTimeT close_time;
 	NCS_BOOL is_rdset;
 
-	int32 offset;		/* for restart mechanism - shared memory offset */
+	int32_t offset;		/* for restart mechanism - shared memory offset */
 	SaNameT node_name;	
 
 	NCS_BOOL is_cpa_created_ckpt_replica;	/* Flag to indicate whether replica created by CPA/CPD */
@@ -215,13 +215,13 @@ typedef struct cpnd_ckpt_client_node {
 	NCS_PATRICIA_NODE patnode;
 	SaCkptHandleT ckpt_app_hdl;	/* index for the client tree */
 	MDS_DEST agent_mds_dest;	/* mds dest of the agent */
-	uns32 proc_id;		/* TBD Delete this */
+	uint32_t proc_id;		/* TBD Delete this */
 	SaVersionT version;
 	uint16_t cbk_reg_info;	/* bit-wise data */
 	NCS_BOOL arrival_cb_flag;
 
 	CPND_CKPT_CKPT_LIST_NODE *ckpt_list;	/* List of ckpts opened by this client */
-	uns32 offset;		/* shared memory offset */
+	uint32_t offset;		/* shared memory offset */
 	NCS_BOOL app_status;
 	NCS_BOOL upd_shm;
 } CPND_CKPT_CLIENT_NODE;
@@ -231,7 +231,7 @@ typedef struct cpnd_ckpt_client_node {
  ******************************************************************************/
 typedef struct cpnd_ckpt_cllist_node {
 	CPND_CKPT_CLIENT_NODE *cnode;
-	uns32 cl_ref_cnt;
+	uint32_t cl_ref_cnt;
 	struct cpnd_ckpt_cllist_node *next;
 } CPND_CKPT_CLLIST_NODE;
 
@@ -258,21 +258,21 @@ typedef struct cpnd_cpd_deferred_req_node {
 typedef struct cpnd_cb_tag {
 	/* Identification Information about the CPND */
 	MDS_DEST cpnd_mdest_id;
-	uns32 cpnd_cb_hdl_id;
-	uns32 cpnd_mds_hdl;
-	uns32 pool_id;
+	uint32_t cpnd_cb_hdl_id;
+	uint32_t cpnd_mds_hdl;
+	uint32_t pool_id;
 	SYSF_MBX cpnd_mbx;	/* mailbox */
 	SaNameT comp_name;
 
-	uns32 cli_id_gen;	/* for generating client_id */
+	uint32_t cli_id_gen;	/* for generating client_id */
 	GBL_SHM_PTR shm_addr;
 	/* Information about the CPD */
 	MDS_DEST cpd_mdest_id;
 	NCS_BOOL is_cpd_up;
 	NCS_BOOL is_joined_cl;
-	uns32 num_rep;		/* Number of shared memory segments */
+	uint32_t num_rep;		/* Number of shared memory segments */
 
-	uns32 gl_cpnd_shm_id;	/* the global Checkpoint Shared
+	uint32_t gl_cpnd_shm_id;	/* the global Checkpoint Shared
 				   Memory need to store the local
 				   Checkpoint Control data. This 
 				   Shall be opened using a standard
@@ -289,12 +289,12 @@ typedef struct cpnd_cb_tag {
 	NCS_BOOL cpnd_first_time;
 	NCS_BOOL read_lck_flag;
 
-	uns32 cpnd_active_id;
-	uns32 cpnd_standby_id;
+	uint32_t cpnd_active_id;
+	uint32_t cpnd_standby_id;
 
 	NCS_NODE_ID node_id;
-	uns32 cpnd_self_id;
-	uns32 cpnd_remote_id;
+	uint32_t cpnd_self_id;
+	uint32_t cpnd_remote_id;
 
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
 	EDU_HDL cpnd_edu_hdl;	/* edu handle used for encode/decode         */
@@ -312,31 +312,31 @@ typedef struct cpnd_cb_tag {
 } CPND_CB;
 
 /* CB prototypes */
-CPND_CB *cpnd_cb_create(uns32 pool_id);
+CPND_CB *cpnd_cb_create(uint32_t pool_id);
 NCS_BOOL cpnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
-uns32 cpnd_cb_destroy(CPND_CB *cpnd_cb);
+uint32_t cpnd_cb_destroy(CPND_CB *cpnd_cb);
 void cpnd_dump_cb(CPND_CB *cpnd_cb);
 
 /* Amf prototypes */
-uns32 cpnd_amf_init(CPND_CB *cpnd_cb);
+uint32_t cpnd_amf_init(CPND_CB *cpnd_cb);
 void cpnd_amf_de_init(CPND_CB *cpnd_cb);
-uns32 cpnd_amf_register(CPND_CB *cpnd_cb);
-uns32 cpnd_amf_deregister(CPND_CB *cpnd_cb);
-uns32 cpnd_client_extract_bits(uns32 bitmap_value, uns32 *bit_position);
-uns32 cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node);
-uns32 cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
-					    uns32 ref_cnt, CKPT_INFO *cp_info);
-int32 cpnd_find_free_loc(CPND_CB *cb, CPND_TYPE_INFO type);
-uns32 cpnd_ckpt_write_header(CPND_CB *cb, uns32 nckpts);
-uns32 cpnd_cli_info_write_header(CPND_CB *cb, int32 n_clients);
-uns32 cpnd_write_client_info(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node, int32 offset);
-uns32 cpnd_client_bitmap_set(SaCkptHandleT client_hdl);
-uns32 cpnd_update_ckpt_with_clienthdl(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptHandleT client_hdl);
-uns32 cpnd_write_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, int32 offset, SaCkptHandleT client_hdl);
-int32 cpnd_restart_shm_client_update(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node);
-uns32 client_bitmap_reset(uns32 *bitmap_value, uns32 client_hdl);
-uns32 client_bitmap_isset(uns32 bitmap_value);
-int32 cpnd_find_ckpt_exists(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
+uint32_t cpnd_amf_register(CPND_CB *cpnd_cb);
+uint32_t cpnd_amf_deregister(CPND_CB *cpnd_cb);
+uint32_t cpnd_client_extract_bits(uint32_t bitmap_value, uint32_t *bit_position);
+uint32_t cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node);
+uint32_t cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
+					    uint32_t ref_cnt, CKPT_INFO *cp_info);
+int32_t cpnd_find_free_loc(CPND_CB *cb, CPND_TYPE_INFO type);
+uint32_t cpnd_ckpt_write_header(CPND_CB *cb, uint32_t nckpts);
+uint32_t cpnd_cli_info_write_header(CPND_CB *cb, int32_t n_clients);
+uint32_t cpnd_write_client_info(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node, int32_t offset);
+uint32_t cpnd_client_bitmap_set(SaCkptHandleT client_hdl);
+uint32_t cpnd_update_ckpt_with_clienthdl(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptHandleT client_hdl);
+uint32_t cpnd_write_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, int32_t offset, SaCkptHandleT client_hdl);
+int32_t cpnd_restart_shm_client_update(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node);
+uint32_t client_bitmap_reset(uint32_t *bitmap_value, uint32_t client_hdl);
+uint32_t client_bitmap_isset(uint32_t bitmap_value);
+int32_t cpnd_find_ckpt_exists(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
 
 NCS_BOOL cpnd_match_evt(void *key, void *qelem);
 NCS_BOOL cpnd_match_dest(void *key, void *qelem);

@@ -38,15 +38,15 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 static NCS_BOOL mqa_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 static void mqa_track_update_state(SaMsgQueueGroupNotificationBufferT *buffer,
 				   SaNameT *name, SaMsgQueueSendingStateT status);
-static uns32 mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_info, ASAPi_MSG_INFO *asapi_msg);
+static uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_info, ASAPi_MSG_INFO *asapi_msg);
 
-static uns32 mqa_notify_changes_only(MQA_CLIENT_INFO *client_info,
+static uint32_t mqa_notify_changes_only(MQA_CLIENT_INFO *client_info,
 				     MQA_TRACK_INFO *track_info, ASAPi_MSG_INFO *asapi_msg);
 
 static void mqa_track_remove_member(SaMsgQueueGroupNotificationBufferT *buffer,
 				    SaNameT *name, SaMsgQueueSendingStateT status);
 
-static uns32 mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg);
+static uint32_t mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg);
 static MQP_ASYNC_RSP_MSG *mqsv_mqa_callback_queue_read(struct mqa_client_info *client_info);
 /****************************************************************************
   Name          : mqa_track_remove_member
@@ -67,8 +67,8 @@ static void mqa_track_remove_member(SaMsgQueueGroupNotificationBufferT *buffer,
 				    SaNameT *name, SaMsgQueueSendingStateT status)
 {
 
-	uns32 i;
-	uns32 num_items;
+	uint32_t i;
+	uint32_t num_items;
 
 	num_items = buffer->numberOfItems;
 
@@ -104,8 +104,8 @@ static void mqa_track_remove_member(SaMsgQueueGroupNotificationBufferT *buffer,
 void mqa_track_update_state(SaMsgQueueGroupNotificationBufferT *buffer, SaNameT *name, SaMsgQueueSendingStateT status)
 {
 
-	uns32 i;
-	uns32 num_items;
+	uint32_t i;
+	uint32_t num_items;
 
 	num_items = buffer->numberOfItems;
 
@@ -303,7 +303,7 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
  
   Notes         : None
 ******************************************************************************/
-uns32 mqa_hdl_callbk_dispatch_one(MQA_CB *cb, SaMsgHandleT msgHandle)
+uint32_t mqa_hdl_callbk_dispatch_one(MQA_CB *cb, SaMsgHandleT msgHandle)
 {
 	MQP_ASYNC_RSP_MSG *callback;
 	MQA_CLIENT_INFO *client_info;
@@ -346,7 +346,7 @@ uns32 mqa_hdl_callbk_dispatch_one(MQA_CB *cb, SaMsgHandleT msgHandle)
  
   Notes         : None
 ******************************************************************************/
-uns32 mqa_hdl_callbk_dispatch_all(MQA_CB *cb, SaMsgHandleT msgHandle)
+uint32_t mqa_hdl_callbk_dispatch_all(MQA_CB *cb, SaMsgHandleT msgHandle)
 {
 	MQP_ASYNC_RSP_MSG *callback;
 	MQA_CLIENT_INFO *client_info;
@@ -398,7 +398,7 @@ uns32 mqa_hdl_callbk_dispatch_all(MQA_CB *cb, SaMsgHandleT msgHandle)
  
   Notes         : None
 ******************************************************************************/
-uns32 mqa_hdl_callbk_dispatch_block(MQA_CB *mqa_cb, SaMsgHandleT msgHandle)
+uint32_t mqa_hdl_callbk_dispatch_block(MQA_CB *mqa_cb, SaMsgHandleT msgHandle)
 {
 	MQP_ASYNC_RSP_MSG *callback = 0;
 	SYSF_MBX *callbk_mbx;
@@ -460,7 +460,7 @@ uns32 mqa_hdl_callbk_dispatch_block(MQA_CB *mqa_cb, SaMsgHandleT msgHandle)
   Notes         : None
 ******************************************************************************/
 
-static uns32 mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg)
+static uint32_t mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg)
 {
 	MQA_TRACK_INFO *track_info;
 	MQA_CLIENT_INFO *client_info;
@@ -469,7 +469,7 @@ static uns32 mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg)
 	SaMsgHandleT *temp_hdl_ptr = 0;
 	SaMsgHandleT temp_hdl;
 	MQA_CB *mqa_cb;
-	uns32 len;
+	uint32_t len;
 
 	/* If this track notification is not for a Queue Group then return */
 	if (asapi_msg->info.tntfy.oinfo.group.length == 0) {
@@ -542,17 +542,17 @@ static uns32 mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg)
 
   Notes         : None
 ******************************************************************************/
-uns32 mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_info, ASAPi_MSG_INFO *asapi_msg)
+uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_info, ASAPi_MSG_INFO *asapi_msg)
 {
 	MQP_ASYNC_RSP_MSG *track_current_callback = NULL;
 	SaMsgQueueGroupNotificationT *buffer;
 	SaMsgQueueGroupNotificationT *callback_buffer = NULL;
 	MQA_CB *mqa_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 num_items;
-	uns32 track_index;
-	uns32 i;
-	uns32 j = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t num_items;
+	uint32_t track_index;
+	uint32_t i;
+	uint32_t j = 0;
 
 	if ((asapi_msg->info.tntfy.opr == ASAPi_QUEUE_MQND_DOWN) || (asapi_msg->info.tntfy.opr == ASAPi_QUEUE_MQND_UP)) {
 		return NCSCC_RC_SUCCESS;
@@ -644,7 +644,7 @@ uns32 mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_inf
 			track_info->notificationBuffer.notification = NULL;
 		}
 		track_info->notificationBuffer.notification =
-		    m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((uns32)(track_index + 1));
+		    m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((uint32_t)(track_index + 1));
 		if (!track_info->notificationBuffer.notification) {
 			m_LOG_MQSV_A(MQA_TRACK_BUFFER_INFO_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
 				     NCSCC_RC_FAILURE, __FILE__, __LINE__);
@@ -674,7 +674,7 @@ uns32 mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_inf
 		}
 
 		/* check whether there are any queues in the group or not */
-		track_info->notificationBuffer.notification = m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((uns32)(track_index));
+		track_info->notificationBuffer.notification = m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((uint32_t)(track_index));
 		if (!track_info->notificationBuffer.notification) {
 			m_LOG_MQSV_A(MQA_TRACK_BUFFER_INFO_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
 				     NCSCC_RC_FAILURE, __FILE__, __LINE__);
@@ -750,13 +750,13 @@ uns32 mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_inf
 
   Notes         : None
 ******************************************************************************/
-uns32 mqa_notify_changes_only(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_info, ASAPi_MSG_INFO *asapi_msg)
+uint32_t mqa_notify_changes_only(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_info, ASAPi_MSG_INFO *asapi_msg)
 {
 
 	MQP_ASYNC_RSP_MSG *track_current_callback = NULL;
 	SaMsgQueueGroupNotificationT *callback_buffer = NULL;
 	MQA_CB *mqa_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if ((asapi_msg->info.tntfy.opr == ASAPi_QUEUE_MQND_DOWN) || (asapi_msg->info.tntfy.opr == ASAPi_QUEUE_MQND_UP)) {
 		return NCSCC_RC_SUCCESS;
@@ -883,7 +883,7 @@ uns32 mqa_notify_changes_only(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *trac
   Notes         : None
 ******************************************************************************/
 
-uns32 mqa_asapi_msghandler(ASAPi_MSG_INFO *asapi_msg)
+uint32_t mqa_asapi_msghandler(ASAPi_MSG_INFO *asapi_msg)
 {
 
 	if (!asapi_msg)
@@ -911,7 +911,7 @@ uns32 mqa_asapi_msghandler(ASAPi_MSG_INFO *asapi_msg)
  
   Notes         : None
 ******************************************************************************/
-uns32 mqsv_mqa_callback_queue_init(MQA_CLIENT_INFO *client_info)
+uint32_t mqsv_mqa_callback_queue_init(MQA_CLIENT_INFO *client_info)
 {
 	if (m_NCS_IPC_CREATE(&client_info->callbk_mbx) == NCSCC_RC_SUCCESS) {
 		if (m_NCS_IPC_ATTACH(&client_info->callbk_mbx) == NCSCC_RC_SUCCESS) {
@@ -984,10 +984,10 @@ void mqsv_mqa_callback_queue_destroy(MQA_CLIENT_INFO *client_info)
  
   Notes         : None
 ******************************************************************************/
-uns32 mqsv_mqa_callback_queue_write(MQA_CB *mqa_cb, SaMsgHandleT handle, MQP_ASYNC_RSP_MSG *clbk_info)
+uint32_t mqsv_mqa_callback_queue_write(MQA_CB *mqa_cb, SaMsgHandleT handle, MQP_ASYNC_RSP_MSG *clbk_info)
 {
 	MQA_CLIENT_INFO *client_info = NULL;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	/* Search for the node from the client tree */
 	client_info = (MQA_CLIENT_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_client_tree, (uint8_t *)&handle);
@@ -1051,7 +1051,7 @@ void mqa_queue_reader(NCSCONTEXT arg)
 	MQA_QUEUE_INFO *queue_node = NULL;
 	MQA_CB *mqa_cb;
 	MQP_ASYNC_RSP_MSG *mqa_callbk_info = NULL;
-	uns32 existing_msg_count;
+	uint32_t existing_msg_count;
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;

@@ -69,9 +69,9 @@ typedef struct mqd_a2s_q_info {
 		MQD_QUEUE_PARAM q;
 		MQD_QGROUP_PARAM qgrp;
 	} info;
-	uns32 ilist_cnt;	/* Queue/ Group element list count */
+	uint32_t ilist_cnt;	/* Queue/ Group element list count */
 	SaNameT *ilist_info;	/* Queue/ Group element list */
-	uns32 track_cnt;	/* Count of list of users who opted for track */
+	uint32_t track_cnt;	/* Count of list of users who opted for track */
 	MQD_A2S_TRACK_INFO *track_info;	/* List of the users who opted for track */
 	SaTimeT creationTime;
 } MQD_A2S_QUEUE_INFO;
@@ -116,13 +116,13 @@ typedef struct mqd_a2s_msg {
 } MQD_A2S_MSG;
 
 void mqd_a2s_async_update(MQD_CB *pMqd, MQD_A2S_MSG_TYPE type, void *pmesg);
-uns32 mqd_mbcsv_register(MQD_CB *pMqd);
-uns32 mqd_mbcsv_finalize(MQD_CB *pMqd);
-uns32 mqd_mbcsv_chgrole(MQD_CB *pMqd);
-uns32 mqd_process_a2s_event(MQD_CB *pMqd, MQD_A2S_MSG *msg);
-uns32 mqd_asapi_db_upd(MQD_CB *, ASAPi_REG_INFO *, MQD_OBJ_NODE **, ASAPi_OBJECT_OPR *);
-uns32 mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_INFO *msg);
-uns32 mqd_asapi_track_db_upd(MQD_CB *, ASAPi_TRACK_INFO *, MQSV_SEND_INFO *info, MQD_OBJ_NODE **);
-uns32 mqd_user_evt_track_delete(MQD_CB *pMqd, MDS_DEST *dest);
+uint32_t mqd_mbcsv_register(MQD_CB *pMqd);
+uint32_t mqd_mbcsv_finalize(MQD_CB *pMqd);
+uint32_t mqd_mbcsv_chgrole(MQD_CB *pMqd);
+uint32_t mqd_process_a2s_event(MQD_CB *pMqd, MQD_A2S_MSG *msg);
+uint32_t mqd_asapi_db_upd(MQD_CB *, ASAPi_REG_INFO *, MQD_OBJ_NODE **, ASAPi_OBJECT_OPR *);
+uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_INFO *msg);
+uint32_t mqd_asapi_track_db_upd(MQD_CB *, ASAPi_TRACK_INFO *, MQSV_SEND_INFO *info, MQD_OBJ_NODE **);
+uint32_t mqd_user_evt_track_delete(MQD_CB *pMqd, MDS_DEST *dest);
 
 #endif   /* MQD_RED.H  */

@@ -256,8 +256,8 @@ void cpd_flx_log_reg(void);
 void cpd_flx_log_dereg(void);
 
 void cpd_log_ascii_dereg(void);
-uns32 cpd_log_ascii_reg(void);
-uns32 cpsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+uint32_t cpd_log_ascii_reg(void);
+uint32_t cpsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 void cpd_headline_log(uint8_t, uint8_t);
 void cpd_db_status_log(uint8_t, char *);

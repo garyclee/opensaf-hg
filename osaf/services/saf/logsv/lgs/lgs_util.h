@@ -44,7 +44,7 @@ extern int lgs_create_config_file(log_stream_t *stream);
 extern void lgs_evt_destroy(lgsv_lgs_evt_t *evt);
 extern SaTimeT lgs_get_SaTime(void);
 extern int lgs_file_rename(const char *path, const char *old_name, const char *time_stamp, const char *suffix);
-extern uns32 lgs_create_known_streams(lgs_cb_t *lgs_cb);
+extern uint32_t lgs_create_known_streams(lgs_cb_t *lgs_cb);
 extern void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr);
 
 #endif   /* ifndef __LGS_UTIL_H */

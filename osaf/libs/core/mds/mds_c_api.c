@@ -38,9 +38,9 @@
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_validate_pwe_hdl(MDS_PWE_HDL pwe_hdl)
+uint32_t mds_validate_pwe_hdl(MDS_PWE_HDL pwe_hdl)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	m_MDS_LOG_DBG("MCM_API : Entering : mds_validate_pwe_hdl");
 
 	status = mds_pwe_tbl_query(m_MDS_GET_VDEST_HDL_FROM_VDEST_ID(m_MDS_GET_VDEST_ID_FROM_PWE_HDL(pwe_hdl)),
@@ -71,9 +71,9 @@ uns32 mds_validate_pwe_hdl(MDS_PWE_HDL pwe_hdl)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_vdest_create(NCSMDS_ADMOP_INFO *info)
+uint32_t mds_mcm_vdest_create(NCSMDS_ADMOP_INFO *info)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_SUBTN_REF_VAL subtn_ref_ptr;
 	MDS_VDEST_ID vdest_id;
 
@@ -103,7 +103,7 @@ uns32 mds_mcm_vdest_create(NCSMDS_ADMOP_INFO *info)
 	}
 
 /* STEP 2: IF Policy is MxN *
-             call mdtm_vdest_subscribe (uns32 i_vdest_id) */
+             call mdtm_vdest_subscribe (uint32_t i_vdest_id) */
 
 	if (info->info.vdest_create.i_policy == NCS_VDEST_TYPE_MxN) {
 		status = mds_mdtm_vdest_subscribe(vdest_id, &subtn_ref_ptr);
@@ -143,9 +143,9 @@ uns32 mds_mcm_vdest_create(NCSMDS_ADMOP_INFO *info)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_vdest_destroy(NCSMDS_ADMOP_INFO *info)
+uint32_t mds_mcm_vdest_destroy(NCSMDS_ADMOP_INFO *info)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_VDEST_ID local_vdest_id;
 	MDS_PWE_HDL pwe_hdl;
 	V_DEST_RL local_vdest_role;
@@ -235,9 +235,9 @@ uns32 mds_mcm_vdest_destroy(NCSMDS_ADMOP_INFO *info)
  *
  ****************************************************************************/
 
-uns32 mds_mcm_vdest_query(NCSMDS_ADMOP_INFO *info)
+uint32_t mds_mcm_vdest_query(NCSMDS_ADMOP_INFO *info)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_VDEST_ID local_vdest_id;
 
 	m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_vdest_query");
@@ -278,9 +278,9 @@ uns32 mds_mcm_vdest_query(NCSMDS_ADMOP_INFO *info)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_vdest_chg_role(NCSMDS_ADMOP_INFO *info)
+uint32_t mds_mcm_vdest_chg_role(NCSMDS_ADMOP_INFO *info)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	V_DEST_RL current_role;
 	MDS_VDEST_ID vdest_id;
 	NCS_VDEST_TYPE local_vdest_policy;
@@ -521,7 +521,7 @@ if (new Role = Active / Standby)
             
 
 *********************************************************/
-uns32 mds_mcm_pwe_create(NCSMDS_ADMOP_INFO *info)
+uint32_t mds_mcm_pwe_create(NCSMDS_ADMOP_INFO *info)
 {
 
 	m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_pwe_create");
@@ -608,9 +608,9 @@ uns32 mds_mcm_pwe_create(NCSMDS_ADMOP_INFO *info)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_pwe_destroy(NCSMDS_ADMOP_INFO *info)
+uint32_t mds_mcm_pwe_destroy(NCSMDS_ADMOP_INFO *info)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_PWE_HDL temp_pwe_hdl;
 	MDS_SVC_ID temp_svc_id;
 	NCSMDS_INFO temp_ncsmds_info;
@@ -675,9 +675,9 @@ uns32 mds_mcm_pwe_destroy(NCSMDS_ADMOP_INFO *info)
  *
  ****************************************************************************/
 
-uns32 mds_mcm_adm_pwe_query(NCSMDS_ADMOP_INFO *info)
+uint32_t mds_mcm_adm_pwe_query(NCSMDS_ADMOP_INFO *info)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_adm_pwe_query");
 
@@ -691,7 +691,7 @@ uns32 mds_mcm_adm_pwe_query(NCSMDS_ADMOP_INFO *info)
 		return NCSCC_RC_FAILURE;
 	}
 	/* check whether hdl is of adest or vdest */
-	if ((uns32)info->info.pwe_query.i_local_dest_hdl == m_ADEST_HDL) {
+	if ((uint32_t)info->info.pwe_query.i_local_dest_hdl == m_ADEST_HDL) {
 		/* It is ADEST hdl */
 
 		info->info.pwe_query.o_mds_pwe_hdl = (MDS_HDL)m_MDS_GET_PWE_HDL_FROM_VDEST_HDL_AND_PWE_ID
@@ -701,7 +701,7 @@ uns32 mds_mcm_adm_pwe_query(NCSMDS_ADMOP_INFO *info)
 				 info->info.pwe_query.i_pwe_id);
 		m_MDS_LOG_DBG("MCM_API : Leaving : S : mds_mcm_adm_pwe_query");
 		return NCSCC_RC_SUCCESS;
-	} else if ((((uns32)info->info.pwe_query.i_local_dest_hdl) & 0xffff0000) != 0) {
+	} else if ((((uint32_t)info->info.pwe_query.i_local_dest_hdl) & 0xffff0000) != 0) {
 		/* It is PWE hdl(pwe+vdest) */
 		/* ERROR ERROR ERROR */
 		m_MDS_LOG_ERR
@@ -747,9 +747,9 @@ uns32 mds_mcm_adm_pwe_query(NCSMDS_ADMOP_INFO *info)
 
 *********************************************************/
 
-uns32 mds_mcm_svc_install(NCSMDS_INFO *info)
+uint32_t mds_mcm_svc_install(NCSMDS_INFO *info)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	V_DEST_RL local_vdest_role;
 	NCS_VDEST_TYPE local_vdest_policy;
 	MDS_VDEST_ID local_vdest_id = 0;
@@ -882,9 +882,9 @@ uns32 mds_mcm_svc_install(NCSMDS_INFO *info)
 
 *********************************************************/
 
-uns32 mds_mcm_svc_uninstall(NCSMDS_INFO *info)
+uint32_t mds_mcm_svc_uninstall(NCSMDS_INFO *info)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_SVC_HDL svc_hdl;
 	MDS_SUBSCRIPTION_INFO *temp_subtn_info;
 	NCSMDS_INFO temp_ncsmds_info;
@@ -1016,13 +1016,13 @@ if (PEER_SVC_ID_LIST != NULL)
 
 *********************************************************/
 
-uns32 mds_mcm_svc_subscribe(NCSMDS_INFO *info)
+uint32_t mds_mcm_svc_subscribe(NCSMDS_INFO *info)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	NCSMDS_SCOPE_TYPE install_scope;
 	MDS_SVC_HDL svc_hdl;
 	MDS_VIEW view;
-	uns32 i = 0;
+	uint32_t i = 0;
 	NCSMDS_INFO unsubscribe_info;
 
 	m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_svc_subscribe");
@@ -1178,11 +1178,11 @@ uns32 mds_mcm_svc_subscribe(NCSMDS_INFO *info)
 
 *********************************************************/
 
-uns32 mds_mcm_svc_unsubscribe(NCSMDS_INFO *info)
+uint32_t mds_mcm_svc_unsubscribe(NCSMDS_INFO *info)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_SVC_HDL svc_hdl;
-	uns32 i;
+	uint32_t i;
 	MDS_SUBTN_REF_VAL subscr_req_hdl;
 
 	m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_svc_unsubscribe");
@@ -1259,9 +1259,9 @@ uns32 mds_mcm_svc_unsubscribe(NCSMDS_INFO *info)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_dest_query(NCSMDS_INFO *info)
+uint32_t mds_mcm_dest_query(NCSMDS_INFO *info)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_SVC_HDL local_svc_hdl;
 	MDS_SUBSCRIPTION_RESULTS_INFO *subtn_result_info = NULL;
 
@@ -1338,7 +1338,7 @@ uns32 mds_mcm_dest_query(NCSMDS_INFO *info)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_pwe_query(NCSMDS_INFO *info)
+uint32_t mds_mcm_pwe_query(NCSMDS_INFO *info)
 {
 	MDS_VDEST_ID vdest_id;
 
@@ -1346,7 +1346,7 @@ uns32 mds_mcm_pwe_query(NCSMDS_INFO *info)
 
 	info->info.query_pwe.o_pwe_id = (PW_ENV_ID)m_MDS_GET_PWE_ID_FROM_PWE_HDL((MDS_PWE_HDL)info->i_mds_hdl);
 
-	if (((uns32)info->i_mds_hdl & m_ADEST_HDL) == m_ADEST_HDL) {
+	if (((uint32_t)info->i_mds_hdl & m_ADEST_HDL) == m_ADEST_HDL) {
 		/* It is ADEST hdl */
 		info->info.query_pwe.o_absolute = 1;
 		info->info.query_pwe.info.abs_info.o_adest = m_MDS_GET_ADEST;
@@ -1378,7 +1378,7 @@ uns32 mds_mcm_pwe_query(NCSMDS_INFO *info)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_node_subscribe(NCSMDS_INFO *info)
+uint32_t mds_mcm_node_subscribe(NCSMDS_INFO *info)
 {
 	MDS_SVC_HDL svc_hdl;
 	MDS_SVC_INFO *local_svc_info = NULL;
@@ -1432,7 +1432,7 @@ uns32 mds_mcm_node_subscribe(NCSMDS_INFO *info)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_node_unsubscribe(NCSMDS_INFO *info)
+uint32_t mds_mcm_node_unsubscribe(NCSMDS_INFO *info)
 {
 	MDS_SVC_HDL svc_hdl;
 	MDS_SVC_INFO *local_svc_info = NULL;
@@ -1498,7 +1498,7 @@ uns32 mds_mcm_node_unsubscribe(NCSMDS_INFO *info)
 
 *********************************************************/
 
-uns32 mds_mcm_svc_up(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
+uint32_t mds_mcm_svc_up(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 		     NCSMDS_SCOPE_TYPE scope, MDS_VDEST_ID vdest_id,
 		     NCS_VDEST_TYPE vdest_policy, MDS_DEST adest,
 		     NCS_BOOL my_pcon,
@@ -1506,7 +1506,7 @@ uns32 mds_mcm_svc_up(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 		     MDS_SUBTN_REF_VAL subtn_ref_val,
 		     MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	NCSMDS_SCOPE_TYPE local_subtn_scope;
 	MDS_VIEW local_subtn_view;
 	MDS_DEST active_adest;
@@ -2540,7 +2540,7 @@ else (entry exists)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
+uint32_t mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 		       NCSMDS_SCOPE_TYPE scope, MDS_VDEST_ID vdest_id,
 		       NCS_VDEST_TYPE vdest_policy, MDS_DEST adest,
 		       NCS_BOOL my_pcon,
@@ -2548,7 +2548,7 @@ uns32 mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 		       MDS_SUBTN_REF_VAL subtn_ref_val,
 		       MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	NCSMDS_SCOPE_TYPE local_subtn_scope;
 	MDS_VIEW local_subtn_view;
 	MDS_DEST active_adest;
@@ -2940,13 +2940,13 @@ else (entry exists)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id)
+uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id)
 
 {
 	MDS_MCM_MSG_ELEM *event_msg = NULL;
 	MDS_SVC_INFO *local_svc_info = NULL;
 	NCSMDS_CALLBACK_INFO *cbinfo = NULL;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	/* Get Service info cb */
 	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
@@ -3020,13 +3020,13 @@ uns32 mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id)
+uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id)
 
 {
 	MDS_MCM_MSG_ELEM *event_msg = NULL;
 	MDS_SVC_INFO *local_svc_info = NULL;
 	NCSMDS_CALLBACK_INFO *cbinfo = NULL;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	/* Get Service info cb */
 	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
@@ -3099,7 +3099,7 @@ uns32 mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest)
+uint32_t mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest)
 {
 	V_DEST_RL current_role;
 	NCSMDS_ADMOP_INFO chg_role_info;
@@ -3147,7 +3147,7 @@ uns32 mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_vdest_down(MDS_VDEST_ID vdest_id, MDS_DEST adest)
+uint32_t mds_mcm_vdest_down(MDS_VDEST_ID vdest_id, MDS_DEST adest)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -3164,12 +3164,12 @@ uns32 mds_mcm_vdest_down(MDS_VDEST_ID vdest_id, MDS_DEST adest)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id, MDS_SVC_ID svc_id,
+uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id, MDS_SVC_ID svc_id,
 				  V_DEST_RL role, MDS_VDEST_ID vdest_id, MDS_DEST adest,
 				  NCSMDS_CHG event_type,
 				  MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_SVC_INFO *local_svc_info = NULL;
 	MDS_SUBSCRIPTION_INFO *local_subtn_info = NULL;
 	MDS_MCM_MSG_ELEM *event_msg = NULL;
@@ -3326,9 +3326,9 @@ uns32 mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id, M
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id)
+uint32_t mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	NCSMDS_CALLBACK_INFO *cbinfo;
 	MDS_SVC_INFO *local_svc_info = NULL;
 	MDS_MCM_MSG_ELEM *event_msg = NULL;
@@ -3393,7 +3393,7 @@ uns32 mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
+uint32_t mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
 {
 	MDS_SUBSCRIPTION_INFO *subtn_info = NULL;
 	MDS_AWAIT_DISC_QUEUE *tmp_await_active_queue = NULL, *bk_ptr = NULL;
@@ -3456,12 +3456,12 @@ uns32 mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mcm_await_active_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id, MDS_VDEST_ID vdest_id)
+uint32_t mds_mcm_await_active_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id, MDS_VDEST_ID vdest_id)
 {
 	MDS_SUBSCRIPTION_RESULTS_INFO *active_subtn_result_info;
 	MDS_DEST active_adest;
 	NCS_BOOL tmr_running;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_await_active_tmr_expiry");
 
@@ -3519,11 +3519,11 @@ uns32 mds_mcm_await_active_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id
   RETURNS:  Adest Hdl
 
 *********************************************************/
-uns32 mds_mcm_subtn_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_SCOPE_TYPE scope,
+uint32_t mds_mcm_subtn_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_SCOPE_TYPE scope,
 			MDS_VIEW view, MDS_SUBTN_TYPE subtn_type)
 {
 	MDS_SUBTN_REF_VAL subtn_ref_val = 0;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_subtn_add");
 
@@ -3563,7 +3563,7 @@ uns32 mds_mcm_subtn_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_SC
   RETURNS:  Adest Hdl
 
 *********************************************************/
-uns32 mds_mcm_validate_scope(NCSMDS_SCOPE_TYPE local_scope, NCSMDS_SCOPE_TYPE remote_scope,
+uint32_t mds_mcm_validate_scope(NCSMDS_SCOPE_TYPE local_scope, NCSMDS_SCOPE_TYPE remote_scope,
 			     MDS_DEST remote_adest, MDS_SVC_ID remote_svc_id, NCS_BOOL my_pcon)
 {
 
@@ -3613,7 +3613,7 @@ uns32 mds_mcm_validate_scope(NCSMDS_SCOPE_TYPE local_scope, NCSMDS_SCOPE_TYPE re
   RETURNS:  Adest Hdl
 
 *********************************************************/
-uns32 mds_adm_get_adest_hdl(void)
+uint32_t mds_adm_get_adest_hdl(void)
 {
 	m_MDS_LOG_DBG("MCM_API : Entering : mds_adm_get_adest_hdl");
 	m_MDS_LOG_DBG("MCM_API : Leaving : S : mds_adm_get_adest_hdl");
@@ -3649,7 +3649,7 @@ MDS_VDEST_ID ncs_get_internal_vdest_id_from_mds_dest(MDS_DEST mdsdest)
   RETURNS:  Adest Hdl
 
 *********************************************************/
-uns32 mds_mcm_init(void)
+uint32_t mds_mcm_init(void)
 {
 	NCS_PATRICIA_PARAMS pat_tree_params;
 	MDS_VDEST_INFO *vdest_for_adest_node;
@@ -3716,7 +3716,7 @@ uns32 mds_mcm_init(void)
   RETURNS:  Adest Hdl
 
 *********************************************************/
-uns32 mds_mcm_destroy(void)
+uint32_t mds_mcm_destroy(void)
 {
 	/* cleanup mcm database */
 	mds_mcm_cleanup();

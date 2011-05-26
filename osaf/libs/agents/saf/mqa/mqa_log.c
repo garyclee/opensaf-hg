@@ -35,7 +35,7 @@
 
 *****************************************************************************/
 #if((NCS_DTA == 1) && (NCS_MQSV_LOG == 1))
-void mqa_log(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *fname, uns32 fno)
+void mqa_log(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fname, uint32_t fno)
 {
 	ncs_logmsg(NCS_SERVICE_ID_MQA, MQA_LID_HDLN, MQA_FC_HDLN, category, sev, NCSFL_TYPE_TCLIL, fname, fno, id, rc);
 }

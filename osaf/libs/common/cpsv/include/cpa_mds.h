@@ -33,11 +33,11 @@
 #ifndef CPA_MDS_H
 #define CPA_MDS_H
 
-uns32 cpa_mds_callback(struct ncsmds_callback_info *info);
-uns32 cpa_mds_register(CPA_CB *cb);
+uint32_t cpa_mds_callback(struct ncsmds_callback_info *info);
+uint32_t cpa_mds_register(CPA_CB *cb);
 void cpa_mds_unregister(CPA_CB *cb);
-uns32 cpa_mds_msg_sync_send(uns32 cpa_mds_hdl,
-				     MDS_DEST *destination, CPSV_EVT *i_evt, CPSV_EVT **o_evt, uns32 timeout);
-uns32 cpa_mds_msg_send(uns32 cpa_mds_hdl, MDS_DEST *destination, CPSV_EVT *i_evt, uns32 to_svc);
+uint32_t cpa_mds_msg_sync_send(uint32_t cpa_mds_hdl,
+				     MDS_DEST *destination, CPSV_EVT *i_evt, CPSV_EVT **o_evt, uint32_t timeout);
+uint32_t cpa_mds_msg_send(uint32_t cpa_mds_hdl, MDS_DEST *destination, CPSV_EVT *i_evt, uint32_t to_svc);
 
 #endif   /* CPA_DL_API_H */

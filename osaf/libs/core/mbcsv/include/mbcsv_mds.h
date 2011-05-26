@@ -47,14 +47,14 @@
  * Message sizes to be encoded and decoded.
 **/
 #define MBCSV_MAX_SIZE_DATA                 512
-#define MBCSV_MSG_TYPE_SIZE                 (sizeof(uint8_t) + sizeof(uns32))
+#define MBCSV_MSG_TYPE_SIZE                 (sizeof(uint8_t) + sizeof(uint32_t))
 #define MBCSV_MSG_SUB_TYPE                  (sizeof(uint8_t))
-#define MBCSV_PEER_UP_MSG_SIZE              sizeof(uns32)
-#define MBCSV_PEER_DOWN_MSG_SIZE            (2 * sizeof(uns32))
-#define MBCSV_PEER_INFO_MSG_SIZE            (sizeof(uint8_t) + (2 * sizeof(uns32)))
-#define MBCSV_PEER_INFO_RSP_MSG_SIZE        (sizeof(uint8_t) + (3 * sizeof(uns32)))
-#define MBCSV_PEER_CHG_ROLE_MSG_SIZE        (2 * sizeof(uns32))
-#define MBCSV_INT_CLIENT_MSG_SIZE           ((3 * sizeof(uint8_t)) + (3 * sizeof(uns32)))
+#define MBCSV_PEER_UP_MSG_SIZE              sizeof(uint32_t)
+#define MBCSV_PEER_DOWN_MSG_SIZE            (2 * sizeof(uint32_t))
+#define MBCSV_PEER_INFO_MSG_SIZE            (sizeof(uint8_t) + (2 * sizeof(uint32_t)))
+#define MBCSV_PEER_INFO_RSP_MSG_SIZE        (sizeof(uint8_t) + (3 * sizeof(uint32_t)))
+#define MBCSV_PEER_CHG_ROLE_MSG_SIZE        (2 * sizeof(uint32_t))
+#define MBCSV_INT_CLIENT_MSG_SIZE           ((3 * sizeof(uint8_t)) + (3 * sizeof(uint32_t)))
 #define MBCSV_MSG_VER_SIZE                  sizeof(uint16_t)
 
 /* Versioning changes */
@@ -68,25 +68,25 @@
 /*
  * MBCSv MDS function prototypes.
  */
-uns32 mbcsv_mds_reg(uns32 pwe_hdl, uns32 svc_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest);
-void mbcsv_mds_unreg(uns32 pwe_hdl);
-uns32 mbcsv_query_mds(uns32 pwe_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest);
-uns32 mbcsv_mds_send_msg(uns32 send_type, MBCSV_EVT *msg, CKPT_INST *ckpt, MBCSV_ANCHOR anchor);
+uint32_t mbcsv_mds_reg(uint32_t pwe_hdl, uint32_t svc_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest);
+void mbcsv_mds_unreg(uint32_t pwe_hdl);
+uint32_t mbcsv_query_mds(uint32_t pwe_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest);
+uint32_t mbcsv_mds_send_msg(uint32_t send_type, MBCSV_EVT *msg, CKPT_INST *ckpt, MBCSV_ANCHOR anchor);
 
-uns32 mbcsv_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo);
-uns32 mbcsv_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo);
-uns32 mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl);
-uns32 mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uint32_t mbcsv_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo);
+uint32_t mbcsv_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo);
+uint32_t mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl);
+uint32_t mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			     SS_SVC_ID to_svc, NCS_UBAID *uba,
 			     MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver);
-uns32 mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
+uint32_t mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			     SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver);
-uns32 mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uint32_t mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			     SS_SVC_ID to_svc, NCSCONTEXT *cpy,
 			     NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver,
 			     MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver);
-uns32 mbcsv_encode_version(NCS_UBAID *uba, uint16_t version);
-uns32 mbcsv_decode_version(NCS_UBAID *uba, uint16_t *version);
+uint32_t mbcsv_encode_version(NCS_UBAID *uba, uint16_t version);
+uint32_t mbcsv_decode_version(NCS_UBAID *uba, uint16_t *version);
 
 /*
  * Internally used macros for sending message with different send types.

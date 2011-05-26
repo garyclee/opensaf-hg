@@ -37,18 +37,18 @@
 
 #include "dts.h"
 /* Declaration of async update functions */
-static uns32 dtsv_encode_ckpt_null(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uns32 dtsv_encode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uns32 dtsv_encode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uns32 dtsv_encode_ckpt_dts_log_file_ckpt_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uns32 dtsv_encode_ckpt_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t dtsv_encode_ckpt_null(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t dtsv_encode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t dtsv_encode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t dtsv_encode_ckpt_dts_log_file_ckpt_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t dtsv_encode_ckpt_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc);
 
 /* Declaration of static cold sync encode functions */
-static uns32 dtsv_encode_cold_sync_null(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj);
-static uns32 dtsv_encode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj);
-static uns32 dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj);
-static uns32 dtsv_encode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj);
-static uns32 dtsv_encode_cold_sync_rsp_dts_async_updt_cnt(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj);
+static uint32_t dtsv_encode_cold_sync_null(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t dtsv_encode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t dtsv_encode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t dtsv_encode_cold_sync_rsp_dts_async_updt_cnt(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
 
 /*
  * Function list for encoding the async data.
@@ -91,7 +91,7 @@ const DTSV_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR dtsv_enc_cold_sync_rsp_data_func_l
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_encode_ckpt_null(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t dtsv_encode_ckpt_null(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	return m_DTS_DBG_SINK(NCSCC_RC_SUCCESS, "dtsv_encode_ckpt_null: Received encode for reo_type of 0. Do nothing");
 }
@@ -107,7 +107,7 @@ static uns32 dtsv_encode_ckpt_null(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_encode_cold_sync_null(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj)
+static uint32_t dtsv_encode_cold_sync_null(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	return m_DTS_DBG_SINK(NCSCC_RC_SUCCESS,
 			      "dtsv_encode_cold_sync_null: Received encode for reo_type of 0. Do nothing");
@@ -127,9 +127,9 @@ static uns32 dtsv_encode_cold_sync_null(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_encode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t dtsv_encode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	uint8_t *encoded_cli_map, *encoded_dta_dest;
 
@@ -199,22 +199,22 @@ static uns32 dtsv_encode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_EN
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_encode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t dtsv_encode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	uint8_t *enc_svc;		/*To encode the svc corspdng to dta being added/deleted */
 	uint8_t *enc_spec;		/* To encode the corr. ASCII_SPEC name and version */
 	DTA_DEST_LIST *dta;
 	SVC_KEY svc_key;
 
-	enc_svc = ncs_enc_reserve_space(&enc->io_uba, sizeof(uns32));
+	enc_svc = ncs_enc_reserve_space(&enc->io_uba, sizeof(uint32_t));
 
 	if (enc_svc == NULL)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				      "dtsv_encode_ckpt_dta_dest_list_config: ncs_enc_reserve_space returns NULL");
 
-	ncs_enc_claim_space(&enc->io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&enc->io_uba, sizeof(uint32_t));
 
 	/* Get the pointer to dta */
 	dta = (DTA_DEST_LIST *)(long)enc->io_reo_hdl;
@@ -299,9 +299,9 @@ static uns32 dtsv_encode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC 
  * NOTES:
  * 
 \**************************************************************************/
-static uns32 dtsv_encode_ckpt_dts_log_file_ckpt_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t dtsv_encode_ckpt_dts_log_file_ckpt_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
 	switch (enc->io_action) {
@@ -339,9 +339,9 @@ static uns32 dtsv_encode_ckpt_dts_log_file_ckpt_config(DTS_CB *cb, NCS_MBCSV_CB_
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_encode_ckpt_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t dtsv_encode_ckpt_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	uint8_t *encoded_cli_map;
 
@@ -406,7 +406,7 @@ static uns32 dtsv_encode_ckpt_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_ENC 
  *
  * 
 \**************************************************************************/
-uns32 dtsv_encode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
+uint32_t dtsv_encode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	m_LOG_DTS_CHKOP(DTS_CSYNC_ENC_START);
 
@@ -429,23 +429,23 @@ uns32 dtsv_encode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * 
 \**************************************************************************/
-uns32 dtsv_encode_all(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOOL csync)
+uint32_t dtsv_encode_all(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOOL csync)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 num_of_obj = 0;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t num_of_obj = 0;
 	uint8_t *encoded_cnt_loc;
 
 	/* 
 	 * Since at decode we need to find out how many objects of particular data
 	 * type are being sent, encode the information at the begining of message.
 	 */
-	encoded_cnt_loc = ncs_enc_reserve_space(&enc->io_uba, sizeof(uns32));
+	encoded_cnt_loc = ncs_enc_reserve_space(&enc->io_uba, sizeof(uint32_t));
 	if (!encoded_cnt_loc) {
 		/* Handle error */
 		m_LOG_DTS_CHKOP(DTS_CSYNC_ENC_FAILED);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_encode_cold_sync_rsp: Encode reserve space failed");
 	}
-	ncs_enc_claim_space(&enc->io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&enc->io_uba, sizeof(uint32_t));
 
 	/* 
 	 * If reo_handle and reo_type is NULL then this the first time mbcsv is calling
@@ -491,9 +491,9 @@ uns32 dtsv_encode_all(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOOL csync)
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_encode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj)
+static uint32_t dtsv_encode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	DTS_SVC_REG_TBL *dts_svc_reg_ptr;
 	EDU_ERR ederror = 0;
 	SVC_KEY nt_key;
@@ -556,9 +556,9 @@ static uns32 dtsv_encode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MB
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj)
+static uint32_t dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	DTA_DEST_LIST *dta_dest;
 	MDS_DEST dta_key;
 	EDU_ERR ederror = 0;
@@ -591,12 +591,12 @@ static uns32 dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 					      "dtsv_encode_cold_sync_rsp_dta_dest_list_config: Encode failed");
 		}
 		/* Now encode the num of svcs associated with the DTA */
-		enc_data = ncs_enc_reserve_space(&enc->io_uba, sizeof(uns32));
+		enc_data = ncs_enc_reserve_space(&enc->io_uba, sizeof(uint32_t));
 		if (enc_data == NULL)
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					      "dtsv_encode_cold_sync_rsp_dta_dest_list_config: ncs_enc_reserve_space returns NULL");
 
-		ncs_enc_claim_space(&enc->io_uba, sizeof(uns32));
+		ncs_enc_claim_space(&enc->io_uba, sizeof(uint32_t));
 		/* Encode dta_dest->num_svcs first */
 		ncs_encode_32bit(&enc_data, dta_dest->dta_num_svcs);
 
@@ -606,18 +606,18 @@ static uns32 dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 		 * for each of these DTA.
 		 */
 		while (svc_entry != NULL) {
-			enc_data = ncs_enc_reserve_space(&enc->io_uba, sizeof(uns32));
+			enc_data = ncs_enc_reserve_space(&enc->io_uba, sizeof(uint32_t));
 			if (enc_data == NULL)
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						      "dtsv_encode_cold_sync_rsp_dta_dest_list_config: ncs_enc_reserve_space returns NULL");
 
 			ncs_encode_32bit(&enc_data, svc_entry->svc->my_key.ss_svc_id);
-			ncs_enc_claim_space(&enc->io_uba, sizeof(uns32));
+			ncs_enc_claim_space(&enc->io_uba, sizeof(uint32_t));
 
 			/* get the corr. SPEC_ENTRY in the svc_reg_tbl and encode it */
 			spec_entry = (SPEC_ENTRY *)dts_find_spec_entry(svc_entry->svc, &dta_key);
 			if (spec_entry != NULL) {
-				enc_data = ncs_enc_reserve_space(&enc->io_uba, sizeof(uns32));
+				enc_data = ncs_enc_reserve_space(&enc->io_uba, sizeof(uint32_t));
 				if (enc_data == NULL)
 					return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 							      "dtsv_encode_cold_sync_rsp_dta_dest_list_config: ncs_enc_reserve_space returns NULL");
@@ -625,7 +625,7 @@ static uns32 dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 				/*Encode 1 here to indicate spec_entry for this DTA to decode side */
 				ncs_encode_16bit(&enc_data, 1);
 				ncs_encode_16bit(&enc_data, spec_entry->spec_struct->ss_spec->ss_ver);
-				ncs_enc_claim_space(&enc->io_uba, sizeof(uns32));
+				ncs_enc_claim_space(&enc->io_uba, sizeof(uint32_t));
 				/* Now encode the service name */
 				if (ncs_encode_n_octets_in_uba(&enc->io_uba, (uint8_t *)spec_entry->svc_name, DTSV_SVC_NAME_MAX) !=
 				    NCSCC_RC_SUCCESS)
@@ -664,13 +664,13 @@ static uns32 dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_encode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj)
+static uint32_t dtsv_encode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	GLOBAL_POLICY *gp;
 	EDU_ERR ederror = 0;
 	uint8_t *enc_data;		/*Introduced to encode log directory */
-	uns32 len = 0, i;
+	uint32_t len = 0, i;
 	DTS_FILE_LIST *file_list;
 
 	m_LOG_DTS_CHKOP(DTS_CSYNC_ENC_GLOBAL_POLICY);
@@ -733,9 +733,9 @@ static uns32 dtsv_encode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCS
  *
  * 
 \**************************************************************************/
-static uns32 dtsv_encode_cold_sync_rsp_dts_async_updt_cnt(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj)
+static uint32_t dtsv_encode_cold_sync_rsp_dts_async_updt_cnt(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
 	m_LOG_DTS_CHKOP(DTS_CSYNC_ENC_UPDT_COUNT);
@@ -768,9 +768,9 @@ static uns32 dtsv_encode_cold_sync_rsp_dts_async_updt_cnt(DTS_CB *cb, NCS_MBCSV_
  *
  * 
 \**************************************************************************/
-uns32 dtsv_encode_warm_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
+uint32_t dtsv_encode_warm_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
 	m_LOG_DTS_CHKOP(DTS_WSYNC_ENC_START);
@@ -803,7 +803,7 @@ uns32 dtsv_encode_warm_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
  * NOTES: This function has similar functionality as cold-sync.
  * 
 \**************************************************************************/
-uns32 dtsv_encode_data_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
+uint32_t dtsv_encode_data_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	m_LOG_DTS_CHKOP(DTS_ENC_DATA_RESP);
 	return dtsv_encode_all(cb, enc, FALSE);

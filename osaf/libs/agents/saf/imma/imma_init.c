@@ -36,7 +36,7 @@
 static pthread_mutex_t imma_agent_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* Protected by imma_agent_lock */
-static uns32 imma_use_count = 0;
+static uint32_t imma_use_count = 0;
 
 IMMA_CB imma_cb;
 
@@ -58,7 +58,7 @@ IMMA_CB imma_cb;
 static void imma_sync_with_immnd(IMMA_CB *cb)
 {
 	NCS_SEL_OBJ_SET set;
-	uns32 timeout = 3000;
+	uint32_t timeout = 3000;
 	TRACE_ENTER();
 
 	m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
@@ -105,10 +105,10 @@ static void imma_sync_with_immnd(IMMA_CB *cb)
  
   Notes         : None
 ******************************************************************************/
-static uns32 imma_create(NCSMDS_SVC_ID sv_id)
+static uint32_t imma_create(NCSMDS_SVC_ID sv_id)
 {
 	IMMA_CB *cb = &imma_cb;
-	uns32 rc;
+	uint32_t rc;
 
 
 	char *value;
@@ -205,7 +205,7 @@ static uns32 imma_create(NCSMDS_SVC_ID sv_id)
  
   Notes         : None
 ******************************************************************************/
-static uns32 imma_destroy(NCSMDS_SVC_ID sv_id)
+static uint32_t imma_destroy(NCSMDS_SVC_ID sv_id)
 {
 	IMMA_CB *cb = &imma_cb;
 	TRACE_ENTER();
@@ -303,7 +303,7 @@ unsigned int imma_startup(NCSMDS_SVC_ID sv_id)
 ******************************************************************************/
 unsigned int imma_shutdown(NCSMDS_SVC_ID sv_id)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	int pt_err = pthread_mutex_lock(&imma_agent_lock);
 	if(pt_err) {

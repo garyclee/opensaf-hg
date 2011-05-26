@@ -223,7 +223,7 @@ AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext_valid(AVD_CL_CB *cb,
  *
  * 
  **************************************************************************/
-static uns32 avd_sirankedsu_delete(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *ranked_su_per_si)
+static uint32_t avd_sirankedsu_delete(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *ranked_su_per_si)
 {
 	if (ranked_su_per_si == NULL)
 		return NCSCC_RC_FAILURE;
@@ -256,7 +256,7 @@ static uns32 avd_sirankedsu_delete(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *ranked_su
 static AVD_SUS_PER_SI_RANK * avd_sirankedsu_ccb_apply_create_hdlr(SaNameT *dn, 
 		const SaImmAttrValuesT_2 **attributes)
 {
-        uns32 rank = 0;
+        uint32_t rank = 0;
 	AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank = NULL;
 	SaNameT su_name;
 	SaNameT si_name;
@@ -335,7 +335,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
         AVD_SI *avd_si = NULL;
 	SaNameT su_name;
 	SaNameT si_name;
-        uns32 rank = 0;
+        uint32_t rank = 0;
 	AVD_SUS_PER_SI_RANK_INDX indx;
 
         memset(&su_name, 0, sizeof(SaNameT));

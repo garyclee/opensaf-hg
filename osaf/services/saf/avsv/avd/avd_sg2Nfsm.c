@@ -308,7 +308,7 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
  * 
  **************************************************************************/
 
-uns32 avd_sg_2n_si_func(AVD_CL_CB *cb, AVD_SI *si)
+uint32_t avd_sg_2n_si_func(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU *l_su;
 
@@ -355,7 +355,7 @@ uns32 avd_sg_2n_si_func(AVD_CL_CB *cb, AVD_SI *si)
  * 
  **************************************************************************/
 
-uns32 avd_sg_2n_suswitch_func(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t avd_sg_2n_suswitch_func(AVD_CL_CB *cb, AVD_SU *su)
 {
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
@@ -511,7 +511,7 @@ done:
  * 
  **************************************************************************/
 
-static uns32 avd_sg_2n_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
+static uint32_t avd_sg_2n_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU *a_su;
 	NCS_BOOL flag;
@@ -641,7 +641,7 @@ static uns32 avd_sg_2n_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
  * 
  **************************************************************************/
 
-static uns32 avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
+static uint32_t avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *l_susi, *o_susi;
 	SaAmfHAStateT old_state;
@@ -921,7 +921,7 @@ static uns32 avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
  * 
  **************************************************************************/
 
-uns32 avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU *a_su;
 	AVD_SU_SI_REL *l_susi, *o_susi;
@@ -1082,9 +1082,9 @@ uns32 avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
  * 
  **************************************************************************/
 
-uns32 avd_sg_2n_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t avd_sg_2n_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SU *l_su;
 
 	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
@@ -1143,7 +1143,7 @@ uns32 avd_sg_2n_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
  * 
  **************************************************************************/
 
-static uns32 avd_sg_2n_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
+static uint32_t avd_sg_2n_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *i_susi, *s_susi, *o_susi, *a_susi;
@@ -1494,7 +1494,7 @@ static uns32 avd_sg_2n_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
  * 
  **************************************************************************/
 
-static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
+static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *s_susi, *a_susi, *l_susi;
@@ -1756,7 +1756,7 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
  * 
  **************************************************************************/
 
-static uns32 avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
+static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *i_susi, *s_susi, *a_susi;
@@ -2084,7 +2084,7 @@ static uns32 avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
  * 
  **************************************************************************/
 
-uns32 avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
+uint32_t avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 
 	AVD_SU_SI_REL *s_susi;
@@ -2154,7 +2154,7 @@ uns32 avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, 
 				}
 			} /* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL)) */
 			else {
-				LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uns32)act));
+				LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)act));
 				LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 				return NCSCC_RC_FAILURE;
 			}
@@ -2189,7 +2189,7 @@ uns32 avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, 
 				/* remove all. Free all the SI assignments to this SU */
 				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
 			} else {
-				LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uns32)act));
+				LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)act));
 				LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 				return NCSCC_RC_FAILURE;
 			}
@@ -2198,7 +2198,7 @@ uns32 avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, 
 		/* if (su->sg_of_su->admin_state == NCS_ADMIN_STATE_SHUTDOWN) */
 		break;		/* case AVD_SG_FSM_SG_ADMIN: */
 	default:
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uns32)su->sg_of_su->sg_fsm_state));
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
 		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 		return NCSCC_RC_FAILURE;
 		break;
@@ -2236,7 +2236,7 @@ uns32 avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, 
  * 
  **************************************************************************/
 
-uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
+uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *s_susi, *o_susi, *l_susi;
 	AVD_SU *a_su;
@@ -2539,7 +2539,7 @@ uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, A
 
 		break;		/* case AVD_SG_FSM_SG_ADMIN: */
 	default:
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uns32)su->sg_of_su->sg_fsm_state));
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
 		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 		return NCSCC_RC_FAILURE;
 		break;
@@ -2572,7 +2572,7 @@ uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, A
  * 
  **************************************************************************/
 
-uns32 avd_sg_2n_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
+uint32_t avd_sg_2n_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SU *l_su;
 
@@ -3261,7 +3261,7 @@ void avd_sg_2n_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 		/* if (su->sg_of_su->admin_state == NCS_ADMIN_STATE_SHUTDOWN) */
 		break;		/* case AVD_SG_FSM_SG_ADMIN: */
 	default:
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uns32)su->sg_of_su->sg_fsm_state));
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
 		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 		return;
 		break;
@@ -3291,9 +3291,9 @@ void avd_sg_2n_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
  * 
  **************************************************************************/
 
-uns32 avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
+uint32_t avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("'%s'", su->name.value);
 	TRACE("SG state %u", su->sg_of_su->sg_fsm_state);
@@ -3379,7 +3379,7 @@ uns32 avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 		}
 		break;		/* case AVD_SG_FSM_SU_OPER: */
 	default:
-		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uns32)su->sg_of_su->sg_fsm_state));
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
 		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 		return NCSCC_RC_FAILURE;
 		break;
@@ -3407,7 +3407,7 @@ uns32 avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
  * 
  **************************************************************************/
 
-uns32 avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
+uint32_t avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU_SI_REL *a_susi, *s_susi;
 	AVD_SU_SI_STATE old_fsm_state;
@@ -3543,7 +3543,7 @@ uns32 avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 		}
 		break;		/* case AVD_SG_FSM_SI_OPER: */
 	default:
-		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uns32)si->sg_of_si->sg_fsm_state));
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)si->sg_of_si->sg_fsm_state));
 		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, si->name.value, si->name.length);
 		return NCSCC_RC_FAILURE;
 		break;
@@ -3570,7 +3570,7 @@ uns32 avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
  * 
  **************************************************************************/
 
-uns32 avd_sg_2n_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
+uint32_t avd_sg_2n_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SU_SI_REL *a_susi, *s_susi;
 
@@ -3644,7 +3644,7 @@ uns32 avd_sg_2n_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 		}		/* if (sg->admin_state == NCS_ADMIN_STATE_LOCK) */
 		break;		/* case AVD_SG_FSM_SG_ADMIN: */
 	default:
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uns32)sg->sg_fsm_state));
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)sg->sg_fsm_state));
 		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, sg->name.value, sg->name.length);
 		return NCSCC_RC_FAILURE;
 		break;

@@ -188,17 +188,17 @@ typedef enum glnd_log_ids {
 void glnd_flx_log_reg(void);
 void glnd_flx_log_dereg(void);
 
-void glnd_log_headline(uint8_t hdln_id, uint8_t sev, char *file_name, uns32 line_no);
-void glnd_log_headline_TIL(uint8_t hdln_id, char *file_name, uns32 line_no, uns32 p1);
-void glnd_log_headline_TILL(uint8_t hdln_id, char *file_name, uns32 line_no, uns32 p1, uns32 p2);
-void glnd_log_headline_TILLL(uint8_t hdln_id, char *file_name, uns32 line_no, uns32 p1, uns32 p2, uns32 p3);
-void glnd_log_memfail(uint8_t mf_id, char *file_name, uns32 line_no);
-void glnd_log_api(uint8_t api_id, uint8_t sev, char *file_name, uns32 line_no);
-void glnd_log_evt(uint8_t evt_id, char *file_name, uns32 line_no, uns32 type, uns32 node, uns32 hdl, uns32 rsc,
-			   uns32 lck);
-void glnd_log_data_send(uint8_t id, char *file_name, uns32 line_no, uns32 node, uns32 evt);
-void glnd_log_timer(uint8_t id, uns32 type, char *file_name, uns32 line_no);
-void glnd_log(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *file_name, uns32 line_no, SaUint64T handle_id,
+void glnd_log_headline(uint8_t hdln_id, uint8_t sev, char *file_name, uint32_t line_no);
+void glnd_log_headline_TIL(uint8_t hdln_id, char *file_name, uint32_t line_no, uint32_t p1);
+void glnd_log_headline_TILL(uint8_t hdln_id, char *file_name, uint32_t line_no, uint32_t p1, uint32_t p2);
+void glnd_log_headline_TILLL(uint8_t hdln_id, char *file_name, uint32_t line_no, uint32_t p1, uint32_t p2, uint32_t p3);
+void glnd_log_memfail(uint8_t mf_id, char *file_name, uint32_t line_no);
+void glnd_log_api(uint8_t api_id, uint8_t sev, char *file_name, uint32_t line_no);
+void glnd_log_evt(uint8_t evt_id, char *file_name, uint32_t line_no, uint32_t type, uint32_t node, uint32_t hdl, uint32_t rsc,
+			   uint32_t lck);
+void glnd_log_data_send(uint8_t id, char *file_name, uint32_t line_no, uint32_t node, uint32_t evt);
+void glnd_log_timer(uint8_t id, uint32_t type, char *file_name, uint32_t line_no);
+void glnd_log(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *file_name, uint32_t line_no, SaUint64T handle_id,
 		       SaUint32T res_id, SaUint64T lock_id);
 
 #define m_LOG_GLND_HEADLINE(id,sev,file_name,line_no)            glnd_log_headline(id,sev,file_name,line_no)

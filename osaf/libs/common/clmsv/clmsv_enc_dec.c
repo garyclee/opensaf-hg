@@ -18,11 +18,11 @@
 #include "clmsv_enc_dec.h"
 #include "clmsv_msg.h"
 
-uns32 clmsv_decodeSaNameT(NCS_UBAID *uba, SaNameT *name)
+uint32_t clmsv_decodeSaNameT(NCS_UBAID *uba, SaNameT *name)
 {
 	uint8_t local_data[2];
 	uint8_t *p8 = NULL;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 2);
 	name->length = ncs_decode_16bit(&p8);
@@ -33,16 +33,16 @@ uns32 clmsv_decodeSaNameT(NCS_UBAID *uba, SaNameT *name)
 	}
 	ncs_dec_skip_space(uba, 2);
 	total_bytes += 2;
-	ncs_decode_n_octets_from_uba(uba, name->value, (uns32)name->length);
+	ncs_decode_n_octets_from_uba(uba, name->value, (uint32_t)name->length);
 	total_bytes += name->length;
 	return total_bytes;
 }
 
-uns32 clmsv_decodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
+uint32_t clmsv_decodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
 {
 	uint8_t local_data[5];
 	uint8_t *p8 = NULL;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	nodeAddress->family = ncs_decode_32bit(&p8);
@@ -63,17 +63,17 @@ uns32 clmsv_decodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
 	}
 	ncs_dec_skip_space(uba, 2);
 	total_bytes += 2;
-	ncs_decode_n_octets_from_uba(uba, nodeAddress->value, (uns32)nodeAddress->length);
+	ncs_decode_n_octets_from_uba(uba, nodeAddress->value, (uint32_t)nodeAddress->length);
 	total_bytes += nodeAddress->length;
 	return total_bytes;
 
 }
 
-uns32 clmsv_encodeSaNameT(NCS_UBAID *uba, SaNameT *name)
+uint32_t clmsv_encodeSaNameT(NCS_UBAID *uba, SaNameT *name)
 {
 	TRACE_ENTER();
 	uint8_t *p8 = NULL;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	p8 = ncs_enc_reserve_space(uba, 2);
 	if (!p8) {
 		TRACE("p8 NULL!!!");
@@ -86,8 +86,8 @@ uns32 clmsv_encodeSaNameT(NCS_UBAID *uba, SaNameT *name)
 	ncs_encode_16bit(&p8, name->length);
 	ncs_enc_claim_space(uba, 2);
 	total_bytes += 2;
-	ncs_encode_n_octets_in_uba(uba, name->value, (uns32)name->length);
-	total_bytes += (uns32)name->length;
+	ncs_encode_n_octets_in_uba(uba, name->value, (uint32_t)name->length);
+	total_bytes += (uint32_t)name->length;
 	TRACE_LEAVE();
 	return total_bytes;
 }

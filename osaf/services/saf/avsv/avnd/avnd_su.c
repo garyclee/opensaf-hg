@@ -34,7 +34,7 @@
 #include <logtrace.h>
 #include <avnd.h>
 
-static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *info);
+static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *info);
 
 /****************************************************************************
   Name          : avnd_evt_avd_reg_su_msg
@@ -50,12 +50,12 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_reg_su_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_reg_su_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_REG_SU_MSG_INFO *info = 0;
 	AVSV_SU_INFO_MSG *su_info = 0;
 	AVND_SU *su = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -123,12 +123,12 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *info)
+static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *info)
 {
 	AVSV_SU_INFO_MSG *su_info = 0;
 	AVND_SU *su = 0;
 	AVND_COMP *comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaNameT su_name;
 
 	TRACE_ENTER();
@@ -217,12 +217,12 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO *info = &evt->info.avd->msg_info.d2n_su_si_assign;
 	AVND_SU_SIQ_REC *siq = 0;
 	AVND_SU *su = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -278,15 +278,15 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_su_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_tmr_su_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_SU *su;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
 	/* retrieve avnd cb */
-	if (0 == (su = (AVND_SU *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, (uns32)evt->info.tmr.opq_hdl))) {
+	if (0 == (su = (AVND_SU *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, (uint32_t)evt->info.tmr.opq_hdl))) {
 		LOG_CR("Unable to retrieve handle");
 		goto done;
 	}
@@ -322,7 +322,7 @@ uns32 avnd_evt_tmr_su_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 
 done:
 	if (su)
-		ncshm_give_hdl((uns32)evt->info.tmr.opq_hdl);
+		ncshm_give_hdl((uint32_t)evt->info.tmr.opq_hdl);
 	TRACE_LEAVE();
 	return rc;
 }
@@ -341,10 +341,10 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_si_reassign(AVND_CB *cb, AVND_SU *su)
+uint32_t avnd_su_si_reassign(AVND_CB *cb, AVND_SU *su)
 {
 	AVND_SU_SI_REC *si = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* scan the su-si list & reassign the sis */
@@ -374,10 +374,10 @@ uns32 avnd_su_si_reassign(AVND_CB *cb, AVND_SU *su)
  
   Notes         : SIs associated with this SU are not deleted.
 ******************************************************************************/
-uns32 avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
+uint32_t avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
 {
 	AVND_COMP *comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* reset err-esc param & oper state (if su is healthy) */
@@ -414,11 +414,11 @@ uns32 avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
  * @param cb
  * @param evt
  */
-uns32 avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_ADMIN_OP_REQ_MSG_INFO *info = &evt->info.avd->msg_info.d2n_admin_op_req_info;
 	AVND_SU *su;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%s op=%u", info->dn.value, info->oper_id);
 
