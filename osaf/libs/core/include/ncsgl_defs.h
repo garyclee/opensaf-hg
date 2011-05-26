@@ -64,12 +64,12 @@ extern "C" {
 
 /* Native typedef declarations.... */
 
-	typedef unsigned char uns8;	/*  8-bit */
+	typedef uint8_t uns8;	/*  8-bit */
 	typedef uint16_t uns16;	/* 16-bit */
 	typedef uint32_t uns32;	/* 32-bit */
 	typedef uint64_t uns64;	/* 64-bit */
 
-	typedef signed char int8;
+	typedef int8_t int8;
 	typedef int16_t int16;
 	typedef int32_t int32;
 	typedef int64_t int64;
