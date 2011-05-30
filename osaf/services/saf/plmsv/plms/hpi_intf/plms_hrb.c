@@ -47,7 +47,7 @@ PLMS_HRB_CB     *hrb_cb = &_hrb_cb;
 ***********************************************************************/
 SaUint32T  plms_hrb_initialize();
 SaUint32T  plms_hrb_finalize();
-static SaUint32T  hrb_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+static bool hrb_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 static void *plms_hrb();
 static SaUint32T hrb_process_hpi_req( PLMS_HPI_REQ  *hpi_req );
 static SaUint32T hrb_get_resourceid(SaInt8T *epath_str, 
@@ -172,7 +172,7 @@ SaUint32T plms_hrb_finalize()
  *
  * Notes         : None.
  *****************************************************************************/
-static SaUint32T hrb_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool hrb_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	PLMS_HPI_REQ   *req = (PLMS_HPI_REQ *)msg;
         PLMS_HPI_REQ   *next_req = req;
@@ -182,7 +182,7 @@ static SaUint32T hrb_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
                 free(req);
                 req = next_req;
         }
-        return NCSCC_RC_SUCCESS;
+        return true;
 }
 /***************************************************************************
  * Name          : plms_hrb
