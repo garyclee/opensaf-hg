@@ -23,8 +23,7 @@ AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
-AM_SILENT_RULES([yes])
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AC_USE_SYSTEM_EXTENSIONS
 
 # (major version) = (first number) - (third number)
