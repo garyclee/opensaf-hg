@@ -23,7 +23,7 @@ AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
-
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
 #
 # Check if rpath is enabled
