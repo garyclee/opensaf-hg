@@ -108,8 +108,8 @@ uint32_t cpa_tmr_start(CPA_TMR *tmr, uint32_t duration)
 void cpa_tmr_stop(CPA_TMR *tmr)
 {
 	if (tmr->is_active == true) {
-		m_NCS_TMR_STOP(tmr->tmr_id);
 		tmr->is_active = false;
+		m_NCS_TMR_STOP(tmr->tmr_id);
 	}
 	else {
 		return;
