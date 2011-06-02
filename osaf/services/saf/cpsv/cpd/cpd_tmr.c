@@ -113,8 +113,9 @@ uint32_t cpd_tmr_start(CPD_TMR *tmr, uint32_t duration)
 void cpd_tmr_stop(CPD_TMR *tmr)
 {
 	if (tmr->is_active == true) {
-		m_NCS_TMR_STOP(tmr->tmr_id);
 		tmr->is_active = false;
+		m_NCS_TMR_STOP(tmr->tmr_id);
+
 	}
 	if (tmr->tmr_id != TMR_T_NULL) {
 		m_NCS_TMR_DESTROY(tmr->tmr_id);
