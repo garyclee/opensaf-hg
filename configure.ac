@@ -14,7 +14,7 @@
 # Author(s): Wind River Systems
 #
 
-AC_PREREQ([2.59])
+AC_PREREQ([2.61])
 AC_INIT([opensaf], [4.2.M0], [devel@list.opensaf.org])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
