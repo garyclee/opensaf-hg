@@ -135,8 +135,6 @@ AC_CONFIG_FILES([ \
         config/Makefile \
         include/Makefile \
         lib/Makefile \
-        lib/plmc/Makefile \
-        lib/plmc/include/Makefile \
         lib/utils/Makefile \
         plmcd/Makefile \
         scripts/Makefile \
