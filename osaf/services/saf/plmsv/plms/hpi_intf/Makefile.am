@@ -35,4 +35,5 @@ libplms_hpi_la_SOURCES = \
 	plms_epath_util.c
 
 libplms_hpi_la_LIBADD = \
-	$(top_builddir)/osaf/libs/common/plmsv/plmc/libplmc.la
+	$(top_builddir)/osaf/libs/common/plmsv/plmc/libplmc.la \
+	$(top_builddir)/contrib/plmc/lib/utils/libplmc_utils.la
