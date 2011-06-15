@@ -35,6 +35,16 @@
 
 #include "mbcsv.h"
 
+static const char *tmr_evt_str[] = {
+	"MBCSV_TMR_SEND_COLD_SYNC",
+	"MBCSV_TMR_SEND_WARM_SYNC",
+	"MBCSV_TMR_COLD_SYNC_CMPLT",
+	"MBCSV_TMR_WARM_SYNC_CMPLT",
+	"MBCSV_TMR_DATA_RESP_CMPLT",
+	"MBCSV_TMR_TRANSMIT",
+	"Invalid event"
+};
+
 /****************************************************************************
   PROCEDURE:    : mbcsv_process_events
  
@@ -55,24 +65,27 @@ uint32_t mbcsv_process_events(MBCSV_EVT *rcvd_evt, uint32_t mbcsv_hdl)
 	PEER_INST *peer = NULL;
 	CKPT_INST *ckpt = NULL;
 	uint32_t hdl_to_give;
+	TRACE_ENTER2("mbcsv hdl: %u", mbcsv_hdl);
 
 	if (NULL == (mbc_reg = (MBCSV_REG *)m_MBCSV_TAKE_HANDLE(mbcsv_hdl))) {
-		return m_MBCSV_DBG_SINK(SA_AIS_ERR_BAD_HANDLE, "mbcsv_process_events: Bad handle received.");
+ 		TRACE_LEAVE2("Bad handle received");
+		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
 	/* 
 	 * Before starting processing of the event take service lock 
 	 */
 	m_NCS_LOCK(&mbc_reg->svc_lock, NCS_LOCK_WRITE);
-	m_LOG_MBCSV_SVC_LOCK(MBCSV_LK_LOCKED, mbc_reg->svc_id, &mbc_reg->svc_lock);
 
 	/* invoke the corresponding callback */
 	switch (rcvd_evt->msg_type) {
 	case MBCSV_EVT_MDS_SUBSCR:
 		{
+			TRACE("MDS event");
 			switch (rcvd_evt->info.mds_sub_evt.evt_type) {
 			case NCSMDS_RED_UP:
 				{
+					TRACE("RED_UP event");
 					/*
 					 * Send PEER_UP message to the peer anchor from which we have
 					 * received UP event.
@@ -90,6 +103,7 @@ uint32_t mbcsv_process_events(MBCSV_EVT *rcvd_evt, uint32_t mbcsv_hdl)
 
 			case NCSMDS_RED_DOWN:
 				{
+					TRACE("RED_DOWN event");
 					if (NULL != (ckpt = (CKPT_INST *)ncs_patricia_tree_get(&mbc_reg->ckpt_ssn_list,
 											       (const uint8_t *)&rcvd_evt->
 											       rcvr_peer_key.
@@ -112,6 +126,7 @@ uint32_t mbcsv_process_events(MBCSV_EVT *rcvd_evt, uint32_t mbcsv_hdl)
 
 	case MBCSV_EVT_TMR:
 		{
+			TRACE("Timer event");
 			/* 
 			 * Send all these timer events to the state machine which will handle 
 			 * this event for us.
@@ -120,17 +135,18 @@ uint32_t mbcsv_process_events(MBCSV_EVT *rcvd_evt, uint32_t mbcsv_hdl)
 				hdl_to_give = rcvd_evt->info.tmr_evt.peer_inst_hdl;
 				ckpt = peer->my_ckpt_inst;
 
-				m_LOG_MBCSV_FSM_EVT(ckpt->my_role, mbc_reg->svc_id, ckpt->pwe_hdl,
-						    peer->peer_anchor, peer->state,
-						    (MBCSV_FSM_EV_DBG_NONE + NCSMBCSV_EVENT_TMR_MIN +
-						     rcvd_evt->info.tmr_evt.type));
+				TRACE_1("myrole: %u, svc_id: %u, pwe_hdl: %u, peer_anchor: %llu, peer_state: %u, event type:%s",
+				ckpt->my_role, mbc_reg->svc_id, ckpt->pwe_hdl, peer->peer_anchor, peer->state,
+				    						tmr_evt_str[rcvd_evt->info.tmr_evt.type]);
 
 				m_NCS_MBCSV_FSM_DISPATCH(peer, (NCSMBCSV_EVENT_TMR_MIN +
 								rcvd_evt->info.tmr_evt.type), rcvd_evt);
 
 				m_MBCSV_GIVE_HANDLE(hdl_to_give);
-			} else
+			} else {
+				TRACE("do nothing");
 				goto pr_done;
+			}
 		}
 		break;
 	case MBCSV_EVT_INTERNAL:
@@ -141,6 +157,7 @@ uint32_t mbcsv_process_events(MBCSV_EVT *rcvd_evt, uint32_t mbcsv_hdl)
 			switch (rcvd_evt->info.peer_msg.type) {
 			case MBCSV_EVT_INTERNAL_CLIENT:
 				{
+					TRACE("Internal event");
 
 					if (NULL !=
 					    (peer =
@@ -148,13 +165,6 @@ uint32_t mbcsv_process_events(MBCSV_EVT *rcvd_evt, uint32_t mbcsv_hdl)
 									      peer_inst_hdl))) {
 						hdl_to_give = (uint32_t)rcvd_evt->rcvr_peer_key.peer_inst_hdl;
 						ckpt = peer->my_ckpt_inst;
-
-						m_LOG_MBCSV_FSM_EVT(ckpt->my_role, mbc_reg->svc_id, ckpt->pwe_hdl,
-								    peer->peer_anchor, peer->state,
-								    (MBCSV_FSM_EV_DBG_NONE +
-								     rcvd_evt->info.peer_msg.info.client_msg.
-								     type.evt_type));
-
 						m_NCS_MBCSV_FSM_DISPATCH(peer,
 									 rcvd_evt->info.peer_msg.info.client_msg.
 									 type.evt_type, rcvd_evt);
@@ -165,21 +175,22 @@ uint32_t mbcsv_process_events(MBCSV_EVT *rcvd_evt, uint32_t mbcsv_hdl)
 				}
 				break;
 			case MBCSV_EVT_INTERNAL_PEER_DISC:
+				TRACE("peer discovery event");
 				mbcsv_process_peer_discovery_message(rcvd_evt, mbc_reg);
 				break;
 
 			case MBCSV_EVT_CHG_ROLE:
+				TRACE("role change event");
 				mbcsv_process_chg_role(rcvd_evt, mbc_reg);
 				break;
 
 			case MBCSV_EVT_MBC_ASYNC_SEND:
 				{
+					TRACE("async send event");
 					if (NULL == (ckpt =
 						     (CKPT_INST *)m_MBCSV_TAKE_HANDLE(rcvd_evt->info.peer_msg.info.
 										      usr_msg_info.i_ckpt_hdl))) {
-						m_MBCSV_DBG_SINK_SVC(SA_AIS_ERR_BAD_HANDLE,
-								     "NCS_MBCSV_OP_SEND_CKPT: CKPT instance does exist.",
-								     0);
+						TRACE("CKPT instance does exist");
 						goto pr_done;
 					}
 
@@ -202,13 +213,13 @@ uint32_t mbcsv_process_events(MBCSV_EVT *rcvd_evt, uint32_t mbcsv_hdl)
 
  pr_done:
 	m_NCS_UNLOCK(&mbc_reg->svc_lock, NCS_LOCK_WRITE);
-	m_LOG_MBCSV_SVC_LOCK(MBCSV_LK_UNLOCKED, mbc_reg->svc_id, &mbc_reg->svc_lock);
 	m_MBCSV_GIVE_HANDLE(mbcsv_hdl);
 
 	/* free the event info */
 	if (rcvd_evt)
 		m_MMGR_FREE_MBCSV_EVT(rcvd_evt);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -227,6 +238,7 @@ uint32_t mbcsv_hdl_dispatch_one(uint32_t mbcsv_hdl, SYSF_MBX mbx)
 {
 	MBCSV_EVT *rcvd_evt;
 	uint32_t rc = SA_AIS_OK;
+	TRACE_ENTER();
 
 	/* get it from the queue */
 	rcvd_evt = m_MBCSV_RCV_MSG(&mbx);
@@ -235,6 +247,7 @@ uint32_t mbcsv_hdl_dispatch_one(uint32_t mbcsv_hdl, SYSF_MBX mbx)
 		rc = mbcsv_process_events(rcvd_evt, mbcsv_hdl);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -253,13 +266,16 @@ uint32_t mbcsv_hdl_dispatch_all(uint32_t mbcsv_hdl, SYSF_MBX mbx)
 {
 	MBCSV_EVT *rcvd_evt;
 	uint32_t rc = SA_AIS_OK;
+	TRACE_ENTER();
 
 	while ((rcvd_evt = m_MBCSV_RCV_MSG(&mbx))) {
 		if (SA_AIS_OK != (rc = mbcsv_process_events(rcvd_evt, mbcsv_hdl))) {
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -278,12 +294,15 @@ uint32_t mbcsv_hdl_dispatch_block(uint32_t mbcsv_hdl, SYSF_MBX mbx)
 {
 	MBCSV_EVT *rcvd_evt;
 	uint32_t rc = SA_AIS_OK;
+	TRACE_ENTER();
 
 	while ((rcvd_evt = m_MBCSV_BLK_RCV_MSG(&mbx))) {
 		if (SA_AIS_OK != (rc = mbcsv_process_events(rcvd_evt, mbcsv_hdl))) {
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
 
+	TRACE_LEAVE();
 	return SA_AIS_OK;
 }
