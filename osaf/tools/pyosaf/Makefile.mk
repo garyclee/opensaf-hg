@@ -15,6 +15,11 @@
 #
 ############################################################################
 
+# Sample Makefile to build the Python package outside of the OpenSAF build
+# make -f Makefile.mk
+# make -f Makefile.mk dist
+# etc.
+
 PYTHON=python
 PREFIX=/usr/local
 PACKAGE_NAME=pyosaf

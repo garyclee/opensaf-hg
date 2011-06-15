@@ -32,3 +32,4 @@ javadir = $(datadir)/java
 javadocdir = $(datadir)/javadoc
 lsbinitdir = $(initscriptdir)
 lockdir = $(localstatedir)/lock/subsys
+pkgpyosafdir = $(pythondir)/pyosaf

@@ -166,6 +166,20 @@ AC_ARG_WITH([initscriptdir],
 AC_SUBST([initscriptdir], ["$with_initscriptdir"])
 
 #
+# Enable/disable the Python AIS bindings
+#
+AC_MSG_CHECKING([whether to enable the Python AIS bindings])
+AC_ARG_ENABLE([python],
+        [AS_HELP_STRING([--enable-python],
+                [enable the Python AIS bindings [default=yes]])],
+        [],
+        [enable_python=yes])
+AC_MSG_RESULT([$enable_python])
+
+AM_CONDITIONAL([ENABLE_PYTHON], [test "$enable_python" = yes])
+AC_SUBST([PYTHON_ENABLED], ["$enable_python"])
+
+#
 # If the AM4J API library isn't in the standard CLASSPATH, it can be configured
 # with a parameter instead
 AC_ARG_WITH([am4j-api-jar],
@@ -409,6 +423,10 @@ AC_PROG_LIBTOOL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_YACC
+
+if test "$enable_python" = yes; then
+        AM_PATH_PYTHON([2.5])
+fi
 
 if test "$enable_java" = yes; then
         AC_JAVA_WITH_JDK
@@ -844,6 +862,8 @@ AC_CONFIG_FILES([
         osaf/services/saf/smfsv/smfnd/scripts/Makefile
         osaf/services/saf/smfsv/smfnd/scripts/osaf-smfnd
         osaf/tools/Makefile
+        osaf/tools/pyosaf/Makefile
+        osaf/tools/pyosaf/pyosaf/Makefile
         osaf/tools/safimm/Makefile
         osaf/tools/safimm/immadm/Makefile
         osaf/tools/safimm/immcfg/Makefile
@@ -928,6 +948,7 @@ echo "${ECHO_T}  XML2_CFLAGS: ${XML2_CFLAGS}"
 echo "${ECHO_T}  XML2_LIBS: ${XML2_LIBS}"
 echo ""
 echo " OpenSAF Options:"
+echo "${ECHO_T}  Enable Python AIS Bindings: ${enable_python}"
 echo "${ECHO_T}  Enable Java AIS Mapping: ${enable_java}"
 echo "${ECHO_T}  Enable AM4J: ${enable_am4j}"
 echo "${ECHO_T}  Enable PLM support: ${enable_ais_plm}"
