@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2009 The OpenSAF Foundation
+# (C) Copyright 2011 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -18,10 +18,10 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = safimm saflog safntf rde scripts
+EXTRA_DIST = \
+	Makefile.mk \
+	MANIFEST.in \
+	README \
+	setup.py
 
-if ENABLE_PYTHON
-
-SUBDIRS += pyosaf
-
-endif
+SUBDIRS = pyosaf
