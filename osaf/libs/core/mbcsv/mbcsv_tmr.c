@@ -43,6 +43,17 @@
 
 #include "mbcsv.h"
 
+static const char *tmr_type_str[] = {
+	"NCS_MBCSV_TMR_SEND_COLD_SYNC",
+	"NCS_MBCSV_TMR_SEND_WARM_SYNC",
+	"NCS_MBCSV_TMR_COLD_SYNC_CMPLT",
+	"NCS_MBCSV_TMR_WARM_SYNC_CMPLT",
+	"NCS_MBCSV_TMR_DATA_RESP_CMPLT",
+	"NCS_MBCSV_TMR_TRANSMIT",
+	"Invalid timer type"
+};
+
+
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
                         The TIMER Database (Visibility restricted)
@@ -80,9 +91,10 @@ const NCS_MBCSV_TMR_DB ncs_mbcsv_tmr_db[] = {
 void ncs_mbcsv_start_timer(PEER_INST *peer, uint8_t timer_type)
 {
 	NCS_MBCSV_TMR *tmr;
+	TRACE_ENTER();
 
 	if (timer_type >= NCS_MBCSV_MAX_TMRS) {
-		m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Timer out of range");
+		TRACE_LEAVE2("Timer type out of range: %u", timer_type);
 		return;
 	}
 
@@ -92,6 +104,7 @@ void ncs_mbcsv_start_timer(PEER_INST *peer, uint8_t timer_type)
 	/* If timer does not exist, create it. */
 
 	if (tmr->tmr_id == TMR_T_NULL) {
+		TRACE("creating timer");
 		m_NCS_TMR_CREATE(tmr->tmr_id, tmr->period, ncs_mbcsv_tmr_db[timer_type].cb_func, (void *)tmr);
 	}
 
@@ -100,16 +113,18 @@ void ncs_mbcsv_start_timer(PEER_INST *peer, uint8_t timer_type)
 
 	if (tmr->is_active == false) {
 		tmr->type = timer_type;
-		m_LOG_MBCSV_TMR(peer->my_ckpt_inst->my_role,
+		TRACE("starting timer. my role:%u, svc_id:%u, pwe_hdl:%u, peer_anchor:%llu, tmr type:%s",
+				peer->my_ckpt_inst->my_role,
 				peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
 				peer->my_ckpt_inst->pwe_hdl, peer->peer_anchor,
-				(timer_type + MBCSV_TMR_SND_COLD_SYNC), MBCSV_TMR_START);
+				tmr_type_str[timer_type]);
 
 		m_NCS_TMR_START(tmr->tmr_id, tmr->period, ncs_mbcsv_tmr_db[timer_type].cb_func, (void *)tmr);
 
 		tmr->is_active = true;
 
 	}
+	TRACE_LEAVE();
 }
 
 /***************************************************************************** 
@@ -130,7 +145,7 @@ void ncs_mbcsv_stop_timer(PEER_INST *peer, uint32_t timer_type)
 	NCS_MBCSV_TMR *tmr;
 
 	if (timer_type >= NCS_MBCSV_MAX_TMRS) {
-		m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Timer out of range");;
+		TRACE_LEAVE2("Timer type out of range: %u", timer_type);
 		return;
 	}
 	tmr = &peer->tmr[timer_type];
@@ -140,10 +155,11 @@ void ncs_mbcsv_stop_timer(PEER_INST *peer, uint32_t timer_type)
 	tmr->has_expired = false;	/* if in transit, not valid now */
 
 	if (tmr->is_active == true) {
-		m_LOG_MBCSV_TMR(peer->my_ckpt_inst->my_role,
+	TRACE("stop and destroying timer. my role:%u, svc_id:%u, pwe_hdl:%u, peer_anchor:%llu, tmr type:%s",
+				peer->my_ckpt_inst->my_role,
 				peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
 				peer->my_ckpt_inst->pwe_hdl, peer->peer_anchor,
-				(timer_type + MBCSV_TMR_SND_COLD_SYNC), MBCSV_TMR_STOP);
+				tmr_type_str[timer_type]);
 
 		m_NCS_TMR_STOP(tmr->tmr_id);
 		tmr->is_active = false;
@@ -151,11 +167,11 @@ void ncs_mbcsv_stop_timer(PEER_INST *peer, uint32_t timer_type)
 		tmr->tmr_id = TMR_T_NULL;
 	} else if (tmr->tmr_id != TMR_T_NULL) {
 		/* Destroy the timer if it exists... */
-
-		m_LOG_MBCSV_TMR(peer->my_ckpt_inst->my_role,
+		TRACE("Destroying timer. my role:%u, svc_id:%u, pwe_hdl:%u, peer_anchor:%llu, tmr type:%s",
+				peer->my_ckpt_inst->my_role,
 				peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
 				peer->my_ckpt_inst->pwe_hdl, peer->peer_anchor,
-				(timer_type + MBCSV_TMR_SND_COLD_SYNC), MBCSV_TMR_STOP);
+				tmr_type_str[timer_type]);
 
 		m_NCS_TMR_DESTROY(tmr->tmr_id);
 		tmr->tmr_id = TMR_T_NULL;
@@ -177,12 +193,14 @@ void ncs_mbcsv_stop_timer(PEER_INST *peer, uint32_t timer_type)
 *****************************************************************************/
 void ncs_mbcsv_stop_all_timers(PEER_INST *peer)
 {
+	TRACE_ENTER();
 	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_SEND_COLD_SYNC);
 	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_SEND_WARM_SYNC);
 	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_COLD_SYNC_CMPLT);
 	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_WARM_SYNC_CMPLT);
 	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_DATA_RESP_CMPLT);
 	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_TRANSMIT);
+	TRACE_LEAVE();
 }
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -216,7 +234,7 @@ void ncs_mbcsv_tmr_expiry(void *uarg)
 	MBCSV_EVT *mbc_evt;	/* MBCSV event to be posted */
 
 	if (NULL == (mbc_evt = m_MMGR_ALLOC_MBCSV_EVT)) {
-		m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Memory allocation failure");;
+		TRACE_LEAVE2("malloc failed");
 		return;
 	}
 
@@ -227,10 +245,11 @@ void ncs_mbcsv_tmr_expiry(void *uarg)
 	event = ncs_mbcsv_tmr_db[type].event;
 
 	/* Clean up timer. */
-	m_LOG_MBCSV_TMR(peer->my_ckpt_inst->my_role,
-			peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
-			peer->my_ckpt_inst->pwe_hdl, peer->peer_anchor,
-			(type + MBCSV_TMR_SND_COLD_SYNC), MBCSV_TMR_EXP);
+	TRACE("Timer expired. my role:%u, svc_id:%u, pwe_hdl:%u, peer_anchor:%llu, tmr type:%s",
+				peer->my_ckpt_inst->my_role,
+				peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+				peer->my_ckpt_inst->pwe_hdl, peer->peer_anchor,
+				tmr_type_str[type]);
 
 	m_SET_NCS_MBCSV_TMR_INACTIVE(peer, type);
 	m_SET_NCS_MBCSV_TMR_EXP_ON(peer, type);	/* expired and valid at action routine */
@@ -243,7 +262,7 @@ void ncs_mbcsv_tmr_expiry(void *uarg)
 	if (NCSCC_RC_SUCCESS != m_MBCSV_SND_MSG(&peer->my_ckpt_inst->my_mbcsv_inst->mbx,
 						mbc_evt, NCS_IPC_PRIORITY_HIGH)) {
 		m_MMGR_FREE_MBCSV_EVT(mbc_evt);
-		m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Failed to post message to MBCSv mailbox.");;
+		TRACE_LEAVE2("ipc send (to mailbox) failed ");
 		return;
 	}
 }
@@ -273,11 +292,13 @@ void ncs_mbcsv_tmr_expiry(void *uarg)
 void ncs_mbcsv_send_cold_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
 	uint32_t rc;
+	TRACE_ENTER2("cold sync timer expired. send a cold sync request if STANDBY");
 
 	/* Send a cold sync req  and start the send cold sync timer if the role is */
 	/* Standby and the RED is enabled                                           */
 
 	if (peer->my_ckpt_inst->my_role == SA_AMF_HA_STANDBY) {
+		TRACE("I'm STANDBY, send COLD SYNC request");
 		m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_SEND_COLD_SYNC_REQ, NCS_MBCSV_ACT_DONT_CARE);
 
 		/* Even if the message was not sent, we will try again later */
@@ -290,15 +311,15 @@ void ncs_mbcsv_send_cold_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 
 	/* Tell the MBCSv clinet about the timer expiration */
 	/* It can do smart things - if it cares */
+	TRACE("Inform(ERR_INDICATION_CBK) client app about the cold sync timer expiry. client app may act or ignore");
 	m_MBCSV_INDICATE_ERROR(peer,
 			       peer->my_ckpt_inst->client_hdl,
 			       NCS_MBCSV_COLD_SYNC_TMR_EXP, false, peer->version, NULL, rc);
 
 	if (NCSCC_RC_SUCCESS != rc)
-		m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-				     "mbcsv_shutdown_peer: Error callback returns fails.",
-				     peer->my_ckpt_inst->my_mbcsv_inst->svc_id);
+		TRACE("err indication processing failed");
 
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -320,22 +341,24 @@ void ncs_mbcsv_send_cold_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 void ncs_mbcsv_send_warm_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
 	uint32_t rc;
+	TRACE_ENTER2("warm sync timer expired. send a warm sync request if standby");
 
 	/* Send a warm sync req  and start the send warm sync timer  */
 	/* if the role is Standby and the RED is enabled              */
 
 	if (peer->my_ckpt_inst->my_role == SA_AMF_HA_STANDBY) {
+		TRACE("I'm STANDBY, send WARM SYNC request");
 
 		/* Tell the redundant entity about the timer expiration */
 		/* It can do smart things - if it cares */
 		if (peer->warm_sync_sent == true) {
+			TRACE("Inform(ERR_INDICATION_CBK) client app about the warm sync timer expiry.\
+								 client app may act or ignore");
 			m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
 					       NCS_MBCSV_WARM_SYNC_TMR_EXP, false, peer->version, NULL, rc);
 
 			if (NCSCC_RC_SUCCESS != rc)
-				m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-						     "mbcsv_shutdown_peer: Error callback returns fails.",
-						     peer->my_ckpt_inst->my_mbcsv_inst->svc_id);
+				TRACE("Error indication processing failed");
 		}
 
 		m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_SEND_WARM_SYNC_REQ, NCS_MBCSV_ACT_DONT_CARE);
@@ -348,6 +371,7 @@ void ncs_mbcsv_send_warm_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 		ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_WARM_SYNC_CMPLT);
 	}
 
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -369,18 +393,20 @@ void ncs_mbcsv_send_warm_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 void ncs_mbcsv_send_data_req_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
 	uint32_t rc;
+	TRACE_ENTER2("DATA REQ timer expired. send a DATA REQ");
+
 	/* Tell the redundant entity about the timer expiration */
 	/* It can do smart things - if it cares */
+	TRACE("Inform(ERR_INDICATION_CBK) client app about the data req timer expiry. client app may act or ignore");
 	m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
 			       NCS_MBCSV_DATA_RSP_CMPLT_TMR_EXP, true, peer->version, NULL, rc);
 
 	if (NCSCC_RC_SUCCESS != rc)
-		m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-				     "mbcsv_shutdown_peer: Error callback returns fails.",
-				     peer->my_ckpt_inst->my_mbcsv_inst->svc_id);
+		TRACE("Error indication processing failed");
 
 	peer->my_ckpt_inst->data_req_sent = false;
 
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -400,13 +426,14 @@ void ncs_mbcsv_send_data_req_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 void ncs_mbcsv_cold_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
 	uint32_t rc;
+	TRACE_ENTER2("COLD SYNC COMPL timer expired, send error indication");
+
 	m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
 			       NCS_MBCSV_COLD_SYNC_CMPL_TMR_EXP, true, peer->version, NULL, rc);
 
 	if (NCSCC_RC_SUCCESS != rc)
-		m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-				     "mbcsv_shutdown_peer: Error callback returns fails.",
-				     peer->my_ckpt_inst->my_mbcsv_inst->svc_id);
+		TRACE("Error indication processing failed");
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -426,13 +453,15 @@ void ncs_mbcsv_cold_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 void ncs_mbcsv_warm_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
 	uint32_t rc;
+	TRACE_ENTER2("WARM SYNC COMPL timer expired, send error indication");
+
 	m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
 			       NCS_MBCSV_WARM_SYNC_CMPL_TMR_EXP, true, peer->version, NULL, rc);
 
 	if (NCSCC_RC_SUCCESS != rc)
-		m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-				     "mbcsv_shutdown_peer: Error callback returns fails.",
-				     peer->my_ckpt_inst->my_mbcsv_inst->svc_id);
+		TRACE("Error indication processing failed");
+
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -451,9 +480,7 @@ void ncs_mbcsv_warm_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 *****************************************************************************/
 void ncs_mbcsv_transmit_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
-	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
-			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-			   "Sending the call-again-event");
+	TRACE("Transmit timer. sending call-again-event for pwe_hdl:%u. revisit!", peer->my_ckpt_inst->pwe_hdl);
 
 	mbcsv_send_msg(peer, evt, peer->call_again_event);
 

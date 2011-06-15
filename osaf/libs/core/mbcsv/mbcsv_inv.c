@@ -50,29 +50,29 @@ extern MBCSV_CB mbcsv_cb;
 
 #define m_MBCSV_PRT_INV_HDR \
 { \
-   printf("\n------------------------------------------------------------------------------"); \
-   printf("\n|             M  B  C  S  V     I  n  v  e  n  t  o  r  y                     |"); \
-   printf("\n------------------------------------------------------------------------------"); \
-   printf("\n|       SVC     |          CSI          |               PEER's                |"); \
-   printf("\n------------------------------------------------------------------------------"); \
-   printf("\n|SVC_ID|MBCSVHDL| PWEHDL | CSIHDL | W |R|    My Anchor   | My hdl |peer hdl|  |"); \
-   printf("\n|---------------|    My Anchor   |ipfrd |R|FSMS|C|SYN|iwpcooacdcw|Version|    |"); \
-   printf("\n------------------------------------------------------------------------------"); \
+   TRACE("\n------------------------------------------------------------------------------"); \
+   TRACE("\n|             M  B  C  S  V     I  n  v  e  n  t  o  r  y                     |"); \
+   TRACE("\n------------------------------------------------------------------------------"); \
+   TRACE("\n|       SVC     |          CSI          |               PEER's                |"); \
+   TRACE("\n------------------------------------------------------------------------------"); \
+   TRACE("\n|SVC_ID|MBCSVHDL| PWEHDL | CSIHDL | W |R|    My Anchor   | My hdl |peer hdl|  |"); \
+   TRACE("\n|---------------|    My Anchor   |ipfrd |R|FSMS|C|SYN|iwpcooacdcw|Version|    |"); \
+   TRACE("\n------------------------------------------------------------------------------"); \
 }
 
 #define m_MBCSV_PRT_INV_FOOTER \
 { \
-   printf("\n------------------------------------------------------------------------------"); \
-   printf("\n----------M  B  C  S  V     I  n  v  e  n  t  o  r  y    E  n  d -------------"); \
-   printf("\n------------------------------------------------------------------------------"); \
+   TRACE("\n------------------------------------------------------------------------------"); \
+   TRACE("\n----------M  B  C  S  V     I  n  v  e  n  t  o  r  y    E  n  d -------------"); \
+   TRACE("\n------------------------------------------------------------------------------"); \
 }
 
 #define m_MBCSV_PRT_PEER_INFO(peer_ptr) \
 { \
-   printf("\n|               |                       |%16" PRIX64 "|%8X|%8X|  |", \
+   TRACE("\n|               |                       |%16llX|%8X|%8X|  |", \
    (uint64_t)peer_ptr->peer_anchor,(uint32_t)peer_ptr->hdl, (uint32_t)peer_ptr->peer_hdl); \
    \
-   printf("\n|               |                       |%c|%s|%c| %c |%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d|%2d |    |", \
+   TRACE("\n|               |                       |%c|%s|%c| %c |%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d|%2d |    |", \
    mbcsv_prt_role[peer_ptr->peer_role],  \
    mbcsv_prt_fsm_state[ckpt->my_role][peer_ptr->state - 1], ((peer_ptr->incompatible)?'F':'T'), \
    ((peer_ptr->cold_sync_done)?'T':'F'), peer_ptr->incompatible, peer_ptr->warm_sync_sent,  \
@@ -101,12 +101,14 @@ uint32_t mbcsv_prt_inv(void)
 	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t pwe_hdl = 0;
 	uint32_t c_count = 0, p_count = 0;
+	TRACE_ENTER();
 
-	if (mbcsv_cb.created == false)
-		return m_MBCSV_DBG_SINK(SA_AIS_ERR_NOT_EXIST, "MBCA instance is not created. First call mbcsv dl api.");
+	if (mbcsv_cb.created == false) {
+ 		TRACE_LEAVE2("MBCA instance is not created. First call mbcsv dl api.");
+		return SA_AIS_ERR_NOT_EXIST;
+	}
 
 	m_NCS_LOCK(&mbcsv_cb.global_lock, NCS_LOCK_READ);
-	m_LOG_MBCSV_GL_LOCK(MBCSV_LK_LOCKED, &mbcsv_cb.global_lock);
 
 	m_MBCSV_PRT_INV_HDR;
 
@@ -116,10 +118,9 @@ uint32_t mbcsv_prt_inv(void)
 	while (NULL != (mbc_reg = (MBCSV_REG *)ncs_patricia_tree_getnext(&mbcsv_cb.reg_list, (const uint8_t *)&svc_id))) {
 		m_NCS_LOCK(&mbc_reg->svc_lock, NCS_LOCK_READ);
 
-		m_LOG_MBCSV_SVC_LOCK(MBCSV_LK_LOCKED, mbc_reg->svc_id, &mbc_reg->svc_lock);
 		svc_id = mbc_reg->svc_id;
 
-		printf("\n|%6d|%8X|         MY  CSI       |                                  |",
+		TRACE("\n|%6d|%8X|         MY  CSI       |                                  |",
 		       svc_id, mbc_reg->mbcsv_hdl);
 
 		c_count = 0;
@@ -130,10 +131,10 @@ uint32_t mbcsv_prt_inv(void)
 			c_count++;
 			pwe_hdl = ckpt->pwe_hdl;
 
-			printf("\n|               |%8X|%8X| %c |%c|                                  |",
+			TRACE("\n|               |%8X|%8X| %c |%c|                                  |",
 			       ckpt->pwe_hdl, ckpt->ckpt_hdl, (ckpt->warm_sync_on ? 'T' : 'F'),
 			       mbcsv_prt_role[ckpt->my_role]);
-			printf("\n|               |%16" PRIX64 "|%1d%1d%1d%1d%1d |           MY   PEERS              |",
+			TRACE("\n|               |%16llX|%1d%1d%1d%1d%1d |           MY   PEERS              |",
 			       (uint64_t)ckpt->my_anchor, ckpt->in_quiescing, ckpt->peer_up_sent, ckpt->ftm_role_set,
 			       ckpt->role_set, ckpt->data_req_sent);
 
@@ -147,32 +148,31 @@ uint32_t mbcsv_prt_inv(void)
 			}
 
 			if (p_count == 0)
-				printf
+				TRACE
 				    ("\n|               |                       |           NONE                   |");
 			else {
 				if (NULL != ckpt->active_peer) {
-					printf
+					TRACE
 					    ("\n|               |                       |           MY ACTIVE PEER         |");
 					m_MBCSV_PRT_PEER_INFO(ckpt->active_peer);
 				}
 			}
-			printf("\n|               |-----------------------|----------------------------------|");
+			TRACE("\n|               |-----------------------|----------------------------------|");
 		}
 
 		if (c_count == 0)
-			printf("\n|               |           NONE        |           NONE                   |");
+			TRACE("\n|               |           NONE        |           NONE                   |");
 
-		printf("\n------------------------------------------------------------------------------");
+		TRACE("\n------------------------------------------------------------------------------");
 
 		m_NCS_UNLOCK(&mbc_reg->svc_lock, NCS_LOCK_READ);
-		m_LOG_MBCSV_SVC_LOCK(MBCSV_LK_UNLOCKED, mbc_reg->svc_id, &mbc_reg->svc_lock);
 	}
 
 	m_MBCSV_PRT_INV_FOOTER;
 
 	m_NCS_UNLOCK(&mbcsv_cb.global_lock, NCS_LOCK_READ);
-	m_LOG_MBCSV_GL_LOCK(MBCSV_LK_UNLOCKED, &mbcsv_cb.global_lock);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
