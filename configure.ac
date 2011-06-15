@@ -662,7 +662,6 @@ AC_CONFIG_FILES([
         osaf/libs/core/leap/include/Makefile
         osaf/libs/core/mbcsv/Makefile
         osaf/libs/core/mbcsv/include/Makefile
-        osaf/libs/core/mbcsv/logstr/Makefile
         osaf/libs/core/mds/Makefile
         osaf/libs/core/mds/include/Makefile
         osaf/libs/common/Makefile

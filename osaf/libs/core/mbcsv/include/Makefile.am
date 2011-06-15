@@ -19,13 +19,11 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
-	mbcsv_dbg.h \
 	mbcsv_dl_api.h \
 	mbcsv_env.h \
 	mbcsv_evt_msg.h \
 	mbcsv_evts.h \
 	mbcsv.h \
-	mbcsv_log.h \
 	mbcsv_mbx.h \
 	mbcsv_mds.h \
 	mbcsv_mem.h \

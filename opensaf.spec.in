@@ -1310,7 +1310,6 @@ fi
 %{_libdir}/libopensaf_core.so.*
 %{_pkglibdir}/librda.so.*
 %{_pkglibdir}/libdts_logstr.so.*
-%{_pkglibdir}/libmbcsv_logstr.so.*
 
 
 %files devel
