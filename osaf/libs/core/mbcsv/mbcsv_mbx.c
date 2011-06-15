@@ -66,6 +66,7 @@ uint32_t mbcsv_add_new_mbx(uint32_t pwe_hdl, SS_SVC_ID svc_id, SYSF_MBX mbx)
 	MBCSV_MBX_KEY key;
 	MBCSV_MBX_INFO *new_entry;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&key, '\0', sizeof(MBCSV_MBX_KEY));
 
@@ -75,12 +76,14 @@ uint32_t mbcsv_add_new_mbx(uint32_t pwe_hdl, SS_SVC_ID svc_id, SYSF_MBX mbx)
 	m_NCS_LOCK(&mbcsv_cb.mbx_list_lock, NCS_LOCK_WRITE);
 
 	if (NULL != ncs_patricia_tree_get(&mbcsv_cb.mbx_list, (const uint8_t *)&key)) {
-		rc = m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE, "Unable to add new mailbox entry for service", svc_id);
+ 		TRACE_4("Unable to add new mailbox entry for service:%u", svc_id);
+		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
 	if (NULL == (new_entry = m_MMGR_ALLOC_MBX_INFO)) {
-		rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "mbcsv_add_new_mbx: Memory allocation failed");
+ 		TRACE_4("malloc failed");
+		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
@@ -93,13 +96,15 @@ uint32_t mbcsv_add_new_mbx(uint32_t pwe_hdl, SS_SVC_ID svc_id, SYSF_MBX mbx)
 
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&mbcsv_cb.mbx_list, (NCS_PATRICIA_NODE *)new_entry)) {
 		m_MMGR_FREE_MBX_INFO(new_entry);
-		rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "mbcsv_add_new_mbx: Failed to add new mbx in tree");
+ 		TRACE_4("Failed to add new mbx in tree");
+		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
  done:
 	m_NCS_UNLOCK(&mbcsv_cb.mbx_list_lock, NCS_LOCK_WRITE);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -120,6 +125,7 @@ uint32_t mbcsv_rmv_entry(uint32_t pwe_hdl, SS_SVC_ID svc_id)
 	MBCSV_MBX_KEY key;
 	MBCSV_MBX_INFO *tree_entry;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&key, '\0', sizeof(MBCSV_MBX_KEY));
 
@@ -129,8 +135,8 @@ uint32_t mbcsv_rmv_entry(uint32_t pwe_hdl, SS_SVC_ID svc_id)
 	m_NCS_LOCK(&mbcsv_cb.mbx_list_lock, NCS_LOCK_WRITE);
 
 	if (NULL == (tree_entry = (MBCSV_MBX_INFO *)ncs_patricia_tree_get(&mbcsv_cb.mbx_list, (const uint8_t *)&key))) {
-		rc = m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-					  "Mailbox entry for this pwe and service ID does not exist", svc_id);
+		TRACE("Mailbox entry for this pwe and service ID:%u does not exist", svc_id);
+		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
@@ -141,6 +147,7 @@ uint32_t mbcsv_rmv_entry(uint32_t pwe_hdl, SS_SVC_ID svc_id)
  done:
 	m_NCS_UNLOCK(&mbcsv_cb.mbx_list_lock, NCS_LOCK_WRITE);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -158,6 +165,7 @@ uint32_t mbcsv_initialize_mbx_list(void)
 {
 	NCS_PATRICIA_PARAMS pt_params;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* 
 	 * Create patricia tree for the mail boxes 
@@ -165,11 +173,13 @@ uint32_t mbcsv_initialize_mbx_list(void)
 	pt_params.key_size = sizeof(MBCSV_MBX_KEY);
 
 	if (ncs_patricia_tree_init(&mbcsv_cb.mbx_list, &pt_params) != NCSCC_RC_SUCCESS) {
-		rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Lib init request failed.");
+ 		TRACE_4("pat tree init failed.");
+		rc = NCSCC_RC_FAILURE;
 	}
 
 	m_NCS_LOCK_INIT(&mbcsv_cb.mbx_list_lock);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -188,6 +198,7 @@ uint32_t mbcsv_destroy_mbx_list(void)
 {
 	MBCSV_MBX_KEY key;
 	MBCSV_MBX_INFO *tree_entry;
+	TRACE_ENTER();
 
 	memset(&key, '\0', sizeof(MBCSV_MBX_KEY));
 
@@ -206,6 +217,7 @@ uint32_t mbcsv_destroy_mbx_list(void)
 
 	m_NCS_LOCK_DESTROY(&mbcsv_cb.mbx_list_lock);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -233,11 +245,9 @@ SYSF_MBX mbcsv_get_mbx(uint32_t pwe_hdl, SS_SVC_ID svc_id)
 	m_NCS_LOCK(&mbcsv_cb.mbx_list_lock, NCS_LOCK_READ);
 
 	if (NULL == (tree_entry = (MBCSV_MBX_INFO *)ncs_patricia_tree_get(&mbcsv_cb.mbx_list, (const uint8_t *)&key))) {
-		m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-				     "Mailbox entry for this pwe and service ID does not exist", svc_id);
 
 		m_NCS_UNLOCK(&mbcsv_cb.mbx_list_lock, NCS_LOCK_READ);
-
+		TRACE_LEAVE2("Mailbox entry for this pwe and service ID:%u does not exist", svc_id);
 		return 0;
 	}
 
@@ -281,6 +291,7 @@ SYSF_MBX mbcsv_get_next_entry_for_pwe(uint32_t pwe_hdl, SS_SVC_ID *svc_id)
 									       (const uint8_t *)&key)))
 	    || (tree_entry->key.pwe_hdl != pwe_hdl)) {
 		m_NCS_UNLOCK(&mbcsv_cb.mbx_list_lock, NCS_LOCK_READ);
+		TRACE_LEAVE();
 		return 0;
 	}
 
