@@ -48,15 +48,11 @@
 #include "ncsencdec_pub.h"
 #include "ncs_stack.h"
 
-#if (MBCSV_LOG == 1)
-#include "dta_papi.h"
-#endif
-
 #include "ncs_lib.h"
 
 #include "ncs_mda_papi.h"
 #include "mds_papi.h"
-
+#include "logtrace.h"
 /* From targsvcs/common/inc */
 
 #include "mds_papi.h"
@@ -67,12 +63,10 @@ typedef uint64_t MBCSV_ANCHOR;
 
 /* From /base/products/rms/inc */
 #include "mbcsv_papi.h"
-#include "mbcsv_dbg.h"
 #include "mbcsv_evts.h"
 #include "mbcsv_tmr.h"
 #include "mbcsv_evt_msg.h"
 #include "mbcsv_env.h"
-#include "mbcsv_log.h"
 #include "mbcsv_mbx.h"
 #include "mbcsv_pwe_anc.h"
 #include "mbcsv_mem.h"

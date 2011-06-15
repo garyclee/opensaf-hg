@@ -18,25 +18,23 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include logstr
+SUBDIRS = include
 
 noinst_LTLIBRARIES = libmbca.la
 
 libmbca_la_LDFLAGS = -static
 
 libmbca_la_CPPFLAGS = \
-	-DNCS_MBCSV=1 -DMBCSV_DEBUG=1 -DMBCSV_LOG=1 \
+	-DNCS_MBCSV=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/core/mbcsv/include
 
 libmbca_la_SOURCES = \
 	mbcsv_act.c \
 	mbcsv_api.c \
-	mbcsv_dbg.c \
 	mbcsv_dl_api.c \
 	mbcsv_fsm.c \
 	mbcsv_inv.c \
-	mbcsv_log.c \
 	mbcsv_mbx.c \
 	mbcsv_mds.c \
 	mbcsv_peer.c \

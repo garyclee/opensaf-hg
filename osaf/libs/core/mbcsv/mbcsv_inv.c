@@ -33,7 +33,6 @@
 
 #include "mbcsv.h"
 
-#if (MBCSV_DEBUG == 1)
 #define   NUMBER_OF_HA_ROLES  4
 #define   MAX_FSM_STATES      6
 
@@ -176,4 +175,3 @@ uint32_t mbcsv_prt_inv(void)
 	return rc;
 }
 
-#endif
