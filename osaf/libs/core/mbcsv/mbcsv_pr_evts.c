@@ -135,7 +135,7 @@ uint32_t mbcsv_process_events(MBCSV_EVT *rcvd_evt, uint32_t mbcsv_hdl)
 				hdl_to_give = rcvd_evt->info.tmr_evt.peer_inst_hdl;
 				ckpt = peer->my_ckpt_inst;
 
-				TRACE_1("myrole: %u, svc_id: %u, pwe_hdl: %u, peer_anchor: %llu, peer_state: %u, event type:%s",
+				TRACE_1("myrole: %u, svc_id: %u, pwe_hdl: %u, peer_anchor: %" PRIu64 ", peer_state: %u, event type:%s",
 				ckpt->my_role, mbc_reg->svc_id, ckpt->pwe_hdl, peer->peer_anchor, peer->state,
 				    						tmr_evt_str[rcvd_evt->info.tmr_evt.type]);
 

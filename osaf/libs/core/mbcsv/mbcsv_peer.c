@@ -104,7 +104,7 @@ PEER_INST *mbcsv_add_new_peer(CKPT_INST *ckpt, MBCSV_ANCHOR anchor)
 {
 	PEER_INST *peer_ptr = ckpt->peer_list;
 	PEER_INST *new_peer;
-	TRACE_ENTER2("Peer Anchor :%llu", anchor);
+	TRACE_ENTER2("Peer Anchor :%" PRIu64, anchor);
 
 	if (NULL == (new_peer = m_MMGR_ALLOC_PEER_INFO)) {
 		TRACE_4("mbcsv_add_new_peer: Mem alloc failed.");
@@ -164,7 +164,7 @@ PEER_INST *mbcsv_add_new_peer(CKPT_INST *ckpt, MBCSV_ANCHOR anchor)
 uint32_t mbcsv_shutdown_peer(PEER_INST *peer_ptr)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("stop peer timers, close session for peer anchor = %llu", peer_ptr->peer_anchor);
+	TRACE_ENTER2("stop peer timers, close session for peer anchor = %" PRIu64, peer_ptr->peer_anchor);
 	ncs_mbcsv_stop_all_timers(peer_ptr);
 
 	/* 
@@ -318,7 +318,7 @@ uint32_t mbcsv_process_peer_discovery_message(MBCSV_EVT *msg, MBCSV_REG *mbc_reg
 			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
-	TRACE_1("%s, My role: %u, My svc_id: %u, pwe handle:%u, peer role:%u, peer_anchor = %llu", \
+	TRACE_1("%s, My role: %u, My svc_id: %u, pwe handle:%u, peer role:%u, peer_anchor: %" PRIu64, \
 	disc_trace[msg->info.peer_msg.info.peer_disc.msg_sub_type], ckpt->my_role, ckpt->my_mbcsv_inst->svc_id, \
 				ckpt->pwe_hdl, msg->info.peer_msg.info.peer_disc.peer_role, msg->rcvr_peer_key.peer_anchor);
 	} else {
@@ -448,7 +448,7 @@ void mbcsv_close_old_session(PEER_INST *active_peer)
 \*****************************************************************************/
 void mbcsv_set_up_new_session(CKPT_INST *ckpt, PEER_INST *new_act_peer)
 {
-	TRACE_ENTER2("peer adest : %llx", new_act_peer->peer_adest);
+	TRACE_ENTER2("peer adest : %" PRIx64, new_act_peer->peer_adest);
 
 	if (new_act_peer->incompatible)
 		m_SET_NCS_MBCSV_STATE(new_act_peer, NCS_MBCSV_STBY_STATE_IDLE);
@@ -503,7 +503,7 @@ void mbcsv_set_up_new_session(CKPT_INST *ckpt, PEER_INST *new_act_peer)
 void mbcsv_set_peer_state(CKPT_INST *ckpt, PEER_INST *peer, bool peer_up)
 {
 	PEER_INST *peer_ptr = NULL;
-	TRACE_ENTER2("peer adest: %llx", peer->peer_adest);
+	TRACE_ENTER2("peer adest: %" PRIx64, peer->peer_adest);
 
 	switch (ckpt->my_role) {
 	case SA_AMF_HA_ACTIVE:	/* ckpt->my_role */

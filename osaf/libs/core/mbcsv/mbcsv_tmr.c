@@ -113,7 +113,7 @@ void ncs_mbcsv_start_timer(PEER_INST *peer, uint8_t timer_type)
 
 	if (tmr->is_active == false) {
 		tmr->type = timer_type;
-		TRACE("starting timer. my role:%u, svc_id:%u, pwe_hdl:%u, peer_anchor:%llu, tmr type:%s",
+		TRACE("starting timer. my role:%u, svc_id:%u, pwe_hdl:%u, peer_anchor: %" PRIu64 ", tmr type:%s",
 				peer->my_ckpt_inst->my_role,
 				peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
 				peer->my_ckpt_inst->pwe_hdl, peer->peer_anchor,
@@ -155,7 +155,7 @@ void ncs_mbcsv_stop_timer(PEER_INST *peer, uint32_t timer_type)
 	tmr->has_expired = false;	/* if in transit, not valid now */
 
 	if (tmr->is_active == true) {
-	TRACE("stop and destroying timer. my role:%u, svc_id:%u, pwe_hdl:%u, peer_anchor:%llu, tmr type:%s",
+	TRACE("stop and destroying timer. my role:%u, svc_id:%u, pwe_hdl:%u, peer_anchor: %" PRIu64 ", tmr type:%s",
 				peer->my_ckpt_inst->my_role,
 				peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
 				peer->my_ckpt_inst->pwe_hdl, peer->peer_anchor,
@@ -167,7 +167,7 @@ void ncs_mbcsv_stop_timer(PEER_INST *peer, uint32_t timer_type)
 		tmr->tmr_id = TMR_T_NULL;
 	} else if (tmr->tmr_id != TMR_T_NULL) {
 		/* Destroy the timer if it exists... */
-		TRACE("Destroying timer. my role:%u, svc_id:%u, pwe_hdl:%u, peer_anchor:%llu, tmr type:%s",
+		TRACE("Destroying timer. my role:%u, svc_id:%u, pwe_hdl:%u, peer_anchor:%" PRIu64 ", tmr type:%s",
 				peer->my_ckpt_inst->my_role,
 				peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
 				peer->my_ckpt_inst->pwe_hdl, peer->peer_anchor,
@@ -245,7 +245,7 @@ void ncs_mbcsv_tmr_expiry(void *uarg)
 	event = ncs_mbcsv_tmr_db[type].event;
 
 	/* Clean up timer. */
-	TRACE("Timer expired. my role:%u, svc_id:%u, pwe_hdl:%u, peer_anchor:%llu, tmr type:%s",
+	TRACE("Timer expired. my role:%u, svc_id:%u, pwe_hdl:%u, peer_anchor:%" PRIu64 ", tmr type:%s",
 				peer->my_ckpt_inst->my_role,
 				peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
 				peer->my_ckpt_inst->pwe_hdl, peer->peer_anchor,

@@ -58,10 +58,10 @@ uint32_t mbcsv_mds_reg(uint32_t pwe_hdl, uint32_t svc_hdl, MBCSV_ANCHOR *anchor,
 {
 	NCSMDS_INFO svc_to_mds_info;
 	MDS_SVC_ID svc_ids_array[1];
-	TRACE_ENTER2("pwe_hdl:%u, svc_hdl: %u, anchor: %llu", pwe_hdl, svc_hdl, *anchor);
+	TRACE_ENTER2("pwe_hdl:%u, svc_hdl: %u, anchor:%" PRIu64, pwe_hdl, svc_hdl, *anchor);
 
 	if (NCSCC_RC_SUCCESS != mbcsv_query_mds(pwe_hdl, anchor, vdest)) {
-		TRACE_LEAVE2("Invalid handle passed. pwe_hdl: %u, anchor: %llu", pwe_hdl, *anchor);
+		TRACE_LEAVE2("Invalid handle passed. pwe_hdl: %u, anchor:%" PRIu64, pwe_hdl, *anchor);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -93,7 +93,7 @@ uint32_t mbcsv_mds_reg(uint32_t pwe_hdl, uint32_t svc_hdl, MBCSV_ANCHOR *anchor,
 
 	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
 		mbcsv_mds_unreg(pwe_hdl);
-		TRACE_LEAVE2("MDS subscribe failed. pwe_hdl:%u, anchor:%llu", pwe_hdl, *anchor);
+		TRACE_LEAVE2("MDS subscribe failed. pwe_hdl:%u, anchor:%" PRIu64, pwe_hdl, *anchor);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -182,7 +182,7 @@ void mbcsv_mds_unreg(uint32_t pwe_hdl)
 uint32_t mbcsv_mds_send_msg(uint32_t send_type, MBCSV_EVT *msg, CKPT_INST *ckpt, MBCSV_ANCHOR anchor)
 {
 	NCSMDS_INFO mds_info;
-	TRACE_ENTER2("sending to vdest: %llx", ckpt->my_vdest);
+	TRACE_ENTER2("sending to vdest:%" PRIx64, ckpt->my_vdest);
 
 	memset(&mds_info, 0, sizeof(mds_info));
 
@@ -428,11 +428,11 @@ uint32_t mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_s
 	}
 
 	if (svc_info.i_change == NCSMDS_RED_UP) {
-		TRACE_1("RED_UP event. pwe_hdl:%u, anchor: %llu", svc_info.svc_pwe_hdl, svc_info.i_anc);
+		TRACE_1("RED_UP event. pwe_hdl:%u, anchor:%" PRIu64, svc_info.svc_pwe_hdl, svc_info.i_anc);
 
 		mbcsv_add_new_pwe_anc((uint32_t)svc_info.svc_pwe_hdl, svc_info.i_anc);
 	} else {
-		TRACE_1("RED_DOWN event. pwe_hdl: %u, anchor: %llu", svc_info.svc_pwe_hdl, svc_info.i_anc);
+		TRACE_1("RED_DOWN event. pwe_hdl: %u, anchor:%" PRIu64, svc_info.svc_pwe_hdl, svc_info.i_anc);
 
 		mbcsv_rmv_pwe_anc_entry((uint32_t)svc_info.svc_pwe_hdl, svc_info.i_anc);
 	}
