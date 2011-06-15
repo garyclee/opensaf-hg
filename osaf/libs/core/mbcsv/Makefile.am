@@ -34,7 +34,6 @@ libmbca_la_SOURCES = \
 	mbcsv_api.c \
 	mbcsv_dl_api.c \
 	mbcsv_fsm.c \
-	mbcsv_inv.c \
 	mbcsv_mbx.c \
 	mbcsv_mds.c \
 	mbcsv_peer.c \
