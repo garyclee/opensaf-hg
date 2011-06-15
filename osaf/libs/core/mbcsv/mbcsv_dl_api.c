@@ -56,6 +56,7 @@ MBCSV_CB mbcsv_cb;
 uint32_t mbcsv_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
 	uint32_t res = SA_AIS_OK;
+	TRACE_ENTER();
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -67,10 +68,11 @@ uint32_t mbcsv_lib_req(NCS_LIB_REQ_INFO *req_info)
 		break;
 
 	default:
-		res = m_MBCSV_DBG_SINK(SA_AIS_ERR_INVALID_PARAM,
-				       "Lib init request failed: Bad operation type supplied");
+		TRACE_4("Lib init request failed: Bad operation type supplied");
+		res = SA_AIS_ERR_INVALID_PARAM;
 		break;
 	}
+	TRACE_LEAVE();
 	return (res);
 }
 
@@ -91,9 +93,11 @@ uint32_t mbcsv_lib_init(NCS_LIB_REQ_INFO *req_info)
 {
 	NCS_PATRICIA_PARAMS pt_params;
 	uint32_t rc = SA_AIS_OK;
+	TRACE_ENTER();
 
 	if (mbcsv_cb.created == true) {
-		return m_MBCSV_DBG_SINK(SA_AIS_ERR_INIT, "Lib init request failed: MBCA already created.");
+		TRACE_LEAVE2("Lib init request failed: MBCA already created");
+		return SA_AIS_ERR_INIT;
 	}
 
 	/*
@@ -107,12 +111,14 @@ uint32_t mbcsv_lib_init(NCS_LIB_REQ_INFO *req_info)
 	pt_params.key_size = sizeof(uint32_t);
 
 	if (ncs_patricia_tree_init(&mbcsv_cb.reg_list, &pt_params) != NCSCC_RC_SUCCESS) {
-		rc = m_MBCSV_DBG_SINK(SA_AIS_ERR_FAILED_OPERATION, "Lib init request failed.");
+		TRACE_4("pat tree init failed");
+		rc = SA_AIS_ERR_FAILED_OPERATION;
 		goto err1;
 	}
 
 	if (NCSCC_RC_SUCCESS != mbcsv_initialize_mbx_list()) {
-		rc = m_MBCSV_DBG_SINK(SA_AIS_ERR_FAILED_OPERATION, "Lib init request failed.");
+		TRACE_4("pat tree init for mailbox failed");
+		rc = SA_AIS_ERR_FAILED_OPERATION;
 		goto err2;
 	}
 
@@ -120,29 +126,16 @@ uint32_t mbcsv_lib_init(NCS_LIB_REQ_INFO *req_info)
 	 * Create patricia tree for the peer list 
 	 */
 	if (mbcsv_initialize_peer_list() != NCSCC_RC_SUCCESS) {
-		rc = m_MBCSV_DBG_SINK(SA_AIS_ERR_FAILED_OPERATION, "Lib init request failed.");
+		TRACE_4("pat tree init for peer list failed");
+		rc = SA_AIS_ERR_FAILED_OPERATION;
 		goto err3;
 	}
-#if (MBCSV_LOG == 1)
-	/*
-	 * Subscribe with DTSv for logging.
-	 */
-	if (NCSCC_RC_SUCCESS != mbcsv_log_bind()) {
-		rc = m_MBCSV_DBG_SINK(SA_AIS_ERR_FAILED_OPERATION, "Lib init request failed.");
-		goto err4;
-	}
-#endif
 
 	mbcsv_cb.created = true;
 
 	return rc;
 
 	/* Handle Different Error Situations */
-#if (MBCSV_LOG == 1)
- err4:
-	ncs_patricia_tree_destroy(&mbcsv_cb.peer_list);
-	m_NCS_LOCK_DESTROY(&mbcsv_cb.peer_list_lock);
-#endif
  err3:
 	ncs_patricia_tree_destroy(&mbcsv_cb.mbx_list);
 	m_NCS_LOCK_DESTROY(&mbcsv_cb.mbx_list_lock);
@@ -150,6 +143,7 @@ uint32_t mbcsv_lib_init(NCS_LIB_REQ_INFO *req_info)
 	ncs_patricia_tree_destroy(&mbcsv_cb.reg_list);
  err1:
 	m_NCS_LOCK_DESTROY(&mbcsv_cb.global_lock);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -169,13 +163,14 @@ uint32_t mbcsv_lib_destroy(void)
 	MBCSV_REG *mbc_reg;
 	SS_SVC_ID svc_id = 0;
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER();
 
 	if (mbcsv_cb.created == false) {
-		return m_MBCSV_DBG_SINK(SA_AIS_ERR_EXIST, "Lib destroy request failed: Create MBCA before destroying.");
+		TRACE_LEAVE2("Lib destroy request failed: Create MBCA before destroying");
+		return SA_AIS_ERR_EXIST;
 	}
 
 	m_NCS_LOCK(&mbcsv_cb.global_lock, NCS_LOCK_WRITE);
-	m_LOG_MBCSV_GL_LOCK(MBCSV_LK_LOCKED, &mbcsv_cb.global_lock);
 
 	mbcsv_cb.created = false;
 	/* 
@@ -187,8 +182,7 @@ uint32_t mbcsv_lib_destroy(void)
 		if (NCSCC_RC_SUCCESS != mbcsv_rmv_reg_inst((MBCSV_REG *)&mbcsv_cb.reg_list, mbc_reg)) {
 			/* Not required to return for failure, log the err message and go 
 			   ahead with cleanup */
-			m_MBCSV_DBG_SINK_SVC(SA_AIS_ERR_LIBRARY,
-					     "Failed to remove this service instance", mbc_reg->svc_id);
+			TRACE_4("Failed to remove this service instance:%u", mbc_reg->svc_id);
 		}
 	}
 
@@ -204,19 +198,9 @@ uint32_t mbcsv_lib_destroy(void)
 	 */
 	mbcsv_destroy_mbx_list();
 
-#if (MBCSV_LOG == 1)
-	/*
-	 * Un-Subscribe with DTSv for logging.
-	 */
-	if (NCSCC_RC_SUCCESS != mbcsv_log_unbind()) {
-		/* Not required to return for failure, log the err message and go 
-		   ahead with cleanup */
-		m_MBCSV_DBG_SINK(SA_AIS_ERR_FAILED_OPERATION, "Lib init request failed.");
-	}
-#endif
-
 	m_NCS_UNLOCK(&mbcsv_cb.global_lock, NCS_LOCK_WRITE);
 	m_NCS_LOCK_DESTROY(&mbcsv_cb.global_lock);
 
+	TRACE_LEAVE();
 	return rc;
 }
