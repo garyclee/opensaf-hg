@@ -1,17 +1,15 @@
 Before we can export Python API bindings, we must be able to express:
-	simple, primitive data types that map effectively between C and Python;
-	immutable constants and #define(s),
-	complex, hetergenous types (structures, unions); and
-	callbacks written in Python but invoked from the C library layer;
-
+- simple, primitive data types that map effectively between C and Python;
+- immutable constants and #define(s),
+- complex, hetergenous types (structures, unions); and
+- callbacks written in Python but invoked from the C library layer;
 
 
 ctypes: new in Python version 2.5.
-	a foreign function library for Python;
-	provides C compatible data types;
-	allows calling functions in DLLs or shared libraries; and
-	it can be used to wrap DLLs and shared libraries in pure Python.
-
+- a foreign function library for Python;
+- provides C compatible data types;
+- allows calling functions in DLLs or shared libraries; and
+- it can be used to wrap DLLs and shared libraries in pure Python.
 
 
 Expressing simple data types:
@@ -21,6 +19,7 @@ established within this header.  Export of Python bindings begins here.
 
 Mapping of Types
 SAF type	ctypes type	c type
+----------------------------------------------------------------------
 SaInt8T		c_char		char
 SaInt16T	c_short		short
 SaInt32T	c_int		int
@@ -46,11 +45,10 @@ SaOffsetT		SaUint64T
 SaSelectionObjectT	SaUint64T
 
 
-
 Expressing C Constants and #define(s):
-	Container class for defines and const located in saEnumConst.py
-	Const class prevents unbinding or rebinding of const and defined values.
-	Raises an exception if const or defined symbol unbound/rebound
+- Container class for defines and const located in saEnumConst.py
+- Const class prevents unbinding or rebinding of const and defined values.
+- Raises an exception if const or defined symbol unbound/rebound
 
 From the python interpreter:
 >>> from saAis import *
@@ -69,15 +67,15 @@ Expressing C Enumerations:
 	Additionally, an Enumeration class is located in saEnumConst.py.
 
 In C:
-enums permit declaration of constants with unique values;
-actual values can be provided for symbols if required
+- enums permit declaration of constants with unique values;
+- actual values can be provided for symbols if required.
 
 The Enumeration class in samEnumConst.py simulates this behaviour.
 
 Additionally, the Enumeration class:
-verifies all values are unique;
-permits reverse lookup, resolving numeric values to meaninful symbols;
-permits values to be referenced as attributes of an Enumeration class.
+- verifies all values are unique;
+- permits reverse lookup, resolving numeric values to meaninful symbols;
+- permits values to be referenced as attributes of an Enumeration class.
 
 Example from saNtf.py:
 
@@ -99,13 +97,12 @@ eSaNtfEventTypeT = Enumeration((
 SA_NTF_OBJECT_DELETION
 
 
-
 Expressing C Structures and Unions:
 
-must derive from the Structure and Union base classes,defined in ctypes module;
-each subclass must define a _fields_ attribute;
-_fields_ must be a list of 2-tuples, containing a field name and a field type;
-structures can contain other structures by using a structure as a field type.
+- must derive from the Structure and Union base classes,defined in ctypes module;
+- each subclass must define a _fields_ attribute;
+- _fields_ must be a list of 2-tuples, containing a field name and a field type;
+- structures can contain other structures by using a structure as a field type.
 
 Examples from saAis.py:
 
@@ -122,11 +119,10 @@ class SaLimitValueT(Union):
 		('doubleValue', SaDoubleT)]
 
 
-
 Expressing Callback Functions:
-ctypes permits creation of C callable function pointers from Python callables;
-class must be created for the callback function;
-class knows return type, and number and types of arguments to be received.
+- ctypes permits creation of C callable function pointers from Python callables;
+- class must be created for the callback function;
+- class knows return type, and number and types of arguments to be received.
 
 The CFUNCTYPE factory function creates types for callback functions
 
@@ -134,16 +130,20 @@ Example from saAmf.py:
 
 Given the C definition of healthcheck callback:
 
-typedef void 
+typedef void
 (*SaAmfHealthcheckCallbackT)(
     SaInvocationT invocation,
     const SaNameT *compName,
     SaAmfHealthcheckKeyT *healthcheckKey);
 
-We can create a Python class encapsulating this information as follows:
+We can create a Python class encapsulating this information as part of the
+bindings themselves:
 
 SaAmfHealthcheckCallbackT = CFUNCTYPE(None,
 	SaInvocationT, POINTER(SaNameT), POINTER(SaAmfHealthcheckKeyT))
+
+This class definition in the bindings code permits client code to be written
+as follows:
 
 Define a Python function that conforms to this signature:
 
@@ -154,7 +154,6 @@ Construct an instance of the class with the function as part of the callbacks:
 
 callbacks = SaAmfCallbacksT()
 callbacks.saAmfHealthcheckCallback = SaAmfHealthcheckCallbackT(healthcheckCback)
-
 
 
 API Calls
@@ -168,7 +167,6 @@ Primary objectives influencing design decisions:
 2. Make API as simple as possible to encourage additional uses.
 
 
-
 Example from saImmOm.py:
 
 def saImmOmClassDescriptionGet_2(immHandle,
@@ -177,13 +175,13 @@ def saImmOmClassDescriptionGet_2(immHandle,
 	SaImmHandleT immHandle
 	SaImmClassNameT className
 	SaImmClassCategoryT classCategory
-	pointer(pointer(SaImmAttrDefinitionT_2())) attrDefinitions
+	POINTER(POINTER(SaImmAttrDefinitionT_2))() attrDefinitions
 	"""
 	...
 
 This API illustrates how the primary objectives may be at odds:
 
-All IN parameters are passed by value (immHandle, className, classCategory): 
+All IN parameters are passed by value (immHandle, className, classCategory):
 Relieves user of responsibility for passing IN params by reference.  Satisfies
 design consideration 2 - Make API as simple as possible.
 
@@ -192,7 +190,7 @@ Must be declared this way to preserve "reference to a reference" for use with:
 
 def saImmOmClassDescriptionMemoryFree_2(immHandle, attrDefinitions)
 	SaImmHandleT immHandle
-	pointer(pointer(SaImmAttrDefinitionT_2())) attrDefinitions
+	POINTER(POINTER(SaImmAttrDefinitionT_2))() attrDefinitions
 	...
 
 Thereby adhering to objective 1: Design for primary intent (test framework)
@@ -201,21 +199,16 @@ If the "reference to a reference" was hidden within the abstraction, there would
 be no handle available with which to test saImmOmClassDescriptionMemoryFree_2().
 
 
-
 To make these necessarily difficult declarations more palatable, helper
 functions are provided to handle them as opaquely as possible:
 
-def listSaImmAttrDefinitionT_2(attrDefinitions):
-	"""
-	Convenience function to convert c-type attrDefinitions to a python
-	list of SaImmAttrDefinitionT_2.
-
-	pointer(pointer(SaImmAttrDefinitionT_2())) attrDefinitions
+def unmarshalNullArray(c_array):
+	"""Convert c array to Python list.
 	"""
 	...
 
-This helper function returns a simple Python list of SaImmAttrDefinitionT_2.
-
+This helper function returns a simple Python list of instances found in the
+array (SaImmAttrDefinitionT_2 in this particular example).
 
 
 Example of usage:
@@ -225,11 +218,11 @@ Example of usage:
 
 className = SaImmClassNameT('MyClass')
 classCategory = SaImmClassCategoryT()
-attrDefs = pointer(pointer(SaImmAttrDefinitionT_2()))
+attrDefs = POINTER(POINTER(SaImmAttrDefinitionT_2))()
 
 saImmOmClassDescriptionGet_2(omHandle, className, classCategory, attrDefs)
 
-for attr in listSaImmAttrDefinitionT_2(attrDefs):
+for attr in unmarshalNullArray(attrDefs):
 	print attr.attrName,\
 		eSaImmValueTypeT.whatis(attr.attrValueType), attr.attrFlags,\
 		unmarshallSaImmValue(attr.attrDefaultValue, attr.attrValueType)
