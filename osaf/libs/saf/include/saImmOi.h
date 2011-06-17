@@ -216,4 +216,6 @@ extern "C" {
 }
 #endif
 
+#include <saImmOi.A.2.11.h>
+
 #endif   /* _SA_IMM_OI_H */

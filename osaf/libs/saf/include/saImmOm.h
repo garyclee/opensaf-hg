@@ -255,4 +255,6 @@ extern "C" {
 }
 #endif
 
+#include <saImmOm.A.2.11.h>
+
 #endif   /* _SA_IMM_OM_H */
