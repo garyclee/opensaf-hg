@@ -1042,7 +1042,14 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 			if(cl_node->isApplier) { /* applier*/
 				assert(callback->inv == 0);
 			} else if(cl_node->isPbe) { /* PBE. */
-				assert(callback->inv == 0);
+				TRACE("PBe case inv:%u", callback->inv);
+				if((callback->inv != 0) && 
+					(strcmp((char *)callback->name.value, OPENSAF_IMM_OBJECT_DN))) {
+					/* callback->inv must be zero, except for operations on
+					 OPENSAF_IMM_OBJECT_DN  */
+					LOG_ER("PBE: callback->inv != 0, LINE:%u", __LINE__);
+					abort();
+				}
 			} else {/*regular OI. */
 				assert(callback->inv);
 			}
@@ -1951,6 +1958,13 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					}
 				} else {
 					TRACE_2("Sending FAILED_OP response on completed. for ccb %u.",	callback->ccbID);
+					SaStringT errorStr = imma_oi_ccb_record_get_error(cl_node, callback->ccbID);
+					if(errorStr) {
+						ccbCompletedRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_COMPLETED_RSP_2;
+						ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.errorString.size = 
+							strlen(errorStr) + 1;
+						ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.errorString.buf = errorStr;
+					}
 				}
 
 				if(!(cl_node->isApplier)) {
@@ -2139,6 +2153,16 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
 					ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
 
+					if (localEr != SA_AIS_OK)  {
+						SaStringT errorStr = imma_oi_ccb_record_get_error(cl_node, callback->ccbID);
+						if(errorStr) {
+							ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP_2;
+							ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.errorString.size =
+								strlen(errorStr) + 1;
+							ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.errorString.buf = errorStr;
+						}
+					}
+
 					/*async fevs */
 					localEr = imma_evt_fake_evs(cb, &ccbObjCrRpl, NULL, 0, cl_node->handle, &locked, false);
 				} else {
@@ -2225,8 +2249,23 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 					assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = true;
+
+					if (localEr != SA_AIS_OK)  {
+						SaStringT errorStr = imma_oi_ccb_record_get_error(cl_node, callback->ccbID);
+						if(errorStr) {
+							ccbObjDelRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2;
+							ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.errorString.size =
+								strlen(errorStr) + 1;
+							ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.errorString.buf = errorStr;
+						}
+					}
+
 					/*async  fevs */
 					localEr = imma_evt_fake_evs(cb, &ccbObjDelRpl, NULL, 0, cl_node->handle, &locked, false);
+					if (localEr != NCSCC_RC_SUCCESS) {
+						/*Cant do anything but log error and drop this reply. */
+						TRACE_3("CcbObjectDeleteCallback: send reply to IMMND failed");
+					}
 				} else {
 					/* callback->inv == 0 means PBE (CCB or PRTO) or applier upcall, no reply. */
 					assert(cl_node->isPbe || cl_node->isApplier);
@@ -2235,10 +2274,6 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				if (locked) {
 					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = false;
-				}
-				if (localEr != NCSCC_RC_SUCCESS) {
-					/*Cant do anything but log error and drop this reply. */
-					TRACE_3("CcbObjectDeleteCallback: send reply to IMMND failed");
 				}
 			} while (0);
 
@@ -2377,6 +2412,16 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					ccbObjModRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
 					ccbObjModRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
 					ccbObjModRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
+
+					if (localEr != SA_AIS_OK)  {
+						SaStringT errorStr = imma_oi_ccb_record_get_error(cl_node, callback->ccbID);
+						if(errorStr) {
+							ccbObjModRpl.info.immnd.type=IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2;
+							ccbObjModRpl.info.immnd.info.ccbUpcallRsp.errorString.size =
+								strlen(errorStr) + 1;
+							ccbObjModRpl.info.immnd.info.ccbUpcallRsp.errorString.buf = errorStr;
+						}
+					}
 
 					/*async fevs */
 					localEr = imma_evt_fake_evs(cb, &ccbObjModRpl, NULL, 0,

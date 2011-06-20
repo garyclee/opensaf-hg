@@ -2838,3 +2838,106 @@ int imma_oi_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked)
 	/* may be locked or unlocked as reflected in *locked */
 	return 1;
 }
+
+/****************************************************************************
+  Name          :  saImmOiCcbSetErrorString
+ 
+  Description   :  Allows the OI implementers to post an error string related
+                   to a current ccb-upcall, before returning from the upcall.
+                   The string will be transmitted to the OM client if the OI
+                   returns with an error code (not ok). This is allowed inside:
+                    SaImmOiCcbObjectCreateCallbackT
+                    SaImmOiCcbObjectDeleteCallbackT
+                    SaImmOiCcbObjectModifyCallbackT
+                    SaImmOiCcbCompletedCallbackT
+                   
+
+                   
+  Arguments     :  immOiHandle - IMM OI handle
+                   ccbId  -  The ccbId for the ccb related upcall.
+                   errorString - The errorString.
+ 
+  Return Values :  SA_AIS_OK
+                   SA_AIS_ERR_BAD_HANDLE
+                   SA_AIS_ERR_INVALID_PARAM
+                   SA_AIS_ERR_BAD_OPERATION (not inside valid ccb upcall)
+                   SA_AIS_ERR_LIBRARY
+                   SA_AIS_ERR_TRY_AGAIN
+                   
+******************************************************************************/
+SaAisErrorT saImmOiCcbSetErrorString(
+				     SaImmOiHandleT immOiHandle, 
+				     SaImmOiCcbIdT ccbId,
+				     const SaStringT errorString)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	IMMA_CB *cb = &imma_cb;
+	IMMA_CLIENT_NODE *cl_node = NULL;
+	bool locked = true;
+
+	if (cb->sv_id == 0) {
+		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
+		return SA_AIS_ERR_BAD_HANDLE;
+	}
+
+	if ((errorString == NULL) || (strlen(errorString) == 0)) {
+		TRACE_2("ERR_INVALID_PARAM: Parameter 'srrorString' is NULL, or is a "
+			"string of 0 length");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	/* get the CB Lock */
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("ERR_LIBRARY: Lock failed");
+		goto lock_fail;
+	}
+
+	/*locked == true already */
+
+	imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
+	if (!cl_node || cl_node->isOm) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
+		goto bad_handle;
+	}
+
+	if (cl_node->stale) {
+		TRACE_1("Handle %llx is stale", immOiHandle);
+		bool resurrected = imma_oi_resurrect(cb, cl_node, &locked);
+
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+			TRACE_4("ERR_LIBRARY: LOCK failed");
+			rc = SA_AIS_ERR_LIBRARY;
+			goto lock_fail;
+		}
+		locked = true;
+
+		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
+
+		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
+			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", 
+				immOiHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = true;}
+			rc = SA_AIS_ERR_BAD_HANDLE;
+			goto bad_handle;
+		}
+
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
+	}
+
+	if(!imma_oi_ccb_record_set_error(cl_node, ccbId, errorString)) {
+		TRACE_2("ERR_INVALID_PARAM: Ccb %llu, is not in a state that "
+			"accepts an errorString", ccbId);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto bad_handle;
+	}
+
+ bad_handle:
+	if (locked)
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+
+ lock_fail:
+	return rc;
+
+}

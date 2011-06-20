@@ -1423,6 +1423,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	bool locked = false;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
+	SaStringT *newErrorStrings = NULL;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -1484,7 +1485,11 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	}
 
 	immHandle = ccb_node->mImmHandle;
-	
+
+	/* Free string from previous ccb-op */
+	imma_free_errorStrings(ccb_node->mErrorStrings); 
+	ccb_node->mErrorStrings = NULL;
+
 	/*Look up client node also, to verify that the client handle
 	   is still active. */
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
@@ -1761,9 +1766,15 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	if (out_evt) {
 		/* Process the outcome, note this is after a blocking call. */
 		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		assert((out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) ||
+			(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR_2));
 		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.errRsp.error;
+			if(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR_2) {
+				newErrorStrings = 
+					imma_getErrorStrings(&(out_evt->info.imma.info.errRsp));
+			}
+
 		}
 		/* Free the out event */
 		/*Will free the root event only, not any pointer structures. */
@@ -1834,6 +1845,10 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		goto done;
 	}
 
+	assert(ccb_node->mErrorStrings == NULL);
+	ccb_node->mErrorStrings = newErrorStrings;
+	newErrorStrings = NULL; /* Dont free the strings on exit from this func */
+
 	if (rc == SA_AIS_OK) {
 		if (cl_node->stale) { 
 			/* Became stale during the blocked call yet the call
@@ -1862,9 +1877,10 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	}
 
  done:
+	imma_free_errorStrings(newErrorStrings); /* In case of failed resurrect only */
+
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-
 
  lock_fail:
 
@@ -1898,6 +1914,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 	bool locked = false;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
+	SaStringT *newErrorStrings = NULL;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -1959,6 +1976,10 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 	}
 
 	immHandle = ccb_node->mImmHandle;
+
+	/* Free string from previous ccb-op */
+	imma_free_errorStrings(ccb_node->mErrorStrings);
+	ccb_node->mErrorStrings = NULL;
 
 	/*Look up client node also, to verify that the client handle
 	   is still active. */
@@ -2173,9 +2194,14 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 	if (out_evt) {
 		/* Process the outcome, note this is after a blocking call. */
 		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		assert((out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) ||
+			(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR_2));
 		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.errRsp.error;
+			if(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR_2) {
+				newErrorStrings = 
+					imma_getErrorStrings(&(out_evt->info.imma.info.errRsp));
+			}
 		}
 		free(out_evt);
 		out_evt = NULL;
@@ -2242,6 +2268,10 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		goto done;
 	}
 
+	assert(ccb_node->mErrorStrings == NULL);
+	ccb_node->mErrorStrings = newErrorStrings;
+	newErrorStrings = NULL; /* Dont free the strings on exit from this func */
+
 	if (rc == SA_AIS_OK) {
 		if (cl_node->stale) {
 			/* Became stale during the blocked call yet the call
@@ -2270,6 +2300,8 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 	}
 
  done:
+	imma_free_errorStrings(newErrorStrings); /* In case of failed resurrect only */
+
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -2305,6 +2337,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	bool locked = false;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
+	SaStringT *newErrorStrings = NULL;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -2359,6 +2392,10 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	}
 
 	immHandle = ccb_node->mImmHandle;
+
+	/* Free string from previous ccb-op */
+	imma_free_errorStrings(ccb_node->mErrorStrings); 
+	ccb_node->mErrorStrings = NULL;
 
 	/*Look up client node also, to verify that the client handle
 	   is still active. */
@@ -2525,9 +2562,14 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	if (out_evt) {
 		/* Process the outcome, note this is after a blocking call. */
 		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		assert((out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) ||
+			(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR_2));
 		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.errRsp.error;
+			if(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR_2) {
+				newErrorStrings = 
+					imma_getErrorStrings(&(out_evt->info.imma.info.errRsp));
+			}
 		}
 		free(out_evt);
 		out_evt=NULL;
@@ -2567,6 +2609,10 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		goto done;
 	}
 
+	assert(ccb_node->mErrorStrings == NULL);
+	ccb_node->mErrorStrings = newErrorStrings;
+	newErrorStrings = NULL; /* Dont free the strings on exit from this func */	
+
 	if (rc == SA_AIS_OK) {
 		if (cl_node->stale) {
 			/* Became stale during the blocked call yet the call
@@ -2594,6 +2640,8 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	}
 
  done:
+	imma_free_errorStrings(newErrorStrings); /* In case of failed resurrect only */
+
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -2626,6 +2674,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	bool locked = false;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T ccbId = 0;
+	SaStringT *newErrorStrings = NULL;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -2694,6 +2743,10 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 
 	immHandle = ccb_node->mImmHandle;
 
+	/* Free string from previous ccb-op */
+	imma_free_errorStrings(ccb_node->mErrorStrings);
+	ccb_node->mErrorStrings = NULL;
+
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
 		rc = SA_AIS_ERR_LIBRARY;
@@ -2738,7 +2791,8 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	if (out_evt) {
 		/* Process the outcome, note this is after a blocking call. */
 		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		assert((out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) ||
+			(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR_2));
 		if (rc != SA_AIS_OK) {
 			TRACE_4("CCB-APPLY - Error return from fevs!:%u, "
 				"yet reply message also received (?) with error %u", rc,
@@ -2747,6 +2801,10 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		} else {
 			rc = out_evt->info.imma.info.errRsp.error;
 			TRACE_1("CCB APPLY - reply received from IMMND rc:%u", rc);
+			if(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR_2) {
+				newErrorStrings = 
+					imma_getErrorStrings(&(out_evt->info.imma.info.errRsp));
+			}			
 		}
 
 		free(out_evt);
@@ -2808,10 +2866,14 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		if (ccb_node) {
 			ccb_node->mExclusive = false;
 			ccb_node->mApplying = false;
+			assert(ccb_node->mErrorStrings == NULL);
 			if (rc == SA_AIS_OK) {
 				ccb_node->mApplied = true;  
 				TRACE_1("CCB APPLY - Successful Apply for ccb id %u", 
 					ccb_node->mCcbId);
+			} else {
+				ccb_node->mErrorStrings = newErrorStrings;
+				newErrorStrings = NULL; /* Dont free strings on exit */
 			}
 		} else {
 			/*This branch should not be possible if ccb_node->mExclusive is respected. */
@@ -2958,6 +3020,8 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 
 
  done:
+	imma_free_errorStrings(newErrorStrings); /* In case of failed resurrect only */
+
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -6950,4 +7014,94 @@ int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked)
 	TRACE_LEAVE();
 	/* may be locked or unlocked as reflected in *locked */
 	return 1;
+}
+
+
+/****************************************************************************
+  Name          :  saImmOmCcbGetErrorStrings
+ 
+  Description   :  Allows the OM client to fetch error strings related to a
+                   ccb down-call of:
+
+                      saImmOmCcbObjectCreate
+                      saImmOmCcbObjectModify
+                      saImmOmCcbObjectModify
+                      saImmOmCcbCompleted
+
+                   This is only of interest when the down-call returned an error,
+                   such as FAILED_OPERATION or BAD_OPERATION.
+                   That is, an error that could result from one or more OIs 
+                   rejecting the ccb call.
+                   
+  Arguments     :  ccbHandle    - The ccb handle.
+                   errorStrings - Pointer to a pointer to a NULL terminated array
+                                  of SaStringT. The list of strings is owned by
+                                  the imma om library and is cleared/deallocated
+                                  in conjunction with the next downcall using the 
+                                  ccb-handle. 
+ 
+  Return Values :  SA_AIS_OK
+                   SA_AIS_ERR_BAD_HANDLE
+                   SA_AIS_ERR_INVALID_PARAM
+                   SA_AIS_ERR_LIBRARY
+                   SA_AIS_ERR_TRY_AGAIN
+                   
+******************************************************************************/
+SaAisErrorT saImmOmCcbGetErrorStrings(SaImmCcbHandleT ccbHandle,
+	SaStringT **errorStrings)
+
+{
+	TRACE_ENTER();
+	SaAisErrorT rc = SA_AIS_OK;
+	bool locked = false;
+	IMMA_CB *cb = &imma_cb;
+	IMMA_CCB_NODE *ccb_node = NULL;
+
+	TRACE_ENTER();
+
+	if (cb->sv_id == 0) {
+		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
+		return SA_AIS_ERR_BAD_HANDLE;
+	}
+
+	if (errorStrings == NULL) {
+		TRACE_LEAVE();
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+	(*errorStrings) = NULL;
+
+	/* get the CB Lock */
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("ERR_LIBRARY: Lock failed");
+		goto lock_fail;
+	}
+	locked = true;
+
+	/* Get the CCB info */
+	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
+	if (!ccb_node) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_2("ERR_BAD_HANDLE: Ccb handle not valid");
+		goto client_not_found;
+	}
+
+	if (ccb_node->mExclusive) {
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
+			ccb_node->mCcbId);
+		goto client_not_found;
+	}
+
+	(*errorStrings) = ccb_node->mErrorStrings;
+
+
+ client_not_found:
+	if (locked)
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+
+ lock_fail:
+
+	TRACE_LEAVE();
+	return rc;
 }

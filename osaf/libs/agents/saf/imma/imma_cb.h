@@ -22,10 +22,12 @@
 struct imma_oi_ccb_record {
 	struct imma_oi_ccb_record *next;
 	SaImmOiCcbIdT ccbId;  /* High order 32 bits used for PRTO 'pseudo ccbs'.*/
+	SaUint32T opCount; /* Used to ensure PBE has not missed any unacked ops. */
+	SaStringT mCcbErrorString; /* See saImmOiCcbSetErrorString */
 	uint8_t isStale;    /* 1 => ccb was terminated by IMMND down. */
 	uint8_t isCritical; /* 1 => OI has replied OK on completed callback but not */
-                         /*      received abort-callback or apply-callback.      */
-        SaUint32T opCount; /* Used to ensure PBE has not missed any unacked ops. */
+                            /*      received abort-callback or apply-callback.      */
+	uint8_t isCcbErrOk; /* 1 => Ok to set error string create/delete/modify/completed */
 };
 
 typedef struct imma_client_node {
@@ -69,6 +71,7 @@ typedef struct imma_ccb_node {
 	SaImmAdminOwnerHandleT mAdminOwnerHdl;
 	SaImmCcbFlagsT mCcbFlags;
 	SaUint32T mCcbId;   /* Om client uses 32 bit ccbId. */
+	SaStringT* mErrorStrings;
 	uint8_t mExclusive;   /* 1 => Ccb-id being created, applied or finalized */
 	uint8_t mApplying;    /* Critical (apply invoked), IMMND contact lost => 
 						  timeout => Ccb-outcome to be recovered. */
@@ -126,7 +129,7 @@ typedef struct imma_cb {
 
 	NCS_PATRICIA_TREE ccb_tree;	/* IMMA_CCB_NODE  - node */
 
-	NCS_PATRICIA_TREE search_tree;	/* IMMA_CCB_NODE  - node */
+	NCS_PATRICIA_TREE search_tree;	/* IMMA_SEARCH_NODE  - node */
 
 	/*Used for matching async reply to saImmOmAdminOperationInvokeAsync */
 	IMMA_CONTINUATION_RECORD *imma_continuations;
@@ -163,6 +166,8 @@ int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUint32T inv);
 int imma_oi_ccb_record_terminate(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
 int imma_oi_ccb_record_exists(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
+int imma_oi_ccb_record_set_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, const SaStringT errorString);
+SaStringT imma_oi_ccb_record_get_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
 
 
 /*admin_owner tree*/
@@ -196,6 +201,9 @@ void imma_search_tree_destroy(IMMA_CB *cb);
 void imma_search_tree_cleanup(IMMA_CB *cb);
 
 void imma_process_stale_clients(IMMA_CB *cb);
+
+void imma_free_errorStrings(SaStringT* errorStrings);
+SaStringT* imma_getErrorStrings(IMMSV_SAERR_INFO* errRsp);
 
 /*30B Versioning Changes */
 #define IMMA_MDS_PVT_SUBPART_VERSION 1
