@@ -61,6 +61,9 @@ static void usage(const char *progname)
     printf("\t\tthis help\n\n");
     printf("\t-x, --xmlwriter   {<file name>}\n");
     printf("\t\tGenerate xml file using xmlWriter instead of xmlDoc (saves memory)\n\n");
+    printf("\t-y, --yyy   {<file name>}\n");
+    printf("\t\tGenerate xml file using the old xmlDoc instead of xmlWriter\n\n");
+
     printf("\t-p, --pbe   {<file name>}\n");
     printf("\t\tInstead of xml file, generate/populate persistent back-end database/file\n");
 
@@ -105,6 +108,7 @@ int main(int argc, char* argv[])
         {"pbe", required_argument, 0, 'p'},
         {"recover", no_argument, 0, 'r'},
         {"xmlwriter", no_argument, 0, 'x'},
+        {"yyy", no_argument, 0, 'y'},
         {0, 0, 0, 0}
     };
     SaImmHandleT           immHandle;
@@ -133,7 +137,7 @@ int main(int argc, char* argv[])
     bool pbeDumpCase = false;
     bool pbeDaemonCase = false;
     bool pbeRecoverFile = false;
-    bool xmlwDumpCase = false;
+    bool xmlwDumpCase = true;
     void* dbHandle=NULL;
     const char* dump_trace_label = "immdump";
     const char* pbe_daemon_trace_label = "immpbe";
@@ -167,7 +171,7 @@ int main(int argc, char* argv[])
     }
 
     while (1) {
-    if ((c = getopt_long(argc, argv, "hdrp:x:", long_options, NULL)) == -1)
+    if ((c = getopt_long(argc, argv, "hdrp:x:y:", long_options, NULL)) == -1)
             break;
 
             switch (c) {
@@ -199,12 +203,21 @@ int main(int argc, char* argv[])
                     filename.append(optarg);
                     break;
 
+                case 'y':
+                    xmlwDumpCase = false;
+                    filename.append(optarg);
+                    break;
+
                 default:
                     fprintf(stderr, "Try '%s --help' for more information\n", 
                         argv[0]);
                     exit(EXIT_FAILURE);
                     break;
         }
+    }
+
+    if(filename.empty()) {
+	    filename.append(argv[1]);
     }
 
     version.releaseCode = RELEASE_CODE;
