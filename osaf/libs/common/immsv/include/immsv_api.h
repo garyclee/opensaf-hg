@@ -54,6 +54,7 @@ extern "C" {
 #define OPENSAF_IMM_PBE_IMPL_NAME "OpenSafImmPBE"
 
 #define IMMSV_MAX_OBJECTS 10000
+#define IMMSV_MAX_ATTRIBUTES 128
 
 
 /* Admin operation IDs */

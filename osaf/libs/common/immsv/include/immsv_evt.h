@@ -84,6 +84,7 @@ typedef enum imma_evt_type {
 	IMMA_EVT_ND2A_IMM_RESURRECT_RSP = 23,
 	IMMA_EVT_ND2A_PROC_STALE_CLIENTS = 24,
 	IMMA_EVT_ND2A_IMM_PBE_ADMOP = 25,       /*Special PBE admop callback */
+	IMMA_EVT_ND2A_IMM_ERROR_2 = 26,	        /*Generic error reply, errStrings added*/
 	IMMA_EVT_MAX
 } IMMA_EVT_TYPE;
 
@@ -184,6 +185,11 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_A2ND_OBJ_SYNC_2 = 80,	/* immsv_sync */
 	IMMND_EVT_A2ND_IMM_FEVS_2 = 81,	/* Fake EVS msg from Agent (forward) */
 	IMMND_EVT_D2ND_GLOB_FEVS_REQ_2 = 82, /* Fake EVS msg from director (consume) */
+	IMMND_EVT_A2ND_CCB_COMPLETED_RSP_2 = 83,	/* CcbCompleted local Reply */
+	IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP_2 = 84,	/*CcbObjCreate local Reply */
+	IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2 = 85,	/*CcbObjModify local Reply */
+	IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2 = 86,	/*CcbObjDelete local Reply */
+
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMND_EVT_TYPE enum. */
@@ -236,6 +242,7 @@ typedef enum immd_evt_type {
 /* Struct used for passing only error response message */
 typedef struct immsv_saerr_info {
 	SaAisErrorT error;
+	IMMSV_ATTR_NAME_LIST *errStrings;
 } IMMSV_SAERR_INFO;
 
 /* Structure for passing MDS info to components */
