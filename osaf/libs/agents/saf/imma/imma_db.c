@@ -609,7 +609,12 @@ int isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode)
 			}
 		} else { /* OI client. */
 			TRACE("OI CLIENT");
-			/* No sematic checks for OI client exposed, currently. */
+			if(clnode->isApplier) {
+				/* Prevent resurrect of applier handles.
+				   See http://devel.opensaf.org/ticket/1933
+				 */
+				clnode->exposed = true;
+			}
 		}
 	}
 	TRACE("isExposed Returning Exposed:%u", clnode->exposed);
