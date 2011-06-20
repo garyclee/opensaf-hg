@@ -166,9 +166,9 @@ int ccbutil_ccbAddModifyOperation(struct CcbUtilCcbData *ccb,
 	struct Chunk *clist = (struct Chunk *)ccb->memref;
 	struct CcbUtilOperationData *operation;
 
-	/* Do not allow multiple operations on object in same CCB */
-	if (ccbutil_getCcbOpDataByDN(ccb->ccbId, objectName) != NULL)
-		return -1;
+	///* Do not allow multiple operations on object in same CCB */
+	//	if (ccbutil_getCcbOpDataByDN(ccb->ccbId, objectName) != NULL)
+	//		return -1;
 
 	operation = newOperationData(ccb, CCBUTIL_MODIFY);
 	operation->param.modify.objectName = dupSaNameT(clist, objectName);
