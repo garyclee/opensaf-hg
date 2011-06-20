@@ -269,6 +269,7 @@ extern "C" {
 		SaUint32T inv;
 		SaAisErrorT result;
 		SaNameT name;
+		IMMSV_OCTET_STRING errorString;
 	} IMMSV_OI_CCB_UPCALL_RSP;
 
 	typedef struct ImmsvSyncFevsBase {
