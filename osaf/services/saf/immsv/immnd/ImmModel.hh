@@ -58,6 +58,8 @@ struct immsv_oi_ccb_upcall_rsp;
 
 struct ImmsvOmRspSearchNext;
 
+struct ImmsvAttrNameList;
+
 struct AttrInfo;
 typedef std::map<std::string, AttrInfo*> AttrMap;
 
@@ -228,11 +230,11 @@ public:
                                                SaUint32T* pbeCtn);
     
     void                ccbObjDelContinuation(
-                                              const immsv_oi_ccb_upcall_rsp* rsp,
+                                              immsv_oi_ccb_upcall_rsp* rsp,
                                               SaUint32T* reqConn);
     
     void                ccbCompletedContinuation(
-                                                 const immsv_oi_ccb_upcall_rsp* rsp,
+                                                 immsv_oi_ccb_upcall_rsp* rsp,
                                                  SaUint32T* reqConn);
     
     void                ccbObjCreateContinuation(
@@ -417,6 +419,7 @@ public:
     void              abortSync();
     void              pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector);
     SaAisErrorT       ccbResult(SaUint32T ccbId);
+    ImmsvAttrNameList * ccbGrabErrStrings(SaUint32T ccbId);
     bool              ccbsTerminated();
     bool              pbeIsInSync();
     SaUint32T         getIdForLargeAdmo();

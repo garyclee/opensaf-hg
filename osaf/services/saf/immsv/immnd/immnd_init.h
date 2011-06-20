@@ -173,10 +173,10 @@ extern "C" {
                     SaNameT* objName);
 
 	void immModel_ccbCompletedContinuation(IMMND_CB *cb,
-					       const struct immsv_oi_ccb_upcall_rsp *rsp, SaUint32T *reqConn);
+					       struct immsv_oi_ccb_upcall_rsp *rsp, SaUint32T *reqConn);
 
 	void immModel_ccbObjDelContinuation(IMMND_CB *cb,
-					    const struct immsv_oi_ccb_upcall_rsp *rsp, SaUint32T *reqConn);
+					    struct immsv_oi_ccb_upcall_rsp *rsp, SaUint32T *reqConn);
 
 	SaBoolT immModel_ccbWaitForCompletedAck(IMMND_CB *cb, SaUint32T ccbId, SaAisErrorT *err, 
                                             SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, 
@@ -346,6 +346,9 @@ extern "C" {
 		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId);
 
 	SaAisErrorT immModel_ccbResult(IMMND_CB *cb, SaUint32T ccbId);
+
+        IMMSV_ATTR_NAME_LIST * 
+        immModel_ccbGrabErrStrings(IMMND_CB *cb, SaUint32T ccbId);
 
 	void immModel_deferRtUpdate(IMMND_CB *cb, 
 		struct ImmsvOmCcbObjectModify *req,

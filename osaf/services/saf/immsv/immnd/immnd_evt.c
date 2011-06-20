@@ -196,7 +196,7 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt);
 
 /*static uint32_t immnd_evt_immd_new_active(IMMND_CB *cb);*/
 
-static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, SaUint32T *client);
+static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *client);
 
 static uint32_t immnd_evt_proc_reset(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
@@ -425,6 +425,13 @@ uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
 		   (evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_CLEAR)) {
 		immsv_evt_free_name_list(evt->info.immnd.info.admReq.objectNames);
 		evt->info.immnd.info.admReq.objectNames = NULL;
+	} else if ((evt->info.immnd.type == IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP_2) ||
+		   (evt->info.immnd.type == IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2) ||
+		   (evt->info.immnd.type == IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2) ||
+		   (evt->info.immnd.type == IMMND_EVT_A2ND_CCB_COMPLETED_RSP_2)) {
+		free(evt->info.immnd.info.ccbUpcallRsp.errorString.buf);
+		evt->info.immnd.info.ccbUpcallRsp.errorString.buf = NULL;
+		evt->info.immnd.info.ccbUpcallRsp.errorString.size = 0;
 	}
 
 	if (onheap) {
@@ -1742,26 +1749,26 @@ static uint32_t immnd_evt_proc_recover_ccb_result(IMMND_CB *cb, IMMND_EVT *evt, 
 
 	memset(&send_evt,'\0', sizeof(IMMSV_EVT));
 	send_evt.type = IMMSV_EVT_TYPE_IMMA;
-    send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+	send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
-    int load_pid = immModel_getLoader(cb);
+	int load_pid = immModel_getLoader(cb);
 
-    if(load_pid != 0) {
-        TRACE_2("Rejecting OM client resurrect if sync not complete");
-            send_evt.info.imma.info.errRsp.error = SA_AIS_ERR_TRY_AGAIN;
-    } else {
+	if(load_pid != 0) {
+		TRACE_2("Rejecting OM client resurrect if sync not complete");
+		send_evt.info.imma.info.errRsp.error = SA_AIS_ERR_TRY_AGAIN;
+	} else {
 		send_evt.info.imma.info.errRsp.error =  
 			immModel_ccbResult(cb, evt->info.ccbId);
 	}
 
-    rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
+	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("Failed to send response to IMMA over MDS rc:%u", rc);
 	}
 
 	TRACE_LEAVE();
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 
@@ -2450,14 +2457,25 @@ static void immnd_evt_proc_ccb_obj_modify_rsp(IMMND_CB *cb,
 
 		TRACE_2("SENDRSP %u", evt->info.ccbUpcallRsp.result);
 
-		if (evt->info.ccbUpcallRsp.result != SA_AIS_OK) {
-			evt->info.ccbUpcallRsp.result = SA_AIS_ERR_FAILED_OPERATION;
-		}
-
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
-		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		
+		if (evt->info.ccbUpcallRsp.result != SA_AIS_OK) {
+			evt->info.ccbUpcallRsp.result = SA_AIS_ERR_FAILED_OPERATION;
+			if (evt->info.ccbUpcallRsp.errorString.size) {
+				assert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2);
+				IMMSV_ATTR_NAME_LIST strList;
+				strList.next = NULL;
+				strList.name = evt->info.ccbUpcallRsp.errorString;/*borrow*/
+				send_evt.info.imma.info.errRsp.errStrings = &(strList);
+				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+			}
+		}
+
+		/* Dont move this line up. Error return code may have been adjusted above.*/
+		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
+
 		assert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
 
 		rc = immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt);
@@ -2517,11 +2535,22 @@ static void immnd_evt_proc_ccb_obj_create_rsp(IMMND_CB *cb,
 
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 		if (evt->info.ccbUpcallRsp.result != SA_AIS_OK) {
 			evt->info.ccbUpcallRsp.result = SA_AIS_ERR_FAILED_OPERATION;
+			if (evt->info.ccbUpcallRsp.errorString.size) {
+				assert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP_2);
+				IMMSV_ATTR_NAME_LIST strList;
+				strList.next = NULL;
+				strList.name = evt->info.ccbUpcallRsp.errorString;/*borrow*/
+				send_evt.info.imma.info.errRsp.errStrings = &(strList);
+				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+			}
 		}
+
+		/* Dont move this line up. Error return code may have been adjusted above.*/
 		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
-		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+
 		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 
 		rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
@@ -2566,7 +2595,7 @@ static void immnd_evt_proc_ccb_obj_delete_rsp(IMMND_CB *cb,
 	if (!immModel_ccbWaitForDeleteImplAck(cb, evt->info.ccbUpcallRsp.ccbId, &err)
 	    && reqConn) {
 		SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
-
+		
 		immnd_client_node_get(cb, tmp_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
 			LOG_WA("IMMND - Client went down so no response");
@@ -2582,17 +2611,24 @@ static void immnd_evt_proc_ccb_obj_delete_rsp(IMMND_CB *cb,
 
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
-		if (evt->info.ccbUpcallRsp.result != SA_AIS_OK) {
-			evt->info.ccbUpcallRsp.result = SA_AIS_ERR_FAILED_OPERATION;
-		}
-		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
+		send_evt.info.imma.info.errRsp.error = err;
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		if(err != SA_AIS_OK) {
+			send_evt.info.imma.info.errRsp.errStrings =
+				immModel_ccbGrabErrStrings(cb, evt->info.ccbUpcallRsp.ccbId);
+
+			if(send_evt.info.imma.info.errRsp.errStrings) {
+				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+			}
+		}
+
 		assert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
 
 		rc = immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt);
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed to send response to agent/client over MDS rc:%u", rc);
 		}
+		immsv_evt_free_attrNames(send_evt.info.imma.info.errRsp.errStrings);
 	}
 
 	TRACE_LEAVE();
@@ -2629,6 +2665,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 	NCS_NODE_ID *pbeNodeIdPtr = NULL; /* Defaults to NULL for no PBE. */
 	SaUint32T pbeId = 0;
 	SaUint32T pbeCtn = 0;
+	IMMSV_ATTR_NAME_LIST* errStrings = NULL;
 	TRACE_ENTER();
 
 	immModel_ccbCompletedContinuation(cb, &(evt->info.ccbUpcallRsp), &reqConn);
@@ -2690,7 +2727,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 			reqConn = 0; /* Ensure we dont reply to OM client yet. */
 		}
 	} else {
-		/*Finished waiting for completed Acks from implementers (and PBE) */
+		TRACE("Finished waiting for completed Acks from implementers (and PBE)");
 		if (err == SA_AIS_OK) {	/*Proceed with commit */
 			/*If we arrive here, the assumption is that all implementors have agreed
 			   to commit and all immnds are prepared to commit this ccb. Fevs must
@@ -2825,7 +2862,9 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 			}			
 		} else {	/*err != SA_AIS_OK => generate SaImmOiCcbAbortCallbackT upcall
 				   for all local implementers involved in the Ccb */
-			immnd_evt_ccb_abort(cb, evt->info.ccbUpcallRsp.ccbId, SA_FALSE, NULL);
+			errStrings = immModel_ccbGrabErrStrings(cb, evt->info.ccbUpcallRsp.ccbId);
+			TRACE("Abort in immnd_evt_proc_ccb_compl_rsp reqConn: %u", reqConn);
+			immnd_evt_ccb_abort(cb, evt->info.ccbUpcallRsp.ccbId, NULL);
 		}
 		/* Either commit or abort has been decided. Ccb is now done.
 		   If we are at originating request node, then we ALWAYS reply here. 
@@ -2852,12 +2891,21 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 			send_evt.type = IMMSV_EVT_TYPE_IMMA;
 			send_evt.info.imma.info.errRsp.error = err;
 			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+			if(err != SA_AIS_OK) {
+				send_evt.info.imma.info.errRsp.errStrings = errStrings;
+
+				if(send_evt.info.imma.info.errRsp.errStrings) {
+					send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+				}
+			}
+
 			assert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
 
 			rc = immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt);
 			if (rc != NCSCC_RC_SUCCESS) {
 				LOG_ER("Failed to send response to agent/client over MDS rc:%u", rc);
 			}
+			immsv_evt_free_attrNames(send_evt.info.imma.info.errRsp.errStrings);
 		}
 		TRACE_2("CCB COMPLETED: TERMINATING CCB:%u", evt->info.ccbUpcallRsp.ccbId);
 		err = immModel_ccbFinalize(cb, evt->info.ccbUpcallRsp.ccbId);
@@ -4866,7 +4914,7 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 	TRACE_LEAVE();
 }
 
-static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, SaUint32T *client)
+static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *client)
 {
 	IMMSV_EVT send_evt;
 	SaUint32T *implConnArr = NULL;
@@ -4891,6 +4939,8 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, 
 
 	if (client) {
 		*client = dummyClient;
+	} else {
+		dummyClient = 0; /* dont reply to client here*/
 	}
 
 	if (arrSize) {
@@ -4903,12 +4953,14 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, 
 		int ix = 0;
 		for (; ix < arrSize; ++ix) {
 			/*Look up the client node for the implementer, using implConn */
+			if(implConnArr[ix] == 0) {continue;}
 			implHandle = m_IMMSV_PACK_HANDLE(implConnArr[ix], cb->node_id);
 
 			/*Fetch client node for OI ! */
 			immnd_client_node_get(cb, implHandle, &oi_cl_node);
 			if (oi_cl_node == NULL || oi_cl_node->mIsStale) {
-				LOG_WA("IMMND - Client went down so can not send abort UC - ignoring!");
+				LOG_WA("IMMND - Client <%u, %u> went down so can not send abort UC - ignoring!",
+					implConnArr[ix], cb->node_id);
 			} else {
 				send_evt.info.imma.info.ccbCompl.ccbId = ccbId;
 				send_evt.info.imma.info.ccbCompl.implId = implConnArr[ix];
@@ -4957,7 +5009,7 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, 
 	}
 
 
-
+#if 0
 
 	if (dummyClient) {	/* Apparently abort during an ongoing client call. */
 		IMMND_IMM_CLIENT_NODE *om_cl_node = NULL;
@@ -4968,13 +5020,20 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, 
 		/*Fetch client node for OM ! */
 		immnd_client_node_get(cb, omHandle, &om_cl_node);
 		if (om_cl_node == NULL || om_cl_node->mIsStale) {
-			LOG_WA("IMMND - Client went down so can not send reply ignoring!");
+			LOG_WA("IMMND - Client <%u, %u> went down so can not send reply ignoring!",
+				dummyClient, cb->node_id);
 		} else {
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 			send_evt.type = IMMSV_EVT_TYPE_IMMA;
 			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 			send_evt.info.imma.info.errRsp.error =
 			    timeout ? SA_AIS_ERR_TIMEOUT : SA_AIS_ERR_FAILED_OPERATION;
+
+			send_evt.info.imma.info.errRsp.errStrings =
+				immModel_ccbGrabErrStrings(cb, ccbId);
+			if(send_evt.info.imma.info.errRsp.errStrings) {
+				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+			}
 
 			if (om_cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP) {
 				TRACE_2("SENDRSP %u", send_evt.info.imma.info.errRsp.error);
@@ -4985,6 +5044,7 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, 
 			}
 		}
 	}
+#endif
 	TRACE_LEAVE();
 }
 
@@ -5477,7 +5537,7 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 	TRACE_ENTER();
 
 	assert(evt);
-	immnd_evt_ccb_abort(cb, evt->info.ccbId, SA_FALSE, &client);
+	immnd_evt_ccb_abort(cb, evt->info.ccbId, &client);
 	err = immModel_ccbFinalize(cb, evt->info.ccbId);
 	TRACE_2("ccb aborted and finalized err:%u", err);
 
@@ -5776,7 +5836,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 			SaUint32T client = 0;
 			/*err != SA_AIS_OK => generate SaImmOiCcbAbortCallbackT upcalls
 			 */
-			immnd_evt_ccb_abort(cb, evt->info.ccbId, SA_FALSE, &client);
+			immnd_evt_ccb_abort(cb, evt->info.ccbId, &client);
 			assert(!client || originatedAtThisNd);
 		}
 		TRACE_2("CCB APPLY TERMINATING CCB: %u", evt->info.ccbId);
@@ -6038,18 +6098,22 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 		break;
 
 	case IMMND_EVT_A2ND_CCB_COMPLETED_RSP:
+	case IMMND_EVT_A2ND_CCB_COMPLETED_RSP_2:
 		immnd_evt_proc_ccb_compl_rsp(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
 	case IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP:
+	case IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP_2:
 		immnd_evt_proc_ccb_obj_create_rsp(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
 	case IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP:
+	case IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2:
 		immnd_evt_proc_ccb_obj_modify_rsp(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
 	case IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP:
+	case IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2:
 		immnd_evt_proc_ccb_obj_delete_rsp(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
@@ -6733,7 +6797,7 @@ static void immnd_evt_proc_discard_node(IMMND_CB *cb,
 		SaUint32T ix;
 		for (ix = 0; ix < arrSize; ++ix) {
 			LOG_WA("Detected crash at node %x, abort ccbId  %u", evt->info.ctrl.nodeId, idArr[ix]);
-			immnd_evt_ccb_abort(cb, idArr[ix], SA_FALSE, NULL);
+			immnd_evt_ccb_abort(cb, idArr[ix], NULL);
 			err = immModel_ccbFinalize(cb, idArr[ix]);
 			if (err != SA_AIS_OK) {
 				LOG_WA("Failed to remove Ccb %u - ignoring", idArr[ix]);
