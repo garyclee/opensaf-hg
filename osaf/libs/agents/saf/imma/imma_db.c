@@ -217,11 +217,19 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 				assert(cl_node->isPbe);
 			}
 		}
+		new_ccb->isCcbErrOk = 0x1;
+		if (new_ccb->mCcbErrorString) { /* remove any old string. */
+			free(new_ccb->mCcbErrorString);
+			new_ccb->mCcbErrorString = NULL;
+		}
 		return;
 	}
 
 	new_ccb = calloc(1, sizeof(struct imma_oi_ccb_record));
 	new_ccb->ccbId = ccbId;
+
+	new_ccb->isCcbErrOk = 0x1;
+
 	if(!inv) {/* zero inv =>PBE or Applier => count ops. */
 		new_ccb->opCount = 1; 
 		TRACE_2("Zero inv => PBE/Applier initialized opcount to 1");
@@ -258,6 +266,13 @@ int imma_oi_ccb_record_delete(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId)
 		(*tmpp) = to_delete->next;
 		to_delete->next = NULL;
 		to_delete->ccbId = 0LL;
+
+		/* Remove any ccbErrorString associated with ccb_record */
+		if (to_delete->mCcbErrorString) {
+			free(to_delete->mCcbErrorString);
+			to_delete->mCcbErrorString = NULL;
+		}
+
 		free(to_delete);
 		TRACE_LEAVE();
 		return 1;
@@ -312,6 +327,11 @@ int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 				TRACE_5("op-count matches with inv:%u", inv);
 			}
 		}
+		tmp->isCcbErrOk = 0x1;
+		if (tmp->mCcbErrorString) { /* remove any old string. */
+			free(tmp->mCcbErrorString);
+			tmp->mCcbErrorString = NULL;
+		}
 	} else {
 		LOG_NO("Record for ccb %llx not found in ok_for_critical", ccbId);
 	}
@@ -330,6 +350,7 @@ int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccb
 		assert(!tmp->isCritical);
 		tmp->isCritical = 1;
 		rs = 1;
+		tmp->isCcbErrOk = 0x0;
 		if(tmp->opCount) {
 			if(!(cl_node->isPbe || cl_node->isApplier)) {
 				LOG_ER("imma_oi_ccb_record_set_critical opCount!=0 yet cl_node->isPbe is false! "
@@ -356,6 +377,39 @@ int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccb
 
 	TRACE_LEAVE();
 	return rs;
+}
+
+int imma_oi_ccb_record_set_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaStringT errorString)
+{
+	TRACE_ENTER();
+	int rs = 0;
+	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
+
+	if(tmp && tmp->isCcbErrOk) {
+		assert(!tmp->isCritical);
+		rs = 1;
+		if (tmp->mCcbErrorString) {
+			free(tmp->mCcbErrorString);
+			tmp->mCcbErrorString = NULL;
+		}
+
+		tmp->mCcbErrorString = strdup(errorString);
+	}
+
+	TRACE_LEAVE();
+	return rs;
+}
+
+SaStringT imma_oi_ccb_record_get_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId)
+{
+	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
+
+	if(tmp && tmp->isCcbErrOk) {
+		assert(!tmp->isCritical);
+		tmp->isCcbErrOk = 0x0;
+		return tmp->mCcbErrorString;
+	}
+	return NULL;
 }
 
 /****************************************************************************
@@ -818,7 +872,10 @@ uint32_t imma_ccb_node_delete(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node)
 			ccb_node->ccb_hdl, ccb_node->mCcbId);
 		rc = NCSCC_RC_FAILURE;
 	}
-	
+
+	/* Remove error-strings array */
+	imma_free_errorStrings(ccb_node->mErrorStrings);
+	ccb_node->mErrorStrings = NULL;
 
 	TRACE("Freeing ccb_node handle %llx ccbid %u", ccb_node->ccb_hdl, ccb_node->mCcbId);
 	free(ccb_node);
@@ -1073,4 +1130,51 @@ uint32_t imma_db_destroy(IMMA_CB *cb)
 	imma_search_tree_destroy(cb);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
+}
+
+void imma_free_errorStrings(SaStringT* errorStrings)
+{
+	if(errorStrings) {
+		unsigned int ix = 0;
+		for(;errorStrings[ix];++ix) {
+			free(errorStrings[ix]);
+			errorStrings[ix] = NULL;
+		}
+		free(errorStrings);
+	}
+	
+}
+
+SaStringT* imma_getErrorStrings(IMMSV_SAERR_INFO* errRsp)
+{
+	unsigned int listSize = 0;
+	SaStringT* errStringArr=NULL;
+	if(errRsp->errStrings == NULL) {goto done;}
+
+	IMMSV_ATTR_NAME_LIST* errStrs = errRsp->errStrings;
+
+	while(errStrs) {
+		++listSize;
+		errStrs = errStrs->next;
+	}
+
+	errStringArr = calloc(listSize + 1, sizeof(SaStringT));
+
+	errStrs = errRsp->errStrings;
+        listSize = 0;
+	while(errStrs) {
+		errStringArr[listSize] = (SaStringT) errStrs->name.buf;
+		errStrs->name.buf = NULL;
+		errStrs->name.size = 0;
+		errStrs = errStrs->next;
+		++listSize;
+	}
+
+        errStringArr[listSize] = NULL;
+
+	immsv_evt_free_attrNames(errRsp->errStrings);
+	errRsp->errStrings = NULL;
+	
+ done:
+	return errStringArr;
 }
