@@ -271,6 +271,7 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 	char *str, *delim;
 	const SaNameT *parentNames[] = {&parentName, NULL};
 	SaImmCcbHandleT ccbHandle;
+	SaStringT* errStrings=NULL;
 
 	for (i = 0; i < optargs_len; i++) {
 		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
@@ -333,11 +334,24 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 
 		if ((error = saImmOmCcbObjectCreate_2(ccbHandle, className, &parentName,
 			(const SaImmAttrValuesT_2**)attrValues)) != SA_AIS_OK) {
+
 			fprintf(stderr, "error - saImmOmCcbObjectCreate_2 FAILED with %s\n",
 				saf_error(error));
+
 			if((error == SA_AIS_ERR_NOT_EXIST) && ccb_safe) {
 				fprintf(stderr, "Missing: implementer, or object, or attribute "
 					"(see: immcfg -h under '--unsafe')\n");
+			} else {
+				SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
+				if(errStrings) {
+					int ix = 0;
+					while(errStrings[ix]) {
+						fprintf(stderr, "OI reports: %s\n", errStrings[ix]);
+						++ix;
+					}
+				} else if(rc2 != SA_AIS_OK) {
+					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+				}
 			}
 			goto done;
 		}
@@ -345,7 +359,19 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 	}
 
 	if ((error = saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
+		
 		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
+		SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
+		if(errStrings) {
+			int ix = 0;
+			while(errStrings[ix]) {
+				fprintf(stderr, "OI reports: %s\n", errStrings[ix]);
+				++ix;
+			}
+		} else if(rc2 != SA_AIS_OK) {
+			fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+		}
+		
 		goto done_release;
 	}
 
@@ -389,6 +415,7 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 	SaImmAttrModificationT_2 *attrMod;
 	SaImmAttrModificationT_2 **attrMods = NULL;
 	SaImmCcbHandleT ccbHandle;
+	SaStringT* errStrings=NULL;
 
 	for (i = 0; i < optargs_len; i++) {
 		attrMods = realloc(attrMods, (attr_len + 1) * sizeof(SaImmAttrModificationT_2 *));
@@ -420,9 +447,21 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 		if ((error = saImmOmCcbObjectModify_2(ccbHandle, objectNames[i],
 			(const SaImmAttrModificationT_2 **)attrMods)) != SA_AIS_OK) {
 			fprintf(stderr, "error - saImmOmCcbObjectModify_2 FAILED: %s\n", saf_error(error));
+
 			if((error == SA_AIS_ERR_NOT_EXIST) && ccb_safe) {
 				fprintf(stderr, "Missing: implementer, or object, or attribute "
 					"(see: immcfg -h under '--unsafe')\n");
+			} else {
+				SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
+				if(errStrings) {
+					int ix = 0;
+					while(errStrings[ix]) {
+						fprintf(stderr, "OI reports: %s\n", errStrings[ix]);
+						++ix;
+					}
+				} else if(rc2 != SA_AIS_OK) {
+					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+				}
 			}
 			goto done_release;
 		}
@@ -431,6 +470,17 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 
 	if ((error = saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
+		SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
+		if(errStrings) {
+			int ix = 0;
+			while(errStrings[ix]) {
+				fprintf(stderr, "OI reports: %s\n", errStrings[ix]);
+				++ix;
+			}
+		} else if(rc2 != SA_AIS_OK) {
+			fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+		}
+
 		goto done_release;
 	}
 
@@ -442,10 +492,15 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 	rc = 0;
 
  done_release:
+	/*  Skip explicit release of admin owner. It just causes problems when new objects
+	    (e.g. runtime objects have appeared in the subtree. Instead just rely on 
+	    releaseOwnershipOnFinalize being set to true in saImm*OmAdminOwnerinitialize. 
+	
 	if ((error = saImmOmAdminOwnerRelease(ownerHandle, (const SaNameT **)objectNames, SA_IMM_ONE)) != SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
 		goto done;
 	}
+	*/
  done:
 	return rc;
 }
@@ -463,6 +518,7 @@ int object_delete(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 	int rc = EXIT_FAILURE;
 	SaImmCcbHandleT ccbHandle;
 	int i = 0;
+	SaStringT* errStrings=NULL;
 
 	if ((error = saImmOmAdminOwnerSet(ownerHandle, (const SaNameT **)objectNames,
 		SA_IMM_SUBTREE)) != SA_AIS_OK) {
@@ -485,10 +541,23 @@ int object_delete(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 		if ((error = saImmOmCcbObjectDelete(ccbHandle, objectNames[i])) != SA_AIS_OK) {
 			fprintf(stderr, "error - saImmOmCcbObjectDelete for '%s' FAILED: %s\n",
 				objectNames[i]->value, saf_error(error));
+
 			if((error == SA_AIS_ERR_NOT_EXIST) && ccb_safe) {
 				fprintf(stderr, "Missing: implementer, or object, or attribute "
 					"(see: immcfg -h under '--unsafe')\n");
+			} else {
+				SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
+				if(errStrings) {
+					int ix = 0;
+					while(errStrings[ix]) {
+						fprintf(stderr, "OI reports: %s\n", errStrings[ix]);
+						++ix;
+					}
+				} else if(rc2 != SA_AIS_OK) {
+					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+				}
 			}
+
 			goto done;
 		}
 		i++;
@@ -496,6 +565,17 @@ int object_delete(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 
 	if ((error = saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
+		SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
+		if(errStrings) {
+			int ix = 0;
+			while(errStrings[ix]) {
+				fprintf(stderr, "OI reports: %s\n", errStrings[ix]);
+				++ix;
+			}
+		} else if(rc2 != SA_AIS_OK) {
+			fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+		}
+
 		goto done;
 	}
 

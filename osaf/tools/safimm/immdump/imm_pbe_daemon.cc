@@ -337,7 +337,10 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 	}
 
 	if(strncmp((char *) objectName->value, (char *) OPENSAF_IMM_OBJECT_DN, objectName->length) ==0) {
-		LOG_WA("Pbe will not allow modifications to object %s", (char *) OPENSAF_IMM_OBJECT_DN);
+		char buf[256];
+		sprintf(buf, "PBE will not allow modifications to object %s", (char *) OPENSAF_IMM_OBJECT_DN);
+		LOG_NO(buf);
+		saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		/* We will actually get invoked twice on this object, both as normal implementer and as PBE
 		   the response on the modify upcall from PBE is discarded, but not for the regular implemener.
@@ -485,6 +488,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	struct CcbUtilOperationData *ccbUtilOperationData;
+	char buf[256];
 	TRACE_ENTER2("Completed callback for CCB:%llu", ccbId);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
@@ -558,8 +562,10 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 
 						case SA_IMM_ATTR_VALUES_ADD:
 							if(attMod->modAttr.attrValuesNumber == 0) {
-								LOG_ER("Empty value used for adding to attribute %s",
+								sprintf(buf, "PBE: Empty value used for adding to attribute %s",
 									attMod->modAttr.attrName);
+								LOG_NO(buf);
+								saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 								rc = SA_AIS_ERR_BAD_OPERATION;
 								goto abort;
 							}
@@ -571,8 +577,10 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 
 						case SA_IMM_ATTR_VALUES_DELETE:
 							if(attMod->modAttr.attrValuesNumber == 0) {
-								LOG_ER("Empty value used for deleting from attribute %s",
+								sprintf(buf, "PBE: Empty value used for deleting from attribute %s",
 									attMod->modAttr.attrName);
+								LOG_NO(buf);
+								saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 								rc = SA_AIS_ERR_BAD_OPERATION;
 								goto abort;
 							}
@@ -596,7 +604,9 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 		TRACE("COMMIT PBE TRANSACTION for ccb %llu epoch:%u OK", ccbId, sEpoch);
 		/* Use ccbUtilCcbData->userData to record ccb outcome, verify in ccbApply/ccbAbort */
 	} else {
-		TRACE("COMMIT TRANSACTION %llu epoch%u FAILED rc:%u", ccbId, sEpoch, rc);
+		sprintf(buf, "PBE COMMIT of sqlite transaction %llu epoch%u FAILED rc:%u", ccbId, sEpoch, rc);
+		TRACE(buf);
+		saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 	}
 
 	/* Fault injection.
@@ -652,6 +662,7 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 	const SaImmClassNameT className, const SaNameT *parentName, const SaImmAttrValuesT_2 **attr)
 {
 	SaAisErrorT rc = SA_AIS_OK;
+	char buf[256];
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	bool rdnFound=false;
 	const SaImmAttrValuesT_2 *attrValue;
@@ -665,21 +676,27 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 		TRACE_ENTER2("CREATE CALLBACK CCB:%llu class:%s ROOT OBJECT (no parent)", ccbId, className);
 	}
 	if(!classInfo) {
-		LOG_ER("Class '%s' not found in classIdMap", className);
+		sprintf(buf, "PBE Internal error: class '%s' not found in classIdMap", className);
+		LOG_ER(buf);
+		saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-			LOG_ER("Failed to get CCB objectfor %llu", ccbId);
+			sprintf(buf, "PBE Internal error: Failed to get CCB objectfor %llu", ccbId);
+			LOG_ER(buf);
+			saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto done;
 		}
 	}
 
 	if(strncmp((char *) className, (char *) OPENSAF_IMM_CLASS_NAME, strlen(className)) == 0) {
-		LOG_WA("Pbe will not allow creates of instances of class %s", (char *) OPENSAF_IMM_CLASS_NAME);
+		sprintf(buf, "PBE: will not allow creates of instances of class %s", (char *) OPENSAF_IMM_CLASS_NAME);
+		LOG_NO(buf);
+		saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		/* We will actually get invoked twice on this create, both as normal implementer and as PBE
 		   the response on the create upcall from PBE is discarded, but not for the regular implementer UC.
@@ -720,8 +737,10 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 							"%s,%s", rdnVal->value, parentName->value);
 				}
 			} else {
-				LOG_ER("Rdn attribute %s for class '%s' is neither SaStringT nor SaNameT!", 
+				sprintf(buf, "PBE: Rdn attribute %s for class '%s' is neither SaStringT nor SaNameT!", 
 					attrValue->attrName, className);
+				LOG_NO(buf);
+				saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -730,7 +749,9 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 	}
 
 	if(!rdnFound) {
-		LOG_ER("Could not find Rdn attribute for class '%s'!", 	className);
+		sprintf(buf, "PBE: Could not find Rdn attribute for class '%s'!", className);
+		LOG_ER(buf);
+		saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
@@ -779,18 +800,23 @@ static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle, Sa
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
+	char buf[256];
 	TRACE_ENTER2("DELETE CALLBACK CCB:%llu object:%s", ccbId, objectName->value);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-			LOG_ER("Failed to get CCB objectfor %llu", ccbId);
+			sprintf(buf, "PBE: Failed to get CCB objectfor %llu", ccbId);
+			LOG_WA(buf);
+			saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto done;
 		}
 	}
 
 	if(strncmp((char *) objectName->value, (char *) OPENSAF_IMM_OBJECT_DN, objectName->length) ==0) {
-		LOG_WA("Pbe will not allow delete of object %s", (char *) OPENSAF_IMM_OBJECT_DN);
+		sprintf(buf, "PBE: will not allow delete of object %s", (char *) OPENSAF_IMM_OBJECT_DN);
+		LOG_NO(buf);
+		saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		/* We will actually get invoked twice on this object, both as normal implementer and as PBE
 		   the response on the delete upcall from PBE is discarded, but not for the regular implemener.
