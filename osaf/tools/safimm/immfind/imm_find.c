@@ -40,7 +40,7 @@
 
 #include "saf_error.h"
 
-static SaVersionT immVersion = { 'A', 2, 1 };
+static SaVersionT immVersion = { 'A', 2, 11 };
 
 static void usage(const char *progname)
 {

@@ -7056,7 +7056,8 @@ SaAisErrorT saImmOmCcbGetErrorStrings(SaImmCcbHandleT ccbHandle,
 	bool locked = false;
 	IMMA_CB *cb = &imma_cb;
 	IMMA_CCB_NODE *ccb_node = NULL;
-
+	SaImmHandleT immHandle=0LL;
+	IMMA_CLIENT_NODE *cl_node = NULL;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -7090,6 +7091,22 @@ SaAisErrorT saImmOmCcbGetErrorStrings(SaImmCcbHandleT ccbHandle,
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
 			ccb_node->mCcbId);
+		goto client_not_found;
+	}
+
+	immHandle = ccb_node->mImmHandle;
+
+	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+	if (!(cl_node && cl_node->isOm)) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("ERR_LIBRARY: SaImmHandleT associated with Ccb is not valid");
+		goto client_not_found;
+	}
+
+	if(!(cl_node->isImmA2b)) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saImmOmCcbGetErrorStrings only supported for "
+			"A.02.11 and above");
 		goto client_not_found;
 	}
 

@@ -28,7 +28,7 @@
 
 #include <logtrace.h>
 
-static const SaVersionT immVersion = { 'A', 2, 1 };
+static const SaVersionT immVersion = { 'A', 2, 11 };
 size_t strnlen(const char *s, size_t maxlen);
 
 /* Memory handling functions */

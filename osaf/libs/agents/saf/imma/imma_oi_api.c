@@ -980,8 +980,8 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 	/* Check for API Version! Appliers only allow for A.02.11 and above. */
 	if(implementerName[0] == '@') {
 		if(!(cl_node->isImmA2b)) {
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			TRACE_2("ERR_INVALID_PARAM: Applier OIs only supported for A.02.11 and above");
+			rc = SA_AIS_ERR_VERSION;
+			TRACE_2("ERR_VERSION: Applier OIs only supported for A.02.11 and above");
 			goto bad_handle;
 		}
 
@@ -2924,6 +2924,12 @@ SaAisErrorT saImmOiCcbSetErrorString(
 		}
 
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
+	}
+
+	if(!(cl_node->isImmA2b)) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saImmOiCcbSetErrorString only supported for A.02.11 and above");
+		goto bad_handle;
 	}
 
 	if(!imma_oi_ccb_record_set_error(cl_node, ccbId, errorString)) {
