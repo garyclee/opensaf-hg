@@ -2615,11 +2615,11 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
      **/
 	memset(&msg, 0, sizeof(ntfsv_msg_t));
 	msg.type = NTFSV_NTFA_API_MSG;
-	msg.info.api_info.type = NTFSV_READER_INITIALIZE_REQ;
+	msg.info.api_info.type = NTFSV_READER_INITIALIZE_REQ_2;
 	send_param = &msg.info.api_info.param.reader_init;
 	send_param->client_id = client_hdl_rec->ntfs_client_id;
 	/* Fill in ipc send struct */
-	send_param->searchCriteria.searchMode = searchCriteria.searchMode;
+	send_param->searchCriteria = searchCriteria;
 
 	/* Check whether NTFS is up or not */
 	if (!ntfa_cb.ntfs_up) {

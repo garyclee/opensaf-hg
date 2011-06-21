@@ -38,6 +38,7 @@ static uint32_t proc_subscribe_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uint32_t proc_unsubscribe_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uint32_t proc_send_not_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uint32_t proc_reader_initialize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
+static uint32_t proc_reader_initialize_msg_2(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uint32_t proc_reader_finalize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uint32_t proc_read_next_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 
@@ -75,6 +76,7 @@ NTFSV_NTFS_NTFA_API_MSG_HANDLER ntfs_ntfa_api_msg_dispatcher[NTFSV_API_MAX] = {
 	proc_reader_initialize_msg,
 	proc_reader_finalize_msg,
 	proc_read_next_msg,
+	proc_reader_initialize_msg_2,
 };
 
 /****************************************************************************
@@ -409,6 +411,32 @@ static uint32_t proc_reader_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 
 	TRACE_4("client_id: %u", reader_initialize_param->client_id);
 	newReader(reader_initialize_param->client_id, reader_initialize_param->searchCriteria, &evt->mds_ctxt);
+	TRACE_LEAVE();
+	return rc;
+}
+
+/****************************************************************************
+ * Name          : proc_reader_initialize_msg_2
+ *
+ * Description   : This is the function which is called when ntfs receives a
+ *                 reader_initialize message. The reader_initialize_msg_2
+ *                 includes filter.
+ * Arguments     : msg  - Message that was posted to the NTFS Mail box.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * Notes         : None.
+ *****************************************************************************/
+
+static uint32_t proc_reader_initialize_msg_2(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
+	ntfsv_reader_init_req_2_t *reader_initialize_param = &(evt->info.msg.info.api_info.param.reader_init_2);
+
+	TRACE_4("client_id: %u", reader_initialize_param->head.client_id);
+	newReader(reader_initialize_param->head.client_id, reader_initialize_param->head.searchCriteria, &evt->mds_ctxt);
 	TRACE_LEAVE();
 	return rc;
 }

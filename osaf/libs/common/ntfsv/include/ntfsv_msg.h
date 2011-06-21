@@ -52,6 +52,7 @@ extern "C" {
 		NTFSV_READER_INITIALIZE_REQ = 6,
 		NTFSV_READER_FINALIZE_REQ = 7,
 		NTFSV_READ_NEXT_REQ = 8,
+		NTFSV_READER_INITIALIZE_REQ_2 = 9,
 		NTFSV_API_MAX
 	} ntfsv_api_msg_type_t;
 
@@ -134,6 +135,10 @@ extern "C" {
 	} ntfsv_reader_init_req_t;
 
 	typedef struct {
+		ntfsv_reader_init_req_t head;
+	} ntfsv_reader_init_req_2_t;
+
+	typedef struct {
 		uint32_t client_id;
 		uint32_t readerId;
 	} ntfsv_reader_finalize_req_t;
@@ -175,6 +180,7 @@ extern "C" {
 			ntfsv_reader_init_req_t reader_init;
 			ntfsv_reader_finalize_req_t reader_finalize;
 			ntfsv_read_next_req_t read_next;
+			ntfsv_reader_init_req_2_t reader_init_2;
 		} param;
 	} ntfsv_api_info_t;
 
