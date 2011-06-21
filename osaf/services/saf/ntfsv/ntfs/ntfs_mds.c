@@ -65,7 +65,6 @@ void ntfs_evt_destroy(ntfsv_ntfs_evt_t *evt)
 static uint32_t dec_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_initialize_req_t *param = &msg->info.api_info.param.init;
 	uint8_t local_data[3];
 
@@ -75,10 +74,9 @@ static uint32_t dec_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	param->version.majorVersion = ncs_decode_8bit(&p8);
 	param->version.minorVersion = ncs_decode_8bit(&p8);
 	ncs_dec_skip_space(uba, 3);
-	total_bytes += 3;
 
 	TRACE_8("NTFSV_INITIALIZE_REQ");
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -96,7 +94,6 @@ static uint32_t dec_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t dec_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_finalize_req_t *param = &msg->info.api_info.param.finalize;
 	uint8_t local_data[4];
 
@@ -104,10 +101,9 @@ static uint32_t dec_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->client_id = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
-	total_bytes += 4;
 
 	TRACE_8("NTFSV_FINALIZE_REQ");
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -185,22 +181,25 @@ static uint32_t dec_send_not_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uint32_t dec_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uint8_t *p8;
-	uint32_t total_bytes = 0;
-	ntfsv_reader_init_req_t *param = &msg->info.api_info.param.reader_init;
-	uint8_t local_data[22];
+	return ntfsv_dec_reader_initialize_msg(uba, msg);
+}
 
-	/* releaseCode, majorVersion, minorVersion */
-	p8 = ncs_dec_flatten_space(uba, local_data, 22);
-	param->client_id = ncs_decode_32bit(&p8);
-	param->searchCriteria.searchMode = ncs_decode_16bit(&p8);
-	param->searchCriteria.eventTime = ncs_decode_64bit(&p8);
-	param->searchCriteria.notificationId = ncs_decode_64bit(&p8);
-	ncs_dec_skip_space(uba, 22);
-	total_bytes += 22;
-
-	TRACE_8("NTFSV_reader_initialize_REQ");
-	return total_bytes;
+/****************************************************************************
+  Name          : dec_reader_initialize_msg_2
+ 
+  Description   : This routine decodes an reader_initialize API msg
+                  filter is added in reader_initialize_msg_2
+ 
+  Arguments     : NCS_UBAID *msg,
+                  NTFSV_MSG *msg
+                  
+  Return Values : uint32_t
+ 
+  Notes         : None.
+******************************************************************************/
+static uint32_t dec_reader_initialize_msg_2(NCS_UBAID *uba, ntfsv_msg_t *msg)
+{
+	return ntfsv_dec_reader_initialize_msg_2(uba, msg);
 }
 
 /****************************************************************************
@@ -218,7 +217,6 @@ static uint32_t dec_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t dec_reader_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_reader_finalize_req_t *param = &msg->info.api_info.param.reader_finalize;
 	uint8_t local_data[8];
 
@@ -227,10 +225,9 @@ static uint32_t dec_reader_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	param->client_id = ncs_decode_32bit(&p8);
 	param->readerId = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 8);
-	total_bytes += 8;
 
 	TRACE_8("NTFSV_reader_finalize_REQ");
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -248,7 +245,6 @@ static uint32_t dec_reader_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t dec_read_next_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_read_next_req_t *param = &msg->info.api_info.param.read_next;
 	uint8_t local_data[10];
 
@@ -258,10 +254,9 @@ static uint32_t dec_read_next_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	param->searchDirection = ncs_decode_8bit(&p8);
 	param->readerId = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 10);
-	total_bytes += 10;
 
 	TRACE_8("NTFSV_read_next_REQ");
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -279,23 +274,22 @@ static uint32_t dec_read_next_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t enc_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_initialize_rsp_t *param = &msg->info.api_resp_info.param.init_rsp;
-
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* client_id */
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (p8 == NULL) {
 		TRACE("ncs_enc_reserve_space failed");
+		rc = NCSCC_RC_OUT_OF_MEM;
 		goto done;
 	}
 
 	ncs_encode_32bit(&p8, param->client_id);
 	ncs_enc_claim_space(uba, 4);
-	total_bytes += 4;
 
  done:
 	TRACE_8("NTFSV_INITIALIZE_RSP");
-	return total_bytes;
+	return rc;
 }
 
 /****************************************************************************
@@ -313,22 +307,22 @@ static uint32_t enc_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t enc_subscribe_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_subscribe_rsp_t *param = &msg->info.api_resp_info.param.subscribe_rsp;
-
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	
 	/* lstr_id */
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (p8 == NULL) {
 		TRACE("ncs_enc_reserve_space failed");
+		rc = NCSCC_RC_OUT_OF_MEM;
 		goto done;
 	}
 	ncs_encode_32bit(&p8, param->subscriptionId);
 	ncs_enc_claim_space(uba, 4);
-	total_bytes += 4;
 
  done:
 	TRACE_8("NTFSV_SUBSCRIBE_RSP");
-	return total_bytes;
+	return rc;
 }
 
 /****************************************************************************
@@ -346,22 +340,21 @@ static uint32_t enc_subscribe_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t enc_send_not_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_send_not_rsp_t *param = &msg->info.api_resp_info.param.send_not_rsp;
-
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* lstr_id */
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (p8 == NULL) {
 		TRACE("ncs_enc_reserve_space failed");
+		rc = NCSCC_RC_OUT_OF_MEM;
 		goto done;
 	}
 	ncs_encode_64bit(&p8, param->notificationId);
 	ncs_enc_claim_space(uba, 8);
-	total_bytes += 8;
 
  done:
 	TRACE_8("NTFSV_SEND_NOT_RSP");
-	return total_bytes;
+	return rc;
 }
 
 /****************************************************************************
@@ -415,23 +408,23 @@ static uint32_t enc_send_discard_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t enc_reader_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_reader_init_rsp_t *param = &msg->info.api_resp_info.param.reader_init_rsp;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* client_id */
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (p8 == NULL) {
 		TRACE("ncs_enc_reserve_space failed");
+		rc = NCSCC_RC_OUT_OF_MEM;
 		goto done;
 	}
 
 	ncs_encode_32bit(&p8, param->readerId);
 	ncs_enc_claim_space(uba, 4);
-	total_bytes += 4;
 
  done:
 	TRACE_8("NTFSV_reader_initialize_RSP");
-	return total_bytes;
+	return rc;
 }
 
 /****************************************************************************
@@ -449,23 +442,23 @@ static uint32_t enc_reader_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t enc_reader_finalize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_reader_finalize_rsp_t *param = &msg->info.api_resp_info.param.reader_finalize_rsp;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* client_id */
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (p8 == NULL) {
 		TRACE("ncs_enc_reserve_space failed");
+		rc = NCSCC_RC_OUT_OF_MEM;
 		goto done;
 	}
 
 	ncs_encode_32bit(&p8, param->reader_id);
 	ncs_enc_claim_space(uba, 4);
-	total_bytes += 4;
 
  done:
 	TRACE_8("NTFSV_reader_finalize_RSP");
-	return total_bytes;
+	return rc;
 }
 
 /****************************************************************************
@@ -485,7 +478,7 @@ static uint32_t enc_read_next_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	ntfsv_read_next_rsp_t *param = &msg->info.api_resp_info.param.read_next_rsp;
 	TRACE_8("NTFSV_read_next_RSP");
 	if (msg->info.api_resp_info.rc != SA_AIS_OK) {
-		return 0;
+		return NCSCC_RC_SUCCESS;
 	}
 	return ntfsv_enc_not_msg(uba, param->readNotification);
 }
@@ -525,7 +518,8 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info)
 	ntfsv_msg_t *msg;
 	NCS_UBAID *uba;
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
 	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
@@ -542,63 +536,68 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info)
 
 	if (uba == NULL) {
 		LOG_ER("uba == NULL");
-		goto err;
+		rc = NCSCC_RC_FAILURE;
+		goto done;
 	}
 
     /** encode the type of message **/
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (p8 == NULL) {
 		TRACE("ncs_enc_reserve_space failed");
-		goto err;
+		rc = NCSCC_RC_OUT_OF_MEM;
+		goto done;
 	}
 	ncs_encode_32bit(&p8, msg->type);
 	ncs_enc_claim_space(uba, 4);
-	total_bytes += 4;
 
 	if (NTFSV_NTFA_API_RESP_MSG == msg->type) {
 	/** encode the API RSP msg subtype **/
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
-			goto err;
+			rc = NCSCC_RC_OUT_OF_MEM;
+			goto done;
 		}
 		ncs_encode_32bit(&p8, msg->info.api_resp_info.type);
 		ncs_enc_claim_space(uba, 4);
-		total_bytes += 4;
 
 		/* rc */
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
-			goto err;
+			rc = NCSCC_RC_OUT_OF_MEM;
+			goto done;
 		}
 		ncs_encode_32bit(&p8, msg->info.api_resp_info.rc);
 		ncs_enc_claim_space(uba, 4);
-		total_bytes += 4;
 
 		switch (msg->info.api_resp_info.type) {
 		case NTFSV_INITIALIZE_RSP:
-			total_bytes += enc_initialize_rsp_msg(uba, msg);
+			rc = enc_initialize_rsp_msg(uba, msg);
 			break;
 		case NTFSV_SUBSCRIBE_RSP:
-			total_bytes += enc_subscribe_rsp_msg(uba, msg);
+			rc = enc_subscribe_rsp_msg(uba, msg);
+			break;
+		case NTFSV_UNSUBSCRIBE_RSP:
+			rc = NCSCC_RC_SUCCESS;
 			break;
 		case NTFSV_SEND_NOT_RSP:
-			total_bytes += enc_send_not_rsp_msg(uba, msg);
+			rc = enc_send_not_rsp_msg(uba, msg);
 			break;
 		case NTFSV_READER_INITIALIZE_RSP:
-			total_bytes += enc_reader_initialize_rsp_msg(uba, msg);
+			rc = enc_reader_initialize_rsp_msg(uba, msg);
 			break;
 		case NTFSV_READER_FINALIZE_RSP:
-			total_bytes += enc_reader_finalize_rsp_msg(uba, msg);
+			rc = enc_reader_finalize_rsp_msg(uba, msg);
 			break;
 		case NTFSV_READ_NEXT_RSP:
-			total_bytes += enc_read_next_rsp_msg(uba, msg);
+			rc = enc_read_next_rsp_msg(uba, msg);
 			break;
 		case NTFSV_FINALIZE_RSP:
 			break;
 		default:
 			TRACE("Unknown API RSP type = %d", msg->info.api_resp_info.type);
+			rc = NCSCC_RC_FAILURE;
 			break;
 		}
 	} else if (NTFSV_NTFS_CBK_MSG == msg->type) {
@@ -606,31 +605,33 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info)
 		p8 = ncs_enc_reserve_space(uba, 12);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
-			goto err;
+			rc = NCSCC_RC_OUT_OF_MEM;		   
+			goto done;
 		}
 		ncs_encode_32bit(&p8, msg->info.cbk_info.type);
 		ncs_encode_32bit(&p8, msg->info.cbk_info.ntfs_client_id);
 		ncs_encode_32bit(&p8, msg->info.cbk_info.subscriptionId);
 		ncs_enc_claim_space(uba, 12);
-		total_bytes += 12;
 		if (msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK) {
-			total_bytes += enc_send_not_cbk_msg(uba, msg);
+			rc = enc_send_not_cbk_msg(uba, msg);
 		} else if (msg->info.cbk_info.type == NTFSV_DISCARDED_CALLBACK) {
-			total_bytes += enc_send_discard_cbk_msg(uba, msg);
+			rc = enc_send_discard_cbk_msg(uba, msg);
 		} else {
 			TRACE("unknown callback type %d", msg->info.cbk_info.type);
-			goto err;
+			rc = NCSCC_RC_FAILURE;
+			goto done;
 		}
 		TRACE_8("enc NTFSV_NTFS_CBK_MSG");
 	} else {
 		TRACE("unknown msg type %d", msg->type);
-		goto err;
+		rc = NCSCC_RC_FAILURE;
+		goto done;
 	}
-
-	return NCSCC_RC_SUCCESS;
-
- err:
-	return NCSCC_RC_FAILURE;
+done:
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE_2("enc mgs type %d, api type %d, returned err rc = %u", msg->type, msg->info.api_resp_info.type, rc);
+	}
+	return rc;
 }
 
 /****************************************************************************
@@ -648,22 +649,24 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info)
 static uint32_t mds_dec(struct ncsmds_callback_info *info)
 {
 	uint8_t *p8;
-	ntfsv_ntfs_evt_t *evt;
+	ntfsv_ntfs_evt_t *evt = NULL;
 	NCS_UBAID *uba = info->info.dec.io_uba;
 	uint8_t local_data[20];
-	uint32_t total_bytes = 0;
+	uint32_t rc;
 
 	if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
 					   NTFS_WRT_NTFA_SUBPART_VER_AT_MIN_MSG_FMT,
 					   NTFS_WRT_NTFA_SUBPART_VER_AT_MAX_MSG_FMT, NTFS_WRT_NTFA_MSG_FMT_ARRAY)) {
 		TRACE("Wrong format version");
-		goto err;
+		rc = NCSCC_RC_FAILURE;		   		
+		goto done;
 	}
 
     /** allocate an NTFSV_NTFS_EVENT now **/
 	if (NULL == (evt = calloc(1, sizeof(ntfsv_ntfs_evt_t)))) {
 		TRACE("calloc failed");
-		goto err;
+		rc = NCSCC_RC_OUT_OF_MEM;		   
+		goto done;
 	}
 
 	/* Assign the allocated event */
@@ -672,55 +675,57 @@ static uint32_t mds_dec(struct ncsmds_callback_info *info)
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	evt->info.msg.type = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
-	total_bytes += 4;
 
 	if (NTFSV_NTFA_API_MSG == evt->info.msg.type) {
 		p8 = ncs_dec_flatten_space(uba, local_data, 4);
 		evt->info.msg.info.api_info.type = ncs_decode_32bit(&p8);
 		ncs_dec_skip_space(uba, 4);
-		total_bytes += 4;
 
 		/* FIX error handling for dec functions */
 		switch (evt->info.msg.info.api_info.type) {
 		case NTFSV_INITIALIZE_REQ:
-			total_bytes += dec_initialize_msg(uba, &evt->info.msg);
+			rc = dec_initialize_msg(uba, &evt->info.msg);
 			break;
 		case NTFSV_FINALIZE_REQ:
-			total_bytes += dec_finalize_msg(uba, &evt->info.msg);
+			rc = dec_finalize_msg(uba, &evt->info.msg);
 			break;
 		case NTFSV_SUBSCRIBE_REQ:
-			total_bytes += dec_subscribe_msg(uba, &evt->info.msg);
+			rc = dec_subscribe_msg(uba, &evt->info.msg);
 			break;
 		case NTFSV_UNSUBSCRIBE_REQ:
-			total_bytes += dec_unsubscribe_msg(uba, &evt->info.msg);
+			rc = dec_unsubscribe_msg(uba, &evt->info.msg);
 			break;
 		case NTFSV_SEND_NOT_REQ:
-			total_bytes += dec_send_not_msg(uba, &evt->info.msg);
+			rc = dec_send_not_msg(uba, &evt->info.msg);
 			break;
 		case NTFSV_READER_INITIALIZE_REQ:
-			total_bytes += dec_reader_initialize_msg(uba, &evt->info.msg);
+			rc = dec_reader_initialize_msg(uba, &evt->info.msg);
+			break;
+		case NTFSV_READER_INITIALIZE_REQ_2:
+			rc = dec_reader_initialize_msg_2(uba, &evt->info.msg);
 			break;
 		case NTFSV_READER_FINALIZE_REQ:
-			total_bytes += dec_reader_finalize_msg(uba, &evt->info.msg);
+			rc = dec_reader_finalize_msg(uba, &evt->info.msg);
 			break;
 		case NTFSV_READ_NEXT_REQ:
-			total_bytes += dec_read_next_msg(uba, &evt->info.msg);
+			rc = dec_read_next_msg(uba, &evt->info.msg);
 			break;
 		default:
 			TRACE("Unknown API type = %d", evt->info.msg.info.api_info.type);
+			rc = NCSCC_RC_FAILURE;			
 			break;
 		}
-		if (total_bytes == 4)
-			goto err;
 	} else {
 		TRACE("unknown msg type = %d", (int)evt->info.msg.type);
-		goto err;
+		rc = NCSCC_RC_FAILURE;			
+	} 
+	
+done:
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE_2("dec mgs type %d, api type %d, returned err rc = %u",
+			     evt->info.msg.type, evt->info.msg.info.api_info.type, rc);
 	}
-
-	return NCSCC_RC_SUCCESS;
-
- err:
-	return NCSCC_RC_FAILURE;
+	return rc;
 }
 
 /****************************************************************************
@@ -948,7 +953,7 @@ static uint32_t mds_sys_event(struct ncsmds_callback_info *mds_info)
 
 static uint32_t mds_callback(struct ncsmds_callback_info *info)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t rc;
 	static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
 		mds_cpy,	/* MDS_CALLBACK_COPY      */
 		mds_enc,	/* MDS_CALLBACK_ENC       */
@@ -962,12 +967,16 @@ static uint32_t mds_callback(struct ncsmds_callback_info *info)
 	};
 
 	if (info->i_op <= MDS_CALLBACK_QUIESCED_ACK) {
-		return (*cb_set[info->i_op]) (info);
+		rc = (*cb_set[info->i_op]) (info);
+		if (rc == NCSCC_RC_OUT_OF_MEM) {
+			LOG_ER("Exiting: out of memory");
+			exit (EXIT_FAILURE);
+		}
+		return rc;
 	} else {
-		TRACE("mds callback out of range");
+		TRACE("mds callback out of range op: %d", info->i_op);
 		rc = NCSCC_RC_FAILURE;
 	}
-
 	return rc;
 }
 

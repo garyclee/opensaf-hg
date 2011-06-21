@@ -1038,6 +1038,10 @@ void newReader(unsigned int clientId,
                SaNtfSearchCriteriaT searchCriteria,
                MDS_SYNC_SND_CTXT *mdsCtxt)
 {
+    LOG_NO("searchCriteria, t: %llu, nId: %llu, mode: %d", searchCriteria.eventTime,
+        searchCriteria.notificationId,
+        searchCriteria.searchMode);
+    
     assert(NtfAdmin::theNtfAdmin != NULL);
     return NtfAdmin::theNtfAdmin->newReader(clientId, mdsCtxt);
 }

@@ -407,7 +407,6 @@ static uint32_t ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cb
 uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
@@ -416,15 +415,14 @@ uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 	p8 = ncs_enc_reserve_space(uba, 12);
 	if (!p8) {
 		TRACE("NULL pointer");
-		return 0;
+		return NCSCC_RC_OUT_OF_MEM;
 	}
 	ncs_encode_32bit(&p8, param->client_id);
 	ncs_encode_64bit(&p8, param->mds_dest);
 	ncs_enc_claim_space(uba, 12);
-	total_bytes += 12;
 
 	TRACE_LEAVE();
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 static uint32_t enc_mbcsv_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
@@ -435,7 +433,6 @@ static uint32_t enc_mbcsv_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *p
 static uint32_t enc_mbcsv_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 	assert(uba != NULL);
@@ -443,19 +440,18 @@ static uint32_t enc_mbcsv_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_conf
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
 		TRACE("NULL pointer");
-		return 0;
+		return NCSCC_RC_OUT_OF_MEM;
 	}
 	ncs_encode_64bit(&p8, param->notificationId);
 	ncs_enc_claim_space(uba, 8);
-	total_bytes += 8;
+
 	TRACE_LEAVE();
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 static uint32_t enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 	assert(uba != NULL);
@@ -463,16 +459,16 @@ static uint32_t enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_co
 	p8 = ncs_enc_reserve_space(uba, 20);
 	if (!p8) {
 		TRACE("NULL pointer");
-		return 0;
+		return NCSCC_RC_OUT_OF_MEM;
 	}
 	ncs_encode_32bit(&p8, param->clientId);
 	ncs_encode_32bit(&p8, param->subscriptionId);
 	ncs_encode_64bit(&p8, param->notificationId);
 	ncs_encode_32bit(&p8, param->discarded);
 	ncs_enc_claim_space(uba, 20);
-	total_bytes += 20;
 	TRACE_LEAVE();
-	return total_bytes;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -494,7 +490,7 @@ static uint32_t enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_co
 static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	ntfsv_ckpt_msg_t *data = NULL;
-	uint32_t rc = NCSCC_RC_SUCCESS, num_bytes;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *pheader = NULL;
 	ntfsv_ckpt_header_t ckpt_hdr;
 	NCS_UBAID *uba = &cbk_arg->info.encode.io_uba;
@@ -535,10 +531,7 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 
 		ckpt_reg_rec.client_id = data->ckpt_rec.reg_rec.client_id;
 		ckpt_reg_rec.mds_dest = data->ckpt_rec.reg_rec.mds_dest;
-		num_bytes = enc_mbcsv_client_msg(uba, &ckpt_reg_rec);
-		if (num_bytes == 0) {
-			return NCSCC_RC_FAILURE;
-		}
+		rc = enc_mbcsv_client_msg(uba, &ckpt_reg_rec);
 		break;
 	case NTFS_CKPT_FINALIZE_REC:
 		/* Encode RegHeader */
@@ -556,8 +549,6 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
 			/* free(data); FIX ??? */
 			TRACE_2("eduerr: %x", ederror);
-			TRACE_LEAVE();
-			return rc;
 		}
 		break;
 	case NTFS_CKPT_SUBSCRIBE:
@@ -568,10 +559,7 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 		enc_ckpt_header(pheader, ckpt_hdr);
 
 		subscribe_rec.arg = data->ckpt_rec.subscribe.arg;
-		num_bytes = enc_mbcsv_subscribe_msg(uba, &subscribe_rec.arg);
-		if (num_bytes == 0) {
-			return NCSCC_RC_FAILURE;
-		}
+		rc = enc_mbcsv_subscribe_msg(uba, &subscribe_rec.arg);
 		break;
 	case NTFS_CKPT_UNSUBSCRIBE:
 		TRACE("Async update NTFS_CKPT_UNSUBSCRIBE");
@@ -582,10 +570,7 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 
 		unsubscribe_rec.arg.client_id = data->ckpt_rec.unsubscribe.arg.client_id;
 		unsubscribe_rec.arg.subscriptionId = data->ckpt_rec.unsubscribe.arg.subscriptionId;
-		num_bytes = ntfsv_enc_unsubscribe_msg(uba, &unsubscribe_rec.arg);
-		if (num_bytes == 0) {
-			return NCSCC_RC_FAILURE;
-		}
+		rc = ntfsv_enc_unsubscribe_msg(uba, &unsubscribe_rec.arg);
 		break;
 	case NTFS_CKPT_NOTIFICATION:
 		TRACE("Async update NTFS_CKPT_NOTIFICATION");
@@ -593,10 +578,7 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 		ckpt_hdr.num_ckpt_records = 1;
 		ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
 		enc_ckpt_header(pheader, ckpt_hdr);
-		num_bytes = ntfsv_enc_not_msg(uba, data->ckpt_rec.notification.arg);
-		if (num_bytes == 0) {
-			return NCSCC_RC_FAILURE;
-		}
+		rc = ntfsv_enc_not_msg(uba, data->ckpt_rec.notification.arg);
 		break;
 	case NTFS_CKPT_NOT_LOG_CONFIRM:
 		TRACE("Async update NTFS_CKPT_NOT_LOG_CONFIRM");
@@ -604,10 +586,7 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 		ckpt_hdr.num_ckpt_records = 1;
 		ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
 		enc_ckpt_header(pheader, ckpt_hdr);
-		num_bytes = enc_mbcsv_log_confirm_msg(uba, &data->ckpt_rec.log_confirm);
-		if (num_bytes == 0) {
-			return NCSCC_RC_FAILURE;
-		}
+		rc = enc_mbcsv_log_confirm_msg(uba, &data->ckpt_rec.log_confirm);
 		break;
 
 	case NTFS_CKPT_NOT_SEND_CONFIRM:
@@ -616,17 +595,17 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 		ckpt_hdr.num_ckpt_records = 1;
 		ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
 		enc_ckpt_header(pheader, ckpt_hdr);
-		num_bytes = enc_mbcsv_send_confirm_msg(uba, &data->ckpt_rec.send_confirm);
-		if (num_bytes == 0) {
-			return NCSCC_RC_FAILURE;
-		}
+		rc = enc_mbcsv_send_confirm_msg(uba, &data->ckpt_rec.send_confirm);
 		break;
 	default:
 		TRACE_3("FAILED no type: %d", data->header.ckpt_rec_type);
 		break;
 	}
-	/* Update the Async Update Count at standby */
-	ntfs_cb->async_upd_cnt++;
+	if (rc == NCSCC_RC_SUCCESS) {
+		/* Update the Async Update Count at standby */
+		ntfs_cb->async_upd_cnt++;
+	}
+
 	TRACE_LEAVE();
 	return rc;
 }
@@ -725,7 +704,7 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 
 static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS, num_bytes = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	ntfsv_ckpt_msg_t *ckpt_msg;
 	ntfsv_ckpt_header_t *hdr = NULL;
@@ -758,12 +737,7 @@ static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_ar
 		TRACE_2("INITIALIZE REC: AUPDATE");
 		reg_rec = &ckpt_msg->ckpt_rec.reg_rec;
 
-		num_bytes = decode_client_msg(&cbk_arg->info.decode.i_uba, reg_rec);
-		if (num_bytes == 0) {
-			TRACE("decode_client_msg FAILED");
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
+		rc = decode_client_msg(&cbk_arg->info.decode.i_uba, reg_rec);
 		break;
 
 	case NTFS_CKPT_NOTIFICATION:
@@ -771,45 +745,30 @@ static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_ar
 		/* freed in notificationReceivedUpdate(...) or
 		   in NtfNotification destructor */
 		ckpt_msg->ckpt_rec.notification.arg = calloc(1, sizeof(ntfsv_send_not_req_t));
-		num_bytes = ntfsv_dec_not_msg(&cbk_arg->info.decode.i_uba, ckpt_msg->ckpt_rec.notification.arg);
-		if (num_bytes == 0) {
-			TRACE("ntfsv_dec_not_msg FAILED");
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
+		rc = ntfsv_dec_not_msg(&cbk_arg->info.decode.i_uba, ckpt_msg->ckpt_rec.notification.arg);
 		break;
 
 	case NTFS_CKPT_NOT_LOG_CONFIRM:
 		TRACE_2("NOT_LOG_CONFIRM: AUPDATE");
-		num_bytes = decode_not_log_confirm_msg(&cbk_arg->info.decode.i_uba, &ckpt_msg->ckpt_rec.log_confirm);
+		rc = decode_not_log_confirm_msg(&cbk_arg->info.decode.i_uba, &ckpt_msg->ckpt_rec.log_confirm);
 		break;
 	case NTFS_CKPT_NOT_SEND_CONFIRM:
 		TRACE_2("NOT_SEND_CONFIRM: AUPDATE");
-		num_bytes = decode_not_send_confirm_msg(&cbk_arg->info.decode.i_uba, &ckpt_msg->ckpt_rec.send_confirm);
+		rc = decode_not_send_confirm_msg(&cbk_arg->info.decode.i_uba, &ckpt_msg->ckpt_rec.send_confirm);
 		break;
 
 	case NTFS_CKPT_SUBSCRIBE:
 		TRACE_2("SUBSCRIBE: AUPDATE");
 		subscribe_rec = &ckpt_msg->ckpt_rec.subscribe;
 
-		num_bytes = decode_subscribe_msg(&cbk_arg->info.decode.i_uba, &subscribe_rec->arg);
-		if (num_bytes == 0) {
-			TRACE("decode_subscribe_msg FAILED");
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
+		rc = decode_subscribe_msg(&cbk_arg->info.decode.i_uba, &subscribe_rec->arg);
 		break;
 
 	case NTFS_CKPT_UNSUBSCRIBE:
 		TRACE_2("UNSUBSCRIBE: AUPDATE");
 		unsubscribe_rec = &ckpt_msg->ckpt_rec.unsubscribe;
 
-		num_bytes = ntfsv_dec_unsubscribe_msg(&cbk_arg->info.decode.i_uba, &unsubscribe_rec->arg);
-		if (num_bytes == 0) {
-			TRACE("decode_unsubscribe_msg FAILED");
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
+		rc = ntfsv_dec_unsubscribe_msg(&cbk_arg->info.decode.i_uba, &unsubscribe_rec->arg);
 		break;
 
 	case NTFS_CKPT_FINALIZE_REC:
@@ -844,10 +803,11 @@ static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_ar
 		goto done;
 		break;
 	}			/*end switch */
-
-	rc = process_ckpt_data(cb, ckpt_msg);
-	/* Update the Async Update Count at standby */
-	cb->async_upd_cnt++;
+	if(rc == NCSCC_RC_SUCCESS) {
+		rc = process_ckpt_data(cb, ckpt_msg);
+		/* Update the Async Update Count at standby */
+		cb->async_upd_cnt++;
+	}
  done:
 	free(ckpt_msg);
 	TRACE_LEAVE();
@@ -858,7 +818,6 @@ static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_ar
 static uint32_t decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	uint8_t local_data[12];
 
 	/* releaseCode, majorVersion, minorVersion */
@@ -866,9 +825,9 @@ static uint32_t decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 	param->client_id = ncs_decode_32bit(&p8);
 	param->mds_dest = ncs_decode_64bit(&p8);
 	ncs_dec_skip_space(uba, 12);
-	total_bytes += 12;
+
 	TRACE_8("decode_client_msg");
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 static uint32_t decode_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
@@ -879,22 +838,19 @@ static uint32_t decode_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *para
 static uint32_t decode_not_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	uint8_t local_data[8];
 
 	/* releaseCode, majorVersion, minorVersion */
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	param->notificationId = ncs_decode_64bit(&p8);
 	ncs_dec_skip_space(uba, 8);
-	total_bytes += 8;
 	TRACE_8("decode_not_log_confirm_msg");
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 static uint32_t decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	uint8_t local_data[20];
 
 	/* releaseCode, majorVersion, minorVersion */
@@ -904,9 +860,8 @@ static uint32_t decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_c
 	param->notificationId = ncs_decode_64bit(&p8);
 	param->discarded = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 20);
-	total_bytes += 20;
 	TRACE_8("decode_not_send_confirm_msg");
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -936,7 +891,7 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	ntfsv_ckpt_msg_t msg;
 	ntfsv_ckpt_msg_t *data = &msg;
 	/*  NCS_UBAID *uba=NULL; */
-	uint32_t num_rec = 0, num_bytes = 0, num_clients;
+	uint32_t num_rec = 0, num_clients;
 	ntfs_ckpt_reg_msg_t *reg_rec = NULL;
 	uint32_t num_of_async_upd;
 	uint8_t *ptr;
@@ -963,9 +918,8 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	TRACE("client ids: num_rec = %u", num_rec);
 	while (num_rec) {
 		reg_rec = &data->ckpt_rec.reg_rec;
-		num_bytes = decode_client_msg(&cbk_arg->info.decode.i_uba, reg_rec);
-		if (num_bytes == 0) {
-			rc = NCSCC_RC_FAILURE;
+		rc = decode_client_msg(&cbk_arg->info.decode.i_uba, reg_rec);
+		if (rc != NCSCC_RC_SUCCESS) {
 			goto done;
 		}
 		/* Update our database */
@@ -994,10 +948,9 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 		TRACE_2("subscribers num_rec: %u", num_rec);
 		while (num_rec) {
 			ntfsv_subscribe_req_t subscribe_rec;
-			num_bytes = decode_subscribe_msg(&cbk_arg->info.decode.i_uba, &subscribe_rec);
-			if (num_bytes == 0) {
+			rc = decode_subscribe_msg(&cbk_arg->info.decode.i_uba, &subscribe_rec);
+			if (rc != NCSCC_RC_SUCCESS) {
 				TRACE("decode_subscribe_msg FAILED");
-				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
 			subscriptionAdded(subscribe_rec, NULL);
@@ -1041,10 +994,9 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 			goto done;
 		}
 
-		num_bytes = ntfsv_dec_not_msg(&cbk_arg->info.decode.i_uba, notification_rec);
-		if (num_bytes == 0) {
+		rc = ntfsv_dec_not_msg(&cbk_arg->info.decode.i_uba, notification_rec);
+		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE("decode_subscribe_msg FAILED");
-			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
 		notificationReceivedColdSync(notification_rec->client_id,

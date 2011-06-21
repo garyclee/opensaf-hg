@@ -39,7 +39,6 @@ static MDS_CLIENT_MSG_FORMAT_VER
 static uint32_t ntfa_enc_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_initialize_req_t *param = &msg->info.api_info.param.init;
 
 	TRACE_ENTER();
@@ -49,16 +48,15 @@ static uint32_t ntfa_enc_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	p8 = ncs_enc_reserve_space(uba, 3);
 	if (!p8) {
 		TRACE("NULL pointer");
-		return 0;
+		return NCSCC_RC_OUT_OF_MEM;
 	}
 	ncs_encode_8bit(&p8, param->version.releaseCode);
 	ncs_encode_8bit(&p8, param->version.majorVersion);
 	ncs_encode_8bit(&p8, param->version.minorVersion);
 	ncs_enc_claim_space(uba, 3);
-	total_bytes += 3;
 
 	TRACE_LEAVE();
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -76,7 +74,6 @@ static uint32_t ntfa_enc_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t ntfa_enc_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_finalize_req_t *param = &msg->info.api_info.param.finalize;
 
 	TRACE_ENTER();
@@ -87,14 +84,13 @@ static uint32_t ntfa_enc_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
 		TRACE("NULL pointer");
-		return 0;
+		return NCSCC_RC_OUT_OF_MEM;
 	}
 	ncs_encode_32bit(&p8, param->client_id);
 	ncs_enc_claim_space(uba, 4);
-	total_bytes += 4;
 
 	TRACE_LEAVE();
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -165,28 +161,25 @@ static uint32_t ntfa_enc_send_not_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uint32_t ntfa_enc_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uint8_t *p8;
-	uint32_t total_bytes = 0;
-	ntfsv_reader_init_req_t *param = &msg->info.api_info.param.reader_init;
+	return ntfsv_enc_reader_initialize_msg(uba,msg);
+}
 
-	TRACE_ENTER();
-	assert(uba != NULL);
-
-    /** encode the contents **/
-	p8 = ncs_enc_reserve_space(uba, 22);
-	if (!p8) {
-		TRACE("NULL pointer");
-		return 0;
-	}
-	ncs_encode_32bit(&p8, param->client_id);
-	ncs_encode_16bit(&p8, param->searchCriteria.searchMode);
-	ncs_encode_64bit(&p8, param->searchCriteria.eventTime);
-	ncs_encode_64bit(&p8, param->searchCriteria.notificationId);
-	ncs_enc_claim_space(uba, 22);
-	total_bytes += 22;
-
-	TRACE_LEAVE();
-	return total_bytes;
+/****************************************************************************
+  Name          : ntfa_enc_reader_initialize_msg_2
+ 
+  Description   : This routine encodes an reader_initialize API msg 
+                  filter is added in reader_initialize_msg_2
+ 
+  Arguments     : NCS_UBAID *msg,
+                  NTFSV_MSG *msg
+                  
+  Return Values : uint32_t
+ 
+  Notes         : None.
+******************************************************************************/
+static uint32_t ntfa_enc_reader_initialize_msg_2(NCS_UBAID *uba, ntfsv_msg_t *msg)
+{
+	return ntfsv_enc_reader_initialize_msg_2(uba,msg);
 }
 
 /****************************************************************************
@@ -204,7 +197,6 @@ static uint32_t ntfa_enc_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t ntfa_enc_reader_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_reader_finalize_req_t *param = &msg->info.api_info.param.reader_finalize;
 
 	TRACE_ENTER();
@@ -214,15 +206,14 @@ static uint32_t ntfa_enc_reader_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
 		TRACE("NULL pointer");
-		return 0;
+		return NCSCC_RC_OUT_OF_MEM;
 	}
 	ncs_encode_32bit(&p8, param->client_id);
 	ncs_encode_32bit(&p8, param->readerId);
 	ncs_enc_claim_space(uba, 8);
-	total_bytes += 8;
 
 	TRACE_LEAVE();
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -240,7 +231,6 @@ static uint32_t ntfa_enc_reader_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t ntfa_enc_read_next_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_read_next_req_t *param = &msg->info.api_info.param.read_next;
 
 	TRACE_ENTER();
@@ -250,16 +240,15 @@ static uint32_t ntfa_enc_read_next_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	p8 = ncs_enc_reserve_space(uba, 10);
 	if (!p8) {
 		TRACE("NULL pointer");
-		return 0;
+		return NCSCC_RC_OUT_OF_MEM;
 	}
 	ncs_encode_32bit(&p8, param->client_id);
 	ncs_encode_8bit(&p8, param->searchDirection);
 	ncs_encode_32bit(&p8, param->readerId);
 	ncs_enc_claim_space(uba, 10);
-	total_bytes += 10;
 
 	TRACE_LEAVE();
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -462,8 +451,7 @@ static uint32_t ntfa_mds_enc(struct ncsmds_callback_info *info)
 	ntfsv_msg_t *msg;
 	NCS_UBAID *uba;
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
-
+	uint32_t rc = NCSCC_RC_FAILURE;
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
 	TRACE_ENTER();
@@ -491,11 +479,10 @@ static uint32_t ntfa_mds_enc(struct ncsmds_callback_info *info)
 	if (!p8) {
 		TRACE("NULL pointer");
 		TRACE_LEAVE();
-		return NCSCC_RC_FAILURE;
+		return NCSCC_RC_OUT_OF_MEM;  
 	}
 	ncs_encode_32bit(&p8, msg->type);
 	ncs_enc_claim_space(uba, 4);
-	total_bytes += 4;
 
 	TRACE_2("msgtype: %d", msg->type);
 	if (NTFSV_NTFA_API_MSG == msg->type) {
@@ -504,52 +491,58 @@ static uint32_t ntfa_mds_enc(struct ncsmds_callback_info *info)
 		if (!p8) {
 			TRACE("encode API msg subtype FAILED");
 			TRACE_LEAVE();	/* fixme: ok to do return fail?? */
-			return NCSCC_RC_FAILURE;
+			return NCSCC_RC_OUT_OF_MEM;
 		}
 		ncs_encode_32bit(&p8, msg->info.api_info.type);
 		ncs_enc_claim_space(uba, 4);
-		total_bytes += 4;
 
 		TRACE_2("api_info.type: %d\n", msg->info.api_info.type);
 		switch (msg->info.api_info.type) {
 		case NTFSV_INITIALIZE_REQ:
-			total_bytes += ntfa_enc_initialize_msg(uba, msg);
+			rc = ntfa_enc_initialize_msg(uba, msg);
 			break;
 
 		case NTFSV_FINALIZE_REQ:
-			total_bytes += ntfa_enc_finalize_msg(uba, msg);
+			rc = ntfa_enc_finalize_msg(uba, msg);
 			break;
 
 		case NTFSV_SUBSCRIBE_REQ:
-			total_bytes += ntfa_enc_subscribe_msg(uba, msg);
+			rc = ntfa_enc_subscribe_msg(uba, msg);
 			break;
 
 		case NTFSV_UNSUBSCRIBE_REQ:
-			total_bytes += ntfa_enc_unsubscribe_msg(uba, msg);
+			rc = ntfa_enc_unsubscribe_msg(uba, msg);
 			break;
 		case NTFSV_SEND_NOT_REQ:
-			total_bytes += ntfa_enc_send_not_msg(uba, msg);
+			rc = ntfa_enc_send_not_msg(uba, msg);
 			break;
 		case NTFSV_READER_INITIALIZE_REQ:
-			total_bytes += ntfa_enc_reader_initialize_msg(uba, msg);
+			rc = ntfa_enc_reader_initialize_msg(uba, msg);
+			break;
+
+		case NTFSV_READER_INITIALIZE_REQ_2:
+			rc = ntfa_enc_reader_initialize_msg_2(uba, msg);
 			break;
 
 		case NTFSV_READER_FINALIZE_REQ:
-			total_bytes += ntfa_enc_reader_finalize_msg(uba, msg);
+			rc = ntfa_enc_reader_finalize_msg(uba, msg);
 			break;
 
 		case NTFSV_READ_NEXT_REQ:
-			total_bytes += ntfa_enc_read_next_msg(uba, msg);
+			rc = ntfa_enc_read_next_msg(uba, msg);
 			break;
 
 		default:
 			TRACE("Unknown API type = %d", msg->info.api_info.type);
+			rc = NCSCC_RC_FAILURE;
 			break;
 		}
 	}
-
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE_2("enc mgs type %d, returned err rc = %u", msg->type, rc);
+	}
 	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
+	return rc;
 }
 
 /****************************************************************************
@@ -567,7 +560,6 @@ static uint32_t ntfa_mds_enc(struct ncsmds_callback_info *info)
 static uint32_t ntfa_dec_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_initialize_rsp_t *param = &msg->info.api_resp_info.param.init_rsp;
 	uint8_t local_data[4];
 
@@ -576,9 +568,8 @@ static uint32_t ntfa_dec_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->client_id = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
-	total_bytes += 4;
 
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -634,7 +625,6 @@ static uint32_t ntfa_dec_not_discard_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t ntfa_dec_subscribe_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_subscribe_rsp_t *param = &msg->info.api_resp_info.param.subscribe_rsp;
 	uint8_t local_data[4];
 
@@ -643,9 +633,8 @@ static uint32_t ntfa_dec_subscribe_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->subscriptionId = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
-	total_bytes += 4;
 
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -663,7 +652,6 @@ static uint32_t ntfa_dec_subscribe_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t ntfa_dec_send_not_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_send_not_rsp_t *param = &msg->info.api_resp_info.param.send_not_rsp;
 	uint8_t local_data[8];
 
@@ -673,9 +661,8 @@ static uint32_t ntfa_dec_send_not_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	param->notificationId = ncs_decode_64bit(&p8);
 	ncs_dec_skip_space(uba, 8);
-	total_bytes += 8;
 
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -693,7 +680,6 @@ static uint32_t ntfa_dec_send_not_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uint32_t ntfa_dec_reader_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_reader_init_rsp_t *param = &msg->info.api_resp_info.param.reader_init_rsp;
 	uint8_t local_data[4];
 
@@ -702,9 +688,8 @@ static uint32_t ntfa_dec_reader_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->readerId = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
-	total_bytes += 4;
 
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -722,7 +707,6 @@ static uint32_t ntfa_dec_reader_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *
 static uint32_t ntfa_dec_reader_finalize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uint32_t total_bytes = 0;
 	ntfsv_reader_finalize_rsp_t *param = &msg->info.api_resp_info.param.reader_finalize_rsp;
 	uint8_t local_data[4];
 
@@ -731,9 +715,8 @@ static uint32_t ntfa_dec_reader_finalize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *ms
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->reader_id = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
-	total_bytes += 4;
 
-	return total_bytes;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -753,11 +736,12 @@ static uint32_t ntfa_dec_read_next_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	ntfsv_read_next_rsp_t *param = &msg->info.api_resp_info.param.read_next_rsp;
 	assert(uba != NULL);
 	if (msg->info.api_resp_info.rc != SA_AIS_OK) {
-		return 0;
+		/* only header is received */
+		  return NCSCC_RC_SUCCESS;
 	}
 	param->readNotification = calloc(1, sizeof(ntfsv_send_not_req_t));
 	if (NULL == param->readNotification)
-		return 0;
+		return NCSCC_RC_OUT_OF_MEM;
 	return ntfsv_dec_not_msg(uba, param->readNotification);
 }
 
@@ -779,7 +763,7 @@ static uint32_t ntfa_mds_dec(struct ncsmds_callback_info *info)
 	ntfsv_msg_t *msg;
 	NCS_UBAID *uba = info->info.dec.io_uba;
 	uint8_t local_data[12];
-	uint32_t total_bytes = 0;
+	uint32_t rc;
 	TRACE_ENTER();
 
 	if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
@@ -802,7 +786,6 @@ static uint32_t ntfa_mds_dec(struct ncsmds_callback_info *info)
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	msg->type = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
-	total_bytes += 4;
 
 	switch (msg->type) {
 	case NTFSV_NTFA_API_RESP_MSG:
@@ -811,34 +794,36 @@ static uint32_t ntfa_mds_dec(struct ncsmds_callback_info *info)
 			msg->info.api_resp_info.type = ncs_decode_32bit(&p8);
 			msg->info.api_resp_info.rc = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 8);
-			total_bytes += 8;
 			TRACE_2("NTFSV_NTFA_API_RESP_MSG rc = %d", (int)msg->info.api_resp_info.rc);
 
 			switch (msg->info.api_resp_info.type) {
 			case NTFSV_INITIALIZE_RSP:
-				total_bytes += ntfa_dec_initialize_rsp_msg(uba, msg);
+				rc = ntfa_dec_initialize_rsp_msg(uba, msg);
 				break;
 			case NTFSV_SUBSCRIBE_RSP:
-				total_bytes += ntfa_dec_subscribe_rsp_msg(uba, msg);
+				rc = ntfa_dec_subscribe_rsp_msg(uba, msg);
 				break;
 			case NTFSV_UNSUBSCRIBE_RSP:	/* Only header sent from server */
+				rc = NCSCC_RC_SUCCESS;
 				break;
 			case NTFSV_SEND_NOT_RSP:
-				total_bytes += ntfa_dec_send_not_rsp_msg(uba, msg);
+				rc = ntfa_dec_send_not_rsp_msg(uba, msg);
 				break;
 			case NTFSV_READER_INITIALIZE_RSP:
-				total_bytes += ntfa_dec_reader_initialize_rsp_msg(uba, msg);
+				rc = ntfa_dec_reader_initialize_rsp_msg(uba, msg);
 				break;
 			case NTFSV_READER_FINALIZE_RSP:
-				total_bytes += ntfa_dec_reader_finalize_rsp_msg(uba, msg);
+				rc = ntfa_dec_reader_finalize_rsp_msg(uba, msg);
 				break;
 			case NTFSV_READ_NEXT_RSP:
-				total_bytes += ntfa_dec_read_next_rsp_msg(uba, msg);
+				rc = ntfa_dec_read_next_rsp_msg(uba, msg);
 				break;
 			case NTFSV_FINALIZE_RSP:
+				rc = NCSCC_RC_SUCCESS;
 				break;
 			default:
 				TRACE_2("Unknown API RSP type %d", msg->info.api_resp_info.type);
+				rc = NCSCC_RC_FAILURE;
 				break;
 			}
 		}
@@ -850,7 +835,6 @@ static uint32_t ntfa_mds_dec(struct ncsmds_callback_info *info)
 			msg->info.cbk_info.ntfs_client_id = ncs_decode_32bit(&p8);
 			msg->info.cbk_info.subscriptionId = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 12);
-			total_bytes += 12;
 			TRACE_2("NTFSV_NTFS_CBK_MSG");
 			switch (msg->info.cbk_info.type) {
 			case NTFSV_NOTIFICATION_CALLBACK:
@@ -858,27 +842,35 @@ static uint32_t ntfa_mds_dec(struct ncsmds_callback_info *info)
 				msg->info.cbk_info.param.notification_cbk = calloc(1, sizeof(ntfsv_send_not_req_t));
 				if (NULL == msg->info.cbk_info.param.notification_cbk) {
 					TRACE_1("could not allocate memory");
-					return 0;
+					rc = NCSCC_RC_OUT_OF_MEM;
+					break;
 				}
 				TRACE_2("decode notification cbk message");
-				total_bytes += ntfa_dec_not_send_cbk_msg(uba, msg);
+				rc = ntfa_dec_not_send_cbk_msg(uba, msg);
 				break;
 			case NTFSV_DISCARDED_CALLBACK:
 				TRACE_2("decode discarded cbk message");
-				total_bytes += ntfa_dec_not_discard_cbk_msg(uba, msg);
+				rc = ntfa_dec_not_discard_cbk_msg(uba, msg);
 				break;
 			default:
 				TRACE_2("Unknown callback type = %d!", msg->info.cbk_info.type);
+				rc = NCSCC_RC_FAILURE;
 				break;
 			}
 		}
 		break;
 	default:
 		TRACE("Unknown MSG type %d", msg->type);
+		rc = NCSCC_RC_FAILURE;		
 		break;
 	}
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE_2("enc mgs type %d, api/cbk type %d returned err rc = %u",
+			     msg->type, msg->info.api_resp_info.type, rc);
+	}
+	
 	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
+	return rc;
 }
 
 /****************************************************************************
@@ -973,12 +965,17 @@ static uint32_t ntfa_mds_callback(struct ncsmds_callback_info *info)
 
 	if (info->i_op <= MDS_CALLBACK_SVC_EVENT) {
 		rc = (*cb_set[info->i_op]) (info);
-		if (rc != NCSCC_RC_SUCCESS)
-			TRACE("MDS_CALLBACK_SVC_EVENT not in range");
-
-		return rc;
-	} else
-		return NCSCC_RC_SUCCESS;
+		if (rc != NCSCC_RC_SUCCESS){
+			if (rc == NCSCC_RC_OUT_OF_MEM) {
+				LOG_ER("Exiting: out of memory");
+				exit (EXIT_FAILURE);
+			}  
+		}
+	} else {
+		TRACE("mds callback out of range op: %d", info->i_op);
+		rc = NCSCC_RC_FAILURE;
+	}
+	return rc;
 }
 
 /****************************************************************************

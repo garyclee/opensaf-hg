@@ -373,12 +373,7 @@ int sendSyncGlobals(const struct NtfGlobals *ntfGlobals, NCS_UBAID *uba)
 
 int sendNewNotification(unsigned int connId, ntfsv_send_not_req_t *notificationInfo, NCS_UBAID *uba)
 {
-	unsigned int num_bytes;
-	num_bytes = ntfsv_enc_not_msg(uba, notificationInfo);
-	if (num_bytes == 0) {
-		return 0;
-	}
-	return 1;
+	return ntfsv_enc_not_msg(uba, notificationInfo);
 };
 
 int sendNoOfClients(uint32_t num_rec, NCS_UBAID *uba)
