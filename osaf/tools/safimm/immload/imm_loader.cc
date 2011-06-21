@@ -1651,7 +1651,7 @@ int loadImmXML(std::string xmldir, std::string file)
 
     version.releaseCode   = 'A';
     version.majorVersion  = 2;
-    version.minorVersion  = 1;
+    version.minorVersion  = 11;
 
     TRACE("Loading from %s/%s", xmldir.c_str(), file.c_str());
 
