@@ -412,6 +412,7 @@ the same way.
 
 MULTIPLE APPLIERS
 =================
+http://devel.opensaf.org/ticket/1827
 OpenSAF 4.2 adds the immsv enhancement of supporting multiple appliers for
 configuration objects. An applier is an OI (object implementer) of lower
 rank than the primary OI. The primary OI validates the CCB and has veto
@@ -528,8 +529,52 @@ For appliers, attaching as an object-applier could be usefull as a
 way of "eavesdropping" on the changes affecting a particular object,
 or a few select objects. But invoking saImmObjectImplementerSet
 with an applier name, for a large subtree of objects will be much
-more expensive in memory than just registering for the class(es) 
+more expensive in memory than just registering for the class(es)
 of these objects. 
+
+
+CCB error strings
+================
+http://devel.opensaf.org/ticket/1904
+OpenSAF 4.2 adds the immsv enhancement of supporting ccb error strings
+from OI to OM client. Two new API calls are available for this for
+clients that register with imm version A.2.11:
+
+(1)
+extern SaAisErrorT
+saImmOiCcbSetErrorString(SaImmOiHandleT immOiHandle,
+                         SaImmOiCcbIdT ccbId,
+                         const SaStringT errorString);
+
+Allows an OI to set an error string in the context of a ccb related
+upcall. Setting an error string is only relevant if the OI will
+return with error (not SA_AIS_OK) on the upcall.  The error
+string will be transmitted to the OM client. Only one error string
+will be accepted per OI upcall. Setting additional error strings
+in the same OI upcall will simply replace the previous one. 
+Multiple error strings may however be set from different OIs
+in different upcalls related to the same OM downcall (e.g.
+saImmOmCcbApply).
+
+(2)
+extern SaAisErrorT
+saImmOmCcbGetErrorStrings(SaImmCcbHandleT ccbHandle,
+                          SaStringT **errorStrings);
+
+Allows the OM client to fetch error strings after the return of a
+ccb-related downcall and *before* making the next ccb-related
+downcall using the same ccb-handle. If any error string where 
+set by any OIs involved in the operation that returned with
+error, then these error strings should be included in the list.
+The imm server discards duplicate strings and allows a maximum
+of 128 error strings in the list. Any ccb call that returns
+SA_AIS_OK will not have any error-strings.
+NOTE: It is very important that the OM client completes its
+processing of the errorStrings before invoking the next
+ccb downcall using the same ccbHandle. The next such downcall
+will free the error strings. If the om user needs the error 
+strings after re-using the ccbHandle, the user must copy the 
+strings before such re-use.
 
 
 DEPENDENCIES
