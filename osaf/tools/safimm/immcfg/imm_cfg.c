@@ -272,7 +272,7 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 	char *str, *delim;
 	const SaNameT *parentNames[] = {parentName, NULL};
 	SaImmCcbHandleT ccbHandle;
-	SaStringT* errStrings=NULL;
+	const SaStringT* errStrings=NULL;
 
 	for (i = 0; i < optargs_len; i++) {
 		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
@@ -418,7 +418,7 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 	SaImmAttrModificationT_2 *attrMod;
 	SaImmAttrModificationT_2 **attrMods = NULL;
 	SaImmCcbHandleT ccbHandle;
-	SaStringT* errStrings=NULL;
+	const SaStringT* errStrings=NULL;
 
 	for (i = 0; i < optargs_len; i++) {
 		attrMods = realloc(attrMods, (attr_len + 1) * sizeof(SaImmAttrModificationT_2 *));
@@ -521,7 +521,7 @@ int object_delete(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 	int rc = EXIT_FAILURE;
 	SaImmCcbHandleT ccbHandle;
 	int i = 0;
-	SaStringT* errStrings=NULL;
+	const SaStringT* errStrings=NULL;
 
 	if ((error = saImmOmAdminOwnerSet(ownerHandle, (const SaNameT **)objectNames,
 		SA_IMM_SUBTREE)) != SA_AIS_OK) {

@@ -19,6 +19,8 @@
  *   These additions are currently NON STANDARD. But the intention is to get these
  *   additions approved formally by SAF in the future.
  *
+ *   For detailed explanation of the new API, see osaf/services/saf/immsv/README.
+ *
  * FILE:
  *   saImmOm.A.2.11.h
  *
@@ -45,7 +47,7 @@ extern "C" {
 						    SaInvocationT invocation,
 						    SaAisErrorT operationReturnValue,
 						    SaAisErrorT error,
-						    SaImmAdminOperationParamsT_2 **returnParams);
+						    const SaImmAdminOperationParamsT_2 **returnParams);
 
 	/* 4.2.18 SaImmCallbacksT  See http://devel.opensaf.org/ticket/1764*/
 
@@ -110,13 +112,19 @@ extern "C" {
 					 SaImmAdminOwnerHandleT ownerHandle,
 					 SaImmAdminOperationParamsT_2 **returnParams);
 
+	/* Set convention for parameter names for admin-operation-name and admin-operation-error-message */
+
+#define SA_IMM_PARAM_ADMOP_ID_ESC     0x8000000000000000LL  /* == 9223372036854775808 */
+#define SA_IMM_PARAM_ADMOP_NAME       "SaImmAdminOperationName"
+#define SA_IMM_PARAM_ADMOP_ERROR      "SaImmAdminOperationError"
+
 
 	/* See: http://devel.opensaf.org/ticket/1904 */
 
 	extern SaAisErrorT
 	 saImmOmCcbGetErrorStrings(
 				   SaImmCcbHandleT ccbHandle,
-				   SaStringT **errorStrings);
+				   const SaStringT **errorStrings);
 
 
 	/* 4.2.22 IMM Service Object Attributes */
