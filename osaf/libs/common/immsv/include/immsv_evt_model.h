@@ -101,6 +101,14 @@ extern "C" {
 		IMMSV_ADMIN_OPERATION_PARAM *params;
 	} IMMSV_OM_ADMIN_OP_INVOKE;
 
+	typedef struct immsv_oi_admin_op_rsp {
+		SaImmOiHandleT oi_client_hdl;
+		SaInvocationT invocation;	//Negative => async invocation
+		SaAisErrorT result;
+		SaAisErrorT error;
+		IMMSV_ADMIN_OPERATION_PARAM *parms;
+	} IMMSV_OI_ADMIN_OP_RSP;
+
 	typedef struct ImmsvAttrDefinition {
 		IMMSV_OCTET_STRING attrName;
 		SaUint32T attrValueType;

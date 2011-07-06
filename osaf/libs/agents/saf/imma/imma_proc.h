@@ -84,6 +84,13 @@ void imma_proc_decrement_pending_reply(IMMA_CLIENT_NODE *clnd);
 
 SaAisErrorT imma_proc_recover_ccb_result(IMMA_CB *cb, SaUint32T ccbId);
 
+int imma_proc_is_adminop_params_valid(const SaImmAdminOperationParamsT_2 **params);
+int imma_proc_is_valid_type(const SaImmValueTypeT theType);
+
+SaImmAdminOperationParamsT_2 **imma_proc_get_params(IMMSV_ADMIN_OPERATION_PARAM *in_params);
+
+void imma_proc_free_pointers(IMMA_CB *cb, IMMA_EVT *evt);
+
 /* callback prototypes */
 IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *clnd);
 uint32_t imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle);

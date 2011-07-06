@@ -280,7 +280,7 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 	TRACE_LEAVE();
 }
 
-static SaImmAdminOperationParamsT_2 **imma_proc_get_params(IMMSV_ADMIN_OPERATION_PARAM *in_params)
+SaImmAdminOperationParamsT_2 **imma_proc_get_params(IMMSV_ADMIN_OPERATION_PARAM *in_params)
 {
 	int noOfParams = 0;
 	IMMSV_ADMIN_OPERATION_PARAM *p = in_params;

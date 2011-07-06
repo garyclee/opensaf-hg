@@ -35,20 +35,22 @@ typedef struct imma_client_node {
 	SaImmHandleT handle;
 	union {
 		SaImmCallbacksT mCallbk;
+		SaImmCallbacksT_o2 mCallbkA2b;
 		SaImmOiCallbacksT_2 iCallbk;
 	} o;
 	SaUint32T mImplementerId;	/*Only used for OI.*/
 	SaBoolT isOm;		/*If true => then this is an OM client */
 	SaImmOiImplementerNameT  mImplementerName; /* needed for active resurrect*/
-	uint8_t stale;		/*Loss of connection with immnd 
+	bool stale;		/*Loss of connection with immnd 
 					  will set this to true for the 
 					  connection. A resurrect can remove it.*/
-	uint8_t exposed;    /* Exposed => stale is irreversible */
-	uint8_t selObjUsable; /* Active resurrect possible for this client */
-	uint8_t replyPending; /* Syncronous or asyncronous call made towards IMMND */
-	uint8_t isPbe;  /* True => This is the PBE-OI */
-	uint8_t isImmA2b;       /* Version A.02.11 */
-	uint8_t isApplier; /* True => This is an Applier-OI */
+	bool exposed;    /* Exposed => stale is irreversible */
+	bool selObjUsable; /* Active resurrect possible for this client */
+	bool replyPending; /* Syncronous or asyncronous call made towards IMMND */
+	bool isPbe;  /* True => This is the PBE-OI */
+	bool isImmA2b;       /* Version A.02.11 */
+	bool isImmA2bCbk;    /* Version A.02.11 callback*/
+	bool isApplier; /* True => This is an Applier-OI */
 	struct imma_oi_ccb_record *activeOiCcbs; /* For ccb termination on IMMND down.*/
 	SYSF_MBX callbk_mbx;	/*Mailbox Queue for clnt messages */
 } IMMA_CLIENT_NODE;

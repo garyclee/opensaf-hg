@@ -85,6 +85,7 @@ typedef enum imma_evt_type {
 	IMMA_EVT_ND2A_PROC_STALE_CLIENTS = 24,
 	IMMA_EVT_ND2A_IMM_PBE_ADMOP = 25,       /*Special PBE admop callback */
 	IMMA_EVT_ND2A_IMM_ERROR_2 = 26,	        /*Generic error reply, errStrings added*/
+	IMMA_EVT_ND2A_ADMOP_RSP_2 = 27,	/*Response from AdminOp to OM client - extended */
 	IMMA_EVT_MAX
 } IMMA_EVT_TYPE;
 
@@ -189,6 +190,10 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP_2 = 84,	/*CcbObjCreate local Reply */
 	IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2 = 85,	/*CcbObjModify local Reply */
 	IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2 = 86,	/*CcbObjDelete local Reply */
+	IMMND_EVT_A2ND_ADMOP_RSP_2 = 87, /* AdminOperation sync local Reply (extended) */
+	IMMND_EVT_A2ND_ASYNC_ADMOP_RSP_2 = 88, /* AdminOperation async local Reply (extended) */
+	IMMND_EVT_ND2ND_ADMOP_RSP_2 = 89,	/* AdminOperation sync fevs Reply (extended) */
+	IMMND_EVT_ND2ND_ASYNC_ADMOP_RSP_2 = 90,	/* AdminOperation async fevs Reply (extended) */
 
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
@@ -309,13 +314,6 @@ typedef struct immsv_a2nd_search_op {
 	SaImmHandleT client_hdl;
 	SaUint32T searchId;
 } IMMSV_A2ND_SEARCH_OP;
-
-typedef struct immsv_oi_admin_op_rsp {
-	SaImmOiHandleT oi_client_hdl;
-	SaInvocationT invocation;	//Negative => async invocation
-	SaAisErrorT result;
-	SaAisErrorT error;
-} IMMSV_OI_ADMIN_OP_RSP;
 
 typedef struct immsv_oi_search_remote_rsp {
 	IMMSV_OM_SEARCH_REMOTE sr;
