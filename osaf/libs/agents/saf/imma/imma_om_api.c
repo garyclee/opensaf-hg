@@ -7048,7 +7048,7 @@ int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked)
                    
 ******************************************************************************/
 SaAisErrorT saImmOmCcbGetErrorStrings(SaImmCcbHandleT ccbHandle,
-	SaStringT **errorStrings)
+	const SaStringT **errorStrings)
 
 {
 	TRACE_ENTER();

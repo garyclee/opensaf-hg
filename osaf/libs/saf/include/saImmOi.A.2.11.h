@@ -19,6 +19,8 @@
  *   These additions are currently NON STANDARD. But the intention is to get these
  *   additions approved formally by SAF in the future.
  *
+ *   For detailed explanation of the new API, see osaf/services/saf/immsv/README.
+ *
  * FILE:
  *   saImmOi.A.2.11.h
  *
