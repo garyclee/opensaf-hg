@@ -270,6 +270,11 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 			callback->retval = SA_AIS_ERR_NO_SECTIONS;	//Bogus result since error is set
 		}
 
+		if(evt->info.admOpRsp.parms) {
+			callback->params = imma_proc_get_params(evt->info.admOpRsp.parms);
+			evt->info.admOpRsp.parms = NULL;
+		}
+
 		/* Send the event */
 		(void) m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 	}
@@ -1253,6 +1258,22 @@ void imma_proc_free_pointers(IMMA_CB *cb, IMMA_EVT *evt)
 			}
 			break;
 
+		case IMMA_EVT_ND2A_ADMOP_RSP_2:
+			while (evt->info.admOpRsp.parms) {
+				IMMSV_ADMIN_OPERATION_PARAM *p = evt->info.admOpRsp.parms;
+				evt->info.admOpRsp.parms = p->next;
+
+				if (p->paramName.buf) {	/*free-3 */
+					free(p->paramName.buf);
+					p->paramName.buf = NULL;
+					p->paramName.size = 0;
+				}
+				immsv_evt_free_att_val(&(p->paramBuffer), p->paramType);/*free-4 */
+				p->next = NULL;
+				free(p);  /*free-2 */
+			}
+			break;			
+
 		case IMMA_EVT_ND2A_ADMOP_RSP:
 			break;
 
@@ -1323,6 +1344,7 @@ void imma_process_evt(IMMA_CB *cb, IMMSV_EVT *evt)
 			break;
 
 		case IMMA_EVT_ND2A_ADMOP_RSP:
+		case IMMA_EVT_ND2A_ADMOP_RSP_2:
 			imma_proc_admin_op_async_rsp(cb, &evt->info.imma);
 			break;
 
@@ -1799,7 +1821,12 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 #ifdef IMMA_OM
 	switch (callback->type) {
 		case IMMA_CALLBACK_OM_ADMIN_OP_RSP:	/*Async reply via OM. */
-			if (cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback) {
+			/* ABT decide if it is A.2.1 or A.2.11 callback. */
+			if (cl_node->isImmA2bCbk) {
+				cl_node->o.mCallbkA2b.saImmOmAdminOperationInvokeCallback(callback->invocation,
+					callback->retval, callback->sa_err, 
+					(const SaImmAdminOperationParamsT_2 **)	callback->params);
+			} else if (cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback) {
 				TRACE("Upcall for callback for async admop inv:%llx rslt:%u err:%u",
 					callback->invocation, callback->retval, callback->sa_err);
 
@@ -1809,6 +1836,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				TRACE_3("No callback to deliver AdminOperationInvokeAsync - invoc:%llx ret:%u err:%u",
 					callback->invocation, callback->retval, callback->sa_err);
 			}
+
+			/* callback->params freed by imma_proc_free_callback(callback) below */
 
 			break;
 
@@ -2804,4 +2833,63 @@ imma_proc_decrement_pending_reply(IMMA_CLIENT_NODE *cl_node)
 			cl_node->handle);
 		cl_node->replyPending = 0xff;
 	}
+}
+
+
+/**
+ * Validate a value type
+ * @param theType
+ * 
+ * @return int
+ */
+int imma_proc_is_valid_type(const SaImmValueTypeT theType)
+{
+	switch (theType) {
+		case SA_IMM_ATTR_SAINT32T:
+		case SA_IMM_ATTR_SAUINT32T:
+		case SA_IMM_ATTR_SAINT64T:
+		case SA_IMM_ATTR_SAUINT64T:
+		case SA_IMM_ATTR_SATIMET:
+		case SA_IMM_ATTR_SAFLOATT:
+		case SA_IMM_ATTR_SADOUBLET:
+		case SA_IMM_ATTR_SANAMET:
+		case SA_IMM_ATTR_SASTRINGT:
+		case SA_IMM_ATTR_SAANYT:
+			return 1;
+		default:
+			return 0;
+	}
+}
+
+/**
+ * Validate admin op params
+ * @param params
+ * 
+ * @return int
+ */
+int imma_proc_is_adminop_params_valid(const SaImmAdminOperationParamsT_2 **params)
+{
+	int i = 0;
+
+	/* Validate type for parameters */
+	while (params[i] != NULL) {
+		if (params[i]->paramName == NULL) {
+			TRACE_3("no name for param: %d", i);
+			return 0;
+		}
+
+		if (!imma_proc_is_valid_type(params[i]->paramType)) {
+			TRACE_3("wrong type for param: %s", params[i]->paramName);
+			return 0;
+		}
+
+		if (params[i]->paramBuffer == NULL) {
+			TRACE_3("no value for param: %d", i);
+			return 0;
+		}
+
+		i++;
+	}
+
+	return 1;
 }

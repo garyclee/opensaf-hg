@@ -729,7 +729,7 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 }
 
 /****************************************************************************
-  Name          :  saImmOiAdminOperationResult
+  Name          :  saImmOiAdminOperationResult/_o2
  
   Description   :  Send the result for an admin-op, supposedly invoked inside 
                    the upcall for an admin op. 
@@ -743,12 +743,19 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 ******************************************************************************/
 SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocationT invocation, SaAisErrorT result)
 {
+	return saImmOiAdminOperationResult_o2(immOiHandle, invocation, result, NULL);
+}
+
+SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocationT invocation, SaAisErrorT result,
+	const SaImmAdminOperationParamsT_2 **returnParams)
+{
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT adminOpRslt_evt;
 	IMMA_CLIENT_NODE *cl_node = 0;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
+	bool errStringPar = false;
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
@@ -808,11 +815,12 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocation
 	adminOpRslt_evt.type = IMMSV_EVT_TYPE_IMMND;
 	/*Need to encode async/sync variant. */
 	if (inv < 0) {
-		adminOpRslt_evt.info.immnd.type = IMMND_EVT_A2ND_ASYNC_ADMOP_RSP;
+		adminOpRslt_evt.info.immnd.type = returnParams ? IMMND_EVT_A2ND_ASYNC_ADMOP_RSP_2:
+			IMMND_EVT_A2ND_ASYNC_ADMOP_RSP;
 	} else {
-		adminOpRslt_evt.info.immnd.type = IMMND_EVT_A2ND_ADMOP_RSP;
 		if(owner) {
-			adminOpRslt_evt.info.immnd.type = IMMND_EVT_A2ND_ADMOP_RSP;
+			adminOpRslt_evt.info.immnd.type = returnParams ? IMMND_EVT_A2ND_ADMOP_RSP_2:
+				IMMND_EVT_A2ND_ADMOP_RSP;
 		} else {
 			TRACE_1("PBE_ADMOP_RSP");
 			if(!(cl_node->isPbe)) {
@@ -827,6 +835,62 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocation
 	adminOpRslt_evt.info.immnd.info.admOpRsp.invocation = invocation;
 	adminOpRslt_evt.info.immnd.info.admOpRsp.result = result;
 	adminOpRslt_evt.info.immnd.info.admOpRsp.error = SA_AIS_OK;
+
+	if(returnParams) {
+		const SaImmAdminOperationParamsT_2 *param=NULL;
+		int i;
+		if (!imma_proc_is_adminop_params_valid(returnParams)) {
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto mds_send_fail;
+		}
+
+		assert(adminOpRslt_evt.info.immnd.info.admOpRsp.parms == NULL);
+		for (i = 0; returnParams[i]; ++i) {
+			param = returnParams[i];
+			/*alloc-a */
+			IMMSV_ADMIN_OPERATION_PARAM *p = malloc(sizeof(IMMSV_ADMIN_OPERATION_PARAM));
+			memset(p, 0, sizeof(IMMSV_ADMIN_OPERATION_PARAM));
+			TRACE("PARAM:%s \n", param->paramName);
+
+			errStringPar = (strcmp(param->paramName, SA_IMM_PARAM_ADMOP_ERROR) == 0);
+			if(errStringPar && (param->paramType != SA_IMM_ATTR_SASTRINGT)) {
+				TRACE_2("ERR_INVALID_PARAM: Param %s must be of type SaStringT", 
+					SA_IMM_PARAM_ADMOP_ERROR);
+				rc = SA_AIS_ERR_INVALID_PARAM;
+				free(p);
+				p=NULL;
+				goto mds_send_fail;
+			}
+
+			if(errStringPar && (result == SA_AIS_OK)) {
+				TRACE_2("ERR_INVALID_PARAM: Param %s only allowed when result != SA_AIS_OK", 
+					SA_IMM_PARAM_ADMOP_ERROR);
+				rc = SA_AIS_ERR_INVALID_PARAM;
+				free(p);
+				p=NULL;
+				goto mds_send_fail;
+			}
+
+			p->paramName.size = strlen(param->paramName) + 1;
+			if (p->paramName.size >= SA_MAX_NAME_LENGTH) {
+				TRACE_2("ERR_INVALID_PARAM: Param name too long");
+				rc = SA_AIS_ERR_INVALID_PARAM;
+				free(p);
+				p=NULL;
+				goto mds_send_fail;
+			}
+			/*alloc-b */
+			p->paramName.buf = malloc(p->paramName.size);
+			strncpy(p->paramName.buf, param->paramName, p->paramName.size);
+
+			p->paramType = param->paramType;
+			/*alloc-c */
+			imma_copyAttrValue(&(p->paramBuffer), param->paramType, param->paramBuffer);
+
+			p->next = adminOpRslt_evt.info.immnd.info.admOpRsp.parms; /*NULL initially. */
+			adminOpRslt_evt.info.immnd.info.admOpRsp.parms = p;
+		}
+	}
 
 	if (cb->is_immnd_up == false) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -863,8 +927,23 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocation
 	}
 
  mds_send_fail:
+	while (adminOpRslt_evt.info.immnd.info.admOpRsp.parms) {
+		IMMSV_ADMIN_OPERATION_PARAM *p = adminOpRslt_evt.info.immnd.info.admOpRsp.parms;
+		adminOpRslt_evt.info.immnd.info.admOpRsp.parms = p->next;
+
+		if (p->paramName.buf) {	/*free-b */
+			free(p->paramName.buf);
+			p->paramName.buf = NULL;
+		}
+		immsv_evt_free_att_val(&(p->paramBuffer), p->paramType);	/*free-c */
+		p->next = NULL;
+		free(p);	/*free-a */
+	}
+
  stale_handle:
  node_not_found:
+	
+
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 

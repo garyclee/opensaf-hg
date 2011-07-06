@@ -410,7 +410,7 @@ there is no regular implementer attached. But the above admin operations are
 still handled by the immsv and the schema change behavior is still controlled
 the same way.
 
-MULTIPLE APPLIERS
+MULTIPLE APPLIERS (4.2)
 =================
 http://devel.opensaf.org/ticket/1827
 OpenSAF 4.2 adds the immsv enhancement of supporting multiple appliers for
@@ -533,8 +533,8 @@ more expensive in memory than just registering for the class(es)
 of these objects. 
 
 
-CCB error strings
-================
+SUPPORT FOR CCB-OI ERROR STRINGS (4.2) 
+================================
 http://devel.opensaf.org/ticket/1904
 OpenSAF 4.2 adds the immsv enhancement of supporting ccb error strings
 from OI to OM client. Two new API calls are available for this for
@@ -542,9 +542,9 @@ clients that register with imm version A.2.11:
 
 (1)
 extern SaAisErrorT
-saImmOiCcbSetErrorString(SaImmOiHandleT immOiHandle,
-                         SaImmOiCcbIdT ccbId,
-                         const SaStringT errorString);
+saImmOiCcbSetErrorString(SaImmOiHandleT immOiHandle,  /* in */
+                         SaImmOiCcbIdT ccbId,         /* in */
+                         const SaStringT errorString);/* in */
 
 Allows an OI to set an error string in the context of a ccb related
 upcall. Setting an error string is only relevant if the OI will
@@ -554,12 +554,15 @@ will be accepted per OI upcall. Setting additional error strings
 in the same OI upcall will simply replace the previous one. 
 Multiple error strings may however be set from different OIs
 in different upcalls related to the same OM downcall (e.g.
-saImmOmCcbApply).
+saImmOmCcbApply). Setting an error string is only possible
+inside oi-upcalls that have a return code. Thus it is NOT
+possible inside SaImmOiCcbApplyCallbackT or SaImmOiCcbAbortCallbackT.
 
 (2)
 extern SaAisErrorT
-saImmOmCcbGetErrorStrings(SaImmCcbHandleT ccbHandle,
-                          SaStringT **errorStrings);
+saImmOmCcbGetErrorStrings(
+        SaImmCcbHandleT ccbHandle,      /* in */
+        const SaStringT **errorStrings);/* out */
 
 Allows the OM client to fetch error strings after the return of a
 ccb-related downcall and *before* making the next ccb-related
@@ -569,12 +572,134 @@ error, then these error strings should be included in the list.
 The imm server discards duplicate strings and allows a maximum
 of 128 error strings in the list. Any ccb call that returns
 SA_AIS_OK will not have any error-strings.
+
 NOTE: It is very important that the OM client completes its
 processing of the errorStrings before invoking the next
 ccb downcall using the same ccbHandle. The next such downcall
 will free the error strings. If the om user needs the error 
 strings after re-using the ccbHandle, the user must copy the 
-strings before such re-use.
+strings before such re-use. Note also that the 'errorStrings'
+out parameter is declared as 'const', indicating that deallocation
+of 'errorStrings' is here done by the library (not the user).
+
+IMPROVED ADMIN-OPERATION API (4.2)
+============================
+http://devel.opensaf.org/ticket/1764
+
+Allows the OI to supply a return paramater list in the same way 
+as the OM client has always been able to supply a parameter list
+as part of an admin-operation-invocation. The reply from the OI
+is in other respects identical to A.2.1.
+Api additions for this are available to imm clients that register
+with imm version A.2.11:
+
+(1)
+extern SaAisErrorT
+saImmOiAdminOperationResult_o2(
+        SaImmOiHandleT immOiHandle,                        /* in */
+        SaInvocationT invocation,                          /* in */
+        SaAisErrorT result,                                /* in */
+        const SaImmAdminOperationParamsT_2 **returnParams);/* in */
+
+Allows the OI to reply on the admin-operation with the added list
+of return parameters. Works otherwise in the same way as the 
+original saImmOiAdminOperationResult. If returnParams is set to 
+NULL then the reply is identical to using the original reply form.
+
+
+(2)
+typedef void
+ (*SaImmOmAdminOperationInvokeCallbackT_o2) (
+        SaInvocationT invocation,                          /* out */
+        SaAisErrorT operationReturnValue,                  /* out */
+        SaAisErrorT error,                                 /* out */
+        const SaImmAdminOperationParamsT_2 **returnParams);/* out */
+
+typedef struct {
+               SaImmOmAdminOperationInvokeCallbackT_o2
+               saImmOmAdminOperationInvokeCallback;
+} SaImmCallbacksT_o2;
+
+Defines a new OM callback that allows asyncronous admin-ops to 
+receive the added return parameter list. Note that 'returnParams'
+is here a 'const' parameter, indicating that deallocation of the
+parameter list is here done by the library (not the user).
+The deallocation is done after the user returns from the upcall.
+
+
+(4)
+extern SaAisErrorT
+saImmOmInitialize_o2(
+        SaImmHandleT *immHandle,               /* in */
+        const SaImmCallbacksT_o2 *immCallbacks,/* in */
+        SaVersionT *version);                  /* inout */
+
+A new OM-handle-initialize call is needed for supporting the new
+OM callback. 
+
+
+(5)
+extern SaAisErrorT
+saImmOmAdminOperationInvoke_o2(
+        SaImmAdminOwnerHandleT ownerHandle,           /* in */
+        const SaNameT *objectName,                    /* in */
+        SaImmContinuationIdT continuationId,          /* in */
+        SaImmAdminOperationIdT operationId,           /* in */
+        const SaImmAdminOperationParamsT_2 **params,  /* in */
+        SaAisErrorT *operationReturnValue,            /* out */
+        SaTimeT timeout,                              /* in */
+        SaImmAdminOperationParamsT_2 ***returnParams);/* out */
+
+The syncronous admin-operation downcall. The only difference in
+respect to the original saImmOmAdminOperationInvoke is the new
+added out parameter 'returnParams'. Note that 'returnParams' is
+NOT declared const, indicating that it is the users responsibility
+to de-allocate the parameter list. See next point.
+
+
+(6)
+extern SaAisErrorT
+saImmOmAdminOperationMemoryFree(
+        SaImmAdminOwnerHandleT ownerHandle,          /* in */
+        SaImmAdminOperationParamsT_2 **returnParams);/* in */
+
+Allows the OM client to free the memory for a parameter list.
+The parameter list would have been received by a syncronous
+admin-operation downcall, i.e. via 'returnParams' in a call of
+'saImmOmAdminOperationInvoke_o2'.
+
+(7)
+#define SA_IMM_PARAM_ADMOP_ERROR      "SaImmAdminOperationError"
+
+If an OI intends to reply with an error code (no SA_AIS_OK) as the
+result of an admin-peration, then the OI may include an error
+string in the list of return parameters. Typically this will be the
+only paramteter included when there is an error, but the API allows
+any number of paramters to be returned regardless of the return code.
+The error string is identified by a paramter with the parameter-name
+of SA_IMM_PARAM_ADMOP_ERROR.
+This is a convention, but it gives the OM client a chance to probe
+for such an error string when it receives a non OK result. 
+
+(8)
+#define SA_IMM_PARAM_ADMOP_ID_ESC     0x8000000000000000LL  
+#define SA_IMM_PARAM_ADMOP_NAME       "SaImmAdminOperationName"
+
+If an OM client sets the 'operationId' to the value of 
+SA_IMM_PARAM_ADMOP_ID_ESC, then it indicates the intention to 
+identify the admin-operation using a string name instead of the
+numerical operationId. The OM client must then include a parameter
+with the name SA_IMM_PARAM_ADMOP_NAME in the paramter list.
+The type of this parameter must be SaStringT and the value is the
+name of the operation.
+This is a convention, but it allows decoupling between the OI
+client and OM client in the use of admin-operation names. 
+In future releases, this convention may also be the basis for
+supporting the inclusion of amdmin-operation definitions associated
+with an imm-class; and for supporting more elaborate runtime type
+checking of admin-operation invocations and replies, by the imm
+service. 
+
 
 
 DEPENDENCIES

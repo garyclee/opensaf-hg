@@ -56,63 +56,6 @@ static const char *sysaImplName = SA_IMM_ATTR_IMPLEMENTER_NAME;
 
 static int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked);
 
-/**
- * Validate a value type
- * @param theType
- * 
- * @return int
- */
-static int is_valid_type(const SaImmValueTypeT theType)
-{
-	switch (theType) {
-		case SA_IMM_ATTR_SAINT32T:
-		case SA_IMM_ATTR_SAUINT32T:
-		case SA_IMM_ATTR_SAINT64T:
-		case SA_IMM_ATTR_SAUINT64T:
-		case SA_IMM_ATTR_SATIMET:
-		case SA_IMM_ATTR_SAFLOATT:
-		case SA_IMM_ATTR_SADOUBLET:
-		case SA_IMM_ATTR_SANAMET:
-		case SA_IMM_ATTR_SASTRINGT:
-		case SA_IMM_ATTR_SAANYT:
-			return 1;
-		default:
-			return 0;
-	}
-}
-
-/**
- * Validate admin op params
- * @param params
- * 
- * @return int
- */
-static int is_adminop_params_valid(const SaImmAdminOperationParamsT_2 **params)
-{
-	int i = 0;
-
-	/* Validate type for parameters */
-	while (params[i] != NULL) {
-		if (params[i]->paramName == NULL) {
-			TRACE_3("no name for param: %d", i);
-			return 0;
-		}
-
-		if (!is_valid_type(params[i]->paramType)) {
-			TRACE_3("wrong type for param: %s", params[i]->paramName);
-			return 0;
-		}
-
-		if (params[i]->paramBuffer == NULL) {
-			TRACE_3("no value for param: %d", i);
-			return 0;
-		}
-
-		i++;
-	}
-
-	return 1;
-}
 
 /****************************************************************************
   Name          :  SaImmOmInitialize
@@ -133,32 +76,120 @@ static int is_adminop_params_valid(const SaImmAdminOperationParamsT_2 **params)
                    version    - Is a pointer to the version of the Imm
                                 Service that the invoking process is using.
  
+
+
   Return Values :  Refer to SAI-AIS specification for various return values.
  
   Notes         :
 ******************************************************************************/
+SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node, SaVersionT *version);
+
+SaAisErrorT saImmOmInitialize_o2(SaImmHandleT *immHandle, const SaImmCallbacksT_o2 *immCallbacks,
+	SaVersionT *version)
+{
+	IMMA_CLIENT_NODE *cl_node=NULL;
+	SaAisErrorT rc = SA_AIS_OK;
+
+	if ((!immHandle) || (!version)) {
+		TRACE_2("ERR_INVALID_PARAM: immHandle is NULL or version is NULL");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	/* Draft Validations : Version */
+	rc = imma_version_validate(version);
+	if (rc != SA_AIS_OK) {
+		TRACE_2("ERR_VERSION: Version validation failed");
+		return rc;
+	}
+
+	if ((version->releaseCode != 'A') || (version->majorVersion != 0x02) ||
+	    (version->minorVersion < 11)) {
+		TRACE_2("ERR_VERSION: THIS SHOULD BE A VERSION A.2.11 initialize but claims to be"
+		      "%c %u %u", version->releaseCode, version->majorVersion, 
+			version->minorVersion);
+		return SA_AIS_ERR_VERSION;
+	}
+
+	/* Alloc the client info data structure */
+	cl_node = (IMMA_CLIENT_NODE *)calloc(1, sizeof(IMMA_CLIENT_NODE));
+
+	if (cl_node == NULL) {
+		TRACE_4("ERR_NO_MEMORY: IMMA_CLIENT_NODE alloc failed");
+		return SA_AIS_ERR_NO_MEMORY;
+	}
+
+	cl_node->isImmA2b = true;
+
+	/* Store the callback functions, if set */
+	if (immCallbacks) {
+		cl_node->o.mCallbkA2b = *immCallbacks;
+		cl_node->isImmA2bCbk = true;
+
+	}
+
+	return initialize_common(immHandle, cl_node, version);
+}
+
 SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *immCallbacks, SaVersionT *version)
+{
+	IMMA_CLIENT_NODE *cl_node=NULL;
+	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER();
+
+	if ((!immHandle) || (!version)) {
+		TRACE_2("ERR_INVALID_PARAM: immHandle is NULL or version is NULL");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	/* Draft Validations : Version */
+	rc = imma_version_validate(version);
+	if (rc != SA_AIS_OK) {
+		TRACE_2("ERR_VERSION: Version validation failed");
+		return rc;
+	}
+
+	/* Alloc the client info data structure */
+	cl_node = (IMMA_CLIENT_NODE *)calloc(1, sizeof(IMMA_CLIENT_NODE));
+
+	if (cl_node == NULL) {
+		TRACE_4("ERR_NO_MEMORY: IMMA_CLIENT_NODE alloc failed");
+		return SA_AIS_ERR_NO_MEMORY;
+	}
+
+	if ((version->releaseCode == 'A') &&
+            (version->majorVersion == 0x02) &&
+	    (version->minorVersion >= 0x0b)) {
+		TRACE_2("OM client version A.2.11");
+		cl_node->isImmA2b = true;
+	}
+
+	/* Store the callback functions, if set */
+	cl_node->isImmA2bCbk = false; /* redundant */
+	if (immCallbacks) {
+		cl_node->o.mCallbk = *immCallbacks;
+	}
+
+	rc = initialize_common(immHandle, cl_node, version);
+	TRACE_LEAVE();
+	return rc;
+}
+
+SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node, SaVersionT *version)
 {
 	IMMA_CB *cb = &imma_cb;
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMSV_EVT init_evt;
 	IMMSV_EVT *out_evt = NULL;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
-	IMMA_CLIENT_NODE *cl_node = 0;
 	bool locked = true;
 	TRACE_ENTER();
+	assert(immHandle && cl_node);
 
 	proc_rc = imma_startup(NCSMDS_SVC_ID_IMMA_OM);
 	if (NCSCC_RC_SUCCESS != proc_rc) {
 		TRACE_4("ERR_LIBRARY: imma startup failed:%u", proc_rc);
 		TRACE_LEAVE();
 		return SA_AIS_ERR_LIBRARY;
-	}
-
-	if ((!immHandle) || (!version)) {
-		TRACE_2("ERR_INVALID_PARAM: immHandle is NULL or version is NULL");
-		rc = SA_AIS_ERR_INVALID_PARAM;
-		goto end;
 	}
 
 	if (false == cb->is_immnd_up) {
@@ -169,13 +200,6 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 
 	*immHandle = 0;
 
-	/* Draft Validations : Version */
-	rc = imma_version_validate(version);
-	if (rc != SA_AIS_OK) {
-		TRACE_2("ERR_VERSION: Version validation failed");
-		goto end;
-	}
-
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 		TRACE_4("ERR_LIBRARY: Lock failed");
 		rc = SA_AIS_ERR_LIBRARY;
@@ -183,32 +207,17 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 	}
 	/* locked == true already */
 
-	/* Alloc the client info data structure & put it in the Pat tree */
-	cl_node = (IMMA_CLIENT_NODE *)calloc(1, sizeof(IMMA_CLIENT_NODE));
+	/* Put the client info data structure in the Pat tree */
 
-	if (cl_node == NULL) {
-		TRACE_4("ERR_NO_MEMORY: IMMA_CLIENT_NODE alloc failed");
-		rc = SA_AIS_ERR_NO_MEMORY;
-		goto cnode_alloc_fail;
-	}
-
-	/* Store the callback functions, if set */
-	if (immCallbacks) {
-		cl_node->o.mCallbk = *immCallbacks;
+	if ((cl_node->isImmA2bCbk && cl_node->o.mCallbkA2b.saImmOmAdminOperationInvokeCallback) ||
+		(!(cl_node->isImmA2bCbk) && cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback))
+	{
 		proc_rc = imma_callback_ipc_init(cl_node);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
 			rc = SA_AIS_ERR_LIBRARY;
 			/* ALready log'ed by imma_callback_ipc_init */
 			goto ipc_init_fail;
 		}
-
-	}
-
-	if ((version->releaseCode == 'A') &&
-            (version->majorVersion == 0x02) &&
-	    (version->minorVersion >= 0x0b)) {
-		TRACE_2("OM client version A.2.11");
-		cl_node->isImmA2b = 0x1;
 	}
 
 	/* populate the EVT structure */
@@ -342,7 +351,6 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 		cl_node=NULL;
 	}
 
- cnode_alloc_fail:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -364,6 +372,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 			/* Oh boy. Failure in imma_shutdown when we already have
 			   some other problem. */
 			TRACE_4("ERR_LIBRARY: Call to imma_shutdown failed, prior error %u", rc);
+
 			rc = SA_AIS_ERR_LIBRARY;
 		}
 	}
@@ -428,7 +437,8 @@ SaAisErrorT saImmOmSelectionObjectGet(SaImmHandleT immHandle, SaSelectionObjectT
 		goto node_not_found;
 	}
 
-	if (cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback == NULL) {
+	if (!(cl_node->isImmA2bCbk) && cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback==NULL) {
+		/* cl_node->isImmA2bCbk is set to true only when there is an A.2.11 callback */
 		TRACE_2("ERR_INVALID_PARAM: saImmOmSelectionObjectGet not allowed when saImmOmAdminOperationInvokeCallback is NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto no_callback;
@@ -3031,7 +3041,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 }
 
 /****************************************************************************
-  Name          :  saImmOmAdminOperationInvoke/_2
+  Name          :  saImmOmAdminOperationInvoke_2/_o2
  
   Description   :  Invoke an Administrative Operation on an object in the IMM.
                    This a blocking syncronous call.
@@ -3050,12 +3060,28 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
  
   Notes         : Note the TWO return values!
 ******************************************************************************/
+
 SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 					  const SaNameT *objectName,
 					  SaImmContinuationIdT continuationId,
 					  SaImmAdminOperationIdT operationId,
 					  const SaImmAdminOperationParamsT_2 **params,
-					  SaAisErrorT *operationReturnValue, SaTimeT timeout)
+					  SaAisErrorT *operationReturnValue, 
+					  SaTimeT timeout)
+{
+	return saImmOmAdminOperationInvoke_o2(ownerHandle, objectName, continuationId,
+		operationId, params, operationReturnValue, timeout, NULL);
+}
+
+
+SaAisErrorT saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
+					   const SaNameT *objectName,
+					   SaImmContinuationIdT continuationId,
+					   SaImmAdminOperationIdT operationId,
+					   const SaImmAdminOperationParamsT_2 **params,
+					   SaAisErrorT *operationReturnValue,
+					   SaTimeT timeout,
+					   SaImmAdminOperationParamsT_2 ***returnParams)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
@@ -3067,6 +3093,8 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 	bool locked = true;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
+	bool opIdEsc = (operationId & SA_IMM_PARAM_ADMOP_ID_ESC);
+	bool opNamePar = false;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -3081,7 +3109,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 		goto done;
 	}
 
-	if (!is_adminop_params_valid(params)) {
+	if (!imma_proc_is_adminop_params_valid(params)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -3193,7 +3221,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 	evt.info.immnd.info.admOpReq.objectName.buf[evt.info.immnd.info.admOpReq.objectName.size - 1] = '\0';
 
 	assert(evt.info.immnd.info.admOpReq.params == NULL);
-	const SaImmAdminOperationParamsT_2 *param;
+	const SaImmAdminOperationParamsT_2 *param = NULL;
 	int i;
 	for (i = 0; params[i]; ++i) {
 		param = params[i];
@@ -3201,6 +3229,16 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 		IMMSV_ADMIN_OPERATION_PARAM *p = malloc(sizeof(IMMSV_ADMIN_OPERATION_PARAM));
 		memset(p, 0, sizeof(IMMSV_ADMIN_OPERATION_PARAM));
 		TRACE("PARAM:%s \n", param->paramName);
+
+		opNamePar = opIdEsc && (strcmp(param->paramName, SA_IMM_PARAM_ADMOP_NAME) == 0);
+		if(opNamePar && (param->paramType != SA_IMM_ATTR_SASTRINGT)) {
+			TRACE_2("ERR_INVALID_PARAM: Param %s must be of type SaStringT", 
+				SA_IMM_PARAM_ADMOP_NAME);
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			free(p);
+			p=NULL;
+			goto mds_send_fail;
+		}
 
 		p->paramName.size = strlen(param->paramName) + 1;
 		if (p->paramName.size >= SA_MAX_NAME_LENGTH) {
@@ -3222,6 +3260,13 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 		evt.info.immnd.info.admOpReq.params = p;
 	}
 
+	if(opIdEsc && !opNamePar) {
+		TRACE_2("ERR_INVALID_PARAM: Op-id > %llx requires param %s",
+			(long long unsigned int) SA_IMM_PARAM_ADMOP_ID_ESC, SA_IMM_PARAM_ADMOP_NAME);
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto mds_send_fail;
+	}
+
 	/* NOTE: Re-implement to send ND->ND instead of using FEVS, 
 	   less resources used and probably faster.  But we need to
 	   uphold exclusiveness relative to ccbs .. see ERR_BUSY
@@ -3241,12 +3286,26 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
 		if (out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) {
 			rc = out_evt->info.imma.info.errRsp.error;
+			TRACE("ERROR returned:%u", rc);
 			assert(rc != SA_AIS_OK);
 			*operationReturnValue = SA_AIS_ERR_NO_SECTIONS;	//Bogus result since error is set.
 		} else {
-			assert(out_evt->info.imma.type == IMMA_EVT_ND2A_ADMOP_RSP);
+			TRACE("Normal return");
+			assert((out_evt->info.imma.type == IMMA_EVT_ND2A_ADMOP_RSP) ||
+				(out_evt->info.imma.type == IMMA_EVT_ND2A_ADMOP_RSP_2));
 			*operationReturnValue = out_evt->info.imma.info.admOpRsp.result;
+			if((out_evt->info.imma.type == IMMA_EVT_ND2A_ADMOP_RSP_2) && 
+				(out_evt->info.imma.info.admOpRsp.parms)) {
+				TRACE("Decoding return params");
+				if(returnParams) {
+					*returnParams = imma_proc_get_params(out_evt->info.imma.info.admOpRsp.parms);
+					//imma_proc_free_pointers(cb, &(out_evt->info.imma)); ABT: Crashes, figure out why!
+				} else {
+					imma_proc_free_pointers(cb, &(out_evt->info.imma));
+				}
+			}
 		}
+
 
 		free(out_evt);
 		out_evt=NULL;
@@ -3328,6 +3387,27 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 	return rc;
 }
 
+
+SaAisErrorT saImmOmAdminOperationMemoryFree(SaImmAdminOwnerHandleT ownerHandle,
+					    SaImmAdminOperationParamsT_2 **returnParams)
+{
+	TRACE_ENTER();
+	SaImmAdminOperationParamsT_2 *q = NULL;
+	unsigned int ix = 0;
+	while(returnParams[ix]) {
+		q = returnParams[ix];
+		imma_freeAttrValue3(q->paramBuffer, q->paramType);
+		free(q->paramName);
+		q->paramName = NULL;
+		free(q);
+		++ix;
+	}
+
+	free(returnParams);
+	TRACE_LEAVE();
+	return SA_AIS_OK;
+}
+
 static int push_async_adm_op_continuation(IMMA_CB *cb,	//in
 					  SaInt32T invocation,	//in
 					  SaImmHandleT immHandle,	//in
@@ -3393,6 +3473,8 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 	bool locked = true;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
+	bool opIdEsc = (operationId & SA_IMM_PARAM_ADMOP_ID_ESC);
+	bool opNamePar = false;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -3406,7 +3488,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 		goto done;
 	}
 
-	if (!is_adminop_params_valid(params)) {
+	if (!imma_proc_is_adminop_params_valid(params)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -3471,7 +3553,8 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 
 	/* TODO: Should the timeout value be set to any sensible value ? */
 
-	if (cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback == NULL) {
+	if (!(cl_node->isImmA2bCbk) && cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback==NULL) {
+		/* cl_node->isImmA2bCbk is set to true only when there is an A.2.11 callback */
 		rc = SA_AIS_ERR_INIT;
 		TRACE_2("ERR_INIT: The SaImmOmAdminOperationInvokeCallbackT "
 			"function was not set in the initialization of the handle "
@@ -3520,6 +3603,16 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 		memset(p, 0, sizeof(IMMSV_ADMIN_OPERATION_PARAM));
 		TRACE("PARAM:%s ", param->paramName);
 
+		opNamePar = opIdEsc && (strcmp(param->paramName, SA_IMM_PARAM_ADMOP_NAME) == 0);
+		if(opNamePar && (param->paramType != SA_IMM_ATTR_SASTRINGT)) {
+			TRACE_2("ERR_INVALID_PARAM: Param %s must be of type SaStringT", 
+				SA_IMM_PARAM_ADMOP_NAME);
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			free(p);
+			p=NULL;
+			goto mds_send_fail;
+		}
+
 		p->paramName.size = strlen(param->paramName) + 1;
 		if (p->paramName.size >= SA_MAX_NAME_LENGTH) {
 			TRACE_2("ERR_INVALID_PARAM: Param name too long");
@@ -3539,6 +3632,13 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 
 		p->next = evt.info.immnd.info.admOpReq.params;	/*NULL initially. */
 		evt.info.immnd.info.admOpReq.params = p;
+	}
+
+	if(opIdEsc && !opNamePar) {
+		TRACE_2("ERR_INVALID_PARAM: Op-id > %llx requires param %s",
+			(long long unsigned int) SA_IMM_PARAM_ADMOP_ID_ESC, SA_IMM_PARAM_ADMOP_NAME);
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto mds_send_fail;
 	}
 
 	/* NOTE: Re-implement to send ND->ND instead of using FEVS, 
@@ -3650,9 +3750,21 @@ SaAisErrorT saImmOmAdminOperationContinue(SaImmAdminOwnerHandleT ownerHandle,
 					  const SaNameT *objectName,
 					  SaImmContinuationIdT continuationId, SaAisErrorT *operationReturnValue)
 {
-	TRACE_2("saImmOmAdminOperationContinue not implemented " "use saImmOmAdminOperationContinueAsync instead");
+	TRACE_2("saImmOmAdminOperationContinue not implemented use saImmOmAdminOperationContinueAsync instead");
 	return SA_AIS_ERR_NOT_SUPPORTED;
 }
+
+SaAisErrorT saImmOmAdminOperationContinue_o2(SaImmAdminOwnerHandleT ownerHandle,
+					     const SaNameT *objectName,
+					     SaImmContinuationIdT continuationId,
+					     SaAisErrorT *operationReturnValue,
+					     SaImmAdminOperationParamsT_2 ***returnParams)
+{
+	TRACE_2("saImmOmAdminOperationContinue_o2 not implemented use "
+		"saImmOmAdminOperationContinueAsync instead");
+	return SA_AIS_ERR_NOT_SUPPORTED;
+}
+
 
 SaAisErrorT saImmOmAdminOperationContinueAsync(SaImmAdminOwnerHandleT ownerHandle,
 					       SaInvocationT invocation,
@@ -3668,6 +3780,7 @@ SaAisErrorT saImmOmAdminOperationContinuationClear(SaImmAdminOwnerHandleT ownerH
 	TRACE_2("saImmOmAdminOperationContinuationClear not yet implemented");
 	return SA_AIS_ERR_NOT_SUPPORTED;
 }
+
 
 SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 				 const SaImmClassNameT className,
@@ -3820,7 +3933,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 		strncpy(p->d.attrName.buf, attr->attrName, p->d.attrName.size);
 
 		p->d.attrValueType = attr->attrValueType;
-		if (!is_valid_type(p->d.attrValueType)) {
+		if (!imma_proc_is_valid_type(p->d.attrValueType)) {
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			TRACE("Unknown type not allowed for attr:%s class%s",
 			      p->d.attrName.buf, evt.info.immnd.info.classDescr.className.buf);

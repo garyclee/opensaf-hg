@@ -291,6 +291,23 @@ uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
 			p->next = NULL;
 			free(p);	/*free-2 */
 		}
+	} else if ((evt->info.immnd.type == IMMND_EVT_A2ND_ADMOP_RSP_2) ||
+		(evt->info.immnd.type == IMMND_EVT_A2ND_ASYNC_ADMOP_RSP_2) ||
+		(evt->info.immnd.type == IMMND_EVT_ND2ND_ADMOP_RSP_2) ||
+		(evt->info.immnd.type == IMMND_EVT_ND2ND_ASYNC_ADMOP_RSP_2)) {
+		while (evt->info.immnd.info.admOpRsp.parms) {
+			IMMSV_ADMIN_OPERATION_PARAM *p = evt->info.immnd.info.admOpRsp.parms;
+			evt->info.immnd.info.admOpRsp.parms = p->next;
+
+			if (p->paramName.buf) {	/*free-b */
+				free(p->paramName.buf);
+				p->paramName.buf = NULL;
+				p->paramName.size = 0;
+			}
+			immsv_evt_free_att_val(&(p->paramBuffer), p->paramType);	/*free-c */
+			p->next = NULL;
+			free(p);	/*free-a */
+		}
 	} else if ((evt->info.immnd.type == IMMND_EVT_D2ND_GLOB_FEVS_REQ) ||
 		   (evt->info.immnd.type == IMMND_EVT_A2ND_IMM_FEVS) ||
 		(evt->info.immnd.type == IMMND_EVT_D2ND_GLOB_FEVS_REQ_2) ||
@@ -561,18 +578,22 @@ void immnd_process_evt(void)
 		break;
 
 	case IMMND_EVT_A2ND_ADMOP_RSP:
+	case IMMND_EVT_A2ND_ADMOP_RSP_2:
 		rc = immnd_evt_proc_admop_rsp(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE, SA_TRUE);
 		break;
 
 	case IMMND_EVT_A2ND_ASYNC_ADMOP_RSP:
+	case IMMND_EVT_A2ND_ASYNC_ADMOP_RSP_2:
 		rc = immnd_evt_proc_admop_rsp(cb, &evt->info.immnd, &evt->sinfo, SA_TRUE, SA_TRUE);
 		break;
 
 	case IMMND_EVT_ND2ND_ADMOP_RSP:
+	case IMMND_EVT_ND2ND_ADMOP_RSP_2:
 		rc = immnd_evt_proc_admop_rsp(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE, SA_FALSE);
 		break;
 
 	case IMMND_EVT_ND2ND_ASYNC_ADMOP_RSP:
+	case IMMND_EVT_ND2ND_ASYNC_ADMOP_RSP_2:
 		rc = immnd_evt_proc_admop_rsp(cb, &evt->info.immnd, &evt->sinfo, SA_TRUE, SA_FALSE);
 		break;
 
@@ -3426,10 +3447,11 @@ static uint32_t immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 		}
 
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
-		send_evt.info.imma.type = IMMA_EVT_ND2A_ADMOP_RSP;
+		send_evt.info.imma.type = (evt->info.admOpRsp.parms)?IMMA_EVT_ND2A_ADMOP_RSP_2:IMMA_EVT_ND2A_ADMOP_RSP;
 		send_evt.info.imma.info.admOpRsp.invocation = evt->info.admOpRsp.invocation;
 		send_evt.info.imma.info.admOpRsp.result = evt->info.admOpRsp.result;
 		send_evt.info.imma.info.admOpRsp.error = evt->info.admOpRsp.error;
+		send_evt.info.imma.info.admOpRsp.parms = evt->info.admOpRsp.parms;
 
 		if (async) {
 			TRACE_2("NORMAL ASYNCRONOUS reply %llu %u %u to OM",
@@ -3449,11 +3471,16 @@ static uint32_t immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 	} else if (reply_dest) {
 		/*Forward reply to relevant ND. */
 		send_evt.type = IMMSV_EVT_TYPE_IMMND;
-		send_evt.info.immnd.type = (async) ? IMMND_EVT_ND2ND_ASYNC_ADMOP_RSP : IMMND_EVT_ND2ND_ADMOP_RSP;
+		if(evt->info.admOpRsp.parms) {
+			send_evt.info.immnd.type = (async) ? IMMND_EVT_ND2ND_ASYNC_ADMOP_RSP_2 : IMMND_EVT_ND2ND_ADMOP_RSP_2;
+		} else {
+			send_evt.info.immnd.type = (async) ? IMMND_EVT_ND2ND_ASYNC_ADMOP_RSP : IMMND_EVT_ND2ND_ADMOP_RSP;
+		}
 		send_evt.info.immnd.info.admOpRsp.invocation = evt->info.admOpRsp.invocation;
 		send_evt.info.immnd.info.admOpRsp.result = evt->info.admOpRsp.result;
 		send_evt.info.immnd.info.admOpRsp.error = evt->info.admOpRsp.error;
 		send_evt.info.immnd.info.admOpRsp.oi_client_hdl = 0LL;
+		send_evt.info.immnd.info.admOpRsp.parms = evt->info.admOpRsp.parms;
 
 		TRACE_2("FORWARDING TO OTHER ND!");
 
