@@ -3114,6 +3114,11 @@ SaAisErrorT saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
 		goto done;
 	}
 
+	if(returnParams) {
+		/* Detach from any old lingering result. */
+		*returnParams = NULL;
+	}
+
 	if (cb->is_immnd_up == false) {
 		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		return SA_AIS_ERR_TRY_AGAIN;
@@ -3392,18 +3397,20 @@ SaAisErrorT saImmOmAdminOperationMemoryFree(SaImmAdminOwnerHandleT ownerHandle,
 					    SaImmAdminOperationParamsT_2 **returnParams)
 {
 	TRACE_ENTER();
-	SaImmAdminOperationParamsT_2 *q = NULL;
-	unsigned int ix = 0;
-	while(returnParams[ix]) {
-		q = returnParams[ix];
-		imma_freeAttrValue3(q->paramBuffer, q->paramType);
-		free(q->paramName);
-		q->paramName = NULL;
-		free(q);
-		++ix;
-	}
+	if(returnParams == NULL) {
+		SaImmAdminOperationParamsT_2 *q = NULL;
+		unsigned int ix = 0;
+		while(returnParams[ix]) {
+			q = returnParams[ix];
+			imma_freeAttrValue3(q->paramBuffer, q->paramType);
+			free(q->paramName);
+			q->paramName = NULL;
+			free(q);
+			++ix;
+		}
 
-	free(returnParams);
+		free(returnParams);
+	}
 	TRACE_LEAVE();
 	return SA_AIS_OK;
 }

@@ -858,8 +858,8 @@ See OpenSAF_IMMSv_PR.
 
 DEBUG
 
-To enable/disable immd/immnd trace in a running system, send signal USR1 to the
-immd/immnd process. Each signal send toggles the trace.
+To enable/disable immd/immnd trace in a running system, send signal USR2 to the
+immd/immnd process. Each signal toggles the trace.
 Trace default is disabled.
 
 Traces are written to the file configured in immd.conf and immnd.conf

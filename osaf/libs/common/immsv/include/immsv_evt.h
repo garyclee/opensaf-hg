@@ -446,6 +446,9 @@ typedef struct imma_evt {
  ******************************************************************************/
 typedef struct immnd_evt {
 	bool dont_free_me;
+	bool unused1;/* Conversion NCS_BOOL->bool */
+	bool unused2;/* Conversion NCS_BOOL->bool */
+	bool unused3;/* Conversion NCS_BOOL->bool */
 	SaAisErrorT error;
 	IMMND_EVT_TYPE type;
 	union {

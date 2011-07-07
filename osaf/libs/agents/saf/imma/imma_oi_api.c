@@ -756,19 +756,28 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
 	bool errStringPar = false;
+	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
-		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
+		/* Error return on AdminOperationResult => No reply is sent from OI.
+		   The OI is typically a server. Log this error instead of trace,
+		   to simplify troubleshooting for the OI maintainer.
+		 */
+		LOG_IN("ERR_BAD_HANDLE: No initialized handle exists!");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
 	if (cb->is_immnd_up == false) {
 		TRACE_2("ERR_TRY_AGAIN: IMMND_DOWN");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_4("ERR_LIBRARY: LOCK failed");
+		/* Log this error instead of trace, to simplify troubleshooting
+		   for the OI maintainer. */
+		LOG_IN("ERR_LIBRARY: LOCK failed");
 		rc = SA_AIS_ERR_LIBRARY;
 		goto lock_fail;
 	}
@@ -778,7 +787,9 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 	imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 	if (!cl_node || cl_node->isOm) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
+		/* Log this error instead of trace, to simplify troubleshooting
+		   for the OI maintainer. */
+		LOG_IN("ERR_BAD_HANDLE: client_node_get failed");
 		goto node_not_found;
 	}
 
@@ -787,7 +798,9 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 		bool resurrected = imma_oi_resurrect(cb, cl_node, &locked);
 
 		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-			TRACE_4("ERR_LIBRARY: LOCK failed");
+			/* Log this error instead of trace, to simplify troubleshooting
+			   for the OI maintainer. */
+			LOG_IN("ERR_LIBRARY: LOCK failed");
 			rc = SA_AIS_ERR_LIBRARY;
 			goto lock_fail;
 		}
@@ -796,7 +809,9 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
 		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed",
+			/* Log this error instead of trace, to simplify troubleshooting
+			   for the OI maintainer. */
+			LOG_IN("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed",
 				immOiHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = true;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
@@ -824,7 +839,9 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 		} else {
 			TRACE_1("PBE_ADMOP_RSP");
 			if(!(cl_node->isPbe)) {
-				TRACE_1("Illegal SaInvocationT value provided in saImmOiAdminOperationResult");
+				/* Log this error instead of trace, to simplify troubleshooting
+				   for the OI maintainer. */
+				LOG_IN("ERR_INVALID_PARAM: Illegal SaInvocationT value provided in saImmOiAdminOperationResult");
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto mds_send_fail;
 			}
@@ -839,7 +856,20 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 	if(returnParams) {
 		const SaImmAdminOperationParamsT_2 *param=NULL;
 		int i;
+
+		if(!(cl_node->isImmA2b)) {
+			/* Log this error instead of trace, to simplify troubleshooting
+			   for the OI maintainer. */
+			LOG_IN("ERR_VERSION: saImmOiAdminOperationResult_o2 with return params" 
+			       "only allowed when handle is registered as A.2.11");
+			rc = SA_AIS_ERR_VERSION;
+			goto mds_send_fail;
+		}
+
 		if (!imma_proc_is_adminop_params_valid(returnParams)) {
+			/* Log this error instead of trace, to simplify troubleshooting
+			   for the OI maintainer. */
+			LOG_IN("ERR_INVALID_PARAM: Not a valid parameter for reply");
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			goto mds_send_fail;
 		}
@@ -854,7 +884,9 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 
 			errStringPar = (strcmp(param->paramName, SA_IMM_PARAM_ADMOP_ERROR) == 0);
 			if(errStringPar && (param->paramType != SA_IMM_ATTR_SASTRINGT)) {
-				TRACE_2("ERR_INVALID_PARAM: Param %s must be of type SaStringT", 
+				/* Log this error instead of trace, to simplify troubleshooting
+				   for the OI maintainer. */
+				LOG_IN("ERR_INVALID_PARAM: Param %s must be of type SaStringT", 
 					SA_IMM_PARAM_ADMOP_ERROR);
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				free(p);
@@ -863,7 +895,9 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 			}
 
 			if(errStringPar && (result == SA_AIS_OK)) {
-				TRACE_2("ERR_INVALID_PARAM: Param %s only allowed when result != SA_AIS_OK", 
+				/* Log this error instead of trace, to simplify troubleshooting
+				   for the OI maintainer. */
+				LOG_IN("ERR_INVALID_PARAM: Param %s only allowed when result != SA_AIS_OK", 
 					SA_IMM_PARAM_ADMOP_ERROR);
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				free(p);
@@ -873,7 +907,9 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 
 			p->paramName.size = strlen(param->paramName) + 1;
 			if (p->paramName.size >= SA_MAX_NAME_LENGTH) {
-				TRACE_2("ERR_INVALID_PARAM: Param name too long");
+				/* Log this error instead of trace, to simplify troubleshooting
+				   for the OI maintainer. */
+				LOG_IN("ERR_INVALID_PARAM: Param name too long");
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				free(p);
 				p=NULL;
@@ -921,7 +957,9 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 			rc = SA_AIS_ERR_TIMEOUT;
 			goto mds_send_fail;
 		default:
-			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			/* Log this error instead of trace, to simplify troubleshooting
+			   for the OI maintainer. */
+			LOG_IN("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
 			rc = SA_AIS_ERR_LIBRARY;
 			goto mds_send_fail;
 	}
@@ -948,6 +986,7 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
  lock_fail:
+	TRACE_LEAVE();
 	return rc;
 }
 
