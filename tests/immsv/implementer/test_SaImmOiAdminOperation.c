@@ -42,8 +42,8 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
     assert(*((SaUint64T*) params[0]->paramBuffer) == value);
 
     if (saImmOiAdminOperationCallback_response != SA_AIS_ERR_TIMEOUT)
-        safassert(saImmOiAdminOperationResult(immOiHandle, invocation,
-            saImmOiAdminOperationCallback_response), SA_AIS_OK);
+        safassert(saImmOiAdminOperationResult_o2(immOiHandle, invocation,
+            saImmOiAdminOperationCallback_response, params), SA_AIS_OK);
     TRACE_LEAVE();
 }
 
@@ -53,16 +53,20 @@ static const SaImmOiCallbacksT_2 oiCallbacks =
 static void saImmOmAdminOperationInvokeCallback(
     SaInvocationT invocation,
     SaAisErrorT opRetVal,
-    SaAisErrorT error)
+    SaAisErrorT error,
+    const SaImmAdminOperationParamsT_2 **returnParams)
 {
     TRACE_ENTER2("%llu (0x%llx), %u, %u\n", invocation, invocation, opRetVal, error);
     assert(invocation == userInvocation);
     operationReturnValue = opRetVal;
     immReturnValue = error;
+    TRACE("saImmOmAdminOperationInvokeCallback return param:%llx\n", 
+	    *((SaUint64T*) returnParams[0]->paramBuffer));
+    assert(*((SaUint64T*) returnParams[0]->paramBuffer) == value);
     TRACE_LEAVE();
 }
 
-static const SaImmCallbacksT omCallbacks = {saImmOmAdminOperationInvokeCallback};
+static const SaImmCallbacksT_o2 omCallbacks = {saImmOmAdminOperationInvokeCallback};
 
 static const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FILE__;
 
@@ -478,7 +482,7 @@ void SaImmOiAdminOperation_07(void)
     const SaImmAdminOperationParamsT_2 *params[] = {&param, NULL};
 
     TRACE_ENTER();
-    safassert(saImmOmInitialize(&handle, &omCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmInitialize_o2(&handle, &omCallbacks, &immVersion), SA_AIS_OK);
     safassert(saImmOmAdminOwnerInitialize(handle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
 
     SaImmAttrValuesT_2 v2 = {"rdn",  SA_IMM_ATTR_SANAMET, 1, (void**)nameValues};
