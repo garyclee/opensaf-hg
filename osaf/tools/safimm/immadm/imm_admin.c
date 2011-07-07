@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <libgen.h>
+#include <assert.h>
 
 #include <saAis.h>
 #include <saImmOm.h>
@@ -294,6 +295,7 @@ int main(int argc, char *argv[])
 	SaAisErrorT operationReturnValue = -1;
 	SaImmAdminOperationParamsT_2 *param;
 	const SaImmAdminOperationParamsT_2 **params;
+	SaImmAdminOperationParamsT_2 **out_params=NULL;
 	SaImmAdminOperationIdT operationId = -1;
 
 	int params_len = 0;
@@ -390,8 +392,8 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 
-		error = saImmOmAdminOperationInvoke_2(ownerHandle, &objectName, 0, operationId,
-			params, &operationReturnValue, SA_TIME_ONE_SECOND * 60);
+		error = saImmOmAdminOperationInvoke_o2(ownerHandle, &objectName, 0, operationId,
+			params, &operationReturnValue, SA_TIME_ONE_SECOND * 60, &out_params);
 
 		if (error != SA_AIS_OK) {
 			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 FAILED: %s\n",
@@ -400,10 +402,24 @@ int main(int argc, char *argv[])
 		}
 
 		if (operationReturnValue != SA_AIS_OK) {
+			unsigned int ix = 0;
 			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 admin-op RETURNED: %s\n",
 				saf_error(operationReturnValue));
+
+			
+			while(out_params && out_params[ix]) {
+				if(strcmp(out_params[ix]->paramName, SA_IMM_PARAM_ADMOP_ERROR) == 0) {
+					assert(out_params[ix]->paramType == SA_IMM_ATTR_SASTRINGT);
+					SaStringT errStr = (*((SaStringT *) out_params[ix]->paramBuffer));
+					fprintf(stderr, "error-string: %s\n", errStr);
+				}
+				++ix;
+			}
 			exit(EXIT_FAILURE);
 		}
+
+		assert(saImmOmAdminOperationMemoryFree(ownerHandle, out_params) == SA_AIS_OK);
+
 
 		error = saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_ONE);
 		if (error != SA_AIS_OK) {
