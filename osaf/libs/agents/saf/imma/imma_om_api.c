@@ -3397,7 +3397,7 @@ SaAisErrorT saImmOmAdminOperationMemoryFree(SaImmAdminOwnerHandleT ownerHandle,
 					    SaImmAdminOperationParamsT_2 **returnParams)
 {
 	TRACE_ENTER();
-	if(returnParams == NULL) {
+	if(returnParams != NULL) {
 		SaImmAdminOperationParamsT_2 *q = NULL;
 		unsigned int ix = 0;
 		while(returnParams[ix]) {
