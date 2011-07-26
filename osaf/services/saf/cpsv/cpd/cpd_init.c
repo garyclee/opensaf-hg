@@ -29,7 +29,6 @@
 
 #include "cpd.h"
 #include "cpd_imm.h"
-#include "cpd_log.h"
 #include <poll.h>
 
 #define FD_AMF 0
@@ -177,7 +176,7 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 	cb = m_MMGR_ALLOC_CPD_CB;
 
 	if (cb == NULL) {
-		m_LOG_CPD_CL(CPD_CB_ALLOC_FAILED, CPD_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd cb memory allocation failed");
 		rc = NCSCC_RC_OUT_OF_MEM;
 		goto cpd_cb_alloc_fail;
 	}
@@ -188,12 +187,12 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 	m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
 
 	if ((rc = cpd_cb_db_init(cb)) == NCSCC_RC_FAILURE) {
-		TRACE("CPD_CB_DB_INIT FAILED");
+		LOG_ER("CPD_CB_DB_INIT FAILED");
 		goto cpd_cb_init_fail;
 	}
 
 	if ((cb->cpd_hdl = ncshm_create_hdl(cb->hm_poolid, NCS_SERVICE_ID_CPD, (NCSCONTEXT)cb)) == 0) {
-		m_LOG_CPD_CL(CPD_CB_HDL_CREATE_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd handle creation failed");
 		rc = NCSCC_RC_FAILURE;
 		goto cpd_hdl_fail;
 	}
@@ -203,24 +202,24 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 
 	/* create a mail box */
 	if ((rc = m_NCS_IPC_CREATE(&cb->cpd_mbx)) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_IPC_CREATE_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd mailbox creation failed");
 		goto cpd_ipc_create_fail;
 	}
 
 	/* Attach the IPC to mail box */
 	if ((rc = m_NCS_IPC_ATTACH(&cb->cpd_mbx)) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_IPC_ATTACH_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd mailbox attach failed");
 		goto cpd_ipc_att_fail;
 	}
 
 	if ((rc = cpd_mds_register(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_MDS_REGISTER_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd mds register failed");
 		goto cpd_mds_fail;
 	}
 
 	/* Initialise with the AMF service */
 	if (cpd_amf_init(cb) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_AMF_INIT_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd amf init failed");	
 		goto amf_init_err;
 	}
 
@@ -228,13 +227,13 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 
 	/* register with the AMF service */
 	if (cpd_amf_register(cb) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_AMF_REGISTER_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd amf register failed");
 		goto amf_reg_err;
 	}
 
 	/*   Initialise with the MBCSV service  */
 	if (cpd_mbcsv_register(cb) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_MBCSV_INIT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd mbcsv register failed");
 		goto mbcsv_reg_err;
 	}
 
@@ -242,12 +241,12 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 	cpd_clm_cbk.saClmClusterTrackCallback = cpd_clm_cluster_track_cb;
 
 	if (saClmInitialize(&cb->clm_hdl, &cpd_clm_cbk, &clm_version) != SA_AIS_OK) {
-		m_LOG_CPD_CL(CPD_CLM_REGISTER_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd clm Initialize failed");
 		goto cpd_clm_fail;
 	}
 
 	if (cpd_imm_init(cb) != SA_AIS_OK) {
-		m_LOG_CPD_CL(CPD_CLM_CLUSTER_TRACK_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd imm initialize failed ");
 		goto cpd_imm_fail;
 	}
 
@@ -262,7 +261,7 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 	} else {
 		if (strlen((char *)health_key) >= SA_AMF_HEALTHCHECK_KEY_MAX) {
 			rc = NCSCC_RC_FAILURE;
-			m_LOG_CPD_CL(CPD_HEALTHCHECK_START_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("cpd health check key failed");
 			goto cpd_mab_fail;
 		} else
 			strcpy((char *)healthy.key, (char *)health_key);
@@ -273,10 +272,9 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
 
 	if (amf_error != SA_AIS_OK) {
-		m_LOG_CPD_CL(CPD_HEALTHCHECK_START_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd health check start failed");
 	}
-
-	m_LOG_CPD_HEADLINE(CPD_INIT_SUCCESS, NCSFL_SEV_INFO);
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
  cpd_imm_fail:
@@ -315,8 +313,7 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
  cpd_cb_alloc_fail:
 	cpd_flx_log_dereg();
 
-	m_LOG_CPD_CL(CPD_INIT_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-
+	TRACE_LEAVE();
 	return (rc);
 }
 
@@ -340,7 +337,7 @@ static uint32_t cpd_lib_destroy(CPD_DESTROY_INFO *info)
 
 	m_CPD_RETRIEVE_CB(cb);
 	if (cb == NULL) {
-		m_LOG_CPD_CL(CPD_DESTROY_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd destroy fail");
 		return (NCSCC_RC_FAILURE);
 	}
 
@@ -374,9 +371,9 @@ static uint32_t cpd_lib_destroy(CPD_DESTROY_INFO *info)
 	m_MMGR_FREE_CPD_CB(cb);
 
 	if (rc == NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_HEADLINE(CPD_DESTROY_SUCCESS, NCSFL_SEV_INFO);
+		TRACE_2("cpd destroy success");
 	} else {
-		m_LOG_CPD_CL(CPD_DESTROY_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd destroy failed");
 	}
 	return rc;
 }
@@ -434,17 +431,20 @@ void cpd_main_process(CPD_CB *cb)
 	SaAisErrorT error = SA_AIS_OK;
 
 	mbx_fd = ncs_ipc_get_sel_obj(&cb->cpd_mbx);
-	if (saAmfSelectionObjectGet(cb->amf_hdl, &amf_sel_obj) != SA_AIS_OK) {
-		cpd_log(NCSFL_SEV_ERROR, "saAmfSelectionObjectGet Failed error = %u\n", error);
+	error = saAmfSelectionObjectGet(cb->amf_hdl, &amf_sel_obj);
+	if (error != SA_AIS_OK) {
+		LOG_ER("cpd amf selectionobjget failed %u",error);
 		return;
 	}
-	if (saClmSelectionObjectGet(cb->clm_hdl, &clm_sel_obj) != SA_AIS_OK) {
-		m_LOG_CPD_CL(CPD_CLM_GET_SEL_OBJ_FAILURE, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+	error =	saClmSelectionObjectGet(cb->clm_hdl, &clm_sel_obj);
+	if (error != SA_AIS_OK) {
+		LOG_ER("cpd clm selectionobjget failed %u",error);
 		return;
 	}
 	
-	 if (saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL) != SA_AIS_OK) {
-                m_LOG_CPD_CL(CPD_CLM_CLUSTER_TRACK_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+	error = saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
+	 if (error != SA_AIS_OK) {
+		LOG_ER("cpd clm cluster track failed %u",error);
                 return;
         }
 
@@ -476,8 +476,7 @@ void cpd_main_process(CPD_CB *cb)
 		if (ret == -1) {
 			if (errno == EINTR)
 				continue;
-
-			cpd_log(NCSFL_SEV_ERROR, "poll failed - %s", strerror(errno));
+			LOG_ER("poll failed - %s", strerror(errno));
 			break;
 		}
 
@@ -486,16 +485,16 @@ void cpd_main_process(CPD_CB *cb)
 			/* dispatch all the AMF pending function */
 			error = saAmfDispatch(cb->amf_hdl, SA_DISPATCH_ALL);
 			if (error != SA_AIS_OK) {
-				m_LOG_CPD_CL(CPD_AMF_DISPATCH_FAILURE, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__,
-					     __LINE__);
+				LOG_ER("saAmfDispatch: %u", error);
 			}
 		}
 
 		/* Process all Clm Messages */
 		if (fds[FD_CLM].revents & POLLIN) {
 			/* dispatch all the CLM pending function */
-			if (saClmDispatch(cb->clm_hdl, SA_DISPATCH_ALL) != SA_AIS_OK) {
-				m_LOG_CPD_HEADLINE(CPD_CLM_DISPATCH_FAILURE, NCSFL_SEV_ERROR);
+			error = saClmDispatch(cb->clm_hdl, SA_DISPATCH_ALL);
+			if (error != SA_AIS_OK) {
+				LOG_ER("saClmDispatch failed: %u", error);
 			}
 		}
 
@@ -505,9 +504,9 @@ void cpd_main_process(CPD_CB *cb)
 			mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
 			mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_handle;
 			mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ALL;
-			if (ncs_mbcsv_svc(&mbcsv_arg) != SA_AIS_OK) {
-				m_LOG_CPD_CL(CPD_MBCSV_DISPATCH_FAILURE, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__,
-					     __LINE__);
+			error = ncs_mbcsv_svc(&mbcsv_arg);
+			if (error != SA_AIS_OK) {
+				LOG_ER("Mbcsv Dispatch failed: %u", error);
 			}
 		}
 
@@ -533,7 +532,7 @@ void cpd_main_process(CPD_CB *cb)
 			 ** cause an exit of the process.
 			 */
 			if (error == SA_AIS_ERR_BAD_HANDLE) {
-				cpd_log(NCSFL_SEV_ERROR, "saImmOiDispatch returned BAD_HANDLE %u", error);
+				TRACE_4("cpd saImmOiDispatch returned Bad_handle %u",error);
 
 				/* 
 				 ** Invalidate the IMM OI handle, this info is used in other
@@ -546,10 +545,11 @@ void cpd_main_process(CPD_CB *cb)
 				cpd_imm_reinit_bg(cb);
 
 			} else if (error != SA_AIS_OK) {
-				cpd_log(NCSFL_SEV_ERROR, "saImmOiDispatch FAILED: %u", error);
+				LOG_ER("cpd saImmOiDispatch failed %u",error);	
 				break;
 			}
 		}
 	}
 	return;
+
 }

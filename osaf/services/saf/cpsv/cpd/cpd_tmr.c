@@ -62,7 +62,6 @@ void cpd_timer_expiry(NCSCONTEXT uarg)
 
 			default:
 				break;
-				/*   m_LOG_CPND_EVT(CPND_EVT_UNKNOWN, NCSFL_SEV_ERROR); */
 
 			}
 

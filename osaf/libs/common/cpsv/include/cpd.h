@@ -48,5 +48,6 @@
 #include "cpd_sbedu.h"
 #include "saClm.h"
 #include "ncs_mda_pvt.h"
+#include "logtrace.h"
 
 #endif   /* CPD_H */

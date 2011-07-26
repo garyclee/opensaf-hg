@@ -367,9 +367,11 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get(CPND_CKPT_NODE *cp_node, SaCkptSection
 {
 
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
+
+	TRACE_ENTER();
 	if (cp_node->replica_info.n_secs == 0) {
-		m_LOG_CPND_FCL(CPND_REPLICA_HAS_NO_SECTIONS, CPND_FC_GENERIC, NCSFL_SEV_ERROR, cp_node->ckpt_id,
-			       __FILE__, __LINE__);
+		TRACE_4("cpnd replica has no section for ckpt_id:%llx",cp_node->ckpt_id);
+		TRACE_LEAVE();
 		return NULL;
 	}
 
@@ -380,7 +382,7 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get(CPND_CKPT_NODE *cp_node, SaCkptSection
 		}
 		pSecPtr = pSecPtr->next;
 	}
-
+	TRACE_LEAVE();
 	return NULL;
 }
 
@@ -399,18 +401,21 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get(CPND_CKPT_NODE *cp_node, SaCkptSection
 CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_create(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
 {
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
+	TRACE_ENTER();
 	if (cp_node->replica_info.n_secs == 0) {
-		m_LOG_CPND_FCL(CPND_REPLICA_HAS_NO_SECTIONS, CPND_FC_GENERIC, NCSFL_SEV_NOTICE, cp_node->ckpt_id,
-			       __FILE__, __LINE__);
+		TRACE_2("cpnd replica has no sections for ckpt_id:%llx",cp_node->ckpt_id);
+		TRACE_LEAVE();
 		return NULL;
 	}
 	pSecPtr = cp_node->replica_info.section_info;
 	while (pSecPtr != NULL) {
 		if ((pSecPtr->sec_id.idLen == id->idLen) && (memcmp(pSecPtr->sec_id.id, id->id, id->idLen) == 0)) {
+			TRACE_LEAVE();
 			return pSecPtr;
 		}
 		pSecPtr = pSecPtr->next;
 	}
+	TRACE_LEAVE();
 	return NULL;
 }
 
@@ -432,18 +437,22 @@ uint32_t cpnd_ckpt_sec_find(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
 
+	TRACE_ENTER();
 	if (cp_node->replica_info.n_secs == 0) {
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	pSecPtr = cp_node->replica_info.section_info;
 	while (pSecPtr != NULL) {
 		if ((pSecPtr->sec_id.idLen == id->idLen) && (memcmp(pSecPtr->sec_id.id, id->id, id->idLen) == 0)) {
+			TRACE_LEAVE();
 			return rc;
 		}
 		pSecPtr = pSecPtr->next;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 
 }
@@ -482,14 +491,12 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node, SaCkptSection
 			/* UPDATE THE SECTION HEADER */
 			rc = cpnd_sec_hdr_update(pSecPtr, cp_node);
 			if (rc == NCSCC_RC_FAILURE) {
-				m_LOG_CPND_CL(CPND_SECT_HDR_UPDATE_FAILED, CPND_FC_HDLN,
-					      NCSFL_SEV_ERROR, __FILE__, __LINE__);
+				TRACE_4("cpnd sect hdr update failed");
 			}
 			/* UPDATE THE CHECKPOINT HEADER */
 			rc = cpnd_ckpt_hdr_update(cp_node);
 			if (rc == NCSCC_RC_FAILURE) {
-				m_LOG_CPND_CL(CPND_CKPT_HDR_UPDATE_FAILED, CPND_FC_HDLN,
-					      NCSFL_SEV_ERROR, __FILE__, __LINE__);
+				TRACE_4("cpnd ckpt hdr update failed");
 			}
 			return pSecPtr;
 		}
@@ -522,15 +529,14 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSection
 
 	lcl_sec_id = cpnd_ckpt_get_lck_sec_id(cp_node);
 	if (lcl_sec_id == -1) {	/* -1 is invalid section Id need to define it in *.h file */
-		m_LOG_CPND_CL(CPND_CREATING_MORE_THAN_MAX_SECTIONS, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__,
-			      __LINE__);
+		TRACE_4("cpnd creating more than max sections");
 		return NULL;
 	}
 
 	/* creat the cpnd_ckpt_section_info structure,memset */
 	pSecPtr = m_MMGR_ALLOC_CPND_CKPT_SECTION_INFO;
 	if (pSecPtr == NULL) {
-		m_LOG_CPND_CL(CPND_CKPT_SECTION_INFO_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd ckpt section info memory allocation failed");
 		return NULL;
 	}
 
@@ -547,7 +553,7 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSection
 		value = lcl_sec_id;
 		pSecPtr->sec_id.id = m_MMGR_ALLOC_CPND_DEFAULT(pSecPtr->sec_id.idLen);
 		if (pSecPtr->sec_id.id == NULL) {
-			m_LOG_CPND_CL(CPND_SECT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("cpnd sect memory allocation failed");
 			return NULL;
 		}
 		memset(pSecPtr->sec_id.id, '\0', pSecPtr->sec_id.idLen);
@@ -583,12 +589,12 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSection
 	/* UPDATE THE SECTION HEADER */
 	rc = cpnd_sec_hdr_update(pSecPtr, cp_node);
 	if (rc == NCSCC_RC_FAILURE) {
-		m_LOG_CPND_CL(CPND_SECT_HDR_UPDATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpnd sect hdr update failed");
 	}
 	/* UPDATE THE CHECKPOINT HEADER */
 	rc = cpnd_ckpt_hdr_update(cp_node);
 	if (rc == NCSCC_RC_FAILURE) {
-		m_LOG_CPND_CL(CPND_CKPT_HDR_UPDATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt hdr update failed");
 	}
 	return pSecPtr;
 
@@ -690,8 +696,7 @@ CPND_CKPT_SECTION_INFO *cpnd_get_sect_with_id(CPND_CKPT_NODE *cp_node, uint32_t 
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
 
 	if (cp_node->replica_info.n_secs == 0) {
-		m_LOG_CPND_FCL(CPND_REPLICA_HAS_NO_SECTIONS, CPND_FC_GENERIC, NCSFL_SEV_ERROR, cp_node->ckpt_id,
-			       __FILE__, __LINE__);
+		TRACE_4("cpnd replica has no sections for ckpt_id:%llx",cp_node->ckpt_id);
 		return NULL;
 	}
 
@@ -768,6 +773,7 @@ void cpnd_ckpt_node_tree_cleanup(CPND_CB *cb)
 	CPSV_CPND_DEST_INFO *cpnd_dest_list = NULL, *tmp_dest = NULL;
 	SaAisErrorT error;
 
+	TRACE_ENTER();
 	while ((cp_node = (CPND_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_info_db, (uint8_t *)0))) {
 
 		cp_cl_ref = cp_node->clist;
@@ -791,7 +797,7 @@ void cpnd_ckpt_node_tree_cleanup(CPND_CB *cb)
 			cpnd_tmr_stop(&cp_node->ret_tmr);
 		m_MMGR_FREE_CPND_CKPT_NODE(cp_node);
 	}
-
+	TRACE_LEAVE();
 	return;
 }
 
@@ -1062,11 +1068,13 @@ void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificati
 	CPND_CB *cb = NULL;
 	SaClmNodeIdT node_id;
 	uint32_t counter = 0;
+
+	TRACE_ENTER();
 	if (error != SA_AIS_OK)
 		return;
 	m_CPND_RETRIEVE_CB(cb);
 	if (cb == NULL) {
-		m_LOG_CPND_CL(CPND_CB_RETRIEVAL_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd cb retrieval failed");
 		return;
 	}
 	if (notificationBuffer != NULL)
@@ -1075,8 +1083,7 @@ void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificati
 				node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
 				if (node_id == cb->nodeid) {
 					if (cpnd_proc_ckpt_clm_node_left(cb) != NCSCC_RC_SUCCESS) {
-						m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-							      __FILE__, __LINE__);
+						TRACE_4("cpnd clm node get failed");
 					}
 					cpnd_proc_cpd_down(cb);
 				}
@@ -1092,8 +1099,7 @@ void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificati
 					node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
 					if (node_id == cb->nodeid) {
 						if (cpnd_proc_ckpt_clm_node_joined(cb) != NCSCC_RC_SUCCESS) {
-							m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-								      __FILE__, __LINE__);
+							TRACE_4("cpnd clm node get failed");
 						}
 					}
 					TRACE("node_joined -%d -%s line-%d clusterChange-%d ", node_id, __FILE__, __LINE__,

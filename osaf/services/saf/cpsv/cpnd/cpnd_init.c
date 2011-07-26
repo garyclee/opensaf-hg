@@ -170,6 +170,7 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	m_CPSV_GET_AMF_VER(clm_version);
 	SaClmCallbacksT gen_cbk;
 
+	TRACE_ENTER();
 	memset(&cluster_node, 0, sizeof(SaClmClusterNodeT));
 
 	/* register with the Flex log service */
@@ -179,7 +180,7 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	cb = m_MMGR_ALLOC_CPND_CB;
 
 	if (cb == NULL) {
-		m_LOG_CPND_CL(CPND_CB_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd cb memory allocation failed");
 		rc = NCSCC_RC_OUT_OF_MEM;
 		goto cpnd_cb_alloc_fail;
 	}
@@ -190,12 +191,12 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	m_NCS_EDU_HDL_INIT(&cb->cpnd_edu_hdl);
 
 	if ((rc = cpnd_cb_db_init(cb)) == NCSCC_RC_FAILURE) {
-		m_LOG_CPND_CL(CPND_CB_DB_INIT_FAILED, CPND_FC_API, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd cb db init failed");
 		goto cpnd_cb_init_fail;
 	}
 
 	if ((cb->cpnd_cb_hdl_id = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_CPND, (NCSCONTEXT)cb)) == 0) {
-		m_LOG_CPND_CL(CPND_CB_HDL_CREATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd cb hdl create failed");
 		rc = NCSCC_RC_FAILURE;
 		goto cpnd_hdl_fail;
 	}
@@ -205,50 +206,51 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 
 	/* create a mail box */
 	if ((rc = m_NCS_IPC_CREATE(&cb->cpnd_mbx)) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_CL(CPND_IPC_CREATE_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd ipc create fail");
 		goto cpnd_ipc_create_fail;
 	}
 
 	/* Attach the IPC to mail box */
 	if ((rc = m_NCS_IPC_ATTACH(&cb->cpnd_mbx)) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_CL(CPND_IPC_ATTACH_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd ipc attach failed");
 		goto cpnd_ipc_att_fail;
 	}
 	gen_cbk.saClmClusterNodeGetCallback = NULL;
 	gen_cbk.saClmClusterTrackCallback = cpnd_clm_cluster_track_cb;
 	rc = saClmInitialize(&clmHandle, &gen_cbk, &clm_version);
 	if (rc != SA_AIS_OK) {
-		m_LOG_CPND_CL(CPND_CLM_INIT_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd clm init failed with return value:%d",rc);
 		goto cpnd_clm_init_fail;
 	}
 	cb->clm_hdl = clmHandle;
 
         if (SA_AIS_OK != (rc = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj))) {
-                m_LOG_CPND_CL(CPND_CLM_INIT_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd clm selection object Get failed with return value:%d",rc);
+	 	TRACE_LEAVE();
                 return rc;
         }
 
 	rc = saClmClusterNodeGet(cb->clm_hdl, SA_CLM_LOCAL_NODE_ID, CPND_CLM_API_TIMEOUT, &cluster_node);
 	if (rc != SA_AIS_OK) {
-		m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd clm node get failed with return value:%d",rc);
 		goto cpnd_clm_fail;
 	}
 	cb->nodeid = cluster_node.nodeId;
 
 	rc = saClmClusterTrack(cb->clm_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL);
 	if (rc != SA_AIS_OK) {
-		m_LOG_CPND_CL(CPND_CLM_INIT_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd clm clusterTrack failed with return value:%d",rc);
 		goto cpnd_clm_fail;
 	}
 	/* Initialise with the AMF service */
 	if (cpnd_amf_init(cb) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_CL(CPND_AMF_INIT_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd amf init failed");
 		goto amf_init_err;
 	}
 
 	/* register with the AMF service */
 	if (cpnd_amf_register(cb) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_CL(CPND_AMF_REGISTER_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd amf register failed");
 		goto amf_reg_err;
 	}
 
@@ -264,7 +266,7 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	}
 
 	if ((rc = cpnd_mds_register(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_CL(CPND_MDS_REGISTER_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd mds register failed");
 		goto cpnd_mds_fail;
 	}
 
@@ -281,7 +283,8 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	} else {
 		if (strlen((char *)health_key) >= SA_AMF_HEALTHCHECK_KEY_MAX) {
 			rc = NCSCC_RC_FAILURE;
-			m_LOG_CPND_CL(CPND_INIT_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("cpnd get health check key failed");
+			TRACE_LEAVE();
 			return rc;
 		} else
 			strcpy((char *)healthy.key, (char *)health_key);
@@ -291,10 +294,11 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	amf_error = saAmfHealthcheckStart(cb->amf_hdl, &cb->comp_name, &healthy,
 					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
 	if (amf_error != SA_AIS_OK) {
-		m_LOG_CPND_CL(CPND_AMF_HLTH_CHK_START_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd amf hlth chk start failed ");
 	}
 
-	m_LOG_CPND_CL(CPND_INIT_SUCCESS, CPND_FC_HDLN, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+	TRACE_1("cpnd init success ");
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
  amf_reg_err:
@@ -323,7 +327,7 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
  cpnd_cb_init_fail:
 	m_MMGR_FREE_CPND_CB(cb);
 
-	m_LOG_CPND_CL(CPND_INIT_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+	LOG_ER("cpnd init failed ");
  cpnd_cb_alloc_fail:
 	cpnd_flx_log_dereg();
 	return (rc);
@@ -349,7 +353,7 @@ static uint32_t cpnd_lib_destroy(CPND_DESTROY_INFO *info)
 
 	m_CPND_RETRIEVE_CB(cb);
 	if (cb == NULL) {
-		m_LOG_CPND_CL(CPND_DESTROY_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpnd retrieve cb failed");
 		return (NCSCC_RC_FAILURE);
 	}
 
@@ -396,17 +400,19 @@ static uint32_t cpnd_cb_db_init(CPND_CB *cb)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	rc = cpnd_ckpt_node_tree_init(cb);
 	if (rc == NCSCC_RC_FAILURE) {
-		m_LOG_CPND_CL(CPND_CKPT_NODE_TREE_INIT_FAILED, CPND_FC_API, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd ckpt node tree init failed ");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	rc = cpnd_client_node_tree_init(cb);
 	if (rc == NCSCC_RC_FAILURE)
 		if (rc == NCSCC_RC_FAILURE) {
-			m_LOG_CPND_CL(CPND_CLIENT_NODE_TREE_INIT_FAILED, CPND_FC_API, NCSFL_SEV_ERROR, __FILE__,
-				      __LINE__);
+			LOG_ER("cpnd client node tree init failed ");
+			TRACE_LEAVE();
 			return rc;
 		}
 
@@ -414,9 +420,12 @@ static uint32_t cpnd_cb_db_init(CPND_CB *cb)
 	rc = cpnd_allrepl_write_evt_node_tree_init(cb);
 	if (rc == NCSCC_RC_FAILURE) {
 		/* LOG */
+		LOG_ER("cpnd allrepl write evt node tree init failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
+	TRACE_LEAVE();
 	return (rc);
 }
 
@@ -503,7 +512,8 @@ void cpnd_main_process(CPND_CB *cb)
 	amf_error = saAmfSelectionObjectGet(amf_hdl, &amf_sel_obj);
 
 	if (amf_error != SA_AIS_OK) {
-		m_LOG_CPND_CL(CPND_AMF_GET_SEL_OBJ_FAILURE, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd amf get sel obj failure %u",amf_error);
+		TRACE_LEAVE();
 		return;
 	}
 	m_SET_FD_IN_SEL_OBJ((uint32_t)amf_sel_obj, amf_ncs_sel_obj);
@@ -521,16 +531,14 @@ void cpnd_main_process(CPND_CB *cb)
 			/* dispatch all the AMF pending function */
 			amf_error = saAmfDispatch(amf_hdl, SA_DISPATCH_ALL);
 			if (amf_error != SA_AIS_OK) {
-				m_LOG_CPND_CL(CPND_AMF_DISPATCH_FAILURE, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__,
-					      __LINE__);
+				LOG_ER("cpnd amf dispatch failure %u",amf_error);
 			}
 		}
 
 		if (m_NCS_SEL_OBJ_ISSET(clm_ncs_sel_obj, &all_sel_obj)) {
 			clm_error = saClmDispatch(cb->clm_hdl, SA_DISPATCH_ALL);
 			if (clm_error != SA_AIS_OK) {
-				m_LOG_CPND_CL(CPND_AMF_DISPATCH_FAILURE, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__,
-					      __LINE__);
+				LOG_ER("cpnd amf dispatch failure %u",clm_error);
 			}
 		}
 		/* process the CPND Mail box */
@@ -546,5 +554,6 @@ void cpnd_main_process(CPND_CB *cb)
 		m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
 
 	}
+	TRACE_LEAVE();
 	return;
 }

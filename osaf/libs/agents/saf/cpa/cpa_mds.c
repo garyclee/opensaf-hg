@@ -74,9 +74,7 @@ uint32_t cpa_mds_get_handle(CPA_CB *cb)
 	rc = ncsada_api(&arg);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		/*m_LOG_CPA_HEADLINE(CPA_MDS_GET_HANDLE_FAILED,NCSFL_SEV_ERROR); */
-		m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "ADA:GET_HDLS", __FILE__, __LINE__,
-			       rc);
+		TRACE_4("CPA processing failed for ADA:GET_HDLS with return value:%d",rc);
 		return rc;
 	}
 	cb->cpa_mds_hdl = arg.info.adest_get_hdls.o_mds_pwe1_hdl;
@@ -120,8 +118,7 @@ uint32_t cpa_mds_register(CPA_CB *cb)
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = CPA_MDS_PVT_SUBPART_VERSION;	/* Private Subpart Version of CPA for Versioning infrastructure */
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "MDS:INSTALL", __FILE__, __LINE__,
-			       rc);
+		TRACE_4("CPA MDS:INSTALL failed with return value:%d",rc);
 		return rc;
 	}
 	cb->cpa_mds_dest = svc_info.info.svc_install.o_dest;
@@ -133,8 +130,7 @@ uint32_t cpa_mds_register(CPA_CB *cb)
 	svc_info.info.svc_subscribe.i_svc_ids = &subs_id[0];
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "MDS:SUBSCRIBE", __FILE__, __LINE__,
-			       rc);
+		TRACE_4("CPA MDS:SUBSCRIBE failed with return value:%d",rc);
 		goto error;
 	}
 
@@ -173,8 +169,7 @@ void cpa_mds_unregister(CPA_CB *cb)
 	rc = ncsmds_api(&arg);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "MDS:UNINSTALL", __FILE__, __LINE__,
-			       rc);
+		TRACE_4("CPA MDS:UNINSTALL failed with return value:%d",rc);
 	}
 	return;
 }
@@ -201,8 +196,7 @@ uint32_t cpa_mds_callback(struct ncsmds_callback_info *info)
 	cpa_cb = (CPA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPA, gl_cpa_hdl);
 
 	if (!cpa_cb) {
-		m_LOG_CPA_CCLL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "mds_callback:HDL_TAKE", __FILE__,
-			       __LINE__, rc);
+		TRACE_4("CPA mds_callback:HDL_TAKE");
 		return m_LEAP_DBG_SINK(rc);
 	}
 
@@ -235,14 +229,12 @@ uint32_t cpa_mds_callback(struct ncsmds_callback_info *info)
 		break;
 
 	default:
-		m_LOG_CPA_CCLL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO, "mds_callback:unknown_op", __FILE__,
-			       __LINE__, rc);
+		TRACE_4("CPA mds_callback:unknown_op");
 		break;
 	}
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPA_CCLL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO, "mds_callback", __FILE__, __LINE__,
-			       rc);
+		TRACE_1("CPA mds_callback with return value:%d",rc);
 	}
 
 	ncshm_give_hdl(gl_cpa_hdl);
@@ -280,18 +272,16 @@ static uint32_t cpa_mds_enc_flat(CPA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 			evt = (CPSV_EVT *)info->i_msg;
 			rc = cpsv_evt_enc_flat(&cb->edu_hdl, evt, uba);
 			if (rc != NCSCC_RC_SUCCESS)
-				m_LOG_CPA_CCLL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "mds_enc_flat",
-					       __FILE__, __LINE__, rc);
+				TRACE_4("CPA mds_enc_flat failed with return value:%d",rc);
+
 			return rc;
 		} else {
-			m_LOG_CPA_CCLL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "mds_enc_flat", __FILE__,
-				       __LINE__, rc);
+			TRACE_4("CPA mds_enc_flat failed with return value:%d",rc);
 			return NCSCC_RC_FAILURE;
 		}
 	} else {
 		/* Drop The Message */
-		m_LOG_CPA_CCLL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "mds_enc_flat", __FILE__, __LINE__,
-			       rc);
+		TRACE_4("CPA mds_enc_flat failed with return value:%d",rc);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -330,22 +320,18 @@ static uint32_t cpa_mds_dec_flat(CPA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 		if (info->i_fr_svc_id == NCSMDS_SVC_ID_CPND || info->i_fr_svc_id == NCSMDS_SVC_ID_CPD) {
 			evt = (CPSV_EVT *)m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPA);
 			if (evt == NULL) {
-				m_LOG_CPA_CCLL(CPA_MEM_ALLOC_FAILED, NCSFL_LC_CKPT_MGMT,
-					       NCSFL_SEV_ERROR, "mds_dec_flat", __FILE__, __LINE__,
-					       NCSCC_RC_OUT_OF_MEM);
+				TRACE_4("cpa mem allocation failed in mds_dec_flat");
 				return NCSCC_RC_OUT_OF_MEM;
 			}
 			info->o_msg = evt;
 			rc = cpsv_evt_dec_flat(&cb->edu_hdl, uba, evt);
 			return rc;
 		} else {
-			m_LOG_CPA_CCLL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO, "mds_dec_flat", __FILE__,
-				       __LINE__, rc);
+			TRACE_4("cpa api processing failed in mds_dec_flat with return value:%d",rc);
 			return NCSCC_RC_FAILURE;
 		}
 	} else {
-		m_LOG_CPA_CCLL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO, "mds_dec_flat", __FILE__, __LINE__,
-			       rc);
+		TRACE_4("cpa api processing failed in mds_dec_flat with return value:%d",rc);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -406,7 +392,8 @@ static uint32_t cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
     uint32_t counter=cb->gbl_ckpt_tree.n_nodes;
     CPSV_EVT send_evt;
     CPSV_REF_CNT   ref_cnt_array[100];
-
+	
+	TRACE_ENTER();
 	/* TBD: The CPND and CPD restarts are to be implemented post April release */
 	switch (svc_evt->i_change) {
 	case NCSMDS_DOWN:
@@ -468,13 +455,13 @@ static uint32_t cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
                  case NCSCC_RC_SUCCESS:
                       break;
                  case NCSCC_RC_REQ_TIMOUT:
-                      m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-                                               "active_ckpt_info_bcast :MDS", __FILE__ ,__LINE__, proc_rc ,0, cb->cpnd_mds_dest);
-                      break;
+			TRACE_4("cpa api failed for active ckpt info bcase :MDS with return value:%d for mds dest :%"PRIu64,
+				proc_rc ,cb->cpnd_mds_dest);
+			break;
                  default:
-                      m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-                                                "active_ckpt_info_bcast:MDS", __FILE__ ,__LINE__, proc_rc ,0, cb->cpnd_mds_dest);
-                      break;
+			TRACE_4("cpa api failed for active ckpt info bcase:MDS with return value:%d for mds dest:%"PRIu64,
+				proc_rc ,cb->cpnd_mds_dest);
+			break;
                }
            } 
          }
@@ -486,7 +473,7 @@ static uint32_t cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 	default:
 		break;
 	}
-
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -568,7 +555,7 @@ static uint32_t cpa_mds_enc(CPA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		return rc;
 	} else {
 		/* Drop The Message As Msg Fmt Version Not understandable */
-		m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "mds_enc", __FILE__, __LINE__);
+		TRACE_4("cpa api processing failed in mds_enc ");
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -593,6 +580,8 @@ static uint32_t cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	uint8_t local_data[20];
 	uint8_t *pstream;
 	bool is_valid_msg_fmt = false;
+	
+	TRACE_ENTER();
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_CPND) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
@@ -633,9 +622,11 @@ static uint32_t cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		if (rc != NCSCC_RC_SUCCESS) {
 			m_MMGR_FREE_CPSV_EVT(dec_info->o_msg, NCS_SERVICE_ID_CPA);
 		}
+		TRACE_LEAVE();
 		return rc;
 	} else {
-		m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO, "mds_dec", __FILE__, __LINE__);
+		TRACE_4("CPA:Processing failed for mds_dec ");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 }

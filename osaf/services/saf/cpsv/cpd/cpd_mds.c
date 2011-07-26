@@ -67,6 +67,7 @@ uint32_t cpd_mds_vdest_create(CPD_CB *cb)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 /*   SaNameT     name = {4,"CPD"}; */
 
+	TRACE_ENTER();
 	memset(&arg, 0, sizeof(arg));
 
 	cb->cpd_dest_id = CPD_VDEST_ID;
@@ -90,7 +91,7 @@ uint32_t cpd_mds_vdest_create(CPD_CB *cb)
 /*   cb->cpd_dest_id = arg.info.vdest_create.info.named.o_vdest;  */
 	/*  cb->cpd_anc     = arg.info.vdest_create.info.named.o_anc; */
 	cb->mds_handle = arg.info.vdest_create.o_mds_pwe1_hdl;
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -114,10 +115,11 @@ uint32_t cpd_mds_register(CPD_CB *cb)
 	MDS_SVC_ID cpd_id[1] = { NCSMDS_SVC_ID_CPD };
 	uint32_t phy_slot_sub_slot;
 
+	TRACE_ENTER();
 	/* Create the virtual Destination for  CPD */
 	rc = cpd_mds_vdest_create(cb);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_CPD_CL(CPD_MDS_VDEST_CREATE_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd mds vdest create failed"); 
 		return rc;
 	}
 
@@ -136,7 +138,8 @@ uint32_t cpd_mds_register(CPD_CB *cb)
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = CPD_MDS_PVT_SUBPART_VERSION;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
-		m_LOG_CPD_CL(CPD_MDS_INSTALL_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd mds install failed");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 	/*  cb->cpd_dest_id = svc_info.info.svc_install.o_dest;  */
@@ -150,8 +153,9 @@ uint32_t cpd_mds_register(CPD_CB *cb)
 	svc_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
 	svc_info.info.svc_subscribe.i_svc_ids = cpd_id;
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
-		m_LOG_CPD_HEADLINE(CPD_MDS_INSTALL_FAILED, NCSFL_SEV_ERROR);
+		TRACE_4("cpd mds install failed ");
 		cpd_mds_unregister(cb);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -165,8 +169,9 @@ uint32_t cpd_mds_register(CPD_CB *cb)
 	svc_info.info.svc_subscribe.i_svc_ids = svc_id;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
-		m_LOG_CPD_CL(CPD_MDS_SUBSCRIBE_FAILED, CPD_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd mds subscribe to CPND up/down events failed ");
 		cpd_mds_unregister(cb);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 	/* STEP 5: Subscribe to CPA up/down events */
@@ -180,8 +185,9 @@ uint32_t cpd_mds_register(CPD_CB *cb)
 	svc_info.info.svc_subscribe.i_svc_ids = svc_id;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
-		m_LOG_CPD_CL(CPD_MDS_SUBSCRIBE_FAILED, CPD_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd mds subscribe to CPA up/down events failed");
 		cpd_mds_unregister(cb);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -190,6 +196,7 @@ uint32_t cpd_mds_register(CPD_CB *cb)
 	phy_slot_sub_slot = cpd_get_slot_sub_slot_id_from_node_id(cb->node_id);
 	cb->cpd_self_id = phy_slot_sub_slot;
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -217,7 +224,7 @@ void cpd_mds_unregister(CPD_CB *cb)
 	arg.i_op = MDS_UNINSTALL;
 
 	if (ncsmds_api(&arg) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_MDS_UNREG_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd mds unreg failed");
 	}
 	return;
 }
@@ -237,13 +244,14 @@ uint32_t cpd_mds_callback(struct ncsmds_callback_info *info)
 {
 	CPD_CB *cb = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
-
+	
+	TRACE_ENTER();
 	if (info == NULL)
 		return rc;
 
 	cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD, (uint32_t)info->i_yr_svc_hdl);
 	if (!cb) {
-		m_LOG_CPD_HEADLINE(CPD_CB_HDL_TAKE_FAILED, NCSFL_SEV_INFO);
+		TRACE_4("cpd cb take hdl failed");
 		return rc;
 	}
 
@@ -281,6 +289,7 @@ uint32_t cpd_mds_callback(struct ncsmds_callback_info *info)
 	}
 
 	ncshm_give_hdl((uint32_t)info->i_yr_svc_hdl);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -321,8 +330,10 @@ static uint32_t cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		return (m_NCS_EDU_VER_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_EVT),
 					   enc_info->io_uba, EDP_OP_TYPE_ENC, msg_ptr, &ederror,
 					   enc_info->i_rem_svc_pvt_ver));
-	} else
-		return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE, "INVALID MSG FORMAT IN ENC FULL\n");	/* Drop The Message,Format Version Invalid */
+	} else {
+		TRACE_4("INVALID MSG FORMAT IN ENC FULL");	/* Drop The Message,Format Version Invalid */
+		return NCSCC_RC_FAILURE;
+	}
 
 }
 
@@ -362,12 +373,12 @@ static uint32_t cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_EVT),
 				    dec_info->io_uba, EDP_OP_TYPE_DEC, (CPSV_EVT **)&dec_info->o_msg, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(CPD_MDS_DEC_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd mds decode failed ");
 			m_MMGR_FREE_CPSV_EVT(dec_info->o_msg, NCS_SERVICE_ID_CPD);
 		}
 		return rc;
 	} else {
-		m_LOG_CPD_CL(CPD_MDS_DEC_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd mds dec failed");
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -390,6 +401,7 @@ static uint32_t cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_UBAID *uba = info->io_uba;
 
+	TRACE_ENTER();
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
 	if (info->i_to_svc_id == NCSMDS_SVC_ID_CPA) {
 		info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(info->i_rem_svc_pvt_ver,
@@ -410,12 +422,14 @@ static uint32_t cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 
 		rc = cpsv_evt_enc_flat(&cb->edu_hdl, evt, uba);
 		if (rc == NCSCC_RC_FAILURE) {
-			m_LOG_CPD_CL(CPD_MDS_ENC_FLAT_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd mds enc flat failed");
+			TRACE_LEAVE();
 			return rc;
 		}
 	} else {
 
-		m_LOG_CPD_CL(CPD_MDS_ENC_FLAT_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd mds enc flat failed");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;	/* Drop The Message */
 
 	}
@@ -423,7 +437,7 @@ static uint32_t cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 	/*   ncs_encode_n_octets_in_uba(uba,(uint8_t*)evt,size);   */
 
 	/* Based on the event type copy the internal pointers TBD */
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -445,7 +459,7 @@ static uint32_t cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_UBAID *uba = info->io_uba;
 	bool is_valid_msg_fmt = false;
-
+	TRACE_ENTER();
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_CPND) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(info->i_msg_fmt_ver,
 							     CPD_WRT_CPND_SUBPART_VER_MIN,
@@ -455,23 +469,27 @@ static uint32_t cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 
 		evt = (CPSV_EVT *)m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPD);
 		if (evt == NULL) {
-			m_LOG_CPD_MEMFAIL(CPD_EVT_ALLOC_FAILED);
+			TRACE_4("cpd evt memory allocation failed ");
+			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
 		info->o_msg = evt;
 		rc = cpsv_evt_dec_flat(&cb->edu_hdl, uba, evt);
 		if (rc == NCSCC_RC_FAILURE) {
-			m_LOG_CPD_CL(CPD_MDS_DEC_FLAT_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("CPD MDS Decode Flat Failed");
 			m_MMGR_FREE_CPSV_EVT(evt, NCS_SERVICE_ID_CPD);
+			TRACE_LEAVE();
 			return rc;
 		}
 
 /*   ncs_decode_n_octets(uba->ub,(uint8_t*)evt,sizeof(CPSV_EVT)); */
 		/* Based on the event type copy the internal pointers TBD */
+		TRACE_LEAVE();
 		return rc;
 	} else {
 		/* Drop The message */
-		m_LOG_CPD_CL(CPD_MDS_DEC_FLAT_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("CPD MDS Decode Flat Failed");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 
 	}
@@ -506,7 +524,7 @@ static uint32_t cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	/* Put it in CPD's Event Queue */
 	rc = m_NCS_IPC_SEND(&cb->cpd_mbx, (NCSCONTEXT)pEvt, NCS_IPC_PRIORITY_NORMAL);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_CPD_CL(CPD_IPC_SEND_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd ipc send failed for mds receive");
 	}
 	return rc;
 }
@@ -537,7 +555,7 @@ static uint32_t cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 	evt = m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPD);
 
 	if (!evt) {
-		m_LOG_CPD_CL(CPD_EVT_ALLOC_FAILED, CPD_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd evt memory allocation failed ");
 		return NCSCC_RC_OUT_OF_MEM;
 	}
 
@@ -553,11 +571,13 @@ static uint32_t cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 	/* Put it in CPD's Event Queue */
 	rc = m_NCS_IPC_SEND(&cb->cpd_mbx, (NCSCONTEXT)evt, NCS_IPC_PRIORITY_HIGH);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_CPD_CL(CPD_IPC_SEND_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd evt mds info ipc send failed");
 		m_MMGR_FREE_CPSV_EVT(evt, NCS_SERVICE_ID_CPD);
+		TRACE_LEAVE();
 		return rc;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -576,11 +596,13 @@ uint32_t cpd_mds_quiesced_ack_process(CPD_CB *cb)
 	CPSV_EVT *evt = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	if (cb->is_quiesced_set) {
 		cb->ha_state = SA_AMF_HA_QUIESCED;	/* Set the HA State */
 		evt = m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPD);
 		if (!evt) {
-			m_LOG_CPD_CL(CPD_EVT_ALLOC_FAILED, CPD_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd evt memory allocation failed");
+			TRACE_LEAVE();
 			return NCSCC_RC_OUT_OF_MEM;
 		}
 
@@ -590,14 +612,18 @@ uint32_t cpd_mds_quiesced_ack_process(CPD_CB *cb)
 
 		rc = m_NCS_IPC_SEND(&cb->cpd_mbx, evt, NCS_IPC_PRIORITY_NORMAL);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_LOG_CPD_CL(CPD_IPC_SEND_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd ipc send failed");
 			m_MMGR_FREE_CPSV_EVT(evt, NCS_SERVICE_ID_CPD);
+			TRACE_LEAVE();
 			return rc;
 		}
 
+		TRACE_LEAVE();
 		return rc;
-	} else
+	} else {
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
+	}
 }
 
 /****************************************************************************
@@ -616,6 +642,7 @@ uint32_t cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 
+	TRACE_ENTER();
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->mds_handle;
 	mds_info.i_svc_id = NCSMDS_SVC_ID_CPD;
@@ -633,9 +660,9 @@ uint32_t cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_FCL(CPD_MDS_SEND_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, s_info->dest, __FILE__, __LINE__);
+		TRACE_4("cpd mds send failed for dest %"PRIu64,s_info->dest);
 	}
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -660,6 +687,7 @@ uint32_t cpd_mds_msg_sync_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 
+	TRACE_ENTER();
 	if (!i_evt)
 		return NCSCC_RC_FAILURE;
 
@@ -683,9 +711,9 @@ uint32_t cpd_mds_msg_sync_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 	if (rc == NCSCC_RC_SUCCESS)
 		*o_evt = mds_info.info.svc_send.info.sndrsp.o_rsp;
 	else {
-		m_LOG_CPD_FCL(CPD_MDS_SEND_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, to_dest, __FILE__, __LINE__);
+		TRACE_4("cpd mds send failed for dest %"PRIu64,to_dest);
 	}
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -708,6 +736,7 @@ uint32_t cpd_mds_msg_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EV
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 
+	TRACE_ENTER();
 	if (!evt)
 		return NCSCC_RC_FAILURE;
 
@@ -727,9 +756,10 @@ uint32_t cpd_mds_msg_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EV
 	rc = ncsmds_api(&mds_info);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_FCL(CPD_MDS_SEND_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, to_dest, __FILE__, __LINE__);
+		TRACE_4("cpd mds send failed for dest: %"PRIu64,to_dest);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -754,6 +784,7 @@ uint32_t cpd_mds_bcast_send(CPD_CB *cb, CPSV_EVT *evt, NCSMDS_SVC_ID to_svc)
 	NCSMDS_INFO info;
 	uint32_t res;
 
+	TRACE_ENTER();
 	memset(&info, 0, sizeof(info));
 
 	info.i_mds_hdl = cb->mds_handle;
@@ -768,8 +799,9 @@ uint32_t cpd_mds_bcast_send(CPD_CB *cb, CPSV_EVT *evt, NCSMDS_SVC_ID to_svc)
 
 	res = ncsmds_api(&info);
 	if (res != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_MDS_SEND_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd mds send failed");
 	}
 
+	TRACE_LEAVE();
 	return (res);
 }

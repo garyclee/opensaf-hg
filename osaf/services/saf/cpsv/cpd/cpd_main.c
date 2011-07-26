@@ -32,13 +32,16 @@ static int __init_cpd(void)
 	lib_create.info.create.argc = 0;
 	lib_create.info.create.argv = NULL;
 
-	if (ncs_agents_startup() != NCSCC_RC_SUCCESS)
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+	
+		LOG_ER("ncs_agents_startup FAILED");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
 	/* Init CPD */
 	m_NCS_DBG_PRINTF("\nCPSV:CPD:ON");
 	if (cpd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		fprintf(stderr, "cpd_lib_req FAILED\n");
+		LOG_ER("cpd_lib_req FAILED");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 

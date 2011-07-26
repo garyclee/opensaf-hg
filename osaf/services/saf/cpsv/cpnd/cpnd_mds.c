@@ -76,7 +76,7 @@ uint32_t cpnd_mds_get_handle(CPND_CB *cb)
 	rc = ncsada_api(&arg);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_CL(CPND_MDS_GET_HDL_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpnd mds get hdl failed");
 		return rc;
 	}
 	cb->cpnd_mds_hdl = arg.info.adest_get_hdls.o_mds_pwe1_hdl;
@@ -101,6 +101,7 @@ uint32_t cpnd_mds_register(CPND_CB *cb)
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_CPD };
 
+	TRACE_ENTER();
 	/* STEP1: Get the MDS Handle */
 	rc = cpnd_mds_get_handle(cb);
 
@@ -122,7 +123,8 @@ uint32_t cpnd_mds_register(CPND_CB *cb)
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = CPND_MDS_PVT_SUBPART_VERSION;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
-		m_LOG_CPND_CL(CPND_MDS_INSTALL_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd mds install failed ");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 	cb->cpnd_mdest_id = svc_info.info.svc_install.o_dest;
@@ -134,7 +136,7 @@ uint32_t cpnd_mds_register(CPND_CB *cb)
 	svc_info.info.svc_subscribe.i_svc_ids = svc_id;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
-		m_LOG_CPND_CL(CPND_MDS_SUBSCRIBE_CPD_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd mds subscribe cpd failed");
 		goto error1;
 	}
 
@@ -146,15 +148,17 @@ uint32_t cpnd_mds_register(CPND_CB *cb)
 	svc_info.info.svc_subscribe.i_svc_ids = svc_id;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
-		m_LOG_CPND_CL(CPND_MDS_SUBSCRIBE_CPA_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd mds subscribe cpa failed");
 		goto error1;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
  error1:
 
 	/* Uninstall with the mds */
 	cpnd_mds_unregister(cb);
+	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }
 
@@ -173,6 +177,7 @@ void cpnd_mds_unregister(CPND_CB *cb)
 {
 	NCSMDS_INFO arg;
 
+	TRACE_ENTER();
 	/* Un-install your service into MDS. 
 	   No need to cancel the services that are subscribed */
 	memset(&arg, 0, sizeof(NCSMDS_INFO));
@@ -182,8 +187,9 @@ void cpnd_mds_unregister(CPND_CB *cb)
 	arg.i_op = MDS_UNINSTALL;
 
 	if (ncsmds_api(&arg) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_CL(CPA_MDS_UNREG_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd mds unreg failed ");
 	}
+	TRACE_LEAVE();
 	return;
 }
 
@@ -203,12 +209,15 @@ uint32_t cpnd_mds_callback(struct ncsmds_callback_info *info)
 	CPND_CB *cb = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	if (info == NULL)
+	TRACE_ENTER();
+	if (info == NULL) {
+		TRACE_4("cpnd mds callback called with NULL as parameter");
 		return rc;
-
+	}
 	cb = (CPND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPND, (uint32_t)info->i_yr_svc_hdl);
 	if (!cb) {
-		m_LOG_CPND_CL(CPND_CB_HDL_TAKE_FAILED, CPND_FC_HDLN, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		LOG_ER("cpnd cb hdl take failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -242,6 +251,7 @@ uint32_t cpnd_mds_callback(struct ncsmds_callback_info *info)
 	}
 
 	ncshm_give_hdl((uint32_t)info->i_yr_svc_hdl);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -265,6 +275,7 @@ static uint32_t cpnd_mds_enc(CPND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 	uint8_t *pstream = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
 	if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_CPA) {
 		enc_info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(enc_info->i_rem_svc_pvt_ver,
@@ -349,8 +360,11 @@ static uint32_t cpnd_mds_enc(CPND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		/* For all other Cases Invoke EDU encode */
 		return (m_NCS_EDU_EXEC(&cb->cpnd_edu_hdl, FUNC_NAME(CPSV_EVT),
 				       enc_info->io_uba, EDP_OP_TYPE_ENC, pevt, &ederror));
-	} else
+	} else {
+		TRACE_LEAVE();
 		return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE, "INVALID MSG FORMAT IN ENCODE FULL\n");	/* Drop The Message - Incompatible Message Format Version */
+		
+	}
 }
 
 /****************************************************************************\
@@ -372,6 +386,7 @@ uint32_t cpsv_ckpt_access_decode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	uint32_t space = 4 + 8 + 8 + 8 + 4 + 4;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	pstream = ncs_dec_flatten_space(io_uba, local_data, space);
 	ckpt_data->type = ncs_decode_32bit(&pstream);
 	ckpt_data->ckpt_id = ncs_decode_64bit(&pstream);
@@ -402,7 +417,7 @@ uint32_t cpsv_ckpt_access_decode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	ncs_dec_skip_space(io_uba, space);
 	ncs_decode_n_octets_from_uba(io_uba, (uint8_t *)ckpt_data->ckpt_sync.cpa_sinfo.ctxt.data,
 				     (uint32_t)MDS_SYNC_SND_CTXT_LEN_MAX);
-
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -499,13 +514,13 @@ static uint32_t cpnd_mds_dec(CPND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 					(CPSV_EVT **)&dec_info->o_msg, &ederror, dec_info->i_msg_fmt_ver);
 
  free:		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPND_CL(CPND_MDS_DECODE_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("cpnd mds decode failed ");
 			m_MMGR_FREE_CPSV_EVT(dec_info->o_msg, NCS_SERVICE_ID_CPND);
 		}
 		return rc;
 	} else {
 		/* Drop The Message - Incompatible Message Format Version */
-		m_LOG_CPND_CL(CPND_MDS_DECODE_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd mds decode failed ");
 		return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE, "INVALID MSG FORMAT IN DECODE FULL\n");	/* Drop The Message - Incompatible Message Format Version */
 	}
 }
@@ -551,12 +566,13 @@ static uint32_t cpnd_mds_enc_flat(CPND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 		evt = (CPSV_EVT *)info->i_msg;
 		rc = cpsv_evt_enc_flat(&cb->cpnd_edu_hdl, evt, uba);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPND_CL(CPND_MDS_ENC_FLAT_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_CR("cpsv evt enc flat failed");
 		}
+		TRACE_LEAVE();
 		return rc;
 	} else {
 		/* Drop The Message  Incompatible Message Format Version */
-		m_LOG_CPND_CL(CPND_MDS_ENC_FLAT_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_CR("cpnd mds enc flat failed");
 		return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE, "INVALID MSG FORMAT IN ENCODE FLAT\n");	/* Drop The Message - Incompatible Message Format Version */
 	}
 
@@ -598,18 +614,20 @@ static uint32_t cpnd_mds_dec_flat(CPND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 	if (is_valid_msg_fmt) {
 		evt = (CPSV_EVT *)m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPND);
 		if (evt == NULL) {
-			m_LOG_CPND_CL(CPND_EVT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_CR("cpnd evt alloc failed ");
+			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
 		memset(evt, '\0', sizeof(CPSV_EVT));
 		info->o_msg = evt;
 		rc = cpsv_evt_dec_flat(&cb->cpnd_edu_hdl, uba, evt);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPND_CL(CPND_MDS_DEC_FLAT_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_CR("cpnd mds dec flat failed ");
 		}
 		return rc;
 	} else {
-		m_LOG_CPND_CL(CPND_MDS_DEC_FLAT_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_CR("cpnd mds dec flat failed ");
+		TRACE_LEAVE();
 		return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE, "INVALID MSG FORMAT IN DECODE FLAT\n");	/* Drop The Message - Incompatible Message Format Version */
 	}
 }
@@ -650,8 +668,8 @@ static uint32_t cpnd_mds_rcv(CPND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 			cpnd_mds_send_try_again_rsp(cb, pEvt);
 			cpnd_evt_destroy(pEvt);
 			m_NCS_UNLOCK(&cb->cpnd_sync_send_lock, NCS_LOCK_WRITE);
-			m_LOG_CPND_FCL(CPND_MDS_SEND_TRYAGAIN, CPND_FC_HDLN, NCSFL_SEV_INFO, rcv_info->i_fr_dest,
-				       __FILE__, __LINE__);
+			TRACE_4("cpnd mds send try again for dest:%"PRIu64,rcv_info->i_fr_dest);
+			TRACE_LEAVE();
 			return NCSCC_RC_SUCCESS;
 		}
 
@@ -659,8 +677,8 @@ static uint32_t cpnd_mds_rcv(CPND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 
 		if (!node) {
 			m_NCS_UNLOCK(&cb->cpnd_sync_send_lock, NCS_LOCK_WRITE);
-			m_LOG_CPND_CL(CPND_SYNC_SEND_NODE_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__,
-				      __LINE__);
+			TRACE_4("cpnd sync send node alloc failed");
+			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -668,8 +686,7 @@ static uint32_t cpnd_mds_rcv(CPND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		node->dest = rcv_info->i_fr_dest;
 
 		if (ncs_enqueue(&cb->cpnd_sync_send_list, (void *)node) != NCSCC_RC_SUCCESS) {
-			m_LOG_CPND_CL(CPND_NCS_ENQUEUE_EVT_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__,
-				      __LINE__);
+			TRACE_4("cpnd ncs enqueue evt failed ");
 		}
 	}
 
@@ -683,9 +700,10 @@ static uint32_t cpnd_mds_rcv(CPND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		rc = m_NCS_IPC_SEND(&cb->cpnd_mbx, (NCSCONTEXT)pEvt, NCS_IPC_PRIORITY_NORMAL);
 
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_CPND_CL(CPND_NCS_IPC_SEND_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd ncs ipc send failed ");
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -779,7 +797,7 @@ static uint32_t cpnd_mds_send_try_again_rsp(CPND_CB *cb, CPSV_EVT *pEvt)
 	rc = cpnd_mds_send_rsp(cb, &pEvt->sinfo, &send_evt);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_CL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_CR("cpnd mds send failed");
 	}
 
 	return rc;
@@ -843,6 +861,7 @@ static uint32_t cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 	uint32_t rc = NCSCC_RC_SUCCESS, priority = NCS_IPC_PRIORITY_HIGH;
 	uint32_t phy_slot_sub_slot;
 
+	TRACE_ENTER();
 	if (svc_evt->i_svc_id == NCSMDS_SVC_ID_CPD) {
 
 		m_NCS_LOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
@@ -852,26 +871,26 @@ static uint32_t cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 			if (cb->is_cpd_up == true) {
 				/* If CPD is already UP */
 				cb->is_cpd_up = false;
-				m_LOG_CPND_CL(CPND_CPD_SERVICE_WENT_DOWN, CPND_FC_HDLN, NCSFL_SEV_ALERT, __FILE__,
-					      __LINE__);
+				TRACE_4("cpnd cpd service went down");
 				m_NCS_UNLOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
+				TRACE_LEAVE();
 				return NCSCC_RC_SUCCESS;
 			}
 			break;
 		case NCSMDS_UP:
 			cb->is_cpd_up = true;
 			cb->cpd_mdest_id = svc_evt->i_dest;
-			m_LOG_CPND_CL(CPND_CPD_SERVICE_CAME_UP, CPND_FC_HDLN, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+			TRACE_4("cpnd cpd service came up ");
 			break;
 
 		case NCSMDS_NO_ACTIVE:
 			cb->is_cpd_up = false;
-			m_LOG_CPND_CL(CPND_CPD_SERVICE_NOACTIVE, CPND_FC_HDLN, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+			TRACE_4("cpnd cpd service noactive");
 			break;
 
 		case NCSMDS_NEW_ACTIVE:
 			cb->is_cpd_up = true;
-			m_LOG_CPND_CL(CPND_CPD_SERVICE_NEWACTIVE, CPND_FC_HDLN, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+			TRACE_4("cpnd cpd service newactive");
 			break;
 
 		case NCSMDS_RED_UP:
@@ -885,6 +904,7 @@ static uint32_t cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 				phy_slot_sub_slot = cpnd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
 				cb->cpnd_standby_id = phy_slot_sub_slot;
 				m_NCS_UNLOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
+				TRACE_LEAVE();
 				return NCSCC_RC_SUCCESS;
 			}
 			break;
@@ -915,8 +935,10 @@ static uint32_t cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 		m_NCS_UNLOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
 	}
 	if (svc_evt->i_svc_id == NCSMDS_SVC_ID_CPA) {
-		if (m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id) != m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest))
+		if (m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id) != m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest)) {
+			TRACE_LEAVE();
 			return rc;
+		}
 	}
 	/* Send the CPND_EVT_MDS_INFO to CPND */
 	evt = m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPND);
@@ -931,9 +953,9 @@ static uint32_t cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 	/* Put it in CPND's Event Queue */
 	rc = m_NCS_IPC_SEND(&cb->cpnd_mbx, (NCSCONTEXT)evt, priority);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_CL(CPND_NCS_IPC_SEND_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd ncs ipc send failed");
 	}
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -952,6 +974,7 @@ uint32_t cpnd_mds_send_rsp(CPND_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
+	TRACE_ENTER();
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->cpnd_mds_hdl;
@@ -970,8 +993,9 @@ uint32_t cpnd_mds_send_rsp(CPND_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_CPND_FCL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, s_info->dest, __FILE__, __LINE__);
+		TRACE_4("cpnd mds send fail for dest:%"PRIu64,s_info->dest);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -996,14 +1020,18 @@ uint32_t cpnd_mds_msg_sync_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 	uint32_t rc;
 	CPND_SYNC_SEND_NODE *node = NULL;
 
-	if (!i_evt)
+	TRACE_ENTER();
+	if (!i_evt) {
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
+	}
 
 	m_NCS_LOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
 
 	if ((to_svc == NCSMDS_SVC_ID_CPD) && (cb->is_cpd_up == false)) {
-		m_LOG_CPND_CL(CPND_CPD_SERVICE_IS_DOWN, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		m_NCS_UNLOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
+		TRACE_4("cpnd cpd service is down ");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1021,7 +1049,8 @@ uint32_t cpnd_mds_msg_sync_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 			cb->target_cpnd_dest = to_dest;
 		} else {
 			m_NCS_UNLOCK(&cb->cpnd_sync_send_lock, NCS_LOCK_WRITE);
-			m_LOG_CPND_FCL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_INFO, to_dest, __FILE__, __LINE__);
+			TRACE_4("cpnd mds send fail for dest:%"PRIu64,to_dest);
+			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1049,7 +1078,7 @@ uint32_t cpnd_mds_msg_sync_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 	if (rc == NCSCC_RC_SUCCESS)
 		*o_evt = mds_info.info.svc_send.info.sndrsp.o_rsp;
 	else {
-		m_LOG_CPND_FLCL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, to_dest, rc, __FILE__, __LINE__);
+		TRACE_4("cpnd mds send fail for to_dest:%"PRIu64",return value:%d",to_dest, rc);
 	}
 
 	/* Reset deadlock prevention flags in case of sync send to another CPND */
@@ -1059,7 +1088,7 @@ uint32_t cpnd_mds_msg_sync_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 		cb->target_cpnd_dest = 0;
 		m_NCS_UNLOCK(&cb->cpnd_sync_send_lock, NCS_LOCK_WRITE);
 	}
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1082,15 +1111,19 @@ uint32_t cpnd_mds_msg_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 
-	if (!evt)
+	TRACE_ENTER();
+	if (!evt) {
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
+	}
 
 	m_NCS_LOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
 
 	if ((to_svc == NCSMDS_SVC_ID_CPD) && (cb->is_cpd_up == false)) {
 		/* CPD is not UP */
-		m_LOG_CPND_CL(CPND_CPD_SERVICE_IS_DOWN, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpnd cpd service is down");
 		m_NCS_UNLOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1112,9 +1145,10 @@ uint32_t cpnd_mds_msg_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_
 	rc = ncsmds_api(&mds_info);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_FCL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, to_dest, __FILE__, __LINE__);
+		TRACE_4("cpnd mds send failed for dest:%"PRIu64,to_dest);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1137,15 +1171,19 @@ uint32_t cpnd_mds_msg_sync_ack_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_de
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 
-	if (!i_evt)
+	TRACE_ENTER();
+	if (!i_evt) {
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
+	}
 
 	m_NCS_LOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
 
 	if ((to_svc == NCSMDS_SVC_ID_CPD) && (cb->is_cpd_up == false)) {
 		/* CPD is not UP */
-		m_LOG_CPND_CL(CPND_CPD_SERVICE_IS_DOWN, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpnd cpd service is down ");
 		m_NCS_UNLOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1169,8 +1207,8 @@ uint32_t cpnd_mds_msg_sync_ack_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_de
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_FCL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, to_dest, __FILE__, __LINE__);
+		TRACE_4("cpnd mds send failed for dest:%"PRIu64,to_dest);
 	}
-
+	TRACE_LEAVE();
 	return rc;
 }

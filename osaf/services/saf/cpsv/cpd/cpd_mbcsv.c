@@ -40,6 +40,7 @@ uint32_t cpd_mbcsv_async_update(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = SA_AIS_OK;
 
+	TRACE_ENTER();
 	/* populate the arg structure */
 	arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
 	arg.i_mbcsv_hdl = cb->mbcsv_handle;
@@ -52,9 +53,11 @@ uint32_t cpd_mbcsv_async_update(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	/*send the message using MBCSv */
 	rc = ncs_mbcsv_svc(&arg);
 	if (rc != SA_AIS_OK) {
-		m_LOG_CPD_CL(CPD_MBCSV_ASYNC_UPDATE_SEND_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd mbcsv async update send failed");
+		TRACE_LEAVE();
 		return rc;
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -111,7 +114,8 @@ uint32_t cpd_mbcsv_init(CPD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-
+	
+	TRACE_ENTER();
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_INITIALIZE;
@@ -120,12 +124,14 @@ uint32_t cpd_mbcsv_init(CPD_CB *cb)
 	arg.info.initialize.i_service = NCS_SERVICE_ID_CPD;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
-		m_LOG_CPD_CL(CPD_MBCSV_INIT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd mbcsv init failed ");
 		rc = NCSCC_RC_FAILURE;
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	cb->mbcsv_handle = arg.info.initialize.o_mbcsv_hdl;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -145,18 +151,21 @@ uint32_t cpd_mbcsv_open(CPD_CB *cb)
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
-
+	
+	TRACE_ENTER();
 	arg.i_op = NCS_MBCSV_OP_OPEN;
 	arg.i_mbcsv_hdl = cb->mbcsv_handle;
 	arg.info.open.i_pwe_hdl = (uint32_t)cb->mds_handle;
 	arg.info.open.i_client_hdl = cb->cpd_hdl;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
-		m_LOG_CPD_CL(CPD_MBCSV_OPEN_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd mbcsv open failed");
 		rc = NCSCC_RC_FAILURE;
+		TRACE_LEAVE();
 		return rc;
 	}
 	cb->o_ckpt_hdl = arg.info.open.o_ckpt_hdl;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -177,15 +186,18 @@ uint32_t cpd_mbcsv_selobj_get(CPD_CB *cb)
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
 	arg.i_mbcsv_hdl = cb->mbcsv_handle;
 
 	if (ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_MBCSV_GET_SEL_OBJ_FAILURE, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd mbcsv get sel obj failure ");
 		rc = NCSCC_RC_FAILURE;
+		TRACE_LEAVE();
 		return rc;
 	}
 	cb->mbcsv_sel_obj = arg.info.sel_obj_get.o_select_obj;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -205,17 +217,19 @@ uint32_t cpd_mbcsv_chgrole(CPD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
+	TRACE_ENTER();
+	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
 	arg.i_mbcsv_hdl = cb->mbcsv_handle;
 	arg.info.chg_role.i_ckpt_hdl = cb->o_ckpt_hdl;
 	arg.info.chg_role.i_ha_state = cb->ha_state;	/*  ha_state is assigned at the time of amf_init where csi_set_callback will assign the state */
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
-		m_LOG_CPD_CL(CPD_MBCSV_CHGROLE_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd mbcsv chgrole failed ");
 		rc = NCSCC_RC_FAILURE;
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -234,13 +248,15 @@ uint32_t cpd_mbcsv_close(CPD_CB *cb)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
+	TRACE_ENTER();
 	arg.i_op = NCS_MBCSV_OP_CLOSE;
 	arg.info.close.i_ckpt_hdl = cb->o_ckpt_hdl;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
-		m_LOG_CPD_CL(CPD_MBCSV_CLOSE_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd mbcsv close failed"); 
 		rc = NCSCC_RC_FAILURE;
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -259,14 +275,16 @@ uint32_t cpd_mbcsv_finalize(CPD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
+	TRACE_ENTER();
+	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	arg.i_op = NCS_MBCSV_OP_FINALIZE;
 	arg.i_mbcsv_hdl = cb->mbcsv_handle;
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
-		m_LOG_CPD_CL(CPD_MBCSV_FINALIZE_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd mbcsv finalize failed");
 		rc = NCSCC_RC_FAILURE;
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -288,7 +306,7 @@ uint32_t cpd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 
 	if (arg == NULL) {
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_CPD_CL(CPD_MBCSV_CALLBACK_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpd mbcsv callback failed");
 		return rc;
 	}
 
@@ -313,7 +331,7 @@ uint32_t cpd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 		rc = NCSCC_RC_FAILURE;
 		break;
 	}
-	m_LOG_CPD_CL(CPD_MBCSV_CALLBACK_SUCCESS, CPD_FC_MBCSV, NCSFL_SEV_INFO, __FILE__, __LINE__);
+	TRACE_1("cpd mbcsv callback success ");
 	return rc;
 }
 
@@ -336,6 +354,7 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	EDU_ERR ederror = 0;
 	uint8_t *cpd_type_ptr;
 
+	TRACE_ENTER();
 	/*  Increment the async update count cb->cpd_sync_cnt     */
 	cb->cpd_sync_cnt++;
 
@@ -343,7 +362,8 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 	cpd_type_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	if (cpd_type_ptr == NULL) {
-		m_LOG_CPD_MEMFAIL(NCS_ENC_RESERVE_SPACE_FAILED);
+		LOG_ER("ncs enc reserve space failed ");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -357,7 +377,7 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPD_A2S_CKPT_CREATE), &arg->info.encode.io_uba,
 				    EDP_OP_TYPE_ENC, &cpd_msg->info.ckpt_create, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_CREATE_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async create failed");
 			rc = NCSCC_RC_FAILURE;
 		}
 		break;
@@ -367,7 +387,7 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPD_A2S_CKPT_UNLINK), &arg->info.encode.io_uba,
 				    EDP_OP_TYPE_ENC, &cpd_msg->info.ckpt_ulink, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_UNLINK_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async unlink failed");
 			rc = NCSCC_RC_FAILURE;
 		}
 		break;
@@ -377,7 +397,7 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_CKPT_RDSET), &arg->info.encode.io_uba, EDP_OP_TYPE_ENC,
 				    &cpd_msg->info.rd_set, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_RDSET_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async rdset failed");
 			rc = NCSCC_RC_FAILURE;
 		}
 		break;
@@ -387,7 +407,7 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_CKPT_DEST_INFO), &arg->info.encode.io_uba,
 				    EDP_OP_TYPE_ENC, &cpd_msg->info.arep_set, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_AREP_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async arep failed");
 			rc = NCSCC_RC_FAILURE;
 		}
 		break;
@@ -397,7 +417,7 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_CKPT_DEST_INFO), &arg->info.encode.io_uba,
 				    EDP_OP_TYPE_ENC, &cpd_msg->info.dest_add, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_DESTADD_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async destadd failed ");
 			rc = NCSCC_RC_FAILURE;
 		}
 		break;
@@ -407,7 +427,7 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_CKPT_DEST_INFO), &arg->info.encode.io_uba,
 				    EDP_OP_TYPE_ENC, &cpd_msg->info.dest_del, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_DESTDEL_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec dest del encode failed ");
 			rc = NCSCC_RC_FAILURE;
 		}
 		break;
@@ -417,7 +437,7 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPD_A2S_CKPT_USR_INFO), &arg->info.encode.io_uba,
 				    EDP_OP_TYPE_ENC, &cpd_msg->info.usr_info, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_USRINFO_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async userinfo failed ");
 			rc = NCSCC_RC_FAILURE;
 		}
 		break;
@@ -427,14 +447,16 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_CKPT_DEST_INFO), &arg->info.encode.io_uba,
 				    EDP_OP_TYPE_ENC, &cpd_msg->info.dest_down, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			/* LOG */
+			TRACE_4("cpd A2S msg ckpt dest down encode failed");
 			rc = NCSCC_RC_FAILURE;
 		}
 		break;
 
 	default:
-		return NCSCC_RC_FAILURE;
+		rc= NCSCC_RC_FAILURE;
 	}
+
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -465,9 +487,11 @@ uint32_t cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	uint8_t *header, num_ckpt = 0, *sync_cnt_ptr;
 	bool flag = false;
 
+	TRACE_ENTER();
 	/* COLD_SYNC_RESP IS DONE BY THE ACTIVE */
 	if (cb->ha_state == SA_AMF_HA_STANDBY) {
-		rc = NCSCC_RC_FAILURE;
+		rc = NCSCC_RC_FAILURE;	
+		TRACE_LEAVE();
 		return rc;
 	}
 	/*  cb->prev_ckpt_id = 0; */
@@ -484,7 +508,8 @@ uint32_t cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 	header = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	if (header == NULL) {
-		m_LOG_CPD_MEMFAIL(NCS_ENC_RESERVE_SPACE_FAILED);
+		TRACE("ncs_enc reserve space failed");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -511,9 +536,9 @@ uint32_t cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		if (ckpt_node->dest_cnt) {
 			ckpt_create.dest_list = m_MMGR_ALLOC_CPSV_CPND_DEST_INFO(ckpt_node->dest_cnt);
 			if (ckpt_create.dest_list == NULL) {
-				m_LOG_CPD_CL(CPD_CPND_DEST_INFO_ALLOC_FAILED, CPD_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__,
-					     __LINE__);
+				LOG_ER("cpd cpnd dest info memory allocation failed");
 				rc = NCSCC_RC_OUT_OF_MEM;
+				TRACE_LEAVE();
 				return rc;
 			} else {
 				memset(ckpt_create.dest_list, 0, (sizeof(CPSV_CPND_DEST_INFO) * ckpt_node->dest_cnt));
@@ -530,8 +555,9 @@ uint32_t cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPD_A2S_CKPT_CREATE), &arg->info.encode.io_uba,
 				    EDP_OP_TYPE_ENC, &ckpt_create, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_MBCSV(EDU_EXEC_ASYNC_CREATE_FAILED, NCSFL_SEV_ERROR);
+			TRACE_4("edu exec async create failed");
 			m_MMGR_FREE_CPSV_CPND_DEST_INFO(ckpt_create.dest_list);
+			TRACE_LEAVE();
 			return rc;
 		}
 
@@ -552,7 +578,8 @@ uint32_t cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	/* This will have the count of async updates that have been sent , this will be 0 initially */
 	sync_cnt_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (sync_cnt_ptr == NULL) {
-		m_LOG_CPD_MEMFAIL(NCS_ENC_RESERVE_SPACE_FAILED);
+		LOG_ER("ncs_enc_reserve space_failed");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -579,6 +606,7 @@ uint32_t cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		}
 
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -601,7 +629,7 @@ uint32_t cpd_mbcsv_enc_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	/* Reserve space to send the async update counter */
 	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (wsync_ptr == NULL) {
-		m_LOG_CPD_MEMFAIL(NCS_ENC_RESERVE_SPACE_FAILED);
+		LOG_ER("cpd enc reserve space failed for mbcsv_enc_warm_sync_resp");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -628,9 +656,10 @@ uint32_t cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 	CPD_CB *cb;
 	uint16_t msg_fmt_version;
 
+	TRACE_ENTER();
 	m_CPD_RETRIEVE_CB(cb);	/* finally give up the handle */
 	if (cb == NULL) {
-		m_LOG_CPD_HEADLINE(CPD_DESTROY_FAIL, NCSFL_SEV_ERROR);
+		LOG_ER("cb retrieve failed in cpd mbcsv encode proc");
 		return (NCSCC_RC_FAILURE);
 	}
 
@@ -675,6 +704,7 @@ uint32_t cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 	}
 
 	ncshm_give_hdl(cb->cpd_hdl);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -707,7 +737,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 	cpd_msg = m_MMGR_ALLOC_CPD_MBCSV_MSG;
 	if (cpd_msg == NULL) {
-		m_LOG_CPD_MEMFAIL(CPD_MBCSV_MSG_ALLOC_FAILED);
+		LOG_ER("cpd mbcsv msg memory alloc failed ");
 		rc = NCSCC_RC_FAILURE;
 		return rc;
 	}
@@ -724,6 +754,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	evt_type = ncs_decode_8bit(&ptr);
 	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
+
 	switch (evt_type) {
 	case CPD_A2S_MSG_CKPT_CREATE:
 		ckpt_create = m_MMGR_ALLOC_CPD_A2S_CKPT_CREATE;
@@ -734,7 +765,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			if (ckpt_create->dest_list)
 				m_MMGR_FREE_CPSV_SYS_MEMORY(ckpt_create->dest_list);
 			m_MMGR_FREE_CPD_A2S_CKPT_CREATE(ckpt_create);
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_CREATE_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async create failed");
 
 			rc = NCSCC_RC_FAILURE;
 			goto end;
@@ -743,7 +774,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		cpd_msg->info.ckpt_create = *ckpt_create;
 		rc = cpd_process_sb_msg(cb, cpd_msg);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(CPD_STANDBY_CREATE_EVT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd standby create evt failed");
 			goto end;
 		}
 		if (ckpt_create->dest_list)
@@ -756,7 +787,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPD_A2S_CKPT_UNLINK), &arg->info.decode.i_uba,
 				    EDP_OP_TYPE_DEC, &ckpt_unlink, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_UNLINK_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async unlink failed");
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
@@ -764,7 +795,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		cpd_msg->info.ckpt_ulink = *ckpt_unlink;
 		rc = cpd_process_sb_msg(cb, cpd_msg);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(CPD_STANDBY_UNLINK_EVT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd standby unlink evt failed");
 			goto end;
 		}
 
@@ -775,7 +806,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_CKPT_RDSET), &arg->info.decode.i_uba, EDP_OP_TYPE_DEC,
 				    &ckpt_rdset, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_RDSET_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async rdset failed"); 
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
@@ -784,7 +815,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 		rc = cpd_process_sb_msg(cb, cpd_msg);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(CPD_STANDBY_RDSET_EVT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd standby rdset evt failed");
 			goto end;
 		}
 		break;
@@ -794,7 +825,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_CKPT_DEST_INFO), &arg->info.decode.i_uba,
 				    EDP_OP_TYPE_DEC, &ckpt_arep, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_AREP_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async arep failed ");
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
@@ -802,7 +833,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		cpd_msg->info.arep_set = *ckpt_arep;
 		rc = cpd_process_sb_msg(cb, cpd_msg);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(CPD_STANDBY_AREP_EVT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd standby arep evt failed ");
 			goto end;
 		}
 		break;
@@ -812,7 +843,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_CKPT_DEST_INFO), &arg->info.decode.i_uba,
 				    EDP_OP_TYPE_DEC, &ckpt_dest_add, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_DESTADD_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async destadd failed");
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
@@ -820,7 +851,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		cpd_msg->info.dest_add = *ckpt_dest_add;
 		rc = cpd_process_sb_msg(cb, cpd_msg);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(CPD_STANDBY_DESTADD_EVT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd standby dest add evt failed ");
 			goto end;
 		}
 		break;
@@ -830,7 +861,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_CKPT_DEST_INFO), &arg->info.decode.i_uba,
 				    EDP_OP_TYPE_DEC, &ckpt_dest_del, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_DESTDEL_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async dest del failed ");
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
@@ -839,7 +870,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = cpd_process_sb_msg(cb, cpd_msg);
 
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(CPD_STANDBY_DESTDEL_EVT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd standby destdel evt failed");
 			goto end;
 		}
 		break;
@@ -849,7 +880,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPD_A2S_CKPT_USR_INFO), &arg->info.decode.i_uba,
 				    EDP_OP_TYPE_DEC, &ckpt_usr_info, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_DESTDEL_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async dest del failed"); 
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
@@ -858,7 +889,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = cpd_process_sb_msg(cb, cpd_msg);
 
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(CPD_STANDBY_DESTDEL_EVT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd standby dest del evt failed");
 			goto end;
 		}
 		break;
@@ -868,7 +899,7 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_CKPT_DEST_INFO), &arg->info.decode.i_uba,
 				    EDP_OP_TYPE_DEC, &ckpt_dest_down, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_DESTDEL_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async destdel failed");
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
@@ -877,18 +908,21 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = cpd_process_sb_msg(cb, cpd_msg);
 
 		if (rc != NCSCC_RC_SUCCESS) {
-			/* LOG */
+			TRACE_4("cpd process sb msg");
 			goto end;
 		}
 		break;
 
 	default:
+		
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 		break;
 	}
 
  end:
 	m_MMGR_FREE_CPD_MBCSV_MSG(cpd_msg);
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -910,14 +944,17 @@ uint32_t cpd_mbcsv_dec_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	CPD_A2S_CKPT_CREATE *ckpt_data;
 	EDU_ERR ederror = 0;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if (arg->info.decode.i_uba.ub == NULL) {	/* There is no data */
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
 
 	ckpt_data = m_MMGR_ALLOC_CPD_A2S_CKPT_CREATE;
 	if (ckpt_data == NULL) {
 		rc = NCSCC_RC_FAILURE;
+		TRACE_LEAVE();
 		return rc;
 	}
 	memset(ckpt_data, 0, sizeof(CPD_A2S_CKPT_CREATE));
@@ -937,13 +974,14 @@ uint32_t cpd_mbcsv_dec_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			if (ckpt_data->dest_list)
 				m_MMGR_FREE_CPSV_SYS_MEMORY(ckpt_data->dest_list);
 			m_MMGR_FREE_CPD_A2S_CKPT_CREATE(ckpt_data);
-			m_LOG_CPD_CL(EDU_EXEC_ASYNC_CREATE_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("edu exec async create failed");
+			TRACE_LEAVE();
 			return rc;
 		}
 		mbcsv_msg.info.ckpt_create = *ckpt_data;
 		proc_rc = cpd_sb_proc_ckpt_create(cb, &mbcsv_msg);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_CL(CPD_STANDBY_CREATE_EVT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd standby create evt failed");
 		}
 		count++;
 		if (ckpt_data->dest_list)
@@ -963,7 +1001,7 @@ uint32_t cpd_mbcsv_dec_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	   m_MMGR_FREE_CPSV_SYS_MEMORY(ckpt_data->dest_list); */
 
 	m_MMGR_FREE_CPD_A2S_CKPT_CREATE(ckpt_data);
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -982,6 +1020,7 @@ uint32_t cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	uint8_t data[16], *ptr;
 	NCS_MBCSV_ARG ncs_arg;
 
+	TRACE_ENTER();
 	memset(&ncs_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(int32_t));
@@ -989,12 +1028,12 @@ uint32_t cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(int32_t));
 
 	if (cb->cpd_sync_cnt == num_of_async_upd) {
+		TRACE_LEAVE();
 		return rc;
 	} else {
 		cb->cold_or_warm_sync_on = true;
 
-		m_LOG_CPD_LLCL(CPD_MBCSV_WARM_SYNC_COUNT_MISMATCH, CPD_FC_MBCSV, NCSFL_SEV_ERROR, cb->cpd_sync_cnt,
-			       num_of_async_upd, __FILE__, __LINE__);
+		TRACE_4("cpd mbcsv warm sync count mismatch cpd_sync_cnt: %u num_of_async_upd: %u", cb->cpd_sync_cnt, num_of_async_upd);
 		/* cpd_cb_db_destroy(cb); */
 		cpd_ckpt_tree_node_destroy(cb);
 		ncs_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
@@ -1003,9 +1042,11 @@ uint32_t cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = ncs_mbcsv_svc(&ncs_arg);
 		if (rc != NCSCC_RC_SUCCESS) {
 			/* Log */
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1023,9 +1064,12 @@ uint32_t cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 	CPD_CB *cb;
 	uint16_t msg_fmt_version;
 	uint32_t status;
+
+	TRACE_ENTER();
 	m_CPD_RETRIEVE_CB(cb);	/* finally give up the handle */
 	if (cb == NULL) {
-		m_LOG_CPD_HEADLINE(CPD_DESTROY_FAIL, NCSFL_SEV_ERROR);
+		LOG_ER("cpd cb retrieve failed ");
+		TRACE_LEAVE();
 		return (NCSCC_RC_FAILURE);
 	}
 
@@ -1055,6 +1099,7 @@ uint32_t cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 				}
 
 				ncshm_give_hdl(cb->cpd_hdl);
+				TRACE_LEAVE();
 				return NCSCC_RC_SUCCESS;
 			}
 			break;
@@ -1082,13 +1127,16 @@ uint32_t cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 			break;
 		default:
 			ncshm_give_hdl(cb->cpd_hdl);
+			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
 		ncshm_give_hdl(cb->cpd_hdl);
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	} else {
 		/* Drop The Message */
 		ncshm_give_hdl(cb->cpd_hdl);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 

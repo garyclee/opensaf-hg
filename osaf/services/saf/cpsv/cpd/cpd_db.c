@@ -30,7 +30,6 @@
 #include "cpd.h"
 #include "cpd_imm.h"
 #include "immutil.h"
-#include "cpd_log.h"
 
 /****************************************************************************
   Name          : cpd_ckpt_tree_init
@@ -106,19 +105,17 @@ uint32_t cpd_ckpt_node_add(NCS_PATRICIA_TREE *ckpt_tree, CPD_CKPT_INFO_NODE *ckp
 	if (ha_state == SA_AMF_HA_ACTIVE) {
 		err = create_runtime_ckpt_object(ckpt_node, immOiHandle);
 		if (err != SA_AIS_OK) {
-			cpd_log(NCSFL_SEV_ERROR, "create_runtime_ckpt_object failed %u\n", err);
+			LOG_ER("create runtime ckpt object failed with error: %u",err);
 			return NCSCC_RC_FAILURE;
 		}
 	}
 
 	if (ncs_patricia_tree_add(ckpt_tree, &ckpt_node->patnode) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_FCL(CPD_CKPT_INFO_NODE_ADD_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_node->ckpt_id, __FILE__,
-			      __LINE__);
+		TRACE_4("cpd ckpt info node add failed ckpt_id:%llx",ckpt_node->ckpt_id);
 		/* delete imm ckpt runtime object */
 		if (ha_state == SA_AMF_HA_ACTIVE) {
 			if (immutil_saImmOiRtObjectDelete(immOiHandle, &ckpt_node->ckpt_name) != SA_AIS_OK) {
-				cpd_log(NCSFL_SEV_ERROR, "Deleting run time object %s FAILED",
-					ckpt_node->ckpt_name.value);
+				LOG_ER("Deleting run time object %s FAILED",ckpt_node->ckpt_name.value);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -141,6 +138,8 @@ uint32_t cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPD_NODE_REF_INFO *nref_info, *next_info;
 
+	TRACE_ENTER();
+
 	/* In case if the internal pointers present, delete them 
 	   The while loop is executed in case of cleanup, at the time of destroy */
 	if (ckpt_node == NULL) {
@@ -157,7 +156,7 @@ uint32_t cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	/* delete imm ckpt runtime object */
 	if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (ckpt_node->is_unlink_set != true)) {
 		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &ckpt_node->ckpt_name) != SA_AIS_OK) {
-			cpd_log(NCSFL_SEV_ERROR, "Deleting run time object %s FAILED", ckpt_node->ckpt_name.value);
+			LOG_ER("Deleting run time object %s FAILED", ckpt_node->ckpt_name.value);
 			/* Free the Client Node */
 			if (ckpt_node)
 				m_MMGR_FREE_CPD_CKPT_INFO_NODE(ckpt_node);
@@ -172,7 +171,7 @@ uint32_t cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	/* Free the Client Node */
 	if (ckpt_node)
 		m_MMGR_FREE_CPD_CKPT_INFO_NODE(ckpt_node);
-
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -192,6 +191,7 @@ void cpd_ckpt_node_and_ref_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	CPD_CPND_INFO_NODE *del_node_info = NULL;
 	ckpt_node->node_list = NULL;
 	ckpt_node->dest_cnt = 0;
+	TRACE_ENTER();
 
 	while (nref) {
 		nref_next = nref->next;
@@ -218,7 +218,7 @@ void cpd_ckpt_node_and_ref_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	}
 
 	m_MMGR_FREE_CPD_CKPT_INFO_NODE(ckpt_node);
-
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -373,13 +373,15 @@ uint32_t cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_
 {
 	SaAisErrorT err = SA_AIS_OK;
 	SaNameT replica_dn;
+	TRACE_ENTER();
 	memset(&replica_dn, 0, sizeof(SaNameT));
 
 	/* Add the imm runtime object */
 	if (ha_state == SA_AMF_HA_ACTIVE) {
 		err = create_runtime_replica_object(ckpt_reploc_node, immOiHandle);
 		if (err != SA_AIS_OK) {
-			cpd_log(NCSFL_SEV_ERROR, "create_runtime_replica_object failed %u\n", err);
+			LOG_ER("create runtime replica object failed %u",err);
+			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
 	}
@@ -389,20 +391,21 @@ uint32_t cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_
 
 	ckpt_reploc_node->patnode.key_info = (uint8_t *)&ckpt_reploc_node->rep_key;
 	if (ncs_patricia_tree_add(ckpt_reploc_tree, &ckpt_reploc_node->patnode) != NCSCC_RC_SUCCESS) {
-		/* m_LOG_CPD_HEADLINE(CPD_CKPT_REPLOC_INFO_ADD_FAILED, NCSFL_SEV_ERROR); */
 		/* delete reploc imm runtime object */
 		if (ha_state == SA_AMF_HA_ACTIVE) {
 			cpd_create_association_class_dn(&ckpt_reploc_node->rep_key.node_name,
 							&ckpt_reploc_node->rep_key.ckpt_name, "safReplica", &replica_dn);
 
 			if (immutil_saImmOiRtObjectDelete(immOiHandle, &replica_dn) != SA_AIS_OK) {
-				cpd_log(NCSFL_SEV_ERROR, "Deleting run time object %s FAILED", replica_dn.value);
+				TRACE_4("Deleting run time object %s Failed",replica_dn.value);
+				TRACE_LEAVE();
 				return NCSCC_RC_FAILURE;
 			}
+			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
 	}
-
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -424,7 +427,7 @@ uint32_t cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_repl
 		if (rc != NCSCC_RC_SUCCESS) {
 
 			/* goto reploc_node_add_fail; */
-			m_LOG_CPD_CL(CPD_DB_ADD_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd db add failed cpd ckpt reploc imm object delete returned failure");
 
 			rc = NCSCC_RC_FAILURE;
 
@@ -436,7 +439,7 @@ uint32_t cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_repl
 		rc = cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, ckpt_reploc_node, cb->ha_state, cb->immOiHandle);
 		if (rc != NCSCC_RC_SUCCESS) {
 			/* goto reploc_node_add_fail; */
-			m_LOG_CPD_CL(CPD_DB_ADD_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd db node add failed ");
 		}
 		rc = NCSCC_RC_FAILURE;
 	}
@@ -581,8 +584,7 @@ uint32_t cpd_ckpt_map_node_add(NCS_PATRICIA_TREE *ckpt_map_tree, CPD_CKPT_MAP_IN
 
 	if (ncs_patricia_tree_add(ckpt_map_tree, &ckpt_map_node->patnode) != NCSCC_RC_SUCCESS) {
 
-		m_LOG_CPD_CCL(CPD_CKPT_MAP_INFO_ADD_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR,
-			      ckpt_map_node->ckpt_name.value, __FILE__, __LINE__);
+		TRACE_4("cpd ckpt map info add failed ckpt_name %s",ckpt_map_node->ckpt_name.value);
 
 		return NCSCC_RC_FAILURE;
 	}
@@ -603,8 +605,7 @@ uint32_t cpd_ckpt_map_node_delete(CPD_CB *cb, CPD_CKPT_MAP_INFO *ckpt_map_node)
 
 	/* Remove the Node from the client tree */
 	if (ncs_patricia_tree_del(&cb->ckpt_map_tree, &ckpt_map_node->patnode) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CCL(CPD_MAP_NODE_DELETE_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_map_node->ckpt_name.value,
-			      __FILE__, __LINE__);
+		TRACE_4("cpd map node delete failed ckpt_name:%s",ckpt_map_node->ckpt_name.value);
 		rc = NCSCC_RC_FAILURE;
 	}
 
@@ -747,6 +748,7 @@ uint32_t cpd_cpnd_info_node_add(NCS_PATRICIA_TREE *cpnd_tree, CPD_CPND_INFO_NODE
 {
 	/* Store the client_info pointer as msghandle. */
 	NODE_ID key;
+	TRACE_ENTER();
 
 	key = m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_info_node->cpnd_dest);
 
@@ -754,11 +756,12 @@ uint32_t cpd_cpnd_info_node_add(NCS_PATRICIA_TREE *cpnd_tree, CPD_CPND_INFO_NODE
 	cpnd_info_node->patnode.key_info = (uint8_t *)&key;
 
 	if (ncs_patricia_tree_add(cpnd_tree, &cpnd_info_node->patnode) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_CPND_INFO_NODE_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-
+		TRACE_4("cpd cpnd info node add to cpnd_tree failed");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -785,7 +788,7 @@ uint32_t cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *des
 	if ((*cpnd_info_node == NULL) && (*add_flag == true)) {
 		*cpnd_info_node = m_MMGR_ALLOC_CPD_CPND_INFO_NODE;
 		if (*cpnd_info_node == NULL) {
-			m_LOG_CPD_CL(CPD_CPND_INFO_ALLOC_FAILED, CPD_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpd cpnd info memory allocation failed");
 			return NCSCC_RC_FAILURE;
 		}
 		memset((*cpnd_info_node), '\0', sizeof(CPD_CPND_INFO_NODE));
@@ -797,8 +800,7 @@ uint32_t cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *des
 		(*cpnd_info_node)->patnode.key_info = (uint8_t *)&((*cpnd_info_node)->cpnd_key);
 
 		if (ncs_patricia_tree_add(cpnd_tree, &(*cpnd_info_node)->patnode) != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_FCL(CPD_CPND_INFO_NODE_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, *dest, __FILE__,
-				      __LINE__);
+			TRACE_4("cpd cpnd info node failed for mds_dest %"PRIu64,*dest);
 			return NCSCC_RC_FAILURE;
 		}
 		*add_flag = false;
@@ -823,7 +825,7 @@ uint32_t cpd_cpnd_info_node_delete(CPD_CB *cb, CPD_CPND_INFO_NODE *cpnd_info_nod
 	/* Remove the internal linked list, if exists, The while loop will be executed
 	   only in case of clean up */
 	if (cpnd_info_node == NULL) {
-		m_LOG_CPD_CL(CPD_CPND_INFO_NODE_DELETE_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd cpnd info node delete failed");
 		return NCSCC_RC_FAILURE;
 	}
 	cref_info = cpnd_info_node->ckpt_ref_list;
@@ -835,7 +837,7 @@ uint32_t cpd_cpnd_info_node_delete(CPD_CB *cb, CPD_CPND_INFO_NODE *cpnd_info_nod
 
 	/* Remove the Node from the client tree */
 	if (ncs_patricia_tree_del(&cb->cpnd_tree, &cpnd_info_node->patnode) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_CPND_INFO_NODE_DELETE_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd cpnd info node delete failed from cpnd_tree");
 		rc = NCSCC_RC_FAILURE;
 	}
 
@@ -863,6 +865,7 @@ void cpd_cpnd_info_tree_cleanup(CPD_CB *cb)
 	CPD_CPND_INFO_NODE *cpnd_info_node;
 	NODE_ID key;
 
+	TRACE_ENTER();
 	memset(&key, 0, sizeof(NODE_ID));
 
 	/* Get the First Node */
@@ -874,7 +877,8 @@ void cpd_cpnd_info_tree_cleanup(CPD_CB *cb)
 
 		cpnd_info_node = (CPD_CPND_INFO_NODE *)ncs_patricia_tree_getnext(&cb->cpnd_tree, (uint8_t *)&key);
 	}
-
+	
+	TRACE_LEAVE();
 	return;
 }
 
@@ -914,33 +918,39 @@ void cpd_cpnd_info_tree_destroy(CPD_CB *cb)
 uint32_t cpd_cb_db_init(CPD_CB *cb)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-
+	
+	TRACE_ENTER();
 	cb->nxt_ckpt_id = 1;
 
 	rc = cpd_ckpt_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_CKPT_TREE_INIT_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd ckpt tree init failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	rc = cpd_ckpt_map_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_MAP_TREE_INIT_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd map tree init failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	rc = cpd_cpnd_info_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_CPND_INFO_TREE_INIT_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd cpnd info tree init failed ");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	rc = cpd_ckpt_reploc_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_CKPT_REPLOC_TREE_INIT_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd ckpkt reploc tree init failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
+	TRACE_LEAVE();
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -976,6 +986,7 @@ void cpd_ckpt_ref_info_add(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cre
 {
 
 	CPD_CKPT_REF_INFO *cref = NULL;
+	TRACE_ENTER();
 
 	cref = node_info->ckpt_ref_list;
 	while (cref) {
@@ -991,6 +1002,7 @@ void cpd_ckpt_ref_info_add(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cre
 	node_info->ckpt_cnt++;
 /*   m_NCS_CONST_PRINTF("cpnd_node ckpt_reference %d \n",node_info->ckpt_cnt); */
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -1005,6 +1017,7 @@ void cpd_ckpt_ref_info_del(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cre
 	CPD_CKPT_REF_INFO *cref, *cref_prev = 0;
 	bool found = false;
 
+	TRACE_ENTER();
 	cref = node_info->ckpt_ref_list;
 	while (cref) {
 		if (cref == cref_info) {
@@ -1026,7 +1039,7 @@ void cpd_ckpt_ref_info_del(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cre
 		node_info->ckpt_cnt--;
 		m_MMGR_FREE_CPD_CKPT_REF_INFO(cref);
 	}
-
+	TRACE_LEAVE();
 	return;
 }
 
@@ -1040,6 +1053,7 @@ void cpd_node_ref_info_add(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nre
 {
 	CPD_NODE_REF_INFO *nref = NULL;
 
+	TRACE_ENTER();
 	nref = ckpt_node->node_list;
 	while (nref) {
 		if (nref->dest == nref_info->dest)
@@ -1053,6 +1067,7 @@ void cpd_node_ref_info_add(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nre
 	ckpt_node->node_list = nref_info;
 	ckpt_node->dest_cnt++;
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -1067,6 +1082,7 @@ void cpd_node_ref_info_del(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nre
 	CPD_NODE_REF_INFO *nref, *nref_prev = 0;
 	bool found = false;
 
+	TRACE_ENTER();
 	nref = ckpt_node->node_list;
 	while (nref) {
 		if (nref == nref_info) {
@@ -1087,6 +1103,7 @@ void cpd_node_ref_info_del(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nre
 		ckpt_node->dest_cnt--;
 		m_MMGR_FREE_CPD_NODE_REF_INFO(nref);
 	}
+	TRACE_LEAVE();
 
 	return;
 }
@@ -1110,6 +1127,7 @@ uint32_t cpd_process_cpnd_del(CPD_CB *cb, MDS_DEST *cpnd_dest)
 	CPD_REP_KEY_INFO key_info;
 	CPD_CKPT_REPLOC_INFO *rep_info = NULL;
 
+	TRACE_ENTER();
 	memset(&key_info, 0, sizeof(CPD_REP_KEY_INFO));
 
 	cpd_cpnd_info_node_get(&cb->cpnd_tree, cpnd_dest, &cpnd_info);
@@ -1162,6 +1180,7 @@ uint32_t cpd_process_cpnd_del(CPD_CB *cb, MDS_DEST *cpnd_dest)
 	/* get each  ckpt_nodes and */
 
 	cpd_cpnd_info_node_delete(cb, cpnd_info);
+	TRACE_LEAVE();
 
 	return rc;
 }
@@ -1222,6 +1241,7 @@ void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificatio
 	NODE_ID key;
 	uint32_t counter = 0;
 
+	TRACE_ENTER();
 	/* 1. Get the CPD_CB */
 	m_CPD_RETRIEVE_CB(cb);
 	if (cb == NULL) {
@@ -1251,5 +1271,6 @@ void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificatio
 		}
 	}
 	m_CPD_GIVEUP_CB;
+	TRACE_LEAVE();
 	return;
 }
