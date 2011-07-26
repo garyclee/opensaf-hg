@@ -19,7 +19,6 @@
 #include "cpd_imm.h"
 #include "immutil.h"
 #include "saImm.h"
-#include "cpd_log.h"
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 #define CPSV_IMM_IMPLEMENTER_NAME (SaImmOiImplementerNameT) "safCheckPointService"
@@ -178,7 +177,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 							attrMods[1] = NULL;
 							rc = saImmOiRtObjectUpdate_2(cb->immOiHandle, objectName, attrMods);
 							if (rc != SA_AIS_OK) {
-								cpd_log(NCSFL_SEV_ERROR, "saImmOiRtObjectUpdate failed for replica object: %u", rc);
+								LOG_ER("saImmOiRtObjectUpdate failed for replica object: %u", rc);
 							}
 
 						}
@@ -203,7 +202,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						++attr_count;
 					} else if (strcmp(attributeName, "saCkptCheckpointUsedSize") == 0) {
 						if (cpd_fetch_used_size(ckpt_node, cb) == NCSCC_RC_FAILURE) {
-							cpd_log(NCSFL_SEV_ERROR, "cpd_fetch_used_size failed");
+							LOG_ER("cpd_fetch_used_size failed");
 							rc = SA_AIS_ERR_FAILED_OPERATION;
 							goto done;
 						}
@@ -268,7 +267,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						++attr_count;
 					} else if (strcmp(attributeName, "saCkptCheckpointNumSections") == 0) {
 						if (cpd_fetch_num_sections(ckpt_node, cb) == NCSCC_RC_FAILURE) {
-							cpd_log(NCSFL_SEV_ERROR, "cpd_fetch_num_sections failed");
+							 LOG_ER("cpd_fetch_num_sections failed");
 							rc = SA_AIS_ERR_FAILED_OPERATION;
 							goto done;
 						}
@@ -300,7 +299,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 				attrMods[attr_count] = NULL;
 				rc = saImmOiRtObjectUpdate_2(cb->immOiHandle, objectName, attrMods);
 				if (rc != SA_AIS_OK) {
-					cpd_log(NCSFL_SEV_ERROR, "saImmOiRtObjectUpdate failed for ckpt object: %u", rc);
+					 LOG_ER("saImmOiRtObjectUpdate failed for ckpt object: %u", rc);
 				}
 				goto done;
 			}	/* End if  m_CMP_HORDER_SANAMET */
@@ -439,7 +438,7 @@ SaAisErrorT create_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHan
 
 	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaCkptCheckpoint", &parentName, attrValues);
 	if (rc != SA_AIS_OK)
-		cpd_log(NCSFL_SEV_ERROR, " saImmOiRtObjectCreate_2 failed with error = %u", rc);
+		LOG_ER("saImmOiRtObjectCreate_2 failed with error = %u", rc);
 
 	free(dndup);
 	return rc;
@@ -491,7 +490,7 @@ static void *_cpd_imm_declare_implementer(void *cb)
 		nTries++;
 	}
 	if (error != SA_AIS_OK) {
-		cpd_log(NCSFL_SEV_ERROR, "saImmOiImplementerSet FAILED, rc = %u", error);
+		LOG_ER("saImmOiImplementerSet FAILED, rc = %u", error);
 		exit(EXIT_FAILURE);
 	}
 	return NULL;
@@ -541,15 +540,13 @@ static uint32_t cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
 		rc = cpd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, ckpt_node->active_dest, &send_evt, &out_evt,
 					   CPSV_WAIT_TIME);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_FCL(CPD_MDS_SEND_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_node->active_dest, __FILE__,
-				      __LINE__);
+			TRACE_4("cpd mds send fail for active dest: %"PRIu64,ckpt_node->active_dest);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
 
 		if (out_evt == NULL) {
-			m_LOG_CPD_FCL(CPD_MDS_SEND_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_node->active_dest, __FILE__,
-				      __LINE__);
+			TRACE_4("cpd mds send fail for active dest :%"PRIu64"with out_evt NULL",ckpt_node->active_dest);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -571,6 +568,8 @@ static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb
 	CPSV_EVT send_evt;
 	CPSV_EVT *out_evt = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 	memset(&send_evt, 0, sizeof(CPSV_EVT));
 	send_evt.type = CPSV_EVT_TYPE_CPND;
 	send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_NUM_SECTIONS;
@@ -578,27 +577,25 @@ static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb
 
 	if (ckpt_node->active_dest == 0) {
 		ckpt_node->num_sections = 0;
-		m_LOG_CPD_FCL(CPD_CPND_NODE_DOES_NOT_EXIST, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_node->active_dest,
-			      __FILE__, __LINE__);
+		TRACE_4("cpd cpnd node does not exist for active dest :%"PRIu64,ckpt_node->active_dest);
 	} else {
 		rc = cpd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, ckpt_node->active_dest, &send_evt, &out_evt,
 					   CPSV_WAIT_TIME);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_FCL(CPD_MDS_SEND_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_node->active_dest, __FILE__,
-				      __LINE__);
+
+			TRACE_4("cpd mds send fail in fetch num sections for active dest :%"PRIu64,ckpt_node->active_dest);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
 
 		if (out_evt == NULL) {
-			m_LOG_CPD_FCL(CPD_MDS_SEND_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_node->active_dest, __FILE__,
-				      __LINE__);
+			TRACE_4("cpd mds send fail with out_evt as NULL for active dest :%"PRIu64,ckpt_node->active_dest);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		} else {
 			if (out_evt->info.cpd.info.ckpt_created_sections.error == SA_AIS_ERR_NOT_EXIST) {
-				m_LOG_CPD_FCL(CPD_CPND_NODE_DOES_NOT_EXIST, CPD_FC_HDLN, NCSFL_SEV_ERROR,
-					      ckpt_node->active_dest, __FILE__, __LINE__);
+	
+				TRACE_4("cpd cpnd node doest not exist for active dest:%"PRIu64,ckpt_node->active_dest);
 				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
@@ -609,6 +606,7 @@ static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb
 	}
 
  done:
+	TRACE_LEAVE();
 	return rc;
 }
 

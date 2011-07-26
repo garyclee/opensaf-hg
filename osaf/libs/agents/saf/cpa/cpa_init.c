@@ -67,6 +67,7 @@ static void cpa_sync_with_cpnd(CPA_CB *cb);
 uint32_t cpa_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -78,12 +79,12 @@ uint32_t cpa_lib_req(NCS_LIB_REQ_INFO *req_info)
 		break;
 
 	default:
-		m_LOG_CPA_CCL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "lib_req:unknown", __FILE__,
-			      __LINE__);
+		TRACE_4("cpa api filaed with lib_req:unknown");
 		rc = NCSCC_RC_FAILURE;
 		break;
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -144,14 +145,11 @@ static uint32_t cpa_create(NCS_LIB_CREATE *create_info)
 	if (create_info == NULL)
 		return NCSCC_RC_FAILURE;
 
-	/* Register with Logging subsystem */
-	cpa_flx_log_reg();
 
 	/* Malloc the CB for CPA */
 	cb = m_MMGR_ALLOC_CPA_CB;
 	if (cb == NULL) {
-		/* m_LOG_CPA_MEMFAIL(CPA_CB_ALLOC_FAILED); */
-		m_LOG_CPA_CCL(CPA_MEM_ALLOC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "CPA_CB", __FILE__, __LINE__);
+		TRACE_4("cpa mem alloc failed for CPA_CB");
 		goto cb_alloc_fail;
 	}
 	memset(cb, 0, sizeof(CPA_CB));
@@ -161,7 +159,7 @@ static uint32_t cpa_create(NCS_LIB_CREATE *create_info)
 
 	/* create the association with hdl-mngr */
 	if (!(cb->agent_handle_id = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_CPA, (NCSCONTEXT)cb))) {
-		m_LOG_CPA_CCL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "ncshm_create", __FILE__, __LINE__);
+		TRACE_4("cpa create failed int ncsshm_create_hdl");
 		goto hm_create_fail;
 	}
 	/*store the hdl in the global variable */
@@ -172,7 +170,7 @@ static uint32_t cpa_create(NCS_LIB_CREATE *create_info)
 
 	/* initialize the cpa cb lock */
 	if (m_NCS_LOCK_INIT(&cb->cb_lock) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPA_CCL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "LOCK_INIT", __FILE__, __LINE__);
+		TRACE_4("cpa create failed in LOCK_INIT ");
 		goto lock_init_fail;
 	}
 
@@ -193,11 +191,11 @@ static uint32_t cpa_create(NCS_LIB_CREATE *create_info)
 
 	/* EDU initialisation */
 	if (m_NCS_EDU_HDL_INIT(&cb->edu_hdl) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPA_CCL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "EDU:INIT", __FILE__, __LINE__);
+		TRACE_4("cpa create failed in EDU_INIT:");
 		goto edu_init_fail;
 	}
 
-	m_LOG_CPA_CCL(CPA_PROC_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE, "Lib Init", __FILE__, __LINE__);
+	TRACE_1("cpa create sucess,Lib init success");
 	return NCSCC_RC_SUCCESS;
 
 /* error8:
@@ -227,8 +225,6 @@ static uint32_t cpa_create(NCS_LIB_CREATE *create_info)
 
  cb_alloc_fail:
 
-	/* Deregister with the Flex Log */
-	cpa_flx_log_dereg();
 
 	return NCSCC_RC_FAILURE;
 }
@@ -270,13 +266,10 @@ static uint32_t cpa_destroy(NCS_LIB_DESTROY *destroy_info)
 	/* remove the association with hdl-mngr */
 	ncshm_destroy_hdl(NCS_SERVICE_ID_CPA, cb->agent_handle_id);
 
-	m_LOG_CPA_CCL(CPA_PROC_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE, "Lib Destroy", __FILE__, __LINE__);
+	TRACE_2("cpa lib destroy success ");
 
 	/*  Memory leaks found in cpa_init.c */
 	m_MMGR_FREE_CPA_CB(cb);
-
-	/* de register with the flex log */
-	cpa_flx_log_dereg();
 
 	/* reset the global cb handle */
 	gl_cpa_hdl = 0;

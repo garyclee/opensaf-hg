@@ -41,7 +41,7 @@ void cpnd_timer_expiry(NCSCONTEXT uarg)
 
 	if  (tmr == NULL)  {
 
-		TRACE("CPND: Tmr Mailbox Processing: tmr invalid ");
+		TRACE_4("CPND: Tmr Mailbox Processing: tmr invalid ");
 		/* Fall through to free memory */
 		return;
 	}
@@ -97,8 +97,7 @@ void cpnd_timer_expiry(NCSCONTEXT uarg)
 				evt->info.cpnd.info.tmr_info.lcl_ckpt_hdl = tmr->lcl_ckpt_hdl;
 				break;
 			default:
-				m_LOG_CPND_CL(CPND_EVT_UNKNOWN, CPND_FC_EVT, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-				TRACE(" Invalid    tmr->type %d",  tmr->type);
+				TRACE_4(" Invalid    tmr->type %d",  tmr->type);
 				m_MMGR_FREE_CPSV_EVT(evt, NCS_SERVICE_ID_CPND);
 				goto done;
 

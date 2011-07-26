@@ -404,7 +404,7 @@ uint32_t cpa_gbl_ckpt_node_add(NCS_PATRICIA_TREE *gbl_ckpt_tree, CPA_GLOBAL_CKPT
 	gc_node->patnode.key_info = (uint8_t *)&gc_node->gbl_ckpt_hdl;
 
 	if (ncs_patricia_tree_add(gbl_ckpt_tree, &gc_node->patnode) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPA_HEADLINE(CPA_GLOBAL_CKPT_NODE_ADD_FAILED, NCSFL_SEV_ERROR);
+		TRACE_4("cpa global ckpt node add failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -593,31 +593,39 @@ void cpa_gbl_ckpt_tree_destroy(CPA_CB *cb)
 uint32_t cpa_db_init(CPA_CB *cb)
 {
 	uint32_t rc;
+	TRACE_ENTER();
 
 	rc = cpa_client_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "db_init", __FILE__, __LINE__);
+		TRACE_4("cpa client tree init failed in ckpt db_init");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	rc = cpa_lcl_ckpt_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "db_init", __FILE__, __LINE__);
+
+		TRACE_4("cpa lcl ckpt tree init failed in ckpt db_init ");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	rc = cpa_gbl_ckpt_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "db_init", __FILE__, __LINE__);
+
+		TRACE_4("cpa gbl ckpt tree init failed in ckpt db_init");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	rc = cpa_sect_iter_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "db_init", __FILE__, __LINE__);
+		TRACE_4("cpa sect iter tree init failed in ckpt db_init");
+		TRACE_LEAVE();
 		return rc;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 

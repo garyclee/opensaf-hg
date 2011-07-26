@@ -162,7 +162,7 @@ void cpnd_process_evt(CPSV_EVT *evt)
 
    if(evt->type != CPSV_EVT_TYPE_CPND)
    {
-      m_LOG_CPND_CL(CPND_EVT_UNKNOWN, CPND_FC_EVT,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+	TRACE_4("cpnd unknown event");
       cpnd_evt_destroy(evt);
       return;
    }
@@ -170,7 +170,7 @@ void cpnd_process_evt(CPSV_EVT *evt)
 	/* Get the CB from the handle */
 	cb = m_CPND_TAKE_CPND_CB;
 	if (cb == NULL) {
-		m_LOG_CPND_CL(CPND_CB_HDL_TAKE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd cb take handle failed");
 		cpnd_evt_destroy(evt);
 		return;
 	}
@@ -396,6 +396,7 @@ static uint32_t cpnd_evt_proc_ckpt_init(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 	CPND_CKPT_CLIENT_NODE *cl_node = NULL;
 	int32_t cl_offset;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	/* Allocate the CPND_CKPT_CLIENT_NODE Struct
@@ -403,14 +404,14 @@ static uint32_t cpnd_evt_proc_ckpt_init(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 	   Add it to patricia cb->cpnd_client_info */
 	if (m_CPA_VER_IS_ABOVE_B_1_1(&evt->info.initReq.version))
 		if (cb->is_joined_cl == false) {
-			m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpnd clm node get failed");
 			rc = SA_AIS_ERR_UNAVAILABLE;
 			goto agent_rsp;
 		}
 
 	cl_node = m_MMGR_ALLOC_CPND_CKPT_CLIENT_NODE;
 	if (cl_node == NULL) {
-		m_LOG_CPND_CL(CPND_CLIENT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd client node memory allocation failed");
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto agent_rsp;
 	}
@@ -424,8 +425,7 @@ static uint32_t cpnd_evt_proc_ckpt_init(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 	cl_node->ckpt_list = NULL;
 
 	if (cpnd_client_node_add(cb, cl_node) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_FCL(CPND_CLIENT_TREE_ADD_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       cl_node->ckpt_app_hdl, __FILE__, __LINE__);
+		TRACE_4("cpnd client tree add failed for ckpt_app_hdl:%llx",cl_node->ckpt_app_hdl);
 		m_MMGR_FREE_CPND_CKPT_CLIENT_NODE(cl_node);
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto agent_rsp;
@@ -435,8 +435,7 @@ static uint32_t cpnd_evt_proc_ckpt_init(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 	cl_offset = cpnd_restart_shm_client_update(cb, cl_node);
 	/* -1 shared memory is full &&& -2 - shared memory read failed */
 	if (cl_offset == -1 || cl_offset == -2) {
-		m_LOG_CPND_FCL(CPND_CLIENT_INF0_UPDATE_FAILED, CPND_FC_RESTART, NCSFL_SEV_ERROR,
-			       cl_offset, __FILE__, __LINE__);
+		TRACE_4("cpnd client info update failed %d",cl_offset);
 	}
 	send_evt.info.cpa.info.initRsp.ckptHandle = cl_node->ckpt_app_hdl;
 	rc = SA_AIS_OK;
@@ -444,8 +443,7 @@ static uint32_t cpnd_evt_proc_ckpt_init(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 	cb->cli_id_gen++;
 
 	if (rc == SA_AIS_OK)
-		m_LOG_CPND_FCL(CPND_CLIENT_INF0_UPDATE_SUCCESS, CPND_FC_RESTART, NCSFL_SEV_INFO,
-			       cl_node->ckpt_app_hdl, __FILE__, __LINE__);
+		TRACE_1("cpnd client info update success for ckpt_app_hdl:%llx",cl_node->ckpt_app_hdl);
 
  agent_rsp:
 	send_evt.type = CPSV_EVT_TYPE_CPA;
@@ -454,6 +452,7 @@ static uint32_t cpnd_evt_proc_ckpt_init(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
 
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -478,6 +477,7 @@ static uint32_t cpnd_evt_proc_ckpt_finalize(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 	CPND_CKPT_NODE *cp_node = NULL;
 	SaAisErrorT error;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	if (!cpnd_is_cpd_up(cb)) {
@@ -487,8 +487,7 @@ static uint32_t cpnd_evt_proc_ckpt_finalize(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 
 	cpnd_client_node_get(cb, evt->info.finReq.client_hdl, &cl_node);
 	if (cl_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CLIENT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.finReq.client_hdl, __FILE__, __LINE__);
+		TRACE_4("cpnd client node get failed client_hdl:%llx",evt->info.finReq.client_hdl);
 		send_evt.info.cpa.info.finRsp.error = SA_AIS_ERR_BAD_HANDLE;
 		goto agent_rsp;
 
@@ -510,18 +509,16 @@ static uint32_t cpnd_evt_proc_ckpt_finalize(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 		/* Sending the Num Users, Num Writers , Num readers & Local Ref Count Update to CPD */
 		rc = cpnd_send_ckpt_usr_info_to_cpd(cb, cp_node, cp_node->open_flags, CPSV_USR_INFO_CKPT_CLOSE);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPND_CL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("cpnd mds send for ckpt usr info to cpd failed");
 		}
-		m_LOG_CPND_FFLCL(CPND_CLIENT_CKPT_CLOSE_SUCCESS, CPND_FC_API, NCSFL_SEV_INFO,
-				 cl_node->ckpt_app_hdl, cp_node->ckpt_id, cp_node->ckpt_lcl_ref_cnt, __FILE__,
-				 __LINE__);
+		TRACE_1("cpnd client ckpt close success ckpt_app_hdl:%llx,ckpt_id:%llx,ckpt_lcl_ref_cnt:%u",cl_node->ckpt_app_hdl, 
+			cp_node->ckpt_id, cp_node->ckpt_lcl_ref_cnt);
 
 		/* Check for Non-Collocated Replica */
 		if (m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags)) {
 			rc = cpnd_ckpt_replica_close(cb, cp_node, &error);
 			if (rc == NCSCC_RC_FAILURE) {
-				m_LOG_CPND_FCL(CPND_CKPT_REPLICA_CLOSE_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR,
-						cp_node->ckpt_id, __FILE__, __LINE__);
+				TRACE_4("cpnd ckpt replica close failed ckpt_id:%llx",cp_node->ckpt_id);
 				send_evt.info.cpa.info.finRsp.error = error;
 				goto agent_rsp;
 			}
@@ -529,13 +526,12 @@ static uint32_t cpnd_evt_proc_ckpt_finalize(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 	}
 
 	/* CPND RESTART - FREE THE GLOBAL SHARED MEMORY */
-	m_LOG_CPND_FCL(CPND_CLIENT_FINALIZE_SUCCESS, CPND_FC_API, NCSFL_SEV_INFO,
-		       cl_node->ckpt_app_hdl, __FILE__, __LINE__);
+	TRACE_1("cpnd client finalize success for ckpt app hdl:%llx",cl_node->ckpt_app_hdl);
 	cpnd_restart_client_node_del(cb, cl_node);
 
 	rc = cpnd_client_node_del(cb, cl_node);
 	if (rc == NCSCC_RC_FAILURE) {
-		m_LOG_CPND_CL(CPND_CLIENT_TREE_DEL_FAILED, CPND_FC_API, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpnd client tree del failed");
 	}
 
 	m_MMGR_FREE_CPND_CKPT_CLIENT_NODE(cl_node);
@@ -546,6 +542,7 @@ static uint32_t cpnd_evt_proc_ckpt_finalize(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 	send_evt.type = CPSV_EVT_TYPE_CPA;
 	send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_FINALIZE_RSP;
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -575,6 +572,7 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 	SaAisErrorT error;
 	SaTimeT timeout;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	if (!cpnd_is_cpd_up(cb)) {
@@ -587,8 +585,7 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 
 	cpnd_client_node_get(cb, client_hdl, &cl_node);
 	if (cl_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CLIENT_HDL_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-			       client_hdl, __FILE__, __LINE__);
+		TRACE_4("cpnd client hdl get failed for client hdl:%llx",client_hdl);
 		return rc;
 	}
 
@@ -636,8 +633,7 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 
 		rc = cpnd_send_ckpt_usr_info_to_cpd(cb, cp_node, evt->info.openReq.ckpt_flags, CPSV_USR_INFO_CKPT_OPEN);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPND_FCL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, cp_node->ckpt_id,
-				       __FILE__, __LINE__);
+			TRACE_4("cpnd mds send failed in cpnd_Send ckpt usr info to cpd for ckpt_id:%llx",cp_node->ckpt_id);
 		}
 
 		send_evt.info.cpa.info.openRsp.gbl_ckpt_hdl = cp_node->ckpt_id;
@@ -648,8 +644,8 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 			send_evt.info.cpa.info.openRsp.is_active_exists = true;
 			send_evt.info.cpa.info.openRsp.active_dest = cp_node->active_mds_dest;
 		}
-		m_LOG_CPND_FFFLCL(CPND_CKPT_OPEN_SUCCESS, CPND_FC_API, NCSFL_SEV_INFO, client_hdl, cp_node->ckpt_id,
-				  cp_node->active_mds_dest, cp_node->ckpt_lcl_ref_cnt, __FILE__, __LINE__);
+		TRACE_2("cpnd ckpt open success for client_hdl %llx,ckpt_id:%llx,active_mds_dest:%"PRIu64",ckpt_lcl_ref_cnt:%u",client_hdl, cp_node->ckpt_id,
+				  cp_node->active_mds_dest, cp_node->ckpt_lcl_ref_cnt);
 
 		goto agent_rsp;
 	}
@@ -677,15 +673,14 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 	rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPD, cb->cpd_mdest_id, &send_evt, &out_evt, CPSV_WAIT_TIME);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_CFCL(CPND_CKPT_OPEN_FAILURE, CPND_FC_API, NCSFL_SEV_ERROR, ckpt_name.value,
-				client_hdl, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt open failure for ckpt_name:%s,client_hdl:%llx",ckpt_name.value,client_hdl);
 
 		if (rc == NCSCC_RC_REQ_TIMOUT) {
 
 			node = (CPND_CPD_DEFERRED_REQ_NODE *)m_MMGR_ALLOC_CPND_CPD_DEFERRED_REQ_NODE;
 			if (!node) {
-				m_LOG_CPND_CFCL(CPND_CPD_DEFERRED_REQ_NODE_ALLOC_FAILED, CPND_FC_MEMFAIL,
-						NCSFL_SEV_ERROR, ckpt_name.value, client_hdl, __FILE__, __LINE__);
+				TRACE_4("cpnd cpd deferred req node memory allocation for ckpt_name:%s,client_hdl:%llx",
+				ckpt_name.value, client_hdl);
 				send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_NO_MEMORY;
 				goto agent_rsp;
 			}
@@ -704,7 +699,7 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 
 	if (out_evt == NULL) {
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_CPND_CL(CPND_CKPT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd ckpt memory alloc failed");
 		send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_NO_MEMORY;
 		goto agent_rsp;
 	}
@@ -719,7 +714,7 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 
 		cp_node = m_MMGR_ALLOC_CPND_CKPT_NODE;
 		if (cp_node == NULL) {
-			m_LOG_CPND_CL(CPND_CKPT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("cpnd ckpt node memory allocation failed");
 			send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_NO_MEMORY;
 			goto agent_rsp;
 		}
@@ -772,8 +767,8 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 
 			rc = cpnd_ckpt_replica_create(cb, cp_node);
 			if (rc == NCSCC_RC_FAILURE) {
-				m_LOG_CPND_CFCL(CPND_CKPT_REP_CREATE_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR,
-						ckpt_name.value, client_hdl, __FILE__, __LINE__);
+				TRACE_4("cpnd ckpt rep create failed ckpt_name:%s,client_hdl:%llx",
+						ckpt_name.value, client_hdl);
 				send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_NO_RESOURCES;
 				goto ckpt_node_free_error;
 			}
@@ -781,23 +776,23 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 			/* UPDATE THE CHECKPOINT HEADER */
 			rc = cpnd_ckpt_hdr_update(cp_node);
 			if (rc == NCSCC_RC_FAILURE) {
-				m_LOG_CPND_CFCL(CPND_CKPT_HDR_UPDATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-						ckpt_name.value, client_hdl, __FILE__, __LINE__);
+				TRACE_4("cpnd ckpt hdr update failed ckpt_name:%s,client_hdl:%llx",
+						ckpt_name.value, client_hdl);
 			}
 		}
 
 		rc = cpnd_restart_shm_ckpt_update(cb, cp_node, client_hdl);
 		if (rc == NCSCC_RC_FAILURE) {
-			m_LOG_CPND_CFCL(CPND_RESTART_SHM_CKPT_UPDATE_FAILED, CPND_FC_RESTART, NCSFL_SEV_ERROR,
-					ckpt_name.value, client_hdl, __FILE__, __LINE__);
+			TRACE_4("cpnd restart shm ckpt update failed ckpt_name:%s,client_hdl:%llx",
+					ckpt_name.value, client_hdl);
 			send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_NO_RESOURCES;
 			goto ckpt_shm_node_free_error;
 		}
 
 		/* add it to to tree db */
 		if (cpnd_ckpt_node_add(cb, cp_node) == NCSCC_RC_FAILURE) {
-			m_LOG_CPND_FFCL(CPND_CKPT_NODE_ADDITION_FAILED, CPND_FC_CKPTINFO, NCSFL_SEV_ERROR,
-					cp_node->ckpt_id, client_hdl, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt node addition failed ckpt_id:%llx,client_hdl:%llx",
+					cp_node->ckpt_id, client_hdl);
 			send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_NO_RESOURCES;
 			goto ckpt_shm_node_free_error;
 		}
@@ -830,21 +825,17 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 				send_evt.info.cpnd.info.sync_req.invocation = evt->info.openReq.invocation;
 
 			rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, cp_node->active_mds_dest, &send_evt,
-						    &out_evt, CPSV_WAIT_TIME);
+						&out_evt, CPSV_WAIT_TIME);
 			if (rc != NCSCC_RC_SUCCESS) {
 				if (rc == NCSCC_RC_REQ_TIMOUT) {
 					send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_TIMEOUT;
-					m_LOG_CPND_CFFFCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL, CPND_FC_MDSFAIL,
-							  NCSFL_SEV_ERROR, ckpt_name.value, cb->cpnd_mdest_id,
-							  cp_node->active_mds_dest, cp_node->ckpt_id, __FILE__,
-							  __LINE__);
+					TRACE_4("cpnd remote to active mds send fail with timeout for ckpt_name:%s,cpnd_mdest_id:%"PRIu64",\
+						 active_mds_dest:%"PRIu64",ckpt_id:%llx",ckpt_name.value, cb->cpnd_mdest_id, cp_node->active_mds_dest, cp_node->ckpt_id);
 
 				} else {
 					send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_TRY_AGAIN;
-					m_LOG_CPND_CFFFCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL, CPND_FC_MDSFAIL,
-							  NCSFL_SEV_ERROR, ckpt_name.value, cb->cpnd_mdest_id,
-							  cp_node->active_mds_dest, cp_node->ckpt_id, __FILE__,
-							  __LINE__);
+					TRACE_4("cpnd remote to active mds send fail with timeout for ckpt_name:%s,cpnd_mdest_id:%"PRIu64", \
+						active_mds_dest:%"PRIu64",ckpt_id:%llx",ckpt_name.value, cb->cpnd_mdest_id, cp_node->active_mds_dest, cp_node->ckpt_id);
 
 				}
 				goto agent_rsp;
@@ -867,13 +858,14 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 			if (cpnd_tmr_start
 			    (&cp_node->open_active_sync_tmr,
 			     CPND_WAIT_TIME(cp_node->create_attrib.checkpointSize)) == NCSCC_RC_SUCCESS)
-				m_LOG_CPND_FCL(CPND_OPEN_ACTIVE_SYNC_START_TMR_SUCCESS, CPND_FC_CKPTINFO,
-					       NCSFL_SEV_NOTICE, cp_node->ckpt_id, __FILE__, __LINE__);
+				TRACE_4("cpnd open active sync start tmr success ckpt_id:%llx",cp_node->ckpt_id);
 			if (out_evt) {
 				cpnd_evt_destroy(out_evt);
 				out_evt = NULL;
 			}
-	            return rc;	
+			
+		TRACE_LEAVE();
+		return rc;	
               }
 
  agent_rsp2:
@@ -886,20 +878,18 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 			send_evt.info.cpa.info.openRsp.active_dest = cp_node->active_mds_dest;
 		}
 		if (send_evt.info.cpa.info.openRsp.error == SA_AIS_OK) {
-			m_LOG_CPND_CFFFCL(CPND_CKPT_OPEN_SUCCESS, CPND_FC_API, NCSFL_SEV_INFO, ckpt_name.value,
-					  client_hdl, cp_node->ckpt_id, cp_node->active_mds_dest, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt open success ckpt_name:%s,client_hdl:%llx,ckpt_id:%llx,active_mds_dest:%"PRIu64"",ckpt_name.value,
+			client_hdl, cp_node->ckpt_id,cp_node->active_mds_dest);
 		}
 		goto agent_rsp;
 
 	default:
-		m_LOG_CPND_LCL(CPND_EVT_UNKNOWN, CPND_FC_EVT, NCSFL_SEV_ERROR, out_evt->info.cpnd.type, __FILE__,
-			       __LINE__);
+		LOG_CR("cpnd evt unknown type :%d",out_evt->info.cpnd.type);
 		break;
 	}
 
 	send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_LIBRARY;
-	m_LOG_CPND_CFCL(CPND_CKPT_OPEN_FAILURE, CPND_FC_EVT, NCSFL_SEV_ERROR, ckpt_name.value,
-			client_hdl, __FILE__, __LINE__);
+	TRACE_4("cpnd ckpt open failure client_hdl:%llx",client_hdl);
 	goto agent_rsp;
 
  ckpt_shm_node_free_error:
@@ -941,6 +931,7 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
        if(out_evt)
                 cpnd_evt_destroy(out_evt);
 
+	TRACE_LEAVE();
         return rc;
 }
 
@@ -975,8 +966,7 @@ static uint32_t cpnd_evt_proc_ckpt_close(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 
 	cpnd_client_node_get(cb, evt->info.closeReq.client_hdl, &cl_node);
 	if (cl_node == NULL) {
-		m_LOG_CPND_FFCL(CPND_CLIENT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-				evt->info.closeReq.client_hdl, evt->info.closeReq.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd client node get failed client_hdl:%llx,ckpt_id:%llx ",evt->info.closeReq.client_hdl,evt->info.closeReq.ckpt_id);
 		send_evt.info.cpa.info.closeRsp.error = SA_AIS_ERR_LIBRARY;
 		rc = NCSCC_RC_FAILURE;
 		goto agent_rsp;
@@ -984,8 +974,7 @@ static uint32_t cpnd_evt_proc_ckpt_close(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 
 	cpnd_ckpt_node_get(cb, evt->info.closeReq.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FFCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-				evt->info.closeReq.client_hdl, evt->info.closeReq.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed client_hdl:%llx,ckpt_id:%llx",evt->info.closeReq.client_hdl, evt->info.closeReq.ckpt_id);
 		send_evt.info.cpa.info.closeRsp.error = SA_AIS_ERR_NOT_EXIST;
 		rc = NCSCC_RC_FAILURE;
 		goto agent_rsp;
@@ -1003,19 +992,16 @@ static uint32_t cpnd_evt_proc_ckpt_close(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 
 	rc = cpnd_send_ckpt_usr_info_to_cpd(cb, cp_node, cp_node->open_flags, CPSV_USR_INFO_CKPT_CLOSE);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_FFCL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-				evt->info.closeReq.client_hdl, evt->info.closeReq.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd mds send failed for client_hdl:%llx,ckpt_id:%llx", evt->info.closeReq.client_hdl, evt->info.closeReq.ckpt_id);
 		/* For now go ahread and close the queue, we need to think of a better way to handle this */
 	}
-	m_LOG_CPND_FFLCL(CPND_CLIENT_CKPT_CLOSE_SUCCESS, CPND_FC_API, NCSFL_SEV_INFO,
-			 cl_node->ckpt_app_hdl, cp_node->ckpt_id, cp_node->ckpt_lcl_ref_cnt, __FILE__, __LINE__);
+	TRACE_1("cpnd client ckpt close success ckpt_app_hdl:%llx, ckpt_id:%llx,ckkpt_lcl_ref_cnt:%u",
+			cl_node->ckpt_app_hdl, cp_node->ckpt_id, cp_node->ckpt_lcl_ref_cnt);
 
 	if (m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags)) {
 		rc = cpnd_ckpt_replica_close(cb, cp_node, &error);
 		if (rc == NCSCC_RC_FAILURE) {
-			m_LOG_CPND_FFCL(CPND_CKPT_REPLICA_CLOSE_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR,
-					evt->info.closeReq.client_hdl, cp_node->ckpt_id, __FILE__, __LINE__);
-
+			TRACE_4("cpnd ckpt replica close failed for client_hdl:%llx,ckpt_id:%llx",evt->info.closeReq.client_hdl, cp_node->ckpt_id);
 			send_evt.info.cpa.info.closeRsp.error = error;
 			goto agent_rsp;
 		}
@@ -1052,6 +1038,7 @@ static uint32_t cpnd_evt_proc_ckpt_unlink(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPND_CPD_DEFERRED_REQ_NODE *node = NULL;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	if (!cpnd_is_cpd_up(cb)) {
@@ -1066,14 +1053,13 @@ static uint32_t cpnd_evt_proc_ckpt_unlink(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 	rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPD, cb->cpd_mdest_id, &send_evt, &out_evt, CPSV_WAIT_TIME);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_LCL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_4("cpnd mds send failed with rc value %u",rc);
 
 		if (rc == NCSCC_RC_REQ_TIMOUT) {
 
 			node = (CPND_CPD_DEFERRED_REQ_NODE *)m_MMGR_ALLOC_CPND_CPD_DEFERRED_REQ_NODE;
 			if (!node) {
-				m_LOG_CPND_CL(CPND_CPD_DEFERRED_REQ_NODE_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR,
-					      __FILE__, __LINE__);
+				TRACE_4("cpnd cpd deferred req node memory allocation failed");
 				send_evt.info.cpa.info.ulinkRsp.error = SA_AIS_ERR_NO_MEMORY;
 				goto agent_rsp;
 			}
@@ -1100,8 +1086,7 @@ static uint32_t cpnd_evt_proc_ckpt_unlink(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 		else
 			send_evt.info.cpa.info.ulinkRsp.error = SA_AIS_ERR_TIMEOUT;
 
-		m_LOG_CPND_CCL(CPND_PROC_CKPT_UNLINK_SUCCESS, CPND_FC_API, NCSFL_SEV_INFO,
-			       evt->info.ulinkReq.ckpt_name.value, __FILE__, __LINE__);
+		TRACE_2("cpnd proc ckpt unlink success ckpt_name:%s",evt->info.ulinkReq.ckpt_name.value);
 		goto agent_rsp;
 	}
 	cp_node->cpa_sinfo = *(sinfo);
@@ -1110,6 +1095,7 @@ static uint32_t cpnd_evt_proc_ckpt_unlink(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 	if (out_evt)
 		cpnd_evt_destroy(out_evt);
 
+	TRACE_LEAVE();
 	return rc;
 
  agent_rsp:
@@ -1118,6 +1104,7 @@ static uint32_t cpnd_evt_proc_ckpt_unlink(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
 	if (out_evt)
 		cpnd_evt_destroy(out_evt);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1147,8 +1134,7 @@ static uint32_t cpnd_evt_proc_ckpt_unlink_info(CPND_CB *cb, CPND_EVT *evt, CPSV_
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_ulink.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_INFO, evt->info.ckpt_ulink.ckpt_id,
-			       __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.ckpt_ulink.ckpt_id);
 		rc = NCSCC_RC_FAILURE;
 		send_evt.info.cpa.info.ulinkRsp.error = SA_AIS_ERR_NOT_EXIST;
 		goto agent_rsp;
@@ -1171,13 +1157,10 @@ static uint32_t cpnd_evt_proc_ckpt_unlink_info(CPND_CB *cb, CPND_EVT *evt, CPSV_
 
 		rc = cpnd_ckpt_replica_destroy(cb, cp_node, &error);
 		if (rc == NCSCC_RC_FAILURE) {
-
-			m_LOG_CPND_FLCL(CPND_CKPT_REPLICA_DESTROY_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR,
-					cp_node->ckpt_id, error, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt replica destroy failed for ckpt_id:%llx,error %u",cp_node->ckpt_id, error);
 			goto agent_rsp;
 		}
-		m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_SUCCESS, CPND_FC_GENERIC, NCSFL_SEV_INFO, cp_node->ckpt_id,
-			       __FILE__, __LINE__);
+		TRACE_1("cpnd ckpt replica destroy success ckpt_id:%llx", cp_node->ckpt_id);
 
 		cpnd_restart_shm_ckpt_free(cb, cp_node);
 		cpnd_ckpt_node_destroy(cb, cp_node);
@@ -1192,8 +1175,7 @@ static uint32_t cpnd_evt_proc_ckpt_unlink_info(CPND_CB *cb, CPND_EVT *evt, CPSV_
 			rc = cpnd_ckpt_hdr_update(cp_node);
 
 		}
-		m_LOG_CPND_FCL(CPND_PROC_CKPT_UNLINK_SET, CPND_FC_CKPTINFO, NCSFL_SEV_INFO,
-			       cp_node->ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd proc ckpt unlink set for ckpt_id:%llx",cp_node->ckpt_id);
 
 		send_evt.info.cpa.info.ulinkRsp.error = SA_AIS_OK;
 	}
@@ -1206,7 +1188,7 @@ static uint32_t cpnd_evt_proc_ckpt_unlink_info(CPND_CB *cb, CPND_EVT *evt, CPSV_
 		rc = cpnd_mds_send_rsp(cb, &sinfo_cpa, &send_evt);
 
 	}
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1224,14 +1206,15 @@ static uint32_t cpsv_cpnd_restart(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *si
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPND_CKPT_NODE *cp_node = NULL;
 
+	TRACE_ENTER();
 	cpnd_ckpt_node_get(cb, evt->info.cpnd_restart.ckpt_id, &cp_node);
 
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_INFO, evt->info.cpnd_restart.ckpt_id,
-			       __FILE__, __LINE__);
+		TRACE_1("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.cpnd_restart.ckpt_id);
 		return NCSCC_RC_FAILURE;
 	}
 	cp_node->is_restart = true;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1249,6 +1232,7 @@ static uint32_t cpsv_cpnd_active_replace(CPND_CKPT_NODE *cp_node, CPND_EVT *evt)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPSV_CPND_DEST_INFO *cpnd_mdest_trav = cp_node->cpnd_dest_list;
 
+	TRACE_ENTER();
 	while (cpnd_mdest_trav) {
 		if (m_CPND_IS_LOCAL_NODE(&cpnd_mdest_trav->dest, &cp_node->active_mds_dest) == 0) {
 			cpnd_mdest_trav->dest = evt->info.cpnd_restart_done.mds_dest;
@@ -1256,6 +1240,7 @@ static uint32_t cpsv_cpnd_active_replace(CPND_CKPT_NODE *cp_node, CPND_EVT *evt)
 		} else
 			cpnd_mdest_trav = cpnd_mdest_trav->next;
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1276,11 +1261,11 @@ static uint32_t cpsv_cpnd_restart_done(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INF
 	CPSV_CPND_DEST_INFO *tmp = NULL;
 	uint32_t dst_cnt = 0;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 	cpnd_ckpt_node_get(cb, evt->info.cpnd_restart_done.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_INFO,
-			       evt->info.cpnd_restart_done.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.cpnd_restart_done.ckpt_id);
 		return NCSCC_RC_FAILURE;
 	}
 	cp_node->is_restart = false;
@@ -1307,6 +1292,7 @@ static uint32_t cpsv_cpnd_restart_done(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INF
 	}
 
 	cp_node->active_mds_dest = evt->info.cpnd_restart_done.mds_dest;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1331,6 +1317,7 @@ static uint32_t cpnd_evt_proc_ckpt_rdset(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 	CPND_CKPT_NODE *cp_node = NULL;
 	CPND_CPD_DEFERRED_REQ_NODE *node = NULL;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	if (!cpnd_is_cpd_up(cb)) {
@@ -1340,8 +1327,7 @@ static uint32_t cpnd_evt_proc_ckpt_rdset(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 
 	cpnd_ckpt_node_get(cb, evt->info.rdsetReq.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.rdsetReq.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.rdsetReq.ckpt_id);
 		send_evt.info.cpa.info.rdsetRsp.error = SA_AIS_ERR_NOT_EXIST;
 		goto agent_rsp;
 	}
@@ -1366,13 +1352,12 @@ static uint32_t cpnd_evt_proc_ckpt_rdset(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 	rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPD, cb->cpd_mdest_id, &send_evt, &out_evt, CPSV_WAIT_TIME);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_LCL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_4("cpnd mds send failed with reutrn value %u",rc);
 		if (rc == NCSCC_RC_REQ_TIMOUT) {
 
 			node = (CPND_CPD_DEFERRED_REQ_NODE *)m_MMGR_ALLOC_CPND_CPD_DEFERRED_REQ_NODE;
 			if (!node) {
-				m_LOG_CPND_CL(CPND_CPD_DEFERRED_REQ_NODE_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR,
-					      __FILE__, __LINE__);
+				TRACE_4("cpnd cpd deferred req node memory allocation failed");
 				send_evt.info.cpa.info.rdsetRsp.error = SA_AIS_ERR_NO_MEMORY;
 				goto out_evt_free;
 			}
@@ -1412,7 +1397,7 @@ static uint32_t cpnd_evt_proc_ckpt_rdset(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 
 	if (out_evt)
 		cpnd_evt_destroy(out_evt);
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1437,6 +1422,7 @@ static uint32_t cpnd_evt_proc_ckpt_arep_set(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPND_CPD_DEFERRED_REQ_NODE *node = NULL;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	if (!cpnd_is_cpd_up(cb)) {
@@ -1446,8 +1432,7 @@ static uint32_t cpnd_evt_proc_ckpt_arep_set(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 
 	cpnd_ckpt_node_get(cb, evt->info.arsetReq.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.arsetReq.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed  ckpt_id:%llx",evt->info.arsetReq.ckpt_id);
 		send_evt.info.cpa.info.arsetRsp.error = SA_AIS_ERR_NOT_EXIST;
 		goto agent_rsp;
 	}
@@ -1469,13 +1454,12 @@ static uint32_t cpnd_evt_proc_ckpt_arep_set(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 	rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPD, cb->cpd_mdest_id, &send_evt, &out_evt, CPSV_WAIT_TIME);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_LCL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_4("cpnd mds send failed with retrun value %u",rc);
 		if (rc == NCSCC_RC_REQ_TIMOUT) {
 
 			node = (CPND_CPD_DEFERRED_REQ_NODE *)m_MMGR_ALLOC_CPND_CPD_DEFERRED_REQ_NODE;
 			if (!node) {
-				m_LOG_CPND_CL(CPND_CPD_DEFERRED_REQ_NODE_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR,
-					      __FILE__, __LINE__);
+				TRACE_4("cpnd cpd deferred req node memory allocation failed");
 				send_evt.info.cpa.info.rdsetRsp.error = SA_AIS_ERR_NO_MEMORY;
 				goto agent_rsp;
 			}
@@ -1506,9 +1490,8 @@ static uint32_t cpnd_evt_proc_ckpt_arep_set(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
 	if (out_evt)
 		cpnd_evt_destroy(out_evt);
-
+	TRACE_LEAVE();
 	return rc;
-
 }
 
 /****************************************************************************
@@ -1531,14 +1514,14 @@ static uint32_t cpnd_evt_proc_ckpt_status_get(CPND_CB *cb, CPND_EVT *evt, CPSV_S
 	CPND_CKPT_NODE *cp_node = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	/* get cp_node from ckpt_info_db */
 
 	cpnd_ckpt_node_get(cb, evt->info.statReq.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.statReq.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.statReq.ckpt_id);
 		send_evt.info.cpa.info.status.error = SA_AIS_ERR_NOT_EXIST;
 		goto agent_rsp;
 	}
@@ -1578,6 +1561,7 @@ static uint32_t cpnd_evt_proc_ckpt_status_get(CPND_CB *cb, CPND_EVT *evt, CPSV_S
 	send_evt.type = CPSV_EVT_TYPE_CPA;
 	send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_STATUS;
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1602,15 +1586,14 @@ static uint32_t cpnd_evt_proc_ckpt_active_set(CPND_CB *cb, CPND_EVT *evt, CPSV_S
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPSV_EVT send_evt;
 
+	TRACE_ENTER();
 	memset(&mds_dest, '\0', sizeof(MDS_DEST));
-	m_LOG_CPND_FFCL(CPND_ACTIVE_REP_SET_SUCCESS, CPND_FC_HDLN, NCSFL_SEV_INFO, evt->info.active_set.ckpt_id,
-			evt->info.active_set.mds_dest, __FILE__, __LINE__);
+	TRACE_1("cpnd active rep set success for ckpt_id:%llx,mds_mdest:%"PRIu64,evt->info.active_set.ckpt_id,evt->info.active_set.mds_dest);
 
 	/* get cp_node from ckpt_info_db */
 	cpnd_ckpt_node_get(cb, evt->info.active_set.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_INFO,
-			       evt->info.active_set.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx ", evt->info.active_set.ckpt_id);
 		return NCSCC_RC_FAILURE;
 
 	}
@@ -1625,10 +1608,11 @@ static uint32_t cpnd_evt_proc_ckpt_active_set(CPND_CB *cb, CPND_EVT *evt, CPSV_S
 		send_evt.info.cpa.info.ackpt_info.ckpt_id = cp_node->ckpt_id;
 		send_evt.info.cpa.info.ackpt_info.mds_dest = cp_node->active_mds_dest;
 		rc = cpnd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
-		m_LOG_CPND_FFCL(CPND_ACTIVE_REP_SET_SUCCESS, CPND_FC_HDLN, NCSFL_SEV_NOTICE, cp_node->ckpt_id,
-				cp_node->active_mds_dest, __FILE__, __LINE__);
+		TRACE_1("cpnd active rep set success for ckpt_id:%llx,active mds_mdest:%"PRIu64,cp_node->ckpt_id,
+				cp_node->active_mds_dest);
 	}
 	cp_node->is_restart = false;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1650,11 +1634,12 @@ static uint32_t cpnd_evt_proc_ckpt_rdset_info(CPND_CB *cb, CPND_EVT *evt, CPSV_S
 	CPND_CKPT_NODE *cp_node = NULL;
 	SaAisErrorT error = SA_AIS_OK;
 
+	TRACE_ENTER();
 	/* get cp_node from ckpt_info_db */
 	cpnd_ckpt_node_get(cb, evt->info.rdset.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_INFO, evt->info.rdset.ckpt_id,
-			       __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.rdset.ckpt_id);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1665,16 +1650,18 @@ static uint32_t cpnd_evt_proc_ckpt_rdset_info(CPND_CB *cb, CPND_EVT *evt, CPSV_S
 				cpnd_tmr_stop(&cp_node->ret_tmr);
 
 		}
+
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
 
 	if (evt->info.rdset.type == CPSV_CKPT_RDSET_START) {
 		if (!m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags)) {
 			if (cpnd_ckpt_non_collocated_rplica_close(cb, cp_node, &error) == NCSCC_RC_FAILURE) {
-				m_LOG_CPND_FFCL(CPND_CKPT_REPLICA_CLOSE_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR,
-						evt->info.closeReq.client_hdl, cp_node->ckpt_id, __FILE__, __LINE__);
+				TRACE_4("cpnd ckpt relica close failed for client_hdl:%llx,ckpt_id:%llx",evt->info.closeReq.client_hdl, cp_node->ckpt_id);
 
 			}
+			TRACE_LEAVE();
 			return NCSCC_RC_SUCCESS;
 		}
 	}
@@ -1682,12 +1669,15 @@ static uint32_t cpnd_evt_proc_ckpt_rdset_info(CPND_CB *cb, CPND_EVT *evt, CPSV_S
 	/* if timer already started on one of the node then what to do!!! 
 	   not doing any thing just updating the value */
 
-	if (cp_node->is_close == true)
+	if (cp_node->is_close == true) {
+
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
+	}
 
 	if (!cp_node->is_rdset)
 		cp_node->create_attrib.retentionDuration = evt->info.rdset.reten_time;
-
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
 }
@@ -1708,11 +1698,11 @@ static uint32_t cpnd_evt_proc_ckpt_mem_size(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 	uint32_t rc = SA_AIS_OK;
 	CPSV_EVT send_evt;
 
+	TRACE_ENTER();
 	memset(&send_evt, 0, sizeof(CPSV_EVT));
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_mem_size.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.ckpt_mem_size.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.ckpt_mem_size.ckpt_id);
 		send_evt.type = CPSV_EVT_TYPE_CPD;
 		send_evt.info.cpd.type = CPD_EVT_ND2D_CKPT_MEM_USED;
 		send_evt.info.cpd.info.ckpt_mem_used.error = SA_AIS_ERR_NOT_EXIST;
@@ -1727,6 +1717,7 @@ static uint32_t cpnd_evt_proc_ckpt_mem_size(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 
  end:
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1746,11 +1737,11 @@ static uint32_t cpnd_evt_proc_ckpt_num_sections(CPND_CB *cb, CPND_EVT *evt, CPSV
 	uint32_t rc = SA_AIS_OK;
 	CPSV_EVT send_evt;
 
+	TRACE_ENTER();
 	memset(&send_evt, 0, sizeof(CPSV_EVT));
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_sections.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.ckpt_sections.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.ckpt_sections.ckpt_id);
 		send_evt.type = CPSV_EVT_TYPE_CPD;
 		send_evt.info.cpd.type = CPD_EVT_ND2D_CKPT_CREATED_SECTIONS;
 		send_evt.info.cpd.info.ckpt_created_sections.error = SA_AIS_ERR_NOT_EXIST;
@@ -1766,6 +1757,7 @@ static uint32_t cpnd_evt_proc_ckpt_num_sections(CPND_CB *cb, CPND_EVT *evt, CPSV
 
  end:
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1788,23 +1780,24 @@ static uint32_t cpnd_evt_proc_ckpt_rep_del(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND
 	CPND_CKPT_NODE *cp_node = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	/* get cp_node from ckpt_info_db */
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_del.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_INFO, evt->info.ckpt_del.ckpt_id,
-			       __FILE__, __LINE__);
+		TRACE_1("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.ckpt_del.ckpt_id);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	rc = cpnd_ckpt_remote_cpnd_del(cp_node, evt->info.ckpt_del.mds_dest);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_INFO, evt->info.ckpt_del.ckpt_id,
-			       __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.ckpt_del.ckpt_id);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
-	m_LOG_CPND_FFCL(CPND_REP_DEL_SUCCESS, CPND_FC_API, NCSFL_SEV_INFO,
-			cp_node->ckpt_id, evt->info.ckpt_del.mds_dest, __FILE__, __LINE__);
+	TRACE_1("cpnd rep del success for ckpt_id:%llx,mds_mdest:%"PRIu64,cp_node->ckpt_id,evt->info.ckpt_del.mds_dest);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
 }
@@ -1830,10 +1823,11 @@ static uint32_t cpnd_evt_proc_ckpt_rep_add(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND
 	CPSV_CPND_DEST_INFO *tmp = NULL;
 	uint32_t dst_cnt = 0;
 
+	TRACE_ENTER();
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_add.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_INFO,
-			       evt->info.ckpt_add.ckpt_id, __FILE__, __LINE__);
+		TRACE_1("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.ckpt_add.ckpt_id);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1866,12 +1860,14 @@ static uint32_t cpnd_evt_proc_ckpt_rep_add(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND
 			}
 		}
 
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
 
 	/* Add the new replica's MDS_DEST to the dest liot of this replica */
 	rc = cpnd_ckpt_remote_cpnd_add(cp_node, evt->info.ckpt_add.mds_dest);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1896,13 +1892,13 @@ static uint32_t cpnd_evt_proc_ckpt_sect_exp_set(CPND_CB *cb, CPND_EVT *evt, CPSV
 	CPND_CKPT_NODE *cp_node = NULL;
 	CPND_CKPT_SECTION_INFO *sec_info = NULL;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	cpnd_ckpt_node_get(cb, evt->info.sec_expset.ckpt_id, &cp_node);
 
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_INFO,
-			       evt->info.sec_expset.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.sec_expset.ckpt_id);
 		send_evt.info.cpa.info.sec_exptmr_rsp.error = SA_AIS_ERR_NOT_EXIST;
 		goto agent_rsp;
 	}
@@ -1926,9 +1922,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_exp_set(CPND_CB *cb, CPND_EVT *evt, CPSV
 	if (cp_node->cpnd_rep_create) {
 		sec_info = cpnd_ckpt_sec_get(cp_node, &evt->info.sec_expset.sec_id);
 		if (sec_info == NULL) {
-			m_LOG_CPND_CFCL(CPND_CKPT_SECT_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-					evt->info.sec_expset.sec_id.id, evt->info.sec_expset.ckpt_id,
-					__FILE__, __LINE__);
+			TRACE_4("cpnd ckpt sect get failed for sec_id:%s,ckpt_id:%llx",evt->info.sec_expset.sec_id.id, evt->info.sec_expset.ckpt_id);
 			send_evt.info.cpa.info.sec_exptmr_rsp.error = SA_AIS_ERR_NOT_EXIST;
 			goto agent_rsp;
 		}
@@ -1954,9 +1948,8 @@ static uint32_t cpnd_evt_proc_ckpt_sect_exp_set(CPND_CB *cb, CPND_EVT *evt, CPSV
 		rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, cp_node->active_mds_dest,
 					    &send_evt, &out_evt, CPSV_WAIT_TIME);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPND_FFFLCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL, CPND_FC_MDSFAIL, NCSFL_SEV_ERROR,
-					  cb->cpnd_mdest_id, cp_node->active_mds_dest, cp_node->ckpt_id, rc, __FILE__,
-					  __LINE__);
+			TRACE_4("cpnd remote to active mds send failed for cpnd_mdest_id:%"PRIu64",active_mds_dest \
+			:%"PRIu64",ckpt_id:%llx,return value:%d",cb->cpnd_mdest_id, cp_node->active_mds_dest, cp_node->ckpt_id, rc);
 			if (rc == NCSCC_RC_REQ_TIMOUT) {
 				send_evt.info.cpa.info.sec_exptmr_rsp.error = SA_AIS_ERR_TIMEOUT;
 			} else
@@ -1983,6 +1976,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_exp_set(CPND_CB *cb, CPND_EVT *evt, CPSV
 	if (out_evt)
 		cpnd_evt_destroy(out_evt);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -2012,12 +2006,12 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 	SaTimeT now, duration;
 	int64_t time_stamp, giga_sec, result;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	cpnd_ckpt_node_get(cb, evt->info.sec_creatReq.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FLCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-				evt->info.sec_creatReq.ckpt_id, SA_AIS_ERR_NOT_EXIST, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx,return value:%d",evt->info.sec_creatReq.ckpt_id, SA_AIS_ERR_NOT_EXIST);
 		send_evt.type = CPSV_EVT_TYPE_CPA;
 		send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
 		send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_NOT_EXIST;
@@ -2029,8 +2023,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 		send_evt.type = CPSV_EVT_TYPE_CPA;
 		send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
 		send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_CPND_FLCL(CPND_CKPT_SECT_CREATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-				evt->info.sec_creatReq.ckpt_id, SA_AIS_ERR_TRY_AGAIN, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt sect create failed for ckpt_id:%llx,return value:%d",evt->info.sec_creatReq.ckpt_id, SA_AIS_ERR_TRY_AGAIN);
 		goto agent_rsp;
 	}
 
@@ -2039,8 +2032,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 		send_evt.type = CPSV_EVT_TYPE_CPA;
 		send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
 		send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_NOT_EXIST;
-		m_LOG_CPND_FLCL(CPND_CKPT_SECT_CREATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-				evt->info.sec_creatReq.ckpt_id, SA_AIS_ERR_NOT_EXIST, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt sect create failed for ckpt_id:%llx,return value:%d",evt->info.sec_creatReq.ckpt_id, SA_AIS_ERR_NOT_EXIST);
 		goto agent_rsp;
 	}
 
@@ -2048,8 +2040,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 		send_evt.type = CPSV_EVT_TYPE_CPA;
 		send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
 		send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_INVALID_PARAM;
-		m_LOG_CPND_FLCL(CPND_CKPT_SECT_CREATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-				evt->info.sec_creatReq.ckpt_id, SA_AIS_ERR_INVALID_PARAM, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt sect create failed for ckpt_id:%llx,return value:%d",evt->info.sec_creatReq.ckpt_id, SA_AIS_ERR_INVALID_PARAM);
 		goto agent_rsp;
 	}
 	if (evt->info.sec_creatReq.sec_attri.sectionId->id == NULL &&
@@ -2060,8 +2051,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 			send_evt.type = CPSV_EVT_TYPE_CPA;
 			send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
 			send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_EXIST;
-			m_LOG_CPND_FLCL(CPND_CKPT_SECT_CREATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-					evt->info.sec_creatReq.ckpt_id, SA_AIS_ERR_EXIST, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt sect create failed for ckpt_id:%llx,return value:%d",evt->info.sec_creatReq.ckpt_id, SA_AIS_ERR_EXIST);
 			goto agent_rsp;
 		}
 	} else {
@@ -2070,8 +2060,8 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 			send_evt.type = CPSV_EVT_TYPE_CPA;
 			send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
 			send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_EXIST;
-			m_LOG_CPND_FLCL(CPND_CKPT_SECT_CREATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-					evt->info.sec_creatReq.ckpt_id, SA_AIS_ERR_EXIST, __FILE__, __LINE__);
+
+			TRACE_4("cpnd ckpt sect create failed for ckpt_id:%llx,return value:%d",evt->info.sec_creatReq.ckpt_id, SA_AIS_ERR_EXIST);
 			goto agent_rsp;
 
 		}
@@ -2083,8 +2073,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 			send_evt.type = CPSV_EVT_TYPE_CPA;
 			send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
 			send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_EXIST;
-			m_LOG_CPND_FCL(CPND_CKPT_SECT_CREATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-				       evt->info.sec_creatReq.ckpt_id, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt sect create failed for ckpt_id:%llx",evt->info.sec_creatReq.ckpt_id);
 			goto agent_rsp;
 		}
 	}
@@ -2099,9 +2088,8 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 						     evt->info.sec_creatReq.sec_attri.expirationTime, 0);
 
 		if (sec_info == NULL) {
-			m_LOG_CPND_CFCL(CPND_CKPT_SECT_ADD_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-					evt->info.sec_creatReq.sec_attri.sectionId->id, cp_node->ckpt_id,
-					__FILE__, __LINE__);
+			TRACE_4("cpnd ckpt sect add failed for section_is:%s,ckpt_id:%llx",evt->info.sec_creatReq.sec_attri.sectionId->id, 
+			cp_node->ckpt_id);
 			send_evt.type = CPSV_EVT_TYPE_CPA;
 			send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
 			send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_NO_SPACE;
@@ -2113,8 +2101,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 			rc = cpnd_ckpt_sec_write(cp_node, sec_info, evt->info.sec_creatReq.init_data,
 						 evt->info.sec_creatReq.init_size, 0, 1);
 			if (rc == NCSCC_RC_FAILURE) {
-				m_LOG_CPND_CFCL(CPND_CKPT_SECT_WRITE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-						sec_info->sec_id.id, cp_node->ckpt_id, __FILE__, __LINE__);
+				TRACE_4("cpnd ckpt sect write failed for section_is:%s,ckpt_id:%llx",sec_info->sec_id.id, cp_node->ckpt_id);
 				send_evt.type = CPSV_EVT_TYPE_CPA;
 				send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
 				send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_NO_RESOURCES;
@@ -2126,8 +2113,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 				ckpt_data = m_MMGR_ALLOC_CPSV_CKPT_DATA;
 				if (ckpt_data == NULL) {
 					rc = NCSCC_RC_FAILURE;
-					m_LOG_CPND_CL(CPND_CKPT_DATA_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR,
-						      __FILE__, __LINE__);
+					TRACE_4("cpnd ckpt data memory allocation failed");
 					send_evt.type = CPSV_EVT_TYPE_CPA;
 					send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
 					send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_NO_SPACE;
@@ -2187,11 +2173,10 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 											   sec_creatReq.init_size));
 						if (rc != NCSCC_RC_SUCCESS) {
 							if (rc == NCSCC_RC_REQ_TIMOUT) {
-								m_LOG_CPND_FFFLCL(CPND_ACTIVE_TO_REMOTE_MDS_SEND_FAIL,
-										  CPND_FC_MDSFAIL, NCSFL_SEV_ERROR,
+								TRACE_4("cpnd active to remote mds send fail for cpnd_mdest_id:%"PRIu64" \
+										  dest:%"PRIu64",ckpt_id:%llx,return val:%d",
 										  cb->cpnd_mdest_id, tmp->dest,
-										  cp_node->ckpt_id, rc, __FILE__,
-										  __LINE__);
+										  cp_node->ckpt_id, rc);
 							}
 						}
 
@@ -2207,10 +2192,8 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 							/*  Section Create fails with SA_AIS_NOT_VALID */
 							send_evt.info.cpa.info.sec_creat_rsp.error =
 							    out_evt->info.cpnd.info.active_sec_creat_rsp.error;
-							m_LOG_CPND_FLCL(CPND_CKPT_SECT_CREATE_FAILED, CPND_FC_HDLN,
-									NCSFL_SEV_ERROR, cp_node->ckpt_id,
-									send_evt.info.cpa.info.sec_creat_rsp.error,
-									__FILE__, __LINE__);
+							TRACE_4("cpnd ckpt sect creqte failed for ckpt_id:%llx,error value:%d",
+									cp_node->ckpt_id,send_evt.info.cpa.info.sec_creat_rsp.error);
 
 							/* delete the section */
 							if (gen_sec_id)
@@ -2227,8 +2210,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 								    shm_sec_mapping[sec_info->lcl_sec_id] = 1;
 								m_CPND_FREE_CKPT_SECTION(sec_info);
 							} else {
-								m_LOG_CPND_CL(CPND_CKPT_SECT_DEL_FAILED, CPND_FC_API,
-									      NCSFL_SEV_ERROR, __FILE__, __LINE__);
+								TRACE_4("cpnd ckpt sect del failed ");
 							}
 							cpnd_evt_destroy(out_evt);
 							out_evt = NULL;
@@ -2277,6 +2259,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
 	if (out_evt)
 		cpnd_evt_destroy(out_evt);
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -2304,6 +2287,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt, CPSV_
 	CPSV_CKPT_DATA ckpt_data;
 	CPSV_CKPT_ACCESS ckpt_access;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	cpnd_ckpt_node_get(cb, evt->info.sec_delReq.ckpt_id, &cp_node);
@@ -2312,8 +2296,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt, CPSV_
 		send_evt.type = CPSV_EVT_TYPE_CPA;
 		send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_DELETE_RSP;
 		send_evt.info.cpa.info.sec_delete_rsp.error = SA_AIS_ERR_NOT_EXIST;
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.sec_delReq.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.sec_delReq.ckpt_id);
 		goto agent_rsp;
 	}
 
@@ -2344,9 +2327,8 @@ static uint32_t cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt, CPSV_
 		/* resetting lcl_sec_id mapping */
 		if (sec_info == NULL) {
 			rc = NCSCC_RC_FAILURE;
-			m_LOG_CPND_CFCL(CPND_CKPT_SECT_DEL_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-					evt->info.sec_delete_req.sec_id.id, evt->info.sec_delete_req.ckpt_id,
-					__FILE__, __LINE__);
+			TRACE_4("cpnd ckpt sect del failed for sec_id:%s,ckpt_id:%llx",evt->info.sec_delete_req.sec_id.id,
+					evt->info.sec_delete_req.ckpt_id);
 			send_evt.type = CPSV_EVT_TYPE_CPA;
 			send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_DELETE_RSP;
 			send_evt.info.cpa.info.sec_delete_rsp.error = SA_AIS_ERR_INVALID_PARAM;
@@ -2389,9 +2371,9 @@ static uint32_t cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt, CPSV_
 							    &send_evt, &out_evt, CPSV_WAIT_TIME);
 				if (rc != NCSCC_RC_SUCCESS) {
 					if (rc == NCSCC_RC_REQ_TIMOUT) {
-						m_LOG_CPND_FFFLCL(CPND_ACTIVE_TO_REMOTE_MDS_SEND_FAIL, CPND_FC_MDSFAIL,
-								  NCSFL_SEV_ERROR, cb->cpnd_mdest_id, tmp->dest,
-								  cp_node->ckpt_id, rc, __FILE__, __LINE__);
+						TRACE_4("cpnd active to remote mds send failed for cpnd_mdest_id:%"PRIu64",dest:%"PRIu64",ckpt_id:%llx\
+								return value:%d",cb->cpnd_mdest_id, tmp->dest,
+								  cp_node->ckpt_id,rc);
 					}
 					/*  Don't handle this error, go ahead and delete the rest 
 					   send_evt.type=CPSV_EVT_TYPE_CPA;
@@ -2424,8 +2406,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt, CPSV_
 			cpnd_tmr_stop(&sec_info->ckpt_sec_exptmr);
 		m_CPND_FREE_CKPT_SECTION(sec_info);
 	} else {
-		m_LOG_CPND_CFCL(CPND_CKPT_SECT_DEL_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-				evt->info.sec_delReq.sec_id.id, cp_node->ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt sect del failed for sec_id:%s,ckpt_id:%llx",evt->info.sec_delReq.sec_id.id,cp_node->ckpt_id);
 		send_evt.type = CPSV_EVT_TYPE_CPA;
 		send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_DELETE_RSP;
 		send_evt.info.cpa.info.sec_delete_rsp.error = SA_AIS_ERR_NOT_EXIST;
@@ -2442,6 +2423,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt, CPSV_
 
 	if (out_evt)
 		cpnd_evt_destroy(out_evt);
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -2470,21 +2452,20 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt,
 	CPSV_CKPT_DATA *ckpt_data = NULL;
 	SaAisErrorT error = SA_AIS_OK;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	cpnd_ckpt_node_get(cb, evt->info.active_sec_creat.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
 		error = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.active_sec_creat.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.active_sec_creat.ckpt_id);
 		goto nd_rsp;
 	}
 
 	rc = cpnd_ckpt_sec_find(cp_node, evt->info.active_sec_creat.sec_attri.sectionId);
 	if (rc == NCSCC_RC_SUCCESS) {
 		error = SA_AIS_ERR_EXIST;
-		m_LOG_CPND_FCL(CPND_CKPT_SECT_CREATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-			       evt->info.sec_creatReq.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt sect create failed for ckpt_id:%llx",evt->info.sec_creatReq.ckpt_id);
 		goto nd_rsp;
 	}
 
@@ -2492,9 +2473,8 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt,
 		sec_info = cpnd_ckpt_sec_add(cp_node, evt->info.active_sec_creat.sec_attri.sectionId,
 					     evt->info.active_sec_creat.sec_attri.expirationTime, 0);
 		if (sec_info == NULL) {
-			m_LOG_CPND_CFCL(CPND_CKPT_SECT_ADD_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-					evt->info.active_sec_creat.sec_attri.sectionId->id, cp_node->ckpt_id,
-					__FILE__, __LINE__);
+			TRACE_4("cpnd ckpt sect add failed for sect_id:%s,ckpt_id:%llx",
+					evt->info.active_sec_creat.sec_attri.sectionId->id, cp_node->ckpt_id);
 			error = SA_AIS_ERR_NO_SPACE;
 			goto nd_rsp;
 		}
@@ -2503,8 +2483,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt,
 			rc = cpnd_ckpt_sec_write(cp_node, sec_info, evt->info.active_sec_creat.init_data,
 						 evt->info.active_sec_creat.init_size, 0, 1);
 			if (rc == NCSCC_RC_FAILURE) {
-				m_LOG_CPND_CL(CPND_CKPT_SECT_WRITE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-					      __FILE__, __LINE__);
+				TRACE_4("cpnd ckpt sect write failed ");
 				error = SA_AIS_ERR_NO_RESOURCES;
 				goto nd_rsp;
 			}
@@ -2514,8 +2493,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt,
 				ckpt_data = m_MMGR_ALLOC_CPSV_CKPT_DATA;
 				if (ckpt_data == NULL) {
 					rc = NCSCC_RC_FAILURE;
-					m_LOG_CPND_CL(CPND_CKPT_DATA_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR,
-						      __FILE__, __LINE__);
+					TRACE_4("cpnd ckpt data memory failed ");
 					error = SA_AIS_ERR_NO_SPACE;
 					goto nd_rsp;
 				}
@@ -2548,8 +2526,10 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt,
 	send_evt.type = CPSV_EVT_TYPE_CPND;
 	send_evt.info.cpnd.type = CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP;
 	send_evt.info.cpnd.info.active_sec_creat_rsp.error = error;
+	rc =  cpnd_mds_send_rsp(cb, sinfo, &send_evt);
+	TRACE_LEAVE();
+	return rc;
 
-	return cpnd_mds_send_rsp(cb, sinfo, &send_evt);
 }
 
 /****************************************************************************
@@ -2575,12 +2555,12 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt,
 	CPSV_CKPT_DATA ckpt_data;
 	CPSV_CKPT_ACCESS ckpt_access;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	cpnd_ckpt_node_get(cb, evt->info.sec_delete_req.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.sec_delete_req.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.sec_delete_req.ckpt_id);
 		send_evt.type = CPSV_EVT_TYPE_CPND;
 		send_evt.info.cpnd.type = CPSV_EVT_ND2ND_CKPT_SECT_DELETE_RSP;
 		send_evt.info.cpnd.info.sec_delete_rsp.error = SA_AIS_ERR_TRY_AGAIN;
@@ -2588,9 +2568,8 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt,
 	}
 	sec_info = cpnd_ckpt_sec_del(cp_node, &evt->info.sec_delete_req.sec_id);
 	if (sec_info == NULL) {
-		m_LOG_CPND_CFCL(CPND_CKPT_SECT_DEL_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-				evt->info.sec_delete_req.sec_id.id, evt->info.sec_delete_req.ckpt_id,
-				__FILE__, __LINE__);
+		TRACE_4("cpnd ckpt sect del failed for sec_id:%s,ckpt_id:%llx",
+				evt->info.sec_delete_req.sec_id.id, evt->info.sec_delete_req.ckpt_id);
 		send_evt.type = CPSV_EVT_TYPE_CPND;
 		send_evt.info.cpnd.type = CPSV_EVT_ND2ND_CKPT_SECT_DELETE_RSP;
 		send_evt.info.cpnd.info.sec_delete_rsp.error = SA_AIS_ERR_NOT_EXIST;
@@ -2624,7 +2603,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt,
 
  nd_rsp:
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
-
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -2650,12 +2629,12 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_exptmr_req(CPND_CB *cb, CPND_EVT *
 	CPND_CKPT_NODE *cp_node = NULL;
 	CPND_CKPT_SECTION_INFO *sec_info = NULL;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	cpnd_ckpt_node_get(cb, evt->info.sec_exp_set.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.sec_exp_set.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.sec_exp_set.ckpt_id);
 		send_evt.type = CPSV_EVT_TYPE_CPND;
 		send_evt.info.cpnd.type = CPSV_EVT_ND2ND_CKPT_SECT_EXPTMR_RSP;
 		send_evt.info.cpnd.info.sec_exp_rsp.error = SA_AIS_ERR_TRY_AGAIN;
@@ -2665,9 +2644,8 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_exptmr_req(CPND_CB *cb, CPND_EVT *
 	if ((m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest, &cb->cpnd_mdest_id) == 0)) {
 		sec_info = cpnd_ckpt_sec_get(cp_node, &evt->info.sec_exp_set.sec_id);
 		if (sec_info == NULL) {
-			m_LOG_CPND_CFCL(CPND_CKPT_SECT_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-					evt->info.sec_exp_set.sec_id.id, evt->info.sec_exp_set.ckpt_id,
-					__FILE__, __LINE__);
+			TRACE_4("cpnd ckpt sect get failed for sec_id:%s,ckpt_id:%llx",
+					evt->info.sec_exp_set.sec_id.id, evt->info.sec_exp_set.ckpt_id);
 			send_evt.type = CPSV_EVT_TYPE_CPND;
 			send_evt.info.cpnd.type = CPSV_EVT_ND2ND_CKPT_SECT_EXPTMR_RSP;
 			send_evt.info.cpnd.info.sec_exp_rsp.error = SA_AIS_ERR_NOT_EXIST;
@@ -2692,6 +2670,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_exptmr_req(CPND_CB *cb, CPND_EVT *
 
  nd_rsp:
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -2716,13 +2695,14 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_status(CPND_CB *cb, CPND_EVT *evt, CPSV
 	CPND_CKPT_NODE *cp_node = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	/* get cp_node from ckpt_info_db */
 	cpnd_ckpt_node_get(cb, evt->info.stat_get.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.stat_get.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",
+				evt->info.stat_get.ckpt_id);
 		send_evt.type = CPSV_EVT_TYPE_CPND;
 		send_evt.info.cpnd.type = CPND_EVT_ND2ND_ACTIVE_STATUS_ACK;
 		send_evt.info.cpnd.info.status.error = SA_AIS_ERR_TRY_AGAIN;
@@ -2740,6 +2720,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_status(CPND_CB *cb, CPND_EVT *evt, CPSV
 
  nd_rsp:
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -2764,6 +2745,8 @@ static uint32_t cpnd_evt_proc_ckpt_write(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 	CPSV_EVT send_evt;
 	uint32_t err_flag = 0;
 	uint32_t errflag = 0;
+	TRACE_ENTER();
+
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_write.ckpt_id, &cp_node);
@@ -2784,13 +2767,11 @@ static uint32_t cpnd_evt_proc_ckpt_write(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 			break;
 
 		default:
-			m_LOG_CPND_LCL(CPND_EVT_UNKNOWN, CPND_FC_EVT, NCSFL_SEV_ERROR, evt->info.ckpt_write.type,
-				       __FILE__, __LINE__);
+			TRACE_4("cpnd evt unknown type: %d",evt->info.ckpt_write.type);
 			break;
-
 		}
-		m_LOG_CPND_FLCL(CPND_CKPT_SECT_WRITE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-				evt->info.ckpt_write.ckpt_id, SA_AIS_ERR_NOT_EXIST, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt sect write failed ckpt_id:%llx,return value:%d",
+				evt->info.ckpt_write.ckpt_id, SA_AIS_ERR_NOT_EXIST);
 		goto agent_rsp;
 	}
 	if ((true == cp_node->is_restart) || (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest, &cb->cpnd_mdest_id) != 0)) {
@@ -2809,13 +2790,12 @@ static uint32_t cpnd_evt_proc_ckpt_write(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 			break;
 
 		default:
-			m_LOG_CPND_LCL(CPND_EVT_UNKNOWN, CPND_FC_EVT, NCSFL_SEV_ERROR, evt->info.ckpt_write.type,
-				       __FILE__, __LINE__);
+			TRACE_4("cpnd evt unknown type:%d",evt->info.ckpt_write.type);
 			break;
 
 		}
-		m_LOG_CPND_FLCL(CPND_CKPT_SECT_WRITE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-				evt->info.ckpt_write.ckpt_id, cp_node->is_restart, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt sect write failed ckpt_id:%llx,is_restart:%d",
+				evt->info.ckpt_write.ckpt_id, cp_node->is_restart);
 
 		/*send_evt.info.cpa.info.sec_data_rsp.num_of_elmts=-1;
 		   send_evt.info.cpa.info.sec_data_rsp.error=SA_AIS_ERR_TRY_AGAIN; */
@@ -2850,12 +2830,11 @@ static uint32_t cpnd_evt_proc_ckpt_write(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
                   break;
 
 		default:
-			m_LOG_CPND_LCL(CPND_EVT_UNKNOWN, CPND_FC_EVT, NCSFL_SEV_ERROR, evt->info.ckpt_write.type,
-				       __FILE__, __LINE__);
+			TRACE_4("cpnd evt unknown type:%d",evt->info.ckpt_write.type);
 			break;
 		}
-		m_LOG_CPND_FLCL(CPND_CKPT_SECT_WRITE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-				cp_node->ckpt_id, err_flag, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt sect write failed for ckpt_id:%llx,err_flag:%d",
+				cp_node->ckpt_id, err_flag);
 		goto agent_rsp;
 	} else {
 		cpnd_proc_ckpt_arrival_info_ntfy(cb, cp_node, &evt->info.ckpt_write, sinfo);
@@ -2876,7 +2855,7 @@ static uint32_t cpnd_evt_proc_ckpt_write(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 
  agent_rsp:
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -2901,6 +2880,8 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_req(CPND_CB *cb, CPN
 	CPSV_EVT send_evt;
 	uint32_t err_flag = 0;
 	uint32_t errflag = 0;
+	
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	send_evt.type = CPSV_EVT_TYPE_CPND;
@@ -2908,8 +2889,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_req(CPND_CB *cb, CPN
 
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_nd2nd_data.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.ckpt_nd2nd_data.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.ckpt_nd2nd_data.ckpt_id);
 		switch (evt->info.ckpt_nd2nd_data.type) {
 
 		case CPSV_CKPT_ACCESS_WRITE:
@@ -2935,8 +2915,8 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_req(CPND_CB *cb, CPN
 					      evt->info.ckpt_nd2nd_data.type, &err_flag, &errflag);
 		if (rc == NCSCC_RC_FAILURE) {
 			/* crash the sec_id */
-			m_LOG_CPND_FLCL(CPND_CKPT_SECT_WRITE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-					cp_node->ckpt_id, err_flag, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt sect write failed for ckpt_id:%llx,err_flag:%d",
+					cp_node->ckpt_id, err_flag);
 		}
 	}
 	if (rc == NCSCC_RC_SUCCESS) {
@@ -2961,6 +2941,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_req(CPND_CB *cb, CPN
  nd_rsp:
 	if (evt->info.ckpt_nd2nd_data.all_repl_evt_flag)
 		rc = cpnd_mds_msg_send(cb, sinfo->to_svc, sinfo->dest, &send_evt);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -2986,6 +2967,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb, CPN
 	CPSV_EVT rsp_evt;
 	SaAisErrorT error = SA_AIS_OK;
 
+	TRACE_ENTER();
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_nd2nd_data_rsp.ckpt_id, &cp_node);
 	cpnd_evt_node_get(cb, evt->info.ckpt_nd2nd_data_rsp.ckpt_id, &evt_node);
 
@@ -3010,8 +2992,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb, CPN
 
 				if (cpnd_mdest_trav == NULL) {
 					rc = NCSCC_RC_FAILURE;
-					m_LOG_CPND_CL(CPND_CKPT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR,
-						      __FILE__, __LINE__);
+					TRACE_4("cpnd ckpt memory allocation failed");
 					goto error;
 				}
 
@@ -3044,8 +3025,8 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb, CPN
 			}
 
 		} else {
-			m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-				       evt->info.ckpt_nd2nd_data.ckpt_id, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",
+				       evt->info.ckpt_nd2nd_data.ckpt_id);
 			/*Send the try again response to CPA */
 			rc = NCSCC_RC_FAILURE;
 			error = SA_AIS_ERR_TRY_AGAIN;
@@ -3053,8 +3034,8 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb, CPN
 		}
 	} else {
 		if (evt_node == NULL) {
-			m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_INFO,
-					evt->info.ckpt_nd2nd_data_rsp.ckpt_id, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",
+					evt->info.ckpt_nd2nd_data_rsp.ckpt_id);
 			/*error = SA_AIS_ERR_TIMEOUT;*/
 		}
 
@@ -3067,14 +3048,14 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb, CPN
 
 			}
 
-			m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-					evt->info.ckpt_nd2nd_data_rsp.ckpt_id, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.ckpt_nd2nd_data_rsp.ckpt_id);
 			error = SA_AIS_ERR_NOT_EXIST;
 		}
 		/*Ckpt ids are not matching */
 		rc = NCSCC_RC_FAILURE;
 		goto error;
 	}
+	TRACE_LEAVE();
 	return rc;
 
  error:
@@ -3103,6 +3084,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb, CPN
 		cpnd_allrepl_write_evt_node_free(evt_node);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -3126,13 +3108,14 @@ static uint32_t cpnd_evt_proc_ckpt_sync(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPND_CKPT_NODE *cp_node = NULL;
 	CPSV_EVT send_evt;
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_sync.ckpt_id, &cp_node);
 
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.ckpt_sync.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",
+				evt->info.ckpt_sync.ckpt_id);
 		send_evt.info.cpa.info.sync_rsp.error = SA_AIS_ERR_NOT_EXIST;
 		goto agent_rsp;
 	}
@@ -3176,7 +3159,7 @@ static uint32_t cpnd_evt_proc_ckpt_sync(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 		send_evt.info.cpa.info.sync_rsp.lcl_ckpt_hdl = evt->info.ckpt_sync.lcl_ckpt_hdl;
 		rc = cpnd_mds_msg_send(cb, sinfo->to_svc, sinfo->dest, &send_evt);
 	}
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -3198,17 +3181,18 @@ static uint32_t cpnd_evt_proc_arrival_cbreg(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 	CPND_CKPT_CLIENT_NODE *cl_node = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	cpnd_client_node_get(cb, evt->info.arr_ntfy.client_hdl, &cl_node);
 	if (cl_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CLIENT_HDL_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-			       evt->info.arr_ntfy.client_hdl, __FILE__, __LINE__);
+		TRACE_4("cpnd client hdl get failed for client_hdl:%llx",evt->info.arr_ntfy.client_hdl);
 		rc = NCSCC_RC_FAILURE;
+		TRACE_LEAVE();
 		return rc;
 	}
 	cl_node->arrival_cb_flag = true;
 
 	cpnd_restart_set_arrcb(cb, cl_node);
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -3233,6 +3217,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sync_req(CPND_CB *cb, CPND_EVT *evt, CP
 	CPSV_EVT send_evt;
 	CPSV_CPND_DEST_INFO dest_list;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	send_evt.type = CPSV_EVT_TYPE_CPND;
@@ -3242,10 +3227,10 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sync_req(CPND_CB *cb, CPND_EVT *evt, CP
 	cpnd_ckpt_node_get(cb, evt->info.sync_req.ckpt_id, &cp_node);
 
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.sync_req.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.sync_req.ckpt_id);
 		send_evt.info.cpnd.error = SA_AIS_ERR_TRY_AGAIN;
 		rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -3270,6 +3255,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sync_req(CPND_CB *cb, CPND_EVT *evt, CP
 		rc = cpnd_ckpt_remote_cpnd_add(cp_node, sinfo->dest);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -3296,12 +3282,12 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_sync(CPND_CB *cb, CPND_EVT *evt,
 	CPSV_EVT des_evt, *out_evt = NULL;
 	uint32_t errflag = 0;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_nd2nd_sync.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.ckpt_nd2nd_sync.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.ckpt_nd2nd_sync.ckpt_id);
 		return NCSCC_RC_FAILURE;
 	}
 	if (cp_node->cpnd_rep_create) {
@@ -3356,11 +3342,8 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_sync(CPND_CB *cb, CPND_EVT *evt,
 							send_evt.info.cpa.info.openRsp.active_dest =
 							    cp_node->active_mds_dest;
 						}
-						m_LOG_CPND_CFFFCL(CPND_CKPT_OPEN_SUCCESS, CPND_FC_API, NCSFL_SEV_INFO,
-								  cp_node->ckpt_name.value,
-								  evt->info.ckpt_nd2nd_sync.ckpt_sync.client_hdl,
-								  cp_node->ckpt_id, cp_node->active_mds_dest, __FILE__,
-								  __LINE__);
+						TRACE_4("cpnd ckpt open success for ckpt_name:%s,client_hdl:%llx,ckpt_id:%llx,mds_mdest:%"PRIu64								,cp_node->ckpt_name.value, evt->info.ckpt_nd2nd_sync.ckpt_sync.client_hdl,
+								  cp_node->ckpt_id, cp_node->active_mds_dest);
 					} else {
 						memset(&des_evt, '\0', sizeof(CPSV_EVT));
 						des_evt.type = CPSV_EVT_TYPE_CPD;
@@ -3369,22 +3352,18 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_sync(CPND_CB *cb, CPND_EVT *evt,
 						rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPD, cb->cpd_mdest_id,
 									    &des_evt, &out_evt, CPSV_WAIT_TIME);
 						if (out_evt && out_evt->info.cpnd.info.destroy_ack.error != SA_AIS_OK) {
-							m_LOG_CPND_LCL(CPND_CPD_NEW_ACTIVE_DESTROY_FAILED, CPND_FC_EVT,
-								       NCSFL_SEV_ERROR,
-								       out_evt->info.cpnd.info.destroy_ack.error,
-								       __FILE__, __LINE__);
+							TRACE_4("cpnd cpd new active destroy failed with error:%d",
+								       out_evt->info.cpnd.info.destroy_ack.error);
 						}
 						send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_TRY_AGAIN;
-						m_LOG_CPND_CFCL(CPND_CKPT_OPEN_FAILURE, CPND_FC_API, NCSFL_SEV_ERROR,
-								"ckpt_name", des_evt.info.cpd.info.ckpt_destroy.ckpt_id,
-								__FILE__, __LINE__);
+						TRACE_4("cpnd ckpt open failure for ckpt_id:%llx",
+								 des_evt.info.cpd.info.ckpt_destroy.ckpt_id);
 						if (out_evt)
 							cpnd_evt_destroy(out_evt);
 					}
 					if (cp_node->open_active_sync_tmr.is_active)
 						cpnd_tmr_stop(&cp_node->open_active_sync_tmr);
-					m_LOG_CPND_FCL(CPND_OPEN_ACTIVE_SYNC_STOP_TMR_SUCCESS, CPND_FC_CKPTINFO,
-						       NCSFL_SEV_NOTICE, cp_node->ckpt_id, __FILE__, __LINE__);
+					TRACE_2("cpnd open active sync stop tmr success for ckpt_id:%llx",cp_node->ckpt_id);
 
 					if (evt->info.ckpt_nd2nd_sync.ckpt_sync.cpa_sinfo.stype == MDS_SENDTYPE_SNDRSP) {
 						rc = cpnd_mds_send_rsp(cb,
@@ -3402,6 +3381,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_sync(CPND_CB *cb, CPND_EVT *evt,
 		}
 	}
 
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -3426,6 +3406,7 @@ static uint32_t cpnd_evt_proc_ckpt_read(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 	CPND_CKPT_NODE *cp_node = NULL;
 	CPSV_EVT send_evt;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_read.ckpt_id, &cp_node);
@@ -3441,16 +3422,16 @@ static uint32_t cpnd_evt_proc_ckpt_read(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 	if (cp_node == NULL || !(cp_node->is_active_exist)) {
 		send_evt.info.cpa.info.sec_data_rsp.num_of_elmts = -1;
 		send_evt.info.cpa.info.sec_data_rsp.error = SA_AIS_ERR_NOT_EXIST;
-		m_LOG_CPND_FLCL(CPND_CKPT_SECT_READ_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-				evt->info.ckpt_read.ckpt_id, SA_AIS_ERR_NOT_EXIST, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt sect read failed for ckpt_id:%llx,error:%d",
+				evt->info.ckpt_read.ckpt_id, SA_AIS_ERR_NOT_EXIST);
 		goto agent_rsp;
 	}
 
 	if (cp_node->is_restart) {
 		send_evt.info.cpa.info.sec_data_rsp.num_of_elmts = -1;
 		send_evt.info.cpa.info.sec_data_rsp.error = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_CPND_FLCL(CPND_CKPT_SECT_READ_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-				evt->info.ckpt_read.ckpt_id, SA_AIS_ERR_TRY_AGAIN, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt sect read failed for ckpt_id:%llx,error:%d",
+				evt->info.ckpt_read.ckpt_id, SA_AIS_ERR_TRY_AGAIN);
 		goto agent_rsp;
 	}
 
@@ -3464,13 +3445,14 @@ static uint32_t cpnd_evt_proc_ckpt_read(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 		send_evt.info.cpa.info.sec_data_rsp.num_of_elmts = -1;
 		send_evt.info.cpa.info.sec_data_rsp.error = SA_AIS_ERR_TRY_AGAIN;
 		send_evt.info.cpa.info.sec_data_rsp.size = 0;
-		m_LOG_CPND_FLCL(CPND_CKPT_SECT_READ_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-				evt->info.ckpt_read.ckpt_id, SA_AIS_ERR_TRY_AGAIN, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt sect read failed ckpt_id:%llx,error:%d",
+				evt->info.ckpt_read.ckpt_id, SA_AIS_ERR_TRY_AGAIN);
 	}
 
  agent_rsp:
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
 	cpnd_proc_free_read_data(&send_evt);
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -3495,6 +3477,7 @@ static uint32_t cpnd_evt_proc_timer_expiry(CPND_CB *cb, CPND_EVT *evt)
 	CPND_CKPT_NODE *cp_node = NULL;
 	CPND_CKPT_SECTION_INFO *pSec_info = NULL;
 
+	TRACE_ENTER();
 	tmr = evt->info.tmr_info.cpnd_tmr;
 		
 	if  (tmr == NULL)  {
@@ -3502,6 +3485,7 @@ static uint32_t cpnd_evt_proc_timer_expiry(CPND_CB *cb, CPND_EVT *evt)
 		TRACE("CPND: Tmr Mailbox Processing: tmr invalid ");
 		/*return NCSCC_RC_SUCCESS; */
 		/* Fall through to free memory */
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 
 	} 
@@ -3514,8 +3498,7 @@ static uint32_t cpnd_evt_proc_timer_expiry(CPND_CB *cb, CPND_EVT *evt)
 			(evt->info.tmr_info.type == CPND_TMR_OPEN_ACTIVE_SYNC ) ){
  
 		if (cp_node == NULL) {
-			m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_FAILED, CPND_FC_GENERIC, 
-					NCSFL_SEV_ERROR, evt->info.tmr_info.ckpt_id,__FILE__, __LINE__);
+			TRACE_4("cpnd ckpt replica destroy failed ckpt_id:%llx",evt->info.tmr_info.ckpt_id);
 			goto done;
 		}
  
@@ -3523,32 +3506,27 @@ static uint32_t cpnd_evt_proc_timer_expiry(CPND_CB *cb, CPND_EVT *evt)
 	else if (evt->info.tmr_info.type ==  CPND_ALL_REPL_RSP_EXPI){
 
 		if (cp_node == NULL) {
-			m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_FAILED, CPND_FC_GENERIC, 
-					NCSFL_SEV_ERROR, evt->info.tmr_info.ckpt_id,__FILE__, __LINE__);
+			TRACE_4("cpnd ckpt replica destroy failed for ckpt_id:%llx",evt->info.tmr_info.ckpt_id);
 			goto done;
 		}
 		if (evt_node == NULL) {
-			m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_FAILED, CPND_FC_GENERIC,
-					NCSFL_SEV_ERROR, evt->info.tmr_info.ckpt_id,__FILE__, __LINE__);
+			TRACE_4("cpnd ckpt replica destroy failed ckpt_id:%llx",evt->info.tmr_info.ckpt_id);
 			goto done;
 		}
 	}
 	else if (evt->info.tmr_info.type == CPND_TMR_TYPE_SEC_EXPI ){
 		if (cp_node == NULL) {
-			m_LOG_CPND_LCL(CPND_CKPT_SECT_FIND_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-					evt->info.tmr_info.lcl_sec_id, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt sect find failed for lcl_sec_id:%d",evt->info.tmr_info.lcl_sec_id);
 			goto done;
 		}
 		pSec_info = cpnd_get_sect_with_id(cp_node, evt->info.tmr_info.lcl_sec_id);
 		if (pSec_info == NULL) {
-			m_LOG_CPND_LCL(CPND_CKPT_SECT_FIND_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-					evt->info.tmr_info.lcl_sec_id, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt sect find failed for lcl_sec_id:%d",evt->info.tmr_info.lcl_sec_id);
 			goto done;
 		}
 	}
 	else {
-		m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, 
-				evt->info.tmr_info.ckpt_id,__FILE__, __LINE__);
+		TRACE_4("cpnd ckpt replica destroy faield for ckpt_id:%llx",evt->info.tmr_info.ckpt_id);
 		goto done;
 	}
 		
@@ -3567,22 +3545,19 @@ static uint32_t cpnd_evt_proc_timer_expiry(CPND_CB *cb, CPND_EVT *evt)
 	case CPND_TMR_TYPE_RETENTION:
 		rc = cpnd_proc_rt_expiry(cb, evt->info.tmr_info.ckpt_id);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPND_LCL(CPND_PROC_RT_EXPIRY_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-				       rc, __FILE__, __LINE__);
+			TRACE_4("cpnd proc rt expiry failed with return value:%d",rc);
 		}
 		break;
 	case CPND_TMR_TYPE_NON_COLLOC_RETENTION:
 		rc = cpnd_proc_non_colloc_rt_expiry(cb, evt->info.tmr_info.ckpt_id);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPND_LCL(CPND_PROC_RT_EXPIRY_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-				       rc, __FILE__, __LINE__);
+			TRACE_4("cpnd proc rt expiry failed with return val:%d",rc);
 		}
 		break;
 	case CPND_TMR_TYPE_SEC_EXPI:
 		rc = cpnd_proc_sec_expiry(cb, &evt->info.tmr_info);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPND_LCL(CPND_PROC_SEC_EXPIRY_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-				       rc, __FILE__, __LINE__);
+			TRACE_4("cpnd proc sec expiry failed with return val:%d",rc);
 		}
 
 		break;
@@ -3593,13 +3568,13 @@ static uint32_t cpnd_evt_proc_timer_expiry(CPND_CB *cb, CPND_EVT *evt)
 	case CPND_TMR_OPEN_ACTIVE_SYNC:
 		rc = cpnd_open_active_sync_expiry(cb, &evt->info.tmr_info);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPND_LCL(CPND_OPEN_ACTIVE_SYNC_EXPIRY_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-				       rc, __FILE__, __LINE__);
+			TRACE_4("cpnd open active sync expiry failed %d",rc);
 		}
 		break;
 
 	}
 done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -3654,6 +3629,7 @@ static uint32_t cpnd_proc_cpd_new_active(CPND_CB *cb)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPSV_EVT *out_evt = NULL;
 
+	TRACE_ENTER();
 	node = (CPND_CPD_DEFERRED_REQ_NODE *)ncs_dequeue(&cb->cpnd_cpd_deferred_reqs_list);
 
 	while (node) {
@@ -3665,9 +3641,9 @@ static uint32_t cpnd_proc_cpd_new_active(CPND_CB *cb)
 
 		if (rc != NCSCC_RC_SUCCESS) {
 			/* put back the event into the deferred requests queue */
-			m_LOG_CPND_LCL(CPND_SYNC_SEND_TO_CPD_FAILED, CPND_FC_MDSFAIL, NCSFL_SEV_ERROR,
-				       rc, __FILE__, __LINE__);
+			TRACE_4("cpnd sync send to cpd failed %d",rc);
 			ncs_enqueue(&cb->cpnd_cpd_deferred_reqs_list, (void *)node);
+			TRACE_LEAVE();
 			return rc;
 		}
 
@@ -3675,37 +3651,32 @@ static uint32_t cpnd_proc_cpd_new_active(CPND_CB *cb)
 
 		case CPD_EVT_ND2D_CKPT_DESTROY:
 			if (out_evt && out_evt->info.cpnd.info.destroy_ack.error != SA_AIS_OK) {
-				m_LOG_CPND_LCL(CPND_CPD_NEW_ACTIVE_DESTROY_FAILED, CPND_FC_EVT, NCSFL_SEV_ERROR,
-					       out_evt->info.cpnd.info.destroy_ack.error, __FILE__, __LINE__);
+				TRACE_4("cpnd cpd new active destroy failed with error:%d",out_evt->info.cpnd.info.destroy_ack.error);
 			}
 			break;
 		case CPD_EVT_ND2D_CKPT_DESTROY_BYNAME:
 			if (out_evt && out_evt->info.cpnd.info.destroy_ack.error != SA_AIS_OK) {
-				m_LOG_CPND_LCL(CPND_CPD_NEW_ACTIVE_DESTROY_BYNAME_FAILED, CPND_FC_EVT, NCSFL_SEV_ERROR,
-					       out_evt->info.cpnd.info.destroy_ack.error, __FILE__, __LINE__);
+				TRACE_4("cpnd cpd new active destroy byname failed with error:%d",out_evt->info.cpnd.info.destroy_ack.error);
 			}
 			break;
 
 		case CPD_EVT_ND2D_CKPT_UNLINK:
 			if (out_evt && out_evt->info.cpnd.info.ulink_ack.error != SA_AIS_OK) {
-				m_LOG_CPND_LCL(CPND_CPD_NEW_ACTIVE_UNLINK_FAILED, CPND_FC_EVT, NCSFL_SEV_ERROR,
-					       out_evt->info.cpnd.info.ulink_ack.error, __FILE__, __LINE__);
+				TRACE_4("cpnd cpd new active unlink failed with error:%d",out_evt->info.cpnd.info.ulink_ack.error);
 			}
 
 			break;
 
 		case CPD_EVT_ND2D_CKPT_RDSET:
 			if (out_evt && out_evt->info.cpnd.info.rdset_ack.error != SA_AIS_OK) {
-				m_LOG_CPND_LCL(CPND_CPD_NEW_ACTIVE_RDSET_FAILED, CPND_FC_EVT, NCSFL_SEV_ERROR,
-					       out_evt->info.cpnd.info.rdset_ack.error, __FILE__, __LINE__);
+				TRACE_4("cpnd cpd new active rdset failed with error:%d",out_evt->info.cpnd.info.rdset_ack.error);
 
 			}
 			break;
 
 		case CPD_EVT_ND2D_ACTIVE_SET:
 			if (out_evt && out_evt->info.cpnd.info.arep_ack.error != SA_AIS_OK) {
-				m_LOG_CPND_LCL(CPND_CPD_NEW_ACTIVE_AREP_SET_FAILED, CPND_FC_EVT, NCSFL_SEV_ERROR,
-					       out_evt->info.cpnd.info.arep_ack.error, __FILE__, __LINE__);
+				TRACE_4("cpnd cpd new active arep set failed with error:%d",out_evt->info.cpnd.info.arep_ack.error);
 			}
 			break;
 
@@ -3720,7 +3691,7 @@ static uint32_t cpnd_proc_cpd_new_active(CPND_CB *cb)
 
 		node = (CPND_CPD_DEFERRED_REQ_NODE *)ncs_dequeue(&cb->cpnd_cpd_deferred_reqs_list);
 	}
-
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -3746,8 +3717,7 @@ static uint32_t cpnd_evt_proc_ckpt_destroy(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND
 	(void)pthread_mutex_lock(&ckpt_destroy_lock);
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_destroy.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.ckpt_destroy.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx", evt->info.ckpt_destroy.ckpt_id);
 		(void)pthread_mutex_unlock(&ckpt_destroy_lock);
 		return NCSCC_RC_SUCCESS;
 	}
@@ -3772,8 +3742,7 @@ static uint32_t cpnd_evt_proc_ckpt_destroy(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND
 
 			rc = ncs_os_posix_shm(&shm_info);
 			if (rc == NCSCC_RC_FAILURE) {
-				m_LOG_CPND_FCL(CPND_CKPT_CLOSE_FAILED, CPND_FC_SYS_CALL, NCSFL_SEV_ERROR,
-					       cp_node->ckpt_id, __FILE__, __LINE__);
+				TRACE_4("cpnd ckpt close failed for ckpt_id:%llx",cp_node->ckpt_id);
 			}
 
 			/* unlink the name */
@@ -3783,8 +3752,7 @@ static uint32_t cpnd_evt_proc_ckpt_destroy(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND
 			rc = ncs_os_posix_shm(&shm_info);
 			if (rc == NCSCC_RC_FAILURE) {
 
-				m_LOG_CPND_FCL(CPND_CKPT_UNLINK_FAILED, CPND_FC_SYS_CALL, NCSFL_SEV_ERROR,
-					       cp_node->ckpt_id, __FILE__, __LINE__);
+				TRACE_4("cpnd ckpt unlink failed for ckpt_id:%llx",cp_node->ckpt_id);
 			}
 
 			if (cb->num_rep) {
@@ -3797,12 +3765,12 @@ static uint32_t cpnd_evt_proc_ckpt_destroy(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND
 
 		}
 
-		m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_SUCCESS, CPND_FC_GENERIC, NCSFL_SEV_INFO,
-			       cp_node->ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt replica destroy success for ckpt_id:%llx",cp_node->ckpt_id);
 		cpnd_restart_shm_ckpt_free(cb, cp_node);
 		cpnd_ckpt_node_destroy(cb, cp_node);
 	}
 	(void)pthread_mutex_unlock(&ckpt_destroy_lock);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -3826,6 +3794,7 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 	SaCkptHandleT client_hdl = 0;
 	CPSV_EVT send_evt;
 
+	TRACE_ENTER();
 	/* Check if this ckpt is created by someone on this node */
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_create.ckpt_info.ckpt_id, &cp_node);
 	if (cp_node != NULL) {
@@ -3834,9 +3803,9 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 	} else {
 		cp_node = m_MMGR_ALLOC_CPND_CKPT_NODE;
 		if (cp_node == NULL) {
-			m_LOG_CPND_FCL(CPND_CKPT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR,
-				       evt->info.ckpt_create.ckpt_info.ckpt_id, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt alloc failed for ckpt_id:%llx",evt->info.ckpt_create.ckpt_info.ckpt_id);
 			rc = NCSCC_RC_FAILURE;
+			TRACE_LEAVE();
 			return rc;
 		}
 
@@ -3865,8 +3834,7 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 
 		if (cpnd_ckpt_node_add(cb, cp_node) == NCSCC_RC_FAILURE) {
 			/* THE BELOW LOG HAS TO BE CHANGED */
-			m_LOG_CPND_FCL(CPND_CKPT_NODE_ADDITION_FAILED, CPND_FC_CKPTINFO, NCSFL_SEV_ERROR,
-				       cp_node->ckpt_id, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt node addition failed for ckpt_id:%llx",cp_node->ckpt_id);
 			rc = NCSCC_RC_FAILURE;
 			if (cp_node->ret_tmr.is_active)
 				cpnd_tmr_stop(&cp_node->ret_tmr);
@@ -3890,14 +3858,12 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 		if (evt->info.ckpt_create.ckpt_info.ckpt_rep_create == true) {
 			rc = cpnd_ckpt_replica_create(cb, cp_node);
 			if (rc == NCSCC_RC_FAILURE) {
-				m_LOG_CPND_FLCL(CPND_CKPT_REP_CREATE_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR,
-						cp_node->ckpt_id, rc, __FILE__, __LINE__);
+				TRACE_4("cpnd ckpt rep create failed for ckpt_id:%llx,rc:%d",cp_node->ckpt_id, rc);
 				goto ckpt_replica_create_failed;
 			}
 			rc = cpnd_ckpt_hdr_update(cp_node);
 			if (rc == NCSCC_RC_FAILURE) {
-				m_LOG_CPND_FLCL(CPND_CKPT_HDR_UPDATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-						cp_node->ckpt_id, rc, __FILE__, __LINE__);
+				TRACE_4("cpnd ckpt hdr update failed for ckpt_id:%llx,rc:%d",cp_node->ckpt_id, rc);
 			}
 
 		}
@@ -3911,14 +3877,12 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 	if (evt->info.ckpt_create.ckpt_info.ckpt_rep_create == true) {
 		rc = cpnd_ckpt_replica_create(cb, cp_node);
 		if (rc == NCSCC_RC_FAILURE) {
-			m_LOG_CPND_LCL(CPND_CKPT_REP_CREATE_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR,
-				       rc, __FILE__, __LINE__);
+			TRACE_4("cpnd ckpt rep create failed with rc:%d",rc);
 			goto ckpt_replica_create_failed;
 		}
 		rc = cpnd_ckpt_hdr_update(cp_node);
 		if (rc == NCSCC_RC_FAILURE) {
-			m_LOG_CPND_LCL(CPND_CKPT_HDR_UPDATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-				       rc, __FILE__, __LINE__);
+			TRACE_4("CPND - Ckpt Header Update Failed with rc:%d",rc);
 		}
 	}
 
@@ -3934,22 +3898,20 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 	rc = cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPND, cp_node->active_mds_dest, &send_evt);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_FFFLCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL, CPND_FC_MDSFAIL, NCSFL_SEV_ERROR,
-				  cb->cpnd_mdest_id, cp_node->active_mds_dest, cp_node->ckpt_id, rc, __FILE__,
-				  __LINE__);
+		TRACE_4("cpnd remote to active mds send failed for cpnd_mdest_id:%"PRIu64",active_mds_dest:%"PRIu64",ckpt_id:%llx,rc%d",cb->cpnd_mdest_id, cp_node->active_mds_dest, cp_node->ckpt_id, rc);
 
 		goto ckpt_replica_create_failed;
 	}
 
-	m_LOG_CPND_FCL(CPND_NON_COLLOC_CKPT_REPLICA_CREATE_SUCCESS, CPND_FC_CKPTINFO, NCSFL_SEV_INFO,
-		       cp_node->ckpt_id, __FILE__, __LINE__);
+	TRACE_1("cpnd non colloc ckpt replica create success for ckpt_id:%llx",cp_node->ckpt_id);
+	TRACE_LEAVE();
 	return rc;
 
  ckpt_replica_create_failed:
 	cpnd_ckpt_node_destroy(cb, cp_node);
 
+	TRACE_LEAVE();
 	return rc;
-
 }
 
 /**********************************************************************
@@ -3967,12 +3929,12 @@ static uint32_t cpnd_evt_proc_ckpt_sect_iter_req(CPND_CB *cb, CPND_EVT *evt, CPS
 	CPND_CKPT_NODE *cp_node = NULL;
 	CPSV_EVT send_evt;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	cpnd_ckpt_node_get(cb, evt->info.sec_iter_req.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.sec_iter_req.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.sec_iter_req.ckpt_id);
 		rc = SA_AIS_ERR_NOT_EXIST;
 		goto agent_rsp;
 	}
@@ -3990,6 +3952,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_iter_req(CPND_CB *cb, CPND_EVT *evt, CPS
 	send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_ITER_RSP;
 	send_evt.info.cpa.info.sec_iter_rsp.error = rc;
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -4016,14 +3979,14 @@ static uint32_t cpnd_evt_proc_ckpt_iter_getnext(CPND_CB *cb, CPND_EVT *evt, CPSV
 	SaCkptSectionDescriptorT sect_desc;
 	uint32_t num_secs_trav = 0;
 
+	TRACE_ENTER();
 /*  evt contain filter iter_id section_id ckpt_id */
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 	memset(&sect_desc, '\0', sizeof(SaCkptSectionDescriptorT));
 
 	cpnd_ckpt_node_get(cb, evt->info.iter_getnext.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.iter_getnext.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.iter_getnext.ckpt_id);
 		rc = SA_AIS_ERR_NOT_EXIST;
 		goto agent_rsp;
 	}
@@ -4064,7 +4027,7 @@ static uint32_t cpnd_evt_proc_ckpt_iter_getnext(CPND_CB *cb, CPND_EVT *evt, CPSV
 	send_evt.info.cpa.info.iter_next_rsp.n_secs_trav = num_secs_trav;
 
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
-
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -4082,14 +4045,14 @@ static uint32_t cpnd_evt_proc_ckpt_iter_next_req(CPND_CB *cb, CPND_EVT *evt, CPS
 	SaCkptSectionDescriptorT sect_desc;
 	uint32_t num_secs_trav = 0;
 
+	TRACE_ENTER();
 /*  evt contain filter iter_id section_id ckpt_id */
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 	memset(&sect_desc, '\0', sizeof(SaCkptSectionDescriptorT));
 
 	cpnd_ckpt_node_get(cb, evt->info.iter_getnext.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
-		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
-			       evt->info.iter_getnext.ckpt_id, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.iter_getnext.ckpt_id);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto end;
 	}
@@ -4110,32 +4073,30 @@ static uint32_t cpnd_evt_proc_ckpt_iter_next_req(CPND_CB *cb, CPND_EVT *evt, CPS
 		send_evt.info.cpnd.info.ckpt_nd2nd_getnext_rsp.error = rc;
 
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
+	TRACE_LEAVE();
 	return rc;
 }
 
 static uint32_t cpnd_evt_proc_ckpt_refcntset(CPND_CB *cb,CPND_EVT *evt)
 {
 
-   uint32_t                   rc = NCSCC_RC_SUCCESS,i=0;
-   CPND_CKPT_NODE          *cp_node=NULL;
+	uint32_t                   rc = NCSCC_RC_SUCCESS,i=0;
+	CPND_CKPT_NODE          *cp_node=NULL;
 
- for(i=0;i<evt->info.refCntsetReq.no_of_nodes;i++)
-  {
-   cpnd_ckpt_node_get(cb,evt->info.refCntsetReq.ref_cnt_array[i].ckpt_id,&cp_node);
+	TRACE_ENTER();
+	for(i=0;i<evt->info.refCntsetReq.no_of_nodes;i++)
+	{
+		cpnd_ckpt_node_get(cb,evt->info.refCntsetReq.ref_cnt_array[i].ckpt_id,&cp_node);
 
-   if (cp_node == NULL)
-   {
-      m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,\
-        evt->info.refCntsetReq.ref_cnt_array[i].ckpt_id,__FILE__,__LINE__);
-      rc = NCSCC_RC_FAILURE;
-   }
-   else
-   {
-       cp_node->ckpt_lcl_ref_cnt = (cp_node->ckpt_lcl_ref_cnt + evt->info.refCntsetReq.ref_cnt_array[i].ckpt_ref_cnt);
-   }
-  }
-   return rc;
-
+		if (cp_node == NULL) {
+			TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",evt->info.refCntsetReq.ref_cnt_array[i].ckpt_id);
+			rc = NCSCC_RC_FAILURE;
+		} else {
+			cp_node->ckpt_lcl_ref_cnt = (cp_node->ckpt_lcl_ref_cnt + evt->info.refCntsetReq.ref_cnt_array[i].ckpt_ref_cnt);
+		}
+	}	
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -4177,16 +4138,25 @@ uint32_t cpnd_evt_destroy(CPSV_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	if (evt == NULL) {
 		/* LOG */
+		TRACE_1("cpnd_evt_destroy called with null");
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if (evt->info.cpnd.dont_free_me == true)
+	if (evt->info.cpnd.dont_free_me == true) {
+		TRACE_1("cpnd evt dont free me flag is true");
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
+	}
 
-	if (evt->type != CPSV_EVT_TYPE_CPND)
+	if (evt->type != CPSV_EVT_TYPE_CPND) {
+		TRACE_1("cpnd evt type is not equal to CPSV_EVT_TYPE_CPND");
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
+	}
 
 	if (evt->info.cpnd.type == CPND_EVT_D2ND_CKPT_INFO) {
 		if (evt->info.cpnd.info.ckpt_info.dest_list != NULL)
@@ -4354,6 +4324,7 @@ uint32_t cpnd_evt_destroy(CPSV_EVT *evt)
 	}
 
 	m_MMGR_FREE_CPSV_EVT(evt, NCS_SERVICE_ID_CPND);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -4407,7 +4378,7 @@ static uint32_t cpnd_transfer_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 	tmp_sec_info = cp_node->replica_info.section_info;
 	if (tmp_sec_info == NULL) {
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_CPND_CL(CPND_CKPT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpnd ckpt memory allocation failed");
 		send_evt.info.cpnd.info.ckpt_nd2nd_sync.data = sec_data;
 		cpnd_proc_free_cpsv_ckpt_data(send_evt.info.cpnd.info.ckpt_nd2nd_sync.data);
 		return rc;
@@ -4435,8 +4406,7 @@ static uint32_t cpnd_transfer_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 				rc = cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPND, tmp->dest, &send_evt);
 
 				if (rc == NCSCC_RC_FAILURE) {
-					m_LOG_CPND_CL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-						      __FILE__, __LINE__);
+					TRACE_4("cpnd mds send failed");
 					cpnd_proc_free_cpsv_ckpt_data(send_evt.info.cpnd.info.ckpt_nd2nd_sync.data);
 					return rc;
 				}
@@ -4476,5 +4446,6 @@ static uint32_t cpnd_transfer_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 		tmp_sec_info = tmp_sec_info->next;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }

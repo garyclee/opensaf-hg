@@ -41,6 +41,8 @@ uint32_t cpd_a2s_ckpt_create(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	CPD_MBCSV_MSG cpd_msg;
 	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t count = 0;
+
+	TRACE_ENTER();
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 
 	cpd_msg.type = CPD_A2S_MSG_CKPT_CREATE;
@@ -62,7 +64,7 @@ uint32_t cpd_a2s_ckpt_create(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 		cpd_msg.info.ckpt_create.dest_cnt = ckpt_node->dest_cnt;
 		cpd_msg.info.ckpt_create.dest_list = m_MMGR_ALLOC_CPSV_CPND_DEST_INFO(ckpt_node->dest_cnt);
 		if (cpd_msg.info.ckpt_create.dest_list == NULL) {
-			m_LOG_CPD_MEMFAIL(CPD_CPND_DEST_INFO_ALLOC_FAILED);
+			TRACE_4("cpd cpnd dest info memory allocation failed");
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto end;
 		} else {
@@ -79,16 +81,15 @@ uint32_t cpd_a2s_ckpt_create(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	/* send it to MBCSv */
 	rc = cpd_mbcsv_async_update(cb, &cpd_msg);
 	if (rc != SA_AIS_OK)
-		m_LOG_CPD_FCL(CPD_A2S_CKPT_CREATE_ASYNC_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, ckpt_node->ckpt_id,
-			      __FILE__, __LINE__);
+		TRACE_4("cpd A2S ckpt create async failed for ckptid :%llx",ckpt_node->ckpt_id);
 	else
-		m_LOG_CPD_FCL(CPD_A2S_CKPT_CREATE_ASYNC_SUCCESS, CPD_FC_MBCSV, NCSFL_SEV_INFO, ckpt_node->ckpt_id,
-			      __FILE__, __LINE__);
+		TRACE_1("cpd A2S ckpt create async success for ckptid :%llx",ckpt_node->ckpt_id);
 
 	if (cpd_msg.info.ckpt_create.dest_list)
 		m_MMGR_FREE_CPSV_CPND_DEST_INFO(cpd_msg.info.ckpt_create.dest_list);
 
  end:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -109,6 +110,8 @@ void cpd_a2s_ckpt_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 {
 	CPD_MBCSV_MSG cpd_msg;
 	uint32_t rc = SA_AIS_OK;
+
+	TRACE_ENTER();
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 	cpd_msg.type = CPD_A2S_MSG_CKPT_UNLINK;
 	cpd_msg.info.ckpt_ulink.is_unlink_set = ckpt_node->is_unlink_set;
@@ -117,10 +120,10 @@ void cpd_a2s_ckpt_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	/* send it to MBCSv  */
 	rc = cpd_mbcsv_async_update(cb, &cpd_msg);
 	if (rc != SA_AIS_OK)
-		m_LOG_CPD_CCL(CPD_A2S_CKPT_UNLINK_ASYNC_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR,
-			      ckpt_node->ckpt_name.value, __FILE__, __LINE__);
+		TRACE_4("cpd A2S ckpt unlink async failed %s",ckpt_node->ckpt_name.value);
 	else
-		m_LOG_CPD_CL(CPD_A2S_CKPT_UNLINK_ASYNC_SUCCESS, CPD_FC_MBCSV, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_1("cpd A2S ckpt unlink async failed ");
+	TRACE_LEAVE();
 }
 
 /***********************************************************************************
@@ -139,8 +142,10 @@ void cpd_a2s_ckpt_rdset(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 {
 	CPD_MBCSV_MSG cpd_msg;
 	uint32_t rc = SA_AIS_OK;
-	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
+	
+	TRACE_ENTER();
 
+	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 	cpd_msg.type = CPD_A2S_MSG_CKPT_RDSET;
 	cpd_msg.info.rd_set.ckpt_id = ckpt_node->ckpt_id;
 	cpd_msg.info.rd_set.reten_time = ckpt_node->ret_time;
@@ -148,11 +153,11 @@ void cpd_a2s_ckpt_rdset(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	/* send it to MBCSv */
 	rc = cpd_mbcsv_async_update(cb, &cpd_msg);
 	if (rc != SA_AIS_OK)
-		m_LOG_CPD_FCL(CPD_A2S_CKPT_RDSET_ASYNC_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, ckpt_node->ckpt_id,
-			      __FILE__, __LINE__);
+		TRACE_4("cpd A2S ckpt rdset async failed for ckpt_id :%llx",ckpt_node->ckpt_id);
 	else
-		m_LOG_CPD_FCL(CPD_A2S_CKPT_RDSET_ASYNC_SUCCESS, CPD_FC_MBCSV, NCSFL_SEV_INFO, ckpt_node->ckpt_id,
-			      __FILE__, __LINE__);
+		TRACE_1("cpd A2S ckpt rdes async success for ckpt_id :%llx",ckpt_node->ckpt_id);
+
+	TRACE_LEAVE();
 }
 
 /*************************************************************************************
@@ -170,6 +175,8 @@ void cpd_a2s_ckpt_arep_set(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 {
 	CPD_MBCSV_MSG cpd_msg;
 	uint32_t rc = SA_AIS_OK;
+
+	TRACE_ENTER();
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 	cpd_msg.type = CPD_A2S_MSG_CKPT_AREP_SET;
 	cpd_msg.info.arep_set.ckpt_id = ckpt_node->ckpt_id;
@@ -178,11 +185,10 @@ void cpd_a2s_ckpt_arep_set(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	/* send it to MBCSv */
 	rc = cpd_mbcsv_async_update(cb, &cpd_msg);
 	if (rc != SA_AIS_OK)
-		m_LOG_CPD_FFCL(CPD_A2S_CKPT_AREP_SET_ASYNC_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, ckpt_node->ckpt_id,
-			       ckpt_node->active_dest, __FILE__, __LINE__);
+		TRACE_4("cpd A2S ckpt arep set async failed for ckpt_id :%llx active_dest :%"PRIu64,ckpt_node->ckpt_id,ckpt_node->active_dest);
 	else
-		m_LOG_CPD_FFCL(CPD_A2S_CKPT_AREP_SET_ASYNC_SUCCESS, CPD_FC_MBCSV, NCSFL_SEV_INFO, ckpt_node->ckpt_id,
-			       ckpt_node->active_dest, __FILE__, __LINE__);
+		TRACE_1("cpd A2S ckpt arep set async success for ckpt_id :%llx active_dest :%"PRIu64,ckpt_node->ckpt_id,ckpt_node->active_dest);
+	TRACE_LEAVE();
 }
 
 /*******************************************************************************************
@@ -201,6 +207,8 @@ void cpd_a2s_ckpt_dest_add(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST *
 {
 	CPD_MBCSV_MSG cpd_msg;
 	uint32_t rc = SA_AIS_OK;
+	
+	TRACE_ENTER();
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 	cpd_msg.type = CPD_A2S_MSG_CKPT_DEST_ADD;
 	cpd_msg.info.dest_add.ckpt_id = ckpt_node->ckpt_id;
@@ -210,11 +218,11 @@ void cpd_a2s_ckpt_dest_add(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST *
 	/* send it to MBCSv */
 	rc = cpd_mbcsv_async_update(cb, &cpd_msg);
 	if (rc != SA_AIS_OK)
-		m_LOG_CPD_FFCL(CPD_A2S_CKPT_DESTADD_ASYNC_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, ckpt_node->ckpt_id,
-			       *dest, __FILE__, __LINE__);
+		TRACE_4("cpd A2S ckpt async update add failed for ckpt_id:%llx dest:%"PRIu64,ckpt_node->ckpt_id,*dest);
 	else
-		m_LOG_CPD_FFCL(CPD_A2S_CKPT_DESTADD_ASYNC_SUCCESS, CPD_FC_MBCSV, NCSFL_SEV_INFO, ckpt_node->ckpt_id,
-			       *dest, __FILE__, __LINE__);
+		TRACE_2("cpd A2S ckpt async update success for ckpt_id:%llx dest:%"PRIu64,ckpt_node->ckpt_id,*dest);
+
+	TRACE_LEAVE();
 }
 
 /*******************************************************************************************
@@ -233,6 +241,7 @@ void cpd_a2s_ckpt_dest_down(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST 
 	CPD_MBCSV_MSG cpd_msg;
 	uint32_t rc = SA_AIS_OK;
 
+	TRACE_ENTER();
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 	cpd_msg.type = CPD_A2S_MSG_CKPT_DEST_DOWN;
 	cpd_msg.info.dest_down.ckpt_id = ckpt_node->ckpt_id;
@@ -242,11 +251,10 @@ void cpd_a2s_ckpt_dest_down(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST 
 
 	rc = cpd_mbcsv_async_update(cb, &cpd_msg);
 	if (rc != SA_AIS_OK)
-		m_LOG_CPD_FFCL(CPD_A2S_CKPT_DESTDEL_ASYNC_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR,
-			       cpd_msg.info.dest_down.ckpt_id, *dest, __FILE__, __LINE__);
+		TRACE_4("cpd A2S ckpt async update failed for ckptid:%llx,dest: %"PRIu64,cpd_msg.info.dest_down.ckpt_id, *dest);
 	else
-		m_LOG_CPD_FFCL(CPD_A2S_CKPT_DESTDEL_ASYNC_SUCCESS, CPD_FC_MBCSV, NCSFL_SEV_INFO,
-			       cpd_msg.info.dest_down.ckpt_id, *dest, __FILE__, __LINE__);
+		TRACE_1("cpd A2S ckpt async update del success for ckptid:%llx,dest:%"PRIu64,cpd_msg.info.dest_down.ckpt_id, *dest);
+	TRACE_LEAVE();
 }
 
 /*******************************************************************************************
@@ -265,6 +273,8 @@ void cpd_a2s_ckpt_dest_del(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, MDS_DES
 	CPD_MBCSV_MSG cpd_msg;
 	uint32_t rc = SA_AIS_OK;
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
+	
+	TRACE_ENTER();
 	cpd_msg.type = CPD_A2S_MSG_CKPT_DEST_DEL;
 	if (ckptid_flag) {
 		cpd_msg.info.dest_del.ckpt_id = 0;
@@ -276,11 +286,10 @@ void cpd_a2s_ckpt_dest_del(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, MDS_DES
 	/* Send it to MBCSV */
 	rc = cpd_mbcsv_async_update(cb, &cpd_msg);
 	if (rc != SA_AIS_OK)
-		m_LOG_CPD_FFCL(CPD_A2S_CKPT_DESTDEL_ASYNC_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR,
-			       cpd_msg.info.dest_del.ckpt_id, *cpnd_dest, __FILE__, __LINE__);
+		TRACE_4("cpd A2S ckpt dest del async update failed for ckpt_id:%llx dest:%"PRIu64,cpd_msg.info.dest_del.ckpt_id, *cpnd_dest);
 	else
-		m_LOG_CPD_FFCL(CPD_A2S_CKPT_DESTDEL_ASYNC_SUCCESS, CPD_FC_MBCSV, NCSFL_SEV_INFO,
-			       cpd_msg.info.dest_del.ckpt_id, *cpnd_dest, __FILE__, __LINE__);
+		TRACE_1("cpd A2S ckpt dest del async update success for ckpt_id:%llx dest:%"PRIu64,cpd_msg.info.dest_del.ckpt_id, *cpnd_dest);
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -295,6 +304,7 @@ void cpd_a2s_ckpt_usr_info(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	uint32_t rc = SA_AIS_OK;
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 
+	TRACE_ENTER();
 	cpd_msg.type = CPD_A2S_MSG_CKPT_USR_INFO;
 	cpd_msg.info.usr_info.ckpt_id = ckpt_node->ckpt_id;
 	cpd_msg.info.usr_info.num_user = ckpt_node->num_users;
@@ -306,7 +316,8 @@ void cpd_a2s_ckpt_usr_info(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 
 	rc = cpd_mbcsv_async_update(cb, &cpd_msg);
 	if (rc != SA_AIS_OK)
-		m_LOG_CPD_CL(CPD_A2S_CKPT_USR_INFO_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpd A2S ckpt user info async update failed");
 	else
-		m_LOG_CPD_CL(CPD_A2S_CKPT_USR_INFO_SUCCESS, CPD_FC_MBCSV, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_1("cpd A2S ckpt user info async update success");
+	TRACE_LEAVE();
 }

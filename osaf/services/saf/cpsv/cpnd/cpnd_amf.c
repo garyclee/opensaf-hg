@@ -68,12 +68,12 @@ cpnd_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, 
 	cpnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, cb_hdl);
 
 	if (!cpnd_cb) {
-		m_LOG_CPND_CL(CPND_CB_HDL_TAKE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd cb hdl take failed");
 		return;
 	}
 
 	if (saAmfResponse(cpnd_cb->amf_hdl, invocation, error) != SA_AIS_OK) {
-		m_LOG_CPND_CL(CPND_AMF_RESPONSE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd amf response failed ");
 		ncshm_give_hdl(cb_hdl);
 		return;
 	}
@@ -113,7 +113,7 @@ uint32_t cpnd_amf_init(CPND_CB *cpnd_cb)
 	error = saAmfInitialize(&cpnd_cb->amf_hdl, &amfCallbacks, &amf_version);
 
 	if (error != SA_AIS_OK) {
-		m_LOG_CPND_CL(CPND_AMF_INIT_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd amf init failed %u ",error);
 		res = NCSCC_RC_FAILURE;
 	}
 	return (res);
@@ -133,7 +133,7 @@ uint32_t cpnd_amf_init(CPND_CB *cpnd_cb)
 void cpnd_amf_de_init(CPND_CB *cpnd_cb)
 {
 	if (saAmfFinalize(cpnd_cb->amf_hdl) != SA_AIS_OK)
-		m_LOG_CPND_CL(CPND_AMF_DESTROY_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpnd amf destroy failed ");
 }
 
 /****************************************************************************
@@ -155,18 +155,18 @@ uint32_t cpnd_amf_register(CPND_CB *cpnd_cb)
 	/* get the component name */
 	error = saAmfComponentNameGet(cpnd_cb->amf_hdl, &cpnd_cb->comp_name);
 	if (error != SA_AIS_OK) {
-		m_LOG_CPND_CL(CPND_AMF_COMP_NAME_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd amf comp name get failed %u ",error);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (saAmfComponentRegister(cpnd_cb->amf_hdl, &cpnd_cb->comp_name, (SaNameT *)NULL) == SA_AIS_OK)
 		return NCSCC_RC_SUCCESS;
 	else {
-		m_LOG_CPND_CL(CPND_AMF_COMP_REG_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd amf comp register failed");
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_LOG_CPND_CL(CPND_AMF_REGISTER_SUCCESS, CPND_FC_GENERIC, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+	TRACE_2("cpnd amf register success");
 }
 
 /****************************************************************************
@@ -188,14 +188,14 @@ uint32_t cpnd_amf_deregister(CPND_CB *cpnd_cb)
 	/* get the component name */
 	error = saAmfComponentNameGet(cpnd_cb->amf_hdl, &comp_name);
 	if (error != SA_AIS_OK) {
-		m_LOG_CPND_CL(CPND_AMF_COMP_NAME_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd amf comp name get failed %u",error);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (saAmfComponentUnregister(cpnd_cb->amf_hdl, &comp_name, (SaNameT *)NULL) == SA_AIS_OK)
 		return NCSCC_RC_SUCCESS;
 	else {
-		m_LOG_CPND_CL(CPND_AMF_COMP_UNREG_FAILED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("cpnd amf comp unreg failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -227,14 +227,15 @@ void cpnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *c
 	CPND_CB *cb = NULL;
 	SaAisErrorT saErr = SA_AIS_OK;
 
+	TRACE_ENTER();
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl);
 	if (cb == NULL) {
-		m_LOG_CPND_CL(CPND_AMF_TERM_CB_INVOKED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd cb take handle failed in amf term callback");
 		return;
 	}
 	saAmfResponse(cb->amf_hdl, invocation, saErr);
 	ncshm_give_hdl(gl_cpnd_cb_hdl);
-	m_LOG_CPND_CL(CPND_AMF_TERM_CB_INVOKED, CPND_FC_GENERIC, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+	TRACE_1("cpnd amf CPND_AMF_TERM_CB_INVOKED");
 	sleep(1);
 	exit(0);
 
@@ -260,13 +261,13 @@ cpnd_amf_csi_rmv_callback(SaInvocationT invocation,
 
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl);
 	if (cb == NULL) {
-		m_LOG_CPND_CL(CPND_CSI_RMV_CB_INVOKED, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd cb take handle failed in rmv callback");
 		return;
 	}
 	saAmfResponse(cb->amf_hdl, invocation, saErr);
 	ncshm_give_hdl(gl_cpnd_cb_hdl);
 
-	m_LOG_CPND_CL(CPND_CSI_RMV_CB_INVOKED, CPND_FC_GENERIC, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+	TRACE_1("cpnd csi rmv cb invoked ");
 
 	TRACE("THIS IS IN RMV CALLBACK");
 	return;
@@ -323,9 +324,9 @@ void cpnd_saf_csi_set_cb(SaInvocationT invocation,
 
 		saAmfResponse(cb->amf_hdl, invocation, saErr);
 		ncshm_give_hdl(gl_cpnd_cb_hdl);
-		m_LOG_CPND_CL(CPND_CSI_CB_INVOKED, CPND_FC_GENERIC, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+		TRACE_1("cpnd csi cb invoked ");
 	} else {
-		m_LOG_CPND_CL(CPND_CB_RETRIEVAL_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("cpnd cb take handle failed");
 	}
 	return;
 }	/* End of cpnd_saf_csi_set_cb() */
