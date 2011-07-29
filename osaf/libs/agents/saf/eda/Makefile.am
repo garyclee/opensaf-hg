@@ -21,7 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 noinst_LTLIBRARIES = libeda.la
 
 libeda_la_CPPFLAGS = \
-	-DNCS_EDA=1 -DNCS_DTA=1 \
+	-DNCS_EDA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/edsv/include
 
@@ -31,6 +31,5 @@ libeda_la_SOURCES = \
 	eda_util.c \
 	eda_saf_api.c \
 	eda_hdl.c \
-	eda_log.c \
 	eda_mds.c \
 	eda_init.c

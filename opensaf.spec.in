@@ -1014,7 +1014,6 @@ fi
 %dir %{_pkgimmxmldir}
 %endif
 %config(noreplace) %{_pkgsysconfdir}/evtd.conf
-%{_pkglibdir}/libedsv_logstr.so.*
 %{_pkglibdir}/osafevtd
 %{_pkgclcclidir}/osaf-evtd
 %if %is_immxml

@@ -81,9 +81,6 @@
 
 #define m_EDSV_GET_CLM_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;
 
-/* DTSv versioning support */
-#define EDSV_LOG_VERSION 3
-
 /* Define our limits */
 /* EDSv maximum channels for this implementation */
 #define EDSV_MAX_CHANNELS      1024

@@ -24,7 +24,7 @@ pkglib_PROGRAMS = osafevtd
 
 osafevtd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
-	-DNCS_EDS=1 -DNCS_EDSV_LOG=1 -DNCS_DTA=1 \
+	-DNCS_EDS=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/edsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
@@ -39,7 +39,6 @@ osafevtd_SOURCES = \
 	eds_evt.c \
 	eds_imm.c \
 	eds_ll.c \
-	eds_log.c \
 	eds_main.c \
 	eds_mds.c \
 	eds_tmr.c \

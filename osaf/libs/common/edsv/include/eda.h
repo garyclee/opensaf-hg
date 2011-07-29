@@ -19,7 +19,7 @@
 #define EDA_H
 
 #include "ncsgl_defs.h"
-
+#include "ncs_main_papi.h"
 #include "ncs_svd.h"
 #include "usrbuf.h"
 #include "ncsft.h"
@@ -31,24 +31,15 @@
 
 #include "mds_papi.h"
 
-#if (NCS_DTS == 1)
-#include "dts_papi.h"
-#endif
-
-#if (NCS_DTA == 1)
-#include "dta_papi.h"
-#endif
-
 #include "edsv_msg.h"
 #include "eda_cb.h"
 #include "eda_hdl.h"
 #include "eda_mds.h"
 #include "eda_mem.h"
-#include "eda_log.h"
-#include "edsv_logstr.h"
 #include "edsv_mem.h"
 #include "edsv_defs.h"
 #include "edsv_util.h"
+#include "logtrace.h"
 
 /* EDA CB global handle declaration */
 uint32_t gl_eda_hdl;

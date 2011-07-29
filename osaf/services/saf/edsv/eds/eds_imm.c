@@ -133,7 +133,8 @@ SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	}			/*End while attributesNames() */
 	attrMods[attr_count] = NULL;
 	rc = saImmOiRtObjectUpdate_2(immOiHandle, objectName, attrMods);
-	TRACE_1("saImmOiRtObjectUpdate_2 returned : %u", rc);
+	if (rc != SA_AIS_OK)
+		LOG_ER("saImmOiRtObjectUpdate_2 for '%s' returned : %u", objectName->value, rc);
 
 	ncshm_give_hdl(gl_eds_hdl);
 

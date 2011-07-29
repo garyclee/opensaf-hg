@@ -1686,7 +1686,7 @@ uint32_t eds_channel_unlink(EDS_CB *cb, uint32_t chan_name_len, uint8_t *chan_na
 				strncpy((char *)channel_name.value, (char *)wp->cname, channel_name.length);
 				if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 					if ((rc = immutil_saImmOiRtObjectDelete(cb->immOiHandle, &channel_name)) != SA_AIS_OK) {
-						LOG_ER("Deleting runtime object %s failed with rc = %u", channel_name.value, rc);
+						LOG_ER("saImmOiRtObjectDelete failed. Channel: %s. rc = %u", channel_name.value, rc);
 						TRACE_LEAVE();
 						return NCSCC_RC_FAILURE;
 					}

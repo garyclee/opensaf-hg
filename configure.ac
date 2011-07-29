@@ -830,7 +830,6 @@ AC_CONFIG_FILES([
         osaf/services/saf/cpsv/cpnd/scripts/osaf-ckptnd
         osaf/services/saf/edsv/Makefile
         osaf/services/saf/edsv/config/Makefile
-        osaf/services/saf/edsv/logstr/Makefile
         osaf/services/saf/edsv/eds/Makefile
         osaf/services/saf/edsv/eds/scripts/Makefile
         osaf/services/saf/edsv/eds/scripts/osaf-evtd
