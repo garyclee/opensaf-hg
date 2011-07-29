@@ -46,8 +46,14 @@
 *  saEvtEventSubscribe()                                                     *
 *  saEvtEventUnsubscribe()                                                   *
 *  saEvtEventRetentionTimeClear()                                            *
-*  saEvtLimitGet()                                            *
+*  saEvtLimitGet()                                                           *
 *                                                                            *
+* Event Service Agent library adopts the following guidelines for traces:    *
+*  TRACE   debug traces                 - DEBUG                              *
+*  TRACE_1 normal but important events  - INFO                               *
+*  TRACE_2 user errors with return code - NOTICE                             *
+*  TRACE_3 unusual or strange events    - WARNING                            *
+*  TRACE_4 library errors ERR_LIBRARY   - ERROR                              *
 *****************************************************************************/
 /* main eda include */
 #include "eda.h"
@@ -86,31 +92,35 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 	uint32_t reg_id = 0;
 	EDSV_EDA_INITIALIZE_RSP *init_rsp = NULL;
 	SaVersionT client_version;
+	TRACE_ENTER();
 
 	if ((rc = ncs_agents_startup()) != SA_AIS_OK) {
-		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		TRACE_4("agents startup failed");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_LIBRARY;
 	}
 
 	if ((rc = ncs_eda_startup()) != SA_AIS_OK) {
-		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 		ncs_agents_shutdown();
+		TRACE_4("eda startup failed");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_LIBRARY;
 	}
 
 	/* Retrieve EDA_CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		TRACE_4("global take handle failed: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if ((NULL == o_evtHandle) || (NULL == io_version)) {
 		ncshm_give_hdl(gl_eda_hdl);
-		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, SA_AIS_ERR_INVALID_PARAM,
-			     __FILE__, __LINE__, 0);
 		ncs_eda_shutdown();
 		ncs_agents_shutdown();
+		TRACE_2("out param is NULL");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
@@ -126,14 +136,14 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 		m_EDA_FILL_VERSION(io_version);
 		rc = SA_AIS_OK;
 	} else {
-		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, SA_AIS_ERR_VERSION,
-			     __FILE__, __LINE__, io_version->majorVersion);
 		io_version->releaseCode = EDSV_RELEASE_CODE;
 		m_EDA_FILL_VERSION(io_version);
 		ncshm_give_hdl(gl_eda_hdl);
 		ncs_eda_shutdown();
 		ncs_agents_shutdown();
 		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("unsupported version");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -142,8 +152,8 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 		ncs_eda_shutdown();
 		ncs_agents_shutdown();
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rc, __FILE__, __LINE__,
-			     eda_cb->eds_intf.eds_up);
+		TRACE_2("event server is not yet up");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -151,12 +161,12 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 	 * wide unique.
 	 */
 	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_sync_send(eda_cb, &i_msg, &o_msg, EDSV_WAIT_TIME))) {
-		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     MDS_SENDTYPE_SNDRSP);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		ncshm_give_hdl(gl_eda_hdl);
 		ncs_eda_shutdown();
 		ncs_agents_shutdown();
+		TRACE_4("mds send to event server failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -164,8 +174,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
     **/
 	if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
 		rc = o_msg->info.api_resp_info.rc;
-		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     MDS_SENDTYPE_SNDRSP);
+		TRACE_4("event server returned failure: %u", rc);
 		goto err3;
 	}
 
@@ -180,8 +189,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 	/* create the hdl record & store the callbacks */
 	if (NULL == (eda_hdl_rec = eda_hdl_rec_add(&eda_cb, callbacks, reg_id, client_version))) {
 		rc = SA_AIS_ERR_NO_MEMORY;
-		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     reg_id);
+		TRACE_4("unable to add handle to db");
 		goto err3;
 	}
 
@@ -199,9 +207,10 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 	if (rc != SA_AIS_OK) {
 		ncs_eda_shutdown();
 		ncs_agents_shutdown();
-	} else
-		m_LOG_EDSV_AF(EDA_INITIALIZE_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__,
-			      reg_id, *o_evtHandle);
+	} else 
+		TRACE("user handle returned: %llx. Internal reg_id for this handle: %u", *o_evtHandle, reg_id);
+
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -236,34 +245,32 @@ SaAisErrorT saEvtSelectionObjectGet(SaEvtHandleT evtHandle, SaSelectionObjectT *
 	EDA_CLIENT_HDL_REC *hdl_rec = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	NCS_SEL_OBJ sel_obj;
+	TRACE_ENTER2("event handle: %llx", evtHandle);
 
 	if (NULL == o_sel_obj) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
-		m_LOG_EDSV_AF(EDA_SELECTION_OBJ_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__, 0, evtHandle);
+		TRACE_2("NULL value passed for selection object");
+		TRACE_LEAVE();
 		return rc;
 	}
 	/* retrieve EDA_CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;	/* check */
-		m_LOG_EDSV_AF(EDA_SELECTION_OBJ_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__, 0, evtHandle);
+		TRACE_4("Unable to retrieve global handle: %u", gl_eda_hdl);
 		goto err1;
 	}
 
 	/* retrieve hdl rec */
 	if (NULL == (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, evtHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;	/* check */
-		m_LOG_EDSV_AF(EDA_SELECTION_OBJ_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__, 0, evtHandle);
+		TRACE_4("Unable to retrieve event handle: %llx", evtHandle);
 		goto err2;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;
-			m_LOG_EDSV_AF(EDA_SELECTION_OBJ_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-				      __FILE__, __LINE__, 0, evtHandle);
+			TRACE_4("This node is not a member of the CLM cluster");
 			goto err2;
 		}
 	}
@@ -280,9 +287,7 @@ SaAisErrorT saEvtSelectionObjectGet(SaEvtHandleT evtHandle, SaSelectionObjectT *
  err2:
 	ncshm_give_hdl(gl_eda_hdl);
  err1:
-	if (rc == SA_AIS_OK)
-		m_LOG_EDSV_AF(EDA_SELECTION_OBJ_GET_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, 1, __FILE__,
-			      __LINE__, 0, evtHandle);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -312,35 +317,32 @@ SaAisErrorT saEvtDispatch(SaEvtHandleT evtHandle, SaDispatchFlagsT dispatchFlags
 	EDA_CB *eda_cb = 0;
 	EDA_CLIENT_HDL_REC *hdl_rec = 0;
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("event handle: %llx", evtHandle);
 
 	if (!m_EDA_DISPATCH_FLAG_IS_VALID(dispatchFlags)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
-		m_LOG_EDSV_AF(EDA_DISPATCH_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      dispatchFlags, evtHandle);
+		TRACE_2("Invalid dispatchFlags");
 		goto err1;
 	}
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;	/* check */
-		m_LOG_EDSV_AF(EDA_DISPATCH_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      dispatchFlags, evtHandle);
+		TRACE_4("Unable to retrieve global handle: %u", gl_eda_hdl);
 		goto err1;
 	}
 
 	/* retrieve hdl rec */
 	if (NULL == (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, evtHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;	/* check */
-		m_LOG_EDSV_AF(EDA_DISPATCH_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      dispatchFlags, evtHandle);
+		TRACE_4("Unable to retrieve event handle: %llx", evtHandle);
 		goto err2;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;
-			m_LOG_EDSV_AF(EDA_DISPATCH_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, dispatchFlags, evtHandle);
+			TRACE_1("This node is not a member of the CLM cluster");
 			ncshm_give_hdl(evtHandle);
 			ncshm_give_hdl(gl_eda_hdl);
 		}
@@ -349,8 +351,8 @@ SaAisErrorT saEvtDispatch(SaEvtHandleT evtHandle, SaDispatchFlagsT dispatchFlags
 	rc = eda_hdl_cbk_dispatch(eda_cb, hdl_rec, dispatchFlags);
 
 	if (rc != SA_AIS_OK)
-		m_LOG_EDSV_AF(EDA_DISPATCH_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      dispatchFlags, evtHandle);
+		TRACE_1("Callback dispatch returned error");
+
 	if (hdl_rec)
 		ncshm_give_hdl(evtHandle);
 
@@ -358,6 +360,7 @@ SaAisErrorT saEvtDispatch(SaEvtHandleT evtHandle, SaDispatchFlagsT dispatchFlags
 	/* return EDA_CB & hdl rec */
 	ncshm_give_hdl(gl_eda_hdl);
  err1:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -390,12 +393,13 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
 	EDSV_MSG msg;
 	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t reg_id;
+	TRACE_ENTER2("event handle: %llx", evtHandle);
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_FINALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -403,8 +407,8 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
 	if (NULL == (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, evtHandle))) {
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_FINALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
+		TRACE_2("Unable to retrieve event handle: %llx", evtHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -413,8 +417,8 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_EDSV_AF(EDA_FINALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
+		TRACE_2("event server is not yet up");
+		TRACE_LEAVE();
 		return rc;
 	}
 	/* For Logging the Data */
@@ -428,9 +432,9 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
 	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_async_send(eda_cb, &msg, MDS_SEND_PRIORITY_MEDIUM))) {
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
-		m_LOG_EDSV_AF(EDA_FINALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
 		rc = SA_AIS_ERR_TRY_AGAIN;
+		TRACE_4("mds send to event server failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -440,24 +444,23 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
 	 * if MDS send is succesful. 
 	 */
 	if (NCSCC_RC_SUCCESS != (rc = eda_hdl_rec_del(&eda_cb->eda_init_rec_list, hdl_rec))) {
-		m_LOG_EDSV_AF(EDA_FINALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		/* give handles */
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Handle record cleanup failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* give handles */
 	ncshm_give_hdl(evtHandle);
 	ncshm_give_hdl(gl_eda_hdl);
-	if (rc == SA_AIS_OK)
-		m_LOG_EDSV_AF(EDA_FINALIZE_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__,
-			      reg_id, evtHandle);
+
 	ncs_eda_shutdown();
 	ncs_agents_shutdown();
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -523,44 +526,45 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t chan_id, timeOut;
 	uint32_t chan_open_id;
+	TRACE_ENTER2("event handle: %llx", evtHandle);
 
 	if ((NULL == channelName) || (0 == channelName->length) || (SA_MAX_NAME_LENGTH < channelName->length)
 		|| (NULL == o_chanHdl) || (strncmp((char *)channelName->value, "safChnl=", 8))) {
-		m_LOG_EDSV_AF(EDA_OPEN_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, SA_AIS_ERR_INVALID_PARAM,
-			      __FILE__, __LINE__, 0, evtHandle);
+		TRACE_2("Invalid input param(s) for channel");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 	if (!m_EDA_CHAN_OPEN_FLAG_IS_VALID(channelOpenFlags)) {
 		rc = SA_AIS_ERR_BAD_FLAGS;
-		m_LOG_EDSV_AF(EDA_OPEN_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      channelOpenFlags, evtHandle);
+		TRACE_2("Invalid channel open flags");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;	/* check */
-		m_LOG_EDSV_AF(EDA_OPEN_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      channelOpenFlags, evtHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* retrieve hdl rec */
 	if (NULL == (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, evtHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_OPEN_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      channelOpenFlags, evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to retrieve event handle: %llx", evtHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;
-			m_LOG_EDSV_AF(EDA_OPEN_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-				      channelOpenFlags, evtHandle);
 			ncshm_give_hdl(evtHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -574,11 +578,10 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
 
 	if (timeOut < NCS_SAF_MIN_ACCEPT_TIME) {
 		rc = SA_AIS_ERR_TIMEOUT;
-		m_LOG_EDSV_AF(EDA_OPEN_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, timeOut,
-			      evtHandle);
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
-
+		TRACE_2("The timeout is less than minimum supported value of 100 milli seconds");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -587,8 +590,8 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_EDSV_AF(EDA_OPEN_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
+		TRACE_2("event server is not yet up");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -596,14 +599,14 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
     ** open id.
     **/
 	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_sync_send(eda_cb, &msg, &o_msg, (uint32_t)timeOut))) {
-		m_LOG_EDSV_AF(EDA_OPEN_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		/* free up the response message */
 		if (o_msg)
 			eda_msg_destroy(o_msg);
+		TRACE_4("mds send to event server failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -611,13 +614,13 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
     **/
 	if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
 		rc = o_msg->info.api_resp_info.rc;
-		m_LOG_EDSV_AF(EDA_OPEN_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		/* free up the response message */
 		if (o_msg)
 			eda_msg_destroy(o_msg);
+		TRACE_2("event server returned failure: %u", rc);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -626,6 +629,8 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
     **/
 	chan_id = o_msg->info.api_resp_info.param.chan_open_rsp.chan_id;
 	chan_open_id = o_msg->info.api_resp_info.param.chan_open_rsp.chan_open_id;
+
+	TRACE("reg_id: %u, chan_id: %u, chan_open_id: %u",  hdl_rec->eds_reg_id, chan_id, chan_open_id);
 
    /** Lock EDA_CB
     **/
@@ -637,14 +642,14 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
 	if (NULL == (chan_hdl_rec = eda_channel_hdl_rec_add(&hdl_rec,
 							    chan_id, chan_open_id, channelOpenFlags, channelName))) {
 		rc = SA_AIS_ERR_NO_RESOURCES;
-		m_LOG_EDSV_AF(EDA_OPEN_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
 		m_NCS_UNLOCK(&eda_cb->cb_lock, NCS_LOCK_WRITE);
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		/* free up the response message */
 		if (o_msg)
 			eda_msg_destroy(o_msg);
+		TRACE_2("unable to add channel handle to db");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -655,8 +660,6 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
    /** Give the hdl-mgr allocated hdl to the application.
     **/
 	*o_chanHdl = (SaEvtChannelHandleT)chan_hdl_rec->channel_hdl;
-	m_LOG_EDSV_AF(EDA_OPEN_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_NOTICE, SA_AIS_OK, __FILE__, __LINE__, chan_id,
-		      *o_chanHdl);
 
 	if (o_msg)
 		eda_msg_destroy(o_msg);
@@ -664,6 +667,7 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
 	ncshm_give_hdl(evtHandle);
 	ncshm_give_hdl(gl_eda_hdl);
 
+	TRACE_LEAVE2("Channel handle: %llx", *o_chanHdl);
 	return SA_AIS_OK;
 }
 
@@ -702,44 +706,45 @@ saEvtChannelOpenAsync(SaEvtHandleT evtHandle,
 	EDA_CLIENT_HDL_REC *hdl_rec = 0;
 	EDSV_MSG msg;
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("event handle: %llx", evtHandle);
 
 	if ((NULL == channelName) || (0 == channelName->length) || (SA_MAX_NAME_LENGTH < channelName->length) ||
 		(strncmp((char *)channelName->value, "safChnl=", 8))) {
-		m_LOG_EDSV_AF(EDA_OPEN_ASYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, SA_AIS_ERR_INVALID_PARAM,
-			      __FILE__, __LINE__, 0, evtHandle);
+		TRACE_2("Invalid input param(s) for channel");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 	if (!m_EDA_CHAN_OPEN_FLAG_IS_VALID(channelOpenFlags)) {
 		rc = SA_AIS_ERR_BAD_FLAGS;
-		m_LOG_EDSV_AF(EDA_OPEN_ASYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      channelOpenFlags, evtHandle);
+		TRACE_2("Invalid channel open flags");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;	/* check */
-		m_LOG_EDSV_AF(EDA_OPEN_ASYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      channelOpenFlags, evtHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* retrieve hdl rec */
 	if (NULL == (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, evtHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_OPEN_ASYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      channelOpenFlags, evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to retrieve event handle: %llx", evtHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;
-			m_LOG_EDSV_AF(EDA_OPEN_ASYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, channelOpenFlags, evtHandle);
 			ncshm_give_hdl(evtHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -747,10 +752,10 @@ saEvtChannelOpenAsync(SaEvtHandleT evtHandle,
 	/* Check if the corresponding cbk was registered */
 	if (!hdl_rec->reg_cbk.saEvtChannelOpenCallback) {
 		rc = SA_AIS_ERR_INIT;
-		m_LOG_EDSV_AF(EDA_OPEN_ASYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      channelOpenFlags, evtHandle);
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("NULL channelOpenCallback specified by user");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -759,8 +764,8 @@ saEvtChannelOpenAsync(SaEvtHandleT evtHandle,
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_EDSV_AF(EDA_OPEN_ASYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      channelOpenFlags, evtHandle);
+		TRACE_2("event server is not yet up");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -774,11 +779,11 @@ saEvtChannelOpenAsync(SaEvtHandleT evtHandle,
     ** callback and will be handle in the callback dispatch subroutines.
     **/
 	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_async_send(eda_cb, &msg, MDS_SEND_PRIORITY_MEDIUM))) {
-		m_LOG_EDSV_AF(EDA_OPEN_ASYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      channelOpenFlags, evtHandle);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("mds send to event server failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -789,6 +794,7 @@ saEvtChannelOpenAsync(SaEvtHandleT evtHandle,
 	ncshm_give_hdl(evtHandle);
 	ncshm_give_hdl(gl_eda_hdl);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -818,20 +824,21 @@ SaAisErrorT saEvtChannelClose(SaEvtChannelHandleT channelHandle)
 	EDSV_MSG msg;
 	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t chan_id;
+	TRACE_ENTER2("channel handle: %llx", channelHandle);
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;	/* check */
-		m_LOG_EDSV_AF(EDA_CLOSE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* retrieve channel hdl record */
 	if (NULL == (chan_hdl_rec = (EDA_CHANNEL_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, channelHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_CLOSE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
+		TRACE_2("Unable to retrieve channel handle: %llx", channelHandle);
+		TRACE_LEAVE();
 		ncshm_give_hdl(gl_eda_hdl);
 		return rc;
 	}
@@ -840,21 +847,21 @@ SaAisErrorT saEvtChannelClose(SaEvtChannelHandleT channelHandle)
 	if (NULL ==
 	    (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, chan_hdl_rec->parent_hdl->local_hdl))) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_CLOSE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		ncshm_give_hdl(channelHandle);
+		TRACE_4("Unable to find the event handle associated with this channel Handle");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;	/* For now lets return this to a pre-B03 client */
-			m_LOG_EDSV_AF(EDA_CLOSE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-				      0, channelHandle);
 			ncshm_give_hdl(channelHandle);
 			ncshm_give_hdl(hdl_rec->local_hdl);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -865,8 +872,8 @@ SaAisErrorT saEvtChannelClose(SaEvtChannelHandleT channelHandle)
 		ncshm_give_hdl(hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_EDSV_AF(EDA_CLOSE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
+		TRACE_2("event server is not yet up");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -879,6 +886,9 @@ SaAisErrorT saEvtChannelClose(SaEvtChannelHandleT channelHandle)
 	m_EDA_EDSV_CHAN_CLOSE_MSG_FILL(msg, hdl_rec->eds_reg_id,
 				       chan_hdl_rec->eds_chan_id, chan_hdl_rec->eds_chan_open_id);
 
+	TRACE("reg_id:%u, chan_id: %u, chan_open_id: %u", hdl_rec->eds_reg_id,
+					chan_hdl_rec->eds_chan_id, chan_hdl_rec->eds_chan_open_id);
+
   /** Lock EDA_CB
    **/
 	m_NCS_LOCK(&eda_cb->cb_lock, NCS_LOCK_WRITE);
@@ -888,12 +898,12 @@ SaAisErrorT saEvtChannelClose(SaEvtChannelHandleT channelHandle)
     **/
 	if (NCSCC_RC_SUCCESS != eda_channel_hdl_rec_del(&hdl_rec->chan_list, chan_hdl_rec)) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_CLOSE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
 		m_NCS_UNLOCK(&eda_cb->cb_lock, NCS_LOCK_WRITE);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("Failed to cleanup channel records");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -907,11 +917,11 @@ SaAisErrorT saEvtChannelClose(SaEvtChannelHandleT channelHandle)
     ** receipt of this message.
     **/
 	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_async_send(eda_cb, &msg, MDS_SEND_PRIORITY_MEDIUM))) {
-		m_LOG_EDSV_AF(EDA_CLOSE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		ncshm_give_hdl(hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("mds send to event server failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -921,10 +931,8 @@ SaAisErrorT saEvtChannelClose(SaEvtChannelHandleT channelHandle)
    **/
 	ncshm_give_hdl(hdl_rec->local_hdl);
 	ncshm_give_hdl(gl_eda_hdl);
-	if (rc == SA_AIS_OK)
-		m_LOG_EDSV_AF(EDA_CLOSE_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__,
-			      chan_id, channelHandle);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -962,19 +970,20 @@ SaAisErrorT saEvtChannelUnlink(SaEvtHandleT evtHandle, const SaNameT *channelNam
 	EDA_CLIENT_HDL_REC *hdl_rec = 0;
 	EDSV_MSG msg, *o_msg = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("event handle: %llx", evtHandle);
 
 	if ((NULL == channelName) || (0 == channelName->length) || (SA_MAX_NAME_LENGTH < channelName->length) ||
 		(strncmp((char *)channelName->value, "safChnl=", 8))) {
-		m_LOG_EDSV_AF(EDA_UNLINK_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, SA_AIS_ERR_INVALID_PARAM,
-			      __FILE__, __LINE__, 0, evtHandle);
+		TRACE_2("Invalid channel Name");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
     /** Retrieve EDA CB 
      **/
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;	/* check */
-		m_LOG_EDSV_AF(EDA_UNLINK_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -982,19 +991,19 @@ SaAisErrorT saEvtChannelUnlink(SaEvtHandleT evtHandle, const SaNameT *channelNam
      **/
 	if (NULL == (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, evtHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_UNLINK_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to retrieve event handle: %llx", evtHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;
-			m_LOG_EDSV_AF(EDA_UNLINK_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, evtHandle);
 			ncshm_give_hdl(evtHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -1004,8 +1013,8 @@ SaAisErrorT saEvtChannelUnlink(SaEvtHandleT evtHandle, const SaNameT *channelNam
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_EDSV_AF(EDA_UNLINK_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
+		TRACE_2("event server is not yet up");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1017,14 +1026,14 @@ SaAisErrorT saEvtChannelUnlink(SaEvtHandleT evtHandle, const SaNameT *channelNam
    /** Send the message out to the EDS
     **/
 	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_sync_send(eda_cb, &msg, &o_msg, EDSV_WAIT_TIME))) {
-		m_LOG_EDSV_AF(EDA_UNLINK_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		/* free up the response message */
 		if (o_msg)
 			eda_msg_destroy(o_msg);
+		TRACE_4("mds send to event server failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1032,13 +1041,13 @@ SaAisErrorT saEvtChannelUnlink(SaEvtHandleT evtHandle, const SaNameT *channelNam
     **/
 	if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
 		rc = o_msg->info.api_resp_info.rc;
-		m_LOG_EDSV_AF(EDA_UNLINK_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		/* free up the response message */
 		if (o_msg)
 			eda_msg_destroy(o_msg);
+		TRACE_2("event server returned failure: %u", rc);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1049,9 +1058,8 @@ SaAisErrorT saEvtChannelUnlink(SaEvtHandleT evtHandle, const SaNameT *channelNam
 	ncshm_give_hdl(gl_eda_hdl);
 	if (o_msg)
 		eda_msg_destroy(o_msg);
-	m_LOG_EDSV_AF(EDA_UNLINK_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, SA_AIS_OK, __FILE__, __LINE__, 0,
-		      evtHandle);
 
+	TRACE_LEAVE();
 	return SA_AIS_OK;
 }
 
@@ -1092,26 +1100,27 @@ SaAisErrorT saEvtEventAllocate(SaEvtChannelHandleT channelHandle, SaEvtEventHand
 	EDA_CHANNEL_HDL_REC *chan_hdl_rec = NULL;
 	EDA_EVENT_HDL_REC *evt_hdl_rec = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("channel handle: %llx", channelHandle);
 
 	if (NULL == o_eventHandle) {
-		m_LOG_EDSV_AF(EDA_EVT_ALLOCATE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR,
-			      SA_AIS_ERR_INVALID_PARAM, __FILE__, __LINE__, 0, channelHandle);
+		TRACE_2("out param - EventHandle is NULL");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_EVT_ALLOCATE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, channelHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* retrieve channel hdl record */
 	if (NULL == (chan_hdl_rec = (EDA_CHANNEL_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, channelHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_EVT_ALLOCATE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, channelHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to retrieve channel handle: %llx", channelHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1119,31 +1128,31 @@ SaAisErrorT saEvtEventAllocate(SaEvtChannelHandleT channelHandle, SaEvtEventHand
 	if (NULL ==
 	    (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, chan_hdl_rec->parent_hdl->local_hdl))) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_EVT_ALLOCATE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, channelHandle);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("Unable to retrieve client event handle");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;	/* For now, lets return this to a pre-B03 client as well */
-			m_LOG_EDSV_AF(EDA_EVT_ALLOCATE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, channelHandle);
 			ncshm_give_hdl(chan_hdl_rec->parent_hdl->local_hdl);
 			ncshm_give_hdl(channelHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 		/* Check if this channel was opened with publisher access */
 		if (!(chan_hdl_rec->open_flags & SA_EVT_CHANNEL_PUBLISHER)) {
 			rc = SA_AIS_ERR_ACCESS;
-			m_LOG_EDSV_AF(EDA_EVT_ALLOCATE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, channelHandle);
 			ncshm_give_hdl(chan_hdl_rec->parent_hdl->local_hdl);
 			ncshm_give_hdl(channelHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("Channel was not opened with publish permissions");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -1157,12 +1166,12 @@ SaAisErrorT saEvtEventAllocate(SaEvtChannelHandleT channelHandle, SaEvtEventHand
     **/
 	if (NULL == (evt_hdl_rec = eda_event_hdl_rec_add(&chan_hdl_rec))) {
 		rc = SA_AIS_ERR_NO_MEMORY;
-		m_LOG_EDSV_AF(EDA_EVT_ALLOCATE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, channelHandle);
 		m_NCS_UNLOCK(&eda_cb->cb_lock, NCS_LOCK_WRITE);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Failed to allocate event");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1175,12 +1184,12 @@ SaAisErrorT saEvtEventAllocate(SaEvtChannelHandleT channelHandle, SaEvtEventHand
 	memcpy(evt_hdl_rec->publisher_name.value, (uint8_t *)"NULL", EDSV_DEF_NAME_LEN);
 	if (NULL == (evt_hdl_rec->pattern_array = m_MMGR_ALLOC_EVENT_PATTERN_ARRAY)) {
 		rc = SA_AIS_ERR_NO_MEMORY;
-		m_LOG_EDSV_AF(EDA_EVT_ALLOCATE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, channelHandle);
 		m_NCS_UNLOCK(&eda_cb->cb_lock, NCS_LOCK_WRITE);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("malloc failed for pattern array");
+		TRACE_LEAVE();
 		return rc;
 	}
 	evt_hdl_rec->pattern_array->allocatedNumber = 0;
@@ -1203,6 +1212,7 @@ SaAisErrorT saEvtEventAllocate(SaEvtChannelHandleT channelHandle, SaEvtEventHand
 	ncshm_give_hdl(hdl_rec->local_hdl);
 	ncshm_give_hdl(gl_eda_hdl);
 
+	TRACE_LEAVE2("Allocated event handle: %llx", *o_eventHandle);
 	return SA_AIS_OK;
 }
 
@@ -1231,21 +1241,22 @@ SaAisErrorT saEvtEventFree(SaEvtEventHandleT eventHandle)
 	EDA_EVENT_HDL_REC *evt_hdl_rec = NULL;
 	EDA_CLIENT_HDL_REC *hdl_rec = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("Allocated event handle: %llx", eventHandle);
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_EVT_FREE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* retrieve event hdl record */
 	if (NULL == (evt_hdl_rec = (EDA_EVENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, eventHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_EVT_FREE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to retrieve allocated event handle: %llx", eventHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1257,20 +1268,24 @@ SaAisErrorT saEvtEventFree(SaEvtEventHandleT eventHandle)
 			     (EDA_CHANNEL_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA,
 								   evt_hdl_rec->parent_chan->channel_hdl))) {
 				rc = SA_AIS_ERR_LIBRARY;
-				m_LOG_EDSV_AF(EDA_EVT_FREE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-					      __FILE__, __LINE__, 0, eventHandle);
 				ncshm_give_hdl(eventHandle);
 				ncshm_give_hdl(gl_eda_hdl);
+				TRACE_4("Unable to locate channel handle record");
+				TRACE_LEAVE();
 				return rc;
 			}
 		} else {
 			ncshm_give_hdl(eventHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_4("Channel handle is null!");
+			TRACE_LEAVE();
 			return SA_AIS_ERR_LIBRARY;
 		}		/* End if channel_hdl */
 	} else {
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("channel info does not exist");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_LIBRARY;
 	}			/* End if parent_chan */
 
@@ -1278,23 +1293,23 @@ SaAisErrorT saEvtEventFree(SaEvtEventHandleT eventHandle)
 	if (NULL ==
 	    (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, chan_hdl_rec->parent_hdl->local_hdl))) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_EVT_FREE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
 		ncshm_give_hdl(evt_hdl_rec->parent_chan->channel_hdl);
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("Unable to retrieve clienthandle associated with this event: %llx", eventHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;	/* For now, lets return this to a pre-B03 client as well */
-			m_LOG_EDSV_AF(EDA_EVT_FREE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, eventHandle);
 			ncshm_give_hdl(chan_hdl_rec->parent_hdl->local_hdl);
 			ncshm_give_hdl(evt_hdl_rec->parent_chan->channel_hdl);
 			ncshm_give_hdl(eventHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -1310,12 +1325,12 @@ SaAisErrorT saEvtEventFree(SaEvtEventHandleT eventHandle)
 
 	if (NCSCC_RC_SUCCESS != eda_event_hdl_rec_del(&chan_hdl_rec->chan_event_anchor, evt_hdl_rec)) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_EVT_FREE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
 		m_NCS_UNLOCK(&eda_cb->cb_lock, NCS_LOCK_WRITE);
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(chan_hdl_rec->channel_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("Failed to delete the allocated event");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1331,6 +1346,7 @@ SaAisErrorT saEvtEventFree(SaEvtEventHandleT eventHandle)
 	ncshm_give_hdl(chan_hdl_rec->channel_hdl);
 	ncshm_give_hdl(gl_eda_hdl);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1376,35 +1392,36 @@ saEvtEventAttributesSet(SaEvtEventHandleT eventHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	SaEvtEventPatternArrayT *def_pattern_array;
 	EDA_CB *eda_cb = NULL;
+	TRACE_ENTER2("Allocated event handle: %llx", eventHandle);
 
 	if (publisherName != NULL) {
 		if ((SA_MAX_NAME_LENGTH < publisherName->length) || (0 == publisherName->length)) {
-			m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR,
-				      SA_AIS_ERR_INVALID_PARAM, __FILE__, __LINE__, publisherName->length, eventHandle);
+			TRACE_2("Invalid publisher name");
+			TRACE_LEAVE();
 			return SA_AIS_ERR_INVALID_PARAM;
 		}
 	}
 
 	if (priority > SA_EVT_LOWEST_PRIORITY) {	/*Need not check for < HIGHEST_PRIORITY, as its unsigned */
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR,
-			      SA_AIS_ERR_INVALID_PARAM, __FILE__, __LINE__, priority, eventHandle);
+		TRACE_2("Invalid event priority");
+		TRACE_LEAVE();
 		return (SA_AIS_ERR_INVALID_PARAM);
 	}
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, eventHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* retrieve event hdl record */
 	if (NULL == (evt_hdl_rec = (EDA_EVENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, eventHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to retrieve allocated event handle: %llx", eventHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1415,8 +1432,8 @@ saEvtEventAttributesSet(SaEvtEventHandleT eventHandle,
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, evt_hdl_rec->parent_chan->channel_hdl);
+		TRACE_2("Failed to retreive channel handle associated with this event");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1424,23 +1441,24 @@ saEvtEventAttributesSet(SaEvtEventHandleT eventHandle,
 	if (NULL ==
 	    (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, chan_hdl_rec->parent_hdl->local_hdl))) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, eventHandle);
 		ncshm_give_hdl(evt_hdl_rec->parent_chan->channel_hdl);
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("Failed to retrieve client handle associated with this channelHandle: %u",
+								chan_hdl_rec->parent_hdl->local_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;	/* For now, lets return this to a pre B03 client as well */
-			m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, eventHandle);
 			ncshm_give_hdl(chan_hdl_rec->parent_hdl->local_hdl);
 			ncshm_give_hdl(evt_hdl_rec->parent_chan->channel_hdl);
 			ncshm_give_hdl(eventHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -1452,10 +1470,10 @@ saEvtEventAttributesSet(SaEvtEventHandleT eventHandle,
 
 	if (evt_hdl_rec->evt_type & EDA_EVT_RECEIVED) {
 		rc = SA_AIS_ERR_ACCESS;
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      evt_hdl_rec->evt_type, eventHandle);
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(chan_hdl_rec->channel_hdl);
+		TRACE_2("This is a received event and not allocated. Not permitted to change attributes");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1466,19 +1484,19 @@ saEvtEventAttributesSet(SaEvtEventHandleT eventHandle,
 	if ((chan_hdl_rec->open_flags & SA_EVT_CHANNEL_SUBSCRIBER)
 	    && !(chan_hdl_rec->open_flags & SA_EVT_CHANNEL_PUBLISHER)) {
 		rc = SA_AIS_ERR_ACCESS;
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      chan_hdl_rec->open_flags, eventHandle);
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(chan_hdl_rec->channel_hdl);
+		TRACE_2("The channel is opened without publisher access");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (retentionTime > EDSV_MAX_RETENTION_TIME) {
 		rc = SA_AIS_ERR_TOO_BIG;
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, eventHandle);
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(chan_hdl_rec->channel_hdl);
+		TRACE_2("The retention time is too big. Supported value is 100000000000000.0 in nano seconds");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1493,12 +1511,12 @@ saEvtEventAttributesSet(SaEvtEventHandleT eventHandle,
 
 		if ((NULL == (evt_hdl_rec->pattern_array =
 			      edsv_copy_evt_pattern_array(patternArray, &rc))) || (rc != SA_AIS_OK)) {
-			m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, eventHandle);
 			ncshm_give_hdl(eventHandle);
 			ncshm_give_hdl(chan_hdl_rec->channel_hdl);
 			/* Restore the previous pattern array memory */
 			evt_hdl_rec->pattern_array = def_pattern_array;
+			TRACE_2("Unable to copy the pattern array locally");
+			TRACE_LEAVE();
 			return rc;
 		}
 		if (def_pattern_array) {
@@ -1517,6 +1535,7 @@ saEvtEventAttributesSet(SaEvtEventHandleT eventHandle,
 	/* Give back the event handle */
 	ncshm_give_hdl(eventHandle);
 	ncshm_give_hdl(chan_hdl_rec->channel_hdl);
+	TRACE_LEAVE();
 	return (SA_AIS_OK);
 }
 
@@ -1589,19 +1608,20 @@ saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
 	EDA_CLIENT_HDL_REC *hdl_rec = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
 	EDA_CB *eda_cb = NULL;
+	TRACE_ENTER2("Allocated event handle: %llx", eventHandle);
 
 	if (NULL == o_patternArray) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, eventHandle);
+		TRACE_2("null pattern array");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, eventHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1609,8 +1629,8 @@ saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
 	if (NULL == (evt_hdl_rec = (EDA_EVENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, eventHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		ncshm_give_hdl(gl_eda_hdl);
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, eventHandle);
+		TRACE_2("Unable to retrieve allocated event handle: %llx", eventHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 	/* retrieve channel hdl record */
@@ -1620,8 +1640,8 @@ saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, evt_hdl_rec->parent_chan->channel_hdl);
+		TRACE_2("Failed to retreive channel handle associated with this event");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1629,23 +1649,24 @@ saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
 	if (NULL ==
 	    (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, chan_hdl_rec->parent_hdl->local_hdl))) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_GET_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
 		ncshm_give_hdl(evt_hdl_rec->parent_chan->channel_hdl);
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("Failed to retrieve client handle associated with this channelHandle: %u", 
+										chan_hdl_rec->parent_hdl->local_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;
-			m_LOG_EDSV_AF(EDA_ATTRIBUTE_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, eventHandle);
 			ncshm_give_hdl(chan_hdl_rec->parent_hdl->local_hdl);
 			ncshm_give_hdl(evt_hdl_rec->parent_chan->channel_hdl);
 			ncshm_give_hdl(eventHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -1659,9 +1680,9 @@ saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
 	if (NULL == o_patternArray->patterns) {
 		if (evt_hdl_rec->pattern_array == NULL) {
 			rc = SA_AIS_ERR_NO_MEMORY;
-			m_LOG_EDSV_AF(EDA_ATTRIBUTE_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, eventHandle);
 			ncshm_give_hdl(eventHandle);
+			TRACE_2("patternArray of the original allocated event is NULL");
+			TRACE_LEAVE();
 			return rc;
 		}
 		/* NOTE: The current form of 'B' spec expects the service to allocate
@@ -1682,9 +1703,9 @@ saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
 
 			if (SA_AIS_OK != (rc = eda_allocate_and_extract_pattern_from_event(evt_hdl_rec->pattern_array,
 											   &o_patternArray))) {
-				m_LOG_EDSV_AF(EDA_ATTRIBUTE_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-					      __FILE__, __LINE__, 0, eventHandle);
 				ncshm_give_hdl(eventHandle);
+				TRACE_2("Unable to allocate patterns");
+				TRACE_LEAVE();
 				return rc;
 			}
 
@@ -1693,9 +1714,9 @@ saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
 	else {
 		/* User has provided memory for patterns, just fill it */
 		if (SA_AIS_OK != (rc = eda_extract_pattern_from_event(evt_hdl_rec->pattern_array, &o_patternArray))) {
-			m_LOG_EDSV_AF(EDA_ATTRIBUTE_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, eventHandle);
 			ncshm_give_hdl(eventHandle);
+			TRACE_2("Unable to fill patterns into the user provided memory");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -1711,9 +1732,9 @@ saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
 	/* check if publisher name length is invalid */
 	if (evt_hdl_rec->publisher_name.length > SA_MAX_NAME_LENGTH) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_ATTRIBUTE_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      evt_hdl_rec->publisher_name.length, eventHandle);
 		ncshm_give_hdl(eventHandle);
+		TRACE_4("Publisher name is longer than SA_MAX_NAME_LENGTH");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_LIBRARY;	/* corrupt length */
 	}
 
@@ -1739,6 +1760,7 @@ saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
 	/* Release the event handle */
 	ncshm_give_hdl(eventHandle);
 
+	TRACE_LEAVE();
 	return (rc);
 }
 
@@ -1766,26 +1788,29 @@ extern SaAisErrorT saEvtEventPatternFree(SaEvtEventHandleT eventHandle, SaEvtEve
 	EDA_CHANNEL_HDL_REC *chan_hdl_rec;
 	EDA_CLIENT_HDL_REC *hdl_rec = NULL;
 	EDA_CB *eda_cb = NULL;
+	TRACE_ENTER2("Allocated event handle: %llx", eventHandle);
 
 	if (patterns == NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
+		TRACE_2("patterns is NULL");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_PATTERN_FREE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, eventHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* Retrieve event hdl record */
 	if (NULL == (evt_hdl_rec = (EDA_EVENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, eventHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_PATTERN_FREE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to retrieve allocated event handle: %llx", eventHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 	/* retrieve channel hdl record */
@@ -1795,8 +1820,8 @@ extern SaAisErrorT saEvtEventPatternFree(SaEvtEventHandleT eventHandle, SaEvtEve
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
-		m_LOG_EDSV_AF(EDA_PATTERN_FREE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, evt_hdl_rec->parent_chan->channel_hdl);
+		TRACE_2("Failed to retreive channel handle associated with this event");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1804,23 +1829,24 @@ extern SaAisErrorT saEvtEventPatternFree(SaEvtEventHandleT eventHandle, SaEvtEve
 	if (NULL ==
 	    (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, chan_hdl_rec->parent_hdl->local_hdl))) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_PATTERN_FREE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
 		ncshm_give_hdl(evt_hdl_rec->parent_chan->channel_hdl);
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("Failed to retrieve client handle associated with this channelHandle: %u", 
+										chan_hdl_rec->parent_hdl->local_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;
-			m_LOG_EDSV_AF(EDA_PATTERN_FREE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, eventHandle);
 			ncshm_give_hdl(chan_hdl_rec->parent_hdl->local_hdl);
 			ncshm_give_hdl(evt_hdl_rec->parent_chan->channel_hdl);
 			ncshm_give_hdl(eventHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -1831,11 +1857,10 @@ extern SaAisErrorT saEvtEventPatternFree(SaEvtEventHandleT eventHandle, SaEvtEve
 	if ((evt_hdl_rec->pattern_array == NULL)) {
 		/* The pattern was already freed!? */
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_PATTERN_FREE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, eventHandle);
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
-
+		TRACE_2("pattern array is NULL");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1844,6 +1869,8 @@ extern SaAisErrorT saEvtEventPatternFree(SaEvtEventHandleT eventHandle, SaEvtEve
 
 	ncshm_give_hdl(eventHandle);
 	ncshm_give_hdl(gl_eda_hdl);
+
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1886,6 +1913,7 @@ SaAisErrorT saEvtEventDataGet(SaEvtEventHandleT eventHandle, void *eventData, Sa
 	EDA_CHANNEL_HDL_REC *chan_hdl_rec;
 	EDA_CLIENT_HDL_REC *hdl_rec = NULL;
 	EDA_CB *eda_cb = NULL;
+	TRACE_ENTER2("Received event handle: %llx", eventHandle);
 
 	/* Make sure the passed in arguments
 	 * are valid.
@@ -1893,16 +1921,16 @@ SaAisErrorT saEvtEventDataGet(SaEvtEventHandleT eventHandle, void *eventData, Sa
 
 	if ((eventDataSize == NULL) || (eventData == NULL)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
-		m_LOG_EDSV_AF(EDA_DATA_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
+		TRACE_2("outparam(s) is NULL");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_DATA_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1911,8 +1939,8 @@ SaAisErrorT saEvtEventDataGet(SaEvtEventHandleT eventHandle, void *eventData, Sa
 	if (NULL == (evt_hdl_rec = (EDA_EVENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, eventHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		ncshm_give_hdl(gl_eda_hdl);
-		m_LOG_EDSV_AF(EDA_DATA_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
+		TRACE_2("Unable to retrieve allocated event handle: %llx", eventHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 	/* retrieve channel hdl record */
@@ -1922,8 +1950,8 @@ SaAisErrorT saEvtEventDataGet(SaEvtEventHandleT eventHandle, void *eventData, Sa
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
-		m_LOG_EDSV_AF(EDA_DATA_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evt_hdl_rec->parent_chan->channel_hdl);
+		TRACE_2("Failed to retreive channel handle associated with this event");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -1931,23 +1959,24 @@ SaAisErrorT saEvtEventDataGet(SaEvtEventHandleT eventHandle, void *eventData, Sa
 	if (NULL ==
 	    (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, chan_hdl_rec->parent_hdl->local_hdl))) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_DATA_GET_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
 		ncshm_give_hdl(evt_hdl_rec->parent_chan->channel_hdl);
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("Failed to retrieve client handle associated with this channelHandle: %u",
+										chan_hdl_rec->parent_hdl->local_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;	/* For now, lets return this to a pre B03 client as well */
-			m_LOG_EDSV_AF(EDA_DATA_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, eventHandle);
 			ncshm_give_hdl(chan_hdl_rec->parent_hdl->local_hdl);
 			ncshm_give_hdl(evt_hdl_rec->parent_chan->channel_hdl);
 			ncshm_give_hdl(eventHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -1960,9 +1989,9 @@ SaAisErrorT saEvtEventDataGet(SaEvtEventHandleT eventHandle, void *eventData, Sa
     **/
 	if (!(evt_hdl_rec->evt_type & EDA_EVT_RECEIVED)) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_DATA_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      evt_hdl_rec->evt_type, eventHandle);
 		ncshm_give_hdl(eventHandle);
+		TRACE_2("This event is not a published event, its an allocated event");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
@@ -1979,10 +2008,10 @@ SaAisErrorT saEvtEventDataGet(SaEvtEventHandleT eventHandle, void *eventData, Sa
 
 	if (*eventDataSize < evt_hdl_rec->event_data_size) {
 		rc = SA_AIS_ERR_NO_SPACE;
-		m_LOG_EDSV_AF(EDA_DATA_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
 		*eventDataSize = evt_hdl_rec->event_data_size;
 		ncshm_give_hdl(eventHandle);
+		TRACE_2("eventDataSize is smaller than the received event data size: %llx", evt_hdl_rec->event_data_size);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2003,6 +2032,7 @@ SaAisErrorT saEvtEventDataGet(SaEvtEventHandleT eventHandle, void *eventData, Sa
     **/
 	ncshm_give_hdl(eventHandle);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -2068,18 +2098,19 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
 	EDA_CLIENT_HDL_REC *hdl_rec;
 	EDSV_MSG msg;
 	EDA_CB *eda_cb = NULL;
+	TRACE_ENTER2("Allocated event handle: %llx", eventHandle);
 
 	/* Event data size should not be greater than SA_EVENT_DATA_MAX_SIZE */
 	if (SA_EVENT_DATA_MAX_SIZE < eventDataSize) {
 		rc = SA_AIS_ERR_TOO_BIG;
-		m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
+		TRACE_2("eventDataSize is bigger than %u bytes", SA_EVENT_DATA_MAX_SIZE);
+		TRACE_LEAVE();
 		return rc;
 	}
 	if (o_eventId == NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
-		m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
+		TRACE_2("eventId out param is null");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2087,8 +2118,8 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
     **/
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2096,9 +2127,9 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
     **/
 	if (NULL == (evt_hdl_rec = (EDA_EVENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, eventHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to retrieve allocated event handle: %llx", eventHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 	/* retrieve channel hdl record */
@@ -2108,8 +2139,8 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
-		m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, evt_hdl_rec->parent_chan->channel_hdl);
+		TRACE_2("Failed to retreive channel handle associated with this event");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2117,23 +2148,24 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
 	if (NULL ==
 	    (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, chan_hdl_rec->parent_hdl->local_hdl))) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
 		ncshm_give_hdl(evt_hdl_rec->parent_chan->channel_hdl);
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("Failed to retrieve client handle associated with this channelHandle: %u",
+										chan_hdl_rec->parent_hdl->local_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;	/* For now, lets return this to a pre B03 client as well */
-			m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, eventHandle);
 			ncshm_give_hdl(chan_hdl_rec->parent_hdl->local_hdl);
 			ncshm_give_hdl(evt_hdl_rec->parent_chan->channel_hdl);
 			ncshm_give_hdl(eventHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -2142,12 +2174,12 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
     **/
 	if ((NULL == evt_hdl_rec->pattern_array) || (SA_MAX_NAME_LENGTH < evt_hdl_rec->publisher_name.length)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
-		m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      evt_hdl_rec->publisher_name.length, eventHandle);
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(chan_hdl_rec->channel_hdl);
 		ncshm_give_hdl(hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Ensure pattern array is not NULL and publishername length is > SA_MAX_NAME_LENGTH");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2158,8 +2190,8 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
 		ncshm_give_hdl(hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_INVALID_PARAM;
-		m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
+		TRACE_2("pattern array is not set");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2170,8 +2202,8 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
 		ncshm_give_hdl(hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_ACCESS;
-		m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      chan_hdl_rec->open_flags, eventHandle);
+		TRACE_2("The channel is not opened with publisher access");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2182,8 +2214,8 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
 		ncshm_give_hdl(hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
+		TRACE_2("Event server is not yet up");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2218,8 +2250,8 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
 			ncshm_give_hdl(hdl_rec->local_hdl);
 			ncshm_give_hdl(gl_eda_hdl);
 			rc = SA_AIS_ERR_NO_MEMORY;
-			m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, eventHandle);
+			TRACE_2("malloc failed for event data");
+			TRACE_LEAVE();
 			return (SA_AIS_ERR_NO_MEMORY);
 		}
 
@@ -2251,13 +2283,13 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
   /** Send the message out to the EDS
    **/
 	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_async_send(eda_cb, &msg, MDS_SEND_PRIORITY_MEDIUM))) {
-		m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      eventHandle);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		ncshm_give_hdl(eventHandle);
 		ncshm_give_hdl(chan_hdl_rec->channel_hdl);
 		ncshm_give_hdl(hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("mds send failed for the event publish");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2276,6 +2308,7 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
 	ncshm_give_hdl(hdl_rec->local_hdl);
 	ncshm_give_hdl(gl_eda_hdl);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -2332,21 +2365,22 @@ saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
 	EDSV_MSG msg;
 	EDA_SUBSC_REC *subsc_rec = NULL;
 	SaEvtEventFilterArrayT *filter_array = NULL;
+	TRACE_ENTER2("channel handle: %llx", channelHandle);
 
    /** Make sure passed arguments were valid
     **/
 	if (filters == NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
-		m_LOG_EDSV_AF(EDA_EVT_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
+		TRACE_2("filters is NULL");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
    /** retrieve EDA_CB 
     **/
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_EVT_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2354,9 +2388,9 @@ saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
     **/
 	if (NULL == (channel_hdl_rec = (EDA_CHANNEL_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, channelHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_EVT_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to retrieve channel handle: %llx", channelHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2366,32 +2400,33 @@ saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
 	    (eda_hdl_rec =
 	     (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, channel_hdl_rec->parent_hdl->local_hdl))) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_EVT_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("Failed to retrieve client handle associated with this channelHandle: %u",
+										channel_hdl_rec->parent_hdl->local_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&eda_hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;	/* For now, lets return this to a pre-B03 client as well */
-			m_LOG_EDSV_AF(EDA_EVT_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, channelHandle);
 			ncshm_give_hdl(channel_hdl_rec->parent_hdl->local_hdl);
 			ncshm_give_hdl(channelHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
 	/* Check if the corresponding cbk was registered */
 	if (!eda_hdl_rec->reg_cbk.saEvtEventDeliverCallback) {
 		rc = SA_AIS_ERR_INIT;
-		m_LOG_EDSV_AF(EDA_EVT_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(eda_hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Event deliver callback is NULL");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2399,11 +2434,11 @@ saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
     **/
 	if (!(channel_hdl_rec->open_flags & SA_EVT_CHANNEL_SUBSCRIBER)) {
 		rc = SA_AIS_ERR_ACCESS;
-		m_LOG_EDSV_AF(EDA_EVT_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      channel_hdl_rec->open_flags, channelHandle);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(eda_hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Channel was not opened with subscriber access");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_ACCESS;
 	}
 
@@ -2413,41 +2448,41 @@ saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
 		ncshm_give_hdl(eda_hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_EDSV_AF(EDA_EVT_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
+		TRACE_2("event server is not yet up");
+		TRACE_LEAVE();
 		return rc;
 	}
 
    /** allocate a new filter array **/
 	if ((NULL == (filter_array = edsv_copy_evt_filter_array(filters, &rc))) || (rc != SA_AIS_OK)) {
-		m_LOG_EDSV_AF(EDA_EVT_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(eda_hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to copy filters into the filter array");
+		TRACE_LEAVE();
 		return rc;
 	}
 
    /** make sure the subscription id is unique **/
 	if (NULL != eda_find_subsc_by_subsc_id(channel_hdl_rec, i_subscriptionId)) {
 		rc = SA_AIS_ERR_EXIST;
-		m_LOG_EDSV_AF(EDA_EVT_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
 		edsv_free_evt_filter_array(filter_array);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(eda_hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Subscription Id already exists, it must be unique");
+		TRACE_LEAVE();
 		return (SA_AIS_ERR_EXIST);
 	} else {
 		/* insert the subscription id into the channel rec */
 		if (NULL == (subsc_rec = m_MMGR_ALLOC_EDA_SUBSC_REC)) {
 			rc = SA_AIS_ERR_NO_MEMORY;
-			m_LOG_EDSV_AF(EDA_EVT_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, channelHandle);
 			edsv_free_evt_filter_array(filter_array);
 			ncshm_give_hdl(channelHandle);
 			ncshm_give_hdl(eda_hdl_rec->local_hdl);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_4("malloc failed for subscription record");
+			TRACE_LEAVE();
 			return SA_AIS_ERR_NO_MEMORY;
 		}
 
@@ -2469,13 +2504,13 @@ saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
    ** subscription.
    **/
 	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_async_send(eda_cb, &msg, MDS_SEND_PRIORITY_MEDIUM))) {
-		m_LOG_EDSV_AF(EDA_EVT_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      channelHandle);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		edsv_free_evt_filter_array(filter_array);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(eda_hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("mds send failed for the subscription");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2487,6 +2522,7 @@ saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
 	ncshm_give_hdl(eda_hdl_rec->local_hdl);
 	ncshm_give_hdl(gl_eda_hdl);
 
+	TRACE_LEAVE2("SubscriptionId: %u", i_subscriptionId);
 	return (SA_AIS_OK);
 }
 
@@ -2524,13 +2560,14 @@ SaAisErrorT saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle, SaEvtSubscr
 	EDA_CLIENT_HDL_REC *eda_hdl_rec = NULL;
 	EDSV_MSG msg;
 	EDA_SUBSC_REC *sub_rec;
+	TRACE_ENTER2("channel handle: %llx" ", subscriptionId: %u", channelHandle, i_subscriptionId);
 
   /** retrieve EDA_CB 
    **/
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_EVT_UNSUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, channelHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2538,9 +2575,9 @@ SaAisErrorT saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle, SaEvtSubscr
     **/
 	if (NULL == (channel_hdl_rec = (EDA_CHANNEL_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, channelHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_EVT_UNSUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, channelHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to retrieve channel handle: %llx", channelHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2550,21 +2587,22 @@ SaAisErrorT saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle, SaEvtSubscr
 	    (eda_hdl_rec =
 	     (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, channel_hdl_rec->parent_hdl->local_hdl))) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_EVT_UNSUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, channelHandle);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("Failed to retrieve client handle associated with this channelHandle: %u",
+										channel_hdl_rec->parent_hdl->local_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&eda_hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;	/* For now, lets return this to a pre B03 client as well */
-			m_LOG_EDSV_AF(EDA_EVT_UNSUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, channelHandle);
 			ncshm_give_hdl(gl_eda_hdl);
 			ncshm_give_hdl(channelHandle);
 			ncshm_give_hdl(eda_hdl_rec->local_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -2574,8 +2612,8 @@ SaAisErrorT saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle, SaEvtSubscr
 		ncshm_give_hdl(eda_hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_EDSV_AF(EDA_EVT_UNSUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, channelHandle);
+		TRACE_2("event server is not yet up");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2585,8 +2623,8 @@ SaAisErrorT saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle, SaEvtSubscr
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(eda_hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
-		m_LOG_EDSV_AF(EDA_EVT_UNSUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, channelHandle);
+		TRACE_2("Invalid subscription id. record not found.");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_NOT_EXIST;
 	} else	/* delete this record */
 		eda_del_subsc_rec(&channel_hdl_rec->subsc_list, sub_rec);
@@ -2603,12 +2641,12 @@ SaAisErrorT saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle, SaEvtSubscr
    ** subscription.
    **/
 	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_async_send(eda_cb, &msg, MDS_SEND_PRIORITY_MEDIUM))) {
-		m_LOG_EDSV_AF(EDA_EVT_UNSUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, channelHandle);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(eda_hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("mds send failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2617,6 +2655,7 @@ SaAisErrorT saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle, SaEvtSubscr
 	ncshm_give_hdl(eda_hdl_rec->local_hdl);
 	ncshm_give_hdl(gl_eda_hdl);
 
+	TRACE_LEAVE();
 	return SA_AIS_OK;
 }
 
@@ -2651,22 +2690,23 @@ SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, cons
 	EDA_CLIENT_HDL_REC *eda_hdl_rec = NULL;
 	EDSV_MSG msg;
 	EDSV_MSG *o_msg = NULL;
+	TRACE_ENTER2("channel handle: %llx" ", eventId: %llx", channelHandle, eventId);
 
    /** Make sure that the eventId 
     ** passed in is valid.
     **/
 	if (eventId <= MAX_RESERVED_EVENTID) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
-		m_LOG_EDSV_AF(EDA_EVT_RETENTION_TIME_CLEAR_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-			      __FILE__, __LINE__, 0, channelHandle);
+		TRACE_2("eventId should be > 1000. EventId 0 to 1000 is reserved. ");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
   /** retrieve EDA_CB 
    **/
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_EVT_RETENTION_TIME_CLEAR_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-			      __FILE__, __LINE__, 0, channelHandle);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2674,9 +2714,9 @@ SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, cons
     **/
 	if (NULL == (channel_hdl_rec = (EDA_CHANNEL_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, channelHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_EVT_RETENTION_TIME_CLEAR_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-			      __FILE__, __LINE__, 0, channelHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to retrieve channel handle: %llx", channelHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2685,21 +2725,22 @@ SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, cons
 	if (NULL == (eda_hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA,
 									channel_hdl_rec->parent_hdl->local_hdl))) {
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_AF(EDA_EVT_RETENTION_TIME_CLEAR_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-			      __FILE__, __LINE__, 0, channelHandle);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_4("Failed to retrieve client handle associated with this channelHandle: %u",
+										channel_hdl_rec->parent_hdl->local_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&eda_hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;	/* For now, lets return this to a pre-B03 client as well */
-			m_LOG_EDSV_AF(EDA_EVT_RETENTION_TIME_CLEAR_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-				      __FILE__, __LINE__, 0, channelHandle);
 			ncshm_give_hdl(channelHandle);
 			ncshm_give_hdl(eda_hdl_rec->local_hdl);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	}
@@ -2709,11 +2750,11 @@ SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, cons
 
 	if (eventId > channel_hdl_rec->last_pub_evt_id) {
 		rc = SA_AIS_ERR_NOT_EXIST;
-		m_LOG_EDSV_AF(EDA_EVT_RETENTION_TIME_CLEAR_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-			      __FILE__, __LINE__, 0, channelHandle);
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(eda_hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("The eventId was not published on this channnel");
+		TRACE_LEAVE();
 		return rc;
 	}
 	/* Check Whether EDS is up or not */
@@ -2722,8 +2763,8 @@ SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, cons
 		ncshm_give_hdl(eda_hdl_rec->local_hdl);
 		ncshm_give_hdl(gl_eda_hdl);
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_EDSV_AF(EDA_EVT_RETENTION_TIME_CLEAR_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-			      __FILE__, __LINE__, 0, channelHandle);
+		TRACE_2("event server is not yet up");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2742,8 +2783,6 @@ SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, cons
    /** Send the message out to the EDS
     **/
 	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_sync_send(eda_cb, &msg, &o_msg, EDSV_WAIT_TIME))) {
-		m_LOG_EDSV_AF(EDA_EVT_RETENTION_TIME_CLEAR_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-			      __FILE__, __LINE__, 0, channelHandle);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		ncshm_give_hdl(channelHandle);
 		ncshm_give_hdl(eda_hdl_rec->local_hdl);
@@ -2752,6 +2791,8 @@ SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, cons
 		/* free up the response message */
 		if (o_msg)
 			eda_msg_destroy(o_msg);
+		TRACE_4("mds send failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2760,8 +2801,7 @@ SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, cons
 	if (o_msg) {
 		if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
 			rc = o_msg->info.api_resp_info.rc;
-			m_LOG_EDSV_AF(EDA_EVT_RETENTION_TIME_CLEAR_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-				      __FILE__, __LINE__, 0, channelHandle);
+			TRACE_1("event server returned error: %u", rc);
 		}
 	}
 
@@ -2773,6 +2813,7 @@ SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, cons
 	if (o_msg)
 		eda_msg_destroy(o_msg);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -2805,44 +2846,47 @@ SaAisErrorT saEvtLimitGet(SaEvtHandleT evtHandle, SaEvtLimitIdT limitId, SaLimit
 	EDSV_MSG i_msg, *o_msg;
 	SaAisErrorT rc = SA_AIS_OK;
 	EDSV_EDA_LIMIT_GET_RSP *limit_get_rsp = NULL;
+	TRACE_ENTER2("Event handle: %llx", evtHandle);
 
 	if (limitValue == NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
+		TRACE_2("out param limitValue is NULL");
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_LIMIT_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      gl_eda_hdl);
+		TRACE_2("Unable to retrieve global handle: %u", gl_eda_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	/* retrieve hdl rec */
 	if (NULL == (hdl_rec = (EDA_CLIENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, evtHandle))) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_EDSV_AF(EDA_LIMIT_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("Unable to retrieve client event handle: %llx", evtHandle);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	if (m_IS_B03_CLIENT((&hdl_rec->version))) {
 		if (eda_cb->node_status != SA_CLM_NODE_JOINED) {
 			rc = SA_AIS_ERR_UNAVAILABLE;
-			m_LOG_EDSV_AF(EDA_LIMIT_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__, 0, gl_eda_hdl);
 			ncshm_give_hdl(evtHandle);
 			ncshm_give_hdl(gl_eda_hdl);
+			TRACE_2("This node is not a member of the CLM cluster");
+			TRACE_LEAVE();
 			return rc;
 		}
 	} else {
 		rc = SA_AIS_ERR_VERSION;
-		m_LOG_EDSV_AF(EDA_LIMIT_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      gl_eda_hdl);
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
+		TRACE_2("This API is supported only in the B.03.01 version");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2855,13 +2899,13 @@ SaAisErrorT saEvtLimitGet(SaEvtHandleT evtHandle, SaEvtLimitIdT limitId, SaLimit
 	 * limits, but that's okay. That's what we need.
 	 */
 	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_sync_send(eda_cb, &i_msg, &o_msg, EDSV_WAIT_TIME))) {
-		m_LOG_EDSV_A(EDA_LIMIT_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     MDS_SENDTYPE_SNDRSP);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		ncs_eda_shutdown();
 		ncs_agents_shutdown();
+		TRACE_4("mds send failed");
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2873,6 +2917,8 @@ SaAisErrorT saEvtLimitGet(SaEvtHandleT evtHandle, SaEvtLimitIdT limitId, SaLimit
 		/* free up the response message */
 		if (o_msg)
 			eda_msg_destroy(o_msg);
+		TRACE_4("server returned error: %u", rc);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -2898,5 +2944,6 @@ SaAisErrorT saEvtLimitGet(SaEvtHandleT evtHandle, SaEvtLimitIdT limitId, SaLimit
 	ncshm_give_hdl(evtHandle);
 	ncshm_give_hdl(gl_eda_hdl);
 
+	TRACE_LEAVE();
 	return rc;
 }
