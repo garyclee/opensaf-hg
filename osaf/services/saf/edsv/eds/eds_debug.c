@@ -42,6 +42,7 @@ void eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
 	SaEvtEventPatternT *pEventPattern;
 	int32_t x = 0;
 	int8_t buf[256];
+	TRACE_ENTER();
 
 	if (patternArray == NULL)
 		return;
@@ -55,6 +56,7 @@ void eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
 		TRACE("     pattern[%d] =    {%2u, \"%s\"}\n", x, (uint32_t)pEventPattern->patternSize, buf);
 		pEventPattern++;
 	}
+	TRACE_LEAVE();
 }
 
 /***************************************************************************
@@ -82,9 +84,12 @@ void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray, SaEvtEventFi
 	SaEvtEventPatternT *pattern;
 	SaEvtEventPatternT emptyPattern = { 0, 0, NULL };
 	int8_t buf[256];
+	TRACE_ENTER();
 
-	if ((patternArray == NULL) || (filterArray == NULL))
+	if ((patternArray == NULL) || (filterArray == NULL)) {
+		TRACE_LEAVE();
 		return;
+	}
 
 	pattern = patternArray->patterns;
 	filter = filterArray->filters;
@@ -147,6 +152,7 @@ void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray, SaEvtEventFi
 
 	}			/* End for */
 
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -169,12 +175,14 @@ void eds_dump_reglist()
 	EDS_CB *cb = NULL;
 	uint32_t temp;
 	EDA_DOWN_LIST *down_rec = NULL;
+	TRACE_ENTER();
 
 	TRACE("\n-=-=-=-=- REGLIST SUBSCRIPTION IDs -=-=-=-=-\n");
 	TRACE("     regIDs         Subscription IDs\n");
 
 	/* Get the cb from the global handle */
 	if (NULL == (cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+		TRACE_LEAVE();
 		return;
 	}
 
@@ -225,6 +233,7 @@ void eds_dump_reglist()
 
 	/* Give back the handle */
 	ncshm_give_hdl(gl_eds_hdl);
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -248,6 +257,7 @@ void eds_dump_worklist()
 	EDS_CB *eds_cb = NULL;
 	EDS_WORKLIST *wp = NULL;
 	EDS_CNAME_REC *cn = NULL;
+	TRACE_ENTER();
 
 	TRACE("\n-=-=-=-=- WORKLIST SUBSCRIPTION IDs -=-=-=-=-\n");
 	TRACE("     Channel               Copenid:retained events\n");
@@ -256,6 +266,7 @@ void eds_dump_worklist()
 
 	/* Get the cb from the global handle. */
 	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+		TRACE_LEAVE();
 		return;
 	}
 
@@ -330,6 +341,7 @@ void eds_dump_worklist()
 	/* Give back the handle */
 	ncshm_give_hdl(gl_eds_hdl);
 
+	TRACE_LEAVE();
 }
 
 /* End eds_debug.c */

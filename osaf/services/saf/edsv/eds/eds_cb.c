@@ -66,6 +66,7 @@ uint32_t eds_cb_init(EDS_CB *eds_cb)
 	reg_param.key_size = sizeof(uint32_t);
 	cname_param.key_size = sizeof(SaNameT);
 	nodelist_param.key_size = sizeof(uint32_t);
+	TRACE_ENTER();
 
 	/* Assign Initial HA state */
 	eds_cb->ha_state = EDS_HA_INIT_STATE;
@@ -76,21 +77,25 @@ uint32_t eds_cb_init(EDS_CB *eds_cb)
 	/* Initialize patricia tree for reg list */
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eda_reg_list, &reg_param)) {
 		LOG_ER("Patricia Init for Reg List failed");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Initialize patricia tree for channel name list */
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eds_cname_list, &cname_param)) {
 		LOG_ER("Patricia Init for Channel Name List failed");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Initialize patricia tree for cluster nodes list */
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eds_cluster_nodes_list, &nodelist_param)) {
 		LOG_ER("Patricia Init for Cluster Nodes List failed");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -141,8 +146,7 @@ static void eds_process_mbx(SYSF_MBX *mbx)
 			eds_process_evt(evt);
 		} else {
 			/* Free the event */
-			m_LOG_EDSV_S(EDS_EVT_UNKNOWN, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, evt->evt_type, __FILE__,
-				     __LINE__, 0);
+			LOG_IN("Unsupported event type in mailbox");
 			eds_evt_destroy(evt);
 		}
 	}
@@ -171,9 +175,10 @@ void eds_main_process(SYSF_MBX *mbx)
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error = SA_AIS_OK;
 	EDS_CB *eds_cb = NULL;
+	TRACE_ENTER();
 
 	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
-		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_ER("Global take handle failed");
 		return;
 	}
 
@@ -188,7 +193,7 @@ void eds_main_process(SYSF_MBX *mbx)
 			eds_imm_declare_implementer(&eds_cb->immOiHandle);
 		}
 	} else {
-		LOG_ER("Imm Init Failed");
+		LOG_ER("Imm Init Failed. Exiting");
 		exit(EXIT_FAILURE);
 	}
 
@@ -203,6 +208,8 @@ void eds_main_process(SYSF_MBX *mbx)
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_IMM].fd = eds_cb->imm_sel_obj;
 	fds[FD_IMM].events = POLLIN;
+
+	TRACE("Entering the forever loop");
 
 	while (1) {
 
@@ -227,19 +234,15 @@ void eds_main_process(SYSF_MBX *mbx)
 		if (fds[FD_AMF].revents & POLLIN) {
 			/* dispatch all the AMF pending callbacks */
 			error = saAmfDispatch(eds_cb->amf_hdl, SA_DISPATCH_ALL);
-			if (error != SA_AIS_OK) {
-				m_LOG_EDSV_S(EDS_AMF_DISPATCH_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
-						     error, __FILE__, __LINE__, 0);
+			if (error != SA_AIS_OK)
 				LOG_ER("AMF Dispatch failed with rc = %d",error);
-			}
 		}
 
 		/* process all mbcsv messages */
 		if (fds[FD_MBCSV].revents & POLLIN) {
 			error = eds_mbcsv_dispatch(eds_cb->mbcsv_hdl);
-			if (NCSCC_RC_SUCCESS != error) {
+			if (NCSCC_RC_SUCCESS != error)
 				LOG_ER("MBCSv Dispatch failed with rc = %d",error);
-			}
 		}
 
 		/* Process the EDS Mail box, if eds is ACTIVE. */
@@ -252,9 +255,8 @@ void eds_main_process(SYSF_MBX *mbx)
 		if (fds[FD_CLM].revents & POLLIN) {
 			/* dispatch all the AMF pending callbacks */
 			error = saClmDispatch(eds_cb->clm_hdl, SA_DISPATCH_ALL);
-			if (error != SA_AIS_OK) {
+			if (error != SA_AIS_OK)
 				LOG_ER("CLM Dispatch failed with rc = %d",error);
-			}
 		}
 
 		/* process the IMM messages */
@@ -289,5 +291,6 @@ void eds_main_process(SYSF_MBX *mbx)
 		}
 	}
 
+	TRACE_LEAVE();
 	return;
 }	/* End eds_main_process() */
