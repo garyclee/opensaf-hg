@@ -52,9 +52,7 @@ static uint32_t eds_process_api_evt(EDSV_EDS_EVT *evt);
 static uint32_t eds_proc_ret_tmr_exp_evt(EDSV_EDS_EVT *evt);
 static uint32_t eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt);
 
-#if (NCS_EDSV_LOG == 1)
 static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publish_param, SaTimeT publish_time);
-#endif
 
 /* Top level EDS dispatcher */
 static const
@@ -128,38 +126,38 @@ static uint32_t eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	SaVersionT *version = NULL;
 	EDSV_MSG msg;
 	EDS_CKPT_DATA ckpt;
+	TRACE_ENTER2("agent dest: %" PRIx64, evt->fr_dest);
 
 	/* Validate the version */
 	version = &(evt->info.msg.info.api_info.param.init.version);
-	if (!m_EDA_VER_IS_VALID(version))
+	if (!m_EDA_VER_IS_VALID(version)) {
+		TRACE_2("Invalid version");
 		rc = SA_AIS_ERR_VERSION;
+	}
 
 	/* Check if this EDA is a b03 client, and is on a cluster member node. 
 	 */
 	if (m_IS_B03_CLIENT(version)) {
-		TRACE("cb->ha_state = %d",cb->ha_state);
+		TRACE("B.03 client. HA state = %d",cb->ha_state);
 		/* Are we already assigned HA_STATE and is our node DB is populated ? */
 		if (cb->ha_state != EDS_HA_INIT_STATE) {
 			TRACE("Checking if node is a member");
 			/* Check if this node is in the cluster */
-			if (!is_node_a_member(cb, evt->fr_node_id))
+			if (!is_node_a_member(cb, evt->fr_node_id)) {
+				LOG_IN("SA_AIS_ERR_UNAVAILABLE: saEvtInitialize attempted from a non-member node.");
 				rc = SA_AIS_ERR_UNAVAILABLE;
-			else
+			} else
 				TRACE("Node is a member, allow initialize");
 		}
 	}
 
-	TRACE("rc after checking clientb03 version = %d",rc);
 	if (rc != SA_AIS_OK) {
-		m_LOG_EDSV_SF(EDS_INIT_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
 		/* Return a default reg_id */
 		m_EDS_EDSV_INIT_MSG_FILL(msg, rc, 0)
 		rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
-		if (rc != NCSCC_RC_SUCCESS)
-			m_LOG_EDSV_SF(EDS_INIT_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-				      0, evt->fr_dest);
-
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("MDS send to %" PRIx64 " failed for saEvtInitialize() response", evt->fr_dest);
+		}
 		return (rc);
 	}
 
@@ -177,12 +175,14 @@ static uint32_t eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 		loop_count++;
 
 		/* Allocate a new regID */
-		if (cb->last_reg_id == INT_MAX)	/* Handle integer wrap-around */
+		if (cb->last_reg_id == INT_MAX)	/* Handle integer wrap-around */ {
+			LOG_IN("Integer wrap around for reg_id: %u", cb->last_reg_id);
 			cb->last_reg_id = 0;
+		}
 
 		cb->last_reg_id++;
 
-		/* Add this regid to the registration linked list.             */
+		/* Add this regid to the registration linked list. */
 		rc = eds_add_reglist_entry(cb, evt->fr_dest, cb->last_reg_id);
 	} while ((rc == NCSCC_RC_FAILURE) && (loop_count < MAX_REG_RETRIES));
 
@@ -190,13 +190,12 @@ static uint32_t eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	if (rc != NCSCC_RC_SUCCESS) {
 		/* Send response back with error code */
 		rc = SA_AIS_ERR_LIBRARY;
-		m_LOG_EDSV_SF(EDS_INIT_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
+		TRACE("SA_AIS_ERR_LIBRARY: for saEvtInitialize request %" PRIx64, evt->fr_dest);
 		m_EDS_EDSV_INIT_MSG_FILL(msg, rc, 0)
 		rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
 		if (rc != NCSCC_RC_SUCCESS)
-			m_LOG_EDSV_SF(EDS_INIT_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-				      0, evt->fr_dest);
+			LOG_ER("MDS send to %" PRIx64 " failed for saEvtInitialize() response", evt->fr_dest);
+		TRACE_LEAVE2("SA_AIS_ERR_LIBRARY");
 		return (rc);
 	}
 
@@ -205,18 +204,16 @@ static uint32_t eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	m_EDS_EDSV_INIT_MSG_FILL(msg, rc, cb->last_reg_id)
 	rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_EDSV_SF(EDS_INIT_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
-	else
-		m_LOG_EDSV_SF(EDS_INIT_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
+		LOG_ER("MDS send to %" PRIx64 " failed for saEvtInitialize() response", evt->fr_dest);
+
 	if (cb->ha_state == SA_AMF_HA_ACTIVE) {	/*Revisit this */
 		memset(&ckpt, 0, sizeof(ckpt));
 		m_EDSV_FILL_ASYNC_UPDATE_REG(ckpt, cb->last_reg_id, evt->fr_dest)
 		async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
 		if (async_rc != NCSCC_RC_SUCCESS)
-			TRACE("Async Update Send failed");	
+			TRACE("Async Update Send failed");
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -238,25 +235,23 @@ static uint32_t eds_proc_finalize_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint32_t async_rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_DATA ckpt;
+	TRACE_ENTER2("reg_id: %u", evt->info.msg.info.api_info.param.finalize.reg_id);
 
 	/* This call will ensure all open subscriptions, channels, and any other
 	* resources allocated by this registration are freed up.
 	*/
 	rc = eds_remove_reglist_entry(cb, evt->info.msg.info.api_info.param.finalize.reg_id, false);
 	if (rc == NCSCC_RC_SUCCESS) {
-		m_LOG_EDSV_SF(EDS_FINALIZE_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
 		if (cb->ha_state == SA_AMF_HA_ACTIVE) {	/*Revisit this */
 			memset(&ckpt, 0, sizeof(ckpt));
 			m_EDSV_FILL_ASYNC_UPDATE_FINALIZE(ckpt, evt->info.msg.info.api_info.param.finalize.reg_id)
 			async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
-			if (async_rc != NCSCC_RC_SUCCESS)
-				TRACE("Async update send failed for finalize");
 		}
 	} else
-		m_LOG_EDSV_SF(EDS_FINALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
+		TRACE("Finalize cleanup failed for agent_dest: %" PRIx64 " ,reg_id: %u", evt->fr_dest,
+								 evt->info.msg.info.api_info.param.finalize.reg_id);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -283,6 +278,7 @@ static uint32_t eds_proc_chan_open_sync_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	SaTimeT chan_create_time = 0;
 	EDSV_EDA_CHAN_OPEN_SYNC_PARAM *open_sync_param;
 	EDS_CKPT_DATA ckpt;
+	TRACE_ENTER2("agent dest: %" PRIx64, evt->fr_dest);
 
 	open_sync_param = &(evt->info.msg.info.api_info.param.chan_open_sync);
 
@@ -299,15 +295,13 @@ static uint32_t eds_proc_chan_open_sync_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			      open_sync_param->chan_name.value,
 			      evt->fr_dest, &chan_id, &chan_open_id, chan_create_time);
 	if (rs != SA_AIS_OK)
-		m_LOG_EDSV_SF(EDS_CHN_OPEN_SYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rs, __FILE__, __LINE__,
-			      0, evt->fr_dest);
+		TRACE("Channel Open failed for agent destination: %" PRIx64, evt->fr_dest);
 
 	/* Send response back */
 	m_EDS_EDSV_CHAN_OPEN_SYNC_MSG_FILL(msg, rs, chan_id, chan_open_id)
-	    rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+	rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
 	if (rc != SA_AIS_OK)
-		m_LOG_EDSV_SF(EDS_CHN_OPEN_SYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			      0, evt->fr_dest);
+		LOG_ER("MDS send to %" PRIx64 " failed for saEvtChannelOpen()", evt->fr_dest);
 
 	if (rs == SA_AIS_OK) {
 		/* Send an Async update to STANDBY EDS peer */
@@ -319,10 +313,8 @@ static uint32_t eds_proc_chan_open_sync_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS)
 				TRACE("Async Update Send failed for chan open sync msg");
 		}
-		m_LOG_EDSV_SF(EDS_CHN_OPEN_SYNC_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rs, __FILE__, __LINE__,
-			      rc, evt->fr_dest);
-
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -349,6 +341,7 @@ static uint32_t eds_proc_chan_open_async_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	SaTimeT chan_create_time = 0;
 	EDSV_EDA_CHAN_OPEN_ASYNC_PARAM *open_async_param;
 	EDS_CKPT_DATA ckpt;
+	TRACE_ENTER2("agent dest: %" PRIx64, evt->fr_dest);
 
 	open_async_param = &(evt->info.msg.info.api_info.param.chan_open_async);
 
@@ -366,18 +359,16 @@ static uint32_t eds_proc_chan_open_async_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			      evt->fr_dest, &chan_id, &chan_open_id, chan_create_time);
 
 	if (rs != SA_AIS_OK)
-		m_LOG_EDSV_SF(EDS_CHN_OPEN_ASYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rs, __FILE__,
-			      __LINE__, 0, evt->fr_dest);
+		TRACE("ChannelOpenAsync failed for agent destination: %" PRIx64, evt->fr_dest);
 
 	/* Send async response back */
 	m_EDS_EDSV_CHAN_OPEN_CB_MSG_FILL(msg, open_async_param->reg_id,
 					 open_async_param->inv,
 					 open_async_param->chan_name,
 					 chan_id, chan_open_id, open_async_param->chan_open_flags, rs)
-	    rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_MEDIUM);
+	rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_MEDIUM);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_EDSV_SF(EDS_CHN_OPEN_ASYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__, 0, evt->fr_dest);
+		LOG_ER("MDS send to %" PRIx64 "failed for saEvtChannelOpenAsync()", evt->fr_dest);
 
 	if (rs == SA_AIS_OK) {
 		/* Send an Async update to STANDBY EDS peer */
@@ -387,12 +378,11 @@ static uint32_t eds_proc_chan_open_async_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 						      chan_create_time)
 			async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
 			if (async_rc != NCSCC_RC_SUCCESS)
-				TRACE("Async Update send failed for chan open msg");
+				TRACE("Async Update send failed for chan open (async) msg");
 		}
-		m_LOG_EDSV_SF(EDS_CHN_OPEN_ASYNC_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rs, __FILE__, __LINE__,
-			      rc, evt->fr_dest);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -413,6 +403,7 @@ static uint32_t eds_proc_chan_close_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	uint32_t rc = NCSCC_RC_SUCCESS, async_rc = NCSCC_RC_SUCCESS;
 	EDSV_EDA_CHAN_CLOSE_PARAM *close_param;
 	EDS_CKPT_DATA ckpt;
+	TRACE_ENTER2("agent dest: %" PRIx64, evt->fr_dest);
 
 	close_param = &(evt->info.msg.info.api_info.param.chan_close);
 	rc = eds_channel_close(cb, close_param->reg_id, close_param->chan_id, close_param->chan_open_id, false);
@@ -426,12 +417,9 @@ static uint32_t eds_proc_chan_close_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS)
 				TRACE("Async Update send failed for chan close msg");
 		}
-		m_LOG_EDSV_SF(EDS_CHN_CLOSE_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
-
 	} else
-		m_LOG_EDSV_SF(EDS_CHN_CLOSE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
+		TRACE("Channel close failed for agent_dest: %" PRIx64, evt->fr_dest);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -453,19 +441,18 @@ static uint32_t eds_proc_chan_unlink_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDSV_EDA_CHAN_UNLINK_PARAM *unlink_param;
 	EDSV_MSG msg;
 	EDS_CKPT_DATA ckpt;
+	TRACE_ENTER2("agent dest: %" PRIx64, evt->fr_dest);
 
 	unlink_param = &(evt->info.msg.info.api_info.param.chan_unlink);
 	rs = eds_channel_unlink(cb, unlink_param->chan_name.length, unlink_param->chan_name.value);
 	if (rs != SA_AIS_OK)
-		m_LOG_EDSV_SF(EDS_CHN_UNLINK_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rs, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
+		TRACE("Channel unlink failed for :%" PRIx64, evt->fr_dest);
 
 	/* Send response back */
 	m_EDS_EDSV_CHAN_UNLINK_SYNC_MSG_FILL(msg, rs, unlink_param->chan_name)
 	    rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_EDSV_SF(EDS_CHN_UNLINK_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
+		LOG_ER("MDS send to %" PRIx64 " failed for saEvtChannelUnlink()", evt->fr_dest);
 
 	if (rs == SA_AIS_OK) {	/* Send an Async update to STANDBY EDS peer */
 		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -476,9 +463,8 @@ static uint32_t eds_proc_chan_unlink_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS)
 				TRACE("Async update send failed for unlink msg");
 		}
-		m_LOG_EDSV_SF(EDS_CHN_UNLINK_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -510,12 +496,12 @@ static uint32_t eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	uint32_t retd_evt_chan_open_id = 0;
 	EDS_CKPT_DATA ckpt;
 	publish_param = &(evt->info.msg.info.api_info.param).publish;
+	TRACE_ENTER2("agent dest: %" PRIx64, evt->fr_dest);
 
 	/* Get worklist ptr for this chan */
 	wp = eds_get_worklist_entry(cb->eds_work_list, publish_param->chan_id);
 	if (!wp) {
-		m_LOG_EDSV_SF(EDS_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			      __LINE__, publish_param->chan_id, evt->fr_dest);
+		TRACE_LEAVE();
 		return (NCSCC_RC_FAILURE);
 	}
 	/* Set the publish time here */
@@ -524,10 +510,7 @@ static uint32_t eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	/* convert time_t to SaTimeT */
 	publish_time = (SaTimeT)time_of_day;
 
-	/* Log the event header info */
-#if (NCS_EDSV_LOG == 1)
 	eds_publish_log_event(wp, publish_param, publish_time);
-#endif
 
    /** If this event needs to be retained then 
     ** we need to validate the publisher's copen
@@ -537,15 +520,13 @@ static uint32_t eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 		/* Grab the chan_open_rec for this id */
 		copen_id_Net = m_NCS_OS_HTONL(publish_param->chan_open_id);
 		if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec, (uint8_t *)&copen_id_Net))) {
-			m_LOG_EDSV_SF(EDS_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-				      __FILE__, __LINE__, copen_id_Net, evt->fr_dest);
+			TRACE_LEAVE2("patricia get failed");
 			return (NCSCC_RC_FAILURE);
 		}
 
 		rc = eds_store_retained_event(cb, wp, co, publish_param, publish_time);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_EDSV_SF(EDS_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-				      __FILE__, __LINE__, 0, evt->fr_dest);
+			TRACE_LEAVE();
 			return (NCSCC_RC_FAILURE);
 		} else
 	 /** store the parent channel's event id 
@@ -587,10 +568,9 @@ static uint32_t eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 				/* Send the event. Only once per match/per open_id */
 				if (NCSCC_RC_SUCCESS != (rc = eds_mds_msg_send(cb, &msg, &co->chan_opener_dest,
 									       NULL, prio))) {
-					m_LOG_EDSV_SF(EDS_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-						      msg.type, __FILE__, __LINE__,
-						      m_NCS_NODE_ID_FROM_MDS_DEST(co->chan_opener_dest), evt->fr_dest);
-
+					LOG_ER("Event Publish(MDS send) failed. From publisher dest: %" PRIx64
+						", To subscriber dest: %" PRIx64 ",on Node_id: %u", evt->fr_dest,
+					co->chan_opener_dest,  m_NCS_NODE_ID_FROM_MDS_DEST(co->chan_opener_dest)); 
 				}
 
 				break;
@@ -618,6 +598,7 @@ static uint32_t eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 		publish_param->data = NULL;
 	}
 	/* End retd event chan open id */
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -646,21 +627,21 @@ static uint32_t eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDSV_MSG msg;
 	EDS_CKPT_DATA ckpt;
 	SaUint8T list_iter;
+	TRACE_ENTER2("agent dest: %" PRIx64, evt->fr_dest);
 
 	subscribe_param = &(evt->info.msg.info.api_info.param.subscribe);
 
 	/* Make sure this is a valid regID */
 	reglst = eds_get_reglist_entry(cb, subscribe_param->reg_id);
 	if (reglst == NULL) {
-		m_LOG_EDSV_SF(EDS_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			      __LINE__, 0, evt->fr_dest);
+		TRACE_LEAVE();
 		return (NCSCC_RC_FAILURE);
 	}
 	/* Allocate a new Subscription Record */
 	subrec = m_MMGR_ALLOC_EDS_SUBREC(sizeof(SUBSC_REC));
 	if (subrec == NULL) {
-		m_LOG_EDSV_SF(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			      __LINE__, 0, evt->fr_dest);
+		LOG_ER("malloc failed for event subscription record");
+		TRACE_LEAVE();
 		return (NCSCC_RC_FAILURE);
 	}
 	memset(subrec, 0, sizeof(SUBSC_REC));
@@ -679,8 +660,7 @@ static uint32_t eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	rc = eds_add_subscription(cb, subscribe_param->reg_id, subrec);
 	if (rc != NCSCC_RC_SUCCESS) {
 		subscribe_param->filter_array = NULL;
-		m_LOG_EDSV_SF(EDS_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
+		TRACE_LEAVE();
 		return (NCSCC_RC_FAILURE);	/* and return failure */
 	}
 
@@ -718,9 +698,8 @@ static uint32_t eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 					    prio = edsv_map_ais_prio_to_mds_snd_prio(retd_evt_rec->priority);
 					if (NCSCC_RC_SUCCESS != (rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest,
 										       NULL, prio))) {
-						m_LOG_EDSV_SF(EDS_SUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA,
-							      NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, msg.type,
-							      evt->fr_dest);
+					LOG_ER("Event Publish(MDS send) failed. To subscriber dest: %" PRIx64
+								", on Node_id: %u", evt->fr_dest, evt->fr_node_id);
 					}
 
 				}	/*end pattern match */
@@ -743,6 +722,7 @@ static uint32_t eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	 */
 	subscribe_param->filter_array = NULL;
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -764,6 +744,7 @@ static uint32_t eds_proc_unsubscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	uint32_t async_rc = NCSCC_RC_SUCCESS;
 	EDSV_EDA_UNSUBSCRIBE_PARAM *unsubscribe_param;
 	EDS_CKPT_DATA ckpt;
+	TRACE_ENTER2("agent dest: %" PRIx64, evt->fr_dest);
 
 	unsubscribe_param = &(evt->info.msg.info.api_info.param.unsubscribe);
 	/* Remove subscription from our lists */
@@ -780,14 +761,10 @@ static uint32_t eds_proc_unsubscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS)
 				TRACE("Async Update send failed for unsubscribe");
 		}
-
-		m_LOG_EDSV_SF(EDS_UNSUBSCRIBE_SUCCESS, NCSFL_LC_EDSV_DATA, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
-	} else {
+	} else
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_EDSV_SF(EDS_UNSUBSCRIBE_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
-			      evt->fr_dest);
-	}
+
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -811,25 +788,25 @@ static uint32_t eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 
 	EDSV_EDA_RETENTION_TIME_CLR_PARAM *param = &(evt->info.msg.info.api_info.param.rettimeclr);
 	EDS_CKPT_DATA ckpt;
+	TRACE_ENTER2("agent dest: %" PRIx64, evt->fr_dest);
 
 	/* Lock the EDS_CB */
 	m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
 	rc = eds_clear_retained_event(cb, param->chan_id, param->chan_open_id, param->event_id, false);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_EDSV_SF(EDS_RETENTION_TMR_CLR_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__, 0, evt->fr_dest);
+		TRACE("Retained event clear failed");
 
 	/* Unlock the EDS_CB */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
 	/* Send response back */
 	m_EDS_EDSV_CHAN_RETENTION_TMR_CLEAR_SYNC_MSG_FILL(msg, rc)
-	    rs = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+	rs = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+		LOG_IN("MDS send to %" PRIx64 " failed for saEvtEventRetentionTimeClear()", evt->fr_dest);
 
 	if (rs != NCSCC_RC_SUCCESS)
-		m_LOG_EDSV_SF(EDS_RETENTION_TMR_CLR_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rs, __FILE__,
-			      __LINE__, 0, evt->fr_dest);
+
 	if (rc == NCSCC_RC_SUCCESS) {
 		/*Send an async checkpoint update to STANDBY EDS peer */
 		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -839,9 +816,8 @@ static uint32_t eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS)
 				TRACE("Async Update send failed for retentime clear msg");
 		}
-		m_LOG_EDSV_SF(EDS_RETENTION_TMR_CLR_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rs, __FILE__,
-			      __LINE__, rc, evt->fr_dest);
 	}
+	TRACE_LEAVE();
 	return rs;
 }
 
@@ -861,12 +837,12 @@ static uint32_t eds_proc_limit_get_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
 	uint32_t rc = SA_AIS_OK;
 	EDSV_MSG msg;
+	TRACE_ENTER2("agent dest: %" PRIx64, evt->fr_dest);
 
-	TRACE("LIMIT GET EVENT ...");
 	m_EDS_EDSV_LIMIT_GET_MSG_FILL(msg, rc)
 	rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS)
-		TRACE("LIMIT GET Response Send Failed...");
+		LOG_ER("MDS send to %" PRIx64 "failed for saEvtLimitGet()", evt->fr_dest);
 
 	return (rc);
 
@@ -888,9 +864,7 @@ static uint32_t eds_proc_limit_get_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 static uint32_t eds_proc_unexpected_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	m_LOG_EDSV_SF(EDS_EVT_UNKNOWN, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__, 0,
-		      evt->fr_dest);
-
+	TRACE("Unexpected message");
 	return rc;
 }
 
@@ -910,9 +884,7 @@ static uint32_t eds_proc_unexpected_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 static uint32_t eds_proc_invalid_msg(EDSV_EDS_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	m_LOG_EDSV_SF(EDS_EVT_UNKNOWN, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__, 0,
-		      evt->fr_dest);
-
+	TRACE("Invalid message");
 	return rc;
 }
 
@@ -937,6 +909,7 @@ static uint32_t eds_proc_eda_misc_msg(EDSV_EDS_EVT *evt)
     ** category, so just destroy the message
     ** and return. This must have been dispatched in error.
     **/
+	TRACE("Miscellaneous message");
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -958,18 +931,17 @@ static uint32_t eds_proc_ret_tmr_exp_evt(EDSV_EDS_EVT *evt)
 	uint32_t store_chan_id;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CB *eds_cb;
+	TRACE_ENTER();
 
 	/* retrieve retained evt */
 	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, evt->cb_hdl))) {
-		m_LOG_EDSV_SF(EDS_RETENTION_TMR_EXP_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, 0, __FILE__,
-			      __LINE__, 0, evt->fr_dest);
+		TRACE_LEAVE2("take handle failed for cb");
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* retrieve retained evt */
 	if (NULL == (ret_evt = (EDS_RETAINED_EVT_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, evt->info.tmr_info.opq_hdl))) {
-		m_LOG_EDSV_SF(EDS_RETENTION_TMR_EXP_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, 0, __FILE__,
-			      __LINE__, 0, evt->fr_dest);
+		TRACE_LEAVE2("take handle failed for retained evt rec.");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -991,14 +963,14 @@ static uint32_t eds_proc_ret_tmr_exp_evt(EDSV_EDS_EVT *evt)
 	m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
 
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_EDSV_SF(EDS_RETENTION_TMR_EXP_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__, 0, evt->fr_dest);
 		ncshm_give_hdl(evt->info.tmr_info.opq_hdl);
 		ncshm_give_hdl(evt->cb_hdl);
+		TRACE_LEAVE();
 		return rc;
 	}
 
 	ncshm_give_hdl(evt->cb_hdl);
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1021,17 +993,20 @@ static uint32_t eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt)
 	EDS_CKPT_DATA ckpt;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint32_t async_rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("agent dest: %" PRIx64, evt->fr_dest);
+
 	/* Retreive the cb handle */
 	if (NULL == (cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, evt->cb_hdl))) {
-		m_LOG_EDSV_SF(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
-			      0, evt->fr_dest);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	switch (evt->evt_type) {
 	case EDSV_EDS_EVT_EDA_UP:
+		TRACE("Agent UP");
 		break;
 	case EDSV_EDS_EVT_EDA_DOWN:
+		TRACE("Agent DOWN");
 		if ((cb->ha_state == SA_AMF_HA_ACTIVE) || (cb->ha_state == SA_AMF_HA_QUIESCED)) {
 			/* Remove this EDA entry from our processing lists */
 			eds_remove_regid_by_mds_dest(cb, evt->fr_dest);
@@ -1042,6 +1017,7 @@ static uint32_t eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt)
 				async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
 				if (async_rc != NCSCC_RC_SUCCESS)
 					TRACE("Agent down async update send failed");
+			TRACE("sent async update to standby(if present)");
 			}
 		} else if (cb->ha_state == SA_AMF_HA_STANDBY) {
 			EDA_DOWN_LIST *eda_down_rec = NULL;
@@ -1049,8 +1025,7 @@ static uint32_t eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt)
 				if (NULL == (eda_down_rec = m_MMGR_ALLOC_EDA_DOWN_LIST(sizeof(EDA_DOWN_LIST)))) {
 					/* Log it */
 					rc = NCSCC_RC_OUT_OF_MEM;
-					m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc,
-						     __FILE__, __LINE__, 0);
+					LOG_ER("malloc failed for EDA down list");
 					break;
 				}
 				memset(eda_down_rec, 0, sizeof(EDA_DOWN_LIST));
@@ -1081,6 +1056,7 @@ static uint32_t eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt)
 	/* Give the cb handle back */
 	ncshm_give_hdl(evt->cb_hdl);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1100,29 +1076,29 @@ static uint32_t eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt)
 static uint32_t eds_proc_eda_api_msg(EDSV_EDS_EVT *evt)
 {
 	EDS_CB *cb;
+	TRACE_ENTER();
 
 	if ((evt->info.msg.info.api_info.type >= EDSV_API_BASE_MSG) &&
 	    (evt->info.msg.info.api_info.type < EDSV_API_MAX)) {
 		/* Retrieve the cb handle */
 		if (NULL == (cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, evt->cb_hdl))) {
-			m_LOG_EDSV_SF(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, 0, __FILE__,
-				      __LINE__, 0, evt->fr_dest);
+			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
 
 		if (eds_eda_api_msg_dispatcher[evt->info.msg.info.api_info.type] (cb, evt) != NCSCC_RC_SUCCESS) {
 			ncshm_give_hdl(evt->cb_hdl);
+			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
 
 		/* Give the cb handle back */
 		ncshm_give_hdl(evt->cb_hdl);
 
-	} else {
-		m_LOG_EDSV_SF(EDS_EVT_UNKNOWN, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, evt->evt_type, __FILE__,
-			      __LINE__, 0, evt->fr_dest);
-	}
+	} else
+		LOG_ER("Invalid API event received from agent dest %" PRIx64, evt->fr_dest);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1141,6 +1117,7 @@ static uint32_t eds_proc_eda_api_msg(EDSV_EDS_EVT *evt)
  *****************************************************************************/
 static uint32_t eds_process_api_evt(EDSV_EDS_EVT *evt)
 {
+	TRACE_ENTER();
 	if (evt->evt_type == EDSV_EDS_EDSV_MSG) {
 		if ((evt->info.msg.type >= EDSV_BASE_MSG) && (evt->info.msg.type < EDSV_MSG_MAX)) {
 			if (eds_edsv_evt_dispatch_tbl[evt->info.msg.type] (evt) != NCSCC_RC_SUCCESS) {
@@ -1148,6 +1125,7 @@ static uint32_t eds_process_api_evt(EDSV_EDS_EVT *evt)
 		}
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1166,10 +1144,11 @@ static uint32_t eds_process_api_evt(EDSV_EDS_EVT *evt)
 static uint32_t eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt)
 {
 	EDS_CB *cb;
+	TRACE_ENTER();
+
 	/* Retrieve the cb handle */
 	if (NULL == (cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, evt->cb_hdl))) {
-		m_LOG_EDSV_SF(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
-			      0, evt->fr_dest);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1177,7 +1156,7 @@ static uint32_t eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt)
 		cb->ha_state = SA_AMF_HA_QUIESCED;
 		/* Inform MBCSV of HA state change */
 		if (eds_mbcsv_change_HA_state(cb) != NCSCC_RC_SUCCESS) {
-			TRACE("EDS-MBCSV- CHANGE ROLE FAILED....");
+			TRACE("EDS-MBCSV change role failed");
 		}
 
 		/* Update control block */
@@ -1186,8 +1165,11 @@ static uint32_t eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt)
 		/* Give the cb handle back */
 		ncshm_give_hdl(evt->cb_hdl);
 	} else {
+		TRACE("Quiesced set is false");
 		ncshm_give_hdl(evt->cb_hdl);
 	}
+
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1206,11 +1188,11 @@ static uint32_t eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt)
 uint32_t eds_process_evt(EDSV_EDS_EVT *evt)
 {
 	EDS_CB *cb;
+	TRACE_ENTER();
 
 	/* Retrieve the cb handle */
 	if (NULL == (cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, evt->cb_hdl))) {
-		m_LOG_EDSV_SF(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
-			      0, evt->fr_dest);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1221,8 +1203,7 @@ uint32_t eds_process_evt(EDSV_EDS_EVT *evt)
 		} else if (evt->evt_type == EDSV_EVT_QUIESCED_ACK) {
 			eds_proc_quiesced_ack_evt(evt);
 		} else
-			m_LOG_EDSV_SF(EDS_EVENT_PROCESSING_FAILED, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR,
-				      evt->evt_type, __FILE__, __LINE__, 0, evt->fr_dest);
+			TRACE("Event processing failed");
 	} else {
 		if ((evt->evt_type == EDSV_EDS_RET_TIMER_EXP) || (evt->evt_type == EDSV_EDS_EVT_EDA_DOWN))
 	    /** Invoke the evt dispatcher **/
@@ -1234,6 +1215,7 @@ uint32_t eds_process_evt(EDSV_EDS_EVT *evt)
 	if (NULL != evt)
 		eds_evt_destroy(evt);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1250,6 +1232,8 @@ uint32_t eds_process_evt(EDSV_EDS_EVT *evt)
  *****************************************************************************/
 void eds_evt_destroy(EDSV_EDS_EVT *evt)
 {
+	TRACE_ENTER();
+
 	if (EDSV_EDS_EDSV_MSG == evt->evt_type) {
 		if (EDSV_EDA_API_MSG == evt->info.msg.type) {
 			if (EDSV_EDA_PUBLISH == evt->info.msg.info.api_info.type) {
@@ -1277,10 +1261,10 @@ void eds_evt_destroy(EDSV_EDS_EVT *evt)
 	m_MMGR_FREE_EDSV_EDS_EVT(evt);
 	evt = NULL;
 
+	TRACE_LEAVE();
 	return;
 }
 
-#if (NCS_EDSV_LOG == 1)
 /****************************************************************************
  * Name          : eds_publish_log_event
  *
@@ -1300,6 +1284,7 @@ static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publ
 	uint32_t is_ascii;
 	char *ptr;
 	char str[524] = { 0 };
+	TRACE_ENTER();
 
 	/* See if the channel name is a printable string.
 	 * If not, just give the length for now.
@@ -1348,10 +1333,9 @@ static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publ
 		snprintf(ptr, sizeof(str) - strlen(str) - 1, "Publisher:<BINARY VALUE Length:%d>, ",
 			 publish_param->publisher_name.length);
 
-	m_LOG_EDS_EVENT(EDS_EVENT_HDR_LOG,
-			(int8_t *)str,
-			(uint32_t)publish_param->event_id,
-			(uint32_t)publish_time, (uint32_t)publish_param->priority, (uint32_t)publish_param->retention_time);
+	TRACE("%s : event_id: %u, publish_time: %llx, reten time: %llu",
+						(int8_t *)str, publish_param->event_id, publish_time,
+						publish_param->retention_time);
+	TRACE_LEAVE();
 }
-#endif
 

@@ -44,6 +44,7 @@ SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 
 	SaImmAttrModificationT_2 attr_output[5];
 	const SaImmAttrModificationT_2 *attrMods[6];
+	TRACE_ENTER();
 
 	SaImmAttrValueT attrUpdateValues1[] = { &num_users };
 	SaImmAttrValueT attrUpdateValues2[] = { &num_subscribers };
@@ -52,14 +53,19 @@ SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	SaImmAttrValueT attrUpdateValues5[] = { &num_lost_evts };
 
 	/* Get EDS CB Handle. */
-	if (NULL == (cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl)))
+	if (NULL == (cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+		LOG_ER("Global take handle failed");
+		TRACE_LEAVE();
 		return (rc = SA_AIS_ERR_FAILED_OPERATION);	/* Log it */
+	}
 
 	/* Look up the channel worklist DB to find the channel indicated by objectName */
 	wp = get_channel_from_worklist(cb, *objectName);
 	if (wp == NULL) {
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		ncshm_give_hdl(gl_eds_hdl);
+		LOG_WA("channel record not found for : %s", objectName->value);
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -67,6 +73,7 @@ SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	while ((attributeName = attributeNames[i]) != NULL) {
 
 		if (strcmp(attributeName, "saEvtChannelNumOpeners") == 0) {
+			TRACE("Attribute : saEvtChannelNumOpeners");
 			num_users = wp->chan_row.num_users;
 			attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
 			attr_output[attr_count].modAttr.attrName = attributeName;
@@ -76,6 +83,7 @@ SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 			attrMods[attr_count] = &attr_output[attr_count];
 			++attr_count;
 		} else if (strcmp(attributeName, "saEvtChannelNumSubscribers") == 0) {
+			TRACE("Attribute : saEvtChannelNumSubscribers");
 			num_subscribers = wp->chan_row.num_subscribers;
 			attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
 			attr_output[attr_count].modAttr.attrName = attributeName;
@@ -85,6 +93,7 @@ SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 			attrMods[attr_count] = &attr_output[attr_count];
 			++attr_count;
 		} else if (strcmp(attributeName, "saEvtChannelNumPublishers") == 0) {
+			TRACE("Attribute : saEvtChannelNumPublishers");
 			num_publishers = wp->chan_row.num_publishers;
 			attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
 			attr_output[attr_count].modAttr.attrName = attributeName;
@@ -94,6 +103,7 @@ SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 			attrMods[attr_count] = &attr_output[attr_count];
 			++attr_count;
 		} else if (strcmp(attributeName, "saEvtChannelNumRetainedEvents") == 0) {
+			TRACE("Attribute : saEvtChannelNumRetainedEvents");
 			num_ret_evts = wp->chan_row.num_ret_evts;
 			attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
 			attr_output[attr_count].modAttr.attrName = attributeName;
@@ -103,6 +113,7 @@ SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 			attrMods[attr_count] = &attr_output[attr_count];
 			++attr_count;
 		} else if (strcmp(attributeName, "saEvtChannelLostEventsEventCount") == 0) {
+			TRACE("Attribute : saEvtChannelLostEventsEventCount");
 			num_lost_evts = wp->chan_row.num_lost_evts;
 			attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
 			attr_output[attr_count].modAttr.attrName = attributeName;
@@ -114,14 +125,19 @@ SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 		} else {
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			ncshm_give_hdl(gl_eds_hdl);
+			LOG_ER("Invalid Attribute name in saImmOiRtAttrUpdateCallback");
+			TRACE_LEAVE();
 			return rc;
 		}
 		++i;
 	}			/*End while attributesNames() */
 	attrMods[attr_count] = NULL;
 	rc = saImmOiRtObjectUpdate_2(immOiHandle, objectName, attrMods);
+	TRACE_1("saImmOiRtObjectUpdate_2 returned : %u", rc);
 
 	ncshm_give_hdl(gl_eds_hdl);
+
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -146,15 +162,18 @@ SaAisErrorT eds_imm_init(EDS_CB *cb)
 {
 	SaAisErrorT rc;
 	immutilWrapperProfile.errorsAreFatal = 0;
+	TRACE_ENTER();
+
 	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks, &imm_version);
 	if (rc == SA_AIS_OK) {
 		rc = immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);
 		if (rc != SA_AIS_OK)
-			LOG_ER("_eds_imm_saImmOiSelectionObjectGet failed - %d\n", rc);	
+			LOG_ER("saImmOiSelectionObjectGet failed with error: - %u", rc);	
 	} else {
-		LOG_ER("_eds_imm_saImmOiInitialize_2 failed - %d\n", rc);
+		LOG_ER("saImmOiInitialize_2 failed with error: %d", rc);
 	}	
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -168,7 +187,7 @@ void * _eds_imm_declare_implementer(void *_immOiHandle)
 	SaImmOiHandleT *immOiHandle = (SaImmOiHandleT *) _immOiHandle;
 	rc = immutil_saImmOiImplementerSet(*immOiHandle, implementer_name); 
 	if(rc != SA_AIS_OK) {
-		LOG_ER("_eds_imm_declare_implementer failed - %d\n", rc);
+		LOG_ER("saImmOiImplementerSet failed with error: %u", rc);
 		exit(EXIT_FAILURE);
 	}
 
@@ -191,7 +210,7 @@ void eds_imm_declare_implementer(SaImmOiHandleT *immOiHandle)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	if (pthread_create(&thread, NULL, _eds_imm_declare_implementer, immOiHandle) != 0) {
-		LOG_ER("pthread create failed\n");
+		LOG_ER("pthread create failed: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 	pthread_attr_destroy(&attr);
@@ -207,10 +226,13 @@ void eds_imm_declare_implementer(SaImmOiHandleT *immOiHandle)
 EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name)
 {
 	EDS_WORKLIST *wp = NULL;
+	TRACE_ENTER();
 
 	wp = cb->eds_work_list;
-	if (wp == NULL)
+	if (wp == NULL) {
+		TRACE_LEAVE();
 		return wp;	/*No channels yet */
+	}
 
 	/* Loop through the list for a matching channel name */
 
@@ -220,7 +242,7 @@ EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name)
 		/* Compare channel name */
 			if (memcmp(wp->cname, chan_name.value, chan_name.length) == 0)
 			{
-				
+				TRACE_LEAVE2("match found");
 				return wp;	/* match found */
 			}
 		}
@@ -229,6 +251,7 @@ EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name)
 
 	/* if we reached here, no channel by that name */
 	TRACE("OiRtAttrUpdate: Channel %s not found",chan_name.value);
+	TRACE_LEAVE();
 	return ((EDS_WORKLIST *)NULL);
 }	/*End get_channel_from_worklist */
 
@@ -253,12 +276,9 @@ static void  *eds_imm_reinit_thread(void * _cb)
 		/* If this is the active server, become implementer again. */
 		if (cb->ha_state == SA_AMF_HA_ACTIVE)
 			_eds_imm_declare_implementer(&cb->immOiHandle);
-	}
-	else
-	{
+	} else
 		LOG_ER("eds_imm_init FAILED: %s", strerror(error));
 
-	}
 	TRACE_LEAVE();
 	return NULL;
 }
