@@ -44,6 +44,7 @@ int32_t eda_find_mark_channel_to_ulink(EDA_CLIENT_HDL_REC *eda_hdl_rec, const Sa
 {
 	EDA_CHANNEL_HDL_REC *chan_hdl_rec;
 	int32_t chan_count_marked = 0;
+	TRACE_ENTER2("channel: %s", channelName->value);
 
 	for (chan_hdl_rec = eda_hdl_rec->chan_list; chan_hdl_rec != NULL; chan_hdl_rec = chan_hdl_rec->next) {
 
@@ -61,6 +62,7 @@ int32_t eda_find_mark_channel_to_ulink(EDA_CLIENT_HDL_REC *eda_hdl_rec, const Sa
    /** Return if any channel was unlinked 
     ** that has not been already unlinked. 
     **/
+	TRACE_LEAVE2("chan_count_marked: %d", chan_count_marked);
 	return chan_count_marked;
 }
 
@@ -79,13 +81,17 @@ int32_t eda_find_mark_channel_to_ulink(EDA_CLIENT_HDL_REC *eda_hdl_rec, const Sa
 bool eda_validate_eda_client_hdl(EDA_CB *eda_cb, EDA_CLIENT_HDL_REC *find_hdl_rec)
 {
 	EDA_CLIENT_HDL_REC *hdl_rec;
+	TRACE_ENTER();
 
 	for (hdl_rec = eda_cb->eda_init_rec_list; hdl_rec != NULL; hdl_rec = hdl_rec->next) {
-		if (hdl_rec == find_hdl_rec)
+		if (hdl_rec == find_hdl_rec) {
+			TRACE_LEAVE2("true");
 			return true;
+		}
 	}
 
 	/* No subscription record match found */
+	TRACE_LEAVE2("false");
 	return false;
 }
 
@@ -104,13 +110,17 @@ bool eda_validate_eda_client_hdl(EDA_CB *eda_cb, EDA_CLIENT_HDL_REC *find_hdl_re
 EDA_SUBSC_REC *eda_find_subsc_by_subsc_id(EDA_CHANNEL_HDL_REC *chan_hdl_anc, uint32_t sub_id)
 {
 	EDA_SUBSC_REC *subsc_rec;
+	TRACE_ENTER();
 
 	for (subsc_rec = chan_hdl_anc->subsc_list; subsc_rec != NULL; subsc_rec = subsc_rec->next) {
-		if (subsc_rec->subsc_id == sub_id)
+		if (subsc_rec->subsc_id == sub_id) {
+			TRACE_LEAVE();
 			return subsc_rec;
+		}
 	}
 
 	/* No subscription record match found */
+	TRACE_LEAVE2("null");
 	return NULL;
 }
 
@@ -129,12 +139,16 @@ EDA_SUBSC_REC *eda_find_subsc_by_subsc_id(EDA_CHANNEL_HDL_REC *chan_hdl_anc, uin
 EDA_CLIENT_HDL_REC *eda_find_hdl_rec_by_regid(EDA_CB *eda_cb, uint32_t reg_id)
 {
 	EDA_CLIENT_HDL_REC *eda_hdl_rec;
+	TRACE_ENTER2("reg_id: %u", reg_id);
 
 	for (eda_hdl_rec = eda_cb->eda_init_rec_list; eda_hdl_rec != NULL; eda_hdl_rec = eda_hdl_rec->next) {
-		if (eda_hdl_rec->eds_reg_id == reg_id)
+		if (eda_hdl_rec->eds_reg_id == reg_id) {
+			TRACE_LEAVE2("record found");
 			return eda_hdl_rec;
+		}
 	}
 
+	TRACE_LEAVE2("null");
 	return NULL;
 }
 
@@ -155,12 +169,16 @@ EDA_CHANNEL_HDL_REC *eda_find_chan_hdl_rec_by_chan_id(EDA_CLIENT_HDL_REC *eda_hd
 						      uint32_t chan_id, uint32_t chan_open_id)
 {
 	EDA_CHANNEL_HDL_REC *chan_hdl_rec;
+	TRACE_ENTER();
 
 	for (chan_hdl_rec = eda_hdl_rec->chan_list; chan_hdl_rec != NULL; chan_hdl_rec = chan_hdl_rec->next) {
-		if (chan_hdl_rec->eds_chan_id == chan_id && chan_hdl_rec->eds_chan_open_id == chan_open_id)
+		if (chan_hdl_rec->eds_chan_id == chan_id && chan_hdl_rec->eds_chan_open_id == chan_open_id) {
+			TRACE_LEAVE2("record found");
 			return chan_hdl_rec;
+		}
 	}
 
+	TRACE_LEAVE2("null");
 	return NULL;
 }
 
@@ -177,8 +195,10 @@ EDA_CHANNEL_HDL_REC *eda_find_chan_hdl_rec_by_chan_id(EDA_CLIENT_HDL_REC *eda_hd
  *****************************************************************************/
 void eda_msg_destroy(EDSV_MSG *msg)
 {
+	TRACE_ENTER();
 
 	if (EDSV_EDA_API_MSG == msg->type) {
+		TRACE("msg type: %u, msg subtype: %u",  msg->type, msg->info.api_info.type);
 		if (EDSV_EDA_PUBLISH == msg->info.api_info.type) {
 			/* free pattern array */
 			if (NULL != msg->info.api_info.param.publish.pattern_array)
@@ -200,5 +220,6 @@ void eda_msg_destroy(EDSV_MSG *msg)
 	m_MMGR_FREE_EDSV_MSG(msg);
 	msg = NULL;
 
+	TRACE_LEAVE();
 	return;
 }

@@ -240,7 +240,7 @@ uint32_t eda_event_hdl_rec_del(EDA_EVENT_HDL_REC **list_head, EDA_EVENT_HDL_REC 
 		}
 	}
    /** The node couldn't be deleted **/
-	m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+	TRACE("eda_event_hdl_rec_del failed");
 	return NCSCC_RC_FAILURE;
 }
 
@@ -285,7 +285,7 @@ uint32_t eda_del_subsc_rec(EDA_SUBSC_REC **list_head, EDA_SUBSC_REC *rm_node)
 
    /** The node couldn't be deleted 
     **/
-	m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+	TRACE("eda_del_subsc_rec failed");
 	return NCSCC_RC_FAILURE;
 }
 
@@ -352,7 +352,7 @@ uint32_t eda_channel_hdl_rec_del(EDA_CHANNEL_HDL_REC **list_head, EDA_CHANNEL_HD
 
    /** The node couldn't be deleted 
     **/
-	m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+	TRACE("eda_channel_hdl_rec_del failed");
 	return NCSCC_RC_FAILURE;
 }
 
@@ -424,8 +424,8 @@ uint32_t eda_hdl_rec_del(EDA_CLIENT_HDL_REC **list_head, EDA_CLIENT_HDL_REC *rm_
 			list_iter = list_iter->next;
 		}
 	}
-	m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
 
+	TRACE("eda_hdl_rec_del failed");
 	return NCSCC_RC_FAILURE;
 }
 
@@ -447,7 +447,7 @@ EDA_EVENT_HDL_REC *eda_event_hdl_rec_add(EDA_CHANNEL_HDL_REC **chan_hdl_rec)
 
 	/* allocate the event hdl rec */
 	if (NULL == (rec = m_MMGR_ALLOC_EDA_EVENT_HDL_REC)) {
-		m_LOG_EDSV_A(EDA_MEMALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("malloc failed");
 		return NULL;
 	}
 
@@ -455,7 +455,7 @@ EDA_EVENT_HDL_REC *eda_event_hdl_rec_add(EDA_CHANNEL_HDL_REC **chan_hdl_rec)
 
 	/* create the association with hdl-mngr */
 	if (0 == (rec->event_hdl = ncshm_create_hdl(1, NCS_SERVICE_ID_EDA, (NCSCONTEXT)rec))) {
-		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE("create handle failed");
 		m_MMGR_FREE_EDA_CHANNEL_HDL_REC(rec);
 		return NULL;
 	}
@@ -497,7 +497,7 @@ EDA_CHANNEL_HDL_REC *eda_channel_hdl_rec_add(EDA_CLIENT_HDL_REC **hdl_rec,
 
 	/* allocate the channel hdl rec */
 	if (NULL == (rec = m_MMGR_ALLOC_EDA_CHANNEL_HDL_REC)) {
-		m_LOG_EDSV_A(EDA_MEMALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("malloc failed");
 		return NULL;
 	}
 
@@ -505,7 +505,7 @@ EDA_CHANNEL_HDL_REC *eda_channel_hdl_rec_add(EDA_CLIENT_HDL_REC **hdl_rec,
 
 	/* create the association with hdl-mngr */
 	if (0 == (rec->channel_hdl = ncshm_create_hdl(1, NCS_SERVICE_ID_EDA, (NCSCONTEXT)rec))) {
-		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE("create handle failed");
 		m_MMGR_FREE_EDA_CHANNEL_HDL_REC(rec);
 		return NULL;
 	}
@@ -553,7 +553,7 @@ EDA_CLIENT_HDL_REC *eda_hdl_rec_add(EDA_CB **eda_cb, const SaEvtCallbacksT *reg_
 
 	/* allocate the hdl rec */
 	if (NULL == (rec = m_MMGR_ALLOC_EDA_CLIENT_HDL_REC)) {
-		m_LOG_EDSV_A(EDA_MEMALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("malloc failed");
 		goto error;
 	}
 
@@ -561,7 +561,7 @@ EDA_CLIENT_HDL_REC *eda_hdl_rec_add(EDA_CB **eda_cb, const SaEvtCallbacksT *reg_
 
 	/* create the association with hdl-mngr */
 	if (0 == (rec->local_hdl = ncshm_create_hdl((*eda_cb)->pool_id, NCS_SERVICE_ID_EDA, (NCSCONTEXT)rec))) {
-		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE("create handle failed");
 		goto error;
 	}
 
@@ -579,11 +579,11 @@ EDA_CLIENT_HDL_REC *eda_hdl_rec_add(EDA_CB **eda_cb, const SaEvtCallbacksT *reg_
    /** Initialize and attach the IPC/Priority queue
     **/
 	if (m_NCS_IPC_CREATE(&rec->mbx) != NCSCC_RC_SUCCESS) {
-		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("IPC mailbox create failed");
 		goto error;
 	}
 	if (m_NCS_IPC_ATTACH(&rec->mbx) != NCSCC_RC_SUCCESS) {
-		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("IPC mailbox attach failed");
 		goto error;
 	}
    /** Add this to the Link List of 
@@ -646,7 +646,7 @@ uint32_t eda_hdl_cbk_dispatch(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec, SaDispatc
 		break;
 
 	default:
-		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, flags, __FILE__, __LINE__, 0);
+		TRACE_3("Invalid dispatch type");
 		break;
 	}			/* switch */
 
@@ -676,6 +676,7 @@ static void eda_hdl_cbk_rec_prc(EDA_CB *cb, EDSV_MSG *msg, SaEvtCallbacksT *reg_
 	case EDSV_EDS_CHAN_OPEN:
 		{
 			EDSV_EDA_CHAN_OPEN_CBK_PARAM *chanopen = &info->param.chan_open_cbk;
+			TRACE("Invoking ChannelOpen callback");
 
 			if (reg_cbk->saEvtChannelOpenCallback)
 				reg_cbk->saEvtChannelOpenCallback(info->inv, chanopen->eda_chan_hdl, chanopen->error);
@@ -685,14 +686,14 @@ static void eda_hdl_cbk_rec_prc(EDA_CB *cb, EDSV_MSG *msg, SaEvtCallbacksT *reg_
 	case EDSV_EDS_DELIVER_EVENT:
 		{
 			EDSV_EDA_EVT_DELIVER_CBK_PARAM *evtdeliver = &info->param.evt_deliver_cbk;
-
+			TRACE("Invoking EventDeliver callback");
 			if (reg_cbk->saEvtEventDeliverCallback)
 				reg_cbk->saEvtEventDeliverCallback(evtdeliver->sub_id,
 								   evtdeliver->event_hdl, evtdeliver->data_len);
 		}
 		break;
 	default:
-		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, info->type, __FILE__, __LINE__, 0);
+		TRACE_3("Invalid callback type");
 		break;
 	}			/* switch */
 
@@ -722,7 +723,7 @@ static uint32_t eda_find_subsc_validity(EDA_CB *cb, EDSV_MSG *cbk_msg)
     **/
 	/* retrieve event hdl record */
 	if (NULL == (evt_hdl_rec = (EDA_EVENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, eventHandle))) {
-		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, eventHandle, __FILE__, __LINE__, 0);
+		TRACE_4("take handle failed for eventHandle: %llx", eventHandle);
 		return NCSCC_RC_FAILURE;
 	}
 	if (evt_hdl_rec->parent_chan) {	/* Check if channel still exists */
@@ -925,7 +926,7 @@ eda_extract_pattern_from_event(SaEvtEventPatternArrayT *from_pattern_array, SaEv
 		}
 
 		error = SA_AIS_ERR_NO_SPACE;
-		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__, __LINE__, 0);
+		TRACE_2("allocatedNumber < patternsNumber");
 		return error;
 	}
 
@@ -935,7 +936,7 @@ eda_extract_pattern_from_event(SaEvtEventPatternArrayT *from_pattern_array, SaEv
 	     n < from_pattern_array->patternsNumber; n++, from_pattern++, to_pattern++) {
 		if ((to_pattern == NULL) || (from_pattern->patternSize > to_pattern->allocatedSize)) {
 			error = SA_AIS_ERR_NO_SPACE;
-			m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__, __LINE__, 0);
+			TRACE_2("Insufficient space. in pattern is NULL or patternsize > allocated size");
 		} else {
 			memcpy((void *)to_pattern->pattern,
 			       (void *)from_pattern->pattern, (uint32_t)from_pattern->patternSize);
@@ -965,7 +966,7 @@ eda_allocate_and_extract_pattern_from_event(SaEvtEventPatternArrayT *from_patter
 		    malloc((*to_pattern_array)->patternsNumber * sizeof(SaEvtEventPatternT));
 		if (NULL == (*to_pattern_array)->patterns) {
 			error = SA_AIS_ERR_NO_MEMORY;
-			m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__, __LINE__, 0);
+			TRACE_4("malloc failed");
 			return error;
 		}
 	  /** zero the memory **/
@@ -980,8 +981,7 @@ eda_allocate_and_extract_pattern_from_event(SaEvtEventPatternArrayT *from_patter
 				if (NULL == (to_pattern->pattern = (SaUint8T *)
 					     malloc(((uint32_t)from_pattern->patternSize) * sizeof(SaUint8T)))) {
 					error = SA_AIS_ERR_NO_MEMORY;
-					m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__,
-						     __LINE__, 0);
+					TRACE_4("malloc failed");
 					free((*to_pattern_array)->patterns);
 					(*to_pattern_array)->patterns = NULL;
 					return error;

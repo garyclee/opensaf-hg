@@ -49,6 +49,22 @@ NCS_LOCK eda_agent_lock;
 
 #define m_EDA_AGENT_UNLOCK m_NCS_UNLOCK(&eda_agent_lock, NCS_LOCK_WRITE)
 
+/*
+ * Enable tracing early - GCC constructor
+ */
+__attribute__ ((constructor))
+static void logtrace_init_constructor(void)
+{
+        char *value;
+        /* Initialize trace system first of all so we can see what is going. */
+        if ((value = getenv("EDA_TRACE_PATHNAME")) != NULL) {
+                if (logtrace_init("eda", value, CATEGORY_ALL) != 0) {
+                        /* error, we cannot do anything */
+                        return;
+                }
+        }
+}
+
 /****************************************************************************
   Name          : ncs_eda_lib_req
  
@@ -64,6 +80,7 @@ NCS_LOCK eda_agent_lock;
 uint32_t ncs_eda_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -78,6 +95,7 @@ uint32_t ncs_eda_lib_req(NCS_LIB_REQ_INFO *req_info)
 		break;
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -96,16 +114,16 @@ uint32_t eda_create(NCS_LIB_CREATE *create_info)
 {
 	EDA_CB *cb = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
-	if (NULL == create_info)
+	if (NULL == create_info) {
+		TRACE_LEAVE2("create_info is NULL");
 		return NCSCC_RC_FAILURE;
-
-	/* Register with the Logging subsystem */
-	eda_flx_log_reg();
+	}
 
 	/* allocate EDA cb */
 	if (NULL == (cb = m_MMGR_ALLOC_EDA_CB)) {
-		m_LOG_EDSV_A(EDA_MEMALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("malloc failed");
 		rc = NCSCC_RC_FAILURE;
 		goto error;
 	}
@@ -117,7 +135,7 @@ uint32_t eda_create(NCS_LIB_CREATE *create_info)
 
 	/* create the association with hdl-mngr */
 	if (0 == (cb->cb_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_EDA, (NCSCONTEXT)cb))) {
-		m_LOG_EDSV_A(EDA_CB_HDL_CREATE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("create handle failed");
 		rc = NCSCC_RC_FAILURE;
 		goto error;
 	}
@@ -132,16 +150,18 @@ uint32_t eda_create(NCS_LIB_CREATE *create_info)
 	/* Store the cb hdl in the global variable */
 	gl_eda_hdl = cb->cb_hdl;
 
+	TRACE_1("global eda library handle is: %u", gl_eda_hdl);
+
 	/* register with MDS */
 	if ((NCSCC_RC_SUCCESS != (rc = eda_mds_init(cb)))) {
-		m_LOG_EDSV_A(EDA_MDS_INIT_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		TRACE_4("mds init failed");
 		rc = NCSCC_RC_FAILURE;
 		goto error;
 	}
 
 	eda_sync_with_eds(cb);
 	cb->node_status = SA_CLM_NODE_JOINED;
-
+	TRACE_LEAVE2("Default local node membership status: %u", cb->node_status);
 	return rc;
 
  error:
@@ -159,6 +179,7 @@ uint32_t eda_create(NCS_LIB_CREATE *create_info)
 		/* free the control block */
 		m_MMGR_FREE_EDA_CB(cb);
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -176,11 +197,12 @@ uint32_t eda_create(NCS_LIB_CREATE *create_info)
 void eda_destroy(NCS_LIB_DESTROY *destroy_info)
 {
 	EDA_CB *cb = 0;
+	TRACE_ENTER();
 
 	/* retrieve EDA CB */
 	cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl);
 	if (!cb) {
-		m_LOG_EDSV_A(EDA_CB_HDL_TAKE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_LEAVE2("global take handle failed: %u", gl_eda_hdl);
 		return;
 	}
 	/* delete the hdl db */
@@ -191,9 +213,6 @@ void eda_destroy(NCS_LIB_DESTROY *destroy_info)
 
 	/* destroy the lock */
 	m_NCS_LOCK_DESTROY(&cb->cb_lock);
-
-	/* de register with the flex log */
-	eda_flx_log_dereg();
 
 	/* return EDA CB */
 	ncshm_give_hdl(gl_eda_hdl);
@@ -207,6 +226,7 @@ void eda_destroy(NCS_LIB_DESTROY *destroy_info)
 	/* reset the global cb handle */
 	gl_eda_hdl = 0;
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -226,12 +246,14 @@ void eda_destroy(NCS_LIB_DESTROY *destroy_info)
 unsigned int ncs_eda_startup(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
+	TRACE_ENTER();
 
 	m_EDA_AGENT_LOCK;
 	if (eda_use_count > 0) {
 		/* Already created, so just increment the use_count */
 		eda_use_count++;
 		m_EDA_AGENT_UNLOCK;
+		TRACE_LEAVE2("Library use count: %u", eda_use_count);
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -240,13 +262,14 @@ unsigned int ncs_eda_startup(void)
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	if (ncs_eda_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
 		m_EDA_AGENT_UNLOCK;
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		return NCSCC_RC_FAILURE;
 	} else {
-		m_NCS_DBG_PRINTF("\nEDSV:EDA:ON");
 		eda_use_count = 1;
+		TRACE("EDA agent library initialized");
 	}
 
 	m_EDA_AGENT_UNLOCK;
+	TRACE_LEAVE2("Library use count: %u", eda_use_count);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -266,6 +289,7 @@ unsigned int ncs_eda_startup(void)
 unsigned int ncs_eda_shutdown(void)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	m_EDA_AGENT_LOCK;
 	if (eda_use_count > 1) {
@@ -283,5 +307,6 @@ unsigned int ncs_eda_shutdown(void)
 	}
 
 	m_EDA_AGENT_UNLOCK;
+	TRACE_LEAVE2("Library use count: %u", eda_use_count);
 	return rc;
 }
