@@ -57,7 +57,7 @@ static void logtrace_init_constructor(void)
 {
         char *value;
         /* Initialize trace system first of all so we can see what is going. */
-        if ((value = getenv("EDA_TRACE_PATHNAME")) != NULL) {
+        if ((value = getenv("EDA_TRACE_PATH_FILENAME")) != NULL) {
                 if (logtrace_init("eda", value, CATEGORY_ALL) != 0) {
                         /* error, we cannot do anything */
                         return;

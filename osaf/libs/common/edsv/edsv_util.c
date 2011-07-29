@@ -27,6 +27,7 @@
 *                                                                            *
 *****************************************************************************/
 #include "eda.h"
+#include "logtrace.h"
 
 /****************************************************************************
   Name          : edsv_copy_evt_pattern_array
@@ -46,16 +47,21 @@ SaEvtEventPatternArrayT *edsv_copy_evt_pattern_array(const SaEvtEventPatternArra
 	SaEvtEventPatternArrayT *dst_pattern_array = NULL;
 	SaEvtEventPatternT *src_pattern = NULL, *dst_pattern = NULL;
 	uint16_t n = 0;
+	TRACE_ENTER();
 		/** Tracker for the number of patterns **/
 
 	if (NULL == src_pattern_array) {
 		*error = SA_AIS_ERR_INVALID_PARAM;
+		TRACE_2("source pattern array is NULL");
+		TRACE_LEAVE();
 		return NULL;
 	}
 
 	/* Check if its greater than Implememtation Limit */
 	if (src_pattern_array->patternsNumber > EDSV_MAX_PATTERNS) {
 		*error = SA_AIS_ERR_TOO_BIG;
+		TRACE_2("source patterns number is > %u", EDSV_MAX_PATTERNS);
+		TRACE_LEAVE();
 		return NULL;
 	}
 
@@ -63,6 +69,8 @@ SaEvtEventPatternArrayT *edsv_copy_evt_pattern_array(const SaEvtEventPatternArra
     **/
 	if (NULL == (dst_pattern_array = m_MMGR_ALLOC_EVENT_PATTERN_ARRAY)) {
 		*error = SA_AIS_ERR_NO_MEMORY;
+		TRACE_4("malloc failed for dest pattern array");
+		TRACE_LEAVE();
 		return NULL;
 	}
    /** zero the memory
@@ -86,6 +94,8 @@ SaEvtEventPatternArrayT *edsv_copy_evt_pattern_array(const SaEvtEventPatternArra
 		     m_MMGR_ALLOC_EVENT_PATTERNS((uint32_t)dst_pattern_array->patternsNumber))) {
 			*error = SA_AIS_ERR_NO_MEMORY;
 			m_MMGR_FREE_EVENT_PATTERN_ARRAY(dst_pattern_array);
+			TRACE_4("malloc failed for dest pattern array");
+			TRACE_LEAVE();
 			return NULL;
 		}
 
@@ -98,6 +108,8 @@ SaEvtEventPatternArrayT *edsv_copy_evt_pattern_array(const SaEvtEventPatternArra
 		     n < src_pattern_array->patternsNumber; n++, src_pattern++, dst_pattern++) {
 			if (src_pattern == NULL) {
 				*error = SA_AIS_ERR_NO_MEMORY;
+				TRACE_2("source pattern is NULL");
+				TRACE_LEAVE();
 				return NULL;
 			}
 			/* Check if the pattern size is greater than local limit */
@@ -105,6 +117,8 @@ SaEvtEventPatternArrayT *edsv_copy_evt_pattern_array(const SaEvtEventPatternArra
 				*error = SA_AIS_ERR_TOO_BIG;
 				m_MMGR_FREE_EVENT_PATTERNS(dst_pattern_array->patterns);
 				m_MMGR_FREE_EVENT_PATTERN_ARRAY(dst_pattern_array);
+				TRACE_2("patternSize > %u", EDSV_MAX_PATTERN_SIZE);
+				TRACE_LEAVE();
 				return NULL;
 			}
       /** Assign the pattern size **/
@@ -116,6 +130,8 @@ SaEvtEventPatternArrayT *edsv_copy_evt_pattern_array(const SaEvtEventPatternArra
 					*error = SA_AIS_ERR_NO_MEMORY;
 					m_MMGR_FREE_EVENT_PATTERNS(dst_pattern_array->patterns);
 					m_MMGR_FREE_EVENT_PATTERN_ARRAY(dst_pattern_array);
+					TRACE_2("malloc failed for dest pattern");
+					TRACE_LEAVE();
 					return NULL;
 				}
 	 /** Clear memory for the allocated pattern **/
@@ -133,6 +149,7 @@ SaEvtEventPatternArrayT *edsv_copy_evt_pattern_array(const SaEvtEventPatternArra
    /** Return the destination pattern array 
     **/
 	*error = SA_AIS_OK;
+	TRACE_LEAVE();
 	return dst_pattern_array;
 }
 
@@ -149,12 +166,18 @@ SaEvtEventPatternArrayT *edsv_copy_evt_pattern_array(const SaEvtEventPatternArra
 ******************************************************************************/
 void edsv_free_evt_pattern_array(SaEvtEventPatternArrayT *free_pattern_array)
 {
-	if (NULL == free_pattern_array)
+	TRACE_ENTER();
+
+	if (NULL == free_pattern_array) {
+		TRACE_2("null pattern array");
+		TRACE_LEAVE();
 		return;
+	}
 
 	eda_free_event_patterns(free_pattern_array->patterns, free_pattern_array->patternsNumber);
 	m_MMGR_FREE_EVENT_PATTERN_ARRAY(free_pattern_array);
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -176,23 +199,31 @@ SaEvtEventFilterArrayT *edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT 
 	SaEvtEventFilterArrayT *dst_filter_array = NULL;
 	SaEvtEventFilterT *src_filter = NULL, *dst_filter = NULL;
 	uint16_t n = 0;
+	TRACE_ENTER();
+
 		/** Tracker for the number of patterns **/
 
    /** Vaidate the passed in filter array **/
 	if (NULL == src_filter_array) {
 		*error = SA_AIS_ERR_INVALID_PARAM;
+		TRACE_2("source filter array is NULL");
+		TRACE_LEAVE();
 		return NULL;
 	}
 
 	/* Is the filter number bigger than the implementation limit */
 	if (src_filter_array->filtersNumber > EDSV_MAX_PATTERNS) {
 		*error = SA_AIS_ERR_TOO_BIG;
+		TRACE_2("filtersNumber is > %u", EDSV_MAX_PATTERNS);
+		TRACE_LEAVE();
 		return NULL;
 	}
    /** Initial alloc for the destination filter array 
     **/
 	if (NULL == (dst_filter_array = m_MMGR_ALLOC_FILTER_ARRAY)) {
 		*error = SA_AIS_ERR_NO_MEMORY;
+		TRACE_4("malloc failed for dest filter array");
+		TRACE_LEAVE();
 		return NULL;
 	}
 
@@ -211,6 +242,8 @@ SaEvtEventFilterArrayT *edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT 
 		    (dst_filter_array->filters = m_MMGR_ALLOC_EVENT_FILTERS((uint32_t)dst_filter_array->filtersNumber))) {
 			*error = SA_AIS_ERR_NO_MEMORY;
 			m_MMGR_FREE_FILTER_ARRAY(dst_filter_array);
+			TRACE_4("malloc failed for dest filter");
+			TRACE_LEAVE();
 			return NULL;
 		}
 
@@ -226,6 +259,8 @@ SaEvtEventFilterArrayT *edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT 
 				*error = SA_AIS_ERR_TOO_BIG;
 				m_MMGR_FREE_EVENT_FILTERS(dst_filter_array->filters);
 				m_MMGR_FREE_FILTER_ARRAY(dst_filter_array);
+				TRACE_2("filter size > %u", EDSV_MAX_PATTERN_SIZE);
+				TRACE_LEAVE();
 				return NULL;
 			}
 	 /** Assign the filtertype and  pattern size **/
@@ -238,6 +273,8 @@ SaEvtEventFilterArrayT *edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT 
 					*error = SA_AIS_ERR_NO_MEMORY;
 					m_MMGR_FREE_EVENT_FILTERS(dst_filter_array->filters);
 					m_MMGR_FREE_FILTER_ARRAY(dst_filter_array);
+					TRACE_4("malloc failed for filters");
+					TRACE_LEAVE();
 					return NULL;
 				}
 	   /** Clear memory for the allocated pattern **/
@@ -255,6 +292,7 @@ SaEvtEventFilterArrayT *edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT 
 
   /** Return the destination pattern array 
   **/
+	TRACE_LEAVE();
 	return dst_filter_array;
 }
 
@@ -273,9 +311,13 @@ void edsv_free_evt_filter_array(SaEvtEventFilterArrayT *free_filter_array)
 {
 	uint16_t n;
 	SaEvtEventFilterT *free_filter;
+	TRACE_ENTER();
 
-	if (NULL == free_filter_array)
+	if (NULL == free_filter_array) {
+		TRACE_2("null filter array");
+		TRACE_LEAVE();
 		return;
+	}
 
 	if (free_filter_array->filtersNumber != 0) {
 		/* First Free the pattern storage area */
@@ -289,6 +331,8 @@ void edsv_free_evt_filter_array(SaEvtEventFilterArrayT *free_filter_array)
 		m_MMGR_FREE_EVENT_FILTERS(free_filter_array->filters);
 	}
 	m_MMGR_FREE_FILTER_ARRAY(free_filter_array);
+
+	TRACE_LEAVE();
 	return;
 }
 
@@ -306,6 +350,8 @@ void edsv_free_evt_filter_array(SaEvtEventFilterArrayT *free_filter_array)
 ******************************************************************************/
 MDS_SEND_PRIORITY_TYPE edsv_map_ais_prio_to_mds_snd_prio(uint32_t evt_prio)
 {
+	TRACE_ENTER2("event prio: %u", evt_prio);
+	
 	switch (evt_prio) {
 	case SA_EVT_HIGHEST_PRIORITY:
 		return MDS_SEND_PRIORITY_VERY_HIGH;
@@ -318,12 +364,15 @@ MDS_SEND_PRIORITY_TYPE edsv_map_ais_prio_to_mds_snd_prio(uint32_t evt_prio)
 	default:
 		return MDS_SEND_PRIORITY_LOW;
 	}
+
+	TRACE_LEAVE();
 }
 
 void eda_free_event_patterns(SaEvtEventPatternT *patterns, SaSizeT patternsNumber)
 {
 	uint16_t n;
 	SaEvtEventPatternT *free_pattern;
+	TRACE_ENTER();
 
 	if (patternsNumber != 0) {
 
@@ -336,5 +385,5 @@ void eda_free_event_patterns(SaEvtEventPatternT *patterns, SaSizeT patternsNumbe
 		/* Now free the pattern array header */
 		m_MMGR_FREE_EVENT_PATTERNS(patterns);
 	}
-
+	TRACE_LEAVE();
 }

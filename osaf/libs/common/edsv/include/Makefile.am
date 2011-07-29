@@ -23,7 +23,6 @@ noinst_HEADERS = \
 	eda_dl_api.h \
 	eda.h \
 	eda_hdl.h \
-	eda_log.h \
 	eda_mds.h \
 	eda_mem.h \
 	eds_amf.h \
@@ -32,11 +31,9 @@ noinst_HEADERS = \
 	eds_dl_api.h \
 	eds_evt.h \
 	eds.h \
-	eds_log.h \
 	eds_mds.h \
 	eds_mem.h \
 	edsv_defs.h \
-	edsv_logstr.h \
 	edsv_mem.h \
 	edsv_msg.h \
 	edsv_util.h

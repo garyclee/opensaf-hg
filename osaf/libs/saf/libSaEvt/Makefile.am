@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 EXTRA_DIST = libSaEvt.map
 
-LIB_VERSION = 1:0:2
+LIB_VERSION = 1:0:3
 
 SUBDIRS = pkgconfig
 

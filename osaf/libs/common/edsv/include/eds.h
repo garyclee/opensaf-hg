@@ -35,16 +35,6 @@
 #include "ncs_mda_pvt.h"
 #include "mds_papi.h"
 
-/* DTS header file */
-#if (NCS_DTS == 1)
-#include "dts_papi.h"
-#endif
-
-/* DTA header file */
-#if (NCS_DTA == 1)
-#include "dta_papi.h"
-#endif
-
 /* MBCSV header */
 #include "mbcsv_papi.h"
 
@@ -66,8 +56,6 @@
 #include "eds_mem.h"
 #include "edsv_mem.h"
 #include "eds_amf.h"
-#include "eds_log.h"
-#include "edsv_logstr.h"
 
 /** EDSV specific files **/
 #include "edsv_defs.h"
@@ -81,6 +69,8 @@
 
 /* IMM Headers */
 #include "saImmOi.h"
+
+#include "ncssysf_def.h"
 
 /* EDS CB global handle declaration */
 uint32_t gl_eds_hdl;
