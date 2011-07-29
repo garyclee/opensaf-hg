@@ -1393,7 +1393,7 @@ saEvtEventAttributesSet(SaEvtEventHandleT eventHandle,
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
-		rc = SA_AIS_ERR_LIBRARY;
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
 			      0, eventHandle);
 		return rc;
@@ -1599,7 +1599,7 @@ saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
-		rc = SA_AIS_ERR_LIBRARY;
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		m_LOG_EDSV_AF(EDA_ATTRIBUTE_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
 			      0, eventHandle);
 		return rc;
@@ -1774,7 +1774,7 @@ extern SaAisErrorT saEvtEventPatternFree(SaEvtEventHandleT eventHandle, SaEvtEve
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
-		rc = SA_AIS_ERR_LIBRARY;
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		m_LOG_EDSV_AF(EDA_PATTERN_FREE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
 			      0, eventHandle);
 		return rc;
@@ -1900,7 +1900,7 @@ SaAisErrorT saEvtEventDataGet(SaEvtEventHandleT eventHandle, void *eventData, Sa
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
-		rc = SA_AIS_ERR_LIBRARY;
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		m_LOG_EDSV_AF(EDA_DATA_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
 			      eventHandle);
 		return rc;
@@ -2813,7 +2813,7 @@ SaAisErrorT saEvtLimitGet(SaEvtHandleT evtHandle, SaEvtLimitIdT limitId, SaLimit
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
-		rc = SA_AIS_ERR_LIBRARY;
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		m_LOG_EDSV_AF(EDA_LIMIT_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
 			      gl_eda_hdl);
 		return rc;
