@@ -100,7 +100,7 @@ extern "C" {
 
 	typedef struct ncslpg_obj {
 		bool open;	/* Is the object (still) open/available     */
-		uint8_t inhere;	/* use-count of clients 'inside' object now */
+		uint32_t inhere;	/* use-count of clients 'inside' object now */
 
 	} NCSLPG_OBJ;		/* Local Persistence Guard */
 

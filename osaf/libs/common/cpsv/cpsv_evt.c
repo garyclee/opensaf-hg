@@ -221,7 +221,7 @@ uint32_t cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *pstream = NULL;
-	uint32_t space;
+	uint32_t space, all_repl_evt_flag = 0;
 
 	space = 4 + 8 + 8 + 8 + 4 + 4;
 	pstream = ncs_enc_reserve_space(io_uba, space);
@@ -233,7 +233,8 @@ uint32_t cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	ncs_encode_64bit(&pstream, ckpt_data->lcl_ckpt_id);
 	ncs_encode_64bit(&pstream, ckpt_data->agent_mdest);
 	ncs_encode_32bit(&pstream, ckpt_data->num_of_elmts);
-	ncs_encode_32bit(&pstream, ckpt_data->all_repl_evt_flag);
+	all_repl_evt_flag = ckpt_data->all_repl_evt_flag;
+	ncs_encode_8bit(&pstream, all_repl_evt_flag);
 
 	ncs_enc_claim_space(io_uba, space);
 
@@ -252,7 +253,7 @@ uint32_t cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	ncs_encode_64bit(&pstream, ckpt_data->ckpt_sync.invocation);
 	ncs_encode_64bit(&pstream, ckpt_data->ckpt_sync.lcl_ckpt_hdl);
 	ncs_encode_64bit(&pstream, ckpt_data->ckpt_sync.client_hdl);
-	ncs_encode_32bit(&pstream, ckpt_data->ckpt_sync.is_ckpt_open);
+	ncs_encode_8bit(&pstream, ckpt_data->ckpt_sync.is_ckpt_open);
 	ncs_encode_64bit(&pstream, ckpt_data->ckpt_sync.cpa_sinfo.dest);
 	ncs_encode_32bit(&pstream, ckpt_data->ckpt_sync.cpa_sinfo.stype);
 	ncs_encode_32bit(&pstream, ckpt_data->ckpt_sync.cpa_sinfo.to_svc);

@@ -45,7 +45,8 @@ extern char gl_log_string[];
   DESCRIPTION:      EDU program handler for "boolean" data. This function
                     is invoked by EDU for performing encode/decode operation
                     on "boolean" data.
-
+  NOTES:	    A bool is _forever_ 4 bytes when en/decoded due to
+		    legacy reasons with the old NCS_BOOL which was 4 bytes.
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
@@ -53,13 +54,13 @@ uint32_t ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		       uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
-	bool u32 = 0;
-	bool *uptr = NULL;
+	uint32_t u32 = 0; /* Local variable to encode/decode as 4 bytes */
+	bool *uptr = NULL; /* Used only in decode */
 
 	/* Note that, bool is defined as "unsigned int" in ncsgl_defs.h. */
 	switch (op) {
 	case EDP_OP_TYPE_ENC:
-		u32 = *(bool *)ptr;
+		u32 = (bool)*((bool *)ptr); /* Encode as 4 bytes for backward compatibility */
 		if (buf_env->is_ubaid) {
 			p8 = ncs_enc_reserve_space(buf_env->info.uba, 4);
 			ncs_encode_32bit(&p8, u32);
@@ -99,7 +100,7 @@ uint32_t ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				u32 = ncs_decode_tlv_32bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 4);
 			}
-			*uptr = u32;
+			*uptr = (bool)u32; /* Decode bool as 4 bytes for backward compatibility and store as bool */
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 			sprintf(gl_log_string, "Decoded bool: 0x%x \n", u32);
@@ -132,7 +133,7 @@ uint32_t ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 4);
 			}
 			if (uptr != NULL) {
-				*uptr = u32;
+				*uptr = (bool)u32;
 				(*(bool **)ptr) = uptr;
 				memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 				sprintf(gl_log_string, "Populated bool in PPDB: 0x%x \n", u32);

@@ -83,8 +83,8 @@ typedef struct cpd_ckpt_info_node {
 	SaCkptCheckpointCreationAttributesT attributes;
 	SaCkptCheckpointOpenFlagsT ckpt_flags;
 	bool is_active_exists;
-	bool ckpt_on_scxb1;
-	bool ckpt_on_scxb2;
+	uint32_t ckpt_on_scxb1;
+	uint32_t ckpt_on_scxb2;
 	MDS_DEST active_dest;
 	SaTimeT ret_time;
 	uint32_t num_users;

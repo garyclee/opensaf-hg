@@ -277,7 +277,7 @@ uint32_t dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg)
 	/*svc->policy_hdl = ((DTSV_MSG*)msg)->data.data.reg_conf.msg_fltr.policy_hdl; */
 	svc->category_bit_map = ((DTSV_MSG *)msg)->data.data.reg_conf.msg_fltr.category_bit_map;
 	svc->severity_bit_map = ((DTSV_MSG *)msg)->data.data.reg_conf.msg_fltr.severity_bit_map;
-	svc->enable_log = ((DTSV_MSG *)msg)->data.data.reg_conf.msg_fltr.enable_log;
+	svc->enable_log = (bool)(((DTSV_MSG *)msg)->data.data.reg_conf.msg_fltr.enable_log);
 
 	svc->log_msg = true;
 
@@ -316,7 +316,7 @@ uint32_t dta_svc_reg_updt(DTA_CB *inst, uint32_t svc_id, uint32_t enable_log, ui
 		return NCSCC_RC_SUCCESS;
 	}
 	/*svc->policy_hdl = policy_hdl; */
-	svc->enable_log = enable_log;
+	svc->enable_log = (bool)enable_log;
 	svc->category_bit_map = category_bit_map;
 	svc->severity_bit_map = severity_bit_map;
 	/* Smik - mark the svc entry by setting the flag to true */
@@ -459,7 +459,7 @@ uint32_t dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
 
 			svc->category_bit_map = ((DTSV_MSG *)msg)->data.data.msg_fltr.category_bit_map;
 			svc->severity_bit_map = ((DTSV_MSG *)msg)->data.data.msg_fltr.severity_bit_map;
-			svc->enable_log = ((DTSV_MSG *)msg)->data.data.msg_fltr.enable_log;
+			svc->enable_log = (bool)(((DTSV_MSG *)msg)->data.data.msg_fltr.enable_log);
 
 			break;
 		}
@@ -495,7 +495,7 @@ uint32_t dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
 			}
 			for (count = 0; count < svc_count; count++) {
 				svc_id = ncs_decode_32bit(&data);
-				enable_log = ncs_decode_32bit(&data);
+				enable_log = (bool)ncs_decode_32bit(&data);
 				category_bit_map = ncs_decode_32bit(&data);
 				severity_bit_map = ncs_decode_8bit(&data);
 				/* No need of policy handles */
@@ -868,7 +868,7 @@ uint32_t dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			}
 
 			mm->data.data.reg_conf.msg_fltr.svc_id = ncs_decode_32bit(&data);
-			mm->data.data.reg_conf.msg_fltr.enable_log = ncs_decode_32bit(&data);
+			mm->data.data.reg_conf.msg_fltr.enable_log = (bool)ncs_decode_32bit(&data);
 			mm->data.data.reg_conf.msg_fltr.category_bit_map = ncs_decode_32bit(&data);
 			mm->data.data.reg_conf.msg_fltr.severity_bit_map = ncs_decode_8bit(&data);
 			/* No need of policy handles */
@@ -887,7 +887,7 @@ uint32_t dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			}
 
 			mm->data.data.msg_fltr.svc_id = ncs_decode_32bit(&data);
-			mm->data.data.msg_fltr.enable_log = ncs_decode_32bit(&data);
+			mm->data.data.msg_fltr.enable_log = (bool)ncs_decode_32bit(&data);
 			mm->data.data.msg_fltr.category_bit_map = ncs_decode_32bit(&data);
 			mm->data.data.msg_fltr.severity_bit_map = ncs_decode_8bit(&data);
 			ncs_dec_skip_space(uba, DTSV_FLTR_MSG_SIZE);

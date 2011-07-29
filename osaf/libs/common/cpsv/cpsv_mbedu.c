@@ -129,8 +129,8 @@ FUNC_DECLARATION(DS)
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->num_writer, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->num_reader, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->num_sections, 0, NULL}, {
-		EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((DS *) 0)->ckpt_on_scxb1, 0, NULL}, {
-		EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((DS *) 0)->ckpt_on_scxb2, 0, NULL}, {
+		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->ckpt_on_scxb1, 0, NULL}, {
+		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->ckpt_on_scxb2, 0, NULL}, {
 	EDU_END, 0, 0, 0, 0, 0, 0, NULL},};
 	NCS_ENC_DEC_REM_FLOW(DS)
 }
