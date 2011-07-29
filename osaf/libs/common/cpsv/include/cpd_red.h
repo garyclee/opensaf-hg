@@ -59,8 +59,8 @@ typedef struct cpd_a2s_ckpt_usr_info {
 	uint32_t num_writer;
 	uint32_t num_reader;
 	uint32_t num_sections;
-	bool ckpt_on_scxb1;
-	bool ckpt_on_scxb2;
+	uint32_t ckpt_on_scxb1;
+	uint32_t ckpt_on_scxb2;
 
 } CPD_A2S_CKPT_USR_INFO;
 

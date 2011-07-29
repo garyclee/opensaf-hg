@@ -393,7 +393,7 @@ uint32_t cpsv_ckpt_access_decode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	ckpt_data->lcl_ckpt_id = ncs_decode_64bit(&pstream);
 	ckpt_data->agent_mdest = ncs_decode_64bit(&pstream);
 	ckpt_data->num_of_elmts = ncs_decode_32bit(&pstream);
-	ckpt_data->all_repl_evt_flag = ncs_decode_32bit(&pstream);
+	ckpt_data->all_repl_evt_flag = (bool)ncs_decode_32bit(&pstream);
 	ncs_dec_skip_space(io_uba, space);
 
 	/* Decode The Linked List */

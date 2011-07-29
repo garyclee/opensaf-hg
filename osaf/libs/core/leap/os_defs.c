@@ -727,19 +727,19 @@ void ncs_os_atomic_init(void)
 	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_CREATE, 0);
 }
 
-void ncs_os_atomic_inc(void *p_uns32)
+void ncs_os_atomic_inc(uint32_t *p_uns32)
 {
 	assert(gl_ncs_atomic_mtx_initialise);
 	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_LOCK, 0);
-	((*(uint32_t *)p_uns32)++);
+	(*p_uns32)++;
 	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_UNLOCK, 0);
 }
 
-void ncs_os_atomic_dec(void *p_uns32)
+void ncs_os_atomic_dec(uint32_t *p_uns32)
 {
 	assert(gl_ncs_atomic_mtx_initialise);
 	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_LOCK, 0);
-	((*(uint32_t *)p_uns32)--);
+	(*p_uns32)--;
 	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_UNLOCK, 0);
 
 }

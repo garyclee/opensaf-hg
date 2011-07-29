@@ -666,6 +666,7 @@ uint32_t dts_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 	uint8_t *data;
 	DTSV_MSG *mm;
 	NCS_UBAID *payload_uba;
+	uint32_t enable_log = 0;
 
 	if (uba == NULL)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_enc: User buff is NULL");
@@ -696,7 +697,8 @@ uint32_t dts_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 						      "dts_mds_enc: ncs_enc_reserve_space returns NULL");
 
 			ncs_encode_32bit(&data, mm->data.data.reg_conf.msg_fltr.svc_id);
-			ncs_encode_32bit(&data, mm->data.data.reg_conf.msg_fltr.enable_log);
+			enable_log = mm->data.data.reg_conf.msg_fltr.enable_log;
+			ncs_encode_32bit(&data, enable_log);
 			ncs_encode_32bit(&data, mm->data.data.reg_conf.msg_fltr.category_bit_map);
 			ncs_encode_8bit(&data, mm->data.data.reg_conf.msg_fltr.severity_bit_map);
 			/* No need of policy handles */
@@ -715,7 +717,8 @@ uint32_t dts_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 						      "dts_mds_enc: ncs_enc_reserve_space returns NULL");
 
 			ncs_encode_32bit(&data, mm->data.data.msg_fltr.svc_id);
-			ncs_encode_32bit(&data, mm->data.data.msg_fltr.enable_log);
+			enable_log = mm->data.data.msg_fltr.enable_log;
+			ncs_encode_32bit(&data, enable_log);
 			ncs_encode_32bit(&data, mm->data.data.msg_fltr.category_bit_map);
 			ncs_encode_8bit(&data, mm->data.data.msg_fltr.severity_bit_map);
 

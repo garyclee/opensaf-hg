@@ -1142,7 +1142,7 @@ uint32_t mbcsv_process_set_request(NCS_MBCSV_ARG *arg)
 			}
 
 			if (ckpt_inst->warm_sync_on != arg->info.obj_set.i_val) {
-				ckpt_inst->warm_sync_on = arg->info.obj_set.i_val;
+				ckpt_inst->warm_sync_on = (bool)arg->info.obj_set.i_val;
 
 				if (ckpt_inst->my_role == SA_AMF_HA_STANDBY) {
 					for (peer_ptr = ckpt_inst->peer_list;

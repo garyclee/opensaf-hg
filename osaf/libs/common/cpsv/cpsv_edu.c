@@ -1027,7 +1027,7 @@ FUNC_DECLARATION(DS)
 		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS *) 0)->ckpt_sync.invocation, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS *) 0)->ckpt_sync.lcl_ckpt_hdl, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS *) 0)->ckpt_sync.client_hdl, 0, NULL}, {
-		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->ckpt_sync.is_ckpt_open, 0, NULL}, {
+		EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((DS *) 0)->ckpt_sync.is_ckpt_open, 0, NULL}, {
 		EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS *) 0)->ckpt_sync.cpa_sinfo.dest, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->ckpt_sync.cpa_sinfo.stype, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->ckpt_sync.cpa_sinfo.to_svc, 0, NULL}, {
@@ -1052,7 +1052,7 @@ FUNC_DECLARATION(DS)
 		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS *) 0)->invocation, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS *) 0)->lcl_ckpt_hdl, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS *) 0)->client_hdl, 0, NULL}, {
-		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->is_ckpt_open, 0, NULL}, {
+		EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((DS *) 0)->is_ckpt_open, 0, NULL}, {
 		EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS *) 0)->cpa_sinfo.dest, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->cpa_sinfo.stype, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->cpa_sinfo.to_svc, 0, NULL}, {
@@ -1110,7 +1110,7 @@ FUNC_DECLARATION(DS)
 		EDU_EXEC, FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0,
 			    (long)&((DS *) 0)->attributes, 0, NULL}, {
 		EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS *) 0)->active_dest, 0, NULL}, {
-		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->ckpt_rep_create, 0, NULL}, {
+		EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((DS *) 0)->ckpt_rep_create, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->dest_cnt, 0, NULL}, {
 		EDU_EXEC, FUNC_NAME(CPSV_CPND_DEST_INFO), EDQ_VAR_LEN_DATA, ncs_edp_uns32, EDU_EXIT,
 			    (long)&((DS *) 0)->dest_list, (long)&((DS *) 0)->dest_cnt, NULL}, {

@@ -1755,7 +1755,7 @@ uint32_t cpnd_ckpt_hdr_update(CPND_CKPT_NODE *cp_node)
 	ckpt_hdr.n_secs = cp_node->replica_info.n_secs;
 	ckpt_hdr.mem_used = cp_node->replica_info.mem_used;
 	ckpt_hdr.cpnd_rep_create = cp_node->cpnd_rep_create;
-	ckpt_hdr.is_active_exist = cp_node->is_active_exist;
+	ckpt_hdr.is_active_exist = (bool)cp_node->is_active_exist;
 	ckpt_hdr.active_mds_dest = cp_node->active_mds_dest;
 	ckpt_hdr.cpnd_lcl_wr = cp_node->cur_state;
 	ckpt_hdr.cpnd_oth_state = cp_node->oth_state;

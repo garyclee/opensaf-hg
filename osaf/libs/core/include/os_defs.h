@@ -91,15 +91,11 @@ extern "C" {
 #define m_NCS_OS_DBG_PRINTF         ncs_dbg_logscreen
 #endif
 
-#ifndef m_NCS_OS_ATOMIC_INC
-	extern void ncs_os_atomic_inc(void *puns32);
+extern void ncs_os_atomic_inc(uint32_t *puns32);
 #define m_NCS_OS_ATOMIC_INC(p_uns32) ncs_os_atomic_inc(p_uns32);
-#endif
 
-#ifndef m_NCS_OS_ATOMIC_DEC
-	extern void ncs_os_atomic_dec(void *p_uns32);
+extern void ncs_os_atomic_dec(uint32_t *p_uns32);
 #define m_NCS_OS_ATOMIC_DEC(p_uns32) ncs_os_atomic_dec(p_uns32);
-#endif
 
 	extern void get_msec_time(uint32_t *seconds, uint32_t *millisec);
 

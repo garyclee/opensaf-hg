@@ -1044,7 +1044,7 @@ static uint32_t mqsv_edp_mqp_rsp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_OS_SVCS /* Svc-ID */ , NULL, EDU_EXIT, 0 /* Sub-ID */ , 0, NULL},
 
 		/* MQP_EVT_MQND_RESTART_RSP  */
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT,
+		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, EDU_EXIT,
 		 (long)&((MQP_RSP_MSG *)0)->info.restartRsp.restart_done, 0, NULL},
 
 		/* MQP_EVT_Q_RET_TIME_SET_RSP */
