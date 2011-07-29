@@ -44,7 +44,7 @@ static uint32_t eds_dec_initialize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	uint8_t local_data[20];
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 	/* releaseCode, majorVersion, minorVersion */
@@ -55,6 +55,7 @@ static uint32_t eds_dec_initialize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	ncs_dec_skip_space(uba, 3);
 	total_bytes += 3;
 
+	TRACE_LEAVE();
 	return total_bytes;
 }
 
@@ -78,7 +79,7 @@ static uint32_t eds_dec_finalize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	uint8_t local_data[20];
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 	/* reg_id */
@@ -110,7 +111,7 @@ static uint32_t eds_dec_chan_open_sync_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	uint8_t local_data[256];
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 
@@ -154,7 +155,7 @@ static uint32_t eds_dec_chan_open_async_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	uint8_t local_data[256];
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 
@@ -194,7 +195,7 @@ static uint32_t eds_dec_chan_close_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	uint8_t local_data[20];
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 
@@ -229,7 +230,7 @@ static uint32_t eds_dec_chan_unlink_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	uint8_t local_data[256];
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 
@@ -278,28 +279,28 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 	EDS_CKPT_DATA *ckpt_msg = NULL;
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 
 	if (ckpt_flag == true) {
 		ckpt_msg = (EDS_CKPT_DATA *)msg_hdl;
 		if (!ckpt_msg) {
-			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+			TRACE_4("checkpoint publish message is NULL");
 			return (0);
 		}
 		param = &ckpt_msg->ckpt_rec.retain_evt_rec.data;
 	} else {
 		msg = (EDSV_MSG *)msg_hdl;
 		if (!msg) {
-			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+			TRACE_4("publish message is NULL");
 			return (0);
 		}
 		param = &msg->info.api_info.param.publish;
 	}
 
 	if (!param) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return (0);
 	}
 	/* reg_id, chan_id, chan_open_id */
@@ -320,15 +321,14 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 
 	param->pattern_array = m_MMGR_ALLOC_EVENT_PATTERN_ARRAY;
 	if (!param->pattern_array) {
-		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_CR("malloc failed");
 		return (0);
 	}
 	param->pattern_array->patternsNumber = num_patterns;
 	if (num_patterns) {
 		param->pattern_array->patterns = m_MMGR_ALLOC_EVENT_PATTERNS((uint32_t)num_patterns);
 		if (!param->pattern_array->patterns) {
-			m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
-				     0);
+			LOG_CR("malloc failed");
 			return (0);
 		}
 	} else {
@@ -354,8 +354,7 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 			/* pattern */
 			pattern_ptr->pattern = m_MMGR_ALLOC_EDSV_EVENT_DATA((uint32_t)pattern_ptr->patternSize);
 			if (!pattern_ptr->pattern) {
-				m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__,
-					     __LINE__, 0);
+				LOG_CR("malloc failed");
 				return (0);
 			}
 			ncs_decode_n_octets_from_uba(uba, pattern_ptr->pattern, (uint32_t)pattern_ptr->patternSize);
@@ -397,8 +396,7 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 	if ((uint32_t)param->data_len) {
 		param->data = m_MMGR_ALLOC_EDSV_EVENT_DATA((uint32_t)param->data_len);
 		if (!param->data) {
-			m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
-				     0);
+			LOG_CR("malloc failed");
 			return (0);
 		}
 
@@ -445,27 +443,27 @@ uint32_t eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 	EDS_CKPT_DATA *ckpt_msg = NULL;
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 	if (ckpt_flag == true) {
 		ckpt_msg = (EDS_CKPT_DATA *)msg_hdl;
 		if (!ckpt_msg) {
-			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+			TRACE_4("checkpoint subscribe message is NULL");
 			return (0);
 		}
 		param = &ckpt_msg->ckpt_rec.subscribe_rec.data;
 	} else {
 		msg = (EDSV_MSG *)msg_hdl;
 		if (!msg) {
-			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+			TRACE_4("subscribe message is NULL");
 			return (0);
 		}
 		param = &msg->info.api_info.param.subscribe;
 	}
 
 	if (!param) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("param is NULL");
 		return (0);
 	}
 	/* reg_id, chan_id, chan_open_id, subscription_id */
@@ -484,7 +482,7 @@ uint32_t eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 	/* Allocate the filterArray structure */
 	param->filter_array = m_MMGR_ALLOC_FILTER_ARRAY;
 	if (!param->filter_array) {
-		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_CR("malloc failed");
 		return (0);
 	}
 
@@ -499,8 +497,7 @@ uint32_t eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 	if (num_filters) {
 		param->filter_array->filters = m_MMGR_ALLOC_EVENT_FILTERS((uint32_t)num_filters);
 		if (!param->filter_array->filters)
-			m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
-				     0);
+			LOG_CR("malloc failed");
 	} else {
 		param->filter_array->filters = 0;
 	}
@@ -532,8 +529,7 @@ uint32_t eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 			filter_ptr->filter.pattern =
 			    m_MMGR_ALLOC_EDSV_EVENT_DATA((uint32_t)filter_ptr->filter.patternSize);
 			if (NULL == filter_ptr->filter.pattern) {
-				m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__,
-					     __LINE__, 0);
+				LOG_CR("malloc failed");
 				return (0);
 			}
 			ncs_decode_n_octets_from_uba(uba, filter_ptr->filter.pattern,
@@ -567,7 +563,7 @@ static uint32_t eds_dec_unsubscribe_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	uint8_t local_data[24];
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 	/* reg_id, chan_id, chan_open_id, subscription_id */
@@ -602,7 +598,7 @@ static uint32_t eds_dec_retention_time_clr_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	uint8_t local_data[24];
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 
@@ -637,14 +633,14 @@ static uint32_t eds_enc_initialize_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	EDSV_EDA_INITIALIZE_RSP *param = &msg->info.api_resp_info.param.init_rsp;
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 
 	/* reg_id */
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_WA("encode reserve space failed");
 		return 0;
 	}
 
@@ -680,6 +676,7 @@ static uint32_t eds_enc_limit_get_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	/* Decode the limits */
 	p8 = ncs_enc_reserve_space(uba, 40);
 	if (!p8) {
+		LOG_WA("encode reserve space failed");
 		return 0;
 	}
 	ncs_encode_64bit(&p8, param->max_chan);
@@ -713,14 +710,14 @@ static uint32_t eds_enc_chan_open_sync_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	EDSV_EDA_CHAN_OPEN_SYNC_RSP *param = &msg->info.api_resp_info.param.chan_open_rsp;
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 
 	/* chan_id, chan_open_id */
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_WA("encode reserve space failed");
 	}
 	ncs_encode_32bit(&p8, param->chan_id);
 	ncs_encode_32bit(&p8, param->chan_open_id);
@@ -749,14 +746,14 @@ static uint32_t eds_enc_chan_open_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	EDSV_EDA_CHAN_OPEN_CBK_PARAM *param = &msg->info.cbk_info.param.chan_open_cbk;
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 
 	/* chan_name length */
 	p8 = ncs_enc_reserve_space(uba, 2);
 	if (!p8) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_WA("encode reserve space failed");
 	}
 	ncs_encode_16bit(&p8, param->chan_name.length);
 	ncs_enc_claim_space(uba, 2);
@@ -769,7 +766,7 @@ static uint32_t eds_enc_chan_open_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	/* chan_id, chan_open_id, chan_open_flags, eda_chan_hdl, error */
 	p8 = ncs_enc_reserve_space(uba, 17);
 	if (!p8) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_WA("encode reserve space failed");
 	}
 	ncs_encode_32bit(&p8, param->chan_id);
 	ncs_encode_32bit(&p8, param->chan_open_id);
@@ -803,14 +800,14 @@ static uint32_t eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	EDSV_EDA_EVT_DELIVER_CBK_PARAM *param = &msg->info.cbk_info.param.evt_deliver_cbk;
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 
 	/* type, reg_id, sub_id, chan_id, chan_open_id */
 	p8 = ncs_enc_reserve_space(uba, 12);
 	if (!p8) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_WA("encode reserve space failed");
 	}
 	ncs_encode_32bit(&p8, param->sub_id);
 	ncs_encode_32bit(&p8, param->chan_id);
@@ -823,7 +820,7 @@ static uint32_t eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	/* patternsNumber */
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_WA("encode reserve space failed");
 	}
 	ncs_encode_64bit(&p8, param->pattern_array->patternsNumber);
 	ncs_enc_claim_space(uba, 8);
@@ -835,7 +832,7 @@ static uint32_t eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 		/* Save room for the patternSize field (8 bytes) */
 		p8 = ncs_enc_reserve_space(uba, 8);
 		if (!p8) {
-			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+			LOG_WA("encode reserve space failed");
 		}
 		ncs_encode_64bit(&p8, pattern_ptr->patternSize);
 		ncs_enc_claim_space(uba, 8);
@@ -845,8 +842,7 @@ static uint32_t eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 		if (pattern_ptr->patternSize == 0) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8) {
-				m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__,
-					     __LINE__, 0);
+				LOG_WA("encode reserve space failed");
 			}
 			ncs_encode_32bit(&p8, 0);
 			ncs_enc_claim_space(uba, 4);
@@ -861,7 +857,7 @@ static uint32_t eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	/* priority */
 	p8 = ncs_enc_reserve_space(uba, 1);
 	if (!p8) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_WA("encode reserve space failed");
 	}
 	ncs_encode_8bit(&p8, param->priority);
 	ncs_enc_claim_space(uba, 1);
@@ -870,7 +866,7 @@ static uint32_t eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	/* publisher name length */
 	p8 = ncs_enc_reserve_space(uba, 2);
 	if (!p8) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_WA("encode reserve space failed");
 	}
 	ncs_encode_16bit(&p8, param->publisher_name.length);
 	ncs_enc_claim_space(uba, 2);
@@ -883,7 +879,7 @@ static uint32_t eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	/* publish_time,  eda_event_id */
 	p8 = ncs_enc_reserve_space(uba, 24);
 	if (!p8) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_WA("encode reserve space failed");
 	}
 	ncs_encode_64bit(&p8, param->publish_time);
 	ncs_encode_64bit(&p8, param->retention_time);
@@ -898,7 +894,7 @@ static uint32_t eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	/* data_len */
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_WA("encode reserve space failed");
 	}
 	ncs_encode_64bit(&p8, param->data_len);
 	ncs_enc_claim_space(uba, 8);
@@ -918,14 +914,14 @@ static uint32_t eds_enc_clm_status_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	EDSV_EDA_CLM_STATUS_CBK_PARAM *param = &msg->info.cbk_info.param.clm_status_cbk;
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return 0;
 	}
 
 	/* ClmNodeStatus */
 	p8 = ncs_enc_reserve_space(uba, 2);
 	if (!p8) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_WA("encode reserve space failed");
 	}
 	ncs_encode_16bit(&p8, param->node_status);
 	ncs_enc_claim_space(uba, 2);
@@ -976,8 +972,7 @@ static uint32_t eds_mds_enc(struct ncsmds_callback_info *info)
 						EDS_WRT_EDA_SUBPART_VER_AT_MIN_MSG_FMT,
 						EDS_WRT_EDA_SUBPART_VER_AT_MAX_MSG_FMT, EDS_WRT_EDA_MSG_FMT_ARRAY);
 	if (0 == msg_fmt_version) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
-			     0, __FILE__, __LINE__, info->info.enc.i_rem_svc_pvt_ver);
+		LOG_ER("mds encode failed: Invalid message format version: %hu", msg_fmt_version);
 		return NCSCC_RC_FAILURE;
 	}
 	info->info.enc.o_msg_fmt_ver = msg_fmt_version;
@@ -985,14 +980,14 @@ static uint32_t eds_mds_enc(struct ncsmds_callback_info *info)
 	uba = info->info.enc.io_uba;
 
 	if (uba == NULL) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("uba is NULL");
 		return NCSCC_RC_FAILURE;
 	}
 
    /** encode the type of message **/
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_WA("encode reserve space failed");
 	}
 	ncs_encode_32bit(&p8, msg->type);
 	ncs_enc_claim_space(uba, 4);
@@ -1002,7 +997,7 @@ static uint32_t eds_mds_enc(struct ncsmds_callback_info *info)
      /** encode the API RSP msg subtype **/
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
-			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+			LOG_WA("encode reserve space failed");
 		}
 		ncs_encode_32bit(&p8, msg->info.api_resp_info.type.raw);
 		ncs_enc_claim_space(uba, 4);
@@ -1011,11 +1006,13 @@ static uint32_t eds_mds_enc(struct ncsmds_callback_info *info)
 		/* rc */
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
-			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+			LOG_WA("encode reserve space failed");
 		}
 		ncs_encode_32bit(&p8, msg->info.api_resp_info.rc);
 		ncs_enc_claim_space(uba, 4);
 		total_bytes += 4;
+
+		TRACE("msg subtype: %u", msg->info.api_resp_info.type.api_rsp);
 
 		switch (msg->info.api_resp_info.type.api_rsp) {
 		case EDSV_EDA_INITIALIZE_RSP_MSG:
@@ -1032,21 +1029,22 @@ static uint32_t eds_mds_enc(struct ncsmds_callback_info *info)
 			total_bytes += eds_enc_limit_get_rsp_msg(uba, msg);
 			break;
 		default:
-			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
-				     msg->info.api_resp_info.type.raw);
+			LOG_WA("MDS encode: Invalid API message response: %u", msg->info.api_resp_info.type.api_rsp);
 			break;
 		}
 	} else if (EDSV_EDS_CBK_MSG == msg->type) {
      /** encode the API RSP msg subtype **/
 		p8 = ncs_enc_reserve_space(uba, 16);
 		if (!p8) {
-			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+			LOG_WA("encode reserve space failed");
 		}
 		ncs_encode_32bit(&p8, msg->info.cbk_info.type);
 		ncs_encode_32bit(&p8, msg->info.cbk_info.eds_reg_id);
 		ncs_encode_64bit(&p8, msg->info.cbk_info.inv);
 		ncs_enc_claim_space(uba, 16);
 		total_bytes += 16;
+
+		TRACE("msg subtype: %u", msg->info.api_resp_info.type.cbk);
 
 		switch (msg->info.api_resp_info.type.cbk) {
 		case EDSV_EDS_CHAN_OPEN:
@@ -1059,14 +1057,15 @@ static uint32_t eds_mds_enc(struct ncsmds_callback_info *info)
 			total_bytes += eds_enc_clm_status_cbk_msg(uba, msg);
 			break;
 		default:
-			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
-				     msg->info.api_resp_info.type.raw);
+			LOG_WA("MDS encode: Invalid callback message response type: %u", msg->info.api_resp_info.type.cbk);
 			break;
 		}
 	} else {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, msg->type);
+		LOG_ER("MDS encode: Invalid message type: %u", msg->type);
 		return NCSCC_RC_FAILURE;
 	}
+
+	TRACE("Total bytes encoded in message: %u", total_bytes);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1095,14 +1094,14 @@ static uint32_t eds_mds_dec(struct ncsmds_callback_info *info)
 	if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
 					   EDS_WRT_EDA_SUBPART_VER_AT_MIN_MSG_FMT,
 					   EDS_WRT_EDA_SUBPART_VER_AT_MAX_MSG_FMT, EDS_WRT_EDA_MSG_FMT_ARRAY)) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0,
-			     __FILE__, __LINE__, info->info.dec.i_msg_fmt_ver);
+		LOG_ER("mds encode failed: Invalid message format version: %hu",
+							info->info.dec.i_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
 
    /** allocate an EDSV_EDS_EVENT now **/
 	if (NULL == (evt = m_MMGR_ALLOC_EDSV_EDS_EVT)) {
-		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_CR("malloc failed for EDS global event");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1164,12 +1163,12 @@ static uint32_t eds_mds_dec(struct ncsmds_callback_info *info)
 			/* Nothing to be decoded here */
 			break;
 		default:
-			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
-				     evt->info.msg.info.api_info.type);
+			LOG_ER("MDS Decode: Invalid API message type: %u", evt->info.msg.info.api_info.type);
 			break;
 		}
 	}
 
+	TRACE("Total bytes decoded from message: %u, msgtype: %u", total_bytes, evt->info.msg.info.api_info.type);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1196,7 +1195,7 @@ static uint32_t eds_mds_enc_flat(struct ncsmds_callback_info *info)
 	/* Invoke the regular mds_enc routine */
 	rc = eds_mds_enc(info);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		TRACE_4("MDS flat encode failed");
 
 	return rc;
 }
@@ -1224,7 +1223,8 @@ static uint32_t eds_mds_dec_flat(struct ncsmds_callback_info *info)
 	/* Invoke the regular mds_dec routine */
 	rc = eds_mds_dec(info);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		TRACE_4("MDS flat decode failed");
+
 	return rc;
 }
 
@@ -1248,7 +1248,7 @@ static uint32_t eds_mds_rcv(struct ncsmds_callback_info *mds_info)
 
 	/* retrieve EDS CB */
 	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, (uint32_t)mds_info->i_yr_svc_hdl))) {
-		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_ER("Take handle failed in mds receive");
 		eds_evt_destroy(edsv_evt);
 		rc = NCSCC_RC_FAILURE;
 		return rc;
@@ -1267,8 +1267,8 @@ static uint32_t eds_mds_rcv(struct ncsmds_callback_info *mds_info)
 
 	/* Push the event and we are done */
 	if (NCSCC_RC_FAILURE == (rc = m_NCS_IPC_SEND(&eds_cb->mbx, edsv_evt, mds_info->info.receive.i_priority))) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, edsv_evt->evt_type, __FILE__,
-			     __LINE__, mds_info->info.receive.i_node_id);
+		LOG_WA("Mailbox IPC send failed for event type: %u, from node_id: %u", edsv_evt->evt_type,
+								 mds_info->info.receive.i_node_id);
 		eds_evt_destroy(edsv_evt);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1302,14 +1302,13 @@ static uint32_t eds_mds_svc_event(struct ncsmds_callback_info *info)
 
 	/* Take the hdl */
 	if ((eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, eds_cb_hdl)) == NULL) {
-		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_ER("EDS global handle take failed");
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* First make sure that this event is indeed for us */
 	if (info->info.svc_evt.i_your_id != NCSMDS_SVC_ID_EDS) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, info->info.svc_evt.i_your_id,
-			     __FILE__, __LINE__, 0);
+		LOG_CR("The event does not belong to EDS. Invalid service_id: %u", info->info.svc_evt.i_your_id);
 		rc = NCSCC_RC_FAILURE;
 		goto give_hdl;
 	}
@@ -1320,8 +1319,7 @@ static uint32_t eds_mds_svc_event(struct ncsmds_callback_info *info)
 			/* As of now we are only interested in EDA events */
 			if (NULL == (evt = m_MMGR_ALLOC_EDSV_EDS_EVT)) {
 				rc = NCSCC_RC_FAILURE;
-				m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-					     __LINE__, 0);
+				LOG_CR("malloc failed for EDS event");
 				goto give_hdl;
 			}
 
@@ -1339,8 +1337,8 @@ static uint32_t eds_mds_svc_event(struct ncsmds_callback_info *info)
 
 			/* Push the event and we are done */
 			if (m_NCS_IPC_SEND(&eds_cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL) == NCSCC_RC_FAILURE) {
-				m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
-					     info->info.receive.i_node_id, __FILE__, __LINE__, evt->evt_type);
+				LOG_WA("Mailbox IPC send failed for eda_down event, from node_id: %u",
+								 	evt->info.mds_info.node_id);
 				eds_evt_destroy(evt);
 				rc = NCSCC_RC_FAILURE;
 				goto give_hdl;
@@ -1398,14 +1396,14 @@ static uint32_t eds_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 
    	/** allocate an EDSV_EDS_EVENT now **/
 	if (NULL == (edsv_evt = m_MMGR_ALLOC_EDSV_EDS_EVT)) {
-		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_CR("malloc failed for EDS event");
 		return NCSCC_RC_FAILURE;
 	}
 	memset(edsv_evt, '\0', sizeof(EDSV_EDS_EVT));
 
 	/* retrieve EDS CB */
 	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, (uint32_t)mds_info->i_yr_svc_hdl))) {
-		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_ER("EDS global handle take failed");
 		rc = NCSCC_RC_FAILURE;
 		eds_evt_destroy(edsv_evt);
 		return rc;
@@ -1421,8 +1419,8 @@ static uint32_t eds_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 
 		/* Push the event and we are done */
 		if (NCSCC_RC_FAILURE == m_NCS_IPC_SEND(&eds_cb->mbx, edsv_evt, NCS_IPC_PRIORITY_NORMAL)) {
-			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, edsv_evt->evt_type, __FILE__,
-				     __LINE__, 0);
+			LOG_WA("Mailbox IPC send failed for event type: %u, from node_id: %u", edsv_evt->evt_type,
+								 mds_info->info.receive.i_node_id);
 			ncshm_give_hdl((uint32_t)mds_info->i_yr_svc_hdl);
 			eds_evt_destroy(edsv_evt);
 			return NCSCC_RC_FAILURE;
@@ -1430,8 +1428,6 @@ static uint32_t eds_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 
 		/* return EDA CB */
 		ncshm_give_hdl((uint32_t)mds_info->i_yr_svc_hdl);
-		m_LOG_EDSV_S(EDS_MDS_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, edsv_evt->evt_type, __FILE__,
-			     __LINE__, 0);
 	} else {
 		ncshm_give_hdl((uint32_t)mds_info->i_yr_svc_hdl);
 		eds_evt_destroy(edsv_evt);
@@ -1471,7 +1467,6 @@ static uint32_t eds_mds_callback(struct ncsmds_callback_info *info)
 		rc = (*cb_set[info->i_op]) (info);
 		return rc;
 	} else {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, info->i_op);
 		return NCSCC_RC_SUCCESS;
 	}
 }
@@ -1510,11 +1505,9 @@ uint32_t eds_mds_vdest_create(EDS_CB *eds_cb)
 #endif
 	/* Create the VDEST address */
 	if (NCSCC_RC_SUCCESS != (rc = ncsvda_api(&vda_info))) {
-		m_LOG_EDSV_S(EDS_MDS_VDEST_CREATE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     0);
+		LOG_ER("mds vdest create failed");	
 		return rc;
 	}
-	m_LOG_EDSV_S(EDS_MDS_VDEST_CREATE_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0);
 
 	/* Store the info returned by MDS */
 	eds_cb->mds_hdl = vda_info.info.vdest_create.o_mds_pwe1_hdl;
@@ -1543,7 +1536,7 @@ uint32_t eds_mds_init(EDS_CB *cb)
 
 	/* Create the VDEST for EDS */
 	if (NCSCC_RC_SUCCESS != (rc = eds_mds_vdest_create(cb))) {
-		LOG_ER(" eds_mds_init: named vdest create FAILED");
+		TRACE_4("vdest create failed");
 		return rc;
 	}
 
@@ -1554,12 +1547,9 @@ uint32_t eds_mds_init(EDS_CB *cb)
 		cb->mds_role = V_DEST_RL_STANDBY;
 
 	if (NCSCC_RC_SUCCESS != (rc = eds_mds_change_role(cb))) {
-		m_LOG_EDSV_S(EDS_MDS_INIT_ROLE_CHANGE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__, 0);
-		LOG_ER(" eds_mds_init: MDS role change to %d FAILED\n", cb->mds_role);
+		TRACE_4("MDS role change %u failed", cb->mds_role);
 		return rc;
 	}
-	m_LOG_EDSV_S(EDS_MDS_INIT_ROLE_CHANGE_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0);
 
 	/* Install your service into MDS */
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
@@ -1575,11 +1565,9 @@ uint32_t eds_mds_init(EDS_CB *cb)
 	mds_info.info.svc_install.i_mds_svc_pvt_ver = EDS_SVC_PVT_SUBPART_VERSION;
 
 	if (NCSCC_RC_SUCCESS != (rc = ncsmds_api(&mds_info))) {
-		LOG_ER(" eds_mds_init: MDS Install FAILED\n");
-		m_LOG_EDSV_S(EDS_MDS_INSTALL_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0);
+		LOG_ER("MDS Install failed");
 		return rc;
 	}
-	m_LOG_EDSV_S(EDS_MDS_INSTALL_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0);
 
 	/* Now subscribe for EDS events in MDS */
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
@@ -1594,11 +1582,9 @@ uint32_t eds_mds_init(EDS_CB *cb)
 
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER(" eds_mds_init: MDS subscribe FAILED\n");
-		m_LOG_EDSV_S(EDS_MDS_SUBSCRIBE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		LOG_ER("MDS subscribe failed");
 		return rc;
 	}
-	m_LOG_EDSV_S(EDS_MDS_SUBSCRIBE_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0);
 	return rc;
 }
 
@@ -1624,6 +1610,7 @@ uint32_t eds_mds_change_role(EDS_CB *cb)
 	arg.info.vdest_chg_role.i_new_role = cb->mds_role;
 
 	if (ncsvda_api(&arg) != NCSCC_RC_SUCCESS) {
+		LOG_ER("MDS role change %u failed\n", cb->mds_role);
 		return NCSCC_RC_FAILURE;
 	}
 	return NCSCC_RC_SUCCESS;
@@ -1651,8 +1638,7 @@ uint32_t eds_mds_vdest_destroy(EDS_CB *eds_cb)
 	vda_info.info.vdest_destroy.i_vdest = eds_cb->vaddr;
 
 	if (NCSCC_RC_SUCCESS != (rc = ncsvda_api(&vda_info))) {
-		m_LOG_EDSV_S(EDS_MDS_VDEST_DESTROY_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     0);
+		LOG_WA("MDS vdest destroy failed");
 		return rc;
 	}
 
@@ -1685,7 +1671,7 @@ uint32_t eds_mds_finalize(EDS_CB *cb)
 	rc = ncsmds_api(&mds_info);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_EDSV_S(EDS_MDS_UNINSTALL_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		LOG_WA("MDS uninstall failed");
 		return rc;
 	}
 
@@ -1747,8 +1733,7 @@ uint32_t eds_mds_msg_send(EDS_CB *cb,
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     m_NCS_NODE_ID_FROM_MDS_DEST(*dest));
+		LOG_ER("MDS send failed. Dest vdest: %" PRIx64 ", node_id: %u", *dest, m_NCS_NODE_ID_FROM_MDS_DEST(*dest));
 	return rc;
 }
 
@@ -1791,8 +1776,7 @@ uint32_t eds_mds_ack_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST dest, uint32_t tim
 
 	/* send the message */
 	if (NCSCC_RC_SUCCESS != (rc = ncsmds_api(&mds_info))) {
-		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, msg->type, __FILE__, __LINE__,
-			     m_NCS_NODE_ID_FROM_MDS_DEST(dest));
+		LOG_ER("MDS send failed. Dest vdest: %" PRIx64 ", node_id: %u", dest, m_NCS_NODE_ID_FROM_MDS_DEST(dest));
 	}
 
 	return rc;

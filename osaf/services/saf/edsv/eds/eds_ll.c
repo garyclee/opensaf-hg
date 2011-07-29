@@ -130,6 +130,7 @@ static SaAisErrorT create_runtime_object(char *cname, SaTimeT create_time, SaImm
 	char *rdnstr;
 	SaNameT parentName;
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("channel Name: %s", cname);
 
 	memset(&parentName, 0, sizeof(parentName));
 	if (parent_name != NULL) {
@@ -162,9 +163,10 @@ static SaAisErrorT create_runtime_object(char *cname, SaTimeT create_time, SaImm
 	};
 
 	if ((rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaEvtChannel", &parentName, attrValues)) != SA_AIS_OK)
-		LOG_ER("saImmOiRtObjectCreate failed with rc = %d",rc);
+		LOG_ER("saImmOiRtObjectCreate_2 failed. channel: %s. rc = %d", cname, rc);
 	free(dndup);
 
+	TRACE_LEAVE2("retval: %d", rc);
 	return rc;
 
 }	/* End create_runtime_object() */
@@ -178,14 +180,16 @@ static SaAisErrorT create_runtime_object(char *cname, SaTimeT create_time, SaImm
  ***************************************************************************/
 static uint32_t eds_add_subrec_entry(CHAN_OPEN_REC *copen_rec, SUBSC_REC *subrec)
 {
+	TRACE_ENTER2("Adding subscription record");
 
 	/* Sanity check */
 	if ((copen_rec == NULL) || (subrec == NULL)
 	    ) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_BAD_ATTR, __FILE__,
-			     __LINE__, 0);
+		TRACE_LEAVE2("Input is NULL");
 		return (NCSCC_RC_BAD_ATTR);
 	}
+	TRACE("reg_id: %u, chan_id: %u, chan_open_id: %u, subscription id: %u", copen_rec->reg_id, copen_rec->chan_id,
+								 copen_rec->chan_open_id, subrec->subscript_id);
 	if (copen_rec->subsc_rec_head == NULL)
 		copen_rec->subsc_rec_head = subrec;	/*If this is the first record */
 	else {
@@ -195,6 +199,7 @@ static uint32_t eds_add_subrec_entry(CHAN_OPEN_REC *copen_rec, SUBSC_REC *subrec
 
 	copen_rec->subsc_rec_tail = subrec;
 
+	TRACE_LEAVE();
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -208,15 +213,18 @@ static uint32_t eds_add_subrec_entry(CHAN_OPEN_REC *copen_rec, SUBSC_REC *subrec
 static void eds_remove_subrec_entry(EDS_CB *cb, SUBSC_REC **subrec)
 {
 	SUBSC_REC *p;
+	TRACE_ENTER2("Removing subscription entry");
 
 	/* Sanity check */
 	if (subrec == NULL) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_BAD_ATTR, __FILE__,
-			     __LINE__, 0);
+		TRACE_LEAVE2("Subscription record is NULL");
 		return;
 	}
 
 	p = (SUBSC_REC *)*subrec;
+
+	TRACE("chan_id: %u, chan_open_id: %u, subscription id: %u", p->chan_id,
+								 p->chan_open_id, p->subscript_id);
 
 	if (p->prev == NULL) {	/* Top entry */
 		if (p->next != NULL) {	/* It's not the only element */
@@ -249,6 +257,8 @@ static void eds_remove_subrec_entry(EDS_CB *cb, SUBSC_REC **subrec)
 		m_MMGR_FREE_EDS_SUBREC(*subrec);	/* free this element */
 		*subrec = NULL;
 	}
+
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -267,6 +277,7 @@ static uint32_t eds_add_subscription_to_worklist(EDS_CB *cb, SUBSC_REC *subrec)
 	uint32_t copen_id_Net;
 	CHAN_OPEN_REC *co;
 	EDS_WORKLIST *wp;
+	TRACE_ENTER();
 
 	/* Point to root of worklist */
 	wp = cb->eds_work_list;
@@ -281,15 +292,13 @@ static uint32_t eds_add_subscription_to_worklist(EDS_CB *cb, SUBSC_REC *subrec)
 			copen_id_Net = m_NCS_OS_HTONL(subrec->chan_open_id);
 			if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec,
 										 (uint8_t *)&copen_id_Net))) {
-				m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-					     NCSCC_RC_FAILURE, __FILE__, __LINE__, subrec->chan_open_id);
+				TRACE_LEAVE2("channel open record not found: %u", subrec->chan_open_id);
 				return NCSCC_RC_FAILURE;
 			}
 
 			/* Make sure this is the correct reg_id */
 			if (co->reg_id != subrec->reg_list->reg_id) {
-				m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, co->reg_id,
-					     __FILE__, __LINE__, subrec->reg_list->reg_id);
+				TRACE_LEAVE2("reg id not found: %u", subrec->reg_list->reg_id);
 				return (NCSCC_RC_BAD_ATTR);
 			}
 			/* Set parent chan_open_rec pointer so we can remove root entry later */
@@ -297,13 +306,14 @@ static uint32_t eds_add_subscription_to_worklist(EDS_CB *cb, SUBSC_REC *subrec)
 
 			/* Add it! */
 			rs = eds_add_subrec_entry(co, subrec);
+			TRACE_LEAVE();
 			return (rs);
 		}
 		wp = wp->next;
 	}
-	m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_NO_OBJECT, __FILE__,
-		     __LINE__, 0);
 
+	LOG_IN("channel id: %u not found in channel worklist", subrec->chan_id);
+	TRACE_LEAVE();	
 	return (NCSCC_RC_NO_OBJECT);	/* Went through the entire list. Channel not found. */
 }
 
@@ -319,18 +329,17 @@ static uint32_t eds_add_subscription_to_reglist(EDS_CB *cb, uint32_t reg_id, SUB
 	EDA_REG_REC *reglist = NULL;
 	SUBSC_LIST *sublist = NULL;
 	CHAN_OPEN_LIST *cl;
+	TRACE_ENTER2("reg_id: %u, chan_id:%u, chan_open_id:%u", reg_id, subrec->chan_id, subrec->chan_open_id);
 
 	reglist = eds_get_reglist_entry(cb, reg_id);
 	if (reglist == NULL) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_NO_OBJECT,
-			     __FILE__, __LINE__, reg_id);
+		TRACE_LEAVE2("regid not found in the reglist");
 		return (NCSCC_RC_NO_OBJECT);
 	}
 	/* Get pointer to start of channelOpen list */
 	cl = reglist->chan_open_list;
 	if (cl == NULL) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_BAD_ATTR, __FILE__,
-			     __LINE__, 0);
+		TRACE_LEAVE2("channel open list is empty");
 		return (NCSCC_RC_BAD_ATTR);
 	}
 
@@ -338,11 +347,11 @@ static uint32_t eds_add_subscription_to_reglist(EDS_CB *cb, uint32_t reg_id, SUB
 	while (cl) {
 		if (cl->chan_id == subrec->chan_id)
 			if (cl->chan_open_id == subrec->chan_open_id) {
-
+				TRACE("chan open record found");
 				sublist = m_MMGR_ALLOC_EDS_SUBLIST(sizeof(SUBSC_LIST));
 				if (!sublist) {
-					m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-						     NCSCC_RC_OUT_OF_MEM, __FILE__, __LINE__, 0);
+					LOG_CR("malloc failed for subscription list");
+					TRACE_LEAVE();
 					return (NCSCC_RC_OUT_OF_MEM);
 				}
 				memset(sublist, 0, sizeof(SUBSC_LIST));
@@ -361,6 +370,7 @@ static uint32_t eds_add_subscription_to_reglist(EDS_CB *cb, uint32_t reg_id, SUB
 		cl = cl->next;
 	}
 
+	TRACE_LEAVE();
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -376,6 +386,7 @@ static uint32_t eds_remove_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp)
 	uint32_t rc;
 	EDS_CNAME_REC *rec_to_del;
 	SaNameT chan_name_del;
+	TRACE_ENTER2("chan_name: %s", wp->cname);
 
 	memset(&chan_name_del, 0, sizeof(SaNameT));
 	chan_name_del.length = m_NCS_OS_HTONS(wp->cname_len);
@@ -383,22 +394,20 @@ static uint32_t eds_remove_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp)
 
 	/* Get the record pointer from the patricia tree */
 	if (NULL == (rec_to_del = (EDS_CNAME_REC *)ncs_patricia_tree_get(&cb->eds_cname_list, (uint8_t *)&chan_name_del))) {
-		/* Log It */
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__, 0);
+		TRACE_LEAVE2("Pat node get failed");
 		return (NCSCC_RC_FAILURE);
 	}
 
 	/* Delete this record from the tree */
 	if (NCSCC_RC_SUCCESS != (rc = ncs_patricia_tree_del(&cb->eds_cname_list, &rec_to_del->pat_node))) {
-		/* Log it */
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		TRACE_LEAVE2("Pat node delete failed");
 		return (NCSCC_RC_FAILURE);
 	}
 
 	/* Free allocated memory and decrement the use counter */
 	m_MMGR_FREE_EDS_CNAME_REC(rec_to_del);
 
+	TRACE_LEAVE();
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -411,11 +420,13 @@ uint32_t eds_remove_worklist_entry(EDS_CB *cb, uint32_t chan_id)
 {
 	EDS_WORKLIST *wp = NULL;
 	EDS_WORKLIST *save_next;
+	TRACE_ENTER2("chan_id: %u", chan_id);
 
 	wp = cb->eds_work_list;
 
 	while (wp) {
 		if (wp->chan_id == chan_id) {	/* Found the one we want? */
+			TRACE("chan record for :%s, found in worklist", wp->cname);
 			/*This functionality is there here before the Bugfix:61494 - 
 			   Now unlinked channels will be deleted from the database */
 			/*  eds_remove_cname_rec(cb,wp); */	/* remove the entry from the channel name database */
@@ -438,6 +449,7 @@ uint32_t eds_remove_worklist_entry(EDS_CB *cb, uint32_t chan_id)
 				m_MMGR_FREE_EDS_CHAN_NAME(wp->cname);	/* free channelName */
 				m_MMGR_FREE_EDS_WORKLIST(cb->eds_work_list);	/* free 1st cell */
 				cb->eds_work_list = save_next;	/* Set new 1st element address */
+				TRACE_LEAVE();
 				return (NCSCC_RC_SUCCESS);
 			} else if (wp->next == NULL) {	/* Removing last element */
 				wp->prev->next = NULL;	/* Clear next ptr for new last element */
@@ -449,6 +461,7 @@ uint32_t eds_remove_worklist_entry(EDS_CB *cb, uint32_t chan_id)
 				m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				m_MMGR_FREE_EDS_CHAN_NAME(wp->cname);
 				m_MMGR_FREE_EDS_WORKLIST(wp);	/* free Last cell */
+				TRACE_LEAVE();
 				return (NCSCC_RC_SUCCESS);
 			} else {	/* All other cases */
 
@@ -462,6 +475,7 @@ uint32_t eds_remove_worklist_entry(EDS_CB *cb, uint32_t chan_id)
 				m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				m_MMGR_FREE_EDS_CHAN_NAME(wp->cname);
 				m_MMGR_FREE_EDS_WORKLIST(wp);	/* free the cell */
+				TRACE_LEAVE();
 				return (NCSCC_RC_SUCCESS);
 			}
 		} else {
@@ -469,16 +483,14 @@ uint32_t eds_remove_worklist_entry(EDS_CB *cb, uint32_t chan_id)
 			 * what we're looking for, it's not there.
 			 */
 			if (wp->chan_id > chan_id) {
-				m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-					     NCSCC_RC_NO_OBJECT, __FILE__, __LINE__, 0);
+				TRACE_LEAVE2("chan record not in worklist");
 				return (NCSCC_RC_NO_OBJECT);
 			}
 		}
 		wp = wp->next;	/* Increment to next entry */
 	}
-	m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_NO_OBJECT, __FILE__,
-		     __LINE__, 0);
 
+	TRACE_LEAVE();
 	return (NCSCC_RC_NO_OBJECT);	/* Went through the entire list. Not found. */
 
 }
@@ -490,15 +502,20 @@ uint32_t eds_remove_worklist_entry(EDS_CB *cb, uint32_t chan_id)
  ***************************************************************************/
 static bool is_active_channel(EDS_WORKLIST *wp, uint32_t chan_name_len, uint8_t *chan_name)
 {
+	TRACE_ENTER2("chan_name: %s", chan_name);
+
 	/* Do the name lengths match? */
 	if (wp->cname_len == chan_name_len) {
 		/* Do the strings match? */
 		if (memcmp(wp->cname, chan_name, chan_name_len) == 0) {
 			/* Strings match, now make sure it isn't "unlinked" */
-			if (!(wp->chan_attrib & CHANNEL_UNLINKED))
+			if (!(wp->chan_attrib & CHANNEL_UNLINKED)) {
+				TRACE_LEAVE2("true: channel is not marked as unlinked");
 				return (true);
+			}
 		}
 	}
+	TRACE_LEAVE2("false: channel is not active");
 	return (false);
 }
 
@@ -512,11 +529,12 @@ static bool is_active_channel(EDS_WORKLIST *wp, uint32_t chan_name_len, uint8_t 
 static uint32_t eds_add_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp, uint8_t *chan_name, uint16_t chan_name_len)
 {
 	EDS_CNAME_REC *cn;
+	TRACE_ENTER2("Adding to channel names list. chan_name:%s", chan_name);
 
 	cn = m_MMGR_ALLOC_EDS_CNAME_REC(sizeof(EDS_CNAME_REC));
 	if (cn == NULL) {
-		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_OUT_OF_MEM, __FILE__,
-			     __LINE__, 0);
+		LOG_CR("malloc failed for cname rec");
+		TRACE_LEAVE();
 		return (NCSCC_RC_OUT_OF_MEM);
 	}
 	memset(cn, 0, sizeof(EDS_CNAME_REC));
@@ -530,11 +548,11 @@ static uint32_t eds_add_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp, uint8_t *chan_na
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&cb->eds_cname_list, &cn->pat_node)) {
 		/* Log it */
 		m_MMGR_FREE_EDS_CNAME_REC(cn);
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__, 0);
+		TRACE_LEAVE2("pat node add failure");
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -552,11 +570,12 @@ eds_add_chan_open_rec(EDS_WORKLIST *wp, uint32_t reg_id, uint32_t chan_id, MDS_D
 		      uint32_t *chan_open_id, SaAmfHAStateT ha_state, uint32_t open_flags)
 {
 	CHAN_OPEN_REC *co;
+	TRACE_ENTER2("Add a new channel open record. chan name: %s", wp->cname);
 
 	co = m_MMGR_ALLOC_EDS_COPEN_REC(sizeof(CHAN_OPEN_REC));
 	if (co == NULL) {
-		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_OUT_OF_MEM, __FILE__,
-			     __LINE__, 0);
+		LOG_CR("malloc failed");
+		TRACE_LEAVE();
 		return (NCSCC_RC_OUT_OF_MEM);
 	}
 	memset(co, 0, sizeof(CHAN_OPEN_REC));
@@ -567,18 +586,21 @@ eds_add_chan_open_rec(EDS_WORKLIST *wp, uint32_t reg_id, uint32_t chan_id, MDS_D
 	co->chan_open_flags = open_flags;
 
 	if (ha_state == SA_AMF_HA_STANDBY) {
+		TRACE("Called at STANDBY, simply storing the value received from active");
 		co->chan_open_id = *chan_open_id;
 		wp->last_copen_id = co->chan_open_id;
-	} else
+		TRACE("chan open id :%u", co->chan_open_id);
+	} else {
 		co->chan_open_id = ++wp->last_copen_id;
+		TRACE("chan_open_id: %u", co->chan_open_id);
+	}
 
 	co->copen_id_Net = m_NCS_OS_HTONL(co->chan_open_id);
 	co->pat_node.key_info = (uint8_t *)&co->copen_id_Net;
 
 	/* Insert the record into the patricia tree */
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&wp->chan_open_rec, &co->pat_node)) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__, 0);
+		TRACE("pat node add failed");
 		m_MMGR_FREE_EDS_COPEN_REC(co);
 		return NCSCC_RC_FAILURE;
 	}
@@ -596,6 +618,8 @@ eds_add_chan_open_rec(EDS_WORKLIST *wp, uint32_t reg_id, uint32_t chan_id, MDS_D
 	/* Return to caller what the channel open id has been set to */
 	*chan_open_id = co->chan_open_id;
 
+	TRACE_LEAVE2("num users: %u, num publishers:%u, num subscribers:%u",  wp->chan_row.num_users, \
+						wp->chan_row.num_publishers,  wp->chan_row.num_subscribers);
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -611,12 +635,13 @@ static uint32_t eds_add_chan_open_list(EDS_CB *cb, uint32_t reg_id, uint32_t cha
 {
 	EDA_REG_REC *rp;
 	CHAN_OPEN_LIST *saved_ptr;;
+	TRACE_ENTER2("Associate this chan open with reglist: reg_id:%u, chan_id:%u, chan_open_id:%u", reg_id, \
+											chan_id, chan_open_id);
 
 	/* Get the registration list for this reg_id */
 	rp = eds_get_reglist_entry(cb, reg_id);
 	if (rp == NULL) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__, 0);
+		TRACE_LEAVE2("reg record not found");
 		return (NCSCC_RC_FAILURE);
 	}
 
@@ -625,9 +650,9 @@ static uint32_t eds_add_chan_open_list(EDS_CB *cb, uint32_t reg_id, uint32_t cha
 
 	rp->chan_open_list = m_MMGR_ALLOC_EDS_COPEN_LIST(sizeof(CHAN_OPEN_LIST));
 	if (rp->chan_open_list == NULL) {
-		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_OUT_OF_MEM, __FILE__,
-			     __LINE__, 0);
+		LOG_CR("malloc failed for chan_open record");
 		rp->chan_open_list = saved_ptr;	/* Put original pointer back */
+		TRACE_LEAVE();
 		return (NCSCC_RC_OUT_OF_MEM);
 	}
 	memset(rp->chan_open_list, 0, sizeof(CHAN_OPEN_LIST));
@@ -637,6 +662,7 @@ static uint32_t eds_add_chan_open_list(EDS_CB *cb, uint32_t reg_id, uint32_t cha
 	rp->chan_open_list->chan_open_id = chan_open_id;
 	rp->chan_open_list->next = saved_ptr;	/* Attach saved_ptr to this */
 
+	TRACE_LEAVE();
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -655,11 +681,14 @@ static void eds_channel_close_by_regid(EDS_CB *cb, uint32_t reg_id, bool forced)
 	EDA_REG_REC *reglist;
 	CHAN_OPEN_LIST *cl;
 	CHAN_OPEN_LIST *next;
+	TRACE_ENTER2("reg_id: %u", reg_id);
 
 	/* Get the registration list for this reg_id */
 	reglist = eds_get_reglist_entry(cb, reg_id);
-	if (reglist == NULL)
+	if (reglist == NULL) {
+		TRACE_LEAVE2("reg record not found");
 		return;
+	}
 
 	/* Close all channels */
 	cl = reglist->chan_open_list;
@@ -668,6 +697,7 @@ static void eds_channel_close_by_regid(EDS_CB *cb, uint32_t reg_id, bool forced)
 		rs = eds_channel_close(cb, cl->reg_id, cl->chan_id, cl->chan_open_id, forced);
 		cl = next;
 	}
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -681,12 +711,12 @@ static uint32_t eds_remove_chan_open_rec(EDS_WORKLIST *wp, CHAN_OPEN_REC *co)
 {
 	uint32_t rc;
 	CHAN_OPEN_REC *rec_to_del;
+	TRACE_ENTER2("chan_name:%s, chan_id:%u", wp->cname, co->chan_open_id);
 
 	/* Get the record pointer from the patricia tree */
 	if (NULL == (rec_to_del =
 		     (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec, (uint8_t *)&co->copen_id_Net))) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__, 0);
+		TRACE_LEAVE2("channel open record not found");
 		return (NCSCC_RC_FAILURE);
 	}
 
@@ -697,7 +727,7 @@ static uint32_t eds_remove_chan_open_rec(EDS_WORKLIST *wp, CHAN_OPEN_REC *co)
 
 	/* Delete this record from the tree */
 	if (NCSCC_RC_SUCCESS != (rc = ncs_patricia_tree_del(&wp->chan_open_rec, &rec_to_del->pat_node))) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		TRACE_LEAVE2("channel open record delete failed");
 		return (NCSCC_RC_FAILURE);
 	}
 
@@ -705,6 +735,8 @@ static uint32_t eds_remove_chan_open_rec(EDS_WORKLIST *wp, CHAN_OPEN_REC *co)
 	m_MMGR_FREE_EDS_COPEN_REC(rec_to_del);
 	wp->use_cnt--;
 
+	TRACE_LEAVE2("use count: %u, num_publishers:%u, num_subscribers:%u", wp->use_cnt, wp->chan_row.num_publishers,\
+											  wp->chan_row.num_subscribers);
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -720,16 +752,21 @@ static void eds_remove_chan_open_list(EDS_CB *cb, uint32_t reg_id, uint32_t chan
 	EDA_REG_REC *reglist;
 	CHAN_OPEN_LIST *cl;
 	CHAN_OPEN_LIST *prev;
+	TRACE_ENTER2("reg_id: %u chan_id:%u, chan_open_id:%u", reg_id, chan_id, chan_open_id);
 
 	/* Get the specified registration entry out of the regList */
 	reglist = eds_get_reglist_entry(cb, reg_id);
-	if (reglist == NULL)
+	if (reglist == NULL) {
+		TRACE_LEAVE2("reg record not found");
 		return;		/* No such registration */
+	}
 
 	/* Point to root of chan_open_list */
 	cl = reglist->chan_open_list;
-	if (cl == NULL)
+	if (cl == NULL) {
+		TRACE_LEAVE2("chan open list is empty, no channels!!");
 		return;		/* No channels */
+	}	
 
 	/* Find the right channel open list */
 	prev = cl;
@@ -740,8 +777,10 @@ static void eds_remove_chan_open_list(EDS_CB *cb, uint32_t reg_id, uint32_t chan
 		cl = cl->next;
 	}
 
-	if (!cl)
+	if (!cl) {
+		TRACE_LEAVE2("channel open record not found");
 		return;
+	}
 
 	/* Reset pointers */
 	if (cl == reglist->chan_open_list) {	/* 1st in the list? */
@@ -760,6 +799,8 @@ static void eds_remove_chan_open_list(EDS_CB *cb, uint32_t reg_id, uint32_t chan
 	/* Free the chan_open_list */
 	m_MMGR_FREE_EDS_COPEN_LIST(cl);
 	cl = NULL;
+
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -771,10 +812,11 @@ uint32_t eds_add_reglist_entry(EDS_CB *cb, MDS_DEST dest, uint32_t reg_id)
 {
 	uint32_t rs = NCSCC_RC_SUCCESS;
 	EDA_REG_REC *rec;
+	TRACE_ENTER2("reg_id: %u, agent dest:%" PRIx64, reg_id, dest);
 
 	if (NULL == (rec = m_MMGR_ALLOC_EDS_REC(sizeof(EDA_REG_REC)))) {
-		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_OUT_OF_MEM, __FILE__,
-			     __LINE__, 0);
+		LOG_CR("malloc failed");
+		TRACE_LEAVE();
 		return (NCSCC_RC_OUT_OF_MEM);
 	}
 
@@ -789,12 +831,13 @@ uint32_t eds_add_reglist_entry(EDS_CB *cb, MDS_DEST dest, uint32_t reg_id)
 
    /** Insert the record into the patricia tree **/
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&cb->eda_reg_list, &rec->pat_node)) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__, 0);
+		LOG_WA("patricia tree add failed for reg_id: %u, agent dest: %" PRIx64, rec->reg_id, rec->eda_client_dest);
 		m_MMGR_FREE_EDS_REC(rec);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return rs;
 
 }
@@ -807,6 +850,7 @@ uint32_t eds_add_reglist_entry(EDS_CB *cb, MDS_DEST dest, uint32_t reg_id)
 static void eds_del_work_list(EDS_CB *cb, EDS_WORKLIST **p_work_list)
 {
 	EDS_WORKLIST *work_list;
+	TRACE_ENTER2("Deleting worklist");
 
 	while (NULL != (work_list = *p_work_list)) {
 		eds_remove_cname_rec(cb, work_list);
@@ -814,9 +858,9 @@ static void eds_del_work_list(EDS_CB *cb, EDS_WORKLIST **p_work_list)
 
 		eds_remove_retained_events(work_list->ret_evt_list_head, work_list->ret_evt_list_tail);
 
-       /** We assume that the channel open records must have been
-        ** erased
-        **/
+	/** We assume that the channel open records must have been
+	** erased
+	**/
 		ncs_patricia_tree_destroy(&work_list->chan_open_rec);
 
 		/* free channelName */
@@ -825,6 +869,8 @@ static void eds_del_work_list(EDS_CB *cb, EDS_WORKLIST **p_work_list)
 
 		work_list = NULL;
 	}
+
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -843,9 +889,11 @@ uint32_t eds_remove_reglist_entry(EDS_CB *cb, uint32_t reg_id, bool remove_all)
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t regId_Net;
 	EDA_DOWN_LIST *eda_down_rec = NULL, *temp_eda_down_rec = NULL;
+	TRACE_ENTER2("Deleting reg record: reg_id: %u", reg_id);
 
    /** decide if all records are to be deleted **/
 	if ((reg_id == 0) && (remove_all == true)) {
+		TRACE_1("Deleting all reg records");
 		rec_to_del = (EDA_REG_REC *)
 		    ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
 
@@ -900,8 +948,7 @@ uint32_t eds_remove_reglist_entry(EDS_CB *cb, uint32_t reg_id, bool remove_all)
       /** Get the node pointer from the patricia tree 
        **/
 		if (NULL == (rec_to_del = (EDA_REG_REC *)ncs_patricia_tree_get(&cb->eda_reg_list, (uint8_t *)&regId_Net))) {
-			m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-				     __FILE__, __LINE__, 0);
+			TRACE_LEAVE2("record not found in patricia tree");
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -911,8 +958,7 @@ uint32_t eds_remove_reglist_entry(EDS_CB *cb, uint32_t reg_id, bool remove_all)
 		eds_channel_close_by_regid(cb, reg_id, remove_all);
 
 		if (NCSCC_RC_SUCCESS != (status = ncs_patricia_tree_del(&cb->eda_reg_list, &rec_to_del->pat_node))) {
-			m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, status, __FILE__,
-				     __LINE__, 0);
+			TRACE_LEAVE2("pat node del failed");
 			return status;
 		}
 
@@ -920,6 +966,7 @@ uint32_t eds_remove_reglist_entry(EDS_CB *cb, uint32_t reg_id, bool remove_all)
 		m_MMGR_FREE_EDS_REC(rec_to_del);
 	}
 
+	TRACE_LEAVE();
 	return status;
 
 }
@@ -938,17 +985,20 @@ uint32_t eds_remove_reglist_entry(EDS_CB *cb, uint32_t reg_id, bool remove_all)
 bool eds_eda_entry_valid(EDS_CB *cb, MDS_DEST mds_dest)
 {
 	EDA_REG_REC *rp = NULL;
+	TRACE_ENTER2("searching mds_dest:%" PRIx64, mds_dest);
 
 	rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
 
 	while (rp != NULL) {
 		if (m_NCS_MDS_DEST_EQUAL(&rp->eda_client_dest, &mds_dest)) {
+			TRACE_LEAVE2("record found");
 			return true;
 		}
 
 		rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)&rp->reg_id_Net);
 	}
 
+	TRACE_LEAVE2("record not found");
 	return false;
 }
 
@@ -967,8 +1017,11 @@ uint32_t eds_remove_eda_down_rec(EDS_CB *cb, MDS_DEST mds_dest)
 {
 	EDA_DOWN_LIST *eda_down_rec = cb->eda_down_list_head;
 	EDA_DOWN_LIST *prev = NULL;
+	TRACE_ENTER2("mds_dest: %" PRIx64, mds_dest);
+
 	while (eda_down_rec) {
 		if (m_NCS_MDS_DEST_EQUAL(&eda_down_rec->mds_dest, &mds_dest)) {
+			TRACE("record found");
 			/* Remove the EDA entry */
 			/* Reset pointers */
 			if (eda_down_rec == cb->eda_down_list_head) {	/* 1st in the list? */
@@ -996,6 +1049,8 @@ uint32_t eds_remove_eda_down_rec(EDS_CB *cb, MDS_DEST mds_dest)
 		prev = eda_down_rec;	/* Remember address of this entry */
 		eda_down_rec = eda_down_rec->next;	/* Go to next entry */
 	}
+
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1016,6 +1071,7 @@ uint32_t eds_remove_regid_by_mds_dest(EDS_CB *cb, MDS_DEST mds_dest)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDA_REG_REC *rp = NULL;
 	uint32_t regId_Net;
+	TRACE_ENTER2("mds_dest: %" PRIx64, mds_dest);
 
 	rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
 
@@ -1030,6 +1086,7 @@ uint32_t eds_remove_regid_by_mds_dest(EDS_CB *cb, MDS_DEST mds_dest)
 		rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)&regId_Net);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1047,15 +1104,16 @@ EDA_REG_REC *eds_get_reglist_entry(EDS_CB *cb, uint32_t reg_id)
 {
 	EDA_REG_REC *rp;
 	uint32_t regId_Net;
+	TRACE_ENTER2("reg_id: %u", reg_id);
 
 	regId_Net = m_NCS_OS_HTONL(reg_id);
 
 	if (NULL == (rp = (EDA_REG_REC *)ncs_patricia_tree_get(&cb->eda_reg_list, (uint8_t *)&regId_Net))) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__, 0);
+		TRACE_LEAVE2("reg record not found");
 		return ((EDA_REG_REC *)NULL);
 	}
 
+	TRACE_LEAVE2("record found");
 	return rp;
 }
 
@@ -1072,32 +1130,34 @@ EDA_REG_REC *eds_get_reglist_entry(EDS_CB *cb, uint32_t reg_id)
 EDS_WORKLIST *eds_get_worklist_entry(EDS_WORKLIST *wp_root, uint32_t chan_id)
 {
 	EDS_WORKLIST *wp;
+	TRACE_ENTER2("chan_id: %u", chan_id);
+
 
 	if (wp_root == NULL) {
+		TRACE_LEAVE2("Worklist is empty");
 		return ((EDS_WORKLIST *)NULL);	/* empty worklist */
 	}
 
 	/* Loop through the list looking for a matching channel ID */
 	wp = wp_root;
 	while (wp) {
-		if (wp->chan_id == chan_id)
+		if (wp->chan_id == chan_id) {
+			TRACE_LEAVE();
 			return (wp);
+		}
 		else {
 			/* This is an ordered list, so if a cell has a chan_id gtr than
 			 * what we're looking for, it isn't there.
 			 */
 			if (wp->chan_id > chan_id) {
-
-				m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-					     NCSCC_RC_FAILURE, __FILE__, __LINE__, chan_id);
+				TRACE_LEAVE2("record not found");
 				return ((EDS_WORKLIST *)NULL);	/* Not found */
 			}
 		}
 		wp = wp->next;
 	}
 
-	m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-		     __LINE__, chan_id);
+	TRACE_LEAVE2("record not found");
 	return ((EDS_WORKLIST *)NULL);	/* Not found */
 
 }
@@ -1111,16 +1171,23 @@ EDS_WORKLIST *eds_get_worklist_entry(EDS_WORKLIST *wp_root, uint32_t chan_id)
 uint32_t eds_add_subscription(EDS_CB *cb, uint32_t reg_id, SUBSC_REC *subrec)
 {
 	uint32_t rs = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* Add the subscription to the workList */
 	rs = eds_add_subscription_to_worklist(cb, subrec);
-	if (rs != NCSCC_RC_SUCCESS)
+	if (rs != NCSCC_RC_SUCCESS) {
+		TRACE_LEAVE2("Failed to add subscription to worklist");
 		return (rs);
+	}
 
 	/* Add the subscription to the regList */
 	rs = eds_add_subscription_to_reglist(cb, reg_id, subrec);
-	if (rs != NCSCC_RC_SUCCESS)
+	if (rs != NCSCC_RC_SUCCESS) {
+		TRACE("Failed to add subscription to reglist");
 		eds_remove_subrec_entry(cb, &subrec);
+	}
+
+	TRACE_LEAVE();
 	return (rs);
 }
 
@@ -1144,20 +1211,19 @@ uint32_t eds_remove_subscription(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, 
 	SUBSC_LIST *sublist = NULL;
 	SUBSC_LIST *prev = NULL;
 	CHAN_OPEN_LIST *cl;
+	TRACE_ENTER2("reg_id:%u, chan_id:%u, chan_open_id:%u, sub_id: %u", reg_id, chan_id, chan_open_id, sub_id);
 
 	/* Get the specified registration entry out of the regList */
 	reglist = eds_get_reglist_entry(cb, reg_id);
 	if (reglist == NULL) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_NO_OBJECT,
-			     __FILE__, __LINE__, 0);
+		TRACE_LEAVE2("reg record not found");
 		return (NCSCC_RC_NO_OBJECT);	/* No such registration */
 	}
 
 	/* Point to root of chan_open_list */
 	cl = reglist->chan_open_list;
 	if (!cl) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_NO_OBJECT,
-			     __FILE__, __LINE__, 0);
+		TRACE_LEAVE2("chan open list is empty");
 		return (NCSCC_RC_NO_OBJECT);	/* No channels */
 	}
 
@@ -1181,8 +1247,7 @@ uint32_t eds_remove_subscription(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, 
 		sublist = sublist->next;	/* Go to next entry */
 	}
 	if (!sublist) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_NO_OBJECT,
-			     __FILE__, __LINE__, 0);
+		TRACE_LEAVE2("subscription record not found");
 		return (NCSCC_RC_NO_OBJECT);	/* No such subscription */
 	}
 
@@ -1208,6 +1273,7 @@ uint32_t eds_remove_subscription(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, 
 	m_MMGR_FREE_EDS_SUBLIST(sublist);
 	sublist = NULL;
 
+	TRACE_LEAVE();
 	return (rs);
 }
 
@@ -1219,16 +1285,17 @@ uint32_t eds_remove_subscription(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, 
 uint32_t eds_copen_patricia_init(EDS_WORKLIST *wp)
 {
 	NCS_PATRICIA_PARAMS param;
+	TRACE_ENTER();
 
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	param.key_size = sizeof(uint32_t);
 
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&wp->chan_open_rec, &param)) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__, 0);
+		TRACE_LEAVE2("patricia tree init failed");
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1262,39 +1329,44 @@ eds_channel_open(EDS_CB *cb, uint32_t reg_id, uint32_t flags,
 	SaAmfHAStateT ha_state;
 	CHAN_OPEN_REC *co = NULL;
 	uint32_t copen_id_Net;
+	TRACE_ENTER2("chan_name: %s", chan_name);
 
 	wp = cb->eds_work_list;	/* Get root pointer to worklist */
 	ha_state = cb->ha_state;	/* Get the HA STATE from the CB */
 
 	/* First entry? */
 	if (wp == NULL) {
+		TRACE("First entry to be added");
 		/* Make sure the create flag was specified */
 		if (!(flags & SA_EVT_CHANNEL_CREATE)) {
-			m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-				     SA_AIS_ERR_NOT_EXIST, __FILE__, __LINE__, 0);
+			TRACE_LEAVE2("SA_AIS_ERR_NOT_EXIST: Create flags not specified");
 			return (SA_AIS_ERR_NOT_EXIST);
 		}
 		cb->eds_work_list = m_MMGR_ALLOC_EDS_WORKLIST(sizeof(EDS_WORKLIST));
 		if (cb->eds_work_list == NULL) {
-			m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, SA_AIS_ERR_NO_MEMORY,
-				     __FILE__, __LINE__, 0);
+			LOG_CR("malloc failed for worklist record");
+			TRACE_LEAVE();
 			return (SA_AIS_ERR_NO_MEMORY);
 		}
 
 		memset(cb->eds_work_list, 0, sizeof(EDS_WORKLIST));
 		wp = (EDS_WORKLIST *)cb->eds_work_list;
 
-		if (cb->ha_state == SA_AMF_HA_STANDBY)
+		if (cb->ha_state == SA_AMF_HA_STANDBY) {
 			wp->chan_id = *chan_id;
-		else
+			TRACE("At standby, just store the value sent from active, chan_id:%u", wp->chan_id);
+		}
+		else {
 			wp->chan_id = 1;
+			TRACE("chan_id assigned for this saEvtChannelOpen is: %u", wp->chan_id);
+		}
 
 /*      wp->chan_attrib|=flags; */
 		wp->cname_len = chan_name_len;
 		wp->cname = m_MMGR_ALLOC_EDS_CHAN_NAME(chan_name_len + 1);
 		if (wp->cname == NULL) {
-			m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, SA_AIS_ERR_NO_MEMORY,
-				     __FILE__, __LINE__, 0);
+			LOG_CR("malloc failed for worklist record");
+			TRACE_LEAVE();
 			return (SA_AIS_ERR_NO_MEMORY);
 		}
 		memcpy(wp->cname, chan_name, chan_name_len);
@@ -1304,13 +1376,14 @@ eds_channel_open(EDS_CB *cb, uint32_t reg_id, uint32_t flags,
 		EDS_INIT_CHAN_RTINFO(wp, chan_create_time);
 
 		/* Create an IMM runtime object */
-		if (cb->ha_state == SA_AMF_HA_ACTIVE)
+		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+			TRACE("I'm ACTIVE eds, create the IMM object for this channel");
 			create_runtime_object((char *)wp->cname, wp->chan_row.create_time, cb->immOiHandle);
+		}
 
 		/* Initialize the channel open record patricia tree */
 		if (eds_copen_patricia_init(wp) != NCSCC_RC_SUCCESS) {
-			m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, SA_AIS_ERR_LIBRARY,
-				     __FILE__, __LINE__, 0);
+			TRACE_LEAVE2("SA_AIS_ERR_LIBRARY: channel open patricia tree init failed");
 			return (SA_AIS_ERR_LIBRARY);
 		}
 		/* Initialize retevent list to NULL. Fix */
@@ -1321,34 +1394,35 @@ eds_channel_open(EDS_CB *cb, uint32_t reg_id, uint32_t flags,
 
 		if (reg_id != 0) {
 			wp->use_cnt++;
+			TRACE("Incrementing use count: %u", wp->use_cnt);
 			/* Assign a new chan_open_id for this open channel instance */
 			rc = eds_add_chan_open_rec(wp, reg_id, wp->chan_id, dest, chan_open_id, ha_state, flags);
 			if (rc != NCSCC_RC_SUCCESS) {
-				m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__, 0);
+				TRACE_LEAVE2("SA_AIS_ERR_LIBRARY: channel open record add failed");
 				return (SA_AIS_ERR_LIBRARY);
 			}
 			/* Add an entry to the reglist too */
 			rc = eds_add_chan_open_list(cb, reg_id, wp->chan_id, *chan_open_id);
 			if (rc != NCSCC_RC_SUCCESS) {
+				LOG_IN("channel open to client handle association not found for channel: %s", wp->cname);
 				/* Get the chan open rec from the patricia tree */
 				copen_id_Net = m_NCS_OS_HTONL(*chan_open_id);
 				if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec,
 											 (uint8_t *)&copen_id_Net))) {
-					m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-						     NCSCC_RC_FAILURE, __FILE__, __LINE__, 0);
+					TRACE_LEAVE2("chan_open_id: %u not found in pat tree", *chan_open_id);
 					return NCSCC_RC_FAILURE;
 				}
 
 				eds_remove_chan_open_rec(wp, co);
-				m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-					     SA_AIS_ERR_LIBRARY, __FILE__, __LINE__, 0);
+				TRACE_LEAVE2("SA_AIS_ERR_LIBRARY: channel open add failed");
 				return (SA_AIS_ERR_LIBRARY);
 			}
 		}
 
 		*chan_id = wp->chan_id;	/* Return channel ID #1 */
+		/* Revisit this. The channel name list is not necessary */
 		eds_add_cname_rec(cb, wp, chan_name, chan_name_len);	/* add the channel name to the cname list */
+		TRACE_LEAVE2("channel open success");
 		return (SA_AIS_OK);
 	}
 
@@ -1356,36 +1430,36 @@ eds_channel_open(EDS_CB *cb, uint32_t reg_id, uint32_t flags,
 	 * Search the worklist for a channel with this name.
 	 */
 	while (wp) {
+		TRACE("Searching the worklist for this channel");
 		/* Is this element an active (linked) channel with the correct name? */
 		if (is_active_channel(wp, chan_name_len, chan_name)) {
 			wp->use_cnt++;	/* Up the use counter */
+			TRACE("Incrementing use count: %u", wp->use_cnt);
 			/* Assign a new chan_open_id for this open channel instance */
 			rc = eds_add_chan_open_rec(wp, reg_id, wp->chan_id, dest, chan_open_id, ha_state, flags);
 			if (rc != NCSCC_RC_SUCCESS) {
-				m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-					     SA_AIS_ERR_LIBRARY, __FILE__, __LINE__, wp->chan_id);
+				TRACE_LEAVE2("SA_AIS_ERR_LIBRARY: channel open record add failed");
 				return (SA_AIS_ERR_LIBRARY);
 			}
 			/* Add an entry to the reglist too */
 			rc = eds_add_chan_open_list(cb, reg_id, wp->chan_id, *chan_open_id);
 			if (rc != NCSCC_RC_SUCCESS) {
+				TRACE("chanopen-reglist association failed");
 				/* Get the chan open rec from the patricia tree */
 				copen_id_Net = m_NCS_OS_HTONL(*chan_open_id);
 				if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec,
 											 (uint8_t *)&copen_id_Net))) {
-					m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-						     NCSCC_RC_FAILURE, __FILE__, __LINE__, wp->chan_id);
+					TRACE_LEAVE2("chan_open_id: %u not found in pat tree", *chan_open_id);
 					return NCSCC_RC_FAILURE;
 				}
 
 				eds_remove_chan_open_rec(wp, co);
-				m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-					     SA_AIS_ERR_LIBRARY, __FILE__, __LINE__, 0);
-
+				TRACE_LEAVE2("SA_AIS_ERR_LIBRARY: channel open add failed");
 				return (SA_AIS_ERR_LIBRARY);
 			}
 
 			*chan_id = wp->chan_id;	/* Return the channel ID */
+			TRACE_LEAVE2("channel open success");
 			return (SA_AIS_OK);
 		}
 		prevp = wp;
@@ -1398,44 +1472,54 @@ eds_channel_open(EDS_CB *cb, uint32_t reg_id, uint32_t flags,
 	 */
 
 	/* Make sure the create flag was specified */
-	if (!(flags & SA_EVT_CHANNEL_CREATE))
+	if (!(flags & SA_EVT_CHANNEL_CREATE)) {
+		TRACE_LEAVE2("SA_AIS_ERR_NOT_EXIST. Channel not found and create flag is not specified");
 		return (SA_AIS_ERR_NOT_EXIST);
+	}
 
 	if (prevp != NULL) {
+		TRACE("Adding a new worklist entry");
 		/* Allocate and fill the new workList structure */
 		wp = m_MMGR_ALLOC_EDS_WORKLIST(sizeof(EDS_WORKLIST));
 		if (wp == NULL) {
-			m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, SA_AIS_ERR_NO_MEMORY,
-				     __FILE__, __LINE__, 0);
+			LOG_CR("malloc failed for worklist record");
+			TRACE_LEAVE();
 			return (SA_AIS_ERR_NO_MEMORY);
 		}
 		memset(wp, 0, sizeof(EDS_WORKLIST));
 		wp->cname_len = chan_name_len;
 		wp->cname = m_MMGR_ALLOC_EDS_CHAN_NAME(chan_name_len + 1);
 		if (wp->cname == NULL) {
-			m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, SA_AIS_ERR_NO_MEMORY,
-				     __FILE__, __LINE__, 0);
+			LOG_CR("malloc failed for channel name record");
+			TRACE_LEAVE();
 			return (SA_AIS_ERR_NO_MEMORY);
 		}
 
 		memcpy(wp->cname, chan_name, chan_name_len);
 		*(wp->cname + chan_name_len) = '\0';
 
-		if (cb->ha_state == SA_AMF_HA_STANDBY)
+		if (cb->ha_state == SA_AMF_HA_STANDBY) {
 			wp->chan_id = *chan_id;
-		else
+			TRACE("At standby, just store the value sent from active, chan_id:%u", wp->chan_id);
+		} else {
 			wp->chan_id = prevp->chan_id + 1;	/* New ID is previous entry +1 */
+			TRACE("chan_id assigned for this saEvtChannelOpen is: %u", wp->chan_id);
+		}
 
 		/* initialize channels with default values */
 		EDS_INIT_CHAN_RTINFO(wp, chan_create_time);
 
 		/* Create an IMM runtime object */
-		if (cb->ha_state == SA_AMF_HA_ACTIVE)
+		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+			TRACE("I'm ACTIVE eds, create the IMM object for this channel");
 			create_runtime_object((char *)wp->cname, wp->chan_row.create_time, cb->immOiHandle);
+		}
 
 		/* Initialize the channel open record patricia tree */
-		if (eds_copen_patricia_init(wp) != NCSCC_RC_SUCCESS)
+		if (eds_copen_patricia_init(wp) != NCSCC_RC_SUCCESS) {
+			TRACE_LEAVE2("SA_AIS_ERR_LIBRARY: channel open patricia tree init failed");
 			return (SA_AIS_ERR_LIBRARY);
+		}
 
 		/* Attach the previous/next pointers */
 		wp->prev = prevp;
@@ -1449,11 +1533,11 @@ eds_channel_open(EDS_CB *cb, uint32_t reg_id, uint32_t flags,
 
 		if (reg_id != 0) {
 			wp->use_cnt++;
+			TRACE("Incrementing use count: %u", wp->use_cnt);
 			/* Assign a new chan_open_id for this open channel instance */
 			rc = eds_add_chan_open_rec(wp, reg_id, wp->chan_id, dest, chan_open_id, ha_state, flags);
 			if (rc != NCSCC_RC_SUCCESS) {
-				m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__, 0);
+				TRACE_LEAVE2("SA_AIS_ERR_LIBRARY: channel open record add failed");
 				return (SA_AIS_ERR_LIBRARY);
 			}
 			/* Add an entry to the reglist too */
@@ -1463,14 +1547,12 @@ eds_channel_open(EDS_CB *cb, uint32_t reg_id, uint32_t flags,
 				copen_id_Net = m_NCS_OS_HTONL(*chan_open_id);
 				if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec,
 											 (uint8_t *)&copen_id_Net))) {
-					m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-						     NCSCC_RC_FAILURE, __FILE__, __LINE__, 0);
+					TRACE_LEAVE2("chan_open_id: %u not found in pat tree", *chan_open_id);
 					return NCSCC_RC_FAILURE;
 				}
 
 				eds_remove_chan_open_rec(wp, co);
-				m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR,
-					     SA_AIS_ERR_LIBRARY, __FILE__, __LINE__, 0);
+				TRACE_LEAVE2("SA_AIS_ERR_LIBRARY: channel open add failed");
 				return (SA_AIS_ERR_LIBRARY);
 			}
 		}
@@ -1479,10 +1561,10 @@ eds_channel_open(EDS_CB *cb, uint32_t reg_id, uint32_t flags,
 
 		eds_add_cname_rec(cb, wp, chan_name, chan_name_len);	/* add the channel name to cname list */
 
+		TRACE_LEAVE2("channel open success");
 		return (SA_AIS_OK);
 	}
-	m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, SA_AIS_ERR_LIBRARY, __FILE__,
-		     __LINE__, 0);
+	TRACE_LEAVE2("SA_AIS_ERR_LIBRARY: channel open failed");
 	return (SA_AIS_ERR_LIBRARY);
 }
 
@@ -1503,19 +1585,21 @@ uint32_t eds_channel_close(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, uint32
 	SUBSC_REC *subrec;
 	SUBSC_REC *next;
 	SaNameT chan_name;
+	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("Closing channel open instance: chan_open_id: %u,chan_id: %u,reg_id: %u", chan_open_id, \
+												chan_id, reg_id);
 
 	/* Get worklist ptr for this chan_id */
 	wp = eds_get_worklist_entry(cb->eds_work_list, chan_id);
 	if (!wp) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__, 0);
+		TRACE_LEAVE2("Worklist record not found");
 		return (NCSCC_RC_FAILURE);
 	}
+	TRACE("Channel Name: %s", wp->cname);
 	/* Get the chan open rec from the patricia tree */
 	copen_id_Net = m_NCS_OS_HTONL(chan_open_id);
 	if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec, (uint8_t *)&copen_id_Net))) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__, 0);
+		TRACE_LEAVE2("Channel open record not found");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1531,19 +1615,26 @@ uint32_t eds_channel_close(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, uint32
 
 	wp->chan_row.num_users -= 1;
 
+	TRACE("Num users: %u, use count: %u", wp->chan_row.num_users, wp->use_cnt);
+
 	/* Remove the CHAN_OPEN_REC from the worklist */
 	eds_remove_chan_open_rec(wp, co);
 
 	/* If no one else interested in this channel, remove it completely */
 	if (wp->use_cnt == 0) {
+		TRACE("use count is zero");
 		chan_name.length = strlen((char *)wp->cname);
 		strncpy((char *)chan_name.value, (char *)wp->cname, chan_name.length);
 		if ((wp->chan_attrib & CHANNEL_UNLINKED) || (true == forced)) {
-			if ((true == forced) && (!(wp->chan_attrib & CHANNEL_UNLINKED)))
+			TRACE("forced flag is set 'or' CHANNEL is marked as CHANNEL_UNLINKED");
+			if ((true == forced) && (!(wp->chan_attrib & CHANNEL_UNLINKED))) {
+				TRACE("forced flag 'and' CHANNEL is marked as CHANNEL_UNLINKED");
 				eds_remove_cname_rec(cb, wp);
+			}
 			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-				if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &chan_name) != SA_AIS_OK) {
-					LOG_ER("Deleting runtime object %s FAILED", chan_name.value);
+				TRACE("Delete run time object");
+				if ((rc = immutil_saImmOiRtObjectDelete(cb->immOiHandle, &chan_name)) != SA_AIS_OK) {
+					LOG_ER("saImmOiRtObjectDelete failed. Channel: %s. rc = %u", chan_name.value, rc);
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -1554,6 +1645,7 @@ uint32_t eds_channel_close(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, uint32
 	/* Remove the CHAN_OPEN_LIST entry for this chan from the reglist */
 	eds_remove_chan_open_list(cb, reg_id, chan_id, chan_open_id);
 
+	TRACE_LEAVE();
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -1573,34 +1665,41 @@ uint32_t eds_channel_unlink(EDS_CB *cb, uint32_t chan_name_len, uint8_t *chan_na
 {
 	EDS_WORKLIST *wp;
 	SaNameT channel_name;
+	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("channel name: %s", chan_name);
 
 	wp = cb->eds_work_list;	/* Get root pointer to worklist */
+
 	while (wp) {
+		TRACE("Use count: %u", wp->use_cnt);
 		/* Is this element an active (linked) channel with the correct name? */
 		if (is_active_channel(wp, chan_name_len, chan_name)) {
 			wp->chan_attrib |= CHANNEL_UNLINKED;	/* Set the unlink flag */
+			TRACE("Setting the unlink flag for this channel");
 
 			/* If no one else interested in this channel, remove it completely */
 			eds_remove_cname_rec(cb, wp);
 
 			if (wp->use_cnt == 0) {
+				TRACE("Use count is zero, delete the and IMM object");
 				channel_name.length = strlen((char *)wp->cname);
 				strncpy((char *)channel_name.value, (char *)wp->cname, channel_name.length);
 				if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-					if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &channel_name) != SA_AIS_OK) {
-						LOG_ER("Deleting runtime object %s FAILED", channel_name.value);
+					if ((rc = immutil_saImmOiRtObjectDelete(cb->immOiHandle, &channel_name)) != SA_AIS_OK) {
+						LOG_ER("Deleting runtime object %s failed with rc = %u", channel_name.value, rc);
+						TRACE_LEAVE();
 						return NCSCC_RC_FAILURE;
 					}
 				}
 				eds_remove_worklist_entry(cb, wp->chan_id);
 			}
-
+			TRACE_LEAVE();
 			return (SA_AIS_OK);
 		}
 		wp = wp->next;
 	}
-	m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, SA_AIS_ERR_NOT_EXIST, __FILE__,
-		     __LINE__, 0);
+
+	TRACE_LEAVE2("SA_AIS_ERR_NOT_EXIST");
 	return (SA_AIS_ERR_NOT_EXIST);	/* Went through the entire list. Not found. */
 }
 
@@ -1618,11 +1717,13 @@ eds_store_retained_event(EDS_CB *cb,
 {
 	EDS_RETAINED_EVT_REC *retained_evt = NULL;
 	SaAisErrorT error = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("chan_name: %s", wp->cname);
 
 	retained_evt = m_MMGR_ALLOC_EDS_RETAINED_EVT;
 	if (retained_evt == NULL) {
-		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, SA_AIS_ERR_NO_MEMORY, __FILE__,
-			     __LINE__, 0);
+		LOG_CR("malloc failed for retention event record: Number of retained events: %u", \
+									wp->chan_row.num_ret_evts);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1631,9 +1732,8 @@ eds_store_retained_event(EDS_CB *cb,
 	/* create the association with hdl-mngr */
 	if (0 == (retained_evt->retd_evt_hdl =
 		  ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_EDS, (NCSCONTEXT)retained_evt))) {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			     __FILE__, __LINE__, 0);
 		m_MMGR_FREE_EDS_RETAINED_EVT(retained_evt);
+		TRACE_LEAVE2("Create handle failed. Freed the retained event");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1686,15 +1786,19 @@ eds_store_retained_event(EDS_CB *cb,
 				      EDS_RET_EVT_TMR, retained_evt->retentionTime, retained_evt->retd_evt_hdl);
 
 	if (error != NCSCC_RC_SUCCESS) {
+		LOG_ER("event retention timer start failed");
 		/* This will be from eds_evt_destroy flow */
 		retained_evt->patternArray = NULL;
 		retained_evt->data_len = 0;
 		retained_evt->data = NULL;
 		eds_retd_evt_del(&wp->ret_evt_list_head[retained_evt->priority],
 				 &wp->ret_evt_list_tail[retained_evt->priority], retained_evt, true);
-	} else
+	} else {
 		wp->chan_row.num_ret_evts++;
+		TRACE("Number of retained events: %u", wp->chan_row.num_ret_evts);
+	}
 
+	TRACE_LEAVE();
 	return error;
 }
 
@@ -1717,6 +1821,7 @@ eds_retd_evt_del(EDS_RETAINED_EVT_REC **list_head,
 {
 	/* Find the client hdl record in the list of records */
 	EDS_RETAINED_EVT_REC *list_iter = *list_head;
+	TRACE_ENTER();
 
 	/* If the to be removed record is the first record */
 	if (list_iter == rm_node) {
@@ -1746,7 +1851,7 @@ eds_retd_evt_del(EDS_RETAINED_EVT_REC **list_head,
 			eds_stop_tmr(&rm_node->ret_tmr);
 
 		m_MMGR_FREE_EDS_RETAINED_EVT(rm_node);
-
+		TRACE_LEAVE();
 		return;
 	} else {		/* find the rec */
 
@@ -1775,6 +1880,7 @@ eds_retd_evt_del(EDS_RETAINED_EVT_REC **list_head,
 
 				m_MMGR_FREE_EDS_RETAINED_EVT(rm_node);
 
+				TRACE_LEAVE();
 				return;
 			}
 
@@ -1783,6 +1889,7 @@ eds_retd_evt_del(EDS_RETAINED_EVT_REC **list_head,
 		}
 	}
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -1804,15 +1911,19 @@ static EDS_RETAINED_EVT_REC *eds_find_retd_evt_by_chan_open_id(EDS_WORKLIST *wp,
 {
 	EDS_RETAINED_EVT_REC *retd_evt;
 	SaUint8T list_iter;
+	TRACE_ENTER2("chan_name: %s, chan_open_id: %u, event_id: %u", wp->cname, chan_open_id, event_id);
 
 	for (list_iter = SA_EVT_HIGHEST_PRIORITY; list_iter <= SA_EVT_LOWEST_PRIORITY; list_iter++) {
 		retd_evt = wp->ret_evt_list_head[list_iter];
 		while (retd_evt) {
-			if (retd_evt->retd_evt_chan_open_id == chan_open_id && retd_evt->event_id == event_id)
+			if (retd_evt->retd_evt_chan_open_id == chan_open_id && retd_evt->event_id == event_id) {
+				TRACE_LEAVE();
 				return retd_evt;
+			}
 			retd_evt = retd_evt->next;
 		}
 	}
+	TRACE_LEAVE2("record not found");
 	return NULL;
 }
 
@@ -1826,22 +1937,26 @@ uint32_t eds_clear_retained_event(EDS_CB *cb, uint32_t chan_id, uint32_t chan_op
 {
 	EDS_WORKLIST *wp;
 	EDS_RETAINED_EVT_REC *retained_evt;
-
+	TRACE_ENTER2("chan_id: %u, chan_open_id: %u", chan_id, chan_open_id);
+	
 	/* Get worklist ptr for this chan_id */
 	wp = eds_get_worklist_entry(cb->eds_work_list, chan_id);
 	if (!wp) {
+		TRACE_LEAVE2("SA_AIS_ERR_NOT_EXIST: worklist is empty");
 		return (SA_AIS_ERR_NOT_EXIST);
 	}
+	TRACE("chan_name: %s", wp->cname);
    /** Find and delete the retained event **/
 	if (NULL != (retained_evt = eds_find_retd_evt_by_chan_open_id(wp, chan_open_id, event_id))) {
 		eds_retd_evt_del(&wp->ret_evt_list_head[retained_evt->priority],
 				 &wp->ret_evt_list_tail[retained_evt->priority], retained_evt, give_hdl);
 		wp->chan_row.num_ret_evts--;
+		TRACE("Number of retained events: %u", wp->chan_row.num_ret_evts);
 	} else {
-		m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, SA_AIS_ERR_NOT_EXIST,
-			     __FILE__, __LINE__, 0);
+		TRACE_LEAVE2("SA_AIS_ERR_NOT_EXIST: Retained event not found");
 		return SA_AIS_ERR_NOT_EXIST;
 	}
+	TRACE_LEAVE();
 	return (SA_AIS_OK);
 }
 
@@ -1855,6 +1970,7 @@ void eds_remove_retained_events(EDS_RETAINED_EVT_REC **p_retd_evt_rec, EDS_RETAI
 {
 	EDS_RETAINED_EVT_REC *retd_evt_rec;
 	SaUint8T list_iter;
+	TRACE_ENTER();
 
 	for (list_iter = SA_EVT_HIGHEST_PRIORITY; list_iter <= SA_EVT_LOWEST_PRIORITY; list_iter++) {
 		while (NULL != (retd_evt_rec = *(p_retd_evt_rec + list_iter))) {
@@ -1877,6 +1993,7 @@ void eds_remove_retained_events(EDS_RETAINED_EVT_REC **p_retd_evt_rec, EDS_RETAI
 		}
 		*(list_tail + list_iter) = NULL;
 	}
+	TRACE_LEAVE();
 }
 
 /* End eds_ll.c */
