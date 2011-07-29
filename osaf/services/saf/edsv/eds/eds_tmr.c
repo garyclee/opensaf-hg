@@ -55,8 +55,8 @@ uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT peri
 	uint32_t tmr_period = (uint32_t)(period / EDSV_NANOSEC_TO_LEAPTM);
 
 	if (EDS_TMR_MAX <= tmr->type) {
-		m_LOG_EDSV_S(EDS_TIMER_START_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, type, __FILE__, __LINE__,
-			     tmr_period);
+		LOG_WA("Unsupported timer type");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -77,11 +77,12 @@ uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT peri
 	tmr->is_active = true;
 
 	if (TMR_T_NULL == tmr->tmr_id) {
-		m_LOG_EDSV_S(EDS_TIMER_START_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, type, __FILE__, __LINE__,
-			     tmr_period);
+		LOG_NO("Timer start failed: type: %u, Id: %p, period: %u", type, tmr->tmr_id, tmr_period);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -100,11 +101,12 @@ void eds_stop_tmr(EDS_TMR *tmr)
 {
 	/* If timer type is invalid just return */
 	if (tmr == NULL) {
-		m_LOG_EDSV_S(EDS_TIMER_STOP_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		TRACE_4("timer is NULL");
+		TRACE_LEAVE();
 		return;
 	} else if (EDS_TMR_MAX <= tmr->type) {
-		m_LOG_EDSV_S(EDS_TIMER_STOP_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, tmr->type, __FILE__, __LINE__,
-			     0);
+		TRACE_4("unsupported timer type");
+		TRACE_LEAVE();
 		return;
 	}
 
@@ -163,7 +165,7 @@ void eds_tmr_exp(void *uarg)
 
 	/* retrieve EDS CB */
 	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, tmr->cb_hdl))) {
-		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_ER("Global take handle failed");
 		return;
 	}
 
@@ -187,8 +189,7 @@ void eds_tmr_exp(void *uarg)
 			evt->cb_hdl = tmr->cb_hdl;
 
 			if (NCSCC_RC_FAILURE == m_NCS_IPC_SEND(&eds_cb->mbx, evt, NCS_IPC_PRIORITY_HIGH)) {
-				m_LOG_EDSV_S(EDS_TIMER_STOP_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, evt->cb_hdl,
-					     __FILE__, __LINE__, evt->evt_type);
+				LOG_ER("IPC send failed for timer event");
 				eds_evt_destroy(evt);
 			}
 
