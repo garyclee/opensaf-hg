@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 	}
         
 	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
-		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_ER("Global take handle failed");
 		exit(EXIT_FAILURE);
 	}
 

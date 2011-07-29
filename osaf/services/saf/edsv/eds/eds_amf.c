@@ -52,10 +52,12 @@ stuff.
 uint32_t eds_quiescing_state_handler(EDS_CB *cb, SaInvocationT invocation)
 {
 	SaAisErrorT error = SA_AIS_OK;
+	TRACE_ENTER();
+
 	error = saAmfCSIQuiescingComplete(cb->amf_hdl, invocation, error);
 
 	saAmfResponse(cb->amf_hdl, invocation, error);
-	TRACE("I AM IN HA AMF QUIESCING STATE");
+	TRACE_LEAVE2("HA AMF QUIESCING state");
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -82,6 +84,7 @@ uint32_t eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation)
 {
 	V_DEST_RL mds_role;
 	SaAisErrorT error = SA_AIS_OK;
+	TRACE_ENTER();
 
 	mds_role = V_DEST_RL_QUIESCED;
 
@@ -92,13 +95,14 @@ uint32_t eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation)
 	cb->amf_invocation_id = invocation;
 
 	cb->is_quisced_set = true;
-	TRACE("I AM IN HA AMF QUIESCED STATE");
+	TRACE("HA AMF QUIESCED state");
 
 	/* Give up our implementer role */
 	error = immutil_saImmOiImplementerClear(cb->immOiHandle);
 	if (error != SA_AIS_OK)
 		LOG_ER("saImmOiImplementerClear failed with rc = %d", error);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
 }
@@ -125,6 +129,7 @@ uint32_t eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation)
 uint32_t eds_invalid_state_handler(EDS_CB *cb, SaInvocationT invocation)
 {
 	saAmfResponse(cb->amf_hdl, invocation, SA_AIS_ERR_BAD_OPERATION);
+	TRACE_LEAVE2("Invalid AMF state");
 	return NCSCC_RC_FAILURE;
 }
 
@@ -153,14 +158,18 @@ void eds_amf_health_chk_callback(SaInvocationT invocation, const SaNameT *compNa
 {
 	EDS_CB *eds_cb;
 	SaAisErrorT error = SA_AIS_OK;
+	TRACE_ENTER();
 
 	if (NULL == (eds_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
-		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_ER("Failed to retrieve eds handle: %u", gl_eds_hdl);
+		TRACE_LEAVE();
 		return;
 	} else {
 		saAmfResponse(eds_cb->amf_hdl, invocation, error);
 		ncshm_give_hdl(gl_eds_hdl);
 	}
+
+	TRACE_LEAVE();
 	return;
 }
 
@@ -199,42 +208,46 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 	SaAmfHAStateT prev_haState;
 	bool role_change = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if (NULL == (eds_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
-		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_ER("Failed to retrieve eds handle: %u", gl_eds_hdl);
+		TRACE_LEAVE();
 		return;
 	} else {
 		/*
 		 *  Handle Active to Active role change.
 		 */
-		m_LOG_EDSV_S(EDS_AMF_RCVD_CSI_SET_CLBK, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, eds_cb->ha_state,
-			     __FILE__, __LINE__, new_haState);
 		prev_haState = eds_cb->ha_state;
+		TRACE_1("Previous HA State: %d", prev_haState);
 
 		/* Invoke the appropriate state handler routine */
 		switch (new_haState) {
 		case SA_AMF_HA_ACTIVE:
 			eds_cb->mds_role = V_DEST_RL_ACTIVE;
-			TRACE("I AM HA AMF ACTIVE");
+			TRACE_1("New HA state: ACTIVE");
 			break;
 		case SA_AMF_HA_STANDBY:
 			eds_cb->mds_role = V_DEST_RL_STANDBY;
-			TRACE("I AM HA AMF STANDBY");
+			TRACE_1("New HA state: STANDBY");
 			break;
 		case SA_AMF_HA_QUIESCED:
 			eds_quiesced_state_handler(eds_cb, invocation);
+			TRACE_1("New HA state: QUIESCED");
 			break;
 		case SA_AMF_HA_QUIESCING:
 			eds_quiescing_state_handler(eds_cb, invocation);
+			TRACE_1("New HA state: QUIESCING");
 			break;
 		default:
-			m_LOG_EDSV_S(EDS_AMF_CSI_SET_HA_STATE_INVALID, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE,
-				     eds_cb->ha_state, __FILE__, __LINE__, new_haState);
+			TRACE_2("Invalid HA state: %d", new_haState);
 			eds_invalid_state_handler(eds_cb, invocation);
 		}
 
-		if (new_haState == SA_AMF_HA_QUIESCED)
+		if (new_haState == SA_AMF_HA_QUIESCED) {
+			TRACE_LEAVE2("New state is Quiesced, returning immediately");
 			return;
+		}
 
 		/* Update control block */
 		eds_cb->ha_state = new_haState;
@@ -258,11 +271,8 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 
 		if (role_change == true) {
 			if ((rc = eds_mds_change_role(eds_cb)) != NCSCC_RC_SUCCESS) {
-				m_LOG_EDSV_S(EDS_MDS_CSI_ROLE_CHANGE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__, eds_cb->mds_role);
+				LOG_ER("MDS role change failed");
 			} else {
-				m_LOG_EDSV_S(EDS_MDS_CSI_ROLE_CHANGE_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, rc,
-					     __FILE__, __LINE__, eds_cb->mds_role);
 				/* Declare as Implementer if state changed only from STANDBY to ACTIVE, 
 				 * Need to check for transition from QUEISCED back to ACTIVE 
 				 */
@@ -273,11 +283,10 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 		}
 		/* Inform MBCSV of HA state change */
 		if (NCSCC_RC_SUCCESS != (error = eds_mbcsv_change_HA_state(eds_cb))) {
-			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__, __LINE__,
-				     new_haState);
-		} else {
-			m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
+			LOG_ER("MBCSv state change failed");
 		}
+
+		TRACE_1("Responding to AMF CSI set callback");
 		/* Send the response to AMF */
 		saAmfResponse(eds_cb->amf_hdl, invocation, SA_AIS_OK);
 
@@ -291,6 +300,7 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 				/*Remove the EDA DOWN REC from the EDA_DOWN_LIST */
 				/* Free the EDA_DOWN_REC */
 				/* Remove this EDA entry from our processing lists */
+				TRACE_1("Processing EDA down for:%" PRIx64 "at new Active", eda_down_rec->mds_dest);
 				temp_eda_down_rec = eda_down_rec;
 				eds_remove_regid_by_mds_dest(eds_cb, eda_down_rec->mds_dest);
 				eda_down_rec = eda_down_rec->next;
@@ -302,6 +312,7 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 		/*Give handles */
 		ncshm_give_hdl(gl_eds_hdl);
 	}
+	TRACE_LEAVE();
 }	/* End CSI set callback */
 
 /****************************************************************************
@@ -329,12 +340,14 @@ void eds_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 {
 	EDS_CB *eds_cb;
 	SaAisErrorT error = SA_AIS_OK;
+	TRACE_ENTER();
 
-	m_LOG_EDSV_S(EDS_AMF_TERMINATE_CALLBACK_CALLED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
 	if (NULL == (eds_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
-		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_ER("Failed to retrieve eds handle: %u", gl_eds_hdl);
+		TRACE_LEAVE();
 		return;
 	} else {
+		TRACE_1("Responding to AMF CSI terminate callback");
 		saAmfResponse(eds_cb->amf_hdl, invocation, error);
 		/* Clean up all internal structures */
 		eds_remove_reglist_entry(eds_cb, 0, true);
@@ -352,10 +365,12 @@ void eds_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 		eds_mds_finalize(eds_cb);
 		m_MMGR_FREE_EDS_CB(eds_cb);
 		sleep(1);
+		LOG_ER("Received AMF component terminate callback, exiting");
 		exit(0);
 
 	}
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -384,15 +399,18 @@ eds_amf_csi_rmv_callback(SaInvocationT invocation,
 {
 	EDS_CB *eds_cb;
 	SaAisErrorT error = SA_AIS_OK;
+	TRACE_ENTER();
 
-	m_LOG_EDSV_S(EDS_REMOVE_CALLBACK_CALLED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
 	if (NULL == (eds_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
-		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		LOG_ER("Failed to retrieve eds handle: %u", gl_eds_hdl);
+		TRACE_LEAVE();
 		return;
 	} else {
+		TRACE_1("Responding to AMF CSI remove callback");
 		saAmfResponse(eds_cb->amf_hdl, invocation, error);
 		ncshm_give_hdl(gl_eds_hdl);
 	}
+	TRACE_LEAVE();
 	return;
 }
 
@@ -412,8 +430,10 @@ static uint32_t eds_healthcheck_start(EDS_CB *eds_cb)
 	SaAisErrorT error;
 	SaAmfHealthcheckKeyT Healthy;
 	char *health_key = 0;
-
+	TRACE_ENTER();
+	
 	if (eds_cb->healthCheckStarted == true) {
+		TRACE_LEAVE2("Health check already started");
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -432,9 +452,11 @@ static uint32_t eds_healthcheck_start(EDS_CB *eds_cb)
 				      SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
 
 	if (error != SA_AIS_OK) {
+		TRACE_LEAVE2("saAmfHealthcheckStart failed");
 		return NCSCC_RC_FAILURE;
 	} else {
 		eds_cb->healthCheckStarted = true;
+		TRACE_LEAVE2("saAmfHealthcheckStart success");
 		return NCSCC_RC_SUCCESS;
 	}
 }
@@ -457,6 +479,7 @@ uint32_t eds_amf_init(EDS_CB *eds_cb)
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* Initialize amf callbacks */
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
@@ -473,28 +496,24 @@ uint32_t eds_amf_init(EDS_CB *eds_cb)
 	rc = saAmfInitialize(&eds_cb->amf_hdl, &amfCallbacks, &amf_version);
 
 	if (rc != SA_AIS_OK) {
-		m_LOG_EDSV_S(EDS_AMF_INIT_ERROR, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		LOG_ER("saAmfInitialize failed with Error: %u", rc);
 		return NCSCC_RC_FAILURE;
 	}
-	m_LOG_EDSV_S(EDS_AMF_INIT_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
 
 	/* Obtain the amf selection object to wait for amf events */
 	if (SA_AIS_OK != (rc = saAmfSelectionObjectGet(eds_cb->amf_hdl, &eds_cb->amfSelectionObject))) {
-		m_LOG_EDSV_S(EDS_AMF_GET_SEL_OBJ_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     0);
+		LOG_ER("saAmfSelectionObjectGet failed with Error: %u", rc);
 		return rc;
 	}
-	m_LOG_EDSV_S(EDS_AMF_GET_SEL_OBJ_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
 
 	/* get the component name */
 	rc = saAmfComponentNameGet(eds_cb->amf_hdl, &eds_cb->comp_name);
 	if (rc != SA_AIS_OK) {
-		m_LOG_EDSV_S(EDS_AMF_COMP_NAME_GET_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     0);
+		LOG_ER("saAmfComponentNameGet failed with Error: %u", rc);
 		return NCSCC_RC_FAILURE;
 	}
-	m_LOG_EDSV_S(EDS_AMF_COMP_NAME_GET_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
 
+	TRACE_LEAVE();
 	return rc;
 
 }	/*End eds_amf_init */
@@ -517,35 +536,33 @@ uint32_t eds_amf_register(EDS_CB *eds_cb)
 
 	SaAisErrorT error;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	m_NCS_LOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
 
 	/* Initialize amf framework for hc interface */
 	if ((rc = eds_amf_init(eds_cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_EDSV_S(EDS_AMF_INIT_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 		m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
+		TRACE_LEAVE2("Amf init failed");
 		return NCSCC_RC_FAILURE;
 	}
-	m_LOG_EDSV_S(EDS_AMF_INIT_OK, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
 
 	/* register EDS component with AvSv */
 	error = saAmfComponentRegister(eds_cb->amf_hdl, &eds_cb->comp_name, (SaNameT *)NULL);
 	if (error != SA_AIS_OK) {
-		m_LOG_EDSV_S(EDS_AMF_COMP_REGISTER_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__,
-			     __LINE__, 0);
 		m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
+		TRACE_LEAVE2("Amf component register failed");
 		return NCSCC_RC_FAILURE;
 	}
-	m_LOG_EDSV_S(EDS_AMF_COMP_REGISTER_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
+
 	if (NCSCC_RC_SUCCESS != (rc = eds_healthcheck_start(eds_cb))) {
-		m_LOG_EDSV_S(EDS_AMF_HLTH_CHK_START_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     0);
 		m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
+		TRACE_LEAVE2("Amf healthcheck start failed");
 		return NCSCC_RC_FAILURE;
 	}
-	m_LOG_EDSV_S(EDS_AMF_HLTH_CHK_START_DONE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
 	m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -569,6 +586,7 @@ SaAisErrorT eds_clm_init(EDS_CB *cb)
 	SaClmClusterNotificationBufferT notify_buff;
 	SaAisErrorT rc = SA_AIS_OK;
 	SaTimeT timeout = EDSV_CLM_TIMEOUT;
+	TRACE_ENTER();
 
 	memset(&clm_version, 0, sizeof(SaVersionT));
 	memset(&cluster_node, 0, sizeof(SaClmClusterNodeT));
@@ -583,19 +601,21 @@ SaAisErrorT eds_clm_init(EDS_CB *cb)
 	/* Say Hello */
 	rc = saClmInitialize(&cb->clm_hdl, &clm_cbk, &clm_version);
 	if (rc != SA_AIS_OK) {
-		m_LOG_EDSV_S(EDS_CLM_INIT_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		LOG_ER("saClmInitialize failed with error: %d", rc);
+		TRACE_LEAVE();
 		return rc;
 	}
 	/* Get the FD */
 	if (SA_AIS_OK != (rc = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj))) {
-		m_LOG_EDSV_S(EDS_CLM_SEL_OBJ_GET_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     0);
+		LOG_ER("saClmSelectionObjectGet failed with error: %d", rc);
+		TRACE_LEAVE();
 		return rc;
 	}
 	/* Get your own node id */
 	rc = saClmClusterNodeGet(cb->clm_hdl, SA_CLM_LOCAL_NODE_ID, timeout, &cluster_node);
 	if (rc != SA_AIS_OK) {
-		m_LOG_EDSV_S(EDS_CLM_NODE_GET_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		LOG_ER("saClmClusterNodeGet failed with error: %d", rc);
+		TRACE_LEAVE();
 		return rc;
 	}
 	/* Get my node_id. Not sure if i need this at all */
@@ -604,9 +624,9 @@ SaAisErrorT eds_clm_init(EDS_CB *cb)
 	notify_buff.notification = NULL;
 	rc = saClmClusterTrack(cb->clm_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL);
 	if (rc != SA_AIS_OK)
-		m_LOG_EDSV_S(EDS_CLM_CLUSTER_TRACK_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     0);
+		LOG_ER("saClmClusterTrack failed with error: %d", rc);
 
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -643,13 +663,13 @@ void eds_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificati
 	SaClmClusterChangesT cluster_change;
 	SaBoolT is_member;
 	uint32_t counter = 0;
+	TRACE_ENTER();
 
-	TRACE("CLM Cluster track callback");
 	if (error == SA_AIS_OK) {
 		/* Get EDS CB Handle. */
 		if (NULL == (cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
-			m_LOG_EDSV_S(EDS_CLM_CLUSTER_TRACK_CBK_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error,
-				     __FILE__, __LINE__, 1);
+			LOG_ER("Failed to retrieve eds handle: %u", gl_eds_hdl);
+			TRACE_LEAVE();
 			return;
 		}
 
@@ -657,35 +677,46 @@ void eds_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificati
 			for (counter = 0; counter < notificationBuffer->numberOfItems; counter++) {
 				is_member = notificationBuffer->notification[counter].clusterNode.member;
 				node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
+				/* Send an update 
+				 * - if there is 'change' in cluster membership to an existing node
+				 * - if its a new node node joining the cluster
+				 */ 
 				if ((cluster_change = update_node_db(cb, node_id, is_member))) {
-					if (is_member)
+					/* There is a change to a cluster node.
+					 * Send updates to all EDAs on that node
+					 */
+					if (is_member) {
 						cluster_change = SA_CLM_NODE_JOINED;
-					else
+						TRACE("CLM Node : %u Joined the cluster", node_id);
+					}
+					else {
 						cluster_change = SA_CLM_NODE_LEFT;
+						TRACE("CLM Node : %u Left the cluster", node_id);
+					}
+
 					/* Send to all EDAs on node_id */
 					send_clm_status_change(cb, cluster_change, node_id);
 				}
 			}
 		}
 		else
-			TRACE("Notification buffer is NULL");
+			TRACE_1("Notification buffer is NULL");
+
 		TRACE("After processing, clust list contains: %d nodes",ncs_patricia_tree_size(&cb->eds_cluster_nodes_list));
 		TRACE("=======================================");
 		NODE_INFO *tmp=NULL;
 		tmp = (NODE_INFO *)ncs_patricia_tree_getnext(&cb->eds_cluster_nodes_list, (uint8_t *)0);
 		while (tmp != NULL)
 		{
-			TRACE("NODE = %d\n", tmp->node_id);
+			TRACE("Cluster Node Id : %u\n", tmp->node_id);
 			tmp=(NODE_INFO *)ncs_patricia_tree_getnext(&cb->eds_cluster_nodes_list, (uint8_t *)&tmp->node_id);
 		}
 		TRACE("=======================================");
 		ncshm_give_hdl(gl_eds_hdl);
-		m_LOG_EDSV_S(EDS_CLM_CLUSTER_TRACK_CBK_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, error, __FILE__,
-			     __LINE__, 0);
 	} else
-		m_LOG_EDSV_S(EDS_CLM_CLUSTER_TRACK_CBK_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__,
-			     __LINE__, 1);
+		TRACE_1("Cluster track callback processing failed");
 
+	TRACE_LEAVE();
 	return;
 
 }
@@ -693,58 +724,68 @@ void eds_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificati
 /**************************************************************************
  * Function: update_node_db 
  *
- * Purpose: The cluster track callback invoked by CLM whenever thereis a
- *          change in the status of a node in the CLUSTER.
- * Input  : none
- * Output : NotificationBuffer that contains information of all nodes in the
- *          cluster and the corresponding change that occured on that node.
- * Returns: SA_TRUE if there is a change in membership, else SA_FALSE 
- *
- * Notes  : Upon invocation of this callback, if a node joined or left the cluster,
- *  EDS shall send an update to all the EDAs on that particular node.
+ * Purpose: This function determines whether an update has to be sent
+ * 	    to agents on the node for which CLM track callback has been
+ * 	    received.
+ * Input  : Control block, node_id  and is_member - both as received in CLM
+ * 	    track callback. 
+ * Output : SA_TRUE - If an update has to be sent to agents on that node.
+ * 	    SA_FALSE - If no update has to be sent.  
+ * 	    TBD - Either the node DB or this function(not so good),
+ *	    can be eliminated if we can conclude from the CLM callback.
+ *	    
  **************************************************************************/
 
 SaBoolT update_node_db(EDS_CB *cb, NODE_ID node_id, SaBoolT is_member)
 {
 	NODE_INFO *cn = NULL;
+	TRACE_ENTER();
+
 	if (is_member) {
+		/* Node has joined. Add it to our list if not present already */
 		if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uint8_t *)&node_id)) == NULL) {
-			TRACE("Node = %d not existing in the DB",node_id);
+			/* This is a new node joining the cluster. Add it to our DB */
+			TRACE("Node = %u not existing in the DB, adding to DB", node_id);
 			cn = (NODE_INFO *)malloc(sizeof(NODE_INFO));
 			if (cn == NULL) {
 				LOG_CR("Malloc failed for cluster node record");
+				TRACE_LEAVE();
 				return SA_FALSE;
 			}
 			cn->node_id = node_id;
 			cn->pat_node.key_info = (uint8_t *)&cn->node_id;
 			if (ncs_patricia_tree_add(&cb->eds_cluster_nodes_list,&cn->pat_node) != NCSCC_RC_SUCCESS) {
 				free(cn);
-				LOG_ER("Patricia add failed for cluster node %d",cn->node_id);
+				LOG_ER("Patricia add failed for cluster node %u", cn->node_id);
+				TRACE_LEAVE();
 				return SA_FALSE;
 			} else {
-				TRACE("Added Node = %d, to the DB, num nodes = %d",node_id,ncs_patricia_tree_size(&cb->eds_cluster_nodes_list));
+				TRACE_LEAVE2("Node:  %u is a member, num nodes = %d", node_id, \
+								ncs_patricia_tree_size(&cb->eds_cluster_nodes_list));
 				return SA_TRUE;
 			}
 		} else {
-			TRACE("Node = %d, already a member",node_id);
-			return SA_FALSE;
+			TRACE_LEAVE2("Node = %u, already a member", node_id);
+			return SA_FALSE; /* Dont send an update */
 		}
-	}
-	else {
+	} else {
+		/* Node left the cluster. Remove from our list if this node is in our node DB*/
 		if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uint8_t *)&node_id)) == NULL) {
-			TRACE("Node = %d not in the DB, no change to DB",node_id);
+			TRACE_LEAVE2("Node = %d not in the DB, nothing to be done", node_id);
 			return SA_FALSE;
 		}
 		if (ncs_patricia_tree_del(&cb->eds_cluster_nodes_list, &cn->pat_node) != NCSCC_RC_SUCCESS) {
-			LOG_ER("Patricia tree delete failed for node_id = %d",node_id);
+			LOG_ER("Patricia tree delete failed for node_id = %d", node_id);
+			TRACE_LEAVE();
 			return SA_FALSE;
 		} else {
 			if (cn)
 				free(cn);
-			TRACE("Node = %d deleted from DB",node_id);
+
+			TRACE_LEAVE2("Node: %d not a member, deleted from DB", node_id);
 			return SA_TRUE;
 		}
-	}
+	}/* Else node is not a member */
 }
 
 /**************************************************************************
@@ -763,6 +804,7 @@ void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NOD
 	EDSV_MSG msg;
 	EDA_REG_REC *reg_rec = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	m_EDS_EDSV_CLM_STATUS_CB_MSG_FILL(msg, cluster_change);
 	reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
@@ -770,14 +812,14 @@ void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NOD
 		if (node_id == (m_EDS_GET_NODE_ID_FROM_ADEST(reg_rec->eda_client_dest))) {
 			rc = eds_mds_msg_send(cb, &msg, &reg_rec->eda_client_dest, NULL, MDS_SEND_PRIORITY_MEDIUM);
 			if (rc != NCSCC_RC_SUCCESS)
-				m_LOG_EDSV_S(EDS_CLUSTER_CHANGE_NOTIFY_SEND_FAILED, NCSFL_LC_EDSV_INIT,
-					     NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
+				LOG_ER("Failed to send cluster change update to EDA. dest: %" PRIx64, reg_rec->eda_client_dest);
 			else
-				TRACE("Sending ClusterNodeUpdate = %d for %d Success", cluster_change, node_id);
+				TRACE_1("Sent ClusterNodeUpdate = %u for %u", cluster_change, node_id);
 		}
 		reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)&reg_rec->reg_id_Net);
 	}
 
+	TRACE_LEAVE();
 }
 
 /**************************************************************************
@@ -793,10 +835,12 @@ void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NOD
 bool is_node_a_member(EDS_CB *cb, NODE_ID node_id)
 {
 	NODE_INFO *cn = NULL;
+	TRACE_ENTER();
 
 	if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uint8_t *)&node_id)) == NULL)
 		return false;
 	else
 		return true;
+	TRACE_LEAVE();
 }
 
