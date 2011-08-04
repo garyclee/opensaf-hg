@@ -37,7 +37,6 @@ noinst_HEADERS = \
 	ncs_mds_def.h \
 	ncs_osprm.h \
 	ncspatricia.h \
-	ncs_posix_tmr.h \
 	ncs_queue.h \
 	ncs_saf.h \
 	ncs_sprr_papi.h \

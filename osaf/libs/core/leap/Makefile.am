@@ -30,7 +30,6 @@ libleap_la_CPPFLAGS = \
 
 libleap_la_SOURCES = \
 	ncsdlib.c \
-	ncs_posix_tmr.c \
 	sysf_def.c \
 	patricia.c \
 	sysf_ipc.c \
