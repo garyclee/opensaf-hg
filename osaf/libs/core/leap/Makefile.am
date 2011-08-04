@@ -39,7 +39,6 @@ libleap_la_SOURCES = \
 	sysf_tmr.c \
 	sysf_tsk.c \
 	nid_api.c \
-	sysf_file.c \
 	nid_ipc.c \
 	hj_dec.c \
 	hj_edp.c \

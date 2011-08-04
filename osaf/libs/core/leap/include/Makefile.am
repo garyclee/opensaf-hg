@@ -28,7 +28,6 @@ noinst_HEADERS = \
 	patricia.h \
 	sysf_def.h \
 	sysf_exc_scr.h \
-	sysf_file.h \
 	sysf_ipc.h \
 	sysf_pat.h \
 	usrbuf.h
