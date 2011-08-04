@@ -287,15 +287,6 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
 #define NCS_STACKSIZE_HUGEX2   256000
 #endif
 
-/*****************************************************************************
- **                                                                         **
- **                   Replacement strtoks                                   **
- **                                                                         **
- ****************************************************************************/
-
-	int32_t sysf_strrcspn(const uint8_t *s, const int32_t start_pos, const uint8_t *reject);
-	int32_t sysf_strincmp(const uint8_t *s1, const uint8_t *s2, uint32_t n);
-
 #ifdef  __cplusplus
 }
 #endif
