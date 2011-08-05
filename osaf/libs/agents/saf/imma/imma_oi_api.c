@@ -1393,6 +1393,8 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 		cl_node->mImplementerId = 0;
 		free(cl_node->mImplementerName);
 		cl_node->mImplementerName = NULL;
+		if(cl_node->isApplier)
+			cl_node->isApplier = 0;
 	}
 
  skip_impl_clear:
