@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include immcfg immdump immload
+SUBDIRS = include immcfg immdump immload immadm immfind immlist
 
 if ENABLE_IMMXML
 
@@ -26,8 +26,3 @@ SUBDIRS += immxml
 
 endif
 
-if ENABLE_TOOLS
-
-SUBDIRS += immadm immfind immlist
-
-endif

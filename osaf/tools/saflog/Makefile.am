@@ -18,10 +18,4 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include
-
-if ENABLE_TOOLS
-
-SUBDIRS += saflogger
-
-endif
+SUBDIRS = include saflogger
