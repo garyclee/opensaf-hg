@@ -77,6 +77,8 @@ static void usage(const char *progname)
 	printf("\t\tValue types according to imm.xsd.\n"
 	       "\t\tValid types: SA_INT32_T, SA_UINT32_T, SA_INT64_T, SA_UINT64_T\n"
 	       "\t\t\tSA_TIME_T, SA_NAME_T, SA_FLOAT_T, SA_DOUBLE_T, SA_STRING_T\n");
+	printf("\t-t, --timeout <sec>\n");
+	printf("\t\tcommand timeout in seconds (default 60 seconds)\n");
 	printf("\t-a, --applier <oi-name> <class-name> (requires 'configure --enable-tests')\n");
 	printf("\t\tRegister oi for class. Prefix OI-name with '@' for applier OI\n");
 
@@ -283,6 +285,7 @@ int main(int argc, char *argv[])
 		{"parameter", required_argument, 0, 'p'},
 		{"operation-id", required_argument, 0, 'o'},
 		{"help", no_argument, 0, 'h'},
+                {"timeout", required_argument, 0, 't'},
 		{"applier", required_argument, 0, 'a'},
 		{0, 0, 0, 0}
 	};
@@ -297,6 +300,7 @@ int main(int argc, char *argv[])
 	const SaImmAdminOperationParamsT_2 **params;
 	SaImmAdminOperationParamsT_2 **out_params=NULL;
 	SaImmAdminOperationIdT operationId = -1;
+        unsigned long timeoutVal = 60;  /* Default timeout value */
 
 	int params_len = 0;
 
@@ -304,7 +308,7 @@ int main(int argc, char *argv[])
 	params[0] = NULL;
 
 	while (1) {
-		c = getopt_long(argc, argv, "p:o:a:h", long_options, NULL);
+		c = getopt_long(argc, argv, "p:o:t:a:h", long_options, NULL);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
@@ -325,6 +329,14 @@ int main(int argc, char *argv[])
 			params[params_len] = NULL;
 			if (init_param(param, optarg) == -1) {
 				fprintf(stderr, "Illegal parameter: %s\n", optarg);
+				exit(EXIT_FAILURE);
+			}
+			break;
+		case 't':
+			timeoutVal = strtoll(optarg, (char **)NULL, 10);
+
+			if ((timeoutVal == 0) || (errno == EINVAL) || (errno == ERANGE)) {
+				fprintf(stderr, "Illegal timeout value\n");
 				exit(EXIT_FAILURE);
 			}
 			break;
@@ -393,7 +405,7 @@ int main(int argc, char *argv[])
 		}
 
 		error = saImmOmAdminOperationInvoke_o2(ownerHandle, &objectName, 0, operationId,
-			params, &operationReturnValue, SA_TIME_ONE_SECOND * 60, &out_params);
+			params, &operationReturnValue, SA_TIME_ONE_SECOND * timeoutVal, &out_params);
 
 		if (error != SA_AIS_OK) {
 			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 FAILED: %s\n",
