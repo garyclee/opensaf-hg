@@ -18,8 +18,6 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-if ENABLE_TOOLS
-
 dist_bin_SCRIPTS = \
 	$(top_srcdir)/osaf/tools/scripts/amf-adm \
 	$(top_srcdir)/osaf/tools/scripts/amf-find \
@@ -34,4 +32,3 @@ dist_bin_SCRIPTS += \
 
 endif
 
-endif
