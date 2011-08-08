@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-bin_PROGRAMS = logtest
+bin_PROGRAMS = logtest saflogtest
 
 noinst_HEADERS = \
 	logtest.h
@@ -48,3 +48,10 @@ logtest_SOURCES = \
 
 logtest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la
+
+saflogtest_SOURCES = \
+	saflogtest.c
+
+saflogtest_LDADD = \
+	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la
+
