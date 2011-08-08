@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-bin_PROGRAMS = immomtest
+bin_PROGRAMS = immomtest immpopulate
 
 immomtest_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
@@ -58,3 +58,20 @@ immomtest_SOURCES = \
 
 immomtest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la
+
+
+immpopulate_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/osaf/tools/safimm/include \
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
+
+immpopulate_SOURCES = \
+	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
+	$(top_srcdir)/osaf/tools/safimm/src/saf_error.c \
+	populate.c
+
+immpopulate_LDADD = \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la
+
+
