@@ -27,9 +27,6 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <sys/un.h>
 #include <sys/time.h>
 #include <fcntl.h>
 #include <ctype.h>
@@ -39,17 +36,11 @@
 #include <saAis.h>
 #include <saImmOm.h>
 #include <immutil.h>
+#include <saf_error.h>
 
-#include "saf_error.h"
-#include "ncsgl_defs.h"
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-static SaVersionT immVersion = { 'A', 2, 11 };
+static SaVersionT immVersion = { 'A', 2, 1 };
 int verbose = 0;
 int ccb_safe = 1;
-int population = 0;
 
 typedef enum {
 	INVALID = 0,
@@ -57,8 +48,7 @@ typedef enum {
 	DELETE_OBJECT = 2,
 	DELETE_CLASS = 3,
 	MODIFY_OBJECT = 4,
-	LOAD_IMMFILE = 5,
-	POPULATE_IMM = 6
+	LOAD_IMMFILE = 5
 } op_t;
 
 #define VERBOSE_INFO(format, args...) if (verbose) { fprintf(stderr, format, ##args); }
@@ -66,10 +56,6 @@ typedef enum {
 // The interface function which implements the -f opton (imm_import.cc)
 int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ignore_duplicates, int ccb_safe);
 
-
-/**
- *
- */
 static void usage(const char *progname)
 {
 	printf("\nNAME\n");
@@ -94,7 +80,6 @@ static void usage(const char *progname)
 	/*printf("\t--ignore-duplicates  (only valid with -f/--file option)\n");*/
 	printf("\t--delete-class <classname> [classname2]... \n");
 	printf("\t-u, --unsafe\n");
-	printf("\t-p, --populate <cardinality> <classname>  (requires 'configure --enable-tests')\n");
 
 	printf("\nEXAMPLE\n");
 	printf("\timmcfg -a saAmfNodeSuFailoverMax=7 safAmfNode=Node01,safAmfCluster=1\n");
@@ -645,244 +630,6 @@ static op_t verify_setoption(op_t prevValue, op_t newValue)
 	}
 }
 
-#ifdef HAVE_TESTS
-typedef struct subtree_range {
-	SaNameT parentDn;
-	struct subtree_range* sublevel[100];
-	unsigned int botRdn;
-	unsigned int topRdn;
-} range_obj;
-
-static range_obj * gen_pop_tree(unsigned int level, range_obj* rootObj, unsigned int rdn, unsigned int base,
-	unsigned int remainder, SaImmAttrNameT rdnAttName)
-{
-	//printf("gen_pop_tree(level:%u, range_obj:%p, rdn:%u, remainder:%u\n", level, rootObj, rdn, remainder);
-	if(level > 2) {
-		fprintf(stderr, "error - Level > 2 !!!!\n");
-		abort();
-	}
-	int ix;
-	range_obj* rangeObj = malloc(sizeof(range_obj));
-	memset(rangeObj, '\0', sizeof(range_obj));
-	--remainder;
-	//printf("Decremented remainder to: %u\n", remainder);
-	unsigned int partition = 0;
-	if(level == 0) {
-		assert(!rootObj && !rdn && base==1);
-		strncpy((char *) rangeObj->parentDn.value, rdnAttName, SA_MAX_NAME_LENGTH);
-		strncat((char *) rangeObj->parentDn.value, "=", SA_MAX_NAME_LENGTH);
-		strncat((char *) rangeObj->parentDn.value, "0", SA_MAX_NAME_LENGTH);
-		rangeObj->parentDn.length = strlen((char *) rangeObj->parentDn.value);
-	} else {
-		char rdnBuf[16];
-		sprintf(rdnBuf, "%u", rdn);
-		strncpy((char *) rangeObj->parentDn.value, rdnAttName, SA_MAX_NAME_LENGTH);
-		strncat((char *) rangeObj->parentDn.value, "=", SA_MAX_NAME_LENGTH);
-		strncat((char *) rangeObj->parentDn.value,	rdnBuf, SA_MAX_NAME_LENGTH);
-		strncat((char *) rangeObj->parentDn.value, ",", SA_MAX_NAME_LENGTH);
-		strncat((char *) rangeObj->parentDn.value, (char *) rootObj->parentDn.value, SA_MAX_NAME_LENGTH);
-		rangeObj->parentDn.length = strlen((char *) rangeObj->parentDn.value);
-	}
-
-	rangeObj->botRdn = base;
-
-	if(remainder < 100) {
-		rangeObj->topRdn = base + remainder;
-		remainder = 0;
-	} else {
-		rangeObj->topRdn = base + 99;
-		remainder -= 100;
-	}
-
-	printf("Generated level %u rangeObj(%u) %u<-->%u %s\n", level, rdn, rangeObj->botRdn, rangeObj->topRdn,
-		rangeObj->parentDn.value);
-
-	partition = (remainder > 10001) ? 10001 : 100;
-
-	ix=0;
-	while(remainder && (ix < 100)) {
-
-		unsigned int subremainder = (remainder < partition)?remainder:partition;
-		rangeObj->sublevel[ix] = gen_pop_tree(level + 1, rangeObj, /* rdn: */ base + ix, 
-			/*new base:*/ base + 100 + (ix)*partition, subremainder, rdnAttName);
-		remainder -= subremainder;
-		++ix;
-	}
-
-	if(remainder) {
-		fprintf(stderr, "error - Returning with nonzero remainder r:%u ix:%u\n", remainder, ix);
-		abort();
-	}
-
-	return rangeObj;
-}
-
-static void ccb_create_obj(SaNameT* parentDn, SaNameT* rdnVal, SaImmCcbHandleT ccbHandle, 
-	const SaImmClassNameT className, SaImmAttrNameT rdnAttName, SaImmValueTypeT rdnAttType) 
-{
-	/*printf("Entering ccb_create_obj parentDn->value: %s\n", 
-	  (parentDn && parentDn->length)?parentDn->value:NULL);*/
-	unsigned int retries=0;
-	SaAisErrorT err = SA_AIS_OK;
-	SaImmAttrValueT theValue;
-	if(rdnAttType == SA_IMM_ATTR_SANAMET) {
-		theValue = rdnVal;
-	} else {
-		SaStringT str = (SaStringT) rdnVal->value;
-		assert(rdnAttType == SA_IMM_ATTR_SASTRINGT);
-		theValue = &str;
-	}
-	SaImmAttrValuesT_2 v1 = {rdnAttName, rdnAttType, 1, &theValue};
-	const SaImmAttrValuesT_2 * attrValues[] = {&v1, NULL};
-
-
-	do {
-		err = saImmOmCcbObjectCreate_2(ccbHandle, className, parentDn, attrValues);
-		if(err == SA_AIS_ERR_TRY_AGAIN) {
-			usleep(250 * 1000);
-		}
-	} while ((err == SA_AIS_ERR_TRY_AGAIN) && (retries < 15));
-
-	if(err != SA_AIS_OK) {
-		if((err == SA_AIS_ERR_NOT_EXIST) && ccb_safe) {
-			fprintf(stderr, "Missing: implementer, or object, or attribute "
-				"(see immcfg -h under '--unsafe')\n");
-		}
-
-		fprintf(stderr, "error - Failed to create object parent%s rdn:%s error:%u\n", 
-			(parentDn && parentDn->length)?(char *) parentDn->value:NULL, 
-			(rdnVal->length)?(char *) rdnVal->value:NULL, err);
-		exit(1);
-	}
-}
-
-static void generate_pop(range_obj* rootObj, SaImmCcbHandleT ccbHandle, const SaImmClassNameT className,
-	SaImmAttrNameT rdnAttName, SaImmValueTypeT rdnAttType, SaImmAdminOwnerHandleT ownerHandle)
-{
-	SaAisErrorT err = SA_AIS_OK;
-	unsigned int ix=0;
-	unsigned int rdn = rootObj->botRdn;
-	SaNameT rdnAttrVal;
-	char rdnBuf[16];
-	unsigned int retries=0;
-	const SaNameT* objectNames[] = {&(rootObj->parentDn), NULL};
-
-	/*err = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);*/
-
-	for(; ix<100 && rdn <= rootObj->topRdn; ++ix, ++rdn) {
-		sprintf(rdnBuf, "%u", rdn);
-		strncpy((char *) rdnAttrVal.value, rdnAttName, SA_MAX_NAME_LENGTH);
-		strncat((char *) rdnAttrVal.value, "=", SA_MAX_NAME_LENGTH);
-		strncat((char *) rdnAttrVal.value, rdnBuf, SA_MAX_NAME_LENGTH);
-		rdnAttrVal.length = strlen((char *) rdnAttrVal.value);
-		ccb_create_obj(&rootObj->parentDn, &rdnAttrVal, ccbHandle, className, rdnAttName, rdnAttType);
-	}
-
-	do {
-		err = saImmOmCcbApply(ccbHandle);
-		if(err == SA_AIS_ERR_TRY_AGAIN) {
-			usleep(250 * 1000);
-		}
-	} while ((err == SA_AIS_ERR_TRY_AGAIN) && (retries < 15));
-
-	if(err != SA_AIS_OK) {
-		fprintf(stderr, "error - Failed to apply ccb for parent:%s range %u<->%u, error:%u\n",
-			(char *) rootObj->parentDn.value, rootObj->botRdn, rootObj->topRdn, err);
-		exit(1);
-	}
-
-	printf("successfull Apply for parent %s range %u<->%u\n", 
-		(char *) rootObj->parentDn.value, rootObj->botRdn, rootObj->topRdn);
-
-	for(ix=0; ix<100 && rootObj->sublevel[ix]; ++ix) {
-		generate_pop(rootObj->sublevel[ix], ccbHandle, className, rdnAttName, rdnAttType, ownerHandle);
-	}
-
-	err = saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_ONE);
-	if(err != SA_AIS_OK) {
-		fprintf(stderr, "error - Failed to release admo - ignoring\n");
-	}
-}
-
-int populate_imm(const SaImmClassNameT className, unsigned int pop, SaImmAdminOwnerHandleT ownerHandle, SaImmHandleT immHandle)
-{
-	SaAisErrorT error;
-	int i=0;
-	int rc = EXIT_FAILURE;
-	SaImmCcbHandleT ccbHandle;
-	SaImmClassCategoryT classCategory;
-	SaImmAttrDefinitionT_2** attrDefinitions;
-	SaImmAttrDefinitionT_2* att;
-	SaImmAttrNameT rdnAttName=NULL;
-	SaImmValueTypeT rdnAttType=SA_IMM_ATTR_SAANYT;
-	range_obj* rootObj = NULL;
-
-	/*
-	SaImmAttrValuesT_2 *attrValue;
-	SaImmAttrValuesT_2 **attrValues = NULL;
-	char *parent = NULL;
-	SaNameT parentName;
-	const SaNameT *parentNames[] = {&parentName, NULL};
-	*/
-
-	if((error = saImmOmClassDescriptionGet_2(immHandle, className, &classCategory, &attrDefinitions)) != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmClassDescriptionGet_2 FAILED: %s\n", saf_error(error));
-		goto done;
-	}
-
-	if(classCategory == SA_IMM_CLASS_RUNTIME) {
-		fprintf(stderr, "error - Class %s is a runtime class\n", className);
-		goto done;		
-	}
-
-	for(att=attrDefinitions[i]; att!=NULL; att=attrDefinitions[++i]) {
-		if(att->attrFlags & SA_IMM_ATTR_RDN) {
-			rdnAttName = att->attrName;
-			rdnAttType = att->attrValueType;
-		} else if(att->attrFlags & SA_IMM_ATTR_INITIALIZED) {
-			fprintf(stderr, "error - Attribute %s has INITIALIZED flag, cant handle\n", att->attrName);
-			goto done;
-		}
-		printf("attrName: %s\n", att->attrName);
-	}
-	if(!rdnAttName) {
-		fprintf(stderr, "error - Could not find any RDN attribure\n");
-		goto done;
-	}
-
-	printf("Rdn attrName:%s type:%s\n", rdnAttName, (rdnAttType==SA_IMM_ATTR_SASTRINGT)?"SA_STRINGT":
-		(rdnAttType==SA_IMM_ATTR_SANAMET)?"SA_NAMET":"WRONG");
-
-	if ((error = saImmOmCcbInitialize(ownerHandle, (ccb_safe?SA_IMM_CCB_REGISTERED_OI:0x0), &ccbHandle))
-		!= SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
-		goto done;
-	}
-
-	printf("className: %s po:%u\n", className, pop);
-	if(pop > 1000000) {
-		fprintf(stderr, "error - Can not handle more than 1000000 objects\n");
-		goto done;
-	}
-
-	rootObj = gen_pop_tree(0, NULL, 0, 1, pop, rdnAttName);
-
-	ccb_create_obj(NULL, &rootObj->parentDn, ccbHandle, className, rdnAttName, rdnAttType);
-
-	generate_pop(rootObj, ccbHandle, className, rdnAttName, rdnAttType, ownerHandle);
-
-	if ((error = saImmOmCcbFinalize(ccbHandle)) != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmCcbFinalize FAILED: %s\n", saf_error(error));
-		goto done;
-	}
-
-	rc = 0;
-
-done:
-	return rc;
-}
-#endif
-
 int main(int argc, char *argv[])
 {
 	int rc = EXIT_SUCCESS;
@@ -898,7 +645,6 @@ int main(int argc, char *argv[])
 		{"modify-object", no_argument, NULL, 'm'},
 		{"verbose", no_argument, NULL, 'v'},
 		{"unsafe", no_argument, NULL, 'u'},
-		{"populate", required_argument, NULL, 'p'},
 		{0, 0, 0, 0}
 	};
 	SaAisErrorT error;
@@ -922,7 +668,7 @@ int main(int argc, char *argv[])
 
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "a:c:f:p:dhmvu", long_options, &option_index);
+		c = getopt_long(argc, argv, "a:c:f:dhmvu", long_options, &option_index);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
@@ -968,20 +714,12 @@ int main(int argc, char *argv[])
 		case 'm': {
 			op = verify_setoption(op, MODIFY_OBJECT);
 			break;
-		case 'p':
-			op = POPULATE_IMM;
-			population = atol(optarg);
-			className = strdup(argv[ccb_safe?3:4]);
-			break;
 		}
 		default:
 			fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
 			exit(EXIT_FAILURE);
 			break;
 		}
-
-		if(op == POPULATE_IMM)
-			break;
 	}
 
 	if (op == LOAD_IMMFILE) {
@@ -1051,14 +789,6 @@ int main(int argc, char *argv[])
 		break;
 	case DELETE_CLASS:
 		rc = class_delete(classNames, immHandle);
-		break;
-	case POPULATE_IMM:
-#ifdef HAVE_TESTS
-		rc = populate_imm(className, population, ownerHandle, immHandle);
-#else 
-		rc = EXIT_FAILURE;
-		fprintf(stderr, "error - populate available only with 'configure --enable-tests'\n");
-#endif
 		break;
 	default:
 		fprintf(stderr, "error - no operation specified\n");
