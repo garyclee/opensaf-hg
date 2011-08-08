@@ -1407,6 +1407,8 @@ fi
 %defattr(-,root,root)
 %{_bindir}/immomtest
 %{_bindir}/immoitest
+%{_bindir}/immapplier
+%{_bindir}/immpopulate
 %{_bindir}/logtest
 %{_bindir}/saflogtest
 %{_bindir}/ntftest
