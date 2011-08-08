@@ -17,7 +17,8 @@
  */
 
 /*
- * This file contains a command line utility to write to the SAF LOG.
+ * This file contains a command line utility to write a single log record
+ * to the SAF LOG.
  */
 
 #include <stdio.h>
@@ -92,8 +93,6 @@ static void usage(void)
 	printf("  -y or --system                 write to system stream (default)\n");
 	printf("  -a NAME or --application=NAME  write to application stream NAME\n");
 	printf("  -s SEV or --severity=SEV       use severity SEV, default INFO\n");
-	printf("  -i INT or --interval=INT       write with interval INT (only with --count, default 1s)\n");
-	printf("  -c CNT or --count=CNT          write CNT number of times, -1 forever (with interval INT) \n");
 	printf("      valid severity names: emerg, alert, crit, error, warn, notice, info\n");
 }
 
@@ -114,7 +113,7 @@ static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error)
 static SaAisErrorT write_log_record(SaLogHandleT logHandle,
 				    SaLogStreamHandleT logStreamHandle,
 				    SaSelectionObjectT selectionObject,
-				    const SaLogRecordT *logRecord, int interval, unsigned int write_count)
+				    const SaLogRecordT *logRecord)
 {
 	SaAisErrorT errorCode;
 	SaInvocationT invocation;
@@ -123,86 +122,72 @@ static SaAisErrorT write_log_record(SaLogHandleT logHandle,
 	int try_agains = 0;
 	struct pollfd fds[1];
 	int ret;
-	unsigned int writes = 0;
 
 	if (logRecord->logBuffer != NULL)
 		write_index = strlen((char *)logRecord->logBuffer->logBuf);
 
-	do {
-		i++;
+	i++;
 
-		/* Only add a unique ID if have a logBuffer AND periodic writes are requested */
-		if (logRecord->logBuffer != NULL && write_count > 1) {
-			/* add unique ID to each log */
-			sprintf((char *)(&logRecord->logBuffer->logBuf[write_index]), " - %u", i);
-			logRecord->logBuffer->logBufSize = strlen((char *)logRecord->logBuffer->logBuf);
-		}
+	invocation = random();
 
-		invocation = random();
- retry:
-		errorCode = saLogWriteLogAsync(logStreamHandle, invocation, SA_LOG_RECORD_WRITE_ACK, logRecord);
-		if (errorCode == SA_AIS_ERR_TRY_AGAIN) {
-			usleep(100000);	/* 100 ms */
-			try_agains++;
-			goto retry;
-		}
+retry:
+	errorCode = saLogWriteLogAsync(logStreamHandle, invocation, SA_LOG_RECORD_WRITE_ACK, logRecord);
+	if (errorCode == SA_AIS_ERR_TRY_AGAIN) {
+		usleep(100000);	/* 100 ms */
+		try_agains++;
+		goto retry;
+	}
 
-		if (errorCode != SA_AIS_OK) {
-			fprintf(stderr, "saLogWriteLogAsync FAILED: %s\n", saf_error(errorCode));
-			return errorCode;
-		}
+	if (errorCode != SA_AIS_OK) {
+		fprintf(stderr, "saLogWriteLogAsync FAILED: %s\n", saf_error(errorCode));
+		return errorCode;
+	}
 
-		fds[0].fd = (int)selectionObject;
-		fds[0].events = POLLIN;
- poll_retry:
-		ret = poll(fds, 1, 20000);
+	fds[0].fd = (int)selectionObject;
+	fds[0].events = POLLIN;
 
-		if (ret == EINTR)
-			goto poll_retry;
+poll_retry:
+	ret = poll(fds, 1, 20000);
 
-		if (ret == -1) {
-			fprintf(stderr, "poll FAILED: %u\n", ret);
-			return SA_AIS_ERR_BAD_OPERATION;
-		}
+	if (ret == EINTR)
+		goto poll_retry;
 
-		if (ret == 0) {
-			fprintf(stderr, "poll timeout, message %u was most likely lost\n", i);
-			continue;
-		}
+	if (ret == -1) {
+		fprintf(stderr, "poll FAILED: %u\n", ret);
+		return SA_AIS_ERR_BAD_OPERATION;
+	}
 
-		errorCode = saLogDispatch(logHandle, SA_DISPATCH_ONE);
-		if (errorCode != SA_AIS_OK) {
-			fprintf(stderr, "saLogDispatch FAILED: %s\n", saf_error(errorCode));
-			return errorCode;
-		}
+	if (ret == 0) {
+		fprintf(stderr, "poll timeout, message %u was most likely lost\n", i);
+		return SA_AIS_ERR_BAD_OPERATION;
+	}
 
-		if (cb_invocation != invocation) {
-			fprintf(stderr, "logWriteLogCallbackT FAILED: wrong invocation\n");
-			return errorCode;
-		}
+	errorCode = saLogDispatch(logHandle, SA_DISPATCH_ONE);
+	if (errorCode != SA_AIS_OK) {
+		fprintf(stderr, "saLogDispatch FAILED: %s\n", saf_error(errorCode));
+		return errorCode;
+	}
 
-		if ((cb_error != SA_AIS_ERR_TRY_AGAIN) && (cb_error != SA_AIS_OK)) {
-			fprintf(stderr, "logWriteLogCallbackT FAILED: %s\n", saf_error(cb_error));
-			return errorCode;
-		}
+	if (cb_invocation != invocation) {
+		fprintf(stderr, "logWriteLogCallbackT FAILED: wrong invocation\n");
+		return errorCode;
+	}
 
-		if (cb_error == SA_AIS_ERR_TRY_AGAIN) {
-			usleep(100000);	/* 100 ms */
-			try_agains++;
-			goto retry;
-		}
+	if ((cb_error != SA_AIS_ERR_TRY_AGAIN) && (cb_error != SA_AIS_OK)) {
+		fprintf(stderr, "logWriteLogCallbackT FAILED: %s\n", saf_error(cb_error));
+		return errorCode;
+	}
 
-		if (try_agains > 0) {
-			fprintf(stderr, "got %u SA_AIS_ERR_TRY_AGAIN, waited %u secs\n", try_agains, try_agains / 10);
-			try_agains = 0;
-		}
+	if (cb_error == SA_AIS_ERR_TRY_AGAIN) {
+		usleep(100000);	/* 100 ms */
+		try_agains++;
+		goto retry;
+	}
 
-		writes++;
-
-		if (writes < write_count)
-			sleep(interval);
-
-	} while (writes < write_count);
+	if (try_agains > 0) {
+		fprintf(stderr, "got %u SA_AIS_ERR_TRY_AGAIN, waited %u secs\n", try_agains, try_agains / 10);
+		try_agains = 0;
+	}
 
 	return errorCode;
 }
@@ -251,14 +236,10 @@ int main(int argc, char *argv[])
 		{"notification", no_argument, 0, 'n'},
 		{"system", no_argument, 0, 'y'},
 		{"severity", required_argument, 0, 's'},
-		{"interval", required_argument, 0, 'i'},
-		{"count", required_argument, 0, 'c'},
 		{"help", no_argument, 0, 'h'},
 		{0, 0, 0, 0}
 	};
-	int interval = 1;
 	char hostname[_POSIX_HOST_NAME_MAX];
-	int write_count = 1;
 	SaAisErrorT error;
 	SaLogHandleT logHandle;
 	SaLogStreamHandleT logStreamHandle;
@@ -291,14 +272,11 @@ int main(int argc, char *argv[])
 	appLogFileCreateAttributes.logFileFmt = DEFAULT_FORMAT_EXPRESSION;
 
 	while (1) {
-		c = getopt_long(argc, argv, "hlnya:s:i:c:", long_options, NULL);
+		c = getopt_long(argc, argv, "hlnya:s:", long_options, NULL);
 		if (c == -1) {
 			break;
 		}
 		switch (c) {
-		case 'c':
-			write_count = atoi(optarg);
-			break;
 		case 'l':
 			strcpy((char *)logStreamName.value, SA_LOG_STREAM_ALARM);
 			logRecord.logHdrType = SA_LOG_NTF_HEADER;
@@ -318,9 +296,6 @@ int main(int argc, char *argv[])
 			break;
 		case 's':
 			logRecord.logHeader.genericHdr.logSeverity = get_severity(optarg);
-			break;
-		case 'i':
-			interval = atoi(optarg);
 			break;
 		case 'h':
 		case '?':
@@ -374,8 +349,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if (write_log_record(logHandle, logStreamHandle, selectionObject,
-			     &logRecord, interval, (unsigned int)write_count) != SA_AIS_OK) {
+	if (write_log_record(logHandle, logStreamHandle, selectionObject, &logRecord) != SA_AIS_OK) {
 		exit(EXIT_FAILURE);
 	}
 
