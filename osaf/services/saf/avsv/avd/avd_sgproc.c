@@ -238,9 +238,10 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	SaAmfReadinessStateT old_state;
 	AVD_AVND *su_node_ptr = NULL;
 
-	TRACE_ENTER2("from %x, '%s' state=%u", n2d_msg->msg_info.n2d_opr_state.node_id,
-	     n2d_msg->msg_info.n2d_opr_state.su_name.value,
-		n2d_msg->msg_info.n2d_opr_state.su_oper_state);
+	TRACE_ENTER2("id:%u, node:%x, '%s' state:%u", n2d_msg->msg_info.n2d_opr_state.msg_id,
+				 n2d_msg->msg_info.n2d_opr_state.node_id,
+				 n2d_msg->msg_info.n2d_opr_state.su_name.value,
+				 n2d_msg->msg_info.n2d_opr_state.su_oper_state);
 
 	if ((node = avd_msg_sanity_chk(evt, n2d_msg->msg_info.n2d_opr_state.node_id, AVSV_N2D_OPERATION_STATE_MSG,
 		n2d_msg->msg_info.n2d_opr_state.msg_id)) == NULL) {
@@ -814,7 +815,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_SU_SI_REL *susi;
 	bool q_flag = false, qsc_flag = false, all_su_unassigned = true, all_csi_rem = true;
 
-	TRACE_ENTER2("msg_id. '%u', node_id '%x', msg_act '%u', su_name'%s', si_name'%s', ha_state'%u', Error'%u', Sinlge_csi'%u'", 
+	TRACE_ENTER2("id:%u, node:%x, act:%u, '%s', '%s', ha:%u, err:%u, single:%u",
 			n2d_msg->msg_info.n2d_su_si_assign.msg_id, n2d_msg->msg_info.n2d_su_si_assign.node_id,
 			n2d_msg->msg_info.n2d_su_si_assign.msg_act,  n2d_msg->msg_info.n2d_su_si_assign.su_name.value, 
 			n2d_msg->msg_info.n2d_su_si_assign.si_name.value,  n2d_msg->msg_info.n2d_su_si_assign.ha_state,
@@ -886,7 +887,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 					avsv_dnd_msg_free(n2d_msg);
 					evt->info.avnd_msg = NULL;
-					return;
+					goto done;
 				} else if ((susi->state == SA_AMF_HA_QUIESCING)
 					   && (susi->fsm != AVD_SU_SI_STATE_UNASGN)) {
 					qsc_flag = true;
@@ -1722,7 +1723,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 	AVD_SU *i_su;
 	AVD_AVND *i_su_node_ptr = NULL;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("'%s'", sg->name.value);
 
 	/* Based on the admin operation that is been done call the corresponding.
 	 * Redundancy model specific functionality for the SG.
@@ -1731,8 +1732,11 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 	switch (sg->saAmfSGAdminState) {
 	case SA_AMF_ADMIN_UNLOCKED:
 		/* Dont allow UNLOCK if the SG FSM is not stable. */
-		if (sg->sg_fsm_state != AVD_SG_FSM_STABLE)
-			return NCSCC_RC_FAILURE;
+		if (sg->sg_fsm_state != AVD_SG_FSM_STABLE) {
+			LOG_NO("%s: Unstable SG fsm state:%u", __FUNCTION__, sg->sg_fsm_state);
+			goto done;
+		}
+
 		/* For each of the SUs calculate the readiness state. This routine is called
 		 * only when AvD is in AVD_APP_STATE. call the SG FSM with the new readiness
 		 * state.
@@ -1760,7 +1764,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 					i_su = i_su->sg_list_su_next;
 				}
 
-				return NCSCC_RC_FAILURE;
+				goto done;
 			}	/* if (avd_sg_2n_realign_func(cb,sg) == NCSCC_RC_FAILURE) */
 			break;
 
@@ -1775,7 +1779,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 					i_su = i_su->sg_list_su_next;
 				}
 
-				return NCSCC_RC_FAILURE;
+				goto done;
 			}	/* if (avd_sg_nway_realign_func(cb,sg) == NCSCC_RC_FAILURE) */
 			break;
 
@@ -1790,7 +1794,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 					i_su = i_su->sg_list_su_next;
 				}
 
-				return NCSCC_RC_FAILURE;
+				goto done;
 			}	/* if (avd_sg_nway_realign_func(cb,sg) == NCSCC_RC_FAILURE) */
 			break;
 
@@ -1805,7 +1809,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 					i_su = i_su->sg_list_su_next;
 				}
 
-				return NCSCC_RC_FAILURE;
+				goto done;
 			}	/* if (avd_sg_nacvred_realign_func(cb,sg) == NCSCC_RC_FAILURE) */
 			break;
 		case SA_AMF_NO_REDUNDANCY_MODEL:
@@ -1820,7 +1824,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 					i_su = i_su->sg_list_su_next;
 				}
 
-				return NCSCC_RC_FAILURE;
+				goto done;
 			}	/* if (avd_sg_nored_realign_func(cb,sg) == NCSCC_RC_FAILURE) */
 			break;
 		}
@@ -1830,37 +1834,37 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 	case SA_AMF_ADMIN_SHUTTING_DOWN:
 
 		if ((sg->sg_fsm_state != AVD_SG_FSM_STABLE) && (sg->sg_fsm_state != AVD_SG_FSM_SG_ADMIN))
-			return NCSCC_RC_FAILURE;
+			goto done;
 
 		switch (sg->sg_redundancy_model) {
 		case SA_AMF_2N_REDUNDANCY_MODEL:
 			if (avd_sg_2n_sg_admin_down(cb, sg) == NCSCC_RC_FAILURE) {
-				return NCSCC_RC_FAILURE;
+				goto done;
 			}
 			break;
 
 		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
 			if (avd_sg_nway_sg_admin_down(cb, sg) == NCSCC_RC_FAILURE) {
-				return NCSCC_RC_FAILURE;
+				goto done;
 			}
 			break;
 
 		case SA_AMF_NPM_REDUNDANCY_MODEL:
 			if (avd_sg_npm_sg_admin_down(cb, sg) == NCSCC_RC_FAILURE) {
-				return NCSCC_RC_FAILURE;
+				goto done;
 			}
 			break;
 
 		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
 			if (avd_sg_nacvred_sg_admin_down(cb, sg) == NCSCC_RC_FAILURE) {
-				return NCSCC_RC_FAILURE;
+				goto done;
 			}
 			break;
 
 		case SA_AMF_NO_REDUNDANCY_MODEL:
 		default:
 			if (avd_sg_nored_sg_admin_down(cb, sg) == NCSCC_RC_FAILURE) {
-				return NCSCC_RC_FAILURE;
+				goto done;
 			}
 			break;
 		}
@@ -1881,7 +1885,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 
 	rc = NCSCC_RC_SUCCESS;
 done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -1909,7 +1913,7 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 	AVD_SU *i_su;
 	AVD_COMP *i_comp;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("'%s'", avnd->name.value);
 
 	/* run through all the MW SUs, make all of them O.O.S. Set
 	 * assignments for the MW SGs of which the SUs are members. Also
@@ -2225,12 +2229,13 @@ done:
 uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 {
 	AVD_SG_OPER **i_su_opr, *temp_su_opr;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("'%s'", su->name.value);
 
 	if (su->sg_of_su->su_oper_list.su == NULL) {
 		LOG_ER("%s: su_oper_list empty", __FUNCTION__);
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	if (su->sg_of_su->su_oper_list.su == su) {
@@ -2247,7 +2252,7 @@ uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 
 		if (!ckpt)
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	i_su_opr = &su->sg_of_su->su_oper_list.next;
@@ -2262,14 +2267,17 @@ uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 			if (!ckpt)
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
 
-			return NCSCC_RC_SUCCESS;
+			goto done;
 		}
 
 		i_su_opr = &((*i_su_opr)->next);
 	}
 
-	TRACE_LEAVE();
-	return NCSCC_RC_FAILURE;
+	rc = NCSCC_RC_FAILURE;
+
+done:
+	TRACE_LEAVE2("rc:%u", rc);
+	return rc;
 }
 
 /*****************************************************************************
@@ -2296,7 +2304,7 @@ uint32_t avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, bool del_flag, bool 
 {
 	AVD_SU_SI_REL *i_susi;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("'%s', del:%u, q:%u", su->name.value, del_flag, q_flag);
 
 	i_susi = su->list_of_susi;
 	if (del_flag == true) {
@@ -2502,7 +2510,7 @@ static SaAisErrorT avd_d2n_reboot_snd(AVD_AVND *node)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 
-	TRACE("Sending %u to %x", AVSV_D2N_REBOOT_MSG, node->node_info.nodeId);
+	TRACE("Sending REBOOT MSG to %x", node->node_info.nodeId);
 
 	/* Send reboot request to amfnd to reboot that node. */
 	AVD_DND_MSG *d2n_msg;
@@ -2522,5 +2530,6 @@ static SaAisErrorT avd_d2n_reboot_snd(AVD_AVND *node)
 		avsv_dnd_msg_free(d2n_msg);
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 	}
+
 	return rc;
 }
