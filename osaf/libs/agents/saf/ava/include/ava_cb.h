@@ -41,6 +41,7 @@ typedef struct ava_cb_tag {
 
 	SaNameT comp_name;	/* comp-name */
 	uint32_t flag;		/* flags */
+	SaVersionT version; /* API version used by client/application */
 
 	/* mds parameters */
 	MDS_HDL mds_hdl;	/* mds handle */
@@ -101,5 +102,12 @@ uint32_t ava_create(NCS_LIB_CREATE *);
 void ava_destroy(NCS_LIB_DESTROY *);
 
 uint32_t ava_avnd_msg_prc(AVA_CB *, AVSV_NDA_AVA_MSG *);
+
+bool ava_B4_ver_used(AVA_CB *in_cb);
+
+void ava_cpy_protection_group_ntf(SaAmfProtectionGroupNotificationT_4  *to_ntf,
+				const SaAmfProtectionGroupNotificationT *from_ntf,
+				SaUint32T items,
+				SaAmfHAReadinessStateT ha_read_state);
 
 #endif   /* !AVA_CB_H */

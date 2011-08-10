@@ -92,3 +92,66 @@ uint32_t ava_avnd_msg_prc(AVA_CB *cb, AVSV_NDA_AVA_MSG *msg)
 	TRACE_LEAVE();
 	return rc;
 }
+
+/****************************************************************************
+  Name          : ava_B4_ver_used
+
+  Description   : This routine checks if AMF B04 version is used by
+                  client/application.
+
+  Arguments     : in_cb   - ptr to the AvA control block. If zero,
+                            global handle will be taken & released.
+
+  Return Values : true if B4 version is used
+
+  Notes         : None
+******************************************************************************/
+bool ava_B4_ver_used(AVA_CB *in_cb)
+{
+	AVA_CB *cb = 0;
+	bool rc = false;
+
+	if(in_cb) {
+		if((in_cb->version.releaseCode == 'B') && (in_cb->version.majorVersion == 0x04))
+			rc = true;
+	}
+	else {
+
+		cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl);
+
+		if(cb) {
+			if((cb->version.releaseCode == 'B') && (cb->version.majorVersion == 0x04))
+				rc = true;
+
+			ncshm_give_hdl(gl_ava_hdl);
+		}
+	}
+
+	return rc;
+}
+
+/*
+ * Temporary function in order to copy data from SaAmfProtectionGroupNotificationT to
+ * SaAmfProtectionGroupNotificationT_4. The difference is the additional
+ * haReadinessState element in SaAmfProtectionGroupMemberT_4.
+ *
+ * When haReadinessState is fully supported in the interface between avnd and ava, this function
+ * should be removed and standard memcpy could be used instead.
+ */
+void ava_cpy_protection_group_ntf(SaAmfProtectionGroupNotificationT_4  *to_ntf,
+				const SaAmfProtectionGroupNotificationT *from_ntf,
+				SaUint32T items,
+				SaAmfHAReadinessStateT ha_read_state)
+{
+	unsigned int i;
+
+	for(i = 0; i < items; i++) {
+		to_ntf[i].change = from_ntf[i].change;
+		memcpy(to_ntf[i].member.compName.value, from_ntf[i].member.compName.value,
+				from_ntf[i].member.compName.length);
+		to_ntf[i].member.haReadinessState = ha_read_state;
+		to_ntf[i].member.haState = from_ntf[i].member.haState;
+		to_ntf[i].member.rank = from_ntf[i].member.rank;
+	}
+}
+

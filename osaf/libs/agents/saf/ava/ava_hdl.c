@@ -221,12 +221,16 @@ AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const SaAmfCallback
 	TRACE_ENTER();
 
 	/* allocate the hdl rec */
-	if (!(rec = calloc(1, sizeof(AVA_HDL_REC))))
-		goto error;
+	if (!(rec = calloc(1, sizeof(AVA_HDL_REC)))) {
+		LOG_CR("Error occurred calling calloc");
+		assert(0);
+	}
 
 	/* create the association with hdl-mngr */
-	if (!(rec->hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVA, (NCSCONTEXT)rec)))
-		goto error;
+	if (!(rec->hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVA, (NCSCONTEXT)rec))) {
+		LOG_CR("Error occurred during creation of handle");
+		assert(0);
+	}
 
 	/* store the registered callbacks */
 	if (reg_cbks)
@@ -236,8 +240,8 @@ AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const SaAmfCallback
 	rec->hdl_node.key_info = (uint8_t *)&rec->hdl;
 	if (ncs_patricia_tree_add(&hdl_db->hdl_db_anchor, &rec->hdl_node)
 	    != NCSCC_RC_SUCCESS) {
-		TRACE_2("Patricia tree add failed ");
-		goto error;
+		LOG_CR("Patricia tree add failed ");
+		assert(0);
 	}
 
 	/* update the no of records */
@@ -245,21 +249,6 @@ AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const SaAmfCallback
 
 	TRACE_LEAVE2("Handle = %x successfully added to Handle DB, num hdls = %d",rec->hdl,hdl_db->num);
 	return rec;
-
- error:
-	if (rec) {
-		TRACE("Error occurred, cleaning up the handle");	
-		/* remove the association with hdl-mngr */
-		if (rec->hdl)
-			ncshm_destroy_hdl(NCS_SERVICE_ID_AVA, rec->hdl);
-
-		free(rec);
-	}
-	else
-		TRACE_1("Error occurred but, no cleanup to be done");
-
-	TRACE_LEAVE();
-	return 0;
 }
 
 /****************************************************************************
@@ -682,40 +671,62 @@ void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 	case AVSV_AMF_PG_TRACK:
 		{
 			AVSV_AMF_PG_TRACK_PARAM *pg_track = &info->param.pg_track;
-			SaAmfProtectionGroupNotificationBufferT buf;
-			uint32_t i = 0;
 
-			if (reg_cbk->saAmfProtectionGroupTrackCallback) {
-				pg_track->csi_name.length = pg_track->csi_name.length;
-				TRACE("PG track Information: Total number of items in buffer = %d",pg_track->buf.numberOfItems);
+			if(ava_B4_ver_used(0)) {
+				SaAmfProtectionGroupNotificationBufferT_4 buf;
 
-				/* convert comp-name len into host order */
-				for (i = 0; i < pg_track->buf.numberOfItems; i++) {
-					pg_track->buf.notification[i].member.compName.length =
-					    pg_track->buf.notification[i].member.compName.length;
-					TRACE("PGTrack Change = %d, member[%d],component name = %s, HA state = %d, rank = %d",\
-					pg_track->buf.notification[i].change,i,pg_track->buf.notification[i].member.compName.value,\
-					pg_track->buf.notification[i].member.haState,pg_track->buf.notification[i].member.rank);
+				if (reg_cbk->saAmfProtectionGroupTrackCallback) {
+					pg_track->csi_name.length = pg_track->csi_name.length;
+					TRACE("PG track Information: Total number of items in buffer = %d",pg_track->buf.numberOfItems);
+
+					/* copy the contents into a malloced buffer.. appl frees it */
+					buf.numberOfItems = pg_track->buf.numberOfItems;
+					buf.notification = 0;
+
+					buf.notification =
+						malloc(buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT_4));
+					if (buf.notification) {
+						ava_cpy_protection_group_ntf(buf.notification, pg_track->buf.notification,
+								pg_track->buf.numberOfItems, SA_AMF_HARS_READY_FOR_ASSIGNMENT);
+						TRACE("Invoking PGTrack callback for CSIName = %s",pg_track->csi_name.value);
+						((SaAmfCallbacksT_4*)reg_cbk)->saAmfProtectionGroupTrackCallback(&pg_track->csi_name,
+											   &buf,
+											   pg_track->mem_num, pg_track->err);
+					} else {
+						pg_track->err = SA_AIS_ERR_NO_MEMORY;
+						LOG_CR("Notification is NULL: Invoking PGTrack Callback with error SA_AIS_ERR_NO_MEMORY");
+						reg_cbk->saAmfProtectionGroupTrackCallback(&pg_track->csi_name,
+											   0, 0, pg_track->err);
+					}
 				}
+			}
+			else /* B01 version is used */
+			{
+				SaAmfProtectionGroupNotificationBufferT buf;
 
-				/* copy the contents into a malloced buffer.. appl frees it */
-				buf.numberOfItems = pg_track->buf.numberOfItems;
-				buf.notification = 0;
+				if (reg_cbk->saAmfProtectionGroupTrackCallback) {
+					pg_track->csi_name.length = pg_track->csi_name.length;
+					TRACE("PG track Information: Total number of items in buffer = %d",pg_track->buf.numberOfItems);
 
-				buf.notification =
-				    malloc(buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
-				if (buf.notification) {
-					memcpy(buf.notification, pg_track->buf.notification,
-					       buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
-					TRACE("Invoking PGTrack callback for CSIName = %s",pg_track->csi_name.value);
-					reg_cbk->saAmfProtectionGroupTrackCallback(&pg_track->csi_name,
-										   &buf,
-										   pg_track->mem_num, pg_track->err);
-				} else {
-					pg_track->err = SA_AIS_ERR_NO_MEMORY;
-					TRACE("Notification is NULL: Invoking PGTrack Callback with error SA_AIS_ERR_NO_MEMORY");
-					reg_cbk->saAmfProtectionGroupTrackCallback(&pg_track->csi_name,
-										   0, 0, pg_track->err);
+					/* copy the contents into a malloced buffer.. appl frees it */
+					buf.numberOfItems = pg_track->buf.numberOfItems;
+					buf.notification = 0;
+
+					buf.notification =
+						malloc(buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
+					if (buf.notification) {
+						memcpy(buf.notification, pg_track->buf.notification,
+							   buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
+						TRACE("Invoking PGTrack callback for CSIName = %s",pg_track->csi_name.value);
+						((SaAmfCallbacksT *)reg_cbk)->saAmfProtectionGroupTrackCallback(&pg_track->csi_name,
+											   &buf,
+											   pg_track->mem_num, pg_track->err);
+					} else {
+						pg_track->err = SA_AIS_ERR_NO_MEMORY;
+						LOG_CR("Notification is NULL: Invoking PGTrack Callback with error SA_AIS_ERR_NO_MEMORY");
+						((SaAmfCallbacksT *)reg_cbk)->saAmfProtectionGroupTrackCallback(&pg_track->csi_name,
+											   0, 0, pg_track->err);
+					}
 				}
 			}
 		}
