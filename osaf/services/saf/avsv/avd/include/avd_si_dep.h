@@ -91,14 +91,6 @@ typedef struct avd_spons_si_tag {
 
 #define AVD_SI_SI_DEP_NULL ((AVD_SI_SI_DEP *)0)
 
-#define m_AVD_SET_SI_DEP_STATE(cb, si, state) {\
-if ((state != AVD_SI_TOL_TIMER_RUNNING) && (state != AVD_SI_READY_TO_UNASSIGN)) \
-   avd_si_dep_stop_tol_timer(cb, si); \
-si->si_dep_state = state; \
-if (state == AVD_SI_SPONSOR_UNASSIGNED)  \
-   avd_screen_sponsor_si_state(cb, si, false); \
-}
-
 uint32_t avd_si_dep_spons_list_add(AVD_CL_CB *avd_cb, struct avd_si_tag *dep_si, struct avd_si_tag *spons_si, AVD_SI_SI_DEP *sidep);
 void avd_si_dep_delete(AVD_CL_CB *cb, struct avd_si_tag *si);
 void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec);

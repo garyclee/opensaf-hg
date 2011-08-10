@@ -60,6 +60,30 @@ static void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt);
 
 static AVD_SI_DEP si_dep; /* SI-SI dependency data */
 
+static const char *depstatename[] = {
+	"",
+	"NO_DEPENDENCY",
+	"SPONSOR_UNASSIGNED",
+	"ASSIGNED",
+	"TOL_TIMER_RUNNING",
+	"READY_TO_UNASSIGN",
+	"UNASSIGNING_DUE_TO_DEP"
+};
+
+static void si_dep_state_set(AVD_SI *si, AVD_SI_DEP_STATE state)
+{
+	AVD_SI_DEP_STATE old_state = si->si_dep_state;
+
+	if ((state != AVD_SI_TOL_TIMER_RUNNING) && (state != AVD_SI_READY_TO_UNASSIGN))
+		avd_si_dep_stop_tol_timer(avd_cb, si);
+
+	si->si_dep_state = state;
+	TRACE("'%s' si_dep_state %s => %s", si->name.value, depstatename[old_state], depstatename[state]);
+
+	if (state == AVD_SI_SPONSOR_UNASSIGNED)
+		avd_screen_sponsor_si_state(avd_cb, si, false);
+}
+
 /*****************************************************************************
  * Function: avd_check_si_state_enabled 
  *
@@ -94,13 +118,13 @@ uint32_t avd_check_si_state_enabled(AVD_CL_CB *cb, AVD_SI *si)
 	if (rc == NCSCC_RC_SUCCESS) {
 		if (si->si_dep_state == AVD_SI_NO_DEPENDENCY) {
 			if (si->tol_timer_count == 0) {
-				m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_ASSIGNED);
+				si_dep_state_set(si, AVD_SI_ASSIGNED);
 			} else {
-				m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_TOL_TIMER_RUNNING);
+				si_dep_state_set(si, AVD_SI_TOL_TIMER_RUNNING);
 			}
 		}
 	} else
-		m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_SPONSOR_UNASSIGNED);
+		si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -300,7 +324,7 @@ uint32_t avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si)
 		susi = susi->si_next;
 	}
 
-	m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_SPONSOR_UNASSIGNED);
+	si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
 
 	/* transition to sg-realign state */
 	m_AVD_SET_SG_FSM(cb, si->sg_of_si, AVD_SG_FSM_SG_REALIGN);
@@ -374,7 +398,7 @@ uint32_t avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
 		}
 
 		if (avd_check_si_state_enabled(cb, si) == NCSCC_RC_SUCCESS) {
-			m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_ASSIGNED);
+			si_dep_state_set(si, AVD_SI_ASSIGNED);
 			rc = NCSCC_RC_SUCCESS;
 		}
 	}
@@ -421,7 +445,7 @@ uint32_t avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_
 	if (si_dep_idx != NULL) {
 		evt->info.tmr.spons_si_name = si_dep_idx->si_name_prim;
 		evt->info.tmr.dep_si_name = si_dep_idx->si_name_sec;
-		m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_READY_TO_UNASSIGN);
+		si_dep_state_set(si, AVD_SI_READY_TO_UNASSIGN);
 	} else {		/* For ASSIGN evt, just enough to feed SI name */
 
 		evt->info.tmr.spons_si_name.length = si->name.length;
@@ -490,7 +514,7 @@ void avd_tmr_si_dep_tol_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	switch (si->si_dep_state) {
 	case AVD_SI_NO_DEPENDENCY:
-		m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_SPONSOR_UNASSIGNED);
+		si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
 	case AVD_SI_SPONSOR_UNASSIGNED:
 		break;
 	case AVD_SI_ASSIGNED:
@@ -508,7 +532,7 @@ void avd_tmr_si_dep_tol_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * unassignment 
 	 */
 	if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
-		m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_SPONSOR_UNASSIGNED);
+		si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
 		goto done;
 	}
 
@@ -517,7 +541,7 @@ void avd_tmr_si_dep_tol_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * in this state due to some other spons-SI.
 	 */
 	if (avd_check_si_state_enabled(cb, spons_si) != NCSCC_RC_SUCCESS) {
-		m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_UNASSIGNING_DUE_TO_DEP);
+		si_dep_state_set(si, AVD_SI_UNASSIGNING_DUE_TO_DEP);
 
 		if (avd_si_dep_si_unassigned(cb, si) != NCSCC_RC_SUCCESS) {
 			/* Log the error */
@@ -568,7 +592,7 @@ uint32_t avd_check_si_dep_sponsors(AVD_CL_CB *cb, AVD_SI *si, bool take_action)
 
 	/* All of the sponsors are in enabled state */
 	if ((rc == NCSCC_RC_SUCCESS) && (take_action)) {
-		m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_ASSIGNED);
+		si_dep_state_set(si, AVD_SI_ASSIGNED);
 
 		avd_si_dep_spons_state_modif(cb, si, NULL, AVD_SI_DEP_SPONSOR_ASSIGNED);
 	}
@@ -649,14 +673,14 @@ void avd_screen_sponsor_si_state(AVD_CL_CB *cb, AVD_SI *si, bool start_assignmen
 	case AVD_SI_TOL_TIMER_RUNNING:
 	case AVD_SI_READY_TO_UNASSIGN:
 		if (si->tol_timer_count == 0)
-			m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_ASSIGNED);
+			si_dep_state_set(si, AVD_SI_ASSIGNED);
 		break;
 
 	case AVD_SI_SPONSOR_UNASSIGNED:
 		/* If SI-SI dependency cfg's are removed for this SI the update the 
 		 * SI dep state with AVD_SI_NO_DEPENDENCY 
 		 */
-		m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_NO_DEPENDENCY);
+		si_dep_state_set(si, AVD_SI_NO_DEPENDENCY);
 
 	case AVD_SI_NO_DEPENDENCY:
 		/* Initiate the process of ASSIGNMENT state, as all of its sponsor SIs
@@ -777,7 +801,7 @@ void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * unassignment 
 	 */
 	if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
-		m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_SPONSOR_UNASSIGNED);
+		si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
 		goto done;
 	}
 
@@ -786,7 +810,7 @@ void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * in this state due to some other spons-SI.
 	 */
 	if (avd_check_si_state_enabled(cb, spons_si) != NCSCC_RC_SUCCESS) {
-		m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_UNASSIGNING_DUE_TO_DEP);
+		si_dep_state_set(si, AVD_SI_UNASSIGNING_DUE_TO_DEP);
 
 		if (avd_si_dep_si_unassigned(cb, si) != NCSCC_RC_SUCCESS) {
 			/* Log the error */
@@ -821,7 +845,7 @@ void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, A
 	case AVD_SI_ASSIGNED:
 		if (si_dep_rec->saAmfToleranceTime > 0) {
 			/* Start the tolerance timer */
-			m_AVD_SET_SI_DEP_STATE(cb, dep_si, AVD_SI_TOL_TIMER_RUNNING);
+			si_dep_state_set(dep_si, AVD_SI_TOL_TIMER_RUNNING);
 
 			/* Start the tolerance timer */
 			m_AVD_SI_DEP_TOL_TMR_START(cb, si_dep_rec);
@@ -863,7 +887,7 @@ void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, A
 		break;
 
 	case AVD_SI_NO_DEPENDENCY:
-		m_AVD_SET_SI_DEP_STATE(cb, dep_si, AVD_SI_SPONSOR_UNASSIGNED);
+		si_dep_state_set(dep_si, AVD_SI_SPONSOR_UNASSIGNED);
 		break;
 
 	default:
