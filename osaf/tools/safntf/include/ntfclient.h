@@ -104,7 +104,8 @@ typedef struct {
 
 	/* Attribute Change Specific */
 	SaNtfSourceIndicatorT attributeChangeSourceIndicator;
-	SaNtfAttributeChangeT changedAttributes[MAX_NUMBER_OF_CHANGED_ATTRIBUTES];
+	SaNtfAttributeChangeT changedAttributes[
+		MAX_NUMBER_OF_CHANGED_ATTRIBUTES];
 
 	/* Security Alarm Specific */
 	SaNtfProbableCauseT securityAlarmProbableCause;
@@ -124,5 +125,8 @@ typedef SaUint16T saNotificationFlagsT;
 #define DEFAULT_NOTIFICATION_OBJECT "default notification object"
 #define DEFAULT_NOTIFYING_OBJECT "default notifying object"
 #define ERICSSON_VENDOR_ID 193
+
+/* used by ntfread and ntfsend */
+void getVendorId(SaNtfClassIdT *notificationClassId);
 
 #endif
