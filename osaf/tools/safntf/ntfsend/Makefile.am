@@ -27,7 +27,8 @@ ntfsend_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/ntfsv/include
 
 ntfsend_SOURCES = \
-	ntfsend.c
+	ntfsend.c\
+	../src/ntfclient.c
 
 ntfsend_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \

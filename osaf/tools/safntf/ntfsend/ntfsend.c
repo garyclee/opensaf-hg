@@ -775,26 +775,6 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 	return SA_AIS_OK;
 }
 
-int get_long_digit(char *str, long *val)
-{
-	char *endptr;
-	errno = 0;		/* To distinguish success/failure after call */
-	*val = strtol(str, &endptr, 0);
-	/* Check for various possible errors */
-	if ((errno == ERANGE && (*val == LONG_MAX || *val == LONG_MIN))
-	    || (errno != 0 && *val == 0)) {
-		perror("strtol");
-		return 0;
-	}
-	if (endptr == str) {
-		fprintf(stderr, "No digits were found\n");
-		return 0;
-	}
-	if (*endptr != '\0')	/* other chars than digits */
-		return 0;
-	return 1;
-}
-
 int main(int argc, char *argv[])
 {
 	long value;
@@ -849,36 +829,7 @@ int main(int argc, char *argv[])
 				myNotificationParams.burstTimeout = (SaInt32T)atoi(optarg);
 				break;
 			case 'c':
-				{
-					long val;
-					char *p = strdup(optarg);
-					char *vendorId = strtok(p, ",");
-					char *majorId = strtok(NULL, ",");
-					char *minorId = strtok(NULL, ",");
-					if (NULL == vendorId || NULL == majorId || NULL == minorId) {
-						fprintf(stderr, "notificationClassId wrong format\n");
-						exit(EXIT_FAILURE);
-					}
-					if (get_long_digit(vendorId, &val)) {
-						myNotificationParams.notificationClassId.vendorId = (SaUint32T)val;
-					} else {
-						fprintf(stderr, "notificationClassId vendorId wrong format\n");
-						exit(EXIT_FAILURE);
-					}
-					if (get_long_digit(majorId, &val) && (0 <= val && val <= USHRT_MAX)) {
-						myNotificationParams.notificationClassId.majorId = (SaUint16T)val;
-					} else {
-						fprintf(stderr, "notificationClassId majorId wrong format\n");
-						exit(EXIT_FAILURE);
-					}
-					if (get_long_digit(minorId, &val) && (0 <= val && val <= USHRT_MAX)) {
-						myNotificationParams.notificationClassId.minorId = (SaUint16T)val;
-					} else {
-						fprintf(stderr, "notificationClassId minorId wrong format\n");
-						exit(EXIT_FAILURE);
-					}
-					free(p);
-				}
+				getVendorId(&myNotificationParams.notificationClassId);
 				break;
 			case 'n':
 				myNotificationParams.notificationObject.length = (SaUint16T)strlen(optarg);
