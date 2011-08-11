@@ -147,6 +147,12 @@ SUBDIRS += java
 
 endif
 
+if ENABLE_PYTHON
+
+SUBDIRS += python
+
+endif
+
 EXTRA_DIST = samples
 
 if ENABLE_TESTS

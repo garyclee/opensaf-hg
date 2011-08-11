@@ -642,6 +642,8 @@ AC_CONFIG_FILES([
         java/ais_api_impl/Makefile
         java/ais_api_impl_native/Makefile
         java/amf_agent/Makefile
+        python/Makefile
+        python/pyosaf/Makefile
         osaf/Makefile
         osaf/libs/Makefile
         osaf/libs/agents/Makefile
@@ -849,8 +851,6 @@ AC_CONFIG_FILES([
         osaf/services/saf/smfsv/smfnd/scripts/Makefile
         osaf/services/saf/smfsv/smfnd/scripts/osaf-smfnd
         osaf/tools/Makefile
-        osaf/tools/pyosaf/Makefile
-        osaf/tools/pyosaf/pyosaf/Makefile
         osaf/tools/safimm/Makefile
         osaf/tools/safimm/immadm/Makefile
         osaf/tools/safimm/immcfg/Makefile
