@@ -19,9 +19,3 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = safimm saflog safntf rde scripts
-
-if ENABLE_PYTHON
-
-SUBDIRS += pyosaf
-
-endif
