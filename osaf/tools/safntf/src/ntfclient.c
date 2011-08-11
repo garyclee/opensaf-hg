@@ -23,6 +23,7 @@
 #include <saNtf.h>
 #include <ntfclient.h>
 #include <ntfconsumer.h>
+#include <limits.h>
 
 /* help functions for printouts */
 void ntfsvtools_exitIfFalse(const char *file, unsigned int line, int expression)
