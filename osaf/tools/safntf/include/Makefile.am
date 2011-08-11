@@ -19,4 +19,5 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
-	ntfclient.h
+	ntfclient.h \
+	ntfconsumer.h
