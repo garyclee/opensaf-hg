@@ -882,6 +882,7 @@ uint32_t avsv_send_ckpt_data(AVD_CL_CB *cb, uint32_t action, MBCSV_REO_HDL reo_h
 	case AVSV_CKPT_SU_READINESS_STATE:
 	case AVSV_CKPT_SU_ACT_STATE:
 	case AVSV_CKPT_SU_PREINSTAN:
+	case AVSV_CKPT_SU_RESTART_COUNT:
 		cb->async_updt_cnt.su_updt++;
 		break;
 
@@ -1216,6 +1217,7 @@ static uint32_t avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uint32_t reo_type
 	case AVSV_CKPT_SU_READINESS_STATE:
 	case AVSV_CKPT_SU_ACT_STATE:
 	case AVSV_CKPT_SU_PREINSTAN:
+	case AVSV_CKPT_SU_RESTART_COUNT:
 		if (cb->synced_reo_type >= AVSV_CKPT_AVD_SU_CONFIG)
 			status = NCSCC_RC_SUCCESS;
 		break;
