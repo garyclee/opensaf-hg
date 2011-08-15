@@ -29,7 +29,6 @@
 #include <syslog.h>
 #include <configmake.h>
 
-//#include <logtrace.h>  // Will not use of log trace for this command line tool!
 #include <saAis.h>
 #include <saImmOm.h>
 #include <immutil.h>
@@ -38,13 +37,13 @@
 #define MAX_CHAR_BUFFER_SIZE 8192  //8k
 
 // redefine logtrace macros local for this file (instead of logtrace.h) because this is a command line tool
-#define LOG_IN(format, args...) log_stderr(LOG_INFO, format, ##args)
-#define LOG_WA(format, args...) log_stderr(LOG_WARNING, format, ##args)
 #define LOG_ER(format, args...) log_stderr(LOG_ERR, format, ##args)
+#define LOG_WA(format, args...) log_stderr(LOG_WARNING, format, ##args)
 #define LOG_NO(format, args...) log_stderr(LOG_NOTICE, format, ##args)
+#define LOG_IN(format, args...) log_stderr(LOG_INFO, format, ##args)
+
 // Trace statements not that informative, lets skip them...
 #define TRACE_8(format, args...)
-
 
 extern "C"
 {
@@ -52,7 +51,7 @@ extern "C"
 }
 
 extern ImmutilErrorFnT immutilError;
-char* imm_import_adminOwnerName;
+static char* imm_import_adminOwnerName;
 static bool imm_import_verbose = false;
 static bool imm_import_ignore_duplicates = false;
 static bool imm_import_ccb_safe = true;
@@ -121,9 +120,6 @@ typedef struct ParserStateStruct {
 	SaImmHandleT         ccbHandle;
 } ParserState;
 
-SaImmCallbacksT immCallbacks =
-{
-};
 
 /* Prototypes */
 
@@ -307,7 +303,6 @@ void setAdminOwnerHelper(ParserState* state, SaNameT *parentOfObject)
 	state->adminOwnerSetSet.insert(tmpStr);
 	state->adminOwnerSetSet.insert(state->objectName);
 }
-
 
 /*
  * This function is inherited from an existing utility to import additional classes/objects
@@ -637,7 +632,6 @@ static void getDNForClass(ParserState* state,
 					   values->attrValueType,
 					   state->objectName);
 }
-
 
 static void errorHandler(void* userData,
 						 const char* msg,
@@ -1575,9 +1569,7 @@ int loadImmXML(std::string xmlfile)
 
 	TRACE_8("Loading from %s", xmlfile.c_str());
 
-	errorCode = saImmOmInitialize(&(state.immHandle),
-								  &immCallbacks,
-								  &version);
+	errorCode = saImmOmInitialize(&(state.immHandle), NULL, &version);
 	if (SA_AIS_OK != errorCode) {
 		LOG_ER("Failed to initialize the IMM OM interface (%d)", errorCode);
 		exit(1);
@@ -1636,7 +1628,6 @@ int loadImmXML(std::string xmlfile)
 
 	return result;
 }
-
 
 // C and c++ caller wrapper
 //  The objective is to keep the code copied from imm_load.cc as close to original as possible
