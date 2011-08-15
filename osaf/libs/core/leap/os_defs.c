@@ -2210,7 +2210,8 @@ uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 		/* this will initializes the execute module control block */
 		if (start_exec_mod_cb() != NCSCC_RC_SUCCESS) {
 			m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			syslog(LOG_ERR, "%s: start_exec_mod_cb failed", __FUNCTION__);
+			return NCSCC_RC_FAILURE;
 		}
 	}
 
@@ -2223,7 +2224,7 @@ uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 		 */
 		struct sched_param param = {.sched_priority = 0 };
 		if (sched_setscheduler(0, SCHED_OTHER, &param) == -1)
-			syslog(LOG_ERR, "Could not setscheduler: %s", strerror(errno));
+			syslog(LOG_ERR, "%s: Could not setscheduler: %s", __FUNCTION__, strerror(errno));
 
 		/* set the environment variables */
 		for (; count > 0; count--) {
@@ -2233,48 +2234,45 @@ uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 
 		/* By default we close all inherited file descriptors in the child */
 		if (getenv("OPENSAF_KEEP_FD_OPEN_AFTER_FORK") == NULL) {
-			int i;
-
 			/* Close all inherited file descriptors */
-			for (i = sysconf(_SC_OPEN_MAX); i >= 0; --i)
-				close(i);	/* close all descriptors */
-
-			/* Reopen standard file descriptors and connect to a harmless device */
-			i = open("/dev/null", O_RDWR);	/* open stdin */
-
-			if (-1 == dup(i)) {
-				perror("dup stdout to /dev/null");
+			int i = sysconf(_SC_OPEN_MAX);
+			if (i == -1) {
+				syslog(LOG_ERR, "%s: sysconf failed - %s", __FUNCTION__, strerror(errno));
+				exit(EXIT_FAILURE);
 			}
+			for (; i >= 0; --i)
+				(void) close(i); /* close all descriptors */
 
-			if (-1 == dup(i)) {
-				perror("dup stderr to /dev/null");
-			}
+			/* Redirect standard files to /dev/null */
+			if (freopen("/dev/null", "r", stdin) == NULL)
+				syslog(LOG_ERR, "%s: freopen stdin failed - %s", __FUNCTION__, strerror(errno));
+			if (freopen("/dev/null", "w", stdout) == NULL)
+				syslog(LOG_ERR, "%s: freopen stdout failed - %s", __FUNCTION__, strerror(errno));
+			if (freopen("/dev/null", "w", stderr) == NULL)
+				syslog(LOG_ERR, "%s: freopen stderr failed - %s", __FUNCTION__, strerror(errno));
 		}
 
 		/* child part */
 		if (execvp(req->i_script, req->i_argv) == -1) {
-			char buf[256];
-			sprintf(buf, "EXECVP fails for %s ", req->i_script);
-			perror(buf);
+			syslog(LOG_ERR, "%s: execvp '%s' failed - %s", __FUNCTION__, req->i_script, strerror(errno));
 			exit(128);
 		}
 	} else if (pid > 0) {
-		/* printf("\n PID added %d...........\n", pid); */
 		/* 
 		 * Parent - Add new pid in the tree,
 		 * start a timer, Wait for a signal from child. 
 		 */
-
 		m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
 
 		if (NCSCC_RC_SUCCESS != add_new_req_pid_in_list(req, pid)) {
 			m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			syslog(LOG_ERR, "%s: failed to add PID", __FUNCTION__);
+			return NCSCC_RC_FAILURE;
 		}
 	} else {
-		/* ERROR */
+		/* fork ERROR */
+		syslog(LOG_ERR, "%s: fork failed - %s", __FUNCTION__, strerror(errno));
 		m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
-		perror("Fork call failed");
 		m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
 		return NCSCC_RC_FAILURE;
 	}
