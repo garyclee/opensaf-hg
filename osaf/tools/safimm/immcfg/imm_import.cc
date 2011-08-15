@@ -47,13 +47,12 @@
 
 extern "C"
 {
-	int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ignore_duplicates, int ccb_safe);
+	int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ccb_safe);
 }
 
 extern ImmutilErrorFnT immutilError;
 static char* imm_import_adminOwnerName;
 static bool imm_import_verbose = false;
-static bool imm_import_ignore_duplicates = false;
 static bool imm_import_ccb_safe = true;
 
 /* The possible states of the parser */
@@ -361,6 +360,25 @@ static void getClassFromImm(
 }
 
 /**
+ * Return attribute value for named attribute
+ * @param attrDefinitions
+ * @param attrName
+ * 
+ * @return SaImmAttrValuesT_2*
+ */
+static SaImmAttrValuesT_2 *attrvalue_get(SaImmAttrValuesT_2 **attrValues,
+										 const char *attrName)
+{
+	int i;
+
+	for (i = 0; attrValues[i] != NULL; i++)
+		if (strcmp(attrValues[i]->attrName, attrName) == 0)
+		    return attrValues[i];
+
+	return NULL;
+}
+
+/**
  * Creates an Imm Object through the ImmOm interface
  */
 static void createImmObject(ParserState* state)
@@ -371,6 +389,7 @@ static void createImmObject(ParserState* state)
 	SaAisErrorT errorCode;
 	int i;
 	size_t DNlen;
+	SaNameT objectName;
 
 	TRACE_8("CREATE IMM OBJECT %s, %s",
 			state->objectClass,
@@ -382,6 +401,10 @@ static void createImmObject(ParserState* state)
 
 	/* Set the class name */
 	className = state->objectClass;
+
+	objectName.length = snprintf((char*) objectName.value,
+								 sizeof(objectName.value),
+								 "%s", state->objectName);
 
 	/* Set the parent name */
 	parentName.length = 0;
@@ -429,9 +452,8 @@ static void createImmObject(ParserState* state)
 	 * and a NULL terminator */
 
 	/* Freed at the bottom of the function */
-	attrValues = (SaImmAttrValuesT_2**)
-				 malloc((state->attrValues.size() + 2)
-						* sizeof(SaImmAttrValuesT_2*));
+	attrValues = (SaImmAttrValuesT_2**) malloc((state->attrValues.size() + 2) *
+											   sizeof(SaImmAttrValuesT_2*));
 	if (attrValues == NULL) {
 		LOG_ER("Failed to malloc attrValues");
 		exit(1);
@@ -463,24 +485,60 @@ static void createImmObject(ParserState* state)
 												 attrValues);
 
 	if (SA_AIS_OK != errorCode) {
-		/* This implementation of ignore-duplicates only matches on object DN,
-			   which is unsafe. A proper implementation must match the entire
-			   object contents. 
-		   See #1560.
-		*/
-
-		//if (imm_import_ignore_duplicates && (SA_AIS_ERR_EXIST == errorCode))
-		//{
-		//    LOG_IN("IGNORE EXISTING OBJECT %s", state->objectName);
-		//}
-		//else 
-		//{
 		if ((errorCode == SA_AIS_ERR_NOT_EXIST) && imm_import_ccb_safe) {
-			LOG_NO("Missing: implementer, or object, or attribute (see immcfg -h under '--unsafe')\n");
+			fprintf(stderr,
+					"NOTEXIST(%u): missing parent, class, implementer "
+					"or invalid attribute names (see also immcfg -h under '--unsafe')\n",
+					SA_AIS_ERR_NOT_EXIST);
+			exit(EXIT_FAILURE);
 		}
-		LOG_ER("Failed to create the imm object %s, rc =  %d", state->objectName, errorCode);
-		exit(1);
-		//}
+
+		if (SA_AIS_ERR_EXIST == errorCode) {
+			SaImmAccessorHandleT accessorHandle;
+			SaImmAttrValuesT_2 **existing_attributes;
+			SaImmAttrValuesT_2 *attr;
+			const char *existing_className;
+
+			LOG_IN("OBJECT %s already exist, verifying...", state->objectName);
+
+			errorCode = immutil_saImmOmAccessorInitialize(state->immHandle, &accessorHandle);
+			if (SA_AIS_OK != errorCode) {
+				fprintf(stderr, "FAILED: saImmOmAccessorInitialize failed: %u\n", errorCode);
+				exit(EXIT_FAILURE);
+			}
+
+			errorCode = immutil_saImmOmAccessorGet_2(accessorHandle, &objectName,
+													 NULL, // get all attributes
+													 &existing_attributes);
+			if (SA_AIS_OK != errorCode) {
+				fprintf(stderr, "FAILED: saImmOmAccessorGet_2 failed: %u\n", errorCode);
+				exit(EXIT_FAILURE);
+			}
+
+			attr = attrvalue_get(existing_attributes, "SaImmAttrClassName");
+			if (attr == NULL) {
+				fprintf(stderr, "FAILED: Attribute 'SaImmAttrClassName' missing\n");
+				exit(EXIT_FAILURE);
+			}	
+
+			assert(attr->attrValueType == SA_IMM_ATTR_SASTRINGT);
+			existing_className = *((char**) attr->attrValues[0]);
+
+			if (strcmp(existing_className, className) != 0) {
+				fprintf(stderr, "FAILED: '%s' of class '%s' "
+								"is not of the same class as an existing object of class '%s'\n",
+						state->objectName, className, existing_className);
+				exit(EXIT_FAILURE);
+			}	
+
+			LOG_IN("OBJECT '%s' OK", state->objectName);
+
+			immutil_saImmOmAccessorFinalize(accessorHandle);
+		} else {
+			fprintf(stderr, "FAILED to create object of class '%s', rc = %d\n",
+					className, errorCode);
+			exit(EXIT_FAILURE);
+		}
 	}
 
 
@@ -508,13 +566,138 @@ static void createImmObject(ParserState* state)
 }
 
 /**
+ * Determines number of SaImmAttrDefinitionT_2 in the NULL
+ * terminated array attrDefinitions.
+ * Does not count IMM added attributes (SaImmAttr*).
+ * @param attrDefinitions
+ * 
+ * @return unsigned int
+ */
+static unsigned int attrdef_array_size(SaImmAttrDefinitionT_2 **attrDefinitions)
+{
+	int i, imm_added = 0;
+
+	for (i = 0; attrDefinitions[i] != NULL; i++) {
+		if (strncmp(attrDefinitions[i]->attrName, "SaImmAttr", 9) == 0)
+			imm_added++;
+	}
+
+	return (i - imm_added);
+}
+
+/**
+ * Return attribute definition for named attribute
+ * @param attrDefinitions
+ * @param attrName
+ * 
+ * @return SaImmAttrDefinitionT_2*
+ */
+static SaImmAttrDefinitionT_2 *attrdef_get(SaImmAttrDefinitionT_2 **attrDefinitions,
+										   SaImmAttrNameT attrName)
+{
+	int i;
+
+	for (i = 0; attrDefinitions[i] != NULL; i++)
+		if (strcmp(attrDefinitions[i]->attrName, attrName) == 0)
+		    return attrDefinitions[i];
+
+	return NULL;
+}
+
+static bool attrvalue_is_equal(SaImmValueTypeT valueType, SaImmAttrValueT val1, SaImmAttrValueT val2)
+{
+	switch (valueType) {
+	case SA_IMM_ATTR_SAINT32T:
+		return *((SaInt32T*) val1) == *((SaInt32T*) val2);
+		break;
+	case SA_IMM_ATTR_SAUINT32T:
+		return *((SaUint32T*) val1) == *((SaUint32T*) val2);
+		break;
+	case SA_IMM_ATTR_SAINT64T:
+		return *((SaInt64T*) val1) == *((SaInt64T*) val2);
+		break;
+	case SA_IMM_ATTR_SAUINT64T:
+		return *((SaUint64T*) val1) == *((SaUint64T*) val2);
+		break;
+	case SA_IMM_ATTR_SATIMET:
+		return *((SaTimeT*) val1) == *((SaTimeT*) val2);
+		break;
+	case SA_IMM_ATTR_SANAMET:
+		return (memcmp(val1, val2, sizeof(SaNameT)) == 0);
+		break;
+	case SA_IMM_ATTR_SAFLOATT:
+		return *((SaFloatT*) val1) == *((SaFloatT*) val2);
+		break;
+	case SA_IMM_ATTR_SADOUBLET:
+		return *((SaDoubleT*) val1) == *((SaDoubleT*) val2);
+		break;
+	case SA_IMM_ATTR_SASTRINGT: {
+			char *s1 = *((char**) val1);
+			char *s2 = *((char**) val2);
+			return (strcmp(s1, s2) == 0);
+			break;
+		}
+	case SA_IMM_ATTR_SAANYT: {
+			SaAnyT *at1 = (SaAnyT *) val1;
+			SaAnyT *at2 = (SaAnyT *) val2;
+
+			if (at1->bufferSize != at2->bufferSize)
+				return false;
+
+			return (memcmp(at1->bufferAddr, at2->bufferAddr, at1->bufferSize) == 0);
+			break;
+		}
+	default:
+		assert(0);
+		break;
+	}
+}
+
+/**
+ * Returns true if attribute definitions are equal
+ * @param attrDef1
+ * @param attrDef2
+ * 
+ * @return bool
+ */
+static bool attrdefs_are_equal(SaImmAttrDefinitionT_2 *attrDef1,
+							   SaImmAttrDefinitionT_2 *attrDef2)
+{
+	assert(strcmp(attrDef1->attrName, attrDef2->attrName) == 0);
+
+	if (attrDef1->attrFlags != attrDef2->attrFlags) {
+		fprintf(stderr, "FAILED: attrFlags mismatch for attribute '%s'\n", attrDef1->attrName);
+		return false;
+	}
+
+	if (((attrDef1->attrDefaultValue == NULL) && (attrDef2->attrDefaultValue != NULL)) ||
+		((attrDef1->attrDefaultValue != NULL) && (attrDef2->attrDefaultValue == NULL))) {
+		fprintf(stderr, "FAILED: attrDefaultValue mismatch for attribute '%s'\n", attrDef1->attrName);
+		return false;
+	}
+
+	if (attrDef1->attrValueType != attrDef2->attrValueType) {
+		fprintf(stderr, "FAILED: attrValueType mismatch for attribute '%s'\n", attrDef1->attrName);
+		return false;
+	}
+
+	if ((attrDef1->attrDefaultValue != NULL) &&
+		!attrvalue_is_equal(attrDef1->attrValueType, attrDef1->attrDefaultValue, attrDef2->attrDefaultValue)) {
+		fprintf(stderr, "FAILED: attrDefaultValue mismatch for attribute '%s'\n", attrDef1->attrName);
+		return false;
+	}
+
+	return true;
+}
+
+/**
  * Creates an ImmClass through the ImmOm interface
  */
 static void createImmClass(ParserState* state)
 {
 	SaImmClassNameT          className;
 	SaImmClassCategoryT      classCategory;
-	SaImmAttrDefinitionT_2** attrDefinition;
+	SaImmAttrDefinitionT_2** new_attrDefinitions;
 	SaAisErrorT              errorCode;
 	int i;
 
@@ -530,26 +713,26 @@ static void createImmClass(ParserState* state)
 		classCategory = state->classCategory;
 	} else {
 		LOG_ER("NO CLASS CATEGORY");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	/* Set the attrDefinition array */
-	attrDefinition = (SaImmAttrDefinitionT_2**)
+	new_attrDefinitions = (SaImmAttrDefinitionT_2**)
 					 calloc((state->attrDefinitions.size() + 1),
 							sizeof(SaImmAttrDefinitionT_2*));
-	if (attrDefinition == NULL) {
+	if (new_attrDefinitions == NULL) {
 		LOG_ER("Failed to malloc attrDefinition");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
-	attrDefinition[state->attrDefinitions.size()] = NULL;
+	new_attrDefinitions[state->attrDefinitions.size()] = NULL;
 
 	std::list<SaImmAttrDefinitionT_2>::iterator it =
 	state->attrDefinitions.begin();
 
 	i = 0;
 	while (it != state->attrDefinitions.end()) {
-		attrDefinition[i] = &(*it);
+		new_attrDefinitions[i] = &(*it);
 
 		i++;
 		it++;
@@ -559,28 +742,69 @@ static void createImmClass(ParserState* state)
 											 className,
 											 classCategory,
 											 (const SaImmAttrDefinitionT_2**)
-											 attrDefinition);
+											 new_attrDefinitions);
 
 	if (SA_AIS_OK != errorCode) {
-		/* This implementation of ignore-duplicates only matches on class-name,
-			   which is unsafe. It can cause an upgrade campaign to succeed when it 
-			   should not succeed. A proper implementation must match the entire
-			   class definition. This both for schema change situations but also 
-		   for the more basic class-nmame collision case between applications.
-		   See #1560.
-		*/
+		if (SA_AIS_ERR_EXIST == errorCode) {
 
-		//if (imm_import_ignore_duplicates && (SA_AIS_ERR_EXIST == errorCode))
-		//{
-		//    LOG_IN("IGNORE EXISTING CLASS %s", state->className);
-		//} 
-		//else
-		//{
-		LOG_ER("FAILED to create IMM class %s, rc = %d", state->className, errorCode);
-		exit(1);
-		//}
+			// Class with same name already exist
+			// If class descriptions are equal ignore the error
+			LOG_IN("Class %s already exist, verifying...", state->className);
+
+			SaImmClassCategoryT existing_classCategory;
+			SaImmAttrDefinitionT_2 **existing_attrDefinitions;
+			SaImmAttrDefinitionT_2 *new_attrDef, *existing_attrDef;
+
+			errorCode = immutil_saImmOmClassDescriptionGet_2(state->immHandle,
+															 className,
+															 &existing_classCategory,
+															 &existing_attrDefinitions);
+			if (SA_AIS_OK != errorCode) {
+				fprintf(stderr, "FAILED to get IMM class description for '%s', rc = %d\n",
+						className, errorCode);
+				exit(EXIT_FAILURE);
+			}
+
+			if (existing_classCategory != classCategory) {
+				fprintf(stderr, "FAILED: Class category differ for '%s'\n", className);
+				exit(EXIT_FAILURE);
+			}
+
+			// If there are more (or less) attributes in the new class description
+			// than in the existing one, this check will catch it.
+			if (attrdef_array_size(existing_attrDefinitions) !=
+				attrdef_array_size(new_attrDefinitions)) {
+				fprintf(stderr, "FAILED: Number of attribute definitions differ for '%s'\n", className);
+				exit(EXIT_FAILURE);
+			}
+
+			for (i = 0; existing_attrDefinitions[i] != NULL; i++) {
+				existing_attrDef = existing_attrDefinitions[i];
+
+				// Skip IMM added attributes
+				if (strncmp(existing_attrDef->attrName, "SaImmAttr", 9) == 0)
+					continue;
+
+				new_attrDef = attrdef_get(new_attrDefinitions, existing_attrDef->attrName);
+				if (new_attrDef == NULL) {
+					fprintf(stderr, "FAILED: Attribute '%s' missing in loaded class '%s'\n",
+							existing_attrDef->attrName, className);
+					exit(EXIT_FAILURE);
+				}
+
+				if (!attrdefs_are_equal(existing_attrDef, new_attrDef))
+					exit(EXIT_FAILURE);
+			}
+
+			(void) saImmOmClassDescriptionMemoryFree_2(state->immHandle,
+													   existing_attrDefinitions);
+
+			LOG_IN("Class '%s' OK", state->className);
+		} else {
+			fprintf(stderr, "FAILED to create class '%s', rc = %d\n", className, errorCode);
+			exit(EXIT_FAILURE);
+		}
 	}
-
 
 	TRACE_8("CREATED IMM CLASS %s", className);
 
@@ -594,7 +818,7 @@ static void createImmClass(ParserState* state)
 	}
 
 	/* Free the attrDefinition array and empty the list */
-	free(attrDefinition);
+	free(new_attrDefinitions);
 	state->attrDefinitions.clear();
 
 	TRACE_8("<CREATE IMM CLASS");
@@ -1632,12 +1856,11 @@ int loadImmXML(std::string xmlfile)
 // C and c++ caller wrapper
 //  The objective is to keep the code copied from imm_load.cc as close to original as possible
 //  to ease a future refactoring towards common codebase
-int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ignore_duplicates, int ccb_safe)
+int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ccb_safe)
 {
 	std::string xmlfile(xmlfileC);
 	imm_import_adminOwnerName = adminOwnerName;
 	imm_import_verbose = verbose;
-	imm_import_ignore_duplicates = ignore_duplicates;
 	imm_import_ccb_safe = ccb_safe;
 	LOG_IN("file: %s adminOwner: %s", xmlfileC, adminOwnerName);
 

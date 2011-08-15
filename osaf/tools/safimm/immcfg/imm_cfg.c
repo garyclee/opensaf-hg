@@ -54,7 +54,7 @@ typedef enum {
 #define VERBOSE_INFO(format, args...) if (verbose) { fprintf(stderr, format, ##args); }
 
 // The interface function which implements the -f opton (imm_import.cc)
-int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ignore_duplicates, int ccb_safe);
+int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ccb_safe);
 
 static void usage(const char *progname)
 {
@@ -77,7 +77,7 @@ static void usage(const char *progname)
 	printf("\t-m, --modify-object [object DN]... \n");
 	printf("\t-v, --verbose (only valid with -f/--file option)\n");
 	printf("\t-f, --file <imm.xml file containing classes and/or objects>\n");
-	/*printf("\t--ignore-duplicates  (only valid with -f/--file option)\n");*/
+	printf("\t--ignore-duplicates  (only valid with -f/--file option, default)\n");
 	printf("\t--delete-class <classname> [classname2]... \n");
 	printf("\t-u, --unsafe\n");
 
@@ -638,7 +638,7 @@ int main(int argc, char *argv[])
 		{"attribute", required_argument, NULL, 'a'},
 		{"create-object", required_argument, NULL, 'c'},
 		{"file", required_argument, NULL, 'f'},
-		/*{"ignore-duplicates", no_argument, NULL, 0},*/
+		{"ignore-duplicates", no_argument, NULL, 0},
 		{"delete-class", no_argument, NULL, 0},    /* Note: should be 'no_arg'! treated as "Remaining args" below*/
 		{"delete-object", no_argument, NULL, 'd'},
 		{"help", no_argument, NULL, 'h'},
@@ -663,7 +663,6 @@ int main(int argc, char *argv[])
 	SaImmClassNameT className = NULL;
 	op_t op = INVALID;
 	char* xmlFilename=NULL;
-	int ignore_duplicates = 0;
 	int i;
 
 	while (1) {
@@ -679,11 +678,6 @@ int main(int argc, char *argv[])
 			if (strcmp("delete-class", long_options[option_index].name) == 0) {
 				op = verify_setoption(op, DELETE_CLASS);
 			}
-			/*
-			if (strcmp("ignore-duplicates", long_options[option_index].name) == 0) {
-				ignore_duplicates = 1;
-			}
-			*/
 		break;
 		case 'a':
 			optargs = realloc(optargs, ++optargs_len * sizeof(char *));
@@ -724,7 +718,7 @@ int main(int argc, char *argv[])
 
 	if (op == LOAD_IMMFILE) {
 		VERBOSE_INFO("importImmXML(xmlFilename=%s, verbose=%d)\n", xmlFilename, verbose);
-		rc = importImmXML(xmlFilename, adminOwnerName, verbose, ignore_duplicates, ccb_safe);
+		rc = importImmXML(xmlFilename, adminOwnerName, verbose, ccb_safe);
 		exit(rc);
 	}
 
