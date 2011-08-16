@@ -648,8 +648,10 @@ static bool attrvalue_is_equal(SaImmValueTypeT valueType, SaImmAttrValueT val1, 
 			break;
 		}
 	default:
-		assert(0);
-		break;
+		fprintf(stderr, "FAILED: unknown valuetype %u\n", valueType);
+		exit(EXIT_FAILURE);
+		return false; // keep compiler happy
+		break; // keep compiler happy
 	}
 }
 
