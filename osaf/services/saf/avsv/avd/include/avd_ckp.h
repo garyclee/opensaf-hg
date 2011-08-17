@@ -33,6 +33,7 @@
 #ifndef AVD_CKP_H
 #define AVD_CKP_H
 
+#define AVD_MBCSV_SUB_PART_VERSION_4    4
 #define AVD_MBCSV_SUB_PART_VERSION_3    3
 #define AVD_MBCSV_SUB_PART_VERSION      2
 #define AVD_MBCSV_SUB_PART_VERSION_MIN  1
@@ -120,6 +121,7 @@ typedef uint32_t (*AVSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR) (struct cl_cb_tag * 
 
 /* Function Definations of avd_chkop.c */
 extern uint32_t avd_active_role_initialization(struct cl_cb_tag *cb, SaAmfHAStateT role);
+extern uint32_t avd_standby_role_initialization(struct cl_cb_tag *cb);
 void avd_role_change_evh(struct cl_cb_tag *cb, struct avd_evt_tag *evt);
 uint32_t avsv_mbcsv_register(struct cl_cb_tag *cb);
 uint32_t avsv_mbcsv_deregister(struct cl_cb_tag *cb);

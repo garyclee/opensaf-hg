@@ -958,6 +958,8 @@ static SaAisErrorT comp_rt_attr_cb(SaImmOiHandleT immOiHandle,
 			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
 						       SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompRestartCount);
 		} else if (!strcmp("saAmfCompCurrProxyName", attributeName)) {
+			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
+						       SA_IMM_ATTR_SANAMET, &comp->saAmfCompCurrProxyName);
 			/* TODO */
 		} else if (!strcmp("saAmfCompCurrProxiedNames", attributeName)) {
 			/* TODO */
@@ -1692,7 +1694,6 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 		param.class_id = AVSV_SA_AMF_COMP;
 		avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
 	}
-
 	avd_comp_delete(comp);
 	TRACE_LEAVE();
 }

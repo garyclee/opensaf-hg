@@ -48,45 +48,27 @@ uint32_t avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE ac
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_node->name.value);
 
-	switch (action) {
-	case NCS_MBCSV_ACT_ADD:
-		if (NULL == (node = avd_node_new(&ckpt_node->name))) {
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		avd_node_db_add(node);
-		/* fall through */
-	case NCS_MBCSV_ACT_UPDATE:
-		if (NULL == (node = avd_node_get(&ckpt_node->name))) {
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		/* Update all runtime attributes */	
-		node->saAmfNodeAdminState = ckpt_node->saAmfNodeAdminState;
-		node->saAmfNodeOperState = ckpt_node->saAmfNodeOperState;
-		node->node_state = ckpt_node->node_state;
-		node->rcv_msg_id = ckpt_node->rcv_msg_id;
-		node->snd_msg_id = ckpt_node->snd_msg_id;
-		node->type = ckpt_node->type;
-		node->node_info.member = ckpt_node->node_info.member;
-		node->node_info.bootTimestamp = ckpt_node->node_info.bootTimestamp;
-		node->node_info.initialViewNumber = ckpt_node->node_info.initialViewNumber;
-		node->adest = ckpt_node->adest;
-		node->node_info.nodeId = ckpt_node->node_info.nodeId;
-		if (NULL == avd_node_find_nodeid(ckpt_node->node_info.nodeId))
-			avd_node_add_nodeid(node);
-		break;
-	case NCS_MBCSV_ACT_RMV:
-		if (NULL == (node = avd_node_get(&ckpt_node->name))) {
-			LOG_ER("%s: %s does not exist", __FUNCTION__, ckpt_node->name.value);
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		avd_node_delete(node);
-		break;
-	default:
-		assert(0);
+	assert (action == NCS_MBCSV_ACT_UPDATE);
+
+	if (NULL == (node = avd_node_get(&ckpt_node->name))) {
+		LOG_ER("avd_node_get FAILED for '%s'", ckpt_node->name.value);
+		rc = NCSCC_RC_FAILURE;
+		goto done;
 	}
+	/* Update all runtime attributes */	
+	node->saAmfNodeAdminState = ckpt_node->saAmfNodeAdminState;
+	node->saAmfNodeOperState = ckpt_node->saAmfNodeOperState;
+	node->node_state = ckpt_node->node_state;
+	node->rcv_msg_id = ckpt_node->rcv_msg_id;
+	node->snd_msg_id = ckpt_node->snd_msg_id;
+	node->type = ckpt_node->type;
+	node->node_info.member = ckpt_node->node_info.member;
+	node->node_info.bootTimestamp = ckpt_node->node_info.bootTimestamp;
+	node->node_info.initialViewNumber = ckpt_node->node_info.initialViewNumber;
+	node->adest = ckpt_node->adest;
+	node->node_info.nodeId = ckpt_node->node_info.nodeId;
+	if (NULL == avd_node_find_nodeid(ckpt_node->node_info.nodeId))
+		avd_node_add_nodeid(node);
 
 done:
 	TRACE_LEAVE2("%u", rc);
@@ -116,34 +98,16 @@ uint32_t avd_ckpt_app(AVD_CL_CB *cb, AVD_APP *ckpt_app, NCS_MBCSV_ACT_TYPE actio
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_app->name.value);
 
-	switch (action) {
-	case NCS_MBCSV_ACT_ADD:
-		if (NULL == (app = avd_app_new(&ckpt_app->name))) {
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		avd_app_db_add(app);
-		/* fall through */
-	case NCS_MBCSV_ACT_UPDATE:
-		if (NULL == (app = avd_app_get(&ckpt_app->name))) {
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		/* Update all runtime attributes */	
-		app->saAmfApplicationAdminState = ckpt_app->saAmfApplicationAdminState;
-		app->saAmfApplicationCurrNumSGs = ckpt_app->saAmfApplicationCurrNumSGs;
-		break;
-	case NCS_MBCSV_ACT_RMV:
-		if (NULL == (app = avd_app_get(&ckpt_app->name))) {
-			LOG_ER("%s: %s does not exist", __FUNCTION__, ckpt_app->name.value);
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		avd_app_delete(app);
-		break;
-	default:
-		assert(0);
+	assert (action == NCS_MBCSV_ACT_UPDATE);
+
+	if (NULL == (app = avd_app_get(&ckpt_app->name))) {
+		LOG_ER("avd_app_get FAILED for '%s'", ckpt_app->name.value);
+		rc = NCSCC_RC_FAILURE;
+		goto done;
 	}
+	/* Update all runtime attributes */	
+	app->saAmfApplicationAdminState = ckpt_app->saAmfApplicationAdminState;
+	app->saAmfApplicationCurrNumSGs = ckpt_app->saAmfApplicationCurrNumSGs;
 
 done:
 	TRACE_LEAVE2("%u", rc);
@@ -173,40 +137,20 @@ uint32_t avd_ckpt_sg(AVD_CL_CB *cb, AVD_SG *ckpt_sg, NCS_MBCSV_ACT_TYPE action)
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_sg->name.value);
 
-	switch (action) {
-	case NCS_MBCSV_ACT_ADD:
-		if (NULL == (sg = avd_sg_new(&ckpt_sg->name))) {
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		avd_sg_db_add(sg);
-		/* fall through */
-	case NCS_MBCSV_ACT_UPDATE:
-		if (NULL == (sg = avd_sg_get(&ckpt_sg->name))) {
-			LOG_ER("avd_sg_get FAILED for '%s'", ckpt_sg->name.value);
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		/* Update all runtime attributes */	
-		sg->saAmfSGAdminState = ckpt_sg->saAmfSGAdminState;
-		sg->saAmfSGNumCurrAssignedSUs = ckpt_sg->saAmfSGNumCurrAssignedSUs;
-		sg->saAmfSGNumCurrInstantiatedSpareSUs = ckpt_sg->saAmfSGNumCurrInstantiatedSpareSUs;
-		sg->saAmfSGNumCurrNonInstantiatedSpareSUs = ckpt_sg->saAmfSGNumCurrNonInstantiatedSpareSUs;
-		sg->adjust_state = ckpt_sg->adjust_state;
-		sg->sg_fsm_state = ckpt_sg->sg_fsm_state;
-		break;
-	case NCS_MBCSV_ACT_RMV: {
-		if (NULL == (sg = avd_sg_get(&ckpt_sg->name))) {
-			LOG_ER("%s: %s does not exist", __FUNCTION__, ckpt_sg->name.value);
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		avd_sg_delete(sg);
-		break;
+	assert (action == NCS_MBCSV_ACT_UPDATE);
+
+	if (NULL == (sg = avd_sg_get(&ckpt_sg->name))) {
+		LOG_ER("avd_sg_get FAILED for '%s'", ckpt_sg->name.value);
+		rc = NCSCC_RC_FAILURE;
+		goto done;
 	}
-	default:
-		assert(0);
-	}
+	/* Update all runtime attributes */	
+	sg->saAmfSGAdminState = ckpt_sg->saAmfSGAdminState;
+	sg->saAmfSGNumCurrAssignedSUs = ckpt_sg->saAmfSGNumCurrAssignedSUs;
+	sg->saAmfSGNumCurrInstantiatedSpareSUs = ckpt_sg->saAmfSGNumCurrInstantiatedSpareSUs;
+	sg->saAmfSGNumCurrNonInstantiatedSpareSUs = ckpt_sg->saAmfSGNumCurrNonInstantiatedSpareSUs;
+	sg->adjust_state = ckpt_sg->adjust_state;
+	sg->sg_fsm_state = ckpt_sg->sg_fsm_state;
 
 done:
 	TRACE_LEAVE2("%u", rc);
@@ -236,51 +180,26 @@ uint32_t avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_su->name.value);
 
-	switch (action) {
-	case NCS_MBCSV_ACT_ADD: {
-		SaNameT sg_name;
-		if (NULL == (su = avd_su_new(&ckpt_su->name))) {
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		avsv_sanamet_init(&ckpt_su->name, &sg_name, "safSg=");
-		su->sg_of_su = avd_sg_get(&sg_name);
-		avd_su_db_add(su);
-		/* fall through */
+	assert (action == NCS_MBCSV_ACT_UPDATE);
+
+	if (NULL == (su = avd_su_get(&ckpt_su->name))) {
+		LOG_ER("avd_su_get FAILED for '%s'", ckpt_su->name.value);
+		rc = NCSCC_RC_FAILURE;
+		goto done;
 	}
-	case NCS_MBCSV_ACT_UPDATE: {
-		if (NULL == (su = avd_su_get(&ckpt_su->name))) {
-			LOG_ER("avd_su_get FAILED for '%s'", ckpt_su->name.value);
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		/* Update all runtime attributes */	
-		su->saAmfSUPreInstantiable = ckpt_su->saAmfSUPreInstantiable;
-		su->saAmfSUOperState = ckpt_su->saAmfSUOperState;
-		su->saAmfSUAdminState = ckpt_su->saAmfSUAdminState;
-		su->saAmfSuReadinessState = ckpt_su->saAmfSuReadinessState;
-		su->saAmfSUPresenceState = ckpt_su->saAmfSUPresenceState;
-		su->saAmfSUNumCurrActiveSIs = ckpt_su->saAmfSUNumCurrActiveSIs;
-		su->saAmfSUNumCurrStandbySIs = ckpt_su->saAmfSUNumCurrStandbySIs;
-		memcpy(&su->saAmfSUHostedByNode, &ckpt_su->saAmfSUHostedByNode, sizeof(SaNameT));
-		su->term_state = ckpt_su->term_state;
-		su->su_switch = ckpt_su->su_switch;
-		su->su_act_state = ckpt_su->su_act_state;
-		su->saAmfSURestartCount = ckpt_su->saAmfSURestartCount;
-		break;
-	}
-	case NCS_MBCSV_ACT_RMV: {
-		if (NULL == (su = avd_su_get(&ckpt_su->name))) {
-			LOG_ER("%s: %s does not exist", __FUNCTION__, ckpt_su->name.value);
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		avd_su_delete(su);
-		break;
-	}
-	default:
-		assert(0);
-	}
+	/* Update all runtime attributes */	
+	su->saAmfSUPreInstantiable = ckpt_su->saAmfSUPreInstantiable;
+	su->saAmfSUOperState = ckpt_su->saAmfSUOperState;
+	su->saAmfSUAdminState = ckpt_su->saAmfSUAdminState;
+	su->saAmfSuReadinessState = ckpt_su->saAmfSuReadinessState;
+	su->saAmfSUPresenceState = ckpt_su->saAmfSUPresenceState;
+	su->saAmfSUNumCurrActiveSIs = ckpt_su->saAmfSUNumCurrActiveSIs;
+	su->saAmfSUNumCurrStandbySIs = ckpt_su->saAmfSUNumCurrStandbySIs;
+	memcpy(&su->saAmfSUHostedByNode, &ckpt_su->saAmfSUHostedByNode, sizeof(SaNameT));
+	su->term_state = ckpt_su->term_state;
+	su->su_switch = ckpt_su->su_switch;
+	su->su_act_state = ckpt_su->su_act_state;
+	su->saAmfSURestartCount = ckpt_su->saAmfSURestartCount;
 
 done:
 	TRACE_LEAVE2("%u", rc);
@@ -309,40 +228,22 @@ uint32_t avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_si->name.value);
 
-	switch (action) {
-	case NCS_MBCSV_ACT_ADD:
-		if (NULL == (si = avd_si_new(&ckpt_si->name)))
-			goto done;
-		avd_si_db_add(si);
-		/* fall through */
-	case NCS_MBCSV_ACT_UPDATE:
-		if (NULL == (si = avd_si_get(&ckpt_si->name))) {
-			LOG_ER("avd_si_get FAILED for '%s'", ckpt_si->name.value);
-			goto done;
-		}
-		/* Update all runtime attributes */	
-		si->saAmfSINumCurrActiveAssignments = ckpt_si->saAmfSINumCurrActiveAssignments;
-		si->saAmfSINumCurrStandbyAssignments = ckpt_si->saAmfSINumCurrStandbyAssignments;
-		si->max_num_csi = ckpt_si->max_num_csi;
-		si->si_switch = ckpt_si->si_switch;
-		si->saAmfSIAdminState = ckpt_si->saAmfSIAdminState;
-		si->saAmfSIAssignmentState = ckpt_si->saAmfSIAssignmentState;
-		si->saAmfSIProtectedbySG = ckpt_si->saAmfSIProtectedbySG;
-		si->alarm_sent = ckpt_si->alarm_sent;
-		si->sg_of_si = avd_sg_get(&si->saAmfSIProtectedbySG);
-		break;
-	case NCS_MBCSV_ACT_RMV: {
-		if (NULL == (si = avd_si_get(&ckpt_si->name))) {
-			LOG_ER("%s: %s does not exist", __FUNCTION__, ckpt_si->name.value);
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		avd_si_delete(si);
-		break;
+	assert (action == NCS_MBCSV_ACT_UPDATE);
+
+	if (NULL == (si = avd_si_get(&ckpt_si->name))) {
+		LOG_ER("avd_si_get FAILED for '%s'", ckpt_si->name.value);
+		goto done;
 	}
-	default:
-		assert(0);
-	}
+	/* Update all runtime attributes */	
+	si->saAmfSINumCurrActiveAssignments = ckpt_si->saAmfSINumCurrActiveAssignments;
+	si->saAmfSINumCurrStandbyAssignments = ckpt_si->saAmfSINumCurrStandbyAssignments;
+	si->max_num_csi = ckpt_si->max_num_csi;
+	si->si_switch = ckpt_si->si_switch;
+	si->saAmfSIAdminState = ckpt_si->saAmfSIAdminState;
+	si->saAmfSIAssignmentState = ckpt_si->saAmfSIAssignmentState;
+	si->saAmfSIProtectedbySG = ckpt_si->saAmfSIProtectedbySG;
+	si->alarm_sent = ckpt_si->alarm_sent;
+	si->sg_of_si = avd_sg_get(&si->saAmfSIProtectedbySG);
 
 	rc = NCSCC_RC_SUCCESS;
 done:
@@ -421,6 +322,7 @@ uint32_t avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE 
 	}
 
 	si_ptr_up = avd_si_get(&si->name);
+	assert (si_ptr_up);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -578,35 +480,18 @@ uint32_t avd_ckpt_comp(AVD_CL_CB *cb, AVD_COMP *ckpt_comp, NCS_MBCSV_ACT_TYPE ac
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], dn->value);
 
-	switch (action) {
-	case NCS_MBCSV_ACT_ADD:
-		if (NULL == (comp = avd_comp_new(dn)))
-			goto done;
-		avd_comp_db_add(comp);
-		/* fall through */
-	case NCS_MBCSV_ACT_UPDATE:
-		if (NULL == (comp = avd_comp_get(dn))) {
-			LOG_ER("avd_comp_get FAILED for '%s'", dn->value);
-			goto done;
-		}
-		comp->saAmfCompOperState = ckpt_comp->saAmfCompOperState;
-		comp->saAmfCompPresenceState = ckpt_comp->saAmfCompPresenceState;
-		comp->saAmfCompRestartCount = ckpt_comp->saAmfCompRestartCount;
-		comp->saAmfCompReadinessState = ckpt_comp->saAmfCompReadinessState;
-		/* SaNameT struct copy */
-		comp->saAmfCompCurrProxyName = ckpt_comp->saAmfCompCurrProxyName;
-		break;
-	case NCS_MBCSV_ACT_RMV: {
-		if (NULL == (comp = avd_comp_get(dn))) {
-			LOG_ER("%s: %s does not exist", __FUNCTION__, dn->value);
-			goto done;
-		}
-		avd_comp_delete(comp);
-		break;
+	assert (action == NCS_MBCSV_ACT_UPDATE);
+
+	if (NULL == (comp = avd_comp_get(dn))) {
+		LOG_ER("avd_comp_get FAILED for '%s'", dn->value);
+		goto done;
 	}
-	default:
-		assert(0);
-	}
+	comp->saAmfCompOperState = ckpt_comp->saAmfCompOperState;
+	comp->saAmfCompPresenceState = ckpt_comp->saAmfCompPresenceState;
+	comp->saAmfCompRestartCount = ckpt_comp->saAmfCompRestartCount;
+	comp->saAmfCompReadinessState = ckpt_comp->saAmfCompReadinessState;
+	/* SaNameT struct copy */
+	comp->saAmfCompCurrProxyName = ckpt_comp->saAmfCompCurrProxyName;
 
 	rc = NCSCC_RC_SUCCESS;
 done:
@@ -638,31 +523,14 @@ uint32_t avd_ckpt_compcstype(AVD_CL_CB *cb, AVD_COMPCS_TYPE *ckpt_compcstype, NC
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], dn->value);
 
-	switch (action) {
-	case NCS_MBCSV_ACT_ADD:
-		if (NULL == (ccst = avd_compcstype_new(dn)))
-			goto done;
-		avd_compcstype_db_add(ccst);
-		/* fall through */
-	case NCS_MBCSV_ACT_UPDATE:
-		if (NULL == (ccst = avd_compcstype_get(dn))) {
-			LOG_ER("avd_compcstype_get FAILED for '%s'", dn->value);
-			goto done;
-		}
-		ccst->saAmfCompNumCurrActiveCSIs = ckpt_compcstype->saAmfCompNumCurrActiveCSIs;
-		ccst->saAmfCompNumCurrStandbyCSIs = ckpt_compcstype->saAmfCompNumCurrStandbyCSIs;
-		break;
-	case NCS_MBCSV_ACT_RMV: {
-		if (NULL == (ccst = avd_compcstype_get(dn))) {
-			LOG_ER("%s: %s does not exist", __FUNCTION__, dn->value);
-			goto done;
-		}
-		avd_compcstype_delete(&ccst);
-		break;
+	assert (action == NCS_MBCSV_ACT_UPDATE);
+
+	if (NULL == (ccst = avd_compcstype_get(dn))) {
+		LOG_ER("avd_compcstype_get FAILED for '%s'", dn->value);
+		goto done;
 	}
-	default:
-		assert(0);
-	}
+	ccst->saAmfCompNumCurrActiveCSIs = ckpt_compcstype->saAmfCompNumCurrActiveCSIs;
+	ccst->saAmfCompNumCurrStandbyCSIs = ckpt_compcstype->saAmfCompNumCurrStandbyCSIs;
 
 	rc = NCSCC_RC_SUCCESS;
 done:

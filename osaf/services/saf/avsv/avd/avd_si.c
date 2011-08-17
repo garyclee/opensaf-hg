@@ -1046,6 +1046,9 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 		if (!strcmp(attribute->attrName, "saAmfSIPrefActiveAssignments")) {
 			si->saAmfSIPrefActiveAssignments = *((SaUint32T *)value);
+			if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)  
+				continue;
+
 			/* Check if we need to readjust the SI assignments as PrefActiveAssignments
 				got changed */
 			if ( si->saAmfSIPrefActiveAssignments == si->saAmfSINumCurrActiveAssignments ) {
@@ -1056,6 +1059,9 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfSIPrefStandbyAssignments")) {
 			si->saAmfSIPrefStandbyAssignments = *((SaUint32T *)value);
+			if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)  
+				continue;
+
 			/* Check if we need to readjust the SI assignments as PrefStandbyAssignments
 			   got changed */
 			if ( si->saAmfSIPrefStandbyAssignments == si->saAmfSINumCurrStandbyAssignments ) {

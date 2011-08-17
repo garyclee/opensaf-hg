@@ -2532,6 +2532,17 @@ uint32_t avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		 dec->i_reo_type, num_of_obj);
 	TRACE_ENTER();
 
+	if (((dec->i_reo_type >= AVSV_CKPT_AVD_CB_CONFIG) && 
+	     (dec->i_reo_type <= AVSV_CKPT_AVD_SI_CONFIG)) || 
+	     (dec->i_reo_type == AVSV_CKPT_AVD_COMP_CONFIG) || 
+	     (dec->i_reo_type == AVSV_CKPT_AVD_COMP_CS_TYPE_CONFIG)) 
+	{
+		/* 4.2 release onwards, no need to decode and process ADD/RMV messages 
+		   for the types above, since they are received as applier callbacks. 
+		   but processing this message by setting the action to UPDATE, because 
+		   there might be some runtime attributes in the cold sync response */
+		dec->i_action = NCS_MBCSV_ACT_UPDATE;
+	}
 	return avsv_dec_cold_sync_rsp_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
 }
 
@@ -3155,6 +3166,15 @@ uint32_t avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 */
 	dec->i_action = NCS_MBCSV_ACT_ADD;
 
+	if (((dec->i_reo_type >= AVSV_CKPT_AVD_CB_CONFIG) && 
+	     (dec->i_reo_type <= AVSV_CKPT_AVD_SI_CONFIG)) || 
+	     (dec->i_reo_type == AVSV_CKPT_AVD_COMP_CONFIG) || 
+	     (dec->i_reo_type == AVSV_CKPT_AVD_COMP_CS_TYPE_CONFIG)) 
+	{
+		/* 4.2 release onwards, no need to decode and process ADD/RMV messages 
+		   for the types above, since they are received as applier callbacks. */
+		return NCSCC_RC_SUCCESS;
+	}
 	return avsv_dec_cold_sync_rsp_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
 }
 

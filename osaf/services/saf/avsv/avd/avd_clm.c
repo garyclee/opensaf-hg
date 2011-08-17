@@ -324,7 +324,12 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 						notifItem->clusterNode.nodeName.length);
 
 					node->node_info.member = SA_TRUE;
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
+					if (avd_cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_4) {
+						m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
+					}
+					else {
+						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
+					}
 					if (node->node_state == AVD_AVND_STATE_PRESENT) {
 						TRACE("Node already up and configured");
 						/* now try to instantiate all the SUs that need to be */
