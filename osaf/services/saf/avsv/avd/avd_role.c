@@ -196,6 +196,38 @@ done:
 }
 
 /****************************************************************************\
+ * @brief	AVSV function to handle AVD's initial standby role setting. 
+ *
+ * @param[in] 	cb - AVD control block pointer.
+ *
+ * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+\**************************************************************************/
+uint32_t avd_standby_role_initialization(AVD_CL_CB *cb)
+{
+	uint32_t status = NCSCC_RC_FAILURE;
+
+	TRACE_ENTER();
+
+	if (avd_imm_config_get() != NCSCC_RC_SUCCESS) {
+		LOG_ER("avd_imm_config_get FAILED");
+		goto done;
+	}
+
+	cb->init_state = AVD_CFG_DONE;
+
+	if (avd_imm_applier_set() != SA_AIS_OK) {
+		LOG_ER("avd_imm_applier_set FAILED");
+		goto done;
+	}
+
+	status = NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE();
+	return status;
+}
+
+/****************************************************************************\
  * Function: avd_role_failover
  *
  * Purpose:  AVSV function to handle AVD's fail-over. 
@@ -272,8 +304,8 @@ static uint32_t avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 		goto done;
 	}
 
-	if (avd_imm_config_get() != NCSCC_RC_SUCCESS)
-		goto done;
+	/* Give up our IMM OI Applier role */
+	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
 
 	/* Time to send fail-over messages to all the AVND's */
 	avd_fail_over_event(cb);
@@ -454,8 +486,8 @@ static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 	cb->node_id_avd_other = 0;
 
-	if (avd_imm_config_get() != NCSCC_RC_SUCCESS)
-		return NCSCC_RC_FAILURE;
+	/* Give up our IMM OI applier role */
+	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
 
 	avd_imm_impl_set_task_create();
 
@@ -810,6 +842,11 @@ uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb)
 	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
 	cb->is_implementer = false;
 
+	if (avd_imm_applier_set() != SA_AIS_OK) {
+		LOG_ER("avd_imm_applier_set FAILED");
+		return NCSCC_RC_FAILURE;
+	}
+
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -943,12 +980,6 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (avd_imm_config_get() != NCSCC_RC_SUCCESS) {
-		LOG_ER("AMFD: Switch Standby --> Active, imm Config failed");
-		avd_d2d_chg_role_rsp(cb, NCSCC_RC_FAILURE, SA_AMF_HA_ACTIVE);
-		return NCSCC_RC_FAILURE;
-	}
-	
 	/* Time to send fail-over messages to all the AVND's */
 	avd_fail_over_event(cb);
 
@@ -960,6 +991,9 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 		avd_d2n_msg_dequeue(cb);
 	}
 	cb->swap_switch = SA_FALSE;
+
+	/* Give up our IMM OI Applier role */
+	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
 
 	if (avd_imm_impl_set() != SA_AIS_OK) {
 		LOG_ER("AMFD: Switch Standby --> Active, imm implement failed");

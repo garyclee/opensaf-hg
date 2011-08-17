@@ -33,6 +33,8 @@ extern SaAisErrorT avd_imm_init(void *avd_cb);
 extern SaAisErrorT avd_imm_re_init(void *avd_cb);
 extern void avd_imm_impl_set_task_create(void);
 extern SaAisErrorT avd_imm_impl_set(void);
+extern void avd_imm_applier_set_task_create(void);
+extern SaAisErrorT avd_imm_applier_set(void);
 extern void avd_imm_update_runtime_attrs(void);
 
 /**

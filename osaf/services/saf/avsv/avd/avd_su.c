@@ -580,6 +580,9 @@ static void su_add_to_model(AVD_SU *su)
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
 
+	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) 
+		goto done;
+
 	if (new_su) {
 		if ((node->node_state == AVD_AVND_STATE_PRESENT) ||
 		    (node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
@@ -1418,6 +1421,11 @@ static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 
 	TRACE_ENTER2("'%s'", su->name.value);
 
+	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
+		avd_su_delete(su);
+		goto done;
+	}
+
 	m_AVD_GET_SU_NODE_PTR(avd_cb, su, su_node_ptr);
 
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
@@ -1452,6 +1460,8 @@ static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 			} /* switch */
 		} /*	if (true == sg->equal_ranked_su) */ 
 	} /*if (AVD_SG_FSM_STABLE == sg->sg_fsm_state) */
+
+done:
 	TRACE_LEAVE();
 }
 

@@ -555,6 +555,10 @@ static void sg_nd_attribute_update(AVD_SG *sg, uint32_t attrib_id)
 
 	TRACE_ENTER();
 
+	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
+		TRACE_LEAVE2("avd is not in active state");
+		return;
+	}
 	param.class_id = AVSV_SA_AMF_SG;
 	param.act = AVSV_OBJ_OPR_MOD;
 
@@ -744,8 +748,10 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 				back_val = avd_sg->saAmfSGNumPrefInserviceSUs;
 				avd_sg->saAmfSGNumPrefInserviceSUs = pref_inservice_su;
-				if (avd_sg_app_su_inst_func(avd_cb, avd_sg) != NCSCC_RC_SUCCESS) {
-					assert(0);
+				if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE)  {
+					if (avd_sg_app_su_inst_func(avd_cb, avd_sg) != NCSCC_RC_SUCCESS) {
+						assert(0);
+					}
 				}
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_sg, AVSV_CKPT_AVD_SG_CONFIG);
 			} else {

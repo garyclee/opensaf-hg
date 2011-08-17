@@ -404,6 +404,9 @@ uint32_t avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *para
 
 	TRACE_ENTER();
 
+	if (cb->avail_state_avd != SA_AMF_HA_ACTIVE) 
+		goto done;
+
 	op_req_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (op_req_msg == NULL) {
 		LOG_ER("calloc failed");

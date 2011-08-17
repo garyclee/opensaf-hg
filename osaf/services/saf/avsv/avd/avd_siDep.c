@@ -1454,17 +1454,19 @@ static AVD_SI_SI_DEP *sidep_new(SaNameT *sidep_name, const SaImmAttrValuesT_2 **
 	assert(dep_si = avd_si_get(&indx.si_name_sec));
 	assert(avd_si_dep_spons_list_add(avd_cb, dep_si, spons_si, sidep) == NCSCC_RC_SUCCESS);
 
-	/* Move the dependent SI to appropriate state, if the configured 
-	 * sponsor is not in assigned state. Not required to check with
-	 * the remaining states of SI Dep states, as they are kind of 
-	 * intermittent states towards SPONSOR_UNASSIGNED/ASSIGNED states. 
-	 */
-	if ((avd_cb->init_state  == AVD_APP_STATE) &&
-		((spons_si->si_dep_state == AVD_SI_NO_DEPENDENCY) ||
-		 (spons_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED)))
-	{
-		avd_si_dep_spons_state_modif(avd_cb, spons_si, dep_si,
-				AVD_SI_DEP_SPONSOR_UNASSIGNED);
+	if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE)  {
+		/* Move the dependent SI to appropriate state, if the configured 
+		 * sponsor is not in assigned state. Not required to check with
+		 * the remaining states of SI Dep states, as they are kind of 
+		 * intermittent states towards SPONSOR_UNASSIGNED/ASSIGNED states. 
+		 */
+		if ((avd_cb->init_state  == AVD_APP_STATE) &&
+			((spons_si->si_dep_state == AVD_SI_NO_DEPENDENCY) ||
+			 (spons_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED)))
+		{
+			avd_si_dep_spons_state_modif(avd_cb, spons_si, dep_si,
+					AVD_SI_DEP_SPONSOR_UNASSIGNED);
+		}
 	}
 done:
 	TRACE_LEAVE();
@@ -1583,8 +1585,10 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		}
 		avd_si_dep_spons_list_del(avd_cb, sidep);
 		avd_si_si_dep_del_row(avd_cb, sidep);
-		/* Update the SI according to its existing sponsors state */
-		avd_screen_sponsor_si_state(avd_cb, dep_si, true);
+		if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE)  {
+			/* Update the SI according to its existing sponsors state */
+			avd_screen_sponsor_si_state(avd_cb, dep_si, true);
+		}
 		break;
 
 	case CCBUTIL_MODIFY:

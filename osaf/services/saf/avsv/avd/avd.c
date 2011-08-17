@@ -242,6 +242,13 @@ uint32_t avd_initialize(void)
 			goto done;
 		}
 	}
+	else {
+		rc = avd_standby_role_initialization(cb);
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("avd_standby_role_initialization FAILED");
+			goto done;
+		}
+	}
 
 	rc = NCSCC_RC_SUCCESS;
 done:

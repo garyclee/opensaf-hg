@@ -347,16 +347,52 @@ static uint32_t avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 				 * and standby require to be sync-up, process the async updates as and
 				 * when they received. Dont enqueue them.
 				 */
-				if (arg->info.decode.i_reo_type < AVSV_CKPT_MSG_MAX) {
-					status =
-						avsv_dec_ckpt_data_func_list[arg->info.decode.i_reo_type] (cb,
-													&arg->info.decode);
-				} else {
+				if (arg->info.decode.i_reo_type >= AVSV_CKPT_MSG_MAX) {
 					LOG_ER("%s: invalid type %u", __FUNCTION__, arg->info.encode.io_reo_type);
 					status = NCSCC_RC_FAILURE;
+					break;
 				}
+				if (cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_4) {
+					if ((arg->info.decode.i_action == NCS_MBCSV_ACT_ADD) || 
+					    (arg->info.decode.i_action == NCS_MBCSV_ACT_RMV)) {
+						/* Ignore this message because this comes as applier callbacks
+							just increment the updt count */
+						switch (arg->info.decode.i_reo_type) {
+							case AVSV_CKPT_AVD_CB_CONFIG:
+								cb->async_updt_cnt.cb_updt++;
+								goto ignore_msg;
+							case AVSV_CKPT_AVD_NODE_CONFIG:
+								cb->async_updt_cnt.node_updt++;
+								goto ignore_msg;
+							case AVSV_CKPT_AVD_APP_CONFIG:
+								cb->async_updt_cnt.app_updt++;
+								goto ignore_msg;
+							case AVSV_CKPT_AVD_SG_CONFIG:
+								cb->async_updt_cnt.sg_updt++;
+								goto ignore_msg;
+							case AVSV_CKPT_AVD_SU_CONFIG:
+								cb->async_updt_cnt.su_updt++;
+								goto ignore_msg;
+							case AVSV_CKPT_AVD_SI_CONFIG:
+								cb->async_updt_cnt.si_updt++;
+								goto ignore_msg;
+							case AVSV_CKPT_AVD_COMP_CONFIG:
+								cb->async_updt_cnt.comp_updt++;
+								goto ignore_msg;
+							case AVSV_CKPT_AVD_COMP_CS_TYPE_CONFIG:
+								cb->async_updt_cnt.compcstype_updt++;
+								goto ignore_msg;
+							default:
+								break;
+						}
+					}
+				}
+				status =
+					avsv_dec_ckpt_data_func_list[arg->info.decode.i_reo_type] (cb,
+												&arg->info.decode);
 			}
 		}
+ignore_msg:
 		break;
 
 	case NCS_MBCSV_MSG_COLD_SYNC_REQ:
@@ -597,7 +633,7 @@ static uint32_t avsv_mbcsv_initialize(AVD_CL_CB *cb)
 	mbcsv_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
 	mbcsv_arg.info.initialize.i_service = NCS_SERVICE_ID_AVD;
 	mbcsv_arg.info.initialize.i_mbcsv_cb = avsv_mbcsv_cb;
-	mbcsv_arg.info.initialize.i_version = AVD_MBCSV_SUB_PART_VERSION_3;
+	mbcsv_arg.info.initialize.i_version = AVD_MBCSV_SUB_PART_VERSION_4;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
 		LOG_ER("%s: ncs_mbcsv_svc NCS_MBCSV_OP_INITIALIZE failed", __FUNCTION__);
@@ -848,6 +884,12 @@ uint32_t avsv_send_ckpt_data(AVD_CL_CB *cb, uint32_t action, MBCSV_REO_HDL reo_h
 		break;
 
 	case AVSV_CKPT_AVD_NODE_CONFIG:
+		if ((avd_cb->avd_peer_ver >= AVD_MBCSV_SUB_PART_VERSION_4) && 
+		   ((action == NCS_MBCSV_ACT_ADD) || 
+		    (action == NCS_MBCSV_ACT_RMV)))
+			/* No need to send the message as standy would get the applier callback */
+			return NCSCC_RC_SUCCESS;
+			/* else fall through */
 	case AVSV_CKPT_AVND_NODE_UP_INFO:
 	case AVSV_CKPT_AVND_ADMIN_STATE:
 	case AVSV_CKPT_AVND_OPER_STATE:
@@ -858,10 +900,22 @@ uint32_t avsv_send_ckpt_data(AVD_CL_CB *cb, uint32_t action, MBCSV_REO_HDL reo_h
 		break;
 
 	case AVSV_CKPT_AVD_APP_CONFIG:
+		if ((avd_cb->avd_peer_ver >= AVD_MBCSV_SUB_PART_VERSION_4) && 
+		   ((action == NCS_MBCSV_ACT_ADD) || 
+		    (action == NCS_MBCSV_ACT_RMV)))
+			/* No need to send the message as standy would get the applier callback */
+			return NCSCC_RC_SUCCESS;
+			/* else fall through */
 		cb->async_updt_cnt.app_updt++;
 		break;
 
 	case AVSV_CKPT_AVD_SG_CONFIG:
+		if ((avd_cb->avd_peer_ver >= AVD_MBCSV_SUB_PART_VERSION_4) && 
+		   ((action == NCS_MBCSV_ACT_ADD) || 
+		    (action == NCS_MBCSV_ACT_RMV)))
+			/* No need to send the message as standy would get the applier callback */
+			return NCSCC_RC_SUCCESS;
+			/* else fall through */
 	case AVSV_CKPT_SG_ADMIN_STATE:
 	case AVSV_CKPT_SG_ADJUST_STATE:
 	case AVSV_CKPT_SG_SU_ASSIGNED_NUM:
@@ -872,6 +926,12 @@ uint32_t avsv_send_ckpt_data(AVD_CL_CB *cb, uint32_t action, MBCSV_REO_HDL reo_h
 		break;
 
 	case AVSV_CKPT_AVD_SU_CONFIG:
+		if ((avd_cb->avd_peer_ver >= AVD_MBCSV_SUB_PART_VERSION_4) && 
+		   ((action == NCS_MBCSV_ACT_ADD) || 
+		    (action == NCS_MBCSV_ACT_RMV)))
+			/* No need to send the message as standy would get the applier callback */
+			return NCSCC_RC_SUCCESS;
+			/* else fall through */
 	case AVSV_CKPT_SU_SI_CURR_ACTIVE:
 	case AVSV_CKPT_SU_SI_CURR_STBY:
 	case AVSV_CKPT_SU_ADMIN_STATE:
@@ -887,6 +947,12 @@ uint32_t avsv_send_ckpt_data(AVD_CL_CB *cb, uint32_t action, MBCSV_REO_HDL reo_h
 		break;
 
 	case AVSV_CKPT_AVD_SI_CONFIG:
+		if ((avd_cb->avd_peer_ver >= AVD_MBCSV_SUB_PART_VERSION_4) && 
+		   ((action == NCS_MBCSV_ACT_ADD) || 
+		    (action == NCS_MBCSV_ACT_RMV)))
+			/* No need to send the message as standy would get the applier callback */
+			return NCSCC_RC_SUCCESS;
+			/* else fall through */
 	case AVSV_CKPT_SI_SU_CURR_ACTIVE:
 	case AVSV_CKPT_SI_SU_CURR_STBY:
 	case AVSV_CKPT_SI_SWITCH:
@@ -905,6 +971,12 @@ uint32_t avsv_send_ckpt_data(AVD_CL_CB *cb, uint32_t action, MBCSV_REO_HDL reo_h
 		break;
 
 	case AVSV_CKPT_AVD_COMP_CONFIG:
+		if ((avd_cb->avd_peer_ver >= AVD_MBCSV_SUB_PART_VERSION_4) && 
+		   ((action == NCS_MBCSV_ACT_ADD) || 
+		    (action == NCS_MBCSV_ACT_RMV)))
+			/* No need to send the message as standy would get the applier callback */
+			return NCSCC_RC_SUCCESS;
+			/* else fall through */
 	case AVSV_CKPT_COMP_CURR_PROXY_NAME:
 	case AVSV_CKPT_COMP_CURR_NUM_CSI_ACTV:
 	case AVSV_CKPT_COMP_CURR_NUM_CSI_STBY:
@@ -1103,9 +1175,45 @@ uint32_t avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, bool pr_or_fr)
 		/*
 		 * Process de-queued message.
 		 */
-		if (pr_or_fr)
+		if (pr_or_fr) {
+			if (cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_4) {
+				if ((updt_msg->dec.i_action == NCS_MBCSV_ACT_ADD) || 
+				    (updt_msg->dec.i_action == NCS_MBCSV_ACT_RMV)) {
+					/* Ignore this message because this comes as applier callbacks
+						just increment the updt count */
+					switch (updt_msg->dec.i_reo_type) {
+						case AVSV_CKPT_AVD_CB_CONFIG:
+							cb->async_updt_cnt.cb_updt++;
+							goto free_msg;
+						case AVSV_CKPT_AVD_NODE_CONFIG:
+							cb->async_updt_cnt.node_updt++;
+							goto free_msg;
+						case AVSV_CKPT_AVD_APP_CONFIG:
+							cb->async_updt_cnt.app_updt++;
+							goto free_msg;
+						case AVSV_CKPT_AVD_SG_CONFIG:
+							cb->async_updt_cnt.sg_updt++;
+							goto free_msg;
+						case AVSV_CKPT_AVD_SU_CONFIG:
+							cb->async_updt_cnt.su_updt++;
+							goto free_msg;
+						case AVSV_CKPT_AVD_SI_CONFIG:
+							cb->async_updt_cnt.si_updt++;
+							goto free_msg;
+						case AVSV_CKPT_AVD_COMP_CONFIG:
+							cb->async_updt_cnt.comp_updt++;
+							goto free_msg;
+						case AVSV_CKPT_AVD_COMP_CS_TYPE_CONFIG:
+							cb->async_updt_cnt.compcstype_updt++;
+							goto free_msg;
+						default:
+							break;
+					}
+				}
+			}
 			status = avsv_dec_ckpt_data_func_list[updt_msg->dec.i_reo_type] (cb, &updt_msg->dec);
-
+		}
+free_msg:
 		free(updt_msg);
 	}
 

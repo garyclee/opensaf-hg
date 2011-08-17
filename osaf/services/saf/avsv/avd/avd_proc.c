@@ -328,13 +328,16 @@ static void *avd_imm_reinit_thread(void *_cb)
 	SaAisErrorT rc = SA_AIS_OK;
 	AVD_CL_CB *cb = (AVD_CL_CB *)_cb;
 
+	if ((rc = avd_imm_re_init(cb)) != SA_AIS_OK) {
+		LOG_ER("re-saImmOiInitialize failed %u", rc);
+		exit(1);
+	}
 	/* If this is the active server, become implementer again. */
 	if (cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
-		if ((rc = avd_imm_re_init(cb)) != SA_AIS_OK) {
-			LOG_ER("re-saImmOiInitialize failed %u", rc);
-			exit(1);
-		}
 		avd_imm_impl_set_task_create();
+	}
+	else { /* become applier and re-read the config */
+		avd_imm_applier_set_task_create();
 	}
 	return NULL;
 }

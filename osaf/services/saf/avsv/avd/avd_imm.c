@@ -99,7 +99,7 @@ extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
 static const SaImmOiImplementerNameT implementerName =
 	(SaImmOiImplementerNameT)"safAmfService";
-static SaVersionT immVersion = { 'A', 2, 1 };
+static SaVersionT immVersion = { 'A', 2, 11 };
 
 /* This string array must match the AVSV_AMF_CLASS_ID enum */
 static char *avd_class_names[] = {
@@ -1007,6 +1007,46 @@ SaAisErrorT avd_imm_impl_set(void)
 }
 
 /*****************************************************************************
+ * @brief		This function becomes applier and sets the applier name
+ *			for all AMF objects
+ *
+ * @param[in] 		Nothing
+ *
+ * @return 		SA_AIS_OK or error
+ *
+ **************************************************************************/
+SaAisErrorT avd_imm_applier_set(void)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	uint32_t i;
+	char applier_name[SA_MAX_NAME_LENGTH] = {0};
+
+	TRACE_ENTER();
+	snprintf(applier_name, SA_MAX_NAME_LENGTH, "@safAmfService%x", avd_cb->node_id_avd);
+
+	immutilWrapperProfile.nTries = 250; /* After loading, allow missed sync of large data to complete */
+
+	if ((rc = immutil_saImmOiImplementerSet(avd_cb->immOiHandle, applier_name)) != SA_AIS_OK) {
+		LOG_ER("saImmOiImplementerSet failed %u", rc);
+		return rc;
+	}
+
+	for (i = 0; i < AVSV_SA_AMF_CLASS_MAX; i++) {
+		if ((NULL != ccb_completed_callback[i]) &&
+		    (rc = immutil_saImmOiClassImplementerSet(avd_cb->immOiHandle, avd_class_names[i])) != SA_AIS_OK) {
+
+			LOG_ER("Impl Set Failed for %s, returned %d",	avd_class_names[i], rc);
+			break;
+		}
+	}
+
+	immutilWrapperProfile.nTries = 20; /* Reset retry time to more normal value. */
+
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+/*****************************************************************************
  * Function: avd_imm_impl_set_task
  *
  * Purpose: This task makes object and class implementer.
@@ -1050,6 +1090,53 @@ void avd_imm_impl_set_task_create(void)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
 	if (pthread_create(&thread, &attr, avd_imm_impl_set_task, avd_cb) != 0) {
+		LOG_ER("pthread_create FAILED: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+}
+
+/*****************************************************************************
+ * @brief 		This function calls the routines to become applier for
+ *			all AMF objects and to read the configuration from IMM.
+ *
+ * @param[in]		cb  - Pointer to AVD control block
+ *
+ * @return		void pointer.
+ *
+ **************************************************************************/
+static void *avd_imm_applier_set_task(void *_cb)
+{
+	if (avd_imm_applier_set() != SA_AIS_OK) {
+		LOG_ER("exiting since avd_imm_applier_set failed");
+		exit(EXIT_FAILURE);
+	}
+
+	if (avd_imm_config_get() != NCSCC_RC_SUCCESS) {
+		LOG_ER("avd_imm_config_get FAILED");
+		exit(EXIT_FAILURE);
+	}
+
+	return NULL;
+}
+
+/*****************************************************************************
+ * @brief		This function spawns thread for setting object and class 
+ *          		applier, non-blocking.
+ *
+ * @param[in]		Nothing
+ *
+ * @return		Nothing
+ *
+ **************************************************************************/
+void avd_imm_applier_set_task_create(void)
+{
+	pthread_t thread;
+	pthread_attr_t attr;
+
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+	if (pthread_create(&thread, &attr, avd_imm_applier_set_task, avd_cb) != 0) {
 		LOG_ER("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}

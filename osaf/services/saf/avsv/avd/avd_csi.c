@@ -594,6 +594,15 @@ static void ccb_apply_delete_hdlr(AVD_CSI *csi)
 	SaBoolT first_sisu = true;
 
         TRACE_ENTER2("'%s'", csi->name.value);
+	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) { 
+		/* delete the pg-node list */
+		avd_pg_csi_node_del_all(avd_cb, csi);
+
+		/* free memory and remove from DB */
+		avd_csi_delete(csi);
+		goto done;
+	}
+
 	/* Check whether si has been assigned to any SU. */
 	if ((NULL != csi->si->list_of_sisu) && 
 			(csi->compcsi_cnt != 0)) {
@@ -709,6 +718,9 @@ static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 			opdata->param.create.parentName);
 	assert(csi);
 	csi_add_to_model(csi);
+
+	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) 
+		goto done;
 
 	/* Check whether si has been assigned to any SU. */
 	if (NULL != csi->si->list_of_sisu) {
