@@ -1102,11 +1102,15 @@ static bool avnd_comp_cap_x_act_or_1_act_check(SaNameT *comp_type, SaNameT *csi_
 	const SaImmAttrValuesT_2 **attributes;
 	SaAmfCompCapabilityModelT comp_cap;
 	SaImmAttrNameT attributeNames[2] = {"saAmfCtCompCapability", NULL};
+	SaImmHandleT immOmHandle;
+	SaVersionT immVersion = { 'A', 2, 1 };
+
 	TRACE_ENTER2("comptype = '%s' : csitype = '%s'", comp_type->value, csi_type->value);
 
 	avsv_create_association_class_dn(csi_type, comp_type, "safSupportedCsType", &dn);
 
-	immutil_saImmOmAccessorInitialize(avnd_cb->immOmHandle, &accessorHandle);
+	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
 
 	if ((error = immutil_saImmOmAccessorGet_2(accessorHandle, &dn, attributeNames, (SaImmAttrValuesT_2 ***)&attributes)) != SA_AIS_OK) {
 		LOG_ER("saImmOmAccessorGet FAILED %u for'%s'", error, dn.value);
@@ -1120,6 +1124,7 @@ static bool avnd_comp_cap_x_act_or_1_act_check(SaNameT *comp_type, SaNameT *csi_
 		rc = true;
 done:
 	immutil_saImmOmAccessorFinalize(accessorHandle);
+	immutil_saImmOmFinalize(immOmHandle);
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;

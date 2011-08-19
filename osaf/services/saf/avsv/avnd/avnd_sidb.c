@@ -233,9 +233,11 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 		SaImmAccessorHandleT accessorHandle;
 		const SaImmAttrValuesT_2 **attributes;
 		SaImmAttrNameT attributeNames[2] = {"saAmfCSType", NULL};
+		SaImmHandleT immOmHandle;
+		SaVersionT immVersion = { 'A', 2, 1 };
 
-
-		immutil_saImmOmAccessorInitialize(avnd_cb->immOmHandle, &accessorHandle);
+		immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+		immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
 
 		if ((error = immutil_saImmOmAccessorGet_2(accessorHandle, &param->csi_name, attributeNames, 
 						(SaImmAttrValuesT_2 ***)&attributes)) != SA_AIS_OK) {
@@ -245,7 +247,9 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 
 		if (immutil_getAttr("saAmfCSType", attributes, 0, &csi_rec->saAmfCSType) != SA_AIS_OK)
 			assert(0);
+
 		immutil_saImmOmAccessorFinalize(accessorHandle);
+		immutil_saImmOmFinalize(immOmHandle);
 	}
 
 	/* update the assignment related parameters */

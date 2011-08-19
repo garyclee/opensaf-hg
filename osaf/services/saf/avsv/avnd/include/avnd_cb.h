@@ -127,9 +127,8 @@ typedef struct avnd_cb_tag {
 	bool is_quisced_set;
 	NCS_DB_LINK_LIST pid_mon_list;	/* PID list to monitor */
 
-	SaImmHandleT immOmHandle;
-        SaClmHandleT clmHandle;
-        SaSelectionObjectT clm_sel_obj;
+	SaClmHandleT clmHandle;
+	SaSelectionObjectT clm_sel_obj;
 	SaBoolT first_time_up;
 
 } AVND_CB;
