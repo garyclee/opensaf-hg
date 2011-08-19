@@ -43,19 +43,35 @@
 extern jclass ClassClusterNotificationBuffer;
 extern jmethodID CID_ClusterNotificationBuffer_constructor;
 
-
 /**************************************************************************
  * Function declarations
  *************************************************************************/
 
 // CALLBACKS
+
 extern void SaClmClusterNodeGetCallback(
     SaInvocationT saInvocation,
     const SaClmClusterNodeT* saClusterNodePtr,
     SaAisErrorT saError );
+
+extern void SaClmClusterNodeGetCallback_4(
+    SaInvocationT saInvocation,
+    const SaClmClusterNodeT_4* saClusterNodePtr,
+    SaAisErrorT saError );
+
 extern void SaClmClusterTrackCallback(
     const SaClmClusterNotificationBufferT* saNotificationBufferPtr,
     SaUint32T saNumberOfMembers,
+    SaAisErrorT saError );
+
+extern void SaClmClusterTrackCallback_4(
+    const SaClmClusterNotificationBufferT_4* saNotificationBufferPtr,
+    SaUint32T saNumberOfMembers,
+    SaInvocationT invocation,
+    const SaNameT *rootCauseEntity,
+    const SaNtfCorrelationIdsT *correlationIds,
+    SaClmChangeStepT step,
+    SaTimeT timeSupervision,
     SaAisErrorT saError );
 
 // CLASS ais.clm.ClusterNode
@@ -64,6 +80,9 @@ extern jboolean JNU_ClusterNode_initIDs_OK(
 extern jobject JNU_ClusterNode_create(
     JNIEnv* jniEnv,
     const SaClmClusterNodeT* saClusterNodePtr );
+extern jobject JNU_ClusterNode_create_4(
+    JNIEnv* jniEnv,
+    const SaClmClusterNodeT_4* saClusterNodePtr );
 
 // CLASS ais.clm.NodeAddress
 extern jboolean JNU_NodeAddress_initIDs_OK(
@@ -80,10 +99,16 @@ extern jboolean JNU_NodeAddressIPv6_initIDs_OK(
 // CLASS ais.clm.ClusterNotificationBuffer
 extern jboolean JNU_ClusterNotificationBuffer_initIDs_OK(
     JNIEnv* jniEnv );
+
 extern jboolean JNU_ClusterNotificationBuffer_set(
     JNIEnv* jniEnv,
     jobject sClusterNotificationBuffer,
     const SaClmClusterNotificationBufferT* saNotificationBufferPtr );
+
+extern jboolean JNU_ClusterNotificationBuffer_set_4(
+    JNIEnv* jniEnv,
+    jobject sClusterNotificationBuffer,
+    const SaClmClusterNotificationBufferT_4* saNotificationBufferPtr );
 
 // CLASS ais.clm.ClusterNotification
 extern jboolean JNU_ClusterNotification_initIDs_OK(

@@ -25,6 +25,8 @@ import org.saforum.ais.AisNoResourcesException;
 import org.saforum.ais.AisNotExistException;
 import org.saforum.ais.AisTimeoutException;
 import org.saforum.ais.AisTryAgainException;
+import org.saforum.ais.AisVersionException;
+import org.saforum.ais.AisUnavailableException;
 import org.saforum.ais.TrackFlags;
 import org.saforum.ais.clm.ClmHandle;
 import org.saforum.ais.clm.ClusterMembershipManager;
@@ -50,40 +52,80 @@ public class ClusterMembershipManagerImpl implements ClusterMembershipManager {
 
 	public native ClusterNotificationBuffer getCluster() throws AisLibraryException,
 			AisTimeoutException, AisTryAgainException, AisBadHandleException,
-			AisNoMemoryException, AisNoResourcesException;
+			AisNoMemoryException, AisNoResourcesException, AisVersionException, AisUnavailableException;
+	
+	public native ClusterNotificationBuffer getCluster( boolean local ) 
+			throws AisLibraryException, AisTimeoutException, 
+			AisTryAgainException, AisBadHandleException,
+			AisNoMemoryException, AisNoResourcesException, 
+			AisVersionException, AisUnavailableException;
 
 	public native void getClusterAsync() throws AisLibraryException,
 			AisTimeoutException, AisTryAgainException, AisBadHandleException,
-			AisInitException, AisNoMemoryException, AisNoResourcesException;
+			AisInitException, AisNoMemoryException, AisNoResourcesException,
+			AisVersionException, AisUnavailableException;
+
+	public native void getClusterAsync( boolean local ) 
+			throws AisLibraryException, AisTimeoutException, 
+			AisTryAgainException, AisBadHandleException,
+			AisInitException, AisNoMemoryException, 
+			AisNoResourcesException, AisVersionException, 
+			AisUnavailableException;
 
 	public native ClusterNode getClusterNode(int nodeId, long timeout)
 			throws AisLibraryException, AisTimeoutException,
 			AisTryAgainException, AisBadHandleException,
 			AisInvalidParamException, AisNoMemoryException,
-			AisNoResourcesException;
+			AisNoResourcesException,AisVersionException,
+			AisUnavailableException;
 
 	public native void stopClusterTracking() throws AisLibraryException,
 			AisTimeoutException, AisTryAgainException, AisBadHandleException,
-			AisNoMemoryException, AisNoResourcesException, AisNotExistException;
+			AisNoMemoryException, AisNoResourcesException, AisNotExistException,
+			AisUnavailableException;
+
 
 	public native void getClusterAsyncThenStartTracking(TrackFlags trackFlags)
 			throws AisLibraryException, AisTimeoutException,
 			AisTryAgainException, AisBadHandleException, AisInitException,
-			AisNoMemoryException, AisNoResourcesException;
+			AisNoMemoryException, AisNoResourcesException, AisVersionException,
+			AisUnavailableException;
+
+	public native void getClusterAsyncThenStartTracking(TrackFlags trackFlags, boolean local, int trackStep )
+            		throws AisLibraryException, AisTimeoutException, 
+			AisTryAgainException, AisBadHandleException, 
+			AisInitException, AisNoMemoryException, 
+			AisNoResourcesException, AisVersionException, 
+			AisUnavailableException;
+
 
 	public native ClusterNotificationBuffer getClusterThenStartTracking(
 			TrackFlags trackFlags) throws AisLibraryException,
 			AisTimeoutException, AisTryAgainException, AisBadHandleException,
-			AisInitException, AisNoMemoryException, AisNoResourcesException;
+			AisInitException, AisNoMemoryException, AisNoResourcesException,
+			AisVersionException, AisUnavailableException;
+	
+	public native ClusterNotificationBuffer getClusterThenStartTracking(TrackFlags trackFlags, boolean local,
+			int trackStep) throws AisLibraryException,AisTimeoutException, 
+			AisTryAgainException, AisBadHandleException, AisInitException, 
+			AisNoMemoryException, AisNoResourcesException, AisVersionException, 
+			AisUnavailableException;
 
 	public native void getClusterNodeAsync(long invocation, int nodeId)
 			throws AisLibraryException, AisTimeoutException,
 			AisTryAgainException, AisBadHandleException,
-			AisInvalidParamException, AisInitException;
+			AisInvalidParamException, AisInitException,
+			AisNoMemoryException, AisNoResourcesException,
+		        AisUnavailableException, AisNotExistException;
 
 	public native void startClusterTracking(TrackFlags trackFlags)
 			throws AisLibraryException, AisTimeoutException,
 			AisTryAgainException, AisBadHandleException, AisInitException,
-			AisNoMemoryException, AisNoResourcesException;
+			AisNoMemoryException, AisNoResourcesException,AisVersionException,
+			AisUnavailableException;;
 
+	public native void startClusterTracking(TrackFlags trackFlags, boolean local, int trackStep  )
+			throws AisLibraryException, AisTimeoutException, AisTryAgainException,
+			AisBadHandleException, AisInitException, AisNoMemoryException, 
+			AisNoResourcesException, AisVersionException, AisUnavailableException;
 }

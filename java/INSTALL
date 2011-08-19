@@ -86,10 +86,16 @@
 
     The main class uses the junit.textui.TestRunner to execute the tests and results
     are printed to the stdout.
+
+    Now, Java CLM AIS API supports B.04.01 specifications, fill the required 
+    version attribute values in properties file(java/ais_api_test/src/org/
+    opensaf/ais/version.properties) to test the corrosponding version 
+    implementation. By default test code tests B.04.01 functionality.
     
     Notice: in virtualized environments the timing diffences can cause some of the
     time constrained tests to fail. These are not a real failures and  they occur only
     accidentally.
+
     
 5.3  Running the AMF tests
     The AMF tests cannot be run manually and AMF has to be configured properly

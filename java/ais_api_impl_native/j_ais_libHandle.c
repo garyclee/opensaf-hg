@@ -183,12 +183,13 @@ JNIEXPORT jboolean JNICALL Java_org_opensaf_ais_HandleImpl_checkSelectionObject(
     // BODY
     assert( thisLibraryHandle != NULL );
     // TODO assert for timeout
-    _TRACE2( "NATIVE: Executing Java_org_opensaf_ais_HandleImpl_checkSelectionObject(...)\n" );
+     _TRACE2( "NATIVE: Executing Java_org_opensaf_ais_HandleImpl_checkSelectionObject(...)\n" );
     // get selection object
     _saSelectionObject = (SaSelectionObjectT) (*jniEnv)->GetLongField(
                                                             jniEnv,
                                                             thisLibraryHandle,
                                                             FID_selectionObject );
+    
     // call select(2)
     FD_ZERO( &_readFDs );
     FD_SET( _saSelectionObject, &_readFDs );

@@ -142,8 +142,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(
     if( ! JNU_TrackFlags_initIDs_OK( _jniEnv ) ){
         return JNI_ERR; // EXIT POINT! Exception pending...
     }
-
-    // ais.Handle initialization
+    /* ais.CallbackResponse initialization */
+    if( ! JNU_CallbackResponse_initIDs_OK( _jniEnv ) ){
+        return JNI_ERR;
+    }	
+    // ais.Handle initialization 
     if( ! JNU_Handle_initIDs_OK( _jniEnv ) ){
         return JNI_ERR; // EXIT POINT! Exception pending...
     }
@@ -798,7 +801,7 @@ void U_convertTimeout(
 {
     // BODY
 #ifndef NDEBUG
-    _TRACE2( "NATIVE: Executing U_convertTimeout(..., %ld )\n", (long) from_timeout );
+   // _TRACE2( "NATIVE: Executing U_convertTimeout(..., %ld )\n", (long) from_timeout );
 #endif // NDEBUG
     // TODO types checking! negative values
     if( from_timeout < SA_TIME_ONE_MICROSECOND ){

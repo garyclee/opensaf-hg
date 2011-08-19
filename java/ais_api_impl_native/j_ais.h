@@ -53,6 +53,7 @@ extern const char* AIS_ERR_QUEUE_NOT_AVAILABLE_MSG;
 extern const char* AIS_ERR_BAD_FLAGS_MSG;
 extern const char* AIS_ERR_TOO_BIG_MSG;
 extern const char* AIS_ERR_NO_SECTIONS_MSG;
+extern const char* AIS_ERR_UNAVAILABLE_MSG;
 
 /**************************************************************************
  * Macros
@@ -70,11 +71,14 @@ extern const char* AIS_ERR_NO_SECTIONS_MSG;
 extern jfieldID FID_releaseCode;
 extern jfieldID FID_majorVersion;
 extern jfieldID FID_minorVersion;
+extern jmethodID CID_Version_constructor;
+extern jclass ClassVersion;
 
 // ENUM ais.TrackFlags
 extern jfieldID FID_TF_value;
 
-
+/* ENUM ais.CallbackResponse */
+extern jfieldID FID_CR_value;
 /**************************************************************************
  * Function declarations
  *************************************************************************/
@@ -86,12 +90,18 @@ extern jboolean JNU_Version_initIDs_OK(
 // ENUM ais.TrackFlags
 extern jboolean JNU_TrackFlags_initIDs_OK(
     JNIEnv* jniEnv );
+/* ENUM ais.CallbackResponse */
+extern jboolean JNU_CallbackResponse_initIDs_OK(
+    JNIEnv* jniEnv );
 // MISC
 /*
 extern jboolean JNU_TrackFlagsForChanges_OK(
     JNIEnv* jniEnv,
     jbyte trackFlags );
 */
-
+/* this method will throw appropriate Exception based on errorcode recevied when Lifecycle methods are invoked */
+extern void JNU_Exception_Throw(
+    JNIEnv* jniEnv, 
+    SaAisErrorT _saStatus);
 
 #endif //J_AIS_H_

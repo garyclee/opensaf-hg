@@ -28,6 +28,8 @@ import org.saforum.ais.clm.ClmHandleFactory;
 import org.saforum.ais.clm.ClusterMembershipManager;
 import org.saforum.ais.clm.ClusterNode;
 import org.saforum.ais.clm.ClusterNotificationBuffer;
+import java.io.InputStream;
+import java.util.Properties;
 
 import junit.framework.*;
 
@@ -71,6 +73,14 @@ public class TestClmMultiThreading extends TestCase {
 
 	ClmHandle.Callbacks callbackOKOK;
 
+	private Properties properties = new Properties();
+
+	private char releaseCode;
+
+	private short majorVersion;
+	
+	private short minorVersion;     
+
 	// CONSTRUCTORs
 
 	public TestClmMultiThreading(String name) {
@@ -83,7 +93,20 @@ public class TestClmMultiThreading extends TestCase {
 		super.setUp();
 		System.out.println("JAVA TEST: SETTING UP NEXT TEST...");
 		aisExc = null;
-		b11Version = new Version((char) 'B', (short) 0x01, (short) 0x01);
+		try{
+			InputStream in = this.getClass().getClassLoader().getResourceAsStream("org/opensaf/ais/version.properties");
+			properties.load(in);
+			releaseCode = properties.getProperty("releaseCode").trim().charAt(0);
+			majorVersion = new Short(properties.getProperty("majorVersion").trim()).shortValue();
+			minorVersion = new Short(properties.getProperty("minorVersion").trim()).shortValue();
+			System.out.println("releaseCode:"+ releaseCode +majorVersion +  minorVersion);
+			in.close();
+		}
+		catch(Exception e){
+			System.out.println(e.getMessage());
+		}
+
+		b11Version = new Version(releaseCode, majorVersion, minorVersion);
 		// library with both callbacks
 		getClusterNodeCB = new GetClusterNodeCallbackForTest();
 		trackClusterCB = new TrackClusterCallbackForTest();
@@ -155,7 +178,8 @@ public class TestClmMultiThreading extends TestCase {
 		CallDispatch_DispatchOne _d = new CallDispatch_DispatchOne();
 		_d.run();
 		_d.assertOK();
-		trackClusterCB.assertCalled();
+		Assert.assertTrue(trackClusterCB.called);
+		//trackClusterCB.assertCalled();
 		getClusterNodeCB.assertNotCalled();
 		// 3rd call, a single pending callback indicated by both checks:
 		callAndAssertHasPendingCallbackTimeout(2,
@@ -381,8 +405,8 @@ public class TestClmMultiThreading extends TestCase {
 	// INNER CLASSES
 
 	/**
-     *
-     */
+     	 *
+     	 */
 	private class CallHasPendingCallback implements Runnable {
 
 		// INSTANCE FIELDS

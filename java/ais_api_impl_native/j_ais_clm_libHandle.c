@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include "j_utilsPrint.h"
-
 #include <errno.h>
 #include <sys/select.h>
 #include <saClm.h>
@@ -60,8 +59,10 @@
 // CLASS ais.clm.ClmHandle
 jclass ClassClmHandle = NULL;
 jmethodID MID_s_invokeGetClusterNodeCallback = NULL;
-jmethodID MID_s_invokeTrackClusterCallback = NULL;
+jmethodID MID_s_invokeTrackClusterCallback_4 = NULL;
+jmethodID MID_s_invokeTrackClusterCallback = NULL; 
 jfieldID FID_saClmHandle = NULL;
+jfieldID FID_saVersion = NULL;
 static jfieldID FID_getClusterNodeCallback = NULL;
 static jfieldID FID_trackClusterCallback = NULL;
 static jfieldID FID_selectionObject = NULL;
@@ -77,10 +78,90 @@ jboolean JNU_ClmHandle_initIDs_OK(
 static jboolean JNU_ClmHandle_initIDs_FromClass_OK(
     JNIEnv* jniEnv,
     jclass classClmHandle );
-
+void JNU_Exception_Throw(JNIEnv* jniEnv, SaAisErrorT _saStatus);
 /**************************************************************************
  * Function definitions
  *************************************************************************/
+void JNU_Exception_Throw(
+    JNIEnv* jniEnv, 
+    SaAisErrorT _saStatus) 
+{
+        switch( _saStatus ){
+
+            case SA_AIS_ERR_VERSION:
+                JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisVersionException",
+                                    AIS_ERR_VERSION_MSG );			
+                                    break;
+            case SA_AIS_ERR_LIBRARY:
+                JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisLibraryException",
+                                    AIS_ERR_LIBRARY_MSG );
+                                    break;
+            case SA_AIS_ERR_TIMEOUT:
+                JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisTimeoutException",
+                                    AIS_ERR_TIMEOUT_MSG );
+                                    break;
+            case SA_AIS_ERR_TRY_AGAIN:
+                JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisTryAgainException",
+                                    AIS_ERR_TRY_AGAIN_MSG );
+                                    break;
+            case SA_AIS_ERR_BAD_HANDLE:
+
+                /* TODO library handle invalid (e.g finalized): this check could be done at Java level! */
+                JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisBadHandleException",
+                                    AIS_ERR_BAD_HANDLE_MSG );
+                                    break;
+            case SA_AIS_ERR_INVALID_PARAM:
+
+                /* this should not happen here! */
+                JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisInvalidParamException",
+                                    AIS_ERR_INVALID_PARAM_MSG );
+                                    break;
+            case SA_AIS_ERR_INIT:
+                JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisInitException",
+                                    AIS_ERR_INIT_MSG );
+                                    break;
+            case SA_AIS_ERR_NO_SPACE:
+                JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisNoSpaceException",
+                                    AIS_ERR_NO_SPACE_MSG );
+                                    break;
+            case SA_AIS_ERR_NOT_EXIST:
+                JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisNotExistException",
+                                    AIS_ERR_NOT_EXIST_MSG );
+                                    break;
+            case SA_AIS_ERR_NO_MEMORY:
+                JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisNoMemoryException",
+                                    AIS_ERR_NO_MEMORY_MSG );
+                                    break;
+            case SA_AIS_ERR_NO_RESOURCES:
+		JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisNoResourcesException",
+                                    AIS_ERR_NO_RESOURCES_MSG );
+                                    break;
+            case SA_AIS_ERR_UNAVAILABLE:
+                JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisUnavailableException",
+                                    AIS_ERR_UNAVAILABLE_MSG );
+                                    break;
+            default:
+                // this should not happen here!
+                JNU_throwNewByName( jniEnv,
+                                    "org/saforum/ais/AisLibraryException",
+                                    AIS_ERR_LIBRARY_MSG );
+                                    break;
+        }
+
+}
+
 
 //********************************
 // CLASS ais.clm.ClmHandle
@@ -166,18 +247,23 @@ static jboolean JNU_ClmHandle_initIDs_FromClass_OK(
 
         return JNI_FALSE; // EXIT POINT! Exception pending...
     }
-    MID_s_invokeTrackClusterCallback = (*jniEnv)->GetStaticMethodID( jniEnv,
+    MID_s_invokeTrackClusterCallback_4 = (*jniEnv)->GetStaticMethodID( jniEnv,
                                                             classClmHandle,
                                                             "s_invokeTrackClusterCallback",
-                                                            "(Lorg/saforum/ais/clm/ClusterNotificationBuffer;II)V" );
-    if( MID_s_invokeTrackClusterCallback == NULL ){
+                                                            "(Lorg/saforum/ais/clm/ClusterNotificationBuffer;IJLjava/lang/String;Lorg/saforum/ais/CorrelationIds;IJI)V" );
+
+    if( MID_s_invokeTrackClusterCallback_4 == NULL ){
 
         _TRACE2( "NATIVE ERROR: MID_s_invokeTrackClusterCallback is NULL\n" );
 
         return JNI_FALSE; // EXIT POINT! Exception pending...
     }
 
-    // get field IDs
+    MID_s_invokeTrackClusterCallback = (*jniEnv)->GetStaticMethodID( jniEnv,
+                                                                     classClmHandle,   					
+                                                                     "s_invokeTrackClusterCallback",
+                                                                     "(Lorg/saforum/ais/clm/ClusterNotificationBuffer;II)V" );
+    // get field IDs	
     FID_getClusterNodeCallback = (*jniEnv)->GetFieldID(
                                             jniEnv,
                                             classClmHandle,
@@ -203,17 +289,31 @@ static jboolean JNU_ClmHandle_initIDs_FromClass_OK(
     FID_saClmHandle = (*jniEnv)->GetFieldID( jniEnv,
                                            classClmHandle,
                                            "saClmHandle",
-                                            "J" );
+                                           "J" );
     if( FID_saClmHandle == NULL ){
 
         _TRACE2( "NATIVE ERROR: FID_saClmHandle is NULL\n" );
 
         return JNI_FALSE; // EXIT POINT! Exception pending...
     }
+
+    FID_saVersion = (*jniEnv)->GetFieldID( jniEnv,
+                                           classClmHandle,
+                                           "version",
+                                           "Lorg/saforum/ais/Version;" );  	 	 	
+
+    if( FID_saVersion == NULL ){
+	
+        _TRACE2( "NATIVE ERROR: FID_saVersion is NULL\n" );
+
+        return JNI_FALSE; // EXIT POINT! Exception pending...
+
+    }	
+
     FID_selectionObject = (*jniEnv)->GetFieldID( jniEnv,
                                            classClmHandle,
                                            "selectionObject",
-                                            "J" );
+                                           "J" );
     if( FID_selectionObject == NULL ){
 
         _TRACE2( "NATIVE ERROR: FID_selectionObject is NULL\n" );
@@ -224,7 +324,7 @@ static jboolean JNU_ClmHandle_initIDs_FromClass_OK(
 
     _TRACE2( "NATIVE: JNU_ClmHandle_initIDs_FromClass_OK(...) returning normally\n" );
 
-        return JNI_TRUE;
+    return JNI_TRUE;
 }
 
 /**************************************************************************
@@ -235,67 +335,44 @@ static jboolean JNU_ClmHandle_initIDs_FromClass_OK(
  *  Signature: (Lorg/saforum/ais/Version;)V
  *************************************************************************/
 JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitialize(
-	JNIEnv* jniEnv,
-	jobject thisClmHandle,
-	jobject sVersion )
+    JNIEnv* jniEnv,
+    jobject thisClmHandle,
+    jobject sVersion )
 {
-	// VARIABLES
-	// ais
-	SaClmHandleT _saClmHandle;
-	SaClmCallbacksT _saClmCallbacks;
-	SaVersionT _saVersion;
-	SaAisErrorT _saStatus;
-	// jni
+    // VARIABLES
+    // ais
+    SaClmHandleT _saClmHandle;
+    SaClmCallbacksT_4 _saClmCallbacks_4;
+    SaClmCallbacksT _saClmCallbacks;
+    SaVersionT _saVersion;
+    SaAisErrorT _saStatus;
+    // jni
     jobject _getClusterNodeCallback;
     jobject _trackClusterCallback;
+    jobject _version;
     jchar _releaseCode;
     jshort _majorVersion;
     jshort _minorVersion;
 
-	// BODY
+    // BODY
 
-    assert( thisClmHandle != NULL );
+      assert( thisClmHandle != NULL );
+    
     // TODO assert for sVersion
-	_TRACE2( "NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitialize(...)\n" );
-
+      _TRACE2( "NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitialize(...)\n" );
 
 	// create callback struct
-    //  get cluster node cb
+       //  get cluster node cb
     _getClusterNodeCallback = (*jniEnv)->GetObjectField(
                                             jniEnv,
                                             thisClmHandle,
                                             FID_getClusterNodeCallback );
-    if( _getClusterNodeCallback != NULL ){
-
-        _TRACE2( "NATIVE: SaClmClusterNodeGetCallback assigned as callback!\n" );
-
-        _saClmCallbacks.saClmClusterNodeGetCallback = SaClmClusterNodeGetCallback;
-    }
-    else{
-
-        _TRACE2( "NATIVE: NO SaClmClusterNodeGetCallback assigned!\n" );
-
-        _saClmCallbacks.saClmClusterNodeGetCallback = NULL;
-    }
-    //  track cluster cb
+    
     _trackClusterCallback = (*jniEnv)->GetObjectField(
                                             jniEnv,
                                             thisClmHandle,
                                             FID_trackClusterCallback );
-    if( _trackClusterCallback != NULL ){
-
-        _TRACE2( "NATIVE: SaClmClusterTrackCallback assigned as callback!\n" );
-
-        _saClmCallbacks.saClmClusterTrackCallback = SaClmClusterTrackCallback;
-    }
-    else{
-
-        _TRACE2( "NATIVE: NO SaClmClusterTrackCallback assigned!\n" );
-
-        _saClmCallbacks.saClmClusterTrackCallback = NULL;
-    }
-
-	// create version struct
+    
     if( sVersion == NULL ){
         JNU_throwNewByName( jniEnv,
                             "org/saforum/ais/AisInvalidParamException",
@@ -309,8 +386,8 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitial
     _saVersion.releaseCode = (SaUint8T) _releaseCode;
     // major version
     _majorVersion = (*jniEnv)->GetShortField( jniEnv,
-                                             sVersion,
-                                             FID_majorVersion );
+                                              sVersion,
+                                              FID_majorVersion );
     _saVersion.majorVersion = (SaUint8T) _majorVersion;
     // minor version
     _minorVersion = (*jniEnv)->GetShortField( jniEnv,
@@ -318,112 +395,132 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitial
                                              FID_minorVersion );
     _saVersion.minorVersion = (SaUint8T) _minorVersion;
 
-	// call saClmInitialize
-	_saStatus = saClmInitialize( &_saClmHandle,
-								 &_saClmCallbacks,
-								 &_saVersion );
+         if( _majorVersion == 1 && _minorVersion == 1)
+         {
+             if( _getClusterNodeCallback != NULL )
+             {
+                   _TRACE2( "NATIVE: SaClmClusterNodeGetCallback assigned as callback!\n" );
 
-	_TRACE2( "NATIVE: saClmInitialize(...) has returned with %d...\n", _saStatus );
+                   _saClmCallbacks.saClmClusterNodeGetCallback = SaClmClusterNodeGetCallback;
+             }
+             else
+             {
+                   _TRACE2( "NATIVE: NO SaClmClusterNodeGetCallback assigned!\n" );
 
+                   _saClmCallbacks.saClmClusterNodeGetCallback = NULL;
+             }
 
-	// error handling
-  	if( _saStatus != SA_AIS_OK ){
-		switch( _saStatus ){
-			case SA_AIS_ERR_LIBRARY:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisLibraryException",
-                                    AIS_ERR_LIBRARY_MSG );
-				break;
-			case SA_AIS_ERR_TIMEOUT:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisTimeoutException",
-                                    AIS_ERR_TIMEOUT_MSG );
-				break;
-			case SA_AIS_ERR_TRY_AGAIN:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisTryAgainException",
-                                    AIS_ERR_TRY_AGAIN_MSG );
-				break;
-			case SA_AIS_ERR_INVALID_PARAM:
-                // TODO unclear whether this can happen here or not:
-                // probably not, but native API declares this, so leave it for now
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisInvalidParamException",
-                                    AIS_ERR_INVALID_PARAM_MSG );
-				break;
-			case SA_AIS_ERR_NO_MEMORY:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisNoMemoryException",
-                                    AIS_ERR_NO_MEMORY_MSG );
-				break;
-			case SA_AIS_ERR_NO_RESOURCES:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisNoResourcesException",
-                                    AIS_ERR_NO_RESOURCES_MSG );
-				break;
-			case SA_AIS_ERR_VERSION:
-                /* set version param:
-                    see page 20 of the Cluster Membership Service spec B.01.01! */
-                // major version
-                if( _saVersion.releaseCode != _releaseCode ) {
+             if( _trackClusterCallback != NULL )
+             {
+                   _TRACE2( "NATIVE: SaClmClusterTrackCallback assigned as callback!\n" );
+
+                   _saClmCallbacks.saClmClusterTrackCallback = SaClmClusterTrackCallback;
+             }
+             else 
+             {
+                   _TRACE2( "NATIVE: NO SaClmClusterTrackCallback assigned!\n" );
+
+                   _saClmCallbacks.saClmClusterTrackCallback = NULL;
+             }
+	 	// call saClmInitialize
+               	   _saStatus = saClmInitialize( &_saClmHandle,
+                                                &_saClmCallbacks,
+                                                &_saVersion );
+
+		   _TRACE2( "NATIVE: saClmInitialize(...) has returned with %d...\n", _saStatus );
+         }	
+        else
+        {
+          if( _getClusterNodeCallback != NULL )
+            {
+
+                  _TRACE2( "NATIVE: SaClmClusterNodeGetCallback assigned as callback!\n" );
+
+                  _saClmCallbacks_4.saClmClusterNodeGetCallback = SaClmClusterNodeGetCallback_4;
+
+            }
+            else
+            {
+                   _TRACE2( "NATIVE: NO SaClmClusterNodeGetCallback assigned!\n" );
+
+                   _saClmCallbacks_4.saClmClusterNodeGetCallback = NULL;
+
+            }
+				
+            if( _trackClusterCallback != NULL )
+            {
+
+                   _TRACE2( "NATIVE: SaClmClusterTrackCallback assigned as callback!\n" );
+
+                   _saClmCallbacks_4.saClmClusterTrackCallback = SaClmClusterTrackCallback_4;
+
+            }
+            else
+            {
+                   _TRACE2( "NATIVE: NO SaClmClusterTrackCallback assigned!\n" );
+
+                   _saClmCallbacks_4.saClmClusterTrackCallback = NULL;
+
+            }
+                // call saClmInitialize   
+                   _saStatus = saClmInitialize_4( &_saClmHandle,
+                                                  &_saClmCallbacks_4,
+                                                  &_saVersion );
+
+                _TRACE2( "NATIVE: saClmInitialize_4(...) has returned with %d...\n", _saStatus ); 
+       }	
+
+    /* set version param:
+            see page 19 of the Cluster Membership Service spec B.01.01! */
+         //releaseCode
+     if( _saVersion.releaseCode != _releaseCode ) {
                     (*jniEnv)->SetCharField( jniEnv,
                                              sVersion,
                                              FID_releaseCode,
                                              (jchar) _saVersion.releaseCode );
-                }
-                if( _saVersion.majorVersion != _majorVersion ) {
+     }
+         //majorVersion 		
+     if( _saVersion.majorVersion != _majorVersion ) {
                     (*jniEnv)->SetShortField( jniEnv,
-                                             sVersion,
-                                             FID_majorVersion,
-                                             (jshort) _saVersion.majorVersion );
-                }
-                // minor version
-                if( _saVersion.minorVersion != _minorVersion ) {
+                                              sVersion,
+                                              FID_majorVersion,
+                                              (jshort) _saVersion.majorVersion );
+     }
+         // minor version
+     if( _saVersion.minorVersion != _minorVersion ) {
                     (*jniEnv)->SetShortField( jniEnv,
-                                             sVersion,
-                                             FID_minorVersion,
-                                             (jshort) _saVersion.minorVersion );
-                }
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisVersionException",
-                                    AIS_ERR_VERSION_MSG );
-				break;
-			default:
-                // this should not happen here!
-
-                assert( JNI_FALSE );
-
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisLibraryException",
-                                    AIS_ERR_LIBRARY_MSG );
-				break;
-		}
-		return; // EXIT POINT!!!
-  	}
+                                              sVersion,
+                                              FID_minorVersion,
+                                              (jshort) _saVersion.minorVersion );
+     }
+			
+	// error handling
+     if( _saStatus != SA_AIS_OK ){
+            JNU_Exception_Throw( jniEnv, _saStatus );
+            return; /* EXIT POINT! */
+     }
     // set library handle
 
-    _TRACE2( "NATIVE: Retreived clmHandle is: %lu \n", (unsigned long) _saClmHandle );
+    _TRACE2( "NATIVE: Retreived clmHandle is: %lu \n", (unsigned long) _saClmHandle );	
 
     (*jniEnv)->SetLongField( jniEnv,
                              thisClmHandle,
                              FID_saClmHandle,
                              (jlong) _saClmHandle );
-    /* set version param:
-        see page 19 of the Cluster Membership Service spec B.01.01! */
-    // major version
-    if( _saVersion.majorVersion != _majorVersion ) {
-        (*jniEnv)->SetShortField( jniEnv,
-                                 sVersion,
-                                 FID_majorVersion,
-                                 (jshort) _saVersion.majorVersion );
-    }
-    // minor version
-    if( _saVersion.minorVersion != _minorVersion ) {
-        (*jniEnv)->SetShortField( jniEnv,
-                                 sVersion,
-                                 FID_minorVersion,
-                                 (jshort) _saVersion.minorVersion );
-    }
+    
+     
+    // set Version        
+    _version = (*jniEnv)->NewObject( jniEnv,
+                                     ClassVersion,
+                                     CID_Version_constructor,
+                                     (char) _saVersion.releaseCode, 
+                                     (jshort) _saVersion.majorVersion,							
+                                     (jshort) _saVersion.minorVersion );
+
+    (*jniEnv)->SetObjectField( jniEnv,
+                               thisClmHandle,				 	
+                               FID_saVersion,
+                               _version );																						  
     // normal exit
 
     _TRACE2( "NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitialize(...) returning normally\n" );
@@ -457,6 +554,7 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelecti
     _saClmHandle = (SaClmHandleT) (*jniEnv)->GetLongField( jniEnv,
                                                            thisClmHandle,
                                                            FID_saClmHandle );
+    _TRACE2( "NATIVE: SaClmHandleT %lu", (unsigned long)_saClmHandle ); 
     // call saClmSelectionObjectGet
     _saStatus = saClmSelectionObjectGet( _saClmHandle,
                                          &_saSelectionObject );
@@ -466,64 +564,11 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelecti
 
     // error handling
     if( _saStatus != SA_AIS_OK ){
-        switch( _saStatus ){
-            case SA_AIS_ERR_LIBRARY:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisLibraryException",
-                                    AIS_ERR_LIBRARY_MSG );
-                break;
-            case SA_AIS_ERR_TIMEOUT:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisTimeoutException",
-                                    AIS_ERR_TIMEOUT_MSG );
-                break;
-            case SA_AIS_ERR_TRY_AGAIN:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisTryAgainException",
-                                    AIS_ERR_TRY_AGAIN_MSG );
-                break;
-            case SA_AIS_ERR_BAD_HANDLE:
-                // TODO library handle invalid (e.g finalized): this check could be done at Java level!
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisBadHandleException",
-                                    AIS_ERR_BAD_HANDLE_MSG );
-                break;
-            case SA_AIS_ERR_INVALID_PARAM:
-                // this should not happen here!
-
-                assert( JNI_FALSE );
-
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisLibraryException",
-                                    AIS_ERR_LIBRARY_MSG );
-                // unclear whether this can happen here or not: probably not...
-                // TODO remove this from Java method declaration!
-                //JNU_throwNewByName( jniEnv,
-                //                    "org/saforum/ais/AisInvalidParamException",
-                //                    AIS_ERR_INVALID_PARAM_MSG );
-                break;
-            case SA_AIS_ERR_NO_MEMORY:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisNoMemoryException",
-                                    AIS_ERR_NO_MEMORY_MSG );
-                break;
-            case SA_AIS_ERR_NO_RESOURCES:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisNoResourcesException",
-                                    AIS_ERR_NO_RESOURCES_MSG );
-                break;
-            default:
-                // this should not happen here!
-
-                assert( JNI_FALSE );
-
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisLibraryException",
-                                    AIS_ERR_LIBRARY_MSG );
-                break;
-        }
-        return; // EXIT POINT!!!
+        JNU_Exception_Throw( jniEnv, _saStatus );
+        return; /* EXIT POINT! */
     }
+        
+    
     // set selection object
 
     _TRACE2( "NATIVE: Retreived selectionObject is: %lu \n", (unsigned long) _saSelectionObject );
@@ -537,6 +582,62 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelecti
 
     _TRACE2( "NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelectionObjectGet(...) returning normally\n" );
 
+}
+
+/**************************************************************************
+ *  FUNCTION:  Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse
+ *  TYPE:      native method
+ *  Class:     ais_clm_ClmHandle
+ *  Method:    invokeSaClmResponse
+ *  Signature: (JLorg/saforum/ais/CallbackResponse;)V
+ *************************************************************************/
+JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(
+    JNIEnv* jniEnv,
+    jobject thisClmHandle,
+    jlong invocation,
+    jobject callbackResponse )
+{
+
+    SaClmHandleT _saClmHandle;
+    SaClmResponseT _response;
+    SaAisErrorT _saStatus;
+    int value;
+
+    assert( thisClmHandle != NULL );
+
+    _TRACE2( "NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(...)\n" );
+
+    _saClmHandle = (SaClmHandleT)(*jniEnv)->GetLongField( jniEnv,
+                                                          thisClmHandle,
+                                                          FID_saClmHandle );
+
+    value = (*jniEnv)->GetIntField( jniEnv,
+                                    callbackResponse, 
+                                    FID_CR_value );
+
+    _TRACE2("NATIVE: CallbackResponse value: %d\n", value);
+
+    if( value == 1 )
+        _response = SA_CLM_CALLBACK_RESPONSE_OK;
+    else if( value == 2)
+        _response = SA_CLM_CALLBACK_RESPONSE_REJECTED;
+    else if( value == 3)
+        _response = SA_CLM_CALLBACK_RESPONSE_ERROR;
+
+    /* call saClmResponse_4 */
+
+      _saStatus = saClmResponse_4( _saClmHandle, 
+                                  (SaInvocationT)invocation, 
+                                  _response );
+
+    _TRACE2(" NATIVE: saClmResponse_4 has returned with %d\n", _saStatus);
+
+    if( _saStatus != SA_AIS_OK ){
+        JNU_Exception_Throw( jniEnv, _saStatus );
+        return;
+    }
+
+    _TRACE2( "NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(...) returning normally\n" );
 }
 
 /**************************************************************************
@@ -682,6 +783,8 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatc
     _saClmHandle = (SaClmHandleT) (*jniEnv)->GetLongField( jniEnv,
                                                            thisClmHandle,
                                                            FID_saClmHandle );
+    _TRACE2(" NATIVE: saClmHandle %lu ", (unsigned long)_saClmHandle );
+
 	// call saClmDispatch
 	_saStatus = saClmDispatch( _saClmHandle,
 							   (SaDispatchFlagsT) dispatchFlags );
@@ -691,53 +794,9 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatc
 
 	// error handling
   	if( _saStatus != SA_AIS_OK ){
-		switch( _saStatus ){
-            case SA_AIS_ERR_LIBRARY:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisLibraryException",
-                                    AIS_ERR_LIBRARY_MSG );
-                break;
-            case SA_AIS_ERR_TIMEOUT:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisTimeoutException",
-                                    AIS_ERR_TIMEOUT_MSG );
-                break;
-            case SA_AIS_ERR_TRY_AGAIN:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisTryAgainException",
-                                    AIS_ERR_TRY_AGAIN_MSG );
-                break;
-            case SA_AIS_ERR_BAD_HANDLE:
-                // TODO library handle invalid (e.g finalized): this check could be done at Java level!
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisBadHandleException",
-                                    AIS_ERR_BAD_HANDLE_MSG );
-                break;
-			case SA_AIS_ERR_INVALID_PARAM:
-                // this should not happen here!
-
-                assert( JNI_FALSE );
-
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisLibraryException",
-                                    AIS_ERR_LIBRARY_MSG );
-                // TODO dispatch flags are invalid: this check could be done at Java level!
-                //JNU_throwNewByName( jniEnv,
-                //                    "org/saforum/ais/AisInvalidparamException",
-                //                    AIS_ERR_INVALID_PARAM_MSG );
-				break;
-			default:
-                // this should not happen here!
-
-                assert( JNI_FALSE );
-
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisLibraryException",
-                                    AIS_ERR_LIBRARY_MSG );
-				break;
-		}
-        return; // EXIT POINT!!!
-  	}
+            JNU_Exception_Throw( jniEnv, _saStatus );
+            return;
+	}
     // normal exit
 
     _TRACE2( "NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatch() returning normally\n" );
@@ -774,11 +833,15 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatc
     _saClmHandle = (SaClmHandleT) (*jniEnv)->GetLongField( jniEnv,
                                                            thisClmHandle,
                                                            FID_saClmHandle );
+    _TRACE2( "NATIVE: saClmHandle %d\n", _saClmHandle );
     // get selection object
     _saSelectionObject = (SaSelectionObjectT) (*jniEnv)->GetLongField(
                                                             jniEnv,
                                                             thisClmHandle,
                                                             FID_selectionObject );
+    
+    _TRACE2(" NATIVE: _saSelectionObject %d\n", _saSelectionObject );
+
     // wait until there is a pending callback
     // call select(2)
     FD_ZERO( &_readFDs );
@@ -861,49 +924,10 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatc
 
     // error handling
     if( _saStatus != SA_AIS_OK ){
-        switch( _saStatus ){
-            case SA_AIS_ERR_LIBRARY:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisLibraryException",
-                                    AIS_ERR_LIBRARY_MSG );
-                break;
-            case SA_AIS_ERR_TIMEOUT:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisTimeoutException",
-                                    AIS_ERR_TIMEOUT_MSG );
-                break;
-            case SA_AIS_ERR_TRY_AGAIN:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisTryAgainException",
-                                    AIS_ERR_TRY_AGAIN_MSG );
-                break;
-            case SA_AIS_ERR_BAD_HANDLE:
-                // TODO library handle invalid (e.g finalized): this check could be done at Java level!
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisBadHandleException",
-                                    AIS_ERR_BAD_HANDLE_MSG );
-                break;
-            case SA_AIS_ERR_INVALID_PARAM:
-                // this should not happen here!
-
-                assert( JNI_FALSE );
-
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisInvalidparamException",
-                                    AIS_ERR_INVALID_PARAM_MSG );
-                break;
-            default:
-                // this should not happen here!
-
-                assert( JNI_FALSE );
-
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisLibraryException",
-                                    AIS_ERR_LIBRARY_MSG );
-                break;
-        }
-        return; // EXIT POINT!!!
+        JNU_Exception_Throw( jniEnv, _saStatus );
+        return;
     }
+    
     // normal exit
 
     _TRACE2( "NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady() returning normally\n" );
@@ -945,40 +969,9 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_finalizeClmHandle(
 
     // error handling
   	if( _saStatus != SA_AIS_OK ){
-		switch( _saStatus ){
-			case SA_AIS_ERR_LIBRARY:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisLibraryException",
-                                    AIS_ERR_LIBRARY_MSG );
-				break;
-			case SA_AIS_ERR_TIMEOUT:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisTimeoutException",
-                                    AIS_ERR_TIMEOUT_MSG );
-				break;
-			case SA_AIS_ERR_TRY_AGAIN:
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisTryAgainException",
-                                    AIS_ERR_TRY_AGAIN_MSG );
-				break;
-			case SA_AIS_ERR_BAD_HANDLE:
-                // TODO library handle invalid (e.g finalized): this check could be done at Java level!
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisBadHandleException",
-                                    AIS_ERR_BAD_HANDLE_MSG );
-				break;
-			default:
-                // this should not happen here!
-
-                assert( JNI_FALSE );
-
-                JNU_throwNewByName( jniEnv,
-                                    "org/saforum/ais/AisLibraryException",
-                                    AIS_ERR_LIBRARY_MSG );
-				break;
-		}
-        return; // EXIT POINT!!!
-  	}
+            JNU_Exception_Throw( jniEnv, _saStatus );
+            return;
+        }
 
     // normal exit
 

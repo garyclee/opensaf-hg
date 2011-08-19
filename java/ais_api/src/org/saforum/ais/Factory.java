@@ -1,11 +1,11 @@
 /*******************************************************************************
 **
 ** SPECIFICATION VERSION:
-**   SAIM-AIS-R2-JD-A.01.01
-**   SAI-Overview-B.01.01
+**   SAIM-AIS-R6-A.01.01
+**   SAI-Overview-B.05.01
 **
-** DATE:
-**   Wed Aug 6 2008
+** DATE: 
+**   Wednesday November 19, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -27,8 +27,8 @@ package org.saforum.ais;
  * implementation class must be defined in the appropriate AIS
  * Service specification.
  *
- * @version AIS-B.01.01 (SAIM-AIS-R2-JD-A.01.01)
- * @since AIS-B.01.01
+ * @version SAI-Overview-B.05.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-Overview-B.01.01
  */
 public interface Factory<S extends Handle, C extends Callbacks> {
 
@@ -54,7 +54,8 @@ public interface Factory<S extends Handle, C extends Callbacks> {
      *            As an <i>output parameter</i> the version actually supported by the
      *            AIS service is delivered, as specified:
      *            <UL>
-     *            <LI>If the implementation supports the specified releaseCode and majorVersion:
+     *            <LI>If the implementation supports the specified releaseCode and majorVersion,
+     *            version is set by this method as follows:
      *              <UL>
      *              <LI>releaseCode = required release code
      *              <LI>majorVersion = highest value of the major version that this
@@ -97,6 +98,9 @@ public interface Factory<S extends Handle, C extends Callbacks> {
      *             (other than memory).
      * @throws AisVersionException The version parameter is not compatible with
      *             the version of the requested AIS service implementation.
+     * @throws AisUnavailableException (<B>since</B> AIS-B.03.01)
+     *             The operation requested in this call is unavailable on
+     *             this cluster node because it is not a member node.
      */
     public S initializeHandle(C callbacks, Version version)
         throws AisLibraryException,
@@ -105,5 +109,8 @@ public interface Factory<S extends Handle, C extends Callbacks> {
             AisInvalidParamException,
             AisNoMemoryException,
             AisNoResourcesException,
-            AisVersionException;
+            AisVersionException,
+            AisUnavailableException;
 }
+
+/*  */

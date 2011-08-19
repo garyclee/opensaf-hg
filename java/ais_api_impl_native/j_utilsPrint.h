@@ -63,12 +63,21 @@ void U_printSaSelectionObjectInfo(
 void U_printSaClusterNotificationBuffer(
     const char* msg,
     const SaClmClusterNotificationBufferT* saClusterNotificationBufferPtr );
+void U_printSaClusterNotificationBuffer_4(
+    const char* msg,
+    const SaClmClusterNotificationBufferT_4* saClusterNotificationBufferPtr );
 void U_printSaClusterNotification(
     const char* msg,
     const SaClmClusterNotificationT* saClusterNotificationPtr );
+void U_printSaClusterNotification_4(
+    const char* msg,
+    const SaClmClusterNotificationT_4* saClusterNotificationPtr );
 void U_printSaClusterNode(
     const char* msg,
     const SaClmClusterNodeT* saClusterNodePtr );
+void U_printSaClusterNode_4(
+    const char* msg,
+    const SaClmClusterNodeT_4* saClusterNodePtr );
 void U_printSaNodeAddress(
     const char* msg,
     const SaClmNodeAddressT* saClmNodeAddressPtr );

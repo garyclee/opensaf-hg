@@ -1,11 +1,11 @@
 /*******************************************************************************
 **
 ** SPECIFICATION VERSION:
-**   SAIM-AIS-R2-JD-A.01.01
-**   SAI-Overview-B.01.01
+**   SAIM-AIS-R6-A.01.01
+**   SAI-Overview-B.05.01
 **
-** DATE:
-**   Wed Aug 6 2008
+** DATE: 
+**   Wednesday November 19, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -25,12 +25,12 @@ package org.saforum.ais;
  * Indicates behaviour for "dispatch" calls.
  *
  * <P><B>SAF Reference:</B> <code>SaDispatchFlagsT</code>
- * @version AIS-B.01.01 (SAIM-AIS-R2-JD-A.01.01)
- * @since AIS-B.01.01
+ * @version SAI-Overview-B.05.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-Overview-B.01.01
  * @see Handle#dispatch(DispatchFlags)
  *
  */
-public enum DispatchFlags implements java.io.Serializable {
+public enum DispatchFlags implements EnumValue {
 
     /**
      * Invoke a single pending callback in the context of the calling thread, if
@@ -71,8 +71,11 @@ public enum DispatchFlags implements java.io.Serializable {
      * Returns the numerical value assigned to this constant by the AIS specification.
      * @return the numerical value assigned to this constant by the AIS specification.
      */
+    @Override
     public int getValue() {
         return this.value;
     }
 
 }
+
+/*  */

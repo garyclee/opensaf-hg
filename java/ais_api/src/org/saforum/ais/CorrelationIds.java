@@ -3,10 +3,10 @@
 ** SPECIFICATION VERSION:
 **   SAIM-AIS-R6-A.01.01
 **   SAI-Overview-B.05.01
-**   SAI-AIS-CLM-B.04.01
+**   SAI-AIS-NTF-A.03.01
 **
 ** DATE: 
-**   Monday December 1, 2008
+**   Monday November 17, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -21,19 +21,21 @@
 **
 *******************************************************************************/
 
-package org.saforum.ais.clm;
+package org.saforum.ais;
+
 
 /**
- * This class contains a text representation of an IPv4 address using the
- * d.d.d.d notation (where the 'd's are the decimal values of the four 8-bit
- * pieces of the address).
- * <P><B>SAF Reference:</B> <code>SaClmNodeAddressT</code>
- * @version SAI-AIS-CLM-B.04.01 (SAIM-AIS-R6-A.01.01)
- * @since SAI-AIS-CLM-B.01.01
- *
+ * Correlation Id structure. Used to build a (distributed) hierarchical structure of correlated notifications. Note that (as of ntf-A.03.00.08) this type is not used).
+ * <p>
+ * <b>SAF Reference:</b> <code>SaNtfCorrelationIdsT</code>
+ * @version SAI-AIS-NTF-A.03.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-AIS-NTF-A.03.01
+ * @see Notification#UNUSED_IDENTIFIER
  */
-public class NodeAddressIPv4 extends NodeAddress {
-
+public class CorrelationIds {
+	long rootId;
+	long parentId;
+	long id;
 }
 
-/*  */
+

@@ -1,12 +1,12 @@
 /*******************************************************************************
 **
 ** SPECIFICATION VERSION:
-**   SAIM-AIS-R2-JD-A.01.01
-**   SAI-Overview-B.01.01
-**   SAI-AIS-CLM-B.01.01
+**   SAIM-AIS-R6-A.01.01
+**   SAI-Overview-B.05.01
+**   SAI-AIS-CLM-B.04.01
 **
-** DATE:
-**   Wed Aug 6 2008
+** DATE: 
+**   Monday December 1, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -24,11 +24,24 @@
 package org.saforum.ais.clm;
 
 /**
- * This class contains an array of notifications of changes in the cluster membership or
- * of changes in an attribute of a cluster node.
- * <P><B>SAF Reference:</B> <code>SaClmClusterNotificationBufferT</code>
- * @version CLM-B.01.01 (SAIM-AIS-R2-JD-A.01.01)
- * @since CLM-B.01.01
+ * This class contains an array of notifications of changes in the cluster
+ * membership or of changes in an attribute of a cluster node.
+ * <P>
+ * <B>SAF Reference:</B> <code>SaClmClusterNotificationBufferT</code>
+ * <P>
+ * <B>SAF Reference:</B> <code>SaClmClusterNotificationBufferT_4</code>
+ * 
+ * @version SAI-AIS-CLM-B.04.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-AIS-CLM-B.01.01
+ * @see ClusterMembershipManager#getCluster()
+ * @see ClusterMembershipManager#getCluster(boolean)
+ * @see ClusterMembershipManager#getClusterThenStartTracking(TrackFlags)
+ * @see ClusterMembershipManager#getClusterThenStartTracking(TrackFlags,
+ *      boolean, int)
+ * @see TrackClusterCallback#trackClusterCallback(ClusterNotificationBuffer,
+ *      int, AisStatus)
+ * @see TrackClusterCallback#trackClusterCallback(ClusterNotificationBuffer,
+ *      int, long, String, CorrelationIds, ChangeStep, long, AisStatus)
  */
 public class ClusterNotificationBuffer {
 
@@ -46,3 +59,5 @@ public class ClusterNotificationBuffer {
     public ClusterNotification[] notifications;
 
 }
+
+/*  */

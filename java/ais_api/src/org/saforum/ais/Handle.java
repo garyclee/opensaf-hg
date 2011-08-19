@@ -1,11 +1,11 @@
 /*******************************************************************************
 **
 ** SPECIFICATION VERSION:
-**   SAIM-AIS-R2-JD-A.01.01
-**   SAI-Overview-B.01.01
+**   SAIM-AIS-R6-A.01.01
+**   SAI-Overview-B.05.01
 **
-** DATE:
-**   Wed Aug 6 2008
+** DATE: 
+**   Wednesday November 19, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -33,8 +33,8 @@ import java.nio.channels.SelectableChannel;
  * program (e.g., process in the POSIX.1 world).
  *
  * <P><B>SAF Reference:</B> <code>Sa&lt;Area&gt;HandleT</code>
- * @version AIS-B.01.01 (SAIM-AIS-R2-JD-A.01.01)
- * @since AIS-B.01.01
+ * @version SAI-Overview-B.05.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-Overview-B.01.01
  */
 public interface Handle {
 
@@ -70,6 +70,15 @@ public interface Handle {
      *             cannot provide the service.
      * @throws AisNoResourcesException The system is out of required resources
      *             (other than memory).
+     * @throws AisUnavailableException (<B>since</B> AIS-B.03.01)
+     *             The operation requested in this call is
+     *             unavailable on this cluster node due to one of the two reasons:
+     *             <UL>
+     *             <LI>the cluster node has left the cluster membership;
+     *             <LI>the cluster node has rejoined the cluster membership, but
+     *             the associated AmfHandle object was acquired before the cluster
+     *             node left the cluster membership.
+     *             </UL>
      */
     public boolean hasPendingCallback()
         throws AisLibraryException,
@@ -116,6 +125,15 @@ public interface Handle {
      *             service.
      * @throws AisNoResourcesException The system is out of required resources
      *             (other than memory).
+     * @throws AisUnavailableException (<B>since</B> AIS-B.03.01) The
+     *             operation requested in this call is unavailable on this
+     *             cluster node due to one of the two reasons:
+     *             <UL>
+     *             <LI>the cluster node has left the cluster membership;
+     *             <LI>the cluster node has rejoined the cluster membership,
+     *             but the associated AmfHandle object was acquired before the
+     *             cluster node left the cluster membership.
+     *             </UL>
      */
     public boolean hasPendingCallback( long timeout )
         throws AisLibraryException,
@@ -169,6 +187,16 @@ public interface Handle {
      *             out of memory and cannot provide the service.
      * @throws AisNoResourcesException
      *             The system is out of required resources (other than memory).
+     * @throws AisUnavailableException (<B>since</B> AIS-B.03.01)
+     *             The operation requested in this
+     *             call is unavailable on this cluster node due to one of the
+     *             two reasons:
+     *             <UL>
+     *             <LI>the cluster node has left the cluster membership;
+     *             <LI>the cluster node has rejoined the cluster membership,
+     *             but the associated AmfHandle object was acquired before the
+     *             cluster node left the cluster membership.
+     *             </UL>
      */
     public SelectableChannel getSelectableChannel()
         throws AisLibraryException,
@@ -204,6 +232,15 @@ public interface Handle {
      *             The process may retry later.
      * @throws AisBadHandleException This library handle is invalid, since it is
      *             corrupted or has already been finalized.
+     * @throws AisUnavailableException (<B>since</B> AIS-B.03.01)
+     *             The operation requested in this call is
+     *             unavailable on this cluster node due to one of the two reasons:
+     *             <UL>
+     *             <LI>the cluster node has left the cluster membership;
+     *             <LI>the cluster node has rejoined the cluster membership, but
+     *             the associated AmfHandle object was acquired before the cluster
+     *             node left the cluster membership.
+     *             </UL>
      * @see org.saforum.ais.DispatchFlags
      */
     public void dispatch( DispatchFlags dispatchFlags )
@@ -252,6 +289,15 @@ public interface Handle {
      *             cannot provide the service.
      * @throws AisNoResourcesException The system is out of required resources
      *             (other than memory).
+     * @throws AisUnavailableException (<B>since</B> AIS-B.03.01)
+     *             The operation requested in this call is
+     *             unavailable on this cluster node due to one of the two reasons:
+     *             <UL>
+     *             <LI>the cluster node has left the cluster membership;
+     *             <LI>the cluster node has rejoined the cluster membership, but
+     *             the associated AmfHandle object was acquired before the cluster
+     *             node left the cluster membership.
+     *             </UL>
      */
     public void dispatchBlocking()
         throws AisLibraryException,
@@ -306,6 +352,15 @@ public interface Handle {
      *             service.
      * @throws AisNoResourcesException The system is out of required resources
      *             (other than memory).
+     * @throws AisUnavailableException (<B>since</B> AIS-B.03.01) The
+     *             operation requested in this call is unavailable on this
+     *             cluster node due to one of the two reasons:
+     *             <UL>
+     *             <LI>the cluster node has left the cluster membership;
+     *             <LI>the cluster node has rejoined the cluster membership,
+     *             but the associated AmfHandle object was acquired before the
+     *             cluster node left the cluster membership.
+     *             </UL>
      */
     public void dispatchBlocking( long timeout )
         throws AisLibraryException,
@@ -341,3 +396,5 @@ public interface Handle {
             AisTryAgainException,
             AisBadHandleException;
 }
+
+/*  */
