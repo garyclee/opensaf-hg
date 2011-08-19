@@ -222,7 +222,6 @@ AVND_CB *avnd_cb_create()
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
 	SaNtfCallbacksT ntfCallbacks = { NULL, NULL };
-	SaVersionT immVersion = { 'A', 2, 1 };
 	char *val;
 
 	TRACE_ENTER();
@@ -262,8 +261,6 @@ AVND_CB *avnd_cb_create()
 	/* iniialize the error escaltion paramaets */
 	cb->node_err_esc_level = AVND_ERR_ESC_LEVEL_0;
 
-	immutil_saImmOmInitialize(&cb->immOmHandle, NULL, &immVersion);
-
 	/*** initialize avnd dbs ***/
 
 	/* initialize su db */
@@ -302,7 +299,6 @@ AVND_CB *avnd_cb_create()
 		goto err;
 	}
 
-	immutil_saImmOmInitialize(&cb->immOmHandle, NULL, &immVersion);
 	TRACE_LEAVE();
 	return cb;
 

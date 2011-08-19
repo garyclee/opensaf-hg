@@ -262,7 +262,7 @@ static AVND_HC *hc_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValuesT_2 **a
 	return hc;
 }
 
-SaAisErrorT avnd_hc_config_get(AVND_COMP* comp)
+SaAisErrorT avnd_hc_config_get(AVND_COMP *comp)
 {
 	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
 	SaImmSearchHandleT searchHandle;
@@ -272,14 +272,18 @@ SaAisErrorT avnd_hc_config_get(AVND_COMP* comp)
 	const char *className = "SaAmfHealthcheck";
 	SaNameT comp_dn = comp->name;
 	comp_dn.length = comp_dn.length;
+	SaImmHandleT immOmHandle;
+	SaVersionT immVersion = { 'A', 2, 1 };
 
-	avnd_hctype_config_get(&comp->saAmfCompType);
+	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+
+	avnd_hctype_config_get(immOmHandle, &comp->saAmfCompType);
 
 	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avnd_cb->immOmHandle, &comp_dn,
+	error = immutil_saImmOmSearchInitialize_2(immOmHandle, &comp_dn,
 		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
 		&searchParam, NULL, &searchHandle);
 
@@ -301,6 +305,7 @@ SaAisErrorT avnd_hc_config_get(AVND_COMP* comp)
  done2:
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
  done1:
+	immutil_saImmOmFinalize(immOmHandle);
 
 	return error;
 }
@@ -337,7 +342,7 @@ static AVND_HCTYPE *hctype_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValue
 	return hc;
 }
 
-SaAisErrorT avnd_hctype_config_get(const SaNameT *comptype_dn)
+SaAisErrorT avnd_hctype_config_get(SaImmHandleT immOmHandle, const SaNameT *comptype_dn)
 {
 	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
 	SaImmSearchHandleT searchHandle;
@@ -346,11 +351,13 @@ SaAisErrorT avnd_hctype_config_get(const SaNameT *comptype_dn)
 	const SaImmAttrValuesT_2 **attributes;
 	const char *className = "SaAmfHealthcheckType";
 
+	TRACE_ENTER2("'%s'", comptype_dn->value);
+
 	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avnd_cb->immOmHandle, comptype_dn,
+	error = immutil_saImmOmSearchInitialize_2(immOmHandle, comptype_dn,
 		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
 		&searchParam, NULL, &searchHandle);
 
@@ -372,6 +379,7 @@ SaAisErrorT avnd_hctype_config_get(const SaNameT *comptype_dn)
  done2:
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
  done1:
+	TRACE_LEAVE2("%u", error);
 	return error;
 }
 

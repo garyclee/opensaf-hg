@@ -104,7 +104,7 @@ done:
 	TRACE_LEAVE();
 }
 
-static void clm_to_amf_node()
+static void clm_to_amf_node(void)
 {
 	SaAisErrorT error;
 	SaImmSearchHandleT searchHandle;
@@ -112,6 +112,8 @@ static void clm_to_amf_node()
 	SaImmSearchParametersT_2 searchParam;
 	const SaImmAttrValuesT_2 **attributes;
 	const char *className = "SaAmfNode";
+	SaImmHandleT immOmHandle;
+	SaVersionT immVersion = { 'A', 2, 1 };
 
 	TRACE_ENTER();
 
@@ -119,7 +121,9 @@ static void clm_to_amf_node()
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avnd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+
+	error = immutil_saImmOmSearchInitialize_2(immOmHandle, NULL, SA_IMM_SUBTREE,
 					SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
 					&searchParam,NULL, &searchHandle);
 
@@ -137,7 +141,8 @@ static void clm_to_amf_node()
 	}
 
 done:
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
+	immutil_saImmOmSearchFinalize(searchHandle);
+	immutil_saImmOmFinalize(immOmHandle);
 	TRACE_LEAVE2("%u", error);
 }
 

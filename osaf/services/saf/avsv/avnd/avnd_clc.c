@@ -806,7 +806,7 @@ uint32_t avnd_comp_clc_fsm_run(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_PRES_
 	if (0 != avnd_comp_clc_fsm[prv_st - 1][ev - 1]) {
 		rc = avnd_comp_clc_fsm[prv_st - 1][ev - 1] (cb, comp);
 		if (NCSCC_RC_SUCCESS != rc){
-			TRACE_1("Component CLC fsm exited with error for comp:%s",comp->name.value);
+			LOG_NO("Component CLC fsm exited with error for comp:%s",comp->name.value);
 			goto done;
 		}
 	}
