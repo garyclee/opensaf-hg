@@ -24,15 +24,12 @@ noinst_HEADERS = \
 	mqa_def.h \
 	mqa_dl_api.h \
 	mqa.h \
-	mqa_log.h \
 	mqa_mem.h \
 	mqd_api.h \
 	mqd_clm.h \
 	mqd_db.h \
 	mqd_dl_api.h \
 	mqd.h \
-	mqd_log.h \
-	mqd_logstr.h \
 	mqd_mem.h \
 	mqd_red.h \
 	mqd_saf.h \
@@ -41,7 +38,6 @@ noinst_HEADERS = \
 	mqnd_dl_api.h \
 	mqnd_evt.h \
 	mqnd.h \
-	mqnd_log.h \
 	mqnd_mds.h \
 	mqnd_mem.h \
 	mqnd_proc.h \

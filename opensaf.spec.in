@@ -1204,7 +1204,6 @@ fi
 %dir %{_pkgimmxmldir}
 %endif
 %config(noreplace) %{_pkgsysconfdir}/msgd.conf
-%{_pkglibdir}/libmqsv_logstr.so.*
 %{_pkglibdir}/osafmsgd
 %{_pkgclcclidir}/osaf-msgd
 %if %is_immxml

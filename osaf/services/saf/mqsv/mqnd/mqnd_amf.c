@@ -75,19 +75,21 @@ mqnd_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, 
 	SaAisErrorT error = SA_AIS_OK;
 	uint32_t cb_hdl = m_MQND_GET_HDL();
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* Get the CB from the handle */
 	mqnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
 
 	if (!mqnd_cb) {
+		LOG_ER("%s:%u: CB Take Failed", __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return;
 	}
 	if ((rc = saAmfResponse(mqnd_cb->amf_hdl, invocation, error)) != SA_AIS_OK)
-		m_LOG_MQSV_ND(MQND_AMF_RESPONSE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("saAmfResponse: Response From AMF Failed with return code %u", rc);
 	/* giveup the handle */
 	ncshm_give_hdl(cb_hdl);
+	TRACE_LEAVE();
 	return;
 }
 
@@ -109,6 +111,7 @@ uint32_t mqnd_amf_init(MQND_CB *mqnd_cb)
 	SaVersionT amf_version;
 	SaAisErrorT error;
 	uint32_t res = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
@@ -122,18 +125,17 @@ uint32_t mqnd_amf_init(MQND_CB *mqnd_cb)
 	error = saAmfInitialize(&mqnd_cb->amf_hdl, &amfCallbacks, &amf_version);
 
 	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfInitialize Failed with error %d", error);
 		res = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_AMF_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, error, __FILE__, __LINE__);
 	} else
-		m_LOG_MQSV_ND(MQND_AMF_INITIALISATION_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, error, __FILE__,
-			      __LINE__);
+		TRACE_1("saAmfInitialize Success");
 	error = saAmfComponentNameGet(mqnd_cb->amf_hdl, &mqnd_cb->comp_name);
 	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfComponentNameGet Failed with error %d", error);
 		res = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_AMF_COMP_NAME_GET_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, error, __FILE__,
-			      __LINE__);
 	}
 
+	TRACE_LEAVE();
 	return (res);
 }
 
@@ -144,15 +146,18 @@ uint32_t mqnd_amf_init(MQND_CB *mqnd_cb)
  *
  * Arguments     : mqnd_cb  - MQND control block pointer.
  *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ * Return Values : None
  *
  * Notes         : None.
  *****************************************************************************/
 void mqnd_amf_de_init(MQND_CB *mqnd_cb)
 {
 	uint32_t rc = SA_AIS_OK;
+	TRACE_ENTER();
+
 	if ((rc = saAmfFinalize(mqnd_cb->amf_hdl)) != SA_AIS_OK)
-		m_LOG_MQSV_ND(MQND_AMF_DESTROY_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("saAmfFinalize Failed with return code %d", rc);
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -169,22 +174,22 @@ void mqnd_amf_de_init(MQND_CB *mqnd_cb)
 uint32_t mqnd_amf_register(MQND_CB *mqnd_cb)
 {
 	SaAisErrorT error;
+	TRACE_ENTER();
 
 	/* Get the component name */
 	error = saAmfComponentNameGet(mqnd_cb->amf_hdl, &mqnd_cb->comp_name);
 	if (error != SA_AIS_OK) {
-		m_LOG_MQSV_ND(MQND_AMF_COMP_NAME_GET_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, error, __FILE__,
-			      __LINE__);
+		LOG_ER("saAmfComponentNameGet Failed with error %d", error);
 		return NCSCC_RC_FAILURE;
 	}
-	m_LOG_MQSV_ND(MQND_AMF_COMP_NAME_GET_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, error, __FILE__, __LINE__);
+	TRACE_1("saAmfComponentNameGet Successfull");
 
 	if ((error = saAmfComponentRegister(mqnd_cb->amf_hdl, &mqnd_cb->comp_name, (SaNameT *)NULL)) == SA_AIS_OK) {
-		m_LOG_MQSV_ND(MQND_AMF_REGISTRATION_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, error, __FILE__,
-			      __LINE__);
+		TRACE_1("saAmfComponentRegister Success");
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	} else {
-		m_LOG_MQSV_ND(MQND_AMF_REGISTER_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, error, __FILE__, __LINE__);
+		LOG_ER("saAmfComponentRegister Failed with error %d", error);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -203,13 +208,14 @@ uint32_t mqnd_amf_register(MQND_CB *mqnd_cb)
 uint32_t mqnd_amf_deregister(MQND_CB *mqnd_cb)
 {
 	SaAisErrorT error;
+	TRACE_ENTER();
+
 	if ((error = saAmfComponentUnregister(mqnd_cb->amf_hdl, &mqnd_cb->comp_name, (SaNameT *)NULL)) == SA_AIS_OK) {
-		m_LOG_MQSV_ND(MQND_AMF_COMP_UNREGISTER_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, error, __FILE__,
-			      __LINE__);
+		TRACE_1("saAmfComponentUnregister Successfull");
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	} else {
-		m_LOG_MQSV_ND(MQND_AMF_COMP_UNREGISTER_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, error, __FILE__,
-			      __LINE__);
+		LOG_ER("saAmfComponentUnregister Failed with error %d", error);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -218,6 +224,7 @@ static void mqnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaN
 {
 	MQND_CB *mqnd_cb = 0;
 	SaAisErrorT saErr = SA_AIS_OK;
+	TRACE_ENTER();
 
 	uint32_t cb_hdl = m_MQND_GET_HDL();
 
@@ -225,19 +232,19 @@ static void mqnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaN
 	mqnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
 
 	if (!mqnd_cb) {
-		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			      __LINE__);
+		LOG_ER("%s:%u: CB Take Failed", __FILE__, __LINE__);
 		return;
 	}
 
 	saAmfResponse(mqnd_cb->amf_hdl, invocation, saErr);
-	m_LOG_MQSV_ND(MQND_AMF_TERM_CLBK_CALLED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, saErr, __FILE__, __LINE__);
+	LOG_ER("Amf Terminate Callback called");
 
 	/* giveup the handle */
 	ncshm_give_hdl(cb_hdl);
 	sleep(1);
 	exit(0);
 
+	TRACE_LEAVE();
 	return;
 
 }
@@ -247,6 +254,7 @@ static void mqnd_amf_CSI_set_callback(SaInvocationT invocation,
 {
 	MQND_CB *mqnd_cb;
 	SaAisErrorT saErr = SA_AIS_OK;
+	TRACE_ENTER();
 
 	uint32_t cb_hdl = m_MQND_GET_HDL();
 
@@ -254,15 +262,14 @@ static void mqnd_amf_CSI_set_callback(SaInvocationT invocation,
 	mqnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
 
 	if (!mqnd_cb) {
-		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			      __LINE__);
+		LOG_ER("%s:%u: CB Take Failed", __FILE__, __LINE__);
 		return;
 	}
 
 	if (mqnd_cb) {
 		mqnd_cb->ha_state = haState;	/* Set the HA State */
 	}
-	m_LOG_MQSV_ND(MQND_AMF_CSI_SET_CLBK_CALLED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, haState, __FILE__, __LINE__);
+	TRACE_1("Amf CSI set Call back called with new state as %d", haState);
 
 	/* TBD CSI Set processing at MQND */
 	if (haState == SA_AMF_HA_ACTIVE) {
@@ -274,8 +281,7 @@ static void mqnd_amf_CSI_set_callback(SaInvocationT invocation,
 			mqnd_cb->mqa_timer.tmr_id = 0;
 			/*Starting the timer When this timer expired CPSV initialization is done */
 			mqnd_tmr_start(&mqnd_cb->mqa_timer, (unsigned)MQND_MQA_EXPIRY_TIMER);
-			m_LOG_MQSV_ND(MQND_MQA_TMR_STARTED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, saErr, __FILE__,
-				      __LINE__);
+			TRACE_1("MQA timer Started");
 		}
 	}
 
@@ -283,6 +289,7 @@ static void mqnd_amf_CSI_set_callback(SaInvocationT invocation,
 
 	/* giveup the handle */
 	ncshm_give_hdl(cb_hdl);
+	TRACE_LEAVE();
 	return;
 }
 
@@ -292,6 +299,7 @@ mqnd_amf_csi_rmv_callback(SaInvocationT invocation,
 {
 	MQND_CB *mqnd_cb = 0;
 	SaAisErrorT saErr = SA_AIS_OK;
+	TRACE_ENTER();
 
 	uint32_t cb_hdl = m_MQND_GET_HDL();
 
@@ -299,15 +307,15 @@ mqnd_amf_csi_rmv_callback(SaInvocationT invocation,
 	mqnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
 
 	if (!mqnd_cb) {
-		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			      __LINE__);
+		LOG_ER("%s:%u: CB Take Failed", __FILE__, __LINE__);
 		return;
 	}
-	m_LOG_MQSV_ND(MQND_AMF_CSI_RMV_CLBK_CALLED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, saErr, __FILE__, __LINE__);
+	TRACE_1("Amf CSI Remove Callback Called");
 
 	saAmfResponse(mqnd_cb->amf_hdl, invocation, saErr);
 
 	/* giveup the handle */
 	ncshm_give_hdl(cb_hdl);
+	TRACE_LEAVE();
 	return;
 }

@@ -53,6 +53,7 @@ uint32_t mqnd_shm_create(MQND_CB *cb)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	char shm_name[] = SHM_NAME;
 	MQND_SHM_VERSION mqnd_shm_version;
+	TRACE_ENTER();
 
 	cb->mqnd_shm.max_open_queues = cb->gl_msg_max_no_of_q;
 
@@ -78,14 +79,14 @@ uint32_t mqnd_shm_create(MQND_CB *cb)
 		mqnd_open_req.info.open.i_flags = O_CREAT | O_RDWR;
 
 		rc = ncs_os_posix_shm(&mqnd_open_req);
-		if (rc == NCSCC_RC_FAILURE)
+		if (rc == NCSCC_RC_FAILURE) {
+			LOG_CR("Creation of shared memory segment failed");
 			return rc;
-		else {
+		} else {
 			memset(mqnd_open_req.info.open.o_addr, 0,
 			       sizeof(MQND_SHM_VERSION) +
 			       (sizeof(MQND_QUEUE_CKPT_INFO) * (cb->mqnd_shm.max_open_queues)));
-			m_LOG_MQSV_ND(MQND_RESTART_INIT_FIRST_TIME, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, SA_AIS_OK,
-				      __FILE__, __LINE__);
+			TRACE_1("First time starting the MQND");
 			cb->is_restart_done = true;
 			TRACE("Firsttime Openingthe Ckpt");
 			cb->is_create_ckpt = true;
@@ -100,6 +101,7 @@ uint32_t mqnd_shm_create(MQND_CB *cb)
 	/* Store Shared memory base address which is used by MQSV to checkpoint queue informaition */
 	cb->mqnd_shm.shm_base_addr = mqnd_open_req.info.open.o_addr + sizeof(mqnd_shm_version);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -124,6 +126,8 @@ uint32_t mqnd_shm_destroy(MQND_CB *cb)
 	mqnd_dest_req.info.unlink.i_name = shm_name;
 
 	rc = ncs_os_posix_shm(&mqnd_dest_req);
+	if (rc != NCSCC_RC_SUCCESS);
+		LOG_CR("Destroying the shared memory segment failed");
 
 	return rc;
 }
@@ -246,6 +250,7 @@ uint32_t mqnd_shm_queue_ckpt_section_invalidate(MQND_CB *cb, MQND_QUEUE_NODE *qn
 	shm_base_addr = cb->mqnd_shm.shm_base_addr;
 
 	if (!qnode) {
+		LOG_ER("ERR_BAD_HANDLE: Queue Node is NULL");
 		err = SA_AIS_ERR_BAD_HANDLE;
 		return NCSCC_RC_FAILURE;
 	}

@@ -89,17 +89,18 @@ static const MQD_PROCESS_A2S_EVENT_FUNC_PTR mqd_process_a2s_event_handler[MQD_A2
 uint32_t mqd_process_a2s_event(MQD_CB *pMqd, MQD_A2S_MSG *msg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if (msg->type < MQD_A2S_MSG_TYPE_BASE || msg->type >= MQD_A2S_MSG_TYPE_MAX) {
+		LOG_ER("Bad Active to Standby Message Type");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_RED_BAD_A2S_TYPE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return rc;
 	}
 	rc = mqd_process_a2s_event_handler[msg->type - MQD_A2S_MSG_TYPE_BASE - 1] (pMqd, *msg);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESSING_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
+		LOG_ER("Processing at Standby is failed");
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -145,17 +146,17 @@ static uint32_t mqd_process_a2s_register_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_OBJ_NODE *pObjNode = 0;
 	ASAPi_OBJECT_OPR opr = 0;
+	TRACE_ENTER();
 
 	rc = mqd_asapi_db_upd(pMqd, (ASAPi_REG_INFO *)(&(msg.info.reg)), &pObjNode, &opr);
 	if (!pObjNode) {
+		LOG_ER("Standby Processing Queue with the given name is not present");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_RED_STANDBY_QUEUE_NODE_NOT_PRESENT, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
 	}
 	if (rc == NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_REG_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__,
-			     __LINE__);
+		TRACE_1("Standby Processing Queue with the given name is not present");
 	}
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -178,17 +179,17 @@ static uint32_t mqd_process_a2s_deregister_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO mesg;
+	TRACE_ENTER();
 
 	memset(&mesg, 0, sizeof(mesg));
 
 	rc = mqd_asapi_dereg_db_upd(pMqd, (ASAPi_DEREG_INFO *)(&(msg.info.dereg)), &mesg);
 
 	if (rc == NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_DEREG_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__,
-			     __LINE__);
+		LOG_ER("Standby Processing for DEREG message Success");
 	} else
-		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_DEREG_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
+		TRACE_1("Standby Processing for DEREG message Failed with error %u", rc);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -211,6 +212,7 @@ static uint32_t mqd_process_a2s_track_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_OBJ_NODE *pObjNode = 0;
 	MQSV_SEND_INFO info;
+	TRACE_ENTER();
 
 	memset(&info, 0, sizeof(MQSV_SEND_INFO));
 
@@ -219,16 +221,14 @@ static uint32_t mqd_process_a2s_track_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 	rc = mqd_asapi_track_db_upd(pMqd, (ASAPi_TRACK_INFO *)(&(msg.info.track.track)), &info, &pObjNode);
 	if (!pObjNode) {
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_RED_STANDBY_QUEUE_NODE_NOT_PRESENT, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
+		LOG_ER("Standby Processing Queue with the given name is not present");
 	}
 	if (rc == NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_TRACK_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__,
-			     __LINE__);
+		TRACE_1("Standby Processing for TRACK message Success");
 	else
-		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_TRACK_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
+		TRACE_2("Standby Processing for TRACK message Failed with error %u", rc);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -254,8 +254,7 @@ static uint32_t mqd_process_a2s_userevent_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 	rc = mqd_user_evt_track_delete(pMqd, &msg.info.user_evt.dest);
 
 	if (rc == NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_USEREVT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__,
-			     __LINE__);
+		TRACE_1("Standby Processing for USEREVT message success");
 	return rc;
 }
 

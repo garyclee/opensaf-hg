@@ -57,14 +57,14 @@ void mqnd_process_evt(MQSV_EVT *evt)
 {
 	MQND_CB *cb;
 	uint32_t cb_hdl = m_MQND_GET_HDL();
+	TRACE_ENTER();
 
 	/* Get the CB from the handle */
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
 
 	if (cb == NULL) {
 		m_MMGR_FREE_MQSV_EVT(evt, NCS_SERVICE_ID_MQND);
-		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			      __LINE__);
+		LOG_ER("%s:%u: CB Take Failed", __FILE__, __LINE__);
 		return;
 	}
 
@@ -84,6 +84,7 @@ void mqnd_process_evt(MQSV_EVT *evt)
 	default:
 		/* Log the error */
 		/* m_LOG_MQND_EVT(evt->type, NCSFL_SEV_ERROR); */
+		LOG_ER("%s:%u: UnpacK Failed, unrecognized message type: %d",__FILE__, __LINE__, evt->type);
 		break;
 	}
 
@@ -92,6 +93,7 @@ void mqnd_process_evt(MQSV_EVT *evt)
 
 	m_MMGR_FREE_MQSV_EVT(evt, NCS_SERVICE_ID_MQND);
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -99,14 +101,14 @@ void mqnd_process_dsend_evt(MQSV_DSEND_EVT *evt)
 {
 	MQND_CB *cb;
 	uint32_t cb_hdl = m_MQND_GET_HDL(), rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* Get the CB from the handle */
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
 
 	if (cb == NULL) {
 		mds_free_direct_buff((MDS_DIRECT_BUFF)evt);
-		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			      __LINE__);
+		LOG_ER("%s:%u: CB Take Failed", __FILE__, __LINE__);
 		return;
 	}
 
@@ -123,6 +125,7 @@ void mqnd_process_dsend_evt(MQSV_DSEND_EVT *evt)
 	default:
 		/* Log the error */
 		/* m_LOG_MQND_EVT(evt->type, NCSFL_SEV_ERROR); */
+		LOG_ER("%s:%u: Unpack Failed, unrecognized message type: %d", __FILE__, __LINE__, evt->type.req_type);
 		break;
 	}
 
@@ -134,12 +137,14 @@ void mqnd_process_dsend_evt(MQSV_DSEND_EVT *evt)
 	    (evt->type.req_type == MQP_EVT_SEND_MSG) || (evt->type.req_type == MQP_EVT_STAT_UPD_REQ))
 		mds_free_direct_buff((MDS_DIRECT_BUFF)evt);
 
+	TRACE_LEAVE();
 	return;
 }
 
 static uint32_t mqnd_proc_mqp_req_msg(MQND_CB *cb, MQSV_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	switch (evt->msg.mqp_req.type) {
 	case MQP_EVT_INIT_REQ:
@@ -174,39 +179,41 @@ static uint32_t mqnd_proc_mqp_req_msg(MQND_CB *cb, MQSV_EVT *evt)
 		rc = mqnd_evt_proc_ret_time_set(cb, evt);
 		break;
 	default:
+		LOG_ER("%s:%u: unrecognized message type: %d", __FILE__, __LINE__, evt->msg.mqp_req.type);
 		rc = NCSCC_RC_FAILURE;
 		break;
 	}
 	if (rc == NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_ND(MQND_EVT_RECEIVED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, evt->msg.mqp_req.type, __FILE__,
-			      __LINE__);
+		TRACE_1("Event received of type %d", evt->msg.mqp_req.type);
 	else
-		m_LOG_MQSV_ND(MQND_EVT_RECEIVED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, evt->msg.mqp_req.type, __FILE__,
-			      __LINE__);
+		TRACE_2("Event received of type %d",evt->msg.mqp_req.type);
+	TRACE_LEAVE();
 	return rc;
 }
 
 static uint32_t mqnd_proc_mqp_rsp_msg(MQND_CB *cb, MQSV_EVT *evt)
 {
 	uint32_t rc;
+	TRACE_ENTER();
 
 	switch (evt->msg.mqp_rsp.type) {
 	case MQP_EVT_TRANSFER_QUEUE_RSP:
 		rc = mqnd_evt_proc_mqp_qtransfer_response(cb, evt);
 		break;
 	default:
+		LOG_ER("%s:%u: unrecognized message type: %d", __FILE__, __LINE__, evt->msg.mqp_rsp.type);
 		rc = NCSCC_RC_FAILURE;
 		break;
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
 static uint32_t mqnd_proc_mqnd_ctrl_msg(MQND_CB *cb, MQSV_EVT *evt)
 {
 	uint32_t rc;
-	m_LOG_MQSV_ND(MQND_CTRL_EVT_RECEIVED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, evt->msg.mqnd_ctrl.type, __FILE__,
-		      __LINE__);
+	TRACE_ENTER2("Control Event received of type %d", evt->msg.mqnd_ctrl.type);
 	switch (evt->msg.mqnd_ctrl.type) {
 	case MQND_CTRL_EVT_TMR_EXPIRY:
 		rc = mqnd_evt_proc_tmr_expiry(cb, evt);
@@ -230,9 +237,11 @@ static uint32_t mqnd_proc_mqnd_ctrl_msg(MQND_CB *cb, MQSV_EVT *evt)
 
 	case MQND_CTRL_EVT_QATTR_INFO:
 	default:
+		LOG_ER("%s:%u: unrecognized message type: %d", __FILE__, __LINE__, evt->msg.mqnd_ctrl.type);
 		rc = NCSCC_RC_FAILURE;
 		break;
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -253,9 +262,8 @@ uint32_t mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa)
 	MQND_QUEUE_NODE *qnode;
 	uint32_t qhdl;
 	uint32_t err = SA_AIS_OK;
+	TRACE_ENTER2("The Agent is down on the node id :%d",m_NCS_NODE_ID_FROM_MDS_DEST(*mqa));
 
-	m_LOG_MQSV_ND(MQND_MQA_DOWN, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, m_NCS_NODE_ID_FROM_MDS_DEST(*mqa), __FILE__,
-		      __LINE__);
 	/* Traverse the Message Queue Database and close all the queues opened by
 	   this application */
 	mqnd_queue_node_getnext(cb, 0, &qnode);
@@ -271,6 +279,7 @@ uint32_t mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa)
 		mqnd_queue_node_getnext(cb, qhdl, &qnode);
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
 }
@@ -296,13 +305,13 @@ static uint32_t mqnd_evt_proc_mqp_finalize(MQND_CB *cb, MQSV_EVT *evt)
 	uint32_t qhdl;
 	uint32_t err = SA_AIS_OK;
 	MQSV_EVT send_evt;
+	TRACE_ENTER();
 
 	final = &evt->msg.mqp_req.info.finalReq;
 
 	if (!cb->is_restart_done) {
 		err = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_MQSV_ND(MQND_INITIALIZATION_INCOMPLETE, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, err, __FILE__,
-			      __LINE__);
+		LOG_ER("%s:%u: ERR_TRY_AGAIN: MQND is not completely Initialized", __FILE__, __LINE__);
 		goto send_rsp;
 	}
 	/* Traverse the Message Queue Database and close all the queues opened by
@@ -318,8 +327,7 @@ static uint32_t mqnd_evt_proc_mqp_finalize(MQND_CB *cb, MQSV_EVT *evt)
 			mqnd_proc_queue_close(cb, qnode, &err);	/* err returned by this function
 								   is not handled in this routine */
 			if (err != SA_AIS_OK)
-				m_LOG_MQSV_ND(MQND_FINALIZE_CLOSE_STATUS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err,
-					      __FILE__, __LINE__);
+				LOG_ER("The Queue Is not Properly Closed as part of Finalizing");
 		}
 
 		mqnd_queue_node_getnext(cb, qhdl, &qnode);
@@ -333,11 +341,10 @@ static uint32_t mqnd_evt_proc_mqp_finalize(MQND_CB *cb, MQSV_EVT *evt)
 	send_evt.msg.mqp_rsp.error = err;
 	rc = mqnd_mds_send_rsp(cb, &evt->sinfo, &send_evt);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_ND(MQND_FINALIZE_RESP_SENT_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
+		TRACE_2("The Finalize response is not sent properly to the agent");
 	else
-		m_LOG_MQSV_ND(MQND_FINALIZE_RESP_SENT_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, rc, __FILE__,
-			      __LINE__);
+		TRACE_1("The Finalize response is sent properly to the agent");
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -358,6 +365,7 @@ static uint32_t mqnd_evt_proc_mqp_init(MQND_CB *cb, MQSV_EVT *evt)
 {
 	MQSV_EVT send_evt;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&send_evt, 0, sizeof(MQSV_EVT));
 
@@ -372,17 +380,15 @@ static uint32_t mqnd_evt_proc_mqp_init(MQND_CB *cb, MQSV_EVT *evt)
 		send_evt.msg.mqp_rsp.error = SA_AIS_OK;
 	} else {
 		send_evt.msg.mqp_rsp.error = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_MQSV_ND(MQND_INITIALIZATION_INCOMPLETE, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO,
-			      SA_AIS_ERR_TRY_AGAIN, __FILE__, __LINE__);
+		LOG_ER("%s:%u: ERR_TRY_AGAIN: MQND is not completely Initialized", __FILE__, __LINE__);
 	}
 	rc = mqnd_mds_send_rsp(cb, &evt->sinfo, &send_evt);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_ND(MQND_INIT_RESP_SENT_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
+		TRACE_2("The Initialize response is not sent properly to the Agent");
 	else
-		m_LOG_MQSV_ND(MQND_INIT_RESP_SENT_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, rc, __FILE__,
-			      __LINE__);
+		TRACE_1("The Initialize response is sent properly to the Agent");
 
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -407,14 +413,14 @@ static uint32_t mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt)
 	MQP_OPEN_REQ *open = NULL;
 	SaAisErrorT err = SA_AIS_OK;
 	ASAPi_OPR_INFO opr;
+	TRACE_ENTER();
 
 	if (cb->is_restart_done)
 		err = SA_AIS_OK;
 	else {
 		mqp_req = &evt->msg.mqp_req;
+		LOG_ER("%s:%u: ERR_TRY_AGAIN: MQND is not completely Initialized", __FILE__, __LINE__);
 		err = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_MQSV_ND(MQND_INITIALIZATION_INCOMPLETE, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, err, __FILE__,
-			      __LINE__);
 		goto error1;
 	}
 	/* Request the ASAPi (at MQD) for queue information */
@@ -442,8 +448,8 @@ static uint32_t mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt)
 	rc = asapi_opr_hdlr(&opr);
 
 	if (rc == SA_AIS_ERR_TIMEOUT) {
+		LOG_ER("ERR_TRY_AGAIN: Timeout occurs Unable to send the respons in async case");
 		err = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_MQSV_ND(MQND_MDS_SND_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, err, __FILE__, __LINE__);
 		goto error2;
 	}
 
@@ -452,13 +458,11 @@ static uint32_t mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt)
 							      SA_AIS_ERR_NOT_EXIST))) {
 		/* log this error */
 		if ((opr.info.msg.resp) && (opr.info.msg.resp->info.nresp.err.errcode == SA_AIS_ERR_TRY_AGAIN)) {
+			LOG_ER("ERR_TRY_AGAIN: MQND is not completely Initialized");
 			err = SA_AIS_ERR_TRY_AGAIN;
-			m_LOG_MQSV_ND(MQND_INITIALIZATION_INCOMPLETE, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, err,
-				      __FILE__, __LINE__);
 		} else {
+			LOG_ER("ERR_RESOURCES: Asapi Opr Handler for NameResolve Request Failed");
 			err = SA_AIS_ERR_NO_RESOURCES;
-			m_LOG_MQSV_ND(MQND_ASAPI_NRESOLVE_HDLR_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err,
-				      __FILE__, __LINE__);
 		}
 		goto error2;
 	}
@@ -467,6 +471,7 @@ static uint32_t mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt)
 
 	/* Check if the Queue name is actually a QueueGroup */
 	if (asapi_rsp->info.nresp.oinfo.group.length != 0) {
+		LOG_ER("ERR_EXIST: Queue name is actually a QueueGroup");
 		err = SA_AIS_ERR_EXIST;
 		goto error2;
 	}
@@ -476,6 +481,7 @@ static uint32_t mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt)
 	/* Free the response Event */
 	asapi_msg_free(&asapi_rsp);
 
+	TRACE_LEAVE2("Returned with return code %u", rc);
 	return rc;
 
  error2:
@@ -485,7 +491,8 @@ static uint32_t mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt)
  error1:
 	/* In case of Error, send the response to MQA */
 	rc = mqnd_send_mqp_open_rsp(cb, &evt->sinfo, mqp_req, err, 0, 0);
-	m_LOG_MQSV_ND(MQND_PROC_QUEUE_OPEN_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err, __FILE__, __LINE__);
+	LOG_ER("The procedure to open the Queue Failed with err %d", err);
+	TRACE_LEAVE2("In case of Error Returned with return code %u", rc);
 	return rc;
 }
 
@@ -507,10 +514,12 @@ static uint32_t mqnd_evt_proc_mqp_qclose(MQND_CB *cb, MQSV_EVT *evt)
 	MQP_CLOSE_REQ *close = NULL;
 	MQND_QUEUE_NODE *qnode = NULL;
 	SaAisErrorT err = SA_AIS_OK;
+	TRACE_ENTER();
 
 	close = &evt->msg.mqp_req.info.closeReq;
 
 	if (close == NULL) {
+		LOG_ER("ERR_BAD_HANDLE: queueHandle is NULL"); 
 		err = SA_AIS_ERR_BAD_HANDLE;
 		goto send_rsp;
 	}
@@ -519,8 +528,7 @@ static uint32_t mqnd_evt_proc_mqp_qclose(MQND_CB *cb, MQSV_EVT *evt)
 		err = SA_AIS_OK;
 	else {
 		err = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_MQSV_ND(MQND_INITIALIZATION_INCOMPLETE, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, err, __FILE__,
-			      __LINE__);
+		LOG_ER("%s:%u: ERR_TRY_AGAIN: MQND is not completely Initialized", __FILE__, __LINE__);
 		goto send_rsp;
 	}
 
@@ -529,7 +537,7 @@ static uint32_t mqnd_evt_proc_mqp_qclose(MQND_CB *cb, MQSV_EVT *evt)
 	/* If queue not found */
 	if (!qnode) {
 		err = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_MQSV_ND(MQND_GET_QNODE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err, __FILE__, __LINE__);
+		LOG_ER("ERR_BAD_HANDLE: Get queue node Failed");
 		goto send_rsp;
 	}
 
@@ -537,23 +545,20 @@ static uint32_t mqnd_evt_proc_mqp_qclose(MQND_CB *cb, MQSV_EVT *evt)
 
  send_rsp:
 	if (err != SA_AIS_OK)
-		m_LOG_MQSV_ND(MQND_PROC_QUEUE_CLOSE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err, __FILE__,
-			      __LINE__);
+		TRACE_2("The procedure to close the queue Failed with error %d", err);
 	else
-		m_LOG_MQSV_ND(MQND_PROC_QUEUE_CLOSE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, err, __FILE__,
-			      __LINE__);
+		TRACE_1("The procedure to close the queue Success");
 	if (!cb->is_mqd_up) {
 		rc = mqnd_enqueue_evt_cntxt_close(cb, &evt->sinfo, err, close->queueHandle);
 	} else
 		rc = mqnd_send_mqp_close_rsp(cb, &evt->sinfo, err, close->queueHandle);
 
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_ND(MQND_QUEUE_CLOSE_RESP_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
+		LOG_ER("Sending the close response Failed");
 	else
-		m_LOG_MQSV_ND(MQND_QUEUE_CLOSE_RESP_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, rc, __FILE__,
-			      __LINE__);
+		TRACE_1("Sending the close response Success");
 
+	TRACE_LEAVE2("Returned with return code %u", rc);
 	return rc;
 }
 
@@ -579,15 +584,15 @@ static uint32_t mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 	MQND_QNAME_NODE *pnode = NULL;
 	SaNameT qname;
+	TRACE_ENTER();
 
 	ulink_req = &evt->msg.mqp_req.info.unlinkReq;
 
 	if (cb->is_restart_done)
 		err = SA_AIS_OK;
 	else {
+		LOG_ER("%s:%u: ERR_TRY_AGAIN: MQND is not completely Initialized", __FILE__, __LINE__);
 		err = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_MQSV_ND(MQND_INITIALIZATION_INCOMPLETE, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, err, __FILE__,
-			      __LINE__);
 		goto send_rsp;
 	}
 
@@ -595,15 +600,14 @@ static uint32_t mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 
 	/* If queue not found */
 	if (!qnode) {
+		LOG_ER("ERR_NOT_EXIST: Get queue node Failed");
 		err = SA_AIS_ERR_NOT_EXIST;
-		m_LOG_MQSV_ND(MQND_GET_QNODE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err, __FILE__, __LINE__);
 		goto send_rsp;
 	}
 
 	if (qnode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE) {
+		LOG_ER("ERR_NOT_EXIST: Sending the unlink response Failed");
 		err = SA_AIS_ERR_NOT_EXIST;
-		m_LOG_MQSV_ND(MQND_QUEUE_UNLINK_RESP_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
 		goto send_rsp;
 	}
 
@@ -629,7 +633,7 @@ static uint32_t mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 			/*This is the case when DEREG request is assumed to be lost or not proceesed at MQD becoz of failover.So
 			   to compensate for the lost request we send an async request to MQD to process it once again to be
 			   in sync with database at MQND */
-			TRACE("UNLINK TIMEOUT:ASYNC DEREG TO DELETE ORPHAN QUEUE");
+			TRACE_1("UNLINK TIMEOUT: sync Dereg To Delete Orphan Queue");
 			memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
 			opr.type = ASAPi_OPR_MSG;
 			opr.info.msg.opr = ASAPi_MSG_SEND;
@@ -645,8 +649,7 @@ static uint32_t mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 			rc = asapi_opr_hdlr(&opr);	/*May be insert a log */
 		} else {
 			if ((rc != SA_AIS_OK) || (!opr.info.msg.resp) || (opr.info.msg.resp->info.dresp.err.flag)) {
-				m_LOG_MQSV_ND(MQND_ASAPI_DEREG_HDLR_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
-					      __FILE__, __LINE__);
+				LOG_ER("ERR_RESOURCES: Asapi Opr Handler for Queue Dereg Failed");
 				err = SA_AIS_ERR_NO_RESOURCES;
 				goto send_rsp;
 			}
@@ -657,8 +660,7 @@ static uint32_t mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 			asapi_msg_free(&opr.info.msg.resp);
 
 		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
-			mqnd_genlog(NCSFL_SEV_ERROR, "Deleting MessageQueue Object %s FAILED \n",
-				    qnode->qinfo.queueName.value);
+			LOG_ER("Deleting MessageQueue Object %s FAILED", qnode->qinfo.queueName.value);
 			return NCSCC_RC_FAILURE;
 		}
 		/* Delete the queue immediately */
@@ -695,8 +697,7 @@ static uint32_t mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 
 		mqnd_ckpt_queue_info_write(cb, &queue_ckpt_node, qnode->qinfo.shm_queue_index);
 		if (rc != SA_AIS_OK) {
-			m_LOG_MQSV_ND(MQND_CKPT_SECTION_OVERWRITE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
-				      __FILE__, __LINE__);
+			LOG_ER("ERR_RESOURCES: Ckpt Overwrite Failed");
 			qnode->qinfo.sendingState = MSG_QUEUE_AVAILABLE;
 			err = SA_AIS_ERR_NO_RESOURCES;
 			goto send_rsp;
@@ -722,7 +723,7 @@ static uint32_t mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 			/*This is the case when DEREG request is assumed to be lost or not proceesed at MQD becoz of failover.So
 			   to compensate for the lost request we send an async request to MQD to process it once again to be
 			   in sync with database at MQND */
-			TRACE("UNLINK TIMEOUT:ASYNC DEREG AVAILABLE QUEUE TO UNAVAIL");
+			TRACE_1("UNLINK TIMEOUT:Async Dereg Available Queue To Unavail");
 			memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
 			opr.type = ASAPi_OPR_MSG;
 			opr.info.msg.opr = ASAPi_MSG_SEND;
@@ -739,15 +740,13 @@ static uint32_t mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 			rc = asapi_opr_hdlr(&opr);	/*May be insert a log */
 		} else {
 			if ((rc != SA_AIS_OK) || (!opr.info.msg.resp) || (opr.info.msg.resp->info.dresp.err.flag)) {
-				m_LOG_MQSV_ND(MQND_ASAPI_DEREG_HDLR_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
-					      __FILE__, __LINE__);
+				LOG_ER("ERR_RESOURCES: Asapi Opr Handler for Queue Dereg Failed");
 				qnode->qinfo.sendingState = MSG_QUEUE_AVAILABLE;
 				mqnd_cpy_qnodeinfo_to_ckptinfo(cb, qnode, &queue_ckpt_node);
 
 				mqnd_ckpt_queue_info_write(cb, &queue_ckpt_node, qnode->qinfo.shm_queue_index);
 				if (rc != SA_AIS_OK) {
-					m_LOG_MQSV_ND(MQND_CKPT_SECTION_OVERWRITE_FAILED, NCSFL_LC_MQSV_Q_MGMT,
-						      NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+					LOG_ER("Ckpt Overwrite Failed");
 				}
 
 				err = SA_AIS_ERR_NO_RESOURCES;
@@ -776,12 +775,11 @@ static uint32_t mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 		rc = mqnd_send_mqp_ulink_rsp(cb, &evt->sinfo, err, ulink_req);
 
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_ND(MQND_QUEUE_UNLINK_RESP_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
+		LOG_ER("Sending the unlink response Failed");
 	else
-		m_LOG_MQSV_ND(MQND_QUEUE_UNLINK_RESP_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, rc, __FILE__,
-			      __LINE__);
+		TRACE_1("Sending the unlink response Successfull");
 
+	TRACE_LEAVE2("Returned with return code %u", rc);
 	return rc;
 }
 
@@ -806,6 +804,7 @@ static uint32_t mqnd_evt_proc_status_req(MQND_CB *cb, MQSV_EVT *evt)
 	MQSV_EVT rsp_evt;
 	uint32_t offset, i;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
+	TRACE_ENTER();
 
 	sts_req = &evt->msg.mqp_req.info.statusReq;
 
@@ -813,8 +812,7 @@ static uint32_t mqnd_evt_proc_status_req(MQND_CB *cb, MQSV_EVT *evt)
 		err = SA_AIS_OK;
 	else {
 		err = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_MQSV_ND(MQND_INITIALIZATION_INCOMPLETE, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, err, __FILE__,
-			      __LINE__);
+		LOG_ER("%s:%u: ERR_TRY_AGAIN: MQND is not completely Initialized", __FILE__, __LINE__);
 		goto send_rsp;
 	}
 
@@ -822,8 +820,8 @@ static uint32_t mqnd_evt_proc_status_req(MQND_CB *cb, MQSV_EVT *evt)
 
 	/* If queue not found */
 	if (!qnode) {
+		LOG_ER("ERR_NOT_EXIST: Get queue node Failed");
 		err = SA_AIS_ERR_NOT_EXIST;
-		m_LOG_MQSV_ND(MQND_GET_QNODE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err, __FILE__, __LINE__);
 	}
 
  send_rsp:
@@ -852,12 +850,11 @@ static uint32_t mqnd_evt_proc_status_req(MQND_CB *cb, MQSV_EVT *evt)
 
 	rc = mqnd_mds_send_rsp(cb, &evt->sinfo, &rsp_evt);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_ND(MQND_QUEUE_STAT_REQ_RESP_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
+		TRACE_2("Sending the Status request response Failed");
 	else
-		m_LOG_MQSV_ND(MQND_QUEUE_STAT_REQ_RESP_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, rc, __FILE__,
-			      __LINE__);
+		TRACE_1("Sending the Status request response Successfull");
 
+	TRACE_LEAVE2("Returned with return code %u", rc);
 	return rc;
 
 }
@@ -883,6 +880,7 @@ static uint32_t mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 	MQSV_DSEND_EVT *direct_rsp_evt = NULL;
 	bool is_valid_msg_fmt = false;
+	TRACE_ENTER();
 
 	is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(evt->msg_fmt_version,
 						     MQND_WRT_MQA_SUBPART_VER_AT_MIN_MSG_FMT,
@@ -896,16 +894,12 @@ static uint32_t mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 	if (!is_valid_msg_fmt || !msg_fmt_ver || (evt->msg_fmt_version == 1)) {
 		/* Drop The Message */
 		if (!is_valid_msg_fmt) {
-			m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				      is_valid_msg_fmt, __FILE__, __LINE__);
-			TRACE("mqnd_evt_proc_update_stats_shm:INVALID MSG FORMAT:1 %d", is_valid_msg_fmt);
+			LOG_ER("mqnd_evt_proc_update_stats_shm:INVALID MSG FORMAT:1 %d", is_valid_msg_fmt);
 		}
 		if (!msg_fmt_ver) {
-			m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				      msg_fmt_ver, __FILE__, __LINE__);
-			TRACE("mqnd_evt_proc_update_stats_shm:INVALID MSG FORMAT:2 %d", msg_fmt_ver);
+			LOG_ER("mqnd_evt_proc_update_stats_shm:INVALID MSG FORMAT:2 %d", msg_fmt_ver);
 		}
-
+		LOG_ER("ERR_VERSION: Message Format Version Invalid");
 		err = SA_AIS_ERR_VERSION;
 		goto done;
 	}
@@ -917,8 +911,7 @@ static uint32_t mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 	else {
 		err = SA_AIS_ERR_TRY_AGAIN;
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_INITIALIZATION_INCOMPLETE, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, err, __FILE__,
-			      __LINE__);
+		LOG_ER("%s:%u: ERR_TRY_AGAIN: MQND is not completely Initialized", __FILE__, __LINE__);
 		goto done;
 	}
 
@@ -926,9 +919,9 @@ static uint32_t mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 
 	/* If queue not found */
 	if (!qnode) {
+		LOG_ER("ERR_BAD_HANDLE: Get queue node Failed");
 		err = SA_AIS_ERR_BAD_HANDLE;
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_GET_QNODE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err, __FILE__, __LINE__);
 		goto done;
 	}
 
@@ -941,6 +934,7 @@ static uint32_t mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 		shm_base_addr[offset].QueueStatsShm.totalQueueUsed -= statsReq->size;
 		shm_base_addr[offset].QueueStatsShm.totalNumberOfMessages--;
 	} else {
+		LOG_ER("ERR_LIBRARY: Queue info is invalid");
 		err = SA_AIS_ERR_LIBRARY;
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -950,7 +944,7 @@ static uint32_t mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 
 	direct_rsp_evt = (MQSV_DSEND_EVT *)mds_alloc_direct_buff(sizeof(MQSV_DSEND_EVT));
 	if (!direct_rsp_evt) {
-		m_LOG_MQSV_ND(MQND_MEM_ALLOC_FAILED, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_CR("Memory Allocation Failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -966,10 +960,10 @@ static uint32_t mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 	rc = mqnd_mds_send_rsp_direct(cb, &evt->sinfo, direct_rsp_evt);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_MDS_SND_RSP_DIRECT_FAILED, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
+		TRACE_2("Mds Send Response Direct Failed");
 	}
 
+	TRACE_LEAVE2("Returned with return code %u", rc);
 	return rc;
 
 }
@@ -1000,6 +994,7 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 	bool is_valid_msg_fmt = false;
+	TRACE_ENTER();
 
 	is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(evt->msg_fmt_version,
 						     MQND_WRT_MQA_SUBPART_VER_AT_MIN_MSG_FMT,
@@ -1013,15 +1008,12 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 	if (!is_valid_msg_fmt || !msg_fmt_ver || (evt->msg_fmt_version == 1)) {
 		/* Drop The Message */
 		if (!is_valid_msg_fmt) {
-			m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				      is_valid_msg_fmt, __FILE__, __LINE__);
 			TRACE("mqnd_evt_proc_send_msg:INVALID MSG FORMAT:1 %d", is_valid_msg_fmt);
 		}
 		if (!msg_fmt_ver) {
-			m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				      msg_fmt_ver, __FILE__, __LINE__);
 			TRACE("mqnd_evt_proc_send_msg:INVALID MSG FORMAT:2 %d", msg_fmt_ver);
 		}
+		LOG_ER("ERR_VERSION: Message Format Version Invalid");
 		err = SA_AIS_ERR_VERSION;
 		rc = NCSCC_RC_FAILURE;
 		goto send_resp;
@@ -1033,9 +1025,8 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 		snd_msg = &evt->info.sndMsgAsync.SendMsg;
 
 	if (!cb->is_restart_done) {
+		LOG_ER("%s:%u: ERR_TRY_AGAIN: MQND is not completely Initialized", __FILE__, __LINE__);
 		err = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_MQSV_ND(MQND_INITIALIZATION_INCOMPLETE, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_INFO, err, __FILE__,
-			      __LINE__);
 		rc = NCSCC_RC_FAILURE;
 		goto send_resp;
 	}
@@ -1044,16 +1035,15 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 
 	/* If queue not found */
 	if (!qnode) {
+		LOG_ER("ERR_BAD_HANDLE: Get queue node Failed");
 		err = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_MQSV_ND(MQND_GET_QNODE_FAILED, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, err, __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
 		goto send_resp;
 	}
 
 	if (qnode->qinfo.owner_flag == MQSV_QUEUE_OWN_STATE_PROGRESS) {
+		LOG_ER("ERR_TRY_AGAIN: The queue is under transfer Process");
 		err = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_MQSV_ND(MQND_UNDER_TRANSFER_STATE, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_INFO, err, __FILE__,
-			      __LINE__);
 		rc = NCSCC_RC_FAILURE;
 		goto send_resp;
 	}
@@ -1067,6 +1057,7 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 
 	/* Check if message size is less than system defined msg size */
 	if (snd_msg->message.size > cb->gl_msg_max_msg_size) {
+		LOG_ER("ERR_TOO_BIG: message size is less than system defined msg size");
 		err = SA_AIS_ERR_TOO_BIG;
 		rc = NCSCC_RC_FAILURE;
 		goto send_resp;
@@ -1078,7 +1069,7 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 		memset(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
 		mqnd_cpy_qnodeinfo_to_ckptinfo(cb, qnode, &queue_ckpt_node);
 		mqnd_ckpt_queue_info_write(cb, &queue_ckpt_node, qnode->qinfo.shm_queue_index);
-		m_LOG_MQSV_ND(MQND_QUEUE_FULL, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, err, __FILE__, __LINE__);
+		LOG_ER("The queue is full");
 		rc = NCSCC_RC_FAILURE;
 		goto send_resp;
 	}
@@ -1089,8 +1080,7 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 
 	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
 		err = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_MQSV_ND(MQND_QUEUE_GET_ATTR_FAILED, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, err, __FILE__,
-			      __LINE__);
+		LOG_ER("Unable to get the queue attributes from the queue");
 		rc = NCSCC_RC_FAILURE;
 		goto send_resp;
 	}
@@ -1112,9 +1102,8 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 		    actual_qsize + (5 * (snd_msg->message.size + sizeof(MQSV_MESSAGE) + sizeof(NCS_OS_MQ_MSG_LL_HDR)));
 
 		if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
+			LOG_ER("Unable to resize the queue to the given size");
 			err = SA_AIS_ERR_NO_RESOURCES;
-			m_LOG_MQSV_ND(MQND_QUEUE_RESIZE_FAILED, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, err, __FILE__,
-				      __LINE__);
 			rc = NCSCC_RC_FAILURE;
 			goto send_resp;
 		}
@@ -1125,8 +1114,8 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 	mqsv_msg = (MQSV_MESSAGE *)m_MMGR_ALLOC_MQND_DEFAULT(size);
 
 	if (!mqsv_msg) {
+		LOG_CR("ERR_MEMORY: Memory Allocation Failed");
 		err = SA_AIS_ERR_NO_MEMORY;
-		m_LOG_MQSV_ND(MQND_MEM_ALLOC_FAILED, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, err, __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
 		goto send_resp;
 	}
@@ -1161,8 +1150,8 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 		m_MMGR_FREE_MQND_DEFAULT(mqsv_msg);
 
 	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("ERR_RESOURCES: Unable to send the message to the Queue");
 		err = SA_AIS_ERR_NO_RESOURCES;
-		m_LOG_MQSV_ND(MQND_SEND_FAILED, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, err, __FILE__, __LINE__);
 		goto send_resp;
 	}
 
@@ -1171,9 +1160,8 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 	rc = mqsv_listenerq_msg_send(qnode->qinfo.listenerHandle);
 
 	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("ERR_RESOURCES: Unable to send the message to the listener Queue");
 		err = SA_AIS_ERR_NO_RESOURCES;
-		m_LOG_MQSV_ND(MQND_LISTENER_SEND_FAILED, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, err, __FILE__,
-			      __LINE__);
 		goto send_resp;
 	}
 
@@ -1191,9 +1179,8 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 
 				direct_rsp_evt = (MQSV_DSEND_EVT *)mds_alloc_direct_buff(sizeof(MQSV_DSEND_EVT));
 				if (!direct_rsp_evt) {
+					LOG_CR("Memory Allocation Failed");
 					rc = NCSCC_RC_FAILURE;
-					m_LOG_MQSV_ND(MQND_MEM_ALLOC_FAILED, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR,
-						      rc, __FILE__, __LINE__);
 					return rc;
 				}
 
@@ -1208,8 +1195,7 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 
 				rc = mqnd_mds_send_rsp_direct(cb, &evt->sinfo, direct_rsp_evt);
 				if (rc != NCSCC_RC_SUCCESS) {
-					m_LOG_MQSV_ND(MQND_MDS_SND_RSP_DIRECT_FAILED, NCSFL_LC_MQSV_SEND_RCV,
-						      NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+					TRACE_2("Mds Send Response Direct Failed");
 				}
 			} else {
 
@@ -1225,12 +1211,12 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 				/* Async Response */
 				rc = mqnd_mds_send(cb, evt->sinfo.to_svc, evt->sinfo.dest, &rsp_evt);
 				if (rc != NCSCC_RC_SUCCESS)
-					m_LOG_MQSV_ND(MQND_MDS_SND_FAILED, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, rc,
-						      __FILE__, __LINE__);
+					TRACE_2("Unable to send the respons in async case");
 			}
 		}
 	}
 
+	TRACE_LEAVE2("Returned with return code %u", rc);
 	return rc;
 }
 
@@ -1259,16 +1245,16 @@ uint32_t mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 	MQSV_EVT *qtrans_evt = NULL;
 	MQND_QTRANSFER_EVT_NODE *qevt_node = NULL;
 	ASAPi_NRESOLVE_RESP_INFO *qinfo = NULL;
+	TRACE_ENTER();
 
 	qhdl = evt->msg.mqnd_ctrl.info.tmr_info.qhdl;
 
 	switch (evt->msg.mqnd_ctrl.info.tmr_info.type) {
 	case MQND_TMR_TYPE_RETENTION:
-		m_LOG_MQSV_ND(MQND_RETENTION_TMR_EXPIRED, NCSFL_LC_TIMER, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+		LOG_NO("Retention timer expired");
 		mqnd_queue_node_get(cb, qhdl, &qnode);
 		if (!qnode) {
-			m_LOG_MQSV_ND(MQND_GET_QNODE_FAILED, NCSFL_LC_TIMER, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-				      __FILE__, __LINE__);
+			LOG_ER("Get queue node Failed");
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1289,15 +1275,13 @@ uint32_t mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 		/* Request the ASAPi */
 		if (((rc = asapi_opr_hdlr(&opr)) != SA_AIS_OK) || (!opr.info.msg.resp)
 		    || (opr.info.msg.resp->info.dresp.err.flag))
-			m_LOG_MQSV_ND(MQND_ASAPI_DEREG_HDLR_FAILED, NCSFL_LC_TIMER, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__);
+			LOG_ER("Asapi Opr Handler for Queue Dereg Failed with error %u", rc);
 
 		/* Free the response Event */
 		asapi_msg_free(&opr.info.msg.resp);
 
 		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
-			mqnd_genlog(NCSFL_SEV_ERROR, "Deleting MsgQueue Object %s FAILED \n",
-				    qnode->qinfo.queueName.value);
+			LOG_ER("Deleting MsgQueue Object %s FAILED", qnode->qinfo.queueName.value);
 			return NCSCC_RC_FAILURE;
 		}
 		/* Delete the Queue */
@@ -1326,19 +1310,16 @@ uint32_t mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 
 	case MQND_TMR_TYPE_MQA_EXPIRY:
 		if ((rc = mqnd_restart_init(cb)) != SA_AIS_OK)
-			m_LOG_MQSV_ND(MQND_RESTART_CPSV_INIT_FAILED, NCSFL_LC_TIMER, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__);
+			LOG_ER("Reg with CPSV Failed");
 		break;
 
 	case MQND_TMR_TYPE_NODE1_QTRANSFER:
-		m_LOG_MQSV_ND(MQND_QTRANSFER_NODE1_TMR_EXPIRED, NCSFL_LC_TIMER, NCSFL_SEV_NOTICE, rc, __FILE__,
-			      __LINE__);
+		LOG_NO("QTrans Timer on Node 1 expired");
 		/*Case:  Request response not recieved in Time ,so send a Transfer Complete Response with Error
 		   code to change the state of queue from PROGRESS to ORPHAN */
 		mqnd_qevt_node_get(cb, qhdl, &qevt_node);
 		if (!qevt_node) {
-			m_LOG_MQSV_ND(MQND_GET_QNODE_FAILED, NCSFL_LC_TIMER, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-				      __FILE__, __LINE__);
+			LOG_ER("Get queue node Failed");
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1350,21 +1331,18 @@ uint32_t mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 
 		rc = mqnd_mds_send(cb, NCSMDS_SVC_ID_MQND, qevt_node->addr, &transfer_complete);
 		if (rc != NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_ND(MQND_MDS_SND_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__);
+			TRACE_2("Unable to send the respons in async case");
 
 		mqnd_qevt_node_del(cb, qevt_node);
 
 		break;
 
 	case MQND_TMR_TYPE_NODE2_QTRANSFER:
-		m_LOG_MQSV_ND(MQND_QTRANSFER_NODE2_TMR_EXPIRED, NCSFL_LC_TIMER, NCSFL_SEV_NOTICE, rc, __FILE__,
-			      __LINE__);
+		LOG_NO("QTrans Timer on Node 2 expired");
 
 		mqnd_queue_node_get(cb, qhdl, &qnode);
 		if (!qnode) {
-			m_LOG_MQSV_ND(MQND_GET_QNODE_FAILED, NCSFL_LC_TIMER, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-				      __FILE__, __LINE__);
+			LOG_ER("Get queue node Failed");
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1384,17 +1362,15 @@ uint32_t mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 		rc = asapi_opr_hdlr(&opr);
 
 		if (rc == SA_AIS_ERR_TIMEOUT) {
-			m_LOG_MQSV_ND(MQND_MDS_SND_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, rc, __FILE__,
-				      __LINE__);
+			LOG_ER("ERR_TIMEOUT: Unable to send the respons in async case");
 			rc = asapi_opr_hdlr(&opr);
 		}
 
 		if ((rc != SA_AIS_OK) || (!opr.info.msg.resp) || ((opr.info.msg.resp->info.nresp.err.flag)
 								  && (opr.info.msg.resp->info.nresp.err.errcode !=
 								      SA_AIS_ERR_NOT_EXIST))) {
+			LOG_ER("ERR_TRY_AGAIN: Asapi Opr Handler for NameResolve Request Failed");
 			err = SA_AIS_ERR_TRY_AGAIN;
-			m_LOG_MQSV_ND(MQND_ASAPI_NRESOLVE_HDLR_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err,
-				      __FILE__, __LINE__);
 			goto error;
 		}
 
@@ -1404,8 +1380,7 @@ uint32_t mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 		   case 2 : old owner, change the status from progress to orphan */
 		qtrans_evt = m_MMGR_ALLOC_MQSV_EVT(NCS_SERVICE_ID_MQND);
 		if (qtrans_evt == NULL) {
-			m_LOG_MQSV_ND(MQND_EVT_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-				      __FILE__, __LINE__);
+			LOG_CR("Event Database Creation Failed");
 			return NCSCC_RC_FAILURE;
 		}
 		qtrans_evt->evt_type = MQSV_NOT_DSEND_EVENT;
@@ -1424,6 +1399,8 @@ uint32_t mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 			qtrans_evt->msg.mqp_req.info.transferComplete.error = NCSCC_RC_FAILURE;
 
 		rc = m_NCS_IPC_SEND(&cb->mbx, (NCSCONTEXT)qtrans_evt, NCS_IPC_PRIORITY_NORMAL);
+		if(rc != NCSCC_RC_SUCCESS)
+			LOG_ER("Message is not successfully posted to the IPC mailbox");
 
  error:
 		if (opr.info.msg.resp)
@@ -1431,6 +1408,7 @@ uint32_t mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 
 		break;
 	}
+	TRACE_LEAVE2("Returned with return code %u", rc);
 	return rc;
 }
 
@@ -1454,15 +1432,15 @@ static uint32_t mqnd_evt_proc_qattr_get(MQND_CB *cb, MQSV_EVT *evt)
 	SaAisErrorT err = SA_AIS_OK;
 	MQSV_EVT rsp_evt;
 	uint32_t i;
+	TRACE_ENTER();
 
 	qattr_req = &evt->msg.mqnd_ctrl.info.qattr_get;
 
 	if (cb->is_restart_done)
 		err = SA_AIS_OK;
 	else {
+		LOG_ER("%s:%u: ERR_TRY_AGAIN: MQND is not completely Initialized", __FILE__, __LINE__);
 		err = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_MQSV_ND(MQND_INITIALIZATION_INCOMPLETE, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, err, __FILE__,
-			      __LINE__);
 		goto send_rsp;
 	}
 
@@ -1470,8 +1448,8 @@ static uint32_t mqnd_evt_proc_qattr_get(MQND_CB *cb, MQSV_EVT *evt)
  send_rsp:
 	/* If queue not found */
 	if (!qnode) {
+		LOG_ER("ERR_BAD_HANDLE: Get queue node Failed");
 		err = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_MQSV_ND(MQND_GET_QNODE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err, __FILE__, __LINE__);
 	}
 
 	/*Send the resp to MQA */
@@ -1489,10 +1467,11 @@ static uint32_t mqnd_evt_proc_qattr_get(MQND_CB *cb, MQSV_EVT *evt)
 	}
 	rc = mqnd_mds_send_rsp(cb, &evt->sinfo, &rsp_evt);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_ND(MQND_MDS_SND_RSP_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("Queue Attribute get :Mds Send Response Failed %" PRIx64, evt->sinfo.dest);
 	else
-		m_LOG_MQSV_ND(MQND_MDS_SND_RSP_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, rc, __FILE__, __LINE__);
+		TRACE_1("Queue Attribute get :Mds Send Response Success");
 
+	TRACE_LEAVE2("Returned with return code %u", rc);
 	return rc;
 }
 
@@ -1513,13 +1492,13 @@ static uint32_t mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt)
 	MQND_QUEUE_NODE *qnode = NULL;
 	SaAisErrorT err = SA_AIS_OK;
 	MQSV_EVT rsp_evt;
+	TRACE_ENTER();
 
 	if (cb->is_restart_done)
 		err = SA_AIS_OK;
 	else {
+		LOG_ER("%s:%u: ERR_TRY_AGAIN: MQND is not completely Initialized", __FILE__, __LINE__);
 		err = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_MQSV_ND(MQND_INITIALIZATION_INCOMPLETE, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, err, __FILE__,
-			      __LINE__);
 		goto send_rsp;
 	}
 
@@ -1527,13 +1506,14 @@ static uint32_t mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt)
 
 	/* If queue not found */
 	if (!qnode) {
+		LOG_ER("ERR_BAD_HANDLE: Get queue node Failed");
 		err = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_MQSV_ND(MQND_GET_QNODE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err, __FILE__, __LINE__);
 		goto send_rsp;
 	}
 
 	if (((qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT) == SA_MSG_QUEUE_PERSISTENT) ||
 	    (qnode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE)) {
+		LOG_ER("ERR_BAD_OPERATION: Invalid parameters is given");
 		err = SA_AIS_ERR_BAD_OPERATION;
 		goto send_rsp;
 	}
@@ -1544,6 +1524,7 @@ static uint32_t mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt)
 					 "saMsgQueueRetentionTime", SA_IMM_ATTR_SATIMET,
 					 &qnode->qinfo.queueStatus.retentionTime);
 	} else {
+		LOG_ER("ERR_BAD_HANDLE: Retention time is set");
 		err = SA_AIS_ERR_BAD_HANDLE;
 		goto send_rsp;
 	}
@@ -1559,10 +1540,11 @@ static uint32_t mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt)
 
 	rc = mqnd_mds_send_rsp(cb, &evt->sinfo, &rsp_evt);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_ND(MQND_MDS_SND_RSP_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("Queue Attribute get :Mds Send Response Failed %" PRIx64, evt->sinfo.dest);
 	else
-		m_LOG_MQSV_ND(MQND_MDS_SND_RSP_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, rc, __FILE__, __LINE__);
+		TRACE_1("Queue Attribute get: Mds Send Response Success");
 
+	TRACE_LEAVE2("Returned with return code %u", rc);
 	return rc;
 
 }
@@ -1588,13 +1570,13 @@ static uint32_t mqnd_evt_proc_cb_dump(void)
 	MQND_CB *cb = NULL;
 	uint32_t cb_hdl = m_MQND_GET_HDL();
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
+	TRACE_ENTER();
 
 	/* Get the CB from the handle */
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
 
 	if (cb == NULL) {
-		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			      __FILE__, __LINE__);
+		LOG_ER("%s:%u: Cb Take Failed", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1705,6 +1687,7 @@ static uint32_t mqnd_evt_proc_cb_dump(void)
 	/* Return the Handle */
 	ncshm_give_hdl(cb_hdl);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1712,6 +1695,7 @@ static void mqnd_dump_queue_status(MQND_CB *cb, SaMsgQueueStatusT *queueStatus, 
 {
 	uint32_t i;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
+	TRACE_ENTER();
 
 	TRACE("~~~~~~~~~~ Queue Status Parameters ~~~~~~~~~~");
 	TRACE(" Creation Flags: %u", queueStatus->creationFlags);
@@ -1726,6 +1710,7 @@ static void mqnd_dump_queue_status(MQND_CB *cb, SaMsgQueueStatusT *queueStatus, 
 		TRACE("     No of messages: %u",
 		       shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].numberOfMessages);
 	}
+	TRACE_LEAVE();
 }
 
 static void mqnd_dump_timer_info(MQND_TMR tmr)
@@ -1752,6 +1737,7 @@ static uint32_t mqnd_proc_mds_mqa_up(MQND_CB *cb, MQSV_EVT *evt)
 {
 	MDS_DEST i_dest = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	i_dest = evt->msg.mqnd_ctrl.info.mqa_up_info.mqa_up_dest;
 
@@ -1760,18 +1746,17 @@ static uint32_t mqnd_proc_mds_mqa_up(MQND_CB *cb, MQSV_EVT *evt)
 			cb->mqa_counter++;	/* Do nothing */
 			rc = mqnd_add_node_to_mqalist(cb, i_dest);
 			if (rc != NCSCC_RC_SUCCESS)
-				m_LOG_MQSV_ND(MQND_MQA_ADD_NODE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-					      __FILE__, __LINE__);
+				LOG_ER("Unable to add the MQA node into the MQAList");
 
 		}
 
 		if (cb->is_restart_done) {
-			m_LOG_MQSV_ND(MQND_RESTART_INIT_FIRST_TIME, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc,
-				      __FILE__, __LINE__);
+			TRACE_1("First time starting the MQND");
 
 		}
 	} else
-		return NCSCC_RC_FAILURE;
+		rc = NCSCC_RC_FAILURE;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1792,9 +1777,10 @@ static uint32_t mqnd_proc_deferred_mqa_rsp(MQND_CB *cb)
 	MQA_RSP_CNTXT *mqa_rsp_cntx = cb->mqa_dfrd_evt_rsp_list_head;
 	MQA_RSP_CNTXT *temp = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if (mqa_rsp_cntx == NULL) {
-		TRACE(" Deferred mqa event list head NULL");
+		LOG_ER("Deferred mqa event list head NULL");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1805,11 +1791,9 @@ static uint32_t mqnd_proc_deferred_mqa_rsp(MQND_CB *cb)
 						     mqa_rsp_cntx->evt.msg.mqp_rsp.info.closeRsp.queueHandle);
 
 			if (rc != NCSCC_RC_SUCCESS)
-				m_LOG_MQSV_ND(MQND_QUEUE_CLOSE_RESP_FAILED, NCSFL_LC_MQSV_Q_MGMT,
-					      NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+				LOG_ER("Sending the close response Failed");
 			else
-				m_LOG_MQSV_ND(MQND_QUEUE_CLOSE_RESP_SUCCESS, NCSFL_LC_MQSV_Q_MGMT,
-					      NCSFL_SEV_INFO, rc, __FILE__, __LINE__);
+				TRACE_1("Sending the close response Success");
 
 			TRACE(" mqnd_proc_deferred_mqa_rsp: CLOSE: Queue Handle - %llu err - %d %s %d",
 			       mqa_rsp_cntx->evt.msg.mqp_rsp.info.closeRsp.queueHandle,
@@ -1820,11 +1804,9 @@ static uint32_t mqnd_proc_deferred_mqa_rsp(MQND_CB *cb)
 						     &mqa_rsp_cntx->evt.msg.mqp_req.info.unlinkReq);
 
 			if (rc != NCSCC_RC_SUCCESS)
-				m_LOG_MQSV_ND(MQND_QUEUE_UNLINK_RESP_FAILED, NCSFL_LC_MQSV_Q_MGMT,
-					      NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+				LOG_ER("Sending the unlink response Failed");
 			else
-				m_LOG_MQSV_ND(MQND_QUEUE_UNLINK_RESP_SUCCESS, NCSFL_LC_MQSV_Q_MGMT,
-					      NCSFL_SEV_INFO, rc, __FILE__, __LINE__);
+				TRACE_1("Sending the unlink response Successfull");
 			TRACE("mqnd_proc_deferred_mqa_rsp: UNLINK: err - %d %s %d",
 			       mqa_rsp_cntx->evt.msg.mqp_rsp.error, __FILE__, __LINE__);
 		} else {
@@ -1837,6 +1819,7 @@ static uint32_t mqnd_proc_deferred_mqa_rsp(MQND_CB *cb)
 	}
 
 	cb->mqa_dfrd_evt_rsp_list_head = NULL;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1844,10 +1827,13 @@ static uint32_t mqnd_enqueue_evt_cntxt_close(MQND_CB *cb, MQSV_SEND_INFO *sinfo,
 {
 	MQA_RSP_CNTXT *mqa_rsp = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	mqa_rsp = (MQA_RSP_CNTXT *) malloc(sizeof(MQA_RSP_CNTXT));
-	if (mqa_rsp == NULL)
+	if (mqa_rsp == NULL) {
+		LOG_CR("ERR_RESOURCES: MQA_RSP_CNTXT Memory allocation failed");
 		return SA_AIS_ERR_NO_RESOURCES;
+	}
 
 	memset(mqa_rsp, 0, sizeof(MQA_RSP_CNTXT));
 	mqa_rsp->evt.type = MQSV_EVT_MQP_RSP;
@@ -1868,6 +1854,7 @@ static uint32_t mqnd_enqueue_evt_cntxt_close(MQND_CB *cb, MQSV_SEND_INFO *sinfo,
 	TRACE("mqnd_enqueue_evt_cntxt_close: Queue Handle - %llu Err - %d %s %d",
 	       mqa_rsp->evt.msg.mqp_rsp.info.closeRsp.queueHandle, mqa_rsp->evt.msg.mqp_rsp.error, __FILE__, __LINE__);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1876,10 +1863,13 @@ static uint32_t mqnd_enqueue_evt_cntxt_unlink(MQND_CB *cb, MQSV_SEND_INFO *sinfo
 {
 	MQA_RSP_CNTXT *mqa_rsp = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	mqa_rsp = (MQA_RSP_CNTXT *) malloc(sizeof(MQA_RSP_CNTXT));
-	if (mqa_rsp == NULL)
+	if (mqa_rsp == NULL) {
+		LOG_CR("ERR_RESOURCES: MQA_RSP_CNTXT Memory allocation failed");
 		return SA_AIS_ERR_NO_RESOURCES;
+	}
 
 	memset(mqa_rsp, 0, sizeof(MQA_RSP_CNTXT));
 	mqa_rsp->evt.type = MQSV_EVT_MQP_RSP;
@@ -1902,5 +1892,6 @@ static uint32_t mqnd_enqueue_evt_cntxt_unlink(MQND_CB *cb, MQSV_SEND_INFO *sinfo
 	TRACE("mqnd_enqueue_evt_cntxt_unlink: Queue Handle - %llu Err - %d %s %d",
 	       mqa_rsp->evt.msg.mqp_rsp.info.unlinkRsp.queueHandle, mqa_rsp->evt.msg.mqp_rsp.error, __FILE__, __LINE__);
 
+	TRACE_LEAVE();
 	return rc;
 }

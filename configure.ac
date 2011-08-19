@@ -833,7 +833,6 @@ AC_CONFIG_FILES([
         osaf/services/saf/glsv/glnd/scripts/osaf-lcknd
         osaf/services/saf/mqsv/Makefile
         osaf/services/saf/mqsv/config/Makefile
-        osaf/services/saf/mqsv/logstr/Makefile
         osaf/services/saf/mqsv/mqd/Makefile
         osaf/services/saf/mqsv/mqnd/Makefile
         osaf/services/saf/mqsv/mqd/scripts/Makefile

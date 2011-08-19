@@ -68,10 +68,11 @@ uint32_t mqa_mds_get_handle(MQA_CB *cb)
 	rc = ncsada_api(&arg);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_MDS_GET_HANDLE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("MDS registration failed with returncode %u", rc);
 		return rc;
 	}
 	cb->mqa_mds_hdl = arg.info.adest_get_hdls.o_mds_pwe1_hdl;
+	TRACE_1("MDS registration Success");
 	return rc;
 }
 
@@ -92,6 +93,7 @@ uint32_t mqa_mds_register(MQA_CB *cb)
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID subs_id[2] = { NCSMDS_SVC_ID_MQND, NCSMDS_SVC_ID_MQD };
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* STEP1: Get the MDS Handle */
 	if (mqa_mds_get_handle(cb) != NCSCC_RC_SUCCESS)
@@ -112,7 +114,7 @@ uint32_t mqa_mds_register(MQA_CB *cb)
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = MQA_PVT_SUBPART_VERSION;	/* Private Subpart Version of MQA */
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_MDS_INSTALL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: MDS Service installation Failed");
 		return NCSCC_RC_FAILURE;
 	}
 	cb->mqa_mds_dest = svc_info.info.svc_install.o_dest;
@@ -124,8 +126,7 @@ uint32_t mqa_mds_register(MQA_CB *cb)
 	svc_info.info.svc_subscribe.i_svc_ids = &subs_id[0];
 
 	if ((rc = ncsmds_api(&svc_info)) == NCSCC_RC_FAILURE) {
-		m_LOG_MQSV_A(MQA_MDS_SUBSCRIPTION_ND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: MDS Subscription to MQND up and down events failed");
 		goto error;
 	}
 
@@ -135,11 +136,11 @@ uint32_t mqa_mds_register(MQA_CB *cb)
 	svc_info.info.svc_subscribe.i_svc_ids = &subs_id[1];
 
 	if ((rc = ncsmds_api(&svc_info)) == NCSCC_RC_FAILURE) {
-		m_LOG_MQSV_A(MQA_MDS_SUBSCRIPTION_D_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: MDS Subscription to MQD up and down events failed");
 		goto error;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
  error:
@@ -176,8 +177,9 @@ void mqa_mds_unregister(MQA_CB *cb)
 	arg.i_op = MDS_UNINSTALL;
 
 	if ((rc = ncsmds_api(&arg)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_MDS_DEREGISTER_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: MDS Deregistration Failed");
 	}
+	TRACE_1("MDS Deregistration Success");
 	return;
 }
 
@@ -197,12 +199,14 @@ uint32_t mqa_mds_callback(struct ncsmds_callback_info *info)
 	MQA_CB *mqa_cb = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	if (info == NULL)
+	if (info == NULL) {
+		TRACE_2("MDS event is NULL");
 		return rc;
+	}
 
 	mqa_cb = m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__);
+		TRACE_2("Control block retrieval failed");
 		return m_LEAP_DBG_SINK(rc);
 	}
 
@@ -232,13 +236,14 @@ uint32_t mqa_mds_callback(struct ncsmds_callback_info *info)
 		break;
 
 	default:
-		m_LOG_MQSV_A(MQA_MDS_CALLBK_UNKNOWN_OP, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__);
+		TRACE_2("MDS callback unknown operation");
 		break;
 	}
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_MDS_CALLBK_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: MDS callback failed");
 	}
+	TRACE_1("MDS callback Success");
 
 	m_MQSV_MQA_GIVEUP_MQA_CB;
 
@@ -263,6 +268,7 @@ static uint32_t mqa_mds_cpy(MQA_CB *cb, MDS_CALLBACK_COPY_INFO *cpy)
 {
 	MQSV_EVT *pEvt = 0, *src;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	src = (MQSV_EVT *)cpy->i_msg;
 
@@ -274,13 +280,14 @@ static uint32_t mqa_mds_cpy(MQA_CB *cb, MDS_CALLBACK_COPY_INFO *cpy)
 			pEvt->msg.asapi->usg_cnt++;	/* Increment the use count */
 		}
 	} else {
+		TRACE_4("FAILURE: Event database creation failed");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_A(MQA_EVT_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 	}
 
 	cpy->o_msg_fmt_ver = MQA_PVT_SUBPART_VERSION;
 	cpy->o_cpy = pEvt;
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -301,6 +308,8 @@ static uint32_t mqa_mds_enc(MQA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 	MQSV_EVT *msg_ptr;
 	EDU_ERR ederror = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
 	msg_ptr = (MQSV_EVT *)enc_info->i_msg;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
@@ -325,12 +334,12 @@ static uint32_t mqa_mds_enc(MQA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		rc = (m_NCS_EDU_EXEC(&cb->edu_hdl, mqsv_edp_mqsv_evt,
 				     enc_info->io_uba, EDP_OP_TYPE_ENC, msg_ptr, &ederror));
 		if (rc != NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_A(MQA_MDS_ENC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+			TRACE_2("FAILURE: MDS Encoding Failed");
+		TRACE_LEAVE2(" return code %d", rc);
 		return rc;
 	} else {
 		/* Drop The Message */
-		m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-			     enc_info->o_msg_fmt_ver, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Message Format version Invalid %u", enc_info->o_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -353,6 +362,7 @@ static uint32_t mqa_mds_dec(MQA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	EDU_ERR ederror = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	bool is_valid_msg_fmt = false;
+	TRACE_ENTER();
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_MQND) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
@@ -374,8 +384,8 @@ static uint32_t mqa_mds_dec(MQA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	if (is_valid_msg_fmt && (dec_info->i_msg_fmt_ver != 1)) {
 		msg_ptr = m_MMGR_ALLOC_MQA_EVT;
 		if (!msg_ptr) {
+			TRACE_4("FAILURE: Event database creation failed");
 			rc = NCSCC_RC_FAILURE;
-			m_LOG_MQSV_A(MQA_EVT_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 			return rc;
 		}
 
@@ -385,14 +395,14 @@ static uint32_t mqa_mds_dec(MQA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, mqsv_edp_mqsv_evt,
 				    dec_info->io_uba, EDP_OP_TYPE_DEC, (MQSV_EVT **)&dec_info->o_msg, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_A(MQA_MDS_DEC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+			TRACE_2("FAILURE: MDS Decoding Failed");
 			m_MMGR_FREE_MQA_EVT(dec_info->o_msg);
 		}
+		TRACE_LEAVE2(" return code %d", rc);
 		return rc;
 	} else {
 		/* Drop The Message */
-		m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-			     is_valid_msg_fmt, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Message Format version Invalid %u", is_valid_msg_fmt);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -428,8 +438,7 @@ static uint32_t mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	if (evt->type == MQSV_EVT_MQA_CALLBACK) {
 		mqa_callbk_info = m_MMGR_ALLOC_MQP_ASYNC_RSP_MSG;
 		if (!mqa_callbk_info) {
-			m_LOG_MQSV_A(MQP_ASYNC_RSP_MSG_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 2, __FILE__,
-				     __LINE__);
+			TRACE_4("FAILURE: MQP Async Rsp Message Allocation Failed");
 			return NCSCC_RC_FAILURE;
 		}
 		memcpy(mqa_callbk_info, &evt->msg.mqp_async_rsp, sizeof(MQP_ASYNC_RSP_MSG));
@@ -440,16 +449,15 @@ static uint32_t mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		if ((rc = mqa_stop_and_delete_timer(mqa_callbk_info)) == NCSCC_RC_SUCCESS) {
 			/* Put it in place it in the Queue */
 			rc = mqsv_mqa_callback_queue_write(cb, evt->msg.mqp_async_rsp.messageHandle, mqa_callbk_info);
-			m_LOG_MQSV_A(MQA_STOP_DELETE_TMR_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__,
-				     __LINE__);
+			TRACE_1("Stop and Delete Tmr Success");
 		} else {
-			m_LOG_MQSV_A(MQA_STOP_DELETE_TMR_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			TRACE_2("FAILURE: Stop and Delete Tmr Failed");
 			if (mqa_callbk_info)
 				m_MMGR_FREE_MQP_ASYNC_RSP_MSG(mqa_callbk_info);
 		}
 		if (evt)
 			m_MMGR_FREE_MQA_EVT(evt);
+		TRACE("mqa_mds_rcv is returned with returncode %u", rc);
 		return rc;
 	} else if (evt->type == MQSV_EVT_ASAPI) {
 		ASAPi_OPR_INFO opr;
@@ -460,10 +468,10 @@ static uint32_t mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 
 		rc = asapi_opr_hdlr(&opr);
 		if (rc != NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_A(MQA_ASAPi_MSG_RECEIVE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			TRACE_2("ASAPi Message Receive Failed with the returnvalue %d", rc);
 		if (evt)
 			m_MMGR_FREE_MQA_EVT(evt);
+		TRACE("mqa_mds_rcv is returned with returncode %u", rc);
 		return rc;
 
 	} else if (evt->type == MQSV_EVT_MQP_REQ) {
@@ -474,6 +482,7 @@ static uint32_t mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	if (evt)
 		m_MMGR_FREE_MQA_EVT(evt);
 
+	TRACE_2("mqa_mds_rcv returned - FAILURE");
 	return NCSCC_RC_FAILURE;
 }
 
@@ -495,6 +504,7 @@ static uint32_t mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
 	uint32_t to_dest_slotid, o_msg_fmt_ver;
+	TRACE_ENTER();
 
 	/* TBD: The MQND and MQD restarts are to be implemented post April release */
 	switch (svc_evt->i_change) {
@@ -504,8 +514,7 @@ static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 
 			cb->ver_mqnd[mqsv_get_phy_slot_id(svc_evt->i_dest)] = 0;
 
-			m_LOG_MQSV_A(MQA_MQND_DOWN, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE,
-				     m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest), __FILE__, __LINE__);
+			TRACE_2("MQND is down with nodeid %" PRIx64, svc_evt->i_dest);
 			if (m_NCS_NODE_ID_FROM_MDS_DEST(cb->mqa_mds_dest) ==
 			    m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest)) {
 				cb->is_mqnd_up = false;
@@ -513,7 +522,7 @@ static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 			break;
 		case NCSMDS_SVC_ID_MQD:
 			cb->is_mqd_up = false;
-			m_LOG_MQSV_A(MQA_MQD_DOWN, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, 0, __FILE__, __LINE__);
+			TRACE_2("MQD is down");
 			break;
 
 		default:
@@ -534,8 +543,7 @@ static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 
 			if (!o_msg_fmt_ver)
 				/*Log informing the existence of Non compatible MQND version, Slot id being logged */
-				m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT,
-					     NCSFL_SEV_ERROR, to_dest_slotid, __FILE__, __LINE__);
+				TRACE_2("Message Format version Invalid %u", o_msg_fmt_ver);
 
 			if (m_NCS_NODE_ID_FROM_MDS_DEST(cb->mqa_mds_dest) ==
 			    m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest)) {
@@ -550,8 +558,7 @@ static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 
 				m_NCS_UNLOCK(&cb->mqnd_sync_lock, NCS_LOCK_WRITE);
 			}
-			m_LOG_MQSV_A(MQA_MQND_UP, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE,
-				     m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest), __FILE__, __LINE__);
+			TRACE_1("MQND is up on the nodeid %" PRIx64, svc_evt->i_dest);
 			break;
 
 		case NCSMDS_SVC_ID_MQD:
@@ -566,8 +573,7 @@ static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 
 			if (!o_msg_fmt_ver)
 				/*Log informing the existence of Non compatible MQD version, Slot id being logged */
-				m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT,
-					     NCSFL_SEV_ERROR, to_dest_slotid, __FILE__, __LINE__);
+				TRACE_2("Message Format version Invalid %u", o_msg_fmt_ver);
 
 			cb->mqd_mds_dest = svc_evt->i_dest;
 			cb->is_mqd_up = true;
@@ -575,7 +581,7 @@ static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 			if (cb->mqd_sync_awaited == true) {
 				m_NCS_SEL_OBJ_IND(cb->mqd_sync_sel);
 			}
-			m_LOG_MQSV_A(MQA_MQD_UP, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, 0, __FILE__, __LINE__);
+			TRACE_1("MQD is up");
 
 			m_NCS_UNLOCK(&cb->mqd_sync_lock, NCS_LOCK_WRITE);
 			break;
@@ -588,6 +594,7 @@ static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 		break;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -613,15 +620,18 @@ uint32_t mqa_mds_msg_sync_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQSV
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 	MQA_CB *mqa_cb;
+	TRACE_ENTER();
 
-	if (!i_evt)
+	if (!i_evt) {
+		TRACE_2("FAILURE: MQSV_EVT is NULL");
 		return NCSCC_RC_FAILURE;
+	}
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -631,6 +641,7 @@ uint32_t mqa_mds_msg_sync_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQSV
 
 	/* get the client_info */
 	if (m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("FAILURE: Lock failed for control block write");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		return NCSCC_RC_FAILURE;
 	}
@@ -657,9 +668,10 @@ uint32_t mqa_mds_msg_sync_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQSV
 	if (rc == NCSCC_RC_SUCCESS)
 		*o_evt = mds_info.info.svc_send.info.sndrsp.o_rsp;
 	else
-		m_LOG_MQSV_A(MQA_MDS_SEND_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Message Send through MDS Failure");
 
 	m_MQSV_MQA_GIVEUP_MQA_CB;
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -689,15 +701,18 @@ uint32_t mqa_mds_msg_sync_send_direct(uint32_t mqa_mds_hdl,
 	MQA_CB *mqa_cb;
 	MQSV_DSEND_EVT *pEvt = NULL;
 	bool endianness = machineEndianness(), is_valid_msg_fmt = false;
+	TRACE_ENTER();
 
-	if (!i_evt)
+	if (!i_evt) {
+		TRACE_2("FAILURE: MQSV_DSEND_EVT is NULL");
 		return NCSCC_RC_FAILURE;
+	}
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		mds_free_direct_buff((MDS_DIRECT_BUFF)i_evt);
 		return NCSCC_RC_FAILURE;
 	}
@@ -705,6 +720,7 @@ uint32_t mqa_mds_msg_sync_send_direct(uint32_t mqa_mds_hdl,
 	/* Before entering any mds send function, the API locks the control block.
 	 * unlock the control block before send and lock it after we receive the reply */
 	if (m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("FAILURE: Lock failed for control block write");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		mds_free_direct_buff((MDS_DIRECT_BUFF)i_evt);
 		return NCSCC_RC_FAILURE;
@@ -741,8 +757,7 @@ uint32_t mqa_mds_msg_sync_send_direct(uint32_t mqa_mds_hdl,
 
 		if (!is_valid_msg_fmt || (mds_info.info.svc_direct_send.i_msg_fmt_ver == 1)) {
 			/* Drop The Message */
-			m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     is_valid_msg_fmt, __FILE__, __LINE__);
+			TRACE_2("FAILURE: Message Format version Invalid");
 			m_MQSV_MQA_GIVEUP_MQA_CB;
 			return NCSCC_RC_FAILURE;
 		}
@@ -855,9 +870,10 @@ uint32_t mqa_mds_msg_sync_send_direct(uint32_t mqa_mds_hdl,
 
 		*o_evt = (MQSV_DSEND_EVT *)mds_info.info.svc_direct_send.info.sndrsp.buff;
 	} else
-		m_LOG_MQSV_A(MQA_MDS_SEND_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Message Send through MDS Failure");
 
 	m_MQSV_MQA_GIVEUP_MQA_CB;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -884,16 +900,18 @@ uint32_t mqa_mds_msg_sync_reply_direct(uint32_t mqa_mds_hdl,
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 	MQA_CB *mqa_cb;
+	TRACE_ENTER();
 
-	if (!i_evt)
+	if (!i_evt) {
+		TRACE_2("FAILURE: MQSV_DSEND_EVT is NULL");
 		return NCSCC_RC_FAILURE;
+	}
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		mds_free_direct_buff((MDS_DIRECT_BUFF)i_evt);
 		return NCSCC_RC_FAILURE;
 	}
@@ -901,6 +919,7 @@ uint32_t mqa_mds_msg_sync_reply_direct(uint32_t mqa_mds_hdl,
 	/* Before entering any mds send function, the caller locks the control block with LOCK_WRITE. 
 	   Unlock the control block before MDS send and lock it after we receive the reply * from MDS.  */
 	if (m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("FAILURE: Lock failed for control block write");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		mds_free_direct_buff((MDS_DIRECT_BUFF)i_evt);
 		return NCSCC_RC_FAILURE;
@@ -931,10 +950,11 @@ uint32_t mqa_mds_msg_sync_reply_direct(uint32_t mqa_mds_hdl,
 	rc = ncsmds_api(&mds_info);
 
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_A(MQA_MDS_SEND_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Message Send through MDS Failure");
 
 	m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 	m_MQSV_MQA_GIVEUP_MQA_CB;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -957,16 +977,18 @@ uint32_t mqa_mds_msg_async_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQS
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 	MQA_CB *mqa_cb;
+	TRACE_ENTER();
 
-	if (!i_evt)
+	if (!i_evt) {
+		TRACE_2("FAILURE: MQSV_EVT is NULL");
 		return NCSCC_RC_FAILURE;
+	}
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -976,6 +998,7 @@ uint32_t mqa_mds_msg_async_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQS
 
 	/* get the client_info */
 	if (m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("FAILURE: Lock failed for control block write");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		return NCSCC_RC_FAILURE;
 	}
@@ -998,10 +1021,11 @@ uint32_t mqa_mds_msg_async_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQS
 	rc = ncsmds_api(&mds_info);
 
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_A(MQA_MDS_SEND_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Message Send through MDS Failure");
 
 	m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 	m_MQSV_MQA_GIVEUP_MQA_CB;
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -1027,16 +1051,18 @@ uint32_t mqa_mds_msg_async_send_direct(uint32_t mqa_mds_hdl,
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 	MQA_CB *mqa_cb;
+	TRACE_ENTER();
 
-	if (!i_evt)
+	if (!i_evt) {
+		TRACE_2("FAILURE: MQSV_DSEND_EVT is NULL");
 		return NCSCC_RC_FAILURE;
+	}
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		mds_free_direct_buff((MDS_DIRECT_BUFF)i_evt);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1044,6 +1070,7 @@ uint32_t mqa_mds_msg_async_send_direct(uint32_t mqa_mds_hdl,
 	/* Before entering any mds send function, the API locks the control block.
 	 * unlock the control block before send and lock it after we receive the reply */
 	if (m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("FAILURE: Lock failed for control block write");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		mds_free_direct_buff((MDS_DIRECT_BUFF)i_evt);
 		return NCSCC_RC_FAILURE;
@@ -1069,10 +1096,11 @@ uint32_t mqa_mds_msg_async_send_direct(uint32_t mqa_mds_hdl,
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_A(MQA_MDS_SEND_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Message Send through MDS Failure");
 
 	m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 	m_MQSV_MQA_GIVEUP_MQA_CB;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1098,16 +1126,18 @@ uint32_t mqa_mds_msg_async_reply_direct(uint32_t mqa_mds_hdl,
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 	MQA_CB *mqa_cb;
+	TRACE_ENTER();
 
-	if (!i_evt)
+	if (!i_evt) {
+		TRACE_2("FAILURE: MQSV_DSEND_EVT is NULL");
 		return NCSCC_RC_FAILURE;
+	}
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		mds_free_direct_buff((MDS_DIRECT_BUFF)i_evt);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1115,6 +1145,7 @@ uint32_t mqa_mds_msg_async_reply_direct(uint32_t mqa_mds_hdl,
 	/* Before entering any mds send function, the API locks the control block.
 	 * unlock the control block before send and lock it after we receive the reply */
 	if (m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("FAILURE: Lock failed for control block write");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		mds_free_direct_buff((MDS_DIRECT_BUFF)i_evt);
 		return NCSCC_RC_FAILURE;
@@ -1142,9 +1173,10 @@ uint32_t mqa_mds_msg_async_reply_direct(uint32_t mqa_mds_hdl,
 	rc = ncsmds_api(&mds_info);
 
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_A(MQA_MDS_SEND_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Message Send through MDS Failure");
 
 	m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 	m_MQSV_MQA_GIVEUP_MQA_CB;
+	TRACE_LEAVE();
 	return rc;
 }

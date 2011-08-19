@@ -91,6 +91,8 @@ uint32_t mqnd_qname_node_add(MQND_CB *cb, MQND_QNAME_NODE *qnode)
 
 	if (cb->is_qname_db_up)
 		rc = ncs_patricia_tree_add(&cb->qname_db, (NCS_PATRICIA_NODE *)qnode);
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_ER("Adding the queuename node to Tree failed");
 	return rc;
 }
 
@@ -113,5 +115,7 @@ uint32_t mqnd_qname_node_del(MQND_CB *cb, MQND_QNAME_NODE *qnode)
 	if (cb->is_qname_db_up && qnode) {
 		rc = ncs_patricia_tree_del(&cb->qname_db, (NCS_PATRICIA_NODE *)qnode);
 	}
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_ER("Deleting the queuename node from Tree failed");
 	return rc;
 }

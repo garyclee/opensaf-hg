@@ -41,7 +41,6 @@
 #include "mqd_api.h"
 #include "mqd_saf.h"
 #include "mqd_clm.h"
-#include "mqd_log.h"
 #include "saClm.h"
 #include "ncssysf_lck.h"
 #include "ncs_mda_pvt.h"

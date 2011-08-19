@@ -74,11 +74,12 @@ uint32_t mqd_evt_process(MQSV_EVT *pEvt)
 	MQD_EVT_HANDLER hdlr = 0;
 	MQD_CB *pMqd = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* Get the Controll block */
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
 	if (!pMqd) {
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -104,6 +105,7 @@ uint32_t mqd_evt_process(MQSV_EVT *pEvt)
 	m_MMGR_FREE_MQSV_EVT(pEvt, pMqd->my_svc_id);
 
 	ncshm_give_hdl(pMqd->hdl);
+	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_evt_process() */
 
@@ -120,6 +122,7 @@ uint32_t mqd_evt_process(MQSV_EVT *pEvt)
 uint32_t mqd_ctrl_evt_hdlr(MQSV_EVT *pEvt, MQD_CB *pMqd)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* Check the message type and handle the message */
 	if (MQD_MSG_USER == pEvt->msg.mqd_ctrl.type) {
@@ -138,6 +141,7 @@ uint32_t mqd_ctrl_evt_hdlr(MQSV_EVT *pEvt, MQD_CB *pMqd)
 	} else if (MQD_QGRP_CNT_GET == pEvt->msg.mqd_ctrl.type) {
 		rc = mqd_qgrp_cnt_get_evt_process(pMqd, pEvt);
 	}
+	TRACE_LEAVE2(" return code %u", rc);
 	return rc;
 }	/* End of mqd_ctrl_evt_hdlr() */
 
@@ -165,6 +169,7 @@ static uint32_t mqd_user_evt_process(MQD_CB *pMqd, MDS_DEST *dest)
 
 		return NCSCC_RC_SUCCESS;
 	}
+	LOG_ER("%s:%u: AMF is Not in Active State", __FILE__, __LINE__);
 	return NCSCC_RC_FAILURE;
 }	/* End of mqd_user_evt_process() */
 
@@ -227,9 +232,8 @@ uint32_t mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 	MQD_OBJ_NODE *pNode = 0;
 	MQD_A2S_MSG msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("The Timer expired with node id %u", *nodeid);
 
-	m_LOG_MQSV_D(MQD_TMR_EXPIRED, NCSFL_LC_TIMER, NCSFL_SEV_NOTICE, NCS_PTR_TO_UNS32_CAST(nodeid), __FILE__,
-		     __LINE__);
 	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uint8_t *)nodeid);
 
 	/* We need to scan the entire database and remove the track inforamtion
@@ -237,6 +241,7 @@ uint32_t mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 	 */
 
 	if (pNdNode == NULL) {
+		LOG_ER("MQD_ND_DB_NODE is NULL");
 		rc = NCSCC_RC_FAILURE;
 		return rc;
 	}
@@ -272,11 +277,12 @@ uint32_t mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 
 		if (pNdNode)
 			mqd_red_db_node_del(pMqd, pNdNode);
-		TRACE("MQND TMR EXPIRY PROCESSED ON ACTIVE");
+		TRACE_1("MQND TMR EXPIRY PROCESSED ON ACTIVE");
 	} else if (pMqd->ha_state == SA_AMF_HA_STANDBY) {
 		pNdNode->info.timer.is_expired = true;
-		TRACE("MQND TMR EXPIRY PROCESSED ON STANDBY");
+		TRACE_1("MQND TMR EXPIRY PROCESSED ON STANDBY");
 	}
+	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_timer_expiry_evt_process() */
 
@@ -298,16 +304,14 @@ static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_i
 	SaTimeT timeout = m_NCS_CONVERT_SATIME_TO_TEN_MILLI_SEC(MQD_ND_EXPIRY_TIME_STANDBY);
 	NODE_ID node_id = 0;
 	MQD_A2S_MSG msg;
-
-	TRACE("MQND status:MDS EVT :processing %d", m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest));
+	TRACE_ENTER2("MQND status:MDS EVT :processing %d", m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest));
 
 	/* Process MQND Related events */
 	if (nd_info->is_up == false) {
 		pNdNode = m_MMGR_ALLOC_MQD_ND_DB_NODE;
 		if (pNdNode == NULL) {
+			LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
 			rc = NCSCC_RC_FAILURE;
-			m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
 			return rc;
 		}
 		memset(pNdNode, 0, sizeof(MQD_ND_DB_NODE));
@@ -324,7 +328,7 @@ static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_i
 
 		if (pMqd->ha_state == SA_AMF_HA_ACTIVE)
 			mqd_nd_down_update_info(pMqd, nd_info->dest);
-		TRACE("MDS DOWN PROCESSED ON %d DONE", pMqd->ha_state);
+		TRACE_1("MDS DOWN PROCESSED ON %d DONE", pMqd->ha_state);
 	} else {
 		node_id = m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest);
 		pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uint8_t *)&node_id);
@@ -346,8 +350,9 @@ static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_i
 						     (void *)(&msg.info.nd_stat_evt));
 			}
 		}
-		TRACE("MDS UP PROCESSED ON %d DONE", pMqd->ha_state);
+		TRACE_1("MDS UP PROCESSED ON %d DONE", pMqd->ha_state);
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -365,22 +370,22 @@ static uint32_t mqd_quisced_process(MQD_CB *pMqd, MQD_QUISCED_STATE_INFO *quisce
 {
 	SaAisErrorT saErr = SA_AIS_OK;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
 	if (pMqd && pMqd->is_quisced_set) {
 		pMqd->ha_state = SA_AMF_HA_QUIESCED;
 		rc = mqd_mbcsv_chgrole(pMqd);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_D(MQD_EVT_QUISCED_PROCESS_MBCSVCHG_ROLE_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     rc, __FILE__, __LINE__);
+			TRACE_4("Quiesced Processing at MQD ,MBCSV Changerole failed");
 			return rc;
 		}
 		saAmfResponse(pMqd->amf_hdl, quisced_info->invocation, saErr);
 		pMqd->is_quisced_set = false;
-		m_LOG_MQSV_D(MQD_EVT_QUISCED_PROCESS_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
-			     __LINE__);
+		TRACE_1("Quisced Processing at MQD is successfull");
 	} else
-		m_LOG_MQSV_D(MQD_EVT_UNSOLICITED_QUISCED_ACK, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
-			     __LINE__);
+		TRACE_1("Received Unsolicited Quisced Ack at MQD");
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -405,7 +410,7 @@ static uint32_t mqd_cb_dump(void)
 	/* Get the Controll block */
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
 	if (!pMqd) {
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	TRACE("************ MQD CB Dump  *************** ");
@@ -474,6 +479,7 @@ static uint32_t mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt)
 	MQSV_EVT rsp;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQSV_CTRL_EVT_QGRP_CNT *qgrp_cnt_info = &pevt->msg.mqd_ctrl.info.qgrp_cnt_info;
+	TRACE_ENTER();
 
 	memset(&rsp, 0, sizeof(MQSV_EVT));
 
@@ -492,6 +498,7 @@ static uint32_t mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt)
 		}
 		rc = mqd_mds_send_rsp(pMqd, &pevt->sinfo, &rsp);
 	}
+	TRACE_LEAVE2(" return code %u", rc);
 	return rc;
 }
 
@@ -601,6 +608,7 @@ static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode)
 	MQD_TRACK_OBJ *pTrack = 0;
 	MQD_OBJECT_ELEM *pilist = 0;
 	if (qnode == NULL) {
+		LOG_WA("MQD_OBJ_NODE is NULL");
 		return;
 	}
 	TRACE(" The Qnode value is : %p ", qnode);

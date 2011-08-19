@@ -71,15 +71,13 @@ static uint32_t mqd_mds_callback(NCSMDS_CALLBACK_INFO *callbk)
 	MQD_CB *pMqd = 0;
 
 	if (!callbk) {
-		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	mqd_hdl = (uint32_t)callbk->i_yr_svc_hdl;
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, mqd_hdl);
 	if (!pMqd) {
-		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -117,6 +115,7 @@ static uint32_t mqd_mds_callback(NCSMDS_CALLBACK_INFO *callbk)
 		break;
 
 	default:
+		LOG_ER("Illegal type of MDS message %d", callbk->i_op);
 		rc = NCSCC_RC_FAILURE;
 		break;
 	}
@@ -139,15 +138,16 @@ uint32_t mqd_mds_init(MQD_CB *pMqd)
 	NCSMDS_INFO arg;
 	MDS_SVC_ID svc_id[] = { NCSMDS_SVC_ID_MQND, NCSMDS_SVC_ID_MQA };
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if (!pMqd) {
-		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	/* Create the virtual Destination for MQD */
 	rc = mqd_mds_vdest_create(pMqd);
 	if (NCSCC_RC_SUCCESS != rc) {
+		TRACE_2("Creation of Virtual destination for MQD failed");
 		return rc;
 	}
 
@@ -166,7 +166,7 @@ uint32_t mqd_mds_init(MQD_CB *pMqd)
 	/* Bind with MDS */
 	rc = ncsmds_api(&arg);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_MQSV_D(MQD_MDS_INSTALL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("MDS install failed");
 		mqd_mds_vdest_destroy(pMqd);
 		return rc;
 	}
@@ -183,10 +183,11 @@ uint32_t mqd_mds_init(MQD_CB *pMqd)
 	/* Subscribe for events */
 	rc = ncsmds_api(&arg);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_D(MQD_MDS_SUBSCRIPTION_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("MDS Subscription Failed");
 		mqd_mds_shut(pMqd);
 		return rc;
 	}
+	TRACE_LEAVE();
 	return rc;		/*NCSCC_RC_SUCCESS; */
 }	/* End of mqd_mds_init() */
 
@@ -203,10 +204,10 @@ static uint32_t mqd_mds_vdest_create(MQD_CB *pMqd)
 {
 	NCSVDA_INFO arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if (!pMqd) {
-		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	pMqd->my_dest = MQD_VDEST_ID;
@@ -222,12 +223,13 @@ static uint32_t mqd_mds_vdest_create(MQD_CB *pMqd)
 	/* Create VDEST */
 	rc = ncsvda_api(&arg);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_MQSV_D(MQD_VDS_CREATE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("VDS Create Failed");
 		return rc;
 	}
 
 	pMqd->my_mds_hdl = arg.info.vdest_create.o_mds_pwe1_hdl;
 
+	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_mds_vdest_create() */
 
@@ -244,10 +246,10 @@ uint32_t mqd_mds_shut(MQD_CB *pMqd)
 {
 	NCSMDS_INFO arg;
 	uint32_t rc;
+	TRACE_ENTER();
 
 	if (!pMqd) {
-		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	/* Un-install your service into MDS */
@@ -259,11 +261,12 @@ uint32_t mqd_mds_shut(MQD_CB *pMqd)
 
 	rc = ncsmds_api(&arg);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_MQSV_D(MQD_MDS_UNINSTALL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("MDS Uninstall Failed");
 		return rc;
 	}
 	/* Destroy the vertual Destination of MQD */
 	rc = mqd_mds_vdest_destroy(pMqd);
+	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_mds_shut() */
 
@@ -280,10 +283,10 @@ static uint32_t mqd_mds_vdest_destroy(MQD_CB *pMqd)
 {
 	NCSVDA_INFO arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if (!pMqd) {
-		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	memset(&arg, 0, sizeof(NCSVDA_INFO));
@@ -294,8 +297,9 @@ static uint32_t mqd_mds_vdest_destroy(MQD_CB *pMqd)
 	arg.info.vdest_destroy.i_make_vdest_non_persistent = false;
 	rc = ncsvda_api(&arg);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_D(MQD_VDEST_DESTROY_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("VDEST Destroy Failed");
 
+	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_mds_vdest_destroy() */
 
@@ -320,11 +324,11 @@ static uint32_t mqd_mds_cpy(MQD_CB *pMqd, MDS_CALLBACK_COPY_INFO *cpy)
 	MQSV_EVT *pEvt = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	if (!pMqd) {
-		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	if (!cpy) {
+		LOG_ER("MDS_CALLBACK_COPY_INFO is NULL");
 		return NCSCC_RC_FAILURE;
 	}
 	pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
@@ -336,8 +340,8 @@ static uint32_t mqd_mds_cpy(MQD_CB *pMqd, MDS_CALLBACK_COPY_INFO *cpy)
 		cpy->o_cpy = pEvt;
 		return NCSCC_RC_SUCCESS;
 	} else {
+		LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 }	/* End of mqd_mds_cpy() */
@@ -359,11 +363,11 @@ static uint32_t mqd_mds_enc(MQD_CB *pMqd, MDS_CALLBACK_ENC_INFO *enc)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (!pMqd) {
-		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	if (!enc) {
+		LOG_ER("MDS_CALLBACK_ENC_INFO is NULL");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -385,13 +389,11 @@ static uint32_t mqd_mds_enc(MQD_CB *pMqd, MDS_CALLBACK_ENC_INFO *enc)
 
 		rc = (m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqsv_evt, enc->io_uba, EDP_OP_TYPE_ENC, pEvt, &err));
 		if (rc != NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_D(MQD_MDS_ENCODE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			LOG_ER("MDS Encode is Failed at EDU");
 		return rc;
 	} else {
 		/* Drop The Message */
-		m_LOG_MQSV_D(MQD_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-			     enc->o_msg_fmt_ver, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Message Format version invalid %u", __FILE__, __LINE__, enc->o_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
 }	/* End of mqd_mds_enc() */
@@ -415,11 +417,12 @@ static uint32_t mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
 	bool is_valid_msg_fmt = false;
 
 	if (!pMqd) {
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	if (!dec) {
+		LOG_ER("MDS_CALLBACK_DEC_INFO is NULL");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -438,9 +441,7 @@ static uint32_t mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
 	if (is_valid_msg_fmt && (dec->i_msg_fmt_ver != 1)) {
 		pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
 		if (!pEvt) {
-			rc = NCSCC_RC_FAILURE;
-			m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -450,8 +451,7 @@ static uint32_t mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
 		rc = m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqsv_evt,
 				    dec->io_uba, EDP_OP_TYPE_DEC, (MQSV_EVT **)&dec->o_msg, &err);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_LOG_MQSV_D(MQD_MDS_DECODE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			LOG_ER("MDS Decode is Failed at EDU");
 			if ((MQSV_EVT_ASAPI == pEvt->type) && (pEvt->msg.asapi))
 				asapi_msg_free(&pEvt->msg.asapi);
 			m_MMGR_FREE_MQSV_EVT(pEvt, pMqd->my_svc_id);
@@ -459,8 +459,7 @@ static uint32_t mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
 		return rc;
 	} else {
 		/* Drop The Message */
-		m_LOG_MQSV_D(MQD_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-			     is_valid_msg_fmt, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Message Format version invalid %u", __FILE__, __LINE__, is_valid_msg_fmt);
 		return NCSCC_RC_FAILURE;
 	}
 }	/* End of mqd_mds_dec() */
@@ -491,7 +490,7 @@ static uint32_t mqd_mds_rcv(MQD_CB *pMqd, MDS_CALLBACK_RECEIVE_INFO *rcv)
 	/* Put it in MQD's Event Queue */
 	rc = m_MQD_EVT_SEND(&pMqd->mbx, pEvt, NCS_IPC_PRIORITY_NORMAL);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_MQSV_D(MQD_MDS_RCV_SEND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("MDS Receive Send to Mail box Failed");
 		if ((MQSV_EVT_ASAPI == pEvt->type) && (pEvt->msg.asapi)) {
 			asapi_msg_free(&pEvt->msg.asapi);
 		}
@@ -533,14 +532,12 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
 					/* Put it in MQD's Event Queue */
 					rc = m_MQD_EVT_SEND(&pMqd->mbx, pEvt, NCS_IPC_PRIORITY_NORMAL);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_LOG_MQSV_D(MQD_MDS_SVC_EVT_MQA_DOWN_EVT_SEND_FAILED,
-							     NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-							     __LINE__);
+						LOG_ER("MDS SVC EVT MQA down event"
+							"sending to the mail box failed");
 						m_MMGR_FREE_MQSV_EVT(pEvt, pMqd->my_svc_id);
 					}
 				} else {
-					m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-						     __FILE__, __LINE__);
+					LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
 				}
 			}
 			if (svc->i_svc_id == NCSMDS_SVC_ID_MQND) {
@@ -555,16 +552,14 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
 					m_GET_TIME_STAMP(pNdEvent->msg.mqd_ctrl.info.nd_info.event_time);
 					/* Put it in MQD's Event Queue */
 					rc = m_MQD_EVT_SEND(&pMqd->mbx, pNdEvent, NCS_IPC_PRIORITY_NORMAL);
-					TRACE("MQND MDS DOWN EVENT POSTED");
+					TRACE_1("MQND MDS DOWN EVENT POSTED");
 					if (NCSCC_RC_SUCCESS != rc) {
 						m_MMGR_FREE_MQSV_EVT(pNdEvent, pMqd->my_svc_id);
-						m_LOG_MQSV_D(MQD_MDS_SVC_EVT_MQND_DOWN_EVT_SEND_FAILED,
-							     NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-							     __LINE__);
+						LOG_ER("MDS SVC EVT MQND down event "
+							"sending to the mail box failed");
 					}
 				} else {
-					m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-						     __FILE__, __LINE__);
+					LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
 				}
 
 			}
@@ -584,8 +579,7 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
 
 				if (!o_msg_fmt_ver)
 					/*Log informing the existence of Non compatible MQD version, Slot id being logged */
-					m_LOG_MQSV_D(MQD_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT,
-						     NCSFL_SEV_ERROR, to_dest_slotid, __FILE__, __LINE__);
+					LOG_ER("Message Format version invalid %u", to_dest_slotid);
 
 				pNdEvent = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
 				if (pNdEvent) {
@@ -598,16 +592,14 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
 					m_GET_TIME_STAMP(pNdEvent->msg.mqd_ctrl.info.nd_info.event_time);
 					/* Put it in MQD's Event Queue */
 					rc = m_MQD_EVT_SEND(&pMqd->mbx, pNdEvent, NCS_IPC_PRIORITY_NORMAL);
-					TRACE("MQND MDS UP EVENT POSTED");
+					TRACE_1("MQND MDS UP EVENT POSTED");
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_LOG_MQSV_D(MQD_MDS_SVC_EVT_MQND_UP_EVT_SEND_FAILED,
-							     NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-							     __LINE__);
+						LOG_ER("MDS SVC EVT MQND up event "
+							"sending to the mail box failed");
 						m_MMGR_FREE_MQSV_EVT(pNdEvent, pMqd->my_svc_id);
 					}
 				} else {
-					m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-						     __FILE__, __LINE__);
+					LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
 				}
 			}
 		}
@@ -635,9 +627,8 @@ static uint32_t mqd_mds_quiesced_process(MQD_CB *pMqd)
 	if (pMqd->is_quisced_set) {
 		pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
 		if (!pEvt) {
+			LOG_CR("Failed To Allocate Memory");
 			rc = NCSCC_RC_FAILURE;
-			m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 		memset(pEvt, 0, sizeof(MQSV_EVT));
@@ -648,8 +639,7 @@ static uint32_t mqd_mds_quiesced_process(MQD_CB *pMqd)
 		/* Put it in MQD's Event Queue */
 		rc = m_MQD_EVT_SEND(&pMqd->mbx, pEvt, NCS_IPC_PRIORITY_NORMAL);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_D(MQD_MDS_QUISCED_EVT_SEND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			LOG_ER("MDS Quisced Send Event to mailbox failed");
 			m_MMGR_FREE_MQSV_EVT(pEvt, pMqd->my_svc_id);
 		}
 	}
@@ -690,7 +680,7 @@ uint32_t mqd_mds_send_rsp(MQD_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt)
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		/*  m_LOG_MQSV_ND(MQD_MDS_SND_RSP_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__); */
+		LOG_ER("Mds Send Response Failed %" PRIx64, s_info->dest);
 	}
 	return rc;
 }

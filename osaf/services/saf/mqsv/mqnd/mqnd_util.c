@@ -45,20 +45,19 @@ uint32_t mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 	bool is_q_reopen = false;
 	SaAisErrorT error;
+	TRACE_ENTER();
 
 	qnode = m_MMGR_ALLOC_MQND_QUEUE_NODE;
 	if (!qnode) {
+		LOG_CR("QueueNode Allocation Failed");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_ALLOC_QUEUE_NODE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
 		goto free_mem;
 	}
 
 	pnode = m_MMGR_ALLOC_MQND_QNAME_NODE;
 	if (!pnode) {
+		LOG_CR("QueueNode Allocation Failed");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_ALLOC_QNAME_NODE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
 		goto free_mem;
 	}
 
@@ -87,7 +86,7 @@ uint32_t mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 	/* Open the Message Queue */
 	rc = mqnd_mq_create(&qnode->qinfo);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_QUEUE_CREATE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("Queue Creation Failed");
 		goto free_mem;
 	}
 
@@ -95,8 +94,7 @@ uint32_t mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 	if (open->openFlags & SA_MSG_QUEUE_RECEIVE_CALLBACK) {
 		rc = mqnd_listenerq_create(&qnode->qinfo);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_ND(MQND_LISTENERQ_CREATE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__);
+			LOG_ER("Listener Queue creation Failed");
 			goto free_mq;
 		}
 	}
@@ -104,7 +102,7 @@ uint32_t mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 	/* To store the index in the shared memory for this queue */
 	rc = mqnd_find_shm_ckpt_empty_section(cb, &index);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_QUEUE_CREATE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Queue Creation Failed", __FILE__, __LINE__);
 		goto free_listenerq;
 	}
 
@@ -118,14 +116,14 @@ uint32_t mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 	mqnd_cpy_qnodeinfo_to_ckptinfo(cb, qnode, &queue_ckpt_node);
 	rc = mqnd_ckpt_queue_info_write(cb, &queue_ckpt_node, qnode->qinfo.shm_queue_index);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_QUEUE_CREATE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Queue Creation Failed", __FILE__, __LINE__);
 		goto free_listenerq;
 	}
 
 	/* Add the Queue in Tree */
 	rc = mqnd_queue_node_add(cb, qnode);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_QNODE_ADD_DB_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("Adding the node to the database failed");
 		goto free_listenerq;
 	}
 
@@ -134,8 +132,7 @@ uint32_t mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 		rc = mqnd_fill_queue_from_transfered_buffer(cb, qnode, transfer_rsp);
 
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_ND(MQND_QUEUE_CREATE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__);
+			TRACE_2("Queue Creation Failed");
 			goto qnode_destroy;
 		}
 	}
@@ -146,15 +143,14 @@ uint32_t mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 	pnode->qhdl = (SaMsgQueueHandleT)qnode->qinfo.queueHandle;
 	rc = mqnd_qname_node_add(cb, pnode);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_QUEUE_CREATE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("Queue Creation Failed");
 		goto qnode_destroy;
 	}
 
 	/* Register with MQD */
 	rc = mqnd_queue_reg_with_mqd(cb, qnode, err, is_q_reopen);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_Q_REG_WITH_MQD_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
+		LOG_ER("Queue Reg with MQD failed");
 		goto qname_destroy;
 	}
 
@@ -163,19 +159,20 @@ uint32_t mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 					       cb->immOiHandle);
 
 	if (error != SA_AIS_OK) {
-		mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQobject FAILED: %u \n", error);
+		LOG_ER("Create MsgQobject %s Failed with error: %u", qnode->qinfo.queueName.value, error);
 		return NCSCC_RC_FAILURE;
 	}
 
 	error = mqnd_create_runtime_MsgQPriorityobject((char *)qnode->qinfo.queueName.value, qnode, cb->immOiHandle);
 
 	if (error != SA_AIS_OK) {
-		mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQPriorityobject FAILED: %u \n", error);
+		LOG_ER("Create MsgQPriorityobject %s Failed with error: %u", qnode->qinfo.queueName.value, error);
 		return NCSCC_RC_FAILURE;
 	}
 
 	*qhdl = qnode->qinfo.queueHandle;
-	m_LOG_MQSV_ND(MQND_QUEUE_CREATE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("Queue Creation is Successfull");
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
  qname_destroy:
@@ -245,6 +242,7 @@ uint32_t mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisError
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_OPR_INFO opr;
+	TRACE_ENTER();
 
 	/* Request the ASAPi (at MQD) for queue REG */
 	memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
@@ -291,7 +289,7 @@ uint32_t mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisError
 		   whether previous request has been served or not and Return TRY_AGAIN to MQA in Both cases */
 
 		if (!is_q_reopen) {
-			TRACE("QUEUE OPEN TIMEOUT :DEREG  ");
+			TRACE_1("QUEUE OPEN TIMEOUT :Dereg  ");
 			opr.info.msg.req.msgtype = ASAPi_MSG_DEREG;
 			opr.info.msg.req.info.dereg.objtype = ASAPi_OBJ_QUEUE;
 			opr.info.msg.req.info.dereg.queue = qnode->qinfo.queueName;
@@ -304,7 +302,7 @@ uint32_t mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisError
 				*err = SA_AIS_ERR_TRY_AGAIN;
 			return NCSCC_RC_FAILURE;
 		} else {
-			TRACE("QUEUE REOPEN TIMEOUT :REG TO ORPHAN");
+			TRACE_1("QUEUE REOPEN TIMEOUT :Reg to Orphan");
 			opr.info.msg.req.msgtype = ASAPi_MSG_REG;
 			opr.info.msg.req.info.reg.objtype = ASAPi_OBJ_QUEUE;
 			opr.info.msg.req.info.reg.queue.name = qnode->qinfo.queueName;
@@ -328,9 +326,8 @@ uint32_t mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisError
 		}
 	} else {
 		if ((rc != SA_AIS_OK) || (!opr.info.msg.resp) || (opr.info.msg.resp->info.rresp.err.flag)) {
+			LOG_ER("Asapi Opr handler for Queue Register Failed");
 			rc = NCSCC_RC_FAILURE;
-			m_LOG_MQSV_ND(MQND_ASAPI_REG_HDLR_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-				      __LINE__);
 		}
 	}
 
@@ -338,5 +335,6 @@ uint32_t mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisError
 	if (opr.info.msg.resp)
 		asapi_msg_free(&opr.info.msg.resp);
 
+	TRACE_LEAVE();
 	return rc;
 }

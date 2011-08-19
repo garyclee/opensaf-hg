@@ -76,38 +76,35 @@ uint32_t mqd_asapi_evt_hdlr(MQSV_EVT *pEvt, MQD_CB *pMqd)
 	if (pMqd->active) {
 		/* Get hold of the ASAPi Message */
 		pMsg = pEvt->msg.asapi;
-		if (!pMsg)
+		if (!pMsg) {
+			LOG_ER("MQD_CB is NULL");
 			return NCSCC_RC_FAILURE;
+		}
 
 		/* Check the message type and handle the message */
 		if (ASAPi_MSG_REG == pMsg->msgtype) {
 			/* Handle the ASAPi Registration request */
-			m_LOG_MQSV_D(MQD_ASAPi_REG_MSG_RCV, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
-				     __LINE__);
+			TRACE_1("ASAPi Registration Message Received");
 			rc = mqd_asapi_reg_hdlr(pMqd, &pMsg->info.reg, &pEvt->sinfo);
 		} else if (ASAPi_MSG_DEREG == pMsg->msgtype) {
 			/* Handle the ASAPi De-registration request */
-			m_LOG_MQSV_D(MQD_ASAPi_DEREG_MSG_RCV, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
-				     __LINE__);
+			TRACE_1("ASAPi Deregistration Message Received");
 			rc = mqd_asapi_dereg_hdlr(pMqd, &pMsg->info.dereg, &pEvt->sinfo);
 		} else if (ASAPi_MSG_NRESOLVE == pMsg->msgtype) {
 			/* Handle the ASAPi Name Resolution request */
-			m_LOG_MQSV_D(MQD_ASAPi_NRESOLVE_MSG_RCV, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
-				     __LINE__);
+			TRACE_1("ASAPi Name Resolution Message Received");
 			rc = mqd_asapi_nresolve_hdlr(pMqd, &pMsg->info.nresolve, &pEvt->sinfo);
 		} else if (ASAPi_MSG_GETQUEUE == pMsg->msgtype) {
 			/* Handle the ASAPi Getqueue request */
-			m_LOG_MQSV_D(MQD_ASAPi_GETQUEUE_MSG_RCV, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
-				     __LINE__);
+			TRACE_1("ASAPi Getqueue Message Received");
 			rc = mqd_asapi_getqueue_hdlr(pMqd, &pMsg->info.getqueue, &pEvt->sinfo);
 		} else if (ASAPi_MSG_TRACK == pMsg->msgtype) {
 			/* Handle the ASAPi Track request */
-			m_LOG_MQSV_D(MQD_ASAPi_TRACK_MSG_RCV, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
-				     __LINE__);
+			TRACE_1("ASAPi Track Message Received");
 			rc = mqd_asapi_track_hdlr(pMqd, &pMsg->info.track, &pEvt->sinfo);
 		}
 	}
-	m_LOG_MQSV_D(MQD_ASAPi_EVT_COMPLETE_STATUS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("ASAPi Event processed completely with return value %u", rc);
 	/* OK -- We finished processing now free the ASAPi message */
 	asapi_msg_free(&pMsg);
 	pEvt->msg.asapi = 0;
@@ -135,6 +132,7 @@ static uint32_t mqd_asapi_reg_hdlr(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQSV_SEND_
 	MQD_OBJECT_ELEM *pOelm = 0;
 	ASAPi_OBJECT_OPR opr = 0;
 	NCS_Q_ITR itr;
+	TRACE_ENTER();
 
 	memset(&msg, 0, sizeof(msg));
 
@@ -146,18 +144,14 @@ static uint32_t mqd_asapi_reg_hdlr(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQSV_SEND_
 			/* Send Asynchronous update to the standby MQD */
 			mqd_a2s_async_update(pMqd, MQD_A2S_MSG_TYPE_REG, (void *)reg);
 			if (reg->objtype == ASAPi_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_REG_HDLR_DB_UPDATE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc,
-					     __FILE__, __LINE__);
+				TRACE_1("Registering QUEUE DB Update for processing Success");
 			else
-				m_LOG_MQSV_D(MQD_REG_HDLR_DB_UPDATE_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_NOTICE,
-					     rc, __FILE__, __LINE__);
+				TRACE_1("Registering QUEUE GROUPS DB Update processing Success");
 		} else {
 			if (reg->objtype == ASAPi_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_REG_HDLR_DB_UPDATE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				LOG_ER("Registering QUEUE DB Update processing failed with error %u", rc);
 			else
-				m_LOG_MQSV_D(MQD_REG_HDLR_DB_UPDATE_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR,
-					     rc, __FILE__, __LINE__);
+				LOG_ER("Registering QUEUE GROUPS DB Update processing failed with error %u", rc);
 			/* Set the Error flag and error code in response message */
 			msg.info.rresp.err.flag = true;
 			msg.info.rresp.err.errcode = rc;
@@ -207,21 +201,20 @@ static uint32_t mqd_asapi_reg_hdlr(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQSV_SEND_
 			rc = mqd_asapi_resp_send(&msg, info);
 			if (NCSCC_RC_SUCCESS != rc) {
 				if (reg->objtype == ASAPi_OBJ_QUEUE)
-					m_LOG_MQSV_D(MQD_ASAPi_REG_RESP_MSG_ERR, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR,
-						     rc, __FILE__, __LINE__);
+					LOG_ER("ERR_FAILED_OPERATION: Couldn't Send ASAPi  QUEUE"
+						"Registration Response Message");
 				else
-					m_LOG_MQSV_D(MQD_ASAPi_REG_RESP_MSG_ERR, NCSFL_LC_MQSV_QGRP_MGMT,
-						     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+					LOG_ER("ERR_FAILED_OPERATION: Couldn't Send ASAPi QUEUE GROUPS"
+						"Registration Response Message");
 				return rc;
 			}
 			if (reg->objtype == ASAPi_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_ASAPi_REG_RESP_MSG_SENT, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc,
-					     __FILE__, __LINE__);
+				TRACE_1("ASAPi QUEUE Registration Response Message Sent Success");
 			else
-				m_LOG_MQSV_D(MQD_ASAPi_REG_RESP_MSG_SENT, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_NOTICE, rc,
-					     __FILE__, __LINE__);
+				TRACE_1("ASAPi QUEUE GROUPS Registration Response Message Sent Success");
 		}
 	}
+	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_asapi_reg_hdlr() */
 
@@ -242,6 +235,7 @@ uint32_t mqd_asapi_dereg_hdlr(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, MQSV_SEND_I
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO msg;
+	TRACE_ENTER();
 
 	memset(&msg, 0, sizeof(msg));
 
@@ -252,22 +246,19 @@ uint32_t mqd_asapi_dereg_hdlr(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, MQSV_SEND_I
 		if (rc == NCSCC_RC_SUCCESS) {
 			mqd_a2s_async_update(pMqd, MQD_A2S_MSG_TYPE_DEREG, (void *)dereg);
 			if (dereg->objtype == ASAPi_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_DEREG_HDLR_DB_UPDATE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE,
-					     rc, __FILE__, __LINE__);
+				TRACE_1("Deregistering QUEUE DB Update for processing Success");
 			else
-				m_LOG_MQSV_D(MQD_DEREG_HDLR_DB_UPDATE_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT,
-					     NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+				TRACE_1("Deregistering QUEUE GROUPS DB Update for processing Success");
 		} else {
 			if (dereg->objtype == ASAPi_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_DEREG_HDLR_DB_UPDATE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				LOG_ER("Deregistering QUEUE DB Update processing failed with error %u", rc);
 			else
-				m_LOG_MQSV_D(MQD_DEREG_HDLR_DB_UPDATE_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR,
-					     rc, __FILE__, __LINE__);
+				LOG_ER("Deregistering QUEUE GROUPS DB Update processing failed with error %u", rc);
 		}
 	} else {
 		/* You are NOT supposed to be here under any circumstances. 
 		 * If here, something is seriously wrong */
+		LOG_CR("%s:%u: AMF is Not in Active State", __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
 		msg.info.dresp.err.flag = true;
 		msg.info.dresp.err.errcode = SA_AIS_ERR_NO_RESOURCES;
@@ -295,21 +286,20 @@ uint32_t mqd_asapi_dereg_hdlr(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, MQSV_SEND_I
 
 			if (NCSCC_RC_SUCCESS != rc) {
 				if (dereg->objtype == ASAPi_OBJ_QUEUE)
-					m_LOG_MQSV_D(MQD_ASAPi_DEREG_RESP_MSG_ERR, NCSFL_LC_MQSV_Q_MGMT,
-						     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+					LOG_ER("ERR_FAILED_OPERATION: Couldn't Send ASAPi  QUEUE"
+						"Deregistration Response Message");
 				else
-					m_LOG_MQSV_D(MQD_ASAPi_DEREG_RESP_MSG_ERR, NCSFL_LC_MQSV_QGRP_MGMT,
-						     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+					LOG_ER("ERR_FAILED_OPERATION: Couldn't Send ASAPi  QUEUE GROUPS"
+						"Deregistration Response Message");
 				return rc;
 			}
 			if (dereg->objtype == ASAPi_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_ASAPi_DEREG_RESP_MSG_SENT, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc,
-					     __FILE__, __LINE__);
+				TRACE_1("ASAPi QUEUE Deregistration Response Message Sent Success");
 			else
-				m_LOG_MQSV_D(MQD_ASAPi_DEREG_RESP_MSG_SENT, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_NOTICE,
-					     rc, __FILE__, __LINE__);
+				TRACE_1("ASAPi QUEUE GROUPS Deregistration Response Message Sent Success");
 		}
 	}
+	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_asapi_dereg_hdlr() */
 
@@ -336,6 +326,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_OBJ_NODE *pObjNode = NULL, *pObj = NULL;
 	MQD_OBJECT_ELEM *pOelm = NULL, *pQGelm = NULL;
+	TRACE_ENTER();
 
 	switch (dereg->objtype) {
 
@@ -345,11 +336,10 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 			/* Check for existence of Queue & QueueGroup */
 			if ((!(qgrpexist = mqd_asapi_obj_validate(pMqd, &dereg->group, &pObjNode)))
 			    || (!(qexist = mqd_asapi_obj_validate(pMqd, &dereg->queue, &pObj)))) {
+				TRACE_2("ERR_NOT_EXIST: Database Operation (DEL) Failed");
 				rc = SA_AIS_ERR_NOT_EXIST;
 				msg->info.dresp.err.flag = true;
 				msg->info.dresp.err.errcode = rc;
-				m_LOG_MQSV_D(MQD_DB_DEL_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-					     __LINE__);
 				goto resp_send;
 			}
 
@@ -395,8 +385,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 
 					if (pGelm)
 						m_MMGR_FREE_MQD_OBJECT_ELEM(pGelm);
-					m_LOG_MQSV_D(MQD_GROUP_REMOVE_QUEUE_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT,
-						     NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+					TRACE_1("Removing a queue from Queue Group Success");
 				}
 				/* Update Runtime Attribute to IMMSV */
 				if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
@@ -417,8 +406,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 				rc = SA_AIS_ERR_NOT_EXIST;
 				msg->info.dresp.err.flag = true;
 				msg->info.dresp.err.errcode = rc;
-				m_LOG_MQSV_D(MQD_DB_DEL_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-					     __LINE__);
+				TRACE_2("ERR_NOT_EXIST: Database Operation (DEL) Failed");
 				goto resp_send;
 			}
 
@@ -433,8 +421,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 			if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
 				if (immutil_saImmOiRtObjectDelete(pMqd->immOiHandle, &pObjNode->oinfo.name) !=
 				    SA_AIS_OK) {
-					mqd_genlog(NCSFL_SEV_ERROR, "Deleting MsgQGrp object %s FAILED",
-						   pObjNode->oinfo.name.value);
+					TRACE_2("Deleting MsgQGrp object %s FAILED", pObjNode->oinfo.name.value);
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -462,8 +449,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 
 			/* Destroy the Node */
 			mqd_db_node_del(pMqd, pObjNode);
-			m_LOG_MQSV_D(MQD_GROUP_DELETE_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_NOTICE, rc, __FILE__,
-				     __LINE__);
+			TRACE_1("Deleting the Queue Group Success");
 		}
 		break;
 
@@ -472,21 +458,19 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 		{
 			/* Check for existence of Queue */
 			if (!mqd_asapi_obj_validate(pMqd, &dereg->queue, &pObjNode)) {
+				TRACE_2("ERR_NOT_EXIST: Database Operation (DEL) Failed");
 				rc = SA_AIS_ERR_NOT_EXIST;
 				msg->info.dresp.err.flag = true;
 				msg->info.dresp.err.errcode = rc;
-				m_LOG_MQSV_D(MQD_DB_DEL_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-					     __LINE__);
 				goto resp_send;
 			}
 
 			/* check if Queue passed is actually QueueGroup */
 			if (mqd_check_for_namespace_collision(pObjNode, MQSV_OBJ_QGROUP)) {
+				TRACE_2("ERR_NOT_EXIST: Database Operation (DEL) Failed");
 				rc = SA_AIS_ERR_NOT_EXIST;
 				msg->info.dresp.err.flag = true;
 				msg->info.dresp.err.errcode = rc;
-				m_LOG_MQSV_D(MQD_DB_DEL_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-					     __LINE__);
 				goto resp_send;
 			}
 
@@ -526,17 +510,18 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 
 			/* Destroy the Node */
 			mqd_db_node_del(pMqd, pObjNode);
-			m_LOG_MQSV_D(MQD_QUEUE_DELETE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc, __FILE__,
-				     __LINE__);
+			TRACE_1("Destroying the Queue Success(Unlink or Close case)");
 		}
 		break;
 
 	default:
+		TRACE_2("ERR_INVALID_PARAM: ASAPi_DEREG_INFO type does not match %d", dereg->objtype);
 		return SA_AIS_ERR_INVALID_PARAM;
 		break;
 	}
 
  resp_send:
+	TRACE_LEAVE2(" return code %u", rc);
 	return rc;
 }	/* End of mqd_asapi_dereg_db_upd() */
 
@@ -562,11 +547,13 @@ static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nreso
 	uint16_t qcnt = 0;
 	ASAPi_MSG_INFO msg;
 	MQD_A2S_TRACK_INFO track;
+	TRACE_ENTER();
 
 	memset(&track, 0, sizeof(track));
 	memset(&msg, 0, sizeof(msg));
 
 	if (pMqd->ha_state != SA_AMF_HA_ACTIVE) {
+		LOG_ER("%s:%u: ERR_RESOURCES: AMF is Not in Active State",__FILE__,__LINE__);
 		rc = SA_AIS_ERR_NO_RESOURCES;
 
 		/* Set the error flag and fill the description */
@@ -579,25 +566,24 @@ static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nreso
 	/* Validate the object */
 	exist = mqd_asapi_obj_validate(pMqd, &nresolve->object, &pObjNode);
 	if (!exist) {		/* Object doesn't exist ... */
+		TRACE_1("Nameresolvehandler Database access not found");
 		rc = SA_AIS_ERR_NOT_EXIST;
 
 		/* Set the error flag and fill the description */
 		msg.info.nresp.err.flag = true;
 		msg.info.nresp.err.errcode = rc;
 
-		m_LOG_MQSV_D(MQD_NRESOLV_HDLR_DB_ACCESS_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
-			     __LINE__);
 		goto send_resp;
 	}
 
 	if (pObjNode->oinfo.type == MQSV_OBJ_QUEUE) {
 		if (pObjNode->oinfo.info.q.is_mqnd_down) {
+			LOG_ER("%s:%u: ERR_TRY_AGAIN: The corresponding MQND is down", __FILE__, __LINE__);
 			rc = SA_AIS_ERR_TRY_AGAIN;
 
 			/* Set the error flag and fill the description */
 			msg.info.nresp.err.flag = true;
 			msg.info.nresp.err.errcode = rc;
-			m_LOG_MQSV_D(MQD_DB_UPD_MQND_DOWN, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 			goto send_resp;
 		}
 	}
@@ -619,7 +605,7 @@ static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nreso
 			track.to_svc = info->to_svc;
 			/* Send async update to the stand by for MQD redundancy */
 			mqd_a2s_async_update(pMqd, MQD_A2S_MSG_TYPE_TRACK, (void *)&track);
-			m_LOG_MQSV_D(MQD_DB_TRACK_ADD, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+			TRACE_1("Database Operation (TRACK) Added");
 		}
 	}
 
@@ -644,17 +630,16 @@ static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nreso
 	msg.msgtype = ASAPi_MSG_NRESOLVE_RESP;
 	rc = mqd_asapi_resp_send(&msg, info);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_MQSV_D(MQD_ASAPi_NRESOLVE_RESP_MSG_ERR, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
+		LOG_ER("ERR_FAILED_OPERATION: Couldn't Send ASAPi Name Resolution Response Message");
 	} else {
-		m_LOG_MQSV_D(MQD_ASAPi_NRESOLVE_RESP_MSG_SENT, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
-			     __LINE__);
+		TRACE_1("ASAPi Name Resolution Response Message Sent Success");
 	}
 
 	/* Free up the queue information */
 	if (pQueue) {
 		m_MMGR_FREE_ASAPi_DEFAULT_VAL(pQueue, asapi.my_svc_id);
 	}
+	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_asapi_nresolve_hdlr() */
 
@@ -677,10 +662,12 @@ static uint32_t mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqu
 	MQD_OBJ_NODE *pObjNode = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO msg;
+	TRACE_ENTER();
 
 	memset(&msg, 0, sizeof(msg));
 
 	if (pMqd->ha_state != SA_AMF_HA_ACTIVE) {
+		LOG_ER("%s:%u: ERR_RESOURCES: AMF is Not in Active State",__FILE__,__LINE__);
 		rc = SA_AIS_ERR_NO_RESOURCES;
 
 		/* Set the error flag and fill the description */
@@ -694,38 +681,37 @@ static uint32_t mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqu
 	/* Validate the object */
 	exist = mqd_asapi_obj_validate(pMqd, &getqueue->queue, &pObjNode);
 	if (!exist) {		/* Object doesn't exist ... */
+		LOG_ER("%s:%u: ERR_NOT_EXIST: Database Operation (UPD) Failed",__FILE__,__LINE__);
 		rc = SA_AIS_ERR_NOT_EXIST;
 
 		/* Set the error flag and fill the description */
 		msg.info.vresp.err.flag = true;
 		msg.info.vresp.err.errcode = rc;
 
-		m_LOG_MQSV_D(MQD_DB_UPD_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		goto send_resp;
 	}
 
 	/* Check if queue name passed is actually a Q-Group */
 	if (mqd_check_for_namespace_collision(pObjNode, MQSV_OBJ_QGROUP)) {
+		LOG_ER("%s:%u: ERR_NOT_EXIST: Database Operation (UPD) Failed",__FILE__,__LINE__);
 		rc = SA_AIS_ERR_NOT_EXIST;
 
 		/* Set the error flag and fill the description */
 		msg.info.vresp.err.flag = true;
 		msg.info.vresp.err.errcode = rc;
 
-		m_LOG_MQSV_D(MQD_DB_UPD_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		goto send_resp;
 	}
 
 	if (pObjNode->oinfo.type == MQSV_OBJ_QUEUE) {
 		if (pObjNode->oinfo.info.q.is_mqnd_down) {
+			LOG_ER("%s:%u: ERR_TRY_AGAIN: The corresponding MQND is down", __FILE__, __LINE__);
 			rc = SA_AIS_ERR_TRY_AGAIN;
 
 			/* Set the error flag and fill the description */
 			msg.info.vresp.err.flag = true;
 			msg.info.vresp.err.errcode = rc;
 
-			m_LOG_MQSV_D(MQD_DB_UPD_MQND_DOWN, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
 			goto send_resp;
 		}
 	}
@@ -740,12 +726,12 @@ static uint32_t mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqu
 	msg.msgtype = ASAPi_MSG_GETQUEUE_RESP;
 	rc = mqd_asapi_resp_send(&msg, info);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_MQSV_D(MQD_ASAPi_GETQUEUE_RESP_MSG_ERR, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
+		LOG_ER("ERR_FAILED_OPERATION: Couldn't Send ASAPi Getqueue Response Message");
 		return rc;
 	}
-	m_LOG_MQSV_D(MQD_ASAPi_GETQUEUE_RESP_MSG_SENT, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("ASAPi Getqueue Response Message Sent");
 
+	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_asapi_getqueue_hdlr() */
 
@@ -770,11 +756,13 @@ static uint32_t mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV
 	ASAPi_QUEUE_PARAM *pQueue = 0;
 	uint16_t qcnt = 0;
 	MQD_A2S_TRACK_INFO async_track;
+	TRACE_ENTER();
 
 	memset(&msg, 0, sizeof(msg));
 	memset(&async_track, 0, sizeof(async_track));
 
 	if (pMqd->ha_state != SA_AMF_HA_ACTIVE) {
+		LOG_ER("%s:%u: ERR_RESOURCES: AMF is Not in Active State",__FILE__,__LINE__);
 		rc = SA_AIS_ERR_NO_RESOURCES;
 
 		/* Set the error flag and fill the description */
@@ -788,25 +776,25 @@ static uint32_t mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV
 	/* Validate the object */
 	exist = mqd_asapi_obj_validate(pMqd, &track->object, &pObjNode);
 	if (!exist) {		/* Object doesn't exist ... */
+		LOG_ER("%s:%u: ERR_NOT_EXIST: Database Operation (UPD) Failed",__FILE__,__LINE__);
 		rc = SA_AIS_ERR_NOT_EXIST;
 
 		/* Set the error flag and fill the description */
 		msg.info.tresp.err.flag = true;
 		msg.info.tresp.err.errcode = rc;
 
-		m_LOG_MQSV_D(MQD_DB_UPD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		goto send_resp;
 	}
 
 	/* check if QueueGroup passed is actually a Queue */
 	if (mqd_check_for_namespace_collision(pObjNode, MQSV_OBJ_QUEUE)) {
+		LOG_ER("%s:%u: ERR_NOT_EXIST: Database Operation (UPD) Failed",__FILE__,__LINE__);
 		rc = SA_AIS_ERR_NOT_EXIST;
 
 		/* Set the error flag and fill the description */
 		msg.info.tresp.err.flag = true;
 		msg.info.tresp.err.errcode = rc;
 
-		m_LOG_MQSV_D(MQD_DB_UPD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		goto send_resp;
 	}
 
@@ -835,18 +823,18 @@ static uint32_t mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV
 			msg.info.tresp.err.flag = true;
 			msg.info.tresp.err.errcode = rc;
 			if (pObjNode->oinfo.type == MQSV_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_ASAPi_QUEUE_MAKE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				TRACE_2("The function queue_make making of Queue list for update"
+					"of QUEUE is failed with error %u",rc);
 			else
-				m_LOG_MQSV_D(MQD_ASAPi_QUEUE_MAKE_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				TRACE_2("The function queue_make making of Queue list for update"
+					"of QUEUE GROUPS is failed with error %u",rc);
 		} else {
 			if (pObjNode->oinfo.type == MQSV_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_ASAPi_QUEUE_MAKE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc,
-					     __FILE__, __LINE__);
+				TRACE_1("The function queue_make making of Queue list for update"
+					"of QUEUE Success");
 			else
-				m_LOG_MQSV_D(MQD_ASAPi_QUEUE_MAKE_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_NOTICE,
-					     rc, __FILE__, __LINE__);
+				TRACE_1("The function queue_make making of Queue list for update"
+					"of QUEUE GROUPS Success");
 		}
 	} else if (m_ASAPi_TRACK_IS_DISABLE(track->val)) {
 		if (rc == NCSCC_RC_SUCCESS) {
@@ -874,11 +862,12 @@ static uint32_t mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV
 	rc = mqd_asapi_resp_send(&msg, info);
 
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_MQSV_D(MQD_ASAPi_TRACK_RESP_MSG_ERR, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("ERR_FAILED_OPERATION: Couldn't Send ASAPi Track Response Message");
 		return rc;
 	}
 
-	m_LOG_MQSV_D(MQD_ASAPi_TRACK_RESP_MSG_SENT, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("ASAPi Track Response Message Sent Success");
+	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_asapi_track_hdlr() */
 
@@ -904,12 +893,13 @@ uint32_t mqd_asapi_track_db_upd(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND
 	bool exist = false;
 	MQD_OBJ_NODE *pObjNode = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* Validate the object */
 	exist = mqd_asapi_obj_validate(pMqd, &track->object, &pObjNode);
 	if (!exist) {		/* Object doesn't exist ... */
+		LOG_ER("%s:%u: ERR_NOT_EXIST: Database Operation (UPD) Failed",__FILE__,__LINE__);
 		rc = SA_AIS_ERR_NOT_EXIST;
-		m_LOG_MQSV_D(MQD_DB_UPD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return rc;
 	}
 
@@ -919,39 +909,32 @@ uint32_t mqd_asapi_track_db_upd(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND
 		rc = mqd_track_add(&pObjNode->oinfo.tlist, &info->dest, info->to_svc);
 		if (rc == NCSCC_RC_SUCCESS) {
 			if (pObjNode->oinfo.type == MQSV_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_GROUP_TRACK_DB_UPDATE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE,
-					     rc, __FILE__, __LINE__);
+				TRACE_1("Track QUEUE DB Update is Success");
 			else
-				m_LOG_MQSV_D(MQD_GROUP_TRACK_DB_UPDATE_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT,
-					     NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+				TRACE_1("Track QUEUE GROUPS DB Update is Success");
 		} else {
 			if (pObjNode->oinfo.type == MQSV_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_GROUP_TRACK_DB_UPDATE_FAILURE, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR,
-					     rc, __FILE__, __LINE__);
+				TRACE_4("Track QUEUE DB Update is Failed with error %u", rc);
 			else
-				m_LOG_MQSV_D(MQD_GROUP_TRACK_DB_UPDATE_FAILURE, NCSFL_LC_MQSV_QGRP_MGMT,
-					     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+				TRACE_4("Track QUEUE GROUPS DB Update is Failed with error %u", rc);
 		}
 	} else if (m_ASAPi_TRACK_IS_DISABLE(track->val)) {
 		/* Disable tracking for the sender vis-a-vis object */
 		rc = mqd_track_del(&pObjNode->oinfo.tlist, &info->dest);
 		if (rc == NCSCC_RC_SUCCESS) {
 			if (pObjNode->oinfo.type == MQSV_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_GROUP_TRACKSTOP_DB_UPDATE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT,
-					     NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+				TRACE_1("TrackStop QUEUE DB Update is Success");
 			else
-				m_LOG_MQSV_D(MQD_GROUP_TRACKSTOP_DB_UPDATE_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT,
-					     NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+				TRACE_1("TrackStop QUEUE GROUPS DB Update is Success");
 		} else {
 			if (pObjNode->oinfo.type == MQSV_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_GROUP_TRACKSTOP_DB_UPDATE_FAILURE, NCSFL_LC_MQSV_Q_MGMT,
-					     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+				TRACE_4("TrackStop QUEUE DB Update is Failed with error %u", rc);
 			else
-				m_LOG_MQSV_D(MQD_GROUP_TRACKSTOP_DB_UPDATE_FAILURE, NCSFL_LC_MQSV_QGRP_MGMT,
-					     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+				TRACE_4("TrackStop QUEUE GROUPS DB Update is Failed with error %u", rc);
 		}
 	}
 	*onode = pObjNode;
+	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_asapi_track_db_upd() */
 
@@ -978,6 +961,7 @@ static uint32_t mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_O
 	MQD_TRACK_OBJ *pTrack = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint32_t cons_rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&msg, 0, sizeof(msg));
 
@@ -992,19 +976,19 @@ static uint32_t mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_O
 	rc = mqd_asapi_queue_make(pObjInfo, &pQueue, &qcnt, false);
 	if (NCSCC_RC_SUCCESS != rc) {
 		if (pObjInfo->type == MQSV_OBJ_QUEUE)
-			m_LOG_MQSV_D(MQD_ASAPi_QUEUE_MAKE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+				TRACE_2("The function queue_make making of Queue list for update"
+					"of QUEUE is failed with error %u",rc);
 		else
-			m_LOG_MQSV_D(MQD_ASAPi_QUEUE_MAKE_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, rc,
-				     __FILE__, __LINE__);
+			TRACE_2("The function queue_make making of Queue list for update"
+				"of QUEUE GROUPS is failed with error %u",rc);
 		return rc;
 	} else {
 		if (pObjInfo->type == MQSV_OBJ_QUEUE)
-			m_LOG_MQSV_D(MQD_ASAPi_QUEUE_MAKE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc, __FILE__,
-				     __LINE__);
+			TRACE_1("The function queue_make making of Queue list for update"
+				"of QUEUE Success");
 		else
-			m_LOG_MQSV_D(MQD_ASAPi_QUEUE_MAKE_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_NOTICE, rc,
-				     __FILE__, __LINE__);
+			TRACE_1("The function queue_make making of Queue list for update"
+				"of QUEUE GROUPS Success");
 	}
 
 	msg.info.tntfy.oinfo.qcnt = qcnt;
@@ -1024,21 +1008,17 @@ static uint32_t mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_O
 		rc = mqd_asapi_resp_send(&msg, &info);
 		if (NCSCC_RC_SUCCESS != rc) {
 			if (pObjInfo->type == MQSV_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_ASAPi_TRACK_NTFY_MSG_ERR, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				LOG_ER("ERR_FAILED_OPERATION: Couldn't Send ASAPi QUEUE Track Notification");
 			else
-				m_LOG_MQSV_D(MQD_ASAPi_TRACK_NTFY_MSG_ERR, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				LOG_ER("ERR_FAILED_OPERATION: Couldn't Send ASAPi QUEUE GROUPS Track Notification");
 			if (cons_rc == NCSCC_RC_SUCCESS)
 				cons_rc = rc;
 			continue;	/* Continue sending to the other dests */
 		}
 		if (pObjInfo->type == MQSV_OBJ_QUEUE)
-			m_LOG_MQSV_D(MQD_ASAPi_TRACK_NTFY_MSG_SENT, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc,
-				     __FILE__, __LINE__);
+			TRACE_1("ASAPi QUEUE Track Notification Sent Success");
 		else
-			m_LOG_MQSV_D(MQD_ASAPi_TRACK_NTFY_MSG_SENT, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_NOTICE, rc,
-				     __FILE__, __LINE__);
+			TRACE_1("ASAPi QUEUE GROUPS Track Notification Sent Success");
 	}
 
 	/* Free up the Queue information */
@@ -1046,6 +1026,7 @@ static uint32_t mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_O
 		m_MMGR_FREE_ASAPi_DEFAULT_VAL(pQueue, asapi.my_svc_id);
 	}
 
+	TRACE_LEAVE();
 	return cons_rc;
 }	/* End of mqd_asapi_track_ntfy_send() */
 
@@ -1072,8 +1053,10 @@ static uint32_t mqd_asapi_resp_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *info)
 	opr.info.msg.req = *msg;
 	opr.info.msg.sinfo = *info;
 	rc = asapi_opr_hdlr(&opr);
-	if (NCSCC_RC_SUCCESS != rc)
+	if (NCSCC_RC_SUCCESS != rc) {
+		LOG_ER("Sending the message to the specified destination with error %u", rc);
 		return SA_AIS_ERR_FAILED_OPERATION;
+	}
 
 	return rc;
 }
@@ -1102,6 +1085,7 @@ static uint32_t mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM *
 	MQD_OBJECT_ELEM *pOelm = 0;
 	uint32_t idx = 0;
 	NCS_Q_ITR itr;
+	TRACE_ENTER();
 
 	*o_cnt = 0;
 	*o_queue = 0;
@@ -1110,11 +1094,9 @@ static uint32_t mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM *
 		pQueue = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
 		if (!pQueue) {
 			if (pObjInfo->type == MQSV_OBJ_QUEUE)
-				m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR,
-					     SA_AIS_ERR_NO_MEMORY, __FILE__, __LINE__);
+				LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory for Queue", __FILE__, __LINE__);
 			else
-				m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR,
-					     SA_AIS_ERR_NO_MEMORY, __FILE__, __LINE__);
+				LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory for Queue Groups",__FILE__,__LINE__);
 			return SA_AIS_ERR_NO_MEMORY;
 		}
 
@@ -1131,11 +1113,9 @@ static uint32_t mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM *
 				pQueue = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
 				if (!pQueue) {
 					if (pObjInfo->type == MQSV_OBJ_QUEUE)
-						m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_Q_MGMT,
-							     NCSFL_SEV_ERROR, SA_AIS_ERR_NO_MEMORY, __FILE__, __LINE__);
+						LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory",__FILE__,__LINE__);
 					else
-						m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_QGRP_MGMT,
-							     NCSFL_SEV_ERROR, SA_AIS_ERR_NO_MEMORY, __FILE__, __LINE__);
+						LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory",__FILE__,__LINE__);
 					return SA_AIS_ERR_NO_MEMORY;
 				}
 
@@ -1152,11 +1132,10 @@ static uint32_t mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM *
 			pQueue = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(qcnt * sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
 			if (!pQueue) {
 				if (pObjInfo->type == MQSV_OBJ_QUEUE)
-					m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR,
-						     SA_AIS_ERR_NO_MEMORY, __FILE__, __LINE__);
+					LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory for Queue",__FILE__,__LINE__);
 				else
-					m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR,
-						     SA_AIS_ERR_NO_MEMORY, __FILE__, __LINE__);
+					LOG_CR("%s:%u:ERR_MEMORY:Failed To Allocate Memory for QGroups",__FILE__,__LINE__);
+					return SA_AIS_ERR_NO_MEMORY;
 				return SA_AIS_ERR_NO_MEMORY;
 			}
 
@@ -1168,11 +1147,14 @@ static uint32_t mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM *
 				mqd_qparam_fill(&pOelm->pObject->info.q, &pQueue[idx]);
 			}
 		}
-	} else
+	} else {
+		LOG_ER("ERR_INVALID_PARAM: MQD_OBJ_INFO type does not match %d", pObjInfo->type);
 		return SA_AIS_ERR_INVALID_PARAM;
+	}
 
 	*o_cnt = qcnt;
 	*o_queue = pQueue;
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1198,6 +1180,7 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 	MQD_OBJ_NODE *pObjNode = 0, *pQNode = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT error;
+	TRACE_ENTER();
 
 	switch (reg->objtype) {
 		/* Insert queue into a QueueGroup */
@@ -1208,6 +1191,7 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 			/* Check for existence of Queue & QueueGroup */
 			if ((!mqd_asapi_obj_validate(pMqd, &reg->group, &pObjNode))
 			    || (!mqd_asapi_obj_validate(pMqd, &reg->queue.name, &pQNode))) {
+				TRACE_2("ERR_NOT_EXIST: Existence of Queue & QueueGroup failed");
 				rc = SA_AIS_ERR_NOT_EXIST;
 				return rc;
 			}
@@ -1228,8 +1212,7 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 				pOelm = m_MMGR_ALLOC_MQD_OBJECT_ELEM;
 				if (!pOelm) {
 					rc = SA_AIS_ERR_NO_MEMORY;
-					m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR,
-						     rc, __FILE__, __LINE__);
+					LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory", __FILE__, __LINE__);
 					return SA_AIS_ERR_NO_MEMORY;
 				}
 
@@ -1247,8 +1230,7 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 				pOelm = m_MMGR_ALLOC_MQD_OBJECT_ELEM;
 				if (!pOelm) {
 					rc = SA_AIS_ERR_NO_MEMORY;
-					m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR,
-						     rc, __FILE__, __LINE__);
+					LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory", __FILE__, __LINE__);
 					return SA_AIS_ERR_NO_MEMORY;
 				}
 
@@ -1264,17 +1246,14 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 								 &pObjNode->oinfo.ilist.count);
 					mqd_runtime_update_grpmembers_attr(pMqd, pObjNode);
 				}
-				m_LOG_MQSV_D(MQD_DB_ADD_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_NOTICE, rc,
-					     __FILE__, __LINE__);
+				TRACE_1("Database Operation (ADD) Success");
 			} else {
 				/* The queue is already the member of the group, identified by the
 				 * group name */
-				m_LOG_MQSV_D(MQD_REG_DB_UPD_ERR_EXIST, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				TRACE_2("The queue is already member of the queue group");
 				return SA_AIS_ERR_EXIST;
 			}
-			m_LOG_MQSV_D(MQD_REG_DB_GRP_INSERT_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_NOTICE, rc,
-				     __FILE__, __LINE__);
+			TRACE_1("Group Insert is Successfull");
 		}
 		break;
 
@@ -1284,16 +1263,14 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 			/* Check for existence of QueueGroup */
 			if (mqd_asapi_obj_validate(pMqd, &reg->group, &pObjNode)) {
 				rc = SA_AIS_ERR_EXIST;
-				m_LOG_MQSV_D(MQD_REG_DB_UPD_ERR_EXIST, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				TRACE_2("ERR_EXIST: The queue is already member of the queue group");
 				return rc;
 			}
 
 			/* Create Object Node */
 			rc = mqd_db_node_create(pMqd, &pObjNode);
 			if (NCSCC_RC_SUCCESS != rc) {
-				m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory", __FILE__, __LINE__);
 				return SA_AIS_ERR_NO_MEMORY;
 			}
 			memcpy(&pObjNode->oinfo.name, &reg->group, sizeof(SaNameT));
@@ -1304,7 +1281,7 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 			if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
 				error = mqd_create_runtime_MqGrpObj(pObjNode, pMqd->immOiHandle);
 				if (error != SA_AIS_OK) {
-					mqd_genlog(NCSFL_SEV_ERROR, "Creation of MqGrpobj FAILED: %u \n", error);
+					TRACE_2("Creation of MqGrpobj FAILED: %u", error);
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -1312,11 +1289,9 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 			/* Add the object node */
 			rc = mqd_db_node_add(pMqd, pObjNode);
 			if (NCSCC_RC_SUCCESS != rc) {
-				m_LOG_MQSV_D(MQD_REG_DB_QUEUE_GROUP_CREATE_FAILED, NCSFL_LC_MQSV_QGRP_MGMT,
-					     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+				TRACE_2("Queue Group Creation at the MQD is Failed");
 			} else {
-				m_LOG_MQSV_D(MQD_REG_DB_QUEUE_GROUP_CREATE_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT,
-					     NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+				TRACE_1("Queue Group Creation at the MQD is Successfull");
 			}
 		}
 		break;
@@ -1329,8 +1304,7 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 
 				/* check if the queue is actually a Q-Group */
 				if (mqd_check_for_namespace_collision(pObjNode, MQSV_OBJ_QGROUP)) {
-					m_LOG_MQSV_D(MQD_REG_DB_UPD_ERR_EXIST, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR,
-						     rc, __FILE__, __LINE__);
+					TRACE_2("ERR_EXIST: The queue is already member of the queue group");
 					rc = SA_AIS_ERR_EXIST;
 					return rc;
 				}
@@ -1343,15 +1317,13 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 				if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
 					pObjNode->oinfo.info.q.adv = true;
 				}
-				m_LOG_MQSV_D(MQD_REG_DB_QUEUE_UPDATE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE,
-					     rc, __FILE__, __LINE__);
+				TRACE_1("Queue updation at the MQD is Successfull");
 			} else {
 
 				/* Create Object Node */
 				rc = mqd_db_node_create(pMqd, &pObjNode);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
-						     __FILE__, __LINE__);
+					TRACE_4("ERR_MEMORY: Memory Allocation failed");
 					return SA_AIS_ERR_NO_MEMORY;
 				}
 
@@ -1369,21 +1341,21 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 				/* Add the object node */
 				rc = mqd_db_node_add(pMqd, pObjNode);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_LOG_MQSV_D(MQD_REG_DB_QUEUE_CREATE_FAILED, NCSFL_LC_MQSV_Q_MGMT,
-						     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+					TRACE_2("Queue Creation at the MQD is Failed");
 				} else
-					m_LOG_MQSV_D(MQD_REG_DB_QUEUE_CREATE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT,
-						     NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+					TRACE_1("Queue Creation at the MQD is Success");
 			}
 		}
 		break;
 
 	default:
+		TRACE_2("ERR_INVALID_PARAM: ASAPi_REG_INFO type does not match %d", reg->objtype);
 		return SA_AIS_ERR_INVALID_PARAM;
 		break;
 	}
 
 	*onode = pObjNode;
+	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_asapi_db_upd() */
 

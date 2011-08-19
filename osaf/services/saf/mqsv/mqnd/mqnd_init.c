@@ -73,6 +73,7 @@ uint32_t mqnd_lib_req(NCS_LIB_REQ_INFO *req_info)
 	uint32_t rc = NCSCC_RC_FAILURE;
 	MQSV_CREATE_INFO create_info;
 	MQSV_DESTROY_INFO destroy_info;
+	TRACE_ENTER();
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -92,6 +93,10 @@ uint32_t mqnd_lib_req(NCS_LIB_REQ_INFO *req_info)
 	default:
 		break;
 	}
+	if(rc != NCSCC_RC_SUCCESS)
+	LOG_ER("Either library initialization or destroy failed");
+
+	TRACE_LEAVE2("Returned with return code %d", rc);
 	return (rc);
 }
 
@@ -174,15 +179,14 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 	SaClmClusterNodeT cluster_node;
 	SaVersionT clm_version;
 	char str_vector[10] = "";
-
-	mqnd_flx_log_reg();
+	TRACE_ENTER();
 
 	/* allocate a CB  */
 	cb = m_MMGR_ALLOC_MQND_CB;
 
 	if (cb == NULL) {
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_CB_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_CR("CB Creation Failed");
 		return rc;
 	}
 	memset(cb, 0, sizeof(MQND_CB));
@@ -240,53 +244,53 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 	m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
 
 	if ((rc = mqnd_cb_db_init(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_CB_DB_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("CB Database Init Failed");
 		goto mqnd_cb_init_fail;
 	}
-	m_LOG_MQSV_ND(MQND_CB_DB_INIT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("CB Database Init Success");
 
 	if ((cb->cb_hdl = ncshm_create_hdl(cb->hm_pool, NCS_SERVICE_ID_MQND, (NCSCONTEXT)cb)) == 0) {
+		LOG_ER("CB Handle Creation Failed");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_CB_HDL_CREATE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		goto mqnd_hdl_fail;
 	}
 	/* Store the handle in some global location */
 	m_MQND_STORE_HDL(cb->cb_hdl);
-	m_LOG_MQSV_ND(MQND_CB_HDL_CREATE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("CB Handle Creation Successfull");
 
 	/* create a mail box */
 	if ((rc = m_NCS_IPC_CREATE(&cb->mbx)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_IPC_CREATE_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_CR("IPC Create Failed");
 		goto mqnd_ipc_create_fail;
 	}
-	m_LOG_MQSV_ND(MQND_IPC_CREATE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("IPC Create Successfull");
 
 	/*create a shared memory segment to store queue stats in a node */
 	if ((rc = mqnd_shm_create(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_SHM_CREATE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_4("Shared memory creation failed");
 		goto mqnd_shm_create_fail;
 	}
 
 	/* Attach the IPC to mail box */
 	if ((rc = m_NCS_IPC_ATTACH(&cb->mbx)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_IPC_ATTACH_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("IPC attatch failed");
 		goto mqnd_ipc_att_fail;
 	}
-	m_LOG_MQSV_ND(MQND_IPC_ATTACH_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("IPC attatch Successfull");
 
 	/* Initialise with AMF service */
 	if ((rc = mqnd_amf_init(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_AMF_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_4("Initialization With AMF Failed");
 		goto amf_init_err;
 	}
-	m_LOG_MQSV_ND(MQND_AMF_INIT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("Initialization With AMF Successfull");
 
 	/* register with the AMF service */
 	if ((rc = mqnd_amf_register(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_AMF_REGISTER_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("Registering  With AMF services Failed");
 		goto amf_reg_err;
 	}
-	m_LOG_MQSV_ND(MQND_AMF_REGISTER_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("Registration With AMF Successfull");
 
 	/* B301 changes */
 
@@ -296,21 +300,19 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 
 	rc = saClmInitialize(&cb->clm_hdl, &clm_cbk, &clm_version);
 	if (rc != SA_AIS_OK) {
-		m_LOG_MQSV_ND(MQND_CLM_INIT_FAILED, MQND_FC_HDLN, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		TRACE("saClmInitialize Failed %d", rc);
+		LOG_ER("saClmInitialize failed with return code %d", rc);
 		goto mqnd_mds_fail;
 	}
 
 	rc = saClmClusterNodeGet(cb->clm_hdl, SA_CLM_LOCAL_NODE_ID, MQND_CLM_API_TIMEOUT, &cluster_node);
 	if (rc != SA_AIS_OK) {
-		m_LOG_MQSV_ND(MQND_CLM_NODE_GET_FAILED, MQND_FC_HDLN, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		TRACE("saClmClusterNodeGet Failed %d", rc);
+		LOG_ER("saClmClusterNodeGet failed with return code %d", rc);
 		goto mqnd_clm_fail;
 	}
 
 	cb->nodeid = cluster_node.nodeId;
 	if (cb->nodeid == 0) {
-		TRACE("CLUSTER NODE ID is getting 0");
+		LOG_ER("Cluster Node ID is getting 0");
 		assert(0);
 	}
 
@@ -320,17 +322,17 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 	amf_error = mqnd_imm_initialize(cb);
 	if (amf_error != SA_AIS_OK) {
 		/* we need to log here (NCSFL_SEV_ERROR, "Imm Initialization  Failed %u\n", amf_error); */
-		mqnd_genlog(NCSFL_SEV_ERROR, "mqnd_imm_initialize Failed: %u \n", amf_error);
+		LOG_ER("mqnd_imm_initialize Failed: %u", amf_error);
 		goto amf_reg_err;
 	}
 
 	/* IMM Declare the Implementor */
 	mqnd_imm_declare_implementer(cb);
 	if ((rc = mqnd_mds_register(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_MDS_REGISTER_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("Reg with MDS Failed");
 		goto mqnd_mds_fail;
 	}
-	m_LOG_MQSV_ND(MQND_MDS_REGISTER_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("Reg with MDS Successfull");
 
 	/* Bind with ASAPi */
 	mqnd_asapi_bind(cb);
@@ -349,16 +351,15 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 	amf_error = saAmfHealthcheckStart(cb->amf_hdl, &cb->comp_name, &healthy,
 					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
 	if (amf_error != SA_AIS_OK) {
-		m_LOG_MQSV_ND(MQND_HEALTH_CHECK_START_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, amf_error, __FILE__,
-			      __LINE__);
+		LOG_ER("saAmfHealthcheckStart Failed with error value %d", amf_error);
 		goto amf_reg_err;
 	}
 	/* End of code for No Redundanccy Support */
-	m_LOG_MQSV_ND(MQND_HEALTH_CHECK_START_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, amf_error, __FILE__,
-		      __LINE__);
+	TRACE_1("saAmfHealthcheckStart Successfull");
 
-	m_LOG_MQSV_ND(MQND_INIT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, amf_error, __FILE__, __LINE__);
+	LOG_NO("Initialization Success");
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
  mqnd_mds_fail:
@@ -385,11 +386,10 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 	mqnd_cb_namedb_destroy(cb);
 	mqnd_cb_qevt_node_db_destroy(cb);
  mqnd_cb_init_fail:
-	mqnd_flx_log_dereg();
 
 	m_MMGR_FREE_MQND_CB(cb);
 
-	m_LOG_MQSV_ND(MQND_INIT_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+	TRACE_2("Init Failed with return code %u", rc);
 
 	return (rc);
 }
@@ -413,13 +413,13 @@ static uint32_t mqnd_lib_destroy(MQSV_DESTROY_INFO *info)
 	uint32_t mqnd_hdl;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT saErr;
+	TRACE_ENTER();
 
 	mqnd_hdl = m_MQND_GET_HDL();
 	if ((cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_MQND, mqnd_hdl))
 	    == NULL) {
+		TRACE_2("CB Take Failed");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		m_LOG_MQSV_ND(MQND_DESTROY_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return rc;
 	}
 
@@ -432,15 +432,13 @@ static uint32_t mqnd_lib_destroy(MQSV_DESTROY_INFO *info)
 
 	ncshm_destroy_hdl(NCS_SERVICE_ID_MQND, cb->cb_hdl);
 
-	mqnd_flx_log_dereg();
-
 	mqnd_mds_unregister(cb);
 
 	mqnd_asapi_unbind();
 
 	saErr = immutil_saImmOiImplementerClear(cb->immOiHandle);
 	if (saErr != SA_AIS_OK) {
-		mqnd_genlog(NCSFL_SEV_ERROR, "saImmOiImplementerClear failed: err = %u \n", saErr);
+		LOG_ER("saImmOiImplementerClear failed: err = %u", saErr);
 	}
 
 	ncshm_give_hdl(cb->cb_hdl);
@@ -453,8 +451,9 @@ static uint32_t mqnd_lib_destroy(MQSV_DESTROY_INFO *info)
 
 	m_MMGR_FREE_MQND_CB(cb);
 
-	m_LOG_MQSV_ND(MQND_DESTROY_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("Destroy Success");
 
+	TRACE_LEAVE();
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -474,13 +473,14 @@ static uint32_t mqnd_cb_db_init(MQND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS params;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* initialze the queue handle tree */
 	params.key_size = sizeof(SaMsgQueueHandleT);
 	params.info_size = 0;
 	if ((rc = ncs_patricia_tree_init(&cb->qhndl_db, &params))
 	    != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_CB_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("Controlblock Initialization Failed");
 		return rc;
 	}
 	cb->is_qhdl_db_up = true;
@@ -488,6 +488,7 @@ static uint32_t mqnd_cb_db_init(MQND_CB *cb)
 	params.key_size = sizeof(SaNameT);
 	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&cb->qname_db, &params)) != NCSCC_RC_SUCCESS) {
+		TRACE_2("Initialization of Queue database Failed");
 		rc = NCSCC_RC_FAILURE;
 	}
 
@@ -497,13 +498,14 @@ static uint32_t mqnd_cb_db_init(MQND_CB *cb)
 	params.info_size = 0;
 	if ((rc = ncs_patricia_tree_init(&cb->q_transfer_evt_db, &params))
 	    != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_CB_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("Controlblock Initialization Failed");
 		return rc;
 	}
 	cb->is_qevt_hdl_db_up = true;
 	cb->mqa_dfrd_evt_rsp_list_head = NULL;
 	rc = mqnd_mqa_list_init(&cb->mqa_list_info);
 
+	TRACE_LEAVE();
 	return (rc);
 }
 
@@ -523,6 +525,8 @@ static uint32_t mqnd_cb_db_destroy(MQND_CB *cb)
 	MQND_QUEUE_NODE *qnode;
 	uint32_t qhdl = 0;
 	ASAPi_OPR_INFO opr;
+	TRACE_ENTER();
+
 	/* Delete all the members in the qhdl_tree */
 	mqnd_queue_node_getnext(cb, qhdl, &qnode);
 	while (qnode) {
@@ -576,6 +580,7 @@ static uint32_t mqnd_cb_db_destroy(MQND_CB *cb)
 	/* uninitialise with AMF */
 	mqnd_amf_de_init(cb);
 
+	TRACE_LEAVE();
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -594,6 +599,7 @@ static uint32_t mqnd_cb_namedb_destroy(MQND_CB *cb)
 {
 	MQND_QNAME_NODE *qnode = 0;
 	SaNameT qname;
+	TRACE_ENTER();
 
 	memset(&qname, 0, sizeof(SaNameT));
 	mqnd_qname_node_getnext(cb, qname, &qnode);
@@ -609,6 +615,7 @@ static uint32_t mqnd_cb_namedb_destroy(MQND_CB *cb)
 		ncs_patricia_tree_destroy(&cb->qname_db);
 	cb->is_qname_db_up = false;
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -627,6 +634,7 @@ static uint32_t mqnd_cb_qevt_node_db_destroy(MQND_CB *cb)
 {
 	SaMsgQueueHandleT qhdl = 0;
 	MQND_QTRANSFER_EVT_NODE *qevt_node = NULL;
+	TRACE_ENTER();
 
 	mqnd_qevt_node_getnext(cb, qhdl, &qevt_node);
 	while (qevt_node) {
@@ -639,6 +647,7 @@ static uint32_t mqnd_cb_qevt_node_db_destroy(MQND_CB *cb)
 	if (cb->is_qevt_hdl_db_up)
 		ncs_patricia_tree_destroy(&cb->q_transfer_evt_db);
 	cb->is_qevt_hdl_db_up = false;
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -658,11 +667,14 @@ static uint32_t mqnd_cb_qevt_node_db_destroy(MQND_CB *cb)
 static uint32_t mqnd_compare_mqa_dest(uint8_t *valInDb, uint8_t *key)
 {
 	MDS_DEST *dbVal, *inVal;
+	TRACE_ENTER();
+
 	uint32_t rc = NCSCC_RC_FAILURE;
 	dbVal = (MDS_DEST *)valInDb;
 	inVal = (MDS_DEST *)key;
 	if (m_NCS_MDS_DEST_EQUAL(dbVal, inVal) == 1)
 		return rc = 0;
+	TRACE_LEAVE2("Returned with return code %u", rc);
 	return rc;
 }
 
@@ -728,9 +740,11 @@ void mqnd_main_process(uint32_t hdl)
 	MQSV_DSEND_EVT *dsend_evt = NULL;
 	SaSelectionObjectT amf_sel_obj, clm_sel_obj;
 	SaAisErrorT clm_error, err;
+	TRACE_ENTER();
 
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, hdl);
 	if (!cb) {
+		LOG_ER("Cb is NULL");
 		return;
 	}
 
@@ -738,14 +752,13 @@ void mqnd_main_process(uint32_t hdl)
 	err = saAmfSelectionObjectGet(cb->amf_hdl, &amf_sel_obj);
 
 	if (err != SA_AIS_OK) {
-		m_LOG_MQSV_ND(MQND_AMF_GET_SEL_OBJ_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, err, __FILE__,
-			      __LINE__);
+		LOG_ER("saAmfSelectionObjectGet Failed with error %d", err);
 		return;
 	}
-	m_LOG_MQSV_ND(MQND_AMF_GET_SEL_OBJ_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, err, __FILE__, __LINE__);
+	TRACE_1("saAmfSelectionObjectGet Successfull");
 
 	if (saClmSelectionObjectGet(cb->clm_hdl, &clm_sel_obj) != SA_AIS_OK) {
-		TRACE("CLM Selection Object Get failed");
+		LOG_ER("saClmSelectionObjectGet Failed");
 		return;
 	}
 
@@ -759,7 +772,7 @@ void mqnd_main_process(uint32_t hdl)
 	fds[FD_IMM].events = POLLIN;
 	
         if (saClmClusterTrack(cb->clm_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL) != SA_AIS_OK) {
-                TRACE("saClmClusterTrack Failed");
+		LOG_ER("saClmClusterTrack Failed");
                 return;
         }
 
@@ -779,7 +792,7 @@ void mqnd_main_process(uint32_t hdl)
 			if (errno == EINTR)
 				continue;
 
-			mqnd_genlog(NCSFL_SEV_ERROR, "poll failed - %s\n", strerror(errno));
+			LOG_ER("poll failed - %s", strerror(errno));
 			break;
 		}
 
@@ -787,18 +800,16 @@ void mqnd_main_process(uint32_t hdl)
 			if (cb->amf_hdl != 0) {
 				err = saAmfDispatch(cb->amf_hdl, SA_DISPATCH_ALL);
 				if (err != SA_AIS_OK) {
-					m_LOG_MQSV_ND(MQND_AMF_DISPATCH_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-						      err, __FILE__, __LINE__);
+					LOG_ER("saAmfDispatch Failed with error %d", err);
 				}
 			} else
-				mqnd_genlog(NCSFL_SEV_ERROR, "cb->amf_hdl == 0\n");
+				LOG_ER("cb->amf_hdl is NULL");
 		}
 
 		if (fds[FD_CLM].revents & POLLIN) {
 			clm_error = saClmDispatch(cb->clm_hdl, SA_DISPATCH_ALL);
 			if (clm_error != SA_AIS_OK) {
-				m_LOG_MQSV_ND(MQND_CLM_DISPATCH_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, clm_error,
-					      __FILE__, __LINE__);
+				LOG_ER("saClmDispatch Failed with error %d", clm_error);
 			}
 		}
 
@@ -819,7 +830,7 @@ void mqnd_main_process(uint32_t hdl)
 		if (fds[FD_IMM].revents & POLLIN) {
 			err = saImmOiDispatch(cb->immOiHandle, SA_DISPATCH_ONE);
 			if (err == SA_AIS_ERR_BAD_HANDLE) {
-				mqnd_genlog(NCSFL_SEV_ERROR, "saImmOiDispatch returned BAD_HANDLE %u \n", err);
+				LOG_ER("saImmOiDispatch returned BAD_HANDLE with error %u", err);
 				/*
 				 ** Invalidate the IMM OI handle, this info is used in other
 				 ** locations. E.g. giving TRY_AGAIN responses to a create and
@@ -830,13 +841,14 @@ void mqnd_main_process(uint32_t hdl)
 				/* Reinitiate IMM */
 				mqnd_imm_reinit_bg(cb);
 			} else if (err != SA_AIS_OK) {
-				mqnd_genlog(NCSFL_SEV_ERROR, "saImmOiDispatch FAILED:%u  \n", err);
+				LOG_ER("saImmOiDispatch Failed with error %u", err); 
 				break;
 			}
 		}
 	}
 	sleep(1);
 	exit(EXIT_FAILURE);
+	TRACE_LEAVE();
 	return;
 }
 
@@ -852,7 +864,6 @@ void mqnd_main_process(uint32_t hdl)
 static void mqnd_asapi_bind(MQND_CB *cb)
 {
 	ASAPi_OPR_INFO opr;
-
 	opr.type = ASAPi_OPR_BIND;
 	opr.info.bind.i_indhdlr = 0;
 	opr.info.bind.i_mds_hdl = cb->my_mds_hdl;
@@ -875,7 +886,6 @@ static void mqnd_asapi_bind(MQND_CB *cb)
 static void mqnd_asapi_unbind(void)
 {
 	ASAPi_OPR_INFO opr;
-
 	opr.type = ASAPi_OPR_UNBIND;
 	asapi_opr_hdlr(&opr);
 	return;

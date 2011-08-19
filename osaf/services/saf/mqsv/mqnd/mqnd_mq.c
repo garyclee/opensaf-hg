@@ -52,6 +52,7 @@ uint32_t mqnd_mq_create(MQND_QUEUE_INFO *q_info)
 	uint32_t size = 0;
 	MQND_QUEUE_INFO zero_q;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
 	info.req = NCS_OS_POSIX_MQ_REQ_OPEN;
@@ -68,21 +69,26 @@ uint32_t mqnd_mq_create(MQND_QUEUE_INFO *q_info)
 	info.info.open.attr.mq_msgsize = size + MQSV_MSG_OVERHEAD;
 
 	/* Create a New message queue */
-	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s:%u: Creation of New message queue failed", __FILE__, __LINE__);
 		return (NCSCC_RC_FAILURE);
+	}
 
 	if (info.info.open.o_mqd == 0) {
 		/* MQSv particia can't handle zero Handle, get the new queue */
 		zero_q = *q_info;
 		zero_q.queueHandle = 0;
-		if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+		if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
+			LOG_ER("%s:%u: Creation of New message queue failed", __FILE__, __LINE__);
 			rc = NCSCC_RC_FAILURE;
+		}
 		mqnd_mq_destroy(&zero_q);
 	}
 
 	if (rc == NCSCC_RC_SUCCESS)
 		q_info->queueHandle = info.info.open.o_mqd;
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -105,8 +111,10 @@ uint32_t mqnd_mq_open(MQND_QUEUE_INFO *q_info)
 	info.info.open.iflags = 0;
 
 	/* Create a New message queue */
-	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s:%u: Creation of New message queue failed", __FILE__, __LINE__);
 		return (NCSCC_RC_FAILURE);
+	}
 
 	q_info->queueHandle = info.info.open.o_mqd;
 
@@ -131,8 +139,10 @@ uint32_t mqnd_mq_destroy(MQND_QUEUE_INFO *q_info)
 	info.req = NCS_OS_POSIX_MQ_REQ_CLOSE;
 	info.info.close.mqd = q_info->queueHandle;
 
-	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s:%u: Closing the existing message queue failed", __FILE__, __LINE__);
 		return (NCSCC_RC_FAILURE);
+	}
 
 /* Unlink the file created by leap */
 	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
@@ -141,8 +151,10 @@ uint32_t mqnd_mq_destroy(MQND_QUEUE_INFO *q_info)
 	info.info.unlink.qname = qName;
 	info.info.unlink.node = m_NCS_NODE_ID_FROM_MDS_DEST(q_info->rcvr_mqa);
 
-	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
+		LOG_ER("Removing the existing message queue failed");
 		return (NCSCC_RC_FAILURE);
+	}
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -172,8 +184,10 @@ uint32_t mqnd_mq_msg_send(uint32_t qhdl, MQSV_MESSAGE *mqsv_msg, uint32_t size)
 
 	info.info.send.i_mtype = mqsv_msg->info.msg.message.priority + 3;
 
-	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
+		LOG_ER("Sending the message to message queue failed");
 		return (NCSCC_RC_FAILURE);
+	}
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -196,6 +210,7 @@ uint32_t mqnd_mq_empty(SaMsgQueueHandleT handle)
 	mq_req.req = NCS_OS_POSIX_MQ_REQ_GET_ATTR;
 	mq_req.info.attr.i_mqd = handle;
 	if (m_NCS_OS_POSIX_MQ(&mq_req) != NCSCC_RC_SUCCESS) {
+		LOG_ER("Empty the message in message queue failed");
 		return NCSCC_RC_FAILURE;
 	}
 	num_messages = mq_req.info.attr.o_attr.mq_curmsgs;
@@ -254,6 +269,7 @@ uint32_t mqnd_mq_rcv(SaMsgQueueHandleT handle)
 					   with 1 as highest priority */
 
 	if (m_NCS_OS_POSIX_MQ(&mq_req) != NCSCC_RC_SUCCESS) {
+		LOG_ER("Receiving the message from message queue failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -282,15 +298,19 @@ uint32_t mqnd_listenerq_create(MQND_QUEUE_INFO *q_info)
 	info.info.open.attr.mq_msgsize = MQND_LISTENER_QUEUE_SIZE;
 
 	/* Create a New message queue */
-	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s:%u: Creation of message queue failed", __FILE__, __LINE__);
 		return (NCSCC_RC_FAILURE);
+	}
 
 	if (info.info.open.o_mqd == 0) {
 		/* MQSv particia can't handle zero Handle, get the new queue */
 		zero_q = *q_info;
 		zero_q.listenerHandle = 0;
-		if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+		if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
+			LOG_ER("%s:%u: Creation of message queue failed", __FILE__, __LINE__);
 			rc = NCSCC_RC_FAILURE;
+		}
 		mqnd_listenerq_destroy(&zero_q);
 	}
 
@@ -318,8 +338,10 @@ uint32_t mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info)
 	info.req = NCS_OS_POSIX_MQ_REQ_CLOSE;
 	info.info.close.mqd = q_info->listenerHandle;
 
-	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s:%u: Closing the existing message queue failed", __FILE__, __LINE__);
 		return (NCSCC_RC_FAILURE);
+	}
 
 /* Unlink the file created by leap */
 	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
@@ -328,8 +350,10 @@ uint32_t mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info)
 	info.info.unlink.qname = qName;
 	info.info.unlink.node = m_NCS_NODE_ID_FROM_MDS_DEST(q_info->rcvr_mqa);
 
-	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
+		LOG_ER("Removing the existing message queue failed");
 		return (NCSCC_RC_FAILURE);
+	}
 
 	return NCSCC_RC_SUCCESS;
 }

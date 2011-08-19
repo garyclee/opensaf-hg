@@ -81,6 +81,7 @@ static void mqa_track_remove_member(SaMsgQueueGroupNotificationBufferT *buffer,
 			buffer->notification[i].change = SA_MSG_QUEUE_GROUP_REMOVED;
 			/* Status is removed in B.1.1 
 			   buffer->notification[i].member.sendingState = status; */
+			TRACE("mqa_track_remove_member called - Success");
 			return;
 		}
 	}
@@ -117,6 +118,7 @@ void mqa_track_update_state(SaMsgQueueGroupNotificationBufferT *buffer, SaNameT 
 		if (memcmp(&buffer->notification[i].member.queueName.value, name->value, name->length) == 0) {
 			/* Status is removed in B.1.1 
 			   buffer->notification[i].member.sendingState = status; */
+			TRACE("mqa_track_update_state called - Success");
 			return;
 		}
 	}
@@ -140,15 +142,17 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 {
 	MQA_CLIENT_INFO *client_info;
 
+	TRACE_ENTER();
+
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 		m_MMGR_FREE_MQP_ASYNC_RSP_MSG(callback);
+		TRACE_4("Lock failed for control block write");
 		return;
 	}
 
 	client_info = mqa_client_tree_find_and_add(cb, msgHandle, false);
 	if (!client_info) {
-		m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			     __FILE__, __LINE__);
+		TRACE_2("Client Database Find Failed");
 		m_MMGR_FREE_MQP_ASYNC_RSP_MSG(callback);
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		return;
@@ -156,6 +160,7 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 
 	/* callback and client_info are NULL checked by caller. */
 
+	TRACE("Function called with callbacktype %d", callback->callbackType);
 	/* invoke the corresponding callback */
 	switch (callback->callbackType) {
 	case MQP_ASYNC_RSP_OPEN:
@@ -186,8 +191,7 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 					openRsp = m_MMGR_ALLOC_MQA_OPEN_RSP(sizeof(MQP_OPEN_RSP));
 
 					if (!openRsp) {
-						m_LOG_MQSV_A(MQP_OPEN_RSP_ALLOC_FAILED, NCSFL_LC_MQSV_INIT,
-							     NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__, __LINE__);
+						TRACE_4("MQP Open Rsp Message Allocatiion Failed");
 						mqa_queue_tree_delete_node(cb, param->queueHandle);
 						m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 						break;
@@ -202,16 +206,13 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 							       "mqa_queue_reader", 5, NCS_STACKSIZE_HUGE,
 							       &thread_handle);
 					if (rc != NCSCC_RC_SUCCESS) {
-						m_LOG_MQSV_A(MQA_QUEUE_READER_TASK_CREATE_FAILED, NCSFL_LC_MQSV_INIT,
-							     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+						TRACE_4("ERR_RESOURCES: Queue Reader Thread Task Create Failed");
 						param->error = SA_AIS_ERR_NO_RESOURCES;
 						mqa_queue_tree_delete_node(cb, param->queueHandle);
 					} else {
 						rc = m_NCS_TASK_START(thread_handle);
 						if (rc != NCSCC_RC_SUCCESS) {
-							m_LOG_MQSV_A(MQA_QUEUE_READER_TASK_START_FAILED,
-								     NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-								     __LINE__);
+							TRACE_4("ERR_RESOURCES: Queue Reader Thread Task Start Failed");
 							m_NCS_TASK_DETACH(thread_handle);
 							param->error = SA_AIS_ERR_NO_RESOURCES;
 							mqa_queue_tree_delete_node(cb, param->queueHandle);
@@ -267,8 +268,7 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 			queue_info = mqa_queue_tree_find_and_add(cb, param->queueHandle, false, NULL, 0);
 
 			if (!queue_info) {	/* The queue corresponding to the received callback has been deleted, cancel callback */
-				m_LOG_MQSV_A(MQA_QUEUE_TREE_FIND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-					     NCSCC_RC_FAILURE, __FILE__, __LINE__);
+				TRACE_2("Queue Database Find Failed");
 				m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				break;
 			}
@@ -289,6 +289,7 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 		m_MMGR_FREE_MQP_ASYNC_RSP_MSG(callback);
 		callback = NULL;
 	}
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -308,16 +309,17 @@ uint32_t mqa_hdl_callbk_dispatch_one(MQA_CB *cb, SaMsgHandleT msgHandle)
 	MQP_ASYNC_RSP_MSG *callback;
 	MQA_CLIENT_INFO *client_info;
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER();
 
 	/* get the client_info */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("ERR_LIBRARY: Lock failed for control block write");
 		return SA_AIS_ERR_LIBRARY;
 	}
 
 	client_info = mqa_client_tree_find_and_add(cb, msgHandle, false);
 	if (!client_info) {
-		m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			     __FILE__, __LINE__);
+		TRACE_2("ERR_BAD_HANDLE: Client Database Find Failed");
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
@@ -331,6 +333,7 @@ uint32_t mqa_hdl_callbk_dispatch_one(MQA_CB *cb, SaMsgHandleT msgHandle)
 		mqa_process_callback(cb, msgHandle, callback);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -350,16 +353,17 @@ uint32_t mqa_hdl_callbk_dispatch_all(MQA_CB *cb, SaMsgHandleT msgHandle)
 {
 	MQP_ASYNC_RSP_MSG *callback;
 	MQA_CLIENT_INFO *client_info;
+	TRACE_ENTER();
 
 	/* get the client_info */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("ERR_LIBRARY: Lock failed for control block write");
 		return SA_AIS_ERR_LIBRARY;
 	}
 
 	client_info = mqa_client_tree_find_and_add(cb, msgHandle, false);
 	if (!client_info) {
-		m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			     __FILE__, __LINE__);
+		TRACE_2("ERR_BAD_HANDLE: Client Database Find Failed");
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
@@ -370,12 +374,12 @@ uint32_t mqa_hdl_callbk_dispatch_all(MQA_CB *cb, SaMsgHandleT msgHandle)
 		mqa_process_callback(cb, msgHandle, callback);
 
 		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+			TRACE_4("ERR_LIBRARY: Lock failed for control block write");
 			return SA_AIS_ERR_LIBRARY;
 		}
 
 		if ((client_info = mqa_client_tree_find_and_add(cb, msgHandle, false)) == NULL) {
-			m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-				     __FILE__, __LINE__);
+			TRACE_2("Client Database Find Failed");
 			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 			return SA_AIS_OK;
 		}
@@ -383,6 +387,7 @@ uint32_t mqa_hdl_callbk_dispatch_all(MQA_CB *cb, SaMsgHandleT msgHandle)
 
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
+	TRACE_LEAVE();
 	return SA_AIS_OK;
 }
 
@@ -403,13 +408,17 @@ uint32_t mqa_hdl_callbk_dispatch_block(MQA_CB *mqa_cb, SaMsgHandleT msgHandle)
 	MQP_ASYNC_RSP_MSG *callback = 0;
 	SYSF_MBX *callbk_mbx;
 	MQA_CLIENT_INFO *client_info;
+	TRACE("mqa_hdl_callbk_dispatch_block is called");
 
 	/* get the client_info */
-	if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+	if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("ERR_LIBRARY: Lock failed for control block write");
 		return SA_AIS_ERR_LIBRARY;
+	}
 
 	client_info = mqa_client_tree_find_and_add(mqa_cb, msgHandle, false);
 	if (!client_info) {
+		TRACE_2("ERR_BAD_HANDLE: Client Database Find Failed");
 		m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
@@ -421,13 +430,14 @@ uint32_t mqa_hdl_callbk_dispatch_block(MQA_CB *mqa_cb, SaMsgHandleT msgHandle)
 	callback = (MQP_ASYNC_RSP_MSG *)m_NCS_IPC_RECEIVE(callbk_mbx, NULL);
 
 	while (1) {
-		if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+		if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+			TRACE_4("ERR_LIBRARY: Lock failed for control block write");
 			return SA_AIS_ERR_LIBRARY;
+		}
 
 		if ((client_info = mqa_client_tree_find_and_add(mqa_cb, msgHandle, false)) == NULL) {
 			/* Another thread called Finalize */
-			m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-				     __FILE__, __LINE__);
+			TRACE_1("Client Database Find Failed");
 			m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 			return SA_AIS_OK;
 		}
@@ -437,11 +447,13 @@ uint32_t mqa_hdl_callbk_dispatch_block(MQA_CB *mqa_cb, SaMsgHandleT msgHandle)
 			mqa_process_callback(mqa_cb, msgHandle, callback);
 		} else {
 			m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+			TRACE_1("IPC mailbox is empty");
 			return SA_AIS_OK;
 		}
 
 		callback = (MQP_ASYNC_RSP_MSG *)m_NCS_IPC_RECEIVE(callbk_mbx, NULL);
 		if (!callback) {
+			TRACE_1("IPC mailbox is empty");
 			return SA_AIS_OK;
 		}
 	}
@@ -470,6 +482,7 @@ static uint32_t mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg)
 	SaMsgHandleT temp_hdl;
 	MQA_CB *mqa_cb;
 	uint32_t len;
+	TRACE_ENTER();
 
 	/* If this track notification is not for a Queue Group then return */
 	if (asapi_msg->info.tntfy.oinfo.group.length == 0) {
@@ -482,13 +495,13 @@ static uint32_t mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg)
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* get the client_info */
 	if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("FAILURE: Lock failed for control block write");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		return NCSCC_RC_FAILURE;
 	}
@@ -525,6 +538,7 @@ static uint32_t mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg)
 	}
 	m_MQSV_MQA_GIVEUP_MQA_CB;
 	m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -553,6 +567,7 @@ uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_
 	uint32_t track_index;
 	uint32_t i;
 	uint32_t j = 0;
+	TRACE_ENTER();
 
 	if ((asapi_msg->info.tntfy.opr == ASAPi_QUEUE_MQND_DOWN) || (asapi_msg->info.tntfy.opr == ASAPi_QUEUE_MQND_UP)) {
 		return NCSCC_RC_SUCCESS;
@@ -560,15 +575,13 @@ uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		return NCSCC_RC_FAILURE;
 	}
 
 	track_current_callback = m_MMGR_ALLOC_MQP_ASYNC_RSP_MSG;
 	if (!track_current_callback) {
-		m_LOG_MQSV_A(MQP_ASYNC_RSP_MSG_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			     __FILE__, __LINE__);
+		TRACE_4("FAILURE: MQP Async Rsp Message Allocation Failed");
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -588,8 +601,7 @@ uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_
 
 	if (asapi_msg->info.tntfy.opr != ASAPi_GROUP_DEL) {
 		if (!(callback_buffer = m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((track_index + 1)))) {
-			m_LOG_MQSV_A(MQA_TRACK_BUFFER_INFO_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     NCSCC_RC_FAILURE, __FILE__, __LINE__);
+			TRACE_4("FAILURE: Track Buffer Info Allocation Failed");
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -610,8 +622,7 @@ uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_
 		track_current_callback->params.qGrpTrack.notificationBuffer.notification = NULL;
 
 		if (mqa_track_tree_find_and_del(client_info, &track_info->queueGroupName) != true) {
-			m_LOG_MQSV_A(MQA_TRACK_TREE_FIND_AND_DEL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     NCSCC_RC_FAILURE, __FILE__, __LINE__);
+			TRACE_2("FAILURE: Track Tree Find and Delete Failed");
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -625,6 +636,7 @@ uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_
 			SaNameT *name = &asapi_msg->info.tntfy.oinfo.qparam->name;
 			if ((buff->notification[i].member.queueName.length == name->length) &&
 			    memcmp(buff->notification[i].member.queueName.value, name->value, name->length) == 0) {
+				TRACE_2("FAILURE: QUEUE already exists in notification list");
 				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
@@ -646,8 +658,7 @@ uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_
 		track_info->notificationBuffer.notification =
 		    m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((uint32_t)(track_index + 1));
 		if (!track_info->notificationBuffer.notification) {
-			m_LOG_MQSV_A(MQA_TRACK_BUFFER_INFO_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     NCSCC_RC_FAILURE, __FILE__, __LINE__);
+			TRACE_4("FAILURE: Track Buffer Info Allocation Failed");
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -676,8 +687,7 @@ uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_
 		/* check whether there are any queues in the group or not */
 		track_info->notificationBuffer.notification = m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((uint32_t)(track_index));
 		if (!track_info->notificationBuffer.notification) {
-			m_LOG_MQSV_A(MQA_TRACK_BUFFER_INFO_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     NCSCC_RC_FAILURE, __FILE__, __LINE__);
+			TRACE_4("FAILURE: Track Buffer Info Allocation Failed");
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -710,8 +720,7 @@ uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_
 	}
 
 	if (mqsv_mqa_callback_queue_write(mqa_cb, client_info->msgHandle, track_current_callback) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_CLBK_QUEUE_WRITE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			     __FILE__, __LINE__);
+		TRACE_2("FAILURE: Call back Queue Write Failed");
 		rc = NCSCC_RC_FAILURE;
 		goto done1;
 	}
@@ -721,7 +730,7 @@ uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_
 		if (track_current_callback) {
 			m_MMGR_FREE_MQP_ASYNC_RSP_MSG(track_current_callback);
 		}
-		m_LOG_MQSV_A(MQA_NOTIFY_CHANGES_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Notify Changes Failed");
 	}
  done1:
 	if (rc != NCSCC_RC_SUCCESS) {
@@ -732,6 +741,7 @@ uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_
 
 	m_MQSV_MQA_GIVEUP_MQA_CB;
 
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -757,6 +767,7 @@ uint32_t mqa_notify_changes_only(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *t
 	SaMsgQueueGroupNotificationT *callback_buffer = NULL;
 	MQA_CB *mqa_cb;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if ((asapi_msg->info.tntfy.opr == ASAPi_QUEUE_MQND_DOWN) || (asapi_msg->info.tntfy.opr == ASAPi_QUEUE_MQND_UP)) {
 		return NCSCC_RC_SUCCESS;
@@ -765,15 +776,13 @@ uint32_t mqa_notify_changes_only(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *t
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		return NCSCC_RC_FAILURE;
 	}
 
 	track_current_callback = m_MMGR_ALLOC_MQP_ASYNC_RSP_MSG;
 	if (!track_current_callback) {
-		m_LOG_MQSV_A(MQP_ASYNC_RSP_MSG_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			     __FILE__, __LINE__);
+		TRACE_4("FAILURE: MQP Async Rsp Message Allocation Failed");
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -790,8 +799,7 @@ uint32_t mqa_notify_changes_only(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *t
 	if (asapi_msg->info.tntfy.opr != ASAPi_GROUP_DEL) {
 		callback_buffer = m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO(sizeof(SaMsgQueueGroupNotificationT));
 		if (!callback_buffer) {
-			m_LOG_MQSV_A(MQA_TRACK_BUFFER_INFO_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     NCSCC_RC_FAILURE, __FILE__, __LINE__);
+			TRACE_4("FAILURE: Track Buffer Info Allocation Failed");
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -825,8 +833,7 @@ uint32_t mqa_notify_changes_only(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *t
 		track_current_callback->params.qGrpTrack.notificationBuffer.notification = NULL;
 
 		if (mqa_track_tree_find_and_del(client_info, &track_info->queueGroupName) != true) {
-			m_LOG_MQSV_A(MQA_TRACK_TREE_FIND_AND_DEL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     NCSCC_RC_FAILURE, __FILE__, __LINE__);
+			TRACE_2("FAILURE: Track Tree Find and Delete Failed");
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -844,16 +851,14 @@ uint32_t mqa_notify_changes_only(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *t
 	}
 
 	if (mqsv_mqa_callback_queue_write(mqa_cb, client_info->msgHandle, track_current_callback) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_CLBK_QUEUE_WRITE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			     __FILE__, __LINE__);
+		TRACE_2("FAILURE: Call back Queue Write Failed");
 		rc = NCSCC_RC_FAILURE;
 		goto done1;
 	}
 
  done:
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_NOTIFY_CHANGES_ONLY_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Notify Changes Only Failed");
 		if (track_current_callback) {
 			m_MMGR_FREE_MQP_ASYNC_RSP_MSG(track_current_callback);
 		}
@@ -868,6 +873,7 @@ uint32_t mqa_notify_changes_only(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *t
 
 	m_MQSV_MQA_GIVEUP_MQA_CB;
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -886,16 +892,21 @@ uint32_t mqa_notify_changes_only(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *t
 uint32_t mqa_asapi_msghandler(ASAPi_MSG_INFO *asapi_msg)
 {
 
-	if (!asapi_msg)
+	TRACE_ENTER();
+	if (!asapi_msg) {
+		TRACE_2("FAILURE: ASAPi_MSG_INFO is NULL");
 		return NCSCC_RC_FAILURE;
+	}
 
 	switch (asapi_msg->msgtype) {
 	case ASAPi_MSG_TRACK_NTFY:
 		return (mqa_notify_clients(asapi_msg));
 	default:
+		TRACE_3("FAILURE: supprted only for ASAPi_MSG_TRACK_NTFY flag");
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
 }
@@ -915,12 +926,12 @@ uint32_t mqsv_mqa_callback_queue_init(MQA_CLIENT_INFO *client_info)
 {
 	if (m_NCS_IPC_CREATE(&client_info->callbk_mbx) == NCSCC_RC_SUCCESS) {
 		if (m_NCS_IPC_ATTACH(&client_info->callbk_mbx) == NCSCC_RC_SUCCESS) {
+			TRACE("mqsv_mqa_callback_queue_init called Success");
 			return NCSCC_RC_SUCCESS;
 		}
 		m_NCS_IPC_RELEASE(&client_info->callbk_mbx, NULL);
 	}
-	m_LOG_MQSV_A(MQA_CLBK_QUEUE_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-		     __LINE__);
+	TRACE_2("FAILURE: Callback Queue Initialization Failed");
 	return NCSCC_RC_FAILURE;
 }
 
@@ -938,10 +949,12 @@ uint32_t mqsv_mqa_callback_queue_init(MQA_CLIENT_INFO *client_info)
 static bool mqa_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 
+	TRACE_ENTER();
 	MQP_ASYNC_RSP_MSG *curr = (MQP_ASYNC_RSP_MSG *)msg;
 
 	if (curr) {
 		m_MMGR_FREE_MQP_ASYNC_RSP_MSG(curr);
+		TRACE_LEAVE();
 		return true;
 	} else
 		return false;
@@ -961,12 +974,14 @@ static bool mqa_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 ******************************************************************************/
 void mqsv_mqa_callback_queue_destroy(MQA_CLIENT_INFO *client_info)
 {
+	TRACE_ENTER();
 
 	/* detach the mail box */
 	m_NCS_IPC_DETACH(&client_info->callbk_mbx, mqa_client_cleanup_mbx, client_info);
 
 	/* delete the mailbox */
 	m_NCS_IPC_RELEASE(&client_info->callbk_mbx, NULL);
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -988,6 +1003,7 @@ uint32_t mqsv_mqa_callback_queue_write(MQA_CB *mqa_cb, SaMsgHandleT handle, MQP_
 {
 	MQA_CLIENT_INFO *client_info = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
+	TRACE_ENTER();
 
 	/* Search for the node from the client tree */
 	client_info = (MQA_CLIENT_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_client_tree, (uint8_t *)&handle);
@@ -995,9 +1011,11 @@ uint32_t mqsv_mqa_callback_queue_write(MQA_CB *mqa_cb, SaMsgHandleT handle, MQP_
 	if (client_info == NULL) {
 		/* recieved a callback for an non-existant client. so dump the callback info */
 		m_MMGR_FREE_MQP_ASYNC_RSP_MSG(clbk_info);
+		TRACE_2("FAILURE: Recieved a callback for an non-existant client");
 		return NCSCC_RC_FAILURE;
 	} else {
 		if (client_info->finalize == 1) {
+			TRACE_2("FAILURE: Already all pending callbacks are cancelled related to the particular handle");
 			m_MMGR_FREE_MQP_ASYNC_RSP_MSG(clbk_info);
 			return NCSCC_RC_FAILURE;
 		}
@@ -1005,6 +1023,7 @@ uint32_t mqsv_mqa_callback_queue_write(MQA_CB *mqa_cb, SaMsgHandleT handle, MQP_
 		rc = m_NCS_IPC_SEND(&client_info->callbk_mbx, clbk_info, NCS_IPC_PRIORITY_NORMAL);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1022,11 +1041,13 @@ uint32_t mqsv_mqa_callback_queue_write(MQA_CB *mqa_cb, SaMsgHandleT handle, MQP_
 ******************************************************************************/
 static MQP_ASYNC_RSP_MSG *mqsv_mqa_callback_queue_read(MQA_CLIENT_INFO *client_info)
 {
+	TRACE_ENTER();
 	MQP_ASYNC_RSP_MSG *return_callback = NULL;
 
 	/* remove it to the queue */
 	return_callback = (MQP_ASYNC_RSP_MSG *)m_NCS_IPC_NON_BLK_RECEIVE(&client_info->callbk_mbx, NULL);
 
+	TRACE_LEAVE();
 	return return_callback;
 }
 
@@ -1052,12 +1073,12 @@ void mqa_queue_reader(NCSCONTEXT arg)
 	MQA_CB *mqa_cb;
 	MQP_ASYNC_RSP_MSG *mqa_callbk_info = NULL;
 	uint32_t existing_msg_count;
+	TRACE_ENTER();
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		return;
 	}
 
@@ -1069,14 +1090,14 @@ void mqa_queue_reader(NCSCONTEXT arg)
 
 	/* get the client_info */
 	if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("Lock failed for control block write");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		return;
 	}
 
 	/* Check if queueHandle is present in the tree */
 	if ((queue_node = mqa_queue_tree_find_and_add(mqa_cb, queueHandle, false, NULL, 0)) == NULL) {
-		m_LOG_MQSV_A(MQA_QUEUE_TREE_ADD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Queue database Registration Failed");
 		m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		return;
@@ -1101,8 +1122,7 @@ void mqa_queue_reader(NCSCONTEXT arg)
 			break;
 
 		if ((queue_node = mqa_queue_tree_find_and_add(mqa_cb, queueHandle, false, NULL, 0)) == NULL) {
-			m_LOG_MQSV_A(MQA_QUEUE_TREE_ADD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-				     __FILE__, __LINE__);
+			TRACE_2("FAILURE: Queue database Registration Failed");
 			m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 			break;
 		}
@@ -1114,8 +1134,7 @@ void mqa_queue_reader(NCSCONTEXT arg)
 
 		mqa_callbk_info = m_MMGR_ALLOC_MQP_ASYNC_RSP_MSG;
 		if (!mqa_callbk_info) {
-			m_LOG_MQSV_A(MQP_ASYNC_RSP_MSG_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     NCSCC_RC_FAILURE, __FILE__, __LINE__);
+			TRACE_4("FAILURE: MQP Async Rsp Message Allocation Failed");
 			m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 			break;
 		}
@@ -1124,8 +1143,7 @@ void mqa_queue_reader(NCSCONTEXT arg)
 		mqa_callbk_info->params.msgReceived.queueHandle = queueHandle;
 		if (mqsv_mqa_callback_queue_write(mqa_cb, queue_node->client_info->msgHandle, mqa_callbk_info) !=
 		    NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_A(MQA_CLBK_QUEUE_WRITE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-				     __FILE__, __LINE__);
+			TRACE_2("FAILURE: Call back Queue Write Failed");
 
 		if (existing_msg_count)
 			existing_msg_count--;
@@ -1135,5 +1153,6 @@ void mqa_queue_reader(NCSCONTEXT arg)
 	}
 
 	m_MQSV_MQA_GIVEUP_MQA_CB;
+	TRACE_LEAVE();
 	return;
 }

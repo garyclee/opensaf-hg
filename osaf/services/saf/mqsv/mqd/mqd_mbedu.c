@@ -103,8 +103,10 @@ static int mqd_a2s_msg_test_type_fnc(NCSCONTEXT arg)
 	} LCL_TEST_JUMP_OFFSET;
 	MQD_A2S_MSG_TYPE type;
 
-	if (arg == NULL)
+	if (arg == NULL) {
+		LOG_ER("%s:%u: Invalid EDP argument type", __FILE__, __LINE__);
 		return EDU_FAIL;
+	}
 
 	type = *(MQD_A2S_MSG_TYPE *)arg;
 
@@ -127,6 +129,7 @@ static int mqd_a2s_msg_test_type_fnc(NCSCONTEXT arg)
 		break;
 	}
 
+	LOG_ER("%s:%u: Invalid EDP argument type", __FILE__, __LINE__);
 	return EDU_FAIL;
 }
 
@@ -177,6 +180,7 @@ uint32_t mqsv_edp_mqd_a2s_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		d_ptr = (MQD_A2S_MSG **)ptr;
 		if (*d_ptr == NULL) {
 			/* This should have already been a valid pointer. */
+			LOG_ER("%s:%u: Event is NULL", __FILE__, __LINE__);
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}
@@ -229,6 +233,7 @@ static uint32_t mqsv_edp_mqd_asapi_reg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		if (*d_ptr == NULL) {
 			/* This should have already been a valid pointer. */
 			*o_err = EDU_ERR_MEM_FAIL;
+			LOG_ER("%s:%u: Event is NULL", __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -290,6 +295,7 @@ static uint32_t mqsv_edp_mqd_asapi_que_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		if (*d_ptr == NULL) {
 			/* This should have already been a valid pointer. */
 			*o_err = EDU_ERR_MEM_FAIL;
+			LOG_ER("%s:%u: Event is NULL", __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -339,6 +345,7 @@ static uint32_t mqsv_edp_mqd_asapi_dereg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		if (*d_ptr == NULL) {
 			/* This should have already been a valid pointer. */
 			*o_err = EDU_ERR_MEM_FAIL;
+			LOG_ER("%s:%u: Event is NULL", __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -386,6 +393,7 @@ static uint32_t mqsv_edp_mqd_asapi_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		if (*d_ptr == NULL) {
 			/* This should have already been a valid pointer. */
 			*o_err = EDU_ERR_MEM_FAIL;
+			LOG_ER("%s:%u: Event is NULL", __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -431,6 +439,7 @@ static uint32_t mqsv_edp_mqd_a2s_user_evt_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		if (*d_ptr == NULL) {
 			/* This should have already been a valid pointer. */
 			*o_err = EDU_ERR_MEM_FAIL;
+			LOG_ER("%s:%u: Event is NULL", __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -479,6 +488,7 @@ static uint32_t mqsv_edp_mqd_a2s_nd_stat_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		d_ptr = (MQD_A2S_ND_STAT_INFO **)ptr;
 		if (*d_ptr == NULL) {
 			/* This should have already been a valid pointer. */
+			LOG_ER("%s:%u: Event is NULL", __FILE__, __LINE__);
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}
@@ -524,6 +534,7 @@ static uint32_t mqsv_edp_mqd_a2s_nd_timer_exp_info(EDU_HDL *hdl, EDU_TKN *edu_tk
 		d_ptr = (MQD_A2S_ND_TIMER_EXP_INFO **)ptr;
 		if (*d_ptr == NULL) {
 			/* This should have already been a valid pointer. */
+			LOG_ER("%s:%u: Event is NULL", __FILE__, __LINE__);
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}
@@ -588,6 +599,7 @@ uint32_t mqsv_edp_mqd_a2s_queue_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		d_ptr = (MQD_A2S_QUEUE_INFO **)ptr;
 		if (*d_ptr == NULL) {
 			/* This should have already been a valid pointer. */
+			LOG_ER("%s:%u: Event is NULL", __FILE__, __LINE__);
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}
@@ -649,6 +661,7 @@ static uint32_t mqsv_edp_mqd_queue_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		d_ptr = (MQD_QUEUE_PARAM **)ptr;
 		if (*d_ptr == NULL) {
 			/* This should have already been a valid pointer. */
+			LOG_ER("%s:%u: Event is NULL", __FILE__, __LINE__);
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}
@@ -694,6 +707,7 @@ static uint32_t mqsv_edp_mqd_qgroup_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		d_ptr = (MQD_QGROUP_PARAM **)ptr;
 		if (*d_ptr == NULL) {
 			/* This should have already been a valid pointer. */
+			LOG_ER("%s:%u: Event is NULL", __FILE__, __LINE__);
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}
@@ -728,8 +742,10 @@ static int mqd_a2s_que_info_test_type_func(NCSCONTEXT arg)
 	} LCL_TEST_JUMP_OFFSET;
 	MQSV_OBJ_TYPE type;
 
-	if (arg == NULL)
+	if (arg == NULL) {
+		LOG_ER("%s:%u: Invalid EDP argument type", __FILE__, __LINE__);
 		return EDU_FAIL;
+	}
 
 	type = *(MQSV_OBJ_TYPE *)arg;
 
@@ -742,6 +758,7 @@ static int mqd_a2s_que_info_test_type_func(NCSCONTEXT arg)
 		break;
 	}
 
+	LOG_ER("%s:%u: Invalid EDP argument type", __FILE__, __LINE__);
 	return EDU_FAIL;
 }
 
@@ -780,6 +797,7 @@ static uint32_t mqsv_edp_mqd_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		d_ptr = (MQD_A2S_TRACK_INFO **)ptr;
 		if (*d_ptr == NULL) {
 			/* This should have already been a valid pointer. */
+			LOG_ER("%s:%u: Event is NULL", __FILE__, __LINE__);
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}

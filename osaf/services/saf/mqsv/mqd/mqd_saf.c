@@ -67,8 +67,8 @@ void mqd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compName, SaAm
 		saAmfResponse(pMqd->amf_hdl, invocation, saErr);
 		ncshm_give_hdl(pMqd->hdl);
 	} else {
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 	}
 	return;
 }	/* End of mqd_saf_hlth_chk_cb() */
@@ -125,11 +125,11 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
 	if (pMqd) {
-		m_LOG_MQSV_D(MQD_CSI_SET_ROLE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, haState, __FILE__, __LINE__);
+		TRACE_1("CSI SET Called with HaState as %d", haState);
 		if ((SA_AMF_HA_QUIESCED == haState) && (pMqd->ha_state == SA_AMF_HA_ACTIVE)) {
 			saErr = immutil_saImmOiImplementerClear(pMqd->immOiHandle);
 			if (saErr != SA_AIS_OK) {
-				mqd_genlog(NCSFL_SEV_ERROR, "saImmOiImplementerClear failed: err = %u \n", saErr);
+				LOG_ER("saImmOiImplementerClear failed: err = %u", saErr);
 			}
 			mqd_process_quisced_state(pMqd, invocation, haState);
 			ncshm_give_hdl(pMqd->hdl);
@@ -149,15 +149,14 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 				/* Put it in MQD's Event Queue */
 				rc = m_MQD_EVT_SEND(&pMqd->mbx, pEvt, NCS_IPC_PRIORITY_NORMAL);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_LOG_MQSV_D(MQD_MDS_MSG_COMP_EVT_SEND_FAILED, NCSFL_LC_MQSV_INIT,
-						     NCSFL_SEV_NOTICE, haState, __FILE__, __LINE__);
+					LOG_ER("In CSI SET Callback the message of type COMP"
+						"sending to the mailbox failed %d", haState);
 					m_MMGR_FREE_MQSV_EVT(pEvt, pMqd->my_svc_id);
 					ncshm_give_hdl(pMqd->hdl);
 					return;
 				}
 			} else {
-				m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, haState,
-					     __FILE__, __LINE__);
+				LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
 			}
 		}
 
@@ -167,7 +166,7 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 			/* If this is the active Director, become implementer */
 			saErr = immutil_saImmOiImplementerSet(pMqd->immOiHandle, implementer_name);
 			if (saErr != SA_AIS_OK){
-				mqd_genlog(NCSFL_SEV_ERROR, "mqd_imm_declare_implementer failed: err = %u \n", saErr);
+				LOG_ER("mqd_imm_declare_implementer failed: err = %u", saErr);
 			}
 			mds_role = V_DEST_RL_ACTIVE;
 		} else {
@@ -180,8 +179,7 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 		vda_info.info.vdest_chg_role.i_new_role = mds_role;
 		rc = ncsvda_api(&vda_info);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_LOG_MQSV_D(MQD_VDEST_CHG_ROLE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			LOG_ER("In CSI SET Callback the vdest changerole failed");
 			ncshm_give_hdl(pMqd->hdl);
 			return;
 		}
@@ -195,11 +193,11 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 			nodeid = pNdNode->info.nodeid;
 			/* Post the event to MQD Thread */
 			if (pNdNode->info.timer.is_expired == true) {
-				TRACE("NODE FOUND FOR CLEAN UP:CSI CALLBACK (TIMER EXPIRY CASE)");
+				TRACE_1("NODE FOUND FOR CLEAN UP:CSI CALLBACK (TIMER EXPIRY CASE)");
 				mqd_timer_expiry_evt_process(pMqd, &nodeid);
 			} else {
 				if (pNdNode->info.is_restarted == true) {
-					TRACE("NODE FOUND FOR CLEAN:CSI CALLBACK (MDS UP CASE)");
+					TRACE_1("NODE FOUND FOR CLEAN:CSI CALLBACK (MDS UP CASE)");
 					pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
 					if (pEvt) {
 						memset(pEvt, 0, sizeof(MQSV_EVT));
@@ -212,9 +210,8 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 						/* Put it in MQD's Event Queue */
 						rc = m_MQD_EVT_SEND(&pMqd->mbx, pEvt, NCS_IPC_PRIORITY_NORMAL);
 						if (NCSCC_RC_SUCCESS != rc) {
-							m_LOG_MQSV_D(MQD_MDS_MSG_COMP_EVT_SEND_FAILED,
-								     NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, haState,
-								     __FILE__, __LINE__);
+							LOG_ER("In CSI SET Callback the message of type COMP"
+								"sending to the mailbox failed %d", haState);
 							m_MMGR_FREE_MQSV_EVT(pEvt, pMqd->my_svc_id);
 							ncshm_give_hdl(pMqd->hdl);
 							return;
@@ -230,7 +227,7 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 		}
 
 	} else {
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 	}
 	return;
 }	/* End of mqd_saf_csi_set_cb() */
@@ -253,13 +250,11 @@ static uint32_t mqd_process_quisced_state(MQD_CB *pMqd, SaInvocationT invocation
 	vda_info.info.vdest_chg_role.i_new_role = mds_role;
 	rc = ncsvda_api(&vda_info);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_MQSV_D(MQD_QUISCED_VDEST_CHGROLE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
+		LOG_ER("During processing of Quisced state, VDEST Role change to Queisced Failed");
 		ncshm_give_hdl(pMqd->hdl);
 		return rc;
 	} else
-		m_LOG_MQSV_D(MQD_QUISCED_VDEST_CHGROLE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
-			     __LINE__);
+		TRACE_1("During processing of Quisced state, VDEST Role change to Queisced Success");
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -278,8 +273,8 @@ void mqd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 		sleep(1);
 		exit(0);
 	} else {
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		exit(0);
 	}
 	return;
@@ -308,8 +303,7 @@ void mqd_amf_csi_rmv_callback(SaInvocationT invocation,
 		vda_info.info.vdest_chg_role.i_new_role = mds_role;
 		rc = ncsvda_api(&vda_info);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_LOG_MQSV_D(MQD_CSI_REMOVE_CALLBK_CHGROLE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-				     __FILE__, __LINE__);
+			LOG_ER("CSI Remove During Role change to Standby Failed");
 			ncshm_give_hdl(pMqd->hdl);
 			return;
 		}
@@ -317,10 +311,9 @@ void mqd_amf_csi_rmv_callback(SaInvocationT invocation,
 
 		saAmfResponse(pMqd->amf_hdl, invocation, saErr);
 		ncshm_give_hdl(pMqd->hdl);
-		m_LOG_MQSV_D(MQD_CSI_REMOVE_CALLBK_SUCCESSFULL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
-			     __LINE__);
+		TRACE_1("CSI Remove During Role change to Standby Successfull");
 
 	} else
-		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 	return;
 }

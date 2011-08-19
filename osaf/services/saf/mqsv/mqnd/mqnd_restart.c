@@ -46,16 +46,15 @@ static void mqnd_fill_queue_node(MQND_QUEUE_CKPT_INFO *ckpt_queue_info, MQND_QUE
 uint32_t mqnd_restart_init(MQND_CB *cb)
 {
 	SaAisErrorT rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if (cb->is_create_ckpt == false) {
 		/*Build the database */
-		m_LOG_MQSV_ND(MQND_RESTART_INIT_OPEN_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, SA_AIS_OK, __FILE__,
-			      __LINE__);
+		LOG_NO("Restarting with Existing Ckpt Open Success");
 		rc = mqnd_build_database_from_shm(cb);
 		TRACE("After Building database");
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_ND(MQND_RESTART_BUILD_DB_FROM_CKPTSVC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				      rc, __FILE__, __LINE__);
+			TRACE_4("Building Database from Ckptsvc Failed with return code %d", rc);
 			/*Should the shared memory be deleted at this stage */
 			return rc;
 		}
@@ -64,6 +63,7 @@ uint32_t mqnd_restart_init(MQND_CB *cb)
 		cb->is_restart_done = true;
 
 	mqnd_remove_mqalist(cb);
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -85,10 +85,11 @@ uint32_t mqnd_add_node_to_mqalist(MQND_CB *cb, MDS_DEST dest)
 	MQND_MQA_LIST_NODE *mqa_node = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	mqa_node = m_MMGR_ALLOC_MQND_MQA_LIST_NODE;
+	TRACE_ENTER();
+
 	if (mqa_node == NULL) {
 		/*Memory Failure Error */
-		m_LOG_MQSV_ND(MQND_MQA_LNODE_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, SA_AIS_ERR_NO_MEMORY,
-			      __FILE__, __LINE__);
+		LOG_CR("MQA List node Creation Failed");
 		return NCSCC_RC_FAILURE;
 	}
 	memset(mqa_node, 0, sizeof(MQND_MQA_LIST_NODE));
@@ -97,8 +98,9 @@ uint32_t mqnd_add_node_to_mqalist(MQND_CB *cb, MDS_DEST dest)
 
 	rc = ncs_db_link_list_add(&cb->mqa_list_info, &mqa_node->lnode);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_ND(MQND_MQA_LNODE_ADD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("Adding the mqa node to the mqa list failed");
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -142,6 +144,7 @@ static SaAisErrorT mqnd_build_database_from_shm(MQND_CB *cb)
 	SaAisErrorT rc = SA_AIS_OK;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 	uint32_t i;
+	TRACE_ENTER();
 
 	shm_base_addr = cb->mqnd_shm.shm_base_addr;
 
@@ -155,6 +158,7 @@ static SaAisErrorT mqnd_build_database_from_shm(MQND_CB *cb)
 
 			qnode = m_MMGR_ALLOC_MQND_QUEUE_NODE;
 			if (!qnode) {
+				LOG_CR("ERR_MEMORY: MQND_QUEUE_NODE Memory allocation failed");
 				rc = SA_AIS_ERR_NO_MEMORY;
 				return rc;
 			}
@@ -167,6 +171,7 @@ static SaAisErrorT mqnd_build_database_from_shm(MQND_CB *cb)
 			assert(0);
 	}
 	cb->is_restart_done = true;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -276,6 +281,7 @@ static uint32_t mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 	/*Check for the Close Timer */
 	SaTimeT presentTime, timeout = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* Add the queue to the MQND queue node, queue name DB */
 	if (1) {
@@ -290,8 +296,10 @@ static uint32_t mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 			/* IF not unlinked, add it to name DB */
 			pnode = m_MMGR_ALLOC_MQND_QNAME_NODE;
 
-			if (!pnode)
+			if (!pnode) {
+				TRACE("MQND_QNAME_NODE Memory Allocation Failed");
 				return NCSCC_RC_FAILURE;
+			}
 
 			memset(pnode, 0, sizeof(MQND_QNAME_NODE));
 			pnode->qname = qnode->qinfo.queueName;
@@ -305,11 +313,9 @@ static uint32_t mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 	    && qnode->qinfo.qtransfer_complete_tmr.tmr_id != TMR_T_NULL) {
 		rc = mqnd_tmr_start(&qnode->qinfo.qtransfer_complete_tmr, MQND_QTRANSFER_REQ_TIMER);
 		if (rc == NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_ND(MQND_QTRANSFER_NODE2_TMR_STARTED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO,
-				      qnode->qinfo.qtransfer_complete_tmr.qhdl, __FILE__, __LINE__);
+			TRACE_1("QTransfer Tmr on Node 2 Started %llu", qnode->qinfo.qtransfer_complete_tmr.qhdl);
 		else
-			m_LOG_MQSV_ND(MQND_QTRANSFER_NODE2_TMR_STARTED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR,
-				      qnode->qinfo.qtransfer_complete_tmr.qhdl, __FILE__, __LINE__);
+			LOG_ER("QTransfer Tmr on Node 2 Failed %llu", qnode->qinfo.qtransfer_complete_tmr.qhdl);
 	}
 
 	if ((!(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT)) &&
@@ -332,8 +338,7 @@ static uint32_t mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 			qnode->qinfo.tmr.is_active = false;
 
 			rc = mqnd_tmr_start(&qnode->qinfo.tmr, timeout);
-			m_LOG_MQSV_ND(MQND_RETENTION_TMR_STARTED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, rc, __FILE__,
-				      __LINE__);
+			TRACE_1("Retention timer has been started for the queue");
 
 		} else {
 			MQSV_EVT evt;
@@ -364,6 +369,7 @@ static uint32_t mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 		}
 	}
  done:
+	TRACE_LEAVE();
 	return rc;
 
 }

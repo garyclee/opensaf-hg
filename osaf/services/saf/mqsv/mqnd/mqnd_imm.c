@@ -76,13 +76,13 @@ static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	MQND_QNAME_NODE *pNode = NULL;
 	MQND_QUEUE_CKPT_INFO *shmBaseAddr = NULL;
 	uint32_t offset;
+	TRACE_ENTER();
 
 	uint32_t cb_hdl = m_MQND_GET_HDL();
 	mqnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
 
 	if (!mqnd_cb) {
-		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			      __LINE__);
+		LOG_ER("ERR_FAILED_OPERATION: CB Take Failed");
 		return SA_AIS_ERR_FAILED_OPERATION;
 	}
 
@@ -160,6 +160,7 @@ static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 		}		/*End while attributesNames() */
 		attrMods[attrCnt] = NULL;
 		saImmOiRtObjectUpdate_2(mqnd_cb->immOiHandle, objectName, attrMods);
+		TRACE_LEAVE();
 		return SA_AIS_OK;
 	} /* End if  m_CMP_HORDER_SANAMET */
 	else {			/* walk through the MqPriotity Object Attributes List */
@@ -238,6 +239,7 @@ static SaUint32T getdata_from_mqd(MQND_CB *cb, MQND_QUEUE_NODE *pNode)
 	req.type = MQSV_EVT_MQD_CTRL;
 	req.msg.mqd_ctrl.type = MQD_QGRP_CNT_GET;
 	req.msg.mqd_ctrl.info.qgrp_cnt_info.info.queueName = pNode->qinfo.queueName;
+	TRACE_ENTER();
 
 	/* Send the MDS sync request to remote MQND */
 	mqnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_MQD, cb->mqd_dest, &req, &rsp, MQSV_WAIT_TIME);
@@ -247,11 +249,12 @@ static SaUint32T getdata_from_mqd(MQND_CB *cb, MQND_QUEUE_NODE *pNode)
 	    (rsp->msg.mqnd_ctrl.info.qgrp_cnt_info.error == SA_AIS_OK)) {
 		param = rsp->msg.mqnd_ctrl.info.qgrp_cnt_info.info.noOfQueueGroupMemOf;
 	} else
-		mqnd_genlog(NCSFL_SEV_ERROR, "getdata_from_mqd FAILED \n");
+		LOG_ER("getdata_from_mqd FAILED");
 
 	if (rsp)
 		m_MMGR_FREE_MQSV_EVT(rsp, NCS_SERVICE_IiD_MQND);
 
+	TRACE_LEAVE();
 	return param;
 }
 
@@ -282,6 +285,7 @@ SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time,
 	SaImmAttrValuesT_2 attr_mqrsc, attr_mqIspersistent, attr_mqRetTime, attr_mqSize;
 	SaImmAttrValuesT_2 attr_mqCreationTimeStamp, attr_mqIsOpen;
 	const SaImmAttrValuesT_2 *attrValues[7];
+	TRACE_ENTER();
 
 	if (parent_name != NULL && dndup != NULL) {
 		rdnstr = strtok(dndup, ",");
@@ -351,6 +355,7 @@ SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time,
 	if (dndup)
 		free(dndup);
 
+	TRACE_LEAVE2("Returned with return code %d", rc);
 	return rc;
 }
 
@@ -376,6 +381,7 @@ SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(SaStringT rname, MQND_QUEUE_N
 	SaImmAttrValuesT_2 attr_mqprio, attr_mqprioSize, attr_capavail, attr_capreached;
 	const SaImmAttrValuesT_2 *attrValues[5];
 	SaNameT mqp_parent, *mQPrioDn = NULL;
+	TRACE_ENTER();
 
 	memset(&mqp_parent, 0, sizeof(SaNameT));
 	char *mqprdn = (char *)malloc(sizeof(char) * SA_MAX_NAME_LENGTH);
@@ -426,6 +432,7 @@ SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(SaStringT rname, MQND_QUEUE_N
 	if (mqprdn)
 		free(mqprdn);
 
+	TRACE_LEAVE2("Returned with return code %d", rc);
 	return rc;
 }
 
@@ -444,10 +451,13 @@ SaAisErrorT mqnd_imm_initialize(MQND_CB *cb)
 {
 	SaAisErrorT rc;
 	immutilWrapperProfile.errorsAreFatal = 0;
+	TRACE_ENTER();
+
 	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks, &imm_version);
 	if (rc == SA_AIS_OK) {
 		immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);
 	}
+	TRACE_LEAVE2("Returned with return code %d", rc);
 	return rc;
 }
 
@@ -466,6 +476,7 @@ void *_mqnd_imm_declare_implementer(void *cb)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	MQND_CB *mqnd_cb = (MQND_CB *)cb;
+	TRACE_ENTER();
 
 	SaImmOiImplementerNameT implementer_name;
 	char *i_name;
@@ -481,10 +492,11 @@ void *_mqnd_imm_declare_implementer(void *cb)
 		nTries++;
 	}
 	if (error != SA_AIS_OK) {
-		mqnd_genlog(NCSFL_SEV_ERROR, "saImmOiImplementerSet FAILED:%u \n", error);
+		LOG_ER("saImmOiImplementerSet FAILED:%u", error);
 		exit(EXIT_FAILURE);
 	}
 
+	TRACE_LEAVE();
 	return NULL;
 }
 
@@ -505,11 +517,14 @@ void mqnd_imm_declare_implementer(MQND_CB *cb)
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	TRACE_ENTER();
+
 	if (pthread_create(&thread, NULL, _mqnd_imm_declare_implementer, cb) != 0) {
-		mqnd_genlog(NCSFL_SEV_ERROR, "pthread_create FAILED: %s \n", strerror(errno));
+		LOG_CR("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 	pthread_attr_destroy(&attr);
+	TRACE_LEAVE();
 }
 
 /**
@@ -554,7 +569,7 @@ void mqnd_imm_reinit_bg(MQND_CB * cb)
 	TRACE_ENTER();
 
 	if (pthread_create(&thread, &attr, mqnd_imm_reinit_thread, cb) != 0) {
-		LOG_ER("pthread_create FAILED: %s", strerror(errno));
+		LOG_CR("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 	pthread_attr_destroy(&attr);

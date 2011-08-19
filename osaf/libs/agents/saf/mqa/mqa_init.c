@@ -76,33 +76,31 @@ static uint32_t mqa_queue_tree_init(MQA_CB *cb);
 uint32_t mqa_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
 		rc = mqa_create(&req_info->info.create);
 		if (rc == NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_A(MQA_SE_API_CREATE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__,
-				     __LINE__);
+			TRACE_1("MsgQ Svc Registration Success");
 		else
-			m_LOG_MQSV_A(MQA_SE_API_CREATE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			TRACE_2("FAILURE: MsgQ Svc Registration Failed");
 		break;
 
 	case NCS_LIB_REQ_DESTROY:
 		rc = mqa_destroy(&req_info->info.destroy);
 		if (rc == NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_A(MQA_SE_API_DESTROY_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__,
-				     __LINE__);
+			TRACE_1("MsgQ Svc Deregistration Success");
 		else
-			m_LOG_MQSV_A(MQA_SE_API_DESTROY_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			TRACE_2("FAILURE: MsgQ Svc Deregistration Failed");
 		break;
 
 	default:
-		m_LOG_MQSV_A(MQA_SE_API_UNKNOWN_REQUEST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__);
+		TRACE_2("MsgQ Svc Req unknown");
 		break;
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -116,11 +114,12 @@ static void mqa_sync_with_mqd(MQA_CB *cb)
 {
 	NCS_SEL_OBJ_SET set;
 	uint32_t timeout = 3000;
+	TRACE_ENTER();
 
 	m_NCS_LOCK(&cb->mqd_sync_lock, NCS_LOCK_WRITE);
 
 	if (cb->is_mqd_up) {
-		m_LOG_MQSV_A(MQA_MQD_ALREADY_UP, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__);
+		TRACE_1("MQD is already up with the MQA");
 		m_NCS_UNLOCK(&cb->mqd_sync_lock, NCS_LOCK_WRITE);
 		return;
 	}
@@ -141,7 +140,8 @@ static void mqa_sync_with_mqd(MQA_CB *cb)
 	m_NCS_SEL_OBJ_DESTROY(cb->mqd_sync_sel);
 
 	m_NCS_UNLOCK(&cb->mqd_sync_lock, NCS_LOCK_WRITE);
-	m_LOG_MQSV_A(MQA_SYNC_WITH_MQD_UP, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__);
+	TRACE_1("MQD synced up with the MQA");
+	TRACE_LEAVE();
 	return;
 }
 
@@ -155,11 +155,12 @@ static void mqa_sync_with_mqnd(MQA_CB *cb)
 {
 	NCS_SEL_OBJ_SET set;
 	uint32_t timeout = 3000;
+	TRACE_ENTER();
 
 	m_NCS_LOCK(&cb->mqnd_sync_lock, NCS_LOCK_WRITE);
 
 	if (cb->is_mqnd_up) {
-		m_LOG_MQSV_A(MQA_MQND_ALREADY_UP, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__);
+		TRACE_1("MQND is already up with the MQA");
 		m_NCS_UNLOCK(&cb->mqnd_sync_lock, NCS_LOCK_WRITE);
 		return;
 	}
@@ -180,7 +181,8 @@ static void mqa_sync_with_mqnd(MQA_CB *cb)
 	m_NCS_SEL_OBJ_DESTROY(cb->mqnd_sync_sel);
 
 	m_NCS_UNLOCK(&cb->mqnd_sync_lock, NCS_LOCK_WRITE);
-	m_LOG_MQSV_A(MQA_SYNC_WITH_MQND_UP, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__);
+	TRACE_1("MQND synced up with the MQA");
+	TRACE_LEAVE();
 	return;
 }
 
@@ -200,12 +202,11 @@ static uint32_t mqa_create(NCS_LIB_CREATE *create_info)
 	MQA_CB *cb = &mqa_cb;
 
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
 	/* validate create info */
 	if (create_info == NULL)
 		return NCSCC_RC_FAILURE;
-
-	/* Register with Logging subsystem */
-	mqa_flx_log_reg();
 
 	memset(cb, 0, sizeof(MQA_CB));
 
@@ -214,11 +215,11 @@ static uint32_t mqa_create(NCS_LIB_CREATE *create_info)
 
 	/* create the association with hdl-mngr */
 	if (!(cb->agent_handle_id = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_MQA, (NCSCONTEXT)cb))) {
-		m_LOG_MQSV_A(MQA_CREATE_HANDLE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__);
-		goto error1;
+		TRACE_2("Handle Registration Failed");
+		return NCSCC_RC_FAILURE;
 	}
 
-	m_LOG_MQSV_A(MQA_CREATE_HANDLE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__);
+	TRACE_1("Handle Registration Success");
 	/* everything went off well.. store the hdl in the global variable */
 	gl_mqa_hdl = cb->agent_handle_id;
 
@@ -227,38 +228,38 @@ static uint32_t mqa_create(NCS_LIB_CREATE *create_info)
 
 	/* initialize the mqa cb lock */
 	if ((rc = m_NCS_LOCK_INIT(&cb->cb_lock)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_CB_LOCK_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__);
-		goto error2;
+		TRACE_2("Cotnrol Block Lock Initialisation Failed eith return value %d", rc);
+		goto error1;
 	}
-	m_LOG_MQSV_A(MQA_CB_LOCK_INIT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("Control Block lock initialization Success");
 
 	/* initialize the client tree */
 	if ((rc = mqa_client_tree_init(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_CLIENT_TREE_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		goto error3;
+		TRACE_2("FAILURE: Client database Initialization Failed");
+		goto error2;
 	}
 
-	m_LOG_MQSV_A(MQA_CLIENT_TREE_INIT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("Client Database Initialization Success");
 	/* initialize the queue tree */
 	if ((rc = mqa_queue_tree_init(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_QUEUE_TREE_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		goto error4;
+		TRACE_2("FAILURE: Queue database Initialization Failed");
+		goto error3;
 	}
-	m_LOG_MQSV_A(MQA_QUEUE_TREE_INIT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("Queue Database Initialization Success");
 
 	/* EDU initialisation */
 	if ((rc = m_NCS_EDU_HDL_INIT(&cb->edu_hdl)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_EDU_HDL_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		goto error5;
+		TRACE_2("Edu Handle Initialization Failed");
+		goto error4;
 	}
 
-	m_LOG_MQSV_A(MQA_EDU_HDL_INIT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("EDU Handle Initialization Success");
 	/* register with MDS */
 	if ((rc = mqa_mds_register(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_MDS_REGISTER_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		goto error6;
+		TRACE_2("FAILURE: MDS registration Failed");
+		goto error5;
 	} else
-		m_LOG_MQSV_A(MQA_MDS_REGISTER_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__, __LINE__);
+		TRACE_1("MDS Registration Success");
 
 	/* Update clm_node_joined flag to 1 */
 
@@ -270,45 +271,42 @@ static uint32_t mqa_create(NCS_LIB_CREATE *create_info)
 
 	/* initialize the timeout linked list */
 	if ((rc = mqa_timer_table_init(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_TIMER_TABLE_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		goto error7;
+		TRACE_2("FAILURE: Tmr Initialization Failed");
+		goto error6;
 	}
 
 	if ((rc = mqa_asapi_register(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_REGISTER_WITH_ASAPi_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
-		goto error8;
+		TRACE_2("FAILURE: Registration with ASAPi Failed");
+		goto error7;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
- error8:
+ error7:
 	mqa_timer_table_destroy(cb);
 
- error7:
+ error6:
 	/* MDS unregister. */
 	mqa_mds_unregister(cb);
 
- error6:
-	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
-
  error5:
-	/* delete the tree */
-	mqa_queue_tree_destroy(cb);
+	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
 
  error4:
 	/* delete the tree */
-	mqa_client_tree_destroy(cb);
+	mqa_queue_tree_destroy(cb);
+
  error3:
+	/* delete the tree */
+	mqa_client_tree_destroy(cb);
+ error2:
 	/* destroy the lock */
 	m_NCS_LOCK_DESTROY(&cb->cb_lock);
 
- error2:
+ error1:
 	/* remove the association with hdl-mngr */
 	ncshm_destroy_hdl(NCS_SERVICE_ID_MQA, cb->agent_handle_id);
- error1:
-	/* de register with the flex log */
-	mqa_flx_log_dereg();
 
 	return NCSCC_RC_FAILURE;
 }
@@ -327,6 +325,7 @@ static uint32_t mqa_create(NCS_LIB_CREATE *create_info)
 static uint32_t mqa_destroy(NCS_LIB_DESTROY *destroy_info)
 {
 	MQA_CB *cb = 0;
+	TRACE_ENTER();
 
 	/* validate the CB */
 	cb = (MQA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_MQA, gl_mqa_hdl);
@@ -340,7 +339,7 @@ static uint32_t mqa_destroy(NCS_LIB_DESTROY *destroy_info)
 	ncshm_destroy_hdl(NCS_SERVICE_ID_MQA, cb->agent_handle_id);
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)	{
-		TRACE("mqa_destroy Failed to acquire lock");
+		TRACE_4("FAILURE: mqa_destroy Failed to acquire lock");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -364,12 +363,10 @@ static uint32_t mqa_destroy(NCS_LIB_DESTROY *destroy_info)
 	/* destroy the lock */
 	m_NCS_LOCK_DESTROY(&cb->cb_lock);
 
-	/* de register with the flex log */
-	mqa_flx_log_dereg();
-
 	/* reset the global cb handle */
 	gl_mqa_hdl = 0;
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -388,6 +385,7 @@ static uint32_t mqa_asapi_register(MQA_CB *cb)
 {
 	ASAPi_OPR_INFO asapi_or;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* Register with ASAPi library */
 
@@ -399,9 +397,11 @@ static uint32_t mqa_asapi_register(MQA_CB *cb)
 	asapi_or.info.bind.i_mydest = cb->mqa_mds_dest;
 
 	if ((rc = asapi_opr_hdlr(&asapi_or)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_ASAPi_REGISTER_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: ASAPi Bind Failed");
 		return NCSCC_RC_FAILURE;
 	}
+
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -420,14 +420,17 @@ static void mqa_asapi_unregister(MQA_CB *cb)
 {
 	ASAPi_OPR_INFO asapi_or;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
 	/* Register with ASAPi library */
 
 	asapi_or.type = ASAPi_OPR_UNBIND;
 
 	if ((rc = asapi_opr_hdlr(&asapi_or)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_ASAPi_UNREGISTER_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("ASAPi Deregisteration Failed with returncode %d", rc);
 	}
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -445,11 +448,16 @@ static void mqa_asapi_unregister(MQA_CB *cb)
 static uint32_t mqa_client_tree_init(MQA_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
+	TRACE_ENTER();
+
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	param.key_size = sizeof(SaMsgHandleT);
 	if (ncs_patricia_tree_init(&cb->mqa_client_tree, &param) != NCSCC_RC_SUCCESS) {
+		TRACE_2("FAILURE: initialization of the client tree failed");
 		return NCSCC_RC_FAILURE;
 	}
+
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -467,10 +475,11 @@ static uint32_t mqa_client_tree_init(MQA_CB *cb)
 static void mqa_client_tree_destroy(MQA_CB *mqa_cb)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
 	/* take the cb lock */
 	if ((rc = m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_CLIENT_TREE_DESTROY_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Client database Finalization Failed");
 		return;
 	}
 	/* cleanup the client tree */
@@ -482,6 +491,7 @@ static void mqa_client_tree_destroy(MQA_CB *mqa_cb)
 	/* giveup the cb lock */
 	m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -501,6 +511,7 @@ static void mqa_client_tree_cleanup(MQA_CB *mqa_cb)
 	MQA_CLIENT_INFO *client_info;
 	SaMsgHandleT *temp_ptr = 0;
 	SaMsgHandleT temp_hdl = 0;
+	TRACE_ENTER();
 
 	/* scan the entire handle db & delete each record */
 	while ((client_info = (MQA_CLIENT_INFO *)
@@ -512,6 +523,7 @@ static void mqa_client_tree_cleanup(MQA_CB *mqa_cb)
 		mqa_client_tree_delete_node(mqa_cb, client_info);
 	}
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -570,6 +582,8 @@ uint32_t mqa_client_tree_delete_node(MQA_CB *mqa_cb, MQA_CLIENT_INFO *client_inf
 	SaNameT temp_name;
 	uint8_t *value = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
 	/* scan the entire group track db & delete each record */
 	while ((track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_getnext(&client_info->mqa_track_tree, value))) {
 		/* delete the track info */
@@ -579,8 +593,7 @@ uint32_t mqa_client_tree_delete_node(MQA_CB *mqa_cb, MQA_CLIENT_INFO *client_inf
 		/* delete from the tree */
 		if ((rc = ncs_patricia_tree_del(&client_info->mqa_track_tree,
 						&track_info->patnode)) != NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_A(MQA_TRACK_TREE_DEL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			TRACE_2("Track Database Deregistration Failed");
 
 		/* free the mem */
 		if (track_info->notificationBuffer.notification)
@@ -593,10 +606,11 @@ uint32_t mqa_client_tree_delete_node(MQA_CB *mqa_cb, MQA_CLIENT_INFO *client_inf
 
 	/* delete from the tree */
 	if ((rc = ncs_patricia_tree_del(&mqa_cb->mqa_client_tree, &client_info->patnode)) != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_A(MQA_CLIENT_TREE_DEL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("Client database Deregistration Failed");
 
 	/* free the mem */
 	m_MMGR_FREE_MQA_CLIENT_INFO(client_info);
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -622,6 +636,7 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
 	MQA_CLIENT_INFO *client_info = NULL;
 	NCS_PATRICIA_PARAMS param;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	client_info = (MQA_CLIENT_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_client_tree, (uint8_t *)&hdl_id);
 
@@ -630,8 +645,7 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
 		if (!client_info) {
 			client_info = (MQA_CLIENT_INFO *)m_MMGR_ALLOC_MQA_CLIENT_INFO;
 			if (!client_info) {
-				m_LOG_MQSV_A(MQA_CLIENT_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__,
-					     __LINE__);
+				TRACE_4("Client database creation failed");
 				return NULL;
 			}
 			memset(client_info, 0, sizeof(MQA_CLIENT_INFO));
@@ -642,8 +656,7 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
 			if ((rc =
 			     ncs_patricia_tree_add(&mqa_cb->mqa_client_tree,
 						   &client_info->patnode)) != NCSCC_RC_SUCCESS) {
-				m_LOG_MQSV_A(MQA_CLIENT_TREE_ADD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				TRACE_2("Client database Registration Failed");
 				m_MMGR_FREE_MQA_CLIENT_INFO(client_info);
 				return NULL;
 			}
@@ -652,12 +665,14 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
 			memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 			param.key_size = SA_MAX_NAME_LENGTH;
 			if (ncs_patricia_tree_init(&client_info->mqa_track_tree, &param) != NCSCC_RC_SUCCESS) {
+				TRACE_2("Initialization of the client tree failed");
 				m_MMGR_FREE_MQA_CLIENT_INFO(client_info);
 				return NULL;
 			}
 
 		}
 	}
+	TRACE_LEAVE();
 	return client_info;
 }
 
@@ -682,6 +697,7 @@ MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaName
 {
 	MQA_TRACK_INFO *track_info = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_get(&client_info->mqa_track_tree, (uint8_t *)group->value);
 
@@ -690,8 +706,7 @@ MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaName
 		if (!track_info) {
 			track_info = (MQA_TRACK_INFO *)m_MMGR_ALLOC_MQA_TRACK_INFO;
 			if (!track_info) {
-				m_LOG_MQSV_A(MQA_TRACK_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__,
-					     __LINE__);
+				TRACE_2("Track database creation failed");
 				return NULL;
 			}
 			memset(track_info, 0, sizeof(MQA_TRACK_INFO));
@@ -699,8 +714,7 @@ MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaName
 			track_info->patnode.key_info = (uint8_t *)track_info->queueGroupName.value;
 			if ((rc = ncs_patricia_tree_add(&client_info->mqa_track_tree,
 							&track_info->patnode)) != NCSCC_RC_SUCCESS) {
-				m_LOG_MQSV_A(MQA_TRACK_TREE_ADD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				TRACE_2("Track Database Registration Failed");
 				if (track_info->notificationBuffer.notification)
 					m_MMGR_FREE_MQA_TRACK_BUFFER_INFO(track_info->notificationBuffer.notification);
 				m_MMGR_FREE_MQA_TRACK_INFO(track_info);
@@ -709,6 +723,7 @@ MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaName
 
 		}
 	}
+	TRACE_LEAVE();
 	return track_info;
 
 }
@@ -732,6 +747,7 @@ bool mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *group)
 {
 	MQA_TRACK_INFO *track_info = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_get(&client_info->mqa_track_tree, (uint8_t *)group->value);
 
@@ -739,7 +755,7 @@ bool mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *group)
 		return false;
 
 	if ((rc = ncs_patricia_tree_del(&client_info->mqa_track_tree, &track_info->patnode)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_TRACK_TREE_DEL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("Track Database Deregistration Failed");
 		if (track_info->notificationBuffer.notification)
 			m_MMGR_FREE_MQA_TRACK_BUFFER_INFO(track_info->notificationBuffer.notification);
 		m_MMGR_FREE_MQA_TRACK_INFO(track_info);
@@ -750,6 +766,7 @@ bool mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *group)
 		m_MMGR_FREE_MQA_TRACK_BUFFER_INFO(track_info->notificationBuffer.notification);
 	m_MMGR_FREE_MQA_TRACK_INFO(track_info);
 
+	TRACE_LEAVE();
 	return true;
 }
 
@@ -767,12 +784,16 @@ bool mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *group)
 static uint32_t mqa_queue_tree_init(MQA_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
+	TRACE_ENTER();
+
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	param.key_size = sizeof(SaMsgQueueHandleT);
 	if ((rc = ncs_patricia_tree_init(&cb->mqa_queue_tree, &param)) != NCSCC_RC_SUCCESS) {
+		TRACE_2("Initialization of the queue tree failed");
 		return rc;
 	}
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -790,10 +811,11 @@ static uint32_t mqa_queue_tree_init(MQA_CB *cb)
 static void mqa_queue_tree_destroy(MQA_CB *mqa_cb)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
 	/* take the cb lock */
 	if ((rc = (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE))) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_QUEUE_TREE_DESTROY_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
+		TRACE_2("Queue database Finalization Failed");
 		return;
 	}
 
@@ -806,6 +828,7 @@ static void mqa_queue_tree_destroy(MQA_CB *mqa_cb)
 	/* giveup the cb lock */
 	m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -826,6 +849,7 @@ static void mqa_queue_tree_cleanup(MQA_CB *mqa_cb)
 	SaMsgQueueHandleT *temp_ptr = NULL;
 	SaMsgQueueHandleT temp_hdl;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* scan the entire handle db & delete each record */
 	while ((queue_info = (MQA_QUEUE_INFO *)
@@ -835,8 +859,7 @@ static void mqa_queue_tree_cleanup(MQA_CB *mqa_cb)
 
 		/* delete the client info */
 		if ((rc = ncs_patricia_tree_del(&mqa_cb->mqa_queue_tree, &queue_info->patnode)) != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_A(MQA_QUEUE_TREE_DEL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			TRACE_2("Queue database Deregistration Failed");
 		} else {
 			/* free the mem */
 			m_MMGR_FREE_MQA_QUEUE_INFO(queue_info);
@@ -844,6 +867,7 @@ static void mqa_queue_tree_cleanup(MQA_CB *mqa_cb)
 
 	}
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -871,6 +895,8 @@ MQA_QUEUE_INFO *mqa_queue_tree_find_and_add(MQA_CB *mqa_cb,
 {
 	MQA_QUEUE_INFO *queue_info = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
 	/* read lock taken by the caller. */
 	queue_info = (MQA_QUEUE_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_queue_tree, (uint8_t *)&hdl_id);
 
@@ -879,8 +905,7 @@ MQA_QUEUE_INFO *mqa_queue_tree_find_and_add(MQA_CB *mqa_cb,
 		if (!queue_info) {
 			queue_info = (MQA_QUEUE_INFO *)m_MMGR_ALLOC_MQA_QUEUE_INFO;
 			if (!queue_info) {
-				m_LOG_MQSV_A(MQA_QUEUE_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__,
-					     __LINE__);
+				TRACE_2("Queue database creation failed");
 				return NULL;
 			}
 			memset(queue_info, 0, sizeof(MQA_QUEUE_INFO));
@@ -893,8 +918,7 @@ MQA_QUEUE_INFO *mqa_queue_tree_find_and_add(MQA_CB *mqa_cb,
 			if ((rc =
 			     ncs_patricia_tree_add(&mqa_cb->mqa_queue_tree,
 						   &queue_info->patnode)) != NCSCC_RC_SUCCESS) {
-				m_LOG_MQSV_A(MQA_QUEUE_TREE_ADD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				TRACE_2("Queue database Registration Failed");
 				m_MMGR_FREE_MQA_QUEUE_INFO(queue_info);
 
 				return NULL;
@@ -902,6 +926,7 @@ MQA_QUEUE_INFO *mqa_queue_tree_find_and_add(MQA_CB *mqa_cb,
 
 		}
 	}
+	TRACE_LEAVE();
 	return queue_info;
 }
 
@@ -922,15 +947,17 @@ uint32_t mqa_queue_tree_delete_node(MQA_CB *mqa_cb, SaMsgQueueHandleT hdl_id)
 
 	MQA_QUEUE_INFO *queue_info = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
 	queue_info = (MQA_QUEUE_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_queue_tree, (uint8_t *)&hdl_id);
 	if (!queue_info) {
-
+		TRACE_2("FAILURE: Adding the queue in the queue tree is failed");
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* delete from the tree */
 	if ((rc = ncs_patricia_tree_del(&mqa_cb->mqa_queue_tree, &queue_info->patnode)) != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_A(MQA_QUEUE_TREE_DEL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("Queue database Deregistration Failed");
 
 	if (queue_info->task_handle != 0) {
 		/* m_NCS_TASK_STOP(queue_info->task_handle);
@@ -939,6 +966,7 @@ uint32_t mqa_queue_tree_delete_node(MQA_CB *mqa_cb, SaMsgQueueHandleT hdl_id)
 
 	/* free the mem */
 	m_MMGR_FREE_MQA_QUEUE_INFO(queue_info);
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1004,6 +1032,7 @@ unsigned int ncs_mqa_startup(void)
 unsigned int ncs_mqa_shutdown(void)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	m_MQA_AGENT_LOCK;
 	if (mqa_use_count > 1) {
@@ -1021,5 +1050,6 @@ unsigned int ncs_mqa_shutdown(void)
 	}
 
 	m_MQA_AGENT_UNLOCK;
+	TRACE_LEAVE();
 	return rc;
 }
