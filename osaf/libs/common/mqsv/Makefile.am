@@ -23,7 +23,7 @@ SUBDIRS = include
 noinst_LTLIBRARIES = libmqsv_common.la
 
 libmqsv_common_la_CPPFLAGS = \
-	-DNCS_MQA=1 -DNCS_MQSV_LOG=1 \
+	-DNCS_MQA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/mqsv/include
 

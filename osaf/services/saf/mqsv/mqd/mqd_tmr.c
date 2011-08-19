@@ -55,8 +55,7 @@ void mqd_timer_expiry(NCSCONTEXT uarg)
 		    != NULL) {
 			evt = m_MMGR_ALLOC_MQSV_EVT(NCS_SERVICE_ID_MQD);
 			if (evt == NULL) {
-				m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_TIMER, NCSFL_SEV_ERROR, 0, __FILE__,
-					     __LINE__);
+				LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
 				return;
 			}
 			memset(evt, 0, sizeof(MQSV_EVT));
@@ -83,7 +82,7 @@ void mqd_timer_expiry(NCSCONTEXT uarg)
  *****************************************************************************/
 uint32_t mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration)
 {
-	m_LOG_MQSV_D(MQD_TMR_START, NCSFL_LC_TIMER, NCSFL_SEV_NOTICE, duration, __FILE__, __LINE__);
+	TRACE_1("The timer started with the duration as %u", (uint32_t)duration);
 	if (tmr->tmr_id == TMR_T_NULL) {
 		m_NCS_TMR_CREATE(tmr->tmr_id, duration, mqd_timer_expiry, (void *)tmr);
 	}
@@ -109,7 +108,7 @@ uint32_t mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration)
  *****************************************************************************/
 void mqd_tmr_stop(MQD_TMR *tmr)
 {
-	m_LOG_MQSV_D(MQD_TMR_STOPPED, NCSFL_LC_TIMER, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__);
+	TRACE_1("The timer stopped");
 	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
 		tmr->is_active = false;

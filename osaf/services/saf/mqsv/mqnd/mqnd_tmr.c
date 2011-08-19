@@ -42,6 +42,7 @@ static void mqnd_timer_expiry(NCSCONTEXT uarg)
 	MQND_CB *cb;
 	MQSV_EVT *evt;
 	uint32_t mqnd_hdl;
+	TRACE_ENTER();
 
 	if (tmr != NULL) {
 		mqnd_hdl = tmr->uarg;
@@ -58,13 +59,11 @@ static void mqnd_timer_expiry(NCSCONTEXT uarg)
 		if ((cb = (MQND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_MQND, mqnd_hdl))
 		    != NULL) {
 			if (cb->mqa_timer.type == MQND_TMR_TYPE_MQA_EXPIRY) {
-				m_LOG_MQSV_ND(MQND_MQA_TMR_EXPIRED, NCSFL_LC_TIMER, NCSFL_SEV_NOTICE, NCSCC_RC_SUCCESS,
-					      __FILE__, __LINE__);
+				LOG_ER("The MQA timer expired");
 			}
 			evt = m_MMGR_ALLOC_MQSV_EVT(NCS_SERVICE_ID_MQND);
 			if (evt == NULL) {
-				m_LOG_MQSV_ND(MQND_EVT_ALLOC_FAILED, NCSFL_LC_TIMER, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-					      __FILE__, __LINE__);
+				LOG_CR("Event Database Creation Failed");
 				return;
 			}
 			evt->evt_type = MQSV_NOT_DSEND_EVENT;
@@ -80,6 +79,7 @@ static void mqnd_timer_expiry(NCSCONTEXT uarg)
 			ncshm_give_hdl(mqnd_hdl);
 		}
 	}
+	TRACE_LEAVE();
 	return;
 }
 
@@ -91,7 +91,7 @@ static void mqnd_timer_expiry(NCSCONTEXT uarg)
  *****************************************************************************/
 uint32_t mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration)
 {
-	m_LOG_MQSV_ND(MQND_TMR_STARTED, NCSFL_LC_TIMER, NCSFL_SEV_INFO, NCSCC_RC_SUCCESS, __FILE__, __LINE__);
+	TRACE_1("Timer Started");
 	if (tmr->tmr_id == TMR_T_NULL) {
 		m_NCS_TMR_CREATE(tmr->tmr_id, duration, mqnd_timer_expiry, (void *)tmr);
 	}

@@ -61,8 +61,7 @@ uint32_t mqa_timer_table_init(MQA_CB *mqa_cb)
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		return NCSCC_RC_FAILURE;
 
 	}
@@ -74,8 +73,7 @@ uint32_t mqa_timer_table_init(MQA_CB *mqa_cb)
 	tmr_init_info.tmr_ganularity = 1;	/* in secs */
 
 	if ((mqa_cb->mqa_tmr_cb = m_NCS_RP_TMR_INIT(&tmr_init_info)) == NULL) {
-		m_LOG_MQSV_A(MQA_CB_TIMER_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Tmr initialization Failed");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		return NCSCC_RC_FAILURE;
 	}
@@ -108,8 +106,7 @@ void mqa_timer_table_destroy(MQA_CB *mqa_cb)
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("Control block retrieval failed");
 		return;
 
 	}
@@ -157,8 +154,7 @@ static void mqa_main_timeout_handler(void *arg)
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("Control block retrieval failed");
 		return;
 	}
 
@@ -195,8 +191,7 @@ static void mqa_node_timeout_handler(void *arg)
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("Control block retrieval failed");
 		return;
 	}
 
@@ -265,21 +260,18 @@ uint32_t mqa_create_and_start_timer(MQP_ASYNC_RSP_MSG *mqa_callback, SaInvocatio
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		return NCSCC_RC_FAILURE;
 	}
 
 	if ((tmr_id = ncs_rp_tmr_create(mqa_cb->mqa_tmr_cb)) == 0) {
-		m_LOG_MQSV_A(MQA_CB_TMR_CREATE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Tmr Create Failed");
 		goto err1;
 	}
 
 	callback = m_MMGR_ALLOC_MQP_ASYNC_RSP_MSG;
 	if (!callback) {
-		m_LOG_MQSV_A(MQP_ASYNC_RSP_MSG_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			     __FILE__, __LINE__);
+		TRACE_4("FAILURE: MQP Async Rsp Message Allocation Failed");
 		goto err2;
 	}
 	memset(callback, 0, sizeof(MQP_ASYNC_RSP_MSG));
@@ -289,7 +281,7 @@ uint32_t mqa_create_and_start_timer(MQP_ASYNC_RSP_MSG *mqa_callback, SaInvocatio
 	if ((rc = ncs_rp_tmr_start(mqa_cb->mqa_tmr_cb, tmr_id,
 				   MQA_ASYNC_TIMEOUT_DEFAULT, mqa_node_timeout_handler,
 				   (void *)callback)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_CB_TMR_START_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Tmr Start Failed");
 		goto err3;
 	}
 
@@ -297,8 +289,7 @@ uint32_t mqa_create_and_start_timer(MQP_ASYNC_RSP_MSG *mqa_callback, SaInvocatio
 
 	node = (MQA_TMR_NODE *)m_MMGR_ALLOC_MQA_TMR_NODE;
 	if (!node) {
-		m_LOG_MQSV_A(MQA_TIMER_NODE_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			     __FILE__, __LINE__);
+		TRACE_4("FAILURE: Tmr database creation failed");
 		goto err4;
 	}
 
@@ -391,8 +382,7 @@ uint32_t mqa_stop_and_delete_timer(MQP_ASYNC_RSP_MSG *mqa_callbk_info)
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		return rc;
 	}
 
@@ -415,13 +405,13 @@ uint32_t mqa_stop_and_delete_timer(MQP_ASYNC_RSP_MSG *mqa_callbk_info)
 	}
 
 	if ((rc = ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_CB_TMR_STOP_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Tmr Stop Failed");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		return rc;
 	}
 
 	if ((rc = ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_CB_TMR_DELETE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Tmr Deletion Failed");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		return rc;
 	}
@@ -466,8 +456,7 @@ uint32_t mqa_stop_and_delete_timer_by_invocation(void *key)
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		return rc;
 	}
 
@@ -478,13 +467,13 @@ uint32_t mqa_stop_and_delete_timer_by_invocation(void *key)
 	}
 
 	if ((rc = ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_CB_TMR_STOP_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Tmr Stop Failed");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		return rc;
 	}
 
 	if ((rc = ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_CB_TMR_DELETE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Tmr Deletion Failed");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		return rc;
 	}
@@ -534,8 +523,7 @@ static void mqa_cleanup_senderid(void *arg)
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("Control block retrieval failed");
 		return;
 	}
 
@@ -577,14 +565,12 @@ uint32_t mqa_create_and_start_senderid_timer()
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
-		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Control block retrieval failed");
 		return NCSCC_RC_FAILURE;
 	}
 
 	if ((tmr_id = ncs_rp_tmr_create(mqa_cb->mqa_tmr_cb)) == 0) {
-		m_LOG_MQSV_A(MQA_CB_TMR_CREATE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			     __LINE__);
+		TRACE_2("FAILURE: Tmr Create Failed");
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		return NCSCC_RC_FAILURE;
 	}
@@ -592,7 +578,7 @@ uint32_t mqa_create_and_start_senderid_timer()
 	if ((rc = ncs_rp_tmr_start(mqa_cb->mqa_tmr_cb, tmr_id,
 				   MQSV_SENDERID_CLEANUP_INTERVAL, mqa_cleanup_senderid,
 				   (void *)NULL)) == NCSCC_RC_FAILURE) {
-		m_LOG_MQSV_A(MQA_CB_TMR_START_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Tmr Start Failed");
 		ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_id);
 		m_MQSV_MQA_GIVEUP_MQA_CB;
 		return NCSCC_RC_FAILURE;
@@ -644,13 +630,12 @@ uint32_t mqa_destroy_senderid_timers(MQA_CB *mqa_cb)
 	ncs_destroy_queue(&(mqa_cb->mqa_senderid_list));
 
 	if ((rc = ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, mqa_cb->mqa_senderid_tmr)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_A(MQA_CB_TMR_STOP_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Tmr Stop Failed");
 		return NCSCC_RC_FAILURE;
 	}
 
 	if ((rc = ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, mqa_cb->mqa_senderid_tmr)) != NCSCC_RC_SUCCESS) {
-
-		m_LOG_MQSV_A(MQA_CB_TMR_DELETE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		TRACE_2("FAILURE: Tmr Deletion Failed");
 		return NCSCC_RC_FAILURE;
 	}
 

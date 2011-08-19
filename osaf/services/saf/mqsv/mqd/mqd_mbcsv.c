@@ -104,7 +104,7 @@ void mqd_a2s_async_update(MQD_CB *pMqd, MQD_A2S_MSG_TYPE type, void *pmesg)
 		mqd_a2s_mqnd_timer_exp_info(&async_msg, pmesg);
 		break;
 	default:
-		m_LOG_MQSV_D(MQD_RED_BAD_A2S_TYPE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, type, __FILE__, __LINE__);
+		LOG_ER("Bad Active to Standby Message Type");
 	}
 
 /* Send the aync_msg to the standby MQD using the MBCSv_SEND function */
@@ -284,6 +284,7 @@ static uint32_t mqd_mbcsv_init(MQD_CB *pMqd)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -293,12 +294,13 @@ static uint32_t mqd_mbcsv_init(MQD_CB *pMqd)
 	arg.info.initialize.i_service = NCS_SERVICE_ID_CPD;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
+		LOG_ER("MBCSV initialization Failed");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_RED_MBCSV_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return rc;
 	}
 
 	pMqd->mbcsv_hdl = arg.info.initialize.o_mbcsv_hdl;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -319,6 +321,7 @@ static uint32_t mqd_mbcsv_open(MQD_CB *pMqd)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	arg.i_op = NCS_MBCSV_OP_OPEN;
@@ -328,12 +331,13 @@ static uint32_t mqd_mbcsv_open(MQD_CB *pMqd)
 	arg.info.open.i_client_hdl = pMqd->hdl;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
+		LOG_ER("MBCSV Open Failed");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_RED_MBCSV_OPEN_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		mqd_mbcsv_finalize(pMqd);
 		return rc;
 	}
 	pMqd->o_ckpt_hdl = arg.info.open.o_ckpt_hdl;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -355,6 +359,7 @@ uint32_t mqd_mbcsv_finalize(MQD_CB *pMqd)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	arg.i_op = NCS_MBCSV_OP_FINALIZE;
@@ -362,10 +367,10 @@ uint32_t mqd_mbcsv_finalize(MQD_CB *pMqd)
 	arg.i_mbcsv_hdl = pMqd->mbcsv_hdl;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
+		LOG_ER("MBCSV Finalize Failed");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_RED_MBCSV_FINALIZE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -387,16 +392,17 @@ static uint32_t mqd_mbcsv_selobj_get(MQD_CB *pMqd)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
 	arg.i_mbcsv_hdl = pMqd->mbcsv_hdl;
 	if (ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS) {
+		LOG_ER("MBCSV SelObjGet Failed");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_RED_MBCSV_SELOBJGET_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			     __LINE__);
 	}
 	pMqd->mbcsv_sel_obj = arg.info.sel_obj_get.o_select_obj;
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -418,6 +424,7 @@ uint32_t mqd_mbcsv_chgrole(MQD_CB *pMqd)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -428,12 +435,12 @@ uint32_t mqd_mbcsv_chgrole(MQD_CB *pMqd)
 							   at the time of amf_init where csi_set_callback will assign the state */
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
+		LOG_ER("MBCSV ChangeRole Failed");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_RED_MBCSV_CHGROLE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return rc;
 	}
-	m_LOG_MQSV_D(MQD_RED_MBCSV_CHGROLE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, pMqd->ha_state, __FILE__,
-		     __LINE__);
+	TRACE_1("MBCSV ChangeRole Success with HA_STATE %d", pMqd->ha_state);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -455,6 +462,7 @@ static uint32_t mqd_mbcsv_async_update(MQD_CB *pMqd, MQD_A2S_MSG *pasync_msg)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -468,12 +476,10 @@ static uint32_t mqd_mbcsv_async_update(MQD_CB *pMqd, MQD_A2S_MSG *pasync_msg)
 	arg.info.send_ckpt.i_action = NCS_MBCSV_ACT_UPDATE;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
-		m_LOG_MQSV_D(MQD_RED_MBCSV_ASYNCUPDATE_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, pasync_msg->type,
-			     __FILE__, __LINE__);
+		LOG_ER("MBCSV AsyncUpdate Failure for type %d", pasync_msg->type);
 		rc = NCSCC_RC_FAILURE;
 	}
-	m_LOG_MQSV_D(MQD_RED_MBCSV_ASYNCUPDATE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, pasync_msg->type, __FILE__,
-		     __LINE__);
+	TRACE_1("MBCSV AsyncUpdate Success for type %d", pasync_msg->type);
 	return rc;
 }
 
@@ -494,7 +500,10 @@ static uint32_t mqd_mbcsv_async_update(MQD_CB *pMqd, MQD_A2S_MSG *pasync_msg)
 static uint32_t mqd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+	
 	if (arg == NULL) {
+		LOG_ER("MBCSv Callback NULL arg received");
 		return NCSCC_RC_FAILURE;
 	}
 	switch (arg->i_op) {
@@ -526,6 +535,8 @@ static uint32_t mqd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 
 	}
 
+	TRACE_1("MBCSv Callback Success");
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -548,6 +559,7 @@ static uint32_t mqd_ckpt_encode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
 	MQD_A2S_MSG *mqd_msg = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/*  Increment the async update count  */
 	pMqd->mqd_sync_updt_count++;
@@ -558,36 +570,30 @@ static uint32_t mqd_ckpt_encode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
 	if (rc != NCSCC_RC_SUCCESS) {
 		switch (mqd_msg->type) {
 		case MQD_A2S_MSG_TYPE_REG:
-			m_LOG_MQSV_D(MQD_RED_MBCSV_ASYNCUPDATE_REG_ENC_EDU_ERROR, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     rc, __FILE__, __LINE__);
+			LOG_ER("MBCSV Reg Encode EDU Error");
 			rc = NCSCC_RC_FAILURE;
 			break;
 
 		case MQD_A2S_MSG_TYPE_DEREG:
-			m_LOG_MQSV_D(MQD_RED_MBCSV_ASYNCUPDATE_DEREG_ENC_EDU_ERROR, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     rc, __FILE__, __LINE__);
+			LOG_ER("MBCSV Dereg Encode EDU Error");
 			rc = NCSCC_RC_FAILURE;
 			break;
 
 		case MQD_A2S_MSG_TYPE_TRACK:
-			m_LOG_MQSV_D(MQD_RED_MBCSV_ASYNCUPDATE_TRACK_ENC_EDU_ERROR, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     rc, __FILE__, __LINE__);
+			LOG_ER("MBCSV Track Encode EDU Error");
 			rc = NCSCC_RC_FAILURE;
 			break;
 
 		case MQD_A2S_MSG_TYPE_USEREVT:
-			m_LOG_MQSV_D(MQD_RED_MBCSV_ASYNCUPDATE_USEREVT_ENC_EDU_ERROR, NCSFL_LC_MQSV_INIT,
-				     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+			LOG_ER("MBCSV Userevt Encode EDU Error");
 			rc = NCSCC_RC_FAILURE;
 			break;
 		case MQD_A2S_MSG_TYPE_MQND_STATEVT:
-			m_LOG_MQSV_D(MQD_RED_MBCSV_ASYNCUPDATE_NDSTAT_ENC_EDU_ERROR, NCSFL_LC_MQSV_INIT,
-				     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+			LOG_ER("MBCSV Ndstat Encode EDU Error");
 			rc = NCSCC_RC_FAILURE;
 			break;
 		case MQD_A2S_MSG_TYPE_MQND_TIMER_EXPEVT:
-			m_LOG_MQSV_D(MQD_RED_MBCSV_ASYNCUPDATE_NDTMREXP_ENC_EDU_ERROR, NCSFL_LC_MQSV_INIT,
-				     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+			LOG_ER("MBCSV Ndtimer Expiry Encode EDU Error");
 			rc = NCSCC_RC_FAILURE;
 			break;
 		default:
@@ -595,6 +601,7 @@ static uint32_t mqd_ckpt_encode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
 		}
 
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -618,11 +625,12 @@ static uint32_t mqd_ckpt_decode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
 	MQD_A2S_MSG *mqd_msg = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	mqd_msg = m_MMGR_ALLOC_MQD_A2S_MSG;
 	if (mqd_msg == NULL) {
+		LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return rc;
 	}
 
@@ -634,37 +642,30 @@ static uint32_t mqd_ckpt_decode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
 	rc = m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqd_a2s_msg, &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &mqd_msg,
 			    &ederror);
 	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("MBCSV Reg Decode EDU Error");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_RED_MBCSV_ASYNCUPDATE_REG_DEC_EDU_ERROR, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-			     __FILE__, __LINE__);
 		goto end;
 	}
 	rc = mqd_process_a2s_event(pMqd, mqd_msg);
 	if (rc != NCSCC_RC_SUCCESS) {
 		switch (mqd_msg->type) {
 		case MQD_A2S_MSG_TYPE_REG:
-			m_LOG_MQSV_D(MQD_RED_STANDBY_REG_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			TRACE_2("ASAPi_REG_INFO processing at Standby failed");
 			goto end;
 		case MQD_A2S_MSG_TYPE_DEREG:
-			m_LOG_MQSV_D(MQD_RED_STANDBY_DEREG_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			TRACE_2("ASAPi_DEREG_INFO processing at Standby failed");
 			goto end;
 		case MQD_A2S_MSG_TYPE_TRACK:
-			m_LOG_MQSV_D(MQD_RED_STANDBY_TRACK_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			TRACE_2("ASAPi_TRACK_INFO processing at Standby failed");
 			goto end;
 		case MQD_A2S_MSG_TYPE_USEREVT:
-			m_LOG_MQSV_D(MQD_RED_STANDBY_USEREVT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			TRACE_2("ASAPi_USEREVT_INFO processing at Standby failed");
 			goto end;
 		case MQD_A2S_MSG_TYPE_MQND_STATEVT:
-			m_LOG_MQSV_D(MQD_RED_STANDBY_NDSTATINFO_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-				     __FILE__, __LINE__);
+			TRACE_2("ASAPi_NDSTATINFO_INFO processing at Standby failed");
 			goto end;
 		case MQD_A2S_MSG_TYPE_MQND_TIMER_EXPEVT:
-			m_LOG_MQSV_D(MQD_RED_STANDBY_NDTMREXP_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
+			TRACE_2("ASAPi_NDTMREXP_INFO processing at Standby failed");
 			goto end;
 		default:
 			goto end;
@@ -673,6 +674,7 @@ static uint32_t mqd_ckpt_decode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
 
  end:
 	m_MMGR_FREE_MQD_A2S_MSG(mqd_msg);
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -696,14 +698,15 @@ static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 
 	uint32_t rc = NCSCC_RC_SUCCESS, msg_fmt_version;
 	MQD_CB *pMqd = NULL;
+	TRACE_ENTER();
 
 	if (arg == NULL) {
 		return NCSCC_RC_SUCCESS;
 	}
 	/* Get MQD control block handle */
 	if (NULL == (pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl))) {
+		LOG_ER("%s:%u: CB Handle Take Failed", __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return rc;
 	}
 
@@ -712,9 +715,7 @@ static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 
 	if (!msg_fmt_version) {
 		/* Drop The Message */
-		m_LOG_MQSV_D(MQD_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-			     msg_fmt_version, __FILE__, __LINE__);
-		TRACE("mqd_mbcsv_ckpt_encode_cbk_handler:INVALID MSG FORMAT %d", msg_fmt_version);
+		LOG_ER("INVALID MSG FORMAT %d", msg_fmt_version);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -742,12 +743,10 @@ static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 				rc = mqd_ckpt_encode_cold_sync_data(pMqd, arg);
 				if (rc != NCSCC_RC_SUCCESS) {
 #if (NCS_MQA_DEBUG==1)
-					m_LOG_MQSV_D(MQD_RED_ACTIVE_COLD_SYNC_RESP_ENCODE_FAILURE, NCSFL_LC_MQSV_INIT,
-						     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+					TRACE_2("Active: Encode call back of Cold Sync Response Failed");
 #endif
 				} else {
-					m_LOG_MQSV_D(MQD_RED_ACTIVE_COLD_SYNC_RESP_ENCODE_SUCCESS, NCSFL_LC_MQSV_INIT,
-						     NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+					LOG_NO("Active: Encode call back of Cold Sync Response Success");
 				}
 			} else {
 				arg->info.decode.i_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
@@ -765,11 +764,9 @@ static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 		/* Encode Warm Sync response */
 		rc = mqd_ckpt_encode_warm_sync_response(pMqd, arg);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_D(MQD_RED_ACTIVE_WARM_SYNC_RESP_ENCODE_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     rc, __FILE__, __LINE__);
+			TRACE_2("Active: Encode call back of Warm Sync Response Failed");
 		} else {
-			m_LOG_MQSV_D(MQD_RED_ACTIVE_WARM_SYNC_RESP_ENCODE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO,
-				     rc, __FILE__, __LINE__);
+			LOG_NO("Active: Encode call back of Warm Sync Response Success");
 		}
 		break;
 
@@ -780,17 +777,17 @@ static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_DATA_RESP:
 		rc = mqd_ckpt_encode_cold_sync_data(pMqd, arg);
 		if (rc != NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_D(MQD_RED_ACTIVE_DATA_RESP_ENCODE_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-				     __FILE__, __LINE__);
+			TRACE_2("Active: Encode call back of Data Response Failed");
 		else
-			m_LOG_MQSV_D(MQD_RED_ACTIVE_DATA_RESP_ENCODE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc,
-				     __FILE__, __LINE__);
+			TRACE_1("Active: Encode call back of Data Response Success");
 		break;
 
 	default:
+		LOG_ER("Invalid NCS_MBCSV_MSG encode type %d", arg->info.encode.io_msg_type);
 		rc = NCSCC_RC_FAILURE;
 	}
 	ncshm_give_hdl(gl_mqdinfo.inst_hdl);	/* TBD  */
+	TRACE_LEAVE();
 	return rc;
 }	/* end of mqd_mbcsv_ckpt_encode_cbk_handler */
 
@@ -813,14 +810,14 @@ static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 
 	uint32_t rc = NCSCC_RC_SUCCESS, msg_fmt_version;
 	MQD_CB *pMqd = NULL;
+	TRACE_ENTER();
 
 	if (arg == NULL) {
 		return NCSCC_RC_SUCCESS;
 	}
 	/* Get MQD control block handle */
 	if (NULL == (pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl))) {
-		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: CB Handle Take Failed", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -829,9 +826,7 @@ static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 
 	if (!msg_fmt_version) {
 		/* Drop The Message */
-		m_LOG_MQSV_D(MQD_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-			     msg_fmt_version, __FILE__, __LINE__);
-		TRACE("mqd_mbcsv_ckpt_decode_cbk_handler:INVALID MSG FORMAT %d", msg_fmt_version);
+		LOG_ER("INVALID MSG FORMAT %d", msg_fmt_version);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -856,11 +851,9 @@ static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 		/* decode Cold Sync Response */
 		rc = mqd_ckpt_decode_cold_sync_resp(pMqd, arg);
 		if (rc != NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_D(MQD_RED_STANDBY_COLD_SYNC_RESP_DECODE_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     rc, __FILE__, __LINE__);
+			TRACE_2("Standby: Decode call back of Cold Sync Response Failed");
 		else
-			m_LOG_MQSV_D(MQD_RED_STANDBY_COLD_SYNC_RESP_DECODE_SUCCESS, NCSFL_LC_MQSV_INIT,
-				     NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+			LOG_NO("Standby: Decode call back of Cold Sync Response Success");
 		if (arg->info.decode.i_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) {
 			rc = NCSCC_RC_SUCCESS;
 			break;
@@ -878,11 +871,9 @@ static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 		/* Encode Warm Sync response */
 		rc = mqd_ckpt_decode_warm_sync_response(pMqd, arg);
 		if (rc != NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_D(MQD_RED_STANDBY_WARM_SYNC_RESP_DECODE_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-				     rc, __FILE__, __LINE__);
+			TRACE_2("Standby: Decode call back of Warm Sync Response Failed");
 		else
-			m_LOG_MQSV_D(MQD_RED_STANDBY_WARM_SYNC_RESP_DECODE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO,
-				     rc, __FILE__, __LINE__);
+			LOG_NO("Standby: Decode call back of Warm Sync Response Success");
 		break;
 
 	case NCS_MBCSV_MSG_DATA_REQ:
@@ -893,17 +884,17 @@ static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
 		rc = mqd_ckpt_decode_cold_sync_resp(pMqd, arg);
 		if (rc != NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_D(MQD_RED_STANDBY_DATA_RESP_DECODE_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-				     __FILE__, __LINE__);
+			TRACE_2("Standby: Decode call back of Data Response Failed");
 		else
-			m_LOG_MQSV_D(MQD_RED_STANDBY_DATA_RESP_DECODE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc,
-				     __FILE__, __LINE__);
+			TRACE_1("Standby: Decode call back of Data Response Success");
 		break;
 
 	default:
+		TRACE_2("Invalid NCS_MBCSV_MSG decode type %d", arg->info.decode.i_msg_type);
 		rc = NCSCC_RC_FAILURE;
 	}
 	ncshm_give_hdl(gl_mqdinfo.inst_hdl);	/* TBD  */
+	TRACE_LEAVE();
 	return rc;
 }	/* end of mqd_mbcsv_ckpt_decode_cbk_handler */
 
@@ -930,6 +921,7 @@ static uint32_t mqd_ckpt_encode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_AR
 
 	if (wsync_ptr == NULL) {
 		/*TBD */
+		LOG_ER("Failed to send the async update counter");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -976,8 +968,7 @@ static uint32_t mqd_ckpt_decode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_AR
 		ncs_arg.info.send_data_req.i_ckpt_hdl = pMqd->o_ckpt_hdl;
 		rc = ncs_mbcsv_svc(&ncs_arg);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_D(MQD_RED_MBCSV_DATA_REQ_SEND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-				     __FILE__, __LINE__);
+			LOG_ER("MBCSV Data Request Send Failed with error %d", rc);
 			return rc;
 		}
 	}
@@ -1017,9 +1008,11 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	uint32_t last_message = false;
 	EDU_ERR ederror = 0;
 	uint8_t *header, *sync_cnt_ptr;
+	TRACE_ENTER();
 
 	/* COLD_SYNC_RESP IS DONE BY THE ACTIVE */
 	if (pMqd->ha_state == SA_AMF_HA_STANDBY) {
+		LOG_ER("AMF state is Not Active");
 		rc = NCSCC_RC_FAILURE;
 		return rc;
 	}
@@ -1031,8 +1024,8 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	/*First reserve space to store the number of checkpoints that will be sent */
 	header = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (header == NULL) {
+		LOG_ER("Encode Reserve Space for Async Count Failed");
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(NCS_ENC_RESERVE_SPACE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1049,8 +1042,8 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 		/* Copy the Node info from Patrecia node to the ColdSync Structure */
 		rc = mqd_copy_data_to_cold_sync_structure(&queue_obj_info, &cold_sync_data.info.qinfo);
 		if (rc != NCSCC_RC_SUCCESS) {
-			/* Log the EDU Error */
 			/* TBD to free the memory already allocated */
+			TRACE_4("Failed to copy Node info to ColdSync Structure");
 			m_NCS_UNLOCK(q_rec_lock, NCS_LOCK_WRITE);
 			return rc;
 		}
@@ -1061,8 +1054,8 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 				    &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &cold_sync_data.info.qinfo, &ederror);
 
 		if (rc != NCSCC_RC_SUCCESS) {
-			/* Log the EDU Error */
 			/* TBD to free the memory already allocated */
+			LOG_ER("MBCSV Encode EDU Error");
 			m_NCS_UNLOCK(q_rec_lock, NCS_LOCK_WRITE);
 			return rc;
 		}
@@ -1099,9 +1092,9 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	   this will be 0 initially */
 	sync_cnt_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (sync_cnt_ptr == NULL) {
+		LOG_ER("Encode Reserve Space for Async Count Failed");
 		rc = NCSCC_RC_FAILURE;
 		/* TBD to free the memory already allocated */
-		m_LOG_MQSV_D(NCS_ENC_RESERVE_SPACE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1123,6 +1116,7 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 		memset(&pMqd->record_qindex_name, 0, sizeof(SaNameT));
 	}
 
+	TRACE_LEAVE();
 	return rc;
 
 }	/* function mqd_ckpt_encode_cold_sync_data() ends here. */
@@ -1149,6 +1143,7 @@ static uint32_t mqd_copy_data_to_cold_sync_structure(MQD_OBJ_INFO *obj_info, MQD
 	MQD_OBJECT_ELEM *pOelm = 0;
 	MQD_TRACK_OBJ *pTrkObj = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(mbcsv_info, 0, sizeof(MQD_A2S_QUEUE_INFO));
 	mbcsv_info->name = obj_info->name;
@@ -1158,9 +1153,8 @@ static uint32_t mqd_copy_data_to_cold_sync_structure(MQD_OBJ_INFO *obj_info, MQD
 	if (mbcsv_info->ilist_cnt) {
 		mbcsv_info->ilist_info = m_MMGR_ALLOC_MQD_DEFAULT_VAL(mbcsv_info->ilist_cnt * sizeof(SaNameT));
 		if (!mbcsv_info->ilist_info) {
+			LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory", __FILE__, __LINE__);
 			rc = SA_AIS_ERR_NO_MEMORY;
-			m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
 			return SA_AIS_ERR_NO_MEMORY;
 		}
 	}
@@ -1169,9 +1163,8 @@ static uint32_t mqd_copy_data_to_cold_sync_structure(MQD_OBJ_INFO *obj_info, MQD
 		mbcsv_info->track_info =
 		    m_MMGR_ALLOC_MQD_DEFAULT_VAL(mbcsv_info->track_cnt * sizeof(MQD_A2S_TRACK_INFO));
 		if (!mbcsv_info->track_info) {
+			LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory", __FILE__, __LINE__);
 			rc = SA_AIS_ERR_NO_MEMORY;
-			m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
 			return SA_AIS_ERR_NO_MEMORY;
 		}
 	}
@@ -1189,6 +1182,7 @@ static uint32_t mqd_copy_data_to_cold_sync_structure(MQD_OBJ_INFO *obj_info, MQD
 		mbcsv_info->track_info[index].dest = pTrkObj->dest;
 		mbcsv_info->track_info[index].to_svc = pTrkObj->to_svc;
 	}
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1220,14 +1214,15 @@ static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	uint8_t *ptr;
 	EDU_ERR ederror = 0;
 	MQD_A2S_QUEUE_INFO *mbcsv_info = 0;
+	TRACE_ENTER();
 
 	if (arg->info.decode.i_uba.ub == NULL) {	/* There is no data */
 		return NCSCC_RC_SUCCESS;
 	}
 	mbcsv_info = m_MMGR_ALLOC_MQD_DEFAULT_VAL(sizeof(MQD_A2S_QUEUE_INFO));
 	if (mbcsv_info == NULL) {
+		LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return rc;
 	}
 
@@ -1245,6 +1240,7 @@ static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 				    &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &mbcsv_info, &ederror);
 
 		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("m_NCS_EDU_EXEC failed");
 			if (mbcsv_info)
 				m_MMGR_FREE_MQD_DEFAULT_VAL(mbcsv_info);
 			return rc;
@@ -1252,6 +1248,7 @@ static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 
 		rc = mqd_a2s_make_record_from_coldsync(pMqd, *mbcsv_info);
 		if (rc != NCSCC_RC_SUCCESS) {
+			TRACE_2("mqd_a2s_make_record_from_coldsync function failed");
 			m_MMGR_FREE_MQD_DEFAULT_VAL(mbcsv_info);
 			return rc;
 		}
@@ -1276,10 +1273,8 @@ static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	    (arg->info.decode.i_msg_type == NCS_MBCSV_MSG_DATA_RESP_COMPLETE)) {
 		pMqd->cold_or_warm_sync_on = false;
 	}
-	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_D(MQD_RED_STANDBY_COLD_SYNC_RESP_DECODE_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-			     __FILE__, __LINE__);
 
+	TRACE_LEAVE();
 	return rc;
 }	/*mqd_ckpt_decode_cold_sync_resp()  */
 
@@ -1307,6 +1302,7 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 	SaNameT record_qindex_name;
 	MQD_OBJECT_ELEM *pOelm = 0;
 	uint32_t new_record = 0;
+	TRACE_ENTER();
 
 	/* Read the data of queueinformation and write to the q_obj_node */
 	memset(&record_qindex_name, 0, sizeof(SaNameT));
@@ -1316,9 +1312,8 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 	if (!q_obj_node) {
 		rc = mqd_db_node_create(pMqd, &q_obj_node);
 		if (rc != NCSCC_RC_SUCCESS) {
+			TRACE_4("OBJ_NODE allocation Failed");
 			rc = NCSCC_RC_FAILURE;
-			m_LOG_MQSV_D(MQD_OBJ_NODE_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 		new_record = 1;
@@ -1336,13 +1331,13 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 			rc = mqd_db_node_create(pMqd, &q_node);
 			if (rc != NCSCC_RC_SUCCESS) {
 				/* Error while creating the node */
-				m_LOG_MQSV_D(MQD_OBJ_NODE_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-					     __FILE__, __LINE__);
+				TRACE_4("OBJ_NODE allocation Failed");
 				return NCSCC_RC_FAILURE;
 			}
 			q_node->oinfo.name = q_data_msg.ilist_info[index];
 			rc = mqd_db_node_add(pMqd, q_node);
 			if (rc != NCSCC_RC_SUCCESS) {
+				LOG_ER("Addition of Object node into the Tree failed");
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -1353,9 +1348,8 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 			/*Create the Queue Element */
 			pOelm = m_MMGR_ALLOC_MQD_OBJECT_ELEM;
 			if (!pOelm) {
+				LOG_CR("ERR_MEMORY: Failed To Allocate Memory for Queue Element");
 				rc = NCSCC_RC_FAILURE;
-				m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-					     __LINE__);
 				return SA_AIS_ERR_NO_MEMORY;
 			}
 			memset(pOelm, 0, sizeof(MQD_OBJECT_ELEM));
@@ -1370,9 +1364,8 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 	for (index = 0; index < q_data_msg.track_cnt; index++) {
 		q_track_obj = m_MMGR_ALLOC_MQD_TRACK_OBJ;
 		if (q_track_obj == NULL) {
+			LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory", __FILE__, __LINE__);
 			rc = NCSCC_RC_FAILURE;
-			m_LOG_MQSV_D(MQD_RED_TRACK_OBJ_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-				     __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 		memset(q_track_obj, 0, sizeof(MQD_TRACK_OBJ));
@@ -1383,8 +1376,9 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 	if (new_record)
 		rc = mqd_db_node_add(pMqd, q_obj_node);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_D(MQD_DB_ADD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("Database Operation (ADD) Failed");
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1403,8 +1397,10 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 
 static uint32_t mqd_db_del_all_records(MQD_CB *pMqd)
 {
-	if (!pMqd->qdb_up)
+	if (!pMqd->qdb_up) {
+		LOG_ER("Queue Database is down"); 
 		return NCSCC_RC_FAILURE;
+	}
 
 	mqd_queue_db_clean_up(pMqd);
 

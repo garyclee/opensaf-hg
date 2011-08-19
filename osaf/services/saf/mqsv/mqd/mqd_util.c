@@ -109,10 +109,13 @@ void mqd_db_node_del(MQD_CB *pMqd, MQD_OBJ_NODE *pNode)
 uint32_t mqd_db_node_create(MQD_CB *pMqd, MQD_OBJ_NODE **o_pnode)
 {
 	MQD_OBJ_NODE *pNode = 0;
+	TRACE_ENTER();
 
 	pNode = m_MMGR_ALLOC_MQD_OBJ_NODE;
-	if (!pNode)
+	if (!pNode) {
+		LOG_CR("MQD_OBJ_NODE Memory Allocation failed");
 		return NCSCC_RC_FAILURE;
+	}
 	memset(pNode, 0, sizeof(MQD_OBJ_NODE));
 
 	/* Initialize the Queue/Group & Track List */
@@ -120,6 +123,7 @@ uint32_t mqd_db_node_create(MQD_CB *pMqd, MQD_OBJ_NODE **o_pnode)
 	ncs_create_queue(&pNode->oinfo.tlist);
 
 	*o_pnode = pNode;
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }	/* End of mqd_db_node_create() */
 
@@ -191,8 +195,10 @@ uint32_t mqd_track_add(NCS_QUEUE *list, MDS_DEST *dest, MDS_SVC_ID svc)
 	pObj = ncs_find_item(list, dest, mqd_track_obj_cmp);
 	if (!pObj) {
 		pObj = m_MMGR_ALLOC_MQD_TRACK_OBJ;
-		if (!pObj)
+		if (!pObj) {
+			LOG_CR("ERR_MEMORY: MQD_TRACK_OBJ Memory Allocation failed");
 			return SA_AIS_ERR_NO_MEMORY;
+		}
 
 		pObj->dest = *dest;	/* Set the destination value */
 		pObj->to_svc = svc;	/* Set the service id */
@@ -223,8 +229,10 @@ uint32_t mqd_track_del(NCS_QUEUE *list, MDS_DEST *dest)
 
 	/* Check whether the destination object already exist */
 	pObj = ncs_remove_item(list, dest, mqd_track_obj_cmp);
-	if (!pObj)
+	if (!pObj) {
+		LOG_ER("ERR_NOT_EXIST: Track list associated with the object not found"); 
 		return SA_AIS_ERR_NOT_EXIST;
+	}
 
 	m_MMGR_FREE_MQD_TRACK_OBJ(pObj);
 	return rc;

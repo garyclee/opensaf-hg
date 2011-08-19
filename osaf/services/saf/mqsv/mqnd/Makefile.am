@@ -24,10 +24,9 @@ pkglib_PROGRAMS = osafmsgnd
 
 osafmsgnd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
-	-DNCS_MQND=1 -DASAPi_DEBUG=1 -DNCS_MQSV_LOG=1 -DNCS_DTA=1 \
+	-DNCS_MQND=1 -DASAPi_DEBUG=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/mqsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osafmsgnd_SOURCES = \
@@ -37,7 +36,6 @@ osafmsgnd_SOURCES = \
 	mqnd_evt.c \
 	mqnd_imm.c \
 	mqnd_init.c \
-	mqnd_log.c \
 	mqnd_main.c \
 	mqnd_mds.c \
 	mqnd_mq.c \

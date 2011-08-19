@@ -34,8 +34,10 @@ static int __init_mqd(void)
 	lib_create.info.create.argc = 0;
 	lib_create.info.create.argv = NULL;
 
-	if (ncs_agents_startup() != NCSCC_RC_SUCCESS)
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		TRACE_4("ncs_agents_startup failed");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
 	/* Init MQD */
 	m_NCS_DBG_PRINTF("\nMQSV:MQD:ON");

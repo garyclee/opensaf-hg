@@ -35,7 +35,6 @@
 #include "mqsv_init.h"
 #include "mqnd_dl_api.h"
 #include "mqnd_mem.h"
-#include "mqnd_log.h"
 #include "mqnd_tmr.h"
 #include "mqnd_db.h"
 #include "mqnd_restart.h"

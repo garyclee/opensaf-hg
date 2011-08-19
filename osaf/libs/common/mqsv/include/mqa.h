@@ -35,7 +35,6 @@
 /* MQA includes ... */
 #include "mqa_mem.h"
 #include "mqa_dl_api.h"
-#include "mqa_log.h"
 #include "mqa_db.h"
 #include "mqa_def.h"
 #include "mqsv_edu.h"

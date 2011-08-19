@@ -65,6 +65,7 @@ SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immO
 	SaImmAttrValuesT_2 attr_mqGrp, attr_mqGrpPol, attr_mqGrpNumQs, attr_mqGrpMemName;
 	const SaImmAttrValuesT_2 *attrValues[5];
 	SaUint32T numMem = pNode->oinfo.ilist.count;
+	TRACE_ENTER2("Queue name %p", pNode->oinfo.name.value);
 
 	if (parent_name != NULL && dndup != NULL) {
 		rdnstr = strtok(dndup, ",");
@@ -78,8 +79,10 @@ SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immO
 
 	if (rdnstr)
 		arr1[0] = &rdnstr;
-	else
+	else {
+		LOG_ER("ERR_FAILED_OPERATION: Queue name is NULL"); 
 		return SA_AIS_ERR_FAILED_OPERATION;
+	}
 
 	arr2[0] = &(pNode->oinfo.info.qgrp.policy);
 	arr3[0] = &numMem;
@@ -115,11 +118,12 @@ SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immO
 
 	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaMsgQueueGroup", parentName, attrValues);
 	if (rc != SA_AIS_OK)
-		mqd_genlog(NCSFL_SEV_ERROR, "create_runtime_MqGrpObj FAILED: %u\n", rc);
+		LOG_ER("immutil_saImmOiRtObjectCreate_2 Failed: %u", rc);
 
 	if (dndup)
 		free(dndup);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -168,7 +172,7 @@ void mqd_runtime_update_grpmembers_attr(MQD_CB *pMqd, MQD_OBJ_NODE *pObjNode)
 	error = saImmOiRtObjectUpdate_2(pMqd->immOiHandle, &pObjNode->oinfo.name, attrMods);
 
 	if (error != SA_AIS_OK)
-		mqd_genlog(NCSFL_SEV_ERROR, "Runtime_Update_One_Attr FAILED: %u\n", error);
+		LOG_ER("saImmOiRtObjectUpdate_2 Failed: %u", error);
 }
 
 /****************************************************************************
@@ -191,5 +195,7 @@ SaAisErrorT mqd_imm_initialize(MQD_CB *cb)
 	if (rc == SA_AIS_OK) {
 		immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);
 	}
+	if(rc != SA_AIS_OK)
+		LOG_ER("saImmOiInitialize failed with error %d", rc);
 	return rc;
 }

@@ -92,8 +92,10 @@ uint32_t mqd_red_db_node_create(MQD_CB *pMqd, MQD_ND_DB_NODE **o_pnode)
 	MQD_ND_DB_NODE *pNode = 0;
 
 	pNode = m_MMGR_ALLOC_MQD_ND_DB_NODE;
-	if (!pNode)
+	if (!pNode) {
+		LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
+	}
 	memset(pNode, 0, sizeof(MQD_ND_DB_NODE));
 
 	*o_pnode = pNode;

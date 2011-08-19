@@ -1123,6 +1123,7 @@ void asapi_msg_free(ASAPi_MSG_INFO **msg)
 	/* Ceck the usage count before freeing the message */
 	if ((*msg)->usg_cnt) {
 		(*msg)->usg_cnt--;
+		TRACE_1("Can't free the message check the count value");
 		return;		/* We can't free ... */
 	}
 

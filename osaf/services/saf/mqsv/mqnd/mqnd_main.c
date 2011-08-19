@@ -25,6 +25,7 @@ extern void mqnd_main_process(uint32_t hdl);
 static int __init_mqnd(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
+	TRACE_ENTER();
 
 	/* Init LIB_CREATE request for Server */
 	memset(&lib_create, 0, sizeof(lib_create));
@@ -32,8 +33,10 @@ static int __init_mqnd(void)
 	lib_create.info.create.argc = 0;
 	lib_create.info.create.argv = NULL;
 
-	if (ncs_agents_startup() != NCSCC_RC_SUCCESS)
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		TRACE_4("ncs_agents_startup failed");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
 	/* Init MQND */
 	m_NCS_DBG_PRINTF("\nMQSV:MQND:ON");
@@ -42,6 +45,7 @@ static int __init_mqnd(void)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
+	TRACE_LEAVE();
 	return (NCSCC_RC_SUCCESS);
 }
 

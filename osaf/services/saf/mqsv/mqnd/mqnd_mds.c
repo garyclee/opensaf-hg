@@ -70,11 +70,11 @@ static uint32_t mqnd_mds_get_handle(MQND_CB *cb)
 	rc = ncsada_api(&arg);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_MDS_GET_HDL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("Cannot Get MDS Handle -Failed");
 		return rc;
 	}
 	cb->my_mds_hdl = arg.info.adest_get_hdls.o_mds_pwe1_hdl;
-	m_LOG_MQSV_ND(MQND_MDS_GET_HDL_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("MDS Get Handle is Successfull");
 
 	return rc;
 }
@@ -96,6 +96,7 @@ uint32_t mqnd_mds_register(MQND_CB *cb)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID svc_id[] = { NCSMDS_SVC_ID_MQD, NCSMDS_SVC_ID_MQA };
+	TRACE_ENTER();
 
 	/* STEP1: Get the MDS Handle */
 	rc = mqnd_mds_get_handle(cb);
@@ -118,10 +119,10 @@ uint32_t mqnd_mds_register(MQND_CB *cb)
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = MQND_PVT_SUBPART_VERSION;
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_MDS_INSTALL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("Installing of MDS with MQND Failed");
 		return NCSCC_RC_FAILURE;
 	}
-	m_LOG_MQSV_ND(MQND_MDS_INSTALL_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("MDS Install is successfull");
 	cb->my_dest = svc_info.info.svc_install.o_dest;
 
 	/* STEP 3: Subscribe to MQD/MQA up/down events */
@@ -131,13 +132,14 @@ uint32_t mqnd_mds_register(MQND_CB *cb)
 	svc_info.info.svc_subscribe.i_svc_ids = svc_id;
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_MDS_SUBSCRIBE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("MDS Subscribing With MQND Failed");
 		/* Uninstall with the mds */
 		svc_info.i_op = MDS_UNINSTALL;
 		ncsmds_api(&svc_info);
 		return NCSCC_RC_FAILURE;
 	}
-	m_LOG_MQSV_ND(MQND_MDS_SUBSCRIBE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("MDS Subscription to the Agent and director are successfull");
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -166,9 +168,9 @@ void mqnd_mds_unregister(MQND_CB *cb)
 	arg.i_op = MDS_UNINSTALL;
 
 	if ((rc = ncsmds_api(&arg)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_MDS_UNREG_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("Unregestreing With MDS Failed");
 	}
-	m_LOG_MQSV_ND(MQND_MDS_UNREG_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	TRACE_1("MDS Unreging is Successfull");
 	return;
 }
 
@@ -189,14 +191,15 @@ static uint32_t mqnd_mds_callback(struct ncsmds_callback_info *info)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (info == NULL) {
+		LOG_ER("MDS event is NULL");
 		rc = NCSCC_RC_FAILURE;
 		return rc;
 	}
 
 	cb = (MQND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_MQND, (uint32_t)info->i_yr_svc_hdl);
 	if (!cb) {
+		LOG_ER("%s:%u: Cb Take Failed", __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return rc;
 	}
 
@@ -230,15 +233,14 @@ static uint32_t mqnd_mds_callback(struct ncsmds_callback_info *info)
 		break;
 
 	default:
+		TRACE_2("MDS callback does not match with clbk type");
 		rc = NCSCC_RC_FAILURE;
 		break;
 	}
 	if (rc == NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_ND(MQND_MDS_CLBK_COMPLETE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, info->i_op, __FILE__,
-			      __LINE__);
+		TRACE_1("MDS callback is completed with clbk type as %d",info->i_op);
 	else
-		m_LOG_MQSV_ND(MQND_MDS_CLBK_COMPLETE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, info->i_op, __FILE__,
-			      __LINE__);
+		LOG_ER("MDS callback is failed with clbk type as %d",info->i_op);
 	ncshm_give_hdl((uint32_t)info->i_yr_svc_hdl);
 	return rc;
 }
@@ -268,8 +270,7 @@ static void mqnd_mds_cpy(MQND_CB *pMqnd, MDS_CALLBACK_COPY_INFO *cpy)
 			pEvt->msg.asapi->usg_cnt++;	/* Increment the use count */
 		}
 	} else {
-		m_LOG_MQSV_ND(MQND_EVT_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			      __LINE__);
+		LOG_CR("Event Database Creation Failed");
 	}
 
 	cpy->o_cpy = pEvt;
@@ -321,6 +322,7 @@ static uint32_t mqnd_mds_enc(MQND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		break;
 
 	default:
+		LOG_ER("MDS Encode type does not match %d", enc_info->i_to_svc_id);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -328,14 +330,12 @@ static uint32_t mqnd_mds_enc(MQND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		rc = (m_NCS_EDU_EXEC(&cb->edu_hdl, mqsv_edp_mqsv_evt,
 				     enc_info->io_uba, EDP_OP_TYPE_ENC, msg_ptr, &ederror));
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_ND(MQND_MDS_ENC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+			LOG_ER("MDS Encode Failed");
 		}
 		return rc;
 	} else {
 		/* Drop The Message */
-		m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-			      enc_info->o_msg_fmt_ver, __FILE__, __LINE__);
-		TRACE("mqnd_mds_enc:INVALID MSG FORMAT %d", enc_info->o_msg_fmt_ver);
+		LOG_ER("mqnd_mds_enc:INVALID MSG FORMAT %d", enc_info->o_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -382,14 +382,14 @@ static uint32_t mqnd_mds_dec(MQND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		break;
 
 	default:
+		LOG_ER("MDS Decode type does not match %d", dec_info->i_fr_svc_id);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (is_valid_msg_fmt && (dec_info->i_msg_fmt_ver != 1)) {
 		msg_ptr = m_MMGR_ALLOC_MQSV_EVT(NCS_SERVICE_ID_MQND);
 		if (!msg_ptr) {
-			m_LOG_MQSV_ND(MQND_EVT_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-				      __FILE__, __LINE__);
+			LOG_CR("Event Database Creation Failed");
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -399,15 +399,13 @@ static uint32_t mqnd_mds_dec(MQND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, mqsv_edp_mqsv_evt,
 				    dec_info->io_uba, EDP_OP_TYPE_DEC, (MQSV_EVT **)&dec_info->o_msg, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_ND(MQND_MDS_DEC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+			LOG_ER("MDS Decode Failed");
 			m_MMGR_FREE_MQSV_EVT(dec_info->o_msg, NCS_SERVICE_ID_MQND);
 		}
 		return rc;
 	} else {
 		/* Drop The Message */
-		m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-			      is_valid_msg_fmt, __FILE__, __LINE__);
-		TRACE("mqnd_mds_dec:INVALID MSG FORMAT %d", is_valid_msg_fmt);
+		LOG_ER("mqnd_mds_dec:INVALID MSG FORMAT %d", is_valid_msg_fmt);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -440,8 +438,7 @@ static uint32_t mqnd_mds_rcv(MQND_CB *pMqnd, MDS_CALLBACK_RECEIVE_INFO *rcv_info
 	/* Put it in MQND's Event Queue */
 	rc = m_NCS_IPC_SEND(&pMqnd->mbx, (NCSCONTEXT)pEvt, NCS_IPC_PRIORITY_NORMAL);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_MQSV_ND(MQND_MDS_SND_TO_MAILBOX_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
+		LOG_CR("Sending the event to the MQND Mail Box failed");
 	}
 	return rc;
 }
@@ -470,9 +467,7 @@ static uint32_t mqnd_mds_direct_rcv(MQND_CB *pMqnd, MDS_CALLBACK_DIRECT_RECEIVE_
 
 	if (!is_valid_msg_fmt || (direct_rcv_info->i_msg_fmt_ver == 1)) {
 		/* Drop The Message */
-		m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-			      is_valid_msg_fmt, __FILE__, __LINE__);
-		TRACE("mqnd_mds_direct_rcv:INVALID MSG FORMAT %d", is_valid_msg_fmt);
+		LOG_ER("mqnd_mds_direct_rcv:INVALID MSG FORMAT %d", is_valid_msg_fmt);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -482,7 +477,7 @@ static uint32_t mqnd_mds_direct_rcv(MQND_CB *pMqnd, MDS_CALLBACK_DIRECT_RECEIVE_
 	if (direct_rcv_info->i_rsp_reqd) {
 		pEvt->sinfo.stype = MDS_SENDTYPE_RSP;
 	}
-	m_LOG_MQSV_ND(MQND_MDS_SNDDIRECT_RCV, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, endianness, __FILE__, __LINE__);
+	TRACE_1("Direct receive with the endianness flag set to %d", endianness);
 
 	/* If the endianess of the source is different, decode to host order */
 	if (pEvt->endianness != endianness) {
@@ -599,6 +594,7 @@ static uint32_t mqnd_mds_direct_rcv(MQND_CB *pMqnd, MDS_CALLBACK_DIRECT_RECEIVE_
 			}
 			break;
 		default:
+			LOG_ER("MQP_EVT does not match with type %d", pEvt->type.req_type);
 			return NCSCC_RC_FAILURE;
 		}
 	}
@@ -607,8 +603,7 @@ static uint32_t mqnd_mds_direct_rcv(MQND_CB *pMqnd, MDS_CALLBACK_DIRECT_RECEIVE_
 	rc = m_NCS_IPC_SEND(&pMqnd->mbx, (NCSCONTEXT)pEvt, NCS_IPC_PRIORITY_NORMAL);
 
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_LOG_MQSV_ND(MQND_MDS_SND_TO_MAILBOX_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
+		LOG_CR("Sending the event to the MQND Mail Box failed");
 	}
 	return rc;
 }
@@ -637,8 +632,7 @@ static uint32_t mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 			if (cb->is_mqd_up == true) {
 				/* If MQD is already UP */
 				cb->is_mqd_up = false;
-				m_LOG_MQSV_ND(MQND_MQD_SERVICE_WENT_DOWN, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc,
-					      __FILE__, __LINE__);
+				TRACE_1("MQD Service Went Down");
 				return NCSCC_RC_SUCCESS;
 			}
 		} else if (svc_evt->i_svc_id == NCSMDS_SVC_ID_MQA) {
@@ -649,8 +643,7 @@ static uint32_t mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 			evt = m_MMGR_ALLOC_MQSV_EVT(NCS_SERVICE_ID_MQND);
 
 			if (evt == NULL) {
-				m_LOG_MQSV_ND(MQND_EVT_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-					      NCSCC_RC_FAILURE, __FILE__, __LINE__);
+				LOG_CR("Event Database Creation Failed");
 				return NCSCC_RC_FAILURE;
 			}
 			evt->evt_type = MQSV_NOT_DSEND_EVENT;
@@ -659,14 +652,12 @@ static uint32_t mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 			evt->msg.mqnd_ctrl.info.mds_info.change = svc_evt->i_change;
 			evt->msg.mqnd_ctrl.info.mds_info.dest = svc_evt->i_dest;
 			evt->msg.mqnd_ctrl.info.mds_info.svc_id = svc_evt->i_svc_id;
-			m_LOG_MQSV_ND(MQND_MQA_SERVICE_WENT_DOWN, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE,
-				      m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest), __FILE__, __LINE__);
+			TRACE_1("MQA is down with the nodeid as %" PRIx64, svc_evt->i_dest);
 
 			/* Post the event to MQND Thread */
 			rc = m_NCS_IPC_SEND(&cb->mbx, evt, NCS_IPC_PRIORITY_HIGH);
 			if (rc != NCSCC_RC_SUCCESS) {
-				m_LOG_MQSV_ND(MQND_MDS_SND_TO_MAILBOX_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-					      __FILE__, __LINE__);
+				LOG_CR("Sending the event to the MQND Mail Box failed %" PRIx64, svc_evt->i_dest);
 			}
 			/*   mqnd_proc_mqa_down(cb, &svc_evt->i_dest); */
 		} else
@@ -678,8 +669,7 @@ static uint32_t mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 			{
 				cb->is_mqd_up = true;
 				cb->mqd_dest = svc_evt->i_dest;
-				m_LOG_MQSV_ND(MQND_MQD_SERVICE_CAME_UP, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc,
-					      __FILE__, __LINE__);
+				TRACE_1("MQD service is up");
 
 				to_dest_slotid = mqsv_get_phy_slot_id(svc_evt->i_dest);
 
@@ -690,8 +680,7 @@ static uint32_t mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 
 				if (!o_msg_fmt_ver)
 					/*Log informing the existence of Non compatible MQD version, Slot id being logged */
-					m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT,
-						      NCSFL_SEV_ERROR, to_dest_slotid, __FILE__, __LINE__);
+					LOG_ER("Message Format Version Invalid %u", to_dest_slotid);
 
 			}
 			break;
@@ -708,30 +697,26 @@ static uint32_t mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 
 				if (!o_msg_fmt_ver)
 					/*Log informing the existence of Non compatible MQA version, Slot id being logged */
-					m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT,
-						      NCSFL_SEV_ERROR, to_dest_slotid, __FILE__, __LINE__);
+					LOG_ER("Message Format Version Invalid %u", to_dest_slotid);
 
 				/* Post the event to Update the MQA list */
 
 				evt = m_MMGR_ALLOC_MQSV_EVT(NCS_SERVICE_ID_MQND);
 
 				if (evt == NULL) {
-					m_LOG_MQSV_ND(MQND_EVT_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-						      NCSCC_RC_FAILURE, __FILE__, __LINE__);
+					LOG_CR("Event Database Creation Failed");
 					return NCSCC_RC_FAILURE;
 				}
 				evt->evt_type = MQSV_NOT_DSEND_EVENT;
 				evt->type = MQSV_EVT_MQND_CTRL;
 				evt->msg.mqnd_ctrl.type = MQND_CTRL_EVT_MDS_MQA_UP_INFO;
 				evt->msg.mqnd_ctrl.info.mqa_up_info.mqa_up_dest = svc_evt->i_dest;
-				m_LOG_MQSV_ND(MQND_MQA_CAME_UP, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE,
-					      m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest), __FILE__, __LINE__);
+				TRACE_1("MQA came up %" PRIx64, svc_evt->i_dest);
 
 				/* Post the event to MQND Thread */
 				rc = m_NCS_IPC_SEND(&cb->mbx, evt, NCS_IPC_PRIORITY_HIGH);
 				if (rc != NCSCC_RC_SUCCESS) {
-					m_LOG_MQSV_ND(MQND_MDS_SND_TO_MAILBOX_FAILED, NCSFL_LC_MQSV_INIT,
-						      NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+					LOG_CR("Sending the event to the MQND Mail Box failed %" PRIx64, svc_evt->i_dest);
 					m_MMGR_FREE_MQSV_EVT(evt, NCS_SERVICE_ID_MQND);
 					return rc;
 				}
@@ -751,8 +736,7 @@ static uint32_t mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 			evt = m_MMGR_ALLOC_MQSV_EVT(NCS_SERVICE_ID_MQND);
 			if (evt == NULL) {
 				cb->is_mqd_up = true;
-				m_LOG_MQSV_ND(MQND_EVT_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-					      NCSCC_RC_FAILURE, __FILE__, __LINE__);
+				LOG_CR("Event Database Creation Failed");
 				return NCSCC_RC_FAILURE;
 			}
 			memset(evt, 0, sizeof(MQSV_EVT));
@@ -763,8 +747,7 @@ static uint32_t mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 			/* Post the event to MQND Thread */
 			rc = m_NCS_IPC_SEND(&cb->mbx, evt, NCS_IPC_PRIORITY_HIGH);
 			if (rc != NCSCC_RC_SUCCESS) {
-				m_LOG_MQSV_ND(MQND_MDS_SND_TO_MAILBOX_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
-					      __FILE__, __LINE__);
+				LOG_CR("Sending the event to the MQND Mail Box failed");
 			}
 		}
 		break;
@@ -808,7 +791,7 @@ uint32_t mqnd_mds_send_rsp(MQND_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt)
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_MDS_SND_RSP_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("Queue Attribute get :Mds Send Response Failed");
 	}
 	return rc;
 }
@@ -849,8 +832,7 @@ uint32_t mqnd_mds_send_rsp_direct(MQND_CB *cb, MQSV_DSEND_INFO *s_info, MQSV_DSE
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_MDS_SND_RSP_DIRECT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
+		LOG_ER("Mds Send Response Direct Failed");
 	}
 
 	return rc;
@@ -877,8 +859,10 @@ uint32_t mqnd_mds_msg_sync_send(MQND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 
-	if (!i_evt)
+	if (!i_evt) {
+		LOG_ER("%s:%u: Event received is NULL", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
+	}
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->my_mds_hdl;
@@ -900,7 +884,7 @@ uint32_t mqnd_mds_msg_sync_send(MQND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 	if (rc == NCSCC_RC_SUCCESS)
 		*o_evt = mds_info.info.svc_send.info.sndrsp.o_rsp;
 	else {
-		m_LOG_MQSV_ND(MQND_MDS_SEND_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: MDS Send Failed", __FILE__, __LINE__);
 	}
 
 	return rc;
@@ -925,8 +909,10 @@ uint32_t mqnd_mds_send(MQND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, MQSV_EVT 
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 
-	if (!evt)
+	if (!evt) {
+		LOG_ER("%s:%u: Event received is NULL", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
+	}
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->my_mds_hdl;
@@ -944,7 +930,7 @@ uint32_t mqnd_mds_send(MQND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, MQSV_EVT 
 	rc = ncsmds_api(&mds_info);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_MDS_SEND_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		LOG_ER("%s:%u: MDS Send Failed", __FILE__, __LINE__);
 	}
 
 	return rc;
@@ -985,7 +971,7 @@ uint32_t mqnd_mds_bcast_send(MQND_CB *cb, MQSV_EVT *evt, NCSMDS_SVC_ID to_svc)
 
 	res = ncsmds_api(&info);
 	if (res != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_MDS_BCAST_SEND_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, res, __FILE__, __LINE__);
+		LOG_ER("Mds Broadcast Send Failed");
 	}
 	return (res);
 }

@@ -86,13 +86,15 @@ uint32_t mqnd_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 
 	if (cb->is_qhdl_db_up)
 		rc = ncs_patricia_tree_add(&cb->qhndl_db, (NCS_PATRICIA_NODE *)qnode);
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_ER("Adding the queue node to Tree failed");
 	return rc;
 }
 
 /****************************************************************************
  * Name          : mqnd_queue_node_del
  *
- * Description   : Function to Add the queue node from Tree.
+ * Description   : Function to Delete the queue node from Tree.
  *
  * Arguments     : MQND_CB *cb, - MQND Control Block
  *                 uint32_t qhdl - queue handle
@@ -113,6 +115,8 @@ uint32_t mqnd_queue_node_del(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 
 	if (cb->is_qhdl_db_up)
 		rc = ncs_patricia_tree_del(&cb->qhndl_db, (NCS_PATRICIA_NODE *)qnode);
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_ER("Deleting the queue node from Tree failed");
 	return rc;
 }
 
@@ -180,13 +184,15 @@ uint32_t mqnd_qevt_node_add(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node)
 
 	if (cb->is_qevt_hdl_db_up)
 		rc = ncs_patricia_tree_add(&cb->q_transfer_evt_db, (NCS_PATRICIA_NODE *)qevt_node);
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_ER("Adding the queue event node to Tree failed");
 	return rc;
 }
 
 /****************************************************************************
  * Name          : mqnd_qevt_node_del
  *
- * Description   : Function to Add the queue event node from Tree.
+ * Description   : Function to Delete the queue event node from Tree.
  *
  * Arguments     : MQND_CB *cb, - MQND Control Block
  *                 uint32_t qhdl - queue handle
@@ -201,5 +207,7 @@ uint32_t mqnd_qevt_node_del(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node)
 
 	if (cb->is_qevt_hdl_db_up)
 		rc = ncs_patricia_tree_del(&cb->q_transfer_evt_db, (NCS_PATRICIA_NODE *)qevt_node);
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_ER("Deleting the queue event node from Tree failed");
 	return rc;
 }
