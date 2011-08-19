@@ -1,11 +1,11 @@
 /*******************************************************************************
 **
 ** SPECIFICATION VERSION:
-**   SAIM-AIS-R2-JD-A.01.01
-**   SAI-Overview-B.01.01
+**   SAIM-AIS-R6-A.01.01
+**   SAI-Overview-B.05.01
 **
-** DATE:
-**   Wed Aug 6 2008
+** DATE: 
+**   Wednesday November 19, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -25,8 +25,8 @@ package org.saforum.ais;
  * Global constants derived from the SAF saAIS.h file. The time values in this class
  * are always expressed as a positive number of nanoseconds (except for the SA_TIME_UNKNOWN constant).
  *
- * @version AIS-B.01.01 (SAIM-AIS-R2-JD-A.01.01)
- * @since AIS-B.01.01
+ * @version SAI-Overview-B.05.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-Overview-B.01.01
  *
  */
 public final class Consts {
@@ -89,4 +89,27 @@ public final class Consts {
      */
     public static final long SA_TIME_MAX = SA_TIME_END;
 
+    /**
+	 * This constant is part of the enhanced tracking API: the client
+	 * requests that the notification callback is called in the start step.
+	 * <P>
+	 * <B>SAF Reference:</B> <code>SA_TRACK_START_STEP</code>
+	 * 
+	 * @since SAI-Overview-B.05.01
+	 */
+    public final static int TRACK_START_STEP = 0x10;
+
+    /**
+	 * This constant is part of the enhanced tracking API: the client requests
+	 * that the notification callback is called in the validate step.
+	 * <P>
+	 * <B>SAF Reference:</B> <code>SA_TRACK_VALIDATE_STEP</code>
+	 * 
+	 * @since SAI-Overview-B.05.01
+	 */
+    public final static int TRACK_VALIDATE_STEP = 0x20;
+
+
 }
+
+/*  */

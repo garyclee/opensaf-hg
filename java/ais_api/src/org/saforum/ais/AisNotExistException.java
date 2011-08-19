@@ -1,11 +1,11 @@
 /*******************************************************************************
 **
 ** SPECIFICATION VERSION:
-**   SAIM-AIS-R2-JD-A.01.01
-**   SAI-Overview-B.01.01
+**   SAIM-AIS-R6-A.01.01
+**   SAI-Overview-B.05.01
 **
-** DATE:
-**   Wed Aug 6 2008
+** DATE: 
+**   Wednesday November 19, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -28,8 +28,8 @@ package org.saforum.ais;
  * exist.
  *
  * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NOT_EXIST</code>
- * @version AIS-B.01.01 (SAIM-AIS-R2-JD-A.01.01)
- * @since AIS-B.01.01
+ * @version SAI-Overview-B.05.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-Overview-B.01.01
  *
  */
 public final class AisNotExistException extends AisException {
@@ -71,3 +71,5 @@ public final class AisNotExistException extends AisException {
 }
 
 
+
+/*  */

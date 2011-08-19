@@ -27,6 +27,8 @@ import org.saforum.ais.Consts;
 import org.saforum.ais.DispatchFlags;
 import org.saforum.ais.TrackFlags;
 import org.saforum.ais.Version;
+import org.saforum.ais.ChangeStep;
+import org.saforum.ais.CorrelationIds;
 import org.saforum.ais.clm.ClmHandle;
 import org.saforum.ais.clm.ClmHandleFactory;
 import org.saforum.ais.clm.ClusterMembershipManager;
@@ -35,6 +37,8 @@ import org.saforum.ais.clm.ClusterNotificationBuffer;
 import org.saforum.ais.clm.GetClusterNodeCallback;
 import org.saforum.ais.clm.NodeAddressIPv4;
 import org.saforum.ais.clm.TrackClusterCallback;
+import java.io.InputStream;
+import java.util.Properties;
 
 import junit.framework.*;
 
@@ -50,13 +54,15 @@ public class TestClusterMembershipManager extends TestCase implements
 
     // STATIC FIELDS
 
-    public static final long GET_CLUSTER_NODE_TIMEOUT = ( 50 * Consts.SA_TIME_ONE_MICROSECOND );
+    public static final long GET_CLUSTER_NODE_TIMEOUT = ( 1 * Consts.SA_TIME_ONE_SECOND );
 
     private static long s_invocation = 123;
 
     private static int INVALID_NODE_ID = 133;
 
     private static int ALLOWED_TIME_DIFF = 50;
+
+    private static Version version;	
 
     // STATIC METHODS
 
@@ -79,10 +85,36 @@ public class TestClusterMembershipManager extends TestCase implements
 			_aisExc = e;
 		}
 		Assert.assertNotNull(_notificationBuffer);
-		Utils.s_printClusterNotificationBuffer(_notificationBuffer, printMsg);
+		if(version.majorVersion == 1 && version.minorVersion == 1)
+			Utils.s_printClusterNotificationBuffer( _notificationBuffer, printMsg );
+		else
+			Utils.s_printClusterNotificationBuffer_4( _notificationBuffer, printMsg );
 		Assert.assertNull(_aisExc);
 		return _notificationBuffer;
-	}
+    }
+    /**
+     * @param clmManager A Clm manager
+     * @param printMsg Message to be printed before the data
+     * @return Result of the getCluster(boolean local) call
+     */
+    static ClusterNotificationBuffer s_callGetClusterZ(
+                        ClusterMembershipManager clmManager, String printMsg) {
+		AisException _aisExc = null;
+		ClusterNotificationBuffer _notificationBuffer = null;
+		try {
+			_notificationBuffer = clmManager.getCluster( true );
+		} catch (AisException e) {
+			_aisExc = e;
+		}
+		Assert.assertNotNull(_notificationBuffer);
+		if( version.majorVersion == 1 && version.minorVersion == 1 )
+			Utils.s_printClusterNotificationBuffer( _notificationBuffer, printMsg );
+		else
+			Utils.s_printClusterNotificationBuffer_4( _notificationBuffer, printMsg );
+		Assert.assertNull(_aisExc);
+		return _notificationBuffer;
+    }
+
 
     /**
      * @param clmManager A Clm manager
@@ -96,7 +128,21 @@ public class TestClusterMembershipManager extends TestCase implements
 			_aisExc = e;
 		}
 		Assert.assertNull(_aisExc);
-	}
+    }
+    /**
+     * @param clmManager A Clm manager
+     *
+     */
+    static void s_callGetClusterAsyncZ(ClusterMembershipManager clmManager) {
+	AisException _aisExc = null;
+		try {
+			clmManager.getClusterAsync(true);
+		} catch(AisException e) {
+			_aisExc = e;
+		}
+		Assert.assertNull(_aisExc);
+    }
+ 
 
     /**
      * @param clmManager A Clm manager
@@ -115,7 +161,10 @@ public class TestClusterMembershipManager extends TestCase implements
 			_aisExc = e;
 		}
 		Assert.assertNotNull(_cNode);
-		Utils.s_printClusterNode(_cNode, printMsg);
+		if( version.majorVersion == 1 && version.minorVersion == 1 )
+			Utils.s_printClusterNode( _cNode, printMsg );
+		else
+			Utils.s_printClusterNode_4( _cNode, printMsg );
 		Assert.assertTrue(_cNode.nodeAddress instanceof NodeAddressIPv4);
 		Assert.assertNull(_aisExc);
 		return _cNode;
@@ -163,8 +212,6 @@ public class TestClusterMembershipManager extends TestCase implements
      */
     private ClmHandle clmLibHandleOKOK;
 
-    private Version b11Version;
-
     private ClusterMembershipManager clmManagerNullNull;
 
     private ClusterMembershipManager clmManagerNullOK;
@@ -178,6 +225,8 @@ public class TestClusterMembershipManager extends TestCase implements
     private ClusterNotificationBuffer notificationBuffer;
 
     private boolean called_gCN_cb;
+
+    private boolean localFlag;
 
     /**
      * The value of the error parameter passed to getClusterNodeCallback.
@@ -208,19 +257,26 @@ public class TestClusterMembershipManager extends TestCase implements
     private int tC_cb_numberOfMembers;
 
     /**
+     */
+    private boolean tC_cb_print;
+
+    /**
      * The value of the error parameter passed to trackClusterCallback.
      */
     private AisStatus tC_cb_error;
-
-    /**
-     */
-    private boolean tC_cb_print;
 
     ClmHandle.Callbacks callbackNullNull;
     ClmHandle.Callbacks callbackNullOK;
     ClmHandle.Callbacks callbackOKNull;
     ClmHandle.Callbacks callbackOKOK;
 
+    private char releaseCode;
+	
+    private short majorVersion;
+
+    private short minorVersion;		
+
+    private Properties properties = new Properties();	
     // CONSTRUCTORs
 
     /**
@@ -236,7 +292,20 @@ public class TestClusterMembershipManager extends TestCase implements
 		super.setUp();
 		System.out.println("JAVA TEST: SETTING UP NEXT TEST...");
 		aisExc = null;
-		b11Version = new Version((char) 'B', (short) 0x01, (short) 0x01);
+		try{
+			InputStream in = this.getClass().getClassLoader().getResourceAsStream("org/opensaf/ais/version.properties");
+			properties.load(in);
+			releaseCode = properties.getProperty("releaseCode").trim().charAt(0);
+			majorVersion = new Short(properties.getProperty("majorVersion").trim()).shortValue();
+			minorVersion = new Short(properties.getProperty("minorVersion").trim()).shortValue();
+			System.out.println("releaseCode:"+ releaseCode +majorVersion +  minorVersion);
+			in.close(); 
+		}
+		catch(Exception e){
+			System.out.println(e.getMessage());
+		}
+
+		version = new Version(releaseCode, majorVersion, minorVersion);
 
 		ClmHandleFactory clmHandleFactory = new ClmHandleFactory();
 
@@ -258,23 +327,24 @@ public class TestClusterMembershipManager extends TestCase implements
 
 		// library without callbacks
 		clmLibHandleNullNull = clmHandleFactory.initializeHandle(
-				callbackNullNull, b11Version);
+				callbackNullNull, version);
 		clmManagerNullNull = clmLibHandleNullNull.getClusterMembershipManager();
 		// library with
 		clmLibHandleNullOK = clmHandleFactory.initializeHandle(callbackNullOK,
-				b11Version);
+				version);
 		clmManagerNullOK = clmLibHandleNullOK.getClusterMembershipManager();
 		// library without callbacks
 		clmLibHandleOKNull = clmHandleFactory.initializeHandle(callbackOKNull,
-				b11Version);
+				version);
 		clmManagerOKNull = clmLibHandleOKNull.getClusterMembershipManager();
 		// library with both callbacks
 		clmLibHandleOKOK = clmHandleFactory.initializeHandle(callbackOKOK,
-				b11Version);
+				version);
 		clmManagerOKOK = clmLibHandleOKOK.getClusterMembershipManager();
 		// callback parameters
 		called_gCN_cb = false;
 		called_tC_cb = false;
+		localFlag = false;
 		gCN_cb_invocation = 0;
 		gCN_cb_clusterNode = null;
 		tC_cb_notificationBuffer = null;
@@ -335,6 +405,37 @@ public class TestClusterMembershipManager extends TestCase implements
 		assertClusterNotificationBuffer(notificationBuffer);
 		assertClusterNotificationBuffer(_notificationBuffer2);
 	}
+     /*
+     * Test method for 'ais.clm.ClusterMembershipManager.getCluster()'
+     */
+    public final void testGetClusterZ_Simple() {
+                System.out.println("JAVA TEST: Executing testGetClusterZ_Simple()...");
+                notificationBuffer = s_callGetClusterZ(
+                                // callbacks are required
+                                clmManagerOKOK, "JAVA TEST: Result of 1st cluster query: ");
+        }
+
+    /*
+     * Test method for 'ais.clm.ClusterMembershipManager.getCluster()'
+     */
+    public final void testGetClusterZ_Equals() {
+                System.out.println("JAVA TEST: Executing testGetClusterZ_Equals()...");
+                // 1st call
+                notificationBuffer = s_callGetClusterZ(
+                                // callbacks are required
+                                clmManagerOKOK, "JAVA TEST: Result of 1st cluster query: ");
+                // 2nd call
+                ClusterNotificationBuffer _notificationBuffer2;
+                _notificationBuffer2 = s_callGetClusterZ(
+                                // callbacks are required
+                                clmManagerOKOK, "JAVA TEST: Result of 2nd cluster query: ");
+                // check equality
+                compareClusterNotificationBuffers(notificationBuffer,
+                                _notificationBuffer2);
+                assertClusterNotificationBuffer(notificationBuffer);
+                assertClusterNotificationBuffer(_notificationBuffer2);
+        }
+
 
     /*
      * Test method for 'ais.clm.ClusterMembershipManager.getClusterAsync()'
@@ -382,7 +483,61 @@ public class TestClusterMembershipManager extends TestCase implements
 				tC_cb_notificationBuffer);
 		assertClusterNotificationBuffer(notificationBuffer);
 		assertClusterNotificationBuffer(tC_cb_notificationBuffer);
+
+
 	}
+
+    /*
+     * Test method for 'ais.clm.ClusterMembershipManager.getClusterAsync()'
+     */
+
+    public final void testGetClusterAsyncZ_NoCallback() {
+		// local flag 1st call
+		try {
+			clmManagerNullNull.getClusterAsync(true);
+		} catch(AisException e){
+			aisExc = e;
+		}
+		Assert.assertTrue(aisExc instanceof AisInitException);
+                // 2nd call
+		aisExc = null;
+		try {
+			clmManagerOKNull.getClusterAsync(true);
+		}catch(AisException e){
+			aisExc = e;
+		}
+		Assert.assertTrue(aisExc instanceof AisInitException);
+
+    }
+    /*
+     * Test method for 'ais.clm.ClusterMembershipManager.getClusterAsync( boolean)'
+     */
+    public final void testGetClusterAsyncZ_EqualsDispatchBlocking() {
+        	System.out.println( "JAVA TEST: Executing testGetClusterAsyncZ_EqualsDispatchBlocking()..." );
+		localFlag = true;
+        	// sync call
+                notificationBuffer = s_callGetClusterZ(
+                                // callbacks are required
+                                clmManagerOKOK, "JAVA TEST: Result of SYNC cluster query: ");
+                // async call
+                s_callGetClusterAsyncZ(clmManagerNullOK);
+                // blocking dispatch
+                try {
+                        clmLibHandleNullOK.dispatchBlocking(); // MAY BLOCK FOREVER!!!
+                } catch (AisException e) {
+                        aisExc = e;
+                }
+                // check callback
+                assert_tC_cb_OK();
+                // check equality
+                compareClusterNotificationBuffers(notificationBuffer,
+                                tC_cb_notificationBuffer);
+                assertClusterNotificationBuffer(notificationBuffer);
+                assertClusterNotificationBuffer(tC_cb_notificationBuffer);
+                localFlag = false;
+        }
+
+        	
 
     /*
      * Test method for 'ais.clm.ClusterMembershipManager.stopClusterTracking()'
@@ -404,19 +559,19 @@ public class TestClusterMembershipManager extends TestCase implements
               _aisExc = e;
           }
           Assert.assertNotNull( _notificationBuffer );
-          Utils.s_printNotificationBuffer( _notificationBuffer, printMsg );
+          Utils.s_printNotificationBuffer( _notificationBuffer, printMsg ); 
           Assert.assertNull( _aisExc );
           return _notificationBuffer;
       }*/
 
     /*
-     * Test method for 'ais.clm.ClusterMembershipManager.startClusterTracking(byte,boolean)'
+     * Test method for 'ais.clm.ClusterMembershipManager.getClusterAsyncThenStartTracking(TrackFlags)
      */
-    public final void testStartClusterTrackingBZ_EqualsDispatchBlocking() {
-        System.out.println( "JAVA TEST: Executing testStartClusterTrackingBZ_EqualsDispatchBlocking()..." );
-        System.out.println( "ENUM TEST (TRACK_CAHNGES): " + TrackFlags.TRACK_CHANGES.ordinal() );
-        System.out.println( "ENUM TEST (TRACK_CHANGES_ONLY): " + TrackFlags.TRACK_CHANGES_ONLY.ordinal() );
-        // sync call
+    public final void testgetClusterAsyncThenStartTracking_EqualsDispatchBlocking() {
+	System.out.println( "JAVA TEST: Executing testgetClusterAsyncThenStartTracking_EqualsDispatchBlocking()..." );
+	System.out.println( "ENUM TEST (TRACK_CAHNGES): " + TrackFlags.TRACK_CHANGES.ordinal() );
+	System.out.println( "ENUM TEST (TRACK_CHANGES_ONLY): " + TrackFlags.TRACK_CHANGES_ONLY.ordinal() );
+	// sync call
 		notificationBuffer = s_callGetCluster(
 				// callbacks are required
 				clmManagerOKOK, "JAVA TEST: Result of SYNC cluster query: ");
@@ -448,13 +603,59 @@ public class TestClusterMembershipManager extends TestCase implements
 		}
 		Assert.assertNull(aisExc);
     }
-
+    
     /*
-     * Test method for 'ais.clm.ClusterMembershipManager.startClusterTracking(byte,boolean)'
+     * Test method for 'ais.clm.ClusterMembershipManager.getClusterAsyncThenStartTracking(TrackFlags,local,trackStep)
      */
-    public final void testStartClusterTrackingB_Equals() {
-        System.out.println( "JAVA TEST: Executing testStartClusterTrackingB_Equals()..." );
-        // sync call
+
+    public final void testgetClusterAsyncThenStartTrackingTFBI_EqualsDispatchBlocking() {
+       
+	if(version.majorVersion == 4 && version.minorVersion == 1){   	
+
+		System.out.println( "JAVA TEST: Executing testStartClusterTrackingBZ_EqualsDispatchBlocking()..." );
+		System.out.println( "ENUM TEST (TRACK_CAHNGES): " + TrackFlags.TRACK_CHANGES.ordinal() );
+		System.out.println( "ENUM TEST (TRACK_CHANGES_ONLY): " + TrackFlags.TRACK_CHANGES_ONLY.ordinal() );
+		// sync call
+		notificationBuffer = s_callGetCluster(
+			// callbacks are required
+			clmManagerOKOK, "JAVA TEST: Result of SYNC cluster query: ");
+		// start tracking and ask for async clm info
+		try {
+			clmManagerOKOK.getClusterAsyncThenStartTracking(TrackFlags.TRACK_CHANGES, false, Consts.TRACK_START_STEP);
+		} catch (AisException e) {
+			aisExc = e;
+		}
+		Assert.assertNull(aisExc);
+		// blocking dispatch
+		try {
+			clmLibHandleOKOK.dispatchBlocking(); // MAY BLOCK FOREVER!!!
+		} catch (AisException e) {
+			aisExc = e;
+		}
+		// check callback
+		assert_tC_cb_OK();
+		// check equality
+		compareClusterNotificationBuffers(notificationBuffer,
+				tC_cb_notificationBuffer);
+		assertClusterNotificationBuffer(notificationBuffer);
+		assertClusterNotificationBuffer(tC_cb_notificationBuffer);
+		// stop tracking
+		try {
+			clmManagerOKOK.stopClusterTracking();
+		} catch (AisException e) {
+			aisExc = e;
+		}
+		Assert.assertNull(aisExc);
+	}
+    }
+    
+    /*
+     * Test method for 'ais.clm.ClusterMembershipManager.getClusterThenStartTracking(TrackFlags)'
+     */
+
+    public final void testgetClusterThenStartTracking_Equals() {
+	System.out.println( "JAVA TEST: Executing testgetClusterThenStartTracking_Equals..." );
+	// sync call
 		notificationBuffer = s_callGetCluster(
 				// callbacks are required
 				clmManagerOKOK, "JAVA TEST: Result of SYNC cluster query: ");
@@ -467,8 +668,10 @@ public class TestClusterMembershipManager extends TestCase implements
 			aisExc = e;
 		}
 		Assert.assertNotNull(_notificationBuffer);
-		Utils.s_printClusterNotificationBuffer(_notificationBuffer,
-				"JAVA TEST: Result of startClusterTracking(SYNC) query: ");
+		if(version.majorVersion == 1 && version.minorVersion == 1 )
+			Utils.s_printClusterNotificationBuffer(_notificationBuffer,"JAVA TEST: Result of startClusterTracking(SYNC) query: ");
+		else
+			Utils.s_printClusterNotificationBuffer_4(_notificationBuffer,"JAVA TEST: Result of startClusterTracking(SYNC) query: ");
 		Assert.assertNull(aisExc);
 		// check equality
 		compareClusterNotificationBuffers(notificationBuffer,
@@ -483,13 +686,117 @@ public class TestClusterMembershipManager extends TestCase implements
 		}
 		Assert.assertNull(aisExc);
     }
+    /*
+     * Test method for 'ais.clm.ClusterMembershipManager.getClusterThenStartTracking(TrackFlags, local, trackStep)'
+     */
+    public final void testgetClusterThenStartTrackingBZTS_Equals() {
+
+	if(version.majorVersion == 4 && version.minorVersion == 1){
+
+		System.out.println( "JAVA TEST: Executing testgetClusterThenStartTrackingBZTS_Equals()..." );
+		// sync call
+		notificationBuffer = s_callGetCluster(
+		// callbacks are required
+			clmManagerOKOK, "JAVA TEST: Result of SYNC cluster query: ");
+		// start tracking and ask for sync clm info
+		ClusterNotificationBuffer _notificationBuffer = null;
+		try {
+			_notificationBuffer = clmManagerOKOK
+					.getClusterThenStartTracking(TrackFlags.TRACK_CHANGES, false , Consts.TRACK_START_STEP);
+		} catch (AisException e) {
+			aisExc = e;
+		}
+		Assert.assertNotNull(_notificationBuffer);
+		Utils.s_printClusterNotificationBuffer_4(_notificationBuffer,
+				"JAVA TEST: Result of startClusterTracking(SYNC) query: ");
+		Assert.assertNull(aisExc);
+		// check equality
+		compareClusterNotificationBuffers(notificationBuffer,
+			_notificationBuffer);
+		assertClusterNotificationBuffer(notificationBuffer);
+		assertClusterNotificationBuffer(_notificationBuffer);
+		// stop tracking
+		try {
+			clmManagerOKOK.stopClusterTracking();
+		} catch (AisException e) {
+			aisExc = e;
+		}
+		Assert.assertNull(aisExc);
+       }       
+    }
+    /*
+     * Test method for 'ais.clm.ClusterMembershipManager.startClusterTracking(TrackFlags)'
+     */
+    public final void testStartClusterTrackingB_Equals() {
+        
+	AisException aisExc=null;
+	System.out.println( "JAVA TEST: Executing testStartClusterTrackingB_Equals()..." );
+                
+			try {
+				clmManagerOKOK.startClusterTracking( TrackFlags.TRACK_CHANGES );
+			} catch (AisException e) {
+				aisExc = e;
+		}
+		Assert.assertNull(aisExc);
+		// check equality
+		// stop tracking
+		try {
+			clmManagerOKOK.stopClusterTracking();
+		} catch (AisException e) {
+			aisExc = e;
+		}
+		Assert.assertNull(aisExc);
+		aisExc=null;  
+		try {
+			clmManagerOKNull.startClusterTracking( TrackFlags.TRACK_CHANGES );
+		} catch(AisException e){
+			aisExc = e;
+		}
+		Assert.assertTrue( aisExc instanceof AisInitException );	
+ 		
+    }
+    /*
+     * Test method for 'ais.clm.ClusterMembershipManager.startClusterTracking(TrackFlags,local,trackStep)'
+     */
+    public final void testStartClusterTrackingBZ_EqualsDispatchBlocking() {
+       
+	if(version.majorVersion == 4 && version.minorVersion == 1){
+
+		AisException aisExc=null;
+		System.out.println( "JAVA TEST: Executing testStartClusterTrackingBZTS_Equals()..." );
+
+		try {
+			clmManagerOKOK.startClusterTracking( TrackFlags.TRACK_CHANGES, false, Consts.TRACK_START_STEP );
+		} catch (AisException e) {
+			aisExc = e;
+		}
+		Assert.assertNull(aisExc);
+		// check equality
+		// stop tracking
+		try {
+			clmManagerOKOK.stopClusterTracking();
+		} catch (AisException e) {
+			aisExc = e;
+		}
+		Assert.assertNull(aisExc);
+		aisExc=null;
+		try {
+			clmManagerOKNull.startClusterTracking( TrackFlags.TRACK_CHANGES, false, Consts.TRACK_START_STEP );
+		} catch(AisException e){
+			aisExc = e;
+		}
+		Assert.assertTrue( aisExc instanceof AisInitException );
+	}
+
+    }
+
 
     /*
      * Test method for 'ais.clm.ClusterMembershipManager.getClusterNode(int, long)'
      */
     public final void testGetClusterNode_LocalEquals() {
-        System.out.println( "JAVA TEST: Executing testGetClusterNode_LocalEquals()..." );
-        // 1st call
+	System.out.println( "JAVA TEST: Executing testGetClusterNode_LocalEquals()..." );
+	// 1st call
 		clusterNode = s_callGetClusterNodeLocal(clmManagerNullNull,
 				GET_CLUSTER_NODE_TIMEOUT,
 				"JAVA TEST: Result of 1st cluster node query: ");
@@ -511,7 +818,7 @@ public class TestClusterMembershipManager extends TestCase implements
      * Test method for 'ais.clm.ClusterMembershipManager.getClusterNode(int, long)'
      */
     public final void testGetClusterNode_LocalTimeout() {
-        System.out
+	System.out
 				.println("JAVA TEST: Executing testGetClusterNode_LocalTimeout()...");
 		try {
 			clusterNode = clmManagerNullNull.getClusterNode(
@@ -527,23 +834,23 @@ public class TestClusterMembershipManager extends TestCase implements
      * Test method for 'ais.clm.ClusterMembershipManager.getClusterNode(int, long)'
      */
     public final void testGetClusterNode_InvalidNodeId() {
-        System.out.println( "JAVA TEST: Executing testGetClusterNode_InvalidNodeId()..." );
-        try {
+	System.out.println( "JAVA TEST: Executing testGetClusterNode_InvalidNodeId()..." );
+		try {
 			clusterNode = clmManagerNullNull.getClusterNode(INVALID_NODE_ID, 1);
 		} catch (AisException e) {
 			aisExc = e;
 		}
 		Assert.assertNull(clusterNode);
-		Assert.assertTrue(aisExc instanceof AisNotExistException);
+		Assert.assertTrue(aisExc instanceof AisTimeoutException);
     }
 
     /*
      * Test method for 'ais.clm.ClusterMembershipManager.getClusterNodeAsync(long, int)'
      */
     public final void testGetClusterNodeAsync_NoCallback() {
-        // 1st call
-        System.out.println( "JAVA TEST: Executing testGetClusterNodeAsync_NoCallback()..." );
-        try {
+	// 1st call
+	System.out.println( "JAVA TEST: Executing testGetClusterNodeAsync_NoCallback()..." );
+	try {
 			clmManagerNullNull
 					.getClusterNodeAsync(1, ClusterNode.LOCAL_NODE_ID);
 		} catch (AisException e) {
@@ -564,9 +871,9 @@ public class TestClusterMembershipManager extends TestCase implements
      * Test method for 'ais.clm.ClusterMembershipManager.getClusterNodeAsync(long, int)'
      */
     public final void testGetClusterNodeAsync_EqualsSleep() {
-        System.out.println( "JAVA TEST: Executing testGetClusterNodeAsync_EqualsSleep()..." );
-        // sync call
-		clusterNode = s_callGetClusterNodeLocal(clmManagerNullNull,
+	System.out.println( "JAVA TEST: Executing testGetClusterNodeAsync_EqualsSleep()..." );
+	// sync call
+	clusterNode = s_callGetClusterNodeLocal(clmManagerNullNull,
 				GET_CLUSTER_NODE_TIMEOUT,
 				"JAVA TEST: Result of SYNC cluster node query: ");
 		// async call
@@ -597,9 +904,9 @@ public class TestClusterMembershipManager extends TestCase implements
      * Test method for 'ais.clm.ClusterMembershipManager.getClusterNodeAsync(long, int)'
      */
     public final void testGetClusterNodeAsync_EqualsPoll() {
-        System.out.println( "JAVA TEST: Executing testGetClusterNodeAsync_EqualsPoll()..." );
-        // sync call
-		clusterNode = s_callGetClusterNodeLocal(clmManagerNullNull,
+	System.out.println( "JAVA TEST: Executing testGetClusterNodeAsync_EqualsPoll()..." );
+	// sync call
+	clusterNode = s_callGetClusterNodeLocal(clmManagerNullNull,
 				GET_CLUSTER_NODE_TIMEOUT,
 				"JAVA TEST: Result of SYNC cluster node query: ");
 		// async call
@@ -629,8 +936,8 @@ public class TestClusterMembershipManager extends TestCase implements
      * Test method for 'ais.clm.ClusterMembershipManager.getClusterNodeAsync(long, int)'
      */
     public final void testGetClusterNodeAsync_EqualsPollWithTimeout() {
-        System.out.println( "JAVA TEST: Executing testGetClusterNodeAsync_EqualsPollWithTimeout()..." );
-        // sync call
+	System.out.println( "JAVA TEST: Executing testGetClusterNodeAsync_EqualsPollWithTimeout()..." );
+	// sync call
 		clusterNode = s_callGetClusterNodeLocal(clmManagerNullNull,
 				GET_CLUSTER_NODE_TIMEOUT,
 				"JAVA TEST: Result of SYNC cluster node query: ");
@@ -662,8 +969,8 @@ public class TestClusterMembershipManager extends TestCase implements
      * Test method for 'ais.clm.ClusterMembershipManager.getClusterNodeAsync(long, int)'
      */
     public final void testGetClusterNodeAsync_EqualsDispatchBlocking() {
-        System.out.println( "JAVA TEST: Executing testGetClusterNodeAsync_EqualsDispatchBlocking()..." );
-        // sync call
+	System.out.println( "JAVA TEST: Executing testGetClusterNodeAsync_EqualsDispatchBlocking()..." );
+	// sync call
 		clusterNode = s_callGetClusterNodeLocal(clmManagerNullNull,
 				GET_CLUSTER_NODE_TIMEOUT,
 				"JAVA TEST: Result of SYNC cluster node query: ");
@@ -685,8 +992,8 @@ public class TestClusterMembershipManager extends TestCase implements
      * Test method for 'ais.clm.ClusterMembershipManager.getClusterNodeAsync(long, int)'
      */
     public final void testGetClusterNodeAsync_EqualsDispatchWithTimeout() {
-        System.out.println( "JAVA TEST: Executing testGetClusterNodeAsync_EqualsDispatchWithTimeout()..." );
-        // sync call
+	System.out.println( "JAVA TEST: Executing testGetClusterNodeAsync_EqualsDispatchWithTimeout()..." );
+	// sync call
 		clusterNode = s_callGetClusterNodeLocal(clmManagerNullNull,
 				GET_CLUSTER_NODE_TIMEOUT,
 				"JAVA TEST: Result of SYNC cluster node query: ");
@@ -737,9 +1044,8 @@ public class TestClusterMembershipManager extends TestCase implements
         Assert.assertTrue( aisExc instanceof AisBadHandleException );
         aisExc = null;
         // startClusterTracking
-        _notificationBuffer = null;
         try{
-            _notificationBuffer = clmManagerOKOK.startClusterTracking( TrackFlags.TRACK_CHANGES );
+            clmManagerOKOK.startClusterTracking( TrackFlags.TRACK_CHANGES );
         }
         catch( AisException e ){
             aisExc = e;
@@ -807,8 +1113,6 @@ public class TestClusterMembershipManager extends TestCase implements
     }
      */
 
-
-
     // MISC INSTANCE METHODS
 
     /*
@@ -842,11 +1146,12 @@ public class TestClusterMembershipManager extends TestCase implements
      *
      */
     private void assert_tC_cb_OK() {
-        Assert.assertFalse(called_gCN_cb);
+		Assert.assertFalse(called_gCN_cb);
 		Assert.assertTrue(called_tC_cb);
 		Assert.assertNotNull(tC_cb_notificationBuffer);
-		Assert.assertEquals(tC_cb_numberOfMembers,
-				tC_cb_notificationBuffer.notifications.length);
+		if( !localFlag )
+			Assert.assertEquals(tC_cb_numberOfMembers,
+					tC_cb_notificationBuffer.notifications.length);
 		Assert.assertEquals(tC_cb_error, AisStatus.OK);
 		printTCcbParameters("JAVA TEST: Result of ASYNC cluster query: ");
 		Assert.assertNull(aisExc);
@@ -877,6 +1182,8 @@ public class TestClusterMembershipManager extends TestCase implements
 			case JOINED:
 			case LEFT:
 			case RECONFIGURED:
+			case UNLOCK:
+			case SHUTDOWN:
 				break;
 			default:
 				Assert.fail("Invalid cluster change value...");
@@ -933,20 +1240,43 @@ public class TestClusterMembershipManager extends TestCase implements
 		}
 	}
 
+    public void trackClusterCallback(
+		ClusterNotificationBuffer notificationBuffer, int numberOfMembers,
+			long invocation, String rootCauseEntity,
+			CorrelationIds correlationIds, ChangeStep step,
+			long timeSupervision, AisStatus error ){
+		System.out.println("JAVA TEST CALLBACK: Executing trackClusterCallback( "
+				+ notificationBuffer + ", " + numberOfMembers + ", " + invocation + "," + rootCauseEntity +
+				"," + correlationIds + "," + step + "," + timeSupervision + ","
+				+ error + " ) on " + this);
+
+		called_tC_cb = true;
+		tC_cb_notificationBuffer = notificationBuffer;
+		tC_cb_numberOfMembers = numberOfMembers;
+		tC_cb_error = error;
+		if (tC_cb_print) {
+			printTCcbParameters("JAVA TEST CALLBACK: Cluster Info in callback");
+		}
+        }
+
     private void printGCNcbParameters( String msg ){
-        System.out.println( msg );
-        System.out.println("JAVA TEST: invocation = " + gCN_cb_invocation );
-        Utils.s_printClusterNode( gCN_cb_clusterNode, "JAVA TEST: ClusterNode info: " );
-        System.out.println("JAVA TEST: error = " + gCN_cb_error );
+	System.out.println( msg );
+	System.out.println("JAVA TEST: invocation = " + gCN_cb_invocation );
+	if(version.majorVersion == 1 && version.minorVersion == 1)
+		Utils.s_printClusterNode( gCN_cb_clusterNode, "JAVA TEST: ClusterNode info: " );
+	else 
+		Utils.s_printClusterNode_4( gCN_cb_clusterNode, "JAVA TEST: ClusterNode info:" ); 
+	System.out.println("JAVA TEST: error = " + gCN_cb_error );
     }
 
     private void printTCcbParameters( String msg ){
-        System.out.println( msg );
-        System.out.println("JAVA TEST: number of members = " + tC_cb_numberOfMembers );
-        System.out.println("JAVA TEST: error = " + tC_cb_error );
-        Utils.s_printClusterNotificationBuffer( tC_cb_notificationBuffer, "JAVA TEST: Cluster info: " );
+	System.out.println( msg );
+	System.out.println("JAVA TEST: number of members = " + tC_cb_numberOfMembers );
+	System.out.println("JAVA TEST: error = " + tC_cb_error );
+	if(version.majorVersion == 1 && version.minorVersion == 1)
+		Utils.s_printClusterNotificationBuffer( tC_cb_notificationBuffer, "JAVA TEST: Cluster info: " );
+	else
+		Utils.s_printClusterNotificationBuffer_4( tC_cb_notificationBuffer, "JAVA TEST: Cluster info: " );
     }
-
-
 
 }

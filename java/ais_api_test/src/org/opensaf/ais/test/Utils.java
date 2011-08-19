@@ -124,6 +124,21 @@ public class Utils {
 				+ cNode.initialViewNumber);
 	}
 
+	public static void s_printClusterNode_4(ClusterNode cNode, String msg) {
+		System.out.println(msg);
+		System.out.println("JAVA TEST: \t\t\t.nodeId: " + cNode.nodeId);
+		System.out.println("JAVA TEST: \t\t\t.nodeAddress: "
+					+ cNode.nodeAddress);
+		System.out.println("JAVA TEST: \t\t\t.nodeName: " + cNode.nodeName);
+		System.out.println("JAVA TEST: \t\t\t.member: " + cNode.member);
+		System.out.println("JAVA TEST: \t\t\t.executionEnvironment: " + cNode.executionEnvironment);
+		System.out.println("JAVA TEST: \t\t\t.bootTimestamp: "
+				 + cNode.bootTimestamp);
+		System.out.println("JAVA TEST: \t\t\t.initialViewNumber: "
+				+ cNode.initialViewNumber);
+        }
+
+
 	public static void s_printClusterNotificationBuffer(
 			ClusterNotificationBuffer notBuf, String msg) {
 		System.out.println(msg);
@@ -154,6 +169,44 @@ public class Utils {
 					"JAVA TEST: \t\tclusterNode: ");
 		}
 	}
+	
+	public static void s_printClusterNotificationBuffer_4(
+			ClusterNotificationBuffer notBuf, String msg) {
+		System.out.println(msg);
+		System.out.println("JAVA TEST: \tClusterNotificationBuffer.viewNumber: "
+				+ notBuf.viewNumber);
+		for (int _idx = 0; _idx < notBuf.notifications.length; _idx++) {
+			System.out.println("JAVA TEST: \tClusterNotificationBuffer.notifications["
+				+ _idx + "]:");
+			switch (notBuf.notifications[_idx].clusterChange) {
+				case NO_CHANGE:
+						System.out.println("JAVA TEST: \t\tclusterChange: NO_CHANGE");
+						break;
+				case JOINED:
+						System.out.println("JAVA TEST: \t\tclusterChange: JOINED");
+						break;
+				case LEFT:
+						System.out.println("JAVA TEST: \t\tclusterChange: LEFT");
+						break;
+				case RECONFIGURED:
+						System.out.println("JAVA TEST: \t\tclusterChange: RECONFIGURED");
+						break;
+				case UNLOCK:
+						System.out.println("JAVA TEST: \t\tclusterChange: UNLOCK");
+						break;
+				case SHUTDOWN:
+						System.out.println("JAVA TEST: \t\tclusterChange: SHUTDOWN");
+						break;
+				default:
+					System.out.println("JAVA TEST: \t\tclusterChange: INVALID VALUE!!! :-(");
+	                             // Assert.assertTrue( false );
+						break;
+			}
+			s_printClusterNode_4(notBuf.notifications[_idx].clusterNode,
+					"JAVA TEST: \t\tclusterNode: ");
+		}
+	}
+
 
 	// Printing for AMF
 

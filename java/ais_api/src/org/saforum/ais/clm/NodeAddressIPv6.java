@@ -1,12 +1,12 @@
 /*******************************************************************************
 **
 ** SPECIFICATION VERSION:
-**   SAIM-AIS-R2-JD-A.01.01
-**   SAI-Overview-B.01.01
-**   SAI-AIS-CLM-B.01.01
+**   SAIM-AIS-R6-A.01.01
+**   SAI-Overview-B.05.01
+**   SAI-AIS-CLM-B.04.01
 **
-** DATE:
-**   Wed Aug 6 2008
+** DATE: 
+**   Monday December 1, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -29,9 +29,11 @@ package org.saforum.ais.clm;
  * x:x:x:x:x:x:x:x representation (where the 'x's are the hexadecimal values of
  * the eight 16-bit pieces of the address).
  * <P><B>SAF Reference:</B> <code>SaClmNodeAddressT</code>
- * @version CLM-B.01.01 (SAIM-AIS-R2-JD-A.01.01)
- * @since CLM-B.01.01
+ * @version SAI-AIS-CLM-B.04.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-AIS-CLM-B.01.01
  *
  */
 public class NodeAddressIPv6 extends NodeAddress {
 }
+
+/*  */

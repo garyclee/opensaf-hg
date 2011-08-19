@@ -20,7 +20,8 @@ import org.opensaf.ais.test.*;
 import org.saforum.ais.AisStatus;
 import org.saforum.ais.clm.ClusterNotificationBuffer;
 import org.saforum.ais.clm.TrackClusterCallback;
-
+import org.saforum.ais.ChangeStep;
+import org.saforum.ais.CorrelationIds;
 import junit.framework.Assert;
 
 // CLASS DEFINITION
@@ -66,6 +67,25 @@ public class TrackClusterCallbackForTest implements TrackClusterCallback {
 				+ error + " ) on " + this);
 		Utils.s_printClusterNotificationBuffer(notificationBuffer,
 				"The Cluster as returned by the callback: ");
+		cbCount++;
+		called = true;
+		cbThread = Thread.currentThread();
+		this.notificationBuffer = notificationBuffer;
+		this.numberOfMembers = numberOfMembers;
+		this.error = error;
+	}
+	public synchronized void trackClusterCallback(      
+			ClusterNotificationBuffer notificationBuffer, int numberOfMembers,
+			long invocation, String rootCauseEntity,
+			CorrelationIds correlationIds, ChangeStep step,
+			long timeSupervision, AisStatus error ){
+		System.out.println("JAVA TEST CALLBACK: Executing trackClusterCallback( "
+			+ notificationBuffer + ", " + numberOfMembers + ", " + invocation + 
+			"," + rootCauseEntity + "," + correlationIds + "," + step + "," + 
+			timeSupervision + "," + error + " ) on " + this);
+		Utils.s_printClusterNotificationBuffer_4(notificationBuffer,
+				"The Cluster as returned by the callback: ");
+
 		cbCount++;
 		called = true;
 		cbThread = Thread.currentThread();

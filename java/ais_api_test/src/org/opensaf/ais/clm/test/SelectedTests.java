@@ -38,6 +38,7 @@ public class SelectedTests {
         _suite.addTest(new TestClmLibraryHandle("testInitializeHandle_B11Version"));
         _suite.addTest(new TestClmLibraryHandle("testInitializeHandle_B18Version"));
         _suite.addTest(new TestClmLibraryHandle("testInitializeHandle_B21Version"));
+        _suite.addTest(new TestClmLibraryHandle("testInitializeHandle_B51Version"));
         _suite.addTest(new TestClmLibraryHandle("testInitializeHandle_C11Version"));
         _suite.addTest(new TestClmLibraryHandle("testInitializeHandle_TwoHandles"));
         _suite.addTest(new TestClmLibraryHandle("testHasPendingCallback_NoRegisteredCB"));

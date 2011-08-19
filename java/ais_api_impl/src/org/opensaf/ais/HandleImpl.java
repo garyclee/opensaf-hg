@@ -28,6 +28,7 @@ import org.saforum.ais.AisNoMemoryException;
 import org.saforum.ais.AisNoResourcesException;
 import org.saforum.ais.AisTimeoutException;
 import org.saforum.ais.AisTryAgainException;
+import org.saforum.ais.AisUnavailableException;
 import org.saforum.ais.DispatchFlags;
 import org.saforum.ais.Handle;
 
@@ -85,7 +86,7 @@ public abstract class HandleImpl implements Handle {
 	public static Handle[] select(Handle[] handleArray)
 			throws AisLibraryException, AisInvalidParamException,
 			AisNoMemoryException, AisTimeoutException, AisTryAgainException,
-			AisBadHandleException, AisNoResourcesException {
+			AisBadHandleException, AisNoResourcesException{
 		long[] _selectionObjectArray = s_getSelectionObjectArray(handleArray);
 		s_invokeSelect(_selectionObjectArray);
 		return s_getHandleArray(handleArray, _selectionObjectArray);
@@ -253,7 +254,7 @@ public abstract class HandleImpl implements Handle {
 	private static Handle[] s_getHandleArray(Handle[] handleArray,
 			long[] selectionObjectArray) throws AisLibraryException,
 			AisNoMemoryException, AisTimeoutException, AisTryAgainException,
-			AisBadHandleException, AisNoResourcesException {
+			AisBadHandleException {
 		int _len = handleArray.length;
 		List<Handle> _selectedLibraryHandleList = new ArrayList<Handle>(_len);
 		for (int _idx = 0; _idx < _len; _idx++) {
@@ -377,7 +378,7 @@ public abstract class HandleImpl implements Handle {
 
 	public boolean hasPendingCallback() throws AisLibraryException,
 			AisTimeoutException, AisTryAgainException, AisBadHandleException,
-			AisNoMemoryException, AisNoResourcesException {
+			AisNoMemoryException, AisNoResourcesException{
 		return hasPendingCallback(0);
 	}
 

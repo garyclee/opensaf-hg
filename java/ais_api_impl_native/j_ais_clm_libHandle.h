@@ -43,13 +43,14 @@
 extern jclass ClassClmHandle;
 extern jmethodID MID_s_invokeGetClusterNodeCallback;
 extern jmethodID MID_s_invokeTrackClusterCallback;
+extern jmethodID MID_s_invokeTrackClusterCallback_4;
 extern jfieldID FID_saClmHandle;
-
+extern jfieldID FID_saVersion;
 // MODIFICATION: Added to return ClusterChange instance
 extern jmethodID MID_s_getClusterChange;
 
 
-/**************************************************************************
+/*************************************************************************
  * Function declarations
  *************************************************************************/
 

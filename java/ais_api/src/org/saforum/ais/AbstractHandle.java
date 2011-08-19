@@ -1,11 +1,11 @@
 /*******************************************************************************
 **
 ** SPECIFICATION VERSION:
-**   SAIM-AIS-R2-JD-A.01.01
-**   SAI-Overview-B.01.01
+**   SAIM-AIS-R6-A.01.01
+**   SAI-Overview-B.05.01
 **
-** DATE:
-**   Wed Aug 6 2008
+** DATE: 
+**   Wednesday November 19, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -29,8 +29,8 @@ import java.nio.channels.SelectableChannel;
  * This abstract class provides the implementation of the helper methods dispatchBlocking(timeout)
  * and hasPendingCallback().
  *
- * @version AIS-B.01.01 (SAIM-AIS-R2-JD-A.01.01)
- * @since AIS-B.01.01
+ * @version SAI-Overview-B.05.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-Overview-B.01.01
  */
 public abstract class AbstractHandle implements Handle {
 
@@ -42,7 +42,7 @@ public abstract class AbstractHandle implements Handle {
             AisTryAgainException,
             AisBadHandleException,
             AisNoMemoryException,
-            AisNoResourcesException {
+            AisNoResourcesException{
         return hasPendingCallback( 0 );
     }
 
@@ -55,6 +55,7 @@ public abstract class AbstractHandle implements Handle {
             AisBadHandleException,
             AisNoMemoryException,
             AisNoResourcesException;
+            
 
     /**
      */
@@ -65,6 +66,7 @@ public abstract class AbstractHandle implements Handle {
             AisBadHandleException,
             AisNoMemoryException,
             AisNoResourcesException;
+            
 
     /**
      */
@@ -108,3 +110,5 @@ public abstract class AbstractHandle implements Handle {
             AisBadHandleException;
 
 }
+
+/*  */

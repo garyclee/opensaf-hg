@@ -1,11 +1,11 @@
 /*******************************************************************************
 **
 ** SPECIFICATION VERSION:
-**   SAIM-AIS-R2-JD-A.01.01
-**   SAI-Overview-B.01.01
+**   SAIM-AIS-R6-A.01.01
+**   SAI-Overview-B.05.01
 **
-** DATE:
-**   Wed Aug 6 2008
+** DATE: 
+**   Wednesday November 19, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -27,8 +27,8 @@ package org.saforum.ais;
  * An exception indicating that the flags are invalid.
  *
  * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_BAD_FLAGS</code>
- * @version AIS-B.01.01 (SAIM-AIS-R2-JD-A.01.01)
- * @since AIS-B.01.01
+ * @version SAI-Overview-B.05.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-Overview-B.01.01
  *
  */
 public final class AisBadFlagsException extends AisException {
@@ -68,3 +68,5 @@ public final class AisBadFlagsException extends AisException {
     }
 
 }
+
+/*  */

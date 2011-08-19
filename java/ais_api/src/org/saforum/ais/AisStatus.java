@@ -1,11 +1,11 @@
 /*******************************************************************************
 **
 ** SPECIFICATION VERSION:
-**   SAIM-AIS-R2-JD-A.01.01
-**   SAI-Overview-B.01.01
+**   SAIM-AIS-R6-A.01.01
+**   SAI-Overview-B.05.01
 **
-** DATE:
-**   Wed Aug 6 2008
+** DATE: 
+**   Wednesday November 19, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -25,11 +25,11 @@ package org.saforum.ais;
  * A status value indicating the result of a requested operation.
  *
  * <P><B>SAF Reference:</B> <code>SaAisErrorT</code>
- * @version AIS-B.01.01 (SAIM-AIS-R2-JD-A.01.01)
- * @since AIS-B.01.01
+ * @version SAI-Overview-B.05.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-Overview-B.01.01
  *
  */
-public enum AisStatus {
+public enum AisStatus implements EnumValue {
 
     // B.01.01:
 
@@ -37,7 +37,7 @@ public enum AisStatus {
      * A status value indicating that the operation completed successfully.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_OK</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     OK(1),
@@ -48,7 +48,7 @@ public enum AisStatus {
      * library (such as corruption). The library cannot be used anymore.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_LIBRARY</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_LIBRARY(2),
@@ -63,7 +63,7 @@ public enum AisStatus {
      * </UL>
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_VERSION</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_VERSION(3),
@@ -73,7 +73,7 @@ public enum AisStatus {
      * API has not been supplied during the initialization of the library handle.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_INIT</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_INIT(4),
@@ -84,7 +84,7 @@ public enum AisStatus {
      * is unspecified whether the call succeeded or whether it did not.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_TIMEOUT</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_TIMEOUT(5),
@@ -94,7 +94,7 @@ public enum AisStatus {
      * this time. The component or process might try again later.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_TRY_AGAIN</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_TRY_AGAIN(6),
@@ -103,7 +103,7 @@ public enum AisStatus {
      * A status value indicating that a parameter is not set correctly.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_INVALID_PARAM</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_INVALID_PARAM(7),
@@ -113,7 +113,7 @@ public enum AisStatus {
      * the service is out of memory and cannot provide the service.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NO_MEMORY</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_NO_MEMORY(8),
@@ -122,7 +122,7 @@ public enum AisStatus {
      * A status value indicating that a handle is invalid.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_BAD_HANDLE</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_BAD_HANDLE(9),
@@ -132,7 +132,7 @@ public enum AisStatus {
      * the AIS Service is busy with another task.     *
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_BUSY</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_BUSY(10),
@@ -142,7 +142,7 @@ public enum AisStatus {
      * due to a reason other than a security violation.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_ACCESS</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_ACCESS(11),
@@ -152,7 +152,7 @@ public enum AisStatus {
      * exist.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NOT_EXIST</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_NOT_EXIST(12),
@@ -162,7 +162,7 @@ public enum AisStatus {
      * length.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NAME_TOO_LONG</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_NAME_TOO_LONG(13),
@@ -172,7 +172,7 @@ public enum AisStatus {
      * exists.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_EXIST</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_EXIST(14),
@@ -182,7 +182,7 @@ public enum AisStatus {
      * is too small.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NO_SPACE</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_NO_SPACE(15),
@@ -192,26 +192,17 @@ public enum AisStatus {
      * interrupt.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_INTERRUPT</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_INTERRUPT(16),
-
-    /**
-     * A status value indicating that the name could not be found.
-     *
-     * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NAME_NOT_FOUND</code>
-     * <P><B>@version:</B> B.01.01 (deprecated in later versions)
-     *
-     */
-    ERR_NAME_NOT_FOUND(17),
 
     /**
      * A status value indicating that there are not enough resources
      * to provide the service.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NO_RESOURCES</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_NO_RESOURCES(18),
@@ -220,7 +211,7 @@ public enum AisStatus {
      * A status value indicating that the requested function is not supported.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NOT_SUPPORTED</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_NOT_SUPPORTED(19),
@@ -229,7 +220,7 @@ public enum AisStatus {
      * A status value indicating that the requested operation is not allowed.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_BAD_OPERATION</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_BAD_OPERATION(20),
@@ -238,7 +229,7 @@ public enum AisStatus {
      * A status value indicating that the requested operation failed.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_FAILED_OPERATION</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_FAILED_OPERATION(21),
@@ -247,7 +238,7 @@ public enum AisStatus {
      * A status value indicating that a communication error occurred.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_MESSAGE</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_MESSAGE(22),
@@ -258,7 +249,7 @@ public enum AisStatus {
      * refer to the Message Service specification.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_QUEUE_FULL</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_QUEUE_FULL(23),
@@ -269,7 +260,7 @@ public enum AisStatus {
      * to the Message Service specification.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NOT_AVAILABLE</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_QUEUE_NOT_AVAILABLE(24),
@@ -278,7 +269,7 @@ public enum AisStatus {
      * A status value indicating that the flags are invalid.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_BAD_FLAGS</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_BAD_FLAGS(25),
@@ -288,7 +279,7 @@ public enum AisStatus {
      * permitted.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_TOO_BIG</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
     ERR_TOO_BIG(26),
@@ -300,10 +291,164 @@ public enum AisStatus {
      * to the Checkpoint Service specification.
      *
      * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NO_SECTIONS</code>
-     * @since AIS-B.01.01
+     * @since SAI-Overview-B.01.01
      *
      */
-    ERR_NO_SECTIONS(27);
+    ERR_NO_SECTIONS(27),
+
+    // B.02.01:
+
+    /**
+     * A status value indicating that the requested operation had no effect..
+     *
+     * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NO_OP</code>
+     * @since SAI-Overview-B.02.01
+     *
+     */
+    ERR_NO_OP(28),
+
+    /**
+     * A status value indicating that the administrative operation is only partially
+     * completed as some targeted components must be repaired..
+     *
+     * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_REPAIR_PENDING</code>
+     * @since SAI-Overview-B.02.01
+     *
+     */
+    ERR_REPAIR_PENDING(29),
+
+    // B.03.01:
+
+    /**
+     * A status value indicating that there are no more name-to-object bindings in the context.
+     * <P>For the detailed description of this error, refer
+     * to the Naming Service specification.
+     *
+     * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NO_BINDINGS</code>
+     * @since SAI-Overview-B.03.01
+     *
+     */
+    ERR_NO_BINDINGS(30),
+
+    /**
+     * A status value indicating that the operation requested in this call is unavailable on
+     * this cluster node as the cluster node is not a member node, and the requested operation
+     * is not permitted on a non-member node.
+     *
+     * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_UNAVAILABLE</code>
+     * @since SAI-Overview-B.03.01
+     *
+     */
+    ERR_UNAVAILABLE(31),
+
+    // B.04.01:
+
+    /**
+     * A status value indicating that the upgrade campaign execution
+     * failed due to an upgrade procedure of the upgrade campaign notifying a failure
+     * caused by the step retry counter being exceeded during execution or caused by the
+     * detection of an asynchronous failure of an upgraded entity. The upgrade campaign is
+     * now in the Suspended by Error Detected state.
+     * <P>For the detailed description of this error,
+     * refer to the Software Management Framework specification.
+     *
+     * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED</code>
+     * @since SAI-Overview-B.04.01
+     *
+     */
+    ERR_CAMPAIGN_ERROR_DETECTED(32),
+
+    /**
+     * <P>For the detailed description of this error,
+     * refer to the Software Management Framework specification.
+     *
+     * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_CAMPAIGN_PROC_FAILED</code>
+     * @since SAI-Overview-B.04.01
+     *
+     */
+    ERR_CAMPAIGN_PROC_FAILED(33),
+
+    /**
+     * <P>For the detailed description of this error,
+     * refer to the Software Management Framework specification .
+     *
+     * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_CAMPAIGN_CANCELED</code>
+     * @since SAI-Overview-B.04.01
+     *
+     */
+    ERR_CAMPAIGN_CANCELED(34),
+
+    /**
+     * <P>For the detailed description of this error,
+     * refer to the Software Management Framework specification.
+     *
+     *
+     * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_CAMPAIGN_FAILED</code>
+     * @since SAI-Overview-B.04.01
+     *
+     */
+    ERR_CAMPAIGN_FAILED(35),
+
+    /**
+     * A status value indicating that the rollback of the upgrade campaign was
+     * suspended due to an AMF asynchronous error notification pertaining to the upgraded
+     * entities. The upgrade campaign is now in the Rollback Suspended state.
+     * <P>For the detailed description of this error,
+     * refer to the Software Management Framework specification.
+     *
+     * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_CAMPAIGN_SUSPENDED</code>
+     * @since SAI-Overview-B.04.01
+     *
+     */
+    ERR_CAMPAIGN_SUSPENDED(36),
+
+    /**
+     * A status value indicating that the execution of the upgrade campaign
+     * was suspended through an invocation of an SA_SMF_CAMPAIGN_SUSPEND operation.
+     * The upgrade campaign is now in the Suspending Execution state.
+     * <P>For the detailed description of this error,
+     * refer to the Software Management Framework specification.
+     *
+     * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_CAMPAIGN_SUSPENDING</code>
+     * @since SAI-Overview-B.04.01
+     *
+     */
+    ERR_CAMPAIGN_SUSPENDING(37),
+
+    /**
+     * A status value indicating that the required access to a particular function of the
+     * AIS Service is denied due to a security violation.
+     *
+     * <P><B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_ACCESS_DENIED</code>
+     * @since SAI-Overview-B.04.01
+     *
+     */
+    ERR_ACCESS_DENIED(38),
+    
+    // B.05.01:
+
+    /**
+	 * A status value indicating that an Availability Management Framework
+	 * component cannot assume a specified HA state.
+	 * 
+	 * <P>
+	 * <B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_NOT_READY</code>
+	 * @since SAI-Overview-B.05.01
+	 * 
+	 */
+    ERR_NOT_READY(39),
+
+    /**
+	 * A status value indicating that the requested operation was accepted and
+	 * applied at the information model level. However, its complete deployment
+	 * in the running system may not be guaranteed at the moment.
+	 * 
+	 * <P>
+	 * <B>SAF Reference:</B> <code>SaAisErrorT.SA_AIS_ERR_DEPLOYMENT</code>
+	 * @since SAI-Overview-B.05.01
+	 * 
+	 */
+    ERR_DEPLOYMENT(40);
 
     /**
      * The numerical value assigned to this constant by the AIS specification.
@@ -322,7 +467,10 @@ public enum AisStatus {
      * Returns the numerical value assigned to this constant by the AIS specification.
      * @return the numerical value assigned to this constant by the AIS specification.
      */
+    @Override
     public int getValue() {
         return this.value;
     }
 }
+
+/*  */

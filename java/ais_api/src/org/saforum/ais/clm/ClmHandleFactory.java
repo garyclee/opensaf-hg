@@ -1,12 +1,12 @@
 /*******************************************************************************
 **
 ** SPECIFICATION VERSION:
-**   SAIM-AIS-R2-JD-A.01.01
-**   SAI-Overview-B.01.01
-**   SAI-AIS-CLM-B.01.01
+**   SAIM-AIS-R6-A.01.01
+**   SAI-Overview-B.05.01
+**   SAI-AIS-CLM-B.04.01
 **
-** DATE:
-**   Wed Aug 6 2008
+** DATE: 
+**   Monday December 1, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -27,7 +27,7 @@ import org.saforum.ais.FactoryImpl;
 
 /**
  * This factory initializes the Cluster Membership Service for the invoking client
- * and registers the various callback objects. It must be used prior to the invocation of
+ * and registers the various callback functions. It must be used prior to the invocation of
  * any other Cluster Membership Service functionality. The <code>ClmHandle</code> object is
  * returned by the Cluster Membership Service as the reference to this association between the
  * client and the Cluster Membership Service. The client uses this handle in subsequent
@@ -36,13 +36,14 @@ import org.saforum.ais.FactoryImpl;
  * program (e.g., process in the POSIX.1 world). This allows support
  * for multithreaded dispatching of AIS callbacks.
  *
- * <P>The invoker of this factory must provide properties defining the location of the
- * Cluster Membership Service implementation: SAF_AIS_CLM_IMPL_CLASSNAME and SAF_AIS_CLM_IMPL_URL.
- *
  * <P><B>SAF Reference:</B> <code>saClmInitialize</code>
- * @version CLM-B.01.01 (SAIM-AIS-R2-JD-A.01.01)
- * @since CLM-B.01.01
+ * <P><B>SAF Reference:</B> <code>saClmInitialize_3</code>
+ * @version SAI-AIS-CLM-B.04.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-AIS-CLM-B.01.01
  */
-public class ClmHandleFactory extends FactoryImpl<ClmHandle, ClmHandle.Callbacks>
-implements org.saforum.ais.Factory<ClmHandle, ClmHandle.Callbacks> {
+public class ClmHandleFactory
+	extends FactoryImpl<ClmHandle, ClmHandle.Callbacks>
+	implements org.saforum.ais.Factory<ClmHandle, ClmHandle.Callbacks> {
 }
+
+/*  */

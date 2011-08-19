@@ -1,12 +1,12 @@
 /*******************************************************************************
 **
 ** SPECIFICATION VERSION:
-**   SAIM-AIS-R2-JD-A.01.01
-**   SAI-Overview-B.01.01
-**   SAI-AIS-CLM-B.01.01
+**   SAIM-AIS-R6-A.01.01
+**   SAI-Overview-B.05.01
+**   SAI-AIS-CLM-B.04.01
 **
-** DATE:
-**   Wed Aug 6 2008
+** DATE: 
+**   Monday December 1, 2008
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
@@ -26,8 +26,9 @@ package org.saforum.ais.clm;
 /**
  * This class contains information about a cluster node.
  * <P><B>SAF Reference:</B> <code>SaClmClusterNodeT</code>
- * @version CLM-B.01.01 (SAIM-AIS-R2-JD-A.01.01)
- * @since CLM-B.01.01
+ * <P><B>SAF Reference:</B> <code>SaClmClusterNodeT_4</code>
+ * @version SAI-AIS-CLM-B.04.01 (SAIM-AIS-R6-A.01.01)
+ * @since SAI-AIS-CLM-B.01.01
  *
  */
 public class ClusterNode {
@@ -54,18 +55,21 @@ public class ClusterNode {
     public NodeAddress nodeAddress;
 
     /**
-     * Node name that is unique in the cluster. Node names are not attached to a
-     * particular piece of hardware or a particular physical location of that
-     * hardware inside the cluster but rather to the ability (from a
-     * provisioning and I/O connectivity point of view) to host a particular set
-     * of components. Hence, replacing a board by another similar board, moving
-     * a board to another location in a chassis, booting an upward compatible
-     * version of the OS on the board, and so on, can be performed without
-     * changing the name of the node. For best practices, on operating systems
-     * providing the notion of node name, it is recommended that nodeName be
-     * derived from the operating system node name.
-     */
+	 * 
+	 * Node name that is unique in the cluster. Node names are not attached to a
+	 * particular piece of hardware or a particular physical location of that
+	 * hardware inside the cluster but rather to the ability (from a
+	 * provisioning and I/O connectivity point of view) to host a particular
+	 * functionality.
+	 */
     public String nodeName;
+
+    /**
+	 * This is the name of the PLM execution environment (EE) that hosts the node
+	 * (see Platform Management Service).
+	 * @since SAI-AIS-CLM-B.04.01
+	 */
+    public String executionEnvironment;
 
     /**
      * Node is, or is not, in the cluster membership.
@@ -90,3 +94,5 @@ public class ClusterNode {
     public long initialViewNumber;
 
 }
+
+/*  */

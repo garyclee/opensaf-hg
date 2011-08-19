@@ -35,11 +35,9 @@
 #include <saClm.h>
 #include <saCkpt.h>
 #include <saAmf.h>
-
 #include "j_utils.h"
 #include "j_utilsPrint.h"
 #include "tracer.h"
-
 
 /**************************************************************************
  * Constants
@@ -155,7 +153,6 @@ void U_printSaSelectionObjectInfo(
 
 
 // CLM
-
 /**************************************************************************
  * FUNCTION:      U_printSaClusterNotificationBuffer
  * TYPE:          internal function
@@ -168,6 +165,36 @@ void U_printSaSelectionObjectInfo(
 void U_printSaClusterNotificationBuffer(
     const char* msg,
     const SaClmClusterNotificationBufferT* saClusterNotificationBufferPtr )
+{
+    // VARIABLES
+    int _idx;
+
+    // BODY
+    _TRACE_INLINE( "%s", msg );
+    _TRACE2( "NATIVE: \tAddress of saClusterNotificationBuffer:%p:\n", saClusterNotificationBufferPtr );
+    _TRACE2( "NATIVE: \t viewNumber:%lu\n", (unsigned long) saClusterNotificationBufferPtr->viewNumber );
+    _TRACE2( "NATIVE: \t numberOfItems:%u\n", (unsigned int) saClusterNotificationBufferPtr->numberOfItems );
+    _TRACE2( "NATIVE: \t notification: %p\n", saClusterNotificationBufferPtr->notification );
+    // TODO should be some sensible error handling for invalid numberOfItems values...
+    for( _idx = 0; _idx < saClusterNotificationBufferPtr->numberOfItems; _idx++ ){
+        _TRACE2( "NATIVE: \t  notification[%d]:\n", _idx );
+        U_printSaClusterNotification( "", &(saClusterNotificationBufferPtr->notification[_idx]) );
+    }
+
+}
+
+/**************************************************************************
+ * FUNCTION:      U_printSaClusterNotificationBuffer_4
+ * TYPE:          internal function
+ * OVERVIEW:
+ * INTERFACE:
+ *   parameters:  TODO
+ *   returns:     none
+ * NOTE:
+ *************************************************************************/
+void U_printSaClusterNotificationBuffer_4(
+    const char* msg,
+    const SaClmClusterNotificationBufferT_4* saClusterNotificationBufferPtr )
 {
     // VARIABLES
     int _idx;
@@ -200,7 +227,27 @@ void U_printSaClusterNotification(
     const SaClmClusterNotificationT* saClusterNotificationPtr )
 {
     // BODY
-	_TRACE_INLINE( "%s", msg );
+        _TRACE_INLINE( "%s", msg );
+    _TRACE2( "NATIVE: \t\t(Address of saClusterNotification:%p:)\n", saClusterNotificationPtr );
+    _TRACE2( "NATIVE: \t\t clusterChange:%u\n", saClusterNotificationPtr->clusterChange );
+    U_printSaClusterNode( "NATIVE: \t\t clusterNode\n", &(saClusterNotificationPtr->clusterNode) );
+}
+
+/**************************************************************************
+ * FUNCTION:      U_printSaClusterNotification_4
+ * TYPE:          internal function
+ * OVERVIEW:
+ * INTERFACE:
+ *   parameters:  TODO
+ *   returns:     none
+ * NOTE:
+ *************************************************************************/
+void U_printSaClusterNotification_4(
+    const char* msg,
+    const SaClmClusterNotificationT_4* saClusterNotificationPtr )
+{
+    // BODY
+    _TRACE_INLINE( "%s", msg );
     _TRACE2( "NATIVE: \t\t(Address of saClusterNotification:%p:)\n", saClusterNotificationPtr );
     _TRACE2( "NATIVE: \t\t clusterChange:%u\n", saClusterNotificationPtr->clusterChange );
     U_printSaClusterNode( "NATIVE: \t\t clusterNode\n", &(saClusterNotificationPtr->clusterNode) );
@@ -218,6 +265,29 @@ void U_printSaClusterNotification(
 void U_printSaClusterNode(
     const char* msg,
     const SaClmClusterNodeT* saClusterNodePtr )
+{
+    // BODY
+    _TRACE_INLINE( "%s", msg );
+    _TRACE2( "NATIVE: \t\t\tnodeId:%u\n", (unsigned int) saClusterNodePtr->nodeId );
+    U_printSaNodeAddress( "NATIVE: \t\t\tnodeAddress: ", &(saClusterNodePtr->nodeAddress) );
+    U_printSaName( "NATIVE: \t\t\tnodeName: ", &(saClusterNodePtr->nodeName) );
+    _TRACE2( "NATIVE: \t\t\tmember: %d\n", saClusterNodePtr->member );
+    _TRACE2( "NATIVE: \t\t\tbootTimestamp:%lu\n", (unsigned long) saClusterNodePtr->bootTimestamp );
+    _TRACE2( "NATIVE: \t\t\tinitialViewNumber:%lu\n", (unsigned long) saClusterNodePtr->initialViewNumber );
+}
+
+/**************************************************************************
+ * FUNCTION:      U_printSaClusterNode_4
+ * TYPE:          internal function
+ * OVERVIEW:
+ * INTERFACE:
+ *   parameters:  TODO
+ *   returns:     none
+ * NOTE:
+ *************************************************************************/
+void U_printSaClusterNode_4(
+    const char* msg,
+    const SaClmClusterNodeT_4* saClusterNodePtr )
 {
     // BODY
     _TRACE_INLINE( "%s", msg );

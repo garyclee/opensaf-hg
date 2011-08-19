@@ -138,7 +138,8 @@ public abstract class FactoryImpl<S extends Handle, C extends Callbacks> impleme
             AisInvalidParamException,
             AisNoMemoryException,
             AisNoResourcesException,
-            AisVersionException {
+            AisVersionException,
+	    AisUnavailableException {
 
         String _classname = factoryProps.getProperty(classNameProp);
         String _url = factoryProps.getProperty(classURLProp);

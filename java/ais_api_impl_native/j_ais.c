@@ -68,6 +68,7 @@ const char* AIS_ERR_QUEUE_NOT_AVAILABLE_MSG =
 const char* AIS_ERR_BAD_FLAGS_MSG = "The flags are invalid.";
 const char* AIS_ERR_TOO_BIG_MSG = "A value is larger than permitted.";
 const char* AIS_ERR_NO_SECTIONS_MSG = "No or no more sections.";
+const char* AIS_ERR_UNAVAILABLE_MSG = "Service Unavailable.";
 
 /**************************************************************************
  * Macros
@@ -87,15 +88,19 @@ const char* AIS_ERR_NO_SECTIONS_MSG = "No or no more sections.";
  *************************************************************************/
 
 // CLASS ais.Version
-static jclass ClassVersion = NULL;
+jclass ClassVersion = NULL;
 jfieldID FID_releaseCode = NULL;
 jfieldID FID_majorVersion = NULL;
 jfieldID FID_minorVersion = NULL;
+jmethodID CID_Version_constructor = NULL; 
 
 // ENUM ais.TrackFlags
 static jclass EnumTrackFlags = NULL;
 jfieldID FID_TF_value = NULL;
 
+/* ENUM ais.CallbackResponse */
+static jclass EnumCallbackResponse = NULL;
+jfieldID FID_CR_value = NULL;
 /**************************************************************************
  * Function declarations
  *************************************************************************/
@@ -113,6 +118,14 @@ jboolean JNU_TrackFlags_initIDs_OK(
 static jboolean JNU_TrackFlags_initIDs_FromClass_OK(
     JNIEnv* jniEnv,
     jclass enumTrackFlags );
+
+/* ENUM ais.CallbackResponse */
+jboolean JNU_CallbackResponse_initIDs_OK(
+    JNIEnv* jniEnv );
+static jboolean JNU_CallbackResponse_initIDs_FromClass_OK(
+    JNIEnv* jniEnv,
+    jclass enumCallbackResponse );
+
 // MISC
 /*
 jboolean JNU_TrackFlagsForChanges_OK(
@@ -216,6 +229,12 @@ static jboolean JNU_Version_initIDs_FromClass_OK(
         return JNI_FALSE; // EXIT POINT! Exception pending...
     }
 
+    CID_Version_constructor = (*jniEnv)->GetMethodID(
+                                                    jniEnv,
+                                                    classVersion,
+                                                    "<init>",
+                                                    "(CSS)V" ); 							 		
+ 
     _TRACE2( "NATIVE: JNU_Version_initIDs_FromClass_OK(...) returning normally\n" );
 
     return JNI_TRUE;
@@ -281,9 +300,9 @@ static jboolean JNU_TrackFlags_initIDs_FromClass_OK(
 
     // get field IDs
     FID_TF_value = (*jniEnv)->GetFieldID( jniEnv,
-                                           enumTrackFlags,
-                                           "value",
-                                           "I" );
+                                          enumTrackFlags,
+                                          "value",
+                                          "I" );
     if( FID_TF_value == NULL ){
 
         _TRACE2( "NATIVE ERROR: FID_TF_value is NULL\n" );
@@ -294,10 +313,8 @@ static jboolean JNU_TrackFlags_initIDs_FromClass_OK(
 
     _TRACE2( "NATIVE: JNU_TrackFlags_initIDs_FromClass_OK(...) returning normally\n" );
 
-        return JNI_TRUE;
+    return JNI_TRUE;
 }
-
-
 
 // MISC
 
@@ -342,3 +359,71 @@ jboolean JNU_TrackFlagsForChanges_OK(
     return JNI_TRUE;
 }
  *************************************************************************/
+
+/**************************************************************************
+ * FUNCTION:      JNU_CallbackResponse_initIDs_OK
+ * TYPE:          internal function
+ * OVERVIEW:
+ * INTERFACE:
+ *   parameters:  TODO
+ *   returns:     JNI_FALSE if an error occured, JNI_TRUE otherwise
+ * NOTE: If JNI_FALSE is returned, then an exception is already pending!
+ *************************************************************************/
+jboolean JNU_CallbackResponse_initIDs_OK(
+    JNIEnv* jniEnv )
+{
+
+   _TRACE2( "NATIVE: Executing JNU_CallbackResponse_initIDs_OK(...)\n" );
+
+    /* get CallbackResponse class & create a global reference right away */
+
+    EnumCallbackResponse = JNU_GetGlobalClassRef( jniEnv, "org/saforum/ais/CallbackResponse" );
+
+    if( EnumCallbackResponse == NULL ){
+
+         _TRACE2( "NATIVE ERROR: EnumCallbackResponse is NULL\n" );
+
+          return JNI_FALSE; /* EXIT POINT! */
+    }
+
+     /* get IDs */
+
+    return JNU_CallbackResponse_initIDs_FromClass_OK( jniEnv,
+                                                EnumCallbackResponse );
+}
+
+/**************************************************************************
+ * FUNCTION:      JNU_CallbackResponse_initIDs_FromClass_OK
+ * TYPE:          internal function
+ * OVERVIEW:
+ * INTERFACE:
+ *   parameters:  TODO
+ *   returns:     JNI_FALSE if an error occured, JNI_TRUE otherwise
+ * NOTE: If JNI_FALSE is returned, then an exception is already pending!
+ *************************************************************************/
+static jboolean JNU_CallbackResponse_initIDs_FromClass_OK(
+    JNIEnv* jniEnv,
+    jclass enumCallbackResponse )
+{
+
+    _TRACE2( "NATIVE: Executing JNU_CallbackResponse_initIDs_FromClass_OK(..)\n");
+
+     /* get field IDs */
+
+     FID_CR_value = (*jniEnv)->GetFieldID( jniEnv,
+                                           enumCallbackResponse,
+                                           "value",
+                                           "I" );
+     if( FID_CR_value == NULL){
+
+         _TRACE2( "NATIVE ERROR: FID_CR_value is NULL\n" );
+
+         return JNI_FALSE; /* EXIT POINT!  */
+     }
+
+     _TRACE2( "NATIVE: JNU_CallbackResponse_initIDs_FromClass_OK(...) returning normally\n" );
+
+     return JNI_TRUE;
+}
+
+

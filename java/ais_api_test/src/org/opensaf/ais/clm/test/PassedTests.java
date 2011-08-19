@@ -40,6 +40,7 @@ public class PassedTests {
         } catch ( ClassNotFoundException e ) {
         }
         */
+        
         _suite.addTest(new TestClmLibraryHandle("testInitializeHandle_nullVersion"));
         _suite.addTest(new TestClmLibraryHandle("testInitializeHandle_A11Version"));
         _suite.addTest(new TestClmLibraryHandle("testInitializeHandle_B11Version"));
@@ -57,17 +58,25 @@ public class PassedTests {
         _suite.addTest(new TestClmLibraryHandle("testDispatch_NoCB"));
         _suite.addTest(new TestClmLibraryHandle("testDispatchBlocking_Timeout"));
         // TODO currently not passing, AP for myself
-        _suite.addTest(new TestClmLibraryHandle("testFinalizeHandle"));
+        _suite.addTest(new TestClmLibraryHandle("testFinalizeHandle")); 
 
         // CLASS TestClusterMembershipManager
         _suite.addTestSuite( org.opensaf.ais.clm.test.TestClusterMembershipManager.class );
-        /*
+        /* 
         _suite.addTest( new TestClusterMembershipManager("testGetCluster_Simple"));
+        _suite.addTest( new TestClusterMembershipManager("testGetClusterZ_Simple"));
         _suite.addTest( new TestClusterMembershipManager("testGetCluster_Equals"));
+        _suite.addTest( new TestClusterMembershipManager("testGetClusterZ_Equals"));
         _suite.addTest( new TestClusterMembershipManager("testGetClusterAsync_NoCallback"));
         _suite.addTest( new TestClusterMembershipManager("testGetClusterAsync_EqualsDispatchBlocking"));
         _suite.addTest( new TestClusterMembershipManager("testStartClusterTrackingBZ_EqualsDispatchBlocking"));
         _suite.addTest( new TestClusterMembershipManager("testStartClusterTrackingB_Equals"));
+        _suite.addTest( new TestClusterMembershipManager("testGetClusterAsyncZ_NoCallback"));
+        _suite.addTest( new TestClusterMembershipManager("testGetClusterAsyncZ_EqualsDispatchBlocking"));
+        _suite.addTest( new TestClusterMembershipManager("testgetClusterAsyncThenStartTracking_EqualsDispatchBlocking"));
+        _suite.addTest( new TestClusterMembershipManager("testgetClusterAsyncThenStartTrackingTFBI_EqualsDispatchBlocking"));       
+        _suite.addTest( new TestClusterMembershipManager("testgetClusterThenStartTracking_Equals"));
+        _suite.addTest( new TestClusterMembershipManager("testgetClusterThenStartTrackingBZTS_Equals"));
         _suite.addTest( new TestClusterMembershipManager("testGetClusterNode_LocalEquals"));
         _suite.addTest( new TestClusterMembershipManager("testGetClusterNode_LocalTimeout"));
         _suite.addTest( new TestClusterMembershipManager("testGetClusterNode_InvalidNodeId"));

@@ -29,8 +29,12 @@ import org.saforum.ais.AisStatus;
 import org.saforum.ais.AisTimeoutException;
 import org.saforum.ais.AisTryAgainException;
 import org.saforum.ais.AisVersionException;
+import org.saforum.ais.AisUnavailableException;
 import org.saforum.ais.DispatchFlags;
 import org.saforum.ais.Version;
+import org.saforum.ais.ChangeStep;
+import org.saforum.ais.CorrelationIds;
+import org.saforum.ais.CallbackResponse;
 import org.saforum.ais.clm.ClmHandle;
 import org.saforum.ais.clm.ClusterMembershipManager;
 import org.saforum.ais.clm.ClusterNode;
@@ -38,6 +42,7 @@ import org.saforum.ais.clm.ClusterNotification;
 import org.saforum.ais.clm.ClusterNotificationBuffer;
 import org.saforum.ais.clm.GetClusterNodeCallback;
 import org.saforum.ais.clm.TrackClusterCallback;
+import org.saforum.ais.clm.ClusterNotification;
 
 public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 
@@ -83,6 +88,8 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 	 */
 	private TrackClusterCallback trackClusterCallback;
 
+	
+
     /**
      * The handle designating this particular initialization of the Cluster
      * Membership Service, returned by the saClmInitialize function of the
@@ -91,6 +98,8 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
      * @see #invokeSaClmInitialize(Version)
      */
     private long saClmHandle = 0;
+
+    private Version version;
 
     /**
 	 * This method initializes the Cluster Membership Service for the invoking
@@ -150,7 +159,8 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 			TrackClusterCallback trackClusterCallback, Version version)
 			throws AisLibraryException, AisTimeoutException,
 			AisTryAgainException, AisInvalidParamException,
-			AisNoMemoryException, AisNoResourcesException, AisVersionException {
+			AisNoMemoryException, AisNoResourcesException, 
+			AisVersionException, AisUnavailableException {
 		return new ClmHandleImpl(getClusterNodeCallback, trackClusterCallback,
 				version);
 	}
@@ -162,10 +172,12 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 	public static ClmHandleImpl initializeHandle(ClmHandle.Callbacks callbacks,
 			Version version) throws AisLibraryException, AisTimeoutException,
 			AisTryAgainException, AisInvalidParamException,
-			AisNoMemoryException, AisNoResourcesException, AisVersionException {
+			AisNoMemoryException, AisNoResourcesException, 
+			AisVersionException, AisUnavailableException {
 		return initializeHandle(callbacks.getClusterNodeCallback,
 				callbacks.trackClusterCallback, version);
 	}
+	
 
 	/**
 	 * TODO
@@ -179,49 +191,83 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 	 */
 	private static void s_invokeGetClusterNodeCallback(long invocation,
 			ClusterNode clusterNode, int error) {
-		AisStatus status = getAisStatusFromCode(error);
 		ClmHandleImpl _clmLibraryHandle = s_handleMap.get(Thread
 				.currentThread());
+                AisStatus status = getAisStatusFromValue(error); 
 		_clmLibraryHandle.getClusterNodeCallback.getClusterNodeCallback(
 				invocation, clusterNode, status);
 	}
+	/**
+         * TODO
+         *
+         * @param notificationBuffer
+         *            TODO
+         * @param numberOfMembers
+         *            TODO
+         * @param error
+         *            TODO
+         */
 
+	private static void s_invokeTrackClusterCallback( ClusterNotificationBuffer notificationBuffer,
+							  int numberOfMembers, 
+							  int error ){
+		ClmHandleImpl _clmLibraryHandle = s_handleMap.get( Thread.currentThread() );		
+			AisStatus status = getAisStatusFromValue(error);
+		_clmLibraryHandle.trackClusterCallback.trackClusterCallback( notificationBuffer, 
+									     numberOfMembers,
+									     status );
+	}	
 	/**
 	 * TODO
 	 *
 	 * @param notificationBuffer
 	 *            TODO
+
+
+
 	 * @param numberOfMembers
 	 *            TODO
 	 * @param error
 	 *            TODO
 	 */
+
 	private static void s_invokeTrackClusterCallback(
-			ClusterNotificationBuffer notificationBuffer, int numberOfMembers,
-			int error) {
-		AisStatus status = getAisStatusFromCode(error);
+			ClusterNotificationBuffer notificationBuffer, int numberOfMembers, long invocation,java.lang.String rootCauseEntity, CorrelationIds correlationIds, int _step, long timeSupervision, int error) {
 		ClmHandleImpl _clmLibraryHandle = s_handleMap.get(Thread
 				.currentThread());
+			AisStatus status = getAisStatusFromValue(error);
+                        ChangeStep step = getChangeStepFromValue(_step); 
 		_clmLibraryHandle.trackClusterCallback.trackClusterCallback(
-				notificationBuffer, numberOfMembers, status);
+	notificationBuffer, numberOfMembers, invocation, rootCauseEntity, correlationIds, step, timeSupervision, status);
 	}
 
 	private static ClusterNotification.ClusterChange s_getClusterChange(int value) {
 		return getClusterChangeFromValue(value);
 	}
+      
+        private static AisStatus getAisStatusFromValue(int value) {
+                AisStatus aisStatus = null;
+                for (AisStatus as : AisStatus.values()) {
+                        if (as.getValue() == value) {
+                                aisStatus = as;
+                                break;
+                        }
+                }
 
-	private static AisStatus getAisStatusFromCode(int statusCode) {
-		AisStatus status = null;
+                return aisStatus;
+        }
+        
+        private static ChangeStep getChangeStepFromValue(int value) {
+                ChangeStep changeStep = null;
+                for (ChangeStep cs : ChangeStep.values()) {
+                        if (cs.getValue() == value) {
+                                changeStep = cs;
+                                break;
+                        }
+                }
 
-		for (AisStatus s : AisStatus.values()) {
-			if (s.getValue() == statusCode) {
-				status = s;
-				break;
-			}
-		}
-
-		return status;
-	}
+                return changeStep;
+        }
 
 	private static ClusterNotification.ClusterChange getClusterChangeFromValue(int value) {
 		ClusterNotification.ClusterChange clusterChange = null;
@@ -235,10 +281,9 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 
 		return clusterChange;
 	}
-
-	/**
-	 * TODO constructor comment
-	 *
+	
+	
+	/*  TODO constructor
 	 * @param getClusterNodeCallback
 	 *            [in] If this parameter is set to NULL then no
 	 *            GetClusterNodeCallback callback is registered; otherwise it is
@@ -285,7 +330,8 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 			TrackClusterCallback trackClusterCallback, Version version)
 			throws AisLibraryException, AisTimeoutException,
 			AisTryAgainException, AisInvalidParamException,
-			AisNoMemoryException, AisNoResourcesException, AisVersionException {
+			AisNoMemoryException, AisNoResourcesException, 
+			AisVersionException, AisUnavailableException {
 		this.getClusterNodeCallback = getClusterNodeCallback;
 		this.trackClusterCallback = trackClusterCallback;
 		invokeSaClmInitialize(version);
@@ -309,8 +355,9 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 	}
 
 	public void dispatchBlocking() throws AisLibraryException,
-			AisTimeoutException, AisTryAgainException, AisBadHandleException,
-			AisNoMemoryException, AisNoResourcesException {
+			AisTimeoutException, AisTryAgainException, 
+			AisBadHandleException, AisNoMemoryException, 
+			AisNoResourcesException {
 		// make sure that we have a valid selection object
 		ensureSelectionObjectObtained();
 		// do the dispatching
@@ -322,8 +369,9 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 	}
 
 	public void dispatchBlocking(long timeout) throws AisLibraryException,
-			AisTimeoutException, AisTryAgainException, AisBadHandleException,
-			AisNoMemoryException, AisNoResourcesException {
+			AisTimeoutException, AisTryAgainException, 
+			AisBadHandleException, AisNoMemoryException, 
+			AisNoResourcesException {
 		super.dispatchBlocking(timeout);
 	}
 
@@ -350,8 +398,9 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 			AisTimeoutException, AisTryAgainException, AisBadHandleException;
 
 	protected void invokeSelectionObjectGet() throws AisLibraryException,
-			AisTimeoutException, AisTryAgainException, AisBadHandleException,
-			AisNoMemoryException, AisNoResourcesException {
+			AisTimeoutException, AisTryAgainException, 
+			AisBadHandleException, AisNoMemoryException, 
+			AisNoResourcesException {
 		invokeSaClmSelectionObjectGet();
 	}
 
@@ -392,7 +441,8 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 	private native void invokeSaClmInitialize(Version version)
 			throws AisLibraryException, AisTimeoutException,
 			AisTryAgainException, AisInvalidParamException,
-			AisNoMemoryException, AisNoResourcesException, AisVersionException;
+			AisNoMemoryException, AisNoResourcesException, 
+			AisVersionException, AisUnavailableException;
 
 	/**
 	 * This native method invokes the saClmDispatch function of the underlying
@@ -419,7 +469,7 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 			throws AisLibraryException, AisTimeoutException,
 			AisTryAgainException,
 			// AisBadHandleException,
-			// AisInvalidParamException; // TODO consider removing this...
+			//AisInvalidParamException, // TODO consider removing this...
 			AisBadHandleException;
 
 	/**
@@ -445,7 +495,7 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 			throws AisLibraryException, AisTimeoutException,
 			AisTryAgainException,
 			// AisBadHandleException,
-			// AisInvalidParamException; // TODO consider removing this...
+			//AisInvalidParamException, // TODO consider removing this...
 			AisBadHandleException;
 
 	/**
@@ -474,7 +524,34 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 	private native void invokeSaClmSelectionObjectGet()
 			throws AisLibraryException, AisTimeoutException,
 			AisTryAgainException, AisBadHandleException,
-			// AisInvalidParamException,
 			AisNoMemoryException, AisNoResourcesException;
+			
+
+	/* This is part of CLM lifecycle method to respond to the trackcallback 
+         *
+	 * SAF Reference: saClmResponse_4
+         *
+	 */
+      
+	public void response(long invocation, CallbackResponse response) throws AisLibraryException,
+                        AisTimeoutException, AisTryAgainException, AisBadHandleException,
+                        AisInvalidParamException, AisNoMemoryException, AisNoResourcesException,
+                        AisVersionException, AisUnavailableException{
+			
+				invokeSaClmResponse(invocation,response);
+	}
+         
+        /* This is the Native method */
+	private native void invokeSaClmResponse(long invocation, CallbackResponse response)
+		 throws AisLibraryException,
+                        AisTimeoutException,
+                        AisTryAgainException,
+                        AisBadHandleException,
+                        AisInvalidParamException,
+                        AisNoMemoryException,
+                        AisNoResourcesException,
+                        AisVersionException,
+                        AisUnavailableException;       
+                         
 
 }

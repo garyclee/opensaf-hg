@@ -25,9 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-
 import junit.framework.TestCase;
-
 import org.opensaf.ais.SelectionObjectMediator;
 import org.saforum.ais.AisBadHandleException;
 import org.saforum.ais.AisException;
@@ -40,6 +38,8 @@ import org.saforum.ais.AisTryAgainException;
 import org.saforum.ais.Consts;
 import org.saforum.ais.DispatchFlags;
 import org.saforum.ais.Version;
+import org.saforum.ais.ChangeStep;
+import org.saforum.ais.CorrelationIds;
 import org.saforum.ais.clm.ClmHandle;
 import org.saforum.ais.clm.ClmHandleFactory;
 import org.saforum.ais.clm.ClusterMembershipManager;
@@ -47,6 +47,8 @@ import org.saforum.ais.clm.ClusterNode;
 import org.saforum.ais.clm.ClusterNotificationBuffer;
 import org.saforum.ais.clm.GetClusterNodeCallback;
 import org.saforum.ais.clm.TrackClusterCallback;
+import java.io.InputStream;
+import java.util.Properties;
 
 public class DispatchHandleTests extends TestCase implements
 		GetClusterNodeCallback, TrackClusterCallback {
@@ -55,6 +57,10 @@ public class DispatchHandleTests extends TestCase implements
 	private SelectionObjectMediator mediator;
 	private boolean isGetClusterNodeCallbackCalled = false;
 	private boolean isTrackClusterCallbackCalled;
+	private Properties properties = new Properties();
+	private char releaseCode;
+	private short majorVersion;
+	private short minorVersion;
 
 	public static void main(String[] args) {
 		junit.textui.TestRunner.run(DispatchHandleTests.class);
@@ -132,8 +138,8 @@ public class DispatchHandleTests extends TestCase implements
 						+ numTestHandles);
 
 		try {
-			Version b11Version = new Version((char) 'B', (short) 0x01,
-					(short) 0x01);
+			Version b11Version = new Version(releaseCode, majorVersion,
+					minorVersion);
 			ClmHandleFactory clmHandleFactory = new ClmHandleFactory();
 			ClmHandle.Callbacks callbackNullNull = new ClmHandle.Callbacks();
 			callbackNullNull.getClusterNodeCallback = null;
@@ -221,8 +227,8 @@ public class DispatchHandleTests extends TestCase implements
 					Thread.sleep(new Random().nextInt(1000));
 				} catch (InterruptedException e) {
 				}
-				Version b11Version = new Version((char) 'B', (short) 0x01,
-						(short) 0x01);
+				Version b11Version = new Version(releaseCode, majorVersion,
+						minorVersion);
 				ClmHandleFactory clmHandleFactory = new ClmHandleFactory();
 				ClmHandle.Callbacks callbackNullNull = new ClmHandle.Callbacks();
 				callbackNullNull.getClusterNodeCallback = null;
@@ -285,7 +291,13 @@ public class DispatchHandleTests extends TestCase implements
 					+ ") tackClusterCallback");
 
 		}
-
+		public void trackClusterCallback(
+			ClusterNotificationBuffer notificationBuffer, int numberOfMembers,
+			long invocation, String rootCauseEntity,  CorrelationIds correlationIds,
+			ChangeStep step, long timeSupervision, AisStatus error ){
+			System.out.println("JAVA TEST THREAD: threaded (" + serialNum
+					+ ") tackClusterCallback");
+        	}
 	}
 
 	/**
@@ -333,7 +345,7 @@ public class DispatchHandleTests extends TestCase implements
 		} catch (AisNoMemoryException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} 
 		assertNotNull(ex);
 	}
 
@@ -386,7 +398,20 @@ public class DispatchHandleTests extends TestCase implements
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		Version b11Version = new Version((char) 'B', (short) 0x01, (short) 0x01);
+		try{
+			InputStream in = this.getClass().getClassLoader().getResourceAsStream("org/opensaf/ais/version.properties");
+			properties.load(in);
+			releaseCode = properties.getProperty("releaseCode").trim().charAt(0);
+			majorVersion = new Short(properties.getProperty("majorVersion").trim()).shortValue();
+			minorVersion = new Short(properties.getProperty("minorVersion").trim()).shortValue();
+			System.out.println("releaseCode:"+ releaseCode +majorVersion +  minorVersion);
+			in.close();
+		}
+		catch(Exception e){
+			System.out.println(e.getMessage());
+		}
+		Version b11Version = new Version(releaseCode, majorVersion , minorVersion);
+
 		ClmHandleFactory clmHandleFactory = new ClmHandleFactory();
 		ClmHandle.Callbacks callbackNullNull = new ClmHandle.Callbacks();
 		callbackNullNull.getClusterNodeCallback = null;
@@ -420,5 +445,15 @@ public class DispatchHandleTests extends TestCase implements
 		isTrackClusterCallbackCalled = true;
 	}
 
+	public void trackClusterCallback(
+			ClusterNotificationBuffer notificationBuffer, int numberOfMembers,
+			long invocation, String rootCauseEntity,  CorrelationIds correlationIds,
+			ChangeStep step, long timeSupervision, AisStatus error ){
+		System.out.println("JAVA TEST CALLBACK: Executing trackClusterCallback("
+				+ notificationBuffer + "," + numberOfMembers + "," + invocation 
+				+ "," + rootCauseEntity + "," + correlationIds + "," + step 
+				+ "," + timeSupervision + "," + error + ")");
+                isTrackClusterCallbackCalled = true;
+	}
 
 }

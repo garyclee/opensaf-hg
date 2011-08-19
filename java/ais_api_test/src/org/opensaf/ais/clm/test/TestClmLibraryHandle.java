@@ -22,7 +22,6 @@ import org.opensaf.ais.clm.ClmHandleImpl;
 import org.opensaf.ais.test.*;
 import org.saforum.ais.clm.*;
 import org.saforum.ais.*;
-
 // CLASS DEFINITION
 /**
  *
@@ -240,11 +239,11 @@ public class TestClmLibraryHandle extends TestCase implements
 		} catch (AisException e) {
 			aisExc = e;
 		}
-		Assert.assertNotNull(clmLibHandle);
-		Assert.assertNull(aisExc);
+		Assert.assertNull(clmLibHandle);
 		Assert.assertEquals(_b18Version.releaseCode, (char) 'B');
-		Assert.assertEquals(_b18Version.majorVersion, (short) 0x01);
+		Assert.assertEquals(_b18Version.majorVersion, (short) 0x04);
 		Assert.assertEquals(_b18Version.minorVersion, (short) 0x01);
+		Assert.assertTrue(aisExc instanceof AisVersionException);
 	}
 
 	/*
@@ -262,13 +261,32 @@ public class TestClmLibraryHandle extends TestCase implements
 		} catch (AisException e) {
 			aisExc = e;
 		}
-		Assert.assertNull(clmLibHandle);
-		Assert.assertTrue(aisExc instanceof AisVersionException);
+		Assert.assertNotNull(clmLibHandle);
 		Assert.assertEquals(_b21Version.releaseCode, (char) 'B');
-		Assert.assertEquals(_b21Version.majorVersion, (short) 0x01);
+		Assert.assertEquals(_b21Version.majorVersion, (short) 0x04);
 		Assert.assertEquals(_b21Version.minorVersion, (short) 0x01);
 	}
 
+	/*
+         * Test method for 'ais.clm.ClmHandle.initializeHandle(ClmCallbacks,
+         * Version)'
+         */
+	public final void testInitializeHandle_B51Version() {
+		System.out
+				.println("JAVA TEST: Executing testInitializeHandle_B51Version()...");
+		Version _b51Version = new Version((char) 'B', (short) 0x05, (short) 0x01);
+		try {
+			clmLibHandle = clmHandleFactory.initializeHandle(callbackNullNull,
+						_b51Version);
+		} catch (AisException e) {
+			aisExc = e;
+		}
+		Assert.assertNull(clmLibHandle);
+		Assert.assertTrue(aisExc instanceof AisVersionException);
+		Assert.assertEquals(_b51Version.releaseCode, (char) 'B');
+		Assert.assertEquals(_b51Version.majorVersion, (short) 0x04);
+		Assert.assertEquals(_b51Version.minorVersion, (short) 0x01);
+	}
 	/*
 	 * Test method for 'ais.clm.ClmHandle.initializeHandle(ClmCallbacks,
 	 * Version)'
@@ -468,7 +486,7 @@ public class TestClmLibraryHandle extends TestCase implements
 			aisExc = e;
 		}
 		Assert.assertFalse(called_gCN_cb); // because no pending callback
-		Assert.assertFalse(called_tC_cb); // because no pending callback
+		Assert.assertFalse(called_tC_cb);  // because no pending callback
 		Assert.assertNull(aisExc);
 	}
 
@@ -635,9 +653,9 @@ public class TestClmLibraryHandle extends TestCase implements
 		Assert.assertNull(_selectedHandleArray); // because no registered callback
 		Assert.assertNull(aisExc);
 		Assert.assertFalse(Utils.s_isDurationTooLong(_before, _after,
-				saTimeout, 30));
+				saTimeout, ALLOWED_TIME_DIFF));
 		Assert.assertFalse(Utils.s_isDurationTooShort(_before, _after,
-				saTimeout, 30));
+				saTimeout, ALLOWED_TIME_DIFF));
 	}
 
 	/*
@@ -677,9 +695,28 @@ public class TestClmLibraryHandle extends TestCase implements
 	public void trackClusterCallback(
 			ClusterNotificationBuffer notificationBuffer, int numberOfMembers,
 			AisStatus error) {
-		System.out
-				.println("JAVA TEST CALLBACK: Executing trackClusterCallback()...");
+		
+		System.out.println("JAVA TEST CALLBACK: Executing trackClusterCallback( "
+                                	+ notificationBuffer + ", " + numberOfMembers + ", "
+                                	+ error + " )...");
+	
 		called_tC_cb = true;
 	}
+        public void trackClusterCallback(      ClusterNotificationBuffer notificationBuffer,
+                                                                int numberOfMembers,
+                                                                long invocation,
+                                                                String rootCauseEntity,
+                                                                CorrelationIds correlationIds,
+                                                                ChangeStep step,
+                                                                long timeSupervision,
+                                                                AisStatus error ){
+
+		System.out.println("JAVA TEST CALLBACK: Executing trackClusterCallback( "
+                                + notificationBuffer + ", " + numberOfMembers + ", " + invocation + "," + rootCauseEntity +
+                                "," + correlationIds + "," + step + "," + timeSupervision + ","
+                                + error + " ) on " + this);
+
+		called_tC_cb = true;
+	}	
 
 }
