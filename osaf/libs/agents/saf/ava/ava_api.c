@@ -33,80 +33,6 @@
 
 #include "ava.h"
 
-/* macro for api pre-processing */
-#define m_AVA_API_PRE_PROCESSING(api, cbhdl, o_cb, hdl, o_hdlrec, o_rc) \
-{ \
-   /* retrieve AvA CB */ \
-   if ( \
-	(!((o_cb) = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, (cbhdl)))) || \
-	( !((AVSV_AMF_PG_START == (api)) || \
-	    (AVSV_AMF_PG_STOP == (api)) || \
-	    (AVSV_AMF_INITIALIZE == (api)) || \
-	    (AVSV_AMF_ERR_REP == (api)) || \
-	    (AVSV_AMF_PM_START == (api)) || \
-	    (AVSV_AMF_PM_STOP == (api)) \
-	   ) && \
-	  !m_AVA_FLAG_IS_COMP_NAME((o_cb)) ) \
-      ) {\
-	TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle"); \
-      (o_rc) = SA_AIS_ERR_LIBRARY; }\
-   if ( SA_AIS_OK  == (o_rc) ) { \
-      /* acquire cb read/write lock */ \
-      if ( \
-	   ( AVSV_AMF_INITIALIZE == (api) ) || \
-	   ( AVSV_AMF_PG_START == (api) ) || \
-	   ( AVSV_AMF_DISPATCH == (api) ) || \
-	   ( AVSV_AMF_FINALIZE == (api) ) \
-	 ) \
-	 m_NCS_LOCK(&(o_cb)->lock, NCS_LOCK_WRITE); \
-      else \
-	 m_NCS_LOCK(&(o_cb)->lock, NCS_LOCK_READ); \
-      /* retrieve hdl rec */ \
-      if ( !((AVSV_AMF_INITIALIZE == (api)) || (AVSV_AMF_FINALIZE == (api))) ) { \
-	 if ( !((o_hdlrec) = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, \
-							   (hdl))) ) {\
-	    (o_rc) = SA_AIS_ERR_BAD_HANDLE; }\
-      } \
-   } \
-};
-
-/* macro for api post-processing */
-#define m_AVA_API_POST_PROCESSING(api, cbhdl, cb, hdl, hdlrec, cn, rc) \
-{ \
-   /* release cb read/write lock */ \
-   if ((cb)) { \
-      if ( \
-	   (AVSV_AMF_INITIALIZE == (api)) || \
-	   (AVSV_AMF_DISPATCH == (api)) || \
-	   (AVSV_AMF_FINALIZE == (api)) \
-	 ) \
-	 m_NCS_UNLOCK(&(cb)->lock, NCS_LOCK_WRITE); \
-      else \
-	 m_NCS_UNLOCK(&(cb)->lock, NCS_LOCK_READ); \
-   } \
-   /* return AvA CB & hdl rec */ \
-   if ((cb)) ncshm_give_hdl((cbhdl)); \
-   if ( (hdlrec) && \
-	( (AVSV_AMF_INITIALIZE != (api)) || (AVSV_AMF_FINALIZE != (api)) ) ) \
-      ncshm_give_hdl((hdl)); \
-};
-
-/* Macro for Verifying the input Handle & global handle */
-#define m_AVA_API_HDL_VERIFY(cbhdl, hdl, o_rc) \
-{ \
-   /* is library Initialized && handle a 32 bit value*/ \
-   if(!(cbhdl) || (hdl) > AVSV_UNS32_HDL_MAX) {\
-	TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl); \
-	(o_rc) = SA_AIS_ERR_BAD_HANDLE; }\
-};
-
-/* Macro for Verifying the input Invocation type */
-#define m_AVA_API_HC_INV_VERIFY(i_inv, o_rc) \
-{ \
-   if((SA_AMF_HEALTHCHECK_AMF_INVOKED != (i_inv)) && (SA_AMF_HEALTHCHECK_COMPONENT_INVOKED != (i_inv))) \
-      (o_rc) = SA_AIS_ERR_INVALID_PARAM;\
-};
-
 /****************************************************************************
   Name	  : saAmfInitialize
  
@@ -148,10 +74,15 @@ SaAisErrorT saAmfInitialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg_cbks
 		return SA_AIS_ERR_LIBRARY;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_INITIALIZE, gl_ava_hdl, cb, 0, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
 		goto done;
+	}
+	/* acquire cb write lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
+
 
 	/* validate the version */
 	if (!m_AVA_VER_IS_VALID(io_ver)) {
@@ -194,8 +125,11 @@ SaAisErrorT saAmfInitialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg_cbks
 	if (hdl_rec && SA_AIS_OK != rc)
 		ava_hdl_rec_del(cb, hdl_db, hdl_rec);
 
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_INITIALIZE, gl_ava_hdl, cb, 0, 0, 0, rc);
+	/* release cb read lock and return handle */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
 
 	if (SA_AIS_OK != rc) {
 		ncs_ava_shutdown();
@@ -226,30 +160,44 @@ SaAisErrorT saAmfSelectionObjectGet(SaAmfHandleT hdl, SaSelectionObjectT *o_sel_
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE();
-		return rc;
-	}
-
 	if (!o_sel_obj) {
 		TRACE_LEAVE2("NULL argument passed for SaSelectionObject");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_SEL_OBJ_GET, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* everything's fine.. pass the sel obj to the appl */
 	*o_sel_obj = (SaSelectionObjectT)
             m_GET_FD_FROM_SEL_OBJ(m_NCS_IPC_GET_SEL_OBJ(&hdl_rec->callbk_mbx));
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_SEL_OBJ_GET, gl_ava_hdl, cb, hdl, hdl_rec, 0, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
+
 	TRACE_LEAVE2("API Return code = %u", rc);
 	return rc;
 }
@@ -277,22 +225,30 @@ SaAisErrorT saAmfDispatch(SaAmfHandleT hdl, SaDispatchFlagsT flags)
 	uint32_t pend_dis = 0;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE();
-		return rc;
-	}
-
 	if (!m_AVA_DISPATCH_FLAG_IS_VALID(flags)) {
 		TRACE_LEAVE2("Invalid SaDispatchFlagsT passed");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_DISPATCH, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* Increment Dispatch usgae count */
 	cb->pend_dis++;
@@ -307,8 +263,13 @@ SaAisErrorT saAmfDispatch(SaAmfHandleT hdl, SaDispatchFlagsT flags)
 	pend_fin = cb->pend_fin;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_DISPATCH, gl_ava_hdl, cb, hdl, hdl_rec, 0, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* see if we are still in any dispact context */
 	if (pend_dis == 0)
@@ -340,25 +301,30 @@ SaAisErrorT saAmfFinalize(SaAmfHandleT hdl)
 	AVA_CB *cb = 0;
 	AVA_HDL_DB *hdl_db = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	SaAisErrorT rc = SA_AIS_OK;
 	bool agent_flag = false;	/* flag = false, we should not call agent shutdown */
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE();
-		return rc;
-	}
-
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_FINALIZE, gl_ava_hdl, cb, 0, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* get the ptr to the hdl db */
 	hdl_db = &cb->hdl_db;
@@ -388,8 +354,13 @@ SaAisErrorT saAmfFinalize(SaAmfHandleT hdl)
 		cb->pend_fin++;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_FINALIZE, gl_ava_hdl, cb, hdl, hdl_rec, 0, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request message */
 	avsv_nda_ava_msg_content_free(&msg);
@@ -421,20 +392,11 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_name, c
 {
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
-	SaNameT pcomp_name;
+	SaNameT pcomp_name = {0};
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg * proxy-comp name */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-	memset(&pcomp_name, 0, sizeof(SaNameT));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc)
-		return rc;
 
 	if (!comp_name || !(comp_name->length) ||
 	    (comp_name->length > SA_MAX_NAME_LENGTH) ||
@@ -443,12 +405,26 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_name, c
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* if comp-name is not set, it should be available now */
-	cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl);
-	if (!cb) {
-		TRACE_LEAVE2("Unable to access global AVA handle");
-		return SA_AIS_ERR_LIBRARY;
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
 	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl)) || !m_AVA_FLAG_IS_COMP_NAME(cb)) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
 	if (!m_AVA_FLAG_IS_COMP_NAME(cb)) {
 		if (getenv("SA_AMF_COMPONENT_NAME")) {
 			if (strlen(getenv("SA_AMF_COMPONENT_NAME")) < SA_MAX_NAME_LENGTH) {
@@ -468,11 +444,6 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_name, c
 	}
 	if (cb)
 		ncshm_give_hdl(gl_ava_hdl);
-
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_COMP_REG, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
-		goto done;
 
 	/* non-proxied, component Length part of component name should be OK */
 	if (!proxy_comp_name && (comp_name->length != cb->comp_name.length)) {
@@ -522,8 +493,13 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_name, c
 		rc = SA_AIS_ERR_TIMEOUT;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_COMP_REG, gl_ava_hdl, cb, hdl, hdl_rec, comp_name, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request/response message */
 	if (msg_rsp)
@@ -549,22 +525,13 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_name, c
 ******************************************************************************/
 SaAisErrorT saAmfComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_name, const SaNameT *proxy_comp_name)
 {
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	SaNameT pcomp_name;
+	SaNameT pcomp_name = {0};
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg & proxy-comp name */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-	memset(&pcomp_name, 0, sizeof(SaNameT));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc)
-		return rc;
 
 	if (!comp_name || !(comp_name->length) ||
 	    (comp_name->length > SA_MAX_NAME_LENGTH) ||
@@ -573,10 +540,25 @@ SaAisErrorT saAmfComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_name,
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_COMP_UNREG, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl)) || !m_AVA_FLAG_IS_COMP_NAME(cb)) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* non-proxied, component Length part of component name should be OK */
 	if (!proxy_comp_name && (comp_name->length != cb->comp_name.length)) {
@@ -620,8 +602,13 @@ SaAisErrorT saAmfComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_name,
 		rc = SA_AIS_ERR_TIMEOUT;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_COMP_UNREG, gl_ava_hdl, cb, hdl, hdl_rec, comp_name, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request/response message */
 	if (msg_rsp)
@@ -657,26 +644,15 @@ SaAisErrorT saAmfHealthcheckStart(SaAmfHandleT hdl,
 {
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE();
-		return rc;
-	}
-
 	/* verify input inv  */
-	m_AVA_API_HC_INV_VERIFY(inv, rc);
-	if (SA_AIS_OK != rc) {
+	if((SA_AMF_HEALTHCHECK_AMF_INVOKED != inv) && (SA_AMF_HEALTHCHECK_COMPONENT_INVOKED != inv)) {
 		TRACE_LEAVE2("Incorrect argument specified for SaAmfHealthcheckInvocationT");
-		return rc;
+		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
 	if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH) ||
@@ -685,10 +661,25 @@ SaAisErrorT saAmfHealthcheckStart(SaAmfHandleT hdl,
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_HC_START, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* check if hc cbk was supplied during saAmfInitialize (for AMF invoked healthcheck) */
 	if ((SA_AMF_HEALTHCHECK_AMF_INVOKED == inv) && (!m_AVA_HDL_IS_HC_CBK_PRESENT(hdl_rec))) {
@@ -710,8 +701,13 @@ SaAisErrorT saAmfHealthcheckStart(SaAmfHandleT hdl,
 		rc = SA_AIS_ERR_TIMEOUT;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_HC_START, gl_ava_hdl, cb, hdl, hdl_rec, comp_name, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request/response message */
 	if (msg_rsp)
@@ -740,20 +736,10 @@ SaAisErrorT saAmfHealthcheckStop(SaAmfHandleT hdl, const SaNameT *comp_name, con
 {
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE();
-		return rc;
-	}
 
 	if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH) ||
 	    !hc_key || !(hc_key->keyLen) || (hc_key->keyLen > SA_AMF_HEALTHCHECK_KEY_MAX)) {
@@ -761,10 +747,25 @@ SaAisErrorT saAmfHealthcheckStop(SaAmfHandleT hdl, const SaNameT *comp_name, con
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_HC_STOP, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* populate & send the healthcheck stop message */
 	m_AVA_HC_STOP_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key);
@@ -779,8 +780,13 @@ SaAisErrorT saAmfHealthcheckStop(SaAmfHandleT hdl, const SaNameT *comp_name, con
 		rc = SA_AIS_ERR_TIMEOUT;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_HC_STOP, gl_ava_hdl, cb, hdl, hdl_rec, comp_name, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request/response message */
 	if (msg_rsp)
@@ -811,20 +817,10 @@ SaAisErrorT saAmfHealthcheckConfirm(SaAmfHandleT hdl,
 {
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE();
-		return rc;
-	}
 
 	if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH) ||
 	    !hc_key || !(hc_key->keyLen) || (hc_key->keyLen > SA_AMF_HEALTHCHECK_KEY_MAX) ||
@@ -833,10 +829,25 @@ SaAisErrorT saAmfHealthcheckConfirm(SaAmfHandleT hdl,
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_HC_CONFIRM, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* populate & send the healthcheck confirm message */
 	m_AVA_HC_CONFIRM_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key, hc_result);
@@ -851,8 +862,13 @@ SaAisErrorT saAmfHealthcheckConfirm(SaAmfHandleT hdl,
 		rc = SA_AIS_ERR_TIMEOUT;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_HC_CONFIRM, gl_ava_hdl, cb, hdl, hdl_rec, comp_name, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request/response message */
 	if (msg_rsp)
@@ -888,20 +904,10 @@ SaAisErrorT saAmfPmStart(SaAmfHandleT hdl,
 {
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE();
-		return rc;
-	}
 
 	/* input validation of component name */
 	if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH)) {
@@ -934,10 +940,25 @@ SaAisErrorT saAmfPmStart(SaAmfHandleT hdl,
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_PM_START, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* populate & send the passive monitor start message */
 	m_AVA_PM_START_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, processId, desc_TreeDepth, pmErr, rec_Recovery);
@@ -953,8 +974,13 @@ SaAisErrorT saAmfPmStart(SaAmfHandleT hdl,
 		rc = SA_AIS_ERR_TIMEOUT;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_PM_START, gl_ava_hdl, cb, hdl, hdl_rec, comp_name, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request/response message */
 	if (msg_rsp)
@@ -988,20 +1014,10 @@ SaAisErrorT saAmfPmStop(SaAmfHandleT hdl,
 {
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE2("Invalid Handle");
-		return rc;
-	}
 
 	/* input validation of component name */
 	if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH)) {
@@ -1028,10 +1044,26 @@ SaAisErrorT saAmfPmStop(SaAmfHandleT hdl,
 		TRACE_LEAVE2("Incorrect argument specified for processId");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_PM_STOP, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* populate & send the Passive Monitoring stop message */
 	m_AVA_PM_STOP_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, stopQual, processId, pmErr);
@@ -1046,8 +1078,13 @@ SaAisErrorT saAmfPmStop(SaAmfHandleT hdl,
 		rc = SA_AIS_ERR_TIMEOUT;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_PM_STOP, gl_ava_hdl, cb, hdl, hdl_rec, comp_name, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request/response message */
 	if (msg_rsp)
@@ -1078,13 +1115,6 @@ SaAisErrorT saAmfComponentNameGet(SaAmfHandleT hdl, SaNameT *o_comp_name)
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE2("Invalid handle");
-		return rc;
-	}
-
 	if (!o_comp_name) {
 		TRACE_LEAVE2("Out param component name is NULL");
 		return SA_AIS_ERR_INVALID_PARAM;
@@ -1092,10 +1122,25 @@ SaAisErrorT saAmfComponentNameGet(SaAmfHandleT hdl, SaNameT *o_comp_name)
 
 	memset(o_comp_name, '\0', sizeof(SaNameT));
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_COMP_NAME_GET, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* fetch the comp name */
 	if (m_AVA_FLAG_IS_COMP_NAME(cb)) {
@@ -1107,8 +1152,13 @@ SaAisErrorT saAmfComponentNameGet(SaAmfHandleT hdl, SaNameT *o_comp_name)
 	}
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_COMP_NAME_GET, gl_ava_hdl, cb, hdl, hdl_rec, 0, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
@@ -1133,31 +1183,36 @@ SaAisErrorT saAmfCSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv, SaAis
 {
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVA_PEND_RESP *list_resp = 0;
 	AVA_PEND_CBK_REC *rec = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE2("Invalid handle");
-		return rc;
-	}
 
 	if ((!m_AVA_AMF_RESP_ERR_CODE_IS_VALID(error)) || (!inv)) {
 		TRACE_LEAVE2("Incorrect value specified for SaAisErrorT");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_CSI_QUIESCING_COMPLETE, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl)) || !m_AVA_FLAG_IS_COMP_NAME(cb)) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* get the list of pending responses for this handle */
 	list_resp = &hdl_rec->pend_resp;
@@ -1197,8 +1252,13 @@ SaAisErrorT saAmfCSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv, SaAis
 	}
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_CSI_QUIESCING_COMPLETE, gl_ava_hdl, cb, hdl, hdl_rec, 0, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the message */
 	avsv_nda_ava_msg_content_free(&msg);
@@ -1226,20 +1286,10 @@ SaAisErrorT saAmfHAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name, const Sa
 {
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE2("Invalid Handle");
-		return rc;
-	}
 
 	if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH) ||
 	    !csi_name || !(csi_name->length) || (csi_name->length > SA_MAX_NAME_LENGTH) || !o_ha) {
@@ -1247,10 +1297,25 @@ SaAisErrorT saAmfHAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name, const Sa
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_HA_STATE_GET, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* populate & send the 'ha state get' message */
 	m_AVA_HA_STATE_GET_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, *csi_name);
@@ -1269,8 +1334,13 @@ SaAisErrorT saAmfHAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name, const Sa
 		*o_ha = msg_rsp->info.api_resp_info.param.ha_get.ha;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_HA_STATE_GET, gl_ava_hdl, cb, hdl, hdl_rec, comp_name, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request/response message */
 	if (msg_rsp)
@@ -1306,22 +1376,12 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 	SaAmfProtectionGroupNotificationBufferT *rsp_buf = 0;
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	bool is_syn = false, create_memory = false;
 	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t i = 0;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE2("Invalid Handle");
-		return rc;
-	}
 
 	if (!csi_name || !(csi_name->length) || (csi_name->length > SA_MAX_NAME_LENGTH)) {
 		TRACE_LEAVE2("Incorrect arguments");
@@ -1333,10 +1393,25 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 		return SA_AIS_ERR_BAD_FLAGS;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_PG_START, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* check if pg cbk was supplied during saAmfInitialize (for change-only & change track) 
 	   and
@@ -1446,8 +1521,13 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 		rc = SA_AIS_ERR_TIMEOUT;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_PG_START, gl_ava_hdl, cb, hdl, hdl_rec, 0, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request/response message */
 	if (msg_rsp)
@@ -1475,30 +1555,35 @@ SaAisErrorT saAmfProtectionGroupTrackStop(SaAmfHandleT hdl, const SaNameT *csi_n
 {
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE2("Invalid handle");
-		return rc;
-	}
 
 	if (!csi_name || !(csi_name->length) || (csi_name->length > SA_MAX_NAME_LENGTH)) {
 		TRACE_LEAVE2("Incorrect arguments");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_PG_STOP, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* populate & send the pg stop message */
 	m_AVA_PG_STOP_MSG_FILL(msg, cb->ava_dest, hdl, *csi_name);
@@ -1513,8 +1598,13 @@ SaAisErrorT saAmfProtectionGroupTrackStop(SaAmfHandleT hdl, const SaNameT *csi_n
 		rc = SA_AIS_ERR_TIMEOUT;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_PG_STOP, gl_ava_hdl, cb, hdl, hdl_rec, 0, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request/response message */
 	if (msg_rsp)
@@ -1547,20 +1637,10 @@ SaAisErrorT saAmfComponentErrorReport(SaAmfHandleT hdl,
 {
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE2("Invalid handle");
-		return rc;
-	}
 
 	/* validate the component */
 	if (!err_comp || !(err_comp->length) || (err_comp->length > SA_MAX_NAME_LENGTH)) {
@@ -1574,10 +1654,25 @@ SaAisErrorT saAmfComponentErrorReport(SaAmfHandleT hdl,
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_ERR_REP, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* populate & send the 'error report' message */
 	m_AVA_ERR_REP_MSG_FILL(msg, cb->ava_dest, hdl, *err_comp, err_time, rec_rcvr);
@@ -1592,8 +1687,13 @@ SaAisErrorT saAmfComponentErrorReport(SaAmfHandleT hdl,
 		rc = SA_AIS_ERR_TIMEOUT;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_ERR_REP, gl_ava_hdl, cb, hdl, hdl_rec, err_comp, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request/response message */
 	if (msg_rsp)
@@ -1622,30 +1722,35 @@ SaAisErrorT saAmfComponentErrorClear(SaAmfHandleT hdl, const SaNameT *comp_name,
 {
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE2("Invalid handle");
-		return rc;
-	}
 
 	if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH)) {
 		TRACE_LEAVE2("Incorrect arguments");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_ERR_CLEAR, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* populate & send the 'error clear' message */
 	m_AVA_ERR_CLEAR_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name);
@@ -1660,8 +1765,13 @@ SaAisErrorT saAmfComponentErrorClear(SaAmfHandleT hdl, const SaNameT *comp_name,
 		rc = SA_AIS_ERR_TIMEOUT;
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_ERR_CLEAR, gl_ava_hdl, cb, hdl, hdl_rec, comp_name, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request/response message */
 	if (msg_rsp)
@@ -1691,31 +1801,36 @@ SaAisErrorT saAmfResponse(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT error
 {
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
-	AVSV_NDA_AVA_MSG msg;
+	AVSV_NDA_AVA_MSG msg = {0};
 	AVA_PEND_RESP *list_resp = 0;
 	AVA_PEND_CBK_REC *rec = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
-
-	/* initialize the msg */
-	memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-
-	/* verify CB-hdl & input hdl  */
-	m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
-	if (SA_AIS_OK != rc) {
-		TRACE_LEAVE2("Invalid handle");
-		return rc;
-	}
 
 	if ((!m_AVA_AMF_RESP_ERR_CODE_IS_VALID(error)) || (!inv)) {
 		TRACE_LEAVE2("Incorrect argument specified for SaAisErrorT");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	/* api pre-processing */
-	m_AVA_API_PRE_PROCESSING(AVSV_AMF_RESP, gl_ava_hdl, cb, hdl, hdl_rec, rc);
-	if (SA_AIS_OK != rc)
+	/* Verifying the input Handle & global handle */
+	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+		TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	/* retrieve AvA CB */
+	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* acquire cb read lock */
+	m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+    /* retrieve hdl rec */
+	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/* get the list of pending responses for this handle */
 	list_resp = &hdl_rec->pend_resp;
@@ -1758,8 +1873,13 @@ SaAisErrorT saAmfResponse(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT error
 	}
 
  done:
-	/* api post processing */
-	m_AVA_API_POST_PROCESSING(AVSV_AMF_RESP, gl_ava_hdl, cb, hdl, hdl_rec, 0, rc);
+	/* release cb read lock and return handles */
+	if (cb) {
+		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
+		ncshm_give_hdl(gl_ava_hdl);
+	}
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
 
 	/* free the contents of the request message */
 	avsv_nda_ava_msg_content_free(&msg);
