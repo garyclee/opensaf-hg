@@ -225,7 +225,7 @@ SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node
 	init_evt.type = IMMSV_EVT_TYPE_IMMND;
 	init_evt.info.immnd.type = IMMND_EVT_A2ND_IMM_INIT;
 	init_evt.info.immnd.info.initReq.version = *version;
-	init_evt.info.immnd.info.initReq.client_pid = cb->process_id;
+	init_evt.info.immnd.info.initReq.client_pid = getpid();
 
 	/* Release the CB lock Before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
