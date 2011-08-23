@@ -274,7 +274,7 @@ static uint32_t mqd_lib_init(void)
 
 	/* Bind with ASAPi Layer */
 	mqd_asapi_bind(pMqd);
-	LOG_NO("Initialization Success");
+	TRACE_1("Initialization Success");
 
 	/* start the AMF Health Check */
 	memset(&healthy, 0, sizeof(SaAmfHealthcheckKeyT));

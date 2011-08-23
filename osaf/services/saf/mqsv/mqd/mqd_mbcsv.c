@@ -746,7 +746,7 @@ static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 					TRACE_2("Active: Encode call back of Cold Sync Response Failed");
 #endif
 				} else {
-					LOG_NO("Active: Encode call back of Cold Sync Response Success");
+					TRACE_1("Active: Encode call back of Cold Sync Response Success");
 				}
 			} else {
 				arg->info.decode.i_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
@@ -766,7 +766,7 @@ static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE_2("Active: Encode call back of Warm Sync Response Failed");
 		} else {
-			LOG_NO("Active: Encode call back of Warm Sync Response Success");
+			TRACE_1("Active: Encode call back of Warm Sync Response Success");
 		}
 		break;
 
@@ -873,7 +873,7 @@ static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 		if (rc != NCSCC_RC_SUCCESS)
 			TRACE_2("Standby: Decode call back of Warm Sync Response Failed");
 		else
-			LOG_NO("Standby: Decode call back of Warm Sync Response Success");
+			TRACE_1("Standby: Decode call back of Warm Sync Response Success");
 		break;
 
 	case NCS_MBCSV_MSG_DATA_REQ:

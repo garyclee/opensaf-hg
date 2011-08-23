@@ -357,7 +357,7 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 	/* End of code for No Redundanccy Support */
 	TRACE_1("saAmfHealthcheckStart Successfull");
 
-	LOG_NO("Initialization Success");
+	TRACE_1("Initialization Success");
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
