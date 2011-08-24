@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+############################################################################
+#
+# (C) Copyright 2011 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Wind River Systems, Inc.
+#
+############################################################################
+
+from optparse import OptionParser
+from pyosaf.saImmOm import *
+from socket import gethostname
+from os import getpid
+from immbase import *
+import json
+import sys
+
+def getExecName():
+	return ':'.join((gethostname(), sys.argv[0], str(getpid())))
+
+def parseArgs(cmd=sys.argv[1:]):
+	usage = 'usage: %prog [options] OP_ID object_dn'
+	epilog = '\nOP_ID: an integer, dependent on the class of object.\n'\
+			'\nTYPE: one of:\n%s\n' % eSaImmValueTypeT.lookup.keys()
+	OptionParser.format_epilog = lambda self, formatter: self.epilog
+	parser = OptionParser(usage=usage, epilog=epilog)
+	parser.add_option('-a', '--admin-owner', dest='adminOwner',
+			help='Name denoting owner of the operation.',
+			metavar='OWNERNAME', default=getExecName())
+	parser.add_option('-p', '--param', dest='params',
+			help='parameters to admin operation.',
+			metavar='NAME:TYPE:VAL', action='append', default=[])
+	parser.add_option('-u', '--pretty-off', dest='ugly',
+			help='turn off pretty printing.',
+			action='store_true', default=False)
+	(options, args) = parser.parse_args(cmd)
+	if len(args) < 2:
+		parser.print_help()
+		sys.exit()
+	return options, args
+
+def immadm(options, args):
+	if len(args) < 2:
+		raise SafException(eSaAisErrorT.SA_AIS_ERR_INIT)
+	opId = SaImmAdminOperationIdT(int(args[0]))
+	dn = SaNameT(args[1])
+	retVal = SaAisErrorT(eSaAisErrorT.SA_AIS_ERR_NOT_EXIST)
+
+	try:
+		immHandle = SaImmHandleT()
+		rc = saImmOmInitialize(immHandle, None, IMM_VERSION)
+		if rc != eSaAisErrorT.SA_AIS_OK:
+			raise SafException(rc)
+
+		ownerName = SaImmAdminOwnerNameT(options.adminOwner)
+		ownerHandle = SaImmAdminOwnerHandleT()
+		rc = saImmOmAdminOwnerInitialize(immHandle,
+				ownerName, eSaBoolT.SA_TRUE, ownerHandle) 
+		if rc != eSaAisErrorT.SA_AIS_OK:
+			raise SafException(rc)
+
+		rc = saImmOmAdminOwnerSet(ownerHandle,
+				[dn], eSaImmScopeT.SA_IMM_ONE)
+		if rc != eSaAisErrorT.SA_AIS_OK:
+			raise SafException(rc)
+
+		params = []
+		for p in options.params:
+			(name, type, val) = p.split(':', 2)
+			ptype = eSaImmValueTypeT.lookup[type]
+			params.append(
+				SaImmAdminOperationParamsT_2(name, ptype, val))
+		contId = SaImmContinuationIdT()
+		rc = saImmOmAdminOperationInvoke_2(ownerHandle,
+				dn, contId, opId, params, retVal,
+				saAis.SA_TIME_ONE_SECOND*5)
+		if rc != eSaAisErrorT.SA_AIS_OK:
+			raise SafException(rc)
+	except SafException, e:
+		if e.value != eSaAisErrorT.SA_AIS_ERR_NOT_EXIST:
+			raise e
+	finally:
+		saImmOmAdminOwnerRelease(ownerHandle,
+				[dn], eSaImmScopeT.SA_IMM_ONE)
+		saImmOmAdminOwnerFinalize(ownerHandle)
+		saImmOmFinalize(immHandle)
+
+	return {'opId': opId.value,
+		'dname': args[1],
+		'owner': options.adminOwner,
+		'params': options.params,
+		'rc': eSaAisErrorT.whatis(retVal.value)}
+
+if __name__ == '__main__':
+	(options, args) = parseArgs()
+	result = immadm(options, args)
+	logger = LogIface(result['owner'])
+	logger.log('ADMIN_CMD: OP_ID %(opId)s %(dname)s: %(rc)s' % result)
+	print json.dumps(result, indent=None if options.ugly else 4)

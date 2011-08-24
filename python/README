@@ -225,6 +225,6 @@ saImmOmClassDescriptionGet_2(omHandle, className, classCategory, attrDefs)
 for attr in unmarshalNullArray(attrDefs):
 	print attr.attrName,\
 		eSaImmValueTypeT.whatis(attr.attrValueType), attr.attrFlags,\
-		unmarshallSaImmValue(attr.attrDefaultValue, attr.attrValueType)
+		unmarshalSaImmValue(attr.attrDefaultValue, attr.attrValueType)
 
 saImmOmClassDescriptionMemoryFree_2(omHandle, attrDefs)
