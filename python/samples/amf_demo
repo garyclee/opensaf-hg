@@ -1,0 +1,229 @@
+#!/usr/bin/env python
+############################################################################
+#
+# (C) Copyright 2011 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Wind River Systems, Inc.
+#
+############################################################################
+
+from pyosaf.saAmf import *
+from pyosaf.saLog import *
+import select
+import sys
+import os
+
+exec_name = os.path.basename(__file__)
+
+def chexit(funcName, rc):
+	if rc != eSaAisErrorT.SA_AIS_OK:
+		errstr = '%s FAILED (%s)!' % (funcName, eSaAisErrorT.whatis(rc))
+		raise ValueError(errstr)
+
+class LogIface(object):
+	@staticmethod
+	def writeLogCallback(invocation, error):
+		pass
+
+	def __init__(self):
+		self.invocation = 0
+		self.logHandle = SaLogHandleT()
+		self.fd = SaSelectionObjectT()
+		self.callbacks = SaLogCallbacksT()
+		self.streamHandle = SaLogStreamHandleT()
+		self.record = SaLogRecordT()
+
+		self.callbacks.saLogWriteLogCallback = \
+			SaLogWriteLogCallbackT(self.writeLogCallback)
+
+		logVersion = SaVersionT('A', 2, 1)
+		chexit('saLogInitialize',
+			saLogInitialize(self.logHandle, self.callbacks,
+			logVersion))
+		chexit('saLogSelectionObjectGet',
+			saLogSelectionObjectGet(self.logHandle,
+			self.fd))
+
+		streamName = SaNameT(saLog.SA_LOG_STREAM_SYSTEM)
+		chexit('saLogStreamOpen_2',
+			saLogStreamOpen_2(self.logHandle, streamName, None, 0,
+				saAis.SA_TIME_ONE_SECOND, self.streamHandle))
+
+		userName = pointer(SaNameT(exec_name))
+		headerType = eSaLogHeaderTypeT.SA_LOG_GENERIC_HEADER
+		self.record.logTimeStamp = saAis.SA_TIME_UNKNOWN
+		self.record.logHdrType =  headerType
+		self.record.logHeader.genericHdr.logSvcUsrName = userName
+
+	def finalize(self):
+		saLogStreamClose(self.streamHandle)
+		saLogFinalize(self.logHandle)
+
+	def get_invocation(self):
+		self.invocation += 1
+		return self.invocation
+
+	def log(self, logstr):
+		buffer = pointer(SaLogBufferT(logstr))
+		notice = saLog.SA_LOG_SEV_NOTICE
+		self.record.logBuffer = buffer
+		self.record.logHeader.genericHdr.logSeverity = notice
+		chexit('saLogWriteLogAsync',
+			saLogWriteLogAsync(self.streamHandle,
+			self.get_invocation(),
+			saLog.SA_LOG_RECORD_WRITE_ACK, self.record))
+
+	def dispatch(self, readfds):
+		if self.fd.value in readfds:
+			chexit('saLogDispatch',
+				saLogDispatch(self.logHandle,
+				eSaDispatchFlagsT.SA_DISPATCH_ALL))
+
+class AmfIface(object):
+	@staticmethod
+	def log(logstr):
+		if AmfIface.logger:
+			AmfIface.logger.log(logstr)
+		else:
+			print logstr
+
+	@staticmethod
+	def healthcheckCallback(invocation, compName, healthcheckKey):
+		saAmfResponse(AmfIface.amfHandle,
+				invocation, eSaAisErrorT.SA_AIS_OK)
+
+	@staticmethod
+	def componentTerminateCallback(invocation, compName):
+		AmfIface.log('%s: componentTerminateCallback' %
+			compName[0].value)
+		saAmfResponse(AmfIface.amfHandle,
+				invocation, eSaAisErrorT.SA_AIS_OK)
+		AmfIface.isRunning = False
+
+	@staticmethod
+	def csiSetCallback(invocation, compName, haState, csiDescriptor):
+		AmfIface.log('%s: csiSetCallback: %s: %s' %
+			(compName[0].value,
+				csiDescriptor.csiName.value,
+			        eSaAmfHAStateT.whatis(haState)))
+		saAmfResponse(AmfIface.amfHandle,
+				invocation, eSaAisErrorT.SA_AIS_OK)
+		if haState == eSaAmfHAStateT.SA_AMF_HA_QUIESCING:
+			saAmfCSIQuiescingComplete(AmfIface.amfHandle,
+					invocation, eSaAisErrorT.SA_AIS_OK)
+
+	@staticmethod
+	def csiRemoveCallback(invocation, compName, csiName, csi_flags):
+                AmfIface.log('%s: csiRemoveCallback: %s' %
+                         (compName[0].value, csiName[0].value))
+		saAmfResponse(AmfIface.amfHandle,
+				invocation, eSaAisErrorT.SA_AIS_OK)
+
+	@staticmethod
+	def protectionGroupTrackCallback(csiName, buffer, memberCount, error):
+		pass
+
+	@staticmethod
+	def proxiedComponentInstantiateCallback(invocation, proxiedCompName):
+		pass
+
+	@staticmethod
+	def proxiedComponentCleanupCallback(invocation, proxiedCompName):
+		pass
+
+	@staticmethod
+	def initialize(logger):
+		AmfIface.logger = logger
+		AmfIface.isRunning = False
+		AmfIface.amfHandle = SaAmfHandleT()
+		AmfIface.callbacks = SaAmfCallbacksT()
+		AmfIface.fd = SaSelectionObjectT()
+		AmfIface.compName = SaNameT()
+
+		AmfIface.callbacks.saAmfHealthcheckCallback = \
+			SaAmfHealthcheckCallbackT(
+				AmfIface.healthcheckCallback)
+		AmfIface.callbacks.saAmfComponentTerminateCallback = \
+			SaAmfComponentTerminateCallbackT(
+				AmfIface.componentTerminateCallback)
+		AmfIface.callbacks.saAmfCSISetCallback = \
+			SaAmfCSISetCallbackT(
+				AmfIface.csiSetCallback)
+		AmfIface.callbacks.saAmfCSIRemoveCallback = \
+			SaAmfCSIRemoveCallbackT(
+				AmfIface.csiRemoveCallback)
+		AmfIface.callbacks.saAmfProtectionGroupTrackCallback = \
+			SaAmfProtectionGroupTrackCallbackT(
+				AmfIface.protectionGroupTrackCallback)
+		AmfIface.callbacks.saAmfProxiedComponentInstantiateCallback = \
+			SaAmfProxiedComponentInstantiateCallbackT(
+				AmfIface.proxiedComponentInstantiateCallback)
+		AmfIface.callbacks.saAmfProxiedComponentCleanupCallback = \
+			SaAmfProxiedComponentCleanupCallbackT(
+				AmfIface.proxiedComponentCleanupCallback)
+
+		amf_version = SaVersionT('B', 1, 1)
+		chexit('saAmfInitialize',
+			saAmfInitialize(AmfIface.amfHandle, AmfIface.callbacks,
+			amf_version))
+		chexit('saAmfSelectionObjectGet',
+			saAmfSelectionObjectGet(AmfIface.amfHandle,
+			AmfIface.fd))
+		chexit('saAmfComponentNameGet',
+			saAmfComponentNameGet(AmfIface.amfHandle,
+			AmfIface.compName))
+		chexit('saAmfComponentRegister',
+			saAmfComponentRegister(AmfIface.amfHandle,
+			AmfIface.compName, None))
+
+		AmfIface.log('%s: REGISTERED.' % AmfIface.compName.value)
+		AmfIface.isRunning = True
+
+		healthcheckKey = SaAmfHealthcheckKeyT('AmfDemo')
+		it = eSaAmfHealthcheckInvocationT.SA_AMF_HEALTHCHECK_AMF_INVOKED
+		rt = eSaAmfRecommendedRecoveryT.SA_AMF_COMPONENT_FAILOVER
+
+		chexit('saAmfHealthcheckStart',
+			saAmfHealthcheckStart(AmfIface.amfHandle,
+			AmfIface.compName, healthcheckKey, it, rt))
+
+                AmfIface.log('%s: STARTED HEALTHCHECK %s' %
+                        (AmfIface.compName.value, healthcheckKey.key))
+
+	@staticmethod
+	def finalize():
+		saAmfComponentUnregister(AmfIface.amfHandle,
+				AmfIface.compName, None)
+		saAmfFinalize(AmfIface.amfHandle)
+
+	@staticmethod
+	def dispatch(readfds):
+		if AmfIface.fd.value in readfds:
+			chexit('saAmfDispatch',
+				saAmfDispatch(AmfIface.amfHandle,
+				eSaDispatchFlagsT.SA_DISPATCH_ALL))
+
+def main():
+	logger = LogIface()
+	AmfIface.initialize(logger)
+
+	readfds = [logger.fd.value, AmfIface.fd.value]
+	while AmfIface.isRunning:
+		input, output, excepts = select.select(readfds, [], [])
+		logger.dispatch(input)
+		AmfIface.dispatch(input)
+
+	AmfIface.finalize()
+	logger.finalize()
+
+if __name__ == '__main__':
+	main()

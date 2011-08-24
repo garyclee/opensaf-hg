@@ -1,0 +1,20 @@
+Sample code in this directory:
+
+amf_demo:
+	Drop-in replacement for C-compiled version; written in python.
+	You can use the same clc-cli script as is used for the C-version:
+		opensaf-staging/samples/avsv/amf_demo_script
+
+immadm:
+	CLI utility that simulates the C-version of the utility.
+	Run 'immadm --help' for specific options and arguments.
+
+immlist:
+	CLI utility that simulates the C-version of the utility.
+	Run 'immlist --help' for specific options and arguments.
+
+immbase.py:
+	Module required by immadm and immlist; contains logging interface and
+	other services.
+
+Logging for all apps/utils goes to /var/log/opensaf/saflog/saLogSystem*.log

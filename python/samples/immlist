@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+############################################################################
+#
+# (C) Copyright 2011 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Wind River Systems, Inc.
+#
+############################################################################
+
+from optparse import OptionParser
+from immbase import *
+import json
+import sys
+
+def parseArgs(cmd=sys.argv[1:]):
+	usage = 'usage: %prog [options] object_dn [object_dn ..]'
+	parser = OptionParser(usage)
+	parser.add_option('-a', '--attr', dest='attr',
+			help='Attribute name to collect.',
+			metavar='ATTRNAME', action='append', default=None)
+	parser.add_option('-n', '--numeric-states', dest='numeric',
+			help='report states in numeric format.',
+			action='store_true', default=False)
+	parser.add_option('-u', '--pretty-off', dest='ugly',
+			help='turn off pretty printing.',
+			action='store_true', default=False)
+	return parser.parse_args(cmd)
+
+class ListOptions(object):
+	def __init__(self):
+		self.attr = None
+		self.numeric = False
+		self.ugly = False
+
+def immlist(options, args):
+	try:
+		immHandle = SaImmHandleT()
+		rc = saImmOmInitialize(immHandle, None, IMM_VERSION)
+		if rc != eSaAisErrorT.SA_AIS_OK:
+			raise SafException(rc)
+
+		accessorHandle = SaImmAccessorHandleT()
+		rc = saImmOmAccessorInitialize(immHandle, accessorHandle)
+		if rc != eSaAisErrorT.SA_AIS_OK:
+			raise SafException(rc)
+
+		objects = {}
+		attribNames = [SaImmAttrNameT(a) for a in options.attr]\
+				if options.attr else None
+		attribs = pointer(pointer(SaImmAttrValuesT_2()))
+		for dn in args:
+			rc = saImmOmAccessorGet_2(accessorHandle,
+					SaNameT(dn), attribNames, attribs)
+			if rc == eSaAisErrorT.SA_AIS_ERR_NOT_EXIST:
+				continue;
+			if rc != eSaAisErrorT.SA_AIS_OK:
+				raise SafException(rc)
+			objects[dn] = SafObject(dn, attribs, options.numeric)
+	finally:
+		saImmOmAccessorFinalize(accessorHandle)
+		saImmOmFinalize(immHandle)
+	return objects
+
+if __name__ == '__main__':
+	(options, args) = parseArgs()
+	print json.dumps(immlist(options, args),
+			default=SafObject.serialize,
+			indent=None if options.ugly else 4)
