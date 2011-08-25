@@ -126,7 +126,7 @@ static uint32_t imma_create(NCSMDS_SVC_ID sv_id)
 				"library", value);
 			/* error, we cannot do anything */
 		}
-		LOG_NO("IMMA library initialize done pid:%u svid:%u file:%s", getpid(), sv_id, value);
+		LOG_NO("IMMA library TRACE initialize done pid:%u svid:%u file:%s", getpid(), sv_id, value);
 	}
 
 	/* initialize the imma cb lock */
