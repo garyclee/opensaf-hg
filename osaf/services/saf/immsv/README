@@ -411,7 +411,7 @@ still handled by the immsv and the schema change behavior is still controlled
 the same way.
 
 MULTIPLE APPLIERS (4.2)
-=================
+======================
 http://devel.opensaf.org/ticket/1827
 OpenSAF 4.2 adds the immsv enhancement of supporting multiple appliers for
 configuration objects. An applier is an OI (object implementer) of lower
@@ -428,9 +428,12 @@ The concept of an "applier OI" removes this deficiency and allows the
 service/application to use the imm to disseminate the changes. 
 
 An applier OI registers the same way as the main OI and receives exactly
-the same upcalls as the primary OI. The difference is that an applier
-OI does not participate in CCB validation. The imm-service ignores any
-reply on the create,delete,modify and completed upcalls, from applier OIs.
+the same CCB related upcalls as the primary OI. The difference is that an
+applier OI does not participate in CCB validation. The imm-service ignores
+any reply on the create,delete,modify and completed upcalls, from applier OIs.
+An applier OI does not get uppcalls for admin-operations or for updating
+runtime attributes. This should be obvious since admin-ops or updates
+to runtime attributes should only be handled by the main-oi. 
 
 The applier OI is thus informed of the same changes as the primary OI
 and will be able to apply the changes if the CCB commits and discard them
@@ -534,7 +537,7 @@ of these objects.
 
 
 SUPPORT FOR CCB-OI ERROR STRINGS (4.2) 
-================================
+=====================================
 http://devel.opensaf.org/ticket/1904
 OpenSAF 4.2 adds the immsv enhancement of supporting ccb error strings
 from OI to OM client. Two new API calls are available for this for
@@ -583,9 +586,8 @@ out parameter is declared as 'const', indicating that deallocation
 of 'errorStrings' is here done by the library (not the user).
 
 IMPROVED ADMIN-OPERATION API (4.2)
-============================
+====================================
 http://devel.opensaf.org/ticket/1764
-
 Allows the OI to supply a return paramater list in the same way 
 as the OM client has always been able to supply a parameter list
 as part of an admin-operation-invocation. The reply from the OI
@@ -699,6 +701,153 @@ supporting the inclusion of amdmin-operation definitions associated
 with an imm-class; and for supporting more elaborate runtime type
 checking of admin-operation invocations and replies, by the imm
 service. 
+
+OI AUGMENTED CCBs (4.2)
+====================================
+http://devel.opensaf.org/ticket/1763
+
+OpenSAF 4.2 adds the immsv enhancement of supporting OI augmented
+CCBs. This feature is available for OI clients that register with
+imm version A.2.11. 
+
+The basic idea is to allow a configuration object implementer to
+add CCB operations to an existing CCB, in the context of create-,
+delete-, or modify-upcalls on a configuration object. The OI
+then extends the set of changes, originating from an OM client,
+that will commit or abort atomically with the original CCB.
+This could be seen as a variant of 'database triggers'. In
+other words, logic that is triggered by changes initiated
+by a client and which extends the set of modifications done by
+the transaction. 
+
+Warnings.
+--------
+A note of warning: This feature must be used with prudence
+and care by OI designers. The feature allows the OI to add side
+effects to a CCB, which the originator of the CCB typically is
+unaware of. It may also impact the performance characteristics
+of the ccb use-case, or prevent the ccb from being committed, 
+e.g. by causing timeout during processing. OI augmentations to
+the same objects operated on by the original OM client could
+subvert or interfere with the intended effect. 
+
+The OI designer also needs to take care in avoiding deadlocks
+with other OIs. More on theis below.
+
+The ideal pattern of use for this feature is when the OI adds
+a small ammount of operations that are directed at 'implementation
+config objects' private to the OI. The risk for interference with
+the intention of the original CCB is then minimal. We are not talking
+about runtime data here. It has always been possible for an OI to
+add/remove/update runtime objects/attributes as a side effect of the
+apply of a configuration change. Runtime data is updated via the OI
+API, may be triggered by CCBs, but are not part of CCBs, i.e. not
+atomic with them. Runtime data is used by the OI to communicate
+information *to* OM clients. Here we are instead talking about
+'private configuration data', or configuration data for a sub service,
+or related service, that needs to be modified as a side effect of
+the original modification.
+
+Api
+---
+
+The API available to the OI for this feature under IMM interface
+version A.2.11 is:
+
+	extern SaAisErrorT
+	saImmOiAugmentCcbInitialize(
+			     SaImmOiHandleT immOiHandle,
+			     SaImmOiCcbIdT ccbId,
+			     SaImmCcbHandleT *ccbHandle,
+			     SaImmAdminOwnerHandleT *ownerHandle);
+
+The OI inputs its oi-handle and the ccbId it received in the upcall.
+In return it gets an OM CCB handle and an AdminOwner handle.
+The Imm service has marked these handles as special. They are
+only valid for the duration of the upcall.
+
+An OI is only allowed to invoke the saImmOiAugmentCcbInitialize call
+inside these upcalls:
+
+    SaImmOiCcbObjectCreateCallbackT_2
+    SaImmOiCcbObjectDeleteCallbackT
+    SaImmOiccbobjectModifyCallbackT_2
+
+It would have been nice to support augmentation also inside the
+SaImmOiCcbCompletedCallbackT upcall, but since validation is the
+purpose of that upcall and there may be many OIs involved in the
+completion of a CCB, changing the base of validation during
+the validation would make validation practically impossible.
+
+The OI augmentation CCB must be applied by the OI before it
+returns from the upcall in which the augmentation is done.
+If the OI fails to invoke apply on the ccbHandle, before returning,
+or if it gets an unrecoverable error on the apply, then
+the entire om-initialized CCB will fail (be aborted). 
+
+The typical OI is already using the OM interface to read its initial
+state, so all the normal ccb related calls should already be accessible,
+using the provided ccbHandle. (The OI needs to include saImmOm.h).
+
+If the saImmOiAugmentCcbInitialize call succeeds, the OI can
+use the CCB handle to request create, delete, or modify operations,
+followed by an apply, or possibly a finalize without apply resulting
+in abort. If the OI returns from the upcall without having applied
+the augmentation CCB, it will be handled as a finalize/abort of the
+augmentation CCB, which may in turn abort the root CCB.
+
+An abort of the augment CCB by the OI will abort the entire 
+originating CCB, unless the augmentation was empty at the time of
+abort/finalize. The augmentation is empty untill at least one
+augmented create, delete or modify operation has succeeded and 
+no augment operation has failed with SA_AIS_ERR_FAILED_OPERATION.
+The FAILED_OPERATION return code, as usual, means abort of *entire* 
+CCB, not just the operation that resulted in this return code.
+And *entire* CCB here means the OM originated root CCB, not just the
+augmented CCB done by the OI. Thus augmented CCBs are not 'nested
+transactions' in that they can not be aborted independently of the
+root CCB. 
+
+If the OI adds operations to the CCB for objects which it is itself
+the implementer for, then it will not receive any OI-upcall for
+such operations. This is mainly to avoid the OI getting into
+deadlock with itself. But it should also not be necessary for
+the OI to get such upcalls, since it already has the information
+about the changes it itself added. The OI may even create a modify
+on the object that is the basis of the upcall it is executing in.
+(This should be an unusual case and done with care, as it is in
+some sense overriding the 'intention' of the original client). 
+
+It will still be posible for two or more OIs to get into a
+distributed deadlock with each other by their use of CCB
+augmentation. If such an upcall cycle is created, the entire
+OM CCB will timeout and be aborted. This could make desirable
+and correct configuration changes impossible to commit/apply. 
+
+
+The saImmOiAugmentCcbInitialize call also returns 'ownerHandle'. 
+This admin owner handle is initialized to the same admin-owner
+used by the originating OM client. It can be used by the OI to
+set admin-owner for objects the OI intends to modify or delete
+and where it does not know that the admin-owner is already set
+by the originating OM client, (create operations always get
+admin-owner set automatically as part of creation). 
+The 'ownerHandle' always has 'releaseOwnershipOnFinalize set to
+true. This is the case even if the original admin owner has it set
+to false. The release of the OI augmented admin-owner is done when
+the roto CCB commits (is applied). The admin-owner can not be 
+released when the augmented ccb is applied because the augmented
+operations are still pending the apply of the root ccb. 
+
+The OI designer needs to understand that if they set admin-owner
+on some objects which already have admin owner set by the original
+OM user and the original OM user has releaseOnFinalize as false,
+then the OI will cause a release of admin-owner on these objects
+which could be a 'surprise' (cause problems) for the OM user.
+
+Again, the OI designer intending to augment CCBs needs to think
+carefully about what they are trying to do and why, to avoid
+creating an application that appears unmanagable. 
 
 
 
