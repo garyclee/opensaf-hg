@@ -76,6 +76,7 @@ uint32_t cpd_mbcsv_register(CPD_CB *cb)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	rc = cpd_mbcsv_init(cb);
 	if (rc != NCSCC_RC_SUCCESS)
 		return rc;
@@ -96,6 +97,8 @@ uint32_t cpd_mbcsv_register(CPD_CB *cb)
 	cpd_mbcsv_close(cb);
  error:
 	cpd_mbcsv_finalize(cb);
+
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -304,6 +307,7 @@ uint32_t cpd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	if (arg == NULL) {
 		rc = NCSCC_RC_FAILURE;
 		LOG_ER("cpd mbcsv callback failed");
@@ -332,6 +336,7 @@ uint32_t cpd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 		break;
 	}
 	TRACE_1("cpd mbcsv callback success ");
+	TRACE_ENTER();
 	return rc;
 }
 

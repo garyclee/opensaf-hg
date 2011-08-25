@@ -161,6 +161,8 @@ uint32_t cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char 
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
 	NCS_OS_POSIX_SHM_REQ_INFO read_req;
 
+	TRACE_ENTER();
+
 	memset(&ckpt_hdr, '\0', sizeof(CPSV_CKPT_HDR));
 	open_req->type = NCS_OS_POSIX_SHM_REQ_OPEN;
 	open_req->info.open.i_size =
@@ -172,7 +174,7 @@ uint32_t cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char 
 	open_req->info.open.i_flags = O_RDWR;
 	rc = ncs_os_posix_shm(open_req);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_4("cpnd open request failed %s",buf);
+		LOG_ER("cpnd shm open request failed %s",buf);
 		/*   assert(0); */
 		return rc;
 	}
@@ -194,7 +196,7 @@ uint32_t cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char 
 	    (uint32_t *)m_MMGR_ALLOC_CPND_DEFAULT(sizeof(uint32_t) * ((*cp_node)->create_attrib.maxSections));
 
 	if ((*cp_node)->replica_info.shm_sec_mapping == NULL) {
-		TRACE_4("cpnd default memory alloc failed");
+		LOG_ER("cpnd default memory alloc failed");
 		/*  assert(0); */
 		return NCSCC_RC_FAILURE;
 	}
@@ -215,7 +217,7 @@ uint32_t cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char 
 		read_req.info.read.i_to_buff = (CPSV_SECT_HDR *)&sect_hdr;
 		rc = ncs_os_posix_shm(&read_req);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE_4("cpnd sect HDR read failed");
+			LOG_ER("cpnd sect HDR read failed");
 			/*   assert(0); */
 			return rc;
 		}
@@ -257,12 +259,14 @@ uint32_t cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char 
 		(*cp_node)->replica_info.mem_used += pSecPtr->sec_size;
 
 	}
+	TRACE_LEAVE2("Ret val %d",rc);
 	return rc;
 
  end:
 	if ((*cp_node)->replica_info.shm_sec_mapping != NULL)
 		m_MMGR_FREE_CPND_DEFAULT((*cp_node)->replica_info.shm_sec_mapping);
 	cpnd_res_ckpt_sec_del(*cp_node);
+	TRACE_LEAVE2("Ret val %d",rc);
 	return rc;
 }
 
@@ -327,7 +331,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 	total_length = size + sizeof(nodeid) + 5;
 	buffer = m_MMGR_ALLOC_CPND_DEFAULT(total_length);
 	if (buffer == NULL) {
-		TRACE_4("cpnd default memory allocation failed in cpnd_open in resart shm create");
+		LOG_ER("cpnd default memory allocation failed in cpnd_open in resart shm create");
 		return NULL;
 	}
 	cb->cpnd_res_shm_name = (uint8_t*)buffer;
@@ -353,7 +357,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 		cpnd_open_req->info.open.i_flags = O_CREAT | O_RDWR;
 		rc = ncs_os_posix_shm(cpnd_open_req);
 		if (NCSCC_RC_FAILURE == rc) {
-			TRACE_4("cpnd open request fail for RDWR mode %s",buf);
+			LOG_ER("cpnd open request fail for RDWR mode %s",buf);
 			m_MMGR_FREE_CPND_DEFAULT(buffer);
 			return NULL;
 		}
@@ -362,7 +366,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 		memset(cpnd_open_req->info.open.o_addr, 0,
 		       sizeof(CLIENT_HDR) + (MAX_CLIENTS * sizeof(CLIENT_INFO)) + sizeof(CKPT_HDR) +
 		       (MAX_CKPTS * sizeof(CKPT_INFO)));
-		TRACE_4("cpnd new shm create request success");
+		TRACE_1("cpnd new shm create request success");
 		return cpnd_open_req->info.open.o_addr;
 	}
 
@@ -407,7 +411,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 
 				cl_node = m_MMGR_ALLOC_CPND_CKPT_CLIENT_NODE;
 				if (cl_node == NULL) {
-					TRACE_4("cpnd ckpt client node memory alloc failed ");
+					LOG_ER("cpnd ckpt client node memory alloc failed ");
 					rc = SA_AIS_ERR_NO_MEMORY;
 					goto memfail;
 				}
@@ -447,7 +451,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 			if (cp_info.is_first) {
 				cp_node = m_MMGR_ALLOC_CPND_CKPT_NODE;
 				if (cp_node == NULL) {
-					TRACE_4("cpnd ckpt node memory allocation failed");
+					LOG_ER("cpnd ckpt node memory allocation failed");
 					goto memfail;
 				}
 
@@ -603,7 +607,7 @@ int32_t cpnd_find_free_loc(CPND_CB *cb, CPND_TYPE_INFO type)
 			read_req.info.read.i_to_buff = (CLIENT_INFO *)&cl_info;
 			rc = ncs_os_posix_shm(&read_req);
 			if (rc != NCSCC_RC_SUCCESS) {
-				TRACE_4("cpnd client info read failed");
+				LOG_ER("cpnd client info read shm failed");
 				return -2;
 			}
 			if (1 == ((CLIENT_INFO *)read_req.info.read.i_to_buff)->is_valid) {
@@ -957,8 +961,8 @@ uint32_t cpnd_write_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, int32_t offs
 
 	i_offset = offset * sizeof(CKPT_INFO);
 	m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr + sizeof(CKPT_HDR), ckpt_info, i_offset);
-	TRACE_1("cpnd ckpt info write success ckpt_id:%llx",cp_node->ckpt_id);
 
+	TRACE_LEAVE2("cpnd ckpt info write success ckpt_id:%llx",cp_node->ckpt_id);
 	return rc;
 
 }
@@ -992,6 +996,7 @@ int32_t cpnd_restart_shm_client_update(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_no
 	}
 	if (free_shm_id == -2) {
 		/* SHARED MEMORY READ FAILED */
+		TRACE_4("shared memory read  failed");
 		TRACE_LEAVE();
 		return free_shm_id;
 	}
@@ -1049,7 +1054,7 @@ uint32_t cpnd_restart_client_node_del(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_nod
 	clinfo_write.info.write.i_write_size = sizeof(CLIENT_INFO);
 	rc = ncs_os_posix_shm(&clinfo_write);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_4("cpnd ckpt info write failed"); 
+		LOG_ER("cpnd ckpt info write failed"); 
 		return rc;
 	} else {
 		TRACE_1("cpnd ckpt info write success");
@@ -1291,7 +1296,7 @@ void cpnd_clear_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, uint32_t curr_of
 			   This ckpt_info gets deleted as part of  unlink & lcl_ref_cnt of cp_node == 0  /  lcl_ref_cnt == 0 & ret_tmr expires */
 		}
 	}
-
+	TRACE_LEAVE();
 }
 
 /************************************************************************************************************
@@ -1363,6 +1368,7 @@ uint32_t cpnd_restart_shm_ckpt_update(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 	memset(&ckpt_info, 0, sizeof(ckpt_info));
 	CKPT_HDR ckpt_hdr;
 
+	TRACE_ENTER();
 	/* check if the ckpt already exists */
 	if (cp_node->offset == SHM_INIT) {	/* if it is not there then find the free place to fit into */
 		/* now find the free shm for placing the checkpoint info */
@@ -1370,6 +1376,7 @@ uint32_t cpnd_restart_shm_ckpt_update(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 		if (ckpt_id_exists == -1 || ckpt_id_exists == -2) {
 			/* LOG THE ERROR - MEMORY FULL */
 			TRACE_4("cpnd client free block failed in SHM_INIT");
+			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		} else {
 			memset(&ckpt_hdr, '\0', sizeof(CKPT_HDR));

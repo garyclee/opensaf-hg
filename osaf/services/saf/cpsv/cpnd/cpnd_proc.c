@@ -546,6 +546,7 @@ uint32_t cpnd_ckpt_remote_cpnd_del(CPND_CKPT_NODE *cp_node, MDS_DEST mds_info)
 	CPSV_CPND_DEST_INFO *ptr_cpnd_mdest = cp_node->cpnd_dest_list;
 	CPSV_CPND_DEST_INFO *prev_ptr_cpnd_mdest = NULL;
 
+	TRACE_ENTER();
 	while (ptr_cpnd_mdest != NULL) {
 
 		if (m_CPND_IS_LOCAL_NODE(&ptr_cpnd_mdest->dest, &mds_info) == 0)
@@ -616,6 +617,7 @@ uint32_t cpnd_ckpt_sec_write(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_OS_POSIX_SHM_REQ_INFO write_req;
 
+	TRACE_ENTER();
 	/* checking to write,whether it is possible to write or not */
 
 	if (type == 0) {
@@ -662,6 +664,7 @@ uint32_t cpnd_ckpt_sec_write(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
 		cp_node->replica_info.mem_used += size;
 		cpnd_sec_hdr_update(sec_info, cp_node);
 	}
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -888,6 +891,7 @@ uint32_t cpnd_ckpt_update_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
 	CPSV_CKPT_DATA *data;
 	CPND_CKPT_SECTION_INFO *sec_info = NULL;
 
+	TRACE_ENTER();
 	data = write_data->data;
 	for (; i < write_data->num_of_elmts; i++) {
 		sec_info = cpnd_ckpt_sec_get_create(cp_node, &data->sec_id);
@@ -1159,6 +1163,7 @@ void cpnd_proc_gen_mapping(CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *ckpt_read,
 	int iter;
 	uint32_t read_size = 0;
 
+	TRACE_ENTER();
 	evt->type = CPSV_EVT_TYPE_CPA;
 	evt->info.cpa.type = CPA_EVT_ND2A_CKPT_DATA_RSP;
 	evt->info.cpa.info.sec_data_rsp.type = CPSV_DATA_ACCESS_LCL_READ_RSP;
@@ -1170,6 +1175,7 @@ void cpnd_proc_gen_mapping(CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *ckpt_read,
 		TRACE_4("cpnd - cpsv nd2a read map alloc failed");
 		evt->info.cpa.info.sec_data_rsp.num_of_elmts = -1;
 		evt->info.cpa.info.sec_data_rsp.error = SA_AIS_ERR_NO_MEMORY;
+		TRACE_LEAVE();
 		return;
 	}
 
@@ -1190,6 +1196,7 @@ void cpnd_proc_gen_mapping(CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *ckpt_read,
 			TRACE_4("cpnd - section boundary violated");
 			evt->info.cpa.info.sec_data_rsp.num_of_elmts = -1;
 			evt->info.cpa.info.sec_data_rsp.error = SA_AIS_ERR_INVALID_PARAM;
+			TRACE_LEAVE();
 			return;
 		}
 
@@ -1206,6 +1213,7 @@ void cpnd_proc_gen_mapping(CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *ckpt_read,
 		evt->info.cpa.info.sec_data_rsp.info.read_mapping[iter].offset_index = sec_info->lcl_sec_id;
 		evt->info.cpa.info.sec_data_rsp.info.read_mapping[iter].read_size = read_size;
 	}
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -1233,6 +1241,7 @@ cpnd_proc_update_remote(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_EVT *in_evt,
 	uint32_t timeout = 0;
 	SaSizeT datasize = 0;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 	if (m_CPND_IS_ALL_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags) == true) {
 		if (cp_node->cpnd_dest_list != NULL) {
@@ -1296,9 +1305,6 @@ cpnd_proc_update_remote(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_EVT *in_evt,
 				while (head != NULL) {
 					rc = cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPND, head->dest, &send_evt);
 					if (rc != NCSCC_RC_SUCCESS) {
-	/*					m_LOG_CPND_FFFLCL(CPND_ACTIVE_TO_REMOTE_MDS_SEND_FAIL, CPND_FC_MDSFAIL,
-								  NCSFL_SEV_ERROR, cb->cpnd_mdest_id, head->dest,
-								  cp_node->ckpt_id, rc, __FILE__, __LINE__); */
 						TRACE_4("CPND - MDS send failed from Active Dest to Remote Dest cpnd_mdest_id:%"PRIu64",\
 						dest:%"PRIu64",ckpt_id:%llx:rc:%d",cb->cpnd_mdest_id, head->dest,cp_node->ckpt_id, rc);
 					} else {
@@ -1365,6 +1371,7 @@ cpnd_proc_update_remote(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_EVT *in_evt,
 	}
 
  mem_fail:
+	TRACE_LEAVE();
 	return rc;
 }
 

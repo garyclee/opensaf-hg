@@ -957,6 +957,7 @@ static uint32_t cpnd_evt_proc_ckpt_close(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 	CPND_CKPT_NODE *cp_node = NULL;
 	SaAisErrorT error;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	if (!cpnd_is_cpd_up(cb)) {
@@ -1014,6 +1015,7 @@ static uint32_t cpnd_evt_proc_ckpt_close(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 	send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLOSE_RSP;
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
 
+	TRACE_LEAVE2("mds send rsp ret val %d",rc);
 	return rc;
 }
 
@@ -1131,6 +1133,7 @@ static uint32_t cpnd_evt_proc_ckpt_unlink_info(CPND_CB *cb, CPND_EVT *evt, CPSV_
 	CPSV_EVT send_evt;
 	bool sinfo_cpa_flag = false;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_ulink.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
@@ -4367,6 +4370,7 @@ static uint32_t cpnd_transfer_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 	uint32_t rc = NCSCC_RC_SUCCESS, seqno = 1, num = 0, total_num = 0;
 	SaSizeT size = 0;
 
+	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	send_evt.type = CPSV_EVT_TYPE_CPND;

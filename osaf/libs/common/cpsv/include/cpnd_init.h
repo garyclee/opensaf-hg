@@ -47,7 +47,7 @@
 {                                                                              \
    uint32_t hdl = m_CPND_GET_CB_HDL;                                              \
    if((cb = (CPND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPND, hdl)) == NULL)      \
-      m_LOG_CPND_CL(CPND_CB_HDL_TAKE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__); \
+      LOG_ER("CPND CB TAKE HDL FAILED "); \
 }
 #define m_CPND_GIVEUP_CB    ncshm_give_hdl(m_CPND_GET_CB_HDL)
 
@@ -223,11 +223,6 @@ void cpnd_restart_set_close_flag(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
 void cpnd_restart_update_timer(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaTimeT closetime);
 
 /* End : ----  cpnd_res.c  */
-
-/* File : ----  cpnd_log.c */
-
-void cpnd_flx_log_reg(void);
-void cpnd_flx_log_dereg(void);
 
 /* End : ----  cpnd_log.c  */
 

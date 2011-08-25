@@ -25,7 +25,6 @@
 ******************************************************************************/
 
 #include "cpd.h"
-#include "cpd_log.h"
 #include "immutil.h"
 
 uint32_t cpd_evt_proc_cb_dump(CPD_CB *cb);
@@ -95,6 +94,7 @@ void cpd_process_evt(CPSV_EVT *evt)
 
 	if (cb == NULL) {
 		LOG_ER("cpd cb take hdl failed ");
+		TRACE_LEAVE();
 		return;
 	}
 #if ( CPSV_DEBUG == 1)
@@ -318,7 +318,7 @@ static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 			if (send_evt.info.cpnd.info.ckpt_info.dest_list == NULL) {
 				send_evt.info.cpnd.info.ckpt_info.error = SA_AIS_ERR_NO_MEMORY;
 				rc = SA_AIS_ERR_NO_MEMORY;
-				TRACE_4("cpd cpnd dest info memory alloc failed");
+				LOG_CR("cpd cpnd dest info memory alloc failed");
 				proc_rc = NCSCC_RC_OUT_OF_MEM;
 			} else {
 				memset(send_evt.info.cpnd.info.ckpt_info.dest_list, 0,
@@ -482,9 +482,10 @@ uint32_t cpd_evt_proc_ckpt_sec_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
 {
 	CPD_CKPT_INFO_NODE *ckpt_node;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-
+	TRACE_ENTER();
 	cpd_ckpt_node_get(&cb->ckpt_tree, &evt->info.ckpt_sec_info.ckpt_id, &ckpt_node);
 	if (ckpt_node == 0) {
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -496,6 +497,7 @@ uint32_t cpd_evt_proc_ckpt_sec_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
 
 	cpd_a2s_ckpt_usr_info(cb, ckpt_node);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -520,6 +522,7 @@ static uint32_t cpd_evt_proc_ckpt_unlink(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 	SaAisErrorT proc_rc = SA_AIS_OK;
 	CPSV_EVT send_evt;
 
+	TRACE_ENTER();
 	rc = cpd_proc_unlink_set(cb, &ckpt_node, map_info, ckpt_name);
 	if (rc != SA_AIS_OK)
 		goto send_rsp;
@@ -552,7 +555,7 @@ static uint32_t cpd_evt_proc_ckpt_unlink(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 			}
 		}
 	}
-
+	TRACE_LEAVE2("Ret val %d",proc_rc);
 	return proc_rc;
 }
 
@@ -602,7 +605,7 @@ static uint32_t cpd_evt_proc_ckpt_rdset(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
 		send_evt.info.cpnd.info.rdset.type = CPSV_CKPT_RDSET_INFO;
 		proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
 	}
-	TRACE_LEAVE();
+	TRACE_LEAVE2("Ret Val %d",proc_rc);
 	return proc_rc;
 }
 
@@ -662,7 +665,7 @@ static uint32_t cpd_evt_proc_active_set(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
                                evt->info.arep_set.mds_dest);
 	}
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("Ret val %d",proc_rc);
 	return proc_rc;
 }
 
@@ -754,7 +757,7 @@ static uint32_t cpd_evt_proc_ckpt_destroy(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_IN
 	send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_DESTROY_ACK;
 	proc_rc = cpd_mds_send_rsp(cb, sinfo, &send_evt);
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("Ret val %d",proc_rc);
 	return proc_rc;
 }
 
@@ -800,7 +803,7 @@ static uint32_t cpd_evt_proc_ckpt_destroy_byname(CPD_CB *cb, CPD_EVT *evt, CPSV_
 		proc_rc = cpd_mds_send_rsp(cb, sinfo, &send_evt);
 	}
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("Ret val %d",proc_rc);
 	return proc_rc;
 }
 
@@ -884,6 +887,7 @@ static uint32_t cpnd_down_process(CPD_CB *cb, CPSV_MDS_INFO *mds_info, CPD_CPND_
 	CPSV_EVT send_evt;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	cpnd_info->cpnd_ret_timer.type = CPD_TMR_TYPE_CPND_RETENTION;
 	cpnd_info->cpnd_ret_timer.info.cpnd_dest = mds_info->dest;
 	cpd_tmr_start(&cpnd_info->cpnd_ret_timer, CPD_CPND_DOWN_RETENTION_TIME);
@@ -918,7 +922,7 @@ static uint32_t cpnd_down_process(CPD_CB *cb, CPSV_MDS_INFO *mds_info, CPD_CPND_
 		}
 		cref_info = cref_info->next;
 	}
-	TRACE_LEAVE();
+	TRACE_LEAVE2("Ret val %d",proc_rc);
 	return proc_rc;
 }
 
@@ -937,7 +941,8 @@ static uint32_t cpd_cpnd_dest_replace(CPD_CB *cb, CPD_CKPT_REF_INFO *cref_info, 
 	CPD_CKPT_INFO_NODE *cp_node = NULL;
 	CPD_NODE_REF_INFO *nref_info = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-
+	
+	TRACE_ENTER();
 	while (cref_info) {
 		cp_node = cref_info->ckpt_node;
 		if (m_CPND_NODE_ID_CMP
@@ -956,6 +961,7 @@ static uint32_t cpd_cpnd_dest_replace(CPD_CB *cb, CPD_CKPT_REF_INFO *cref_info, 
 		}
 		cref_info = cref_info->next;
 	}
+	TRACE_LEAVE2("Ret val %d",rc);
 	return rc;
 }
 
@@ -1012,7 +1018,7 @@ static uint32_t cpnd_up_process(CPD_CB *cb, CPSV_MDS_INFO *mds_info, CPD_CPND_IN
 
 				if (!send_evt.info.cpnd.info.cpnd_restart_done.dest_list) {
 					/* No memory, don't know what to do, setting dest_cnt to zero & continue */
-					TRACE_4("cpd cpnd_dest info memory allocation failed");
+					LOG_CR("cpd cpnd_dest info memory allocation failed");
 					send_evt.info.cpnd.info.cpnd_restart_done.dest_cnt = 0;
 				}
 
@@ -1058,7 +1064,7 @@ static uint32_t cpnd_up_process(CPD_CB *cb, CPSV_MDS_INFO *mds_info, CPD_CPND_IN
 
 				if (!send_evt.info.cpnd.info.ckpt_add.dest_list) {
 					/* No memory, don't know what to do, setting dest_cnt to zero & continue */
-					TRACE_4("cpd cpnd_dest info memory allocation failed ");
+					LOG_CR("cpd cpnd_dest info memory allocation failed ");
 					send_evt.info.cpnd.info.ckpt_add.dest_cnt = 0;
 				}
 
@@ -1079,7 +1085,7 @@ static uint32_t cpnd_up_process(CPD_CB *cb, CPSV_MDS_INFO *mds_info, CPD_CPND_IN
 		}
 		cref_info = cref_info->next;
 	}
-	TRACE_LEAVE();
+	TRACE_LEAVE2("Ret val %d",proc_rc);
 	return proc_rc;
 }
 
@@ -1087,8 +1093,11 @@ static uint32_t cpd_evt_mds_quiesced_ack_rsp(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT saErr = SA_AIS_OK;
+	TRACE_ENTER();
 	cpd_mbcsv_chgrole(cb);
 	saAmfResponse(cb->amf_hdl, cb->amf_invocation, saErr);
+	
+	TRACE_LEAVE2("Ret val %d",rc);
 	return rc;
 }
 
@@ -1129,6 +1138,7 @@ static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 	case NCSMDS_RED_UP:
 		/* get the peer mds_red_up */
 		/* get the mds_dest of remote CPND */
+		TRACE_1("Recived mds red up ");
 		if (cb->node_id != mds_info->node_id) {
 			MDS_DEST tmpDest = 0LL;
 			phy_slot_sub_slot = cpd_get_slot_sub_slot_id_from_node_id(mds_info->node_id);
@@ -1185,7 +1195,7 @@ static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 		break;
 
 	case NCSMDS_UP:
-
+		TRACE_1("Recived mds up for %d",mds_info->svc_id);
 		if (mds_info->svc_id == NCSMDS_SVC_ID_CPD) {
 			if (mds_info->change == NCSMDS_UP)
 				TRACE_LEAVE();
@@ -1309,6 +1319,7 @@ static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 		break;
 	case NCSMDS_DOWN:
 
+		TRACE_1("Recived mds down for %d",mds_info->svc_id);
 		if (mds_info->svc_id == NCSMDS_SVC_ID_CPD) {
 			if (mds_info->change == NCSMDS_DOWN)
 				TRACE_LEAVE();

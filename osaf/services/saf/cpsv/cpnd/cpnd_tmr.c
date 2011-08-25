@@ -47,7 +47,7 @@ void cpnd_timer_expiry(NCSCONTEXT uarg)
 	}
 
 	if ((cb = (CPND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl)) == NULL) {
-		TRACE("ncshm_take_hdl  returned CPND_CB as NULL");
+		LOG_ER("ncshm_take_hdl  returned CPND_CB as NULL");
 		return;
 	}
 
@@ -55,7 +55,7 @@ void cpnd_timer_expiry(NCSCONTEXT uarg)
 	evt = m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPND);
 	if (evt  == NULL)
 	{
-		TRACE("CPND: Mem alloc fail ");
+		LOG_ER("CPND: Mem alloc fail ");
 		return;
 	}
 

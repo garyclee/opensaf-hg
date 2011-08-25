@@ -24,7 +24,7 @@ pkglib_PROGRAMS = osafckptnd
 
 osafckptnd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
-	-DNCS_CPND=1 -DNCS_CPSV_LOG=1 \
+	-DNCS_CPND=1  \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include
 
@@ -33,7 +33,6 @@ osafckptnd_SOURCES = \
 	cpnd_db.c \
 	cpnd_evt.c \
 	cpnd_init.c \
-	cpnd_log.c \
 	cpnd_main.c \
 	cpnd_mds.c \
 	cpnd_proc.c \

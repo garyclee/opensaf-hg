@@ -169,9 +169,6 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 	m_CPSV_GET_AMF_VER(clm_version);
 	SaClmCallbacksT cpd_clm_cbk;
 
-	/* register with the Flex log service */
-	cpd_flx_log_reg();
-
 	/* allocate a CB  */
 	cb = m_MMGR_ALLOC_CPD_CB;
 
@@ -311,7 +308,6 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 	m_MMGR_FREE_CPD_CB(cb);
 
  cpd_cb_alloc_fail:
-	cpd_flx_log_dereg();
 
 	TRACE_LEAVE();
 	return (rc);
@@ -346,8 +342,6 @@ static uint32_t cpd_lib_destroy(CPD_DESTROY_INFO *info)
 	m_NCS_IPC_RELEASE(&cb->cpd_mbx, NULL);
 
 	ncshm_destroy_hdl(NCS_SERVICE_ID_CPD, cb->cpd_hdl);
-
-	cpd_flx_log_dereg();
 
 	saClmFinalize(cb->clm_hdl);
 

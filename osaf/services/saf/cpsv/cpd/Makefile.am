@@ -24,7 +24,7 @@ pkglib_PROGRAMS = osafckptd
 
 osafckptd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
-	-DNCS_CPD=1 -DNCS_CPSV_LOG=1 \
+	-DNCS_CPD=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
@@ -36,7 +36,6 @@ osafckptd_SOURCES = \
 	cpd_evt.c \
 	cpd_imm.c \
 	cpd_init.c \
-	cpd_log.c \
 	cpd_main.c \
 	cpd_mbcsv.c \
 	cpd_mds.c \

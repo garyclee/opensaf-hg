@@ -21,7 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 noinst_LTLIBRARIES = libcpa.la
 
 libcpa_la_CPPFLAGS = \
-	-DNCS_CPA=1 -DNCS_CPSV_LOG=1 \
+	-DNCS_CPA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include
 
@@ -31,7 +31,6 @@ libcpa_la_SOURCES = \
 	cpa_api.c \
 	cpa_db.c \
 	cpa_init.c \
-	cpa_log.c \
 	cpa_mds.c \
 	cpa_proc.c \
 	cpa_tmr.c

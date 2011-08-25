@@ -110,14 +110,14 @@ uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	if (map_info == NULL) {	/* Checkpoint does not exist, so allocate memory */
 		map_info = m_MMGR_ALLOC_CPD_CKPT_MAP_INFO;
 		if (map_info == NULL) {
-			TRACE_4("cpd ckpt map info memory alloc failed");
+			LOG_CR("cpd ckpt map info memory alloc failed");
 			proc_rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
 
 		ckpt_node = m_MMGR_ALLOC_CPD_CKPT_INFO_NODE;
 		if (ckpt_node == NULL) {
-			TRACE_4("cpd ckpt info node memory allocation failed");
+			LOG_CR("cpd ckpt info node memory allocation failed");
 			proc_rc = NCSCC_RC_FAILURE;
 			goto ckpt_node_alloc_fail;
 		}
@@ -161,7 +161,7 @@ uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	for (count = 0; count < dest_cnt; count++) {
 		nref_info = m_MMGR_ALLOC_CPD_NODE_REF_INFO;
 		if (nref_info == NULL) {
-			TRACE_4("cpd standby create evt failed");
+			LOG_CR("memory allocation for cpd standby evt failed");
 			rc = SA_AIS_ERR_NO_MEMORY;
 			proc_rc = NCSCC_RC_OUT_OF_MEM;
 			goto nref_info_alloc_fail;
@@ -621,12 +621,16 @@ uint32_t cpd_sb_proc_ckpt_dest_down(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
 	CPD_CPND_INFO_NODE *cpnd_info = NULL;
 	TRACE("THIS IS IN DEST DOWN OF NODE 1");
+	TRACE_ENTER();
 	cpd_cpnd_info_node_get(&cb->cpnd_tree, &msg->info.dest_down.mds_dest, &cpnd_info);
 	if (cpnd_info) {
 		cpnd_info->cpnd_ret_timer.type = CPD_TMR_TYPE_CPND_RETENTION;
 		cpnd_info->cpnd_ret_timer.info.cpnd_dest = msg->info.dest_down.mds_dest;
 		cpd_tmr_start(&cpnd_info->cpnd_ret_timer, CPD_CPND_DOWN_RETENTION_TIME);
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
-	} else
+	} else {
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
+	}
 }

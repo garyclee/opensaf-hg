@@ -63,7 +63,7 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle, const SaCkptCallbacksT *
 	bool locked = true;
 	SaVersionT client_version;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx", *ckptHandle);
 	proc_rc = ncs_agents_startup();
 	if (NCSCC_RC_SUCCESS != proc_rc) {
 		TRACE_4("cpa CkptInit:agents_startup Api failed with return value:%d", proc_rc);
@@ -272,7 +272,8 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle, const SaCkptCallbacksT *
 		ncs_cpa_shutdown();
 		ncs_agents_shutdown();
 	}
-	TRACE_LEAVE();
+
+	TRACE_LEAVE2("API Return code = %u", rc);
 	return rc;
 }
 
@@ -296,7 +297,8 @@ SaAisErrorT saCkptSelectionObjectGet(SaCkptHandleT ckptHandle, SaSelectionObject
 	CPA_CLIENT_NODE *cl_node = NULL;
 	uint32_t proc_rc = NCSCC_RC_FAILURE;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",ckptHandle);
+
 	if (!selectionObject)
 		return SA_AIS_ERR_INVALID_PARAM;
 
@@ -305,7 +307,7 @@ SaAisErrorT saCkptSelectionObjectGet(SaCkptHandleT ckptHandle, SaSelectionObject
 	if (cb == NULL) {
 		TRACE_4("Cpa SelObjGet:HM_TAKE failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_BAD_HANDLE, ckptHandle);
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		TRACE_LEAVE();
+		TRACE_LEAVE2("API return code = %u", rc);
 		return rc;
 	}
 
@@ -346,10 +348,7 @@ SaAisErrorT saCkptSelectionObjectGet(SaCkptHandleT ckptHandle, SaSelectionObject
 	/* Release the CB handle */
 	m_CPA_GIVEUP_CB;
 
-	if (rc == SA_AIS_OK)
-		TRACE_1("Cpa CkptSelectObjGet Api Success with return value:%d,ckptHandle:%llx", rc, ckptHandle);
-
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API Return code = %u", rc);
 	return rc;
 }
 
@@ -375,6 +374,7 @@ SaAisErrorT saCkptDispatch(SaCkptHandleT ckptHandle, SaDispatchFlagsT dispatchFl
 	CPA_CB *cb = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",ckptHandle);
 	/* retrieve CPA CB */
 	m_CPA_RETRIEVE_CB(cb);
 	if (!cb) {
@@ -438,12 +438,10 @@ SaAisErrorT saCkptDispatch(SaCkptHandleT ckptHandle, SaDispatchFlagsT dispatchFl
  lock_fail:
  clm_left:
 
-	if (rc == SA_AIS_OK)
-		TRACE_1("Cpa CkptDispatch Success with return value:%d,ckptHandle:%llx",SA_AIS_OK, ckptHandle);
 	/* Release the CB handle */
 	ncshm_give_hdl(gl_cpa_hdl);
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API Return code = %u", rc);
 	return rc;
 }
 
@@ -470,7 +468,7 @@ SaAisErrorT saCkptFinalize(SaCkptHandleT ckptHandle)
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",ckptHandle);
 	m_CPA_RETRIEVE_CB(cb);
 	if (!cb) {
 		TRACE_4("Cpa CkptFin:HM_TAKE failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_BAD_HANDLE, ckptHandle);
@@ -575,7 +573,7 @@ clnode_stale:
 		ncs_agents_shutdown();
 	}
 	
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -615,11 +613,11 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle, const SaNameT *checkp
 	bool locked = false;
         uint32_t time_out=0;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
-
-	TRACE_ENTER();
+	
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",ckptHandle);
 	if ((checkpointName == NULL) || (checkpointHandle == NULL) || (checkpointName->length == 0)) {
 		TRACE_4("Cpa CkptOpen Api failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_INVALID_PARAM, ckptHandle);
-		TRACE_LEAVE();
+		TRACE_LEAVE2("API return code = %u", rc);
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
@@ -629,7 +627,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle, const SaNameT *checkp
            Section 3.6.1 saCkptCheckpointOpen() and saCkptCheckpointOpenAsync(), Return Values */
         if (strncmp((const char *)checkpointName->value, "safCkpt=", 8) != 0) {
                 TRACE_4("Cpa CkptOpen:DN failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_INVALID_PARAM, ckptHandle);
-		TRACE_LEAVE();
+		TRACE_LEAVE2("API return code = %u", rc);
                 return SA_AIS_ERR_INVALID_PARAM;
         }
 
@@ -834,7 +832,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle, const SaNameT *checkp
 	TRACE_1("Cpa CkptOpen Api Success with ckptHandle:%llx,checkpointHandle:%llx,gbl_ckpt_hdl:%llx",
 		ckptHandle, *checkpointHandle, lc_node->gbl_ckpt_hdl);
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 
 	return SA_AIS_OK;
 
@@ -848,7 +846,7 @@ gl_node_add_fail:
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	m_CPA_GIVEUP_CB;
 	saCkptCheckpointClose(*checkpointHandle);
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 
  mds_send_fail:
@@ -880,7 +878,7 @@ gl_node_add_fail:
 	m_CPA_GIVEUP_CB;
 
  done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 
 }
@@ -917,11 +915,11 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle, SaInvocationT in
 	CPA_CLIENT_NODE *cl_node = NULL;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",ckptHandle);
 	
 	if (checkpointName == NULL) {
 		TRACE_4("cpa CkptOpenAsync Api failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_INVALID_PARAM, ckptHandle);
-		TRACE_LEAVE();
+		TRACE_LEAVE2("API return code = %u", rc);
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
@@ -933,7 +931,7 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle, SaInvocationT in
            Section 3.6.1 saCkptCheckpointOpen() and saCkptCheckpointOpenAsync(), Return Values */
         if (strncmp((const char *)checkpointName->value, "safCkpt=", 8) != 0) {
                 TRACE_4("cpa CkptOpen:DN Api failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_INVALID_PARAM, ckptHandle);
-		TRACE_LEAVE();
+		TRACE_LEAVE2("API return code = %u", rc);
                 return SA_AIS_ERR_INVALID_PARAM;
         }
 
@@ -1082,7 +1080,7 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle, SaInvocationT in
 
 	m_CPA_GIVEUP_CB;
 	TRACE_1("cpa CkptOpenAsync  api success with return value:%d,ckptHandle:%llx",SA_AIS_OK, ckptHandle);
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return SA_AIS_OK;
 
  mds_send_fail:
@@ -1118,7 +1116,7 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle, SaInvocationT in
 	m_CPA_GIVEUP_CB;
 
  done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -1149,7 +1147,7 @@ SaAisErrorT saCkptCheckpointClose(SaCkptCheckpointHandleT checkpointHandle)
 	CPA_SECT_ITER_NODE *sect_iter_node = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	m_CPA_RETRIEVE_CB(cb);
 	if (!cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
@@ -1236,7 +1234,7 @@ SaAisErrorT saCkptCheckpointClose(SaCkptCheckpointHandleT checkpointHandle)
  mds_send_fail:
 	if (rc != SA_AIS_OK) {
 		m_CPA_GIVEUP_CB;
-		TRACE_LEAVE();
+		TRACE_LEAVE2("API return code = %u", rc);
 		return rc;
 	}
 
@@ -1292,7 +1290,7 @@ SaAisErrorT saCkptCheckpointClose(SaCkptCheckpointHandleT checkpointHandle)
 		TRACE_1("Cpa CkptClose Api Success with return value:%d,ckptHandle:%llx", rc, checkpointHandle);
 	}
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 
 }
@@ -1320,7 +1318,7 @@ SaAisErrorT saCkptCheckpointUnlink(SaCkptHandleT ckptHandle, const SaNameT *chec
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_CB *cb = NULL;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",ckptHandle);
 	/* For unlink CPA will not perform any operation other than passing
 	   the request to CPND */
 	if (checkpointName == NULL) {
@@ -1416,7 +1414,7 @@ SaAisErrorT saCkptCheckpointUnlink(SaCkptHandleT ckptHandle, const SaNameT *chec
 	if (rc == SA_AIS_OK) {
 		TRACE_1("Cpa CkptUnlink Api Success with return value:%d,ckptHandle:%llx", rc, ckptHandle);
 	}
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -1444,6 +1442,7 @@ SaAisErrorT saCkptCheckpointRetentionDurationSet(SaCkptCheckpointHandleT checkpo
 	CPA_CB *cb = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	/* For Retention duration set CPA will not perform any operation 
 	   other than passing the request to CPND */
 
@@ -1552,7 +1551,7 @@ SaAisErrorT saCkptCheckpointRetentionDurationSet(SaCkptCheckpointHandleT checkpo
 	if (rc == SA_AIS_OK) {
 		TRACE_1("Cpa RetDurSet Api Success with return value:%d,ckptHandle:%llx", rc, checkpointHandle);
 	}
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -1582,7 +1581,7 @@ SaAisErrorT saCkptActiveReplicaSet(SaCkptCheckpointHandleT checkpointHandle)
 	CPA_CB *cb = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	/* For Active Replica set CPA will not perform any operation 
 	   other than passing the request to CPND */
 
@@ -1713,7 +1712,7 @@ SaAisErrorT saCkptActiveReplicaSet(SaCkptCheckpointHandleT checkpointHandle)
 		TRACE_1("Cpa ActiveRepSet Api failed with return value:%d,ckptHandle:%llx", rc, checkpointHandle);
 	}
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -1744,6 +1743,7 @@ SaAisErrorT saCkptCheckpointStatusGet(SaCkptCheckpointHandleT checkpointHandle,
 	bool is_local_get = false;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	/* For Checkpoint status get CPA will not perform any operation 
 	   other than passing the request to CPND */
 
@@ -1889,7 +1889,7 @@ SaAisErrorT saCkptCheckpointStatusGet(SaCkptCheckpointHandleT checkpointHandle,
 	m_CPA_GIVEUP_CB;
 
  done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -1929,12 +1929,12 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
 	SaCkptSectionIdT app_ptr;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	/* Validate the Input Parameters */
 	if ((sectionCreationAttributes == NULL) || (sectionCreationAttributes->sectionId == NULL)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		TRACE_4("cpa SectCreate with return value:%d,ckptHandle:%llx", rc, checkpointHandle);
-		TRACE_LEAVE();
+		TRACE_LEAVE2("API return code = %u", rc);
 		return rc;
 	}
 
@@ -2138,7 +2138,7 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
 	if (rc == SA_AIS_OK)
 		TRACE_1("cpa sectCreate api success with return value:%d,ckptHandle:%llx", rc, checkpointHandle);
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -2169,14 +2169,14 @@ SaAisErrorT saCkptSectionIdFree(SaCkptCheckpointHandleT checkpointHandle, SaUint
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	/* retrieve CPA CB */
 	m_CPA_RETRIEVE_CB(cb);
 
 	if (!cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		TRACE_4("cpa saCkptSectionIdFree:HDL_TAKE Api failed with return value:%d,ckptHandle:%llx", rc, checkpointHandle);
-		TRACE_LEAVE();
+		TRACE_LEAVE2("API return code = %u", rc);
 		return rc;
 	}
 
@@ -2232,7 +2232,7 @@ SaAisErrorT saCkptSectionIdFree(SaCkptCheckpointHandleT checkpointHandle, SaUint
  fail:
 	m_CPA_GIVEUP_CB;
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -2261,7 +2261,7 @@ SaAisErrorT saCkptSectionDelete(SaCkptCheckpointHandleT checkpointHandle, const 
 	bool add_flag = false;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	/* Validate the Input Parameters */
 	if ((sectionId == NULL) || ((sectionId->id == NULL) && (sectionId->idLen == 0))) {
 		TRACE_4("cpa SectDelete Api failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_INVALID_PARAM, checkpointHandle);
@@ -2390,7 +2390,7 @@ SaAisErrorT saCkptSectionDelete(SaCkptCheckpointHandleT checkpointHandle, const 
  done:
 	if (rc == SA_AIS_OK)
 		TRACE_1("Cpa SectDelete Api Success with return value:%d,ckptHandle:%llx", rc, checkpointHandle);
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -2422,11 +2422,11 @@ SaAisErrorT saCkptSectionExpirationTimeSet(SaCkptCheckpointHandleT checkpointHan
 	int64_t time_stamp, giga_sec, result;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
-	TRACE_ENTER(); /* Validate the Input Parameters */
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle); /* Validate the Input Parameters */
 	if (sectionId == NULL || (sectionId->id == NULL && sectionId->idLen == 0)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		TRACE_4("cpa SectExpTimeSet Api failed with return value:%d,ckptHandle:%llx", rc, checkpointHandle);
-		TRACE_LEAVE();
+		TRACE_LEAVE2("API return code = %u", rc);
 		return rc;
 	}
 
@@ -2548,7 +2548,7 @@ SaAisErrorT saCkptSectionExpirationTimeSet(SaCkptCheckpointHandleT checkpointHan
 	m_CPA_GIVEUP_CB;
 
  done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -2583,7 +2583,7 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
 	bool is_local_get_next = false;
 	CPA_CLIENT_NODE *cl_node = NULL;
 	
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 
 	/* Validate the input parameters */
 	if ((!sectionIterationHandle) ||
@@ -2721,7 +2721,7 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
  lock_fail:
  clm_left:
 	m_CPA_GIVEUP_CB;
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -2757,6 +2757,7 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
 	if (sectionDescriptor == NULL)
 		return SA_AIS_ERR_INVALID_PARAM;
 
+	TRACE_ENTER2("SaCkptSectionIterationHandleT passed is %llx",sectionIterationHandle);
 	/* retrieve CPA CB */
 	m_CPA_RETRIEVE_CB(cb);
 	if (!cb) {
@@ -2945,7 +2946,7 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
 	m_CPA_GIVEUP_CB;
 
  done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -2974,7 +2975,7 @@ SaAisErrorT saCkptSectionIterationFinalize(SaCkptSectionIterationHandleT section
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptSectionIterationHandleT passed is %llx",sectionIterationHandle);
 	/* retrieve CPA CB */
 	m_CPA_RETRIEVE_CB(cb);
 	if (!cb) {
@@ -3070,7 +3071,7 @@ SaAisErrorT saCkptSectionIterationFinalize(SaCkptSectionIterationHandleT section
 	m_CPA_GIVEUP_CB;
 
  done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -3107,7 +3108,7 @@ SaAisErrorT saCkptCheckpointWrite(SaCkptCheckpointHandleT checkpointHandle,
 	SaSizeT all_ioVector_size = 0;
 	uint32_t err_flag = 0;
 	
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 
 	memset(&evt, '\0', sizeof(CPSV_EVT));
 
@@ -3285,7 +3286,7 @@ SaAisErrorT saCkptCheckpointWrite(SaCkptCheckpointHandleT checkpointHandle,
  end:
 	cpa_proc_free_cpsv_ckpt_data(ckpt_data);
 	m_CPA_GIVEUP_CB;
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -3319,7 +3320,7 @@ SaAisErrorT saCkptSectionOverwrite(SaCkptCheckpointHandleT checkpointHandle,
 	bool add_flag = false;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	memset(&ckpt_data, '\0', sizeof(CPSV_CKPT_DATA));
 	memset(&evt, '\0', sizeof(CPSV_EVT));
 	
@@ -3470,7 +3471,7 @@ SaAisErrorT saCkptSectionOverwrite(SaCkptCheckpointHandleT checkpointHandle,
  clm_left:
  end:
 	m_CPA_GIVEUP_CB;
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -3506,7 +3507,7 @@ SaAisErrorT saCkptCheckpointRead(SaCkptCheckpointHandleT checkpointHandle,
 	bool is_local_read = false;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	memset(&evt, '\0', sizeof(CPSV_EVT));
 
 	/* retrieve CPA CB */
@@ -3702,7 +3703,7 @@ SaAisErrorT saCkptCheckpointRead(SaCkptCheckpointHandleT checkpointHandle,
  clm_left:
 	m_CPA_GIVEUP_CB;
 	cpa_proc_free_cpsv_ckpt_data(ckpt_data);
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -3714,7 +3715,7 @@ SaAisErrorT saCkptIOVectorElementDataFree(SaCkptCheckpointHandleT checkpointHand
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	if (data == NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		TRACE_4("cpa saCkptIOVectorElementDataFree Api failed with return value:%d,ckptHandle:%llx", rc, checkpointHandle);
@@ -3760,7 +3761,7 @@ SaAisErrorT saCkptIOVectorElementDataFree(SaCkptCheckpointHandleT checkpointHand
  clm_left:
  fail:
 	m_CPA_GIVEUP_CB;
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -3791,7 +3792,7 @@ SaAisErrorT saCkptCheckpointSynchronize(SaCkptCheckpointHandleT checkpointHandle
 	bool add_flag = false;
 	CPA_CLIENT_NODE *cl_node = NULL;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	/* For Ckpt Sync CPA will not perform any operation 
 	   other than passing the request to CPND */
 
@@ -3924,7 +3925,7 @@ SaAisErrorT saCkptCheckpointSynchronize(SaCkptCheckpointHandleT checkpointHandle
 	if (rc == SA_AIS_OK) {
 		TRACE_1("cpa CkptSynchronize Api success with return value:%d,ckptHandle:%llx ", rc, checkpointHandle);
 	}
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -3959,7 +3960,7 @@ SaAisErrorT saCkptCheckpointSynchronizeAsync(SaCkptCheckpointHandleT checkpointH
 	   other than passing the request to CPND */
 
 	/* retrieve CPA CB */
-	TRACE_ENTER();
+	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	m_CPA_RETRIEVE_CB(cb);
 	if (!cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
@@ -4114,7 +4115,7 @@ SaAisErrorT saCkptCheckpointSynchronizeAsync(SaCkptCheckpointHandleT checkpointH
 		TRACE_1("cpa  CkptSynchronizeAsync Api success with return value:%d,ckptHandle:%llx", rc, checkpointHandle);
 	}
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
 
@@ -4224,9 +4225,6 @@ ncsCkptRegisterCkptArrivalCallback(SaCkptHandleT ckptHandle, ncsCkptCkptArrivalC
 	m_CPA_GIVEUP_CB;
 
  done:
-	if (SA_AIS_OK == rc) {
-		TRACE_1("cpa CkptArrivalCallback Api success  with return value:%d,ckptHandle:%llx",rc, ckptHandle);
-	}
-	TRACE_LEAVE();
+	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
