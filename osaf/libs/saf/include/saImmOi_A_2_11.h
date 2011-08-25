@@ -11,6 +11,10 @@
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
+ * Author(s): Ericsson AB
+ */
+
+/* 
  * DESCRIPTION:
  *   This file provides the suggested additions to the C language binding for 
  *   the Service Availability(TM) Forum Information Model Management Service (IMM).
@@ -20,17 +24,6 @@
  *   additions approved formally by SAF in the future.
  *
  *   For detailed explanation of the new API, see osaf/services/saf/immsv/README.
- *
- * FILE:
- *   saImmOi.A.2.11.h
- *
- ** SPECIFICATION VERSION:
- *   SAI-AIS-IMM-A.02.11
- *
- * DATE:
- *   Mon  May   23  2011
- * Author(s): Ericsson AB
- *
  */
 
 
@@ -59,6 +52,16 @@ extern "C" {
 				 SaImmOiCcbIdT ccbId,
 				 const SaStringT errorString);
 
+
+
+#ifdef _SA_IMM_OM_H
+	extern SaAisErrorT
+	saImmOiAugmentCcbInitialize(
+			     SaImmOiHandleT immOiHandle,
+			     SaImmOiCcbIdT ccbId,
+			     SaImmCcbHandleT *ccbHandle,
+			     SaImmAdminOwnerHandleT *ownerHandle);
+#endif
 
 
 #ifdef  __cplusplus

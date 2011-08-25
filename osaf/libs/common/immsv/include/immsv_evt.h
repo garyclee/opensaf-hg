@@ -86,6 +86,7 @@ typedef enum imma_evt_type {
 	IMMA_EVT_ND2A_IMM_PBE_ADMOP = 25,       /*Special PBE admop callback */
 	IMMA_EVT_ND2A_IMM_ERROR_2 = 26,	        /*Generic error reply, errStrings added*/
 	IMMA_EVT_ND2A_ADMOP_RSP_2 = 27,	/*Response from AdminOp to OM client - extended */
+	IMMA_EVT_ND2A_CCB_AUG_INIT_RSP = 28, /* Response on IMMND_EVT_A2ND_OI_CCB_AUG_INIT */
 	IMMA_EVT_MAX
 } IMMA_EVT_TYPE;
 
@@ -194,6 +195,7 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_A2ND_ASYNC_ADMOP_RSP_2 = 88, /* AdminOperation async local Reply (extended) */
 	IMMND_EVT_ND2ND_ADMOP_RSP_2 = 89,	/* AdminOperation sync fevs Reply (extended) */
 	IMMND_EVT_ND2ND_ASYNC_ADMOP_RSP_2 = 90,	/* AdminOperation async fevs Reply (extended) */
+	IMMND_EVT_A2ND_OI_CCB_AUG_INIT = 91, /* Init of OI augmented ccb handle */
 
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
@@ -413,7 +415,6 @@ typedef struct imma_tmr_info {
 /******************************************************************************
  IMMA Event Data Struct 
  ******************************************************************************/
-/* BUGBUG ABT: All commented out members are my doing. */
 typedef struct imma_evt {
 	IMMA_EVT_TYPE type;
 	union {
@@ -432,10 +433,6 @@ typedef struct imma_evt {
 		IMMSV_OM_CCB_COMPLETED ccbCompl;
 		IMMSV_OM_CLASS_DESCR classDescr;
 		IMMSV_ND2A_IMPLSET_RSP implSetRsp;
-		/* IMMSV_IMM_STATUS       status; */
-
-		/* IMMSV_ND2A_SYNC_RSP         sync_rsp; */
-		/* IMMSV_SAERR_INFO            readackRsp; */
 		IMMA_TMR_INFO tmr_info;
 	} info;
 
@@ -466,7 +463,9 @@ typedef struct immnd_evt {
 		IMMSV_FEVS fevsReq;	//Prepacked message "virtual EVS"
 
 		IMMSV_OI_ADMIN_OP_RSP admOpRsp;
-		IMMSV_OI_CCB_UPCALL_RSP ccbUpcallRsp;
+		IMMSV_OI_CCB_UPCALL_RSP ccbUpcallRsp; 
+		/* used both for normal OI rsp and for aug ccb Ticket #1963 */
+
 
 		IMMSV_OM_CLASS_DESCR classDescr;
 

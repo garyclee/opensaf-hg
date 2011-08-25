@@ -33,6 +33,6 @@ include_HEADERS = \
 	saMsg.h \
 	saNtf.h \
 	saSmf.h \
-	saImmOi.A.2.11.h \
-	saImmOm.A.2.11.h
+	saImmOi_A_2_11.h \
+	saImmOm_A_2_11.h
 
