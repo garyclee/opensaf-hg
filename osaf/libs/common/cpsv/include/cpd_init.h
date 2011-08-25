@@ -44,8 +44,8 @@ uint32_t gl_cpd_cb_hdl;
 {                                                                              \
    uint32_t hdl = m_CPD_GET_CB_HDL;                                               \
    cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD, hdl);                     \
-   if(!cb)                                                                     \
-      m_LOG_CPD_HEADLINE(CPD_CB_RETRIEVAL_FAILED ,NCSFL_SEV_ERROR);            \
+   if(!cb) 									\
+	LOG_ER("CPD CB TAKE HDL FAILED ");                                     \
 }
 #define m_CPD_GIVEUP_CB    ncshm_give_hdl(m_CPD_GET_CB_HDL)
 

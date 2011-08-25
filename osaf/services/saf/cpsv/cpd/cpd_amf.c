@@ -35,7 +35,6 @@
 #include "cpd.h"
 #include "immutil.h"
 #include "cpd_imm.h"
-#include "cpd_log.h"
 #define NCS_2_0 1
 #if NCS_2_0			/* Required for NCS 2.0 */
 extern uint32_t gl_cpd_cb_hdl;
@@ -73,7 +72,7 @@ void cpd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compName, SaAm
 		saAmfResponse(cb->amf_hdl, invocation, saErr);
 		ncshm_give_hdl(cb->cpd_hdl);
 	} else {
-		TRACE_4("cpd dont exist");
+		LOG_ER("Failed to retrieve cpd handle %u",gl_cpd_cb_hdl);
 	}
 	return;
 }	/* End of cpd_saf_hlth_chk_cb() */
@@ -129,6 +128,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 	CPD_CPND_INFO_NODE *node_info = NULL;
 	MDS_DEST prev_dest;
 
+	TRACE_ENTER();
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);
 	if (cb) {
 
@@ -153,7 +153,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 			/* Give up our IMM OI implementer role */
 			saErr = immutil_saImmOiImplementerClear(cb->immOiHandle);
 			if (saErr != SA_AIS_OK) {
-				TRACE_4("cpd saImmOiImplementerClear failed");
+				LOG_ER("saImmOiImplementerClear failed with err:%d",saErr);
 			}
 		}
 
@@ -171,7 +171,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 			/* If this is the active Director, become implementer */
 			saErr = immutil_saImmOiImplementerSet(cb->immOiHandle, implementer_name);
 			if (saErr != SA_AIS_OK){
-				TRACE_4("cpd imm declare implementer failed:err = %u",saErr);
+				LOG_ER("cpd immOiImplmenterSet failed with err = %u",saErr);
 				exit(EXIT_FAILURE);
 			}
 			/*   anchor   = cb->cpd_anc; */
@@ -188,7 +188,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 			rc = ncsvda_api(&vda_info);
 			if (NCSCC_RC_SUCCESS != rc) {
 				m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-				TRACE_4("cpd vdest change role failed");
+				LOG_ER("cpd vdest change role failed");
 				ncshm_give_hdl(cb->cpd_hdl);
 				TRACE_LEAVE();
 				return;
@@ -211,7 +211,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 		rc = ncsvda_api(&vda_info);
 		if (NCSCC_RC_SUCCESS != rc) {
 			m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-			TRACE_4("cpd vdest change role failed");
+			LOG_ER("cpd vdest change role failed");
 			ncshm_give_hdl(cb->cpd_hdl);
 			TRACE_LEAVE();
 			return;
@@ -281,8 +281,7 @@ uint32_t cpd_amf_init(CPD_CB *cpd_cb)
 	error = saAmfInitialize(&cpd_cb->amf_hdl, &amfCallbacks, &amf_version);
 
 	if (error != SA_AIS_OK) {
-		TRACE_4("cpd amf init failed ");
-		TRACE_LEAVE();
+		LOG_ER("saAmfInitialize failed with Error:%u",error);
 		res = NCSCC_RC_FAILURE;
 	}
 	if (error == SA_AIS_OK)
@@ -327,18 +326,16 @@ uint32_t cpd_amf_register(CPD_CB *cpd_cb)
 	/* get the component name */
 	error = saAmfComponentNameGet(cpd_cb->amf_hdl, &cpd_cb->comp_name);
 	if (error != SA_AIS_OK) {
-		TRACE_4("cpd amf compname get failed");
+		LOG_ER("cpd amf compname get failed with Error: %u",error);
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (saAmfComponentRegister(cpd_cb->amf_hdl, &cpd_cb->comp_name, (SaNameT *)NULL) == SA_AIS_OK) {
-		TRACE_2("cpd amf register success");
-		TRACE_LEAVE();
+		TRACE_LEAVE2("cpd amf register success for %s",cpd_cb->comp_name.value);
 		return NCSCC_RC_SUCCESS;
 	} else {
-		TRACE_4("cpd amf comp register failed");
-		TRACE_LEAVE();
+		TRACE_LEAVE2("cpd Amf component register failed for %s",cpd_cb->comp_name.value);
 		return NCSCC_RC_FAILURE;
 	}
 }

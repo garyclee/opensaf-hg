@@ -40,7 +40,6 @@
 #include "cpa_tmr.h"
 #include "cpsv_shm.h"
 #include "cpa_cb.h"
-#include "cpa_log.h"
 #include "cpa_proc.h"
 #include "cpa_mds.h"
 #include "cpa_mem.h"

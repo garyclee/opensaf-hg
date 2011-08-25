@@ -102,6 +102,7 @@ uint32_t cpnd_amf_init(CPND_CB *cpnd_cb)
 	SaAisErrorT error;
 	uint32_t res = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 	amfCallbacks.saAmfHealthcheckCallback = (SaAmfHealthcheckCallbackT)cpnd_saf_health_chk_callback;
 	amfCallbacks.saAmfCSISetCallback = cpnd_saf_csi_set_cb;
@@ -116,6 +117,7 @@ uint32_t cpnd_amf_init(CPND_CB *cpnd_cb)
 		LOG_ER("cpnd amf init failed %u ",error);
 		res = NCSCC_RC_FAILURE;
 	}
+	TRACE_LEAVE();
 	return (res);
 }
 
@@ -152,6 +154,7 @@ uint32_t cpnd_amf_register(CPND_CB *cpnd_cb)
 
 	SaAisErrorT error;
 
+	TRACE_ENTER();
 	/* get the component name */
 	error = saAmfComponentNameGet(cpnd_cb->amf_hdl, &cpnd_cb->comp_name);
 	if (error != SA_AIS_OK) {
@@ -167,6 +170,7 @@ uint32_t cpnd_amf_register(CPND_CB *cpnd_cb)
 	}
 
 	TRACE_2("cpnd amf register success");
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -185,6 +189,7 @@ uint32_t cpnd_amf_deregister(CPND_CB *cpnd_cb)
 	SaNameT comp_name;
 	SaAisErrorT error;
 
+	TRACE_ENTER();
 	/* get the component name */
 	error = saAmfComponentNameGet(cpnd_cb->amf_hdl, &comp_name);
 	if (error != SA_AIS_OK) {
@@ -199,6 +204,7 @@ uint32_t cpnd_amf_deregister(CPND_CB *cpnd_cb)
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -259,6 +265,7 @@ cpnd_amf_csi_rmv_callback(SaInvocationT invocation,
 	CPND_CB *cb = NULL;
 	SaAisErrorT saErr = SA_AIS_OK;
 
+	TRACE_ENTER();
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl);
 	if (cb == NULL) {
 		LOG_ER("cpnd cb take handle failed in rmv callback");
@@ -267,9 +274,7 @@ cpnd_amf_csi_rmv_callback(SaInvocationT invocation,
 	saAmfResponse(cb->amf_hdl, invocation, saErr);
 	ncshm_give_hdl(gl_cpnd_cb_hdl);
 
-	TRACE_1("cpnd csi rmv cb invoked ");
-
-	TRACE("THIS IS IN RMV CALLBACK");
+	TRACE_LEAVE2("THIS IS IN RMV CALLBACK");
 	return;
 }
 
@@ -318,6 +323,7 @@ void cpnd_saf_csi_set_cb(SaInvocationT invocation,
 	CPND_CB *cb = NULL;
 	SaAisErrorT saErr = SA_AIS_OK;
 
+	TRACE_ENTER();
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl);
 	if (cb) {
 		cb->ha_state = haState;	/* Set the HA State */
@@ -328,5 +334,6 @@ void cpnd_saf_csi_set_cb(SaInvocationT invocation,
 	} else {
 		LOG_ER("cpnd cb take handle failed");
 	}
+	TRACE_LEAVE();
 	return;
 }	/* End of cpnd_saf_csi_set_cb() */

@@ -90,6 +90,7 @@ uint32_t cpa_open_attr_validate(const SaCkptCheckpointCreationAttributesT
 	SaCkptCheckpointCreationFlagsT creationFlags = 0;
 	/* Check the Open Flags is set, it should  */
 
+	TRACE_ENTER();
 	if (!(checkpointOpenFlags & (SA_CKPT_CHECKPOINT_READ | SA_CKPT_CHECKPOINT_WRITE | SA_CKPT_CHECKPOINT_CREATE))) {
 		TRACE_4("CPA:processing failed for open attr validate with error:%d",SA_AIS_ERR_BAD_FLAGS);
 		return SA_AIS_ERR_BAD_FLAGS;
@@ -132,6 +133,7 @@ uint32_t cpa_open_attr_validate(const SaCkptCheckpointCreationAttributesT
 		}
 	}
 
+	TRACE_LEAVE();
 	return SA_AIS_OK;
 }
 
@@ -289,7 +291,8 @@ static void cpa_proc_async_open_rsp(CPA_CB *cb, CPA_EVT *evt)
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
-
+	
+	TRACE_ENTER();
 	/* get the CB Lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 		TRACE_4("CPA:processing failed in async open rsp lock with error:%d",evt->info.openRsp.error);
@@ -395,6 +398,8 @@ static void cpa_proc_async_open_rsp(CPA_CB *cb, CPA_EVT *evt)
 	/* Close the checkpoint in case of failure */
 	if (proc_rc != NCSCC_RC_SUCCESS)
 		saCkptCheckpointClose(callback->lcl_ckpt_hdl);
+
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -412,6 +417,7 @@ static void cpa_proc_async_sync_rsp(CPA_CB *cb, CPA_EVT *evt)
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 
+	TRACE_ENTER();
 	/* get the CB Lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 		TRACE_4("cpa cb lock take failed");
@@ -422,6 +428,7 @@ static void cpa_proc_async_sync_rsp(CPA_CB *cb, CPA_EVT *evt)
 	proc_rc = cpa_client_node_get(&cb->client_tree, &evt->info.sync_rsp.client_hdl, &cl_node);
 	if (!cl_node) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		TRACE_LEAVE();
 		return;
 	}
 
@@ -429,6 +436,7 @@ static void cpa_proc_async_sync_rsp(CPA_CB *cb, CPA_EVT *evt)
 	cpa_lcl_ckpt_node_get(&cb->lcl_ckpt_tree, &evt->info.sync_rsp.lcl_ckpt_hdl, &lc_node);
 	if (lc_node == NULL) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		TRACE_LEAVE();
 		return;
 	}
 
@@ -439,6 +447,7 @@ static void cpa_proc_async_sync_rsp(CPA_CB *cb, CPA_EVT *evt)
 	callback = m_MMGR_ALLOC_CPA_CALLBACK_INFO;
 	if (!callback) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		TRACE_LEAVE();
 		return;
 	}
 	/* Fill the Call Back Info */
@@ -453,6 +462,8 @@ static void cpa_proc_async_sync_rsp(CPA_CB *cb, CPA_EVT *evt)
 
 	/* Release The Lock */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+
+	TRACE_LEAVE();
 	return;
 }
 

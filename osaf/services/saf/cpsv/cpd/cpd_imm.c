@@ -85,6 +85,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	char *ckpt_name, *node_name;
 	SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
 
+	TRACE_ENTER();
 	memset(&replica_dn, 0, sizeof(SaNameT));
 	memset(&ckptName, 0, sizeof(ckptName));
 	memset(&nodeName, 0, sizeof(SaNameT));
@@ -308,6 +309,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	
 done:
 	ncshm_give_hdl(cb->cpd_hdl);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -334,6 +336,7 @@ SaAisErrorT create_runtime_replica_object(CPD_CKPT_REPLOC_INFO *ckpt_reploc_node
 	SaNameT ckpt_name;
 	memset(&ckpt_name, 0, sizeof(SaNameT));
 
+	TRACE_ENTER();
 	/* escapes rdn's  ',' with '\'   */
 	cpd_create_association_class_dn(&ckpt_reploc_node->rep_key.node_name, NULL, "safReplica", &replica_rdn);
 
@@ -350,6 +353,7 @@ SaAisErrorT create_runtime_replica_object(CPD_CKPT_REPLOC_INFO *ckpt_reploc_node
 	ckpt_name.length = strlen((char *)ckpt_name.value);
 
 	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaCkptReplica", &ckpt_name, attrValues);
+	TRACE_LEAVE2("Ret val %d",rc);
 	return rc;
 }
 
@@ -380,6 +384,7 @@ SaAisErrorT create_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHan
 	    ckpt_max_sections, ckpt_max_section_size, ckpt_max_section_id_size;
 	SaTimeT create_time_sec;
 
+	TRACE_ENTER();
 	memset(&parentName, 0, sizeof(SaNameT));
 
 	if (parent_name != NULL) {
@@ -441,6 +446,7 @@ SaAisErrorT create_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHan
 		LOG_ER("saImmOiRtObjectCreate_2 failed with error = %u", rc);
 
 	free(dndup);
+	TRACE_LEAVE2("Ret val %d",rc);
 	return rc;
 
 }	/* End create_runtime_object() */
@@ -482,6 +488,8 @@ static void *_cpd_imm_declare_implementer(void *cb)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	CPD_CB *cpd_cb = (CPD_CB *)cb;
+
+	TRACE_ENTER();
 	error = saImmOiImplementerSet(cpd_cb->immOiHandle, implementer_name);
 	unsigned int nTries = 1;
 	while (error == SA_AIS_ERR_TRY_AGAIN && nTries < 25) {
@@ -493,6 +501,7 @@ static void *_cpd_imm_declare_implementer(void *cb)
 		LOG_ER("saImmOiImplementerSet FAILED, rc = %u", error);
 		exit(EXIT_FAILURE);
 	}
+	TRACE_LEAVE();
 	return NULL;
 }
 
@@ -530,6 +539,7 @@ static uint32_t cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&send_evt, 0, sizeof(CPSV_EVT));
 
+	TRACE_ENTER();
 	send_evt.type = CPSV_EVT_TYPE_CPND;
 	send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_SIZE;
 	send_evt.info.cpnd.info.ckpt_mem_size.ckpt_id = ckpt_node->ckpt_id;
@@ -560,6 +570,7 @@ static uint32_t cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
 	}
 
  done:
+	TRACE_LEAVE2("Ret val %d",rc);
 	return rc;
 }
 
@@ -606,7 +617,7 @@ static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb
 	}
 
  done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("Ret val %d",rc);
 	return rc;
 }
 

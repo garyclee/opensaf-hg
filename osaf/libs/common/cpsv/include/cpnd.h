@@ -33,6 +33,9 @@
 #ifndef CPND_H
 #define CPND_H
 
+#include "ncssysf_def.h"
+#include "ncs_main_papi.h"
+#include "ncssysf_tsk.h"
 #include "cpsv.h"
 #include "cpnd_tmr.h"
 #include "cpnd_mem.h"
@@ -42,7 +45,6 @@
 #include "cpnd_cb.h"
 
 #include "cpnd_init.h"
-#include "cpnd_log.h"
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <errno.h>

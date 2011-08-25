@@ -23,7 +23,6 @@ noinst_HEADERS = \
 	cpa_def.h \
 	cpa_dl_api.h \
 	cpa.h \
-	cpa_log.h \
 	cpa_mds.h \
 	cpa_mem.h \
 	cpa_proc.h \
@@ -32,7 +31,6 @@ noinst_HEADERS = \
 	cpd_dl_api.h \
 	cpd.h \
 	cpd_init.h \
-	cpd_log.h \
 	cpd_mds.h \
 	cpd_mem.h \
 	cpd_proc.h \
@@ -44,7 +42,6 @@ noinst_HEADERS = \
 	cpnd_dl_api.h \
 	cpnd.h \
 	cpnd_init.h \
-	cpnd_log.h \
 	cpnd_mem.h \
 	cpnd_tmr.h \
 	cpsv_evt.h \

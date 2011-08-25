@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 	daemonize(argc, argv);
 
 	if (__init_cpd() != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "__init_dts() failed");
+		syslog(LOG_ERR, "__init_cpd() failed");
 		exit(EXIT_FAILURE);
 	}
 

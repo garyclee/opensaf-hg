@@ -40,11 +40,6 @@
 #include "mds_papi.h"
 #include "ncs_edu_pub.h"
 
-#if ( (NCS_CPD_LOG == 1) || (NCS_CPND_LOG == 1) || (NCS_CPA_LOG ==1) || (NCS_CPSV_LOG == 1) )
-#include "ncs_log.h"
-#include "dta_papi.h"
-#endif
-
 /* EDU Includes... */
 #include "ncs_edu_pub.h"
 #include "ncsencdec_pub.h"
@@ -138,9 +133,6 @@
        struct_ptr, ptr_data_len, buf_env, op, o_err); \
    \
    return rc;
-
-/* DTSv version support */
-#define CPSV_LOG_VERSION 3
 
 #define m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000)	/* 10^7 */
 

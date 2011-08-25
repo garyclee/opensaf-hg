@@ -153,7 +153,7 @@ uint32_t cpd_mds_register(CPD_CB *cb)
 	svc_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
 	svc_info.info.svc_subscribe.i_svc_ids = cpd_id;
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
-		TRACE_4("cpd mds install failed ");
+		TRACE_4("cpd mds subscribe cpd redundancy events failed ");
 		cpd_mds_unregister(cb);
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
@@ -214,7 +214,7 @@ uint32_t cpd_mds_register(CPD_CB *cb)
 void cpd_mds_unregister(CPD_CB *cb)
 {
 	NCSMDS_INFO arg;
-
+	TRACE_ENTER();
 	/* Un-install your service into MDS. 
 	   No need to cancel the services that are subscribed */
 	memset(&arg, 0, sizeof(NCSMDS_INFO));
@@ -226,6 +226,8 @@ void cpd_mds_unregister(CPD_CB *cb)
 	if (ncsmds_api(&arg) != NCSCC_RC_SUCCESS) {
 		TRACE_4("cpd mds unreg failed");
 	}
+
+	TRACE_LEAVE();
 	return;
 }
 
@@ -469,7 +471,7 @@ static uint32_t cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 
 		evt = (CPSV_EVT *)m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPD);
 		if (evt == NULL) {
-			TRACE_4("cpd evt memory allocation failed ");
+			LOG_ER("cpd evt memory allocation failed ");
 			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
@@ -524,7 +526,7 @@ static uint32_t cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	/* Put it in CPD's Event Queue */
 	rc = m_NCS_IPC_SEND(&cb->cpd_mbx, (NCSCONTEXT)pEvt, NCS_IPC_PRIORITY_NORMAL);
 	if (NCSCC_RC_SUCCESS != rc) {
-		TRACE_4("cpd ipc send failed for mds receive");
+		LOG_ER("cpd ipc send failed for mds receive");
 	}
 	return rc;
 }
@@ -555,7 +557,7 @@ static uint32_t cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 	evt = m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPD);
 
 	if (!evt) {
-		TRACE_4("cpd evt memory allocation failed ");
+		LOG_ER("cpd evt memory allocation failed ");
 		return NCSCC_RC_OUT_OF_MEM;
 	}
 
@@ -571,7 +573,7 @@ static uint32_t cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 	/* Put it in CPD's Event Queue */
 	rc = m_NCS_IPC_SEND(&cb->cpd_mbx, (NCSCONTEXT)evt, NCS_IPC_PRIORITY_HIGH);
 	if (NCSCC_RC_SUCCESS != rc) {
-		TRACE_4("cpd evt mds info ipc send failed");
+		LOG_ER("cpd evt mds info ipc send failed");
 		m_MMGR_FREE_CPSV_EVT(evt, NCS_SERVICE_ID_CPD);
 		TRACE_LEAVE();
 		return rc;
@@ -601,7 +603,7 @@ uint32_t cpd_mds_quiesced_ack_process(CPD_CB *cb)
 		cb->ha_state = SA_AMF_HA_QUIESCED;	/* Set the HA State */
 		evt = m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPD);
 		if (!evt) {
-			TRACE_4("cpd evt memory allocation failed");
+			LOG_ER("cpd evt memory allocation failed");
 			TRACE_LEAVE();
 			return NCSCC_RC_OUT_OF_MEM;
 		}
@@ -612,7 +614,7 @@ uint32_t cpd_mds_quiesced_ack_process(CPD_CB *cb)
 
 		rc = m_NCS_IPC_SEND(&cb->cpd_mbx, evt, NCS_IPC_PRIORITY_NORMAL);
 		if (NCSCC_RC_SUCCESS != rc) {
-			TRACE_4("cpd ipc send failed");
+			LOG_ER("cpd ipc send failed");
 			m_MMGR_FREE_CPSV_EVT(evt, NCS_SERVICE_ID_CPD);
 			TRACE_LEAVE();
 			return rc;
@@ -660,7 +662,7 @@ uint32_t cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_4("cpd mds send failed for dest %"PRIu64,s_info->dest);
+		LOG_ER("cpd mds send failed for dest %"PRIu64,s_info->dest);
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -711,7 +713,7 @@ uint32_t cpd_mds_msg_sync_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 	if (rc == NCSCC_RC_SUCCESS)
 		*o_evt = mds_info.info.svc_send.info.sndrsp.o_rsp;
 	else {
-		TRACE_4("cpd mds send failed for dest %"PRIu64,to_dest);
+		LOG_ER("cpd mds send failed for dest %"PRIu64,to_dest);
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -756,7 +758,7 @@ uint32_t cpd_mds_msg_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EV
 	rc = ncsmds_api(&mds_info);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_4("cpd mds send failed for dest: %"PRIu64,to_dest);
+		LOG_ER("cpd mds send failed for dest: %"PRIu64,to_dest);
 	}
 
 	TRACE_LEAVE();
@@ -799,7 +801,7 @@ uint32_t cpd_mds_bcast_send(CPD_CB *cb, CPSV_EVT *evt, NCSMDS_SVC_ID to_svc)
 
 	res = ncsmds_api(&info);
 	if (res != NCSCC_RC_SUCCESS) {
-		TRACE_4("cpd mds send failed");
+		LOG_ER("cpd mds bcast send failed");
 	}
 
 	TRACE_LEAVE();

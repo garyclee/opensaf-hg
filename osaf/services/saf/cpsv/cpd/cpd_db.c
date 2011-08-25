@@ -165,6 +165,7 @@ uint32_t cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	}
 
 	if (ncs_patricia_tree_del(&cb->ckpt_tree, &ckpt_node->patnode) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ckpt node del from pat tree failed");
 		rc = NCSCC_RC_FAILURE;
 	}
 
@@ -310,7 +311,7 @@ uint32_t cpd_ckpt_reploc_tree_init(CPD_CB *cb)
 	/*  param.key_size = 2 *sizeof(SaNameT); */
 	param.key_size = sizeof(CPD_REP_KEY_INFO);
 	if (ncs_patricia_tree_init(&cb->ckpt_reploc_tree, &param) != NCSCC_RC_SUCCESS) {
-		TRACE("CPD_CKPT_REPLOC_TREE_INIT FAILED");
+		LOG_ER("CPD_CKPT_REPLOC_TREE_INIT FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 	cb->is_ckpt_reploc_up = true;
@@ -584,7 +585,7 @@ uint32_t cpd_ckpt_map_node_add(NCS_PATRICIA_TREE *ckpt_map_tree, CPD_CKPT_MAP_IN
 
 	if (ncs_patricia_tree_add(ckpt_map_tree, &ckpt_map_node->patnode) != NCSCC_RC_SUCCESS) {
 
-		TRACE_4("cpd ckpt map info add failed ckpt_name %s",ckpt_map_node->ckpt_name.value);
+		LOG_ER("cpd ckpt map info add failed ckpt_name %s",ckpt_map_node->ckpt_name.value);
 
 		return NCSCC_RC_FAILURE;
 	}
@@ -605,7 +606,7 @@ uint32_t cpd_ckpt_map_node_delete(CPD_CB *cb, CPD_CKPT_MAP_INFO *ckpt_map_node)
 
 	/* Remove the Node from the client tree */
 	if (ncs_patricia_tree_del(&cb->ckpt_map_tree, &ckpt_map_node->patnode) != NCSCC_RC_SUCCESS) {
-		TRACE_4("cpd map node delete failed ckpt_name:%s",ckpt_map_node->ckpt_name.value);
+		LOG_ER("cpd map node delete failed ckpt_name:%s",ckpt_map_node->ckpt_name.value);
 		rc = NCSCC_RC_FAILURE;
 	}
 
@@ -679,6 +680,7 @@ uint32_t cpd_cpnd_info_tree_init(CPD_CB *cb)
 
 	param.key_size = sizeof(NODE_ID);
 	if (ncs_patricia_tree_init(&cb->cpnd_tree, &param) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ckpt patricia tee init failed for cpnd_tree");
 		return NCSCC_RC_FAILURE;
 	}
 	cb->is_cpnd_tree_up = true;
@@ -756,7 +758,7 @@ uint32_t cpd_cpnd_info_node_add(NCS_PATRICIA_TREE *cpnd_tree, CPD_CPND_INFO_NODE
 	cpnd_info_node->patnode.key_info = (uint8_t *)&key;
 
 	if (ncs_patricia_tree_add(cpnd_tree, &cpnd_info_node->patnode) != NCSCC_RC_SUCCESS) {
-		TRACE_4("cpd cpnd info node add to cpnd_tree failed");
+		LOG_ER("cpd cpnd info node add to cpnd_tree failed");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -788,7 +790,7 @@ uint32_t cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *des
 	if ((*cpnd_info_node == NULL) && (*add_flag == true)) {
 		*cpnd_info_node = m_MMGR_ALLOC_CPD_CPND_INFO_NODE;
 		if (*cpnd_info_node == NULL) {
-			TRACE_4("cpd cpnd info memory allocation failed");
+			LOG_CR("cpd cpnd info node memory allocation failed");
 			return NCSCC_RC_FAILURE;
 		}
 		memset((*cpnd_info_node), '\0', sizeof(CPD_CPND_INFO_NODE));
@@ -800,7 +802,7 @@ uint32_t cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *des
 		(*cpnd_info_node)->patnode.key_info = (uint8_t *)&((*cpnd_info_node)->cpnd_key);
 
 		if (ncs_patricia_tree_add(cpnd_tree, &(*cpnd_info_node)->patnode) != NCSCC_RC_SUCCESS) {
-			TRACE_4("cpd cpnd info node failed for mds_dest %"PRIu64,*dest);
+			LOG_ER("cpd cpnd info node failed for mds_dest %"PRIu64,*dest);
 			return NCSCC_RC_FAILURE;
 		}
 		*add_flag = false;
@@ -1133,6 +1135,7 @@ uint32_t cpd_process_cpnd_del(CPD_CB *cb, MDS_DEST *cpnd_dest)
 	cpd_cpnd_info_node_get(&cb->cpnd_tree, cpnd_dest, &cpnd_info);
 	if (cpnd_info == NULL) {
 		rc = NCSCC_RC_FAILURE;
+		TRACE_4("cpd cpnd node info get failed");
 		return rc;
 	}
 	cref_info = cpnd_info->ckpt_ref_list;
@@ -1245,6 +1248,7 @@ void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificatio
 	/* 1. Get the CPD_CB */
 	m_CPD_RETRIEVE_CB(cb);
 	if (cb == NULL) {
+		LOG_ER("Not able to retrive cpd cb");
 		return;
 	} else {
 		/* 2. Check the HA_STATE */

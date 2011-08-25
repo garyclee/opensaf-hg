@@ -127,6 +127,7 @@ void cpnd_ckpt_node_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 	CPSV_CPND_DEST_INFO *tmp = NULL, *free_tmp = NULL;
 	CPND_CKPT_CLIENT_NODE *cl_node = NULL;
 
+	TRACE_ENTER();
 	while (cllist_node) {
 		cl_node = cllist_node->cnode;
 		cpnd_client_ckpt_info_delete(cl_node, cp_node);
@@ -157,6 +158,7 @@ void cpnd_ckpt_node_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 		cpnd_tmr_stop(&cp_node->ret_tmr);
 
 	m_MMGR_FREE_CPND_CKPT_NODE(cp_node);
+	TRACE_LEAVE();
 
 }
 
@@ -474,6 +476,7 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node, SaCkptSection
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	pSecPtr = cp_node->replica_info.section_info;
 	while (pSecPtr != NULL) {
 		if ((pSecPtr->sec_id.idLen == id->idLen) && (memcmp(pSecPtr->sec_id.id, id->id, id->idLen) == 0)) {
@@ -497,11 +500,13 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node, SaCkptSection
 			rc = cpnd_ckpt_hdr_update(cp_node);
 			if (rc == NCSCC_RC_FAILURE) {
 				TRACE_4("cpnd ckpt hdr update failed");
-			}
+			}	
+			TRACE_LEAVE();
 			return pSecPtr;
 		}
 		pSecPtr = pSecPtr->next;
 	}
+	TRACE_LEAVE();
 	return NULL;
 }
 
@@ -525,6 +530,7 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSection
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint32_t value = 0, i = 0, j = 0;
 
+	TRACE_ENTER();
 	/* get the lcl_sec_id */
 
 	lcl_sec_id = cpnd_ckpt_get_lck_sec_id(cp_node);
@@ -596,6 +602,7 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSection
 	if (rc == NCSCC_RC_FAILURE) {
 		TRACE_4("cpnd ckpt hdr update failed");
 	}
+	TRACE_LEAVE();
 	return pSecPtr;
 
 }
@@ -615,6 +622,7 @@ void cpnd_ckpt_delete_all_sect(CPND_CKPT_NODE *cp_node)
 {
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
 
+	TRACE_ENTER();
 	/* delete it from the list and return the pointer */
 	do {
 		pSecPtr = cp_node->replica_info.section_info;
@@ -635,6 +643,7 @@ void cpnd_ckpt_delete_all_sect(CPND_CKPT_NODE *cp_node)
 
 	} while (cp_node->replica_info.section_info != NULL);
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -729,6 +738,7 @@ uint32_t cpnd_ckpt_node_tree_init(CPND_CB *cb)
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	param.key_size = sizeof(SaCkptCheckpointHandleT);
 	if (ncs_patricia_tree_init(&cb->ckpt_info_db, &param) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ckpt node patricia tree init failed");
 		return NCSCC_RC_FAILURE;
 	}
 	return NCSCC_RC_SUCCESS;
@@ -751,6 +761,7 @@ uint32_t cpnd_client_node_tree_init(CPND_CB *cb)
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	param.key_size = sizeof(SaCkptHandleT);
 	if (ncs_patricia_tree_init(&cb->client_info_db, &param) != NCSCC_RC_SUCCESS) {
+		LOG_ER("client node patricia tree init failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1004,6 +1015,7 @@ void cpnd_agent_dest_del(CPND_CKPT_NODE *cp_node, MDS_DEST adest)
 {
 	CPSV_CPND_DEST_INFO *cpnd_dest = NULL, *cpnd_tmp_dest = NULL;
 
+	TRACE_ENTER();
 	/* Logic is to delete the duplicates in the linked list */
 	cpnd_dest = cp_node->agent_dest_list;
 
@@ -1025,6 +1037,7 @@ void cpnd_agent_dest_del(CPND_CKPT_NODE *cp_node, MDS_DEST adest)
 		}
 	}
 
+	TRACE_LEAVE();
 }
 
 /********************************************************************************************
@@ -1043,7 +1056,7 @@ void cpnd_proc_pending_writes(CPND_CB *cb, CPND_CKPT_NODE *cp_node, MDS_DEST ade
 	CPSV_SEND_INFO *sinfo = NULL;
 	uint32_t errflag = 0;
 	/* This check is for one write and 1 local read and then kill the reader */
-
+	TRACE_ENTER();
 	cpnd_agent_dest_del(cp_node, adest);
 
 	while (cp_node->evt_bckup_q != NULL) {
@@ -1060,6 +1073,7 @@ void cpnd_proc_pending_writes(CPND_CB *cb, CPND_CKPT_NODE *cp_node, MDS_DEST ade
 
 		cpnd_evt_destroy(bck_evt);
 	}
+	TRACE_LEAVE();
 }
 
 void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer, SaUint32T numberOfMembers,
@@ -1069,7 +1083,8 @@ void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificati
 	SaClmNodeIdT node_id;
 	uint32_t counter = 0;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("error argument value %d",error);
+
 	if (error != SA_AIS_OK)
 		return;
 	m_CPND_RETRIEVE_CB(cb);
@@ -1107,6 +1122,7 @@ void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificati
 				}
 		}
 	m_CPND_GIVEUP_CB;
+	TRACE_LEAVE();
 	return;
 }
 

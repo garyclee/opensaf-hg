@@ -34,6 +34,8 @@
 #define CPD_H
 
 #include "cpsv.h"
+#include "ncssysf_def.h"
+#include "ncs_main_papi.h"
 #include "mbcsv_papi.h"
 #include "cpd_mem.h"
 #include "saf_mem.h"
@@ -41,7 +43,6 @@
 #include "cpd_init.h"
 #include "cpd_tmr.h"
 #include "cpd_cb.h"
-#include "cpd_log.h"
 #include "cpd_proc.h"
 #include "cpd_mds.h"
 #include "cpd_red.h"

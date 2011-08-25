@@ -64,7 +64,7 @@ uint32_t cpd_a2s_ckpt_create(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 		cpd_msg.info.ckpt_create.dest_cnt = ckpt_node->dest_cnt;
 		cpd_msg.info.ckpt_create.dest_list = m_MMGR_ALLOC_CPSV_CPND_DEST_INFO(ckpt_node->dest_cnt);
 		if (cpd_msg.info.ckpt_create.dest_list == NULL) {
-			TRACE_4("cpd cpnd dest info memory allocation failed");
+			LOG_CR("cpd cpnd dest info memory allocation failed");
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto end;
 		} else {

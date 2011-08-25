@@ -19,6 +19,8 @@
 #define CPA_CB_H
 
 #include "ncs_queue.h"
+#include "ncs_main_papi.h"
+#include "ncssysf_def.h"
 
 /* Node to store checkpoint client information */
 typedef struct cpa_client_node {
@@ -129,8 +131,8 @@ typedef struct cpa_prcess_evt_sync {
 #define m_CPA_RETRIEVE_CB(cb)                                                  \
 {                                                                              \
    cb = (CPA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPA, gl_cpa_hdl);              \
-   if(!cb)                                                                     \
-      m_LOG_CPA_HEADLINE(CPA_CB_RETRIEVAL_FAILED ,NCSFL_SEV_ERROR);            \
+   if(!cb)									\
+	LOG_ER("CPND CB TAKE HDL FAILED ");\
 }
 #define m_CPA_GIVEUP_CB    ncshm_give_hdl(gl_cpa_hdl)
 

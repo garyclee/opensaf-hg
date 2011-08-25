@@ -173,9 +173,6 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	TRACE_ENTER();
 	memset(&cluster_node, 0, sizeof(SaClmClusterNodeT));
 
-	/* register with the Flex log service */
-	cpnd_flx_log_reg();
-
 	/* allocate a CB  */
 	cb = m_MMGR_ALLOC_CPND_CB;
 
@@ -329,7 +326,6 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 
 	LOG_ER("cpnd init failed ");
  cpnd_cb_alloc_fail:
-	cpnd_flx_log_dereg();
 	return (rc);
 }
 
@@ -363,7 +359,6 @@ static uint32_t cpnd_lib_destroy(CPND_DESTROY_INFO *info)
 
 	ncshm_destroy_hdl(NCS_SERVICE_ID_CPND, cb->cpnd_cb_hdl_id);
 
-	cpnd_flx_log_dereg();
 
 	cpnd_mds_unregister(cb);
 

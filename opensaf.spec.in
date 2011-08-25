@@ -949,7 +949,6 @@ fi
 %dir %{_pkgimmxmldir}
 %endif
 %config(noreplace) %{_pkgsysconfdir}/ckptd.conf
-%{_pkglibdir}/libcpsv_logstr.so.*
 %{_pkglibdir}/osafckptd
 %{_pkgclcclidir}/osaf-ckptd
 %if %is_immxml
