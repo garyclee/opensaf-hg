@@ -160,9 +160,11 @@ static const char *immnd_evt_names[] = {
 	"IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2",	/*CcbObjModify local Reply */
 	"IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2",	/*CcbObjDelete local Reply */
 	"IMMND_EVT_A2ND_ADMOP_RSP_2",   /* AdminOp sync fevs Reply - extended */
-	"IMMND_EVT_A2ND_ASYNC_ADMOP_RSP_2" /* AdminOp async fevs Reply - extended */
+	"IMMND_EVT_A2ND_ASYNC_ADMOP_RSP_2", /* AdminOp async fevs Reply - extended */
 	"IMMND_EVT_ND2ND_ADMOP_RSP_2",   /* AdminOp sync p2p Reply - extended */
-	"IMMND_EVT_ND2ND_ASYNC_ADMOP_RSP_2" /* AdminOp async p2p Reply - extended */
+	"IMMND_EVT_ND2ND_ASYNC_ADMOP_RSP_2", /* AdminOp async p2p Reply - extended */
+	"IMMND_EVT_A2ND_OI_CCB_AUG_INIT",
+	"undefined (high)"
 };
 
 static const char *immsv_get_immnd_evt_name(unsigned int id)
@@ -2373,6 +2375,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMA_EVT_ND2A_IMM_ADMINIT_RSP:
+		case IMMA_EVT_ND2A_CCB_AUG_INIT_RSP:
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 			ncs_encode_32bit(&p8, immaevt->info.admInitRsp.ownerId);
 			ncs_enc_claim_space(o_ub, 4);
@@ -3230,6 +3233,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 		case IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP: /* Pbe OI rt obj create response */
 		case IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP:/*Pbe PRTO deletes done */
 		case IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP:/* Pbe OI rt attr update response*/
+		case IMMND_EVT_A2ND_OI_CCB_AUG_INIT:/*OI augments CCB inside ccb upcall. #1963 */
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
 			ncs_encode_64bit(&p8, immndevt->info.ccbUpcallRsp.oi_client_hdl);
@@ -3257,14 +3261,17 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 			/* name.value is top level because type is SaNameT */
 			if((immndevt->type == IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP) ||
-				(immndevt->type == IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2)) {
-				if(ncs_encode_n_octets_in_uba(o_ub,
-					   immndevt->info.ccbUpcallRsp.name.value,
-					   immndevt->info.ccbUpcallRsp.name.length)
-					!= NCSCC_RC_SUCCESS) {
-					LOG_WA("Failure inside ncs_encode_n_octets_in_uba");
-					rc = NCSCC_RC_FAILURE;
-					break;
+				(immndevt->type == IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2) ||
+				(immndevt->type == IMMND_EVT_A2ND_OI_CCB_AUG_INIT)) {
+				if(immndevt->info.ccbUpcallRsp.name.length) {
+					if(ncs_encode_n_octets_in_uba(o_ub,
+						   immndevt->info.ccbUpcallRsp.name.value,
+						   immndevt->info.ccbUpcallRsp.name.length)
+						!= NCSCC_RC_SUCCESS) {
+						LOG_WA("Failure inside ncs_encode_n_octets_in_uba");
+						rc = NCSCC_RC_FAILURE;
+						break;
+					}
 				}
 			}
 
@@ -3608,6 +3615,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			break;
 
 		case IMMA_EVT_ND2A_IMM_ADMINIT_RSP:
+		case IMMA_EVT_ND2A_CCB_AUG_INIT_RSP:
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
 			immaevt->info.admInitRsp.ownerId = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
@@ -4518,6 +4526,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 		case IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP: /* Pbe OI rt obj create response */
 		case IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP:/*Pbe PRTO deletes done */
 		case IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP:/* Pbe OI rt attr update response*/
+		case IMMND_EVT_A2ND_OI_CCB_AUG_INIT:/*OI augments CCB inside ccb upcall. #1963 */
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 8);
 			immndevt->info.ccbUpcallRsp.oi_client_hdl = ncs_decode_64bit(&p8);
@@ -4544,15 +4553,18 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			ncs_dec_skip_space(i_ub, 2);
 
 			if((immndevt->type == IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP) ||
-				(immndevt->type == IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2)) {
+				(immndevt->type == IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2) ||
+				(immndevt->type == IMMND_EVT_A2ND_OI_CCB_AUG_INIT)) {
 				/* name.value is top level because type is SaNameT */
-				if(ncs_decode_n_octets_from_uba(i_ub,
-					   immndevt->info.ccbUpcallRsp.name.value,
-					   immndevt->info.ccbUpcallRsp.name.length) !=
-					NCSCC_RC_SUCCESS) {
-					LOG_WA("Failure inside ncs_decode_n_octets_from_uba");
-					rc = NCSCC_RC_FAILURE;
-					break;
+				if(immndevt->info.ccbUpcallRsp.name.length) {
+					if(ncs_decode_n_octets_from_uba(i_ub,
+						   immndevt->info.ccbUpcallRsp.name.value,
+						   immndevt->info.ccbUpcallRsp.name.length) !=
+						NCSCC_RC_SUCCESS) {
+						LOG_WA("Failure inside ncs_decode_n_octets_from_uba");
+						rc = NCSCC_RC_FAILURE;
+						break;
+					}
 				}
 			}
 
@@ -4932,7 +4944,8 @@ void immsv_msg_trace_rec(MDS_DEST from, IMMSV_EVT *evt)
 	}
 
 	if (evt->type == IMMSV_EVT_TYPE_IMMND) {
-		TRACE_8("Received: %s from %x", immsv_get_immnd_evt_name(evt->info.immnd.type),
+		TRACE_8("Received: %s (%u) from %x", immsv_get_immnd_evt_name(evt->info.immnd.type),
+			evt->info.immnd.type,
 			m_NCS_NODE_ID_FROM_MDS_DEST(from));
 	}
 }
