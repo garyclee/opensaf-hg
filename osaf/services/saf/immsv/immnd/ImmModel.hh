@@ -164,6 +164,12 @@ public:
                                  IdVector& continuations);
     
     SaAisErrorT         ccbTerminate(SaUint32T ccbId);
+
+    SaAisErrorT         ccbAugmentInit(
+                                       immsv_oi_ccb_upcall_rsp* rsp,
+                                       SaUint32T originatingNode,
+                                       SaUint32T originatingConn,
+                                       SaUint32T* adminOwnerId);
     
     SaAisErrorT         ccbObjectCreate(
                                         ImmsvOmCcbObjectCreate* req,

@@ -107,6 +107,10 @@ static void immnd_evt_proc_ccbinit_rsp(IMMND_CB *cb,
 				       IMMND_EVT *evt,
 				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
+static void immnd_evt_ccb_augment_init(IMMND_CB *cb,
+				       IMMND_EVT *evt,
+				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+
 static void immnd_evt_proc_admop(IMMND_CB *cb,
 				 IMMND_EVT *evt,
 				 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
@@ -5256,7 +5260,9 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 		if (!delayedReply && (err == SA_AIS_OK) && immModel_ccbWaitForDeleteImplAck(cb, evt->info.ccbId, &err)) {
 			TRACE_2("No local implementers but wait for remote ones. ccb: %u", evt->info.ccbId);
 			delayedReply = (err==SA_AIS_OK);
-		} else {
+		}
+
+		if(!delayedReply) {
 			TRACE_2("NO IMPLEMENTERS AT ALL. for ccb:%u err:%u sz:%u", evt->info.ccbId, err, arrSize);
 		}
 	}
@@ -6075,6 +6081,11 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 					    /*originatedAtThisNd */ SA_FALSE,
 					    clnt_hdl, reply_dest);
 		break;
+
+	case IMMND_EVT_A2ND_OI_CCB_AUG_INIT:
+		immnd_evt_ccb_augment_init(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
+		break;
+
 
 	case IMMND_EVT_A2ND_OI_IMPL_CLR:
 		immnd_evt_proc_impl_clr(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
@@ -7704,7 +7715,7 @@ static void immnd_evt_proc_ccbinit_rsp(IMMND_CB *cb,
 		sinfo = &cl_node->tmpSinfo;
 
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
-		send_evt.info.imma.info.admInitRsp.error = err;
+		send_evt.info.imma.info.ccbInitRsp.error = err;
 
 		if (err == SA_AIS_OK) {
 			/*Pick up continuation, if gone (timeout or client termination) => 
@@ -7723,6 +7734,48 @@ static void immnd_evt_proc_ccbinit_rsp(IMMND_CB *cb,
 		}
 	}
 }
+
+void immnd_evt_ccb_augment_init(IMMND_CB *cb, IMMND_EVT *evt,
+	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	IMMSV_EVT send_evt;
+	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	SaAisErrorT err = SA_AIS_OK;
+	NCS_NODE_ID nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
+	SaUint32T conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+	assert(evt);
+	SaUint32T adminOwnerId = 0;
+	TRACE_ENTER();
+
+	err = immModel_ccbAugmentInit(cb, &(evt->info.ccbUpcallRsp), nodeId, 
+		(originatedAtThisNd) ? conn : 0, &adminOwnerId);
+
+	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
+		immnd_client_node_get(cb, clnt_hdl, &cl_node);
+		if (cl_node == NULL || cl_node->mIsStale) {
+			LOG_WA("IMMND - Client went down so no response");
+			return;
+		}
+
+		memset(&send_evt, '\0', sizeof(send_evt));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_CCB_AUG_INIT_RSP;
+		send_evt.info.imma.info.admInitRsp.error = err;
+		if (err == SA_AIS_OK || err == SA_AIS_ERR_NO_SECTIONS) {
+			assert(adminOwnerId);
+			send_evt.info.imma.info.admInitRsp.ownerId = adminOwnerId;
+		}
+
+		rc = immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt);
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_WA("Failed to send response to agent/client over MDS");
+		}
+
+	}
+	TRACE_LEAVE();
+}
+
 
 /****************************************************************************
  * Name          : immnd_evt_proc_mds_evt
