@@ -190,9 +190,9 @@ struct imma_oi_ccb_record * imma_oi_ccb_record_find(IMMA_CLIENT_NODE *cl_node, S
 		tmp = tmp->next;
 	}
 
-	if(tmp) TRACE("Record for ccbid:%llx handle:%llx client:%p found", 
+	if(tmp) TRACE("Record for ccbid:0x%llx handle:%llx client:%p found", 
 		ccbId, cl_node->handle, cl_node);
-	else    TRACE("Record for ccbid:%llx handle:%llx client:%p NOT found", 
+	else    TRACE("Record for ccbid:0x%llx handle:%llx client:%p NOT found", 
 		ccbId, cl_node->handle, cl_node);
 
 	TRACE_LEAVE();
@@ -209,6 +209,12 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 	TRACE_ENTER();
 	struct imma_oi_ccb_record *new_ccb = imma_oi_ccb_record_find(cl_node, ccbId);
 	if(new_ccb) { /* actually old/existing ccb if we found it. */
+		if(new_ccb->isAborted) {
+			TRACE("CcbOiRecord add for ccbid:0x%llx handle:%llx received AFTER aborted", 
+				ccbId, cl_node->handle);
+			return;
+		}
+
 		if(!inv) {
 			new_ccb->opCount++;
 			TRACE_2("Zero inv => PBE Incremented opcount to %u", new_ccb->opCount);
@@ -217,7 +223,9 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 				assert(cl_node->isPbe);
 			}
 		}
-		new_ccb->isCcbErrOk = 0x1;
+
+		if(!(cl_node->isApplier)) {new_ccb->isCcbErrOk = true;}
+
 		if (new_ccb->mCcbErrorString) { /* remove any old string. */
 			free(new_ccb->mCcbErrorString);
 			new_ccb->mCcbErrorString = NULL;
@@ -228,7 +236,7 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 	new_ccb = calloc(1, sizeof(struct imma_oi_ccb_record));
 	new_ccb->ccbId = ccbId;
 
-	new_ccb->isCcbErrOk = 0x1;
+	if(!(cl_node->isApplier)) {new_ccb->isCcbErrOk = true;}
 
 	if(!inv) {/* zero inv =>PBE or Applier => count ops. */
 		new_ccb->opCount = 1; 
@@ -240,7 +248,7 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 	}
 	new_ccb->next = cl_node->activeOiCcbs;
 	cl_node->activeOiCcbs = new_ccb;
-	TRACE("Record for ccbid:%llx handle:%llx client:%p opCount:%d added", 
+	TRACE("Record for ccbid:0x%llx handle:%llx client:%p opCount:%d added", 
 		ccbId, cl_node->handle, cl_node, new_ccb->opCount);
 	TRACE_LEAVE();
 }
@@ -257,10 +265,10 @@ int imma_oi_ccb_record_delete(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId)
 		struct imma_oi_ccb_record *to_delete = (*tmpp);
 		assert(to_delete->ccbId == ccbId);
 		if(to_delete->isCritical) {
-			TRACE_3("Removing imma_oi_ccb_record ccb:%llx handle:%llx client:%p in CRITICAL state", 
+			TRACE_3("Removing imma_oi_ccb_record ccb:0x%llx handle:%llx client:%p in CRITICAL state", 
 				ccbId, cl_node->handle, cl_node);
 		} else {
-			TRACE_2("Removing imma_oi_ccb_record ccb:%llx handle:%llx client:%p in non-critical state", 
+			TRACE_2("Removing imma_oi_ccb_record ccb:0x%llx handle:%llx client:%p in non-critical state", 
 				ccbId, cl_node->handle, cl_node);
 		}
 		(*tmpp) = to_delete->next;
@@ -289,8 +297,25 @@ int imma_oi_ccb_record_terminate(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId)
 	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
 
 	if(tmp) {
-		tmp->isCritical = 0;
+		tmp->isCritical = false;
 		rs = imma_oi_ccb_record_delete(cl_node, ccbId);
+	}
+
+	TRACE_LEAVE();
+	return rs;
+}
+
+int imma_oi_ccb_record_abort(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId)
+{
+	TRACE_ENTER();
+	int rs = 0;
+	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
+
+	if(tmp) {
+		tmp->isCritical = false;
+		tmp->isAborted = true;
+		tmp->ccbCallback = NULL;
+		rs = 1;
 	}
 
 	TRACE_LEAVE();
@@ -303,23 +328,23 @@ int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 	int rs = 0;
 	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
 
-	if(tmp) {
+	if(tmp && !(tmp->isAborted)) {
 		assert(!tmp->isCritical);
 		rs = 1;
 		if(tmp->opCount) {
 			if(!(cl_node->isPbe || cl_node->isApplier)) {
 				LOG_ER("imma_oi_ccb_record_ok_for_critical opCount!=0 yet cl_node->isPbe "
-					"is false! ccb:%llx", ccbId);
+					"is false! ccb:0x%llx", ccbId);
 				rs = 0;
 			}
 
 			if(tmp->opCount != inv) {
 				if(cl_node->isApplier) {
-					TRACE_5("Mismatch in applier op-count %u should be %u for Ccbid:%llx"
+					TRACE_5("Mismatch in applier op-count %u should be %u for Ccbid:0x%llx"
 						" - opcount not reliable for appliers. => Need a fix for #1795",  
 					    tmp->opCount, inv, ccbId);
 				} else {
-					LOG_ER("Mismatch in PBE op-count %u should be %u for Ccbid:%llx",  
+					LOG_ER("Mismatch in PBE op-count %u should be %u for Ccbid:0x%llx",  
 					    tmp->opCount, inv, ccbId);
 					rs = 0;
 				}
@@ -327,13 +352,15 @@ int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 				TRACE_5("op-count matches with inv:%u", inv);
 			}
 		}
-		tmp->isCcbErrOk = 0x1;
+		tmp->isCcbErrOk = true;
+		tmp->isCcbAugOk = false; /* not allowed to augment ccb in completed UC */
+		tmp->ccbCallback = NULL;
 		if (tmp->mCcbErrorString) { /* remove any old string. */
 			free(tmp->mCcbErrorString);
 			tmp->mCcbErrorString = NULL;
 		}
 	} else {
-		LOG_NO("Record for ccb %llx not found in ok_for_critical", ccbId);
+		LOG_NO("Record for ccb 0x%llx not found or found aborted in ok_for_critical", ccbId);
 	}
 
 	TRACE_LEAVE();
@@ -346,25 +373,27 @@ int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccb
 	int rs = 0;
 	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
 
-	if(tmp) {
+	if(tmp && !(tmp->isAborted)) {
 		assert(!tmp->isCritical);
-		tmp->isCritical = 1;
+		tmp->isCritical = true;
 		rs = 1;
-		tmp->isCcbErrOk = 0x0;
+		tmp->isCcbErrOk = false;
+		tmp->isCcbAugOk = false;
+		tmp->ccbCallback = NULL;
 		if(tmp->opCount) {
 			if(!(cl_node->isPbe || cl_node->isApplier)) {
 				LOG_ER("imma_oi_ccb_record_set_critical opCount!=0 yet cl_node->isPbe is false! "
-					"ccbId:%llx", ccbId);
+					"ccbId:0x%llx", ccbId);
 				assert(cl_node->isPbe);
 			}
 
 			if(tmp->opCount != inv) {
 				if(cl_node->isApplier) {
-					TRACE_5("Mismatch in applier op-count %u should be %u for Ccbid:%llx"
+					TRACE_5("Mismatch in applier op-count %u should be %u for Ccbid:0x%llx"
 						" - opcount not reliable for appliers. => Need a fix for #1795",  
 						tmp->opCount, inv, ccbId);
 				} else {
-					LOG_ER("Mismatch in PBE op-count %u should be %u for CCBid:%llx (isPbe:%u)", 
+					LOG_ER("Mismatch in PBE op-count %u should be %u for CCBid:0x%llx (isPbe:%u)", 
 						tmp->opCount, inv, ccbId, cl_node->isPbe);
 					rs = 0;
 				}
@@ -372,7 +401,9 @@ int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccb
 				TRACE_5("op-count matches with inv:%u", inv);
 			}
 		}
-		TRACE("Record for ccbid:%llx %llx %p PBE-opcount:%u set to critical", ccbId, cl_node->handle, cl_node, tmp->opCount);
+		TRACE("Record for ccbid:0x%llx %llx %p PBE-opcount:%u set to critical", ccbId, cl_node->handle, cl_node, tmp->opCount);
+	} else {
+		LOG_NO("Record for ccb 0x%llx not found or found aborted in set_critical", ccbId);
 	}
 
 	TRACE_LEAVE();
@@ -386,7 +417,7 @@ int imma_oi_ccb_record_set_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId,
 	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
 
 	if(tmp && tmp->isCcbErrOk) {
-		assert(!tmp->isCritical);
+		assert(!(tmp->isCritical));
 		rs = 1;
 		if (tmp->mCcbErrorString) {
 			free(tmp->mCcbErrorString);
@@ -405,11 +436,123 @@ SaStringT imma_oi_ccb_record_get_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
 
 	if(tmp && tmp->isCcbErrOk) {
-		assert(!tmp->isCritical);
-		tmp->isCcbErrOk = 0x0;
+		assert(!(tmp->isCritical));
+		//tmp->isCcbErrOk = 0x0; Allow several errors from same OI
 		return tmp->mCcbErrorString;
 	}
 	return NULL;
+}
+
+struct imma_callback_info * 
+imma_oi_ccb_record_ok_augment(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaImmHandleT *privateOmHandle,
+	SaImmAdminOwnerHandleT *privateAoHandle)
+{
+	TRACE_ENTER();
+	struct imma_callback_info * cbi = NULL;
+	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
+
+	if(tmp) {
+		if(tmp->isAborted) {
+			TRACE("oi_ccb_record for %llu found as aborted in ccb_record_ok_augment",
+				ccbId);
+		} else if(tmp->isCcbAugOk) {
+			assert(!(tmp->isCritical));
+			assert(!(cl_node->isApplier));
+			assert(tmp->ccbCallback);
+			cbi = tmp->ccbCallback;
+			if(privateOmHandle) {
+				*privateOmHandle = tmp->privateAugOmHandle;
+			}
+			if(privateAoHandle) {
+				*privateAoHandle = tmp->privateAoHandle;
+			}			
+		}
+	}
+
+	TRACE_LEAVE();
+	return cbi;
+}
+
+void imma_oi_ccb_record_augment(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaImmHandleT privateOmHandle,
+	SaImmAdminOwnerHandleT privateAoHandle)
+{
+	TRACE_ENTER();
+	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
+
+	assert(tmp && tmp->isCcbAugOk);
+
+	assert(!(tmp->isAborted));
+
+	assert(!(tmp->isCritical));
+
+	assert(!(cl_node->isApplier));
+	if(privateOmHandle) {
+		if(tmp->privateAugOmHandle) {
+			assert(tmp->privateAugOmHandle == privateOmHandle);
+		} else {
+			tmp->privateAugOmHandle = privateOmHandle;
+		}
+	}
+	if(privateAoHandle) {
+		if(tmp->privateAoHandle) {
+			assert(tmp->privateAoHandle == privateAoHandle);
+		} else {
+			tmp->privateAoHandle = privateAoHandle;
+		}
+	}
+	TRACE_LEAVE();
+}
+
+int imma_oi_ccb_record_close_augment(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaImmHandleT *privateOmHandle, bool ccbDone)
+{
+	int rs = 0;
+	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
+
+	if(tmp) {
+		tmp->isCcbAugOk = false;
+		if(privateOmHandle) {
+			*privateOmHandle = tmp->privateAugOmHandle;
+			if(ccbDone) {
+				/* should be apply-uc or abort-uc which will close the om-handle */
+				tmp->privateAugOmHandle = 0LL;
+				tmp->privateAoHandle = 0LL;
+			}
+			//tmp->isCritical = false;
+		}
+
+		//assert(!(tmp->isCritical));
+		rs = 1;
+	}
+
+	return rs;
+}
+
+int imma_oi_ccb_record_note_callback(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, 
+	IMMA_CALLBACK_INFO *callback)
+{
+	/* Stores pointer to callback record in oi_ccb_record, but should only
+	   be done for ccb create/delete/modify upcalls and only for main OI 
+	   (not appliers), since otherwise the ccb can not be augmented.
+	   The pointer is needed for the augmented ccb dowcalls. These 
+	   downcalls are in essence incremental pre-replies on an on-going
+	   oi-upcall (create/delete/modify). The augmenting "sub ccb" must be
+	   terminated before returning from the oi-upcall. 
+	 */
+
+	int rs = 0;
+	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
+
+	if(tmp && !(tmp->isAborted)) {
+		tmp->ccbCallback = callback;
+		if(callback) {
+			tmp->isCcbAugOk = true;
+			assert(!(tmp->isCritical));
+			assert(!(cl_node->isApplier));
+			rs = 1;
+		}
+	}
+
+	return rs;
 }
 
 /****************************************************************************
@@ -455,7 +598,7 @@ void imma_mark_clients_stale(IMMA_CB *cb)
 			if ((ccb_node->mImmHandle == clnode->handle) &&
 				!(ccb_node->mApplying) && !(ccb_node->mApplied) &&
 				!(ccb_node->mAborted)) {
-				TRACE("CCb:%u for handle %llx aborted in non critical state", 
+				TRACE("CCb:%u for handle 0x%llx aborted in non critical state", 
 					ccb_node->mCcbId, clnode->handle);
 				ccb_node->mAborted = true;
 			}
@@ -607,6 +750,14 @@ int isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode)
 					clnode->exposed = true;
 				}
 			}
+			if(clnode->isAug) {
+				TRACE_3("Will not resurrect Om handle that is internal to OI augmented CCB");
+				/* Prevent internal OI CCB augment OM handle from being resurrected.
+				   If the OI has lost contact with IMMND then the CCB is in any case
+				   terminated. See http://devel.opensaf.org/ticket/1963
+				*/
+				clnode->exposed = true;
+			}
 		} else { /* OI client. */
 			TRACE("OI CLIENT");
 			if(clnode->isApplier) {
@@ -724,6 +875,7 @@ void imma_admin_owner_node_delete(IMMA_CB *cb, IMMA_ADMIN_OWNER_NODE *adm_node)
 				TRACE("imma_admin_owner_node_delete: associated ccb (%u) in exclusive mode"
 					  " - ccb is orphaned.", ccb_node->mCcbId);
 			} else  {
+				TRACE("Deleting ccb node");
 				assert(imma_ccb_node_delete(cb, ccb_node) == NCSCC_RC_SUCCESS);
 				ccb_temp_ptr = NULL;	/*Redo iteration from start after delete. */
 			}

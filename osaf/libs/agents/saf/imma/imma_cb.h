@@ -19,15 +19,23 @@
 #define IMMA_CB_H
 
 /* Node to store Ccb info for OI client */
+struct imma_callback_info;
+
 struct imma_oi_ccb_record {
 	struct imma_oi_ccb_record *next;
 	SaImmOiCcbIdT ccbId;  /* High order 32 bits used for PRTO 'pseudo ccbs'.*/
 	SaUint32T opCount; /* Used to ensure PBE has not missed any unacked ops. */
 	SaStringT mCcbErrorString; /* See saImmOiCcbSetErrorString */
-	uint8_t isStale;    /* 1 => ccb was terminated by IMMND down. */
-	uint8_t isCritical; /* 1 => OI has replied OK on completed callback but not */
+	bool isStale;    /* 1 => ccb was terminated by IMMND down. */
+	bool isCritical; /* 1 => OI has replied OK on completed callback but not */
                             /*      received abort-callback or apply-callback.      */
-	uint8_t isCcbErrOk; /* 1 => Ok to set error string create/delete/modify/completed */
+	bool isCcbErrOk; /* 1 => Ok to set error string create/delete/modify/completed */
+	bool isCcbAugOk; /* 1 => Ok to augment CCB in create/delete/modify */
+        bool isAborted;  /* 1 => abort upcall received by mds thread */
+	/* Members below only used for OI-Augmented CCB #1963. */
+	struct imma_callback_info* ccbCallback;
+	SaImmHandleT privateAugOmHandle; 
+	SaImmAdminOwnerHandleT privateAoHandle;
 };
 
 typedef struct imma_client_node {
@@ -39,8 +47,8 @@ typedef struct imma_client_node {
 		SaImmOiCallbacksT_2 iCallbk;
 	} o;
 	SaUint32T mImplementerId;	/*Only used for OI.*/
-	SaBoolT isOm;		/*If true => then this is an OM client */
 	SaImmOiImplementerNameT  mImplementerName; /* needed for active resurrect*/
+	bool isOm;		/*If true => then this is an OM client */
 	bool stale;		/*Loss of connection with immnd 
 					  will set this to true for the 
 					  connection. A resurrect can remove it.*/
@@ -51,6 +59,7 @@ typedef struct imma_client_node {
 	bool isImmA2b;       /* Version A.02.11 */
 	bool isImmA2bCbk;    /* Version A.02.11 callback*/
 	bool isApplier; /* True => This is an Applier-OI */
+	bool isAug;     /* True => handle internal to OI augmented CCB */
 	struct imma_oi_ccb_record *activeOiCcbs; /* For ccb termination on IMMND down.*/
 	SYSF_MBX callbk_mbx;	/*Mailbox Queue for clnt messages */
 } IMMA_CLIENT_NODE;
@@ -62,7 +71,8 @@ typedef struct imma_admin_owner_node {
 	SaImmHandleT mImmHandle;	/* The immOm handle */
 	SaUint32T mAdminOwnerId;
 	SaImmAdminOwnerNameT mAdminOwnerName; /* Needed for OM resurrect. */
-	uint8_t mReleaseOnFinalize; /* Release on finalize set, stale irreversible*/
+	bool mReleaseOnFinalize; /* Release on finalize set, stale irreversible*/
+	bool mAugCcb;      /* This admo is purely for a ccb augmentation. */
 } IMMA_ADMIN_OWNER_NODE;
 
 /* Node to store Ccb info for OM client */
@@ -74,11 +84,13 @@ typedef struct imma_ccb_node {
 	SaImmCcbFlagsT mCcbFlags;
 	SaUint32T mCcbId;   /* Om client uses 32 bit ccbId. */
 	SaStringT* mErrorStrings;
-	uint8_t mExclusive;   /* 1 => Ccb-id being created, applied or finalized */
-	uint8_t mApplying;    /* Critical (apply invoked), IMMND contact lost => 
+	bool mExclusive;   /* 1 => Ccb-id being created, applied or finalized */
+	bool mApplying;    /* Critical (apply invoked), IMMND contact lost => 
 						  timeout => Ccb-outcome to be recovered. */
-	uint8_t mApplied;     /* Current mCcbId applied&terminated */
-	uint8_t mAborted;     /* Current mCcbId aborted */
+	bool mApplied;     /* Current mCcbId applied&terminated */
+	bool mAborted;     /* Current mCcbId aborted */
+	bool mAugCcb;      /* Current and only mCcbId is an augment. */
+	bool mAugIsTainted;/* AugCcb has tainted root CCB => apply aug or abort root*/
 } IMMA_CCB_NODE;
 
 /* Node to store Search info */
@@ -135,7 +147,7 @@ typedef struct imma_cb {
 
 	/* Sync up with IMMND ( MDS ) see imma_sync_with_immnd() in imma_init.c */
     NCS_LOCK             immnd_sync_lock;
-    bool             immnd_sync_awaited;
+    bool                 immnd_sync_awaited;
     NCS_SEL_OBJ          immnd_sync_sel; 
 
 } IMMA_CB;
@@ -164,10 +176,17 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUint32T inv);
 int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUint32T inv);
 int imma_oi_ccb_record_terminate(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
+int imma_oi_ccb_record_abort(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
 int imma_oi_ccb_record_exists(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
 int imma_oi_ccb_record_set_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, const SaStringT errorString);
 SaStringT imma_oi_ccb_record_get_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
-
+int imma_oi_ccb_record_note_callback(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId,
+	struct imma_callback_info *callback);
+struct imma_callback_info * imma_oi_ccb_record_ok_augment(IMMA_CLIENT_NODE *cl_node, 
+	SaImmOiCcbIdT ccbId, SaImmHandleT *privateOmHandle, SaImmAdminOwnerHandleT *privateAoHandle);
+void imma_oi_ccb_record_augment(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaImmHandleT privateOmHandle,
+	SaImmAdminOwnerHandleT privateAoHandle);
+int imma_oi_ccb_record_close_augment(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaImmHandleT *privateOmHandle, bool ccbDone);
 
 /*admin_owner tree*/
 uint32_t imma_admin_owner_tree_init(IMMA_CB *cb);
@@ -203,6 +222,7 @@ void imma_process_stale_clients(IMMA_CB *cb);
 
 void imma_free_errorStrings(SaStringT* errorStrings);
 SaStringT* imma_getErrorStrings(IMMSV_SAERR_INFO* errRsp);
+
 
 /*30B Versioning Changes */
 #define IMMA_MDS_PVT_SUBPART_VERSION 1

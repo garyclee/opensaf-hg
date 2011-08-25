@@ -84,30 +84,33 @@ static int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locke
 ******************************************************************************/
 SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node, SaVersionT *version);
 
-SaAisErrorT saImmOmInitialize_o2(SaImmHandleT *immHandle, const SaImmCallbacksT_o2 *immCallbacks,
-	SaVersionT *version)
+SaAisErrorT saImmOmInitialize_o2(SaImmHandleT *immHandle, const SaImmCallbacksT_o2 *immCallbacks, SaVersionT *inout_version)
 {
 	IMMA_CLIENT_NODE *cl_node=NULL;
 	SaAisErrorT rc = SA_AIS_OK;
+	SaVersionT requested_version;
 
-	if ((!immHandle) || (!version)) {
+	TRACE_ENTER();
+	if ((!immHandle) || (!inout_version)) {
 		TRACE_2("ERR_INVALID_PARAM: immHandle is NULL or version is NULL");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
+	requested_version = *inout_version;
+
+	if ((requested_version.releaseCode != 'A') || (requested_version.majorVersion != 0x02) ||
+	    (requested_version.minorVersion < 11)) {
+		TRACE_2("ERR_VERSION: THIS SHOULD BE A VERSION A.2.11 initialize but claims to be"
+		      "%c %u %u", requested_version.releaseCode, requested_version.majorVersion, 
+			requested_version.minorVersion);
+		return SA_AIS_ERR_VERSION;
+	}
+
 	/* Draft Validations : Version */
-	rc = imma_version_validate(version);
+	rc = imma_version_validate(inout_version);
 	if (rc != SA_AIS_OK) {
 		TRACE_2("ERR_VERSION: Version validation failed");
 		return rc;
-	}
-
-	if ((version->releaseCode != 'A') || (version->majorVersion != 0x02) ||
-	    (version->minorVersion < 11)) {
-		TRACE_2("ERR_VERSION: THIS SHOULD BE A VERSION A.2.11 initialize but claims to be"
-		      "%c %u %u", version->releaseCode, version->majorVersion, 
-			version->minorVersion);
-		return SA_AIS_ERR_VERSION;
 	}
 
 	/* Alloc the client info data structure */
@@ -127,22 +130,25 @@ SaAisErrorT saImmOmInitialize_o2(SaImmHandleT *immHandle, const SaImmCallbacksT_
 
 	}
 
-	return initialize_common(immHandle, cl_node, version);
+	return initialize_common(immHandle, cl_node, &requested_version);
 }
 
-SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *immCallbacks, SaVersionT *version)
+SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *immCallbacks, SaVersionT *inout_version)
 {
 	IMMA_CLIENT_NODE *cl_node=NULL;
 	SaAisErrorT rc = SA_AIS_OK;
+	SaVersionT requested_version;
 	TRACE_ENTER();
 
-	if ((!immHandle) || (!version)) {
+	if ((!immHandle) || (!inout_version)) {
 		TRACE_2("ERR_INVALID_PARAM: immHandle is NULL or version is NULL");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
+	requested_version = *inout_version;
+
 	/* Draft Validations : Version */
-	rc = imma_version_validate(version);
+	rc = imma_version_validate(inout_version);
 	if (rc != SA_AIS_OK) {
 		TRACE_2("ERR_VERSION: Version validation failed");
 		return rc;
@@ -156,10 +162,10 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 		return SA_AIS_ERR_NO_MEMORY;
 	}
 
-	if ((version->releaseCode == 'A') &&
-            (version->majorVersion == 0x02) &&
-	    (version->minorVersion >= 0x0b)) {
-		TRACE_2("OM client version A.2.11");
+	if ((requested_version.releaseCode == 'A') &&
+            (requested_version.majorVersion == 0x02) &&
+	    (requested_version.minorVersion >= 0x0b)) {
+		LOG_IN("OM client version A.2.11");
 		cl_node->isImmA2b = true;
 	}
 
@@ -169,7 +175,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 		cl_node->o.mCallbk = *immCallbacks;
 	}
 
-	rc = initialize_common(immHandle, cl_node, version);
+	rc = initialize_common(immHandle, cl_node, &requested_version);
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1097,8 +1103,9 @@ static SaAisErrorT imma_newCcbId(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node,
 	TRACE("imma_newCcbId:create new ccb id with admoId:%u",	adminOwnerId);
 
 	assert(locked && *locked);
-	if (ccb_node->mAborted) {
+	if (ccb_node->mAborted || ccb_node->mAugCcb) {
 		rc = SA_AIS_ERR_FAILED_OPERATION;
+		ccb_node->mAborted = true;
 		goto fail;
 	}
 
@@ -1251,7 +1258,7 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 	}
 	locked = true;
 
-	rc = imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHandle, &ao_node);
+	proc_rc = imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHandle, &ao_node);
 	if (!ao_node) {
 		TRACE_2("ERR_BAD_HANDLE: Admin owner handle not valid");
 		rc = SA_AIS_ERR_BAD_HANDLE;
@@ -1327,7 +1334,9 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 	if (proc_rc != NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY;
 		TRACE_4("ERR_LIBRARY: Failed to add ccb-node to ccb-tree");
-		goto ccb_node_add_fail;
+		free(ccb_node);
+		ccb_node = NULL;
+		goto done;
 	}
 
 	ccb_node->mCcbFlags = ccbFlags;	/*Save flags in client for repeated init */
@@ -1388,13 +1397,6 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 		assert(rc != SA_AIS_ERR_LIBRARY) ;
 		imma_ccb_node_delete(cb, ccb_node);	/*Remove node from tree and free it. */
 		ccb_node = NULL;
-	}
-	goto done;
-
-
- ccb_node_add_fail:
-	if (ccb_node != NULL) {
-		free(ccb_node);
 	}
 
  done:
@@ -1872,6 +1874,16 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 			ccb_node->mAborted = true;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 		}
+
+		if(ccb_node->mAugCcb) {
+			/* This is an OI augmented ccb. 
+			   Successfull object create added by OI to root CCB =>
+			   this aug-ccb must be applied (confirmed by the OI)
+			   or the imm will interpret the missing confirmation
+			   as abort and abort the entire root ccb.
+			 */
+			ccb_node->mAugIsTainted = true;
+		}
 	}
 	else if (rc == SA_AIS_ERR_TRY_AGAIN && (cb->is_immnd_up == false)) {
 		/* 
@@ -1884,7 +1896,10 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 			"FAILED_OPERATION in ccbObjectCreate in IMMA");
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		ccb_node->mAborted = true;
+	} else if (rc == SA_AIS_ERR_FAILED_OPERATION) {
+		ccb_node->mAborted = true;
 	}
+
 
  done:
 	imma_free_errorStrings(newErrorStrings); /* In case of failed resurrect only */
@@ -2295,6 +2310,16 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 			ccb_node->mAborted = true;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 		}
+
+		if(ccb_node->mAugCcb) {
+			/* This is an OI augmented ccb. 
+			   Successfull object modify added by OI to root CCB =>
+			   this aug-ccb must be applied (confirmed by the OI)
+			   or the imm will interpret the missing confirmation
+			   as abort and abort the entire root ccb.
+			 */
+			ccb_node->mAugIsTainted = true;
+		}
 	}
 	else if (rc == SA_AIS_ERR_TRY_AGAIN && (cb->is_immnd_up == false)) {
 		/* 
@@ -2306,6 +2331,8 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		TRACE_3("ERR_FAILED_OPERATION: Converting TRY_AGAIN to "
 			"FAILED_OPERATION in ccbObjectModify in IMMA");
 		rc = SA_AIS_ERR_FAILED_OPERATION;
+		ccb_node->mAborted = true;
+	} else if (rc == SA_AIS_ERR_FAILED_OPERATION) {
 		ccb_node->mAborted = true;
 	}
 
@@ -2635,6 +2662,15 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 			ccb_node->mAborted = true;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 		}
+		if(ccb_node->mAugCcb) {
+			/* This is an OI augmented ccb. 
+			   Successfull object delete added by OI to root CCB =>
+			   this aug-ccb must be applied (confirmed by the OI)
+			   or the imm will interpret the missing confirmation
+			   as abort and abort the entire root ccb.
+			 */
+			ccb_node->mAugIsTainted = true;
+		}		
 	}
 	else if (rc == SA_AIS_ERR_TRY_AGAIN && (cb->is_immnd_up == false)) {
 		/* 
@@ -2646,6 +2682,8 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		TRACE_3("ERR_FAILED_OPERATION: Converting TRY_AGAIN to FAILED_OPERATION "
 			"in ccbObjectDelete in IMMA");
 		rc = SA_AIS_ERR_FAILED_OPERATION;
+		ccb_node->mAborted = true;
+	} else if (rc == SA_AIS_ERR_FAILED_OPERATION) {
 		ccb_node->mAborted = true;
 	}
 
@@ -2776,6 +2814,12 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		*/
 		ccb_node->mAborted = true;
 		rc = SA_AIS_ERR_FAILED_OPERATION;
+		goto done;
+	}
+
+	if(ccb_node->mAugCcb) {
+		LOG_IN("Apply for augmentation for CcbId %u", ccb_node->mCcbId);
+		ccb_node->mApplied = true;
 		goto done;
 	}
 
@@ -3140,6 +3184,12 @@ SaAisErrorT saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
 	if (!ao_node) {
 		TRACE_2("ERR_BAD_HANDLE: No admin owner associated with admin owner handle!");
 		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto ao_not_found;
+	}
+
+	if(ao_node->mAugCcb) {
+		TRACE_2("ERR_NO_RESOURCES: Augmented CCB AdminOwner handle not allowed here");
+		rc = SA_AIS_ERR_NO_RESOURCES;
 		goto ao_not_found;
 	}
 
@@ -3518,6 +3568,12 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 	if (!ao_node) {
 		TRACE_2("ERR_BAD_HANDLE: No admin owner associated with admin owner handle!");
 		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto ao_not_found;
+	}
+
+	if(ao_node->mAugCcb) {
+		TRACE_2("ERR_NO_RESOURCES: Augmented CCB AdminOwner handle not allowed here");
+		rc = SA_AIS_ERR_NO_RESOURCES;
 		goto ao_not_found;
 	}
 
@@ -5012,9 +5068,6 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
 	if(batchp != NULL) {
 		assert(remainingSpacep);
 		batch = (*(IMMSV_OM_OBJECT_SYNC **)batchp);
-		if(batch == NULL) {
-			TRACE("ABT batch is NULL");
-		}
 	}
 
 	memset(&evt, 0, sizeof(IMMSV_EVT));
@@ -5772,7 +5825,6 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 	}
 
 	if (search_node->mLastAttributes) {
-		TRACE("Freeing previous result");
 		imma_freeSearchAttrs((SaImmAttrValuesT_2 **)search_node->mLastAttributes);
 		search_node->mLastAttributes = 0;
 	}
@@ -6178,10 +6230,15 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 	/* locked == true already */
 
 	imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHandle, &ao_node);
+
 	if (!ao_node) {
-		TRACE_2("ERR_BAD_HANDLE: Admin owner node is missing");
+		TRACE_2("ERR_BAD_HANDLE: Admin owner node is missing or %llx", adminOwnerHandle);
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+
+	if(ao_node->mAugCcb) {
+		TRACE_2("Augmented CCB AdminOwner handle used in saImmOmAdminOwnerSet");
 	}
 
 	immHandle = ao_node->mImmHandle;
@@ -6364,6 +6421,13 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 	if (!ao_node) {
 		TRACE_2("ERR_BAD_HANDLE: Admin owner node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	if (ao_node->mAugCcb) {
+		TRACE_2("ERR_BUSY: Admin owner handle from augmented CCB cant be "
+			"used for release.");
+		rc = SA_AIS_ERR_BUSY;
 		goto done;
 	}
 
@@ -6692,6 +6756,11 @@ SaAisErrorT saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT adminOwnerHandle)
 		goto done;
 	}
 
+	if(ao_node->mAugCcb) {
+		TRACE_2("Augmented CCB AdminOwner handle ignoring admo-finalize here");
+		goto done;
+	}
+
 	immHandle = ao_node->mImmHandle;
 	adminOwnerId = ao_node->mAdminOwnerId;
 	/* If something goes wrong below we still dont want the ao_node anymore, 
@@ -6801,6 +6870,13 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
 			ccb_node->mCcbId);
+		goto done;
+	}
+
+	if (ccb_node->mAugCcb) {
+		if(!(ccb_node->mApplied)) {
+			ccb_node->mAborted = true;
+		}
 		goto done;
 	}
 
@@ -7238,6 +7314,244 @@ SaAisErrorT saImmOmCcbGetErrorStrings(SaImmCcbHandleT ccbHandle,
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
  lock_fail:
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+
+/* Internal function used *only* from saImmOiAugmentCcbInitialize
+   Creates a mockup ccb-node and mockup admo-node so that an
+   OI client can augment a pre existing ccb with added create,
+   delete and modify operations.
+*/
+SaAisErrorT immsv_om_augment_ccb_initialize(
+				 SaImmOiHandleT privateOmHandle,
+				 SaUint32T ccbId,
+				 SaUint32T adminOwnerId,
+				 SaImmCcbHandleT *ccbHandle,
+				 SaImmAdminOwnerHandleT *ownerHandle)
+
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	SaUint32T proc_rc = NCSCC_RC_SUCCESS;
+	IMMA_CB *cb = &imma_cb;
+	IMMA_CLIENT_NODE *cl_node = 0;
+	bool locked = false;
+	IMMA_CCB_NODE *ccb_node = NULL;
+	IMMA_ADMIN_OWNER_NODE *ao_node = NULL;
+
+	TRACE_ENTER();
+
+	if (cb->sv_id == 0) {
+		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_BAD_HANDLE;
+	}
+	TRACE("ccbHandle(%p) && ccbId(%u) && adminOwnerId(%u)", ccbHandle, ccbId, adminOwnerId);
+	assert(ccbHandle && ccbId && adminOwnerId);
+
+	if (cb->is_immnd_up == false) {
+		TRACE_2("ERR_NO_RESOURCES: IMMND_DOWN");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_NO_RESOURCES;
+	}
+
+	/* Take the CB lock */
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("ERR_LIBRARY: LOCK failed");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto lock_fail;
+	}
+	locked = true;
+
+	imma_client_node_get(&cb->client_tree, &privateOmHandle, &cl_node);
+	if (!(cl_node && cl_node->isOm)) {
+		TRACE_2("ERR_BAD_HANDLE: Bad handle %llx", privateOmHandle);
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	if (cl_node->stale) {
+		TRACE_1("ERR_NO_RESOURCES: Handle %llx is stale", privateOmHandle);
+		rc = SA_AIS_ERR_NO_RESOURCES;
+		goto done;
+	}
+
+	if(!(cl_node->isImmA2b)) {
+		TRACE("ERR_VERSION: immsv_om_augment_ccb_initialize " 
+			"only allowed when OI handle is registered as A.2.11");
+		rc = SA_AIS_ERR_VERSION;
+		goto done;
+	}
+
+	/* Mark client node as a private temporary OM handle,
+	   owned by an OI for ccb augmentation. This to avoid
+	   the the handle being resurrected. Resurection is
+	   poinless since loss of contact with immnd will
+	   terminate the CCB anyway. Hence not possible
+	   to continue with some augmentation to the ccb. 
+	*/
+	cl_node->isAug = true;
+
+	/* Check if admo & ccb already exis, easy to do! same handle *value*
+	   used for om-handle ccb-handle and admo-handle,
+	 */
+
+	imma_admin_owner_node_get(&cb->admin_owner_tree, &privateOmHandle, &ao_node);
+	if(ao_node) {
+		if(!(ao_node->mAugCcb) || (ao_node->mAdminOwnerId != adminOwnerId)) {
+			TRACE_4("ERR_LIBRARY: Re used admo-node does not match!");
+			rc = SA_AIS_ERR_LIBRARY;
+			goto done;
+		}
+		TRACE("Admo node already exists for %llu => re-use", privateOmHandle);
+		/* The admo-handle already exists => ccb-handle should also exist. */
+		imma_ccb_node_get(&cb->ccb_tree, &privateOmHandle, &ccb_node);
+		if(ccb_node) {
+			if(!(ccb_node->mAugCcb) || (ccb_node->mCcbId != ccbId)) {
+				TRACE_4("ERR_LIBRARY: Re used ccb-node does not match!");
+				rc = SA_AIS_ERR_LIBRARY;
+				goto done;
+			}
+			ccb_node->mApplied = false;
+			TRACE("Ccb node already exists for handle %llu ccb:%u=> re-use",
+				privateOmHandle, ccbId);
+			/* Both ccb node and admo node alreadhy exist=> skip create of
+			   these nodes. This the private om-handle, client-node, 
+			   admo-node and ccb-node are reused in retries and in 
+			   repeated upcalls for the same ccb towards this OI.
+			 */
+			goto re_used;
+		} else {
+			TRACE_1("Admo handle found but ccb handle non existent -"
+				" should not happen");
+			/* Try to create new admo and ccb, i.e. fall through to
+			   the initial branch directly below.
+			 */
+			ao_node = NULL;
+		}
+	}
+
+	/* Allocate ccb_node. */
+	ccb_node = (IMMA_CCB_NODE *)calloc(1, sizeof(IMMA_CCB_NODE));
+	assert(ccb_node);
+
+	/*
+	  Use the same handle value for om/admo/ccb to simplify re-use of
+	  handles in several upcalls to thi OI, in the same ccb. 
+	*/
+	ccb_node->ccb_hdl = privateOmHandle;
+
+	proc_rc = imma_ccb_node_add(&cb->ccb_tree, ccb_node);
+
+	if (proc_rc != NCSCC_RC_SUCCESS) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("ERR_LIBRARY: Failed to add ccb-node to ccb-tree");
+		free(ccb_node);
+		ccb_node = NULL;
+		goto done;
+	}
+
+	ccb_node->mImmHandle = privateOmHandle;
+	ccb_node->mAdminOwnerHdl = ccb_node->ccb_hdl; /* same value */
+	ccb_node->mCcbId = ccbId;
+	ccb_node->mApplied = false;
+	ccb_node->mAugCcb = true;
+
+	/* Allocate the ao_node */
+	ao_node = (IMMA_ADMIN_OWNER_NODE *)calloc(1, sizeof(IMMA_ADMIN_OWNER_NODE));
+	assert(ao_node);
+	ao_node->admin_owner_hdl = ccb_node->ccb_hdl; /* same value */
+	ao_node->mImmHandle = privateOmHandle;
+	ao_node->mAdminOwnerId = adminOwnerId;
+	ao_node->mAugCcb = true;
+	/*ao_node->mReleaseOnFinalize = true;*/
+	/* We dont know what the value should be for rof.
+	   But it should not matter, since this ao_node shares admo-id
+	   with the real admo and thus in the server will share rof.
+	 */
+	proc_rc = imma_admin_owner_node_add(&cb->admin_owner_tree, ao_node);
+	if (proc_rc != NCSCC_RC_SUCCESS) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("ERR_LIBRARY: Failed to add node to the admin owner tree");
+		free(ao_node);
+		ao_node=NULL;
+
+		imma_ccb_node_delete(cb, ccb_node); /* Removes node from tree and frees it. */
+		ccb_node = NULL;
+		goto done;
+	}
+
+ re_used:
+	assert(locked);
+	*ccbHandle = ccb_node->ccb_hdl;
+	if(ownerHandle) {
+		if(*ownerHandle && (*ownerHandle != ao_node->admin_owner_hdl)) {
+			/* Separate admin owner created to have release-on-finalize true */
+			imma_admin_owner_node_get(&cb->admin_owner_tree, ownerHandle, &ao_node);
+			if(ao_node) {
+				ao_node->mAugCcb = true;
+			}
+			
+		} else {
+			*ownerHandle = ao_node->admin_owner_hdl;
+		}
+	}
+
+	TRACE("Augmented CCB CcbId:%u admin ownerId:%u ccb-handle:%llx admo-handle:%llx\n", 
+		ccb_node->mCcbId, adminOwnerId, *ccbHandle, ownerHandle?(*ownerHandle):0);
+ done:
+
+	if (locked) {
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	}
+
+ lock_fail:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/* Internal function used *only* from callback processing in imma_proc.c
+   Obtains the outcome for an OI augmented CCB. 
+   The outcome should be obtained after the create/delete/modify callback 
+   to the OI returns, to the callback post processing in imma_proc.c
+   See imma_process_callback_info()
+*/
+SaAisErrorT immsv_om_augment_ccb_get_result(
+				 SaImmOiHandleT privateOmHandle,
+				 SaUint32T ccbId)
+
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	IMMA_CB *cb = &imma_cb;
+	bool locked = false;
+	IMMA_CCB_NODE *ccb_node = NULL;
+	SaImmCcbHandleT ccbHandle = privateOmHandle; /* Same value */
+	TRACE_ENTER();
+
+	assert(cb->sv_id != 0);
+	assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+	locked = true;
+
+	/* Get the CCB info */
+	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
+	if (!ccb_node) {
+		rc = SA_AIS_ERR_FAILED_OPERATION;
+		TRACE_2("Aug Ccb node removed prematurely");
+		goto done;
+	}
+
+	assert(ccb_node->mCcbId == ccbId);
+	assert(ccb_node->mAugCcb);
+	if(ccb_node->mAborted || !(ccb_node->mApplied)) {
+		rc = SA_AIS_ERR_FAILED_OPERATION;
+	}
+
+ done:
+	if (locked) {
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	}
 
 	TRACE_LEAVE();
 	return rc;

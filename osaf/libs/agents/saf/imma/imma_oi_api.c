@@ -69,7 +69,7 @@ static int imma_oi_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locke
   Notes         :
 ******************************************************************************/
 SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
-				const SaImmOiCallbacksT_2 *immOiCallbacks, SaVersionT *version)
+				const SaImmOiCallbacksT_2 *immOiCallbacks, SaVersionT *inout_version)
 {
 	IMMA_CB *cb = &imma_cb;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -78,6 +78,7 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMA_CLIENT_NODE *cl_node = 0;
 	bool locked = true;
+	SaVersionT requested_version;
 
 	TRACE_ENTER();
 
@@ -88,11 +89,13 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 		return SA_AIS_ERR_LIBRARY;
 	}
 
-	if ((!immOiHandle) || (!version)) {
+	if ((!immOiHandle) || (!inout_version)) {
 		TRACE_2("ERR_INVALID_PARAM: immOiHandle is NULL or version is NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto end;
 	}
+TRACE("HERE 1");
+        requested_version = (*inout_version);
 
 	if (false == cb->is_immnd_up) {
 		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
@@ -112,9 +115,9 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 
 	cl_node->isOm = false;
 
-	if ((version->releaseCode == 'A') &&
-		(version->majorVersion == 0x02) &&
-		(version->minorVersion >= 0x0b)) {
+	if ((requested_version.releaseCode == 'A') &&
+		(requested_version.majorVersion == 0x02) &&
+		(requested_version.minorVersion >= 0x0b)) {
 		TRACE_2("OI client version A.2.11");
 		cl_node->isImmA2b = 0x1;
 	}
@@ -129,7 +132,7 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 
 	/* Draft Validations : Version this is the politically correct validatioin
 	   distinct from the pragmatic validation we do above. */
-	rc = imma_version_validate(version);
+	rc = imma_version_validate(inout_version);
 	if (rc != SA_AIS_OK) {
 		TRACE_2("ERR_VERSION");
 		goto version_fail;
@@ -152,7 +155,7 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 	memset(&init_evt, 0, sizeof(IMMSV_EVT));
 	init_evt.type = IMMSV_EVT_TYPE_IMMND;
 	init_evt.info.immnd.type = IMMND_EVT_A2ND_IMM_OI_INIT;
-	init_evt.info.immnd.info.initReq.version = *version;
+	init_evt.info.immnd.info.initReq.version = requested_version;
 	init_evt.info.immnd.info.initReq.client_pid = getpid();
 
 	/* Release the CB lock Before MDS Send */
@@ -3053,7 +3056,7 @@ SaAisErrorT saImmOiCcbSetErrorString(
 	}
 
 	if(!imma_oi_ccb_record_set_error(cl_node, ccbId, errorString)) {
-		TRACE_2("ERR_INVALID_PARAM: Ccb %llu, is not in a state that "
+		TRACE_2("ERR_BAD_OPERATION: Ccb %llu, is not in a state that "
 			"accepts an errorString", ccbId);
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto bad_handle;
@@ -3066,4 +3069,346 @@ SaAisErrorT saImmOiCcbSetErrorString(
  lock_fail:
 	return rc;
 
+}
+
+static SaAisErrorT
+getAdmoName(SaImmAdminOwnerHandleT privateOmHandle, IMMA_CALLBACK_INFO * cbi, SaNameT* admoNameOut)
+{
+    SaImmAccessorHandleT acHdl=0LL;
+    SaAisErrorT rc = SA_AIS_OK;
+    const SaImmAttrNameT admoNameAttr = SA_IMM_ATTR_ADMIN_OWNER_NAME;
+    SaImmAttrNameT attributeNames[2] = {admoNameAttr, NULL};
+    SaImmAttrValuesT_2 **attributes = NULL;
+    SaImmAttrValuesT_2 *attrVal = NULL;
+    TRACE_ENTER();
+
+    if(cbi->type == IMMA_CALLBACK_OI_CCB_CREATE) {
+	    /* Admo attribute for created object should be in attr list.*/
+	    int i=0;
+	    attributes = (SaImmAttrValuesT_2 **) cbi->attrValsForCreateUc;
+	    while((attrVal = attributes[i++]) != NULL) {
+		    if(strcmp(admoNameAttr, attrVal->attrName)==0) {
+			    TRACE("Found %s attribute in object create upcall", admoNameAttr);
+			    goto found;
+		    }
+	    }
+    } else {
+	    /* modify or delete => fetch admo attribute for object from server. */
+	    if((cbi->type != IMMA_CALLBACK_OI_CCB_DELETE) &&
+		    (cbi->type != IMMA_CALLBACK_OI_CCB_MODIFY)) {
+		    LOG_ER("Inconsistency in callback type:%u", cbi->type);
+		    abort();
+	    }
+
+	    rc = saImmOmAccessorInitialize(privateOmHandle, &acHdl);
+	    if(rc != SA_AIS_OK) {goto done;}
+
+	    rc = saImmOmAccessorGet_2(acHdl, &(cbi->name), attributeNames, &attributes);
+	    if(rc != SA_AIS_OK) {goto finalize;}
+
+	    attrVal = attributes[0];
+    }
+
+    /* attrVal found either in create callback, or fetched from server. */
+
+ found:
+    if(!attrVal || strcmp(attrVal->attrName, admoNameAttr) || (attrVal->attrValuesNumber!=1) ||
+	    (attrVal->attrValueType != SA_IMM_ATTR_SASTRINGT)) {
+	    LOG_ER("Missmatch on attribute %s", admoNameAttr);
+	    abort();
+    }
+
+    strncpy((char *)admoNameOut->value, *(SaStringT*) attrVal->attrValues[0], SA_MAX_NAME_LENGTH);
+
+ finalize:
+    if(acHdl) {
+	    saImmOmAccessorFinalize(acHdl);
+    }
+
+ done:
+    if(rc == SA_AIS_OK) {
+	    TRACE("Obtained AdmoName:%s",admoNameOut->value);
+    }
+    TRACE_LEAVE();
+    return rc;
+}
+
+
+/****************************************************************************
+  Name          :  saImmOiAugmentCcbInitialize
+ 
+  Description   :  Allows the OI implementers to augment ops to a ccb related
+                   to a current ccb-upcall, before returning from the upcall.
+                   This is allowed inside:
+                     SaImmOiCcbObjectCreateCallbackT
+                     SaImmOiCcbObjectDeleteCallbackT
+                     SaImmOiCcbObjectModifyCallbackT
+                  It is NOT allowed inside:
+                    SaImmOiCcbCompletedCallbackT
+                    SaImmOiApplyCallbackT
+                    SaImmOiAbortCallbackT
+
+                   
+  Arguments     :  immOiHandle - IMM OI handle
+                   ccbId  -  The ccbId for the ccb related upcall.
+                   ccbHandle - The ccbHandle that will be associated with the ccbId
+ 
+  Return Values :  SA_AIS_OK
+                   SA_AIS_ERR_BAD_HANDLE
+                   SA_AIS_ERR_INVALID_PARAM
+                   SA_AIS_ERR_BAD_OPERATION (not inside valid ccb upcall)
+                   SA_AIS_ERR_LIBRARY
+                   SA_AIS_ERR_TRY_AGAIN
+                   
+******************************************************************************/
+SaAisErrorT saImmOiAugmentCcbInitialize(
+				 SaImmOiHandleT immOiHandle,
+				 SaImmOiCcbIdT ccbId64,
+				 SaImmCcbHandleT *ccbHandle,
+				 SaImmAdminOwnerHandleT *ownerHandle)
+
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	IMMSV_EVT init_evt;
+	IMMSV_EVT *out_evt = NULL;
+	IMMA_CB *cb = &imma_cb;
+	IMMA_CLIENT_NODE *cl_node = 0;
+	bool locked = true;
+	IMMA_CALLBACK_INFO * cbi=NULL;
+	SaImmHandleT privateOmHandle = 0LL;
+	SaImmAdminOwnerHandleT privateAoHandle = 0LL;
+	SaVersionT version = {'A', 2, 11};
+	SaUint32T adminOwnerId = 0;
+	SaUint32T ccbId = 0;
+
+	TRACE_ENTER();
+
+	if (cb->sv_id == 0) {
+		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
+		return SA_AIS_ERR_BAD_HANDLE;
+	}
+
+	if (!ccbHandle) {
+		TRACE_2("ERR_INVALID_PARAM: ccbHandle is NULL");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	if (!ownerHandle) {
+		TRACE_2("ERR_INVALID_PARAM: ownerHandle is NULL");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	ccbId = ccbId64;
+
+	if(ccbId > 0xffffffff) {
+		TRACE_2("Invalid ccbId, must be less than %llx", 
+			0xffffffffLL);
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	if(ccbId == 0) {
+		TRACE_2("Invalid ccbId, must no be zero");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	*ccbHandle = 0;
+	*ownerHandle = 0;
+
+	if (cb->is_immnd_up == false) {
+		TRACE_2("ERR_TRY_AGAIN: IMMND_DOWN");
+		return SA_AIS_ERR_TRY_AGAIN;
+	}
+
+	/* Take the CB lock */
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("ERR_LIBRARY: LOCK failed");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto lock_fail;
+	}
+	/* locked == true already */
+
+	imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
+	if (!cl_node || cl_node->isOm) {
+		TRACE_2("ERR_BAD_HANDLE: Bad handle %llx", immOiHandle);
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	if (cl_node->stale) {
+		TRACE_1("ERR_BAD_HANDLE: Handle %llx is stale", immOiHandle);
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	if(!(cl_node->isImmA2b)) {
+		/* Log this error instead of trace, to simplify troubleshooting
+		   for the OI maintainer. */
+		LOG_IN("ERR_VERSION: saImmOiAugmentCcbInitialize " 
+			"only allowed when OI handle is registered as A.2.11");
+		rc = SA_AIS_ERR_VERSION;
+		goto done;
+	}
+
+	cbi = imma_oi_ccb_record_ok_augment(cl_node, ccbId, &privateOmHandle, &privateAoHandle);
+	if(!cbi) {
+		TRACE_2("ERR_BAD_OPERATION: Ccb %u, is not in a state that "
+			"can be augmented", ccbId);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+
+	if(!privateOmHandle) {
+		/* The private om-handle is created at most once pe ccb that reaches the OI.
+		   Likewise for the private admo. 
+		 */
+		assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+		locked = false;
+
+		TRACE("OM init call");
+		rc = saImmOmInitialize(&privateOmHandle, NULL, &version);
+
+		if(rc != SA_AIS_OK) {
+			TRACE("ERR_TRY_AGAIN: failed to obtain internal om handle rc:%u", rc);
+			rc = SA_AIS_ERR_TRY_AGAIN;
+			goto done;
+		}
+
+		assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+		locked = true;
+	}
+
+	/* Downcall to immnd to get adminOwnerId and augmentation */
+	imma_proc_increment_pending_reply(cl_node);
+
+	/* populate the EVT structure */
+	memset(&init_evt, 0, sizeof(IMMSV_EVT));
+	init_evt.type = IMMSV_EVT_TYPE_IMMND;
+	init_evt.info.immnd.type = IMMND_EVT_A2ND_OI_CCB_AUG_INIT;
+	init_evt.info.immnd.info.ccbUpcallRsp.ccbId = ccbId;
+	init_evt.info.immnd.info.ccbUpcallRsp.implId = cbi->implId;
+	init_evt.info.immnd.info.ccbUpcallRsp.inv = cbi->inv;
+	init_evt.info.immnd.info.ccbUpcallRsp.name = cbi->name;
+	
+	/* Note that we register using the new OM handle as client for the aug-ccb */
+	rc = imma_evt_fake_evs(cb, &init_evt, &out_evt, IMMSV_WAIT_TIME/2,
+		/*cl_node->handle*/privateOmHandle, &locked, true);
+
+	cl_node = NULL; /* avoid unsafe use */
+
+	if (rc != SA_AIS_OK) {
+		/* fake_evs returned error */
+		goto done;
+	}
+
+	if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != 
+		NCSCC_RC_SUCCESS) {
+		rc = SA_AIS_ERR_LIBRARY; /* Overwrites any error from fake_evs() */
+		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
+		TRACE_4("ERR_LIBRARY: LOCK failed");
+		goto done;
+	}
+	locked = true;
+
+	/* get the client_info */
+	imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
+	if (!cl_node || cl_node->isOm) {
+		rc = SA_AIS_ERR_BAD_HANDLE; 
+		TRACE_3("client_node_get failed");
+		goto done;;
+	}
+
+	imma_proc_decrement_pending_reply(cl_node); 
+
+	if (cl_node->stale) {
+		cl_node->exposed = true;  /* But dont resurrect it either */
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_3("Handle %llx is stale", immOiHandle);
+		goto done;
+	}
+
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	locked = false;
+
+	/* Call processed successfully, check result from immnd */
+	assert(out_evt);
+	/* Process the received Event */
+	assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+	assert(out_evt->info.imma.type == IMMA_EVT_ND2A_CCB_AUG_INIT_RSP);
+	adminOwnerId = out_evt->info.imma.info.admInitRsp.ownerId;
+	rc = out_evt->info.imma.info.admInitRsp.error;
+
+	if(rc == SA_AIS_ERR_NO_SECTIONS) {
+		/* Means almost ok, admo ROF == FALSE. Can not hijack original admo.
+		   Must instead creaet new separate admo with same admo-name. 
+		 */
+		rc = SA_AIS_OK;
+
+		if(!privateAoHandle) {
+			TRACE("AugCcbinit: Admo has ReleaseOnFinalize FALSE "
+				"=> init separate admo => must fetch admo-name first");
+			assert(locked == false);
+			SaNameT admName;/* Used to get admo string name copied to stack.*/
+
+			rc = getAdmoName(privateOmHandle, cbi, &admName);
+			if(rc != SA_AIS_OK) {
+				TRACE("ERR_TRY_AGAIN: failed to obtain SaImmAttrAdminOwnerName %u", rc);
+				if(rc != SA_AIS_ERR_TRY_AGAIN) {
+					rc = SA_AIS_ERR_TRY_AGAIN;
+				}
+				goto done;
+			}
+			TRACE("Obtaned AdminOwnerName:%s", admName.value);
+			/* Allocate private admowner with ReleaseOnFinalize as TRUE */
+			rc = saImmOmAdminOwnerInitialize(privateOmHandle,
+				(SaImmAdminOwnerNameT) admName.value, SA_TRUE, 
+				&privateAoHandle);
+
+			if(rc != SA_AIS_OK) {
+				TRACE("ERR_TRY_AGAIN: failed to obtain internal admo handle rc:%u", rc);
+				if(rc != SA_AIS_ERR_TRY_AGAIN) {
+					rc = SA_AIS_ERR_TRY_AGAIN;
+				}
+				goto done;
+			}
+		}
+	} else {TRACE("AugCcbinit: Admo has ROF == TRUE");}
+
+	if (rc != SA_AIS_OK) {
+		goto done;
+	}
+
+	TRACE("adminOwnerId:%u", adminOwnerId);
+
+	/* Now dip into the OM library & create mockup ccb-node & admo-node for use by OI */
+	rc = immsv_om_augment_ccb_initialize(privateOmHandle, ccbId, adminOwnerId,
+		ccbHandle, &privateAoHandle);
+
+ done:
+
+	if (locked) {
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	}
+
+	if(rc == SA_AIS_OK || rc == SA_AIS_ERR_TRY_AGAIN) {
+		/* mark oi_ccb_record with privateOmHandle to avoid repeated open/close
+		   of private-om-handle for each try again or each ccb op. The handle
+		   is closed when the ccb is terminated (apply-uc or abort-uc).
+		 */
+		imma_oi_ccb_record_augment(cl_node, ccbId, privateOmHandle, privateAoHandle);
+		if(privateAoHandle) {*ownerHandle = privateAoHandle;}
+
+		TRACE("ownerHandle:%llx", *ownerHandle);
+
+	} else if(privateOmHandle) {
+		saImmOmFinalize(privateOmHandle);/* Also finalizes admo handles & ccb handles*/
+	}
+
+	if(out_evt) {
+		free(out_evt);
+		out_evt = NULL;
+	}
+
+ lock_fail:
+	TRACE_LEAVE();
+	return rc;
 }
