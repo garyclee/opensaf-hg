@@ -115,6 +115,17 @@ typedef enum {
 	SaAisErrorT
 	 immsv_finalize_sync(SaImmHandleT immHandle);
 
+	SaAisErrorT
+	immsv_om_augment_ccb_initialize(SaImmHandleT immHandle,
+		SaUint32T ccbId,
+		SaUint32T adminOwnerId,
+		SaImmCcbHandleT *ccbHandle,
+		SaImmAdminOwnerHandleT *ownerHandle);
+
+	SaAisErrorT
+	immsv_om_augment_ccb_get_result(SaImmHandleT immHandle,
+		SaUint32T ccbId);
+
 #ifdef  __cplusplus
 }
 #endif

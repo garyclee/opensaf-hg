@@ -9,7 +9,8 @@ OPENSAF_IMM_A.02.01 {
 		saImmOm*;
 		immsv_finalize_sync;	# FIXME immsv* should be in libimmsv_common.so
 		immsv_sync;
-
+		immsv_om_augment_ccb_initialize;
+		immsv_om_augment_ccb_get_result;
 	local:
 		*;
 };
