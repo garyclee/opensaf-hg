@@ -359,6 +359,12 @@ extern "C" {
 		struct ImmsvOmCcbObjectModify *rtModReq,
 		SaUint64T syncFevsBase);
 
+	SaAisErrorT immModel_ccbAugmentInit(IMMND_CB *cb,
+		IMMSV_OI_CCB_UPCALL_RSP *ccbUpcallRsp,
+		SaUint32T originatingNode,
+		SaUint32T originatingConn,
+		SaUint32T* adminOwnerId);
+
 
 #ifdef __cplusplus
 }
