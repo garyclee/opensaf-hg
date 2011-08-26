@@ -707,7 +707,7 @@ uint32_t mqnd_existing_queue_open(MQND_CB *cb, MQSV_SEND_INFO *sinfo, MQP_OPEN_R
 
 	/* Change the queue owner from orphan to owned */
 	if (qnode->qinfo.owner_flag == MQSV_QUEUE_OWN_STATE_ORPHAN) {
-		bool isQueueOpen = true;
+		SaUint32T isQueueOpen = true;
 		qnode->qinfo.owner_flag = MQSV_QUEUE_OWN_STATE_OWNED;
 		/*update the Message Queue Owner update to IMMSV */
 		immutil_update_one_rattr(cb->immOiHandle, (char *)qnode->qinfo.queueName.value,
@@ -943,7 +943,7 @@ uint32_t mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT 
 	*err = SA_AIS_OK;
 	SaMsgQueueHandleT listenerHandle;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
-	bool isQueueOpen = 0;
+	SaUint32T isQueueOpen = false;
 	TRACE_ENTER();
 
 	if (qnode == NULL) {
