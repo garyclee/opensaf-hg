@@ -71,28 +71,31 @@ GLND_AGENT_INFO *glnd_agent_node_find(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest)
 GLND_AGENT_INFO *glnd_agent_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, uint32_t process_id)
 {
 	GLND_AGENT_INFO *agent_info;
+	TRACE_ENTER();
 
 	agent_info = glnd_agent_node_find(glnd_cb, agent_mds_dest);
 
 	if (!agent_info) {
 		/* create new agent info and put it into the tree */
 		if ((agent_info = m_MMGR_ALLOC_GLND_AGENT_INFO) == NULL) {
-			m_LOG_GLND_MEMFAIL(GLND_AGENT_ALLOC_FAILED, __FILE__, __LINE__);
-			return NULL;
+			LOG_CR("GLND agent alloc failed: agent_mds_dest %llx Error %s", agent_mds_dest, strerror(errno));
+			assert(0);
 		}
 		agent_info->agent_mds_id = agent_mds_dest;
 		agent_info->process_id = process_id;
 		agent_info->patnode.key_info = (uint8_t *)&agent_info->agent_mds_id;
 		if (ncs_patricia_tree_add(&glnd_cb->glnd_agent_tree, &agent_info->patnode) != NCSCC_RC_SUCCESS) {
-			m_LOG_GLND_API(GLND_AGENT_TREE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("GLND agent tree add failed: agent_mds_dest %llx", agent_mds_dest);
 			/* free and return */
 			m_MMGR_FREE_GLND_AGENT_INFO(agent_info);
-			return NULL;
+			agent_info = NULL;
+			goto end;
 		}
-		return agent_info;
+		goto end;
 	}
-
-	return (GLND_AGENT_INFO *)NULL;
+end:
+	TRACE_LEAVE();
+	return agent_info;
 }
 
 /*****************************************************************************
@@ -112,12 +115,13 @@ void glnd_agent_node_del(GLND_CB *glnd_cb, GLND_AGENT_INFO *agent_info)
 {
 	GLND_CLIENT_INFO *client_info;
 	SaLckHandleT handle_id = 0;
+	TRACE_ENTER();
 
 	/* detach it from the tree */
 	if (ncs_patricia_tree_del(&glnd_cb->glnd_agent_tree, (NCS_PATRICIA_NODE *)&agent_info->patnode)
 	    != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_API(GLND_AGENT_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return;
+		LOG_ER("GLND agent tree del failed: agent_mds_id %llx", agent_info->agent_mds_id);
+		goto end;
 	}
 
 	/* clean up all the client info that has been part of the agent */
@@ -129,4 +133,6 @@ void glnd_agent_node_del(GLND_CB *glnd_cb, GLND_AGENT_INFO *agent_info)
 
 	/* free the memory */
 	m_MMGR_FREE_GLND_AGENT_INFO(agent_info);
+end:
+	TRACE_LEAVE();
 }

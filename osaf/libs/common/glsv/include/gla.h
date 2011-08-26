@@ -38,7 +38,7 @@
 #include "ncs_lib.h"
 #include "ncs_ubaid.h"
 #include "mds_papi.h"
-#include "ncs_log.h"
+#include "logtrace.h"
 #include "ncsencdec_pub.h"
 
 /* DTS header file */
@@ -55,6 +55,5 @@
 #include "glnd_evt.h"
 #include "gla_cb.h"
 #include "gla_mds.h"
-#include "gla_log.h"
 
 #endif   /* !GLA_H */

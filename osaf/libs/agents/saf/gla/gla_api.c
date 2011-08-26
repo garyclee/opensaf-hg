@@ -61,20 +61,23 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 	TRACE_ENTER();
 
 	rc = ncs_agents_startup();
-	if (rc != SA_AIS_OK)
-		return SA_AIS_ERR_LIBRARY;
+	if (rc != SA_AIS_OK) {
+		rc = SA_AIS_ERR_LIBRARY;
+		goto end;
+	}
 
 	rc = ncs_gla_startup();
 	if (rc != SA_AIS_OK) {
 		ncs_agents_shutdown();
-		return SA_AIS_ERR_LIBRARY;
+		rc = SA_AIS_ERR_LIBRARY;
+		goto end;
 	}
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA cb retrieval failed");
 		goto err;
 	}
 
@@ -86,7 +89,7 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 
 	/* validate the version */
 	if (!m_GLA_VER_IS_VALID(version)) {
-		m_LOG_GLA_HEADLINE(GLA_VERSION_INCOMPATIBLE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_2("GLA saf version incompatiable");
 		rc = SA_AIS_ERR_VERSION;
 		goto err;
 	}
@@ -121,9 +124,7 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 		if (ret == NCSCC_RC_REQ_TIMOUT)
 			rc = SA_AIS_ERR_TIMEOUT;
 		else
-			m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE, __FILE__, __LINE__,
-					    m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest),
-					    GLSV_GLND_EVT_INITIALIZE);
+			TRACE_2("GLA mds send failure: from mds_dest:%d event_type:%d", m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_INITIALIZE);
 		goto err;
 	}
 	rc = out_evt->error;
@@ -131,7 +132,7 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 		/* create the client node and populate it */
 		client_info = gla_client_tree_find_and_add(gla_cb, out_evt->handle, true);
 		if (client_info == NULL) {
-			m_LOG_GLA_HEADLINE(GLA_CLIENT_TREE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_4("GLA Client Tree add failed");
 			rc = SA_AIS_ERR_NO_RESOURCES;
 			goto err;
 		}
@@ -145,23 +146,25 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 		version->releaseCode = REQUIRED_RELEASECODE;
 		version->majorVersion = REQUIRED_MAJORVERSION;
 		version->minorVersion = REQUIRED_MINORVERSION;
-		TRACE_LEAVE();
-		return rc;
+		goto end;	
 	}
 
  err:
 	if (version) {
 		/* Note: The logic to highest and least release code support can go in future 
 		   as of now - there is only support for B.01.03 */
+		TRACE("version FAILED, required: %c.%u.%u, supported: %c.%u.%u\n",
+                      version->releaseCode, version->majorVersion, version->minorVersion,
+                     REQUIRED_RELEASECODE, REQUIRED_MAJORVERSION, REQUIRED_MINORVERSION);
 		version->releaseCode = REQUIRED_RELEASECODE;
 		version->majorVersion = REQUIRED_MAJORVERSION;
 		version->minorVersion = REQUIRED_MINORVERSION;
 	}
 
 	if (rc == SA_AIS_ERR_TRY_AGAIN)
-		m_LOG_GLA_API(GLA_API_LCK_INITIALIZE_FAIL, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA api lock init failed");
 	else
-		m_LOG_GLA_API(GLA_API_LCK_INITIALIZE_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_2("GLA api lock init failed");
 
 	/* free the client node */
 	if (client_info) {
@@ -182,7 +185,8 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 
 	ncs_gla_shutdown();
 	ncs_agents_shutdown();
-
+end:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -205,19 +209,18 @@ SaAisErrorT saLckSelectionObjectGet(SaLckHandleT lckHandle, SaSelectionObjectT *
 	GLA_CLIENT_INFO *client_info = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
 
-	TRACE("saLckSelectionObjectGet Called with Handle %" PRIu64, (uint64_t)lckHandle);
+	TRACE_ENTER2("Called with Handle %llx", lckHandle);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA cb retrieval failed");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
 
 	/* validate the input */
 	if (o_sel_obj == NULL) {
-		/* shashi --- #7 changed  from ERR_LIBRARY to INVALID param */
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -246,12 +249,9 @@ SaAisErrorT saLckSelectionObjectGet(SaLckHandleT lckHandle, SaSelectionObjectT *
 		m_GLSV_GLA_GIVEUP_GLA_CB;
 
 	if (rc != SA_AIS_OK || *o_sel_obj <= 0)
-		m_LOG_GLA_API(GLA_API_LCK_SELECTION_OBJECT_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_2("GLA api lock sel obj failed");
 
-	if (rc == SA_AIS_OK)
-		TRACE("saLckSelectionObjectGet SUCCESS");
-	else
-		TRACE("saLckSelectionObjectGet FAILURE");
+	TRACE_LEAVE2("'%s' return value '%d'", (rc == SA_AIS_OK)?"SUCCESS":"FAILURE", rc);
 	return rc;
 }
 
@@ -274,17 +274,16 @@ SaAisErrorT saLckOptionCheck(SaLckHandleT hdl, SaLckOptionsT *lckOptions)
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	GLA_CLIENT_INFO *client_info = NULL;
 
-	TRACE("saLckOptionCheck Called with Handle %" PRIu64, (uint64_t)hdl);
+	TRACE_ENTER2("Called with Handle %llx", hdl);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA cb retrieval failed");
 		goto done;
 	}
 
-	/* shashi --- #3 check added for lckOption Invalid param */
 
 	if (NULL == lckOptions) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
@@ -309,14 +308,7 @@ SaAisErrorT saLckOptionCheck(SaLckHandleT hdl, SaLckOptionsT *lckOptions)
 	if (gla_cb)
 		m_GLSV_GLA_GIVEUP_GLA_CB;
 
-	if (rc != SA_AIS_OK) {
-		m_LOG_GLA_API(GLA_API_LCK_OPTIONS_CHECK_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-	}
-
-	if (rc == SA_AIS_OK)
-		TRACE("saLckOptionCheck SUCCESS");
-	else
-		TRACE("saLckOptionCheck FAILURE");
+	TRACE_LEAVE2("'%s' return value '%d'", (rc == SA_AIS_OK) ? "SUCCESS": "FAILURE",rc);
 	return rc;
 }
 
@@ -340,13 +332,13 @@ SaAisErrorT saLckDispatch(SaLckHandleT lckHandle, const SaDispatchFlagsT flags)
 	GLA_CLIENT_INFO *client_info = NULL;
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 
-	TRACE("saLckDispatch Called with Handle %" PRIu64, (uint64_t)lckHandle);
+	TRACE_ENTER2("Called with Handle %llx", lckHandle);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA cb retrieval failed");
 		goto done;
 	}
 	/* get the client_info */
@@ -387,13 +379,7 @@ SaAisErrorT saLckDispatch(SaLckHandleT lckHandle, const SaDispatchFlagsT flags)
 	if (gla_cb)
 		m_GLSV_GLA_GIVEUP_GLA_CB;
 
-	if (rc != SA_AIS_OK)
-		m_LOG_GLA_API(GLA_API_LCK_DISPATCH_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-
-	if (rc == SA_AIS_OK)
-		TRACE("saLckDispatch Called SUCCESS");
-	else
-		TRACE("saLckDispatch Called FAILURE");
+	TRACE_LEAVE2("'%s' return value '%d'", (rc == SA_AIS_OK) ? "SUCCESS": "FAILURE",rc);
 	return rc;
 }
 
@@ -418,14 +404,14 @@ SaAisErrorT saLckFinalize(SaLckHandleT hdl)
 	GLA_CLIENT_INFO *client_info = NULL;
 	uint32_t ret;
 
-	TRACE("SaLckFinalize Called with Handle %" PRIu64, (uint64_t)hdl);
+	TRACE_ENTER2("Called with Handle %llx", hdl);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
-		return rc;
+		TRACE_2("GLA cb retrieval failed");
+		goto end;
 	}
 
 	/* get the client_info */
@@ -444,7 +430,8 @@ SaAisErrorT saLckFinalize(SaLckHandleT hdl)
 	if (!gla_cb->glnd_svc_up) {
 		ncshm_give_hdl(client_info->lcl_lock_handle_id);
 		m_GLSV_GLA_GIVEUP_GLA_CB;
-		return SA_AIS_ERR_TRY_AGAIN;
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto end;
 	}
 
 	/* populate the structure */
@@ -458,8 +445,7 @@ SaAisErrorT saLckFinalize(SaLckHandleT hdl)
 		if (ret == NCSCC_RC_REQ_TIMOUT)
 			rc = SA_AIS_ERR_TIMEOUT;
 		else
-			m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE, __FILE__, __LINE__,
-					    m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_FINALIZE);
+			TRACE_2("GLA mds send failure: from mds_dest: %d event_type: %d", m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_FINALIZE);
 		goto done;
 	}
 	rc = out_evt->error;
@@ -493,19 +479,16 @@ SaAisErrorT saLckFinalize(SaLckHandleT hdl)
 		m_GLSV_GLA_GIVEUP_GLA_CB;
 
 	if (rc != SA_AIS_OK) {
-		m_LOG_GLA_API(GLA_API_LCK_FINALIZE_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_2("GLA api lock finalize failed");
 	}
-
-	if (rc == SA_AIS_OK)
-		TRACE("SaLckFinalize SUCCESS");
-	else
-		TRACE("SaLckFinalize FAILURE");
+end:
 
 	if (rc == SA_AIS_OK) {
 		ncs_gla_shutdown();
 		ncs_agents_shutdown();
 	}
 
+	TRACE_LEAVE2("'%s' return value '%d'", (rc == SA_AIS_OK)?"SUCCESS":"FAILURE", rc);
 	return rc;
 }
 
@@ -537,9 +520,10 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 	uint32_t ret;
 	GLA_CLIENT_RES_INFO *client_res_info = NULL;
 
+	TRACE_ENTER2("Called with Handle %llx  and Name %.7s", lckHandle, lockResourceName->value);
+
 	/* validate the inputs */
 	if (lockResourceName == NULL || lockResourceHandle == NULL) {
-		/* shashi --- #6 Added Invalid error code */
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -559,13 +543,12 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 		goto done;
 	}
 
-	TRACE("saLckResourceOpen Called with Handle %" PRIu64 " and Name %.7s", (uint64_t)lckHandle, lockResourceName->value);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA cb retrieval failed");
 		goto done;
 	}
 	/* get the client_info */
@@ -584,7 +567,8 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 	if (!gla_cb->glnd_svc_up) {
 		ncshm_give_hdl(client_info->lcl_lock_handle_id);
 		m_GLSV_GLA_GIVEUP_GLA_CB;
-		return SA_AIS_ERR_TRY_AGAIN;
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto end;
 	}
 
 	/* populate the evt */
@@ -610,8 +594,7 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 		if (ret == NCSCC_RC_REQ_TIMOUT)
 			rc = SA_AIS_ERR_TIMEOUT;
 		else
-			m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE, __FILE__, __LINE__,
-					    m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_RSC_OPEN);
+			TRACE_2("GLA mds send failure: from mds_dest: %d event_type: %d", m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_RSC_OPEN);
 		goto done;
 	}
 
@@ -653,14 +636,13 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 
 	if (rc != SA_AIS_OK) {
 		if (rc == SA_AIS_ERR_TRY_AGAIN)
-			m_LOG_GLA_API(GLA_API_LCK_RESOURCE_OPEN_SYNC_FAIL, NCSFL_SEV_INFO, __FILE__, __LINE__);
+			TRACE_2("GLA api lock res open sync failed");
 		else
-			m_LOG_GLA_API(GLA_API_LCK_RESOURCE_OPEN_SYNC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_2("GLA api lock res open sync failed");
 	}
-	if (rc == SA_AIS_OK)
-		TRACE("saLckResourceOpen SUCCESS Res_id %" PRIu64, (uint64_t)*lockResourceHandle);
-	else
-		TRACE("saLckResourceOpen FAILURE");
+end:
+	
+	TRACE_LEAVE2("'%s' return value '%d'", (rc == SA_AIS_OK)?"SUCCESS":"FAILURE", rc);
 	return rc;
 }
 
@@ -685,10 +667,10 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 	GLA_CLIENT_INFO *client_info = NULL;
 	GLSV_GLND_EVT res_open_evt;
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
-
+	
+	TRACE_ENTER2("Called with lockhandle %llx resourceName %.7s", lckHandle, lockResourceName->value);
 	/* validate the inputs */
 	if (lockResourceName == NULL) {
-		/* shashi --- #8 INVALID PARAM */
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -706,13 +688,12 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 		goto done;
 	}
 
-	TRACE("saLckResourceOpenAsync Called with Handle %" PRIu64 " and Name %s", (uint64_t)lckHandle, lockResourceName->value);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA cb retrieval failed");
 		goto done;
 	}
 	/* get the client_info */
@@ -736,7 +717,8 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 	if (!gla_cb->glnd_svc_up) {
 		ncshm_give_hdl(client_info->lcl_lock_handle_id);
 		m_GLSV_GLA_GIVEUP_GLA_CB;
-		return SA_AIS_ERR_TRY_AGAIN;
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto end;
 	}
 
 	GLA_RESOURCE_ID_INFO *res_id_node;
@@ -770,8 +752,7 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 	/* send the event */
 	if (gla_mds_msg_async_send(gla_cb, &res_open_evt) != NCSCC_RC_SUCCESS) {
 		gla_stop_tmr(&res_id_node->res_async_tmr);
-		m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE, __FILE__, __LINE__,
-				    m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_RSC_OPEN);
+		TRACE_2("GLA mds send failure: from mds_dest: %d event_type: %d", m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_RSC_OPEN);
 		goto done;
 	}
 	rc = SA_AIS_OK;
@@ -786,16 +767,12 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 
 	if (rc != SA_AIS_OK) {
 		if (rc == SA_AIS_ERR_TRY_AGAIN)
-			m_LOG_GLA_API(GLA_API_LCK_RESOURCE_OPEN_ASYNC_FAIL, NCSFL_SEV_INFO, __FILE__, __LINE__);
+			TRACE_2("GLA api lock res open async failed");
 		else
-			m_LOG_GLA_API(GLA_API_LCK_RESOURCE_OPEN_ASYNC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_2("GLA api lock res open async failed");
 	}
-
-	if (rc == SA_AIS_OK)
-		TRACE("saLckResourceOpenAsync SUCCESS");
-	else
-		TRACE("saLckResourceOpenAsync FAILURE");
-
+ end:
+	TRACE_LEAVE2("'%s' return value '%d'", (rc == SA_AIS_OK)?"SUCCESS":"FAILURE", rc);
 	return rc;
 }
 
@@ -822,13 +799,13 @@ SaAisErrorT saLckResourceClose(SaLckResourceHandleT lockResourceHandle)
 	GLA_CLIENT_INFO *client_info = NULL;
 	GLA_CLIENT_RES_INFO *client_res_info = NULL;
 
-	TRACE("saLckResourceClose Called with Res_handle %" PRIu64, (uint64_t)lockResourceHandle);
+	TRACE_ENTER2("Called with Res_handle %llx", lockResourceHandle);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA cb retrieval failed");
 		goto done;
 	}
 	/* retrieve Resorce hdl record */
@@ -854,7 +831,8 @@ SaAisErrorT saLckResourceClose(SaLckResourceHandleT lockResourceHandle)
 		ncshm_give_hdl(lockResourceHandle);
 		ncshm_give_hdl(client_info->lcl_lock_handle_id);
 		m_GLSV_GLA_GIVEUP_GLA_CB;
-		return SA_AIS_ERR_TRY_AGAIN;
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto end;
 	}
 
 	/* populate the evt */
@@ -874,8 +852,7 @@ SaAisErrorT saLckResourceClose(SaLckResourceHandleT lockResourceHandle)
 	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_close_evt, &out_evt, GLA_API_RESP_TIME)) != NCSCC_RC_SUCCESS) {
 		if (ret == NCSCC_RC_REQ_TIMOUT)
 			rc = SA_AIS_ERR_TIMEOUT;
-		m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE, __FILE__, __LINE__,
-				    m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_RSC_CLOSE);
+		TRACE_2("GLA mds send failure: from mds_dest: %d event_type: %d", m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_RSC_CLOSE);
 		goto done;
 	}
 
@@ -920,15 +897,12 @@ SaAisErrorT saLckResourceClose(SaLckResourceHandleT lockResourceHandle)
 
 	if (rc != SA_AIS_OK) {
 		if (rc == SA_AIS_ERR_TRY_AGAIN)
-			m_LOG_GLA_API(GLA_API_LCK_RESOURCE_CLOSE_FAIL, NCSFL_SEV_INFO, __FILE__, __LINE__);
+			TRACE_2("GLA api lock res close failed");
 		else
-			m_LOG_GLA_API(GLA_API_LCK_RESOURCE_CLOSE_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_2("GLA api lock res close failed");
 	}
-
-	if (rc == SA_AIS_OK)
-		TRACE("saLckResourceClose SUCCESS");
-	else
-		TRACE("saLckResourceClose FAILURE");
+ end:
+	TRACE_LEAVE2("'%s'", (rc == SA_AIS_OK)?"SUCCESS":"FAILURE");
 	return rc;
 }
 
@@ -966,7 +940,7 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
 	GLA_LOCK_ID_INFO *lock_id_node = NULL;
 
-	TRACE("saLckResourceLock Called with Resource Handle %d", (uint32_t)lockResourceHandle);
+	TRACE_ENTER2("Called with Resource Handle %llx",lockResourceHandle);
 
 	if (!(lockMode == SA_LCK_PR_LOCK_MODE || lockMode == SA_LCK_EX_LOCK_MODE)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
@@ -988,7 +962,7 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA cb retrieval failed");
 		goto done;
 	}
 
@@ -1014,7 +988,8 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 		ncshm_give_hdl(lockResourceHandle);
 		ncshm_give_hdl(client_info->lcl_lock_handle_id);
 		m_GLSV_GLA_GIVEUP_GLA_CB;
-		return SA_AIS_ERR_TRY_AGAIN;
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto end;
 	}
 
 	/* allocate the local lock node and add the values */
@@ -1058,7 +1033,7 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 			lock_id_node = NULL;
 			rc = SA_AIS_ERR_TIMEOUT;
 		} else
-			m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE, __FILE__, __LINE__,
+			TRACE_2("GLA mds send failure: from mds_dest: %d event_type :%d",
 					    m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_RSC_LOCK);
 		goto done;
 	}
@@ -1099,13 +1074,11 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 		m_GLSV_GLA_GIVEUP_GLA_CB;
 
 	if (rc != SA_AIS_OK) {
-		m_LOG_GLA_API(GLA_API_LCK_RESOURCE_LOCK_SYNC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_2("GLA api lock res lock sync failed");
 	}
-	if (rc == SA_AIS_OK)
-		TRACE("saLckResourceLock SUCCESS Lock id %d, Status %d", (uint32_t)*lockId, (uint32_t)*lockStatus);
-	else
-		TRACE("saLckResourceLock FAILURE %d", rc);
 
+ end:
+	TRACE_LEAVE2("'%s' Lock id %llx, Status %d", (rc == SA_AIS_OK)?"SUCCESS":"FAILURE",								*lockId, *lockStatus);
 	return rc;
 }
 
@@ -1140,7 +1113,7 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
 	GLA_LOCK_ID_INFO *lock_id_node = NULL;
 	uint32_t ret;
 
-	TRACE("saLckResourceLockAsync Called with Res_id %d", (uint32_t)lockResourceHandle);
+	TRACE_ENTER2("Called with Res_id %llx", lockResourceHandle);
 
 	/* validate the parameters */
 	if (!(lockMode == SA_LCK_PR_LOCK_MODE || lockMode == SA_LCK_EX_LOCK_MODE)) {
@@ -1162,7 +1135,7 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA cb retrieval failed");
 		goto done;
 	}
 	/* retrieve Resorce hdl record */
@@ -1185,8 +1158,6 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
 
 	/* check to see if the grant callback was registered */
 	if (!client_info->lckCallbk.saLckLockGrantCallback) {
-
-		/* shashi --- #4 changed from ERR_NOT_EXIST to ERR_INIT */
 		rc = SA_AIS_ERR_INIT;
 		goto done;
 	}
@@ -1196,7 +1167,8 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
 		ncshm_give_hdl(lockResourceHandle);
 		ncshm_give_hdl(client_info->lcl_lock_handle_id);
 		m_GLSV_GLA_GIVEUP_GLA_CB;
-		return SA_AIS_ERR_TRY_AGAIN;
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto end;
 	}
 
 	/* put it in the lock id tree */
@@ -1239,7 +1211,7 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
 	ret = gla_mds_msg_async_send(gla_cb, &res_lock_evt);
 	if (ret != NCSCC_RC_SUCCESS) {
 		gla_stop_tmr(&lock_id_node->lock_async_tmr);
-		m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE, __FILE__, __LINE__,
+		TRACE_2("GLA mds send failure: from mds_dest: %d event_type: %d",
 				    m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_RSC_LOCK);
 		goto done;
 	}
@@ -1265,13 +1237,10 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
 		m_GLSV_GLA_GIVEUP_GLA_CB;
 
 	if (rc != SA_AIS_OK)
-		m_LOG_GLA_API(GLA_API_LCK_RESOURCE_LOCK_ASYNC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-
-	if (rc == SA_AIS_OK)
-		TRACE("saLckResourceLockAsync SUCCESS");
-	else
-		TRACE("saLckResourceLockAsync FAILURE %d", rc);
-
+		TRACE_2("GLA api lock res lock async failed");
+ 
+ end:
+	TRACE_LEAVE2("'%s'", (rc == SA_AIS_OK)?"SUCCESS":"FAILURE");
 	return rc;
 }
 
@@ -1302,13 +1271,13 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId, SaTimeT timeout)
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
 	SaLckResourceHandleT res_hdl = 0;
 
-	TRACE("saLckResourceUnlock Called with lock_id %d", (uint32_t)lockId);
+	TRACE_ENTER2("Called with lock_id %llx", lockId);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA cb retrieval failed");
 		goto done;
 	}
 	/* retrieve Lock hdl record */
@@ -1344,7 +1313,8 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId, SaTimeT timeout)
 		ncshm_give_hdl(res_hdl);
 		ncshm_give_hdl(client_info->lcl_lock_handle_id);
 		m_GLSV_GLA_GIVEUP_GLA_CB;
-		return SA_AIS_ERR_TRY_AGAIN;
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto end;
 	}
 
 	/* populate the evt */
@@ -1372,8 +1342,7 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId, SaTimeT timeout)
 		if (ret == NCSCC_RC_REQ_TIMOUT)
 			rc = SA_AIS_ERR_TIMEOUT;
 		else
-			m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE, __FILE__, __LINE__,
-					    m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest),
+			TRACE_2("GLA mds send failure: from mds_dest: %d event_type: %d", m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest),
 					    GLSV_GLND_EVT_RSC_UNLOCK);
 		goto done;
 	}
@@ -1402,13 +1371,10 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId, SaTimeT timeout)
 		m_GLSV_GLA_GIVEUP_GLA_CB;
 
 	if (rc != SA_AIS_OK)
-		m_LOG_GLA_API(GLA_API_LCK_RESOURCE_UNLOCK_SYNC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_2("GLA api lck resource unlock sync fail");
 
-	if (rc == SA_AIS_OK)
-		TRACE("saLckResourceUnlock SUCCESS");
-	else
-		TRACE("saLckResourceUnlock FAILURE %d", rc);
-
+ end:
+	TRACE_LEAVE2("'%s'", (rc == SA_AIS_OK)?"SUCCESS":"FAILURE");
 	return rc;
 }
 
@@ -1434,13 +1400,13 @@ SaAisErrorT saLckResourceUnlockAsync(SaInvocationT invocation, SaLckLockIdT lock
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	GLA_LOCK_ID_INFO *lock_id_info = NULL;
 
-	TRACE("saLckResourceUnlockAsync Called with lock_id %d", (uint32_t)lockId);
+	TRACE_ENTER2("Called with lock_id %llx", lockId);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA cb retrival failed");
 		goto done;
 	}
 
@@ -1473,7 +1439,8 @@ SaAisErrorT saLckResourceUnlockAsync(SaInvocationT invocation, SaLckLockIdT lock
 		ncshm_give_hdl(lockId);
 		ncshm_give_hdl(client_info->lcl_lock_handle_id);
 		m_GLSV_GLA_GIVEUP_GLA_CB;
-		return SA_AIS_ERR_TRY_AGAIN;
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto end;
 	}
 
 	lock_id_info->unlock_async_tmr.client_hdl = lock_id_info->lock_handle_id;
@@ -1501,8 +1468,7 @@ SaAisErrorT saLckResourceUnlockAsync(SaInvocationT invocation, SaLckLockIdT lock
 	/* send the event */
 	if (gla_mds_msg_async_send(gla_cb, &res_unlock_evt) != NCSCC_RC_SUCCESS) {
 		gla_stop_tmr(&lock_id_info->unlock_async_tmr);
-		m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE, __FILE__, __LINE__,
-				    m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_RSC_UNLOCK);
+		TRACE_2("GLA mds send failure: from mds_dest: %d event_type: %d", m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_RSC_UNLOCK);
 		goto done;
 	}
 	rc = SA_AIS_OK;
@@ -1519,13 +1485,10 @@ SaAisErrorT saLckResourceUnlockAsync(SaInvocationT invocation, SaLckLockIdT lock
 		ncshm_give_hdl(lockId);
 
 	if (rc != SA_AIS_OK)
-		m_LOG_GLA_API(GLA_API_LCK_RESOURCE_UNLOCK_ASYNC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_2("GLA api lock res unlock async failed");
 
-	if (rc == SA_AIS_OK)
-		TRACE("saLckResourceUnlockAsync SUCCESS");
-	else
-		TRACE("saLckResourceUnlockAsync FAILURE %d", rc);
-
+ end:
+	TRACE_LEAVE2("'%s'", (rc == SA_AIS_OK)?"SUCCESS":"FAILURE");
 	return rc;
 }
 
@@ -1551,12 +1514,12 @@ SaAisErrorT saLckLockPurge(SaLckResourceHandleT lockResourceHandle)
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
 	uint32_t ret;
 
-	TRACE("saLckLockPurge Called with Res Handle %" PRIu64, (uint64_t)lockResourceHandle);
+	TRACE_ENTER2("Called with Res Handle %llx", lockResourceHandle);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA cb retrieval failed");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
@@ -1583,7 +1546,8 @@ SaAisErrorT saLckLockPurge(SaLckResourceHandleT lockResourceHandle)
 		ncshm_give_hdl(lockResourceHandle);
 		ncshm_give_hdl(client_info->lcl_lock_handle_id);
 		m_GLSV_GLA_GIVEUP_GLA_CB;
-		return SA_AIS_ERR_TRY_AGAIN;
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto end;
 	}
 
 	/* populate the evt */
@@ -1599,8 +1563,7 @@ SaAisErrorT saLckLockPurge(SaLckResourceHandleT lockResourceHandle)
 		if (ret == NCSCC_RC_REQ_TIMOUT)
 			rc = SA_AIS_ERR_TIMEOUT;
 		else
-			m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE, __FILE__, __LINE__,
-					    m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_RSC_PURGE);
+			TRACE_2("GLA mds send failure: from mds_dest: %d event_type: %d", m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest), GLSV_GLND_EVT_RSC_PURGE);
 		goto done;
 	}
 
@@ -1622,12 +1585,8 @@ SaAisErrorT saLckLockPurge(SaLckResourceHandleT lockResourceHandle)
 		m_GLSV_GLA_GIVEUP_GLA_CB;
 
 	if (rc != SA_AIS_OK)
-		m_LOG_GLA_API(GLA_API_LCK_RESOURCE_PURGE_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-
-	if (rc == SA_AIS_OK)
-		TRACE("saLckLockPurge SUCCESS");
-	else
-		TRACE("saLckLockPurge FAILURE %d", rc);
-
+		TRACE_2("GLA api lock res purge failed");
+ end:
+	TRACE_LEAVE2("'%s'", (rc == SA_AIS_OK)?"SUCCESS":"FAILURE");
 	return rc;
 }

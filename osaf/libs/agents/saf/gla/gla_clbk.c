@@ -51,7 +51,8 @@ void gla_process_callback(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, GLSV_GLA
 void gla_process_callback(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, GLSV_GLA_CALLBACK_INFO *callback)
 {
 	GLA_RESOURCE_ID_INFO *res_id_node = NULL;
-
+	
+	TRACE_ENTER();
 	if (callback == NULL)
 		return;
 	/* invoke the corresponding callback */
@@ -233,6 +234,7 @@ void gla_process_callback(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, GLSV_GLA
 	/* free the callback info */
 	if (callback)
 		m_MMGR_FREE_GLA_CALLBACK_INFO(callback);
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -253,6 +255,7 @@ uint32_t gla_hdl_callbk_dispatch_one(GLA_CB *cb, GLA_CLIENT_INFO *client_info)
 	GLA_RESOURCE_ID_INFO *res_id_node = NULL;
 	uint32_t rc = SA_AIS_OK;
 
+	TRACE_ENTER();
 	/* get it from the queue */
 	callback = glsv_gla_callback_queue_read(client_info);
 	if (callback) {
@@ -268,8 +271,9 @@ uint32_t gla_hdl_callbk_dispatch_one(GLA_CB *cb, GLA_CLIENT_INFO *client_info)
 				callback = glsv_gla_callback_queue_read(client_info);
 		}
 	} else {
-		m_LOG_GLA_API(GLA_API_LCK_DISPATCH_FAIL, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE_2("GLA api lock dispatch failed");
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 

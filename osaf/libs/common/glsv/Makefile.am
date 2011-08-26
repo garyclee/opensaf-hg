@@ -24,7 +24,6 @@ noinst_LTLIBRARIES = libglsv_common.la
 
 # TODO: Fix deps on cpsv includes
 libglsv_common_la_CPPFLAGS = \
-	-DNCS_GLSV_LOG=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/glsv/include \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include \

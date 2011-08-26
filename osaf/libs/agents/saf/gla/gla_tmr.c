@@ -48,7 +48,7 @@
 uint32_t gla_start_tmr(GLA_TMR *tmr)
 {
 	uint32_t period = (uint32_t)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(GLSV_GLA_TMR_DEFAULT_TIMEOUT));
-
+		
 	if (tmr->tmr_id == TMR_T_NULL) {
 		m_NCS_TMR_CREATE(tmr->tmr_id, (uint32_t)period, gla_tmr_exp, (void *)tmr);
 	}
@@ -81,6 +81,7 @@ uint32_t gla_start_tmr(GLA_TMR *tmr)
 *****************************************************************************/
 void gla_stop_tmr(GLA_TMR *tmr)
 {
+	
 	/* Stop the timer if it is active... */
 	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
@@ -92,7 +93,7 @@ void gla_stop_tmr(GLA_TMR *tmr)
 		m_NCS_TMR_DESTROY(tmr->tmr_id);
 		tmr->tmr_id = TMR_T_NULL;
 	}
-
+	
 	return;
 }
 

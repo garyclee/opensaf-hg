@@ -71,27 +71,29 @@ uint32_t gla_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
 		rc = gla_create(&req_info->info.create);
 		if (rc == NCSCC_RC_SUCCESS)
-			m_LOG_GLA_HEADLINE(GLA_SE_API_CREATE_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
+			TRACE_1("GLA se lib api create success");
 		else
-			m_LOG_GLA_HEADLINE(GLA_SE_API_CREATE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_2("GLA se lib api create failed");
 		break;
 
 	case NCS_LIB_REQ_DESTROY:
 		rc = gla_destroy(&req_info->info.destroy);
 		if (rc == NCSCC_RC_SUCCESS)
-			m_LOG_GLA_HEADLINE(GLA_SE_API_DESTROY_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
+			TRACE_1("GLA se lib api destroy success");
 		else
-			m_LOG_GLA_HEADLINE(GLA_SE_API_DESTROY_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_2("GLA se lib api destroy failed");
 		break;
 
 	default:
 		break;
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -105,6 +107,7 @@ void gla_sync_with_glnd(GLA_CB *cb)
 {
 	NCS_SEL_OBJ_SET set;
 	uint32_t timeout = 3000;
+	TRACE_ENTER();
 
 	m_NCS_LOCK(&cb->glnd_sync_lock, NCS_LOCK_WRITE);
 
@@ -129,6 +132,8 @@ void gla_sync_with_glnd(GLA_CB *cb)
 	m_NCS_SEL_OBJ_DESTROY(cb->glnd_sync_sel);
 
 	m_NCS_UNLOCK(&cb->glnd_sync_lock, NCS_LOCK_WRITE);
+
+	TRACE_LEAVE();
 	return;
 }
 
@@ -147,17 +152,17 @@ uint32_t gla_create(NCS_LIB_CREATE *create_info)
 {
 	GLA_CB *cb = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* validate create info */
-	if (create_info == NULL)
-		return NCSCC_RC_FAILURE;
-
-	/* Register with Logging subsystem */
-	gla_flx_log_reg();
+	if (create_info == NULL){
+		rc = NCSCC_RC_FAILURE;
+		goto end;
+	}
 
 	/* allocate GLA cb */
 	if (!(cb = m_MMGR_ALLOC_GLA_CB)) {
-		m_LOG_GLA_MEMFAIL(GLA_CB_ALLOC_FAILED, __FILE__, __LINE__);
+		TRACE_4("Control block alloc failed");
 		rc = NCSCC_RC_FAILURE;
 		goto error1;
 	}
@@ -169,7 +174,7 @@ uint32_t gla_create(NCS_LIB_CREATE *create_info)
 
 	/* create the association with hdl-mngr */
 	if (!(cb->agent_handle_id = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_GLA, (NCSCONTEXT)cb))) {
-		m_LOG_GLA_HEADLINE(GLA_CREATE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_2("GLA handle creation failed");
 		rc = NCSCC_RC_FAILURE;
 		goto error2;
 	}
@@ -179,21 +184,21 @@ uint32_t gla_create(NCS_LIB_CREATE *create_info)
 
 	/* initialize the gla cb lock */
 	if (m_NCS_LOCK_INIT(&cb->cb_lock) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLA_LOCKFAIL(GLA_CB_LOCK_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_2("GLA cb lock init failed");
 		rc = NCSCC_RC_FAILURE;
 		goto error3;
 	}
 
 	/* initialize the client tree */
 	if (gla_client_tree_init(cb) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLA_HEADLINE(GLA_CLIENT_TREE_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("GLA client tree init failed");
 		rc = NCSCC_RC_FAILURE;
 		goto error4;
 	}
 
 	/* register with MDS */
 	if (gla_mds_register(cb) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_REGISTER_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_2("GLA mds register failed");
 		rc = NCSCC_RC_FAILURE;
 		goto error5;
 	}
@@ -214,12 +219,12 @@ uint32_t gla_create(NCS_LIB_CREATE *create_info)
 		goto error7;
 	}
 
-	m_LOG_GLA_HEADLINE(GLA_MDS_REGISTER_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
+	TRACE_1("GLA mds register success");
 
 	/* everything went off well.. store the hdl in the global variable */
 	gl_gla_hdl = cb->agent_handle_id;
 
-	return rc;
+	goto end;
 
  error7:
 	/* delete the lock tree */
@@ -241,8 +246,9 @@ uint32_t gla_create(NCS_LIB_CREATE *create_info)
 	/* free the control block */
 	m_MMGR_FREE_GLA_CB(cb);
  error1:
-	/* de register with the flex log */
-	gla_flx_log_dereg();
+
+ end:	
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -260,10 +266,11 @@ uint32_t gla_create(NCS_LIB_CREATE *create_info)
 uint32_t gla_destroy(NCS_LIB_DESTROY *destroy_info)
 {
 	GLA_CB *cb = 0;
+	TRACE_ENTER();
 
 	/* validate the CB */
 	cb = (GLA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLA, gl_gla_hdl);
-	if (!cb)
+	if (!cb) 
 		return NCSCC_RC_FAILURE;
 
 	/* Send the unreg info to the GLND */
@@ -284,8 +291,6 @@ uint32_t gla_destroy(NCS_LIB_DESTROY *destroy_info)
 	/* destroy the lock */
 	m_NCS_LOCK_DESTROY(&cb->cb_lock);
 
-	/* de register with the flex log */
-	gla_flx_log_dereg();
 
 	/* return GLA CB */
 	ncshm_give_hdl(gl_gla_hdl);
@@ -298,6 +303,8 @@ uint32_t gla_destroy(NCS_LIB_DESTROY *destroy_info)
 
 	/* reset the global cb handle */
 	gl_gla_hdl = 0;
+	
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -393,6 +400,7 @@ void gla_client_tree_cleanup(GLA_CB *gla_cb)
 GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_id, bool flag)
 {
 	GLA_CLIENT_INFO *client_info = NULL;
+	TRACE_ENTER();
 
 	/* take the cb lock */
 	m_NCS_LOCK(&gla_cb->cb_lock, NCS_LOCK_READ);
@@ -404,8 +412,9 @@ GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_i
 		if (!client_info) {
 			client_info = (GLA_CLIENT_INFO *)m_MMGR_ALLOC_GLA_CLIENT_INFO;
 			if (!client_info) {
-				m_LOG_GLA_MEMFAIL(GLA_CLIENT_ALLOC_FAILED, __FILE__, __LINE__);
-				return NULL;
+				TRACE_4("GLA client node alloc failed");
+				client_info = NULL;
+				goto end;
 			}
 			memset(client_info, 0, sizeof(GLA_CLIENT_INFO));
 
@@ -414,14 +423,16 @@ GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_i
 			param.key_size = sizeof(SaLckResourceIdT);
 			if (ncs_patricia_tree_init(&client_info->client_res_tree, &param) != NCSCC_RC_SUCCESS) {
 				m_MMGR_FREE_GLA_CLIENT_INFO(client_info);
-				return NULL;
+				client_info = NULL;
+				goto end;
 			}
 			/* create the association with hdl-mngr */
 			if (0 ==
 			    (client_info->lcl_lock_handle_id =
 			     ncshm_create_hdl(NCS_HM_POOL_ID_EXTERNAL1, NCS_SERVICE_ID_GLA, (NCSCONTEXT)client_info))) {
 				m_MMGR_FREE_GLA_CLIENT_INFO(client_info);
-				return NULL;
+				client_info = NULL;
+				goto end;
 			}
 
 			client_info->lock_handle_id = hdl_id;
@@ -431,24 +442,28 @@ GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_i
 			if (glsv_gla_callback_queue_init(client_info) != NCSCC_RC_SUCCESS) {
 				ncshm_destroy_hdl(NCS_SERVICE_ID_GLA, client_info->lcl_lock_handle_id);
 				m_MMGR_FREE_GLA_CLIENT_INFO(client_info);
-				return NULL;
+				client_info = NULL;
+				goto end;
 			}
 
 			/* take the lock */
 			m_NCS_LOCK(&gla_cb->cb_lock, NCS_LOCK_WRITE);
 
 			if (ncs_patricia_tree_add(&gla_cb->gla_client_tree, &client_info->patnode) != NCSCC_RC_SUCCESS) {
-				m_LOG_GLA_HEADLINE(GLA_CLIENT_TREE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+				TRACE_4("GLA client tree add failed");
 				ncshm_destroy_hdl(NCS_SERVICE_ID_GLA, client_info->lcl_lock_handle_id);
 				m_MMGR_FREE_GLA_CLIENT_INFO(client_info);
 				m_NCS_UNLOCK(&gla_cb->cb_lock, NCS_LOCK_WRITE);
-				return NULL;
+				client_info = NULL;
+				goto end;
 			}
 
 			/* give up the lock */
 			m_NCS_UNLOCK(&gla_cb->cb_lock, NCS_LOCK_WRITE);
 		}
 	}
+ end:	
+	TRACE_LEAVE();
 	return client_info;
 }
 
@@ -468,9 +483,10 @@ uint32_t gla_client_info_send(GLA_CB *gla_cb)
 	GLA_CLIENT_INFO *client_info;
 	GLSV_GLND_EVT restart_client_info_evt;
 	SaLckHandleT hdl_id = 0;
-	uint32_t ret;
+	uint32_t ret = NCSCC_RC_SUCCESS;
 	hdl_id = 0;
 	uint16_t lck_clbk = 0;
+	TRACE_ENTER();
 
 	/* take the cb lock */
 	client_info = (GLA_CLIENT_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_client_tree, (uint8_t *)0);
@@ -493,10 +509,10 @@ uint32_t gla_client_info_send(GLA_CB *gla_cb)
 
 		/* send the event */
 		if ((ret = gla_mds_msg_async_send(gla_cb, &restart_client_info_evt)) != NCSCC_RC_SUCCESS) {
-			m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE, __FILE__, __LINE__,
-					    m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest),
+			TRACE_2("GLA mds send failure: from mds_dest: %d event_type: %d", m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest),
 					    GLSV_GLND_EVT_CLIENT_INFO);
-			return NCSCC_RC_FAILURE;
+			ret = NCSCC_RC_FAILURE;
+			goto end;
 		}
 
 		/* Send resource info for this client */
@@ -505,7 +521,9 @@ uint32_t gla_client_info_send(GLA_CB *gla_cb)
 		    (GLA_CLIENT_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_client_tree,
 								 (uint8_t *)&client_info->lock_handle_id);
 	}
-	return NCSCC_RC_SUCCESS;
+ end:	
+	TRACE_LEAVE();
+	return ret;
 }
 
 /****************************************************************************
@@ -524,6 +542,7 @@ static uint32_t gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT hdl_id)
 	GLA_RESOURCE_ID_INFO *res_info;
 	GLSV_GLND_EVT restart_res_info_evt;
 	uint32_t ret;
+	TRACE_ENTER();
 
 	/* take the cb lock */
 	res_info = (GLA_RESOURCE_ID_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_resource_id_tree, (uint8_t *)0);
@@ -537,10 +556,11 @@ static uint32_t gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT hdl_id)
 
 			/* send the event */
 			if ((ret = gla_mds_msg_async_send(gla_cb, &restart_res_info_evt)) != NCSCC_RC_SUCCESS) {
-				m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE, __FILE__, __LINE__,
+				TRACE_2("GLA mds send failure: from mds_dest: %d event_type: %d", 
 						    m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest),
 						    GLSV_GLND_EVT_CLIENT_INFO);
-				return NCSCC_RC_FAILURE;
+				ret = NCSCC_RC_FAILURE;
+				goto end;
 			}
 		}
 		res_info =
@@ -548,7 +568,9 @@ static uint32_t gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT hdl_id)
 								      (uint8_t *)&res_info->lcl_res_id);
 
 	}
-	return NCSCC_RC_SUCCESS;
+ end:
+	TRACE_LEAVE();
+	return ret;
 }
 
 /****************************************************************************
@@ -570,7 +592,7 @@ uint32_t gla_client_tree_delete_node(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_inf
 
 	/* delete from the tree */
 	if (ncs_patricia_tree_del(&gla_cb->gla_client_tree, &client_info->patnode) != NCSCC_RC_SUCCESS)
-		m_LOG_GLA_HEADLINE(GLA_CLIENT_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		TRACE_4("GLA client tree del failed");
 
 	if (give_hdl)
 		ncshm_give_hdl(client_info->lcl_lock_handle_id);

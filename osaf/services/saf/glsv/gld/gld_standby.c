@@ -54,19 +54,25 @@ GLSV_GLD_A2S_EVT_HANDLER gld_a2s_evt_dispatch_tbl[5] = {
  *****************************************************************************/
 uint32_t gld_process_standby_evt(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT *evt)
 {
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 	if (gld_a2s_evt_dispatch_tbl[evt->evt_type] (evt) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_HEADLINE(GLD_A2S_EVT_PROC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("Active to standby event processing failed");
 		gld_a2s_evt_destroy(evt);
-		return NCSCC_RC_FAILURE;
+		rc = NCSCC_RC_FAILURE;
+		goto end;
 	}
 	gld_a2s_evt_destroy(evt);
-	return NCSCC_RC_SUCCESS;
+ end:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
  * Name          : gld_a2s_evt_destroy
  *
  * Description   : This is the function which is used to free the event
+
  *                 pointer which it has received.
  *
  * Arguments     : evt  - This is the pointer which holds the
@@ -100,23 +106,25 @@ static uint32_t glsv_gld_standby_rsc_open(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 	GLSV_NODE_LIST *node_list, **tmp_node_list;
 	SaAisErrorT error;
 	uint32_t node_id;
+	uint32_t rc = NCSCC_RC_FAILURE;
+	TRACE_ENTER();
 
 	if (async_evt == NULL)
-		return NCSCC_RC_FAILURE;
+		goto end;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(async_evt->info.rsc_open_info.mdest_id);
 
 	gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl);
 	if (gld_cb == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("Handle take failed");
+		goto end;
 	}
 
 	/* Find if the node details are available */
 	if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
 									   (uint8_t *)&node_id)) == NULL) {
 		if ((node_details = gld_add_glnd_node(gld_cb, async_evt->info.rsc_open_info.mdest_id)) == NULL) {
-			m_LOG_GLD_EVT(GLD_A2S_EVT_ADD_NODE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__,
+			LOG_ER("GLD a2s evt add node failed: rsc_id %u node_id %u ",
 				      async_evt->info.rsc_open_info.rsc_id, node_id);
 			goto error;
 		}
@@ -126,7 +134,7 @@ static uint32_t glsv_gld_standby_rsc_open(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 	    gld_find_add_rsc_name(gld_cb, &async_evt->info.rsc_open_info.rsc_name, async_evt->info.rsc_open_info.rsc_id,
 				  0, &error);
 	if (rsc_info == NULL) {
-		m_LOG_GLD_EVT(GLD_A2S_EVT_ADD_RSC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__,
+		LOG_ER("GLD a2s evt add rsc failed: rsc_id %u node_id %u",
 			      async_evt->info.rsc_open_info.rsc_id, node_id);
 		goto error;
 	}
@@ -152,14 +160,17 @@ static uint32_t glsv_gld_standby_rsc_open(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 		*tmp_node_list = node_list;
 
 	}
-	m_LOG_GLD_EVT(GLD_A2S_EVT_RSC_OPEN_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__, rsc_info->rsc_id, node_id);
+	TRACE_1("GLD A2S evt rsc open success: rsc_id %u node_id %u", rsc_info->rsc_id, node_id);
 	ncshm_give_hdl(gld_cb->my_hdl);
-	return NCSCC_RC_SUCCESS;
+	rc = NCSCC_RC_SUCCESS;
+	goto end;
  error:
-	m_LOG_GLD_EVT(GLD_A2S_EVT_RSC_OPEN_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__,
+	LOG_ER("GLD a2s evt rsc open failed: rsc_id %u node_id %u",
 		      async_evt->info.rsc_open_info.rsc_id, node_id);
 	ncshm_give_hdl(gld_cb->my_hdl);
-	return NCSCC_RC_FAILURE;
+ end:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -185,15 +196,17 @@ static uint32_t glsv_gld_standby_rsc_close(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc;
 	bool orphan_flag;
 	uint32_t node_id;
+	uint32_t rc = NCSCC_RC_FAILURE;
+	TRACE_ENTER();
 
 	if (async_evt == NULL)
-		return NCSCC_RC_FAILURE;
+		goto end;
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(async_evt->info.rsc_details.mdest_id);
 
 	if ((gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))
 	    == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("Handle take failed");
+		goto end;
 	}
 
 	orphan_flag = async_evt->info.rsc_details.orphan;
@@ -201,14 +214,14 @@ static uint32_t glsv_gld_standby_rsc_close(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 	/* Find if the node details are available */
 	if ((node_details =
 	     (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details, (uint8_t *)&node_id)) == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_GET_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, node_id);
+		LOG_ER("Patricia tree get failed: node_id %u", node_id);
 		goto error;
 	}
 
 	glnd_rsc = (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_get(&node_details->rsc_info_tree,
 								  (uint8_t *)&async_evt->info.rsc_details.rsc_id);
 	if (glnd_rsc == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_GET_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("Patricia tree get failed");
 		goto error;
 
 	}
@@ -218,15 +231,18 @@ static uint32_t glsv_gld_standby_rsc_close(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 	if (async_evt->info.rsc_details.lcl_ref_cnt == 0)
 		gld_rsc_rmv_node_ref(gld_cb, glnd_rsc->rsc_info, glnd_rsc, node_details, orphan_flag);
 
-	m_LOG_GLD_EVT(GLD_A2S_EVT_RSC_CLOSE_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__,
+	TRACE_1("GLD a2s evt rsc close success: rsc_id %u node_id %u",
 		      async_evt->info.rsc_details.rsc_id, node_id);
 	ncshm_give_hdl(gld_cb->my_hdl);
-	return NCSCC_RC_SUCCESS;
+	rc = NCSCC_RC_SUCCESS;
+	goto end;
  error:
-	m_LOG_GLD_EVT(GLD_A2S_EVT_RSC_CLOSE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__,
+	LOG_ER("GLD a2s evt rsc close failed: rsc_id %u node_id %u",
 		      async_evt->info.rsc_details.rsc_id, node_id);
 	ncshm_give_hdl(gld_cb->my_hdl);
-	return NCSCC_RC_FAILURE;
+ end:	
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -245,39 +261,44 @@ static uint32_t glsv_gld_standby_rsc_set_orphan(GLSV_GLD_A2S_CKPT_EVT *async_evt
 	GLSV_GLD_CB *gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details;
 	uint32_t node_id;
+	uint32_t rc = NCSCC_RC_FAILURE;
+	TRACE_ENTER();
 
 	if (async_evt == NULL)
-		return NCSCC_RC_FAILURE;
+		goto end;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(async_evt->info.rsc_details.mdest_id);
 
 	if ((gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))
 	    == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("Handle take failed");
+		goto end;
 	}
 
 	/* Find if the node details are available */
 	if ((node_details =
 	     (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details, (uint8_t *)&node_id)) == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_GET_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, node_id);
+		LOG_ER("Patricia tree get failed: node_id %u", node_id);
 		goto error;
 	}
 	if (gld_rsc_ref_set_orphan(node_details, async_evt->info.rsc_details.rsc_id,
 				   async_evt->info.rsc_details.orphan,
 				   async_evt->info.rsc_details.lck_mode) == NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_EVT(GLD_A2S_EVT_SET_ORPHAN_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__,
+		TRACE_1("GLD a2s evt set orphan success: rsc_id %u node_id %u",
 			      async_evt->info.rsc_details.rsc_id, node_id);
 		ncshm_give_hdl(gld_cb->my_hdl);
-		return NCSCC_RC_SUCCESS;
+		rc = NCSCC_RC_SUCCESS;
+		goto end;
 	} else
 		goto error;
 
  error:
-	m_LOG_GLD_EVT(GLD_A2S_EVT_SET_ORPHAN_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__,
+	LOG_ER("GLD a2s evt set orphan failed: rsc_id %u node_id %u",
 		      async_evt->info.rsc_details.rsc_id, node_id);
 	ncshm_give_hdl(gld_cb->my_hdl);
-	return NCSCC_RC_FAILURE;
+ end:
+	TRACE_LEAVE();
+	return rc;
 
 }
 
@@ -300,24 +321,29 @@ static uint32_t glsv_gld_standby_mds_glnd_down(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 	bool orphan_flag;
 	SaLckResourceIdT rsc_id;
 	uint32_t node_id;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
-	if (async_evt == NULL)
-		return NCSCC_RC_FAILURE;
-
+	if (async_evt == NULL) {
+		rc = NCSCC_RC_FAILURE;
+		goto end;
+	}	
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(async_evt->info.glnd_mds_info.mdest_id);
 
 	if ((gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))
 	    == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
-		return (NCSCC_RC_FAILURE);
+		LOG_ER("Handle take failed");
+		rc = NCSCC_RC_FAILURE;
+		goto end;
 	}
 
 	orphan_flag = async_evt->info.rsc_details.orphan;
 
 	if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
 									   (uint8_t *)&node_id)) == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_GET_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, node_id);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("Patricia tree get failed: node_id %u", node_id);
+		rc = NCSCC_RC_FAILURE;
+		goto end;
 	}
 
 	/* Remove the reference to each of the resource referred by this node */
@@ -339,14 +365,16 @@ static uint32_t glsv_gld_standby_mds_glnd_down(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 
 	/* Now delete this node details node */
 	if (ncs_patricia_tree_del(&gld_cb->glnd_details, (NCS_PATRICIA_NODE *)node_details) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__,
+		LOG_ER("Patricia tree del failed: node_id %u",
 				   node_details->node_id);
 	}
 
 	m_MMGR_FREE_GLSV_GLD_GLND_DETAILS(node_details);
 
 	ncshm_give_hdl(gld_cb->my_hdl);
-	return NCSCC_RC_SUCCESS;
+ end:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -368,16 +396,21 @@ static uint32_t glsv_gld_standby_glnd_operational(GLSV_GLD_A2S_CKPT_EVT *async_e
 	GLSV_NODE_LIST *node_list = NULL;
 	bool orphan_flag;
 	uint32_t node_id;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
-	if (async_evt == NULL)
-		return NCSCC_RC_FAILURE;
+	if (async_evt == NULL) {
+		rc = NCSCC_RC_FAILURE;
+		goto end;
+	}
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(async_evt->info.glnd_mds_info.mdest_id);
 
 	if ((gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))
 	    == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
-		return (NCSCC_RC_FAILURE);
+		LOG_ER("Handle take failed");
+		rc = NCSCC_RC_FAILURE;
+		goto end;	
 	}
 
 	orphan_flag = async_evt->info.rsc_details.orphan;
@@ -407,7 +440,9 @@ static uint32_t glsv_gld_standby_glnd_operational(GLSV_GLD_A2S_CKPT_EVT *async_e
 	}
 
 	ncshm_give_hdl(gld_cb->my_hdl);
-	return NCSCC_RC_SUCCESS;
+ end:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -430,6 +465,8 @@ uint32_t gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_RSC_DETAILS *rsc
 	GLSV_GLD_RSC_INFO *rsc_info = NULL;
 	SaAisErrorT ret_error;
 	uint32_t node_id;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if (rsc_details) {
 		rsc_info =
@@ -437,25 +474,32 @@ uint32_t gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_RSC_DETAILS *rsc
 		if (rsc_info == NULL)
 			rsc_info =
 			    gld_add_rsc_info(gld_cb, &rsc_details->resource_name, rsc_details->rsc_id, &ret_error);
-		if (rsc_info == NULL)
-			return NCSCC_RC_FAILURE;
+		if (rsc_info == NULL) {
+			rc = NCSCC_RC_FAILURE;
+			goto end;
+		}	
 		else
 			rsc_info->can_orphan = rsc_details->can_orphan;
-	} else
-		return NCSCC_RC_FAILURE;
-
+	} else {
+		rc = NCSCC_RC_FAILURE;
+		goto end;
+	} 	
 	if (rsc_details->node_list)
 		node_list = rsc_details->node_list;
-	else
-		return NCSCC_RC_FAILURE;
+	else {
+		rc = NCSCC_RC_FAILURE;
+		goto end;
+	}
 
 	while (node_list != NULL) {
 		node_id = m_NCS_NODE_ID_FROM_MDS_DEST(node_list->dest_id);
 		/* Find if the node details are already available */
 		if ((node_details =
 		     (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details, (uint8_t *)&node_id)) == NULL) {
-			if ((node_details = gld_add_glnd_node(gld_cb, node_list->dest_id)) == NULL)
-				return NCSCC_RC_FAILURE;
+			if ((node_details = gld_add_glnd_node(gld_cb, node_list->dest_id)) == NULL) {
+				rc = NCSCC_RC_FAILURE;
+				goto end;
+			}
 			else
 				node_details->status = node_list->status;
 			if (node_details->status == GLND_RESTART_STATE) {
@@ -491,6 +535,7 @@ uint32_t gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_RSC_DETAILS *rsc
 		node_list = node_list->next;
 
 	}
-	return NCSCC_RC_SUCCESS;
-
+ end:
+	TRACE_LEAVE();
+	return rc;
 }

@@ -40,7 +40,7 @@ void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLckRes
 	SaAisErrorT rc = SA_AIS_OK;
 
 	if (gld_cb == NULL) {
-		m_LOG_GLD_MBCSV(GLD_A2S_RSC_OPEN_ASYNC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("GLD a2s rsc open async failed");
 	} else {
 		memset(&a2s_evt, '\0', sizeof(GLSV_GLD_A2S_CKPT_EVT));
 
@@ -53,9 +53,9 @@ void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLckRes
 		/* send msg to MBCSv */
 		rc = glsv_gld_mbcsv_async_update(gld_cb, &a2s_evt);
 		if (rc != SA_AIS_OK)
-			m_LOG_GLD_MBCSV(GLD_A2S_RSC_OPEN_ASYNC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("GLD a2s rsc open async failed");
 		else
-			m_LOG_GLD_MBCSV(GLD_A2S_RSC_OPEN_ASYNC_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
+			TRACE_1("GLD a2s rsc open async success");
 	}
 
 }
@@ -83,9 +83,9 @@ void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB *gld_cb, MDS_DEST mdest_id, uint
 		/* send msg to MBCSv */
 		rc = glsv_gld_mbcsv_async_update(gld_cb, &a2s_evt);
 		if (rc != SA_AIS_OK)
-			m_LOG_GLD_MBCSV(GLD_A2S_RSC_NODE_DOWN_ASYNC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("GLD a2s rsc node down async failed");
 		else
-			m_LOG_GLD_MBCSV(GLD_A2S_RSC_NODE_DOWN_ASYNC_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
+			TRACE_1("GLD a2s rsc node down async success");
 	}
 }
 
@@ -106,9 +106,9 @@ void glsv_gld_a2s_ckpt_rsc_details(GLSV_GLD_CB *gld_cb, GLSV_GLD_EVT_TYPE evt_ty
 
 	if (gld_cb == NULL) {
 		if (evt_type == GLSV_GLD_EVT_RSC_CLOSE)
-			m_LOG_GLD_MBCSV(GLD_A2S_RSC_CLOSE_ASYNC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("GLD a2s rsc close async failed");
 		if (evt_type == GLSV_GLD_EVT_SET_ORPHAN)
-			m_LOG_GLD_MBCSV(GLD_A2S_RSC_SET_ORPHAN_ASYNC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("GLD a2s rsc set orphan async failed");
 	} else {
 		memset(&a2s_evt, '\0', sizeof(GLSV_GLD_A2S_CKPT_EVT));
 
@@ -123,16 +123,14 @@ void glsv_gld_a2s_ckpt_rsc_details(GLSV_GLD_CB *gld_cb, GLSV_GLD_EVT_TYPE evt_ty
 		rc = glsv_gld_mbcsv_async_update(gld_cb, &a2s_evt);
 		if (rc != SA_AIS_OK) {
 			if (evt_type == GLSV_GLD_EVT_RSC_CLOSE)
-				m_LOG_GLD_MBCSV(GLD_A2S_RSC_CLOSE_ASYNC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+				LOG_ER("GLD a2s rsc close async failed");
 			if (evt_type == GLSV_GLD_EVT_SET_ORPHAN)
-				m_LOG_GLD_MBCSV(GLD_A2S_RSC_SET_ORPHAN_ASYNC_FAILED, NCSFL_SEV_ERROR, __FILE__,
-						__LINE__);
+				LOG_ER("GLD a2s rsc set orphan async failed");
 		} else {
 			if (evt_type == GLSV_GLD_EVT_RSC_CLOSE)
-				m_LOG_GLD_MBCSV(GLD_A2S_RSC_CLOSE_ASYNC_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
+				TRACE_1("GLD a2s rsc close async success");
 			if (evt_type == GLSV_GLD_EVT_SET_ORPHAN)
-				m_LOG_GLD_MBCSV(GLD_A2S_RSC_SET_ORPHAN_ASYNC_SUCCESS, NCSFL_SEV_INFO, __FILE__,
-						__LINE__);
+				TRACE_1("GLD a2s rsc set orphan async success");
 		}
 	}
 }

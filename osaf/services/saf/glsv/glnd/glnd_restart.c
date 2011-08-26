@@ -30,10 +30,8 @@
 
 ******************************************************************************/
 
-#include <logtrace.h>
-
 #include "glnd.h"
-
+#include<string.h>
 /*
  * Function Prototypes
  */
@@ -63,7 +61,9 @@ static uint32_t glnd_restart_event_add(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT
 *****************************************************************************/
 uint32_t glnd_restart_build_database(GLND_CB *glnd_cb)
 {
-	uint32_t ret_val;
+	uint32_t ret_val = NCSCC_RC_FAILURE;
+
+	TRACE_ENTER();
 
 	/* Build resource tree of glnd_cb */
 	ret_val = glnd_restart_build_resource_tree(glnd_cb);
@@ -74,19 +74,21 @@ uint32_t glnd_restart_build_database(GLND_CB *glnd_cb)
 			/* Build backup event  of glnd_cb */
 			ret_val = glnd_restart_build_backup_event_tree(glnd_cb);
 			if (ret_val == NCSCC_RC_SUCCESS) {
-				m_LOG_GLND(GLND_RESTART_BUILD_DATABASE_SUCCESS, NCSFL_LC_HEADLINE, NCSFL_SEV_INFO,
-					   ret_val, __FILE__, __LINE__, 0, 0, 0);
-				return NCSCC_RC_SUCCESS;
+				TRACE_1("GLND restart build database success: ret_value %u ", ret_val);
+				goto done;
 			} else {
-				m_LOG_GLND(GLND_RESTART_BUILD_DATABASE_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
-					   ret_val, __FILE__, __LINE__, 0, 0, 0);
-				return NCSCC_RC_FAILURE;
+				TRACE_2("GLND restart build database failure: ret_value %u", ret_val);
+				ret_val = NCSCC_RC_FAILURE;
+				goto done;
 			}
 
 		}
-		return NCSCC_RC_FAILURE;
-	} else
-		return NCSCC_RC_FAILURE;
+		ret_val = NCSCC_RC_FAILURE;
+		goto done;
+	} 
+done:
+	TRACE_LEAVE2("Return valu: %d",ret_val);
+	return ret_val;
 }
 
 /*****************************************************************************
@@ -103,10 +105,12 @@ uint32_t glnd_restart_build_database(GLND_CB *glnd_cb)
 *****************************************************************************/
 static uint32_t glnd_restart_build_resource_tree(GLND_CB *glnd_cb)
 {
-	SaAisErrorT rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT rc = NCSCC_RC_FAILURE;
 	GLND_RESTART_RES_INFO *shm_base_addr = NULL;
 	GLND_RESTART_RES_INFO restart_res_info;
 	uint32_t i;
+
+	TRACE_ENTER();
 
 	shm_base_addr = glnd_cb->glnd_res_shm_base_addr;
 	for (i = 0; i < GLND_RESOURCE_INFO_CKPT_MAX_SECTIONS; i++) {
@@ -114,20 +118,18 @@ static uint32_t glnd_restart_build_resource_tree(GLND_CB *glnd_cb)
 			/* Read the res_info from shared memory and build the client tree */
 			memset(&restart_res_info, 0, sizeof(GLND_RESTART_RES_INFO));
 			rc = glnd_restart_resource_ckpt_read(glnd_cb, &restart_res_info, i);
-
 			if (rc == NCSCC_RC_SUCCESS)
 				glnd_restart_resource_node_add(glnd_cb, &restart_res_info);
 			else {
-				m_LOG_GLND(GLND_RESTART_RESOURCE_TREE_BUILD_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_INFO,
-					   rc, __FILE__, __LINE__, 0, 0, 0);
-				return NCSCC_RC_FAILURE;
+				TRACE_2("GLND restart resource tree build failure: rc %d", rc);
+				goto done;
 			}
 		}
 	}
-	m_LOG_GLND(GLND_RESTART_RESOURCE_TREE_BUILD_SUCCESS, NCSFL_LC_HEADLINE, NCSFL_SEV_INFO, NCSCC_RC_SUCCESS,
-		   __FILE__, __LINE__, 0, 0, 0);
-
-	return NCSCC_RC_SUCCESS;
+	TRACE("GLND restart resource tree build success");
+done:
+	TRACE_LEAVE2("Return val:%d",rc);
+	return rc;
 }
 
 /*****************************************************************************
@@ -161,15 +163,13 @@ static uint32_t glnd_restart_build_res_lock_list(GLND_CB *glnd_cb)
 				}
 
 			} else {
-				m_LOG_GLND(GLND_RESTART_LCK_LIST_BUILD_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_INFO, rc,
-					   __FILE__, __LINE__, 0, 0, 0);
+				TRACE_2("GLND restart lck list build failure: rc %d", rc);
 				return NCSCC_RC_FAILURE;
 			}
 
 		}
 	}
-	m_LOG_GLND(GLND_RESTART_LCK_LIST_BUILD_SUCCESS, NCSFL_LC_HEADLINE, NCSFL_SEV_INFO, NCSCC_RC_SUCCESS, __FILE__,
-		   __LINE__, 0, 0, 0);
+	TRACE_1("GLND restart lck list build success");
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -197,8 +197,8 @@ static uint32_t glnd_restart_add_res_lock_to_resource_tree(GLND_CB *glnd_cb,
 
 	lck_list_info = (GLND_RES_LOCK_LIST_INFO *)m_MMGR_ALLOC_GLND_RES_LOCK_LIST_INFO;
 	if (lck_list_info == NULL) {
-		m_LOG_GLND_MEMFAIL(GLND_RSC_LOCK_LIST_ALLOC_FAILED, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_CR("GLND Rsc lock list alloc failed: Error %s", strerror(errno));
+		assert(0);
 	}
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(restart_res_lock_list_info->req_mdest_id);
 
@@ -311,6 +311,7 @@ static uint32_t glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RE
 	GLND_RESOURCE_INFO *res_info = NULL;
 	int new_node = 0;
 	uint32_t node_id;
+	TRACE_ENTER();
 
 	if (restart_res_info == NULL)
 		return NCSCC_RC_FAILURE;
@@ -322,8 +323,8 @@ static uint32_t glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RE
 		/* allocate the memory */
 		res_info = (GLND_RESOURCE_INFO *)m_MMGR_ALLOC_GLND_RESOURCE_INFO;
 		if (!res_info) {
-			m_LOG_GLND_MEMFAIL(GLND_RSC_NODE_ALLOC_FAILED, __FILE__, __LINE__);
-			return NCSCC_RC_FAILURE;
+			LOG_CR("GLND Rsc node alloc failed: Error %s", strerror(errno));
+			assert(0);
 		}
 		memset(res_info, 0, sizeof(GLND_RESOURCE_INFO));
 	}
@@ -352,13 +353,11 @@ static uint32_t glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RE
 		/* add it to the tree */
 		res_info->patnode.key_info = (uint8_t *)&res_info->resource_id;
 		if (ncs_patricia_tree_add(&glnd_cb->glnd_res_tree, &res_info->patnode) != NCSCC_RC_SUCCESS) {
-			m_LOG_GLND_API(GLND_RSC_NODE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("GLND Rsc node add failed");
 			m_MMGR_FREE_GLND_RESOURCE_INFO(res_info);
 			return NCSCC_RC_FAILURE;
 		}
-		TRACE("GLND_RESOURCE_NODE_ADD - %d", (uint32_t)res_info->resource_id);
-		/* log the Resource Add */
-		m_LOG_GLND_HEADLINE_TI(GLND_RSC_NODE_ADD_SUCCESS, __FILE__, __LINE__, (uint32_t)res_info->resource_id);
+		TRACE("GLND Rsc node add success: resource_id %u", (uint32_t)res_info->resource_id);
 	}
 	return NCSCC_RC_SUCCESS;
 }
@@ -387,8 +386,8 @@ GLND_RESOURCE_INFO *glnd_restart_client_resource_node_add(GLND_CB *glnd_cb, SaLc
 	res_info = (GLND_RESOURCE_INFO *)m_MMGR_ALLOC_GLND_RESOURCE_INFO;
 
 	if (!res_info) {
-		m_LOG_GLND_MEMFAIL(GLND_RSC_NODE_ALLOC_FAILED, __FILE__, __LINE__);
-		return NULL;
+		LOG_CR("GLND Rsc node alloc failed: Error %s", strerror(errno));
+		assert(0);
 	}
 	memset(res_info, 0, sizeof(GLND_RESOURCE_INFO));
 
@@ -398,12 +397,12 @@ GLND_RESOURCE_INFO *glnd_restart_client_resource_node_add(GLND_CB *glnd_cb, SaLc
 	/* add it to the tree */
 	res_info->patnode.key_info = (uint8_t *)&res_info->resource_id;
 	if (ncs_patricia_tree_add(&glnd_cb->glnd_res_tree, &res_info->patnode) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_API(GLND_RSC_NODE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("GLND Rsc node add failed");
 		m_MMGR_FREE_GLND_RESOURCE_INFO(res_info);
 		return NULL;
 	}
 	/* log the Resource Add */
-	m_LOG_GLND_HEADLINE_TI(GLND_RSC_NODE_ADD_SUCCESS, __FILE__, __LINE__, (uint32_t)res_info->resource_id);
+	TRACE("GLND Rsc node add success: resource_id %u", (uint32_t)res_info->resource_id);
 	return res_info;
 }
 
@@ -428,7 +427,7 @@ static uint32_t glnd_restart_event_add(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT
 	/* check for the resource node */
 	res_node = glnd_resource_node_find(glnd_cb, evt_info->resource_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("GLND Rsc node find failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -492,14 +491,12 @@ static uint32_t glnd_restart_build_backup_event_tree(GLND_CB *glnd_cb)
 			if (rc == NCSCC_RC_SUCCESS) {
 				glnd_restart_event_add(glnd_cb, &glnd_restart_backup_evt);
 			} else {
-				m_LOG_GLND(GLND_RESTART_EVT_LIST_BUILD_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_INFO, rc,
-					   __FILE__, __LINE__, 0, 0, 0);
+				TRACE_2("GLND restart evt list build failure: rc %d", rc);
 				return NCSCC_RC_FAILURE;
 			}
 
 		}
 	}
-	m_LOG_GLND(GLND_RESTART_EVT_LIST_BUILD_SUCCESS, NCSFL_LC_HEADLINE, NCSFL_SEV_INFO, NCSCC_RC_SUCCESS, __FILE__,
-		   __LINE__, 0, 0, 0);
+	TRACE_1("GLND restart evt list build success");
 	return NCSCC_RC_SUCCESS;
 }

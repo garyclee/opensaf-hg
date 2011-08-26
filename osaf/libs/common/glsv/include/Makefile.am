@@ -24,7 +24,6 @@ noinst_HEADERS = \
 	gla_dl_api.h \
 	gla_evt.h \
 	gla.h \
-	gla_log.h \
 	gla_mds.h \
 	gla_mem.h \
 	gld_amf.h \
@@ -34,7 +33,6 @@ noinst_HEADERS = \
 	gld_edu.h \
 	gld_evt.h \
 	gld.h \
-	gld_log.h \
 	gld_mbcsv.h \
 	gld_mds.h \
 	gld_mem.h \
@@ -47,7 +45,6 @@ noinst_HEADERS = \
 	glnd_edu.h \
 	glnd_evt.h \
 	glnd.h \
-	glnd_log.h \
 	glnd_mds.h \
 	glnd_mem.h \
 	glnd_res.h \
@@ -55,5 +52,4 @@ noinst_HEADERS = \
 	glnd_tmr.h \
 	glsv_defs.h \
 	glsv_lck.h \
-	glsv_logstr.h \
 	glsv_mem.h

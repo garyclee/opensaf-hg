@@ -16,7 +16,7 @@
  */
 
 #include "gld.h"
-
+#include <string.h>
 static uint32_t glsv_gld_mbcsv_init(GLSV_GLD_CB *gld_cb);
 static uint32_t glsv_gld_mbcsv_open(GLSV_GLD_CB *gld_cb);
 static uint32_t glsv_gld_mbcsv_close(GLSV_GLD_CB *cb);
@@ -52,10 +52,12 @@ uint32_t glsv_gld_mbcsv_async_update(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT 
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = SA_AIS_OK;
+	TRACE_ENTER();
 
 	if ((a2s_evt == NULL) || (gld_cb == NULL)) {
-		m_LOG_GLD_MBCSV(GLD_NCS_MBCSV_SVC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("GLD ncs mbcsv svc failed");
+		rc = NCSCC_RC_FAILURE;
+		goto end;
 	}
 	/* populate the arg structure */
 	arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
@@ -68,12 +70,12 @@ uint32_t glsv_gld_mbcsv_async_update(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT 
 
 	/*send the message using MBCSv */
 	rc = ncs_mbcsv_svc(&arg);
-	if (rc != SA_AIS_OK) {
-		m_LOG_GLD_MBCSV(GLD_NCS_MBCSV_SVC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return rc;
-	}
+	if (rc != SA_AIS_OK) 
+		LOG_ER("GLD ncs mbcsv svc failed");
+	 	
+ end:	
+	TRACE_LEAVE();
 	return rc;
-
 }
 
 /*****************************************************************************************
@@ -90,10 +92,12 @@ uint32_t glsv_gld_mbcsv_async_update(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT 
 uint32_t glsv_gld_mbcsv_register(GLSV_GLD_CB *gld_cb)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	rc = glsv_gld_mbcsv_init(gld_cb);
-	if (rc != NCSCC_RC_SUCCESS)
-		return rc;
+	if (rc != NCSCC_RC_SUCCESS) {
+		goto end;
+	}
 
 	rc = glsv_gld_mbcsv_open(gld_cb);
 	if (rc != NCSCC_RC_SUCCESS) {
@@ -105,12 +109,14 @@ uint32_t glsv_gld_mbcsv_register(GLSV_GLD_CB *gld_cb)
 	if (rc != NCSCC_RC_SUCCESS) {
 		goto fail;
 	}
-	return rc;
+	goto end;
 
  fail:
 	glsv_gld_mbcsv_close(gld_cb);
  error:
 	glsv_gld_mbcsv_finalize(gld_cb);
+ end:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -128,12 +134,15 @@ uint32_t glsv_gld_mbcsv_register(GLSV_GLD_CB *gld_cb)
 uint32_t glsv_gld_mbcsv_unregister(GLSV_GLD_CB *gld_cb)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-
+	TRACE_ENTER();
+	
 	rc = glsv_gld_mbcsv_close(gld_cb);
 	if (rc != NCSCC_RC_SUCCESS)
-		return rc;
+		goto end;
 
 	rc = glsv_gld_mbcsv_finalize(gld_cb);
+ end:
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -152,10 +161,12 @@ uint32_t glsv_gld_mbcsv_unregister(GLSV_GLD_CB *gld_cb)
 uint32_t glsv_gld_mbcsv_init(GLSV_GLD_CB *gld_cb)
 {
 	NCS_MBCSV_ARG arg;
+	uint32_t rc = NCSCC_RC_FAILURE;
+	TRACE_ENTER();
 
 	if (gld_cb == NULL) {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("GLD mbcsv init failed");
+		goto end;
 	}
 
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
@@ -166,15 +177,17 @@ uint32_t glsv_gld_mbcsv_init(GLSV_GLD_CB *gld_cb)
 	arg.info.initialize.i_service = NCS_SERVICE_ID_GLD;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("GLD mbcsv init failed");
+		goto end;
 	} else {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_INIT_SUCCESS, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+		TRACE_1("GLD mbcsv init success");
 
 		gld_cb->mbcsv_handle = arg.info.initialize.o_mbcsv_hdl;
-		return NCSCC_RC_SUCCESS;
+		rc = NCSCC_RC_SUCCESS;
 	}
-
+ end:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /*********************************************************************************************************
@@ -193,10 +206,12 @@ static uint32_t glsv_gld_mbcsv_open(GLSV_GLD_CB *gld_cb)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if (gld_cb == NULL) {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_OPEN_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("GLD mbcsv open failed");
+		rc = NCSCC_RC_FAILURE;
+		goto end;
 	}
 
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
@@ -208,15 +223,18 @@ static uint32_t glsv_gld_mbcsv_open(GLSV_GLD_CB *gld_cb)
 	/* arg.info.open.o_ckpt_hdl  =  NULL; */
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_OPEN_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("GLD mbcsv open failed");
 		rc = NCSCC_RC_FAILURE;
-		return rc;
+		goto end;
 	} else {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_OPEN_SUCCESS, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+		TRACE_1("GLD mbcsv open success");
 
 		gld_cb->o_ckpt_hdl = arg.info.open.o_ckpt_hdl;
-		return rc;
+		goto end;
 	}
+ end:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /********************************************************************************************************
@@ -233,20 +251,26 @@ static uint32_t glsv_gld_mbcsv_open(GLSV_GLD_CB *gld_cb)
 static uint32_t glsv_gld_mbcsv_selobj_get(GLSV_GLD_CB *gld_cb)
 {
 	NCS_MBCSV_ARG arg;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
 	arg.i_mbcsv_hdl = gld_cb->mbcsv_handle;
 	/*arg.info.sel_obj_get.o_select_obj  =  NULL; */
 	if (ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_GET_SEL_OBJ_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("GLD mbcsv get sel obj failure");
+		rc = NCSCC_RC_FAILURE;
+		goto end;	
 	} else {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_GET_SEL_OBJ_SUCCESS, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+		TRACE_1("GLD mbcsv get sel obj success");
 
 		gld_cb->mbcsv_sel_obj = arg.info.sel_obj_get.o_select_obj;
-		return NCSCC_RC_SUCCESS;
+		rc = NCSCC_RC_SUCCESS;
 	}
+ end:
+	TRACE_LEAVE();
+	return rc;	
 }
 
 /***********************************************************************
@@ -262,15 +286,18 @@ static uint32_t glsv_gld_mbcsv_close(GLSV_GLD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_CLOSE;
 	arg.info.close.i_ckpt_hdl = cb->o_ckpt_hdl;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_CLOSE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("GLD mbcsv close failed");
 		rc = NCSCC_RC_FAILURE;
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -289,6 +316,8 @@ static uint32_t glsv_gld_mbcsv_close(GLSV_GLD_CB *cb)
 uint32_t glsv_gld_mbcsv_chgrole(GLSV_GLD_CB *gld_cb)
 {
 	NCS_MBCSV_ARG arg;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
@@ -296,12 +325,13 @@ uint32_t glsv_gld_mbcsv_chgrole(GLSV_GLD_CB *gld_cb)
 	arg.info.chg_role.i_ckpt_hdl = gld_cb->o_ckpt_hdl;
 	arg.info.chg_role.i_ha_state = gld_cb->ha_state;	/*  ha_state is assigned at the time of amf_init where csi_set_callback will assign the state */
 
-	TRACE("SETTING THE STATE AS:%d", gld_cb->ha_state);
+	LOG_IN("Setting the state HaState as :%d", gld_cb->ha_state);
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_CHGROLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("GLD mbcsv chgrole failed");
+		rc = NCSCC_RC_FAILURE;
 	}
-	return NCSCC_RC_SUCCESS;
+ 	TRACE_LEAVE();
+	return rc;
 }
 
 /**************************************************************************************
@@ -320,14 +350,16 @@ static uint32_t glsv_gld_mbcsv_finalize(GLSV_GLD_CB *gld_cb)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_FINALIZE;
 	arg.i_mbcsv_hdl = gld_cb->mbcsv_handle;
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_FINALIZE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("GLD mbcsv finalize failed");
 		rc = NCSCC_RC_FAILURE;
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -345,11 +377,13 @@ static uint32_t glsv_gld_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
 
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if (arg == NULL) {
 		/* log the message */
-		m_LOG_GLD_MBCSV(GLD_MBCSV_CALLBACK_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("GLD mbcsv callback failed");
+		rc = NCSCC_RC_FAILURE;
+		goto end;
 	}
 
 	switch (arg->i_op) {
@@ -373,7 +407,9 @@ static uint32_t glsv_gld_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 		rc = NCSCC_RC_FAILURE;
 		break;
 	}
-	m_LOG_GLD_MBCSV(GLD_MBCSV_CALLBACK_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
+	TRACE_1("GLD mbcsv callback success");
+ end:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -391,11 +427,13 @@ static uint32_t glsv_gld_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS, msg_fmt_version;
 	GLSV_GLD_CB *gld_cb;
+	TRACE_ENTER();
 
 	if ((gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))
 	    == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
-		return (NCSCC_RC_FAILURE);
+		LOG_ER("Handle take failed");
+		rc = NCSCC_RC_FAILURE;
+		goto end;
 	}
 
 	msg_fmt_version = m_NCS_MBCSV_FMT_GET(arg->info.encode.i_peer_version,
@@ -403,8 +441,9 @@ static uint32_t glsv_gld_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 
 	if (!msg_fmt_version) {
 		/* Drop The Message */
-		m_LOG_GLD_MBCSV(GLD_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("GLD msg fmt version invalid");
+		rc = NCSCC_RC_FAILURE;
+		goto end;
 	}
 
 	switch (arg->info.encode.io_msg_type) {
@@ -444,6 +483,8 @@ static uint32_t glsv_gld_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 		break;
 	}
 	ncshm_give_hdl(gld_cb->my_hdl);
+ end:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -460,11 +501,13 @@ static uint32_t glsv_gld_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 {
 	GLSV_GLD_CB *gld_cb;
 	uint32_t msg_fmt_version;
+	uint32_t rc = NCSCC_RC_FAILURE;
+	TRACE_ENTER();
 
 	gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl);
 	if (gld_cb == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("Take handle failed");
+		goto end;
 	}
 
 	msg_fmt_version = m_NCS_MBCSV_FMT_GET(arg->info.decode.i_peer_version,
@@ -472,8 +515,7 @@ static uint32_t glsv_gld_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 
 	if (!msg_fmt_version) {
 		/* Drop The Message */
-		m_LOG_GLD_MBCSV(GLD_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("GLD msg frmt version invalid");
 	}
 
 	switch (arg->info.decode.i_msg_type) {
@@ -490,7 +532,8 @@ static uint32_t glsv_gld_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
 		glsv_gld_mbcsv_dec_sync_resp(gld_cb, arg);
 		if (arg->info.decode.i_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) {
-			return NCSCC_RC_SUCCESS;
+			rc = NCSCC_RC_SUCCESS;
+			goto end;
 		}
 
 		break;
@@ -511,10 +554,12 @@ static uint32_t glsv_gld_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 		glsv_gld_mbcsv_dec_sync_resp(gld_cb, arg);
 		break;
 	default:
-		return NCSCC_RC_FAILURE;
+		goto end;
 	}
 	ncshm_give_hdl(gld_cb->my_hdl);
-	return NCSCC_RC_SUCCESS;
+ end:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /***********************************************************************************
@@ -536,11 +581,12 @@ static uint32_t glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_C
 	GLSV_A2S_RSC_OPEN_INFO *rsc_info = NULL;
 	GLSV_A2S_RSC_DETAILS *rsc_details = NULL;
 	GLSV_A2S_GLND_MDS_INFO *node_details = NULL;
+	TRACE_ENTER();
 
 	a2s_evt = m_MMGR_ALLOC_GLSV_GLD_A2S_EVT;
 	if (a2s_evt == NULL) {
-		m_LOG_GLD_MEMFAIL(GLD_A2S_EVT_ALLOC_FAILED, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_CR("A2S event alloc failed: Error %s", strerror(errno));
+		assert(0);
 	}
 	memset(a2s_evt, 0, sizeof(GLSV_GLD_A2S_CKPT_EVT));
 
@@ -560,13 +606,13 @@ static uint32_t glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_C
 		rc = m_NCS_EDU_EXEC(&gld_cb->edu_hdl, glsv_edp_gld_a2s_evt_rsc_open_info, &arg->info.decode.i_uba,
 				    EDP_OP_TYPE_DEC, &rsc_info, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(EDU_EXEC_ASYNC_RSC_OPEN_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("EDU exec async rsc open evt failed");
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
 		rc = gld_process_standby_evt(gld_cb, a2s_evt);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(GLD_STANDBY_RSC_OPEN_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("GLD standby rsc open evt failed");
 			goto end;
 		}
 		break;
@@ -577,13 +623,13 @@ static uint32_t glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_C
 		rc = m_NCS_EDU_EXEC(&gld_cb->edu_hdl, glsv_edp_gld_a2s_evt_rsc_details,
 				    &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &rsc_details, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(EDU_EXEC_ASYNC_RSC_CLOSE_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("EDU exec async rsc close evt failed");
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
 		rc = gld_process_standby_evt(gld_cb, a2s_evt);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(GLD_STANDBY_RSC_CLOSE_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("GLD standby rsc close evt failed");
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
@@ -595,13 +641,13 @@ static uint32_t glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_C
 		rc = m_NCS_EDU_EXEC(&gld_cb->edu_hdl, glsv_edp_gld_a2s_evt_rsc_details, &arg->info.decode.i_uba,
 				    EDP_OP_TYPE_DEC, &rsc_details, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(EDU_EXEC_ASYNC_SET_ORPHAN_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("EDU exec aysnc set orphan evt failed");
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
 		rc = gld_process_standby_evt(gld_cb, a2s_evt);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(GLD_STANDBY_RSC_SET_ORPHAN_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("GLD standby rsc set orphan evt failed");
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
@@ -614,23 +660,25 @@ static uint32_t glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_C
 		rc = m_NCS_EDU_EXEC(&gld_cb->edu_hdl, glsv_edp_gld_a2s_evt_glnd_mds_info, &arg->info.decode.i_uba,
 				    EDP_OP_TYPE_DEC, &node_details, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(EDU_EXEC_ASYNC_GLND_DOWN_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("EDU exec async glnd down evt failed");
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
 		rc = gld_process_standby_evt(gld_cb, a2s_evt);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(GLD_STANDBY_GLND_DOWN_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+                          LOG_ER("GLD standby glnd down evt failed");
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
 		break;
 	default:
 		m_MMGR_FREE_GLSV_GLD_A2S_EVT(a2s_evt);
-		return NCSCC_RC_FAILURE;
+	 	rc = NCSCC_RC_FAILURE;
+		goto end;
 
 	}
  end:
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -649,6 +697,7 @@ static uint32_t glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV
 	uint32_t num_of_async_upd, rc = NCSCC_RC_SUCCESS;
 	uint8_t data[16], *ptr;
 	NCS_MBCSV_ARG ncs_arg;
+	TRACE_ENTER();
 
 	/*TBD check for the validity of gld_cb arg */
 
@@ -659,7 +708,7 @@ static uint32_t glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV
 	ncs_dec_skip_space(&arg->info.decode.i_uba, 4);
 
 	if (gld_cb->gld_async_cnt == num_of_async_upd) {
-		return rc;
+		goto end;
 	} else {
 		gld_cb_destroy(gld_cb);
 		ncs_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
@@ -669,9 +718,11 @@ static uint32_t glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV
 		if (rc != NCSCC_RC_SUCCESS) {
 			/* Log */
 			/* TBD */
-			return rc;
+			goto end;
 		}
 	}
+ end:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -710,17 +761,17 @@ static uint32_t glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_A
 	uint32_t count = 0, rc = NCSCC_RC_SUCCESS, num_of_async_upd;
 	EDU_ERR ederror = 0;
 	GLSV_A2S_NODE_LIST *node_list, *tmp1_node_list;
+	TRACE_ENTER();
 
 	if (arg->info.decode.i_uba.ub == NULL) {	/* There is no data */
-		return NCSCC_RC_SUCCESS;
+		goto end;
 	}
 
 	/* Allocate memory */
 	rsc_info = m_MMGR_ALLOC_GLSV_GLD_A2S_RSC_DETAILS;
 	if (rsc_info == NULL) {
-		m_LOG_GLD_MEMFAIL(GLD_RSC_INFO_ALLOC_FAILED, __FILE__, __LINE__);
-		rc = NCSCC_RC_FAILURE;
-		return rc;
+		LOG_CR("Rsc info alloc failed: Error %s", strerror(errno));
+		assert(0);
 	}
 
 	memset(rsc_info, 0, sizeof(GLSV_GLD_A2S_RSC_DETAILS));
@@ -736,7 +787,7 @@ static uint32_t glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_A
 		rc = m_NCS_EDU_EXEC(&gld_cb->edu_hdl, glsv_edp_gld_evt_a2s_rsc_details, &arg->info.decode.i_uba,
 				    EDP_OP_TYPE_DEC, &rsc_info, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			return rc;
+			goto end;
 		}
 		rc = gld_sb_proc_data_rsp(gld_cb, rsc_info);
 		count++;
@@ -756,7 +807,8 @@ static uint32_t glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_A
 		m_MMGR_FREE_GLSV_NODE_LIST(tmp1_node_list);
 	}
 	m_MMGR_FREE_GLSV_GLD_A2S_RSC_DETAILS(rsc_info);
-
+ end:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -778,14 +830,15 @@ static uint32_t glsv_gld_mbcsv_enc_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_C
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	uint8_t *gld_type_ptr = NULL;
+	TRACE_ENTER();
 
 	/*  Increment the async update count gld_cb->gld_async_cnt     */
 	gld_cb->gld_async_cnt++;
 
 	gld_type_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	if (gld_type_ptr == NULL) {
-		m_LOG_GLD_MEMFAIL(GLD_ENC_RESERVE_SPACE_FAILED, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_CR("GLD enc reserve space failed:Error %s", strerror(errno));
+		assert(0);
 	}
 
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
@@ -797,7 +850,7 @@ static uint32_t glsv_gld_mbcsv_enc_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_C
 		rc = m_NCS_EDU_EXEC(&gld_cb->edu_hdl, glsv_edp_gld_a2s_evt_rsc_open_info,
 				    &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &a2s_msg->info.rsc_open_info, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(EDU_EXEC_ASYNC_RSC_OPEN_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("EDU exec async rsc open evt failed");
 			rc = NCSCC_RC_FAILURE;
 		}
 		break;
@@ -806,7 +859,7 @@ static uint32_t glsv_gld_mbcsv_enc_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_C
 		rc = m_NCS_EDU_EXEC(&gld_cb->edu_hdl, glsv_edp_gld_a2s_evt_rsc_details,
 				    &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &a2s_msg->info.rsc_details, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(EDU_EXEC_ASYNC_RSC_CLOSE_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("EDU exec async rsc close evt failed");
 			rc = NCSCC_RC_FAILURE;
 		}
 		break;
@@ -816,7 +869,7 @@ static uint32_t glsv_gld_mbcsv_enc_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_C
 		rc = m_NCS_EDU_EXEC(&gld_cb->edu_hdl, glsv_edp_gld_a2s_evt_rsc_details,
 				    &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &a2s_msg->info.rsc_details, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(EDU_EXEC_ASYNC_SET_ORPHAN_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("EDU exec async set orphan evt failed");
 			rc = NCSCC_RC_FAILURE;
 		}
 		break;
@@ -827,14 +880,17 @@ static uint32_t glsv_gld_mbcsv_enc_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_C
 		rc = m_NCS_EDU_EXEC(&gld_cb->edu_hdl, glsv_edp_gld_a2s_evt_glnd_mds_info,
 				    &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &a2s_msg->info.glnd_mds_info, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(EDU_EXEC_ASYNC_GLND_DOWN_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			LOG_ER("EDU exec async glnd down evt failed");
 			rc = NCSCC_RC_FAILURE;
 		}
 		break;
 	default:
-		return NCSCC_RC_FAILURE;
+		rc = NCSCC_RC_FAILURE;
+		goto end;
 
 	}
+ end:
+	TRACE_LEAVE();
 	return rc;
 
 }
@@ -864,11 +920,12 @@ static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG
 	uint8_t *header;
 	uint8_t *async_cnt;
 	SaLckResourceIdT prev_rsc_id;
+	TRACE_ENTER();
 
 	/* COLD_SYNC_RESP IS DONE BY THE ACTIVE */
 	if (gld_cb->ha_state == SA_AMF_HA_STANDBY) {
 		rc = NCSCC_RC_FAILURE;
-		return rc;
+	        goto end;
 	}
 
 	memset(&rsc_details, '\0', sizeof(GLSV_GLD_A2S_RSC_DETAILS));
@@ -877,8 +934,8 @@ static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG
 
 	header = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	if (header == NULL) {
-		m_LOG_GLD_MEMFAIL(GLD_ENC_RESERVE_SPACE_FAILED, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_CR("GLD enc reserve space failed: Error %s", strerror(errno));
+		assert(0);
 	}
 
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
@@ -901,7 +958,8 @@ static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG
 	}
 	if (rsc_info == NULL) {
 		/* LOG TBD */
-		return NCSCC_RC_FAILURE;;
+		rc = NCSCC_RC_FAILURE;
+		goto end;
 	} else {
 		while (rsc_info != NULL) {
 			node_list = rsc_info->node_list;
@@ -913,8 +971,8 @@ static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG
 			rsc_details.orphan_lck_mode = rsc_info->orphan_lck_mode;
 			rsc_details.node_list = a2s_node_list = m_MMGR_ALLOC_A2S_GLSV_NODE_LIST;
 			if (rsc_details.node_list == NULL) {
-				m_LOG_GLD_MEMFAIL(GLD_RSC_INFO_ALLOC_FAILED, __FILE__, __LINE__);
-				return NCSCC_RC_FAILURE;
+				LOG_CR("Rsc info alloc failed: Error %s", strerror(errno));
+				assert(0);
 			}
 			memset(rsc_details.node_list, '\0', sizeof(GLSV_A2S_NODE_LIST));
 			if (node_list != NULL) {
@@ -925,8 +983,7 @@ static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG
 				    (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
 										   (uint8_t *)&node_list->node_id);
 				if (node_details == NULL) {
-					m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_GET_FAILED, NCSFL_SEV_ERROR, __FILE__,
-							   __LINE__, node_list->node_id);
+					LOG_ER("Patricia tree get failed: node_id %u", node_list->node_id);
 				} else
 					rsc_details.node_list->status = node_details->status;
 				node_list = node_list->next;
@@ -934,8 +991,8 @@ static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG
 					a2s_node_list->next = m_MMGR_ALLOC_A2S_GLSV_NODE_LIST;
 					a2s_node_list = a2s_node_list->next;
 					if (a2s_node_list == NULL) {
-						m_LOG_GLD_MEMFAIL(GLD_RSC_INFO_ALLOC_FAILED, __FILE__, __LINE__);
-
+						LOG_CR("Rsc info alloc failed: Error %s", strerror(errno));
+						assert(0);	
 						if (rsc_details.node_list) {
 							a2s_node_list = rsc_details.node_list;
 							while (a2s_node_list != NULL) {
@@ -946,7 +1003,8 @@ static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG
 
 						}
 
-						return NCSCC_RC_FAILURE;
+						rc = NCSCC_RC_FAILURE;
+						goto end;
 					}
 					memset(a2s_node_list, '\0', sizeof(GLSV_A2S_NODE_LIST));
 					memcpy(&a2s_node_list->dest_id, &node_list->dest_id, sizeof(MDS_DEST));
@@ -954,9 +1012,10 @@ static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG
 					    (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
 											   (uint8_t *)&node_list->node_id);
 					if (node_details == NULL) {
-						m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_GET_FAILED, NCSFL_SEV_ERROR,
-								   __FILE__, __LINE__, node_list->node_id);
-						return NCSCC_RC_FAILURE;
+						LOG_ER("Patricia tree get failed: node_id %u",
+								   node_list->node_id);
+						rc = NCSCC_RC_FAILURE;
+						goto end;
 					} else
 						a2s_node_list->status = node_details->status;
 					node_list = node_list->next;
@@ -966,8 +1025,9 @@ static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG
 			rc = m_NCS_EDU_EXEC(&gld_cb->edu_hdl, glsv_edp_gld_evt_a2s_rsc_details,
 					    &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &rsc_details, &ederror);
 			if (rc != NCSCC_RC_SUCCESS) {
-				m_LOG_GLD_MBCSV(EDU_EXEC_COLDSYNC_EVT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-				return NCSCC_RC_FAILURE;
+				LOG_ER("EDU exec coldsync evt failed");
+				rc = NCSCC_RC_FAILURE;
+				goto end;
 			}
 			if (rsc_details.node_list) {
 				a2s_node_list = rsc_details.node_list;
@@ -994,8 +1054,8 @@ static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG
 	   this will be 0 initially */
 	async_cnt = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (async_cnt == NULL) {
-		m_LOG_GLD_MEMFAIL(GLD_ENC_RESERVE_SPACE_FAILED, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_CR("GLD enc reserve space failed: Error %s", strerror(errno));
+		assert(0);
 	}
 
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
@@ -1011,6 +1071,8 @@ static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG
 		gld_cb->prev_rsc_id = 0;
 
 	}
+ end:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1029,18 +1091,21 @@ static uint32_t glsv_gld_mbcsv_enc_warm_sync_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *wsync_ptr;
+	TRACE_ENTER();
 
 	/* Reserve space to send the async update counter */
 	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (wsync_ptr == NULL) {
-		m_LOG_GLD_MEMFAIL(GLD_ENC_RESERVE_SPACE_FAILED, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_CR("GLD enc reserve space failed: Error %s", strerror(errno));
+		assert(0);
 	}
 
 	/* SEND THE ASYNC UPDATE COUNTER */
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&wsync_ptr, gld_cb->gld_async_cnt);
 	arg->info.encode.io_msg_type = NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE;
+ 	
+	TRACE_LEAVE();
 	return rc;
 
 }

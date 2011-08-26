@@ -24,7 +24,7 @@ pkglib_PROGRAMS = osaflcknd
 
 osaflcknd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
-	-DNCS_GLND=1 -DNCS_GLSV_LOG=1 \
+	-DNCS_GLND=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/glsv/include
 
@@ -36,7 +36,6 @@ osaflcknd_SOURCES = \
 	glnd_ckpt.c \
 	glnd_client.c \
 	glnd_evt.c \
-	glnd_log.c \
 	glnd_main.c \
 	glnd_mds.c \
 	glnd_queue.c \

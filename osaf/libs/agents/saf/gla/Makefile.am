@@ -21,7 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 noinst_LTLIBRARIES = libgla.la
 
 libgla_la_CPPFLAGS = \
-	-DNCS_GLA=1 -DNCS_GLSV_LOG=1 \
+	-DNCS_GLA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/glsv/include
 
@@ -31,7 +31,6 @@ libgla_la_SOURCES = \
 	gla_api.c \
 	gla_clbk.c \
 	gla_init.c \
-	gla_log.c \
 	gla_mds.c \
 	gla_queue.c \
 	gla_tmr.c

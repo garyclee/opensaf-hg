@@ -42,7 +42,7 @@ G_GLND_MEMFAIL(GLND_RESTART_RSC_LOCK_LIST_ALLOC_FAILED);
 #include "ncs_ubaid.h"
 #include "mds_papi.h"
 #include "ncs_tmr.h"
-#include "ncs_log.h"
+#include "logtrace.h"
 #include "ncs_edu_pub.h"
 #include "ncsencdec_pub.h"
 #include "ncs_util.h"
@@ -62,7 +62,6 @@ G_GLND_MEMFAIL(GLND_RESTART_RSC_LOCK_LIST_ALLOC_FAILED);
 #include "gla_callbk.h"
 #include "glnd_api.h"
 #include "glnd_dl_api.h"
-#include "glnd_log.h"
 #include "glnd_restart.h"
 
 #include "saCkpt.h"

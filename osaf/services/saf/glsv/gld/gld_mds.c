@@ -16,7 +16,7 @@
  */
 
 #include "gld.h"
-
+#include <string.h>
 /*****************************************************************************
   FILE NAME: GLD_MDS.C
 
@@ -59,15 +59,17 @@ uint32_t gld_mds_callback(NCSMDS_CALLBACK_INFO *info)
 	uint32_t cb_hdl;
 	GLSV_GLD_CB *cb = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
+	TRACE_ENTER2("mds service id %u", info->i_yr_svc_id);
 
 	if (info == NULL)
-		return rc;
+		goto end;
 
 	cb_hdl = (uint32_t)info->i_yr_svc_hdl;
 
 	if ((cb = (GLSV_GLD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLD, cb_hdl)) == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
-		return NCSCC_RC_SUCCESS;
+		LOG_ER("Handle take failed");
+		rc = NCSCC_RC_SUCCESS;
+		goto end;
 	}
 
 	switch (info->i_op) {
@@ -105,11 +107,12 @@ uint32_t gld_mds_callback(NCSMDS_CALLBACK_INFO *info)
 	}
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_SVC_PRVDR(GLD_MDS_CALL_BACK_ERROR, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("MDS Call back error");
 	}
 
 	ncshm_give_hdl((uint32_t)cb_hdl);
-
+ end:
+	TRACE_LEAVE2("return value: %u", rc);
 	return rc;
 
 }
@@ -130,10 +133,13 @@ uint32_t gld_mds_callback(NCSMDS_CALLBACK_INFO *info)
 uint32_t gld_mds_quiesced_process(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info)
 {
 	GLSV_GLD_EVT *evt;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("mds_dest %" PRIx64, rcv_info->i_dest);
+
 	evt = m_MMGR_ALLOC_GLSV_GLD_EVT;
 	if (evt == GLSV_GLD_EVT_NULL) {
-		m_LOG_GLD_MEMFAIL(GLD_EVT_ALLOC_FAILED, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_CR("Event alloc failed: Error %s", strerror(errno));
+		assert(0);
 	}
 	memset(evt, 0, sizeof(GLSV_GLD_EVT));
 	evt->gld_cb = cb;
@@ -141,11 +147,13 @@ uint32_t gld_mds_quiesced_process(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *
 
 	/* Push the event and we are done */
 	if (m_NCS_IPC_SEND(&cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL) == NCSCC_RC_FAILURE) {
-		m_LOG_GLD_HEADLINE(GLD_IPC_SEND_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("IPC send failed");
 		gld_evt_destroy(evt);
-		return (NCSCC_RC_FAILURE);
+		rc = NCSCC_RC_FAILURE;
 	}
-	return NCSCC_RC_SUCCESS;
+ 
+	TRACE_LEAVE2("Return value: %u", rc);
+	return rc;
 }
 
 /****************************************************************************
@@ -179,8 +187,8 @@ uint32_t gld_mds_svc_evt(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info)
 				GLSV_GLD_EVT *evt;
 				evt = m_MMGR_ALLOC_GLSV_GLD_EVT;
 				if (evt == GLSV_GLD_EVT_NULL) {
-					m_LOG_GLD_MEMFAIL(GLD_EVT_ALLOC_FAILED, __FILE__, __LINE__);
-					return NCSCC_RC_FAILURE;
+					LOG_CR("Event alloc failed: Error %s", strerror(errno));
+					assert(0);
 				}
 				memset(evt, 0, sizeof(GLSV_GLD_EVT));
 				evt->gld_cb = cb;
@@ -190,7 +198,7 @@ uint32_t gld_mds_svc_evt(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info)
 
 				/* Push the event and we are done */
 				if (m_NCS_IPC_SEND(&cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL) == NCSCC_RC_FAILURE) {
-					m_LOG_GLD_HEADLINE(GLD_IPC_SEND_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+					LOG_ER("IPC send failed");
 					gld_evt_destroy(evt);
 					return (NCSCC_RC_FAILURE);
 				}
@@ -198,8 +206,9 @@ uint32_t gld_mds_svc_evt(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info)
 		}
 		break;
 
+
 	default:
-		m_LOG_GLD_SVC_PRVDR(GLD_MDS_UNKNOWN_SVC_EVT, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("MDS unsubscribed svc evt");
 		break;
 
 	}
@@ -230,7 +239,7 @@ uint32_t gld_mds_rcv(GLSV_GLD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	evt->fr_dest_id = rcv_info->i_fr_dest;
 
 	if (m_NCS_IPC_SEND(&cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL) == NCSCC_RC_FAILURE) {
-		m_LOG_GLD_HEADLINE(GLD_IPC_SEND_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("IPC send failed");
 		gld_evt_destroy(evt);
 		return (NCSCC_RC_FAILURE);
 	}
@@ -274,7 +283,7 @@ static uint32_t gld_mds_enc(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		return rc;
 	} else {
 		/* Drop The Message */
-		m_LOG_GLD_HEADLINE(GLD_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("GLD msg format version invalid");
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -324,7 +333,7 @@ static uint32_t gld_mds_dec(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		return rc;
 	} else {
 		/* Drop The Message */
-		m_LOG_GLD_HEADLINE(GLD_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("GLD msg format version invalid");
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -371,7 +380,7 @@ static uint32_t gld_mds_enc_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *in
 		}
 	} else {
 		/* Drop The Message */
-		m_LOG_GLD_HEADLINE(GLD_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("GLD msg format version invalid");
 		return NCSCC_RC_FAILURE;
 	}
 	return NCSCC_RC_FAILURE;
@@ -406,8 +415,8 @@ static uint32_t gld_mds_dec_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *in
 		if (info->i_fr_svc_id == NCSMDS_SVC_ID_GLND) {
 			evt = (GLSV_GLD_EVT *)m_MMGR_ALLOC_GLSV_GLD_EVT;
 			if (evt == NULL) {
-				m_LOG_GLD_MEMFAIL(GLD_EVT_ALLOC_FAILED, __FILE__, __LINE__);
-				return NCSCC_RC_FAILURE;
+				LOG_CR("Event alloc failed: Error %s", strerror(errno));
+				assert(0);
 			}
 			info->o_msg = evt;
 			ncs_decode_n_octets(uba->ub, (uint8_t *)evt, sizeof(GLSV_GLD_EVT));
@@ -416,7 +425,7 @@ static uint32_t gld_mds_dec_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *in
 			return NCSCC_RC_FAILURE;
 	} else {
 		/* Drop The Message */
-		m_LOG_GLD_HEADLINE(GLD_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("GLD msg format version invalid");
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -442,10 +451,12 @@ uint32_t gld_mds_cpy(GLSV_GLD_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 {
 	GLSV_GLND_EVT *src = (GLSV_GLND_EVT *)cpy_info->i_msg;
 	GLSV_GLND_EVT *cpy = m_MMGR_ALLOC_GLND_EVT;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	if (cpy == NULL) {
-		m_LOG_GLD_MEMFAIL(GLD_EVT_ALLOC_FAILED, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_CR("Event alloc failed:Error %s", strerror(errno));
+		assert(0);
 	}
 	memset(cpy, 0, sizeof(GLSV_GLND_EVT));
 
@@ -460,7 +471,9 @@ uint32_t gld_mds_cpy(GLSV_GLD_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 
 	/* Set the copy of the message */
 	cpy_info->o_cpy = (NCSCONTEXT)cpy;
-	return NCSCC_RC_SUCCESS;
+ 
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -480,6 +493,7 @@ uint32_t gld_mds_vdest_create(GLSV_GLD_CB *cb)
 	uint32_t rc;
 	SaClmClusterNodeT cluster_node;
 	uint32_t seed;
+	TRACE_ENTER();
 
 	memset(&cluster_node, 0, sizeof(SaClmClusterNodeT));
 
@@ -503,10 +517,11 @@ uint32_t gld_mds_vdest_create(GLSV_GLD_CB *cb)
 	rc = ncsvda_api(&arg);
 	if (rc != NCSCC_RC_SUCCESS) {
 		/* RSR;TBD Log, */
-		return rc;
+		goto end;
 	}
 	cb->mds_handle = arg.info.vdest_create.o_mds_pwe1_hdl;
-
+ end:
+	TRACE_LEAVE2("Return value %u", rc);
 	return rc;
 }
 
@@ -526,6 +541,7 @@ uint32_t gld_mds_vdest_destroy(GLSV_GLD_CB *cb)
 	NCSVDA_INFO arg;
 	uint32_t rc;
 	SaNameT name = { 4, "GLD" };
+	TRACE_ENTER();
 
 	memset(&arg, 0, sizeof(NCSVDA_INFO));
 
@@ -536,11 +552,10 @@ uint32_t gld_mds_vdest_destroy(GLSV_GLD_CB *cb)
 
 	rc = ncsvda_api(&arg);
 
-	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_SVC_PRVDR(GLD_MDS_VDEST_DESTROY_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return rc;
-	}
-
+	if (rc != NCSCC_RC_SUCCESS) 
+		LOG_ER("MDS vdest destroy failed");
+	
+	TRACE_LEAVE2("Return value: %u", rc);
 	return rc;
 }
 
@@ -561,6 +576,7 @@ uint32_t gld_mds_init(GLSV_GLD_CB *cb)
 	NCSMDS_INFO arg;
 	uint32_t rc;
 	MDS_SVC_ID subscr_svc = NCSMDS_SVC_ID_GLND;
+	TRACE_ENTER();
 
 	cb->my_dest_id = GLD_VDEST_ID;
 	/* In future Anchor value will be taken from AVSV. Now we are using fix value */
@@ -569,7 +585,7 @@ uint32_t gld_mds_init(GLSV_GLD_CB *cb)
 	/* Create the vertual Destination for GLD */
 	rc = gld_mds_vdest_create(cb);
 	if (rc != NCSCC_RC_SUCCESS)
-		return rc;
+		goto end;
 	/* Set the role to active  - Needs to be removed after integration with AvSv */
 
 	/* Install your service into MDS */
@@ -587,8 +603,8 @@ uint32_t gld_mds_init(GLSV_GLD_CB *cb)
 
 	rc = ncsmds_api(&arg);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_SVC_PRVDR(GLD_MDS_INSTALL_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return rc;
+		LOG_ER("MDS Install failed");
+		goto end;
 	}
 
 	/* Now subscribe for GLND events in MDS */
@@ -604,9 +620,11 @@ uint32_t gld_mds_init(GLSV_GLD_CB *cb)
 
 	rc = ncsmds_api(&arg);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_SVC_PRVDR(GLD_MDS_SUBSCRIBE_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return rc;
+		LOG_ER("MDS Subscription failed");
+		goto end;
 	}
+ end:
+	TRACE_LEAVE2("Return value %u", rc);
 	return rc;
 }
 
@@ -625,6 +643,7 @@ uint32_t gld_mds_shut(GLSV_GLD_CB *cb)
 {
 	NCSMDS_INFO arg;
 	uint32_t rc;
+	TRACE_ENTER();
 
 	/* Un-install your service into MDS */
 	memset(&arg, 0, sizeof(NCSMDS_INFO));
@@ -636,12 +655,14 @@ uint32_t gld_mds_shut(GLSV_GLD_CB *cb)
 	rc = ncsmds_api(&arg);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_SVC_PRVDR(GLD_MDS_UNINSTALL_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return rc;
+		LOG_ER("MDS Uninstall failed");
+		goto end;
 	}
 
 	/* Destroy the virtual Destination of GLD */
 	rc = gld_mds_vdest_destroy(cb);
+ end:
+	TRACE_LEAVE2("Return value %u", rc);
 	return rc;
 }
 
@@ -659,17 +680,19 @@ uint32_t gld_mds_shut(GLSV_GLD_CB *cb)
 uint32_t gld_mds_change_role(GLSV_GLD_CB *cb, V_DEST_RL role)
 {
 	NCSVDA_INFO arg;
-
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 	memset(&arg, 0, sizeof(NCSVDA_INFO));
 
 	arg.req = NCSVDA_VDEST_CHG_ROLE;
 	arg.info.vdest_chg_role.i_vdest = cb->my_dest_id;
 	arg.info.vdest_chg_role.i_new_role = role;
 	if (ncsvda_api(&arg) != NCSCC_RC_SUCCESS) {
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		rc = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		LOG_ER("ncsvda_api failed");
 	}
-
-	return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE2("Return value %u", rc);
+	return rc;
 }
 
 /*****************************************************************************
@@ -690,7 +713,8 @@ uint32_t gld_process_node_down_evts(GLSV_GLD_CB *gld_cb)
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc = NULL;
 	SaLckResourceIdT rsc_id;
 	uint32_t node_id = 0;
-
+	TRACE_ENTER();
+	
 	/* cleanup the  glnd details tree */
 	node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details, (uint8_t *)0);
 	while (node_details) {
@@ -713,15 +737,15 @@ uint32_t gld_process_node_down_evts(GLSV_GLD_CB *gld_cb)
 			/* Now delete this node details node */
 			if (ncs_patricia_tree_del(&gld_cb->glnd_details, (NCS_PATRICIA_NODE *)node_details) !=
 			    NCSCC_RC_SUCCESS) {
-				m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__,
-						   node_details->node_id);
+				LOG_ER("Patricia tree del failed: node_id %u ", node_details->node_id);
 			} else {
 				m_MMGR_FREE_GLSV_GLD_GLND_DETAILS(node_details);
-				m_LOG_GLD_HEADLINE(GLD_ACTIVE_RMV_NODE, NCSFL_SEV_NOTICE, __FILE__, __LINE__, node_id);
+				TRACE_2("Node getting removed on active: node_id %u", node_id);
 			}
 		}
 		node_details =
 		    (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details, (uint8_t *)&node_id);
 	}
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }

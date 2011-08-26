@@ -1140,7 +1140,6 @@ fi
 %dir %{_pkgimmxmldir}
 %endif
 %config(noreplace) %{_pkgsysconfdir}/lckd.conf
-%{_pkglibdir}/libglsv_logstr.so.*
 %{_pkglibdir}/osaflckd
 %{_pkgclcclidir}/osaf-lckd
 %if %is_immxml

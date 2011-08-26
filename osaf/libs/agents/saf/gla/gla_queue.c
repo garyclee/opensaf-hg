@@ -54,7 +54,8 @@ uint32_t glsv_gla_callback_queue_init(GLA_CLIENT_INFO *client_info)
 		}
 		m_NCS_IPC_RELEASE(&client_info->callbk_mbx, NULL);
 	}
-	m_LOG_GLA_SYS_CALL(GLA_GET_SEL_OBJ_FAIL, __FILE__, __LINE__, client_info->lock_handle_id);
+	TRACE_2("GLA selection get failed: lock_handle_id %llx", client_info->lock_handle_id);
+	
 	return NCSCC_RC_FAILURE;
 }
 
@@ -128,12 +129,13 @@ uint32_t glsv_gla_callback_queue_write(GLA_CB *gla_cb, SaLckHandleT handle, GLSV
 
 	if (client_info == NULL) {
 		/* recieved a callback for an non-existant client. so return failure */
-		return rc;
+		return NCSCC_RC_FAILURE;
 	} else {
 		rc = m_NCS_IPC_SEND(&client_info->callbk_mbx, clbk_info, NCS_IPC_PRIORITY_NORMAL);
 	}
 	m_NCS_UNLOCK(&gla_cb->cb_lock, NCS_LOCK_READ);
-	return rc;
+
+	return NCSCC_RC_SUCCESS;
 
 }
 
