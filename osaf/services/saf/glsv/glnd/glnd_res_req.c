@@ -28,7 +28,7 @@
 ******************************************************************************/
 
 #include "glnd.h"
-
+#include<string.h>
 /*****************************************************************************
   PROCEDURE NAME : glnd_resource_req_node_add
 
@@ -52,15 +52,15 @@ GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_add(GLND_CB *glnd_cb,
 	res_req_info = (GLND_RESOURCE_REQ_LIST *)m_MMGR_ALLOC_GLND_RESOURCE_REQ_LIST;
 
 	if (!res_req_info) {
-		m_LOG_GLND_MEMFAIL(GLND_RSC_REQ_LIST_ALLOC_FAILED, __FILE__, __LINE__);
-		return NULL;
+		LOG_CR("GLND Rsc req list alloc failed: Error %s", strerror(errno));
+		assert(0);
 	}
 
 	memset(res_req_info, 0, sizeof(GLND_RESOURCE_REQ_LIST));
 	res_req_info->res_req_hdl_id = ncshm_create_hdl((uint8_t)glnd_cb->pool_id,
 							NCS_SERVICE_ID_GLND, (NCSCONTEXT)res_req_info);
 	if (!res_req_info->res_req_hdl_id) {
-		m_LOG_GLND_HEADLINE(GLND_RSC_REQ_CREATE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("GLND Rsc req create handle failed");
 		m_MMGR_FREE_GLND_RESOURCE_REQ_LIST(res_req_info);
 		return NULL;
 	}
@@ -117,6 +117,7 @@ GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB *glnd_cb, SaNameT *r
 			break;
 		}
 	}
+
 	return res_req_info;
 }
 

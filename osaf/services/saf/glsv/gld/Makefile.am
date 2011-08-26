@@ -25,7 +25,7 @@ pkglib_PROGRAMS = osaflckd
 # TODO: Fix the cpsv include dep
 osaflckd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
-	-DNCS_GLD=1 -DNCS_GLSV_LOG=1 \
+	-DNCS_GLD=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/glsv/include \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
@@ -36,7 +36,6 @@ osaflckd_SOURCES = \
 	gld_amf.c \
 	gld_api.c \
 	gld_evt.c \
-	gld_log.c \
 	gld_imm.c \
 	gld_main.c \
 	gld_mbcsv.c \

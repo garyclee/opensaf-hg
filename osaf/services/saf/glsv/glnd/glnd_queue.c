@@ -32,6 +32,7 @@
 */
 
 #include "glnd.h"
+#include <string.h>
 
 /****************************************************************************
   Name          : glnd_evt_backup_queue_add
@@ -50,8 +51,8 @@ void glnd_evt_backup_queue_add(GLND_CB *glnd_cb, GLSV_GLND_EVT *glnd_evt)
 	GLSV_GLND_EVT *evt = m_MMGR_ALLOC_GLND_EVT;
 
 	if (!evt) {
-		m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED, __FILE__, __LINE__);
-		return;
+		LOG_CR("GLND evt alloc failed: Error %s", strerror(errno));
+		assert(0);
 	}
 	memcpy(evt, glnd_evt, sizeof(GLSV_GLND_EVT));
 
@@ -63,6 +64,7 @@ void glnd_evt_backup_queue_add(GLND_CB *glnd_cb, GLSV_GLND_EVT *glnd_evt)
 		evt->next = glnd_cb->evt_bckup_q;
 		glnd_cb->evt_bckup_q = evt;
 	}
+
 	return;
 }
 
@@ -178,7 +180,6 @@ void glnd_re_send_evt_backup_queue(GLND_CB *glnd_cb)
 {
 	GLSV_GLND_EVT *evt, *prev = NULL, *next = NULL;
 	GLND_RESOURCE_INFO *res_info = NULL;
-
 	for (evt = glnd_cb->evt_bckup_q; evt != NULL;) {
 		next = evt->next;
 		switch (evt->type) {

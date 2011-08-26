@@ -71,17 +71,20 @@ void glnd_saf_health_chk_callback(SaInvocationT invocation,
 {
 	GLND_CB *glnd_cb;
 	SaAisErrorT error = SA_AIS_OK;
+	TRACE_ENTER2("component name %s", compName->value);
 
 	/* take the handle */
 	glnd_cb = (GLND_CB *)m_GLND_TAKE_GLND_CB;
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return;
+		LOG_ER("GLND cb take handle failed");
+		goto end;
 	}
 	if (saAmfResponse(glnd_cb->amf_hdl, invocation, error) != SA_AIS_OK)
-		m_LOG_GLND_HEADLINE(GLND_AMF_RESPONSE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("GLND amf response failed");
 	/* giveup the handle */
 	m_GLND_GIVEUP_GLND_CB;
+end:
+	TRACE_LEAVE();
 	return;
 }
 
@@ -110,20 +113,23 @@ void glnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *c
 {
 	GLND_CB *glnd_cb;
 	SaAisErrorT error = SA_AIS_OK;
+	TRACE_ENTER2("Component Name: %s", compName->value);
 
 	/* take the handle */
 	glnd_cb = (GLND_CB *)m_GLND_TAKE_GLND_CB;
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return;
+		LOG_ER("GLND cb take handle failed");
+		goto end;
 	}
 	if (saAmfResponse(glnd_cb->amf_hdl, invocation, error) != SA_AIS_OK)
-		m_LOG_GLND_HEADLINE(GLND_AMF_RESPONSE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("GLND amf response failed");
 	/* giveup the handle */
 	m_GLND_GIVEUP_GLND_CB;
 
 	sleep(1);
 	exit(0);
+end:	
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -144,6 +150,7 @@ uint32_t glnd_amf_init(GLND_CB *glnd_cb)
 	SaVersionT amf_version;
 	SaAisErrorT error;
 	uint32_t res = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
@@ -155,17 +162,20 @@ uint32_t glnd_amf_init(GLND_CB *glnd_cb)
 	m_GLSV_GET_AMF_VER(amf_version);
 
 	error = saAmfInitialize(&glnd_cb->amf_hdl, &amfCallbacks, &amf_version);
-
 	if (error != SA_AIS_OK) {
 		res = NCSCC_RC_FAILURE;
+		TRACE_2("Amf initialization failed");
+		goto end;
 	}
 
 	error = saAmfComponentNameGet(glnd_cb->amf_hdl, &glnd_cb->comp_name);
 	if (error != SA_AIS_OK) {
-		return NCSCC_RC_FAILURE;
+		res = NCSCC_RC_FAILURE;
+		TRACE_2("saAmfComponentNameGet api failed");
 	}
-
-	return (res);
+end:
+	TRACE_LEAVE2("%s return value %d", (res == NCSCC_RC_SUCCESS)?"SUCCESS":"FAILURE",res);
+	return res;
 }
 
 /****************************************************************************\
@@ -194,13 +204,14 @@ void glnd_amf_CSI_set_callback(SaInvocationT invocation,
 	GLND_CB *glnd_cb = NULL;
 	SaAisErrorT saErr = SA_AIS_OK;
 	uint32_t cb_hdl = m_GLND_RETRIEVE_GLND_CB_HDL;
+	TRACE_ENTER2("component Name %s hastate: %d", compName->value, haState);
 
 	/* Get the CB from the handle */
 	glnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_GLND, cb_hdl);
 
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return;
+		LOG_ER("GLND cb take handle failed");
+		goto end;
 	}
 
 	if (glnd_cb) {
@@ -213,6 +224,8 @@ void glnd_amf_CSI_set_callback(SaInvocationT invocation,
 
 	/* giveup the handle */
 	ncshm_give_hdl(cb_hdl);
+end:
+	TRACE_LEAVE();
 	return;
 }
 
@@ -229,18 +242,20 @@ void glnd_amf_csi_rmv_callback(SaInvocationT invocation,
 {
 	GLND_CB *glnd_cb;
 	SaAisErrorT error = SA_AIS_OK;
+	TRACE_ENTER2("Component Name %s", compName->value);
 
 	/* take the handle */
 	glnd_cb = (GLND_CB *)m_GLND_TAKE_GLND_CB;
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return;
+		LOG_ER("GLND cb take handle failed");
+		goto end;
 	}
 	if (saAmfResponse(glnd_cb->amf_hdl, invocation, error) != SA_AIS_OK)
-		m_LOG_GLND_HEADLINE(GLND_AMF_RESPONSE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("GLND amf response failed");
 	/* giveup the handle */
 	m_GLND_GIVEUP_GLND_CB;
-
+end:
+	TRACE_LEAVE();
 	return;
 }
 
@@ -258,7 +273,7 @@ void glnd_amf_csi_rmv_callback(SaInvocationT invocation,
 void glnd_amf_de_init(GLND_CB *glnd_cb)
 {
 	if (saAmfFinalize(glnd_cb->amf_hdl) != SA_AIS_OK)
-		m_LOG_GLND_HEADLINE(GLND_AMF_DESTROY_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("GLND amf destroy failed");
 }
 
 /****************************************************************************

@@ -85,12 +85,10 @@ static uint32_t glnd_shm_open(GLND_CB *cb, char *shm_name)
 
 		rc = ncs_os_posix_shm(&glnd_open_req);
 		if (rc == NCSCC_RC_FAILURE) {
-			m_LOG_GLND(GLND_SHM_CREATE_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-				   0, 0, 0);
-			return rc;
+			LOG_CR("GLND  shm create failure: rc %u Error %s ", rc, strerror(errno));
+			assert(0);
 		} else {
-			m_LOG_GLND(GLND_SHM_CREATE_SUCCESS, NCSFL_LC_HEADLINE, NCSFL_SEV_INFO, rc, __FILE__, __LINE__,
-				   0, 0, 0);
+			TRACE_1("GLND shm create success: rc %u", rc);
 
 			if (memcmp(shm_name, RES_SHM_NAME, strlen(shm_name)) == 0) {
 				/* Store the shared memory base address */
@@ -109,7 +107,7 @@ static uint32_t glnd_shm_open(GLND_CB *cb, char *shm_name)
 			cb->node_state = GLND_OPERATIONAL_STATE;
 		}
 	} else {
-		m_LOG_GLND(GLND_SHM_OPEN_SUCCESS, NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__, 0, 0, 0);
+		TRACE_1("GLND shm open success: rc %u", rc);
 
 		if (memcmp(shm_name, RES_SHM_NAME, strlen(shm_name)) == 0) {
 			/* Store the shared memory base address */
@@ -170,11 +168,9 @@ uint32_t glnd_shm_create(GLND_CB *cb)
 		cb->agent_info_get_tmr.cb_hdl = cb->cb_hdl_id;
 		glnd_start_tmr(cb, &cb->agent_info_get_tmr,
 			       GLND_TMR_AGENT_INFO_GET_WAIT, GLND_AGENT_INFO_GET_TIMEOUT, (uint32_t)cb->cb_hdl_id);
-		m_LOG_GLND(GLND_RESTARTED, NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__, 0, 0, 0);
+		TRACE_1("GLND Restarted: rc %u", rc);
 	} else
-		m_LOG_GLND(GLND_COMING_UP_FIRST_TIME, NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__, 0, 0,
-			   0);
-
+		TRACE_1("GLND coming up first time: rc %u", rc);
 	return rc;
 }
 
@@ -197,7 +193,6 @@ uint32_t glnd_shm_destroy(GLND_CB *cb, char *shm_name)
 
 	glnd_dest_req.info.unlink.i_name = shm_name;
 	rc = ncs_os_posix_shm(&glnd_dest_req);
-
 	return rc;
 }
 
@@ -293,8 +288,8 @@ uint32_t glnd_find_evt_shm_ckpt_empty_section(GLND_CB *cb, uint32_t *index)
 			return rc;
 		}
 	}
+	
 	return NCSCC_RC_FAILURE;
-
 }
 
 /****************************************************************************
@@ -325,6 +320,7 @@ uint32_t glnd_res_shm_section_invalidate(GLND_CB *cb, GLND_RESOURCE_INFO *res_in
 		shm_base_addr[offset].valid = GLND_SHM_INFO_INVALID;
 		memset((shm_base_addr + offset), '\0', sizeof(GLND_RESTART_RES_INFO));
 	}
+	
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -356,6 +352,7 @@ uint32_t glnd_lck_shm_section_invalidate(GLND_CB *cb, GLND_RES_LOCK_LIST_INFO *l
 		shm_base_addr[offset].valid = GLND_SHM_INFO_INVALID;
 		memset((shm_base_addr + offset), '\0', sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
 	}
+	
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -387,5 +384,6 @@ uint32_t glnd_evt_shm_section_invalidate(GLND_CB *cb, GLSV_GLND_EVT *glnd_evt)
 		shm_base_addr[offset].valid = GLND_SHM_INFO_INVALID;
 		memset((shm_base_addr + offset), '\0', sizeof(GLSV_RESTART_BACKUP_EVT_INFO));
 	}
+
 	return NCSCC_RC_SUCCESS;
 }

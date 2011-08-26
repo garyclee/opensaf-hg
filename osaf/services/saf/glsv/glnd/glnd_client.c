@@ -31,7 +31,7 @@
 ******************************************************************************/
 
 #include "glnd.h"
-
+#include <string.h>
 /*****************************************************************************
   PROCEDURE NAME : glnd_client_node_find
 
@@ -97,11 +97,12 @@ GLND_CLIENT_INFO *glnd_client_node_find_next(GLND_CB *glnd_cb, SaLckHandleT hand
 GLND_CLIENT_INFO *glnd_client_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, SaLckHandleT app_handle_id)
 {
 	GLND_CLIENT_INFO *client_info = NULL;
+	TRACE_ENTER2("agent_mds_dest %llx", agent_mds_dest);
 
 	/* create new clientt info and put it into the tree */
 	if ((client_info = m_MMGR_ALLOC_GLND_CLIENT_INFO) == NULL) {
-		m_LOG_GLND_MEMFAIL(GLND_CLIENT_ALLOC_FAILED, __FILE__, __LINE__);
-		return NULL;
+		LOG_CR("GLND client node alloc failed:agent_mds_dest %llx Error %s", agent_mds_dest, strerror(errno));
+		assert(0);
 	}
 	memset(client_info, 0, sizeof(GLND_CLIENT_INFO));
 	if (app_handle_id) {
@@ -114,11 +115,12 @@ GLND_CLIENT_INFO *glnd_client_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest
 
 	client_info->patnode.key_info = (uint8_t *)&client_info->app_handle_id;
 	if (ncs_patricia_tree_add(&glnd_cb->glnd_client_tree, &client_info->patnode) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_API(GLND_CLIENT_TREE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("GLND client tree add failed");
 		/* free and return */
 		m_MMGR_FREE_GLND_CLIENT_INFO(client_info);
 		return NULL;
 	}
+	TRACE_LEAVE();
 	return client_info;
 }
 
@@ -142,11 +144,13 @@ uint32_t glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info)
 	SaLckLockModeT mode;
 	GLSV_GLD_EVT gld_evt;
 	bool orphan = false;
+	uint32_t rc = NCSCC_RC_SUCCESS; 
+	TRACE_ENTER();
 
 	/* delete from the tree */
-	if (ncs_patricia_tree_del(&glnd_cb->glnd_client_tree, &client_info->patnode) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_API(GLND_CLIENT_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+	if ((rc = ncs_patricia_tree_del(&glnd_cb->glnd_client_tree, &client_info->patnode)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("GLND client tree del failed");
+		goto end;
 	}
 	/* free up all the resource requests */
 	for (res_list = client_info->res_list; res_list != NULL;) {
@@ -198,8 +202,9 @@ uint32_t glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info)
 
 	/* free the memory */
 	m_MMGR_FREE_GLND_CLIENT_INFO(client_info);
-
-	return NCSCC_RC_SUCCESS;
+end:
+	TRACE_LEAVE2("Return value: %u", rc);
+	return rc;
 }
 
 /*****************************************************************************
@@ -218,9 +223,11 @@ uint32_t glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info)
 uint32_t glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info, GLND_RESOURCE_INFO *res_info)
 {
 	GLND_CLIENT_LIST_RESOURCE *resource_list;
+	uint32_t rc = NCSCC_RC_FAILURE;
+	TRACE_ENTER2("client_info->agent_mds_dest %llx", client_info->agent_mds_dest);
 
 	if (!client_info)
-		return NCSCC_RC_FAILURE;
+		goto done;
 
 	for (resource_list = client_info->res_list; resource_list != NULL &&
 	     resource_list->rsc_info != res_info; resource_list = resource_list->next) ;
@@ -228,8 +235,9 @@ uint32_t glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info, GLND_RESOU
 	if (resource_list == NULL) {
 		resource_list = m_MMGR_ALLOC_GLND_CLIENT_RES_LIST;
 		if (resource_list == NULL) {
-			m_LOG_GLND_MEMFAIL(GLND_CLIENT_RSC_LIST_ALLOC_FAILED, __FILE__, __LINE__);
-			return NCSCC_RC_FAILURE;
+			LOG_CR("GLND Client Rsc list alloc failed: client_info->agent_mds_dest %llx Error %s", 
+				client_info->agent_mds_dest, strerror(errno));
+			assert(0);
 		}
 		memset(resource_list, 0, sizeof(GLND_CLIENT_LIST_RESOURCE));
 		resource_list->rsc_info = res_info;
@@ -238,11 +246,15 @@ uint32_t glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info, GLND_RESOU
 		if (client_info->res_list)
 			client_info->res_list->prev = resource_list;
 		client_info->res_list = resource_list;
-		return NCSCC_RC_SUCCESS;
+		rc = NCSCC_RC_SUCCESS;
+		goto done;
 	} else if (resource_list->rsc_info == res_info) {
 		resource_list->open_ref_cnt++;
 	}
-	return NCSCC_RC_FAILURE;
+
+done:	
+	TRACE_LEAVE2("Return value: %u", rc);
+	return rc;
 }
 
 /*****************************************************************************
@@ -319,6 +331,7 @@ uint32_t glnd_client_node_resource_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *clien
 		m_MMGR_FREE_GLND_CLIENT_RES_LIST(resource_list);
 
 	}
+
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -443,20 +456,23 @@ uint32_t glnd_client_node_resource_lock_req_add(GLND_CLIENT_INFO *client_info,
 {
 	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lock_req_list;
 	GLND_CLIENT_LIST_RESOURCE *resource_list;
+	uint32_t rc = NCSCC_RC_FAILURE;
+	TRACE_ENTER2("client_info->agent_mds_dest %llx", client_info->agent_mds_dest);
 
 	if (!client_info)
-		return NCSCC_RC_FAILURE;
+		goto done;
 
 	for (resource_list = client_info->res_list; resource_list != NULL &&
 	     resource_list->rsc_info != res_info; resource_list = resource_list->next) ;
 
 	if (resource_list == NULL)
-		return NCSCC_RC_FAILURE;
+		goto done;
 
 	lock_req_list = m_MMGR_ALLOC_GLND_CLIENT_RES_LOCK_LIST_REQ;
 	if (!lock_req_list) {
-		m_LOG_GLND_MEMFAIL(GLND_CLIENT_RSC_LOCK_LIST_ALLOC_FAILED, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_CR("GLND Client Rsc lock list alloc failed: client_info->agent_mds_dest %llx Error %s",
+							client_info->agent_mds_dest, strerror(errno));
+		assert(0);
 	}
 	memset(lock_req_list, 0, sizeof(GLND_CLIENT_LIST_RESOURCE_LOCK_REQ));
 	lock_req_list->lck_req = lock_req_info;
@@ -464,7 +480,10 @@ uint32_t glnd_client_node_resource_lock_req_add(GLND_CLIENT_INFO *client_info,
 	if (resource_list->lck_list)
 		resource_list->lck_list->prev = lock_req_list;
 	resource_list->lck_list = lock_req_list;
-	return NCSCC_RC_SUCCESS;
+	rc = NCSCC_RC_SUCCESS;
+	
+ done:	TRACE_LEAVE();	
+	return rc;
 }
 
 /*****************************************************************************
@@ -495,6 +514,7 @@ uint32_t glnd_client_node_resource_lock_req_del(GLND_CLIENT_INFO *client_info,
 	if (lock_req_list->next)
 		lock_req_list->next->prev = lock_req_list->prev;
 	m_MMGR_FREE_GLND_CLIENT_RES_LOCK_LIST_REQ(lock_req_list);
+	
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -515,8 +535,9 @@ GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *glnd_client_node_resource_lock_req_find(GLND
 									    SaLckResourceIdT res_id,
 									    SaLckLockIdT lockid)
 {
-	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lck_req_list;
+	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lck_req_list = NULL;
 	GLND_CLIENT_LIST_RESOURCE *resource_list;
+		
 
 	if (!client_info)
 		return NULL;
@@ -610,6 +631,7 @@ uint32_t glnd_client_node_resource_lock_find_duplicate_ex(GLND_CLIENT_INFO *clie
 				return NCSCC_RC_FAILURE;
 		}
 	}
+	
 	return NCSCC_RC_SUCCESS;
 
 }

@@ -825,7 +825,6 @@ AC_CONFIG_FILES([
         osaf/services/saf/edsv/eds/scripts/osaf-evtd
         osaf/services/saf/glsv/Makefile
         osaf/services/saf/glsv/config/Makefile
-        osaf/services/saf/glsv/logstr/Makefile
         osaf/services/saf/glsv/gld/Makefile
         osaf/services/saf/glsv/glnd/Makefile
         osaf/services/saf/glsv/gld/scripts/Makefile

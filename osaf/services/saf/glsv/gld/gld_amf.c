@@ -24,7 +24,6 @@
 ******************************************************************************/
 
 #include "gld.h"
-#include "gld_log.h"
 #include "gld_imm.h"
 
 /****************************************************************************
@@ -75,6 +74,7 @@ gld_amf_CSI_set_callback(SaInvocationT invocation,
 	GLSV_GLD_CB *gld_cb;
 	SaAisErrorT error = SA_AIS_OK;
 	V_DEST_RL mds_role;
+	TRACE_ENTER2("component name %s haState %d", compName->value, haState);
 
 	gld_cb = m_GLSV_GLD_RETRIEVE_GLD_CB;
 	if (gld_cb != NULL) {
@@ -87,12 +87,12 @@ gld_amf_CSI_set_callback(SaInvocationT invocation,
 			/* Give up our IMM OI implementer role */
 			error = immutil_saImmOiImplementerClear(gld_cb->immOiHandle);
 			if (error != SA_AIS_OK) {
-				gld_log(NCSFL_SEV_ERROR, "saImmOiImplementerClear failed: err = %d", error);
+				LOG_ER("saImmOiImplementerClear failed: err = %d", error);
 			}
 
 			gld_mds_change_role(gld_cb, mds_role);
 
-			return;
+			goto end;
 		}
 		gld_cb->ha_state = haState;
 
@@ -108,7 +108,7 @@ gld_amf_CSI_set_callback(SaInvocationT invocation,
 		gld_mds_change_role(gld_cb, mds_role);
 
 		if (glsv_gld_mbcsv_chgrole(gld_cb) != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_MBCSV(GLD_MBCSV_CHGROLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			TRACE_2("GLD mbcsv chgrole failed");
 		}
 
 		saAmfResponse(gld_cb->amf_hdl, invocation, error);
@@ -118,13 +118,14 @@ gld_amf_CSI_set_callback(SaInvocationT invocation,
 
 		m_GLSV_GLD_GIVEUP_GLD_CB;
 		if (gld_cb->ha_state == SA_AMF_HA_ACTIVE)
-			m_LOG_GLD_SVC_PRVDR(GLD_AMF_CSI_SET_HA_STATE_ACTIVE, NCSFL_SEV_INFO, __FILE__, __LINE__);
+			LOG_IN("AMF HA state = ACTIVE");
 		else if (gld_cb->ha_state == SA_AMF_HA_STANDBY)
-			m_LOG_GLD_SVC_PRVDR(GLD_AMF_CSI_SET_HA_STATE_STANDBY, NCSFL_SEV_INFO, __FILE__, __LINE__);
+			LOG_IN("AMF HA state = STANDBY");
 		else if (gld_cb->ha_state == SA_AMF_HA_QUIESCED)
-			m_LOG_GLD_SVC_PRVDR(GLD_AMF_CSI_SET_HA_STATE_QUIESCED, NCSFL_SEV_INFO, __FILE__, __LINE__);
+			LOG_IN("AMF HA state = QUIESCED");
 	}
-
+ end:
+	TRACE_LEAVE();
 	return;
 }
 
@@ -159,7 +160,7 @@ void gld_amf_health_chk_callback(SaInvocationT invocation, const SaNameT *compNa
 	if (gld_cb != NULL) {
 		saAmfResponse(gld_cb->amf_hdl, invocation, error);
 		m_GLSV_GLD_GIVEUP_GLD_CB;
-		m_LOG_GLD_SVC_PRVDR(GLD_AMF_RCVD_HEALTHCHK, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE("AMF RCVD health check");
 	}
 	return;
 }
@@ -189,13 +190,14 @@ void gld_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 {
 	GLSV_GLD_CB *gld_cb;
 	SaAisErrorT error = SA_AIS_OK;
+	TRACE_ENTER();
 
 	gld_cb = m_GLSV_GLD_RETRIEVE_GLD_CB;
 
 	if (gld_cb != NULL) {
 		saAmfResponse(gld_cb->amf_hdl, invocation, error);
 		m_GLSV_GLD_GIVEUP_GLD_CB;
-		m_LOG_GLD_SVC_PRVDR(GLD_AMF_RCVD_TERMINATE_CALLBACK, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE("GLD amf received terminate callback");
 
 		/* Unregister with MBCSv */
 		glsv_gld_mbcsv_unregister(gld_cb);
@@ -212,6 +214,8 @@ void gld_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 		m_GLSV_GLD_GIVEUP_GLD_CB;
 	}
 	sleep(1);
+
+	TRACE_LEAVE();
 	exit(0);
 }
 
@@ -235,7 +239,7 @@ gld_amf_csi_rmv_callback(SaInvocationT invocation,
 	if (gld_cb != NULL) {
 		saAmfResponse(gld_cb->amf_hdl, invocation, error);
 		m_GLSV_GLD_GIVEUP_GLD_CB;
-		m_LOG_GLD_SVC_PRVDR(GLD_AMF_RCVD_HEALTHCHK, NCSFL_SEV_INFO, __FILE__, __LINE__);
+		TRACE("AMF RCVD remove callback");
 	}
 	return;
 }
@@ -258,6 +262,7 @@ uint32_t gld_amf_init(GLSV_GLD_CB *gld_cb)
 	SaVersionT amf_version;
 	SaAisErrorT error;
 	uint32_t res = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("component name %s", gld_cb->comp_name.value);
 
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
@@ -271,17 +276,21 @@ uint32_t gld_amf_init(GLSV_GLD_CB *gld_cb)
 	error = saAmfInitialize(&gld_cb->amf_hdl, &amfCallbacks, &amf_version);
 
 	if (error != SA_AIS_OK) {
-		m_LOG_GLD_SVC_PRVDR(GLD_AMF_INIT_ERROR, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("AMF Initialize error");
+		res = NCSCC_RC_FAILURE;
+		goto end;
 	}
 
 	/* get the component name */
 	error = saAmfComponentNameGet(gld_cb->amf_hdl, &gld_cb->comp_name);
 	if (error != SA_AIS_OK) {
-		m_LOG_GLD_SVC_PRVDR(GLD_AMF_INIT_ERROR, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("AMF Initialize error");
+		res = NCSCC_RC_FAILURE;
+		goto end;
 	}
-
-	m_LOG_GLD_SVC_PRVDR(GLD_AMF_INIT_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
+ 
+	LOG_IN("AMF Initialize success");
+ end:
+	TRACE_LEAVE2("Return value: %u ", res);
 	return (res);
 }

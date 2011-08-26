@@ -41,7 +41,7 @@ static int __init_gld(void)
 		fprintf(stderr, "gld_lib_req FAILED\n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
-
+	
 	return (NCSCC_RC_SUCCESS);
 }
 

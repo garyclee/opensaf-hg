@@ -234,7 +234,7 @@ void *_gld_imm_declare_implementer(void *cb)
 		nTries++;
 	}
 	if (error != SA_AIS_OK) {
-		gld_log(NCSFL_SEV_ERROR, "saImmOiImplementerSet FAILED, rc = %u", error);
+		LOG_ER("saImmOiImplementerSet FAILED, rc = %u", error);
 		exit(EXIT_FAILURE);
 	}
 	return NULL;
@@ -249,7 +249,7 @@ void gld_imm_declare_implementer(GLSV_GLD_CB *cb)
 	pthread_t thread;
 
 	if (pthread_create(&thread, NULL, _gld_imm_declare_implementer, cb) != 0) {
-		gld_log(NCSFL_SEV_ERROR, "pthread_create FAILED: %s", strerror(errno));
+		LOG_CR("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 }

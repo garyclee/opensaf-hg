@@ -29,6 +29,7 @@
 
 ******************************************************************************/
 #include "glnd.h"
+#include <string.h>
 uint32_t glnd_restart_resource_info_ckpt_write(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info);
 uint32_t glnd_restart_resource_info_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info);
 
@@ -65,6 +66,7 @@ uint32_t glnd_restart_resource_info_ckpt_write(GLND_CB *glnd_cb, GLND_RESOURCE_I
 	NCS_OS_POSIX_SHM_REQ_INFO res_info_write;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint32_t shm_index = 0;
+	TRACE_ENTER2("resource_id %u", res_info->resource_id);
 
 	/* Fill restart_resource_info */
 	memset(&restart_resource_info, '\0', sizeof(GLND_RESTART_RES_INFO));
@@ -94,11 +96,11 @@ uint32_t glnd_restart_resource_info_ckpt_write(GLND_CB *glnd_cb, GLND_RESOURCE_I
 	res_info_write.info.write.i_write_size = sizeof(GLND_RESTART_RES_INFO);
 
 	rc = ncs_os_posix_shm(&res_info_write);
-	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND(GLND_RESOURCE_SHM_WRITE_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			   __FILE__, __LINE__, 0, res_info->resource_id, 0);
-		return rc;
+	if (rc != NCSCC_RC_SUCCESS) { 
+		LOG_CR("GLND resource shm write failure: resource_id %u Error %s", res_info->resource_id, strerror(errno));
+		assert(0);	
 	}
+ 	TRACE_LEAVE2("Return value:%u", rc);
 	return rc;
 
 }
@@ -118,6 +120,7 @@ uint32_t glnd_restart_lock_event_info_ckpt_write(GLND_CB *glnd_cb, GLSV_RESTART_
 {
 	NCS_OS_POSIX_SHM_REQ_INFO evt_info_write;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("resource id %u", restart_backup_evt.resource_id);
 
 	/* Fill the POSIX shared memory req info */
 	memset(&evt_info_write, '\0', sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
@@ -129,11 +132,13 @@ uint32_t glnd_restart_lock_event_info_ckpt_write(GLND_CB *glnd_cb, GLSV_RESTART_
 	evt_info_write.info.write.i_write_size = sizeof(GLSV_RESTART_BACKUP_EVT_INFO);
 
 	rc = ncs_os_posix_shm(&evt_info_write);
-	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND(GLND_EVT_LIST_SHM_WRITE_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			   __FILE__, __LINE__, 0, 0, 0);
-		return rc;
+	if (rc != NCSCC_RC_SUCCESS) { 
+		LOG_CR("GLND event list shm write failure: resource_id %u Error %s", 
+						restart_backup_evt.resource_id, strerror(errno));
+		assert(0);			
 	}
+	
+	TRACE_LEAVE2("Return value: %u", rc);
 	return rc;
 
 }
@@ -156,6 +161,7 @@ uint32_t glnd_restart_resource_info_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RESOUR
 	GLND_RESTART_RES_INFO *glnd_res_shm_base_addr = NULL;
 	NCS_OS_POSIX_SHM_REQ_INFO res_info_write;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("resource_id: %u", res_info->resource_id );
 
 	glnd_res_shm_base_addr = glnd_cb->glnd_res_shm_base_addr;
 
@@ -186,11 +192,11 @@ uint32_t glnd_restart_resource_info_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RESOUR
 	res_info_write.info.write.i_write_size = sizeof(GLND_RESTART_RES_INFO);
 
 	rc = ncs_os_posix_shm(&res_info_write);
-	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND(GLND_RESOURCE_SHM_WRITE_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			   __FILE__, __LINE__, 0, res_info->resource_id, 0);
-		return rc;
+	if (rc != NCSCC_RC_SUCCESS) { 
+		LOG_CR("GLND resource shm write failure: resource_id %u Error %s", res_info->resource_id, strerror(errno));
+		assert(0);
 	}
+	TRACE_LEAVE2("Return value: %u", rc);
 	return rc;
 
 }
@@ -214,6 +220,7 @@ uint32_t glnd_restart_res_lock_list_ckpt_write(GLND_CB *glnd_cb, GLND_RES_LOCK_L
 	NCS_OS_POSIX_SHM_REQ_INFO lck_list_info_write;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint32_t shm_index;
+	TRACE_ENTER2("Resource id: %u", res_id);
 
 	memset(&restart_res_lock_list_info, 0, sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
 
@@ -245,11 +252,12 @@ uint32_t glnd_restart_res_lock_list_ckpt_write(GLND_CB *glnd_cb, GLND_RES_LOCK_L
 	lck_list_info_write.info.write.i_write_size = sizeof(GLND_RESTART_RES_LOCK_LIST_INFO);
 
 	rc = ncs_os_posix_shm(&lck_list_info_write);
-	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND(GLND_LCK_LIST_SHM_WRITE_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			   __FILE__, __LINE__, app_handle_id, res_id, res_lock_list->lock_info.lcl_lockid);
-		return rc;
+	if (rc != NCSCC_RC_SUCCESS) { 
+		LOG_CR("GLND lck list shm write failure: app_handle_id:%llx, res_id: %u, lockid:%llx Error %s", 
+				app_handle_id, res_id, res_lock_list->lock_info.lcl_lockid, strerror(errno));
+		assert(0);
 	}
+	TRACE_LEAVE2("Return value: %u", rc);
 	return rc;
 
 }
@@ -273,6 +281,7 @@ uint32_t glnd_restart_res_lock_list_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RES_LO
 	NCS_OS_POSIX_SHM_REQ_INFO lck_list_info_write;
 	GLND_RESTART_RES_LOCK_LIST_INFO *shm_base_addr = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("resource_id %u", res_id);
 
 	shm_base_addr = glnd_cb->glnd_lck_shm_base_addr;
 
@@ -302,11 +311,13 @@ uint32_t glnd_restart_res_lock_list_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RES_LO
 	lck_list_info_write.info.write.i_write_size = sizeof(GLND_RESTART_RES_LOCK_LIST_INFO);
 
 	rc = ncs_os_posix_shm(&lck_list_info_write);
-	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND(GLND_LCK_LIST_SHM_WRITE_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			   __FILE__, __LINE__, app_handle_id, res_id, res_lock_list->lock_info.lcl_lockid);
-		return rc;
+	if (rc != NCSCC_RC_SUCCESS) { 
+		LOG_CR("GLND LCK_LIST SHM WRITE FAILURE: app_handle_id %llx ,res_id %u lockid %llx Error %s" , app_handle_id, res_id, res_lock_list->lock_info.lcl_lockid, strerror(errno));
+		assert(0);
+		
 	}
+
+	TRACE_LEAVE2("Return value: %u", rc);
 	return rc;
 
 }
@@ -327,6 +338,7 @@ uint32_t glnd_restart_res_lock_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_LOCK
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	NCS_OS_POSIX_SHM_REQ_INFO read_req;
+	TRACE_ENTER2("resource_id %u", restart_res_lock_info->resource_id);
 
 	/*Use read option of shared memory to fill ckpt_queue_info */
 	memset(&read_req, '\0', sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
@@ -338,10 +350,12 @@ uint32_t glnd_restart_res_lock_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_LOCK
 	read_req.info.read.i_to_buff = (GLND_RESTART_RES_LOCK_LIST_INFO *)restart_res_lock_info;
 
 	rc = ncs_os_posix_shm(&read_req);
-	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_GLND(GLND_LCK_LIST_SHM_READ_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			   __FILE__, __LINE__, 0, 0, 0);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_CR("GLND lck list shm read failure: Error %s", strerror(errno));
+		assert(0);
+	}
 
+	TRACE_LEAVE2("Return value: %d", rc);
 	return rc;
 }
 
@@ -360,6 +374,7 @@ uint32_t glnd_restart_resource_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO
 {
 	NCS_OS_POSIX_SHM_REQ_INFO read_req;
 	uint32_t rc = NCSCC_RC_FAILURE;
+	TRACE_ENTER2("resource_id %u",restart_resource_info->resource_id);
 
 	/*Use read option of shared memory to fill ckpt_queue_info */
 	memset(&read_req, '\0', sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
@@ -371,10 +386,12 @@ uint32_t glnd_restart_resource_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO
 	read_req.info.read.i_to_buff = (GLND_RESTART_RES_INFO *)restart_resource_info;
 
 	rc = ncs_os_posix_shm(&read_req);
-	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_GLND(GLND_RESOURCE_SHM_READ_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			   __FILE__, __LINE__, 0, 0, 0);
+	if (rc != NCSCC_RC_SUCCESS) { 
+		LOG_CR("GLND Resource shm read failure: Error %s", strerror(errno));
+		assert(0);
+	}
 
+	TRACE_LEAVE2("Return value: %u", rc);
 	return rc;
 }
 
@@ -393,6 +410,7 @@ uint32_t glnd_restart_backup_event_read(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EV
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	NCS_OS_POSIX_SHM_REQ_INFO read_req;
+	TRACE_ENTER2("resource_id %u", restart_backup_evt->resource_id);
 
 	/*Use read option of shared memory to fill */
 	memset(&read_req, '\0', sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
@@ -405,8 +423,8 @@ uint32_t glnd_restart_backup_event_read(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EV
 
 	rc = ncs_os_posix_shm(&read_req);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_LOG_GLND(GLND_EVT_LIST_SHM_READ_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
-			   __FILE__, __LINE__, 0, 0, 0);
+		LOG_CR("GLND event list shm read failure");
 
+	TRACE_LEAVE2("Return value: %d",rc);
 	return rc;
 }

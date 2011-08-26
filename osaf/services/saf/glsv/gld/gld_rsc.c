@@ -17,7 +17,7 @@
 
 #include "gld.h"
 #include "gld_imm.h"
-
+#include <string.h>
 /*****************************************************************************
   FILE NAME: GLD_RSC.C
 
@@ -84,8 +84,8 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLc
 
 	rsc_info = m_MMGR_ALLOC_GLSV_GLD_RSC_INFO;
 	if (rsc_info == NULL) {
-		m_LOG_GLD_MEMFAIL(GLD_RSC_INFO_ALLOC_FAILED, __FILE__, __LINE__);
-		return NULL;
+		LOG_CR("Rsc info alloc failed: Error %s", strerror(errno));
+		assert(0);
 	}
 	memset(rsc_info, '\0', sizeof(GLSV_GLD_RSC_INFO));
 	memcpy(&rsc_info->lck_name, rsc_name, sizeof(SaNameT));
@@ -98,7 +98,7 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLc
 	else
 		rsc_info->rsc_id = gld_gen_rsc_id(gld_cb);
 	if (rsc_info->rsc_id == 0) {
-		m_LOG_GLD_LCK_OPER(GLD_OPER_RSC_ID_ALLOC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__, "", 0, 0);
+		LOG_ER("Unable to allocate Rsc id");
 		m_MMGR_FREE_GLSV_GLD_RSC_INFO(rsc_info);
 		*error = SA_AIS_ERR_NO_MEMORY;
 		return NULL;
@@ -106,7 +106,7 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLc
 	/* Add this node to the global resource id tree */
 	rsc_info->pat_node.key_info = (uint8_t *)&rsc_info->rsc_id;
 	if (ncs_patricia_tree_add(&gld_cb->rsc_info_id, &rsc_info->pat_node) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("Patricia tree add failed");
 		m_MMGR_FREE_GLSV_GLD_RSC_INFO(rsc_info);
 		*error = SA_AIS_ERR_NO_MEMORY;
 		return NULL;
@@ -114,9 +114,10 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLc
 
 	rsc_map_info = m_MMGR_ALLOC_GLSV_GLD_RSC_MAP_INFO;
 	if (rsc_map_info == NULL) {
-		m_LOG_GLD_MEMFAIL(GLD_RSC_INFO_ALLOC_FAILED, __FILE__, __LINE__);
+		LOG_CR("Rsc info alloc failed: Error %s", strerror(errno));
+		assert(0);
 		if (ncs_patricia_tree_del(&gld_cb->rsc_info_id, (NCS_PATRICIA_NODE *)rsc_info) != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+			LOG_ER("Patricia tree del failed");
 			return NULL;
 		}
 		m_MMGR_FREE_GLSV_GLD_RSC_INFO(rsc_info);
@@ -130,9 +131,9 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLc
 	rsc_map_info->rsc_id = rsc_info->rsc_id;
 	rsc_map_info->pat_node.key_info = (uint8_t *)&rsc_map_info->rsc_name;
 	if (ncs_patricia_tree_add(&gld_cb->rsc_map_info, &rsc_map_info->pat_node) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("Patricia tree add failed");
 		if (ncs_patricia_tree_del(&gld_cb->rsc_info_id, (NCS_PATRICIA_NODE *)rsc_info) != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+			LOG_ER("Patricia tree del failed");
 			m_MMGR_FREE_GLSV_GLD_RSC_MAP_INFO(rsc_map_info);
 			return NULL;
 		}
@@ -149,13 +150,13 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLc
 					  gld_cb->immOiHandle);
 
 	if (err != SA_AIS_OK) {
-		gld_log(NCSFL_SEV_ERROR, "create_runtime_object failed %u\n", err);
+		LOG_ER("create_runtime_object failed %u\n", err);
 		if (ncs_patricia_tree_del(&gld_cb->rsc_map_info, (NCS_PATRICIA_NODE *)rsc_map_info) != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+			LOG_ER("Patricia tree del failed");
 			return NULL;
 		}
 		if (ncs_patricia_tree_del(&gld_cb->rsc_info_id, (NCS_PATRICIA_NODE *)rsc_info) != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+			LOG_ER("Patricia tree del failed");
 			return NULL;
 		}
 		m_MMGR_FREE_GLSV_GLD_RSC_MAP_INFO(rsc_map_info);
@@ -289,14 +290,14 @@ void gld_free_rsc_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info)
 	/* delete imm runtime object */
 	if (gld_cb->ha_state == SA_AMF_HA_ACTIVE) {
 		if (immutil_saImmOiRtObjectDelete(gld_cb->immOiHandle, &immObj_name) != SA_AIS_OK) {
-			gld_log(NCSFL_SEV_ERROR, "Deleting run time object %s FAILED", lck_name.value);
+			LOG_ER("Deleting run time object %s FAILED", lck_name.value);
 			return;
 		}
 	}
 	rsc_map_info = (GLSV_GLD_RSC_MAP_INFO *)ncs_patricia_tree_get(&gld_cb->rsc_map_info, (uint8_t *)(uint8_t *)&lck_name);
 	if (rsc_map_info) {
 		if (ncs_patricia_tree_del(&gld_cb->rsc_map_info, (NCS_PATRICIA_NODE *)rsc_map_info) != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+			LOG_ER("Patricia tree del failed");
 			return;
 		}
 		m_MMGR_FREE_GLSV_GLD_RSC_MAP_INFO(rsc_map_info);
@@ -307,7 +308,7 @@ void gld_free_rsc_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info)
 
 	/* Delete this node from the global resource tree */
 	if (ncs_patricia_tree_del(&gld_cb->rsc_info_id, (NCS_PATRICIA_NODE *)rsc_info) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("Patricia tree del failed");
 	}
 
 	m_MMGR_FREE_GLSV_GLD_RSC_INFO(rsc_info);
@@ -337,8 +338,8 @@ void gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, uin
 	/*TBD need to check rsc_info */
 
 	if (rsc_info->node_list == NULL) {
-		m_LOG_GLD_LCK_OPER(GLD_OPER_MASTER_RENAME_ERR, NCSFL_SEV_ERROR, __FILE__, __LINE__, "",
-				   rsc_info->rsc_id, 0);
+		LOG_ER("error in designating new master: rsc_id %u",
+				   rsc_info->rsc_id);
 		return;
 	}
 
@@ -362,7 +363,7 @@ void gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, uin
 
 	res = ncsmds_api(&snd_mds);
 	if (res != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_SVC_PRVDR(GLD_MDS_SEND_ERROR, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		LOG_ER("MDS Send failed");
 		return;
 	}
 	return;
@@ -407,7 +408,7 @@ void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
 	}
 
 	if (*node_list == NULL) {
-		m_LOG_GLD_LCK_OPER(GLD_OPER_INCORRECT_STATE, NCSFL_SEV_ERROR, __FILE__, __LINE__, "",
+		LOG_ER("Incorrect state: rsc_id %u node_id %u",
 				   rsc_info->rsc_id, node_details->node_id);
 	} else {
 		*node_list = (*node_list)->next;
@@ -419,7 +420,7 @@ void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
 	}
 
 	if (ncs_patricia_tree_del(&node_details->rsc_info_tree, (NCS_PATRICIA_NODE *)glnd_rsc) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("Patricia tree del failed");
 	}
 
 	if (rsc_info->node_list != NULL && rsc_info->can_orphan == false)
@@ -465,8 +466,8 @@ void gld_rsc_add_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_detai
 
 	glnd_rsc = m_MMGR_ALLOC_GLSV_GLD_GLND_RSC_REF;
 	if (!glnd_rsc) {
-		m_LOG_GLD_MEMFAIL(GLD_RSC_INFO_ALLOC_FAILED, __FILE__, __LINE__);
-		return;
+		LOG_CR("Rsc info alloc failed: Error %s", strerror(errno));
+		assert(0);
 	}
 
 	memset(glnd_rsc, 0, sizeof(GLSV_GLD_GLND_RSC_REF));
@@ -475,7 +476,7 @@ void gld_rsc_add_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_detai
 	glnd_rsc->pat_node.key_info = (uint8_t *)&glnd_rsc->rsc_id;
 	if (ncs_patricia_tree_add(&node_details->rsc_info_tree, &glnd_rsc->pat_node)
 	    != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
+		LOG_ER("Patricia tree add failed");
 		m_MMGR_FREE_GLSV_GLD_GLND_DETAILS(node_details);
 		return;
 	}

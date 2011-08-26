@@ -30,8 +30,6 @@
 
 ******************************************************************************/
 
-#include <logtrace.h>
-
 #include "glnd.h"
 
 void glnd_main_process(SYSF_MBX *mbx);
@@ -51,17 +49,20 @@ uint32_t glnd_se_lib_create(uint8_t pool_id)
 {
 
 	GLND_CB *glnd_cb;
+	uint32_t rc = NCSCC_RC_FAILURE;
+	TRACE_ENTER2("pool id %u", pool_id);
 
 	/* create the CB */
 	glnd_cb = glnd_cb_create(pool_id);
 
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_CREATE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		TRACE_2("GLND cb creation failed");
+		goto end;
 	}
-
-
-	return (NCSCC_RC_SUCCESS);
+	rc = NCSCC_RC_SUCCESS;
+end:
+	TRACE_LEAVE2("%s return value %u", (rc == NCSCC_RC_SUCCESS)?"SUCCESS":"FAILURE", rc);
+	return rc;
 }
 
 /****************************************************************************
@@ -78,21 +79,23 @@ uint32_t glnd_se_lib_create(uint8_t pool_id)
 uint32_t glnd_se_lib_destroy()
 {
 	GLND_CB *glnd_cb;
+	uint32_t rc = NCSCC_RC_FAILURE;
+	TRACE_ENTER();
 
 	/* take the handle */
 	glnd_cb = (GLND_CB *)m_GLND_TAKE_GLND_CB;
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("GLND cb take handle failed");
+		goto end;
 	}
 
-	if (glnd_cb_destroy(glnd_cb) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_CB_DESTROY_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+	if ((rc = glnd_cb_destroy(glnd_cb)) != NCSCC_RC_SUCCESS) {
+		TRACE_2("GLND cb destroy failed");
+		rc= NCSCC_RC_FAILURE;
 	}
-
-
-	return (NCSCC_RC_SUCCESS);
+end:
+	TRACE_LEAVE2("%s return value %u", (rc == NCSCC_RC_SUCCESS)?"SUCCESS":"FAILURE", rc);
+	return rc;
 }
 
 /****************************************************************************
@@ -111,17 +114,21 @@ uint32_t glnd_se_lib_destroy()
 uint32_t glnd_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
 	uint32_t res = NCSCC_RC_FAILURE;
-
+	TRACE_ENTER();
+	
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
-		res = glnd_se_lib_create(NCS_HM_POOL_ID_COMMON);
+		if( (res = glnd_se_lib_create(NCS_HM_POOL_ID_COMMON))!= NCSCC_RC_SUCCESS )
+			TRACE_2("GLND se lib create failed");	
 		break;
 	case NCS_LIB_REQ_DESTROY:
-		res = glnd_se_lib_destroy();
+		if( (res = glnd_se_lib_destroy()) != NCSCC_RC_SUCCESS )
+			TRACE_2("GLND se lib destroy failed");
 		break;
 	default:
 		break;
 	}
+	TRACE_LEAVE2("%s return value %u", (res == NCSCC_RC_SUCCESS)?"SUCCESS":"FAILURE", res);
 	return (res);
 }
 
@@ -141,17 +148,18 @@ uint32_t glnd_lib_req(NCS_LIB_REQ_INFO *req_info)
 void glnd_process_mbx(GLND_CB *cb, SYSF_MBX *mbx)
 {
 	GLSV_GLND_EVT *evt = NULL;
+	TRACE_ENTER();
 
 	while ((evt = (GLSV_GLND_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, evt))) {
 		if ((evt->type >= GLSV_GLND_EVT_BASE) && (evt->type < GLSV_GLND_EVT_MAX)) {
 			/* process mail box */
 			glnd_process_evt((NCSCONTEXT)cb, evt);
 		} else {
-			m_LOG_GLND_EVT(GLND_EVT_UNKNOWN, __FILE__, __LINE__, evt->type, 0, 0, 0, 0);
+			TRACE_1("Unknown glnd evt rcvd: event_type %d", evt->type);
 			m_MMGR_FREE_GLND_EVT(evt);
 		}
 	}
-	TRACE("Exiting the GLND Process MBX Evt");
+	TRACE_LEAVE();
 	return;
 }
 
@@ -172,7 +180,8 @@ void glnd_main_process(SYSF_MBX *mbx)
 {
 	NCS_SEL_OBJ mbx_fd = m_NCS_IPC_GET_SEL_OBJ(mbx);
 	GLND_CB *glnd_cb = NULL;
-
+	TRACE_ENTER();	
+	
 	NCS_SEL_OBJ_SET all_sel_obj;
 	SaAmfHandleT amf_hdl;
 
@@ -184,8 +193,8 @@ void glnd_main_process(SYSF_MBX *mbx)
 	/* take the handle */
 	glnd_cb = (GLND_CB *)m_GLND_TAKE_GLND_CB;
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return;
+		LOG_ER("GLND cb take handle failed");
+		goto end;
 	}
 
 	amf_hdl = glnd_cb->amf_hdl;
@@ -197,10 +206,9 @@ void glnd_main_process(SYSF_MBX *mbx)
 	m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
 
 	amf_error = saAmfSelectionObjectGet(amf_hdl, &amf_sel_obj);
-
 	if (amf_error != SA_AIS_OK) {
-		m_LOG_GLND_HEADLINE(GLND_AMF_GET_SEL_OBJ_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return;
+		LOG_ER("GLND amf get sel obj error");
+		goto end;
 	}
 	m_SET_FD_IN_SEL_OBJ((uint32_t)amf_sel_obj, amf_ncs_sel_obj);
 	m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
@@ -213,7 +221,7 @@ void glnd_main_process(SYSF_MBX *mbx)
 			/* dispatch all the AMF pending function */
 			amf_error = saAmfDispatch(amf_hdl, SA_DISPATCH_ALL);
 			if (amf_error != SA_AIS_OK) {
-				m_LOG_GLND_HEADLINE(GLND_AMF_DISPATCH_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+				TRACE_2("GLND amf dispatch failure");
 			}
 		}
 		/* process the GLND Mail box */
@@ -234,5 +242,7 @@ void glnd_main_process(SYSF_MBX *mbx)
 
 	}
 	TRACE("DANGER: Exiting the Select loop of GLND");
+end:
+	TRACE_LEAVE();
 	return;
 }
