@@ -97,11 +97,11 @@ GLND_CLIENT_INFO *glnd_client_node_find_next(GLND_CB *glnd_cb, SaLckHandleT hand
 GLND_CLIENT_INFO *glnd_client_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, SaLckHandleT app_handle_id)
 {
 	GLND_CLIENT_INFO *client_info = NULL;
-	TRACE_ENTER2("agent_mds_dest %llx", agent_mds_dest);
+	TRACE_ENTER2("agent_mds_dest %" PRIx64, agent_mds_dest);
 
 	/* create new clientt info and put it into the tree */
 	if ((client_info = m_MMGR_ALLOC_GLND_CLIENT_INFO) == NULL) {
-		LOG_CR("GLND client node alloc failed:agent_mds_dest %llx Error %s", agent_mds_dest, strerror(errno));
+		LOG_CR("GLND client node alloc failed:agent_mds_dest %" PRIx64 "Error %s", agent_mds_dest, strerror(errno));
 		assert(0);
 	}
 	memset(client_info, 0, sizeof(GLND_CLIENT_INFO));
@@ -224,7 +224,7 @@ uint32_t glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info, GLND_RESOU
 {
 	GLND_CLIENT_LIST_RESOURCE *resource_list;
 	uint32_t rc = NCSCC_RC_FAILURE;
-	TRACE_ENTER2("client_info->agent_mds_dest %llx", client_info->agent_mds_dest);
+	TRACE_ENTER2("client_info->agent_mds_dest %" PRIx64, client_info->agent_mds_dest);
 
 	if (!client_info)
 		goto done;
@@ -235,7 +235,7 @@ uint32_t glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info, GLND_RESOU
 	if (resource_list == NULL) {
 		resource_list = m_MMGR_ALLOC_GLND_CLIENT_RES_LIST;
 		if (resource_list == NULL) {
-			LOG_CR("GLND Client Rsc list alloc failed: client_info->agent_mds_dest %llx Error %s", 
+			LOG_CR("GLND Client Rsc list alloc failed: client_info->agent_mds_dest %" PRIx64 "Error %s", 
 				client_info->agent_mds_dest, strerror(errno));
 			assert(0);
 		}
@@ -457,7 +457,7 @@ uint32_t glnd_client_node_resource_lock_req_add(GLND_CLIENT_INFO *client_info,
 	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lock_req_list;
 	GLND_CLIENT_LIST_RESOURCE *resource_list;
 	uint32_t rc = NCSCC_RC_FAILURE;
-	TRACE_ENTER2("client_info->agent_mds_dest %llx", client_info->agent_mds_dest);
+	TRACE_ENTER2("client_info->agent_mds_dest %" PRIx64, client_info->agent_mds_dest);
 
 	if (!client_info)
 		goto done;
@@ -470,7 +470,7 @@ uint32_t glnd_client_node_resource_lock_req_add(GLND_CLIENT_INFO *client_info,
 
 	lock_req_list = m_MMGR_ALLOC_GLND_CLIENT_RES_LOCK_LIST_REQ;
 	if (!lock_req_list) {
-		LOG_CR("GLND Client Rsc lock list alloc failed: client_info->agent_mds_dest %llx Error %s",
+		LOG_CR("GLND Client Rsc lock list alloc failed: client_info->agent_mds_dest %" PRIx64 "Error %s",
 							client_info->agent_mds_dest, strerror(errno));
 		assert(0);
 	}
