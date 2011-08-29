@@ -374,7 +374,6 @@ typedef struct avnd_comp_tag {
 #define m_AVND_COMP_OPER_STATE_SET(x, val)  (((x)->oper = val))
 
 /* macros to manage the presence state */
-#define m_AVND_COMP_PRES_STATE_SET(x, val)  ((x)->pres = val)
 #define m_AVND_COMP_PRES_STATE_IS_UNINSTANTIATED(x) \
            ( SA_AMF_PRESENCE_UNINSTANTIATED == (x)->pres )
 #define m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(x) \
@@ -881,5 +880,6 @@ extern uint32_t avnd_comp_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *para
 extern unsigned int avnd_comp_config_get_su(struct avnd_su_tag *su);
 extern int avnd_comp_config_reinit(AVND_COMP *comp);
 extern void avnd_comp_delete(AVND_COMP *comp);
+extern void avnd_comp_pres_state_set(AVND_COMP *comp, SaAmfPresenceStateT newstate);
 
 #endif   /* !AVND_COMP_H */

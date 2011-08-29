@@ -34,6 +34,8 @@ struct avnd_cb_tag;
 struct avnd_comp_tag;
 enum avnd_comp_clc_cmd_type;
 
+extern const char *presence_state[];
+
 void avnd_msg_content_free(struct avnd_cb_tag *, AVND_MSG *);
 
 uint32_t avnd_msg_copy(struct avnd_cb_tag *, AVND_MSG *, AVND_MSG *);

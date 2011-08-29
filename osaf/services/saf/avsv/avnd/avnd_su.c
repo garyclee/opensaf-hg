@@ -439,8 +439,7 @@ uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 		      comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&comp->su_dll_node))) {
 
 			m_AVND_COMP_STATE_RESET(comp);
-			m_AVND_COMP_PRES_STATE_SET(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
-			avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompPresenceState_ID, &comp->name, comp->pres);
+			avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
 			
 			if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
 				m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
@@ -451,10 +450,7 @@ uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 		m_AVND_SU_STATE_RESET(su);
 		m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_ENABLED);
 		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSUOperState_ID, &su->name, su->oper);
-
-		m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_UNINSTANTIATED);
-		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSUPresenceState_ID, &su->name, su->pres);
-
+		avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
 		break;
 	}
 	default:
@@ -465,5 +461,21 @@ uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 
 	TRACE_LEAVE();
 	return rc;
+}
+
+/**
+ * Set the new SU presence state to 'newState'. Update AMF director. Checkpoint.
+ * Syslog at level NOTICE.
+ * @param su
+ * @param newstate
+ */
+void avnd_su_pres_state_set(AVND_SU *su, SaAmfPresenceStateT newstate)
+{
+	assert(newstate <= SA_AMF_PRESENCE_TERMINATION_FAILED);
+	LOG_NO("'%s' Presence State %s => %s", su->name.value,
+		presence_state[su->pres], presence_state[newstate]);
+	su->pres = newstate;
+	avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSUPresenceState_ID, &su->name, su->pres);
+	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 }
 

@@ -237,7 +237,6 @@ typedef struct avnd_su_tag {
 }
 
 /* macros to manage the presence state */
-#define m_AVND_SU_PRES_STATE_SET(x, val)  ((x)->pres = val)
 #define m_AVND_SU_PRES_STATE_IS_INSTANTIATED(x) \
            ( SA_AMF_PRESENCE_INSTANTIATED == (x)->pres )
 #define m_AVND_SU_PRES_STATE_IS_INSTANTIATING(x) \
@@ -389,5 +388,6 @@ uint32_t avnd_su_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
 extern uint32_t avnd_evt_su_admin_op_req(struct avnd_cb_tag *cb, struct avnd_evt_tag  *evt);
 extern struct avnd_comp_csi_rec *avnd_su_si_csi_rec_add(struct avnd_cb_tag *, AVND_SU *,
                                                  struct avnd_su_si_rec *, struct avsv_susi_asgn *, uint32_t *);
+extern void avnd_su_pres_state_set(AVND_SU *su, SaAmfPresenceStateT newstate);
 
 #endif

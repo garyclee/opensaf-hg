@@ -155,21 +155,6 @@ static AVND_SU_PRES_FSM_FN avnd_su_pres_fsm[][AVND_SU_PRES_FSM_EV_MAX - 1] = {
 	 }
 };
 
-static unsigned int update_avd_presence_state(const AVND_SU *su)
-{
-	AVSV_PARAM_INFO param;
-
-	memset(&param, 0, sizeof(AVSV_PARAM_INFO));
-	param.class_id = AVSV_SA_AMF_SU;
-	param.attr_id = saAmfSUPresenceState_ID;
-	param.name = su->name;
-	param.act = AVSV_OBJ_OPR_MOD;
-	*((uint32_t *)param.value) = m_NCS_OS_HTONL(su->pres);
-	param.value_len = sizeof(uint32_t);
-
-	return avnd_di_object_upd_send(avnd_cb, &param);
-}
-
 /***************************************************************************
  * S U - S I  Q U E U E  M A N A G E M E N T   P O R T I O N   S T A R T S *
  ***************************************************************************/
@@ -1035,10 +1020,9 @@ uint32_t avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 		else {
 			if (m_AVND_SU_IS_REG_FAILED(su)) {
 				/* The SU configuration is bad, we cannot do much other transition to failed state */
-				TRACE_2("SU Configuratino is bad, transitioning to instantiation failed state");
-				m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
+				TRACE_2("SU Configuration is bad");
+				avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
 				m_AVND_SU_ALL_TERM_RESET(su);
-				update_avd_presence_state(su);
 			} else
 				assert(0);
 		}
@@ -1316,12 +1300,6 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 		}
 	}
 
-	/* inform avd of the change in presence state */
-	rc = update_avd_presence_state(su);
-
-	if (NCSCC_RC_SUCCESS != rc)
-		goto done;
-
  done:
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -1395,9 +1373,8 @@ uint32_t avnd_su_pres_uninst_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 	}
 
 	/* transition to instantiating state */
-	m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATING);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
-	TRACE("Transitioned to Instantiating state");
+	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATING);
+
  done:
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -1449,8 +1426,7 @@ uint32_t avnd_su_pres_insting_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 	}			/* for */
 
 	/* transition to terminating state */
-	m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_TERMINATING);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
+	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
 
  done:
 	TRACE_LEAVE2("%u", rc);
@@ -1530,8 +1506,7 @@ uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		/* determine su presence state */
 		m_AVND_SU_IS_INSTANTIATED(su, is);
 		if (true == is) {
-			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
+			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
 		}
 	}
 
@@ -1559,8 +1534,7 @@ uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		} else {
 			/* => si assignment done */
 			TRACE("SI Assignment done");
-			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
+			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
 		}
 	}
 
@@ -1601,8 +1575,7 @@ uint32_t avnd_su_pres_insting_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 							su->name.value, comp->name.value);
 
 	/* transition to inst-failed state */
-	m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
+	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
 	m_AVND_SU_ALL_TERM_RESET(su);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
 
@@ -1726,9 +1699,8 @@ uint32_t avnd_su_pres_inst_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *com
 	}
 
 	/* transition to terminating state */
-	m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_TERMINATING);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
-	TRACE("Transitioning the SU to terminating state");
+	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
+
  done:
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -1800,9 +1772,7 @@ uint32_t avnd_su_pres_inst_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 	}
 
 	/* transition to restarting state */
-	m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_RESTARTING);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
-	TRACE("Transitioning the SU to restarting state");
+	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_RESTARTING);
 
  done:
 	TRACE_LEAVE2("%u", rc);
@@ -1853,9 +1823,7 @@ uint32_t avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		if (m_AVND_SU_IS_FAILED(su)) {
 			/* transition to terminating state */
-			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_TERMINATING);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
-			TRACE_1("Transitioning the PI SU to terminating state");
+			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
 		}
 	}
 
@@ -1893,9 +1861,7 @@ uint32_t avnd_su_pres_terming_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		/* determine if su can be transitioned to instantiated state */
 		m_AVND_SU_IS_INSTANTIATED(su, is);
 		if (true == is) {
-			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
-			TRACE_1("Transitioning PI SU to Instantiated state");
+			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
 		}
 	}
 
@@ -1986,9 +1952,7 @@ uint32_t avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 	}
 	
 	/* transition to term-failed state */
-	m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_TERMINATION_FAILED);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
-	TRACE_1("Transitioning to termination failed state");
+	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATION_FAILED);
 
 	if (true == su->is_ncs) {
 		char reason[SA_MAX_NAME_LENGTH + 64];
@@ -2044,8 +2008,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 		}
 
 		if (all_uninst == true) {
-			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_UNINSTANTIATED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
+			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
 
 			/* Now check if in the context of shutdown all app SUs 
 			 ** and do the needful
@@ -2081,8 +2044,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 		 * transition to terminate state.
 		 */
 		if (!curr_comp) {
-			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_UNINSTANTIATED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
+			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
 
 			/* Now check if in the context of shutdown all app SUs 
 			 ** and do the needful
@@ -2122,9 +2084,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 				goto done;
 		} else {
 			TRACE("SI Assignment done");
-			/* => si assignment done */
-			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_UNINSTANTIATED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
+			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
 
 			/* Now check if in the context of shutdown all app SUs 
 			 ** and do the needful
@@ -2190,9 +2150,8 @@ uint32_t avnd_su_pres_restart_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 	}			/* for */
 
 	/* transition to terminating state */
-	m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_TERMINATING);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
-	TRACE_1("Transitioning to terminating state");
+	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
+
  done:
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -2249,8 +2208,7 @@ uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 
 		/* OK, all are instantiated */
 		if (all_inst == true) {
-			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
+			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
 		}
 	}
 
@@ -2276,8 +2234,7 @@ uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 				goto done;
 		} else {
 			/* => si assignment done */
-			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
+			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
 		}
 	}
 
@@ -2353,9 +2310,8 @@ uint32_t avnd_su_pres_restart_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_C
 	}			/* for */
 
 	/* transition to terminating state */
-	m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_TERMINATING);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
-	TRACE_1("Transitioning the SU to terminating state");
+	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
+
  done:
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -2390,8 +2346,7 @@ uint32_t avnd_su_pres_inst_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
 										su->name.value, comp->name.value);
 
 	/* transition to inst-failed state */
-	m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
+	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
 	m_AVND_SU_ALL_TERM_RESET(su);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
 
