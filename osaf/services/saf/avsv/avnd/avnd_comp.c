@@ -2903,3 +2903,31 @@ static SaAisErrorT  avnd_validate_comp_and_createdb(AVND_CB *cb, SaNameT *comp_d
 	}
 	return SA_AIS_OK;
 }
+
+/**
+ * Set the new Component presence state to 'newState'. Update AMF director.
+ * Checkpoint. Syslog at INFO level.
+ * @param comp
+ * @param newstate
+ */
+void avnd_comp_pres_state_set(AVND_COMP *comp, SaAmfPresenceStateT newstate)
+{
+	SaAmfPresenceStateT prv_st = comp->pres;
+
+	assert(newstate <= SA_AMF_PRESENCE_TERMINATION_FAILED);
+	LOG_IN("'%s' Presence State %s => %s", comp->name.value,
+		presence_state[comp->pres], presence_state[newstate]);
+	comp->pres = newstate;
+
+	/* inform avd of the change in presence state for all 
+	 * Component Presence state trasitions except 
+	 * INSTANTIATED -> ORPHANED -> INSTANTIATED */
+	if ((SA_AMF_PRESENCE_ORPHANED != newstate) &&
+	    (!((SA_AMF_PRESENCE_INSTANTIATED == newstate) && (SA_AMF_PRESENCE_ORPHANED == prv_st)))) {
+
+		avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompPresenceState_ID, &comp->name, comp->pres);
+	}
+
+	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PRES_STATE);
+}
+

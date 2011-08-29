@@ -33,6 +33,18 @@
 
 #include "avnd.h"
 
+const char *presence_state[] =
+{
+	"OUT_OF_RANGE",
+	"UNINSTANTIATED",
+	"INSTANTIATING",
+	"INSTANTIATED",
+	"TERMINATING",
+	"RESTARTING",
+	"INSTANTIATION_FAILED",
+	"TERMINATION_FAILED"
+};
+
 /****************************************************************************
   Name          : avnd_msg_content_free
  
