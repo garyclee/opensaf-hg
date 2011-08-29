@@ -58,7 +58,6 @@ class SmfEntity;
  */
 #define m_PROCEDURE_TASKNAME "PROCEDURE"
 #define m_PROCEDURE_STACKSIZE NCS_STACKSIZE_HUGE
-#define m_PROCEDURE_TASK_PRI (5)
 
 typedef enum {
 	SMF_AU_NONE = 1,

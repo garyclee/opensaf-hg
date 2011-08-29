@@ -41,6 +41,9 @@
 #include "ncspatricia.h"
 #include "ncssysf_mem.h"
 
+#include <stdlib.h>
+#include <sched.h>
+
 #ifndef SYSF_TMR_LOG
 #define SYSF_TMR_LOG  0
 #endif
@@ -551,10 +554,27 @@ bool sysfTmrCreate(void)
 
 	/* create expiry thread */
 
+	char *thread_prio;
+	int policy = SCHED_RR; /*root defaults */
+	int max_prio = sched_get_priority_max(policy);
+	int min_prio = sched_get_priority_min(policy);
+	int prio_val = ((max_prio - min_prio) * 0.87); 
+
+	/* Change scheduling class to real time. */
+
+	if ((thread_prio = getenv("OSAF_TMR_SCHED_PRIORITY")) != NULL)
+		prio_val = strtol(thread_prio, NULL, 0);
+
+	if((prio_val < min_prio) || (prio_val > max_prio)) {
+               /* Set to defaults */
+		syslog(LOG_NOTICE, "%s: Scheduling priority %d for given policy: %d is not within the range, setting to default values", __FUNCTION__, prio_val, policy);
+		prio_val = ((max_prio - min_prio) * 0.87);
+	}
+
 	if (m_NCS_TASK_CREATE((NCS_OS_CB)ncs_tmr_wait,
 			      0,
 			      NCS_TMR_TASKNAME,
-			      NCS_TMR_PRIORITY, NCS_TMR_STACKSIZE, &gl_tcb.p_tsk_hdl) != NCSCC_RC_SUCCESS) {
+			      prio_val, NCS_TMR_STACKSIZE, &gl_tcb.p_tsk_hdl) != NCSCC_RC_SUCCESS) {
 		ncs_patricia_tree_destroy(&gl_tcb.tmr_pat_tree);
 		m_NCS_SEL_OBJ_DESTROY(gl_tcb.sel_obj);
 		return false;

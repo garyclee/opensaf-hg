@@ -255,7 +255,7 @@ uint32_t avnd_mon_task_create(void)
 
 	/* create avnd task */
 	rc = m_NCS_TASK_CREATE((NCS_OS_CB)avnd_mon_process, NULL,
-			       "AVND_MON", m_AVND_TASK_PRIORITY, m_AVND_STACKSIZE, &gl_avnd_mon_task_hdl);
+			       "AVND_MON", NCS_OS_TASK_PRIORITY_0, m_AVND_STACKSIZE, &gl_avnd_mon_task_hdl);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_CR("Passive Monitoring thread CREATE failed");
 		goto err;

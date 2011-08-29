@@ -29,9 +29,6 @@
 /**** Macro for PROCEDURE task name ****/
 #define m_PROCEDURE_TASKNAME "PROCEDURE"
 
-/**** Macro for PROCEDURE task priority ****/
-#define m_PROCEDURE_TASK_PRI (5)
-
 /**** Macro for PROCEDURE task stack size ****/
 #define m_PROCEDURE_STACKSIZE NCS_STACKSIZE_HUGE
 

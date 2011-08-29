@@ -419,7 +419,7 @@ uint32_t start_exec_mod_cb(void)
 	if (m_NCS_TASK_CREATE((NCS_OS_CB)ncs_exec_mod_hdlr,
 			      0,
 			      NCS_EXEC_MOD_TASKNAME,
-			      NCS_EXEC_MOD_PRIORITY,
+			      NCS_OS_TASK_PRIORITY_0,
 			      NCS_EXEC_MOD_STACKSIZE, &module_cb.em_task_handle) != NCSCC_RC_SUCCESS) {
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);;
 	}

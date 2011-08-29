@@ -37,9 +37,6 @@ class SmfUpgradeProcedure;
 /**** Macro for CAMPAIGN task name ****/
 #define m_CAMPAIGN_TASKNAME "CAMPAIGN"
 
-/**** Macro for CAMPAIGN task priority ****/
-#define m_CAMPAIGN_TASK_PRI (5)
-
 /**** Macro for CAMPAIGN task stack size ****/
 #define m_CAMPAIGN_STACKSIZE NCS_STACKSIZE_HUGE
 

@@ -128,7 +128,7 @@ uint32_t dta_lib_init(NCS_LIB_REQ_INFO *req_info)
 
 	/* Create DTA's task */
 	if (m_NCS_TASK_CREATE
-	    ((NCS_OS_CB)dta_do_evts, &gl_dta_mbx, NCS_DTA_TASKNAME, NCS_DTA_PRIORITY, NCS_DTA_STACKSIZE,
+	    ((NCS_OS_CB)dta_do_evts, &gl_dta_mbx, NCS_DTA_TASKNAME, NCS_OS_TASK_PRIORITY_0, NCS_DTA_STACKSIZE,
 	     &task_handle) != NCSCC_RC_SUCCESS) {
 		m_NCS_IPC_RELEASE(&gl_dta_mbx, NULL);
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_lib_init:Failed to create DTA thread.");

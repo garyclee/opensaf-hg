@@ -258,7 +258,7 @@ extern void ncs_os_atomic_dec(uint32_t *p_uns32);
  **                   Task Priorities                                       **
  **                                                                         **
  ****************************************************************************/
-#define NCS_OS_TASK_PRIORITY_0          1
+#define NCS_OS_TASK_PRIORITY_0          0
 #define NCS_OS_TASK_PRIORITY_2          2
 #define NCS_OS_TASK_PRIORITY_3          3
 #define NCS_OS_TASK_PRIORITY_4          4

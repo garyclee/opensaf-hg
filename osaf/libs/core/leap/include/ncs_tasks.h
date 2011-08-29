@@ -132,10 +132,6 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #define NCS_EXEC_MOD_STACKSIZE     NCS_STACKSIZE_HUGE
 #endif
 
-#ifndef NCS_EXEC_MOD_PRIORITY
-#define NCS_EXEC_MOD_PRIORITY      NCS_TASK_PRIORITY_1
-#endif
-
 #ifndef NCS_EXEC_MOD_TASKNAME
 #define NCS_EXEC_MOD_TASKNAME      "EXEC_SCR_MOD"
 #endif
@@ -164,10 +160,6 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 
 #ifndef NCS_DTA_STACKSIZE
 #define NCS_DTA_STACKSIZE      NCS_STACKSIZE_HUGE
-#endif
-
-#ifndef NCS_DTA_PRIORITY
-#define NCS_DTA_PRIORITY       NCS_TASK_PRIORITY_7
 #endif
 
 #ifndef NCS_DTA_TASKNAME
