@@ -62,7 +62,6 @@
 #define AVND_COMP_CBK_RESP_TIME       5000	/* time out callback response */
 #define AVND_AVD_MSG_RESP_TIME   1000	/* time out AvD message response */
 
-#define m_AVND_TASK_PRIORITY   (5)
 #define m_AVND_STACKSIZE       NCS_STACKSIZE_HUGE
 
 typedef enum {

@@ -169,7 +169,7 @@ int
 	/* Create the task */
 	if ((rc =
 	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfCampaignThread::main, (NCSCONTEXT) this, (char*)m_CAMPAIGN_TASKNAME,
-			       m_CAMPAIGN_TASK_PRI, m_CAMPAIGN_STACKSIZE, &m_task_hdl)) != NCSCC_RC_SUCCESS) {
+			       NCS_OS_TASK_PRIORITY_0, m_CAMPAIGN_STACKSIZE, &m_task_hdl)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("TASK_CREATE_FAILED");
 		return -1;
 	}

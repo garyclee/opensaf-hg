@@ -416,8 +416,6 @@ os_task_entry(void *arg)
 
 */
 
-static pthread_t leap_mds_thread_handle = 0;
-static pthread_t timer_dispatch_thread_handle = 0;
 unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 {
 	switch (request) {
@@ -426,42 +424,18 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 			int rc;
 
 #if (CHECK_FOR_ROOT_PRIVLEGES == 1)
-			int max_prio;
-			int min_prio;
 			int policy = SCHED_RR; /*SCHED_FIFO */ ;
-			int policy_temp = 0;
-			char *p_field;
-
-			if ((0 == strncmp("MDTM", task->info.create.i_name, strlen("MDTM") + 1)) ||
-			    (0 == strncmp("DTM_INTRANODE", task->info.create.i_name, strlen("DTM_INTRANODE") + 1)) ||
-			    (0 == strncmp("NODE_DISCOVERY", task->info.create.i_name, strlen("NODE_DISCOVERY") + 1)) ||
-			    (0 == strncmp("LHCSC", task->info.create.i_name, strlen("LHCSC") + 1)) ||
-			    (0 == strncmp("NCSDL", task->info.create.i_name, strlen("NCSDL") + 1)) ||
-			    (0 == strncmp(NCS_TMR_TASKNAME, task->info.create.i_name, strlen(NCS_TMR_TASKNAME) + 1)) ||
-			    (0 == strncmp("AVD_HB", task->info.create.i_name, strlen("AVD_HB") + 1))) {
-				task->info.create.i_priority = NCS_OS_TASK_PRIORITY_8;
-			} else {
-				p_field = getenv("LEAP_THREADS_ENABLE_RT");
-				if ((p_field != NULL) && (atoi(p_field) == 1)) {
-				} else {
-					/* If  LEAP_THREADS_NON_RT == 1, then force all threads to 
-					   non-real-time */
-					task->info.create.i_priority = NCS_OS_TASK_PRIORITY_16;
-				}
-			}
 
 			/* if we opted for lowest priority then change that process
 			   SCHED policy to SCHED_OTHER */
 
-			if (ncs_is_root() == false || task->info.create.i_priority == NCS_OS_TASK_PRIORITY_16)
+			if (ncs_is_root() == false || task->info.create.i_priority == NCS_OS_TASK_PRIORITY_0)
 				policy = SCHED_OTHER;	/* This policy is for normal user */
 
 			pthread_attr_t attr;
-			struct sched_param sp, sp_special;
+			struct sched_param sp;
 
 			memset(&sp, 0, sizeof(struct sched_param));
-
-			memset(&sp_special, 0, sizeof(struct sched_param));
 
 			pthread_attr_init(&attr);
 
@@ -477,77 +451,22 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 			if (rc != 0)
 				return NCSCC_RC_INVALID_INPUT;
 
-			max_prio = sched_get_priority_max(policy);
-			min_prio = sched_get_priority_min(policy);
-			if (ncs_is_root() == true && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16)
-				assert(min_prio != 0 && max_prio != 0);
-
-			if (task->info.create.i_priority < min_prio)
-				task->info.create.i_priority = NCS_OS_TASK_PRIORITY_0;
-
-			if (task->info.create.i_priority > max_prio)
-				task->info.create.i_priority = NCS_OS_TASK_PRIORITY_16;
-
-			sp.sched_priority = max_prio - (task->info.create.i_priority * ((max_prio - min_prio) / 17));
-			if (ncs_is_root() == true && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16)
-				assert(min_prio <= task->info.create.i_priority
-				       && max_prio >= task->info.create.i_priority);
-
-			if (policy != SCHED_OTHER) {
-				if (0 == strncmp("MDTM", task->info.create.i_name, strlen("MDTM") + 1)) {
-					sp.sched_priority = 85;
-				} else if (0 == strncmp("LHCSC", task->info.create.i_name, strlen("LHCSC") + 1)) {
-					if (timer_dispatch_thread_handle) {
-						if (0 == pthread_getschedparam(timer_dispatch_thread_handle,
-									       &policy_temp, &sp_special)) {
-							sp_special.sched_priority = 87;
-							pthread_setschedparam(timer_dispatch_thread_handle, policy_temp,
-									      &sp_special);
-						}
-					} else
-						m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-
-					sp.sched_priority = 87;
-				} else if (0 == strncmp("NCSDL", task->info.create.i_name, strlen("NCSDL") + 1)) {
-					sp.sched_priority = 87;
-				}
-				if (0 == strncmp("DTM_INTRANODE", task->info.create.i_name, strlen("DTM_INTRANODE") + 1)) {
-					sp.sched_priority = 85;
-				}
-				if (0 == strncmp("NODE_DISCOVERY", task->info.create.i_name, strlen("NODE_DISCOVERY") + 1)) {
-					sp.sched_priority = 85;
-				}
-				if (0 ==
-				    strncmp(NCS_TMR_TASKNAME, task->info.create.i_name, strlen(NCS_TMR_TASKNAME) + 1)) {
-					sp.sched_priority = 85;
-				}
-				if (0 == strncmp("AVD_HB", task->info.create.i_name, strlen("AVD_HB") + 1)) {
-
-					if (leap_mds_thread_handle)
-						if (0 ==
-						    pthread_getschedparam(leap_mds_thread_handle, &policy_temp,
-									  &sp_special)) {
-							sp_special.sched_priority = 86;
-							pthread_setschedparam(leap_mds_thread_handle, policy_temp,
-									      &sp_special);
-						}
-					sp.sched_priority = 86;
-				}
-			}
+			if(policy == SCHED_OTHER)
+				sp.sched_priority = sched_get_priority_min(policy);
+			else
+				sp.sched_priority = task->info.create.i_priority;
 
 			rc = pthread_attr_setschedparam(&attr, &sp);
 			assert(0 == rc);
 
-			/* this will make the threads created by this process really concurrent */
+			/* This will make the threads created by this process really concurrent */
+			/* Giving scope as kernel threads, with PTHREAD_SCOPE_SYSTEM. */
 			rc = pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
 			assert(0 == rc);
 
 			/* create the new thread object */
 			task->info.create.o_handle = malloc(sizeof(pthread_t));
 			assert(NULL != task->info.create.o_handle);
-
-			/* 13-Apr-2006: Commenting the PRINTF as it interferes with BBS command functions 
-			   viz. lhccmd, switchcmd, etc. */
 
 			rc = pthread_create(task->info.create.o_handle, &attr,
 #if 1
@@ -556,16 +475,20 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 #else
 					    os_task_entry, task);
 #endif
-			assert(0 == rc);
-			if (0 == strncmp("MDTM", task->info.create.i_name, strlen("MDTM") + 1)) {
-				leap_mds_thread_handle = *((pthread_t *)task->info.create.o_handle);
-			}
-			if (0 == strncmp(NCS_TMR_TASKNAME, task->info.create.i_name, strlen(NCS_TMR_TASKNAME) + 1)) {
-				timer_dispatch_thread_handle = *((pthread_t *)task->info.create.o_handle);
-			}
-
+			if (rc != 0) {
+				syslog(LOG_ERR, "thread creation failed for %s with rc = %d errno = %s",
+							 task->info.create.i_name, rc, strerror(errno));
+				free(task->info.create.o_handle);
+				return NCSCC_RC_FAILURE;
+                        }
+			
 			rc = pthread_attr_destroy(&attr);
-			assert(0 == rc);
+			if (rc != 0) {
+				syslog(LOG_ERR, "Destroying thread attributes failed for %s with rc = %d, errno = %s",
+									task->info.create.i_name, rc, strerror(errno));
+				free(task->info.create.o_handle);
+				return NCSCC_RC_INVALID_INPUT;
+			}
 #else				/* (CHECK_FOR_ROOT_PRIVLEGES == 0) */
 
 			/* create the new thread object */

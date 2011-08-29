@@ -3066,7 +3066,7 @@ SmfSwapThread::start(void)
 	/* Create the task */
 	if ((rc =
 	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfSwapThread::main, (NCSCONTEXT) this, (char*) m_PROCEDURE_TASKNAME,
-			       m_PROCEDURE_TASK_PRI, m_PROCEDURE_STACKSIZE, &m_task_hdl)) != NCSCC_RC_SUCCESS) {
+			       NCS_OS_TASK_PRIORITY_0, m_PROCEDURE_STACKSIZE, &m_task_hdl)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("TASK_CREATE_FAILED");
 		return -1;
 	}

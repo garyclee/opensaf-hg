@@ -28,6 +28,9 @@
 #include "dtm.h"
 #include "dtm_node.h"
 
+#include <stdlib.h>
+#include <sched.h>
+
 /* ========================================================================
  *   DEFINITIONS
  * ========================================================================
@@ -180,9 +183,25 @@ uint32_t dtm_node_discovery_task_create(void)
 	uint32_t rc;
 	TRACE_ENTER();
 
-	/* create avnd task */
+	char *thread_prio;
+	int policy = SCHED_RR; /*root defaults */
+	int max_prio = sched_get_priority_max(policy);
+	int min_prio = sched_get_priority_min(policy);
+	int prio_val = ((max_prio - min_prio) * 0.87); 
+
+	/* Change scheduling class to real time. */
+
+	if ((thread_prio = getenv("OSAF_NODE_DISCOVERY_SCHED_PRIORITY")) != NULL)
+		prio_val = strtol(thread_prio, NULL, 0);
+	
+	if((prio_val < min_prio) || (prio_val > max_prio)) {
+               /* Set to defaults */
+		syslog(LOG_NOTICE, "%s: Scheduling priority %d for given policy: %d is not within the range, setting to default values", __FUNCTION__, prio_val, policy);
+		prio_val = ((max_prio - min_prio) * 0.87);
+	}
+	
 	rc = m_NCS_TASK_CREATE((NCS_OS_CB)node_discovery_process, NULL,
-			       m_NODE_DISCOVERY_TASKNAME, m_NODE_DISCOVERY_TASK_PRIORITY, m_NODE_DISCOVERY_STACKSIZE,
+			       m_NODE_DISCOVERY_TASKNAME, prio_val, m_NODE_DISCOVERY_STACKSIZE,
 			       &gl_node_dis_task_hdl);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("DTM: node_discovery thread CREATE failed");

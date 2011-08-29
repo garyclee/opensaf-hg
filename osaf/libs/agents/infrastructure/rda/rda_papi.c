@@ -226,7 +226,7 @@ static int pcs_rda_reg_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, v
 		if (m_NCS_TASK_CREATE((NCS_OS_CB)rda_callback_task,
 				      rda_callback_cb,
 				      "RDATASK_CALLBACK",
-				      0, NCS_STACKSIZE_HUGE, &rda_callback_cb->task_handle) != NCSCC_RC_SUCCESS) {
+				      NCS_OS_TASK_PRIORITY_0, NCS_STACKSIZE_HUGE, &rda_callback_cb->task_handle) != NCSCC_RC_SUCCESS) {
 
 			m_NCS_MEM_FREE(rda_callback_cb, 0, 0, 0);
 			rc = PCSRDA_RC_TASK_SPAWN_FAILED;

@@ -21,6 +21,7 @@
 #include <sys/un.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sched.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -309,12 +310,29 @@ static uint32_t dtm_intranode_create_rcv_task(int task_hdl)
 	   STEP 1: Create a recv task which will accept the connections, recv data from the local nodes */
 
 	TRACE_ENTER();
+	char *thread_prio;
+	int policy = SCHED_RR; /*root defaults */
+	int max_prio = sched_get_priority_max(policy);
+	int min_prio = sched_get_priority_min(policy);
+	int prio_val = ((max_prio - min_prio) * 0.87); 
+
+	/* Change scheduling class to real time. */
+
+	if ((thread_prio = getenv("OSAF_DTM_INTRANODE_SCHED_PRIORITY")) != NULL)
+		prio_val = strtol(thread_prio, NULL, 0);
+	
+	if((prio_val < min_prio) || (prio_val > max_prio)) {
+               /* Set to defaults */
+		syslog(LOG_NOTICE, "%s: Scheduling priority %d for given policy: %d is not within the range, setting to default values", __FUNCTION__, prio_val, policy);
+		prio_val = ((max_prio - min_prio) * 0.87);
+	}
+	
 	if (m_NCS_TASK_CREATE((NCS_OS_CB)dtm_intranode_processing,
 			      (NCSCONTEXT)(long)task_hdl,
 			      DTM_INTRANODE_TASKNAME,
-			      DTM_INTRANODE_TASK_PRIORITY, DTM_INTRANODE_STACKSIZE,
+			      prio_val, DTM_INTRANODE_STACKSIZE,
 			      &dtm_intranode_cb->dtm_intranode_hdl_task) != NCSCC_RC_SUCCESS) {
-		LOG_ER("\nIntr NODE Task Creation-failed");
+		LOG_ER("Intra NODE Task Creation-failed");
 		return NCSCC_RC_FAILURE;
 	}
 
