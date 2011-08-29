@@ -271,8 +271,9 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 		attrValues[attr_len] = NULL;
 		attr_len++;
 	}
-
-	if ((error = saImmOmCcbInitialize(ownerHandle, ccb_safe?SA_IMM_CCB_REGISTERED_OI:0x0, &ccbHandle)) 
+	printf("supposedly safe ?%u \n", ccb_safe);
+	if ((error = saImmOmCcbInitialize(ownerHandle, ccb_safe?
+		     (SA_IMM_CCB_REGISTERED_OI | SA_IMM_CCB_ALLOW_NULL_OI):0x0, &ccbHandle)) 
 		!= SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
 		goto done;
@@ -424,7 +425,8 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 		goto done;
 	}
 
-	if ((error = saImmOmCcbInitialize(ownerHandle, ccb_safe?SA_IMM_CCB_REGISTERED_OI:0x0, &ccbHandle))
+	if ((error = saImmOmCcbInitialize(ownerHandle, ccb_safe?
+		     (SA_IMM_CCB_REGISTERED_OI | SA_IMM_CCB_ALLOW_NULL_OI):0x0, &ccbHandle))
 		!= SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
 		goto done_release;
@@ -519,7 +521,8 @@ int object_delete(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 		goto done;
 	}
 
-	if ((error = saImmOmCcbInitialize(ownerHandle, ccb_safe?SA_IMM_CCB_REGISTERED_OI:0x0, &ccbHandle))
+	if ((error = saImmOmCcbInitialize(ownerHandle, ccb_safe?
+		     (SA_IMM_CCB_REGISTERED_OI | SA_IMM_CCB_ALLOW_NULL_OI):0x0, &ccbHandle))
 		!= SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
 		goto done;
