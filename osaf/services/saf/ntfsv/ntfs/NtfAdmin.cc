@@ -707,7 +707,6 @@ void NtfAdmin::checkNotificationList()
             UniqueSubscriptionId uSubId;
             while (notification->getNextSubscription(uSubId) == SA_AIS_OK)
             {
-                /* TODO: send not sent notifications here */
                 NtfClient* client = getClient(uSubId.clientId);
                 if (NULL != client)
                 {

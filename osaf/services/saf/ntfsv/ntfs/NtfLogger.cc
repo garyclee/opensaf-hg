@@ -72,7 +72,7 @@ static SaVersionT         logVersion = {'A', 2, 1};
 static SaLogHandleT       logHandle;
 static SaLogStreamHandleT alarmStreamHandle;
 
-NtfLogger::NtfLogger():readCounter(0), first(true)
+NtfLogger::NtfLogger():readCounter(0)
 {
     if (SA_AIS_OK != initLog()){
         LOG_ER("initialize saflog failed exiting...");
@@ -131,9 +131,7 @@ void saLogWriteLogCallback(SaInvocationT invocation,
 
 void NtfLogger::log(NtfSmartPtr& notif, bool isLocal)
 {
-    // TODO: add coll_ again
     unsigned int collSize = (unsigned int)coll_.size();
-    first = false;
     TRACE_ENTER();
     TRACE_2("notification Id=%llu received in logger with size %d",
             notif->getNotificationId(), collSize);
