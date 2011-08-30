@@ -14,6 +14,13 @@
  * Author(s): Ericsson AB
  *
  */
+ 
+#include <errno.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <wait.h>
+
 #include "tet_ntf.h"
 #include "tet_ntf_common.h"
 #include "test.h"
@@ -175,7 +182,7 @@ void saNtfNotificationReadNext_02(void)
     SaNtfSearchDirectionT searchDirection;
     SaNtfNotificationsT returnedNotification;
     SaNtfAlarmNotificationT myNotification;
-    searchCriteria.searchMode = SA_NTF_SEARCH_ONLY_FILTER;
+    searchCriteria.searchMode = SA_NTF_SEARCH_AFTER_TIME;
     SaAisErrorT errorCode;
     SaUint32T readCounter = 0;
 
@@ -313,10 +320,52 @@ error:
     test_validate(errorCode, SA_AIS_ERR_NOT_EXIST); /* read all notifications!! */
 }
 
+/**
+ *
+ * Invoke test script which tests the different search criterias
+ */
+void saNtfNotificationReadNext_03(void)
+{
+	SaAisErrorT errorCode = SA_AIS_OK;
+	int rc = 0;
+	rc = system("/usr/local/bin/ntf_search_criteria_test.sh");
+	if (rc != 0) {
+		rc = WEXITSTATUS(rc);
+		switch (rc) {
+		case SA_NTF_SEARCH_BEFORE_OR_AT_TIME:
+			(void)printf("SA_NTF_SEARCH_BEFORE_OR_AT_TIME FAILED\n");
+			break;
+		case SA_NTF_SEARCH_AT_TIME:
+			(void)printf("SA_NTF_SEARCH_AT_TIME FAILED\n");
+			break;
+		case SA_NTF_SEARCH_AT_OR_AFTER_TIME:
+			(void)printf("SA_NTF_SEARCH_AT_OR_AFTER_TIME FAILED\n");
+			break;
+		case SA_NTF_SEARCH_BEFORE_TIME:
+			(void)printf("SA_NTF_SEARCH_BEFORE_TIME FAILED\n");
+			break;
+		case SA_NTF_SEARCH_AFTER_TIME:
+			(void)printf("SA_NTF_SEARCH_AFTER_TIME FAILED\n");
+			break;
+		case SA_NTF_SEARCH_NOTIFICATION_ID:
+			(void)printf("SA_NTF_SEARCH_NOTIFICATION_ID FAILED\n");
+			break;
+		case SA_NTF_SEARCH_ONLY_FILTER:
+			(void)printf("SA_NTF_SEARCH_ONLY_FILTER FAILED\n");
+			break;
+		default:
+			(void)printf("error code out of range (%d)\n", rc);
+		}
+		errorCode = SA_AIS_ERR_FAILED_OPERATION;
+	}
+	test_validate(errorCode, SA_AIS_OK);	
+}
+
 __attribute__ ((constructor)) static void saNtfNotificationReadNext_constructor(void)
 {
     test_suite_add(22, "Consumer operations - Reader API 3");
     test_case_add(22, saNtfNotificationReadNext_01, "saNtfNotificationReadNext SA_AIS_OK");
     test_case_add(22, saNtfNotificationReadNext_02, "saNtfNotificationReadNext 3 search younger 3 search older");
+    test_case_add(22, saNtfNotificationReadNext_03, "saNtfSearchCriteriaT test all");
 }
 
