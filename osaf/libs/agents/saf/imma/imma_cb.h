@@ -48,6 +48,7 @@ typedef struct imma_client_node {
 	} o;
 	SaUint32T mImplementerId;	/*Only used for OI.*/
 	SaImmOiImplementerNameT  mImplementerName; /* needed for active resurrect*/
+	SaUint32T syncr_timeout;/* Timeout on syncr downcalls, dflt 10s, or setenv IMMA_SYNCR_TIMEOUT */
 	bool isOm;		/*If true => then this is an OM client */
 	bool stale;		/*Loss of connection with immnd 
 					  will set this to true for the 
