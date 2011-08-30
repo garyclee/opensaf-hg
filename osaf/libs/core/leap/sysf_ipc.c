@@ -511,11 +511,17 @@ uint32_t ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio)
 		return NCSCC_RC_FAILURE;
 	}
 
-	queue_number = NCS_IPC_PRIO_LEVELS - prio;
-
 	/* Priority 4 goes into 4-4 = 0th queue, priority 3 goes into
 	   4-3 = 1st queue, etc. 
 	 */
+	queue_number = NCS_IPC_PRIO_LEVELS - prio;
+
+	if (ipc_enqueue_ind_processing(ncs_ipc, queue_number) != NCSCC_RC_SUCCESS) {
+		m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
+		ncshm_give_hdl((uint32_t)*mbx);
+		return NCSCC_RC_FAILURE;
+	}
+
 	if (NULL != ncs_ipc->queue[queue_number].tail)
 		ncs_ipc->queue[queue_number].tail->next = msg;
 	else
@@ -523,14 +529,6 @@ uint32_t ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio)
 
 	ncs_ipc->queue[queue_number].tail = msg;
 	msg->next = NULL;
-	m_NCS_SM_IPC_ELEM_CUR_DEPTH_INC(ncs_ipc);
-	m_NCS_SET_ST_QLAT();
-
-	if (ipc_enqueue_ind_processing(ncs_ipc, queue_number) != NCSCC_RC_SUCCESS) {
-		m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-		ncshm_give_hdl((uint32_t)*mbx);
-		return NCSCC_RC_FAILURE;
-	}
 
 	m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 
