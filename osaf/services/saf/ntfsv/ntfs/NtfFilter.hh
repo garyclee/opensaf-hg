@@ -113,6 +113,9 @@ private:
 	SaNtfAttributeChangeNotificationFilterT *filter_;
 };
 
+typedef std::map<SaNtfNotificationTypeT,NtfFilter*> FilterMap;
+
+
 #endif // FILTER_H
 
 

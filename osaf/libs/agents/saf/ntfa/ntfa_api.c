@@ -2587,9 +2587,10 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 {
 	SaAisErrorT rc = SA_AIS_ERR_NOT_SUPPORTED;
 
-	ntfa_filter_hdl_rec_t *filter_hdl_rec;
-	ntfa_client_hdl_rec_t *client_hdl_rec;
-	ntfa_reader_hdl_rec_t *reader_hdl_rec;
+	ntfa_client_hdl_rec_t *client_hdl_rec = NULL;
+	ntfa_reader_hdl_rec_t *reader_hdl_rec = NULL;
+	ntfsv_filter_ptrs_t filters = { NULL, NULL, NULL, NULL, NULL };
+	SaNtfHandleT ntfHandle = 0;
 
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_reader_init_req_2_t *send_param;
@@ -2602,39 +2603,26 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 		goto done;
 	}
 
-	if ((searchCriteria.searchMode != SA_NTF_SEARCH_AT_OR_AFTER_TIME) &&
-	    (searchCriteria.searchMode != SA_NTF_SEARCH_ONLY_FILTER)) {
-		rc = SA_AIS_ERR_NOT_SUPPORTED;
-		TRACE_1("searchMode = %d\n", (SaNtfSearchModeT)searchCriteria.searchMode);
-		TRACE_1("searchCriteria->searchMode other than 'only filter' or 'at " "or after time' not supported!");
+	if (notificationFilterHandles->attributeChangeFilterHandle != 0 ||
+				 notificationFilterHandles->stateChangeFilterHandle != 0 ||
+				 notificationFilterHandles->objectCreateDeleteFilterHandle != 0) {
+		TRACE_1("Only alarm and security alarm is supported; all other handles must be set to SA_NTF_FILTER_HANDLE_NULL.");
+		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
-
-	if (notificationFilterHandles->alarmFilterHandle) {
-		TRACE_1("Getting notificationFilterHandle!");
-
-		/* retrieve notification filter hdl rec */
-		filter_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, notificationFilterHandles->alarmFilterHandle);
-		if (filter_hdl_rec == NULL) {
-			TRACE_1("ncshm_take_hdl failed");
-			rc = SA_AIS_ERR_BAD_HANDLE;
-			goto done;
+	
+	if (!(notificationFilterHandles->alarmFilterHandle || notificationFilterHandles->securityAlarmFilterHandle)) {
+			rc = SA_AIS_ERR_NOT_SUPPORTED;
+			TRACE_1("No filterhandle is set");
+			goto done;			
 		}
-		/* retrieve client hdl rec */
-		client_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filter_hdl_rec->ntfHandle);
-		if (client_hdl_rec == NULL) {
-			TRACE_1("ncshm_take_hdl failed");
-			rc = SA_AIS_ERR_BAD_HANDLE;
-			goto done_give_filter_hdl;
-		}
-	} else {
-		TRACE_1("No filter except the alarm filter supported!");
-		rc = SA_AIS_ERR_NOT_SUPPORTED;
-		goto done;
-	}
-
-	/* TODO: Fill in eventTime and notificationId later on */
-
+	
+	rc = getFilters(notificationFilterHandles, &filters, &ntfHandle, &client_hdl_rec);
+	if (rc != SA_AIS_OK) {
+		TRACE("getFilters failed");
+		goto done_give_client_hdl;
+	} 
+	
     /**
      ** Populate a sync MDS message
      **/
@@ -2645,6 +2633,7 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 	send_param->head.client_id = client_hdl_rec->ntfs_client_id;
 	/* Fill in ipc send struct */
 	send_param->head.searchCriteria = searchCriteria;
+	send_param->f_rec = filters;
 
 	/* Check whether NTFS is up or not */
 	if (!ntfa_cb.ntfs_up) {
@@ -2687,7 +2676,7 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 
 	TRACE_1("reader_hdl_rec = %u", reader_hdl_rec->reader_hdl);
 	*readHandle = (SaNtfReadHandleT)reader_hdl_rec->reader_hdl;
-	reader_hdl_rec->ntfHandle = filter_hdl_rec->ntfHandle;
+	reader_hdl_rec->ntfHandle = ntfHandle;
 	/* Store the readerId returned from server */
 	reader_hdl_rec->reader_id = o_msg->info.api_resp_info.param.reader_init_rsp.readerId;
     /**                  UnLock ntfa_CB            **/
@@ -2695,11 +2684,24 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 	if (o_msg)
 		ntfa_msg_destroy(o_msg);
 
- done_give_client_hdl:
-	ncshm_give_hdl(client_hdl_rec->local_hdl);
- done_give_filter_hdl:
+done_give_client_hdl:
+   if (client_hdl_rec)
+		ncshm_give_hdl(client_hdl_rec->local_hdl);
+	if (notificationFilterHandles) { 
+		if (notificationFilterHandles->attributeChangeFilterHandle)
+			ncshm_give_hdl(notificationFilterHandles->attributeChangeFilterHandle);
+		if (notificationFilterHandles->objectCreateDeleteFilterHandle)
+			ncshm_give_hdl(notificationFilterHandles->objectCreateDeleteFilterHandle);
+		if (notificationFilterHandles->securityAlarmFilterHandle)
+			ncshm_give_hdl(notificationFilterHandles->securityAlarmFilterHandle); 
+		if (notificationFilterHandles->stateChangeFilterHandle)
+			ncshm_give_hdl(notificationFilterHandles->stateChangeFilterHandle);
+		if (notificationFilterHandles->alarmFilterHandle)
+			ncshm_give_hdl(notificationFilterHandles->alarmFilterHandle);
+	}
+
 	ncshm_give_hdl(notificationFilterHandles->alarmFilterHandle);
- done:
+done:
 	TRACE_LEAVE();
 	return rc;
 }

@@ -24,7 +24,7 @@
  * ========================================================================
  */
 #include "NtfNotification.hh"
-
+#include "NtfFilter.hh"
 /* ========================================================================
  *   DEFINITIONS
  * ========================================================================
@@ -53,6 +53,10 @@ class NtfReader
 {
 public:
     NtfReader(NtfLogger& ntfLogger, unsigned int readerId);
+	 NtfReader(NtfLogger& ntfLogger,
+		 unsigned int readerId,
+		 SaNtfSearchCriteriaT searchCriteria,
+		 ntfsv_filter_ptrs_t *f_rec);
 //    virtual ~NtfReader();
     NtfNotification next(SaNtfSearchDirectionT direction,
                                            SaAisErrorT* error);
@@ -63,7 +67,7 @@ private:
     readerNotificationListT coll_;
     readerNotificationListTIter ffIter;
     bool lastRead;
-
+	 FilterMap filterMap;
     unsigned int readerId_;
 };
 

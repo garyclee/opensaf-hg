@@ -71,7 +71,7 @@ extern "C" {
 				 SaNtfSubscriptionIdT subscriptionId, MDS_SYNC_SND_CTXT *mdsCtxt);
 	void syncRequest(NCS_UBAID *uba);
 	int syncFinished();
-	void newReader(unsigned int clientId, SaNtfSearchCriteriaT searchCriteria, MDS_SYNC_SND_CTXT *mdsCtxt);
+	void newReader(unsigned int clientId, SaNtfSearchCriteriaT searchCriteria, ntfsv_filter_ptrs_t *f_rec, MDS_SYNC_SND_CTXT *mdsCtxt);
 	void readNext(unsigned int clientId,
 		      unsigned int readerId, SaNtfSearchDirectionT searchDirection, MDS_SYNC_SND_CTXT *mdsCtxt);
 	void deleteReader(unsigned int clientId, unsigned int readerId, MDS_SYNC_SND_CTXT *mdsCtxt);

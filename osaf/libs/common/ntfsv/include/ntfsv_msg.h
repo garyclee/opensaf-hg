@@ -89,7 +89,7 @@ extern "C" {
 
 	typedef struct ntfsv_filter_ptrs {
 		SaNtfObjectCreateDeleteNotificationFilterT *obj_cr_del_filter;
-	   SaNtfAttributeChangeNotificationFilterT *att_ch_filter;
+		SaNtfAttributeChangeNotificationFilterT *att_ch_filter;
 		SaNtfStateChangeNotificationFilterT *sta_ch_filter;
 		SaNtfAlarmNotificationFilterT *alarm_filter;
 		SaNtfSecurityAlarmNotificationFilterT *sec_al_filter;

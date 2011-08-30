@@ -753,10 +753,14 @@ NtfClient* NtfAdmin::getClient(unsigned int clientId)
  * Find the client and call method newReader
  *
  * @param clientId 
+ * @param searchCriteria  
+ * @param f_rec - filter record
  * @param mdsCtxt 
  */
 void NtfAdmin::newReader(unsigned int clientId,
-                         MDS_SYNC_SND_CTXT *mdsCtxt)
+	SaNtfSearchCriteriaT searchCriteria,  
+	ntfsv_filter_ptrs_t *f_rec,
+	MDS_SYNC_SND_CTXT *mdsCtxt)
 {
     TRACE_ENTER();
     ClientMap::iterator pos;
@@ -765,7 +769,7 @@ void NtfAdmin::newReader(unsigned int clientId,
     {
         // we have got the client
         NtfClient* client = pos->second;
-        client->newReader(mdsCtxt);
+		  client->newReader(searchCriteria, f_rec, mdsCtxt);
     }
     else
     {
@@ -1035,15 +1039,12 @@ void syncGlobals(const struct NtfGlobals *ntfGlobals)
 }
 
 void newReader(unsigned int clientId,
-               SaNtfSearchCriteriaT searchCriteria,
-               MDS_SYNC_SND_CTXT *mdsCtxt)
+	SaNtfSearchCriteriaT searchCriteria,
+	ntfsv_filter_ptrs_t *f_rec,
+	MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-    LOG_NO("searchCriteria, t: %llu, nId: %llu, mode: %d", searchCriteria.eventTime,
-        searchCriteria.notificationId,
-        searchCriteria.searchMode);
-    
-    assert(NtfAdmin::theNtfAdmin != NULL);
-    return NtfAdmin::theNtfAdmin->newReader(clientId, mdsCtxt);
+	assert(NtfAdmin::theNtfAdmin != NULL);
+	NtfAdmin::theNtfAdmin->newReader(clientId, searchCriteria, f_rec, mdsCtxt);	
 }
 
 void readNext(unsigned int clientId,

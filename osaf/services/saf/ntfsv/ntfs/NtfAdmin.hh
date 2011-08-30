@@ -67,8 +67,11 @@ public:
                              MDS_SYNC_SND_CTXT *mdsCtxt);
     void syncRequest(NCS_UBAID *uba);
     void syncGlobals(const struct NtfGlobals& ntfGlobals);
-    void newReader(unsigned int connectionId,
-                   MDS_SYNC_SND_CTXT *mdsCtxt);
+	 void newReader(unsigned int clientId,
+		 SaNtfSearchCriteriaT searchCriteria,  
+		 ntfsv_filter_ptrs_t *f_rec,
+		 MDS_SYNC_SND_CTXT *mdsCtxt);
+	 
     void readNext(unsigned int connectionId,
                   unsigned int readerId,
                   SaNtfSearchDirectionT searchDirection,

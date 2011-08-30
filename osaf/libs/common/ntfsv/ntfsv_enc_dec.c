@@ -1831,12 +1831,20 @@ uint32_t ntfsv_dec_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
  
 uint32_t ntfsv_enc_reader_initialize_msg_2(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	return ntfsv_enc_reader_initialize_msg(uba,msg);	
+	uint32_t rv; 
+	rv = ntfsv_enc_reader_initialize_msg(uba,msg);
+	if (rv != NCSCC_RC_SUCCESS) 
+		return rv; 
+	return ntfsv_enc_filter_msg(uba, &msg->info.api_info.param.reader_init_2.f_rec); 
 }
 
 uint32_t ntfsv_dec_reader_initialize_msg_2(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	return ntfsv_dec_reader_initialize_msg(uba, msg);
+	uint32_t rv;   
+	rv = ntfsv_dec_reader_initialize_msg(uba, msg);
+	if (rv != NCSCC_RC_SUCCESS) 
+		return rv; 
+	return ntfsv_dec_filter_msg(uba, &msg->info.api_info.param.reader_init_2.f_rec);
 }
 
 

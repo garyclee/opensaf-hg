@@ -54,7 +54,10 @@ public:
     void confirmNtfUnsubscribe(SaNtfSubscriptionIdT subscriptionId,
                                MDS_SYNC_SND_CTXT *mdsCtxt);
 
-    void newReader(MDS_SYNC_SND_CTXT *mdsCtxt);
+	 void newReader(SaNtfSearchCriteriaT searchCriteria,
+		 ntfsv_filter_ptrs_t *f_rec,
+		 MDS_SYNC_SND_CTXT *mdsCtxt);
+
     void readNext(unsigned int readerId,
                   SaNtfSearchDirectionT searchDirection,
                   MDS_SYNC_SND_CTXT *mdsCtxt);

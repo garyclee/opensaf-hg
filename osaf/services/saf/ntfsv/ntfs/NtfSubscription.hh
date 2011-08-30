@@ -38,7 +38,6 @@ public:
 	 SaNtfSubscriptionIdT getSubscriptionId() const;
 	 ntfsv_subscribe_req_t* getSubscriptionInfo();
     void printInfo();	 
-    typedef std::map<SaNtfNotificationTypeT,NtfFilter*> FilterMap;
 	 void sendNotification(NtfNotification* notification, NtfClient *client);	 
 	 void discardedAdd(SaNtfIdentifierT n_id);
 	 void discardedClear();

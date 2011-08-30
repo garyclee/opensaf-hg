@@ -375,14 +375,22 @@ void NtfClient::deleteReaderResponse(SaAisErrorT* error,
     delete_reader_res_lib( *error, mdsDest_, mdsCtxt);
 }
 
-void NtfClient::newReader(MDS_SYNC_SND_CTXT *mdsCtxt)
+void NtfClient::newReader(SaNtfSearchCriteriaT searchCriteria,
+	ntfsv_filter_ptrs_t *f_rec,
+	MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-    SaAisErrorT error = SA_AIS_OK;
-    readerId_++;
-    NtfReader* reader = new NtfReader(NtfAdmin::theNtfAdmin->logger, readerId_);
-    readerMap[readerId_] = reader;
-    newReaderResponse(&error,readerId_, mdsCtxt);
+	SaAisErrorT error = SA_AIS_OK;
+	readerId_++;
+	NtfReader* reader;
+	if (f_rec) {
+		reader = new NtfReader(NtfAdmin::theNtfAdmin->logger, readerId_, searchCriteria, f_rec);
+	} else { /*old API no filtering */  
+		reader = new NtfReader(NtfAdmin::theNtfAdmin->logger, readerId_);
+	}  
+	readerMap[readerId_] = reader;
+	newReaderResponse(&error,readerId_, mdsCtxt);	
 }
+
 void NtfClient::readNext(unsigned int readerId,
                          SaNtfSearchDirectionT searchDirection,
                          MDS_SYNC_SND_CTXT *mdsCtxt)
