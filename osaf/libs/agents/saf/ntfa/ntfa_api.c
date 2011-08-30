@@ -517,6 +517,155 @@ static SaAisErrorT fillSendStruct(SaNtfNotificationHeaderT *notificationHeader, 
 	return rc;
 }
 
+SaAisErrorT getFilters(const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+	ntfsv_filter_ptrs_t *filters,
+	SaNtfHandleT *firstHandle,
+	ntfa_client_hdl_rec_t **client_hdl_rec)
+{
+	int i;
+	SaAisErrorT rc = SA_AIS_ERR_NOT_SUPPORTED;
+	ntfa_filter_hdl_rec_t *filter_hdl_rec = NULL;
+
+	SaNtfNotificationFilterHandleT filterHndl[5];
+
+	if (notificationFilterHandles == NULL) {
+		TRACE_1("NULL Pointer exception of notificationFilterHandles!");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_INVALID_PARAM;
+	} else {
+		if (!notificationFilterHandles->alarmFilterHandle &&
+			!notificationFilterHandles->attributeChangeFilterHandle &&
+			!notificationFilterHandles->objectCreateDeleteFilterHandle &&
+			!notificationFilterHandles->securityAlarmFilterHandle &&
+			!notificationFilterHandles->stateChangeFilterHandle) {
+			TRACE_1("All handles in notificationFilterHandles set to NULL!");
+			TRACE_LEAVE();
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	filterHndl[0] = notificationFilterHandles->attributeChangeFilterHandle;
+	filterHndl[1] = notificationFilterHandles->objectCreateDeleteFilterHandle;
+	filterHndl[2] = notificationFilterHandles->securityAlarmFilterHandle;
+	filterHndl[3] = notificationFilterHandles->stateChangeFilterHandle;
+	filterHndl[4] = notificationFilterHandles->alarmFilterHandle;
+
+	for (i = 0; i < 5; i++) {
+		TRACE_1("filter_hdl[%d] = %llu", i, filterHndl[i]);
+		if (filterHndl[i]) {
+			TRACE_1("Get FilterHandle");
+
+			/* retrieve notification filter hdl rec */
+			filter_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filterHndl[i]);
+			if (filter_hdl_rec == NULL) {
+				TRACE_1("ncshm_take_hdl failed");
+				TRACE_LEAVE();
+				return SA_AIS_ERR_BAD_HANDLE;
+			}
+			TRACE_1("filter_hdl[%d] = %llu", i, filter_hdl_rec->filter_hdl);
+			switch (i) {
+			case 0:
+				rc = checkAttributeChangeFilterParameters(filter_hdl_rec);
+				if (rc != SA_AIS_OK) {
+					for (i = 0; i <= 0; i++) {
+						ncshm_give_hdl(filterHndl[i]);
+					}
+					TRACE_LEAVE();
+					return rc;
+				}
+				break;
+			case 1:
+				rc = checkObjectCreateDeleteFilterParameters(filter_hdl_rec);
+				if (rc != SA_AIS_OK) {
+					for (i = 0; i <= 1; i++) {
+						ncshm_give_hdl(filterHndl[i]);
+					}
+					TRACE_LEAVE();
+					return rc;
+				}
+				break;
+			case 2:
+				rc = checkSecurityAlarmFilterParameters(filter_hdl_rec);
+				if (rc != SA_AIS_OK) {
+					for (i = 0; i <= 2; i++) {
+						ncshm_give_hdl(filterHndl[i]);
+					}
+					TRACE_LEAVE();
+					return rc;
+				}
+				break;
+			case 3:
+				rc = checkStateChangeFilterParameters(filter_hdl_rec);
+				if (rc != SA_AIS_OK) {
+					for (i = 0; i <= 3; i++) {
+						ncshm_give_hdl(filterHndl[i]);
+					}
+					TRACE_LEAVE();
+					return rc;
+				}
+				break;
+			case 4:
+				rc = checkAlarmFilterParameters(filter_hdl_rec);
+				if (rc != SA_AIS_OK) {
+					for (i = 0; i <= 4; i++) {
+						ncshm_give_hdl(filterHndl[i]);
+					}
+					TRACE_LEAVE();
+					return rc;
+				}
+				break;
+			default:
+				return SA_AIS_ERR_INVALID_PARAM;
+				break;
+			}
+
+			if (*client_hdl_rec == NULL) {
+				/* retrieve client hdl rec */
+				*client_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filter_hdl_rec->ntfHandle);
+				if (*client_hdl_rec == NULL) {
+					int max_i = i;
+					TRACE_1("ncshm_take_hdl failed");
+					for (i = 0; i < max_i; i++) {
+						ncshm_give_hdl(filterHndl[i]);
+					}
+					TRACE_LEAVE();
+					return SA_AIS_ERR_BAD_HANDLE;
+				}
+				*firstHandle = filter_hdl_rec->ntfHandle;
+			}
+
+			if (*firstHandle != filter_hdl_rec->ntfHandle) {
+				TRACE_1("filter handles refers to different clients");
+				return SA_AIS_ERR_BAD_HANDLE;
+			}
+			switch (i) {
+			case 0:
+				filters->att_ch_filter =
+					 &filter_hdl_rec->notificationFilter.attributeChangeNotificationfilter;
+				break;
+			case 1:
+				filters->obj_cr_del_filter =
+					 &filter_hdl_rec->notificationFilter.objectCreateDeleteNotificationfilter;
+				break;
+			case 2:
+				filters->sec_al_filter =
+					 &filter_hdl_rec->notificationFilter.securityAlarmNotificationfilter;
+				break;
+			case 3:
+				filters->sta_ch_filter =
+					 &filter_hdl_rec->notificationFilter.stateChangeNotificationfilter;
+				break;
+			case 4:
+				filters->alarm_filter = &filter_hdl_rec->notificationFilter.alarmNotificationfilter;
+				break;
+			default:
+				return SA_AIS_ERR_INVALID_PARAM;
+			}
+		}
+	}
+	return rc;	
+}
+
 /* end help functions */
 
 /***************************************************************************
@@ -1216,158 +1365,26 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
 				       SaNtfSubscriptionIdT subscriptionId)
 {
-	SaAisErrorT rc = SA_AIS_ERR_NOT_SUPPORTED;
-	int i;
+	SaAisErrorT rc;
 	ntfa_subscriber_list_t *listPtr;
 	ntfa_subscriber_list_t *listPtrNext;
 	ntfa_subscriber_list_t *ntfSubscriberList;
 
-	ntfa_filter_hdl_rec_t *filter_hdl_rec = NULL;
 	ntfa_client_hdl_rec_t *client_hdl_rec = NULL;
-	SaNtfNotificationFilterHandleT filterHndl[5];
+	SaNtfHandleT ntfHandle = 0;
 	ntfsv_filter_ptrs_t filters = { NULL, NULL, NULL, NULL, NULL };
-	SaNtfHandleT firstHandle = 0;
 
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_subscribe_req_t *send_param;
 	uint32_t timeout = NTFS_WAIT_TIME;
 
 	TRACE_ENTER();
-	if (notificationFilterHandles == NULL) {
-		TRACE_1("NULL Pointer exception of notificationFilterHandles!");
-		TRACE_LEAVE();
-		return SA_AIS_ERR_INVALID_PARAM;
-	} else {
-		if (!notificationFilterHandles->alarmFilterHandle &&
-		    !notificationFilterHandles->attributeChangeFilterHandle &&
-		    !notificationFilterHandles->objectCreateDeleteFilterHandle &&
-		    !notificationFilterHandles->securityAlarmFilterHandle &&
-		    !notificationFilterHandles->stateChangeFilterHandle) {
-			TRACE_1("All handles in notificationFilterHandles set to NULL!");
-			TRACE_LEAVE();
-			return SA_AIS_ERR_INVALID_PARAM;
-		}
+	rc = getFilters(notificationFilterHandles, &filters, &ntfHandle, &client_hdl_rec);
+	if (rc != SA_AIS_OK) {
+		TRACE("getFilters failed");
+		goto done;
 	}
-
-	filterHndl[0] = notificationFilterHandles->attributeChangeFilterHandle;
-	filterHndl[1] = notificationFilterHandles->objectCreateDeleteFilterHandle;
-	filterHndl[2] = notificationFilterHandles->securityAlarmFilterHandle;
-	filterHndl[3] = notificationFilterHandles->stateChangeFilterHandle;
-	filterHndl[4] = notificationFilterHandles->alarmFilterHandle;
-	for (i = 0; i < 5; i++) {
-		TRACE_1("filter_hdl[%d] = %llu", i, filterHndl[i]);
-		if (filterHndl[i]) {
-			TRACE_1("Get FilterHandle");
-
-			/* retrieve notification filter hdl rec */
-			filter_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filterHndl[i]);
-			if (filter_hdl_rec == NULL) {
-				TRACE_1("ncshm_take_hdl failed");
-				TRACE_LEAVE();
-				return SA_AIS_ERR_BAD_HANDLE;
-			}
-			TRACE_1("filter_hdl[%d] = %llu", i, filter_hdl_rec->filter_hdl);
-			switch (i) {
-			case 0:
-				rc = checkAttributeChangeFilterParameters(filter_hdl_rec);
-				if (rc != SA_AIS_OK) {
-					for (i = 0; i <= 0; i++) {
-						ncshm_give_hdl(filterHndl[i]);
-					}
-					TRACE_LEAVE();
-					return rc;
-				}
-				break;
-			case 1:
-				rc = checkObjectCreateDeleteFilterParameters(filter_hdl_rec);
-				if (rc != SA_AIS_OK) {
-					for (i = 0; i <= 1; i++) {
-						ncshm_give_hdl(filterHndl[i]);
-					}
-					TRACE_LEAVE();
-					return rc;
-				}
-				break;
-			case 2:
-				rc = checkSecurityAlarmFilterParameters(filter_hdl_rec);
-				if (rc != SA_AIS_OK) {
-					for (i = 0; i <= 2; i++) {
-						ncshm_give_hdl(filterHndl[i]);
-					}
-					TRACE_LEAVE();
-					return rc;
-				}
-				break;
-			case 3:
-				rc = checkStateChangeFilterParameters(filter_hdl_rec);
-				if (rc != SA_AIS_OK) {
-					for (i = 0; i <= 3; i++) {
-						ncshm_give_hdl(filterHndl[i]);
-					}
-					TRACE_LEAVE();
-					return rc;
-				}
-				break;
-			case 4:
-				rc = checkAlarmFilterParameters(filter_hdl_rec);
-				if (rc != SA_AIS_OK) {
-					for (i = 0; i <= 4; i++) {
-						ncshm_give_hdl(filterHndl[i]);
-					}
-					TRACE_LEAVE();
-					return rc;
-				}
-				break;
-			default:
-				return SA_AIS_ERR_INVALID_PARAM;
-				break;
-			}
-
-			if (client_hdl_rec == NULL) {
-				/* retrieve client hdl rec */
-				client_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filter_hdl_rec->ntfHandle);
-				if (client_hdl_rec == NULL) {
-					int max_i = i;
-					TRACE_1("ncshm_take_hdl failed");
-					for (i = 0; i < max_i; i++) {
-						ncshm_give_hdl(filterHndl[i]);
-					}
-					TRACE_LEAVE();
-					return SA_AIS_ERR_BAD_HANDLE;
-				}
-				firstHandle = filter_hdl_rec->ntfHandle;
-			}
-
-			if (firstHandle != filter_hdl_rec->ntfHandle) {
-				TRACE_1("filter handles refers to different clients");
-				return SA_AIS_ERR_BAD_HANDLE;
-			}
-			switch (i) {
-			case 0:
-				filters.att_ch_filter =
-				    &filter_hdl_rec->notificationFilter.attributeChangeNotificationfilter;
-				break;
-			case 1:
-				filters.obj_cr_del_filter =
-				    &filter_hdl_rec->notificationFilter.objectCreateDeleteNotificationfilter;
-				break;
-			case 2:
-				filters.sec_al_filter =
-				    &filter_hdl_rec->notificationFilter.securityAlarmNotificationfilter;
-				break;
-			case 3:
-				filters.sta_ch_filter =
-				    &filter_hdl_rec->notificationFilter.stateChangeNotificationfilter;
-				break;
-			case 4:
-				filters.alarm_filter = &filter_hdl_rec->notificationFilter.alarmNotificationfilter;
-				break;
-			default:
-				return SA_AIS_ERR_INVALID_PARAM;
-			}
-		}
-	}
-
+	
 	/* Check earlier subscriptions in subscriber list */
 	if (NULL != subscriberNoList) {
 		for (listPtr = subscriberNoList,
@@ -1392,7 +1409,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		goto done;
 	}
 	/* Add ntfHandle and subscriptionId into list */
-	ntfSubscriberList->subscriberListNtfHandle = filter_hdl_rec->ntfHandle;
+	ntfSubscriberList->subscriberListNtfHandle = ntfHandle;
 	ntfSubscriberList->subscriberListSubscriptionId = subscriptionId;
 	if (NULL == subscriberNoList) {
 		subscriberNoList = ntfSubscriberList;
@@ -1443,11 +1460,19 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	}
 	if (o_msg)
 		ntfa_msg_destroy(o_msg);
- done:
-	ncshm_give_hdl(firstHandle);
-	for (i = 0; i < 5; i++) {
-		if (filterHndl[i])
-			ncshm_give_hdl(filterHndl[i]);
+	done:
+	ncshm_give_hdl(ntfHandle);
+	if (notificationFilterHandles) { 
+		if (notificationFilterHandles->attributeChangeFilterHandle)
+			ncshm_give_hdl(notificationFilterHandles->attributeChangeFilterHandle);
+		if (notificationFilterHandles->objectCreateDeleteFilterHandle)
+			ncshm_give_hdl(notificationFilterHandles->objectCreateDeleteFilterHandle);
+		if (notificationFilterHandles->securityAlarmFilterHandle)
+			ncshm_give_hdl(notificationFilterHandles->securityAlarmFilterHandle); 
+		if (notificationFilterHandles->stateChangeFilterHandle)
+			ncshm_give_hdl(notificationFilterHandles->stateChangeFilterHandle);
+		if (notificationFilterHandles->alarmFilterHandle)
+			ncshm_give_hdl(notificationFilterHandles->alarmFilterHandle);
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -2567,7 +2592,7 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 	ntfa_reader_hdl_rec_t *reader_hdl_rec;
 
 	ntfsv_msg_t msg, *o_msg = NULL;
-	ntfsv_reader_init_req_t *send_param;
+	ntfsv_reader_init_req_2_t *send_param;
 	uint32_t timeout = NTFS_WAIT_TIME;
 
 	TRACE_ENTER();
@@ -2616,10 +2641,10 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 	memset(&msg, 0, sizeof(ntfsv_msg_t));
 	msg.type = NTFSV_NTFA_API_MSG;
 	msg.info.api_info.type = NTFSV_READER_INITIALIZE_REQ_2;
-	send_param = &msg.info.api_info.param.reader_init;
-	send_param->client_id = client_hdl_rec->ntfs_client_id;
+	send_param = &msg.info.api_info.param.reader_init_2;
+	send_param->head.client_id = client_hdl_rec->ntfs_client_id;
 	/* Fill in ipc send struct */
-	send_param->searchCriteria = searchCriteria;
+	send_param->head.searchCriteria = searchCriteria;
 
 	/* Check whether NTFS is up or not */
 	if (!ntfa_cb.ntfs_up) {

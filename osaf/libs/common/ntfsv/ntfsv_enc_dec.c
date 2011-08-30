@@ -1066,11 +1066,259 @@ uint32_t ntfsv_enc_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT 
 	return NCSCC_RC_OUT_OF_MEM;  
 }  
 
-uint32_t ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
+static uint32_t ntfsv_enc_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 {
 	uint8_t *p8;
 	uint32_t rv = NCSCC_RC_SUCCESS;
 	int i;
+
+	TRACE_3("alarm filter p: %p", f_rec->alarm_filter);
+	if (f_rec->alarm_filter != NULL) {
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8)
+			return NCSCC_RC_OUT_OF_MEM;
+		ncs_encode_32bit(&p8, SA_NTF_TYPE_ALARM);
+		ncs_enc_claim_space(uba, 4);
+		rv = ntfsv_enc_filter_header(uba, &f_rec->alarm_filter->notificationFilterHeader);
+		if (rv != NCSCC_RC_SUCCESS)
+			return NCSCC_RC_OUT_OF_MEM;
+
+		p8 = ncs_enc_reserve_space(uba, 6);
+		if (!p8) 
+			return NCSCC_RC_OUT_OF_MEM;
+		ncs_encode_16bit(&p8, f_rec->alarm_filter->numProbableCauses);
+		ncs_encode_16bit(&p8, f_rec->alarm_filter->numPerceivedSeverities);
+		ncs_encode_16bit(&p8, f_rec->alarm_filter->numTrends);
+		ncs_enc_claim_space(uba, 6);
+
+		for (i = 0; i < f_rec->alarm_filter->numProbableCauses; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
+			ncs_encode_32bit(&p8, f_rec->alarm_filter->probableCauses[i]);
+			ncs_enc_claim_space(uba, 4);
+		}
+		for (i = 0; i < f_rec->alarm_filter->numPerceivedSeverities; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8)
+				return NCSCC_RC_OUT_OF_MEM;
+			ncs_encode_32bit(&p8, f_rec->alarm_filter->perceivedSeverities[i]);
+			ncs_enc_claim_space(uba, 4);
+		}
+		for (i = 0; i < f_rec->alarm_filter->numTrends; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8)
+				return NCSCC_RC_OUT_OF_MEM;
+			ncs_encode_32bit(&p8, f_rec->alarm_filter->trends[i]);
+			ncs_enc_claim_space(uba, 4);
+		}  
+	} else {
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8)
+			return NCSCC_RC_OUT_OF_MEM;
+		ncs_encode_32bit(&p8, 0);
+		ncs_enc_claim_space(uba, 4);
+	}
+
+	TRACE_3("sec alarm filter p: %p", f_rec->sec_al_filter);
+	if (f_rec->sec_al_filter != NULL) {
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8) {
+			return NCSCC_RC_OUT_OF_MEM;
+		}
+		ncs_encode_32bit(&p8, SA_NTF_TYPE_SECURITY_ALARM);
+		ncs_enc_claim_space(uba, 4);
+		rv = ntfsv_enc_filter_header(uba, &f_rec->sec_al_filter->notificationFilterHeader);
+		if (rv != NCSCC_RC_SUCCESS)
+			return NCSCC_RC_OUT_OF_MEM;
+		p8 = ncs_enc_reserve_space(uba, 10);
+		if (!p8) {
+			return NCSCC_RC_OUT_OF_MEM;
+		}		
+		ncs_encode_16bit(&p8, f_rec->sec_al_filter->numProbableCauses);
+		ncs_encode_16bit(&p8, f_rec->sec_al_filter->numSeverities);
+		ncs_encode_16bit(&p8, f_rec->sec_al_filter->numSecurityAlarmDetectors);
+		ncs_encode_16bit(&p8, f_rec->sec_al_filter->numServiceProviders);
+		ncs_encode_16bit(&p8, f_rec->sec_al_filter->numServiceUsers);
+		ncs_enc_claim_space(uba, 10);
+
+		for (i = 0; i < f_rec->sec_al_filter->numProbableCauses; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
+			ncs_encode_32bit(&p8, f_rec->sec_al_filter->probableCauses[i]);
+			ncs_enc_claim_space(uba, 4);
+		}
+		for (i = 0; i < f_rec->sec_al_filter->numSeverities; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8)
+				return NCSCC_RC_OUT_OF_MEM;
+			ncs_encode_32bit(&p8, f_rec->sec_al_filter->severities[i]);
+			ncs_enc_claim_space(uba, 4);
+		}
+
+		for (i = 0; i < f_rec->sec_al_filter->numSecurityAlarmDetectors; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8)
+				return NCSCC_RC_OUT_OF_MEM;
+			ncs_encode_32bit(&p8, f_rec->sec_al_filter->securityAlarmDetectors[i].valueType);
+			ncs_enc_claim_space(uba, 4);
+			rv = encodeSaNtfValueT(uba, p8, f_rec->sec_al_filter->securityAlarmDetectors[i].valueType, &f_rec->sec_al_filter->securityAlarmDetectors[i].value); 
+			if (rv != NCSCC_RC_SUCCESS) return NCSCC_RC_OUT_OF_MEM;  
+		}
+
+		for (i = 0; i < f_rec->sec_al_filter->numServiceProviders; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8)
+				return NCSCC_RC_OUT_OF_MEM;
+			ncs_encode_32bit(&p8, f_rec->sec_al_filter->serviceProviders[i].valueType);
+			ncs_enc_claim_space(uba, 4);
+			rv = encodeSaNtfValueT(uba, p8, f_rec->sec_al_filter->serviceProviders[i].valueType, &f_rec->sec_al_filter->serviceProviders[i].value);			
+			if (rv != NCSCC_RC_SUCCESS) return NCSCC_RC_OUT_OF_MEM;   
+		}
+
+		for (i = 0; i < f_rec->sec_al_filter->numServiceUsers; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8)
+				return NCSCC_RC_OUT_OF_MEM;
+			ncs_encode_32bit(&p8, f_rec->sec_al_filter->serviceUsers[i].valueType);
+			ncs_enc_claim_space(uba, 4);
+			rv = encodeSaNtfValueT(uba, p8, f_rec->sec_al_filter->serviceUsers[i].valueType, &f_rec->sec_al_filter->serviceUsers[i].value);
+			if (rv != NCSCC_RC_SUCCESS) return NCSCC_RC_OUT_OF_MEM;  
+		}
+	} else {
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8) {
+			return NCSCC_RC_OUT_OF_MEM;
+		}
+		ncs_encode_32bit(&p8, 0);
+		ncs_enc_claim_space(uba, 4);
+	}
+
+	TRACE_3("att_ch_filter p: %p", f_rec->att_ch_filter);
+	if (f_rec->att_ch_filter != NULL) {
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8)
+			return NCSCC_RC_OUT_OF_MEM;
+		ncs_encode_32bit(&p8, SA_NTF_TYPE_ATTRIBUTE_CHANGE);
+		ncs_enc_claim_space(uba, 4);
+		rv = ntfsv_enc_filter_header(uba, &f_rec->att_ch_filter->notificationFilterHeader);
+		if (rv != NCSCC_RC_SUCCESS)
+			return NCSCC_RC_OUT_OF_MEM;
+
+		p8 = ncs_enc_reserve_space(uba, 2);
+		if (!p8) 
+			return NCSCC_RC_OUT_OF_MEM;
+		ncs_encode_16bit(&p8, f_rec->att_ch_filter->numSourceIndicators);
+		ncs_enc_claim_space(uba, 2);
+
+		for (i = 0; i < f_rec->att_ch_filter->numSourceIndicators; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
+			ncs_encode_32bit(&p8, f_rec->att_ch_filter->sourceIndicators[i]);
+			ncs_enc_claim_space(uba, 4);
+		}
+	} else {
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8)
+			return NCSCC_RC_OUT_OF_MEM;
+		ncs_encode_32bit(&p8, 0);
+		ncs_enc_claim_space(uba, 4);
+	}
+
+	TRACE_3("obj_cr_del_filter p: %p", f_rec->obj_cr_del_filter);
+	if (f_rec->obj_cr_del_filter != NULL) {
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8)
+			return NCSCC_RC_OUT_OF_MEM;
+		ncs_encode_32bit(&p8, SA_NTF_TYPE_OBJECT_CREATE_DELETE);
+		ncs_enc_claim_space(uba, 4);
+		rv = ntfsv_enc_filter_header(uba, &f_rec->obj_cr_del_filter->notificationFilterHeader);
+		if (rv != NCSCC_RC_SUCCESS)
+			return NCSCC_RC_OUT_OF_MEM;
+
+		p8 = ncs_enc_reserve_space(uba, 2);
+		if (!p8) 
+			return NCSCC_RC_OUT_OF_MEM;
+		ncs_encode_16bit(&p8, f_rec->obj_cr_del_filter->numSourceIndicators);
+		ncs_enc_claim_space(uba, 2);
+
+		for (i = 0; i < f_rec->obj_cr_del_filter->numSourceIndicators; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
+			ncs_encode_32bit(&p8, f_rec->obj_cr_del_filter->sourceIndicators[i]);
+			ncs_enc_claim_space(uba, 4);
+		}
+	} else {
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8)
+			return NCSCC_RC_OUT_OF_MEM;
+		ncs_encode_32bit(&p8, 0);
+		ncs_enc_claim_space(uba, 4);
+	}
+
+	TRACE_3("sta_ch_filter p: %p", f_rec->sta_ch_filter);
+	if (f_rec->sta_ch_filter != NULL) {
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8)
+			return NCSCC_RC_OUT_OF_MEM;
+		ncs_encode_32bit(&p8, SA_NTF_TYPE_STATE_CHANGE);
+		ncs_enc_claim_space(uba, 4);
+		rv = ntfsv_enc_filter_header(uba, &f_rec->sta_ch_filter->notificationFilterHeader);
+		if (rv != NCSCC_RC_SUCCESS)
+			return NCSCC_RC_OUT_OF_MEM;
+
+		p8 = ncs_enc_reserve_space(uba, 8);
+		if (!p8) 
+			return NCSCC_RC_OUT_OF_MEM;
+		ncs_encode_32bit(&p8, f_rec->sta_ch_filter->numSourceIndicators);
+		ncs_encode_32bit(&p8, f_rec->sta_ch_filter->numStateChanges);
+		ncs_enc_claim_space(uba, 8);
+		TRACE_3("numSourceIndicators: %d", (int)f_rec->sta_ch_filter->numSourceIndicators);
+		for (i = 0; i < f_rec->sta_ch_filter->numSourceIndicators; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
+			ncs_encode_32bit(&p8, f_rec->sta_ch_filter->sourceIndicators[i]);
+			ncs_enc_claim_space(uba, 4);
+		}
+		TRACE_3("numStateChanges: %d", (int)f_rec->sta_ch_filter->numStateChanges);
+		for (i = 0; i < f_rec->sta_ch_filter->numStateChanges; i++) {
+			p8 = ncs_enc_reserve_space(uba, 8);
+			if (!p8)	return NCSCC_RC_OUT_OF_MEM;
+			ncs_encode_16bit(&p8, f_rec->sta_ch_filter->changedStates[i].stateId);
+			ncs_encode_16bit(&p8, f_rec->sta_ch_filter->changedStates[i].newState);
+			ncs_encode_32bit(&p8, f_rec->sta_ch_filter->changedStates[i].oldStatePresent);
+			ncs_enc_claim_space(uba, 8);
+			TRACE_3("oldStatePresent: %d", f_rec->sta_ch_filter->changedStates[i].oldStatePresent);
+			if (f_rec->sta_ch_filter->changedStates[i].oldStatePresent) {
+				p8 = ncs_enc_reserve_space(uba, 2);
+				if (!p8) return NCSCC_RC_OUT_OF_MEM;
+				ncs_encode_16bit(&p8, f_rec->sta_ch_filter->changedStates[i].oldState);
+				ncs_enc_claim_space(uba, 2);
+			}
+		}
+	} else {
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8)
+			return NCSCC_RC_OUT_OF_MEM;
+		ncs_encode_32bit(&p8, 0);
+		ncs_enc_claim_space(uba, 4);
+	}	
+	return rv;
+}
+
+uint32_t ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
+{
+	uint8_t *p8;
+	uint32_t rv = NCSCC_RC_SUCCESS;
 	
 	TRACE_ENTER();
 	assert(uba != NULL);
@@ -1085,247 +1333,11 @@ uint32_t ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 	ncs_encode_32bit(&p8, param->subscriptionId);
 	ncs_enc_claim_space(uba, 8);
 	
-	TRACE_3("alarm filter p: %p", param->f_rec.alarm_filter);
-	if (param->f_rec.alarm_filter != NULL) {
-		p8 = ncs_enc_reserve_space(uba, 4);
-		if (!p8)
-			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_32bit(&p8, SA_NTF_TYPE_ALARM);
-		ncs_enc_claim_space(uba, 4);
-		rv = ntfsv_enc_filter_header(uba, &param->f_rec.alarm_filter->notificationFilterHeader);
-		if (rv != NCSCC_RC_SUCCESS)
-			return NCSCC_RC_OUT_OF_MEM;
+	rv = ntfsv_enc_filter_msg(uba, &param->f_rec);
+	if (rv != NCSCC_RC_SUCCESS) {
+		return rv;
+	}
 		
-		p8 = ncs_enc_reserve_space(uba, 6);
-		if (!p8) 
-			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_16bit(&p8, param->f_rec.alarm_filter->numProbableCauses);
-		ncs_encode_16bit(&p8, param->f_rec.alarm_filter->numPerceivedSeverities);
-		ncs_encode_16bit(&p8, param->f_rec.alarm_filter->numTrends);
-		ncs_enc_claim_space(uba, 6);
-		
-		for (i = 0; i < param->f_rec.alarm_filter->numProbableCauses; i++) {
-			p8 = ncs_enc_reserve_space(uba, 4);
-			if (!p8) {
-				return NCSCC_RC_OUT_OF_MEM;
-			}
-			ncs_encode_32bit(&p8, param->f_rec.alarm_filter->probableCauses[i]);
-			ncs_enc_claim_space(uba, 4);
-		}
-		for (i = 0; i < param->f_rec.alarm_filter->numPerceivedSeverities; i++) {
-			p8 = ncs_enc_reserve_space(uba, 4);
-			if (!p8)
-				return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_32bit(&p8, param->f_rec.alarm_filter->perceivedSeverities[i]);
-			ncs_enc_claim_space(uba, 4);
-		}
-		for (i = 0; i < param->f_rec.alarm_filter->numTrends; i++) {
-			p8 = ncs_enc_reserve_space(uba, 4);
-			if (!p8)
-				return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_32bit(&p8, param->f_rec.alarm_filter->trends[i]);
-			ncs_enc_claim_space(uba, 4);
-		}  
-	} else {
-		p8 = ncs_enc_reserve_space(uba, 4);
-		if (!p8)
-			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_32bit(&p8, 0);
-		ncs_enc_claim_space(uba, 4);
-	}
-
-	TRACE_3("sec alarm filter p: %p", param->f_rec.sec_al_filter);
-	if (param->f_rec.sec_al_filter != NULL) {
-		p8 = ncs_enc_reserve_space(uba, 4);
-		if (!p8) {
-			return NCSCC_RC_OUT_OF_MEM;
-		}
-		ncs_encode_32bit(&p8, SA_NTF_TYPE_SECURITY_ALARM);
-		ncs_enc_claim_space(uba, 4);
-		rv = ntfsv_enc_filter_header(uba, &param->f_rec.sec_al_filter->notificationFilterHeader);
-		if (rv != NCSCC_RC_SUCCESS)
-			return NCSCC_RC_OUT_OF_MEM;
-		p8 = ncs_enc_reserve_space(uba, 10);
-		if (!p8) {
-			return NCSCC_RC_OUT_OF_MEM;
-		}		
-		ncs_encode_16bit(&p8, param->f_rec.sec_al_filter->numProbableCauses);
-		ncs_encode_16bit(&p8, param->f_rec.sec_al_filter->numSeverities);
-		ncs_encode_16bit(&p8, param->f_rec.sec_al_filter->numSecurityAlarmDetectors);
-		ncs_encode_16bit(&p8, param->f_rec.sec_al_filter->numServiceProviders);
-		ncs_encode_16bit(&p8, param->f_rec.sec_al_filter->numServiceUsers);
-		ncs_enc_claim_space(uba, 10);
-
-		for (i = 0; i < param->f_rec.sec_al_filter->numProbableCauses; i++) {
-			p8 = ncs_enc_reserve_space(uba, 4);
-			if (!p8) {
-				return NCSCC_RC_OUT_OF_MEM;
-			}
-			ncs_encode_32bit(&p8, param->f_rec.sec_al_filter->probableCauses[i]);
-			ncs_enc_claim_space(uba, 4);
-		}
-		for (i = 0; i < param->f_rec.sec_al_filter->numSeverities; i++) {
-			p8 = ncs_enc_reserve_space(uba, 4);
-			if (!p8)
-				return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_32bit(&p8, param->f_rec.sec_al_filter->severities[i]);
-			ncs_enc_claim_space(uba, 4);
-		}
-		
-		for (i = 0; i < param->f_rec.sec_al_filter->numSecurityAlarmDetectors; i++) {
-			p8 = ncs_enc_reserve_space(uba, 4);
-			if (!p8)
-				return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_32bit(&p8, param->f_rec.sec_al_filter->securityAlarmDetectors[i].valueType);
-			ncs_enc_claim_space(uba, 4);
-			rv = encodeSaNtfValueT(uba, p8, param->f_rec.sec_al_filter->securityAlarmDetectors[i].valueType, &param->f_rec.sec_al_filter->securityAlarmDetectors[i].value); 
-			if (rv != NCSCC_RC_SUCCESS) return NCSCC_RC_OUT_OF_MEM;  
-		}
-		  
-		for (i = 0; i < param->f_rec.sec_al_filter->numServiceProviders; i++) {
-			p8 = ncs_enc_reserve_space(uba, 4);
-			if (!p8)
-				return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_32bit(&p8, param->f_rec.sec_al_filter->serviceProviders[i].valueType);
-			ncs_enc_claim_space(uba, 4);
-			rv = encodeSaNtfValueT(uba, p8, param->f_rec.sec_al_filter->serviceProviders[i].valueType, &param->f_rec.sec_al_filter->serviceProviders[i].value);			
-			if (rv != NCSCC_RC_SUCCESS) return NCSCC_RC_OUT_OF_MEM;   
-		}
-		  
-		for (i = 0; i < param->f_rec.sec_al_filter->numServiceUsers; i++) {
-			p8 = ncs_enc_reserve_space(uba, 4);
-			if (!p8)
-				return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_32bit(&p8, param->f_rec.sec_al_filter->serviceUsers[i].valueType);
-			ncs_enc_claim_space(uba, 4);
-			rv = encodeSaNtfValueT(uba, p8, param->f_rec.sec_al_filter->serviceUsers[i].valueType, &param->f_rec.sec_al_filter->serviceUsers[i].value);
-			if (rv != NCSCC_RC_SUCCESS) return NCSCC_RC_OUT_OF_MEM;  
-		}
-	} else {
-		p8 = ncs_enc_reserve_space(uba, 4);
-		if (!p8) {
-			return NCSCC_RC_OUT_OF_MEM;
-		}
-		ncs_encode_32bit(&p8, 0);
-		ncs_enc_claim_space(uba, 4);
-	}
-	
-	TRACE_3("att_ch_filter p: %p", param->f_rec.att_ch_filter);
-	if (param->f_rec.att_ch_filter != NULL) {
-		p8 = ncs_enc_reserve_space(uba, 4);
-		if (!p8)
-			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_32bit(&p8, SA_NTF_TYPE_ATTRIBUTE_CHANGE);
-		ncs_enc_claim_space(uba, 4);
-		rv = ntfsv_enc_filter_header(uba, &param->f_rec.att_ch_filter->notificationFilterHeader);
-		if (rv != NCSCC_RC_SUCCESS)
-			return NCSCC_RC_OUT_OF_MEM;
-
-		p8 = ncs_enc_reserve_space(uba, 2);
-		if (!p8) 
-			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_16bit(&p8, param->f_rec.att_ch_filter->numSourceIndicators);
-		ncs_enc_claim_space(uba, 2);
-		  
-		for (i = 0; i < param->f_rec.att_ch_filter->numSourceIndicators; i++) {
-			p8 = ncs_enc_reserve_space(uba, 4);
-			if (!p8) {
-				return NCSCC_RC_OUT_OF_MEM;
-			}
-			ncs_encode_32bit(&p8, param->f_rec.att_ch_filter->sourceIndicators[i]);
-			ncs_enc_claim_space(uba, 4);
-		}
-	} else {
-		p8 = ncs_enc_reserve_space(uba, 4);
-		if (!p8)
-			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_32bit(&p8, 0);
-		ncs_enc_claim_space(uba, 4);
-	}
-
-	TRACE_3("obj_cr_del_filter p: %p", param->f_rec.obj_cr_del_filter);
-	if (param->f_rec.obj_cr_del_filter != NULL) {
-		p8 = ncs_enc_reserve_space(uba, 4);
-		if (!p8)
-			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_32bit(&p8, SA_NTF_TYPE_OBJECT_CREATE_DELETE);
-		ncs_enc_claim_space(uba, 4);
-		rv = ntfsv_enc_filter_header(uba, &param->f_rec.obj_cr_del_filter->notificationFilterHeader);
-		if (rv != NCSCC_RC_SUCCESS)
-			return NCSCC_RC_OUT_OF_MEM;
-
-		p8 = ncs_enc_reserve_space(uba, 2);
-		if (!p8) 
-			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_16bit(&p8, param->f_rec.obj_cr_del_filter->numSourceIndicators);
-		ncs_enc_claim_space(uba, 2);
-
-		for (i = 0; i < param->f_rec.obj_cr_del_filter->numSourceIndicators; i++) {
-			p8 = ncs_enc_reserve_space(uba, 4);
-			if (!p8) {
-				return NCSCC_RC_OUT_OF_MEM;
-			}
-			ncs_encode_32bit(&p8, param->f_rec.obj_cr_del_filter->sourceIndicators[i]);
-			ncs_enc_claim_space(uba, 4);
-		}
-	} else {
-		p8 = ncs_enc_reserve_space(uba, 4);
-		if (!p8)
-			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_32bit(&p8, 0);
-		ncs_enc_claim_space(uba, 4);
-	}
-	
-	TRACE_3("sta_ch_filter p: %p", param->f_rec.sta_ch_filter);
-	if (param->f_rec.sta_ch_filter != NULL) {
-		p8 = ncs_enc_reserve_space(uba, 4);
-		if (!p8)
-			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_32bit(&p8, SA_NTF_TYPE_STATE_CHANGE);
-		ncs_enc_claim_space(uba, 4);
-		rv = ntfsv_enc_filter_header(uba, &param->f_rec.sta_ch_filter->notificationFilterHeader);
-		if (rv != NCSCC_RC_SUCCESS)
-			return NCSCC_RC_OUT_OF_MEM;
-
-		p8 = ncs_enc_reserve_space(uba, 8);
-		if (!p8) 
-			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_32bit(&p8, param->f_rec.sta_ch_filter->numSourceIndicators);
-		ncs_encode_32bit(&p8, param->f_rec.sta_ch_filter->numStateChanges);
-		ncs_enc_claim_space(uba, 8);
-		TRACE_3("numSourceIndicators: %d", (int)param->f_rec.sta_ch_filter->numSourceIndicators);
-		for (i = 0; i < param->f_rec.sta_ch_filter->numSourceIndicators; i++) {
-			p8 = ncs_enc_reserve_space(uba, 4);
-			if (!p8) {
-				return NCSCC_RC_OUT_OF_MEM;
-			}
-			ncs_encode_32bit(&p8, param->f_rec.sta_ch_filter->sourceIndicators[i]);
-			ncs_enc_claim_space(uba, 4);
-		}
-		TRACE_3("numStateChanges: %d", (int)param->f_rec.sta_ch_filter->numStateChanges);
-		for (i = 0; i < param->f_rec.sta_ch_filter->numStateChanges; i++) {
-			p8 = ncs_enc_reserve_space(uba, 8);
-			if (!p8)	return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_16bit(&p8, param->f_rec.sta_ch_filter->changedStates[i].stateId);
-			ncs_encode_16bit(&p8, param->f_rec.sta_ch_filter->changedStates[i].newState);
-			ncs_encode_32bit(&p8, param->f_rec.sta_ch_filter->changedStates[i].oldStatePresent);
-			ncs_enc_claim_space(uba, 8);
-			TRACE_3("oldStatePresent: %d", param->f_rec.sta_ch_filter->changedStates[i].oldStatePresent);
-			if (param->f_rec.sta_ch_filter->changedStates[i].oldStatePresent) {
-				p8 = ncs_enc_reserve_space(uba, 2);
-				if (!p8) return NCSCC_RC_OUT_OF_MEM;
-				ncs_encode_16bit(&p8, param->f_rec.sta_ch_filter->changedStates[i].oldState);
-				ncs_enc_claim_space(uba, 2);
-			}
-		}
-	} else {
-		p8 = ncs_enc_reserve_space(uba, 4);
-		if (!p8)
-			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_32bit(&p8, 0);
-		ncs_enc_claim_space(uba, 4);
-	}	
-	
 	rv = ntfsv_enc_discard_msg(uba, &param->d_info);
 
 	TRACE_LEAVE();
@@ -1383,19 +1395,271 @@ uint32_t ntfsv_dec_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT 
 	return rv;   
 }
 
-uint32_t ntfsv_dec_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
+static uint32_t ntfsv_dec_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 {
 	int i;
 	uint8_t *p8;
+	uint32_t rv = NCSCC_RC_OUT_OF_MEM;
+	uint32_t filter_type;
+	uint8_t local_data[10];
+	
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	filter_type = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+
+/* memory allocated is freed in filter destructors */
+	if (filter_type == SA_NTF_TYPE_ALARM) {
+		TRACE_2("dec: SA_NTF_TYPE_ALARM");
+		f_rec->alarm_filter = malloc(sizeof(*f_rec->alarm_filter));
+		if (f_rec->alarm_filter == NULL) {
+			goto error_free;
+		}
+		rv = ntfsv_dec_filter_header(uba, &f_rec->alarm_filter->notificationFilterHeader);
+		if (rv != NCSCC_RC_SUCCESS)
+			goto error_free;
+
+		p8 = ncs_dec_flatten_space(uba, local_data, 6);
+		f_rec->alarm_filter->numProbableCauses = ncs_decode_16bit(&p8);
+		f_rec->alarm_filter->numPerceivedSeverities = ncs_decode_16bit(&p8);
+		f_rec->alarm_filter->numTrends = ncs_decode_16bit(&p8);
+		ncs_dec_skip_space(uba, 6);
+
+		rv = ntfsv_filter_alarm_alloc(f_rec->alarm_filter,
+			f_rec->alarm_filter->numProbableCauses,
+			f_rec->alarm_filter->numPerceivedSeverities,
+			f_rec->alarm_filter->numTrends);
+		if (rv != NCSCC_RC_SUCCESS)
+			goto error_free;
+
+		for (i = 0; i < f_rec->alarm_filter->numProbableCauses; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			f_rec->alarm_filter->probableCauses[i] = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+
+		}
+		for (i = 0; i < f_rec->alarm_filter->numPerceivedSeverities; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			f_rec->alarm_filter->perceivedSeverities[i] = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+		}
+		for (i = 0; i < f_rec->alarm_filter->numTrends; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			f_rec->alarm_filter->trends[i] = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+		}  				  
+	} else {
+		assert(!filter_type);
+		f_rec->alarm_filter = NULL;
+	}
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	filter_type = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+
+	if (filter_type == SA_NTF_TYPE_SECURITY_ALARM) {
+		TRACE_2("dec: SA_NTF_TYPE_SECURITY_ALARM");
+		f_rec->sec_al_filter = malloc(sizeof(*f_rec->sec_al_filter));
+		if (f_rec->sec_al_filter == NULL) {
+			goto error_free;
+		}
+		rv = ntfsv_dec_filter_header(uba, &f_rec->sec_al_filter->notificationFilterHeader);
+		if (rv != NCSCC_RC_SUCCESS)
+			goto error_free;
+		p8 = ncs_dec_flatten_space(uba, local_data, 10);
+		f_rec->sec_al_filter->numProbableCauses = ncs_decode_16bit(&p8);
+		f_rec->sec_al_filter->numSeverities = ncs_decode_16bit(&p8);
+		f_rec->sec_al_filter->numSecurityAlarmDetectors = ncs_decode_16bit(&p8);
+		f_rec->sec_al_filter->numServiceProviders = ncs_decode_16bit(&p8);
+		f_rec->sec_al_filter->numServiceUsers = ncs_decode_16bit(&p8);
+		ncs_dec_skip_space(uba, 10);
+
+		rv = ntfsv_filter_sec_alarm_alloc(f_rec->sec_al_filter,
+			f_rec->sec_al_filter->numProbableCauses,
+			f_rec->sec_al_filter->numSeverities,
+			f_rec->sec_al_filter->numSecurityAlarmDetectors,
+			f_rec->sec_al_filter->numServiceUsers,
+			f_rec->sec_al_filter->numServiceProviders);
+		if (rv != NCSCC_RC_SUCCESS)
+			goto error_free;
+
+		for (i = 0; i < f_rec->sec_al_filter->numProbableCauses; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			f_rec->sec_al_filter->probableCauses[i] = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+
+		}
+		for (i = 0; i < f_rec->sec_al_filter->numSeverities; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			f_rec->sec_al_filter->severities[i] = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+		}
+		for (i = 0; i < f_rec->sec_al_filter->numSecurityAlarmDetectors; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			f_rec->sec_al_filter->securityAlarmDetectors[i].valueType = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+			rv = decodeNtfValueT(uba, f_rec->sec_al_filter->securityAlarmDetectors[i].valueType, &f_rec->sec_al_filter->securityAlarmDetectors[i].value);
+			if (rv != NCSCC_RC_SUCCESS)
+				goto error_free;
+		}  				  		
+		for (i = 0; i < f_rec->sec_al_filter->numServiceProviders; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			f_rec->sec_al_filter->serviceProviders[i].valueType = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+			rv = decodeNtfValueT(uba, f_rec->sec_al_filter->serviceProviders[i].valueType, &f_rec->sec_al_filter->serviceProviders[i].value);
+			if (rv != NCSCC_RC_SUCCESS)
+				goto error_free;
+		}  				  
+		for (i = 0; i < f_rec->sec_al_filter->numServiceUsers; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			f_rec->sec_al_filter->serviceUsers[i].valueType = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+			rv = decodeNtfValueT(uba, f_rec->sec_al_filter->serviceUsers[i].valueType, &f_rec->sec_al_filter->serviceUsers[i].value);
+			if (rv != NCSCC_RC_SUCCESS)
+				goto error_free;
+		}  				  
+	} else {
+		assert(!filter_type);
+		f_rec->sec_al_filter = NULL;
+	}
+
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	filter_type = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4) ;
+	if (filter_type == SA_NTF_TYPE_ATTRIBUTE_CHANGE) {
+		TRACE_2("dec: SA_NTF_TYPE_ATTRIBUTE_CHANGE");
+		f_rec->att_ch_filter = malloc(sizeof(*f_rec->att_ch_filter));
+		if (f_rec->att_ch_filter == NULL) {
+			goto error_free;
+		}
+		rv = ntfsv_dec_filter_header(uba, &f_rec->att_ch_filter->notificationFilterHeader);
+		if (rv != NCSCC_RC_SUCCESS)
+			goto error_free;
+
+		p8 = ncs_dec_flatten_space(uba, local_data, 2);
+		f_rec->att_ch_filter->numSourceIndicators = ncs_decode_16bit(&p8);
+		ncs_dec_skip_space(uba, 2);
+
+		rv = ntfsv_filter_attr_change_alloc(f_rec->att_ch_filter,
+			f_rec->att_ch_filter->numSourceIndicators);
+		if (rv != NCSCC_RC_SUCCESS)
+			goto error_free;
+
+		for (i = 0; i < f_rec->att_ch_filter->numSourceIndicators; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			f_rec->att_ch_filter->sourceIndicators[i] = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+		}
+	} else {
+		assert(!filter_type);
+		f_rec->att_ch_filter = NULL;
+	}
+
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	filter_type = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4) ;
+	if (filter_type == SA_NTF_TYPE_OBJECT_CREATE_DELETE) {
+		TRACE_2("dec: SA_NTF_TYPE_OBJECT_CREATE_DELETE");
+		f_rec->obj_cr_del_filter = malloc(sizeof(*f_rec->obj_cr_del_filter));
+		if (f_rec->obj_cr_del_filter == NULL) {
+			goto error_free;
+		}
+		rv = ntfsv_dec_filter_header(uba, &f_rec->obj_cr_del_filter->notificationFilterHeader);
+		if (rv != NCSCC_RC_SUCCESS)
+			goto error_free;
+
+		p8 = ncs_dec_flatten_space(uba, local_data, 2);
+		f_rec->obj_cr_del_filter->numSourceIndicators = ncs_decode_16bit(&p8);
+		ncs_dec_skip_space(uba, 2);
+
+		rv = ntfsv_filter_obj_cr_del_alloc(f_rec->obj_cr_del_filter,
+			f_rec->obj_cr_del_filter->numSourceIndicators);
+		if (rv != NCSCC_RC_SUCCESS)
+			goto error_free;
+
+		for (i = 0; i < f_rec->obj_cr_del_filter->numSourceIndicators; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			f_rec->obj_cr_del_filter->sourceIndicators[i] = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+		}
+	} else {
+		assert(!filter_type);
+		f_rec->obj_cr_del_filter = NULL;
+	}
+
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	filter_type = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4) ;
+	if (filter_type == SA_NTF_TYPE_STATE_CHANGE) {
+		TRACE_2("dec: SA_NTF_TYPE_STATE_CHANGE");
+		f_rec->sta_ch_filter = malloc(sizeof(*f_rec->sta_ch_filter));
+		if (f_rec->sta_ch_filter == NULL) {
+			goto error_free;
+		}
+		rv = ntfsv_dec_filter_header(uba, &f_rec->sta_ch_filter->notificationFilterHeader);
+		if (rv != NCSCC_RC_SUCCESS)
+			goto error_free;
+
+		p8 = ncs_dec_flatten_space(uba, local_data, 8);
+		f_rec->sta_ch_filter->numSourceIndicators = ncs_decode_32bit(&p8);
+		f_rec->sta_ch_filter->numStateChanges = ncs_decode_32bit(&p8);
+		ncs_dec_skip_space(uba, 8);
+
+		rv = ntfsv_filter_state_ch_alloc(f_rec->sta_ch_filter,
+			f_rec->sta_ch_filter->numSourceIndicators, 
+			f_rec->sta_ch_filter->numStateChanges);
+		if (rv != NCSCC_RC_SUCCESS)
+			goto error_free;
+		TRACE_2("numSourceIndicators: %d", f_rec->sta_ch_filter->numSourceIndicators);
+
+		for (i = 0; i < f_rec->sta_ch_filter->numSourceIndicators; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			f_rec->sta_ch_filter->sourceIndicators[i] = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+		}
+		TRACE_2("numStateChanges: %d", f_rec->sta_ch_filter->numStateChanges);
+		for (i = 0; i < f_rec->sta_ch_filter->numStateChanges; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 8);
+			f_rec->sta_ch_filter->changedStates[i].stateId = ncs_decode_16bit(&p8);
+			f_rec->sta_ch_filter->changedStates[i].newState = ncs_decode_16bit(&p8);
+			f_rec->sta_ch_filter->changedStates[i].oldStatePresent = ncs_decode_32bit(&p8);
+			TRACE_2("oldStatePresent: %d", f_rec->sta_ch_filter->changedStates[i].oldStatePresent);
+			ncs_dec_skip_space(uba, 8);
+			if (f_rec->sta_ch_filter->changedStates[i].oldStatePresent){
+				p8 = ncs_dec_flatten_space(uba, local_data, 2);
+				f_rec->sta_ch_filter->changedStates[i].oldState = ncs_decode_16bit(&p8);				
+				ncs_dec_skip_space(uba, 2);
+			}
+		}
+	} else {
+		assert(!filter_type);
+		f_rec->sta_ch_filter = NULL;
+	}
+
+done:
+	return rv;
+
+error_free:
+   TRACE("No memory");
+	free(f_rec->alarm_filter);
+	free(f_rec->att_ch_filter);
+	free(f_rec->obj_cr_del_filter);
+	free(f_rec->sec_al_filter);
+	free(f_rec->sta_ch_filter);
+	goto done;
+}
+
+uint32_t ntfsv_dec_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
+{
+	uint8_t *p8;
 	uint32_t rv = NCSCC_RC_FAILURE;
 	uint8_t local_data[10];
-	uint32_t filter_type;
+
 	param->f_rec.alarm_filter = NULL;
 	param->f_rec.att_ch_filter = NULL;
 	param->f_rec.obj_cr_del_filter = NULL;
 	param->f_rec.sec_al_filter = NULL;
 	param->f_rec.sta_ch_filter = NULL;
-TRACE_ENTER();
+	
+	TRACE_ENTER();
 	/* client_id  */
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->client_id = ncs_decode_32bit(&p8);
@@ -1405,256 +1669,18 @@ TRACE_ENTER();
 	param->subscriptionId = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
 
-	p8 = ncs_dec_flatten_space(uba, local_data, 4);
-	filter_type = ncs_decode_32bit(&p8);
-	ncs_dec_skip_space(uba, 4);
-	 
-/* memory allocated is freed in filter destructors */
-	if (filter_type == SA_NTF_TYPE_ALARM) {
-		TRACE_2("dec: SA_NTF_TYPE_ALARM");
-		param->f_rec.alarm_filter = malloc(sizeof(*param->f_rec.alarm_filter));
-		if (param->f_rec.alarm_filter == NULL) {
-			goto error_free;
-		}
-		rv = ntfsv_dec_filter_header(uba, &param->f_rec.alarm_filter->notificationFilterHeader);
-		if (rv != NCSCC_RC_SUCCESS)
-			goto error_free;
-		
-		p8 = ncs_dec_flatten_space(uba, local_data, 6);
-		param->f_rec.alarm_filter->numProbableCauses = ncs_decode_16bit(&p8);
-		param->f_rec.alarm_filter->numPerceivedSeverities = ncs_decode_16bit(&p8);
-		param->f_rec.alarm_filter->numTrends = ncs_decode_16bit(&p8);
-		ncs_dec_skip_space(uba, 6);
-		
-		rv = ntfsv_filter_alarm_alloc(param->f_rec.alarm_filter,
-			param->f_rec.alarm_filter->numProbableCauses,
-			param->f_rec.alarm_filter->numPerceivedSeverities,
-			param->f_rec.alarm_filter->numTrends);
-		if (rv != NCSCC_RC_SUCCESS)
-			goto error_free;
-		
-		for (i = 0; i < param->f_rec.alarm_filter->numProbableCauses; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->f_rec.alarm_filter->probableCauses[i] = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 4);
-
-		}
-		for (i = 0; i < param->f_rec.alarm_filter->numPerceivedSeverities; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->f_rec.alarm_filter->perceivedSeverities[i] = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 4);
-		}
-		for (i = 0; i < param->f_rec.alarm_filter->numTrends; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->f_rec.alarm_filter->trends[i] = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 4);
-		}  				  
-	} else {
-		assert(!filter_type);
-		param->f_rec.alarm_filter = NULL;
-	}
-	p8 = ncs_dec_flatten_space(uba, local_data, 4);
-	filter_type = ncs_decode_32bit(&p8);
-	ncs_dec_skip_space(uba, 4);
-
-	if (filter_type == SA_NTF_TYPE_SECURITY_ALARM) {
-		TRACE_2("dec: SA_NTF_TYPE_SECURITY_ALARM");
-		param->f_rec.sec_al_filter = malloc(sizeof(*param->f_rec.sec_al_filter));
-		if (param->f_rec.sec_al_filter == NULL) {
-			goto error_free;
-		}
-		rv = ntfsv_dec_filter_header(uba, &param->f_rec.sec_al_filter->notificationFilterHeader);
-		if (rv != NCSCC_RC_SUCCESS)
-			goto error_free;
-		p8 = ncs_dec_flatten_space(uba, local_data, 10);
-		param->f_rec.sec_al_filter->numProbableCauses = ncs_decode_16bit(&p8);
-		param->f_rec.sec_al_filter->numSeverities = ncs_decode_16bit(&p8);
-		param->f_rec.sec_al_filter->numSecurityAlarmDetectors = ncs_decode_16bit(&p8);
-		param->f_rec.sec_al_filter->numServiceProviders = ncs_decode_16bit(&p8);
-		param->f_rec.sec_al_filter->numServiceUsers = ncs_decode_16bit(&p8);
-		ncs_dec_skip_space(uba, 10);
-
-		rv = ntfsv_filter_sec_alarm_alloc(param->f_rec.sec_al_filter,
-			param->f_rec.sec_al_filter->numProbableCauses,
-			param->f_rec.sec_al_filter->numSeverities,
-			param->f_rec.sec_al_filter->numSecurityAlarmDetectors,
-			param->f_rec.sec_al_filter->numServiceUsers,
-			param->f_rec.sec_al_filter->numServiceProviders);
-		if (rv != NCSCC_RC_SUCCESS)
-			goto error_free;
-
-		for (i = 0; i < param->f_rec.sec_al_filter->numProbableCauses; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->f_rec.sec_al_filter->probableCauses[i] = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 4);
-
-		}
-		for (i = 0; i < param->f_rec.sec_al_filter->numSeverities; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->f_rec.sec_al_filter->severities[i] = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 4);
-		}
-		for (i = 0; i < param->f_rec.sec_al_filter->numSecurityAlarmDetectors; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->f_rec.sec_al_filter->securityAlarmDetectors[i].valueType = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 4);
-			rv = decodeNtfValueT(uba, param->f_rec.sec_al_filter->securityAlarmDetectors[i].valueType, &param->f_rec.sec_al_filter->securityAlarmDetectors[i].value);
-			if (rv != NCSCC_RC_SUCCESS)
-				goto error_free;
-		}  				  		
-		for (i = 0; i < param->f_rec.sec_al_filter->numServiceProviders; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->f_rec.sec_al_filter->serviceProviders[i].valueType = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 4);
-			rv = decodeNtfValueT(uba, param->f_rec.sec_al_filter->serviceProviders[i].valueType, &param->f_rec.sec_al_filter->serviceProviders[i].value);
-			if (rv != NCSCC_RC_SUCCESS)
-				goto error_free;
-		}  				  
-		for (i = 0; i < param->f_rec.sec_al_filter->numServiceUsers; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->f_rec.sec_al_filter->serviceUsers[i].valueType = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 4);
-			rv = decodeNtfValueT(uba, param->f_rec.sec_al_filter->serviceUsers[i].valueType, &param->f_rec.sec_al_filter->serviceUsers[i].value);
-			if (rv != NCSCC_RC_SUCCESS)
-				goto error_free;
-		}  				  
-	} else {
-		assert(!filter_type);
-		param->f_rec.sec_al_filter = NULL;
-	}
-	
-	p8 = ncs_dec_flatten_space(uba, local_data, 4);
-	filter_type = ncs_decode_32bit(&p8);
-	ncs_dec_skip_space(uba, 4) ;
-	if (filter_type == SA_NTF_TYPE_ATTRIBUTE_CHANGE) {
-		TRACE_2("dec: SA_NTF_TYPE_ATTRIBUTE_CHANGE");
-		param->f_rec.att_ch_filter = malloc(sizeof(*param->f_rec.att_ch_filter));
-		if (param->f_rec.att_ch_filter == NULL) {
-			rv = 0;
-			goto error_free;
-		}
-		rv = ntfsv_dec_filter_header(uba, &param->f_rec.att_ch_filter->notificationFilterHeader);
-		if (rv != NCSCC_RC_SUCCESS)
-			goto error_free;
-
-		p8 = ncs_dec_flatten_space(uba, local_data, 2);
-		param->f_rec.att_ch_filter->numSourceIndicators = ncs_decode_16bit(&p8);
-		ncs_dec_skip_space(uba, 2);
-
-		rv = ntfsv_filter_attr_change_alloc(param->f_rec.att_ch_filter,
-			param->f_rec.att_ch_filter->numSourceIndicators);
-		if (rv != NCSCC_RC_SUCCESS)
-			goto error_free;
-
-		for (i = 0; i < param->f_rec.att_ch_filter->numSourceIndicators; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->f_rec.att_ch_filter->sourceIndicators[i] = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 4);
-		}
-	} else {
-		assert(!filter_type);
-		param->f_rec.att_ch_filter = NULL;
-	}
-
-	p8 = ncs_dec_flatten_space(uba, local_data, 4);
-	filter_type = ncs_decode_32bit(&p8);
-	ncs_dec_skip_space(uba, 4) ;
-	if (filter_type == SA_NTF_TYPE_OBJECT_CREATE_DELETE) {
-		TRACE_2("dec: SA_NTF_TYPE_OBJECT_CREATE_DELETE");
-		param->f_rec.obj_cr_del_filter = malloc(sizeof(*param->f_rec.obj_cr_del_filter));
-		if (param->f_rec.obj_cr_del_filter == NULL) {
-			rv = 0;
-			goto error_free;
-		}
-		rv = ntfsv_dec_filter_header(uba, &param->f_rec.obj_cr_del_filter->notificationFilterHeader);
-		if (rv != NCSCC_RC_SUCCESS)
-			goto error_free;
-
-		p8 = ncs_dec_flatten_space(uba, local_data, 2);
-		param->f_rec.obj_cr_del_filter->numSourceIndicators = ncs_decode_16bit(&p8);
-		ncs_dec_skip_space(uba, 2);
-
-		rv = ntfsv_filter_obj_cr_del_alloc(param->f_rec.obj_cr_del_filter,
-			param->f_rec.obj_cr_del_filter->numSourceIndicators);
-		if (rv != NCSCC_RC_SUCCESS)
-			goto error_free;
-
-		for (i = 0; i < param->f_rec.obj_cr_del_filter->numSourceIndicators; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->f_rec.obj_cr_del_filter->sourceIndicators[i] = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 4);
-		}
-	} else {
-		assert(!filter_type);
-		param->f_rec.obj_cr_del_filter = NULL;
-	}
- 	
-	p8 = ncs_dec_flatten_space(uba, local_data, 4);
-	filter_type = ncs_decode_32bit(&p8);
-	ncs_dec_skip_space(uba, 4) ;
-	if (filter_type == SA_NTF_TYPE_STATE_CHANGE) {
-		TRACE_2("dec: SA_NTF_TYPE_STATE_CHANGE");
-		param->f_rec.sta_ch_filter = malloc(sizeof(*param->f_rec.sta_ch_filter));
-		if (param->f_rec.sta_ch_filter == NULL) {
-			rv = 0;
-			goto error_free;
-		}
-		rv = ntfsv_dec_filter_header(uba, &param->f_rec.sta_ch_filter->notificationFilterHeader);
-		if (rv != NCSCC_RC_SUCCESS)
-			goto error_free;
-
-		p8 = ncs_dec_flatten_space(uba, local_data, 8);
-		param->f_rec.sta_ch_filter->numSourceIndicators = ncs_decode_32bit(&p8);
-		param->f_rec.sta_ch_filter->numStateChanges = ncs_decode_32bit(&p8);
-		ncs_dec_skip_space(uba, 8);
-		
-		rv = ntfsv_filter_state_ch_alloc(param->f_rec.sta_ch_filter,
-			param->f_rec.sta_ch_filter->numSourceIndicators, 
-			param->f_rec.sta_ch_filter->numStateChanges);
-		if (rv != NCSCC_RC_SUCCESS)
-			goto error_free;
-		TRACE_2("numSourceIndicators: %d", param->f_rec.sta_ch_filter->numSourceIndicators);
-
-		for (i = 0; i < param->f_rec.sta_ch_filter->numSourceIndicators; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->f_rec.sta_ch_filter->sourceIndicators[i] = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 4);
-		}
-		TRACE_2("numStateChanges: %d", param->f_rec.sta_ch_filter->numStateChanges);
-		for (i = 0; i < param->f_rec.sta_ch_filter->numStateChanges; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 8);
-			param->f_rec.sta_ch_filter->changedStates[i].stateId = ncs_decode_16bit(&p8);
-			param->f_rec.sta_ch_filter->changedStates[i].newState = ncs_decode_16bit(&p8);
-			param->f_rec.sta_ch_filter->changedStates[i].oldStatePresent = ncs_decode_32bit(&p8);
-			TRACE_2("oldStatePresent: %d", param->f_rec.sta_ch_filter->changedStates[i].oldStatePresent);
-			ncs_dec_skip_space(uba, 8);
-			if (param->f_rec.sta_ch_filter->changedStates[i].oldStatePresent){
-				p8 = ncs_dec_flatten_space(uba, local_data, 2);
-				param->f_rec.sta_ch_filter->changedStates[i].oldState = ncs_decode_16bit(&p8);				
-				ncs_dec_skip_space(uba, 2);
-			}
-		}
-	} else {
-		assert(!filter_type);
-		param->f_rec.sta_ch_filter = NULL;
-	}
+	rv = ntfsv_dec_filter_msg(uba, &param->f_rec);
+	if (rv != NCSCC_RC_SUCCESS)
+		goto done;		
 	
 	rv = ntfsv_dec_discard_msg(uba, &param->d_info);
 	if (rv != NCSCC_RC_SUCCESS)
-		goto error_free;
+		free(param->d_info.discardedNotificationIdentifiers);
+
 done:	
 	TRACE_8("NTFSV_SUBSCRIBE_REQ");
 	TRACE_LEAVE();
 	return rv;
-
-error_free:
-   TRACE("No memory");
-	free(param->f_rec.alarm_filter);
-	free(param->f_rec.att_ch_filter);
-	free(param->f_rec.obj_cr_del_filter);
-	free(param->f_rec.sec_al_filter);
-	free(param->f_rec.sta_ch_filter);
-	goto done;
 }
 
 uint32_t ntfsv_enc_64bit_msg(NCS_UBAID *uba, uint64_t param)

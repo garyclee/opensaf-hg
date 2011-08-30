@@ -136,6 +136,7 @@ extern "C" {
 
 	typedef struct {
 		ntfsv_reader_init_req_t head;
+		ntfsv_filter_ptrs_t f_rec;		
 	} ntfsv_reader_init_req_2_t;
 
 	typedef struct {
