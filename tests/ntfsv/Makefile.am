@@ -21,6 +21,8 @@ MAINTAINERCLEANFILES = Makefile.in
 
 bin_PROGRAMS = ntftest
 
+dist_bin_SCRIPTS = ntf_search_criteria_test.sh
+
 noinst_HEADERS = \
 	sa_error.h \
 	test.h \
