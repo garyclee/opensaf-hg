@@ -203,6 +203,7 @@ done:
  *****************************************************************************/
 uint32_t ntfs_cb_init(ntfs_cb_t *ntfs_cb)
 {
+	char *tmp;
 	TRACE_ENTER();
 	/* Assign Initial HA state */
 	ntfs_cb->ha_state = NTFS_HA_INIT_STATE;
@@ -211,6 +212,14 @@ uint32_t ntfs_cb_init(ntfs_cb_t *ntfs_cb)
 	ntfs_cb->ntf_version.releaseCode = NTF_RELEASE_CODE;
 	ntfs_cb->ntf_version.majorVersion = NTF_MAJOR_VERSION;
 	ntfs_cb->ntf_version.minorVersion = NTF_MINOR_VERSION;
+
+	tmp = (char *)getenv("NTFSV_ENV_CACHE_SIZE");
+	if (tmp) {
+		ntfs_cb->cache_size =(unsigned int) atoi(tmp);
+		TRACE("NTFSV_ENV_CACHE_SIZE configured value: %u", ntfs_cb->cache_size);
+	} else {
+		ntfs_cb->cache_size = NTFSV_READER_CACHE_DEFAULT; 
+	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
