@@ -317,7 +317,6 @@ static uint32_t proc_unsubscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	TRACE_ENTER2("client_id %u, subscriptionId %u", param->client_id, param->subscriptionId);
 
 	subscriptionRemoved(param->client_id, param->subscriptionId, &evt->mds_ctxt);
-/* TODO: async update*/
 	TRACE_LEAVE();
 	return rc;
 }

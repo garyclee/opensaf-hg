@@ -68,7 +68,6 @@ private:
 
     readerNotificationListT coll_;
     unsigned int readCounter;
-    bool first;
     typedef std::list<NtfSmartPtr> QueuedNotificationsList;
     QueuedNotificationsList queuedNotificationList;
 };
