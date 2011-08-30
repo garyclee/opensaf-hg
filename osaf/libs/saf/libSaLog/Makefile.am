@@ -21,7 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 EXTRA_DIST = libSaLog.map
 
-LIB_VERSION=1:0:1
+LIB_VERSION=1:0:2
 
 SUBDIRS = pkgconfig
 
