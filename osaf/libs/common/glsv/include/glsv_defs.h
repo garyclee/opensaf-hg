@@ -96,7 +96,4 @@ typedef SaUint32T SaLckResourceIdT;
 /*To increment mds timer value(in milli sec)*/
 #define LCK_TIMEOUT_LATENCY			 	    200
 
-/* DTSv versioning support */
-#define GLSV_LOG_VERSION 3
-
 #endif   /* GLSV_DEFS_H */

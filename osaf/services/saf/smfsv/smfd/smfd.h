@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include <ncsgl_defs.h>
-#include <ncs_log.h>
 #include <ncs_lib.h>
 #include <ncs_util.h>
 #include <mds_papi.h>

@@ -24,7 +24,7 @@
 *  This module defines the API used by bladeinitd spawned services. From ser *
 *  vices point of view, this API provides interface to communicate the       *
 *  initialization status to bladeinitd. Bladeinitd spawned services are      *
-*  HPM,RDF,XND,LHC,DRBD,NETWORKING,TIPC,DTSV,PCAP,SCAP.                      *
+*  HPM,RDF,XND,LHC,DRBD,NETWORKING,TIPC,PCAP,SCAP.                      *
 *                                                                            *
 *****************************************************************************/
 

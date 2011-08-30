@@ -23,9 +23,7 @@ SUBDIRS = include
 noinst_LTLIBRARIES = libopensaf_common.la
 
 libopensaf_common_la_CPPFLAGS = \
-	-DNCS_DTA=1 \
-	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include
+	$(AM_CPPFLAGS)
 
 libopensaf_common_la_LDFLAGS = -static
 

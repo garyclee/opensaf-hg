@@ -40,12 +40,13 @@
 #include "mds_papi.h"
 #include "ncs_mda_pvt.h"
 #include "ncs_edu_pub.h"
-#include "avsv_log.h"
 #include "avsv_defs.h"
 #include "avsv_util.h"
 #include "ncs_util.h"
 #include "avsv_eduutil.h"
 #include "ncssysf_lck.h"
 #include "ncs_hdl_pub.h"
+#include "ncs_main_papi.h"
+#include "ncssysf_def.h"
 
 #endif

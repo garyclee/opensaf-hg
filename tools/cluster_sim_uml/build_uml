@@ -159,17 +159,13 @@ cmd_create_rootfs()
     test -e /etc/init.d/functions && install /etc/init.d/functions etc/init.d
     test -e /sbin/consoletype && install /sbin/consoletype sbin 
 
-    # Needed by dtsv archive rotation
+    # Needed for archive rotation
     install /bin/tar bin
     install $(which nice) usr/bin
     
     # Change LOG configuration to use "replicated" disk
     sed -i 's/=$pkglogdir\/saflog/=repl_opensaf\/saflog/g' \
 	etc/opensaf/logd.conf
-
-    # Change DTSV configuration to use "replicated" disk
-    sed -i 's/=$pkglogdir\/dtlog/=repl_opensaf\/log/g' \
-		etc/opensaf/dtsv.conf
 
     # Change core pattern, uml cannot write cores to hostfs
     sed -i 's/var\/crash\/opensaf/tmp/g' etc/init.d/opensafd

@@ -94,8 +94,6 @@
       <UML:Component visibility="public" isSpecification="false" namespace="Component View" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="rI2AMSoBX0So" name="miblib" executable="0" />
       <UML:Component visibility="public" isSpecification="false" namespace="Component View" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="xsa37HMa2xEN" name="rda" executable="0" />
       <UML:Component visibility="public" isSpecification="false" namespace="Component View" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="bqsBvgWndMNe" name="fma" executable="0" />
-      <UML:Component visibility="public" isSpecification="false" namespace="Component View" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="XS5Az5SJyHoE" name="dts" executable="0" />
-      <UML:Component visibility="public" isSpecification="false" namespace="Component View" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="WcfOqbL3Ltld" name="dta" executable="0" />
       <UML:Component visibility="public" isSpecification="false" namespace="Component View" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="xtdVFsaJDRrq" name="fms" executable="0" />
       <UML:Component visibility="public" isSpecification="false" namespace="Component View" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="NxLowqh85hX4" name="nid" executable="0" />
       <UML:Component visibility="public" isSpecification="false" namespace="Component View" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="fkf4xBovpcVE" name="rde" executable="0" />
@@ -1028,7 +1026,6 @@
       <listitem open="0" type="825" id="gh3MaipRY5Y6" label="libopensaf_core" />
      </listitem>
      <listitem open="1" type="826" id="2oZ02llhJ4GO" >
-      <listitem open="0" type="825" id="0B7NFV7seujq" label="dtsv" />
       <listitem open="0" type="825" id="AK6yKH5fWYkM" label="fm" />
       <listitem open="0" type="825" id="nn3palxurvC6" label="nid" />
       <listitem open="0" type="825" id="0KJvoXFbIIPr" label="rde" />

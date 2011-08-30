@@ -38,10 +38,6 @@
 /* From /base/common/inc */
 #include "ncs_lib.h"
 #include "ncs_ubaid.h"
-#include "ncs_log.h"
-
-/* DTS header file */
-#include "dta_papi.h"
 
 #include "mds_papi.h"
 

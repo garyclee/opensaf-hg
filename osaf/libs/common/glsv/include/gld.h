@@ -52,10 +52,9 @@ typedef enum {
 #include "ncs_mda_pvt.h"
 #include "ncs_mda_papi.h"
 #include "ncs_util.h"
+#include "ncssysf_def.h"
+#include "ncs_main_papi.h"
 
-/* DTS header file */
-#include "dts_papi.h"
-#include "dta_papi.h"
 #include "saClm.h"
 #include "glsv_defs.h"
 #include "glsv_lck.h"

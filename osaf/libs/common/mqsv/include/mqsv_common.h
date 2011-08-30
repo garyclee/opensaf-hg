@@ -96,7 +96,4 @@ typedef unsigned int MSG_FRMT_VER;
 #define NCSFL_LC_MQSV_QGRP_MGMT  0x00002000	/* MQSV Group Apis flows */
 #define NCSFL_LC_MQSV_SEND_RCV   0x00001000	/* MQSV New Logs */
 
-/* DTSv versioning support */
-#define MQSV_LOG_VERSION 4
-
 #endif

@@ -43,7 +43,6 @@ extern "C" {
                     At a minimum it starts the following services
                     - leap
                     - mds
-                    - dta
 
                     The following services are started only if a symbol
                     look up on their entry-points is successful.
@@ -68,12 +67,10 @@ extern "C" {
 
 	unsigned int ncs_leap_startup(void);
 	unsigned int ncs_mds_startup(void);
-	unsigned int ncs_dta_startup(void);
 
 	unsigned int ncs_mbca_shutdown(void);
 	unsigned int ncs_core_agents_shutdown(void);
 
-	void ncs_dta_shutdown(void);
 	void ncs_mds_shutdown(void);
 	void ncs_leap_shutdown(void);
 

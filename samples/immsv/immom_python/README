@@ -111,7 +111,7 @@ functions in a "shell". For example;
   ... (list of nodes printed)
   >>> import immomexamples
   >>> immomexamples.getimplementers()
-  ['safAmfService', 'safClmService', 'OpenSAFDtsvService', 'safLogService']
+  ['safAmfService', 'safClmService', 'safLogService']
   >>>
 
 

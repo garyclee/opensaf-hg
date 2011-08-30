@@ -146,8 +146,8 @@ extern "C" {
 	typedef enum ncsmds_svc_id {
 		NCSMDS_SVC_ID_NCSMIN = 1,
 		/* BEGIN: These are NCS internal use service-id definitions */
-		NCSMDS_SVC_ID_DTS = NCSMDS_SVC_ID_NCSMIN,
-		NCSMDS_SVC_ID_DTA = 2,
+		NCSMDS_SVC_ID_DTS_DEPRECATE = NCSMDS_SVC_ID_NCSMIN,
+		NCSMDS_SVC_ID_DTA_DEPRECATE = 2,
 		NCSMDS_SVC_ID_GLA = 3,
 		NCSMDS_SVC_ID_GLND = 4,
 		NCSMDS_SVC_ID_GLD = 5,
