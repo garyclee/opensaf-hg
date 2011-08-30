@@ -675,11 +675,11 @@ admin-operation downcall, i.e. via 'returnParams' in a call of
 #define SA_IMM_PARAM_ADMOP_ERROR      "SaImmAdminOperationError"
 
 If an OI intends to reply with an error code (no SA_AIS_OK) as the
-result of an admin-peration, then the OI may include an error
+result of an admin-operation, then the OI may include an error
 string in the list of return parameters. Typically this will be the
 only paramteter included when there is an error, but the API allows
 any number of paramters to be returned regardless of the return code.
-The error string is identified by a paramter with the parameter-name
+The error string is identified by a parameter with the parameter-name
 of SA_IMM_PARAM_ADMOP_ERROR.
 This is a convention, but it gives the OM client a chance to probe
 for such an error string when it receives a non OK result. 
@@ -734,7 +734,7 @@ the same objects operated on by the original OM client could
 subvert or interfere with the intended effect. 
 
 The OI designer also needs to take care in avoiding deadlocks
-with other OIs. More on theis below.
+with other OIs. More on this below.
 
 The ideal pattern of use for this feature is when the OI adds
 a small ammount of operations that are directed at 'implementation
@@ -781,22 +781,22 @@ purpose of that upcall and there may be many OIs involved in the
 completion of a CCB, changing the base of validation during
 the validation would make validation practically impossible.
 
-The OI augmentation CCB must be applied by the OI before it
+The OI augmentation CCB must be 'applied' by the OI before it
 returns from the upcall in which the augmentation is done.
-If the OI fails to invoke apply on the ccbHandle, before returning,
-or if it gets an unrecoverable error on the apply, then
-the entire om-initialized CCB will fail (be aborted). 
+Such an 'apply' of an augmentation is not the actual final apply,
+since that is dependent on the apply of the originating root CCB.
+The 'apply' of an augmentation is only the confirmation from the
+OI that the augmentation was completed by the OI.
 
 The typical OI is already using the OM interface to read its initial
 state, so all the normal ccb related calls should already be accessible,
-using the provided ccbHandle. (The OI needs to include saImmOm.h).
+using the provided ccbHandle. (The OI needs to include saImmOm.h
+lexically before the include of saImmOi.h).
 
 If the saImmOiAugmentCcbInitialize call succeeds, the OI can
 use the CCB handle to request create, delete, or modify operations,
 followed by an apply, or possibly a finalize without apply resulting
-in abort. If the OI returns from the upcall without having applied
-the augmentation CCB, it will be handled as a finalize/abort of the
-augmentation CCB, which may in turn abort the root CCB.
+in abort. 
 
 An abort of the augment CCB by the OI will abort the entire 
 originating CCB, unless the augmentation was empty at the time of
@@ -826,7 +826,6 @@ augmentation. If such an upcall cycle is created, the entire
 OM CCB will timeout and be aborted. This could make desirable
 and correct configuration changes impossible to commit/apply. 
 
-
 The saImmOiAugmentCcbInitialize call also returns 'ownerHandle'. 
 This admin owner handle is initialized to the same admin-owner
 used by the originating OM client. It can be used by the OI to
@@ -837,7 +836,7 @@ admin-owner set automatically as part of creation).
 The 'ownerHandle' always has 'releaseOwnershipOnFinalize set to
 true. This is the case even if the original admin owner has it set
 to false. The release of the OI augmented admin-owner is done when
-the roto CCB commits (is applied). The admin-owner can not be 
+the root CCB commits (is applied). The admin-owner can not be 
 released when the augmented ccb is applied because the augmented
 operations are still pending the apply of the root ccb. 
 
@@ -868,12 +867,12 @@ SA_IMM_CCB_REGISTERED_OI flag. Its effect is that it relaxes
 the requirement on OI to allow no registered OI when there
 is no registered implementer *name* for the class/object.
 If an implementer name exists, but no implemener is currently
-attached, then the semantis is still the same as 
+attached, then the semantics is still the same as 
 SA_IMM_CCB_REGISTERED_OI, the CCB operation is rejected with
 SA_AIS_ERR_NOT_EXIST.
 
 This will be the setting hardwired into commands such as 'immcfg'
-when invoked wihout '--unsafe', i.e. when invokde in safe mode.
+when invokde in safe mode.
 
 There are then 3 possible flag settings for saImmOmCcbinitialize:
 
@@ -896,7 +895,55 @@ SA_IMM_CCB_REGISTERED_OI | SA_IMM_CCB_ALLOW_NULL_OI:
 This is the relatively safe variant in the middle.
 A CCB operation on an object is allowed if there is an 
 implementer, or if there is no implementer name defined
-for the object. 
+for the object.
+
+
+Support for the environment variable IMMA_SYNCR_TIMEOUT (4.2)
+=============================================================
+http://devel.opensaf.org/ticket/1808
+
+The IMMA libraries (both OM and OI) have a hard-wired timeout
+on syncronous downcalls (to the IMMND), of 10 seconds.
+
+This enhancement changes that to a default timeout, with the
+option for the IMMA client to override the default by setting a
+value for the environment variable:
+
+            IMMA_SYNCR_TIMEOUT.
+
+The unit of time is 10 milliseconds. Thus the default value 
+for IMMA_SYNCR_TIMEOUT is 1000 (10 seconds). The minimum allowed
+value is 10 (0.1 seconds). Trying to set a value less than 10
+will only be interpreted as the value 10. 
+
+The 10 second default timeout is a compromize. It is very long for
+some applications to be blocked for up to 10 seconds, for example
+many OIs can get in trouble with such a long wait.
+
+For other applications, 10 seconds is too short, for example
+"immcfg -f huge-batch.xml" with PBE enabled can get ERR_TIMEOUT
+during apply (http://devel.opensaf.org/ticket/1786).
+
+Applications with relatively tight realtime restrictions can set 
+IMMA_SYNCR_TIMEOUT to a low value, avoiding the risk of getting
+blocked for 10 seconds, but with an increased risk of getting
+ERR_TIMEOUT on syncronous calls.
+
+Some batch operations, particularly deletes of large subtrees of
+imm data, where one delete downcall is expanded into a cascade of
+deletes of objects in the subtree, can benefit from setting 
+a high value on IMMA_SYNCR_TIMEOUT.
+
+The IMMA library samples the IMMA_SYNCR_TIMEOUT environment variable
+at OM/OI handle initialize. The handle is stamped with the value of
+of IMMA_SYNCR_TIMEOUT (if it exists), at the time of handle create.
+
+This means that the timeout can not be altered for every individual
+downcall. But it also means that one process may have different 
+timeouts set for different handles. Sub-handles (ccb, admin-owner,
+iteration, accessor) inherit the timeout value of their associated
+om-handle.
+
 
 
 DEPENDENCIES
