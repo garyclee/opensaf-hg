@@ -58,9 +58,11 @@ public:
 		 SaNtfSearchCriteriaT searchCriteria,
 		 ntfsv_filter_ptrs_t *f_rec);
 //    virtual ~NtfReader();
+	 void filterCacheList(NtfLogger& ntfLogger);
+	 void sortCacheList();
+	 void setStartPoint();
     NtfNotification next(SaNtfSearchDirectionT direction,
                                            SaAisErrorT* error);
-    void setCollection(readerNotificationListT& coll);
     unsigned int getId();
 
 private:
@@ -69,6 +71,7 @@ private:
     bool lastRead;
 	 FilterMap filterMap;
     unsigned int readerId_;
+	 SaNtfSearchCriteriaT searchCriteria_;
 };
 
 #endif // NTF_READER_HH

@@ -24,6 +24,7 @@
 #include "NtfLogger.hh"
 #include <iostream>
 #include "logtrace.h"
+#include "NtfNotification.hh"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -75,8 +76,7 @@ readerId_(readerId)
 NtfReader::NtfReader(NtfLogger& ntfLogger,
 	unsigned int readerId,
 	SaNtfSearchCriteriaT searchCriteria,
-	ntfsv_filter_ptrs_t *f_rec):coll_(ntfLogger.coll_),ffIter(coll_.begin()),
-	readerId_(readerId)
+	ntfsv_filter_ptrs_t *f_rec):readerId_(readerId),searchCriteria_(searchCriteria)
 {
     TRACE_3("New NtfReader with filter, ntfLogger.coll_.size: %u", (unsigned int)ntfLogger.coll_.size());
 	 if (f_rec->alarm_filter) {
@@ -91,6 +91,51 @@ NtfReader::NtfReader(NtfLogger& ntfLogger,
 		 TRACE_2("Filter type %#x added to reader %u, filterMap size is %u",
 			 filter->type(), readerId_, (unsigned int)filterMap.size());
 	 }
+	 filterCacheList(ntfLogger);
+	 sortCacheList();
+	 setStartPoint();
+}
+
+
+void NtfReader::sortCacheList()
+{
+}
+
+void NtfReader::setStartPoint()
+{ /* TODO: set startpoint according to searchCriteria */
+	ffIter = coll_.begin();	
+}
+
+/**
+ * This method is called to check which notifications that 
+ * matches the filtering criterias and save pointer to those 
+ * notifications.
+ *
+ */
+void NtfReader::filterCacheList(NtfLogger& ntfLogger)
+{
+//:coll_(ntfLogger.coll_),ffIter(coll_.begin()),
+// 
+// 	 
+	readerNotificationListT::iterator rpos;
+	for (rpos = ntfLogger.coll_.begin(); rpos != ntfLogger.coll_.end(); rpos++)
+	{
+		unsigned int nId;
+		 
+		NtfNotification n (*rpos);
+		bool rv = false;
+		FilterMap::iterator pos = filterMap.find(n.getNotificationType());
+		if (pos != filterMap.end()) {
+			NtfFilter* filter = pos->second;
+			assert(filter); 
+			rv = filter->checkFilter(&n);
+		}
+		if (rv){
+			nId =  n.getNotificationId();
+			coll_.push_back(n);
+			TRACE_3("nId: %u added to readerList", nId);
+		}
+	} 
 }
 
 /** 
