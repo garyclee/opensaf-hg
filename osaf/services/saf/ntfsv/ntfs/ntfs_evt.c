@@ -410,7 +410,7 @@ static uint32_t proc_reader_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	ntfsv_reader_init_req_t *reader_initialize_param = &(evt->info.msg.info.api_info.param.reader_init);
 
 	TRACE_4("client_id: %u", reader_initialize_param->client_id);
-	newReader(reader_initialize_param->client_id, reader_initialize_param->searchCriteria, &evt->mds_ctxt);
+	newReader(reader_initialize_param->client_id, reader_initialize_param->searchCriteria, NULL, &evt->mds_ctxt);
 	TRACE_LEAVE();
 	return rc;
 }
@@ -433,10 +433,10 @@ static uint32_t proc_reader_initialize_msg_2(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *ev
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	ntfsv_reader_init_req_2_t *reader_initialize_param = &(evt->info.msg.info.api_info.param.reader_init_2);
+	ntfsv_reader_init_req_2_t *rp = &(evt->info.msg.info.api_info.param.reader_init_2);
 
-	TRACE_4("client_id: %u", reader_initialize_param->head.client_id);
-	newReader(reader_initialize_param->head.client_id, reader_initialize_param->head.searchCriteria, &evt->mds_ctxt);
+	TRACE_4("client_id: %u", rp->head.client_id);
+	newReader(rp->head.client_id, rp->head.searchCriteria, &rp->f_rec, &evt->mds_ctxt);
 	TRACE_LEAVE();
 	return rc;
 }

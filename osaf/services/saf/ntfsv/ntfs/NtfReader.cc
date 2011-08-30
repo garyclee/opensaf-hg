@@ -62,6 +62,36 @@ readerId_(readerId)
     TRACE_3("ntfLogger.coll_.size: %u", (unsigned int)ntfLogger.coll_.size());
 }
 
+/**
+ *   NtfReader object creates a copy of the current cashed
+ *   notifications. The private forward iterator ffIter is set
+ *   to first element. 
+ *   @param ntfLogger
+ *   @param readerId
+ *   @param searchCriteria
+ *   @param f_rec - filter record
+ * 
+ */
+NtfReader::NtfReader(NtfLogger& ntfLogger,
+	unsigned int readerId,
+	SaNtfSearchCriteriaT searchCriteria,
+	ntfsv_filter_ptrs_t *f_rec):coll_(ntfLogger.coll_),ffIter(coll_.begin()),
+	readerId_(readerId)
+{
+    TRACE_3("New NtfReader with filter, ntfLogger.coll_.size: %u", (unsigned int)ntfLogger.coll_.size());
+	 if (f_rec->alarm_filter) {
+		 NtfFilter* filter = new NtfAlarmFilter(f_rec->alarm_filter);
+		 filterMap[filter->type()] = filter;
+		 TRACE_2("Filter type %#x p=%p, added to reader %u, filterMap size is %u",
+			 filter->type(), filter, readerId_, (unsigned int)filterMap.size());
+	 }
+	 if (f_rec->sec_al_filter) {
+		 NtfFilter* filter = new NtfSecurityAlarmFilter(f_rec->sec_al_filter);
+		 filterMap[filter->type()] = filter;
+		 TRACE_2("Filter type %#x added to reader %u, filterMap size is %u",
+			 filter->type(), readerId_, (unsigned int)filterMap.size());
+	 }
+}
 
 /** 
  *   Will return the notification at the current position of the
