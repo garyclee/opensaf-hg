@@ -327,13 +327,14 @@ static void display_class_definition(const SaImmClassNameT className,
 }
 
 static void display_object(const char *name,
-	SaImmAccessorHandleT accessorHandle, int pretty_print)
+						   SaImmAccessorHandleT accessorHandle,
+						   int pretty_print,
+						   const SaImmAttrNameT *attributeNames)
 {
 	int i = 0, j;
 	SaImmAttrValuesT_2 *attr;
 	SaNameT objectName;
 	SaAisErrorT error;
-	SaImmAttrNameT *attributeNames = NULL;
 	SaImmAttrValuesT_2 **attributes;
 
 	strncpy((char *)objectName.value, name, SA_MAX_NAME_LENGTH);
@@ -456,7 +457,7 @@ int main(int argc, char *argv[])
 
 		/* Remaining arguments should be object names to print attributes for. */
 		while (optind < argc) {
-			display_object(argv[optind], accessorHandle, pretty_print);
+			display_object(argv[optind], accessorHandle, pretty_print, attributeNames);
 			optind++;
 		}
 
