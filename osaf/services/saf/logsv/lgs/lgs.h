@@ -64,6 +64,12 @@
 #define DEFAULT_APP_MAX_LOG_FILE_SIZE 800000
 #define DEFAULT_APP_NUM_ROTATIONS 4
 
+/* IPC priorities used when adding messages to the LOG mailbox */
+#define LGS_IPC_PRIO_CTRL_MSGS NCS_IPC_PRIORITY_VERY_HIGH
+#define LGS_IPC_PRIO_ALARM_STREAM NCS_IPC_PRIORITY_HIGH
+#define LGS_IPC_PRIO_SYS_STREAM NCS_IPC_PRIORITY_NORMAL
+#define LGS_IPC_PRIO_APP_STREAM NCS_IPC_PRIORITY_LOW
+
 /* ========================================================================
  *   TYPE DEFINITIONS
  * ========================================================================
@@ -74,6 +80,12 @@
  * ========================================================================
  */
 extern lgs_cb_t *lgs_cb;
+extern SYSF_MBX lgs_mbx;
+extern uint32_t mbox_high[NCS_IPC_PRIORITY_MAX];
+extern uint32_t mbox_msgs[NCS_IPC_PRIORITY_MAX];
+extern bool mbox_full[NCS_IPC_PRIORITY_MAX];
+extern uint32_t mbox_low[NCS_IPC_PRIORITY_MAX];
+
 extern uint32_t lgs_amf_init(lgs_cb_t *);
 extern uint32_t lgs_mds_init(lgs_cb_t *cb);
 extern uint32_t lgs_mds_finalize(lgs_cb_t *cb);

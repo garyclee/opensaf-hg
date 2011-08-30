@@ -56,7 +56,6 @@ typedef struct lga_down_list_tag {
 } LGA_DOWN_LIST;
 
 typedef struct lgs_cb {
-	SYSF_MBX mbx;		/* LGS's mailbox                             */
 	MDS_HDL mds_hdl;	/* PWE Handle for interacting with LGAs      */
 	V_DEST_RL mds_role;	/* Current MDS role - ACTIVE/STANDBY         */
 	MDS_DEST vaddr;		/* My identification in MDS                  */

@@ -16,7 +16,7 @@
  */
 
 #include <stdlib.h>
-
+#include <inttypes.h>
 #include "immutil.h"
 #include "lgs.h"
 #include "lgs_util.h"
@@ -215,4 +215,66 @@ bool lgs_lga_entry_valid(lgs_cb_t *cb, MDS_DEST mds_dest)
 	}       
         
 	return false;
-}  
+}
+
+/**
+ * Send a write log ack (callback request) to a client
+ * 
+ * @param client_id
+ * @param invocation
+ * @param error
+ * @param mds_dest
+ */
+void lgs_send_write_log_ack(uint32_t client_id, SaInvocationT invocation, SaAisErrorT error, MDS_DEST mds_dest)
+{
+	uint32_t rc;
+	NCSMDS_INFO mds_info = {0};
+	lgsv_msg_t msg;
+
+	TRACE_ENTER();
+
+	msg.type = LGSV_LGS_CBK_MSG;
+	msg.info.cbk_info.type = LGSV_WRITE_LOG_CALLBACK_IND;
+	msg.info.cbk_info.lgs_client_id = client_id;
+	msg.info.cbk_info.inv = invocation;
+	msg.info.cbk_info.write_cbk.error = error;
+
+	mds_info.i_mds_hdl = lgs_cb->mds_hdl;
+	mds_info.i_svc_id = NCSMDS_SVC_ID_LGS;
+	mds_info.i_op = MDS_SEND;
+	mds_info.info.svc_send.i_msg = &msg;
+	mds_info.info.svc_send.i_to_svc = NCSMDS_SVC_ID_LGA;
+	mds_info.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
+	mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
+	mds_info.info.svc_send.info.snd.i_to_dest = mds_dest;
+
+	rc = ncsmds_api(&mds_info);
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_NO("Send of WRITE ack to %"PRIu64"x FAILED: %u", mds_dest, rc);
+
+	TRACE_LEAVE();
+}
+
+/**
+ * Free all dynamically allocated memory for a WRITE
+ * @param param
+ */
+void lgs_free_write_log(const lgsv_write_log_async_req_t *param)
+{
+	if (param->logRecord->logHdrType == SA_LOG_GENERIC_HEADER) {
+		SaLogGenericLogHeaderT *genLogH = &param->logRecord->logHeader.genericHdr;
+		free(param->logRecord->logBuffer->logBuf);
+		free(param->logRecord->logBuffer);
+		free(genLogH->notificationClassId);
+		free((void *)genLogH->logSvcUsrName);
+		free(param->logRecord);
+	} else {
+		SaLogNtfLogHeaderT *ntfLogH = &param->logRecord->logHeader.ntfHdr;
+		free(param->logRecord->logBuffer->logBuf);
+		free(param->logRecord->logBuffer);
+		free(ntfLogH->notificationClassId);
+		free(ntfLogH->notifyingObject);
+		free(ntfLogH->notificationObject);
+		free(param->logRecord);
+	}
+}

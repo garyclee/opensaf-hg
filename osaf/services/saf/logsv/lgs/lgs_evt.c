@@ -566,36 +566,6 @@ uint32_t lgs_cb_init(lgs_cb_t *lgs_cb)
 }
 
 /**
- * Send a write log ack (callback request) to a client
- * @param cb
- * @param evt
- * @param error
- * 
- * @return uns32
- */
-static uint32_t send_write_log_ack(lgs_cb_t *cb, lgsv_lgs_evt_t *evt, SaAisErrorT error)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	lgsv_msg_t msg;
-
-	TRACE_ENTER();
-	memset(&msg, 0, sizeof(lgsv_msg_t));
-	msg.type = LGSV_LGS_CBK_MSG;
-	msg.info.cbk_info.type = LGSV_WRITE_LOG_CALLBACK_IND;
-	msg.info.cbk_info.lgs_client_id = evt->info.msg.info.api_info.param.write_log_async.client_id;
-	msg.info.cbk_info.inv = evt->info.msg.info.api_info.param.write_log_async.invocation;
-	msg.info.cbk_info.write_cbk.error = error;
-
-	rc = lgs_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
-	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE("send failed");	/* TODO: find out why ev. retry? */
-	}
-
-	TRACE_LEAVE();
-	return (rc);
-}
-
-/**
  * Handle a initialize message
  * @param cb
  * @param evt
@@ -1101,24 +1071,9 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		free(logOutputString);
 
 	if (param->ack_flags == SA_LOG_RECORD_WRITE_ACK)
-		send_write_log_ack(cb, evt, error);
+		lgs_send_write_log_ack(param->client_id, param->invocation, error, evt->fr_dest);
 
-	if (param->logRecord->logHdrType == SA_LOG_GENERIC_HEADER) {
-		SaLogGenericLogHeaderT *genLogH = &param->logRecord->logHeader.genericHdr;
-		free(param->logRecord->logBuffer->logBuf);
-		free(param->logRecord->logBuffer);
-		free(genLogH->notificationClassId);
-		free((void *)genLogH->logSvcUsrName);
-		free(param->logRecord);
-	} else {
-		SaLogNtfLogHeaderT *ntfLogH = &param->logRecord->logHeader.ntfHdr;
-		free(param->logRecord->logBuffer->logBuf);
-		free(param->logRecord->logBuffer);
-		free(ntfLogH->notificationClassId);
-		free(ntfLogH->notifyingObject);
-		free(ntfLogH->notificationObject);
-		free(param->logRecord);
-	}
+	lgs_free_write_log(param);
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
