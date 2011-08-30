@@ -20,8 +20,8 @@
 
 ..............................................................................
 
-  DESCRIPTION: Common DTSv sub-part messaging formats that travels between 
-  DTS and DTA.
+  DESCRIPTION: Common MBCSv sub-part messaging formats that travels between 
+  MBCSv agent peers.
  
 
 ******************************************************************************

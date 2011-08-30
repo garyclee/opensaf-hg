@@ -25,7 +25,7 @@
  * 
  * Tracing is disabled by default and category based. Categories are or-ed into
  * the current mask setting and and-ed with the mask during filtering. Current
- * backend for tracing is file, in the future DTSv and/or syslog could be used.
+ * backend for tracing is file, in the future syslog could be used.
  * Filtering is done by the file back end.
  */
 

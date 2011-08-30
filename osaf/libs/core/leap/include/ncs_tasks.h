@@ -136,34 +136,4 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #define NCS_EXEC_MOD_TASKNAME      "EXEC_SCR_MOD"
 #endif
 
-/*************************************************************************
-     
-       D )    M A N A G E M E N T   P L A N E   S U B S Y S T E M S
-
-**************************************************************************/
-
-/* DTS Task */
-
-#ifndef NCS_DTS_STACKSIZE
-#define NCS_DTS_STACKSIZE      NCS_STACKSIZE_HUGE
-#endif
-
-#ifndef NCS_DTS_PRIORITY
-#define NCS_DTS_PRIORITY       NCS_TASK_PRIORITY_7
-#endif
-
-#ifndef NCS_DTS_TASKNAME
-#define NCS_DTS_TASKNAME       "DTS"
-#endif
-
-/* DTA Task */
-
-#ifndef NCS_DTA_STACKSIZE
-#define NCS_DTA_STACKSIZE      NCS_STACKSIZE_HUGE
-#endif
-
-#ifndef NCS_DTA_TASKNAME
-#define NCS_DTA_TASKNAME       "DTA"
-#endif
-
 #endif   /* NCS_TASKS.H */

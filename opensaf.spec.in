@@ -1301,13 +1301,10 @@ fi
 %dir %{_pkgimmxml_svcdir}
 %dir %{_pkgimmxmldir}
 %endif
-%config(noreplace) %{_pkgsysconfdir}/dtsv.conf
 %config(noreplace) %{_pkgsysconfdir}/fmd.conf
 %config(noreplace) %{_pkgsysconfdir}/rde.conf
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.controller
 %config(noreplace) %{_pkgsysconfdir}/dtmd.conf
-%{_pkglibdir}/osafdtd
-%{_pkgclcclidir}/osaf-dtd
 %{_pkglibdir}/osafrded
 %{_pkgclcclidir}/osaf-rded
 %{_pkglibdir}/osaffmd
@@ -1319,9 +1316,6 @@ fi
 %if %is_immxml
 %{_pkgimmxml_svcdir}/common_pl_template.xml
 %{_pkgimmxml_svcdir}/common_sc_template.xml
-%{_pkgimmxml_svcdir}/dtsv_classes.xml
-%{_pkgimmxml_svcdir}/dtsv_objects.xml
-%{_pkgimmxml_svcdir}/dtsv_sc_template.xml
 %{_pkgimmxml_svcdir}/rde_objects.xml
 %{_pkgimmxml_svcdir}/rde_sc_template.xml
 %{_pkgimmxml_svcdir}/fm_objects.xml
@@ -1344,7 +1338,6 @@ fi
 %dir %{_pkglibdir}
 %{_libdir}/libopensaf_core.so.*
 %{_pkglibdir}/librda.so.*
-%{_pkglibdir}/libdts_logstr.so.*
 
 %files tools
 %defattr(-,root,root)

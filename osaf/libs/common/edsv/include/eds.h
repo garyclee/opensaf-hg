@@ -27,7 +27,6 @@
 #include "ncs_ubaid.h"
 #include "ncsencdec_pub.h"
 #include "ncs_stack.h"
-#include "ncs_log.h"
 #include "ncs_lib.h"
 
 /* From targsvcs/common/inc */

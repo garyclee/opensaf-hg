@@ -22,8 +22,6 @@ pkginclude_HEADERS = \
 	cpsv_papi.h
 
 noinst_HEADERS = \
-	dta_papi.h \
-	dts_papi.h \
 	mbcsv_papi.h \
 	mds_papi.h \
 	ncs_edu_pub.h \
@@ -31,7 +29,6 @@ noinst_HEADERS = \
 	ncsgl_defs.h \
 	ncs_hdl_pub.h \
 	ncs_lib.h \
-	ncs_log.h \
 	ncs_main_papi.h \
 	ncs_mda_papi.h \
 	ncs_mds_def.h \

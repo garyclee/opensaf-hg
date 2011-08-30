@@ -183,7 +183,6 @@ Source Tree Structure
    |  +-libs/   (Sources of OpenSAF Libraries) 
    |  |    |+-agents/ (sources for OpenSAF agents)
    |  |	   |	|+-infrastructure/ (Agents of Infrastructure services)
-   |  |	   |	|	|+-dta/
    |  |	   |	|	|+-rda/
    |  |	   |	|+-saf/ (Agents of SAF services)
    |  |	   | 		|+-ava/
@@ -216,7 +215,6 @@ Source Tree Structure
    |  |			|+-libSaPlm/
    |  |+-services/ (Sources, Config files for Directors/ND/Servers of OpenSAF services)
    |  |   	|+-infrastructure/ (Infrastructure services)
-   |  |		|	|+-dtsv/
    |  |		|	|+-dtms/
    |  |		|	|+-fm/
    |  |		|	|+-nid/

@@ -20,7 +20,6 @@
 
 #include <saNtf.h>
 #include <ncsgl_defs.h>
-#include <ncs_log.h>
 #include <ncs_lib.h>
 #include <mds_papi.h>
 #include <ncs_mda_pvt.h>

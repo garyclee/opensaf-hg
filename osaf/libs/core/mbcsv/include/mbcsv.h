@@ -20,7 +20,7 @@
 
 ..............................................................................
 
-  DESCRIPTION: The master include for all DTS and user *.C files.
+  DESCRIPTION: The master include for all MBSCv and user *.C files.
  
 ******************************************************************************
 */
@@ -29,8 +29,8 @@
  * Module Inclusion Control...
  */
 
-#ifndef DTS_H
-#define DTS_H
+#ifndef MBCSV_H
+#define MBCSV_H
 
 /* Get general definitions.....*/
 

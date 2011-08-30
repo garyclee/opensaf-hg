@@ -32,12 +32,10 @@
 #include "ncs_edu_pub.h"
 #include "ncssysf_lck.h"
 #include "ncssysf_mem.h"
+#include "ncssysf_def.h"
+#include "ncs_main_papi.h"
 
 #include <logtrace.h>
-
-/*Should not have to include this one since we are not using DTSV, but
-it seems to be needed at least for library init, at least for agent. */
-#include "dta_papi.h"
 
 #include "immsv_evt.h"
 /* IMMSV Common Macros */
@@ -45,8 +43,6 @@ it seems to be needed at least for library init, at least for agent. */
 /*** Macro used to get the AMF version used ****/
 #define m_IMMSV_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;
 
-/* DTSv version support */
-#define IMMSV_LOG_VERSION 1
 
 #define m_IMMSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000)	/* 10^7 */
 

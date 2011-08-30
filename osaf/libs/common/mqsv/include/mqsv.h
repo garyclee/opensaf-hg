@@ -37,11 +37,9 @@
 
 /* From /base/common/inc */
 #include "ncs_lib.h"
+#include "ncs_main_papi.h"
 #include "mds_papi.h"
 #include "ncs_mda_papi.h"
-
-#include "ncs_log.h"
-#include "dta_papi.h"
 
 #include "ncs_svd.h"
 #include "usrbuf.h"
@@ -50,6 +48,7 @@
 #include "ncs_queue.h"
 #include "ncs_saf.h"
 #include "ncs_tmr.h"
+#include "ncssysf_tsk.h"
 
 /* EDU Includes... */
 #include "ncs_edu_pub.h"

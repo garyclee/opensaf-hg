@@ -59,7 +59,6 @@ xxCLCCLIDIRxx/osaf-rded:RDE:S:xxCLCCLIDIRxx/osaf-rded:12000:-6:2:1:start:stop
 xxCLCCLIDIRxx/osaf-fmd:HLFM:S:xxCLCCLIDIRxx/osaf-fmd:12000:-6:2:1:start:stop
 xxCLCCLIDIRxx/osaf-immd:IMMD:S:xxCLCCLIDIRxx/osaf-immd:4000:4:2:1:start:stop
 xxCLCCLIDIRxx/osaf-immnd:IMMND:S:xxCLCCLIDIRxx/osaf-immnd:48000:4:2:1:start:stop
-xxCLCCLIDIRxx/osaf-dtd:DTSV:S:xxCLCCLIDIRxx/osaf-dtd:4000:4:2:1:start:stop
 xxCLCCLIDIRxx/osaf-logd:LOGD:S:xxCLCCLIDIRxx/osaf-logd:4000:4:2:1:start:stop
 xxCLCCLIDIRxx/osaf-ntfd:NTFD:S:xxCLCCLIDIRxx/osaf-ntfd:4000:4:2:1:start:stop
 xxCLCCLIDIRxx/osaf-plmd:PLMD:S:xxCLCCLIDIRxx/osaf-plmd:4000:4:2:1:start:stop

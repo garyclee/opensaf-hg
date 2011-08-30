@@ -99,10 +99,6 @@
 #include "cpnd_dl_api.h"
 #endif
 
-#if (NCS_DTA == 1)
-#include "dta_dl_api.h"
-#endif
-
 #if (NCS_EDA == 1)
 #include "eda_dl_api.h"
 #endif
@@ -110,22 +106,6 @@
 #if (NCS_EDS == 1)
 #include "eds_dl_api.h"
 #endif
-
-#if (NCS_DTS == 1)
-#include "dts_dl_api.h"
-
-#if (NCS_AVSV_LOG == 1)
-#include "avnd_logstr.h"
-#endif
-
-#if (NCS_GLSV_LOG == 1)
-#include "glsv_logstr.h"
-#endif
-
-#if (NCSMQD_LOG == 1)
-#include "mqd_logstr.h"
-#endif
-#endif   /* NCS_DTS */
 
 /**************************************************************************\
 
@@ -152,7 +132,6 @@ typedef struct ncs_main_pub_cb {
 	uint32_t core_use_count;
 	uint32_t leap_use_count;
 	uint32_t mds_use_count;
-	uint32_t dta_use_count;
 
 	NCS_AGENT_DATA mbca;
 } NCS_MAIN_PUB_CB;
@@ -330,54 +309,6 @@ unsigned int ncs_mds_startup(void)
 
 /***************************************************************************\
 
-  PROCEDURE    :    ncs_dta_startup
-
-\***************************************************************************/
-unsigned int ncs_dta_startup(void)
-{
-	NCS_LIB_REQ_INFO lib_create;
-
-	m_NCS_AGENT_LOCK;
-
-	if (!gl_ncs_main_pub_cb.leap_use_count) {
-		TRACE_4("\nLEAP not yet started.... \n");
-		m_NCS_AGENT_UNLOCK;
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (!gl_ncs_main_pub_cb.mds_use_count) {
-		TRACE_4("\nMDS not yet started.... \n");
-		m_NCS_AGENT_UNLOCK;
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (gl_ncs_main_pub_cb.dta_use_count > 0) {
-		gl_ncs_main_pub_cb.dta_use_count++;
-		m_NCS_AGENT_UNLOCK;
-		return NCSCC_RC_SUCCESS;
-	}
-
-	memset(&lib_create, 0, sizeof(lib_create));
-	lib_create.i_op = NCS_LIB_REQ_CREATE;
-	lib_create.info.create.argc = 0;
-	lib_create.info.create.argv = NULL;
-
-	/* STEP : Initialize the DTA layer */
-	if (dta_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		TRACE_4("ERROR: DTA lib_req failed \n");
-		m_NCS_AGENT_UNLOCK;
-		return NCSCC_RC_FAILURE;
-	}
-
-	gl_ncs_main_pub_cb.dta_use_count = 1;
-
-	m_NCS_AGENT_UNLOCK;
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/***************************************************************************\
-
   PROCEDURE    :    ncs_non_core_agents_startup
 
 \***************************************************************************/
@@ -409,11 +340,6 @@ unsigned int ncs_core_agents_startup(void)
 
 	if (ncs_mds_startup() != NCSCC_RC_SUCCESS) {
 		TRACE_4("ERROR: MDS startup failed \n");
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	}
-
-	if (ncs_dta_startup() != NCSCC_RC_SUCCESS) {
-		TRACE_4("ERROR: DTA startup failed \n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
@@ -581,38 +507,6 @@ void ncs_mds_shutdown()
 
 /***************************************************************************\
 
-  PROCEDURE    :    ncs_dta_shutdown
-
-\***************************************************************************/
-void ncs_dta_shutdown()
-{
-	NCS_LIB_REQ_INFO lib_destroy;
-
-	m_NCS_AGENT_LOCK;
-
-	if (gl_ncs_main_pub_cb.dta_use_count > 1) {
-		/* Still users extis, so just decrement the use_count */
-		gl_ncs_main_pub_cb.dta_use_count--;
-		m_NCS_AGENT_UNLOCK;
-		return;
-	}
-
-	memset(&lib_destroy, 0, sizeof(lib_destroy));
-	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-	lib_destroy.info.destroy.dummy = 0;
-
-	dta_lib_req(&lib_destroy);
-
-	gl_ncs_main_pub_cb.dta_use_count = 0;
-	gl_ncs_main_pub_cb.core_started = false;
-
-	m_NCS_AGENT_UNLOCK;
-
-	return;
-}
-
-/***************************************************************************\
-
   PROCEDURE    :    ncs_core_agents_shutdown
 
 \***************************************************************************/
@@ -630,7 +524,6 @@ unsigned int ncs_core_agents_shutdown()
 	}
 
 	/* Shutdown basic services */
-	ncs_dta_shutdown();
 	ncs_mds_shutdown();
 	ncs_leap_shutdown();
 	gl_ncs_main_pub_cb.core_use_count = 0;

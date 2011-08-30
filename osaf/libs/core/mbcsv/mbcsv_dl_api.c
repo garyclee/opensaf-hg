@@ -80,8 +80,8 @@ uint32_t mbcsv_lib_req(NCS_LIB_REQ_INFO *req_info)
  * PROCEDURE: mbcsv_lib_init
  *
  * Description   : This is the function which initalize the mbcsv libarary.
- *                 This function creates an global lock, registers with DTSV,
- *                 creates MBCSV linked list, etc.
+ *                 This function creates an global lock, creates MBCSV linked 
+ *                 list, etc.
  *
  * Arguments     : req_info - Request info.
  *

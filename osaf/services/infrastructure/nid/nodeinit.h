@@ -32,7 +32,6 @@
 
 #include <configmake.h>
 #include <nid_api.h>
-#include <ncs_log.h>
 
 #include <saAmf.h>
 

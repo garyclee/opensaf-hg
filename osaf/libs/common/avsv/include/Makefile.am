@@ -26,8 +26,6 @@ noinst_HEADERS = \
    avsv_eduutil.h \
    avsv.h \
    avsv_ipc.h \
-   avsv_log.h \
-   avsv_logstr.h \
    avsv_n2avaedu.h \
    avsv_n2avamsg.h \
    avsv_util.h \

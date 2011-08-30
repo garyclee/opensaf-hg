@@ -46,9 +46,8 @@ G_GLND_MEMFAIL(GLND_RESTART_RSC_LOCK_LIST_ALLOC_FAILED);
 #include "ncs_edu_pub.h"
 #include "ncsencdec_pub.h"
 #include "ncs_util.h"
-
-/* DTS header file */
-#include "dta_papi.h"
+#include "ncs_main_papi.h"
+#include "ncssysf_tsk.h"
 
 /* GLSV common Include Files */
 #include "glsv_defs.h"
