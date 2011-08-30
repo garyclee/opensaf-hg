@@ -147,7 +147,7 @@ void NtfLogger::log(NtfSmartPtr& notif, bool isLocal)
 		(notif->sendNotInfo_->notificationType == SA_NTF_TYPE_SECURITY_ALARM))
     {
         TRACE_2("template queue handling...");
-        if (coll_.size() < NTF_LOG_CASH_SIZE)
+        if (coll_.size() < ntfs_cb->cache_size)
         {
             TRACE_2("push_back");
             coll_.push_back(notif);

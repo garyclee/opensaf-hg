@@ -56,6 +56,7 @@ typedef struct ntfs_cb {
 	NCS_MBCSV_CKPT_HDL mbcsv_ckpt_hdl;	/* MBCSv handle obtained during checkpoint open */
 	EDU_HDL edu_hdl;	/* Handle from EDU for encode/decode operations */
 	bool csi_assigned;
+	unsigned int cache_size; /* size of the reader cache */
 } ntfs_cb_t;
 
 extern uint32_t ntfs_cb_init(ntfs_cb_t *);
