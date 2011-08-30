@@ -141,7 +141,7 @@ SaAisErrorT saAmfInitialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg_cbks
 		ncs_agents_shutdown();
 	}
 
-	TRACE_LEAVE2("API Return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -203,7 +203,7 @@ SaAisErrorT saAmfSelectionObjectGet(SaAmfHandleT hdl, SaSelectionObjectT *o_sel_
 	if (hdl_rec)
 		ncshm_give_hdl(hdl);
 
-	TRACE_LEAVE2("API Return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -285,7 +285,7 @@ SaAisErrorT saAmfDispatch(SaAmfHandleT hdl, SaDispatchFlagsT flags)
 			pend_fin--;
 		}
 
-	TRACE_LEAVE2("API Return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -516,7 +516,7 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_name, c
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -625,7 +625,7 @@ SaAisErrorT saAmfComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_name,
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -691,6 +691,22 @@ SaAisErrorT saAmfHealthcheckStart(SaAmfHandleT hdl,
 		goto done;
 	}
 
+	/* input validation of Recomended recovery */
+	if(ava_B4_ver_used(cb)) {
+		if (rec_rcvr < SA_AMF_NO_RECOMMENDATION || rec_rcvr > SA_AMF_CONTAINER_RESTART) {
+			TRACE_LEAVE2("Incorrect argument specified for SaAmfRecommendedRecoveryT");
+			rc =  SA_AIS_ERR_ACCESS;
+			goto done;
+		}
+	}
+	else {
+		if (rec_rcvr < SA_AMF_NO_RECOMMENDATION || rec_rcvr > SA_AMF_CLUSTER_RESET) {
+			TRACE_LEAVE2("Incorrect argument specified for SaAmfRecommendedRecoveryT");
+			rc =  SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+	}
+
 	/* check if hc cbk was supplied during saAmfInitialize (for AMF invoked healthcheck) */
 	if ((SA_AMF_HEALTHCHECK_AMF_INVOKED == inv) && (!m_AVA_HDL_IS_HC_CBK_PRESENT(hdl_rec))) {
 		rc = SA_AIS_ERR_INIT;
@@ -724,7 +740,7 @@ SaAisErrorT saAmfHealthcheckStart(SaAmfHandleT hdl,
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -803,7 +819,7 @@ SaAisErrorT saAmfHealthcheckStop(SaAmfHandleT hdl, const SaNameT *comp_name, con
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -885,7 +901,7 @@ SaAisErrorT saAmfHealthcheckConfirm(SaAmfHandleT hdl,
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -997,7 +1013,7 @@ SaAisErrorT saAmfPmStart(SaAmfHandleT hdl,
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -1101,7 +1117,7 @@ SaAisErrorT saAmfPmStop(SaAmfHandleT hdl,
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -1170,7 +1186,7 @@ SaAisErrorT saAmfComponentNameGet(SaAmfHandleT hdl, SaNameT *o_comp_name)
 	if (hdl_rec)
 		ncshm_give_hdl(hdl);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -1236,7 +1252,11 @@ SaAisErrorT saAmfCSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv, SaAis
 	m_AVA_HDL_PEND_RESP_GET(list_resp, rec, inv);
 	if (!rec) {
 		TRACE_2("Pending Response record not found");
-		rc = SA_AIS_ERR_INVALID_PARAM;
+		if(ava_B4_ver_used(cb))
+			rc = SA_AIS_ERR_NOT_EXIST;
+		else
+			rc = SA_AIS_ERR_INVALID_PARAM;
+
 		goto done;
 	}
 
@@ -1273,7 +1293,7 @@ SaAisErrorT saAmfCSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv, SaAis
 	/* free the contents of the message */
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -1357,7 +1377,7 @@ SaAisErrorT saAmfHAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name, const Sa
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -1544,7 +1564,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -1621,7 +1641,7 @@ SaAisErrorT saAmfProtectionGroupTrackStop(SaAmfHandleT hdl, const SaNameT *csi_n
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -1710,7 +1730,7 @@ SaAisErrorT saAmfComponentErrorReport(SaAmfHandleT hdl,
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -1788,7 +1808,7 @@ SaAisErrorT saAmfComponentErrorClear(SaAmfHandleT hdl, const SaNameT *comp_name,
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -1894,7 +1914,7 @@ SaAisErrorT saAmfResponse(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT error
 	/* free the contents of the request message */
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -1929,8 +1949,9 @@ SaAisErrorT saAmfInitialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 *reg_
 	/* TODO: check cluster membership, if node is not a member answer back with SA_AIS_ERR_UNAVAILABLE */
 
 	if (!o_hdl || !io_ver) {
-		TRACE_LEAVE2("NULL arguments being passed: SaAmfHandleT and SaVersionT arguments should be non NULL");
-		return SA_AIS_ERR_INVALID_PARAM;
+		TRACE_2("NULL arguments being passed: SaAmfHandleT and SaVersionT arguments should be non NULL");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
 	}
 
 	/* validate the version */
@@ -1950,15 +1971,16 @@ SaAisErrorT saAmfInitialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 *reg_
 
 	/* Initialize the environment */
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
-		TRACE_LEAVE2("Agents startup failed");
-		return SA_AIS_ERR_LIBRARY;
+		TRACE_2("Agents startup failed");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
 	}
 
 	/* Create AVA/CLA  CB */
 	if (ncs_ava_startup() != NCSCC_RC_SUCCESS) {
 		ncs_agents_shutdown();
-		TRACE_LEAVE();
-		return SA_AIS_ERR_LIBRARY;
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
 	}
 
 	/* retrieve AvA CB */
@@ -2024,7 +2046,7 @@ SaAisErrorT saAmfInitialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 *reg_
 		ncs_agents_shutdown();
 	}
 
-	TRACE_LEAVE2("API Return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -2052,6 +2074,7 @@ SaAisErrorT saAmfPmStart_3(SaAmfHandleT hdl,
 			 SaInt32T desc_TreeDepth, SaAmfPmErrorsT pmErr, SaAmfRecommendedRecoveryT rec_Recovery)
 {
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
 	/* Version is previously set in in initialize function */
 	if(!ava_B4_ver_used(0)) {
@@ -2063,8 +2086,9 @@ SaAisErrorT saAmfPmStart_3(SaAmfHandleT hdl,
 
 	/* input validation of Recomended recovery */
 	if (rec_Recovery < SA_AMF_NO_RECOMMENDATION || rec_Recovery > SA_AMF_CONTAINER_RESTART) {
-		TRACE_LEAVE2("Incorrect argument specified for SaAmfRecommendedRecoveryT");
-		return SA_AIS_ERR_ACCESS;
+		TRACE_2("Incorrect argument specified for SaAmfRecommendedRecoveryT");
+		rc = SA_AIS_ERR_ACCESS;
+		goto done;
 	}
 
 	/* TODO: check cluster membership, if node is not a member answer back with SA_AIS_ERR_UNAVAILABLE */
@@ -2081,6 +2105,7 @@ SaAisErrorT saAmfPmStart_3(SaAmfHandleT hdl,
 	rc = saAmfPmStart(hdl, comp_name, processId, desc_TreeDepth, pmErr, rec_Recovery);
 
 done:
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -2185,8 +2210,9 @@ SaAisErrorT saAmfProtectionGroupTrack_4(SaAmfHandleT hdl,
 	}
 
 	if (!m_AVA_PG_FLAG_IS_VALID(flags)) {
-		TRACE_LEAVE2("Incorrect PG tracking flags");
-		return SA_AIS_ERR_BAD_FLAGS;
+		TRACE_2("Incorrect PG tracking flags");
+		rc = SA_AIS_ERR_BAD_FLAGS;
+		goto done;
 	}
 
 	/* check if pg cbk was supplied during saAmfInitialize (for change-only & change track)
@@ -2311,7 +2337,7 @@ SaAisErrorT saAmfProtectionGroupTrack_4(SaAmfHandleT hdl,
 		avsv_nda_ava_msg_free(msg_rsp);
 	avsv_nda_ava_msg_content_free(&msg);
 
-	TRACE_LEAVE2("API return code = %u", rc);
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -2335,6 +2361,7 @@ SaAisErrorT saAmfProtectionGroupNotificationFree_4(SaAmfHandleT hdl, SaAmfProtec
 {
 	AVA_CB *cb = 0;
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
 	/* Verifying the input Handle & global handle */
 	if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
@@ -2374,7 +2401,7 @@ done:
 		m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
 		ncshm_give_hdl(gl_ava_hdl);
 	}
-
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -2399,6 +2426,7 @@ SaAisErrorT saAmfComponentErrorReport_4(SaAmfHandleT hdl,
 				      SaTimeT err_time, SaAmfRecommendedRecoveryT rec_rcvr, SaNtfCorrelationIdsT *corr_ids)
 {
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
 	/* Version is previously set in in initialize function */
 	if(!ava_B4_ver_used(0)) {
@@ -2410,8 +2438,9 @@ SaAisErrorT saAmfComponentErrorReport_4(SaAmfHandleT hdl,
 
 	/* input validation of Recomended recovery */
 	if (rec_rcvr < SA_AMF_NO_RECOMMENDATION || rec_rcvr > SA_AMF_CONTAINER_RESTART) {
-		TRACE_LEAVE2("Incorrect argument specified for SaAmfRecommendedRecoveryT");
-		return SA_AIS_ERR_ACCESS;
+		TRACE_2("Incorrect argument specified for SaAmfRecommendedRecoveryT");
+		rc = SA_AIS_ERR_ACCESS;
+		goto done;
 	}
 
 	/* TODO: check if comp name exists in AMF conf otherwise => SA_AIS_ERR_NOT_EXIST */
@@ -2434,6 +2463,7 @@ SaAisErrorT saAmfComponentErrorReport_4(SaAmfHandleT hdl,
 	rc = saAmfComponentErrorReport(hdl, err_comp, err_time, rec_rcvr, corr_ids->notificationId);
 
 done:
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -2475,6 +2505,7 @@ SaAisErrorT saAmfCorrelationIdsGet(SaAmfHandleT hdl, SaInvocationT inv, SaNtfCor
 SaAisErrorT saAmfComponentErrorClear_4(SaAmfHandleT hdl, const SaNameT *comp_name, SaNtfCorrelationIdsT *corr_ids)
 {
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
 	/* Version is previously set in in initialize function */
 	if(!ava_B4_ver_used(0)) {
@@ -2505,6 +2536,7 @@ SaAisErrorT saAmfComponentErrorClear_4(SaAmfHandleT hdl, const SaNameT *comp_nam
 	rc = saAmfComponentErrorClear(hdl, comp_name, corr_ids->notificationId);
 
 done:
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
 
@@ -2527,6 +2559,7 @@ done:
 SaAisErrorT saAmfResponse_4(SaAmfHandleT hdl, SaInvocationT inv, SaNtfCorrelationIdsT *corr_ids, SaAisErrorT error)
 {
 	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
 	/* Version is previously set in in initialize function */
 	if(!ava_B4_ver_used(0)) {
@@ -2557,5 +2590,6 @@ SaAisErrorT saAmfResponse_4(SaAmfHandleT hdl, SaInvocationT inv, SaNtfCorrelatio
 	rc = saAmfResponse(hdl, inv, error);
 
 done:
+	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
