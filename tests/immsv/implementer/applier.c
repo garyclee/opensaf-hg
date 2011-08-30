@@ -111,7 +111,6 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 	}
 
 	ccbutil_ccbAddCreateOperation(ccbUtilCcbData, className, parentName, attr);
-
  done:
 	return SA_AIS_OK;
 }
@@ -131,6 +130,7 @@ static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle, Sa
 		}
 	}
 	ccbutil_ccbAddDeleteOperation(ccbUtilCcbData, objectName);
+	sleep(5);
 
  done:
 	return rc;

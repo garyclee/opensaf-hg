@@ -17,12 +17,16 @@
 
 #ifndef IMMA_DEF_H
 #define IMMA_DEF_H
+#include <saf_def.h> //to get NCS_SAF_MIN_ACCEPT_TIME
 
 /* Macros for Validating Version */
 #define IMMA_RELEASE_CODE 'A'
 #define IMMA_MAJOR_VERSION 0x02
 #define IMMA_MINOR_VERSION 0x0b
 
-#define IMMSV_WAIT_TIME  1000	/* MDS wait time in case of syncronous call */
+#define IMMSV_WAIT_TIME  1000 /* Default MDS wait time in 10ms units =>10 sec*/
+
+
+
 
 #endif

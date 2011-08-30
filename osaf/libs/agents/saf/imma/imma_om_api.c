@@ -42,8 +42,6 @@
 #include "imma.h"
 #include "immsv_api.h"
 
-#define NCS_SAF_MIN_ACCEPT_TIME 10
-
 static const char *immLoaderName = IMMSV_LOADERNAME;	/*Defined in immsv_evt.h */
 
 /* TODO: ABT move these to cb ? OR stop using the cb*/
@@ -188,6 +186,7 @@ SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node
 	IMMSV_EVT *out_evt = NULL;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
+	char *timeout_env_value = NULL;
 	TRACE_ENTER();
 	assert(immHandle && cl_node);
 
@@ -204,6 +203,15 @@ SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node
 		goto end;
 	}
 
+	if((timeout_env_value = getenv("IMMA_SYNCR_TIMEOUT"))!=NULL) {
+		cl_node->syncr_timeout = atoi(timeout_env_value);
+		TRACE_2("IMMA library syncronous timeout set to:%u", cl_node->syncr_timeout);
+	}
+
+	if(cl_node->syncr_timeout < NCS_SAF_MIN_ACCEPT_TIME) {
+		cl_node->syncr_timeout = IMMSV_WAIT_TIME; /* Default */
+	}
+	
 	*immHandle = 0;
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
@@ -236,6 +244,9 @@ SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node
 	/* Release the CB lock Before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	locked = false;
+	/* cl_node has not been added to tree in cb yet so safe to access 
+	   without cb-lock.
+	 */
 
 	if (false == cb->is_immnd_up) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -244,7 +255,7 @@ SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node
 	}
 
 	/* send the request to the IMMND */
-	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &init_evt, &out_evt, IMMSV_WAIT_TIME);
+	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &init_evt, &out_evt, cl_node->syncr_timeout);
 
 	/* Error Handling */
 	switch (proc_rc) {
@@ -336,7 +347,7 @@ SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node
 
 		/* send the request to the IMMND */
 		proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl,
-			&(cb->immnd_mds_dest), &finalize_evt, &out_evt1, IMMSV_WAIT_TIME);
+			&(cb->immnd_mds_dest), &finalize_evt, &out_evt1, cl_node->syncr_timeout);
 
 		if (out_evt1) {
 			free(out_evt1);
@@ -664,6 +675,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
 	bool agent_flag = false; /* flag = false, we should not call agent shutdown */
+	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -707,6 +719,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 	finalize_evt.info.immnd.type = IMMND_EVT_A2ND_IMM_FINALIZE;
 	finalize_evt.info.immnd.info.finReq.client_hdl = cl_node->handle;
 
+	timeout = cl_node->syncr_timeout;
 	/* Unlock before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	locked = false;
@@ -723,7 +736,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 
 	/* send the request to the IMMND */
 	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest),
-		&finalize_evt, &out_evt, IMMSV_WAIT_TIME);
+		&finalize_evt, &out_evt, timeout);
 
 	/* MDS error handling */
 	switch (proc_rc) {
@@ -845,6 +858,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 	bool locked = true;
 	bool isLoaderName = false;
 	SaUint32T nameLen = 0;
+	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -947,11 +961,11 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 	}
 
 	imma_proc_increment_pending_reply(cl_node);
+	timeout = cl_node->syncr_timeout;
 
 	/* Unlock before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	locked = false;
-
 	cl_node = NULL; /* Prevent unsafe use. */
 
 	if (cb->is_immnd_up == false) {
@@ -961,7 +975,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 	}
 
 	/* Send the evt to IMMND */
-	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), &evt, &out_evt, IMMSV_WAIT_TIME);
+	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), &evt, &out_evt, timeout);
 	/* Generate rc from proc_rc */
 	switch (proc_rc) {
 		case NCSCC_RC_SUCCESS:
@@ -1088,7 +1102,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
  *       longer possible with the same ccb_node/ccbHandle. 
  *******************************************************************/
 static SaAisErrorT imma_newCcbId(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node,
-	SaUint32T adminOwnerId, bool *locked)
+	SaUint32T adminOwnerId, bool *locked, SaUint32T timeout)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	SaUint32T proc_rc = NCSCC_RC_SUCCESS;
@@ -1144,7 +1158,7 @@ static SaAisErrorT imma_newCcbId(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node,
 	}
 
 	/* Send the evt to IMMND */
-	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), &evt, &out_evt, IMMSV_WAIT_TIME);
+	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), &evt, &out_evt, timeout);
 	/* Generate rc from proc_rc */
 	switch (proc_rc) {
 		case NCSCC_RC_SUCCESS:
@@ -1374,7 +1388,7 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 	ccb_node->mApplied = true;
 
 	imma_proc_increment_pending_reply(cl_node);
-	rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked);
+	rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 	cl_node=NULL;
 	if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 	/* ccb_node still valid if rc == SA_AIS_OK. */
@@ -1614,7 +1628,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 
 	if (ccb_node->mApplied) { /* Current ccb-id is closed, get a new one.*/
 		imma_proc_increment_pending_reply(cl_node);
-		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked);
+		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 		cl_node = NULL;
 		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 		/* ccb_node still valid if rc == SA_AIS_OK. */
@@ -1798,7 +1812,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		evt.info.immnd.info.objCreate.attrValues = p;
 	}
 
-	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, false);
+	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, false);
 	cl_node = NULL;
 	ccb_node = NULL;
 
@@ -2116,7 +2130,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 
 	if (ccb_node->mApplied) {  /* Current ccb-id is closed, get a new one.*/
 		imma_proc_increment_pending_reply(cl_node);
-		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked);
+		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 		cl_node = NULL;
 		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 		/* ccb_node still valid if rc == SA_AIS_OK. */
@@ -2239,7 +2253,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		evt.info.immnd.info.objModify.attrMods = p;
 	}
 
-	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, false);
+	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, false);
 	cl_node = NULL;
 	ccb_node = NULL;
 
@@ -2544,7 +2558,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 
 	if (ccb_node->mApplied) {  /* Current ccb-id is closed, get a new one.*/
 		imma_proc_increment_pending_reply(cl_node);
-		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked);
+		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 		cl_node = NULL;
 		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 		/* ccb_node still valid if rc == SA_AIS_OK. */
@@ -2619,7 +2633,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		(char *)objectName->value, evt.info.immnd.info.objDelete.objectName.size);
 	evt.info.immnd.info.objDelete.objectName.buf[evt.info.immnd.info.objDelete.objectName.size - 1] = '\0';
 
-	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, false);
+	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, false);
 	cl_node = NULL;
 	ccb_node = NULL;
 
@@ -2865,7 +2879,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	ccb_node->mApplying = true;
 	ccbId = ccb_node->mCcbId;
 
-	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, false);
+	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, false);
 	cl_node = NULL;
 	ccb_node = NULL;
 
@@ -3884,7 +3898,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaTimeT timeout = IMMSV_WAIT_TIME;
+	SaTimeT timeout = 0;
 	IMMSV_ATTR_DEF_LIST *sysattr = NULL;
 	const SaImmAttrDefinitionT_2 *attr;
 	int i;
@@ -3968,6 +3982,8 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
 	}
+
+	timeout = cl_node->syncr_timeout;
 
 	imma_proc_increment_pending_reply(cl_node);
 
@@ -4203,6 +4219,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
+	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -4271,6 +4288,8 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 	TRACE("ClassName: %s", className);
 
 	imma_proc_increment_pending_reply(cl_node);
+	timeout = cl_node->syncr_timeout;
+	cl_node = NULL;
 
 	/* Release the CB lock Before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -4285,7 +4304,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 
 	/* send the request to the IMMND */
 	TRACE("ClassDescrGet 3");
-	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, &out_evt, IMMSV_WAIT_TIME);
+	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, &out_evt, timeout);
 
 	switch (proc_rc) {
 	case NCSCC_RC_SUCCESS:
@@ -4611,7 +4630,7 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaTimeT timeout = IMMSV_WAIT_TIME;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -4665,6 +4684,8 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
 	}
+
+	timeout = cl_node->syncr_timeout;
 
 	/* Populate the ClassDelete event */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
@@ -5351,6 +5372,7 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = 0;
 	bool locked = true;
+	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -5386,6 +5408,8 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
 	finalize_evt.info.immnd.type = IMMND_EVT_A2ND_SYNC_FINALIZE;
 	finalize_evt.info.immnd.info.finReq.client_hdl = cl_node->handle;
 
+	timeout = cl_node->syncr_timeout;
+	cl_node = NULL;
 	/* Unlock before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	locked = false;
@@ -5399,7 +5423,7 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
 
 	/* send the request to the IMMND */
 	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl,
-					 &(cb->immnd_mds_dest), &finalize_evt, &out_evt, IMMSV_WAIT_TIME);
+					 &(cb->immnd_mds_dest), &finalize_evt, &out_evt, timeout);
 
 	/* MDS error handling */
 	switch (proc_rc) {
@@ -5462,6 +5486,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	IMMA_SEARCH_NODE *search_node = NULL;
 	SaImmSearchHandleT tmpSearchHandle=0LL;
+	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -5650,6 +5675,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 
 	imma_proc_increment_pending_reply(cl_node);
 	tmpSearchHandle = search_node->search_hdl;
+	timeout = cl_node->syncr_timeout;
 
 	/* Release the CB lock Before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -5665,7 +5691,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	}
 
 	/* send the request to the IMMND */
-	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, &out_evt, IMMSV_WAIT_TIME);
+	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, &out_evt, timeout);
 
 	switch (proc_rc) {
 		case NCSCC_RC_SUCCESS:
@@ -5801,6 +5827,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	IMMA_SEARCH_NODE *search_node = NULL;
 	SaImmHandleT immHandle=0LL;
+	SaUint32T timeout = 0;
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
@@ -5872,6 +5899,8 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 
 	imma_proc_increment_pending_reply(cl_node);
 
+	timeout = cl_node->syncr_timeout;
+
 	/* Release the CB lock Before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	locked = false;
@@ -5886,7 +5915,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 	}
 
 	/* send the request to the IMMND */
-	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, &out_evt, IMMSV_WAIT_TIME);
+	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, &out_evt, timeout);
 
 	switch (proc_rc) {
 		case NCSCC_RC_SUCCESS:
@@ -6097,6 +6126,7 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 	IMMA_SEARCH_NODE *search_node = NULL;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T searchId = 0;
+	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -6158,7 +6188,7 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 
 	/*imma_proc_increment_pending_reply(cl_node);*/
 	/* A blocked SearchFinalize need not expose the client handle. */
-
+	timeout = cl_node->syncr_timeout;
 	/* Release the CB lock Before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	locked = false;
@@ -6172,7 +6202,7 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 	}
 
 	/* send the request to the IMMND */
-	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, &out_evt, IMMSV_WAIT_TIME);
+	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, &out_evt, timeout);
 
 	switch (proc_rc) {
 		case NCSCC_RC_SUCCESS:
@@ -6226,6 +6256,7 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 	bool locked = true;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
+	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -6325,6 +6356,8 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 		ao_node = NULL;
 	}
 
+	timeout = cl_node->syncr_timeout;
+
 	/* populate the structure */
 	memset(&admo_set_evt, 0, sizeof(IMMSV_EVT));
 	admo_set_evt.type = IMMSV_EVT_TYPE_IMMND;
@@ -6349,7 +6382,7 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 
 	imma_proc_increment_pending_reply(cl_node);
 
-	rc = imma_evt_fake_evs(cb, &admo_set_evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, true);
+	rc = imma_evt_fake_evs(cb, &admo_set_evt, &out_evt, timeout, cl_node->handle, &locked, true);
 	cl_node =NULL;
 
 	if (out_evt) {
@@ -6414,6 +6447,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 	bool locked = true;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
+	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -6515,6 +6549,8 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 		ao_node = NULL;
 	}
 
+	timeout = cl_node->syncr_timeout;
+
 	/* populate the structure */
 	memset(&admo_set_evt, 0, sizeof(IMMSV_EVT));
 	admo_set_evt.type = IMMSV_EVT_TYPE_IMMND;
@@ -6539,7 +6575,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 
 	imma_proc_increment_pending_reply(cl_node);
 
-	rc = imma_evt_fake_evs(cb, &admo_set_evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, true);
+	rc = imma_evt_fake_evs(cb, &admo_set_evt, &out_evt, timeout, cl_node->handle, &locked, true);
 	cl_node = NULL;
 
 	if (out_evt) {
@@ -6607,6 +6643,7 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 	IMMA_CLIENT_NODE *cl_node = 0;
 	const SaNameT *objectName;
 	bool locked = true;
+	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -6670,6 +6707,8 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
 	}
 
+	timeout = cl_node->syncr_timeout;
+
 	/* populate the structure */
 	memset(&admo_set_evt, 0, sizeof(IMMSV_EVT));
 	admo_set_evt.type = IMMSV_EVT_TYPE_IMMND;
@@ -6694,7 +6733,7 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 
 	imma_proc_increment_pending_reply(cl_node);
 
-	rc = imma_evt_fake_evs(cb, &admo_set_evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, true);
+	rc = imma_evt_fake_evs(cb, &admo_set_evt, &out_evt, timeout, cl_node->handle, &locked, true);
 	cl_node = NULL;
 
 	if (out_evt) {
@@ -6764,6 +6803,7 @@ SaAisErrorT saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT adminOwnerHandle)
 	bool locked = false;
 	SaImmHandleT immHandle;
 	SaUint32T adminOwnerId;
+	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -6825,6 +6865,8 @@ SaAisErrorT saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT adminOwnerHandle)
 		goto done;
 	}
 
+	timeout = cl_node->syncr_timeout;
+
 	/* populate the structure */
 	memset(&finalize_evt, 0, sizeof(IMMSV_EVT));
 	finalize_evt.type = IMMSV_EVT_TYPE_IMMND;
@@ -6834,7 +6876,7 @@ SaAisErrorT saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT adminOwnerHandle)
 	/*imma_proc_increment_pending_reply(cl_node);*/
 	/*A blocked AdminOwnerFinalize need not expose the client node */
 
-	rc = imma_evt_fake_evs(cb, &finalize_evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, false);
+	rc = imma_evt_fake_evs(cb, &finalize_evt, &out_evt, timeout, cl_node->handle, &locked, false);
 	cl_node = NULL;
 
 	if (out_evt) {
@@ -6872,6 +6914,7 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 	SaUint32T ccbId = 0;
 	SaImmHandleT immHandle = 0LL;
 	SaImmAdminOwnerHandleT adminOwnerHdl = 0LL;
+	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -6945,6 +6988,8 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 			goto done;
 		}
 
+		timeout = cl_node->syncr_timeout;
+
 		/* Populate the CcbFinalize event */
 		memset(&evt, 0, sizeof(IMMSV_EVT));
 		evt.type = IMMSV_EVT_TYPE_IMMND;
@@ -6954,7 +6999,7 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 		/*imma_proc_increment_pending_reply(cl_node);*/
 		/* A blocked CcbFinalize need not expose the client node. */
 
-		rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, false);
+		rc = imma_evt_fake_evs(cb, &evt, &out_evt, timeout, cl_node->handle, &locked, false);
 		cl_node = NULL;
 
 		if (out_evt) {
@@ -7008,6 +7053,7 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 	SaUint32T nameLen = 0;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	bool locked = false;
+	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
@@ -7068,6 +7114,7 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 	
 	imma_proc_increment_pending_reply(cl_node);
 	temp_hdl = adm_found_node->admin_owner_hdl;
+	timeout = cl_node->syncr_timeout;
 	/* Unlock before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	locked = false;
@@ -7081,7 +7128,7 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 
 	do {
 		proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), 
-			&evt, &out_evt, IMMSV_WAIT_TIME);
+			&evt, &out_evt, timeout);
 
 		switch (proc_rc) {
 			case NCSCC_RC_SUCCESS:
@@ -7160,6 +7207,7 @@ int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked)
 	assert(locked && *locked);
 	assert(cl_node && cl_node->stale);
 	SaImmHandleT immHandle = cl_node->handle;
+	SaUint32T timeout = 0;
 
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	*locked = false;
@@ -7198,7 +7246,7 @@ int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked)
 	} else {
 		TRACE_3("client_node_get failed");
 	}
-
+	timeout = cl_node->syncr_timeout;
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	*locked = false;
 	cl_node = NULL;
@@ -7217,8 +7265,7 @@ int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked)
 
 	if (cb->is_immnd_up) {
 		imma_mds_msg_sync_send(cb->imma_mds_hdl, 
-			&(cb->immnd_mds_dest),&finalize_evt,&out_evt1,
-			IMMSV_WAIT_TIME);
+			&(cb->immnd_mds_dest),&finalize_evt,&out_evt1, timeout);
 
 		/* Dont care about the response on finalize. */
 		if (out_evt1) {free(out_evt1);}
