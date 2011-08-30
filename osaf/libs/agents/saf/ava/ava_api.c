@@ -1961,32 +1961,6 @@ SaAisErrorT saAmfInitialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 *reg_
 		return SA_AIS_ERR_LIBRARY;
 	}
 
-	/* if comp-name is not set, it should be available now */
-	cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl);
-	if (!cb) {
-		TRACE_LEAVE2("Unable to access global AVA handle");
-		return SA_AIS_ERR_LIBRARY;
-	}
-	if (!m_AVA_FLAG_IS_COMP_NAME(cb)) {
-		if (getenv("SA_AMF_COMPONENT_NAME")) {
-			if (strlen(getenv("SA_AMF_COMPONENT_NAME")) < SA_MAX_NAME_LENGTH) {
-				strcpy((char *)cb->comp_name.value, getenv("SA_AMF_COMPONENT_NAME"));
-				cb->comp_name.length = (uint16_t)strlen((char *)cb->comp_name.value);
-				m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
-			} else {
-				TRACE_2("Length of SA_AMF_COMPONENT_NAME exceeds SA_MAX_NAME_LENGTH bytes");
-				rc = SA_AIS_ERR_INVALID_PARAM;
-				goto done;
-			}
-		} else {
-			TRACE_2("The SA_AMF_COMPONENT_NAME environment variable is NULL");
-			rc = SA_AIS_ERR_LIBRARY;
-			goto done;
-		}
-	}
-	if (cb)
-		ncshm_give_hdl(gl_ava_hdl);
-
 	/* retrieve AvA CB */
 	if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
 		TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
@@ -2016,6 +1990,7 @@ SaAisErrorT saAmfInitialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 *reg_
 		goto done;
 	}
 
+	/* create the hdl record & store the callbacks */
 	if (!(hdl_rec = ava_hdl_rec_add(cb, hdl_db, (SaAmfCallbacksT*)reg_cbks))) {
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done;
