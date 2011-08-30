@@ -86,33 +86,95 @@ saLogStreamOpen_2() or saLogStreamOpenAsync_2(). Contains internals IDs
 and handles.
 
 
+OVERLOAD PROTECTION
+
+LOG uses a single mailbox used to communicate from the MDS thread to the
+main thread. An IPC mailbox has four priority levels. By default a level
+is unbounded in size, as many messages as the main memory allows can be
+queued. The mailbox provides a mechanism to put a a limit on how many
+messages that can be stored at the same time in it. LOG overload uses
+that feature.
+
+The highest level is used for control messages except for FINALIZE & CLOSE
+messages. The reason is that we want to keep those at the same priority as
+WRITE messages so that no writes will get discarded when a stream is closed
+or a client finalize the API. The three other mailbox priority levels are
+used for WRITE messages per stream type. Alarm use the next level, System
+and Notification share the next level and all application streams share the
+lowest priority level. The alarm level can never be bounded in size.
+
+The levels used for system and application streams has an optional
+configurable LOW and HIGH limit of queued messages. When the high limit
+is hit, the level enters the FULL state. This state will not be left 
+until the number of messages goes below the LOW limit. Messages received
+in the meantime will be nacked with a TRYAGAIN, but only if the client has
+requested so in the log record header. Otherwise it will be silently
+discarded (but counted as such). CLOSE & FINALIZE messages will never be
+rejected even though the level is full. If that happens, the message is
+queued at the (unlimited) control message level.
+
+Log records will be handled by the LOG server in the same priority.
+All Alarm log records will be written to disk before any System/notification
+log records. All System/notification log records will be written to disk
+before any application log records are written to disk. This reduces the
+risk to loose any important system events at sudden failure such as power
+outage.
+
+The low/high limits for system and app streams are configurable. See the
+next section. Different app streams share the same limits.
+
+
 CONFIGURATION
 
 The LOG specification describes the configuration object class 
 SaLogStreamConfig which requires the three streams alarm, notification and 
-system to exist. In OpenSAF 3.0 LOG was integrated with IMM meaning 
-this configuration is done using IMM. Please see IMM documentation. The two
-LOG classes and the three default streams are included in the OpenSAF IMM
-configuration. Please use that configuration if creating your own.
+system to exist (in IMM). The two LOG classes and objects for the three
+default streams are included in the OpenSAF IMM configuration.
 
-Some implementation defined configuration is done in a configuration file.
-The LOG server start script sources the configuration file before it starts the
-LOG server.
+Some implementation defined configuration is done using a configuration
+file with environment variables. This config file is typically:
 
-The offline (in the OpenSAF distribution) location of the configuration file:
-	osaf/services/saf/logsv/config/logd.conf
+/etc/opensaf/logd.conf
 
-If the default values in this file does not fit your system, edit this file and
-rebuild the controller rpm in order to setup your system properly.
+The LOG server start script sources the configuration file before it starts
+the LOG server. So any change in this will requires a restart of the LOG
+server which implies OpenSAF on that node.
 
 The following environment variable is required:
 
 LOGSV_ROOT_DIRECTORY
 
-The 'LOGSV_ROOT_DIRECTORY' variable is needed to configure the
-"implementation defined root directory" as mentioned in the spec. All log files
-will be stored directly in this directory or in a subdirectory. Make sure to to 
-configure this directory to a replicated (shared & persistent) partition.
+This variable is needed to configure the "implementation defined root
+directory" as mentioned in the spec. All log files will be stored directly 
+in this directory or in a subdirectory. If HA characterisitcs are needed for 
+LOG streams, configure this directory to point to replicated (shared & 
+persistent) partition.
+
+The following environment variables are optional:
+
+LOG_STREAM_SYSTEM_HIGH_LIMIT
+
+The high limit for the system/notification streams. Default unlimited. A
+reasonable value would be 300 (messages).
+
+LOG_STREAM_SYSTEM_LOW_LIMIT
+
+The low limit for the system/notification streams. Only valid and used if
+a high limit has been defined. Defaults to some percent of the high limit
+(if not specified).
+
+LOG_STREAM_APP_HIGH_LIMIT
+
+The high limit for all application streams. Default unlimited. A
+reasonable value would be 300 (messages).
+
+LOG_STREAM_APP_LOW_LIMIT
+
+The low limit for the all application streams. Only valid and used if
+a high limit has been defined. Defaults to some percent of the high limit
+(if not specified).
+
+Don't forget the "export" keyword before the variable!
 
 
 COMMAND LINE INTERFACE
@@ -127,11 +189,11 @@ Log server traces are by default disabled. To enable/disable log server traces
 in a running system, send signal USR1 to the osaflogd process. Every time the 
 trace state is toggled. Example:
 
-	$ pkill -USR1 osaflogd
+	$ pkill -USR2 osaflogd
 
 Traces are written to the file:
 
-	$pkglogdir/osaflogd.log
+	$pkglogdir/osaflogd
 
 To enable traces from the very start of the log server, uncomment the line:
 
@@ -140,13 +202,6 @@ To enable traces from the very start of the log server, uncomment the line:
 in logd.conf (see CONFIGURATION above) and restart the cluster.
 
 For fatal errors syslog is used.
-
-To dump the internal log server data base, send signal USR2 to the osaflogd
-process, example:
-
-	$ pkill -USR2 osaflogd
-
-The dump is done to the trace file no matter if trace is enabled or not.
 
 
 TEST

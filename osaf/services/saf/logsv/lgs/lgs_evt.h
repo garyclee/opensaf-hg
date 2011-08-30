@@ -69,5 +69,7 @@ extern int lgs_client_delete(uint32_t client_id);
 extern int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest);
 extern bool lgs_lga_entry_valid(lgs_cb_t *cb, MDS_DEST mds_dest);
 extern uint32_t lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest);
+extern void lgs_send_write_log_ack(uint32_t client_id, SaInvocationT invocation, SaAisErrorT error, MDS_DEST mds_dest);
+extern void lgs_free_write_log(const lgsv_write_log_async_req_t *param);
 
 #endif   /*!LGS_EVT_H */

@@ -49,6 +49,10 @@
 #define FD_MBX 2
 #define FD_IMM 3		/* Must be the last in the fds array */
 
+#ifndef LOG_STREAM_LOW_LIMIT_PERCENT
+#define LOG_STREAM_LOW_LIMIT_PERCENT 0.6 // default value for low is 60%
+#endif
+
 /* ========================================================================
  *   TYPE DEFINITIONS
  * ========================================================================
@@ -61,6 +65,20 @@
 
 static lgs_cb_t _lgs_cb;
 lgs_cb_t *lgs_cb = &_lgs_cb;
+SYSF_MBX lgs_mbx; /* LGS's mailbox */
+
+/* Upper limit where the queue enters FULL state */
+uint32_t mbox_high[NCS_IPC_PRIORITY_MAX];
+
+/* Current number of messages in queue, IPC maintained */
+uint32_t mbox_msgs[NCS_IPC_PRIORITY_MAX];
+
+/* Queue state FULL or not */
+bool mbox_full[NCS_IPC_PRIORITY_MAX];
+
+/* Lower limit which determines when to leave FULL state */
+uint32_t mbox_low[NCS_IPC_PRIORITY_MAX];
+
 static struct pollfd fds[4];
 static nfds_t nfds = 4;
 static NCS_SEL_OBJ usr1_sel_obj;
@@ -92,7 +110,7 @@ static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE
 	evt->evt_type = LGSV_EVT_RDA;
 	evt->info.rda_info.io_role = cb_info->info.io_role;
 
-	rc = ncs_ipc_send(&lgs_cb->mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
+	rc = ncs_ipc_send(&lgs_mbx, (NCS_IPC_MSG *)evt, LGS_IPC_PRIO_CTRL_MSGS);
 	if (rc != NCSCC_RC_SUCCESS)
 		LOG_ER("IPC send failed %d", rc);
 
@@ -116,54 +134,79 @@ static void sigusr1_handler(int sig)
 }
 
 /**
- * Ssignal handler to dump information from all data structures
- * @param sig
+ * Configure mailbox properties from environment variables
+ * Low limit is by default configured as a percentage of the
+ * high limit (if not configured explicitly).
+ * 
+ * @return uint32_t
  */
-/*static void dump_sig_handler(int sig)
+static uint32_t configure_mailbox(void)
 {
-	log_stream_t *stream;
-	log_client_t *client;
-	int old_category_mask = trace_category_get();
+	char *p;
+	uint32_t limit = 0;
 
-	if (trace_category_set(CATEGORY_ALL) == -1)
-		printf("trace_category_set failed");
-
-	TRACE("Control block information");
-	TRACE("  comp_name:      %s", lgs_cb->comp_name.value);
-	TRACE("  log_version:    %c.%02d.%02d", lgs_cb->log_version.releaseCode,
-	      lgs_cb->log_version.majorVersion, lgs_cb->log_version.minorVersion);
-	TRACE("  mds_role:       %u", lgs_cb->mds_role);
-	TRACE("  last_client_id: %u", lgs_cb->last_client_id);
-	TRACE("  ha_state:       %u", lgs_cb->ha_state);
-	TRACE("  ckpt_state:     %u", lgs_cb->ckpt_state);
-	TRACE("  root_dir:       %s", lgs_cb->logsv_root_dir);
-
-	TRACE("Client information");
-	client = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree, NULL);
-	while (client != NULL) {
-		lgs_stream_list_t *s = client->stream_list_root;
-		TRACE("  client_id: %u", client->client_id);
-		TRACE("    lga_client_dest: %llx", client->mds_dest);
-
-		while (s != NULL) {
-			TRACE("    stream id: %u", s->stream_id);
-			s = s->next;
+	if ((p = getenv("LOG_STREAM_SYSTEM_HIGH_LIMIT")) != NULL) {
+		errno = 0;
+		limit = strtol(p, NULL, 0);
+		if (errno != 0) {
+			LOG_ER("Illegal value for LOG_STREAM_SYSTEM_HIGH_LIMIT - %s", strerror(errno));
+			return NCSCC_RC_FAILURE;
 		}
-		client = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree,
-								   (uint8_t *)&client->client_id_net);
+
+		mbox_high[LGS_IPC_PRIO_SYS_STREAM] = limit;
+		mbox_low[LGS_IPC_PRIO_SYS_STREAM] =	LOG_STREAM_LOW_LIMIT_PERCENT * limit;
+
+		ncs_ipc_config_max_msgs(&lgs_mbx, LGS_IPC_PRIO_SYS_STREAM,
+								mbox_high[LGS_IPC_PRIO_SYS_STREAM]);
+		ncs_ipc_config_usr_counters(&lgs_mbx, LGS_IPC_PRIO_SYS_STREAM,
+									&mbox_msgs[LGS_IPC_PRIO_SYS_STREAM]);
 	}
 
-	TRACE("Streams information");
-	stream = (log_stream_t *)log_stream_getnext_by_name(NULL);
-	while (stream != NULL) {
-		log_stream_print(stream);
-		stream = (log_stream_t *)log_stream_getnext_by_name(stream->name);
-	}
-	log_stream_id_print();
+	if ((limit != 0) && (p = getenv("LOG_STREAM_SYSTEM_LOW_LIMIT")) != NULL) {
+		errno = 0;
+		limit = strtol(p, NULL, 0);
+		if (errno != 0) {
+			LOG_ER("Illegal value for LOG_STREAM_SYSTEM_LOW_LIMIT - %s", strerror(errno));
+			return NCSCC_RC_FAILURE;
+		}
 
-	if (trace_category_set(old_category_mask) == -1)
-		printf("trace_category_set failed");
-}*/
+		mbox_low[LGS_IPC_PRIO_SYS_STREAM] = limit;
+	}
+
+	limit = 0;
+	if ((p = getenv("LOG_STREAM_APP_HIGH_LIMIT")) != NULL) {
+		errno = 0;
+		limit = strtol(p, NULL, 0);
+		if (errno != 0) {
+			LOG_ER("Illegal value for LOG_STREAM_APP_HIGH_LIMIT - %s", strerror(errno));
+			return NCSCC_RC_FAILURE;
+		}
+
+		mbox_high[LGS_IPC_PRIO_APP_STREAM] = limit;
+		mbox_low[LGS_IPC_PRIO_APP_STREAM] =	LOG_STREAM_LOW_LIMIT_PERCENT * limit;
+
+		ncs_ipc_config_max_msgs(&lgs_mbx, LGS_IPC_PRIO_APP_STREAM,
+								mbox_high[LGS_IPC_PRIO_APP_STREAM]);
+		ncs_ipc_config_usr_counters(&lgs_mbx, LGS_IPC_PRIO_APP_STREAM,
+									&mbox_msgs[LGS_IPC_PRIO_APP_STREAM]);
+	}
+
+	if ((limit != 0) && (p = getenv("LOG_STREAM_APP_LOW_LIMIT")) != NULL) {
+		errno = 0;
+		limit = strtol(p, NULL, 0);
+		if (errno != 0) {
+			LOG_ER("Illegal value for LOG_STREAM_APP_LOW_LIMIT - %s", strerror(errno));
+			return NCSCC_RC_FAILURE;
+		}
+
+		mbox_low[LGS_IPC_PRIO_APP_STREAM] = limit;
+	}
+
+	TRACE("sys low:%u, high:%u", mbox_low[LGS_IPC_PRIO_SYS_STREAM], mbox_high[LGS_IPC_PRIO_SYS_STREAM]);
+	TRACE("app low:%u, high:%u", mbox_low[LGS_IPC_PRIO_APP_STREAM], mbox_high[LGS_IPC_PRIO_APP_STREAM]);
+
+	return NCSCC_RC_SUCCESS;
+}
 
 /**
  * Initialize log
@@ -215,14 +258,19 @@ static uint32_t log_initialize(void)
 	m_NCS_EDU_HDL_INIT(&lgs_cb->edu_hdl);
 
 	/* Create the mailbox used for communication with LGS */
-	if ((rc = m_NCS_IPC_CREATE(&lgs_cb->mbx)) != NCSCC_RC_SUCCESS) {
+	if ((rc = m_NCS_IPC_CREATE(&lgs_mbx)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("m_NCS_IPC_CREATE FAILED %d", rc);
 		goto done;
 	}
 
 	/* Attach mailbox to this thread */
-	if ((rc = m_NCS_IPC_ATTACH(&lgs_cb->mbx) != NCSCC_RC_SUCCESS)) {
+	if ((rc = m_NCS_IPC_ATTACH(&lgs_mbx) != NCSCC_RC_SUCCESS)) {
 		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
+		goto done;
+	}
+
+	if (configure_mailbox() != NCSCC_RC_SUCCESS) {
+		LOG_ER("configure_mailbox FAILED");
 		goto done;
 	}
 
@@ -305,7 +353,7 @@ static void *imm_reinit_thread(void *_cb)
 	lgsv_evt = calloc(1, sizeof(lgsv_lgs_evt_t));
 	assert(lgsv_evt);
 	lgsv_evt->evt_type = LGSV_EVT_NO_OP;
-	if(m_NCS_IPC_SEND(&cb->mbx, lgsv_evt, NCS_IPC_PRIORITY_HIGH) !=
+	if (m_NCS_IPC_SEND(&lgs_mbx, lgsv_evt, LGS_IPC_PRIO_CTRL_MSGS) !=
 		NCSCC_RC_SUCCESS) {
 		LOG_WA("imm_reinit_thread failed to send IPC message to main thread");
 		/*
@@ -364,7 +412,7 @@ int main(int argc, char *argv[])
 		goto done;
 	}
 
-	mbx_fd = ncs_ipc_get_sel_obj(&lgs_cb->mbx);
+	mbx_fd = ncs_ipc_get_sel_obj(&lgs_mbx);
 
 	/* Set up all file descriptors to listen to */
 	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
@@ -423,7 +471,7 @@ int main(int argc, char *argv[])
 		}
 
 		if (fds[FD_MBX].revents & POLLIN)
-			lgs_process_mbx(&lgs_cb->mbx);
+			lgs_process_mbx(&lgs_mbx);
 
 		if (lgs_cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
 			error = saImmOiDispatch(lgs_cb->immOiHandle, SA_DISPATCH_ALL);

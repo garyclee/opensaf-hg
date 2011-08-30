@@ -655,10 +655,11 @@ int log_stream_close(log_stream_t **s)
 
 
 		log_stream_delete(s);
+		stream = NULL;
 	}
 
  done:
-	TRACE_LEAVE2("rc=%d, numOpeners=%u", rc, stream->numOpeners);
+	TRACE_LEAVE2("rc=%d, numOpeners=%u", rc, stream ? stream->numOpeners : 0);
 	return rc;
 }
 

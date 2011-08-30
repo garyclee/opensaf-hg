@@ -335,7 +335,7 @@ static void amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT 
 	saAmfResponse(lgs_cb->amf_hdl, invocation, SA_AIS_OK);
 
 	/* Detach from IPC */
-	m_NCS_IPC_DETACH(&lgs_cb->mbx, NULL, lgs_cb);
+	m_NCS_IPC_DETACH(&lgs_mbx, NULL, lgs_cb);
 
 	/* Disconnect from MDS */
 	lgs_mds_finalize(lgs_cb);

@@ -824,6 +824,42 @@ static uint32_t mds_dec_flat(struct ncsmds_callback_info *info)
 	return rc;
 }
 
+/**
+ * Return mailbox priority depending on message type and stream
+ * ID. Finalize and Close always gets same prio as writes so
+ * that all writes will be flushed before the stream is closed
+ * and Finalized. Writes to the system stream are prioritized
+ * before application streams.
+ * 
+ * @param api_info
+ * 
+ * @return NCS_IPC_PRIORITY
+ */
+static NCS_IPC_PRIORITY getmboxprio(const lgsv_api_info_t *api_info)
+{
+	uint32_t str_id;
+
+	if (api_info->type == LGSV_FINALIZE_REQ) {
+		/* Queue at lowest prio so no writes get bypassed.
+		 * No access to a stream ID here so use lowest possible prio. */
+		return LGS_IPC_PRIO_APP_STREAM;
+	}
+	else if (api_info->type == LGSV_STREAM_CLOSE_REQ)
+		str_id = api_info->param.lstr_close.lstr_id;
+	else {
+		assert(api_info->type == LGSV_WRITE_LOG_ASYNC_REQ);
+		str_id = api_info->param.write_log_async.lstr_id;
+	}
+
+	/* Set prio depending on stream type */
+	if (str_id == 0)
+		return LGS_IPC_PRIO_ALARM_STREAM;
+	else if (str_id <= 2)
+		return LGS_IPC_PRIO_SYS_STREAM;
+	else
+		return LGS_IPC_PRIO_APP_STREAM;
+}
+
 /****************************************************************************
  * Name          : mds_rcv
  *
@@ -838,22 +874,84 @@ static uint32_t mds_dec_flat(struct ncsmds_callback_info *info)
 
 static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 {
-	lgsv_lgs_evt_t *lgsv_evt = (lgsv_lgs_evt_t *)mds_info->info.receive.i_msg;
-	uint32_t rc = NCSCC_RC_SUCCESS;
+	lgsv_lgs_evt_t *evt = (lgsv_lgs_evt_t *)mds_info->info.receive.i_msg;
+	const lgsv_api_info_t *api_info = &evt->info.msg.info.api_info;
+	lgsv_api_msg_type_t type = api_info->type;
+	NCS_IPC_PRIORITY prio = NCS_IPC_PRIORITY_LOW;
+	uint32_t rc;
+	static unsigned long silently_discarded[NCS_IPC_PRIORITY_MAX];
 
-	lgsv_evt->evt_type = LGSV_LGS_LGSV_MSG;
-	lgsv_evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
-	lgsv_evt->fr_node_id = mds_info->info.receive.i_node_id;
-	lgsv_evt->fr_dest = mds_info->info.receive.i_fr_dest;
-	lgsv_evt->rcvd_prio = mds_info->info.receive.i_priority;
-	lgsv_evt->mds_ctxt = mds_info->info.receive.i_msg_ctxt;
+	evt->evt_type = LGSV_LGS_LGSV_MSG;
+	evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
+	evt->fr_node_id = mds_info->info.receive.i_node_id;
+	evt->fr_dest = mds_info->info.receive.i_fr_dest;
+	evt->rcvd_prio = mds_info->info.receive.i_priority;
+	evt->mds_ctxt = mds_info->info.receive.i_msg_ctxt;
 
-	/* Send the message to lgs */
-	rc = m_NCS_IPC_SEND(&lgs_cb->mbx, lgsv_evt, mds_info->info.receive.i_priority);
-	if (rc != NCSCC_RC_SUCCESS)
-		TRACE("IPC send failed %d", rc);
+	if ((type == LGSV_INITIALIZE_REQ) || (type == LGSV_STREAM_OPEN_REQ)) {
+		rc = m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_CTRL_MSGS);
+		assert(rc == NCSCC_RC_SUCCESS);
+		return NCSCC_RC_SUCCESS;
+	}
 
-	return rc;
+	prio = getmboxprio(api_info);
+
+	if ((type == LGSV_FINALIZE_REQ) || (type == LGSV_STREAM_CLOSE_REQ)) {
+		rc = m_NCS_IPC_SEND(&lgs_mbx, evt, prio);
+		if (rc != NCSCC_RC_SUCCESS) {
+			/* Bump prio and try again, should succeed! */
+			rc = m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_CTRL_MSGS);
+			assert(rc == NCSCC_RC_SUCCESS);
+		}
+		return NCSCC_RC_SUCCESS;
+	}
+
+	/* Can we leave the mbox FULL state? */
+	if (mbox_full[prio] && (mbox_msgs[prio] <= mbox_low[prio])) {
+		mbox_full[prio] = false;
+		LOG_NO("discarded %lu writes, stream type: %s", silently_discarded[prio],
+			   (prio == LGS_IPC_PRIO_APP_STREAM) ? "app" : "sys/not");
+		silently_discarded[prio] = 0;
+	}
+
+	/* If the mailbox is full, nack or silently drop */
+	if (mbox_full[prio]) {
+		/* If logger has requested an ack, send one with error code TRYAGAIN */
+		if (api_info->param.write_log_async.ack_flags & SA_LOG_RECORD_WRITE_ACK) {
+			lgs_send_write_log_ack(api_info->param.write_log_async.client_id,
+								   api_info->param.write_log_async.invocation,
+								   SA_AIS_ERR_TRY_AGAIN,
+								   evt->fr_dest);
+		} else
+			silently_discarded[prio]++;
+
+		goto donefree;
+	}
+
+	/* Can only get here for writes */
+	assert(api_info->type == LGSV_WRITE_LOG_ASYNC_REQ);
+
+	if (m_NCS_IPC_SEND(&lgs_mbx, evt, prio) == NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_SUCCESS;
+	} else {
+		mbox_full[prio] = true;
+		TRACE("FULL, msgs: %u, low: %u, high: %u", mbox_msgs[prio],
+			  mbox_low[prio], mbox_high[prio]);
+
+		/* If logger has requested an ack, send one with error code TRYAGAIN */
+		if (api_info->param.write_log_async.ack_flags & SA_LOG_RECORD_WRITE_ACK) {
+			lgs_send_write_log_ack(api_info->param.write_log_async.client_id,
+								   api_info->param.write_log_async.invocation,
+								   SA_AIS_ERR_TRY_AGAIN,
+								   evt->fr_dest);
+		} else
+			silently_discarded[prio]++;
+	}
+
+donefree:
+	lgs_free_write_log(&api_info->param.write_log_async);
+	free(evt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -885,7 +983,7 @@ static uint32_t mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 		lgsv_evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
 
 		/* Push the event and we are done */
-		if (NCSCC_RC_FAILURE == m_NCS_IPC_SEND(&lgs_cb->mbx, lgsv_evt, NCS_IPC_PRIORITY_NORMAL)) {
+		if (NCSCC_RC_FAILURE == m_NCS_IPC_SEND(&lgs_mbx, lgsv_evt, LGS_IPC_PRIO_CTRL_MSGS)) {
 			TRACE("ipc send failed");
 			lgs_evt_destroy(lgsv_evt);
 			goto err;
@@ -939,21 +1037,20 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info)
 
 			evt->evt_type = LGSV_LGS_EVT_LGA_DOWN;
 
-	    /** Initialize the Event Header **/
+			/** Initialize the Event Header **/
 			evt->cb_hdl = 0;
 			evt->fr_node_id = info->info.svc_evt.i_node_id;
 			evt->fr_dest = info->info.svc_evt.i_dest;
 
-	    /** Initialize the MDS portion of the header **/
+			/** Initialize the MDS portion of the header **/
 			evt->info.mds_info.node_id = info->info.svc_evt.i_node_id;
 			evt->info.mds_info.mds_dest_id = info->info.svc_evt.i_dest;
 
-			/* Push the event and we are done */
-			if (m_NCS_IPC_SEND(&lgs_cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
-				TRACE("ipc send failed");
-				lgs_evt_destroy(evt);
-				rc = NCSCC_RC_FAILURE;
-				goto done;
+			/* Push to the lowest prio queue to not bypass any pending writes. If that fails
+			 * (it is FULL) use the high prio unbounded ctrl msg queue */
+			if (m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_APP_STREAM) != NCSCC_RC_SUCCESS) {
+				rc = m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_CTRL_MSGS);
+				assert(rc == NCSCC_RC_SUCCESS);
 			}
 		}
 	}
