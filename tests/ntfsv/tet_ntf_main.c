@@ -41,8 +41,6 @@ int main(int argc, char **argv)
 {
     int suite = -1, tcase = -1;
 
-    setenv("NTFSV_TRACE_PATHNAME", "/hostfs/repl-opensaf/saflog/ntfa.log", 1);
-
     srandom(getpid());
 
     if (argc > 1)
