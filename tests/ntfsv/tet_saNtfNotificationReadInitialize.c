@@ -28,7 +28,7 @@ void saNtfNotificationReadInitialize_01(SaNtfSearchModeT sMode) {
 	SaNtfHandleT ntfHandle;
 	SaNtfSearchCriteriaT searchCriteria;
 	SaNtfAlarmNotificationFilterT myAlarmFilter;
-	SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles;
+	SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles = {0,0,0,0,0};
 	SaNtfReadHandleT readHandle;
 
 	searchCriteria.searchMode = sMode;
@@ -58,6 +58,8 @@ void saNtfNotificationReadInitialize_01(SaNtfSearchModeT sMode) {
 
 	myNotificationFilterHandles.alarmFilterHandle
 			= myAlarmFilter.notificationFilterHandle;
+	myAlarmFilter.perceivedSeverities[0] = SA_NTF_SEVERITY_WARNING;
+	myAlarmFilter.perceivedSeverities[1] = SA_NTF_SEVERITY_CLEARED;
 
 	rc = saNtfNotificationReadInitialize(searchCriteria,
 			&myNotificationFilterHandles, &readHandle);
@@ -120,7 +122,7 @@ void saNtfNotificationReadInitialize_03(void) {
 	SaNtfHandleT ntfHandle;
 	SaNtfSearchCriteriaT searchCriteria;
 	SaNtfAlarmNotificationFilterT myAlarmFilter;
-	SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles;
+	SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles = {0,0,0,0,0};
 	SaNtfReadHandleT readHandle;
 
 	searchCriteria.searchMode = SA_NTF_SEARCH_AT_OR_AFTER_TIME;
@@ -168,7 +170,7 @@ void saNtfNotificationReadInitialize_04(void) {
 	SaNtfSearchCriteriaT searchCriteria;
 	SaNtfAlarmNotificationFilterT myAlarmFilter;
 	SaNtfObjectCreateDeleteNotificationFilterT myObjCrDeFilter;
-	SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles;
+	SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles = {0,0,0,0,0};
 	SaNtfReadHandleT readHandle;
 
 	searchCriteria.searchMode = SA_NTF_SEARCH_AT_OR_AFTER_TIME;

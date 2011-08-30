@@ -32,7 +32,7 @@ void saNtfNotificationReadNext_01(void)
 
     SaNtfSearchCriteriaT searchCriteria;
     SaNtfAlarmNotificationFilterT myAlarmFilter;
-    SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles;
+    SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles = {0,0,0,0,0};
     SaNtfReadHandleT readHandle;
     SaNtfHandleT ntfHandle;
     SaNtfSearchDirectionT searchDirection;
@@ -71,6 +71,8 @@ void saNtfNotificationReadNext_01(void)
 
     myNotificationFilterHandles.alarmFilterHandle =
 	myAlarmFilter.notificationFilterHandle;
+	 myAlarmFilter.perceivedSeverities[0] = SA_NTF_SEVERITY_WARNING;
+	 myAlarmFilter.perceivedSeverities[1] = SA_NTF_SEVERITY_CLEARED;
 
     /* Send one alarm notification */
     safassert(saNtfAlarmNotificationAllocate(
@@ -167,7 +169,7 @@ void saNtfNotificationReadNext_02(void)
 
     SaNtfSearchCriteriaT searchCriteria;
     SaNtfAlarmNotificationFilterT myAlarmFilter;
-    SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles;
+    SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles = {0,0,0,0,0};
     SaNtfReadHandleT readHandle;
     SaNtfHandleT ntfHandle;
     SaNtfSearchDirectionT searchDirection;
@@ -204,8 +206,10 @@ void saNtfNotificationReadNext_02(void)
 	/* number of trend indications */
 	myNotificationFilterAllocationParams.numTrends), SA_AIS_OK);
 
-    myNotificationFilterHandles.alarmFilterHandle =
-	myAlarmFilter.notificationFilterHandle;
+	 myNotificationFilterHandles.alarmFilterHandle =
+		 myAlarmFilter.notificationFilterHandle;
+	 myAlarmFilter.perceivedSeverities[0] = SA_NTF_SEVERITY_WARNING;
+	 myAlarmFilter.perceivedSeverities[1] = SA_NTF_SEVERITY_CLEARED;
 
     /* Send one alarm notification */
     safassert(saNtfAlarmNotificationAllocate(

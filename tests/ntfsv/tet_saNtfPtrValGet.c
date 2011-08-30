@@ -97,7 +97,7 @@ void test2_bad_return(SaNtfSubscriptionIdT subscriptionId,
 		const SaNtfNotificationsT *notification)
 {
 	int iCount;
-	SaNtfValueT myValue;
+	SaNtfValueT myValue = {0};
 	SaStringT srcPtr;
 	SaUint16T dataSize;
 	const SaNtfAlarmNotificationT *ntfAlarm;

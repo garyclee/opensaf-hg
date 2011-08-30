@@ -33,7 +33,7 @@ void saNtfNotificationReadFinalize_01(void)
 {
     SaNtfSearchCriteriaT searchCriteria;
     SaNtfAlarmNotificationFilterT myAlarmFilter;
-    SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles;
+    SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles = {0,0,0,0,0};
     SaNtfReadHandleT readHandle;
     SaNtfHandleT ntfHandle;
 
@@ -46,7 +46,7 @@ void saNtfNotificationReadFinalize_01(void)
     safassert(saNtfInitialize(&ntfHandle,
 					   &ntfCallbacks,
 					   &ntfVersion), SA_AIS_OK);
-
+	 myNotificationFilterAllocationParams.numPerceivedSeverities = 0;
     safassert(saNtfAlarmNotificationFilterAllocate(
 	ntfHandle, /* handle to Notification Service instance */
 	&myAlarmFilter, /* put filter here */
