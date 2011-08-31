@@ -4974,17 +4974,29 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     object->mImplementer->mId, *implConn, *implNodeId,
                     object->mImplementer->mImplementerName.c_str());
                 ccb->mWaitStartTime = time(NULL);
-            } else if(ccb->mCcbFlags & 
-                SA_IMM_CCB_REGISTERED_OI) {
-                TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer yet "
-                    "flag SA_IMM_CCB_REGISTERED_OI is set", 
-                    objectName.c_str());
-                err = SA_AIS_ERR_NOT_EXIST;
-            } else {
-                TRACE_7("object '%s' does not have an implementer and "
-                    "flag SA_IMM_CCB_REGISTERED_OI is NOT set - OK!",
-                    objectName.c_str());
-            }
+            } else if(ccb->mCcbFlags & SA_IMM_CCB_REGISTERED_OI) {
+                if((object->mImplementer == NULL) && 
+                   (ccb->mCcbFlags & SA_IMM_CCB_ALLOW_NULL_OI)) {
+                    TRACE_7("Null implementer, SA_IMM_CCB_REGISTERED_OI set, "
+                        "but SA_IMM_CCB_ALLOW_NULL_OI set => safe relaxation");
+                } else {
+                    TRACE_7("ERR_NOT_EXIST: object '%s' does not have an "
+                        "implementer and flag SA_IMM_CCB_REGISTERED_OI is set", 
+                        objectName.c_str());
+                    err = SA_AIS_ERR_NOT_EXIST;
+                }
+            } else { /* SA_IMM_CCB_REGISTERED_OI NOT set */
+                if(object->mImplementer) {
+                    if(sImmNodeState != IMM_NODE_LOADING) {
+                        LOG_WA("Object '%s' DOES have an implementer %s, currently "
+                            "detached, but flag SA_IMM_CCB_REGISTERED_OI is NOT set - UNSAFE!",
+                            objectName.c_str(), object->mImplementer->mImplementerName.c_str());
+                    }
+                } else {
+                    TRACE_7("Object '%s' has NULL implementer, flag SA_IMM_CCB_REGISTERED_OI "
+                        "is NOT set - moderately safe.", objectName.c_str());
+                }
+            } 
         }
 
     bypass_impl:
@@ -5535,11 +5547,26 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 object->mImplementer->mImplementerName.c_str());
             
             ccb->mWaitStartTime = time(NULL);
-        } else if(!hasImpl && (ccb->mCcbFlags & SA_IMM_CCB_REGISTERED_OI)) {
-            TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer yet "
-                "flag SA_IMM_CCB_REGISTERED_OI is set", 
-                objectName.c_str());
-            err = SA_AIS_ERR_NOT_EXIST;
+        } else if(ccb->mCcbFlags & SA_IMM_CCB_REGISTERED_OI) {
+            if((object->mImplementer == NULL) && 
+               (ccb->mCcbFlags & SA_IMM_CCB_ALLOW_NULL_OI)) {
+                TRACE_7("Null implementer, SA_IMM_CCB_REGISTERED_OI set, "
+                    "but SA_IMM_CCB_ALLOW_NULL_OI set => safe relaxation");
+            } else {
+                TRACE_7("ERR_NOT_EXIST: object '%s' does not have an "
+                    "implementer and flag SA_IMM_CCB_REGISTERED_OI is set", 
+                    objectName.c_str());
+                err = SA_AIS_ERR_NOT_EXIST;
+            }
+        } else { /* SA_IMM_CCB_REGISTERED_OI NOT set */
+            if(object->mImplementer) {
+                LOG_WA("Object '%s' DOES have an implementer %s, currently "
+                    "detached, but flag SA_IMM_CCB_REGISTERED_OI is NOT set - UNSAFE!",
+                    objectName.c_str(), object->mImplementer->mImplementerName.c_str());
+            } else {
+                TRACE_7("Object '%s' has NULL implementer, flag SA_IMM_CCB_REGISTERED_OI "
+                    "is NOT set - moderately safe.", objectName.c_str());
+            }
         }
     }
 
@@ -5816,13 +5843,30 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
         }
     }
     
-    if(!(oi->second->mImplementer && oi->second->mImplementer->mNodeId) &&
-        (ccb->mCcbFlags & SA_IMM_CCB_REGISTERED_OI) && configObj) {
-
-        TRACE_7("ERR_NOT_EXIST: object '%s' has no implementer yet flag "
-            "SA_IMM_CCB_REGISTERED_OI is set in ccb", 
-            oi->first.c_str());
-        return SA_AIS_ERR_NOT_EXIST;
+    if(!doIt &&
+        !(oi->second->mImplementer && oi->second->mImplementer->mNodeId) && configObj) {
+        /* Implementer is not present. */
+        if(ccb->mCcbFlags & SA_IMM_CCB_REGISTERED_OI){
+            if((oi->second->mImplementer == NULL) &&
+               (ccb->mCcbFlags & SA_IMM_CCB_ALLOW_NULL_OI)) {
+                TRACE_7("Null implementer, SA_IMM_CCB_REGISTERED_OI set, "
+                    "but SA_IMM_CCB_ALLOW_NULL_OI set => safe relaxation");
+            } else {
+                TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer "
+                    "and flag SA_IMM_CCB_REGISTERED_OI is set", 
+                    oi->first.c_str());
+                return SA_AIS_ERR_NOT_EXIST;
+            } 
+        } else {  /* SA_IMM_CCB_REGISTERED_OI NOT set */
+            if(oi->second->mImplementer) {
+                LOG_WA("Object '%s' DOES have an implementer %s, currently detached, "
+                    "but flag SA_IMM_CCB_REGISTERED_OI is NOT set - UNSAFE!",
+                    oi->first.c_str(), oi->second->mImplementer->mImplementerName.c_str());
+            } else {
+                TRACE_7("Object '%s' has NULL implementer, flag SA_IMM_CCB_REGISTERED_OI "
+                    "is NOT set - moderately safe.", oi->first.c_str());
+            }
+        }
     }
     
     ObjectMutationMap::iterator omuti =
@@ -5873,7 +5917,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
            (ccb->mAugCcbParent->mImplId == oi->second->mImplementer->mId));
 
         if(ignoreImpl) {
-            LOG_IN("Skipping OI upcall for create of %s since OI is same "
+            LOG_IN("Skipping OI upcall for delete of %s since OI is same "
                "as the originator of the modify (OI augmented ccb)",
                oi->first.c_str());
             goto bypass_impl;

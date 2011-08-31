@@ -1239,7 +1239,9 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
-	if ((ccbHandle == NULL) || (ccbFlags && (ccbFlags != SA_IMM_CCB_REGISTERED_OI))) {
+
+
+	if (ccbHandle == NULL) {
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
@@ -1315,6 +1317,33 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 		adminOwnerId = ao_node->mAdminOwnerId; /* *** */
 		ao_node = NULL;
 	}
+
+	if (ccbFlags) {
+		SaImmCcbFlagsT ccbFlagsTmp = ccbFlags;
+
+		if(ccbFlagsTmp & SA_IMM_CCB_REGISTERED_OI) {
+			TRACE("SA_IMM_CCB_REGISTERED_OI is set");
+			ccbFlagsTmp &= ~SA_IMM_CCB_REGISTERED_OI;
+			if(ccbFlagsTmp & SA_IMM_CCB_ALLOW_NULL_OI) {
+				TRACE("SA_IMM_CCB_ALLOW_NULL_OI is set");
+				if(!(cl_node->isImmA2b)) {
+					TRACE("ERR_VERSION: SA_IMM_CCB_ALLOW_NULL_OI"
+						"requires IMM version A.02.11");
+					rc = SA_AIS_ERR_VERSION;
+					goto done;
+				}
+
+				ccbFlagsTmp &= ~SA_IMM_CCB_ALLOW_NULL_OI;
+			}
+		}
+
+		if(ccbFlagsTmp) {
+			TRACE("ERR_INVALID_PARAM: Unknon flags in ccbFlags: 0x%llx", ccbFlags);
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+	}
+
 
 	/* Allocate the IMMA_CCB_NODE & Populate */
 

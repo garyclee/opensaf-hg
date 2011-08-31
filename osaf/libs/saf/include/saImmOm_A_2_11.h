@@ -137,8 +137,8 @@ extern "C" {
 #define SA_IMM_ATTR_PERSISTENT    0x00020000
 #define SA_IMM_ATTR_CACHED        0x00040000
 	*/
-#define SA_IMM_ATTR_NO_DUPLICATES 0x0000000000000004   /* See: http://devel.opensaf.org/ticket/1545 */
-
+#define SA_IMM_ATTR_NO_DUPLICATES 0x0000000001000000 /* See: http://devel.opensaf.org/ticket/1545
+							Not yet supported. */
 
         /* 4.2.12 SaImmSearchOptionsT */
 	/*
@@ -147,8 +147,17 @@ extern "C" {
 #define SA_IMM_SEARCH_GET_NO_ATTR    0x0200
 #define SA_IMM_SEARCH_GET_SOME_ATTR  0x0400
 	*/
-#define SA_IMM_SEARCH_GET_CONFIG_ATTR 0x0000000000000800   /* See: http://devel.opensaf.org/ticket/1897 */
+#define SA_IMM_SEARCH_GET_CONFIG_ATTR 0x0000000000010000   /* See: http://devel.opensaf.org/ticket/1897 
+							      Not yet supported */
 
+	/* 4.2.14 SaImmCcbFlagsT */
+	/*
+#define SA_IMM_CCB_REGISTERED_OI 0x00000001
+	typedef SaUint64T SaImmCcbFlagsT;
+	*/
+#define SA_IMM_CCB_ALLOW_NULL_OI 0x0000000000000100      /* See http://devel.opensaf.org/ticket/1997 
+							    Supported in A.2.11
+							  */
 
 #ifdef  __cplusplus
 }
