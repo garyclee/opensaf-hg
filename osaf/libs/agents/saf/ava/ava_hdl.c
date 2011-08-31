@@ -95,7 +95,7 @@ void ava_hdl_del(AVA_CB *cb)
 	/* scan the entire handle db & delete each record */
 	while ((hdl_rec = (AVA_HDL_REC *)
 		ncs_patricia_tree_getnext(&hdl_db->hdl_db_anchor, 0))) {
-		ava_hdl_rec_del(cb, hdl_db, hdl_rec);
+		ava_hdl_rec_del(cb, hdl_db, &hdl_rec);
 	}
 
 	/* there shouldn't be any record left */
@@ -124,8 +124,9 @@ void ava_hdl_del(AVA_CB *cb)
                   removed. This is to disallow the waiting thread to access 
                   the hdl rec while other thread executes saAmfFinalize on it.
 ******************************************************************************/
-void ava_hdl_rec_del(AVA_CB *cb, AVA_HDL_DB *hdl_db, AVA_HDL_REC *hdl_rec)
+void ava_hdl_rec_del(AVA_CB *cb, AVA_HDL_DB *hdl_db, AVA_HDL_REC **_hdl_rec)
 {
+	AVA_HDL_REC *hdl_rec = *_hdl_rec;
 	uint32_t hdl = hdl_rec->hdl;
 	TRACE_ENTER();
 
@@ -146,6 +147,7 @@ void ava_hdl_rec_del(AVA_CB *cb, AVA_HDL_DB *hdl_db, AVA_HDL_REC *hdl_rec)
 
 	/* free the hdl rec */
 	free(hdl_rec);
+	*_hdl_rec = NULL;
 
 	/* update the no of records */
 	hdl_db->num--;

@@ -183,7 +183,7 @@ uint32_t ava_hdl_init(AVA_HDL_DB *);
 
 void ava_hdl_del(struct ava_cb_tag *);
 
-void ava_hdl_rec_del(struct ava_cb_tag *, AVA_HDL_DB *, AVA_HDL_REC *);
+void ava_hdl_rec_del(struct ava_cb_tag *, AVA_HDL_DB *, AVA_HDL_REC **);
 
 AVA_HDL_REC *ava_hdl_rec_add(struct ava_cb_tag *, AVA_HDL_DB *, const SaAmfCallbacksT *);
 
