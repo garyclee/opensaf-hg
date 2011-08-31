@@ -128,7 +128,7 @@ SaAisErrorT saAmfInitialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg_cbks
  done:
 	/* free the hdl rec if there's some error */
 	if (hdl_rec && SA_AIS_OK != rc)
-		ava_hdl_rec_del(cb, hdl_db, hdl_rec);
+		ava_hdl_rec_del(cb, hdl_db, &hdl_rec);
 
 	/* release cb read lock and return handle */
 	if (cb) {
@@ -325,7 +325,8 @@ SaAisErrorT saAmfFinalize(SaAmfHandleT hdl)
 	}
 	/* acquire cb read lock */
 	m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
-    /* retrieve hdl rec */
+
+	/* retrieve hdl rec */
 	if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -345,17 +346,19 @@ SaAisErrorT saAmfFinalize(SaAmfHandleT hdl)
 	/* populate & send the finalize message */
 	m_AVA_AMF_FINALIZE_MSG_FILL(msg, cb->ava_dest, hdl, cb->comp_name);
 	rc = ava_mds_send(cb, &msg, 0);
-	if (NCSCC_RC_SUCCESS != rc)
+	if (NCSCC_RC_SUCCESS == rc) {
+		ncshm_give_hdl(hdl);
+		ava_hdl_rec_del(cb, hdl_db, &hdl_rec);
+	}
+	else {
 		rc = SA_AIS_ERR_TRY_AGAIN;
-
-	/* delete the hdl rec */
-	if (SA_AIS_OK == rc)
-		ava_hdl_rec_del(cb, hdl_db, hdl_rec);
+		goto done;
+	}
 
 	/* Fialize the environment */
-	if (SA_AIS_OK == rc && cb->pend_dis == 0)
+	if (cb->pend_dis == 0)
 		agent_flag = true;
-	else if (SA_AIS_OK == rc && cb->pend_dis > 0)
+	else if (cb->pend_dis > 0)
 		cb->pend_fin++;
 
  done:
@@ -376,7 +379,7 @@ SaAisErrorT saAmfFinalize(SaAmfHandleT hdl)
 		ncs_agents_shutdown();
 	}
 
-	TRACE_LEAVE2("API Return code = %u, Num pending finalize = %u", rc, cb->pend_fin);
+	TRACE_LEAVE2("rc:%u, pending:%u", rc, cb->pend_fin);
 	return rc;
 }
 
@@ -2033,7 +2036,7 @@ SaAisErrorT saAmfInitialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 *reg_
  done:
 	/* free the hdl rec if there's some error */
 	if (hdl_rec && SA_AIS_OK != rc)
-		ava_hdl_rec_del(cb, hdl_db, hdl_rec);
+		ava_hdl_rec_del(cb, hdl_db, &hdl_rec);
 
 	/* release cb read lock and return handle */
 	if (cb) {
