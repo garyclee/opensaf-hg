@@ -2010,7 +2010,10 @@ SaAisErrorT saAmfInitialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 *reg_
 	 * should be replaced with SaAmfCallbacksT_4 everywhere in ava when SaAmfCallbacksT_4 messages are supported
 	 * from avnd.
 	 */
-	if((reg_cbks->saAmfContainedComponentCleanupCallback != 0) || (reg_cbks->saAmfContainedComponentInstantiateCallback != 0)) {
+	if ((reg_cbks != NULL) &&
+	    ((reg_cbks->saAmfContainedComponentCleanupCallback != 0) ||
+	     (reg_cbks->saAmfContainedComponentInstantiateCallback != 0))) {
+		TRACE_4("SA_AIS_ERR_INVALID_PARAM: unsupported callbacks");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
