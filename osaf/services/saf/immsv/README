@@ -585,6 +585,7 @@ strings before such re-use. Note also that the 'errorStrings'
 out parameter is declared as 'const', indicating that deallocation
 of 'errorStrings' is here done by the library (not the user).
 
+
 IMPROVED ADMIN-OPERATION API (4.2)
 ====================================
 http://devel.opensaf.org/ticket/1764
@@ -702,9 +703,10 @@ with an imm-class; and for supporting more elaborate runtime type
 checking of admin-operation invocations and replies, by the imm
 service. 
 
+
 OI AUGMENTED CCBs (4.2)
 ====================================
-http://devel.opensaf.org/ticket/1763
+http://devel.opensaf.org/ticket/1963
 
 OpenSAF 4.2 adds the immsv enhancement of supporting OI augmented
 CCBs. This feature is available for OI clients that register with
@@ -847,8 +849,54 @@ which could be a 'surprise' (cause problems) for the OM user.
 
 Again, the OI designer intending to augment CCBs needs to think
 carefully about what they are trying to do and why, to avoid
-creating an application that appears unmanagable. 
+creating an application that appears unmanagable.
 
+
+Support for SA_IMM_CCB_ALLOW_NULL_OI (4.2)
+=========================================
+http://devel.opensaf.org/ticket/1997
+
+OpenSAF 4.2 exteds the SaImmCcbFlagsT type with a new flag value:
+
+  #define SA_IMM_CCB_ALLOW_NULL_OI 0x0000000000000100
+
+This flag is available for OI clients that register with 
+imm version A.2.11. 
+
+The flag should be set in *combination* with the existing
+SA_IMM_CCB_REGISTERED_OI flag. Its effect is that it relaxes
+the requirement on OI to allow no registered OI when there
+is no registered implementer *name* for the class/object.
+If an implementer name exists, but no implemener is currently
+attached, then the semantis is still the same as 
+SA_IMM_CCB_REGISTERED_OI, the CCB operation is rejected with
+SA_AIS_ERR_NOT_EXIST.
+
+This will be the setting hardwired into commands such as 'immcfg'
+when invoked wihout '--unsafe', i.e. when invokde in safe mode.
+
+There are then 3 possible flag settings for saImmOmCcbinitialize:
+
+No flags: Allow CCBs to proceed despite missing OIs, regardless
+of the way they are missing. This variant is the most unsafe and
+should really only be used by special applications such as
+immloader. The danger is that an OI that is only temporarily
+detached, say during a failover, will not get the opportunity
+to validate the CCB. This setting is typically too unsafe.
+
+SA_IMM_CCB_REGISTERED_OI: See the IMM spec for A.02.01.
+A CCB operation on an object will only be allowed when there
+is an OI name registered for it AND the OI is attached.
+This is the most safe way of executing a CCB, but it may be
+too restrictive in some cases. The best example is during
+installation when some config objects are created before
+the OI is started. 
+
+SA_IMM_CCB_REGISTERED_OI | SA_IMM_CCB_ALLOW_NULL_OI: 
+This is the relatively safe variant in the middle.
+A CCB operation on an object is allowed if there is an 
+implementer, or if there is no implementer name defined
+for the object. 
 
 
 DEPENDENCIES
