@@ -212,6 +212,8 @@ all-local:
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(pkglogdir)
+	$(mkinstalldirs) $(DESTDIR)$(pkglogdir)/dtlog
+	$(mkinstalldirs) $(DESTDIR)$(pkglogdir)/saflog
 	$(mkinstalldirs) $(DESTDIR)$(pkgpiddir)
 	$(mkinstalldirs) $(DESTDIR)$(lockdir)
 	$(mkinstalldirs) $(DESTDIR)$(pkglocalstatedir)

@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 {
 	uint32_t error;
 
-	daemonize(argc, argv);
+	daemonize_as_user("root", argc, argv);
 
 	if (__init_avnd() != NCSCC_RC_SUCCESS) {
 		syslog(LOG_ERR, "__init_avd() failed");

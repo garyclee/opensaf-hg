@@ -1,3 +1,6 @@
+%define opensaf_user opensaf
+%define opensaf_group opensaf
+
 %define is_python %(test "@PYTHON_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_java %(test "@JAVA_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_am4j %(test "@AM4J_ENABLED@" = "yes" && echo 1 || echo 0)
@@ -39,6 +42,7 @@ URL: http://www.opensaf.org
 Source: http://download.opensaf.org/releases/%{name}-%{version}.tar.gz
 Packager: @OPENSAF_BUGREPORT@
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Requires(pre): /usr/bin/getent /usr/sbin/groupadd /usr/sbin/useradd
 Requires(post): /usr/lib/lsb/install_initd /sbin/service
 Requires(preun): /usr/lib/lsb/remove_initd /sbin/service
 Requires: /lib/lsb/init-functions
@@ -729,6 +733,13 @@ Requires: %{name}-controller = %{version}-%{release}
 %clean
 %{__rm} -rf $RPM_BUILD_ROOT
 
+%pre
+getent group %{opensaf_group} > /dev/null || groupadd -r %{opensaf_group}
+getent passwd %{opensaf_user} > /dev/null || \
+   useradd -r -g %{opensaf_user} -d %{_pkgdatadir} -s /sbin/nologin -c "OpenSAF" %{opensaf_user}
+grep %{opensaf_user} /etc/sudoers > /dev/null || \
+   echo "%{opensaf_user} ALL = NOPASSWD: /sbin/reboot, /sbin/tipc-config, /usr/bin/pkill, /usr/bin/rpm" >> /etc/sudoers
+exit 0
 
 %post
 # $1 == 1 (install), $1 == 2 (upgrade)
@@ -743,6 +754,7 @@ fi
 if [ $1 = 0 ]; then
     /sbin/service opensafd stop >/dev/null 2>&1 || :
     /usr/lib/lsb/remove_initd %{_initddir}/opensafd
+    sed -i '/%{opensaf_user}/d' /etc/sudoers
 fi
 
 %post amf-libs -p /sbin/ldconfig
@@ -877,9 +889,9 @@ fi
 %doc README 00-README.uml 00-README.conf 00-README.debug
 %dir %{_pkglibdir}
 %dir %{_pkgsysconfdir}
-%dir %{_localstatedir}/lib/%{name}
-%dir %{_localstatedir}/log/%{name}
-%dir %{_localstatedir}/run/%{name}
+%attr(-,%{opensaf_user},%{opensaf_group}) %dir %{_localstatedir}/lib/%{name}
+%attr(-,%{opensaf_user},%{opensaf_group}) %dir %{_localstatedir}/log/%{name}
+%attr(-,%{opensaf_user},%{opensaf_group}) %dir %{_localstatedir}/run/%{name}
 %config(noreplace) %{_pkgsysconfdir}/chassis_id
 %config(noreplace) %{_pkgsysconfdir}/slot_id
 %config(noreplace) %{_pkgsysconfdir}/subslot_id
@@ -1293,6 +1305,8 @@ fi
 
 %files controller
 %defattr(-,root,root)
+%attr(-,%{opensaf_user},%{opensaf_group}) %dir %{_localstatedir}/log/%{name}/dtlog
+%attr(-,%{opensaf_user},%{opensaf_group}) %dir %{_localstatedir}/log/%{name}/saflog
 %dir %{_pkgsysconfdir}
 %dir %{_pkglibdir}
 %dir %{_pkgclcclidir}

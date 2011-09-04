@@ -26,6 +26,8 @@
 * library.                                                              *
 ************************************************************************/
 
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <configmake.h>
 
 #include <nid_api.h>
@@ -51,15 +53,21 @@ int32_t fifo_fd = -1;
  ***************************************************************************/
 uint32_t nid_create_ipc(char *strbuf)
 {
+	mode_t mask;
+
 	/* Lets Remove any such file if it already exists */
 	unlink(NID_FIFO);
 
+	mask = umask(0);
+
 	/* Create nid fifo */
-	if (mkfifo(NID_FIFO, 0600) < 0) {
+	if (mkfifo(NID_FIFO, 0666) < 0) {
 		sprintf(strbuf, " FAILURE: Unable To Create FIFO Error:%s\n", strerror(errno));
+		umask(mask);
 		return NCSCC_RC_FAILURE;
 	}
 
+	umask(mask);
 	return NCSCC_RC_SUCCESS;
 }
 

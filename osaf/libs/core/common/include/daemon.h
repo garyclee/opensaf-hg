@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 extern void daemonize(int argc, char *argv[]);
-
+extern void daemonize_as_user(const char *username, int argc, char *argv[]);
 
 #ifdef __cplusplus
 }

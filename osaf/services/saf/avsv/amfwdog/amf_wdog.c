@@ -136,7 +136,6 @@ int main(int argc, char *argv[])
 	SaNameT comp_name;
 	SaAmfHealthcheckKeyT hc_key;
 	char *hc_key_env;
-	
 	struct sched_param param;
 	char *thread_prio;
 	int policy = SCHED_RR; /*root defaults */
@@ -144,8 +143,9 @@ int main(int argc, char *argv[])
 	int max_prio;
 	int min_prio;
 
-	/* Change scheduling class to real time. */
+	daemonize(argc, argv);
 
+	/* Change scheduling class to real time. */
 	if ((thread_prio = getenv("OSAF_AMFWDOG_SCHED_PRIORITY")) != NULL)
 		prio_val = strtol(thread_prio, NULL, 0);
 	
@@ -163,8 +163,6 @@ int main(int argc, char *argv[])
 	if (sched_setscheduler(0, policy, &param) == -1) {
 		syslog(LOG_ERR, "Could not set scheduling class for %s", strerror(errno));
 	}
-
-	daemonize(argc, argv);
 
 	ava_install_amf_down_cb(amf_down_cb);
 

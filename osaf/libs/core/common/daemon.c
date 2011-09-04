@@ -73,28 +73,28 @@ static int __create_pidfile(const char* pidfile)
 	if ( ((fd = open(pidfile, O_RDWR|O_CREAT, 0644)) == -1)
 			|| ((file = fdopen(fd, "r+")) == NULL) ) { 
 		syslog(LOG_ERR, "open failed, pidfile=%s, errno=%s", pidfile, strerror(errno));
-		rc = -1;
+		return -1;
 	}
 
 	/* Lock the file */
 	if (flock(fd, LOCK_EX|LOCK_NB) == -1) {
 		syslog(LOG_ERR, "flock failed, pidfile=%s, errno=%s", pidfile, strerror(errno));
 		fclose(file);
-		rc = -1;
+		return -1;
 	}
 
 	pid = getpid();
 	if (!fprintf(file,"%d\n", pid)) {
 		syslog(LOG_ERR, "fprintf failed, pidfile=%s, errno=%s", pidfile, strerror(errno));
 		fclose(file);
-		rc = -1;
+		return -1;
 	}
 	fflush(file);
 
 	if (flock(fd, LOCK_UN) == -1) {
 		syslog(LOG_ERR, "flock failed, pidfile=%s, errno=%s", pidfile, strerror(errno));
 		fclose(file);
-		rc = -1;
+		return -1;
 	}
 	fclose(file);
 
@@ -118,7 +118,13 @@ static void __set_default_options(const char *progname)
 	/* Set the default option values */
 	snprintf(__pidfile, sizeof(__pidfile), PKGPIDDIR "/%s.pid", progname);
 	snprintf(__tracefile, sizeof(__tracefile), PKGLOGDIR "/%s", progname);
-	snprintf(__runas_username, sizeof(__runas_username), DEFAULT_RUNAS_USERNAME);
+	if (strlen(__runas_username) == 0) {
+		char *uname = getenv("OPENSAF_USER");
+		if (uname)
+			snprintf(__runas_username, sizeof(__runas_username), "%s", uname);
+		else
+			snprintf(__runas_username, sizeof(__runas_username), DEFAULT_RUNAS_USERNAME);
+	}
 	__logmask = level2mask("notice");
 }
 
@@ -243,10 +249,6 @@ void daemonize(int argc, char *argv[])
 	if (__create_pidfile(__pidfile) != 0)
 		exit(EXIT_FAILURE);
 
-	/* Initialize the log/trace interface */
-	if (logtrace_init_daemon(basename(argv[0]), __tracefile, __tracemask, __logmask) != 0)
-		exit(EXIT_FAILURE);
-
 	/* Cancel certain signals */
 	signal(SIGCHLD, SIG_DFL);	/* A child process dies */
 	signal(SIGTSTP, SIG_IGN);	/* Various TTY signals */
@@ -254,19 +256,39 @@ void daemonize(int argc, char *argv[])
 	signal(SIGTTIN, SIG_IGN);
 	signal(SIGTERM, SIG_DFL);	/* Die on SIGTERM */
 
-	/* TODO: Drop user if there is one, and we were run as root */
-	/*if (getuid() == 0 || geteuid() == 0) {
-		struct passwd *pw = getpwnam(runas_username);
+	/* RUNASROOT gives the OpenSAF user a possibility to maintain the 4.1 behaviour
+	 * should eventually be removed. 
+	 */
+#ifndef RUNASROOT
+	/* Drop privileges to user if there is one, and we were run as root */
+	if (getuid() == 0 || geteuid() == 0) {
+		struct passwd *pw = getpwnam(__runas_username);
 		if (pw) {
-			if (setuid(pw->pw_uid) < 0) {
-				LOG_ER("setuid failed, uid=%d (%s)", pw->pw_uid, strerror(errno));
+			if ((pw->pw_gid > 0) && (setgid(pw->pw_gid) < 0)) {
+				syslog(LOG_ERR, "setgid failed, gid=%d (%s)", pw->pw_gid, strerror(errno));
+				exit(EXIT_FAILURE);
+			}
+			if ((pw->pw_uid > 0) && (setuid(pw->pw_uid) < 0)) {
+				syslog(LOG_ERR, "setuid failed, uid=%d (%s)", pw->pw_uid, strerror(errno));
 				exit(EXIT_FAILURE);
 			}
 		} else {
-			LOG_ER(invalid passwd, user=%s (%s)", runas_username, strerror(errno));
+			syslog(LOG_ERR, "invalid user name %s", __runas_username);
 			exit(EXIT_FAILURE);
 		}
-	}*/
+	}
+#endif
+
+	/* Initialize the log/trace interface */
+	if (logtrace_init_daemon(basename(argv[0]), __tracefile, __tracemask, __logmask) != 0)
+		exit(EXIT_FAILURE);
 
 	syslog(LOG_NOTICE, "Started");
 }
+
+void daemonize_as_user(const char *username, int argc, char *argv[])
+{
+	strncpy(__runas_username, username, sizeof(__runas_username));
+	daemonize(argc, argv);
+}
+

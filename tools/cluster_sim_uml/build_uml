@@ -170,6 +170,9 @@ cmd_create_rootfs()
     # Change core pattern, uml cannot write cores to hostfs
     sed -i 's/var\/crash\/opensaf/tmp/g' etc/init.d/opensafd
 
+    # UML can only runas root
+    sed -i 's/\=opensaf/\=root/g' etc/opensaf/nid.conf
+
     # The var directory structure is setup from within each UML
     rm -rf var/*
 
