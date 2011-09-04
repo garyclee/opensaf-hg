@@ -26,21 +26,22 @@ else
 	. $pkgsysconfdir/nid.conf
 fi	
 
+shmdir=/dev/shm/opensaf
 binary=$pkglibdir/$prog
 lockfile=$lockdir/$prog
 amfnd_bin=$pkglibdir/osafamfnd
 amfnd_pid=$pkgpiddir/osafamfnd.pid
 
-OPENSAF_MANAGE_TIPC="yes"
+MANAGE_TIPC=${OPENSAF_MANAGE_TIPC:="yes"}
 RETVAL=0
-TERMTIMEOUT=60
+TERMTIMEOUT=${OPENSAF_TERMTIMEOUT:=60}
 
 unload_tipc() {
 	# FIXME: Once tipc scripts are cleaned
 	pkill -9 nid_tipc*
 
   	# Unload TIPC if already loaded
-	if [ $OPENSAF_MANAGE_TIPC = "yes" ] && grep tipc /proc/modules >/dev/null 2>&1; then
+	if [ $MANAGE_TIPC = "yes" ] && grep tipc /proc/modules >/dev/null 2>&1; then
 		modprobe -r tipc >/dev/null 2>&1
 		if [ $? -eq 1 ]; then
 			logger -t $prog "warning: TIPC module unloading failed"
@@ -67,17 +68,19 @@ check_env() {
 		logger -s -t $prog "POSIX shared memory (/dev/shm) not enabled, exiting."
 		exit 6
 	fi
-	if [ ! -d /dev/shm/opensaf ]; then
-		mkdir -p /dev/shm/opensaf
-	fi
 
-	# Some distros store /var/lock, /var/run on tmpfs mounts and content gets cleaned
-	if [ ! -d $lockdir ]; then
-		mkdir -p $lockdir
-	fi
-	if [ ! -d $pkgpiddir ]; then
-		mkdir -p $pkgpiddir
-	fi
+	# /dev/shm, /var/lock & /var/run could be tmpfs mounts and needs to be 
+	# recreated at each boot
+	directories="$shmdir $lockdir $pkgpiddir"
+	for directory in $directories; do
+		mkdir -p $directory
+		if [ -n "$OPENSAF_GROUP" ]; then
+			getent group $OPENSAF_GROUP > /dev/null && chgrp $OPENSAF_GROUP $directory
+		fi
+		if [ -n "$OPENSAF_USER" ]; then
+			getent passwd $OPENSAF_USER > /dev/null && chown $OPENSAF_USER $directory
+		fi
+	done
 
 	rm -f $pkglogdir/nid.log
 }
@@ -122,12 +125,10 @@ final_clean() {
 
 	rm -f $lockfile
 	rm -f $NIDFIFO
+	rm -f $pkglocalstatedir/node_id
 }
+
 generate_nodeid() {
-
-
-
-
 	CHASSIS_ID_FILE=$pkgsysconfdir/chassis_id
 	SLOT_ID_FILE=$pkgsysconfdir/slot_id
 	SUBSLOT_ID_FILE=$pkgsysconfdir/subslot_id
@@ -166,6 +167,7 @@ generate_nodeid() {
 	printf "00%02x%02x%02x\n" $CHASSIS_ID $SLOT_ID $SUBSLOT_ID > $pkglocalstatedir/node_id
 	chmod 744 $pkglocalstatedir/node_id
 }
+
 check_transport() {
 	if [ "$MDS_TRANSPORT" = "TIPC" ] ; then
 		# Transport TIPC

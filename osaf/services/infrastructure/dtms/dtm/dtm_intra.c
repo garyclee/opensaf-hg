@@ -185,8 +185,8 @@ uint32_t dtm_intra_processing_init(void)
 			return NCSCC_RC_FAILURE;
 		}
 
-		if (chmod(UX_SOCK_NAME_PREFIX,(S_IROTH | S_IWOTH ))< 0 ) { 
-			LOG_ER("DTM:Unable to set the permission to unix server sock");
+		if (chmod(UX_SOCK_NAME_PREFIX, (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) < 0) { 
+			LOG_ER("chmod %s failed - %s", UX_SOCK_NAME_PREFIX, strerror(errno));
 			close(dtm_intranode_cb->server_sockfd);
 			free(dtm_intranode_cb);
 			return NCSCC_RC_FAILURE;

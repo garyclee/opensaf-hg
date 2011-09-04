@@ -38,6 +38,8 @@
     ncs_os_end_task_lock  (void)
 
 ******************************************************************************/
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #include <ncsgl_defs.h>		/* Global defintions */
 
@@ -428,9 +430,26 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 
 			/* if we opted for lowest priority then change that process
 			   SCHED policy to SCHED_OTHER */
-
+#ifdef RLIMIT_RTPRIO
+			if (task->info.create.i_priority == NCS_OS_TASK_PRIORITY_0){
+					policy = SCHED_OTHER;
+			} else {
+				/* Policy will be set to SCHED_RR for a non-root user also who/when 
+				 * has configured limits.conf with rtprio
+				 */
+				if (ncs_is_root() == false) {
+					struct rlimit mylimit;
+					if (getrlimit(RLIMIT_RTPRIO, &mylimit) == 0 ) {
+						if (mylimit.rlim_cur == 0) {
+							policy = SCHED_OTHER;
+						}
+					}
+				}
+			}
+#else
 			if (ncs_is_root() == false || task->info.create.i_priority == NCS_OS_TASK_PRIORITY_0)
 				policy = SCHED_OTHER;	/* This policy is for normal user */
+#endif
 
 			pthread_attr_t attr;
 			struct sched_param sp;
@@ -2174,6 +2193,27 @@ uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 			if (freopen("/dev/null", "w", stderr) == NULL)
 				syslog(LOG_ERR, "%s: freopen stderr failed - %s", __FUNCTION__, strerror(errno));
 		}
+
+		/* RUNASROOT gives the OpenSAF user a possibility to maintain the < 4.2 behaviour.
+		 * For example the UML environment needs this because of its simplified user management.
+		 * OpenSAF processes will otherwise be started as the real host user and will
+		 * have problems e.g. writing PID files to the root owned directory.
+		 */
+#ifndef RUNASROOT
+		/* Check owner user ID of file and change group and user accordingly */
+		{
+			struct stat buf;
+			if (stat(req->i_script, &buf) == 0) {
+				if (setgid(buf.st_gid) == -1)
+					syslog(LOG_ERR, "setgid %u failed - %s", buf.st_gid, strerror(errno));
+				if (setuid(buf.st_uid) == -1)
+					syslog(LOG_ERR, "setuid %u failed - %s", buf.st_uid, strerror(errno));
+			} else {
+				syslog(LOG_ERR, "Could not stat %s - %s", req->i_script, strerror(errno));
+				return NCSCC_RC_FAILURE;
+			}
+		}
+#endif
 
 		/* child part */
 		if (execvp(req->i_script, req->i_argv) == -1) {

@@ -51,6 +51,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #include <configmake.h>
 #include <rda_papi.h>
@@ -1273,6 +1275,13 @@ int main(int argc, char *argv[])
 	char tracefile[NAME_MAX];
 
 	TRACE_ENTER();
+
+#ifdef RLIMIT_RTPRIO
+	struct rlimit mylimit;
+	mylimit.rlim_max = mylimit.rlim_cur = sched_get_priority_max(SCHED_RR);
+	if (setrlimit(RLIMIT_RTPRIO, &mylimit) == -1)
+		syslog(LOG_WARNING, "Could not set RTPRIO - %s", strerror(errno));
+#endif
 
 	openlog(basename(argv[0]), LOG_PID, LOG_LOCAL0);
 	snprintf(tracefile, sizeof(tracefile), PKGLOGDIR "/%s.log", basename(argv[0]));

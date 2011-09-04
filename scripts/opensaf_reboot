@@ -32,19 +32,6 @@ ee_name=$2
 tipc_config=`which tipc-config 2> /dev/null`
 test $? -ne 0 && tipc_config="/bin/true"
 
-#If no plm in the system,old reboot mechanism is maintained.
-opensaf_reboot_no_plm()
-{
-	if [ "$self_node_id" = "$node_id" ];then
-		$tipc_config "-bd=?"
-		/sbin/reboot -f
-	else
-		logger -t "opensaf_reboot" "Rebooting remote node in the absence of PLM is outside the scope of OpenSAF"
-	fi
-
-	exit 0
-}
-
 #if plm exists in the system,then the reboot is performed using the eename.
 opensaf_reboot_with_plm()
 {
@@ -53,8 +40,8 @@ opensaf_reboot_with_plm()
 	retval=$?
 	if [ $retval != 0 ]; then
 		if [ "$self_node_id" = "$node_id" ];then
-			$tipc_config "-bd=?"
-			/sbin/reboot -f
+			sudo $tipc_config "-bd=?"
+			sudo /sbin/reboot -f
 		else
 			logger -t "opensaf_reboot" "Rebooting remote node failed"
 			exit 1
@@ -85,12 +72,12 @@ if [ "$self_node_id" = "$node_id" ] || [ $node_id = 0 ]; then
 # resulted due to tipc bearer disable. Hence killing the processes amfnd, amfd and fmd before invoking
 # TIPC bearer disable and reboot -f. FMD is killed so that it will not act on TIPC link down and AMFD/AMFND
 # are killed so that FMD will not be respawned.
-	pkill osafamfd
-	pkill osafamfnd
-	pkill osaffmd
+	sudo pkill osafamfd
+	sudo pkill osafamfnd
+	sudo pkill osaffmd
 
-	$tipc_config "-bd=?"
-	/sbin/reboot -f
+	sudo $tipc_config "-bd=?"
+	sudo /sbin/reboot -f
 else
 	if [ ":$ee_name" != ":" ]; then
 		plm_node_state=`immlist $ee_name |grep saPlmEEAdminState|awk '{print $3}'` 
