@@ -1211,7 +1211,7 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, " %s", argv);
 
 		j = 0;
-		while ((argv = immutil_getStringAttr(attributes, "saAmfCompTerminateCmdArgv", j)) != NULL)
+		while ((argv = immutil_getStringAttr(attributes, "saAmfCompTerminateCmdArgv", j++)) != NULL)
 			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, " %s", argv);
 
 		cmd->len = i;
@@ -1232,7 +1232,7 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, " %s", argv);
 
 		j = 0;
-		while ((argv = immutil_getStringAttr(attributes, "saAmfCompCleanupCmdArgv", j)) != NULL)
+		while ((argv = immutil_getStringAttr(attributes, "saAmfCompCleanupCmdArgv", j++)) != NULL)
 			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, " %s", argv);
 
 		cmd->len = i;
@@ -1253,7 +1253,7 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, " %s", argv);
 
 		j = 0;
-		while ((argv = immutil_getStringAttr(attributes, "saAmfCompAmStartCmdArgv", j)) != NULL)
+		while ((argv = immutil_getStringAttr(attributes, "saAmfCompAmStartCmdArgv", j++)) != NULL)
 			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, " %s", argv);
 
 		cmd->len = i;
@@ -1276,7 +1276,7 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, " %s", argv);
 
 		j = 0;
-		while ((argv = immutil_getStringAttr(attributes, "saAmfCompAmStopCmdArgv", j)) != NULL)
+		while ((argv = immutil_getStringAttr(attributes, "saAmfCompAmStopCmdArgv", j++)) != NULL)
 			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, " %s", argv);
 
 		cmd->len = i;
