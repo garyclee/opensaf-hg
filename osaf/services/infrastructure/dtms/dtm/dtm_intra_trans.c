@@ -97,7 +97,6 @@ static uint32_t dtm_lib_prepare_data_msg(uint8_t *buffer, uint16_t len)
 uint32_t dtm_intranode_send_msg(uint16_t len, uint8_t *buffer, DTM_INTRANODE_PID_INFO * pid_node)
 {
 	DTM_INTRANODE_UNSENT_MSGS *add_ptr = NULL, *hdr = pid_node->msgs_hdr, *tail = pid_node->msgs_tail;
-	TRACE_ENTER();
 
 	if (NULL == hdr) {
 		/* Send the message */
@@ -135,7 +134,6 @@ uint32_t dtm_intranode_send_msg(uint16_t len, uint8_t *buffer, DTM_INTRANODE_PID
 		tail->next = add_ptr;
 		pid_node->msgs_tail = add_ptr;
 		dtm_intranode_set_poll_fdlist(pid_node->accepted_fd, POLLOUT);
-		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
 }

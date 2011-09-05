@@ -43,7 +43,7 @@
 
 #define DTM_CONFIG_FILE PKGSYSCONFDIR "/dtmd.conf"
 /* pack_size + cluster_id + node_id + mcast_flag +  stream_port +  i_addr_family + ip_addr */
-#define DTM_BCAST_HDR_SIZE 28
+#define DTM_BCAST_HDR_SIZE 58
 
 /* ========================================================================
  *   DATA DECLARATIONS
@@ -112,7 +112,7 @@ static uint32_t dtm_construct_bcast_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *buf
 	ncs_encode_8bit(&data, dtms_cb->mcast_flag);
 	ncs_encode_16bit(&data, dtms_cb->stream_port);
 	ncs_encode_8bit(&data, (uint8_t)dtms_cb->i_addr_family);
-	memcpy(data, dtms_cb->ip_addr, sizeof(dtms_cb->ip_addr));
+	memcpy(data, dtms_cb->ip_addr, INET6_ADDRSTRLEN);
 
 	TRACE_LEAVE();
 

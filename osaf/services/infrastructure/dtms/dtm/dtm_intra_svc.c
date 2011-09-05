@@ -1341,15 +1341,14 @@ static uint32_t dtm_internode_delete_svc_installed_list_from_svc_tree(DTM_INTRAN
 static uint32_t dtm_lib_msg_snd_common(uint8_t *buffer, uint32_t pid, uint16_t msg_size)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
-	TRACE_ENTER();
 	pid_node = dtm_intranode_get_pid_info_using_pid(pid);
 	if (NULL == pid_node) {
+		TRACE_ENTER();
 		TRACE("DTM :pid node not found, dtm_lib_msg_snd_common");
 		TRACE_LEAVE();
 		free(buffer);
 		return NCSCC_RC_FAILURE;
 	} else {
-		TRACE_LEAVE();
 		return dtm_intranode_send_msg(msg_size, buffer, pid_node);
 	}
 }
