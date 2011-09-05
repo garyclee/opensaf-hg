@@ -1070,9 +1070,9 @@ static void endElementHandler(void* userData,
 			/* First time, initialize the imm object api */
 			TRACE_8("\n AdminOwner: %s \n", imm_import_adminOwnerName);
 			errorCode = saImmOmAdminOwnerInitialize(state->immHandle,
-													imm_import_adminOwnerName,
-													SA_TRUE,
-													&state->ownerHandle);
+				imm_import_adminOwnerName,
+				SA_TRUE,
+				&state->ownerHandle);
 			if (errorCode != SA_AIS_OK) {
 				LOG_ER("Failed on saImmOmAdminOwnerInitialize %d",
 					   errorCode);
@@ -1082,8 +1082,8 @@ static void endElementHandler(void* userData,
 
 			/* ... and initialize the imm ccb api  */
 			errorCode = saImmOmCcbInitialize(state->ownerHandle,
-											 imm_import_ccb_safe?SA_IMM_CCB_REGISTERED_OI:0x0,
-											 &state->ccbHandle);
+				imm_import_ccb_safe?(SA_IMM_CCB_REGISTERED_OI|SA_IMM_CCB_ALLOW_NULL_OI):0x0,
+				&state->ccbHandle);
 			if (errorCode != SA_AIS_OK) {
 				LOG_ER("Failed to initialize ImmOmCcb %d", errorCode);
 				exit(1);
