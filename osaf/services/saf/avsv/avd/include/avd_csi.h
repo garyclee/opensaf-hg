@@ -44,6 +44,11 @@ typedef struct avd_csi_attr_tag {
 	struct avd_csi_attr_tag *attr_next;	/* the next attribute in the list of attributes in the CSI. */
 } AVD_CSI_ATTR;
 
+typedef struct avd_csi_deps_tag {
+	SaNameT csi_dep_name_value; /* CSI dependency name and value */
+	struct avd_csi_deps_tag *csi_dep_next; /* the next CSI dependency in the list */
+} AVD_CSI_DEPS;
+
 /* Availability directors Component service in.stance structure(AVD_CSI):
  * This data structure lives in the AvD and reflects data points
  * associated with the CSI on the AvD.
@@ -53,8 +58,7 @@ typedef struct avd_csi_tag {
 
 	SaNameT name;
 	SaNameT saAmfCSType;
-	SaNameT saAmfCSIDependencies;
-        SaBoolT dep_csi_added; /* Used when the saAmfCSIDependencies is getting added in the si rank list*/
+	AVD_CSI_DEPS *saAmfCSIDependencies; /* list of all CSI dependencies for this CSI */
         /* Rank is calculated based on CSI dependency. If no dependency configured then rank will be 1. 
            Else rank will one more than rank of saAmfCSIDependencies. */
 	uint32_t rank;		/* The rank of the CSI in the SI 

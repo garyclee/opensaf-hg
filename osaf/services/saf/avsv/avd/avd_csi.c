@@ -223,6 +223,38 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 	return 1;
 }
+/**
+ * @brief	Check whether the CSI dependency is already existing in the existing list
+ * 		if not adds to the dependencies list 
+ *
+ * @param[in]	csi - csi to which the dependency is added
+ * @param[in]	new_csi_dep - csi dependency to be added
+ *
+ * @return	true/false
+ */
+static bool csi_add_csidep(AVD_CSI *csi,AVD_CSI_DEPS *new_csi_dep)
+{
+	AVD_CSI_DEPS *temp_csi_dep;
+	bool csi_added = false;
+
+	/* Check whether the CSI dependency is already existing in the existing list.
+	 * If yes, it should not get added again
+	 */
+	for (temp_csi_dep = csi->saAmfCSIDependencies; temp_csi_dep != NULL;
+		temp_csi_dep = temp_csi_dep->csi_dep_next) {
+		if (0 == memcmp(&new_csi_dep->csi_dep_name_value,
+				&temp_csi_dep->csi_dep_name_value, sizeof(SaNameT))) {
+			csi_added = true;
+		}
+	}
+	if (!csi_added) {
+		/* Add into the CSI dependency list */
+		new_csi_dep->csi_dep_next =  csi->saAmfCSIDependencies;
+		csi->saAmfCSIDependencies = new_csi_dep; 
+	}	 
+
+	return csi_added;
+}
 
 static AVD_CSI *csi_create(const SaNameT *csi_name, const SaImmAttrValuesT_2 **attributes, const SaNameT *si_name)
 {
@@ -251,22 +283,29 @@ static AVD_CSI *csi_create(const SaNameT *csi_name, const SaImmAttrValuesT_2 **a
 	assert(error == SA_AIS_OK);
 
 	if ((immutil_getAttrValuesNumber("saAmfCSIDependencies", attributes, &values_number) == SA_AIS_OK)) {
-
 		if (values_number == 0) {
 			/* No Dependency Configured. Mark rank as 1.*/
 			csi->rank = 1;
-		} else if (values_number == 1) {
-			/* Dependency Configured. Decide rank when adding it in si list.*/
-			if (immutil_getAttr("saAmfCSIDependencies", attributes, 0,
-						&csi->saAmfCSIDependencies) != SA_AIS_OK) {
-				LOG_ER("Get saAmfCSIDependencies FAILED for '%s'", csi_name->value);
-				goto done;
-			}
 		} else {
-			LOG_ER("saAmfCSIDependencies Not Supported for multivalued '%s' No of Dep CSIs= %d", 
-					csi_name->value, values_number);
-			goto done;
+			/* Dependency Configured. Decide rank when adding it in si list.*/
+			int i;
+			bool found = false;
+			AVD_CSI_DEPS *new_csi_dep = NULL;
+			
+			for (i = 0; i < values_number; i++) {
+				if (!found)
+					new_csi_dep  =  calloc(1, sizeof(*new_csi_dep));
+	               		if (immutil_getAttr("saAmfCSIDependencies", attributes, i,
+					&new_csi_dep->csi_dep_name_value) != SA_AIS_OK) {
+                               		LOG_ER("Get saAmfCSIDependencies FAILED for '%s'", csi_name->value);
+                               		goto done;
+				}
+				found = csi_add_csidep(csi,new_csi_dep);
+			}
+			if (found == true)
+				free (new_csi_dep);
 		}
+
 
 	} else {
 		csi->rank = 1;
@@ -283,6 +322,7 @@ static AVD_CSI *csi_create(const SaNameT *csi_name, const SaImmAttrValuesT_2 **a
 		free(csi);
 		csi = NULL;
 	}
+	TRACE_LEAVE(); 
 	return csi;
 }
 
