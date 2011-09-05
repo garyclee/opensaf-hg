@@ -1792,7 +1792,7 @@ int loadImmXML(std::string xmlfile)
 
 	version.releaseCode   = 'A';
 	version.majorVersion  = 2;
-	version.minorVersion  = 1;
+	version.minorVersion  = 11;
 
 	TRACE_8("Loading from %s", xmlfile.c_str());
 
