@@ -163,7 +163,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 	if ((requested_version.releaseCode == 'A') &&
             (requested_version.majorVersion == 0x02) &&
 	    (requested_version.minorVersion >= 0x0b)) {
-		LOG_IN("OM client version A.2.11");
+		TRACE("OM client version A.2.11");
 		cl_node->isImmA2b = true;
 	}
 
@@ -2861,7 +2861,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	}
 
 	if(ccb_node->mAugCcb) {
-		LOG_IN("Apply for augmentation for CcbId %u", ccb_node->mCcbId);
+		TRACE("Apply for augmentation for CcbId %u", ccb_node->mCcbId);
 		ccb_node->mApplied = true;
 		goto done;
 	}
