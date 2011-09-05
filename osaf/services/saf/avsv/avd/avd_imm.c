@@ -44,6 +44,7 @@
 #include <avd_comp.h>
 #include <avd_si.h>
 #include <avd_csi.h>
+#include <avd_si_dep.h>
 
 /* ========================================================================
  *   DEFINITIONS

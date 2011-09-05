@@ -25,6 +25,7 @@
 #include <avd_imm.h>
 #include <avd_csi.h>
 #include <avd_proc.h>
+#include <avd_si_dep.h>
 
 static NCS_PATRICIA_TREE si_db;
 static void avd_si_add_csi_db(struct avd_csi_tag* csi);

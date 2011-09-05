@@ -55,6 +55,7 @@
 #include <avd_clm.h>
 #include <avd_cluster.h>
 #include <avd_sutype.h>
+#include <avd_si_dep.h>
 
 /* 
 ** The singleton AVD Cluster Control Block. Statically allocated which is

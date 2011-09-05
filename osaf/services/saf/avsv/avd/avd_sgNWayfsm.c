@@ -101,6 +101,44 @@ static AVD_SU_SI_REL * find_pref_standby_susi(AVD_SU_SI_REL *sisu);
    } \
 };
 
+/**
+ * @brief       This routine does the following functionality
+ *              b. Checks the dependencies of the SI's to see whether
+ *                 role failover can be performed or not
+ *              c. If so sends D2N-INFO_SU_SI_ASSIGN modify active to  the Stdby SU
+ *
+ * @param[in]  	pref_sisu 
+ *              stdby_su
+ *
+ * @return
+ **/
+uint32_t avd_sg_nway_si_role_failover(AVD_SU_SI_REL *pref_sisu, AVD_SU *su)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	bool flag;
+
+	TRACE_ENTER2("SI '%s' SU '%s'",pref_sisu->si->name.value, pref_sisu->su->name.value);
+
+	if (pref_sisu->si->spons_si_list) {
+		/* Check if the pref_sisu->si has dependency on any other Sponsor SI */
+		flag = avd_sidep_is_si_failover_possible(pref_sisu->si, su->su_on_node);
+		if (flag == false) {
+			TRACE("Role failover is deferred as sponsors role failover is under going");
+			si_dep_state_set(pref_sisu->si, AVD_SI_FAILOVER_UNDER_PROGRESS);
+			goto done;
+		}
+	}
+	rc = avd_susi_role_mod_send(pref_sisu, SA_AMF_HA_ACTIVE);
+	if (rc == NCSCC_RC_SUCCESS) {
+		if (pref_sisu->si->num_dependents > 0) {
+			/* This is a Sponsor SI update its dependent states */
+			avd_update_depstate_si_failover(pref_sisu->si, su);
+		}
+	}
+done:
+        TRACE_LEAVE2("return value :%d", rc);
+        return rc;
+}
 /*****************************************************************************
  * Function: avd_sg_nway_si_func
  *
@@ -2014,6 +2052,17 @@ uint32_t avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 		/* => no si operation in progress */
 
 		if (true == is_su_present) {
+			/* If the fault happened while role failover is under progress,then for all the dependent SI's
+			 * for which si_dep_state is set to AVD_SI_FAILOVER_UNDER_PROGRESS reset the dependency to
+			 * AVD_SI_SPONSOR_UNASSIGNED and the default flow will remove the assignments
+			 */
+			for (curr_susi = su->list_of_susi;curr_susi != NULL;curr_susi = curr_susi->su_next) {
+				if(curr_susi->si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS)
+					si_dep_state_set(curr_susi->si, AVD_SI_SPONSOR_UNASSIGNED);
+				if (curr_susi->si->num_dependents > 0)
+					avd_sidep_reset_dependents_depstate_in_sufault(curr_susi->si);
+			}	
+
 			/* => su is present in the su-oper list */
 			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
@@ -3254,23 +3303,19 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 		/* identify the most preferred standby su for this si */
 		curr_sisu = find_pref_standby_susi(susi);
 		if (curr_sisu) {
-                        /* send active assignment */
-                        old_state = curr_sisu->state;
-                        old_fsm_state = curr_sisu->fsm;
-                        curr_sisu->state = SA_AMF_HA_ACTIVE;
-                        curr_sisu->fsm = AVD_SU_SI_STATE_MODIFY;
-                        m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_sisu, AVSV_CKPT_AVD_SI_ASS);
-                        avd_susi_update(curr_sisu, state);
-                        avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
-                        rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD, false, NULL);
-                        if (NCSCC_RC_SUCCESS != rc) {
-                                LOG_ER("%s:%u: %s ", __FILE__, __LINE__, curr_sisu->su->name.value);
-                                LOG_ER("%s:%u: %s ", __FILE__, __LINE__, curr_sisu->si->name.value);
-                                curr_sisu->state = old_state;
-                                curr_sisu->fsm = old_fsm_state;
-                                m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_sisu, AVSV_CKPT_AVD_SI_ASS);
-                                avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
-                                goto done;
+			if ((su->su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED)
+				|| (su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)) {
+				rc = avd_sg_nway_si_role_failover(curr_sisu,susi->su);
+				if (rc == NCSCC_RC_FAILURE) {
+					TRACE("Active role modification failed");
+					goto done;
+				}
+			} else {
+				rc = avd_susi_role_mod_send(curr_sisu, SA_AMF_HA_ACTIVE);
+				if (rc == NCSCC_RC_FAILURE) {
+					TRACE("Active role modification failed");
+					goto done;
+				}
 			}
 		} else {
 			/* determine if all the standby sus are engaged */
@@ -3774,8 +3819,6 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 {
 	AVD_SU_SI_REL *curr_susi = 0, *curr_sisu = 0;
 	AVD_SG *sg = su->sg_of_su;
-	SaAmfHAStateT old_state;
-	AVD_SU_SI_STATE old_fsm_state;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
 
@@ -3791,31 +3834,12 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 
 		if ((SA_AMF_HA_ACTIVE == curr_susi->state) ||
 		    (SA_AMF_HA_QUIESCED == curr_susi->state) || (SA_AMF_HA_QUIESCING == curr_susi->state)) {
-			for (curr_sisu = curr_susi->si->list_of_sisu;
-			     curr_sisu && !((SA_AMF_HA_STANDBY == curr_sisu->state) &&
-					    (SA_AMF_READINESS_IN_SERVICE == curr_sisu->su->saAmfSuReadinessState));
-			     curr_sisu = curr_sisu->si_next) ;
-
-			/* send active assignment */
+			/* identify the most preferred standby su for this si */
+			curr_sisu = find_pref_standby_susi(curr_susi);
 			if (curr_sisu) {
-				old_state = curr_sisu->state;
-				old_fsm_state = curr_sisu->fsm;
-				curr_sisu->state = SA_AMF_HA_ACTIVE;
-				curr_sisu->fsm = AVD_SU_SI_STATE_MODIFY;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_sisu, AVSV_CKPT_AVD_SI_ASS);
-				avd_susi_update(curr_sisu, SA_AMF_HA_ACTIVE);
-				avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
-				rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD, false, NULL);
-				if (NCSCC_RC_SUCCESS != rc) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->su->name.value,
-									 curr_sisu->su->name.length);
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->si->name.value,
-									 curr_sisu->si->name.length);
-					curr_sisu->state = old_state;
-					curr_sisu->fsm = old_fsm_state;
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_sisu, AVSV_CKPT_AVD_SI_ASS);
-					avd_susi_update(curr_sisu, old_state);
-					avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
+				rc = avd_sg_nway_si_role_failover(curr_sisu,curr_susi->su);
+				if (rc == NCSCC_RC_FAILURE) {
+					TRACE("Active role modification failed");
 					goto done;
 				}
 
@@ -3868,8 +3892,6 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *curr_susi = 0, *curr_sisu = 0;
 	AVD_SG *sg = su->sg_of_su;
-	SaAmfHAStateT old_state;
-	AVD_SU_SI_STATE old_fsm_state;
 	bool is_su_present, flag;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *su_node_ptr = NULL;
@@ -3896,34 +3918,16 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 			     ((SA_AMF_HA_QUIESCED == curr_susi->state) &&
 			      (AVD_SU_SI_STATE_MODIFY == curr_susi->fsm))) ||
 			    (AVD_SU_SI_STATE_UNASGN == curr_susi->fsm)) {
-				/* identify the standbys & send them active assignment */
-				for (curr_sisu = curr_susi->si->list_of_sisu;
-				     curr_sisu && !((SA_AMF_HA_STANDBY == curr_sisu->state) &&
-						    (SA_AMF_READINESS_IN_SERVICE ==
-						     curr_sisu->su->saAmfSuReadinessState));
-				     curr_sisu = curr_sisu->si_next) ;
 
+				curr_sisu = find_pref_standby_susi(curr_susi);
 				/* send active assignment */
 				if (curr_sisu) {
-					old_state = curr_sisu->state;
-					old_fsm_state = curr_sisu->fsm;
-					curr_sisu->state = SA_AMF_HA_ACTIVE;
-					curr_sisu->fsm = AVD_SU_SI_STATE_MODIFY;
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_sisu, AVSV_CKPT_AVD_SI_ASS);
-					avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
-					rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD, false, NULL);
-					if (NCSCC_RC_SUCCESS != rc) {
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->su->name.value,
-										 curr_sisu->su->name.length);
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->si->name.value,
-										 curr_sisu->si->name.length);
-						curr_sisu->state = old_state;
-						curr_sisu->fsm = old_fsm_state;
-						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_sisu, AVSV_CKPT_AVD_SI_ASS);
-						avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
+					rc = avd_sg_nway_si_role_failover(curr_sisu,curr_susi->su);
+					if (rc == NCSCC_RC_FAILURE) {
+						TRACE("Active role modification failed");
 						goto done;
 					}
-
+					
 					/* add su to su-oper list */
 					avd_sg_su_oper_list_add(cb, curr_sisu->su, false);
 
@@ -3960,30 +3964,12 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 		/* engage the active susis with their standbys */
 		for (curr_susi = su->list_of_susi; curr_susi; curr_susi = curr_susi->su_next) {
 			if (SA_AMF_HA_ACTIVE == curr_susi->state) {
-				for (curr_sisu = curr_susi->si->list_of_sisu;
-				     curr_sisu && !((SA_AMF_HA_STANDBY == curr_sisu->state) &&
-						    (SA_AMF_READINESS_IN_SERVICE ==
-						     curr_sisu->su->saAmfSuReadinessState));
-				     curr_sisu = curr_sisu->si_next) ;
-
+				curr_sisu = find_pref_standby_susi(curr_susi);
 				/* send active assignment */
 				if (curr_sisu) {
-					old_state = curr_sisu->state;
-					old_fsm_state = curr_sisu->fsm;
-					curr_sisu->state = SA_AMF_HA_ACTIVE;
-					curr_sisu->fsm = AVD_SU_SI_STATE_MODIFY;
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_sisu, AVSV_CKPT_AVD_SI_ASS);
-					avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
-					rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD, false, NULL);
-					if (NCSCC_RC_SUCCESS != rc) {
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->su->name.value,
-										 curr_sisu->su->name.length);
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->si->name.value,
-										 curr_sisu->si->name.length);
-						curr_sisu->state = old_state;
-						curr_sisu->fsm = old_fsm_state;
-						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_sisu, AVSV_CKPT_AVD_SI_ASS);
-						avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
+					rc = avd_sg_nway_si_role_failover(curr_sisu,curr_susi->su);
+					if (rc == NCSCC_RC_FAILURE) {
+						TRACE("Active role modification failed");
 						goto done;
 					}
 
@@ -4160,22 +4146,9 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 				/* send active assignment */
 				if (curr_sisu) {
-					old_state = curr_sisu->state;
-					old_fsm_state = curr_sisu->fsm;
-					curr_sisu->state = SA_AMF_HA_ACTIVE;
-					curr_sisu->fsm = AVD_SU_SI_STATE_MODIFY;
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_sisu, AVSV_CKPT_AVD_SI_ASS);
-					avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
-					rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD, false, NULL);
-					if (NCSCC_RC_SUCCESS != rc) {
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->su->name.value,
-										 curr_sisu->su->name.length);
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->si->name.value,
-										 curr_sisu->si->name.length);
-						curr_sisu->state = old_state;
-						curr_sisu->fsm = old_fsm_state;
-						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_sisu, AVSV_CKPT_AVD_SI_ASS);
-						avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
+					rc = avd_sg_nway_si_role_failover(curr_sisu,susi->su);
+					if (rc == NCSCC_RC_FAILURE) {
+						TRACE("Active role modification failed");
 						goto done;
 					}
 

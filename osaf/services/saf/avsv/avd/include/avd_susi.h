@@ -150,5 +150,7 @@ extern SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si);
 extern void avd_sirankedsu_constructor(void);
 extern void avd_susi_ha_state_set(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
 uint32_t avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, struct avd_su_si_rel_tag *susi);
+extern AVD_SU_SI_REL * avd_find_preferred_standby_susi(AVD_SI *si);
+extern uint32_t avd_susi_role_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
 
 #endif

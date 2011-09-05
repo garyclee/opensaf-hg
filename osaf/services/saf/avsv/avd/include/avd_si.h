@@ -41,7 +41,6 @@
 #include <avd_sg.h>
 #include <avd_su.h>
 #include <avd_sg.h>
-#include <avd_si_dep.h>
 #include <avsv_defs.h>
 #include <avd_ckpt_msg.h>
 
@@ -53,6 +52,7 @@ typedef enum {
 	AVD_SI_TOL_TIMER_RUNNING,
 	AVD_SI_READY_TO_UNASSIGN,
 	AVD_SI_UNASSIGNING_DUE_TO_DEP,
+	AVD_SI_FAILOVER_UNDER_PROGRESS,
 	AVD_SI_DEP_MAX_STATE
 } AVD_SI_DEP_STATE;
 

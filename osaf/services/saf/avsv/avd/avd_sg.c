@@ -27,6 +27,7 @@
 #include <avd_ntf.h>
 #include <avd_sg.h>
 #include <avd_proc.h>
+#include <avd_si_dep.h>
 
 static NCS_PATRICIA_TREE sg_db;
 static void avd_verify_equal_ranked_su(AVD_SG *avd_sg);
