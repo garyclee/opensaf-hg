@@ -53,6 +53,7 @@
 #include <logtrace.h>
 
 #include <avd.h>
+#include <avd_si_dep.h>
 
 /*****************************************************************************
  * Function: avd_sg_nored_su_chose_asgn

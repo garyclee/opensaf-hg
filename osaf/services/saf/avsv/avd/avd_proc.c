@@ -30,6 +30,7 @@
 #include <avd.h>
 #include <avd_imm.h>
 #include <avd_cluster.h>
+#include <avd_si_dep.h>
 
 enum {
 	FD_MBX = 0,

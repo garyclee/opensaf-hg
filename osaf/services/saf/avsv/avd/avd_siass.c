@@ -563,3 +563,82 @@ uint32_t avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi)
 	
 	return status;
 }
+/**
+ * @brief     Finds the most preferred Standby SISU for a particular Si to do SI failover
+ *
+ * @param[in] si
+ *
+ * @return   AVD_SU_SI_REL - pointer to the preferred sisu
+ *
+ */
+AVD_SU_SI_REL * avd_find_preferred_standby_susi(AVD_SI *si)
+{
+	AVD_SU_SI_REL *curr_sisu, *curr_susi;
+	int curr_su_act_cnt = 0;
+
+	TRACE_ENTER();
+
+	for (curr_sisu = si->list_of_sisu;curr_sisu != NULL;curr_sisu = curr_sisu->si_next) {
+		if ((SA_AMF_READINESS_IN_SERVICE == curr_sisu->su->saAmfSuReadinessState) &&
+			(SA_AMF_HA_STANDBY == curr_sisu->state)) {
+			/* Find the Current Active assignments on the curr_sisu->su.
+			 * We cannot depend on su->saAmfSUNumCurrActiveSIs, because for an Active assignment
+			 * saAmfSUNumCurrActiveSIs will be  updated only after completion of the assignment
+			 * process(getting response). So if there are any  assignments in the middle  of
+			 * assignment process saAmfSUNumCurrActiveSIs wont give the currect value
+			 */
+			curr_su_act_cnt = 0;
+			for (curr_susi = curr_sisu->su->list_of_susi;curr_susi != NULL;
+				curr_susi = curr_susi->su_next) {
+				if (SA_AMF_HA_ACTIVE == curr_susi->state)
+					curr_su_act_cnt++;
+			}
+			if (curr_su_act_cnt < si->sg_of_si->saAmfSGMaxActiveSIsperSU) {
+				TRACE("Found preferred sisu SU: '%s' SI: '%s'",curr_sisu->su->name.value,
+					curr_sisu->si->name.value);
+				break;
+			}
+		}
+	}
+	TRACE_LEAVE();
+	return curr_sisu;
+}
+/**
+ * @brief	Does role modification of a susi 
+ *
+ * @param[in]	susi
+ *		hs_state
+ *
+ * @return	NCSCC_RC_SUCCESS
+ *		NCSCC_RC_FAILURE	 
+ *
+ */
+uint32_t avd_susi_role_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
+{
+	SaAmfHAStateT old_state;
+	AVD_SU_SI_STATE old_fsm_state;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER2("SI '%s', SU '%s'", susi->si->name.value, susi->su->name.value);
+
+	old_state = susi->state;
+	old_fsm_state = susi->fsm;
+	susi->state = ha_state;
+	susi->fsm = AVD_SU_SI_STATE_MODIFY;
+	rc = avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_MOD, false, NULL);
+	if (NCSCC_RC_SUCCESS != rc) {
+		LOG_NO("susi msg send failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
+			susi->su->name.value,susi->si->name.value);
+		susi->state = old_state;
+		susi->fsm = old_fsm_state;
+		goto done;
+	}
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
+	avd_susi_update(susi, ha_state);
+	avd_gen_su_ha_state_changed_ntf(avd_cb, susi);
+
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+

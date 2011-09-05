@@ -57,6 +57,7 @@
 #include <logtrace.h>
 
 #include <avd.h>
+#include <avd_si_dep.h>
 static void avd_sg_npm_screening_for_si_redistr(AVD_SG *avd_sg);
 static void avd_sg_npm_si_transfer_for_redistr(AVD_SG *avd_sg);
 static uint32_t avd_sg_get_curr_act_cnt(AVD_SG *sg);
@@ -165,10 +166,22 @@ static AVD_SU_SI_REL *avd_sg_npm_su_othr(AVD_CL_CB *cb, AVD_SU *su)
  * 
  **************************************************************************/
 
-static void avd_sg_npm_su_chk_snd(AVD_CL_CB *cb, AVD_SU *s_su, AVD_SU *q_su)
+static uint32_t avd_sg_npm_su_chk_snd(AVD_CL_CB *cb, AVD_SU *s_su, AVD_SU *q_su)
 {
 	AVD_SU_SI_REL *i_susi;
+	uint32_t rc =  NCSCC_RC_FAILURE;
+
 	TRACE_ENTER();
+
+	/* Check if node failover is undergoing or admin opr is going on the node*/
+	if ((q_su->su_on_node->node_state == AVD_AVND_STATE_ABSENT) 
+		|| (q_su->su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED)
+		|| (q_su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)) {
+		if (avd_sidep_is_su_failover_possible(q_su) == false) {
+			TRACE("role modification cannot be done now as Sponsor SI's are not yet assigned");
+			goto done;
+		}
+	}
 
 	for (i_susi = s_su->list_of_susi; i_susi != AVD_SU_SI_REL_NULL; i_susi = i_susi->su_next) {
 		if ((i_susi->si->list_of_sisu != i_susi) && (i_susi->si->list_of_sisu->su == q_su))
@@ -185,9 +198,26 @@ static void avd_sg_npm_su_chk_snd(AVD_CL_CB *cb, AVD_SU *s_su, AVD_SU *q_su)
 	}			/* for (i_susi = su->list_of_susi;i_susi != AVD_SU_SI_REL_NULL; i_susi = i_susi->su_next) */
 
 	/* Now send active for all the remaining SUSIs. */
-	avd_sg_su_si_mod_snd(cb, s_su, SA_AMF_HA_ACTIVE);
+	rc = avd_sg_su_si_mod_snd(cb, s_su, SA_AMF_HA_ACTIVE);
+	if (rc == NCSCC_RC_SUCCESS) {
+		if ((q_su->su_on_node->node_state == AVD_AVND_STATE_ABSENT) 
+			|| (q_su->su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED)
+			|| (q_su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)) {
+			/* Update the dependent SI's dep_state */
+			for (i_susi = s_su->list_of_susi;i_susi != NULL;i_susi = i_susi->su_next) {
+				if (i_susi->si->num_dependents > 0) {
+					/* This is a Sponsor SI update its dependent states */
+					avd_update_depstate_si_failover(i_susi->si, q_su);
+				}
+			}
+		}
+	} else {
+		LOG_NO(" %s: %u: Active role modification failed for %s ", __FILE__, __LINE__, s_su->name.value);
+	}
 
-	return;
+done:
+	TRACE_LEAVE2("return value :%u", rc);
+	return rc;
 }
 
 /*****************************************************************************
@@ -1304,6 +1334,18 @@ static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 
 		m_AVD_CHK_OPLIST(su, l_flag);
 		if (l_flag == true) {
+			/* If the fault happened while role failover is under progress,then for all the dependent SI's
+			 * for which si_dep_state is set to AVD_SI_FAILOVER_UNDER_PROGRESS reset the dependency to
+			 * AVD_SI_SPONSOR_UNASSIGNED and the default flow will remove the assignments
+			 */
+			AVD_SU_SI_REL *l_susi;
+			for (l_susi = su->list_of_susi;l_susi != NULL;l_susi = l_susi->su_next) {
+				if(l_susi->si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS)
+					si_dep_state_set(l_susi->si, AVD_SI_SPONSOR_UNASSIGNED);
+				if (l_susi->si->num_dependents > 0)
+					avd_sidep_reset_dependents_depstate_in_sufault(l_susi->si);
+			}
+
 			/* SU is in the SU oper list. If the admin state of the SU is 
 			 * shutdown change it to lock. Send a D2N-INFO_SU_SI_ASSIGN message
 			 * modify quiesced all message to the SU. if the SU has standby 
@@ -1597,6 +1639,8 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 	SaAmfHAStateT old_ha_state;
 	AVD_AVND *su_node_ptr = NULL;
 
+	TRACE_ENTER();
+
 	if (susi == AVD_SU_SI_REL_NULL) {
 		/* assign all */
 		if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_QUIESCED)) {
@@ -1686,8 +1730,8 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						 * send D2N -INFO_SU_SI_ASSIGN message modify active all 
 						 * assignments to that SU. Add the SU to the oper list.                   
 						 */
-						avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-						avd_sg_su_oper_list_add(cb, o_susi->su, false);
+						if (avd_sg_npm_su_chk_snd(cb, o_susi->su, su) == NCSCC_RC_SUCCESS)
+							avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					}
 
 					/* Send D2N -INFO_SU_SI_ASSIGN message remove all to this SU. */
@@ -1718,8 +1762,8 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					 * send D2N -INFO_SU_SI_ASSIGN message modify active all 
 					 * assignments to that SU. Add the SU to the oper list.                   
 					 */
-					avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-					avd_sg_su_oper_list_add(cb, o_susi->su, false);
+					if (avd_sg_npm_su_chk_snd(cb, o_susi->su, su) == NCSCC_RC_SUCCESS)
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 				}
 
 				/* Send D2N-INFO_SU_SI_ASSIGN message remove all to this SU. If
@@ -1754,8 +1798,8 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					 * send D2N -INFO_SU_SI_ASSIGN message modify active all 
 					 * assignments to that SU. Add the SU to the oper list.                   
 					 */
-					avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-					avd_sg_su_oper_list_add(cb, o_susi->su, false);
+					if (avd_sg_npm_su_chk_snd(cb, o_susi->su, su) == NCSCC_RC_SUCCESS)
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 				}
 			}
 
@@ -2109,6 +2153,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 		   (NCS_ADMIN_STATE_UNLOCK != su->sg_of_su->admin_si->admin_state)) */
 	}			/* else (susi == AVD_SU_SI_REL_NULL) */
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
 }
@@ -2411,6 +2456,7 @@ static void avd_sg_npm_stdbysu_role_change(AVD_SU *su)
 {
 	AVD_SU_SI_REL *std_susi, *act_susi = su->list_of_susi;
 	uint32_t curr_pref_active_sus = 0;
+	bool  flag = true;
 
 	TRACE_ENTER2("SU name:%s",su->name.value);
 
@@ -2444,34 +2490,57 @@ static void avd_sg_npm_stdbysu_role_change(AVD_SU *su)
 					/* Add Standby SU to SU operlist */
 					avd_sg_su_oper_list_add(avd_cb, std_susi->su, false);
 				} else {
-					/* Check if standby SU has standby SI assignment from another SU, if so
-					 * send remove message for each of those SI assignments 
-					 */
-					AVD_SU_SI_REL *susi;
-					for (susi = std_susi->su->list_of_susi; susi != AVD_SU_SI_REL_NULL;
-											susi = susi->su_next) {
-						if ((susi->si->list_of_sisu != susi) && 
-							(susi->si->list_of_sisu->su == su)) {
-							continue;
-						}
-						if ((susi->si->list_of_sisu->si_next != AVD_SU_SI_REL_NULL) &&
-		    						(susi->si->list_of_sisu->si_next->su == su)) {
-							continue;
-						}
-						susi->fsm = AVD_SU_SI_STATE_UNASGN;
-						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb,susi, AVSV_CKPT_AVD_SI_ASS);
-						avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL);
-					}/* for (susi = std_susi->su->list_of_susi; susi != AVD_SU_SI_REL_NULL; 
-						susi = susi->su_next) */
+					/* Check if node failover is undergoing or admin opr is going on the node*/
+					if ((su->su_on_node->node_state == AVD_AVND_STATE_ABSENT)
+						|| (su->su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED)
+						|| (su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)) {
+						/* Check if there is any dependency for performing failover for this act_susi */
+						flag = avd_sidep_is_si_failover_possible(act_susi->si, su->su_on_node);
+					}
+					if (flag == true) {
 
-					/* Now send active for all the remaining SUSIs */
-					avd_sg_su_si_mod_snd(avd_cb, std_susi->su, SA_AMF_HA_ACTIVE);
+						/* Check if standby SU has standby SI assignment from another SU, if so
+					 	* send remove message for each of those SI assignments 
+					 	*/
+						AVD_SU_SI_REL *susi;
+						for (susi = std_susi->su->list_of_susi; susi != AVD_SU_SI_REL_NULL;
+											susi = susi->su_next) {
+							if ((susi->si->list_of_sisu != susi) && 
+							(	susi->si->list_of_sisu->su == su)) {
+								continue;
+							}
+							if ((susi->si->list_of_sisu->si_next != AVD_SU_SI_REL_NULL) &&
+		    							(susi->si->list_of_sisu->si_next->su == su)) {
+								continue;
+							}
+							susi->fsm = AVD_SU_SI_STATE_UNASGN;
+							m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb,susi, AVSV_CKPT_AVD_SI_ASS);
+							avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL);
+						}/* for (susi = std_susi->su->list_of_susi; susi != AVD_SU_SI_REL_NULL; 
+							susi = susi->su_next) */
+
+						/* Now send active for all the remaining SUSIs */
+						avd_sg_su_si_mod_snd(avd_cb, std_susi->su, SA_AMF_HA_ACTIVE);
+
+						if ((su->su_on_node->node_state == AVD_AVND_STATE_ABSENT)
+							|| (su->su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED)
+							|| (su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)) {
+
+							/* update dependents si_dep_state */
+							if (act_susi->si->num_dependents > 0) {
+								avd_update_depstate_si_failover(act_susi->si, su);
+							}
+						}
+
+						/* std_susi->su role changed to Active so increment the curr_pref_active_sus */
+						curr_pref_active_sus++;
 					
-					/* std_susi->su role changed to Active so increment the curr_pref_active_sus */
-					curr_pref_active_sus++;
-					
-					/* Add Standby SU to SU operlist */
-					avd_sg_su_oper_list_add(avd_cb, std_susi->su, false);
+						/* Add Standby SU to SU operlist */
+						avd_sg_su_oper_list_add(avd_cb, std_susi->su, false);
+					} else {
+						TRACE("Role failover is deferred as sponsors role failover is under going");
+						si_dep_state_set(act_susi->si, AVD_SI_FAILOVER_UNDER_PROGRESS);
+					}
 				}
 			}
 		}
@@ -2648,8 +2717,8 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			 * send D2N -INFO_SU_SI_ASSIGN message modify active all 
 			 * assignments to that SU. Add the SU to the oper list.                   
 			 */
-			avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-			avd_sg_su_oper_list_add(cb, o_susi->su, false);
+			if (avd_sg_npm_su_chk_snd(cb, o_susi->su, su) == NCSCC_RC_SUCCESS)
+				avd_sg_su_oper_list_add(cb, o_susi->su, false);
 		} else if ((o_susi != AVD_SU_SI_REL_NULL) &&
 			   (o_susi->su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE)) {
 			/* Send a D2N-INFO_SU_SI_ASSIGN with remove all to the standby SU 
@@ -3416,8 +3485,8 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 						 * send D2N -INFO_SU_SI_ASSIGN message modify active all 
 						 * assignments to that SU. Add the SU to the oper list.                   
 						 */
-						avd_sg_npm_su_chk_snd(cb, ot_susi->su, su);
-						avd_sg_su_oper_list_add(cb, ot_susi->su, false);
+						if (avd_sg_npm_su_chk_snd(cb, ot_susi->su, su) == NCSCC_RC_SUCCESS)
+							avd_sg_su_oper_list_add(cb, ot_susi->su, false);
 					}
 
 				}
@@ -3446,8 +3515,8 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 						 * send D2N -INFO_SU_SI_ASSIGN message modify active all 
 						 * assignments to that SU. Add the SU to the oper list.                   
 						 */
-						avd_sg_npm_su_chk_snd(cb, ot_susi->su, su);
-						avd_sg_su_oper_list_add(cb, ot_susi->su, false);
+						if (avd_sg_npm_su_chk_snd(cb, ot_susi->su, su) == NCSCC_RC_SUCCESS)
+							avd_sg_su_oper_list_add(cb, ot_susi->su, false);
 					}
 
 				}
@@ -3475,8 +3544,8 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 							 * message modify active all assignments to that SU.
 							 * Add the standby SU to operation list.
 							 */
-							avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-							avd_sg_su_oper_list_add(cb, o_susi->su, false);
+							if (avd_sg_npm_su_chk_snd(cb, o_susi->su, su) == NCSCC_RC_SUCCESS)
+								avd_sg_su_oper_list_add(cb, o_susi->su, false);
 						} else if (o_susi->su->saAmfSuReadinessState !=
 							   SA_AMF_READINESS_IN_SERVICE) {
 							/* Add the standby SU to operation list. */
@@ -3630,8 +3699,8 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 							 * message modify active all assignments to that SU.
 							 * Add the standby SU to operation list.
 							 */
-							avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-							avd_sg_su_oper_list_add(cb, o_susi->su, false);
+							if (avd_sg_npm_su_chk_snd(cb, o_susi->su, su) == NCSCC_RC_SUCCESS)
+								avd_sg_su_oper_list_add(cb, o_susi->su, false);
 						} else if (o_susi->su->saAmfSuReadinessState !=
 							   SA_AMF_READINESS_IN_SERVICE) {
 							/* Add the standby SU to operation list. */
@@ -3738,8 +3807,8 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 						 * send D2N -INFO_SU_SI_ASSIGN message modify active all 
 						 * assignments to that SU. Add the SU to the oper list.                   
 						 */
-						avd_sg_npm_su_chk_snd(cb, ot_susi->su, su);
-						avd_sg_su_oper_list_add(cb, ot_susi->su, false);
+						if (avd_sg_npm_su_chk_snd(cb, ot_susi->su, su) == NCSCC_RC_SUCCESS)
+							avd_sg_su_oper_list_add(cb, ot_susi->su, false);
 					} else if (ot_susi->su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) {
 						avd_sg_su_oper_list_add(cb, ot_susi->su, false);
 					}
@@ -3811,8 +3880,8 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					 * send D2N -INFO_SU_SI_ASSIGN message modify active all 
 					 * assignments to that SU. Add the SU to the oper list.                   
 					 */
-					avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-					avd_sg_su_oper_list_add(cb, o_susi->su, false);
+					if (avd_sg_npm_su_chk_snd(cb, o_susi->su, su) == NCSCC_RC_SUCCESS)
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 				}
 
 			}
@@ -3879,8 +3948,8 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				 * send D2N -INFO_SU_SI_ASSIGN message modify active all 
 				 * assignments to that SU. Add the SU to the oper list.                   
 				 */
-				avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-				avd_sg_su_oper_list_add(cb, o_susi->su, false);
+				if (avd_sg_npm_su_chk_snd(cb, o_susi->su, su) == NCSCC_RC_SUCCESS)
+					avd_sg_su_oper_list_add(cb, o_susi->su, false);
 			} else {
 				avd_sg_su_oper_list_add(cb, o_susi->su, false);
 			}
@@ -3942,8 +4011,8 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				 * send D2N -INFO_SU_SI_ASSIGN message modify active all 
 				 * assignments to that SU. Add the SU to the oper list.                   
 				 */
-				avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-				avd_sg_su_oper_list_add(cb, o_susi->su, false);
+				if (avd_sg_npm_su_chk_snd(cb, o_susi->su, su) == NCSCC_RC_SUCCESS)
+					avd_sg_su_oper_list_add(cb, o_susi->su, false);
 				/* Change state to SG realign. */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			}
@@ -4009,8 +4078,8 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				 * send D2N -INFO_SU_SI_ASSIGN message modify active all 
 				 * assignments to that SU. Add the SU to the oper list.                   
 				 */
-				avd_sg_npm_su_chk_snd(cb, ot_susi->su, su);
-				avd_sg_su_oper_list_add(cb, ot_susi->su, false);
+				if (avd_sg_npm_su_chk_snd(cb, ot_susi->su, su) == NCSCC_RC_SUCCESS)
+					avd_sg_su_oper_list_add(cb, ot_susi->su, false);
 				/* Change state to SG realign. */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			}
@@ -4036,8 +4105,8 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 						 * message modify active all assignments to that SU.
 						 * Add the standby SU to operation list.
 						 */
-						avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-						avd_sg_su_oper_list_add(cb, o_susi->su, false);
+						if (avd_sg_npm_su_chk_snd(cb, o_susi->su, su) == NCSCC_RC_SUCCESS)
+							avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					} else {
 						/* Add the standby SU to operation list. */
 						avd_sg_su_oper_list_add(cb, o_susi->su, false);
@@ -4194,8 +4263,8 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 						 * message modify active all assignments to that SU.
 						 * Add the standby SU to operation list.
 						 */
-						avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-						avd_sg_su_oper_list_add(cb, o_susi->su, false);
+						if (avd_sg_npm_su_chk_snd(cb, o_susi->su, su) == NCSCC_RC_SUCCESS)
+							avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					} else {
 						/* Add the standby SU to operation list. */
 						avd_sg_su_oper_list_add(cb, o_susi->su, false);

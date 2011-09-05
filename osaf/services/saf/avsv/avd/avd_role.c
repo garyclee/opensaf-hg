@@ -43,6 +43,7 @@
 #include <avd_cluster.h>
 #include <avd_clm.h>
 #include <rda_papi.h>
+#include <avd_si_dep.h>
 
 static uint32_t avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role);
 static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role);

@@ -33,6 +33,7 @@
 #include <avd_imm.h>
 #include <avd_su.h>
 #include <avd_clm.h>
+#include <avd_si_dep.h>
 
 static SaAisErrorT avd_d2n_reboot_snd(AVD_AVND *node);
 
@@ -1912,7 +1913,6 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_SU *i_su;
 	AVD_COMP *i_comp;
-	AVD_SU_SI_REL *l_susi;
 
 	TRACE_ENTER2("'%s'", avnd->name.value);
 
@@ -1937,16 +1937,6 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 			i_su->pend_cbk.invocation = 0;
 			i_su->pend_cbk.admin_oper = 0;
 		}
-
-
-                /* Check if there was any admin operations going on SIs. */
-                for (l_susi = i_su->list_of_susi; l_susi != NULL; l_susi = l_susi->su_next) {
-                        if (l_susi->si->invocation != 0) {
-                                immutil_saImmOiAdminOperationResult(cb->immOiHandle, l_susi->si->invocation,
-                                                SA_AIS_ERR_TIMEOUT);
-                                l_susi->si->invocation = 0;
-                        }
-                }
 
 		i_comp = i_su->list_of_comp;
 		while (i_comp != NULL) {
@@ -2051,15 +2041,6 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 			i_su->pend_cbk.invocation = 0;
 			i_su->pend_cbk.admin_oper = 0;
 		}
-
-                /* Check if there was any admin operations going on SIs. */
-                for (l_susi = i_su->list_of_susi; l_susi != NULL; l_susi = l_susi->su_next) {
-                        if (l_susi->si->invocation != 0) {
-                                immutil_saImmOiAdminOperationResult(cb->immOiHandle, l_susi->si->invocation,
-                                                SA_AIS_ERR_TIMEOUT);
-                                l_susi->si->invocation = 0;
-                        }
-                }
 
 		i_comp = i_su->list_of_comp;
 		while (i_comp != NULL) {
@@ -2553,3 +2534,45 @@ static SaAisErrorT avd_d2n_reboot_snd(AVD_AVND *node)
 
 	return rc;
 }
+/**
+ * @brief       This routine does the following functionality
+ *              a. Checks the dependencies of the SI's to see whether
+ *                 role failover can be performed or not
+ *              b. If so sends D2N-INFO_SU_SI_ASSIGN modify active all
+ *                 to  the Stdby SU
+ *              c. Adds the SU to su_oper_list
+ *
+ * @param[in]   su
+ *              stdby_su
+ *
+ * @return      Returns nothing
+ **/
+void avd_su_role_failover(AVD_SU *su, AVD_SU *stdby_su)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	bool flag;
+
+	TRACE_ENTER2(" from SU:'%s' to SU:'%s'",su->name.value,stdby_su->name.value);
+
+	/* Check if role failover can be performed for this SU */
+	flag = avd_sidep_is_su_failover_possible(su);
+	if (flag == true) {
+		/* There is no dependency to perform rolefailover for this SU,
+		 * So perform role failover
+		 */
+		rc = avd_sg_su_si_mod_snd(avd_cb, stdby_su, SA_AMF_HA_ACTIVE);
+		if (rc == NCSCC_RC_SUCCESS) {
+			/* Update the dependent SI's dep_state */
+			avd_update_depstate_su_rolefailover(su);
+
+			/* add the SU to the operation list */
+			m_AVD_CHK_OPLIST(stdby_su, flag);
+			if (flag == false) {
+				avd_sg_su_oper_list_add(avd_cb, stdby_su, false);
+			}
+		}
+	}
+	TRACE_LEAVE();
+}
+
+
