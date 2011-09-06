@@ -54,15 +54,6 @@
    memset((void *)&name->value[name->length],0,(size_t)(SA_MAX_NAME_LENGTH - name->length)); \
 }
 
-/* Struct for reading One Byte */
-typedef struct ncs_mqsv_mq_msg {
-	/* ll_hdr is filled by the MQ-implementation. A MQ-user is expected
-	   to fill in the "data" portion only.
-	 */
-	NCS_OS_MQ_MSG_LL_HDR ll_hdr;
-	uint8_t data[5];
-} NCS_MQSV_MQ_MSG;
-
 /* function prototypes for client handling*/
 MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_id, bool flag);
 uint32_t mqa_client_tree_delete_node(MQA_CB *mqa_cb, MQA_CLIENT_INFO *client_info);
