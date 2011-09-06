@@ -171,7 +171,7 @@ cmd_create_rootfs()
     sed -i 's/var\/crash\/opensaf/tmp/g' etc/init.d/opensafd
 
     # UML can only runas root
-    sed -i 's/\=opensaf/\=root/g' etc/opensaf/nid.conf
+    sed -i '/export\ OPENSAF/d' etc/opensaf/nid.conf
 
     # The var directory structure is setup from within each UML
     rm -rf var/*
