@@ -157,10 +157,7 @@ uint32_t cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (ckpt_node->is_unlink_set != true)) {
 		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &ckpt_node->ckpt_name) != SA_AIS_OK) {
 			LOG_ER("Deleting run time object %s FAILED", ckpt_node->ckpt_name.value);
-			/* Free the Client Node */
-			if (ckpt_node)
-				m_MMGR_FREE_CPD_CKPT_INFO_NODE(ckpt_node);
-			return NCSCC_RC_FAILURE;
+			rc = NCSCC_RC_FAILURE;
 		}
 	}
 

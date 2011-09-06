@@ -365,6 +365,13 @@ uint32_t cpnd_ckpt_replica_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisEr
 			m_MMGR_FREE_CPND_DEFAULT(cp_node->replica_info.shm_sec_mapping);
 	}
 
+	if (!m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags)) {
+                if (cp_node->is_active_exist && !m_NCS_MDS_DEST_EQUAL(&cp_node->active_mds_dest, &cb->cpnd_mdest_id)) {
+			/*  Active replica present on other CPND ,it will send destroy evt to CPD */
+                         goto done;
+                }
+        }
+
 	/* send destroy evt to CPD */
 	memset(&evt, '\0', sizeof(CPSV_EVT));
 
@@ -403,7 +410,7 @@ uint32_t cpnd_ckpt_replica_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisEr
 	}
 
 	cpnd_evt_destroy(out_evt);
-
+done:
 	*error = SA_AIS_OK;
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1432,11 +1439,6 @@ uint32_t cpnd_proc_non_colloc_rt_expiry(CPND_CB *cb, SaCkptCheckpointHandleT ckp
 	if (cp_node == NULL) {
 		TRACE_4("cpnd ckpt node get failed for ckpt_id:%llx",ckpt_id);
 		return NCSCC_RC_FAILURE;
-	}
-	if (!m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags)) {
-
-		if (cpnd_is_noncollocated_replica_present_on_payload(cb, cp_node))
-			return NCSCC_RC_SUCCESS;
 	}
 
 	rc = cpnd_ckpt_replica_destroy(cb, cp_node, &error);
