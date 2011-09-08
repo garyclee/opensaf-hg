@@ -111,6 +111,15 @@ Requires: %{name}-clm-libs = %{version}-%{release}
 The OpenSAF implementation of the SAF-AIS-AMF Service. This daemon must be
 running on both the System Controller nodes and the Payload nodes.
 
+%package amf-integration
+Group: System Environment/Libraries
+Summary: OpenSAF additions to simplify integration with the SAF-AIS-AMF Service
+Requires: %{name}-amf-libs = %{version}-%{release}
+
+%description amf-integration
+OpenSAF additions to simplify integration with the SAF-AIS-AMF Service
+
+
 %if %is_ais_ckpt
 
 %package ckpt-libs
@@ -942,6 +951,10 @@ fi
 %{_pkgclcclidir}/osaf-amfnd
 %{_pkglibdir}/osafamfwd
 %{_pkgclcclidir}/osaf-amfwd
+
+%files amf-integration
+%defattr(-,root,root)
+%{_sbindir}/amfpm
 
 
 %if %is_ais_ckpt
