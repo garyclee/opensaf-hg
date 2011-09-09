@@ -136,34 +136,9 @@ int main(int argc, char *argv[])
 	SaNameT comp_name;
 	SaAmfHealthcheckKeyT hc_key;
 	char *hc_key_env;
-	struct sched_param param;
-	char *thread_prio;
-	int policy = SCHED_RR; /*root defaults */
-	int prio_val = sched_get_priority_min(policy); /* Use same prio as AMF node director. */
-	int max_prio;
-	int min_prio;
-
+	
 	daemonize(argc, argv);
-
-	/* Change scheduling class to real time. */
-	if ((thread_prio = getenv("OSAF_AMFWDOG_SCHED_PRIORITY")) != NULL)
-		prio_val = strtol(thread_prio, NULL, 0);
 	
-	min_prio = sched_get_priority_min(policy);
-	max_prio = sched_get_priority_max(policy);
-	
-	if((prio_val < min_prio) || (prio_val > max_prio)) {
-		/* Set to defaults */
-		syslog(LOG_NOTICE, "Scheduling priority %d for given policy: %d is not within the range, \
-						setting to default values", prio_val, policy);
-		prio_val = sched_get_priority_min(policy);
-	}
-	
-	param.sched_priority = prio_val;
-	if (sched_setscheduler(0, policy, &param) == -1) {
-		syslog(LOG_ERR, "Could not set scheduling class for %s", strerror(errno));
-	}
-
 	ava_install_amf_down_cb(amf_down_cb);
 
 	amf_callbacks.saAmfCSISetCallback = amf_csi_set_callback;

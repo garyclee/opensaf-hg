@@ -117,6 +117,7 @@ extern "C" {
 				char *i_name;
 				unsigned int i_priority;
 				unsigned int i_stack_nbytes;
+				int i_policy;
 				void *i_ep_arg;
 				void *o_handle;
 			} create;

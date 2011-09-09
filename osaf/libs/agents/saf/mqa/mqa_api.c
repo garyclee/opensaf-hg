@@ -29,6 +29,8 @@
 
 #include "mqa.h"
 
+#include <sched.h>
+
 /* All MQA utility functions prototypes. */
 
 static SaAisErrorT mqa_queue_name_to_destination(const SaNameT *queueName, SaMsgQueueHandleT *queueHandle,
@@ -834,9 +836,12 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
 
 			*openRsp = out_evt->msg.mqp_rsp.info.openRsp;
 
+			int policy = SCHED_OTHER; /*root defaults */
+			int prio_val = sched_get_priority_min(policy);
+
 			rc = m_NCS_TASK_CREATE((NCS_OS_CB)mqa_queue_reader,
 					       (NCSCONTEXT)openRsp,
-					       "mqa_queue_reader", NCS_OS_TASK_PRIORITY_0, NCS_STACKSIZE_HUGE, &thread_handle);
+					       "OSAF_MQA", prio_val, policy, NCS_STACKSIZE_HUGE, &thread_handle);
 			if (rc != NCSCC_RC_SUCCESS) {
 				TRACE_4("ERR_RESOURCES: Queue Reader Thread Task Create Failed");
 				rc = SA_AIS_ERR_NO_RESOURCES;

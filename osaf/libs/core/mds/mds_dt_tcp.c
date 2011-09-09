@@ -294,28 +294,16 @@ static uint32_t mdtm_create_rcv_task(void)
 	/*
 	   STEP 1: Create a recv task which will recv data and
 	   captures the discovery events as well */
-
-	char *thread_prio;
+	
 	int policy = SCHED_RR; /*root defaults */
 	int max_prio = sched_get_priority_max(policy);
 	int min_prio = sched_get_priority_min(policy);
 	int prio_val = ((max_prio - min_prio) * 0.87); 
 
-	/* Change scheduling class to real time. */
-
-	if ((thread_prio = getenv("OSAF_MDS_SCHED_PRIORITY")) != NULL)
-		prio_val = strtol(thread_prio, NULL, 0);
-	
-	if((prio_val < min_prio) || (prio_val > max_prio)) {
-               /* Set to defaults */
-		syslog(LOG_NOTICE, "%s: Scheduling priority %d for given policy: %d is not within the range, setting to default values", __FUNCTION__, prio_val, policy);
-		prio_val = ((max_prio - min_prio) * 0.87);
-	}
-	
 	if (m_NCS_TASK_CREATE((NCS_OS_CB)mdtm_process_recv_events_tcp,
 				(NCSCONTEXT)NULL,
-				NCS_MDTM_TASKNAME,
-				prio_val, NCS_MDTM_STACKSIZE, &tcp_cb->mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
+				"OSAF_MDS",
+				prio_val, policy, NCS_MDTM_STACKSIZE, &tcp_cb->mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
 		m_MDS_LOG_ERR("MDTM: Task Creation-failed:\n");
 		return NCSCC_RC_FAILURE;
 	}

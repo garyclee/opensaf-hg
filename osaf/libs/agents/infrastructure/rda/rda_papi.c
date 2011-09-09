@@ -34,6 +34,8 @@
 */
 #include <rda.h>
 
+#include <sched.h>
+
 /*
 ** Global data
 */
@@ -223,10 +225,14 @@ static int pcs_rda_reg_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, v
 		/*
 		 ** Spawn task
 		 */
+	
+		int policy = SCHED_OTHER; /*root defaults */
+		int prio_val = sched_get_priority_min(policy);
+		
 		if (m_NCS_TASK_CREATE((NCS_OS_CB)rda_callback_task,
 				      rda_callback_cb,
-				      "RDATASK_CALLBACK",
-				      NCS_OS_TASK_PRIORITY_0, NCS_STACKSIZE_HUGE, &rda_callback_cb->task_handle) != NCSCC_RC_SUCCESS) {
+				      "OSAF_RDA",
+				       prio_val, policy, NCS_STACKSIZE_HUGE, &rda_callback_cb->task_handle) != NCSCC_RC_SUCCESS) {
 
 			m_NCS_MEM_FREE(rda_callback_cb, 0, 0, 0);
 			rc = PCSRDA_RC_TASK_SPAWN_FAILED;

@@ -14,7 +14,8 @@
  * Author(s): Wind River Systems
  *
  */
-
+#include <ctype.h>
+#include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -192,6 +193,15 @@ static void __parse_options(int argc, char *argv[])
 void daemonize(int argc, char *argv[])
 {
 	pid_t pid, sid;
+	struct sched_param param;
+	char *thread_prio;
+	char *thread_policy;
+	int policy = SCHED_OTHER; /*root defaults */
+	int prio_val = sched_get_priority_min(policy);
+	int i;
+	char t_str[256];
+	char buf1[256] = { 0 };
+	char buf2[256] = { 0 };
 
 	if (argc > 0 && argv != NULL) {	
 		__parse_options(argc, argv);
@@ -200,6 +210,41 @@ void daemonize(int argc, char *argv[])
 		syslog(LOG_ERR, "invalid top argc/argv[] passed to daemonize()");
 		exit(EXIT_FAILURE);
 	}
+
+	if( (!strncmp("osafamfwd", basename(argv[0]), 9)) || (!strncmp("osafamfnd", basename(argv[0]), 9))) 
+	{
+		policy = SCHED_RR;
+		prio_val = sched_get_priority_min(policy);
+	}
+	
+	strcpy(t_str, basename(argv[0]));
+	for(i = 0; i < strlen(t_str); i ++)
+	t_str[i] = toupper(t_str[i]);
+	
+	sprintf(buf1, "%s%s", t_str, "_SCHED_PRIORITY");
+	sprintf(buf2, "%s%s", t_str, "_SCHED_POLICY");			
+
+	/* Process scheduling class */
+
+	if ((thread_prio = getenv(buf1)) != NULL)
+		prio_val = strtol(thread_prio, NULL, 0);
+
+	if ((thread_policy = getenv(buf2)) != NULL)
+		policy = strtol(thread_policy, NULL, 0);
+
+	param.sched_priority = prio_val;
+	if (sched_setscheduler(0, policy, &param) == -1) {
+		syslog(LOG_ERR, "Could not set scheduling class for %s", strerror(errno));
+		if( (!strncmp("osafamfwd", basename(argv[0]), 9)) || (!strncmp("osafamfnd", basename(argv[0]), 9))) 
+		{
+			policy = SCHED_RR;
+			param.sched_priority = sched_get_priority_min(policy);
+			syslog(LOG_INFO, "setting to default values");
+			if (sched_setscheduler(0, policy, &param) == -1) 
+				syslog(LOG_ERR, "Could not set scheduling class for %s", strerror(errno));
+		}
+	}
+	
 	if (__nofork) {
 		syslog(LOG_WARNING, "Started without fork");
 	} else {

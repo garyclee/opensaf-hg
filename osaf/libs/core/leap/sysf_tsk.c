@@ -45,7 +45,7 @@
 
 uint32_t
 ncs_task_create(NCS_OS_CB entry_pt,
-		void *arg, char *name, unsigned int priority, unsigned int stack_size_in_bytes, void **task_handle)
+		void *arg, char *name, unsigned int priority, int policy, unsigned int stack_size_in_bytes, void **task_handle)
 {
 	NCS_OS_TASK task;
 	uint32_t rc;
@@ -53,6 +53,7 @@ ncs_task_create(NCS_OS_CB entry_pt,
 	task.info.create.i_entry_point = entry_pt;
 	task.info.create.i_name = name;
 	task.info.create.i_priority = priority;
+	task.info.create.i_policy = policy;
 	task.info.create.i_stack_nbytes = stack_size_in_bytes;
 	task.info.create.i_ep_arg = arg;
 

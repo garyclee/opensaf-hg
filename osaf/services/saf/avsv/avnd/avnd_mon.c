@@ -33,6 +33,7 @@
 #include "avnd.h"
 #include "avnd_mon.h"
 
+#include <sched.h>
 /*****************************************************************************
  * structure for holding PID monitoring node                                 *
  *****************************************************************************/
@@ -254,8 +255,11 @@ uint32_t avnd_mon_task_create(void)
 	uint32_t rc;
 
 	/* create avnd task */
+	int policy = SCHED_OTHER; /*root defaults */
+	int prio_val = sched_get_priority_min(policy);
+	
 	rc = m_NCS_TASK_CREATE((NCS_OS_CB)avnd_mon_process, NULL,
-			       "AVND_MON", NCS_OS_TASK_PRIORITY_0, m_AVND_STACKSIZE, &gl_avnd_mon_task_hdl);
+			       "OSAF_AVND_MON", prio_val, policy, m_AVND_STACKSIZE, &gl_avnd_mon_task_hdl);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_CR("Passive Monitoring thread CREATE failed");
 		goto err;

@@ -33,6 +33,8 @@
 
 #include "mqa.h"
 
+#include <sched.h>
+
 static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_RSP_MSG *callback);
 
 static bool mqa_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
@@ -200,10 +202,13 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 					openRsp->listenerHandle = param->listenerHandle;
 					openRsp->queueHandle = param->queueHandle;
 					openRsp->existing_msg_count = param->existing_msg_count;
-
+					
+					int policy = SCHED_OTHER; /*root defaults */
+					int prio_val = sched_get_priority_min(policy);
+	
 					rc = m_NCS_TASK_CREATE((NCS_OS_CB)mqa_queue_reader,
 							       (NCSCONTEXT)openRsp,
-							       "mqa_queue_reader", NCS_OS_TASK_PRIORITY_0, NCS_STACKSIZE_HUGE,
+							       "OSAF_MQA_CLBK", prio_val, policy, NCS_STACKSIZE_HUGE,
 							       &thread_handle);
 					if (rc != NCSCC_RC_SUCCESS) {
 						TRACE_4("ERR_RESOURCES: Queue Reader Thread Task Create Failed");
