@@ -19,5 +19,4 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 EXTRA_DIST = \
-	amf_demo_script \
-	AppConfig-2N.xml
+	net-snmp.xml

@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = comp_local
+SUBDIRS = non_sa_aware
 
 EXTRA_DIST = \
 	amf_demo_script \
