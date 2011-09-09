@@ -172,7 +172,7 @@ int
 	int prio_val = sched_get_priority_min(policy);
 	
 	if ((rc =
-	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfCampaignThread::main, (NCSCONTEXT) this, "OSAF_SMF_CAMP",
+	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfCampaignThread::main, (NCSCONTEXT) this, (char *)"OSAF_SMF_CAMP",
 			       prio_val, policy, m_CAMPAIGN_STACKSIZE, &m_task_hdl)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("TASK_CREATE_FAILED");
 		return -1;

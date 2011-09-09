@@ -231,7 +231,7 @@ static int pcs_rda_reg_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, v
 		
 		if (m_NCS_TASK_CREATE((NCS_OS_CB)rda_callback_task,
 				      rda_callback_cb,
-				      "OSAF_RDA",
+				      (char *)"OSAF_RDA",
 				       prio_val, policy, NCS_STACKSIZE_HUGE, &rda_callback_cb->task_handle) != NCSCC_RC_SUCCESS) {
 
 			m_NCS_MEM_FREE(rda_callback_cb, 0, 0, 0);

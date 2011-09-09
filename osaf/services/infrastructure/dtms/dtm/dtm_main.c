@@ -189,7 +189,7 @@ uint32_t dtm_node_discovery_task_create(void)
 	int prio_val = ((max_prio - min_prio) * 0.87); 
 
 	rc = m_NCS_TASK_CREATE((NCS_OS_CB)node_discovery_process, NULL,
-			       "OSAF_NODE_DISCOVERY", prio_val, policy, m_NODE_DISCOVERY_STACKSIZE,
+			       (char *)"OSAF_NODE_DISCOVERY", prio_val, policy, m_NODE_DISCOVERY_STACKSIZE,
 			       &gl_node_dis_task_hdl);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("DTM: node_discovery thread CREATE failed");
