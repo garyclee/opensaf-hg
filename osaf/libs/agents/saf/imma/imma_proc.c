@@ -34,6 +34,8 @@ size_t strnlen(const char *s, size_t maxlen);
 
 static void imma_proc_ccbaug_setup(IMMA_CLIENT_NODE *cl_node, IMMA_CALLBACK_INFO *callback);
 
+extern SaAisErrorT immsv_om_augment_ccb_get_result (SaImmOiHandleT privateOmHandle, SaUint32T ccbId) __attribute__((weak));
+
 static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, 
 	IMMA_CALLBACK_INFO *callback, SaImmHandleT immHandle);
 

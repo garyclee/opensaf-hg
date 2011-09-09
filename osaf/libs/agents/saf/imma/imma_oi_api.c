@@ -3160,6 +3160,14 @@ getAdmoName(SaImmAdminOwnerHandleT privateOmHandle, IMMA_CALLBACK_INFO * cbi, Sa
 }
 
 
+extern SaAisErrorT immsv_om_augment_ccb_initialize(
+				 SaImmOiHandleT privateOmHandle,
+				 SaUint32T ccbId,
+				 SaUint32T adminOwnerId,
+				 SaImmCcbHandleT *ccbHandle,
+				 SaImmAdminOwnerHandleT *ownerHandle) __attribute__((weak));
+
+
 /****************************************************************************
   Name          :  saImmOiAugmentCcbInitialize
  
