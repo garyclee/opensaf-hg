@@ -259,7 +259,7 @@ uint32_t avnd_mon_task_create(void)
 	int prio_val = sched_get_priority_min(policy);
 	
 	rc = m_NCS_TASK_CREATE((NCS_OS_CB)avnd_mon_process, NULL,
-			       "OSAF_AVND_MON", prio_val, policy, m_AVND_STACKSIZE, &gl_avnd_mon_task_hdl);
+			       (char *)"OSAF_AVND_MON", prio_val, policy, m_AVND_STACKSIZE, &gl_avnd_mon_task_hdl);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_CR("Passive Monitoring thread CREATE failed");
 		goto err;

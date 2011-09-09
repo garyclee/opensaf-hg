@@ -302,7 +302,7 @@ static uint32_t mdtm_create_rcv_task(void)
 
 	if (m_NCS_TASK_CREATE((NCS_OS_CB)mdtm_process_recv_events_tcp,
 				(NCSCONTEXT)NULL,
-				"OSAF_MDS",
+				(char *)"OSAF_MDS",
 				prio_val, policy, NCS_MDTM_STACKSIZE, &tcp_cb->mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
 		m_MDS_LOG_ERR("MDTM: Task Creation-failed:\n");
 		return NCSCC_RC_FAILURE;

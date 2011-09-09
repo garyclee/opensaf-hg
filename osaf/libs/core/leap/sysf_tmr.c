@@ -561,7 +561,7 @@ bool sysfTmrCreate(void)
 
 	if (m_NCS_TASK_CREATE((NCS_OS_CB)ncs_tmr_wait,
 			      0,
-			      "OSAF_TMR",
+			      (char *)"OSAF_TMR",
 			      prio_val, policy, NCS_TMR_STACKSIZE, &gl_tcb.p_tsk_hdl) != NCSCC_RC_SUCCESS) {
 		ncs_patricia_tree_destroy(&gl_tcb.tmr_pat_tree);
 		m_NCS_SEL_OBJ_DESTROY(gl_tcb.sel_obj);

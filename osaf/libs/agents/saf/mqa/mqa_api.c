@@ -841,7 +841,7 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
 
 			rc = m_NCS_TASK_CREATE((NCS_OS_CB)mqa_queue_reader,
 					       (NCSCONTEXT)openRsp,
-					       "OSAF_MQA", prio_val, policy, NCS_STACKSIZE_HUGE, &thread_handle);
+					       (char *)"OSAF_MQA", prio_val, policy, NCS_STACKSIZE_HUGE, &thread_handle);
 			if (rc != NCSCC_RC_SUCCESS) {
 				TRACE_4("ERR_RESOURCES: Queue Reader Thread Task Create Failed");
 				rc = SA_AIS_ERR_NO_RESOURCES;

@@ -318,7 +318,7 @@ static uint32_t dtm_intranode_create_rcv_task(int task_hdl)
 
 	if (m_NCS_TASK_CREATE((NCS_OS_CB)dtm_intranode_processing,
 			      (NCSCONTEXT)(long)task_hdl,
-			      "OSAF_DTM_INTRANODE",
+			      (char *)"OSAF_DTM_INTRANODE",
 			      prio_val, policy, DTM_INTRANODE_STACKSIZE,
 			      &dtm_intranode_cb->dtm_intranode_hdl_task) != NCSCC_RC_SUCCESS) {
 		LOG_ER("Intra NODE Task Creation-failed");

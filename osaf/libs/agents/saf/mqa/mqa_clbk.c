@@ -208,7 +208,7 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 	
 					rc = m_NCS_TASK_CREATE((NCS_OS_CB)mqa_queue_reader,
 							       (NCSCONTEXT)openRsp,
-							       "OSAF_MQA_CLBK", prio_val, policy, NCS_STACKSIZE_HUGE,
+							       (char *)"OSAF_MQA_CLBK", prio_val, policy, NCS_STACKSIZE_HUGE,
 							       &thread_handle);
 					if (rc != NCSCC_RC_SUCCESS) {
 						TRACE_4("ERR_RESOURCES: Queue Reader Thread Task Create Failed");
