@@ -49,6 +49,7 @@
 #include <sched.h>
 #include <sys/wait.h>
 
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -426,31 +427,14 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 			int rc;
 
 #if (CHECK_FOR_ROOT_PRIVLEGES == 1)
-			int policy = SCHED_RR; /*SCHED_FIFO */ ;
-
-			/* if we opted for lowest priority then change that process
-			   SCHED policy to SCHED_OTHER */
-#ifdef RLIMIT_RTPRIO
-			if (task->info.create.i_priority == NCS_OS_TASK_PRIORITY_0){
-					policy = SCHED_OTHER;
-			} else {
-				/* Policy will be set to SCHED_RR for a non-root user also who/when 
-				 * has configured limits.conf with rtprio
-				 */
-				if (ncs_is_root() == false) {
-					struct rlimit mylimit;
-					if (getrlimit(RLIMIT_RTPRIO, &mylimit) == 0 ) {
-						if (mylimit.rlim_cur == 0) {
-							policy = SCHED_OTHER;
-						}
-					}
-				}
-			}
-#else
-			if (ncs_is_root() == false || task->info.create.i_priority == NCS_OS_TASK_PRIORITY_0)
-				policy = SCHED_OTHER;	/* This policy is for normal user */
-#endif
-
+			int policy;
+			char *thread_prio;
+			char *thread_policy;
+			char buf1[256] = { 0 };
+			char buf2[256] = { 0 };
+			int max_prio;
+			int min_prio;
+	
 			pthread_attr_t attr;
 			struct sched_param sp;
 
@@ -458,6 +442,51 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 
 			pthread_attr_init(&attr);
 
+			policy = task->info.create.i_policy;
+			sp.sched_priority = task->info.create.i_priority;
+
+			sprintf(buf1, "%s%s", task->info.create.i_name, "_SCHED_PRIORITY");
+			sprintf(buf2, "%s%s", task->info.create.i_name, "_SCHED_POLICY");			
+			
+			if ((thread_prio = getenv(buf1)) != NULL)
+				sp.sched_priority = strtol(thread_prio, NULL, 0);
+			
+			if ((thread_policy = getenv(buf2)) != NULL)
+				policy = strtol(thread_policy, NULL, 0);
+		
+			min_prio = sched_get_priority_min(policy);
+			max_prio = sched_get_priority_max(policy);
+			
+			if((sp.sched_priority < min_prio) || (sp.sched_priority  > max_prio)) {
+               			/* Set to defaults */
+				syslog(LOG_NOTICE, "scheduling priority %d for given policy %d to the task %s is not \
+									within the range, setting to default \
+							values ", sp.sched_priority, policy, task->info.create.i_name);
+				policy = task->info.create.i_policy;
+				sp.sched_priority = task->info.create.i_priority;
+				syslog(LOG_INFO, "%s task default policy is %d, \
+				priority is %d", task->info.create.i_name, policy, sp.sched_priority);
+			}
+				
+#ifdef RLIMIT_RTPRIO
+			/* Policy will be set to default SCHED_RR for a non-root user also who/when 
+			 * has configured limits.conf with rtprio
+			 */
+			if (ncs_is_root() == false) {
+				struct rlimit mylimit;
+				if (getrlimit(RLIMIT_RTPRIO, &mylimit) == 0 ) {
+					if (mylimit.rlim_cur == 0) {
+						policy = SCHED_OTHER;
+						sp.sched_priority = sched_get_priority_min(policy);
+					}
+				}
+			}
+#else
+			if (ncs_is_root() == false) {
+				policy = SCHED_OTHER;	/* This policy is for normal user */
+				sp.sched_priority = sched_get_priority_min(policy);
+			}
+#endif
 			rc = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
 			assert(0 == rc);
 
@@ -469,11 +498,6 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 			rc = pthread_attr_setstacksize(&attr, task->info.create.i_stack_nbytes);
 			if (rc != 0)
 				return NCSCC_RC_INVALID_INPUT;
-
-			if(policy == SCHED_OTHER)
-				sp.sched_priority = sched_get_priority_min(policy);
-			else
-				sp.sched_priority = task->info.create.i_priority;
 
 			rc = pthread_attr_setschedparam(&attr, &sp);
 			assert(0 == rc);

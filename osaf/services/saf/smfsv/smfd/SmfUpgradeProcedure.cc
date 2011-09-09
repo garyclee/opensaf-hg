@@ -25,6 +25,7 @@
 #include <assert.h>
 
 #include <poll.h>
+#include <sched.h>
 
 #include <ncssysf_def.h>
 #include <ncssysf_ipc.h>
@@ -3064,9 +3065,12 @@ SmfSwapThread::start(void)
 	uint32_t rc;
 
 	/* Create the task */
+	int policy = SCHED_OTHER; /*root defaults */
+	int prio_val = sched_get_priority_min(policy);
+	
 	if ((rc =
-	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfSwapThread::main, (NCSCONTEXT) this, (char*) m_PROCEDURE_TASKNAME,
-			       NCS_OS_TASK_PRIORITY_0, m_PROCEDURE_STACKSIZE, &m_task_hdl)) != NCSCC_RC_SUCCESS) {
+	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfSwapThread::main, (NCSCONTEXT) this, "OSAF_SMF_UPGRADE_PROC",
+			       prio_val, policy,  m_PROCEDURE_STACKSIZE, &m_task_hdl)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("TASK_CREATE_FAILED");
 		return -1;
 	}

@@ -15,6 +15,7 @@
  *
  */
 
+#include <sched.h>
 #include <poll.h>
 #include <saImmOm.h>
 #include <saImmOi.h>
@@ -167,9 +168,12 @@ int
 	TRACE("Starting campaign thread %s", m_campaign->getDn().c_str());
 
 	/* Create the task */
+	int policy = SCHED_OTHER; /*root defaults */
+	int prio_val = sched_get_priority_min(policy);
+	
 	if ((rc =
-	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfCampaignThread::main, (NCSCONTEXT) this, (char*)m_CAMPAIGN_TASKNAME,
-			       NCS_OS_TASK_PRIORITY_0, m_CAMPAIGN_STACKSIZE, &m_task_hdl)) != NCSCC_RC_SUCCESS) {
+	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfCampaignThread::main, (NCSCONTEXT) this, "OSAF_SMF_CAMP",
+			       prio_val, policy, m_CAMPAIGN_STACKSIZE, &m_task_hdl)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("TASK_CREATE_FAILED");
 		return -1;
 	}

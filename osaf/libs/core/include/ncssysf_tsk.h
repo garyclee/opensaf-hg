@@ -74,9 +74,9 @@ extern "C" {
  * NCSCC_RC_SUCCESS  if task created and initialized successfully.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_TASK_CREATE(entry, arg, name, prio, stack_size, p_t_handle) \
+#define m_NCS_TASK_CREATE(entry, arg, name, prio, policy, stack_size, p_t_handle) \
                                               ncs_task_create(entry, arg, \
-                                                             name, prio, \
+                                                             name, prio, policy, \
                                                              stack_size, \
                                                              p_t_handle)
 
@@ -204,7 +204,7 @@ extern "C" {
  
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	uint32_t ncs_task_create(NCS_OS_CB, void *, char *, unsigned int, unsigned int, void **);
+	uint32_t ncs_task_create(NCS_OS_CB, void *, char *, unsigned int, int, unsigned int, void **);
 	uint32_t ncs_task_release(void *);
 	uint32_t ncs_task_detach(void *);
 	uint32_t ncs_task_start(void *);

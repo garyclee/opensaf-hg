@@ -33,6 +33,8 @@
 #include "sysf_exc_scr.h"
 #include "ncssysf_def.h"
 
+#include <sched.h>
+
 SYSF_EXECUTE_MODULE_CB module_cb;
 
 /***************************************************************************** 
@@ -416,10 +418,13 @@ uint32_t start_exec_mod_cb(void)
 
 	/* Create a task which will handle the signal and give call back  */
 
+	int policy = SCHED_OTHER; /*root defaults */
+	int prio_val = sched_get_priority_min(policy);
+
 	if (m_NCS_TASK_CREATE((NCS_OS_CB)ncs_exec_mod_hdlr,
 			      0,
-			      NCS_EXEC_MOD_TASKNAME,
-			      NCS_OS_TASK_PRIORITY_0,
+			      "OSAF_EXEC_MOD",
+			      prio_val, policy,
 			      NCS_EXEC_MOD_STACKSIZE, &module_cb.em_task_handle) != NCSCC_RC_SUCCESS) {
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);;
 	}
