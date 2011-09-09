@@ -1,4 +1,4 @@
-This directory contains an AMF component sample implementation.
+This directory contains a sample implementation of an SA-Aware AMF component.
 
 amf_comp_template.c contains the skeleton of an AMF
 component. All required callbacks are implemented and responds OK when
@@ -24,3 +24,5 @@ Note that AMF does not support runtime addition of UNLOCKED SUs. Therefore the m
 needs to be merged offline before starting OpenSAF. This can be done with the 
 immxml-merge tool.
 
+In the subdirectory non_sa_aware there is a sample AMF integration of net-snmp with
+AMF. Please see the header of the xml file for more information.
