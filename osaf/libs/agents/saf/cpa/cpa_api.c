@@ -63,7 +63,7 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle, const SaCkptCallbacksT *
 	bool locked = true;
 	SaVersionT client_version;
 
-	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx", ckptHandle);
+	TRACE_ENTER();
 	proc_rc = ncs_agents_startup();
 	if (NCSCC_RC_SUCCESS != proc_rc) {
 		TRACE_4("cpa CkptInit:agents_startup Api failed with return value:%d", proc_rc);
