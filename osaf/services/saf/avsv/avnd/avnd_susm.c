@@ -1401,7 +1401,7 @@ uint32_t avnd_su_pres_insting_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 {
 	AVND_COMP *curr_comp = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("SU Terminate event in Instantiating state:'%s':'%s'", su->name.value, comp->name.value);
+	TRACE_ENTER2("SU Terminate event in Instantiating state:'%s'", su->name.value);
 
 	/* 
 	 * If pi su, pick all the instantiated/instantiating pi comps & 
