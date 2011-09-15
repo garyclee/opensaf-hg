@@ -101,4 +101,8 @@ uint32_t imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle);
 uint32_t imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle);
 uint32_t imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle);
 
+/* Admin operation continuation functions */
+int imma_popAsyncAdmOpContinuation(IMMA_CB *cb,
+					SaInt32T invocation, SaImmHandleT *immHandle, SaInvocationT *userInvoc);
+
 #endif

@@ -3747,6 +3747,16 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 		goto mds_send_fail;
 	}
 
+	if (!push_async_adm_op_continuation(cb,
+					    evt.info.immnd.info.admOpReq.invocation,
+					    immHandle, userInvocation)) {
+		TRACE_2("ERR_INVALID_PARAM: Provided invocation id (%llx) "
+			"is not unique, not even in this client instance", userInvocation);
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto mds_send_fail;
+        }
+
+
 	/* NOTE: Re-implement to send ND->ND instead of using FEVS, 
 	   less resources used and probably faster. */
 
@@ -3765,25 +3775,20 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 	TRACE("Fevs send RETURNED:%u", rc);
 
 	if (rc != SA_AIS_OK) {
-		goto mds_send_fail;
-	}
 
-	if (!locked) {
-		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-			rc = SA_AIS_ERR_LIBRARY;
-			TRACE_4("ERR_LIBRARY: Lock failed");
-			goto mds_send_fail;
-		} else {
-			locked = true;
+		if (!locked) {
+			if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+				rc = SA_AIS_ERR_LIBRARY;
+				TRACE_4("ERR_LIBRARY: Lock failed");
+				goto mds_send_fail;
+			} else {
+				locked = true;
+			}
 		}
-	}
-
-	if (!push_async_adm_op_continuation(cb,
-					    evt.info.immnd.info.admOpReq.invocation,
-					    immHandle, userInvocation)) {
-		TRACE_2("ERR_INVALID_PARAM: Provided invocation id (%llx) "
-			"is not unique, not even in this client instance", userInvocation);
-		rc = SA_AIS_ERR_INVALID_PARAM;
+		if (!imma_popAsyncAdmOpContinuation(cb, evt.info.immnd.info.admOpReq.invocation, 
+							&immHandle, &userInvocation)) {
+			TRACE_3("Missmatch on continuation for saImmOmAdminOperationInvokeAsync_2");
+		}
 	}
 
  mds_send_fail:

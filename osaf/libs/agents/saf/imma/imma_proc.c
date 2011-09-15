@@ -42,8 +42,6 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 static void imma_proc_free_callback(IMMA_CALLBACK_INFO *callback);
 
-static int popAsyncAdmOpContinuation(IMMA_CB *cb,
-				     SaInt32T invocation, SaImmHandleT *immHandle, SaInvocationT *userInvoc);
 
 /****************************************************************************
   Name          : imma_version_validate
@@ -243,7 +241,7 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	/*NOTE: should get handle from immnd also and verify. */
-	if (!popAsyncAdmOpContinuation(cb, inv, &immHandleCont, &userInvoc)) {
+	if (!imma_popAsyncAdmOpContinuation(cb, inv, &immHandleCont, &userInvoc)) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		TRACE_3("Missmatch on continuation for SaImmOmAdminOperationInvokeCallbackT");
 		return;
@@ -1778,7 +1776,7 @@ uint32_t imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle)
 	return SA_AIS_OK;
 }
 
-static int popAsyncAdmOpContinuation(IMMA_CB *cb,	//in
+int imma_popAsyncAdmOpContinuation(IMMA_CB *cb,	//in
 				     SaInt32T invocation,	//in
 				     SaImmHandleT *immHandle,	//out
 				     SaInvocationT *userInvoc)	//out
