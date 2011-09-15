@@ -3097,13 +3097,36 @@ SaAisErrorT saImmOiCcbSetErrorString(
 
 }
 
+extern SaAisErrorT immsv_om_augment_ccb_initialize(
+				 SaImmOiHandleT privateOmHandle,
+				 SaUint32T ccbId,
+				 SaUint32T adminOwnerId,
+				 SaImmCcbHandleT *ccbHandle,
+				 SaImmAdminOwnerHandleT *ownerHandle) __attribute__((weak));
+
+
+extern SaAisErrorT immsv_om_augment_ccb_get_admo_name(
+				 SaImmHandleT privateOmHandle,
+				 SaNameT* objectName,
+				 SaNameT* admoNameOut) __attribute__((weak));
+
+
+extern SaAisErrorT immsv_om_handle_initialize(SaImmHandleT *privateOmHandle, SaVersionT* version) __attribute__((weak));
+
+
+extern SaAisErrorT immsv_om_admo_handle_initialize(
+				  SaImmHandleT immHandle,
+				  const SaImmAdminOwnerNameT adminOwnerName,
+				  SaImmAdminOwnerHandleT *adminOwnerHandle) __attribute__((weak));
+
+extern SaAisErrorT immsv_om_handle_finalize(
+				 SaImmHandleT privateOmHandle) __attribute__((weak));
+
 static SaAisErrorT
-getAdmoName(SaImmAdminOwnerHandleT privateOmHandle, IMMA_CALLBACK_INFO * cbi, SaNameT* admoNameOut)
+getAdmoName(SaImmHandleT privateOmHandle, IMMA_CALLBACK_INFO * cbi, SaNameT* admoNameOut)
 {
-    SaImmAccessorHandleT acHdl=0LL;
     SaAisErrorT rc = SA_AIS_OK;
     const SaImmAttrNameT admoNameAttr = SA_IMM_ATTR_ADMIN_OWNER_NAME;
-    SaImmAttrNameT attributeNames[2] = {admoNameAttr, NULL};
     SaImmAttrValuesT_2 **attributes = NULL;
     SaImmAttrValuesT_2 *attrVal = NULL;
     TRACE_ENTER();
@@ -3115,9 +3138,18 @@ getAdmoName(SaImmAdminOwnerHandleT privateOmHandle, IMMA_CALLBACK_INFO * cbi, Sa
 	    while((attrVal = attributes[i++]) != NULL) {
 		    if(strcmp(admoNameAttr, attrVal->attrName)==0) {
 			    TRACE("Found %s attribute in object create upcall", admoNameAttr);
-			    goto found;
+			    break;
 		    }
 	    }
+
+	    if(!attrVal || strcmp(attrVal->attrName, admoNameAttr) || (attrVal->attrValuesNumber!=1) ||
+		    (attrVal->attrValueType != SA_IMM_ATTR_SASTRINGT)) {
+		    LOG_ER("Missmatch on attribute %s", admoNameAttr);
+		    abort();
+	    }
+
+	    strncpy((char *)admoNameOut->value, *(SaStringT*) attrVal->attrValues[0], SA_MAX_NAME_LENGTH);
+
     } else {
 	    /* modify or delete => fetch admo attribute for object from server. */
 	    if((cbi->type != IMMA_CALLBACK_OI_CCB_DELETE) &&
@@ -3126,47 +3158,21 @@ getAdmoName(SaImmAdminOwnerHandleT privateOmHandle, IMMA_CALLBACK_INFO * cbi, Sa
 		    abort();
 	    }
 
-	    rc = saImmOmAccessorInitialize(privateOmHandle, &acHdl);
-	    if(rc != SA_AIS_OK) {goto done;}
-
-	    rc = saImmOmAccessorGet_2(acHdl, &(cbi->name), attributeNames, &attributes);
-	    if(rc != SA_AIS_OK) {goto finalize;}
-
-	    attrVal = attributes[0];
+	    assert(immsv_om_augment_ccb_get_admo_name);
+	    rc = immsv_om_augment_ccb_get_admo_name(privateOmHandle, &(cbi->name), admoNameOut);
+	    if(rc == SA_AIS_ERR_LIBRARY) {
+		    LOG_ER("Missmatch on attribute %s for delete or modify", admoNameAttr);
+    	    }
     }
 
     /* attrVal found either in create callback, or fetched from server. */
 
- found:
-    if(!attrVal || strcmp(attrVal->attrName, admoNameAttr) || (attrVal->attrValuesNumber!=1) ||
-	    (attrVal->attrValueType != SA_IMM_ATTR_SASTRINGT)) {
-	    LOG_ER("Missmatch on attribute %s", admoNameAttr);
-	    abort();
-    }
-
-    strncpy((char *)admoNameOut->value, *(SaStringT*) attrVal->attrValues[0], SA_MAX_NAME_LENGTH);
-
- finalize:
-    if(acHdl) {
-	    saImmOmAccessorFinalize(acHdl);
-    }
-
- done:
     if(rc == SA_AIS_OK) {
 	    TRACE("Obtained AdmoName:%s",admoNameOut->value);
     }
     TRACE_LEAVE();
     return rc;
 }
-
-
-extern SaAisErrorT immsv_om_augment_ccb_initialize(
-				 SaImmOiHandleT privateOmHandle,
-				 SaUint32T ccbId,
-				 SaUint32T adminOwnerId,
-				 SaImmCcbHandleT *ccbHandle,
-				 SaImmAdminOwnerHandleT *ownerHandle) __attribute__((weak));
-
 
 /****************************************************************************
   Name          :  saImmOiAugmentCcbInitialize
@@ -3299,8 +3305,12 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 		locked = false;
 		cl_node = NULL; /* avoid unsafe use */
 
-		TRACE("OM init call");
-		rc = saImmOmInitialize(&privateOmHandle, NULL, &version);
+		if(immsv_om_handle_initialize) {/*This is always the first immsv_om_ call */
+			rc = immsv_om_handle_initialize(&privateOmHandle, &version);
+		} else {
+			TRACE("ERR_LIBRARY: Error in library linkage. libSaImmOm.so is not linked");
+			rc = SA_AIS_ERR_LIBRARY;
+		}
 
 		if(rc != SA_AIS_OK) {
 			TRACE("ERR_TRY_AGAIN: failed to obtain internal om handle rc:%u", rc);
@@ -3382,7 +3392,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 
 	if(rc == SA_AIS_ERR_NO_SECTIONS) {
 		/* Means almost ok, admo ROF == FALSE. Can not hijack original admo.
-		   Must instead creaet new separate admo with same admo-name. 
+		   Must instead create new separate admo with same admo-name. 
 		 */
 		rc = SA_AIS_OK;
 
@@ -3402,9 +3412,9 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 			}
 			TRACE("Obtaned AdminOwnerName:%s", admName.value);
 			/* Allocate private admowner with ReleaseOnFinalize as TRUE */
-			rc = saImmOmAdminOwnerInitialize(privateOmHandle,
-				(SaImmAdminOwnerNameT) admName.value, SA_TRUE, 
-				&privateAoHandle);
+			assert(immsv_om_admo_handle_initialize);
+			rc = immsv_om_admo_handle_initialize(privateOmHandle,
+				(SaImmAdminOwnerNameT) admName.value, &privateAoHandle);
 
 			if(rc != SA_AIS_OK) {
 				TRACE("ERR_TRY_AGAIN: failed to obtain internal admo handle rc:%u", rc);
@@ -3423,9 +3433,9 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 	TRACE("adminOwnerId:%u", adminOwnerId);
 
 	/* Now dip into the OM library & create mockup ccb-node & admo-node for use by OI */
+	assert(immsv_om_augment_ccb_initialize);
 	rc = immsv_om_augment_ccb_initialize(privateOmHandle, ccbId, adminOwnerId,
 		ccbHandle, &privateAoHandle);
-
  done:
 
 	if (locked) {
@@ -3443,7 +3453,8 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 		TRACE("ownerHandle:%llx", *ownerHandle);
 
 	} else if(privateOmHandle) {
-		saImmOmFinalize(privateOmHandle);/* Also finalizes admo handles & ccb handles*/
+		assert(immsv_om_handle_finalize);
+		immsv_om_handle_finalize(privateOmHandle);/* Also finalizes admo handles & ccb handles*/
 	}
 
 	if(out_evt) {

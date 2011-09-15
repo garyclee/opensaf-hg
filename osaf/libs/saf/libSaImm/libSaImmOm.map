@@ -11,6 +11,10 @@ OPENSAF_IMM_A.02.01 {
 		immsv_sync;
 		immsv_om_augment_ccb_initialize;
 		immsv_om_augment_ccb_get_result;
+		immsv_om_augment_ccb_get_admo_name;
+		immsv_om_handle_initialize;
+		immsv_om_admo_handle_initialize;
+		immsv_om_handle_finalize;
 	local:
 		*;
 };
