@@ -7632,3 +7632,64 @@ SaAisErrorT immsv_om_augment_ccb_get_result(
 	TRACE_LEAVE();
 	return rc;
 }
+
+SaAisErrorT immsv_om_augment_ccb_get_admo_name(
+			       SaImmHandleT privateOmHandle,
+			       SaNameT* objectName,
+			       SaNameT* admoNameOut)
+
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	const SaImmAttrNameT admoNameAttr = SA_IMM_ATTR_ADMIN_OWNER_NAME;
+	SaImmAttrNameT attributeNames[2] = {admoNameAttr, NULL};
+	SaImmAttrValuesT_2 **attributes = NULL;
+	SaImmAttrValuesT_2 *attrVal = NULL;
+	SaImmAccessorHandleT acHdl=0LL;
+	TRACE_ENTER();	
+
+	rc = saImmOmAccessorInitialize(privateOmHandle, &acHdl);
+	if(rc != SA_AIS_OK) {goto done;}
+
+	rc = saImmOmAccessorGet_2(acHdl, objectName, attributeNames, &attributes);
+	if(rc != SA_AIS_OK) {goto finalize;}
+
+	attrVal = attributes[0];
+	if(!attrVal) {
+		rc = SA_AIS_ERR_LIBRARY;
+		goto finalize;
+	}
+
+	strncpy((char *)admoNameOut->value, *(SaStringT*) attrVal->attrValues[0], SA_MAX_NAME_LENGTH);
+
+ finalize:
+    if(acHdl) {
+	    saImmOmAccessorFinalize(acHdl);
+    }
+
+ done:	
+	
+	TRACE_LEAVE();
+	return rc;
+}
+
+SaAisErrorT immsv_om_handle_initialize(SaImmHandleT *privateOmHandle, SaVersionT* version)
+{
+	TRACE_ENTER();
+	return saImmOmInitialize_o2(privateOmHandle, NULL, version);
+}
+
+SaAisErrorT immsv_om_admo_handle_initialize(
+				  SaImmHandleT immHandle,
+				  const SaImmAdminOwnerNameT adminOwnerName,
+				  SaImmAdminOwnerHandleT *adminOwnerHandle)
+{
+	TRACE_ENTER();
+	return saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, adminOwnerHandle);
+}
+
+void immsv_om_handle_finalize(SaImmHandleT privateOmHandle)
+{
+	TRACE_ENTER();
+	saImmOmFinalize(privateOmHandle);
+}
+

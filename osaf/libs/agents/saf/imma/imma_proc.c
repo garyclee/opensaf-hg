@@ -35,6 +35,7 @@ size_t strnlen(const char *s, size_t maxlen);
 static void imma_proc_ccbaug_setup(IMMA_CLIENT_NODE *cl_node, IMMA_CALLBACK_INFO *callback);
 
 extern SaAisErrorT immsv_om_augment_ccb_get_result (SaImmOiHandleT privateOmHandle, SaUint32T ccbId) __attribute__((weak));
+extern void  immsv_om_handle_finalize(SaImmHandleT privateOmHandle) __attribute__((weak));
 
 static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, 
 	IMMA_CALLBACK_INFO *callback, SaImmHandleT immHandle);
@@ -2077,7 +2078,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 
 				if(privateAugOmHandle) {
-					saImmOmFinalize(privateAugOmHandle);
+					assert(immsv_om_handle_finalize);
+					immsv_om_handle_finalize(privateAugOmHandle);
 				}
 			} while (0);
 			break;
@@ -2248,6 +2250,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 						locked = false;
 
+						assert(immsv_om_augment_ccb_get_result);
 						SaAisErrorT augResult = immsv_om_augment_ccb_get_result(privateAugOmHandle,
 							callback->ccbID);
 
@@ -2371,6 +2374,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 						locked = false;
 
+						assert(immsv_om_augment_ccb_get_result);
 						SaAisErrorT augResult = immsv_om_augment_ccb_get_result(privateAugOmHandle,
 							callback->ccbID);
 
@@ -2559,6 +2563,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 						locked = false;
 
+						assert(immsv_om_augment_ccb_get_result);
 						SaAisErrorT augResult = immsv_om_augment_ccb_get_result(privateAugOmHandle, 
 							callback->ccbID);
 
@@ -2619,7 +2624,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				assert(imma_oi_ccb_record_terminate(cl_node, ccbid));
 				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				if(privateAugOmHandle) {
-					saImmOmFinalize(privateAugOmHandle);
+					assert(immsv_om_handle_finalize);
+					immsv_om_handle_finalize(privateAugOmHandle);
 				}
 			} while (0);
 			break;
