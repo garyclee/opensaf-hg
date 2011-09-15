@@ -115,7 +115,8 @@ uint32_t mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t mds_mdtm_svc_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
+uint32_t mds_mdtm_svc_unsubscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope, 
+		MDS_SUBTN_REF_VAL subtn_ref_val)
 {
 
 	MDS_MDTM_DTM_MSG unsubscr;
@@ -444,7 +445,7 @@ uint32_t mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *
  * @return NCSCC_RC_SUCCESS
  *
  */
-uint32_t mds_mdtm_vdest_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
+uint32_t mds_mdtm_vdest_unsubscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL subtn_ref_val)
 {
 	return NCSCC_RC_SUCCESS;
 }
