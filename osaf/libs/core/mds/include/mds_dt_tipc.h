@@ -77,11 +77,11 @@ extern uint32_t mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id,
 					 MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
 extern uint32_t mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
 					 MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
-extern uint32_t mds_mdtm_svc_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val);
+extern uint32_t mds_mdtm_svc_unsubscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope, MDS_SUBTN_REF_VAL subtn_ref_val);
 extern uint32_t mds_mdtm_vdest_install_tipc(MDS_VDEST_ID vdest_id);
 extern uint32_t mds_mdtm_vdest_uninstall_tipc(MDS_VDEST_ID vdest_id);
 extern uint32_t mds_mdtm_vdest_subscribe_tipc(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val);
-extern uint32_t mds_mdtm_vdest_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val);
+extern uint32_t mds_mdtm_vdest_unsubscribe_tipc(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL subtn_ref_val);
 extern uint32_t mds_mdtm_tx_hdl_register_tipc(MDS_DEST adest);
 extern uint32_t mds_mdtm_tx_hdl_unregister_tipc(MDS_DEST adest);
 
