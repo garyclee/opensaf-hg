@@ -520,7 +520,7 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 	uint32_t ret;
 	GLA_CLIENT_RES_INFO *client_res_info = NULL;
 
-	TRACE_ENTER2("Called with Handle %llx  and Name %.7s", lckHandle, lockResourceName->value);
+	TRACE_ENTER2("Called with Handle %llx ",lckHandle);
 
 	/* validate the inputs */
 	if (lockResourceName == NULL || lockResourceHandle == NULL) {
@@ -668,7 +668,7 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 	GLSV_GLND_EVT res_open_evt;
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	
-	TRACE_ENTER2("Called with lockhandle %llx resourceName %.7s", lckHandle, lockResourceName->value);
+	TRACE_ENTER2("Called with lockhandle %llx",lckHandle);
 	/* validate the inputs */
 	if (lockResourceName == NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
@@ -1078,7 +1078,7 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 	}
 
  end:
-	TRACE_LEAVE2("'%s' Lock id %llx, Status %d", (rc == SA_AIS_OK)?"SUCCESS":"FAILURE",								*lockId, *lockStatus);
+	TRACE_LEAVE2("'%s'", (rc == SA_AIS_OK)?"SUCCESS":"FAILURE");
 	return rc;
 }
 
