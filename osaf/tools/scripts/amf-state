@@ -27,37 +27,40 @@ usage()
 
 amf_state()
 {
-	echo "\nService Instances UNLOCKED and UNASSIGNED:"
+	echo
+	echo "Service Instances UNLOCKED and UNASSIGNED:"
 	si_dns=`immfind -c SaAmfSI`
 	for si_dn in $si_dns; do
 		adm_state_val=`immlist -a "saAmfSIAdminState" $si_dn | cut -d = -f2`
 		ass_state_val=`immlist -a "saAmfSIAssignmentState" $si_dn | cut -d = -f2`
 
 		if [ $adm_state_val -eq 1 ] && [ $ass_state_val -eq 1 ]; then
-			echo "\t$si_dn"
+			echo "   $si_dn"
 		fi
 
 	done
 
-	echo "\nService Units UNLOCKED and DISABLED:"
+	echo
+	echo "Service Units UNLOCKED and DISABLED:"
 	su_dns=`immfind -c SaAmfSU`
 	for su_dn in $su_dns; do
 		adm_state_val=`immlist -a "saAmfSUAdminState" $su_dn | cut -d = -f2`
 		oper_state_val=`immlist -a "saAmfSUOperState" $su_dn | cut -d = -f2`
 
 		if [ $adm_state_val -eq 1 ] && [ $oper_state_val -eq 2 ]; then
-			echo "\t$su_dn"
+			echo "   $su_dn"
 		fi
 	done
 
-	echo "\nNodes UNLOCKED and DISABLED:"
+	echo
+	echo "Nodes UNLOCKED and DISABLED:"
 	node_dns=`immfind -c SaAmfNode`
 	for node_dn in $node_dns; do
 		adm_state_val=`immlist -a "saAmfNodeAdminState" $node_dn | cut -d = -f2`
 		oper_state_val=`immlist -a "saAmfNodeOperState" $node_dn | cut -d = -f2`
 
 		if [ $adm_state_val -eq 1 ] && [ $oper_state_val -eq 2 ]; then
-			echo "\t$node_dn"
+			echo "   $node_dn"
 		fi
 	done
 
