@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
 		smfnd_cb->nid_started = 1;
 	}
 
-	daemonize(argc, argv);
+	daemonize_as_user("root", argc, argv);
 
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_agents_startup failed");
