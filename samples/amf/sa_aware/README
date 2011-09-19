@@ -1,0 +1,34 @@
+This directory contains a sample implementation of an
+SA-Aware AMF component.
+
+amf_demo.c contains the skeleton of an SA-Aware AMF component. All required
+callbacks are implemented and responds OK when requested. To be used with
+any of the configuration files mentioned below. This implementation can be
+used as a starting point to see what happens when you do admin operations
+such as lock, lock-instantiation etc on SU or any other level containing
+the component.
+
+Logging output is done to the system log (normally /var/log/message).
+
+Appconfig-2N.xml: This file contains the AMF model for an application running
+in a 2N redundancy model. The amf_demo is configured to run on the 2 controllers.
+ 
+Appconfig-nwayactive.xml: This file contains the AMF model for an application
+running in an NWayActive redundancy model. The configuration contains 5 SUs
+That will run on the "allnodes" AMF node group.
+
+Note that the SU admin state has the value UNLOCKED-INSTANTIATION(3). This
+means that the SUs needs to be unlocked after the file has been loaded.
+
+Some steps to follow:
+
+1. Install amf_demo into /opt/amf_demo
+2. Install amf_demo_script into /opt/amf_demo
+3. Load configuration: immcfg -f AppConfig-2N.xml
+4. Unlock instantiation:
+	amf-adm unlock-in safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1
+	amf-adm unlock-in safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1
+5. Unlock:
+	amf-adm unlock safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1
+	amf-adm unlock safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1
+

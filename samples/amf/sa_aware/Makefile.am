@@ -11,42 +11,35 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Wind River Systems 
 #
-
-MAINTAINERCLEANFILES = \
-	aclocal.m4 \
-	compile \
-	config.guess \
-	config.h.in \
-	config.sub \
-	configure \
-	depcomp \
-	install-sh \
-	ltmain.sh \
-	missing \
-	Makefile.in \
-	m4/libtool.m4 \
-	m4/ltoptions.m4 \
-	m4/ltsugar.m4 \
-	m4/ltversion.m4 \
-	m4/lt~obsolete.m4
 
 include $(top_srcdir)/Makefile.common
 
+MAINTAINERCLEANFILES = Makefile.in
+
 EXTRA_DIST = \
-	AUTHORS \
-	ChangeLog \
-	COPYING.LIB \
-	INSTALL \
-	NEWS \
-	THANKS \
-	README \
-	m4
+	amf_demo_script \
+	AppConfig-2N.xml \
+	AppConfig-nwayactive.xml \
+	README
 
-ACLOCAL_AMFLAGS = -I m4
+bin_PROGRAMS = amf_demo
 
-SUBDIRS = amf cpsv edsv glsv mqsv smfsv
+amf_demo_CPPFLAGS = \
+	$(AM_CPPFLAGS)
 
-clean-local:
-	-rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz
+amf_demo_SOURCES = \
+	amf_demo.c
+
+amf_demo_LDADD = \
+	@SAF_AIS_AMF_LIBS@
+
+install-data-hook:
+	mkdir -p /opt/amf_demo
+	cp amf_demo /opt/amf_demo
+	cp amf_demo_script /opt/amf_demo
+
+uninstall-hook:
+	rm -rf /opt/amf_demo
+

@@ -1,0 +1,97 @@
+#!/bin/sh
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Emerson Network Power, Erisson
+#
+
+name=$(basename $0)
+
+if [ -z $SA_AMF_COMPONENT_NAME ]; then
+	logger -st $name "not AMF component context"
+	exit 199
+fi
+
+prog="amf_demo"
+binary=/opt/amf_demo/$prog
+
+if ! [ -x $binary ]; then
+	logger -st $name  "$binary not executable"
+	exit 198
+fi
+
+# Source LSB functions library
+. /lib/lsb/init-functions
+
+piddir="/tmp"
+pidfile="$piddir/${SA_AMF_COMPONENT_NAME}.pid"
+
+RETVAL=0
+
+start()
+{
+	args="$*"
+	echo -n "Starting $prog: "
+	start_daemon -p $pidfile $binary $args
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
+		log_success_msg
+	else
+		log_failure_msg
+	fi
+	return $RETVAL
+}
+
+stop()
+{
+	echo -n "Stopping $prog: "
+	killproc -p $pidfile $binary
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
+		log_success_msg
+	else
+		log_failure_msg
+	fi
+	return $RETVAL
+}
+
+status()
+{
+	pidofproc -p $pidfile $binary
+	RETVAL=$?
+	return $RETVAL
+}
+
+CMD=$1
+case $CMD in
+	start|instantiate)
+		shift
+		start $*
+		RETVAL=$?
+		;;
+	stop|cleanup)
+		stop $*
+		RETVAL=$?
+		;;
+	status)
+		status
+		RETVAL=$?
+		;;
+	*)
+		echo "Usage: $0 {instantiate|cleanup}"
+		RETVAL=2
+esac
+
+exit $RETVAL
+
