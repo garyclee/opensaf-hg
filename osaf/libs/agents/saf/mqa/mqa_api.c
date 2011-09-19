@@ -307,7 +307,7 @@ SaAisErrorT saMsgSelectionObjectGet(SaMsgHandleT msgHandle, SaSelectionObjectT *
 	MQA_CLIENT_INFO *client_info;
 	SaAisErrorT rc = SA_AIS_OK;
 
-	TRACE_ENTER2(" SaMsgHandle %llu selectionObject %llu", msgHandle,*selectionObject);
+	TRACE_ENTER2(" SaMsgHandle %llu ", msgHandle);
 
 	if (!selectionObject) {
                 TRACE_2("ERR_INVALID_PARAM: selectionObject is NULL");
@@ -647,7 +647,7 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
 	NCSCONTEXT thread_handle;
 	SaTimeT timeout1;
 
-	TRACE_ENTER2(" SaMsgHandle %llu and queueName %s ", msgHandle, queueName->value);
+	TRACE_ENTER2(" SaMsgHandle %llu ", msgHandle);
 
 	if ((!queueName) || (!queueHandle)) {
 		TRACE_2("ERR_INVALID_PARAM: queueName is NULL or queueHandle is NULL");
@@ -662,6 +662,7 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
 	}
 
 	m_MQSV_SET_SANAMET(queueName);
+	TRACE_1("queueName %s",queueName->value);
 
 	if (strncmp((char *)queueName->value, "safMq=", 6)) {
                 TRACE_2("ERR_INVALID_PARAM: queueName should starts with safMq=");
@@ -916,7 +917,7 @@ saMsgQueueOpenAsync(SaMsgHandleT msgHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	MQP_ASYNC_RSP_MSG mqp_async_rsp;
 
-	TRACE_ENTER2(" SaMsgHandle %llu and queueName %s ", msgHandle, queueName->value);
+	TRACE_ENTER2(" SaMsgHandle %llu", msgHandle);
 
 	if (queueName == NULL) {
 		TRACE_2("ERR_INVALID_PARAM: queueName is NULL");
@@ -931,6 +932,7 @@ saMsgQueueOpenAsync(SaMsgHandleT msgHandle,
 	}
 
 	m_MQSV_SET_SANAMET(queueName);
+	TRACE_1("queueName %s ", queueName->value);
 
 	if (strncmp((char *)queueName->value, "safMq=", 6)) {
 		TRACE_2("ERR_INVALID_PARAM: queueName should starts with safMq=");
@@ -1242,7 +1244,7 @@ SaAisErrorT saMsgQueueStatusGet(SaMsgHandleT msgHandle, const SaNameT *queueName
 	SaMsgQueueHandleT queueHandle;
 	uint32_t mds_rc;
 
-	TRACE_ENTER2(" SaMsgHandle %llu and queueName %s ", msgHandle, queueName->value);
+	TRACE_ENTER2(" SaMsgHandle %llu", msgHandle);
 
 	if ((queueName == NULL) || (queueStatus == NULL)) {
 		TRACE_2("ERR_INVALID_PARAM: queueName is NULL queueStatus is NULL");
@@ -1257,6 +1259,7 @@ SaAisErrorT saMsgQueueStatusGet(SaMsgHandleT msgHandle, const SaNameT *queueName
 	}
 
 	m_MQSV_SET_SANAMET(queueName);
+	TRACE_1("queueName %s ", queueName->value);
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -1388,13 +1391,14 @@ SaAisErrorT saMsgQueueRetentionTimeSet(SaMsgQueueHandleT queueHandle, SaTimeT *r
 	int64_t mqa_timeout;
 	uint32_t mds_rc;
 
-	TRACE_ENTER2(" SaMsgQueueHandle %llu retentionTime %lld", queueHandle,*retentionTime);
+	TRACE_ENTER2(" SaMsgQueueHandle %llu", queueHandle);
 
 	if ((retentionTime == NULL) || (*retentionTime <= 0)) {
 		TRACE_2("ERR_INVALID_PARAM: retentionTime is NULL or Negative value");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		return rc;
 	}
+	TRACE_1("retentionTime %lld", *retentionTime);
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -1518,7 +1522,7 @@ SaAisErrorT saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *queueName)
 	uint32_t mds_rc;
 	int64_t mqa_timeout;
 
-	TRACE_ENTER2(" SaMsgHandle %llu and queueName %s ", msgHandle, queueName->value);
+	TRACE_ENTER2(" SaMsgHandle %llu", msgHandle);
 
 	if (!queueName) {
 		TRACE_2("ERR_INVALID_PARAM: queueName is NULL");
@@ -1533,6 +1537,7 @@ SaAisErrorT saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *queueName)
 	}
 
 	m_MQSV_SET_SANAMET(queueName);
+	TRACE_1("queueName %s ", queueName->value);
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -1972,7 +1977,7 @@ SaAisErrorT mqa_send_message(SaMsgHandleT msgHandle,
 	sender.length = 0;
 	sender.value[0] = '\0';
 
-	TRACE_ENTER2(" SaMsgHandle %llu and destination %s", msgHandle,destination->value);
+	TRACE_ENTER2(" SaMsgHandle %llu", msgHandle);
 
 	if ((destination == NULL) || (message == NULL)) {
 		TRACE_2("ERR_INVALID_PARAM: destination is NULL or message is NULL");
@@ -1988,6 +1993,7 @@ SaAisErrorT mqa_send_message(SaMsgHandleT msgHandle,
 
 	/* To memset the bytes to zero other than the length bytes in the SaNameT Structure */
 	m_MQSV_SET_SANAMET(destination);
+	TRACE_1("destination queue name %s", destination->value);
 
 	if (m_MQSV_IS_ACKFLAGS_NOT_VALID(ackFlags)) {
 		TRACE_2("ERR_BAD_FLAGS: supported ackFlags SA_MSG_MESSAGE_DELIVERED_ACK");
@@ -2226,7 +2232,7 @@ saMsgMessageSend(SaMsgHandleT msgHandle, const SaNameT *destination, const SaMsg
 	SaAisErrorT rc;
 	MQA_CLIENT_INFO *client_info = NULL;
 
-	TRACE_ENTER2(" SaMsgHandle %llu and destination %s", msgHandle,destination->value);
+	TRACE_ENTER2(" SaMsgHandle %llu", msgHandle);
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -2318,7 +2324,7 @@ saMsgMessageSendAsync(SaMsgHandleT msgHandle,
 
 	param.async_flag = true;
 	param.info.invocation = invocation;
-	TRACE_ENTER2(" SaMsgHandle %llu and destination %s", msgHandle,destination->value);
+	TRACE_ENTER2(" SaMsgHandle %llu", msgHandle);
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -3211,6 +3217,7 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
 
 	/* To memset the bytes to zero other than the length bytes in the SaNameT Structure */
 	m_MQSV_SET_SANAMET(destination);
+	TRACE_1("Message send to queueName %s", destination->value);
 
 	if (m_NCS_SA_IS_VALID_TIME_DURATION(timeout) == false) {
 		TRACE_2("ERR_INVALID_PARAM: Invalid Parameter as input");
@@ -4058,7 +4065,7 @@ saMsgQueueGroupCreate(SaMsgHandleT msgHandle, const SaNameT *queueGroupName, SaM
 	MQA_CLIENT_INFO *client_info;
 	SaAisErrorT rc;
 
-	TRACE_ENTER2(" SaMsgHandle %llu queueGroupName %s", msgHandle,queueGroupName->value);
+	TRACE_ENTER2(" SaMsgHandle %llu", msgHandle);
 
 	if (!queueGroupName) {
 		TRACE_2("ERR_INVALID_PARAM: queueGroupName is NULL");
@@ -4072,6 +4079,7 @@ saMsgQueueGroupCreate(SaMsgHandleT msgHandle, const SaNameT *queueGroupName, SaM
 
 	/* To memset the bytes to zero other than the length bytes in the SaNameT Structure */
 	m_MQSV_SET_SANAMET(queueGroupName);
+	TRACE_1("queueGroupName %s", queueGroupName->value);
 
 	if (queueGroupName->length == 0) {
 		TRACE_2("ERR_INVALID_PARAM: queueGroupName length is NULL");
@@ -4199,7 +4207,7 @@ SaAisErrorT saMsgQueueGroupDelete(SaMsgHandleT msgHandle, const SaNameT *queueGr
 	MQA_CLIENT_INFO *client_info;
 	SaAisErrorT rc;
 
-	TRACE_ENTER2(" SaMsgHandle %llu queueGroupName %s", msgHandle,queueGroupName->value);
+	TRACE_ENTER2(" SaMsgHandle %llu", msgHandle);
 
 	if (!queueGroupName) {
 		TRACE_2("ERR_INVALID_PARAM: queueGroupName is NULL");
@@ -4212,6 +4220,7 @@ SaAisErrorT saMsgQueueGroupDelete(SaMsgHandleT msgHandle, const SaNameT *queueGr
 	}
 	/* To memset the bytes to zero other than the length bytes in the SaNameT Structure */
 	m_MQSV_SET_SANAMET(queueGroupName);
+	TRACE_1("queueGroupName %s", queueGroupName->value);
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -4320,7 +4329,7 @@ SaAisErrorT saMsgQueueGroupInsert(SaMsgHandleT msgHandle, const SaNameT *queueGr
 	MQA_CLIENT_INFO *client_info;
 	SaAisErrorT rc;
 
-	TRACE_ENTER2(" SaMsgHandle %llu queueGroupName %s", msgHandle,queueGroupName->value);
+	TRACE_ENTER2(" SaMsgHandle %llu", msgHandle);
 
 	if ((!queueGroupName) || (!queueName)) {
 		TRACE_2("ERR_INVALID_PARAM: queueGroupName is NULL or queueName is NULL");
@@ -4341,6 +4350,7 @@ SaAisErrorT saMsgQueueGroupInsert(SaMsgHandleT msgHandle, const SaNameT *queueGr
 	m_MQSV_SET_SANAMET(queueGroupName);
 
 	m_MQSV_SET_SANAMET(queueName);
+	TRACE_1("queueGroupName %s queueName %s", queueGroupName->value, queueName->value);
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -4447,7 +4457,7 @@ SaAisErrorT saMsgQueueGroupRemove(SaMsgHandleT msgHandle, const SaNameT *queueGr
 	MQA_CLIENT_INFO *client_info;
 	SaAisErrorT rc;
 
-	TRACE_ENTER2(" SaMsgHandle %llu queueGroupName %s", msgHandle,queueGroupName->value);
+	TRACE_ENTER2(" SaMsgHandle %llu", msgHandle);
 
 	if ((!queueGroupName) || (!queueName)) {
 		TRACE_2("ERR_INVALID_PARAM: queueGroupName is NULL queueName is NULL");
@@ -4468,6 +4478,7 @@ SaAisErrorT saMsgQueueGroupRemove(SaMsgHandleT msgHandle, const SaNameT *queueGr
 	m_MQSV_SET_SANAMET(queueGroupName);
 
 	m_MQSV_SET_SANAMET(queueName);
+	TRACE_1("queueGroupName %s queueName %s", queueGroupName->value, queueName->value);
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -4585,7 +4596,7 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
 	uint32_t num_queues;
 	SaMsgQueueGroupNotificationBufferT temp_notificationBuffer;
 
-	TRACE_ENTER2(" SaMsgHandle %llu queueGroupName %s", msgHandle,queueGroupName->value);
+	TRACE_ENTER2(" SaMsgHandle %llu", msgHandle);
 	if (!queueGroupName) {
 		TRACE_2("ERR_INVALID_PARAM: queueGroupName is NULL");
 		return SA_AIS_ERR_INVALID_PARAM;
@@ -4598,6 +4609,7 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
 
 	/* To memset the bytes to zero other than the length bytes in the SaNameT Structure */
 	m_MQSV_SET_SANAMET(queueGroupName);
+	TRACE_1("queueGroupName %s", queueGroupName->value);
 
 	if (!(trackFlags & (SA_TRACK_CURRENT | SA_TRACK_CHANGES | SA_TRACK_CHANGES_ONLY))) {
 		TRACE_2("ERR_BAD_FLAGS: Invalid Track Flags");
@@ -4871,7 +4883,7 @@ SaAisErrorT saMsgQueueGroupTrackStop(SaMsgHandleT msgHandle, const SaNameT *queu
 	MQA_TRACK_INFO *track_info = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
 
-	TRACE_ENTER2(" SaMsgHandle %llu queueGroupName %s", msgHandle,queueGroupName->value);
+	TRACE_ENTER2(" SaMsgHandle %llu", msgHandle);
 
 	if (!queueGroupName) {
 		TRACE_2("ERR_INVALID_PARAM: queueGroupName is NULL");
@@ -4885,6 +4897,7 @@ SaAisErrorT saMsgQueueGroupTrackStop(SaMsgHandleT msgHandle, const SaNameT *queu
 
 	/* To memset the bytes to zero other than the length bytes in the SaNameT Structure */
 	m_MQSV_SET_SANAMET(queueGroupName);
+	TRACE_1("queueGroupName %s", queueGroupName->value);
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
