@@ -18,29 +18,5 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = non_sa_aware
-
-EXTRA_DIST = \
-	amf_demo_script \
-	AppConfig-2N.xml \
-	AppConfig-nwayactive.xml \
-	README
-
-bin_PROGRAMS = amf_demo
-
-amf_demo_CPPFLAGS = \
-	$(AM_CPPFLAGS)
-
-amf_demo_SOURCES = \
-	amf_comp_template.c
-
-amf_demo_LDADD = \
-	@SAF_AIS_AMF_LIBS@
-
-install-data-hook:
-	mkdir -p /opt/amf_demo
-	cp -r amf_demo_script /opt/amf_demo
-
-uninstall-hook:
-	rm -rf /opt/amf_demo
+SUBDIRS = sa_aware non_sa_aware
 

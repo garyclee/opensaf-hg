@@ -1,0 +1,6 @@
+The sa_aware subdirectory contains a sample implementation of an
+SA-Aware AMF component. Please see the README in that directory.
+
+The non_sa_aware subdirectory contains a sample AMF integration of net-snmp
+with AMF. Please see the header of the xml file for more information.
+

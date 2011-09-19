@@ -60,8 +60,9 @@ PKG_CHECK_MODULES([SAF_AIS_SMF], [opensaf-smf])
 #
 AC_CONFIG_FILES([ \
         Makefile \
-        avsv/Makefile \
-        avsv/non_sa_aware/Makefile \
+        amf/Makefile \
+        amf/non_sa_aware/Makefile \
+        amf/sa_aware/Makefile \
         cpsv/Makefile \
         edsv/Makefile \
 	glsv/Makefile \

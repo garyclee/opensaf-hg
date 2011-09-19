@@ -46,8 +46,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
    ps
        # /opt/amf_demo/amf_demo should be executing
  
-   logs from amfdemo can be found in:
-   /var/opt/amf_demo/amf_demo.log 
+   logs from amfdemo can be found in syslog
 
   -->
     <campaignInfo>
@@ -55,7 +54,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
     </campaignInfo>
     <campaignInitialization>
       <addToImm>
-	<softwareBundle name="safSmfBundle=AmfDemoNway.1.0.0">
+	<softwareBundle name="safSmfBundle=AmfDemoNway.1">
 		<removal>
 			<offline command="/bin/logger" args="-t NWay AmfDemo removal offline" saSmfBundleRemoveOfflineScope="1" />
 			<online command="/bin/logger" args="-t NWay AmfDemo removal online" />
@@ -68,8 +67,8 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
 	</softwareBundle>
         <amfEntityTypes>
           <CompBaseType safCompType="safCompType=AmfDemoNway">
-            <CompType safVersion="safVersion=1.0.0">
-              <providesCSType saAmfCtCompCapability="3" saAmfCtDefNumMaxActiveCsi="0" saAmfCtDefNumMaxStandbyCsi="0" safSupportedCsType="safSupportedCsType=safVersion=1.0.0\,safCSType=AmfDemoNway"/>
+            <CompType safVersion="safVersion=1">
+              <providesCSType saAmfCtCompCapability="3" saAmfCtDefNumMaxActiveCsi="0" saAmfCtDefNumMaxStandbyCsi="0" safSupportedCsType="safSupportedCsType=safVersion=1\,safCSType=AmfDemoNway"/>
               <compTypeDefaults saAmfCtCompCategory="1" saAmfCtDefCallbackTimeout="10000000000" saAmfCtDefClcCliTimeout="10000000000" saAmfCtDefDisableRestart="0" saAmfCtDefInstantiationLevel="0" saAmfCtDefQuiescingCompleteTimeout="10000000000" saAmfCtDefRecoveryOnError="1"/>
               <instantiateCmd saAmfCtRelPathInstantiateCmd="amf_demo/amf_demo_script">
                 <cmdArgv>instantiate 4302</cmdArgv>
@@ -78,19 +77,19 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
                 <cmdArgv>cleanup 4302</cmdArgv>
               </cleanupCmd>
               <healthCheck saAmfHealthcheckMaxDuration="1800000000" saAmfHealthcheckPeriod="2400000000" safHealthcheckKey="safHealthcheckKey=AmfDemo"/>
-              <swBundle saAmfCtSwBundle="safSmfBundle=AmfDemoNway.1.0.0"/>
+              <swBundle saAmfCtSwBundle="safSmfBundle=AmfDemoNway.1"/>
             </CompType>
           </CompBaseType>
           <SUBaseType safSuType="safSuType=AmfDemoNway">
-            <SUType safVersion="safVersion=1.0.0">
+            <SUType safVersion="safVersion=1">
               <mandatoryAttrs saAmfSutDefSUFailover="0" saAmfSutIsExternal="0"/>
-              <componentType saAmfSutMaxNumComponents="0" saAmfSutMinNumComponents="1" safMemberCompType="safMemberCompType=safVersion=1.0.0\,safCompType=AmfDemoNway"/>
-              <supportedSvcType saAmfSutProvidesSvcType="safVersion=1.0.0,safSvcType=AmfDemoNway"/>
+              <componentType saAmfSutMaxNumComponents="0" saAmfSutMinNumComponents="1" safMemberCompType="safMemberCompType=safVersion=1\,safCompType=AmfDemoNway"/>
+              <supportedSvcType saAmfSutProvidesSvcType="safVersion=1,safSvcType=AmfDemoNway"/>
             </SUType>
           </SUBaseType>
           <SGBaseType safSgType="safSgType=AmfDemoNway">
-            <SGType safVersion="safVersion=1.0.0">
-              <suType saAmfSgtValidSuTypes="safVersion=1.0.0,safSuType=AmfDemoNway"/>
+            <SGType safVersion="safVersion=1">
+              <suType saAmfSgtValidSuTypes="safVersion=1,safSuType=AmfDemoNway"/>
               <redundancy saAmfSgtRedundancyModel="3"/>
               <compRestart saAmfSgtDefCompRestartMax="5" saAmfSgtDefCompRestartProb="100000"/>
               <suRestart saAmfSgtDefSuRestartMax="5" saAmfSgtDefSuRestartProb="100000"/>
@@ -98,16 +97,16 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
             </SGType>
           </SGBaseType>
           <AppBaseType safAppType="safAppType=AmfDemoNway">
-            <AppType safVersion="safVersion=1.0.0">
-              <serviceGroupType saAmfApptSGTypes="safVersion=1.0.0,safSgType=AmfDemoNway"/>
+            <AppType safVersion="safVersion=1">
+              <serviceGroupType saAmfApptSGTypes="safVersion=1,safSgType=AmfDemoNway"/>
             </AppType>
           </AppBaseType>
           <CSBaseType safCSType="safCSType=AmfDemoNway">
-            <CSType safVersion="safVersion=1.0.0"/>
+            <CSType safVersion="safVersion=1"/>
           </CSBaseType>
           <ServiceBaseType safSvcType="safSvcType=AmfDemoNway">
-            <ServiceType safVersion="safVersion=1.0.0">
-              <csType saAmfSvctMaxNumCSIs="0" safMemberCSType="safMemberCSType=safVersion=1.0.0\,safCSType=AmfDemoNway"/>
+            <ServiceType safVersion="safVersion=1">
+              <csType saAmfSvctMaxNumCSIs="0" safMemberCSType="safMemberCSType=safVersion=1\,safCSType=AmfDemoNway"/>
             </ServiceType>
           </ServiceBaseType>
         </amfEntityTypes>
@@ -127,7 +126,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safApp=AmfDemoNway</value>
             </attribute>
             <attribute name="saAmfAppType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safAppType=AmfDemoNway</value>
+              <value>safVersion=1,safAppType=AmfDemoNway</value>
             </attribute>
             <attribute name="saAmfApplicationAdminState" type="SA_IMM_ATTR_SAUINT32T">
               <value>1</value>
@@ -138,7 +137,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safSg=SGNway</value>
             </attribute>
             <attribute name="saAmfSGType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safSgType=AmfDemoNway</value>
+              <value>safVersion=1,safSgType=AmfDemoNway</value>
             </attribute>
             <attribute name="saAmfSGSuHostNodeGroup" type="SA_IMM_ATTR_SANAMET">
               <value>safAmfNodeGroup=PLs,safAmfCluster=myAmfCluster</value>
@@ -161,7 +160,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safSu=AmfDemoNway-0</value>
             </attribute>
             <attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safSuType=AmfDemoNway</value>
+              <value>safVersion=1,safSuType=AmfDemoNway</value>
             </attribute>
             <attribute name="saAmfSURank" type="SA_IMM_ATTR_SAUINT32T">
               <value>0</value>
@@ -181,7 +180,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safComp=AmfDemoNway-0</value>
             </attribute>
             <attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safCompType=AmfDemoNway</value>
+              <value>safVersion=1,safCompType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfHealthcheck" parentObjectDN="safComp=AmfDemoNway-0,safSu=AmfDemoNway-0,safSg=SGNway,safApp=AmfDemoNway">
@@ -197,7 +196,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
           </create>
           <create objectClassName="SaAmfCompCsType" parentObjectDN="safComp=AmfDemoNway-0,safSu=AmfDemoNway-0,safSg=SGNway,safApp=AmfDemoNway">
             <attribute name="safSupportedCsType" type="SA_IMM_ATTR_SANAMET">
-              <value>safSupportedCsType=safVersion=1.0.0\,safCSType=AmfDemoNway</value>
+              <value>safSupportedCsType=safVersion=1\,safCSType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfSU" parentObjectDN="safSg=SGNway,safApp=AmfDemoNway">
@@ -205,7 +204,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safSu=AmfDemoNway-1</value>
             </attribute>
             <attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safSuType=AmfDemoNway</value>
+              <value>safVersion=1,safSuType=AmfDemoNway</value>
             </attribute>
             <attribute name="saAmfSURank" type="SA_IMM_ATTR_SAUINT32T">
               <value>0</value>
@@ -225,7 +224,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safComp=AmfDemoNway-0</value>
             </attribute>
             <attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safCompType=AmfDemoNway</value>
+              <value>safVersion=1,safCompType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfHealthcheck" parentObjectDN="safComp=AmfDemoNway-0,safSu=AmfDemoNway-1,safSg=SGNway,safApp=AmfDemoNway">
@@ -241,7 +240,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
           </create>
           <create objectClassName="SaAmfCompCsType" parentObjectDN="safComp=AmfDemoNway-0,safSu=AmfDemoNway-1,safSg=SGNway,safApp=AmfDemoNway">
             <attribute name="safSupportedCsType" type="SA_IMM_ATTR_SANAMET">
-              <value>safSupportedCsType=safVersion=1.0.0\,safCSType=AmfDemoNway</value>
+              <value>safSupportedCsType=safVersion=1\,safCSType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfSU" parentObjectDN="safSg=SGNway,safApp=AmfDemoNway">
@@ -249,7 +248,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safSu=AmfDemoNway-2</value>
             </attribute>
             <attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safSuType=AmfDemoNway</value>
+              <value>safVersion=1,safSuType=AmfDemoNway</value>
             </attribute>
             <attribute name="saAmfSURank" type="SA_IMM_ATTR_SAUINT32T">
               <value>0</value>
@@ -269,7 +268,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safComp=AmfDemoNway-0</value>
             </attribute>
             <attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safCompType=AmfDemoNway</value>
+              <value>safVersion=1,safCompType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfHealthcheck" parentObjectDN="safComp=AmfDemoNway-0,safSu=AmfDemoNway-2,safSg=SGNway,safApp=AmfDemoNway">
@@ -285,7 +284,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
           </create>
           <create objectClassName="SaAmfCompCsType" parentObjectDN="safComp=AmfDemoNway-0,safSu=AmfDemoNway-2,safSg=SGNway,safApp=AmfDemoNway">
             <attribute name="safSupportedCsType" type="SA_IMM_ATTR_SANAMET">
-              <value>safSupportedCsType=safVersion=1.0.0\,safCSType=AmfDemoNway</value>
+              <value>safSupportedCsType=safVersion=1\,safCSType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfSI" parentObjectDN="safApp=AmfDemoNway">
@@ -293,7 +292,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safSi=Nway-0</value>
             </attribute>
             <attribute name="saAmfSvcType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safSvcType=AmfDemoNway</value>
+              <value>safVersion=1,safSvcType=AmfDemoNway</value>
             </attribute>
             <attribute name="saAmfSIProtectedbySG" type="SA_IMM_ATTR_SANAMET">
               <value>safSg=SGNway,safApp=AmfDemoNway</value>
@@ -313,7 +312,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safCsi=Nway-0</value>
             </attribute>
             <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+              <value>safVersion=1,safCSType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-0,safApp=AmfDemoNway">
@@ -321,7 +320,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safCsi=Nway-1</value>
             </attribute>
             <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+              <value>safVersion=1,safCSType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-0,safApp=AmfDemoNway">
@@ -329,7 +328,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safCsi=Nway-2</value>
             </attribute>
             <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+              <value>safVersion=1,safCSType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfSI" parentObjectDN="safApp=AmfDemoNway">
@@ -337,7 +336,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safSi=Nway-1</value>
             </attribute>
             <attribute name="saAmfSvcType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safSvcType=AmfDemoNway</value>
+              <value>safVersion=1,safSvcType=AmfDemoNway</value>
             </attribute>
             <attribute name="saAmfSIProtectedbySG" type="SA_IMM_ATTR_SANAMET">
               <value>safSg=SGNway,safApp=AmfDemoNway</value>
@@ -357,7 +356,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safCsi=Nway-0</value>
             </attribute>
             <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+              <value>safVersion=1,safCSType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-1,safApp=AmfDemoNway">
@@ -365,7 +364,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safCsi=Nway-1</value>
             </attribute>
             <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+              <value>safVersion=1,safCSType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-1,safApp=AmfDemoNway">
@@ -373,7 +372,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safCsi=Nway-2</value>
             </attribute>
             <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+              <value>safVersion=1,safCSType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfSI" parentObjectDN="safApp=AmfDemoNway">
@@ -381,7 +380,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safSi=Nway-2</value>
             </attribute>
             <attribute name="saAmfSvcType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safSvcType=AmfDemoNway</value>
+              <value>safVersion=1,safSvcType=AmfDemoNway</value>
             </attribute>
             <attribute name="saAmfSIProtectedbySG" type="SA_IMM_ATTR_SANAMET">
               <value>safSg=SGNway,safApp=AmfDemoNway</value>
@@ -401,7 +400,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safCsi=Nway-0</value>
             </attribute>
             <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+              <value>safVersion=1,safCSType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-2,safApp=AmfDemoNway">
@@ -409,7 +408,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safCsi=Nway-1</value>
             </attribute>
             <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+              <value>safVersion=1,safCSType=AmfDemoNway</value>
             </attribute>
           </create>
           <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-2,safApp=AmfDemoNway">
@@ -417,7 +416,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
               <value>safCsi=Nway-2</value>
             </attribute>
             <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
-              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+              <value>safVersion=1,safCSType=AmfDemoNway</value>
             </attribute>
           </create>
         </immCCB>
@@ -433,7 +432,7 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
                   <byName objectDN="safSu=AmfDemoNway-1,safSg=SGNway,safApp=AmfDemoNway"/>
                   <byName objectDN="safSu=AmfDemoNway-2,safSg=SGNway,safApp=AmfDemoNway"/>
                 </actedOn>
-                <swAdd bundleDN="safSmfBundle=AmfDemoNway.1.0.0" pathnamePrefix="/opt">
+                <swAdd bundleDN="safSmfBundle=AmfDemoNway.1" pathnamePrefix="/opt">
                   <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
                   <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
                   <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>

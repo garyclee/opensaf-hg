@@ -16,13 +16,12 @@
  * Author(s): Ericsson
  *
 
-- This file is prepared for initial loading, loaded by IMM at startup. Merge this 
-file with the main imm.xml using the immxml-merge tool.
+- Admin state of SUs is LOCKED-INSTANTIATION which makes it possible to load
+this file using "immcfg -f"
 
-- If this file is to be loaded dynamically using e.g. 'immcfg -f', the SUs must have admin state
-locked instantiation (3). Uncomment the commented saAmfSUAdminState sections below.
-- If this file is to be loaded dynamically using e.g. 'immcfg -f', the SIs must have admin state
-locked(2). Uncomment the commented saAmfSIAdminState sections below.
+- With only node in the cluster this object needs to be removed:
+"safInstalledSwBundle=safSmfBundle=AmfDemo,safAmfNode=SC-2,safAmfCluster=myAmfCluster"
+from the file before loaded.
 
 -->
 
@@ -46,32 +45,32 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 	    <dn>safCSType=AmfDemo1</dn>
 	</object>
 	<object class="SaAmfSvcType">
-	    <dn>safVersion=4.0.0,safSvcType=AmfDemo1</dn>
+	    <dn>safVersion=1,safSvcType=AmfDemo1</dn>
 	</object>
 	<object class="SaAmfAppType">
-		<dn>safVersion=4.0.0,safAppType=AmfDemo1</dn>
+		<dn>safVersion=1,safAppType=AmfDemo1</dn>
 		<attr>
 			<name>saAmfApptSGTypes</name>
-			<value>safVersion=4.0.0,safSgType=AmfDemo1</value>
+			<value>safVersion=1,safSgType=AmfDemo1</value>
 		</attr>
 	</object>
 	<object class="SaAmfSGType">
-		<dn>safVersion=4.0.0,safSgType=AmfDemo1</dn>
+		<dn>safVersion=1,safSgType=AmfDemo1</dn>
 		<attr>
 			<name>saAmfSgtRedundancyModel</name>
 			<value>1</value>
 		</attr>
 		<attr>
 			<name>saAmfSgtValidSuTypes</name>
-			<value>safVersion=4.0.0,safSuType=AmfDemo1</value>
+			<value>safVersion=1,safSuType=AmfDemo1</value>
 		</attr>
 		<attr>
 			<name>saAmfSgtDefAutoAdjustProb</name>
-			<value>10000000</value>
+			<value>10000000000</value>
 		</attr>
 		<attr>
 			<name>saAmfSgtDefCompRestartProb</name>
-			<value>4000000</value>
+			<value>4000000000</value>
 		</attr>
 		<attr>
 			<name>saAmfSgtDefCompRestartMax</name>
@@ -79,7 +78,7 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 		</attr>
 		<attr>
 			<name>saAmfSgtDefSuRestartProb</name>
-			<value>4000000</value>
+			<value>4000000000</value>
 		</attr>
 		<attr>
 			<name>saAmfSgtDefSuRestartMax</name>
@@ -87,7 +86,7 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 		</attr>
 	</object>
 	<object class="SaAmfSUType">
-		<dn>safVersion=4.0.0,safSuType=AmfDemo1</dn>
+		<dn>safVersion=1,safSuType=AmfDemo1</dn>
 		<attr>
 			<name>saAmfSutIsExternal</name>
 			<value>0</value>
@@ -98,11 +97,11 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 		</attr>
 		<attr>
 			<name>saAmfSutProvidesSvcTypes</name>
-			<value>safVersion=4.0.0,safSvcType=AmfDemo1</value>
+			<value>safVersion=1,safSvcType=AmfDemo1</value>
 		</attr>
 	</object>
 	<object class="SaAmfCompType">
-		<dn>safVersion=4.0.0,safCompType=AmfDemo1</dn>
+		<dn>safVersion=1,safCompType=AmfDemo1</dn>
 		<attr>
 			<name>saAmfCtCompCategory</name>
 			<value>1</value>
@@ -150,23 +149,23 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 		</attr>
 	</object>
 	<object class="SaAmfCSType">
-		<dn>safVersion=4.0.0,safCSType=AmfDemo1</dn>
+		<dn>safVersion=1,safCSType=AmfDemo1</dn>
 	</object>
 	<object class="SaAmfSutCompType">
-		<dn>safMemberCompType=safVersion=4.0.0\,safCompType=AmfDemo1,safVersion=4.0.0,safSuType=AmfDemo1</dn>
+		<dn>safMemberCompType=safVersion=1\,safCompType=AmfDemo1,safVersion=1,safSuType=AmfDemo1</dn>
 	</object>
 	<object class="SaAmfSvcTypeCSTypes">
-	  <dn>safMemberCSType=safVersion=4.0.0\,safCSType=AmfDemo1,safVersion=4.0.0,safSvcType=AmfDemo1</dn>
+	  <dn>safMemberCSType=safVersion=1\,safCSType=AmfDemo1,safVersion=1,safSvcType=AmfDemo1</dn>
 	</object>
 	<object class="SaAmfCtCsType">
-		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safVersion=4.0.0,safCompType=AmfDemo1</dn>
+		<dn>safSupportedCsType=safVersion=1\,safCSType=AmfDemo1,safVersion=1,safCompType=AmfDemo1</dn>
 		<attr>
 			<name>saAmfCtCompCapability</name>
 			<value>1</value>
 		</attr>
 	</object>
 	<object class="SaAmfHealthcheckType">
-		<dn>safHealthcheckKey=AmfDemo,safVersion=4.0.0,safCompType=AmfDemo1</dn>
+		<dn>safHealthcheckKey=AmfDemo,safVersion=1,safCompType=AmfDemo1</dn>
 		<attr>
 			<name>saAmfHctDefPeriod</name>
 			<value>10000000000</value>
@@ -181,14 +180,14 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 		<dn>safApp=AmfDemo1</dn>
 		<attr>
 			<name>saAmfAppType</name>
-			<value>safVersion=4.0.0,safAppType=AmfDemo1</value>
+			<value>safVersion=1,safAppType=AmfDemo1</value>
 		</attr>
 	</object>
 	<object class="SaAmfSG">
 		<dn>safSg=AmfDemo,safApp=AmfDemo1</dn>
 		<attr>
 			<name>saAmfSGType</name>
-			<value>safVersion=4.0.0,safSgType=AmfDemo1</value>
+			<value>safVersion=1,safSgType=AmfDemo1</value>
 		</attr>
 		<attr>
 			<name>saAmfSGSuHostNodeGroup</name>
@@ -223,24 +222,18 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 		<dn>safSi=AmfDemo,safApp=AmfDemo1</dn>
 		<attr>
 			<name>saAmfSvcType</name>
-			<value>safVersion=4.0.0,safSvcType=AmfDemo1</value>
+			<value>safVersion=1,safSvcType=AmfDemo1</value>
 		</attr>
 		<attr>
 			<name>saAmfSIProtectedbySG</name>
 			<value>safSg=AmfDemo,safApp=AmfDemo1</value>
 		</attr> 
-<!--
-		<attr>
-			<name>saAmfSIAdminState</name>
-			<value>2</value>
-		</attr>
--->
 	</object>
 	<object class="SaAmfCSI">
 	    <dn>safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo1</dn>
 	    <attr>
 		<name>saAmfCSType</name>
-		<value>safVersion=4.0.0,safCSType=AmfDemo1</value>
+		<value>safVersion=1,safCSType=AmfDemo1</value>
 	    </attr>
 	</object>
 	<object class="SaSmfSwBundle">
@@ -257,28 +250,22 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 		<dn>safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1</dn>
 		<attr>
 			<name>saAmfSUType</name>
-			<value>safVersion=4.0.0,safSuType=AmfDemo1</value>
-		</attr>
-		<attr>
-			<name>saAmfSUHostNodeOrNodeGroup</name>
-			<value>safAmfNode=SC-1,safAmfCluster=myAmfCluster</value>
+			<value>safVersion=1,safSuType=AmfDemo1</value>
 		</attr>
 		<attr>
 			<name>saAmfSURank</name>
 			<value>1</value>
 		</attr>
-<!--
 		<attr>
 			<name>saAmfSUAdminState</name>
 			<value>3</value>
 		</attr>
--->
 	</object>
 	<object class="SaAmfComp">
                 <dn>safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1</dn>
 	        <attr>
 		        <name>saAmfCompType</name>
-		        <value>safVersion=4.0.0,safCompType=AmfDemo1</value>
+		        <value>safVersion=1,safCompType=AmfDemo1</value>
 	        </attr>
 	        <attr>
 			<name>saAmfCompCmdEnv</name>
@@ -288,7 +275,7 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 		</attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1</dn>
+	    <dn>safSupportedCsType=safVersion=1\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
 		<dn>safInstalledSwBundle=safSmfBundle=AmfDemo,safAmfNode=SC-2,safAmfCluster=myAmfCluster</dn>
@@ -301,28 +288,22 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 		<dn>safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1</dn>
 		<attr>
 			<name>saAmfSUType</name>
-			<value>safVersion=4.0.0,safSuType=AmfDemo1</value>
-		</attr>
-		<attr>
-			<name>saAmfSUHostNodeOrNodeGroup</name>
-			<value>safAmfNode=SC-2,safAmfCluster=myAmfCluster</value>
+			<value>safVersion=1,safSuType=AmfDemo1</value>
 		</attr>
 		<attr>
 			<name>saAmfSURank</name>
 			<value>2</value>
 		</attr>
-<!--
 		<attr>
 			<name>saAmfSUAdminState</name>
 			<value>3</value>
 		</attr>
--->
 	</object>
 	<object class="SaAmfComp">
 	        <dn>safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1</dn>
 	        <attr>
 		        <name>saAmfCompType</name>
-		        <value>safVersion=4.0.0,safCompType=AmfDemo1</value>
+		        <value>safVersion=1,safCompType=AmfDemo1</value>
 	        </attr>
 	        <attr>
 			<name>saAmfCompCmdEnv</name>
@@ -332,6 +313,6 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 		</attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1</dn>
+	    <dn>safSupportedCsType=safVersion=1\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1</dn>
 	</object>
 </imm:IMM-contents>
