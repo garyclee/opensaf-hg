@@ -1,4 +1,4 @@
-#! /bin/bash  
+#! /bin/bash
 #
 #      -*- OpenSAF  -*-
 #
@@ -75,7 +75,7 @@ cmd_getlibs() {
 ##        env APPCONFIG=AppConfig-nwayactive.xml ./build_uml install_testprog
 ##
 cmd_install_testprog() {
-    src=$opensaf_home/samples/avsv
+    src=$opensaf_home/samples/amf/sa_aware
     libd=$top/rootfs/usr/local/$lib_dir
     installd=$top/rootfs/opt/amf_demo
     immxml=$top/rootfs/etc/opensaf/imm.xml
@@ -83,7 +83,7 @@ cmd_install_testprog() {
     mkdir -p $installd
     cp $src/amf_demo_script $installd
     gcc -g -O2 -Wall -fPIC -I$opensaf_home/osaf/libs/saf/include \
-	-o $installd/amf_demo $src/amf_comp_template.c \
+	-o $installd/amf_demo $src/amf_demo.c \
 	-L$libd -lSaAmf -L$libd/opensaf -lopensaf_core
 
     test -r $immxml.orig || cp $immxml $immxml.orig
