@@ -2619,7 +2619,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					TRACE_3("CcbAbortCallback: imma_oi_ccb_record_close_augment "
 						"returned false for ccb %llu", ccbid);
 				}
-				assert(imma_oi_ccb_record_terminate(cl_node, ccbid));
+				imma_oi_ccb_record_terminate(cl_node, ccbid);
 				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				if(privateAugOmHandle) {
 					assert(immsv_om_handle_finalize);
