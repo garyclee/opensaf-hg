@@ -27,60 +27,6 @@
 static NCS_PATRICIA_TREE csi_db;
 
 /**
- * Get configuration for the SaAmfCSIAssignment objects related
- * to this CSI from IMM and create AVD internal objects.
- * @param cb
- * 
- * @return int
- */
-static SaAisErrorT csiass_config_get(const SaNameT *csi_name, AVD_CSI *csi)
-{
-	SaAisErrorT error;
-	SaImmSearchHandleT searchHandle;
-	SaImmSearchParametersT_2 searchParam;
-	SaNameT csiass_name, su_name, si_name, comp_name;
-	const SaImmAttrValuesT_2 **attributes;
-	const char *className = "SaAmfCSIAssignment";
-	AVD_SU_SI_REL *susi;
-	AVD_COMP *comp;
-	AVD_COMP_CSI_REL *compcsi;
-
-	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
-	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
-
-	if ((error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, csi_name,
-		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
-		&searchParam, NULL, &searchHandle)) != SA_AIS_OK) {
-
-		LOG_ER("saImmOmSearchInitialize failed: %u", error);
-		goto done1;
-	}
-
-	while ((error = immutil_saImmOmSearchNext_2(searchHandle, &csiass_name,
-		(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
-
-		TRACE("'%s'", csiass_name.value);
-		avsv_sanamet_init(&csiass_name, &si_name, "safSi");
-		avsv_sanamet_init_from_association_dn(&csiass_name, &su_name, "safSu", "safCsi");
-		susi = avd_susi_find(avd_cb, &su_name, &si_name);
-		if (susi != NULL) {
-			avsv_sanamet_init_from_association_dn(&csiass_name, &comp_name, "safComp", "safCsi");
-			comp = avd_comp_get(&comp_name);
-			compcsi = avd_compcsi_create(susi, csi, comp, false);
-		} else {
-			LOG_ER("SUSI does not exist for CompCsi : '%s'", csiass_name.value);
-		}
-	}
-	error = SA_AIS_OK;
-
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
-
- done1:
-	return error;
-}
-
-/**
  * Add the CSI to the DB
  * @param csi
  */
@@ -368,8 +314,6 @@ SaAisErrorT avd_csi_config_get(const SaNameT *si_name, AVD_SI *si)
 
 			csi_add_to_model(csi);
 		}
-
-		csiass_config_get(&csi_name, csi);
 
 		if (avd_csiattr_config_get(&csi_name, csi) != SA_AIS_OK) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
