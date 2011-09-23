@@ -614,7 +614,6 @@ static void sg_nd_attribute_update(AVD_SG *sg, uint32_t attrib_id)
 		}
 		su = su->sg_list_su_next;
 	}
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
 	TRACE_LEAVE();
 }
 
@@ -704,7 +703,6 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			attr_mod = opdata->param.modify.attrMods[i++];
 		}		/* while (attr_mod != NULL) */
 
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_sg, AVSV_CKPT_AVD_SG_CONFIG);
 
 	} /* Admin state is not UNLOCKED */
 	else {			/* Admin state is UNLOCKED */
@@ -754,7 +752,6 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 						assert(0);
 					}
 				}
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_sg, AVSV_CKPT_AVD_SG_CONFIG);
 			} else {
 				assert(0);
 			}

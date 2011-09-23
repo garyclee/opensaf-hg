@@ -145,7 +145,8 @@ void avd_app_add_sg(AVD_APP *app, AVD_SG *sg)
 	sg->sg_list_app_next = app->list_of_sg;
 	app->list_of_sg = sg;
 	app->saAmfApplicationCurrNumSGs++;
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
+	if (avd_cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_4)
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
 }
 
 void avd_app_remove_sg(AVD_APP *app, AVD_SG *sg)
@@ -176,7 +177,8 @@ void avd_app_remove_sg(AVD_APP *app, AVD_SG *sg)
 
 	assert(app->saAmfApplicationCurrNumSGs > 0);
 	app->saAmfApplicationCurrNumSGs--;
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
+	if (avd_cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_4)
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
 	sg->sg_list_app_next = NULL;
 	sg->app = NULL;
 }
