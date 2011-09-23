@@ -1329,7 +1329,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiationLevel")) {
 			AVD_SU *su = comp->su;
 			param.attr_id = saAmfCompInstantiationLevel_ID;
-			param.value_len = sizeof(uns32);
+			param.value_len = sizeof(uint32_t);
 			memcpy(&param.value[0],(SaUint32T *)value , param.value_len);
 			comp->comp_info.inst_level = *((SaUint32T *)value);
 			

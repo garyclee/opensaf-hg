@@ -825,8 +825,8 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				break;
 
 			case saAmfCompInstantiationLevel_ID: 
-				assert(sizeof(uns32) == param->value_len);
-				comp->inst_level = *(uns32 *)(param->value);
+				assert(sizeof(uint32_t) == param->value_len);
+				comp->inst_level = *(uint32_t *)(param->value);
 				
 				/* Remove from the comp-list (maintained by su) */
 				rc = m_AVND_SUDB_REC_COMP_REM(*su, *comp);
