@@ -227,6 +227,69 @@ The actual release is done when the FEVS message arrives at the IMMNDs,
 ensuring that all IMMNDs release the resource at the same point in the FEVS
 message sequence.
 
+Common missunderstandings about the OpenSAF handles and IMM handles.
+--------------------------------------------------------------------
+(i)
+OpenSAF client handles in general and IMM handles in particular(SaImmHandleT
+and SaImmOiHandleT) are not thread independent. That is, the developer must
+avoid using the same handle concurrently from several application threads.
+Using different handles from different application threads is of course allowed
+and using one handle in different application threads at >>different<< times
+is allowed. In the latter case, the threads typically need to syncronize their
+use of the common handle to avoid overlapped use. And they need to understand
+the meaning of the term 'use' for the handle. An application thread that is
+blocked in a poll that uses a selection object obtained from a handle,
+is using that handle even when that thread is not executing. 
+
+Each handle should be seen as a resource, which mutates its state 
+when used by a thread. Part of the resource is a communications channel
+to/from the IMMND server. If more than one thread tries to send (syncronously
+or asyncronously) or receive (includes waiting for syncronous reply, poll
+and dispatch), using the same handle at the same time, the results are
+unpredictable. Messages may get lost and a reply may end up at the "wrong"
+receiver, the process may crash on assertion in the library.
+
+Interleaved use of a handle between several threads is thus possible,
+if done correctly. But we strongly recommend against it because any
+incorrect use will cause such strange and unpredictable symptoms. 
+
+Note that, used correctly(!) OpenSAF libraries are (should be) thread safe.
+But thread safe does not mean immune to any and all forms of incorrect use. 
+
+(ii)
+An OM-handle (SaImmHandleT) can be used to generate sub-handles such as:
+
+  SaImmAdminOwnerHandleT
+  SaImmCcbHandleT
+  SaImmSearchHandleT
+  SaimmAccessorHandleT
+
+Such sub-handles will share the *same* communication channel towards the
+IMMND server. Thus sub-handles to one SaImmHandleT should only be used by
+the thread currently using (owning) the root SaImmHandleT. 
+
+(iii)
+A special case of (ii) is how to program the use of asyncronous admin-
+operations. The "vanilla" case is to simply use one thread, both for sending
+the asyncronous request and for receiving the asyncronous reply. Both events
+of course use the same handle. This is the recommended use if possible. 
+It is possible when the thread is event driven from a poll. External 
+requests arrive causing the thread to sometimes send asyncronous admin-
+operation requests to some OI. The asyncronous reply from the OI is picked
+up by the same poll and typically forwarded out to the external user.
+Some form of continuation record would be kept by the requesting thread
+to identify the reply.
+
+But in some cases the developer wants to receive the replies on 
+asyncronous operations in a separate thread from the thread that sent
+the request. This is possible, provided that the sending thread somehow
+submitts the handle for exclusive use by the receiving thread, immediately
+after the send. Until the receiving thread has has received the reply,
+the original sending thread should not use the same handle, and it must
+not use the same handle for receiving anything (i.e. not poll on a selection
+object obtained from that handle and not invoke any syncronous calls using
+that handle). 
+
 
 PERSISTENCE
 ===========
@@ -243,17 +306,13 @@ cluster restart, but only the latest dumped version will be recovered.
 
 One of the main new immsv features available in OpenSAF4.0 is the 
 Persistent Back-End (PBE). By default this feature is not enabled.
-See the instructions below for how to enable it. The reason it
-is not enabled by default is that the feature is not yet extensively
-tested. In addition, use of the PBE has a signifigant impact on
-performance for CCBs and persitent runtime data, both response time
-and throughput. By making the feature available in OpenSAF4.0 we
-hope that some users will try to use it, or at least test it and
-give us feedback on problems. This also means that the PBE is 
-a "supported feature" of OpenSAF4.0. It is then possible to write
-tickets on this functionality. If the ticket is valid and of
-sufficient priority (according to OpenSAF), then will get fixed. 
-
+See the instructions below for how to enable it. Use of the PBE
+has a signifigant (negative) impact on performance for CCBs and
+persitent runtime data, both response time and throughput.
+The upside is that the user does not need to do frequent dumps
+to get persistence. But it is still advisable dump the IMM
+(to the imm-xml form) periodically, for backup to an external
+filesystem, to support recovery from disasters. 
 
 -----------------------------------------------
 
@@ -313,10 +372,30 @@ To enable this feature the folowing three steps are needed.
 
         618 root 22320 S N  /usr/local/bin/immdump --daemon --pbe /var/lib/..
 
-	The PBE feature can at any time be disabled by:
+The PBE feature can at any time be disabled by setting the saImmRepositoryInit
+attribute back to SA_IMM_FROM_FILE (2).
 
 	immcfg -m -a saImmRepositoryInit=2 \
 	   safRdn=immManagement,safApp=safImmService
+
+The final transaction/CCB done towards the imm.db sqlite file will be to
+set the saImmRepositoryInit attribute also in this sqlite file. So any
+cluster restart that tries to load from the imm.db file will detect that
+PBE is disabled and instead load from the imm.xml file. 
+
+Finally, if the PBE is hung for some reason, it can also be forced to
+disabled, by the administrative operation:
+
+	immadm -o 100 safRdn=immManagement,safApp=safImmService
+
+This admin-operation will change the value of the above configuration
+attribute to 2, i.e. SaImmRepositoryInitModeT value SA_IMM_INIT_FROM_FILE,
+without using a ccb and ignoring any currently active PBE.
+But this way of disabling the PBE will NOT update the saImmRepositoryInit
+attribute in the sqlite file. So any subsequent cluster restart will use
+the imm.db file and come up with PBE enabled. So if possible, use the 
+recommended way, via immcfg, for disabling PBE.
+
 
 ---------------------
 
@@ -428,9 +507,9 @@ The concept of an "applier OI" removes this deficiency and allows the
 service/application to use the imm to disseminate the changes. 
 
 An applier OI registers the same way as the main OI and receives exactly
-the same CCB related upcalls as the primary OI. The difference is that an
+the same CCB related callbacks as the primary OI. The difference is that an
 applier OI does not participate in CCB validation. The imm-service ignores
-any reply on the create,delete,modify and completed upcalls, from applier OIs.
+any reply on the create,delete,modify and completed callbacks, from applier OIs.
 An applier OI does not get uppcalls for admin-operations or for updating
 runtime attributes. This should be obvious since admin-ops or updates
 to runtime attributes should only be handled by the main-oi. 
@@ -518,9 +597,9 @@ that applier.
 
 The most efficient and simplest and normal way to bind an implementer
 or applier to objects is by using the saImmOiClassImplementerSet call.
-This ensures that the implementer-name is always bound to all instnces
+This ensures that the implementer-name is always bound to all instances
 of that class. It ensures that the OI will get the saImmOiObjectCreate
-upcall, which is only possible for class-implementers, since you can
+callback, which is only possible for class-implementers, since you can
 not register with saImmOiObjectImplementerSet on an object that does
 not yet exist. 
 
@@ -549,23 +628,50 @@ saImmOiCcbSetErrorString(SaImmOiHandleT immOiHandle,  /* in */
                          SaImmOiCcbIdT ccbId,         /* in */
                          const SaStringT errorString);/* in */
 
+  Arguments     :  immOiHandle - IMM OI handle
+                   ccbId  -  The ccbId for the ccb related callback.
+                   errorString - The errorString.
+ 
+  Return Values :  SA_AIS_OK
+                   SA_AIS_ERR_BAD_HANDLE
+                   SA_AIS_ERR_INVALID_PARAM
+                   SA_AIS_ERR_BAD_OPERATION (not inside valid ccb callback)
+                   SA_AIS_ERR_LIBRARY
+                   SA_AIS_ERR_TRY_AGAIN
+                   SA_AIS_ERR_VERSION  (not using A.2.11)
+
 Allows an OI to set an error string in the context of a ccb related
-upcall. Setting an error string is only relevant if the OI will
-return with error (not SA_AIS_OK) on the upcall.  The error
+callback. Setting an error string is only relevant if the OI will
+return with error (not SA_AIS_OK) on the callback.  The error
 string will be transmitted to the OM client. Only one error string
-will be accepted per OI upcall. Setting additional error strings
-in the same OI upcall will simply replace the previous one. 
+will be accepted per OI callback. Setting additional error strings
+in the same OI callback will simply replace the previous one. 
 Multiple error strings may however be set from different OIs
-in different upcalls related to the same OM downcall (e.g.
+in different callbacks related to the same OM downcall (e.g.
 saImmOmCcbApply). Setting an error string is only possible
-inside oi-upcalls that have a return code. Thus it is NOT
+inside oi-callbacks that have a return code. Thus it is NOT
 possible inside SaImmOiCcbApplyCallbackT or SaImmOiCcbAbortCallbackT.
+
 
 (2)
 extern SaAisErrorT
 saImmOmCcbGetErrorStrings(
         SaImmCcbHandleT ccbHandle,      /* in */
         const SaStringT **errorStrings);/* out */
+
+  Arguments     :  ccbHandle    - The ccb handle.
+                   errorStrings - Pointer to a pointer to a NULL terminated array
+                                  of SaStringT. The list of strings is owned by
+                                  the imma om library and is cleared/deallocated
+                                  in conjunction with the next downcall using the 
+                                  ccb-handle. 
+ 
+  Return Values :  SA_AIS_OK
+                   SA_AIS_ERR_BAD_HANDLE
+                   SA_AIS_ERR_INVALID_PARAM
+                   SA_AIS_ERR_LIBRARY
+                   SA_AIS_ERR_TRY_AGAIN
+                   SA_AIS_ERR_VERSION  (not using A.2.11)
 
 Allows the OM client to fetch error strings after the return of a
 ccb-related downcall and *before* making the next ccb-related
@@ -575,6 +681,9 @@ error, then these error strings should be included in the list.
 The imm server discards duplicate strings and allows a maximum
 of 128 error strings in the list. Any ccb call that returns
 SA_AIS_OK will not have any error-strings.
+Only errors that could be returned, directly or indirectly
+by an OI, such as FAILED_OPERATION or BAD_OPERATION should
+be expected to possibly have an error string.
 
 NOTE: It is very important that the OM client completes its
 processing of the errorStrings before invoking the next
@@ -592,7 +701,7 @@ http://devel.opensaf.org/ticket/1764
 Allows the OI to supply a return paramater list in the same way 
 as the OM client has always been able to supply a parameter list
 as part of an admin-operation-invocation. The reply from the OI
-is in other respects identical to A.2.1.
+is in other respects identical to A.02.01.
 Api additions for this are available to imm clients that register
 with imm version A.2.11:
 
@@ -604,10 +713,26 @@ saImmOiAdminOperationResult_o2(
         SaAisErrorT result,                                /* in */
         const SaImmAdminOperationParamsT_2 **returnParams);/* in */
 
+  Arguments     :  immOiHandle  - Same as saImmOiAdminOperationResult.
+                   invocation   - Same as saImmOiAdminOperationResult.
+                   result       - Same as saImmOiAdminOperationResult.
+                   returnParams - Parameters to return (new for A.2.11)
+                                  See A.02.01 spec for the 'params' arg
+                                  of saImmOmAdminOperationInvoke_2.
+
+  Return Values : Same as saImmOiAdminOperationResult 
+                  i.e. no new return codes for the A.2.11 version,
+                  except SA_AIS_ERR_VERSION for the case when
+                  saImmOiAdminOperationResult_o2 is used but
+                  not with A.2.11 set for the immOihandle.
+
 Allows the OI to reply on the admin-operation with the added list
 of return parameters. Works otherwise in the same way as the 
 original saImmOiAdminOperationResult. If returnParams is set to 
 NULL then the reply is identical to using the original reply form.
+The returnParams argument is constructed in exactly the same way
+as the 'params' argument is constructed in 
+saImmOmAdminOperationInvoke_2.
 
 
 (2)
@@ -623,25 +748,38 @@ typedef struct {
                saImmOmAdminOperationInvokeCallback;
 } SaImmCallbacksT_o2;
 
+
+  Arguments : Same as SaImmOmAdminOperationInvokeCallbackT
+              plus the 'returnParam' argument (new for A.2.11).
+              See A.02.01 spec for the 'params' arg of
+              saImmOmAdminOperationInvoke_2.
+
 Defines a new OM callback that allows asyncronous admin-ops to 
 receive the added return parameter list. Note that 'returnParams'
 is here a 'const' parameter, indicating that deallocation of the
-parameter list is here done by the library (not the user).
-The deallocation is done after the user returns from the upcall.
+parameter list will be done by the library (not the user).
+The deallocation is done after the user returns from the callback.
 
 
-(4)
+(3)
 extern SaAisErrorT
 saImmOmInitialize_o2(
         SaImmHandleT *immHandle,               /* in */
         const SaImmCallbacksT_o2 *immCallbacks,/* in */
         SaVersionT *version);                  /* inout */
 
+Arguments	: immHandle - Same as SaImmOmInitialize A.02.01
+		  immCallbacks - The new A.02.11 callback.
+		  version - Same as SaImmOmInitialize A.02.01
+
+Return values : Same as SaImmOminitialize A.02.01
+
 A new OM-handle-initialize call is needed for supporting the new
-OM callback. 
+callback 'SaImmCallbacksT_o2'. Se the discription of saImmOmInitialize
+in A.02.01.
 
 
-(5)
+(4)
 extern SaAisErrorT
 saImmOmAdminOperationInvoke_o2(
         SaImmAdminOwnerHandleT ownerHandle,           /* in */
@@ -653,38 +791,66 @@ saImmOmAdminOperationInvoke_o2(
         SaTimeT timeout,                              /* in */
         SaImmAdminOperationParamsT_2 ***returnParams);/* out */
 
-The syncronous admin-operation downcall. The only difference in
-respect to the original saImmOmAdminOperationInvoke is the new
+  Arguments     :  ownerHandle  - Same as saImmOmAdminOperationInvoke_2
+                   objectname   -       -"-
+                   continuationId-      -"-
+                   operationId  -       -"-
+                   params       -       -"-
+                   operationReturnValue--"- 
+                   timeout      -       -"-
+                   returnParams - Parameters to return (new for A.2.11)
+                                  See A.02.01 spec for the 'params' arg
+                                  of saImmOmAdminOperationInvoke_2.
+
+  Return Values : Same as saImmOmAdminOperationInvoke_2,
+                  i.e. no new return codes for the A.2.11 version,
+                  except SA_AIS_ERR_VERSION for the case when
+                  saImmOiAdminOperationInvoke_o2 is used but
+                  not with A.2.11 set for the Om-handle. 
+
+
+The syncronous admin-operation downcall. The only difference with
+respect to the original saImmOmAdminOperationInvoke_2 is the new
 added out parameter 'returnParams'. Note that 'returnParams' is
 NOT declared const, indicating that it is the users responsibility
 to de-allocate the parameter list. See next point.
 
 
-(6)
+(5)
 extern SaAisErrorT
 saImmOmAdminOperationMemoryFree(
         SaImmAdminOwnerHandleT ownerHandle,          /* in */
         SaImmAdminOperationParamsT_2 **returnParams);/* in */
 
-Allows the OM client to free the memory for a parameter list.
-The parameter list would have been received by a syncronous
-admin-operation downcall, i.e. via 'returnParams' in a call of
-'saImmOmAdminOperationInvoke_o2'.
+  Arguments     :  ownerHandle  - Same ownerHandle as used in
+                                  saImmOmAdminOperationInvoke_o2
+                   returnParams - Same returnParams as used in
+                                  saImmOmAdminOperationInvoke_o2
 
-(7)
+  Return Values :  SA_AIS_OK
+                   SA_AIS_ERR_BAD_HANDLE
+                   SA_AIS_ERR_LIBRARY
+                   SA_AIS_ERR_VERSION  (not using A.2.11)
+
+Allows the OM client to free the memory for returnParams.
+The returnParams must have been received from a call to
+saImmOmAdminOperationInvoke_o2.
+
+(6)
 #define SA_IMM_PARAM_ADMOP_ERROR      "SaImmAdminOperationError"
 
 If an OI intends to reply with an error code (no SA_AIS_OK) as the
 result of an admin-operation, then the OI may include an error
 string in the list of return parameters. Typically this will be the
 only paramteter included when there is an error, but the API allows
-any number of paramters to be returned regardless of the return code.
+any number of parameters to be returned regardless of the return code.
 The error string is identified by a parameter with the parameter-name
-of SA_IMM_PARAM_ADMOP_ERROR.
-This is a convention, but it gives the OM client a chance to probe
-for such an error string when it receives a non OK result. 
+of SA_IMM_PARAM_ADMOP_ERROR. This is a convention (and not yet 
+standard). But the convention at least allows for the decoupling of
+OM and OI. It allows an independently developed OM client to probe
+for an error string when it receives a non OK result.
 
-(8)
+(7)
 #define SA_IMM_PARAM_ADMOP_ID_ESC     0x8000000000000000LL  
 #define SA_IMM_PARAM_ADMOP_NAME       "SaImmAdminOperationName"
 
@@ -714,7 +880,7 @@ imm version A.2.11.
 
 The basic idea is to allow a configuration object implementer to
 add CCB operations to an existing CCB, in the context of create-,
-delete-, or modify-upcalls on a configuration object. The OI
+delete-, or modify-callbacks on a configuration object. The OI
 then extends the set of changes, originating from an OM client,
 that will commit or abort atomically with the original CCB.
 This could be seen as a variant of 'database triggers'. In
@@ -748,50 +914,65 @@ atomic with them. Runtime data is used by the OI to communicate
 information *to* OM clients. Here we are instead talking about
 'private configuration data', or configuration data for a sub service,
 or related service, that needs to be modified as a side effect of
-the original modification.
+the original modification and to be part of the atomic commit 
+of the CCB. 
 
 Api
 ---
 
 The API available to the OI for this feature under IMM interface
-version A.2.11 is:
+version A.2.11 consists of one new syncronous call:
 
 	extern SaAisErrorT
 	saImmOiAugmentCcbInitialize(
-			     SaImmOiHandleT immOiHandle,
-			     SaImmOiCcbIdT ccbId,
-			     SaImmCcbHandleT *ccbHandle,
-			     SaImmAdminOwnerHandleT *ownerHandle);
+			     SaImmOiHandleT immOiHandle,          /* in */
+			     SaImmOiCcbIdT ccbId,                 /* in */
+			     SaImmCcbHandleT *ccbHandle,          /* out */
+			     SaImmAdminOwnerHandleT *ownerHandle);/* out */
 
-The OI inputs its oi-handle and the ccbId it received in the upcall.
+  Arguments     :  immOiHandle  - The immOiHandle received in the callback.
+		   ccbId        - The ccbId received in the callback.
+		   ccbHandle    - Pointer to the CCB handle to be initialized.
+                   ownerHandle  - Pointer to the administrative owner handle
+                                  to be initialized.
+
+  Return Values :  SA_AIS_OK
+                   SA_AIS_ERR_BAD_HANDLE
+                   SA_AIS_ERR_LIBRARY
+                   SA_AIS_ERR_INVALID_PARAM
+                   SA_AIS_ERR_BAD_OPERATION (not inside valid ccb callback)
+                   SA_AIS_ERR_TRY_AGAIN
+                   SA_AIS_ERR_VERSION  (not using A.2.11)
+
+The OI inputs its oi-handle and the ccbId it received in the callback.
 In return it gets an OM CCB handle and an AdminOwner handle.
 The Imm service has marked these handles as special. They are
-only valid for the duration of the upcall.
+only valid for the duration of the callback.
 
 An OI is only allowed to invoke the saImmOiAugmentCcbInitialize call
-inside these upcalls:
+inside these callbacks:
 
     SaImmOiCcbObjectCreateCallbackT_2
     SaImmOiCcbObjectDeleteCallbackT
     SaImmOiccbobjectModifyCallbackT_2
 
 It would have been nice to support augmentation also inside the
-SaImmOiCcbCompletedCallbackT upcall, but since validation is the
-purpose of that upcall and there may be many OIs involved in the
+SaImmOiCcbCompletedCallbackT callback, but since validation is the
+purpose of that callback and there may be many OIs involved in the
 completion of a CCB, changing the base of validation during
 the validation would make validation practically impossible.
 
 The OI augmentation CCB must be 'applied' by the OI before it
-returns from the upcall in which the augmentation is done.
+returns from the callback in which the augmentation is done.
 Such an 'apply' of an augmentation is not the actual final apply,
-since that is dependent on the apply of the originating root CCB.
+since that is dependent on the apply of the originating parent CCB.
 The 'apply' of an augmentation is only the confirmation from the
 OI that the augmentation was completed by the OI.
 
-The typical OI is already using the OM interface to read its initial
-state, so all the normal ccb related calls should already be accessible,
-using the provided ccbHandle. (The OI needs to include saImmOm.h
-lexically before the include of saImmOi.h).
+The typical config OI is already using the OM interface to read its
+initial configuration, so all the normal ccb related calls should
+already be accessible using the provided ccbHandle. (The OI needs
+to include saImmOm.h lexically before the include of saImmOi.h).
 
 If the saImmOiAugmentCcbInitialize call succeeds, the OI can
 use the CCB handle to request create, delete, or modify operations,
@@ -805,24 +986,25 @@ augmented create, delete or modify operation has succeeded and
 no augment operation has failed with SA_AIS_ERR_FAILED_OPERATION.
 The FAILED_OPERATION return code, as usual, means abort of *entire* 
 CCB, not just the operation that resulted in this return code.
-And *entire* CCB here means the OM originated root CCB, not just the
-augmented CCB done by the OI. Thus augmented CCBs are not 'nested
-transactions' in that they can not be aborted independently of the
-root CCB. 
+And *entire* CCB here means the OM originated parent CCB, not just
+the augmented CCB done by the OI. Thus augmented CCBs are not
+'nested transactions' in that they can not be aborted with contents, 
+independently of the parent CCB. 
 
 If the OI adds operations to the CCB for objects which it is itself
-the implementer for, then it will not receive any OI-upcall for
+the implementer for, then it will not receive any OI-callback for
 such operations. This is mainly to avoid the OI getting into
 deadlock with itself. But it should also not be necessary for
-the OI to get such upcalls, since it already has the information
+the OI to get such callbacks, since it already has the information
 about the changes it itself added. The OI may even create a modify
-on the object that is the basis of the upcall it is executing in.
-(This should be an unusual case and done with care, as it is in
-some sense overriding the 'intention' of the original client). 
+on the object that is the basis of a create or modify callback it is
+executing in. (This should be an unusual case and done with care,
+as it is in some sense overriding the 'intention' of the original
+client). 
 
 It will still be posible for two or more OIs to get into a
 distributed deadlock with each other by their use of CCB
-augmentation. If such an upcall cycle is created, the entire
+augmentation. If such an callback cycle is created, the entire
 OM CCB will timeout and be aborted. This could make desirable
 and correct configuration changes impossible to commit/apply. 
 
@@ -836,7 +1018,7 @@ admin-owner set automatically as part of creation).
 The 'ownerHandle' always has 'releaseOwnershipOnFinalize set to
 true. This is the case even if the original admin owner has it set
 to false. The release of the OI augmented admin-owner is done when
-the root CCB commits (is applied). The admin-owner can not be 
+the parent CCB commits (is applied). The admin-owner can not be 
 released when the augmented ccb is applied because the augmented
 operations are still pending the apply of the root ccb. 
 
@@ -1084,7 +1266,7 @@ Other parts of IMMND are implemented in C.
 
 The immload and immdump programs are implemented in C++. These programs 
 communicate with the IMMSv using the IMM-OM API. They use libxml2 to parse and
-generate the imm.xml format. 
+generate the imm.xml format.
 
 The IMMA library is implemented in C.
 
