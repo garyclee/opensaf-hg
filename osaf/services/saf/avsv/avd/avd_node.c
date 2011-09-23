@@ -597,7 +597,6 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				node->saAmfNodeSuFailOverProb = m_NCS_OS_NTOHLL_P(&su_failover_prob);
 			}
 
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 
 		} else if (!strcmp(attribute->attrName, "saAmfNodeSuFailoverMax")) {
 			uint32_t back_val;
@@ -622,7 +621,6 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				node->saAmfNodeSuFailoverMax = failover_val;
 			}
 
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 		} else {
 			assert(0);
 		}
