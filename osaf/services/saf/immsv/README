@@ -229,12 +229,12 @@ message sequence.
 
 Common missunderstandings about the OpenSAF handles and IMM handles.
 --------------------------------------------------------------------
-(i)
+(i) Handles are resources.
 OpenSAF client handles in general and IMM handles in particular(SaImmHandleT
 and SaImmOiHandleT) are not thread independent. That is, the developer must
 avoid using the same handle concurrently from several application threads.
 Using different handles from different application threads is of course allowed
-and using one handle in different application threads at >>different<< times
+and using one handle in different application threads at *different* times
 is allowed. In the latter case, the threads typically need to syncronize their
 use of the common handle to avoid overlapped use. And they need to understand
 the meaning of the term 'use' for the handle. An application thread that is
@@ -248,6 +248,8 @@ or asyncronously) or receive (includes waiting for syncronous reply, poll
 and dispatch), using the same handle at the same time, the results are
 unpredictable. Messages may get lost and a reply may end up at the "wrong"
 receiver, the process may crash on assertion in the library.
+Each handle is also associated with some heap memory containing a 
+handle state. 
 
 Interleaved use of a handle between several threads is thus possible,
 if done correctly. But we strongly recommend against it because any
@@ -256,7 +258,7 @@ incorrect use will cause such strange and unpredictable symptoms.
 Note that, used correctly(!) OpenSAF libraries are (should be) thread safe.
 But thread safe does not mean immune to any and all forms of incorrect use. 
 
-(ii)
+(ii) Sub-handles depend on the root handle resources.
 An OM-handle (SaImmHandleT) can be used to generate sub-handles such as:
 
   SaImmAdminOwnerHandleT
@@ -268,7 +270,7 @@ Such sub-handles will share the *same* communication channel towards the
 IMMND server. Thus sub-handles to one SaImmHandleT should only be used by
 the thread currently using (owning) the root SaImmHandleT. 
 
-(iii)
+(iii) Asyncronous admin-operations.
 A special case of (ii) is how to program the use of asyncronous admin-
 operations. The "vanilla" case is to simply use one thread, both for sending
 the asyncronous request and for receiving the asyncronous reply. Both events
@@ -289,6 +291,41 @@ the original sending thread should not use the same handle, and it must
 not use the same handle for receiving anything (i.e. not poll on a selection
 object obtained from that handle and not invoke any syncronous calls using
 that handle). 
+
+(iv) Blocking & timeouts.
+Syncronous downcalls will block the client untill there is a reply.
+If there is any resource problem detected in the IMMA library or
+in the IMMND server that prevents the request from being processed
+currently, then an immediate reply with SA_AIS_ERR_TRY_AGAIN is generated.
+The client must be prepared to get the TRY_AGAIN error on any downcall.
+The apropriate way to handle TRY_AGAIN is to have a limited loop with
+a small delay (at least 10 ms) for each iteration. Preferrably also
+increase the delay for each iteration (back off). The client must also
+consider the realtime requirements placed on the client itself.
+When time spent in the retry loop approaches the realtime limit
+placed on the client, then it has to abandon the request.
+
+A syncronous call may also get blocked for a longer time (without getting
+TRY_AGAIN) due to resource congestion in the system, or due to slow
+processing by one or more OIs, or due a large request such as the apply
+of a large CCB. There is a timeout placed on each syncronous downcall,
+inside the IMMA library. The default timeout is 10 seconds. This timeout
+can be altererd by setting the IMMA_SYNCR_TIMEOUT environment variable
+(see below).
+
+There is also a timeout in the IMMND server placed on each OI callback that
+is generated. This timeout is currently hard-coded to 6 seconds. 
+There is an enhancement planned to allow this global timeout value
+to be configured (http://devel.opensaf.org/ticket/2021).
+If the OI does not reply in time, the server will reply with error to the
+client, without waiting for the reply on the upcall. Exactly which error is
+generated depends on the type of call. Ccb related calls tend to generate
+FAILED_OPERATION, i.e. an abort of the CCB/transaction by the server.
+But with PBE enabled and congestion at the PBE, the server can not abort 
+any CCB that is being committed by the CCB. So there is the unfortunate
+possibility of getting TIMEOUT on a ccb-apply when applying a CCB with
+PBE enabled. TIMEOUT of course means that the client then does not
+know if the CCB committed, aborted, or is still being processed.
 
 
 PERSISTENCE
@@ -640,18 +677,21 @@ saImmOiCcbSetErrorString(SaImmOiHandleT immOiHandle,  /* in */
                    SA_AIS_ERR_TRY_AGAIN
                    SA_AIS_ERR_VERSION  (not using A.2.11)
 
-Allows an OI to set an error string in the context of a ccb related
-callback. Setting an error string is only relevant if the OI will
+Allows an OI (not applier) to set an error string in the context of a ccb
+related callback. Setting an error string is only relevant if the OI will
 return with error (not SA_AIS_OK) on the callback.  The error
 string will be transmitted to the OM client. Only one error string
 will be accepted per OI callback. Setting additional error strings
 in the same OI callback will simply replace the previous one. 
 Multiple error strings may however be set from different OIs
 in different callbacks related to the same OM downcall (e.g.
-saImmOmCcbApply). Setting an error string is only possible
-inside oi-callbacks that have a return code. Thus it is NOT
-possible inside SaImmOiCcbApplyCallbackT or SaImmOiCcbAbortCallbackT.
-
+saImmOmCcbApply). The error SA_AIS_ERR_BAD_OPERATION is returned if the
+call is not made from insdie the dynamic context of a valid OI callback.
+Setting an error string is only possible inside ccb-oi-callbacks that
+have a return code. Thus it is NOT possible inside SaImmOiCcbApplyCallbackT
+or SaImmOiCcbAbortCallbackT. For applier OIs, all return values on 
+callbacks are ignored and an applier OI will get BAD_OPERATION on any
+attempt to use this function.
 
 (2)
 extern SaAisErrorT
@@ -721,10 +761,10 @@ saImmOiAdminOperationResult_o2(
                                   of saImmOmAdminOperationInvoke_2.
 
   Return Values : Same as saImmOiAdminOperationResult 
-                  i.e. no new return codes for the A.2.11 version,
-                  except SA_AIS_ERR_VERSION for the case when
-                  saImmOiAdminOperationResult_o2 is used but
-                  not with A.2.11 set for the immOihandle.
+                  SA_AIS_ERR_VERSION for the case when
+                  saImmOiAdminOperationResult_o2 is used with
+                  returnParams!=NULL and *not* with A.2.11 set 
+                  for the immOihandle.
 
 Allows the OI to reply on the admin-operation with the added list
 of return parameters. Works otherwise in the same way as the 
