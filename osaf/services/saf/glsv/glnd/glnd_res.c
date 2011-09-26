@@ -1005,7 +1005,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_unlock_req(GLND_CB *cb,
 		}
 	}
  done:
-	TRACE_LEAVE2("lcl_resource_id %u", lock_list_info->lcl_resource_id);
+	TRACE_LEAVE();
 	return lock_list_info;
 }
 
@@ -1086,7 +1086,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_unlock_req(GLND_CB *cb,
 
 	}
  done:
-	TRACE_LEAVE2("lcl resource id %u", lck_list_info->lcl_resource_id);
+	TRACE_LEAVE();
 	return lck_list_info;
 }
 

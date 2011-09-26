@@ -84,6 +84,10 @@ SaAisErrorT gld_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 		strncpy((char *)rsc_name.value, (char *)objectName->value, objectName->length);
 		rsc_name.length = htons(objectName->length);
 		map = (GLSV_GLD_RSC_MAP_INFO *)ncs_patricia_tree_get(&gld_cb->rsc_map_info, (uint8_t *)&rsc_name);
+		if(map == NULL) {
+			TRACE_2("ncs_patricia_tree_get returned with null");
+			goto done;
+		}
 		rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_get(&gld_cb->rsc_info_id, (uint8_t *)&map->rsc_id);
 
 		if (rsc_info != NULL) {
@@ -129,6 +133,7 @@ SaAisErrorT gld_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 			}	/* End if  m_CMP_HORDER_SANAMET */
 		}		/* end of if (rsc_info != NULL) */
 	}
+done:
 	return SA_AIS_ERR_FAILED_OPERATION;
 }
 
