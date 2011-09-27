@@ -280,6 +280,15 @@ static void print_severity(SaNtfSeverityT input)
 	EXIT_IF_FALSE(input >= SA_NTF_SEVERITY_CLEARED);
 	EXIT_IF_FALSE(input <= SA_NTF_SEVERITY_CRITICAL);
 
+	printf("severity = ");
+	printf("%s\n", (char *)sa_severity_list[input]);
+}
+
+static void print_perceived_severity(SaNtfSeverityT input)
+{
+	EXIT_IF_FALSE(input >= SA_NTF_SEVERITY_CLEARED);
+	EXIT_IF_FALSE(input <= SA_NTF_SEVERITY_CRITICAL);
+
 	printf("perceivedSeverity = ");
 	printf("%s\n", (char *)sa_severity_list[input]);
 }
@@ -647,10 +656,10 @@ void saNtfNotificationCallback(SaNtfSubscriptionIdT subscriptionId,
 		print_probable_cause(*
 				     (notification->notification.
 				      alarmNotification.probableCause));
-		print_severity(*
-			       (notification->notification.alarmNotification.
-				perceivedSeverity));
-
+		print_perceived_severity(*
+					 (notification->notification.
+					  alarmNotification.
+					  perceivedSeverity));
 		break;
 
 	case SA_NTF_TYPE_STATE_CHANGE:
