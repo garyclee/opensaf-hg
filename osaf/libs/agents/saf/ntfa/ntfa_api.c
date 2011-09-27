@@ -2610,6 +2610,13 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
+
+	if (searchCriteria.searchMode < SA_NTF_SEARCH_BEFORE_OR_AT_TIME ||
+	    searchCriteria.searchMode > SA_NTF_SEARCH_ONLY_FILTER) {
+		TRACE_1("searchCriteria.searchMode invalid value: %d", (int)searchCriteria.searchMode);
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
 	
 	if (!(notificationFilterHandles->alarmFilterHandle || notificationFilterHandles->securityAlarmFilterHandle)) {
 			rc = SA_AIS_ERR_NOT_SUPPORTED;
