@@ -2607,7 +2607,7 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 				 notificationFilterHandles->stateChangeFilterHandle != 0 ||
 				 notificationFilterHandles->objectCreateDeleteFilterHandle != 0) {
 		TRACE_1("Only alarm and security alarm is supported; all other handles must be set to SA_NTF_FILTER_HANDLE_NULL.");
-		rc = SA_AIS_ERR_INVALID_PARAM;
+		rc = SA_AIS_ERR_NOT_SUPPORTED;
 		goto done;
 	}
 
