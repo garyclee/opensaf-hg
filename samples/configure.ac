@@ -63,6 +63,7 @@ AC_CONFIG_FILES([ \
         amf/Makefile \
         amf/non_sa_aware/Makefile \
         amf/sa_aware/Makefile \
+        amf/wrapper/Makefile \
         cpsv/Makefile \
         edsv/Makefile \
 	glsv/Makefile \

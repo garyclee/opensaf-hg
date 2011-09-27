@@ -1,0 +1,77 @@
+#
+# (C) Copyright 2011 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson
+#
+
+This file contains an example of an AMF wrapper component integration of
+snmpd from the net-snmp project: http://www.net-snmp.org/
+
+The wrapper concept is briefly described in the AMF B.04 specification chapter 3.9:
+
+"Non-SA-aware software or hardware entities can be integrated into the Availability
+Management Framework model in two ways:
+
+* By the use of a wrapper to encapsulate the legacy software (hardware) into an
+SA-aware component. The wrapper consists of one or more processes that link
+with the Availability Management Framework library and interact with the Avail-
+ability Management Framework on the one hand and with the legacy software
+(hardware) on the other hand. The wrapper and the legacy software (hardware)
+together constitute a single component.
+
+* ... "
+
+net-snmp is modelled as an application with a 2N Service Group with two
+Service Units, on for each controller. Each Service Unit has one
+component, snmpd.
+
+The "5.6.1-4.5.1" version is the actual net-snmp package version used when
+creating and testing the wrapper. All occurences of that version number
+should be changed to reflect the version of the actual integrated legacy
+software.
+
+Apart from managing the life cycle of the program the wrapper also provides 
+both active and passive monitoring. Active monitoring is configured by 
+specifying a command with the HEALTHCHECKSCRIPT environment variable. The 
+command should return 0 (zero) if the health check is OK, an error code 
+otherwise. It will be executed periodically according to the instance of the 
+SaAmfHealthcheckType below.
+
+If the environment variable PIDFILE is configured. AMF passive monitoring using
+the PID contained in the file will be started.
+
+The AMF model for the wrapper is found in the file net-snmp.xml. This file can
+be loaded into a running OpenSAF system with 'immcfg -f net-snmp.xml'. It 
+consists of one application with one 2N SG. The SG contains two SUs, one for
+each controller. Each SU contains a single SA-Aware component. One SI that
+contains one CSI. Anf of course base types and versioned types.
+
+CSI attributes are added as environment variables and therefore makes it
+possible to configure the wrapped component. In the sample the SNMPD_LOGFILE 
+environment variable is configured. See the snmpd start script for details.
+
+The SUs are in admin state "locked instantiation" and needs to be unlocked
+after the configuration has been loaded into IMM & AMF:
+$ amf-adm unlock-in safSu=1,safSg=2N,safApp=net-snmp
+$ amf-adm unlock safSu=1,safSg=2N,safApp=net-snmp
+$ amf-adm unlock-in safSu=2,safSg=2N,safApp=net-snmp
+$ amf-adm unlock safSu=2,safSg=2N,safApp=net-snmp
+
+Some availability tests that can be done:
+$ sudo pkill wrapper		(restart due to "ava down")
+$ sudo pkill snmpd			(restart due to passive monitoring)
+$ sudo pkill -stop snmpd	(restart due to error report)
+
+If however the saAmfHctDefMaxDuration attribute of object
+safHealthcheckKey=Wrapper,safVersion=5.6.1-4.5.1,safCompType=snmpd is set to 4sec,
+the wrapper and snmpd will be restarted due to health check timeout.
+
