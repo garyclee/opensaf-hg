@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ *      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2011 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Ericsson
+ *
+-->
+
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+<!-- BASE TYPES -->
+
+	<object class="SaAmfAppBaseType">
+		<dn>safAppType=net-snmp</dn>
+	</object>
+	<object class="SaAmfSGBaseType">
+		<dn>safSgType=2N-net-snmp</dn>
+	</object>
+	<object class="SaAmfSUBaseType">
+		<dn>safSuType=snmpd</dn>
+	</object>
+	<object class="SaAmfCompBaseType">
+		<dn>safCompType=snmpd</dn>
+	</object>
+	<object class="SaAmfSvcBaseType">
+	    <dn>safSvcType=snmpd</dn>
+	</object>
+	<object class="SaAmfCSBaseType">
+	    <dn>safCSType=snmpd</dn>
+	</object>
+	<object class="SaAmfSvcType">
+	    <dn>safVersion=1,safSvcType=snmpd</dn>
+	</object>
+
+<!-- VERSIONED TYPES -->
+
+	<object class="SaAmfAppType">
+		<dn>safVersion=1,safAppType=net-snmp</dn>
+		<attr>
+			<name>saAmfApptSGTypes</name>
+			<value>safVersion=1,safSgType=2N-net-snmp</value>
+		</attr>
+	</object>
+	<object class="SaAmfSGType">
+		<dn>safVersion=1,safSgType=2N-net-snmp</dn>
+		<attr>
+			<name>saAmfSgtRedundancyModel</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtValidSuTypes</name>
+			<value>safVersion=1,safSuType=snmpd</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefAutoAdjustProb</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefCompRestartProb</name>
+			<value>4000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefCompRestartMax</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefSuRestartProb</name>
+			<value>4000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefSuRestartMax</name>
+			<value>10</value>
+		</attr>
+	</object>
+	<object class="SaAmfSUType">
+		<dn>safVersion=1,safSuType=snmpd</dn>
+		<attr>
+			<name>saAmfSutIsExternal</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSutDefSUFailover</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSutProvidesSvcTypes</name>
+			<value>safVersion=1,safSvcType=snmpd</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompType">
+		<dn>safVersion=5.6.1-4.5.1,safCompType=snmpd</dn>
+		<attr>
+			<name>saAmfCtCompCategory</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfCtSwBundle</name>
+			<value>safSmfBundle=net-snmp-5.6.1-4.5.1.x86_64</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCmdEnv</name>
+			<value>STARTSCRIPT=/etc/init.d/snmpd start</value>
+			<value>STOPSCRIPT=/etc/init.d/snmpd stop</value>
+			<value>HEALTHCHECKSCRIPT=snmpget -v2c -c public localhost sysUpTime.0</value>
+			<value>PIDFILE=/var/run/snmpd.pid</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefClcCliTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCallbackTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathInstantiateCmd</name>
+			<value>wrapper.sh</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefInstantiateCmdArgv</name>
+			<value>instantiate</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathCleanupCmd</name>
+			<value>wrapper.sh</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCleanupCmdArgv</name>
+			<value>cleanup</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefQuiescingCompleteTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefRecoveryOnError</name>
+			<value>2</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefDisableRestart</name>
+			<value>0</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSType">
+		<dn>safVersion=1,safCSType=snmpd</dn>
+	</object>
+	<object class="SaAmfSutCompType">
+		<dn>safMemberCompType=safVersion=5.6.1-4.5.1\,safCompType=snmpd,safVersion=1,safSuType=snmpd</dn>
+	</object>
+	<object class="SaAmfSvcTypeCSTypes">
+	  <dn>safMemberCSType=safVersion=1\,safCSType=snmpd,safVersion=1,safSvcType=snmpd</dn>
+	</object>
+	<object class="SaAmfCtCsType">
+		<dn>safSupportedCsType=safVersion=1\,safCSType=snmpd,safVersion=5.6.1-4.5.1,safCompType=snmpd</dn>
+		<attr>
+			<name>saAmfCtCompCapability</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfHealthcheckType">
+		<dn>safHealthcheckKey=Wrapper,safVersion=5.6.1-4.5.1,safCompType=snmpd</dn>
+		<attr>
+			<name>saAmfHctDefPeriod</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfHctDefMaxDuration</name>
+			<value>6000000000</value>
+		</attr>
+	</object>
+
+<!-- COMMON INSTANCES -->
+
+	<object class="SaAmfApplication">
+		<dn>safApp=net-snmp</dn>
+		<attr>
+			<name>saAmfAppType</name>
+			<value>safVersion=1,safAppType=net-snmp</value>
+		</attr>
+	</object>
+
+	<object class="SaAmfSG">
+		<dn>safSg=2N,safApp=net-snmp</dn>
+		<attr>
+			<name>saAmfSGType</name>
+			<value>safVersion=1,safSgType=2N-net-snmp</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoRepair</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoAdjust</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSGNumPrefInserviceSUs</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSGNumPrefAssignedSUs</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSGMaxActiveSIsperSU</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSGMaxStandbySIsperSU</name>
+			<value>1</value>
+		</attr>
+	</object>
+
+	<object class="SaSmfSwBundle">
+			<dn>safSmfBundle=net-snmp-5.6.1-4.5.1.x86_64</dn>
+	</object>
+
+	<object class="SaAmfSI">
+		<dn>safSi=1,safApp=net-snmp</dn>
+		<attr>
+			<name>saAmfSvcType</name>
+			<value>safVersion=1,safSvcType=snmpd</value>
+		</attr>
+		<attr>
+			<name>saAmfSIProtectedbySG</name>
+			<value>safSg=2N,safApp=net-snmp</value>
+		</attr>
+		<attr>
+			<name>saAmfSIRank</name>
+			<value>1</value>
+		</attr>
+	</object>
+
+	<object class="SaAmfCSI">
+	    <dn>safCsi=snmpd,safSi=1,safApp=net-snmp</dn>
+	    <attr>
+		<name>saAmfCSType</name>
+		<value>safVersion=1,safCSType=snmpd</value>
+	    </attr>
+	</object>
+
+	<object class="SaAmfCSIAttribute">
+		<dn>safCsiAttr=SNMPD_LOGFILE,safCsi=snmpd,safSi=1,safApp=net-snmp</dn>
+		<attr>
+			<name>saAmfCSIAttriValue</name>
+			<value>/tmp/net-snmpd.log</value>
+		</attr>
+	</object>
+
+<!-- SC1 INSTANCES -->
+
+	<object class="SaAmfSU">
+		<dn>safSu=1,safSg=2N,safApp=net-snmp</dn>
+		<attr>
+			<name>saAmfSUType</name>
+			<value>safVersion=1,safSuType=snmpd</value>
+		</attr>
+		<attr>
+			<name>saAmfSUHostNodeOrNodeGroup</name>
+			<value>safAmfNode=SC-1,safAmfCluster=myAmfCluster</value>
+		</attr>
+		<attr>
+			<name>saAmfSURank</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSUAdminState</name>
+			<value>3</value>
+		</attr>
+	</object>
+	<object class="SaAmfComp">
+	    <dn>safComp=snmpd,safSu=1,safSg=2N,safApp=net-snmp</dn>
+	    <attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=5.6.1-4.5.1,safCompType=snmpd</value>
+	    </attr>
+	</object>
+	<object class="SaAmfCompCsType">
+	    <dn>safSupportedCsType=safVersion=1\,safCSType=snmpd,safComp=snmpd,safSu=1,safSg=2N,safApp=net-snmp</dn>
+	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=safSmfBundle=net-snmp-5.6.1-4.5.1.x86_64,safAmfNode=SC-1,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>/usr/local/sbin</value>
+		</attr>
+	</object>
+
+<!-- SC2 INSTANCES -->
+
+	<object class="SaAmfSU">
+		<dn>safSu=2,safSg=2N,safApp=net-snmp</dn>
+		<attr>
+			<name>saAmfSUType</name>
+			<value>safVersion=1,safSuType=snmpd</value>
+		</attr>
+		<attr>
+			<name>saAmfSUHostNodeOrNodeGroup</name>
+			<value>safAmfNode=SC-2,safAmfCluster=myAmfCluster</value>
+		</attr>
+		<attr>
+			<name>saAmfSURank</name>
+			<value>2</value>
+		</attr>
+		<attr>
+			<name>saAmfSUAdminState</name>
+			<value>3</value>
+		</attr>
+	</object>
+	<object class="SaAmfComp">
+	    <dn>safComp=snmpd,safSu=2,safSg=2N,safApp=net-snmp</dn>
+	    <attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=5.6.1-4.5.1,safCompType=snmpd</value>
+	    </attr>
+	</object>
+	<object class="SaAmfCompCsType">
+	    <dn>safSupportedCsType=safVersion=1\,safCSType=snmpd,safComp=snmpd,safSu=2,safSg=2N,safApp=net-snmp</dn>
+	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=safSmfBundle=net-snmp-5.6.1-4.5.1.x86_64,safAmfNode=SC-2,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>/usr/local/sbin</value>
+		</attr>
+	</object>
+
+</imm:IMM-contents>

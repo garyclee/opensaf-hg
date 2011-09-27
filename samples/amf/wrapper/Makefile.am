@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2010 The OpenSAF Foundation
+# (C) Copyright 2011 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,12 +11,33 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems 
+# Author(s): Ericsson
 #
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = sa_aware non_sa_aware wrapper
+EXTRA_DIST = \
+	wrapper.sh \
+	AppConfig-2N.xml \
+	AppConfig-nwayactive.xml \
+	README
+
+bin_PROGRAMS = wrapper
+
+wrapper_CPPFLAGS = \
+	$(AM_CPPFLAGS)
+
+wrapper_SOURCES = \
+	wrapper.c
+
+wrapper_LDADD = \
+	@SAF_AIS_AMF_LIBS@
+
+install-data-hook:
+	cp wrapper.sh /usr/local/sbin
+
+uninstall-hook:
+	rm -f /usr/local/sbin/wrapper.sh
 
