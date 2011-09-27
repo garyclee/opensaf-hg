@@ -24,7 +24,7 @@ static saNotificationFilterAllocationParamsT
 		myNotificationFilterAllocationParams;
 static saNotificationParamsT myNotificationParams;
 
-void saNtfNotificationReadInitialize_01(SaNtfSearchModeT sMode) {
+void saNtfNotificationReadInitialize_01(SaNtfSearchModeT sMode, SaAisErrorT expectedRC) {
 	SaNtfHandleT ntfHandle;
 	SaNtfSearchCriteriaT searchCriteria;
 	SaNtfAlarmNotificationFilterT myAlarmFilter;
@@ -66,34 +66,42 @@ void saNtfNotificationReadInitialize_01(SaNtfSearchModeT sMode) {
 
 	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 	free(myNotificationParams.additionalText);
-	test_validate(rc, SA_AIS_OK);
+	test_validate(rc, expectedRC);
 }
 
 void saNtfNotificationReadInitialize_01_1(void) {
-	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_AT_OR_AFTER_TIME);
+	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_AT_OR_AFTER_TIME, SA_AIS_OK);
 }
 void saNtfNotificationReadInitialize_01_2(void) {
-	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_AT_TIME);
+	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_AT_TIME, SA_AIS_OK);
 }
 
 void saNtfNotificationReadInitialize_01_3(void) {
-	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_AT_OR_AFTER_TIME);
+	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_AT_OR_AFTER_TIME, SA_AIS_OK);
 }
 
 void saNtfNotificationReadInitialize_01_4(void) {
-	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_BEFORE_TIME);
+	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_BEFORE_TIME, SA_AIS_OK);
 }
 
 void saNtfNotificationReadInitialize_01_5(void) {
-	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_AFTER_TIME);
+	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_AFTER_TIME, SA_AIS_OK);
 }
 
 void saNtfNotificationReadInitialize_01_6(void) {
-	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_NOTIFICATION_ID);
+	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_NOTIFICATION_ID, SA_AIS_OK);
 }
 
 void saNtfNotificationReadInitialize_01_7(void) {
-	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_ONLY_FILTER);
+	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_ONLY_FILTER, SA_AIS_OK);
+}
+
+void saNtfNotificationReadInitialize_01_8(void) {
+	saNtfNotificationReadInitialize_01(SA_NTF_SEARCH_ONLY_FILTER + 10, SA_AIS_ERR_INVALID_PARAM);
+}
+
+void saNtfNotificationReadInitialize_01_9(void) {
+	saNtfNotificationReadInitialize_01(-1, SA_AIS_ERR_INVALID_PARAM);
 }
 
 /**
@@ -246,7 +254,11 @@ __attribute__ ((constructor)) static void saNtfNotificationReadInitialize_constr
 			"saNtfNotificationReadInitialize searchCriteria SA_NTF_SEARCH_NOTIFICATION_ID");
 	test_case_add(20, saNtfNotificationReadInitialize_01_7,
 			"saNtfNotificationReadInitialize searchCriteria SA_NTF_SEARCH_ONLY_FILTER");
-
+	test_case_add(20, saNtfNotificationReadInitialize_01_8,
+			"saNtfNotificationReadInitialize searchCriteria invalid SaNtfSearchModeT too big");
+	test_case_add(20, saNtfNotificationReadInitialize_01_9,
+			"saNtfNotificationReadInitialize searchCriteria invalid SaNtfSearchModeT -1");
+	
 	test_case_add(20, saNtfNotificationReadInitialize_02,
 			"saNtfNotificationReadInitialize filter NULL pointer SA_AIS_ERR_INVALID_PARAM");
 	test_case_add(20, saNtfNotificationReadInitialize_03,
