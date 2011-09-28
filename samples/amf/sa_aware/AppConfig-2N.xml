@@ -135,6 +135,10 @@ from the file before loaded.
 			<value>cleanup</value>
 		</attr>
 		<attr>
+			<name>saAmfCtDefQuiescingCompleteTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
 			<name>saAmfCtDefRecoveryOnError</name>
 			<value>2</value>
 		</attr>
@@ -287,6 +291,7 @@ from the file before loaded.
 	<object class="SaAmfSU">
 		<dn>safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1</dn>
 		<attr>
+
 			<name>saAmfSUType</name>
 			<value>safVersion=1,safSuType=AmfDemo1</value>
 		</attr>
