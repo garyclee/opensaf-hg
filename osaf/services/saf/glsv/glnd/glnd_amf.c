@@ -119,17 +119,16 @@ void glnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *c
 	glnd_cb = (GLND_CB *)m_GLND_TAKE_GLND_CB;
 	if (!glnd_cb) {
 		LOG_ER("GLND cb take handle failed");
-		goto end;
+	} else {
+		if (saAmfResponse(glnd_cb->amf_hdl, invocation, error) != SA_AIS_OK)
+			LOG_ER("GLND amf response failed");
+		/* giveup the handle */
+		m_GLND_GIVEUP_GLND_CB;
 	}
-	if (saAmfResponse(glnd_cb->amf_hdl, invocation, error) != SA_AIS_OK)
-		LOG_ER("GLND amf response failed");
-	/* giveup the handle */
-	m_GLND_GIVEUP_GLND_CB;
-
-	sleep(1);
-	exit(0);
-end:	
 	TRACE_LEAVE();
+	sleep(1);
+	LOG_NO("Received AMF component terminate callback, exiting");
+	exit(0);
 }
 
 /****************************************************************************

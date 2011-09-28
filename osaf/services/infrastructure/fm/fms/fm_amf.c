@@ -241,8 +241,9 @@ void fm_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *com
 		error = saAmfResponse(fm_amf_cb->amf_hdl, invocation, error);
 	}
 	fm_amf_give_hdl();
+	LOG_NO("Received AMF component terminate callback, exiting");
 	TRACE_LEAVE();
-	return;
+	exit(0);
 }
 
 /****************************************************************************

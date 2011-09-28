@@ -194,6 +194,11 @@ void gld_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 
 	gld_cb = m_GLSV_GLD_RETRIEVE_GLD_CB;
 
+	saAmfResponse(gld_cb->amf_hdl, invocation, error);
+	#if 0
+	/* As we are facing issue in the gld_destroy procedure, tempoararily commenting out the code
+	 * to proceed with the upgrade campaign,  will fix the issue subsequently
+	 */
 	if (gld_cb != NULL) {
 		saAmfResponse(gld_cb->amf_hdl, invocation, error);
 		m_GLSV_GLD_GIVEUP_GLD_CB;
@@ -213,9 +218,11 @@ void gld_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 
 		m_GLSV_GLD_GIVEUP_GLD_CB;
 	}
+	#endif
 	sleep(1);
 
 	TRACE_LEAVE();
+	LOG_NO("Received AMF component terminate callback, exiting");
 	exit(0);
 }
 

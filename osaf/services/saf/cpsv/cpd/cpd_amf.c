@@ -391,9 +391,9 @@ void cpd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 		saAmfResponse(cb->amf_hdl, invocation, saErr);
 		ncshm_give_hdl(cb->cpd_hdl);
 	}
-	TRACE_2("cpd component terminate callback invoked");
+	LOG_NO("Received AMF component terminate callback, exiting");
 	TRACE_LEAVE();
-	return;
+	exit(0);
 }
 
 /****************************************************************************
