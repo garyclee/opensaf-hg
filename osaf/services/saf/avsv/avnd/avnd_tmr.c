@@ -46,6 +46,7 @@ static const char *tmr_type[] =
 	"proxied inst timer",
 	"proxied orphan timer",
 	"HB tmr",
+	"Qscing Complete",
 	"AVND_TMR_MAX"
 };
 
@@ -170,7 +171,11 @@ void avnd_tmr_exp(void *uarg)
 		tmr->is_active = false;
 
 		/* determine the event type */
-		type = (tmr->type - AVND_TMR_HC) + AVND_EVT_TMR_HC;
+		if (AVND_TMR_QSCING_CMPL_RESP == tmr->type) {
+			type = AVND_EVT_TMR_QSCING_CMPL;
+		} else {
+			type = (tmr->type - AVND_TMR_HC) + AVND_EVT_TMR_HC;
+		}
 
 		/* create & send the timer event */
 		evt = avnd_evt_create(cb, type, 0, 0, (void *)&tmr->opq_hdl, 0, 0);
