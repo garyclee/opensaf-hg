@@ -135,6 +135,10 @@ for the missing nodes has to be removed from the file before loaded.
 			<value>cleanup</value>
 		</attr>
 		<attr>
+			<name>saAmfCtDefQuiescingCompleteTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
 			<name>saAmfCtDefRecoveryOnError</name>
 			<value>2</value>
 		</attr>
