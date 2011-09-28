@@ -263,7 +263,6 @@ void mqd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 {
 	MQD_CB *pMqd = 0;
 	SaAisErrorT saErr = SA_AIS_OK;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
 	if (pMqd) {
@@ -271,13 +270,11 @@ void mqd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 		saAmfResponse(pMqd->amf_hdl, invocation, saErr);
 		ncshm_give_hdl(pMqd->hdl);
 		sleep(1);
-		exit(0);
 	} else {
 		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
-		rc = NCSCC_RC_FAILURE;
-		exit(0);
 	}
-	return;
+	LOG_NO("Received AMF component terminate callback, exiting");
+	exit(0);
 }
 
 void mqd_amf_csi_rmv_callback(SaInvocationT invocation,

@@ -288,6 +288,7 @@ static void amf_comp_terminate_callback(SaInvocationT invocation,
 	/* Disconnect from MDS */
 	smfd_mds_finalize(smfd_cb);
 	sleep(1);
+	LOG_NO("Received AMF component terminate callback, exiting");
 	exit(EXIT_SUCCESS);
 }
 
