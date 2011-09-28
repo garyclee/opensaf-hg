@@ -330,8 +330,10 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		}		/* if(cbk_rec) */
 	}
 	/* if (!cbk_rec && comp->pxied_list.n_nodes != 0)  */
-	if (!cbk_rec)
+	if (!cbk_rec) {
+		TRACE_LEAVE2("Empty comp callback record comp=%s, callback type=%llx",comp->name.value,resp->inv);
 		return rc;
+	}
 
 	switch (cbk_rec->cbk_info->type) {
 	case AVSV_AMF_HC:
