@@ -88,6 +88,7 @@ uint32_t avnd_evt_tmr_su_err_esc_evh(struct avnd_cb_tag *, struct avnd_evt_tag *
 uint32_t avnd_evt_tmr_node_err_esc_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 uint32_t avnd_evt_tmr_clc_pxied_comp_inst_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 uint32_t avnd_evt_tmr_clc_pxied_comp_reg_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
+uint32_t avnd_evt_tmr_qscing_cmpl_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 
 extern void avnd_send_node_up_msg(void);
 uint32_t avnd_evt_mds_avd_up_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
