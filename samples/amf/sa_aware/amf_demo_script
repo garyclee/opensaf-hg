@@ -45,10 +45,8 @@ start()
 	echo -n "Starting $prog: "
 	start_daemon -p $pidfile $binary $args
 	RETVAL=$?
-	if [ $RETVAL -eq 0 ]; then
-		log_success_msg
-	else
-		log_failure_msg
+	if [ $RETVAL -ne 0 ]; then
+		logger -st $name "Starting $binary failed"
 	fi
 	return $RETVAL
 }
@@ -58,10 +56,8 @@ stop()
 	echo -n "Stopping $prog: "
 	killproc -p $pidfile $binary
 	RETVAL=$?
-	if [ $RETVAL -eq 0 ]; then
-		log_success_msg
-	else
-		log_failure_msg
+	if [ $RETVAL -ne 0 ]; then
+		logger -st $name "killproc $binary failed"
 	fi
 	return $RETVAL
 }
