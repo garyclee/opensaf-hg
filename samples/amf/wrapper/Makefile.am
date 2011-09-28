@@ -24,7 +24,7 @@ EXTRA_DIST = \
 	AppConfig-nwayactive.xml \
 	README
 
-bin_PROGRAMS = wrapper
+sbin_PROGRAMS = wrapper
 
 wrapper_CPPFLAGS = \
 	$(AM_CPPFLAGS)
