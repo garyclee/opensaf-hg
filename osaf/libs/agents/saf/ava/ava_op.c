@@ -145,10 +145,12 @@ void ava_cpy_protection_group_ntf(SaAmfProtectionGroupNotificationT_4  *to_ntf,
 {
 	unsigned int i;
 
+	memset(to_ntf, 0, items * sizeof(*to_ntf));
 	for(i = 0; i < items; i++) {
 		to_ntf[i].change = from_ntf[i].change;
 		memcpy(to_ntf[i].member.compName.value, from_ntf[i].member.compName.value,
 				from_ntf[i].member.compName.length);
+		to_ntf[i].member.compName.length = from_ntf[i].member.compName.length;
 		to_ntf[i].member.haReadinessState = ha_read_state;
 		to_ntf[i].member.haState = from_ntf[i].member.haState;
 		to_ntf[i].member.rank = from_ntf[i].member.rank;
