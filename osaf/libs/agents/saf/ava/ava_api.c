@@ -1413,7 +1413,6 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	bool is_syn = false, create_memory = false;
 	SaAisErrorT rc = SA_AIS_OK;
-	uint32_t i = 0;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
 	if (!csi_name || !(csi_name->length) || (csi_name->length > SA_MAX_NAME_LENGTH)) {
@@ -1501,20 +1500,12 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 					       rsp_buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
 					buf->numberOfItems = rsp_buf->numberOfItems;
 
-					/* convert comp-name len into host order */
-					for (i = 0; i < rsp_buf->numberOfItems; i++)
-						buf->notification[i].member.compName.length =
-						    buf->notification[i].member.compName.length;
 				} else {
 					/* user supplied buffer isnt sufficient.. copy whatever is possible */
 					memcpy(buf->notification, rsp_buf->notification,
 					       buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
 					rc = SA_AIS_ERR_NO_SPACE;
 
-					/* convert comp-name len into host order */
-					for (i = 0; i < buf->numberOfItems; i++)
-						buf->notification[i].member.compName.length =
-						    buf->notification[i].member.compName.length;
 				}
 			} else {	/* if(create_memory == false) */
 
@@ -1527,10 +1518,6 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 						memcpy(buf->notification, rsp_buf->notification,
 						       buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
 
-						/* convert comp-name len into host order */
-						for (i = 0; i < buf->numberOfItems; i++)
-							buf->notification[i].member.compName.length =
-							    buf->notification[i].member.compName.length;
 					} else {
 						rc = SA_AIS_ERR_NO_MEMORY;
 						buf->numberOfItems = 0;
@@ -2172,7 +2159,6 @@ SaAisErrorT saAmfProtectionGroupTrack_4(SaAmfHandleT hdl,
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	bool is_syn = false, create_memory = false;
 	SaAisErrorT rc = SA_AIS_OK;
-	uint32_t i = 0;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
 	/* Verifying the input Handle & global handle */
@@ -2276,21 +2262,11 @@ SaAisErrorT saAmfProtectionGroupTrack_4(SaAmfHandleT hdl,
 							rsp_buf->numberOfItems, SA_AMF_HARS_READY_FOR_ASSIGNMENT);
 
 					buf->numberOfItems = rsp_buf->numberOfItems;
-
-					/* convert comp-name len into host order */
-					for (i = 0; i < rsp_buf->numberOfItems; i++)
-						buf->notification[i].member.compName.length =
-						    buf->notification[i].member.compName.length;
 				} else {
 					/* user supplied buffer isnt sufficient.. copy whatever is possible */
 					ava_cpy_protection_group_ntf(buf->notification, rsp_buf->notification,
 							buf->numberOfItems, SA_AMF_HARS_READY_FOR_ASSIGNMENT);
 					rc = SA_AIS_ERR_NO_SPACE;
-
-					/* convert comp-name len into host order */
-					for (i = 0; i < buf->numberOfItems; i++)
-						buf->notification[i].member.compName.length =
-						    buf->notification[i].member.compName.length;
 				}
 			} else {	/* if(create_memory == false) */
 
@@ -2302,11 +2278,6 @@ SaAisErrorT saAmfProtectionGroupTrack_4(SaAmfHandleT hdl,
 					if (buf->notification != NULL) {
 						ava_cpy_protection_group_ntf(buf->notification, rsp_buf->notification,
 								buf->numberOfItems, SA_AMF_HARS_READY_FOR_ASSIGNMENT);
-
-						/* convert comp-name len into host order */
-						for (i = 0; i < buf->numberOfItems; i++)
-							buf->notification[i].member.compName.length =
-							    buf->notification[i].member.compName.length;
 					} else {
 						rc = SA_AIS_ERR_NO_MEMORY;
 						buf->numberOfItems = 0;

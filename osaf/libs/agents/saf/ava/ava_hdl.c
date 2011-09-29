@@ -675,7 +675,7 @@ void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 			AVSV_AMF_PG_TRACK_PARAM *pg_track = &info->param.pg_track;
 
 			if(ava_B4_ver_used(0)) {
-				SaAmfProtectionGroupNotificationBufferT_4 buf;
+				SaAmfProtectionGroupNotificationBufferT_4 buf ={0};
 
 				if (reg_cbk->saAmfProtectionGroupTrackCallback) {
 					pg_track->csi_name.length = pg_track->csi_name.length;
@@ -683,7 +683,6 @@ void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 
 					/* copy the contents into a malloced buffer.. appl frees it */
 					buf.numberOfItems = pg_track->buf.numberOfItems;
-					buf.notification = 0;
 
 					buf.notification =
 						malloc(buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT_4));
