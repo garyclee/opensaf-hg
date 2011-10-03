@@ -1832,7 +1832,8 @@ static uint32_t immnd_evt_proc_admowner_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV
 		goto agent_rsp;
 	}
 
-	if (immModel_immNotWritable(cb)) {	/*Avoid broadcasting doomed requests. */
+	if (immModel_immNotWritable(cb) || (cb->mSyncFinalizing && cb->fevs_out_count)) {
+		/*Avoid broadcasting doomed requests. */
 		send_evt.info.imma.info.admInitRsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
 	}
@@ -1920,7 +1921,8 @@ static uint32_t immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		goto agent_rsp;
 	}
 
-	if (immModel_immNotWritable(cb)) {	/*Avoid broadcasting doomed requests. */
+	if (immModel_immNotWritable(cb) || (cb->mSyncFinalizing && cb->fevs_out_count)) {
+		/*Avoid broadcasting doomed requests. */
 		send_evt.info.imma.info.implSetRsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
 	}
@@ -2026,7 +2028,8 @@ static uint32_t immnd_evt_proc_ccb_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		goto agent_rsp;
 	}
 
-	if (immModel_immNotWritable(cb)) {	/*Avoid broadcasting doomed requests. */
+	if (immModel_immNotWritable(cb) || (cb->mSyncFinalizing && cb->fevs_out_count)) {
+		/*Avoid broadcasting doomed requests. */
 		send_evt.info.imma.info.ccbInitRsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
 	}
