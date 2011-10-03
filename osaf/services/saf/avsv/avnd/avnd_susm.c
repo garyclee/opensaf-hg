@@ -1309,7 +1309,7 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1382,7 +1382,7 @@ uint32_t avnd_su_pres_uninst_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1435,7 +1435,7 @@ uint32_t avnd_su_pres_insting_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1456,7 +1456,7 @@ uint32_t avnd_su_pres_insting_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1468,8 +1468,9 @@ uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	bool is;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("Component Instantiated event in the Instantiating state:'%s' : '%s'", 
-								su->name.value, comp->name.value);
+	char *compname = comp ? (char*)comp->name.value : "none";
+	TRACE_ENTER2("Component Instantiated event in the Instantiating state:'%s' : '%s'",
+				 su->name.value, compname);
 
 	/*
 	 * If pi su, pick the next pi comp & trigger it's FSM with InstEv.
@@ -1553,7 +1554,7 @@ uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1565,8 +1566,9 @@ uint32_t avnd_su_pres_insting_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 	AVND_SU_SI_REC *si = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	char *compname = comp ? (char*)comp->name.value : "none";
 	TRACE_ENTER2("CompInstantiateFailed event in the Instantiate State: '%s' : '%s'",
-							su->name.value, comp->name.value);
+				 su->name.value, compname);
 
 	/* transition to inst-failed state */
 	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
@@ -1633,7 +1635,7 @@ uint32_t avnd_su_pres_insting_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1709,7 +1711,7 @@ uint32_t avnd_su_pres_inst_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *com
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1782,7 +1784,7 @@ uint32_t avnd_su_pres_inst_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1791,8 +1793,9 @@ uint32_t avnd_su_pres_inst_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 uint32_t avnd_su_pres_inst_comprestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {				/* TBD */
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	char *compname = comp ? (char*)comp->name.value : "none";
 	TRACE_1("Component restart event in the Instantiated state, returning success:'%s' : '%s'",
-								su->name.value, comp->name.value);
+			su->name.value, compname);
 	return rc;
 }
 
@@ -1804,7 +1807,7 @@ uint32_t avnd_su_pres_inst_comprestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1813,7 +1816,9 @@ uint32_t avnd_su_pres_inst_comprestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 uint32_t avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("CompTerminating event in the Instantiated state:'%s' : '%s'", su->name.value, comp->name.value);
+	char *compname = comp ? (char*)comp->name.value : "none";
+	TRACE_ENTER2("CompTerminating event in the Instantiated state:'%s' : '%s'",
+				 su->name.value, compname);
 
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		if (m_AVND_SU_IS_FAILED(su)) {
@@ -1834,7 +1839,7 @@ uint32_t avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1844,8 +1849,9 @@ uint32_t avnd_su_pres_terming_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 {
 	bool is;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	char *compname = comp ? (char*)comp->name.value : "none";
 	TRACE_ENTER2("ComponentInstantiate event in the terminating state:'%s' : '%s'", 
-							su->name.value, comp->name.value);
+				 su->name.value, compname);
 
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		if (m_AVND_COMP_IS_FAILED(comp)) {
@@ -1880,7 +1886,7 @@ uint32_t avnd_su_pres_terming_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1892,8 +1898,9 @@ uint32_t avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 	AVND_SU_SI_REC *si = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	char *compname = comp ? (char*)comp->name.value : "none";
 	TRACE_ENTER2("Component Termination failed event in the Terminating state,'%s': '%s'",
-								 su->name.value, comp->name.value);
+				 su->name.value, compname);
 
 	/* 
 	 * If pi su, pick all the instantiated/instantiating pi comps & 
@@ -1976,7 +1983,7 @@ uint32_t avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1988,8 +1995,9 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	bool all_uninst = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	char *compname = comp ? (char*)comp->name.value : "none";
 	TRACE_ENTER2("Component Uninstantiated event in the Terminating state:'%s' : '%s'",
-									su->name.value, comp->name.value);
+				 su->name.value, compname);
 
 	/* This case is for handling the case of admn su term while su is restarting */
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su) && m_AVND_SU_IS_FAILED(su) && m_AVND_SU_IS_ADMN_TERM(su)) {
@@ -2104,7 +2112,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2114,7 +2122,9 @@ uint32_t avnd_su_pres_restart_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 {
 	AVND_COMP *curr_comp = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("SU Terminate event in the Restarting state:'%s' : '%s'", su->name.value, comp->name.value);
+	char *compname = comp ? (char*)comp->name.value : "none";
+	TRACE_ENTER2("SU Terminate event in the Restarting state:'%s' : '%s'",
+				 su->name.value, compname);
 
 	/* 
 	 * If pi su, pick all the instantiated/instantiating pi comps & 
@@ -2160,7 +2170,7 @@ uint32_t avnd_su_pres_restart_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2172,8 +2182,9 @@ uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	bool all_inst = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	char *compname = comp ? (char*)comp->name.value : "none";
 	TRACE_ENTER2("ComponentInstantiated event in the Restarting state:'%s' : '%s'", 
-							su->name.value, comp->name.value);
+				 su->name.value, compname);
 
 	/* 
 	 * If pi su, pick the next pi comp & trigger it's FSM with RestartEv.
@@ -2246,7 +2257,7 @@ uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2259,7 +2270,9 @@ uint32_t avnd_su_pres_restart_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_C
 {
 	AVND_COMP *curr_comp = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("SUTerminate event in the Instantiating state:'%s' : '%s'", su->name.value, comp->name.value);
+	char *compname = comp ? (char*)comp->name.value : "none";
+	TRACE_ENTER2("SUTerminate event in the Instantiating state:'%s' : '%s'",
+				 su->name.value, compname);
 
 	if (m_AVND_SU_IS_ADMN_TERM(su)) {
 		/* This case will be hit, when an SU is already restarting and admin
@@ -2320,7 +2333,7 @@ uint32_t avnd_su_pres_restart_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_C
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2337,8 +2350,9 @@ uint32_t avnd_su_pres_inst_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint32_t comp_count = 0;
+	char *compname = comp ? (char*)comp->name.value : "none";
 	TRACE_ENTER2("Component Instantiation failed event in the Instantiated state: '%s' : '%s'",
-										su->name.value, comp->name.value);
+				 su->name.value, compname);
 
 	/* transition to inst-failed state */
 	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
@@ -2421,7 +2435,7 @@ uint32_t avnd_su_pres_inst_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp
+                  comp - ptr to the comp (can be NULL)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2432,8 +2446,9 @@ uint32_t avnd_su_pres_instfailed_compuninst(AVND_CB *cb, AVND_SU *su, AVND_COMP 
 	AVND_COMP *curr_comp = 0;
 	AVND_SU_SIQ_REC *siq = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	char *compname = comp ? (char*)comp->name.value : "none";
 	TRACE_ENTER2("CompInstantiateFailed/CompUnInstantiated event in the InstantiationFailed state:'%s', '%s'",
-											su->name.value, comp->name.value);
+				 su->name.value, compname);
 
 	/* check whether all pi comps are terminated  */
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
