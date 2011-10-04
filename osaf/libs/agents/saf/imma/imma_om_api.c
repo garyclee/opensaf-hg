@@ -937,7 +937,6 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 		goto ao_node_alloc_fail;
 	}
 
-	memset(ao_node, 0, sizeof(IMMA_ADMIN_OWNER_NODE));
 	ao_node->admin_owner_hdl = (SaImmAdminOwnerHandleT)m_NCS_GET_TIME_NS;
 	/*This is the external handle that the application uses.
 	  Internally we use the gloablId provided by the director. */
@@ -1040,13 +1039,21 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 		goto admin_owner_node_free;
 	}
 
-	proc_rc = imma_admin_owner_node_add(&cb->admin_owner_tree, ao_node);
+	do {
+		proc_rc = imma_admin_owner_node_add(&cb->admin_owner_tree, ao_node);
 
-	if (proc_rc != NCSCC_RC_SUCCESS) {
-		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: Failed to add node to the admin owner tree");
-		goto admin_owner_node_free;
-	}
+		if (proc_rc != NCSCC_RC_SUCCESS ) {
+			IMMA_ADMIN_OWNER_NODE *ao_node_tmp = NULL;
+			imma_admin_owner_node_get(&cb->admin_owner_tree, &(ao_node->admin_owner_hdl), &ao_node_tmp);
+			if(!ao_node_tmp) {
+				LOG_NO("Failed to add node to the admin owner tree - aborting");
+				abort();
+			}
+			ao_node->admin_owner_hdl++;
+			TRACE_4("Duplicate admin owner handle %llu (poor clock resolution) adjusting it to %llu",
+				ao_node_tmp->admin_owner_hdl, ao_node->admin_owner_hdl);
+		}
+	} while (proc_rc != NCSCC_RC_SUCCESS);
 
 	*adminOwnerHandle = ao_node->admin_owner_hdl;
 
@@ -1372,15 +1379,21 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 	/*This is the external handle that the application uses.
 	   Internally we use the gloablId provided by the Director. */
 
-	proc_rc = imma_ccb_node_add(&cb->ccb_tree, ccb_node);
+	do {
+		proc_rc = imma_ccb_node_add(&cb->ccb_tree, ccb_node);
 
-	if (proc_rc != NCSCC_RC_SUCCESS) {
-		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: Failed to add ccb-node to ccb-tree");
-		free(ccb_node);
-		ccb_node = NULL;
-		goto done;
-	}
+		if (proc_rc != NCSCC_RC_SUCCESS) {
+			IMMA_CCB_NODE *ccb_node_tmp = NULL;
+			imma_ccb_node_get(&cb->ccb_tree, &(ccb_node->ccb_hdl), &ccb_node_tmp);
+			if(!ccb_node_tmp) {
+				LOG_NO("Failed to add ccb-node to ccb-tree - aborting");
+				abort();
+			}
+			ccb_node->ccb_hdl++;
+			TRACE_4("Duplicate ccb handle %llu (poor clock resolution) adjusting it to %llu",
+				ccb_node_tmp->ccb_hdl, ccb_node->ccb_hdl);
+		}
+	} while (proc_rc != NCSCC_RC_SUCCESS);
 
 	ccb_node->mCcbFlags = ccbFlags;	/*Save flags in client for repeated init */
 	ccb_node->mImmHandle = immHandle;
@@ -4837,14 +4850,23 @@ SaAisErrorT saImmOmAccessorInitialize(SaImmHandleT immHandle, SaImmAccessorHandl
 	   Internally we use the searchId provided by the Node Director. */
 
 	/* Add IMMA_SEARCH_NODE to search_tree */
-	proc_rc = imma_search_node_add(&cb->search_tree, search_node);
+	do {
+		proc_rc = imma_search_node_add(&cb->search_tree, search_node);
 
-	if (proc_rc != NCSCC_RC_SUCCESS) {
-		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: Failed to add search node to search tree");
-	} else {
-		*accessorHandle = search_node->search_hdl;
-	}
+		if (proc_rc != NCSCC_RC_SUCCESS) {
+			IMMA_SEARCH_NODE *search_node_tmp = NULL;
+			imma_search_node_get(&cb->search_tree, &(search_node->search_hdl), &search_node_tmp);
+			if(!search_node_tmp) {
+				LOG_NO("Failed to add search node to search tree - aborting");
+				abort();
+			}
+			search_node->search_hdl++;
+			TRACE_4("Duplicate search handle %llu (poor clock resolution) adjusting it to %llu",
+				search_node_tmp->search_hdl, search_node->search_hdl);
+		}
+	}  while (proc_rc != NCSCC_RC_SUCCESS);
+
+	*accessorHandle = search_node->search_hdl;
 
  release_lock:
 	if (locked) {
@@ -5604,13 +5626,21 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 
 
 		/* Add IMMA_SEARCH_NODE to search_tree */
-		proc_rc = imma_search_node_add(&cb->search_tree, search_node);
+		do {
+			proc_rc = imma_search_node_add(&cb->search_tree, search_node);
 
-		if (proc_rc != NCSCC_RC_SUCCESS) {
-			rc = SA_AIS_ERR_LIBRARY;
-			TRACE_4("ERR_LIBRARY: Failed to add search node to search tree");
-			goto search_node_add_fail;
-		}
+			if (proc_rc != NCSCC_RC_SUCCESS) {
+				IMMA_SEARCH_NODE *search_node_tmp = NULL;
+				imma_search_node_get(&cb->search_tree, &(search_node->search_hdl), &search_node_tmp);
+				if(!search_node_tmp) {
+					LOG_NO("Failed to add search node to search tree - aborting");
+					abort();
+				}
+				search_node->search_hdl++;
+				TRACE_4("Duplicate search handle %llu (poor clock resolution) adjusting it to %llu",
+					search_node_tmp->search_hdl, search_node->search_hdl);
+			}
+		} while (proc_rc != NCSCC_RC_SUCCESS);
 	}
 
 	/* Populate the SearchInit event */
@@ -5800,7 +5830,6 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		}
 	}
 
- search_node_add_fail:
 	if (rc != SA_AIS_OK && search_node != NULL && !isAccessor) {
 		/*Node never added to tree */
 		free(search_node);
