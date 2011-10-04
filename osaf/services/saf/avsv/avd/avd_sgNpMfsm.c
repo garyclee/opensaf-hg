@@ -2489,6 +2489,10 @@ static void avd_sg_npm_stdbysu_role_change(AVD_SU *su)
                         		}
 					/* Add Standby SU to SU operlist */
 					avd_sg_su_oper_list_add(avd_cb, std_susi->su, false);
+
+					/*Change state to SG_realign. */
+					m_AVD_SET_SG_FSM(avd_cb, su->sg_of_su, AVD_SG_FSM_SG_REALIGN);
+
 				} else {
 					/* Check if node failover is undergoing or admin opr is going on the node*/
 					if ((su->su_on_node->node_state == AVD_AVND_STATE_ABSENT)
@@ -2537,6 +2541,10 @@ static void avd_sg_npm_stdbysu_role_change(AVD_SU *su)
 					
 						/* Add Standby SU to SU operlist */
 						avd_sg_su_oper_list_add(avd_cb, std_susi->su, false);
+
+						/*Change state to SG_realign. */
+						m_AVD_SET_SG_FSM(avd_cb, su->sg_of_su, AVD_SG_FSM_SG_REALIGN);
+
 					} else {
 						TRACE("Role failover is deferred as sponsors role failover is under going");
 						si_dep_state_set(act_susi->si, AVD_SI_FAILOVER_UNDER_PROGRESS);
@@ -4351,9 +4359,6 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 		if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
 			/* Find Standby SU corresponding to each susi on this SU and do role change */
 			avd_sg_npm_stdbysu_role_change(su);
-
-			/*Change state to SG_realign. */
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 
 			/* Free all the SI assignments to this SU. */
 			avd_sg_su_asgn_del_util(cb, su, true, false);
