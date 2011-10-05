@@ -349,6 +349,11 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 	}
 
 	if ((error = saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
+
+		if(error == SA_AIS_ERR_TIMEOUT) {
+			fprintf(stderr, "saImmOmCcbApply returned SA_AIS_ERR_TIMEOUT, result for CCB is unknown\n");
+			goto done_release;
+		}
 		
 		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
 		SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
@@ -459,6 +464,12 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 	}
 
 	if ((error = saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
+
+		if(error == SA_AIS_ERR_TIMEOUT) {
+			fprintf(stderr, "saImmOmCcbApply returned SA_AIS_ERR_TIMEOUT, result for CCB is unknown\n");
+			goto done_release;
+		}
+		
 		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
 		SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
 		if(errStrings) {
@@ -554,6 +565,12 @@ int object_delete(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 	}
 
 	if ((error = saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
+
+		if(error == SA_AIS_ERR_TIMEOUT) {
+			fprintf(stderr, "saImmOmCcbApply returned SA_AIS_ERR_TIMEOUT, result for CCB is unknown\n");
+			goto done;
+		}
+
 		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
 		SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
 		if(errStrings) {
