@@ -322,7 +322,7 @@ client, without waiting for the reply on the upcall. Exactly which error is
 generated depends on the type of call. Ccb related calls tend to generate
 FAILED_OPERATION, i.e. an abort of the CCB/transaction by the server.
 But with PBE enabled and congestion at the PBE, the server can not abort 
-any CCB that is being committed by the CCB. So there is the unfortunate
+any CCB that is being committed by the PBE. So there is the unfortunate
 possibility of getting TIMEOUT on a ccb-apply when applying a CCB with
 PBE enabled. TIMEOUT of course means that the client then does not
 know if the CCB committed, aborted, or is still being processed.
@@ -778,10 +778,10 @@ saImmOmAdminOperationInvoke_2.
 (2)
 typedef void
  (*SaImmOmAdminOperationInvokeCallbackT_o2) (
-        SaInvocationT invocation,                          /* out */
-        SaAisErrorT operationReturnValue,                  /* out */
-        SaAisErrorT error,                                 /* out */
-        const SaImmAdminOperationParamsT_2 **returnParams);/* out */
+        SaInvocationT invocation,                          /* in */
+        SaAisErrorT operationReturnValue,                  /* in */
+        SaAisErrorT error,                                 /* in */
+        const SaImmAdminOperationParamsT_2 **returnParams);/* in */
 
 typedef struct {
                SaImmOmAdminOperationInvokeCallbackT_o2
@@ -806,7 +806,7 @@ extern SaAisErrorT
 saImmOmInitialize_o2(
         SaImmHandleT *immHandle,               /* in */
         const SaImmCallbacksT_o2 *immCallbacks,/* in */
-        SaVersionT *version);                  /* inout */
+        SaVersionT *version);                  /* out */
 
 Arguments	: immHandle - Same as SaImmOmInitialize A.02.01
 		  immCallbacks - The new A.02.11 callback.
