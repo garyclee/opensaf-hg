@@ -105,7 +105,7 @@ done:
 *****************************************************************************/
 static uint32_t glnd_restart_build_resource_tree(GLND_CB *glnd_cb)
 {
-	SaAisErrorT rc = NCSCC_RC_FAILURE;
+	SaAisErrorT rc = NCSCC_RC_SUCCESS;
 	GLND_RESTART_RES_INFO *shm_base_addr = NULL;
 	GLND_RESTART_RES_INFO restart_res_info;
 	uint32_t i;
