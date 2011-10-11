@@ -501,7 +501,7 @@ static uint32_t glsv_gld_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 {
 	GLSV_GLD_CB *gld_cb;
 	uint32_t msg_fmt_version;
-	uint32_t rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl);
