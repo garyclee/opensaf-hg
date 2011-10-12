@@ -174,6 +174,11 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 			AisTryAgainException, AisInvalidParamException,
 			AisNoMemoryException, AisNoResourcesException, 
 			AisVersionException, AisUnavailableException {
+			if(callbacks == null) {
+				callbacks = new ClmHandle.Callbacks();
+				callbacks.getClusterNodeCallback = null;
+				callbacks.trackClusterCallback = null;
+			}
 		return initializeHandle(callbacks.getClusterNodeCallback,
 				callbacks.trackClusterCallback, version);
 	}
