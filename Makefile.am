@@ -225,9 +225,9 @@ install-data-hook:
 		sed -i 's|xxCLCCLIDIRxx|$(pkgclcclidir)|g' "$$i"; \
 	done
 	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxCLCCLIDIRxx' $(DESTDIR)$(pkgsysconfdir)/*) ; do \
-		sed -i 's|xxBINDIRxx|$(bindir)|g' "$$i"; \
-		sed -i 's|xxLIBDIRxx|$(pkglibdir)|g' "$$i"; \
-		sed -i 's|xxCLCCLIDIRxx|$(pkgclcclidir)|g' "$$i"; \
+		sed --follow-symlinks -i 's|xxBINDIRxx|$(bindir)|g' "$$i"; \
+		sed --follow-symlinks -i 's|xxLIBDIRxx|$(pkglibdir)|g' "$$i"; \
+		sed --follow-symlinks -i 's|xxCLCCLIDIRxx|$(pkgclcclidir)|g' "$$i"; \
 	done
 
 uninstall-hook:
