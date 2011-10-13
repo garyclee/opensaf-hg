@@ -2169,6 +2169,7 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 		} else if (m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
 					      immd_get_slot_and_subslot_id_from_mds_dest(mds_info->dest))) {
 			TRACE_5("NCSMDS_DOWN, remote IMMND/IMMD ?? down");
+			cb->is_rem_immnd_up = false;
 		}
 
 		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
