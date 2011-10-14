@@ -694,11 +694,12 @@ static SaAisErrorT si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
 	si = avd_si_get(&opdata->objectName);
 	assert(si != NULL);
 
 	/* Modifications can only be done for these attributes. */
-	i = 0;
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 
@@ -735,6 +736,7 @@ static SaAisErrorT si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 		}
 	}
 
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -1099,11 +1101,13 @@ static void avd_si_adjust_si_assignments(AVD_SI *si)
 	}
 	TRACE_LEAVE();	
 }
+
 static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 {
 	AVD_SI *si;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
+	bool value_is_deleted;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -1111,15 +1115,21 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	assert(si != NULL);
 
 	/* Modifications can be done for any parameters. */
-	i = 0;
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
-		void *value;
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 
-		value = attribute->attrValues[0];
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == NULL))
+			value_is_deleted = true;
+		else
+			value_is_deleted = false;
 
 		if (!strcmp(attribute->attrName, "saAmfSIPrefActiveAssignments")) {
-			si->saAmfSIPrefActiveAssignments = *((SaUint32T *)value);
+			if (value_is_deleted)
+				si->saAmfSIPrefActiveAssignments = 1;
+			else
+				si->saAmfSIPrefActiveAssignments =
+					*((SaUint32T *)attr_mod->modAttr.attrValues[0]);
+
 			if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)  
 				continue;
 
@@ -1132,7 +1142,12 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				avd_si_adjust_si_assignments(si);
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfSIPrefStandbyAssignments")) {
-			si->saAmfSIPrefStandbyAssignments = *((SaUint32T *)value);
+			if (value_is_deleted)
+				si->saAmfSIPrefStandbyAssignments = 1;
+			else
+				si->saAmfSIPrefStandbyAssignments =
+					*((SaUint32T *)attr_mod->modAttr.attrValues[0]);
+
 			if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)  
 				continue;
 
