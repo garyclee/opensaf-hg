@@ -20,7 +20,7 @@ This directory (services/ntfsv) contains an implementation of the SAF
 Notification Service version A.01.01.
 
 Application programmers intending to interface with ntfsv should primarily read
-the document "OpenSAF NTF Service Release 3 Programmer's Reference" and of
+the document "OpenSAF NTF Service Release 4.2 Programmer's Reference" and of
 course the NTF standard (SAI-AIS-NTF-A.01.01).
 
 This document provides an overview of the design and internals of the ntfsv. 
@@ -41,7 +41,8 @@ Parts of the library implementations and the base for the 'ntfsend' and
 'ntfsubscribe' commands are also taken from an earlier implementation.
 
 Only a limited version of the Reader API is implemented which reads from a 
-cache of 100 notification. Filter is not implemented for the Reader API.
+cache of configurable size, default is 10000 notification.
+
 
 DEPENDENCIES
 ntfsv depends of the following other OpenSAF services:
@@ -58,6 +59,7 @@ osaf/libs/agents/saf/ntfa	ntf library implementation
 osaf/services/saf/ntfsv/ntfs	ntf server
 osaf/tools/safntf/ntfsend	ntfsend ntfsubscribe command
 osaf/tools/safntf/ntfsubscribe	ntfsubscribe command
+osaf/tools/safntf/ntfread	ntfread command
 osaf/libs/saf/libSaNtf 		NTF library staging
 tests/ntfsv			Test suite
 
@@ -98,7 +100,8 @@ The maps are:
 * clientMap is located in the Admin object and holds information about
   all clients.
 * readerMap is located in the Client object. For each reader initialize a new 
-  NtfReader object is created with a copy of the cached notifications
+  NtfReader object is created with smart pointer references to the cached notifications
+  that fits the provided filter and search criteria.
 * subscriptionMap is located in the Client object and holds information
   about all subscriptions that the certain client has
 * filterMap is located in the Subscription object and holds information
@@ -109,7 +112,7 @@ The maps are:
 
 Other objects handled by NtfAdmin:
 * logger - Admin holds a NtfLogger object which logs incoming notifications and 
-  saves a cache of the 100 latest alarm notification in a STL deque container
+  saves a cache of the 10000 latest alarm notification in a STL deque container
 
 NTFA uses the following data structures:
 - Control block. Statically allocated, one instance per library. Access
@@ -123,16 +126,33 @@ linked list with descriptors for notifications, filters and readers.
 to send unsubscribe to server. 
 
 CONFIGURATION
-Only for debug see DEBUG.
+Implementation defined configuration is done using a configuration
+file with environment variables. This config file is typically:
+
+/etc/opensaf/ntfd.conf
+
+The NTF server start script sources the configuration file before it starts
+the NTF server. So any change in this file will require a restart of the NTF
+server which implies OpenSAF on that node.
+
+The following environment variable is optional:
+
+NTFSV_ENV_CACHE_SIZE
+
+The size of the notification cache in the NTF server processes running on the Controller nodes.
+The default value is 10000 notification.
+
+
+for debug see DEBUG.
 
 COMMAND LINE INTERFACE
-The 'ntfsend'/'ntfsubscribe' commands can be used to send/receive notifications.
+The 'ntfsend'/'ntfsubscribe'/'ntfread' commands can be used to send/receive/read notifications.
 Please see the on line help for more information.
 
 DEBUG
 
 Ntf server traces are by default disabled. To enable/disable ntf server traces 
-in a running system, send signal USR1 to the ntfd process. Every time the 
+in a running system, send signal USR2 to the ntfd process. Every time the 
 trace state is toggled. Example:
 
 	$ pkill -USR2 opensaf_ntfd
@@ -181,7 +201,6 @@ Internationalization
 
 Reader API
 - read from SAFLog records
-- filter
 
 CONTRIBUTORS/MAINTAINERS
 Arne Eriksson <Arne.R.Eriksson@ericsson.com>
