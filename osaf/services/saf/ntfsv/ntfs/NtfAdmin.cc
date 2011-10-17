@@ -944,13 +944,13 @@ void clientAdded(unsigned int clientId,
                  MDS_DEST mdsDest,
                  MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->clientAdded(clientId, mdsDest, mdsCtxt);
 }
 
 void subscriptionAdded(ntfsv_subscribe_req_t s, MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->subscriptionAdded(s, mdsCtxt);
 }
 
@@ -959,7 +959,7 @@ void notificationReceived(unsigned int clientId,
                           ntfsv_send_not_req_t* sendNotInfo,
                           MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->notificationReceived(clientId,
                                                 notificationType,
                                                 sendNotInfo,
@@ -969,7 +969,7 @@ void notificationReceivedUpdate(unsigned int clientId,
                                 SaNtfNotificationTypeT notificationType,
                                 ntfsv_send_not_req_t* sendNotInfo)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->notificationReceivedUpdate(clientId,
                                                       notificationType,
                                                       sendNotInfo);
@@ -979,7 +979,7 @@ void notificationReceivedColdSync(unsigned int clientId,
                                   SaNtfNotificationTypeT notificationType,
                                   ntfsv_send_not_req_t* sendNotInfo)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->notificationReceivedColdSync(clientId,
                                                         notificationType,
                                                         sendNotInfo);
@@ -988,26 +988,26 @@ void notificationReceivedColdSync(unsigned int clientId,
 void notificationSentConfirmed(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId,
     SaNtfIdentifierT notificationId, int discarded)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->notificationSentConfirmed(clientId, subscriptionId, notificationId, discarded);
 }
 
 void notificationLoggedConfirmed(SaNtfIdentifierT notificationId)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->notificationLoggedConfirmed(notificationId);
 }
 
 void clientRemoved(unsigned int clientId)
 {
 
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->clientRemoved(clientId);
 }
 void clientRemoveMDS(MDS_DEST mds_dest)
 {
 
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->clientRemoveMDS(mds_dest);
 }
 
@@ -1016,7 +1016,7 @@ void subscriptionRemoved(
                         SaNtfSubscriptionIdT subscriptionId,
                         MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->subscriptionRemoved(
                                               clientId,
                                               subscriptionId,
@@ -1025,13 +1025,13 @@ void subscriptionRemoved(
 
 void syncRequest( NCS_UBAID *uba)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->syncRequest(uba);
 }
 
 void syncGlobals(const struct NtfGlobals *ntfGlobals)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->syncGlobals(*ntfGlobals);
 }
 
@@ -1040,7 +1040,7 @@ void newReader(unsigned int clientId,
 	ntfsv_filter_ptrs_t *f_rec,
 	MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-	assert(NtfAdmin::theNtfAdmin != NULL);
+	osafassert(NtfAdmin::theNtfAdmin != NULL);
 	NtfAdmin::theNtfAdmin->newReader(clientId, searchCriteria, f_rec, mdsCtxt);	
 }
 
@@ -1049,7 +1049,7 @@ void readNext(unsigned int clientId,
               SaNtfSearchDirectionT searchDirection,
               MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     return NtfAdmin::theNtfAdmin->readNext(clientId,
                                            readerId,
                                            searchDirection,
@@ -1060,7 +1060,7 @@ void deleteReader(unsigned int clientId,
                   unsigned int readerId,
                   MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     return NtfAdmin::theNtfAdmin->deleteReader(clientId,
                                                readerId,
                                                mdsCtxt);
@@ -1068,7 +1068,7 @@ void deleteReader(unsigned int clientId,
 
 void printAdminInfo ()
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->printInfo();
 }
 
@@ -1076,7 +1076,7 @@ void storeMatchingSubscription(SaNtfIdentifierT notificationId,
                                unsigned int clientId,
                                SaNtfSubscriptionIdT subscriptionId)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     NtfAdmin::theNtfAdmin->storeMatchingSubscription(notificationId,
                                                      clientId,
                                                      subscriptionId);
@@ -1084,18 +1084,18 @@ void storeMatchingSubscription(SaNtfIdentifierT notificationId,
 
 void checkNotificationList()
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     return NtfAdmin::theNtfAdmin->checkNotificationList();
 }
 
 void discardedAdd(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     return NtfAdmin::theNtfAdmin->discardedAdd(clientId, subscriptionId, notificationId);    
 }
 
 void discardedClear(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId)
 {
-    assert(NtfAdmin::theNtfAdmin != NULL);
+    osafassert(NtfAdmin::theNtfAdmin != NULL);
     return NtfAdmin::theNtfAdmin->discardedClear(clientId, subscriptionId);    
 }

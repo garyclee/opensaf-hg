@@ -183,7 +183,7 @@ bool NtfFilter::cmpSaNtfValueT(SaNtfValueTypeT t, SaNtfValueT *v, SaNtfValueType
 	case SA_NTF_VALUE_ARRAY:
 		return true;
 	default:
-		assert(0);
+		osafassert(0);
 		return false;
 		break;
 	}  

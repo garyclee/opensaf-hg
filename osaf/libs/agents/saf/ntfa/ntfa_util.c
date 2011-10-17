@@ -1085,7 +1085,7 @@ void ntfa_filter_hdl_rec_destructor(ntfa_filter_hdl_rec_t *filter_rec)
 		ntfsv_filter_alarm_free(&filter_rec->notificationFilter.alarmNotificationfilter);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 }
 

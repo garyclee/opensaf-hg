@@ -46,7 +46,7 @@ static MDS_CLIENT_MSG_FORMAT_VER
  */
 void ntfs_evt_destroy(ntfsv_ntfs_evt_t *evt)
 {
-	assert(evt != NULL);
+	osafassert(evt != NULL);
 	free(evt);
 }
 

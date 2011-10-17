@@ -20,7 +20,6 @@
  * ========================================================================
  */
 #include <sys/poll.h>
-#include <assert.h>
 
 #include "saLog.h"
 #include "NtfAdmin.hh"
@@ -108,7 +107,7 @@ void saLogWriteLogCallback(SaInvocationT invocation,
         notification = NtfAdmin::theNtfAdmin->getNotificationById(
                                                                  (SaNtfIdentifierT) invocation);
 
-        assert(notification != NULL);
+        osafassert(notification != NULL);
 
         if (!notification->loggedOk())
         {
@@ -121,7 +120,7 @@ void saLogWriteLogCallback(SaInvocationT invocation,
             LOG_ER("Already marked as logged notificationId: %d",
                    (int)invocation);
             /* this should not happen */
-            assert(0);
+            osafassert(0);
         }
     }
     sendLoggedConfirm((SaNtfIdentifierT) invocation);

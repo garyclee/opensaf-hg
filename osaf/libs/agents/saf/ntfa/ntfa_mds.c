@@ -42,7 +42,7 @@ static uint32_t ntfa_enc_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	ntfsv_initialize_req_t *param = &msg->info.api_info.param.init;
 
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 3);
@@ -78,7 +78,7 @@ static uint32_t ntfa_enc_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 
 	TRACE_ENTER();
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 4);
@@ -200,7 +200,7 @@ static uint32_t ntfa_enc_reader_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	ntfsv_reader_finalize_req_t *param = &msg->info.api_info.param.reader_finalize;
 
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
@@ -234,7 +234,7 @@ static uint32_t ntfa_enc_read_next_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	ntfsv_read_next_req_t *param = &msg->info.api_info.param.read_next;
 
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 10);
@@ -563,7 +563,7 @@ static uint32_t ntfa_dec_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	ntfsv_initialize_rsp_t *param = &msg->info.api_resp_info.param.init_rsp;
 	uint8_t local_data[4];
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->client_id = ncs_decode_32bit(&p8);
@@ -586,7 +586,7 @@ static uint32_t ntfa_dec_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uint32_t ntfa_dec_not_send_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 	ntfsv_send_not_req_t *param = msg->info.cbk_info.param.notification_cbk;
 	return ntfsv_dec_not_msg(uba, param);
 }
@@ -605,7 +605,7 @@ static uint32_t ntfa_dec_not_send_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uint32_t ntfa_dec_not_discard_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 	ntfsv_discarded_info_t *param = &msg->info.cbk_info.param.discarded_cbk;
 	return ntfsv_dec_discard_msg(uba, param);
 }
@@ -628,7 +628,7 @@ static uint32_t ntfa_dec_subscribe_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	ntfsv_subscribe_rsp_t *param = &msg->info.api_resp_info.param.subscribe_rsp;
 	uint8_t local_data[4];
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->subscriptionId = ncs_decode_32bit(&p8);
@@ -655,7 +655,7 @@ static uint32_t ntfa_dec_send_not_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	ntfsv_send_not_rsp_t *param = &msg->info.api_resp_info.param.send_not_rsp;
 	uint8_t local_data[8];
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	/* chan_id */
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
@@ -683,7 +683,7 @@ static uint32_t ntfa_dec_reader_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *
 	ntfsv_reader_init_rsp_t *param = &msg->info.api_resp_info.param.reader_init_rsp;
 	uint8_t local_data[4];
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->readerId = ncs_decode_32bit(&p8);
@@ -710,7 +710,7 @@ static uint32_t ntfa_dec_reader_finalize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *ms
 	ntfsv_reader_finalize_rsp_t *param = &msg->info.api_resp_info.param.reader_finalize_rsp;
 	uint8_t local_data[4];
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->reader_id = ncs_decode_32bit(&p8);
@@ -734,7 +734,7 @@ static uint32_t ntfa_dec_reader_finalize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *ms
 static uint32_t ntfa_dec_read_next_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	ntfsv_read_next_rsp_t *param = &msg->info.api_resp_info.param.read_next_rsp;
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 	if (msg->info.api_resp_info.rc != SA_AIS_OK) {
 		/* only header is received */
 		  return NCSCC_RC_SUCCESS;
@@ -1101,7 +1101,7 @@ uint32_t ntfa_mds_msg_sync_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, ntfsv_msg_t *
 
 	TRACE_ENTER();
 
-	assert(cb != NULL && i_msg != NULL && o_msg != NULL);
+	osafassert(cb != NULL && i_msg != NULL && o_msg != NULL);
 
 	*o_msg = NULL;
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
@@ -1148,7 +1148,7 @@ uint32_t ntfa_mds_msg_async_send(ntfa_cb_t *cb, struct ntfsv_msg *i_msg, uint32_
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	assert(cb != NULL && i_msg != NULL);
+	osafassert(cb != NULL && i_msg != NULL);
 
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->mds_hdl;

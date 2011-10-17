@@ -329,7 +329,7 @@ static uint32_t encodeSaNameT(NCS_UBAID *uba, uint8_t *p8, SaNameT *name)
 	}
 	if (name->length > SA_MAX_NAME_LENGTH) {
 		LOG_ER("SaNameT length too long %hd", name->length);
-		assert(0);
+		osafassert(0);
 	}
 	ncs_encode_16bit(&p8, name->length);
 	ncs_enc_claim_space(uba, 2);
@@ -346,7 +346,7 @@ static uint32_t decodeSaNameT(NCS_UBAID *uba, uint8_t *p8, SaNameT *name)
 	if (name->length > SA_MAX_NAME_LENGTH) {
 		LOG_ER("SaNameT length too long: %hd", name->length);
 		/* this should not happen */
-		assert(0);
+		osafassert(0);
 	}
 	ncs_dec_skip_space(uba, 2);
 	rv = ncs_decode_n_octets_from_uba(uba, name->value, (uint32_t)name->length);
@@ -441,7 +441,7 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 	uint32_t rv = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
@@ -708,7 +708,7 @@ uint32_t ntfsv_enc_discard_msg(NCS_UBAID *uba, ntfsv_discarded_info_t *param)
 	int i;
 	
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
@@ -1321,7 +1321,7 @@ uint32_t ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 	uint32_t rv = NCSCC_RC_SUCCESS;
 	
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
@@ -1448,7 +1448,7 @@ static uint32_t ntfsv_dec_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 			ncs_dec_skip_space(uba, 4);
 		}  				  
 	} else {
-		assert(!filter_type);
+		osafassert(!filter_type);
 		f_rec->alarm_filter = NULL;
 	}
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -1517,7 +1517,7 @@ static uint32_t ntfsv_dec_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 				goto error_free;
 		}  				  
 	} else {
-		assert(!filter_type);
+		osafassert(!filter_type);
 		f_rec->sec_al_filter = NULL;
 	}
 
@@ -1549,7 +1549,7 @@ static uint32_t ntfsv_dec_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 			ncs_dec_skip_space(uba, 4);
 		}
 	} else {
-		assert(!filter_type);
+		osafassert(!filter_type);
 		f_rec->att_ch_filter = NULL;
 	}
 
@@ -1581,7 +1581,7 @@ static uint32_t ntfsv_dec_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 			ncs_dec_skip_space(uba, 4);
 		}
 	} else {
-		assert(!filter_type);
+		osafassert(!filter_type);
 		f_rec->obj_cr_del_filter = NULL;
 	}
 
@@ -1630,7 +1630,7 @@ static uint32_t ntfsv_dec_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 			}
 		}
 	} else {
-		assert(!filter_type);
+		osafassert(!filter_type);
 		f_rec->sta_ch_filter = NULL;
 	}
 
@@ -1689,7 +1689,7 @@ uint32_t ntfsv_enc_64bit_msg(NCS_UBAID *uba, uint64_t param)
 	uint32_t rv = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
@@ -1723,7 +1723,7 @@ uint32_t ntfsv_enc_32bit_msg(NCS_UBAID *uba, uint32_t param)
 	uint32_t rv = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 4);
@@ -1755,7 +1755,7 @@ uint32_t ntfsv_enc_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *para
 {
 	uint8_t *p8;
 	uint32_t rv = NCSCC_RC_SUCCESS;
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
@@ -1793,7 +1793,7 @@ uint32_t ntfsv_enc_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	ntfsv_reader_init_req_t *param = &msg->info.api_info.param.reader_init;
 
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 22);
