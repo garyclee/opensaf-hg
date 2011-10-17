@@ -662,7 +662,7 @@ static uint32_t immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc
 
 	/* IMMA events from other nodes can not happen */
 	if ((svc_evt->i_svc_id == NCSMDS_SVC_ID_IMMA_OM) || (svc_evt->i_svc_id == NCSMDS_SVC_ID_IMMA_OI))
-		assert(m_NCS_NODE_ID_FROM_MDS_DEST(cb->immnd_mdest_id) == m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest));
+		osafassert(m_NCS_NODE_ID_FROM_MDS_DEST(cb->immnd_mdest_id) == m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest));
 
 	/* Send the IMMND_EVT_MDS_INFO to IMMND */
 	evt = calloc(1, sizeof(IMMSV_EVT));

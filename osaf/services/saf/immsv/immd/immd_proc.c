@@ -214,7 +214,7 @@ int immd_proc_elect_coord(IMMD_CB *cb, bool new_active)
 				   reason for the old immnd to have gone down.
 				*/
 				if ((cb->immnd_coord == cb->node_id) && immnd_info_node->syncStarted) {
-					assert(immnd_info_node->immnd_key == cb->node_id);
+					osafassert(immnd_info_node->immnd_key == cb->node_id);
 				} else if(cb->immd_remote_up) {
 					/* The standby IMMD is still up See #1773 and #1819 */
 					LOG_WA("IMMD not re-electing coord for switch-over (si-swap) coord at (%x)", 
@@ -244,7 +244,7 @@ int immd_proc_elect_coord(IMMD_CB *cb, bool new_active)
 
 	if (immnd_info_node) {
 		TRACE_5("Elect coord: Coordinator node already exists: %x", immnd_info_node->immnd_key);
-		assert((cb->mRulingEpoch == immnd_info_node->epoch) || 
+		osafassert((cb->mRulingEpoch == immnd_info_node->epoch) || 
 			(immnd_info_node->syncStarted && (cb->mRulingEpoch == (immnd_info_node->epoch + 1))));
 		/* If ruling epoch != coord epoch, there must be an on-going sync and the ruling epoch is
 		   one step higher than the coord epoch.
@@ -274,7 +274,7 @@ int immd_proc_elect_coord(IMMD_CB *cb, bool new_active)
 
 		if(self_re_elect) {
 			/* Ensure we re-elected ourselves. */
-			assert(immnd_info_node->immnd_key == cb->node_id);
+			osafassert(immnd_info_node->immnd_key == cb->node_id);
 			LOG_NO("Coord re-elected, resides at %x", immnd_info_node->immnd_key);
 
 		} else {
@@ -407,12 +407,12 @@ uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, 
 			send_evt.info.immnd.info.ctrl.nodeId = immnd_info->immnd_key;
 			send_evt.info.immnd.info.ctrl.ndExecPid = immnd_info->immnd_execPid;
 
-			assert(ncs_enc_init_space(&uba) == NCSCC_RC_SUCCESS);
-			assert(immsv_evt_enc(&send_evt, &uba) == NCSCC_RC_SUCCESS);
+			osafassert(ncs_enc_init_space(&uba) == NCSCC_RC_SUCCESS);
+			osafassert(immsv_evt_enc(&send_evt, &uba) == NCSCC_RC_SUCCESS);
 
 			int32_t size = uba.ttl;
 			tmpData = malloc(size);
-			assert(tmpData);
+			osafassert(tmpData);
 			char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
 			memset(&send_evt, 0, sizeof(IMMSV_EVT));	/*No ponters=>no leak */

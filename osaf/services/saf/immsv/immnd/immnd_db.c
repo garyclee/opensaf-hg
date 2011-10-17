@@ -202,7 +202,7 @@ void immnd_enqueue_incoming_fevs_msg(IMMND_CB *cb, SaUint64T msgNo, SaImmHandleT
 	/* Not a duplicate => allocate a new node. */
 
 	IMMND_FEVS_MSG_NODE *node = calloc(1, sizeof(IMMND_FEVS_MSG_NODE));
-	assert(node);
+	osafassert(node);
 	node->msgNo = msgNo;
 	node->clnt_hdl = clnt_hdl;
 	node->reply_dest = reply_dest;
@@ -218,7 +218,7 @@ void immnd_enqueue_incoming_fevs_msg(IMMND_CB *cb, SaUint64T msgNo, SaImmHandleT
 	}
 
 	if (tmp->msgNo > msgNo) {	//insert at top of list
-		assert(tmp == cb->fevs_in_list);	//remove this after component test
+		osafassert(tmp == cb->fevs_in_list);	//remove this after component test
 		node->next = tmp;
 		cb->fevs_in_list = node;
 		goto expectations;
@@ -230,8 +230,8 @@ void immnd_enqueue_incoming_fevs_msg(IMMND_CB *cb, SaUint64T msgNo, SaImmHandleT
 	}
 
 	/* insert in the midle */
-	assert(tmp->next->msgNo > msgNo);
-	assert(tmp->msgNo < msgNo);
+	osafassert(tmp->next->msgNo > msgNo);
+	osafassert(tmp->msgNo < msgNo);
 	node->next = tmp->next;
 	tmp->next = node;
 
@@ -257,8 +257,8 @@ IMMSV_OCTET_STRING *immnd_dequeue_incoming_fevs_msg(IMMSV_OCTET_STRING *msg,
 	   to buffer messages here, request the missing messages from IMMD, and once
 	   the hole is filled, retreive these messages. 
 	 */
-	assert(msg);
-	assert(msgNo == cb->highestProcessed);
+	osafassert(msg);
+	osafassert(msgNo == cb->highestProcessed);
 	IMMND_FEVS_MSG_NODE *tmp = cb->fevs_in_list;
 	++msgNo;
 	if (tmp && (tmp->msgNo == msgNo)) {	//message wanted at front of queue 
@@ -292,7 +292,7 @@ unsigned int immnd_enqueue_outgoing_fevs_msg(IMMND_CB *cb,
 	SaImmHandleT clnt_hdl, IMMSV_OCTET_STRING *msg)
 {
 	IMMND_FEVS_MSG_NODE *new_node = malloc(sizeof(IMMND_FEVS_MSG_NODE));
-	assert(new_node);
+	osafassert(new_node);
 	new_node->msgNo = 0;
 	new_node->clnt_hdl = clnt_hdl;
 	new_node->reply_dest = 0LL;
@@ -303,8 +303,8 @@ unsigned int immnd_enqueue_outgoing_fevs_msg(IMMND_CB *cb,
 	new_node->next = NULL;
 
 	if(cb->fevs_out_list == NULL) { /* First insert. */
-		assert(cb->fevs_out_list_end == NULL);
-		assert(cb->fevs_out_count == 0);
+		osafassert(cb->fevs_out_list_end == NULL);
+		osafassert(cb->fevs_out_count == 0);
 		cb->fevs_out_list = new_node; 
 		cb->fevs_out_count = 1;
 	} else {
@@ -325,10 +325,10 @@ unsigned int immnd_enqueue_outgoing_fevs_msg(IMMND_CB *cb,
  *************************************************************************/
 unsigned int immnd_dequeue_outgoing_fevs_msg(IMMND_CB *cb, IMMSV_OCTET_STRING *msg, SaImmHandleT *clnt_hdl)
 {
-	assert(msg);
-	assert(cb->fevs_out_list);
-	assert(cb->fevs_out_list_end);
-	assert(cb->fevs_out_count);
+	osafassert(msg);
+	osafassert(cb->fevs_out_list);
+	osafassert(cb->fevs_out_list_end);
+	osafassert(cb->fevs_out_count);
 	IMMND_FEVS_MSG_NODE *tmp = cb->fevs_out_list;
 
 	msg->buf = tmp->msg.buf;
@@ -346,7 +346,7 @@ unsigned int immnd_dequeue_outgoing_fevs_msg(IMMND_CB *cb, IMMSV_OCTET_STRING *m
 	--(cb->fevs_out_count);
 
 	if(cb->fevs_out_list == NULL) { /* Last remove */
-		assert(cb->fevs_out_count == 0);
+		osafassert(cb->fevs_out_count == 0);
 		cb->fevs_out_list_end = NULL;
 	}
 

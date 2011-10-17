@@ -135,7 +135,7 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		LOG_NO("Ruling epoch noted as:%u on IMMD standby", cb->mRulingEpoch);
 	}
 
-	assert(cb->is_immnd_tree_up);
+	osafassert(cb->is_immnd_tree_up);
 	memset(&key, 0, sizeof(MDS_DEST));
 	immd_immnd_info_node_getnext(&cb->immnd_tree, &key, &immnd_info_node);
 	while (immnd_info_node) {

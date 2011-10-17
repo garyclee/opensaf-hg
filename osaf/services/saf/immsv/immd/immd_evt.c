@@ -678,7 +678,7 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, bool 
 			}
 		} else { 
 			/* Send payload intro to immnd on both controllers. */
-			assert(node_info->immnd_key != cb->node_id);
+			osafassert(node_info->immnd_key != cb->node_id);
 			if(cb->is_loc_immnd_up) {
 				TRACE("Payload intro sent to IMMND on active SC");
 				proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, cb->loc_immnd_dest, &accept_evt);
@@ -1157,9 +1157,9 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 			node_info->epoch = newEpoch;
 
 			if (node_info->syncStarted) {
-				assert(oldPid == newPid);
-				assert(node_info->isCoord);
-				assert(node_info->isOnController);
+				osafassert(oldPid == newPid);
+				osafassert(node_info->isCoord);
+				osafassert(node_info->isOnController);
 				if(node_info->epoch != cb->mRulingEpoch) {
 					LOG_ER("immd_evt_proc_immnd_intro: syncStarted true for node with "
 						"strange epoch node_info->epoch(%u) != cb->mRulingEpoc(%u)",	
@@ -1199,7 +1199,7 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 				node_info->isOnController = true;
 
 				if (cb->is_rem_immnd_up) {
-					assert(cb->rem_immnd_dest == sinfo->dest);
+					osafassert(cb->rem_immnd_dest == sinfo->dest);
 				} else {
 					cb->is_rem_immnd_up = true;	/*ABT BUGFIX 080811 */
 					cb->rem_immnd_dest = sinfo->dest;
@@ -1300,7 +1300,7 @@ static uint32_t immd_evt_proc_adminit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 
 	int32_t size = uba.ttl;
 	tmpData = malloc(size);
-	assert(tmpData);
+	osafassert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
 	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));	/*No pointers=>no leak */
@@ -1409,7 +1409,7 @@ static uint32_t immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEN
 
 	int32_t size = uba.ttl;
 	tmpData = malloc(size);
-	assert(tmpData);
+	osafassert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
 	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));	/*No ponters=>no leak */
@@ -1488,7 +1488,7 @@ static uint32_t immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_S
 
 	int32_t size = uba.ttl;
 	tmpData = malloc(size);
-	assert(tmpData);
+	osafassert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
 	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));	/*No ponters=>no leak */
@@ -1561,7 +1561,7 @@ static uint32_t immd_evt_proc_discard_impl(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEN
 
 	int32_t size = uba.ttl;
 	tmpData = malloc(size);
-	assert(tmpData);
+	osafassert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
 	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));	/*No ponters=>no leak */
@@ -1632,7 +1632,7 @@ static uint32_t immd_evt_proc_abort_ccb(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_I
 
 	int32_t size = uba.ttl;
 	tmpData = malloc(size);
-	assert(tmpData);
+	osafassert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
 	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));	/*No ponters=>no leak */
@@ -1703,7 +1703,7 @@ static uint32_t immd_evt_proc_admo_hard_finalize(IMMD_CB *cb, IMMD_EVT *evt, IMM
 
 	int32_t size = uba.ttl;
 	tmpData = malloc(size);
-	assert(tmpData);
+	osafassert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
 	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));	/*No ponters=>no leak */
@@ -1803,7 +1803,7 @@ static uint32_t immd_evt_proc_ccbinit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 
 	int32_t size = uba.ttl;
 	tmpData = malloc(size);
-	assert(tmpData);
+	osafassert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
 	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));	/*No ponters=>no leak */
@@ -1893,7 +1893,7 @@ static uint32_t immd_evt_proc_rt_modify_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SE
 
 	int32_t size = uba.ttl;
 	tmpData = malloc(size);
-	assert(tmpData);
+	osafassert(tmpData);
 	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
 	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));	/*No ponters=>no leak */
@@ -2053,7 +2053,7 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 
 	case NCSMDS_RED_DOWN:
 		TRACE_5("Process MDS EVT NCSMDS_RED_DOWN, my PID:%u", getpid());
-		assert(cb->node_id != mds_info->node_id);
+		osafassert(cb->node_id != mds_info->node_id);
 		//#1773 #1819
 		if(cb->immd_remote_id == immd_get_slot_and_subslot_id_from_node_id(mds_info->node_id)) {
 			LOG_WA("IMMD lost contact with peer IMMD (NCSMDS_RED_DOWN)");

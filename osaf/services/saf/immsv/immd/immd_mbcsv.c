@@ -481,22 +481,22 @@ static uint32_t mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		TRACE_5("ENCODE IMMD_A2S_MSG_FEVS: send count: %llu handle: %llu",
 			immd_msg->info.fevsReq.sender_count, immd_msg->info.fevsReq.client_hdl);
 		uns64_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint64_t));
-		assert(uns64_ptr);
+		osafassert(uns64_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint64_t));
 		ncs_encode_64bit(&uns64_ptr, immd_msg->info.fevsReq.sender_count);
 
 		uns64_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint64_t));
-		assert(uns64_ptr);
+		osafassert(uns64_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint64_t));
 		ncs_encode_64bit(&uns64_ptr, immd_msg->info.fevsReq.reply_dest);
 
 		uns64_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint64_t));
-		assert(uns64_ptr);
+		osafassert(uns64_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint64_t));
 		ncs_encode_64bit(&uns64_ptr, immd_msg->info.fevsReq.client_hdl);
 
 		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-		assert(uns32_ptr);
+		osafassert(uns32_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.fevsReq.msg.size);
 
@@ -513,7 +513,7 @@ static uint32_t mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		/*TRACE_5("ENCODE COUNT: %u", immd_msg->info.count); */
 
 		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-		assert(uns32_ptr);
+		osafassert(uns32_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.count);
 		break;
@@ -526,42 +526,42 @@ static uint32_t mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		    NCS_INT64_TO_PTR_CAST(arg->info.encode.io_reo_hdl);
 
 		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-		assert(uns32_ptr);
+		osafassert(uns32_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.nodeId);
 
 		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-		assert(uns32_ptr);
+		osafassert(uns32_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.rulingEpoch);
 
 		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-		assert(uns32_ptr);
+		osafassert(uns32_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.ndExecPid);
 
 		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
-		assert(uns8_ptr);
+		osafassert(uns8_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.canBeCoord);
 
 		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
-		assert(uns8_ptr);
+		osafassert(uns8_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.isCoord);
 
 		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
-		assert(uns8_ptr);
+		osafassert(uns8_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.syncStarted);
 
 		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-		assert(uns32_ptr);
+		osafassert(uns32_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.nodeEpoch);
 
 		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
-		assert(uns8_ptr);
+		osafassert(uns8_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.pbeEnabled);
 
@@ -619,7 +619,7 @@ static uint32_t mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	/* First reserve space to store the number of X that will be sent */
 
 	header = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
-	assert(header);
+	osafassert(header);
 
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 
@@ -632,32 +632,32 @@ static uint32_t mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	/* This will have the count of async updates that have been sent,
 	   this will be 0 initially */
 	sync_cnt_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-	assert(sync_cnt_ptr);
+	osafassert(sync_cnt_ptr);
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&sync_cnt_ptr, cb->immd_sync_cnt);
 
 	uns64_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint64_t));
-	assert(uns64_ptr);
+	osafassert(uns64_ptr);
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint64_t));
 	ncs_encode_64bit(&uns64_ptr, cb->fevsSendCount);
 
 	uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-	assert(uns32_ptr);
+	osafassert(uns32_ptr);
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&uns32_ptr, cb->admo_id_count);
 
 	uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-	assert(uns32_ptr);
+	osafassert(uns32_ptr);
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&uns32_ptr, cb->impl_count);
 
 	uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-	assert(uns32_ptr);
+	osafassert(uns32_ptr);
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&uns32_ptr, cb->ccb_id_count);
 
 	uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-	assert(uns32_ptr);
+	osafassert(uns32_ptr);
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&uns32_ptr, cb->mRulingEpoch);
 
@@ -671,42 +671,42 @@ static uint32_t mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		while (immnd_info_node) {
 			/* Encode continue marker. */
 			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
-			assert(uns8_ptr);
+			osafassert(uns8_ptr);
 			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			ncs_encode_8bit(&uns8_ptr, 0x1);
 
 			uns64_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint64_t));
-			assert(uns64_ptr);
+			osafassert(uns64_ptr);
 			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint64_t));
 			ncs_encode_64bit(&uns64_ptr, immnd_info_node->immnd_dest);
 
 			uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-			assert(uns32_ptr);
+			osafassert(uns32_ptr);
 			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 			ncs_encode_32bit(&uns32_ptr, immnd_info_node->immnd_execPid);
 
 			uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
-			assert(uns32_ptr);
+			osafassert(uns32_ptr);
 			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 			ncs_encode_32bit(&uns32_ptr, immnd_info_node->epoch);
 
 			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
-			assert(uns8_ptr);
+			osafassert(uns8_ptr);
 			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			ncs_encode_8bit(&uns8_ptr, immnd_info_node->isOnController);
 
 			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
-			assert(uns8_ptr);
+			osafassert(uns8_ptr);
 			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			ncs_encode_8bit(&uns8_ptr, immnd_info_node->isCoord);
 
 			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
-			assert(uns8_ptr);
+			osafassert(uns8_ptr);
 			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			ncs_encode_8bit(&uns8_ptr, immnd_info_node->syncRequested);
 
 			uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
-			assert(uns8_ptr);
+			osafassert(uns8_ptr);
 			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 			ncs_encode_8bit(&uns8_ptr, immnd_info_node->syncStarted);
 
@@ -727,7 +727,7 @@ static uint32_t mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 	/* Encode termination marker. */
 	uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
-	assert(uns8_ptr);
+	osafassert(uns8_ptr);
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	ncs_encode_8bit(&uns8_ptr, 0x0);
 
@@ -1045,7 +1045,7 @@ static uint32_t mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint64_t));
 
 		immd_immnd_info_node_find_add(&cb->immnd_tree, &dest, &node_info, &add_flag);
-		assert(node_info);
+		osafassert(node_info);
 
 		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 		node_info->immnd_execPid = ncs_decode_32bit(&ptr);

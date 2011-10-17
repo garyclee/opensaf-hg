@@ -317,7 +317,7 @@ void immd_db_save_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
 	IMMD_SAVED_FEVS_MSG *prior = NULL;
 	IMMD_SAVED_FEVS_MSG *new_msg = calloc(1, sizeof(IMMD_SAVED_FEVS_MSG));
 	TRACE_ENTER();
-	assert(new_msg);
+	osafassert(new_msg);
 	/*new_msg->fevsMsg = *fevs_msg; */
 	new_msg->fevsMsg.sender_count = fevs_msg->sender_count;
 	new_msg->fevsMsg.reply_dest = fevs_msg->reply_dest;
