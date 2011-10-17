@@ -42,7 +42,7 @@ static uint32_t lga_enc_initialize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	lgsv_initialize_req_t *param = &msg->info.api_info.param.init;
 
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 3);
@@ -80,7 +80,7 @@ static uint32_t lga_enc_finalize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
 	TRACE_ENTER();
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 4);
@@ -116,7 +116,7 @@ static uint32_t lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	lgsv_stream_open_req_t *param = &msg->info.api_info.param.lstr_open_sync;
 
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 6);
@@ -229,7 +229,7 @@ static uint32_t lga_enc_lstr_close_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	uint32_t total_bytes = 0;
 	lgsv_stream_close_req_t *param = &msg->info.api_info.param.lstr_close;
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
@@ -265,7 +265,7 @@ static uint32_t lga_enc_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	const SaLogNtfLogHeaderT *ntfLogH;
 	const SaLogGenericLogHeaderT *genLogH;
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 20);
@@ -666,7 +666,7 @@ static uint32_t lga_dec_initialize_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	lgsv_initialize_rsp_t *param = &msg->info.api_resp_info.param.init_rsp;
 	uint8_t local_data[100];
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->client_id = ncs_decode_32bit(&p8);
@@ -695,7 +695,7 @@ static uint32_t lga_dec_finalize_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	lgsv_finalize_rsp_t *param = &msg->info.api_resp_info.param.finalize_rsp;
 	uint8_t local_data[100];
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->client_id = ncs_decode_32bit(&p8);
@@ -724,7 +724,7 @@ static uint32_t lga_dec_lstr_close_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	lgsv_stream_close_rsp_t *param = &msg->info.api_resp_info.param.close_rsp;
 	uint8_t local_data[100];
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	param->client_id = ncs_decode_32bit(&p8);
@@ -754,7 +754,7 @@ static uint32_t lga_dec_write_cbk_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	lgsv_write_log_callback_ind_t *param = &msg->info.cbk_info.write_cbk;
 	uint8_t local_data[100];
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->error = ncs_decode_32bit(&p8);
@@ -783,7 +783,7 @@ static uint32_t lga_dec_lstr_open_sync_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	lgsv_stream_open_rsp_t *param = &msg->info.api_resp_info.param.lstr_open_rsp;
 	uint8_t local_data[100];
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	/* chan_id */
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -1117,7 +1117,7 @@ uint32_t lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_m
 
 	TRACE_ENTER();
 
-	assert(cb != NULL && i_msg != NULL && o_msg != NULL);
+	osafassert(cb != NULL && i_msg != NULL && o_msg != NULL);
 
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->mds_hdl;
@@ -1163,7 +1163,7 @@ uint32_t lga_mds_msg_async_send(lga_cb_t *cb, struct lgsv_msg *i_msg, uint32_t p
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	assert(cb != NULL && i_msg != NULL);
+	osafassert(cb != NULL && i_msg != NULL);
 
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->mds_hdl;

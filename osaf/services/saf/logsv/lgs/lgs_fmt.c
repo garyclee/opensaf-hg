@@ -21,8 +21,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#include <assert.h>
 #include <logtrace.h>
+#include <ncsgl_defs.h>
 #include "lgs_fmt.h"
 
 /**
@@ -654,7 +654,7 @@ static int extractCommonField(char *dest, size_t dest_size,
 		hex_string = (char *)malloc(2 * stringSize + 1);
 
 		if (hex_string == NULL){
-			assert(0);
+			osafassert(0);
 		}
 
 		hex_string_ptr = hex_string;
@@ -1013,7 +1013,7 @@ SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
 	SaStringT fmtExpPtr = &formatExpression[0];
 	SaStringT fmtExpPtrSnabel = &formatExpression[1];
 
-	assert(formatExpression != NULL);
+	osafassert(formatExpression != NULL);
 
 	/* Main checking loop */
 	for (;;) {		/* Scan the Format Expression */

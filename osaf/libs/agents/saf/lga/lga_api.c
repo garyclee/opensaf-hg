@@ -433,7 +433,7 @@ static SaAisErrorT validate_open_params(SaLogHandleT logHandle,
 
 	TRACE_ENTER();
 
-	assert(header_type != NULL);
+	osafassert(header_type != NULL);
 
 	if ((NULL == logStreamName) || (NULL == logStreamHandle)) {
 		TRACE("SA_AIS_ERR_INVALID_PARAM => NULL pointer check");
