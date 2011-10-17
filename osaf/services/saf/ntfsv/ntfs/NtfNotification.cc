@@ -17,7 +17,6 @@
 /**
  *   This object handles information about NTF notifications.
  */
-#include <assert.h>
 
 #include "NtfNotification.hh"
 #include "logtrace.h"
@@ -79,7 +78,7 @@ NtfNotification::NtfNotification(const NtfNotification& old)
         if (sendNotInfo_ == NULL)
         {
             TRACE_2("sendNotInfo_ == NULL");
-            assert(0);
+            osafassert(0);
         }
         setData(old.notificationId_, old.notificationType_, old.sendNotInfo_);
     }
@@ -127,7 +126,7 @@ void NtfNotification::setData (SaNtfIdentifierT notificationId,
     if (rc != SA_AIS_OK)
     {    
         LOG_ER("Copy notification failed rc = %u", rc);
-        assert(0);
+        osafassert(0);
     }
 
     SaNtfNotificationHeaderT *header;
@@ -376,7 +375,7 @@ void NtfNotification::syncRequest(NCS_UBAID *uba)
     {
         LOG_ER("NtfNotification::syncRequest sendNewNotification was not sent,"
                " error code is %d", retval);
-        assert(0);
+        osafassert(0);
     }
     sendMapNoOfSubscriptionToNotification(subscriptionList.size(), uba);
     SubscriptionList::iterator pos;

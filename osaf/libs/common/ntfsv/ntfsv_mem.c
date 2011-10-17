@@ -769,7 +769,7 @@ void ntfsv_get_ntf_header(ntfsv_send_not_req_t *notif, SaNtfNotificationHeaderT 
 		break;
 	default:
 		TRACE("notificationType not valid");
-		assert(0);
+		osafassert(0);
 	}
 	TRACE_LEAVE();
 }

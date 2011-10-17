@@ -144,7 +144,7 @@ bool NtfSubscription::checkSubscription(NtfSmartPtr& notification)
 	FilterMap::iterator pos = filterMap.find(notification->getNotificationType());
 	if (pos != filterMap.end()) {
 		NtfFilter* filter = pos->second;
-		assert(filter); 
+		osafassert(filter); 
 		rv = filter->checkFilter(notification);
 	}
 	return(rv);
@@ -181,7 +181,7 @@ void NtfSubscription::syncRequest(NCS_UBAID *uba)
 		s_info_.d_info.discardedNotificationIdentifiers = (SaNtfIdentifierT*) malloc(sizeof(SaNtfIdentifierT) * s_info_.d_info.numberDiscarded);
 		if (!s_info_.d_info.discardedNotificationIdentifiers) {
 			LOG_WA("malloc failed");
-			assert(0);
+			osafassert(0);
 		}
 		DiscardedNotificationIdList::iterator pos;
 		int i=0;
@@ -195,7 +195,7 @@ void NtfSubscription::syncRequest(NCS_UBAID *uba)
 	}
 	if (0 == sendNewSubscription(&s_info_, uba)){
 		 LOG_ER("syncRequest send subscription failed");
-		 assert(0);
+		 osafassert(0);
 	}
 	free(s_info_.d_info.discardedNotificationIdentifiers);
 	s_info_.d_info.discardedNotificationIdentifiers = NULL;  

@@ -239,7 +239,7 @@ static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	assert(arg != NULL);
+	osafassert(arg != NULL);
 
 	switch (arg->i_op) {
 	case NCS_MBCSV_CBOP_ENC:
@@ -298,7 +298,7 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t mbcsv_version;
 
-	assert(cbk_arg != NULL);
+	osafassert(cbk_arg != NULL);
 
 	mbcsv_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.encode.i_peer_version,
 					    NTFS_MBCSV_VERSION, NTFS_MBCSV_VERSION_MIN);
@@ -410,7 +410,7 @@ uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 
 	TRACE_ENTER();
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 12);
 	if (!p8) {
@@ -435,7 +435,7 @@ static uint32_t enc_mbcsv_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_conf
 	uint8_t *p8;
 
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
@@ -454,7 +454,7 @@ static uint32_t enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_co
 	uint8_t *p8;
 
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 20);
 	if (!p8) {
@@ -630,7 +630,7 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t msg_fmt_version;
 
-	assert(cbk_arg != NULL);
+	osafassert(cbk_arg != NULL);
 
 	msg_fmt_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.decode.i_peer_version,
 					      NTFS_MBCSV_VERSION, NTFS_MBCSV_VERSION_MIN);
@@ -1171,7 +1171,7 @@ static uint32_t ckpt_proc_not_send_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data
 		discardedClear(data->ckpt_rec.send_confirm.clientId, data->ckpt_rec.send_confirm.subscriptionId);
 	}
 	else 
-		assert(0);
+		osafassert(0);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -1353,7 +1353,7 @@ uint32_t ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec, uint3
 static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	uint16_t peer_version;
-	assert(arg != NULL);
+	osafassert(arg != NULL);
 
 	peer_version = arg->info.peer.i_peer_version;
 	if (peer_version < NTFS_MBCSV_VERSION_MIN) {

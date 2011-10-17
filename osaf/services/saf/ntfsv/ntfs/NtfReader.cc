@@ -130,7 +130,7 @@ void NtfReader::filterCacheList(NtfLogger& ntfLogger)
 		FilterMap::iterator pos = filterMap.find(n->getNotificationType());
 		if (pos != filterMap.end()) {
 			NtfFilter* filter = pos->second;
-			assert(filter); 
+			osafassert(filter); 
 			rv = filter->checkFilter(n);
 		}
 		if (rv){
