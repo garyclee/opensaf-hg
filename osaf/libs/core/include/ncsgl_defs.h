@@ -120,4 +120,17 @@ extern "C" {
 }
 #endif
 
+#ifdef	__cplusplus
+extern "C" {
+	extern void __osafassert_fail(const char *__file, int __line, const char* __func, const char *__assertion);
+	#define __OSAFASSERT_VOID_CAST static_cast<void>
+}
+#else
+	extern void __osafassert_fail(const char *__file, int __line, const char* __func, const char *__assertion);
+	#define __OSAFASSERT_VOID_CAST (void)
+#endif
+
+#define osafassert(expr) \
+  ((expr) ? __OSAFASSERT_VOID_CAST (0) : __osafassert_fail (__FILE__, __LINE__, __FUNCTION__, #expr))
+
 #endif   /* ifndef NCSGL_DEFS_H */
