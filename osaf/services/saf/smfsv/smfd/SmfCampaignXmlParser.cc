@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
-#include <assert.h>
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
@@ -135,7 +134,7 @@ SmfCampaignXmlParser::parseCampaignXml(std::string i_file)
 	xmlNode *cur;
 
 	SmfUpgradeCampaign *campaign = new(std::nothrow) SmfUpgradeCampaign;
-	assert(campaign != NULL);
+	osafassert(campaign != NULL);
 
 	/* Load XML document */
 	m_doc = xmlParseFile(i_file.c_str());
@@ -203,7 +202,7 @@ SmfCampaignXmlParser::parseCampaignXml(std::string i_file)
 			   && (cur->ns == ns)) {
 			TRACE("xmlTag upgradeProcedure found\n");
 			SmfUpgradeProcedure *up = new(std::nothrow) SmfUpgradeProcedure;
-			assert(up != NULL);
+			osafassert(up != NULL);
 
 			parseUpgradeProcedure(up, cur);
 			if(!campaign->addUpgradeProcedure(up))
@@ -360,7 +359,7 @@ SmfCampaignXmlParser::parseUpgradeProcedure(SmfUpgradeProcedure * io_up, xmlNode
 				    && (cur2->ns == ns)) {
 					TRACE("xmlTag rollingUpgrade found\n");
 					SmfRollingUpgrade *ru = new(std::nothrow) SmfRollingUpgrade;
-					assert(ru != NULL);
+					osafassert(ru != NULL);
 					parseRollingUpgrade(ru, cur2);
 					io_up->setUpgradeMethod(ru);
 					break;
@@ -369,7 +368,7 @@ SmfCampaignXmlParser::parseUpgradeProcedure(SmfUpgradeProcedure * io_up, xmlNode
 				    && (cur2->ns == ns)) {
 					TRACE("xmlTag singleStepUpgrade found\n");
 					SmfSinglestepUpgrade *su = new(std::nothrow) SmfSinglestepUpgrade;
-					assert(su != NULL);
+					osafassert(su != NULL);
 					parseSinglestepUpgrade(su, cur2);
 					io_up->setUpgradeMethod(su);
 					break;
@@ -435,14 +434,14 @@ SmfCampaignXmlParser::parseProcInitAction(SmfUpgradeProcedure * i_proc, xmlNode 
 		if ((!strcmp((char *)cur->name, "doCliCommand")) && (cur->ns == ns)) {
 			TRACE("xmlTag doCliCommand found");
 			SmfCliCommandAction *cci = new(std::nothrow) SmfCliCommandAction(m_actionId++);
-			assert(cci != 0);
+			osafassert(cci != 0);
 			parseCliCommandAction(cci, cur);
 			i_proc->addProcInitAction(cci);
 		}
 		if ((!strcmp((char *)cur->name, "immCCB")) && (cur->ns == ns)) {
 			TRACE("xmlTag immCCB found");
 			SmfImmCcbAction *iccb = new(std::nothrow) SmfImmCcbAction(m_actionId++);
-			assert(iccb != 0);
+			osafassert(iccb != 0);
 
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"ccbFlags"))) {
 				TRACE("ccbFlagss = %s\n", s);
@@ -456,14 +455,14 @@ SmfCampaignXmlParser::parseProcInitAction(SmfUpgradeProcedure * i_proc, xmlNode 
 		if ((!strcmp((char *)cur->name, "doAdminOperation")) && (cur->ns == ns)) {
 			TRACE("xmlTag doAdminOperation found");
 			SmfAdminOperationAction *opa = new(std::nothrow) SmfAdminOperationAction(m_actionId++);
-			assert(opa != 0);
+			osafassert(opa != 0);
 			parseAdminOpAction(opa, cur);
 			i_proc->addProcInitAction(opa);
 		}
 		if ((!strcmp((char *)cur->name, "callback")) && (cur->ns == ns)) {
 			TRACE("xmlTag callback found");
 			SmfCallbackAction *cba = new (std::nothrow) SmfCallbackAction(m_actionId++);
-			assert(cba != 0);
+			osafassert(cba != 0);
 			parseCallbackAction(cba, cur);
 			SmfCallback & cbk = cba->getCallback();
 			cbk.m_atAction = SmfCallback::atProcInitAction;
@@ -494,14 +493,14 @@ SmfCampaignXmlParser::parseProcWrapupAction(SmfUpgradeProcedure * i_proc, xmlNod
 		    && (cur->ns == ns)) {
 			TRACE("xmlTag doCliCommand found");
 			SmfCliCommandAction *cci = new(std::nothrow) SmfCliCommandAction(m_actionId++);
-			assert(cci != 0);
+			osafassert(cci != 0);
 			parseCliCommandAction(cci, cur);
 			i_proc->addProcWrapupAction(cci);
 		}
 		if ((!strcmp((char *)cur->name, "immCCB")) && (cur->ns == ns)) {
 			TRACE("xmlTag immCCB found");
 			SmfImmCcbAction *iccb = new(std::nothrow) SmfImmCcbAction(m_actionId++);
-			assert(iccb != 0);
+			osafassert(iccb != 0);
 
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"ccbFlags"))) {
 				TRACE("ccbFlagss = %s\n", s);
@@ -515,14 +514,14 @@ SmfCampaignXmlParser::parseProcWrapupAction(SmfUpgradeProcedure * i_proc, xmlNod
 		if ((!strcmp((char *)cur->name, "doAdminOperation")) && (cur->ns == ns)) {
 			TRACE("xmlTag doAdminOperation found");
 			SmfAdminOperationAction *opa = new(std::nothrow) SmfAdminOperationAction(m_actionId++);
-			assert(opa != 0);
+			osafassert(opa != 0);
 			parseAdminOpAction(opa, cur);
 			i_proc->addProcWrapupAction(opa);
 		}
 		if ((!strcmp((char *)cur->name, "callback")) && (cur->ns == ns)) {
 			TRACE("xmlTag callback found");
 			SmfCallbackAction *cba = new (std::nothrow) SmfCallbackAction(m_actionId++);
-			assert(cba != 0);
+			osafassert(cba != 0);
 			parseCallbackAction(cba, cur);
 			SmfCallback & cbk = cba->getCallback();
 			cbk.m_atAction = SmfCallback::atProcWrapupAction;
@@ -558,7 +557,7 @@ SmfCampaignXmlParser::parseRollingUpgrade(SmfRollingUpgrade * io_rolling, xmlNod
 					TRACE("xmlTag byTemplate found");
 
 					SmfByTemplate *templ = new(std::nothrow) SmfByTemplate;
-					assert(templ != NULL);
+					osafassert(templ != NULL);
 					parseByTemplate(templ, cur2);
 					io_rolling->setUpgradeScope(templ);
 				}
@@ -606,7 +605,7 @@ SmfCampaignXmlParser::parseByTemplate(SmfByTemplate * io_templ, xmlNode * i_node
 			TRACE("xmlTag targetNodeTemplate found");
 
 			SmfTargetNodeTemplate *tnt = new(std::nothrow) SmfTargetNodeTemplate;
-			assert(tnt != NULL);
+			osafassert(tnt != NULL);
 
 			parseTargetNodeTemplate(tnt, cur);
 			io_templ->setTargetNodeTemplate(tnt);
@@ -617,7 +616,7 @@ SmfCampaignXmlParser::parseByTemplate(SmfByTemplate * io_templ, xmlNode * i_node
 			TRACE("xmlTag targetEntityTemplate found");
 
 			SmfTargetEntityTemplate *tet = new(std::nothrow) SmfTargetEntityTemplate;
-			assert(tet != NULL);
+			osafassert(tet != NULL);
 
 			parseTargetEntityTemplate(tet, cur);
 			io_templ->addTargetEntityTemplate(tet);
@@ -653,14 +652,14 @@ SmfCampaignXmlParser::parseTargetNodeTemplate(SmfTargetNodeTemplate * io_templ, 
 		if ((!strcmp((char *)cur->name, "swRemove")) && (cur->ns == ns)) {
 			TRACE("xmlTag swRemove found");
 			SmfBundleRef *br = new(std::nothrow) SmfBundleRef;
-			assert(br != NULL);
+			osafassert(br != NULL);
 			parseBundleRef(br, cur);
 			io_templ->addSwRemove(br);	//Add the bundle ref to the TargetNodeTemplate
 		}
 		if ((!strcmp((char *)cur->name, "swAdd")) && (cur->ns == ns)) {
 			TRACE("xmlTag swAdd found");
 			SmfBundleRef *br = new(std::nothrow) SmfBundleRef;
-			assert(br != NULL);
+			osafassert(br != NULL);
 			parseBundleRef(br, cur);
 			io_templ->addSwInstall(br);	//Add the bundle ref to the TargetNodeTemplate
 		}
@@ -681,7 +680,7 @@ SmfCampaignXmlParser::parseTargetEntityTemplate(SmfTargetEntityTemplate * io_tem
 	char *s;
 
 	SmfParentType *pt = new(std::nothrow) SmfParentType;
-	assert(pt != NULL);
+	osafassert(pt != NULL);
 
 	while (cur != NULL) {
 		if ((!strcmp((char *)cur->name, "parent")) && (cur->ns == ns)) {
@@ -706,7 +705,7 @@ SmfCampaignXmlParser::parseTargetEntityTemplate(SmfTargetEntityTemplate * io_tem
 		    && (cur->ns == ns)) {
 			TRACE("xmlTag modifyOperation found");
 			SmfImmModifyOperation *mo = new(std::nothrow) SmfImmModifyOperation;
-			assert(mo != NULL);
+			osafassert(mo != NULL);
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"objectRDN"))) {
 				TRACE("objectRDN = %s\n", s);
 				mo->setRdn(s);
@@ -756,7 +755,7 @@ SmfCampaignXmlParser::parseParentTypeElements(SmfTargetNodeTemplate * io_templ, 
                         }
 
                         pt = new(std::nothrow) SmfParentType;    //Create a new parent/type pair for the new parent
-                        assert(pt != NULL);
+                        osafassert(pt != NULL);
                         parentFound = true;
 
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"objectDN"))) {
@@ -785,7 +784,7 @@ SmfCampaignXmlParser::parseParentTypeElements(SmfTargetNodeTemplate * io_templ, 
                                 }
 
                                 pt = new(std::nothrow) SmfParentType;
-                                assert(pt != NULL);
+                                osafassert(pt != NULL);
                                 typeFound = true;
 
                                 if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"objectDN"))) {
@@ -940,7 +939,7 @@ static SmfCallback::StepCountT parseStepCount(xmlNode* node)
 		}
 	}
         LOG_ER("parseStepCount aborting");
-	assert(0);
+	osafassert(0);
 	return SmfCallback::onEveryStep;
 }
 
@@ -966,7 +965,7 @@ static SmfCallback::AtActionT parseAtAction(xmlNode* node)
 		}
 	}
         LOG_ER("parseAtAction aborting");
-	assert(0);
+	osafassert(0);
 	return SmfCallback::beforeLock;
 }
 
@@ -1027,7 +1026,7 @@ SmfCampaignXmlParser::parseCallback(
 			}
 			node = node->next;
 		}
-		assert(node != NULL); // A callback tag must have been found
+		osafassert(node != NULL); // A callback tag must have been found
 		upgrade->addCallback(cb);
 		node = node->next;
 	}
@@ -1052,14 +1051,14 @@ SmfCampaignXmlParser::parseSinglestepUpgrade(
 				if ((!strcmp((char *)n->name, "forAddRemove")) && (n->ns == ns)) {
 					TRACE("xmlTag forAddRemove found");
 					SmfForAddRemove* scope = new(std::nothrow) SmfForAddRemove;
-					assert(scope != NULL);
+					osafassert(scope != NULL);
 					parseForAddRemove(scope, n);
 					single->setUpgradeScope(scope);
 				}
 				if ((!strcmp((char *)n->name, "forModify")) && (n->ns == ns)) {
 					TRACE("xmlTag forModify found");
 					SmfForModify* scope = new(std::nothrow) SmfForModify;
-					assert(scope != NULL);
+					osafassert(scope != NULL);
 					parseForModify(scope, n);
 					single->setUpgradeScope(scope);
 				}
@@ -1122,7 +1121,7 @@ SmfCampaignXmlParser::parseForModify(SmfForModify *scope, xmlNode *node)
 		if ((!strcmp((char *)n->name, "targetEntityTemplate")) && (n->ns == ns)) {
 			TRACE("xmlTag targetEntityTemplate found");
 			SmfTargetEntityTemplate *tet = new(std::nothrow) SmfTargetEntityTemplate;
-			assert(tet != NULL);
+			osafassert(tet != NULL);
 			parseTargetEntityTemplate(tet, n);
 			scope->addTargetEntityTemplate(tet);
 
@@ -1186,7 +1185,7 @@ SmfCampaignXmlParser::parseEntityList(
 		if (strcmp((char *)n->name, "byName") == 0 && n->ns == ns) {
 			SmfEntity entity;
 			char* s = (char *)xmlGetProp(n, (const xmlChar *)"objectDN");
-			assert(s != NULL);
+			osafassert(s != NULL);
 			entity.m_name = s;
 			entityList.push_back(entity);
 			xmlFree(s);
@@ -1194,15 +1193,15 @@ SmfCampaignXmlParser::parseEntityList(
 			SmfEntity entity;
 			for (xmlNode* n2 = n->xmlChildrenNode; n2 != NULL; n2 = n2->next) {
 				if ((!strcmp((char *)n2->name, "parent")) && (n->ns == ns)) {
-					assert(entity.m_parent.length() == 0);
+					osafassert(entity.m_parent.length() == 0);
 					char* s = (char *)xmlGetProp(n2, (const xmlChar *)"objectDN");
-					assert(s != NULL);
+					osafassert(s != NULL);
 					entity.m_parent = s;
 					xmlFree(s);
 				} else if ((!strcmp((char *)n2->name, "type")) && (n->ns == ns)) {
-					assert(entity.m_type.length() == 0);
+					osafassert(entity.m_type.length() == 0);
 					char* s = (char *)xmlGetProp(n2, (const xmlChar *)"objectDN");
-					assert(s != NULL);
+					osafassert(s != NULL);
 					entity.m_type = s;
 					xmlFree(s);
 				}
@@ -1325,7 +1324,7 @@ SmfCampaignXmlParser::parseAddToImm(SmfUpgradeCampaign * i_campaign, xmlNode * i
 		    && (cur->ns == ns)) {
 			TRACE("xmlTag softwareBundle found");
 			SmfImmCreateOperation *ico = new(std::nothrow) SmfImmCreateOperation;
-			assert(ico != 0);
+			osafassert(ico != 0);
 			parseSoftwareBundle(ico, cur);
 
 			i_campaign->addCampInitAddToImm(ico);
@@ -1357,7 +1356,7 @@ SmfCampaignXmlParser::parseRemoveFromImm(SmfUpgradeCampaign * i_campaign, xmlNod
 		    && (cur->ns == ns)) {
 			TRACE("xmlTag softwareBundleDN found");
 			SmfImmDeleteOperation *ico = new(std::nothrow) SmfImmDeleteOperation;
-			assert(ico != 0);
+			osafassert(ico != 0);
 
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"bundleDN"))) {
 				TRACE("bundleDN = %s", s);
@@ -1371,7 +1370,7 @@ SmfCampaignXmlParser::parseRemoveFromImm(SmfUpgradeCampaign * i_campaign, xmlNod
 		    && (cur->ns == ns)) {
 			TRACE("xmlTag amfEntityTypes found, no parsing implemented");
 			SmfImmDeleteOperation *ico = new(std::nothrow) SmfImmDeleteOperation;
-			assert(ico != 0);
+			osafassert(ico != 0);
 
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"objectDN"))) {
 				TRACE("objectDN = %s", s);
@@ -1599,7 +1598,7 @@ SmfCampaignXmlParser::prepareCreateOperation(
 	std::string& dn, bool isnamet)
 {
 	char* s = (char *)xmlGetProp(node, (const xmlChar*)rdnAttribute);
-	assert(s != NULL);
+	osafassert(s != NULL);
 
 	dn += s;
 	if (parent != NULL) {
@@ -1608,7 +1607,7 @@ SmfCampaignXmlParser::prepareCreateOperation(
 	}
 
         SmfImmCreateOperation *ico = new(std::nothrow) SmfImmCreateOperation;
-        assert(ico != 0);
+        osafassert(ico != 0);
         ico->setClassName(className);
         if (parent != NULL)
             ico->setParentDn(parent);
@@ -1732,7 +1731,7 @@ SmfCampaignXmlParser::parseAppType(
 		if (strcmp((char*)n->name, "serviceGroupType") == 0 && n->ns == ns) {
 			TRACE("xmlTag serviceGroupType found");
 			char* s = (char *)xmlGetProp(n, (const xmlChar*)"saAmfApptSGTypes");
-			assert(s != NULL);
+			osafassert(s != NULL);
 			attr.addValue(s);
 			xmlFree(s);
 		}
@@ -1751,7 +1750,7 @@ void SmfCampaignXmlParser::addAttribute(
 {
 	char* s = (char *)xmlGetProp(n, (const xmlChar*)attrname);
 	if (s == NULL && optional) return;
-	assert(s != NULL);
+	osafassert(s != NULL);
 	SmfImmAttribute a;
 	if (objattr != NULL)
 		a.setName(objattr);
@@ -1785,7 +1784,7 @@ SmfCampaignXmlParser::parseSGType(
 		if (strcmp((char*)n->name, "suType") == 0 && n->ns == ns) {
 			TRACE("xmlTag suType found");
 			char* s = (char *)xmlGetProp(n, (const xmlChar*)"saAmfSgtValidSuTypes");
-			assert(s != NULL);
+			osafassert(s != NULL);
 			attr.addValue(s);
 			xmlFree(s);
 
@@ -1848,7 +1847,7 @@ SmfCampaignXmlParser::parseSUType(
 		if (strcmp((char*)n->name, "supportedSvcType") == 0 && n->ns == ns) {
 			TRACE("xmlTag supportedSvcType found");
 			char* s = (char *)xmlGetProp(n, (const xmlChar*)"saAmfSutProvidesSvcType");
-			assert(s != NULL);
+			osafassert(s != NULL);
 			attr.addValue(s);
 			xmlFree(s);
 
@@ -1904,7 +1903,7 @@ SmfCampaignXmlParser::elementToAttr(
 			TRACE("xmlTag %s found", tag);
 			char* s = (char*)xmlNodeListGetString(
 				m_doc, n->xmlChildrenNode, 1);
-			assert(s != NULL);
+			osafassert(s != NULL);
 			attr.addValue(s);
 			xmlFree(s);
 			nElements++;
@@ -1913,7 +1912,7 @@ SmfCampaignXmlParser::elementToAttr(
 	if (nElements > 0) {
 		ico->addValue(attr);
 	} else {
-		assert(optional);
+		osafassert(optional);
 	}
 }
 
@@ -2122,7 +2121,7 @@ SmfCampaignXmlParser::parseCSType(
 		if (strcmp((char*)n->name, "csAttribute") == 0 && n->ns == ns) {
 			TRACE("xmlTag csAttribute found");
 			char* s = (char *)xmlGetProp(n, (const xmlChar*)"saAmfCSAttrName");
-			assert(s != NULL);
+			osafassert(s != NULL);
 			attr.addValue(s);
 			xmlFree(s);
 			cnt++;
@@ -2150,14 +2149,14 @@ SmfCampaignXmlParser::parseCampInitAction(SmfUpgradeCampaign * i_campaign, xmlNo
 		    && (cur->ns == ns)) {
 			TRACE("xmlTag doCliCommand found");
 			SmfCliCommandAction *cci = new(std::nothrow) SmfCliCommandAction(m_actionId++);
-			assert(cci != 0);
+			osafassert(cci != 0);
 			parseCliCommandAction(cci, cur);
 			i_campaign->addCampInitAction(cci);
 		}
 		if ((!strcmp((char *)cur->name, "immCCB")) && (cur->ns == ns)) {
 			TRACE("xmlTag immCCB found");
 			SmfImmCcbAction *iccb = new(std::nothrow) SmfImmCcbAction(m_actionId++);
-			assert(iccb != 0);
+			osafassert(iccb != 0);
 
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"ccbFlags"))) {
 				TRACE("ccbFlagss = %s\n", s);
@@ -2171,14 +2170,14 @@ SmfCampaignXmlParser::parseCampInitAction(SmfUpgradeCampaign * i_campaign, xmlNo
 		if ((!strcmp((char *)cur->name, "doAdminOperation")) && (cur->ns == ns)) {
 			TRACE("xmlTag doAdminOperation found");
 			SmfAdminOperationAction *opa = new(std::nothrow) SmfAdminOperationAction(m_actionId++);
-			assert(opa != 0);
+			osafassert(opa != 0);
 			parseAdminOpAction(opa, cur);
 			i_campaign->addCampInitAction(opa);
 		}
 		if ((!strcmp((char *)cur->name, "callback")) && (cur->ns == ns)) {
 			TRACE("xmlTag callback found");
 			SmfCallbackAction *cba = new (std::nothrow) SmfCallbackAction(m_actionId++);
-			assert(cba != 0);
+			osafassert(cba != 0);
 			parseCallbackAction(cba, cur);
 			SmfCallback & cbk = cba->getCallback();
 			cbk.m_atAction = SmfCallback::atCampInitAction;
@@ -2209,14 +2208,14 @@ SmfCampaignXmlParser::parseCampCompleteAction(SmfUpgradeCampaign * i_campaign, x
 		if ((!strcmp((char *)cur->name, "doCliCommand")) && (cur->ns == ns)) {
 			TRACE("xmlTag doCliCommand found");
 			SmfCliCommandAction *cci = new(std::nothrow) SmfCliCommandAction(m_actionId++);
-			assert(cci != 0);
+			osafassert(cci != 0);
 			parseCliCommandAction(cci, cur);
 			i_campaign->addCampCompleteAction(cci);
 		}
 		if ((!strcmp((char *)cur->name, "immCCB")) && (cur->ns == ns)) {
 			TRACE("xmlTag immCCB found");
 			SmfImmCcbAction *iccb = new(std::nothrow) SmfImmCcbAction(m_actionId++);
-			assert(iccb != 0);
+			osafassert(iccb != 0);
 
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"ccbFlags"))) {
 				TRACE("ccbFlagss = %s\n", s);
@@ -2230,14 +2229,14 @@ SmfCampaignXmlParser::parseCampCompleteAction(SmfUpgradeCampaign * i_campaign, x
 		if ((!strcmp((char *)cur->name, "doAdminOperation")) && (cur->ns == ns)) {
 			TRACE("xmlTag doAdminOperation found");
 			SmfAdminOperationAction *opa = new(std::nothrow) SmfAdminOperationAction(m_actionId++);
-			assert(opa != 0);
+			osafassert(opa != 0);
 			parseAdminOpAction(opa, cur);
 			i_campaign->addCampCompleteAction(opa);
 		}
 		if ((!strcmp((char *)cur->name, "callback")) && (cur->ns == ns)) {
 			TRACE("xmlTag callback found");
 			SmfCallbackAction *cba = new (std::nothrow) SmfCallbackAction(m_actionId++);
-			assert(cba != 0);
+			osafassert(cba != 0);
 			parseCallbackAction(cba, cur);
 			SmfCallback & cbk = cba->getCallback();
 			cbk.m_atAction = SmfCallback::atCampCompleteAction;
@@ -2266,14 +2265,14 @@ SmfCampaignXmlParser::parseCampWrapupAction(SmfUpgradeCampaign * i_campaign, xml
                 if ((!strcmp((char *)cur->name, "doCliCommand")) && (cur->ns == ns)) {
 			TRACE("xmlTag doCliCommand found");
 			SmfCliCommandAction *cci = new(std::nothrow) SmfCliCommandAction(m_actionId++);
-			assert(cci != 0);
+			osafassert(cci != 0);
 			parseCliCommandAction(cci, cur);
 			i_campaign->addCampWrapupAction(cci);
 		}
 		if ((!strcmp((char *)cur->name, "immCCB")) && (cur->ns == ns)) {
 			TRACE("xmlTag immCCB found");
 			SmfImmCcbAction *iccb = new(std::nothrow) SmfImmCcbAction(m_actionId++);
-			assert(iccb != 0);
+			osafassert(iccb != 0);
 
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"ccbFlags"))) {
 				TRACE("ccbFlagss = %s\n", s);
@@ -2287,7 +2286,7 @@ SmfCampaignXmlParser::parseCampWrapupAction(SmfUpgradeCampaign * i_campaign, xml
 		if ((!strcmp((char *)cur->name, "doAdminOperation")) && (cur->ns == ns)) {
 			TRACE("xmlTag doAdminOperation found");
 			SmfAdminOperationAction *opa = new(std::nothrow) SmfAdminOperationAction(m_actionId++);
-			assert(opa != 0);
+			osafassert(opa != 0);
 			parseAdminOpAction(opa, cur);
 			i_campaign->addCampWrapupAction(opa);
 		}
@@ -2295,7 +2294,7 @@ SmfCampaignXmlParser::parseCampWrapupAction(SmfUpgradeCampaign * i_campaign, xml
 		if ((!strcmp((char *)cur->name, "callback")) && (cur->ns == ns)) {
 			TRACE("xmlTag callback found");
 			SmfCallbackAction *cba = new (std::nothrow) SmfCallbackAction(m_actionId++);
-			assert(cba != 0);
+			osafassert(cba != 0);
 			parseCallbackAction(cba, cur);
 			SmfCallback & cbk = cba->getCallback();
 			cbk.m_atAction = SmfCallback::atCampWrapupAction;
@@ -2410,7 +2409,7 @@ SmfCampaignXmlParser::parseImmCcb(SmfImmCcbAction * i_ccbAction, xmlNode * i_nod
 		if ((!strcmp((char *)cur->name, "create")) && (cur->ns == ns)) {
 			TRACE("xmlTag create found");
 			SmfImmCreateOperation *ico = new(std::nothrow) SmfImmCreateOperation;
-			assert(ico != 0);
+			osafassert(ico != 0);
 			parseImmCreate(ico, cur);
 
 			//Add the create operation to the CCB
@@ -2420,7 +2419,7 @@ SmfCampaignXmlParser::parseImmCcb(SmfImmCcbAction * i_ccbAction, xmlNode * i_nod
 		if ((!strcmp((char *)cur->name, "delete")) && (cur->ns == ns)) {
 			TRACE("xmlTag delete found");
 			SmfImmDeleteOperation *ido = new(std::nothrow) SmfImmDeleteOperation;
-			assert(ido != 0);
+			osafassert(ido != 0);
 
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"objectDN"))) {
 				TRACE("objectDN = %s", s);
@@ -2434,7 +2433,7 @@ SmfCampaignXmlParser::parseImmCcb(SmfImmCcbAction * i_ccbAction, xmlNode * i_nod
 		if ((!strcmp((char *)cur->name, "modify")) && (cur->ns == ns)) {
 			TRACE("xmlTag modify found");
 			SmfImmModifyOperation *imo = new(std::nothrow) SmfImmModifyOperation;
-			assert(imo != 0);
+			osafassert(imo != 0);
 
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"objectDN"))) {
 				TRACE("objectDN = %s", s);

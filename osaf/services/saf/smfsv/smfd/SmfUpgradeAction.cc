@@ -287,7 +287,7 @@ SmfAdminOperationAction::createAdmOperParams(std::list < SmfAdminOperationParame
 	while (iter != iterE) {
 		//Create structure for one parameter
 		SaImmAdminOperationParamsT_2 *par = new(std::nothrow)  SaImmAdminOperationParamsT_2();
-		assert(par != 0);
+		osafassert(par != 0);
 
 		par->paramName   = (SaStringT)(*iter).m_name.c_str();
 		par->paramType   = (SaImmValueTypeT)smf_stringToImmType((char *)(*iter).m_type.c_str());

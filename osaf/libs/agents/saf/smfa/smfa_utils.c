@@ -533,13 +533,13 @@ SMFA_CBK_HDL_LIST * smfa_inv_hdl_add(SaInvocationT inv_id, SaSmfHandleT hdl)
 		cbk_list = (SMFA_CBK_LIST *)calloc(1,sizeof(SMFA_CBK_LIST));
 		if (!cbk_list){
 			LOG_ER("SMFA: calloc FAILED, error: %s",strerror(errno));
-			assert(0);
+			osafassert(0);
 		}
 		cbk_list->inv_id = inv_id;
 		cbk_list->hdl_list = (SMFA_CBK_HDL_LIST *)calloc(1,sizeof(SMFA_CBK_HDL_LIST));
 		if(!cbk_list->hdl_list){
 			LOG_ER("SMFA: calloc FAILED, error: %s",strerror(errno));
-			assert(0);
+			osafassert(0);
 		}
 		cbk_list->hdl_list->hdl = hdl;
 		/* Add at the head.*/
@@ -552,7 +552,7 @@ SMFA_CBK_HDL_LIST * smfa_inv_hdl_add(SaInvocationT inv_id, SaSmfHandleT hdl)
 		hdl_list = (SMFA_CBK_HDL_LIST *)calloc(1,sizeof(SMFA_CBK_HDL_LIST));
 		if(!hdl_list){
 			LOG_ER("SMFA: calloc FAILED, error: %s",strerror(errno));
-			assert(0);
+			osafassert(0);
 		}
 		hdl_list->hdl = hdl;
 		/* Add at the head.*/
@@ -587,20 +587,20 @@ uint32_t smfa_cbk_filter_match(SMFA_CLIENT_INFO *client_info,SMF_CBK_EVT *cbk_ev
 				evt = (SMF_EVT *)calloc(1,sizeof(SMF_EVT));
 				if (NULL == evt){
 					LOG_ER("SMFA: calloc FAILED, error: %s",strerror(errno));
-					assert(0);
+					osafassert(0);
 				}
 
 				evt->evt.cbk_evt.cbk_label.label = (SaUint8T *)calloc(1,
 				cbk_evt->cbk_label.labelSize * sizeof(SaUint8T));
 				if (NULL == evt->evt.cbk_evt.cbk_label.label){
 					LOG_ER("SMFA: calloc FAILED, error: %s",strerror(errno));
-					assert(0);
+					osafassert(0);
 				}
 				if (cbk_evt->params){
 					evt->evt.cbk_evt.params = (SaStringT)calloc(1,strlen(cbk_evt->params));
 					if (NULL == evt->evt.cbk_evt.params){
 						LOG_ER("SMFA: calloc FAILED, error: %s",strerror(errno));
-						assert(0);
+						osafassert(0);
 					}
 					strncpy(evt->evt.cbk_evt.params,cbk_evt->params,strlen(cbk_evt->params));
 				}

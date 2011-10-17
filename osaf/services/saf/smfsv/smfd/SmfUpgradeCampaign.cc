@@ -802,7 +802,7 @@ SmfUpgradeCampaign::resetMaintenanceState()
 
 			if ((maintCamp != NULL) && (maintCamp->length > 0)) {
 				SmfImmModifyOperation *modop = new (std::nothrow) SmfImmModifyOperation;
-				assert(modop != 0);
+				osafassert(modop != 0);
 				modop->setDn(*suit);
 				modop->setOp("SA_IMM_ATTR_VALUES_DELETE");
 				SmfImmAttribute saAmfSUMaintenanceCampaign;

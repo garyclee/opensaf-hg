@@ -161,7 +161,7 @@ uint32_t smfnd_cbk_req_proc(smfnd_cb_t * cb, SMFSV_EVT *evt)
 	inv_node = (SMFND_SMFA_ADEST_INVID_MAP *)calloc(1, sizeof(SMFND_SMFA_ADEST_INVID_MAP));
 	if (NULL == inv_node){
 		LOG_ER("SMFND: calloc failed. Err: %s",strerror(errno));
-		assert(1);
+		osafassert(1);
 	}
 	inv_node->inv_id = evt->info.smfnd.event.cbk_req_rsp.evt.resp_evt.inv_id;
 	inv_node->no_of_cbk = cb->agent_cnt;

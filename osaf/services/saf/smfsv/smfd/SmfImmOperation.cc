@@ -19,7 +19,6 @@
  *   INCLUDE FILES
  * ========================================================================
  */
-#include <assert.h>
 #include <list>
 #include <string>
 #include <string.h>
@@ -321,7 +320,7 @@ SmfImmCreateOperation::createAttrValues(void)
 	while (iter != iterE) {
 		//Create structure for one attribute
 		SaImmAttrValuesT_2 *attr = new(std::nothrow) SaImmAttrValuesT_2();
-		assert(attr != 0);
+		osafassert(attr != 0);
 
 		attr->attrName = (char *)(*iter).m_name.c_str();
 		attr->attrValueType = smf_stringToImmType((char *)(*iter).m_type.c_str());
@@ -506,7 +505,7 @@ SmfImmCreateOperation::prepareRollback(SmfRollbackData* o_rollbackData)
 
 	for (iter = m_values.begin(); iter != m_values.end(); iter++) {
 		if (rdnAttrName == (*iter).m_name) {
-                        assert((*iter).m_values.size() == 1);	// Must have only one value
+                        osafassert((*iter).m_values.size() == 1);	// Must have only one value
                         rdnAttrValue = (*iter).m_values.front();
                         break;
                 }
@@ -830,13 +829,13 @@ SmfImmModifyOperation::createAttrMods(void)
 	iterE = m_values.end();
 	while (iter != iterE) {
 		SaImmAttrModificationT_2 *mod = new(std::nothrow) SaImmAttrModificationT_2();
-		assert(mod != 0);
+		osafassert(mod != 0);
 		mod->modType = smf_stringToImmAttrModType((char *)m_op.c_str());	//Convert an store the modification type from string to SA Forum type
 		mod->modAttr.attrName = (char *)(*iter).m_name.c_str();
 		mod->modAttr.attrValueType = smf_stringToImmType((char *)(*iter).m_type.c_str());
 		TRACE("Modifying %s:%s = %s", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
 
-		assert((*iter).m_values.size() > 0);	//Must have at least one value
+		osafassert((*iter).m_values.size() > 0);	//Must have at least one value
                 if ((*iter).m_values.size() == 1 && (!strcmp((*iter).getValues().front().c_str(),"<_empty_>"))) {
                         mod->modAttr.attrValuesNumber = 0;
                 }
@@ -1115,7 +1114,7 @@ SmfImmRTCreateOperation::createAttrValues(void)
 	while (iter != iterE) {
 		//Create structure for one attribute
 		SaImmAttrValuesT_2 *attr = new(std::nothrow) SaImmAttrValuesT_2();
-		assert(attr != 0);
+		osafassert(attr != 0);
 
 		attr->attrName = (char *)(*iter).m_name.c_str();
 		attr->attrValueType = smf_stringToImmType((char *)(*iter).m_type.c_str());
@@ -1125,7 +1124,7 @@ SmfImmRTCreateOperation::createAttrValues(void)
 			TRACE("c=[%s], p=[%s], attr=[%s]", 
 			      m_className.c_str(), m_parentDn.c_str(), attr->attrName);
 		}
-		assert((*iter).m_values.size() > 0);	//Must have at least one value
+		osafassert((*iter).m_values.size() > 0);	//Must have at least one value
 #endif
 		TRACE("c=[%s], p=[%s], attr=[%s]", m_className.c_str(), m_parentDn.c_str(), attr->attrName);
 
@@ -1269,13 +1268,13 @@ SmfImmRTUpdateOperation::createAttrMods(void)
 	iterE = m_values.end();
 	while (iter != iterE) {
 		SaImmAttrModificationT_2 *mod = new(std::nothrow) SaImmAttrModificationT_2();
-		assert(mod != 0);
+		osafassert(mod != 0);
 		mod->modType = smf_stringToImmAttrModType((char *)m_op.c_str());	//Convert an store the modification type from string to SA Forum type
 		mod->modAttr.attrName = (char *)(*iter).m_name.c_str();
 		mod->modAttr.attrValueType = smf_stringToImmType((char *)(*iter).m_type.c_str());
 		TRACE("Modifying %s:%s = %s", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
 
-		assert((*iter).m_values.size() > 0);	//Must have at least one value
+		osafassert((*iter).m_values.size() > 0);	//Must have at least one value
 		mod->modAttr.attrValuesNumber = (*iter).m_values.size();
 
 		smf_stringsToValues(&mod->modAttr, (*iter).m_values);	//Convert the string to a SA Forum type

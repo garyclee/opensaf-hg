@@ -906,7 +906,7 @@ SmfUpgradeStep::setMaintenanceState(SmfActivationUnit& i_units)
 			}
 		} else {
 			SmfImmModifyOperation *modop = new (std::nothrow) SmfImmModifyOperation;
-			assert(modop != 0);
+			osafassert(modop != 0);
 			modop->setDn(*it);
 			modop->setOp("SA_IMM_ATTR_VALUES_REPLACE");
 			SmfImmAttribute saAmfSUMaintenanceCampaign;

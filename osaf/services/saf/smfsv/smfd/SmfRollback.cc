@@ -19,7 +19,6 @@
  *   INCLUDE FILES
  * ========================================================================
  */
-#include <assert.h>
 #include <list>
 #include <string>
 #include "stdio.h"

@@ -2307,7 +2307,7 @@ SmfStepTypeClusterReboot::execute()
 #endif
 	default:
                 LOG_ER("Unknown reboot info %d", singleStepRebootInfo);
-                assert(0);
+                osafassert(0);
                 return false;
         }		//End switch
 
@@ -2515,7 +2515,7 @@ SmfStepTypeClusterRebootAct::execute()
 
 	default:
                 LOG_ER("Unknown reboot info %d", singleStepRebootInfo);
-                assert(0);
+                osafassert(0);
                 return false;
         }		//End switch
 

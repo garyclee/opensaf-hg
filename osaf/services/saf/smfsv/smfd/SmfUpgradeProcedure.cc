@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <assert.h>
 
 #include <poll.h>
 #include <sched.h>
@@ -605,7 +604,7 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade)
                         sprintf(rdnStr, "safSmfStep=%04u", stepCntr);
 
                         SmfUpgradeStep *newStep = new(std::nothrow) SmfUpgradeStep();
-                        assert(newStep != NULL);
+                        osafassert(newStep != NULL);
                         newStep->setRdn(rdnStr);
                         newStep->setDn(newStep->getRdn() + "," + getDn());
                         newStep->addActivationUnit(*itActDeact);
@@ -818,9 +817,9 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 		 * Handle the activation-unit.
 		 */
 		const SmfActivationUnitType* aunit = forAddRemove->getActivationUnit();
-		assert(aunit != NULL);
-		assert(aunit->getRemoved().size() == 0);
-		assert(aunit->getSwRemove().size() == 0);
+		osafassert(aunit != NULL);
+		osafassert(aunit->getRemoved().size() == 0);
+		osafassert(aunit->getSwRemove().size() == 0);
 		std::list<std::string> nodeList;
 		std::list<std::string> entityList;
 		std::list<SmfEntity>::const_iterator e;
@@ -836,7 +835,7 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 					newStep->addActivationUnit(*a);
 				}
 			} else {
-				assert(e->getName().length() > 0);
+				osafassert(e->getName().length() > 0);
 				//This a single step acted on list without template
 				std::string node = getNodeForCompSu(e->getName());
 				if (node.length() > 0) nodeList.push_back(node);
@@ -864,9 +863,9 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 		 * Handle the deactivation-unit.
 		 */
 		aunit = forAddRemove->getDeactivationUnit();
-		assert(aunit != NULL);
-		assert(aunit->getAdded().size() == 0);
-		assert(aunit->getSwAdd().size() == 0);
+		osafassert(aunit != NULL);
+		osafassert(aunit->getAdded().size() == 0);
+		osafassert(aunit->getSwAdd().size() == 0);
 		for (e = aunit->getActedOn().begin(); e != aunit->getActedOn().end(); e++) {
 			if (e->getParent().length() > 0 || e->getType().length() > 0) {
 				std::list<std::string> deactUnits;
@@ -879,7 +878,7 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 					newStep->addDeactivationUnit(*a);
 				}
 			} else {
-				assert(e->getName().length() > 0);
+				osafassert(e->getName().length() > 0);
 
 				std::string deactUnit;
 				std::string node;
@@ -913,7 +912,7 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
                                 delete newStep;
 				return false;
 			}
-			assert(e->getName().length() > 0);
+			osafassert(e->getName().length() > 0);
 			SmfImmDeleteOperation* deleteop = new SmfImmDeleteOperation;
 			deleteop->setDn(e->getName());
 			newStep->addImmOperation(deleteop);
@@ -942,7 +941,7 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 
 		bool removeDuplicates = false;
 		const SmfActivationUnitType* aunit = forModify->getActivationUnit();
-		assert(aunit != NULL);
+		osafassert(aunit != NULL);
 		std::list<std::string> nodeList;
 		std::list<SmfEntity>::const_iterator e;
 		std::list<std::string> actDeactUnits;
@@ -953,7 +952,7 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 					return false;
 				}
 			} else {
-				assert(e->getName().length() > 0);
+				osafassert(e->getName().length() > 0);
 				std::string unit;
 				std::string node;
 				if(getActDeactUnitsAndNodes(e->getName(), unit, node) == false) {
@@ -2697,7 +2696,7 @@ SmfUpgradeProcedure::setEntitiesToAddRemMod(SmfUpgradeStep * i_step, SmfImmAttri
 				LOG_ER("getClassDescription FAILED for [%s]", createOper->getClassName().c_str());
 				return false;
 			}
-			assert(attrDefinitionsOut != NULL);
+			osafassert(attrDefinitionsOut != NULL);
 
                         //Look in SaImmAttrDefinitionT_2 for an attribute with the SA_IMM_ATTR_RDN flag set
                         std::string rdnAttr;

@@ -551,7 +551,7 @@ smf_stringToImmType(char *i_type)
 		return SA_IMM_ATTR_SAANYT;
 	else {
 		LOG_ER("SmfUtils::smf_stringToImmType type %s not found", i_type);
-		assert(0);
+		osafassert(0);
 	}
 	return (SaImmValueTypeT)0;
 }
@@ -578,7 +578,7 @@ smf_immTypeToString(SaImmValueTypeT i_type)
 {
         if (i_type < SA_IMM_ATTR_SAINT32T || i_type > SA_IMM_ATTR_SAANYT) {
 		LOG_ER("SmfUtils::smf_immTypeToString type %d not found", i_type);
-		assert(0);
+		osafassert(0);
                 return NULL;
         }
 	return immTypeNames[i_type];
@@ -598,7 +598,7 @@ smf_stringToImmAttrModType(char *i_type)
 		return SA_IMM_ATTR_VALUES_REPLACE;
 	else {
 		LOG_ER("SmfUtils::smf_stringToImmAttrModType type %s not found", i_type);
-		assert(0);
+		osafassert(0);
 	}
 	return (SaImmAttrModificationTypeT)0;
 }
@@ -609,7 +609,7 @@ smf_stringToImmAttrModType(char *i_type)
 bool 
 smf_stringsToValues(SaImmAttrValuesT_2 * i_attribute, std::list < std::string >& i_values)
 {
-//	assert(i_attribute->attrValuesNumber > 0);
+//	osafassert(i_attribute->attrValuesNumber > 0);
 //	size_t len;
 
 	//Allocate space for pointers to all values of the attributes. attrValues points to the first element
@@ -623,7 +623,7 @@ smf_stringsToValues(SaImmAttrValuesT_2 * i_attribute, std::list < std::string >&
 	for (iter = i_values.begin(); iter != i_values.end(); iter++) {
                 if (!smf_stringToValue(i_attribute->attrValueType, value,  (*iter).c_str())) {
                         LOG_ER("SmfUtils:smf_stringsToValues: Fails to convert a string to value");
-                        assert(0);
+                        osafassert(0);
                         return false;
                 }
 		value++;	//Next value in (case of multivalue attribute)
@@ -710,7 +710,7 @@ smf_stringToValue(SaImmValueTypeT i_type, SaImmAttrValueT *i_value, const char* 
                 break;
         default:
                 LOG_ER("smf_stringToValue: BAD VALUE TYPE");
-                assert(0);
+                osafassert(0);
                 return false;
         }		//End switch
 
@@ -810,7 +810,7 @@ smf_opStringToInt(const char *i_str)
 		return SA_AMF_ADMIN_EAM_STOP;
 	else {
 		LOG_ER("SmfUtils::smf_opStringToInt type %s not found, aborting", i_str);
-		assert(0);
+		osafassert(0);
 	}
 	return (SaAmfAdminOperationIdT)0;
 }
