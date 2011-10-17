@@ -45,7 +45,7 @@ static MDS_CLIENT_MSG_FORMAT_VER
  */
 void lgs_evt_destroy(lgsv_lgs_evt_t *evt)
 {
-	assert(evt != NULL);
+	osafassert(evt != NULL);
 	free(evt);
 }
 
@@ -847,7 +847,7 @@ static NCS_IPC_PRIORITY getmboxprio(const lgsv_api_info_t *api_info)
 	else if (api_info->type == LGSV_STREAM_CLOSE_REQ)
 		str_id = api_info->param.lstr_close.lstr_id;
 	else {
-		assert(api_info->type == LGSV_WRITE_LOG_ASYNC_REQ);
+		osafassert(api_info->type == LGSV_WRITE_LOG_ASYNC_REQ);
 		str_id = api_info->param.write_log_async.lstr_id;
 	}
 
@@ -890,7 +890,7 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 
 	if ((type == LGSV_INITIALIZE_REQ) || (type == LGSV_STREAM_OPEN_REQ)) {
 		rc = m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_CTRL_MSGS);
-		assert(rc == NCSCC_RC_SUCCESS);
+		osafassert(rc == NCSCC_RC_SUCCESS);
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -901,7 +901,7 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 		if (rc != NCSCC_RC_SUCCESS) {
 			/* Bump prio and try again, should succeed! */
 			rc = m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_CTRL_MSGS);
-			assert(rc == NCSCC_RC_SUCCESS);
+			osafassert(rc == NCSCC_RC_SUCCESS);
 		}
 		return NCSCC_RC_SUCCESS;
 	}
@@ -929,7 +929,7 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 	}
 
 	/* Can only get here for writes */
-	assert(api_info->type == LGSV_WRITE_LOG_ASYNC_REQ);
+	osafassert(api_info->type == LGSV_WRITE_LOG_ASYNC_REQ);
 
 	if (m_NCS_IPC_SEND(&lgs_mbx, evt, prio) == NCSCC_RC_SUCCESS) {
 		return NCSCC_RC_SUCCESS;
@@ -1050,7 +1050,7 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info)
 			 * (it is FULL) use the high prio unbounded ctrl msg queue */
 			if (m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_APP_STREAM) != NCSCC_RC_SUCCESS) {
 				rc = m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_CTRL_MSGS);
-				assert(rc == NCSCC_RC_SUCCESS);
+				osafassert(rc == NCSCC_RC_SUCCESS);
 			}
 		}
 	}

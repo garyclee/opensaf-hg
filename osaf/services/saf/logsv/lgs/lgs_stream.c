@@ -72,7 +72,7 @@ static int delete_config_file(log_stream_t *stream)
 	/* create absolute path for config file */
 	n = snprintf(pathname, PATH_MAX, "%s/%s/%s.cfg", lgs_cb->logsv_root_dir, stream->pathName, stream->fileName);
 
-	assert(n < sizeof(pathname));
+	osafassert(n < sizeof(pathname));
 
 	if ((rc = unlink(pathname)) == -1) {
 		if (errno == ENOENT)
@@ -189,7 +189,7 @@ log_stream_t *log_stream_getnext_by_name(const char *name)
 
 void log_stream_print(log_stream_t *stream)
 {
-	assert(stream != NULL);
+	osafassert(stream != NULL);
 
 	TRACE_2("******** Stream %s ********", stream->name);
 	TRACE_2("  fileName:             %s", stream->fileName);
@@ -218,7 +218,7 @@ void log_stream_delete(log_stream_t **s)
 {
 	log_stream_t *stream;
 
-	assert(s != NULL && *s != NULL);
+	osafassert(s != NULL && *s != NULL);
 	stream = *s;
 
 	TRACE_ENTER2("%s", stream->name);
@@ -283,7 +283,7 @@ log_stream_t *log_stream_new(SaNameT *dn,
 	int rc;
 	log_stream_t *stream = NULL;
 
-	assert(dn != NULL);
+	osafassert(dn != NULL);
 	TRACE_ENTER2("%s, l: %u", dn->value, dn->length);
 
 	stream = calloc(1, sizeof(log_stream_t));
@@ -474,7 +474,7 @@ log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
 	int rc;
 	log_stream_t *stream = NULL;
 
-	assert(name != NULL);
+	osafassert(name != NULL);
 	TRACE_ENTER2("%s, l: %u", name->value, (unsigned int)name->length);
 
 	stream = calloc(1, sizeof(log_stream_t));
@@ -550,7 +550,7 @@ SaAisErrorT log_stream_open(log_stream_t *stream)
 	SaAisErrorT rc = SA_AIS_OK;
 	int errno_save;
 	
-	assert(stream != NULL);
+	osafassert(stream != NULL);
 	TRACE_ENTER2("%s, numOpeners=%u", stream->name, stream->numOpeners);
 
 	/* first time open? */
@@ -628,15 +628,15 @@ int log_stream_close(log_stream_t **s)
 	int rc = 0;
 	log_stream_t *stream = *s;
 
-	assert(stream != NULL);
+	osafassert(stream != NULL);
 	TRACE_ENTER2("%s, numOpeners=%u", stream->name, stream->numOpeners);
 
-	assert(stream->numOpeners > 0);
+	osafassert(stream->numOpeners > 0);
 	stream->numOpeners--;
 
 	if (stream->numOpeners == 0) {
 		/* standard streams can never be deleted */
-		assert(stream->streamType == STREAM_TYPE_APPLICATION);
+		osafassert(stream->streamType == STREAM_TYPE_APPLICATION);
 		if (stream->fd != -1) {
 			char *timeString = lgs_get_time();
 			if ((rc = fileclose(stream->fd)) == -1) {
@@ -673,10 +673,10 @@ int log_stream_file_close(log_stream_t *stream)
 {
 	int rc = 0;
 
-	assert(stream != NULL);
+	osafassert(stream != NULL);
 	TRACE_ENTER2("%s", stream->name);
 
-	assert(stream->numOpeners > 0);
+	osafassert(stream->numOpeners > 0);
 
 	if (stream->fd != -1) {
 		if ((rc = fileclose(stream->fd)) == -1) {
@@ -756,7 +756,7 @@ static int get_number_of_log_files(log_stream_t *logStream, char *oldest_file)
 	int n, old_date = -1, old_time = -1, old_ind = -1, files, i, failed = 0;
 	char path[PATH_MAX];
 
-	assert(oldest_file != NULL);
+	osafassert(oldest_file != NULL);
 
 	/* Initialize the filter */
 	strcpy(file_prefix, logStream->fileName);
@@ -814,7 +814,7 @@ int log_stream_write(log_stream_t *stream, const char *buf, size_t count)
 {
 	int rc, bytes_written = 0;
 
-	assert(stream != NULL && buf != NULL);
+	osafassert(stream != NULL && buf != NULL);
 	TRACE_ENTER2("%s", stream->name);
 
 	/* Open files on demand e.g. on new active after fail/switch-over. This
@@ -965,7 +965,7 @@ static int lgs_stream_array_insert_new(log_stream_t *stream, uint32_t *id)
 	int rc = -1;
 	int i;
 
-	assert(id != NULL);
+	osafassert(id != NULL);
 
 	if (numb_of_streams >= stream_array_size)
 		goto exit;
@@ -996,10 +996,10 @@ static int lgs_stream_array_remove(int id)
 	int rc = -1;
 
 	if (0 <= id && id < stream_array_size) {
-		assert(stream_array[id] != NULL);
+		osafassert(stream_array[id] != NULL);
 		stream_array[id] = NULL;
 		rc = 0;
-		assert(numb_of_streams > 0);
+		osafassert(numb_of_streams > 0);
 		numb_of_streams--;
 	}
 

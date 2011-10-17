@@ -254,7 +254,7 @@ static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	assert(arg != NULL);
+	osafassert(arg != NULL);
 
 	switch (arg->i_op) {
 	case NCS_MBCSV_CBOP_ENC:
@@ -313,7 +313,7 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t mbcsv_version;
 
-	assert(cbk_arg != NULL);
+	osafassert(cbk_arg != NULL);
 
 	mbcsv_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.encode.i_peer_version,
 					    LGS_MBCSV_VERSION, LGS_MBCSV_VERSION_MIN);
@@ -649,7 +649,7 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t msg_fmt_version;
 
-	assert(cbk_arg != NULL);
+	osafassert(cbk_arg != NULL);
 
 	msg_fmt_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.decode.i_peer_version,
 					      LGS_MBCSV_VERSION, LGS_MBCSV_VERSION_MIN);
@@ -1396,7 +1396,7 @@ uint32_t lgs_ckpt_send_async(lgs_cb_t *cb, lgsv_ckpt_msg_t *ckpt_rec, uint32_t a
 static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	uint16_t peer_version;
-	assert(arg != NULL);
+	osafassert(arg != NULL);
 
 	peer_version = arg->info.peer.i_peer_version;
 	if (peer_version < LGS_MBCSV_VERSION_MIN) {

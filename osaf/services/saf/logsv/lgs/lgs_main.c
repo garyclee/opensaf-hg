@@ -351,7 +351,7 @@ static void *imm_reinit_thread(void *_cb)
 
 	/* Wake up the main thread so it discovers the new imm descriptor. */
 	lgsv_evt = calloc(1, sizeof(lgsv_lgs_evt_t));
-	assert(lgsv_evt);
+	osafassert(lgsv_evt);
 	lgsv_evt->evt_type = LGSV_EVT_NO_OP;
 	if (m_NCS_IPC_SEND(&lgs_mbx, lgsv_evt, LGS_IPC_PRIO_CTRL_MSGS) !=
 		NCSCC_RC_SUCCESS) {
