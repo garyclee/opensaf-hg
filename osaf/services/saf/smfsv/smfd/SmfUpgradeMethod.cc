@@ -19,7 +19,6 @@
  *   INCLUDE FILES
  * ========================================================================
  */
-#include <assert.h>
 #include "logtrace.h"
 #include "SmfUpgradeMethod.hh"
 #include "SmfUpgradeStep.hh"
@@ -279,7 +278,7 @@ SmfForAddRemove::~SmfForAddRemove()
 void 
 SmfForAddRemove::setActivationUnit(SmfActivationUnitType* actunit)
 {
-	assert(m_activationUnit == NULL);
+	osafassert(m_activationUnit == NULL);
 	m_activationUnit = actunit;
 }
 const SmfActivationUnitType*
@@ -290,7 +289,7 @@ SmfForAddRemove::getActivationUnit(void) const
 void 
 SmfForAddRemove::setDeactivationUnit(SmfActivationUnitType* deactunit)
 {
-	assert(m_deactivationUnit == NULL);
+	osafassert(m_deactivationUnit == NULL);
 	m_deactivationUnit = deactunit;
 }
 const SmfActivationUnitType*
@@ -322,7 +321,7 @@ SmfForModify::~SmfForModify()
 void 
 SmfForModify::setActivationUnit(SmfActivationUnitType* actunit)
 {
-	assert(m_activationUnit == NULL);
+	osafassert(m_activationUnit == NULL);
 	m_activationUnit = actunit;
 }
 const SmfActivationUnitType*

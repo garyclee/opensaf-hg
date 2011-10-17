@@ -43,7 +43,7 @@
 ******************************************************************************/
 void smfsv_evt_destroy(SMFSV_EVT *evt)
 {
-    assert(evt != NULL);
+    osafassert(evt != NULL);
     free(evt);
 }
 

@@ -154,7 +154,7 @@ uint32_t smfa_mds_callback(struct ncsmds_callback_info *info)
 			uba = info->info.dec.io_uba;
 			if (NULL == (evt = calloc(1, sizeof(SMFSV_EVT)))) {
 				LOG_ER("SMFA: Decode Calloc failed");
-				assert(0);
+				osafassert(0);
 			}
 			info->info.dec.o_msg = (uint8_t *) evt;
 			rc = smfsv_evt_dec(uba,evt);
