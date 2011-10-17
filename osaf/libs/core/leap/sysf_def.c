@@ -386,3 +386,16 @@ void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reason)
 	}
 }
 
+/**
+ * syslog and abort to generate a core dump (if enabled)
+ * @param __file
+ * @param __line
+ * @param __func
+ * @param __assertion
+ */
+void __osafassert_fail(const char *__file, int __line, const char* __func, const char *__assertion)
+{
+	syslog(LOG_ERR, "%s:%d: %s: Assertion '%s' failed.", __file, __line, __func, __assertion);
+	abort();
+}
+
