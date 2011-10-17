@@ -15,12 +15,11 @@
  *
  */
 
-#include <assert.h>
 #include <stddef.h>
 
 #include <logtrace.h>
 #include <immutil.h>
-
+#include <ncsgl_defs.h>
 #include <avd_imm.h>
 
 static SaAisErrorT hct_ccb_completed_cb(CcbUtilOperationData_t *opdata)
@@ -40,7 +39,7 @@ static SaAisErrorT hct_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = SA_AIS_OK;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -57,7 +56,7 @@ static void hct_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_DELETE:
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 }

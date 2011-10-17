@@ -83,7 +83,7 @@ uint32_t avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
 	 * non-existence is a fatal error.
 	 */
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, qsc->comp_name);
-	assert(comp);
+	osafassert(comp);
 
 	/* Stop the qscing complete timer if started any */
 	if (m_AVND_TMR_IS_ACTIVE(comp->qscing_tmr)) {
@@ -161,7 +161,7 @@ uint32_t avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
 	} else {
 		if (!m_AVSV_SA_NAME_IS_NULL(cbk_rec->cbk_info->param.csi_set.csi_desc.csiName)) {
 			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, cbk_rec->cbk_info->param.csi_set.csi_desc.csiName);
-			assert(csi);
+			osafassert(csi);
 		}
 
 		/* indicate that this csi-assignment is over */
@@ -258,7 +258,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 	 * non-existence is a fatal error.
 	 */
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, resp->comp_name);
-	assert(comp);
+	osafassert(comp);
 
 	/* npi comps except for proxied dont interact with amf */
 	if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) && !m_AVND_COMP_TYPE_IS_PROXIED(comp))
@@ -397,7 +397,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		/* get csi rec */
 		if (!m_AVSV_SA_NAME_IS_NULL(cbk_rec->cbk_info->param.csi_set.csi_desc.csiName)) {
 			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, cbk_rec->cbk_info->param.csi_set.csi_desc.csiName);
-			assert(csi);
+			osafassert(csi);
 		}
 
 		/* check, if the older assignment was overriden by new one, if so trash this resp */
@@ -469,7 +469,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 		if (!m_AVSV_SA_NAME_IS_NULL(cbk_rec->cbk_info->param.csi_rem.csi_name)) {
 			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, cbk_rec->cbk_info->param.csi_rem.csi_name);
-			assert(csi);
+			osafassert(csi);
 		}
 
 		/* perform err prc if resp fails */
@@ -505,7 +505,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	case AVSV_AMF_PG_TRACK:
 	default:
-		assert(0);
+		osafassert(0);
 	}			/* switch */
 
 done:

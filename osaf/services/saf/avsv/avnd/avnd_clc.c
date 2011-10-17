@@ -275,7 +275,7 @@ static const char *str_exec_status(NCS_OS_PROC_EXEC_STATUS status)
 static void log_failed_exec(NCS_OS_PROC_EXEC_STATUS_INFO *exec_stat,
 	AVND_COMP *comp, AVND_COMP_CLC_CMD_TYPE exec_cmd)
 {
-	assert(exec_cmd <= AVND_COMP_CLC_CMD_TYPE_MAX);
+	osafassert(exec_cmd <= AVND_COMP_CLC_CMD_TYPE_MAX);
 
 	LOG_NO("Reason:'%s'", str_exec_status(exec_stat->value));
 
@@ -349,7 +349,7 @@ uint32_t avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 			break;
 
 		default:
-			assert(0);
+			osafassert(0);
 		}
 	} else {
 		TRACE("CLC command type:'%s'",clc_cmd_type[comp->clc_info.exec_cmd]);
@@ -418,7 +418,7 @@ uint32_t avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 			break;
 
 		default:
-			assert(0);
+			osafassert(0);
 		}
 
 		/* reset the cmd exec context params */
@@ -717,7 +717,7 @@ static int all_comps_terminated(void)
 	int all_comps_terminated = 1;
 	TRACE_ENTER();
 
-	assert(avnd_cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN);
+	osafassert(avnd_cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN);
 
 	/* Scan all components to see if we're done terminating all comps */
 	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb, (uint8_t *)0);
@@ -1020,7 +1020,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 		if ((SA_AMF_PRESENCE_INSTANTIATING == prv_st) && (SA_AMF_PRESENCE_INSTANTIATED == final_st)) {
 			/* csi-set succeeded.. generate csi-done indication */
 			csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-			assert(csi);
+			osafassert(csi);
 			rc = avnd_comp_csi_assign_done(cb, comp, m_AVND_COMP_IS_ALL_CSI(comp) ? 0 : csi);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
@@ -1038,7 +1038,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			if (!m_AVND_COMP_IS_FAILED(comp)) {
 				/* csi-set / csi-rem succeeded.. generate csi-done indication */
 				csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-				assert(csi);
+				osafassert(csi);
 				if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNING(csi))
 					rc = avnd_comp_csi_assign_done(cb, comp,
 								       m_AVND_COMP_IS_ALL_CSI(comp) ? 0 : csi);
@@ -1080,7 +1080,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 
 			/* csi-set succeeded.. generate csi-done indication */
 			csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-			assert(csi);
+			osafassert(csi);
 
 			if (!m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_UNASSIGNED(csi)) {
 				rc = avnd_comp_csi_assign_done(cb, comp, m_AVND_COMP_IS_ALL_CSI(comp) ? 0 : csi);
@@ -1103,7 +1103,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_FLAG_CHANGE);
 			/* csi-set Failed.. Respond failure for Su-Si */
 			csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-			assert(csi);
+			osafassert(csi);
 			avnd_di_susi_resp_send(cb, comp->su, m_AVND_COMP_IS_ALL_CSI(comp) ? 0 : csi->si);
 		}
 
@@ -2708,7 +2708,7 @@ static char *avnd_prep_attr_env_var(AVND_COMP *comp, uint32_t *ret_status)
 	*ret_status = NCSCC_RC_SUCCESS;
 
 	curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-	assert(curr_csi);
+	osafassert(curr_csi);
 
 	if (0 != curr_csi->attrs.number) {
 		attr_list = (AVSV_ATTR_NAME_VAL *)curr_csi->attrs.list;

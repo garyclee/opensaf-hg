@@ -58,7 +58,7 @@ uint32_t ava_avnd_msg_prc(AVA_CB *cb, AVSV_NDA_AVA_MSG *msg)
 	 * from AvND. Response to APIs is handled by synchronous blocking calls. 
 	 * Hence, in this flow, the message type can only be AVSV_AVND_AMF_CBK_MSG.
 	 */
-	assert(msg->type == AVSV_AVND_AMF_CBK_MSG);
+	osafassert(msg->type == AVSV_AVND_AMF_CBK_MSG);
 
 	/* get the callbk info */
 	cbk_info = msg->info.cbk_info;

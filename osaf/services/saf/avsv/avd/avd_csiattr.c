@@ -515,7 +515,7 @@ static SaAisErrorT csiattr_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = csiattr_ccb_completed_delete_hdlr(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -691,7 +691,7 @@ static void csiattr_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		csiattr_modify_apply(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 

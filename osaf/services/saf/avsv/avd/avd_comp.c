@@ -48,7 +48,7 @@ void avd_comp_db_add(AVD_COMP *comp)
 
 	if (avd_comp_get(&comp->comp_info.name) == NULL) {
 		rc = ncs_patricia_tree_add(&comp_db, &comp->tree_node);
-		assert(rc == NCSCC_RC_SUCCESS);
+		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
 
@@ -79,7 +79,7 @@ AVD_COMP *avd_comp_new(const SaNameT *dn)
 
 void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state)
 {
-	assert(pres_state <= SA_AMF_PRESENCE_TERMINATION_FAILED);
+	osafassert(pres_state <= SA_AMF_PRESENCE_TERMINATION_FAILED);
 	TRACE_ENTER2("'%s' %s => %s",
 		comp->comp_info.name.value, avd_pres_state_name[comp->saAmfCompPresenceState],
 		avd_pres_state_name[pres_state]);
@@ -98,7 +98,7 @@ void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state)
 
 void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state)
 {
-	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
+	osafassert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
 	TRACE_ENTER2("'%s' %s => %s",
 		comp->comp_info.name.value, avd_oper_state_name[comp->saAmfCompOperState], avd_oper_state_name[oper_state]);
 
@@ -113,7 +113,7 @@ void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness
 	if (comp->saAmfCompReadinessState == readiness_state)
 		return;
 
-	assert(readiness_state <= SA_AMF_READINESS_STOPPING);
+	osafassert(readiness_state <= SA_AMF_READINESS_STOPPING);
 	TRACE_ENTER2("'%s' %s => %s",
 		comp->comp_info.name.value,
 		avd_readiness_state_name[comp->saAmfCompReadinessState], avd_readiness_state_name[readiness_state]);
@@ -125,7 +125,7 @@ void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness
 
 void avd_comp_proxy_status_change(AVD_COMP *comp, SaAmfProxyStatusT proxy_status)
 {
-	assert(proxy_status <= SA_AMF_PROXY_STATUS_PROXIED);
+	osafassert(proxy_status <= SA_AMF_PROXY_STATUS_PROXIED);
 	TRACE_ENTER2("'%s' ProxyStatus is now %s", comp->comp_info.name.value, avd_proxy_status_name[proxy_status]);
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s ProxyStatus is now %s", 
 			comp->comp_info.name.value, avd_proxy_status_name[proxy_status]);
@@ -393,7 +393,7 @@ static void comp_add_to_model(AVD_COMP *comp)
 
 	avd_comp_db_add(comp);
 	comp->comp_type = avd_comptype_get(&comp->saAmfCompType);
-	assert(comp->comp_type);
+	osafassert(comp->comp_type);
 	avd_comptype_add_comp(comp);
 	avd_su_add_comp(comp);
 
@@ -514,7 +514,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	rc = immutil_getAttr("saAmfCompType", attributes, 0, &aname);
-	assert(rc == SA_AIS_OK);
+	osafassert(rc == SA_AIS_OK);
 
 	if (avd_comptype_get(&aname) == NULL) {
 		/* Comp type does not exist in current model, check CCB */
@@ -682,7 +682,7 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 		TRACE("already created, refreshing config...");
 
 	error = immutil_getAttr("saAmfCompType", attributes, 0, &comp->saAmfCompType);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 
 	if ((comptype = avd_comptype_get(&comp->saAmfCompType)) == NULL) {
 		LOG_ER("saAmfCompType '%s' does not exist", comp->saAmfCompType.value);
@@ -917,7 +917,7 @@ static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
         TRACE_ENTER2("%llu, '%s', %llu", invocation, objectName->value, opId);
 
 	AVD_COMP *comp = avd_comp_get(objectName);
-	assert(comp != NULL);
+	osafassert(comp != NULL);
 
 	switch (opId) {
 		/* Valid B.04 AMF comp admin operations */
@@ -979,7 +979,7 @@ static SaAisErrorT comp_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	int i = 0;
 
 	TRACE_ENTER2("'%s'", objectName->value);
-	assert(comp != NULL);
+	osafassert(comp != NULL);
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
 		if (!strcmp("saAmfCompRestartCount", attributeName)) {
@@ -992,7 +992,7 @@ static SaAisErrorT comp_rt_attr_cb(SaImmOiHandleT immOiHandle,
 		} else if (!strcmp("saAmfCompCurrProxiedNames", attributeName)) {
 			/* TODO */
 		} else
-			assert(0);
+			osafassert(0);
 	}
 
 	return SA_AIS_OK;
@@ -1252,7 +1252,7 @@ static SaAisErrorT comp_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = comp_ccb_completed_delete_hdlr(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1588,7 +1588,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			else
 				comp->comp_container_csi = *((SaNameT *)value);
 		} else {
-			assert(0);
+			osafassert(0);
 		}
 
 		if (true == node_present)
@@ -1618,7 +1618,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	 * first and then parent SU delete is applied
 	 * just doing sanity check here
 	 **/
-	assert(comp != NULL);
+	osafassert(comp != NULL);
 
 	/* verify if the max ACTIVE and STANDBY SIs of the SU 
 	 ** need to be changed
@@ -1730,7 +1730,7 @@ static void comp_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		comp = comp_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(comp);
+		osafassert(comp);
 		comp_add_to_model(comp);
 		break;
 	case CCBUTIL_MODIFY:
@@ -1740,7 +1740,7 @@ static void comp_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		comp_ccb_apply_delete_hdlr(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1752,7 +1752,7 @@ void avd_comp_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&comp_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&comp_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfComp", comp_rt_attr_cb, comp_admin_op_cb,
 		comp_ccb_completed_cb, comp_ccb_apply_cb);

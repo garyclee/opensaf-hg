@@ -107,7 +107,7 @@ void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 	d2d_msg = calloc(1, sizeof(AVD_D2D_MSG));
 	if (d2d_msg == NULL) {
 		LOG_ER("calloc failed");
-		assert(0);
+		osafassert(0);
 	}
 
 	data = ncs_dec_flatten_space(uba, data_buff, 3 * sizeof(uint32_t));
@@ -191,7 +191,7 @@ uint32_t avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg)
 			avd_post_amfd_switch_role_change_evt(cb, SA_AMF_HA_ACTIVE);
 		} else {
 			/* We will never come here, request only comes for active change role */
-			assert(0);
+			osafassert(0);
 		}
 		break;
 	case AVD_D2D_CHANGE_ROLE_RSP:
@@ -207,7 +207,7 @@ uint32_t avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg)
 			}
 		} else {
 			/* We should never fell into this else case */
-			assert(0);
+			osafassert(0);
 		}
 		break;
 	default:

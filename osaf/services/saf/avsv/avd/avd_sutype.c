@@ -47,7 +47,7 @@ static struct avd_sutype *sutype_new(const SaNameT *dn)
 
 static void sutype_delete(struct avd_sutype **sutype)
 {
-	assert(NULL == (*sutype)->list_of_su);
+	osafassert(NULL == (*sutype)->list_of_su);
 	free((*sutype)->saAmfSutProvidesSvcTypes);
 	free(*sutype);
 	*sutype = NULL;
@@ -56,13 +56,13 @@ static void sutype_delete(struct avd_sutype **sutype)
 static void sutype_db_add(struct avd_sutype *sutype)
 {
 	unsigned int rc = ncs_patricia_tree_add(&sutype_db, &sutype->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 static void sutype_db_delete(struct avd_sutype *sutype)
 {
 	unsigned int rc = ncs_patricia_tree_del(&sutype_db, &sutype->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 struct avd_sutype *avd_sutype_get(const SaNameT *dn)
@@ -90,17 +90,17 @@ static struct avd_sutype *sutype_create(const SaNameT *dn, const SaImmAttrValues
 	}
 
 	error = immutil_getAttr("saAmfSutIsExternal", attributes, 0, &sutype->saAmfSutIsExternal);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 
 	error = immutil_getAttr("saAmfSutDefSUFailover", attributes, 0, &sutype->saAmfSutDefSUFailover);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 
 	while ((attr = attributes[i++]) != NULL)
 		if (!strcmp(attr->attrName, "saAmfSutProvidesSvcTypes"))
 			break;
 
-	assert(attr);
-	assert(attr->attrValuesNumber > 0);
+	osafassert(attr);
+	osafassert(attr->attrValuesNumber > 0);
 
 	sutype->number_svc_types = attr->attrValuesNumber;
 	sutype->saAmfSutProvidesSvcTypes = malloc(sutype->number_svc_types * sizeof(SaNameT));
@@ -108,7 +108,7 @@ static struct avd_sutype *sutype_create(const SaNameT *dn, const SaImmAttrValues
 	for (i = 0; i < sutype->number_svc_types; i++) {
 		if (immutil_getAttr("saAmfSutProvidesSvcTypes", attributes, i, &sutype->saAmfSutProvidesSvcTypes[i]) != SA_AIS_OK) {
 			LOG_ER("Get saAmfSutProvidesSvcTypes FAILED for '%s'", dn->value);
-			assert(0);
+			osafassert(0);
 		}
 		TRACE("%s", sutype->saAmfSutProvidesSvcTypes[i].value);
 	}
@@ -162,7 +162,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 #endif
 	rc = immutil_getAttr("saAmfSutDefSUFailover", attributes, 0, &abool);
-	assert(rc == SA_AIS_OK);
+	osafassert(rc == SA_AIS_OK);
 
 	if ((immutil_getAttr("saAmfSutDefSUFailover", attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
@@ -171,7 +171,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	rc = immutil_getAttr("saAmfSutIsExternal", attributes, 0, &abool);
-	assert(rc == SA_AIS_OK);
+	osafassert(rc == SA_AIS_OK);
 
 	if ((immutil_getAttr("saAmfSutIsExternal", attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
@@ -245,7 +245,7 @@ static void sutype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		sut = sutype_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(sut);
+		osafassert(sut);
 		sutype_db_add(sut);
 		break;
 	case CCBUTIL_DELETE:
@@ -254,7 +254,7 @@ static void sutype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		sutype_delete(&sut);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -302,7 +302,7 @@ static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = SA_AIS_OK;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -350,7 +350,7 @@ void avd_sutype_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&sutype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&sutype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfSUBaseType", NULL, NULL, avd_imm_default_OK_completed_cb, NULL);
 	avd_class_impl_set("SaAmfSUType", NULL, NULL, sutype_ccb_completed_cb, sutype_ccb_apply_cb);

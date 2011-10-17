@@ -492,8 +492,8 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_name, c
 	m_AVA_COMP_REG_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, pcomp_name);
 	rc = ava_mds_send(cb, &msg, &msg_rsp);
 	if (NCSCC_RC_SUCCESS == rc) {
-		assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-		assert(AVSV_AMF_COMP_REG == msg_rsp->info.api_resp_info.type);
+		osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+		osafassert(AVSV_AMF_COMP_REG == msg_rsp->info.api_resp_info.type);
 		rc = msg_rsp->info.api_resp_info.rc;
 	} else if (NCSCC_RC_FAILURE == rc)
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -606,8 +606,8 @@ SaAisErrorT saAmfComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_name,
 	m_AVA_COMP_UNREG_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, pcomp_name);
 	rc = ava_mds_send(cb, &msg, &msg_rsp);
 	if (NCSCC_RC_SUCCESS == rc) {
-		assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-		assert(AVSV_AMF_COMP_UNREG == msg_rsp->info.api_resp_info.type);
+		osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+		osafassert(AVSV_AMF_COMP_UNREG == msg_rsp->info.api_resp_info.type);
 		rc = msg_rsp->info.api_resp_info.rc;
 	} else if (NCSCC_RC_FAILURE == rc)
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -721,8 +721,8 @@ SaAisErrorT saAmfHealthcheckStart(SaAmfHandleT hdl,
 	m_AVA_HC_START_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key, inv, rec_rcvr);
 	rc = ava_mds_send(cb, &msg, &msg_rsp);
 	if (NCSCC_RC_SUCCESS == rc) {
-		assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-		assert(AVSV_AMF_HC_START == msg_rsp->info.api_resp_info.type);
+		osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+		osafassert(AVSV_AMF_HC_START == msg_rsp->info.api_resp_info.type);
 		rc = msg_rsp->info.api_resp_info.rc;
 	} else if (NCSCC_RC_FAILURE == rc)
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -800,8 +800,8 @@ SaAisErrorT saAmfHealthcheckStop(SaAmfHandleT hdl, const SaNameT *comp_name, con
 	m_AVA_HC_STOP_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key);
 	rc = ava_mds_send(cb, &msg, &msg_rsp);
 	if (NCSCC_RC_SUCCESS == rc) {
-		assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-		assert(AVSV_AMF_HC_STOP == msg_rsp->info.api_resp_info.type);
+		osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+		osafassert(AVSV_AMF_HC_STOP == msg_rsp->info.api_resp_info.type);
 		rc = msg_rsp->info.api_resp_info.rc;
 	} else if (NCSCC_RC_FAILURE == rc)
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -882,8 +882,8 @@ SaAisErrorT saAmfHealthcheckConfirm(SaAmfHandleT hdl,
 	m_AVA_HC_CONFIRM_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key, hc_result);
 	rc = ava_mds_send(cb, &msg, &msg_rsp);
 	if (NCSCC_RC_SUCCESS == rc) {
-		assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-		assert(AVSV_AMF_HC_CONFIRM == msg_rsp->info.api_resp_info.type);
+		osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+		osafassert(AVSV_AMF_HC_CONFIRM == msg_rsp->info.api_resp_info.type);
 		rc = msg_rsp->info.api_resp_info.rc;
 	} else if (NCSCC_RC_FAILURE == rc)
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -994,8 +994,8 @@ SaAisErrorT saAmfPmStart(SaAmfHandleT hdl,
 
 	rc = ava_mds_send(cb, &msg, &msg_rsp);
 	if (NCSCC_RC_SUCCESS == rc) {
-		assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-		assert(AVSV_AMF_PM_START == msg_rsp->info.api_resp_info.type);
+		osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+		osafassert(AVSV_AMF_PM_START == msg_rsp->info.api_resp_info.type);
 		rc = msg_rsp->info.api_resp_info.rc;
 	} else if (NCSCC_RC_FAILURE == rc)
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -1098,8 +1098,8 @@ SaAisErrorT saAmfPmStop(SaAmfHandleT hdl,
 	m_AVA_PM_STOP_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, stopQual, processId, pmErr);
 	rc = ava_mds_send(cb, &msg, &msg_rsp);
 	if (NCSCC_RC_SUCCESS == rc) {
-		assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-		assert(AVSV_AMF_PM_STOP == msg_rsp->info.api_resp_info.type);
+		osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+		osafassert(AVSV_AMF_PM_STOP == msg_rsp->info.api_resp_info.type);
 		rc = msg_rsp->info.api_resp_info.rc;
 	} else if (NCSCC_RC_FAILURE == rc)
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -1354,8 +1354,8 @@ SaAisErrorT saAmfHAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name, const Sa
 	m_AVA_HA_STATE_GET_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, *csi_name);
 	rc = ava_mds_send(cb, &msg, &msg_rsp);
 	if (NCSCC_RC_SUCCESS == rc) {
-		assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-		assert(AVSV_AMF_HA_STATE_GET == msg_rsp->info.api_resp_info.type);
+		osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+		osafassert(AVSV_AMF_HA_STATE_GET == msg_rsp->info.api_resp_info.type);
 		rc = msg_rsp->info.api_resp_info.rc;
 	} else if (NCSCC_RC_FAILURE == rc)
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -1483,7 +1483,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 		/* the resp may contain only the oper result or the curr pg members */
 		if (AVSV_AVND_AMF_CBK_MSG == msg_rsp->type) {
 			/* => resp msg contains the curr pg mems */
-			assert(AVSV_AMF_PG_TRACK == msg_rsp->info.cbk_info->type);
+			osafassert(AVSV_AMF_PG_TRACK == msg_rsp->info.cbk_info->type);
 
 			/* get the err code */
 			rc = msg_rsp->info.cbk_info->param.pg_track.err;
@@ -1531,8 +1531,8 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 			}	/* else of if(create_memory == false) */
 		} else {
 			/* => it's a regular resp msg */
-			assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-			assert(AVSV_AMF_PG_START == msg_rsp->info.api_resp_info.type);
+			osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+			osafassert(AVSV_AMF_PG_START == msg_rsp->info.api_resp_info.type);
 			rc = msg_rsp->info.api_resp_info.rc;
 		}
 	} else if (NCSCC_RC_FAILURE == rc)
@@ -1609,8 +1609,8 @@ SaAisErrorT saAmfProtectionGroupTrackStop(SaAmfHandleT hdl, const SaNameT *csi_n
 	m_AVA_PG_STOP_MSG_FILL(msg, cb->ava_dest, hdl, *csi_name);
 	rc = ava_mds_send(cb, &msg, &msg_rsp);
 	if (NCSCC_RC_SUCCESS == rc) {
-		assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-		assert(AVSV_AMF_PG_STOP == msg_rsp->info.api_resp_info.type);
+		osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+		osafassert(AVSV_AMF_PG_STOP == msg_rsp->info.api_resp_info.type);
 		rc = msg_rsp->info.api_resp_info.rc;
 	} else if (NCSCC_RC_FAILURE == rc)
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -1698,8 +1698,8 @@ SaAisErrorT saAmfComponentErrorReport(SaAmfHandleT hdl,
 	m_AVA_ERR_REP_MSG_FILL(msg, cb->ava_dest, hdl, *err_comp, err_time, rec_rcvr);
 	rc = ava_mds_send(cb, &msg, &msg_rsp);
 	if (NCSCC_RC_SUCCESS == rc) {
-		assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-		assert(AVSV_AMF_ERR_REP == msg_rsp->info.api_resp_info.type);
+		osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+		osafassert(AVSV_AMF_ERR_REP == msg_rsp->info.api_resp_info.type);
 		rc = msg_rsp->info.api_resp_info.rc;
 	} else if (NCSCC_RC_FAILURE == rc)
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -1776,8 +1776,8 @@ SaAisErrorT saAmfComponentErrorClear(SaAmfHandleT hdl, const SaNameT *comp_name,
 	m_AVA_ERR_CLEAR_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name);
 	rc = ava_mds_send(cb, &msg, &msg_rsp);
 	if (NCSCC_RC_SUCCESS == rc) {
-		assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-		assert(AVSV_AMF_ERR_CLEAR == msg_rsp->info.api_resp_info.type);
+		osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+		osafassert(AVSV_AMF_ERR_CLEAR == msg_rsp->info.api_resp_info.type);
 		rc = msg_rsp->info.api_resp_info.rc;
 	} else if (NCSCC_RC_FAILURE == rc)
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -2245,7 +2245,7 @@ SaAisErrorT saAmfProtectionGroupTrack_4(SaAmfHandleT hdl,
 		/* the resp may contain only the oper result or the curr pg members */
 		if (AVSV_AVND_AMF_CBK_MSG == msg_rsp->type) {
 			/* => resp msg contains the curr pg mems */
-			assert(AVSV_AMF_PG_TRACK == msg_rsp->info.cbk_info->type);
+			osafassert(AVSV_AMF_PG_TRACK == msg_rsp->info.cbk_info->type);
 
 			/* get the err code */
 			rc = msg_rsp->info.cbk_info->param.pg_track.err;
@@ -2291,8 +2291,8 @@ SaAisErrorT saAmfProtectionGroupTrack_4(SaAmfHandleT hdl,
 			}	/* else of if(create_memory == false) */
 		} else {
 			/* => it's a regular resp msg */
-			assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
-			assert(AVSV_AMF_PG_START == msg_rsp->info.api_resp_info.type);
+			osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
+			osafassert(AVSV_AMF_PG_START == msg_rsp->info.api_resp_info.type);
 			rc = msg_rsp->info.api_resp_info.rc;
 		}
 	} else if (NCSCC_RC_FAILURE == rc)

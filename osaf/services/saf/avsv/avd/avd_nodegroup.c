@@ -32,7 +32,7 @@ static NCS_PATRICIA_TREE nodegroup_db;
 static void ng_db_add(AVD_AMF_NG *ng)
 {
 	unsigned int rc = ncs_patricia_tree_add(&nodegroup_db, &ng->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 /**
@@ -95,8 +95,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		if (!strcmp(attr->attrName, "saAmfNGNodeList"))
 			break;
 
-	assert(attr);
-	assert(attr->attrValuesNumber > 0);
+	osafassert(attr);
+	osafassert(attr->attrValuesNumber > 0);
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
 		SaNameT *name = (SaNameT *)attr->attrValues[j];
@@ -176,9 +176,9 @@ done:
 static void ng_delete(AVD_AMF_NG *ng)
 {
 	unsigned int rc = ncs_patricia_tree_del(&nodegroup_db, &ng->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 
-	assert(ng);
+	osafassert(ng);
 	free(ng->saAmfNGNodeList);
 	free(ng);
 }
@@ -452,7 +452,7 @@ static SaAisErrorT ng_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = ng_ccb_completed_delete_hdlr(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -501,7 +501,7 @@ static void ng_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					break;
 			}
 
-			assert(j < ng->number_nodes);
+			osafassert(j < ng->number_nodes);
 
 			TRACE("found node %s", ng->saAmfNGNodeList[j].value);
 
@@ -513,7 +513,7 @@ static void ng_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			break;
 		}
 		default:
-			assert(0);
+			osafassert(0);
 		}
 	}
 
@@ -533,7 +533,7 @@ static void ng_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		ng = ng_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(ng);
+		osafassert(ng);
 		ng_db_add(ng);
 		break;
 	case CCBUTIL_MODIFY:
@@ -545,7 +545,7 @@ static void ng_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		TRACE("deleted %s", opdata->objectName.value);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	TRACE_LEAVE();
@@ -559,7 +559,7 @@ void avd_ng_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&nodegroup_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&nodegroup_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfNodeGroup", NULL, NULL, ng_ccb_completed_cb, ng_ccb_apply_cb);
 }

@@ -48,7 +48,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				return SA_AIS_ERR_BAD_OPERATION;
 			}
 		} else
-			assert(0);
+			osafassert(0);
 	}
 
 	return SA_AIS_OK;
@@ -96,7 +96,7 @@ static SaAisErrorT hc_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = ccb_completed_delete_hdlr(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -114,10 +114,10 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	comp_name = strstr((char *)opdata->objectName.value, "safComp");
-	assert(comp_name);
+	osafassert(comp_name);
 	comp_dn.length = sprintf((char *)comp_dn.value, "%s", comp_name);
 	comp = avd_comp_get(&comp_dn);
-	assert(comp);
+	osafassert(comp);
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		AVSV_PARAM_INFO param;
@@ -136,7 +136,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 		} else if (!strcmp(attribute->attrName, "saAmfHealthcheckMaxDuration")) {
 			param.attr_id = saAmfHealthcheckMaxDuration_ID;
 		} else
-			assert(0);
+			osafassert(0);
 
 		avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
 	}
@@ -168,7 +168,7 @@ static void hc_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		ccb_apply_modify_hdlr(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 }

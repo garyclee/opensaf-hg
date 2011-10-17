@@ -96,7 +96,7 @@ void avnd_pid_mon_list_destroy(AVND_CB *cb)
 
 	/* traverse & delete all the MON records and their corresponding PM_REC */
 	while (0 != (mon_req = (AVND_MON_REQ *) m_NCS_DBLIST_FIND_FIRST(pid_mon_list))) {
-		assert(mon_req->pm_rec);
+		osafassert(mon_req->pm_rec);
 
 		avnd_comp_pm_rec_del(cb, mon_req->pm_rec->comp, mon_req->pm_rec);
 	}

@@ -99,7 +99,7 @@ void ava_hdl_del(AVA_CB *cb)
 	}
 
 	/* there shouldn't be any record left */
-	assert(!hdl_db->num);
+	osafassert(!hdl_db->num);
 
 	/* destroy the hdl db tree */
 	ncs_patricia_tree_destroy(&hdl_db->hdl_db_anchor);
@@ -225,13 +225,13 @@ AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const SaAmfCallback
 	/* allocate the hdl rec */
 	if (!(rec = calloc(1, sizeof(AVA_HDL_REC)))) {
 		LOG_CR("Error occurred calling calloc");
-		assert(0);
+		osafassert(0);
 	}
 
 	/* create the association with hdl-mngr */
 	if (!(rec->hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVA, (NCSCONTEXT)rec))) {
 		LOG_CR("Error occurred during creation of handle");
-		assert(0);
+		osafassert(0);
 	}
 
 	/* store the registered callbacks */
@@ -243,7 +243,7 @@ AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const SaAmfCallback
 	if (ncs_patricia_tree_add(&hdl_db->hdl_db_anchor, &rec->hdl_node)
 	    != NCSCC_RC_SUCCESS) {
 		LOG_CR("Patricia tree add failed ");
-		assert(0);
+		osafassert(0);
 	}
 
 	/* update the no of records */
@@ -327,7 +327,7 @@ uint32_t ava_hdl_cbk_dispatch(AVA_CB **cb, AVA_HDL_REC **hdl_rec, SaDispatchFlag
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}			/* switch */
 
 	TRACE_LEAVE();
@@ -758,7 +758,7 @@ void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}			/* switch */
 
@@ -784,7 +784,7 @@ AVA_PEND_RESP_REC *ava_hdl_pend_resp_pop(AVA_PEND_RESP *list, SaInvocationT key)
 	TRACE_ENTER();
 
 	if (!((list)->head)) {
-		assert(!((list)->num));
+		osafassert(!((list)->num));
 		TRACE_LEAVE();
 		return NULL;
 	} else {
@@ -851,7 +851,7 @@ AVA_PEND_RESP_REC *ava_hdl_pend_resp_get(AVA_PEND_RESP *list, SaInvocationT key)
 {
 	TRACE_ENTER();
 	if (!((list)->head)) {
-		assert(!((list)->num));
+		osafassert(!((list)->num));
 		TRACE_LEAVE();
 		return NULL;
 	} else {
@@ -906,7 +906,7 @@ void ava_hdl_pend_resp_list_del(AVA_CB *cb, AVA_PEND_RESP *list)
 	} while (1);
 
 	/* there shouldn't be any record left */
-	assert((!list->num) && (!list->head) && (!list->tail));
+	osafassert((!list->num) && (!list->head) && (!list->tail));
 	TRACE_LEAVE();
 	return;
 }

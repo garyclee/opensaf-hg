@@ -188,7 +188,7 @@ uint32_t avsv_nda_ava_msg_copy(AVSV_NDA_AVA_MSG *dmsg, AVSV_NDA_AVA_MSG *smsg)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
  done:
@@ -281,7 +281,7 @@ uint32_t avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
  done:

@@ -491,7 +491,7 @@ void avd_tmr_si_dep_tol_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	TRACE_ENTER();
 
-	assert(evt->info.tmr.type == AVD_TMR_SI_DEP_TOL);
+	osafassert(evt->info.tmr.type == AVD_TMR_SI_DEP_TOL);
 
 	si = avd_si_get(&evt->info.tmr.dep_si_name);
 	spons_si = avd_si_get(&evt->info.tmr.spons_si_name);
@@ -740,7 +740,7 @@ void avd_process_si_dep_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	if (evt->rcv_evt != AVD_EVT_SI_DEP_STATE) {
 		/* internal error */
-		assert(0);
+		osafassert(0);
 		goto done;
 	}
 
@@ -1011,7 +1011,7 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 		if (si_dep_rec != NULL) {
 			/* si_dep_rec primary key should match with sponsor SI name */
 			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
-				assert(0);
+				osafassert(0);
 				goto done;
 			}
 			avd_update_si_dep_state_for_spons_unassign(cb, si_dep, si_dep_rec);
@@ -1476,9 +1476,9 @@ static AVD_SI_SI_DEP *sidep_new(SaNameT *sidep_name, const SaImmAttrValuesT_2 **
 	}
 
 	/* Add to dependent's sponsors list */
-	assert(spons_si = avd_si_get(&indx.si_name_prim));
-	assert(dep_si = avd_si_get(&indx.si_name_sec));
-	assert(avd_si_dep_spons_list_add(avd_cb, dep_si, spons_si, sidep) == NCSCC_RC_SUCCESS);
+	osafassert(spons_si = avd_si_get(&indx.si_name_prim));
+	osafassert(dep_si = avd_si_get(&indx.si_name_sec));
+	osafassert(avd_si_dep_spons_list_add(avd_cb, dep_si, spons_si, sidep) == NCSCC_RC_SUCCESS);
 
 	if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE)  {
 		/* Move the dependent SI to appropriate state, if the configured 
@@ -1577,7 +1577,7 @@ static SaAisErrorT sidep_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_ERR_BAD_OPERATION;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1604,7 +1604,7 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_DELETE:
 		avd_sidep_indx_init(&opdata->objectName, &indx);
 		sidep = avd_si_si_dep_find(avd_cb, &indx, true);
-		assert(dep_si = avd_si_get(&indx.si_name_sec));
+		osafassert(dep_si = avd_si_get(&indx.si_name_sec));
 		/* If SI is in tolerance timer running state because of this
 		 * SI-SI dep cfg, then stop the tolerance timer.
 		 */
@@ -1634,7 +1634,7 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1648,9 +1648,9 @@ void avd_sidep_constructor(void)
 
 	patricia_params.key_size = sizeof(AVD_SI_SI_DEP_INDX);
 	rc = ncs_patricia_tree_init(&si_dep.spons_anchor, &patricia_params);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	rc = ncs_patricia_tree_init(&si_dep.dep_anchor, &patricia_params);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfSIDependency", NULL, NULL, sidep_ccb_completed_cb, sidep_ccb_apply_cb);
 }

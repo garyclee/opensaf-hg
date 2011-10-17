@@ -30,7 +30,7 @@ static NCS_PATRICIA_TREE sutcomptype_db;
 static void sutcomptype_db_add(AVD_SUTCOMP_TYPE *sutcomptype)
 {
 	unsigned int rc = ncs_patricia_tree_add(&sutcomptype_db, &sutcomptype->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 static AVD_SUTCOMP_TYPE *sutcomptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
@@ -62,7 +62,7 @@ static void sutcomptype_delete(AVD_SUTCOMP_TYPE *sutcomptype)
 	uint32_t rc;
 
 	rc = ncs_patricia_tree_del(&sutcomptype_db, &sutcomptype->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	free(sutcomptype);
 }
 
@@ -152,7 +152,7 @@ static SaAisErrorT sutcomptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		}
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -168,14 +168,14 @@ static void sutcomptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		sutcomptype = sutcomptype_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(sutcomptype);
+		osafassert(sutcomptype);
 		sutcomptype_db_add(sutcomptype);
 		break;
 	case CCBUTIL_DELETE:
 		sutcomptype_delete(opdata->userData);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 }
@@ -185,7 +185,7 @@ void avd_sutcomptype_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&sutcomptype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&sutcomptype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfSutCompType", NULL, NULL, sutcomptype_ccb_completed_cb, sutcomptype_ccb_apply_cb);
 }

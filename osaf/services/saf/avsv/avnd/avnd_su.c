@@ -299,7 +299,7 @@ uint32_t avnd_evt_tmr_su_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 		cb->node_err_esc_level = AVND_ERR_ESC_LEVEL_0;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_ERR_ESC_LEVEL);
 
@@ -409,7 +409,7 @@ uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 	cb->rcv_msg_id = info->msg_id;
 
 	su = m_AVND_SUDB_REC_GET(cb->sudb, info->dn);
-	assert(su != NULL);
+	osafassert(su != NULL);
 
 	switch(info->oper_id) {
 	case SA_AMF_ADMIN_REPAIRED: {
@@ -454,7 +454,7 @@ uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
  */
 void avnd_su_pres_state_set(AVND_SU *su, SaAmfPresenceStateT newstate)
 {
-	assert(newstate <= SA_AMF_PRESENCE_TERMINATION_FAILED);
+	osafassert(newstate <= SA_AMF_PRESENCE_TERMINATION_FAILED);
 	LOG_NO("'%s' Presence State %s => %s", su->name.value,
 		presence_state[su->pres], presence_state[newstate]);
 	su->pres = newstate;

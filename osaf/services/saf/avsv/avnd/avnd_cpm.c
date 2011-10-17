@@ -222,7 +222,7 @@ uint32_t avnd_comp_pm_stop_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_STO
 	rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(&comp->pm_list, (uint8_t *)&pid);
 
 	/* this rec has to be present */
-	assert(rec);
+	osafassert(rec);
 
 	/* del the pm_rec */
 	avnd_comp_pm_rec_del(cb, comp, rec);
@@ -553,7 +553,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 			}
 
 			if (kill(pm_start->pid, 0) == -1) {
-				assert(errno == ESRCH);
+				osafassert(errno == ESRCH);
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
@@ -594,7 +594,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 			}
 
 			if (kill(pm_stop->pid, 0) == -1) {
-				assert(errno == ESRCH);
+				osafassert(errno == ESRCH);
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
@@ -602,7 +602,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}			/* switch */
 
 	return;

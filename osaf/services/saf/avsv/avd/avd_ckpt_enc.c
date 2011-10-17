@@ -253,7 +253,7 @@ static uint32_t avsv_encode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_
 			&ederror, enc->i_peer_version);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -303,7 +303,7 @@ static uint32_t avsv_encode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 			&ederror, enc->i_peer_version, 1, 3);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -353,7 +353,7 @@ static uint32_t avsv_encode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
 			&ederror, enc->i_peer_version, 1, 1);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -403,7 +403,7 @@ static uint32_t avsv_encode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 			&ederror, enc->i_peer_version, 1, 1);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -452,7 +452,7 @@ static uint32_t avsv_encode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 			&ederror, enc->i_peer_version, 1, 1);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -503,7 +503,7 @@ static uint32_t avsv_encode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -551,7 +551,7 @@ static uint32_t avsv_encode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 
 	case NCS_MBCSV_ACT_UPDATE:
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -593,7 +593,7 @@ static uint32_t avsv_encode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -651,7 +651,7 @@ static uint32_t avsv_encode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -702,7 +702,7 @@ static uint32_t avsv_encode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -746,7 +746,7 @@ static uint32_t avsv_encode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *en
 
 	case NCS_MBCSV_ACT_UPDATE:
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -787,7 +787,7 @@ static uint32_t avsv_encode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -823,7 +823,7 @@ static uint32_t avsv_encode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_EN
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -859,7 +859,7 @@ static uint32_t avsv_encode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -895,7 +895,7 @@ static uint32_t avsv_encode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -931,7 +931,7 @@ static uint32_t avsv_encode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -967,7 +967,7 @@ static uint32_t avsv_encode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -991,12 +991,12 @@ static uint32_t avsv_encode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 2);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1020,13 +1020,13 @@ static uint32_t avsv_encode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 3);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1050,12 +1050,12 @@ static uint32_t avsv_encode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 4);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1079,12 +1079,12 @@ static uint32_t avsv_encode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_EN
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 5);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1108,12 +1108,12 @@ static uint32_t avsv_encode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 6);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1137,12 +1137,12 @@ static uint32_t avsv_encode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 7);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1166,12 +1166,12 @@ static uint32_t avsv_encode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 2);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1195,12 +1195,12 @@ static uint32_t avsv_encode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 3);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1224,12 +1224,12 @@ static uint32_t avsv_encode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 4);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1253,12 +1253,12 @@ static uint32_t avsv_encode_ckpt_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 5);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1282,12 +1282,12 @@ static uint32_t avsv_encode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 6);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1311,12 +1311,12 @@ static uint32_t avsv_encode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_E
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 8);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1340,12 +1340,12 @@ static uint32_t avsv_encode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 9);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1369,12 +1369,12 @@ static uint32_t avsv_encode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 11);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1398,12 +1398,12 @@ static uint32_t avsv_encode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 12);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1427,12 +1427,12 @@ static uint32_t avsv_encode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 13);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1456,12 +1456,12 @@ static uint32_t avsv_encode_ckpt_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_EN
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 10);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1485,12 +1485,12 @@ static uint32_t avsv_encode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 2);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1514,12 +1514,12 @@ static uint32_t avsv_encode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 3);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1543,12 +1543,12 @@ static uint32_t avsv_encode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_E
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 4);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1572,12 +1572,12 @@ static uint32_t avsv_encode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 5);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1601,12 +1601,12 @@ static uint32_t avsv_encode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 6);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1630,12 +1630,12 @@ static uint32_t avsv_encode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 8);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -1671,7 +1671,7 @@ static uint32_t avsv_encode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_C
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -1695,7 +1695,7 @@ static uint32_t avsv_encode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(0);
+	osafassert(0);
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1709,7 +1709,7 @@ static uint32_t avsv_encode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -1733,7 +1733,7 @@ static uint32_t avsv_encode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	assert(0);
+	osafassert(0);
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1747,7 +1747,7 @@ static uint32_t avsv_encode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -1783,7 +1783,7 @@ static uint32_t avsv_encode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -1819,7 +1819,7 @@ static uint32_t avsv_encode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_C
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -1855,7 +1855,7 @@ static uint32_t avsv_encode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -1891,7 +1891,7 @@ static uint32_t avsv_encode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	} else
-		assert(0);
+		osafassert(0);
 
 	return status;
 }
@@ -2585,7 +2585,7 @@ static uint32_t avsv_encode_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB
 
 	/* Reserve space for the number of operation SU to be encoded */
 	encoded_cnt_loc = ncs_enc_reserve_space(&enc->io_uba, sizeof(uint32_t));
-	assert(encoded_cnt_loc);
+	osafassert(encoded_cnt_loc);
 	ncs_enc_claim_space(&enc->io_uba, sizeof(uint32_t));
 
 	/*
@@ -2653,7 +2653,7 @@ static uint32_t avsv_encode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCS
 			&ederror, enc->i_peer_version, 1, 1);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS)

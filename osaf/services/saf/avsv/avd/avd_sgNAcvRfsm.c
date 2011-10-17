@@ -396,7 +396,7 @@ uint32_t avd_sg_nacvred_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 						AVD_SU_SI_REL *i_susi;
 						i_susi = avd_su_susi_find(avd_cb, su->sg_of_su->max_assigned_su,
 								&su->sg_of_su->si_tobe_redistributed->name);
-						assert(i_susi);
+						osafassert(i_susi);
 
 						old_ha_state = i_susi->state;
 						old_state = i_susi->fsm;
@@ -851,7 +851,7 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 						/* Find the SUSI, which is in Quisced state. */
 						i_susi = avd_su_susi_find(avd_cb, su->sg_of_su->max_assigned_su,
 								&su->sg_of_su->si_tobe_redistributed->name);
-						assert(i_susi);
+						osafassert(i_susi);
 						old_state = i_susi->fsm;
 						i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
 						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
@@ -947,7 +947,7 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 				/* SI Transfer is in progress. */
 				/* Check whether su->sg_of_su->min_assigned_su readiness state is 
 				   SA_AMF_READINESS_IN_SERVICE */
-				assert(su == su->sg_of_su->max_assigned_su);
+				osafassert(su == su->sg_of_su->max_assigned_su);
 				if (su->sg_of_su->min_assigned_su->saAmfSuReadinessState == 
 						SA_AMF_READINESS_IN_SERVICE) {
 					if (avd_new_assgn_susi(cb, su->sg_of_su->min_assigned_su, su->sg_of_su->
@@ -1324,7 +1324,7 @@ uint32_t avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL 
 						SA_AMF_READINESS_IN_SERVICE)) {
 				/* This is the case of max_assigned_su has refused to go to Quisced, send Act one to 
 				   it and reset the pointers as SI Transfer has failed.*/
-				assert(su == su->sg_of_su->max_assigned_su);
+				osafassert(su == su->sg_of_su->max_assigned_su);
 				old_ha_state = susi->state;
 				old_state = susi->fsm;
 
@@ -1585,7 +1585,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 					AVD_SU_SI_REL *i_susi;
 					i_susi = avd_su_susi_find(avd_cb, su->sg_of_su->max_assigned_su,
 							&su->sg_of_su->si_tobe_redistributed->name);
-					assert(i_susi);
+					osafassert(i_susi);
 
 					old_ha_state = i_susi->state;
 					old_state = i_susi->fsm;
@@ -1691,7 +1691,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 				   the corresponding node has gone down*/
 				/* min_assigned_su is not assgned SI so if (su->sg_of_su->su_oper_list.su == su) will
 				   fail and it will not come till here.  */
-				assert(su == su->sg_of_su->max_assigned_su);
+				osafassert(su == su->sg_of_su->max_assigned_su);
 				su->sg_of_su->max_assigned_su = su->sg_of_su->min_assigned_su = NULL;
 				su->sg_of_su->si_tobe_redistributed = NULL;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, su->sg_of_su, AVSV_CKPT_AVD_SI_TRANS);
@@ -2197,7 +2197,7 @@ static AVD_SU *avd_get_qualified_su(AVD_SG *sg, AVD_SI *i_si,
 
 	/* Got the Qualified SU return Success.*/
 	*next_si_tobe_assigned = true; 
-	assert(pref_su);
+	osafassert(pref_su);
 	TRACE_LEAVE2("'%s'", pref_su->name.value);
 	return pref_su;
 }

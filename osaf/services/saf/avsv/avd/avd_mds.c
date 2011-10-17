@@ -406,7 +406,7 @@ static uint32_t avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 		case NCSMDS_SVC_ID_AVND:
 			if (evt_info->i_node_id == cb->node_id_avd) {
 				AVD_EVT *evt = calloc(1, sizeof(AVD_EVT));
-				assert(evt);
+				osafassert(evt);
 				evt->rcv_evt = AVD_EVT_MDS_AVND_UP;
 				cb->local_avnd_adest = evt_info->i_dest;
 				if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
@@ -417,7 +417,7 @@ static uint32_t avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 			break;
 
 		default:
-			assert(0);
+			osafassert(0);
 		}
 		break;
 
@@ -434,7 +434,7 @@ static uint32_t avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 		case NCSMDS_SVC_ID_AVND:
 			{
 				AVD_EVT *evt = calloc(1, sizeof(AVD_EVT));
-				assert(evt);
+				osafassert(evt);
 				evt->rcv_evt = AVD_EVT_MDS_AVND_DOWN;
 				evt->info.node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt_info->i_dest);
 				TRACE("avnd %" PRIx64 " down", evt_info->i_dest);
@@ -447,7 +447,7 @@ static uint32_t avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 			break;
 
 		default:
-			assert(0);
+			osafassert(0);
 		}
 		break;
 
@@ -482,7 +482,7 @@ static uint32_t avd_mds_qsd_ack_evt(MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info)
 	evt = calloc(1, sizeof(AVD_EVT));
 	if (evt == AVD_EVT_NULL) {
 		LOG_ER("calloc failed");
-		assert(0);
+		osafassert(0);
 	}
 
 	evt->rcv_evt = AVD_EVT_MDS_QSD_ACK;

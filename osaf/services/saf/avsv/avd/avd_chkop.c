@@ -748,7 +748,7 @@ uint32_t avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uint32_t role
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == NULL) {
 		LOG_ER("calloc failed");
-		assert(0);
+		osafassert(0);
 	}
 
 	d2n_msg->msg_type = AVSV_D2N_ROLE_CHANGE_MSG;
@@ -1126,7 +1126,7 @@ static uint32_t avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	 */
 	if (NULL == (updt_msg = calloc(1, sizeof(AVSV_ASYNC_UPDT_MSG_QUEUE)))) {
 		LOG_ER("calloc failed");
-		assert(0);
+		osafassert(0);
 		return NCSCC_RC_FAILURE;
 	}
 

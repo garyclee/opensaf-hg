@@ -566,7 +566,7 @@ uint32_t avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 	}
 
 	/* comp should not be attached to any csi when it is being deleted */
-	assert(comp->csi_list.n_nodes == 0);
+	osafassert(comp->csi_list.n_nodes == 0);
 
 	/*
 	 * Determine if the SU is present
@@ -615,7 +615,7 @@ uint32_t avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 	ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, comp->comp_hdl);
 
 	/* comp should not be attached to any hc when it is being deleted */
-	assert(comp->hc_list.n_nodes == 0);
+	osafassert(comp->hc_list.n_nodes == 0);
 
 	LOG_IN("Deleted '%s'", name->value);
 	/* free the memory */
@@ -745,7 +745,7 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				comp->config_is_valid = 0;
 				break;
 			case saAmfCompInstantiateTimeout_ID:
-				assert(sizeof(SaTimeT) == param->value_len);
+				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].timeout =
 				    m_NCS_OS_NTOHLL_P(param->value);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_TIMEOUT);
@@ -755,67 +755,67 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				break;
 
 			case saAmfCompTerminateTimeout_ID:
-				assert(sizeof(SaTimeT) == param->value_len);
+				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].timeout =
 				    m_NCS_OS_NTOHLL_P(param->value);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_TERM_TIMEOUT);
 				break;
 
 			case saAmfCompCleanupTimeout_ID:
-				assert(sizeof(SaTimeT) == param->value_len);
+				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].timeout =
 				    m_NCS_OS_NTOHLL_P(param->value);
 				break;
 
 			case saAmfCompAmStartTimeout_ID:
-				assert(sizeof(SaTimeT) == param->value_len);
+				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].timeout =
 				    m_NCS_OS_NTOHLL_P(param->value);
 				break;
 
 			case saAmfCompAmStopTimeout_ID:
-				assert(sizeof(SaTimeT) == param->value_len);
+				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].timeout =
 				    m_NCS_OS_NTOHLL_P(param->value);
 				break;
 
 			case saAmfCompTerminateCallbackTimeOut_ID:
-				assert(sizeof(SaTimeT) == param->value_len);
+				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->term_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
 								 AVND_CKPT_COMP_TERM_CBK_TIMEOUT);
 				break;
 
 			case saAmfCompCSISetCallbackTimeout_ID:
-				assert(sizeof(SaTimeT) == param->value_len);
+				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->csi_set_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
 								 AVND_CKPT_COMP_CSI_SET_CBK_TIMEOUT);
 				break;
 
 			case saAmfCompQuiescingCompleteTimeout_ID:
-				assert(sizeof(SaTimeT) == param->value_len);
+				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->quies_complete_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
 								 AVND_CKPT_COMP_QUIES_CMPLT_CBK_TIMEOUT);
 				break;
 
 			case saAmfCompCSIRmvCallbackTimeout_ID:
-				assert(sizeof(SaTimeT) == param->value_len);
+				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->csi_rmv_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
 								 AVND_CKPT_COMP_CSI_RMV_CBK_TIMEOUT);
 				break;
 
 			case saAmfCompProxiedCompInstantiateCallbackTimeout_ID:
-				assert(sizeof(SaTimeT) == param->value_len);
+				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->pxied_inst_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
 								 AVND_CKPT_COMP_PXIED_INST_CBK_TIMEOUT);
 				break;
 
 			case saAmfCompProxiedCompCleanupCallbackTimeout_ID:
-				assert(sizeof(SaTimeT) == param->value_len);
+				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->pxied_clean_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
 								 AVND_CKPT_COMP_PXIED_CLEAN_CBK_TIMEOUT);
@@ -825,7 +825,7 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				break;
 
 			case saAmfCompInstantiationLevel_ID: 
-				assert(sizeof(uint32_t) == param->value_len);
+				osafassert(sizeof(uint32_t) == param->value_len);
 				comp->inst_level = *(uint32_t *)(param->value);
 				
 				/* Remove from the comp-list (maintained by su) */
@@ -843,14 +843,14 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				
 				break;
 			case saAmfCompRecoveryOnError_ID:
-				assert(sizeof(uint32_t) == param->value_len);
+				osafassert(sizeof(uint32_t) == param->value_len);
 				comp->err_info.def_rec = m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
 								 AVND_CKPT_COMP_DEFAULT_RECVR);
 				break;
 
 			case saAmfCompNumMaxInstantiate_ID:
-				assert(sizeof(uint32_t) == param->value_len);
+				osafassert(sizeof(uint32_t) == param->value_len);
 				comp->clc_info.inst_retry_max =
 				    m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
@@ -858,7 +858,7 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				break;
 
 			case saAmfCompAMEnable_ID:
-				assert(1 == param->value_len);
+				osafassert(1 == param->value_len);
 				comp->is_am_en = (bool)param->value[0];
 				comp->clc_info.am_start_retry_cnt = 0;
 				rc = avnd_comp_am_oper_req_process(cb, comp);
@@ -1004,22 +1004,22 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 	compt->tree_node.key_info = (uint8_t *)&(compt->name);
 
 	if (immutil_getAttr("saAmfCtCompCategory", attributes, 0, &compt->saAmfCtCompCategory) != SA_AIS_OK)
-		assert(0);
+		osafassert(0);
 
 	if (IS_COMP_LOCAL(compt->saAmfCtCompCategory) && 
 	    immutil_getAttr("saAmfCtSwBundle", attributes, 0, &compt->saAmfCtSwBundle) != SA_AIS_OK) {
-		assert(0);
+		osafassert(0);
 		return NULL;	
 	}
 
         immutil_getAttrValuesNumber("saAmfCtDefCmdEnv", attributes, &j);
 	compt->saAmfCtDefCmdEnv = calloc(j + 1, sizeof(SaStringT));
-	assert(compt->saAmfCtDefCmdEnv);
+	osafassert(compt->saAmfCtDefCmdEnv);
 	for (i = 0; i < j; i++) {
 		str = immutil_getStringAttr(attributes, "saAmfCtDefCmdEnv", i);
-		assert(str);
+		osafassert(str);
 		compt->saAmfCtDefCmdEnv[i] = strdup(str);
-		assert(compt->saAmfCtDefCmdEnv[i]);
+		osafassert(compt->saAmfCtDefCmdEnv[i]);
 	}
 
 	(void)immutil_getAttr("saAmfCtDefClcCliTimeout", attributes, 0, &compt->saAmfCtDefClcCliTimeout);
@@ -1031,12 +1031,12 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 
 	immutil_getAttrValuesNumber("saAmfCtDefInstantiateCmdArgv", attributes, &j);
 	compt->saAmfCtDefInstantiateCmdArgv = calloc(j + 1, sizeof(SaStringT));
-	assert(compt->saAmfCtDefInstantiateCmdArgv);
+	osafassert(compt->saAmfCtDefInstantiateCmdArgv);
 	for (i = 0; i < j; i++) {
 		str = immutil_getStringAttr(attributes, "saAmfCtDefInstantiateCmdArgv", i);
-		assert(str);
+		osafassert(str);
 		compt->saAmfCtDefInstantiateCmdArgv[i] = strdup(str);
-		assert(compt->saAmfCtDefInstantiateCmdArgv[i]);
+		osafassert(compt->saAmfCtDefInstantiateCmdArgv[i]);
 	}
 
 	if (immutil_getAttr("saAmfCtDefInstantiationLevel", attributes, 0, &compt->saAmfCtDefInstantiationLevel) != SA_AIS_OK)
@@ -1047,12 +1047,12 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 
 	immutil_getAttrValuesNumber("saAmfCtDefTerminateCmdArgv", attributes, &j);
 	compt->saAmfCtDefTerminateCmdArgv = calloc(j + 1, sizeof(SaStringT));
-	assert(compt->saAmfCtDefTerminateCmdArgv);
+	osafassert(compt->saAmfCtDefTerminateCmdArgv);
 	for (i = 0; i < j; i++) {
 		str = immutil_getStringAttr(attributes, "saAmfCtDefTerminateCmdArgv", i);
-		assert(str);
+		osafassert(str);
 		compt->saAmfCtDefTerminateCmdArgv[i] = strdup(str);
-		assert(compt->saAmfCtDefTerminateCmdArgv[i]);
+		osafassert(compt->saAmfCtDefTerminateCmdArgv[i]);
 	}
 
 	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathCleanupCmd", 0)) != NULL)
@@ -1060,12 +1060,12 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 
 	immutil_getAttrValuesNumber("saAmfCtDefCleanupCmdArgv", attributes, &j);
 	compt->saAmfCtDefCleanupCmdArgv = calloc(j + 1, sizeof(SaStringT));
-	assert(compt->saAmfCtDefCleanupCmdArgv);
+	osafassert(compt->saAmfCtDefCleanupCmdArgv);
 	for (i = 0; i < j; i++) {
 		str = immutil_getStringAttr(attributes, "saAmfCtDefCleanupCmdArgv", i);
-		assert(str);
+		osafassert(str);
 		compt->saAmfCtDefCleanupCmdArgv[i] = strdup(str);
-		assert(compt->saAmfCtDefCleanupCmdArgv[i]);
+		osafassert(compt->saAmfCtDefCleanupCmdArgv[i]);
 	}
 
 	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathAmStartCmd", 0)) != NULL)
@@ -1073,12 +1073,12 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 
 	immutil_getAttrValuesNumber("saAmfCtDefAmStartCmdArgv", attributes, &j);
 	compt->saAmfCtDefAmStartCmdArgv = calloc(j + 1, sizeof(SaStringT));
-	assert(compt->saAmfCtDefAmStartCmdArgv);
+	osafassert(compt->saAmfCtDefAmStartCmdArgv);
 	for (i = 0; i < j; i++) {
 		str = immutil_getStringAttr(attributes, "saAmfCtDefAmStartCmdArgv", i);
-		assert(str);
+		osafassert(str);
 		compt->saAmfCtDefAmStartCmdArgv[i] = strdup(str);
-		assert(compt->saAmfCtDefAmStartCmdArgv[i]);
+		osafassert(compt->saAmfCtDefAmStartCmdArgv[i]);
 	}
 
 	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathAmStopCmd", 0)) != NULL)
@@ -1086,12 +1086,12 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 
 	immutil_getAttrValuesNumber("saAmfCtDefAmStopCmdArgv", attributes, &j);
 	compt->saAmfCtDefAmStopCmdArgv = calloc(j + 1, sizeof(SaStringT));
-	assert(compt->saAmfCtDefAmStopCmdArgv);
+	osafassert(compt->saAmfCtDefAmStopCmdArgv);
 	for (i = 0; i < j; i++) {
 		str = immutil_getStringAttr(attributes, "saAmfCtDefAmStopCmdArgv", i);
-		assert(str);
+		osafassert(str);
 		compt->saAmfCtDefAmStopCmdArgv[i] = strdup(str);
-		assert(compt->saAmfCtDefAmStopCmdArgv[i]);
+		osafassert(compt->saAmfCtDefAmStopCmdArgv[i]);
 	}
 
 	if ((IS_COMP_SAAWARE(compt->saAmfCtCompCategory) || IS_COMP_PROXIED_PI(compt->saAmfCtCompCategory)) &&
@@ -1103,7 +1103,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 	}
 
 	if (immutil_getAttr("saAmfCtDefRecoveryOnError", attributes, 0, &compt->saAmfCtDefRecoveryOnError) != SA_AIS_OK)
-		assert(0);
+		osafassert(0);
 
 	if (compt->saAmfCtDefRecoveryOnError == SA_AMF_NO_RECOMMENDATION) {
 		compt->saAmfCtDefRecoveryOnError = SA_AMF_COMPONENT_FAILOVER;
@@ -1133,7 +1133,7 @@ static void init_comp_category(AVND_COMP *comp, SaAmfCompCategoryT category)
 	TRACE_ENTER2("'%s', %u", comp->name.value, category);
 	AVSV_COMP_TYPE_VAL comptype = avsv_amfcompcategory_to_avsvcomptype(category);
 
-	assert(comptype != AVSV_COMP_TYPE_INVALID);
+	osafassert(comptype != AVSV_COMP_TYPE_INVALID);
 
 	switch (comptype) {
 	case AVSV_COMP_TYPE_SA_AWARE:
@@ -1169,7 +1169,7 @@ static void init_comp_category(AVND_COMP *comp, SaAmfCompCategoryT category)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 	TRACE_LEAVE();
@@ -1238,7 +1238,7 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 		cmd->len = i;
 
 		/* Check for truncation, should alloc these strings dynamically instead */
-		assert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
+		osafassert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
 		TRACE("cmd=%s", cmd->cmd);
 	}
 
@@ -1259,7 +1259,7 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 		cmd->len = i;
 
 		/* Check for truncation, should alloc these strings dynamically instead */
-		assert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
+		osafassert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
 		TRACE("cmd=%s", cmd->cmd);
 	}
 
@@ -1280,7 +1280,7 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 		cmd->len = i;
 
 		/* Check for truncation, should alloc these strings dynamically instead */
-		assert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
+		osafassert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
 		TRACE("cmd=%s", cmd->cmd);
 	}
 
@@ -1303,7 +1303,7 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 		comp->is_am_en = true;
 
 		/* Check for truncation, should alloc these strings dynamically instead */
-		assert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
+		osafassert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
 		TRACE("cmd=%s", cmd->cmd);
 	}
 
@@ -1324,7 +1324,7 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 		cmd->len = i;
 
 		/* Check for truncation, should alloc these strings dynamically instead */
-		assert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
+		osafassert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
 		TRACE("cmd=%s", cmd->cmd);
 	}
 	TRACE_LEAVE();
@@ -1494,7 +1494,7 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes,
 
         /* Allocate total number of environment variables */
 	comp->saAmfCompCmdEnv = calloc(comp->numOfCompCmdEnv + 1, sizeof(SaStringT));
-	assert(comp->saAmfCompCmdEnv);
+	osafassert(comp->saAmfCompCmdEnv);
 
         /* Copy environment variables from our comp type */
         env_cntr = 0;
@@ -1506,9 +1506,9 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes,
         /* Get environment variables from our IMM comp object */
         for (i = 0; i < num_of_comp_env; i++, env_cntr++) {
 		str = immutil_getStringAttr(attributes, "saAmfCompCmdEnv", i);
-		assert(str);
+		osafassert(str);
 		comp->saAmfCompCmdEnv[env_cntr] = strdup(str);
-		assert(comp->saAmfCompCmdEnv[env_cntr]);
+		osafassert(comp->saAmfCompCmdEnv[env_cntr]);
 	}
 
         /* The env string array will be terminated by zero due to the calloc above */
@@ -1552,7 +1552,7 @@ void avnd_comp_delete(AVND_COMP *comp)
 
 /**
  * Create an avnd component object.
- * Validation has been done by avd => simple error handling (asserts).
+ * Validation has been done by avd => simple error handling (osafasserts).
  * Comp type argv and comp argv augments each other.
  * @param comp_name
  * @param attributes
@@ -1578,7 +1578,7 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 	comp->name.length = comp_name->length;
 
 	error = immutil_getAttr("saAmfCompType", attributes, 0, &comp->saAmfCompType);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 
 	if (comp_init(comp, attributes, false) != 0)
 		goto done;

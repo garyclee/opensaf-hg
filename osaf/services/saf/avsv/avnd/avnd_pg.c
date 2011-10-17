@@ -70,7 +70,7 @@ static uint32_t avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRAC
 		pg->is_exist = true;
 
 		/* update the mem-list */
-		assert(!pg->mem_list.n_nodes);
+		osafassert(!pg->mem_list.n_nodes);
 		for (i = 0; i < info->mem_list.numberOfItems; i++)
 			avnd_pgdb_mem_rec_add(cb, pg, &info->mem_list.notification[i]);
 
@@ -406,7 +406,7 @@ uint32_t avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 			if (!pg)
 				return rc;
 
-			assert(false == pg->is_exist);
+			osafassert(false == pg->is_exist);
 
 			rc = avnd_pg_start_rsp_prc(cb, pg, info);
 
@@ -421,7 +421,7 @@ uint32_t avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}			/* switch */
 
 	TRACE_LEAVE();
@@ -462,7 +462,7 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 	if (!pg)
 		return NCSCC_RC_FAILURE;
 
-	assert(true == pg->is_exist);
+	osafassert(true == pg->is_exist);
 
 	if (true == info->is_csi_del) {
 		/* => this update is for csi deletion */
@@ -494,7 +494,7 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 			break;
 
 		default:
-			assert(0);
+			osafassert(0);
 		}		/* switch */
 
 		if (NULL == chg_mem)

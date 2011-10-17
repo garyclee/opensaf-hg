@@ -339,10 +339,10 @@ uint32_t avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 					goto done;
 				}
 
-				assert((info->num_assigns == 1));
+				osafassert((info->num_assigns == 1));
 				csi_param = info->list;
-				assert(csi_param);
-				assert(!(csi_param->next));
+				osafassert(csi_param);
+				osafassert(!(csi_param->next));
 				avnd_su_si_csi_rec_add(cb, su, si, csi_param, &rc);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, si_rec, AVND_CKPT_CSI_REC);
 				si->single_csi_add_rem_in_si =  AVSV_SUSI_ACT_ASGN;
@@ -368,10 +368,10 @@ uint32_t avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 				AVND_COMP_CSI_PARAM *csi_param;
 				AVND_COMP_CSI_REC *csi_rec;
 				si->single_csi_add_rem_in_si =  AVSV_SUSI_ACT_DEL;
-				assert((info->num_assigns == 1));
+				osafassert((info->num_assigns == 1));
 				csi_param = info->list;
-				assert(csi_param);
-				assert(!(csi_param->next));
+				osafassert(csi_param);
+				osafassert(!(csi_param->next));
 				if (NULL ==  (csi_rec = avnd_compdb_csi_rec_get(cb, &csi_param->comp_name, &csi_param->csi_name))) {
 					LOG_ER("No CSI Rec exists for comp='%s'and csi=%s",csi_param->comp_name.value, 
 							csi_param->csi_name.value); 
@@ -400,7 +400,7 @@ uint32_t avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}			/* switch */
 
 done:
@@ -725,7 +725,7 @@ uint32_t avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 			LOG_CR("current si name ='%s'",curr_si->name.value);
 			LOG_CR("SI: curr_assign_state = %u, prv_assign_state = %u, curr_state = %u, prv_state = %u",\
 				curr_si->curr_assign_state,curr_si->prv_assign_state,curr_si->curr_state,curr_si->prv_state);
-			assert(0);
+			osafassert(0);
 		}
 
 		/*
@@ -771,7 +771,7 @@ uint32_t avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 				break;
 			}
 		}
-		assert(t_csi);
+		osafassert(t_csi);
 		/* free the csi attributes */
 		if (t_csi->attrs.list)
 			free(t_csi->attrs.list);
@@ -934,7 +934,7 @@ uint32_t avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	/* since AMFND is going down no need to process SU instantiate/terminate msg 
 	 * because SU instantiate will cause component information to be read from IMMND
-	 * and IMMND might have been already terminated and in that case AMFND will assert */
+	 * and IMMND might have been already terminated and in that case AMFND will osafassert */
 	if (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN) {
 		TRACE("AMFND is in AVND_TERM_STATE_OPENSAF_SHUTDOWN state");
 		goto done;
@@ -956,7 +956,7 @@ uint32_t avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 	case true:		/* => terminate the su */
 		TRACE("SU term state is set to true");
 		/* no si must be assigned to the su */
-		assert(!m_NCS_DBLIST_FIND_FIRST(&su->si_list));
+		osafassert(!m_NCS_DBLIST_FIND_FIRST(&su->si_list));
 
 		/* Mark SU as terminated by admn operation */
 		TRACE("Marking SU as terminated by admin operation");
@@ -1018,7 +1018,7 @@ uint32_t avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 				avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
 				m_AVND_SU_ALL_TERM_RESET(su);
 			} else
-				assert(0);
+				osafassert(0);
 		}
 		break;
 	}			/* switch */
@@ -1226,7 +1226,7 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 		TRACE("NPI SU :'%s'",su->name.value);
 		/* get the only si */
 		si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-		assert(si);
+		osafassert(si);
 
 		/* instantiating -> instantiated */
 		if ((SA_AMF_PRESENCE_INSTANTIATING == prv_st) && (SA_AMF_PRESENCE_INSTANTIATED == final_st)) {
@@ -1350,7 +1350,7 @@ uint32_t avnd_su_pres_uninst_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 		TRACE("NPI SU:'%s'",su->name.value);
 		/* get the only si rec */
 		si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-		assert(si);
+		osafassert(si);
 
 		csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
 		if (csi) {
@@ -1512,7 +1512,7 @@ uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		TRACE("NPI SU");
 		/* get the only csi rec */
 		curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-		assert(curr_csi);
+		osafassert(curr_csi);
 
 		/* mark the csi state assigned */
 		m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
@@ -1606,7 +1606,7 @@ uint32_t avnd_su_pres_insting_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 		TRACE("NPI SU:'%s'", su->name.value);
 		/* get the only si rec */
 		si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-		assert(si);
+		osafassert(si);
 
 		for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&si->csi_list);
 		     curr_csi; curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_PREV(&curr_csi->si_dll_node)) {
@@ -1676,9 +1676,9 @@ uint32_t avnd_su_pres_inst_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *com
 		TRACE("NPI SU:'%s'",su->name.value);
 		/* get the only si rec */
 		si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-		assert(si);
+		osafassert(si);
 		csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&si->csi_list);
-		assert(csi);
+		osafassert(csi);
 
 		/* mark the csi state assigning/removing */
 		if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVING(si))
@@ -1752,7 +1752,7 @@ uint32_t avnd_su_pres_inst_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 		TRACE("NPI SU:'%s'",su->name.value);
 		/* get the only si rec */
 		si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-		assert(si);
+		osafassert(si);
 
 		csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
 		if (csi) {
@@ -1939,7 +1939,7 @@ uint32_t avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 		TRACE("NPI SU");
 		/* get the only si rec */
 		si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-		assert(si);
+		osafassert(si);
 
 		for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
 		     curr_csi; curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
@@ -2066,7 +2066,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 		TRACE("NPI SU");
 		/* get the only csi rec */
 		curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-		assert(curr_csi);
+		osafassert(curr_csi);
 
 		/* mark the csi state assigned/removed */
 		if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVING(curr_csi->si))
@@ -2225,7 +2225,7 @@ uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		TRACE("NPI SU:'%s'", su->name.value);
 		/* get the only csi rec */
 		curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-		assert(curr_csi);
+		osafassert(curr_csi);
 
 		/* mark the csi state assigned */
 		m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
@@ -2408,7 +2408,7 @@ uint32_t avnd_su_pres_inst_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
 	if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		/* get the only si rec */
 		si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-		assert(si);
+		osafassert(si);
 
 		for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
 		     curr_csi; curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {

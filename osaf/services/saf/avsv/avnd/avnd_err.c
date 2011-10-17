@@ -409,7 +409,7 @@ uint32_t avnd_err_escalate(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t *
 
 	case AVSV_ERR_RCVR_SU_RESTART:
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}			/* switch */
 
@@ -530,7 +530,7 @@ uint32_t avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t rc
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 	TRACE_LEAVE();
@@ -854,7 +854,7 @@ uint32_t avnd_err_su_repair(AVND_CB *cb, AVND_SU *su)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-	assert(m_AVND_SU_IS_FAILED(su));
+	osafassert(m_AVND_SU_IS_FAILED(su));
 
 	/* If the SU is in inst-failed state, do nothing */
 	if (su->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED)
@@ -945,7 +945,7 @@ uint32_t avnd_err_esc_comp_restart(AVND_CB *cb, AVND_SU *su, AVSV_ERR_RCVR *esc_
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_ERR_ESC_LEVEL);

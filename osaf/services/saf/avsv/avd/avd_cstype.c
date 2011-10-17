@@ -27,7 +27,7 @@ static NCS_PATRICIA_TREE cstype_db;
 static void cstype_add_to_model(avd_cstype_t *cst)
 {
 	unsigned int rc = ncs_patricia_tree_add(&cstype_db, &cst->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 static avd_cstype_t *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
@@ -69,7 +69,7 @@ static void cstype_delete(avd_cstype_t *cst)
 	int i = 0;
 
 	rc = ncs_patricia_tree_del(&cstype_db, &cst->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 
 	if (cst->saAmfCSAttrName != NULL) {
 		while ((p = cst->saAmfCSAttrName[i++]) != NULL) {
@@ -118,7 +118,7 @@ void avd_cstype_remove_csi(AVD_CSI *csi)
 
 		if (i_csi != csi) {
 			/* Log a fatal error */
-			assert(0);
+			osafassert(0);
 		} else {
 			if (prev_csi == NULL) {
 				csi->cstype->list_of_csi = csi->csi_list_cs_type_next;
@@ -247,7 +247,7 @@ static SaAisErrorT cstype_ccb_completed_hdlr(CcbUtilOperationData_t *opdata)
 		rc = SA_AIS_OK;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -264,14 +264,14 @@ static void cstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		cst = cstype_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(cst);
+		osafassert(cst);
 		cstype_add_to_model(cst);
 		break;
 	case CCBUTIL_DELETE:
 		cstype_delete(opdata->userData);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 }
@@ -281,7 +281,7 @@ void avd_cstype_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&cstype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&cstype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfCSType", NULL, NULL, cstype_ccb_completed_hdlr, cstype_ccb_apply_cb);
 	avd_class_impl_set("SaAmfCSBaseType", NULL, NULL, avd_imm_default_OK_completed_cb, NULL);

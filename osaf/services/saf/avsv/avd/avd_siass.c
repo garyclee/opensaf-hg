@@ -221,7 +221,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 					break;
 			}
 
-			assert(i_su_rank_rec);
+			osafassert(i_su_rank_rec);
 
 			rank1 = su_rank_rec->indx.su_rank;
 			rank2 = i_su_rank_rec->indx.su_rank;
@@ -532,7 +532,7 @@ void avd_susi_ha_state_set(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 {
 	SaAmfHAStateT old_state = susi->state;
 
-	assert(ha_state <= SA_AMF_HA_QUIESCING);
+	osafassert(ha_state <= SA_AMF_HA_QUIESCING);
 	TRACE_ENTER2("'%s' %s => %s", susi->si->name.value, avd_ha_state[susi->state],
 			avd_ha_state[ha_state]);
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s HA State %s => %s", susi->si->name.value,

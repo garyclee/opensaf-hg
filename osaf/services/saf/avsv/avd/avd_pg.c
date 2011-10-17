@@ -98,7 +98,7 @@ void avd_pg_trk_act_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			break;
 
 		default:
-			assert(0);
+			osafassert(0);
 		}		/* switch */
 	}
 

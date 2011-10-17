@@ -38,7 +38,7 @@ AVD_APP_TYPE *avd_apptype_get(const SaNameT *dn)
 static void apptype_delete(AVD_APP_TYPE **apptype)
 {
 	unsigned int rc = ncs_patricia_tree_del(&apptype_db, &(*apptype)->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	free((*apptype)->sgAmfApptSGTypes);
 	free(*apptype);
 	*apptype = NULL;
@@ -48,10 +48,10 @@ static void apptype_add_to_model(AVD_APP_TYPE *app_type)
 {
 	unsigned int rc;
 
-	assert(app_type != NULL);
+	osafassert(app_type != NULL);
 	TRACE("'%s'", app_type->name.value);
 	rc = ncs_patricia_tree_add(&apptype_db, &app_type->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes,
@@ -77,8 +77,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		if (!strcmp(attr->attrName, "saAmfApptSGTypes"))
 			break;
 
-	assert(attr);
-	assert(attr->attrValuesNumber > 0);
+	osafassert(attr);
+	osafassert(attr->attrValuesNumber > 0);
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
 		SaNameT *name = (SaNameT *)attr->attrValues[j];
@@ -122,8 +122,8 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 		if (!strcmp(attr->attrName, "saAmfApptSGTypes"))
 			break;
 
-	assert(attr);
-	assert(attr->attrValuesNumber > 0);
+	osafassert(attr);
+	osafassert(attr->attrValuesNumber > 0);
 
 	app_type->no_sg_types = attr->attrValuesNumber;
 	app_type->sgAmfApptSGTypes = malloc(attr->attrValuesNumber * sizeof(SaNameT));
@@ -182,7 +182,7 @@ static SaAisErrorT apptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = SA_AIS_OK;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 done:
@@ -198,7 +198,7 @@ static void apptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		app_type = apptype_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(app_type);
+		osafassert(app_type);
 		apptype_add_to_model(app_type);
 		break;
 	case CCBUTIL_DELETE:
@@ -206,7 +206,7 @@ static void apptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		apptype_delete(&app_type);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 			break;
 	}
 }
@@ -295,7 +295,7 @@ void avd_apptype_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&apptype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&apptype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfAppBaseType", NULL, NULL, avd_imm_default_OK_completed_cb, NULL);
 	avd_class_impl_set("SaAmfAppType", NULL, NULL, apptype_ccb_completed_cb, apptype_ccb_apply_cb);

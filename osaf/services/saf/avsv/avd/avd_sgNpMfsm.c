@@ -332,7 +332,7 @@ static AVD_SU* avd_sg_npm_get_least_su(AVD_SG *sg, SaAmfHAStateT ha_state)
 
 	}
 	else
-		assert(0);
+		osafassert(0);
 
 done:
 	return pref_su;
@@ -987,7 +987,7 @@ uint32_t avd_sg_npm_si_func(AVD_CL_CB *cb, AVD_SI *si)
 uint32_t avd_sg_npm_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 {
 	TRACE_ENTER2("%u", si->sg_of_si->sg_fsm_state);
-	assert(0);
+	osafassert(0);
 //	return avd_sg_2n_siswitch_func(cb, si);
 	return 0;
 }
@@ -1308,7 +1308,7 @@ static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 
                                         susi = avd_su_susi_find(avd_cb, su->sg_of_su->max_assigned_su,
                                                                 &su->sg_of_su->si_tobe_redistributed->name);
-                                        assert(susi);
+                                        osafassert(susi);
 
                                         old_ha_state = susi->state;
                                         old_susi_state = susi->fsm;
@@ -3772,7 +3772,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 
                                         susi = avd_su_susi_find(avd_cb, su->sg_of_su->max_assigned_su,
                                                                 &su->sg_of_su->si_tobe_redistributed->name);
-                                        assert(susi);
+                                        osafassert(susi);
 
                                         old_ha_state = susi->state;
                                         old_susi_state = susi->fsm;

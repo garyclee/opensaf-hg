@@ -1509,7 +1509,7 @@ static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 
 	TRACE_ENTER2("'%s' act=%u, state=%u", su->name.value, act, state);
 
-	assert(susi == NULL);
+	osafassert(susi == NULL);
 
 	if (su->list_of_susi == AVD_SU_SI_REL_NULL) {
 		TRACE("no assignments");
@@ -1643,7 +1643,7 @@ static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 		m_AVD_SET_SG_FSM(cb, su->sg_of_su, AVD_SG_FSM_STABLE);
 		/* find the SI on which SWAP admin operation is pending */
 		for (l_susi = su->list_of_susi; l_susi != NULL && l_susi->si->invocation == 0; l_susi = l_susi->su_next);
-		assert(l_susi != NULL);
+		osafassert(l_susi != NULL);
 		immutil_saImmOiAdminOperationResult(cb->immOiHandle, l_susi->si->invocation, SA_AIS_OK);
 		l_susi->si->invocation = 0;
 		LOG_NO("%s Swap done", l_susi->si->name.value);

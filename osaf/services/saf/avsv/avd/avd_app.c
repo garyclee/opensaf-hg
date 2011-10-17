@@ -33,7 +33,7 @@ void avd_app_db_add(AVD_APP *app)
 
 	if (avd_app_get(&app->name) == NULL) {
 		rc = ncs_patricia_tree_add(&app_db, &app->tree_node);
-		assert(rc == NCSCC_RC_SUCCESS);
+		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
 
@@ -56,7 +56,7 @@ AVD_APP *avd_app_new(const SaNameT *dn)
 void avd_app_delete(AVD_APP *app)
 {
 	unsigned int rc = ncs_patricia_tree_del(&app_db, &app->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
 	avd_apptype_remove_app(app);
 	free(app);
@@ -95,7 +95,7 @@ static void app_add_to_model(AVD_APP *app)
 	avd_app_db_add(app);
 	/* Find application type and make a link with app type */
 	app->app_type = avd_apptype_get(&app->saAmfAppType);
-	assert(app->app_type);
+	osafassert(app->app_type);
 	avd_apptype_add_app(app);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
@@ -127,7 +127,7 @@ void avd_app_remove_si(AVD_APP *app, AVD_SI *si)
 	
 	if (i_si != si) {
 		/* Log a fatal error */
-		assert(0);
+		osafassert(0);
 	} else {
 		if (prev_si == NULL) {
 			app->list_of_si = si->si_list_app_next;
@@ -166,7 +166,7 @@ void avd_app_remove_sg(AVD_APP *app, AVD_SG *sg)
 	
 	if (i_sg != sg) {
 		/* Log a fatal error */
-		assert(0);
+		osafassert(0);
 	} else {
 		if (prev_sg == NULL) {
 			app->list_of_sg = sg->sg_list_app_next;
@@ -175,7 +175,7 @@ void avd_app_remove_sg(AVD_APP *app, AVD_SG *sg)
 		}
 	}
 
-	assert(app->saAmfApplicationCurrNumSGs > 0);
+	osafassert(app->saAmfApplicationCurrNumSGs > 0);
 	app->saAmfApplicationCurrNumSGs--;
 	if (avd_cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_4)
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
@@ -197,7 +197,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	rc = immutil_getAttr("saAmfAppType", attributes, 0, &aname);
-	assert(rc == SA_AIS_OK);
+	osafassert(rc == SA_AIS_OK);
 
 	if (avd_apptype_get(&aname) == NULL) {
 		/* App type does not exist in current model, check CCB */
@@ -240,7 +240,7 @@ AVD_APP *avd_app_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes
 		TRACE("already created, refreshing config...");
 
 	error = immutil_getAttr("saAmfAppType", attributes, 0, &app->saAmfAppType);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 	
 	if (immutil_getAttr("saAmfApplicationAdminState", attributes, 0, &app->saAmfApplicationAdminState) != SA_AIS_OK) {
 		/* Empty, assign default value */
@@ -284,7 +284,7 @@ static SaAisErrorT app_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 				rc = SA_AIS_OK;
 				break;
 			} else
-				assert(0);
+				osafassert(0);
 		}
 		break;
 	case CCBUTIL_DELETE:
@@ -294,7 +294,7 @@ static SaAisErrorT app_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = SA_AIS_OK;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -313,7 +313,7 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		app = avd_app_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(app);
+		osafassert(app);
 		app_add_to_model(app);
 		break;
 	case CCBUTIL_MODIFY: {
@@ -333,7 +333,7 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 				break;
 			}
 			else
-				assert(0);
+				osafassert(0);
 		}
 		break;
 	}
@@ -343,12 +343,12 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		 * app object should have been *DELETED* just  
 		 * do a sanity check here
 		 */
-		assert(app->list_of_sg == NULL);
-		assert(app->list_of_si == NULL);
+		osafassert(app->list_of_sg == NULL);
+		osafassert(app->list_of_si == NULL);
 		avd_app_delete(app);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	TRACE_LEAVE();
@@ -366,7 +366,7 @@ static void app_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation
 
 	/* Find the app name. */
 	app = avd_app_get(object_name);
-	assert(app != NULL);
+	osafassert(app != NULL);
 
 	if (op_id == SA_AMF_ADMIN_UNLOCK) {
 		if (app->saAmfApplicationAdminState == SA_AMF_ADMIN_UNLOCKED) {
@@ -427,7 +427,7 @@ static SaAisErrorT app_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	int i = 0;
 
 	TRACE_ENTER2("%s", objectName->value);
-	assert(app != NULL);
+	osafassert(app != NULL);
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
 		TRACE("Attribute %s", attributeName);
@@ -435,7 +435,7 @@ static SaAisErrorT app_rt_attr_cb(SaImmOiHandleT immOiHandle,
 			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
 				SA_IMM_ATTR_SAUINT32T, &app->saAmfApplicationCurrNumSGs);
 		} else
-			assert(0);
+			osafassert(0);
 	}
 
 	return SA_AIS_OK;
@@ -496,7 +496,7 @@ void avd_app_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&app_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&app_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfApplication", app_rt_attr_cb, app_admin_op_cb,
 		app_ccb_completed_cb, app_ccb_apply_cb);

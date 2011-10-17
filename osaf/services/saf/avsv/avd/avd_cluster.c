@@ -57,7 +57,7 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	TRACE_ENTER();
 	saflog(LOG_NOTICE, amfSvcUsrName, "Cluster startup timeout, assigning SIs to SUs");
 
-	assert(evt->info.tmr.type == AVD_TMR_CL_INIT);
+	osafassert(evt->info.tmr.type == AVD_TMR_CL_INIT);
 
 	if (avd_cluster->saAmfClusterAdminState != SA_AMF_ADMIN_UNLOCKED) {
 		LOG_WA("Admin state of cluster is locked");
@@ -167,7 +167,7 @@ static SaAisErrorT cluster_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		goto done;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -187,7 +187,7 @@ static void cluster_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_DELETE:
 		/* fall through */
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 }

@@ -1112,7 +1112,7 @@ static bool avnd_comp_cap_x_act_or_1_act_check(SaNameT *comp_type, SaNameT *csi_
 	}
 
 	if (immutil_getAttr("saAmfCtCompCapability", attributes, 0, &comp_cap) != SA_AIS_OK)
-		assert(0);
+		osafassert(0);
 
 	if((SA_AMF_COMP_X_ACTIVE == comp_cap) || (SA_AMF_COMP_1_ACTIVE == comp_cap))
 		rc = true;
@@ -1509,7 +1509,7 @@ uint32_t avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
-	assert(m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp));
+	osafassert(m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp));
 
 	/* check whether previous assign state was assignig and the operation was target_all
 	 * if it was target all, we will reassign csi with target_all flag  
@@ -1716,7 +1716,7 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 	 * csi-done indication is only generated for pi su.. 
 	 * for npi su, su fsm takes care of the individual csi assignments.
 	 */
-	assert(m_AVND_SU_IS_PREINSTANTIABLE(comp->su));
+	osafassert(m_AVND_SU_IS_PREINSTANTIABLE(comp->su));
 
 	/* delete any pending cbk rec for csi assignment / removal */
 	avnd_comp_cbq_csi_rec_del(cb, comp, (csi) ? &csi->name : 0);
@@ -1827,7 +1827,7 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 	 * csi-remove indication is only generated for pi su.. 
 	 * for npi su, su fsm takes care of the individual csi removal.
 	 */
-	assert(m_AVND_SU_IS_PREINSTANTIABLE(comp->su));
+	osafassert(m_AVND_SU_IS_PREINSTANTIABLE(comp->su));
 
 	/* delete any pending cbk rec for csi assignment / removal */
 	avnd_comp_cbq_csi_rec_del(cb, comp, (csi) ? &csi->name : 0);
@@ -2211,7 +2211,7 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 		break;
 	case AVSV_AMF_PG_TRACK:
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	/* determine the send params (mds-dest, hdl & per) */
@@ -2458,7 +2458,7 @@ uint32_t avnd_comp_proxied_del(AVND_CB *cb,
 	} else
 		rec = rec_to_be_deleted;
 	/* rec has to be there */
-	assert(rec);
+	osafassert(rec);
 
 	/*remove the association between proxy and proxied */
 	comp->pxy_comp = 0;
@@ -2603,7 +2603,7 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 		if (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(rec->pxied_comp))
 			rc = avnd_comp_clc_fsm_run(cb, rec->pxied_comp, AVND_COMP_CLC_PRES_FSM_EV_ORPH);
 
-		assert(rec->pxied_comp);
+		osafassert(rec->pxied_comp);
 
 		/* remove the association between proxy and proxied */
 		rec->pxied_comp->pxy_comp = 0;
@@ -2840,7 +2840,7 @@ uint32_t avnd_evt_comp_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 	cb->rcv_msg_id = info->msg_id;
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, info->dn);
-	assert( comp != NULL);
+	osafassert( comp != NULL);
 
 	switch(info->oper_id) {
 	case SA_AMF_ADMIN_RESTART:
@@ -2888,7 +2888,7 @@ static SaAisErrorT  avnd_validate_comp_and_createdb(AVND_CB *cb, SaNameT *comp_d
 
 	memset(&su_dn, 0, sizeof(SaNameT));
         p = strstr((char*)comp_dn->value, "safSu");
-        assert(p);
+        osafassert(p);
         su_dn.length = strlen(p);
         memcpy(su_dn.value, p, comp_dn->length);
 
@@ -2913,7 +2913,7 @@ void avnd_comp_pres_state_set(AVND_COMP *comp, SaAmfPresenceStateT newstate)
 {
 	SaAmfPresenceStateT prv_st = comp->pres;
 
-	assert(newstate <= SA_AMF_PRESENCE_TERMINATION_FAILED);
+	osafassert(newstate <= SA_AMF_PRESENCE_TERMINATION_FAILED);
 	LOG_IN("'%s' Presence State %s => %s", comp->name.value,
 		presence_state[comp->pres], presence_state[newstate]);
 	comp->pres = newstate;

@@ -285,7 +285,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				else {
 					/* We shouldn't get into this situation.*/
 					LOG_ER("Wrong rootCauseEntity %s",rootCauseEntity->value);
-					assert(0);
+					osafassert(0);
 				}
 			}
 			else if(notifItem->clusterChange == SA_CLM_NODE_RECONFIGURED) {
@@ -349,7 +349,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 			LOG_NO("ClmTrackCallback ABORTED_STEP" );
 			break;
 		default:
-			assert(0);
+			osafassert(0);
 		}
 	}
 done:

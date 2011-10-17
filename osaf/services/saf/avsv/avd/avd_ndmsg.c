@@ -118,7 +118,7 @@ uint32_t avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
 	dst_msg = malloc(sizeof(AVSV_DND_MSG));
 	if (dst_msg == AVD_DND_MSG_NULL) {
 		LOG_ER("malloc failed");
-		assert(0);
+		osafassert(0);
 	}
 
 	if (NCSCC_RC_SUCCESS != avsv_dnd_msg_copy(dst_msg, (AVSV_DND_MSG *)cpy_info->i_msg)) {
@@ -205,7 +205,7 @@ static void avd_d2n_msg_enqueue(AVD_CL_CB *cb, NCSMDS_INFO *snd_mds)
 	 */
 	if (NULL == (nd_msg = calloc(1, sizeof(AVSV_ND_MSG_QUEUE)))) {
 		LOG_ER("%s: calloc failed", __FUNCTION__);
-		assert(0);
+		osafassert(0);
 	}
 
 	memcpy(&nd_msg->snd_msg, snd_mds, sizeof(NCSMDS_INFO));
@@ -360,7 +360,7 @@ uint32_t avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt
 	evt = calloc(1, sizeof(AVD_EVT));
 	if (evt == AVD_EVT_NULL) {
 		LOG_ER("calloc failed");
-		assert(0);
+		osafassert(0);
 	}
 
 	if (node_id == cb->node_id_avd_other) {

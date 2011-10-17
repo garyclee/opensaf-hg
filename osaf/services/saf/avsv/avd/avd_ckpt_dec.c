@@ -255,12 +255,12 @@ static uint32_t avsv_decode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_
 
 	TRACE_ENTER();
 
-	assert(dec->i_action == NCS_MBCSV_ACT_UPDATE);
+	osafassert(dec->i_action == NCS_MBCSV_ACT_UPDATE);
 
 	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cluster,
 		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CLUSTER **)&cluster, &ederror,
 		dec->i_peer_version);
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	avd_cluster->saAmfClusterAdminState = cluster->saAmfClusterAdminState;
 
@@ -314,7 +314,7 @@ static uint32_t avsv_decode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -374,7 +374,7 @@ static uint32_t avsv_decode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_APP **)&app, &ederror, 1, 1);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -435,7 +435,7 @@ static uint32_t avsv_decode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 1, 1);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -496,7 +496,7 @@ static uint32_t avsv_decode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 1, 1);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -560,7 +560,7 @@ static uint32_t avsv_decode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -636,7 +636,7 @@ static uint32_t avsv_decode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -698,7 +698,7 @@ static uint32_t avsv_decode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -761,7 +761,7 @@ static uint32_t avsv_decode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -817,7 +817,7 @@ static uint32_t avsv_decode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 
 	case NCS_MBCSV_ACT_UPDATE:
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -919,7 +919,7 @@ static uint32_t avsv_decode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
 			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 3, 8);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
 		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd_ptr->name.value);
@@ -966,7 +966,7 @@ static uint32_t avsv_decode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
 			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 3, 9);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
 		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd_ptr->name.value);
@@ -1013,7 +1013,7 @@ static uint32_t avsv_decode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
 			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 3, 10);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
 		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd_ptr->name.value);
@@ -1059,7 +1059,7 @@ static uint32_t avsv_decode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
 			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 12);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
 		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
@@ -1106,7 +1106,7 @@ static uint32_t avsv_decode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
 			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 13);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
 		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
@@ -1153,10 +1153,10 @@ static uint32_t avsv_decode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 2);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	sg_struct->saAmfSGAdminState = sg_ptr->saAmfSGAdminState;
@@ -1197,10 +1197,10 @@ static uint32_t avsv_decode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 3);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	sg_struct->saAmfSGNumCurrAssignedSUs = sg_ptr->saAmfSGNumCurrAssignedSUs;
@@ -1242,10 +1242,10 @@ static uint32_t avsv_decode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 4);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	sg_struct->saAmfSGNumCurrInstantiatedSpareSUs = sg_ptr->saAmfSGNumCurrInstantiatedSpareSUs;
@@ -1287,10 +1287,10 @@ static uint32_t avsv_decode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 5);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	sg_struct->saAmfSGNumCurrNonInstantiatedSpareSUs = sg_ptr->saAmfSGNumCurrNonInstantiatedSpareSUs;
@@ -1332,10 +1332,10 @@ static uint32_t avsv_decode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 6);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	sg_struct->adjust_state = sg_ptr->adjust_state;
@@ -1377,10 +1377,10 @@ static uint32_t avsv_decode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 7);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	sg_struct->sg_fsm_state = sg_ptr->sg_fsm_state;
@@ -1422,10 +1422,10 @@ static uint32_t avsv_decode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 2);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->saAmfSUPreInstantiable = su_ptr->saAmfSUPreInstantiable;
@@ -1467,10 +1467,10 @@ static uint32_t avsv_decode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 3);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->saAmfSUOperState = su_ptr->saAmfSUOperState;
@@ -1512,10 +1512,10 @@ static uint32_t avsv_decode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 4);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->saAmfSUAdminState = su_ptr->saAmfSUAdminState;
@@ -1557,10 +1557,10 @@ static uint32_t avsv_decode_ckpt_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 5);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->saAmfSuReadinessState = su_ptr->saAmfSuReadinessState;
@@ -1602,10 +1602,10 @@ static uint32_t avsv_decode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 6);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->saAmfSUPresenceState = su_ptr->saAmfSUPresenceState;
@@ -1647,10 +1647,10 @@ static uint32_t avsv_decode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_D
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 8);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->saAmfSUNumCurrActiveSIs = su_ptr->saAmfSUNumCurrActiveSIs;
@@ -1691,10 +1691,10 @@ static uint32_t avsv_decode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 9);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->saAmfSUNumCurrStandbySIs = su_ptr->saAmfSUNumCurrStandbySIs;
@@ -1736,10 +1736,10 @@ static uint32_t avsv_decode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 	   &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 11);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->term_state = su_ptr->term_state;
@@ -1780,10 +1780,10 @@ static uint32_t avsv_decode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 12);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->su_switch = su_ptr->su_switch;
@@ -1825,10 +1825,10 @@ static uint32_t avsv_decode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 13);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->su_act_state = su_ptr->su_act_state;
@@ -1870,10 +1870,10 @@ static uint32_t avsv_decode_ckpt_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 10);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->saAmfSURestartCount = su_ptr->saAmfSURestartCount;
@@ -1915,10 +1915,10 @@ static uint32_t avsv_decode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 2);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	si_struct->saAmfSIAdminState = si_ptr_dec->saAmfSIAdminState;
@@ -1960,10 +1960,10 @@ static uint32_t avsv_decode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 3);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	si_struct->saAmfSIAssignmentState = si_ptr_dec->saAmfSIAssignmentState;
@@ -2003,10 +2003,10 @@ static uint32_t avsv_decode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_D
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 4);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (si = avd_si_get(&si_ptr_dec->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	si->saAmfSINumCurrActiveAssignments = si_ptr_dec->saAmfSINumCurrActiveAssignments;
@@ -2047,10 +2047,10 @@ static uint32_t avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 5);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (si = avd_si_get(&si_ptr_dec->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	si->saAmfSINumCurrStandbyAssignments = si_ptr_dec->saAmfSINumCurrStandbyAssignments;
@@ -2093,10 +2093,10 @@ static uint32_t avsv_decode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 6);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	si_struct->si_switch = si_ptr_dec->si_switch;
@@ -2136,10 +2136,10 @@ static uint32_t avsv_decode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 8);
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	si_struct->alarm_sent = si_ptr_dec->alarm_sent;
@@ -2182,10 +2182,10 @@ static uint32_t avsv_decode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_C
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 6);
 
 	if (status != NCSCC_RC_SUCCESS)
-		assert(0);
+		osafassert(0);
 
 	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name)))
-		assert(0);
+		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
 	comp_struct->saAmfCompCurrProxyName = comp_ptr->saAmfCompCurrProxyName;
@@ -2228,7 +2228,7 @@ static uint32_t avsv_decode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV
 	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 32);
 
 	if (status != NCSCC_RC_SUCCESS)
-		assert(0);
+		osafassert(0);
 
 	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
 		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
@@ -2574,7 +2574,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV
 	 */
 	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cb, &dec->i_uba,
 				    EDP_OP_TYPE_DEC, (AVD_CL_CB **)&cb_ptr, &ederror, dec->i_peer_version);
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -2606,7 +2606,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb,
 	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cluster,
 		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CLUSTER **)&cluster, &ederror,
 		dec->i_peer_version);
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 	avd_cluster->saAmfClusterAdminState = cluster->saAmfClusterAdminState;
 
 	return NCSCC_RC_SUCCESS;
@@ -2645,9 +2645,9 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBC
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror,
 					    dec->i_peer_version);
-		assert(status == NCSCC_RC_SUCCESS);
+		osafassert(status == NCSCC_RC_SUCCESS);
 		status = avd_ckpt_node(cb, avnd_ptr, dec->i_action);
-		assert(status == NCSCC_RC_SUCCESS);
+		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
 	return status;
@@ -2684,9 +2684,9 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCS
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_app,
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_APP **)&app, &ederror,
 					    dec->i_peer_version);
-		assert(status == NCSCC_RC_SUCCESS);
+		osafassert(status == NCSCC_RC_SUCCESS);
 		status = avd_ckpt_app(cb, app, dec->i_action);
-		assert(status == NCSCC_RC_SUCCESS);
+		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
 	return status;
@@ -2725,9 +2725,9 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror,
 					    dec->i_peer_version);
-		assert(status == NCSCC_RC_SUCCESS);
+		osafassert(status == NCSCC_RC_SUCCESS);
 		status = avd_ckpt_sg(cb, sg_ptr, dec->i_action);
-		assert(status == NCSCC_RC_SUCCESS);
+		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
 	return status;
@@ -2766,9 +2766,9 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror,
 					    dec->i_peer_version);
-		assert(status == NCSCC_RC_SUCCESS);
+		osafassert(status == NCSCC_RC_SUCCESS);
 		status = avd_ckpt_su(cb, su_ptr, dec->i_action);
-		assert(status == NCSCC_RC_SUCCESS);
+		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
 	return status;
@@ -2808,9 +2808,9 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror,
 					    dec->i_peer_version);
 
-		assert(status == NCSCC_RC_SUCCESS);
+		osafassert(status == NCSCC_RC_SUCCESS);
 		status = avd_ckpt_si(cb, si_ptr_dec, dec->i_action);
-		assert(status == NCSCC_RC_SUCCESS);
+		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
 	return status;
@@ -3114,7 +3114,7 @@ uint32_t avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 		cb->stby_sync_state = AVD_STBY_OUT_OF_SYNC;
                 /* We need to figure out when there is out of sync, later on we have to remove it. */
-		assert(0);
+		osafassert(0);
 
 		/*
 		 * Remove All data structures from the standby. We will get them again
@@ -3303,10 +3303,10 @@ static uint32_t avsv_decode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCS
 			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMPCS_TYPE **)&comp_cs, &ederror, 1, 1);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
-	assert(status == NCSCC_RC_SUCCESS);
+	osafassert(status == NCSCC_RC_SUCCESS);
 	status = avd_ckpt_compcstype(cb, comp_cs, dec->i_action);
 
 	/* If update is successful, update async update count */
@@ -3345,9 +3345,9 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb,
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMPCS_TYPE **)&comp_cs_ptr, &ederror,
 					    dec->i_peer_version);
 
-		assert(status == NCSCC_RC_SUCCESS);
+		osafassert(status == NCSCC_RC_SUCCESS);
 		status = avd_ckpt_compcstype(cb, comp_cs_ptr, dec->i_action);
-		assert(status == NCSCC_RC_SUCCESS);
+		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
 	return status;

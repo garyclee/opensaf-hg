@@ -50,7 +50,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	path_prefix = immutil_getStringAttr(attributes, "saAmfNodeSwBundlePathPrefix", 0);
-	assert(path_prefix);
+	osafassert(path_prefix);
 
 	if (path_prefix[0] != '/') {
 		LOG_ER("Invalid absolute path '%s' for '%s' ", path_prefix, dn->value);
@@ -141,7 +141,7 @@ static SaAisErrorT nodeswbdl_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_OK;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -159,7 +159,7 @@ static void nodeswbdl_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_DELETE:
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	TRACE_LEAVE();

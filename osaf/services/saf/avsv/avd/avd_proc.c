@@ -396,7 +396,7 @@ static int retval_to_polltmo(AvdJobDequeueResultT job_exec_result)
 		polltmo = -1;  // Infinite timeout
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -411,7 +411,7 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 {
 	AVD_CL_CB *cb = avd_cb;
 
-	assert(cb->avd_fover_state == true);
+	osafassert(cb->avd_fover_state == true);
 
 	TRACE_ENTER();
 
@@ -562,7 +562,7 @@ void avd_main_proc(void)
 			} else if (false == cb->avd_fover_state) {
 				avd_process_event(cb, evt);
 			} else
-				assert(0);
+				osafassert(0);
 		}
 
 		if (fds[FD_MBCSV].revents & POLLIN) {
@@ -688,7 +688,7 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 		avd_d2n_msg_dequeue(cb_now);
 
 	} else
-		assert(0);
+		osafassert(0);
 
 	/* reset the sync falg */
 	cb_now->sync_required = true;

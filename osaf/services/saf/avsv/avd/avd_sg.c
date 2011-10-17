@@ -38,14 +38,14 @@ void avd_sg_db_add(AVD_SG *sg)
 
 	if (avd_sg_get(&sg->name) == NULL) {
 		rc = ncs_patricia_tree_add(&sg_db, &sg->tree_node);
-		assert(rc == NCSCC_RC_SUCCESS);
+		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
 
 void avd_sg_db_remove(AVD_SG *sg)
 {
 	unsigned int rc = ncs_patricia_tree_del(&sg_db, &sg->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 /**
@@ -69,7 +69,7 @@ static void sg_add_to_model(AVD_SG *sg)
 
 	avd_sg_db_add(sg);
 	sg->sg_type = avd_sgtype_get(&sg->saAmfSGType);
-	assert(sg->sg_type);
+	osafassert(sg->sg_type);
 	avd_sgtype_add_sg(sg);
 	avd_app_add_sg(sg->app, sg);
 
@@ -117,8 +117,8 @@ AVD_SG *avd_sg_new(const SaNameT *dn)
 void avd_sg_delete(AVD_SG *sg)
 {
 	/* by now SU and SI should have been deleted */ 
-	assert(sg->list_of_su == NULL);
-	assert(sg->list_of_si == NULL);
+	osafassert(sg->list_of_su == NULL);
+	osafassert(sg->list_of_si == NULL);
 	sg_remove_from_model(sg);
 	free(sg);
 }
@@ -220,7 +220,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	rc = immutil_getAttr("saAmfSGType", attributes, 0, &aname);
-	assert(rc == SA_AIS_OK);
+	osafassert(rc == SA_AIS_OK);
 
 	if (avd_sgtype_get(&aname) == NULL) {
 		if (opdata == NULL) {
@@ -283,10 +283,10 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 
 
 	error = immutil_getAttr("saAmfSGType", attributes, 0, &sg->saAmfSGType);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 
 	sgt = avd_sgtype_get(&sg->saAmfSGType);
-	assert(sgt);
+	osafassert(sgt);
 	sg->sg_type = sgt;
 
 	(void)immutil_getAttr("saAmfSGSuHostNodeGroup", attributes, 0, &sg->saAmfSGSuHostNodeGroup);
@@ -434,7 +434,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	int i = 0;
 
 	avd_sg = avd_sg_get(&opdata->objectName);
-	assert(avd_sg != NULL);
+	osafassert(avd_sg != NULL);
 
 	/* Validate whether we can modify it. */
 
@@ -472,7 +472,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartProb")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartMax")) {
 			} else {
-				assert(0);
+				osafassert(0);
 			}
 		}		/* while (attr_mod != NULL) */
 	} else if (avd_sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
@@ -503,7 +503,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartProb")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartMax")) {
 			} else {
-				assert(0);
+				osafassert(0);
 			}
 		}		/* while (attr_mod != NULL) */
 
@@ -597,7 +597,7 @@ static void sg_nd_attribute_update(AVD_SG *sg, uint32_t attrib_id)
 		break;
 	}
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	/* This value has to be updated on each SU on this SG */
@@ -627,7 +627,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
 	avd_sg = avd_sg_get(&opdata->objectName);
-	assert(avd_sg != NULL);
+	osafassert(avd_sg != NULL);
 
 	/* Validate whether we can modify it. */
 
@@ -644,7 +644,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 				avd_sg->saAmfSGType = sg_type_name;
 				avd_sg_type = avd_sgtype_get(&sg_type_name);
-				assert(NULL != avd_sg_type);
+				osafassert(NULL != avd_sg_type);
 
 				/* Fill the relevant values from sg_type. */
 				avd_sg->saAmfSGAutoRepair = avd_sg_type->saAmfSgtDefAutoRepair;
@@ -697,7 +697,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				avd_sg->saAmfSGSuRestartMax = *((SaUint32T *)value);
 				sg_nd_attribute_update(avd_sg, saAmfSGSuRestartMax_ID);
 			} else {
-				assert(0);
+				osafassert(0);
 			}
 
 			attr_mod = opdata->param.modify.attrMods[i++];
@@ -742,18 +742,18 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					/* minimum preferred num of su should be 2 in 2N, N+M and NWay 
 					   red models */
 					/* log information error */
-					assert(0);
+					osafassert(0);
 				}
 
 				back_val = avd_sg->saAmfSGNumPrefInserviceSUs;
 				avd_sg->saAmfSGNumPrefInserviceSUs = pref_inservice_su;
 				if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE)  {
 					if (avd_sg_app_su_inst_func(avd_cb, avd_sg) != NCSCC_RC_SUCCESS) {
-						assert(0);
+						osafassert(0);
 					}
 				}
 			} else {
-				assert(0);
+				osafassert(0);
 			}
 
 			attr_mod = opdata->param.modify.attrMods[i++];
@@ -981,7 +981,7 @@ static SaAisErrorT sg_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	int i = 0;
 
 	TRACE_ENTER2("'%s'", objectName->value);
-	assert(sg != NULL);
+	osafassert(sg != NULL);
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
 		if (!strcmp("saAmfSGNumCurrAssignedSUs", attributeName)) {
@@ -994,7 +994,7 @@ static SaAisErrorT sg_rt_attr_cb(SaImmOiHandleT immOiHandle,
 			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
 						       SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGNumCurrInstantiatedSpareSUs);
 		} else
-			assert(0);
+			osafassert(0);
 	}
 
 	return SA_AIS_OK;
@@ -1052,7 +1052,7 @@ static SaAisErrorT sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		opdata->userData = sg;	/* Save for later use in apply */
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 done:
@@ -1075,7 +1075,7 @@ static void sg_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		sg = sg_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(sg);
+		osafassert(sg);
 		sg_add_to_model(sg);
 		break;
 	case CCBUTIL_DELETE:
@@ -1085,7 +1085,7 @@ static void sg_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		ccb_apply_modify_hdlr(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 }
 
@@ -1152,7 +1152,7 @@ void avd_sg_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&sg_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&sg_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfSG", sg_rt_attr_cb, sg_admin_op_cb, sg_ccb_completed_cb, sg_ccb_apply_cb);
 }
@@ -1161,7 +1161,7 @@ void avd_sg_admin_state_set(AVD_SG* sg, SaAmfAdminStateT state)
 {
 	SaAmfAdminStateT old_state = sg->saAmfSGAdminState;
 	
-	assert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
+	osafassert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
 	TRACE_ENTER2("%s AdmState %s => %s", sg->name.value,
 			avd_adm_state_name[old_state], avd_adm_state_name[state]);
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", sg->name.value,
@@ -1225,8 +1225,8 @@ void avd_sg_nwayact_screening_for_si_distr(AVD_SG *avd_sg)
 	AVD_SU_SI_STATE old_state = AVD_SU_SI_STATE_ASGN;
 
 	TRACE_ENTER();
-	assert(true == avd_sg->equal_ranked_su);
-	assert(AVD_SG_FSM_STABLE == avd_sg->sg_fsm_state);
+	osafassert(true == avd_sg->equal_ranked_su);
+	osafassert(AVD_SG_FSM_STABLE == avd_sg->sg_fsm_state);
 	/* Reset Max and Min ptrs. */
 	avd_sg->max_assigned_su = avd_sg->min_assigned_su = NULL;
 	avd_sg->si_tobe_redistributed = NULL;
@@ -1291,8 +1291,8 @@ void avd_sg_nwayact_screening_for_si_distr(AVD_SG *avd_sg)
 			}
 			su_si = su_si->su_next;
 		}/* while (NULL != su_si) */
-		assert(i_si);
-		assert(i_susi);
+		osafassert(i_si);
+		osafassert(i_susi);
 		avd_sg->si_tobe_redistributed = i_si;
 	}
 	/* check point the SI transfer parameters with STANDBY*/

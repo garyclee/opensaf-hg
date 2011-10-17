@@ -59,9 +59,9 @@ void avnd_hcdb_init(AVND_CB *cb)
 	params.key_size = sizeof(SaNameT);
 
 	rc = ncs_patricia_tree_init(&cb->hcdb, &params);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	rc = ncs_patricia_tree_init(&hctypedb, &params);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 /****************************************************************************
@@ -400,13 +400,13 @@ uint32_t avnd_hc_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 
 		switch (param->attr_id) {
 		case saAmfHealthcheckPeriod_ID:
-			assert(sizeof(SaTimeT) == param->value_len);
+			osafassert(sizeof(SaTimeT) == param->value_len);
 			hc->period = *((SaTimeT *)param->value);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_PERIOD);
 			break;
 
 		case saAmfHealthcheckMaxDuration_ID:
-			assert(sizeof(SaTimeT) == param->value_len);
+			osafassert(sizeof(SaTimeT) == param->value_len);
 			hc->max_dur = *((SaTimeT *)param->value);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_MAX_DUR);
 			break;
@@ -421,7 +421,7 @@ uint32_t avnd_hc_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	case AVSV_OBJ_OPR_DEL: {
 		if (hc != NULL) {
 			rc = ncs_patricia_tree_del(&cb->hcdb, &hc->tree_node);
-			assert(rc = NCSCC_RC_SUCCESS);
+			osafassert(rc = NCSCC_RC_SUCCESS);
 			LOG_IN("Deleted '%s'", param->name.value);
 		} else {
 			/* 

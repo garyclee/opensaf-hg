@@ -37,7 +37,7 @@ void avd_compcstype_db_add(AVD_COMPCS_TYPE *cst)
 
 	if (avd_compcstype_get(&cst->name) == NULL) {
 		rc = ncs_patricia_tree_add(&compcstype_db, &cst->tree_node);
-		assert(rc == NCSCC_RC_SUCCESS);
+		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
 
@@ -62,7 +62,7 @@ void avd_compcstype_delete(AVD_COMPCS_TYPE **cst)
 	unsigned int rc;
 
 	rc = ncs_patricia_tree_del(&compcstype_db, &(*cst)->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	free(*cst);
 	*cst = NULL;
 }
@@ -184,13 +184,13 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 
 		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &comp_name)) == NULL) {
 			LOG_ER("'%s'does not exist in existing model or in CCB", comp_name.value);
-			assert(0);
+			osafassert(0);
 			goto free_cstype_name;
 		}
 
 		comptype_name = immutil_getNameAttr(tmp->param.create.attrValues, "saAmfCompType", 0);
 	}
-	assert(comptype_name);
+	osafassert(comptype_name);
 
 	p = strchr(cstype_name, ',') + 1;
 	p = strchr(p, ',');
@@ -358,14 +358,14 @@ static SaAisErrorT compcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		cst = avd_compcstype_get(&opdata->objectName);
-		assert(cst);
+		osafassert(cst);
 		if (cst->comp->su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)
 			rc = SA_AIS_OK;
 		else
 			LOG_ER("Deletion of SaAmfCompCsType requires parent SU to be in LOCKED-INSTANTIATION");
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -381,7 +381,7 @@ static void compcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		cst = compcstype_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(cst);
+		osafassert(cst);
 		compcstype_add_to_model(cst);
 		break;
 	case CCBUTIL_DELETE:
@@ -389,7 +389,7 @@ static void compcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		avd_compcstype_delete(&cst);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 }
@@ -402,7 +402,7 @@ static SaAisErrorT compcstype_rt_attr_callback(SaImmOiHandleT immOiHandle,
 	int i = 0;
 
 	TRACE("%s", objectName->value);
-	assert(cst != NULL);
+	osafassert(cst != NULL);
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
 		if (!strcmp("saAmfCompNumCurrActiveCSIs", attributeName)) {
@@ -414,7 +414,7 @@ static SaAisErrorT compcstype_rt_attr_callback(SaImmOiHandleT immOiHandle,
 		} else if (!strcmp("saAmfCompAssignedCsi", attributeName)) {
 			/* TODO */
 		} else
-			assert(0);
+			osafassert(0);
 	}
 
 	return SA_AIS_OK;
@@ -425,7 +425,7 @@ void avd_compcstype_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&compcstype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&compcstype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 	avd_class_impl_set("SaAmfCompCsType", compcstype_rt_attr_callback, NULL,
 		compcstype_ccb_completed_cb, compcstype_ccb_apply_cb);
 }

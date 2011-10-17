@@ -351,7 +351,7 @@ void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn, const char *needle)
 
 	memset(dn, 0, sizeof(SaNameT));
 	p = strstr((char*)haystack->value, needle);
-	assert(p);
+	osafassert(p);
 	dn->length = strlen(p);
 	memcpy(dn->value, p, dn->length);
 }

@@ -25,7 +25,7 @@ static NCS_PATRICIA_TREE svctypecstypes_db;
 static void svctypecstype_db_add(AVD_SVC_TYPE_CS_TYPE *svctypecstype)
 {
 	unsigned int rc = ncs_patricia_tree_add(&svctypecstypes_db, &svctypecstype->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 
@@ -55,7 +55,7 @@ static void svctypecstypes_delete(AVD_SVC_TYPE_CS_TYPE *svctypecstype)
 	uint32_t rc;
 
 	rc = ncs_patricia_tree_del(&svctypecstypes_db, &svctypecstype->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	free(svctypecstype);
 }
 
@@ -148,7 +148,7 @@ static SaAisErrorT svctypecstypes_ccb_completed_cb(CcbUtilOperationData_t *opdat
 		}
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -170,14 +170,14 @@ static void svctypecstypes_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		svctypecstype = svctypecstypes_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(svctypecstype);
+		osafassert(svctypecstype);
 		svctypecstype_db_add(svctypecstype);
 		break;
 	case CCBUTIL_DELETE:
 		svctypecstypes_delete(opdata->userData);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 }
@@ -187,7 +187,7 @@ void avd_svctypecstypes_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&svctypecstypes_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&svctypecstypes_db, &patricia_params) == NCSCC_RC_SUCCESS);
 	avd_class_impl_set("SaAmfSvcTypeCSTypes", NULL, NULL, svctypecstypes_ccb_completed_cb, svctypecstypes_ccb_apply_cb);
 }
 
