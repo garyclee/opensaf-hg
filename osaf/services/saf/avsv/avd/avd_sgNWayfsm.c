@@ -555,7 +555,7 @@ uint32_t avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 				 * handling take care of assigning the standby to active */
 				/* find the susi with max assigned su which should be by now quiesced */
 				t_susi = avd_su_susi_find(avd_cb, susi->si->sg_of_si->max_assigned_su, &susi->si->name);
-				assert(t_susi->state == SA_AMF_HA_QUIESCED);
+				osafassert(t_susi->state == SA_AMF_HA_QUIESCED);
 
 				old_fsm_state = t_susi->fsm;
 				t_susi->fsm = AVD_SU_SI_STATE_UNASGN;
@@ -1199,9 +1199,9 @@ static void avd_sg_nway_swap_si_redistr(AVD_SG *sg)
 	AVD_SU_SI_STATE old_fsm_state;
 	SaAmfHAStateT old_ha_state;
 
-	assert(sg->si_tobe_redistributed != NULL);
-	assert(sg->max_assigned_su != NULL);
-	assert(sg->min_assigned_su != NULL);
+	osafassert(sg->si_tobe_redistributed != NULL);
+	osafassert(sg->max_assigned_su != NULL);
+	osafassert(sg->min_assigned_su != NULL);
 
 	TRACE_ENTER2("'%s' from '%s' to '%s'", sg->si_tobe_redistributed->name.value,
                 sg->max_assigned_su->name.value, sg->min_assigned_su->name.value);
@@ -1210,7 +1210,7 @@ static void avd_sg_nway_swap_si_redistr(AVD_SG *sg)
 
 	/* get the susi that is to be transferred */
 	susi = avd_su_susi_find(avd_cb, sg->max_assigned_su, &sg->si_tobe_redistributed->name); 
-	assert(susi != NULL);
+	osafassert(susi != NULL);
 
 	old_fsm_state = susi->fsm;
 	old_ha_state = susi->state;
@@ -1264,7 +1264,7 @@ static void avd_sg_nway_swap_si_redistr(AVD_SG *sg)
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, sg, AVSV_CKPT_AVD_SI_TRANS);
 	} else {
 		/* susi to be redistributed cannot be in any other HA state */
-		assert(0);
+		osafassert(0);
 	}
 	TRACE_LEAVE();
 }
@@ -2433,7 +2433,7 @@ uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				/* delete the quiesced assignment to max assigned su */
 				curr_susi = avd_su_susi_find(cb, su->sg_of_su->max_assigned_su,
 						&su->sg_of_su->si_tobe_redistributed->name);
-				assert(curr_susi->state == SA_AMF_HA_QUIESCED);
+				osafassert(curr_susi->state == SA_AMF_HA_QUIESCED);
 
 				old_fsm_state = curr_susi->fsm;
 				curr_susi->fsm = AVD_SU_SI_STATE_UNASGN;
@@ -3577,7 +3577,7 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 		} else if (susi->si->sg_of_si->si_tobe_redistributed == susi->si) {
 			TRACE("SI transfer '%s'", susi->si->name.value);
 
-			assert(susi->su == susi->si->sg_of_si->max_assigned_su);
+			osafassert(susi->su == susi->si->sg_of_si->max_assigned_su);
 
 			/* check if the min SU is still in-service */
 			if (susi->si->sg_of_si->min_assigned_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
@@ -3695,11 +3695,11 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 			 * now get the susi between si tobe redistributed and max SU 
 			 * should be quiesced state, now send a remove for that susi
 			 */
-			assert(susi->su == susi->si->sg_of_si->min_assigned_su);
+			osafassert(susi->su == susi->si->sg_of_si->min_assigned_su);
 
 			/* find the susi with max assigned su which should be by now quiesced */
 			t_susi = avd_su_susi_find(avd_cb, susi->si->sg_of_si->max_assigned_su, &susi->si->name);
-			assert(t_susi->state == SA_AMF_HA_QUIESCED);
+			osafassert(t_susi->state == SA_AMF_HA_QUIESCED);
 
 			old_fsm_state = t_susi->fsm;
 			t_susi->fsm = AVD_SU_SI_STATE_UNASGN;

@@ -208,7 +208,7 @@ uint32_t ava_mds_cbk(NCSMDS_CALLBACK_INFO *info)
 		break;
 
 	case MDS_CALLBACK_COPY:
-		assert(0);	/* AvA never resides with AvND */
+		osafassert(0);	/* AvA never resides with AvND */
 
 	case MDS_CALLBACK_SVC_EVENT:
 		{
@@ -305,7 +305,7 @@ uint32_t ava_mds_cbk(NCSMDS_CALLBACK_INFO *info)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
  done:
@@ -440,7 +440,7 @@ uint32_t ava_mds_svc_evt(AVA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 			break;
 
 		default:
-			assert(0);
+			osafassert(0);
 		}
 		break;
 
@@ -462,7 +462,7 @@ uint32_t ava_mds_svc_evt(AVA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 			break;
 
 		default:
-			assert(0);
+			osafassert(0);
 		}
 		break;
 
@@ -504,7 +504,7 @@ uint32_t ava_mds_flat_enc(AVA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *enc_info)
 	case AVSV_AVND_AMF_CBK_MSG:
 	case AVSV_AVND_AMF_API_RESP_MSG:
 	default:
-		assert(0);
+		osafassert(0);
 	}			/* switch */
 
 	TRACE_LEAVE2("retval = %u",rc);
@@ -628,7 +628,7 @@ uint32_t ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 				break;
 
 			default:
-				assert(0);
+				osafassert(0);
 			}	/* switch */
 		}
 		break;
@@ -639,7 +639,7 @@ uint32_t ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 
 	case AVSV_AVA_API_MSG:
 	default:
-		assert(0);
+		osafassert(0);
 	}			/* switch */
 
 	/* decode successful */
@@ -826,7 +826,7 @@ uint32_t ava_mds_dec(AVA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -863,7 +863,7 @@ uint32_t ava_mds_enc(AVA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -882,7 +882,7 @@ void ava_install_amf_down_cb(void (*cb) (void))
 {
 	TRACE_ENTER();
 
-	assert(amf_down_cb == NULL);
+	osafassert(amf_down_cb == NULL);
 	amf_down_cb = cb;
 
 	TRACE_LEAVE();

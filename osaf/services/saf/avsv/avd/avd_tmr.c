@@ -153,7 +153,7 @@ void avd_tmr_exp(void *uarg)
 
 		/* create & send the timer event */
 		evt = calloc(1, sizeof(AVD_EVT));
-		assert(evt);
+		osafassert(evt);
 
 		evt->info.tmr = *tmr;
 		evt->rcv_evt = (tmr->type - AVD_TMR_CL_INIT) + AVD_EVT_TMR_CL_INIT;

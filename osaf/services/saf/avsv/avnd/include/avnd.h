@@ -39,6 +39,7 @@
 #include "ncs_main_papi.h"
 #include "ncssysf_def.h"
 #include "ncssysf_tsk.h"
+#include <ncsgl_defs.h>
 #include "logtrace.h"
 
 /* Porting Include Files */

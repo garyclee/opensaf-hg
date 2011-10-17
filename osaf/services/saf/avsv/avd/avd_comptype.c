@@ -32,7 +32,7 @@ static NCS_PATRICIA_TREE comptype_db;
 static void comptype_db_add(AVD_COMP_TYPE *compt)
 {
 	unsigned int rc = ncs_patricia_tree_add(&comptype_db, &compt->tree_node);
-	assert (rc == NCSCC_RC_SUCCESS);
+	osafassert (rc == NCSCC_RC_SUCCESS);
 }
 
 AVD_COMP_TYPE *avd_comptype_get(const SaNameT *dn)
@@ -49,10 +49,10 @@ static void comptype_delete(AVD_COMP_TYPE *avd_comp_type)
 {
 	unsigned int rc;
 
-	assert(NULL == avd_comp_type->list_of_comp);
+	osafassert(NULL == avd_comp_type->list_of_comp);
 
 	rc = ncs_patricia_tree_del(&comptype_db, &avd_comp_type->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 
 	free(avd_comp_type);
 }
@@ -107,13 +107,13 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
 	compt->tree_node.key_info = (uint8_t *)&(compt->name);
 
 	error = immutil_getAttr("saAmfCtCompCategory", attributes, 0, &compt->saAmfCtCompCategory);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 
 	(void)immutil_getAttr("saAmfCtSwBundle", attributes, 0, &compt->saAmfCtSwBundle);
 
 	if (!IS_COMP_PROXIED(compt->saAmfCtCompCategory) && IS_COMP_LOCAL(compt->saAmfCtCompCategory)) {
 		error = immutil_getAttr("saAmfCtSwBundle", attributes, 0, &compt->saAmfCtSwBundle);
-		assert(error == SA_AIS_OK);
+		osafassert(error == SA_AIS_OK);
 	}
 
 	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefCmdEnv", 0)) != NULL)
@@ -152,7 +152,7 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
 	}
 
 	error = immutil_getAttr("saAmfCtDefRecoveryOnError", attributes, 0, &compt->saAmfCtDefRecoveryOnError);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 
 	if (compt->saAmfCtDefRecoveryOnError == SA_AMF_NO_RECOMMENDATION) {
 		compt->saAmfCtDefRecoveryOnError = SA_AMF_COMPONENT_FAILOVER;
@@ -186,7 +186,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	rc = immutil_getAttr("saAmfCtCompCategory", attributes, 0, &category);
-	assert(rc = SA_AIS_OK);
+	osafassert(rc = SA_AIS_OK);
 
 	/* We do not support Proxy, Container and Contained as of now. */
 	if (IS_COMP_PROXY(category) || IS_COMP_CONTAINER(category)|| IS_COMP_CONTAINED(category)) {
@@ -263,7 +263,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	rc = immutil_getAttr("saAmfCtDefRecoveryOnError", attributes, 0, &value);
-	assert(rc == SA_AIS_OK);
+	osafassert(rc == SA_AIS_OK);
 
 	if ((value < SA_AMF_NO_RECOMMENDATION) || (value > SA_AMF_NODE_FAILFAST)) {
 		LOG_ER("Illegal/unsupported saAmfCtDefRecoveryOnError value %u for '%s'",
@@ -350,14 +350,14 @@ static void comptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_CREATE:
 		comp_type = comptype_create(&opdata->objectName,
 			opdata->param.create.attrValues);
-		assert(comp_type);
+		osafassert(comp_type);
 		comptype_db_add(comp_type);
 		break;
 	case CCBUTIL_DELETE:
 		comptype_delete(opdata->userData);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -406,7 +406,7 @@ static SaAisErrorT comptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = SA_AIS_OK;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -419,7 +419,7 @@ void avd_comptype_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&comptype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&comptype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfCompBaseType", NULL, NULL, avd_imm_default_OK_completed_cb, NULL);
 	avd_class_impl_set("SaAmfCompType", NULL, NULL,	comptype_ccb_completed_cb, comptype_ccb_apply_cb);
@@ -514,7 +514,7 @@ static void avd_compglobalattrs_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		}
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 }
@@ -536,7 +536,7 @@ static SaAisErrorT avd_compglobalattrs_ccb_completed_cb(CcbUtilOperationData_t *
 		LOG_ER("SaAmfCompGlobalAttributes cannot be deleted");
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 

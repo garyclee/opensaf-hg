@@ -70,11 +70,11 @@ static uint32_t avnd_node_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	case AVSV_OBJ_OPR_MOD:
 		switch (param->attr_id) {
 		case saAmfNodeSuFailoverProb_ID:
-			assert(sizeof(SaTimeT) == param->value_len);
+			osafassert(sizeof(SaTimeT) == param->value_len);
 			cb->su_failover_prob = m_NCS_OS_NTOHLL_P(param->value);
 			break;
 		case saAmfNodeSuFailoverMax_ID:
-			assert(sizeof(uint32_t) == param->value_len);
+			osafassert(sizeof(uint32_t) == param->value_len);
 			cb->su_failover_max = m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
 			break;
 		default:
@@ -140,23 +140,23 @@ static uint32_t avnd_sg_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 
 		switch (param->attr_id) {
 		case saAmfSGCompRestartProb_ID:
-			assert(sizeof(SaTimeT) == param->value_len);
+			osafassert(sizeof(SaTimeT) == param->value_len);
 			su->comp_restart_prob = m_NCS_OS_NTOHLL_P(param->value);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su,
 				AVND_CKPT_SU_COMP_RESTART_PROB);
 			break;
 		case saAmfSGCompRestartMax_ID:
-			assert(sizeof(uint32_t) == param->value_len);
+			osafassert(sizeof(uint32_t) == param->value_len);
 			su->comp_restart_max = m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_COMP_RESTART_MAX);
 			break;
 		case saAmfSGSuRestartProb_ID:
-			assert(sizeof(SaTimeT) == param->value_len);
+			osafassert(sizeof(SaTimeT) == param->value_len);
 			su->su_restart_prob = m_NCS_OS_NTOHLL_P(param->value);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_PROB);
 			break;
 		case saAmfSGSuRestartMax_ID:
-			assert(sizeof(uint32_t) == param->value_len);
+			osafassert(sizeof(uint32_t) == param->value_len);
 			su->su_restart_max = m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_MAX);
 			break;
@@ -240,7 +240,7 @@ uint32_t avnd_evt_avd_operation_request_evh(AVND_CB *cb, AVND_EVT *evt)
 		msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG));
 		if (!msg.info.avd) {
 			LOG_ER("calloc FAILED");
-			assert(0);
+			osafassert(0);
 		}
 
 		msg.type = AVND_MSG_AVD;
@@ -360,7 +360,7 @@ void avnd_send_node_up_msg(void)
 			msg.info.avd = 0;
 	} else {
 		LOG_ER("calloc FAILED");
-		assert(0);
+		osafassert(0);
 	}
 
 	avnd_msg_content_free(cb, &msg);
@@ -521,7 +521,7 @@ uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 
 	/* get the curr-si */
 	curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-	assert(curr_si);
+	osafassert(curr_si);
 
 	TRACE_ENTER2("Sending Resp su=%s, si=%s, curr_state=%u, prv_state=%u", su->name.value, curr_si->name.value,curr_si->curr_state,curr_si->prv_state);
 	/* populate the susi resp msg */

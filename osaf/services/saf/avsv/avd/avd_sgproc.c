@@ -74,7 +74,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 		/* on Active AMFD empty SI should never be tried for assignments.
 		 * on Standby AMFD this may be still possible as CSI are not
 		 * checkpointed dynamically */
-		assert (si->list_of_csi != NULL);
+		osafassert (si->list_of_csi != NULL);
 
 	if ((susi = avd_susi_create(cb, si, su, ha_state, ckpt)) == NULL) {
 		LOG_ER("%s: Could not create SUSI '%s' '%s'", __FUNCTION__,
@@ -733,7 +733,7 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 		}
 
 		if (ncs_done == SA_TRUE) {
-			assert(avd_clm_track_start() == SA_AIS_OK);
+			osafassert(avd_clm_track_start() == SA_AIS_OK);
 
 			/* get the avnd on other SCXB from node_id of other AvD */
 			if (NULL == (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
@@ -1060,18 +1060,18 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				AVD_SU_SI_REL *t_sisu;
 				AVD_CSI *csi_tobe_deleted = NULL;
 
-                                assert(susi->csi_add_rem);
+                                osafassert(susi->csi_add_rem);
                                 susi->csi_add_rem = false;
                                 comp = avd_comp_get(&susi->comp_name);
-                                assert(comp);
+                                osafassert(comp);
                                 csi = avd_csi_get(&susi->csi_name);
-                                assert(csi);
+                                osafassert(csi);
 
                                 for (t_comp_csi = susi->list_of_csicomp; t_comp_csi; t_comp_csi = t_comp_csi->susi_csicomp_next) { 
                                         if ((t_comp_csi->comp == comp) && (t_comp_csi->csi == csi))
                                                 break;
                                 }
-                                assert(t_comp_csi);
+                                osafassert(t_comp_csi);
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 
 				/* Store csi if this is the last comp-csi to be deleted. */
@@ -1085,15 +1085,15 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
                                         if (true == t_sisu->csi_add_rem) {
 						all_csi_rem = false;
                                                 comp = avd_comp_get(&t_sisu->comp_name);
-                                                assert(comp);
+                                                osafassert(comp);
                                                 csi = avd_csi_get(&t_sisu->csi_name);
-                                                assert(csi);
+                                                osafassert(csi);
 
                                                 for (t_comp_csi = t_sisu->list_of_csicomp; t_comp_csi; t_comp_csi = t_comp_csi->susi_csicomp_next) {
                                                         if ((t_comp_csi->comp == comp) && (t_comp_csi->csi == csi))
                                                                 break;
                                                 }
-                                                assert(t_comp_csi);
+                                                osafassert(t_comp_csi);
                                                 avd_snd_susi_msg(cb, t_sisu->su, t_sisu, AVSV_SUSI_ACT_DEL, true, t_comp_csi);
                                                 /* Break here. We need to send one by one.  */
                                                 break;
@@ -1121,18 +1121,18 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				AVD_COMP_CSI_REL *t_comp_csi;
 				AVD_SU_SI_REL *t_sisu;
 
-				assert(susi->csi_add_rem);
+				osafassert(susi->csi_add_rem);
 				susi->csi_add_rem = false;
 				comp = avd_comp_get(&susi->comp_name);
-				assert(comp);
+				osafassert(comp);
 				csi = avd_csi_get(&susi->csi_name);
-				assert(csi);
+				osafassert(csi);
 
 				for (t_comp_csi = susi->list_of_csicomp; t_comp_csi; t_comp_csi = t_comp_csi->susi_csicomp_next) {
 					if ((t_comp_csi->comp == comp) && (t_comp_csi->csi == csi))
 						break;
 				}
-				assert(t_comp_csi);
+				osafassert(t_comp_csi);
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 
 				/* Search for the next SUSI to be added csi. */
@@ -1141,15 +1141,15 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					if (true == t_sisu->csi_add_rem) {
 						/* Find the comp csi relationship. */
 						comp = avd_comp_get(&t_sisu->comp_name);
-						assert(comp);
+						osafassert(comp);
 						csi = avd_csi_get(&t_sisu->csi_name);
-						assert(csi);
+						osafassert(csi);
 
 						for (t_comp_csi = t_sisu->list_of_csicomp; t_comp_csi; t_comp_csi = t_comp_csi->susi_csicomp_next) { 
 							if ((t_comp_csi->comp == comp) && (t_comp_csi->csi == csi))
 								break;
 						}
-						assert(t_comp_csi);
+						osafassert(t_comp_csi);
 						avd_snd_susi_msg(cb, t_sisu->su, t_sisu, AVSV_SUSI_ACT_ASGN, true, t_comp_csi); 
 						/* Break here. We need to send one by one.  */
 						break;
@@ -1925,7 +1925,7 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 	 */
 
 	i_su = avnd->list_of_ncs_su;
-	assert(i_su != 0);
+	osafassert(i_su != 0);
 	while (i_su != NULL) {
 		avd_su_oper_state_set(i_su, SA_AMF_OPERATIONAL_DISABLED);
 		avd_su_pres_state_set(i_su, SA_AMF_PRESENCE_UNINSTANTIATED);
@@ -2195,7 +2195,7 @@ uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 	*i_su_opr = malloc(sizeof(AVD_SG_OPER));
 	if (*i_su_opr == NULL) {
 		LOG_ER("%s: malloc failed", __FUNCTION__);
-		assert(0);
+		osafassert(0);
 	}
 
 	/* Fill the content */

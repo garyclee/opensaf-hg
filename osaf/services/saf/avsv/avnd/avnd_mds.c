@@ -372,7 +372,7 @@ uint32_t avnd_mds_cbk(NCSMDS_CALLBACK_INFO *info)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -454,7 +454,7 @@ uint32_t avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -469,7 +469,7 @@ uint32_t avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		break;
 
 	case AVND_MSG_AVA:
-		assert(AVSV_AVA_API_MSG == msg.info.ava->type);
+		osafassert(AVSV_AVA_API_MSG == msg.info.ava->type);
 		type = (msg.info.ava->info.api_info.type - AVSV_AMF_FINALIZE) + AVND_EVT_AVA_FINALIZE;
 		break;
 
@@ -478,7 +478,7 @@ uint32_t avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -548,7 +548,7 @@ uint32_t avnd_mds_cpy(AVND_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -613,7 +613,7 @@ uint32_t avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 			break;
 
 		default:
-			assert(0);
+			osafassert(0);
 		}
 		break;
 
@@ -661,7 +661,7 @@ uint32_t avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 			break;
 
 		default:
-			assert(0);
+			osafassert(0);
 		}
 		break;
 
@@ -744,7 +744,7 @@ uint32_t avnd_mds_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -822,7 +822,7 @@ uint32_t avnd_mds_flat_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}			/* switch */
 
@@ -855,7 +855,7 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	ava = ((AVND_MSG *)enc_info->i_msg)->info.ava;
-	assert(ava);
+	osafassert(ava);
 
 	/* encode top-level ava message structure into userbuf */
 	rc = ncs_encode_n_octets_in_uba(enc_info->io_uba, (uint8_t *)ava, sizeof(AVSV_NDA_AVA_MSG));
@@ -906,7 +906,7 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 				break;
 
 			default:
-				assert(0);
+				osafassert(0);
 			}	/* switch */
 		}
 		break;
@@ -917,7 +917,7 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
 	case AVSV_AVA_API_MSG:
 	default:
-		assert(0);
+		osafassert(0);
 	}			/* switch */
 
  done:
@@ -1002,7 +1002,7 @@ uint32_t avnd_mds_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1078,7 +1078,7 @@ uint32_t avnd_mds_flat_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1173,7 +1173,7 @@ uint32_t avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1253,7 +1253,7 @@ uint32_t avnd_mds_red_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_DEST 
 
 	/* this is be used only for ACK NACK for AVD */
 	if (msg->type != AVND_MSG_AVD)
-		assert(0);
+		osafassert(0);
 
 	send_info->i_to_svc = NCSMDS_SVC_ID_AVD;
 	send_info->i_sendtype = MDS_SENDTYPE_RED;

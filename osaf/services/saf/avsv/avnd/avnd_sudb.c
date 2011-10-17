@@ -246,8 +246,8 @@ uint32_t avnd_sudb_rec_del(AVND_CB *cb, SaNameT *name)
 	}
 
 	/* SU should not have any comp or SI attached to it */
-	assert(su->comp_list.n_nodes == 0);
-	assert(su->si_list.n_nodes == 0);
+	osafassert(su->comp_list.n_nodes == 0);
+	osafassert(su->si_list.n_nodes == 0);
 
 	/* remove from the patricia tree */
 	rc = ncs_patricia_tree_del(&cb->sudb, &su->tree_node);

@@ -42,7 +42,7 @@ static void avd_sirankedsu_db_add(AVD_SUS_PER_SI_RANK *sirankedsu)
 {
         AVD_SI *avd_si = NULL;
         unsigned int rc = ncs_patricia_tree_add(&sirankedsu_db, &sirankedsu->tree_node);
-        assert(rc == NCSCC_RC_SUCCESS);
+        osafassert(rc == NCSCC_RC_SUCCESS);
 
         /* Find the si name. */
         avd_si = avd_si_get(&(sirankedsu->indx.si_name));
@@ -274,7 +274,7 @@ static AVD_SUS_PER_SI_RANK * avd_sirankedsu_ccb_apply_create_hdlr(SaNameT *dn,
 	indx.su_rank = rank;
 
 	avd_sus_per_si_rank = avd_sirankedsu_create(avd_cb, indx);
-	assert(avd_sus_per_si_rank);
+	osafassert(avd_sus_per_si_rank);
 
 	avd_sus_per_si_rank->su_name = su_name;
 
@@ -392,7 +392,7 @@ static void avd_susi_namet_init(const SaNameT *object_name, SaNameT *su_name, Sa
 
 		/* Skip past the RDN tag */
 		p = strchr((char *)temp_name.value, '=') + 1;
-		assert(p);
+		osafassert(p);
 		memset(su_name, 0, sizeof(SaNameT));
 		/* Copy the RDN value which is a DN with escaped commas */
 		i = 0;
@@ -433,7 +433,7 @@ static void sirankedsu_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		avd_sirankedsu_delete(avd_cb, opdata->userData);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 	TRACE_LEAVE();
@@ -519,7 +519,7 @@ static SaAisErrorT sirankedsu_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		}
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -587,7 +587,7 @@ void avd_sirankedsu_constructor(void)
         NCS_PATRICIA_PARAMS patricia_params;
 
         patricia_params.key_size = sizeof(AVD_SUS_PER_SI_RANK_INDX);
-        assert(ncs_patricia_tree_init(&sirankedsu_db, &patricia_params) == NCSCC_RC_SUCCESS);
+        osafassert(ncs_patricia_tree_init(&sirankedsu_db, &patricia_params) == NCSCC_RC_SUCCESS);
 	avd_class_impl_set("SaAmfSIRankedSU", NULL, NULL, sirankedsu_ccb_completed_cb, sirankedsu_ccb_apply_cb);
 }
 

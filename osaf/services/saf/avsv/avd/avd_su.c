@@ -36,14 +36,14 @@ void avd_su_db_add(AVD_SU *su)
 
 	if (avd_su_get(&su->name) == NULL) {
 		rc = ncs_patricia_tree_add(&su_db, &su->tree_node);
-		assert(rc == NCSCC_RC_SUCCESS);
+		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
 
 void avd_su_db_remove(AVD_SU *su)
 {
 	unsigned int rc = ncs_patricia_tree_del(&su_db, &su->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 AVD_SU *avd_su_new(const SaNameT *dn)
@@ -89,7 +89,7 @@ void avd_su_delete(AVD_SU *su)
 	/* All the components under this SU should have been deleted
 	 * by now, just do the sanity check to confirm it is done 
 	 */
-	assert(su->list_of_comp == NULL);
+	osafassert(su->list_of_comp == NULL);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
 	avd_node_remove_su(su);
@@ -163,7 +163,7 @@ void avd_su_remove_comp(AVD_COMP *comp)
 			}
 
 			/* decrement the active component number of this SU */
-			assert(comp->su->curr_num_comp > 0);
+			osafassert(comp->su->curr_num_comp > 0);
 			comp->su->curr_num_comp--;
 			comp->su->num_of_comp--;
 
@@ -222,7 +222,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	rc = immutil_getAttr("saAmfSUType", attributes, 0, &saAmfSUType);
-	assert(rc == SA_AIS_OK);
+	osafassert(rc == SA_AIS_OK);
 
 	if ((sut = avd_sutype_get(&saAmfSUType)) != NULL) {
 		saAmfSutIsExternal = sut->saAmfSutIsExternal;
@@ -240,7 +240,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		}
 
 		rc = immutil_getAttr("saAmfSutIsExternal", tmp->param.create.attrValues, 0, &saAmfSutIsExternal);
-		assert(rc == SA_AIS_OK);
+		osafassert(rc == SA_AIS_OK);
 	}
 
 	/* Validate that a configured node or node group exist */
@@ -413,7 +413,7 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 		TRACE("already created, refreshing config...");
 
 	error = immutil_getAttr("saAmfSUType", attributes, 0, &su->saAmfSUType);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 
 	if (immutil_getAttr("saAmfSURank", attributes, 0, &su->saAmfSURank) != SA_AIS_OK) {
 		/* Empty, assign default value (highest number => lowest rank) */
@@ -481,12 +481,12 @@ static AVD_AVND *map_su_to_node(AVD_SU *su)
 			ng = avd_ng_get(&su->sg_of_su->saAmfSGSuHostNodeGroup);
 	}
 
-	assert(ng);
+	osafassert(ng);
 
 	/* Find a node in the group that doesn't have a SU in same SG mapped to it already */
 	for (i = 0; i < ng->number_nodes; i++) {
 		node = avd_node_get(&ng->saAmfNGNodeList[i]);
-		assert(node);
+		osafassert(node);
 
 		if (su->sg_of_su->sg_ncs_spec == SA_TRUE) {
 			for (su_temp = node->list_of_ncs_su; su_temp != NULL; su_temp = su_temp->sg_list_su_next) {
@@ -541,7 +541,7 @@ static void su_add_to_model(AVD_SU *su)
 
 	avd_su_db_add(su);
 	su->su_type = avd_sutype_get(&su->saAmfSUType);
-	assert(su->su_type);
+	osafassert(su->su_type);
 	avd_sutype_add_su(su);
 	avd_sg_add_su(su);
 
@@ -677,7 +677,7 @@ void avd_su_pres_state_set(AVD_SU *su, SaAmfPresenceStateT pres_state)
 	if (su->saAmfSUPresenceState == pres_state)
 		return;
 
-	assert(pres_state <= SA_AMF_PRESENCE_TERMINATION_FAILED);
+	osafassert(pres_state <= SA_AMF_PRESENCE_TERMINATION_FAILED);
 	TRACE_ENTER2("'%s' %s => %s",	su->name.value,
 				 avd_pres_state_name[su->saAmfSUPresenceState],
 				 avd_pres_state_name[pres_state]);
@@ -706,7 +706,7 @@ void avd_su_oper_state_set(AVD_SU *su, SaAmfOperationalStateT oper_state)
 	
 	if (su->saAmfSUOperState == oper_state)
 		return;
-	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
+	osafassert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
 	TRACE_ENTER2("'%s' %s => %s", su->name.value, avd_oper_state_name[su->saAmfSUOperState], 
 			avd_oper_state_name[oper_state]);
 
@@ -733,7 +733,7 @@ void avd_su_readiness_state_set(AVD_SU *su, SaAmfReadinessStateT readiness_state
 	AVD_COMP *comp = NULL;
 	if (su->saAmfSuReadinessState == readiness_state)
 		return;
-	assert(readiness_state <= SA_AMF_READINESS_STOPPING);
+	osafassert(readiness_state <= SA_AMF_READINESS_STOPPING);
 	TRACE_ENTER2("'%s' %s", su->name.value, avd_readiness_state_name[readiness_state]);
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s ReadinessState %s => %s", su->name.value,
 		   avd_readiness_state_name[su->saAmfSuReadinessState], avd_readiness_state_name[readiness_state]);
@@ -764,7 +764,7 @@ void avd_su_admin_state_set(AVD_SU *su, SaAmfAdminStateT admin_state)
 {
 	SaAmfAdminStateT old_state = su->saAmfSUAdminState;
 	
-	assert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
+	osafassert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
 	TRACE_ENTER2("'%s' %s => %s", su->name.value, avd_adm_state_name[old_state], avd_adm_state_name[admin_state]);
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", su->name.value,
 		   avd_adm_state_name[su->saAmfSUAdminState], avd_adm_state_name[admin_state]);
@@ -813,7 +813,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 
 	if (NULL == (su = avd_su_get(su_name))) {
 		LOG_CR("SU '%s' not found", su_name->value);
-		/* internal error? assert instead? */
+		/* internal error? osafassert instead? */
 		goto done;
 	}
 
@@ -1153,7 +1153,7 @@ static SaAisErrorT su_rt_attr_cb(SaImmOiHandleT immOiHandle,
 			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
 						       SA_IMM_ATTR_SAUINT32T, &su->saAmfSURestartCount);
 		} else
-			assert(0);
+			osafassert(0);
 	}
 
 	return SA_AIS_OK;
@@ -1252,7 +1252,7 @@ static SaAisErrorT su_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 		is_app_su = 0;
 
 	su = avd_su_get(&opdata->objectName);
-	assert(su != NULL);
+	osafassert(su != NULL);
 
 	if (is_app_su && (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
 		LOG_ER("Rejecting deletion of '%s'", su->name.value);
@@ -1327,7 +1327,7 @@ static SaAisErrorT su_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = su_ccb_completed_delete_hdlr(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1377,7 +1377,7 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 				su->saAmfSUMaintenanceCampaign.length = 0;
 				TRACE("saAmfSUMaintenanceCampaign cleared for '%s'", su->name.value);
 			} else {
-				assert(su->saAmfSUMaintenanceCampaign.length == 0);
+				osafassert(su->saAmfSUMaintenanceCampaign.length == 0);
 				su->saAmfSUMaintenanceCampaign = *((SaNameT *)attr_mod->modAttr.attrValues[0]);
 				TRACE("saAmfSUMaintenanceCampaign set to '%s' for '%s'",
 					  su->saAmfSUMaintenanceCampaign.value, su->name.value);
@@ -1393,7 +1393,7 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			su->saAmfSUFailover = sut->saAmfSutDefSUFailover;
 			su->su_is_external = sut->saAmfSutIsExternal;
 		} else
-			assert(0);
+			osafassert(0);
 	}
 
 	TRACE_LEAVE();
@@ -1466,7 +1466,7 @@ static void su_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		su = su_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(su);
+		osafassert(su);
 		su_add_to_model(su);
 		break;
 	case CCBUTIL_MODIFY:
@@ -1476,7 +1476,7 @@ static void su_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		su_ccb_apply_delete_hdlr(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1492,7 +1492,7 @@ void avd_su_inc_curr_act_si(AVD_SU *su)
 
 void avd_su_dec_curr_act_si(AVD_SU *su)
 {
-	assert(su->saAmfSUNumCurrActiveSIs > 0);
+	osafassert(su->saAmfSUNumCurrActiveSIs > 0);
 	su->saAmfSUNumCurrActiveSIs--;
 	TRACE("%s saAmfSUNumCurrActiveSIs=%u", su->name.value, su->saAmfSUNumCurrActiveSIs);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_SI_CURR_ACTIVE);
@@ -1507,7 +1507,7 @@ void avd_su_inc_curr_stdby_si(AVD_SU *su)
 
 void avd_su_dec_curr_stdby_si(AVD_SU *su)
 {
-	assert(su->saAmfSUNumCurrStandbySIs > 0);
+	osafassert(su->saAmfSUNumCurrStandbySIs > 0);
 	su->saAmfSUNumCurrStandbySIs--;
 	TRACE("%s saAmfSUNumCurrStandbySIs=%u", su->name.value, su->saAmfSUNumCurrStandbySIs);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_SI_CURR_STBY);
@@ -1518,7 +1518,7 @@ void avd_su_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&su_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&su_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfSU", su_rt_attr_cb, su_admin_op_cb, su_ccb_completed_cb, su_ccb_apply_cb);
 }

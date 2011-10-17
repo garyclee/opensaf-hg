@@ -34,12 +34,12 @@ static void si_update_ass_state(AVD_SI *si);
 
 /**
  * @brief Checks if the dependencies configured leads to loop
- *	  If loop is detected amf will just assert
+ *	  If loop is detected amf will just osafassert
  *
  * @param name 
  * @param csi 
  */
-static void assert_if_loops_in_csideps(SaNameT *csi_name, struct avd_csi_tag* csi)
+static void osafassert_if_loops_in_csideps(SaNameT *csi_name, struct avd_csi_tag* csi)
 {         
 	AVD_CSI *temp_csi = NULL;
 	AVD_CSI_DEPS *csi_dep_ptr;
@@ -47,13 +47,13 @@ static void assert_if_loops_in_csideps(SaNameT *csi_name, struct avd_csi_tag* cs
 	TRACE_ENTER2("%s", csi->name.value);
 
 	/* Check if the CSI has any dependency on the csi_name
-	 * if yes then loop is there and assert
+	 * if yes then loop is there and osafassert
 	 */
 	for(csi_dep_ptr = csi->saAmfCSIDependencies; csi_dep_ptr; csi_dep_ptr = csi_dep_ptr->csi_dep_next) {
 		if (0 == memcmp(csi_name, &csi_dep_ptr->csi_dep_name_value, sizeof(SaNameT))) {
-                        LOG_ER("%s: %u: Looping detected in the CSI dependencies configured for csi:%s, asserting",
+                        LOG_ER("%s: %u: Looping detected in the CSI dependencies configured for csi:%s, osafasserting",
                                 __FILE__, __LINE__, csi->name.value);
-                        assert(0);
+                        osafassert(0);
                 }
 	}
 
@@ -64,7 +64,7 @@ static void assert_if_loops_in_csideps(SaNameT *csi_name, struct avd_csi_tag* cs
 				/* Again call the loop detection function to check whether this temp_csi
 				 * has the dependency on the given csi_name
 				 */
-				assert_if_loops_in_csideps(csi_name, temp_csi);
+				osafassert_if_loops_in_csideps(csi_name, temp_csi);
 			}
 		}
 	}
@@ -86,9 +86,9 @@ static void avd_si_arrange_dep_csi(struct avd_csi_tag* csi)
 		for (csi_dep_ptr=temp_csi->saAmfCSIDependencies; csi_dep_ptr; csi_dep_ptr = csi_dep_ptr->csi_dep_next) {
 			if ((0 == memcmp(&csi_dep_ptr->csi_dep_name_value, &csi->name, sizeof(SaNameT)))) {
 				/* Try finding out any loops in the dependency configuration with this temp_csi
-				 * and assert if any loop found
+				 * and osafassert if any loop found
 				 */
-				assert_if_loops_in_csideps(&temp_csi->name, csi);
+				osafassert_if_loops_in_csideps(&temp_csi->name, csi);
 
 				/* Existing CSI is dependant on the new CSI, so its rank should be more
 				 * than one of the new CSI. But increment the rank only if its rank is
@@ -166,7 +166,7 @@ static void avd_si_add_csi_db(struct avd_csi_tag* csi)
 	AVD_CSI *i_csi = NULL;
 	AVD_CSI *prev_csi = NULL;
 
-	assert((csi != NULL) && (csi->si != NULL));
+	osafassert((csi != NULL) && (csi->si != NULL));
 
 	i_csi = csi->si->list_of_csi;
 
@@ -203,7 +203,7 @@ void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uint32_t saAmfRank)
 	ranked_su = malloc(sizeof(avd_sirankedsu_t));
 	if (NULL == ranked_su) {
 		LOG_ER("memory alloc failed error :%s", strerror(errno));
-		assert(0);
+		osafassert(0);
 	}
 	ranked_su->suname = *suname;
 	ranked_su->saAmfRank = saAmfRank;
@@ -288,7 +288,7 @@ void avd_si_remove_csi(AVD_CSI* csi)
 
 		if (i_csi != csi) {
 			/* Log a fatal error */
-			assert(0);
+			osafassert(0);
 		} else {
 			if (prev_csi == NULL) {
 				csi->si->list_of_csi = csi->si_list_of_csi_next;
@@ -297,7 +297,7 @@ void avd_si_remove_csi(AVD_CSI* csi)
 			}
 		}
 #if 0
-		assert(csi->si->num_csi);
+		osafassert(csi->si->num_csi);
 		csi->si->num_csi--;
 #endif
 		csi->si_list_of_csi_next = NULL;
@@ -359,13 +359,13 @@ void avd_si_delete(AVD_SI *si)
 	si_delete_csis(si);
 
 	/* All the SI Dependencies should have been unconfigured or deleted */
-	assert(si->spons_si_list == 0);
+	osafassert(si->spons_si_list == 0);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
 	avd_svctype_remove_si(si);
 	avd_app_remove_si(si->app, si);
 	avd_sg_remove_si(si->sg_of_si, si);
 	rc = ncs_patricia_tree_del(&si_db, &si->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	free(si);
 }
 /**
@@ -404,7 +404,7 @@ void avd_si_db_add(AVD_SI *si)
 
 	if (avd_si_get(&si->name) == NULL) {
 		rc = ncs_patricia_tree_add(&si_db, &si->tree_node);
-		assert(rc == NCSCC_RC_SUCCESS);
+		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
 
@@ -485,7 +485,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	rc = immutil_getAttr("saAmfSvcType", attributes, 0, &aname);
-	assert(rc == SA_AIS_OK);
+	osafassert(rc == SA_AIS_OK);
 
 	if (avd_svctype_get(&aname) == NULL) {
 		/* SVC type does not exist in current model, check CCB if passed as param */
@@ -567,7 +567,7 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 	}
 
 	error = immutil_getAttr("saAmfSvcType", attributes, 0, &si->saAmfSvcType);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 
 	/* Optional, strange... */
 	(void)immutil_getAttr("saAmfSIProtectedbySG", attributes, 0, &si->saAmfSIProtectedbySG);
@@ -697,7 +697,7 @@ static SaAisErrorT si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	si = avd_si_get(&opdata->objectName);
-	assert(si != NULL);
+	osafassert(si != NULL);
 
 	/* Modifications can only be done for these attributes. */
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
@@ -793,7 +793,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			err = avd_sg_nored_si_func(avd_cb, si);
 			break;
 		default:
-			assert(0);
+			osafassert(0);
 		}
 
 		if (err != NCSCC_RC_SUCCESS) {
@@ -873,7 +873,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			err = avd_sg_nored_si_admin_down(avd_cb, si);
 			break;
 		default:
-			assert(0);
+			osafassert(0);
 		}
 
 		if (err != NCSCC_RC_SUCCESS) {
@@ -929,7 +929,7 @@ static SaAisErrorT si_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	int i = 0;
 
 	TRACE_ENTER2("%s", objectName->value);
-	assert(si != NULL);
+	osafassert(si != NULL);
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
 		if (!strcmp("saAmfSINumCurrActiveAssignments", attributeName)) {
@@ -939,7 +939,7 @@ static SaAisErrorT si_rt_attr_cb(SaImmOiHandleT immOiHandle,
 			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
 						       SA_IMM_ATTR_SAUINT32T, &si->saAmfSINumCurrStandbyAssignments);
 		} else
-			assert(0);
+			osafassert(0);
 	}
 
 	return SA_AIS_OK;
@@ -975,7 +975,7 @@ static SaAisErrorT si_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		opdata->userData = si;	/* Save for later use in apply */
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 done:
@@ -1112,7 +1112,7 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	si = avd_si_get(&opdata->objectName);
-	assert(si != NULL);
+	osafassert(si != NULL);
 
 	/* Modifications can be done for any parameters. */
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
@@ -1160,7 +1160,7 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				avd_si_adjust_si_assignments(si);
 			}
 		} else {
-			assert(0);
+			osafassert(0);
 		}
 	}
 	TRACE_LEAVE();	
@@ -1175,7 +1175,7 @@ static void si_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		si = si_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(si);
+		osafassert(si);
 		si_add_to_model(si);
 		break;
 	case CCBUTIL_DELETE:
@@ -1185,7 +1185,7 @@ static void si_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		si_ccb_apply_modify_hdlr(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1205,7 +1205,7 @@ static void si_update_ass_state(AVD_SI *si)
 	/*
 	** Note: for SA_AMF_2N_REDUNDANCY_MODEL, SA_AMF_NPM_REDUNDANCY_MODEL &
 	** SA_AMF_N_WAY_REDUNDANCY_MODEL it is not possible to check:
-	** assert(si->saAmfSINumCurrActiveAssignments == 1);
+	** osafassert(si->saAmfSINumCurrActiveAssignments == 1);
 	** since AMF temporarily goes above the limit during fail over
 	 */
 	switch (si->sg_of_si->sg_type->saAmfSgtRedundancyModel) {
@@ -1236,8 +1236,8 @@ static void si_update_ass_state(AVD_SI *si)
 		if (si->saAmfSINumCurrActiveAssignments == 0) {
 			newState = SA_AMF_ASSIGNMENT_UNASSIGNED;
 		} else {
-			assert(si->saAmfSINumCurrStandbyAssignments == 0);
-			assert(si->saAmfSINumCurrActiveAssignments <= si->saAmfSIPrefActiveAssignments);
+			osafassert(si->saAmfSINumCurrStandbyAssignments == 0);
+			osafassert(si->saAmfSINumCurrActiveAssignments <= si->saAmfSIPrefActiveAssignments);
 			if (si->saAmfSINumCurrActiveAssignments == si->saAmfSIPrefActiveAssignments)
 				newState = SA_AMF_ASSIGNMENT_FULLY_ASSIGNED;
 			else
@@ -1248,13 +1248,13 @@ static void si_update_ass_state(AVD_SI *si)
 		if (si->saAmfSINumCurrActiveAssignments == 0) {
 			newState = SA_AMF_ASSIGNMENT_UNASSIGNED;
 		} else {
-			assert(si->saAmfSINumCurrActiveAssignments == 1);
-			assert(si->saAmfSINumCurrStandbyAssignments == 0);
+			osafassert(si->saAmfSINumCurrActiveAssignments == 1);
+			osafassert(si->saAmfSINumCurrStandbyAssignments == 0);
 			newState = SA_AMF_ASSIGNMENT_FULLY_ASSIGNED;
 		}
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	if (newState != si->saAmfSIAssignmentState) {
@@ -1300,7 +1300,7 @@ void avd_si_inc_curr_act_ass(AVD_SI *si)
 
 void avd_si_dec_curr_act_ass(AVD_SI *si)
 {
-	assert(si->saAmfSINumCurrActiveAssignments > 0);
+	osafassert(si->saAmfSINumCurrActiveAssignments > 0);
 	si->saAmfSINumCurrActiveAssignments--;
 	TRACE("%s saAmfSINumCurrActiveAssignments=%u", si->name.value, si->saAmfSINumCurrActiveAssignments);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_ACTIVE);
@@ -1317,7 +1317,7 @@ void avd_si_inc_curr_stdby_ass(AVD_SI *si)
 
 void avd_si_dec_curr_stdby_ass(AVD_SI *si)
 {
-	assert(si->saAmfSINumCurrStandbyAssignments > 0);
+	osafassert(si->saAmfSINumCurrStandbyAssignments > 0);
 	si->saAmfSINumCurrStandbyAssignments--;
 	TRACE("%s saAmfSINumCurrStandbyAssignments=%u", si->name.value, si->saAmfSINumCurrStandbyAssignments);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_STBY);
@@ -1330,7 +1330,7 @@ void avd_si_inc_curr_act_dec_std_ass(AVD_SI *si)
         m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_ACTIVE);
         TRACE("%s saAmfSINumCurrActiveAssignments=%u", si->name.value, si->saAmfSINumCurrActiveAssignments);
 
-        assert(si->saAmfSINumCurrStandbyAssignments > 0);
+        osafassert(si->saAmfSINumCurrStandbyAssignments > 0);
         si->saAmfSINumCurrStandbyAssignments--;
         TRACE("%s saAmfSINumCurrStandbyAssignments=%u", si->name.value, si->saAmfSINumCurrStandbyAssignments);
         m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_STBY);
@@ -1344,7 +1344,7 @@ void avd_si_inc_curr_stdby_dec_act_ass(AVD_SI *si)
         TRACE("%s saAmfSINumCurrStandbyAssignments=%u", si->name.value, si->saAmfSINumCurrStandbyAssignments);
         m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_STBY);
 
-        assert(si->saAmfSINumCurrActiveAssignments > 0);
+        osafassert(si->saAmfSINumCurrActiveAssignments > 0);
         si->saAmfSINumCurrActiveAssignments--;
         TRACE("%s saAmfSINumCurrActiveAssignments=%u", si->name.value, si->saAmfSINumCurrActiveAssignments);
         m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_ACTIVE);
@@ -1357,7 +1357,7 @@ void avd_si_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&si_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&si_db, &patricia_params) == NCSCC_RC_SUCCESS);
 	avd_class_impl_set("SaAmfSI", si_rt_attr_cb, si_admin_op_cb, si_ccb_completed_cb, si_ccb_apply_cb);
 }
 
@@ -1365,7 +1365,7 @@ void avd_si_admin_state_set(AVD_SI* si, SaAmfAdminStateT state)
 {
 	   SaAmfAdminStateT old_state = si->saAmfSIAdminState;
 	
-       assert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
+       osafassert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
        TRACE_ENTER2("%s AdmState %s => %s", si->name.value,
                   avd_adm_state_name[si->saAmfSIAdminState], avd_adm_state_name[state]);
        saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", si->name.value,

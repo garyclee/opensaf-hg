@@ -28,7 +28,7 @@ static NCS_PATRICIA_TREE ctcstype_db;
 static void ctcstype_db_add(AVD_CTCS_TYPE *ctcstype)
 {
 	unsigned int rc = ncs_patricia_tree_add(&ctcstype_db, &ctcstype->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
@@ -80,7 +80,7 @@ static AVD_CTCS_TYPE *ctcstype_create(const SaNameT *dn, const SaImmAttrValuesT_
 	ctcstype->tree_node.key_info = (uint8_t *)&(ctcstype->name);
 
 	error = immutil_getAttr("saAmfCtCompCapability", attributes, 0, &ctcstype->saAmfCtCompCapability);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 
 	if (immutil_getAttr("saAmfCtDefNumMaxActiveCSIs", attributes, 0, &ctcstype->saAmfCtDefNumMaxActiveCSIs) !=
 	    SA_AIS_OK)
@@ -104,7 +104,7 @@ static void ctcstype_delete(AVD_CTCS_TYPE *ctcstype)
 	unsigned int rc;
 
 	rc = ncs_patricia_tree_del(&ctcstype_db, &ctcstype->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	free(ctcstype);
 }
 
@@ -181,7 +181,7 @@ static SaAisErrorT ctcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = SA_AIS_OK;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -198,7 +198,7 @@ static void ctcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		ctcstype = ctcstype_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(ctcstype);
+		osafassert(ctcstype);
 		ctcstype_db_add(ctcstype);
 		break;
 	case CCBUTIL_DELETE:
@@ -206,7 +206,7 @@ static void ctcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		ctcstype_delete(ctcstype);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -218,7 +218,7 @@ void avd_ctcstype_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&ctcstype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&ctcstype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 	avd_class_impl_set("SaAmfCtCsType", NULL, NULL, ctcstype_ccb_completed_cb, ctcstype_ccb_apply_cb);
 }
 

@@ -88,20 +88,20 @@ static void rda_cb(uint32_t notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_COD
 		evt = malloc(sizeof(AVD_EVT));
 		if (evt == NULL) {
 			LOG_ER("malloc failed");
-			assert(0);
+			osafassert(0);
 		}
 		evt->rcv_evt = AVD_EVT_ROLE_CHANGE;
 		evt->info.avd_msg = malloc(sizeof(AVD_D2D_MSG));
 		if (evt->info.avd_msg == NULL) {
 			LOG_ER("malloc failed");
-			assert(0);
+			osafassert(0);
 		}
 		evt->info.avd_msg->msg_type = AVD_D2D_CHANGE_ROLE_REQ;
 		evt->info.avd_msg->msg_info.d2d_chg_role_req.cause = AVD_FAIL_OVER;
 		evt->info.avd_msg->msg_info.d2d_chg_role_req.role = cb_info->info.io_role;
 
 		rc = ncs_ipc_send(&avd_cb->avd_mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
-		assert(rc == NCSCC_RC_SUCCESS);
+		osafassert(rc == NCSCC_RC_SUCCESS);
 	} else
 		TRACE("Ignoring change from %u to %u", avd_cb->avail_state_avd, cb_info->info.io_role);
 

@@ -665,7 +665,7 @@ uint32_t avd_post_amfd_switch_role_change_evt(AVD_CL_CB *cb, SaAmfHAStateT role)
 	AVD_EVT *evt;
 
 	evt = malloc(sizeof(AVD_EVT));
-	assert(evt);
+	osafassert(evt);
 	evt->rcv_evt = AVD_EVT_ROLE_CHANGE;
 	evt->info.avd_msg = malloc(sizeof(AVD_D2D_MSG));
 	evt->info.avd_msg->msg_type = AVD_D2D_CHANGE_ROLE_REQ;
@@ -673,7 +673,7 @@ uint32_t avd_post_amfd_switch_role_change_evt(AVD_CL_CB *cb, SaAmfHAStateT role)
 	evt->info.avd_msg->msg_info.d2d_chg_role_req.role =  role; 
 
 	rc = ncs_ipc_send(&avd_cb->avd_mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	return rc;
 }
 

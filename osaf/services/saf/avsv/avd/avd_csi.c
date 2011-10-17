@@ -35,7 +35,7 @@ static void csi_add_to_model(AVD_CSI *csi)
 	unsigned int rc;
 
 	rc = ncs_patricia_tree_add(&csi_db, &csi->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 
 	csi->cstype = avd_cstype_get(&csi->saAmfCSType);
 	avd_cstype_add_csi(csi);
@@ -58,7 +58,7 @@ void avd_csi_delete(AVD_CSI *csi)
 	avd_si_remove_csi(csi);
 
 	rc = ncs_patricia_tree_del(&csi_db, &csi->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	free(csi);
 }
 
@@ -114,7 +114,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	rc = immutil_getAttr("saAmfCSType", attributes, 0, &aname);
-	assert(rc == SA_AIS_OK);
+	osafassert(rc == SA_AIS_OK);
 
 	if (avd_cstype_get(&aname) == NULL) {
 		/* CS type does not exist in current model, check CCB if passed as param */
@@ -139,7 +139,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 		for (i = 0; i < values_number; i++) {
 			rc = immutil_getAttr("saAmfCSIDependencies", attributes, i, &saAmfCSIDependency);
-			assert(rc == SA_AIS_OK);
+			osafassert(rc == SA_AIS_OK);
 
 			if (strncmp((char*)dn->value, (char*)saAmfCSIDependency.value, sizeof(dn->value)) == 0) {
 				LOG_ER("'%s' validation failed - dependency configured to itself!", dn->value);
@@ -273,7 +273,7 @@ static AVD_CSI *csi_create(const SaNameT *csi_name, const SaImmAttrValuesT_2 **a
 	csi->pg_node_list.free_cookie = 0;
 
 	error = immutil_getAttr("saAmfCSType", attributes, 0, &csi->saAmfCSType);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 
 	if ((immutil_getAttrValuesNumber("saAmfCSIDependencies", attributes, &values_number) == SA_AIS_OK)) {
 		if (values_number == 0) {
@@ -408,7 +408,7 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 		goto done;
 
 	rc = immutil_getAttr("saAmfCSType", opdata->param.create.attrValues, 0, &cstype_name);
-	assert(rc == SA_AIS_OK);
+	osafassert(rc == SA_AIS_OK);
 
 	avsv_sanamet_init(&opdata->objectName, &si_name, "safSi");
 	avd_si = avd_si_get(&si_name);
@@ -610,7 +610,7 @@ static SaAisErrorT csi_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = csi_ccb_completed_delete_hdlr(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -651,7 +651,7 @@ static void ccb_apply_delete_hdlr(AVD_CSI *csi)
 			for (t_csicomp = t_sisu->list_of_csicomp; t_csicomp; t_csicomp = t_csicomp->susi_csicomp_next)
 				if (t_csicomp->csi == csi)
 					break;
-			assert(t_csicomp);
+			osafassert(t_csicomp);
 			/* Mark comp-csi and sisu to be under csi add/rem.*/
 			/* Send csi assignment for act susi first to the corresponding amfnd. */
 			if ((SA_AMF_HA_ACTIVE == t_sisu->state) && (true == first_sisu)) {
@@ -713,7 +713,7 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			avd_cstype_add_csi(csi);
 		}
 		else
-			assert(0);
+			osafassert(0);
 	}
 
         TRACE_LEAVE();
@@ -747,7 +747,7 @@ static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 
 	csi = csi_create(&opdata->objectName, opdata->param.create.attrValues,
 			opdata->param.create.parentName);
-	assert(csi);
+	osafassert(csi);
 	csi_add_to_model(csi);
 
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) 
@@ -858,7 +858,7 @@ static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 			avd_sg_nored_si_func(avd_cb, csi->si);
 			break;
 		default:
-			assert(0);
+			osafassert(0);
 		}
 	}
 done:
@@ -881,7 +881,7 @@ static void csi_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		ccb_apply_delete_hdlr(opdata->userData);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1098,7 +1098,7 @@ uint32_t avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_
 		prev_compcsi = t_compcsi_susi;
 		t_compcsi_susi = t_compcsi_susi->susi_csicomp_next;
 	}
-	assert(t_compcsi_susi);
+	osafassert(t_compcsi_susi);
 	/* Delink the csi from this susi. */
 	if (NULL == prev_compcsi)
 		susi->list_of_csicomp = t_compcsi_susi->susi_csicomp_next;
@@ -1116,7 +1116,7 @@ uint32_t avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_
 		prev_compcsi = t_compcsi;
 		t_compcsi = t_compcsi->csi_csicomp_next;
 	}
-	assert(t_compcsi);
+	osafassert(t_compcsi);
 	/* Delink the csi from csi->list_compcsi. */
 	if (NULL == prev_compcsi)
 		comp_csi->csi->list_compcsi = t_compcsi->csi_csicomp_next;
@@ -1125,7 +1125,7 @@ uint32_t avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_
 		prev_compcsi->csi_csicomp_next = NULL;
 	}
 
-	assert(t_compcsi == t_compcsi_susi);
+	osafassert(t_compcsi == t_compcsi_susi);
 
 	if (!ckpt)
 		avd_snd_pg_upd_msg(avd_cb, comp_csi->comp->su->su_on_node, comp_csi, SA_AMF_PROTECTION_GROUP_REMOVED, 0);
@@ -1152,7 +1152,7 @@ void avd_csi_remove_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *attr)
 
 	if (i_attr != attr) {
 		/* Log a fatal error */
-		assert(0);
+		osafassert(0);
 	} else {
 		if (p_attr == NULL) {
 			csi->list_attributes = i_attr->attr_next;
@@ -1162,7 +1162,7 @@ void avd_csi_remove_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *attr)
 		}
 	}
 
-	assert(csi->num_attributes > 0);
+	osafassert(csi->num_attributes > 0);
 	csi->num_attributes--;
 	TRACE_LEAVE();
 }
@@ -1194,7 +1194,7 @@ void avd_csi_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&csi_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&csi_db, &patricia_params) == NCSCC_RC_SUCCESS);
 	avd_class_impl_set("SaAmfCSI", NULL, NULL, csi_ccb_completed_cb, csi_ccb_apply_cb);
 }
 

@@ -208,7 +208,7 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 		if (!comp) {
 			LOG_ER("comp rec get failed component:%s",param->comp_name.value);
 			*rc = AVND_ERR_NO_COMP;
-			assert(0);
+			osafassert(0);
 			goto err;
 		}
 	}
@@ -242,11 +242,11 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 		if ((error = immutil_saImmOmAccessorGet_2(accessorHandle, &param->csi_name, attributeNames, 
 						(SaImmAttrValuesT_2 ***)&attributes)) != SA_AIS_OK) {
 			LOG_ER("saImmOmAccessorGet FAILED %u for %s", error, param->csi_name.value);
-			assert(0);
+			osafassert(0);
 		}
 
 		if (immutil_getAttr("saAmfCSType", attributes, 0, &csi_rec->saAmfCSType) != SA_AIS_OK)
-			assert(0);
+			osafassert(0);
 
 		immutil_saImmOmAccessorFinalize(accessorHandle);
 		immutil_saImmOmFinalize(immOmHandle);

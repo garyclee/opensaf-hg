@@ -175,7 +175,7 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
  done:
@@ -293,7 +293,7 @@ void avnd_evt_destroy(AVND_EVT *evt)
 	case AVND_EVT_PID_EXIT:
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	/* free the avnd event */

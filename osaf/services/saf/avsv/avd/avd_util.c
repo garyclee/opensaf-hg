@@ -349,7 +349,7 @@ uint32_t avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, bool term_state)
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		LOG_ER("%s: calloc FAILED", __FUNCTION__);
-		assert(0);
+		osafassert(0);
 	}
 
 	/* prepare the SU presence state change notification message */
@@ -409,7 +409,7 @@ uint32_t avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *para
 	op_req_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (op_req_msg == NULL) {
 		LOG_ER("calloc failed");
-		assert(0);
+		osafassert(0);
 	}
 
 	/* prepare the operation request message. */
@@ -974,7 +974,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 	/* prepare the SU SI message. */
 	if ((susi_msg = calloc(1, sizeof(AVSV_DND_MSG))) == NULL) {
 		LOG_ER("calloc failed");
-		assert(0);
+		osafassert(0);
 	}
 
 	susi_msg->msg_type = AVSV_D2N_INFO_SU_SI_ASSIGN_MSG;
@@ -995,7 +995,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 
 			/* For only these options fill the comp CSI values. */
 			if (true == single_csi) {
-				assert(compcsi);
+				osafassert(compcsi);
 				l_compcsi = compcsi;
 
 				compcsi_info = calloc(1, sizeof(AVSV_SUSI_ASGN));
@@ -1142,7 +1142,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 
 		/* For only these options fill the comp CSI values. */
 		if (true == single_csi) {
-			assert(compcsi);
+			osafassert(compcsi);
 			l_compcsi = compcsi;
 		} else
 			l_compcsi = l_susi->list_of_csicomp;
@@ -1391,7 +1391,7 @@ uint32_t avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}			/* switch */
 
 	/* send the msg to avnd */
@@ -1670,11 +1670,11 @@ void avsv_sanamet_init_from_association_dn(const SaNameT *haystack, SaNameT *dn,
 
 	/* find what we actually are looking for */
 	p = strstr((char*)haystack->value, needle);
-	assert(p);
+	osafassert(p);
 
 	/* find the parent */
 	pp = strstr((char*)haystack->value, parent);
-	assert(pp);
+	osafassert(pp);
 
 	/* position at parent separtor */
 	pp--;
@@ -1831,7 +1831,7 @@ int avd_admin_op_msg_snd(const SaNameT *dn, AVSV_AMF_CLASS_ID class_id,
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == NULL) {
 		LOG_ER("calloc failed");
-		assert(0);
+		osafassert(0);
 	}
 
 	d2n_msg->msg_type = AVSV_D2N_ADMIN_OP_REQ_MSG;

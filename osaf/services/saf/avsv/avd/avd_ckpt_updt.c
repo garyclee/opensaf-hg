@@ -48,7 +48,7 @@ uint32_t avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE ac
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_node->name.value);
 
-	assert (action == NCS_MBCSV_ACT_UPDATE);
+	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
 	if (NULL == (node = avd_node_get(&ckpt_node->name))) {
 		LOG_ER("avd_node_get FAILED for '%s'", ckpt_node->name.value);
@@ -98,7 +98,7 @@ uint32_t avd_ckpt_app(AVD_CL_CB *cb, AVD_APP *ckpt_app, NCS_MBCSV_ACT_TYPE actio
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_app->name.value);
 
-	assert (action == NCS_MBCSV_ACT_UPDATE);
+	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
 	if (NULL == (app = avd_app_get(&ckpt_app->name))) {
 		LOG_ER("avd_app_get FAILED for '%s'", ckpt_app->name.value);
@@ -137,7 +137,7 @@ uint32_t avd_ckpt_sg(AVD_CL_CB *cb, AVD_SG *ckpt_sg, NCS_MBCSV_ACT_TYPE action)
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_sg->name.value);
 
-	assert (action == NCS_MBCSV_ACT_UPDATE);
+	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
 	if (NULL == (sg = avd_sg_get(&ckpt_sg->name))) {
 		LOG_ER("avd_sg_get FAILED for '%s'", ckpt_sg->name.value);
@@ -180,7 +180,7 @@ uint32_t avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_su->name.value);
 
-	assert (action == NCS_MBCSV_ACT_UPDATE);
+	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
 	if (NULL == (su = avd_su_get(&ckpt_su->name))) {
 		LOG_ER("avd_su_get FAILED for '%s'", ckpt_su->name.value);
@@ -228,7 +228,7 @@ uint32_t avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_si->name.value);
 
-	assert (action == NCS_MBCSV_ACT_UPDATE);
+	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
 	if (NULL == (si = avd_si_get(&ckpt_si->name))) {
 		LOG_ER("avd_si_get FAILED for '%s'", ckpt_si->name.value);
@@ -272,14 +272,14 @@ uint32_t avd_ckpt_su_oper_list(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYP
 	TRACE_ENTER2("'%s'", ckpt_su->name.value);
 
 	su = avd_su_get(&ckpt_su->name);
-	assert(su);
+	osafassert(su);
 
 	if (NCS_MBCSV_ACT_ADD == action)
 		avd_sg_su_oper_list_add(cb, su, true);
 	else if (NCS_MBCSV_ACT_RMV == action)
 		avd_sg_su_oper_list_del(cb, su, true);
 	else
-		assert(0);
+		osafassert(0);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -322,7 +322,7 @@ uint32_t avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE 
 	}
 
 	si_ptr_up = avd_si_get(&si->name);
-	assert (si_ptr_up);
+	osafassert (si_ptr_up);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -332,7 +332,7 @@ uint32_t avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE 
 		si_ptr_up->sg_of_si->admin_si = NULL;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	return status;
@@ -352,7 +352,7 @@ uint32_t avd_ckpt_si_trans(AVD_CL_CB *cb, AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt,
 	TRACE_ENTER2("'%s'", si_trans_ckpt->sg_name.value);
 
 	sg_ptr = avd_sg_get(&si_trans_ckpt->sg_name);
-	assert(sg_ptr);
+	osafassert(sg_ptr);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -368,7 +368,7 @@ uint32_t avd_ckpt_si_trans(AVD_CL_CB *cb, AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt,
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	return status;
@@ -403,9 +403,9 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 	su_si_rel_ptr = avd_susi_find(cb, &su_si_ckpt->su_name, &su_si_ckpt->si_name);
 
 	su_ptr = avd_su_get(&su_si_ckpt->su_name);
-	assert(su_ptr);
+	osafassert(su_ptr);
 	si_ptr_up = avd_si_get(&su_si_ckpt->si_name);
-	assert(si_ptr_up);
+	osafassert(si_ptr_up);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -450,7 +450,7 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 		}
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	return status;
@@ -480,7 +480,7 @@ uint32_t avd_ckpt_comp(AVD_CL_CB *cb, AVD_COMP *ckpt_comp, NCS_MBCSV_ACT_TYPE ac
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], dn->value);
 
-	assert (action == NCS_MBCSV_ACT_UPDATE);
+	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
 	if (NULL == (comp = avd_comp_get(dn))) {
 		LOG_ER("avd_comp_get FAILED for '%s'", dn->value);
@@ -523,7 +523,7 @@ uint32_t avd_ckpt_compcstype(AVD_CL_CB *cb, AVD_COMPCS_TYPE *ckpt_compcstype, NC
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], dn->value);
 
-	assert (action == NCS_MBCSV_ACT_UPDATE);
+	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
 	if (NULL == (ccst = avd_compcstype_get(dn))) {
 		LOG_ER("avd_compcstype_get FAILED for '%s'", dn->value);

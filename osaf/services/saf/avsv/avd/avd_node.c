@@ -40,7 +40,7 @@ uint32_t avd_node_add_nodeid(AVD_AVND *node)
 		node->tree_node_id_node.right = NCS_PATRICIA_NODE_NULL;
 
 		rc = ncs_patricia_tree_add(&node_id_db, &node->tree_node_id_node);
-		assert(rc == NCSCC_RC_SUCCESS);
+		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -58,7 +58,7 @@ void avd_node_db_add(AVD_AVND *node)
 
 	if (avd_node_get(&node->name) == NULL) {
 		rc = ncs_patricia_tree_add(&node_name_db, &node->tree_node_name_node);
-		assert(rc == NCSCC_RC_SUCCESS);
+		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
 
@@ -87,7 +87,7 @@ AVD_AVND *avd_node_new(const SaNameT *dn)
 
 void avd_node_delete(AVD_AVND *node)
 {
-	assert(node->pg_csi_list.n_nodes == 0);
+	osafassert(node->pg_csi_list.n_nodes == 0);
 	if (node->node_info.nodeId)
 		avd_node_delete_nodeid(node);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
@@ -359,7 +359,7 @@ static const char *node_state_name[] = {
 
 void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state)
 {
-	assert(node_state <= AVD_AVND_STATE_NCS_INIT);
+	osafassert(node_state <= AVD_AVND_STATE_NCS_INIT);
 	TRACE_ENTER2("'%s' %s => %s",	node->name.value, node_state_name[node->node_state],
 		node_state_name[node_state]);
 	node->node_state = node_state;
@@ -385,7 +385,7 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
 	
 	SaAmfOperationalStateT old_state = node->saAmfNodeOperState;
 
-	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
+	osafassert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s OperState %s => %s", node->name.value,
 		   avd_oper_state_name[node->saAmfNodeOperState], avd_oper_state_name[oper_state]);
 	node->saAmfNodeOperState = oper_state;
@@ -514,7 +514,7 @@ static SaAisErrorT node_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = node_ccb_completed_delete_hdlr(opdata);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -539,7 +539,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
 	node = avd_node_get(&opdata->objectName);
-	assert(node != NULL);
+	osafassert(node != NULL);
 
 	i = 0;
 	/* Modifications can be done for the following parameters. */
@@ -602,7 +602,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}
 
 		} else {
-			assert(0);
+			osafassert(0);
 		}
 	}			/* while (attr_mod != NULL) */
 
@@ -618,7 +618,7 @@ static void node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		node = node_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(node);
+		osafassert(node);
 		node_add_to_model(node);
 		break;
 	case CCBUTIL_MODIFY:
@@ -628,7 +628,7 @@ static void node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		node_ccb_apply_delete_hdlr(opdata->userData);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -645,7 +645,7 @@ void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
 {
 	SaAmfAdminStateT old_state  = node->saAmfNodeAdminState;
 	
-	assert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
+	osafassert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
 	if (0 != node->clm_pend_inv) {
 		/* Clm operations going on, skip notifications and rt updates for node change. We are using node state
 		   as LOCKED for making CLM Admin operation going through. */
@@ -1013,7 +1013,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 		break;		/* case NCS_ADMIN_STATE_LOCK: case NCS_ADMIN_STATE_SHUTDOWN: */
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
  end:
@@ -1061,7 +1061,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 	}
 
 	node = avd_node_get(objectName);
-	assert(node != AVD_AVND_NULL);
+	osafassert(node != AVD_AVND_NULL);
 
 	if (node->admin_node_pend_cbk.admin_oper != 0) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -1323,7 +1323,7 @@ void avd_node_remove_su(AVD_SU *su)
 		}
 
 		if (i_su != su) {
-			assert(0);
+			osafassert(0);
 		} else {
 			if (prev_su == NULL) {
 				if (isNcs)
@@ -1345,9 +1345,9 @@ void avd_node_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&node_name_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&node_name_db, &patricia_params) == NCSCC_RC_SUCCESS);
 	patricia_params.key_size = sizeof(SaClmNodeIdT);
-	assert(ncs_patricia_tree_init(&node_id_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&node_id_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfNode", NULL, node_admin_op_cb, node_ccb_completed_cb, node_ccb_apply_cb);
 }

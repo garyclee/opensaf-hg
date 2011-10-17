@@ -50,7 +50,7 @@ void avd_sgtype_remove_sg(AVD_SG *sg)
 
 		if (i_sg != sg) {
 			/* Log a fatal error */
-			assert(0);
+			osafassert(0);
 		} else {
 			if (prev_sg == NULL) {
 				sg->sg_type->list_of_sg = sg->sg_list_sg_type_next;
@@ -90,7 +90,7 @@ static void sgtype_add_to_model(AVD_AMF_SG_TYPE *sgt)
 	unsigned int rc;
 
 	rc = ncs_patricia_tree_add(&sgtype_db, &sgt->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 /**
@@ -125,7 +125,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	rc = immutil_getAttr("saAmfSgtRedundancyModel", attributes, 0, &value);
-	assert(rc == SA_AIS_OK);
+	osafassert(rc == SA_AIS_OK);
 
 	if ((value < SA_AMF_2N_REDUNDANCY_MODEL) || (value > SA_AMF_NO_REDUNDANCY_MODEL)) {
 		LOG_ER("Invalid saAmfSgtRedundancyModel %u for '%s'",
@@ -137,8 +137,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		if (!strcmp(attr->attrName, "saAmfSgtValidSuTypes"))
 			break;
 
-	assert(attr);
-	assert(attr->attrValuesNumber > 0);
+	osafassert(attr);
+	osafassert(attr->attrValuesNumber > 0);
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
 		SaNameT *name = (SaNameT *)attr->attrValues[j];
@@ -203,14 +203,14 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 	sgt->tree_node.key_info = (uint8_t *)&(sgt->name);
 
 	error = immutil_getAttr("saAmfSgtRedundancyModel", attributes, 0, &sgt->saAmfSgtRedundancyModel);
-	assert(error == SA_AIS_OK);
+	osafassert(error == SA_AIS_OK);
 
 	while ((attr = attributes[i++]) != NULL)
 		if (!strcmp(attr->attrName, "saAmfSgtValidSuTypes"))
 			break;
 
-	assert(attr);
-	assert(attr->attrValuesNumber > 0);
+	osafassert(attr);
+	osafassert(attr->attrValuesNumber > 0);
 
 	sgt->number_su_type = attr->attrValuesNumber;
 	sgt->saAmfSGtValidSuTypes = malloc(attr->attrValuesNumber * sizeof(SaNameT));
@@ -361,7 +361,7 @@ static SaAisErrorT sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = SA_AIS_OK;
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -385,14 +385,14 @@ static void sgtype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		sgt = sgtype_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(sgt);
+		osafassert(sgt);
 		sgtype_add_to_model(sgt);
 		break;
 	case CCBUTIL_DELETE:
 		sgtype_delete(opdata->userData);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
 	TRACE_LEAVE();
@@ -403,7 +403,7 @@ void avd_sgtype_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&sgtype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_init(&sgtype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfSGType", NULL, NULL, sgtype_ccb_completed_cb, sgtype_ccb_apply_cb);
 	avd_class_impl_set("SaAmfSGBaseType", NULL, NULL, avd_imm_default_OK_completed_cb, NULL);

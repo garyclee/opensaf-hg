@@ -455,7 +455,7 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}			/* switch */
 
 	/* npi comps dont interact with amf */
@@ -517,7 +517,7 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_HC
 			rec->period = hctype->saAmfHctDefPeriod;
 			rec->max_dur = hctype->saAmfHctDefMaxDuration;
 		} else
-			assert(hctype);	/* already thru with validation */
+			osafassert(hctype);	/* already thru with validation */
 	}
 
 	rec->key = hc_start->hc_key;
@@ -642,7 +642,7 @@ uint32_t avnd_comp_hc_rec_process(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -752,7 +752,7 @@ uint32_t avnd_comp_hc_rec_confirm(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* it has to be comp-initiated healthcheck */
-	assert(m_AVND_COMP_HC_REC_IS_COMP_INITIATED(rec));
+	osafassert(m_AVND_COMP_HC_REC_IS_COMP_INITIATED(rec));
 
 	if (SA_AIS_OK == res) {
 		/* restart the periodic timer */

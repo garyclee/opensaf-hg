@@ -259,7 +259,7 @@ static size_t value_size(SaImmValueTypeT attrValueType)
 		valueSize = sizeof(SaStringT);
 		break;
 	case SA_IMM_ATTR_SAANYT:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -330,7 +330,7 @@ static AVSV_AMF_CLASS_ID class_name_to_class_type(const SaImmClassNameT classNam
 			return i;
 	}
 
-	assert(0);
+	osafassert(0);
 	return AVSV_SA_AMF_CLASS_INVALID;
 }
 
@@ -502,7 +502,7 @@ static SaAisErrorT rt_attr_update_cb(SaImmOiHandleT immoi_handle,
 	AVSV_AMF_CLASS_ID type = object_name_to_class_type(object_name);
 
 	TRACE_ENTER2("%s", object_name->value);
-	assert(rtattr_update_callback[type] != NULL);
+	osafassert(rtattr_update_callback[type] != NULL);
 	error = rtattr_update_callback[type](immoi_handle, object_name, attribute_names);
 	TRACE_LEAVE2("%u", error);
 	return error;
@@ -720,7 +720,7 @@ static void ccb_abort_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 
 	/* Return CCB container memory */
 	ccb_util_ccb_data = ccbutil_findCcbData(ccb_id);
-	assert(ccb_util_ccb_data);
+	osafassert(ccb_util_ccb_data);
 	ccbutil_deleteCcbData(ccb_util_ccb_data);
 
 	TRACE_LEAVE();
@@ -836,7 +836,7 @@ static void ccb_insert_ordered_list(AvdImmOiCcbApplyCallbackT ccb_apply_cb,
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 			break;
 	}
 }
@@ -886,7 +886,7 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 				saflog(LOG_NOTICE, amfSvcUsrName, "Deleted %s", opdata->objectName.value);
 				break;
 			default:
-				assert(0);
+				osafassert(0);
 			}
 		}
 	}
@@ -903,7 +903,7 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 
 	/* Return CCB container memory */
 	ccb_util_ccb_data = ccbutil_findCcbData(ccb_id);
-	assert(ccb_util_ccb_data);
+	osafassert(ccb_util_ccb_data);
 	ccbutil_deleteCcbData(ccb_util_ccb_data);
 	TRACE_LEAVE();
 }
@@ -1151,7 +1151,7 @@ void avd_class_impl_set(const SaImmClassNameT className,
 
 	rtattr_update_callback[type] = rtattr_cb;
 	admin_op_callback[type] = adminop_cb;
-	assert(ccb_completed_callback[type] == NULL);
+	osafassert(ccb_completed_callback[type] == NULL);
 	ccb_completed_callback[type] = ccb_compl_cb;
 	ccb_apply_callback[type] = ccb_apply_cb;
 }
@@ -1586,7 +1586,7 @@ AvdJobDequeueResultT avd_job_fifo_execute(SaImmOiHandleT immOiHandle)
 		ret = job_exec_imm_objdelete(immOiHandle, &ajob->objdelete);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 

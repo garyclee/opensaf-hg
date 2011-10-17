@@ -143,7 +143,7 @@ uint32_t avnd_msg_copy(AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
 		break;
 
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
  done:
