@@ -46,7 +46,7 @@ static void clms_trackresp_patricia_init(CLMS_CLUSTER_NODE * node)
 
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&node->trackresp, &trackresp_param)) {
 		LOG_ER("patricia tree init failed for node's trackresp tree");
-		assert(0);
+		osafassert(0);
 	}
 
 	TRACE_LEAVE();
@@ -595,7 +595,7 @@ static void clms_imm_admin_op_callback(SaImmOiHandleT immOiHandle,
 	nodeop = clms_node_get_by_name(objectName);
 	if (nodeop == NULL) {
 		LOG_ER("Admin Operation on invalid node_name");
-		assert(0);
+		osafassert(0);
 	}
 	
 	if (nodeop->admin_state == SA_CLM_ADMIN_SHUTTING_DOWN) {
@@ -680,7 +680,7 @@ static void clms_create_track_resp_list(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_IN
 	trk = (CLMS_TRACK_INFO *) calloc(1, sizeof(CLMS_TRACK_INFO));
 	if (trk == NULL) {
 		LOG_ER("trk calloc failed");
-		assert(0);
+		osafassert(0);
 	}
 	/*add to the tracklist of clmresp tracking */
 	trk->client_id = client->client_id;
@@ -691,7 +691,7 @@ static void clms_create_track_resp_list(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_IN
 
 	if (ncs_patricia_tree_add(&node->trackresp, &trk->pat_node) != NCSCC_RC_SUCCESS) {
 		LOG_ER("patricia tree add failed for CLMS_TRACK_INFO inv_id %llu",client->inv_id);
-		assert(0);
+		osafassert(0);
 	}
 
 	TRACE_LEAVE();
@@ -931,7 +931,7 @@ uint32_t clms_send_track_local(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * clie
 
 		if (!msg.info.cbk_info.param.track.buf_info.notification) {
 			LOG_ER("Malloc failed for notification");
-			assert(0);
+			osafassert(0);
 		}
 
 		memset(msg.info.cbk_info.param.track.buf_info.notification, 0, sizeof(SaClmClusterNotificationT_4));
@@ -1041,7 +1041,7 @@ uint32_t clms_prep_and_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_C
 
 	if (!msg.info.cbk_info.param.track.buf_info.notification) {
 		LOG_ER("Malloc failed for notification");
-		assert(0);
+		osafassert(0);
 	}
 	
 	memset(msg.info.cbk_info.param.track.buf_info.notification,0,
@@ -1326,7 +1326,7 @@ SaAisErrorT clms_node_ccb_comp_cb(CcbUtilOperationData_t * opdata)
 		}
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1348,7 +1348,7 @@ SaAisErrorT clms_node_ccb_apply_modify(CcbUtilOperationData_t * opdata)
 	TRACE_ENTER2("%s", opdata->objectName.value);
 
 	node = clms_node_get_by_name(&opdata->objectName);
-	assert(node != NULL);
+	osafassert(node != NULL);
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
@@ -1512,7 +1512,7 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -1549,14 +1549,14 @@ void clms_node_add_to_model(CLMS_CLUSTER_NODE * node)
 
 	TRACE_ENTER();
 
-	assert(node != NULL);
+	osafassert(node != NULL);
 	if (node->ee_name.length != 0)
 	{
 		/*If the Node is already added to patricia tree;then ignore it */
 		if (clms_node_get_by_eename(&node->ee_name) == NULL) {
 			if (clms_cb->reg_with_plm == SA_TRUE) {
 				if (clms_node_add(node, 1) != NCSCC_RC_SUCCESS) {
-					assert(0);
+					osafassert(0);
 				}
 			}
 		}
@@ -1570,7 +1570,7 @@ void clms_node_add_to_model(CLMS_CLUSTER_NODE * node)
 			if (clms_node_delete(node, 1) != NCSCC_RC_SUCCESS)
 				TRACE("patricia tree deleted failed for eename");
 
-			assert(0);
+			osafassert(0);
 		}
 	}
 
@@ -1654,7 +1654,7 @@ static void clms_timer_ipc_send(SaClmNodeIdT node_id)
 	/** allocate an CLMSV_CLMS_EVENT now **/
 	if (NULL == (clmsv_evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
 		LOG_ER("memory alloc FAILED");
-		assert(0);
+		osafassert(0);
 	}
 
 	memset(clmsv_evt, 0, sizeof(CLMSV_CLMS_EVT));
@@ -2022,12 +2022,12 @@ static void clms_lock_send_start_cbk(CLMS_CLUSTER_NODE * nodeop)
 	clms_send_track(clms_cb, nodeop, SA_CLM_CHANGE_START);
 	if (sigaction(SIGALRM, &act, NULL) != 0) {
 		TRACE("Sigaction failed");
-		assert(0);
+		osafassert(0);
 	}
 	/*Create the lock Callbck timer */
 	if ((timer_create(CLOCK_REALTIME, &signal_spec, &nodeop->lock_timerid)) != 0) {
 		TRACE("Creating Lock Timer failed");
-		assert(0);
+		osafassert(0);
 	}
 	TRACE("Timer creation successful");
 
@@ -2039,7 +2039,7 @@ static void clms_lock_send_start_cbk(CLMS_CLUSTER_NODE * nodeop)
 
 	if ((timer_settime(nodeop->lock_timerid, 0, &timer, NULL)) != 0) {
 		LOG_ER("Setting lock timer value failed");
-		assert(0);
+		osafassert(0);
 	}
 	TRACE("Timer started");
 	TRACE_LEAVE();

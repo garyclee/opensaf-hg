@@ -138,14 +138,14 @@ static uint32_t ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 		/* Client does not exist, create new one */
 		if ((client = clms_client_new(param->mds_dest, param->client_id)) == NULL) {
 			LOG_ER("new client addtion failed on standby");
-			assert(0);
+			osafassert(0);
 		}
 		client->track_flags = param->track_flags;
 	} else {
 		/* Client with ID already exist, check other attributes */
 		if (client->mds_dest != param->mds_dest) {
 			/* Do not allow standby to get out of sync */
-			assert(0);
+			osafassert(0);
 		}
 	}
 
@@ -272,7 +272,7 @@ static uint32_t ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 		node = (CLMS_CLUSTER_NODE *)malloc(sizeof(CLMS_CLUSTER_NODE));
 		if (node == NULL){
 			LOG_ER("Malloc failed for cluster node");
-			assert(0);
+			osafassert(0);
 		}
 		memset(node,0,sizeof(CLMS_CLUSTER_NODE));
 		prepare_cluster_node(node, param);      
@@ -347,7 +347,7 @@ static uint32_t ckpt_proc_node_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 	node = clms_node_get_by_id(node_id);
 	if (node == NULL) {
 		LOG_ER("Standby node is out of sync");
-		assert(0);
+		osafassert(0);
 	}
 
 	/* Delete the node reference from the nodeid database */
@@ -413,7 +413,7 @@ static uint32_t ckpt_proc_node_config_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 	if (node == NULL) {
 		LOG_ER("Node is NULL, Standby is out of sync.");
 		/* TBD. Introduce warmsyncs */
-		assert(0);
+		osafassert(0);
 	}
 
 	node->node_name.length = param->node_name.length;
@@ -457,7 +457,7 @@ static uint32_t ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 
 	if (node == NULL) {
 		LOG_ER("Node is NULL,problem with the database.");
-		assert(0);
+		osafassert(0);
 	}
 
 	node->node_id = param->node_id;
@@ -686,7 +686,7 @@ static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 
 	TRACE_ENTER();
 
-	assert(arg != NULL);
+	osafassert(arg != NULL);
 
 	switch (arg->i_op) {
 	case NCS_MBCSV_CBOP_ENC:
@@ -798,7 +798,7 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	uint16_t mbcsv_version;
 
 	TRACE_ENTER();
-	assert(cbk_arg != NULL);
+	osafassert(cbk_arg != NULL);
 
 	mbcsv_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.encode.i_peer_version,
 					    CLMS_MBCSV_VERSION, CLMS_MBCSV_VERSION_MIN);

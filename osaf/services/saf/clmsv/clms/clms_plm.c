@@ -54,7 +54,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 			} else {
 				if (node == NULL){
 					TRACE("node not in database");
-					assert(0);
+					osafassert(0);
 				}
 			}
 			node->ee_red_state = trackedEntities->entities[i].currentReadinessStatus.readinessState;
@@ -72,7 +72,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 
 			if (node == NULL) {
 				TRACE("node not in database");
-				assert(0);
+				osafassert(0);
 			}
 			/* clearing node dependency list for each entity coming in the callback
 			   in case of failover,after validate step completed will come and we need to clear node list
@@ -139,7 +139,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 			} else {
 				if (node == NULL){
 					TRACE("node not in database");
-					assert(0);
+					osafassert(0);
 				}
 			}
 
@@ -308,7 +308,7 @@ SaAisErrorT clms_plm_init(CLMS_CB * cb)
 
 		if (!entityNames) {
 			LOG_ER("Malloc failed for entityNames");
-			assert(0);
+			osafassert(0);
 		}
 
 		TRACE("entityNamesNumber %d", entityNamesNumber);
@@ -334,7 +334,7 @@ SaAisErrorT clms_plm_init(CLMS_CB * cb)
 
 		if(!trackedEntities) {
 			LOG_ER("Malloc failed for trackedEntities");
-			assert(0);
+			osafassert(0);
 		}
 
 		memset(trackedEntities, 0, (entityNamesNumber * sizeof(SaPlmReadinessTrackedEntitiesT)));

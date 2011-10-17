@@ -43,7 +43,7 @@ static uint32_t clma_enc_initialize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 	clmsv_init_param_t *param = &msg->info.api_info.param.init;
 
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 3);
@@ -81,7 +81,7 @@ static uint32_t clma_enc_finalize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 	TRACE_ENTER();
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 4);
@@ -117,7 +117,7 @@ static uint32_t clma_enc_track_start_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 	TRACE_ENTER();
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 9);
@@ -155,7 +155,7 @@ static uint32_t clma_enc_track_stop_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 	TRACE_ENTER();
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 4);
@@ -191,7 +191,7 @@ static uint32_t clma_enc_node_get_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 	TRACE_ENTER();
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
@@ -228,7 +228,7 @@ static uint32_t clma_enc_node_get_async_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 	TRACE_ENTER();
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
     /** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 16);
@@ -268,7 +268,7 @@ static uint32_t clma_enc_response_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 	TRACE_ENTER();
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	inv1 = (param->inv & 0x00000000ffffffff);
 	inv2 = (param->inv >> 32);
@@ -427,7 +427,7 @@ static uint32_t clma_dec_initialize_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 	SaUint32T *client_id = &msg->info.api_resp_info.param.client_id;
 	uint8_t local_data[100];
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	*client_id = ncs_decode_32bit(&p8);
@@ -444,7 +444,7 @@ static uint32_t clma_dec_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 * msg)
 	SaClmClusterNodeT_4 *param = msg;
 	uint8_t local_data[100];
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->nodeId = ncs_decode_32bit(&p8);
@@ -498,7 +498,7 @@ static uint32_t clma_dec_cluster_ntf_buf_msg(NCS_UBAID *uba, SaClmClusterNotific
 	uint8_t local_data[100];
 	TRACE_ENTER();
 
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	param->viewNumber = ncs_decode_64bit(&p8);
@@ -548,7 +548,7 @@ static uint32_t clma_dec_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 	CLMSV_TRACK_INFO *track = &msg->info.api_resp_info.param.track;
 	uint8_t local_data[100];
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 2);
 	track->num = ncs_decode_16bit(&p8);
@@ -586,7 +586,7 @@ static uint32_t clma_dec_track_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 	CLMSV_TRACK_CBK_INFO *track = &msg->info.cbk_info.param.track;
 	uint8_t local_data[100];
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	total_bytes += clma_dec_cluster_ntf_buf_msg(uba, &track->buf_info);
 
@@ -655,7 +655,7 @@ static uint32_t clma_dec_node_async_get_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 	CLMSV_NODE_GET_ASYNC_CBK_INFO *node_get = &msg->info.cbk_info.param.node_get;
 	uint8_t local_data[100];
 	TRACE_ENTER();
-	assert(uba != NULL);
+	osafassert(uba != NULL);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	node_get->err = ncs_decode_32bit(&p8);
@@ -1205,7 +1205,7 @@ uint32_t clma_mds_msg_sync_send(clma_cb_t * cb, CLMSV_MSG * i_msg, CLMSV_MSG ** 
 
 	TRACE_ENTER();
 
-	assert(cb != NULL && i_msg != NULL && o_msg != NULL);
+	osafassert(cb != NULL && i_msg != NULL && o_msg != NULL);
 
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->mds_hdl;
@@ -1251,7 +1251,7 @@ uint32_t clma_mds_msg_async_send(clma_cb_t * cb, CLMSV_MSG * i_msg, uint32_t pri
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	assert(cb != NULL && i_msg != NULL);
+	osafassert(cb != NULL && i_msg != NULL);
 
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->mds_hdl;

@@ -220,7 +220,7 @@ uint32_t clms_node_delete(CLMS_CLUSTER_NODE * nd, int i)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("value of i %d", i);
 
-	assert(nd != NULL);
+	osafassert(nd != NULL);
 
 	switch (i) {
 
@@ -248,7 +248,7 @@ uint32_t clms_node_delete(CLMS_CLUSTER_NODE * nd, int i)
 		}
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 	}
 
  done:
@@ -378,7 +378,7 @@ SaClmClusterNotificationT_4 *clms_notbuffer_changes_only(SaClmChangeStepT step)
 	notify = (SaClmClusterNotificationT_4 *) malloc(num * sizeof(SaClmClusterNotificationT_4));
 	if (!notify) {
 		LOG_ER("Malloc failed for SaClmClusterNotificationT_4");
-		assert(0);
+		osafassert(0);
 	}
 
 	memset(notify, 0, num * sizeof(SaClmClusterNotificationT_4));
@@ -445,7 +445,7 @@ SaClmClusterNotificationT_4 *clms_notbuffer_changes(SaClmChangeStepT step)
 
 	if (!notify) {
 		LOG_ER("malloc failed for SaClmClusterNotificationT_4");
-		assert(0);
+		osafassert(0);
 	}
 
 	memset(notify, 0, num * sizeof(SaClmClusterNotificationT_4));
@@ -665,7 +665,7 @@ uint32_t clms_clmresp_rejected(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_TRAC
 			/*Delete the timer */
 			if (timer_delete(node->lock_timerid) != 0) {
 				LOG_ER("Timer Delete failed");
-				assert(0);
+				osafassert(0);
 			}
 			node->admin_op = 0;
 			node->stat_change = SA_FALSE;
@@ -723,7 +723,7 @@ uint32_t clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 			/*Delete the timer */
 			if (timer_delete(node->lock_timerid) != 0) {
 				LOG_ER("Timer Delete failed");
-				assert(0);
+				osafassert(0);
 			}
 			clms_clmresp_error_timeout(cb, node);
 

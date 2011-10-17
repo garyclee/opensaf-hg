@@ -304,7 +304,7 @@ uint32_t encodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
 	}
 	if (nodeAddress->length > SA_CLM_MAX_ADDRESS_LENGTH) {
 		LOG_ER("SaNameT length too long %hd", nodeAddress->length);
-		assert(0);
+		osafassert(0);
 	}
 	ncs_encode_16bit(&p8, nodeAddress->length);
 	ncs_enc_claim_space(uba, 2);

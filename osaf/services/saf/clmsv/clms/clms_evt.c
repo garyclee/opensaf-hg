@@ -379,7 +379,7 @@ static uint32_t proc_node_lock_tmr_exp_msg(CLMSV_CLMS_EVT * evt)
 	/*Get the node details */
 	node_id = evt->info.tmr_info.node_id;
 	op_node = clms_node_get_by_id(node_id);
-	assert(op_node != NULL);
+	osafassert(op_node != NULL);
 
 	rc = clms_node_trackresplist_empty(op_node);
 	if (rc != NCSCC_RC_SUCCESS)
@@ -1349,7 +1349,7 @@ static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc, uint32_t num_mem
 	msg.info.cbk_info.param.track.err = ais_rc;
 	msg.info.cbk_info.param.track.inv = 0;	/* Response not required */
 	msg.info.cbk_info.param.track.root_cause_ent = (SaNameT *)malloc(sizeof(SaNameT));
-	msg.info.cbk_info.param.track.root_cause_ent->length = 10;	/* to avoid assert in mds */
+	msg.info.cbk_info.param.track.root_cause_ent->length = 10;	/* to avoid osafassert in mds */
 	msg.info.cbk_info.param.track.cor_ids = (SaNtfCorrelationIdsT *) malloc(sizeof(SaNtfCorrelationIdsT));
 	msg.info.cbk_info.param.track.step = SA_CLM_CHANGE_COMPLETED;
 	msg.info.cbk_info.param.track.time_super = (SaTimeT)SA_TIME_UNKNOWN;
@@ -1589,7 +1589,7 @@ void clms_remove_node_down_rec(SaClmNodeIdT node_id)
  */
 void clms_evt_destroy(CLMSV_CLMS_EVT * evt)
 {
-	assert(evt != NULL);
+	osafassert(evt != NULL);
 	if (evt->info.msg.info.api_info.type == CLMSV_CLUSTER_JOIN_REQ) {
 		TRACE("not calloced in server code,don't free it here");
 	} else
