@@ -188,7 +188,7 @@ SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node
 	bool locked = true;
 	char *timeout_env_value = NULL;
 	TRACE_ENTER();
-	assert(immHandle && cl_node);
+	osafassert(immHandle && cl_node);
 
 	proc_rc = imma_startup(NCSMDS_SVC_ID_IMMA_OM);
 	if (NCSCC_RC_SUCCESS != proc_rc) {
@@ -1123,14 +1123,14 @@ static SaAisErrorT imma_newCcbId(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node,
 	TRACE_ENTER();
 	TRACE("imma_newCcbId:create new ccb id with admoId:%u",	adminOwnerId);
 
-	assert(locked && *locked);
+	osafassert(locked && *locked);
 	if (ccb_node->mAborted || ccb_node->mAugCcb) {
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		ccb_node->mAborted = true;
 		goto fail;
 	}
 
-	assert(ccb_node->mApplied);
+	osafassert(ccb_node->mApplied);
 	ccb_node->mCcbId = 0;
 
 	/* Guard against race with ourselves. */
@@ -1179,10 +1179,10 @@ static SaAisErrorT imma_newCcbId(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node,
 			goto mds_send_fail;
 	}
 
-	assert(out_evt);
+	osafassert(out_evt);
 	/* Process the received Event */
-	assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-	assert(out_evt->info.imma.type == IMMA_EVT_ND2A_CCBINIT_RSP);
+	osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_CCBINIT_RSP);
 	rc = out_evt->info.imma.info.ccbInitRsp.error;
 	ccbId = out_evt->info.imma.info.ccbInitRsp.ccbId;
 	/* Free the out event */
@@ -1208,7 +1208,7 @@ static SaAisErrorT imma_newCcbId(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node,
 	}
 
 	/* It should not be possible that the ccb_node was replaced. */
-	assert(ccb_node == old_ccb_node);
+	osafassert(ccb_node == old_ccb_node);
 
 	ccb_node->mExclusive = false;
 
@@ -1406,8 +1406,8 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 	if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 	/* ccb_node still valid if rc == SA_AIS_OK. */
 	if(rc == SA_AIS_OK) {
-		assert(!(ccb_node->mExclusive));
-		assert(locked);
+		osafassert(!(ccb_node->mExclusive));
+		osafassert(locked);
 	}
 
 	if (!locked) {
@@ -1450,7 +1450,7 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 	if (rc == SA_AIS_OK) {
 		*ccbHandle = ccb_node->ccb_hdl;
 	} else {
-		assert(rc != SA_AIS_ERR_LIBRARY) ;
+		osafassert(rc != SA_AIS_ERR_LIBRARY) ;
 		imma_ccb_node_delete(cb, ccb_node);	/*Remove node from tree and free it. */
 		ccb_node = NULL;
 	}
@@ -1635,7 +1635,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		goto done;
 	}
 
-	assert(ccb_node->mImmHandle == ao_node->mImmHandle);
+	osafassert(ccb_node->mImmHandle == ao_node->mImmHandle);
 	adminOwnerId = ao_node->mAdminOwnerId;
 	ao_node=NULL;
 
@@ -1646,8 +1646,8 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 		/* ccb_node still valid if rc == SA_AIS_OK. */
 		if(rc == SA_AIS_OK) {
-			assert(!(ccb_node->mExclusive));
-			assert(locked);
+			osafassert(!(ccb_node->mExclusive));
+			osafassert(locked);
 		}
 
 		if (!locked) {
@@ -1686,9 +1686,9 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		}
 	}
 
-	assert(locked);
-	assert(cl_node);
-	assert(ccb_node);
+	osafassert(locked);
+	osafassert(cl_node);
+	osafassert(ccb_node);
 
 	imma_proc_increment_pending_reply(cl_node);
 
@@ -1739,7 +1739,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		evt.info.immnd.info.objCreate.parentName.buf = NULL;
 	}
 
-	assert(evt.info.immnd.info.objCreate.attrValues == NULL);
+	osafassert(evt.info.immnd.info.objCreate.attrValues == NULL);
 	const SaImmAttrValuesT_2 *attr;
 	int i;
 	for (i = 0; attrValues[i]; ++i) {
@@ -1833,8 +1833,8 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 
 	if (out_evt) {
 		/* Process the outcome, note this is after a blocking call. */
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert((out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) ||
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert((out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) ||
 			(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR_2));
 		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.errRsp.error;
@@ -1913,7 +1913,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		goto done;
 	}
 
-	assert(ccb_node->mErrorStrings == NULL);
+	osafassert(ccb_node->mErrorStrings == NULL);
 	ccb_node->mErrorStrings = newErrorStrings;
 	newErrorStrings = NULL; /* Dont free the strings on exit from this func */
 
@@ -2137,7 +2137,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		goto done;
 	}
 
-	assert(ccb_node->mImmHandle == ao_node->mImmHandle);
+	osafassert(ccb_node->mImmHandle == ao_node->mImmHandle);
 	adminOwnerId = ao_node->mAdminOwnerId;
 	ao_node=NULL;
 
@@ -2148,8 +2148,8 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 		/* ccb_node still valid if rc == SA_AIS_OK. */
 		if(rc == SA_AIS_OK) {
-			assert(!(ccb_node->mExclusive));
-			assert(locked);
+			osafassert(!(ccb_node->mExclusive));
+			osafassert(locked);
 		}
 
 		if (!locked) {
@@ -2188,9 +2188,9 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		}
 	}
 
-	assert(locked);
-	assert(cl_node);
-	assert(ccb_node);
+	osafassert(locked);
+	osafassert(cl_node);
+	osafassert(ccb_node);
 
 	imma_proc_increment_pending_reply(cl_node);
 
@@ -2223,7 +2223,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		evt.info.immnd.info.objModify.objectName.buf = NULL;
 	}
 
-	assert(evt.info.immnd.info.objModify.attrMods == NULL);
+	osafassert(evt.info.immnd.info.objModify.attrMods == NULL);
 
 	const SaImmAttrModificationT_2 *attrMod;
 	int i;
@@ -2274,8 +2274,8 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 
 	if (out_evt) {
 		/* Process the outcome, note this is after a blocking call. */
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert((out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) ||
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert((out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) ||
 			(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR_2));
 		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.errRsp.error;
@@ -2349,7 +2349,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		goto done;
 	}
 
-	assert(ccb_node->mErrorStrings == NULL);
+	osafassert(ccb_node->mErrorStrings == NULL);
 	ccb_node->mErrorStrings = newErrorStrings;
 	newErrorStrings = NULL; /* Dont free the strings on exit from this func */
 
@@ -2565,7 +2565,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		goto done;
 	}
 
-	assert(ccb_node->mImmHandle == ao_node->mImmHandle);
+	osafassert(ccb_node->mImmHandle == ao_node->mImmHandle);
 	adminOwnerId = ao_node->mAdminOwnerId;
 	ao_node=NULL;
 
@@ -2576,8 +2576,8 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 		/* ccb_node still valid if rc == SA_AIS_OK. */
 		if(rc == SA_AIS_OK) {
-			assert(!(ccb_node->mExclusive));
-			assert(locked);
+			osafassert(!(ccb_node->mExclusive));
+			osafassert(locked);
 		}
 
 		if (!locked) {
@@ -2616,9 +2616,9 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		}
 	}
 
-	assert(locked);
-	assert(cl_node);
-	assert(ccb_node);
+	osafassert(locked);
+	osafassert(cl_node);
+	osafassert(ccb_node);
 
 	imma_proc_increment_pending_reply(cl_node);
 
@@ -2654,8 +2654,8 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 
 	if (out_evt) {
 		/* Process the outcome, note this is after a blocking call. */
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert((out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) ||
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert((out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) ||
 			(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR_2));
 		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.errRsp.error;
@@ -2702,7 +2702,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		goto done;
 	}
 
-	assert(ccb_node->mErrorStrings == NULL);
+	osafassert(ccb_node->mErrorStrings == NULL);
 	ccb_node->mErrorStrings = newErrorStrings;
 	newErrorStrings = NULL; /* Dont free the strings on exit from this func */	
 
@@ -2900,14 +2900,14 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 
 	if (out_evt) {
 		/* Process the outcome, note this is after a blocking call. */
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert((out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) ||
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert((out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) ||
 			(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR_2));
 		if (rc != SA_AIS_OK) {
 			TRACE_4("CCB-APPLY - Error return from fevs!:%u, "
 				"yet reply message also received (?) with error %u", rc,
 				out_evt->info.imma.info.errRsp.error);
-			assert(out_evt->info.imma.info.errRsp.error != SA_AIS_OK);
+			osafassert(out_evt->info.imma.info.errRsp.error != SA_AIS_OK);
 		} else {
 			rc = out_evt->info.imma.info.errRsp.error;
 			TRACE_1("CCB APPLY - reply received from IMMND rc:%u", rc);
@@ -2976,7 +2976,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		if (ccb_node) {
 			ccb_node->mExclusive = false;
 			ccb_node->mApplying = false;
-			assert(ccb_node->mErrorStrings == NULL);
+			osafassert(ccb_node->mErrorStrings == NULL);
 			if (rc == SA_AIS_OK) {
 				ccb_node->mApplied = true;  
 				TRACE_1("CCB APPLY - Successful Apply for ccb id %u", 
@@ -3019,7 +3019,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		*/
 
 		if(ccb_node) {
-			assert(!(ccb_node->mApplied));
+			osafassert(!(ccb_node->mApplied));
 			ccb_node->mAborted = true;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			TRACE_3("CCB APPLY - .... ERR_FAILED_OPERATION");
@@ -3118,7 +3118,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 			goto done;
 		}
 
-		assert(rc == SA_AIS_ERR_FAILED_OPERATION);
+		osafassert(rc == SA_AIS_ERR_FAILED_OPERATION);
 		TRACE_3("CCB APPLY: CCB result recovery SUCCEEDED - "
 				"ABORT for ccb id %u", ccbId);
 
@@ -3331,7 +3331,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
 		(char *)objectName->value, evt.info.immnd.info.admOpReq.objectName.size);
 	evt.info.immnd.info.admOpReq.objectName.buf[evt.info.immnd.info.admOpReq.objectName.size - 1] = '\0';
 
-	assert(evt.info.immnd.info.admOpReq.params == NULL);
+	osafassert(evt.info.immnd.info.admOpReq.params == NULL);
 	const SaImmAdminOperationParamsT_2 *param = NULL;
 	int i;
 	for (i = 0; params[i]; ++i) {
@@ -3394,15 +3394,15 @@ SaAisErrorT saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
 
 	if (out_evt) {
 		/* Process the outcome, note this is after a blocking call. */
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
 		if (out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) {
 			rc = out_evt->info.imma.info.errRsp.error;
 			TRACE("ERROR returned:%u", rc);
-			assert(rc != SA_AIS_OK);
+			osafassert(rc != SA_AIS_OK);
 			*operationReturnValue = SA_AIS_ERR_NO_SECTIONS;	//Bogus result since error is set.
 		} else {
 			TRACE("Normal return");
-			assert((out_evt->info.imma.type == IMMA_EVT_ND2A_ADMOP_RSP) ||
+			osafassert((out_evt->info.imma.type == IMMA_EVT_ND2A_ADMOP_RSP) ||
 				(out_evt->info.imma.type == IMMA_EVT_ND2A_ADMOP_RSP_2));
 			*operationReturnValue = out_evt->info.imma.info.admOpRsp.result;
 			if((out_evt->info.imma.type == IMMA_EVT_ND2A_ADMOP_RSP_2) && 
@@ -3711,7 +3711,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 		(char *)objectName->value, evt.info.immnd.info.admOpReq.objectName.size);
 	/* evt.info.immnd.info.admOpReq.objectName.buf[objectName->length] = '\0'; */
 
-	assert(evt.info.immnd.info.admOpReq.params == NULL);
+	osafassert(evt.info.immnd.info.admOpReq.params == NULL);
 
 	const SaImmAdminOperationParamsT_2 *param;
 	int i;
@@ -4173,8 +4173,8 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 	}
 
 	if (out_evt) {
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 		rc = out_evt->info.imma.info.errRsp.error;
 		TRACE("Return code:%u", rc);
 		free(out_evt);
@@ -4338,12 +4338,12 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 
 	if (out_evt) {
 		/* Process the outcome, this was a blocking call. */
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
 		if (out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) {
 			rc = out_evt->info.imma.info.errRsp.error;
-			assert(rc != SA_AIS_OK);
+			osafassert(rc != SA_AIS_OK);
 		} else {
-			assert(out_evt->info.imma.type == IMMA_EVT_ND2A_CLASS_DESCR_GET_RSP);
+			osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_CLASS_DESCR_GET_RSP);
 			int noOfAttributes = 0;
 			int i = 0;
 			SaImmAttrDefinitionT_2 **attr = NULL;
@@ -4405,14 +4405,14 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 							size = sizeof(SaDoubleT);
 							break;
 
-						case SA_IMM_ATTR_SASTRINGT:	/*A bit harsh with assert here ? */
-							assert(strlen((char *)q->attrDefaultValue->val.x.buf)
+						case SA_IMM_ATTR_SASTRINGT:	/*A bit harsh with osafassert here ? */
+							osafassert(strlen((char *)q->attrDefaultValue->val.x.buf)
 								<= q->attrDefaultValue->val.x.size);
 							size = sizeof(SaStringT);
 							break;
 
 						case SA_IMM_ATTR_SANAMET:
-							assert(q->attrDefaultValue->val.x.size <= SA_MAX_NAME_LENGTH);
+							osafassert(q->attrDefaultValue->val.x.size <= SA_MAX_NAME_LENGTH);
 							size = sizeof(SaNameT);
 							break;
 
@@ -4467,7 +4467,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 							memset(namep, 0, sizeof(SaNameT));
 							namep->length = strnlen(q->attrDefaultValue->val.x.buf,
 								q->attrDefaultValue->val.x.size);
-							assert(namep->length <= SA_MAX_NAME_LENGTH);
+							osafassert(namep->length <= SA_MAX_NAME_LENGTH);
 							memcpy(namep->value, q->attrDefaultValue->val.x.buf, namep->length);
 							break;
 
@@ -4724,8 +4724,8 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 	}
 
 	if (out_evt) {
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 		rc = out_evt->info.imma.info.errRsp.error;
 		TRACE("Return code:%u", rc);
 
@@ -5143,7 +5143,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
 	*/
 
 	if(batchp != NULL) {
-		assert(remainingSpacep);
+		osafassert(remainingSpacep);
 		batch = (*(IMMSV_OM_OBJECT_SYNC **)batchp);
 	}
 
@@ -5178,7 +5178,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
 
 	/* (attrValues != NULL) Case B or C */
 
-	assert((objectName->length != 0) && (objectName->length < SA_MAX_NAME_LENGTH));
+	osafassert((objectName->length != 0) && (objectName->length < SA_MAX_NAME_LENGTH));
 
 	evt.info.immnd.info.obj_sync.className.size = strlen(className) + 1;
 
@@ -5198,7 +5198,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
 		(char *)objectName->value, evt.info.immnd.info.obj_sync.objectName.size);
 	evt.info.immnd.info.obj_sync.objectName.buf[evt.info.immnd.info.obj_sync.objectName.size - 1] = '\0';
 
-	assert(evt.info.immnd.info.obj_sync.attrValues == NULL);
+	osafassert(evt.info.immnd.info.obj_sync.attrValues == NULL);
 	const SaImmAttrValuesT_2 *attr;
 	int i;
 	for (i = 0; attrValues[i]; ++i) {
@@ -5300,7 +5300,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
 	/* BEGIN temporary 4.1 code */
 	if(objsInBatch == 1) {
 		evt.info.immnd.type = IMMND_EVT_A2ND_OBJ_SYNC;
-		assert(evt.info.immnd.info.obj_sync.next == NULL);
+		osafassert(evt.info.immnd.info.obj_sync.next == NULL);
 	}
 	/* END temporary 4.1 code */
 
@@ -5472,8 +5472,8 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
 
 	if (out_evt) {
 		/* Process the outcome, note this is a blocking op. */
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 		rc = out_evt->info.imma.info.errRsp.error;
 		if (rc != SA_AIS_OK) {
 			TRACE_1("Returned error: %u", rc);
@@ -5745,8 +5745,8 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	if (out_evt) {
 		/*search_node->mLastResult = 0;  -- already zeroed */
 		/*search_node->mLastAttributes = 0; -- already zeroed */
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHINIT_RSP);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHINIT_RSP);
 		rc = out_evt->info.imma.info.searchInitRsp.error;
 	} else {
 		TRACE_4("ERR_LIBRARY: Empty return message from IMMND");
@@ -5754,7 +5754,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	}
 
  mds_send_fail:
-	assert(req);
+	osafassert(req);
 	if (req->rootName.buf) {
 		free(req->rootName.buf);	/*free-1 */
 		req->rootName.buf = NULL;
@@ -5811,10 +5811,10 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	}
 
 	if (rc == SA_AIS_OK) {
-		assert(out_evt);
+		osafassert(out_evt);
 		search_node->mSearchId = out_evt->info.imma.info.searchInitRsp.searchId;
 		if (*searchHandle) {
-			assert(*searchHandle == search_node->search_hdl);
+			osafassert(*searchHandle == search_node->search_hdl);
 		} else {
 			*searchHandle = search_node->search_hdl;
 		}
@@ -6027,23 +6027,23 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 		IMMSV_OM_RSP_SEARCH_NEXT *res_body = NULL;
 		SaImmAttrValuesT_2 **attr = NULL;
 
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
 		if (out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) {
 			error = out_evt->info.imma.info.errRsp.error;
-			assert(error && (error != SA_AIS_OK));
+			osafassert(error && (error != SA_AIS_OK));
 			free(out_evt);	/*BUGFIX (leak) 090506 */
 			out_evt = NULL;
 			goto release_lock;
 		}
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP);
 
 		res_body = out_evt->info.imma.info.searchNextRsp;
-		assert(res_body);
+		osafassert(res_body);
 
 		objectName->length = 0;
 		m_IMMSV_SET_SANAMET(objectName);
 		objectName->length = strnlen(res_body->objectName.buf, res_body->objectName.size);
-		assert(objectName->length <= SA_MAX_NAME_LENGTH);
+		osafassert(objectName->length <= SA_MAX_NAME_LENGTH);
 		memcpy(objectName->value, res_body->objectName.buf, objectName->length);
 
 		IMMSV_ATTR_VALUES_LIST *p = res_body->attrValuesList;
@@ -6078,7 +6078,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 					int ix;
 					IMMSV_EDU_ATTR_VAL_LIST *r = q->attrMoreValues;
 					for (ix = 1; ix < q->attrValuesNumber; ++ix) {
-						assert(r);
+						osafassert(r);
 						attr[i]->attrValues[ix] = imma_copyAttrValue3(q->attrValueType, &(r->n));/*alloc-5 */
 						r = r->next;
 					}
@@ -6257,8 +6257,8 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 	}
 
 	if (out_evt) {
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 		if (error == SA_AIS_OK) {
 			error = out_evt->info.imma.info.errRsp.error;
 		}
@@ -6402,7 +6402,7 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 	int i;
 	for (i = 0; objectNames[i]; ++i) {
 		objectName = objectNames[i];
-		assert(objectName->length < SA_MAX_NAME_LENGTH);
+		osafassert(objectName->length < SA_MAX_NAME_LENGTH);
 		IMMSV_OBJ_NAME_LIST *ol = calloc(1, sizeof(IMMSV_OBJ_NAME_LIST));	/*a */
 		ol->name.size = strnlen((char *)objectName->value, SA_MAX_NAME_LENGTH) + 1;
 		if (ol->name.size > objectName->length) {
@@ -6420,8 +6420,8 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 	cl_node =NULL;
 
 	if (out_evt) {
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.errRsp.error;
 		}
@@ -6595,7 +6595,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 	int i;
 	for (i = 0; objectNames[i]; ++i) {
 		objectName = objectNames[i];
-		assert(objectName->length < SA_MAX_NAME_LENGTH);
+		osafassert(objectName->length < SA_MAX_NAME_LENGTH);
 		IMMSV_OBJ_NAME_LIST *ol = calloc(1, sizeof(IMMSV_OBJ_NAME_LIST));	/*a */
 		ol->name.size = strnlen((char *)objectName->value, SA_MAX_NAME_LENGTH) + 1;
 		if (ol->name.size > objectName->length) {
@@ -6613,8 +6613,8 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 	cl_node = NULL;
 
 	if (out_evt) {
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.errRsp.error;
 		}
@@ -6753,7 +6753,7 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 	int i;
 	for (i = 0; objectNames[i]; ++i) {
 		objectName = objectNames[i];
-		assert(objectName->length < SA_MAX_NAME_LENGTH);
+		osafassert(objectName->length < SA_MAX_NAME_LENGTH);
 		IMMSV_OBJ_NAME_LIST *ol = calloc(1, sizeof(IMMSV_OBJ_NAME_LIST));	/*a */
 		ol->name.size = strnlen((char *)objectName->value, SA_MAX_NAME_LENGTH) + 1;
 		if (ol->name.size > objectName->length) {
@@ -6771,8 +6771,8 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 	cl_node = NULL;
 
 	if (out_evt) {
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.errRsp.error;
 		}
@@ -6914,8 +6914,8 @@ SaAisErrorT saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT adminOwnerHandle)
 	cl_node = NULL;
 
 	if (out_evt) {
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.errRsp.error;
 		}
@@ -7006,7 +7006,7 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 			goto done;
 		}
 
-		assert(immHandle == ao_node->mImmHandle);
+		osafassert(immHandle == ao_node->mImmHandle);
 		ao_node = NULL;
 
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
@@ -7037,8 +7037,8 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 		cl_node = NULL;
 
 		if (out_evt) {
-			assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-			assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+			osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+			osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 			if (rc == SA_AIS_OK) {
 				rc = out_evt->info.imma.info.errRsp.error;
 			}
@@ -7174,7 +7174,7 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 				goto fail;
 		}
 
-		assert(out_evt);
+		osafassert(out_evt);
 		err = out_evt->info.imma.info.admInitRsp.error;
 		if (err != SA_AIS_OK) {
 			usleep(sleep_delay_ms * 1000);
@@ -7238,8 +7238,8 @@ int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked)
 {
 	IMMSV_EVT  finalize_evt, *out_evt1 = NULL;
 	TRACE_ENTER();
-	assert(locked && *locked);
-	assert(cl_node && cl_node->stale);
+	osafassert(locked && *locked);
+	osafassert(cl_node && cl_node->stale);
 	SaImmHandleT immHandle = cl_node->handle;
 	SaUint32T timeout = 0;
 
@@ -7459,7 +7459,7 @@ SaAisErrorT immsv_om_augment_ccb_initialize(
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 	TRACE("ccbHandle(%p) && ccbId(%u) && adminOwnerId(%u)", ccbHandle, ccbId, adminOwnerId);
-	assert(ccbHandle && ccbId && adminOwnerId);
+	osafassert(ccbHandle && ccbId && adminOwnerId);
 
 	if (cb->is_immnd_up == false) {
 		TRACE_2("ERR_NO_RESOURCES: IMMND_DOWN");
@@ -7545,7 +7545,7 @@ SaAisErrorT immsv_om_augment_ccb_initialize(
 
 	/* Allocate ccb_node. */
 	ccb_node = (IMMA_CCB_NODE *)calloc(1, sizeof(IMMA_CCB_NODE));
-	assert(ccb_node);
+	osafassert(ccb_node);
 
 	/*
 	  Use the same handle value for om/admo/ccb to simplify re-use of
@@ -7571,7 +7571,7 @@ SaAisErrorT immsv_om_augment_ccb_initialize(
 
 	/* Allocate the ao_node */
 	ao_node = (IMMA_ADMIN_OWNER_NODE *)calloc(1, sizeof(IMMA_ADMIN_OWNER_NODE));
-	assert(ao_node);
+	osafassert(ao_node);
 	ao_node->admin_owner_hdl = ccb_node->ccb_hdl; /* same value */
 	ao_node->mImmHandle = privateOmHandle;
 	ao_node->mAdminOwnerId = adminOwnerId;
@@ -7594,7 +7594,7 @@ SaAisErrorT immsv_om_augment_ccb_initialize(
 	}
 
  re_used:
-	assert(locked);
+	osafassert(locked);
 	*ccbHandle = ccb_node->ccb_hdl;
 	if(ownerHandle) {
 		if(*ownerHandle && (*ownerHandle != ao_node->admin_owner_hdl)) {
@@ -7640,8 +7640,8 @@ SaAisErrorT immsv_om_augment_ccb_get_result(
 	SaImmCcbHandleT ccbHandle = privateOmHandle; /* Same value */
 	TRACE_ENTER();
 
-	assert(cb->sv_id != 0);
-	assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+	osafassert(cb->sv_id != 0);
+	osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 	locked = true;
 
 	/* Get the CCB info */
@@ -7652,8 +7652,8 @@ SaAisErrorT immsv_om_augment_ccb_get_result(
 		goto done;
 	}
 
-	assert(ccb_node->mCcbId == ccbId);
-	assert(ccb_node->mAugCcb);
+	osafassert(ccb_node->mCcbId == ccbId);
+	osafassert(ccb_node->mAugCcb);
 	if(ccb_node->mAborted || !(ccb_node->mApplied)) {
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 	}

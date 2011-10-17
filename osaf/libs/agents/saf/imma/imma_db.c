@@ -220,7 +220,7 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 			TRACE_2("Zero inv => PBE Incremented opcount to %u", new_ccb->opCount);
 			if(!(cl_node->isPbe || cl_node->isApplier)) {
 				LOG_ER("imma_oi_ccb_record_add inv==0 yet both isPbe and isApplier are false");
-				assert(cl_node->isPbe);
+				osafassert(cl_node->isPbe);
 			}
 		}
 
@@ -243,7 +243,7 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 		TRACE_2("Zero inv => PBE/Applier initialized opcount to 1");
 		if(!(cl_node->isPbe || cl_node->isApplier)) {
 			LOG_ER("imma_oi_ccb_record_add inv==0 yet cl_node->isPbe is false!");
-			assert(cl_node->isPbe);
+			osafassert(cl_node->isPbe);
 		}
 	}
 	new_ccb->next = cl_node->activeOiCcbs;
@@ -263,7 +263,7 @@ int imma_oi_ccb_record_delete(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId)
 
 	if(*tmpp) {
 		struct imma_oi_ccb_record *to_delete = (*tmpp);
-		assert(to_delete->ccbId == ccbId);
+		osafassert(to_delete->ccbId == ccbId);
 		if(to_delete->isCritical) {
 			TRACE_3("Removing imma_oi_ccb_record ccb:0x%llx handle:%llx client:%p in CRITICAL state", 
 				ccbId, cl_node->handle, cl_node);
@@ -329,7 +329,7 @@ int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
 
 	if(tmp && !(tmp->isAborted)) {
-		assert(!tmp->isCritical);
+		osafassert(!tmp->isCritical);
 		rs = 1;
 		if(tmp->opCount) {
 			if(!(cl_node->isPbe || cl_node->isApplier)) {
@@ -374,7 +374,7 @@ int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccb
 	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
 
 	if(tmp && !(tmp->isAborted)) {
-		assert(!tmp->isCritical);
+		osafassert(!tmp->isCritical);
 		tmp->isCritical = true;
 		rs = 1;
 		tmp->isCcbErrOk = false;
@@ -384,7 +384,7 @@ int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccb
 			if(!(cl_node->isPbe || cl_node->isApplier)) {
 				LOG_ER("imma_oi_ccb_record_set_critical opCount!=0 yet cl_node->isPbe is false! "
 					"ccbId:0x%llx", ccbId);
-				assert(cl_node->isPbe);
+				osafassert(cl_node->isPbe);
 			}
 
 			if(tmp->opCount != inv) {
@@ -417,7 +417,7 @@ int imma_oi_ccb_record_set_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId,
 	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
 
 	if(tmp && tmp->isCcbErrOk) {
-		assert(!(tmp->isCritical));
+		osafassert(!(tmp->isCritical));
 		rs = 1;
 		if (tmp->mCcbErrorString) {
 			free(tmp->mCcbErrorString);
@@ -436,7 +436,7 @@ SaStringT imma_oi_ccb_record_get_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
 
 	if(tmp && tmp->isCcbErrOk) {
-		assert(!(tmp->isCritical));
+		osafassert(!(tmp->isCritical));
 		//tmp->isCcbErrOk = 0x0; Allow several errors from same OI
 		return tmp->mCcbErrorString;
 	}
@@ -456,9 +456,9 @@ imma_oi_ccb_record_ok_augment(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, Sa
 			TRACE("oi_ccb_record for %llu found as aborted in ccb_record_ok_augment",
 				ccbId);
 		} else if(tmp->isCcbAugOk) {
-			assert(!(tmp->isCritical));
-			assert(!(cl_node->isApplier));
-			assert(tmp->ccbCallback);
+			osafassert(!(tmp->isCritical));
+			osafassert(!(cl_node->isApplier));
+			osafassert(tmp->ccbCallback);
 			cbi = tmp->ccbCallback;
 			if(privateOmHandle) {
 				*privateOmHandle = tmp->privateAugOmHandle;
@@ -479,23 +479,23 @@ void imma_oi_ccb_record_augment(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, 
 	TRACE_ENTER();
 	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
 
-	assert(tmp && tmp->isCcbAugOk);
+	osafassert(tmp && tmp->isCcbAugOk);
 
-	assert(!(tmp->isAborted));
+	osafassert(!(tmp->isAborted));
 
-	assert(!(tmp->isCritical));
+	osafassert(!(tmp->isCritical));
 
-	assert(!(cl_node->isApplier));
+	osafassert(!(cl_node->isApplier));
 	if(privateOmHandle) {
 		if(tmp->privateAugOmHandle) {
-			assert(tmp->privateAugOmHandle == privateOmHandle);
+			osafassert(tmp->privateAugOmHandle == privateOmHandle);
 		} else {
 			tmp->privateAugOmHandle = privateOmHandle;
 		}
 	}
 	if(privateAoHandle) {
 		if(tmp->privateAoHandle) {
-			assert(tmp->privateAoHandle == privateAoHandle);
+			osafassert(tmp->privateAoHandle == privateAoHandle);
 		} else {
 			tmp->privateAoHandle = privateAoHandle;
 		}
@@ -520,7 +520,7 @@ int imma_oi_ccb_record_close_augment(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT cc
 			//tmp->isCritical = false;
 		}
 
-		//assert(!(tmp->isCritical));
+		//osafassert(!(tmp->isCritical));
 		rs = 1;
 	}
 
@@ -546,8 +546,8 @@ int imma_oi_ccb_record_note_callback(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT cc
 		tmp->ccbCallback = callback;
 		if(callback) {
 			tmp->isCcbAugOk = true;
-			assert(!(tmp->isCritical));
-			assert(!(cl_node->isApplier));
+			osafassert(!(tmp->isCritical));
+			osafassert(!(cl_node->isApplier));
 			rs = 1;
 		}
 	}
@@ -862,7 +862,7 @@ void imma_admin_owner_node_delete(IMMA_CB *cb, IMMA_ADMIN_OWNER_NODE *adm_node)
 	SaImmCcbHandleT ccb_temp_hdl, *ccb_temp_ptr = NULL;
 	IMMA_CCB_NODE *ccb_node = NULL;
 
-	assert(adm_node);
+	osafassert(adm_node);
 
 	/* Remove any ccb nodes opened by the client using this admin-owner */
 	while ((ccb_node = (IMMA_CCB_NODE *)
@@ -876,14 +876,14 @@ void imma_admin_owner_node_delete(IMMA_CB *cb, IMMA_ADMIN_OWNER_NODE *adm_node)
 					  " - ccb is orphaned.", ccb_node->mCcbId);
 			} else  {
 				TRACE("Deleting ccb node");
-				assert(imma_ccb_node_delete(cb, ccb_node) == NCSCC_RC_SUCCESS);
+				osafassert(imma_ccb_node_delete(cb, ccb_node) == NCSCC_RC_SUCCESS);
 				ccb_temp_ptr = NULL;	/*Redo iteration from start after delete. */
 			}
 		}
 	}
 
 	/* Remove the Node from the tree */
-	assert(ncs_patricia_tree_del(&cb->admin_owner_tree, &adm_node->patnode) == NCSCC_RC_SUCCESS);
+	osafassert(ncs_patricia_tree_del(&cb->admin_owner_tree, &adm_node->patnode) == NCSCC_RC_SUCCESS);
 
 	if (adm_node->mAdminOwnerName) {
 		free(adm_node->mAdminOwnerName);

@@ -16,7 +16,6 @@
  */
 
 #include "ImmAttrValue.hh"
-#include "assert.h"
 #include "string.h"
 #include "immnd.h"
 
@@ -158,7 +157,7 @@ ImmAttrValue::copyValueToEdu(IMMSV_EDU_ATTR_VAL* out, SaImmValueTypeT t) const
         return;
     }
     
-    assert(mValue);
+    osafassert(mValue);
     
     switch(t)
     {
@@ -341,7 +340,7 @@ ImmAttrMultiValue::removeValue(const IMMSV_OCTET_STRING& match) //virtual
     
     //We now have a head that does not match, possibly an empty head.
     //If head is empty then there can not be any tail.
-    assert(mValueSize || !mNext); 
+    osafassert(mValueSize || !mNext); 
     
     if(mNext) {
         mNext->removeValue(match); //TODO: make non-recursive!

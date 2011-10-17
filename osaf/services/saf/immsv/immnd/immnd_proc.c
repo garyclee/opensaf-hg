@@ -329,7 +329,7 @@ void immnd_proc_imma_discard_stales(IMMND_CB *cb)
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 			send_evt.type = IMMSV_EVT_TYPE_IMMA;
 			send_evt.info.imma.info.errRsp.error = SA_AIS_ERR_TRY_AGAIN;
-			assert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
+			osafassert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
 			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 			if (immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt) != NCSCC_RC_SUCCESS) {
 				LOG_ER("Failed to send result to Sync Agent");
@@ -630,12 +630,12 @@ void immnd_adjustEpoch(IMMND_CB *cb, SaBoolT increment)
 		TRACE_5("Adjusting epoch to:%u", newEpoch);
 		cb->mMyEpoch = newEpoch;
 		if (cb->mRulingEpoch != newEpoch) {
-			assert(cb->mRulingEpoch < newEpoch);
+			osafassert(cb->mRulingEpoch < newEpoch);
 			cb->mRulingEpoch = newEpoch;
 		}
 
 	}
-	assert(immnd_introduceMe(cb) == NCSCC_RC_SUCCESS);
+	osafassert(immnd_introduceMe(cb) == NCSCC_RC_SUCCESS);
 	/* Convert to a test and postpone intro if we can note & do it later. */
 
 	if(pbeNodeId && pbeConn) {
@@ -644,13 +644,13 @@ void immnd_adjustEpoch(IMMND_CB *cb, SaBoolT increment)
 
 
 		/*The persistent back-end is executing at THIS node. */
-		assert(cb->mIsCoord);
-		assert(pbeNodeId == cb->node_id);
+		osafassert(cb->mIsCoord);
+		osafassert(pbeNodeId == cb->node_id);
 		implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
 
 		/*Fetch client node for PBE */
 		immnd_client_node_get(cb, implHandle, &pbe_cl_node);
-		assert(pbe_cl_node);
+		osafassert(pbe_cl_node);
 		if (pbe_cl_node->mIsStale) {
 			LOG_WA("PBE is down => persistify of epoch is dropped!");
 		} else {
@@ -725,8 +725,8 @@ SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T jobDurat
 #endif
 
 	SaBoolT completed;
-	assert(cb->mSync || coordinator);
-	assert(!(cb->mSync) || !coordinator);
+	osafassert(cb->mSync || coordinator);
+	osafassert(!(cb->mSync) || !coordinator);
 	completed = immModel_syncComplete(cb);
 	if (completed) {
 		if (cb->mSync) {
@@ -735,10 +735,10 @@ SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T jobDurat
 			/*cb->mAccepted = SA_TRUE; */
 			/*BUGFIX this is too late! We arrive here not on fevs basis, 
 			   but on timing basis from immnd_proc. */
-			assert(cb->mAccepted);
+			osafassert(cb->mAccepted);
 		} else if(coordinator) {
 			if(cb->mSyncFinalizing) {
-				assert(cb->mState == IMM_SERVER_SYNC_SERVER);
+				osafassert(cb->mState == IMM_SERVER_SYNC_SERVER);
 				TRACE("Coord: Sync done, but waiting for confirmed "
 					"finalizeSync. Out queue:%u", cb->fevs_out_count);
 				/* We are FULLY_AVAIL in model, but wait for 
@@ -775,7 +775,7 @@ void immnd_abortSync(IMMND_CB *cb)
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 	TRACE_ENTER();
 	TRACE("ME:%u RE:%u", cb->mMyEpoch, cb->mRulingEpoch);
-	assert(cb->mIsCoord);
+	osafassert(cb->mIsCoord);
 	cb->mPendSync = 0;
 	if(cb->mSyncFinalizing) {
 		cb->mSyncFinalizing = 0x0;
@@ -832,7 +832,7 @@ static void immnd_pbePrtoPurgeMutations(IMMND_CB *cb)
 	IMMSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 	TRACE_ENTER();
-	assert(cb->mIsCoord);
+	osafassert(cb->mIsCoord);
 	if(!immnd_is_immd_up(cb)) {
 		TRACE("IMMD is DOWN postponing pbePrtoCleanup");
 		return;
@@ -940,7 +940,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 			inv = admReqArr[ix];
 			reqConn = 0;
 			immModel_fetchAdmOpContinuations(cb, inv, SA_FALSE, &dummyImplConn, &reqConn, &reply_dest);
-			assert(reqConn);
+			osafassert(reqConn);
 			tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 
 			immnd_client_node_get(cb, tmp_hdl, &cl_node);
@@ -972,7 +972,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 
 	if(ccbsStuckInCritical) {
 		TRACE("Try to recover outcome for ccbs stuck in critical.");
-		assert(cb->mPbeFile); 
+		osafassert(cb->mPbeFile); 
 		/* We cant have lingering ccbs in critical if Pbe is not even 
 		   configured in the system !
 		*/
@@ -995,7 +995,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 				immModel_getOldCriticalCcbs(cb, &ccbIdArr, &ccbIdArrSize,
 					&pbeConn, &pbeNodeId, &pbeId);
 				if(ccbIdArrSize) {
-					assert(pbeConn);
+					osafassert(pbeConn);
 					IMMND_IMM_CLIENT_NODE *oi_cl_node = NULL;
 					SaImmOiHandleT implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
 					IMMSV_EVT send_evt;
@@ -1008,8 +1008,8 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 
 					/*Fetch client node for PBE */
 					immnd_client_node_get(cb, implHandle, &oi_cl_node);
-					assert(oi_cl_node);
-					assert(!(oi_cl_node->mIsStale));
+					osafassert(oi_cl_node);
+					osafassert(!(oi_cl_node->mIsStale));
 					for (ix = 0; ix < ccbIdArrSize; ++ix) {
 						TRACE_2("Fetch ccb outcome for ccb%u, nodeId:%u, conn:%u implId:%u",
 							ccbIdArr[ix], pbeNodeId, pbeConn, pbeId);
@@ -1044,7 +1044,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 			}
 
 		} else {
-			assert(cb->mRim == SA_IMM_INIT_FROM_FILE);
+			osafassert(cb->mRim == SA_IMM_INIT_FROM_FILE);
 			/* This is a problematic case. Apparently PBE has
 			   been disabled in such a way that there are ccbs left
 			   blocked in critical. This should not be possible with
@@ -1072,7 +1072,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 			reqConn = 0;
 			/*Fetch originating request continuation */
 			immModel_fetchSearchReqContinuation(cb, inv, &reqConn);
-			assert(reqConn);
+			osafassert(reqConn);
 
 			reply.searchId = m_IMMSV_UNPACK_HANDLE_LOW(inv);
 
@@ -1119,8 +1119,8 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 			}
 			LOG_WA("Timeout on Persistent runtime Object Mutation, waiting on PBE");
 			sinfo = &cl_node->tmpSinfo;
-			assert(sinfo);
-			assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+			osafassert(sinfo);
+			osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 			rc = immnd_mds_send_rsp(cb, sinfo, &reply);
 			if (rc != NCSCC_RC_SUCCESS) {
 				LOG_ER("Failed to send response to agent/client "
@@ -1157,7 +1157,7 @@ void immnd_proc_global_abort_ccb(IMMND_CB *cb, SaUint32T ccbId)
 
 static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T duration)
 {
-	assert(cb->mIsCoord);
+	osafassert(cb->mIsCoord);
 	if (cb->mPendSync) {
 		TRACE("ccbsTerminated false because cb->mPendSync is still true");
 		return SA_FALSE;
@@ -1852,7 +1852,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 						}
 					}
 				} else { /* Pbe is running. */
-					assert(cb->pbePid > 0); 
+					osafassert(cb->pbePid > 0); 
 					if (cb->mRim == SA_IMM_INIT_FROM_FILE || cb->mBlockPbeEnable) {
 						/* Pbe should NOT run.*/
 						LOG_NO("STOPPING persistent back end process.");

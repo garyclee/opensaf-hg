@@ -17,7 +17,6 @@
 
 #include <set>
 #include <algorithm>
-#include <assert.h>
 #include <time.h>
 
 #include "ImmModel.hh"
@@ -203,7 +202,7 @@ typedef std::map<std::string, DeferredRtAUpdateList*> DeferredObjUpdatesMap;
 void
 ObjectInfo::getAdminOwnerName(std::string *str) const
 {
-    assert(this->mAdminOwnerAttrVal);
+    osafassert(this->mAdminOwnerAttrVal);
     str->clear();
     if(!(this->mAdminOwnerAttrVal->empty())) {
         str->assign(this->mAdminOwnerAttrVal->getValueC_str());
@@ -226,7 +225,7 @@ struct ObjectMutation
                                              mAfterImage(NULL), 
                                              mWaitForImplAck(false),
                                              mContinuationId(0) { }
-    ~ObjectMutation() { assert(mAfterImage == NULL);}
+    ~ObjectMutation() { osafassert(mAfterImage == NULL);}
     
     ImmMutationType mOpType; 
     ObjectInfo* mAfterImage;
@@ -575,8 +574,8 @@ immModel_ccbObjectDelete(IMMND_CB *cb,
         ImmModel::instance(&cb->immModel)->ccbObjectDelete(req,
             reqConn, ov, cv, iv, pbeConn, pbeNodeId);
     *arrSize = cv.size();
-    assert(*arrSize == iv.size());
-    assert(*arrSize == ov.size());
+    osafassert(*arrSize == iv.size());
+    osafassert(*arrSize == ov.size());
     if((err == SA_AIS_OK) && (*arrSize)) {
         *implConnArr = (SaUint32T *) malloc((*arrSize)* sizeof(SaUint32T));
         
@@ -594,7 +593,7 @@ immModel_ccbObjectDelete(IMMND_CB *cb,
             strncpy((*objNameArr)[ix], delObjName.c_str(), delObjName.size()+1);
         }
     }
-    assert(ix==(*arrSize));
+    osafassert(ix==(*arrSize));
     return err;
 }
 
@@ -617,7 +616,7 @@ immModel_getNonCriticalCcbs(IMMND_CB *cb,
             ++ix2, ++ix) {
             (*ccbIdArr)[ix] = (*ix2);
         }
-        assert(ix==(*ccbIdArrSize));
+        osafassert(ix==(*ccbIdArrSize));
     }
 }
 
@@ -653,7 +652,7 @@ immModel_getOldCriticalCcbs(IMMND_CB *cb,
                 ++ix2, ++ix) {
                 (*ccbIdArr)[ix] = (*ix2);
             }
-            assert(ix==(*ccbIdArrSize));
+            osafassert(ix==(*ccbIdArrSize));
         }
     }
 }
@@ -711,7 +710,7 @@ immModel_cleanTheBasement(IMMND_CB *cb,
             ++ix1, ++ix) {
             (*admReqArr)[ix] = (*ix1);
         }
-        assert(ix==(*admReqArrSize));
+        osafassert(ix==(*admReqArrSize));
     }
     
     *searchReqArrSize = searchReqs.size();
@@ -723,7 +722,7 @@ immModel_cleanTheBasement(IMMND_CB *cb,
             ++ix1, ++ix) {
             (*searchReqArr)[ix] = (*ix1);
         }
-        assert(ix==(*searchReqArrSize));
+        osafassert(ix==(*searchReqArrSize));
     }
     
     *ccbIdArrSize = ccbs.size();
@@ -735,7 +734,7 @@ immModel_cleanTheBasement(IMMND_CB *cb,
             ++ix2, ++ix) {
             (*ccbIdArr)[ix] = (*ix2);
         }
-        assert(ix==(*ccbIdArrSize));
+        osafassert(ix==(*ccbIdArrSize));
     }
 
     *pbePrtoReqArrSize = pbePrtoReqs.size();
@@ -748,7 +747,7 @@ immModel_cleanTheBasement(IMMND_CB *cb,
             ++ix2, ++ix) {
             (*pbePrtoReqArr)[ix] = (*ix2);
         }
-        assert(ix==(*pbePrtoReqArrSize));
+        osafassert(ix==(*pbePrtoReqArrSize));
     }
 
     return stuck;
@@ -791,7 +790,7 @@ immModel_ccbApply(IMMND_CB *cb,
             (*ctnArr)[ix] = (*ivi2);
         }
     }
-    assert(ix==(*arrSize));
+    osafassert(ix==(*arrSize));
     return err;
 }
 
@@ -818,7 +817,7 @@ immModel_ccbAbort(IMMND_CB *cb,
             (*implConnArr)[ix] = (*cvi);
         }
     }
-    assert(ix==(*arrSize));
+    osafassert(ix==(*arrSize));
 }
 
 void
@@ -838,7 +837,7 @@ immModel_getCcbIdsForOrigCon(IMMND_CB *cb,
             (*ccbIdArr)[ix] = (*cvi);
         }
     }
-    assert(ix==(*arrSize));
+    osafassert(ix==(*arrSize));
 }
 
 void
@@ -858,7 +857,7 @@ immModel_discardNode(IMMND_CB *cb,
             (*ccbIdArr)[ix] = (*cvi);
         }
     }
-    assert(ix==(*arrSize));
+    osafassert(ix==(*arrSize));
 }
 
 void
@@ -878,7 +877,7 @@ immModel_getAdminOwnerIdsForCon(IMMND_CB *cb,
             (*admoIdArr)[ix] = (*cvi);
         }
     }
-    assert(ix==(*arrSize));
+    osafassert(ix==(*arrSize));
 }
 
 SaAisErrorT
@@ -954,7 +953,7 @@ immModel_ccbCommit(IMMND_CB *cb,
         }
     }
     
-    assert(ix==(*arrSize));
+    osafassert(ix==(*arrSize));
     return pbeModeChange;
 }
 
@@ -995,8 +994,8 @@ immModel_nextResult(IMMND_CB *cb, void* searchOp,
 {
     AttributeList* rtAttrs = NULL;
     SaAisErrorT err = SA_AIS_OK;
-    assert(searchOp && rsp);
-    if(rtAttrsToFetch) {assert(implConn && implNodeId && implDest);}
+    osafassert(searchOp && rsp);
+    if(rtAttrsToFetch) {osafassert(implConn && implNodeId && implDest);}
     ImmSearchOp* op = (ImmSearchOp *) searchOp;
 
     if(op->isSync()) {
@@ -1434,7 +1433,7 @@ immModel_rtObjectDelete(IMMND_CB *cb,
     ObjectNameVector ov;
     ObjectNameVector::iterator oni;
     unsigned int ix = 0;
-    assert(arrSizePtr);
+    osafassert(arrSizePtr);
 
     SaAisErrorT err = ImmModel::instance(&cb->immModel)->
         rtObjectDelete(req, implConn, (unsigned int) implNodeId,
@@ -1450,7 +1449,7 @@ immModel_rtObjectDelete(IMMND_CB *cb,
            strncpy((*objNameArr)[ix], delObjName.c_str(), delObjName.size()+1);
        }
     }
-    assert(ix==(*arrSizePtr));
+    osafassert(ix==(*arrSizePtr));
     return err;
 }
 
@@ -1628,13 +1627,13 @@ ImmModel::prepareForSync(bool isJoining)
     switch(sImmNodeState){ 
         
         case IMM_NODE_ISOLATED: 
-            assert(isJoining);
+            osafassert(isJoining);
             sImmNodeState = IMM_NODE_W_AVAILABLE; //accept the sync messages
             LOG_NO("NODE STATE-> IMM_NODE_W_AVAILABLE");
             break;
             
         case IMM_NODE_FULLY_AVAILABLE:
-            assert(!isJoining);
+            osafassert(!isJoining);
             sImmNodeState = IMM_NODE_R_AVAILABLE; //Stop mutations.
             LOG_NO("NODE STATE-> IMM_NODE_R_AVAILABLE");
             break;
@@ -1681,7 +1680,7 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
         omuti!=sPbeRtMutations.end(); ++omuti) {
         ObjectMutation* oMut = omuti->second;
         oi = sObjectMap.find(omuti->first);
-        assert(oi != sObjectMap.end() ||
+        osafassert(oi != sObjectMap.end() ||
             (oMut->mOpType == IMM_CREATE_CLASS)||
             (oMut->mOpType == IMM_DELETE_CLASS)||
             (oMut->mOpType == IMM_UPDATE_EPOCH));
@@ -1709,17 +1708,17 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
         /* Fall back. */
         switch(oMut->mOpType) {
             case IMM_CREATE:
-                assert(oi->second == oMut->mAfterImage);
+                osafassert(oi->second == oMut->mAfterImage);
 
                 oMut->mAfterImage->mObjFlags &= ~IMM_CREATE_LOCK;
                 oMut->mAfterImage = NULL;
                 LOG_WA("Create of PERSISTENT runtime object '%s' REVERTED ",
                     omuti->first.c_str());
-                assert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
+                osafassert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
             break;
 
             case IMM_DELETE:
-                    assert(oi->second == oMut->mAfterImage);
+                    osafassert(oi->second == oMut->mAfterImage);
 
                     oMut->mAfterImage->mObjFlags &= ~IMM_DELETE_LOCK;
                     oMut->mAfterImage = NULL;
@@ -1732,7 +1731,7 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
                 break;
 
             case IMM_MODIFY:
-                    assert(oi->second != oMut->mAfterImage);/* NOT equal */
+                    osafassert(oi->second != oMut->mAfterImage);/* NOT equal */
                     oi->second->mObjFlags &= ~IMM_RT_UPDATE_LOCK;
                     afim =  oMut->mAfterImage;
                     for(oavi =  afim->mAttrValueMap.begin(); 
@@ -1828,12 +1827,12 @@ ImmModel::abortSync()
             while(sClassMap.size()) {
                 ClassMap::iterator ci = sClassMap.begin();
                 TRACE("Removing Class:%s", ci->first.c_str());
-                assert(ci->second->mExtent.empty());
+                osafassert(ci->second->mExtent.empty());
                 while(ci->second->mAttrMap.size()) {
                     AttrMap::iterator ai = ci->second->mAttrMap.begin();
                     TRACE("Remove Attr:%s", ai->first.c_str());
                     AttrInfo* ainfo = ai->second;
-                    assert(ainfo);
+                    osafassert(ainfo);
                     delete(ainfo);
                     ci->second->mAttrMap.erase(ai);
                 }
@@ -1859,10 +1858,10 @@ ImmModel::abortSync()
                 }
             }
 
-            assert(!sOwnerVector.size());
-            assert(!sCcbVector.size());
-            assert(!sImplementerVector.size());
-            //assert(!sMissingParents.size());
+            osafassert(!sOwnerVector.size());
+            osafassert(!sCcbVector.size());
+            osafassert(!sImplementerVector.size());
+            //osafassert(!sMissingParents.size());
             sMissingParents.clear();
             break;
 
@@ -1936,12 +1935,12 @@ ImmModel::adjustEpoch(int suggestedEpoch,
     ImmAttrValueMap::iterator avi;
     ObjectInfo* immObject = NULL;
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
-    assert(oi != sObjectMap.end());
+    osafassert(oi != sObjectMap.end());
 
     immObject = oi->second;
     avi = immObject->mAttrValueMap.find(immAttrEpoch);
-    assert(avi != immObject->mAttrValueMap.end());
-    assert(!avi->second->isMultiValued());
+    osafassert(avi != immObject->mAttrValueMap.end());
+    osafassert(!avi->second->isMultiValued());
 
     restoredEpoch = avi->second->getValue_int();
     
@@ -1996,7 +1995,7 @@ ImmModel::getRepositoryInitMode()
         avi = immMgObject->mAttrValueMap.find(saImmRepositoryInit);
         
         if(avi != immMgObject->mAttrValueMap.end()) {
-            assert(!avi->second->isMultiValued());
+            osafassert(!avi->second->isMultiValued());
             return (SaImmRepositoryInitModeT) avi->second->getValue_int();
         }
     }
@@ -2021,7 +2020,7 @@ ImmModel::getMaxSyncBatchSize()
     ImmAttrValueMap::iterator avi = 
         immObject->mAttrValueMap.find(immSyncBatchSize);
     if(avi != immObject->mAttrValueMap.end()) {
-        assert(!(avi->second->isMultiValued()));
+        osafassert(!(avi->second->isMultiValued()));
         ImmAttrValue* valuep = avi->second;
         mbSize = valuep->getValue_int();
     }
@@ -2040,7 +2039,7 @@ void *
 ImmModel::getPbeOi(SaUint32T* pbeConn, unsigned int* pbeNode)
 {
     ClassMap::iterator ci = sClassMap.find(immClassName);
-    assert(ci!=sClassMap.end());
+    osafassert(ci!=sClassMap.end());
     ClassInfo* classInfo = ci->second;
     if((classInfo->mImplementer && 
        classInfo->mImplementer->mId &&
@@ -2318,7 +2317,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         while(classInfo->mAttrMap.size()) {
             AttrMap::iterator ai = classInfo->mAttrMap.begin();
             AttrInfo* ainfo = ai->second;
-            assert(ainfo);
+            osafassert(ainfo);
             delete(ainfo);
             classInfo->mAttrMap.erase(ai);
         }
@@ -2341,14 +2340,14 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         AttrMap::iterator ai;
         AttrInfo* ainfo = NULL;
         ObjectSet::iterator oi;
-        assert(prevClassInfo);
+        osafassert(prevClassInfo);
 
         /* Remove old attr defs. */
         while(prevClassInfo->mAttrMap.size()) {
             ai = prevClassInfo->mAttrMap.begin();
             TRACE_5("Removing old attribute %s:%s", className.c_str(), ai->first.c_str());
             ainfo = ai->second;
-            assert(ainfo);
+            osafassert(ainfo);
             delete(ainfo);
             prevClassInfo->mAttrMap.erase(ai);
         }
@@ -2372,7 +2371,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
 
             /* Migrate current version of instances. */
             for(oi=prevClassInfo->mExtent.begin(); oi != prevClassInfo->mExtent.end(); ++oi) {
-                assert((*oi)->mClassInfo == prevClassInfo);
+                osafassert((*oi)->mClassInfo == prevClassInfo);
                 migrateObj(*oi, className, newAttrs, changedAttrs);
             }
 
@@ -2525,8 +2524,8 @@ ImmModel::protocol41Allowed()
     ObjectInfo* immObject =  oi->second;
     ImmAttrValueMap::iterator avi = 
         immObject->mAttrValueMap.find(immAttrNostFlags);
-    assert(avi != immObject->mAttrValueMap.end());
-    assert(!(avi->second->isMultiValued()));
+    osafassert(avi != immObject->mAttrValueMap.end());
+    osafassert(!(avi->second->isMultiValued()));
     ImmAttrValue* valuep = avi->second;
     unsigned int noStdFlags = valuep->getValue_int();
 
@@ -2547,8 +2546,8 @@ ImmModel::schemaChangeAllowed()
     ObjectInfo* immObject =  oi->second;
     ImmAttrValueMap::iterator avi = 
         immObject->mAttrValueMap.find(immAttrNostFlags);
-    assert(avi != immObject->mAttrValueMap.end());
-    assert(!(avi->second->isMultiValued()));
+    osafassert(avi != immObject->mAttrValueMap.end());
+    osafassert(!(avi->second->isMultiValued()));
     ImmAttrValue* valuep = avi->second;
     unsigned int noStdFlags = valuep->getValue_int();
 
@@ -2568,7 +2567,7 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
     AttrMap::iterator inew;
     bool verifyFailed=false;
     TRACE_ENTER2("ClassName:%s", className.c_str());
-    assert(oldClassInfo && newClassInfo);
+    osafassert(oldClassInfo && newClassInfo);
     unsigned int oldCount = (unsigned int) oldClassInfo->mAttrMap.size();
     unsigned int newCount = (unsigned int) newClassInfo->mAttrMap.size();
     if(oldCount > newCount) {
@@ -2599,7 +2598,7 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
 
     if(verifyFailed) {return false;}
 
-    assert(oldCount == 0); /* Yes this check is redundant. */
+    osafassert(oldCount == 0); /* Yes this check is redundant. */
 
     /* Check compatibility for all attrdefs in new class def. */
     for(inew=newClassInfo->mAttrMap.begin(); inew!=newClassInfo->mAttrMap.end();++inew) {
@@ -2635,7 +2634,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
     if(oldAttr) {
         /* Existing attribute, possibly changed. */
         bool change=false;
-        assert(changedAttrs);
+        osafassert(changedAttrs);
         if(oldAttr->mValueType != newAttr->mValueType) {
             LOG_NO("Impossible upgrade, attribute %s:%s changes value type",
                 className.c_str(), attName.c_str());
@@ -2824,7 +2823,7 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req,
             while(i->second->mAttrMap.size()) {
                 AttrMap::iterator ai = i->second->mAttrMap.begin();
                 AttrInfo* ainfo = ai->second;
-                assert(ainfo);
+                osafassert(ainfo);
                 delete(ainfo);
                 i->second->mAttrMap.erase(ai);
             }
@@ -3117,8 +3116,8 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard)
                     ObjectInfo* immObject = oi->second;
                     ImmAttrValueMap::iterator avi = 
                         immObject->mAttrValueMap.find(immAttrNostFlags);
-                    assert(avi != immObject->mAttrValueMap.end());
-                    assert(!(avi->second->isMultiValued()));
+                    osafassert(avi != immObject->mAttrValueMap.end());
+                    osafassert(!(avi->second->isMultiValued()));
                     ImmAttrValue* valuep = (ImmAttrValue *) avi->second;
                     unsigned int noStdFlags = valuep->getValue_int();
                     noStdFlags |= 0x2;
@@ -3233,7 +3232,7 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
     
     SaUint32T ownerId = req->adm_owner_id;
     
-    assert(release || ownerId);  
+    osafassert(release || ownerId);  
     SaImmScopeT scope = (SaImmScopeT) req->scope;
     AdminOwnerVector::iterator i = sOwnerVector.end();
     if(ownerId) {
@@ -3269,7 +3268,7 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
 
                 if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
                     LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
-                    assert(!doIt);
+                    osafassert(!doIt);
                     return SA_AIS_ERR_INVALID_PARAM;
                 }
 
@@ -3496,8 +3495,8 @@ ImmModel::ccbApply(SaUint32T ccbId,
             err = SA_AIS_ERR_FAILED_OPERATION;
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         } else {
-            /* Remove assert after component test */
-            assert(sMissingParents.empty());
+            /* Remove osafassert after component test */
+            osafassert(sMissingParents.empty());
 
             TRACE_5("Apply CCB %u", ccb->mId);
             ccb->mState = IMM_CCB_PREPARE;
@@ -3507,7 +3506,7 @@ ImmModel::ccbApply(SaUint32T ccbId,
                 ++isi) {
                 ImplementerCcbAssociation* implAssoc = isi->second;
                 ImplementerInfo* impInfo = implAssoc->mImplementer;
-                assert(impInfo);
+                osafassert(impInfo);
                 ++sLastContinuationId; 
                 if(sLastContinuationId >= 0xfffffffe) {
                     sLastContinuationId = 1;
@@ -3565,7 +3564,7 @@ ImmModel::commitModify(const std::string& dn, ObjectInfo* afterImage)
     TRACE_ENTER();
     TRACE_5("COMMITING MODIFY of %s", dn.c_str());
     ObjectMap::iterator oi = sObjectMap.find(dn);
-    assert(oi != sObjectMap.end());
+    osafassert(oi != sObjectMap.end());
     ObjectInfo* beforeImage = oi->second;
     if(beforeImage->mAdminOwnerAttrVal->empty()) {
        /* Admin Owner apparently released (hard) during apply/commit.
@@ -3629,7 +3628,7 @@ ImmModel::commitDelete(const std::string& dn)
     TRACE_ENTER();
     TRACE_5("COMMITING DELETE of %s", dn.c_str());
     ObjectMap::iterator oi = sObjectMap.find(dn);
-    assert(oi != sObjectMap.end());
+    osafassert(oi != sObjectMap.end());
     
     ImmAttrValueMap::iterator oavi;
     for(oavi = oi->second->mAttrValueMap.begin();
@@ -3641,8 +3640,8 @@ ImmModel::commitDelete(const std::string& dn)
     //record is deleted below), but does not hurt.
     oi->second->mAttrValueMap.clear(); 
     
-    assert(!oi->second->mClassInfo->mExtent.empty());
-    assert(oi->second->mClassInfo->mExtent.erase(oi->second)==1);
+    osafassert(!oi->second->mClassInfo->mExtent.empty());
+    osafassert(oi->second->mClassInfo->mExtent.erase(oi->second)==1);
     
     TRACE_5("delete object '%s'", oi->first.c_str());
     AdminOwnerVector::iterator i2;
@@ -3678,14 +3677,14 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     bool ccbNotEmpty = false;
 
     i = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
-    assert(i != sCcbVector.end());
+    osafassert(i != sCcbVector.end());
     TRACE_5("Commit CCB %u", (*i)->mId);
     CcbInfo* ccb = (*i);
-    assert(ccb->isOk());
+    osafassert(ccb->isOk());
     if(ccb->mState == IMM_CCB_PREPARE) {
         ccb->mState = IMM_CCB_CRITICAL;
     } else {
-        assert(ccb->mState == IMM_CCB_CRITICAL);
+        osafassert(ccb->mState == IMM_CCB_CRITICAL);
         TRACE_5("Ccb %u comitted by persistent back end", ccbId);
     }
     ccb->mWaitStartTime = 0;
@@ -3695,23 +3694,23 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit){
         ccbNotEmpty=true;
         ObjectMutation* omut = omit->second;
-        assert(!omut->mWaitForImplAck);
+        osafassert(!omut->mWaitForImplAck);
         switch(omut->mOpType){
             case IMM_CREATE:
                 if(ccbId != 1) {
                     TRACE_5("COMMITING CREATE of %s", omit->first.c_str());
                 }
-                assert(omut->mAfterImage);
+                osafassert(omut->mAfterImage);
                 commitCreate(omut->mAfterImage);
                 omut->mAfterImage=NULL;
                 break;
             case IMM_MODIFY:
-                assert(omut->mAfterImage);
+                osafassert(omut->mAfterImage);
                 pbeModeChange = commitModify(omit->first, omut->mAfterImage) || pbeModeChange;
                 omut->mAfterImage=NULL;
                 break;
             case IMM_DELETE:
-                assert(omut->mAfterImage==NULL);
+                osafassert(omut->mAfterImage==NULL);
                 commitDelete(omit->first);
                 break;
             default:
@@ -3731,9 +3730,9 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
         ++isi) {
         ccbNotEmpty = true;
         ImplementerCcbAssociation* implAssoc = isi->second;
-        assert(!(implAssoc->mWaitForImplAck));
+        osafassert(!(implAssoc->mWaitForImplAck));
         ImplementerInfo* impInfo = implAssoc->mImplementer;
-        assert(impInfo);
+        osafassert(impInfo);
         SaUint32T implConn = impInfo->mConn;
         if(implConn) {
             if(impInfo->mDying) {
@@ -3843,7 +3842,7 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
         ++isi) {
         ImplementerCcbAssociation* implAssoc = isi->second;
         ImplementerInfo* impInfo = implAssoc->mImplementer;
-        assert(impInfo);
+        osafassert(impInfo);
         SaUint32T implConn = impInfo->mConn;
         if(implConn) {
             if(impInfo->mDying) {
@@ -3947,7 +3946,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                 case IMM_DELETE:
                     TRACE_2("Aborting Delete of %s", omit->first.c_str());
                     oi = sObjectMap.find(omit->first);
-                    assert(oi != sObjectMap.end());
+                    osafassert(oi != sObjectMap.end());
                     oi->second->mObjFlags &= ~IMM_DELETE_LOCK;//Remove delete lock
                     TRACE_5("Flags after remove delete lock:%u", 
                         oi->second->mObjFlags);
@@ -3956,9 +3955,9 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                 case IMM_CREATE: {
                     const std::string& dn = omit->first;
                     ObjectMap::iterator oi = sObjectMap.find(dn);
-                    assert(oi != sObjectMap.end());
+                    osafassert(oi != sObjectMap.end());
                     sObjectMap.erase(oi);
-                    assert(afim);
+                    osafassert(afim);
                     ImmAttrValueMap::iterator oavi;
                     for(oavi = afim->mAttrValueMap.begin();
                         oavi != afim->mAttrValueMap.end(); ++oavi) {
@@ -3966,8 +3965,8 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                     }
                     afim->mAttrValueMap.clear(); 
                     
-                    assert(!afim->mClassInfo->mExtent.empty());
-                    assert(afim->mClassInfo->mExtent.erase(afim)==1);
+                    osafassert(!afim->mClassInfo->mExtent.empty());
+                    osafassert(afim->mClassInfo->mExtent.erase(afim)==1);
                     
                     //Aborting create => ensure no dangling references to
                     //object. Only possible dangling reference for a create is 
@@ -3993,7 +3992,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                     break;
                     
                 case IMM_MODIFY: {
-                    assert(afim);
+                    osafassert(afim);
                     ImmAttrValueMap::iterator oavi;
                     for(oavi = afim->mAttrValueMap.begin();
                         oavi != afim->mAttrValueMap.end(); ++oavi) {
@@ -4140,7 +4139,7 @@ ImmModel::ccbAugmentInit(immsv_oi_ccb_upcall_rsp* rsp,
 
                 /* Delete mutation has no after image, fetch object from main map */
                 oi = sObjectMap.find(objectName);
-                assert(oi != sObjectMap.end());
+                osafassert(oi != sObjectMap.end());
                 obj = oi->second;
                 break;
 
@@ -4163,12 +4162,12 @@ ImmModel::ccbAugmentInit(immsv_oi_ccb_upcall_rsp* rsp,
     TRACE("omuti->second:%p", omuti->second);
     TRACE("omuti->second->mContinuationId:%u == rsp->inv:%u", omuti->second->mContinuationId, rsp->inv);
 
-    assert(omuti->second->mContinuationId == rsp->inv);
-    assert(omuti->second->mWaitForImplAck);
+    osafassert(omuti->second->mContinuationId == rsp->inv);
+    osafassert(omuti->second->mWaitForImplAck);
 
     TRACE("obj:%p", obj);
     TRACE("obj->mImplementer:%p", obj->mImplementer);
-    assert(obj && obj->mImplementer);
+    osafassert(obj && obj->mImplementer);
 
 
     if(ccb->mVeto != SA_AIS_OK) {
@@ -4384,7 +4383,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
 {
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
-    //assert(!immNotWritable()); 
+    //osafassert(!immNotWritable()); 
     //It should be safe to allow old ccbs to continue to mutate the IMM.
     //The sync does not realy start until all ccb's are completed.
     
@@ -4470,7 +4469,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     }
     adminOwner = *i2;
     
-    assert(!adminOwner->mDying);
+    osafassert(!adminOwner->mDying);
     
     if(adminOwner->mId !=  ccb->mAdminOwnerId) {
         LOG_WA("ERR_FAILED_OPERATION: Inconsistency between Ccb admoId:%u and AdminOwner-id:%u",
@@ -4509,7 +4508,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     sMissingParents[parentName] = ObjectSet();
                     mpm = sMissingParents.find(parentName);
                 }
-                assert(mpm != sMissingParents.end());
+                osafassert(mpm != sMissingParents.end());
             } else {
                 TRACE_7("ERR_NOT_EXIST: parent object '%s' does not exist", 
                     parentName.c_str());
@@ -4541,7 +4540,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     err = SA_AIS_ERR_NOT_EXIST;
                     goto ccbObjectCreateExit;
                 } else {
-                    assert(isLoading); 
+                    osafassert(isLoading); 
                     /* See check above, only loader allowed to create 
                        (persistent) rtos this way. Should really check
                        that parent and child are persistent. Since 
@@ -4604,7 +4603,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     //Be lenient on the loader. It assumes RDN is always SaNameT.
                     TRACE_7("COMPONENT TEST*** IF I SEE THIS THEN DONT REMOVE THE CODE BRANCH");
                     //I dont think we ever get this case.
-                    assert(i4->second->mValueType == SA_IMM_ATTR_SANAMET ||
+                    osafassert(i4->second->mValueType == SA_IMM_ATTR_SANAMET ||
                         i4->second->mValueType == SA_IMM_ATTR_SASTRINGT);
                     attrValues->n.attrValueType = i4->second->mValueType;
                 }
@@ -4732,7 +4731,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             }
             
             i4 = classInfo->mAttrMap.find(attrName);
-            assert(i4!=classInfo->mAttrMap.end());
+            osafassert(i4!=classInfo->mAttrMap.end());
             AttrInfo* attr = i4->second;
             
             if(attr->mValueType != 
@@ -4781,7 +4780,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                   break; //out of for-loop
                   } */
                 else {
-                    assert(attrValue->isMultiValued());
+                    osafassert(attrValue->isMultiValued());
                     if(className != immClassName) { 
                         //Avoid restoring imm object
                         ImmAttrMultiValue* multiattr = 
@@ -4840,7 +4839,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             std::string attrName(i6->first);
             
             i4 = classInfo->mAttrMap.find(attrName);
-            assert(i4!=classInfo->mAttrMap.end());
+            osafassert(i4!=classInfo->mAttrMap.end());
             AttrInfo* attr = i4->second;
             
             if((attr->mFlags & SA_IMM_ATTR_INITIALIZED) && 
@@ -5002,7 +5001,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     bypass_impl:
 
         if(err == SA_AIS_OK) {
-            assert(oMut);
+            osafassert(oMut);
             //This is a create => No need to check if there already is a 
             //mutation on this object.
             ccb->mMutations[objectName] = oMut;
@@ -5014,7 +5013,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             sObjectMap[objectName] = object; 
             classInfo->mExtent.insert(object);
             if(parent) {
-                assert(mpm == sMissingParents.end());
+                osafassert(mpm == sMissingParents.end());
                 object->mParent = parent;
             } else if(mpm != sMissingParents.end()) {
                 mpm->second.insert(object);
@@ -5106,7 +5105,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
     
-    //assert(!immNotWritable());
+    //osafassert(!immNotWritable());
     //It should be safe to allow old ccbs to continue to mutate the IMM.
     //The sync does not realy start until all ccb's are completed.
     size_t sz = 0; 
@@ -5173,7 +5172,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     }
     adminOwner = *i2;
     
-    assert(!adminOwner->mDying);
+    osafassert(!adminOwner->mDying);
     
     if(adminOwner->mId !=  ccb->mAdminOwnerId) {
         LOG_WA("ERR_FAILED_OPERATION: Inconsistency between Ccb-admoId:%u and "
@@ -5229,7 +5228,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     }
 
     classInfo = object->mClassInfo;
-    assert(classInfo);
+    osafassert(classInfo);
     
     if(classInfo->mCategory != SA_IMM_CLASS_CONFIG) {
         LOG_NO("ERR_INVALID_PARAM: object '%s' is not a configuration object", 
@@ -5249,7 +5248,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             chainedOp = true;
             afim = object;
         } else {
-            assert(oMut->mOpType == IMM_MODIFY);
+            osafassert(oMut->mOpType == IMM_MODIFY);
             chainedOp = true;
             afim = oMut->mAfterImage;
         }
@@ -5378,7 +5377,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                         err = SA_AIS_ERR_INVALID_PARAM;
                         break; //out of switch
                     }
-                    assert(attrValue->isMultiValued());
+                    osafassert(attrValue->isMultiValued());
                     ImmAttrMultiValue* multiattr = 
                         (ImmAttrMultiValue *) attrValue;
                     multiattr->setExtraValue(tmpos);
@@ -5392,7 +5391,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                         err = SA_AIS_ERR_INVALID_PARAM;
                         break; //out of switch
                     } else {
-                        assert(attrValue->isMultiValued());
+                        osafassert(attrValue->isMultiValued());
                         ImmAttrMultiValue* multiattr = 
                             (ImmAttrMultiValue *) attrValue;
                         
@@ -5482,7 +5481,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
 
     if(err == SA_AIS_OK) {
         if(chainedOp) {
-            assert(oMut);
+            osafassert(oMut);
         } else {
             oMut = new ObjectMutation(IMM_MODIFY);
             oMut->mAfterImage = afim;
@@ -5574,7 +5573,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
 
     if(err == SA_AIS_OK) {
         object->mCcbId = ccbId; //Overwrite any old obsolete ccb id.
-        assert(oMut);
+        osafassert(oMut);
         if(!chainedOp) {     
             ccb->mMutations[objectName] = oMut;
             if(adminOwner->mReleaseOnFinalize) {
@@ -5632,7 +5631,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
     
-    //assert(!immNotWritable()); 
+    //osafassert(!immNotWritable()); 
     //It should be safe to allow old ccbs to continue to mutate the IMM.
     //The sync does not realy start until all ccb's are completed.
     
@@ -5692,7 +5691,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
         goto ccbObjectDeleteExit;
     }
     adminOwner = *i2;
-    assert(!adminOwner->mDying);
+    osafassert(!adminOwner->mDying);
     
     if(adminOwner->mId !=  ccb->mAdminOwnerId) {
         LOG_WA("ERR_FAILED_OPERATION: Inconsistency between Ccb and AdminOwner");
@@ -6079,9 +6078,9 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
     TRACE_ENTER();
     if(pbeNodeIdPtr) {
         TRACE("We expect there to be a Pbe");
-        assert(pbeConnPtr);
-        assert(pbeIdPtr);
-        assert(pbeCtnPtr);
+        osafassert(pbeConnPtr);
+        osafassert(pbeIdPtr);
+        osafassert(pbeCtnPtr);
         *pbeNodeIdPtr = 0;
         *pbeConnPtr = 0;
         *pbeIdPtr = 0;
@@ -6139,7 +6138,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
         ImplementerInfo* pbeImpl = (ImplementerInfo *) getPbeOi(pbeConnPtr, pbeNodeIdPtr);
         if(pbeImpl) {
             /* There is in fact a PBE (up) */
-            assert(ccb->mState == IMM_CCB_PREPARE);
+            osafassert(ccb->mState == IMM_CCB_PREPARE);
             ccb->mState = IMM_CCB_CRITICAL;
             *pbeIdPtr = pbeImpl->mId;
             /* Add pbe implementer to the ccb implementer collection. 
@@ -6237,9 +6236,9 @@ ImmModel::ccbObjDelContinuation(immsv_oi_ccb_upcall_rsp* rsp,
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         }
     } else {
-        assert(omuti->second->mWaitForImplAck);
+        osafassert(omuti->second->mWaitForImplAck);
         omuti->second->mWaitForImplAck = false;
-        assert(/*(omuti->second->mContinuationId == 0) ||*/
+        osafassert(/*(omuti->second->mContinuationId == 0) ||*/
                (omuti->second->mContinuationId == (SaUint32T) rsp->inv));
 
         *reqConn = ccb->mOriginatingConn;
@@ -6445,7 +6444,7 @@ ImmModel::ccbObjCreateContinuation(SaUint32T ccbId, SaUint32T invocation,
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         }
     } else {
-        assert(omuti->second->mWaitForImplAck);
+        osafassert(omuti->second->mWaitForImplAck);
         omuti->second->mWaitForImplAck = false;
         ccb->mWaitStartTime = 0;
     }
@@ -6490,7 +6489,7 @@ ImmModel::ccbObjCreateContinuation(SaUint32T ccbId, SaUint32T invocation,
         if(ccb->mVeto == SA_AIS_OK) {
             LOG_ER("Unexpected state(%u) for ccb(%u) found in "
                 "ccbObjectCreateContinuation ", ccb->mState, ccbId);
-            assert(ccb->mState == IMM_CCB_CREATE_OP);
+            osafassert(ccb->mState == IMM_CCB_CREATE_OP);
         } else {
             LOG_IN("Ignoring unexpected state(%u) for ccb(%u) found in "
                 "ccbObjectCreateContinuation ", ccb->mState, ccbId);
@@ -6530,7 +6529,7 @@ ImmModel::ccbObjModifyContinuation(SaUint32T ccbId, SaUint32T invocation,
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         }
     } else {
-        assert(omuti->second->mWaitForImplAck);
+        osafassert(omuti->second->mWaitForImplAck);
         omuti->second->mWaitForImplAck = false;
         ccb->mWaitStartTime = 0;
     }
@@ -6574,7 +6573,7 @@ ImmModel::ccbObjModifyContinuation(SaUint32T ccbId, SaUint32T invocation,
         if(ccb->mVeto == SA_AIS_OK) {
             LOG_ER("Unexpected state(%u) for ccb(%u) found in "
                 "ccbObjectModifyContinuation ", ccb->mState, ccbId);
-            assert(ccb->mState == IMM_CCB_MODIFY_OP);
+            osafassert(ccb->mState == IMM_CCB_MODIFY_OP);
         } else {
             LOG_IN("Ignoring unexpected state(%u) for ccb(%u) found in "
                 "ccbObjectModifyContinuation ", ccb->mState, ccbId);
@@ -6690,7 +6689,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
         }
         AttrMap::iterator k =
             obj->mClassInfo->mAttrMap.find(j->first);
-        assert(k != obj->mClassInfo->mAttrMap.end());
+        osafassert(k != obj->mClassInfo->mAttrMap.end());
         op.addAttribute(j->first, k->second->mValueType, k->second->mFlags);
         //Check if attribute is the implementername attribute.
         //If so add the value artificially
@@ -6816,7 +6815,7 @@ ImmModel::filterMatch(ObjectInfo* obj, ImmsvOmSearchOneAttr* filter,
     
     //Finally, check that the values match.
     ImmAttrValueMap::iterator j = obj->mAttrValueMap.find(attrName);
-    assert(j != obj->mAttrValueMap.end());
+    osafassert(j != obj->mAttrValueMap.end());
     
     //If the attribute is the implementer name attribute, then assign it now.
     if((j->first.c_str() == std::string(SA_IMM_ATTR_IMPLEMENTER_NAME)) && 
@@ -6874,7 +6873,7 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
         goto searchInitializeExit;
     }
 
-    assert(rootlen == rootName.length()); /* ABT remove after component test.*/
+    osafassert(rootlen == rootName.length()); /* ABT remove after component test.*/
 
     if (rootlen > 0) {
         omi = sObjectMap.find(rootName);
@@ -6941,7 +6940,7 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                first saImmOmSearchNext_2().
             */
             TRACE("Extent for class:%s was empty, or class does not exist", className);
-            assert(err == SA_AIS_OK);
+            osafassert(err == SA_AIS_OK);
             goto searchInitializeExit;
         }
 
@@ -6974,16 +6973,16 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
         /* Class extent filter is handled by changing iteration source to class extent */
         filter = false; 
         osi = classInfo->mExtent.begin();
-        assert(osi !=  classInfo->mExtent.end()); /* Already checked for empty above */
+        osafassert(osi !=  classInfo->mExtent.end()); /* Already checked for empty above */
         if(isSyncer) {
             /* Avoid copy iterator for sync. Use a raw STL iterator over extent. */
             op.syncOsi = new ObjectSet::iterator(osi);
             op.attrNameList = req->attributeNames;
             req->attributeNames = NULL;
             op.classInfo = classInfo;
-            assert(scope==SA_IMM_SUBTREE);
-            assert(rootlen == 0);
-            assert(searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR);
+            osafassert(scope==SA_IMM_SUBTREE);
+            osafassert(rootlen == 0);
+            osafassert(searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR);
             goto searchInitializeExit;
         }
         obj = *(osi); 
@@ -6993,12 +6992,12 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
             /* DN is internal rep => regenerated name needs to be the same,
                since it is used for matching with internal DNs.
             */
-            assert(nameToInternal(objectName));
+            osafassert(nameToInternal(objectName));
         }
     } else {
         /* Initialize iteration for regular object-map as source */
         omi = sObjectMap.begin();
-        assert(omi != sObjectMap.end()); /* sObjectMap can never be empty! */
+        osafassert(omi != sObjectMap.end()); /* sObjectMap can never be empty! */
         obj = omi->second;
         objectName = omi->first;
     }
@@ -7059,7 +7058,7 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                             }
                             AttrMap::iterator k =
                                 obj->mClassInfo->mAttrMap.find(j->first);
-                            assert(k != obj->mClassInfo->mAttrMap.end());
+                            osafassert(k != obj->mClassInfo->mAttrMap.end());
                             
                             if(isDumper && 
                                 !(k->second->mFlags & SA_IMM_ATTR_CONFIG) &&
@@ -7164,7 +7163,7 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                     /* DN is internal rep => regenerated name needs to be the same. 
                        since it is used for matching with internal DNs.
                     */
-                    assert(nameToInternal(objectName));
+                    osafassert(nameToInternal(objectName));
                 }
             }
         } else {
@@ -7189,7 +7188,7 @@ SaAisErrorT ImmModel::nextSyncResult(ImmsvOmRspSearchNext** rsp, ImmSearchOp& op
     if(!osip) { return SA_AIS_ERR_NOT_EXIST;}
     ImmsvAttrNameList* theAttList = (ImmsvAttrNameList *) op.attrNameList;
     ClassInfo* classInfo = (ClassInfo *) op.classInfo;
-    assert(classInfo != NULL);
+    osafassert(classInfo != NULL);
     ObjectInfo* obj = NULL;
     std::string objectName;
     ImmAttrValueMap::iterator j;
@@ -7206,18 +7205,18 @@ SaAisErrorT ImmModel::nextSyncResult(ImmsvOmRspSearchNext** rsp, ImmSearchOp& op
     }
 
     obj = *(*osip);
-    assert(obj);
-    assert(obj->mClassInfo == classInfo);
+    osafassert(obj);
+    osafassert(obj->mClassInfo == classInfo);
     getObjectName(obj, objectName); /* In external form. */
 
-    assert(!(obj->mObjFlags & IMM_CREATE_LOCK));
-    assert(!(obj->mObjFlags & IMM_DELETE_LOCK));
-    assert(!(obj->mObjFlags & IMM_RT_UPDATE_LOCK)); /* Is this really secured? */
+    osafassert(!(obj->mObjFlags & IMM_CREATE_LOCK));
+    osafassert(!(obj->mObjFlags & IMM_DELETE_LOCK));
+    osafassert(!(obj->mObjFlags & IMM_RT_UPDATE_LOCK)); /* Is this really secured? */
 
     /* (1) op.addObject(objectName);*/
 
     p = (IMMSV_OM_RSP_SEARCH_NEXT*) calloc(1, sizeof(IMMSV_OM_RSP_SEARCH_NEXT));
-    assert(p);
+    osafassert(p);
     *rsp = p;
 
     // Get object name
@@ -7248,7 +7247,7 @@ SaAisErrorT ImmModel::nextSyncResult(ImmsvOmRspSearchNext** rsp, ImmSearchOp& op
 
 
         AttrMap::iterator k = classInfo->mAttrMap.find(j->first);
-        assert(k != classInfo->mAttrMap.end());
+        osafassert(k != classInfo->mAttrMap.end());
         //op.addAttribute(j->first, k->second->mValueType, k->second->mFlags);
         attr->attrName.size = j->first.length()+1;
         attr->attrName.buf = strdup(j->first.c_str());
@@ -7273,7 +7272,7 @@ SaAisErrorT ImmModel::nextSyncResult(ImmsvOmRspSearchNext** rsp, ImmSearchOp& op
                 (SaImmValueTypeT) attr->attrValueType);
 
             if(attr->attrValuesNumber > 1) {
-                assert(j->second->isMultiValued());
+                osafassert(j->second->isMultiValued());
                 ((ImmAttrMultiValue *)j->second)->
                     copyExtraValuesToEdu(&(attr->attrMoreValues),
                         (SaImmValueTypeT) attr->attrValueType);
@@ -7692,13 +7691,13 @@ ImmModel::updateImmObject(std::string newClassName,
     ImmAttrValueMap::iterator avi = 
         immObject->mAttrValueMap.find(immAttrClasses);
     
-    assert(avi != immObject->mAttrValueMap.end());
+    osafassert(avi != immObject->mAttrValueMap.end());
     
-    assert(avi->second->isMultiValued());
+    osafassert(avi->second->isMultiValued());
     ImmAttrMultiValue* valuep = (ImmAttrMultiValue *) avi->second;
     
     if(remove) {
-        assert(valuep->removeExtraValueC_str(newClassName.c_str()));
+        osafassert(valuep->removeExtraValueC_str(newClassName.c_str()));
     } else if(newClassName == immClassName) {
         TRACE_5("Imm meta object class %s added", immClassName.c_str());
         //First time, include all current classes
@@ -7769,8 +7768,8 @@ ImmModel::updateImmObject2(const ImmsvOmAdminOperationInvoke* req)
     
     immObject = oi->second;
     avi = immObject->mAttrValueMap.find(immAttrNostFlags);
-    assert(avi != immObject->mAttrValueMap.end());
-    assert(!(avi->second->isMultiValued()));
+    osafassert(avi != immObject->mAttrValueMap.end());
+    osafassert(!(avi->second->isMultiValued()));
     valuep = (ImmAttrValue *) avi->second;
     noStdFlags = valuep->getValue_int();
 
@@ -7823,8 +7822,8 @@ ImmModel::admoImmMngtObject(const ImmsvOmAdminOperationInvoke* req)
     
     immObject = oi->second;
     avi = immObject->mAttrValueMap.find(saImmRepositoryInit);
-    assert(avi != immObject->mAttrValueMap.end());
-    assert(!(avi->second->isMultiValued()));
+    osafassert(avi != immObject->mAttrValueMap.end());
+    osafassert(!(avi->second->isMultiValued()));
     valuep = (ImmAttrValue *) avi->second;
 
     if(req->params != NULL) {
@@ -7908,7 +7907,7 @@ ImmModel::findImplementer(std::string& iname)
 SaUint32T
 ImmModel::getImplementerId(SaUint32T localConn)
 {
-    assert(localConn);
+    osafassert(localConn);
     ImplementerVector::iterator i;
     for(i = sImplementerVector.begin(); i != sImplementerVector.end(); ++i) {
         ImplementerInfo* info = (*i);
@@ -8000,7 +7999,7 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
     for(i3=sCcbVector.begin(); i3!=sCcbVector.end(); ++i3) {
         if(((*i3)->mOriginatingNode == deadNode) && ((*i3)->isActive())) {
             cv.push_back((*i3)->mId);
-            assert((*i3)->mOriginatingConn == 0); //Dead node can not be us!!
+            osafassert((*i3)->mOriginatingConn == 0); //Dead node can not be us!!
         }
     }
  done:    
@@ -8200,9 +8199,9 @@ void
 ImmModel::getOldCriticalCcbs(IdVector& cv, SaUint32T *pbeConnPtr,
     unsigned int *pbeNodeIdPtr, SaUint32T* pbeIdPtr)
 {
-    assert(pbeConnPtr);
-    assert(pbeNodeIdPtr);
-    assert(pbeIdPtr);
+    osafassert(pbeConnPtr);
+    osafassert(pbeNodeIdPtr);
+    osafassert(pbeIdPtr);
     *pbeNodeIdPtr = 0;
     *pbeConnPtr = 0;
     *pbeIdPtr = 0;
@@ -8238,7 +8237,7 @@ ImmModel::getOldCriticalCcbs(IdVector& cv, SaUint32T *pbeConnPtr,
                 continue;
             }
             
-            assert(implAssoc->mImplementer);
+            osafassert(implAssoc->mImplementer);
 
             bool isPbe = (implAssoc->mImplementer->mImplementerName ==
                 std::string(OPENSAF_IMM_PBE_IMPL_NAME));
@@ -8413,7 +8412,7 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
         ccbsToGc.erase(i3);
         i3 = std::find_if(sCcbVector.begin(), sCcbVector.end(),
             CcbIdIs(ccb->mId));
-        assert(i3 != sCcbVector.end());
+        osafassert(i3 != sCcbVector.end());
         sCcbVector.erase(i3);
         delete (ccb);
     }
@@ -8452,8 +8451,8 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
             }
         }
 
-        assert(pbeMinContinuationId);
-        assert(pbeMinContinuationId < 0xffffffff);
+        osafassert(pbeMinContinuationId);
+        osafassert(pbeMinContinuationId < 0xffffffff);
         if(sPbeRtMinContId == pbeMinContinuationId) {
             pbeRtRegress = 2; /* No progress on oldest continuation. */
         } else {
@@ -8533,8 +8532,8 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
         }
         //Implies we re-use ImplementerInfo. The previous 
         //implementer-connection must have been cleared or crashed.
-        assert(!info->mConn);
-        assert(!info->mNodeId);
+        osafassert(!info->mConn);
+        osafassert(!info->mNodeId);
 
         //Check objects for attachment to this implementer and 
         //verify that no ccb is active on them. Iterate over CCB vector!
@@ -8703,7 +8702,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
                 ObjectMutationMap::iterator omit;
                 for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit) {
                     ObjectMap::iterator oi = sObjectMap.find(omit->first);
-                    assert(oi != sObjectMap.end());
+                    osafassert(oi != sObjectMap.end());
                     ObjectInfo* object = oi->second;
                     if(object->mClassInfo == classInfo) {
                         LOG_NO("ERR_BUSY: ccb %u is active on object %s "
@@ -8721,7 +8720,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
         ImplementerSetMap::iterator ismIter;
         for(ismIter = sObjAppliersMap.begin(); ismIter != sObjAppliersMap.end(); ++ismIter) {
             ObjectMap::iterator oi = sObjectMap.find(ismIter->first);
-            assert(oi != sObjectMap.end());
+            osafassert(oi != sObjectMap.end());
             ObjectInfo* object = oi->second;
             if(object->mClassInfo == classInfo) {
                 ImplementerSet *implSet = ismIter->second;
@@ -8770,7 +8769,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
     */
     for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
         ObjectInfo* obj = *os;
-        assert(obj->mClassInfo == classInfo);
+        osafassert(obj->mClassInfo == classInfo);
         if(obj->mImplementer) {
             std::string objDn;
             getObjectName(obj, objDn); /* External name form */
@@ -8803,7 +8802,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
         }
     }//for
 
-    assert(err == SA_AIS_OK);
+    osafassert(err == SA_AIS_OK);
     classInfo->mImplementer = info;
     TRACE_5("implementer for class '%s' is %s", className.c_str(),
         info->mImplementerName.c_str());
@@ -8898,7 +8897,7 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
             for(ismIter = sObjAppliersMap.begin(); ismIter != sObjAppliersMap.end();
                ++ismIter) {
                 ObjectMap::iterator oi = sObjectMap.find(ismIter->first);
-                assert(oi != sObjectMap.end());
+                osafassert(oi != sObjectMap.end());
                 ObjectInfo* object = oi->second;
                 if(object->mClassInfo == classInfo) {
                     ImplementerSet *implSet = ismIter->second;
@@ -8927,7 +8926,7 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
                 ObjectMutationMap::iterator omit;
                 for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit) {
                     ObjectMap::iterator oi = sObjectMap.find(omit->first);
-                    assert(oi != sObjectMap.end());
+                    osafassert(oi != sObjectMap.end());
                     ObjectInfo* object = oi->second;
                     if(object->mClassInfo == classInfo) {
                         LOG_NO("ERR_BUSY: ccb %u is active on object %s "
@@ -8953,7 +8952,7 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
         /* Prevent class implementer release when other individual object implementer set */
         for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
             ObjectInfo* obj = *os;
-            assert(obj->mClassInfo == classInfo);
+            osafassert(obj->mClassInfo == classInfo);
             if(obj->mImplementer && obj->mImplementer != info) {
                 std::string objDn;
                 getObjectName(obj, objDn); /* External name form */
@@ -8987,7 +8986,7 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
             ObjectMutationMap::iterator omit;
             for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit) {
                 ObjectMap::iterator oi = sObjectMap.find(omit->first);
-                assert(oi != sObjectMap.end());
+                osafassert(oi != sObjectMap.end());
                 ObjectInfo* object = oi->second;
                 if(object->mClassInfo == classInfo) {
                     LOG_IN("ERR_BUSY: ccb %u is active on object %s "
@@ -9201,7 +9200,7 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
     /*TRACE_ENTER();*/
     ClassInfo* classInfo = obj->mClassInfo;
     if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
-        assert(!doIt);
+        osafassert(!doIt);
         LOG_IN("ERR_BAD_OPERATION: Object '%s' is a runtime object, "
             "not allowed to set object implementer.", 
             objectName.c_str());
@@ -9266,7 +9265,7 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
     } else { /* regular OI */
         if(obj->mImplementer && 
             (obj->mImplementer != info)) {
-            assert(!doIt);
+            osafassert(!doIt);
             TRACE_7("ERR_EXIST: Object '%s' already has implementer %s != %s",
                 objectName.c_str(), 
                 obj->mImplementer->mImplementerName.c_str(),
@@ -9311,7 +9310,7 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
     /*TRACE_ENTER();*/
     ClassInfo* classInfo = obj->mClassInfo;
     if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
-        assert(!doIt);
+        osafassert(!doIt);
         LOG_IN("ERR_BAD_OPERATION: Object '%s' is a runtime object, "
             "not allowed to release object implementer.", 
             objectName.c_str());
@@ -9328,7 +9327,7 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
                sCcbVector.end(), CcbIdIs(obj->mCcbId));
 
         if(i1 != sCcbVector.end() && (*i1)->isActive()) {
-            assert(!doIt);
+            osafassert(!doIt);
             LOG_IN("ERR_BUSY: ccb %u is active on object %s", obj->mCcbId,
                 objectName.c_str());
             err = SA_AIS_ERR_BUSY;
@@ -9369,7 +9368,7 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
         }
 
         if(obj->mImplementer != info) {
-            assert(!doIt);
+            osafassert(!doIt);
             TRACE_7("ERR_NOT_EXIST: Object '%s' has different implementer %s != %s",
                 objectName.c_str(), 
                 obj->mImplementer->mImplementerName.c_str(),
@@ -9382,14 +9381,14 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
         } else { /* obj->mImplementer == info. But check that it is not class-impl */
             if(classInfo->mImplementer) {
                 /* User has set class impl but tries to release object impl */
-                assert(!doIt);
+                osafassert(!doIt);
 
                 /* Get class name. */
                 ClassMap::iterator ci;
                 for(ci=sClassMap.begin(); ci!= sClassMap.end(); ++ci) {
                     if(ci->second == classInfo) break;
                 }
-                assert(ci!=sClassMap.end());
+                osafassert(ci!=sClassMap.end());
 
                 LOG_IN("ERR_NOT_EXIST: Release of object implementer for "
                     "object %s conflicts with current class implementorship "
@@ -9420,7 +9419,7 @@ ImmModel::clearImplName(ObjectInfo* obj)
 {
     std::string implAttr(SA_IMM_ATTR_IMPLEMENTER_NAME);
     ImmAttrValue* att = obj->mAttrValueMap[implAttr];
-    assert(att);
+    osafassert(att);
     if(!(att->empty())) {
         att->setValueC_str(NULL);
     }
@@ -9437,8 +9436,8 @@ ImmModel::adminOwnerSet(std::string objectName, ObjectInfo* obj,
     /*TRACE_ENTER();*/
     SaAisErrorT err = SA_AIS_OK;
     std::string oldOwner;
-    assert(adm);
-    assert(obj);
+    osafassert(adm);
+    osafassert(obj);
     obj->getAdminOwnerName(&oldOwner);
     
     //TODO: "IMMLOADER" should be environment variable.
@@ -9478,7 +9477,7 @@ SaAisErrorT ImmModel::adminOwnerRelease(std::string objectName,
     /*TRACE_ENTER();*/
     SaAisErrorT err = SA_AIS_OK;
     std::string oldOwner;
-    assert(obj);
+    osafassert(obj);
     obj->getAdminOwnerName(&oldOwner);
     
     std::string loader("IMMLOADER");
@@ -9754,7 +9753,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                         parent->mClassInfo->mAttrMap.end(),
                         AttrFlagIncludes(SA_IMM_ATTR_RDN));
                 
-                assert(i44 != parent->mClassInfo->mAttrMap.end());
+                osafassert(i44 != parent->mClassInfo->mAttrMap.end());
                 
                 if(!(i44->second->mFlags & SA_IMM_ATTR_PERSISTENT)) {
                     LOG_NO("ERR_INVALID_PARAM: Parent object '%s' is a "
@@ -9879,7 +9878,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
             }
             
             i4 = classInfo->mAttrMap.find(attrName);
-            assert(i4!=classInfo->mAttrMap.end());
+            osafassert(i4!=classInfo->mAttrMap.end());
             AttrInfo* attr = i4->second;
             
             if(attr->mValueType != (unsigned int) p->n.attrValueType) {
@@ -9929,7 +9928,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                   break; //out of for-loop
                   } */
                 else {
-                    assert(attrValue->isMultiValued());
+                    osafassert(attrValue->isMultiValued());
                     if(className != immClassName) {//Avoid restoring imm object
                         ImmAttrMultiValue* multiattr = 
                             (ImmAttrMultiValue *) attrValue;
@@ -9983,7 +9982,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
             }
             
             i4 = classInfo->mAttrMap.find(attrName);
-            assert(i4!=classInfo->mAttrMap.end());
+            osafassert(i4!=classInfo->mAttrMap.end());
             AttrInfo* attr = i4->second;
             
             if((attr->mFlags & SA_IMM_ATTR_CACHED) && attrValue->empty()) {
@@ -10107,7 +10106,7 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
 
     ObjectMutation* oMut = i2->second;
 
-    assert(oMut->mOpType == IMM_CREATE);
+    osafassert(oMut->mOpType == IMM_CREATE);
 
     oMut->mAfterImage->mObjFlags &= ~IMM_CREATE_LOCK;
     oMut->mAfterImage = NULL;
@@ -10117,8 +10116,8 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
     } else {
         bool dummy=false;
         ObjectMap::iterator oi = sObjectMap.find(i2->first);
-        assert(oi != sObjectMap.end());
-        assert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
+        osafassert(oi != sObjectMap.end());
+        osafassert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
         LOG_WA("Create of PERSISTENT runtime object '%s' REVERTED. PBE rc:%u", 
             i2->first.c_str(), error);
     }
@@ -10151,7 +10150,7 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
 
         ++nrofDeletes;
         ObjectMutation* oMut = i2->second;
-        assert(oMut->mOpType == IMM_DELETE);
+        osafassert(oMut->mOpType == IMM_DELETE);
 
         oMut->mAfterImage->mObjFlags &= ~IMM_DELETE_LOCK;
 
@@ -10163,8 +10162,8 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
             }
             bool dummy=false;
             ObjectMap::iterator oi = sObjectMap.find(i2->first);
-            assert(oi != sObjectMap.end());
-            assert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
+            osafassert(oi != sObjectMap.end());
+            osafassert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
         } else {
             if(oMut->mAfterImage->mObjFlags & IMM_PRTO_FLAG) {
                 LOG_WA("Delete of PERSISTENT runtime object '%s' REVERTED. PBE rc:%u", 
@@ -10217,16 +10216,16 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
     ObjectMutation* oMut = i2->second;
     std::string objName(i2->first);
 
-    assert(oMut->mOpType == IMM_MODIFY);
+    osafassert(oMut->mOpType == IMM_MODIFY);
     ObjectInfo *afim =  oMut->mAfterImage;
-    assert(afim);
+    osafassert(afim);
     oMut->mAfterImage = NULL;
 
     sPbeRtMutations.erase(i2);
     delete oMut; oMut=NULL;
 
     ObjectMap::iterator oi = sObjectMap.find(objName);
-    assert(oi != sObjectMap.end());
+    osafassert(oi != sObjectMap.end());
     ObjectInfo* beforeImage = oi->second;
     beforeImage->mObjFlags &= ~IMM_RT_UPDATE_LOCK;
 
@@ -10295,7 +10294,7 @@ void ImmModel::pbeClassCreateContinuation(SaUint32T invocation,
 
     ObjectMutation* oMut = i2->second;
 
-    assert(oMut->mOpType == IMM_CREATE_CLASS);
+    osafassert(oMut->mOpType == IMM_CREATE_CLASS);
 
     LOG_NO("Create of class %s is PERSISTENT.", i2->first.c_str());
 
@@ -10331,7 +10330,7 @@ void ImmModel::pbeClassDeleteContinuation(SaUint32T invocation,
 
     ObjectMutation* oMut = i2->second;
 
-    assert(oMut->mOpType == IMM_DELETE_CLASS);
+    osafassert(oMut->mOpType == IMM_DELETE_CLASS);
 
     LOG_NO("Delete of class %s is PERSISTENT.", i2->first.c_str());
 
@@ -10358,7 +10357,7 @@ void ImmModel::pbeUpdateEpochContinuation(SaUint32T invocation,
 
     ObjectMutation* oMut = i2->second;
 
-    assert(oMut->mOpType == IMM_UPDATE_EPOCH);
+    osafassert(oMut->mOpType == IMM_UPDATE_EPOCH);
 
     LOG_IN("Update of epoch is PERSISTENT.");
 
@@ -10430,7 +10429,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     ImplementerInfo* info = NULL;
     bool wasLocal = *isPureLocal;
     bool isSyncClient = (sImmNodeState == IMM_NODE_W_AVAILABLE);
-    if(wasLocal) {assert(conn);} 
+    if(wasLocal) {osafassert(conn);} 
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
@@ -10508,7 +10507,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     }
 
     classInfo = object->mClassInfo;
-    assert(classInfo);
+    osafassert(classInfo);
     
     //if(classInfo->mCategory != SA_IMM_CLASS_RUNTIME) {
     //LOG_WA("object '%s' is not a runtime object", objectName.c_str());
@@ -10549,7 +10548,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 goto rtObjectUpdateExit;
                 /* We have already checked for PbeWritable with success inside
                    deleteRtObject. Why do we fail in obtaining the PBE data now??
-                   We could have an assert here, but since we have not done any
+                   We could have an osafassert here, but since we have not done any
                    mutations yet (doit just turned true), we can get away with a
                    TRY_AGAIN.
                 */
@@ -10625,7 +10624,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             if (i5 == object->mAttrValueMap.end()) {
                 TRACE_7("ERR_NOT_EXIST: attr '%s' not defined", attrName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
-                assert(!doIt);
+                osafassert(!doIt);
                 break; //out of while-loop
             }
             
@@ -10634,7 +10633,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             i4 = classInfo->mAttrMap.find(attrName);
             if(i4==classInfo->mAttrMap.end()) {
                 LOG_ER("i4==classInfo->mAttrMap.end())");
-                assert(i4!=classInfo->mAttrMap.end());
+                osafassert(i4!=classInfo->mAttrMap.end());
             }
 
             AttrInfo* attr = i4->second;
@@ -10642,12 +10641,12 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             if(attr->mValueType != (unsigned int) p->attrValue.attrValueType) {
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' type missmatch", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
-                assert(!doIt);
+                osafassert(!doIt);
                 break; //out of while-loop
             }
             
             if(attr->mFlags & SA_IMM_ATTR_CONFIG) {
-                assert(!doIt);
+                osafassert(!doIt);
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' is a config attribute => "
                     "can not be modified over OI-API.", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
@@ -10658,7 +10657,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' is the RDN attribute => "
                     "can not be modified over OI-API.", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
-                assert(!doIt);
+                osafassert(!doIt);
                 break; //out of while-loop
             }
             
@@ -10675,7 +10674,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 if(immNotWritable()) {
                     //Dont allow writes to cached or persistent rt-attrs 
                     //during sync
-                    assert(!doIt);
+                    osafassert(!doIt);
                     err = SA_AIS_ERR_TRY_AGAIN;
                     TRACE_5("IMM not writable => Cant update cahced rtattrs");
                     break;//out of while-loop
@@ -10754,7 +10753,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 case SA_IMM_ATTR_VALUES_ADD:
                     TRACE_3("SA_IMM_ATTR_VALUES_ADD");
                     if(p->attrValue.attrValuesNumber == 0) {
-                        assert(!doIt);
+                        osafassert(!doIt);
                         LOG_NO("ERR_INVALID_PARAM: Empty value used for adding to attribute %s",
                             attrName.c_str());
                         err = SA_AIS_ERR_INVALID_PARAM;
@@ -10779,19 +10778,19 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     if(p->attrModType == SA_IMM_ATTR_VALUES_REPLACE ||
                         attrValue->empty()) {
                         if(doIt) {
-                            assert(attrValue->empty());
+                            osafassert(attrValue->empty());
                             attrValue->setValue(tmpos);
                         }
                     } else {
                         if(!(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
-                            assert(!doIt);
+                            osafassert(!doIt);
                             LOG_NO("ERR_INVALID_PARAM: attr '%s' is not multivalued, yet "
                                 "multiple values attempted", attrName.c_str());
                             err = SA_AIS_ERR_INVALID_PARAM;
                             break; //out of switch
                         }
                         if(doIt) {
-                            assert(attrValue->isMultiValued());
+                            osafassert(attrValue->isMultiValued());
                             ImmAttrMultiValue* multiattr = 
                                 (ImmAttrMultiValue *) attrValue;
                             multiattr->setExtraValue(tmpos);
@@ -10800,14 +10799,14 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     
                     if(p->attrValue.attrValuesNumber > 1) {
                         if(!(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
-                            assert(!doIt);
+                            osafassert(!doIt);
                             LOG_NO("ERR_INVALID_PARAM: attr '%s' is not multivalued, yet "
                                 "multiple values provided in modify call", 
                                 attrName.c_str());
                             err = SA_AIS_ERR_INVALID_PARAM;
                             break; //out of switch
                         } else if(doIt) {
-                            assert(attrValue->isMultiValued());
+                            osafassert(attrValue->isMultiValued());
                             ImmAttrMultiValue* multiattr = 
                                 (ImmAttrMultiValue *) attrValue;
                                 
@@ -10826,7 +10825,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     TRACE_3("SA_IMM_ATTR_VALUES_DELETE");
                     //Delete all values that match that provided by invoker.
                     if(p->attrValue.attrValuesNumber == 0) {
-                        assert(!doIt);
+                        osafassert(!doIt);
                         LOG_NO("ERR_INVALID_PARAM: Empty value used for deleting from "
                             "attribute %s", attrName.c_str());
                         err = SA_AIS_ERR_INVALID_PARAM;
@@ -10894,9 +10893,9 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
     ImplementerInfo* info = NULL;
     if(pbeNodeIdPtr) {
         (*pbeNodeIdPtr) = 0;
-        assert(continuationIdPtr);
+        osafassert(continuationIdPtr);
         (*continuationIdPtr) = 0;
-        assert(pbeConnPtr);
+        osafassert(pbeConnPtr);
         (*pbeConnPtr) = 0;
     }
 
@@ -10992,7 +10991,7 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                 goto rtObjectDeleteExit;
                 /* We have already checked for PbeWritable with success inside
                    deleteRtObject. Why do we fail in obtaining the PBE data now??
-                   We could have an assert here, but since we have not done any
+                   We could have an osafassert here, but since we have not done any
                    mutations yet (doit just turned true), we can get away with a
                    TRY_AGAIN.
                 */
@@ -11099,9 +11098,9 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
        ImmModl:pbePrtoObjDeletesContinuation.
      */
     ObjectInfo* object = oi->second;
-    assert(object);
+    osafassert(object);
     ClassInfo* classInfo = object->mClassInfo;
-    assert(classInfo);
+    osafassert(classInfo);
 
     AttrMap::iterator i4;
     
@@ -11196,7 +11195,7 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
         }
         object->mAttrValueMap.clear();
         
-        assert(!classInfo->mExtent.empty());
+        osafassert(!classInfo->mExtent.empty());
         classInfo->mExtent.erase(object);
 
         if(isPersistent) {
@@ -11374,7 +11373,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
                     sMissingParents[parentName] = ObjectSet();
                     mpm = sMissingParents.find(parentName);
                 }
-                assert(mpm != sMissingParents.end());
+                osafassert(mpm != sMissingParents.end());
                 mpm->second.insert(object);
 
             } else {
@@ -11432,7 +11431,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
             }
             
             i4 = classInfo->mAttrMap.find(attrName);
-            assert(i4!=classInfo->mAttrMap.end());
+            osafassert(i4!=classInfo->mAttrMap.end());
             AttrInfo* attr = i4->second;
             
             if(attr->mValueType != (unsigned int) p->n.attrValueType) {
@@ -11441,7 +11440,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
                 break; //out of for-loop
             }
             
-            assert(p->n.attrValuesNumber > 0);
+            osafassert(p->n.attrValuesNumber > 0);
             ImmAttrValue* attrValue = i5->second;
             IMMSV_OCTET_STRING tmpos; //temporary octet string
             eduAtValToOs(&tmpos, &(p->n.attrValue), 
@@ -11470,7 +11469,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
                   break; //out of for-loop
                   } */
                 else {
-                    assert(attrValue->isMultiValued());
+                    osafassert(attrValue->isMultiValued());
                     ImmAttrMultiValue* multiattr = 
                         (ImmAttrMultiValue *) attrValue;
                     
@@ -11496,7 +11495,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
             std::string attrName(i6->first);
             
             i4 = classInfo->mAttrMap.find(attrName);
-            assert(i4!=classInfo->mAttrMap.end());
+            osafassert(i4!=classInfo->mAttrMap.end());
             AttrInfo* attr = i4->second;
             
             if((attr->mFlags & SA_IMM_ATTR_INITIALIZED) && attrValue->empty()){
@@ -11570,12 +11569,12 @@ ImmModel::getObjectName(ObjectInfo* info, std::string& objName)
 {
     AttrMap::iterator i4 = std::find_if(info->mClassInfo->mAttrMap.begin(),
         info->mClassInfo->mAttrMap.end(), AttrFlagIncludes(SA_IMM_ATTR_RDN));
-    assert(i4 != info->mClassInfo->mAttrMap.end());
+    osafassert(i4 != info->mClassInfo->mAttrMap.end());
 
     std::string attrName = i4->first;
 
     ImmAttrValueMap::iterator oavi = info->mAttrValueMap.find(attrName);
-    assert(oavi != info->mAttrValueMap.end());
+    osafassert(oavi != info->mAttrValueMap.end());
 
     ImmAttrValue* attr = oavi->second;
 
@@ -11608,14 +11607,14 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
 {
     TRACE_ENTER();
     SaAisErrorT err=SA_AIS_OK;
-    assert(!(isCoord && isSyncClient));
+    osafassert(!(isCoord && isSyncClient));
     
     switch(sImmNodeState){ 
         case IMM_NODE_W_AVAILABLE:
-            assert(isSyncClient);
+            osafassert(isSyncClient);
             break;
         case IMM_NODE_R_AVAILABLE:
-            assert(!isSyncClient);
+            osafassert(!isSyncClient);
             break;
         case IMM_NODE_UNKNOWN:
         case IMM_NODE_ISOLATED: 
@@ -11666,7 +11665,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 LOG_WA("Removing admin owner %u %s which is in demise, before "
                     "generating sync message", (*i)->mId,
                     (*i)->mAdminOwnerName.c_str());
-                assert(adminOwnerDelete((*i)->mId, true) == SA_AIS_OK);
+                osafassert(adminOwnerDelete((*i)->mId, true) == SA_AIS_OK);
                 //Above does a lookup of admin owner again.
                 i=sOwnerVector.begin();//Restart of iteration.
             } else {
@@ -11675,7 +11674,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
         }
         
         for(i=sOwnerVector.begin(); i!=sOwnerVector.end(); ++i) {
-            assert(!(*i)->mDying);
+            osafassert(!(*i)->mDying);
             ImmsvAdmoList* ai = (ImmsvAdmoList *) 
                 calloc(1, sizeof(ImmsvAdmoList));
             ai->id = (*i)->mId;
@@ -11701,7 +11700,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                        Converting to internal rep here instead of at sync-client,
                        saves execution cost.
                     */
-                    assert(nameToInternal(objName));
+                    osafassert(nameToInternal(objName));
                 }
 
                 nl->name.size = objName.size();
@@ -11902,7 +11901,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 ObjectInfo* obj = oi->second;
                 //ImmAttrValueMap::iterator j;
                 ImmAttrValue* att = obj->mAttrValueMap[implAttr];
-                assert(att);
+                osafassert(att);
                 if(!(att->empty())) {
                     std::string implName(att->getValueC_str());
                    /*
@@ -11910,7 +11909,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                       implName.c_str(), oi->first.c_str());
                     */
                     ImplementerInfo* impl = findImplementer(implName);
-                    //assert(impl);
+                    //osafassert(impl);
                     if(impl) {
                         //Implementer name may be assigned but none attached 
                         obj->mImplementer = impl;
@@ -11929,9 +11928,9 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 std::string className((char *) ioci->className.buf, sz);
                 
                 ClassMap::iterator i3 = sClassMap.find(className);
-                assert(i3 != sClassMap.end());
+                osafassert(i3 != sClassMap.end());
                 ClassInfo* ci = i3->second;
-                //Is the assert below really true if the class is a runtime 
+                //Is the osafassert below really true if the class is a runtime 
                 //class ?
                 //Yes, because the existence of a rt object is noted at 
                 //all nodes.
@@ -11949,13 +11948,13 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                         sz);
                     
                     ImplementerInfo* impl = findImplementer(clImplName);
-                    assert(impl);
+                    osafassert(impl);
                     ci->mImplementer = impl;
                 }
                 ioci = ioci->next;
             }
             LOG_IN("Synced %u classes", classCount);
-            assert(sClassMap.size() == classCount);
+            osafassert(sClassMap.size() == classCount);
 
             ImmsvCcbOutcomeList* ol = req->ccbResults;
             while(ol) {
@@ -11973,7 +11972,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 TRACE_5("CCB %u state %s", newCcb->mId, 
                     (newCcb->mState == IMM_CCB_COMMITTED)?"COMMITTED":
                     ((newCcb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
-                assert(!(newCcb->isActive()));
+                osafassert(!(newCcb->isActive()));
                 ol = ol->next;
             }
 
@@ -11989,7 +11988,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     ConnVector cv;
                     LOG_NO("Sync client re-executing discardNode for node %x", (*ivi));
                     this->discardNode((*ivi), cv);
-                    assert(cv.empty());
+                    osafassert(cv.empty());
                 }
             }
         } else {
@@ -12024,7 +12023,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                         "before receiving sync/verify message", 
                         (*i2)->mId,
                         (*i2)->mAdminOwnerName.c_str());
-                    assert(adminOwnerDelete((*i2)->mId, true) == SA_AIS_OK);
+                    osafassert(adminOwnerDelete((*i2)->mId, true) == SA_AIS_OK);
                     //lookup of admin owner again.
 
                     //restart of iteration again.
@@ -12039,9 +12038,9 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 int nrofTouchedObjs=0;
                 i2 = std::find_if(sOwnerVector.begin(), sOwnerVector.end(), 
                     IdIs(ai->id));
-                assert(!(i2==sOwnerVector.end()));
+                osafassert(!(i2==sOwnerVector.end()));
                 AdminOwnerInfo* info = *i2;
-                assert(!info->mDying);
+                osafassert(!info->mDying);
                 std::string ownerName((const char *) ai->adminOwnerName.buf,
                     (size_t) strnlen((const char *) ai->adminOwnerName.buf,
                         (size_t) ai->adminOwnerName.size));
@@ -12093,7 +12092,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                         (size_t) ii->implementerName.size));
                 
                 ImplementerInfo* info = findImplementer(implName);
-                assert(info!=NULL);
+                osafassert(info!=NULL);
                 
                 if(info->mId != (unsigned int) ii->id) {
                     bool explained = false;
@@ -12160,7 +12159,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     (size_t) ioci->className.size);
                 std::string className((char *) ioci->className.buf, sz);
                 ClassMap::iterator i3 = sClassMap.find(className);
-                assert(i3 != sClassMap.end());
+                osafassert(i3 != sClassMap.end());
                 ClassInfo* ci = i3->second;
 
                 if((int) ci->mExtent.size() != (int) ioci->nrofInstances) {
@@ -12175,9 +12174,9 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     std::string clImplName((char *) ioci->classImplName.buf, 
                         sz);
                     ImplementerInfo* impl = findImplementer(clImplName);
-                    assert(impl);
-                    assert(ci->mImplementer);
-                    assert(ci->mImplementer == impl);
+                    osafassert(impl);
+                    osafassert(ci->mImplementer);
+                    osafassert(ci->mImplementer == impl);
                 }
                 ++classCount;
                 ioci = ioci->next;
@@ -12194,7 +12193,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     ++gone;
                 } else {
                     CcbInfo* ccb = *i1;
-                    assert(ccb->mState == (ImmCcbState) ol->ccbState);
+                    osafassert(ccb->mState == (ImmCcbState) ol->ccbState);
                     ++verified;
                     /*
                         TRACE_5("CCB %u verified with state %s", ccb->mId, 

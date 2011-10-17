@@ -209,7 +209,7 @@ uint32_t imma_finalize_client(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 	imma_callback_ipc_destroy(cl_node);
 
 	TRACE("Deleting client node");
-	assert(imma_client_node_delete(cb, cl_node) == NCSCC_RC_SUCCESS);
+	osafassert(imma_client_node_delete(cb, cl_node) == NCSCC_RC_SUCCESS);
 
 	return NCSCC_RC_SUCCESS;
 
@@ -387,7 +387,7 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 		callback->invocation = saInv;
 
 		callback->name.length = strnlen(evt->info.admOpReq.objectName.buf, evt->info.admOpReq.objectName.size);
-		assert(callback->name.length <= SA_MAX_NAME_LENGTH);
+		osafassert(callback->name.length <= SA_MAX_NAME_LENGTH);
 		memcpy((char *)callback->name.value, evt->info.admOpReq.objectName.buf, callback->name.length);
 		free(evt->info.admOpReq.objectName.buf);
 		evt->info.admOpReq.objectName.buf = NULL;
@@ -425,7 +425,7 @@ void imma_determine_clients_to_resurrect(IMMA_CB *cb, bool* locked)
 	IMMSV_EVT clientHigh_evt;
 
 	TRACE_ENTER();
-	assert(locked && *locked);  /* We must be entering locked. */
+	osafassert(locked && *locked);  /* We must be entering locked. */
 
 	/* Determine clientHigh count and if there are any clients with
 	   selection objects that can be resurrected */
@@ -513,7 +513,7 @@ void imma_proc_terminate_oi_ccbs(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 {
 	TRACE_ENTER();
 	/* We are NOT LOCKED on entry */
-	assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+	osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 
 	struct imma_oi_ccb_record *oiCcb = cl_node->activeOiCcbs;
 
@@ -532,10 +532,10 @@ void imma_proc_terminate_oi_ccbs(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 			cl_node = NULL;
 
 			SaImmOiCcbIdT ccbId =  oiCcb->ccbId;
-			assert(ccbId < 0xffffffff);
-			assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+			osafassert(ccbId < 0xffffffff);
+			osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 			err = imma_proc_recover_ccb_result(cb, (SaUint32T) ccbId);
-			assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+			osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 
 			/* We have been unlocked. Look up the client_node & ccb-record again. 
 			   New ccb records are pushed on to top of list. Tail should be stable. 
@@ -561,7 +561,7 @@ void imma_proc_terminate_oi_ccbs(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 		}
 
 		IMMA_CALLBACK_INFO *callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-		assert(callback);
+		osafassert(callback);
 		if (err == SA_AIS_OK) {
 			callback->type = IMMA_CALLBACK_OI_CCB_APPLY;
 		} else if (err == SA_AIS_ERR_FAILED_OPERATION) {
@@ -571,7 +571,7 @@ void imma_proc_terminate_oi_ccbs(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 				oiCcb->ccbId, err);
 			free(callback);
 			callback = NULL;
-			assert(err == SA_AIS_ERR_TIMEOUT);
+			osafassert(err == SA_AIS_ERR_TIMEOUT);
 			continue;
 		}
 
@@ -585,11 +585,11 @@ void imma_proc_terminate_oi_ccbs(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 			TRACE_4("Failed to post ccb %llx stale-terminate ipc-message", oiCcb->ccbId);
 		} else {TRACE_3("Posted ccb %llx stale-terminate ipc-message: %s", oiCcb->ccbId,
 					(err == SA_AIS_OK)?"APPLY":"ABORT");}
-		assert(oiCcb->isStale == false); 
+		osafassert(oiCcb->isStale == false); 
 
 		TRACE_3("imma_proc_terminate_oi_ccbs: oi_ccb_record for %llx terminated",
 			oiCcb->ccbId);
-		assert(imma_oi_ccb_record_terminate(cl_node, oiCcb->ccbId));
+		osafassert(imma_oi_ccb_record_terminate(cl_node, oiCcb->ccbId));
 		oiCcb = nextOiCcb;
 		callback = NULL;
 	}
@@ -612,7 +612,7 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 
 		/* Send the stale handle triggering ipc-message */
 		callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-		assert(callback);
+		osafassert(callback);
 		callback->type = IMMA_CALLBACK_STALE_HANDLE;
 		callback->lcl_imm_hdl = 0LL;
 		callback->ccbID = 0;
@@ -647,7 +647,7 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 			   Generate abort upcall immediately, i.e. no need to wait for resurrect. 
 			 */
 			callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-			assert(callback);
+			osafassert(callback);
 			callback->type = IMMA_CALLBACK_OI_CCB_ABORT;
 			callback->lcl_imm_hdl = cl_node->handle;
 			callback->ccbID = oiCcb->ccbId;
@@ -661,7 +661,7 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 
 			TRACE_3("imma_proc_stale_dispatch: oi_ccb_record for %llx terminated",
 				oiCcb->ccbId);
-			assert(imma_oi_ccb_record_terminate(cl_node, oiCcb->ccbId));
+			osafassert(imma_oi_ccb_record_terminate(cl_node, oiCcb->ccbId));
 			oiCcb = nextOiCcb;
 			callback = NULL;
 		}
@@ -783,7 +783,7 @@ static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
 
 		callback->name.length = strnlen(evt->info.searchRemote.objectName.buf,
 						evt->info.searchRemote.objectName.size);
-		assert(callback->name.length <= SA_MAX_NAME_LENGTH);
+		osafassert(callback->name.length <= SA_MAX_NAME_LENGTH);
 		memcpy((char *)callback->name.value, evt->info.searchRemote.objectName.buf, callback->name.length);
 		free(evt->info.searchRemote.objectName.buf);
 		evt->info.searchRemote.objectName.buf = NULL;
@@ -1028,7 +1028,7 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 		callback->inv = evt->info.objDelete.adminOwnerId;	/*ugly */
 		callback->name.length = strnlen(evt->info.objDelete.objectName.buf,
 						evt->info.objDelete.objectName.size);
-		assert(callback->name.length <= SA_MAX_NAME_LENGTH);
+		osafassert(callback->name.length <= SA_MAX_NAME_LENGTH);
 		memcpy((char *)callback->name.value, evt->info.objDelete.objectName.buf, callback->name.length);
 		free(evt->info.objDelete.objectName.buf);
 		evt->info.objDelete.objectName.buf = NULL;
@@ -1049,7 +1049,7 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 		} else {
 			/* Regular CCB object delete arrives at... */
 			if(cl_node->isApplier) { /* applier*/
-				assert(callback->inv == 0);
+				osafassert(callback->inv == 0);
 			} else if(cl_node->isPbe) { /* PBE. */
 				TRACE("PBe case inv:%u", callback->inv);
 				if((callback->inv != 0) && 
@@ -1060,7 +1060,7 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 					abort();
 				}
 			} else {/*regular OI. */
-				assert(callback->inv);
+				osafassert(callback->inv);
 			}
 			imma_oi_ccb_record_add(cl_node, evt->info.objDelete.ccbId, callback->inv);
 		}
@@ -1125,13 +1125,13 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 
 		callback->name.length = strnlen(evt->info.objCreate.parentName.buf,
 						evt->info.objCreate.parentName.size);
-		assert(callback->name.length <= SA_MAX_NAME_LENGTH);
+		osafassert(callback->name.length <= SA_MAX_NAME_LENGTH);
 		memcpy((char *)callback->name.value, evt->info.objCreate.parentName.buf, callback->name.length);
 		free(evt->info.objCreate.parentName.buf);
 		evt->info.objCreate.parentName.buf = NULL;
 		evt->info.objCreate.parentName.size = 0;
 
-		assert(strlen(evt->info.objCreate.className.buf) <= evt->info.objCreate.className.size);
+		osafassert(strlen(evt->info.objCreate.className.buf) <= evt->info.objCreate.className.size);
 		callback->className = evt->info.objCreate.className.buf;
 		evt->info.objCreate.className.buf = NULL;	/*steal the string buffer */
 		evt->info.objCreate.className.size = 0;
@@ -1212,7 +1212,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 
 		callback->name.length = strnlen(evt->info.objModify.objectName.buf,
 						evt->info.objModify.objectName.size);
-		assert(callback->name.length <= SA_MAX_NAME_LENGTH);
+		osafassert(callback->name.length <= SA_MAX_NAME_LENGTH);
 		memcpy((char *)callback->name.value, evt->info.objModify.objectName.buf, callback->name.length);
 		free(evt->info.objModify.objectName.buf);
 		evt->info.objModify.objectName.buf = NULL;
@@ -1885,7 +1885,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 	switch (callback->type) {
 		case IMMA_CALLBACK_PBE_ADMIN_OP:
 			isPbeOp = true;
-			assert(cl_node->isPbe);
+			osafassert(cl_node->isPbe);
 			TRACE("PBE Admin OP callback");
 		case IMMA_CALLBACK_OM_ADMIN_OP:
 			if (cl_node->o.iCallbk.saImmOiAdminOperationCallback) {
@@ -1913,7 +1913,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 		case IMMA_CALLBACK_PBE_PRTO_DELETES_COMPLETED:
 			isPbeOp = true;
-			assert(cl_node->isPbe);
+			osafassert(cl_node->isPbe);
 		case IMMA_CALLBACK_OI_CCB_COMPLETED:
 			TRACE("%s-completed op callback", isPbeOp?"Pbe-Prto-Deletes":"ccb");
 			do {
@@ -1925,7 +1925,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					SaImmOiCcbIdT ccbid = 0LL;
 
 					if(isPbeOp) {
-						assert(callback->ccbID == 0);
+						osafassert(callback->ccbID == 0);
 						/* Pseudo ccb towards PBE for PRTO deletes */
 						ccbid = callback->inv + 0x100000000LL;
 
@@ -1994,12 +1994,12 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.implId = callback->implId;
 				ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
 
-				assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+				osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				locked = true;
 				/*async  fevs */
 
 				imma_client_node_get(&cb->client_tree, &(immHandle), &cl_node);
-				assert(cl_node);
+				osafassert(cl_node);
 				if (localEr == SA_AIS_OK)  {
 					/* replying OK => entering critical phase for this OI and this CCB.
 					   There can be many simultaneous OM clients starting CCBs that impact the same OI. 
@@ -2011,7 +2011,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						if(!isPbeOp) {TRACE_2("The oi_ccb_record now marked as critical.");}
 					} else {
 						TRACE_2("CCB record for %u non existent - must have been aborted", callback->ccbID);
-						assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+						osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 						locked = false;
 						break; /* out of while */
 					}
@@ -2035,7 +2035,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				}
 
 				if (locked) {
-					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = false;
 				}
 			} while (0);
@@ -2060,7 +2060,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					TRACE_3("saImmOiCcbApplyCallback is not implemented, yet "
 						"implementer is registered and CCBs are used. Ccb will commit in any case");
 				}
-				assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+				osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				if(!imma_oi_ccb_record_close_augment(cl_node, ccbid, &privateAugOmHandle, true)) {
 					TRACE_2("saImmOiCcbApplyCallback: imma_oi_ccb_record_close_augment returned false "
 						"for ccb %llu", ccbid);
@@ -2073,10 +2073,10 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					TRACE_4("ERROR: CCB-APPLY-UC - CCB record non existentfor ccb %llu",
 						ccbid);
 				}
-				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+				osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 
 				if(privateAugOmHandle) {
-					assert(immsv_om_handle_finalize);
+					osafassert(immsv_om_handle_finalize);
 					immsv_om_handle_finalize(privateAugOmHandle);
 				}
 			} while (0);
@@ -2084,7 +2084,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 		case IMMA_CALLBACK_PBE_PRT_OBJ_CREATE:
 			isPbeOp = true;
-			assert(cl_node->isPbe);
+			osafassert(cl_node->isPbe);
 		case IMMA_CALLBACK_OI_CCB_CREATE:
 			TRACE("%sobject-create callback", isPbeOp?"Pbe-Runtime-":"Ccb-");
 			do {
@@ -2136,7 +2136,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 								int ix;
 								IMMSV_EDU_ATTR_VAL_LIST *r = q->attrMoreValues;
 								for (ix = 1; ix < q->attrValuesNumber; ++ix) {
-									assert(r);
+									osafassert(r);
 									attr[i]->attrValues[ix] = /*alloc-5 */
 										imma_copyAttrValue3(q->attrValueType, &(r->n));
 									r = r->next;
@@ -2215,7 +2215,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				}
 				if(callback->inv) { 
 					SaImmHandleT privateAugOmHandle = 0LL;
-					assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = true;
 					memset(&ccbObjCrRpl, 0, sizeof(IMMSV_EVT));
 					ccbObjCrRpl.type = IMMSV_EVT_TYPE_IMMND;
@@ -2245,14 +2245,14 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					}
 
 					if(privateAugOmHandle) {
-						assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+						osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 						locked = false;
 
-						assert(immsv_om_augment_ccb_get_result);
+						osafassert(immsv_om_augment_ccb_get_result);
 						SaAisErrorT augResult = immsv_om_augment_ccb_get_result(privateAugOmHandle,
 							callback->ccbID);
 
-						assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+						osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 						locked = true;
 
 						if(augResult != SA_AIS_OK) {
@@ -2272,11 +2272,11 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					   immediately (no completed upcall. 
 					   Added support for applier OI. No reply to server there either.
 					*/
-					assert(cl_node->isPbe || cl_node->isApplier);
+					osafassert(cl_node->isPbe || cl_node->isApplier);
 				}
 
 				if (locked) {
-					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = false;
 				}
 
@@ -2289,7 +2289,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			
 		case IMMA_CALLBACK_PBE_PRT_OBJ_DELETE:
 			isPbeOp = true;
-			assert(cl_node->isPbe);
+			osafassert(cl_node->isPbe);
 		case IMMA_CALLBACK_OI_CCB_DELETE:
 			TRACE("%sobject-delete op callback", isPbeOp?"Pbe-Runtime-":"Ccb-");
 			do {
@@ -2300,7 +2300,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				if (cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback) {
 					SaImmOiCcbIdT ccbid = 0LL;
 					if(isPbeOp) {
-						assert(callback->ccbID == 0);
+						osafassert(callback->ccbID == 0);
 						/* Pseudo ccb towards PBE for PRTO deletes */
 						ccbid = callback->inv + 0x100000000LL;
 
@@ -2350,7 +2350,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
 					ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.name = callback->name;
 
-					assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = true;
 
 					if (localEr != SA_AIS_OK)  {
@@ -2369,14 +2369,14 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					}
 
 					if(privateAugOmHandle) {
-						assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+						osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 						locked = false;
 
-						assert(immsv_om_augment_ccb_get_result);
+						osafassert(immsv_om_augment_ccb_get_result);
 						SaAisErrorT augResult = immsv_om_augment_ccb_get_result(privateAugOmHandle,
 							callback->ccbID);
 
-						assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+						osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 						locked = true;
 
 						if(augResult != SA_AIS_OK) {
@@ -2396,11 +2396,11 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					}
 				} else {
 					/* callback->inv == 0 means PBE (CCB or PRTO) or applier upcall, no reply. */
-					assert(cl_node->isPbe || cl_node->isApplier);
+					osafassert(cl_node->isPbe || cl_node->isApplier);
 				}
 
 				if (locked) {
-					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = false;
 				}
 			} while (0);
@@ -2409,7 +2409,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 		case IMMA_CALLBACK_PBE_PRT_ATTR_UPDATE:
 			isPbeOp = true; /*Actually isPrtAttr would be better name here. */
-			assert(cl_node->isPbe);
+			osafassert(cl_node->isPbe);
 		case IMMA_CALLBACK_OI_CCB_MODIFY:
 			TRACE("%s op callback", isPbeOp?"Pbe-runtime update":"ccb");
 			do {
@@ -2456,7 +2456,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 								int ix;
 								IMMSV_EDU_ATTR_VAL_LIST *r = p->attrValue.attrMoreValues;
 								for (ix = 1; ix < p->attrValue.attrValuesNumber; ++ix) {
-									assert(r);
+									osafassert(r);
 									attr[i]->modAttr.attrValues[ix] =
 										imma_copyAttrValue3(p->attrValue.attrValueType, &(r->n));/*alloc-5 */
 
@@ -2528,7 +2528,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				}
 				if(callback->inv) { 
 					SaImmHandleT privateAugOmHandle = 0LL;
-					assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = true;
 					memset(&ccbObjModRpl, 0, sizeof(IMMSV_EVT));
 					ccbObjModRpl.type = IMMSV_EVT_TYPE_IMMND;
@@ -2558,14 +2558,14 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					}
 
 					if(privateAugOmHandle) {
-						assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+						osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 						locked = false;
 
-						assert(immsv_om_augment_ccb_get_result);
+						osafassert(immsv_om_augment_ccb_get_result);
 						SaAisErrorT augResult = immsv_om_augment_ccb_get_result(privateAugOmHandle, 
 							callback->ccbID);
 
-						assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+						osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 						locked = true;
 
 						if(augResult != SA_AIS_OK) {
@@ -2582,11 +2582,11 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						cl_node->handle, &locked, false);
 				} else {
 					/* callback->inv == 0 means PBE CCB modify upcall, no reply. */
-					assert(cl_node->isPbe || cl_node->isApplier);
+					osafassert(cl_node->isPbe || cl_node->isApplier);
 				}
 
 				if (locked) {
-					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = false;
 				}
 
@@ -2614,15 +2614,15 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						"implementer is registered and CCBs are used. "
 						"Ccb %llu will abort anyway", ccbid);
 				}
-				assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+				osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				if(!imma_oi_ccb_record_close_augment(cl_node, ccbid, &privateAugOmHandle, true)) {
 					TRACE_3("CcbAbortCallback: imma_oi_ccb_record_close_augment "
 						"returned false for ccb %llu", ccbid);
 				}
 				imma_oi_ccb_record_terminate(cl_node, ccbid);
-				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+				osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				if(privateAugOmHandle) {
-					assert(immsv_om_handle_finalize);
+					osafassert(immsv_om_handle_finalize);
 					immsv_om_handle_finalize(privateAugOmHandle);
 				}
 			} while (0);
@@ -2645,7 +2645,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						++noOfAttrNames;
 						p = p->next;
 					}
-					assert(noOfAttrNames);	/*alloc-1 */
+					osafassert(noOfAttrNames);	/*alloc-1 */
 					attributeNames = calloc(noOfAttrNames + 1, sizeof(SaImmAttrNameT));
 					p = callback->attrNames;
 					for (; i < noOfAttrNames; i++, p = p->next) {
@@ -2826,7 +2826,7 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 	NCS_UBAID uba;
 	uba.start = NULL;
 
-	assert(locked && (*locked));
+	osafassert(locked && (*locked));
 	/*Pack the message for sending over multiple hops. */
 
 	if (ncs_enc_init_space(&uba) != NCSCC_RC_SUCCESS) {
@@ -2867,12 +2867,12 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 			   reply, which does not use fevs, bypassing the request at
 			   the client processor.
 			*/
-			assert(!checkWritable);
+			osafassert(!checkWritable);
 			SaInvocationT saInv = 
 				m_IMMSV_PACK_HANDLE(i_evt->info.immnd.info.admOpReq.adminOwnerId,
 					i_evt->info.immnd.info.admOpReq.invocation);
 
-			assert(saInv > 1);
+			osafassert(saInv > 1);
 			fevs_evt.info.immnd.info.fevsReq.sender_count = (SaUint64T) saInv;
 		}
 	}
@@ -2907,7 +2907,7 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 		proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), &fevs_evt, o_evt, timeout);
 	} else {
 		/*Send evt to IMMND asyncronously, no reply expected. */
-		assert(timeout == 0);
+		osafassert(timeout == 0);
 		proc_rc = imma_mds_msg_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), &fevs_evt, NCSMDS_SVC_ID_IMMND);
 	}
 

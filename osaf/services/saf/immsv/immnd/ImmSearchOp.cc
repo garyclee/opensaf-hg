@@ -17,7 +17,6 @@
 
 #include "ImmSearchOp.hh"
 #include "immnd.h"
-#include <assert.h>
 
 
 ImmSearchOp::ImmSearchOp()
@@ -35,8 +34,8 @@ ImmSearchOp::~ImmSearchOp()
     mRtsToFetch.clear();
     //Do NOT try to delete mlastResult, it is not owned by this object.
     mLastResult=NULL;
-    assert(syncOsi == NULL);
-    assert(attrNameList == NULL);
+    osafassert(syncOsi == NULL);
+    osafassert(attrNameList == NULL);
     classInfo = NULL;
 }
 
@@ -100,7 +99,7 @@ ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, SaUint32T* connp,
         SearchObject& obj = mResultList.front();
         IMMSV_OM_RSP_SEARCH_NEXT* p =   (IMMSV_OM_RSP_SEARCH_NEXT*)
             calloc(1, sizeof(IMMSV_OM_RSP_SEARCH_NEXT));
-        assert(p);
+        osafassert(p);
         *rsp = p;
         mLastResult = p; //Only used if there are runtime attributes to fetch.
         //the partially finished result then has to be picked-
@@ -146,7 +145,7 @@ ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, SaUint32T* connp,
                     (*i).valuep->copyValueToEdu(&(attr->attrValue),
                         (SaImmValueTypeT) attr->attrValueType);
                     if(attr->attrValuesNumber > 1) {
-                        assert((*i).valuep->isMultiValued());
+                        osafassert((*i).valuep->isMultiValued());
                         ((ImmAttrMultiValue *)(*i).valuep)->
                             copyExtraValuesToEdu(&(attr->attrMoreValues),
                                 (SaImmValueTypeT) attr->attrValueType);

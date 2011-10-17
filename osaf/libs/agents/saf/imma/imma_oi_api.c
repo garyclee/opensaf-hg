@@ -895,7 +895,7 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 			goto mds_send_fail;
 		}
 
-		assert(adminOpRslt_evt.info.immnd.info.admOpRsp.parms == NULL);
+		osafassert(adminOpRslt_evt.info.immnd.info.admOpRsp.parms == NULL);
 		for (i = 0; returnParams[i]; ++i) {
 			param = returnParams[i];
 			/*alloc-a */
@@ -1237,8 +1237,8 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 
 	if (out_evt) {
 		/* Process the received Event */
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMPLSET_RSP);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMPLSET_RSP);
 		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.implSetRsp.error;
 			if (rc == SA_AIS_OK) {
@@ -1406,10 +1406,10 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 		*/
 	}
 
-	assert(out_evt);
+	osafassert(out_evt);
 	/* Process the received Event */
-	assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-	assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+	osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 
 	rc = out_evt->info.imma.info.errRsp.error;
 
@@ -1588,10 +1588,10 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmCl
 		goto bad_handle;
 	}
 
-	assert(out_evt);
+	osafassert(out_evt);
 	/* Process the received Event */
-	assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-	assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+	osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 	rc = out_evt->info.imma.info.errRsp.error;
 
  fevs_error:
@@ -1751,10 +1751,10 @@ SaAisErrorT saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaI
 		*/
 	}
 
-	assert(out_evt);
+	osafassert(out_evt);
 	/* Process the received Event */
-	assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-	assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+	osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 	rc = out_evt->info.imma.info.errRsp.error;
 
 
@@ -1930,9 +1930,9 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 		goto bad_handle;
 	}
 
-	assert(out_evt);
-	assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-	assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+	osafassert(out_evt);
+	osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 	rc = out_evt->info.imma.info.errRsp.error;
 
  fevs_error:
@@ -2108,9 +2108,9 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 		*/
 	}
 
-	assert(out_evt);
-	assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-	assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+	osafassert(out_evt);
+	osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 	rc = out_evt->info.imma.info.errRsp.error;
 
  fevs_error:
@@ -2237,7 +2237,7 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 		evt.info.immnd.info.objModify.objectName.buf = NULL;
 	}
 
-	assert(evt.info.immnd.info.objModify.attrMods == NULL);
+	osafassert(evt.info.immnd.info.objModify.attrMods == NULL);
 
 	const SaImmAttrModificationT_2 *attrMod;
 	int i;
@@ -2348,8 +2348,8 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 
 	if (out_evt) {
 		/* Process the outcome, note this is after a blocking call. */
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.errRsp.error;
 		}
@@ -2511,7 +2511,7 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 		evt.info.immnd.info.objCreate.parentName.buf = NULL;
 	}
 
-	assert(evt.info.immnd.info.objCreate.attrValues == NULL);
+	osafassert(evt.info.immnd.info.objCreate.attrValues == NULL);
 
 	const SaImmAttrValuesT_2 *attr;
 	int i;
@@ -2615,9 +2615,9 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 		goto mds_send_fail;
 	}
 
-	assert(out_evt);
-	assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-	assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+	osafassert(out_evt);
+	osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 	rc = out_evt->info.imma.info.errRsp.error;
 
  mds_send_fail:
@@ -2798,9 +2798,9 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 		goto cleanup;
 	}
 
-	assert(out_evt);
-	assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-	assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
+	osafassert(out_evt);
+	osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 	rc = out_evt->info.imma.info.errRsp.error;
 
  cleanup:
@@ -2890,7 +2890,7 @@ static SaBoolT imma_implementer_set(IMMA_CB *cb, SaImmOiHandleT immOiHandle)
 	}
 
  success:
-	assert(!locked);
+	osafassert(!locked);
 	TRACE_LEAVE();
 	return SA_TRUE;
 
@@ -2904,8 +2904,8 @@ int imma_oi_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked)
 {
 	IMMSV_EVT  finalize_evt, *out_evt = NULL;
 	TRACE_ENTER();
-	assert(locked && *locked);
-	assert(cl_node && cl_node->stale);
+	osafassert(locked && *locked);
+	osafassert(cl_node && cl_node->stale);
 	SaImmOiHandleT immOiHandle = cl_node->handle;
 	SaUint32T timeout = 0;
 
@@ -3158,7 +3158,7 @@ getAdmoName(SaImmHandleT privateOmHandle, IMMA_CALLBACK_INFO * cbi, SaNameT* adm
 		    abort();
 	    }
 
-	    assert(immsv_om_augment_ccb_get_admo_name);
+	    osafassert(immsv_om_augment_ccb_get_admo_name);
 	    rc = immsv_om_augment_ccb_get_admo_name(privateOmHandle, &(cbi->name), admoNameOut);
 	    if(rc == SA_AIS_ERR_LIBRARY) {
 		    LOG_ER("Missmatch on attribute %s for delete or modify", admoNameAttr);
@@ -3301,7 +3301,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 		/* The private om-handle is created at most once pe ccb that reaches the OI.
 		   Likewise for the private admo. 
 		 */
-		assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+		osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 		locked = false;
 		cl_node = NULL; /* avoid unsafe use */
 
@@ -3318,7 +3318,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 			goto done;
 		}
 
-		assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+		osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 		locked = true;
 
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
@@ -3383,10 +3383,10 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 	locked = false;
 
 	/* Call processed successfully, check result from immnd */
-	assert(out_evt);
+	osafassert(out_evt);
 	/* Process the received Event */
-	assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-	assert(out_evt->info.imma.type == IMMA_EVT_ND2A_CCB_AUG_INIT_RSP);
+	osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_CCB_AUG_INIT_RSP);
 	adminOwnerId = out_evt->info.imma.info.admInitRsp.ownerId;
 	rc = out_evt->info.imma.info.admInitRsp.error;
 
@@ -3399,7 +3399,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 		if(!privateAoHandle) {
 			TRACE("AugCcbinit: Admo has ReleaseOnFinalize FALSE "
 				"=> init separate admo => must fetch admo-name first");
-			assert(locked == false);
+			osafassert(locked == false);
 			SaNameT admName;/* Used to get admo string name copied to stack.*/
 
 			rc = getAdmoName(privateOmHandle, cbi, &admName);
@@ -3412,7 +3412,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 			}
 			TRACE("Obtaned AdminOwnerName:%s", admName.value);
 			/* Allocate private admowner with ReleaseOnFinalize as TRUE */
-			assert(immsv_om_admo_handle_initialize);
+			osafassert(immsv_om_admo_handle_initialize);
 			rc = immsv_om_admo_handle_initialize(privateOmHandle,
 				(SaImmAdminOwnerNameT) admName.value, &privateAoHandle);
 
@@ -3433,7 +3433,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 	TRACE("adminOwnerId:%u", adminOwnerId);
 
 	/* Now dip into the OM library & create mockup ccb-node & admo-node for use by OI */
-	assert(immsv_om_augment_ccb_initialize);
+	osafassert(immsv_om_augment_ccb_initialize);
 	rc = immsv_om_augment_ccb_initialize(privateOmHandle, ccbId, adminOwnerId,
 		ccbHandle, &privateAoHandle);
  done:
@@ -3453,7 +3453,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 		TRACE("ownerHandle:%llx", *ownerHandle);
 
 	} else if(privateOmHandle) {
-		assert(immsv_om_handle_finalize);
+		osafassert(immsv_om_handle_finalize);
 		immsv_om_handle_finalize(privateOmHandle);/* Also finalizes admo handles & ccb handles*/
 	}
 

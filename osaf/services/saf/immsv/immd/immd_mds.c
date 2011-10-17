@@ -268,7 +268,7 @@ uint32_t immd_mds_callback(struct ncsmds_callback_info *info)
 	IMMD_CB *cb = immd_cb;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	assert(info != NULL);
+	osafassert(info != NULL);
 
 	switch (info->i_op) {
 	case MDS_CALLBACK_COPY:

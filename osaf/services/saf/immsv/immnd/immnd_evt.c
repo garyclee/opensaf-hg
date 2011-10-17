@@ -871,7 +871,7 @@ static uint32_t immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 		send_evt.info.imma.info.searchInitRsp.searchId = sn->searchId;
 
 		if (officialDump) { /*=>DUMP/BACKUP*/
-			assert(!immModel_immNotWritable(cb));
+			osafassert(!immModel_immNotWritable(cb));
 			TRACE_2("SEARCH INIT tentatively adj epoch to "
 				":%u & adnnounce dump", cb->mMyEpoch + 1);
 			immnd_announceDump(cb);
@@ -897,7 +897,7 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 	IMMND_OM_SEARCH_NODE *sn = NULL;
 	SaAisErrorT err = reply->result;
 	TRACE_ENTER();
-	assert(reply->requestNodeId == cb->node_id);
+	osafassert(reply->requestNodeId == cb->node_id);
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 	send_evt.type = IMMSV_EVT_TYPE_IMMA;
 	SaImmHandleT tmp_hdl = 0LL;
@@ -942,7 +942,7 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 	}
 
 	TRACE_2("Last result found, add current runtime values");
-	assert(strncmp((const char *)rsp->objectName.buf,
+	osafassert(strncmp((const char *)rsp->objectName.buf,
 		       (const char *)reply->runtimeAttrs.objectName.buf, rsp->objectName.size) == 0);
 	/* Iterate through reply->runtimeAttrs.attrValuesList */
 	/* Update value in rsp->attrValuesList */
@@ -958,7 +958,7 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 			/*TRACE_2("Mattching against:%s", att2->attrName.buf);*/
 			if (att->attrName.size == att2->attrName.size && (strncmp((const char *)att->attrName.buf, (const char *)att2->attrName.buf, att->attrName.size) == 0)) {	//We have a match
 				TRACE_2("MATCH FOUND nrof old values:%lu", att2->attrValuesNumber);
-				assert(att->attrValueType == att2->attrValueType);
+				osafassert(att->attrValueType == att2->attrValueType);
 				/* delete the current old value & set attrValuesNumber to zero. */
 				/* if reply value has attrValuesNumber > 0 then assign this fetched value. */
 				/* Note: dont forget AttrMoreValues ! */
@@ -969,7 +969,7 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 						IMMSV_EDU_ATTR_VAL_LIST *att2multi = att2->attrMoreValues;
 						do {
 							IMMSV_EDU_ATTR_VAL_LIST *tmp;
-							assert(att2multi);	//must be at least one extra value
+							osafassert(att2multi);	//must be at least one extra value
 							immsv_evt_free_att_val(&att2multi->n, att2->attrValueType);
 							tmp = att2multi;
 							att2multi = att2multi->next;
@@ -1057,7 +1057,7 @@ static uint32_t immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMM
 	rspo->runtimeAttrs.objectName = evt->info.rtAttUpdRpl.sr.objectName;	/* borrowing buf */
 	err = evt->info.rtAttUpdRpl.result;
 
-	assert(evt->info.rtAttUpdRpl.sr.remoteNodeId == cb->node_id);
+	osafassert(evt->info.rtAttUpdRpl.sr.remoteNodeId == cb->node_id);
 	isLocal = evt->info.rtAttUpdRpl.sr.requestNodeId == cb->node_id;
 	/* Note stack allocated search-initialize struct with members */
 	/* shallow copied to refer into the search-remote struct. */
@@ -1193,7 +1193,7 @@ static void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT *rsp, SaBoolT freeTop)
 				IMMSV_EDU_ATTR_VAL_LIST *att2multi = al->n.attrMoreValues;
 				do {
 					IMMSV_EDU_ATTR_VAL_LIST *tmp;
-					assert(att2multi);	/* must be at least one extra value */
+					osafassert(att2multi);	/* must be at least one extra value */
 					immsv_evt_free_att_val(&att2multi->n, al->n.attrValueType);
 					tmp = att2multi;
 					att2multi = att2multi->next;
@@ -1294,7 +1294,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 
 	if (implNodeId) {	/* Case B or C */
 		TRACE_2("There is an implementer and there are pure rt's !");
-		assert(rtAttrsToFetch);
+		osafassert(rtAttrsToFetch);
 		/*rsp kept in ImmSearchOp to be used in continuation.
 		   rtAttrsToFetch is expected to be deleted by this layer after used.
 
@@ -1308,7 +1308,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 		if (implConn) {
 			TRACE_2("The implementer is local");
 			/*Case B Invoke rtUpdateCallback directly. */
-			assert(implNodeId == cb->node_id);
+			osafassert(implNodeId == cb->node_id);
 			send_evt.type = IMMSV_EVT_TYPE_IMMA;
 			send_evt.info.imma.type = IMMA_EVT_ND2A_SEARCH_REMOTE;
 			IMMSV_OM_SEARCH_REMOTE *rreq = &send_evt.info.imma.info.searchRemote;
@@ -1367,7 +1367,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 
 		cl_node->tmpSinfo = *sinfo;	//TODO should be part of continuation?
 
-		assert(error == SA_AIS_OK);
+		osafassert(error == SA_AIS_OK);
 		if (rtAttrsToFetch) {
 			immsv_evt_free_attrNames(rtAttrsToFetch);
 		}
@@ -1731,7 +1731,7 @@ static uint32_t immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt,
     /* Create a temporary client place holder for resurrect.*/
     cl_node = calloc(1, sizeof(IMMND_IMM_CLIENT_NODE));
     memset(cl_node, '\0', sizeof(IMMND_IMM_CLIENT_NODE));
-    assert(cl_node);
+    osafassert(cl_node);
     cl_node->imm_app_hdl = m_IMMSV_PACK_HANDLE(clientHigh, cb->node_id);
     cl_node->agent_mds_dest = sinfo->dest;
     cl_node->sv_id = (isOm) ? NCSMDS_SVC_ID_IMMA_OM : NCSMDS_SVC_ID_IMMA_OI;
@@ -1879,7 +1879,7 @@ static uint32_t immnd_evt_proc_admowner_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV
 	send_evt.type = IMMSV_EVT_TYPE_IMMA;
 	send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ADMINIT_RSP;
 
-	assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+	osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 	TRACE_2("immnd_evt:imm_adminOwner_init: SENDRSP FAIL %u ", send_evt.info.imma.info.admInitRsp.error);
 	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 
@@ -1985,7 +1985,7 @@ static uint32_t immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	send_evt.type = IMMSV_EVT_TYPE_IMMA;
 	send_evt.info.imma.type = IMMA_EVT_ND2A_IMPLSET_RSP;
 
-	assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+	osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 	TRACE_2("SENDRSP FAIL %u ", send_evt.info.imma.info.implSetRsp.error);
 	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 
@@ -2075,7 +2075,7 @@ static uint32_t immnd_evt_proc_ccb_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	send_evt.type = IMMSV_EVT_TYPE_IMMA;
 	send_evt.info.imma.type = IMMA_EVT_ND2A_CCBINIT_RSP;
 
-	assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+	osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 	TRACE_2("SENDRSP FAIL %u ", send_evt.info.imma.info.ccbInitRsp.error);
 	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 
@@ -2145,7 +2145,7 @@ static uint32_t immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), clientId, clientNode, &isPureLocal,
 		&dummyContinuationId, &dummyPbeConn, dummyPbeNodeIdPtr);
 
-	assert(!dummyContinuationId && !dummyPbeConn);/* Only used in the fevs variant*/
+	osafassert(!dummyContinuationId && !dummyPbeConn);/* Only used in the fevs variant*/
 
 	if (!isPureLocal && (err == SA_AIS_OK)) {
 		TRACE_2("immnd_evt_proc_rt_update was not pure local, i.e. cached RT attrs");
@@ -2202,7 +2202,7 @@ static uint32_t immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	send_evt.type = IMMSV_EVT_TYPE_IMMA;
 	send_evt.info.imma.info.errRsp.error = err;
 	send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
-	assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+	osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 	TRACE_2("SENDRSP RESULT %u ", err);
 	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 
@@ -2427,7 +2427,7 @@ static uint32_t immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 	/*Save sinfo in continuation. 
 	   Note should set up a wait time for the continuation roughly in line
 	   with IMMSV_WAIT_TIME. */
-	assert(rc == NCSCC_RC_SUCCESS);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	if(cl_node && sinfo) {
 		cl_node->tmpSinfo = *sinfo;	//TODO: should be part of continuation?
 	}
@@ -2439,7 +2439,7 @@ static uint32_t immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 	   count/continuation-id .. ? */
 
 	if (cl_node && cl_node->mIsSync) {
-		assert(!cl_node->mSyncBlocked);
+		osafassert(!cl_node->mSyncBlocked);
 		if(!asyncReq) {
 			cl_node->mSyncBlocked = true;
 		}
@@ -2453,8 +2453,8 @@ static uint32_t immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 	send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 	send_evt.info.imma.info.errRsp.error = error;
 
-	assert(!asyncReq);
-	/*assert(sinfo->stype == MDS_SENDTYPE_SNDRSP); redundant */
+	osafassert(!asyncReq);
+	/*osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP); redundant */
 	TRACE_2("SENDRSP FAIL %u ", send_evt.info.imma.info.admInitRsp.error);
 	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 
@@ -2514,7 +2514,7 @@ static void immnd_evt_proc_ccb_obj_modify_rsp(IMMND_CB *cb,
 		if (evt->info.ccbUpcallRsp.result != SA_AIS_OK) {
 			evt->info.ccbUpcallRsp.result = SA_AIS_ERR_FAILED_OPERATION;
 			if (evt->info.ccbUpcallRsp.errorString.size) {
-				assert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2);
+				osafassert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2);
 				IMMSV_ATTR_NAME_LIST strList;
 				strList.next = NULL;
 				strList.name = evt->info.ccbUpcallRsp.errorString;/*borrow*/
@@ -2526,7 +2526,7 @@ static void immnd_evt_proc_ccb_obj_modify_rsp(IMMND_CB *cb,
 		/* Dont move this line up. Error return code may have been adjusted above.*/
 		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
 
-		assert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
 
 		rc = immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt);
 		if (rc != NCSCC_RC_SUCCESS) {
@@ -2589,7 +2589,7 @@ static void immnd_evt_proc_ccb_obj_create_rsp(IMMND_CB *cb,
 		if (evt->info.ccbUpcallRsp.result != SA_AIS_OK) {
 			evt->info.ccbUpcallRsp.result = SA_AIS_ERR_FAILED_OPERATION;
 			if (evt->info.ccbUpcallRsp.errorString.size) {
-				assert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP_2);
+				osafassert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP_2);
 				IMMSV_ATTR_NAME_LIST strList;
 				strList.next = NULL;
 				strList.name = evt->info.ccbUpcallRsp.errorString;/*borrow*/
@@ -2601,7 +2601,7 @@ static void immnd_evt_proc_ccb_obj_create_rsp(IMMND_CB *cb,
 		/* Dont move this line up. Error return code may have been adjusted above.*/
 		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
 
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 
 		rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 		if (rc != NCSCC_RC_SUCCESS) {
@@ -2672,7 +2672,7 @@ static void immnd_evt_proc_ccb_obj_delete_rsp(IMMND_CB *cb,
 			}
 		}
 
-		assert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
 
 		rc = immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt);
 		if (rc != NCSCC_RC_SUCCESS) {
@@ -2731,7 +2731,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 		/* We still need to wait for some implementer replies, possibly also the PBE.*/
 		if(pbeNodeId) {
 			/* There is be a PBE. */
-			assert(err == SA_AIS_OK); /* If not OK then we should not have arrived here. */
+			osafassert(err == SA_AIS_OK); /* If not OK then we should not have arrived here. */
 			TRACE_5("Wait for PBE commit decision for ccb %u", evt->info.ccbUpcallRsp.ccbId);
 			if(pbeConn) {
 				TRACE_5("PBE is LOCAL - send completed upcall for %u", evt->info.ccbUpcallRsp.ccbId);
@@ -2806,7 +2806,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 
 					/*Fetch client node for Applier OI ! */
 					immnd_client_node_get(cb, implHandle, &oi_cl_node);
-					assert(oi_cl_node != NULL);
+					osafassert(oi_cl_node != NULL);
 					if (oi_cl_node->mIsStale) {
 						LOG_WA("Applier client went down so completed upcall not sent");
 						continue;
@@ -2896,7 +2896,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 
 					/*Fetch client node for Applier OI ! */
 					immnd_client_node_get(cb, implHandle, &oi_cl_node);
-					assert(oi_cl_node != NULL);
+					osafassert(oi_cl_node != NULL);
 					if (oi_cl_node->mIsStale) {
 						LOG_WA("Applier client went down so completed upcall not sent");
 						continue;
@@ -2949,7 +2949,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 				}
 			}
 
-			assert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
+			osafassert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
 
 			rc = immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt);
 			if (rc != NCSCC_RC_SUCCESS) {
@@ -3017,8 +3017,8 @@ static void immnd_evt_pbe_rt_obj_create_rsp(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
-		assert(sinfo);
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo);
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
 		rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
@@ -3079,8 +3079,8 @@ static void immnd_evt_pbe_rt_attr_update_rsp(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
-		assert(sinfo);
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo);
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
 		rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
@@ -3145,7 +3145,7 @@ static void immnd_evt_pbe_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 	IMMSV_SEND_INFO *sinfo = NULL;
 	TRACE_ENTER();
         SaUint32T admoId = m_IMMSV_UNPACK_HANDLE_HIGH(evt->info.admOpRsp.invocation);
-	assert(admoId == 0);
+	osafassert(admoId == 0);
 	SaUint32T invoc = m_IMMSV_UNPACK_HANDLE_LOW(evt->info.admOpRsp.invocation);
 
 	if(evt->info.admOpRsp.error != SA_AIS_OK) {
@@ -3188,8 +3188,8 @@ static void immnd_evt_pbe_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = SA_AIS_OK;
-		assert(sinfo);
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo);
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
@@ -3250,8 +3250,8 @@ static void immnd_evt_pbe_rt_obj_deletes_rsp(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
-		assert(sinfo);
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo);
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
 		rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
@@ -3289,7 +3289,7 @@ static uint32_t immnd_evt_proc_rt_update_pull(IMMND_CB *cb, IMMND_EVT *evt, IMMS
 	send_evt.type = IMMSV_EVT_TYPE_IMMA;
 
 	IMMSV_OM_SEARCH_REMOTE *req = &evt->info.searchRemote;
-	assert(cb->node_id == req->remoteNodeId);
+	osafassert(cb->node_id == req->remoteNodeId);
 	implConn = immModel_findConnForImplementerOfObject(cb, &req->objectName);
 
 	if (implConn) {
@@ -3354,7 +3354,7 @@ static uint32_t immnd_evt_proc_rt_update_pull(IMMND_CB *cb, IMMND_EVT *evt, IMMS
 		   rspo.runtimeAttrs.attrValuesList.list.size = 0;
 		   rspo.runtimeAttrs.attrValuesList.list.free = 0;
 
-		   assert(multicastMessage(conn, tmpMessage, tmpMessage->size) == SA_AIS_OK);
+		   osafassert(multicastMessage(conn, tmpMessage, tmpMessage->size) == SA_AIS_OK);
 		 */
 
 	}
@@ -3378,7 +3378,7 @@ static uint32_t immnd_evt_proc_remote_search_rsp(IMMND_CB *cb, IMMND_EVT *evt, I
 {
 	TRACE_ENTER();
 	IMMSV_OM_RSP_SEARCH_REMOTE *rspo = &evt->info.rspSrchRmte;
-	assert(cb->node_id == rspo->requestNodeId);
+	osafassert(cb->node_id == rspo->requestNodeId);
 	/*Fetch originating request continuation */
 	SaInvocationT invoc = m_IMMSV_PACK_HANDLE(rspo->remoteNodeId, rspo->searchId);
 
@@ -3560,7 +3560,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 	SaBoolT pbeExpected = cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	async = (evt->type == IMMND_EVT_A2ND_IMM_ADMOP_ASYNC);
-	assert(evt->type == IMMND_EVT_A2ND_IMM_ADMOP || async);
+	osafassert(evt->type == IMMND_EVT_A2ND_IMM_ADMOP || async);
 	TRACE_ENTER();
 	TRACE_1(async ? "ASYNC ADMOP" : "SYNC ADMOP");
 
@@ -3586,7 +3586,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 
 	if (error == SA_AIS_OK && implConn) {
 		/*Implementer exists and is local, make the up-call! */
-		assert(implNodeId == cb->node_id);
+		osafassert(implNodeId == cb->node_id);
 		implHandle = m_IMMSV_PACK_HANDLE(implConn, implNodeId);
 
 		/*Fetch client node for OI ! */
@@ -3687,7 +3687,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 
 		if(error == SA_AIS_ERR_REPAIR_PENDING) {
 			uint32_t rc = NCSCC_RC_SUCCESS;
-			assert(!pbeExpected);
+			osafassert(!pbeExpected);
 			TRACE("Ok reply for internally handled adminOp when PBE not configured");
 			send_evt.info.imma.type = IMMA_EVT_ND2A_ADMOP_RSP;
 			send_evt.info.imma.info.admOpRsp.invocation = saInv;
@@ -3728,8 +3728,8 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 				}
 			} else {
 				IMMSV_SEND_INFO *sinfo = &cl_node->tmpSinfo;
-				assert(sinfo);
-				assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+				osafassert(sinfo);
+				osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 				send_evt.info.imma.info.errRsp.error = error;
 
@@ -3816,14 +3816,14 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
 		if(pbeConn) {
 			const char* osafImmDn = OPENSAF_IMM_OBJECT_DN;
 			/*The persistent back-end is executing at THIS node. */
-			assert(cb->mIsCoord);
-			assert(pbeNodeId);
-			assert(pbeNodeId == cb->node_id);
+			osafassert(cb->mIsCoord);
+			osafassert(pbeNodeId);
+			osafassert(pbeNodeId == cb->node_id);
 			implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
 
 			/*Fetch client node for PBE */
 			immnd_client_node_get(cb, implHandle, &pbe_cl_node);
-			assert(pbe_cl_node);
+			osafassert(pbe_cl_node);
 			if (pbe_cl_node->mIsStale) {
 				LOG_WA("PBE is down => class create is delayed!");
 				/* ****
@@ -3899,8 +3899,8 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = error;
-		assert(sinfo);	/*fake for test */
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo);	/*fake for test */
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
 		if (immnd_mds_send_rsp(cb, sinfo, &send_evt) != NCSCC_RC_SUCCESS) {
@@ -3967,14 +3967,14 @@ static void immnd_evt_proc_class_delete(IMMND_CB *cb,
 		if(pbeConn) {
 			const char* osafImmDn = OPENSAF_IMM_OBJECT_DN;
 			/*The persistent back-end is executing at THIS node. */
-			assert(cb->mIsCoord);
-			assert(pbeNodeId);
-			assert(pbeNodeId == cb->node_id);
+			osafassert(cb->mIsCoord);
+			osafassert(pbeNodeId);
+			osafassert(pbeNodeId == cb->node_id);
 			implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
 
 			/*Fetch client node for PBE */
 			immnd_client_node_get(cb, implHandle, &pbe_cl_node);
-			assert(pbe_cl_node);
+			osafassert(pbe_cl_node);
 			if (pbe_cl_node->mIsStale) {
 				LOG_WA("PBE is down => class create is delayed!");
 				/* ****
@@ -4033,8 +4033,8 @@ static void immnd_evt_proc_class_delete(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = error;
-		assert(sinfo);	/*fake for test */
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo);	/*fake for test */
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
 		if (immnd_mds_send_rsp(cb, sinfo, &send_evt) != NCSCC_RC_SUCCESS) {
@@ -4078,8 +4078,8 @@ static uint32_t immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV
 	}
 
 	if (cl_node->mIsSync) {
-		assert(cb->mIsCoord);
-		assert(!(cb->mSyncFinalizing));
+		osafassert(cb->mIsCoord);
+		osafassert(!(cb->mSyncFinalizing));
 		memset(&send_evt, 0, sizeof(IMMSV_EVT));	/*No pointers=>no leak */
 		send_evt.type = IMMSV_EVT_TYPE_IMMND;
 		send_evt.info.immnd.type = IMMND_EVT_ND2ND_SYNC_FINALIZE_2;
@@ -4121,7 +4121,7 @@ static uint32_t immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV
 			int32_t size = uba.ttl;
 			/* TODO: check against "payload max-size" ? */
 			tmpData = malloc(size);
-			assert(tmpData);
+			osafassert(tmpData);
 			char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
 			immnd_evt_destroy(&send_evt, SA_FALSE, __LINE__);
@@ -4279,14 +4279,14 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 		delayedReply = SA_TRUE; 
 		if(pbeConn) {
 			/*The persistent back-end is executing at THIS node. */
-			assert(cb->mIsCoord);
-			assert(pbeNodeId);
-			assert(pbeNodeId == cb->node_id);
+			osafassert(cb->mIsCoord);
+			osafassert(pbeNodeId);
+			osafassert(pbeNodeId == cb->node_id);
 			implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
 
 			/*Fetch client node for PBE */
 			immnd_client_node_get(cb, implHandle, &pbe_cl_node);
-			assert(pbe_cl_node);
+			osafassert(pbe_cl_node);
 			if (pbe_cl_node->mIsStale) {
 				LOG_WA("PBE is down => persistify of rtObj create is delayed!");
 				/* ****
@@ -4306,7 +4306,7 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 				/*We re-use the adminOwner member of the ccbCreate message
 				  to hold the continuation id. */
 				send_evt.info.imma.info.objCreate.immHandle = implHandle;
-				assert(evt->info.objCreate.ccbId == 0);
+				osafassert(evt->info.objCreate.ccbId == 0);
 
 				TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT RT-OBJ CREATE upcall");
 				if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
@@ -4336,8 +4336,8 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = err;
-		assert(sinfo);
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo);
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
 		if (immnd_mds_send_rsp(cb, sinfo, &send_evt) != NCSCC_RC_SUCCESS) {
@@ -4418,14 +4418,14 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 
 	if(pbeNodeIdPtr && pbeConn && err == SA_AIS_OK) {
 		/*The persistent back-end is present and executing at THIS node. */
-		assert(cb->mIsCoord);
-		assert(pbeNodeId);
-		assert(pbeNodeId == cb->node_id);
+		osafassert(cb->mIsCoord);
+		osafassert(pbeNodeId);
+		osafassert(pbeNodeId == cb->node_id);
 		implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
 
 		/*Fetch client node for PBE */
 		immnd_client_node_get(cb, implHandle, &oi_cl_node);
-		assert(oi_cl_node);
+		osafassert(oi_cl_node);
 		if (oi_cl_node->mIsStale) {
 			LOG_WA("PBE is down => ccb %u fails", 
 				evt->info.objCreate.ccbId);
@@ -4465,7 +4465,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 		delayedReply = SA_TRUE;
 		if (implConn) {
 			/*The implementer is local, make the up-call */
-			assert(implNodeId == cb->node_id);
+			osafassert(implNodeId == cb->node_id);
 			implHandle = m_IMMSV_PACK_HANDLE(implConn, implNodeId);
 
 			/*Fetch client node for OI ! */
@@ -4520,7 +4520,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 
 				/*Fetch client node for Applier OI ! */
 				immnd_client_node_get(cb, implHandle, &oi_cl_node);
-				assert(oi_cl_node != NULL);
+				osafassert(oi_cl_node != NULL);
 				if (oi_cl_node->mIsStale) {
 					LOG_WA("Applier client went down so create upcall not sent");
 					continue;
@@ -4549,8 +4549,8 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = err;
-		assert(sinfo);
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo);
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
 		if (immnd_mds_send_rsp(cb, sinfo, &send_evt) != NCSCC_RC_SUCCESS) {
@@ -4632,14 +4632,14 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 
 	if(pbeNodeIdPtr && pbeConn && err == SA_AIS_OK) {
 		/*The persistent back-end is present and executing at THIS node. */
-		assert(cb->mIsCoord);
-		assert(pbeNodeId);
-		assert(pbeNodeId == cb->node_id);
+		osafassert(cb->mIsCoord);
+		osafassert(pbeNodeId);
+		osafassert(pbeNodeId == cb->node_id);
 		implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
 
 		/*Fetch client node for PBE */
 		immnd_client_node_get(cb, implHandle, &oi_cl_node);
-		assert(oi_cl_node);
+		osafassert(oi_cl_node);
 		if (oi_cl_node->mIsStale) {
 			LOG_WA("PBE is down => ccb %u fails",
 				evt->info.objModify.ccbId);
@@ -4680,12 +4680,12 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 		delayedReply = SA_TRUE;
 		if (implConn) {
 			/*The implementer is local, make the up-call */
-			assert(implNodeId == cb->node_id);
+			osafassert(implNodeId == cb->node_id);
 			implHandle = m_IMMSV_PACK_HANDLE(implConn, implNodeId);
 
 			/*Fetch client node for OI ! */
 			immnd_client_node_get(cb, implHandle, &oi_cl_node);
-			assert(oi_cl_node != NULL);
+			osafassert(oi_cl_node != NULL);
 			if (oi_cl_node->mIsStale) {
 				LOG_WA("OI Client went down so nod modify upcall");
 				err = SA_AIS_ERR_FAILED_OPERATION;
@@ -4739,7 +4739,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 
 				/*Fetch client node for Applier OI ! */
 				immnd_client_node_get(cb, implHandle, &oi_cl_node);
-				assert(oi_cl_node != NULL);
+				osafassert(oi_cl_node != NULL);
 				if (oi_cl_node->mIsStale) {
 					LOG_WA("Applier client went down so modify upcall not sent");
 					continue;
@@ -4768,8 +4768,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = err;
-		assert(sinfo);
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo);
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
 		if (immnd_mds_send_rsp(cb, sinfo, &send_evt) != NCSCC_RC_SUCCESS) {
@@ -4894,14 +4894,14 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 		delayedReply = SA_TRUE; 
 		if(pbeConn) {
 			/*The persistent back-end is executing at THIS node. */
-			assert(cb->mIsCoord);
-			assert(pbeNodeId);
-			assert(pbeNodeId == cb->node_id);
+			osafassert(cb->mIsCoord);
+			osafassert(pbeNodeId);
+			osafassert(pbeNodeId == cb->node_id);
 			implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
 
 			/*Fetch client node for PBE */
 			immnd_client_node_get(cb, implHandle, &pbe_cl_node);
-			assert(pbe_cl_node);
+			osafassert(pbe_cl_node);
 			if (pbe_cl_node->mIsStale) {
 				LOG_WA("PBE is down => persistify of rtAttr is aborted!");
 				/* ****
@@ -4921,7 +4921,7 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 				/*We re-use the adminOwner member of the ccbmodify message
 				  to hold the continuation id. */
 				send_evt.info.imma.info.objModify.immHandle = implHandle;
-				assert(evt->info.objModify.ccbId == 0);
+				osafassert(evt->info.objModify.ccbId == 0);
 
 				TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT RT-OBJ MODIFY upcall");
 				if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
@@ -4952,8 +4952,8 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = err;
-		assert(sinfo);
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo);
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
 		if (immnd_mds_send_rsp(cb, sinfo, &send_evt) != NCSCC_RC_SUCCESS) {
@@ -5174,9 +5174,9 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 	/*TRACE("ABT: pbeNodeIdPtr:%p pbeConn:%u err:%u", pbeNodeIdPtr, pbeConn, err);*/
 	if(pbeNodeIdPtr && pbeConn && err==SA_AIS_OK) {
 		TRACE_5("PBE exists and is local to this node arrSize:%u", arrSize);
-		assert(cb->mIsCoord);
-		assert(pbeNodeId);
-		assert(pbeNodeId == cb->node_id);
+		osafassert(cb->mIsCoord);
+		osafassert(pbeNodeId);
+		osafassert(pbeNodeId == cb->node_id);
 		implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -5187,7 +5187,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 
 		/*Fetch client node for PBE */
 		immnd_client_node_get(cb, implHandle, &oi_cl_node);
-		assert(oi_cl_node);
+		osafassert(oi_cl_node);
 		if (oi_cl_node->mIsStale) {
 			LOG_WA("IMMND - PBE is down => ccb %u fails",
 				evt->info.objDelete.ccbId);
@@ -5250,7 +5250,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 
 				/*Fetch client node for OI ! */
 				immnd_client_node_get(cb, implHandle, &oi_cl_node);
-				assert(oi_cl_node != NULL);
+				osafassert(oi_cl_node != NULL);
 				if (oi_cl_node->mIsStale) {
 					LOG_WA("Client went down so no delete upcall to one client");
 					/* This should cause the ccb-operation to timeout on wait for the reply. */
@@ -5307,7 +5307,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 			SaNameT objName;
 			objName.length = strlen(objNameArr[ix]);
 			send_evt.info.imma.info.objDelete.objectName.size = objName.length;
-			assert(objName.length < SA_MAX_NAME_LENGTH);
+			osafassert(objName.length < SA_MAX_NAME_LENGTH);
 			strncpy((char *) objName.value, objNameArr[ix], SA_MAX_NAME_LENGTH);
 			send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
 			
@@ -5322,7 +5322,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 
 				/*Fetch client node for OI ! */
 				immnd_client_node_get(cb, implHandle, &oi_cl_node);
-				assert(oi_cl_node != NULL);
+				osafassert(oi_cl_node != NULL);
 				if (oi_cl_node->mIsStale) {
 					LOG_WA("Applier went down so no delete upcall to one client");
 					continue;
@@ -5375,8 +5375,8 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = err;
-		assert(sinfo);
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo);
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
 		if (immnd_mds_send_rsp(cb, sinfo, &send_evt) != NCSCC_RC_SUCCESS) {
@@ -5451,9 +5451,9 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 		if(pbeConn) {
 			TRACE("PBE at this node arrSize:%u", arrSize);
 			/*The persistent back-end is executing at THIS node. */
-			assert(cb->mIsCoord);
-			assert(pbeNodeId);
-			assert(pbeNodeId == cb->node_id);
+			osafassert(cb->mIsCoord);
+			osafassert(pbeNodeId);
+			osafassert(pbeNodeId == cb->node_id);
 			implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 			send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -5464,7 +5464,7 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 
 			/*Fetch client node for PBE */
 			immnd_client_node_get(cb, implHandle, &pbe_cl_node);
-			assert(pbe_cl_node);
+			osafassert(pbe_cl_node);
 			if (pbe_cl_node->mIsStale) {
 				LOG_WA("PBE is down => persistify of rtObj delete is dropped!");
 				/* 
@@ -5555,8 +5555,8 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = err;
-		assert(sinfo);
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		osafassert(sinfo);
+		osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
 		if (immnd_mds_send_rsp(cb, sinfo, &send_evt) != NCSCC_RC_SUCCESS) {
@@ -5594,21 +5594,21 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 	SaUint32T client = 0;
 	TRACE_ENTER();
 
-	assert(evt);
+	osafassert(evt);
 	immnd_evt_ccb_abort(cb, evt->info.ccbId, &client);
 	err = immModel_ccbFinalize(cb, evt->info.ccbId);
 	TRACE_2("ccb aborted and finalized err:%u", err);
 
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
 		TRACE_2("ccbFinalize originated at this node => Send reply");
-		/* Perhaps the following assert is a bit strong. A corrupt client/agent
+		/* Perhaps the following osafassert is a bit strong. A corrupt client/agent
 		   could "accidentally" use the wrong ccbId if its heap was thrashed. 
 		   This wrong ccbid could accidentally be an existing used ccbId. 
 		   But in this case it would also have to originate at this node.
 		 */
 		TRACE_2("client == m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl))"
 			"??: %u == %u", client, (SaUint32T)m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl));
-		assert(!client || client == m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl));
+		osafassert(!client || client == m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl));
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
 			LOG_WA("IMMND - Client went down so no response");
@@ -5734,7 +5734,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 			delayedReply = SA_TRUE;
 			if(pbeNodeId) {
 				/* There is be a PBE. */
-				assert(err == SA_AIS_OK); /* I not OK then we should not be waiting. */
+				osafassert(err == SA_AIS_OK); /* I not OK then we should not be waiting. */
 				TRACE_5("Wait for PBE commit decision for ccb %u", evt->info.ccbId);
 				if(pbeConn) {
 					TRACE_5("PBE is LOCAL - send completed upcall for %u", evt->info.ccbId);
@@ -5814,7 +5814,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 
 					/*Fetch client node for Applier OI ! */
 					immnd_client_node_get(cb, implHandle, &oi_cl_node);
-					assert(oi_cl_node != NULL);
+					osafassert(oi_cl_node != NULL);
 					if (oi_cl_node->mIsStale) {
 						LOG_WA("Applier client went down so completed upcall not sent");
 						continue;
@@ -5861,7 +5861,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 					}
 				}
 			}
-			assert(arrSize == 0);
+			osafassert(arrSize == 0);
 			if(applArrSize) {
 				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 				send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -5876,7 +5876,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 
 					/*Fetch client node for Applier OI ! */
 					immnd_client_node_get(cb, implHandle, &oi_cl_node);
-					assert(oi_cl_node != NULL);
+					osafassert(oi_cl_node != NULL);
 					if (oi_cl_node->mIsStale) {
 						LOG_WA("Applier client went down so completed upcall not sent");
 						continue;
@@ -5895,7 +5895,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 			/*err != SA_AIS_OK => generate SaImmOiCcbAbortCallbackT upcalls
 			 */
 			immnd_evt_ccb_abort(cb, evt->info.ccbId, &client);
-			assert(!client || originatedAtThisNd);
+			osafassert(!client || originatedAtThisNd);
 		}
 		TRACE_2("CCB APPLY TERMINATING CCB: %u", evt->info.ccbId);
 		immModel_ccbFinalize(cb, evt->info.ccbId);
@@ -5910,8 +5910,8 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 				send_evt.type = IMMSV_EVT_TYPE_IMMA;
 				send_evt.info.imma.info.errRsp.error = err;
-				assert(sinfo);
-				assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+				osafassert(sinfo);
+				osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
 				if (immnd_mds_send_rsp(cb, sinfo, &send_evt) != NCSCC_RC_SUCCESS) {
@@ -6283,14 +6283,14 @@ static uint32_t immnd_evt_proc_dump_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 uint32_t immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	TRACE_ENTER();
-	assert(cb->mRulingEpoch <= evt->info.ctrl.rulingEpoch);
+	osafassert(cb->mRulingEpoch <= evt->info.ctrl.rulingEpoch);
 	cb->mRulingEpoch = evt->info.ctrl.rulingEpoch;
 
 	LOG_WA("Global ABORT SYNC received for epoch %u", cb->mRulingEpoch);
 
 	if (cb->mIsCoord) {	/* coord should already be up to date. */
-		assert(cb->mMyEpoch == cb->mRulingEpoch);
-		assert(!(cb->mSyncFinalizing));
+		osafassert(cb->mMyEpoch == cb->mRulingEpoch);
+		osafassert(!(cb->mSyncFinalizing));
 	} else {		/* Noncoord IMMNDs */
 		if (cb->mState == IMM_SERVER_SYNC_CLIENT) {	/* Sync client will have to restart the sync */
 			cb->mState = IMM_SERVER_LOADING_PENDING;
@@ -6299,7 +6299,7 @@ uint32_t immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO
 			cb->mJobStart = time(NULL);
 			cb->mMyEpoch = 0;
 			cb->mSync = false;
-			assert(!(cb->mAccepted));
+			osafassert(!(cb->mAccepted));
 		} else if (cb->mState == IMM_SERVER_READY) {	/* old (nonccord) members */
 			if (cb->mRulingEpoch == cb->mMyEpoch + 1) {
 				cb->mMyEpoch = cb->mRulingEpoch;
@@ -6313,7 +6313,7 @@ uint32_t immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO
 				LOG_WA("IMMND can not adjust epoch because IMMD is DOWN %u", retryCount);
 				sleep(1);
 			}
-			immnd_adjustEpoch(cb, SA_TRUE); /* will assert if immd is down. */
+			immnd_adjustEpoch(cb, SA_TRUE); /* will osafassert if immd is down. */
 		}
 		immModel_abortSync(cb);
 	}
@@ -6341,13 +6341,13 @@ uint32_t immnd_evt_proc_pbe_prto_purge_mutations(IMMND_CB *cb, IMMND_EVT *evt,
 	SaUint32T reqConnArrSize = 0;
 	SaUint32T *reqConnArr = NULL;
 	TRACE_ENTER();
-	assert(cb->mRulingEpoch <= evt->info.ctrl.rulingEpoch);
+	osafassert(cb->mRulingEpoch <= evt->info.ctrl.rulingEpoch);
 	cb->mRulingEpoch = evt->info.ctrl.rulingEpoch;
 
 	LOG_WA("Global PURGE PERSISTENT RTO mutations received in epoch %u", cb->mRulingEpoch);
 
 	if (cb->mIsCoord) {	/* coord should already be up to date. */
-		assert(cb->mMyEpoch == cb->mRulingEpoch);
+		osafassert(cb->mMyEpoch == cb->mRulingEpoch);
 	} 
 
 	immModel_pbePrtoPurgeMutations(cb, cb->node_id, &reqConnArrSize, &reqConnArr);
@@ -6365,7 +6365,7 @@ uint32_t immnd_evt_proc_pbe_prto_purge_mutations(IMMND_CB *cb, IMMND_EVT *evt,
 		IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 		IMMSV_SEND_INFO *sinfo = NULL;
 		int ix = 0;
-		assert(reqConnArr);
+		osafassert(reqConnArr);
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
@@ -6380,8 +6380,8 @@ uint32_t immnd_evt_proc_pbe_prto_purge_mutations(IMMND_CB *cb, IMMND_EVT *evt,
 				continue;
 			}
 			sinfo = &cl_node->tmpSinfo;
-			assert(sinfo);
-			assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+			osafassert(sinfo);
+			osafassert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 			TRACE("Sending TRY_AGAIN reply to connection %u", reqConnArr[ix]);
 			rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 			if (rc != NCSCC_RC_SUCCESS) {
@@ -6447,15 +6447,15 @@ static uint32_t immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 
 	if (cb->mState == IMM_SERVER_SYNC_PENDING) {
 		/*This node wants to be synced. */
-		assert(!cb->mAccepted);
+		osafassert(!cb->mAccepted);
 		immModel_recognizedIsolated(cb);	/*Reply to req sync not arrived ? */
 		cb->mSync = true;
 		cb->mMyEpoch = cb->mRulingEpoch - 1;
 		TRACE_2("Adjust fevs count:%llu %llu %llu", cb->highestReceived,
 			cb->highestProcessed, evt->info.ctrl.fevsMsgStart);
 
-		assert(cb->highestProcessed <= evt->info.ctrl.fevsMsgStart);
-		assert(cb->highestReceived <= evt->info.ctrl.fevsMsgStart);
+		osafassert(cb->highestProcessed <= evt->info.ctrl.fevsMsgStart);
+		osafassert(cb->highestReceived <= evt->info.ctrl.fevsMsgStart);
 		cb->highestProcessed = evt->info.ctrl.fevsMsgStart;
 		cb->highestReceived = evt->info.ctrl.fevsMsgStart;
 	}
@@ -6489,11 +6489,11 @@ static uint32_t immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 				TRACE_2("This nodes apparently missed start of sync");
 			}
 		} else {
-			assert(cb->mMyEpoch + 1 > cb->mRulingEpoch);
+			osafassert(cb->mMyEpoch + 1 > cb->mRulingEpoch);
 			LOG_WA("Imm at this evs node has epoch %u, "
 			       "COORDINATOR appears to be a stragler!!, aborting.", cb->mMyEpoch);
 			abort();
-			/* TODO: 080414 re-inserted the assert/abort ...
+			/* TODO: 080414 re-inserted the osafassert/abort ...
 			   This is an extreemely odd case. Possibly it could occur after a
 			   failover ?? */
 		}
@@ -6545,14 +6545,14 @@ static uint32_t immnd_evt_proc_loading_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 	TRACE_2("Loading can start, ruling epoch:%u", cb->mRulingEpoch);
 
 	if ((cb->mState == IMM_SERVER_LOADING_PENDING) || (cb->mState == IMM_SERVER_LOADING_CLIENT)) {
-		assert(((cb->mMyEpoch + 1) == cb->mRulingEpoch));
+		osafassert(((cb->mMyEpoch + 1) == cb->mRulingEpoch));
 		++(cb->mMyEpoch);
 		immModel_prepareForLoading(cb);
 		TRACE_2("prepareForLoading non-coord variant. fevsMsgCount reset to %llu", cb->highestProcessed);
 		cb->highestProcessed = evt->info.ctrl.fevsMsgStart;
 		cb->highestReceived = evt->info.ctrl.fevsMsgStart;
 		if(!(cb->mAccepted)) {
-			assert(cb->mState == IMM_SERVER_LOADING_PENDING);
+			osafassert(cb->mState == IMM_SERVER_LOADING_PENDING);
 			LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING --> IMM_SERVER_LOADING_CLIENT (materialized by proc_loading_ok)");
 			cb->mState = IMM_SERVER_LOADING_CLIENT;
 			cb->mStep = 0;
@@ -6560,7 +6560,7 @@ static uint32_t immnd_evt_proc_loading_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 			cb->mAccepted = true;
 		}
 	} else if (cb->mState == IMM_SERVER_LOADING_SERVER) {
-		assert(cb->mMyEpoch == cb->mRulingEpoch);
+		osafassert(cb->mMyEpoch == cb->mRulingEpoch);
 		immModel_prepareForLoading(cb);
 		cb->highestProcessed = evt->info.ctrl.fevsMsgStart;
 		cb->highestReceived = evt->info.ctrl.fevsMsgStart;
@@ -6604,7 +6604,7 @@ static uint32_t immnd_evt_proc_sync_req(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		TRACE_2("Set marker for sync at coordinator");
 		cb->mSyncRequested = true;
 		if(cb->mLostNodes > 0) {cb->mLostNodes--;}
-		/*assert(cb->mRulingEpoch == evt->info.ctrl.rulingEpoch); */
+		/*osafassert(cb->mRulingEpoch == evt->info.ctrl.rulingEpoch); */
 		TRACE_2("At COORD: My Ruling Epoch:%u Cenral Ruling Epoch:%u",
 			cb->mRulingEpoch, evt->info.ctrl.rulingEpoch);
 	}
@@ -6643,7 +6643,7 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 			}
 		}
 		cb->mIsCoord = evt->info.ctrl.isCoord;
-		assert(!cb->mIsCoord || cb->mCanBeCoord);
+		osafassert(!cb->mIsCoord || cb->mCanBeCoord);
 		cb->mRulingEpoch = evt->info.ctrl.rulingEpoch;
 		if (cb->mRulingEpoch) {
 			TRACE_2("Ruling Epoch:%u", cb->mRulingEpoch);
@@ -6706,7 +6706,7 @@ void dequeue_outgoing(IMMND_CB *cb)
  *****************************************************************************/
 static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {				/*sinfo not used */
-	assert(evt);
+	osafassert(evt);
 	SaUint64T msgNo = evt->info.fevsReq.sender_count;	/*Global MsgNo */
 	SaImmHandleT clnt_hdl = evt->info.fevsReq.client_hdl;
 	IMMSV_OCTET_STRING *msg = &evt->info.fevsReq.msg;
@@ -6724,7 +6724,7 @@ static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	SaBoolT originatedAtThisNd = (m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl) == cb->node_id);
 
 	if (originatedAtThisNd) {
-		assert(!reply_dest || (reply_dest == cb->immnd_mdest_id));
+		osafassert(!reply_dest || (reply_dest == cb->immnd_mdest_id));
 		if (cb->fevs_replies_pending) {
 			--(cb->fevs_replies_pending);	/*flow control towards IMMD */
 		}
@@ -6789,7 +6789,7 @@ static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 			}
 		} else {
 			msg = NULL;
-			assert(cb->fevs_in_list == NULL);
+			osafassert(cb->fevs_in_list == NULL);
 		}
 	} while (msg);
 
@@ -6819,7 +6819,7 @@ static void immnd_evt_proc_discard_impl(IMMND_CB *cb,
 					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	TRACE_ENTER();
-	assert(evt);
+	osafassert(evt);
 	TRACE_2("Global discard implementer for id:%u", evt->info.implSet.impl_id);
 	immModel_discardImplementer(cb, evt->info.implSet.impl_id, SA_TRUE);
 	TRACE_LEAVE();
@@ -6847,8 +6847,8 @@ static void immnd_evt_proc_discard_node(IMMND_CB *cb,
 	SaUint32T *idArr = NULL;
 	SaUint32T arrSize = 0;
 	TRACE_ENTER();
-	assert(evt);
-	assert(evt->info.ctrl.nodeId != cb->node_id);
+	osafassert(evt);
+	osafassert(evt->info.ctrl.nodeId != cb->node_id);
 	LOG_NO("Global discard node received for nodeId:%x pid:%u", evt->info.ctrl.nodeId, evt->info.ctrl.ndExecPid);
 	/* We should remember the nodeId/pid pair to avoid a redundant message
 	   causing a newly reattached node being discarded. 
@@ -6900,7 +6900,7 @@ static void immnd_evt_proc_adminit_rsp(IMMND_CB *cb,
 	NCS_NODE_ID nodeId;
 	SaUint32T conn;
 
-	assert(evt);
+	osafassert(evt);
 	conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 	err = immModel_adminOwnerCreate(cb, &(evt->info.adminitGlobal.i),
@@ -6967,12 +6967,12 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 		unsigned int count = 0;
 		IMMSV_EVT send_evt;
 		TRACE_2("FinalizeSync for sync client");
-		assert(immModel_finalizeSync(cb, &(evt->info.finSync), SA_FALSE, SA_TRUE) == SA_AIS_OK);
+		osafassert(immModel_finalizeSync(cb, &(evt->info.finSync), SA_FALSE, SA_TRUE) == SA_AIS_OK);
 		cb->mAccepted = SA_TRUE;	/*Accept ALL fevs messages after this one! */
 		cb->syncFevsBase = 0LL;
 		cb->mMyEpoch++;
 		/*This must bring the epoch of the joiner up to the ruling epoch */
-		assert(cb->mMyEpoch == cb->mRulingEpoch);
+		osafassert(cb->mMyEpoch == cb->mRulingEpoch);
 		/*This adjust-epoch will persistify the new epoch for sync-clients. */
 		if (cb->mPbeFile) {/* Pbe enabled */
 			cb->mRim = immModel_getRepositoryInitMode(cb);
@@ -7032,20 +7032,20 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 				sleep(1);
 			}
 			/*This adjust-epoch will persistify the new epoch for: coord. */
-			immnd_adjustEpoch(cb, SA_TRUE); /* Will assert if immd is down. */
+			immnd_adjustEpoch(cb, SA_TRUE); /* Will osafassert if immd is down. */
 			cb->mSyncFinalizing = 0x0;
 		} else {
 			TRACE_2("FinalizeSync for veteran node that is non coord");
 			/* In this case we use the sync message to verify the state 
 			   instad of syncing. */
-			assert(immModel_finalizeSync(cb, &(evt->info.finSync), SA_FALSE, SA_FALSE) == SA_AIS_OK);
+			osafassert(immModel_finalizeSync(cb, &(evt->info.finSync), SA_FALSE, SA_FALSE) == SA_AIS_OK);
 			int retryCount = 0;
 			for (; !immnd_is_immd_up(cb) && retryCount < 16; ++retryCount) {
 				LOG_WA("IMMND blocked in adjust Epoch because IMMD is DOWN");
 				sleep(1);
 			}
 			/*This adjust-epoch will persistify the new epoch for: veterans. */
-			immnd_adjustEpoch(cb, SA_TRUE); /* Will assert if immd is down. */
+			immnd_adjustEpoch(cb, SA_TRUE); /* Will osafassert if immd is down. */
 		}
 	}
 
@@ -7077,7 +7077,7 @@ static void immnd_evt_proc_admo_set(IMMND_CB *cb,
 	IMMSV_SEND_INFO *sinfo = NULL;
 	SaAisErrorT err;
 
-	assert(evt);
+	osafassert(evt);
 	if (evt->info.admReq.adm_owner_id != 0) {
 		err = immModel_adminOwnerChange(cb, &(evt->info.admReq), SA_FALSE);
 	} else {
@@ -7135,7 +7135,7 @@ static void immnd_evt_proc_admo_release(IMMND_CB *cb,
 	IMMSV_SEND_INFO *sinfo = NULL;
 	SaAisErrorT err;
 
-	assert(evt);
+	osafassert(evt);
 	if (evt->info.admReq.adm_owner_id != 0) {
 		err = immModel_adminOwnerChange(cb, &(evt->info.admReq), SA_TRUE);
 	} else {
@@ -7193,7 +7193,7 @@ static void immnd_evt_proc_admo_clear(IMMND_CB *cb,
 	IMMSV_SEND_INFO *sinfo = NULL;
 	SaAisErrorT err;
 
-	assert(evt);
+	osafassert(evt);
 	if (evt->info.admReq.adm_owner_id == 0) {
 		err = immModel_adminOwnerChange(cb, &(evt->info.admReq), SA_TRUE);
 	} else {
@@ -7259,7 +7259,7 @@ static void immnd_evt_proc_admo_finalize(IMMND_CB *cb,
 	   timeout cleanup or process termination to take care of. 
 	 */
 
-	assert(evt);
+	osafassert(evt);
 	err = immModel_adminOwnerDelete(cb, evt->info.admFinReq.adm_owner_id, 0);
 
 	if(wasLoading && (immModel_getLoader(cb) == 0)) {
@@ -7319,7 +7319,7 @@ static void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
 	   timeout cleanup or process termination to take care of. 
 	 */
 
-	assert(evt);
+	osafassert(evt);
 	TRACE("immnd_evt_proc_admo_hard_finalize of adm_owner_id: %u", evt->info.admFinReq.adm_owner_id);
 	err = immModel_adminOwnerDelete(cb, evt->info.admFinReq.adm_owner_id, 1);
 	if (err != SA_AIS_OK) {
@@ -7354,8 +7354,8 @@ static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
 	NCS_NODE_ID nodeId;
 	SaUint32T conn;
 
-	assert(evt);
-	assert(!originatedAtThisNd || reply_dest == cb->immnd_mdest_id);
+	osafassert(evt);
+	osafassert(!originatedAtThisNd || reply_dest == cb->immnd_mdest_id);
 	conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 	TRACE_2("originated here?:%u nodeId:%x conn: %u", originatedAtThisNd, nodeId, conn);
@@ -7423,7 +7423,7 @@ static void immnd_evt_proc_impl_clr(IMMND_CB *cb,
 	NCS_NODE_ID nodeId;
 	SaUint32T conn;
 
-	assert(evt);
+	osafassert(evt);
 	conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
@@ -7479,7 +7479,7 @@ static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
 	NCS_NODE_ID nodeId;
 	SaUint32T conn;
 
-	assert(evt);
+	osafassert(evt);
 	conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
@@ -7545,7 +7545,7 @@ static void immnd_evt_proc_cl_impl_rel(IMMND_CB *cb,
 	NCS_NODE_ID nodeId;
 	SaUint32T conn;
 
-	assert(evt);
+	osafassert(evt);
 	conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
@@ -7608,7 +7608,7 @@ static void immnd_evt_proc_obj_impl_set(IMMND_CB *cb,
 	SaUint32T conn;
 	TRACE_ENTER();
 
-	assert(evt);
+	osafassert(evt);
 	conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
@@ -7667,7 +7667,7 @@ static void immnd_evt_proc_obj_impl_rel(IMMND_CB *cb,
 	SaUint32T conn;
 	TRACE_ENTER();
 
-	assert(evt);
+	osafassert(evt);
 	conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
@@ -7727,7 +7727,7 @@ static void immnd_evt_proc_ccbinit_rsp(IMMND_CB *cb,
 	NCS_NODE_ID nodeId;
 	SaUint32T conn;
 
-	assert(evt);
+	osafassert(evt);
 	conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
@@ -7777,7 +7777,7 @@ void immnd_evt_ccb_augment_init(IMMND_CB *cb, IMMND_EVT *evt,
 	SaAisErrorT err = SA_AIS_OK;
 	NCS_NODE_ID nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 	SaUint32T conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
-	assert(evt);
+	osafassert(evt);
 	SaUint32T adminOwnerId = 0;
 	TRACE_ENTER();
 
@@ -7796,7 +7796,7 @@ void immnd_evt_ccb_augment_init(IMMND_CB *cb, IMMND_EVT *evt,
 		send_evt.info.imma.type = IMMA_EVT_ND2A_CCB_AUG_INIT_RSP;
 		send_evt.info.imma.info.admInitRsp.error = err;
 		if (err == SA_AIS_OK || err == SA_AIS_ERR_NO_SECTIONS) {
-			assert(adminOwnerId);
+			osafassert(adminOwnerId);
 			send_evt.info.imma.info.admInitRsp.ownerId = adminOwnerId;
 		}
 

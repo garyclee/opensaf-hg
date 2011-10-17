@@ -30,8 +30,8 @@
 #define IMMSV_MAX_ADMINOWNERS 2000
 #define IMMSV_MAX_CCBS 10000
 
-#define IMMSV_RSRV_SPACE_ASSERT(P,B,S) P=ncs_enc_reserve_space(B,S);assert(P)
-#define IMMSV_FLTN_SPACE_ASSERT(P,M,B,S) P=ncs_dec_flatten_space(B,M,S);assert(P)
+#define IMMSV_RSRV_SPACE_ASSERT(P,B,S) P=ncs_enc_reserve_space(B,S);osafassert(P)
+#define IMMSV_FLTN_SPACE_ASSERT(P,M,B,S) P=ncs_dec_flatten_space(B,M,S);osafassert(P)
 
 /* This array must match IMMD_EVT_TYPE */
 static const char *immd_evt_names[] = {
@@ -210,7 +210,7 @@ static void immsv_evt_enc_att_val(NCS_UBAID *o_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 
 	switch (t) {
 	case SA_IMM_ATTR_SANAMET:
-		assert(v->val.x.size <= SA_MAX_NAME_LENGTH);
+		osafassert(v->val.x.size <= SA_MAX_NAME_LENGTH);
 		/* Intentional fall through */
 	case SA_IMM_ATTR_SASTRINGT:
 		/* Intentional fall through */
@@ -265,7 +265,7 @@ static void immsv_evt_enc_att_val(NCS_UBAID *o_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 
 	default:
 		LOG_ER("Unrecognized IMM value type: %u", t);
-		assert(0);
+		osafassert(0);
 	}
 }
 
@@ -281,7 +281,7 @@ static void immsv_evt_dec_att_val(NCS_UBAID *i_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 	switch (t) {
 	case SA_IMM_ATTR_SANAMET:
 		/*
-		   assert((*opp)->paramBuffer.val.x.size <= SA_MAX_NAME_LENGTH);
+		   osafassert((*opp)->paramBuffer.val.x.size <= SA_MAX_NAME_LENGTH);
 		   Assume correct encoding
 		 */
 	case SA_IMM_ATTR_SASTRINGT:
@@ -336,7 +336,7 @@ static void immsv_evt_dec_att_val(NCS_UBAID *i_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 
 	default:
 		LOG_ER("Unrecognized IMM value type: %u", t);
-		assert(0);
+		osafassert(0);
 	}
 }
 
@@ -365,7 +365,7 @@ void immsv_evt_free_att_val(IMMSV_EDU_ATTR_VAL *p, SaImmValueTypeT t)
 	default:
 		TRACE_1("Incorrect value for SaImmValueTypeT:%u. "
 			"Did you forget to set the attrValueType member in a " "SaImmAttrValuesT value ?", t);
-		assert(0);
+		osafassert(0);
 	}
 }
 
@@ -440,7 +440,7 @@ static void immsv_evt_enc_attr_mod(NCS_UBAID *o_ub, IMMSV_ATTR_MODS_LIST *p)
 			--attrValuesNumber;
 		}
 	}
-	assert(!attrValuesNumber);
+	osafassert(!attrValuesNumber);
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
 	ncs_encode_8bit(&p8, (p->next) ? 1 : 0);
@@ -481,7 +481,7 @@ static void immsv_evt_enc_attribute(NCS_UBAID *o_ub, IMMSV_ATTR_VALUES_LIST *p)
 			--attrValuesNumber;
 		}
 	}
-	assert(!attrValuesNumber);
+	osafassert(!attrValuesNumber);
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
 	ncs_encode_8bit(&p8, (p->next) ? 1 : 0);
@@ -597,7 +597,7 @@ static void immsv_evt_dec_attrmods(NCS_UBAID *i_ub, IMMSV_ATTR_MODS_LIST **p)
 
 	if (depth >= IMMSV_MAX_ATTRIBUTES) {
 		LOG_ER("TOO MANY attribute modifications line:%u", __LINE__);
-		assert(depth < IMMSV_MAX_ATTRIBUTES);
+		osafassert(depth < IMMSV_MAX_ATTRIBUTES);
 	}
 }
 
@@ -656,7 +656,7 @@ static void immsv_evt_dec_attributes(NCS_UBAID *i_ub, IMMSV_ATTR_VALUES_LIST **p
 
 	if (depth >= IMMSV_MAX_ATTRIBUTES) {
 		LOG_ER("TOO MANY attributes line:%u", __LINE__);
-		assert(depth < IMMSV_MAX_ATTRIBUTES);
+		osafassert(depth < IMMSV_MAX_ATTRIBUTES);
 	}
 }
 
@@ -1261,7 +1261,7 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			int depth = 0;
 			/*Encode searchNext response */
 			IMMSV_OM_RSP_SEARCH_NEXT *sn = i_evt->info.imma.info.searchNextRsp;
-			assert(sn);
+			osafassert(sn);
 
 			IMMSV_OCTET_STRING *os = &(sn->objectName);
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
@@ -1587,7 +1587,7 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 					   and have no next marker.
 					 */
 					TRACE("Old OBJ_SYNC send case");
-					assert(obj_sync->next == NULL);
+					osafassert(obj_sync->next == NULL);
 					break;
 				}
 
@@ -1714,7 +1714,7 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 						      i_evt->info.immnd.info.searchInit.searchParam.choice.oneAttrParam.
 						      attrValueType);
 			} else {
-				assert(i_evt->info.immnd.info.searchInit.searchParam.present ==
+				osafassert(i_evt->info.immnd.info.searchInit.searchParam.present ==
 				       ImmOmSearchParameter_PR_NOTHING);
 			}
 
@@ -2674,7 +2674,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 		case IMMD_EVT_ND2D_FEVS_REQ:	/*Fake EVS over Director. */
 		case IMMD_EVT_ND2D_FEVS_REQ_2:
-			assert(sizeof(MDS_DEST) == 8);
+			osafassert(sizeof(MDS_DEST) == 8);
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
 			ncs_encode_64bit(&p8, immdevt->info.fevsReq.reply_dest);
 			ncs_enc_claim_space(o_ub, 8);

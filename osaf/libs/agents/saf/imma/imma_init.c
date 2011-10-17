@@ -143,10 +143,10 @@ static uint32_t imma_create(NCSMDS_SVC_ID sv_id)
 	}
 
 	if (cb->sv_id != 0) {
-		/*The assert below seems to occurr sometimes on some systems. */
+		/*The osafassert below seems to occurr sometimes on some systems. */
 		TRACE_4("cb->sv_id is NOT ZERO (%x) on first time entry IMMA svid:%x", cb->sv_id, sv_id);
 
-		assert(cb->sv_id == 0);
+		osafassert(cb->sv_id == 0);
 	}
 
 	cb->sv_id = sv_id;
@@ -214,7 +214,7 @@ static uint32_t imma_destroy(NCSMDS_SVC_ID sv_id)
 	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
 
 	/* Destroy the IMMA database */
-	assert(cb->sv_id == sv_id);
+	osafassert(cb->sv_id == sv_id);
 	cb->sv_id = 0;
 	imma_db_destroy(cb);
 
@@ -419,7 +419,7 @@ void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL *p, const SaImmValueTypeT attrValueTy
 		case SA_IMM_ATTR_SANAMET:
 			saNameTp = (SaNameT *)attrValue;
 			if (saNameTp) {
-				assert(saNameTp->length < SA_MAX_NAME_LENGTH);
+				osafassert(saNameTp->length < SA_MAX_NAME_LENGTH);
 				valueSize = strnlen((char *)saNameTp->value, SA_MAX_NAME_LENGTH) + 1;
 				if (saNameTp->length + 1 < valueSize) {
 					valueSize = saNameTp->length + 1;
@@ -552,7 +552,7 @@ SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType, IMMSV_E
 		case SA_IMM_ATTR_SANAMET:
 			saNameTp = (SaNameT *)retVal;
 			saNameTp->length = strnlen(attrValue->val.x.buf, attrValue->val.x.size);
-			assert(saNameTp->length <= SA_MAX_NAME_LENGTH);
+			osafassert(saNameTp->length <= SA_MAX_NAME_LENGTH);
 			memcpy(saNameTp->value, attrValue->val.x.buf, saNameTp->length);
 			break;
 
