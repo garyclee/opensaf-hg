@@ -3831,7 +3831,11 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
     }
     
     
-    TRACE_5("Ccb %u ABORTED", ccb->mId);
+    if(ccb->mMutations.empty()) {
+        TRACE_5("Ccb %u ABORTED", ccb->mId);
+    } else {
+        LOG_IN("Ccb %u ABORTED", ccb->mId);
+    }
     ccb->mState = IMM_CCB_ABORTED;
     ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
     ccb->mWaitStartTime = 0;
@@ -6036,7 +6040,7 @@ ImmModel::ccbWaitForDeleteImplAck(SaUint32T ccbId, SaAisErrorT* err)
     CcbVector::iterator i1;
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
-        LOG_WA("CCb %u terminated during ccbCompleted processing, "
+        LOG_WA("CCb %u terminated during ccbObjectDelete processing, "
             "ccb must be aborted", ccbId);
         return false;
     }
@@ -8804,8 +8808,8 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
 
     osafassert(err == SA_AIS_OK);
     classInfo->mImplementer = info;
-    TRACE_5("implementer for class '%s' is %s", className.c_str(),
-        info->mImplementerName.c_str());
+    LOG_IN("implementer for class '%s' is %s => class extent is safe.",
+        className.c_str(), info->mImplementerName.c_str());
     /*ABT090225
       classImplementerSet and objectImplementerSet
       are mutually exclusive. This has not been 
@@ -8999,7 +9003,8 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
         }
     }
 
-    TRACE_5("implementer for class '%s' is released", className.c_str());
+    LOG_NO("implementer for class '%s' is released => class extent is UNSAFE",
+        className.c_str());
     for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
         (*os)->mImplementer = 0; this->clearImplName(*os);
     }
@@ -10063,7 +10068,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                            objectName.c_str(), info->mImplementerName.c_str());
             }
         } else {/* !isPersistent i.e. normal RTO */
-            TRACE_7("Create runtime object '%s' by Impl id: %u",
+            LOG_IN("Create runtime object '%s' by Impl id: %u",
                 objectName.c_str(), info->mId);
         }
         
@@ -11207,7 +11212,7 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
                     "runtime object '%s'", oi->first.c_str());
             }
         } else {
-            TRACE_7("Delete runtime object '%s' by Impl-id: %u", 
+            LOG_IN("Delete runtime object '%s' by Impl-id: %u", 
                 oi->first.c_str(), info?(info->mId):0);
         }
 
@@ -12163,9 +12168,9 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 ClassInfo* ci = i3->second;
 
                 if((int) ci->mExtent.size() != (int) ioci->nrofInstances) {
-                        LOG_ER(" ci->mExtent.size <%d> != ioci->nrofInstances <%d>",
-                            (int) ci->mExtent.size(), (int) ioci->nrofInstances);
-                        abort();
+                    LOG_ER(" ci->mExtent.size <%d> != ioci->nrofInstances <%d> for class:%s",
+                        (int) ci->mExtent.size(), (int) ioci->nrofInstances, className.c_str());
+                    abort();
                 }
 
                 if(ioci->classImplName.size) {
@@ -12174,9 +12179,20 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     std::string clImplName((char *) ioci->classImplName.buf, 
                         sz);
                     ImplementerInfo* impl = findImplementer(clImplName);
-                    osafassert(impl);
-                    osafassert(ci->mImplementer);
-                    osafassert(ci->mImplementer == impl);
+                    if(!impl) {
+                        LOG_ER("Implemener missing for impl-name:%s", clImplName.c_str());
+                        osafassert(impl);
+                    }
+                    if(!(ci->mImplementer)) {
+                        LOG_ER("Class %s has no current implementer set", className.c_str());
+                        osafassert(ci->mImplementer);
+                    }
+                    if(!(ci->mImplementer == impl)) {
+                        LOG_ER("class %s has implementer %s set should have been %s",
+                            className.c_str(), ci->mImplementer->mImplementerName.c_str(),
+                            impl->mImplementerName.c_str());
+                        osafassert(ci->mImplementer == impl);
+                    }
                 }
                 ++classCount;
                 ioci = ioci->next;
@@ -12193,7 +12209,11 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     ++gone;
                 } else {
                     CcbInfo* ccb = *i1;
-                    osafassert(ccb->mState == (ImmCcbState) ol->ccbState);
+                    if(ccb->mState != (ImmCcbState) ol->ccbState) {
+                        LOG_ER("ccb->mState:%u  !=  ol->ccbState:%u for CCB:%u",
+                            ccb->mState, ol->ccbState, ccb->mId);
+                        osafassert(ccb->mState == (ImmCcbState) ol->ccbState);
+                    }
                     ++verified;
                     /*
                         TRACE_5("CCB %u verified with state %s", ccb->mId, 
