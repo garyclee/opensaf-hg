@@ -213,6 +213,16 @@ int smfnd_remote_cmd(const char *i_cmd, MDS_DEST i_smfnd_dest, uint32_t i_timeou
 	SMFSV_EVT *cmd_rsp;
 	uint32_t rc;
 
+	/* If i_cmd is empty, do nothing just return OK
+           This have two purposes:
+	   1) Handle the case the campaign writer specify an empty string, which is allowed in the xml schema.
+           2) Make it possible to specify e.g. a "doCliCommand" together with an empty "undoCliCommand"
+	*/
+	if((i_cmd == NULL) || (*i_cmd == 0)) {
+		TRACE("Empty remote command, continue");
+		return 0;
+	}
+
 	cmd_req.type = SMFSV_EVT_TYPE_SMFND;
 	cmd_req.info.smfnd.type = SMFND_EVT_CMD_REQ;
 	cmd_req.info.smfnd.event.cmd_req.cmd = (char *)i_cmd;
