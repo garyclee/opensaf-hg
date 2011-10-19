@@ -39,9 +39,72 @@ static uint32_t mdtm_del_reassemble_queue(uint32_t seq_num, MDS_DEST id);
  ****************************************************************************/
 uint32_t mdtm_process_reassem_timer_event(uint32_t seq_num, MDS_DEST id)
 {
-	uint32_t status = 0;
-	status = mdtm_del_reassemble_queue(seq_num, id);
-	return status;
+	/*
+	   STEP 1: Check whether an entry is present with the seq_num and id,
+	   If present
+	   delete the node
+	   return success
+	   else
+	   return failure
+	 */
+
+	MDTM_REASSEMBLY_QUEUE *reassem_queue = NULL;
+	MDTM_REASSEMBLY_KEY reassembly_key;
+	MDS_DEST lcl_adest = 0;
+
+	memset(&reassembly_key, 0, sizeof(reassembly_key));
+
+	reassembly_key.frag_sequence_num = seq_num;
+	reassembly_key.id = id;
+	reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_get(&mdtm_reassembly_list, (uint8_t *)&reassembly_key);
+
+	if (reassem_queue == NULL) {
+		m_MDS_LOG_DBG("MDTM: Empty Reassembly queue, No Matching found\n");
+		return NCSCC_RC_FAILURE;
+	}
+
+	if (reassem_queue->tmr_info != NULL) {
+		mdtm_free_reassem_msg_mem(&reassem_queue->recv.msg);	/* Found During MSG Size bug Fix */
+		m_NCS_TMR_STOP(reassem_queue->tmr);
+		m_NCS_TMR_DESTROY(reassem_queue->tmr);
+		reassem_queue->tmr_info = NULL;
+	}
+	ncs_patricia_tree_del(&mdtm_reassembly_list, (NCS_PATRICIA_NODE *)reassem_queue);
+
+	/* Increment the count and send a message loss event */
+	/* Convert the TIPC id to ADEST, if TIPC is transport */
+	if (MDTM_TX_TYPE_TIPC == mdtm_transport) {
+		uint32_t node_status = 0;
+		node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE((uint32_t)(id >> 32));
+
+		if (NCSCC_RC_SUCCESS == node_status) {
+			lcl_adest =
+			    ((((uint64_t)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID((NODE_ID)(id >> 32)))) << 32) |
+			     (uint32_t)(id));
+		} else {
+			/* This case should never arise, as the check is present 
+				before adding to reassembly queue */
+			m_MDS_LOG_ERR
+			    ("MDTM: TIPC NODEid is not in the prescribed range=0x%08x",
+			     (NODE_ID)(id >> 32));
+			m_MMGR_FREE_REASSEM_QUEUE(reassem_queue);
+			assert(0);
+			return NCSCC_RC_SUCCESS;
+		}
+	} else if (MDTM_TX_TYPE_TCP == mdtm_transport) {
+		lcl_adest = id;
+	} else {
+		m_MDS_LOG_ERR("MDTM: unsupported transport =%d", mdtm_transport);
+		abort();
+	}
+	mds_incr_subs_res_recvd_msg_cnt(reassem_queue->recv.dest_svc_hdl, 
+			reassem_queue->recv.src_svc_id, reassem_queue->recv.src_vdest, 
+			lcl_adest, reassem_queue->recv.src_seq_num);
+	mds_mcm_msg_loss(reassem_queue->recv.dest_svc_hdl, lcl_adest, 
+			reassem_queue->recv.src_svc_id, reassem_queue->recv.src_vdest);
+
+	m_MMGR_FREE_REASSEM_QUEUE(reassem_queue);
+	return NCSCC_RC_SUCCESS;
 }
 
 /*********************************************************
@@ -264,21 +327,6 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 			return NCSCC_RC_FAILURE;
 		}
 
-		if (mds_svc_tbl_get_role(dest_svc_hdl) != NCSCC_RC_SUCCESS) {
-			switch (msg_snd_type) {
-			case MDS_SENDTYPE_SND:
-			case MDS_SENDTYPE_SNDRSP:
-			case MDS_SENDTYPE_SNDACK:
-			case MDS_SENDTYPE_BCAST:
-				m_MDS_LOG_ERR
-				    ("MDTM: Recd Message SVC is in standby so dropping the message:Dest-Svc = %d,%d\n",
-				     dest_svc_id, dest_vdest_id);
-				return NCSCC_RC_FAILURE;
-				break;
-			default:
-				break;
-			}
-		}
 
 		data = NULL;
 		data = &buffer[MDS_HEADER_MSG_TYPE_POSITION];
@@ -290,15 +338,6 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 			m_MDS_LOG_ERR("MDTM: Encoding unsupported, adest=<0x%016llx>\n", transport_adest);
 			return NCSCC_RC_FAILURE;
 		}
-
-		/* Allocate the memory for reassem_queue */
-		reassem_queue = m_MMGR_ALLOC_REASSEM_QUEUE;
-
-		if (reassem_queue == NULL) {
-			m_MDS_LOG_ERR("MDTM: Memory allocation failed for reassem_queue\n");
-			return NCSCC_RC_FAILURE;
-		}
-		memset(reassem_queue, 0, sizeof(MDTM_REASSEMBLY_QUEUE));
 
 		data = NULL;
 		data = &buffer[MDS_HEADER_SNDR_VDEST_ID_POSITION];
@@ -314,6 +353,34 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 		data = &buffer[MDS_HEADER_SEQ_NUM_POSITION];
 
 		svc_seq_num = ncs_decode_32bit(&data);
+
+		if (mds_svc_tbl_get_role(dest_svc_hdl) != NCSCC_RC_SUCCESS) {
+			switch (msg_snd_type) {
+			case MDS_SENDTYPE_SND:
+			case MDS_SENDTYPE_SNDRSP:
+			case MDS_SENDTYPE_SNDACK:
+			case MDS_SENDTYPE_BCAST:
+				m_MDS_LOG_ERR
+				    ("MDTM: Recd Message SVC is in standby so dropping the message:Dest-Svc = %d,%d\n",
+				     dest_svc_id, dest_vdest_id);
+				/* Increment the recd counter as this is normal */
+				mds_incr_subs_res_recvd_msg_cnt(dest_svc_hdl, src_svc_id, 
+						src_vdest_id, adest, svc_seq_num);
+				return NCSCC_RC_FAILURE;
+				break;
+			default:
+				break;
+			}
+		}
+
+		/* Allocate the memory for reassem_queue */
+		reassem_queue = m_MMGR_ALLOC_REASSEM_QUEUE;
+
+		if (reassem_queue == NULL) {
+			m_MDS_LOG_ERR("MDTM: Memory allocation failed for reassem_queue\n");
+			return NCSCC_RC_FAILURE;
+		}
+		memset(reassem_queue, 0, sizeof(MDTM_REASSEMBLY_QUEUE));
 
 		reassem_queue->key.id = transport_adest;
 
@@ -355,6 +422,7 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 		reassem_queue->recv.msg.encoding = enc_type;
 		reassem_queue->recv.pri = (prot_ver & MDTM_PRI_MASK) + 1;
 		reassem_queue->recv.snd_type = msg_snd_type;
+		reassem_queue->recv.src_seq_num = svc_seq_num;
 
 		m_MDS_LOG_DBG("MDTM: Recd Unfragmented message with SVC Seq num =%d, from src_Tipc_id=<%llx>",
 			      svc_seq_num, transport_adest);
@@ -474,22 +542,6 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 			return NCSCC_RC_FAILURE;
 		}
 
-		if (mds_svc_tbl_get_role(dest_svc_hdl) != NCSCC_RC_SUCCESS) {
-			switch (msg_snd_type) {
-			case MDS_SENDTYPE_SND:
-			case MDS_SENDTYPE_SNDRSP:
-			case MDS_SENDTYPE_SNDACK:
-			case MDS_SENDTYPE_BCAST:
-				m_MDS_LOG_ERR
-				    ("MDTM: Recd Message SVC is in standby so dropping the message:Dest-Svc = %d,%d\n",
-				     dest_svc_id, dest_vdest_id);
-				return NCSCC_RC_FAILURE;
-				break;
-			default:
-				break;
-			}
-		}
-
 		data = NULL;
 		data = &buffer[MDS_HEADER_MSG_TYPE_POSITION + MDTM_FRAG_HDR_LEN];
 
@@ -505,12 +557,6 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 		data = buffer;
 
 		seq_num = ncs_decode_32bit(&data);
-		reassem_queue = mdtm_add_reassemble_queue(seq_num, transport_adest);
-
-		if (reassem_queue == NULL) {
-			m_MDS_LOG_ERR("MDTM: New reassem queue creation failed\n");
-			return NCSCC_RC_FAILURE;
-		}
 
 		data = NULL;
 		data = &buffer[MDS_HEADER_SNDR_VDEST_ID_POSITION + MDTM_FRAG_HDR_LEN];
@@ -526,6 +572,32 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 		data = &buffer[MDS_HEADER_SEQ_NUM_POSITION + MDTM_FRAG_HDR_LEN];
 
 		svc_seq_num = ncs_decode_32bit(&data);
+
+		if (mds_svc_tbl_get_role(dest_svc_hdl) != NCSCC_RC_SUCCESS) {
+			switch (msg_snd_type) {
+			case MDS_SENDTYPE_SND:
+			case MDS_SENDTYPE_SNDRSP:
+			case MDS_SENDTYPE_SNDACK:
+			case MDS_SENDTYPE_BCAST:
+				m_MDS_LOG_ERR
+				    ("MDTM: Recd Message SVC is in standby so dropping the message:Dest-Svc = %d,%d\n",
+				     dest_svc_id, dest_vdest_id);
+				/* Increment the recd counter as this is normal */
+				mds_incr_subs_res_recvd_msg_cnt(dest_svc_hdl, src_svc_id, 
+						src_vdest_id, adest, svc_seq_num);
+				return NCSCC_RC_FAILURE;
+				break;
+			default:
+				break;
+			}
+		}
+
+		reassem_queue = mdtm_add_reassemble_queue(seq_num, transport_adest);
+
+		if (reassem_queue == NULL) {
+			m_MDS_LOG_ERR("MDTM: New reassem queue creation failed\n");
+			return NCSCC_RC_FAILURE;
+		}
 
 		reassem_queue->key.id = transport_adest;
 
@@ -570,6 +642,7 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 		reassem_queue->recv.pri = (prot_ver & MDTM_PRI_MASK) + 1;
 		reassem_queue->to_be_dropped = false;
 		reassem_queue->recv.snd_type = msg_snd_type;
+		reassem_queue->recv.src_seq_num = svc_seq_num;
 
 		m_MDS_LOG_INFO("MDTM: Reassembly started\n");
 

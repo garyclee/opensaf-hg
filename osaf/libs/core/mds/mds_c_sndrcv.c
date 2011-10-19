@@ -340,7 +340,7 @@ static uint32_t mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_
 
 uint32_t mds_await_active_tbl_add(MDS_SUBSCRIPTION_RESULTS_INFO *info, MDTM_SEND_REQ req);
 uint32_t mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue);
-uint32_t mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *queue, MDS_DEST adest);
+uint32_t mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *queue, MDS_DEST adest, MDS_SVC_HDL svc_hdl);
 
 /* For deleting a single node entry in await active, when timeout occurs before the noactive timer expires*/
 static uint32_t mds_await_active_tbl_del_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID fr_svc_id, uint32_t xch_id,
@@ -1113,6 +1113,7 @@ static uint32_t mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_
 	MDS_DATA_RECV recv;
 	MDS_MCM_SYNC_SEND_QUEUE *result;
 	MDS_BCAST_BUFF_LIST *bcast_ptr = NULL;
+	MDS_SUBSCRIPTION_RESULTS_INFO *lcl_subtn_res = NULL;
 	m_MDS_LOG_DBG("MDS_SND_RCV : Entering mcm_msg_cpy_send\n");
 
 	pwe_id = m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_cb->svc_hdl);
@@ -1227,7 +1228,11 @@ static uint32_t mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_
 	req.pri = pri;
 	req.to = to;
 	req.src_svc_id = svc_cb->svc_id;
-	req.svc_seq_num = ++svc_cb->seq_no;
+	
+	/* Get the subtn res tbl send cnt */
+	mds_get_subtn_res_tbl_by_adest(svc_cb->svc_hdl, to_svc_id,
+			dest_vdest_id, dest, &lcl_subtn_res);
+	req.svc_seq_num = lcl_subtn_res->msg_snd_cnt++;
 	req.src_pwe_id = m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_cb->svc_hdl);
 	req.src_vdest_id = m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_cb->svc_hdl);
 	req.src_adest = m_MDS_GET_ADEST;
@@ -1284,6 +1289,7 @@ static uint32_t mcm_msg_direct_send_buff(uint8_t to, MDS_DIRECT_BUFF_INFO buff_i
 				      MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
 	MDTM_SEND_REQ req;
+	MDS_SUBSCRIPTION_RESULTS_INFO *lcl_subtn_res = NULL;
 
 	/* Filling all the parameters */
 	memset(&req, 0, sizeof(req));
@@ -1294,7 +1300,11 @@ static uint32_t mcm_msg_direct_send_buff(uint8_t to, MDS_DIRECT_BUFF_INFO buff_i
 	req.msg.data.buff_info.len = buff_info.len;
 	req.msg.encoding = MDS_ENC_TYPE_DIRECT_BUFF;
 	req.to = to;
-	req.svc_seq_num = ++svc_cb->seq_no;
+
+	/* Get the destination sub res table entry and fill the send cnt */
+	mds_get_subtn_res_tbl_by_adest(svc_cb->svc_hdl, to_svc_id,
+					dest_vdest_id, adest, &lcl_subtn_res);
+	req.svc_seq_num = lcl_subtn_res->msg_snd_cnt++;
 	req.src_svc_id = svc_cb->svc_id;
 	req.src_pwe_id = m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_cb->svc_hdl);
 	req.src_vdest_id = m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_cb->svc_hdl);
@@ -1335,6 +1345,8 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 
 	MDTM_SEND_REQ msg_send;
 	MDS_BCAST_BUFF_LIST *bcast_ptr = NULL;
+	MDS_SUBSCRIPTION_RESULTS_INFO *lcl_subtn_res = NULL;
+
 	memset(&msg_send, 0, sizeof(msg_send));
 
 	m_MDS_LOG_DBG("MDS_SND_RCV : Entering mcm_msg_encode_full_or_flat_and_send\n");
@@ -1456,7 +1468,11 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 	/* Add the remaining values */
 	msg_send.pri = pri;
 	msg_send.to = to;
-	msg_send.svc_seq_num = ++svc_cb->seq_no;
+
+	/* Get the destination sub res table entry and fill the send cnt */
+	mds_get_subtn_res_tbl_by_adest(svc_cb->svc_hdl, to_svc_id,
+			dest_vdest_id, adest, &lcl_subtn_res);
+	msg_send.svc_seq_num = lcl_subtn_res->msg_snd_cnt++;
 	msg_send.src_svc_id = svc_cb->svc_id;
 	msg_send.src_pwe_id = m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_cb->svc_hdl);
 	msg_send.src_vdest_id = m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_cb->svc_hdl);
@@ -2056,7 +2072,7 @@ static uint32_t mcm_process_await_active(MDS_SVC_INFO *svc_cb, MDS_SUBSCRIPTION_
 	req.src_adest = m_MDS_GET_ADEST;
 	req.snd_type = snd_type;
 	req.xch_id = xch_id;
-	req.svc_seq_num = ++svc_cb->seq_no;
+	req.svc_seq_num = ++svc_cb->seq_no; /* Updated again when actual send is attempted */
 	req.dest_svc_id = to_svc_id;
 	req.dest_pwe_id = req.src_pwe_id;
 	req.dest_vdest_id = to_vdest;
@@ -4013,6 +4029,29 @@ uint32_t mds_mcm_ll_data_rcv(MDS_DATA_RECV *recv)
 		/* log: MESSAGE Dropped */
 		m_MDS_LOG_ERR("MDS_SND_RCV: Message is being dropped as the destination Service doesnt exists\n");
 		return NCSCC_RC_FAILURE;
+	}
+
+	/* For the message loss indication */
+	if ((true == svccb->i_msg_loss_indication) && 
+			((recv->snd_type != MDS_SENDTYPE_ACK) || (recv->snd_type != MDS_SENDTYPE_RACK) )) {
+		/* Get the subscription table result table function pointer */
+		MDS_SUBSCRIPTION_RESULTS_INFO *lcl_subtn_res = NULL;
+		if ( NCSCC_RC_SUCCESS == mds_get_subtn_res_tbl_by_adest(recv->dest_svc_hdl, recv->src_svc_id,
+					recv->src_vdest, recv->src_adest, &lcl_subtn_res) ) {
+			if (recv->src_seq_num != lcl_subtn_res->msg_rcv_cnt) {
+				m_MDS_LOG_ERR
+					("MDS_SND_RCV: msg loss detected, Src SVC=%d, Src vdest id= %d, Src adest=%llu, local svc id=%d msg num=%d, recvd cnt=%d\n", recv->src_svc_id, recv->src_vdest, recv->src_adest, svccb->svc_id, recv->src_seq_num, lcl_subtn_res->msg_rcv_cnt);
+				
+				mds_mcm_msg_loss(recv->dest_svc_hdl, recv->src_adest, 
+					recv->src_svc_id, recv->src_vdest);
+				lcl_subtn_res->msg_rcv_cnt = recv->src_seq_num;
+				lcl_subtn_res->msg_rcv_cnt++;
+			} else {
+				lcl_subtn_res->msg_rcv_cnt++;
+			}
+		} else {
+			m_MDS_LOG_INFO("MDS_SND_RCV: msg loss enabled but no subcription exists\n");
+		}
 	}
 
 	switch (recv->snd_type) {
@@ -6125,11 +6164,13 @@ static uint32_t mds_validate_svc_cb(MDS_SVC_INFO *svc_cb, MDS_SVC_HDL svc_hdl, M
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-uint32_t mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *hdr, MDS_DEST adest)
+uint32_t mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *hdr, 
+				MDS_DEST adest, MDS_SVC_HDL svc_hdl)
 {
 	MDS_AWAIT_ACTIVE_QUEUE *queue, *mov_ptr = NULL;
 	MDTM_SEND_REQ req;
 	uint8_t to;
+	MDS_SUBSCRIPTION_RESULTS_INFO *lcl_subtn_res = NULL;
 
 	memset(&req, 0, sizeof(req));
 	mcm_query_for_node_dest(adest, &to);
@@ -6143,6 +6184,9 @@ uint32_t mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *hdr, MDS_DEST adest)
 	while (queue != NULL) {
 		req = queue->req;
 		req.to = to;
+		mds_get_subtn_res_tbl_by_adest(svc_hdl, req.dest_svc_id,
+				req.dest_vdest_id, adest, &lcl_subtn_res);
+		req.svc_seq_num = lcl_subtn_res->msg_snd_cnt++;
 		req.adest = adest;
 		mds_mdtm_send(&req);
 		mov_ptr = queue;
