@@ -106,6 +106,7 @@ typedef struct mds_data_recv {
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver;	/* message format version specification */
 	MDS_SVC_PVT_SUB_PART_VER src_svc_sub_part_ver;
 	MDS_SVC_ARCHWORD_TYPE msg_arch_word;
+	uint32_t src_seq_num;
 
 } MDS_DATA_RECV;
 
@@ -401,8 +402,14 @@ extern uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id);
 /* VDEST UP */
 extern uint32_t mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest);
 
-					/* VDEST DOWN */	/* Presently Discarded */
+/* VDEST DOWN */	/* Presently Discarded */
 extern uint32_t mds_mcm_vdest_down(MDS_VDEST_ID vdest_id, MDS_DEST adest);
+
+/* Msg loss */
+extern void mds_mcm_msg_loss(MDS_SVC_HDL local_svc_hdl, MDS_DEST rem_adest, 
+			MDS_SVC_ID rem_svc_id, MDS_VDEST_ID rem_vdest_id);
+extern void mds_incr_subs_res_recvd_msg_cnt (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, 
+		MDS_VDEST_ID vdest_id,  MDS_DEST adest, uint32_t src_seq_num);
 
 /* Timer expiry functions of MCM */
 
@@ -428,7 +435,7 @@ extern uint32_t mds_svc_tbl_get(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSCONTE
 extern uint32_t mds_svc_tbl_get_role(MDS_SVC_HDL svc_hdl);	/*  returns 0 or 1 */
 extern uint32_t mds_svc_tbl_get_svc_hdl(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, MDS_SVC_HDL *svc_hdl);
 /* AWAIT ACTIVE TABLE Operations */
-extern uint32_t mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *queue, MDS_DEST adest);
+extern uint32_t mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *queue, MDS_DEST adest, MDS_SVC_HDL svc_hdl);
 extern uint32_t mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue);
 
 /* Adding Subscription */

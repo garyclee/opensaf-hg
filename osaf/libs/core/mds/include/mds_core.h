@@ -148,6 +148,8 @@ typedef struct mds_subscription_results_info {
 	} info;
 	MDS_SVC_PVT_SUB_PART_VER rem_svc_sub_part_ver;
 	MDS_SVC_ARCHWORD_TYPE rem_svc_arch_word;
+	uint32_t  msg_snd_cnt;			/* Message send count to this destination */
+	uint32_t  msg_rcv_cnt;			/* Message rcv count from this destination */
 
 } MDS_SUBSCRIPTION_RESULTS_INFO;
 
@@ -261,6 +263,7 @@ typedef struct mds_svc_info {
 						   in No-Active state, else dropped */
 	bool i_node_subscr;	/* suscription to node */
 	MDS_SUBTN_REF_VAL node_subtn_ref_val;  
+	bool i_msg_loss_indication;	/* message loss indication if set to 1 */
 } MDS_SVC_INFO;
 
 MDS_SVC_INFO *mds_get_svc_info_by_hdl(MDS_SVC_HDL hdl);
@@ -421,7 +424,9 @@ extern uint32_t mds_subtn_res_tbl_del(MDS_SVC_HDL svc_hdl, MDS_SVC_ID svc_id,
 				   MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type);
 extern uint32_t mds_subtn_res_tbl_query(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_VDEST_ID vdest_id);
 extern uint32_t mds_subtn_res_tbl_query_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
-					      MDS_VDEST_ID vdest_id, MDS_DEST adest);
+			      MDS_VDEST_ID vdest_id, MDS_DEST adest);
+extern uint32_t mds_get_subtn_res_tbl_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
+		       MDS_VDEST_ID vdest_id, MDS_DEST adest, MDS_SUBSCRIPTION_RESULTS_INFO **result);
 extern uint32_t mds_subtn_res_tbl_change_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 					     MDS_VDEST_ID vdest_id, MDS_SUBSCRIPTION_RESULTS_INFO *active_result,
 					     MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver,

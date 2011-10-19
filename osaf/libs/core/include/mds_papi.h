@@ -397,6 +397,10 @@ extern "C" {
 							   in No-Active state, else dropped.
 							   A return value of MDS_RC_MSG_NO_BUFFERING 
 							   will be returned when this member is set to 1 */
+		bool i_msg_loss_indication;	/* When this member is set to 1 and if any message is lost for 
+								this service , a callback of type 
+								MDS_CALLBACK_MSG_LOSS is 
+								delivered to application */ 
 	} MDS_INSTALL_INFO;
 
 	typedef void (*MDS_Q_MSG_FREE_CB) (NCSCONTEXT msg_to_be_freed);
@@ -626,6 +630,7 @@ extern "C" {
 		MDS_CALLBACK_QUIESCED_ACK = 8,	/* Acknowledgement of quiesced action */
 		MDS_CALLBACK_DIRECT_RECEIVE = 9,
 		MDS_CALLBACK_NODE_EVENT = 10,
+		MDS_CALLBACK_MSG_LOSS = 11,
 
 		MDS_CALLBACK_SVC_MAX
 	} NCSMDS_CALLBACK_TYPE;
@@ -813,6 +818,16 @@ unpack individual structure members. */
 		NODE_ID node_id;
 	} MDS_CALLBACK_NODE_EVENT_INFO;
 
+	typedef struct mds_callback_msg_loss_event_info {
+		/* MDS uses the following callback to inform an MDS-client that 
+		   a message has been lost from the following service, pwe id and adest 
+		 */
+		MDS_DEST i_dest; /* Senders ADEST value */
+		PW_ENV_ID i_pwe_id;	/* Senders PWE value */
+		MDS_SVC_ID i_svc_id;    /* Senders Service ID  */
+		MDS_VDEST_ID i_vdest_id; /* Senders vdest id */
+	} MDS_CALLBACK_MSG_LOSS_EVENT_INFO;
+
 	typedef struct ncsmds_callback_info {
 		MDS_CLIENT_HDL i_yr_svc_hdl;	/* Handle to MDS Client's context */
 		MDS_SVC_ID i_yr_svc_id;	/* Service ID of yourself         */
@@ -829,6 +844,7 @@ unpack individual structure members. */
 			MDS_CALLBACK_SYS_EVENT_INFO sys_evt;
 			MDS_CALLBACK_QUIESCED_ACK_INFO quiesced_ack;
 			MDS_CALLBACK_NODE_EVENT_INFO node_evt;
+			MDS_CALLBACK_MSG_LOSS_EVENT_INFO  msg_loss_evt;
 		} info;
 	} NCSMDS_CALLBACK_INFO;
 

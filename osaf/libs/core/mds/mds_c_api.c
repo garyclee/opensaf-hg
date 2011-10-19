@@ -3090,6 +3090,86 @@ uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id)
 
 /*********************************************************
 
+  Function NAME: mds_mcm_msg_loss
+
+  DESCRIPTION:
+
+  ARGUMENTS: 
+
+  RETURNS:  1 - NCSCC_RC_SUCCESS
+            2 - NCSCC_RC_FAILURE
+
+*********************************************************/
+void mds_mcm_msg_loss(MDS_SVC_HDL local_svc_hdl, MDS_DEST rem_adest, 
+			MDS_SVC_ID rem_svc_id, MDS_VDEST_ID rem_vdest_id)
+
+{
+	MDS_MCM_MSG_ELEM *event_msg = NULL;
+	MDS_SVC_INFO *local_svc_info = NULL;
+	NCSMDS_CALLBACK_INFO *cbinfo = NULL;
+
+	/* Get Service info cb */
+	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
+						m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
+						(NCSCONTEXT)&local_svc_info)) {
+		/* Service Doesn't exist */
+		m_MDS_LOG_ERR(" SVC doesnt exists, returning from mds_mcm_msg_loss\n");
+		return;
+	}
+
+	/* Check whether the msg loss is enabled or not */
+	if ( true != local_svc_info->i_msg_loss_indication ) {
+		m_MDS_LOG_INFO(" MSG loss not enbaled mds_mcm_msg_loss\n");
+		return;
+	}
+
+	event_msg = m_MMGR_ALLOC_MSGELEM;
+	if (event_msg == NULL) {
+		m_MDS_LOG_ERR("mds_mcm_msg_loss out of memory\n");
+		return;
+	}
+	memset(event_msg, 0, sizeof(MDS_MCM_MSG_ELEM));
+	event_msg->type = MDS_EVENT_TYPE;
+	event_msg->pri = MDS_SEND_PRIORITY_MEDIUM;
+
+	/* Temp ptr to cbinfo in event_msg */
+	cbinfo = &event_msg->info.event.cbinfo;	/* NOTE: Aliased pointer */
+
+	cbinfo->i_op = MDS_CALLBACK_MSG_LOSS;
+	cbinfo->i_yr_svc_hdl = local_svc_info->yr_svc_hdl;
+	cbinfo->i_yr_svc_id = local_svc_info->svc_id;
+
+	cbinfo->info.msg_loss_evt.i_dest = rem_adest;
+	cbinfo->info.msg_loss_evt.i_pwe_id = m_MDS_GET_PWE_ID_FROM_SVC_HDL(local_svc_hdl);
+	cbinfo->info.msg_loss_evt.i_svc_id = rem_svc_id;
+	cbinfo->info.msg_loss_evt.i_vdest_id = rem_vdest_id;
+
+	/* Post to mail box If Q Ownership is enabled Else Call user callback */
+	if (local_svc_info->q_ownership == true) {
+
+		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg, NCS_IPC_PRIORITY_NORMAL)) != NCSCC_RC_SUCCESS) {
+			/* Message Queuing failed */
+			m_MMGR_FREE_MSGELEM(event_msg);
+			m_MDS_LOG_ERR("SVC Mailbox IPC_SEND : MSG LOSS EVENT : FAILED\n");
+			m_MDS_LOG_DBG("MCM_API : Leaving : F : mds_mcm_msg_loss");
+			return ;
+		} else {
+			m_MDS_LOG_INFO("SVC mailbox IPC_SEND : MSG LOSS EVENT : Success\n");
+			m_MDS_LOG_DBG("MCM_API : Leaving : S : mds_mcm_msg_loss");
+			return ;
+		}
+	} else {
+		/* Call user callback */
+		local_svc_info->cback_ptr(cbinfo);
+		m_MMGR_FREE_MSGELEM(event_msg);
+	}
+	m_MDS_LOG_DBG("MCM_API : Leaving : S : status : mds_mcm_msg_loss");
+	return ;
+}
+
+
+/*********************************************************
+
   Function NAME: mds_mcm_vdest_up
 
   DESCRIPTION:

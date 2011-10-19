@@ -559,6 +559,7 @@ uint32_t mds_svc_tbl_add(NCSMDS_INFO *info)
 	svc_info->parent_vdest_info = parent_vdest_info;
 	svc_info->svc_sub_part_ver = info->info.svc_install.i_mds_svc_pvt_ver;
 	svc_info->i_fail_no_active_sends = info->info.svc_install.i_fail_no_active_sends;
+	svc_info->i_msg_loss_indication = info->info.svc_install.i_msg_loss_indication;
 
 	if (svc_info->q_ownership == 1) {
 		if (m_NCS_IPC_CREATE(&svc_info->q_mbx) != NCSCC_RC_SUCCESS) {
@@ -1526,7 +1527,7 @@ uint32_t mds_subtn_res_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 					/* Send Pending messages in Await Active queue */
 					mds_await_active_tbl_send
 					    (active_subtn_res_info->info.active_vdest.active_route_info->
-					     await_active_queue, adest);
+					     await_active_queue, adest, svc_hdl);
 
 					/* Make await active header ptr null */
 					active_subtn_res_info->info.active_vdest.active_route_info->await_active_queue =
@@ -1646,6 +1647,54 @@ uint32_t mds_subtn_res_tbl_query_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr
 }
 
 /*********************************************************
+  Function NAME: mds_get_subtn_res_tbl_by_adest
+*********************************************************/
+uint32_t mds_get_subtn_res_tbl_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
+		MDS_VDEST_ID vdest_id, MDS_DEST adest, MDS_SUBSCRIPTION_RESULTS_INFO **result)
+{
+	MDS_SUBSCRIPTION_RESULTS_INFO *subtn_res_info;
+	MDS_SUBSCRIPTION_RESULTS_KEY subtn_res_key;
+
+	memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+
+	subtn_res_key.svc_hdl = svc_hdl;
+	subtn_res_key.sub_svc_id = subscr_svc_id;
+	subtn_res_key.vdest_id = vdest_id;
+	subtn_res_key.adest = adest;
+
+	m_MDS_LOG_DBG("MCM_DB : Entering : mds_get_subtn_res_tbl_by_adest");
+
+	subtn_res_info =
+		(MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->subtn_results,
+				(uint8_t *)&subtn_res_key);
+	if (subtn_res_info == NULL) {
+		/* Subscription result entry doesn't exist */
+		*result = NULL;
+		m_MDS_LOG_DBG
+			("MCM_DB : Leaving : F : mds_get_subtn_res_tbl_by_adest : Subscription Result not present");
+		return NCSCC_RC_FAILURE;
+	} else {
+		*result = subtn_res_info;
+		m_MDS_LOG_DBG("MCM_DB : Leaving : S : mds_get_subtn_res_tbl_by_adest");
+		return NCSCC_RC_SUCCESS;
+	}
+}
+
+/*********************************************************
+  Function NAME: mds_incr_subs_res_recvd_msg_cnt
+*********************************************************/
+void mds_incr_subs_res_recvd_msg_cnt (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, 
+		MDS_VDEST_ID vdest_id,  MDS_DEST adest, uint32_t src_seq_num)
+{
+	MDS_SUBSCRIPTION_RESULTS_INFO *lcl_subtn_res = NULL;
+	if ( NCSCC_RC_SUCCESS == mds_get_subtn_res_tbl_by_adest(svc_hdl, subscr_svc_id,
+				vdest_id, adest, &lcl_subtn_res) ) {
+		lcl_subtn_res->msg_rcv_cnt = src_seq_num;
+		lcl_subtn_res->msg_rcv_cnt++;
+	}
+}
+
+/*********************************************************
   Function NAME: mds_subtn_res_tbl_change_active
 *********************************************************/
 uint32_t mds_subtn_res_tbl_change_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
@@ -1698,7 +1747,7 @@ uint32_t mds_subtn_res_tbl_change_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_
 			/* Send Awaiting messages */
 			mds_await_active_tbl_send
 			    (subtn_res_info->info.active_vdest.active_route_info->await_active_queue,
-			     active_result->key.adest);
+			     active_result->key.adest, svc_hdl);
 
 			/* Make await active header ptr null */
 			subtn_res_info->info.active_vdest.active_route_info->await_active_queue = NULL;
