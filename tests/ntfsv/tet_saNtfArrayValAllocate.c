@@ -206,6 +206,30 @@ void saNtfArrayAllocateTest_05(void)
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
+/**
+ * Test saNtfArrayValAllocate.
+ *
+ */
+void saNtfArrayAllocateTest_06(void)
+{
+	SaNtfAlarmNotificationT myAlarmNotification;
+
+	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion) , SA_AIS_OK);
+	
+	rc =saNtfAlarmNotificationAllocate(
+		ntfHandle,
+		&myAlarmNotification,
+		0,
+		0,
+		0,
+		0,
+		0,
+		2,
+		32768); /* works for default value NTFA_VARIABLE_DATA_LIMIT = SHRT_MAX */
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(rc, SA_AIS_ERR_TOO_BIG);
+}
+
 __attribute__ ((constructor)) static void saNtfNotificationCallbackT_constructor(void)
 {
     test_suite_add(28, "Producer API ");
@@ -214,4 +238,5 @@ __attribute__ ((constructor)) static void saNtfNotificationCallbackT_constructor
     test_case_add(28, saNtfArrayAllocateTest_03, "saNtfArrayValAllocate handle freed SA_AIS_ERR_BAD_HANDLE");
     test_case_add(28, saNtfArrayAllocateTest_04, "saNtfArrayValAllocate bad dataPtr SA_AIS_ERR_INVLID_PARAM");
     test_case_add(28, saNtfArrayAllocateTest_05, "saNtfArrayValAllocate bad value pointer SA_AIS_ERR_INVLID_PARAM");
+    test_case_add(28, saNtfArrayAllocateTest_06, "datasize bigger than implementation specific system SA_AIS_ERR_TOO_BIG");
 }
