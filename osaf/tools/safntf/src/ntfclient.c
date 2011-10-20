@@ -819,7 +819,7 @@ void saNtfNotificationCallback(SaNtfSubscriptionIdT subscriptionId,
 	printf("\n");
 }
 
-static int get_long_digit(char *str, long *val)
+int get_long_digit(char *str, long *val)
 {
 	char *endptr;
 	errno = 0;		/* To distinguish success/failure after call */
