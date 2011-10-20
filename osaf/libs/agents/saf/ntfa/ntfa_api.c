@@ -1064,7 +1064,6 @@ SaAisErrorT saNtfAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
 	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		pthread_mutex_unlock(&ntfa_cb.cb_lock);
-		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
 	TRACE_1("notification_hdl = %u", notification_hdl_rec->notification_hdl);
@@ -1529,7 +1528,6 @@ saNtfObjectCreateDeleteNotificationAllocate(SaNtfHandleT ntfHandle,
 	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		pthread_mutex_unlock(&ntfa_cb.cb_lock);
-		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
 	TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
@@ -1605,7 +1603,6 @@ saNtfAttributeChangeNotificationAllocate(SaNtfHandleT ntfHandle,
 	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		pthread_mutex_unlock(&ntfa_cb.cb_lock);
-		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
 	TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
@@ -1680,7 +1677,6 @@ saNtfStateChangeNotificationAllocate(SaNtfHandleT ntfHandle,
 	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		pthread_mutex_unlock(&ntfa_cb.cb_lock);
-		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
 	TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
@@ -1752,7 +1748,6 @@ SaAisErrorT saNtfSecurityAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
 	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		pthread_mutex_unlock(&ntfa_cb.cb_lock);
-		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
 	TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
