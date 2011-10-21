@@ -130,8 +130,6 @@ static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle, Sa
 		}
 	}
 	ccbutil_ccbAddDeleteOperation(ccbUtilCcbData, objectName);
-	sleep(5);
-
  done:
 	return rc;
 }
