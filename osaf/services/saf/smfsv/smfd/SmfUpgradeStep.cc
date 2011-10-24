@@ -635,8 +635,7 @@ bool
 SmfUpgradeStep::lockDeactivationUnits()
 {
 	TRACE("lock deactivation units");
-	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
-	params[0] = NULL;	//Null terminate the list of parameter pointers
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
 	return callAdminOperation(SA_AMF_ADMIN_LOCK, params, m_deactivationUnit.m_actedOn);
 }
 
@@ -647,8 +646,7 @@ bool
 SmfUpgradeStep::unlockDeactivationUnits()
 {
 	TRACE("unlock deactivation units");
-	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
-	params[0] = NULL;	//Null terminate the list of parameter pointers
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
 	return callAdminOperation(SA_AMF_ADMIN_UNLOCK, params, m_deactivationUnit.m_actedOn);
 }
 
@@ -659,8 +657,7 @@ bool
 SmfUpgradeStep::terminateDeactivationUnits()
 {
 	TRACE("terminate deactivation units");
-	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
-	params[0] = NULL;	//Null terminate the list of parameter pointers
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
 	return callAdminOperation(SA_AMF_ADMIN_LOCK_INSTANTIATION, params, m_deactivationUnit.m_actedOn);
 }
 
@@ -671,8 +668,7 @@ bool
 SmfUpgradeStep::instantiateDeactivationUnits()
 {
 	TRACE("instantiate deactivation units");
-	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
-	params[0] = NULL;	//Null terminate the list of parameter pointers
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
 	return callAdminOperation(SA_AMF_ADMIN_UNLOCK_INSTANTIATION, params, m_deactivationUnit.m_actedOn);
 }
 
@@ -683,8 +679,7 @@ bool
 SmfUpgradeStep::lockActivationUnits()
 {
 	TRACE("lock activation units");
-	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
-	params[0] = NULL;	//Null terminate the list of parameter pointers
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
 	return callAdminOperation(SA_AMF_ADMIN_LOCK, params, m_activationUnit.m_actedOn);
 }
 
@@ -695,8 +690,7 @@ bool
 SmfUpgradeStep::unlockActivationUnits()
 {
 	TRACE("unlock activation units");
-	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
-	params[0] = NULL;	//Null terminate the list of parameter pointers
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
 	return callAdminOperation(SA_AMF_ADMIN_UNLOCK, params, m_activationUnit.m_actedOn);
 }
 
@@ -707,8 +701,7 @@ bool
 SmfUpgradeStep::terminateActivationUnits()
 {
 	TRACE("terminate activation units");
-	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
-	params[0] = NULL;	//Null terminate the list of parameter pointers
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
 	return callAdminOperation(SA_AMF_ADMIN_LOCK_INSTANTIATION, params, m_activationUnit.m_actedOn);
 }
 
@@ -719,8 +712,7 @@ bool
 SmfUpgradeStep::instantiateActivationUnits()
 {
 	TRACE("instantiate activation units");
-	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
-	params[0] = NULL;	//Null terminate the list of parameter pointers
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
 	return callAdminOperation(SA_AMF_ADMIN_UNLOCK_INSTANTIATION, params, m_activationUnit.m_actedOn);
 }
 
@@ -731,8 +723,7 @@ bool
 SmfUpgradeStep::restartActivationUnits()
 {
 	TRACE("restart activation units");
-	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
-	params[0] = NULL;	//Null terminate the list of parameter pointers
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
 	return callAdminOperation(SA_AMF_ADMIN_RESTART, params, m_activationUnit.m_actedOn);
 }
 
