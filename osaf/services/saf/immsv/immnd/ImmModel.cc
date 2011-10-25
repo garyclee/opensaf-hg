@@ -794,7 +794,7 @@ immModel_ccbApply(IMMND_CB *cb,
     return err;
 }
 
-void
+bool
 immModel_ccbAbort(IMMND_CB *cb, 
     SaUint32T ccbId,
     SaUint32T* arrSize,
@@ -805,9 +805,8 @@ immModel_ccbAbort(IMMND_CB *cb,
     ConnVector cv;
     ConnVector::iterator cvi;
     unsigned int ix=0;
-    
-    
-    ImmModel::instance(&cb->immModel)->ccbAbort(ccbId, cv, client, pbeNodeId);
+
+    bool aborted = ImmModel::instance(&cb->immModel)->ccbAbort(ccbId, cv, client, pbeNodeId);
     
     *arrSize = cv.size();
     if(*arrSize) {
@@ -818,6 +817,7 @@ immModel_ccbAbort(IMMND_CB *cb,
         }
     }
     osafassert(ix==(*arrSize));
+    return aborted;
 }
 
 void
@@ -3497,10 +3497,9 @@ ImmModel::ccbApply(SaUint32T ccbId,
         } else if(ccb->mState > IMM_CCB_READY) {
             LOG_IN("ERR_FAILED_OPERATION: Ccb not in correct state (%u) for Apply", ccb->mState);
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
-        } else if(reqConn && (ccb->mOriginatingConn != reqConn)) {
-            LOG_IN("ERR_BAD_HANDLE: Missmatch on connection for ccb id %u", ccbId);
-            ccb->mVeto = SA_AIS_ERR_BAD_HANDLE;
-        } 
+        }
+
+	osafassert(reqConn==0 || (ccb->mOriginatingConn == reqConn));
         
         if(!ccb->isOk()) {
             err = SA_AIS_ERR_FAILED_OPERATION;
@@ -3780,7 +3779,7 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     return pbeModeChange;
 }
 
-void
+bool
 ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
     unsigned int* pbeNodeIdPtr)
 {
@@ -3792,7 +3791,7 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
     if(i == sCcbVector.end()) {
         LOG_WA("Could not find ccb %u ignoring abort",  ccbId);
         TRACE_LEAVE();
-        return;
+        return false;
     }
     TRACE_5("ABORT CCB %u", ccbId);
     CcbInfo* ccb = (*i);
@@ -3828,7 +3827,7 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
         case IMM_CCB_CRITICAL:
             LOG_WA("CCB %u is in critical state, can not abort", ccbId);
             TRACE_LEAVE();
-            return;
+            return false;
             
         case IMM_CCB_PBE_ABORT:
             TRACE_5("Aborting ccb %u because PBE decided ABORT", ccbId);
@@ -3838,12 +3837,12 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
         case IMM_CCB_COMMITTED:
             TRACE_5("CCB %u was already committed", ccbId);
             TRACE_LEAVE();
-            return;
+            return false;
             
         case IMM_CCB_ABORTED:
             TRACE_5("CCB %u was already aborted", ccbId);
             TRACE_LEAVE();
-            return;
+            return false;
 
         default:
             LOG_ER("Illegal state %u in ccb %u", ccb->mState, ccbId);
@@ -3902,6 +3901,7 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
             TRACE_5("Ccb abort upcall for ccb %u for local PBE ", ccbId);
         }
     }
+    return true;
 }
 
 /** 
@@ -6064,7 +6064,7 @@ ImmModel::ccbWaitForDeleteImplAck(SaUint32T ccbId, SaAisErrorT* err)
     CcbVector::iterator i1;
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
-        LOG_WA("CCb %u terminated during ccbObjectDelete processing, "
+        TRACE_5("CCb %u terminated during ccbObjectDelete processing, "
             "ccb must be aborted", ccbId);
         return false;
     }
@@ -6118,7 +6118,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
     CcbVector::iterator i1;
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
-        LOG_WA("CCb %u terminated during ccbCompleted processing, "
+        TRACE_5("Ccb %u terminated during ccbCompleted processing, "
             "ccb must be aborted", ccbId);
         *err = SA_AIS_ERR_FAILED_OPERATION;
         return false;
@@ -6167,6 +6167,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
         if(pbeImpl) {
             /* There is in fact a PBE (up) */
             osafassert(ccb->mState == IMM_CCB_PREPARE);
+            LOG_IN("GOING FROM IMM_CCB_PREPARE to IMM_CCB_CRITICAL");
             ccb->mState = IMM_CCB_CRITICAL;
             *pbeIdPtr = pbeImpl->mId;
             /* Add pbe implementer to the ccb implementer collection. 
@@ -6218,7 +6219,7 @@ ImmModel::ccbObjDelContinuation(immsv_oi_ccb_upcall_rsp* rsp,
 
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
-        LOG_WA("ccb id %u missing or terminated", ccbId);
+        TRACE_5("ccb id %u missing or terminated in delete processing", ccbId);
         TRACE_LEAVE();
         return;
     }
@@ -6331,7 +6332,7 @@ ImmModel::ccbCompletedContinuation(immsv_oi_ccb_upcall_rsp* rsp,
     
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
-        LOG_WA("ccb id %u missing or terminated", ccbId);
+        LOG_WA("ccb id %u missing or terminated in completed processing", ccbId);
         TRACE_LEAVE();
         return;
     }
