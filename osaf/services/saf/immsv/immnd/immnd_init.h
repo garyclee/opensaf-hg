@@ -140,7 +140,7 @@ extern "C" {
 			      SaUint32T replyConn,
 			      SaUint32T *arrSize, SaUint32T **implConnArr, SaUint32T **implIdArr, SaUint32T **ctnArr);
 
-	void immModel_ccbAbort(IMMND_CB *cb,
+	bool immModel_ccbAbort(IMMND_CB *cb,
 		SaUint32T ccbId, SaUint32T *arrSize, SaUint32T **implConnArr, SaUint32T *client,
 		SaClmNodeIdT *pbeNodeId);
 

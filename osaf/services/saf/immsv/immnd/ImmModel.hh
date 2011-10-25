@@ -450,7 +450,7 @@ public:
     void              getCcbIdsForOrigCon(SaUint32T dead, IdVector& cv);
     void              getAdminOwnerIdsForCon(SaUint32T dead, IdVector& cv);
     bool              ccbCommit(SaUint32T ccbId, ConnVector& connVector);
-    void              ccbAbort(
+    bool              ccbAbort(
                                SaUint32T ccbId, 
                                ConnVector& connVector,
                                SaUint32T* client,

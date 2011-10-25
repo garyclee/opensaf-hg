@@ -5002,7 +5002,9 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *client
 		 */
 	}
 
-	immModel_ccbAbort(cb, ccbId, &arrSize, &implConnArr, &dummyClient, pbeNodeIdPtr);
+	if(!immModel_ccbAbort(cb, ccbId, &arrSize, &implConnArr, &dummyClient, pbeNodeIdPtr)) {
+		goto done;
+	}
 
 	if (client) {
 		*client = dummyClient;
@@ -5112,6 +5114,7 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *client
 		}
 	}
 #endif
+ done:
 	TRACE_LEAVE();
 }
 
@@ -5608,7 +5611,9 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 	osafassert(evt);
 	immnd_evt_ccb_abort(cb, evt->info.ccbId, &client);
 	err = immModel_ccbFinalize(cb, evt->info.ccbId);
-	TRACE_2("ccb aborted and finalized err:%u", err);
+	if(err == SA_AIS_OK) {
+		TRACE_2("ccb aborted and finalized");
+	}
 
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
 		TRACE_2("ccbFinalize originated at this node => Send reply");
