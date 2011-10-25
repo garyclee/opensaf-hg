@@ -171,7 +171,7 @@ uint32_t imma_client_node_add(NCS_PATRICIA_TREE *client_tree, IMMA_CLIENT_NODE *
 uint32_t imma_client_node_delete(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node);
 void imma_client_tree_destroy(IMMA_CB *cb);
 void imma_client_tree_cleanup(IMMA_CB *cb);
-void imma_mark_clients_stale(IMMA_CB *cb);
+void imma_mark_clients_stale(IMMA_CB *cb, bool mark_exposed);
 int  isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode);
 void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUint32T inv);
 int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUint32T inv);
