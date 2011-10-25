@@ -563,8 +563,12 @@ int imma_oi_ccb_record_note_callback(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT cc
                   then dispatch on the selection object NOW generating
                   BAD_HANDLE.
   Arguments     : IMMA_CB *cb - IMMA Control Block.
+                : mark_exposed - true => not only stale mark, but expose-mark also
+                  This is used when imma detects MDS message loss. 
+                  Since imma can not determine which handle the lost message 
+                  was destined for, it has to expose-mark all existing handles.
 ******************************************************************************/
-void imma_mark_clients_stale(IMMA_CB *cb)
+void imma_mark_clients_stale(IMMA_CB *cb, bool mark_exposed)
 {
 	/* We are LOCKED already */
 	IMMA_CLIENT_NODE *clnode = NULL;
@@ -625,8 +629,12 @@ void imma_mark_clients_stale(IMMA_CB *cb)
 		}
 		
 		if (clnode->exposed) {continue;} /* No need to stale dispatched on this
-                                           handle when already exposed.
-                                        */
+						    handle when already exposed. */
+		if(mark_exposed) {
+			clnode->exposed = true;
+			LOG_WA("marking handle as exposed");
+		}
+
 		clnode->stale = true;
 		TRACE("Stale marked client cl:%u node:%x",
 			m_IMMSV_UNPACK_HANDLE_HIGH(clnode->handle),

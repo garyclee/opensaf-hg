@@ -607,7 +607,8 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 {
 	TRACE_ENTER();
 	/* We are LOCKED already */
-	IMMA_CALLBACK_INFO *callback = NULL;	if (cl_node->selObjUsable) {
+	IMMA_CALLBACK_INFO *callback = NULL;
+	if (cl_node->selObjUsable) {
 		struct imma_oi_ccb_record *oiCcb = cl_node->activeOiCcbs;
 
 		/* Send the stale handle triggering ipc-message */
@@ -1000,9 +1001,9 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
-	if (!cl_node || cl_node->isOm) {
+	if (!cl_node || cl_node->isOm || cl_node->exposed) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		TRACE_3("Could not find client node");
+		TRACE_3("Could not find valid client node");
 		return;
 	}
 

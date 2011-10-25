@@ -33,6 +33,7 @@ static uint32_t imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 static uint32_t imma_mds_get_handle(IMMA_CB *cb);
 static uint32_t imma_mds_enc(IMMA_CB *cb, MDS_CALLBACK_ENC_INFO *info);
 static uint32_t imma_mds_dec(IMMA_CB *cb, MDS_CALLBACK_DEC_INFO *info);
+static uint32_t imma_mds_msg_loss(IMMA_CB *cb, MDS_CALLBACK_MSG_LOSS_EVENT_INFO *info);
 
 /* Message Format Verion Tables */
 MDS_CLIENT_MSG_FORMAT_VER imma_immnd_msg_fmt_table[IMMA_WRT_IMMND_SUBPART_VER_RANGE] = { 1 };
@@ -108,6 +109,8 @@ uint32_t imma_mds_register(IMMA_CB *cb)
 
 	/* IMMA owns the mds queue */
 	svc_info.info.svc_install.i_mds_q_ownership = false;
+
+	svc_info.info.svc_install.i_msg_loss_indication = true;
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
 		TRACE_3("mds register A failed rc:%u", rc);
@@ -224,6 +227,10 @@ uint32_t imma_mds_callback(struct ncsmds_callback_info *info)
 
 		case MDS_CALLBACK_DEC:
 			rc = imma_mds_dec(cb, &info->info.dec);
+			break;
+
+		case MDS_CALLBACK_MSG_LOSS:
+			rc = imma_mds_msg_loss(cb, &info->info.msg_loss_evt);
 			break;
 
 		default:
@@ -400,7 +407,7 @@ static uint32_t imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 				abort();
 			}
 			locked = true;
-			imma_mark_clients_stale(cb);
+			imma_mark_clients_stale(cb, false);
 			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 			locked = false;
 			break;
@@ -627,6 +634,40 @@ uint32_t imma_mds_msg_send(uint32_t imma_mds_hdl, MDS_DEST *destination, IMMSV_E
 
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
+
+	return rc;
+}
+
+/****************************************************************************
+  Name          : imma_mds_msg_loss
+
+  Description   : This function handles a message loss event at IMMA.
+
+  Arguments     : cb    : IMMA control Block.
+                  info  : Info describing messgage loss
+
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         : None.
+******************************************************************************/
+static uint32_t imma_mds_msg_loss(IMMA_CB *cb, MDS_CALLBACK_MSG_LOSS_EVENT_INFO *loss_info)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	LOG_WA("OpenSAF imm lib: Message loss detected for dest %llu service id:%u", 
+		loss_info->i_dest, loss_info->i_svc_id);
+	printf("OpenSAF imm lib: Message loss detected for dest %llu service id:%u\n", 
+		loss_info->i_dest, loss_info->i_svc_id);
+
+	/* Stale AND expose-mark all handles in this process. */
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS) {
+		LOG_ER("Locking failed in imma_mds_msg_loss");
+		abort();
+	}
+
+	imma_mark_clients_stale(cb, true);
+
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
 	return rc;
 }
