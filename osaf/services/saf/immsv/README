@@ -551,6 +551,9 @@ An applier OI does not get uppcalls for admin-operations or for updating
 runtime attributes. This should be obvious since admin-ops or updates
 to runtime attributes should only be handled by the main-oi. 
 
+An applier OI is not allowed to create or delete runtime objects,
+or to update runtime attributes. 
+
 The applier OI is thus informed of the same changes as the primary OI
 and will be able to apply the changes if the CCB commits and discard them
 if the CCB aborts. Exaclty what "apply" here means is up to the application.
@@ -591,7 +594,7 @@ A word of caution about implementer names. Implementer names are to
 be re-used. They are never garbage collected by the imm service.
 An implementer-name may have no current live implementer handle attached,
 but once created, it lives "forever" ready for the next attach,
-(SaImmOiImplementerSet). Implementer-names could be compared to Unix port
+(saImmOiImplementerSet). Implementer-names could be compared to Unix port
 numbers. A port number on some particular host is (in general)
 statically mapped to a service on that host. The service may not always
 be up and running, but there should never be any *other* service bound
@@ -626,7 +629,7 @@ SA_AIS_OK anyway. The "feature" of attachign to an already set
 up implementer structure is of dubious value, since the application
 must then be aware of its starting context. 
 
-Applier bindings are even weaker in this "staring context" sense
+Applier bindings are even weaker in this "starting context" sense
 because applier bindings to object/class are not synced. The only
 applier data that is synced (after a node restart) is the existence of
 the applier name and whether ot not any client is currently attached as

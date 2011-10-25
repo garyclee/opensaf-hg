@@ -756,13 +756,19 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
                    the upcall for an admin op. 
                    This is normally a NON blocking call (except when resurrecting client)
  
-  Arguments     :  immOiHandle - IMM OI Service handle.
+  Arguments     :  immOiHandle - Same as A.02.01 spec.
+                   invocation  - Same as A.02.01 spec.
+                   result      - Same as A.02.01 spec.
+                   returnParams- Parameters to return with the reply (new for A.2.11)
  
-  Return Values :  Refer to SAI-AIS specification for various return values.
+  Return Values :  Refer to SAI-AIS specification for various possible return codes.
+                   No new return codes for A.2.11 version, except SA_AIS_ERR_VERSION
+                   for the case when saImmOiAdminOperationResult_o2 is used but
+                   not with A.2.11 set for the immOihandle.
  
-  Notes         :
 ******************************************************************************/
-SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocationT invocation, SaAisErrorT result)
+SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, 
+SaInvocationT invocation, SaAisErrorT result)
 {
 	return saImmOiAdminOperationResult_o2(immOiHandle, invocation, result, NULL);
 }
@@ -840,6 +846,12 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 		}
 
 		TRACE_1("Reactive ressurect of handle %llx succeeded", immOiHandle);
+	}
+
+	if (cl_node->isApplier) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is associated with an >>applier<< name");
+		goto stale_handle;
 	}
 
 	/* Note NOT unsigned since negative means async invoc. */
@@ -2208,6 +2220,12 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 		goto bad_handle;
 	}
 
+	if (cl_node->isApplier) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is associated with an >>applier<< name");
+		goto bad_handle;
+	}
+
 	timeout = cl_node->syncr_timeout;
 
 	/* Populate the Object-Update event */
@@ -2481,6 +2499,12 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 		goto bad_handle;
 	}
 
+	if (cl_node->isApplier) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is associated with an >>applier<< name");
+		goto bad_handle;
+	}
+
 	/* Populate the Object-Create event */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
 	evt.type = IMMSV_EVT_TYPE_IMMND;
@@ -2738,6 +2762,12 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 	if (cl_node->mImplementerId == 0) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is not associated with any implementer name");
+		goto bad_handle;
+	}
+
+	if (cl_node->isApplier) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is associated with an >>applier<< name");
 		goto bad_handle;
 	}
 
@@ -3189,9 +3219,12 @@ getAdmoName(SaImmHandleT privateOmHandle, IMMA_CALLBACK_INFO * cbi, SaNameT* adm
                     SaImmOiAbortCallbackT
 
                    
-  Arguments     :  immOiHandle - IMM OI handle
-                   ccbId  -  The ccbId for the ccb related upcall.
-                   ccbHandle - The ccbHandle that will be associated with the ccbId
+  Arguments     :  immOiHandle - IMM OI handle. Received in callback.
+                   ccbId  -  The ccbId for the parent ccb. Received in callback.
+                   ccbHandle - The ccbHandle that will be initialized to the same 
+                               ccbId as the parent CCB. 
+                   ownerHandle - The admin owner handle that will be initialized to
+                                 the same admin-owner as used by the parent CCB. 
  
   Return Values :  SA_AIS_OK
                    SA_AIS_ERR_BAD_HANDLE
