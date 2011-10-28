@@ -51,6 +51,34 @@ void saImmOmAdminOwnerInitialize_03(void)
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
+void saImmOmAdminOwnerInitialize_04(void)
+{
+    SaVersionT immOlderVersion = {'A', 0x02, 0x1};
+    SaNameT aName = {sizeof("testRdn=0"), "testRdn=0"};
+    const SaNameT *aNames[] = {&aName, NULL};
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT adminOwnerHandle;
+    SaAisErrorT retVal = SA_AIS_OK;
+    static SaUint64T value = 0xbad;
+    SaImmAdminOperationParamsT_2 param = {
+        "TEST",
+        SA_IMM_ATTR_SAUINT64T,
+        &value
+    };
+    const SaImmAdminOperationParamsT_2 *params[] = {&param, NULL};
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immOlderVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &adminOwnerHandle), SA_AIS_OK);
+
+    /* Ignoring return code*/ saImmOmAdminOwnerSet(adminOwnerHandle, aNames, SA_IMM_ONE); 
+
+    rc = saImmOmAdminOperationInvoke_o2(adminOwnerHandle, &aName, 0LL, 1, params, &retVal, 0LL, NULL);
+
+    test_validate(rc, SA_AIS_ERR_VERSION);
+    safassert(saImmOmAdminOwnerFinalize(adminOwnerHandle), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
 extern void saImmOmAdminOwnerSet_01(void);
 extern void saImmOmAdminOwnerSet_02(void);
 extern void saImmOmAdminOwnerSet_03(void);
@@ -96,5 +124,8 @@ __attribute__ ((constructor)) static void saImmOmAdminOwnerInitialize_constructo
     test_case_add(5, saImmOmAdminOwnerClear_02, "saImmOmAdminOwnerClear - SA_AIS_ERR_BAD_HANDLE");
     test_case_add(5, saImmOmAdminOwnerClear_03, "saImmOmAdminOwnerClear - SA_AIS_ERR_INVALID_PARAM");
     test_case_add(5, saImmOmAdminOwnerClear_04, "saImmOmAdminOwnerClear - SA_AIS_ERR_NOT_EXIST");
+
+    test_case_add(5, saImmOmAdminOwnerInitialize_04,
+        "saImmOmAdminOperationInvoke_o2 - SA_AIS_ERR_VERSION, invalid invocation of A.2.11 API using A.2.1 version");
 }
 

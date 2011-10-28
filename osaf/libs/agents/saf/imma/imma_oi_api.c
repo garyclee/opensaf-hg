@@ -767,14 +767,36 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
                    not with A.2.11 set for the immOihandle.
  
 ******************************************************************************/
-SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, 
-SaInvocationT invocation, SaAisErrorT result)
+static SaAisErrorT admin_op_result_common(
+					  SaImmOiHandleT immOiHandle,
+					  SaInvocationT invocation,
+					  SaAisErrorT result,
+					  const SaImmAdminOperationParamsT_2 **returnParams,
+					  bool isA2bCall);
+
+SaAisErrorT saImmOiAdminOperationResult(
+					SaImmOiHandleT immOiHandle, 
+					SaInvocationT invocation,
+					SaAisErrorT result)
 {
-	return saImmOiAdminOperationResult_o2(immOiHandle, invocation, result, NULL);
+	return admin_op_result_common(immOiHandle, invocation, result, NULL, false);
 }
 
-SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocationT invocation, SaAisErrorT result,
-	const SaImmAdminOperationParamsT_2 **returnParams)
+SaAisErrorT saImmOiAdminOperationResult_o2(
+					   SaImmOiHandleT immOiHandle,
+					   SaInvocationT invocation,
+					   SaAisErrorT result,
+					   const SaImmAdminOperationParamsT_2 **returnParams)
+{
+	return admin_op_result_common(immOiHandle, invocation, result, returnParams, true);
+}
+
+static SaAisErrorT admin_op_result_common(
+					  SaImmOiHandleT immOiHandle,
+					  SaInvocationT invocation,
+					  SaAisErrorT result,
+					  const SaImmAdminOperationParamsT_2 **returnParams,
+					  bool isA2bCall)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
@@ -852,6 +874,14 @@ SaAisErrorT saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle, SaInvocat
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is associated with an >>applier<< name");
 		goto stale_handle;
+	}
+
+	if(isA2bCall && !(cl_node->isImmA2b)) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saImmOmAdminOperationInvoke_o2 only supported for "
+			"A.02.11 and above");
+		goto stale_handle;
+
 	}
 
 	/* Note NOT unsigned since negative means async invoc. */
