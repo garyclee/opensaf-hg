@@ -352,7 +352,7 @@ int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 				TRACE_5("op-count matches with inv:%u", inv);
 			}
 		}
-		tmp->isCcbErrOk = true;
+		if(!(cl_node->isApplier)) {tmp->isCcbErrOk = true;}
 		tmp->isCcbAugOk = false; /* not allowed to augment ccb in completed UC */
 		tmp->ccbCallback = NULL;
 		if (tmp->mCcbErrorString) { /* remove any old string. */
@@ -437,7 +437,7 @@ SaStringT imma_oi_ccb_record_get_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 
 	if(tmp && tmp->isCcbErrOk) {
 		osafassert(!(tmp->isCritical));
-		//tmp->isCcbErrOk = 0x0; Allow several errors from same OI
+		tmp->isCcbErrOk = 0x0; 
 		return tmp->mCcbErrorString;
 	}
 	return NULL;

@@ -1921,6 +1921,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				SaAisErrorT localEr = SA_AIS_OK;
 				IMMSV_EVT ccbCompletedRpl;
 				bool locked = false;
+				SaStringT errorStr = NULL;
 				if (cl_node->o.iCallbk.saImmOiCcbCompletedCallback)
 				{
 					SaImmOiCcbIdT ccbid = 0LL;
@@ -2001,6 +2002,10 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 				imma_client_node_get(&cb->client_tree, &(immHandle), &cl_node);
 				osafassert(cl_node);
+
+				/* Close window for setting error strings also for the OK case. #2233 */
+				errorStr = imma_oi_ccb_record_get_error(cl_node, callback->ccbID);
+
 				if (localEr == SA_AIS_OK)  {
 					/* replying OK => entering critical phase for this OI and this CCB.
 					   There can be many simultaneous OM clients starting CCBs that impact the same OI. 
@@ -2018,7 +2023,6 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					}
 				} else {
 					TRACE_2("Sending FAILED_OP response on completed. for ccb %u.",	callback->ccbID);
-					SaStringT errorStr = imma_oi_ccb_record_get_error(cl_node, callback->ccbID);
 					if(errorStr) {
 						ccbCompletedRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_COMPLETED_RSP_2;
 						ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.errorString.size = 
@@ -2215,6 +2219,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					localEr = SA_AIS_ERR_FAILED_OPERATION;
 				}
 				if(callback->inv) { 
+					SaStringT errorStr = NULL;
 					SaImmHandleT privateAugOmHandle = 0LL;
 					osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = true;
@@ -2230,8 +2235,10 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
 					ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
 
+					/* Closes window for setting error strings also for the OK case. #2233 */
+					errorStr = imma_oi_ccb_record_get_error(cl_node, callback->ccbID);
+
 					if (localEr != SA_AIS_OK)  {
-						SaStringT errorStr = imma_oi_ccb_record_get_error(cl_node, callback->ccbID);
 						if(errorStr) {
 							ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP_2;
 							ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.errorString.size =
@@ -2341,6 +2348,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				}
 
 				if(callback->inv) { 
+					SaStringT errorStr = NULL;
 					SaImmHandleT privateAugOmHandle = 0LL;
 					memset(&ccbObjDelRpl, 0, sizeof(IMMSV_EVT));
 					ccbObjDelRpl.type = IMMSV_EVT_TYPE_IMMND;
@@ -2354,8 +2362,10 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = true;
 
+					/* Closes window for setting error strings also for the OK case. #2233 */
+					errorStr = imma_oi_ccb_record_get_error(cl_node, callback->ccbID);
+
 					if (localEr != SA_AIS_OK)  {
-						SaStringT errorStr = imma_oi_ccb_record_get_error(cl_node, callback->ccbID);
 						if(errorStr) {
 							ccbObjDelRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2;
 							ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.errorString.size =
@@ -2528,6 +2538,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					/*Change to BAD_OP if only aborting modify and not ccb. */
 				}
 				if(callback->inv) { 
+					SaStringT errorStr = NULL;
 					SaImmHandleT privateAugOmHandle = 0LL;
 					osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = true;
@@ -2543,8 +2554,10 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					ccbObjModRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
 					ccbObjModRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
 
+					/* Closes window for setting error strings also for the OK case. #2233 */
+					errorStr = imma_oi_ccb_record_get_error(cl_node, callback->ccbID);
+
 					if (localEr != SA_AIS_OK)  {
-						SaStringT errorStr = imma_oi_ccb_record_get_error(cl_node, callback->ccbID);
 						if(errorStr) {
 							ccbObjModRpl.info.immnd.type=IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2;
 							ccbObjModRpl.info.immnd.info.ccbUpcallRsp.errorString.size =
