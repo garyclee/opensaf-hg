@@ -80,7 +80,7 @@ static int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locke
  
   Notes         :
 ******************************************************************************/
-SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node, SaVersionT *version);
+static SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node, SaVersionT *version);
 
 SaAisErrorT saImmOmInitialize_o2(SaImmHandleT *immHandle, const SaImmCallbacksT_o2 *immCallbacks, SaVersionT *inout_version)
 {
@@ -178,7 +178,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 	return rc;
 }
 
-SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node, SaVersionT *version)
+static SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *cl_node, SaVersionT *version)
 {
 	IMMA_CB *cb = &imma_cb;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -3160,6 +3160,16 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
  
   Notes         : Note the TWO return values!
 ******************************************************************************/
+static SaAisErrorT admin_op_invoke_common(
+					  SaImmAdminOwnerHandleT ownerHandle,
+					  const SaNameT *objectName,
+					  SaImmContinuationIdT continuationId,
+					  SaImmAdminOperationIdT operationId,
+					  const SaImmAdminOperationParamsT_2 **params,
+					  SaAisErrorT *operationReturnValue,
+					  SaTimeT timeout,
+					  SaImmAdminOperationParamsT_2 ***returnParams,
+					  bool isA2bCall);
 
 SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 					  const SaNameT *objectName,
@@ -3169,8 +3179,8 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 					  SaAisErrorT *operationReturnValue, 
 					  SaTimeT timeout)
 {
-	return saImmOmAdminOperationInvoke_o2(ownerHandle, objectName, continuationId,
-		operationId, params, operationReturnValue, timeout, NULL);
+	return admin_op_invoke_common(ownerHandle, objectName, continuationId,
+		operationId, params, operationReturnValue, timeout, NULL, false);
 }
 
 
@@ -3182,6 +3192,21 @@ SaAisErrorT saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
 					   SaAisErrorT *operationReturnValue,
 					   SaTimeT timeout,
 					   SaImmAdminOperationParamsT_2 ***returnParams)
+{
+	return admin_op_invoke_common(ownerHandle, objectName, continuationId,
+		operationId, params, operationReturnValue, timeout, returnParams, true);
+}
+
+static SaAisErrorT admin_op_invoke_common(
+				   SaImmAdminOwnerHandleT ownerHandle,
+				   const SaNameT *objectName,
+				   SaImmContinuationIdT continuationId,
+				   SaImmAdminOperationIdT operationId,
+				   const SaImmAdminOperationParamsT_2 **params,
+				   SaAisErrorT *operationReturnValue,
+				   SaTimeT timeout,
+				   SaImmAdminOperationParamsT_2 ***returnParams,
+				   bool isA2bCall)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
@@ -3284,6 +3309,14 @@ SaAisErrorT saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
 		}
 
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
+	}
+
+	if(isA2bCall && !(cl_node->isImmA2b)) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saImmOmAdminOperationInvoke_o2 only supported for "
+			"A.02.11 and above");
+		goto stale_handle;
+
 	}
 
 	/* convert the timeout to 10 ms value and add it to the sync send 
