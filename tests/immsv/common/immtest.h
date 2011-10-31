@@ -37,6 +37,7 @@ extern SaSelectionObjectT selectionObject;
 /* Management globals */
 extern SaImmHandleT immOmHandle;
 extern SaImmCallbacksT immOmCallbacks;
+extern SaImmCallbacksT_o2 immOmA2bCallbacks;
 extern const SaImmClassNameT configClassName;
 extern const SaImmClassNameT runtimeClassName;
 

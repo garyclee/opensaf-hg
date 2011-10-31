@@ -454,11 +454,20 @@ SaAisErrorT saImmOmSelectionObjectGet(SaImmHandleT immHandle, SaSelectionObjectT
 		goto node_not_found;
 	}
 
-	if (!(cl_node->isImmA2bCbk) && cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback==NULL) {
-		/* cl_node->isImmA2bCbk is set to true only when there is an A.2.11 callback */
-		TRACE_2("ERR_INVALID_PARAM: saImmOmSelectionObjectGet not allowed when saImmOmAdminOperationInvokeCallback is NULL");
-		rc = SA_AIS_ERR_INVALID_PARAM;
-		goto no_callback;
+	if (cl_node->isImmA2bCbk) {/* cl_node->isImmA2bCbk is true only if there is an A.2.11 callback */
+		if(cl_node->o.mCallbkA2b.saImmOmAdminOperationInvokeCallback==NULL) {
+			TRACE_2("ERR_INVALID_PARAM: saImmOmSelectionObjectGet not allowed "
+				"when saImmOmAdminOperationInvokeCallback is NULL");
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto no_callback;
+		}
+	} else {
+		if(cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback==NULL) {
+			TRACE_2("ERR_INVALID_PARAM: saImmOmSelectionObjectGet not allowed "
+				"when saImmOmAdminOperationInvokeCallback is NULL");
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto no_callback;
+		}
 	}
 
 	if (cl_node->stale) {
@@ -3705,13 +3714,22 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 
 	/* TODO: Should the timeout value be set to any sensible value ? */
 
-	if (!(cl_node->isImmA2bCbk) && cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback==NULL) {
-		/* cl_node->isImmA2bCbk is set to true only when there is an A.2.11 callback */
-		rc = SA_AIS_ERR_INIT;
-		TRACE_2("ERR_INIT: The SaImmOmAdminOperationInvokeCallbackT "
-			"function was not set in the initialization of the handle "
-			"=> saImmOmAdminOperationInvokeAsync can not reply");
-		goto no_callback;
+	if (cl_node->isImmA2bCbk) {/* cl_node->isImmA2bCbk is true only if there is an A.2.11 callback */
+		if (cl_node->o.mCallbkA2b.saImmOmAdminOperationInvokeCallback==NULL) {
+			rc = SA_AIS_ERR_INIT;
+			TRACE_2("ERR_INIT: The SaImmOmAdminOperationInvokeCallbackT_o2 "
+				"function was not set in the initialization of the handle "
+				"=> saImmOmAdminOperationInvokeAsync can not reply");
+			goto no_callback;
+		}
+	} else {
+		if (cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback==NULL) {
+			rc = SA_AIS_ERR_INIT;
+			TRACE_2("ERR_INIT: The SaImmOmAdminOperationInvokeCallbackT "
+				"function was not set in the initialization of the handle "
+				"=> saImmOmAdminOperationInvokeAsync can not reply");
+			goto no_callback;
+		}
 	}
 
 	/* Populate & Send the Open Event to IMMND */

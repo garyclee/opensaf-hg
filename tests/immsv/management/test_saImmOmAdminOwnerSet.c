@@ -151,3 +151,28 @@ done:
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
+void saImmOmAdminOwnerSet_07(void)
+{
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    const SaNameT objectName = {strlen("opensafImm=opensafImm,safApp=safImmService"), "opensafImm=opensafImm,safApp=safImmService"};
+    const SaNameT *objectNames[] = {&objectName, NULL};
+    SaInvocationT inv = 4711;
+    SaImmContinuationIdT cont = 0;
+    SaImmAdminOperationIdT opId = 1;
+    const SaImmAdminOperationParamsT_2* params[1] = {NULL};
+
+    safassert(saImmOmInitialize_o2(&immOmHandle, &immOmA2bCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), SA_AIS_OK);
+
+    rc = saImmOmAdminOperationInvokeAsync_2(ownerHandle, inv, &objectName, cont, opId, params);
+
+    test_validate(rc, SA_AIS_ERR_INIT);
+
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+
+
