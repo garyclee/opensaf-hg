@@ -3441,12 +3441,15 @@ static SaAisErrorT admin_op_invoke_common(
 			rc = out_evt->info.imma.info.errRsp.error;
 			TRACE("ERROR returned:%u", rc);
 			osafassert(rc != SA_AIS_OK);
-			*operationReturnValue = SA_AIS_ERR_NO_SECTIONS;	//Bogus result since error is set.
+			*operationReturnValue = IMMSV_IMPOSSIBLE_ERROR;	//Bogus result since error is set.
 		} else {
 			TRACE("Normal return");
 			osafassert((out_evt->info.imma.type == IMMA_EVT_ND2A_ADMOP_RSP) ||
 				(out_evt->info.imma.type == IMMA_EVT_ND2A_ADMOP_RSP_2));
 			*operationReturnValue = out_evt->info.imma.info.admOpRsp.result;
+			if((*operationReturnValue) == IMMSV_IMPOSSIBLE_ERROR) {
+				rc = SA_AIS_ERR_FAILED_OPERATION;
+			}
 			if((out_evt->info.imma.type == IMMA_EVT_ND2A_ADMOP_RSP_2) && 
 				(out_evt->info.imma.info.admOpRsp.parms)) {
 				TRACE("Decoding return params");
