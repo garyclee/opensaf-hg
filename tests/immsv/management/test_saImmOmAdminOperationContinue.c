@@ -62,10 +62,14 @@ void saImmOmAdminOperationContinueAsync_01(void)
     TRACE_LEAVE();
 }
 
+extern void saImmOmAdminOwnerSet_07(void);
+
 __attribute__ ((constructor)) static void saImmOmAdminOperationContinue_constructor(void)
 {
     test_suite_add(7, "Administrative Operations Invocation");
     test_case_add(7, saImmOmAdminOperationContinue_01, "saImmOmAdminOperationContinue - SA_AIS_ERR_NOT_SUPPORTED");
     test_case_add(7, saImmOmAdminOperationContinueAsync_01, "saImmOmAdminOperationContinueAsync - SA_AIS_ERR_NOT_SUPPORTED");
+    test_case_add(7, saImmOmAdminOwnerSet_07, "saImmOmAdminOwnerInvokeAsync_2 - SA_AIS_ERR_INIT, no OM callback provided");
+
 }
 

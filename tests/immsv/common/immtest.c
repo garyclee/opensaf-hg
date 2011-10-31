@@ -26,6 +26,7 @@ SaImmHandleT immOmHandle;
 SaImmHandleT immOiHandle;
 SaImmOiCallbacksT_2 immOiCallbacks;
 SaImmCallbacksT immOmCallbacks = {NULL};
+SaImmCallbacksT_o2 immOmA2bCallbacks = {NULL};
 SaSelectionObjectT selectionObject;
 
 const SaImmClassNameT configClassName = (SaImmClassNameT) "TestClassConfig";
