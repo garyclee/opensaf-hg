@@ -1900,7 +1900,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				/*No callback registered for admin-op!! */
 				SaAisErrorT localErr = saImmOiAdminOperationResult(callback->lcl_imm_hdl,
 					callback->invocation,
-					SA_AIS_ERR_FAILED_OPERATION);
+					IMMSV_IMPOSSIBLE_ERROR);
 				if (localErr == SA_AIS_OK) {
 					TRACE_3("Object %s has implementer but "
 						"saImmOiAdminOperationCallback is set to NULL", callback->name.value);

@@ -56,6 +56,12 @@ extern "C" {
 #define IMMSV_MAX_OBJECTS 10000
 #define IMMSV_MAX_ATTRIBUTES 128
 
+/* Used to encode fake OI reply on admin-op, when the OI has not 
+   registered any admin-op callback. Converted to SA_AIS_ERRBAD_OPERATION
+   return code on the OM invoking side. 
+*/
+#define IMMSV_IMPOSSIBLE_ERROR 0xffff0000 
+
 
 /* Admin operation IDs */
 /* Internal PBE operation ids. */
