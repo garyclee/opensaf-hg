@@ -654,9 +654,9 @@ static uint32_t imma_mds_msg_loss(IMMA_CB *cb, MDS_CALLBACK_MSG_LOSS_EVENT_INFO 
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	LOG_WA("OpenSAF imm lib: Message loss detected for dest %llu service id:%u", 
+	LOG_WA("OpenSAF imm lib: Message loss detected for dest %" PRIu64 " service id:%u", 
 		loss_info->i_dest, loss_info->i_svc_id);
-	printf("OpenSAF imm lib: Message loss detected for dest %llu service id:%u\n", 
+	printf("OpenSAF imm lib: Message loss detected for dest %" PRIu64 " service id:%u\n", 
 		loss_info->i_dest, loss_info->i_svc_id);
 
 	/* Stale AND expose-mark all handles in this process. */
