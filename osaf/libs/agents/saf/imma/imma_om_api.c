@@ -3227,7 +3227,7 @@ static SaAisErrorT admin_op_invoke_common(
 	bool locked = true;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
-	bool opIdEsc = (operationId & SA_IMM_PARAM_ADMOP_ID_ESC);
+	bool opIdEsc = (operationId >= SA_IMM_PARAM_ADMOP_ID_ESC);
 	bool opNamePar = false;
 	TRACE_ENTER();
 
@@ -3413,7 +3413,7 @@ static SaAisErrorT admin_op_invoke_common(
 		evt.info.immnd.info.admOpReq.params = p;
 	}
 
-	if(opIdEsc && !opNamePar) {
+	if(opIdEsc && !opNamePar && cl_node->isImmA2b) {
 		TRACE_2("ERR_INVALID_PARAM: Op-id > %llx requires param %s",
 			(long long unsigned int) SA_IMM_PARAM_ADMOP_ID_ESC, SA_IMM_PARAM_ADMOP_NAME);
 		rc = SA_AIS_ERR_INVALID_PARAM;

@@ -746,7 +746,13 @@ as the OM client has always been able to supply a parameter list
 as part of an admin-operation-invocation. The reply from the OI
 is in other respects identical to A.02.01.
 Api additions for this are available to imm clients that register
-with imm version A.2.11:
+with imm version A.2.11.
+
+Setting version A.2.11 also means that operationId values higher
+than SA_IMM_PARAM_ADMOP_ID_ESC (0x8000000000000000LL) have
+special meaning and can not be used by the application for its
+own purposes. See point 7 below.
+
 
 (1)
 extern SaAisErrorT
