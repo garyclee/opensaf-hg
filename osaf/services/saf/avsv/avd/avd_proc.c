@@ -311,66 +311,6 @@ static void avd_qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 }
 
-/*****************************************************************************
- * Function: avd_imm_reinit_thread
- * 
- * Purpose: This function waits a while on IMM and initialize, sel obj get &
- *          implementer set.
- *
- * Input: cb  - AVD control block
- * 
- * Returns: Void pointer.
- *
- * NOTES: None.
- *
- **************************************************************************/
-static void *avd_imm_reinit_thread(void *_cb)
-{
-	SaAisErrorT rc = SA_AIS_OK;
-	AVD_CL_CB *cb = (AVD_CL_CB *)_cb;
-
-	if ((rc = avd_imm_re_init(cb)) != SA_AIS_OK) {
-		LOG_ER("re-saImmOiInitialize failed %u", rc);
-		exit(1);
-	}
-	/* If this is the active server, become implementer again. */
-	if (cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
-		avd_imm_impl_set_task_create();
-	}
-	else { /* become applier and re-read the config */
-		avd_imm_applier_set_task_create();
-	}
-	return NULL;
-}
-
-/*****************************************************************************
- * Function: avd_imm_reinit_bg
- *
- * Purpose: This function start a background thread to do IMM reinitialization
- *
- * Input: cb  - AVD control block
- *
- * Returns: None. 
- *
- * NOTES: None.
- *
- **************************************************************************/
-static void avd_imm_reinit_bg(AVD_CL_CB *cb)
-{
-	pthread_t thread;
-	pthread_attr_t attr;
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-	TRACE_ENTER();
-	if (pthread_create(&thread, NULL, avd_imm_reinit_thread, cb) != 0) {
-		LOG_ER("pthread_create FAILED: %s", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-	pthread_attr_destroy(&attr);
-	TRACE_LEAVE();
-}
-
 /**
  * Calculate new poll timeout based on return value from job queue
  * execution
@@ -557,6 +497,12 @@ void avd_main_proc(void)
 				continue;
 			}
 
+			if (evt->rcv_evt == AVD_IMM_REINITIALIZED) {
+				TRACE("Received IMM reinit msg");
+				polltmo = retval_to_polltmo(avd_job_fifo_execute(cb->immOiHandle));
+				continue;
+			}
+
 			if (cb->avd_fover_state) {
 				handle_event_in_failover_state(evt);
 			} else if (false == cb->avd_fover_state) {
@@ -600,17 +546,8 @@ void avd_main_proc(void)
 			if (error == SA_AIS_ERR_BAD_HANDLE) {
 				TRACE("main: saImmOiDispatch returned BAD_HANDLE");
 
-				/*
-				 ** Invalidate the IMM OI handle, this info is used in other
-				 ** locations. E.g. giving TRY_AGAIN responses to a create and
-				 ** close app stream requests. That is needed since the IMM OI
-				 ** is used in context of these functions.
-				 */
-				saImmOiFinalize(cb->immOiHandle);
-				cb->immOiHandle = 0;
-
 				/* Initiate IMM reinitializtion in the background */
-				avd_imm_reinit_bg(cb);
+				avd_imm_reinit_bg();
 			} else if (error != SA_AIS_OK) {
 				LOG_ER("main: saImmOiDispatch FAILED %u", error);
 				break;

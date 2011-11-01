@@ -32,6 +32,7 @@
 #include <logtrace.h>
 #include <saflog.h>
 
+#include <avd_evt.h>
 #include <avd_util.h>
 #include <avd_cb.h>
 #include <avsv_defs.h>
@@ -1417,48 +1418,6 @@ void avd_imm_update_runtime_attrs(void)
 	}
 }
 
-
-/*****************************************************************************
- * Function: avd_imm_re-init
- *
- * Purpose: This function Initialize the OI interface and get a selection 
- *          object.
- *
- * Input: cb  - AVD control block
- * 
- * Returns: Void pointer.
- * 
- * NOTES: None.
- * 
- **************************************************************************/
-
-SaAisErrorT avd_imm_re_init(void *avd_cb)
-{
-	SaAisErrorT error = SA_AIS_OK;
-	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
-
-	TRACE_ENTER();
-
-	immutilWrapperProfile.errorsAreFatal = 0;
-
-	if ((error = immutil_saImmOiInitialize_2(&cb->immOiHandle, &avd_callbacks, &immVersion)) != SA_AIS_OK) {
-		LOG_ER("saImmOiInitialize failed %u", error);
-		goto done;
-	}
-
-
-	if ((error = immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj)) != SA_AIS_OK) {
-		LOG_ER("saImmOiSelectionObjectGet failed %u", error);
-		goto done;
-	}
-
-	TRACE("Successfully initialized IMM");
-
-done:
-	TRACE_LEAVE();
-	return error;
-}
-
 static AvdJobDequeueResultT job_exec_imm_objcreate(SaImmOiHandleT immOiHandle,
 												   struct job_imm_objcreate *objcreate)
 {
@@ -1596,5 +1555,92 @@ AvdJobDequeueResultT avd_job_fifo_execute(SaImmOiHandleT immOiHandle)
 
 	TRACE_LEAVE2("%d", ret);
 	return ret;
+}
+
+/**
+ * Thread main to re-initialize as IMM OI.
+ * @param _cb
+ * 
+ * @return void*
+ */
+static void *avd_imm_reinit_bg_thread(void *_cb)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	AVD_CL_CB *cb = (AVD_CL_CB *)_cb;
+	AVD_EVT *evt;
+	uint32_t status;
+
+	TRACE_ENTER();
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+
+	if ((rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &avd_callbacks, &immVersion)) != SA_AIS_OK) {
+		LOG_ER("saImmOiInitialize failed %u", rc);
+		exit(EXIT_FAILURE);
+	}
+
+	if ((rc = immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj)) != SA_AIS_OK) {
+		LOG_ER("saImmOiSelectionObjectGet failed %u", rc);
+		exit(EXIT_FAILURE);
+	}
+
+	/* If this is the active server, become implementer again. */
+	if (cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
+		if (avd_imm_impl_set() != SA_AIS_OK) {
+			LOG_ER("exiting since avd_imm_impl_set failed");
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		/* become applier and re-read the config */
+		if (avd_imm_applier_set() != SA_AIS_OK) {
+			LOG_ER("exiting since avd_imm_applier_set failed");
+			exit(EXIT_FAILURE);
+		}
+
+		if (avd_imm_config_get() != NCSCC_RC_SUCCESS) {
+			LOG_ER("avd_imm_config_get FAILED");
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	/* Wake up the main thread so it discovers the new IMM handle. */
+	evt = calloc(1, sizeof(AVD_EVT));
+	osafassert(evt != NULL);
+	evt->rcv_evt = AVD_IMM_REINITIALIZED;
+	status = m_NCS_IPC_SEND(&avd_cb->avd_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH);
+	osafassert(status == NCSCC_RC_SUCCESS);
+
+	LOG_NO("Finished re-initializing with IMM");
+	TRACE_LEAVE();
+	return NULL;
+}
+
+/**
+ * Finalize the current IMM OI handle and start a thread to do re-initialization.
+ */
+void avd_imm_reinit_bg(void)
+{
+	pthread_t thread;
+	pthread_attr_t attr;
+
+	TRACE_ENTER();
+
+	LOG_NO("Re-initializing with IMM");
+
+	(void) saImmOiFinalize(avd_cb->immOiHandle);
+
+	avd_cb->immOiHandle = 0;
+	avd_cb->is_implementer = false;
+
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+	if (pthread_create(&thread, NULL, avd_imm_reinit_bg_thread, avd_cb) != 0) {
+		LOG_ER("pthread_create FAILED: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	pthread_attr_destroy(&attr);
+
+	TRACE_LEAVE();
 }
 

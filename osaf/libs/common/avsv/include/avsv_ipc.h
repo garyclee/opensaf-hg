@@ -30,6 +30,8 @@
 #ifndef AVSV_IPC_H
 #define AVSV_IPC_H
 
+#include <ncssysf_ipc.h>
+
 /*****************************************************************************
 
   MACRO: m_AVSV_MBX_CREATE    
