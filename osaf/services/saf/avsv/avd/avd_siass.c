@@ -47,7 +47,6 @@
 static void avd_create_susi_in_imm(SaAmfHAStateT ha_state,
        const SaNameT *si_dn, const SaNameT *su_dn)
 {
-       SaAisErrorT rc;
        SaNameT dn;
        SaAmfHAReadinessStateT saAmfSISUHAReadinessState = SA_AMF_HARS_READY_FOR_ASSIGNMENT;
        void *arr1[] = { &dn };
@@ -82,9 +81,7 @@ static void avd_create_susi_in_imm(SaAmfHAStateT ha_state,
 	       return;
 
        avsv_create_association_class_dn(su_dn, NULL, "safSISU", &dn);
-
-       if ((rc = avd_saImmOiRtObjectCreate("SaAmfSIAssignment", si_dn, attrValues)) != SA_AIS_OK)
-	   LOG_ER("rc=%u, '%s'", rc, dn.value);
+       avd_saImmOiRtObjectCreate("SaAmfSIAssignment", si_dn, attrValues);
 }
 
 /** Delete an SaAmfSIAssignment from IMM
@@ -94,16 +91,13 @@ static void avd_create_susi_in_imm(SaAmfHAStateT ha_state,
  */
 static void avd_delete_siassignment_from_imm(const SaNameT *si_dn, const SaNameT *su_dn)
 {
-       SaAisErrorT rc;
        SaNameT dn;
 
        if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
 	       return;
 
        avsv_create_association_class_dn(su_dn, si_dn, "safSISU", &dn);
-
-       if ((rc = avd_saImmOiRtObjectDelete(&dn)) != SA_AIS_OK)
-	       LOG_ER("rc=%u, '%s'", rc, dn.value);
+       avd_saImmOiRtObjectDelete(&dn);
 }
 
 /**
@@ -114,7 +108,6 @@ static void avd_delete_siassignment_from_imm(const SaNameT *si_dn, const SaNameT
  */
 void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 {
-       SaAisErrorT rc;
        SaNameT dn;
        AVD_COMP_CSI_REL *compcsi;
 
@@ -128,16 +121,14 @@ void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
        saflog(LOG_NOTICE, amfSvcUsrName, "HA State %s of %s for %s",
 	       avd_ha_state[ha_state], susi->su->name.value, susi->si->name.value);
 
-       if ((rc = avd_saImmOiRtObjectUpdate(&dn,"saAmfSISUHAState", SA_IMM_ATTR_SAUINT32T, &ha_state)) != SA_AIS_OK)
-	       LOG_ER("rc=%u, '%s'", rc, dn.value);
+       avd_saImmOiRtObjectUpdate(&dn,"saAmfSISUHAState", SA_IMM_ATTR_SAUINT32T, &ha_state);
 
        /* Update all CSI assignments */
        for (compcsi = susi->list_of_csicomp; compcsi != NULL; compcsi = compcsi->susi_csicomp_next) {
 	       avsv_create_association_class_dn(&compcsi->comp->comp_info.name,
 		       &compcsi->csi->name, "safCSIComp", &dn);
 
-	       if ((rc = avd_saImmOiRtObjectUpdate(&dn,"saAmfCSICompHAState", SA_IMM_ATTR_SAUINT32T, &ha_state)) != SA_AIS_OK)
-		       LOG_ER("rc=%u, '%s'", rc, dn.value);
+	       avd_saImmOiRtObjectUpdate(&dn,"saAmfCSICompHAState", SA_IMM_ATTR_SAUINT32T, &ha_state);
        }
 }
 

@@ -74,10 +74,10 @@ void avd_class_impl_set(const SaImmClassNameT className,
 SaAisErrorT avd_imm_default_OK_completed_cb(CcbUtilOperationData_t *opdata);
 
 extern unsigned int avd_imm_config_get(void);
-extern SaAisErrorT avd_saImmOiRtObjectUpdate(const SaNameT* dn, SaImmAttrNameT attributeName,
+extern void avd_saImmOiRtObjectUpdate(const SaNameT* dn, SaImmAttrNameT attributeName,
      SaImmValueTypeT attrValueType, void* value);
-extern SaAisErrorT avd_saImmOiRtObjectCreate(const SaImmClassNameT className,
+extern void avd_saImmOiRtObjectCreate(const SaImmClassNameT className,
 	const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues);
-extern SaAisErrorT avd_saImmOiRtObjectDelete(const SaNameT* objectName);
+extern void avd_saImmOiRtObjectDelete(const SaNameT* objectName);
 
 #endif
