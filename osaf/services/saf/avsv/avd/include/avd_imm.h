@@ -30,7 +30,6 @@ typedef void (*AvdImmOiCcbApplyCallbackT) (CcbUtilOperationData_t *opdata);
 typedef SaAisErrorT (*AvdImmOiCcbCompletedCallbackT) (CcbUtilOperationData_t *opdata);
 
 extern SaAisErrorT avd_imm_init(void *avd_cb);
-extern SaAisErrorT avd_imm_re_init(void *avd_cb);
 extern void avd_imm_impl_set_task_create(void);
 extern SaAisErrorT avd_imm_impl_set(void);
 extern void avd_imm_applier_set_task_create(void);
@@ -79,5 +78,7 @@ extern void avd_saImmOiRtObjectUpdate(const SaNameT* dn, SaImmAttrNameT attribut
 extern void avd_saImmOiRtObjectCreate(const SaImmClassNameT className,
 	const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues);
 extern void avd_saImmOiRtObjectDelete(const SaNameT* objectName);
+
+extern void avd_imm_reinit_bg(void);
 
 #endif
