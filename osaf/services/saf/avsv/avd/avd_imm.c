@@ -1418,51 +1418,62 @@ void avd_imm_update_runtime_attrs(void)
 	}
 }
 
+static void free_objcreate(struct job_imm_objcreate *objcreate)
+{
+	int i, j;
+
+	for (i = 0; objcreate->attrValues[i] != NULL; i++) {
+		SaImmAttrValuesT_2 *attrValue =
+			(SaImmAttrValuesT_2 *)objcreate->attrValues[i];
+		
+		if (attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
+			for (j = 0; j < attrValue->attrValuesNumber; j++) {
+				char *p = *((char **)attrValue->attrValues[j]);
+				free(p);
+			}
+		}
+		free(attrValue->attrName);
+		free(attrValue->attrValues);
+		free(attrValue);
+	}
+
+	free(objcreate->className);
+	free(objcreate->attrValues);
+	free(fifo_dequeue());
+}
+
 static AvdJobDequeueResultT job_exec_imm_objcreate(SaImmOiHandleT immOiHandle,
-												   struct job_imm_objcreate *objcreate)
+	struct job_imm_objcreate *objcreate)
 {
 	SaAisErrorT rc;
 
 	TRACE_ENTER();
 
 	rc = saImmOiRtObjectCreate_2(immOiHandle, objcreate->className,
-								 &objcreate->parentName, objcreate->attrValues);
+		&objcreate->parentName, objcreate->attrValues);
 
-	if (rc == SA_AIS_ERR_TRY_AGAIN) {
+	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_EXIST)) {
+		free_objcreate(objcreate);
+		return JOB_EXECUTED;
+	} else if (rc == SA_AIS_ERR_TRY_AGAIN) {
 		TRACE("TRY-AGAIN");
 		return JOB_ETRYAGAIN;
+	} else if (rc == SA_AIS_ERR_TIMEOUT) {
+		TRACE("TIMEOUT");
+		return JOB_ETRYAGAIN;
+	} else if (rc == SA_AIS_ERR_BAD_HANDLE) {
+		TRACE("BADHANDLE");
+		avd_imm_reinit_bg();
+		return JOB_ETRYAGAIN;
 	} else {
-		int i, j;
-
-		for (i = 0; objcreate->attrValues[i] != NULL; i++) {
-			SaImmAttrValuesT_2 *attrValue =
-				(SaImmAttrValuesT_2 *)objcreate->attrValues[i];
-
-			if (attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
-				for (j = 0; j < attrValue->attrValuesNumber; j++) {
-					char *p = *((char **)attrValue->attrValues[j]);
-					free(p);
-				}
-			}
-			free(attrValue->attrName);
-			free(attrValue->attrValues);
-			free(attrValue);
-		}
-
-		free(objcreate->className);
-		free(objcreate->attrValues);
-		free(fifo_dequeue());
-		if (rc == SA_AIS_OK) 
-			return JOB_EXECUTED;
-		else {
-			LOG_ER("%s: create FAILED %u", __FUNCTION__, rc);
-			return JOB_ERR;
-		}
+		free_objcreate(objcreate);
+		LOG_ER("%s: create FAILED %u", __FUNCTION__, rc);
+		return JOB_ERR;
 	}
 }
 
 static AvdJobDequeueResultT job_exec_imm_objupdate(SaImmOiHandleT immOiHandle,
-												   struct job_imm_objupdate *objupdate)
+	struct job_imm_objupdate *objupdate)
 {
 	SaAisErrorT rc;
 	SaImmAttrModificationT_2 attrMod;
@@ -1479,13 +1490,20 @@ static AvdJobDequeueResultT job_exec_imm_objupdate(SaImmOiHandleT immOiHandle,
 
 	rc = saImmOiRtObjectUpdate_2(immOiHandle, &objupdate->dn, attrMods);
 
-	if (rc == SA_AIS_OK) {
+	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_EXIST)) {
 		free(objupdate->attributeName);
 		free(objupdate->value);
 		free(fifo_dequeue());
 		return JOB_EXECUTED;
 	} else if (rc == SA_AIS_ERR_TRY_AGAIN) {
 		TRACE("TRY-AGAIN");
+		return JOB_ETRYAGAIN;
+	} else if (rc == SA_AIS_ERR_TIMEOUT) {
+		TRACE("TIMEOUT");
+		return JOB_ETRYAGAIN;
+	} else if (rc == SA_AIS_ERR_BAD_HANDLE) {
+		TRACE("BADHANDLE");
+		avd_imm_reinit_bg();
 		return JOB_ETRYAGAIN;
 	} else {
 		free(objupdate->attributeName);
@@ -1497,7 +1515,7 @@ static AvdJobDequeueResultT job_exec_imm_objupdate(SaImmOiHandleT immOiHandle,
 }
 
 static AvdJobDequeueResultT job_exec_imm_objdelete(SaImmOiHandleT immOiHandle,
-												   struct job_imm_objdelete *objdelete)
+	struct job_imm_objdelete *objdelete)
 {
 	SaAisErrorT rc;
 
@@ -1505,11 +1523,18 @@ static AvdJobDequeueResultT job_exec_imm_objdelete(SaImmOiHandleT immOiHandle,
 
 	rc = saImmOiRtObjectDelete(immOiHandle, &objdelete->dn);
 
-	if (rc == SA_AIS_OK) {
+	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_NOT_EXIST)) {
 		free(fifo_dequeue());
 		return JOB_EXECUTED;
 	} else if (rc == SA_AIS_ERR_TRY_AGAIN) {
 		TRACE("TRY-AGAIN");
+		return JOB_ETRYAGAIN;
+	} else if (rc == SA_AIS_ERR_TIMEOUT) {
+		TRACE("TIMEOUT");
+		return JOB_ETRYAGAIN;
+	} else if (rc == SA_AIS_ERR_BAD_HANDLE) {
+		TRACE("BADHANDLE");
+		avd_imm_reinit_bg();
 		return JOB_ETRYAGAIN;
 	} else {
 		free(fifo_dequeue());
@@ -1530,7 +1555,7 @@ AvdJobDequeueResultT avd_job_fifo_execute(SaImmOiHandleT immOiHandle)
 	union job *ajob;
 	int ret = -1;
 
-	if (immOiHandle == 0)
+	if (!avd_cb->is_implementer)
 		return JOB_EINVH;
 
 	if ((ajob = fifo_peek()) == NULL)
