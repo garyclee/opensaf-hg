@@ -843,6 +843,9 @@ uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb)
 	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
 	cb->is_implementer = false;
 
+	/* Throw away all pending IMM updates, no longer implementer */
+	avd_job_fifo_empty();
+
 	if (avd_imm_applier_set() != SA_AIS_OK) {
 		LOG_ER("avd_imm_applier_set FAILED");
 		return NCSCC_RC_FAILURE;

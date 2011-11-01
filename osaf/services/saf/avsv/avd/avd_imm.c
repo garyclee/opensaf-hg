@@ -1445,7 +1445,6 @@ static void free_objcreate(struct job_imm_objcreate *objcreate)
 
 	free(objcreate->className);
 	free(objcreate->attrValues);
-	free(fifo_dequeue());
 }
 
 static AvdJobDequeueResultT job_exec_imm_objcreate(SaImmOiHandleT immOiHandle,
@@ -1460,6 +1459,7 @@ static AvdJobDequeueResultT job_exec_imm_objcreate(SaImmOiHandleT immOiHandle,
 
 	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_EXIST)) {
 		free_objcreate(objcreate);
+		free(fifo_dequeue());
 		return JOB_EXECUTED;
 	} else if (rc == SA_AIS_ERR_TRY_AGAIN) {
 		TRACE("TRY-AGAIN");
@@ -1473,6 +1473,7 @@ static AvdJobDequeueResultT job_exec_imm_objcreate(SaImmOiHandleT immOiHandle,
 		return JOB_ETRYAGAIN;
 	} else {
 		free_objcreate(objcreate);
+		free(fifo_dequeue());
 		LOG_ER("%s: create FAILED %u", __FUNCTION__, rc);
 		return JOB_ERR;
 	}
@@ -1586,6 +1587,43 @@ AvdJobDequeueResultT avd_job_fifo_execute(SaImmOiHandleT immOiHandle)
 
 	TRACE_LEAVE2("%d", ret);
 	return ret;
+}
+
+/**
+ * Empty jobs in the queue, don't execute them.
+ * @param immOiHandle
+ */
+void avd_job_fifo_empty(void)
+{
+	union job *ajob;
+
+	TRACE_ENTER();
+
+	while ((ajob = fifo_dequeue()) != NULL) {
+		switch (ajob->type) {
+		case JOB_IMM_OBJCREATE:
+			TRACE("discarding create of '%s'", ajob->objcreate.className);
+			free_objcreate(&ajob->objcreate);
+			free(ajob);
+			break;
+		case JOB_IMM_OBJUPDATE:
+			TRACE("discarding update to '%s' '%s'",
+				ajob->objupdate.dn.value, ajob->objupdate.attributeName);
+			free(ajob->objupdate.attributeName);
+			free(ajob->objupdate.value);
+			free(ajob);
+			break;
+		case JOB_IMM_OBJDELETE:
+			TRACE("discarding delete of '%s'", ajob->objdelete.dn.value);
+			free(ajob);
+			break;
+		default:
+			osafassert(0);
+			break;
+		}
+	}
+
+	TRACE_LEAVE();
 }
 
 /**
