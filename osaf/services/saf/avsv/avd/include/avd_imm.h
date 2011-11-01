@@ -49,6 +49,7 @@ typedef enum {
 } AvdJobDequeueResultT;
 
 extern AvdJobDequeueResultT avd_job_fifo_execute(SaImmOiHandleT immOiHandle);
+extern void avd_job_fifo_empty(void);
 
 /**
  * Install callbacks associated with classNames
