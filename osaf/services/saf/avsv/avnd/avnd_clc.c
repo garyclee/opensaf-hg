@@ -72,7 +72,6 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *, AVND_COMP *, SaAmfPresenceStateT, 
 
 static uint32_t avnd_comp_clc_resp(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *);
 static uint32_t avnd_instfail_su_failover(AVND_CB *, AVND_SU *, AVND_COMP *);
-static char *avnd_prep_attr_env_var(AVND_COMP *, uint32_t *);
 
 /***************************************************************************
  ** C O M P O N E N T   C L C   F S M   M A T R I X   D E F I N I T I O N **
@@ -2349,6 +2348,28 @@ uint32_t avnd_comp_clc_orph_restart_hdler(AVND_CB *cb, AVND_COMP *comp)
 	return rc;
 }
 
+/**
+ * Determine if name is in the environment variable set
+ * 
+ * @param name
+ * @param env_set
+ * @param env_counter
+ * 
+ * @return bool
+ */
+static bool var_in_envset(const char *name, const NCS_OS_ENVIRON_SET_NODE *env_set, unsigned int env_counter)
+{
+	int i;
+	const char *var;
+
+	for (i = 0, var = env_set[i].name; i < env_counter; i++, var = env_set[i].name) {
+		if (strcmp(var, name) == 0)
+			return true;
+	}
+
+	return false;
+}
+
 /****************************************************************************
   Name          : avnd_comp_clc_cmd_execute
  
@@ -2374,7 +2395,6 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	char env_var_name[] = "SA_AMF_COMPONENT_NAME";
 	char env_var_nodeid[] = "NCS_ENV_NODE_ID";
 	char env_var_comp_err[] = "NCS_ENV_COMPONENT_ERROR_SRC";
-	char env_var_attr[] = "NCS_ENV_COMPONENT_CSI_ATTR";
 	char *env_attr_val = 0;
 	AVND_CLC_EVT clc_evt;
 	AVND_EVT *evt = 0;
@@ -2382,10 +2402,10 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	char scr[SAAMF_CLC_LEN];
 	char *argv[AVND_COMP_CLC_PARAM_MAX + 2];
 	char tmp_argv[AVND_COMP_CLC_PARAM_MAX + 2][AVND_COMP_CLC_PARAM_SIZE_MAX];
-	uint32_t argc = 0, result, rc = NCSCC_RC_SUCCESS,count=0;
-        unsigned int env_counter;
-        unsigned int i;
-        SaStringT env;
+	uint32_t argc = 0, rc = NCSCC_RC_SUCCESS,count=0;
+	unsigned int env_counter;
+	unsigned int i;
+	SaStringT env;
 
 	TRACE_ENTER2("'%s':CLC CLI command type:'%s'",comp->name.value,clc_cmd_type[cmd_type]);
 
@@ -2430,36 +2450,41 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 		}
 	}
 
-        /* Allocate environment variable set */
-        env_set = calloc (comp->numOfCompCmdEnv + 3, sizeof(NCS_OS_ENVIRON_SET_NODE));
+	/* Allocate environment variable set */
+	i = comp->numOfCompCmdEnv + 3;
+	if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp))
+		i += comp->csi_list.n_nodes;
+
+	env_set = calloc(i, sizeof(NCS_OS_ENVIRON_SET_NODE));
 
 	memset(&cmd_info, 0, sizeof(NCS_OS_PROC_EXECUTE_TIMED_INFO));
 	memset(&arg, 0, sizeof(NCS_OS_ENVIRON_ARGS));
 
-   /*** populate the env variable set ***/
-        env_counter = 0;
+	/*** populate the env variable set ***/
+	env_counter = 0;
 
-        if (comp->saAmfCompCmdEnv != NULL) {
-        	while ((env = comp->saAmfCompCmdEnv[env_counter]) != NULL) {
-                        char* equalPos = strchr(env, '=');
-                        if (equalPos == NULL) {
-                                LOG_ER("Unknown enviroment variable format '%s'. Should be 'var=value'", env);
-                                env_counter++;
-                                continue;
-                        }
-                        env_set[env_counter].name = strndup(env, equalPos - env);
-                        env_set[env_counter].value = strdup(equalPos + 1);
-                        env_set[env_counter].overwrite = 1; 
-                        arg.num_args++;
-                        env_counter++;
-                }
-        }
+	if (comp->saAmfCompCmdEnv != NULL) {
+		while ((env = comp->saAmfCompCmdEnv[env_counter]) != NULL) {
+			char* equalPos = strchr(env, '=');
+			if (equalPos == NULL) {
+				LOG_ER("Unknown enviroment variable format '%s'. Should be 'var=value'", env);
+				env_counter++;
+				continue;
+			}
+			env_set[env_counter].name = strndup(env, equalPos - env);
+			env_set[env_counter].value = strdup(equalPos + 1);
+			env_set[env_counter].overwrite = 1; 
+			arg.num_args++;
+			env_counter++;
+		}
+	}
+
 	/* comp name env */
 	env_set[env_counter].overwrite = 1;
 	env_set[env_counter].name = strdup(env_var_name);
 	env_set[env_counter].value = strndup ((char*)comp->name.value, comp->name.length);
 	arg.num_args++;
-        env_counter++;
+	env_counter++;
 
 	/* node id env */
 	env_set[env_counter].overwrite = 1;
@@ -2467,7 +2492,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	sprintf(env_val_nodeid, "%u", (uint32_t)(cb->node_info.nodeId));
 	env_set[env_counter].value = strdup(env_val_nodeid);
 	arg.num_args++;
-        env_counter++;
+	env_counter++;
 
 	/* Note:- we will set NCS_ENV_COMPONENT_ERROR_SRC only for 
 	 * cleanup script
@@ -2482,36 +2507,40 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 		sprintf((char *)env_val_comp_err, "%u", (uint32_t)(comp->err_info.src));
 		env_set[env_counter].value = strdup(env_val_comp_err);
 		arg.num_args++;
-                env_counter++;
+		env_counter++;
 	}
 
-	/*Note :- For the Npi Components Csi Attributes 
-	   are Passed as Env Variable , The List of Csi attr
-	   will be send in "Name1=Value1,Name2=value2" form
-	   This format will be Retained when Env. Variable will be
-	   added in CLC command */
+	/* 
+	** 4.3 in B.04 states:
+	** "In case of a non-proxied, non-SA-aware component, the Availability Management Framework passes
+	** the name/value pairs of the component service instance as environment variables to each CLC-CLI
+	** command."
+	*/
+	if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
+		AVND_COMP_CSI_REC *csi;
+		AVSV_ATTR_NAME_VAL *csiattr;
 
-	if ((AVND_COMP_CLC_CMD_TYPE_INSTANTIATE == cmd_type) && (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp))) {
-		TRACE_1("Component is NPI");
+		TRACE_1("Component is NPI, %u", comp->csi_list.n_nodes);
 
-		/*Special case :The CSI attributes given as Name/Value
-		   pair are to be Passed as Env. for NPI .NPI will have one
-		   CSI assign at a point of time , so get the csi from comp DB */
+		csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
+		osafassert(csi);
 
-		env_attr_val = avnd_prep_attr_env_var(comp, &result);
+		for (i = 0, csiattr = csi->attrs.list; i < csi->attrs.number; i++, csiattr++) {
+			if (var_in_envset((char*)csiattr->name.value, env_set, env_counter)) {
+				LOG_NO("Ignoring second (or more) value '%s' for '%s' CSI attr '%s'",
+					csiattr->value.value, comp->name.value, csiattr->name.value);
+				continue;
+			}
 
-		if (NCSCC_RC_FAILURE == result)
-			goto err;
-
-		if (NULL != env_attr_val) {
-			/*Csi Attributes env */
+			TRACE("%s=%s", csiattr->name.value, csiattr->value.value);
 			env_set[env_counter].overwrite = 1;
-			env_set[env_counter].name = strdup(env_var_attr);
-			env_set[env_counter].value = strdup(env_attr_val);
+			env_set[env_counter].name = strdup((char*)csiattr->name.value);
+			osafassert(env_set[env_counter].name != NULL);
+			env_set[env_counter].value = strdup((char*)csiattr->value.value);
+			osafassert(env_set[env_counter].value != NULL);
 			arg.num_args++;
-                        env_counter++;
+			env_counter++;
 		}
-
 	}
 
 	arg.env_arg = env_set;
@@ -2540,12 +2569,12 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	/* finally execute the command */
 	rc = m_NCS_OS_PROCESS_EXECUTE_TIMED(&cmd_info);
 
-        /* Remove the env_set structure */
-        for (i = 0; i < env_counter; i++) {
-                free(env_set[i].name);
-                free(env_set[i].value);
-        }
-        free(env_set);
+	/* Remove the env_set structure */
+	for (i = 0; i < env_counter; i++) {
+		free(env_set[i].name);
+		free(env_set[i].value);
+	}
+	free(env_set);
 
 	if (NCSCC_RC_SUCCESS != rc) {
 		TRACE_2("The CLC CLI command execution failed");
@@ -2678,81 +2707,3 @@ uint32_t avnd_instfail_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_c
 	return rc;
 }
 
-/****************************************************************************
-  Name          : avnd_prep_attr_env_var
- 
-  Description   : This routine prep. the env. variable from csi attribute and
-                  cl env variables
- 
-  Arguments     : comp          - ptr to the comp. 
-                  ret_status    - ptr to the return status
-                                
- 
-  Return Values : ptr to Environment attributes.
- 
-  Notes         : None.
-******************************************************************************/
-static char *avnd_prep_attr_env_var(AVND_COMP *comp, uint32_t *ret_status)
-{
-
-	AVND_COMP_CSI_REC *curr_csi = 0;
-	AVSV_ATTR_NAME_VAL *attr_list = 0;
-	char *env_val = 0;
-	uint32_t mem_length = 0;
-	uint32_t count = 0;
-	TRACE_ENTER();
-
-	/* There should be a CSI Assigned to the component else will never come
-	   this path  */
-
-	*ret_status = NCSCC_RC_SUCCESS;
-
-	curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-	osafassert(curr_csi);
-
-	if (0 != curr_csi->attrs.number) {
-		attr_list = (AVSV_ATTR_NAME_VAL *)curr_csi->attrs.list;
-
-		/*First get the length of the Memory to be allocated */
-
-		for (count = 0; count < (curr_csi->attrs.number); count++, attr_list++) {
-			/* Adding 2 to account for the "=" and "," to be added */
-			mem_length = mem_length + attr_list->name.length + attr_list->value.length + 2;
-		}
-	} else {
-		/* No attributes present */
-		*ret_status = NCSCC_RC_SUCCESS;
-		TRACE_LEAVE();
-		return env_val;
-	}
-
-	/*Allocate the Memory of mem_length + 1 */
-	env_val = (mem_length) ? malloc(mem_length + 1) : NULL;
-
-	if (NULL == env_val) {	/* Mem failure */
-		*ret_status = NCSCC_RC_FAILURE;
-		TRACE_LEAVE();
-		return env_val;
-	}
-
-	memset(env_val, '\0', (mem_length + 1));
-
-	/* Now make the Env. variable */
-	if (0 != curr_csi->attrs.number) {
-		attr_list = (AVSV_ATTR_NAME_VAL *)curr_csi->attrs.list;
-
-		for (count = 0; count < (curr_csi->attrs.number); count++, attr_list++) {
-			/* If only one attribute No "," */
-			if (0 != count)
-				strncat(env_val, ",", 1);
-
-			strncat(env_val, (char*)attr_list->name.value, attr_list->name.length);
-			strncat(env_val, "=", 1);
-			strncat(env_val, (char*)attr_list->value.value, attr_list->value.length);
-		}
-	}
-
-	TRACE_LEAVE();
-	return env_val;
-
-}
