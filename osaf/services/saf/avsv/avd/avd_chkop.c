@@ -434,6 +434,9 @@ ignore_msg:
 			if ((NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE == arg->info.decode.i_msg_type) &&
 			    (NCSCC_RC_SUCCESS == status)) {
 				LOG_NO("Cold sync complete!");
+				/* saflog something on the standby to avoid sync calls later
+				** when in a more critical state */
+				saflog(LOG_NOTICE, amfSvcUsrName, "Cold sync complete at %x", cb->node_id_avd);
 				cb->stby_sync_state = AVD_STBY_IN_SYNC;
 			}
 
