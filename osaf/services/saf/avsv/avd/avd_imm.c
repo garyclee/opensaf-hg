@@ -976,10 +976,16 @@ SaAisErrorT avd_imm_init(void *avd_cb)
 
 	immutilWrapperProfile.errorsAreFatal = 0;
 
+	/* Reduce time blocked in synchronous IMM calls to 1s, see immsv/README */
+	setenv("IMMA_SYNCR_TIMEOUT", "100", 1);
+
 	if ((error = immutil_saImmOiInitialize_2(&cb->immOiHandle, &avd_callbacks, &immVersion)) != SA_AIS_OK) {
 		LOG_ER("saImmOiInitialize failed %u", error);
 		goto done;
 	}
+
+	/* unset so the OM handle is not affected */
+	unsetenv("IMMA_SYNCR_TIMEOUT");
 
 	if ((error = immutil_saImmOmInitialize(&cb->immOmHandle, NULL, &immVersion)) != SA_AIS_OK) {
 		LOG_ER("saImmOmInitialize failed %u", error);
@@ -1599,6 +1605,9 @@ static void *avd_imm_reinit_bg_thread(void *_cb)
 
 	immutilWrapperProfile.errorsAreFatal = 0;
 
+	/* Reduce time blocked in synchronous IMM calls to 1s, see immsv/README */
+	setenv("IMMA_SYNCR_TIMEOUT", "100", 1);
+
 	if ((rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &avd_callbacks, &immVersion)) != SA_AIS_OK) {
 		LOG_ER("saImmOiInitialize failed %u", rc);
 		exit(EXIT_FAILURE);
@@ -1608,6 +1617,9 @@ static void *avd_imm_reinit_bg_thread(void *_cb)
 		LOG_ER("saImmOiSelectionObjectGet failed %u", rc);
 		exit(EXIT_FAILURE);
 	}
+
+	/* unset so the OM handle is not affected */
+	unsetenv("IMMA_SYNCR_TIMEOUT");
 
 	/* If this is the active server, become implementer again. */
 	if (cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
