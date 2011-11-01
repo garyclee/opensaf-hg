@@ -897,7 +897,6 @@ static void csi_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 static void avd_create_csiassignment_in_imm(SaAmfHAStateT ha_state,
        const SaNameT *csi_dn, const SaNameT *comp_dn)
 {
-       SaAisErrorT rc; 
        SaNameT dn;
        SaAmfHAReadinessStateT saAmfCSICompHAReadinessState = SA_AMF_HARS_READY_FOR_ASSIGNMENT;
        void *arr1[] = { &dn };
@@ -934,8 +933,7 @@ static void avd_create_csiassignment_in_imm(SaAmfHAStateT ha_state,
        avsv_create_association_class_dn(comp_dn, NULL, "safCSIComp", &dn);
 
        TRACE("Adding %s", dn.value);
-       if ((rc = avd_saImmOiRtObjectCreate("SaAmfCSIAssignment", csi_dn, attrValues)) != SA_AIS_OK)
-           LOG_ER("rc=%u, '%s'", rc, dn.value);
+       avd_saImmOiRtObjectCreate("SaAmfCSIAssignment", csi_dn, attrValues);
 }
 
 AVD_COMP_CSI_REL *avd_compcsi_create(AVD_SU_SI_REL *susi, AVD_CSI *csi,
@@ -995,7 +993,6 @@ done:
  */
 static void avd_delete_csiassignment_from_imm(const SaNameT *comp_dn, const SaNameT *csi_dn)
 {
-       SaAisErrorT rc;
        SaNameT dn; 
 
        if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
@@ -1004,8 +1001,7 @@ static void avd_delete_csiassignment_from_imm(const SaNameT *comp_dn, const SaNa
        avsv_create_association_class_dn(comp_dn, csi_dn, "safCSIComp", &dn);
        TRACE("Deleting %s", dn.value);
 
-       if ((rc = avd_saImmOiRtObjectDelete(&dn)) != SA_AIS_OK)
-               LOG_ER("rc=%u, '%s'", rc, dn.value);
+       avd_saImmOiRtObjectDelete(&dn);
 }
 
 /*****************************************************************************

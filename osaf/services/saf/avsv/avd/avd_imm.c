@@ -273,21 +273,27 @@ static void copySaImmAttrValuesT(SaImmAttrValuesT_2 *copy, const SaImmAttrValues
 	char *databuffer;
 
 	copy->attrName = strdup(original->attrName);
+	osafassert(copy->attrName != NULL);
+
 	copy->attrValuesNumber = valueCount;
 	copy->attrValueType = original->attrValueType;
 	if (valueCount == 0)
 		return;		/* (just in case...) */
+
 	copy->attrValues = malloc(valueCount * sizeof(SaImmAttrValueT));
+	osafassert(copy->attrValues != NULL);
 
 	valueSize = value_size(original->attrValueType);
 
 	databuffer = (char *)malloc(valueCount * valueSize);
+	osafassert(databuffer != NULL);
 	for (i = 0; i < valueCount; i++) {
 		copy->attrValues[i] = databuffer;
 		if (original->attrValueType == SA_IMM_ATTR_SASTRINGT) {
 			char *cporig = *((char **)original->attrValues[i]);
 			char **cpp = (char **)databuffer;
 			*cpp = strdup(cporig);
+			osafassert(*cpp != NULL);
 		} else {
 			memcpy(databuffer, original->attrValues[i], valueSize);
 		}
@@ -298,6 +304,7 @@ static void copySaImmAttrValuesT(SaImmAttrValuesT_2 *copy, const SaImmAttrValues
 static const SaImmAttrValuesT_2 *dupSaImmAttrValuesT(const SaImmAttrValuesT_2 *original)
 {
 	SaImmAttrValuesT_2 *copy = malloc(sizeof(SaImmAttrValuesT_2));
+	osafassert(copy != NULL);
 	copySaImmAttrValuesT(copy, original);
 	return copy;
 }
@@ -314,6 +321,7 @@ static const SaImmAttrValuesT_2 **dupSaImmAttrValuesT_array(const SaImmAttrValue
 		alen++;
 
 	copy = calloc(1, ((alen + 1) * sizeof(SaImmAttrValuesT_2 *)));
+	osafassert(copy != NULL);
 
 	for (i = 0; i < alen; i++)
 		copy[i] = dupSaImmAttrValuesT(original[i]);
@@ -1263,105 +1271,76 @@ done:
 	return rc;
 }
 
-SaAisErrorT avd_saImmOiRtObjectUpdate(const SaNameT *dn, SaImmAttrNameT attributeName,
+/**
+ * Queue an IM object update to be executed later, non blocking
+ * @param dn
+ * @param attributeName
+ * @param attrValueType
+ * @param value
+ */
+void avd_saImmOiRtObjectUpdate(const SaNameT *dn, SaImmAttrNameT attributeName,
 	SaImmValueTypeT attrValueType, void *value)
 {
-	SaAisErrorT rc;
+	union job *ajob;
+	size_t sz;
 
-	if ((avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) && avd_cb->is_implementer) {
-		if (fifo_peek() == NULL) {
-			SaImmAttrModificationT_2 attrMod;
-			const SaImmAttrModificationT_2 *attrMods[] = { &attrMod, NULL};
-			SaImmAttrValueT attrValues[] = {value};
+	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
+		return;
 
-			attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
-			attrMod.modAttr.attrName = attributeName;
-			attrMod.modAttr.attrValuesNumber = 1;
-			attrMod.modAttr.attrValueType = attrValueType;
-			attrMod.modAttr.attrValues = attrValues;
-
-			rc = saImmOiRtObjectUpdate_2(avd_cb->immOiHandle, dn, attrMods);
-
-			if (rc == SA_AIS_OK)
-				return rc;
-
-			if (rc != SA_AIS_ERR_TRY_AGAIN) {
-				LOG_ER("%s: FAILED %u, '%s'", __FUNCTION__, rc, dn->value);
-				return rc;
-			}
-
-			// add to FIFO at TRY-AGAIN
-		}
-
-		union job *ajob = malloc(sizeof(*ajob));
-		size_t sz = value_size(attrValueType);
-			
-		ajob->type = JOB_IMM_OBJUPDATE;
-		ajob->objupdate.dn = *dn;
-		ajob->objupdate.attributeName = strdup(attributeName);
-		ajob->objupdate.attrValueType = attrValueType;
-		ajob->objupdate.value = malloc(sz);
-		memcpy(ajob->objupdate.value, value, sz);
-		fifo_queue(ajob);
-	}
-
-	return SA_AIS_OK;
+	ajob = malloc(sizeof(*ajob));
+	osafassert(ajob != NULL);
+	sz = value_size(attrValueType);
+	ajob->type = JOB_IMM_OBJUPDATE;
+	ajob->objupdate.dn = *dn;
+	ajob->objupdate.attributeName = strdup(attributeName);
+	osafassert(ajob->objupdate.attributeName != NULL);
+	ajob->objupdate.attrValueType = attrValueType;
+	ajob->objupdate.value = malloc(sz);
+	osafassert(ajob->objupdate.value != NULL);
+	memcpy(ajob->objupdate.value, value, sz);
+	fifo_queue(ajob);
 }
 
-SaAisErrorT avd_saImmOiRtObjectCreate(const SaImmClassNameT className,
+/**
+ * Queue an IM object create to be executed later, non blocking
+ * @param className
+ * @param parentName
+ * @param attrValues
+ */
+void avd_saImmOiRtObjectCreate(const SaImmClassNameT className,
 	const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues)
 {
-	SaAisErrorT rc;
+	union job *ajob;
 
-	if (fifo_peek() == NULL) {
-		rc = saImmOiRtObjectCreate_2(avd_cb->immOiHandle, className,
-									parentName, attrValues);
+	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
+		return;
 
-		if (rc == SA_AIS_OK)
-			return rc;
-
-		if (rc != SA_AIS_ERR_TRY_AGAIN) {
-			LOG_ER("%s: FAILED %u, '%s'", __FUNCTION__, rc, parentName->value);
-			return rc;
-		}
-
-		// add to FIFO at TRY-AGAIN
-	}
-
-	union job *ajob = malloc(sizeof(*ajob));
+	ajob = malloc(sizeof(*ajob));
+	osafassert(ajob != NULL);
 	ajob->type = JOB_IMM_OBJCREATE;
 	ajob->objcreate.className = strdup(className);
+	osafassert(ajob->objcreate.className != NULL);
 	ajob->objcreate.parentName = *parentName;
 	ajob->objcreate.attrValues = dupSaImmAttrValuesT_array(attrValues);
 	fifo_queue(ajob);
-
-	return SA_AIS_OK;
 }
 
-SaAisErrorT avd_saImmOiRtObjectDelete(const SaNameT* dn)
+/**
+ * Queue an IM object delete to be executed later, non blocking
+ * @param dn
+ */
+void avd_saImmOiRtObjectDelete(const SaNameT* dn)
 {
-	SaAisErrorT rc;
+	union job *ajob;
 
-	if (fifo_peek() == NULL) {
-		rc = saImmOiRtObjectDelete(avd_cb->immOiHandle, dn);
+	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
+		return;
 
-		if (rc == SA_AIS_OK)
-			return rc;
-
-		if (rc != SA_AIS_ERR_TRY_AGAIN) {
-			LOG_ER("%s: FAILED %u, '%s'", __FUNCTION__, rc, dn->value);
-			return rc;
-		}
-
-		// add to FIFO at TRY-AGAIN
-	}
-
-	union job *ajob = malloc(sizeof(*ajob));
+	ajob = malloc(sizeof(*ajob));
+	osafassert(ajob != NULL);
 	ajob->type = JOB_IMM_OBJDELETE;
 	ajob->objdelete.dn = *dn;
 	fifo_queue(ajob);
-
-	return SA_AIS_OK;
 }
 
 /**
