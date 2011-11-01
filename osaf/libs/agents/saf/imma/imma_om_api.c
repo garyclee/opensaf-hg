@@ -3547,7 +3547,56 @@ static SaAisErrorT admin_op_invoke_common(
 SaAisErrorT saImmOmAdminOperationMemoryFree(SaImmAdminOwnerHandleT ownerHandle,
 					    SaImmAdminOperationParamsT_2 **returnParams)
 {
+	IMMA_CB *cb = &imma_cb;
+	IMMA_CLIENT_NODE *cl_node = NULL;
+	IMMA_ADMIN_OWNER_NODE *ao_node = NULL;
+	SaImmHandleT immHandle=0LL;
+	bool locked = true;
+	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER();
+
+	if (cb->sv_id == 0) {
+		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
+		return SA_AIS_ERR_BAD_HANDLE;
+	}
+
+	/* get the CB Lock */
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("ERR_LIBRARY: Lock failed");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_LIBRARY;
+	}
+	/*locked == true already */
+
+	imma_admin_owner_node_get(&cb->admin_owner_tree, &ownerHandle, &ao_node);
+	if (!ao_node) {
+		TRACE_2("ERR_BAD_HANDLE: No admin owner associated with admin owner handle!");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+	immHandle = ao_node->mImmHandle;
+
+	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+	if (!(cl_node && cl_node->isOm)) {
+		TRACE_2("ERR_BAD_HANDLE: Client not found");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	if (cl_node->stale) {
+		TRACE_1("IMM Handle %llx is stale - ignoring", immHandle);
+		/*return SA_AIS_ERR_BAD_HANDLE;*/
+		/* Dont let a stale handle prevent the deallocation. */
+	}
+
+	if(!(cl_node->isImmA2b)) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saImmOmAdminOperationMemoryFree only supported for "
+			"A.02.11 and above");
+		rc = SA_AIS_ERR_VERSION;
+		goto done;
+	}
+
 	if(returnParams != NULL) {
 		SaImmAdminOperationParamsT_2 *q = NULL;
 		unsigned int ix = 0;
@@ -3562,8 +3611,15 @@ SaAisErrorT saImmOmAdminOperationMemoryFree(SaImmAdminOwnerHandleT ownerHandle,
 
 		free(returnParams);
 	}
+
+ done:
+	if (locked) {
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		locked = false;
+	}
+	
 	TRACE_LEAVE();
-	return SA_AIS_OK;
+	return rc;
 }
 
 static int push_async_adm_op_continuation(IMMA_CB *cb,	//in
@@ -4614,7 +4670,6 @@ SaAisErrorT saImmOmClassDescriptionMemoryFree_2(SaImmHandleT immHandle, SaImmAtt
 	IMMA_CB *cb = &imma_cb;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	TRACE_ENTER();
-	/* ABT The code from here.. */
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
@@ -4641,9 +4696,6 @@ SaAisErrorT saImmOmClassDescriptionMemoryFree_2(SaImmHandleT immHandle, SaImmAtt
 		/*return SA_AIS_ERR_BAD_HANDLE;*/
 		/* Dont let a stale handle prevent the deallocation. */
 	}
-
-	/* ABT ...to here does not do anything except check handle.
-	   Perhaps we should just ignore the handle. */
 
 	if (attrDefinition) {
 		int i;
