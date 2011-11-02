@@ -56,35 +56,27 @@ static void imma_proc_free_callback(IMMA_CALLBACK_INFO *callback);
 ******************************************************************************/
 uint32_t imma_version_validate(SaVersionT *version)
 {
+	SaAisErrorT retCode = SA_AIS_OK;
+
 	if ((version->releaseCode == IMMA_RELEASE_CODE) && (version->majorVersion <= IMMA_MAJOR_VERSION)) {
 		if ((version->releaseCode == 'A') && (version->majorVersion == 0x01)) {
 			LOG_NO("ERR_VERSION: Version SAI-AIS-IMM-A.01.01 is not supported");
-			return SA_AIS_ERR_VERSION;
+			retCode = SA_AIS_ERR_VERSION;
+		} else if((version->releaseCode == 'A') && (version->majorVersion == 0x00)) {
+			LOG_NO("ERR_VERSION: Version SAI-AIS-IMM-A.00.XX does not exist");
+			retCode = SA_AIS_ERR_VERSION;
 		}
-
-		if(version->majorVersion != IMMA_MAJOR_VERSION) {
-			version->majorVersion = IMMA_MAJOR_VERSION;
-			version->minorVersion = IMMA_MINOR_VERSION;
-		} else if(version->minorVersion != IMMA_MINOR_VERSION) {
-			version->minorVersion = IMMA_MINOR_VERSION;
-		}
-
-		return SA_AIS_OK;
 	} else {
-		TRACE_2("ERR_VERSION: IMMA - Version Incompatible %c %u not suported",
+		TRACE_2("ERR_VERSION: IMMA - Version Incompatible %c %u not supported",
 			version->releaseCode, version->majorVersion);
-
-		if (IMMA_RELEASE_CODE < version->releaseCode) {
-			version->releaseCode = IMMA_RELEASE_CODE;
-		}
-
-		version->majorVersion = IMMA_MAJOR_VERSION;
-		version->minorVersion = IMMA_MINOR_VERSION;
-
-		return SA_AIS_ERR_VERSION;
+		retCode = SA_AIS_ERR_VERSION;
 	}
 
-	return SA_AIS_OK;
+	version->releaseCode = IMMA_RELEASE_CODE;
+	version->majorVersion = IMMA_MAJOR_VERSION;
+	version->minorVersion = IMMA_MINOR_VERSION;
+
+	return retCode;
 }
 
 /****************************************************************************
