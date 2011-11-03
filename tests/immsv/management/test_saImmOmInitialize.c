@@ -242,6 +242,33 @@ void saImmOmInitialize_10(void)
 
 }
 
+void saImmOmInitialize_11(void)
+{
+    SaVersionT version = {'A', 2, 1};
+
+    rc = saImmOmInitialize_o2(&immOmHandle, NULL, &version);
+
+    //printf("A.2.99 Version out: %c %u %u\n", version.releaseCode, version.majorVersion, version.minorVersion);
+
+    if(version.releaseCode != immVersion.releaseCode) {
+        printf("\tRelease code not set correctly as out param expected %c got %c\n",
+            immVersion.releaseCode, version.releaseCode);
+	rc = SA_AIS_ERR_FAILED_OPERATION;
+    }
+    if(version.majorVersion != immVersion.majorVersion) {
+        printf("\tMajor version not set correctly as out param expected %u got %u\n",
+            immVersion.majorVersion, version.majorVersion);
+	rc = SA_AIS_ERR_FAILED_OPERATION;
+    }
+    if(version.minorVersion != immVersion.minorVersion) {
+        printf("\tMinor version not set correctly as out param expected %u got %u\n",
+            immVersion.minorVersion, version.minorVersion);
+	rc = SA_AIS_ERR_FAILED_OPERATION;
+    }
+
+    test_validate(rc, SA_AIS_ERR_VERSION);
+}
+
 
 extern void saImmOmSelectionObjectGet_01(void);
 extern void saImmOmSelectionObjectGet_02(void);
@@ -265,6 +292,7 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(1, saImmOmInitialize_08, "saImmOmInitialize - SA_AIS_ERR_VERSION - B.3.99 requested");
     test_case_add(1, saImmOmInitialize_09, "saImmOmInitialize - SA_AIS_ERR_VERSION - A.1.1 requested");
     test_case_add(1, saImmOmInitialize_10, "saImmOmInitialize - SA_AIS_OK - A.2.99 requested");
+    test_case_add(1, saImmOmInitialize_11, "saImmOmInitialize - SA_AIS_ERR_VERSION - A.2.1 requested on _o2");
 
     test_case_add(1, saImmOmSelectionObjectGet_01, "saImmOmSelectionObjectGet - SA_AIS_ERR_INVALID_PARAM - no callback defined");
     test_case_add(1, saImmOmSelectionObjectGet_02, "saImmOmSelectionObjectGet - SA_AIS_ERR_BAD_HANDLE - invalid handle");
