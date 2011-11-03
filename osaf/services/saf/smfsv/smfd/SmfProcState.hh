@@ -144,8 +144,6 @@ class SmfProcStateExecutionCompleted:public SmfProcState {
 	virtual SmfProcResultT rollback(SmfUpgradeProcedure * i_proc);
 	virtual SmfProcResultT rollbackWrapup(SmfUpgradeProcedure * i_proc);
 
-	virtual SmfProcResultT commit(SmfUpgradeProcedure * i_proc);
-
 	virtual SaSmfProcStateT getState() const {
 		return SA_SMF_PROC_COMPLETED;
  } private:
@@ -281,8 +279,6 @@ class SmfProcStateRolledBack:public SmfProcState {
 	static SmfProcState *instance();
 
 	virtual std::string getClassName() const;
-
-	virtual SmfProcResultT commit(SmfUpgradeProcedure * i_proc);
 
         virtual SaSmfProcStateT getState() const {
 		return SA_SMF_PROC_ROLLED_BACK;
