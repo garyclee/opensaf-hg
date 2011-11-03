@@ -164,7 +164,7 @@ static uint32_t encodeSaNtfValueT(NCS_UBAID *uba, uint8_t *p8, SaNtfValueTypeT a
 		break;
 	default:
 		TRACE_2("attributeType %d not valid", (int)attributeType);
-		return NCSCC_RC_FAILURE;
+		return NCSCC_RC_INVALID_INPUT;
 	}
 	return rv;
 }
@@ -186,7 +186,8 @@ static uint32_t encodeSaNtfAttributeChangeT(NCS_UBAID *uba, uint8_t *p8, SaNtfAt
 		rv = encodeSaNtfValueT(uba,
 						 p8, ntfAttr->attributeType, &ntfAttr->oldAttributeValue);
 	}
-	rv = encodeSaNtfValueT(uba, p8, ntfAttr->attributeType, &ntfAttr->newAttributeValue);
+	if (NCSCC_RC_SUCCESS == rv)
+		rv = encodeSaNtfValueT(uba, p8, ntfAttr->attributeType, &ntfAttr->newAttributeValue);
 	return rv;
 }
 
@@ -428,11 +429,13 @@ static uint32_t ntfsv_enc_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *p
 						 p8,
 						 param->additionalInfo[i].infoType,
 						 &param->additionalInfo[i].infoValue);
+		if (NCSCC_RC_SUCCESS != rv)
+		      break; 
 	}
 	return rv;
  error_done:
 	TRACE("ncs_enc_reserve_space failed");
-	return NCSCC_RC_OUT_OF_MEM;
+	return rv;
 }
 
 uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
@@ -491,14 +494,20 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 						 p8,
 						 param->notification.alarm.thresholdInformation->thresholdValueType,
 						 &param->notification.alarm.thresholdInformation->thresholdValue);
+		if (NCSCC_RC_SUCCESS != rv)
+			goto error_done; 
 		rv = encodeSaNtfValueT(uba,
 						 p8,
 						 param->notification.alarm.thresholdInformation->thresholdValueType,
 						 &param->notification.alarm.thresholdInformation->thresholdHysteresis);
+		if (NCSCC_RC_SUCCESS != rv)
+		      goto error_done; 
 		rv = encodeSaNtfValueT(uba,
 						 p8,
 						 param->notification.alarm.thresholdInformation->thresholdValueType,
 						 &param->notification.alarm.thresholdInformation->observedValue);
+		if (NCSCC_RC_SUCCESS != rv)
+		      goto error_done; 
 
 		TRACE("thresholdInformation->numSpecificProblems %hu", param->notification.alarm.numSpecificProblems);
 		for (i = 0; i < param->notification.alarm.numSpecificProblems; i++) {
@@ -517,6 +526,8 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 							 p8,
 							 param->notification.alarm.specificProblems[i].problemType,
 							 &param->notification.alarm.specificProblems[i].problemValue);
+			if (NCSCC_RC_SUCCESS != rv)
+			      goto error_done; 
 		}
 		TRACE("thresholdInformation->numMonitoredAttributes %hu",
 		      param->notification.alarm.numMonitoredAttributes);
@@ -534,6 +545,8 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 							 param->notification.alarm.monitoredAttributes[i].attributeType,
 							 &param->notification.alarm.monitoredAttributes[i].
 							 attributeValue);
+			if (NCSCC_RC_SUCCESS != rv)
+			      goto error_done; 
 		}
 		TRACE("thresholdInformation->numProposedRepairActions %hu",
 		      param->notification.alarm.numProposedRepairActions);
@@ -552,6 +565,8 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 							 actionValueType,
 							 &param->notification.alarm.proposedRepairActions[i].
 							 actionValue);
+			if (NCSCC_RC_SUCCESS != rv)
+			      goto error_done; 
 		}
 		break;
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
@@ -594,6 +609,8 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 			    encodeSaNtfAttributeChangeT(uba,
 							p8,
 							&param->notification.attributeChange.changedAttributes[i]);
+			if (NCSCC_RC_SUCCESS != rv)
+			      goto error_done; 
 		}
 		break;
 	case SA_NTF_TYPE_STATE_CHANGE:
@@ -649,8 +666,8 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 		ncs_enc_claim_space(uba, 10);
 		TRACE_2("enc Security Alarm Detector Type: %d\n", param->notification.securityAlarm.securityAlarmDetector->valueType);
 		rv = encodeSaNtfValueT(uba, p8, param->notification.securityAlarm.securityAlarmDetector->valueType, &param->notification.securityAlarm.securityAlarmDetector->value);
-		if (!rv) {
-			return NCSCC_RC_OUT_OF_MEM;
+		if (rv != NCSCC_RC_SUCCESS) {
+			goto error_done;
 		}
 		p8 = ncs_enc_reserve_space(uba, 2);
 		if (!p8) {
@@ -663,6 +680,8 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 						 p8,
 						 param->notification.securityAlarm.serviceUser->valueType,
 						 &param->notification.securityAlarm.serviceUser->value);
+		if (NCSCC_RC_SUCCESS != rv)
+		      goto error_done; 
 		p8 = ncs_enc_reserve_space(uba, 2);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
@@ -674,13 +693,15 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 						 p8,
 						 param->notification.securityAlarm.serviceProvider->valueType,
 						 &param->notification.securityAlarm.serviceProvider->value);
+		if (NCSCC_RC_SUCCESS != rv)
+		      goto error_done; 
 
 		break;
 
 	default:
 		TRACE("notificationType: %d not valid", (int)param->notificationType);
-		return NCSCC_RC_FAILURE;
-		break;
+		rv=  NCSCC_RC_INVALID_INPUT;
+		goto error_done;
 	}
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {

@@ -1292,8 +1292,14 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 		rc = SA_AIS_ERR_TIMEOUT;
 		TRACE("ntfa_mds_msg_sync_send FAILED: %u", rc);
 		break;
-	default:
-		TRACE("mtfa_mds_msg_sync_send FAILED: %u", rc);
+	case NCSCC_RC_INVALID_INPUT:
+		/* This don't work since MDS does not forward error code from
+		   encode/decode */
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		TRACE("ntfa_mds_msg_sync_send FAILED: %u", mds_rc);
+		break;
+       default:
+		TRACE("ntfa_mds_msg_sync_send FAILED: %u", rc);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 	}
 	if (mds_rc != NCSCC_RC_SUCCESS) {
@@ -1433,9 +1439,10 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	send_param->f_rec = filters;
 	/* Check whether NTFS is up or not */
 	if (ntfa_cb.ntfs_up) {
+		uint32_t rv;
 		/* Send a sync MDS message to obtain a log stream id */
-		rc = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
-		if (rc == NCSCC_RC_SUCCESS) {
+		rv = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
+		if (rv == NCSCC_RC_SUCCESS) {
 			if (SA_AIS_OK == o_msg->info.api_resp_info.rc) {
 				TRACE_1("subscriptionId from server %u",
 					o_msg->info.api_resp_info.param.subscribe_rsp.subscriptionId);
@@ -1444,7 +1451,10 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 				TRACE("Bad return status!!! rc = %d", rc);
 			}
 		} else {
-			rc = SA_AIS_ERR_TRY_AGAIN;
+			if(rv == NCSCC_RC_INVALID_INPUT)
+				rc = SA_AIS_ERR_INVALID_PARAM;
+			else
+				rc = SA_AIS_ERR_TRY_AGAIN;
 		}
 	} else {
 		TRACE_1("NTFS down");
