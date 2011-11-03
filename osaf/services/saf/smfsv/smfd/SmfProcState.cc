@@ -136,8 +136,32 @@ SmfProcState::suspend(SmfUpgradeProcedure * i_proc)
 SmfProcResultT 
 SmfProcState::commit(SmfUpgradeProcedure * i_proc)
 {
+	SaAisErrorT rc = SA_AIS_OK;
+	SaNameT objectName;
+        SmfImmUtils immUtil;
+
 	TRACE_ENTER();
-	LOG_ER("SmfProcState::commit default implementation, should NEVER be executed.");
+
+	/* Remove upgrade procedure object (and the whole subtree) from IMM 
+	   The children objects in the subtree are:
+	   -SaSmfStep
+	   -SaSmfActivationUnit, 
+	   -SaSmfDeactivationUnit 
+	   -SaSmfImageNodes 
+	   -OpenSafSmfSingleStepInfo
+	*/
+
+	objectName.length = i_proc->getDn().length();
+	strncpy((char *)objectName.value, i_proc->getDn().c_str(), objectName.length);
+	objectName.value[objectName.length] = 0;
+
+	rc = immutil_saImmOiRtObjectDelete(i_proc->getProcThread()->getImmHandle(),	//The OI handle
+					   &objectName);
+
+	if (rc != SA_AIS_OK) {
+		LOG_ER("immutil_saImmOiRtObjectDelete returned %u for %s", rc, i_proc->getDn().c_str());
+	}
+
 	TRACE_LEAVE();
         return SMF_PROC_DONE;
 }
@@ -582,43 +606,6 @@ SmfProcStateExecutionCompleted::rollbackWrapup(SmfUpgradeProcedure * i_proc)
 	LOG_NO("PROC: Rollback procedure wrapup actions completed");
 	LOG_NO("PROC: Start rolling back all the steps");
         return SMF_PROC_CONTINUE; /* Continue in rolling back state */
-}
-
-//------------------------------------------------------------------------------
-// commit()
-//------------------------------------------------------------------------------
-SmfProcResultT 
-SmfProcStateExecutionCompleted::commit(SmfUpgradeProcedure * i_proc)
-{
-	SaAisErrorT rc = SA_AIS_OK;
-	SaNameT objectName;
-        SmfImmUtils immUtil;
-
-	TRACE_ENTER();
-	TRACE("SmfProcStateExecutionCompleted::commit implementation");
-
-	/* Remove upgrade procedure object (and the whole subtree) from IMM 
-	   The children objects in the subtree are:
-	   -SaSmfStep
-	   -SaSmfActivationUnit, 
-	   -SaSmfDeactivationUnit 
-	   -SaSmfImageNodes 
-	   -OpenSafSmfSingleStepInfo
-	*/
-
-	objectName.length = i_proc->getDn().length();
-	strncpy((char *)objectName.value, i_proc->getDn().c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
-
-	rc = immutil_saImmOiRtObjectDelete(i_proc->getProcThread()->getImmHandle(),	//The OI handle
-					   &objectName);
-
-	if (rc != SA_AIS_OK) {
-		LOG_ER("immutil_saImmOiRtObjectDelete returned %u for %s", rc, i_proc->getDn().c_str());
-	}
-
-	TRACE_LEAVE();
-        return SMF_PROC_DONE;
 }
 
 //------------------------------------------------------------------------------
@@ -1085,43 +1072,6 @@ std::string
 SmfProcStateRolledBack::getClassName()const
 {
 	return "SmfProcStateRolledBack";
-}
-
-//------------------------------------------------------------------------------
-// commit()
-//------------------------------------------------------------------------------
-SmfProcResultT 
-SmfProcStateRolledBack::commit(SmfUpgradeProcedure * i_proc)
-{
-	SaAisErrorT rc = SA_AIS_OK;
-	SaNameT objectName;
-        SmfImmUtils immUtil;
-
-	TRACE_ENTER();
-	TRACE("SmfProcStateRolledBack::commit implementation");
-
-	/* Remove upgrade procedure object (and the whole subtree) from IMM 
-	   The children objects in the subtree are:
-	   -SaSmfStep
-	   -SaSmfActivationUnit, 
-	   -SaSmfDeactivationUnit 
-	   -SaSmfImageNodes 
-	   -OpenSafSmfSingleStepInfo
-	*/
-
-	objectName.length = i_proc->getDn().length();
-	strncpy((char *)objectName.value, i_proc->getDn().c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
-
-	rc = immutil_saImmOiRtObjectDelete(i_proc->getProcThread()->getImmHandle(),	//The OI handle
-					   &objectName);
-
-	if (rc != SA_AIS_OK) {
-		LOG_ER("immutil_saImmOiRtObjectDelete returned %u for %s", rc, i_proc->getDn().c_str());
-	}
-
-	TRACE_LEAVE();
-        return SMF_PROC_DONE;
 }
 
 //------------------------------------------------------------------------------
