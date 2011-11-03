@@ -101,6 +101,7 @@ SaAisErrorT saImmOmInitialize_o2(SaImmHandleT *immHandle, const SaImmCallbacksT_
 		TRACE_2("ERR_VERSION: THIS SHOULD BE A VERSION A.2.11 initialize but claims to be"
 		      "%c %u %u", requested_version.releaseCode, requested_version.majorVersion, 
 			requested_version.minorVersion);
+		imma_version_validate(inout_version);
 		return SA_AIS_ERR_VERSION;
 	}
 
