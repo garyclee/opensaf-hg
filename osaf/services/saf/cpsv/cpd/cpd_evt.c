@@ -1094,6 +1094,13 @@ static uint32_t cpd_evt_mds_quiesced_ack_rsp(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT saErr = SA_AIS_OK;
 	TRACE_ENTER();
+	cb->ha_state = SA_AMF_HA_QUIESCED;	/* Set the HA State */
+       /* Give up our IMM OI implementer role */
+	saErr = immutil_saImmOiImplementerClear(cb->immOiHandle);
+	if (saErr != SA_AIS_OK) {
+		LOG_ER("saImmOiImplementerClear failed with err:%d",saErr);
+	}
+	
 	cpd_mbcsv_chgrole(cb);
 	saAmfResponse(cb->amf_hdl, cb->amf_invocation, saErr);
 	
