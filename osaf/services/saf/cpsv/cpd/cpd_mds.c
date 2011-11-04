@@ -597,10 +597,8 @@ uint32_t cpd_mds_quiesced_ack_process(CPD_CB *cb)
 {
 	CPSV_EVT *evt = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-
 	TRACE_ENTER();
 	if (cb->is_quiesced_set) {
-		cb->ha_state = SA_AMF_HA_QUIESCED;	/* Set the HA State */
 		evt = m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPD);
 		if (!evt) {
 			LOG_ER("cpd evt memory allocation failed");
