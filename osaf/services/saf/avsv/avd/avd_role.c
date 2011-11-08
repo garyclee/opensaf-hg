@@ -575,6 +575,18 @@ void avd_mds_qsd_role_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	TRACE_ENTER();
 
+	/* Give up IMM OI implementer role */
+	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
+	cb->is_implementer = false;
+
+	/* Throw away all pending IMM updates, no longer implementer */
+	avd_job_fifo_empty();
+
+	if (avd_imm_applier_set() != SA_AIS_OK) {
+		LOG_ER("avd_imm_applier_set FAILED");
+		osafassert(0);
+	}
+
 	/* Now set the MBCSv role to quiesced, */
 	if (NCSCC_RC_SUCCESS != (status = avsv_set_ckpt_role(cb, SA_AMF_HA_QUIESCED))) {
 		/* Log error */
@@ -837,18 +849,6 @@ uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb)
 		LOG_ER("%s: avd_avnd_send_role_change failed", __FUNCTION__);
 	} else {
 		avd_d2n_msg_dequeue(cb);
-	}
-
-	/* Give up our IMM OI implementer role */
-	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
-	cb->is_implementer = false;
-
-	/* Throw away all pending IMM updates, no longer implementer */
-	avd_job_fifo_empty();
-
-	if (avd_imm_applier_set() != SA_AIS_OK) {
-		LOG_ER("avd_imm_applier_set FAILED");
-		return NCSCC_RC_FAILURE;
 	}
 
 	TRACE_LEAVE();
