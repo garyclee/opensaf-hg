@@ -974,7 +974,10 @@ SaAisErrorT avd_imm_init(void *avd_cb)
 
 	TRACE_ENTER();
 
-	immutilWrapperProfile.errorsAreFatal = 0;
+	/* Setup immutils profile once and for all */
+	immutilWrapperProfile.errorsAreFatal = false;
+	immutilWrapperProfile.retryInterval = 1000;
+	immutilWrapperProfile.nTries = 180;
 
 	/* Reduce time blocked in synchronous IMM calls to 1s, see immsv/README */
 	setenv("IMMA_SYNCR_TIMEOUT", "100", 1);
@@ -1023,8 +1026,6 @@ SaAisErrorT avd_imm_impl_set(void)
 
 	TRACE_ENTER();
 
-	immutilWrapperProfile.nTries = 250; /* After loading, allow missed sync of large data to complete */
-
 	if ((rc = immutil_saImmOiImplementerSet(avd_cb->immOiHandle, implementerName)) != SA_AIS_OK) {
 		LOG_ER("saImmOiImplementerSet failed %u", rc);
 		return rc;
@@ -1038,8 +1039,6 @@ SaAisErrorT avd_imm_impl_set(void)
 			break;
 		}
 	}
-
-	immutilWrapperProfile.nTries = 20; /* Reset retry time to more normal value. */
 
 	avd_cb->is_implementer = SA_TRUE;
 
@@ -1065,8 +1064,6 @@ SaAisErrorT avd_imm_applier_set(void)
 	TRACE_ENTER();
 	snprintf(applier_name, SA_MAX_NAME_LENGTH, "@safAmfService%x", avd_cb->node_id_avd);
 
-	immutilWrapperProfile.nTries = 250; /* After loading, allow missed sync of large data to complete */
-
 	if ((rc = immutil_saImmOiImplementerSet(avd_cb->immOiHandle, applier_name)) != SA_AIS_OK) {
 		LOG_ER("saImmOiImplementerSet failed %u", rc);
 		return rc;
@@ -1080,8 +1077,6 @@ SaAisErrorT avd_imm_applier_set(void)
 			break;
 		}
 	}
-
-	immutilWrapperProfile.nTries = 20; /* Reset retry time to more normal value. */
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;
