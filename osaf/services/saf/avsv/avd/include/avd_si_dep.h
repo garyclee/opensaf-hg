@@ -91,7 +91,6 @@ typedef struct avd_spons_si_tag {
 
 #define AVD_SI_SI_DEP_NULL ((AVD_SI_SI_DEP *)0)
 
-uint32_t avd_si_dep_spons_list_add(AVD_CL_CB *avd_cb, struct avd_si_tag *dep_si, struct avd_si_tag *spons_si, AVD_SI_SI_DEP *sidep);
 void avd_si_dep_delete(AVD_CL_CB *cb, struct avd_si_tag *si);
 void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec);
 AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx);

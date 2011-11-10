@@ -197,33 +197,37 @@ done:
 	TRACE_LEAVE();
 }
 
+static bool rec_already_in_sponsor_list(const AVD_SI *si, const AVD_SI_SI_DEP *rec)
+{
+	AVD_SPONS_SI_NODE *node;
+
+	for (node = si->spons_si_list; node; node = node->next)
+		if (node->sidep_rec == rec)
+			return true;
+
+	return false;
+}
+
 /*****************************************************************************
  * Function: avd_si_dep_spons_list_add
  *
  * Purpose:  This function adds the spons-SI node in the spons-list of 
- *           dependent-SI.
+ *           dependent-SI if not already exist.
  *
- * Input:  cb - ptr to AVD control block
- *         dep_si - ptr to AVD_SI struct (dependent-SI node).
+ * Input:  dep_si - ptr to AVD_SI struct (dependent-SI node).
  *         spons_si - ptr to AVD_SI struct (sponsor-SI node).
- *
- * Returns:
- *
- * NOTES: 
+ *         rec
  * 
  **************************************************************************/
-uint32_t avd_si_dep_spons_list_add(AVD_CL_CB *avd_cb, AVD_SI *dep_si, AVD_SI *spons_si,
-		AVD_SI_SI_DEP *rec)
+void avd_si_dep_spons_list_add(AVD_SI *dep_si, AVD_SI *spons_si, AVD_SI_SI_DEP *rec)
 {
 	AVD_SPONS_SI_NODE *spons_si_node;
 
-	TRACE_ENTER();
+	if (rec_already_in_sponsor_list(dep_si, rec))
+		return;
 
 	spons_si_node = calloc(1, sizeof(AVD_SPONS_SI_NODE));
-	if (spons_si_node == NULL) {
-		TRACE("calloc failed");
-		return NCSCC_RC_FAILURE;
-	}
+	osafassert(spons_si_node);
 
 	/* increment number of dependents in sponsor SI as well */
 	spons_si->num_dependents ++;
@@ -233,9 +237,6 @@ uint32_t avd_si_dep_spons_list_add(AVD_CL_CB *avd_cb, AVD_SI *dep_si, AVD_SI *sp
 
 	spons_si_node->next = dep_si->spons_si_list;
 	dep_si->spons_si_list = spons_si_node;
-
-	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -1039,11 +1040,14 @@ done:
  **************************************************************************/
 AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 {
-	AVD_SI_SI_DEP *rec = NULL;
+	AVD_SI_SI_DEP *rec;
 	uint32_t si_prim_len = indx->si_name_prim.length;
 	uint32_t si_sec_len = indx->si_name_sec.length;
 
 	TRACE_ENTER();
+
+	if ((rec = avd_si_si_dep_find(cb, indx, true)) != NULL)
+		goto done;
 
 	/* Allocate a new block structure for imm rec now */
 	if ((rec = calloc(1, sizeof(AVD_SI_SI_DEP))) == NULL) {
@@ -1478,7 +1482,7 @@ static AVD_SI_SI_DEP *sidep_new(SaNameT *sidep_name, const SaImmAttrValuesT_2 **
 	/* Add to dependent's sponsors list */
 	osafassert(spons_si = avd_si_get(&indx.si_name_prim));
 	osafassert(dep_si = avd_si_get(&indx.si_name_sec));
-	osafassert(avd_si_dep_spons_list_add(avd_cb, dep_si, spons_si, sidep) == NCSCC_RC_SUCCESS);
+	avd_si_dep_spons_list_add(dep_si, spons_si, sidep);
 
 	if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE)  {
 		/* Move the dependent SI to appropriate state, if the configured 
