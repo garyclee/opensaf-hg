@@ -153,7 +153,7 @@ typedef struct avnd_su_tag {
 	NCS_DB_LINK_LIST siq;	/* susi msg buf (no index) maintains fifo order */
 
 	/* To have the knowledge in AvND if this su belongs to NCS_SG */
-	SaBoolT is_ncs;
+	bool is_ncs;
 	bool su_is_external;	/*indicates if this SU is external */
 
 } AVND_SU;
