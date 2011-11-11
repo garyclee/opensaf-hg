@@ -1053,14 +1053,14 @@ static SaAisErrorT sg_rt_attr_cb(SaImmOiHandleT immOiHandle,
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
 		if (!strcmp("saAmfSGNumCurrAssignedSUs", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGNumCurrAssignedSUs);
+			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+				SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGNumCurrAssignedSUs);
 		} else if (!strcmp("saAmfSGNumCurrNonInstantiatedSpareSUs", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
+			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+				SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
 		} else if (!strcmp("saAmfSGNumCurrInstantiatedSpareSUs", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGNumCurrInstantiatedSpareSUs);
+			avd_saImmOiRtObjectUpdate(objectName, attributeName,
+				SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGNumCurrInstantiatedSpareSUs);
 		} else
 			osafassert(0);
 	}

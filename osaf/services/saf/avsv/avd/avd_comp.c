@@ -983,11 +983,11 @@ static SaAisErrorT comp_rt_attr_cb(SaImmOiHandleT immOiHandle,
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
 		if (!strcmp("saAmfCompRestartCount", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompRestartCount);
+			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+				SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompRestartCount);
 		} else if (!strcmp("saAmfCompCurrProxyName", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SANAMET, &comp->saAmfCompCurrProxyName);
+			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+				SA_IMM_ATTR_SANAMET, &comp->saAmfCompCurrProxyName);
 			/* TODO */
 		} else if (!strcmp("saAmfCompCurrProxiedNames", attributeName)) {
 			/* TODO */
