@@ -151,6 +151,8 @@ extern void avd_sirankedsu_constructor(void);
 extern void avd_susi_ha_state_set(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
 uint32_t avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, struct avd_su_si_rel_tag *susi);
 extern AVD_SU_SI_REL * avd_find_preferred_standby_susi(AVD_SI *si);
-extern uint32_t avd_susi_role_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
-
+extern uint32_t avd_susi_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
+extern void avd_susi_update_assignment_counters(AVD_SU_SI_REL *susi, AVSV_SUSI_ACT action,
+	SaAmfHAStateT current_ha_state, SaAmfHAStateT new_ha_state);
+extern uint32_t avd_susi_del_send(AVD_SU_SI_REL *susi);
 #endif

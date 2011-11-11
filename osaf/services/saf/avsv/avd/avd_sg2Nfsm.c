@@ -659,8 +659,6 @@ done:
 static uint32_t avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *l_susi, *o_susi;
-	SaAmfHAStateT old_state;
-	AVD_SU_SI_STATE old_fsm_state;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s'", su->name.value);
@@ -839,23 +837,8 @@ static uint32_t avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				 * SUs to the operation list. Send D2N-INFO_SU_SI_ASSIGN remove 
 				 * all to this SU.
 				 */
-				old_state = o_susi->state;
-				old_fsm_state = o_susi->fsm;
-				o_susi->state = SA_AMF_HA_ACTIVE;
-				o_susi->fsm = AVD_SU_SI_STATE_MODIFY;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_gen_su_ha_state_changed_ntf(cb, o_susi);
-				if (avd_snd_susi_msg(cb, o_susi->su, o_susi, AVSV_SUSI_ACT_MOD, false, NULL) == NCSCC_RC_FAILURE) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, o_susi->su->name.value,
-									 o_susi->su->name.length);
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, o_susi->si->name.value,
-									 o_susi->si->name.length);
-					o_susi->state = old_state;
-					o_susi->fsm = old_fsm_state;
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_susi, AVSV_CKPT_AVD_SI_ASS);
-					avd_gen_su_ha_state_changed_ntf(cb, o_susi);
+				if (avd_susi_mod_send(o_susi, SA_AMF_HA_ACTIVE) != NCSCC_RC_SUCCESS)
 					goto done;
-				}
 
 				avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
@@ -873,22 +856,8 @@ static uint32_t avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			 * SUs to the operation list. Send D2N-INFO_SU_SI_ASSIGN remove 
 			 * all to this SU.
 			 */
-			o_susi = su->sg_of_su->admin_si->list_of_sisu;
-			old_state = o_susi->state;
-			old_fsm_state = o_susi->fsm;
-			o_susi->state = SA_AMF_HA_ACTIVE;
-			o_susi->fsm = AVD_SU_SI_STATE_MODIFY;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_susi, AVSV_CKPT_AVD_SI_ASS);
-			avd_gen_su_ha_state_changed_ntf(cb, o_susi);
-			if (avd_snd_susi_msg(cb, o_susi->su, o_susi, AVSV_SUSI_ACT_MOD, false, NULL) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, o_susi->su->name.value, o_susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, o_susi->si->name.value, o_susi->si->name.length);
-				o_susi->state = old_state;
-				o_susi->fsm = old_fsm_state;
-				avd_gen_su_ha_state_changed_ntf(cb, o_susi);
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_susi, AVSV_CKPT_AVD_SI_ASS);
+			if (avd_susi_mod_send(o_susi, SA_AMF_HA_ACTIVE) != NCSCC_RC_SUCCESS)
 				goto done;
-			}
 
 			avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
@@ -1788,8 +1757,6 @@ static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *i_susi, *s_susi, *a_susi;
-	AVD_SU_SI_STATE old_fsm_state;
-	SaAmfHAStateT old_state;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s', act:%u, state:%u", su->name.value, act, state);
@@ -1804,17 +1771,8 @@ static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 			 * the SU to operation list also add the other SU to which this SI
 			 * has assignment to the operation list. Change state to SG_realign.
 			 */
-			old_fsm_state = susi->fsm;
-			susi->fsm = AVD_SU_SI_STATE_UNASGN;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-			if (avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL)
-			    == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
-				susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
+			if (avd_susi_del_send(susi) == NCSCC_RC_FAILURE)
 				goto done;
-			}
 
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
@@ -1844,34 +1802,20 @@ static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 			 * SI has assignment to the operation list. Change state to SG_realign.
 			 */
 
-			old_fsm_state = susi->fsm;
-			susi->fsm = AVD_SU_SI_STATE_UNASGN;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-			if (avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL)
-			    == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
-				susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
+			if (avd_susi_del_send(susi) == NCSCC_RC_FAILURE)
 				goto done;
-			}
 
 			avd_si_admin_state_set((susi->si), SA_AMF_ADMIN_LOCKED);
 
 			avd_sg_su_oper_list_add(cb, susi->su, false);
 
 			if (susi->si_next != AVD_SU_SI_REL_NULL) {
-				susi->si_next->fsm = AVD_SU_SI_STATE_UNASGN;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (susi->si_next), AVSV_CKPT_AVD_SI_ASS);
-				avd_snd_susi_msg(cb, susi->si_next->su, susi->si_next, AVSV_SUSI_ACT_DEL, false, NULL);
+				avd_susi_del_send(susi->si_next);
 				avd_sg_su_oper_list_add(cb, susi->si_next->su, false);
 			}
 
 			if (susi->si->list_of_sisu != susi) {
-				susi->si->list_of_sisu->fsm = AVD_SU_SI_STATE_UNASGN;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (susi->si->list_of_sisu), AVSV_CKPT_AVD_SI_ASS);
-				avd_snd_susi_msg(cb, susi->si->list_of_sisu->su, susi->si->list_of_sisu,
-						 AVSV_SUSI_ACT_DEL, false, NULL);
+				avd_susi_del_send(susi->si->list_of_sisu);
 				avd_sg_su_oper_list_add(cb, susi->si->list_of_sisu->su, false);
 			}
 
@@ -1897,12 +1841,7 @@ static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 				 * Send D2N-INFO_SU_SI_ASSIGN with modified active assignment
 				 * to the SU.
 				 */
-				su->list_of_susi->state = SA_AMF_HA_ACTIVE;
-				su->list_of_susi->fsm = AVD_SU_SI_STATE_MODIFY;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su->list_of_susi), AVSV_CKPT_AVD_SI_ASS);
-				avd_gen_su_ha_state_changed_ntf(cb, su->list_of_susi);
-
-				avd_snd_susi_msg(cb, su->list_of_susi->su, su->list_of_susi, AVSV_SUSI_ACT_MOD, false, NULL);
+				avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_ACTIVE);
 			}
 
 		} /* if ((act == AVSV_SUSI_ACT_DEL) && (susi->state == SA_AMF_HA_STANDBY)) */
@@ -1927,9 +1866,7 @@ static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 
 				while (i_susi != AVD_SU_SI_REL_NULL) {
 					if (i_susi != s_susi) {
-						i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
-						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
-						avd_snd_susi_msg(cb, i_susi->su, i_susi, AVSV_SUSI_ACT_DEL, false, NULL);
+						avd_susi_del_send(i_susi);
 					}
 					i_susi = i_susi->su_next;
 				}
@@ -1943,24 +1880,8 @@ static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 				 * the admin list. Add the SU to the operation list. 
 				 * Change state to SG_realign.
 				 */
-				old_state = s_susi->state;
-				old_fsm_state = s_susi->fsm;
-				s_susi->state = SA_AMF_HA_STANDBY;
-				s_susi->fsm = AVD_SU_SI_STATE_MODIFY;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, s_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_gen_su_ha_state_changed_ntf(cb, s_susi);
-				if (avd_snd_susi_msg(cb, s_susi->su, s_susi, AVSV_SUSI_ACT_MOD, false, NULL)
-				    == NCSCC_RC_FAILURE) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, s_susi->su->name.value,
-									 s_susi->su->name.length);
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, s_susi->si->name.value,
-									 s_susi->si->name.length);
-					s_susi->state = old_state;
-					s_susi->fsm = old_fsm_state;
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, s_susi, AVSV_CKPT_AVD_SI_ASS);
-					avd_gen_su_ha_state_changed_ntf(cb, s_susi);
+				if (avd_susi_mod_send(s_susi, SA_AMF_HA_STANDBY) != NCSCC_RC_SUCCESS)
 					goto done;
-				}
 
 				m_AVD_SET_SI_SWITCH(cb, (susi->si), AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
@@ -1991,12 +1912,7 @@ static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 				 * SI from the admin list. Add the SU to the operation list. 
 				 * Change state to SG_realign.
 				 */
-				su->list_of_susi->state = SA_AMF_HA_STANDBY;
-				su->list_of_susi->fsm = AVD_SU_SI_STATE_MODIFY;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su->list_of_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_gen_su_ha_state_changed_ntf(cb, su->list_of_susi);
-
-				avd_snd_susi_msg(cb, su, su->list_of_susi, AVSV_SUSI_ACT_MOD, false, NULL);
+				avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_STANDBY);
 
 				m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
@@ -2037,9 +1953,7 @@ static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 
 				while (i_susi != AVD_SU_SI_REL_NULL) {
 					if (i_susi != s_susi) {
-						i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
-						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
-						avd_snd_susi_msg(cb, i_susi->su, i_susi, AVSV_SUSI_ACT_DEL, false, NULL);
+						avd_susi_del_send(i_susi);
 					}
 					i_susi = i_susi->su_next;
 				}
@@ -2051,24 +1965,8 @@ static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 				 * Send D2N-INFO_SU_SI_ASSIGN with modified active assignment
 				 * to the SUSI.
 				 */
-				old_state = s_susi->state;
-				old_fsm_state = s_susi->fsm;
-				s_susi->state = SA_AMF_HA_ACTIVE;
-				s_susi->fsm = AVD_SU_SI_STATE_MODIFY;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, s_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_gen_su_ha_state_changed_ntf(cb, s_susi);
-				if (avd_snd_susi_msg(cb, s_susi->su, s_susi, AVSV_SUSI_ACT_MOD, false, NULL)
-				    == NCSCC_RC_FAILURE) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, s_susi->su->name.value,
-									 s_susi->su->name.length);
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, s_susi->si->name.value,
-									 s_susi->si->name.length);
-					s_susi->state = old_state;
-					s_susi->fsm = old_fsm_state;
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, s_susi, AVSV_CKPT_AVD_SI_ASS);
-					avd_gen_su_ha_state_changed_ntf(cb, s_susi);
+				if (avd_susi_mod_send(s_susi, SA_AMF_HA_ACTIVE) != NCSCC_RC_SUCCESS)
 					goto done;
-				}
 
 			} /* if (s_susi != AVD_SU_SI_REL_NULL) */
 			else {
@@ -2276,7 +2174,6 @@ uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 {
 	AVD_SU_SI_REL *s_susi, *o_susi, *l_susi;
 	AVD_SU *a_su;
-	AVD_SU_SI_STATE old_fsm_state;
 	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
@@ -2400,16 +2297,8 @@ uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 			 * assignment to the operation list. Change state to SG_realign.
 			 */
 
-			old_fsm_state = susi->fsm;
-			susi->fsm = AVD_SU_SI_STATE_UNASGN;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-			if (avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
-				susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
+			if (avd_susi_del_send(susi) == NCSCC_RC_FAILURE)
 				goto done;
-			}
 
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
@@ -2445,32 +2334,20 @@ uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 			 * operation list. Change state to SG_realign.  
 			 */
 
-			old_fsm_state = susi->fsm;
-			susi->fsm = AVD_SU_SI_STATE_UNASGN;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-			if (avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
-				susi->fsm = old_fsm_state;
+			if (avd_susi_del_send(susi) == NCSCC_RC_FAILURE)
 				goto done;
-			}
 
 			avd_si_admin_state_set((susi->si), SA_AMF_ADMIN_LOCKED);
 
 			avd_sg_su_oper_list_add(cb, susi->su, false);
 
 			if (susi->si_next != AVD_SU_SI_REL_NULL) {
-				susi->si_next->fsm = AVD_SU_SI_STATE_UNASGN;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (susi->si_next), AVSV_CKPT_AVD_SI_ASS);
-				avd_snd_susi_msg(cb, susi->si_next->su, susi->si_next, AVSV_SUSI_ACT_DEL, false, NULL);
+				avd_susi_del_send(susi->si_next);
 				avd_sg_su_oper_list_add(cb, susi->si_next->su, false);
 			}
 
 			if (susi->si->list_of_sisu != susi) {
-				susi->si->list_of_sisu->fsm = AVD_SU_SI_STATE_UNASGN;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (susi->si->list_of_sisu), AVSV_CKPT_AVD_SI_ASS);
-				avd_snd_susi_msg(cb, susi->si->list_of_sisu->su, susi->si->list_of_sisu,
-						 AVSV_SUSI_ACT_DEL, false, NULL);
+				avd_susi_del_send(susi->si->list_of_sisu);
 				avd_sg_su_oper_list_add(cb, susi->si->list_of_sisu->su, false);
 			}
 
@@ -3436,8 +3313,6 @@ done:
 uint32_t avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU_SI_REL *a_susi, *s_susi;
-	AVD_SU_SI_STATE old_fsm_state;
-	SaAmfHAStateT old_state;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s', %u", si->name.value, si->sg_of_si->sg_fsm_state);
@@ -3469,27 +3344,11 @@ uint32_t avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 
 			/* change the state of the SI to quiesced */
 
-			old_state = a_susi->state;
-			old_fsm_state = a_susi->fsm;
-			a_susi->state = SA_AMF_HA_QUIESCED;
-			a_susi->fsm = AVD_SU_SI_STATE_MODIFY;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SI_ASS);
-			avd_gen_su_ha_state_changed_ntf(cb, a_susi);
-			if (avd_snd_susi_msg(cb, a_susi->su, a_susi, AVSV_SUSI_ACT_MOD, false, NULL) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, a_susi->su->name.value, a_susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, a_susi->si->name.value, a_susi->si->name.length);
-				a_susi->state = old_state;
-				a_susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_gen_su_ha_state_changed_ntf(cb, a_susi);
+			if (avd_susi_mod_send(a_susi, SA_AMF_HA_QUIESCED) != NCSCC_RC_SUCCESS)
 				goto done;
-			}
 
-			if (s_susi != AVD_SU_SI_REL_NULL) {
-				s_susi->fsm = AVD_SU_SI_STATE_UNASGN;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, s_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_snd_susi_msg(cb, s_susi->su, s_susi, AVSV_SUSI_ACT_DEL, false, NULL);
-			}
+			if (s_susi != AVD_SU_SI_REL_NULL)
+				avd_susi_del_send(s_susi);
 
 			/* add the SI to the admin list and change the SG FSM to SI operation. */
 			m_AVD_SET_SG_ADMIN_SI(cb, si);
@@ -3509,22 +3368,9 @@ uint32_t avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 			}
 
 			/* change the state of the SI to quiescing */
-
-			old_state = a_susi->state;
-			old_fsm_state = a_susi->fsm;
-			a_susi->state = SA_AMF_HA_QUIESCING;
-			a_susi->fsm = AVD_SU_SI_STATE_MODIFY;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SI_ASS);
-			avd_gen_su_ha_state_changed_ntf(cb, a_susi);
-			if (avd_snd_susi_msg(cb, a_susi->su, a_susi, AVSV_SUSI_ACT_MOD, false, NULL) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, a_susi->su->name.value, a_susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, a_susi->si->name.value, a_susi->si->name.length);
-				a_susi->state = old_state;
-				a_susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_gen_su_ha_state_changed_ntf(cb, a_susi);
+			if (avd_susi_mod_send(a_susi, SA_AMF_HA_QUIESCING) != NCSCC_RC_SUCCESS)
 				goto done;
-			}
+
 
 			/* add the SI to the admin list and change the SG FSM to SI operation. */
 			m_AVD_SET_SG_ADMIN_SI(cb, si);
@@ -3548,28 +3394,11 @@ uint32_t avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 			}
 
 			/* change the state of the SI to quiesced */
-
-			old_state = a_susi->state;
-			old_fsm_state = a_susi->fsm;
-			a_susi->state = SA_AMF_HA_QUIESCED;
-			a_susi->fsm = AVD_SU_SI_STATE_MODIFY;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SI_ASS);
-			avd_gen_su_ha_state_changed_ntf(cb, a_susi);
-			if (avd_snd_susi_msg(cb, a_susi->su, a_susi, AVSV_SUSI_ACT_MOD, false, NULL) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, a_susi->su->name.value, a_susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, a_susi->si->name.value, a_susi->si->name.length);
-				a_susi->state = old_state;
-				a_susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_gen_su_ha_state_changed_ntf(cb, a_susi);
+			if (avd_susi_mod_send(a_susi, SA_AMF_HA_QUIESCED) != NCSCC_RC_SUCCESS)
 				goto done;
-			}
 
-			if (s_susi != AVD_SU_SI_REL_NULL) {
-				s_susi->fsm = AVD_SU_SI_STATE_UNASGN;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, s_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_snd_susi_msg(cb, s_susi->su, s_susi, AVSV_SUSI_ACT_DEL, false, NULL);
-			}
+			if (s_susi != AVD_SU_SI_REL_NULL)
+				avd_susi_del_send(s_susi);
 		}
 		break;		/* case AVD_SG_FSM_SI_OPER: */
 	default:

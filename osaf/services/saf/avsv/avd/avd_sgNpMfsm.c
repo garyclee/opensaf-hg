@@ -191,9 +191,7 @@ static uint32_t avd_sg_npm_su_chk_snd(AVD_CL_CB *cb, AVD_SU *s_su, AVD_SU *q_su)
 		    (i_susi->si->list_of_sisu->si_next->su == q_su))
 			continue;
 
-		i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
-		avd_snd_susi_msg(cb, s_su, i_susi, AVSV_SUSI_ACT_DEL, false, NULL);
+		avd_susi_del_send(i_susi);
 
 	}			/* for (i_susi = su->list_of_susi;i_susi != AVD_SU_SI_REL_NULL; i_susi = i_susi->su_next) */
 
@@ -1303,27 +1301,12 @@ static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 				if (su->sg_of_su->max_assigned_su->saAmfSuReadinessState ==
                                                 SA_AMF_READINESS_IN_SERVICE) {
                                         AVD_SU_SI_REL *susi;
-					SaAmfHAStateT old_ha_state = SA_AMF_HA_ACTIVE;
-					AVD_SU_SI_STATE old_susi_state = AVD_SU_SI_STATE_ASGN;
 
                                         susi = avd_su_susi_find(avd_cb, su->sg_of_su->max_assigned_su,
                                                                 &su->sg_of_su->si_tobe_redistributed->name);
                                         osafassert(susi);
+					avd_susi_mod_send(susi, SA_AMF_HA_ACTIVE);
 
-                                        old_ha_state = susi->state;
-                                        old_susi_state = susi->fsm;
-					if (avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_MOD, false,NULL) == 
-												NCSCC_RC_FAILURE) {
-                				LOG_ER("susi msg send failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
-								susi->su->name.value,susi->si->name.value);
-					 	susi->state = old_ha_state;
-                                         	susi->fsm = old_susi_state;
-
-                                	} else {
-						/* Checkpoint susi state changes and send notification */
-                                		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-                                		avd_gen_su_ha_state_changed_ntf(cb, susi);
-					}
 				}
 				su->sg_of_su->max_assigned_su = NULL;
                         	su->sg_of_su->min_assigned_su = NULL;
@@ -1635,8 +1618,6 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 {
 	AVD_SU_SI_REL *i_susi, *o_susi;
 	bool flag;
-	AVD_SU_SI_STATE old_fsm_state;
-	SaAmfHAStateT old_ha_state;
 	AVD_AVND *su_node_ptr = NULL;
 
 	TRACE_ENTER();
@@ -2058,24 +2039,8 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
                 				/* Find the SUSI, which is in Quisced state */
                 				max_su_susi = avd_su_susi_find(avd_cb, su->sg_of_su->max_assigned_su,
                         	        	        	&su->sg_of_su->si_tobe_redistributed->name);
-						if( max_su_susi ) {
-							old_ha_state = max_su_susi->state;
-                					old_fsm_state = max_su_susi->fsm;
-                					max_su_susi->fsm = AVD_SU_SI_STATE_UNASGN;
-                					if (avd_snd_susi_msg(cb,max_su_susi->su, max_su_susi,
-								AVSV_SUSI_ACT_DEL,false, NULL) == NCSCC_RC_FAILURE) {
-                						LOG_ER("susi msg send failed %s:%u: SU:%s SI:%s",
-								__FILE__,__LINE__,max_su_susi->su->name.value,
-								max_su_susi->si->name.value);
-
-                        					max_su_susi->state = old_ha_state;
-                        					max_su_susi->fsm = old_fsm_state;
-                					} else {
-                						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, max_su_susi, 
-											AVSV_CKPT_AVD_SI_ASS);
-                						avd_gen_su_ha_state_changed_ntf(cb, max_su_susi );
-							}
-						}
+						if( max_su_susi )
+							avd_susi_del_send(max_su_susi);
 					}
 			   		/* Reset the SI transfer pointers */ 
 					su->sg_of_su->max_assigned_su = NULL;
@@ -2120,17 +2085,8 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			 * standby SU to the SU oper list. Remove the SI from the 
 			 * SI admin pointer.
 			 */
-			old_fsm_state = susi->fsm;
-			susi->fsm = AVD_SU_SI_STATE_UNASGN;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-			if (avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL)
-			    == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
-				susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
+			if (avd_susi_del_send(susi) == NCSCC_RC_FAILURE)
 				return NCSCC_RC_FAILURE;
-			}
 			avd_sg_su_oper_list_add(cb, susi->su, false);
 			avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_LOCKED);
 			if (su->sg_of_su->admin_si->list_of_sisu == susi)
@@ -2141,7 +2097,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			if ((i_susi != AVD_SU_SI_REL_NULL) && (i_susi->fsm != AVD_SU_SI_STATE_UNASGN)) {
 				i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_snd_susi_msg(cb, i_susi->su, i_susi, AVSV_SUSI_ACT_DEL, false, NULL);
+				avd_susi_del_send(i_susi);
 				avd_sg_su_oper_list_add(cb, i_susi->su, false);
 			}
 
@@ -2328,7 +2284,6 @@ static void avd_sg_npm_screening_for_si_redistr(AVD_SG *avd_sg)
 static void avd_sg_npm_si_transfer_for_redistr(AVD_SG *avd_sg)
 {
         AVD_SU_SI_REL *susi = NULL;
-        AVD_SU_SI_STATE old_susi_state = AVD_SU_SI_STATE_ASGN;
 
 	TRACE_ENTER2("SG name:%s SI name:%s", avd_sg->name.value,avd_sg->si_tobe_redistributed->name.value);
 
@@ -2350,25 +2305,16 @@ static void avd_sg_npm_si_transfer_for_redistr(AVD_SG *avd_sg)
 
         /* If susi state is Active then swap SI from max_assign_su to min_assign_su */
         if(susi->state == SA_AMF_HA_ACTIVE) {
-                old_susi_state = susi->fsm;
 
                 /* change the state for Active SU to quiesced */
-                susi->state = SA_AMF_HA_QUIESCED;
-                susi->fsm = AVD_SU_SI_STATE_MODIFY;
-
-                if (avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_MOD, false, NULL) == NCSCC_RC_FAILURE) {
-                        LOG_ER("susi msg send failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,susi->su->name.value,
-                                                                                        susi->si->name.value);
-                        susi->state = SA_AMF_HA_ACTIVE;
-                        susi->fsm = old_susi_state;
-			
+		if (avd_susi_mod_send(susi, SA_AMF_HA_QUIESCED) != NCSCC_RC_SUCCESS) {
 			/* Reset the SI transfer fields */
         		avd_sg->max_assigned_su = NULL;
 			avd_sg->min_assigned_su = NULL;
         		avd_sg->si_tobe_redistributed = NULL;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, avd_sg, AVSV_CKPT_AVD_SI_TRANS);
 			goto done;
-                }
+		}
 		/* Checkpoint the susi state changes and send notification */
                 m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
                 avd_gen_su_ha_state_changed_ntf(avd_cb, susi);
@@ -2380,16 +2326,9 @@ static void avd_sg_npm_si_transfer_for_redistr(AVD_SG *avd_sg)
 
         /* If susi state is Standby then swap SI from max_assign_su to min_assign_su */
         if(susi->state == SA_AMF_HA_STANDBY) {
-                old_susi_state = susi->fsm;
-                susi->fsm = AVD_SU_SI_STATE_UNASGN;
-
                 /* send a delete message about the SU SI assignment to the AvND */
-                if(avd_snd_susi_msg(avd_cb,susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL) == NCSCC_RC_FAILURE) {
-                        LOG_ER("susi msg send failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,susi->su->name.value,
-                                                                                        susi->si->name.value);
-                        susi->state = SA_AMF_HA_STANDBY;
-                        susi->fsm = old_susi_state;
-
+		/* Checkpoint the susi state changes and send notification */
+		if (avd_susi_del_send(susi) == NCSCC_RC_FAILURE) {
 			/* Reset the SI transfer fields */
         		avd_sg->max_assigned_su = NULL;
 			avd_sg->min_assigned_su = NULL;
@@ -2397,9 +2336,6 @@ static void avd_sg_npm_si_transfer_for_redistr(AVD_SG *avd_sg)
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, avd_sg, AVSV_CKPT_AVD_SI_TRANS);
 			goto done;
                 }
-		/* Checkpoint the susi state changes and send notification */
-                m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
-                avd_gen_su_ha_state_changed_ntf(avd_cb, susi);
 
                 /* Change the SG FSM to AVD_SG_FSM_SG_REALIGN */
                 m_AVD_SET_SG_FSM(avd_cb, avd_sg, AVD_SG_FSM_SG_REALIGN);
@@ -2517,9 +2453,7 @@ static void avd_sg_npm_stdbysu_role_change(AVD_SU *su)
 		    							(susi->si->list_of_sisu->si_next->su == su)) {
 								continue;
 							}
-							susi->fsm = AVD_SU_SI_STATE_UNASGN;
-							m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb,susi, AVSV_CKPT_AVD_SI_ASS);
-							avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL);
+							avd_susi_del_send(susi);
 						}/* for (susi = std_susi->su->list_of_susi; susi != AVD_SU_SI_REL_NULL; 
 							susi = susi->su_next) */
 
@@ -2583,8 +2517,6 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 	AVD_SU_SI_REL *i_susi;
 	AVD_SU_SI_REL *o_susi;
 	AVD_SU_SI_REL *tmp_susi;
-	SaAmfHAStateT old_ha_state = SA_AMF_HA_ACTIVE;
-	AVD_SU_SI_STATE old_susi_state = AVD_SU_SI_STATE_ASGN;
 	bool susi_assgn_failed = false;
 	
 	bool flag;
@@ -2630,23 +2562,7 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					/* min_assigne_su is Out of Service or susi assgn failed for min_assigned_su
 					   So return Active assignment to max_assigned_su */
 
-					old_ha_state = susi->state;
-                                	old_susi_state = susi->fsm;
-
-					susi->state = SA_AMF_HA_ACTIVE;
-                                	susi->fsm = AVD_SU_SI_STATE_MODIFY;
-					if (avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_MOD, false, NULL)== 
-												NCSCC_RC_FAILURE) {
-                				LOG_ER("susi msg send failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
-								susi->su->name.value,susi->si->name.value);
-					 	susi->state = old_ha_state;
-                                         	susi->fsm = old_susi_state;
-
-                                	} else {
-						/* Checkpoint susi state changes and send notification */
-                                		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-                                		avd_gen_su_ha_state_changed_ntf(cb, susi);
-					}
+					avd_susi_mod_send(susi, SA_AMF_HA_ACTIVE);
 
 					su->sg_of_su->max_assigned_su = NULL;
                         		su->sg_of_su->min_assigned_su = NULL;
@@ -2797,7 +2713,6 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					   AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *i_susi, *o_susi;
-	AVD_SU_SI_STATE old_fsm_state;
 
 	if (susi != AVD_SU_SI_REL_NULL) {
 		/* assign single SUSI */
@@ -2858,17 +2773,9 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			 * standby SU to the SU oper list. Remove the SI from the 
 			 * SI admin pointer.
 			 */
-			old_fsm_state = susi->fsm;
-			susi->fsm = AVD_SU_SI_STATE_UNASGN;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-			if (avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL)
-			    == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
-				susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
+			if (avd_susi_del_send(susi) == NCSCC_RC_FAILURE)
 				return NCSCC_RC_FAILURE;
-			}
+
 			avd_sg_su_oper_list_add(cb, susi->su, false);
 			avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_LOCKED);
 			if (su->sg_of_su->admin_si->list_of_sisu == susi)
@@ -2877,9 +2784,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				i_susi = su->sg_of_su->admin_si->list_of_sisu;
 
 			if (i_susi != AVD_SU_SI_REL_NULL) {
-				i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_snd_susi_msg(cb, i_susi->su, i_susi, AVSV_SUSI_ACT_DEL, false, NULL);
+				avd_susi_del_send(i_susi);
 				avd_sg_su_oper_list_add(cb, i_susi->su, false);
 			}
 
@@ -3135,11 +3040,8 @@ uint32_t avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *o_susi;
-	AVD_SU_SI_STATE old_fsm_state;
-	SaAmfHAStateT old_ha_state;
 	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
-
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
@@ -3194,24 +3096,7 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 						
 						/* Failure returned for max_assigned_su quiesced operation,
 					   	   Reset the Active state to it */ 
-						old_ha_state = susi->state;
-                                        	old_fsm_state = susi->fsm;
-
-                                        	susi->state = SA_AMF_HA_ACTIVE;
-                                        	susi->fsm = AVD_SU_SI_STATE_MODIFY;
-                                        	if (avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_MOD, false,
-									NULL) == NCSCC_RC_FAILURE ) {
-                                                	LOG_ER("susi msg send failed %s:%u: SU:%s SI:%s", __FILE__,
-							__LINE__,susi->su->name.value,susi->si->name.value);
-                                                	susi->state = old_ha_state;
-                                                	susi->fsm = old_fsm_state;
-
-                                        	} else {
-                                                	/* Checkpoint susi state changes and send notification */
-                                                	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, susi,
-											AVSV_CKPT_AVD_SI_ASS);
-                                                	avd_gen_su_ha_state_changed_ntf(cb, susi);
-                                        	}
+						avd_susi_mod_send(susi, SA_AMF_HA_ACTIVE);
 						su->sg_of_su->max_assigned_su = NULL;
                         			su->sg_of_su->min_assigned_su = NULL;
                         			su->sg_of_su->si_tobe_redistributed = NULL;
@@ -3248,17 +3133,8 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 			 * assignment to the operation list. Change state to SG_realign.
 			 */
 
-			old_fsm_state = susi->fsm;
-			susi->fsm = AVD_SU_SI_STATE_UNASGN;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-			if (avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL)
-			    == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
-				susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
+			if (avd_susi_del_send(susi) == NCSCC_RC_FAILURE)
 				return NCSCC_RC_FAILURE;
-			}
 
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
@@ -3271,7 +3147,7 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 			}
 
 			if ((o_susi != AVD_SU_SI_REL_NULL) && (o_susi->fsm != AVD_SU_SI_STATE_UNASGN)) {
-				avd_snd_susi_msg(cb, o_susi->su, o_susi, AVSV_SUSI_ACT_DEL, false, NULL);
+				avd_susi_del_send(o_susi);
 				avd_sg_su_oper_list_add(cb, o_susi->su, false);
 			}
 
@@ -3766,28 +3642,13 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 				   will be in quiesced state. Send Active role to max_assigned_su */
 				if (su->sg_of_su->max_assigned_su->saAmfSuReadinessState ==
                                                 SA_AMF_READINESS_IN_SERVICE) {
-                                        AVD_SU_SI_REL *susi;
-					SaAmfHAStateT old_ha_state = SA_AMF_HA_ACTIVE;
-					AVD_SU_SI_STATE old_susi_state = AVD_SU_SI_STATE_ASGN;
+					AVD_SU_SI_REL *susi;
 
                                         susi = avd_su_susi_find(avd_cb, su->sg_of_su->max_assigned_su,
                                                                 &su->sg_of_su->si_tobe_redistributed->name);
                                         osafassert(susi);
+					avd_susi_mod_send(susi, SA_AMF_HA_ACTIVE);
 
-                                        old_ha_state = susi->state;
-                                        old_susi_state = susi->fsm;
-					if (avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_MOD, false,NULL) == 
-												NCSCC_RC_FAILURE) {
-                				LOG_ER("susi msg send failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
-								susi->su->name.value,susi->si->name.value);
-					 	susi->state = old_ha_state;
-                                         	susi->fsm = old_susi_state;
-
-                                	} else {
-						/* Checkpoint susi state changes and send notification */
-                                		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-                                		avd_gen_su_ha_state_changed_ntf(cb, susi);
-					}
 				}
 				su->sg_of_su->max_assigned_su = NULL;
                         	su->sg_of_su->min_assigned_su = NULL;
@@ -4571,8 +4432,6 @@ uint32_t avd_sg_npm_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 uint32_t avd_sg_npm_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU_SI_REL *a_susi;
-	AVD_SU_SI_STATE old_fsm_state;
-	SaAmfHAStateT old_state;
 
 	TRACE_ENTER2("%u", si->sg_of_si->sg_fsm_state);
 
@@ -4598,21 +4457,8 @@ uint32_t avd_sg_npm_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 
 			/* change the state of the SI to quiesced */
 
-			old_state = a_susi->state;
-			old_fsm_state = a_susi->fsm;
-			a_susi->state = SA_AMF_HA_QUIESCED;
-			a_susi->fsm = AVD_SU_SI_STATE_MODIFY;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SI_ASS);
-			avd_gen_su_ha_state_changed_ntf(cb, a_susi);
-			if (avd_snd_susi_msg(cb, a_susi->su, a_susi, AVSV_SUSI_ACT_MOD, false, NULL) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, a_susi->su->name.value, a_susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, a_susi->si->name.value, a_susi->si->name.length);
-				a_susi->state = old_state;
-				a_susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_gen_su_ha_state_changed_ntf(cb, a_susi);
+			if (avd_susi_mod_send(a_susi, SA_AMF_HA_QUIESCED) != NCSCC_RC_SUCCESS)
 				return NCSCC_RC_FAILURE;
-			}
 
 			/* add the SI to the admin list and change the SG FSM to SI operation. */
 			m_AVD_SET_SG_ADMIN_SI(cb, si);
@@ -4626,21 +4472,8 @@ uint32_t avd_sg_npm_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 
 			/* change the state of the SI to quiescing */
 
-			old_state = a_susi->state;
-			old_fsm_state = a_susi->fsm;
-			a_susi->state = SA_AMF_HA_QUIESCING;
-			a_susi->fsm = AVD_SU_SI_STATE_MODIFY;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SI_ASS);
-			avd_gen_su_ha_state_changed_ntf(cb, a_susi);
-			if (avd_snd_susi_msg(cb, a_susi->su, a_susi, AVSV_SUSI_ACT_MOD, false, NULL) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, a_susi->su->name.value, a_susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, a_susi->si->name.value, a_susi->si->name.length);
-				a_susi->state = old_state;
-				a_susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_gen_su_ha_state_changed_ntf(cb, a_susi);
+			if (avd_susi_mod_send(a_susi, SA_AMF_HA_QUIESCING) != NCSCC_RC_SUCCESS)
 				return NCSCC_RC_FAILURE;
-			}
 
 			/* add the SI to the admin list and change the SG FSM to SI operation. */
 			m_AVD_SET_SG_ADMIN_SI(cb, si);
@@ -4662,22 +4495,9 @@ uint32_t avd_sg_npm_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 			}
 
 			/* change the state of the SI to quiesced */
-
-			old_state = a_susi->state;
-			old_fsm_state = a_susi->fsm;
-			a_susi->state = SA_AMF_HA_QUIESCED;
-			a_susi->fsm = AVD_SU_SI_STATE_MODIFY;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SI_ASS);
-			avd_gen_su_ha_state_changed_ntf(cb, a_susi);
-			if (avd_snd_susi_msg(cb, a_susi->su, a_susi, AVSV_SUSI_ACT_MOD, false, NULL) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, a_susi->su->name.value, a_susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, a_susi->si->name.value, a_susi->si->name.length);
-				a_susi->state = old_state;
-				a_susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SI_ASS);
-				avd_gen_su_ha_state_changed_ntf(cb, a_susi);
+			if (avd_susi_mod_send(a_susi, SA_AMF_HA_QUIESCED) != NCSCC_RC_SUCCESS)
 				return NCSCC_RC_FAILURE;
-			}
+
 		}
 		break;		/* case AVD_SG_FSM_SI_OPER: */
 	default:

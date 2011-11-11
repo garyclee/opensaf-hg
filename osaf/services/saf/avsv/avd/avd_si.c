@@ -380,20 +380,11 @@ void avd_si_delete(AVD_SI *si)
 void avd_si_assignments_delete(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU_SI_REL *sisu = si->list_of_sisu;
-	AVD_SU_SI_STATE old_fsm_state;
 	TRACE_ENTER2(" '%s'", si->name.value);
 
 	for (; sisu != NULL; sisu = sisu->si_next) {
-		old_fsm_state = sisu->fsm;
-		sisu->fsm = AVD_SU_SI_STATE_UNASGN;
-		if (avd_snd_susi_msg(cb, sisu->su, sisu, AVSV_SUSI_ACT_DEL, false, NULL) == NCSCC_RC_FAILURE) {
-			LOG_ER("%s:%u: SU:%s SI:%s", __FILE__, __LINE__, sisu->su->name.value,sisu->si->name.value);
-			sisu->fsm = old_fsm_state;
-		} else {
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sisu, AVSV_CKPT_AVD_SI_ASS);
-			avd_gen_su_ha_state_changed_ntf(avd_cb, sisu);
+		if (avd_susi_del_send(sisu) == NCSCC_RC_SUCCESS)
 			avd_sg_su_oper_list_add(cb, sisu->su, false);
-		}
 	}
 	TRACE_LEAVE();
 }
@@ -994,7 +985,6 @@ static void avd_si_adjust_si_assignments(AVD_SI *si)
 {
 	AVD_SU_SI_REL *sisu, *tmp_sisu;
 	uint32_t no_of_sisus_to_delete;
-	AVD_SU_SI_STATE old_susi_state = AVD_SU_SI_STATE_ASGN;
 	uint32_t i = 0;
 
 	TRACE_ENTER2("for SI:%s ", si->name.value);
@@ -1029,23 +1019,9 @@ static void avd_si_adjust_si_assignments(AVD_SI *si)
 
 			for( i = 0; i < no_of_sisus_to_delete && (NULL != sisu); i++ ) {
 				/* Send quiesced request for the sisu that needs tobe deleted */
-				old_susi_state = sisu->fsm;
-				sisu->state = SA_AMF_HA_QUIESCED;
-			        sisu->fsm = AVD_SU_SI_STATE_MODIFY;
-
-				if ( avd_snd_susi_msg( avd_cb, sisu->su, sisu, AVSV_SUSI_ACT_MOD, false, NULL ) == 
-										NCSCC_RC_FAILURE ) {
-					LOG_ER("susi msg send failed  SU:%s SI:%s",sisu->su->name.value,
-										sisu->si->name.value);
-					sisu->state = SA_AMF_HA_ACTIVE;
-					sisu->fsm = old_susi_state;
-				} else {
+				if (avd_susi_mod_send(sisu, SA_AMF_HA_QUIESCED) == NCSCC_RC_SUCCESS) {
 					/* Add SU to su_opr_list */
                                 	avd_sg_su_oper_list_add(avd_cb, sisu->su, false);
-
-					/* Checkpoint the sisu state change and send notification */
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, sisu, AVSV_CKPT_AVD_SI_ASS);
-					avd_gen_su_ha_state_changed_ntf(avd_cb, sisu);
 				}
 				sisu = sisu->si_next;
 			}
@@ -1077,21 +1053,9 @@ static void avd_si_adjust_si_assignments(AVD_SI *si)
 
 			for( i = 0; i < no_of_sisus_to_delete && (NULL != sisu); i++ ) {
 				/* Delete Standby SI assignment & move it to Realign state */
-				old_susi_state = sisu->fsm;
-				sisu->fsm = AVD_SU_SI_STATE_UNASGN;
-				if(avd_snd_susi_msg( avd_cb,sisu->su, sisu, AVSV_SUSI_ACT_DEL, false, NULL ) == 
-											NCSCC_RC_FAILURE){
-					LOG_ER("sisu msg send failed  SU:%s SI:%s",sisu->su->name.value,
-									sisu->si->name.value);
-					sisu->state = SA_AMF_HA_STANDBY;
-					sisu->fsm = old_susi_state;
-				} else {
+				if (avd_susi_del_send(sisu) == NCSCC_RC_SUCCESS) {
 					/* Add SU to su_opr_list */
                                 	avd_sg_su_oper_list_add(avd_cb, sisu->su, false);
-
-					/* Checkpoint the sisu state change and send notification */
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, sisu, AVSV_CKPT_AVD_SI_ASS);
-					avd_gen_su_ha_state_changed_ntf(avd_cb, sisu);
 				}
 				sisu = sisu->si_next;
 			}

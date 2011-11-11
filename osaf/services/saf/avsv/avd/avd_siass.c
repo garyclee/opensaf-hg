@@ -265,14 +265,7 @@ done:
 		saflog(LOG_NOTICE, amfSvcUsrName, "HA State %s of %s for %s",
 			   avd_ha_state[state], su->name.value, si->name.value);
 
-		if (state == SA_AMF_HA_ACTIVE) {
-			avd_su_inc_curr_act_si(su);
-			avd_si_inc_curr_act_ass(si);
-		}
-		else {
-			avd_su_inc_curr_stdby_si(su);
-			avd_si_inc_curr_stdby_ass(si);
-		}
+		avd_susi_update_assignment_counters(su_si, AVSV_SUSI_ACT_ASGN, state, state);
 	}
 
 	TRACE_LEAVE();
@@ -494,12 +487,14 @@ uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 		if (susi->fsm == AVD_SU_SI_STATE_MODIFY) {
 			/* Dont delete here, if i am in modify state. 
 			   only happens when active -> qsd and standby rebooted */
-		} else if (SA_AMF_HA_STANDBY == susi->state) {
-			avd_su_dec_curr_stdby_si(susi->su);
-			avd_si_dec_curr_stdby_ass(susi->si);
-		} else {
-			avd_su_dec_curr_act_si(susi->su);
-			avd_si_dec_curr_act_ass(susi->si);
+		} else if ((susi->fsm == AVD_SU_SI_STATE_ASGND) || (susi->fsm == AVD_SU_SI_STATE_ASGN)){ 
+			if (SA_AMF_HA_STANDBY == susi->state) {
+				avd_su_dec_curr_stdby_si(susi->su);
+				avd_si_dec_curr_stdby_ass(susi->si);
+			} else if ((SA_AMF_HA_ACTIVE == susi->state) || (SA_AMF_HA_QUIESCING == susi->state)) { 
+				avd_su_dec_curr_act_si(susi->su);
+				avd_si_dec_curr_act_ass(susi->si);
+			}
 		}
 	}
 
@@ -604,13 +599,13 @@ AVD_SU_SI_REL * avd_find_preferred_standby_susi(AVD_SI *si)
  *		NCSCC_RC_FAILURE	 
  *
  */
-uint32_t avd_susi_role_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
+uint32_t avd_susi_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 {
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("SI '%s', SU '%s'", susi->si->name.value, susi->su->name.value);
+	TRACE_ENTER2("SI '%s', SU '%s' ha_state:%d", susi->si->name.value, susi->su->name.value, ha_state);
 
 	old_state = susi->state;
 	old_fsm_state = susi->fsm;
@@ -618,12 +613,16 @@ uint32_t avd_susi_role_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 	susi->fsm = AVD_SU_SI_STATE_MODIFY;
 	rc = avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_MOD, false, NULL);
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_NO("susi msg send failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
+		LOG_NO("role modification msg send failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
 			susi->su->name.value,susi->si->name.value);
 		susi->state = old_state;
 		susi->fsm = old_fsm_state;
 		goto done;
 	}
+	/* Update the assignment counters */
+	avd_susi_update_assignment_counters(susi, AVSV_SUSI_ACT_MOD, old_state, ha_state);
+
+	/* Following updations has to be done after getting response, will take care subsequently */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
 	avd_susi_update(susi, ha_state);
 	avd_gen_su_ha_state_changed_ntf(avd_cb, susi);
@@ -632,4 +631,112 @@ done:
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
+/**
+ * @brief	Sends susi delete message
+ *
+ * @param[in]	susi
+ *		send_notification[true/false]
+ *
+ * @return	NCSCC_RC_SUCCESS
+ *		NCSCC_RC_FAILURE	 
+ *
+ **/
+uint32_t avd_susi_del_send(AVD_SU_SI_REL *susi)
+{
+	AVD_SU_SI_STATE old_fsm_state;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2("SI '%s', SU '%s' ", susi->si->name.value, susi->su->name.value);
+
+	old_fsm_state = susi->fsm;
+	susi->fsm = AVD_SU_SI_STATE_UNASGN;
+
+	avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL);
+	if (NCSCC_RC_SUCCESS != rc) {
+		LOG_NO("susi del msg snd failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
+				susi->su->name.value,susi->si->name.value);
+		susi->fsm = old_fsm_state;
+		goto done;
+	}
+	/* Update the assignment counters */
+	avd_susi_update_assignment_counters(susi, AVSV_SUSI_ACT_DEL, 0, 0);
+
+
+	/* Checkpointing has to be done after getting response, will take care subsequently */
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
+
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+/**
+ * @brief	update si and su assignment counters
+ *		SI counters:
+ *			saAmfSINumCurrActiveAssignments
+ *			saAmfSINumCurrStandbyAssignments
+ *		SU counters:
+ *			saAmfSUNumCurrActiveSIs
+ *			saAmfSUNumCurrStandbySIs
+ *
+ * @param[in]  susi
+ *             current_hs_state
+ *             new_ha_state
+ */
+void avd_susi_update_assignment_counters(AVD_SU_SI_REL *susi, AVSV_SUSI_ACT action, SaAmfHAStateT current_ha_state, SaAmfHAStateT new_ha_state)
+{
+	TRACE_ENTER2("SI:'%s', SU:'%s' action:%u current_ha_state:%u new_ha_state:%u",
+		susi->si->name.value, susi->su->name.value, action, current_ha_state, new_ha_state); 
+
+	switch (action) {
+	case AVSV_SUSI_ACT_ASGN:
+		if (new_ha_state == SA_AMF_HA_ACTIVE) {
+			avd_su_inc_curr_act_si(susi->su);
+			avd_si_inc_curr_act_ass(susi->si);
+		} else if (new_ha_state == SA_AMF_HA_STANDBY) { 
+			avd_su_inc_curr_stdby_si(susi->su);
+			avd_si_inc_curr_stdby_ass(susi->si);
+		}
+		break;
+	case AVSV_SUSI_ACT_MOD:
+		if ((current_ha_state == SA_AMF_HA_STANDBY) && (new_ha_state == SA_AMF_HA_ACTIVE)) {
+			/* standby to active */
+			avd_su_inc_curr_act_si(susi->su);
+			avd_su_dec_curr_stdby_si(susi->su);
+			avd_si_inc_curr_act_dec_std_ass(susi->si);
+		} else if (((current_ha_state == SA_AMF_HA_ACTIVE) || (current_ha_state == SA_AMF_HA_QUIESCING))
+				&& (new_ha_state == SA_AMF_HA_QUIESCED)) {
+			/* active or quiescing to quiesced */
+			avd_su_dec_curr_act_si(susi->su);
+			avd_si_dec_curr_act_ass(susi->si);
+		} else if ((current_ha_state == SA_AMF_HA_QUIESCED) && (new_ha_state == SA_AMF_HA_STANDBY)) {
+			/* active or quiescinf to standby */
+			avd_su_inc_curr_stdby_si(susi->su);
+			avd_si_inc_curr_stdby_ass(susi->si);
+		} else if (((current_ha_state == SA_AMF_HA_ACTIVE) || (current_ha_state == SA_AMF_HA_QUIESCING))
+				&& (new_ha_state == SA_AMF_HA_STANDBY)) {
+			/* active or quiescinf to standby */
+			avd_su_dec_curr_act_si(susi->su);
+			avd_su_inc_curr_stdby_si(susi->su);
+			avd_si_inc_curr_stdby_dec_act_ass(susi->si);
+		} else if ((current_ha_state == SA_AMF_HA_QUIESCED) && (new_ha_state == SA_AMF_HA_ACTIVE)) {
+			/* quiescing to active */
+			avd_su_inc_curr_act_si(susi->su);
+			avd_si_inc_curr_act_ass(susi->si);
+		}
+		break;
+	case AVSV_SUSI_ACT_DEL:
+		if (susi->state == SA_AMF_HA_STANDBY) {
+			avd_su_dec_curr_stdby_si(susi->su);
+			avd_si_dec_curr_stdby_ass(susi->si);
+		} else if ((susi->state == SA_AMF_HA_ACTIVE) || (susi->state == SA_AMF_HA_QUIESCING)) {
+			avd_su_dec_curr_act_si(susi->su);
+			avd_si_dec_curr_act_ass(susi->si);
+		}
+		break;
+	default:
+		LOG_ER("%s: invalid action %u", __FUNCTION__, action);
+		break;
+	}
+
+        TRACE_LEAVE();
+}

@@ -827,6 +827,7 @@ static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 					avd_compcsi_delete(avd_cb, t_sisu, true); 
 					/* Unassign the SUSI */
 					avd_susi_delete(avd_cb, t_sisu, true);
+					avd_susi_update_assignment_counters(t_sisu, AVSV_SUSI_ACT_DEL, 0, 0);
 					goto done;
 				}
 

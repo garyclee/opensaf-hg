@@ -304,23 +304,13 @@ uint32_t avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU_SI_REL *susi = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
-	AVD_SU_SI_STATE old_fsm_state;
 
 	TRACE_ENTER2("'%s'", si->name.value);
 
 	susi = si->list_of_sisu;
 	while (susi != AVD_SU_SI_REL_NULL) {
-		old_fsm_state = susi->fsm;
-		susi->fsm = AVD_SU_SI_STATE_UNASGN;
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-
-		rc = avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL);
-		if (NCSCC_RC_SUCCESS != rc) {
-			/* LOG the erro */
-			susi->fsm = old_fsm_state;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
+		if (avd_susi_del_send(susi) != NCSCC_RC_SUCCESS)
 			goto done;
-		}
 
 		/* add the su to su-oper list */
 		avd_sg_su_oper_list_add(cb, susi->su, false);
@@ -1903,7 +1893,7 @@ static void avd_dependentsi_role_failover(AVD_SI *si)
 			/* identify the most preferred standby su for this si */
 			susi = avd_find_preferred_standby_susi(si);
 			if (susi) {
-				avd_susi_role_mod_send(susi, SA_AMF_HA_ACTIVE);
+				avd_susi_mod_send(susi, SA_AMF_HA_ACTIVE);
 				m_AVD_SET_SG_FSM(avd_cb, si->sg_of_si, AVD_SG_FSM_SG_REALIGN);
 				si_dep_state_set(si, AVD_SI_ASSIGNED);
 			}
