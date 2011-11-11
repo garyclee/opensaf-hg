@@ -316,7 +316,7 @@ static uint32_t clms_init(void)
 	}
 
 	/* Declare as implementer && Read configuration data from IMM */
-	if (clms_imm_activate(clms_cb) != SA_AIS_OK) {
+	if ((rc = clms_imm_activate(clms_cb)) != SA_AIS_OK) {
 		LOG_ER("clms_imm_activate FAILED");
 		goto done;
 	}
