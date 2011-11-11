@@ -112,7 +112,7 @@ typedef struct avsv_su_info_msg {
 	uint32_t comp_restart_max;
 	SaTimeT su_restart_prob;
 	uint32_t su_restart_max;
-	SaBoolT is_ncs;
+	bool is_ncs;
 	bool su_is_external;	/*indicates if this SU is external */
 	struct avsv_su_info_msg *next;
 } AVSV_SU_INFO_MSG;
