@@ -83,13 +83,6 @@ gld_amf_CSI_set_callback(SaInvocationT invocation,
 
 			gld_cb->invocation = invocation;
 			gld_cb->is_quiasced = true;
-
-			/* Give up our IMM OI implementer role */
-			error = immutil_saImmOiImplementerClear(gld_cb->immOiHandle);
-			if (error != SA_AIS_OK) {
-				LOG_ER("saImmOiImplementerClear failed: err = %d", error);
-			}
-
 			gld_mds_change_role(gld_cb, mds_role);
 
 			goto end;
