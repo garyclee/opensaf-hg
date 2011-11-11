@@ -406,11 +406,11 @@ static SaAisErrorT compcstype_rt_attr_callback(SaImmOiHandleT immOiHandle,
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
 		if (!strcmp("saAmfCompNumCurrActiveCSIs", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &cst->saAmfCompNumCurrActiveCSIs);
+			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+				SA_IMM_ATTR_SAUINT32T, &cst->saAmfCompNumCurrActiveCSIs);
 		} else if (!strcmp("saAmfCompNumCurrStandbyCSIs", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &cst->saAmfCompNumCurrStandbyCSIs);
+			avd_saImmOiRtObjectUpdate(objectName, attributeName,
+				SA_IMM_ATTR_SAUINT32T, &cst->saAmfCompNumCurrStandbyCSIs);
 		} else if (!strcmp("saAmfCompAssignedCsi", attributeName)) {
 			/* TODO */
 		} else

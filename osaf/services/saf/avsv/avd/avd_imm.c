@@ -1274,7 +1274,37 @@ done:
 }
 
 /**
- * Queue an IM object update to be executed later, non blocking
+ * IM object update, BLOCKING
+ * @param dn
+ * @param attributeName
+ * @param attrValueType
+ * @param value
+ */
+void avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn, SaImmAttrNameT attributeName,
+	SaImmValueTypeT attrValueType, void *value)
+{
+	SaAisErrorT rc;
+	SaImmAttrModificationT_2 attrMod;
+	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, NULL};
+	SaImmAttrValueT attrValues[] = {value};
+
+	TRACE_ENTER2("'%s' %s", dn->value, attributeName);
+
+	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
+	attrMod.modAttr.attrName = attributeName;
+	attrMod.modAttr.attrValuesNumber = 1;
+	attrMod.modAttr.attrValueType = attrValueType;
+	attrMod.modAttr.attrValues = attrValues;
+
+	rc = saImmOiRtObjectUpdate_2(avd_cb->immOiHandle, dn, attrMods);
+	if (rc != SA_AIS_OK) {
+		LOG_WA("saImmOiRtObjectUpdate of '%s' %s failed with %u", 
+			dn->value, attributeName, rc);
+	}
+}
+
+/**
+ * Queue an IM object update to be executed later, NON BLOCKING
  * @param dn
  * @param attributeName
  * @param attrValueType
@@ -1597,19 +1627,19 @@ void avd_job_fifo_empty(void)
 	while ((ajob = fifo_dequeue()) != NULL) {
 		switch (ajob->type) {
 		case JOB_IMM_OBJCREATE:
-			TRACE("discarding create of '%s'", ajob->objcreate.className);
+			LOG_WA("discarding create of '%s'", ajob->objcreate.className);
 			free_objcreate(&ajob->objcreate);
 			free(ajob);
 			break;
 		case JOB_IMM_OBJUPDATE:
-			TRACE("discarding update to '%s' '%s'",
+			LOG_WA("discarding update to '%s' '%s'",
 				ajob->objupdate.dn.value, ajob->objupdate.attributeName);
 			free(ajob->objupdate.attributeName);
 			free(ajob->objupdate.value);
 			free(ajob);
 			break;
 		case JOB_IMM_OBJDELETE:
-			TRACE("discarding delete of '%s'", ajob->objdelete.dn.value);
+			LOG_WA("discarding delete of '%s'", ajob->objdelete.dn.value);
 			free(ajob);
 			break;
 		default:

@@ -432,7 +432,7 @@ static SaAisErrorT app_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	while ((attributeName = attributeNames[i++]) != NULL) {
 		TRACE("Attribute %s", attributeName);
 		if (!strcmp(attributeName, "saAmfApplicationCurrNumSGs")) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
+			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
 				SA_IMM_ATTR_SAUINT32T, &app->saAmfApplicationCurrNumSGs);
 		} else
 			osafassert(0);

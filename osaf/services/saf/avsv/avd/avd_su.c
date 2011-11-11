@@ -1140,18 +1140,18 @@ static SaAisErrorT su_rt_attr_cb(SaImmOiHandleT immOiHandle,
 #if 0
 			/*  TODO */
 			SaUint32T saAmfSUAssignedSIs = su->saAmfSUNumCurrActiveSIs + su->saAmfSUNumCurrStandbySIs;
-			(void)avd_saImmOiRtObjectUpdate(immOiHandle, objectName,
-						       attributeName, SA_IMM_ATTR_SAUINT32T, &saAmfSUAssignedSIs);
+			avd_saImmOiRtObjectUpdate_sync(immOiHandle, objectName,
+				attributeName, SA_IMM_ATTR_SAUINT32T, &saAmfSUAssignedSIs);
 #endif
 		} else if (!strcmp("saAmfSUNumCurrActiveSIs", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &su->saAmfSUNumCurrActiveSIs);
+			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+				SA_IMM_ATTR_SAUINT32T, &su->saAmfSUNumCurrActiveSIs);
 		} else if (!strcmp("saAmfSUNumCurrStandbySIs", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &su->saAmfSUNumCurrStandbySIs);
+			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+				SA_IMM_ATTR_SAUINT32T, &su->saAmfSUNumCurrStandbySIs);
 		} else if (!strcmp("saAmfSURestartCount", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &su->saAmfSURestartCount);
+			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+				SA_IMM_ATTR_SAUINT32T, &su->saAmfSURestartCount);
 		} else
 			osafassert(0);
 	}

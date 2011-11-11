@@ -924,11 +924,11 @@ static SaAisErrorT si_rt_attr_cb(SaImmOiHandleT immOiHandle,
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
 		if (!strcmp("saAmfSINumCurrActiveAssignments", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &si->saAmfSINumCurrActiveAssignments);
+			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+				SA_IMM_ATTR_SAUINT32T, &si->saAmfSINumCurrActiveAssignments);
 		} else if (!strcmp("saAmfSINumCurrStandbyAssignments", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &si->saAmfSINumCurrStandbyAssignments);
+			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+				SA_IMM_ATTR_SAUINT32T, &si->saAmfSINumCurrStandbyAssignments);
 		} else
 			osafassert(0);
 	}
