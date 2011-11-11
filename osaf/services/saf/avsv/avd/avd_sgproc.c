@@ -198,6 +198,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			avd_compcsi_delete(cb, susi, true);
 			/* Unassign the SUSI */
 			avd_susi_delete(cb, susi, true);
+			avd_susi_update_assignment_counters(susi, AVSV_SUSI_ACT_DEL, 0, 0);
 
 			goto done;
 		}
@@ -902,17 +903,6 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					q_flag = true;
 					avd_sg_su_asgn_del_util(cb, su, false, false);
 				} else {
-					if (n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_ACTIVE) {
-						if (su->saAmfSUNumCurrStandbySIs != 0)
-							su->saAmfSUNumCurrActiveSIs = su->saAmfSUNumCurrStandbySIs;
-						su->saAmfSUNumCurrStandbySIs = 0;
-					} else if (n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_STANDBY) {
-						su->saAmfSUNumCurrStandbySIs = su->saAmfSUNumCurrActiveSIs;
-						su->saAmfSUNumCurrActiveSIs = 0;
-					}
-
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_AVD_SU_CONFIG);
-
 					/* set the  assigned or quiesced state in the SUSIs. */
 					avd_sg_su_asgn_del_util(cb, su, false, qsc_flag);
 				}
@@ -1209,22 +1199,9 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				} else {
 					if (susi->state == SA_AMF_HA_QUIESCING) {
 						susi->state = SA_AMF_HA_QUIESCED;
-						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 						avd_gen_su_ha_state_changed_ntf(cb, susi);
-					} else {
-						if (n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_ACTIVE) {
-							if (susi->su->saAmfSUNumCurrStandbySIs != 0) {
-								avd_su_inc_curr_act_si(susi->su);
-								avd_su_dec_curr_stdby_si(susi->su);
-								avd_si_inc_curr_act_dec_std_ass(susi->si);
-							}
-
-						} else if (n2d_msg->msg_info.n2d_su_si_assign.ha_state ==
-							   SA_AMF_HA_STANDBY) {
-							avd_su_dec_curr_act_si(susi->su);
-							avd_su_inc_curr_stdby_si(susi->su);
-							avd_si_inc_curr_stdby_dec_act_ass(susi->si);
-						}
+						avd_susi_update_assignment_counters(susi, AVSV_SUSI_ACT_MOD,
+							 SA_AMF_HA_QUIESCING, SA_AMF_HA_QUIESCED);
 					}
 
 					/* set the assigned in the SUSIs. */
@@ -1376,10 +1353,14 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			if ((su->pend_cbk.admin_oper == SA_AMF_ADMIN_LOCK)
 			    || (su->pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN)) {
 				if ((su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0)) {
-					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation,
-									    SA_AIS_OK);
-					su->pend_cbk.invocation = 0;
-					su->pend_cbk.admin_oper = 0;
+					/* For lock and shutdown, response to IMM admin operation should be
+					   sent when response for DEL operation is received */
+					if (AVSV_SUSI_ACT_DEL == n2d_msg->msg_info.n2d_su_si_assign.msg_act) {
+						immutil_saImmOiAdminOperationResult(cb->immOiHandle, 
+								su->pend_cbk.invocation, SA_AIS_OK);
+						su->pend_cbk.invocation = 0;
+						su->pend_cbk.admin_oper = 0;
+					}
 				} else if (n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) {
 					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation,
 									    SA_AIS_ERR_REPAIR_PENDING);
@@ -1406,14 +1387,19 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			   when all SIs have been unassigned for a SU on the node undergoing 
 			   LOCK/SHUTDOWN or when successful SI assignment has happened for 
 			   a SU on the node undergoing UNLOCK */
+			/* For lock and shutdown,su_cnt_admin_oper should be decremented when
+			   response for DEL operation is received */
 			if ((((su->su_on_node->admin_node_pend_cbk.admin_oper == SA_AMF_ADMIN_LOCK) ||
-			      (su->su_on_node->admin_node_pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN) ||
-			      (su->su_on_node->admin_node_pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK_INSTANTIATION)) &&
-			     (su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0)) ||
-			    ((su->su_on_node->admin_node_pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK) &&
-			     ((su->saAmfSUNumCurrActiveSIs != 0) || (su->saAmfSUNumCurrStandbySIs != 0)))) {
+				(su->su_on_node->admin_node_pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN)) &&
+				(su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0) &&
+				(AVSV_SUSI_ACT_DEL == n2d_msg->msg_info.n2d_su_si_assign.msg_act)) ||
+				((su->su_on_node->admin_node_pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK_INSTANTIATION) &&
+				 (su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0)) ||
+				((su->su_on_node->admin_node_pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK) &&
+				 ((su->saAmfSUNumCurrActiveSIs != 0) || (su->saAmfSUNumCurrStandbySIs != 0)))) {
 				su->su_on_node->su_cnt_admin_oper--;
 			}
+
 
 			/* if this last su to undergo admin operation then report to IMM */
 			if (su->su_on_node->su_cnt_admin_oper == 0) {
@@ -2327,6 +2313,8 @@ uint32_t avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, bool del_flag, bool 
 					i_susi->state = SA_AMF_HA_QUIESCED;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
 					avd_gen_su_ha_state_changed_ntf(cb, i_susi);
+					avd_susi_update_assignment_counters(i_susi, AVSV_SUSI_ACT_MOD,
+                                                 SA_AMF_HA_QUIESCING, SA_AMF_HA_QUIESCED);
 
 					/* trigger pg upd */
 					avd_pg_susi_chg_prc(cb, i_susi);
@@ -2344,13 +2332,6 @@ uint32_t avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, bool del_flag, bool 
 
 					/* trigger pg upd */
 					avd_pg_susi_chg_prc(cb, i_susi);
-				}
-
-				/* update the si counters */
-				if (SA_AMF_HA_ACTIVE == i_susi->state) {
-					avd_si_inc_curr_act_dec_std_ass(i_susi->si);
-				} else if (SA_AMF_HA_STANDBY == i_susi->state) {
-					avd_si_inc_curr_stdby_dec_act_ass(i_susi->si);
 				}
 
 				i_susi = i_susi->su_next;
@@ -2432,6 +2413,14 @@ uint32_t avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 		}
 
 		goto done;
+	} else {
+		for (i_susi = su->list_of_susi;i_susi != AVD_SU_SI_REL_NULL;i_susi = i_susi->su_next) {
+			if (i_susi->fsm == AVD_SU_SI_STATE_UNASGN) {
+				/* Ignore the SU SI that are getting deleted. */
+				continue;
+			}
+			avd_susi_update_assignment_counters(i_susi, AVSV_SUSI_ACT_MOD, old_ha_state, state);
+		}
 	}
 
 	rc = NCSCC_RC_SUCCESS;
@@ -2472,6 +2461,8 @@ uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 		old_state = i_susi->fsm;
 		i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
+		/* Update the assignment counters */
+		avd_susi_update_assignment_counters(i_susi, AVSV_SUSI_ACT_DEL, 0, 0);
 		i_susi = i_susi->su_next;
 	}
 
