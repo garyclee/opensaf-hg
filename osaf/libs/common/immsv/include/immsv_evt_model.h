@@ -229,6 +229,7 @@ extern "C" {
 		SaUint32T nodeId;
 		IMMSV_OCTET_STRING adminOwnerName;
 		SaBoolT releaseOnFinalize;
+		SaBoolT isDying;
 		IMMSV_OBJ_NAME_LIST *touchedObjects;
 		struct ImmsvAdmoList *next;
 	} IMMSV_ADMO_LIST;
