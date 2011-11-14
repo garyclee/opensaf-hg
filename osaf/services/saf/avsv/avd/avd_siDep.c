@@ -308,7 +308,7 @@ uint32_t avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si)
 	TRACE_ENTER2("'%s'", si->name.value);
 
 	susi = si->list_of_sisu;
-	while (susi != AVD_SU_SI_REL_NULL) {
+	while (susi != AVD_SU_SI_REL_NULL && susi->fsm != AVD_SU_SI_STATE_UNASGN) {
 		if (avd_susi_del_send(susi) != NCSCC_RC_SUCCESS)
 			goto done;
 
