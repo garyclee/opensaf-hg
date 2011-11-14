@@ -32,6 +32,9 @@ ee_name=$2
 tipc_config=`which tipc-config 2> /dev/null`
 test $? -ne 0 && tipc_config="/bin/true"
 
+# Run commands through sudo when not superuser
+test $(id -u) -ne 0 && icmd=$(which sudo 2> /dev/null)
+
 #if plm exists in the system,then the reboot is performed using the eename.
 opensaf_reboot_with_plm()
 {
@@ -72,12 +75,12 @@ if [ "$self_node_id" = "$node_id" ] || [ $node_id = 0 ]; then
 # resulted due to tipc bearer disable. Hence killing the processes amfnd, amfd and fmd before invoking
 # TIPC bearer disable and reboot -f. FMD is killed so that it will not act on TIPC link down and AMFD/AMFND
 # are killed so that FMD will not be respawned.
-	sudo pkill osafamfd
-	sudo pkill osafamfnd
-	sudo pkill osaffmd
+	$icmd pkill osafamfd
+	$icmd pkill osafamfnd
+	$icmd pkill osaffmd
 
-	sudo $tipc_config "-bd=?"
-	sudo /sbin/reboot -f
+	$icmd $tipc_config "-bd=?"
+	$icmd /sbin/reboot -f
 else
 	if [ ":$ee_name" != ":" ]; then
 		plm_node_state=`immlist $ee_name |grep saPlmEEAdminState|awk '{print $3}'` 
