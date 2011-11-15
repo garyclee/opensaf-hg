@@ -409,7 +409,7 @@ uint32_t cpsv_ckpt_access_decode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	ckpt_data->ckpt_sync.invocation = ncs_decode_64bit(&pstream);
 	ckpt_data->ckpt_sync.lcl_ckpt_hdl = ncs_decode_64bit(&pstream);
 	ckpt_data->ckpt_sync.client_hdl = ncs_decode_64bit(&pstream);
-	ckpt_data->ckpt_sync.is_ckpt_open = ncs_decode_32bit(&pstream);
+	ckpt_data->ckpt_sync.is_ckpt_open = ncs_decode_8bit(&pstream);
 	ckpt_data->ckpt_sync.cpa_sinfo.dest = ncs_decode_64bit(&pstream);
 	ckpt_data->ckpt_sync.cpa_sinfo.stype = ncs_decode_32bit(&pstream);
 	ckpt_data->ckpt_sync.cpa_sinfo.to_svc = ncs_decode_32bit(&pstream);
