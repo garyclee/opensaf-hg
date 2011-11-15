@@ -221,9 +221,9 @@ uint32_t cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *pstream = NULL;
-	uint32_t space, all_repl_evt_flag = 0;
+	uint32_t space;
 
-	space = 4 + 8 + 8 + 8 + 4 + 4;
+	space = 4 + 8 + 8 + 8 + 4 + 1;
 	pstream = ncs_enc_reserve_space(io_uba, space);
 	if (!pstream)
 		return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE, "Memory alloc failed in cpsv_ckpt_access_encode\n");
@@ -233,8 +233,7 @@ uint32_t cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	ncs_encode_64bit(&pstream, ckpt_data->lcl_ckpt_id);
 	ncs_encode_64bit(&pstream, ckpt_data->agent_mdest);
 	ncs_encode_32bit(&pstream, ckpt_data->num_of_elmts);
-	all_repl_evt_flag = ckpt_data->all_repl_evt_flag;
-	ncs_encode_8bit(&pstream, all_repl_evt_flag);
+	ncs_encode_8bit(&pstream, ckpt_data->all_repl_evt_flag);
 
 	ncs_enc_claim_space(io_uba, space);
 
@@ -242,7 +241,7 @@ uint32_t cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	cpsv_ckpt_data_encode(io_uba, ckpt_data->data);
 
 	/* Following are Not Required But for Write/Read (Used in checkpoint sync evt) compatiblity with 3.0.2 */
-	space = 4 + 1 + 8 + 8 + 8 + 8 + 4 + 8 + 4 + 4 + 1 /*+ MDS_SYNC_SND_CTXT_LEN_MAX */ ;
+	space = 4 + 1 + 8 + 8 + 8 + 8 + 1 + 8 + 4 + 4 + 1 /*+ MDS_SYNC_SND_CTXT_LEN_MAX */ ;
 	pstream = ncs_enc_reserve_space(io_uba, space);
 	if (!pstream)
 		return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE, "Memory alloc failed in cpsv_ckpt_access_encode\n");
