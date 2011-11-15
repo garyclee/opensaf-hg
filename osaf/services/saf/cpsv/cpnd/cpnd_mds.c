@@ -383,7 +383,7 @@ uint32_t cpsv_ckpt_access_decode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 {
 	uint8_t *pstream = NULL;
 	uint8_t local_data[150];
-	uint32_t space = 4 + 8 + 8 + 8 + 4 + 1;
+	uint32_t space = 4 + 8 + 8 + 8 + 4 + 4;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -393,14 +393,14 @@ uint32_t cpsv_ckpt_access_decode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	ckpt_data->lcl_ckpt_id = ncs_decode_64bit(&pstream);
 	ckpt_data->agent_mdest = ncs_decode_64bit(&pstream);
 	ckpt_data->num_of_elmts = ncs_decode_32bit(&pstream);
-	ckpt_data->all_repl_evt_flag = ncs_decode_8bit(&pstream);
+	ckpt_data->all_repl_evt_flag = (bool)ncs_decode_32bit(&pstream);
 	ncs_dec_skip_space(io_uba, space);
 
 	/* Decode The Linked List */
 	rc = cpsv_ckpt_data_decode(&ckpt_data->data, io_uba);
 
 	/* Following are Not Required But for Write/Read (Used in checkpoint sync evt) compatiblity with 3.0.2 */
-	space = 4 + 1 + 8 + 8 + 8 + 8 + 1 + 8 + 4 + 4 + 1 /*+ MDS_SYNC_SND_CTXT_LEN_MAX */ ;
+	space = 4 + 1 + 8 + 8 + 8 + 8 + 4 + 8 + 4 + 4 + 1 /*+ MDS_SYNC_SND_CTXT_LEN_MAX */ ;
 
 	pstream = ncs_dec_flatten_space(io_uba, local_data, space);
 	ckpt_data->seqno = ncs_decode_32bit(&pstream);
@@ -409,7 +409,7 @@ uint32_t cpsv_ckpt_access_decode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	ckpt_data->ckpt_sync.invocation = ncs_decode_64bit(&pstream);
 	ckpt_data->ckpt_sync.lcl_ckpt_hdl = ncs_decode_64bit(&pstream);
 	ckpt_data->ckpt_sync.client_hdl = ncs_decode_64bit(&pstream);
-	ckpt_data->ckpt_sync.is_ckpt_open = ncs_decode_8bit(&pstream);
+	ckpt_data->ckpt_sync.is_ckpt_open = (bool)ncs_decode_32bit(&pstream);
 	ckpt_data->ckpt_sync.cpa_sinfo.dest = ncs_decode_64bit(&pstream);
 	ckpt_data->ckpt_sync.cpa_sinfo.stype = ncs_decode_32bit(&pstream);
 	ckpt_data->ckpt_sync.cpa_sinfo.to_svc = ncs_decode_32bit(&pstream);
