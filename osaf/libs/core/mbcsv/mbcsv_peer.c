@@ -456,18 +456,21 @@ void mbcsv_set_up_new_session(CKPT_INST *ckpt, PEER_INST *new_act_peer)
 		TRACE("my role is quiesced");
 		m_SET_NCS_MBCSV_STATE(new_act_peer, NCS_MBCSV_STBY_STATE_STEADY_IN_SYNC);
 	} else if (new_act_peer->cold_sync_done) {
-		TRACE("cold sync done, sending warm sync request");
-		/* Send Warm sync req and set FSM state to wait to warm sync */
-		m_MBCSV_SEND_CLIENT_MSG(new_act_peer, NCSMBCSV_SEND_WARM_SYNC_REQ, NCS_MBCSV_ACT_DONT_CARE);
+		/* Move to WARM sync request only when the option is enabled */
+		if (new_act_peer->my_ckpt_inst->warm_sync_on == true) {
+			TRACE("cold sync done, sending warm sync request");
+			/* Send Warm sync req and set FSM state to wait to warm sync */
+			m_MBCSV_SEND_CLIENT_MSG(new_act_peer, NCSMBCSV_SEND_WARM_SYNC_REQ, NCS_MBCSV_ACT_DONT_CARE);
 
-		new_act_peer->warm_sync_sent = true;
+			new_act_peer->warm_sync_sent = true;
 
-		/* When we get a warm sync response - this timer will be cancelled */
-		ncs_mbcsv_start_timer(new_act_peer, NCS_MBCSV_TMR_SEND_WARM_SYNC);
-		/* This timer must be started whenever the warm sync is sent */
-		ncs_mbcsv_start_timer(new_act_peer, NCS_MBCSV_TMR_WARM_SYNC_CMPLT);
+			/* When we get a warm sync response - this timer will be cancelled */
+			ncs_mbcsv_start_timer(new_act_peer, NCS_MBCSV_TMR_SEND_WARM_SYNC);
+			/* This timer must be started whenever the warm sync is sent */
+			ncs_mbcsv_start_timer(new_act_peer, NCS_MBCSV_TMR_WARM_SYNC_CMPLT);
 
-		m_SET_NCS_MBCSV_STATE(new_act_peer, NCS_MBCSV_STBY_STATE_WAIT_TO_WARM_SYNC);
+			m_SET_NCS_MBCSV_STATE(new_act_peer, NCS_MBCSV_STBY_STATE_WAIT_TO_WARM_SYNC);
+		}
 	} else {
 		TRACE("sending cold sync request");
 		/* Send Cold sync req and set FSM state to wait to cold sync */
