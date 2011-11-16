@@ -221,7 +221,7 @@ uint32_t cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *pstream = NULL;
-	uint32_t space, all_repl_evt_flag = 0;
+	uint32_t space, all_repl_evt_flag = 0, is_ckpt_open = 0;
 
 	space = 4 + 8 + 8 + 8 + 4 + 4;
 	pstream = ncs_enc_reserve_space(io_uba, space);
@@ -253,7 +253,8 @@ uint32_t cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 	ncs_encode_64bit(&pstream, ckpt_data->ckpt_sync.invocation);
 	ncs_encode_64bit(&pstream, ckpt_data->ckpt_sync.lcl_ckpt_hdl);
 	ncs_encode_64bit(&pstream, ckpt_data->ckpt_sync.client_hdl);
-	ncs_encode_32bit(&pstream, ckpt_data->ckpt_sync.is_ckpt_open);
+	is_ckpt_open = ckpt_data->ckpt_sync.is_ckpt_open;
+	ncs_encode_32bit(&pstream, is_ckpt_open);
 	ncs_encode_64bit(&pstream, ckpt_data->ckpt_sync.cpa_sinfo.dest);
 	ncs_encode_32bit(&pstream, ckpt_data->ckpt_sync.cpa_sinfo.stype);
 	ncs_encode_32bit(&pstream, ckpt_data->ckpt_sync.cpa_sinfo.to_svc);
