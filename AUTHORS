@@ -5,11 +5,11 @@
 -----------------------------------------------------------------------
 | arne.r.eriksson@ericsson.com    | NTF                               |
 -----------------------------------------------------------------------
-| bertil.engelholm@ericsson.com   | SMF (P)                           |
+| bertil.engelholm@ericsson.com   | SMF                               |
 -----------------------------------------------------------------------
 | currie.reid@windriver.com       | Python bindings and Tests         |
 -----------------------------------------------------------------------
-| hans.feldt@ericsson.com         | AMF (P), LOG, RDE, UML (P)        |
+| hans.feldt@ericsson.com         | AMF, LOG, RDE, UML                |
 -----------------------------------------------------------------------
 | ingvar.bergstrom@ericsson.com   | SMF                               |
 -----------------------------------------------------------------------
@@ -21,19 +21,15 @@
 -----------------------------------------------------------------------
 | lars.g.ekman@ericsson.com       | User Mode Linux                   |
 -----------------------------------------------------------------------
-| mnaickan@goahead.com            | CLM, EVT, LOG (P)                 |
------------------------------------------------------------------------
-| mlalavat@goahead.com            | NTF (P)                           |
------------------------------------------------------------------------
-| nkumar@goahead.com              | AMF                               |
+| mnaickan@goahead.com            | CLM, EVT, LOG                     |
 -----------------------------------------------------------------------
 | peter.strand@ericsson.com       | IMM XML tools                     |
 -----------------------------------------------------------------------
-| rbetham@goahead.com             | LEAP, MBCSv                 |
+| rbetham@goahead.com             | LEAP, MBCSv                       |
 -----------------------------------------------------------------------
 | sgarlapati@goahead.com          | MDS                               |
 -----------------------------------------------------------------------
-| valla@goahead.com               | CKPT, IMM (P)                     |
+| valla@goahead.com               | CKPT, IMM                         |
 -----------------------------------------------------------------------
 | vpamidipati@goahead.com         | PLM                               |
 -----------------------------------------------------------------------
@@ -49,6 +45,14 @@
 | Active Developers / Testers                                         |
 =======================================================================
 | Many! Add your name here :)                                         |
+-----------------------------------------------------------------------
+| cakula at goahead.com                                               |
+| niclas.c.johansson@ericsson.com | AMF                               |
+| nkumar@goahead.com              | AMF                               |
+| npeddavandla at goahead.com                                         |
+| pmalviya at goahead.com         | AMF                               |
+| sharathkg at goahead.com                                            |
+| skhethavath at goahead.com                                          |
 =======================================================================
 
 
@@ -94,6 +98,8 @@
 | john.wright@hp.com              | Sysadmin                          |
 -----------------------------------------------------------------------
 | jozsef.biro@nsn.com             | Java mapping                      |
+-----------------------------------------------------------------------
+| mlalavat@goahead.com            | NTF                               |
 -----------------------------------------------------------------------
 | nicolas.thomas@hp.com           | TLC                               |
 -----------------------------------------------------------------------
