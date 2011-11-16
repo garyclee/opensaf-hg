@@ -1,4 +1,4 @@
-This directory contains the 4.0 release of `OpenSAF'.
+This directory contains the 4.2 release of `OpenSAF'.
 
 `OpenSAF' is an open source project designed to implement a complete highly
 available operating environment based on Service Availability Forum (SA Forum)
@@ -64,6 +64,21 @@ The OpenSAF infrastructure is made highly available by modeling the individual
 services as AMF components. All the Node Directors use no redundancy model and
 are restart capable with component capability 1_ACTIVE. All the Directors and
 Servers use 2N redundancy model with "1_ACTIVE_OR_1_STANDBY".
+
+By default (in 4.2) OpenSAF processes will run as the UNIX system user "opensaf"
+which is a member of the "opensaf" UNIX group. Only two processes are running
+as root, amfnd and smfnd. Reason is that amfnd need todo that for backwards 
+compatible reasons and the programs it starts might be designed to require root
+access. The reason for smfnd for running as root is that it typically installs
+rpms which requires root access. The rpms built by opensaf will create these users
+using rpm scriptlets.
+
+When using a "make install" system, either manually do the same as the rpm post
+install scriptlet (create group and user, configure sudo etc) or configure
+opensaf to run as root.
+
+See the build section how to revert to old all root behaviour.
+
 
 Downloading
 ===========
@@ -135,7 +150,7 @@ Where <repo> is one of the tree from the repositories index listed here:
 
     http://devel.opensaf.org/hg/
 
-After bootsraping follow the standard build instructions.
+After bootstraping follow the standard build instructions.
 
 
 Bug Reporting
@@ -244,23 +259,24 @@ Source Tree Structure
 Prerequisites
 =============
 
-The following software is required to build `OpenSAF 4.0':
+The following software is required to build OpenSAF:
 
     * The Linux Kernel with TIPC development support (This is not required when the opensaf is 
 	build with option --disable-tipc). OpenSAF works with TIPC version 1.5 onwards. But it 
-	is adviced to use TIPC 1.6.2 and above, to get the TIPC service unsubscribe 
+	is strongly adviced to use TIPC 1.6.2 and above, to get the TIPC service unsubscribe 
 	feature(Cancellation to a Subscription). 
-    * An HPI implementation (e.g. OpenHPI), when PLM is enabled.
-    * Libxml2
+    * libxml2-dev (Development files for the GNOME XML library)
     * automake
-    * autoconf
+    * m4
+    * autoconf (2.61 or later)
     * libtool
     * pkg-config
-    * flex and bison
     * gcc/g++
     * GNU make
-    * sqlite3, When IMM PBE feature is enabled.
-    
+    * python-dev(el)
+    * Optionally:
+        * When PLM is enabled, an HPI implementation (e.g. OpenHPI)
+        * When IMM PBE feature is enabled, sqlite3
 
     If enabling optional Java support:
         - A Java 1.5+ capable JDK (e.g. OpenJDK 1.6)
@@ -272,6 +288,35 @@ let us know about it following the instructions from the Bug Reporting section.
 
 Building `OpenSAF'
 ==================
+
+Some features needs to be configured at build time but don't have configure
+support, these are explained here.
+
+1) Configuring a flat MDS addressing scheme
+
+In the default scheme, TIPC addresses will be 1.1.31, 1.1.47. The slot ID is
+shifted up 4 bits and subslot ID is added in the 4 LSB. However this reduces
+the number of addressable TIPC nodes in the cluster. Besides most blade/server
+systems do not have any subslots. This is more likely used in xTCA type of
+systems if OpenSAF is used on a subslot.
+
+The use of subslot is disabled by:
+
+    % ./configure CFLAGS=-DMDS_USE_SUBSLOT_ID=0
+
+When use of subslot ID is disabled the TIPC addresses used will be 1.1.1,
+1.1.2, etc.
+
+More configuration is needed, see nid.conf in 00-README.conf
+
+
+2) Run as root
+
+If the old (<4.2) behaviour of running all processes as root is desired, use
+the following configure command:
+
+    % ./configure CFLAGS=-DRUNASROOT
+
 
 If you are using a released archive (dist tarball) follow the simple common
 steps:
@@ -288,7 +333,7 @@ Note: `OpenSAF' can safely be built with parallel jobs using -jX, where X
 If you are Building from `Mercurial', make sure you followed the required
 steps before trying to `configure' (i.e. bootsrapping).
 
-    % ./bootstraps.sh
+    % ./bootstrap.sh
     % ./configure && make
     OR
     % ./configure && make rpm
@@ -307,7 +352,10 @@ are available w.r.t enabling/disabling the build for a particular OpenSAF servic
                           produced.
   --disable-rpm-target    disable support for the "make rpm" target
                           [default=no]
+  --enable-python         enable the Python AIS bindings [default=yes]
   --enable-java           enable the Java AIS interface mapping [default=no]
+  --enable-am4j           enable the AM4J agent [default=no]
+  --disable-tipc          disable building the TIPC [default=no]
   --enable-tests          enable building the OpenSAF testing programs
                           [default=no]
   --enable-imm-pbe        enable the IMM Persistent Backend Interface
@@ -664,7 +712,7 @@ More TODO on status command.
 
 Command To Trigger a Administrative Switchover of the Controller Nodes:
 =======================================================================
-immadm -o 7 safSi=SC-2N,safApp=OpenSAF
+amf-adm si-swap safSi=SC-2N,safApp=OpenSAF
 
 Building `OpenSAF' Samples
 ==========================
@@ -722,6 +770,6 @@ More TODO
 
 -------------------------------------------------------------------------------
 
-Copyright (C) 2010 The OpenSAF Foundation
+Copyright (C) 2011 The OpenSAF Foundation
 
 
