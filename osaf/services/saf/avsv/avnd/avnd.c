@@ -219,9 +219,6 @@ done:
 AVND_CB *avnd_cb_create()
 {
 	AVND_CB *cb = avnd_cb;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
-	SaNtfCallbacksT ntfCallbacks = { NULL, NULL };
 	char *val;
 
 	TRACE_ENTER();
@@ -290,14 +287,6 @@ AVND_CB *avnd_cb_create()
 	/* initialize available internode components db */
 	if (NCSCC_RC_SUCCESS != avnd_internode_avail_comp_db_init(cb))
 		goto err;
-
-	/* NTFA Initialization */
-	rc = saNtfInitialize(&cb->ntfHandle, &ntfCallbacks, &ntfVersion);
-	if (rc != SA_AIS_OK) {
-		/* log the error code here */
-		LOG_ER("saNtfInitialize Failed (%u)", rc);
-		goto err;
-	}
 
 	TRACE_LEAVE();
 	return cb;
@@ -564,11 +553,6 @@ uint32_t avnd_ext_intf_destroy(AVND_CB *cb)
 
 	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl_ava);
 
-	/* NTFA Finalize */
-	rc = saNtfFinalize(cb->ntfHandle);
-	if (rc != SA_AIS_OK) {
-		LOG_ER("saNtfFinalize Failed (%u)", rc);
-	}
  done:
 	TRACE_LEAVE();
 	return rc;
