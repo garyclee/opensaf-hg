@@ -1290,7 +1290,7 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 		     (SA_AMF_PRESENCE_RESTARTING == prv_st)) && (SA_AMF_PRESENCE_TERMINATION_FAILED == final_st)) {
 			TRACE("Terminating/Instantiated/Restarting -> Termination Failed");
 			/* si assignment/removal failed.. inform AvD */
-			rc = avnd_di_susi_resp_send(cb, su, si);
+			rc = avnd_di_susi_resp_send(cb, su, m_AVND_SU_IS_ALL_SI(su) ? 0 : si);
 		}
 	}
 
