@@ -2153,7 +2153,7 @@ uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				} else {
 					/* transition to sg-realign state */
 					m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
-					avd_sg_su_oper_list_add(cb, su, FALSE);
+					avd_sg_su_oper_list_add(cb, su, false);
 				}
 			}
 
