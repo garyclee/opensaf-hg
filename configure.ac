@@ -171,9 +171,9 @@ AC_SUBST([initscriptdir], ["$with_initscriptdir"])
 AC_MSG_CHECKING([whether to enable the Python AIS bindings])
 AC_ARG_ENABLE([python],
         [AS_HELP_STRING([--enable-python],
-                [enable the Python AIS bindings [default=yes]])],
+                [enable the Python AIS bindings [default=no]])],
         [],
-        [enable_python=yes])
+        [enable_python=no])
 AC_MSG_RESULT([$enable_python])
 
 AM_CONDITIONAL([ENABLE_PYTHON], [test "$enable_python" = yes])
