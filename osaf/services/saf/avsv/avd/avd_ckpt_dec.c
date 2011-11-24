@@ -1469,8 +1469,8 @@ static uint32_t avsv_decode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
-		osafassert(0);
+	su_struct = avd_su_get_or_create(&su_ptr->name);
+	osafassert(su_struct != NULL);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->saAmfSUOperState = su_ptr->saAmfSUOperState;
