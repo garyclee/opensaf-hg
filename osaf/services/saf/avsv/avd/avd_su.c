@@ -51,10 +51,8 @@ AVD_SU *avd_su_new(const SaNameT *dn)
 	SaNameT sg_name;
 	AVD_SU *su;
 
-	if ((su = calloc(1, sizeof(AVD_SU))) == NULL) {
-		LOG_ER("avd_su_new: calloc FAILED");
-		return NULL;
-	}
+	su = calloc(1, sizeof(*su));
+	osafassert(su);
 	
 	memcpy(su->name.value, dn->value, dn->length);
 	su->name.length = dn->length;
@@ -109,6 +107,27 @@ AVD_SU *avd_su_get(const SaNameT *dn)
 	memcpy(tmp.value, dn->value, tmp.length);
 
 	return (AVD_SU *)ncs_patricia_tree_get(&su_db, (uint8_t *)&tmp);
+}
+
+/**
+ * Return an SU object if it exist, otherwise create it and
+ * return a reference to the new object.
+ * @param dn
+ * 
+ * @return AVD_SU*
+ */
+AVD_SU *avd_su_get_or_create(const SaNameT *dn)
+{
+	AVD_SU *su = avd_su_get(dn);
+
+	if (!su) {
+		TRACE("'%s' does not exist, creating it", dn->value);
+		su = avd_su_new(dn);
+		osafassert(su != NULL);
+		avd_su_db_add(su);
+	}
+
+	return su;
 }
 
 AVD_SU *avd_su_getnext(const SaNameT *dn)
