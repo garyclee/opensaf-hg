@@ -677,7 +677,6 @@ Requires: %{name}-clm-libs = %{version}-%{release}
 Group: Development/Libraries
 Summary: The Python AIS Bindings for SAF Services
 BuildRequires: python-devel
-BuildArch: noarch
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
