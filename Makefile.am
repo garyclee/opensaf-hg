@@ -191,7 +191,7 @@ RPMDIR = $(RPMTOPDIR)/RPMS
 
 prep-rpm-dir: dist
 	mkdir -p $(RPMTOPDIR)
-	mkdir -p $(RPMTOPDIR)/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp,noarch}
+	mkdir -p $(RPMTOPDIR)/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp}
 	cp $(top_srcdir)/$(PACKAGE_NAME).spec $(RPMSPECDIR)
 	cp $(top_srcdir)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(RPMSOURCEDIR)
 
