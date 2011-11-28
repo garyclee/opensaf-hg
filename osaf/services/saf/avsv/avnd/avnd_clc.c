@@ -2516,7 +2516,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	** the name/value pairs of the component service instance as environment variables to each CLC-CLI
 	** command."
 	*/
-	if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
+	if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) && !m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
 		AVND_COMP_CSI_REC *csi;
 		AVSV_ATTR_NAME_VAL *csiattr;
 
