@@ -54,9 +54,10 @@ MQDLIB_INFO gl_mqdinfo;
 #define FD_AMF 0
 #define FD_MBCSV 1
 #define FD_MBX 2
+#define FD_CLM 3
 
-static struct pollfd fds[3];
-static nfds_t nfds = 3;
+static struct pollfd fds[4];
+static nfds_t nfds = 4;
 
 /******************************** LOCAL ROUTINES *****************************/
 static uint32_t mqd_lib_init(void);
@@ -129,6 +130,8 @@ static uint32_t mqd_lib_init(void)
 	SaAmfHealthcheckKeyT healthy;
 	char *health_key = NULL;
 	SaAisErrorT amf_error;
+	SaClmCallbacksT mqd_clm_cbk;
+	SaVersionT clm_version;
 	TRACE_ENTER();
 
 	/* Create the MQD Control Block */
@@ -257,6 +260,24 @@ static uint32_t mqd_lib_init(void)
 #endif
 	TRACE_1("saAmfComponentRegister Success");
 
+	m_MQSV_GET_AMF_VER(clm_version);
+	mqd_clm_cbk.saClmClusterNodeGetCallback = NULL;
+	mqd_clm_cbk.saClmClusterTrackCallback = mqd_clm_cluster_track_callback;
+
+	saErr = saClmInitialize(&pMqd->clm_hdl, &mqd_clm_cbk, &clm_version);
+	if (saErr != SA_AIS_OK) {
+		LOG_ER("saClmInitialize failed with error %u", saErr);
+		mqd_mbcsv_finalize(pMqd);
+		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
+			TRACE_2("MDS Deregistration Failed");
+		}
+		saAmfFinalize(pMqd->amf_hdl);
+		ncshm_give_hdl(pMqd->hdl);
+		mqd_cb_shut(pMqd);
+		return NCSCC_RC_FAILURE;
+	}
+	TRACE_1("saClmInitialize success");
+
 	/* MQD Imm Initialization */
 	saErr = mqd_imm_initialize(pMqd);
 	if (saErr != SA_AIS_OK) {
@@ -265,7 +286,7 @@ static uint32_t mqd_lib_init(void)
 		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
 			TRACE_2("MDS Deregistration Failed");
 		}
-
+		saClmFinalize(pMqd->clm_hdl);
 		saAmfFinalize(pMqd->amf_hdl);
 		ncshm_give_hdl(pMqd->hdl);
 		mqd_cb_shut(pMqd);
@@ -297,6 +318,7 @@ static uint32_t mqd_lib_init(void)
 		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
 			TRACE_2("MDS Deregistration Failed");
 		}
+		saClmFinalize(pMqd->clm_hdl);
 		saAmfFinalize(pMqd->amf_hdl);
 		ncshm_give_hdl(pMqd->hdl);
 		mqd_cb_shut(pMqd);
@@ -399,7 +421,7 @@ void mqd_main_process(uint32_t hdl)
 	MQSV_EVT *pEvt = NULL;
 	SaAisErrorT err = SA_AIS_OK;
 	NCS_MBCSV_ARG mbcsv_arg;
-	SaSelectionObjectT amfSelObj;
+	SaSelectionObjectT amfSelObj,clmSelObj;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	/* Get the controll block */
@@ -419,9 +441,27 @@ void mqd_main_process(uint32_t hdl)
 		return;
 	}
 
+	err = saClmSelectionObjectGet(pMqd->clm_hdl, &clmSelObj);
+	if (SA_AIS_OK != err) {
+		LOG_ER("saClmSelectionObjectGet failed with error %d", err);
+		ncshm_give_hdl(pMqd->hdl);
+		return;
+	}
+	TRACE_1("saClmSelectionObjectGet success");
+
+	err = saClmClusterTrack(pMqd->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
+	if (SA_AIS_OK != err) {
+		LOG_ER("saClmClusterTrack failed with error %d", err);
+		ncshm_give_hdl(pMqd->hdl);
+		return;
+	}
+	TRACE_1("saClmClusterTrack success");
+
 	/* Set up all file descriptors to listen to */
 	fds[FD_AMF].fd = amfSelObj;
 	fds[FD_AMF].events = POLLIN;
+	fds[FD_CLM].fd = clmSelObj;
+	fds[FD_CLM].events = POLLIN;
 	fds[FD_MBCSV].fd = pMqd->mbcsv_sel_obj;
 	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbxFd.rmv_obj;
@@ -443,6 +483,14 @@ void mqd_main_process(uint32_t hdl)
 			if (SA_AIS_OK != err)
 				/* Log Error */
 				LOG_ER("saAmfDispatch FAILED : %u", err);
+		}
+		/* Process all Clm Messages */
+		if (fds[FD_CLM].revents & POLLIN) {
+			/* dispatch all the CLM pending function */
+			err= saClmDispatch(pMqd->clm_hdl, SA_DISPATCH_ALL);
+			if (err!= SA_AIS_OK) {
+				LOG_ER("saClmDispatch failed: %u", err);
+			}
 		}
 		/* dispatch all the MBCSV pending callbacks */
 		if (fds[FD_MBCSV].revents & POLLIN) {

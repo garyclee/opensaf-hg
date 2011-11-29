@@ -105,6 +105,7 @@ typedef struct mdq_obj_node {
 
 typedef struct mqd_node_info {
 	NODE_ID nodeid;		/* key for the node database */
+	bool is_node_down;      /* true when node left the cluster and false when MQND is down */
 	bool is_restarted;	/* true when MQND is up and false when MQND is down */
 	SaNameT queue_name;
 	MQD_TMR timer;		/* Retention timer for MQND down */
