@@ -122,7 +122,7 @@ void cpd_a2s_ckpt_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	if (rc != SA_AIS_OK)
 		TRACE_4("cpd A2S ckpt unlink async failed %s",ckpt_node->ckpt_name.value);
 	else
-		TRACE_1("cpd A2S ckpt unlink async failed ");
+		TRACE_1("cpd A2S ckpt unlink async successfull ");
 	TRACE_LEAVE();
 }
 
