@@ -243,9 +243,6 @@ component type. It is using the amfpm command to control AMF passive monitoring.
 	<object class="SaSmfSwBundle">
 			<dn>safSmfBundle=net-snmp-5.6.1-4.5.1.x86_64</dn>
 	</object>
-
-<!-- SC1 INSTANCES -->
-
 	<object class="SaAmfSI">
 		<dn>safSi=1,safApp=net-snmp</dn>
 		<attr>
@@ -268,6 +265,9 @@ component type. It is using the amfpm command to control AMF passive monitoring.
 		<value>safVersion=1,safCSType=snmpd</value>
 	    </attr>
 	</object>
+
+<!-- SC1 INSTANCES -->
+
 	<object class="SaAmfSU">
 		<dn>safSu=1,safSg=2N,safApp=net-snmp</dn>
 		<attr>
@@ -307,28 +307,6 @@ component type. It is using the amfpm command to control AMF passive monitoring.
 
 <!-- SC2 INSTANCES -->
 
-	<object class="SaAmfSI">
-		<dn>safSi=2,safApp=net-snmp</dn>
-		<attr>
-			<name>saAmfSvcType</name>
-			<value>safVersion=1,safSvcType=snmpd</value>
-		</attr>
-		<attr>
-			<name>saAmfSIProtectedbySG</name>
-			<value>safSg=2N,safApp=net-snmp</value>
-		</attr>
-		<attr>
-			<name>saAmfSIRank</name>
-			<value>2</value>
-		</attr>
-	</object>
-	<object class="SaAmfCSI">
-	    <dn>safCsi=snmpd,safSi=2,safApp=net-snmp</dn>
-	    <attr>
-		<name>saAmfCSType</name>
-		<value>safVersion=1,safCSType=snmpd</value>
-	    </attr>
-	</object>
 	<object class="SaAmfSU">
 		<dn>safSu=2,safSg=2N,safApp=net-snmp</dn>
 		<attr>
