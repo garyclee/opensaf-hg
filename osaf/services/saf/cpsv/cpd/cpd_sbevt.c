@@ -235,7 +235,7 @@ uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 		goto cpd_ckpt_node_add_fail;
 	}
 
-	TRACE_1("cpd ckpt node add failed ckpt name:%s, ckpt_id:%llx ",map_info->ckpt_name.value,map_info->ckpt_id);
+	TRACE_1("cpd ckpt node added successfully  ckpt name:%s, ckpt_id:%llx ",map_info->ckpt_name.value,map_info->ckpt_id);
 
 	goto end;
 
