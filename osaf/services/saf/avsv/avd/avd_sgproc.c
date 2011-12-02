@@ -2459,10 +2459,12 @@ uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 	i_susi = su->list_of_susi;
 	while (i_susi != AVD_SU_SI_REL_NULL) {
 		old_state = i_susi->fsm;
-		i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
-		/* Update the assignment counters */
-		avd_susi_update_assignment_counters(i_susi, AVSV_SUSI_ACT_DEL, 0, 0);
+		if (i_susi->fsm != AVD_SU_SI_STATE_UNASGN) {
+			i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
+			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
+			/* Update the assignment counters */
+			avd_susi_update_assignment_counters(i_susi, AVSV_SUSI_ACT_DEL, 0, 0);
+		}
 		i_susi = i_susi->su_next;
 	}
 
