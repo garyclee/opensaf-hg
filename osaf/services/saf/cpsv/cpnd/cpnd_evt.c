@@ -991,7 +991,7 @@ static uint32_t cpnd_evt_proc_ckpt_close(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 	/* reset the client info */
 	cpnd_restart_client_reset(cb, cp_node, cl_node);
 
-	rc = cpnd_send_ckpt_usr_info_to_cpd(cb, cp_node, cp_node->open_flags, CPSV_USR_INFO_CKPT_CLOSE);
+	rc = cpnd_send_ckpt_usr_info_to_cpd(cb, cp_node, evt->info.closeReq.ckpt_flags, CPSV_USR_INFO_CKPT_CLOSE);
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE_4("cpnd mds send failed for client_hdl:%llx,ckpt_id:%llx", evt->info.closeReq.client_hdl, evt->info.closeReq.ckpt_id);
 		/* For now go ahread and close the queue, we need to think of a better way to handle this */
