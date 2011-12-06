@@ -440,7 +440,6 @@ uint32_t mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *
 }
 
 /**
- * Currently not in use
  *
  * @param vdest_id, subtn_ref_val
  *
