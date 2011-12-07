@@ -6168,6 +6168,18 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
  discard_message:
  unpack_failure:
 
+	if(error == SA_AIS_ERR_ACCESS) {
+		if(frwrd_evt.info.immnd.type == IMMND_EVT_A2ND_OI_CL_IMPL_SET) {
+			LOG_NO("Sync client discarded classimplementer set. Impl-id:%u Class:%s", 
+				frwrd_evt.info.immnd.info.implSet.impl_id,
+				frwrd_evt.info.immnd.info.implSet.impl_name.buf);
+		} else if(frwrd_evt.info.immnd.type == IMMND_EVT_A2ND_OI_CL_IMPL_REL) {
+			LOG_NO("Sync client discarded classimplementer release. Impl-id:%u Class:%s", 
+				frwrd_evt.info.immnd.info.implSet.impl_id,
+				frwrd_evt.info.immnd.info.implSet.impl_name.buf);
+		}
+	}
+
 	if (uba.start) {
 		m_MMGR_FREE_BUFR_LIST(uba.start);
 	}
@@ -7407,6 +7419,8 @@ static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
 
 	err = immModel_classImplementerSet(cb, &(evt->info.implSet), (originatedAtThisNd) ? conn : 0, nodeId);
 
+	LOG_NO("immModel_classImplementerSet class:%s returned:%u", evt->info.implSet.impl_name.buf, err);
+
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
@@ -7468,6 +7482,7 @@ static void immnd_evt_proc_cl_impl_rel(IMMND_CB *cb,
 
 	err = immModel_classImplementerRelease(cb, &(evt->info.implSet), (originatedAtThisNd) ? conn : 0, nodeId);
 
+	LOG_NO("immModel_classImplementerRelease class:%s returned:%u", evt->info.implSet.impl_name.buf, err);
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
