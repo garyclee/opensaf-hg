@@ -11991,6 +11991,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     ii->implementerName.buf,
                     (size_t) ii->implementerName.size);
                 info->mAdminOpBusy=0;
+                info->mApplier = (info->mImplementerName.at(0) == '@');
                 sImplementerVector.push_back(info);
                 ii = ii->next;
             }
