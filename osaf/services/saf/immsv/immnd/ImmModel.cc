@@ -8674,7 +8674,6 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
     ImplementerInfo* info = NULL;
 
     if(immNotWritable()) {
-        LOG_NO("ERR_TRY_AGAIN classImplementerSet immNotWritable");
         TRACE_LEAVE();
         return SA_AIS_ERR_TRY_AGAIN;
     }
@@ -8690,13 +8689,13 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
 
     info = findImplementer(req->impl_id);
     if(!info) {
-        LOG_NO("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto done;
     } 
 
     if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-        LOG_NO("ERR_BAD_HANDLE: Not a correct implementer handle "
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle "
             "conn:%u nodeId:%x", conn, nodeId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto done;
@@ -8709,7 +8708,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
 
     i1 = sClassMap.find(className);
     if(i1 == sClassMap.end()) {
-        LOG_NO("ERR_NOT_EXIST: class '%s' does not exist", 
+        TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", 
             className.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto done;
@@ -8880,7 +8879,6 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
     TRACE_ENTER();
     
     if(immNotWritable()) {
-        LOG_NO("ERR_TRY_AGAIN classImplementerRelease immNotWritable");
         TRACE_LEAVE();
         return SA_AIS_ERR_TRY_AGAIN;
     }
@@ -8896,13 +8894,13 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
 
     info = findImplementer(req->impl_id);
     if(!info) {
-        LOG_NO("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto done;
     } 
 
     if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-        LOG_NO("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
                 conn, nodeId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto done;
@@ -8915,7 +8913,7 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
                 
     i1 = sClassMap.find(className);
     if (i1 == sClassMap.end()) {
-        LOG_NO("ERR_NOT_EXIST: classImplementerRelease class '%s' does not exist", className.c_str());
+        TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto done;
     } 
@@ -9011,7 +9009,7 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
     }
 
     if(classInfo->mImplementer != info) { /* DIFFERENT Class implementer is set. */
-        LOG_NO("ERR_NOT_EXIST: Class '%s' has implementer %s != %s",
+        TRACE_7("ERR_NOT_EXIST: Class '%s' has implementer %s != %s",
             className.c_str(), classInfo->mImplementer->mImplementerName.c_str(),
             info->mImplementerName.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
