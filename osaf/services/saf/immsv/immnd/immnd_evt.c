@@ -7419,8 +7419,6 @@ static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
 
 	err = immModel_classImplementerSet(cb, &(evt->info.implSet), (originatedAtThisNd) ? conn : 0, nodeId);
 
-	LOG_NO("immModel_classImplementerSet class:%s returned:%u", evt->info.implSet.impl_name.buf, err);
-
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
@@ -7482,7 +7480,6 @@ static void immnd_evt_proc_cl_impl_rel(IMMND_CB *cb,
 
 	err = immModel_classImplementerRelease(cb, &(evt->info.implSet), (originatedAtThisNd) ? conn : 0, nodeId);
 
-	LOG_NO("immModel_classImplementerRelease class:%s returned:%u", evt->info.implSet.impl_name.buf, err);
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
