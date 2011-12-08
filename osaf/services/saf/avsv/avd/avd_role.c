@@ -246,6 +246,7 @@ static uint32_t avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
 	uint32_t status = NCSCC_RC_FAILURE;
 	AVD_AVND *my_node, *failed_node;
+	SaAisErrorT rc;
 
 	TRACE_ENTER();
 	LOG_NO("FAILOVER StandBy --> Active");
@@ -306,7 +307,10 @@ static uint32_t avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 	}
 
 	/* Give up our IMM OI Applier role */
-	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
+	if ((rc = immutil_saImmOiImplementerClear(cb->immOiHandle)) != SA_AIS_OK) {
+		LOG_ER("FAILOVER StandBy --> Active FAILED, ImplementerClear failed %u", rc);
+		goto done;
+	}
 
 	/* Time to send fail-over messages to all the AVND's */
 	avd_fail_over_event(cb);
@@ -322,8 +326,12 @@ static uint32_t avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 	/* We have successfully changed role to Active. */
 	cb->node_id_avd_other = 0;
 
-	if (avd_imm_impl_set() != SA_AIS_OK)
+	if ((rc = immutil_saImmOiImplementerSet(avd_cb->immOiHandle, "safAmfService")) != SA_AIS_OK) {
+		LOG_ER("FAILOVER StandBy --> Active FAILED, ImplementerSet failed %u", rc);
 		goto done;
+	}
+	avd_cb->is_implementer = true;
+
 
 	avd_node_mark_absent(failed_node);
 
@@ -367,6 +375,7 @@ static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 	AVD_AVND *avnd_other = NULL;
 	AVD_EVT *evt = AVD_EVT_NULL;
 	NCSMDS_INFO svc_to_mds_info;
+	SaAisErrorT rc;
 
 	TRACE_ENTER();
 	LOG_NO("FAILOVER Quiesced --> Active");
@@ -469,10 +478,7 @@ static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 	/* Post an evt on mailbox to set active role to all NCS SU */
 	/* create the message event */
 	evt = calloc(1, sizeof(AVD_EVT));
-	if (evt == NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		return NCSCC_RC_FAILURE;
-	}
+	osafassert(evt != NULL);
 
 	evt->rcv_evt = AVD_EVT_SWITCH_NCS_SU;
 
@@ -488,7 +494,11 @@ static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 	cb->node_id_avd_other = 0;
 
 	/* Give up our IMM OI applier role */
-	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
+	if ((rc = immutil_saImmOiImplementerClear(cb->immOiHandle)) != SA_AIS_OK) {
+		LOG_ER("FAILOVER Quiesced --> Active FAILED, ImplementerClear failed %u", rc);
+		return NCSCC_RC_FAILURE;
+	}
+
 
 	avd_imm_impl_set_task_create();
 
@@ -576,7 +586,10 @@ void avd_mds_qsd_role_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	TRACE_ENTER();
 
 	/* Give up IMM OI implementer role */
-	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
+	if ((rc = immutil_saImmOiImplementerClear(cb->immOiHandle)) != SA_AIS_OK) {
+		LOG_ER("FAILOVER Active --> Quiesced FAILED, ImplementerClear failed %u", rc);
+		osafassert(0);
+	}
 	cb->is_implementer = false;
 
 	/* Throw away all pending IMM updates, no longer implementer */
@@ -939,6 +952,7 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SG *sg;
 	SaNameT dn = {0};
+	SaAisErrorT rc;
 	
 	TRACE_ENTER();
 
@@ -949,14 +963,14 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 	 * proceed further. Else return failure.
 	 */
 	if (AVD_STBY_OUT_OF_SYNC == cb->stby_sync_state) {
-		LOG_ER("AMFD: Switch Standby --> Active FAILED, Standby OUT OF SYNC");
+		LOG_ER("Switch Standby --> Active FAILED, Standby OUT OF SYNC");
 		cb->swap_switch = SA_FALSE;
 		avd_d2d_chg_role_rsp(cb, NCSCC_RC_FAILURE, SA_AMF_HA_ACTIVE);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (NCSCC_RC_SUCCESS != (status = avsv_set_ckpt_role(cb, SA_AMF_HA_ACTIVE))) {
-		LOG_ER("AMFD: Switch Standby --> Active FAILED, CKPT role set failed");
+		LOG_ER("Switch Standby --> Active FAILED, Mbcsv role set failed");
 		cb->swap_switch = SA_FALSE;
 		avd_d2d_chg_role_rsp(cb, NCSCC_RC_FAILURE, SA_AMF_HA_ACTIVE);
 		return NCSCC_RC_FAILURE;
@@ -964,7 +978,7 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 
 	/* Now Dispatch all the messages from the MBCSv mail-box */
 	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_dispatch(cb, SA_DISPATCH_ALL))) {
-		LOG_ER("AMFD: Switch Standby --> Active FAILED, Mbcsv Dispatch failed");
+		LOG_ER("Switch Standby --> Active FAILED, Mbcsv Dispatch failed");
 		cb->swap_switch = SA_FALSE;
 		avd_d2d_chg_role_rsp(cb, NCSCC_RC_FAILURE, SA_AMF_HA_ACTIVE);
 		return NCSCC_RC_FAILURE;
@@ -980,7 +994,7 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 
 	/* Declare this standby as Active. Set Vdest role role */
 	if (NCSCC_RC_SUCCESS != (status = avd_mds_set_vdest_role(cb, SA_AMF_HA_ACTIVE))) {
-		LOG_ER("AMFD: Switch Standby --> Active FAILED, MDS role set failed");
+		LOG_ER("Switch Standby --> Active FAILED, MDS role set failed");
 		cb->swap_switch = SA_FALSE;
 		avd_d2d_chg_role_rsp(cb, NCSCC_RC_FAILURE, SA_AMF_HA_ACTIVE);
 		return NCSCC_RC_FAILURE;
@@ -999,20 +1013,27 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 	cb->swap_switch = SA_FALSE;
 
 	/* Give up our IMM OI Applier role */
-	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
-
-	if (avd_imm_impl_set() != SA_AIS_OK) {
-		LOG_ER("AMFD: Switch Standby --> Active, imm implement failed");
+	if ((rc = immutil_saImmOiImplementerClear(cb->immOiHandle)) != SA_AIS_OK) {
+		LOG_ER("Switch Standby --> Active FAILED, ImplementerClear failed %u", rc);
+		cb->swap_switch = SA_FALSE;
 		avd_d2d_chg_role_rsp(cb, NCSCC_RC_FAILURE, SA_AMF_HA_ACTIVE);
 		return NCSCC_RC_FAILURE;
 	}
+
+	if ((rc = immutil_saImmOiImplementerSet(avd_cb->immOiHandle, "safAmfService")) != SA_AIS_OK) {
+		LOG_ER("Switch Standby --> Active, ImplementerSet failed %u", rc);
+		avd_d2d_chg_role_rsp(cb, NCSCC_RC_FAILURE, SA_AMF_HA_ACTIVE);
+		return NCSCC_RC_FAILURE;
+	}
+	avd_cb->is_implementer = true;
+
 
 	if (NCSCC_RC_SUCCESS != avd_rde_set_role(SA_AMF_HA_ACTIVE)) {
 		LOG_ER("rde role change failed from stdy -> Active");
 	}
 
 	if(avd_clm_track_start() != SA_AIS_OK) {
-		LOG_ER("AMFD: Switch Standby --> Active, clm track start failed");
+		LOG_ER("Switch Standby --> Active, clm track start failed");
 		avd_d2d_chg_role_rsp(cb, NCSCC_RC_FAILURE, SA_AMF_HA_ACTIVE);
 		return NCSCC_RC_FAILURE;
 	}
