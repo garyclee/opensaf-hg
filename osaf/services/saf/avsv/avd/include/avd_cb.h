@@ -219,7 +219,7 @@ typedef struct cl_cb_tag {
 	SaImmOiHandleT immOiHandle;
 	SaImmOiHandleT immOmHandle;
 	SaSelectionObjectT imm_sel_obj;
-	int is_implementer;
+	bool is_implementer;
 
 	/* Clm stuff */
 	SaClmHandleT clmHandle;
