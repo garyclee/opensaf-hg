@@ -2407,6 +2407,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	unsigned int env_counter;
 	unsigned int i;
 	SaStringT env;
+	size_t env_set_nmemb;
 
 	TRACE_ENTER2("'%s':CLC CLI command type:'%s'",comp->name.value,clc_cmd_type[cmd_type]);
 
@@ -2452,11 +2453,8 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	}
 
 	/* Allocate environment variable set */
-	i = comp->numOfCompCmdEnv + 3;
-	if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp))
-		i += comp->csi_list.n_nodes;
-
-	env_set = calloc(i, sizeof(NCS_OS_ENVIRON_SET_NODE));
+	env_set_nmemb = comp->numOfCompCmdEnv + 3;
+	env_set = calloc(env_set_nmemb, sizeof(NCS_OS_ENVIRON_SET_NODE));
 
 	memset(&cmd_info, 0, sizeof(NCS_OS_PROC_EXECUTE_TIMED_INFO));
 	memset(&arg, 0, sizeof(NCS_OS_ENVIRON_ARGS));
@@ -2520,11 +2518,20 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) && !m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
 		AVND_COMP_CSI_REC *csi;
 		AVSV_ATTR_NAME_VAL *csiattr;
+		int i;
 
 		TRACE_1("Component is NPI, %u", comp->csi_list.n_nodes);
 
+		osafassert(comp->csi_list.n_nodes == 1);
 		csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 		osafassert(csi);
+
+		/* allocate additional env_set memory for the CSI attributes */
+		env_set = realloc(env_set, sizeof(NCS_OS_ENVIRON_SET_NODE) * (env_set_nmemb + csi->attrs.number));
+		osafassert(env_set);
+
+		/* initialize newly allocated memory */
+		memset(&env_set[env_set_nmemb], 0, sizeof(NCS_OS_ENVIRON_SET_NODE) * csi->attrs.number);
 
 		for (i = 0, csiattr = csi->attrs.list; i < csi->attrs.number; i++, csiattr++) {
 			if (var_in_envset((char*)csiattr->name.value, env_set, env_counter)) {
