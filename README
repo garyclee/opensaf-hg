@@ -461,7 +461,7 @@ target, some build systems provide their own `make rpm` rule, it would then be
 clashing with the OpenSAF rule.
 
 By using `./configure --disable-tipc', you are building the MDS with the TCP as 
-the only transport of the OpenSAF(MDS transports supoorted are TCP and TIPC).
+the only transport of the OpenSAF(MDS transports supported are TCP and TIPC).
 
 If user wants to use TCP as the transport of MDS, build the opensaf with `--disable-tipc` option,  
 and update the variable DTM_NODE_IP to self node IP address  in the `/etc/opensaf/dtmd.conf`
@@ -479,16 +479,16 @@ export MDS_TRANSPORT=TCP
 export MDS_INTRANODE_TRANSPORT=UNIX
 
 
-Building `OpenSAF' RPMS
+Building `OpenSAF' RPMs
 =======================
 
-As shown in the Building `OpenSAF' section, generating RPMS can be done using:
+As shown in the Building `OpenSAF' section, generating RPMs can be done using:
 
     % ./configure && make rpm
 
 The special `make rpm' target will generate a dist archive, create the
 `OpenSAF' SRPM using the opensaf.spec file, and finally launch the rpmbuild
-process. You can find the generated RPMS under `./rpms/RPMS/<build_arch>/':
+process. You can find the generated RPMs under `./rpms/RPMS/<build_arch>/':
 
 RPMs per OpenSAF Service are generated. For eg:-
 
@@ -569,7 +569,7 @@ Installing `OpenSAF'
 ====================
 
 `OpenSAF' can be installed in several ways. When doing development, a
-user might prefer using the classic `make install' way to using RPMS.
+user might prefer using the classic `make install' way to using RPMs.
 It can be achieved like this:
 
     % make install
@@ -582,17 +582,9 @@ After installing `OpenSAF' you will need to run `ldconfig' because `OpenSAF'
 places internal libs in the `$pkglibdir' (e.g. /usr/lib/opensaf/). This ldconfig
 operation is handled automatically by using rpm installation.
 
-By default `make install' will install pre-configured for a controller node.
-The only files that need to be changed for a payload is the `nodeinit.conf' and
-the `slot_id' (a slot_id of 3 or higher will give you a payload node):
+In production systems, RPMs should be preferred to classic `make install`.
 
-    % cd $pkgsysconfdir (e.g. /etc/opensaf/)
-    % ln -sf nodeinit.conf.payload nodeinit.conf
-    % echo 3 > $pkgsysconfdir/slot_id
-
-In production systems, RPMS should be preferred to classic `make install`.
-
-To setup a development environment for a given OpenSAF service, install following RPMS:
+To setup a development environment for a given OpenSAF service, install following RPMs:
     % rpm -ivh opensaf-<svc_name>-libs-<Release>.<build_arch>.rpm
     % rpm -ivh opensaf-devel-<Release>.<build_arch>.rpm
     % rpm -ivh opensaf-samples-<Release>.<build_arch>.rpm
@@ -748,6 +740,36 @@ Using the Simulation Environment
 ================================
 
 See file `00-README.uml' for more information about User Mode Linux and `OpenSAF'
+
+Upgrading OpenSAF
+=================
+In OpenSAF 4.2, the non-standard DTSv (Distributed Tracing Service) has been retired/removed.
+Fresh installations (new users) of 4.2 shall generate a new 
+imm.xml(see file 00-README.conf).
+
+Users of OpenSAF 4.0.2 or OpenSAF 4.1.1 releases, who wish to perform an In-Service Upgrade
+to OpenSAF 4.2 using SMF based upgrade campaigns should do the following:
+
+1) Download OpenSAF 4.2 release source tar from http://devel.opensaf.org/downloads
+2) Apply the patch 4.2_upgrade_dummydtsv.patch from http://devel.opensaf.org/downloads
+<FIXME: Patch name, link>
+3) Build OpenSAF 4.2 rpms
+4) Execute your SMF upgrade campaigns.
+
+The capability to modify the OpenSAF services' information model at run time
+has been added now in OpenSAF 4.2 and also in maintenance changesets of
+the 4.0.2 and 4.1.1 releases.
+You should track this section for information on steps to be done to permenantly delete
+the DTSv from the information model, in future releases.
+
+Note: When an OpenSAF installation(< 4.2) running with 'root' privileges and that may have 
+configured IMM persistent storage and/or contains old/generated  trace files, 
+is now being upgraded to OpenSAF 4.2 as the 'opensaf' user (i.e. non-root user), 
+Then it is the responsibility of the user/integrator to manage (through rpm scriptlets 
+or upgrade scripts) the permissions of the file/directory of the 
+immsv persistent store (see IMMSV_PBE_FILE in the $pkgsysconfdir/immnd.conf. 
+e.g. /etc/opensaf/immnd.conf file) and/or the permissions of any previous trace files 
+present under the $pkglogdir (e.g. /var/log/opensaf) directory, accordingly, if applicable.
 
 
 Linux Distro-Specific Notes
