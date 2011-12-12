@@ -718,6 +718,14 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 		std::string attName(attrValue->attrName);
 		SaImmAttrFlagsT attrFlags = classInfo->mAttrMap[attName];
 		if(attrFlags & SA_IMM_ATTR_RDN) {
+			if(rdnFound) {
+				snprintf(buf, sizeof(*buf),
+					"PBE: More than one RDN attribute found in attribute list");
+				LOG_NO("%s", buf);
+				saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;				
+			}
 			rdnFound = true;
 			if(attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
 				SaStringT rdnVal = *((SaStringT *) attrValue->attrValues[0]);
