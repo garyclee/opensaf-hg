@@ -1325,6 +1325,30 @@ SaAisErrorT immutil_saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT ownerHandle,
                 immutilError("saImmOmAdminOwnerRelease FAILED, rc = %d", (int)rc);
         return rc;
 }
+
+SaAisErrorT immutil_saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
+                                                   const SaNameT *objectName,
+                                                   SaImmContinuationIdT continuationId,
+                                                   SaImmAdminOperationIdT operationId,
+                                                   const SaImmAdminOperationParamsT_2 **params,
+                                                   SaAisErrorT *operationReturnValue,
+                                                   SaTimeT timeout,
+                                                   SaImmAdminOperationParamsT_2 ***returnParams)
+{
+        SaAisErrorT rc = saImmOmAdminOperationInvoke_o2(ownerHandle, objectName, continuationId,
+		operationId, params, operationReturnValue, timeout, returnParams);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmAdminOperationInvoke_o2(ownerHandle, objectName, continuationId,
+			operationId, params, operationReturnValue, timeout, returnParams);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmAdminOperationInvoke_o2 FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
 SaAisErrorT immutil_saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
                                                   const SaNameT *objectName,
                                                   SaImmContinuationIdT continuationId,

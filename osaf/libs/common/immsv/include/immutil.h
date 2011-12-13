@@ -533,6 +533,17 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 	extern SaAisErrorT immutil_saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT ownerHandle,
    							    const SaNameT** name,
     							    SaImmScopeT scope);
+/**
+ * Wrapper for saImmOmAdminOperationInvoke_o2
+ */
+	extern SaAisErrorT immutil_saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
+		const SaNameT *objectName,
+		SaImmContinuationIdT continuationId,
+		SaImmAdminOperationIdT operationId,
+		const SaImmAdminOperationParamsT_2 **params,
+		SaAisErrorT *operationReturnValue,
+		SaTimeT timeout,
+		SaImmAdminOperationParamsT_2 ***returnParams);
 
 /**
  * Wrapper for saImmOmAdminOperationInvoke_2
