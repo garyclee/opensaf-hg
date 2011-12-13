@@ -31,6 +31,8 @@
 #include <ctype.h>
 #include <libgen.h>
 #include <assert.h>
+#include <signal.h>
+#include <stdbool.h>
 
 #include <saAis.h>
 #include <saImmOm.h>
@@ -39,6 +41,8 @@
 #include <saf_error.h>
 
 #define PARAMDELIM ":"
+
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
 static SaVersionT immVersion = { 'A', 2, 11 };
 
@@ -54,6 +58,8 @@ static void usage(const char *progname)
 	printf("\t%s is a IMM OM client used to ....\n", progname);
 
 	printf("\nOPTIONS\n");
+	printf("\t--disable-tryagain\n");
+	printf("\t\tdisable try again handling [default=no]\n");
 	printf("\t-h, --help\n");
 	printf("\t\tthis help\n");
 	printf("\t-o, --operation-id <id>\n");
@@ -65,7 +71,7 @@ static void usage(const char *progname)
 	       "\t\tValid types: SA_INT32_T, SA_UINT32_T, SA_INT64_T, SA_UINT64_T\n"
 	       "\t\t\tSA_TIME_T, SA_NAME_T, SA_FLOAT_T, SA_DOUBLE_T, SA_STRING_T\n");
 	printf("\t-t, --timeout <sec>\n");
-	printf("\t\tcommand timeout in seconds (default 60 seconds)\n");
+	printf("\t\tcommand timeout in seconds [default=60]\n");
 
 	printf("\nEXAMPLE\n");
 	printf("\t%s -o 2 safAmfNode=SC-2,safAmfCluster=myAmfCluster\n", progname);
@@ -132,10 +138,17 @@ static int init_param(SaImmAdminOperationParamsT_2 *param, char *arg)
 	return res;
 }
 
+void sigalarmh(int sig)
+{
+	fprintf(stderr, "error - command timed out (alarm)\n");
+	exit(EXIT_FAILURE);
+}
+
 int main(int argc, char *argv[])
 {
 	int c;
 	struct option long_options[] = {
+		{"disable-tryagain", no_argument, 0, 'd'},
 		{"parameter", required_argument, 0, 'p'},
 		{"operation-id", required_argument, 0, 'o'},
 		{"help", no_argument, 0, 'h'},
@@ -154,6 +167,7 @@ int main(int argc, char *argv[])
 	SaImmAdminOperationParamsT_2 **out_params=NULL;
 	SaImmAdminOperationIdT operationId = -1;
         unsigned long timeoutVal = 60;  /* Default timeout value */
+	int disable_tryagain = false;
 
 	int params_len = 0;
 
@@ -161,12 +175,15 @@ int main(int argc, char *argv[])
 	params[0] = NULL;
 
 	while (1) {
-		c = getopt_long(argc, argv, "p:o:t:h", long_options, NULL);
+		c = getopt_long(argc, argv, "dp:o:t:h", long_options, NULL);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
 
 		switch (c) {
+		case 'd':
+			disable_tryagain = true;
+			break;
 		case 'o':
 			operationId = strtoll(optarg, (char **)NULL, 10);
 			if ((operationId == 0) && ((errno == EINVAL) || (errno == ERANGE))) {
@@ -215,13 +232,20 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	error = saImmOmInitialize(&immHandle, NULL, &immVersion);
+	signal(SIGALRM, sigalarmh);
+	(void) alarm(timeoutVal);
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+	immutilWrapperProfile.nTries = disable_tryagain ? 0 : timeoutVal;
+	immutilWrapperProfile.retryInterval = 1000;
+
+	error = immutil_saImmOmInitialize(&immHandle, NULL, &immVersion);
 	if (error != SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmInitialize FAILED: %s\n", saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
-	error = saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, &ownerHandle);
+	error = immutil_saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, &ownerHandle);
 	if (error != SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmAdminOwnerInitialize FAILED: %s\n", saf_error(error));
 		exit(EXIT_FAILURE);
@@ -232,7 +256,7 @@ int main(int argc, char *argv[])
 		strncpy((char *)objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
 		objectName.length = strlen((char *)objectName.value);
 
-		error = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
+		error = immutil_saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
 		if (error != SA_AIS_OK) {
 			if (error == SA_AIS_ERR_NOT_EXIST)
 				fprintf(stderr, "error - saImmOmAdminOwnerSet - object '%s' does not exist\n",
@@ -241,8 +265,8 @@ int main(int argc, char *argv[])
 				fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
 			exit(EXIT_FAILURE);
 		}
-
-		error = saImmOmAdminOperationInvoke_o2(ownerHandle, &objectName, 0, operationId,
+retry:
+		error = immutil_saImmOmAdminOperationInvoke_o2(ownerHandle, &objectName, 0, operationId,
 			params, &operationReturnValue, SA_TIME_ONE_SECOND * timeoutVal, &out_params);
 
 		if (error != SA_AIS_OK) {
@@ -253,9 +277,14 @@ int main(int argc, char *argv[])
 
 		if (operationReturnValue != SA_AIS_OK) {
 			unsigned int ix = 0;
+
+			if ((operationReturnValue == SA_AIS_ERR_TRY_AGAIN) && !disable_tryagain) {
+				sleep(1);
+				goto retry;
+			}
+
 			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 admin-op RETURNED: %s\n",
 				saf_error(operationReturnValue));
-
 			
 			while(out_params && out_params[ix]) {
 				if(strcmp(out_params[ix]->paramName, SA_IMM_PARAM_ADMOP_ERROR) == 0) {
@@ -268,10 +297,13 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 
-		assert(saImmOmAdminOperationMemoryFree(ownerHandle, out_params) == SA_AIS_OK);
+		error = saImmOmAdminOperationMemoryFree(ownerHandle, out_params);
+		if (error != SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmAdminOperationMemoryFree FAILED: %s\n", saf_error(error));
+			exit(EXIT_FAILURE);
+		}
 
-
-		error = saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_ONE);
+		error = immutil_saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_ONE);
 		if (error != SA_AIS_OK) {
 			fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
 			exit(EXIT_FAILURE);
@@ -280,13 +312,13 @@ int main(int argc, char *argv[])
 		optind++;
 	}
 
-	error = saImmOmAdminOwnerFinalize(ownerHandle);
+	error = immutil_saImmOmAdminOwnerFinalize(ownerHandle);
 	if (SA_AIS_OK != error) {
 		fprintf(stderr, "error - saImmOmAdminOwnerFinalize FAILED: %s\n", saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
-	error = saImmOmFinalize(immHandle);
+	error = immutil_saImmOmFinalize(immHandle);
 	if (SA_AIS_OK != error) {
 		fprintf(stderr, "error - saImmOmFinalize FAILED: %s\n", saf_error(error));
 		exit(EXIT_FAILURE);
