@@ -1671,7 +1671,7 @@ static int assign_all_csis_at_rank(struct avnd_su_si_rec *si, uint32_t rank, boo
  * 
  * @return AVND_COMP_CSI_REC*
  */
-static AVND_COMP_CSI_REC *find_csi_at_rank(struct avnd_su_si_rec *si, uint32_t rank)
+static AVND_COMP_CSI_REC *find_unassigned_csi_at_rank(struct avnd_su_si_rec *si, uint32_t rank)
 {
 	AVND_COMP_CSI_REC *csi = NULL;
 
@@ -1679,7 +1679,7 @@ static AVND_COMP_CSI_REC *find_csi_at_rank(struct avnd_su_si_rec *si, uint32_t r
 		  csi != NULL;
 		  csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&csi->si_dll_node)) {
 
-		if (csi->rank == rank)
+		if ((csi->rank == rank) &&  (csi->curr_assign_state == AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED))
 			return csi;
 	}
 
@@ -1768,7 +1768,7 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 			uint32_t rank = (SA_AMF_HA_ACTIVE == csi->si->curr_state) ?
 				csi->rank + 1 : csi->rank - 1 ;
 
-			if (find_csi_at_rank(csi->si, rank) != NULL) {
+			if (find_unassigned_csi_at_rank(csi->si, rank) != NULL) {
 				rc = assign_all_csis_at_rank(csi->si, rank, true);
 			} else {
 				/* all csis belonging to the si are assigned */
@@ -1783,7 +1783,7 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 			uint32_t rank = (SA_AMF_HA_ACTIVE == curr_csi->si->curr_state) ?
 				curr_csi->rank + 1 : curr_csi->rank - 1 ;
 
-			if (find_csi_at_rank(curr_csi->si, rank) != NULL) {
+			if (find_unassigned_csi_at_rank(curr_csi->si, rank) != NULL) {
 				rc = assign_all_csis_at_rank(curr_csi->si, rank, false);
 			} else {
 				/* all csis belonging to the si are assigned */
