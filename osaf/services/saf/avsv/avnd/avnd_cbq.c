@@ -1017,7 +1017,8 @@ void avnd_comp_cbq_csi_rec_del(AVND_CB *cb, AVND_COMP *comp, SaNameT *csi_name)
 	AVND_COMP_CBK *curr = comp->cbk_list, *prv = 0;
 	AVSV_AMF_CBK_INFO *info = 0;
 	bool to_del = false;
-	TRACE_ENTER2("Comp '%s', CSI '%p'", comp->name.value, csi_name);
+
+	TRACE_ENTER2("'%s', '%s'", comp->name.value, csi_name ? csi_name->value : NULL);
 
 	/* scan the entire comp-cbk list & delete the matching records */
 	while (curr) {
@@ -1046,7 +1047,7 @@ void avnd_comp_cbq_csi_rec_del(AVND_CB *cb, AVND_COMP *comp, SaNameT *csi_name)
 		to_del = false;
 	}
 
-	return;
+	TRACE_LEAVE();
 }
 
 /****************************************************************************

@@ -458,8 +458,8 @@ uint32_t avnd_su_si_all_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param
 	}			/* for */
 
 	/* now modify the comp-csi records */
-	rc = avnd_su_si_csi_all_modify(cb, su, ((SA_AMF_HA_QUIESCED == param->ha_state) ||
-						(SA_AMF_HA_QUIESCING == param->ha_state)) ? 0 : param->list);
+	rc = avnd_su_si_csi_all_modify(cb, su, 0);
+
 	TRACE_LEAVE();
 	return rc;
 }

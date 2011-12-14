@@ -1821,7 +1821,7 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("comp:'%s' : csi:'%p'", comp->name.value, csi);
+	TRACE_ENTER2("'%s' '%s'", comp->name.value, csi ? csi->name.value : NULL);
 
 	/* 
 	 * csi-remove indication is only generated for pi su.. 
