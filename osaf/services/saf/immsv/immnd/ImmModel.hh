@@ -207,7 +207,8 @@ public:
                                         ConnVector& connVector,
                                         IdVector& continuations,
                                         SaUint32T* pbeConn,
-                                        unsigned int* pbeNodeId);
+                                        unsigned int* pbeNodeId,
+                                        bool* augDelete);
 
     SaAisErrorT         deleteObject(
                                      ObjectMap::iterator& oi,
@@ -225,7 +226,8 @@ public:
 
     bool                ccbWaitForDeleteImplAck(
                                                 SaUint32T ccbId, 
-                                                SaAisErrorT* err);
+                                                SaAisErrorT* err,
+                                                bool augDelete);
 
     bool                ccbWaitForCompletedAck(
                                                SaUint32T ccbId, 
@@ -237,7 +239,8 @@ public:
     
     void                ccbObjDelContinuation(
                                               immsv_oi_ccb_upcall_rsp* rsp,
-                                              SaUint32T* reqConn);
+                                              SaUint32T* reqConn,
+                                              bool* augDelete);
     
     void                ccbCompletedContinuation(
                                                  immsv_oi_ccb_upcall_rsp* rsp,

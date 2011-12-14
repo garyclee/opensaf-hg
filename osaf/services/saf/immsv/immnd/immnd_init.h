@@ -152,7 +152,7 @@ extern "C" {
 	    immModel_ccbObjectDelete(IMMND_CB *cb,
 		    const struct ImmsvOmCcbObjectDelete *req,
 		    SaUint32T reqConn, SaUint32T *arrSize, SaUint32T **implConnArr, SaUint32T **implIdArr, 
-		    SaStringT **objNameArr, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId);
+		    SaStringT **objNameArr, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, bool* augDelete);
 
 
 	SaAisErrorT
@@ -176,13 +176,14 @@ extern "C" {
 					       struct immsv_oi_ccb_upcall_rsp *rsp, SaUint32T *reqConn);
 
 	void immModel_ccbObjDelContinuation(IMMND_CB *cb,
-					    struct immsv_oi_ccb_upcall_rsp *rsp, SaUint32T *reqConn);
+					    struct immsv_oi_ccb_upcall_rsp *rsp, SaUint32T *reqConn,
+                                            bool* augDelete);
 
 	SaBoolT immModel_ccbWaitForCompletedAck(IMMND_CB *cb, SaUint32T ccbId, SaAisErrorT *err, 
                                             SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, 
                                             SaUint32T *pbeId, SaUint32T *pbeCtn);
 
-	SaBoolT immModel_ccbWaitForDeleteImplAck(IMMND_CB *cb, SaUint32T ccbId, SaAisErrorT *err);
+	SaBoolT immModel_ccbWaitForDeleteImplAck(IMMND_CB *cb, SaUint32T ccbId, SaAisErrorT *err, bool augDelete);
 
 	SaBoolT immModel_ccbCommit(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *arrSize, SaUint32T **implConnArr);
 	SaAisErrorT immModel_ccbFinalize(IMMND_CB *cb, SaUint32T ccbId);
