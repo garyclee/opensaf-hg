@@ -155,4 +155,5 @@ extern uint32_t avd_susi_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
 extern void avd_susi_update_assignment_counters(AVD_SU_SI_REL *susi, AVSV_SUSI_ACT action,
 	SaAmfHAStateT current_ha_state, SaAmfHAStateT new_ha_state);
 extern uint32_t avd_susi_del_send(AVD_SU_SI_REL *susi);
+extern uint32_t avd_susi_role_failover(AVD_SU_SI_REL *sisu, AVD_SU *su);
 #endif
