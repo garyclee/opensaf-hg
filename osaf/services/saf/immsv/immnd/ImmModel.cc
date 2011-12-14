@@ -223,14 +223,20 @@ struct ObjectMutation
     ObjectMutation(ImmMutationType opType) : mOpType(opType), 
                                              //mBeforeImage(NULL),
                                              mAfterImage(NULL), 
+                                             mContinuationId(0),
                                              mWaitForImplAck(false),
-                                             mContinuationId(0) { }
-    ~ObjectMutation() { osafassert(mAfterImage == NULL);}
+                                             mIsAugDelete(false) { }
+    ~ObjectMutation() { osafassert(mAfterImage == NULL);
+                        mContinuationId=0;
+                        mWaitForImplAck=false;
+                        mIsAugDelete=false;
+                      }
     
     ImmMutationType mOpType; 
     ObjectInfo* mAfterImage;
-    bool mWaitForImplAck;  //ack required from implementer for THIS object
     SaUint32T mContinuationId;//used to identify related pending msg replies.
+    bool mWaitForImplAck;  //ack required from implementer for THIS object
+    bool mIsAugDelete;     //The mutation is an augmented delete.
 };
 typedef std::map<std::string, ObjectMutation*> ObjectMutationMap;  
 
@@ -559,7 +565,8 @@ immModel_ccbObjectDelete(IMMND_CB *cb,
     SaUint32T** implIdArr,
     SaStringT** objNameArr,
     SaUint32T* pbeConn,
-    SaClmNodeIdT* pbeNodeId)
+    SaClmNodeIdT* pbeNodeId,
+    bool* augDelete)
     
 {
     ConnVector cv;
@@ -572,7 +579,7 @@ immModel_ccbObjectDelete(IMMND_CB *cb,
     
     SaAisErrorT err = 
         ImmModel::instance(&cb->immModel)->ccbObjectDelete(req,
-            reqConn, ov, cv, iv, pbeConn, pbeNodeId);
+            reqConn, ov, cv, iv, pbeConn, pbeNodeId, augDelete);
     *arrSize = cv.size();
     osafassert(*arrSize == iv.size());
     osafassert(*arrSize == ov.size());
@@ -924,10 +931,11 @@ immModel_ccbWaitForCompletedAck(IMMND_CB *cb,
 SaBoolT
 immModel_ccbWaitForDeleteImplAck(IMMND_CB *cb, 
     SaUint32T ccbId,
-    SaAisErrorT* err)
+    SaAisErrorT* err,
+    bool augDelete)
 {
     return (SaBoolT) ImmModel::instance(&cb->immModel)->
-        ccbWaitForDeleteImplAck(ccbId, err);
+        ccbWaitForDeleteImplAck(ccbId, err, augDelete);
 }
 
 
@@ -1175,9 +1183,9 @@ immModel_ccbCompletedContinuation(IMMND_CB *cb,
 void
 immModel_ccbObjDelContinuation(IMMND_CB *cb, 
     struct immsv_oi_ccb_upcall_rsp* rsp,
-    SaUint32T* reqConn)
+    SaUint32T* reqConn, bool* augDelete)
 {
-    ImmModel::instance(&cb->immModel)->ccbObjDelContinuation(rsp, reqConn);
+    ImmModel::instance(&cb->immModel)->ccbObjDelContinuation(rsp, reqConn, augDelete);
 }
 
 void
@@ -3358,7 +3366,7 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                                                         oldOwner.c_str(), subObjName.c_str());
                                                 } else {
                                                     LOG_IN("ERR_BUSY: ccb id %u active on"
-                                                        "object %s", ccbIdOfObj, 
+                                                        "object %s", ccbIdOfObj,
                                                         subObjName.c_str());
                                                     TRACE_LEAVE();
                                                     return SA_AIS_ERR_BUSY;
@@ -4158,7 +4166,7 @@ ImmModel::ccbAugmentInit(immsv_oi_ccb_upcall_rsp* rsp,
             case IMM_CCB_CRITICAL:
                 LOG_ER("Ccb Augment attempted in wrong CCB state");
                 err = SA_AIS_ERR_BAD_OPERATION;
-                break;
+            goto done;
 
             case IMM_CCB_CREATE_OP:
                 TRACE("Augment CCB in state CREATE_OP");
@@ -5682,7 +5690,8 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     ConnVector& connVector, 
     IdVector& continuations,
     SaUint32T* pbeConnPtr,
-    unsigned int* pbeNodeIdPtr)
+    unsigned int* pbeNodeIdPtr,
+    bool* augDelete)
 {
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
@@ -5717,6 +5726,11 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
         goto ccbObjectDeleteExit;
     }
     ccb = *i1;
+
+    /* If this is a delete inside an augmentation, ensure we wait only
+       for the delete continuations belonging to this augmentation and
+       not on delete continuations belonging to the original CCB. */
+    *augDelete = ccb->mAugCcbParent != NULL;
     
     if(!ccb->isOk()) {
         LOG_NO("ERR_FAILED_OPERATION: ccb %u is in an error state "
@@ -5995,6 +6009,11 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             oMut->mContinuationId = (++sLastContinuationId);
             if(sLastContinuationId >= 0xfffffffe) {sLastContinuationId = 1;}
 
+            if(ccb->mAugCcbParent) {
+                oMut->mIsAugDelete = true;
+                TRACE_5("This delete is a part of a ccb augmentation");
+            }
+
             SaUint32T implConn = oi->second->mImplementer->mConn;
             
             ccb->mWaitStartTime = time(NULL);
@@ -6087,7 +6106,7 @@ ImmModel::hasLocalObjAppliers(const std::string& objectName)
 }
 
 bool 
-ImmModel::ccbWaitForDeleteImplAck(SaUint32T ccbId, SaAisErrorT* err) 
+ImmModel::ccbWaitForDeleteImplAck(SaUint32T ccbId, SaAisErrorT* err, bool augDelete)
 {
     TRACE_ENTER();
     CcbVector::iterator i1;
@@ -6103,21 +6122,30 @@ ImmModel::ccbWaitForDeleteImplAck(SaUint32T ccbId, SaAisErrorT* err)
  
     ObjectMutationMap::iterator i2;
     for(i2=ccb->mMutations.begin(); i2!=ccb->mMutations.end(); ++i2) {
-        if(i2->second->mWaitForImplAck) {
-            if(ccb->mAugCcbParent?
-               (ccb->mAugCcbParent->mState != IMM_CCB_DELETE_OP):
-               (ccb->mState != IMM_CCB_DELETE_OP)) {
-                if(ccb->mVeto == SA_AIS_OK) {
-                    LOG_ER("Unexpected state(%u) for ccb(%u) found in "
-                       "ccbObjectDeleteContinuation ", ccb->mState, ccbId);
-                    abort();
+        if(i2->second->mWaitForImplAck) { /* Either aug or main ccb needs to wait */
+            TRACE("The overall ccb still has un-ack'ed mutations to wait on");
+            if(augDelete) {
+                /* The query is in the context of an augmented delete op */
+                if(i2->second->mIsAugDelete) {
+                    /* Found unresolved mutation for delete augmentation
+                       => the inside aug delete still has to wait */
+                    TRACE("Augmented delete still needs to wait");
+                    TRACE_LEAVE();
+                    return true;
                 } else {
-                    LOG_NO("Ignoring unexpected state(%u) for ccb(%u) found in "
-                        "ccbObjectDeleteContinuation ", ccb->mState, ccbId);
+                    /* Delete augmentation must not wait on delete mutations
+                       from main ccb, ignore this mutation, check the rest. */
+                    continue;
                 }
+            } else {
+                /*The query is in the context of an outside delete, part of
+                  the original om-ccb. Must wait on all delete mutations. 
+                */
+                osafassert(ccb->mState == IMM_CCB_DELETE_OP ||
+                    (ccb->mAugCcbParent && ccb->mAugCcbParent->mState == IMM_CCB_DELETE_OP));
+                TRACE_LEAVE();
+                return true;
             }
-            TRACE_LEAVE();
-            return true;
         }
     }
     
@@ -6236,7 +6264,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
 
 void
 ImmModel::ccbObjDelContinuation(immsv_oi_ccb_upcall_rsp* rsp,
-    SaUint32T* reqConn)
+    SaUint32T* reqConn, bool* augDelete)
 {
     TRACE_ENTER();
     size_t sz = strnlen((char *) rsp->name.value, 
@@ -6301,6 +6329,8 @@ ImmModel::ccbObjDelContinuation(immsv_oi_ccb_upcall_rsp* rsp,
                (omuti->second->mContinuationId == (SaUint32T) rsp->inv));
 
         *reqConn = ccb->mOriginatingConn;
+
+        *augDelete = omuti->second->mIsAugDelete;
 
         if(rsp->result != SA_AIS_OK) {
             if(ccb->mVeto == SA_AIS_OK) {

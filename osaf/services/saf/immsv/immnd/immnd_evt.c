@@ -2665,13 +2665,14 @@ static void immnd_evt_proc_ccb_obj_delete_rsp(IMMND_CB *cb,
 	IMMSV_EVT send_evt;
 	SaUint32T reqConn = 0;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	bool augDelete=false;
 	TRACE_ENTER();
 
-	immModel_ccbObjDelContinuation(cb, &(evt->info.ccbUpcallRsp), &reqConn);
+	immModel_ccbObjDelContinuation(cb, &(evt->info.ccbUpcallRsp), &reqConn, &augDelete);
 
 	SaAisErrorT err;
 
-	if (!immModel_ccbWaitForDeleteImplAck(cb, evt->info.ccbUpcallRsp.ccbId, &err)
+	if (!immModel_ccbWaitForDeleteImplAck(cb, evt->info.ccbUpcallRsp.ccbId, &err, augDelete)
 	    && reqConn) {
 		SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 		
@@ -5119,6 +5120,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 	SaUint32T pbeConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
+	bool augDelete=false;
 	TRACE_ENTER();
 
 #if 0				/*ABT DEBUG PRINTOUTS START */
@@ -5135,7 +5137,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 
 	err = immModel_ccbObjectDelete(cb, &(evt->info.objDelete),
 		originatedAtThisNd ? conn : 0, &arrSize, &implConnArr, &invocArr, &objNameArr,
-		&pbeConn, pbeNodeIdPtr);
+		&pbeConn, pbeNodeIdPtr, &augDelete);
 
 
 	/* Before generating implementer upcalls for any local implementers,
@@ -5243,7 +5245,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 					   structure as the request message, except the semantics of one 
 					   integer member differs.
 					 */
-					TRACE_2("MAKING OI-IMPLEMENTER OBJ DELETE upcall ");
+					TRACE_2("MAKING OI-IMPLEMENTER OBJ DELETE upcall invoc:%u", invocArr[ix]);
 					if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 							       oi_cl_node->agent_mds_dest,
 							       &send_evt) != NCSCC_RC_SUCCESS) {
@@ -5256,7 +5258,8 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 			}	/*for */
 		}
 
-		if (!delayedReply && (err == SA_AIS_OK) && immModel_ccbWaitForDeleteImplAck(cb, evt->info.ccbId, &err)) {
+		if (!delayedReply && (err == SA_AIS_OK) &&
+                        immModel_ccbWaitForDeleteImplAck(cb, evt->info.ccbId, &err, augDelete)) {
 			TRACE_2("No local implementers but wait for remote ones. ccb: %u", evt->info.ccbId);
 			delayedReply = (err==SA_AIS_OK);
 		}
