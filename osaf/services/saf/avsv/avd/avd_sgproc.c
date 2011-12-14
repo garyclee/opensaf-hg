@@ -2439,6 +2439,86 @@ done:
 	TRACE_LEAVE();
 	return rc;
 }
+/**
+ * @brief	Checks whether quiesced role can be given to susi or not 
+ *
+ * @param[in]   susi
+ *
+ * @return	true/false 
+ **/
+bool  quiesc_role_canbe_given_to_susi(const AVD_SU_SI_REL *susi)
+{
+	AVD_SI_SI_DEP *si_dep_rec;
+	AVD_SI *dep_si;
+	AVD_SI_SI_DEP_INDX si_indx;
+	AVD_SU_SI_REL *sisu;
+	bool quiesc_role = true;
+
+	TRACE_ENTER2("%s %s", susi->su->name.value, susi->si->name.value);
+
+	if (!susi->si->num_dependents) {
+		/* This SI doesnot have any dependents on it, so quiesced role can be given */
+		return quiesc_role;
+	} else {
+		/* Check if any of its dependents assigned to same SU for which quiesced role is not yet given */
+		memset(&si_indx, '\0', sizeof(si_indx));
+		si_indx.si_name_prim.length = susi->si->name.length;
+		memcpy(si_indx.si_name_prim.value, susi->si->name.value, si_indx.si_name_prim.length);
+		si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_indx, true);
+
+		while (si_dep_rec != NULL) {
+			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
+				/* Seems no more node exists in spons_anchor tree with
+				 * "si_indx.si_name_prim" as primary key
+				 */
+				break;
+			}
+			dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
+			if (dep_si == NULL) {
+				/* No corresponding SI node?? some thing wrong */
+				si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+				continue;
+			}
+			for (sisu = dep_si->list_of_sisu; sisu ; sisu = sisu->si_next) {
+				if ((sisu->su == susi->su) && (sisu->state == SA_AMF_HA_ACTIVE)) {
+					quiesc_role = false;
+					goto done;
+				}
+			}
+			si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+		}
+	}
+done:
+	TRACE_LEAVE2(" :%u",quiesc_role);
+	return quiesc_role;
+}
+/**
+ * @brief	Does role modification to assignments in the SU based on dependency
+ *
+ * @param[in]   su
+ *		ha_state
+ *
+ * @return	NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS 
+ **/
+uint32_t avd_sg_susi_mod_snd_honouring_si_dependency(AVD_SU *su, SaAmfHAStateT state)
+{
+	AVD_SU_SI_REL *susi;
+	uint32_t rc = NCSCC_RC_FAILURE;
+
+	TRACE_ENTER2("'%s', state %u", su->name.value, state);
+
+	for (susi = su->list_of_susi; susi; susi = susi->su_next) {
+		if (quiesc_role_canbe_given_to_susi(susi)) {
+			rc = avd_susi_mod_send(susi, state);
+			if (rc == NCSCC_RC_FAILURE) {
+				LOG_ER("%s:%u: %s", __FILE__, __LINE__, susi->su->name.value);
+				break;
+			}
+		}
+	}
+	TRACE_LEAVE2(":%d",rc);
+	return rc;
+}
 
 /*****************************************************************************
  * Function: avd_sg_su_si_del_snd

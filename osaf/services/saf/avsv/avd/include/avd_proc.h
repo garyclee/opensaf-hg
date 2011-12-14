@@ -52,6 +52,7 @@ uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt);
 uint32_t avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, bool del_flag, bool q_flag);
 uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg);
 uint32_t avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state);
+uint32_t avd_sg_susi_mod_snd_honouring_si_dependency(AVD_SU *su, SaAmfHAStateT state);
 uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su);
 void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO *assign);
 

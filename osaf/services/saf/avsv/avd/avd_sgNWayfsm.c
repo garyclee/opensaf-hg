@@ -101,44 +101,6 @@ static AVD_SU_SI_REL * find_pref_standby_susi(AVD_SU_SI_REL *sisu);
    } \
 };
 
-/**
- * @brief       This routine does the following functionality
- *              b. Checks the dependencies of the SI's to see whether
- *                 role failover can be performed or not
- *              c. If so sends D2N-INFO_SU_SI_ASSIGN modify active to  the Stdby SU
- *
- * @param[in]  	pref_sisu 
- *              stdby_su
- *
- * @return
- **/
-uint32_t avd_sg_nway_si_role_failover(AVD_SU_SI_REL *pref_sisu, AVD_SU *su)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	bool flag;
-
-	TRACE_ENTER2("SI '%s' SU '%s'",pref_sisu->si->name.value, pref_sisu->su->name.value);
-
-	if (pref_sisu->si->spons_si_list) {
-		/* Check if the pref_sisu->si has dependency on any other Sponsor SI */
-		flag = avd_sidep_is_si_failover_possible(pref_sisu->si, su->su_on_node);
-		if (flag == false) {
-			TRACE("Role failover is deferred as sponsors role failover is under going");
-			si_dep_state_set(pref_sisu->si, AVD_SI_FAILOVER_UNDER_PROGRESS);
-			goto done;
-		}
-	}
-	rc = avd_susi_mod_send(pref_sisu, SA_AMF_HA_ACTIVE);
-	if (rc == NCSCC_RC_SUCCESS) {
-		if (pref_sisu->si->num_dependents > 0) {
-			/* This is a Sponsor SI update its dependent states */
-			avd_update_depstate_si_failover(pref_sisu->si, su);
-		}
-	}
-done:
-        TRACE_LEAVE2("return value :%d", rc);
-        return rc;
-}
 /*****************************************************************************
  * Function: avd_sg_nway_si_func
  *
@@ -2790,7 +2752,7 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 		if (curr_sisu) {
 			if ((su->su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED)
 				|| (su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)) {
-				rc = avd_sg_nway_si_role_failover(curr_sisu,susi->su);
+				rc = avd_susi_role_failover(curr_sisu, susi->su);
 				if (rc == NCSCC_RC_FAILURE) {
 					TRACE("Active role modification failed");
 					goto done;
@@ -3221,7 +3183,7 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 			/* identify the most preferred standby su for this si */
 			curr_sisu = find_pref_standby_susi(curr_susi);
 			if (curr_sisu) {
-				rc = avd_sg_nway_si_role_failover(curr_sisu,curr_susi->su);
+				rc = avd_susi_role_failover(curr_sisu, curr_susi->su);
 				if (rc == NCSCC_RC_FAILURE) {
 					TRACE("Active role modification failed");
 					goto done;
@@ -3306,7 +3268,7 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				curr_sisu = find_pref_standby_susi(curr_susi);
 				/* send active assignment */
 				if (curr_sisu) {
-					rc = avd_sg_nway_si_role_failover(curr_sisu,curr_susi->su);
+					rc = avd_susi_role_failover(curr_sisu, curr_susi->su);
 					if (rc == NCSCC_RC_FAILURE) {
 						TRACE("Active role modification failed");
 						goto done;
@@ -3351,7 +3313,7 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				curr_sisu = find_pref_standby_susi(curr_susi);
 				/* send active assignment */
 				if (curr_sisu) {
-					rc = avd_sg_nway_si_role_failover(curr_sisu,curr_susi->su);
+					rc = avd_susi_role_failover(curr_sisu, curr_susi->su);
 					if (rc == NCSCC_RC_FAILURE) {
 						TRACE("Active role modification failed");
 						goto done;
@@ -3495,7 +3457,7 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 				/* send active assignment */
 				if (curr_sisu) {
-					rc = avd_sg_nway_si_role_failover(curr_sisu,susi->su);
+					rc = avd_susi_role_failover(curr_sisu, susi->su);
 					if (rc == NCSCC_RC_FAILURE) {
 						TRACE("Active role modification failed");
 						goto done;

@@ -37,6 +37,7 @@
 #include <avd_imm.h>
 #include <avd_csi.h>
 #include <avd_proc.h>
+#include <avd_si_dep.h>
 
 /**
  * Create an SaAmfSIAssignment runtime object in IMM.
@@ -740,3 +741,40 @@ void avd_susi_update_assignment_counters(AVD_SU_SI_REL *susi, AVSV_SUSI_ACT acti
 
         TRACE_LEAVE();
 }
+/**
+ * @brief       This routine does the following functionality
+ *              b. Checks the dependencies of the SI's to see whether
+ *                 role failover can be performed or not
+ *              c. If so sends D2N-INFO_SU_SI_ASSIGN modify active to  the Stdby SU
+ *
+ * @param[in]   sisu 
+ *              stdby_su
+ *
+ * @return
+ **/
+uint32_t avd_susi_role_failover(AVD_SU_SI_REL *sisu, AVD_SU *su)
+{
+        uint32_t rc = NCSCC_RC_SUCCESS;
+
+        TRACE_ENTER2(" '%s' '%s'",sisu->si->name.value, sisu->su->name.value);
+
+        if (sisu->si->spons_si_list) {
+                /* Check if the sisu->si has dependency on any other Sponsor SI */
+                if(!avd_sidep_is_si_failover_possible(sisu->si, su->su_on_node)) {
+                        TRACE("Role failover is deferred as sponsors role failover is under going");
+                        si_dep_state_set(sisu->si, AVD_SI_FAILOVER_UNDER_PROGRESS);
+                        goto done;
+                }
+        }
+        rc = avd_susi_mod_send(sisu, SA_AMF_HA_ACTIVE);
+        if (rc == NCSCC_RC_SUCCESS) {
+                if (sisu->si->num_dependents > 0) {
+                        /* This is a Sponsor SI update its dependent states */
+                        avd_update_depstate_si_failover(sisu->si, su);
+                }
+        }
+done:
+        TRACE_LEAVE2(":%d", rc);
+        return rc;
+}
+

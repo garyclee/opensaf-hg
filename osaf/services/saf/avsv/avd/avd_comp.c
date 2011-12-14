@@ -462,13 +462,21 @@ static void comp_add_to_model(AVD_COMP *comp)
 		comp->max_num_csi_actv = 1;
 		comp->max_num_csi_stdby = 1;
 	}
-
-	if ((comp->max_num_csi_actv < comp->su->si_max_active) || (comp->su->si_max_active == 0)) {
-		comp->su->si_max_active = comp->max_num_csi_actv;
-	}
-
-	if ((comp->max_num_csi_stdby < comp->su->si_max_standby) || (comp->su->si_max_standby == 0)) {
-		comp->su->si_max_standby = comp->max_num_csi_stdby;
+	if (!comp->su->saAmfSUPreInstantiable) {
+                comp->su->si_max_active = 1;
+                comp->su->si_max_standby = 1;
+	} else {
+		/* If SU is PreInstantiable and the comp category is npi dont modify su->si_max_active */ 
+		if (comp->max_num_csi_actv != 1) {
+			if ((comp->max_num_csi_actv < comp->su->si_max_active) ||
+				(comp->su->si_max_active == 0)) {
+				comp->su->si_max_active = comp->max_num_csi_actv;
+			}
+			if ((comp->max_num_csi_stdby < comp->su->si_max_standby) ||
+				(comp->su->si_max_standby == 0)) {
+				comp->su->si_max_standby = comp->max_num_csi_stdby;
+			}
+		}
 	}
 
 	/* Set runtime cached attributes. */
