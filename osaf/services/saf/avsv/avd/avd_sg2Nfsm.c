@@ -487,7 +487,7 @@ SaAisErrorT avd_sg_2n_siswap_func(AVD_SI *si, SaInvocationT invocation)
 		goto done;
 	}
 	/* Check if there is dependency between SI's within SU */
-	if (si_dependency_within_su(susi->su)) {
+	if (avd_su_level_failover_possible(susi->su)) {
 		if (avd_sg_susi_mod_snd_honouring_si_dependency(susi->su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
 			LOG_NO("%s:%u: %s ", __FILE__, __LINE__, susi->su->name.value);
 			goto done;
@@ -928,7 +928,7 @@ uint32_t avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 	case AVD_SG_FSM_STABLE:
 		if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
 			/* this is a active SU. */
-			if (si_dependency_within_su(su)) {
+			if (avd_su_level_failover_possible(su)) {
 				if (avd_sg_susi_mod_snd_honouring_si_dependency(su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
 					LOG_NO("%s:%u: %s ", __FILE__, __LINE__, su->name.value);
 					goto done;
@@ -3116,7 +3116,7 @@ void avd_sg_2n_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 				if ((s_susi->fsm != AVD_SU_SI_STATE_UNASGN) &&
 					(s_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE)) {
 					/* Check if there is dependency between SI's within SU */
-					if (si_dependency_within_su(su)) {
+					if (avd_su_level_failover_possible(su)) {
 						AVD_SU_SI_REL *susi;
 
 						for (susi = s_susi->su->list_of_susi; susi; susi = susi->su_next) {
@@ -3360,7 +3360,7 @@ uint32_t avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 		    ((avnd != NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED))) {
 			if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
 				/* Check if there is dependency between SI's within SU */
-				if (!si_dependency_within_su(su)) {
+				if (!avd_su_level_failover_possible(su)) {
 					/* this is a active SU. */
 					/* change the state for all assignments to quiesced. */
 					if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
@@ -3398,7 +3398,7 @@ uint32_t avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 			if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
 				/* this is a active SU. */
 				/* Check if there is dependency between SI's within SU */
-				if (!si_dependency_within_su(su)) {
+				if (!avd_su_level_failover_possible(su)) {
 					/* change the state for all assignments to quiesceing. */
 					if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCING) == NCSCC_RC_FAILURE) {
 						LOG_NO("%s:%u: %s ", __FILE__, __LINE__, su->name.value);

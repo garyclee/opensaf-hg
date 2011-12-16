@@ -1953,56 +1953,34 @@ void avd_sidep_reset_dependents_depstate_in_sufault(AVD_SI *si)
 }
 
 /**
- * @brief	Checks if si-si dependency exists among the SI's assigned to the same SU.
+ * @brief	Checks whether failover can be done at SU level or SI level
+ *		Per SU level failover cannot be done in the following two cases
+ *		1)SI-SI dependency exists across the SI's within SU
+ *		2)One of the SI's of SG_1 depends on SI of SG_2 and viceversa 
  *			
  * @param[in]   su 
  *
  * @return	true/false 
  **/
-bool si_dependency_within_su(const AVD_SU *su)
+bool avd_su_level_failover_possible(const AVD_SU *su)
 {
-	AVD_SI_SI_DEP_INDX si_indx;
-	AVD_SI_SI_DEP *si_dep_rec;
-	AVD_SI *dep_si;
 	AVD_SU_SI_REL *susi;
-	bool dependency_within_su = false;
-
-	TRACE_ENTER2(":'%s'",su->name.value);
+	bool spons_exist = false;
+	bool dep_exist = false;
 
 	for (susi = su->list_of_susi; susi != NULL; susi = susi->su_next) {
-		/* Check if the si is sponsor for any dependents */
-		if (!susi->si->num_dependents)
-			continue;
-
-		memset(&si_indx, '\0', sizeof(si_indx));
-		si_indx.si_name_prim.length = susi->si->name.length;
-		memcpy(si_indx.si_name_prim.value, susi->si->name.value, si_indx.si_name_prim.length);
-		si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_indx, true);
-
-		while (si_dep_rec != NULL) {
-			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
-				/* Seems no more node exists in spons_anchor tree with
-				 * "si_indx.si_name_prim" as primary key
-				 */
-				break;
-			}
-			dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
-			if (dep_si == NULL) {
-				/* No corresponding SI node?? some thing wrong */
-				si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
-				continue;
-			}
-			if((dep_si->sg_of_si == su->sg_of_su) && (dep_si->list_of_sisu != NULL)) {
-				dependency_within_su = true;
-				goto done;
-			}
-			si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+		if (!susi->si->num_dependents) {
+			spons_exist = true;
 		}
+		if (susi->si->spons_si_list) {
+			dep_exist = true;
+		}
+
+		if (spons_exist && dep_exist)
+			return true;
 	}
-	
-done:
-	TRACE_LEAVE2(" :%u",dependency_within_su);
-	return dependency_within_su;
+
+	return false;
 }
 /**
  * @brief	Iterates through all the dependants and for each one if all of its
