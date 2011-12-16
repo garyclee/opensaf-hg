@@ -30,9 +30,9 @@
 #ifndef AVA_H
 #define AVA_H
 #include <ncs_main_papi.h>
+#include <ncsencdec_pub.h>
 #include "avsv.h"
 #include "ava_dl_api.h"
-
 /* Porting Include Files */
 #include "ava_def.h"
 

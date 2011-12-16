@@ -35,9 +35,10 @@
 #include "avnd.h"
 #include "avsv_d2nedu.h"
 #include "avsv_n2avaedu.h"
+#include "ncsencdec_pub.h"
 
 const MDS_CLIENT_MSG_FORMAT_VER avnd_avd_msg_fmt_map_table[AVND_AVD_SUBPART_VER_MAX] =
-    { AVSV_AVD_AVND_MSG_FMT_VER_1, AVSV_AVD_AVND_MSG_FMT_VER_2, AVSV_AVD_AVND_MSG_FMT_VER_3};
+    { AVSV_AVD_AVND_MSG_FMT_VER_1, AVSV_AVD_AVND_MSG_FMT_VER_2, AVSV_AVD_AVND_MSG_FMT_VER_3, AVSV_AVD_AVND_MSG_FMT_VER_4};
 const MDS_CLIENT_MSG_FORMAT_VER avnd_avnd_msg_fmt_map_table[AVND_AVND_SUBPART_VER_MAX] =
     { AVSV_AVND_AVND_MSG_FMT_VER_1 };
 const MDS_CLIENT_MSG_FORMAT_VER avnd_ava_msg_fmt_map_table[AVND_AVA_SUBPART_VER_MAX] = { AVSV_AVND_AVA_MSG_FMT_VER_1 };
@@ -852,7 +853,8 @@ uint32_t avnd_mds_flat_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	AVSV_NDA_AVA_MSG *ava;
-	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS, i;
+	SaStringT value = NULL;
 
 	ava = ((AVND_MSG *)enc_info->i_msg)->info.ava;
 	osafassert(ava);
@@ -867,6 +869,8 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 	case AVSV_AVND_AMF_CBK_MSG:
 		{
 			AVSV_AMF_CBK_INFO *cbk_info = ava->info.cbk_info;
+			uint8_t *p8;
+			uint16_t len;
 
 			/* encode cbk-info */
 			rc = ncs_encode_n_octets_in_uba(enc_info->io_uba, (uint8_t *)cbk_info, sizeof(AVSV_AMF_CBK_INFO));
@@ -876,12 +880,29 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 			switch (cbk_info->type) {
 			case AVSV_AMF_CSI_SET:
 				if (cbk_info->param.csi_set.attrs.number) {
-					rc = ncs_encode_n_octets_in_uba(enc_info->io_uba,
-									(uint8_t *)cbk_info->param.csi_set.attrs.list,
-									sizeof(AVSV_ATTR_NAME_VAL) *
-									cbk_info->param.csi_set.attrs.number);
-					if (NCSCC_RC_SUCCESS != rc)
-						goto done;
+					for(i=0; i<cbk_info->param.csi_set.attrs.number; i++) {
+						rc = ncs_encode_n_octets_in_uba(enc_info->io_uba,
+							(uint8_t *)&cbk_info->param.csi_set.attrs.list[i].name,
+							sizeof(SaNameT));
+						if (NCSCC_RC_SUCCESS != rc)
+							goto done;
+						if(!cbk_info->param.csi_set.attrs.list[i].string_ptr) {
+							value =	calloc(1, cbk_info->param.csi_set.attrs.list[i].value.length+1);
+							osafassert(value);
+							strcpy(value, (char *)cbk_info->param.csi_set.attrs.list[i].value.value);
+						}
+						else {
+							value = cbk_info->param.csi_set.attrs.list[i].string_ptr;
+						}	
+						len = strlen(value);
+						p8 = ncs_enc_reserve_space(enc_info->io_uba, 2);
+						ncs_encode_16bit(&p8, len);
+						ncs_enc_claim_space(enc_info->io_uba, 2);
+						rc = ncs_encode_n_octets_in_uba(enc_info->io_uba,
+							(uint8_t *)value, (len + 1));
+						if (NCSCC_RC_SUCCESS != rc)
+							goto done;
+					}
 				}
 				break;
 

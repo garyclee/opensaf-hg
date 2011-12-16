@@ -89,6 +89,7 @@ typedef enum avsv_err_rcvr {
 typedef struct {
 	SaNameT name;
 	SaNameT value;
+	SaStringT string_ptr;
 } AVSV_ATTR_NAME_VAL;
 
 /* This structure is the list of CSI
