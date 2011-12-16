@@ -473,7 +473,7 @@ uint32_t avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *cbk_info)
 			goto done;
 		}
 
-		amf_attrs->attr[cnt].attrValue = malloc(avsv_attrs->list[cnt].value.length + 1);
+		amf_attrs->attr[cnt].attrValue = malloc(strlen(avsv_attrs->list[cnt].string_ptr)+ 1);
 		if (!amf_attrs->attr[cnt].attrValue) {
 			free(amf_attrs->attr[cnt].attrName);
 			free(amf_attrs->attr[cnt].attrValue);
@@ -483,10 +483,10 @@ uint32_t avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *cbk_info)
 		/* copy the attr name & value */
 		memcpy(amf_attrs->attr[cnt].attrName, avsv_attrs->list[cnt].name.value,
 		       avsv_attrs->list[cnt].name.length);
-		memcpy(amf_attrs->attr[cnt].attrValue, avsv_attrs->list[cnt].value.value,
-		       avsv_attrs->list[cnt].value.length);
+		memcpy(amf_attrs->attr[cnt].attrValue, avsv_attrs->list[cnt].string_ptr,
+			strlen(avsv_attrs->list[cnt].string_ptr));
 		*(amf_attrs->attr[cnt].attrName + avsv_attrs->list[cnt].name.length) = '\0';
-		*(amf_attrs->attr[cnt].attrValue + avsv_attrs->list[cnt].value.length) = '\0';
+		*(amf_attrs->attr[cnt].attrValue + strlen(avsv_attrs->list[cnt].string_ptr)) = '\0';
 
 		/* increment the attr name-val pair cnt that is copied */
 		amf_attrs->number++;

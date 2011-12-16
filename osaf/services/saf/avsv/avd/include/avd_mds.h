@@ -32,10 +32,10 @@
 #define AVD_MDS_H
 
 /* In Service upgrade support */
-#define AVD_MDS_SUB_PART_VERSION   3
+#define AVD_MDS_SUB_PART_VERSION   4
 
 #define AVD_AVND_SUBPART_VER_MIN   1
-#define AVD_AVND_SUBPART_VER_MAX   3
+#define AVD_AVND_SUBPART_VER_MAX   4
 
 #define AVD_AVD_SUBPART_VER_MIN    1
 #define AVD_AVD_SUBPART_VER_MAX    3

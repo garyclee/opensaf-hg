@@ -568,7 +568,8 @@ uint32_t ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 			case AVSV_AMF_CSI_SET:
 				{
 					AVSV_AMF_CSI_SET_PARAM *csi_set = &msg->info.cbk_info->param.csi_set;
-
+					uint16_t len, i;
+					uint8_t *p8;
 					if (csi_set->attrs.number) {
 						csi_set->attrs.list = 0;
 						csi_set->attrs.list =
@@ -578,14 +579,26 @@ uint32_t ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 							LOG_CR("Calloc failed");
 							goto err;
 						}
-
-						rc = ncs_decode_n_octets_from_uba(dec_info->io_uba,
-										  (uint8_t *)csi_set->attrs.list,
-										  csi_set->attrs.number *
-										  sizeof(AVSV_ATTR_NAME_VAL));
-						if (NCSCC_RC_SUCCESS != rc) {
-							TRACE_2("ncs_decode_n_octets_from_uba failed with rc = %d", rc);
-							goto err;
+						for(i=0; i<csi_set->attrs.number; i++) {
+							rc = ncs_decode_n_octets_from_uba(dec_info->io_uba,
+								(uint8_t *)&csi_set->attrs.list[i].name,
+								sizeof(SaNameT));
+							if (NCSCC_RC_SUCCESS != rc) {
+								LOG_CR("ncs_decode_n_octets_from_uba failed with rc= %d", rc);
+								goto err;
+							}
+							p8 = ncs_dec_flatten_space(dec_info->io_uba, (uint8_t *)&len, 2);
+							len = ncs_decode_16bit(&p8);
+							ncs_dec_skip_space(dec_info->io_uba, 2);
+							csi_set->attrs.list[i].string_ptr = calloc(1, len);
+							osafassert(csi_set->attrs.list[i].string_ptr);
+							rc = ncs_decode_n_octets_from_uba(dec_info->io_uba,
+								(uint8_t *)csi_set->attrs.list[i].string_ptr,
+								(len+1));
+							if (NCSCC_RC_SUCCESS != rc) {
+								LOG_CR("ncs_decode_n_octets_from_uba failed with rc = %d",                                                                             rc);
+								goto err;
+							}
 						}
 					}
 				}

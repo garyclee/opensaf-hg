@@ -40,12 +40,13 @@
 #include <stdbool.h>
 
 /* In Service upgrade support */
-#define AVND_MDS_SUB_PART_VERSION   3
+#define AVND_MDS_SUB_PART_VERSION   4
 
 /* Message format versions */
 #define AVSV_AVD_AVND_MSG_FMT_VER_1    1
 #define AVSV_AVD_AVND_MSG_FMT_VER_2    2
 #define AVSV_AVD_AVND_MSG_FMT_VER_3    3
+#define AVSV_AVD_AVND_MSG_FMT_VER_4    4
 
 /* Internode/External Components Validation result */
 typedef enum {

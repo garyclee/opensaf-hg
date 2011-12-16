@@ -37,6 +37,7 @@
 #include "avsv.h"
 #include "ncs_saf_edu.h"
 #include "avsv_eduutil.h"
+#include "avsv_d2nmsg.h"
 
 /*****************************************************************************
 
@@ -54,6 +55,7 @@ uint32_t avsv_edp_attr_val(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_ATTR_NAME_VAL *struct_ptr = NULL, **d_ptr = NULL;
+	uint16_t base_ver = AVSV_AVD_AVND_MSG_FMT_VER_4;
 
 	EDU_INST_SET avsv_attr_val_rules[] = {
 		{EDU_START, avsv_edp_attr_val, 0, 0, 0,
@@ -61,6 +63,9 @@ uint32_t avsv_edp_attr_val(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
 		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
 		 (long)&((AVSV_ATTR_NAME_VAL *)0)->name, 0, NULL},
+		{EDU_VER_GE, NULL,   0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(base_ver)))},
+		{EDU_EXEC, ncs_edp_string, 0, 0, 0,
+		(long)&((AVSV_ATTR_NAME_VAL *)0)->string_ptr, 0, NULL},
 		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
 		 (long)&((AVSV_ATTR_NAME_VAL *)0)->value, 0, NULL},
 

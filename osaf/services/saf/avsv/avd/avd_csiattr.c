@@ -82,12 +82,8 @@ static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_obj_name, const SaImm
 		&values_number) == SA_AIS_OK) && (values_number > 0)) {
 		
 		for (i = 0; i < values_number; i++) {
-			if ((tmp = calloc(1, sizeof(AVD_CSI_ATTR))) == NULL) {
-				rc = -1;
-				LOG_ER("calloc FAILED");
-				goto done;
-			}
-
+			tmp = calloc(1, sizeof(AVD_CSI_ATTR));
+			osafassert(tmp);
 			tmp->attr_next = csiattr;
 			csiattr = tmp;
 
@@ -95,37 +91,26 @@ static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_obj_name, const SaImm
 			memcpy(csiattr->name_value.name.value, dn.value, csiattr->name_value.name.length);
 
 			if ((value = immutil_getStringAttr(attributes, "saAmfCSIAttriValue", i)) != NULL) {
-				if (strlen(value) > SA_MAX_NAME_LENGTH) {
-					rc = -1;
-					LOG_ER("CSI attr value too long (impl limit)");
-					goto done;
-				}
-
-				csiattr->name_value.value.length =
-				    snprintf((char *)csiattr->name_value.value.value, SA_MAX_NAME_LENGTH, "%s", value);
-			} else {
-				/* Param exist but has no value */
-				csiattr->name_value.value.length = 0;
+				csiattr->name_value.string_ptr = calloc(1,strlen(value)+1);
+				osafassert(csiattr->name_value.string_ptr);
+				memcpy(csiattr->name_value.string_ptr, value, strlen(value)+1);
 			}
+			tmp = NULL; 
 		}
 	} else {
 		/* No values found, create value empty attribute */
-		if ((csiattr = calloc(1, sizeof(AVD_CSI_ATTR))) == NULL) {
-			rc = -1;
-			LOG_ER("calloc FAILED");
-			goto done;
-		}
-
+		csiattr = calloc(1, sizeof(AVD_CSI_ATTR));
+		osafassert(csiattr);
 		csiattr->name_value.name.length = dn.length;
 		memcpy(csiattr->name_value.name.value, dn.value, csiattr->name_value.name.length);
 	}
 
 done:
 	if (rc != 0) {
-		tmp = csiattr;
-		while (tmp != NULL) {
+		while (csiattr != NULL) {
+			tmp = csiattr;
+			csiattr = csiattr->attr_next;
 			free(tmp);
-			tmp = tmp->attr_next;
 		}
 		csiattr = NULL;
 	}
@@ -184,7 +169,7 @@ static AVD_CSI_ATTR * csi_name_value_pair_find(AVD_CSI *csi, SaNameT *csiattr_na
         while (i_attr != NULL) {
 		if ((strncmp((char *)&i_attr->name_value.name.value, (char *)&csiattr_name->value, 
 						csiattr_name->length) == 0) &&
-				(strncmp((char *)&i_attr->name_value.value.value, value, strlen(value)) == 0)) {
+				(strncmp((char *)&i_attr->name_value.string_ptr, value, strlen(value)) == 0)) {
 			return i_attr;
 		}
                 i_attr = i_attr->attr_next;
@@ -561,9 +546,9 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 				* use this node for adding the first value
 				*/
 				char *value = *(char **)attribute->attrValues[0];
-				tmp_csi_attr->name_value.value.length = strlen(value);
-				memcpy(tmp_csi_attr->name_value.value.value, value,
-				tmp_csi_attr->name_value.value.length );
+				tmp_csi_attr->name_value.string_ptr = calloc(1,strlen(value)+1);
+				osafassert(tmp_csi_attr->name_value.string_ptr);
+				memcpy(tmp_csi_attr->name_value.string_ptr, value, strlen(value)+1);
 				i = 1;
 			}
 			for (i = 0; i < attribute->attrValuesNumber; i++) {
@@ -578,8 +563,9 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 
 				csiattr->name_value.name.length = csi_attr_name.length;
 				memcpy(csiattr->name_value.name.value, csi_attr_name.value, csiattr->name_value.name.length);
-				csiattr->name_value.value.length = strlen (value);
-				memcpy(csiattr->name_value.value.value, value, csiattr->name_value.value.length );
+				csiattr->name_value.string_ptr = calloc(1,strlen(value)+1);
+				osafassert(csiattr->name_value.string_ptr);
+				memcpy(csiattr->name_value.string_ptr, value, strlen(value)+1 );
 			} /* for  */
 			/* add the modified csiattr values to parent csi */
 			if(csiattr) {
@@ -597,8 +583,8 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 						 * This is to make  sure that csi_attr node in the csi->list_attributes
 						 * wont be deleted when there is only  one name+value pair is found
 						 */
-						memset(&tmp_csi_attr->name_value.value,0,
-						sizeof(tmp_csi_attr->name_value.value));
+						memset(&tmp_csi_attr->name_value.string_ptr, 0, 
+							strlen(tmp_csi_attr->name_value.string_ptr));
 					} else {
 							avd_csi_remove_csiattr(csi, csiattr);
 					}
@@ -614,18 +600,16 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 			/* Add New CSI attr. */
 			for (i = 0; i < attribute->attrValuesNumber; i++) {
 				char *value = *(char **)attribute->attrValues[i++];
-				if ((i_attr = calloc(1, sizeof(AVD_CSI_ATTR))) == NULL) {
-					LOG_ER("%s:calloc FAILED", __FUNCTION__);
-					return;
-				}
+				i_attr = calloc(1, sizeof(AVD_CSI_ATTR));
+				osafassert(i_attr);
 
 				i_attr->attr_next = csiattr;
 				csiattr = i_attr;
-
 				csiattr->name_value.name.length = csi_attr_name.length;
 				memcpy(csiattr->name_value.name.value, csi_attr_name.value, csiattr->name_value.name.length);
-				csiattr->name_value.value.length = strlen (value);
-				memcpy(csiattr->name_value.value.value, value, csiattr->name_value.value.length );
+				csiattr->name_value.string_ptr = calloc(1, strlen(value)+1);
+				osafassert(csiattr->name_value.string_ptr);
+				memcpy(csiattr->name_value.string_ptr, value, strlen(value)+1);
 			}
 			/* add the modified csiattr values to parent csi */
 			avd_csi_add_csiattr(csi, csiattr);
