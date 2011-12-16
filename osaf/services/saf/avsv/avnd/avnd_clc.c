@@ -2522,33 +2522,37 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 
 		TRACE_1("Component is NPI, %u", comp->csi_list.n_nodes);
 
-		osafassert(comp->csi_list.n_nodes == 1);
-		csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-		osafassert(csi);
+		if (comp->csi_list.n_nodes == 1) {
+			csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 
-		/* allocate additional env_set memory for the CSI attributes */
-		env_set = realloc(env_set, sizeof(NCS_OS_ENVIRON_SET_NODE) * (env_set_nmemb + csi->attrs.number));
-		osafassert(env_set);
+			osafassert(csi);
 
-		/* initialize newly allocated memory */
-		memset(&env_set[env_set_nmemb], 0, sizeof(NCS_OS_ENVIRON_SET_NODE) * csi->attrs.number);
+			/* allocate additional env_set memory for the CSI attributes */
+			env_set = realloc(env_set, sizeof(NCS_OS_ENVIRON_SET_NODE) * (env_set_nmemb + 
+						csi->attrs.number));
+			osafassert(env_set);
 
-		for (i = 0, csiattr = csi->attrs.list; i < csi->attrs.number; i++, csiattr++) {
-			if (var_in_envset((char*)csiattr->name.value, env_set, env_counter)) {
-				LOG_NO("Ignoring second (or more) value '%s' for '%s' CSI attr '%s'",
-					csiattr->value.value, comp->name.value, csiattr->name.value);
-				continue;
+			/* initialize newly allocated memory */
+			memset(&env_set[env_set_nmemb], 0, sizeof(NCS_OS_ENVIRON_SET_NODE) * csi->attrs.number);
+
+			for (i = 0, csiattr = csi->attrs.list; i < csi->attrs.number; i++, csiattr++) {
+				if (var_in_envset((char*)csiattr->name.value, env_set, env_counter)) {
+					LOG_NO("Ignoring second (or more) value '%s' for '%s' CSI attr '%s'",
+							csiattr->value.value, comp->name.value, 
+							csiattr->name.value);
+					continue;
+				}
+
+				TRACE("%s=%s", csiattr->name.value, csiattr->value.value);
+				env_set[env_counter].overwrite = 1;
+				env_set[env_counter].name = strdup((char*)csiattr->name.value);
+				osafassert(env_set[env_counter].name != NULL);
+				env_set[env_counter].value = strdup((char*)csiattr->value.value);
+				osafassert(env_set[env_counter].value != NULL);
+				arg.num_args++;
+				env_counter++;
 			}
-
-			TRACE("%s=%s", csiattr->name.value, csiattr->value.value);
-			env_set[env_counter].overwrite = 1;
-			env_set[env_counter].name = strdup((char*)csiattr->name.value);
-			osafassert(env_set[env_counter].name != NULL);
-			env_set[env_counter].value = strdup((char*)csiattr->value.value);
-			osafassert(env_set[env_counter].value != NULL);
-			arg.num_args++;
-			env_counter++;
-		}
+		} /* if (comp->csi_list.n_nodes == 1) */
 	}
 
 	arg.env_arg = env_set;
