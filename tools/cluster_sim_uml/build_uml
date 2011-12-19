@@ -66,6 +66,21 @@ cmd_getlibs() {
     done
 }
 
+cmd_build_testprog() {
+    src=$opensaf_home/samples/amf/sa_aware
+    libd=$top/rootfs/usr/local/$lib_dir
+    installd=$top/rootfs/opt/amf_demo
+    immxml=$top/rootfs/etc/opensaf/imm.xml
+
+    mkdir -p $installd
+    cp $src/amf_demo_script $installd
+    gcc -g -O2 -Wall -fPIC -I$opensaf_home/osaf/libs/saf/include \
+	-o $installd/amf_demo $src/amf_demo.c \
+	-L$libd -lSaAmf -L$libd/opensaf -lopensaf_core
+
+    echo "Creating [$root/root.cpio] ..."
+    cmd_mkcpio
+}
 
 ##   install_testprog
 ##     Build and install the AMF demo program.
