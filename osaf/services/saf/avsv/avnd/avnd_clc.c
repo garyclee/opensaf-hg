@@ -2538,17 +2538,22 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 			for (i = 0, csiattr = csi->attrs.list; i < csi->attrs.number; i++, csiattr++) {
 				if (var_in_envset((char*)csiattr->name.value, env_set, env_counter)) {
 					LOG_NO("Ignoring second (or more) value '%s' for '%s' CSI attr '%s'",
-							csiattr->value.value, comp->name.value, 
+							csiattr->string_ptr, comp->name.value, 
 							csiattr->name.value);
 					continue;
 				}
 
-				TRACE("%s=%s", csiattr->name.value, csiattr->value.value);
+				TRACE("%s=%s", csiattr->name.value, csiattr->string_ptr);
 				env_set[env_counter].overwrite = 1;
 				env_set[env_counter].name = strdup((char*)csiattr->name.value);
 				osafassert(env_set[env_counter].name != NULL);
-				env_set[env_counter].value = strdup((char*)csiattr->value.value);
-				osafassert(env_set[env_counter].value != NULL);
+				if (NULL != csiattr->string_ptr) {
+					env_set[env_counter].value = strdup(csiattr->string_ptr);
+					osafassert(env_set[env_counter].value != NULL);
+				} else {
+					env_set[env_counter].value = calloc(1,1); 
+					memset(env_set[env_counter].value,0,1);
+				}
 				arg.num_args++;
 				env_counter++;
 			}

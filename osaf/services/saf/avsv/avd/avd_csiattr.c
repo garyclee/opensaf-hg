@@ -94,6 +94,12 @@ static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_obj_name, const SaImm
 				csiattr->name_value.string_ptr = calloc(1,strlen(value)+1);
 				osafassert(csiattr->name_value.string_ptr);
 				memcpy(csiattr->name_value.string_ptr, value, strlen(value)+1);
+				csiattr->name_value.value.length
+					= snprintf((char *)csiattr->name_value.value.value,
+							SA_MAX_NAME_LENGTH, "%s", value);
+			} else {
+				csiattr->name_value.string_ptr = NULL;
+				csiattr->name_value.value.length = 0;
 			}
 			tmp = NULL; 
 		}
