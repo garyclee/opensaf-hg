@@ -7087,8 +7087,12 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 	}
 
 	if (ccb_node->mAugCcb) {
-		if(!(ccb_node->mApplied)) {
-			ccb_node->mAborted = true;
+		if(!(ccb_node->mApplied || ccb_node->mAborted)) {
+			if(ccb_node->mAugIsTainted) {
+				ccb_node->mAborted = true;
+			} else {
+				ccb_node->mApplied = true;
+			}
 		}
 		goto done;
 	}
