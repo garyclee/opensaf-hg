@@ -1898,7 +1898,9 @@ SaAisErrorT saNtfPtrValAllocate(SaNtfNotificationHandleT notificationHandle,
 		goto done_give_hdl;
 	}
 
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
 	rc = ntfsv_ptr_val_alloc(&notification_hdl_rec->variable_data, value, dataSize, dataPtr);
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 	ncshm_give_hdl(client_handle);
  done_give_hdl:
 	ncshm_give_hdl(notificationHandle);
@@ -1935,8 +1937,9 @@ SaAisErrorT saNtfArrayValAllocate(SaNtfNotificationHandleT notificationHandle,
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done_give_hdl;
 	}
-
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
 	rc = ntfsv_array_val_alloc(&notification_hdl_rec->variable_data, value, numElements, elementSize, arrayPtr);
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 	ncshm_give_hdl(client_handle);
  done_give_hdl:
 	ncshm_give_hdl(notificationHandle);
@@ -1994,7 +1997,9 @@ SaAisErrorT saNtfPtrValGet(SaNtfNotificationHandleT notificationHandle,
 		goto done_give_hdl;
 	}
 
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
 	rc = ntfsv_ptr_val_get(&notification_hdl_rec->variable_data, value, dataPtr, dataSize);
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 	ncshm_give_hdl(client_handle);
  done_give_hdl:
 	ncshm_give_hdl(notificationHandle);
@@ -2038,8 +2043,10 @@ SaAisErrorT saNtfArrayValGet(SaNtfNotificationHandleT notificationHandle,
 		goto done_give_hdl;
 	}
 
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
 	rc = ntfsv_array_val_get(&notification_hdl_rec->variable_data, value, arrayPtr, numElements, elementSize);
 	ncshm_give_hdl(client_handle);
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
  done_give_hdl:
 	ncshm_give_hdl(notificationHandle);
  done:
