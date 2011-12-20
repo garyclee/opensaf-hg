@@ -992,6 +992,7 @@ SaAisErrorT saNtfFinalize(SaNtfHandleT ntfHandle)
 		rc = SA_AIS_ERR_NO_RESOURCES;
 
 	if (rc == SA_AIS_OK) {
+		pthread_mutex_lock(&ntfa_cb.cb_lock);		
 	/** delete the hdl rec
          ** including all resources allocated by client if MDS send is 
          ** succesful. 
@@ -1001,6 +1002,7 @@ SaAisErrorT saNtfFinalize(SaNtfHandleT ntfHandle)
 			TRACE_1("ntfa_hdl_rec_del failed");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 		}
+		pthread_mutex_unlock(&ntfa_cb.cb_lock);
 	}
 
  done_give_hdl:
@@ -1077,7 +1079,6 @@ SaAisErrorT saNtfAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
 	}
 	TRACE_1("notification_hdl = %u", notification_hdl_rec->notification_hdl);
     /**                  UnLock ntfa_CB            **/
-	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
 	notification_hdl_rec->ntfNotificationType = SA_NTF_TYPE_ALARM;
 	notification_hdl_rec->ntfNotification.ntfAlarmNotification.notificationHandle =
@@ -1100,10 +1101,10 @@ SaAisErrorT saNtfAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
 
 	/* Assign alarm specific data pointers for the client */
 	*notification = notification_hdl_rec->ntfNotification.ntfAlarmNotification;
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 	goto done_give_hdl;
 
  error_put:
-	pthread_mutex_lock(&ntfa_cb.cb_lock);
 	if (NCSCC_RC_SUCCESS != ntfa_notification_hdl_rec_del(&hdl_rec->notification_list, notification_hdl_rec)) {
 		TRACE("Unable to delete notifiction record");
 	}
@@ -1147,7 +1148,6 @@ SaAisErrorT saNtfNotificationFree(SaNtfNotificationHandleT notificationHandle)
 	client_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, client_handle);
 	if (client_rec == NULL) {
 	/**                  UnLockntfa_CB            **/
-		pthread_mutex_unlock(&ntfa_cb.cb_lock);
 		TRACE("ncshm_take_hdl client_handle failed");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done_give_hdl;
@@ -1163,11 +1163,11 @@ SaAisErrorT saNtfNotificationFree(SaNtfNotificationHandleT notificationHandle)
 		TRACE("Unable to delete notifiction record");
 		rc = SA_AIS_ERR_LIBRARY;
 	}
-    /**                  UnLockntfa_CB            **/
-	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
 	ncshm_give_hdl(client_handle);
  done_give_hdl:
+    /**                  UnLockntfa_CB            **/
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);	 
 	ncshm_give_hdl(notificationHandle);
  done:
 	TRACE_LEAVE();
@@ -1210,8 +1210,10 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto err_free;
 	}
-
+	
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
 	client_handle = notification_hdl_rec->parent_hdl->local_hdl;
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 	/* retrieve client hdl rec */
 	client_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, client_handle);
 	if (client_rec == NULL) {
@@ -1230,6 +1232,7 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 	send_param->client_id = client_rec->ntfs_client_id;
 	send_param->notificationType = notification_hdl_rec->ntfNotificationType;
 
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
 	/* Check parameters, depending on type */
 	switch (notification_hdl_rec->ntfNotificationType) {
 	case SA_NTF_TYPE_ALARM:
@@ -1291,7 +1294,7 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 		goto done_give_hdls;
 	}
 	send_param->variable_data = notification_hdl_rec->variable_data;
-
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 	/* Send a sync MDS message to obtain a notification id */
 	mds_rc = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
 	switch (mds_rc) {
@@ -1311,6 +1314,7 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 		TRACE("ntfa_mds_msg_sync_send FAILED: %u", rc);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 	}
+	pthread_mutex_lock(&ntfa_cb.cb_lock);	
 	if (mds_rc != NCSCC_RC_SUCCESS) {
 		if (o_msg)
 			ntfa_msg_destroy(o_msg);
@@ -1324,7 +1328,6 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 			ntfa_msg_destroy(o_msg);
 		goto done_give_hdls;
 	}
-
 	/* Return the notificationId to client from right notification */
 	switch (notification_hdl_rec->ntfNotificationType) {
 	case SA_NTF_TYPE_ALARM:
@@ -1364,6 +1367,7 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 		ntfa_msg_destroy(o_msg);
 
  done_give_hdls:
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);	 
 	ncshm_give_hdl(client_handle);
  done_give_hdl:
 	ncshm_give_hdl(notificationHandle);
@@ -2824,11 +2828,12 @@ SaAisErrorT saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle)
 		rc = SA_AIS_ERR_LIBRARY;
 		goto done_give_hdls;
 	}
-
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
 	oas_rc = ntfa_reader_hdl_rec_del(&client_hdl_rec->reader_list, reader_hdl_rec);
 	if (oas_rc != NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY;
 	}
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 	if (o_msg)
 		ntfa_msg_destroy(o_msg);
 
