@@ -1064,12 +1064,19 @@ set admin-owner for objects the OI intends to modify or delete
 and where it does not know that the admin-owner is already set
 by the originating OM client, (create operations always get
 admin-owner set automatically as part of creation). 
-The 'ownerHandle' always has 'releaseOwnershipOnFinalize set to
-true. This is the case even if the original admin owner has it set
-to false. The release of the OI augmented admin-owner is done when
-the parent CCB commits (is applied). The admin-owner can not be 
-released when the augmented ccb is applied because the augmented
-operations are still pending the apply of the root ccb. 
+The 'ownerHandle' always has 'releaseOwnershipOnFinalize (ROF) set
+to true. This is the case even if the original admin owner has it
+set to false. If the original admin-owner has ROF==true, then
+the augmented CCB actually uses the identical admin-owner. Any
+objects operated on by the augmented ccb, are added to the original
+admin-owner and will be released whenever the original om user
+closes their handle or disconnects. If the original admin-owner
+has ROF==false, then the augmented CCB uses a new admin-owner
+with the same admin-owner-name and with ROF=true. The release
+of the OI augmented admin-owner is done when the parent CCB commits
+(is applied). The admin-owner can not be released when the augmented
+ccb is applied because the augmented operations are still pending
+the apply of the parent ccb. 
 
 The OI designer needs to understand that if they set admin-owner
 on some objects which already have admin owner set by the original
