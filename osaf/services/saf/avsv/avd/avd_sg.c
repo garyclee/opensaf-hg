@@ -315,14 +315,33 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 		/* empty => later assign to saAmfSGNumPrefInserviceSUs */
 	}
 
-	if (immutil_getAttr("saAmfSGMaxActiveSIsperSU", attributes, 0, &sg->saAmfSGMaxActiveSIsperSU) != SA_AIS_OK) {
-		/* empty => assign magic number for no limit */
-		sg->saAmfSGMaxActiveSIsperSU = -1;
+	sg->saAmfSGMaxActiveSIsperSU = -1; // magic number for no limit
+
+	/* saAmfSGMaxActiveSIsperSU: "This attribute is only applicable to N+M, N-way, and N-way active redundancy models." */
+	if ((sgt->saAmfSgtRedundancyModel == SA_AMF_NPM_REDUNDANCY_MODEL) ||
+	    (sgt->saAmfSgtRedundancyModel == SA_AMF_N_WAY_REDUNDANCY_MODEL) ||
+	    (sgt->saAmfSgtRedundancyModel == SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL)) {
+		(void) immutil_getAttr("saAmfSGMaxActiveSIsperSU", attributes, 0, &sg->saAmfSGMaxActiveSIsperSU);
+	} else {
+		SaUint32T tmp;
+		if (immutil_getAttr("saAmfSGMaxActiveSIsperSU", attributes, 0, &tmp) == SA_AIS_OK) {
+			LOG_NO("'%s' attribute saAmfSGMaxActiveSIsperSU ignored, not valid for red model",
+				sg->name.value);
+		}
 	}
 
-	if (immutil_getAttr("saAmfSGMaxStandbySIsperSU", attributes, 0, &sg->saAmfSGMaxStandbySIsperSU) != SA_AIS_OK) {
-		/* empty => assign magic number for no limit */
-		sg->saAmfSGMaxStandbySIsperSU = -1;
+	sg->saAmfSGMaxStandbySIsperSU = -1; // magic number for no limit
+
+	/* saAmfSGMaxStandbySIsperSU: "This attribute is only applicable to N+M and N-way redundancy models." */
+	if ((sgt->saAmfSgtRedundancyModel == SA_AMF_NPM_REDUNDANCY_MODEL) ||
+	    (sgt->saAmfSgtRedundancyModel == SA_AMF_N_WAY_REDUNDANCY_MODEL)) {
+		(void) immutil_getAttr("saAmfSGMaxStandbySIsperSU", attributes, 0, &sg->saAmfSGMaxStandbySIsperSU);
+	} else {
+		SaUint32T tmp;
+		if (immutil_getAttr("saAmfSGMaxStandbySIsperSU", attributes, 0, &tmp) == SA_AIS_OK) {
+			LOG_NO("'%s' attribute saAmfSGMaxStandbySIsperSU ignored, not valid for red model",
+				sg->name.value);
+		}
 	}
 
 	if (immutil_getAttr("saAmfSGAutoAdjustProb", attributes, 0, &sg->saAmfSGAutoAdjustProb) != SA_AIS_OK) {
