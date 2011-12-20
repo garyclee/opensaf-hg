@@ -528,9 +528,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 		/* check if we already have a SU in hand that can take active assignments. */
 		if (i_su != NULL) {
-			if ((i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs) &&
-			    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
-			     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs))) {
+			if ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
+			    (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs)) {
 				/* found the SU assign the SI to the SU as active */
 				su_found = true;
 
@@ -538,7 +537,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 					   ((i_su->sg_of_su->su_max_active == 0) ||
 					   (i_su->sg_of_su->su_max_active > i_su->si_curr_active))) */
 
-				if (i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs) {
+				if (sg->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs) {
 					load_su_found = true;
 				}
 
@@ -551,13 +550,12 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 						i_su = avd_sg_npm_su_next_asgn(cb, sg, i_su, SA_AMF_HA_ACTIVE);
 						if (i_su != NULL) {
 							cnt++;
-							if ((i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs) &&
-							    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
-							     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU >
-							      i_su->saAmfSUNumCurrActiveSIs))) {
+							if ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
+							    (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU >
+							     i_su->saAmfSUNumCurrActiveSIs)) {
 								/* Found the next assigning SU that can take SI. */
 								su_found = true;
-							} else if (i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs) {
+							} else if (sg->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs) {
 								load_su_found = true;
 							}
 
@@ -620,18 +618,17 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				actv_su_found = true;
 				cnt++;
 
-				if ((i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs) &&
-				    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
-				     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs))) {
+				if ((sg->saAmfSGMaxActiveSIsperSU == 0) ||
+				     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs)) {
 					/* Found the next assigning SU that can take SI. */
 					su_found = true;
 				} else if (cnt < sg->saAmfSGNumPrefActiveSUs) {
-					if (i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs)
+					if (sg->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs)
 						load_su_found = true;
 
 					i_su = avd_sg_npm_su_next_asgn(cb, sg, i_su, SA_AMF_HA_ACTIVE);
 				} else {
-					if (i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs)
+					if (sg->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs)
 						load_su_found = true;
 					i_su = NULL;
 				}
@@ -694,7 +691,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				continue;
 			}
 
-			if (i_su->si_max_active <= i_su->saAmfSUNumCurrActiveSIs) {
+			if (sg->saAmfSGMaxActiveSIsperSU <= i_su->saAmfSUNumCurrActiveSIs) {
 				i_su = avd_sg_npm_su_next_asgn(cb, sg, i_su, SA_AMF_HA_ACTIVE);
 				continue;
 			}
@@ -741,9 +738,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 		if (o_susi != AVD_SU_SI_REL_NULL) {
 			i_su = o_susi->su;
-			if ((i_su->si_max_standby > i_su->saAmfSUNumCurrStandbySIs) &&
-			    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
-			     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU > i_su->saAmfSUNumCurrStandbySIs))) {
+			if ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
+			    (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU > i_su->saAmfSUNumCurrStandbySIs)) {
 				/* found the SU assign the SI to the SU as standby */
 				su_found = true;
 
@@ -755,9 +751,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			* Standby SU is found but current Standby assignments are equal to saAmfSGMaxStandbySIsperSU
 			*/
 			if (l_su != NULL) {
-				if ((l_su->si_max_standby > l_su->saAmfSUNumCurrStandbySIs) &&
-				    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
-				     (l_su->sg_of_su->saAmfSGMaxStandbySIsperSU > l_su->saAmfSUNumCurrStandbySIs))) {
+				if ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
+				    (l_su->sg_of_su->saAmfSGMaxStandbySIsperSU > l_su->saAmfSUNumCurrStandbySIs)) {
 					/* found the SU assign the SI to the SU as standby */
 					su_found = true;
 					i_su = l_su;
@@ -787,10 +782,9 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 						i_su = avd_sg_npm_su_next_asgn(cb, sg, l_su, SA_AMF_HA_STANDBY);
 						while ((i_su != NULL) && (su_found == false)) {
 							cnt++;
-							if ((i_su->si_max_standby > i_su->saAmfSUNumCurrStandbySIs) &&
-							    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
+							if ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
 							     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU >
-							      i_su->saAmfSUNumCurrStandbySIs)))
+							      i_su->saAmfSUNumCurrStandbySIs))
 								/* Found the next assigning SU that can take SI. */
 								su_found = true;
 							else if (cnt < sg->saAmfSGNumPrefStandbySUs)
@@ -847,10 +841,9 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				i_su = avd_sg_npm_su_next_asgn(cb, sg, NULL, SA_AMF_HA_STANDBY);
 				while ((i_su != NULL) && (su_found == false)) {
 					cnt++;
-					if ((i_su->si_max_standby > i_su->saAmfSUNumCurrStandbySIs) &&
-					    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
-					     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU >
-					      i_su->saAmfSUNumCurrStandbySIs)))
+					if ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
+					    (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU >
+					     i_su->saAmfSUNumCurrStandbySIs))
 						/* Found the next assigning SU that can take SI. */
 						su_found = true;
 					else if (cnt < sg->saAmfSGNumPrefStandbySUs)

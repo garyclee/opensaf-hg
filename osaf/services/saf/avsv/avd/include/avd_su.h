@@ -92,16 +92,6 @@ typedef struct avd_su_tag {
 				 * Checkpointing - Calculated at Standby.
 				 */
 
-	uint32_t si_max_active;	/* The maximum number of active instance of
-				 * Sis that can be assigned to this SU.
-				 * Checkpointing - Sent as a one time update.
-				 */
-
-	uint32_t si_max_standby;	/* The maximum number of standby instance of
-				 * Sis that can be assigned to this SU.
-				 * Checkpointing - Sent as a one time update.
-				 */
-
 	bool term_state;	/* admin state to terminate the
 				 * service unit.
 				 * Checkpointing - Updated independently.

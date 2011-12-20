@@ -134,7 +134,6 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
 
 void avd_node_up_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_reg_su_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-void avd_reg_comp_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_oper_req_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_mds_avnd_up_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt);
