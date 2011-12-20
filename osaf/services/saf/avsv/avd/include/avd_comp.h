@@ -209,7 +209,6 @@ extern void avd_comp_delete(AVD_COMP *comp);
 extern AVD_COMP *avd_comp_get(const SaNameT *comp_name);
 extern AVD_COMP *avd_comp_getnext(const SaNameT *comp_name);
 extern void avd_su_remove_comp(AVD_COMP* comp);
-extern void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg);
 extern SaAisErrorT avd_comp_config_get(const SaNameT* su_name, struct avd_su_tag* su);
 extern void avd_comp_constructor(void);
 

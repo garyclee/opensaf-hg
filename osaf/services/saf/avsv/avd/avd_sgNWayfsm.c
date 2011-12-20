@@ -1333,7 +1333,6 @@ AVD_SU *avd_sg_nway_get_su_std_equal(AVD_SG *sg, AVD_SI *curr_si)
 	for (curr_su = sg->list_of_su; curr_su; curr_su = curr_su->sg_list_su_next) {
 		/* verify if this su can take the standby assignment */
 		if ((curr_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
-				(curr_su->saAmfSUNumCurrStandbySIs >= curr_su->si_max_standby) ||
 				((curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU != 0) &&
 				 (curr_su->saAmfSUNumCurrStandbySIs >= curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU)))
 			continue;
@@ -1529,7 +1528,6 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				continue;
 
 			if ((curr_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
-			    (curr_su->saAmfSUNumCurrActiveSIs < curr_su->si_max_active) &&
 			    ((curr_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
 			     (curr_su->saAmfSUNumCurrActiveSIs < curr_su->sg_of_su->saAmfSGMaxActiveSIsperSU)))
 				break;
@@ -1569,10 +1567,9 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 								pref_su = curr_su;
 						}
 					}
-					else if ((curr_su->saAmfSUNumCurrActiveSIs < curr_su->si_max_active) &&
-					    ((curr_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
-					     (curr_su->saAmfSUNumCurrActiveSIs <
-					      curr_su->sg_of_su->saAmfSGMaxActiveSIsperSU)))
+					else if (((curr_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
+						  (curr_su->saAmfSUNumCurrActiveSIs <
+						   curr_su->sg_of_su->saAmfSGMaxActiveSIsperSU)))
 						break;
 				}
 			}
@@ -1632,7 +1629,6 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 		     su_rank_rec = avd_sirankedsu_getnext_valid(cb, su_rank_rec->indx, &curr_su)) {
 			/* verify if this su can take the standby assignment */
 			if (!curr_su || (curr_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
-			    (curr_su->saAmfSUNumCurrStandbySIs >= curr_su->si_max_standby) ||
 			    ((curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU != 0) &&
 			     (curr_su->saAmfSUNumCurrStandbySIs >= curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU)))
 				continue;
@@ -1696,7 +1692,6 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 		for (curr_su = sg->list_of_su; curr_su; curr_su = curr_su->sg_list_su_next) {
 			/* verify if this su can take the standby assignment */
 			if (!curr_su || (curr_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
-					(curr_su->saAmfSUNumCurrStandbySIs >= curr_su->si_max_standby) ||
 					((curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU != 0) &&
 					 (curr_su->saAmfSUNumCurrStandbySIs >= curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU)))
 				continue;

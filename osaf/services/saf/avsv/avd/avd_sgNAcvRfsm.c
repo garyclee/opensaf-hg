@@ -126,7 +126,6 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				continue;
 
 			if ((i_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
-			    (i_su->si_max_active <= i_su->saAmfSUNumCurrActiveSIs) ||
 			    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU != 0)
 			     && (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU <= i_su->saAmfSUNumCurrActiveSIs))) {
 				i_su = i_su->sg_list_su_next;
@@ -167,7 +166,6 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		i_su = sg->list_of_su;
 		while ((i_su != NULL) && (false == sg->equal_ranked_su)){
 			if ((i_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
-			    (i_su->si_max_active <= i_su->saAmfSUNumCurrActiveSIs) ||
 			    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU != 0)
 			     && (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU <= i_su->saAmfSUNumCurrActiveSIs))) {
 				i_su = i_su->sg_list_su_next;
@@ -1981,7 +1979,6 @@ static AVD_SU *avd_get_qualified_su(AVD_SG *sg, AVD_SI *i_si,
 	while (i_su != NULL){
 
 		if ((i_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
-				(i_su->si_max_active <= i_su->saAmfSUNumCurrActiveSIs) ||
 				((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU != 0)
 				 && (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU <=
 					 i_su->saAmfSUNumCurrActiveSIs))) {

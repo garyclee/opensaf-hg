@@ -57,7 +57,7 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 	/* active AvD message events processing */
 	avd_node_up_evh,	/* AVD_EVT_NODE_UP_MSG */
 	avd_reg_su_evh,	        /* AVD_EVT_REG_SU_MSG */
-	avd_reg_comp_evh,	/* AVD_EVT_REG_COMP_MSG */
+	avd_invalid_evh,	/* AVD_EVT_REG_COMP_MSG */
 	avd_su_oper_state_evh,	/* AVD_EVT_OPERATION_STATE_MSG */
 	avd_su_si_assign_evh,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
 	avd_pg_trk_act_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */
@@ -134,7 +134,7 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 	/* active AvD message events processing */
 	avd_qsd_ignore_evh,	/* AVD_EVT_NODE_UP_MSG */
 	avd_reg_su_evh,	/* AVD_EVT_REG_SU_MSG */
-	avd_reg_comp_evh,	/* AVD_EVT_REG_COMP_MSG */
+	avd_invalid_evh,	/* AVD_EVT_REG_COMP_MSG */
 	avd_su_oper_state_evh,	/* AVD_EVT_OPERATION_STATE_MSG */
 	avd_su_si_assign_evh,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
 	avd_qsd_ignore_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */

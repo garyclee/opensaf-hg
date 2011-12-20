@@ -455,9 +455,6 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 	if (immutil_getAttr("saAmfSUAdminState", attributes, 0, &su->saAmfSUAdminState) != SA_AIS_OK)
 		su->saAmfSUAdminState = SA_AMF_ADMIN_UNLOCKED;
 
-	su->si_max_active = -1;	// TODO
-	su->si_max_standby = -1;	// TODO
-
 	rc = 0;
 
 done:
