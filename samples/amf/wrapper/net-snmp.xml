@@ -212,14 +212,6 @@
 			<name>saAmfSGNumPrefAssignedSUs</name>
 			<value>10</value>
 		</attr>
-		<attr>
-			<name>saAmfSGMaxActiveSIsperSU</name>
-			<value>1</value>
-		</attr>
-		<attr>
-			<name>saAmfSGMaxStandbySIsperSU</name>
-			<value>1</value>
-		</attr>
 	</object>
 
 	<object class="SaSmfSwBundle">
