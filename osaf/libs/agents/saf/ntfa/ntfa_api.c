@@ -1374,57 +1374,58 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 	return rc;
 }
 
-/*  3.15.3	Subscriber Operations   */
-/*  3.15.3.1	saNtfNotificationSubscribe()  */
-SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
-				       SaNtfSubscriptionIdT subscriptionId)
+static ntfa_subscriber_list_t* listItemGet(SaNtfSubscriptionIdT subscriptionId)
 {
-	SaAisErrorT rc;
-	ntfa_subscriber_list_t *listPtr;
+	ntfa_subscriber_list_t *listPtr = NULL;
 	ntfa_subscriber_list_t *listPtrNext;
-	ntfa_subscriber_list_t *ntfSubscriberList;
-
-	ntfa_client_hdl_rec_t *client_hdl_rec = NULL;
-	SaNtfHandleT ntfHandle = 0;
-	ntfsv_filter_ptrs_t filters = { NULL, NULL, NULL, NULL, NULL };
-
-	ntfsv_msg_t msg, *o_msg = NULL;
-	ntfsv_subscribe_req_t *send_param;
-	uint32_t timeout = NTFS_WAIT_TIME;
-
-	TRACE_ENTER();
-	rc = getFilters(notificationFilterHandles, &filters, &ntfHandle, &client_hdl_rec);
-	if (rc != SA_AIS_OK) {
-		TRACE("getFilters failed");
-		goto done;
-	}
-	
-	/* Check earlier subscriptions in subscriber list */
+/* Get list item or return NULL */
 	if (NULL != subscriberNoList) {
 		for (listPtr = subscriberNoList,
 		     listPtrNext = listPtr->next; listPtr != NULL; listPtr = listPtrNext, listPtrNext = listPtr->next) {
 			TRACE_1("listPtr->SubscriptionId %d", listPtr->subscriberListSubscriptionId);
 			if (listPtr->subscriberListSubscriptionId == subscriptionId) {
-				rc = SA_AIS_ERR_EXIST;
-				goto done;
+				break;
 			}
 			if (listPtrNext == NULL) {
+				listPtr = NULL;
 				break;
 			}
 		}
 	}
+	return listPtr;
+}
 
+static  SaNtfHandleT ntfHandleGet(SaNtfSubscriptionIdT subscriptionId)
+{
+	SaNtfHandleT ntfHandle = 0;
+	ntfa_subscriber_list_t *listPtr = NULL;
+
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+	listPtr = listItemGet(subscriptionId); 
+	if (listPtr) { 
+		ntfHandle = listPtr->subscriberListNtfHandle;
+		TRACE_1("ListItem: sId: %d, ntfhandle: %llu", listPtr->subscriberListSubscriptionId, ntfHandle);
+	}
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);	
+	return ntfHandle;
+}
+
+static SaAisErrorT subscriptionListAdd(SaNtfHandleT ntfHandle, SaNtfSubscriptionIdT subscriptionId)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	ntfa_subscriber_list_t* ntfSubscriberList;
 	/* An unique subscriptionId was passed */
 	ntfSubscriberList = malloc(sizeof(ntfa_subscriber_list_t));
 	if (!ntfSubscriberList) {
 		LOG_ER("Out of memory in ntfSubscriberList");
-		TRACE_LEAVE();
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done;
 	}
 	/* Add ntfHandle and subscriptionId into list */
 	ntfSubscriberList->subscriberListNtfHandle = ntfHandle;
 	ntfSubscriberList->subscriberListSubscriptionId = subscriptionId;
+	
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
 	if (NULL == subscriberNoList) {
 		subscriberNoList = ntfSubscriberList;
 		subscriberNoList->prev = NULL;
@@ -1435,7 +1436,67 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		subscriberNoList->prev = ntfSubscriberList;
 		subscriberNoList = ntfSubscriberList;
 	}
-	TRACE_1("ADD: subscriberNoList->SubscriptionId %d", subscriberNoList->subscriberListSubscriptionId);
+	TRACE_1("ADD subscriberNoList: subId %d ntfhandle %llu", 
+		subscriberNoList->subscriberListSubscriptionId, 
+		subscriberNoList->subscriberListNtfHandle);
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
+done:
+	return rc;
+}
+
+static void subscriberListItemRemove(SaNtfSubscriptionIdT subscriptionId)
+{
+	ntfa_subscriber_list_t *listPtr = NULL;
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+	listPtr = listItemGet(subscriptionId); 
+	if (listPtr->next != NULL) {
+		listPtr->next->prev = listPtr->prev;
+	}
+
+	if (listPtr->prev != NULL) {
+		listPtr->prev->next = listPtr->next;
+	} else {
+		if (listPtr->next != NULL)
+			subscriberNoList = listPtr->next;
+		else
+			subscriberNoList = NULL;
+	}
+	TRACE_1("REMOVE: listPtr->SubscriptionId %d", listPtr->subscriberListSubscriptionId);
+	free(listPtr);
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
+}
+
+/*  3.15.3	Subscriber Operations   */
+/*  3.15.3.1	saNtfNotificationSubscribe()  */
+SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+				       SaNtfSubscriptionIdT subscriptionId)
+{
+	SaAisErrorT rc;
+
+	ntfa_client_hdl_rec_t *client_hdl_rec = NULL;
+	SaNtfHandleT ntfHandle, tmpHandle = 0;
+	ntfsv_filter_ptrs_t filters = { NULL, NULL, NULL, NULL, NULL };
+
+	ntfsv_msg_t msg, *o_msg = NULL;
+	ntfsv_subscribe_req_t *send_param;
+	uint32_t timeout = NTFS_WAIT_TIME;
+	
+	TRACE_ENTER();
+	rc = getFilters(notificationFilterHandles, &filters, &ntfHandle, &client_hdl_rec);
+	if (rc != SA_AIS_OK) {
+		TRACE("getFilters failed");
+		goto done;
+	}
+	
+	tmpHandle = ntfHandleGet(subscriptionId);
+	if (tmpHandle != 0) {
+		rc = SA_AIS_ERR_EXIST;
+		goto done;
+	}
+	rc = subscriptionListAdd(ntfHandle, subscriptionId);
+	if (rc != SA_AIS_OK) {
+		goto done;
+	}
 
 	/*      Populate a sync MDS message  */
 	memset(&msg, 0, sizeof(ntfsv_msg_t));
@@ -1444,7 +1505,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	send_param = &msg.info.api_info.param.subscribe;
 
 	send_param->client_id = client_hdl_rec->ntfs_client_id;
-	send_param->subscriptionId = ntfSubscriberList->subscriberListSubscriptionId;
+	send_param->subscriptionId = subscriptionId;
 	send_param->f_rec = filters;
 	/* Check whether NTFS is up or not */
 	if (ntfa_cb.ntfs_up) {
@@ -1471,10 +1532,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	}
 
 	if (rc != SA_AIS_OK) {
-		subscriberNoList = subscriberNoList->next;
-		if(subscriberNoList) 
-			subscriberNoList->prev = NULL;
-		free(ntfSubscriberList);
+		subscriberListItemRemove(subscriptionId);
 	}
 	if (o_msg)
 		ntfa_msg_destroy(o_msg);
@@ -2469,9 +2527,6 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 	SaAisErrorT rc = SA_AIS_ERR_NOT_EXIST;
 	SaNtfHandleT ntfHandle;
 
-	ntfa_subscriber_list_t *listPtr;
-	ntfa_subscriber_list_t *listPtrNext;
-
 	ntfa_client_hdl_rec_t *client_hdl_rec;
 
 	ntfsv_msg_t msg, *o_msg = NULL;
@@ -2479,34 +2534,20 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 	ntfsv_unsubscribe_req_t *send_param;
 	uint32_t timeout = NTFS_WAIT_TIME;
 
-	if (NULL != subscriberNoList) {
-		/* Check the list for entries */
-		for (listPtr = subscriberNoList,
-		     listPtrNext = listPtr->next; listPtr != NULL; listPtr = listPtrNext, listPtrNext = listPtr->next) {
-			TRACE_1("listPtr->SubscriptionId %d", listPtr->subscriberListSubscriptionId);
-			if (listPtr->subscriberListSubscriptionId == subscriptionId) {
-				rc = SA_AIS_OK;
-				break;
-			}
-			if (listPtrNext == NULL) {
-				break;
-			}
-		}
-	}
 
-	if (rc == SA_AIS_ERR_NOT_EXIST) {
+	ntfHandle = ntfHandleGet(subscriptionId);
+	if (ntfHandle == 0) {
+		rc = SA_AIS_ERR_NOT_EXIST;
 		goto done;
 	}
-
-	if (listPtr != NULL) {
-		ntfHandle = listPtr->subscriberListNtfHandle;
-		/* retrieve client hdl rec */
-		client_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, ntfHandle);
-		if (client_hdl_rec == NULL) {
-			TRACE_1("ncshm_take_hdl failed");
-			rc = SA_AIS_ERR_BAD_HANDLE;
-			goto done;
-		}
+	
+	/* retrieve client hdl rec */
+	client_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, ntfHandle);
+	if (client_hdl_rec == NULL) {
+		TRACE_1("ncshm_take_hdl failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
 
 	/**
          ** Populate a sync MDS message
@@ -2542,21 +2583,8 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 				ntfa_msg_destroy(o_msg);
 			goto done_give_hdl;
 		}
+		subscriberListItemRemove(subscriptionId);
 
-		if (listPtr->next != NULL) {
-			listPtr->next->prev = listPtr->prev;
-		}
-
-		if (listPtr->prev != NULL) {
-			listPtr->prev->next = listPtr->next;
-		} else {
-			if (listPtr->next != NULL)
-				subscriberNoList = listPtr->next;
-			else
-				subscriberNoList = NULL;
-		}
-		TRACE_1("REMOVE: listPtr->SubscriptionId %d", listPtr->subscriberListSubscriptionId);
-		free(listPtr);
 		if (o_msg)
 			ntfa_msg_destroy(o_msg);
 
@@ -2583,8 +2611,7 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 				TRACE_2("From saNtfNotificationUnsubscribe ntfa_ntfs_msg_proc returned: %d", rc);
 			}
 			process = async_cbk_msg;
-		}
-	}
+		} 
 
  done_give_hdl:
 	ncshm_give_hdl(ntfHandle);
