@@ -376,9 +376,7 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 static void comp_add_to_model(AVD_COMP *comp)
 {
 	SaNameT dn;
-	AVD_COMP *i_comp = NULL;
 	AVD_AVND *su_node_ptr = NULL;
-	bool isPre;
 
 	TRACE_ENTER2("%s", comp->comp_info.name.value);
 
@@ -423,60 +421,13 @@ static void comp_add_to_model(AVD_COMP *comp)
 			return;
 		}
 		su_node_ptr = avd_cb->ext_comp_info.local_avnd_node;
-	}			/* Else of if(false == comp->su->su_is_external). */
-#if 0
-	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
-	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
-	    (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT)) {
-		if (avd_snd_comp_msg(avd_cb, comp) != NCSCC_RC_SUCCESS) {
-			/* the SU will never get to readiness state in service */
-			/* Log an internal error */
-			comp->su->curr_num_comp--;
-			avd_su_remove_comp(comp);
-			LOG_ER("Sending Comp Info to AvND failed: '%s'",
-				comp->comp_info.name.value);
-			return;
-		}
 	}
-#endif
+
 	/* Verify if the SUs preinstan value need to be changed */
 	if ((comp->comp_info.category == AVSV_COMP_TYPE_SA_AWARE) ||
 	    (comp->comp_info.category == AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
 	    (comp->comp_info.category == AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE)) {
 		comp->su->saAmfSUPreInstantiable = true;
-	} else {
-		isPre = false;
-		i_comp = comp->su->list_of_comp;
-		while (i_comp) {
-			if ((i_comp->comp_info.category == AVSV_COMP_TYPE_SA_AWARE) ||
-			    (i_comp->comp_info.category == AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
-			    (i_comp->comp_info.category == AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE)) {
-				isPre = true;
-				break;
-			}
-			i_comp = i_comp->su_comp_next;
-		}
-		if (isPre == false) {
-			comp->su->saAmfSUPreInstantiable = false;
-		}
-		comp->max_num_csi_actv = 1;
-		comp->max_num_csi_stdby = 1;
-	}
-	if (!comp->su->saAmfSUPreInstantiable) {
-                comp->su->si_max_active = 1;
-                comp->su->si_max_standby = 1;
-	} else {
-		/* If SU is PreInstantiable and the comp category is npi dont modify su->si_max_active */ 
-		if (comp->max_num_csi_actv != 1) {
-			if ((comp->max_num_csi_actv < comp->su->si_max_active) ||
-				(comp->su->si_max_active == 0)) {
-				comp->su->si_max_active = comp->max_num_csi_actv;
-			}
-			if ((comp->max_num_csi_stdby < comp->su->si_max_standby) ||
-				(comp->su->si_max_standby == 0)) {
-				comp->su->si_max_standby = comp->max_num_csi_stdby;
-			}
-		}
 	}
 
 	/* Set runtime cached attributes. */
@@ -1609,7 +1560,6 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 {
 	AVD_COMP *comp = NULL, *i_comp = NULL;
-	uint32_t min_si = 0;
 	bool isPre;
 	AVD_AVND *su_node_ptr = NULL;
 	AVSV_PARAM_INFO param;
@@ -1627,44 +1577,6 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	 * just doing sanity check here
 	 **/
 	osafassert(comp != NULL);
-
-	/* verify if the max ACTIVE and STANDBY SIs of the SU 
-	 ** need to be changed
-	 */
-	if (comp->max_num_csi_actv == comp->su->si_max_active) {
-		/* find the number and set it */
-		min_si = 0;
-		i_comp = comp->su->list_of_comp;
-		while (i_comp) {
-			if (i_comp != comp) {
-				if (min_si > i_comp->max_num_csi_actv)
-					min_si = i_comp->max_num_csi_actv;
-				else if (min_si == 0)
-					min_si = i_comp->max_num_csi_actv;
-			}
-			i_comp = i_comp->su_comp_next;
-		}
-		/* Now we have the min value. set it */
-		comp->su->si_max_active = min_si;
-	}
-
-	/* FOR STANDBY count */
-	if (comp->max_num_csi_stdby == comp->su->si_max_standby) {
-		/* find the number and set it */
-		min_si = 0;
-		i_comp = comp->su->list_of_comp;
-		while (i_comp) {
-			if (i_comp != comp) {
-				if (min_si > i_comp->max_num_csi_stdby)
-					min_si = i_comp->max_num_csi_stdby;
-				else if (min_si == 0)
-					min_si = i_comp->max_num_csi_stdby;
-			}
-			i_comp = i_comp->su_comp_next;
-		}
-		/* Now we have the min value. set it */
-		comp->su->si_max_standby = min_si;
-	}
 
 	old_val = comp->su->saAmfSUPreInstantiable;
 
@@ -1694,9 +1606,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 
 	if (comp->su->curr_num_comp == 1) {
 		/* This comp will be deleted so revert these to def val */
-		comp->su->si_max_active = 0;
-		comp->su->si_max_standby = 0;
-		comp->su->saAmfSUPreInstantiable = true;
+		comp->su->saAmfSUPreInstantiable = false;
 	}
 
 	/* check whether the SU is also undergoing delete operation */
