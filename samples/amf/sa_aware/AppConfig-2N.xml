@@ -213,14 +213,6 @@ from the file before loaded.
 			<name>saAmfSGNumPrefAssignedSUs</name>
 			<value>10</value>
 		</attr>
-		<attr>
-			<name>saAmfSGMaxActiveSIsperSU</name>
-			<value>1</value>
-		</attr>
-		<attr>
-			<name>saAmfSGMaxStandbySIsperSU</name>
-			<value>1</value>
-		</attr>
 	</object>
 	<object class="SaAmfSI">
 		<dn>safSi=AmfDemo,safApp=AmfDemo1</dn>
