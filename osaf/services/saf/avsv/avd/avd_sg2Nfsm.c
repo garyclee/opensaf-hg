@@ -192,38 +192,34 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	}
 
 	/* check if any more active SIs can be assigned to this SU */
-	if (a_su->si_max_active > a_su->saAmfSUNumCurrActiveSIs) {
-		l_flag = false;
-		/* choose and assign SIs in the SG that dont have active assignment */
-		i_si = sg->list_of_si;
-		while ((i_si != AVD_SI_NULL) && (a_su->si_max_active > a_su->saAmfSUNumCurrActiveSIs)) {
-			/* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
-			avd_screen_sponsor_si_state(cb, i_si, false);
+	l_flag = false;
 
-			if ((i_si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) &&
-			    (i_si->max_num_csi == i_si->num_csi) && (i_si->list_of_csi != NULL) &&
-			    (i_si->si_dep_state != AVD_SI_SPONSOR_UNASSIGNED) &&
-			    (i_si->si_dep_state != AVD_SI_UNASSIGNING_DUE_TO_DEP) &&
-			    (i_si->list_of_sisu == AVD_SU_SI_REL_NULL)) {
-				/* found a SI that needs active assignment. */
-				if (avd_new_assgn_susi(cb, a_su, i_si, SA_AMF_HA_ACTIVE, false, &tmp_susi) ==
-				    NCSCC_RC_SUCCESS) {
-					l_flag = true;
-				} else {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_si->name.value, i_si->name.length);
-				}
+	/* choose and assign SIs in the SG that dont have active assignment */
+	for (i_si = sg->list_of_si; i_si != NULL; i_si = i_si->sg_list_of_si_next) {
+		/* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
+		avd_screen_sponsor_si_state(cb, i_si, false);
+
+		if ((i_si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+		    (i_si->max_num_csi == i_si->num_csi) && (i_si->list_of_csi != NULL) &&
+		    (i_si->si_dep_state != AVD_SI_SPONSOR_UNASSIGNED) &&
+		    (i_si->si_dep_state != AVD_SI_UNASSIGNING_DUE_TO_DEP) &&
+		    (i_si->list_of_sisu == AVD_SU_SI_REL_NULL)) {
+			/* found a SI that needs active assignment. */
+			if (avd_new_assgn_susi(cb, a_su, i_si, SA_AMF_HA_ACTIVE, false, &tmp_susi) ==
+			    NCSCC_RC_SUCCESS) {
+				l_flag = true;
+			} else {
+				LOG_ER("%s:%u: %s", __FILE__, __LINE__, i_si->name.value);
 			}
-			i_si = i_si->sg_list_of_si_next;
-		}		/* while ((i_si != AVD_SI_NULL) && (a_su->si_max_active > a_su->si_curr_active)) */
-
-		/* if any assignments have been done return the SU */
-		if (l_flag == true) {
-			return_su = a_su;
-			goto done;
 		}
 	}
 
-	/* if(a_su->si_max_active > a_su->si_curr_active) */
+	/* if any assignments have been done return the SU */
+	if (l_flag == true) {
+		return_su = a_su;
+		goto done;
+	}
+
 	if (s_susi == AVD_SU_SI_REL_NULL) {
 		/* No standby assignment exists. Scan the ranked list of SUs in the SG
 		 * to identify a in-service SU with no assignments. 
@@ -255,42 +251,33 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	}
 
 	/* check if any more standby SIs can be assigned to this SU */
-	if (s_su->si_max_standby > s_su->saAmfSUNumCurrStandbySIs) {
-		l_flag = false;
-		/* choose and assign SIs in the SG that have active assignment but dont
-		 * have standby assignment.
-		 */
-		i_si = sg->list_of_si; 
-		while ((i_si != AVD_SI_NULL) && (s_su->si_max_standby > s_su->saAmfSUNumCurrStandbySIs)) {
-			if (i_si->list_of_sisu != AVD_SU_SI_REL_NULL) {
-				/* found a SI that has active assignment. check if it has standby
-				 * assignment. If not assign standby to this SU. 
-				 */
-				if (i_si->list_of_sisu->si_next == AVD_SU_SI_REL_NULL) {
-					if (avd_new_assgn_susi(cb, s_su, i_si, SA_AMF_HA_STANDBY, false, &tmp_susi) ==
-					    NCSCC_RC_SUCCESS) {
-						l_flag = true;
-					} else {
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_si->name.value, i_si->name.length);
-					}
-				}
-				/* if(i_si->list_of_sisu->si_next == AVD_SU_SI_REL_NULL) */
-			}
-			/* if (i_si->list_of_sisu != AVD_SU_SI_REL_NULL) */
-			i_si = i_si->sg_list_of_si_next;
-		}		/* while ((i_si != AVD_SI_NULL) && (s_su->si_max_standby > s_su->si_curr_standby)) */
+	l_flag = false;
 
-		/* if any assignments have been done return the SU */
-		if (l_flag == true) {
-			return_su = s_su;
-			goto done;
+	/* choose and assign SIs in the SG that have active assignment but dont
+	 * have standby assignment.
+	 */
+	for (i_si = sg->list_of_si; i_si != NULL; i_si = i_si->sg_list_of_si_next) {
+		if (i_si->list_of_sisu != AVD_SU_SI_REL_NULL) {
+			/* found a SI that has active assignment. check if it has standby
+			 * assignment. If not assign standby to this SU. 
+			 */
+			if (i_si->list_of_sisu->si_next == AVD_SU_SI_REL_NULL) {
+				if (avd_new_assgn_susi(cb, s_su, i_si, SA_AMF_HA_STANDBY, false, &tmp_susi) ==
+				    NCSCC_RC_SUCCESS) {
+					l_flag = true;
+				} else {
+					LOG_ER("%s:%u: %s", __FILE__, __LINE__, i_si->name.value);
+				}
+			}
 		}
 	}
 
-	/* if(s_su->si_max_standby > s_su->si_curr_standby) */
-	/* If we are here it means no new assignments have been done so just 
-	 * return NULL
-	 */
+	/* if any assignments have been done return the SU */
+	if (l_flag == true) {
+		return_su = s_su;
+		goto done;
+	}
+
 done:
 	TRACE_LEAVE2("'%s'", return_su ? return_su->name.value : NULL);
 	return return_su;
