@@ -448,6 +448,8 @@ static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 	TRACE_ENTER2("'%s' si-state'%d' '%s' single_csi=%u",
 				 si->name.value, si->curr_state, su->name.value, single_csi);
 
+	LOG_NO("Assigning '%s' %s to '%s'", si->name.value, ha_state[si->curr_state], su->name.value);
+
 	/* initiate the si assignment for pi su */
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		uint32_t rank;
@@ -671,8 +673,10 @@ uint32_t avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	AVND_SU_SI_REC *curr_si = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	char *siname = si ? (char*) si->name.value : "all SIs";
 
 	TRACE_ENTER2("'%s' '%s'", su->name.value, si ? si->name.value : NULL);
+	LOG_NO("Removing '%s' from '%s'", siname, su->name.value);
 
 	/* mark the si(s) removing */
 	if (si) {
@@ -835,14 +839,14 @@ uint32_t avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		
 		if (opr_done) {
 			if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_si)) {
-				TRACE("Setting SI '%s' assigned", curr_si->name.value);
 				m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(curr_si, AVND_SU_SI_ASSIGN_STATE_ASSIGNED);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_si, AVND_CKPT_SU_SI_REC_CURR_ASSIGN_STATE);
-				TRACE_1("SI:'%s' Assigned to SU:'%s'",su->name.value,curr_si->name.value);
+				LOG_NO("Assigned '%s' %s to '%s'", curr_si->name.value,
+					ha_state[curr_si->curr_state], su->name.value);
 			} else if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVING(curr_si)) {
 				m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(curr_si, AVND_SU_SI_ASSIGN_STATE_REMOVED);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_si, AVND_CKPT_SU_SI_REC_CURR_ASSIGN_STATE);
-				TRACE_1("SI:'%s' Removed from SU'%s'",su->name.value,curr_si->name.value);
+				LOG_NO("Removed '%s' from '%s'", curr_si->name.value, su->name.value);
 			} else {
 				LOG_CR("current si name ='%s'",curr_si->name.value);
 				LOG_CR("SI: curr_assign_state = %u, prv_assign_state = %u, curr_state = %u, prv_state = %u",\
