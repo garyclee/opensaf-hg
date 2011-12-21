@@ -45,6 +45,14 @@ const char *presence_state[] =
 	"TERMINATION_FAILED"
 };
 
+const char *ha_state[] = {
+	"INVALID",
+	"ACTIVE",
+	"STANDBY",
+	"QUIESCED",
+	"QUIESCING"
+};
+
 /****************************************************************************
   Name          : avnd_msg_content_free
  

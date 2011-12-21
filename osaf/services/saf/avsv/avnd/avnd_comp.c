@@ -1148,8 +1148,12 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 	AVND_COMP_CLC_PRES_FSM_EV comp_ev = AVND_COMP_CLC_PRES_FSM_EV_MAX;
 	bool mark_csi = false;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	char *csiname = csi ? (char*)csi->name.value : "all CSIs";
+
+	curr_csi = (csi) ? csi : m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 
 	TRACE_ENTER2("comp:'%s'", comp->name.value);
+	LOG_IN("Assigning '%s' %s to '%s'", csiname, ha_state[curr_csi->si->curr_state], comp->name.value);
 
 	/* skip assignments to failed / unregistered comp */
 	if (!m_AVND_SU_IS_RESTART(comp->su) &&
@@ -1381,8 +1385,11 @@ uint32_t avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	bool is_assigned = false;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	char *csiname = csi ? (char*)csi->name.value : "all CSIs";
 
 	TRACE_ENTER2("comp: '%s' : csi: '%p'", comp->name.value, csi);
+	LOG_IN("Removing '%s' from '%s'", csiname, comp->name.value);
+
 	/* skip removal from failed / unregistered comp */
 	if (m_AVND_COMP_IS_FAILED(comp) || (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) && ((!m_AVND_COMP_IS_REG(comp)
 											   &&
@@ -1680,8 +1687,12 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 {
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	char *csiname = csi ? (char*)csi->name.value : "all CSIs";
 
 	TRACE_ENTER2("comp: '%s'", comp->name.value);
+
+	curr_csi = (csi) ? csi : m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
+	LOG_IN("Assigned '%s' %s to '%s'", csiname, ha_state[curr_csi->si->curr_state], comp->name.value);
 
 	/* 
 	 * csi-done indication is only generated for pi su.. 
@@ -1791,8 +1802,10 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 {
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	char *csiname = csi ? (char*)csi->name.value : "all CSIs";
 
 	TRACE_ENTER2("'%s' '%s'", comp->name.value, csi ? csi->name.value : NULL);
+	LOG_IN("Removed '%s' from '%s'", csiname, comp->name.value);
 
 	/* 
 	 * csi-remove indication is only generated for pi su.. 
