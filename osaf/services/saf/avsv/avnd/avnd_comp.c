@@ -1514,32 +1514,8 @@ uint32_t avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
 	/* check whether previous assign state was assignig and the operation was target_all
 	 * if it was target all, we will reassign csi with target_all flag  
 	 */
-	if (m_AVND_COMP_IS_ALL_CSI(comp)) {
-		curr = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-		while (curr) {
-			if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr)) {
-				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr, AVND_COMP_CSI_ASSIGN_STATE_RESTARTING);
-			} else if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr)) {
-				/* mark the csi state assigning */
-				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
-			}
-
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
-			curr = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&curr->comp_dll_node));
-		}
-
-		/* get first csi */
-		curr = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-
-		if (curr && (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr) ||
-			     m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr)))
-			avnd_comp_cbk_send(cb, curr->comp, AVSV_AMF_CSI_SET, 0, 0);
-		else if (curr && m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_REMOVING(curr))
-			/* generate csi-remove-done event... csi may be deleted */
-			rc = avnd_comp_csi_remove_done(cb, curr->comp, 0);
-
-		return rc;
-	}
+	if (m_AVND_COMP_IS_ALL_CSI(comp))
+		m_AVND_COMP_ALL_CSI_RESET(comp);
 
 	/* scan the comp-csi list & reassign the csis */
 	curr = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
@@ -1564,13 +1540,8 @@ uint32_t avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
 		if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr) ||
 		    m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr) ||
 		    m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_RESTARTING(curr)) {
-			if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr)
-			    || m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_RESTARTING(curr)) {
-				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr, AVND_COMP_CSI_ASSIGN_STATE_RESTARTING);
-			} else {
-				/* mark the csi state assigning */
-				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
-			}
+			/* mark the csi state assigning */
+			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
 
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 
