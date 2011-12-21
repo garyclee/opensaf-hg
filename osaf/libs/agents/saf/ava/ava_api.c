@@ -2198,7 +2198,8 @@ SaAisErrorT saAmfProtectionGroupTrack_4(SaAmfHandleT hdl,
 
 	if (!csi_name || !(csi_name->length) || (csi_name->length > SA_MAX_NAME_LENGTH)) {
 		TRACE_LEAVE2("Incorrect arguments");
-		return SA_AIS_ERR_INVALID_PARAM;
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
 	}
 
 	if (!m_AVA_PG_FLAG_IS_VALID(flags)) {
