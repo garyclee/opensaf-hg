@@ -42,6 +42,7 @@
 #define SMF_CAMP_MAX_RESTART_ATTR "smfCampMaxRestart"
 #define SMF_IMM_PERSIST_CMD_ATTR  "smfImmPersistCmd"
 #define SMF_NODE_REBOOT_CMD_ATTR  "smfNodeRebootCmd"
+#define SMF_INACTIVATE_PBE_ATTR   "smfInactivatePbeDuringUpgrade"
 
 #define SMF_UPDATE_ELAPSED_TIME_INTERVAL 10000
 

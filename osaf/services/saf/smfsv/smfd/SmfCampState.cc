@@ -662,6 +662,13 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	TRACE("Create the SmfCampRestartInfo object");
 	i_camp->createCampRestartInfo();
 
+	//Disable IMM PBE
+	if (i_camp->disablePbe() != SA_AIS_OK) {
+		std::string error = "Fails to disable IMM PBE";
+		LOG_ER("%s", error.c_str());
+		goto exit_error;
+	}
+
 	//Preparation is ready, change state and execute campaign initialization
 	changeState(i_camp, SmfCampStateExecuting::instance());
 
@@ -1073,6 +1080,9 @@ SmfCampStateExecCompleted::commit(SmfUpgradeCampaign * i_camp)
 
 	changeState(i_camp, SmfCampStateCommitted::instance());
 	LOG_NO("CAMP: Upgrade campaign committed %s", i_camp->getCampaignName().c_str());
+
+	//Activate IMM BPE if active when campaign was started.
+	i_camp->restorePbe();
 
 	// TODO Start wait to allow new campaign timer
 	LOG_NO("CAMP: Start wait to allow new campaign timer (not implemented yet)");
@@ -2119,6 +2129,9 @@ SmfCampRollbackCompleted::commit(SmfUpgradeCampaign * i_camp)
 
 	changeState(i_camp, SmfCampRollbackCommitted::instance());
 	LOG_NO("CAMP: Upgrade campaign rollback committed %s", i_camp->getCampaignName().c_str());
+
+	//Activate IMM BPE if active when campaign was started.
+	i_camp->restorePbe();
 
 	// TODO Start wait to allow new campaign timer
 	LOG_NO("CAMP: Start wait to allow new campaign timer (not implemented yet)");

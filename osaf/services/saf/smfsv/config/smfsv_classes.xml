@@ -351,6 +351,12 @@
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
 		</attr>
+		<attr>
+			<name>smfInactivatePbeDuringUpgrade</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
 	</class>
 	<class name="OpenSafSmfCampRestartInfo">
 		<category>SA_RUNTIME</category>
@@ -390,6 +396,16 @@
 		<category>SA_RUNTIME</category>
 		<rdn>
 			<name>smfCampaignRestartIndicator</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</rdn>
+	</class>
+	<class name="OpenSafSmfPbeIndicator">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safRdn</name>
 			<type>SA_STRING_T</type>
 			<category>SA_RUNTIME</category>
 			<flag>SA_PERSISTENT</flag>
