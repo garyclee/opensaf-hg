@@ -784,6 +784,17 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 
 	LOG_NO("Node reboot cmd = %s", smfNodeRebootCmd);
 
+	unsigned int tmp_pbe_off;
+	const SaUint32T *smfInactivatePbeDuringUpgrade = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes,
+									    SMF_INACTIVATE_PBE_ATTR, 0);
+
+	if (smfInactivatePbeDuringUpgrade == NULL) {
+		//Not found, set default value
+		tmp_pbe_off = 1;//IMM PBE will be turned off during upgrade
+		smfInactivatePbeDuringUpgrade = &tmp_pbe_off;
+	}
+	LOG_NO("Turn PBE off during upgrade = %u", *smfInactivatePbeDuringUpgrade);
+
 	//////////////////////////////////
 	//End of schema upgrade attributes
 	//////////////////////////////////
@@ -802,6 +813,7 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 	cb->smfCampMaxRestart = *smfCampMaxRestart;
 	cb->smfImmPersistCmd = strdup(smfImmPersistCmd);
 	cb->smfNodeRebootCmd = strdup(smfNodeRebootCmd);
+	cb->smfInactivatePbeDuringUpgrade = *smfInactivatePbeDuringUpgrade;
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;

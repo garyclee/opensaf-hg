@@ -548,6 +548,151 @@ SmfUpgradeCampaign::tooManyRestarts(bool *o_result)
 	return rc;
 }
 
+// ------------------------------------------------------------------------------
+// disablePbe()
+// ------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeCampaign::disablePbe()
+{
+	TRACE_ENTER();
+	if (smfd_cb->smfInactivatePbeDuringUpgrade == 0){ //False
+		TRACE_LEAVE();
+		return SA_AIS_OK;
+	}
+
+	//Disable IMM PBE
+	//Read the attr saImmRepositoryInit in object "safRdn=immManagement,safApp=safImmService" 
+	//Create a OpenSafSmfPbeIndicator object with DN "safRdn=smfPbeIndicator,safApp=safSmfService"
+	//if PBE is activated i.e. saImmRepositoryInit=1
+
+	SaAisErrorT rc = SA_AIS_OK;
+	SmfImmUtils immUtil;
+	SaImmAttrValuesT_2 **attributes;
+
+	if (immUtil.getObject("safRdn=immManagement,safApp=safImmService", &attributes) == false) {
+		LOG_ER("Failed to get imm object safRdn=immManagement,safApp=safImmService");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_ACCESS;
+	}
+
+	const SaUint32T* immRepositoryInit = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
+						  "saImmRepositoryInit", 0);
+	if(immRepositoryInit == NULL) {
+		LOG_ER("Failed to read attribute saImmRepositoryInit in object SaImmMngt");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_ACCESS;
+	}
+
+	if (*immRepositoryInit != 1) { //PBE not active)
+		LOG_NO("IMM PBE is not active, do nothing");
+		TRACE_LEAVE();
+		return SA_AIS_OK;
+	}
+
+	//PBE is active
+	//Disable PBE, set immRepositoryInit=2
+	std::list < SmfImmOperation * > operations;
+	SmfImmModifyOperation modifyOper;
+	modifyOper.setDn("safRdn=immManagement,safApp=safImmService");
+	modifyOper.setOp("SA_IMM_ATTR_VALUES_REPLACE");
+	SmfImmAttribute saImmRepositoryInit;
+	saImmRepositoryInit.setName("saImmRepositoryInit");
+	saImmRepositoryInit.setType("SA_IMM_ATTR_SAUINT32T");
+	saImmRepositoryInit.addValue("2");  //PBE disabled
+	modifyOper.addValue(saImmRepositoryInit);
+	rc = modifyOper.execute();
+	operations.push_back(&modifyOper);
+	if ((rc = immUtil.doImmOperations(operations)) != SA_AIS_OK) {
+ 		LOG_ER("Can not disable IMM PBE, rc=%d", rc);
+		TRACE_LEAVE();
+		return rc;
+        }
+
+	//Create the OpenSafSmfPbeIndicator object
+	SmfImmRTCreateOperation icoSmfPbeIndicator;
+
+	icoSmfPbeIndicator.setClassName("OpenSafSmfPbeIndicator");
+	icoSmfPbeIndicator.setParentDn("safApp=safSmfService");
+	icoSmfPbeIndicator.setImmHandle(SmfCampaignThread::instance()->getImmHandle());
+
+	SmfImmAttribute attrsafRdn;
+	attrsafRdn.setName("safRdn");
+	attrsafRdn.setType("SA_IMM_ATTR_SASTRINGT");
+	attrsafRdn.addValue("safRdn=smfPbeIndicator");
+	icoSmfPbeIndicator.addValue(attrsafRdn);
+
+	rc = icoSmfPbeIndicator.execute(); //Create the object
+	if (rc != SA_AIS_OK){
+		LOG_ER("icoSmfPbeIndicator.execute() returned %d", rc);
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+// ------------------------------------------------------------------------------
+// restorePbe()
+// ------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeCampaign::restorePbe()
+{
+	TRACE_ENTER();
+	if (smfd_cb->smfInactivatePbeDuringUpgrade == 0){ //False
+		TRACE_LEAVE();
+		return SA_AIS_OK;
+	}
+
+ 	//Restore IMM PBE if it was previously activated
+	//Try to read object "safRdn=smfPbeIndicator,safApp=safSmfService". If found
+	//set the "safRdn=immManagement,safApp=safImmService" attribute saImmRepositoryInit=1
+	//to acticate IMM PBE.
+
+	SaAisErrorT rc = SA_AIS_OK;
+	SmfImmUtils immUtil;
+	SaImmAttrValuesT_2 **attributes;
+
+	//Get the saved state if IMM PBE, if smfPbeIndicator is not found IMM PBE shall not be touched.
+	//Note: When introducing SMF PBE on/off functionality (upgrade), the smfPbeIndicator will not be found and 
+	//      no action will be taken.
+	if (immUtil.getObject("safRdn=smfPbeIndicator,safApp=safSmfService", &attributes) == false) {
+		LOG_NO("IMM PBE was not turned off at campaign start and will not be turned on at commit.");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_ACCESS;
+	}
+
+	//The object was found i.e. the IMM PBE shall be activated.
+	//Delete the "safRdn=smfPbeIndicator,safApp=safSmfService" object
+	std::string dn("safRdn=smfPbeIndicator,safApp=safSmfService");
+        SaNameT objectName;
+	objectName.length = dn.length();
+	strncpy((char *)objectName.value, dn.c_str(), objectName.length);
+	objectName.value[objectName.length] = 0;
+
+	rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),
+					   &objectName);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("Fail to delete object %s,continue. rc=%d", dn.c_str(), rc);
+	}
+
+ 	//Enable PBE, set immRepositoryInit=1
+	std::list < SmfImmOperation * > operations;
+	SmfImmModifyOperation modifyOper;
+	modifyOper.setDn("safRdn=immManagement,safApp=safImmService");
+	modifyOper.setOp("SA_IMM_ATTR_VALUES_REPLACE");
+	SmfImmAttribute saImmRepositoryInit;
+	saImmRepositoryInit.setName("saImmRepositoryInit");
+	saImmRepositoryInit.setType("SA_IMM_ATTR_SAUINT32T");
+	saImmRepositoryInit.addValue("1");  //SA_IMM_KEP_RESPOSITORY (PBE active)
+	modifyOper.addValue(saImmRepositoryInit);
+	operations.push_back(&modifyOper);
+	if ((rc = immUtil.doImmOperations(operations)) != SA_AIS_OK) {
+		LOG_ER("Can not enable IMM PBE, continue. rc=%d", rc);
+        }
+
+	TRACE_LEAVE();
+	return rc;
+}
+
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------

@@ -65,6 +65,10 @@
 			<name>smfNodeRebootCmd</name>
 			<value>reboot</value>
 		</attr>
+		<attr>
+			<name>smfInactivatePbeDuringUpgrade</name>
+			<value>1</value>
+		</attr>
 	</object>
 	<object class="SaAmfCompBaseType">
 		<dn>safCompType=OpenSafCompTypeSMF</dn>

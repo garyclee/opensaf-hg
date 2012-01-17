@@ -58,6 +58,7 @@ typedef struct smfd_cb {
 	SaUint32T smfCampMaxRestart;	            /* Max number of campaign restarts */
 	char *smfImmPersistCmd;	                    /* Command for IMM persistance */
 	char *smfNodeRebootCmd;	                    /* Command for node reboot */
+	SaUint32T smfInactivatePbeDuringUpgrade;    /* True (1) if PBE shall be deactivated during upgrade */
 	SaInvocationT cbk_inv_id;                   /* Invocation ID of the callback */
 	SMFD_SMFND_ADEST_INVID_MAP *smfnd_list;     /* SMFNDs need to respond to the callback. */
 	uint32_t no_of_smfnd;

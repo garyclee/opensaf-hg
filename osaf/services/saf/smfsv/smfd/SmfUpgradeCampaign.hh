@@ -263,6 +263,18 @@ class SmfUpgradeCampaign {
 	SaAisErrorT tooManyRestarts(bool *o_result);
 
 ///
+/// Purpose: Disable IMM persistent backend (PBE)
+/// @return  SaAisErrorT
+///
+	SaAisErrorT disablePbe();
+
+///
+/// Purpose: Activate IMM persistent backend (PBE) if activated when campaign was started
+/// @return  SaAisErrorT
+///
+	SaAisErrorT restorePbe();
+
+///
 /// Purpose: Start or continue the execution of the campaign.
 /// @param   None.
 /// @return  None.
