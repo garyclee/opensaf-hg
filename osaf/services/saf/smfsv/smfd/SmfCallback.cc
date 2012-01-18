@@ -184,6 +184,7 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
 
 	inv_id_sent = smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.inv_id;
 	if (m_time != 0){
+		smfd_cb_lock();
 		new_inv_id = (SMFD_SMFND_ADEST_INVID_MAP*)calloc (1, sizeof(SMFD_SMFND_ADEST_INVID_MAP));
 		new_inv_id->inv_id = inv_id_sent;
 		new_inv_id->no_of_cbks = smfd_cb->no_of_smfnd;
@@ -201,6 +202,7 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
 			}
 			temp->next_invid = new_inv_id;
 		}
+		smfd_cb_unlock();
 	}
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = smfd_cb->mds_handle;
@@ -272,6 +274,7 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
 	}
 rem_invid:
 	if (m_time != 0) {
+		smfd_cb_lock();
 		temp = smfd_cb->smfnd_list;
 		if (temp != NULL) {
 			if (temp->inv_id == new_inv_id->inv_id) {
@@ -286,6 +289,7 @@ rem_invid:
 			/* free new_inv_id */
 			free(new_inv_id);
 		}
+		smfd_cb_unlock();
 	}
 	free(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label);
 	if (smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params != NULL) {

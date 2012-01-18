@@ -77,6 +77,9 @@ extern "C" {
 			    SaImmAttrNameT attributeName,
 			    SaImmValueTypeT attrValueType, void *value);
 
+	void smfd_cb_lock();
+	void smfd_cb_unlock();
+
 #ifdef __cplusplus
 }
 #endif
