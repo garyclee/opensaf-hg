@@ -151,6 +151,7 @@ void proc_callback_rsp(smfd_cb_t *cb, SMFSV_EVT *evt)
 		return;
 	}
 	else if (cbk_rsp->evt_type == SMF_RSP_EVT) {
+		smfd_cb_lock();
 		SMFD_SMFND_ADEST_INVID_MAP *prev=NULL, *temp = smfd_cb->smfnd_list;
 
 		TRACE_2("Received evt_type: %d, inv_id: %llu, err: %d", cbk_rsp->evt_type,
@@ -212,6 +213,7 @@ void proc_callback_rsp(smfd_cb_t *cb, SMFSV_EVT *evt)
 			prev = temp;
 			temp = temp->next_invid;
 		}
+		smfd_cb_unlock();
 	}
 	TRACE_LEAVE();
 	return;

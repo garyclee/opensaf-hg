@@ -81,7 +81,7 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 					<online command="/hostfs/online_remove.sh" args="5.5.5"></online>
 				</removal>
 				<installation>
-					<offline command="/hostfs/offline_install.sh" args="5.5.5" saSmfBundleInstallOfflineScope="4"></offline>
+					<offline command="/hostfs/offline_install.sh" args="5.5.5" saSmfBundleInstallOfflineScope="1"></offline>
 					<online command="/hostfs/online_install.sh" args="5.5.5"></online>
 				</installation>
 				<defaultCliTimeout saSmfBundleDefaultCmdTimeout="60000000000" />
@@ -92,7 +92,7 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 					<online command="/hostfs/online_remove.sh" args="6.6.6"></online>
 				</removal>
 				<installation>
-					<offline command="/hostfs/offline_install.sh" args="6.6.6" saSmfBundleInstallOfflineScope="4"></offline>
+					<offline command="/hostfs/offline_install.sh" args="6.6.6" saSmfBundleInstallOfflineScope="1"></offline>
 					<online command="/hostfs/online_install.sh" args="6.6.6"></online>
 				</installation>
 				<defaultCliTimeout saSmfBundleDefaultCmdTimeout="60000000000" />
@@ -103,7 +103,7 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 					<online command="/hostfs/online_remove.sh" args="7.7.7"></online>
 				</removal>
 				<installation>
-					<offline command="/hostfs/offline_install.sh" args="7.7.7" saSmfBundleInstallOfflineScope="4"></offline>
+					<offline command="/hostfs/offline_install.sh" args="7.7.7" saSmfBundleInstallOfflineScope="1"></offline>
 					<online command="/hostfs/online_install.sh" args="7.7.7"></online>
 				</installation>
 				<defaultCliTimeout saSmfBundleDefaultCmdTimeout="60000000000" />
@@ -177,11 +177,11 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 			<plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"></plmExecEnv>
 			<plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"></plmExecEnv>
 -->
-		<callback callbackLabel="campInitAction_callback" time="100000" stringToPass="CIA"> </callback>
+		<callback callbackLabel="campInitAction_callback" time="100000000000" stringToPass="CIA"> </callback>
 		</campInitAction>
-		<callbackAtInit callbackLabel="init_callback" time="100000" stringToPass="CAI"></callbackAtInit>
-		<callbackAtBackup callbackLabel="backup_callback" time="100000" stringToPass="CAB"></callbackAtBackup>
-		<callbackAtRollback callbackLabel="rollback_callback" time="100000" stringToPass="CAR"></callbackAtRollback>
+		<callbackAtInit callbackLabel="init_callback" time="100000000000" stringToPass="CAI"></callbackAtInit>
+		<callbackAtBackup callbackLabel="backup_callback" time="100000000000" stringToPass="CAB"></callbackAtBackup>
+		<callbackAtRollback callbackLabel="rollback_callback" time="100000000000" stringToPass="CAR"></callbackAtRollback>
 	</campaignInitialization>
 	<!--  
 	The first procedure updates the component from 4.0.0 to 5.5.5. 
@@ -195,7 +195,7 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 			<procedurePeriod saSmfProcPeriod="12345678" />
 		</outageInfo>
 		<procInitAction>
-		<callback callbackLabel="procInitAction_callback" time="100000" stringToPass="PIA"> </callback>
+		<callback callbackLabel="procInitAction_callback" time="100000000000" stringToPass="PIA"> </callback>
 		</procInitAction>
 		<upgradeMethod>
 			<rollingUpgrade>
@@ -203,12 +203,12 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 					<byTemplate>
 						<targetNodeTemplate objectDN="safAmfNodeGroup=AllNodes,safAmfCluster=myAmfCluster">
 							<activationUnitTemplate>
-								<type objectDN="safVersion=4.0.0,safCompType=AmfDemo1"></type>
+								<type objectDN="safVersion=1,safCompType=AmfDemo1"></type>
 							</activationUnitTemplate>
 							<swAdd bundleDN="safSmfBundle=5.5.5,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
 						</targetNodeTemplate>
 						<targetEntityTemplate>
-							<type objectDN="safVersion=4.0.0,safCompType=AmfDemo1"></type>
+							<type objectDN="safVersion=1,safCompType=AmfDemo1"></type>
 							<modifyOperation operation="SA_IMM_ATTR_VALUES_REPLACE">
 								<attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
 									<value>safVersion=5.5.5,safCompType=AmfDemo1</value>
@@ -226,7 +226,7 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 							<beforeLock />
 						</atAction>
 					</customizationTime>
-					<callback callbackLabel="everystep_beforelock_callback" time="100000" stringToPass="BL" > </callback>
+					<callback callbackLabel="everystep_beforelock_callback" time="100000000000" stringToPass="BL" > </callback>
 					<customizationTime>
 						<onStep> 
 							<onEveryStep /> 
@@ -235,7 +235,7 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 							<beforeTermination />
 						</atAction>
 					</customizationTime>
-					<callback callbackLabel="everystep_beforeterm_callback" time="100000" stringToPass="BT" > </callback>
+					<callback callbackLabel="everystep_beforeterm_callback" time="100000000000" stringToPass="BT" > </callback>
 					<customizationTime>
 						<onStep> 
 							<onEveryStep /> 
@@ -244,7 +244,7 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 							<afterImmModification />
 						</atAction>
 					</customizationTime>
-					<callback callbackLabel="everystep_afterImm_callback" time="100000" stringToPass="AIM"> </callback>
+					<callback callbackLabel="everystep_afterImm_callback" time="100000000000" stringToPass="AIM"> </callback>
 					<customizationTime>
 						<onStep> 
 							<onEveryStep /> 
@@ -253,7 +253,7 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 							<afterInstantiation />
 						</atAction>
 					</customizationTime>
-					<callback callbackLabel="everystep_afterInstantiate_callback" time="100000" stringToPass="AIN"> </callback>
+					<callback callbackLabel="everystep_afterInstantiate_callback" time="100000000000" stringToPass="AIN"> </callback>
 					<customizationTime>
 						<onStep> 
 							<onEveryStep /> 
@@ -262,7 +262,7 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 							<afterUnlock />
 						</atAction>
 					</customizationTime>
-					<callback callbackLabel="everystep_afterunlock_callback" time="100000" stringToPass="AUN"> </callback>
+					<callback callbackLabel="everystep_afterunlock_callback" time="100000000000" stringToPass="AUN"> </callback>
 				</upgradeStep>
 			</rollingUpgrade>
 		</upgradeMethod>
@@ -461,10 +461,10 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
         	</removeFromImm>
 		<callbackAtCommit callbackLabel="commit_callback" ></callbackAtCommit>
 		<campWrapupAction>
-		<callback callbackLabel="campWrapupAction_callback" time="100000" stringToPass="CWA"> </callback>
+		<callback callbackLabel="campWrapupAction_callback" time="100000000000" stringToPass="CWA"> </callback>
 		</campWrapupAction>
 		<campCompleteAction>
-		<callback callbackLabel="campCompAction_callback" time="100000" stringToPass="CCA"> </callback>
+		<callback callbackLabel="campCompAction_callback" time="100000000000" stringToPass="CCA"> </callback>
 		</campCompleteAction>
 	</campaignWrapup>
 </upgradeCampaign>

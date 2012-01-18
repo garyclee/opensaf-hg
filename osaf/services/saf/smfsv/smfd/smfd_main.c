@@ -69,6 +69,7 @@ static const SaNameT _smfApplDN = {
 
 const SaNameT *smfApplDN = &_smfApplDN;
 
+
 /* ========================================================================
  *   FUNCTION PROTOTYPES
  * ========================================================================
@@ -83,6 +84,22 @@ static void usr1_sig_handler(int sig)
 	/*signal(SIGUSR1, SIG_IGN); */
 	if (smfd_cb->amf_hdl == 0)
 		ncs_sel_obj_ind(smfd_cb->usr1_sel_obj);
+}
+
+void smfd_cb_lock()
+{
+	if (pthread_mutex_lock(&(smfd_cb->lock)) != 0) {
+		LOG_ER("Lock failed pthread_mutex_lock");
+		abort();
+	}	
+}
+
+void smfd_cb_unlock()
+{
+	if (pthread_mutex_unlock(&(smfd_cb->lock)) != 0) {
+		LOG_ER("Unlock failed pthread_mutex_unlock");
+		abort();
+	}
 }
 
 /****************************************************************************
@@ -101,6 +118,8 @@ uint32_t smfd_cb_init(smfd_cb_t * smfd_cb)
 {
 	TRACE_ENTER();
 
+	pthread_mutexattr_t mutex_attr;
+
 	/* Assign Initial HA state */
 	smfd_cb->ha_state = SMFD_HA_INIT_STATE;
 
@@ -117,6 +136,28 @@ uint32_t smfd_cb_init(smfd_cb_t * smfd_cb)
 	smfd_cb->repositoryCheckCmd = NULL;
 	smfd_cb->clusterRebootCmd = NULL;
 	smfd_cb->smfnd_list = NULL;
+
+	if (pthread_mutexattr_init(&mutex_attr) != 0) {
+		LOG_ER("Failed pthread_mutexattr_init");
+		return NCSCC_RC_FAILURE;
+	}
+
+	if (pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE) != 0) {
+		LOG_ER("Failed pthread_mutexattr_settype");
+		pthread_mutexattr_destroy(&mutex_attr);
+		return NCSCC_RC_FAILURE;
+	}
+
+	if (pthread_mutex_init(&(smfd_cb->lock), &mutex_attr) != 0) {
+		LOG_ER("Failed pthread_mutex_init");
+		pthread_mutexattr_destroy(&mutex_attr);
+		return NCSCC_RC_FAILURE;
+	}
+
+	if (pthread_mutexattr_destroy(&mutex_attr) != 0) {
+		LOG_ER("Failed pthread_mutexattr_destroy");
+		return NCSCC_RC_FAILURE;
+	}
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;

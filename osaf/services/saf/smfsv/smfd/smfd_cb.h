@@ -61,7 +61,7 @@ typedef struct smfd_cb {
 	SaInvocationT cbk_inv_id;                   /* Invocation ID of the callback */
 	SMFD_SMFND_ADEST_INVID_MAP *smfnd_list;     /* SMFNDs need to respond to the callback. */
 	uint32_t no_of_smfnd;
-
+	pthread_mutex_t lock;                     /* Used by smfd_cb_t lock/unlock functions */
 } smfd_cb_t;
 
 #ifdef __cplusplus
