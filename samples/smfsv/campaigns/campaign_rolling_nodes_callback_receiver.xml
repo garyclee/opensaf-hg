@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+ <!--
+    This campaign call SMF callback to send commands to the SMF built in callback receiver.
+    The campaign consists of one procedure rolling over the nodes in the cluster but make no updates.
+	
+    Prerequisites;
+    ==============
+    Command campaign_script.sh located in the same directory as the upgrade campaign.
+
+    Execution;
+    ==========
+    immcfg -c SaSmfCampaign -a saSmfCmpgFileUri=/hostfs/campaign_rolling_nodes_callback_receiver.xml\
+      safSmfCampaign=campaign_rolling_nodes_callback_receiver,safApp=safSmfService
+    immadm -o 1 safSmfCampaign=campaign_rolling_nodes_callback_receiver,safApp=safSmfService
+    immlist safSmfCampaign=campaign_rolling_nodes_callback_receiver,safApp=safSmfService
+    immadm -o 4 safSmfCampaign=campaign_rolling_nodes_callback_receiver,safApp=safSmfService
+
+    Expected outcome;
+    =================
+    The campaign shall be successfully executed and rolled back.
+    The callbacks shall have been executed:
+    -OsafSmfCbkUtil-Cmd label in upgrade and rollback directions.
+    -OsafSmfCbkUtil-UpgradeCmd label in upgrade direction.
+    -OsafSmfCbkUtil-RollbackCmd label in rollback direction.
+  -->
+    
+<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+safSmfCampaign="safSmfCampaign=campaign_rolling_nodes_callback_receiver">
+	<campaignInfo>
+		<campaignPeriod />
+	</campaignInfo>
+	<campaignInitialization>
+		<addToImm>
+		</addToImm>
+	</campaignInitialization>
+	<upgradeProcedure safSmfProcedure="safSmfProc=TestBuiltInCallbackRec" saSmfExecLevel="1">
+		<outageInfo>
+			<acceptableServiceOutage>
+				<all />
+			</acceptableServiceOutage>
+			<procedurePeriod saSmfProcPeriod="60000000000" />
+		</outageInfo>
+		<upgradeMethod>
+			<rollingUpgrade>
+				<upgradeScope>
+					<byTemplate>
+						<targetNodeTemplate objectDN="safAmfCluster=myAmfCluster">
+						</targetNodeTemplate>
+					</byTemplate>
+				</upgradeScope>
+				<upgradeStep saSmfStepRestartOption="1" saSmfStepMaxRetry="0">
+					<customizationTime>
+						<onStep> <onEveryStep/> </onStep>
+						<atAction> <afterUnlock/> </atAction>
+					</customizationTime>
+					<callback callbackLabel="OsafSmfCbkUtil-Cmd" time="60000000000" stringToPass="$OSAFCAMPAIGNROOT/campaign_script.sh OsafSmfCbkUtil-Cmd"/> 
+					<customizationTime>
+						<onStep> <onEveryStep/> </onStep>
+						<atAction> <afterUnlock/> </atAction>
+					</customizationTime>
+					<callback callbackLabel="OsafSmfCbkUtil-UpgradeCmd" time="60000000000" stringToPass="$OSAFCAMPAIGNROOT/campaign_script.sh OsafSmfCbkUtil-UpgradeCmd"/> 
+					<customizationTime>
+						<onStep> <onEveryStep/> </onStep>
+						<atAction> <afterUnlock/> </atAction>
+					</customizationTime>
+					<callback callbackLabel="OsafSmfCbkUtil-RollbackCmd" time="60000000000" stringToPass="$OSAFCAMPAIGNROOT/campaign_script.sh OsafSmfCbkUtil-RollbackCmd"/> 
+				</upgradeStep>
+			</rollingUpgrade>
+		</upgradeMethod>
+	</upgradeProcedure>
+	<campaignWrapup>
+		<waitToCommit />
+		<waitToAllowNewCampaign />
+		<removeFromImm />
+	</campaignWrapup>
+</upgradeCampaign>

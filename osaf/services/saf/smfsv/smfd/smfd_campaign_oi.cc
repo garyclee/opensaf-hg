@@ -40,6 +40,7 @@
 #include "SmfProcedureThread.hh"
 #include "SmfUtils.hh"
 #include "SmfCampState.hh"
+#include "SmfCbkUtil.hh"
 
 static SaVersionT immVersion = { 'A', 2, 1 };
 static const SaImmOiImplementerNameT implementerName = (SaImmOiImplementerNameT) "safSmfService";
@@ -537,6 +538,13 @@ uint32_t campaign_oi_activate(smfd_cb_t * cb)
 		return NCSCC_RC_FAILURE;
 	}
 
+	/* Start the callback util thread */
+	/* Will make it possible to run commands using the SMF API callback */
+	if (SmfCbkUtilThread::start() != 0) {
+		LOG_ER("Start of SmfCbkUtilThread FAILED");
+		return NCSCC_RC_FAILURE;
+	}
+
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -574,6 +582,9 @@ uint32_t campaign_oi_deactivate(smfd_cb_t * cb)
 
 	/* The thread should now be terminated, cleanup */
 	SmfCampaignList::instance()->cleanup();
+
+	/* Stop the callback util thread */
+	SmfCbkUtilThread::terminate();
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;

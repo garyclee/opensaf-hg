@@ -47,7 +47,8 @@ noinst_HEADERS = \
 	SmfRollback.hh \
 	SmfCampaignWrapup.hh \
 	SmfCampaignInit.hh \
-	SmfCallback.hh
+	SmfCallback.hh \
+	SmfCbkUtil.hh
 
 osafsmfd_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 
@@ -86,7 +87,8 @@ osafsmfd_SOURCES = \
 	SmfRollback.cc \
 	SmfCampaignInit.cc \
 	SmfCampaignWrapup.cc \
-	SmfCallback.cc
+	SmfCallback.cc \
+	SmfCbkUtil.cc
 
 osafsmfd_LDFLAGS = \
 	$(AM_LDFLAGS) \
@@ -95,6 +97,7 @@ osafsmfd_LDFLAGS = \
 osafsmfd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/smfsv/libsmfsv_common.la \
+	$(top_builddir)/osaf/libs/saf/libSaSmf/libSaSmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
