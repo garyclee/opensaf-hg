@@ -730,7 +730,7 @@ SmfCampaign::setCampaignXmlDir(std::string i_path)
  * getCampaignXmlDir
  * Get the directory of the campaign.xml file used
  */
-const std::string
+const std::string&
 SmfCampaign::getCampaignXmlDir()
 {
 	return m_campaignXmlDir;

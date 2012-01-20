@@ -89,7 +89,7 @@ class SmfCampaign {
 	void setUpgradeCampaign(SmfUpgradeCampaign * i_campaign);
 	SmfUpgradeCampaign *getUpgradeCampaign();
 	void setCampaignXmlDir(std::string i_path);
-	const std::string getCampaignXmlDir();
+	const std::string &getCampaignXmlDir();
         void adminOpBusy(bool busy) { m_adminOpBusy = busy; }
         void updateElapsedTime();
         void startElapsedTime();

@@ -48,9 +48,7 @@
 #include "SmfUpgradeMethod.hh"
 #include "SmfTargetTemplate.hh"
 #include "SmfUpgradeStep.hh"
-//#include "singlestepupgrade.h"
-//#include "node.h"
-//#include "upgradecomp.h"
+#include "SmfCbkUtil.hh"
 
 #if defined(LIBXML_XPATH_ENABLED) && defined(LIBXML_SAX1_ENABLED)
 
@@ -1004,24 +1002,7 @@ SmfCampaignXmlParser::parseCallback(
 		while (node != NULL) {
 			if (strcmp((char *)node->name, "callback") == 0 && node->ns == ns) {
 				TRACE("xmlTag callback found");
-				char *s;
-				std::string str;
-				s = (char *)xmlGetProp(node, (const xmlChar *) "callbackLabel");
-				if (s != NULL) {
-					str = s;
-					cb->m_callbackLabel = str;
-					xmlFree(s);
-				}
-				s = (char *)xmlGetProp(node, (const xmlChar *) "stringToPass");
-				if (s != NULL) {
-					cb->m_stringToPass = s;
-					xmlFree(s);
-				}
-				s = (char *)xmlGetProp(node, (const xmlChar *) "time");
-				if (s != NULL) {
-					cb->m_time = strtoll(s, NULL, 0);
-					xmlFree(s);
-				}
+				parseCallbackOptions(cb, node);
 				break;
 			}
 			node = node->next;
@@ -2319,7 +2300,7 @@ SmfCampaignXmlParser::parseCliCommandAction(SmfCliCommandAction * i_cmdAction, x
 	char *s;
 
 	while (cur != NULL) {
-		std::string dirpath = SmfCampaignThread::instance()->campaign()->getCampaignXmlDir();
+		const std::string &dirpath = SmfCampaignThread::instance()->campaign()->getCampaignXmlDir();
 		if ((!strcmp((char *)cur->name, "doCliCommand"))
 		    && (cur->ns == ns)) {
 			TRACE("xmlTag doCliCommand found");
@@ -2599,6 +2580,8 @@ SmfCampaignXmlParser::parseCallbackOptions(SmfCallback* i_cbk, xmlNode * i_node)
 	xmlNode *cur = i_node;
 	char *s;
 
+//#define SMF_UTIL_LABEL "OsafSmfCbkUtil-"
+
 	TRACE_ENTER();
 	if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"callbackLabel"))) {
 		TRACE("callback label = %s", s);
@@ -2607,7 +2590,22 @@ SmfCampaignXmlParser::parseCallbackOptions(SmfCallback* i_cbk, xmlNode * i_node)
 	}
 	if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"stringToPass"))) {
 		TRACE("args = %s", s);
-		i_cbk->m_stringToPass = s;
+
+		/* 
+		   The reason to modify the "stringToPass" content is to be able to easy call a command
+		   located in the sw bundle directory.If the "$OSAFCAMPAIGNROOT" token is found in the string 
+		   it is replaced with the directory of the campaign xml file.
+		   Normally the "$OSAFCAMPAIGNROOT" token is used in the "stringToPass" only when used to pass a string to
+		   the OpenSAF built in SMF API client, which listenen to to callback labels starting with "OsafSmfCbkUtil-".
+		   
+		   Since the "stringToPass" is always modified it is also possible to use the "$OSAFCAMPAIGNROOT" tag for all 
+		   "stringToPass" in any callbackLabel.
+		*/
+		const std::string &dirpath = SmfCampaignThread::instance()->campaign()->getCampaignXmlDir();
+		std::string str = replaceAllCopy(s, CAMPAIGN_ROOT_TAG, dirpath);
+		TRACE("Modified arg = %s", str.c_str());
+
+		i_cbk->m_stringToPass = str.c_str();
 		xmlFree(s);
 	}
 	if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"time"))) {
@@ -2617,6 +2615,7 @@ SmfCampaignXmlParser::parseCallbackOptions(SmfCallback* i_cbk, xmlNode * i_node)
 	}
 	TRACE_LEAVE();
 }
+
 // ------------------------------------------------------------------------------
 // parseCallbackAction()
 // ------------------------------------------------------------------------------
