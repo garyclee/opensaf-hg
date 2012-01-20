@@ -790,7 +790,7 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 
 	if (smfInactivatePbeDuringUpgrade == NULL) {
 		//Not found, set default value
-		tmp_pbe_off = 1;//IMM PBE will be turned off during upgrade
+		tmp_pbe_off = 0;//IMM PBE will not be touched if no configuration was found
 		smfInactivatePbeDuringUpgrade = &tmp_pbe_off;
 	}
 	LOG_NO("Turn PBE off during upgrade = %u", *smfInactivatePbeDuringUpgrade);
