@@ -171,11 +171,11 @@ struct ObjectInfo
 {
     ObjectInfo() : mAdminOwnerAttrVal(NULL), mCcbId(0),
                    mClassInfo(NULL), mImplementer(NULL),
-                   mObjFlags(0), mParent(NULL) {}
+                   mObjFlags(0), mParent(NULL), mChildCount(0) {}
 
     ~ObjectInfo() {mAdminOwnerAttrVal=NULL; mCcbId=0;
                    mClassInfo=NULL; mImplementer=NULL;
-                   mObjFlags=0; mParent=NULL;}
+                   mObjFlags=0; mParent=NULL; mChildCount=0;}
 
     void             getAdminOwnerName(std::string *str) const;
     
@@ -186,6 +186,7 @@ struct ObjectInfo
     ImplementerInfo* mImplementer;  //<-Points INTO ImplementerVector
     ImmObjectFlags   mObjFlags;
     ObjectInfo*      mParent;       //<-Points to parent object
+    SaUint32T        mChildCount;   //<-Nrof children, transitive
 };
 //typedef std::map<std::string, ObjectInfo*> ObjectMap;  
 
@@ -3356,9 +3357,10 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                     }
                     
                     if(err == SA_AIS_OK && scope != SA_IMM_ONE) {
+                        SaUint32T childCount = objectInfo->mChildCount;
                         // Find all sub objects to the root object
                         for (i1 = sObjectMap.begin(); 
-                             i1 != sObjectMap.end() && err == SA_AIS_OK; i1++){
+                             i1 != sObjectMap.end() && err == SA_AIS_OK && childCount; i1++){
                             std::string subObjName = i1->first;
                             if (subObjName.length() > objectName.length()) {
                                 size_t pos = 
@@ -3390,12 +3392,16 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                                                 }
                                             }
                                         }
+                                        --childCount;
                                         if(release) {
                                             err = adminOwnerRelease(subObjName,
                                                 subObj, adm, doIt);
                                         } else {
                                             err = adminOwnerSet(subObjName,
                                                 subObj, adm, doIt);
+                                        }
+                                        if(!childCount) {
+                                            TRACE("Cutoff in admo-change-loop by childCount");
                                         }
                                     }
                                 }
@@ -5139,6 +5145,12 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             if(parent) {
                 osafassert(mpm == sMissingParents.end());
                 object->mParent = parent;
+
+                ObjectInfo* grandParent = parent;
+                do {
+                    grandParent->mChildCount++;
+                    grandParent = grandParent->mParent;
+                } while(grandParent);
             } else if(mpm != sMissingParents.end()) {
                 mpm->second.insert(object);
                 //TRACE("Missing parent %s has child %p", parentName.c_str(), object);
@@ -5173,6 +5185,11 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     while(oi != mpm->second.end()) {
                         /* Correct the pointer from child to parent */
                         (*oi)->mParent = object;
+                        ObjectInfo* grandParent = object;
+                        do {
+                            grandParent->mChildCount += ((*oi)->mChildCount + 1);
+                            grandParent = grandParent->mParent;
+                        } while(grandParent);
                         //TRACE("Parent %s corrected for child %p", objectName.c_str(), *oi);
                         ++oi;
                     }
@@ -5871,21 +5888,26 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     }
     
     for(int doIt=0; (doIt < 2) && (err == SA_AIS_OK); ++doIt) {
+        SaUint32T childCount = oi->second->mChildCount;
         
         err = deleteObject(oi, reqConn, adminOwner, ccb, doIt, objNameVector,
             connVector, continuations, pbeConnPtr?(*pbeConnPtr):0);
         
         // Find all sub objects to the deleted object and delete them
         for (oi2 = sObjectMap.begin(); 
-             oi2 != sObjectMap.end() && err == SA_AIS_OK; oi2++) {
+             oi2 != sObjectMap.end() && err == SA_AIS_OK && childCount; oi2++) {
             std::string subObjName = oi2->first;
             if (subObjName.length() > objectName.length()) {
                 size_t pos = subObjName.length() - objectName.length();
                 if ((subObjName.rfind(objectName, pos) == pos) &&
                     (subObjName[pos-1] == ',')){
+                    --childCount;
                     err = deleteObject(oi2, reqConn, adminOwner, ccb, doIt, 
                         objNameVector, connVector, continuations, 
                         pbeConnPtr?(*pbeConnPtr):0);
+                    if(!childCount) {
+                        TRACE("Cutoff in ccb-obj-delete-loop by childCount");
+                    }
                 }
             }
         }
@@ -6999,6 +7021,7 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
     ObjectInfo* obj = NULL;
     ObjectMap::iterator omi;
     ObjectSet::iterator osi;
+    SaUint32T childCount=0;
     
     if(scope == SA_IMM_ONE) {
         return this->accessorGet(req, op);
@@ -7036,6 +7059,9 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
             err = SA_AIS_ERR_NOT_EXIST;
             goto searchInitializeExit;
         }
+        childCount = omi->second->mChildCount + 1; /* Add one for root itself */
+    } else {
+        childCount = 0xffffffff;
     }
     
     // Validate scope
@@ -7142,9 +7168,19 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
             osafassert(nameToInternal(objectName));
         }
     } else {
-        /* Initialize iteration for regular object-map as source */
-        omi = sObjectMap.begin();
-        osafassert(omi != sObjectMap.end()); /* sObjectMap can never be empty! */
+        if(childCount > 1) {
+            /* A root was provided and it has children => Initialize */
+            /* iteration for regular object-map as source */
+            omi = sObjectMap.begin();
+            osafassert(omi != sObjectMap.end()); /* sObjectMap can never be empty! */
+        } else {
+            TRACE("Singleton match");
+            assert(childCount == 1);
+            /* A root was provided but it has NO children => Keep cursor
+               pointing to the root. Childcount == 1 ensures iteration
+               will terminate as soon as root has been processed. 
+             */
+        }
         obj = omi->second;
         objectName = omi->first;
     }
@@ -7161,13 +7197,16 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
             size_t pos = objectName.length() - rootlen;
             if((objectName.rfind(rootName, pos) == pos)&&
                 (!pos //Object IS the current root
-                    || !rootlen //Empty root => all objects are sub-rootd.
+                    || !rootlen //Empty root => all objects are sub-root.
                     || (objectName[pos-1] == ',') //Root with subobject
                  )){
                 if(scope==SA_IMM_SUBTREE || checkSubLevel(objectName, pos)){
                     //Before adding the object to the result, check if there
                     //is any attribute match filter. If so check if there is a 
                     //match.
+                    osafassert(childCount);
+                    --childCount;
+
                     if(filter && !filterMatch(obj, (ImmsvOmSearchOneAttr *)
                        &(req->searchParam.choice.oneAttrParam), 
                        err, objectName.c_str())) {
@@ -7300,6 +7339,13 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
 
     continue_while_loop:
         obj = NULL;
+        if(!childCount) { /* We have found all the children of the root. */
+            TRACE("SearchInit has found all the children of the root");
+            if((++omi) != sObjectMap.end()) {
+                TRACE("Cutoff in search loop by childCount");
+            }
+            break;
+        }
         if(classInfo) {
             ++osi;
             if(osi != classInfo->mExtent.end()) {
@@ -8480,7 +8526,7 @@ ImmModel::purgeSyncRequest(SaUint32T clientId)
                 LOG_IN("Attempt to purge syncronous request for client connection,"
                     "and found an asyncronous admin op request for that connection,"
                     "ignoring the asyncronous continuation");
-		continue;
+                continue;
             }
 
             ciFound = ci2;
@@ -9333,16 +9379,21 @@ SaAisErrorT ImmModel::objectImplementerSet(const struct ImmsvOiImplSetReq* req,
         if(err == SA_AIS_OK && scope != SA_IMM_ONE) {
             // Find all sub objects to the root object
             //Warning re-using iterator i1 inside this loop!!!
-            for (i1 = sObjectMap.begin(); i1 != sObjectMap.end() && err == SA_AIS_OK; i1++){
+            SaUint32T childCount = rootObj->mChildCount;
+            for (i1 = sObjectMap.begin(); i1 != sObjectMap.end() && err == SA_AIS_OK && childCount; i1++){
                 std::string subObjName = i1->first;
                 if (subObjName.length() > objectName.length()) {
                     size_t pos = subObjName.length() - objectName.length();
                     if((subObjName.rfind(objectName, pos) == pos)&&
                        (subObjName[pos-1] == ',')) {
                         if(scope==SA_IMM_SUBTREE || checkSubLevel(subObjName, pos)) {
+                            --childCount;
                             ObjectInfo* subObj = i1->second;
                             err = setImplementer(subObjName, 
                             subObj, info, doIt);
+                            if(!childCount) {
+                                TRACE("Cutoff in impl-set-loop by childCount");
+                            }
                         }//if
                     }//if
                 }//if
@@ -9422,8 +9473,9 @@ SaAisErrorT ImmModel::objectImplementerRelease(
         if(err == SA_AIS_OK && scope != SA_IMM_ONE) {
             // Find all sub objects to the root object
             // Warning re-using iterator i1 inside this loop
+            SaUint32T childCount = rootObj->mChildCount;
             for (i1 = sObjectMap.begin(); 
-                 i1 != sObjectMap.end() && err == SA_AIS_OK; i1++) {
+                 i1 != sObjectMap.end() && err == SA_AIS_OK && childCount; i1++) {
                 std::string subObjName = i1->first;
                 if(subObjName.length() > objectName.length()) {
                     size_t pos = subObjName.length() - objectName.length();
@@ -9431,9 +9483,13 @@ SaAisErrorT ImmModel::objectImplementerRelease(
                        (subObjName[pos-1] == ',')) {
                         if(scope==SA_IMM_SUBTREE || 
                            checkSubLevel(subObjName, pos)){
+                            --childCount;
                             ObjectInfo* subObj = i1->second;
                             err =releaseImplementer(subObjName, subObj,
                                info, doIt);
+                            if(!childCount) {
+                                TRACE("Cutoff in impl-release-loop by childCount");
+                            }
                         }//if
                     }//if
                 }//if
@@ -10108,7 +10164,15 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
         object = new ObjectInfo();
         object->mClassInfo = classInfo;
         object->mImplementer = info;
-        object->mParent=parent;
+        if(parent) {
+            object->mParent=parent;
+
+            ObjectInfo* grandParent = parent;
+            do {
+                grandParent->mChildCount++;
+                grandParent = grandParent->mParent;
+            } while(grandParent);
+        }
         if(nameCorrected) {
             object->mObjFlags = IMM_DN_INTERNAL_REP;
         } 
@@ -11263,6 +11327,8 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
     
     for(int doIt=0; (doIt < 2) && (err == SA_AIS_OK); ++doIt) {
         void* pbe = NULL;
+        SaUint32T childCount = oi->second->mChildCount;
+
         if(doIt && pbeNodeIdPtr && subTreeHasPersistent) {
             TRACE("PRTO DELETE case, deferred deletes until ACK from PBE");
             /* We expect a PBE and the recursive RTO delete includes
@@ -11329,13 +11395,14 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
 
         //Find all sub objects to the deleted object and delete them 
         for(oi2 = sObjectMap.begin(); 
-            oi2 != sObjectMap.end() && err == SA_AIS_OK;) {
+            oi2 != sObjectMap.end() && err == SA_AIS_OK && childCount;) {
             bool deleted=false;
             std::string subObjName = oi2->first;
             if(subObjName.length() > objectName.length()) {
                 size_t pos = subObjName.length() - objectName.length();
                 if((subObjName.rfind(objectName, pos) == pos) &&
                     (subObjName[pos-1] == ',')) {
+                    --childCount;
                     if(doIt && pbeNodeIdPtr && subTreeHasPersistent) {
                         TRACE_5("Tentative delete of runtime object '%s' "
                             "by Impl %s pending PBE ack", subObjName.c_str(),
@@ -11363,6 +11430,9 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                         err = deleteRtObject(oi3, doIt, info, subTreeHasPersistent);
                         deleted = doIt;
                     }//else
+                    if(!childCount) {
+                        TRACE("Cutoff in rtObj delete loop by childCount");
+                    }
                 }//if
             }//if
             if(!deleted) {
@@ -11670,6 +11740,11 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
 
             } else {
                 object->mParent = i5->second;
+                ObjectInfo* grandParent = i5->second;
+                do {
+                    grandParent->mChildCount++;
+                    grandParent = grandParent->mParent;
+                } while (grandParent);
             }
         }
         
@@ -11811,7 +11886,12 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
                 while(oi != mpm->second.end()) {
                     /* Correct the pointer from child to parent */
                     (*oi)->mParent = object;
-                    //TRACE("Parent %s corrected for child %p", objectName.c_str(), *oi);
+                    ObjectInfo* grandParent = object;
+                        do {
+                            grandParent->mChildCount += ((*oi)->mChildCount + 1);
+                            grandParent = grandParent->mParent;
+                        } while(grandParent);
+                        //TRACE("Parent %s corrected for child %p", objectName.c_str(), *oi);
                     ++oi;
                 }
                 mpm->second.clear();
@@ -12582,6 +12662,16 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
 
     sImplsDeadDuringSync.clear(); /* for coord, sync-client & veterans. */
     sNodesDeadDuringSync.clear(); /* should only be relevant for sync-client. */
+
+    /* De-comment to get a dump of childcounts after each sync
+    if(true) {
+        ObjectMap::iterator omi = sObjectMap.begin();
+        while(omi != sObjectMap.end()) {
+            TRACE("Object:%s has children:%u", omi->first.c_str(), omi->second->mChildCount);
+            ++omi;
+        }
+    }*/
+       
  done:
     TRACE_LEAVE();
     return err;
