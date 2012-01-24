@@ -167,6 +167,12 @@ typedef SaUint32T ImmObjectFlags;
 //for ack from the PBE on the perisistification of the PRTAs. 
 //The lock must be inspected/read by both ccb calls and RT calls.
 
+#define IMM_DELETE_ROOT 0x00000020
+//This flag is set in conjunction with a delete-operation only on the root 
+//object for the possibly cascading delete. This is used to identify the root
+//delete object during the commit of the ccb/prto-delete, so that we can decrement
+//the child-counter in any parent(s) of the deleted subtree. 
+
 struct ObjectInfo  
 {
     ObjectInfo() : mAdminOwnerAttrVal(NULL), mCcbId(0),
@@ -3695,6 +3701,21 @@ ImmModel::commitDelete(const std::string& dn)
     TRACE_5("COMMITING DELETE of %s", dn.c_str());
     ObjectMap::iterator oi = sObjectMap.find(dn);
     osafassert(oi != sObjectMap.end());
+
+    if(oi->second->mObjFlags & IMM_DELETE_ROOT) {
+        oi->second->mObjFlags &= ~IMM_DELETE_ROOT;
+
+        ObjectInfo* grandParent = oi->second->mParent;
+        while(grandParent) {
+            std::string gpDn;
+            getObjectName(grandParent, gpDn);
+            osafassert(grandParent->mChildCount >= (oi->second->mChildCount + 1));
+            grandParent->mChildCount -= (oi->second->mChildCount + 1);
+            TRACE_5("Childcount for (grand)parent %s of deleted root %s adjusted to %u",
+                gpDn.c_str(), dn.c_str(), grandParent->mChildCount);
+            grandParent = grandParent->mParent;
+        }
+    }
     
     ImmAttrValueMap::iterator oavi;
     for(oavi = oi->second->mAttrValueMap.begin();
@@ -4023,6 +4044,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                     oi = sObjectMap.find(omit->first);
                     osafassert(oi != sObjectMap.end());
                     oi->second->mObjFlags &= ~IMM_DELETE_LOCK;//Remove delete lock
+                    oi->second->mObjFlags &= ~IMM_DELETE_ROOT;//Remove any delete-root flag
                     TRACE_5("Flags after remove delete lock:%u", 
                         oi->second->mObjFlags);
                     break;
@@ -5790,6 +5812,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     CcbVector::iterator i1;
     AdminOwnerVector::iterator i2;
     ObjectMap::iterator oi, oi2;
+    ObjectInfo* deleteRoot=NULL;
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
@@ -5886,13 +5909,15 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
                 TRACE_7("PbeConn: %u PbeNode:%u assigned", *pbeConnPtr, *pbeNodeIdPtr);
         }
     }
+
+    deleteRoot = oi->second;
     
     for(int doIt=0; (doIt < 2) && (err == SA_AIS_OK); ++doIt) {
         SaUint32T childCount = oi->second->mChildCount;
         
         err = deleteObject(oi, reqConn, adminOwner, ccb, doIt, objNameVector,
             connVector, continuations, pbeConnPtr?(*pbeConnPtr):0);
-        
+
         // Find all sub objects to the deleted object and delete them
         for (oi2 = sObjectMap.begin(); 
              oi2 != sObjectMap.end() && err == SA_AIS_OK && childCount; oi2++) {
@@ -5911,15 +5936,10 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
                 }
             }
         }
-        
-        //B) AdminOwner linkage ? Not relevant if delete succeeded
-        //   But could be relevant if Process or Ccb terminated.
-        //   Depends on implementation. is new admin owner stored in 
-        //   after image or in object header ?
-        //   if( err == SA_AIS_OK && adminOwner->mReleaseOnFinalize) {
-        //      adminOwner->mTouchedObjects.insert(object);
-        //   }
-        //  NOTE: The deleted object should already be owned.
+
+	if(err == SA_AIS_OK) {
+            deleteRoot->mObjFlags |= IMM_DELETE_ROOT;
+	}
     }
  ccbObjectDeleteExit:
     TRACE_LEAVE(); 
@@ -10479,6 +10499,7 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
 {
     TRACE_ENTER();
     unsigned int nrofDeletes=0;
+    bool deleteRootFound=false;
     SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
     ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
     if(ci != sPbeRtReqContinuationMap.end()) {
@@ -10510,6 +10531,25 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
             bool dummy=false;
             ObjectMap::iterator oi = sObjectMap.find(i2->first);
             osafassert(oi != sObjectMap.end());
+
+            if(oMut->mAfterImage->mObjFlags & IMM_DELETE_ROOT) {
+                /* Adjust ChildCount for parent(s) of the root for the delete-op */
+                osafassert(!deleteRootFound); /* At most one delete-root per delete-op */
+                deleteRootFound=true;
+                TRACE("Delete root found '%s'.", i2->first.c_str());
+                /* Remove any DELETE_ROOT flag. */
+                oMut->mAfterImage->mObjFlags &= ~IMM_DELETE_ROOT;
+
+                ObjectInfo* grandParent = oi->second->mParent;
+                while(grandParent) {
+                    osafassert(grandParent->mChildCount >= (oi->second->mChildCount + 1));
+                    grandParent->mChildCount -= (oi->second->mChildCount + 1);
+                    TRACE_5("Childcount for (grand)parent of deleted %s adjusted to %u",
+                        i2->first.c_str(), grandParent->mChildCount);
+                    grandParent = grandParent->mParent;
+                }
+            }
+
             osafassert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
         } else {
             if(oMut->mAfterImage->mObjFlags & IMM_PRTO_FLAG) {
@@ -10519,6 +10559,8 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
                 LOG_WA("Delete of cached runtime object '%s' REVERTED. PBE rc:%u", 
                     i2->first.c_str(), error);
             }
+            /* Remove any DELETE_ROOT flag. */
+            oMut->mAfterImage->mObjFlags &= ~IMM_DELETE_ROOT;
         }
 
         oMut->mAfterImage = NULL;
@@ -11374,6 +11416,8 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                 info->mImplementerName.c_str());
 
             oi->second->mObjFlags |= IMM_DELETE_LOCK;
+            oi->second->mObjFlags |= IMM_DELETE_ROOT;
+
             /* Dont overwrite IMM_DN_INTERNAL_REP */
             ObjectMutation* oMut = new ObjectMutation(IMM_DELETE);
             oMut->mContinuationId = (*continuationIdPtr);
@@ -11389,7 +11433,20 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                     objNameVector.push_back(oi->first);
                 }
             }
-        } else {
+        } else { /* No PBE or no PRTOs in subtree => immediate delete */
+            if(doIt) {
+                /*  No need to set DELETE_ROOT flag since we are deleting here&now.
+                    Adjust ChildCount for parent(s) of the root for the delete-op 
+                 */
+                ObjectInfo* grandParent = oi->second->mParent;
+                while(grandParent) {
+                    osafassert(grandParent->mChildCount >= (oi->second->mChildCount + 1));
+                    grandParent->mChildCount -= (oi->second->mChildCount + 1);
+                    TRACE_5("Childcount for (grand)parent of deleted RTO %s adjusted to %u",
+                        objectName.c_str(), grandParent->mChildCount);
+                    grandParent = grandParent->mParent;
+                } 
+            }
             err = deleteRtObject(oi, doIt, info, subTreeHasPersistent);
         }
 
@@ -11425,7 +11482,7 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                             }
                         }
                     } else {
-                        /* Normal non persistent RTO delete case */
+                        /* No PBE or no PRTOs in subtree => immediate delete */
                         ObjectMap::iterator oi3 = (doIt)?(oi2++):oi2;
                         err = deleteRtObject(oi3, doIt, info, subTreeHasPersistent);
                         deleted = doIt;
