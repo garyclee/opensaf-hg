@@ -108,6 +108,7 @@ void saImmOmSearchInitialize_2_07(void)
 
 extern void saImmOmSearchNext_2_01(void);
 extern void saImmOmSearchNext_2_02(void);
+extern void saImmOmSearchNext_2_03(void);
 extern void saImmOmSearchFinalize_01(void);
 extern void saImmOmSearchFinalize_02(void);
 
@@ -129,5 +130,6 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
 
     test_case_add(3, saImmOmSearchFinalize_01, "saImmOmSearchFinalize - SA_AIS_OK");
     test_case_add(3, saImmOmSearchFinalize_02, "saImmOmSearchFinalize - SA_AIS_ERR_BAD_HANDLE");
+    test_case_add(3, saImmOmSearchNext_2_03, "saImmOmSearchNext_2 - SA_AIS_OK/SEARCH_GET_CONFIG_ATTR");
 }
 
