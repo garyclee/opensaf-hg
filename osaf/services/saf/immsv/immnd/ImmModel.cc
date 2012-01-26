@@ -7050,20 +7050,34 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
     size_t sz = strnlen((char *) req->rootName.buf, 
         (size_t)req->rootName.size);
     std::string rootName((const char*)req->rootName.buf, sz);
+    const size_t rootlen = rootName.length();
     
     SaImmSearchOptionsT searchOptions = 
         (SaImmSearchOptionsT)req->searchOptions;
-    
-    const size_t rootlen = rootName.length();
 
+    SaImmSearchOptionsT unknownOptions = searchOptions & 
+        ~(SA_IMM_SEARCH_ONE_ATTR |
+          SA_IMM_SEARCH_GET_ALL_ATTR | 
+          SA_IMM_SEARCH_GET_NO_ATTR | 
+          SA_IMM_SEARCH_GET_SOME_ATTR |
+          SA_IMM_SEARCH_GET_CONFIG_ATTR |
+          SA_IMM_SEARCH_PERSISTENT_ATTRS |
+          SA_IMM_SEARCH_SYNC_CACHED_ATTRS);
+
+    if(unknownOptions) {
+        LOG_NO("ERR_INVALID_PARAM: invalid search option 0x%llx",
+            unknownOptions);
+        err = SA_AIS_ERR_INVALID_PARAM;
+        goto searchInitializeExit;
+    }
+    
+    
     // Validate root name
     if(! (nameCheck(rootName)||nameToInternal(rootName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper root name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto searchInitializeExit;
     }
-
-    osafassert(rootlen == rootName.length()); /* ABT remove after component test.*/
 
     if (rootlen > 0) {
         omi = sObjectMap.find(rootName);
@@ -7099,18 +7113,6 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
             "must be set in the searchOptions parameter");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto searchInitializeExit;
-    }
-    
-    switch (searchOptions & (SA_IMM_SEARCH_GET_ALL_ATTR | 
-                SA_IMM_SEARCH_GET_NO_ATTR | 
-                SA_IMM_SEARCH_GET_SOME_ATTR)) {
-        case SA_IMM_SEARCH_GET_ALL_ATTR: break;
-        case SA_IMM_SEARCH_GET_NO_ATTR:  break;
-        case SA_IMM_SEARCH_GET_SOME_ATTR: break;
-        default:
-            LOG_NO("ERR_INVALID_PARAM: invalid search option");
-            err = SA_AIS_ERR_INVALID_PARAM;
-            goto searchInitializeExit;
     }
     
     isDumper = (searchOptions & SA_IMM_SEARCH_PERSISTENT_ATTRS);
@@ -7239,7 +7241,8 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                     op.addObject(objectName);
 
                     if(searchOptions & (SA_IMM_SEARCH_GET_ALL_ATTR |
-                           SA_IMM_SEARCH_GET_SOME_ATTR)) {
+                           SA_IMM_SEARCH_GET_SOME_ATTR |
+                           SA_IMM_SEARCH_GET_CONFIG_ATTR)) {
                         ImmAttrValueMap::iterator j;
                         bool implNotSet = true;
                         for (j = obj->mAttrValueMap.begin(); 
@@ -7265,6 +7268,13 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                             AttrMap::iterator k =
                                 obj->mClassInfo->mAttrMap.find(j->first);
                             osafassert(k != obj->mClassInfo->mAttrMap.end());
+
+                            if((searchOptions & SA_IMM_SEARCH_GET_CONFIG_ATTR) &&
+                               (k->second->mFlags & SA_IMM_ATTR_RUNTIME)) {
+                                TRACE("SEARCH_GET_CONFIG_ATTR filtered RTA:%s from obj:%s",
+                                   j->first.c_str(), objectName.c_str());
+                                continue;
+                            }
                             
                             if(isDumper && 
                                 !(k->second->mFlags & SA_IMM_ATTR_CONFIG) &&
