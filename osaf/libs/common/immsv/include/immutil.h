@@ -439,6 +439,10 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 							const SaImmAttrNameT *attributeNames,
 							SaImmAttrValuesT_2 ***attributes);
 
+	extern SaAisErrorT immutil_saImmOmAccessorGetConfigAttrs(SaImmAccessorHandleT accessorHandle,
+							const SaNameT *objectName,
+							SaImmAttrValuesT_2 ***attributes);
+
 	extern SaAisErrorT immutil_saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle);
 
 	extern SaAisErrorT immutil_saImmOmClassCreate_2(SaImmCcbHandleT immCcbHandle,

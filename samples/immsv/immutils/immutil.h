@@ -29,8 +29,8 @@
  *  $copyright$
  */
 
-#include <saImmOi.h>
 #include <saImmOm.h>
+#include <saImmOi.h>
 #include <sys/types.h>
 #include <regex.h>
 #include <limits.h>
@@ -439,6 +439,10 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 							const SaImmAttrNameT *attributeNames,
 							SaImmAttrValuesT_2 ***attributes);
 
+	extern SaAisErrorT immutil_saImmOmAccessorGetConfigAttrs(SaImmAccessorHandleT accessorHandle,
+							const SaNameT *objectName,
+							SaImmAttrValuesT_2 ***attributes);
+
 	extern SaAisErrorT immutil_saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle);
 
 	extern SaAisErrorT immutil_saImmOmClassCreate_2(SaImmCcbHandleT immCcbHandle,
@@ -533,6 +537,17 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 	extern SaAisErrorT immutil_saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT ownerHandle,
    							    const SaNameT** name,
     							    SaImmScopeT scope);
+/**
+ * Wrapper for saImmOmAdminOperationInvoke_o2
+ */
+	extern SaAisErrorT immutil_saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
+		const SaNameT *objectName,
+		SaImmContinuationIdT continuationId,
+		SaImmAdminOperationIdT operationId,
+		const SaImmAdminOperationParamsT_2 **params,
+		SaAisErrorT *operationReturnValue,
+		SaTimeT timeout,
+		SaImmAdminOperationParamsT_2 ***returnParams);
 
 /**
  * Wrapper for saImmOmAdminOperationInvoke_2
