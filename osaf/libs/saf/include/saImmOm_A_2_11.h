@@ -148,16 +148,14 @@ extern "C" {
 #define SA_IMM_SEARCH_GET_SOME_ATTR  0x0400
 	*/
 #define SA_IMM_SEARCH_GET_CONFIG_ATTR 0x0000000000010000   /* See: http://devel.opensaf.org/ticket/1897 
-							      Not yet supported */
+							      Supported in OpenSaf 4.3 */
 
 	/* 4.2.14 SaImmCcbFlagsT */
 	/*
 #define SA_IMM_CCB_REGISTERED_OI 0x00000001
 	typedef SaUint64T SaImmCcbFlagsT;
 	*/
-#define SA_IMM_CCB_ALLOW_NULL_OI 0x0000000000000100      /* See http://devel.opensaf.org/ticket/1997 
-							    Supported in A.2.11
-							  */
+#define SA_IMM_CCB_ALLOW_NULL_OI 0x0000000000000100      /* See http://devel.opensaf.org/ticket/1997  */
 
 #ifdef  __cplusplus
 }

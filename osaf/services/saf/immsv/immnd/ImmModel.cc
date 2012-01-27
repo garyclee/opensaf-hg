@@ -6792,6 +6792,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     ImmAttrValueMap::iterator j;
     int matchedAttributes=0;
     int soughtAttributes=0;
+    SaImmSearchOptionsT notAllowedOptions = 0LL;
     
     // Validate object name
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
@@ -6822,25 +6823,19 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     }
     
     // Validate searchOptions
-    if ((searchOptions & SA_IMM_SEARCH_ONE_ATTR) == 0) {
-        //This should never happen as this value is set by imm-code and 
-        //not user.
+
+    notAllowedOptions = searchOptions & 
+        ~(SA_IMM_SEARCH_ONE_ATTR |
+          SA_IMM_SEARCH_GET_ALL_ATTR | 
+          SA_IMM_SEARCH_GET_SOME_ATTR |
+          SA_IMM_SEARCH_GET_CONFIG_ATTR);
+
+    if(notAllowedOptions) {
         LOG_ER("ERR_LIBRARY: Invalid search criteria - library problem ?");
         err = SA_AIS_ERR_LIBRARY;
         goto accessorExit;
     }
-    
-    switch(searchOptions & (SA_IMM_SEARCH_GET_ALL_ATTR | 
-               SA_IMM_SEARCH_GET_NO_ATTR | 
-               SA_IMM_SEARCH_GET_SOME_ATTR)) {
-        case SA_IMM_SEARCH_GET_ALL_ATTR: break;
-        case SA_IMM_SEARCH_GET_SOME_ATTR: break;
-        default:
-            LOG_WA("ERR_LIBRARY: Invalid search option - library problem ?");
-            err = SA_AIS_ERR_LIBRARY;
-            goto accessorExit;
-    }
-    
+
     //TODO: Reverse the order of matching attribute names.
     //The class should be searched first since we must return error
     //if the attribute is not defined in the class of the object. 
@@ -6879,6 +6874,10 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
         AttrMap::iterator k =
             obj->mClassInfo->mAttrMap.find(j->first);
         osafassert(k != obj->mClassInfo->mAttrMap.end());
+
+        if((searchOptions & SA_IMM_SEARCH_GET_CONFIG_ATTR) &&
+           (k->second->mFlags & SA_IMM_ATTR_RUNTIME)) {continue;}
+
         op.addAttribute(j->first, k->second->mValueType, k->second->mFlags);
         //Check if attribute is the implementername attribute.
         //If so add the value artificially
