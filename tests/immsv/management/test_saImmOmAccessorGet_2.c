@@ -119,3 +119,17 @@ void saImmOmAccessorGet_2_03(void)
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
+void saImmOmAccessorGet_2_04(void)
+{
+    int cnt=0;
+    SaImmAttrNameT accessorGetConfigAttrsToken[2] = {"SA_IMM_SEARCH_GET_CONFIG_ATTR", NULL };
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    rc = saImmOmAccessorGet_2(accessorHandle, &objectName, accessorGetConfigAttrsToken, &attributes);
+    /* Verify the number of config attributes */
+    cnt = print_SaImmAttrValuesT_2(attributes);
+    assert(cnt == 5);
+    test_validate(rc, SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+

@@ -5655,6 +5655,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
 	bool isAccessor = false;
+	bool isAccGetConfigAttrs = false;
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
@@ -5733,11 +5734,37 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
 	}
 
-	if ((scope == SA_IMM_ONE) && (*searchHandle) && !searchParam && !searchOptions) {	/*Special ACCESSOR case */
+	if ((scope == SA_IMM_ONE) && (*searchHandle) && !searchParam && !searchOptions) {
 		TRACE("Special accessor case:%llx\n", *searchHandle);
 		isAccessor = true;
-		searchOptions = SA_IMM_SEARCH_ONE_ATTR |
-			(attributeNames ? SA_IMM_SEARCH_GET_SOME_ATTR : SA_IMM_SEARCH_GET_ALL_ATTR);
+		osafassert(!searchOptions && !searchParam);
+
+		if(attributeNames && *attributeNames && (*(attributeNames + 1))==NULL && 
+		     strcmp(*attributeNames, "SA_IMM_SEARCH_GET_CONFIG_ATTR") == 0) {
+			/* This is a hack to cater for the very common simple case of the OM user
+			   needing to access ONE object, but only its config attributes. 
+			   The saImmOmAccessorGet_2 call has no search-options. The typical user
+			   is here actaully an OI that wants to initialize. The trick used is
+			   to "tunnel" a search option through the attributes parameter of that
+			   call so it reaches the searchInitialize here. The user will get ALL
+			   config attributes for the object in this way. If they only want some
+			   of the config attributes, then they just do a regular accessor get and
+			   enumerate teh attributes they want.
+	   
+			   We have here detected only one attribute in the attributes list and
+			   the name of that attribute is 'SA_IMM_SEARCH_GET_CONFIG_ATTR'.
+			   We then here assume that the user does not actually want an attribute
+			   with that name (an attribute with *that* name should definitely not
+			   be defined by any user) but wants all config attribues. 
+			   This feature is only available with the A.2.11 version of the IMMA-API.
+			*/
+			searchOptions = SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_CONFIG_ATTR;
+			isAccGetConfigAttrs = true;
+			TRACE("Special GET_CONFIG_ATTR accessor case");
+		} else {
+			searchOptions = SA_IMM_SEARCH_ONE_ATTR |
+				(attributeNames ? SA_IMM_SEARCH_GET_SOME_ATTR : SA_IMM_SEARCH_GET_ALL_ATTR);
+		}
 
 		/*Look up search handle */
 		imma_search_node_get(&cb->search_tree, searchHandle, &search_node);
@@ -5844,7 +5871,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		}
 	}
 
-	if (attributeNames) {
+	if (attributeNames && !isAccGetConfigAttrs) {
 		const SaImmAttrNameT *namev;
 		for (namev = attributeNames; *namev; namev++) {
 			IMMSV_ATTR_NAME_LIST *p = (IMMSV_ATTR_NAME_LIST *)
