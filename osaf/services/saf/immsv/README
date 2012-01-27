@@ -1182,8 +1182,56 @@ timeouts set for different handles. Sub-handles (ccb, admin-owner,
 iteration, accessor) inherit the timeout value of their associated
 om-handle.
 
+Support for search with SA_IMM_SEARCH_GET_CONFIG_ATTR (4.3)
+=============================================================
+http://devel.opensaf.org/ticket/1897
 
+The IMM A.2.11 API included an added flag value for the SaImmSearchOptionsT
+type for requesting only config attributes: SA_IMM_SEARCH_GET_CONFIG_ATTR.
+This feature did not make it into OpenSAF 4.2, but will now instead be part
+of OpenSaf 4.3.
 
+The main driver for this feature is the very common need for an OI implementation
+to fetch the initial configuration, without also asking for the values of 
+runtime attributes. If an OI performs a read-request (over the OM API) that
+includes pure runtime attributes for which it itself is the implementer, then
+the OI will currently get into deadlock with itself (if the OI is not multihreaded).
+
+For cached runtime attributes this problem does not exist, but typically the OI
+is not interested in fetching its own cached runtime attributes, which means
+a waste of memory and execution. 
+
+The problem has been that the only way for the OI to only fetch its config
+attributes, is to explicitly enumerate all the config attributes it wants
+to fetch.
+
+This new feature will make it much simpler for the OI to express this
+common type of query. 
+
+The SA_IMM_SEARCH_GET_CONFIG_ATTR can either be used in the obvious way
+by using it in a saImmOmSearchInitialize_2 request.
+
+For requests of a specific object, the saImmOmAccessorGet_2 api is simpler,
+but that API does not have any searchParameters argument. 
+This enhancement still supports the GET_CONFIG_ATTR feature also for
+saImmOmAccessorGet, by what may be called a "hack" or a convention.
+If the 'attributeNames' parameter to saImmOmAccessorGet_2 has only one 
+attributeName with the string value: "SA_IMM_SEARCH_GET_CONFIG_ATTR",
+then the immsv implementation will interpret this as request for all
+config attributes and NOT as a request for the attribute named
+"SA_IMM_SEARCH_GET_CONFIG_ATTR".
+
+The SA_IMM_SEARCH_GET_CONFIG_ATTR feature should work over immutils and
+immutills also has an added wrapper for the saImmOmAccessorGet_2 use
+that encapsulates the convention solution just described. 
+The new function added to immutils has the signature:
+
+extern SaAisErrorT 
+immutil_saImmOmAccessorGetConfigAttrs(SaImmAccessorHandleT accessorHandle,
+                                      const SaNameT *objectName,
+                                      SaImmAttrValuesT_2 ***attributes);
+
+----------------------------------------
 DEPENDENCIES
 ============
 immsv depends of the following other services:

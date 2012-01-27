@@ -28,7 +28,7 @@
 
 #include <logtrace.h>
 
-static const SaVersionT immVersion = { 'A', 2, 1 };
+static const SaVersionT immVersion = { 'A', 2, 11 };
 size_t strnlen(const char *s, size_t maxlen);
 
 /* Memory handling functions */
@@ -166,9 +166,9 @@ int ccbutil_ccbAddModifyOperation(struct CcbUtilCcbData *ccb,
 	struct Chunk *clist = (struct Chunk *)ccb->memref;
 	struct CcbUtilOperationData *operation;
 
-	/* Do not allow multiple operations on object in same CCB */
-	if (ccbutil_getCcbOpDataByDN(ccb->ccbId, objectName) != NULL)
-		return -1;
+	///* Do not allow multiple operations on object in same CCB */
+	//	if (ccbutil_getCcbOpDataByDN(ccb->ccbId, objectName) != NULL)
+	//		return -1;
 
 	operation = newOperationData(ccb, CCBUTIL_MODIFY);
 	operation->param.modify.objectName = dupSaNameT(clist, objectName);
@@ -1101,6 +1101,39 @@ SaAisErrorT immutil_saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 	return rc;
 }
 
+SaAisErrorT immutil_saImmOmAccessorGetConfigAttrs(SaImmAccessorHandleT accessorHandle,
+					 const SaNameT *objectName,
+					 SaImmAttrValuesT_2 ***attributes)
+{
+	SaImmAttrNameT accessorGetConfigAttrsToken[2] = {"SA_IMM_SEARCH_GET_CONFIG_ATTR", NULL };
+	/* This is a hack to cater for the very common simple case of the OM user needing
+	   to access ONE object, but only its config attributes. The saImmOmAccessorGet_2 call 
+	   has no search-options. The trick here is to "tunnel" a search option through the
+	   attributes parameter. The user will get ALL config attributes for the object in
+	   this way. If they only want some of the config attributes, then they just do a
+	   regular accessor get and enumerate the attributes they want.
+
+	   The support for thus is really inside the implementation of saImmOmSearchInitialize,
+	   which saImmOmAccessorGet_2 uses in its implementation. If it detects 
+	   only one attribute in the attributes list and the name of that attribute is
+	   'SA_IMM_SEARCH_GET_CONFIG_ATTR' then it will assume that the user does not actually
+	   want an attribute with *that* name, but wants all config attribues. 
+	   This feature is only available with the A.2.11 version of the IMMA-API.
+	 */
+
+	SaAisErrorT rc = saImmOmAccessorGet_2(accessorHandle, objectName, accessorGetConfigAttrsToken, attributes);
+	unsigned int nTries = 1;
+	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries) {
+		usleep(immutilWrapperProfile.retryInterval * 1000);
+		rc = saImmOmAccessorGet_2(accessorHandle, objectName, NULL, attributes);
+		nTries++;
+	}
+	if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_NOT_EXIST) &&
+            immutilWrapperProfile.errorsAreFatal)
+		immutilError("saImmOmAccessorGet FAILED, rc = %d", (int)rc);
+	return rc;
+}
+
 SaAisErrorT immutil_saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 {
 	SaAisErrorT rc = saImmOmAccessorFinalize(accessorHandle);
@@ -1325,6 +1358,30 @@ SaAisErrorT immutil_saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT ownerHandle,
                 immutilError("saImmOmAdminOwnerRelease FAILED, rc = %d", (int)rc);
         return rc;
 }
+
+SaAisErrorT immutil_saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
+                                                   const SaNameT *objectName,
+                                                   SaImmContinuationIdT continuationId,
+                                                   SaImmAdminOperationIdT operationId,
+                                                   const SaImmAdminOperationParamsT_2 **params,
+                                                   SaAisErrorT *operationReturnValue,
+                                                   SaTimeT timeout,
+                                                   SaImmAdminOperationParamsT_2 ***returnParams)
+{
+        SaAisErrorT rc = saImmOmAdminOperationInvoke_o2(ownerHandle, objectName, continuationId,
+		operationId, params, operationReturnValue, timeout, returnParams);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmAdminOperationInvoke_o2(ownerHandle, objectName, continuationId,
+			operationId, params, operationReturnValue, timeout, returnParams);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmAdminOperationInvoke_o2 FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
 SaAisErrorT immutil_saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
                                                   const SaNameT *objectName,
                                                   SaImmContinuationIdT continuationId,
