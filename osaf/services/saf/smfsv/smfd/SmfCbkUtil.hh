@@ -92,7 +92,7 @@ class SmfCbkUtilThread {
 
 	SYSF_MBX m_mbx;		/* mailbox */
 	bool m_running;
-	sem_t m_semaphore;
+	sem_t* m_semaphore;
 	SaSmfHandleT m_smfHandle;
 };
 

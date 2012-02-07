@@ -190,9 +190,9 @@ void* SmfCbkUtilThread::main(NCSCONTEXT info)
  SmfCbkUtilThread::SmfCbkUtilThread():
 	 m_mbx(0),
 	 m_running(true), 
+	 m_semaphore(NULL),
 	 m_smfHandle(0)
 {
-	sem_init(&m_semaphore, 0, 0);
 }
 
 /** 
@@ -200,7 +200,6 @@ void* SmfCbkUtilThread::main(NCSCONTEXT info)
  */
 SmfCbkUtilThread::~SmfCbkUtilThread()
 {
-	sem_destroy(&m_semaphore);
 }
 
 /** 
@@ -214,16 +213,27 @@ int SmfCbkUtilThread::startThread(void)
 	pthread_t thread;
 	pthread_attr_t attr;
 
+	sem_t localSemaphore;
+	sem_init(&localSemaphore, 0, 0);
+	m_semaphore = &localSemaphore;
+
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
 	if (pthread_create(&thread, &attr, SmfCbkUtilThread::main, (void*)this) != 0) {
 		LOG_ER("pthread_create failed: %s", strerror(errno));
+		m_semaphore = NULL;
+		sem_destroy(&localSemaphore);
 		return -1;
 	}
 
 	/* Wait for the thread to start */
-	sem_wait(&m_semaphore);
+	while((sem_wait(&localSemaphore) == -1) && (errno == EINTR))
+               continue;       /* Restart if interrupted by handler */
+
+	m_semaphore = NULL;
+	sem_destroy(&localSemaphore);
+
 	return 0;
 }
 
@@ -236,13 +246,23 @@ int SmfCbkUtilThread::stop(void)
 	TRACE_ENTER();
 	TRACE("Stopping SmfCbkUtilThread");
 
+	sem_t localSemaphore;
+	sem_init(&localSemaphore, 0, 0);
+	m_semaphore = &localSemaphore;
+
 	/* send a message to the thread to make it terminate */
 	SMFCBKUTIL_EVT *evt = new SMFCBKUTIL_EVT();
 	evt->type = SMFCBKUTIL_EVT_TERMINATE;
 	this->send(evt);
 
 	/* Wait for the thread to terminate */
-	sem_wait(&m_semaphore);
+	while((sem_wait(&localSemaphore) == -1) && (errno == EINTR))
+               continue;       /* Restart if interrupted by handler */
+
+        //m_semaphore can not be written here since the thread may have already deleted the SmfCbkUtilThread object
+	//m_semaphore = NULL;
+	sem_destroy(&localSemaphore);
+
 	TRACE_LEAVE();
 	return 0;
 }
@@ -355,8 +375,12 @@ int SmfCbkUtilThread::send(SMFCBKUTIL_EVT * evt)
 {
 	uint32_t rc;
 
+	//Save the mailbox pointer since SmfCbkUtilThread object may be deleted 
+	//when SmfCbkUtilThread member variable m_mbx is used in m_NCS_IPC_SEND
+	SYSF_MBX tmp_mbx = m_mbx;
+
 	TRACE("SmfCbkUtilThread send event type %d", evt->type);
-	rc = m_NCS_IPC_SEND(&m_mbx, (NCSCONTEXT) evt, NCS_IPC_PRIORITY_HIGH);
+	rc = m_NCS_IPC_SEND(&tmp_mbx, (NCSCONTEXT) evt, NCS_IPC_PRIORITY_HIGH);
 
 	return rc;
 }
@@ -462,22 +486,27 @@ void SmfCbkUtilThread::mainThread(void)
 	TRACE_ENTER();
 	if (this->init() == 0) {
 		/* Mark the thread started */
-		sem_post(&m_semaphore);
+		if(m_semaphore != NULL) {
+			sem_post(m_semaphore);
+		}
 
 	} else {
-		sem_post(&m_semaphore);
-		LOG_ER("SmfCbkUtilThread init failed, terminating thread");
+	       	LOG_ER("SmfCbkUtilThread init failed, terminating thread");
+		if(m_semaphore != NULL) {
+			sem_post(m_semaphore);
+		}
+		TRACE_LEAVE();
 		return;
 	}
-	LOG_NO("SmfCbkUtilThread Started");
 
 	this->handleEvents();	/* runs forever until stopped */
 
 	this->finalizeSmfCbkApi(); 
 
-	LOG_NO("SmfCbkUtilThread Terminating");
 	/* Mark the thread terminated */
-	sem_post(&m_semaphore);
+	if(m_semaphore != NULL) {
+		sem_post(m_semaphore);
+	}
 
 	TRACE_LEAVE();
 }
