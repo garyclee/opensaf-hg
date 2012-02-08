@@ -8956,11 +8956,6 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
     ClassMap::iterator i1;
     ImplementerInfo* info = NULL;
 
-    if(immNotWritable()) {
-        TRACE_LEAVE();
-        return SA_AIS_ERR_TRY_AGAIN;
-    }
-    
     size_t sz = strnlen((const char *)req->impl_name.buf, req->impl_name.size);
     std::string className((const char *)req->impl_name.buf, sz);
     
@@ -9055,6 +9050,13 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
             }
         }
 
+        if(immNotWritable()) {
+            /* This was not the idempotency case for class-applier set
+               and sync is on-going => reject this mutation for now.  */
+            err = SA_AIS_ERR_TRY_AGAIN;
+            goto done;
+        }
+
         /* Normal class applier set. */
         LOG_IN("Applier %s set for class %s", info->mImplementerName.c_str(),
             className.c_str());
@@ -9124,6 +9126,14 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
     }//for
 
     osafassert(err == SA_AIS_OK);
+
+    if(immNotWritable()) {
+        /* This was not the idempotency case for class-implementer set and sync
+           is on-going => reject this mutation for now. */
+        err = SA_AIS_ERR_TRY_AGAIN;
+        goto done;
+    }
+
     classInfo->mImplementer = info;
     LOG_NO("implementer for class '%s' is %s => class extent is safe.",
         className.c_str(), info->mImplementerName.c_str());
