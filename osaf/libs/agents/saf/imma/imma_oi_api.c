@@ -1420,7 +1420,7 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 
 	imma_proc_increment_pending_reply(cl_node);
 
-	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, true);
+	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, false);
 
 	cl_node=NULL;
 	/* Take the CB lock  */

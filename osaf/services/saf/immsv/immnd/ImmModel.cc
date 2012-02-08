@@ -5938,9 +5938,9 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
             }
         }
 
-	if(err == SA_AIS_OK) {
+        if(err == SA_AIS_OK) {
             deleteRoot->mObjFlags |= IMM_DELETE_ROOT;
-	}
+        }
     }
  ccbObjectDeleteExit:
     TRACE_LEAVE(); 
@@ -8240,9 +8240,9 @@ ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard)
             //implementers. Possible solution is to here iterate through all
             //classes and objects. If none point to this object then we can
             //actually remove it.
-           if(sImmNodeState == IMM_NODE_R_AVAILABLE) {
-                /* Sync is ongoing but we are not a sync client. 
-                   Remember the death of the implementer. */
+           if((sImmNodeState == IMM_NODE_R_AVAILABLE) ||
+              (sImmNodeState == IMM_NODE_W_AVAILABLE)) {
+                /* Sync is ongoing. Remember the death of the implementer. */
                 sImplsDeadDuringSync.push_back(implHandle);
             }
         } else {
@@ -8817,11 +8817,6 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     SaAisErrorT err = SA_AIS_OK;
     TRACE_ENTER();
     
-    if(immNotWritable()) {
-        TRACE_LEAVE();
-        return SA_AIS_ERR_TRY_AGAIN;
-    }
-    
     //Check first if implementer name already exists.
     //If so check if occupied, if not re-use.
     size_t sz = strnlen((char *) implementerName->buf,
@@ -8844,6 +8839,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
             TRACE_LEAVE();
             return err;
         }
+        TRACE_7("Re-using implementer for %s", implName.c_str());
         //Implies we re-use ImplementerInfo. The previous 
         //implementer-connection must have been cleared or crashed.
         osafassert(!info->mConn);
@@ -8852,6 +8848,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
         //Check objects for attachment to this implementer and 
         //verify that no ccb is active on them. Iterate over CCB vector!
     } else {
+        TRACE_7("Creating FRESH NEW implementer for %s", implName.c_str());
         info = new ImplementerInfo;
         info->mImplementerName = implName;
         sImplementerVector.push_back(info);
@@ -8892,6 +8889,14 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
         for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
             CcbInfo* ccb = (*i);
             if(ccb->mState == IMM_CCB_CRITICAL) {
+
+                if((sImmNodeState != IMM_NODE_FULLY_AVAILABLE) &&
+                   (sImmNodeState != IMM_NODE_R_AVAILABLE)) {
+                    LOG_ER("ImmModel::implementerSet found Ccbs in critical state yet "
+                        "immnd is not in a proper state: %u", sImmNodeState);
+                    abort();
+                }
+
                 CcbImplementerMap::iterator isi;
                 for(isi = ccb->mImplementers.begin();
                     isi != ccb->mImplementers.end(); ++isi) {
@@ -8919,17 +8924,18 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
       ImplementerVector::iterator i;
       for(i = sImplementerVector.begin(); i != sImplementerVector.end(); ++i) {
       info = (*i);
-      TRACE_7("Implementer id:%u name:%s node:%x conn:%u mDying:%s "
+      TRACE_7("Implementer id:%u name:%s(%zu) node:%x conn:%u mDying:%s "
       "mMds_dest:%llu AdminOpBusy:%u",
       info->mId,
       info->mImplementerName.c_str(),
+      info->mImplementerName.size(),
       info->mNodeId,
       info->mConn,
       (info->mDying)?"TRUE":"FALSE",
       info->mMds_dest,
       info->mAdminOpBusy);
       }
-    */
+     */
     TRACE_LEAVE();
     return err;
 }
@@ -12321,8 +12327,21 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             
             //Sync currently existing implementers
             ImmsvImplList* ii = req->implementers;
-            while(ii) {
-                ImplementerInfo* info = new ImplementerInfo;
+            for( ; ii;  ii = ii->next) {
+                std::string implName(ii->implementerName.buf);
+                ImplementerInfo* info = findImplementer(implName);
+                if(info) {
+                    /* Named implemener already exists. This can happen since we
+                       now (after #1871) allow saImmOiImplementeSet during sync.
+                       Discard the synced implementer, since the existing one should
+                       be valid.
+                    */
+                    LOG_NO("finalizeSync implementerSet for %s has bypassed finalizeSync, ignoring",
+                        ii->implementerName.buf);
+                    continue;
+                }
+
+                info = new ImplementerInfo;
                 IdVector::iterator ivi = sImplsDeadDuringSync.begin();
                 for(;ivi != sImplsDeadDuringSync.end(); ++ivi) {
                     if((*ivi) == ii->id) {
@@ -12350,7 +12369,6 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 info->mAdminOpBusy=0;
                 info->mApplier = (info->mImplementerName.at(0) == '@');
                 sImplementerVector.push_back(info);
-                ii = ii->next;
             }
 
             LOG_IN("finalizeSync message contains %u implementers", 
