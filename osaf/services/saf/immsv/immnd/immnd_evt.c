@@ -2019,12 +2019,6 @@ static uint32_t immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		goto agent_rsp;
 	}
 
-	if (immModel_immNotWritable(cb) || (cb->mSyncFinalizing && cb->fevs_out_count)) {
-		/*Avoid broadcasting doomed requests. */
-		send_evt.info.imma.info.implSetRsp.error = SA_AIS_ERR_TRY_AGAIN;
-		goto agent_rsp;
-	}
-
 	if (cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) {
 		TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages (> %u) rejecting impl_set request",
 			IMMSV_DEFAULT_FEVS_MAX_PENDING);
@@ -6027,7 +6021,8 @@ static uint32_t immnd_restricted_ok(IMMND_CB *cb, uint32_t id)
 		    id == IMMND_EVT_D2ND_DISCARD_NODE ||
 		    id == IMMND_EVT_A2ND_OI_IMPL_CLR ||
 		    id == IMMND_EVT_D2ND_SYNC_FEVS_BASE ||
-		    id == IMMND_EVT_A2ND_OI_OBJ_MODIFY) {
+		    id == IMMND_EVT_A2ND_OI_OBJ_MODIFY ||
+		    id == IMMND_EVT_D2ND_IMPLSET_RSP) {
 			return 1;
 		}
 	}
