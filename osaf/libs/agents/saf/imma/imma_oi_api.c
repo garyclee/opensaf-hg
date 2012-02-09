@@ -1381,34 +1381,15 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 		TRACE_1("Handle %llx is stale", immOiHandle);
 		/* Note that this is implementer clear. We dont want a resurrect to
 		   set implementer, just so we can clear it right after!
-		   Instead we try to only resurrect, but avoid setting implementer,
-		   which produces the desired result towards the invoker.
+		   Furthermore we know that the implementer-name is already cleared
+		   (detached) from this handle by the stale marking event.
+		   All that needs to be done is to clear the implementer id and
+		   name from the client node. We dont try to resurrect here since 
+		   we dont need to. Instead the client is left as stale but not yet
+		   exposed.
 		 */
-		cl_node->mImplementerId = 0;
-		free(cl_node->mImplementerName);
-		cl_node->mImplementerName = NULL;
-
-		bool resurrected = imma_oi_resurrect(cb, cl_node, &locked);
-
-		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-			TRACE_4("ERR_LIBRARY: LOCK failed");
-			rc = SA_AIS_ERR_LIBRARY;
-			goto lock_fail;
-		}
-		locked = true;
-
-		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
-
-		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", 
-				immOiHandle);
-			if (cl_node && cl_node->stale) {cl_node->exposed = true;}
-			rc = SA_AIS_ERR_BAD_HANDLE;
-			goto bad_handle;
-		}
-
-		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
-		goto skip_impl_clear; /* Implementer already cleared by stale => resurrect */
+		osafassert(rc == SA_AIS_OK);
+		goto skip_impl_clear; 
 	}
 
 	/* Populate & Send the Open Event to IMMND */
@@ -1466,6 +1447,7 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 
 	rc = out_evt->info.imma.info.errRsp.error;
 
+ skip_impl_clear:
 	if (rc == SA_AIS_OK) {
 		cl_node->mImplementerId = 0;
 		free(cl_node->mImplementerName);
@@ -1474,7 +1456,6 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 			cl_node->isApplier = 0;
 	}
 
- skip_impl_clear:
  bad_handle:
 	if (locked) 
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
