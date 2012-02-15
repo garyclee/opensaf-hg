@@ -7839,7 +7839,6 @@ ImmModel::nameCheck(const std::string& name, bool strict) const
 bool
 ImmModel::nameToInternal(std::string& name)
 {
-    bool effective = false;
     size_t pos;
     size_t len = name.length();
     unsigned char prev_chr = '\0';
@@ -7850,7 +7849,6 @@ ImmModel::nameToInternal(std::string& name)
             if(chr == ',') 
             {
                 name.replace(pos, 1, 1, '#');
-                effective = true;
             } else if(chr == '#') {
                 LOG_WA("Can not accept external DN with escaped hash '\\#' "
                     "pos:%zu in %s", pos, name.c_str());
@@ -7873,7 +7871,6 @@ ImmModel::nameToInternal(std::string& name)
 void
 ImmModel::nameToExternal(std::string& name)
 {
-    bool effective = false;
     size_t pos;
     size_t len = name.length();
     unsigned char prev_chr = '\0';
@@ -7883,7 +7880,6 @@ ImmModel::nameToExternal(std::string& name)
         if((chr == '#') && (prev_chr == '\\'))
         {
             name.replace(pos, 1, 1, ',');
-            effective = true;
         }
         prev_chr = chr;
     }
