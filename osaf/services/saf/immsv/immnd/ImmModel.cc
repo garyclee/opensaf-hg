@@ -9355,11 +9355,6 @@ SaAisErrorT ImmModel::objectImplementerSet(const struct ImmsvOiImplSetReq* req,
     ObjectInfo* rootObj = NULL;
     TRACE_ENTER();
     
-    if(immNotWritable()) {
-        TRACE_LEAVE();
-        return SA_AIS_ERR_TRY_AGAIN;
-    }
-    
     size_t sz = strnlen((const char *)req->impl_name.buf, req->impl_name.size);
     std::string objectName((const char *)req->impl_name.buf, sz);
     
@@ -9573,17 +9568,14 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
     }
 
     if(info->mApplier) {
-        if(doIt) {
-            ImplementerSet *implSet=NULL;
-            ImplementerSetMap::iterator ismIter =
-                sObjAppliersMap.find(objectName);
+        ImplementerSetMap::iterator ismIter = sObjAppliersMap.find(objectName);
+        ImplementerSet *implSet = (ismIter == sObjAppliersMap.end()) ? NULL : (ismIter->second);
 
-            if(ismIter == sObjAppliersMap.end()) {
+        if(doIt) {
+            if(implSet == NULL) {
                 implSet = new ImplementerSet;
                 sObjAppliersMap[objectName] = implSet;
-            } else {
-                implSet = ismIter->second;
-            }
+            } 
 
             if((implSet->find(info) == implSet->end())) {
                 implSet->insert(info);
@@ -9594,7 +9586,7 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
                 TRACE_5("applier %s ALREADY set for object '%s'", 
                     info->mImplementerName.c_str(), objectName.c_str());
             }
-        } else { // !doIt  => do checks
+        } else { // not doIt  => do checks
             if(classInfo->mAppliers.find(info) != classInfo->mAppliers.end()) {
                 /* No mixing of ClassImplementerSet & ObjectImplementerSet */
                 LOG_IN("ERR_EXIST: Applier %s is already class applier "
@@ -9602,7 +9594,13 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
                         objectName.c_str());
                 err = SA_AIS_ERR_EXIST;
                 goto done;
-            } 
+            } else if(immNotWritable()) {
+                /* Sync ongoing => Only idempotent object-applier set allowed */
+                if(implSet == NULL || implSet->find(info) == implSet->end()) {
+                    err = SA_AIS_ERR_TRY_AGAIN;;
+                    goto done;
+                }
+            }
         }
     } else { /* regular OI */
         if(obj->mImplementer && 
@@ -9616,11 +9614,11 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
             goto done;
         } else {/* obj->mImplementer == info. But check that it is not class-impl */
             if(doIt) {
-                /* Covers the idempotency case. */
+                /* Covers the idempotency case. */		
                 obj->mImplementer = info;
                 TRACE_5("Implementer for object '%s' is %s", objectName.c_str(),
                     info->mImplementerName.c_str());
-            } else { //!doIt => check that it is not already a class implementer
+            } else { //not doIt => check not a class implementer & immwritable or idempotent
                 if(classInfo->mImplementer) {
                     /* User has set class-impl. Now tries to set object impl
                        This is not the idempotency case. It is a confused user case.
@@ -9630,8 +9628,12 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
                             "conflicts with setting object implementer",
                         objectName.c_str(),
                         obj->mImplementer->mImplementerName.c_str());
+                } else if((obj->mImplementer != info) && immNotWritable()) {
+                    /* This was not the idempotency case for object-implementer set
+                       and sync is on-going => reject this mutation for now.  */
+                    err = SA_AIS_ERR_TRY_AGAIN;
                 }
-            }
+            }//end of not doit
         }
     }
 
