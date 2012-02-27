@@ -53,7 +53,7 @@ archive=$top/archive
 scripts=$archive/scripts
 root=$top/rootfs
 
-appconfig=${APPCONFIG:-"AppConfig-2N.xml"}
+appconfig=${APPCONFIG:-"${opensaf_home}/samples/amf/sa_aware/AppConfig-2N.xml"}
 
 ##   getlibs prog [prog...]
 ##     Return required (and found) dynamic libs for programs.
@@ -103,7 +103,7 @@ cmd_install_testprog() {
 
     test -r $immxml.orig || cp $immxml $immxml.orig
     $opensaf_home/osaf/tools/safimm/immxml/immxml-merge \
-	$immxml.orig $src/$appconfig > $immxml
+	$immxml.orig $appconfig > $immxml
     $opensaf_home/osaf/tools/safimm/immxml/immxml-validate $immxml
     echo "Creating [$root/root.cpio] ..."
     cmd_mkcpio
