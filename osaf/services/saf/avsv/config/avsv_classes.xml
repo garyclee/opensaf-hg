@@ -922,6 +922,18 @@
 			<flag>SA_MULTI_VALUE</flag>
 		</attr>
 		<attr>
+			<name>osafAmfCtRelPathHcCmd</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+		</attr>
+		<attr>
+			<name>osafAmfCtDefHcCmdArgv</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
 			<name>saAmfCtDefQuiescingCompleteTimeout</name>
 			<type>SA_TIME_T</type>
 			<category>SA_CONFIG</category>
@@ -1090,6 +1102,13 @@
 			<type>SA_TIME_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>osafAmfCompHcCmdArgv</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
 		</attr>
 		<attr>
 			<name>saAmfCompNumMaxAmStopAttempts</name>
