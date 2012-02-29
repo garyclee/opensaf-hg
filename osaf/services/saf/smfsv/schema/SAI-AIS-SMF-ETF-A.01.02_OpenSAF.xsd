@@ -732,6 +732,14 @@ If a component has not responded within terminateCallbackTimeOut milliseconds it
 						<xs:group ref="CliParameters"/>
 					</xs:complexType>
 				</xs:element>
+				<xs:element name="osafHcCmd">
+					<xs:annotation>
+						<xs:documentation>The health check command.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:group ref="CliParameters"/>
+					</xs:complexType>
+				</xs:element>
 			</xs:sequence>
 		</xs:sequence>
 	</xs:group>
