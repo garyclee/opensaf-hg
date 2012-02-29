@@ -1203,14 +1203,21 @@ done:
 }
 
 /**
- * Initialize the bundle dependent attributes in comp. Especially the CLC-CLI commands.
+ * Initialize the bundle dependent attributes in comp (the
+ * CLC-CLI commands).
+ * 
+ * If path in comptype for AM & HC scripts is absolute it is
+ * used, else (it is relative) it is prepended with path prefix.
+ * 
  * @param comp
  * @param comptype
  * @param path_prefix
  * @param attributes
  */
-static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_type_t *comptype,
-	const char *path_prefix, const SaImmAttrValuesT_2 **attributes)
+static void init_bundle_dependent_attributes(AVND_COMP *comp,
+				const amf_comp_type_t *comptype,
+				const char *path_prefix,
+				const SaImmAttrValuesT_2 **attributes)
 {
 	int i, j;
 	AVND_COMP_CLC_CMD_PARAM *cmd;
@@ -1283,8 +1290,13 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1];
 	if (comptype->saAmfCtRelPathAmStartCmd != NULL) {
 		i = 0;
-		i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, "%s/%s",
-			path_prefix, comptype->saAmfCtRelPathAmStartCmd);
+
+		if (comptype->saAmfCtRelPathAmStartCmd[0] == '/')
+			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, "%s",
+				comptype->saAmfCtRelPathAmStartCmd);
+		else
+			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, "%s/%s",
+				path_prefix, comptype->saAmfCtRelPathAmStartCmd);
 
 		j = 0;
 		while ((argv = comptype->saAmfCtDefAmStartCmdArgv[j++]) != NULL)
@@ -1306,8 +1318,13 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1];
 	if (comptype->saAmfCtRelPathAmStopCmd != NULL) {
 		i = 0;
-		i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, "%s/%s",
-			path_prefix, comptype->saAmfCtRelPathAmStopCmd);
+
+		if (comptype->saAmfCtRelPathAmStopCmd[0] == '/')
+			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, "%s",
+				comptype->saAmfCtRelPathAmStopCmd);
+		else
+			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, "%s/%s",
+				path_prefix, comptype->saAmfCtRelPathAmStopCmd);
 
 		j = 0;
 		while ((argv = comptype->saAmfCtDefAmStopCmdArgv[j++]) != NULL)
