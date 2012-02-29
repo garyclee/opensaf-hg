@@ -69,14 +69,18 @@ safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
           <CompBaseType safCompType="safCompType=AmfDemoNway">
             <CompType safVersion="safVersion=1">
               <providesCSType saAmfCtCompCapability="3" saAmfCtDefNumMaxActiveCsi="0" saAmfCtDefNumMaxStandbyCsi="0" safSupportedCsType="safSupportedCsType=safVersion=1\,safCSType=AmfDemoNway"/>
-              <compTypeDefaults saAmfCtCompCategory="1" saAmfCtDefCallbackTimeout="10000000000" saAmfCtDefClcCliTimeout="10000000000" saAmfCtDefDisableRestart="0" saAmfCtDefInstantiationLevel="0" saAmfCtDefQuiescingCompleteTimeout="10000000000" saAmfCtDefRecoveryOnError="1"/>
+              <compTypeDefaults saAmfCtCompCategory="1" saAmfCtDefCallbackTimeout="10000000000" saAmfCtDefClcCliTimeout="10000000000" saAmfCtDefDisableRestart="0" saAmfCtDefInstantiationLevel="0" saAmfCtDefQuiescingCompleteTimeout="10000000000" saAmfCtDefRecoveryOnError="2"/>
               <instantiateCmd saAmfCtRelPathInstantiateCmd="amf_demo/amf_demo_script">
                 <cmdArgv>instantiate 4302</cmdArgv>
               </instantiateCmd>
               <cleanupCmd saAmfCtRelPathCleanupCmd="amf_demo/amf_demo_script">
                 <cmdArgv>cleanup 4302</cmdArgv>
               </cleanupCmd>
+              <osafHcCmd osafAmfCtRelPathHcCmd="/bin/logger">
+                <cmdArgv>-t amfdemo monitor</cmdArgv>
+              </osafHcCmd>
               <healthCheck saAmfHealthcheckMaxDuration="1800000000" saAmfHealthcheckPeriod="2400000000" safHealthcheckKey="safHealthcheckKey=AmfDemo"/>
+              <healthCheck saAmfHealthcheckMaxDuration="1800000000" saAmfHealthcheckPeriod="2400000000" safHealthcheckKey="safHealthcheckKey=osafHealthCheck"/>
               <swBundle saAmfCtSwBundle="safSmfBundle=AmfDemoNway.1"/>
             </CompType>
           </CompBaseType>
