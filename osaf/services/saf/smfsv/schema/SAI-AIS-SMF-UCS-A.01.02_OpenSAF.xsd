@@ -250,6 +250,17 @@
                                           <xs:attribute name="saAmfCtRelPathAmStopCmd" type="SaStringT" />
                                         </xs:complexType>
                                       </xs:element>
+                                      <xs:element minOccurs="0" name="osafHcCmd">
+                                        <xs:annotation>
+                                          <xs:documentation>The health check command.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element minOccurs="0" maxOccurs="unbounded" ref="cmdArgv" />
+                                          </xs:sequence>
+                                          <xs:attribute name="osafAmfCtRelPathHcCmd" type="SaStringT" />
+                                        </xs:complexType>
+                                      </xs:element>
                                       <xs:element minOccurs="0" maxOccurs="unbounded" name="healthCheck">
                                         <xs:annotation>
                                           <xs:documentation>Healthcheck Attributes</xs:documentation>
