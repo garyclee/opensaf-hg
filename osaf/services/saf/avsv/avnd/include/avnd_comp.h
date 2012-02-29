@@ -79,6 +79,7 @@ typedef enum avnd_comp_clc_cmd_type {
 	AVND_COMP_CLC_CMD_TYPE_CLEANUP,
 	AVND_COMP_CLC_CMD_TYPE_AMSTART,
 	AVND_COMP_CLC_CMD_TYPE_AMSTOP,
+	AVND_COMP_CLC_CMD_TYPE_HC,
 	AVND_COMP_CLC_CMD_TYPE_MAX
 } AVND_COMP_CLC_CMD_TYPE;
 
@@ -298,6 +299,7 @@ typedef struct avnd_comp_tag {
 	bool is_restart_en;	/* flag to indicate if comp-restart is allowed */
 	SaAmfCompCapabilityModelT cap;	/* comp capability model */
 	bool is_am_en;
+	bool is_hc_cmd_configured;
 
 	/* clc info */
 	AVND_COMP_CLC_INFO clc_info;
