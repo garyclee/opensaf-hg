@@ -874,6 +874,9 @@ extern void avnd_comp_unreg_cbk_process(struct avnd_cb_tag *, AVND_COMP *);
 extern void avnd_comp_cmplete_all_assignment(struct avnd_cb_tag *, AVND_COMP *);
 extern void avnd_comp_cmplete_all_csi_rec(struct avnd_cb_tag *, AVND_COMP *);
 extern uint32_t avnd_comp_hc_rec_start(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_HC_REC *);
+extern uint32_t avnd_comp_hc_cmd_start(struct avnd_cb_tag *, AVND_COMP *);
+extern void avnd_comp_hc_cmd_restart(AVND_COMP *);
+extern void avnd_comp_hc_cmd_stop(struct avnd_cb_tag *, AVND_COMP *);
 extern uint32_t avnd_comp_unreg_prc(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP *);
 extern uint32_t avnd_mbcsv_comp_hc_rec_tmr_exp(struct avnd_cb_tag *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec);
 extern AVND_COMP_HC_REC *avnd_mbcsv_comp_hc_rec_add(struct avnd_cb_tag *cb,

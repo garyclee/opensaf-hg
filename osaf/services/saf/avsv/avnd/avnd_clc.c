@@ -238,6 +238,7 @@ static const char *clc_cmd_type[] =
 	"AVND_COMP_CLC_CMD_TYPE_CLEANUP(3)",
 	"AVND_COMP_CLC_CMD_TYPE_AMSTART(4)",
 	"AVND_COMP_CLC_CMD_TYPE_AMSTOP(5)",
+	"AVND_COMP_CLC_CMD_TYPE_HC(6)",
 	"AVND_COMP_CLC_CMD_TYPE_MAX"
 };
 
@@ -413,6 +414,19 @@ uint32_t avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 				ev = AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_FAIL;
 				LOG_NO("Cleanup of '%s' failed", comp->name.value);
 				log_failed_exec(&clc_evt->exec_stat, comp, comp->clc_info.exec_cmd);
+			}
+			break;
+		case AVND_COMP_CLC_CMD_TYPE_HC:
+			if (NCS_OS_PROC_EXIT_NORMAL == clc_evt->exec_stat.value) {
+				avnd_comp_hc_cmd_restart(comp);
+			} else {
+				AVND_ERR_INFO err_info;
+				LOG_NO("Healthcheck failed for '%s'", comp->name.value);
+				log_failed_exec(&clc_evt->exec_stat, comp, comp->clc_info.exec_cmd);
+				err_info.src = AVND_ERR_SRC_HC;
+				err_info.rec_rcvr.avsv_ext = comp->err_info.def_rec;
+				rc = avnd_err_process(cb, comp, &err_info);
+				goto done;
 			}
 			break;
 
@@ -783,15 +797,22 @@ uint32_t avnd_comp_clc_fsm_run(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_PRES_
 	if (prv_st == SA_AMF_PRESENCE_INSTANTIATED &&
 	    (ev == AVND_COMP_CLC_PRES_FSM_EV_TERM ||
 	     ev == AVND_COMP_CLC_PRES_FSM_EV_CLEANUP || ev == AVND_COMP_CLC_PRES_FSM_EV_RESTART)) {
+
 		TRACE("stopping all monitoring for this component");
+
 		/* stop all passive monitoring from this comp */
 		avnd_comp_pm_finalize(cb, comp, comp->reg_hdl);
 
+		/* stop command based health check */
+		if (comp->is_hc_cmd_configured)
+			avnd_comp_hc_cmd_stop(cb, comp);
+
 		/* stop the active monitoring */
-		if (comp->is_am_en)
+		if (comp->is_am_en) {
 			rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_AMSTOP);
-		if (NCSCC_RC_SUCCESS != rc)
-			goto done;
+			if (NCSCC_RC_SUCCESS != rc)
+				goto done;
+		}
 	}
 
 	TRACE_1("'%s':Entering CLC FSM: presence state:'%s', Event:'%s'",
@@ -1246,9 +1267,20 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
-	/* if enabled - Start AM */
-	if (comp->is_am_en && SA_AMF_PRESENCE_INSTANTIATED == final_st && SA_AMF_PRESENCE_ORPHANED != prv_st)
-		rc = avnd_comp_am_start(cb, comp);
+	/* Possibly start some monitoring */
+	if (SA_AMF_PRESENCE_INSTANTIATED == final_st && SA_AMF_PRESENCE_ORPHANED != prv_st) {
+		if (comp->is_am_en) {
+			rc = avnd_comp_am_start(cb, comp);
+			if (NCSCC_RC_SUCCESS != rc)
+				goto done;
+		}
+
+		if (comp->is_hc_cmd_configured) {
+			rc = avnd_comp_hc_cmd_start(cb, comp);
+			if (NCSCC_RC_SUCCESS != rc)
+				goto done;
+		}
+	}
 
  done:
 	TRACE_LEAVE2("%u", rc);
