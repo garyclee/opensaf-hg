@@ -57,6 +57,9 @@ static uint32_t avnd_comp_hc_rec_confirm(AVND_CB *, AVND_COMP *, AVND_COMP_HC_RE
 
 static uint32_t avnd_comp_hc_rec_tmr_exp(AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *);
 
+/* the default fixed "magic" name for a command based health object */
+static const char *hc_cmd_name = "osafHealthCheck";
+
 /****************************************************************************
   Name          : avnd_evt_ava_hc_start
  
@@ -516,7 +519,7 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_HC
 			rec->period = hctype->saAmfHctDefPeriod;
 			rec->max_dur = hctype->saAmfHctDefMaxDuration;
 		} else
-			osafassert(hctype);	/* already thru with validation */
+			goto err;
 	}
 
 	rec->key = hc_start->hc_key;
@@ -692,6 +695,117 @@ uint32_t avnd_comp_hc_rec_start(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *
 }
 
 /****************************************************************************
+  Name          : avnd_comp_hc_cmd_start
+ 
+  Description   : This routine starts the healthcheck for a component as per
+                  the request params.
+ 
+  Arguments     : cb   - ptr to the AvND control block
+                  comp - ptr the the component
+ 
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+******************************************************************************/
+uint32_t avnd_comp_hc_cmd_start(AVND_CB *cb, AVND_COMP *comp)
+{
+	uint32_t rc;
+	AVSV_AMF_HC_START_PARAM hc = {0};
+
+	TRACE_ENTER2("'%s'", comp->name.value);
+
+	/* create a HC key with a default name */
+	strncpy((char*)hc.hc_key.key, hc_cmd_name, sizeof(hc.hc_key.key));
+
+	hc.hc_key.keyLen = strlen((char*)hc.hc_key.key);
+	hc.inv_type = SA_AMF_HEALTHCHECK_AMF_INVOKED;
+	hc.comp_name = comp->name;
+
+	AVND_COMP_HC_REC *rec = avnd_comp_hc_rec_add(cb, comp, &hc, &comp->reg_dest);
+
+	if (rec) {
+		// timeout for the HC cmd is HC duration
+		comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_HC - 1].timeout = rec->max_dur;
+
+		// be nice and allow the component to start properly by just starting the
+		// timer here and do first health check at timeout instead
+		rc = avnd_start_tmr(cb, &rec->tmr, AVND_TMR_HC, rec->period, rec->opq_hdl);
+		osafassert(rc == NCSCC_RC_SUCCESS);
+	} else {
+		LOG_WA("'%s' has HC command configured but no HC named '%s' exist",
+			   comp->name.value, hc.hc_key.key);
+		rc = NCSCC_RC_FAILURE;
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * Find the command based health check record using the magic name
+ * @param comp
+ * 
+ * @return AVND_COMP_HC_REC*
+ */
+static AVND_COMP_HC_REC *find_hc_rec(const AVND_COMP *comp)
+{
+	AVND_COMP_HC_REC *rec = NULL;
+
+	TRACE_ENTER2("'%s'", comp->name.value);
+
+	for (rec = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list);
+		  rec != NULL;
+		  rec = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_NEXT(&rec->comp_dll_node)) {
+
+		if (strncmp((char*)rec->key.key, hc_cmd_name, sizeof(rec->key.key)) == 0)
+			break;
+	}
+
+	return rec;
+}
+
+/****************************************************************************
+  Name          : avnd_comp_hc_cmd_restart
+ 
+  Description   : This routine restarts the healthcheck for a component as per
+                  the request params.
+ 
+  Arguments     : comp - ptr the the component
+ 
+  Return Values : -
+******************************************************************************/
+void avnd_comp_hc_cmd_restart(AVND_COMP *comp)
+{
+	AVND_COMP_HC_REC *rec = find_hc_rec(comp);
+
+	osafassert(rec);
+
+	if (rec->status == AVND_COMP_HC_STATUS_SND_TMR_EXPD) {
+		uint32_t rc = avnd_start_tmr(avnd_cb, &rec->tmr, AVND_TMR_HC, rec->period, rec->opq_hdl);
+		osafassert(rc == NCSCC_RC_SUCCESS);
+		rec->status = AVND_COMP_HC_STATUS_WAIT_FOR_RESP;
+	} else
+		rec->status = AVND_COMP_HC_STATUS_STABLE;
+}
+
+/****************************************************************************
+  Name          : avnd_comp_hc_cmd_stop
+ 
+  Description   : This routine stops the healthcheck for a component as per
+                  the request params.
+ 
+  Arguments     : cb   - ptr to the AvND control block
+                  comp - ptr the the component
+ 
+  Return Values : -
+******************************************************************************/
+void avnd_comp_hc_cmd_stop(AVND_CB *cb, AVND_COMP *comp)
+{
+	AVND_COMP_HC_REC *rec = find_hc_rec(comp);
+
+	if (rec != NULL)
+		avnd_stop_tmr(cb, &rec->tmr);
+}
+
+/****************************************************************************
   Name          : avnd_comp_hc_rec_stop
  
   Description   : This routine stops the healthcheck for a component.
@@ -787,10 +901,21 @@ uint32_t avnd_comp_hc_rec_tmr_exp(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC
 	AVND_ERR_INFO err_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2("%s - %s, sts: %u", comp->name.value, rec->key.key, rec->status);
+
 	if (m_AVND_COMP_HC_REC_IS_AMF_INITIATED(rec)) {
 		if (rec->status == AVND_COMP_HC_STATUS_STABLE)
-			/* same as healthcheck start processing */
-			rc = avnd_comp_hc_rec_start(cb, comp, rec);
+			if (comp->is_hc_cmd_configured &&
+				(strncmp((char*)rec->key.key, hc_cmd_name, sizeof(rec->key.key)) == 0)) {
+				rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_HC);
+				if (rc == NCSCC_RC_SUCCESS) {
+					rec->status = AVND_COMP_HC_STATUS_WAIT_FOR_RESP;
+					rc = avnd_start_tmr(cb, &rec->tmr, AVND_TMR_HC, rec->period, rec->opq_hdl);
+				}
+			} else {
+				/* same as healthcheck start processing */
+				rc = avnd_comp_hc_rec_start(cb, comp, rec);
+			}
 		else if (rec->status == AVND_COMP_HC_STATUS_WAIT_FOR_RESP) {
 			rec->status = AVND_COMP_HC_STATUS_SND_TMR_EXPD;
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_HC_REC_STATUS);
@@ -802,6 +927,7 @@ uint32_t avnd_comp_hc_rec_tmr_exp(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC
 		rc = avnd_err_process(cb, comp, &err_info);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
