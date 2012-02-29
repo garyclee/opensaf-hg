@@ -1975,6 +1975,14 @@ SmfCampaignXmlParser::parseCompType(
 				ico, n, "cmdArgv", "saAmfCtDefAmStopCmdArgv",
 				"SA_IMM_ATTR_SASTRINGT");
 
+		} else if (strcmp((char*)n->name, "osafHcCmd") == 0 && n->ns == ns) {
+			TRACE("xmlTag osafHcCmd found");
+			addAttribute(
+				ico, n, "osafAmfCtRelPathHcCmd", "SA_IMM_ATTR_SASTRINGT", true);
+			elementToAttr(
+				ico, n, "cmdArgv", "osafAmfCtDefHcCmdArgv",
+				"SA_IMM_ATTR_SASTRINGT");
+
 		} else if (strcmp((char*)n->name, "healthCheck") == 0 && n->ns == ns) {
 			TRACE("xmlTag healthCheck found");
 			parseHealthCheck(i_campaign, n, dn.c_str());
