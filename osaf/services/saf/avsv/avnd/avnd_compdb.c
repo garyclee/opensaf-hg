@@ -72,39 +72,12 @@ typedef struct amf_comp_type {
 	SaStringT *saAmfCtDefAmStartCmdArgv;
 	SaStringT  saAmfCtRelPathAmStopCmd;
 	SaStringT *saAmfCtDefAmStopCmdArgv;
+	SaStringT  osafAmfCtRelPathHcCmd;
+	SaStringT *osafAmfCtDefHcCmdArgv;
 	SaTimeT    saAmfCompQuiescingCompleteTimeout;
 	SaAmfRecommendedRecoveryT saAmfCtDefRecoveryOnError;
 	SaBoolT saAmfCtDefDisableRestart;
 } amf_comp_type_t;
-
-/* We should only get the config attributes from IMM to avoid problems
-   with a pure runtime attributes */
-static SaImmAttrNameT compConfigAttributes[] = {
-	"saAmfCompType",
-	"saAmfCompCmdEnv",
-	"saAmfCompInstantiateCmdArgv",
-	"saAmfCompInstantiateTimeout",
-	"saAmfCompInstantiationLevel",
-	"saAmfCompNumMaxInstantiateWithoutDelay",
-	"saAmfCompNumMaxInstantiateWithDelay",
-	"saAmfCompDelayBetweenInstantiateAttempts",
-	"saAmfCompTerminateCmdArgv",
-	"saAmfCompTerminateTimeout",
-	"saAmfCompCleanupCmdArgv",
-	"saAmfCompCleanupTimeout",
-	"saAmfCompAmStartCmdArgv",
-	"saAmfCompAmStartTimeout",
-	"saAmfCompNumMaxAmStartAttempts",
-	"saAmfCompAmStopCmdArgv",
-	"saAmfCompAmStopTimeout",
-	"saAmfCompNumMaxAmStopAttempts",
-	"saAmfCompCSISetCallbackTimeout",
-	"saAmfCompCSIRmvCallbackTimeout",
-	"saAmfCompQuiescingCompleteTimeout",
-	"saAmfCompRecoveryOnError",
-	"saAmfCompDisableRestart",
-	NULL
-};
 
 /*****************************************************************************
  ****  Component Part of AVND AMF Configuration Database Layout           **** 
@@ -1104,6 +1077,19 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 		osafassert(compt->saAmfCtDefAmStopCmdArgv[i]);
 	}
 
+	if ((str = immutil_getStringAttr(attributes, "osafAmfCtRelPathHcCmd", 0)) != NULL)
+		compt->osafAmfCtRelPathHcCmd = strdup(str);
+
+	immutil_getAttrValuesNumber("osafAmfCtDefHcCmdArgv", attributes, &j);
+	compt->osafAmfCtDefHcCmdArgv = calloc(j + 1, sizeof(SaStringT));
+	osafassert(compt->osafAmfCtDefHcCmdArgv);
+	for (i = 0; i < j; i++) {
+		str = immutil_getStringAttr(attributes, "osafAmfCtDefHcCmdArgv", i);
+		osafassert(str);
+		compt->osafAmfCtDefHcCmdArgv[i] = strdup(str);
+		osafassert(compt->osafAmfCtDefHcCmdArgv[i]);
+	}
+
 	if ((IS_COMP_SAAWARE(compt->saAmfCtCompCategory) || IS_COMP_PROXIED_PI(compt->saAmfCtCompCategory)) &&
 			(immutil_getAttr("saAmfCtDefQuiescingCompleteTimeout", attributes, 0,
 							&compt->saAmfCompQuiescingCompleteTimeout) != SA_AIS_OK)) {
@@ -1337,6 +1323,35 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 		osafassert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
 		TRACE("cmd=%s", cmd->cmd);
 	}
+
+	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_HC - 1];
+	if (comptype->osafAmfCtRelPathHcCmd != NULL) {
+		i = 0;
+
+		if (comptype->osafAmfCtRelPathHcCmd[0] == '/')
+			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, "%s",
+				comptype->osafAmfCtRelPathHcCmd);
+		else
+			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, "%s/%s",
+				path_prefix, comptype->osafAmfCtRelPathHcCmd);
+
+		j = 0;
+		while ((argv = comptype->osafAmfCtDefHcCmdArgv[j++]) != NULL)
+			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, " %s", argv);
+
+		j = 0;
+		while ((argv = immutil_getStringAttr(attributes, "osafAmfCompHcCmdArgv", j++)) != NULL)
+			i += snprintf(&cmd->cmd[i], sizeof(cmd->cmd) - i, " %s", argv);
+
+		cmd->len = i;
+
+		comp->is_hc_cmd_configured = true;
+
+		/* Check for truncation, should alloc these strings dynamically instead */
+		osafassert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
+		TRACE("cmd=%s", cmd->cmd);
+	}
+
 	TRACE_LEAVE();
 }
 
@@ -1694,7 +1709,7 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
 	const char *className = "SaAmfComp";
 	AVND_COMP *comp;
 	SaImmHandleT immOmHandle;
-	SaVersionT immVersion = { 'A', 2, 1 };
+	SaVersionT immVersion = { 'A', 2, 11 };
 
 	TRACE_ENTER2("SU'%s'", su->name.value);
 
@@ -1704,8 +1719,8 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
 	searchParam.searchOneAttr.attrValue = &className;
 
 	if ((error = immutil_saImmOmSearchInitialize_2(immOmHandle, &su->name,
-		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR,
-		&searchParam, compConfigAttributes, &searchHandle)) != SA_AIS_OK) {
+		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_CONFIG_ATTR,
+		&searchParam, NULL, &searchHandle)) != SA_AIS_OK) {
 
 		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
 		goto done1;
