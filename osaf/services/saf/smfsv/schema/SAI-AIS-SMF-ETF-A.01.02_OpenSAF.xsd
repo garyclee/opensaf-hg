@@ -19,9 +19,11 @@
 
    Note: This is a modified schema.
    ================================
-   The following modification is made:   
-   1) Cardinality of  AmfEntityType is changed       
-      from
+   The following modifications have been made:   
+   Wed Feb 29 07:13:00 2012, Hans Feldt <hans.feldt@ericsson.com>
+      smfsv: schema changes related to AMF HC commands (#2481)
+   Wed Jun 02 10:18:22 2010, Ingvar Bergström <ingvar.bergstrom@ericsson.com>
+   Cardinality of  AmfEntityType is changed from
       <xs:element maxOccurs="unbounded" name="AmfEntityType">
       to
       <xs:element minOccurs="0" maxOccurs="unbounded" name="AmfEntityType">

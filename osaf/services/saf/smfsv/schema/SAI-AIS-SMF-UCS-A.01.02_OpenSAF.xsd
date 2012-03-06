@@ -19,7 +19,10 @@
 
    Note: This is a modified schema.
    ================================
-   The following modifications are made:   
+   The following modifications have been made:   
+   Wed Feb 29 07:13:00 2012, Hans Feldt <hans.feldt@ericsson.com>
+      smfsv: schema changes related to AMF HC commands (#2481)
+   Wed Jun 02 10:18:22, Ingvar Bergström <ingvar.bergstrom@ericsson.com>
    1) SaNameT pattern value <!xs:pattern value="{Name}={Name}(,{Name})*" />
       changed to
       <xs:pattern value="[a-zA-Z0-9_.\\=-]*=[a-zA-Z0-9_.\\=-]*(,[a-zA-Z0-9_.\\=-]*=[a-zA-Z0-9_.\\=-]*)*" />
