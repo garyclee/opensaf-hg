@@ -5911,13 +5911,30 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
         }
     }
 
-    deleteRoot = oi->second;
+    if(oi->second->mObjFlags & IMM_DELETE_LOCK && 
+       !(oi->second->mObjFlags & IMM_DELETE_ROOT)) {
+        TRACE_7("Object '%s' already scheduled for delete, not setting DELETE_ROOT flag", 
+            objectName.c_str());
+        /* deleteRoot will be NULL if the object already scheduled for delete and it
+           is not already the delete root. If it is already a delete-root, then this 
+           is a redundant delete of the same subtree. The delete-root will then be 
+           turned OFF inside deleteObject, only to be turned ON again below.
+        */
+ 
+    } else {
+        deleteRoot = oi->second;
+    }
     
     for(int doIt=0; (doIt < 2) && (err == SA_AIS_OK); ++doIt) {
         SaUint32T childCount = oi->second->mChildCount;
         
         err = deleteObject(oi, reqConn, adminOwner, ccb, doIt, objNameVector,
             connVector, continuations, pbeConnPtr?(*pbeConnPtr):0);
+
+        if(doIt && deleteRoot) {
+            osafassert(err == SA_AIS_OK);
+            deleteRoot->mObjFlags |= IMM_DELETE_ROOT;
+        }
 
         // Find all sub objects to the deleted object and delete them
         for (oi2 = sObjectMap.begin(); 
@@ -5936,10 +5953,6 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
                     }
                 }
             }
-        }
-
-        if(err == SA_AIS_OK) {
-            deleteRoot->mObjFlags |= IMM_DELETE_ROOT;
         }
     }
  ccbObjectDeleteExit:
@@ -6053,6 +6066,17 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
         if(omuti->second->mOpType == IMM_DELETE) {
             /* Delete already registered on object. */
             if(doIt) {
+                if(oi->second->mObjFlags & IMM_DELETE_ROOT) {
+                    TRACE_5("DELETE_ROOT flag found ON for object '%s', "
+                        "clearing it due to new delete-root", oi->first.c_str());
+                    /* This is the case when this subtree has already been deleted
+                       in the same CCB by a previous delete-op. Either the same
+                       subtree or a larger tree including this subtree. In either
+                       case we turn off the DELETE_ROOT flag. The flag will be turned
+                       on for the correct new root of the delete.
+                    */
+                    oi->second->mObjFlags &= ~IMM_DELETE_ROOT;//Remove delete-root flag
+                }
                 return SA_AIS_OK;
             }
         } else {
