@@ -244,6 +244,47 @@ SmfTargetNodeTemplate::addSwInstall(SmfBundleRef * i_bundle)
 }
 
 //------------------------------------------------------------------------------
+// removeSwAddRemoveDuplicates()
+//------------------------------------------------------------------------------
+void 
+SmfTargetNodeTemplate::removeSwAddRemoveDuplicates(void)
+{
+	TRACE_ENTER();
+
+	//Find out which bundles are specified in both swAdd and SwRemove
+       	std::list < SmfBundleRef * >swAddToBeRemoved;   //Tmp list to save duplicate bundles to be removed
+	std::list < SmfBundleRef * >swRemoveToBeRemoved;//Tmp list to save duplicate bundles to be removed
+
+	std::list < SmfBundleRef* >::iterator itRemove;
+	std::list < SmfBundleRef* >::iterator itInstall;
+
+	for (itInstall = m_swInstall.begin(); itInstall != m_swInstall.end(); ++itInstall) {
+		for (itRemove = m_swRemove.begin(); itRemove != m_swRemove.end(); ++itRemove) {
+			if ((*itInstall)->getBundleDn() == (*itRemove)->getBundleDn()){
+				LOG_NO("Bundle=%s found in <swAdd> and <swRemove> within a procedure, removed from both lists\n", (*itInstall)->getBundleDn().c_str());
+				swAddToBeRemoved.push_back(*itInstall);
+				swRemoveToBeRemoved.push_back(*itRemove);
+				break;
+			}
+		}
+	}
+
+	//Delete from lists and free memory
+	std::list < SmfBundleRef* >::iterator iter;
+	for (iter = swAddToBeRemoved.begin(); iter != swAddToBeRemoved.end(); ++iter) {
+		m_swInstall.remove(*iter);
+		delete (*iter);
+	}
+
+	for (iter = swRemoveToBeRemoved.begin(); iter != swRemoveToBeRemoved.end(); ++iter) {
+		m_swRemove.remove(*iter);
+		delete (*iter);
+	}
+
+	TRACE_LEAVE();
+}
+
+//------------------------------------------------------------------------------
 // getSwInstallList()
 //------------------------------------------------------------------------------
 const std::list < SmfBundleRef * >&
