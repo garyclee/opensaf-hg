@@ -267,6 +267,13 @@ class SmfTargetNodeTemplate {
 	void addSwInstall(SmfBundleRef * i_bundle);
 
 ///
+/// Purpose: Remove bundles defined in both add and remove lists
+/// @param   None.
+/// @return  None.
+///
+	void removeSwAddRemoveDuplicates();
+
+///
 /// Purpose: Get the list of bundles to be installed.
 /// @param   None.
 /// @return  A std::list containing pointers to added SmfBundleRef.

@@ -203,6 +203,29 @@ SmfCampaignXmlParser::parseCampaignXml(std::string i_file)
 			osafassert(up != NULL);
 
 			parseUpgradeProcedure(up, cur);
+
+			//For the procedure, check if the same SwBudle DN exist in both swAdd and swRemove lists
+			//In that case the SwBundle shall not be touched, remove the SwBundle DN from the lists.
+
+			SmfUpgradeMethod *upgradeMethod = up->getUpgradeMethod();
+			switch (upgradeMethod->getUpgradeMethod()) {
+			case SA_SMF_ROLLING:
+			{
+				SmfRollingUpgrade *rollingUpgrade = (SmfRollingUpgrade *) upgradeMethod;
+				const SmfByTemplate *byTemplate = (const SmfByTemplate *)rollingUpgrade->getUpgradeScope();
+				const SmfTargetNodeTemplate *nodeTemplate = byTemplate->getTargetNodeTemplate();
+
+	                        const_cast<SmfTargetNodeTemplate *>(nodeTemplate)->removeSwAddRemoveDuplicates();
+
+				break;
+			}
+			case SA_SMF_SINGLE_STEP:  //No action for single step procedures
+			default:
+			{
+				break;
+			}
+			} //End switch
+
 			if(!campaign->addUpgradeProcedure(up))
 			{
 				LOG_ER("SmfCampaignXmlParser::parseCampaignXml, addUpgradeProcedure failed");
