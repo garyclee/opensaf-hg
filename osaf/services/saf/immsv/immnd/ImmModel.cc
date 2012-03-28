@@ -3673,11 +3673,10 @@ ImmModel::commitModify(const std::string& dn, ObjectInfo* afterImage)
         oavi != afterImage->mAttrValueMap.end(); ++oavi) {
         AttrMap::iterator i4 = classInfo->mAttrMap.find(oavi->first);
         osafassert(i4!=classInfo->mAttrMap.end());
-        if(i4->second->mFlags & SA_IMM_ATTR_CONFIG) {
-            beforeImage->mAttrValueMap[oavi->first] = oavi->second;
-            if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
-                beforeImage->mAdminOwnerAttrVal = oavi->second;
-            }
+        osafassert(i4->second->mFlags & SA_IMM_ATTR_CONFIG);
+        beforeImage->mAttrValueMap[oavi->first] = oavi->second;
+        if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
+            beforeImage->mAdminOwnerAttrVal = oavi->second;
         }
     }
     afterImage->mAttrValueMap.clear();
@@ -5442,6 +5441,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         afim->mImplementer = object->mImplementer;
         afim->mObjFlags = object->mObjFlags;
         afim->mParent = object->mParent;
+        afim->mChildCount = object->mChildCount; /* Not used, but be consistent. */
         
         // Copy attribute values from existing object version to afim
         for(oavi = object->mAttrValueMap.begin(); 
@@ -10676,6 +10676,8 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
     ObjectInfo* beforeImage = oi->second;
     beforeImage->mObjFlags &= ~IMM_RT_UPDATE_LOCK;
 
+    ClassInfo* classInfo = beforeImage->mClassInfo;
+
     ImmAttrValueMap::iterator oavi;
 
     if(error == SA_AIS_OK) {
@@ -10691,14 +10693,20 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
             afim->mAdminOwnerAttrVal->setValueC_str(NULL);
         }
 
-        /* Discard beforeimage attr values. */
+        /* Discard beforeimage RTA values. */
         for(oavi =  beforeImage->mAttrValueMap.begin();
             oavi != beforeImage->mAttrValueMap.end(); ++oavi) {
-            delete oavi->second;
+            AttrMap::iterator i4 = classInfo->mAttrMap.find(oavi->first);
+            osafassert(i4!=classInfo->mAttrMap.end());
+            if(i4->second->mFlags & SA_IMM_ATTR_RUNTIME) {
+                delete oavi->second;
+            }
         }
-        beforeImage->mAttrValueMap.clear(); 
 
         for(oavi = afim->mAttrValueMap.begin(); oavi != afim->mAttrValueMap.end(); ++oavi) {
+            AttrMap::iterator i4 = classInfo->mAttrMap.find(oavi->first);
+            osafassert(i4!=classInfo->mAttrMap.end());
+            osafassert(i4->second->mFlags & SA_IMM_ATTR_RUNTIME);
             beforeImage->mAttrValueMap[oavi->first] = oavi->second;
             if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
                 beforeImage->mAdminOwnerAttrVal = oavi->second;
@@ -11034,6 +11042,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             afim->mImplementer = object->mImplementer;
             afim->mObjFlags = object->mObjFlags;
             afim->mParent = object->mParent;
+            afim->mChildCount = object->mChildCount; /* Not used, but be consistent. */
             // Copy attribute values from existing object version to afim
             for(oavi = object->mAttrValueMap.begin(); 
                 oavi != object->mAttrValueMap.end();
@@ -11041,18 +11050,23 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 ImmAttrValue* oldValue = oavi->second;
                 ImmAttrValue* newValue = NULL;
 
-                if(oldValue->isMultiValued()) {
-                    newValue = new ImmAttrMultiValue(*((ImmAttrMultiValue *) oldValue));
-                } else {
-                    newValue = new ImmAttrValue(*oldValue);
-                }
+                i4 = classInfo->mAttrMap.find(oavi->first);
+                osafassert(i4!=classInfo->mAttrMap.end());
+                 /* Only copy runtime attributes to afim. */
+                if(i4->second->mFlags & SA_IMM_ATTR_RUNTIME) {
+                    if(oldValue->isMultiValued()) {
+                        newValue = new ImmAttrMultiValue(*((ImmAttrMultiValue *) oldValue));
+                    } else {
+                        newValue = new ImmAttrValue(*oldValue);
+                    }
 
-                //Set admin owner as a regular attribute and then also a pointer
-                //to the attrValue for efficient access.
-                if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
-                    afim->mAdminOwnerAttrVal = newValue;
+                    //Set admin owner as a regular attribute and then also a pointer
+                    //to the attrValue for efficient access.
+                    if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
+                        afim->mAdminOwnerAttrVal = newValue;
+                    }
+                    afim->mAttrValueMap[oavi->first] = newValue;
                 }
-                afim->mAttrValueMap[oavi->first] = newValue;
             }
 
             oMut = new ObjectMutation(IMM_MODIFY);
