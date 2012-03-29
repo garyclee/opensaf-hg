@@ -482,9 +482,12 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList,
                         SmfImmCreateOperation* createOperation = dynamic_cast<SmfImmCreateOperation*>(*iter);
                         TRACE("SmfImmUtils::doImmOperations: Check if create operation");
                         if (createOperation != NULL) {
-                		//The creation may fail if the base type already exist, it shall not be considered an error
-                		if ((result == SA_AIS_ERR_EXIST) && (createOperation->getClassName().find("BaseType") != std::string::npos)) {
-                			TRACE("SmfImmUtils::doImmOperations: base type object already exists");
+                		//The base type or versioned type may already exist, this shall not be considered an error
+				std::string className = createOperation->getClassName();
+				if((result == SA_AIS_ERR_EXIST) && 
+				   (className.find("SaAmf") == 0) &&                                       //Begins with "SaAmf"
+				   (className.rfind("Type") + sizeof("Type") - 1 == className.size())) {   //Ends with "Type"
+                			TRACE("Base/versioned type (%s) already exists, continue",createOperation->getClassName().c_str());
                                         /* We should not rollback this non creation */
                                         delete rollbackData; 
                                         rollbackData = NULL;
