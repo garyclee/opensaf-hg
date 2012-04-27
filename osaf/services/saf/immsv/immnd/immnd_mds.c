@@ -154,7 +154,7 @@ uint32_t immnd_mds_register(IMMND_CB *cb)
 	cb->immnd_mdest_id = svc_info.info.svc_install.o_dest;
 
 	/* STEP 3: Subscribe to IMMD up/down events */
-	svc_info.i_op = MDS_RED_SUBSCRIBE;
+	svc_info.i_op = MDS_SUBSCRIBE; /* Normal mode subscription => vdest is used. */
 	svc_info.info.svc_subscribe.i_num_svcs = 1;
 	svc_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
 	svc_info.info.svc_subscribe.i_svc_ids = svc_id;
@@ -550,62 +550,45 @@ static uint32_t immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc
 
 		switch (svc_evt->i_change) {
 		case NCSMDS_DOWN:
-			if (cb->fevs_replies_pending) {
-				LOG_WA("Director Service is down,  fevs replies pending:%u "
-				       "fevs highest processed:%llu", cb->fevs_replies_pending, cb->highestProcessed);
-				if(cb->fevs_replies_pending) {
-					LOG_IN("Resetting fevs replies pending to zero");
-					cb->fevs_replies_pending = 0;
-				}
-			} else {
-				LOG_NO("Director Service is down");
-			}
-			if (cb->is_immd_up == true) {
-				/* If IMMD is already UP */
-				cb->is_immd_up = false;
-				m_NCS_UNLOCK(&cb->immnd_immd_up_lock, NCS_LOCK_WRITE);
-				TRACE_LEAVE();
-				return NCSCC_RC_SUCCESS;
-			}
+			TRACE("IMMD SERVICE DOWN => CLUSTER GOING DOWN");
+			cb->fevs_replies_pending = 0;
 			break;
 
 		case NCSMDS_UP:
-			LOG_NO("Director Service is up");
+			TRACE("NCSMDS_UP for IMMD. cb->is_immd_up = true; (v)dest:%llu",
+				(long long unsigned int) svc_evt->i_dest);
 			cb->is_immd_up = true;
 			cb->immd_mdest_id = svc_evt->i_dest;
 			break;
 
 		case NCSMDS_NO_ACTIVE:
-			cb->is_immd_up = false;
+			/* Do NOT set cb->is_immd_up to false, messages to IMMD vdest buffered */
 			if (cb->fevs_replies_pending) {
 				LOG_WA("Director Service in NOACTIVE state - "
 				       "fevs replies pending:%u fevs highest processed:%llu",
 				       cb->fevs_replies_pending, cb->highestProcessed);
-				LOG_IN("Resetting fevs replies pending to zero");
+				TRACE("Resetting fevs replies pending to zero");
 				cb->fevs_replies_pending = 0;
 			} else {
-				LOG_NO("Director Service in NOACTIVE state");
+				TRACE("Director Service in NOACTIVE state");
 			}
 			break;
 
 		case NCSMDS_NEW_ACTIVE:
-			cb->is_immd_up = true;
+			LOG_NO("NCSMDS_NEW_ACTIVE IMMD"); 
 			cb->immd_mdest_id = svc_evt->i_dest;
-			LOG_NO("Director Service Is NEWACTIVE state");
 			break;
 
 		case NCSMDS_RED_UP:
-			TRACE_2("NCSMDS_RED_UP (immd up) - doing nothing");
-			cb->is_immd_up = true;
-			cb->immd_mdest_id = svc_evt->i_dest;
+			LOG_ER("NCSMDS_RED_UP: SHOULD NOT HAPPEN");
 			break;
 
 		case NCSMDS_RED_DOWN:
-			TRACE_2("NCSMDS_RED_DOWN () - do nothing");
+			LOG_ER("NCSMDS_RED_DOWN: SHOULD NOT HAPPEN");
 			break;
 
 		case NCSMDS_CHG_ROLE:
-			TRACE_2("NCSMDS_CHG_ROLE () - do nothing");
+			LOG_ER("NCSMDS_CHG_ROLE: SHOULD NOT HAPPEN");
 			break;
 
 		default:
