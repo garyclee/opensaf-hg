@@ -22,7 +22,7 @@
    The following modifications have been made:   
    Wed Feb 29 07:13:00 2012, Hans Feldt <hans.feldt@ericsson.com>
       smfsv: schema changes related to AMF HC commands (#2481)
-   Wed Jun 02 10:18:22 2010, Ingvar Bergström <ingvar.bergstrom@ericsson.com>
+   Wed Jun 02 10:18:22 2010, Ingvar Bergstrom <ingvar.bergstrom@ericsson.com>
    Cardinality of  AmfEntityType is changed from
       <xs:element maxOccurs="unbounded" name="AmfEntityType">
       to
@@ -734,15 +734,15 @@ If a component has not responded within terminateCallbackTimeOut milliseconds it
 						<xs:group ref="CliParameters"/>
 					</xs:complexType>
 				</xs:element>
-				<xs:element name="osafHcCmd">
-					<xs:annotation>
-						<xs:documentation>The health check command.</xs:documentation>
-					</xs:annotation>
-					<xs:complexType>
-						<xs:group ref="CliParameters"/>
-					</xs:complexType>
-				</xs:element>
 			</xs:sequence>
+			<xs:element name="osafHcCmd" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>The health check command.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:group ref="CliParameters"/>
+				</xs:complexType>
+			</xs:element>
 		</xs:sequence>
 	</xs:group>
 	<xs:group name="ScopeOfImpact">
