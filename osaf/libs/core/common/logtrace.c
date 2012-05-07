@@ -16,6 +16,7 @@
  *
  */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -132,7 +133,17 @@ void _logtrace_log(const char *file, unsigned int line, int priority, const char
 	/* Uncondionally send to syslog */
 	va_start(ap, format);
 	va_copy(ap2, ap);
-	vsyslog(priority, format, ap);
+
+	char *tmp_str = NULL;
+	int tmp_str_len =  0;
+
+	if ((tmp_str_len = asprintf(&tmp_str, "%s %s", prefix_name[priority], format)) < 0) {
+		vsyslog(priority, format, ap);
+	}
+	else {
+		vsyslog(priority, tmp_str, ap);
+		free(tmp_str);
+	}
 
 	/* Only output to file if configured to */
 	if (!(category_mask & (1 << CAT_LOG)))
