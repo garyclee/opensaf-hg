@@ -10685,7 +10685,7 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
         LOG_IN("Update of PERSISTENT runtime attributes in object '%s'.", 
             objName.c_str());
 
-        if(beforeImage->mAdminOwnerAttrVal->empty()) {
+        if(afim->mAdminOwnerAttrVal && beforeImage->mAdminOwnerAttrVal->empty()) {
            /* Empty admin Owner can imply (hard) release during PRTA update.
               The releaseOn finalize will have auto-released the adminOwner
               on the before-image but not on the after image of modify.
