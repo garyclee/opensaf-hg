@@ -223,9 +223,7 @@ int main(int argc, char *argv[])
 				syslog(LOG_ERR, "system(killall) FAILED %x", status);
 
 			syslog(LOG_ERR, "%s", latest_healthcheck_trace); 
-			syslog(LOG_ERR, "ordering system reboot"); 
-			if ((status = system("shutdown -r now")) == -1)
-				syslog(LOG_ERR, "system(shutdown) FAILED %x", status);
+			opensaf_reboot(0, NULL,	"AMFND unresponsive, AMFWDOG initiated system reboot");
 		}
 
 		if (fds[0].revents & POLLIN) {
