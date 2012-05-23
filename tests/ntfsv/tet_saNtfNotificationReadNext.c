@@ -42,9 +42,7 @@ void saNtfNotificationReadNext_01(void)
     SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles = {0,0,0,0,0};
     SaNtfReadHandleT readHandle;
     SaNtfHandleT ntfHandle;
-    SaNtfSearchDirectionT searchDirection;
     SaNtfNotificationsT returnedNotification;
-    SaNtfAlarmNotificationT *returnedAlarmNotification = NULL;
     SaNtfAlarmNotificationT myNotification;
     searchCriteria.searchMode = SA_NTF_SEARCH_ONLY_FILTER;
     SaAisErrorT errorCode;
@@ -122,7 +120,6 @@ void saNtfNotificationReadNext_01(void)
                                               &myNotificationFilterHandles,
                                               &readHandle), SA_AIS_OK);
 
-    searchDirection = SA_NTF_SEARCH_YOUNGER;
     /* read as many matching notifications as exist for the time period between
      the last received one and now */
    for ( ; (errorCode = saNtfNotificationReadNext(
@@ -138,10 +135,6 @@ void saNtfNotificationReadNext_01(void)
    {
        safassert(errorCode, SA_AIS_OK);
        readCounter++;
-       if (returnedNotification.notificationType == SA_NTF_TYPE_ALARM) {
-           returnedAlarmNotification =
-               &returnedNotification.notification.alarmNotification;
-       }
 
        if(verbose)
        {
@@ -179,7 +172,6 @@ void saNtfNotificationReadNext_02(void)
     SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles = {0,0,0,0,0};
     SaNtfReadHandleT readHandle;
     SaNtfHandleT ntfHandle;
-    SaNtfSearchDirectionT searchDirection;
     SaNtfNotificationsT returnedNotification;
     SaNtfAlarmNotificationT myNotification;
     searchCriteria.searchMode = SA_NTF_SEARCH_AFTER_TIME;
@@ -259,7 +251,6 @@ void saNtfNotificationReadNext_02(void)
                                               &myNotificationFilterHandles,
                                               &readHandle), SA_AIS_OK);
 
-    searchDirection = SA_NTF_SEARCH_YOUNGER;
     /* read as many matching notifications as exist for the time period between
      the last received one and now */
    for (i=0 ; i<3 && (errorCode = saNtfNotificationReadNext(
