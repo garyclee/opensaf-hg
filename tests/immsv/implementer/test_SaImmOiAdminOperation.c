@@ -467,7 +467,6 @@ void SaImmOiAdminOperation_07(void)
     struct pollfd fds[1];
     int ret;
     pthread_t thread;
-    SaAisErrorT rc;
     SaImmHandleT handle;
     SaImmAdminOwnerHandleT ownerHandle;
     SaImmCcbHandleT ccbHandle;
@@ -514,13 +513,11 @@ void SaImmOiAdminOperation_07(void)
     if (ret == 0)
     {
         TRACE("poll timeout\n");
-        rc = SA_AIS_ERR_TIMEOUT;
         goto done;
     }
     if (ret == -1)
     {
         fprintf(stderr, "poll error: %s\n", strerror(errno));
-        rc = SA_AIS_ERR_FAILED_OPERATION;
         goto done;
     }
 
