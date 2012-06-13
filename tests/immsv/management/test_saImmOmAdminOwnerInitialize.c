@@ -114,6 +114,7 @@ __attribute__ ((constructor)) static void saImmOmAdminOwnerInitialize_constructo
     test_case_add(5, saImmOmAdminOwnerSet_06, "saImmOmAdminOwnerSet - SA_AIS_ERR_EXIST, different admin owner already exist");
     test_case_add(5, saImmOmAdminOwnerRelease_01, "saImmOmAdminOwnerRelease - SA_AIS_OK");
     test_case_add(5, saImmOmAdminOwnerRelease_02, "saImmOmAdminOwnerRelease - SA_AIS_ERR_BAD_HANDLE");
+    test_case_add(5, saImmOmAdminOwnerRelease_03, "saImmOmAdminOwnerRelease - SA_AIS_ERR_INVALID_PARAM, objectNames is NULL");
     test_case_add(5, saImmOmAdminOwnerRelease_04, "saImmOmAdminOwnerRelease - SA_AIS_ERR_INVALID_PARAM, Invalid scope");
     test_case_add(5, saImmOmAdminOwnerRelease_05, "saImmOmAdminOwnerRelease - SA_AIS_ERR_NOT_EXIST, no existing object");
     test_case_add(5, saImmOmAdminOwnerFinalize_01, "saImmOmAdminOwnerFinalize - SA_AIS_OK");

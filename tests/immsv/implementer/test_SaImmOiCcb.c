@@ -36,6 +36,10 @@ static SaAisErrorT saImmOiCcbObjectDeleteCallback_response = SA_AIS_OK;
 static SaAisErrorT saImmOiCcbObjectModifyCallback_response = SA_AIS_OK;
 static SaAisErrorT saImmOiRtAttrUpdateCallback_response = SA_AIS_OK;
 
+static int saveErrorStrings = 0;	/* boolean */
+static SaStringT *returnErrorStrings = NULL;
+
+
 static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
     SaInvocationT invocation,
     const SaNameT *objectName,
@@ -71,6 +75,8 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle,
     const SaImmAttrValuesT_2 **attr)
 {
     TRACE_ENTER2("%llu, %s, %s\n", ccbId, className, parentName->value);
+    if(saImmOiCcbObjectCreateCallback_response != SA_AIS_OK)
+    	safassert(saImmOiCcbSetErrorString(immOiHandle, ccbId, (SaStringT)"Set error string in saImmOiCcbObjectCreateCallback"), SA_AIS_OK);
     return saImmOiCcbObjectCreateCallback_response;
 }
 
@@ -79,6 +85,8 @@ static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
     const SaNameT *objectName)
 {
     TRACE_ENTER2("%llu, %s\n", ccbId, objectName->value);
+    if(saImmOiCcbObjectDeleteCallback_response != SA_AIS_OK)
+    	safassert(saImmOiCcbSetErrorString(immOiHandle, ccbId, (SaStringT)"Set error string in saImmOiCcbObjectDeleteCallback"), SA_AIS_OK);
     return saImmOiCcbObjectDeleteCallback_response;
 }
 
@@ -88,6 +96,8 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
     const SaImmAttrModificationT_2 **attrMods)
 {
     TRACE_ENTER2("%llu, %s\n", ccbId, objectName->value);
+    if(saImmOiCcbObjectModifyCallback_response != SA_AIS_OK)
+    	safassert(saImmOiCcbSetErrorString(immOiHandle, ccbId, (SaStringT)"Set error string in saImmOiCcbObjectModifyCallback"), SA_AIS_OK);
     return saImmOiCcbObjectModifyCallback_response;
 }
 
@@ -245,7 +255,7 @@ static void *classImplementerThreadMain(void *arg)
         safassert(saImmOiDispatch(handle, SA_DISPATCH_ONE), SA_AIS_OK);
     }
 
-    safassert(saImmOiClassImplementerRelease(handle, configClassName), SA_AIS_OK);
+    safassert(saImmOiClassImplementerRelease(handle, className), SA_AIS_OK);
     safassert(saImmOiFinalize(handle), SA_AIS_OK);
 
     TRACE_LEAVE();
@@ -269,6 +279,7 @@ static SaAisErrorT om_ccb_exec(void)
     const SaImmAttrValuesT_2 * attrValues[] = {&v1, &v2, NULL};
     SaImmAttrModificationT_2 attrMod = {SA_IMM_ATTR_VALUES_REPLACE, v1};
     const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, NULL};
+    SaStringT *errorStrings = NULL;
 
     TRACE_ENTER();
     safassert(saImmOmInitialize(&handle, NULL, &immVersion), SA_AIS_OK);
@@ -288,6 +299,32 @@ static SaAisErrorT om_ccb_exec(void)
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
 
 done:
+    if(rc != SA_AIS_OK) {
+        SaStringT *es = NULL;
+        safassert(saImmOmCcbGetErrorStrings(ccbHandle, (const SaStringT **)&errorStrings), SA_AIS_OK);
+        assert(*errorStrings != NULL);	/* In our tests, there are always error strings from failed callbacks */
+        if(saveErrorStrings) {
+            es = errorStrings;
+            int errorStringSize = 0;
+            while(*es) {				/* count error strings */
+                errorStringSize++;
+                es++;
+            }
+
+            returnErrorStrings = (SaStringT *)calloc(1, sizeof(SaStringT) * (errorStringSize + 1));
+
+            es = returnErrorStrings;
+        }
+        while(*errorStrings) {
+            if(saveErrorStrings) {
+                *es = strdup(*errorStrings);
+                es++;
+            }
+            TRACE("saImmOmCcbGetErrorStrings(%llu): %s", ccbHandle, *errorStrings);
+            errorStrings++;
+        }
+    }
+
     safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
     safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
     safassert(saImmOmFinalize(handle), SA_AIS_OK);
@@ -435,20 +472,20 @@ static void saImmOiCcb_03(void)
 static void saImmOiCcb_04(void)
 {
     int res;
-    pthread_t thread[2];
+    pthread_t threadid;
 
     TRACE_ENTER();
     om_setup();
 
     /* Create implementer threads */
-    res = pthread_create(&thread[0], NULL, classImplementerThreadMain, configClassName);
+    res = pthread_create(&threadid, NULL, classImplementerThreadMain, configClassName);
     assert(res == 0);
  
     saImmOiCcbObjectModifyCallback_response = SA_AIS_ERR_BAD_OPERATION;
     sleep(1); /* Race condition, allow implementer threads to set up!*/
     rc = om_ccb_exec();
 
-    pthread_join(thread[0], NULL);
+    pthread_join(threadid, NULL);
  
     if(rc != SA_AIS_ERR_BAD_OPERATION) {
         /* Note  that the error code returned by implementer need not
@@ -457,6 +494,58 @@ static void saImmOiCcb_04(void)
         in some cases abort the entire CCB with SA_AIS_ERR_FAILED_OPERATON. */
         test_validate(rc, SA_AIS_ERR_FAILED_OPERATION);
     } else 
+    {
+        test_validate(rc, SA_AIS_ERR_BAD_OPERATION);
+    }
+
+    om_teardown();
+    saImmOiCcbObjectModifyCallback_response = SA_AIS_OK;
+    TRACE_LEAVE();
+}
+
+static void saImmOiCcb_05(void)
+{
+    int res;
+    pthread_t threadid;
+    SaStringT *errorStrings;
+
+    TRACE_ENTER();
+    om_setup();
+
+    /* Create implementer threads */
+    res = pthread_create(&threadid, NULL, classImplementerThreadMain, configClassName);
+    assert(res == 0);
+
+    saImmOiCcbObjectModifyCallback_response = SA_AIS_ERR_BAD_OPERATION;
+    sleep(1); /* Race condition, allow implementer threads to set up!*/
+
+    /* Set saveErrorStrings to 1 and save error strings in om_ccb_exec() */
+    returnErrorStrings = NULL;
+    saveErrorStrings = 1;
+    rc = om_ccb_exec();
+    saveErrorStrings = 0;
+
+    /* There is at least one error string */
+    assert(returnErrorStrings != NULL);
+    assert(*returnErrorStrings != NULL);
+
+    /* Free allocated memory in om_ccb_exec() */
+    errorStrings = returnErrorStrings;
+    while(*errorStrings) {
+    	free(*errorStrings);
+    	errorStrings++;
+    }
+    free(returnErrorStrings);
+
+    pthread_join(threadid, NULL);
+
+    if(rc != SA_AIS_ERR_BAD_OPERATION) {
+        /* Note  that the error code returned by implementer need not
+         always be the errro code returned over the OM API.
+        Specifically, when the OI rejects the operation, the IMM may
+        in some cases abort the entire CCB with SA_AIS_ERR_FAILED_OPERATON. */
+        test_validate(rc, SA_AIS_ERR_FAILED_OPERATION);
+    } else
     {
         test_validate(rc, SA_AIS_ERR_BAD_OPERATION);
     }
@@ -477,5 +566,6 @@ __attribute__ ((constructor)) static void saImmOiCcb_constructor(void)
     test_case_add(4, saImmOiCcb_02, "saImmOiCcb - SA_AIS_ERR_BAD_OPERATION - 2 objectImplementer threads");
     test_case_add(4, saImmOiCcb_03, "saImmOiCcb - SA_AIS_OK - 1 classImplementer thread");
     test_case_add(4, saImmOiCcb_04, "saImmOiCcb - SA_AIS_ERR_BAD_OPERATION/FAILED_OPERATION - 1 classImplementer thread");
+    test_case_add(4, saImmOiCcb_05, "saImmOiCcb - SA_AIS_ERR_BAD_OPERATION/FAILED_OPERATION - saImmOiCcbSetErrorString and saImmOmCcbGetErrorStrings");
 }
 

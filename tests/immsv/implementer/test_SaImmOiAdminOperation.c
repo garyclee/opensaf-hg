@@ -31,24 +31,96 @@ static SaAisErrorT immReturnValue;
 static SaAisErrorT operationReturnValue;
 static SaInvocationT userInvocation = 0xdead;
 
+/* SaImmAdminOperationError */
+static SaStringT adminOperationErrorString = NULL;
+static SaImmAdminOperationParamsT_2 adminOperationErrorParam = {
+		SA_IMM_PARAM_ADMOP_ERROR,
+		SA_IMM_ATTR_SASTRINGT,
+		&adminOperationErrorString };
+static const SaImmAdminOperationParamsT_2 *adminOperationErrorParams[2] = {
+		&adminOperationErrorParam,
+		NULL };
+
+/* SaImmAdminOperationName */
+static SaStringT adminOperationName = NULL;
+static SaImmAdminOperationParamsT_2 adminOperationNameParam = {
+		SA_IMM_PARAM_ADMOP_NAME,
+		SA_IMM_ATTR_SASTRINGT,
+		&adminOperationName };
+
+
 static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
+    SaInvocationT invocation,
+    const SaNameT *objectName,
+    SaImmAdminOperationIdT opId,
+    const SaImmAdminOperationParamsT_2 **params)
+{
+    TRACE_ENTER2("Returning %s\n", get_saf_error(saImmOiAdminOperationCallback_response));
+    assert(opId == operationId);
+    assert(*((SaUint64T*) params[0]->paramBuffer) == value);
+
+    if (saImmOiAdminOperationCallback_response != SA_AIS_ERR_TIMEOUT)
+        safassert(saImmOiAdminOperationResult(immOiHandle, invocation,
+            saImmOiAdminOperationCallback_response), SA_AIS_OK);
+    TRACE_LEAVE();
+}
+
+/*
+ * If opId is SA_IMM_PARAM_ADMOP_ID_ESC, then the callback returns SA_AIS_ERR_BAD_OPERATION
+ * and set the admin-operation name to return parameter SA_IMM_PARAM_ADMOP_ERROR.
+ * If adminOperationErrorString is not NULL, then the return parameter is adminOperationErrorParams.
+ * Otherwise, the return parameter is params.
+ */
+static void saImmOiAdminOperationCallback_o2(SaImmOiHandleT immOiHandle,
     SaInvocationT invocation,
     const SaNameT *objectName,
     SaImmAdminOperationIdT opId,
     const SaImmAdminOperationParamsT_2 **params)
 {   
     TRACE_ENTER2("Returning %s\n", get_saf_error(saImmOiAdminOperationCallback_response));
-    assert(opId == operationId);
-    assert(*((SaUint64T*) params[0]->paramBuffer) == value);
 
-    if (saImmOiAdminOperationCallback_response != SA_AIS_ERR_TIMEOUT)
-        safassert(saImmOiAdminOperationResult_o2(immOiHandle, invocation,
-            saImmOiAdminOperationCallback_response, params), SA_AIS_OK);
-    TRACE_LEAVE();
+    if(opId == SA_IMM_PARAM_ADMOP_ID_ESC) {
+    	/* SaImmAdminOperationName */
+        SaImmAdminOperationParamsT_2 *param = (SaImmAdminOperationParamsT_2 *)*params;
+        while(param) {
+            if(!strcmp(param->paramName, SA_IMM_PARAM_ADMOP_NAME))
+                break;
+            param++;
+        }
+
+        if(param) {
+            adminOperationErrorString = *(SaStringT *)(param->paramBuffer);
+            safassert(saImmOiAdminOperationResult_o2(immOiHandle, invocation,
+                SA_AIS_ERR_BAD_OPERATION, adminOperationErrorParams), SA_AIS_OK);
+            adminOperationErrorString = NULL;
+        } else {
+            adminOperationErrorString = "Cannot find admin-operation name";
+            safassert(saImmOiAdminOperationResult_o2(immOiHandle, invocation,
+                SA_AIS_ERR_INVALID_PARAM, adminOperationErrorParams), SA_AIS_OK);
+            adminOperationErrorString = NULL;
+        }
+    } else if (saImmOiAdminOperationCallback_response != SA_AIS_ERR_TIMEOUT) {
+        if(adminOperationErrorString) {
+        	/* SaImmAdminOperationError */
+            safassert(saImmOiAdminOperationResult_o2(immOiHandle, invocation,
+                saImmOiAdminOperationCallback_response, adminOperationErrorParams), SA_AIS_OK);
+        } else {
+            assert(opId == operationId);
+            assert(*((SaUint64T*) params[0]->paramBuffer) == value);
+
+            safassert(saImmOiAdminOperationResult_o2(immOiHandle, invocation,
+                saImmOiAdminOperationCallback_response, params), SA_AIS_OK);
+        }
+    }
+    TRACE_LEAVE2();
 }
 
 static const SaImmOiCallbacksT_2 oiCallbacks =
     {.saImmOiAdminOperationCallback = saImmOiAdminOperationCallback};
+static const SaImmOiCallbacksT_2 oiCallbacks_o2 =
+    {.saImmOiAdminOperationCallback = saImmOiAdminOperationCallback_o2};
+
+static const SaImmOiCallbacksT_2 *callbacks = &oiCallbacks_o2;
 
 static void saImmOmAdminOperationInvokeCallback(
     SaInvocationT invocation,
@@ -87,7 +159,7 @@ static void *objectImplementerThreadMain(void *arg)
     const SaNameT *objectName = arg;
 
     TRACE_ENTER();
-    safassert(saImmOiInitialize_2(&handle, &oiCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOiInitialize_2(&handle, callbacks, &immVersion), SA_AIS_OK);
     safassert(saImmOiImplementerSet(handle, implementerName), SA_AIS_OK);
     TRACE("Setting implementer %s for object %s", implementerName, objectName->value);
     safassert(saImmOiObjectImplementerSet(handle, objectName, SA_IMM_ONE), SA_AIS_OK);
@@ -186,6 +258,8 @@ void SaImmOiAdminOperation_01(void)
         safassert(saImmOmAdminOwnerSet(ownerHandle, nameValues, SA_IMM_ONE), SA_AIS_OK);
     }
 
+    /* Set admin operation callback to use saImmOiAdminOperationResult */
+    callbacks = &oiCallbacks;
     objectImplementerIsSet = SA_FALSE;
     ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
     assert(ret == 0);
@@ -199,6 +273,9 @@ void SaImmOiAdminOperation_01(void)
 
     if (imm_rc != SA_AIS_OK)
         TRACE("om_admin_exec failed: %s\n", get_saf_error(imm_rc));
+
+    /* set callbacks to default callbacks */
+    callbacks = &oiCallbacks_o2;
 
     safassert(saImmOmCcbObjectDelete(ccbHandle, &rdn), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
@@ -241,7 +318,6 @@ void SaImmOiAdminOperation_02(void)
     /* Create test object under root */
     safassert(saImmOmCcbObjectCreate_2(ccbHandle, "TestClassConfig", NULL, attrValues), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
-
 
     rc = saImmOmAdminOperationInvoke_2(
         -1, &rdn, 0, operationId,
@@ -353,7 +429,6 @@ void SaImmOiAdminOperation_04(void)
     safassert(saImmOmCcbObjectCreate_2(ccbHandle, "TestClassConfig", NULL, attrValues), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
     safassert(saImmOmAdminOwnerRelease(ownerHandle, nameValues, SA_IMM_ONE), SA_AIS_OK);
-
 
     rc = saImmOmAdminOperationInvoke_2(
         ownerHandle, &rdn, 0, operationId,
@@ -541,6 +616,251 @@ done:
     TRACE_LEAVE();
 }
 
+void SaImmOiAdminOperation_08(void)
+{
+    int ret;
+    pthread_t thread;
+    SaImmHandleT handle;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT ccbHandle;
+
+    const SaNameT *nameValues[] = {&rdn, NULL};
+    SaSelectionObjectT selObj;
+    SaImmAdminOperationParamsT_2 param = {
+        "TEST",
+        SA_IMM_ATTR_SAUINT64T,
+        &value
+    };
+    const SaImmAdminOperationParamsT_2 *params[] = {&param, NULL};
+    SaImmAdminOperationParamsT_2 **returnParams = NULL;
+    SaAisErrorT operationReturnValue;
+
+    TRACE_ENTER();
+    SaImmAttrValuesT_2 v2 = {"rdn",  SA_IMM_ATTR_SANAMET, 1, (void**)nameValues};
+    SaUint32T  int1Value1 = 7;
+    SaUint32T* int1Values[] = {&int1Value1};
+    SaImmAttrValuesT_2 v1 = {"attr1", SA_IMM_ATTR_SAUINT32T, 1, (void**)int1Values};
+    const SaImmAttrValuesT_2 * attrValues[] = {&v1, &v2, NULL};
+
+    safassert(saImmOmInitialize_o2(&handle, &omCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(handle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+    safassert(config_class_create(handle), SA_AIS_OK);
+    safassert(saImmOmCcbObjectCreate_2(ccbHandle, "TestClassConfig", NULL, attrValues), SA_AIS_OK);
+    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+
+    objectImplementerIsSet = SA_FALSE;
+    ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
+    assert(ret == 0);
+    while (!objectImplementerIsSet)
+        usleep(100);
+
+    safassert(saImmOmSelectionObjectGet(handle, &selObj), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerSet(ownerHandle, nameValues, SA_IMM_SUBTREE), SA_AIS_OK);
+
+    if((rc = saImmOmAdminOperationInvoke_o2(ownerHandle, &rdn, 0, operationId, params,
+    		&operationReturnValue, SA_TIME_MAX, &returnParams)) != SA_AIS_OK)
+    	goto done;
+
+    assert(returnParams != NULL);
+
+    rc = saImmOmAdminOperationMemoryFree(ownerHandle, returnParams);
+
+done:
+    TRACE("%s", get_saf_error(rc));
+    test_validate(rc, SA_AIS_OK);
+
+    safassert(saImmOmCcbObjectDelete(ccbHandle, &rdn), SA_AIS_OK);
+    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+    safassert(config_class_delete(handle), SA_AIS_OK);
+
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+    safassert(saImmOmFinalize(handle), SA_AIS_OK);
+
+    pthread_join(thread, NULL);
+
+    TRACE_LEAVE();
+}
+
+void SaImmOiAdminOperation_09(void)
+{
+    int ret;
+    pthread_t thread;
+    SaImmHandleT handle;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT ccbHandle;
+
+    const SaNameT *nameValues[] = {&rdn, NULL};
+    SaSelectionObjectT selObj;
+    SaImmAdminOperationParamsT_2 param = {
+        "TEST",
+        SA_IMM_ATTR_SAUINT64T,
+        &value
+    };
+    const SaImmAdminOperationParamsT_2 *params[] = {&param, NULL};
+    SaImmAdminOperationParamsT_2 **returnParams = NULL;
+    SaImmAdminOperationParamsT_2 *returnParam;
+    SaAisErrorT operationReturnValue;
+
+    TRACE_ENTER();
+    SaImmAttrValuesT_2 v2 = {"rdn",  SA_IMM_ATTR_SANAMET, 1, (void**)nameValues};
+    SaUint32T  int1Value1 = 7;
+    SaUint32T* int1Values[] = {&int1Value1};
+    SaImmAttrValuesT_2 v1 = {"attr1", SA_IMM_ATTR_SAUINT32T, 1, (void**)int1Values};
+    const SaImmAttrValuesT_2 * attrValues[] = {&v1, &v2, NULL};
+
+    safassert(saImmOmInitialize_o2(&handle, &omCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(handle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+    safassert(config_class_create(handle), SA_AIS_OK);
+    safassert(saImmOmCcbObjectCreate_2(ccbHandle, "TestClassConfig", NULL, attrValues), SA_AIS_OK);
+    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+
+    objectImplementerIsSet = SA_FALSE;
+    ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
+    assert(ret == 0);
+    while (!objectImplementerIsSet)
+        usleep(100);
+
+    safassert(saImmOmSelectionObjectGet(handle, &selObj), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerSet(ownerHandle, nameValues, SA_IMM_SUBTREE), SA_AIS_OK);
+
+    /* Expected return error string */
+    saImmOiAdminOperationCallback_response = SA_AIS_ERR_BAD_OPERATION;
+    adminOperationErrorString = "saImmOiAdminOperationCallback_response is set to SA_AIS_ERR_BAD_OPERATION";
+    safassert(saImmOmAdminOperationInvoke_o2(
+        ownerHandle, &rdn, 0, operationId, params, &operationReturnValue, SA_TIME_MAX, &returnParams), SA_AIS_OK);
+    safassert(operationReturnValue, saImmOiAdminOperationCallback_response);
+    saImmOiAdminOperationCallback_response = SA_AIS_OK;
+
+    /* Check return parameters */
+    assert(returnParams != NULL);
+    assert(*returnParams != NULL);
+
+    /* Find SA_IMM_PARAM_ADMOP_ERROR parameter */
+    returnParam = *returnParams;
+    while(returnParam) {
+    	if(!strcmp(returnParam->paramName, SA_IMM_PARAM_ADMOP_ERROR))
+    		break;
+    	returnParam++;
+    }
+    assert(returnParam != NULL);
+
+    /* Not exactly nice validation because test_validate validates SaAisErrorT errors.
+       Here test_validate is used to track test case counters, and it's possible to use it in the way below */
+    test_validate(strcmp(*(SaStringT *)(returnParam->paramBuffer), adminOperationErrorString), 0);
+
+    adminOperationErrorString = NULL;
+
+    safassert(saImmOmDispatch(handle, SA_DISPATCH_ONE), SA_AIS_OK);
+
+    safassert(saImmOmAdminOperationMemoryFree(ownerHandle, returnParams), SA_AIS_OK);
+
+    safassert(saImmOmCcbObjectDelete(ccbHandle, &rdn), SA_AIS_OK);
+    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+    safassert(config_class_delete(handle), SA_AIS_OK);
+
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+    safassert(saImmOmFinalize(handle), SA_AIS_OK);
+
+    pthread_join(thread, NULL);
+
+    TRACE_LEAVE();
+}
+
+void SaImmOiAdminOperation_10(void)
+{
+    int ret;
+    pthread_t thread;
+    SaImmHandleT handle;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT ccbHandle;
+
+    const SaNameT *nameValues[] = {&rdn, NULL};
+    SaSelectionObjectT selObj;
+    SaImmAdminOperationParamsT_2 param = {
+        "TEST",
+        SA_IMM_ATTR_SAUINT64T,
+        &value
+    };
+    /* Set admin-operation as a second parameter */
+    const SaImmAdminOperationParamsT_2 *params[] = {&param, &adminOperationNameParam, NULL};
+    SaImmAdminOperationParamsT_2 **returnParams = NULL;
+    SaImmAdminOperationParamsT_2 *returnParam;
+    SaAisErrorT operationReturnValue;
+
+    TRACE_ENTER();
+    SaImmAttrValuesT_2 v2 = {"rdn",  SA_IMM_ATTR_SANAMET, 1, (void**)nameValues};
+    SaUint32T  int1Value1 = 7;
+    SaUint32T* int1Values[] = {&int1Value1};
+    SaImmAttrValuesT_2 v1 = {"attr1", SA_IMM_ATTR_SAUINT32T, 1, (void**)int1Values};
+    const SaImmAttrValuesT_2 * attrValues[] = {&v1, &v2, NULL};
+
+    safassert(saImmOmInitialize_o2(&handle, &omCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(handle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+    safassert(config_class_create(handle), SA_AIS_OK);
+    safassert(saImmOmCcbObjectCreate_2(ccbHandle, "TestClassConfig", NULL, attrValues), SA_AIS_OK);
+    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+
+    objectImplementerIsSet = SA_FALSE;
+    ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
+    assert(ret == 0);
+    while (!objectImplementerIsSet)
+        usleep(100);
+
+    safassert(saImmOmSelectionObjectGet(handle, &selObj), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerSet(ownerHandle, nameValues, SA_IMM_SUBTREE), SA_AIS_OK);
+
+    saImmOiAdminOperationCallback_response = SA_AIS_ERR_BAD_OPERATION;
+    adminOperationName = "TestOperation";
+    safassert(saImmOmAdminOperationInvoke_o2(
+        ownerHandle, &rdn, 0, SA_IMM_PARAM_ADMOP_ID_ESC, params, &operationReturnValue, SA_TIME_MAX, &returnParams), SA_AIS_OK);
+    safassert(operationReturnValue, saImmOiAdminOperationCallback_response);
+    saImmOiAdminOperationCallback_response = SA_AIS_OK;
+    adminOperationName = NULL;
+
+    /* Check return parameters */
+    assert(returnParams != NULL);
+    assert(*returnParams != NULL);
+
+    /* Find SA_IMM_PARAM_ADMOP_ERROR parameter */
+    returnParam = *returnParams;
+    while(returnParam) {
+    	if(!strcmp(returnParam->paramName, SA_IMM_PARAM_ADMOP_ERROR))
+    		break;
+    	returnParam++;
+    }
+    assert(returnParam != NULL);
+
+    /* Not exactly nice validation because test_validate validates SaAisErrorT errors.
+       Here test_validate is used to track test case counters, and is possible to use it in the way below */
+    test_validate(strcmp(*(SaStringT *)(returnParam->paramBuffer), "TestOperation"), 0);
+
+    adminOperationErrorString = NULL;
+
+    safassert(saImmOmDispatch(handle, SA_DISPATCH_ONE), SA_AIS_OK);
+
+    safassert(saImmOmAdminOperationMemoryFree(ownerHandle, returnParams), SA_AIS_OK);
+
+    safassert(saImmOmCcbObjectDelete(ccbHandle, &rdn), SA_AIS_OK);
+    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+    safassert(config_class_delete(handle), SA_AIS_OK);
+
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+    safassert(saImmOmFinalize(handle), SA_AIS_OK);
+
+    pthread_join(thread, NULL);
+
+    TRACE_LEAVE();
+}
+
 __attribute__ ((constructor)) static void saImmOiInitialize_2_constructor(void)
 {
     test_suite_add(5, "Administrative Operations");
@@ -550,6 +870,9 @@ __attribute__ ((constructor)) static void saImmOiInitialize_2_constructor(void)
     test_case_add(5, SaImmOiAdminOperation_04, "SaImmOiAdminOperation - SA_AIS_ERR_BAD_OPERATION");
     test_case_add(5, SaImmOiAdminOperation_05, "SaImmOiAdminOperation - SA_AIS_ERR_TIMEOUT");
     test_case_add(5, SaImmOiAdminOperation_06, "SaImmOiAdminOperation - SA_AIS_ERR_NOT_EXIST");
-    test_case_add(5, SaImmOiAdminOperation_07, "SaImmOiAdminOperation, OM async - SA_AIS_OK");
+    test_case_add(5, SaImmOiAdminOperation_07, "SaImmOiAdminOperation - SA_AIS_OK, OM async");
+    test_case_add(5, SaImmOiAdminOperation_08, "SaImmOiAdminOperation - SA_AIS_OK, OM sync with saImmOmAdminOperationMemoryFree");
+    test_case_add(5, SaImmOiAdminOperation_09, "SaImmOiAdminOperation - SA_AIS_ERR_BAD_OPERATION, SaImmAdminOperationError");
+    test_case_add(5, SaImmOiAdminOperation_10, "SaImmOiAdminOperation - SA_AIS_ERR_BAD_OPERATION, SaImmAdminOperationName");
 }
 

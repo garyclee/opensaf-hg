@@ -45,7 +45,8 @@ immoitest_SOURCES = \
 	test_saImmOiRtObjectUpdate_2.c \
 	test_SaImmOiRtAttrUpdateCallbackT.c \
 	test_SaImmOiCcb.c \
-	test_SaImmOiAdminOperation.c
+	test_SaImmOiAdminOperation.c \
+	test_saImmOiAugmentCcbInitialize.c
 
 immoitest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \

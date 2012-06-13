@@ -73,8 +73,43 @@ void saImmOmCcbInitialize_03(void)
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
+void saImmOmCcbInitialize_04(void)
+{
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT ccbHandle;
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE,
+        &ownerHandle), SA_AIS_OK);
+
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+
+    test_validate(saImmOmCcbGetErrorStrings(ccbHandle, NULL), SA_AIS_ERR_INVALID_PARAM);
+
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOmCcbInitialize_05(void)
+{
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT ccbHandle;
+    const SaStringT *errorStrings;
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE,
+        &ownerHandle), SA_AIS_OK);
+
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+
+    test_validate(saImmOmCcbGetErrorStrings(ccbHandle, &errorStrings), SA_AIS_OK);
+
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+
 extern void saImmOmCcbObjectCreate_01(void);
-extern void saImmOmCcbObjectCreate_01_bad(void);
 extern void saImmOmCcbObjectCreate_02(void);
 extern void saImmOmCcbObjectCreate_03(void);
 extern void saImmOmCcbObjectCreate_04(void);
@@ -102,10 +137,9 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_suite_add(6, "Configuration Changes");
     test_case_add(6, saImmOmCcbInitialize_01, "saImmOmCcbInitialize - SA_AIS_OK");
     test_case_add(6, saImmOmCcbInitialize_02, "saImmOmCcbInitialize - SA_AIS_ERR_BAD_HANDLE");
-    test_case_add(6, saImmOmCcbInitialize_02, "saImmOmCcbInitialize - SA_AIS_ERR_INVALID_PARAM");
+    test_case_add(6, saImmOmCcbInitialize_03, "saImmOmCcbInitialize - SA_AIS_ERR_INVALID_PARAM");
 
     test_case_add(6, saImmOmCcbObjectCreate_01, "saImmOmCcbObjectCreate - SA_AIS_OK");
-//    test_case_add(6, saImmOmCcbObjectCreate_01_bad, "saImmOmCcbObjectCreate - SA_AIS_OK, bad...");
     test_case_add(6, saImmOmCcbObjectCreate_02, "saImmOmCcbObjectCreate - SA_AIS_ERR_BAD_HANDLE");
     test_case_add(6, saImmOmCcbObjectCreate_03, "saImmOmCcbObjectCreate - SA_AIS_ERR_INVALID_PARAM");
     test_case_add(6, saImmOmCcbObjectCreate_04, "saImmOmCcbObjectCreate - SA_AIS_ERR_BAD_OPERATION");
@@ -124,12 +158,16 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(6, saImmOmCcbObjectModify_2_03, "saImmOmCcbObjectModify_2 - SA_AIS_ERR_INVALID_PARAM");
     test_case_add(6, saImmOmCcbObjectModify_2_04, "saImmOmCcbObjectModify_2 - SA_AIS_ERR_BAD_OPERATION");
     test_case_add(6, saImmOmCcbObjectModify_2_05, "saImmOmCcbObjectModify_2 - SA_AIS_ERR_NOT_EXIST");
-    test_case_add(6, saImmOmCcbObjectModify_2_05, "saImmOmCcbObjectModify_2 - SA_AIS_ERR_BUSY");
+    test_case_add(6, saImmOmCcbObjectModify_2_06, "saImmOmCcbObjectModify_2 - SA_AIS_ERR_BUSY");
 
     test_case_add(6, saImmOmCcbApply_01, "saImmOmCcbApply - SA_AIS_OK");
     test_case_add(6, saImmOmCcbApply_02, "saImmOmCcbApply - SA_AIS_ERR_BAD_HANDLE");
 
     test_case_add(6, saImmOmCcbFinalize_01, "saImmOmCcbFinalize - SA_AIS_OK");
     test_case_add(6, saImmOmCcbFinalize_02, "saImmOmCcbFinalize - SA_AIS_ERR_BAD_HANDLE");
+
+    test_case_add(6, saImmOmCcbInitialize_04, "saImmOmCcbGetErrorStrings - SA_AIS_ERR_INVALID_PARAM");
+    test_case_add(6, saImmOmCcbInitialize_05, "saImmOmCcbGetErrorStrings - SA_AIS_OK");
+
 }
 
