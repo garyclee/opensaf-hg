@@ -87,7 +87,7 @@ __attribute__ ((constructor)) static void saImmOiInitialize_2_constructor(void)
     test_case_add(1, saImmOiDispatch_01, "saImmOiDispatch - SA_AIS_OK SA_DISPATCH_ALL");
     test_case_add(1, saImmOiDispatch_02, "saImmOiDispatch - SA_AIS_OK SA_DISPATCH_ONE");
     test_case_add(1, saImmOiDispatch_03, "saImmOiDispatch - SA_AIS_ERR_BAD_HANDLE");
-    test_case_add(1, saImmOiDispatch_03, "saImmOiDispatch - SA_AIS_ERR_INVALID_PARAM");
+    test_case_add(1, saImmOiDispatch_04, "saImmOiDispatch - SA_AIS_ERR_INVALID_PARAM");
 
     test_case_add(1, saImmOiFinalize_01, "saImmOiFinalize - SA_AIS_OK");
     test_case_add(1, saImmOiFinalize_02, "saImmOiFinalize - SA_AIS_ERR_BAD_HANDLE");
