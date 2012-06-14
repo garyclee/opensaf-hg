@@ -466,7 +466,7 @@ int SmfCbkUtilThread::handleEvents(void)
                 /* Process any SMF callback events */
 		if (fds[1].revents & POLLIN) {
 			/* dispatch SMF callback events */
-			rc = saSmfDispatch(m_smfHandle, SA_DISPATCH_BLOCKING);	
+			rc = saSmfDispatch(m_smfHandle, SA_DISPATCH_ALL);	
 			if (SA_AIS_OK != rc){
 				LOG_ER("SmfCbkUtilThread saSmfDispatch failed %d", rc);
 			}
