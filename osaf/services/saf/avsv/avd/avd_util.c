@@ -503,7 +503,6 @@ static uint32_t avd_prep_su_info(AVD_CL_CB *cb, AVD_SU *su, AVD_DND_MSG *su_msg)
 	 * the SU message at the top of the list
 	 */
 	su_info->name = su->name;
-	su_info->num_of_comp = su->num_of_comp;
 	su_info->comp_restart_max = su->sg_of_su->saAmfSGCompRestartMax;
 	su_info->comp_restart_prob = su->sg_of_su->saAmfSGCompRestartProb;
 	su_info->su_restart_max = su->sg_of_su->saAmfSGSuRestartMax;

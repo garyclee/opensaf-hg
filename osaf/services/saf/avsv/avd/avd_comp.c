@@ -211,7 +211,6 @@ static void comp_add_to_model(AVD_COMP *comp)
 		} else {
 			/* This is not a valid external component. External SU has 
 			   been assigned a cluster component. */
-			comp->su->curr_num_comp--;
 			avd_su_remove_comp(comp);
 			LOG_ER("Not A Valid External Component: Category '%u'configured",
 				comp->comp_info.category);
@@ -1439,11 +1438,6 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 		} else {
 			comp->su->saAmfSUPreInstantiable = false;
 		}
-	}
-
-	if (comp->su->curr_num_comp == 1) {
-		/* This comp will be deleted so revert these to def val */
-		comp->su->saAmfSUPreInstantiable = false;
 	}
 
 	/* check whether the SU is also undergoing delete operation */
