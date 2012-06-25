@@ -55,17 +55,17 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 	avd_invalid_evh,	/* AVD_EVT_INVALID */
 
 	/* active AvD message events processing */
-	avd_node_up_evh,	/* AVD_EVT_NODE_UP_MSG */
-	avd_reg_su_evh,	        /* AVD_EVT_REG_SU_MSG */
-	avd_invalid_evh,	/* AVD_EVT_REG_COMP_MSG */
-	avd_su_oper_state_evh,	/* AVD_EVT_OPERATION_STATE_MSG */
-	avd_su_si_assign_evh,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
-	avd_pg_trk_act_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */
-	avd_oper_req_evh,	/* AVD_EVT_OPERATION_REQUEST_MSG */
-	avd_data_update_req_evh,	/* AVD_EVT_DATA_REQUEST_MSG */
-	avd_shutdown_app_su_resp_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
-	avd_ack_nack_evh,	        /* AVD_EVT_VERIFY_ACK_NACK_MSG */
-	avd_comp_validation_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
+	avd_node_up_evh,         /* AVD_EVT_NODE_UP_MSG */
+	avd_reg_su_evh,	         /* AVD_EVT_REG_SU_MSG */
+	avd_invalid_evh,         /* AVD_EVT_REG_COMP_MSG */
+	avd_su_oper_state_evh,   /* AVD_EVT_OPERATION_STATE_MSG */
+	avd_su_si_assign_evh,    /* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
+	avd_pg_trk_act_evh,      /* AVD_EVT_PG_TRACK_ACT_MSG */
+	avd_oper_req_evh,        /* AVD_EVT_OPERATION_REQUEST_MSG */
+	avd_data_update_req_evh, /* AVD_EVT_DATA_REQUEST_MSG */
+	avd_invalid_evh,         /* AVD_EVT_SHUTDOWN_APP_SU_MSG */
+	avd_ack_nack_evh,	     /* AVD_EVT_VERIFY_ACK_NACK_MSG */
+	avd_comp_validation_evh, /* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* active AvD timer events processing */
 	avd_tmr_snd_hb_evh,       /* AVD_EVT_TMR_SND_HB */
@@ -140,7 +140,7 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 	avd_qsd_ignore_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */
 	avd_oper_req_evh,	/* AVD_EVT_OPERATION_REQUEST_MSG */
 	avd_data_update_req_evh,	/* AVD_EVT_DATA_REQUEST_MSG */
-	avd_shutdown_app_su_resp_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
+	avd_invalid_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
 	avd_qsd_invalid_evh,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
 	avd_comp_validation_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
