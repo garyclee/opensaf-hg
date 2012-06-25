@@ -180,14 +180,14 @@ void avd_su_remove_comp(AVD_COMP *comp)
 				prev_comp->su_comp_next = comp->su_comp_next;
 			}
 
-			/* decrement the active component number of this SU */
-			osafassert(comp->su->curr_num_comp > 0);
-			comp->su->curr_num_comp--;
-			comp->su->num_of_comp--;
-
 			comp->su_comp_next = NULL;
 			comp->su = NULL;
 		}
+	}
+
+	if (comp->su->list_of_comp == NULL) {
+		/* Revert to def val */
+		comp->su->saAmfSUPreInstantiable = false;
 	}
 }
 
@@ -224,8 +224,6 @@ void avd_su_add_comp(AVD_COMP *comp)
 		prev_comp->su_comp_next = comp;
 		comp->su_comp_next = i_comp;
 	}
-	comp->su->curr_num_comp++;
-	comp->su->num_of_comp++;	// TODO 
 }
 
 /**
@@ -936,55 +934,50 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	switch (op_id) {
 	case SA_AMF_ADMIN_UNLOCK:
 		avd_su_admin_state_set(su, SA_AMF_ADMIN_UNLOCKED);
-		if (su->num_of_comp == su->curr_num_comp) {
-			if (((m_AVD_APP_SU_IS_INSVC(su, node)) || (su->sg_of_su->sg_ncs_spec == true)) &&
-				((su->saAmfSUPreInstantiable) ?
-				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED):true)) { 
-				/* Pres state check is to prevent assignment to SU in case SU is instantiating in
-				 * locked state and somebody issues UNLOCK on SU. Since comp are in instantiating state,
-				 * so AMFND will not assign the role to components. Anyway when SU gets instantiated, then
-				 * assignment will be given to components/SU.
-				 */
-				/* Reason for adding "su->sg_of_su->sg_ncs_spec == true" is for Middleware component
-				 * node oper state and SU oper state are marked enabled after they gets assignments.
-				 * So, we cann't check compatibility with m_AVD_APP_SU_IS_INSVC for them.
-				 */
-				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
-				switch (su->sg_of_su->sg_redundancy_model) {
-				case SA_AMF_2N_REDUNDANCY_MODEL:
-					if (avd_sg_2n_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
-						is_oper_successful = SA_FALSE;
-					break;
+		if (((m_AVD_APP_SU_IS_INSVC(su, node)) || (su->sg_of_su->sg_ncs_spec == true)) &&
+			((su->saAmfSUPreInstantiable) ?
+			 (su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED):true)) {
+			/* Pres state check is to prevent assignment to SU in case SU is instantiating in
+			 * locked state and somebody issues UNLOCK on SU. Since comp are in instantiating state,
+			 * so AMFND will not assign the role to components. Anyway when SU gets instantiated, then
+			 * assignment will be given to components/SU.
+			 */
+			/* Reason for adding "su->sg_of_su->sg_ncs_spec == true" is for Middleware component
+			 * node oper state and SU oper state are marked enabled after they gets assignments.
+			 * So, we cann't check compatibility with m_AVD_APP_SU_IS_INSVC for them.
+			 */
+			avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
+			switch (su->sg_of_su->sg_redundancy_model) {
+			case SA_AMF_2N_REDUNDANCY_MODEL:
+				if (avd_sg_2n_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
+					is_oper_successful = SA_FALSE;
+				break;
 
-				case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-					if (avd_sg_nway_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
-						is_oper_successful = SA_FALSE;
-					break;
+			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
+				if (avd_sg_nway_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
+					is_oper_successful = SA_FALSE;
+				break;
 
-				case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-					if (avd_sg_nacvred_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
-						is_oper_successful = SA_FALSE;
-					break;
+			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
+				if (avd_sg_nacvred_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
+					is_oper_successful = SA_FALSE;
+				break;
 
-				case SA_AMF_NPM_REDUNDANCY_MODEL:
-					if (avd_sg_npm_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
-						is_oper_successful = SA_FALSE;
-					break;
+			case SA_AMF_NPM_REDUNDANCY_MODEL:
+				if (avd_sg_npm_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
+					is_oper_successful = SA_FALSE;
+				break;
 
-				case SA_AMF_NO_REDUNDANCY_MODEL:
-				default:
-					if (avd_sg_nored_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
-						is_oper_successful = SA_FALSE;
-					break;
-				}
+			case SA_AMF_NO_REDUNDANCY_MODEL:
+			default:
+				if (avd_sg_nored_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
+					is_oper_successful = SA_FALSE;
+				break;
+			}
 
-				avd_sg_app_su_inst_func(cb, su->sg_of_su);
-			} else
-				LOG_IN("SU is not in service");
-		}
-		else
-			/* what is this ? */
-			LOG_IN("%u != %u", su->num_of_comp, su->curr_num_comp);
+			avd_sg_app_su_inst_func(cb, su->sg_of_su);
+		} else
+			LOG_IN("SU is not in service");
 
 		if ( is_oper_successful == SA_TRUE ) {
 			if ( su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN ) {

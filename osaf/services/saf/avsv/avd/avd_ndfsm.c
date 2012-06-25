@@ -190,12 +190,6 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 	ncs_su = avnd->list_of_ncs_su;
 
 	while (ncs_su != NULL) {
-		if (ncs_su->num_of_comp != ncs_su->curr_num_comp) {
-			/* skip these incomplete SUs. */
-			ncs_su = ncs_su->avnd_list_su_next;
-			continue;
-		}
-
 		if ((ncs_su->list_of_susi == AVD_SU_SI_REL_NULL) ||
 		    (ncs_su->list_of_susi->fsm != AVD_SU_SI_STATE_ASGND)) {
 			/* this is an unassigned SU so no need to scan further return here. */

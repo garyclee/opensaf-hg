@@ -1543,8 +1543,7 @@ void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 	if (cb->init_state == AVD_INIT_DONE) {
 		i_su = avnd->list_of_su;
 		while (i_su != NULL) {
-			if ((i_su->num_of_comp == i_su->curr_num_comp) &&
-			    (i_su->term_state == false) &&
+			if ((i_su->term_state == false) &&
 			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
 			    (i_su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) && 
 			    (i_su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) { 
@@ -1569,8 +1568,7 @@ void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 	} else if (cb->init_state == AVD_APP_STATE) {
 		i_su = avnd->list_of_su;
 		while (i_su != NULL) {
-			if ((i_su->num_of_comp == i_su->curr_num_comp) &&
-			    (i_su->term_state == false) &&
+			if ((i_su->term_state == false) &&
 			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED)) {
 				/* Look at the SG and do the instantiations. */
 				avd_sg_app_su_inst_func(cb, i_su->sg_of_su);
@@ -1628,8 +1626,7 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 				num_asgd_su++;
 			}
-		} /* if(i_su->readiness_state == NCS_IN_SERVICE) */
-		else if (i_su->num_of_comp == i_su->curr_num_comp) {
+		} else {
 			/* if the SU is non preinstantiable and if the node operational state
 			 * is enable. Put the SU in service.
 			 */

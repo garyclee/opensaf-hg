@@ -108,7 +108,7 @@ typedef struct avsv_hlt_info_msg {
 
 typedef struct avsv_su_info_msg {
 	SaNameT name;
-	uint32_t num_of_comp;
+	uint32_t dummy; // former num_of_comp
 	SaTimeT comp_restart_prob;
 	uint32_t comp_restart_max;
 	SaTimeT su_restart_prob;

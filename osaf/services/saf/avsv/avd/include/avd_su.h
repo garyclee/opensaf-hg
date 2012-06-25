@@ -82,16 +82,6 @@ typedef struct avd_su_tag {
 					 * when no admin operation is going on.
 					 */
 
-	uint32_t num_of_comp;	/* The number of components
-				 * that will make up this SU
-				 * Checkpointing - Sent as a one time update.
-				 */
-
-	uint32_t curr_num_comp;	/* The current number of components
-				 * configured.
-				 * Checkpointing - Calculated at Standby.
-				 */
-
 	bool term_state;	/* admin state to terminate the
 				 * service unit.
 				 * Checkpointing - Updated independently.
