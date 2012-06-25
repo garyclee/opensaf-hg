@@ -101,7 +101,6 @@ uint32_t avnd_evt_mds_avnd_dn_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 uint32_t avnd_evt_clc_resp_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 
 uint32_t avnd_evt_comp_pres_fsm_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
-uint32_t avnd_evt_avd_shutdown_app_su_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 uint32_t avnd_evt_avd_verify_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 uint32_t avnd_evt_avd_ack_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 uint32_t avnd_evt_avd_clm_node_on_fover(struct avnd_cb_tag *cb, struct avnd_evt_tag *evt);

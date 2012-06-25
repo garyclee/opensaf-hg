@@ -2216,13 +2216,6 @@ uint32_t avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 				reason);
 	}
 
-	/* Now check if in the context of shutdown all app SUs 
-	 ** and do the needful
-	 */
-	if ((cb->term_state == AVND_TERM_STATE_SHUTTING_APP_SU) || (cb->term_state == AVND_TERM_STATE_SHUTTING_NCS_SU)) {
-		avnd_check_su_shutdown_done(cb, su->is_ncs);
-	}
-
  done:
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -2266,15 +2259,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 		if (all_uninst == true) {
 			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
 
-			/* Now check if in the context of shutdown all app SUs 
-			 ** and do the needful
-			 */
-			if ((cb->term_state == AVND_TERM_STATE_SHUTTING_APP_SU) ||
-			    (cb->term_state == AVND_TERM_STATE_SHUTTING_NCS_SU)) {
-				avnd_check_su_shutdown_done(cb, su->is_ncs);
-			}
 		}
-
 	}
 
 	/* 
@@ -2301,14 +2286,6 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 		 */
 		if (!curr_comp) {
 			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
-
-			/* Now check if in the context of shutdown all app SUs 
-			 ** and do the needful
-			 */
-			if ((cb->term_state == AVND_TERM_STATE_SHUTTING_APP_SU) ||
-			    (cb->term_state == AVND_TERM_STATE_SHUTTING_NCS_SU)) {
-				avnd_check_su_shutdown_done(cb, su->is_ncs);
-			}
 		}
 	}
 
@@ -2341,14 +2318,6 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 		} else {
 			TRACE("SI Assignment done");
 			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
-
-			/* Now check if in the context of shutdown all app SUs 
-			 ** and do the needful
-			 */
-			if ((cb->term_state == AVND_TERM_STATE_SHUTTING_APP_SU) ||
-			    (cb->term_state == AVND_TERM_STATE_SHUTTING_NCS_SU)) {
-				avnd_check_su_shutdown_done(cb, su->is_ncs);
-			}
 		}
 	}
 

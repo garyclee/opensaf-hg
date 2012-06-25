@@ -380,7 +380,6 @@ uint32_t avnd_su_si_rec_unmark(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *
 uint32_t avnd_su_si_reassign(struct avnd_cb_tag *, AVND_SU *);
 uint32_t avnd_su_curr_info_del(struct avnd_cb_tag *, AVND_SU *);
 
-void avnd_check_su_shutdown_done(struct avnd_cb_tag *, bool);
 AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add(struct avnd_cb_tag *cb,
 							 AVND_SU *su,
 							 AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param, uint32_t *rc);
