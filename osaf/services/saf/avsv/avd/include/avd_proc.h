@@ -153,8 +153,6 @@ void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd);
 void avd_rcv_hb_d_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_process_hb_event(AVD_CL_CB *cb_now, struct avd_evt_tag *evt);
 extern void avd_node_mark_absent(AVD_AVND *node);
-extern void avd_shutdown_app_su_resp_evh(AVD_CL_CB *cb, AVD_EVT *evt);
-extern void avd_chk_failover_shutdown_cxt(AVD_CL_CB *, AVD_AVND *, SaBoolT);
 extern void avd_tmr_snd_hb_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 extern void avd_node_failover(AVD_AVND *node);
 

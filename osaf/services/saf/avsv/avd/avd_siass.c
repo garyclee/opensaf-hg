@@ -431,11 +431,8 @@ AVD_SU_SI_REL *avd_susi_find_next(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_nam
 uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 {
 	AVD_SU_SI_REL *p_su_si, *p_si_su, *i_su_si;
-	AVD_AVND *avnd = NULL;
-	SaBoolT is_ncs = susi->su->sg_of_su->sg_ncs_spec;
 
 	TRACE_ENTER2("%s %s", susi->su->name.value, susi->si->name.value);
-	m_AVD_GET_SU_NODE_PTR(cb, susi->su, avnd);
 
 	/* check the SU list to get the prev pointer */
 	i_su_si = susi->su->list_of_susi;
@@ -503,11 +500,6 @@ uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 
 	susi->si = NULL;
 	susi->su = NULL;
-
-	/* call the func to check on the context for deletion */
-	if (!ckpt) {
-		avd_chk_failover_shutdown_cxt(cb, avnd, is_ncs);
-	}
 
 	free(susi);
 

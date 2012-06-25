@@ -1065,66 +1065,6 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 	return NCSCC_RC_SUCCESS;
 }
 
-/*****************************************************************************
- * Function: avd_snd_shutdown_app_su_msg
- *
- * Purpose:  This function sends a message to AvND to terminate/clean
- *           all the application SUs, leaving NCS SUs untouched.
- *
- * Input: cb - Pointer to the AVD control block
- *        avnd - Pointer to the AVND structure of the node.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_snd_shutdown_app_su_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
-{
-	AVD_DND_MSG *d2n_msg;
-
-	TRACE_ENTER();
-
-	/* Verify if the node structure pointer is valid. */
-	if (avnd == NULL) {
-		/* This is a invalid situation as the avnd record
-		 * needs to be mentioned.
-		 */
-
-		/* Log a fatal error that AvND record can't be null */
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* prepare the node operation state ack message. */
-	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
-	if (d2n_msg == AVD_DND_MSG_NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-	}
-
-	d2n_msg->msg_type = AVSV_D2N_SHUTDOWN_APP_SU_MSG;
-	d2n_msg->msg_info.d2n_shutdown_app_su.node_id = avnd->node_info.nodeId;
-	d2n_msg->msg_info.d2n_shutdown_app_su.msg_id = ++(avnd->snd_msg_id);
-
-	TRACE("Sending %u to %x", AVSV_D2N_SHUTDOWN_APP_SU_MSG, avnd->node_info.nodeId);
-
-	/* send the message */
-	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
-		--(avnd->snd_msg_id);
-		avsv_dnd_msg_free(d2n_msg);
-		return NCSCC_RC_FAILURE;
-	}
-
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
-
-	return NCSCC_RC_SUCCESS;
-}
-
  /*****************************************************************************
  * Function: avd_prep_pg_mem_list
  *

@@ -97,8 +97,6 @@ uint32_t avd_snd_op_req_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, AVS
 uint32_t avd_snd_su_msg(struct cl_cb_tag *cb, struct avd_su_tag *su);
 uint32_t avd_snd_susi_msg(struct cl_cb_tag *cb, struct avd_su_tag *su, struct avd_su_si_rel_tag *susi,
 				AVSV_SUSI_ACT actn, SaBoolT single_csi, struct avd_comp_csi_rel_tag*);
-uint32_t avd_snd_shutdown_app_su_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
-
 uint32_t avd_snd_set_leds_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
 
 uint32_t avd_snd_pg_resp_msg(struct cl_cb_tag *, struct avd_avnd_tag *, struct avd_csi_tag *,
