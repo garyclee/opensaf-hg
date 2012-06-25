@@ -780,66 +780,6 @@ done:
 	return NCSCC_RC_SUCCESS;
 }
 
-/*****************************************************************************
- * Function: avd_sg_2n_suswitch_func
- *
- * Purpose:  This function is called when a operator does a SI switch on
- * a SU that belongs to 2N redundancy model SG. 
- * This will trigger a role change action as described in the SG FSM design.
- *
- * Input: cb - the AVD control block
- *        su - The pointer to the SU that needs to be switched.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: This is a 2N redundancy model specific function.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_2n_suswitch_func(AVD_CL_CB *cb, AVD_SU *su)
-{
-	uint32_t rc = NCSCC_RC_FAILURE;
-
-	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
-
-	/* Switch operation is not allowed when the AvD is not in
-	 * application state, if su has no SI assignments and If the SG FSM state is
-	 * not stable.
-	 */
-	if ((cb->init_state != AVD_APP_STATE) ||
-	    (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) || (su->list_of_susi == AVD_SU_SI_REL_NULL)) {
-		TRACE("state:%u, fsm:%u, list:%p", cb->init_state, su->sg_of_su->sg_fsm_state, su->list_of_susi);
-		goto done;
-	}
-
-	/* switch operation is not valid on SUs that have only standby assignment
-	 * or if the SG has no standby SU.
-	 */
-
-	if ((su->sg_of_su->saAmfSGNumCurrAssignedSUs != 2) || (avd_su_state_determine(su) == SA_AMF_HA_STANDBY)) {
-		TRACE("saAmfSGNumCurrAssignedSUs:%u, state:%u",
-			su->sg_of_su->saAmfSGNumCurrAssignedSUs, avd_su_state_determine(su));
-		goto done;
-	}
-
-	/* Modify all the SU SIs to quiesced state. */
-	if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
-		goto done;
-	}
-
-	/* Add the SU to the operation list and change the SG state to SU_operation. */
-	avd_sg_su_oper_list_add(cb, su, false);
-	m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
-
-	rc = NCSCC_RC_SUCCESS;
-done:
-	TRACE_LEAVE2("rc:%u", rc);
-	return rc;
-}
-
 /**
  * This function is called when a operator does a SI swap admin operation on
  * an SU that belongs to 2N redundancy model SG. The 2N redundancy model requires
