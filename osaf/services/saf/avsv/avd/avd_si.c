@@ -310,10 +310,7 @@ void avd_si_remove_csi(AVD_CSI* csi)
 				prev_csi->si_list_of_csi_next = csi->si_list_of_csi_next;
 			}
 		}
-#if 0
-		osafassert(csi->si->num_csi);
-		csi->si->num_csi--;
-#endif
+
 		csi->si_list_of_csi_next = NULL;
 		csi->si = AVD_SI_NULL;
 	}			/* if (csi->si != AVD_SI_NULL) */
@@ -358,7 +355,6 @@ static void si_delete_csis(AVD_SI *si)
 	}
 
 	si->list_of_csi = NULL;
-	si->num_csi = 0;
 }
 
 void avd_si_delete(AVD_SI *si)

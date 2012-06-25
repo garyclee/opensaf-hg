@@ -238,7 +238,6 @@ uint32_t avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 	/* Update all runtime attributes */	
 	si->saAmfSINumCurrActiveAssignments = ckpt_si->saAmfSINumCurrActiveAssignments;
 	si->saAmfSINumCurrStandbyAssignments = ckpt_si->saAmfSINumCurrStandbyAssignments;
-	si->max_num_csi = ckpt_si->max_num_csi;
 	si->si_switch = ckpt_si->si_switch;
 	si->saAmfSIAdminState = ckpt_si->saAmfSIAdminState;
 	si->saAmfSIAssignmentState = ckpt_si->saAmfSIAssignmentState;

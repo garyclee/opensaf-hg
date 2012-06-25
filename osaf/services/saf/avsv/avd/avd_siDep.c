@@ -358,8 +358,9 @@ uint32_t avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
 		goto done;
 	}
 
-	if ((si->max_num_csi == si->num_csi) &&
-	    (si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) && (cb->init_state == AVD_APP_STATE)) {
+	if ((si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+		(cb->init_state == AVD_APP_STATE)) {
+
 		switch (si->sg_of_si->sg_redundancy_model) {
 		case SA_AMF_2N_REDUNDANCY_MODEL:
 			if (avd_sg_2n_si_func(cb, si) != NCSCC_RC_SUCCESS) {
