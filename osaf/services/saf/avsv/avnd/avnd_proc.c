@@ -66,7 +66,7 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	/* AvD message event types */
 	avnd_evt_avd_node_up_evh,	/* AVND_EVT_AVD_NODE_UP_MSG */
 	avnd_evt_avd_reg_su_evh,	/* AVND_EVT_AVD_REG_SU_MSG */
-	avnd_evt_avd_reg_comp_evh,	/* AVND_EVT_AVD_REG_COMP_MSG */
+	avnd_evt_invalid_evh,	/* AVND_EVT_AVD_REG_COMP_MSG */
 	avnd_evt_avd_info_su_si_assign_evh,	/* AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG */
 	avnd_evt_avd_pg_track_act_rsp_evh,	/* AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG */
 	avnd_evt_avd_pg_upd_evh,	/* AVND_EVT_AVD_PG_UPD_MSG */
