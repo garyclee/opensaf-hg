@@ -519,7 +519,6 @@ void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd = NULL, *other_avnd = NULL;
 	AVD_SU *i_su = NULL;
-	AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO assign;
 
 	TRACE_ENTER();
 
@@ -529,15 +528,6 @@ void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		return;
 	}
 	other_avnd = avd_node_find_nodeid(cb->node_id_avd_other);
-
-	/* if we are not having any NCS SU's just jump to next level */
-	if ((avnd->list_of_ncs_su == NULL) && (NULL != other_avnd)) {
-		memset(&assign, 0, sizeof(AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO));
-		assign.ha_state = SA_AMF_HA_ACTIVE;
-		assign.error = NCSCC_RC_SUCCESS;
-		avd_ncs_su_mod_rsp(cb, avnd, &assign);
-		return;
-	}
 
 	for (i_su = avnd->list_of_ncs_su; i_su != NULL; i_su = i_su->avnd_list_su_next) {
 		if ((i_su->list_of_susi != 0) &&
