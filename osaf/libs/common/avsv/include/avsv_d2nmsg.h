@@ -614,22 +614,7 @@ typedef void (*AVSV_FREE_DND_MSG_INFO) (AVSV_DND_MSG *);
 typedef uint32_t (*AVSV_COPY_DND_MSG) (AVSV_DND_MSG *, AVSV_DND_MSG *);
 
 /* Extern Fuction Prototypes */
-
-void avsv_free_d2n_node_up_msg_info(AVSV_DND_MSG *node_up_msg);
-uint32_t avsv_cpy_d2n_node_up_msg(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg);
-void avsv_free_d2n_clm_node_fover_info(AVSV_DND_MSG *node_up_msg);
-uint32_t avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg);
-void avsv_free_d2n_su_msg_info(AVSV_DND_MSG *su_msg);
-uint32_t avsv_cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg, AVSV_DND_MSG *s_su_msg);
-void avsv_free_d2n_comp_msg_info(AVSV_DND_MSG *comp_msg);
-uint32_t avsv_cpy_d2n_comp_msg(AVSV_DND_MSG *d_comp_msg, AVSV_DND_MSG *s_comp_msg);
-void avsv_free_d2n_susi_msg_info(AVSV_DND_MSG *susi_msg);
-uint32_t avsv_cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_msg);
-void avsv_free_d2n_pg_msg_info(AVSV_DND_MSG *susi_msg);
-uint32_t avsv_cpy_d2n_pg_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_msg);
-
 void avsv_dnd_msg_free(AVSV_DND_MSG *);
-
 uint32_t avsv_dnd_msg_copy(AVSV_DND_MSG *, AVSV_DND_MSG *);
 
 #endif   /* !AVSV_D2NMSG_H */
