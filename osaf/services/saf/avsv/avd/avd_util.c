@@ -882,10 +882,6 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 					continue;
 				}
 
-				if (l_susi->si->max_num_csi < i_susi->si->max_num_csi) {
-					l_susi = i_susi;
-				}
-
 				i_susi = i_susi->su_next;
 			}
 

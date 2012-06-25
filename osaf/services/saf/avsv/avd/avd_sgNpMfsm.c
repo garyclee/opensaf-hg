@@ -371,7 +371,7 @@ static void avd_sg_npm_distribute_si_equal(AVD_SG *sg)
 				(curr_si->saAmfSIAssignmentState == SA_AMF_ASSIGNMENT_FULLY_ASSIGNED) ||
 				(curr_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
 				(curr_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
-				(curr_si->max_num_csi != curr_si->num_csi) || (curr_si->list_of_csi == NULL)) {
+				(curr_si->list_of_csi == NULL)) {
 			curr_si = curr_si->sg_list_of_si_next;
 			continue;
 		}
@@ -512,8 +512,9 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 		/* verify that the SI is ready and needs active assignments. */
 		if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
-		    (i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) || (i_si->list_of_csi == NULL) ||
-		    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) || (i_si->max_num_csi != i_si->num_csi)) {
+		    (i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
+			(i_si->list_of_csi == NULL) ||
+		    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP)) {
 			i_si = i_si->sg_list_of_si_next;
 			continue;
 		}
@@ -685,8 +686,9 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			avd_screen_sponsor_si_state(cb, i_si, false);
 			if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
 			    (i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
-			    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) || (i_si->list_of_csi == NULL) ||
-			    (i_si->max_num_csi != i_si->num_csi) || (i_si->list_of_sisu != AVD_SU_SI_REL_NULL)) {
+			    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
+				(i_si->list_of_csi == NULL) ||
+			    (i_si->list_of_sisu != AVD_SU_SI_REL_NULL)) {
 				i_si = i_si->sg_list_of_si_next;
 				continue;
 			}

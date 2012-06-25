@@ -71,7 +71,7 @@ typedef struct avd_si_tag {
 	NCS_PATRICIA_NODE tree_node;	/* key will be the SI name */
 	SaNameT name;
 
-   /******************** B.04 model *************************************************/
+	/******************** B.04 model *************************************************/
 	SaNameT saAmfSvcType;
 	SaNameT saAmfSIProtectedbySG;
 	uint32_t saAmfSIRank;
@@ -83,17 +83,7 @@ typedef struct avd_si_tag {
 	SaAmfAssignmentStateT saAmfSIAssignmentState;
 	uint32_t saAmfSINumCurrActiveAssignments;
 	uint32_t saAmfSINumCurrStandbyAssignments;
-   /******************** B.04 model *************************************************/
-
-	uint32_t max_num_csi;	/* The number of CSIs that will
-				 * be part of this SI.
-				 * Checkpointing - Sent as a one time update.
-				 */
-
-	uint32_t num_csi;		/* The number of CSIs this SI
-				 * currently has.
-				 * Checkpointing - Calculated at the Standby.
-				 */
+	/******************** B.04 model *************************************************/
 
 	SaToggleState si_switch;	/* The field that indicates if
 					 * the SI needs to be Toggled.

@@ -1471,8 +1471,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 		if ((curr_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
 		    (curr_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
 		    (curr_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
-		    (curr_si->list_of_csi == NULL) ||
-		    (curr_si->num_csi != curr_si->max_num_csi))
+		    (curr_si->list_of_csi == NULL))
 			continue;
 
 		is_all_si_ok = true;
@@ -1602,7 +1601,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 	/* assign standby assignments to the sis */
 	for (curr_si = sg->list_of_si; curr_si && (true == su_found); curr_si = curr_si->sg_list_of_si_next) {
 		/* verify if si is ready */
-		if ((curr_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) || (curr_si->num_csi != curr_si->max_num_csi))
+		if (curr_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED)
 			continue;
 
 		/* this si has to have one active assignment */
