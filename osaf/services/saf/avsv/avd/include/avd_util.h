@@ -106,8 +106,7 @@ uint32_t avd_snd_node_up_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, ui
 uint32_t avd_snd_presence_msg(struct cl_cb_tag *cb, struct avd_su_tag *su, bool term_state);
 uint32_t avd_snd_oper_state_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, uint32_t msg_id_ack);
 uint32_t avd_snd_op_req_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, AVSV_PARAM_INFO *param_info);
-uint32_t avd_snd_su_comp_msg(struct cl_cb_tag *cb,
-				   struct avd_avnd_tag *avnd, bool *comp_sent, bool fail_over);
+uint32_t avd_snd_su_reg_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, bool fail_over);
 uint32_t avd_snd_su_msg(struct cl_cb_tag *cb, struct avd_su_tag *su);
 uint32_t avd_snd_comp_msg(struct cl_cb_tag *cb, struct avd_comp_tag *comp);
 uint32_t avd_snd_susi_msg(struct cl_cb_tag *cb, struct avd_su_tag *su, struct avd_su_si_rel_tag *susi,

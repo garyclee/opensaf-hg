@@ -49,7 +49,6 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd = NULL;
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
-	bool comp_sent;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_node_up.node_id);
@@ -138,7 +137,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 	}
 
-	if (avd_snd_su_comp_msg(cb, avnd, &comp_sent, false) != NCSCC_RC_SUCCESS) {
+	if (avd_snd_su_reg_msg(cb, avnd, false) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 		/* we are in a bad shape. Restart the node for recovery */
 
@@ -161,84 +160,6 @@ done:
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = NULL;
 	TRACE_LEAVE();
-}
-
-/*****************************************************************************
- * Function: avd_nd_reg_comp_evt_hdl
- *
- * Purpose:  This function is the handler for node director event when the comp
- * message acknowledgement is received indicating that all the configuration
- * on the node is done. This function will instantiate all the NCS SUs on
- * the node. If none exists it will change the node FSM state to present and
- * call the AvD state machine.
- *
- * Input: cb - the AVD control block
- *        avnd - The AvND which has sent the ack for all the component additions.
- *
- * Returns: None.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-void avd_nd_reg_comp_evt_hdl(AVD_CL_CB *cb, AVD_AVND *avnd)
-{
-	AVD_SU *ncs_su;
-
-	TRACE_ENTER();
-
-	/* Check the AvND structure to see if any NCS SUs exist on the node.
-	 * If none exist change the FSM state present*/
-	if ((ncs_su = avnd->list_of_ncs_su) == NULL) {
-		/* now change the state to present */
-		avd_node_state_set(avnd, AVD_AVND_STATE_PRESENT);
-		avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_ENABLED);
-
-		/* We can now set the LEDS */
-		avd_snd_set_leds_msg(cb, avnd);
-
-		/* check if this is the primary system controller if yes change the
-		 * state of the AvD to init done state.
-		 */
-		if (avnd->node_info.nodeId == cb->node_id_avd) {
-			cb->init_state = AVD_INIT_DONE;
-
-			/* start the cluster init timer. */
-			m_AVD_CLINIT_TMR_START(cb);
-		}
-
-		/* Instantiate the application SUs */
-		avd_sg_app_node_su_inst_func(cb, avnd);
-
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, cb, AVSV_CKPT_AVD_CB_CONFIG);
-
-		return;
-	}
-
-	avd_node_state_set(avnd, AVD_AVND_STATE_NCS_INIT);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
-
-	/* Instantiate all the NCS SUs on this node by sending the presence state
-	 * message for each of the SUs whose components have all been configured.
-	 */
-	while (ncs_su != NULL) {
-		if (ncs_su->num_of_comp != ncs_su->curr_num_comp) {
-			/* skip these incomplete SUs. */
-			ncs_su = ncs_su->avnd_list_su_next;
-			continue;
-		}
-
-		/* Check the admin state before instantiation.*/
-		if ((ncs_su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED)
-				|| (ncs_su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED)) {
-			avd_snd_presence_msg(cb, ncs_su, false);
-		}
-		ncs_su = ncs_su->avnd_list_su_next;
-	}
-
-	return;
 }
 
 /*****************************************************************************
@@ -545,7 +466,6 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_AVND *avnd;
 	AVD_SU *su_ptr;
 	AVD_SU_SI_REL *rel_ptr;
-	bool comp_sent;
 	AVD_FAIL_OVER_NODE *node_fovr;
 	AVD_DND_MSG *n2d_msg;
 
@@ -598,7 +518,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * Log information that we received NACK.
 	 */
 	if (false == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.ack) {
-		if (avd_snd_su_comp_msg(cb, avnd, &comp_sent, true) != NCSCC_RC_SUCCESS) {
+		if (avd_snd_su_reg_msg(cb, avnd, true) != NCSCC_RC_SUCCESS) {
 			LOG_ER("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 			/* we are in a bad shape. Restart the node for recovery */
 

@@ -148,7 +148,6 @@ void avd_node_down_func(AVD_CL_CB *cb, AVD_AVND *avnd);
 uint32_t avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id);
 AVD_AVND *avd_msg_sanity_chk(AVD_EVT *evt, SaClmNodeIdT node_id,
 	AVSV_DND_MSG_TYPE msg_typ, uint32_t msg_id);
-void avd_nd_reg_comp_evt_hdl(AVD_CL_CB *cb, AVD_AVND *avnd);
 void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd);
 void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd);
 void avd_rcv_hb_d_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);

@@ -519,60 +519,14 @@ static uint32_t avd_prep_su_info(AVD_CL_CB *cb, AVD_SU *su, AVD_DND_MSG *su_msg)
 
 }
 
- /*****************************************************************************
- * Function: avd_prep_comp_info
- *
- * Purpose:  This function prepares the component 
- * information for the given comp and adds it to the message. 
- *
- * Input: cb - Pointer to the AVD control block
- *        comp - Pointer to the component related to which the messages need
- *                to be sent.
- *        comp_msg - Pointer to the component message being prepared.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-static uint32_t avd_prep_comp_info(AVD_CL_CB *cb, AVD_COMP *comp, AVD_DND_MSG *comp_msg)
-{
-
-	AVSV_COMP_INFO_MSG *comp_info;
-
-	TRACE_ENTER();
-
-	comp_info = calloc(1, sizeof(AVSV_COMP_INFO_MSG));
-	if (comp_info == NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		return NCSCC_RC_FAILURE;
-	}
-
-	memcpy(&comp_info->comp_info, &comp->comp_info, sizeof(AVSV_COMP_INFO));
-
-	/* add it at the head of the list in the message */
-	comp_info->next = comp_msg->msg_info.d2n_reg_comp.list;
-	comp_msg->msg_info.d2n_reg_comp.list = comp_info;
-	(comp_msg->msg_info.d2n_reg_comp.num_comp)++;
-
-	return NCSCC_RC_SUCCESS;
-
-}
-
 /*****************************************************************************
- * Function: avd_snd_su_comp_msg
+ * Function: avd_snd_su_reg_msg
  *
- * Purpose:  This function prepares the SU and comp messages for all
- * the SUs and components in the node. It then sends the messages to
- * the Node director on the node.
+ * Purpose:  This function prepares the SU message for all
+ * the SUs in the node and sends it to the Node director on the node.
  *
  * Input: cb - Pointer to the AVD control block
  *        avnd - Pointer to the AVND info for the node.
- * INPUT/OUTPUT:
- *        comp_sent- Pointer to the field That is filled by the routine
- *                   to indicate if a component message was sent. 
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -581,46 +535,26 @@ static uint32_t avd_prep_comp_info(AVD_CL_CB *cb, AVD_COMP *comp, AVD_DND_MSG *c
  * 
  **************************************************************************/
 
-uint32_t avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool *comp_sent, bool fail_over)
+uint32_t avd_snd_su_reg_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool fail_over)
 {
 	AVD_SU *i_su = NULL;
-	AVD_DND_MSG *su_msg, *comp_msg;
+	AVD_DND_MSG *su_msg;
 	uint32_t i, count = 0;
 	SaNameT temp_su_name = {0};
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-
-	*comp_sent = false;
+	TRACE_ENTER2("%s", avnd->node_name);
 
 	su_msg = calloc(1, sizeof(AVSV_DND_MSG));
-	if (su_msg == AVD_DND_MSG_NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-	}
+	osafassert(su_msg);
 
-	comp_msg = calloc(1, sizeof(AVSV_DND_MSG));
-	if (comp_msg == AVD_DND_MSG_NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-
-		/* free all the messages and return error */
-		free(su_msg);
-		return NCSCC_RC_FAILURE;
-
-	}
-
-	/* prepare the SU and Component messages. */
+	/* prepare the SU message. */
 	su_msg->msg_type = AVSV_D2N_REG_SU_MSG;
-	comp_msg->msg_type = AVSV_D2N_REG_COMP_MSG;
+	su_msg->msg_info.d2n_reg_su.nodeid = avnd->node_info.nodeId;
+	su_msg->msg_info.d2n_reg_su.msg_on_fover = fail_over;
 
-	su_msg->msg_info.d2n_reg_su.nodeid = comp_msg->msg_info.d2n_reg_comp.node_id = avnd->node_info.nodeId;
+	/* build the SU message for both the NCS and application SUs. */
 
-	su_msg->msg_info.d2n_reg_su.msg_on_fover = comp_msg->msg_info.d2n_reg_comp.msg_on_fover = fail_over;
-
-	/* build the component and SU messages for both the NCS and application
-	 * SUs.
-	 */
 	/* Check whether the AvND belongs to ACT controller. If yes, then send all
 	   the external SUs/Components to it, otherwise send only cluster 
 	   components. */
@@ -651,9 +585,9 @@ uint32_t avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool *comp_sent, boo
 			if (avd_prep_su_info(cb, i_su, su_msg) == NCSCC_RC_FAILURE) {
 				/* Free all the messages and return error */
 				avsv_dnd_msg_free(su_msg);
-				avsv_dnd_msg_free(comp_msg);
 				LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-				return NCSCC_RC_FAILURE;
+				rc = NCSCC_RC_FAILURE;
+				goto done;
 			}
 
 			/* get the next SU in the node */
@@ -669,10 +603,8 @@ uint32_t avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool *comp_sent, boo
 					temp_su_name = i_su->name;
 				}
 			}
-
-		}		/* while (i_su != AVD_SU_NULL) */
-
-	}			/* for (i = 0; i <= 2; ++i) */
+		}
+	}
 
 	/* check if atleast one SU data is being sent. If not 
 	 * dont send the messages.
@@ -680,8 +612,7 @@ uint32_t avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool *comp_sent, boo
 	if (su_msg->msg_info.d2n_reg_su.su_list == NULL) {
 		/* Free all the messages and return success */
 		avsv_dnd_msg_free(su_msg);
-		avsv_dnd_msg_free(comp_msg);
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	su_msg->msg_info.d2n_reg_su.msg_id = ++(avnd->snd_msg_id);
@@ -690,47 +621,21 @@ uint32_t avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool *comp_sent, boo
 	 * free messages and return error.
 	 */
 
-	TRACE("Sending %u to %x", AVSV_D2N_REG_SU_MSG, avnd->node_info.nodeId);
+	TRACE("Sending AVSV_D2N_REG_SU_MSG to %s", avnd->node_name);
 
 	if (avd_d2n_msg_snd(cb, avnd, su_msg) == NCSCC_RC_FAILURE) {
 		--(avnd->snd_msg_id);
-		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
+		LOG_ER("%s: snd to %s failed", __FUNCTION__, avnd->node_name);
 		avsv_dnd_msg_free(su_msg);
-		avsv_dnd_msg_free(comp_msg);
-		return NCSCC_RC_FAILURE;
+		rc = NCSCC_RC_FAILURE;
+		goto done;
 	}
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
 
-	/* check if atleast one component data is being sent. If not 
-	 * dont send the messages.
-	 */
-	if (comp_msg->msg_info.d2n_reg_comp.list == NULL) {
-		/* Free all the messages and return success */
-		avsv_dnd_msg_free(comp_msg);
-		return NCSCC_RC_SUCCESS;
-	}
-
-	comp_msg->msg_info.d2n_reg_comp.msg_id = ++(avnd->snd_msg_id);
-
-	/* send the component message to the node if return value is failure
-	 * free messages and return error.
-	 */
-	TRACE("Sending %u to %x", AVSV_D2N_REG_COMP_MSG, avnd->node_info.nodeId);
-
-	if (avd_d2n_msg_snd(cb, avnd, comp_msg) == NCSCC_RC_FAILURE) {
-		--(avnd->snd_msg_id);
-		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
-		avsv_dnd_msg_free(comp_msg);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* set the flag to true as the message has been sent succesfully */
-	*comp_sent = true;
-
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
-	return NCSCC_RC_SUCCESS;
-
+done:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /*****************************************************************************
@@ -802,80 +707,6 @@ uint32_t avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
 		--(node->snd_msg_id);
 		avsv_dnd_msg_free(su_msg);
-		return NCSCC_RC_FAILURE;
-	}
-
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (node), AVSV_CKPT_AVND_SND_MSG_ID);
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: avd_snd_comp_msg
- *
- * Purpose:  This function prepares the component messages for the
- * given component. It then sends the message to Node director on the node to
- * which this component belongs.
- *
- * Input: cb - Pointer to the AVD control block
- *        comp - Pointer to the comp related to which the messages need to be sent.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_snd_comp_msg(AVD_CL_CB *cb, AVD_COMP *comp)
-{
-	AVD_DND_MSG *comp_msg;
-	AVD_AVND *node = NULL;
-
-	TRACE_ENTER();
-
-	if (comp == NULL) {
-		/* This is a invalid situation as the comp
-		 * needs to be mentioned.
-		 */
-
-		/* Log a fatal error that su can't be null */
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
-		return NCSCC_RC_FAILURE;
-	}
-
-	m_AVD_GET_SU_NODE_PTR(cb, comp->su, node);
-
-	comp_msg = calloc(1, sizeof(AVSV_DND_MSG));
-	if (comp_msg == AVD_DND_MSG_NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-
-	}
-
-	/* prepare the Component messages. */
-	comp_msg->msg_type = AVSV_D2N_REG_COMP_MSG;
-	comp_msg->msg_info.d2n_reg_comp.node_id = node->node_info.nodeId;
-
-	/* Add information about this comp to the message */
-	if (avd_prep_comp_info(cb, comp, comp_msg) == NCSCC_RC_FAILURE) {
-		/* Free all the messages and return error */
-		free(comp_msg);
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-	}
-
-	comp_msg->msg_info.d2n_reg_comp.msg_id = ++(node->snd_msg_id);
-
-	/* send the component message to the node if return value is failure
-	 * free message and return error.
-	 */
-	TRACE("Sending %u to %x", AVSV_D2N_REG_COMP_MSG, node->node_info.nodeId);
-
-	if (avd_d2n_msg_snd(cb, node, comp_msg) == NCSCC_RC_FAILURE) {
-		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
-		--(node->snd_msg_id);
-		avsv_dnd_msg_free(comp_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
