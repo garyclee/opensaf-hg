@@ -188,64 +188,6 @@ done:
 }
 
 /****************************************************************************
-  Name          : avnd_check_su_shutdown_done
- 
-  Description   : Call the NID API informing the completion of init.
-  
- 
-  Arguments     : cb  - ptr to the AvND control block
-                  is_ncs - boolean to indicate if the SU terminated is
-                           an NCS SU.
- 
-  Return Values : None.
- 
-  Notes         : 
-******************************************************************************/
-void avnd_check_su_shutdown_done(AVND_CB *cb, bool is_ncs)
-{
-	AVND_SU *su = 0;
-	TRACE_ENTER();
-
-	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
-
-	/* scan SU term by PRES_STATE FSM on each su */
-	while (su != 0) {
-		if (su->is_ncs != is_ncs) {
-			su = (AVND_SU *)
-			    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
-			continue;
-		}
-
-		/* Check the state of the SU if they are in final state */
-		if ((su->pres != SA_AMF_PRESENCE_UNINSTANTIATED) &&
-		    (su->pres != SA_AMF_PRESENCE_INSTANTIATION_FAILED)
-		    && (su->pres != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
-			/* There are still some SUs to be terminated. We are not done 
-			 ** so just return */
-			return;
-		}
-		su = (AVND_SU *)
-		    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
-	}
-
-	if (is_ncs == true) {
-		/* All NCS SUs have finished their termination. Now call the 
-		 ** cleanup of CB
-		 */
-		LOG_NO("%s: exiting", __FUNCTION__);
-		exit(0);
-	} else {
-		/* No SUs to be processed for termination.
-		 ** send the response message to AVD informing DONE. 
-		 */
-		cb->term_state = AVND_TERM_STATE_SHUTTING_APP_DONE;
-		avnd_snd_shutdown_app_su_msg(cb);
-	}
-	TRACE_LEAVE();
-	return;
-}
-
-/****************************************************************************
   Name          : avnd_evt_avd_set_leds_msg
  
   Description   : Call the NID API informing the completion of init.

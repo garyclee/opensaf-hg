@@ -754,8 +754,8 @@ uint32_t avnd_su_si_del(AVND_CB *cb, SaNameT *su_name)
 {
 	AVND_SU *su = 0;
 	AVND_SU_SI_REC *si_rec = 0;
-	SaNameT lsu_name;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+
 	TRACE_ENTER2("'%s'", su_name->value);
 
 	/* get the su record */
@@ -772,25 +772,6 @@ uint32_t avnd_su_si_del(AVND_CB *cb, SaNameT *su_name)
 		if (NCSCC_RC_SUCCESS != rc)
 			goto err;
 	}
-
-	if (cb->term_state == AVND_TERM_STATE_SHUTTING_APP_DONE) {
-		/* check whether all NCS SI are removed */
-		memset(&lsu_name, 0, sizeof(SaNameT));
-		su = m_AVND_SUDB_REC_GET_NEXT(cb->sudb, su_name);
-
-		while (su && (su->si_list.n_nodes == 0)) {
-			lsu_name.length = su->name.length;
-			memcpy(&lsu_name.value, &su->name.value, su->name.length);
-			su = m_AVND_SUDB_REC_GET_NEXT(cb->sudb, lsu_name);
-		}
-
-		/* All SI's are removed, Now we can safely terminate the SU's */
-		if (su == AVND_SU_NULL)
-			cb->term_state = AVND_TERM_STATE_SHUTTING_NCS_SI;
-
-	}
-	TRACE_LEAVE2("%u", rc);
-	return rc;
 
  err:
 	TRACE_LEAVE2("%u", rc);

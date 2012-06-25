@@ -74,7 +74,7 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	avnd_evt_avd_su_pres_evh,	/* AVND_EVT_AVD_SU_PRES_MSG */
 	avnd_evt_avd_verify_evh,	/* AVND_EVT_AVD_VERIFY_MSG */
 	avnd_evt_avd_ack_evh,	/* AVND_EVT_AVD_ACK_MSG */
-	avnd_evt_avd_shutdown_app_su_evh,	/* AVND_EVT_AVD_SHUTDOWN_APP_SU_MSG */
+	avnd_evt_invalid_evh,	/* AVND_EVT_AVD_SHUTDOWN_APP_SU_MSG */
 	avnd_evt_avd_set_leds_evh,	/* AVND_EVT_AVD_SET_LEDS_MSG */
 	avnd_evt_avd_comp_validation_resp_evh,	/* AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG */
 	avnd_evt_avd_role_change_evh,	/* AVND_EVT_AVD_ROLE_CHANGE_MSG */
