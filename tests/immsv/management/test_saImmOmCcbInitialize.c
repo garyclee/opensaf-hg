@@ -127,6 +127,8 @@ extern void saImmOmCcbObjectModify_2_03(void);
 extern void saImmOmCcbObjectModify_2_04(void);
 extern void saImmOmCcbObjectModify_2_05(void);
 extern void saImmOmCcbObjectModify_2_06(void);
+extern void saImmOmCcbObjectModify_2_07(void);
+extern void saImmOmCcbObjectModify_2_08(void);
 extern void saImmOmCcbApply_01(void);
 extern void saImmOmCcbApply_02(void);
 extern void saImmOmCcbFinalize_01(void);
@@ -169,5 +171,7 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(6, saImmOmCcbInitialize_04, "saImmOmCcbGetErrorStrings - SA_AIS_ERR_INVALID_PARAM");
     test_case_add(6, saImmOmCcbInitialize_05, "saImmOmCcbGetErrorStrings - SA_AIS_OK");
 
+    test_case_add(6, saImmOmCcbObjectModify_2_08, "saImmOmCcbObjectModify_2 SA_IMM_ATTR_DELETE multi/single - SA_AIS_OK");
+    test_case_add(6, saImmOmCcbObjectModify_2_07, "saImmOmCcbObjectModify_2 SA_IMM_ATTR_DELETE multi/multi - SA_AIS_OK");
 }
 

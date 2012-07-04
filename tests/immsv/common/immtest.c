@@ -72,7 +72,13 @@ SaAisErrorT config_class_create(SaImmHandleT immHandle)
     SaImmAttrDefinitionT_2 attr2 = {
         "attr2", SA_IMM_ATTR_SAUINT32T, SA_IMM_ATTR_RUNTIME, NULL};
 
-    const SaImmAttrDefinitionT_2* attributes[] = {&rdn, &attr1, &attr2, NULL};
+    SaImmAttrDefinitionT_2 attr3 = {
+        "attr3", SA_IMM_ATTR_SASTRINGT, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE | SA_IMM_ATTR_MULTI_VALUE, NULL};
+
+    SaImmAttrDefinitionT_2 attr4 = {
+        "attr4", SA_IMM_ATTR_SASTRINGT, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE, NULL};
+
+    const SaImmAttrDefinitionT_2* attributes[] = {&rdn, &attr1, &attr2, &attr3, &attr4, NULL};
 
     err = saImmOmClassCreate_2(immHandle, configClassName, SA_IMM_CLASS_CONFIG,
         attributes);
