@@ -85,28 +85,7 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			continue;
 		}
 
-		switch (i_sg->sg_redundancy_model) {
-		case SA_AMF_2N_REDUNDANCY_MODEL:
-			avd_sg_2n_realign_func(cb, i_sg);
-			break;
-
-		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-			avd_sg_nway_realign_func(cb, i_sg);
-			break;
-
-		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-			avd_sg_nacvred_realign_func(cb, i_sg);
-			break;
-
-		case SA_AMF_NPM_REDUNDANCY_MODEL:
-			avd_sg_npm_realign_func(cb, i_sg);
-			break;
-
-		case SA_AMF_NO_REDUNDANCY_MODEL:
-		default:
-			avd_sg_nored_realign_func(cb, i_sg);
-			break;
-		}
+		i_sg->realign(cb, i_sg);
 	}
 
 done:

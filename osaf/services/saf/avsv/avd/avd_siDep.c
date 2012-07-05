@@ -361,37 +361,8 @@ uint32_t avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
 	if ((si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) &&
 		(cb->init_state == AVD_APP_STATE)) {
 
-		switch (si->sg_of_si->sg_redundancy_model) {
-		case SA_AMF_2N_REDUNDANCY_MODEL:
-			if (avd_sg_2n_si_func(cb, si) != NCSCC_RC_SUCCESS) {
-				goto done;
-			}
-			break;
-
-		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-			if (avd_sg_nacvred_si_func(cb, si) != NCSCC_RC_SUCCESS) {
-				goto done;
-			}
-			break;
-
-		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-			if (avd_sg_nway_si_func(cb, si) != NCSCC_RC_SUCCESS) {
-				goto done;
-			}
-			break;
-
-		case SA_AMF_NPM_REDUNDANCY_MODEL:
-			if (avd_sg_npm_si_func(cb, si) != NCSCC_RC_SUCCESS) {
-				goto done;
-			}
-			break;
-
-		case SA_AMF_NO_REDUNDANCY_MODEL:
-		default:
-			if (avd_sg_nored_si_func(cb, si) != NCSCC_RC_SUCCESS) {
-				goto done;
-			}
-			break;
+		if (si->sg_of_si->si_func(cb, si) != NCSCC_RC_SUCCESS) {
+			goto done;
 		}
 
 		if (avd_check_si_state_enabled(cb, si) == NCSCC_RC_SUCCESS) {

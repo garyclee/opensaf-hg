@@ -836,28 +836,8 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				 * instantiated, then assignment will be given to components/SU.
 				 */
 				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
-				switch (su->sg_of_su->sg_redundancy_model) {
-				case SA_AMF_2N_REDUNDANCY_MODEL:
-					avd_sg_2n_su_insvc_func(cb, su);
-					break;
 
-				case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-					avd_sg_nway_su_insvc_func(cb, su);
-					break;
-
-				case SA_AMF_NPM_REDUNDANCY_MODEL:
-					avd_sg_npm_su_insvc_func(cb, su);
-					break;
-
-				case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-					avd_sg_nacvred_su_insvc_func(cb, su);
-					break;
-
-				case SA_AMF_NO_REDUNDANCY_MODEL:
-				default:
-					avd_sg_nored_su_insvc_func(cb, su);
-					break;
-				}
+				su->sg_of_su->su_insvc(cb, su);
 
 				/* Since an SU has come in-service re look at the SG to see if other
 				 * instantiations or terminations need to be done.
@@ -969,28 +949,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 		while (su != NULL) {
 			avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 			if (su->list_of_susi != AVD_SU_SI_REL_NULL) {
-				switch (su->sg_of_su->sg_redundancy_model) {
-				case SA_AMF_2N_REDUNDANCY_MODEL:
-					avd_sg_2n_su_admin_fail(cb, su, node);
-					break;
-
-				case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-					avd_sg_nway_su_admin_fail(cb, su, node);
-					break;
-
-				case SA_AMF_NPM_REDUNDANCY_MODEL:
-					avd_sg_npm_su_admin_fail(cb, su, node);
-					break;
-
-				case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-					avd_sg_nacvred_su_admin_fail(cb, su, node);
-					break;
-
-				case SA_AMF_NO_REDUNDANCY_MODEL:
-				default:
-					avd_sg_nored_su_admin_fail(cb, su, node);
-					break;
-				}
+				su->sg_of_su->su_admin_down(cb, su, node);
 			}
 
 			/* since an SU is now OOS we need to take a relook at the SG. */
