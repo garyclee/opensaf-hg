@@ -371,6 +371,18 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 	/*  TODO use value in type instead? */
 	sg->sg_redundancy_model = sgt->saAmfSgtRedundancyModel;
 
+	// initialize function pointers to red model specific handlers
+	if (sg->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL)
+		avd_sg_2n_init(sg);
+	else if (sg->sg_redundancy_model == SA_AMF_NPM_REDUNDANCY_MODEL)
+		avd_sg_npm_init(sg);
+	else if (sg->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL)
+		avd_sg_nway_init(sg);
+	else if (sg->sg_redundancy_model == SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL)
+		avd_sg_nacv_init(sg);
+	else if (sg->sg_redundancy_model == SA_AMF_NO_REDUNDANCY_MODEL)
+		avd_sg_nored_init(sg);
+
 	rc = 0;
 
 done:

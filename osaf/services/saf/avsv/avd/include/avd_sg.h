@@ -39,6 +39,7 @@
 #include <avd_su.h>
 #include <avd_si.h>
 #include <avsv_defs.h>
+#include <avsv_d2nmsg.h>
 
 /* The valid SG FSM states. */
 typedef enum {
@@ -188,9 +189,48 @@ typedef struct avd_sg_tag {
 	bool equal_ranked_su; /* This flag is set when ranks of all SU is the same.
 				     It is used in equal distribution of SIs on SU 
 				     in Nway, N+M and Nway-Act Red models.*/
-	 struct avd_su_tag * max_assigned_su;
-	 struct avd_su_tag * min_assigned_su; 
-	 struct avd_si_tag * si_tobe_redistributed;
+	struct avd_su_tag *max_assigned_su;
+	struct avd_su_tag *min_assigned_su;
+	struct avd_si_tag *si_tobe_redistributed;
+
+	// Function pointers to redundancy model specific handlers
+
+	// Handle node failure and fail over assignments
+	void (*node_fail)(AVD_CL_CB *cb, struct avd_su_tag *su);
+
+	// Handle SG realign
+	uint32_t (*realign)(AVD_CL_CB *cb, struct avd_sg_tag *sg);
+
+	// Handle new SI or admin op UNLOCK of SI
+	uint32_t (*si_func)(AVD_CL_CB *cb, struct avd_si_tag *si);
+
+	// Handle SI admin op LOCK/SHUTDOWN
+	uint32_t (*si_admin_down)(AVD_CL_CB *cb, struct avd_si_tag *si);
+
+	// Handle SI admin op SWAP
+	SaAisErrorT (*si_swap)(struct avd_si_tag *si, SaInvocationT invocation);
+
+	// Handle SG admin op LOCK/SHUTDOWN
+	uint32_t (*sg_admin_down)(AVD_CL_CB *cb, struct avd_sg_tag *sg);
+
+	// Handle SU inservice event, possibly assign the SU
+	uint32_t (*su_insvc)(AVD_CL_CB *cb, struct avd_su_tag *su);
+
+	// Handle SU failure and switch over assignments
+	uint32_t (*su_fault)(AVD_CL_CB *cb, struct avd_su_tag *su);
+
+	// Handle SU admin op LOCK/SHUTDOWN
+	uint32_t (*su_admin_down)(AVD_CL_CB *cb, struct avd_su_tag *su,
+			struct avd_avnd_tag *avnd);
+
+	// Handle successful SUSI assignment
+	uint32_t (*susi_success)(AVD_CL_CB *cb, struct avd_su_tag *su,
+			struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
+
+	// Handle failed SUSI assignment
+	uint32_t (*susi_failed)(AVD_CL_CB *cb, struct avd_su_tag *su,
+			struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
+
 } AVD_SG;
 
 typedef struct avd_amf_sg_type_tag {
