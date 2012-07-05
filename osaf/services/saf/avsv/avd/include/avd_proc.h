@@ -69,6 +69,7 @@ uint32_t avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 uint32_t avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_2n_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 void avd_sg_2n_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
+void avd_sg_2n_init(AVD_SG *sg);
 
 /* The following are for N-Way redundancy model */
 uint32_t avd_sg_nway_si_assign(AVD_CL_CB *, AVD_SG *);
@@ -85,6 +86,7 @@ uint32_t avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 uint32_t avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 void avd_sg_nway_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
+void avd_sg_nway_init(AVD_SG *sg);
 
 /* The following are for N+M redundancy model */
 uint32_t avd_sg_npm_si_func(AVD_CL_CB *cb, AVD_SI *si);
@@ -100,6 +102,7 @@ uint32_t avd_sg_npm_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 uint32_t avd_sg_npm_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_npm_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
+void avd_sg_npm_init(AVD_SG *sg);
 
 /* The following are for No redundancy model */
 uint32_t avd_sg_nored_si_func(AVD_CL_CB *cb, AVD_SI *si);
@@ -114,6 +117,7 @@ uint32_t avd_sg_nored_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 uint32_t avd_sg_nored_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nored_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 void avd_sg_nored_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
+void avd_sg_nored_init(AVD_SG *sg);
 
 /* The following are for N-way Active redundancy model */
 AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg);
@@ -129,6 +133,7 @@ uint32_t avd_sg_nacvred_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 uint32_t avd_sg_nacvred_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nacvred_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
+void avd_sg_nacv_init(AVD_SG *sg);
 
 void avd_node_up_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_reg_su_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);

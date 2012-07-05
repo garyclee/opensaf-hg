@@ -4564,3 +4564,22 @@ SaAmfHAStateT avd_su_state_determine(AVD_SU *su) {
 	TRACE_LEAVE2("state '%u'", ha_state);
 	return ha_state;
 }
+
+/**
+ * Initialize redundancy model specific handlers
+ * @param sg
+ */
+void avd_sg_2n_init(AVD_SG *sg)
+{
+	sg->node_fail = avd_sg_2n_node_fail_func;
+	sg->realign = avd_sg_2n_realign_func;
+	sg->si_func = avd_sg_2n_si_func;
+	sg->si_admin_down = avd_sg_2n_si_admin_down;
+	sg->si_swap = avd_sg_2n_siswap_func;
+	sg->sg_admin_down = avd_sg_2n_sg_admin_down;
+	sg->su_insvc = avd_sg_2n_su_insvc_func;
+	sg->su_fault = avd_sg_2n_su_fault_func;
+	sg->su_admin_down = avd_sg_2n_su_admin_fail;
+	sg->susi_success = avd_sg_2n_susi_sucss_func;
+	sg->susi_failed = avd_sg_2n_susi_fail_func;
+}

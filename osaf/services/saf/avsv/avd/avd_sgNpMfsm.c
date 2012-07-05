@@ -16,48 +16,19 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-..............................................................................
 
   DESCRIPTION: This file is part of the SG processing module. It contains
   the SG state machine, for processing the events related to SG for N+M
   redundancy model.
-
-..............................................................................
-
-  FUNCTIONS INCLUDED in this file:
- 
-  avd_sg_npm_su_chose_asgn - Choose and assign SIs to SUs.
-  avd_sg_npm_si_func - Function to process the new complete SI in the SG.
-  avd_sg_npm_siswitch_func - function called when a operator does a SI switch.
-  avd_sg_npm_su_fault_func - function is called when a SU failed and switchover
-                            needs to be done.
-  avd_sg_npm_su_insvc_func - function is called when a SU readiness state changes
-                            to inservice from out of service
-  avd_sg_npm_susi_sucss_func - processes successful SUSI assignment. 
-  avd_sg_npm_susi_fail_func - processes failure of SUSI assignment.
-  avd_sg_npm_realign_func - function called when SG operation is done or cluster
-                           timer expires.
-  avd_sg_npm_node_fail_func - function is called when the node has already failed and
-                             the SIs have to be failed over.
-  avd_sg_npm_su_admin_fail -  function is called when SU is LOCKED/SHUTDOWN.  
-  avd_sg_npm_si_admin_down - function is called when SIs is LOCKED/SHUTDOWN.
-  avd_sg_npm_sg_admin_down - function is called when SGs is LOCKED/SHUTDOWN.
-  avd_sg_npm_screening_for_si_redistr - checks whether the SIs can be reditributed among SUs.
-  avd_sg_npm_si_transfer_for_redistr - SI assignment shifted from one SU to another SU 
   
 ******************************************************************************
 */
-
-/*
- * Module Inclusion Control...
- */
 
 #include <logtrace.h>
 
 #include <avd.h>
 #include <avd_si_dep.h>
+
 static void avd_sg_npm_screening_for_si_redistr(AVD_SG *avd_sg);
 static void avd_sg_npm_si_transfer_for_redistr(AVD_SG *avd_sg);
 static uint32_t avd_sg_get_curr_act_cnt(AVD_SG *sg);
@@ -4623,4 +4594,22 @@ uint32_t avd_sg_npm_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 	}			/* switch (sg->sg_fsm_state) */
 
 	return NCSCC_RC_SUCCESS;
+}
+
+/**
+ * Initialize redundancy model specific handlers
+ * @param sg
+ */
+void avd_sg_npm_init(AVD_SG *sg)
+{
+	sg->node_fail = avd_sg_npm_node_fail_func;
+	sg->realign = avd_sg_npm_realign_func;
+	sg->si_func = avd_sg_npm_si_func;
+	sg->si_admin_down = avd_sg_npm_si_admin_down;
+	sg->sg_admin_down = avd_sg_npm_sg_admin_down;
+	sg->su_insvc = avd_sg_npm_su_insvc_func;
+	sg->su_fault = avd_sg_npm_su_fault_func;
+	sg->su_admin_down = avd_sg_npm_su_admin_fail;
+	sg->susi_success = avd_sg_npm_susi_sucss_func;
+	sg->susi_failed = avd_sg_npm_susi_fail_func;
 }
