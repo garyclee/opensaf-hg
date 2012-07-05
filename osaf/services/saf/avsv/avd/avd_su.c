@@ -950,33 +950,8 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			 * So, we cann't check compatibility with m_AVD_APP_SU_IS_INSVC for them.
 			 */
 			avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
-			switch (su->sg_of_su->sg_redundancy_model) {
-			case SA_AMF_2N_REDUNDANCY_MODEL:
-				if (avd_sg_2n_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
-					is_oper_successful = SA_FALSE;
-				break;
-
-			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-				if (avd_sg_nway_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
-					is_oper_successful = SA_FALSE;
-				break;
-
-			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-				if (avd_sg_nacvred_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
-					is_oper_successful = SA_FALSE;
-				break;
-
-			case SA_AMF_NPM_REDUNDANCY_MODEL:
-				if (avd_sg_npm_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
-					is_oper_successful = SA_FALSE;
-				break;
-
-			case SA_AMF_NO_REDUNDANCY_MODEL:
-			default:
-				if (avd_sg_nored_su_insvc_func(cb, su) != NCSCC_RC_SUCCESS)
-					is_oper_successful = SA_FALSE;
-				break;
-			}
+			if (su->sg_of_su->su_insvc(cb, su) != NCSCC_RC_SUCCESS)
+				is_oper_successful = SA_FALSE;
 
 			avd_sg_app_su_inst_func(cb, su->sg_of_su);
 		} else
@@ -1020,28 +995,8 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 		avd_su_admin_state_set(su, adm_state);
 
-		switch (su->sg_of_su->sg_redundancy_model) {
-		case SA_AMF_2N_REDUNDANCY_MODEL:
-			if (avd_sg_2n_su_admin_fail(cb, su, node) != NCSCC_RC_SUCCESS)
-				is_oper_successful = SA_FALSE;
-			break;
-		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-			if (avd_sg_nway_su_admin_fail(cb, su, node) != NCSCC_RC_SUCCESS)
-				is_oper_successful = SA_FALSE;
-			break;
-		case SA_AMF_NPM_REDUNDANCY_MODEL:
-			if (avd_sg_npm_su_admin_fail(cb, su, node) != NCSCC_RC_SUCCESS)
-				is_oper_successful = SA_FALSE;
-			break;
-		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-			if (avd_sg_nacvred_su_admin_fail(cb, su, node) != NCSCC_RC_SUCCESS)
-				is_oper_successful = SA_FALSE;
-			break;
-		case SA_AMF_NO_REDUNDANCY_MODEL:
-			if (avd_sg_nored_su_admin_fail(cb, su, node) != NCSCC_RC_SUCCESS)
-				is_oper_successful = SA_FALSE;
-			break;
-		}
+		if (su->sg_of_su->su_admin_down(cb, su, node) != NCSCC_RC_SUCCESS)
+			is_oper_successful = SA_FALSE;
 
 		avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
 

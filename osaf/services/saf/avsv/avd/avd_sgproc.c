@@ -347,62 +347,13 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						node_reboot_req = false;
 						/* Since assignments exists call the SG FSM.
 						 */
-						switch (i_su->sg_of_su->sg_redundancy_model) {
-						case SA_AMF_2N_REDUNDANCY_MODEL:
-							if (avd_sg_2n_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
-								/* Bad situation. Free the message and return since
-								 * receive id was not processed the event will again
-								 * comeback which we can then process.
-								 */
-								LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
-								goto done;
-							}
-							break;
-
-						case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-							if (avd_sg_nacvred_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
-								/* Bad situation. Free the message and return since
-								 * receive id was not processed the event will again
-								 * comeback which we can then process.
-								 */
-								LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
-								goto done;
-							}
-							break;
-
-						case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-							if (avd_sg_nway_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
-								/* Bad situation. Free the message and return since
-								 * receive id was not processed the event will again
-								 * comeback which we can then process.
-								 */
-								LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
-								goto done;
-							}
-							break;
-
-						case SA_AMF_NPM_REDUNDANCY_MODEL:
-							if (avd_sg_npm_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
-								/* Bad situation. Free the message and return since
-								 * receive id was not processed the event will again
-								 * comeback which we can then process.
-								 */
-								LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
-								goto done;
-							}
-							break;
-
-						case SA_AMF_NO_REDUNDANCY_MODEL:
-						default:
-							if (avd_sg_nored_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
-								/* Bad situation. Free the message and return since
-								 * receive id was not processed the event will again
-								 * comeback which we can then process.
-								 */
-								LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
-								goto done;
-							}
-							break;
+						if (i_su->sg_of_su->su_fault(cb, i_su) == NCSCC_RC_FAILURE) {
+							/* Bad situation. Free the message and return since
+							 * receive id was not processed the event will again
+							 * comeback which we can then process.
+							 */
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
+							goto done;
 						}
 					}
 
@@ -439,61 +390,13 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				if (su->list_of_susi != AVD_SU_SI_REL_NULL) {
 					/* Since assignments exists call the SG FSM.
 					 */
-					switch (su->sg_of_su->sg_redundancy_model) {
-					case SA_AMF_2N_REDUNDANCY_MODEL:
-						if (avd_sg_2n_su_fault_func(cb, su) == NCSCC_RC_FAILURE) {
-							/* Bad situation. Free the message and return since
-							 * receive id was not processed the event will again
-							 * comeback which we can then process.
-							 */
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-							goto done;
-						}
-						break;
-
-					case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-						if (avd_sg_nway_su_fault_func(cb, su) == NCSCC_RC_FAILURE) {
-							/* Bad situation. Free the message and return since
-							 * receive id was not processed the event will again
-							 * comeback which we can then process.
-							 */
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-							goto done;
-						}
-						break;
-
-					case SA_AMF_NPM_REDUNDANCY_MODEL:
-						if (avd_sg_npm_su_fault_func(cb, su) == NCSCC_RC_FAILURE) {
-							/* Bad situation. Free the message and return since
-							 * receive id was not processed the event will again
-							 * comeback which we can then process.
-							 */
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-							goto done;
-						}
-						break;
-
-					case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-						if (avd_sg_nacvred_su_fault_func(cb, su) == NCSCC_RC_FAILURE) {
-							/* Bad situation. Free the message and return since
-							 * receive id was not processed the event will again
-							 * comeback which we can then process.
-							 */
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-							goto done;
-						}
-						break;
-					case SA_AMF_NO_REDUNDANCY_MODEL:
-					default:
-						if (avd_sg_nored_su_fault_func(cb, su) == NCSCC_RC_FAILURE) {
-							/* Bad situation. Free the message and return since
-							 * receive id was not processed the event will again
-							 * comeback which we can then process.
-							 */
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-							goto done;
-						}
-						break;
+					if (su->sg_of_su->su_fault(cb, su) == NCSCC_RC_FAILURE) {
+						/* Bad situation. Free the message and return since
+						 * receive id was not processed the event will again
+						 * comeback which we can then process.
+						 */
+						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+						goto done;
 					}
 				}
 
@@ -524,55 +427,14 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) { 
 				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
 				/* Run the SG FSM */
-				switch (su->sg_of_su->sg_redundancy_model) {
-				case SA_AMF_2N_REDUNDANCY_MODEL:
-					if (avd_sg_2n_su_insvc_func(cb, su) == NCSCC_RC_FAILURE) {
-						/* Bad situation. Free the message and return since
-						 * receive id was not processed the event will again
-						 * comeback which we can then process.
-						 */
-						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
-						goto done;
-					}
-					break;
-
-				case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-					if (avd_sg_nway_su_insvc_func(cb, su) == NCSCC_RC_FAILURE) {
-						/* Bad situation. Free the message and return since
-						 * receive id was not processed the event will again
-						 * comeback which we can then process.
-						 */
-						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
-						goto done;
-					}
-					break;
-
-				case SA_AMF_NPM_REDUNDANCY_MODEL:
-					if (avd_sg_npm_su_insvc_func(cb, su) == NCSCC_RC_FAILURE) {
-						/* Bad situation. Free the message and return since
-						 * receive id was not processed the event will again
-						 * comeback which we can then process.
-						 */
-						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
-						goto done;
-					}
-					break;
-
-				case SA_AMF_NO_REDUNDANCY_MODEL:
-				default:
-					if (avd_sg_nored_su_insvc_func(cb, su) == NCSCC_RC_FAILURE) {
-						/* Bad situation. Free the message and return since
-						 * receive id was not processed the event will again
-						 * comeback which we can then process.
-						 */
-						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
-						goto done;
-					}
-					break;
+				if (su->sg_of_su->su_insvc(cb, su) == NCSCC_RC_FAILURE) {
+					/* Bad situation. Free the message and return since
+					 * receive id was not processed the event will again
+					 * comeback which we can then process.
+					 */
+					LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+					avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
+					goto done;
 				}
 			}
 		} else {	/* if(su->sg_of_su->sg_ncs_spec == SA_TRUE) */
@@ -584,61 +446,13 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
 				if ((cb->init_state == AVD_APP_STATE) && (old_state == SA_AMF_READINESS_OUT_OF_SERVICE)) {
 					/* An application SU has become in service call SG FSM */
-					switch (su->sg_of_su->sg_redundancy_model) {
-					case SA_AMF_2N_REDUNDANCY_MODEL:
-						if (avd_sg_2n_su_insvc_func(cb, su) == NCSCC_RC_FAILURE) {
-							/* Bad situation. Free the message and return since
-							 * receive id was not processed the event will again
-							 * comeback which we can then process.
-							 */
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-							goto done;
-						}
-						break;
-
-					case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-						if (avd_sg_nway_su_insvc_func(cb, su) == NCSCC_RC_FAILURE) {
-							/* Bad situation. Free the message and return since
-							 * receive id was not processed the event will again
-							 * comeback which we can then process.
-							 */
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-							goto done;
-						}
-						break;
-
-					case SA_AMF_NPM_REDUNDANCY_MODEL:
-						if (avd_sg_npm_su_insvc_func(cb, su) == NCSCC_RC_FAILURE) {
-							/* Bad situation. Free the message and return since
-							 * receive id was not processed the event will again
-							 * comeback which we can then process.
-							 */
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-							goto done;
-						}
-						break;
-
-					case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-						if (avd_sg_nacvred_su_insvc_func(cb, su) == NCSCC_RC_FAILURE) {
-							/* Bad situation. Free the message and return since
-							 * receive id was not processed the event will again
-							 * comeback which we can then process.
-							 */
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-							goto done;
-						}
-						break;
-					case SA_AMF_NO_REDUNDANCY_MODEL:
-					default:
-						if (avd_sg_nored_su_insvc_func(cb, su) == NCSCC_RC_FAILURE) {
-							/* Bad situation. Free the message and return since
-							 * receive id was not processed the event will again
-							 * comeback which we can then process.
-							 */
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-							goto done;
-						}
-						break;
+					if (su->sg_of_su->su_insvc(cb, su) == NCSCC_RC_FAILURE) {
+						/* Bad situation. Free the message and return since
+						 * receive id was not processed the event will again
+						 * comeback which we can then process.
+						 */
+						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+						goto done;
 					}
 				}
 			}
@@ -783,113 +597,26 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			break;
 		}		/* switch (n2d_msg->msg_info.n2d_su_si_assign.msg_act) */
 
-		{
-			/* Call the redundancy model specific procesing function. Dont call
-			 * in case of acknowledgment for quiescing.
-			 */
-			switch (su->sg_of_su->sg_redundancy_model) {
-			case SA_AMF_2N_REDUNDANCY_MODEL:
-				/* Now process the acknowledge message based on
-				 * Success or failure.
-				 */
-				if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
-					if (q_flag == false) {
-						avd_sg_2n_susi_sucss_func(cb, su, AVD_SU_SI_REL_NULL,
-									  n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-									  n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-					}
-				} else {
-					susi_assign_msg_dump(__FUNCTION__, __LINE__,
-						&n2d_msg->msg_info.n2d_su_si_assign);
-					avd_sg_2n_susi_fail_func(cb, su, AVD_SU_SI_REL_NULL,
-								 n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-								 n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-				}
-				break;
+		/* Call the redundancy model specific procesing function. Dont call
+		 * in case of acknowledgment for quiescing.
+		 */
 
-			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-				/* Now process the acknowledge message based on
-				 * Success or failure.
-				 */
-				if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
-					if (q_flag == false) {
-						avd_sg_nway_susi_sucss_func(cb, su, AVD_SU_SI_REL_NULL,
-									    n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-									    n2d_msg->msg_info.
-									    n2d_su_si_assign.ha_state);
-					}
-				} else {
-					susi_assign_msg_dump(__FUNCTION__, __LINE__,
-						&n2d_msg->msg_info.n2d_su_si_assign);
-					avd_sg_nway_susi_fail_func(cb, su, AVD_SU_SI_REL_NULL,
-								   n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-								   n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-				}
-				break;
-
-			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-				/* Now process the acknowledge message based on
-				 * Success or failure.
-				 */
-				if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
-					if (q_flag == false) {
-						avd_sg_nacvred_susi_sucss_func(cb, su, AVD_SU_SI_REL_NULL,
-									       n2d_msg->msg_info.
-									       n2d_su_si_assign.msg_act,
-									       n2d_msg->msg_info.
-									       n2d_su_si_assign.ha_state);
-					}
-				} else {
-					susi_assign_msg_dump(__FUNCTION__, __LINE__,
-						&n2d_msg->msg_info.n2d_su_si_assign);
-					avd_sg_nacvred_susi_fail_func(cb, su, AVD_SU_SI_REL_NULL,
-								      n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-								      n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-				}
-				break;
-
-			case SA_AMF_NPM_REDUNDANCY_MODEL:
-				/* Now process the acknowledge message based on
-				 * Success or failure.
-				 */
-				if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
-					if (q_flag == false) {
-						avd_sg_npm_susi_sucss_func(cb, su, AVD_SU_SI_REL_NULL,
-									   n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-									   n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-					}
-				} else {
-					susi_assign_msg_dump(__FUNCTION__, __LINE__,
-						&n2d_msg->msg_info.n2d_su_si_assign);
-					avd_sg_npm_susi_fail_func(cb, su, AVD_SU_SI_REL_NULL,
-								  n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-								  n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-				}
-				break;
-
-			case SA_AMF_NO_REDUNDANCY_MODEL:
-			default:
-				/* Now process the acknowledge message based on
-				 * Success or failure.
-				 */
-				if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
-					if (q_flag == false) {
-						avd_sg_nored_susi_sucss_func(cb, su, AVD_SU_SI_REL_NULL,
-									     n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-									     n2d_msg->msg_info.
-									     n2d_su_si_assign.ha_state);
-					}
-				} else {
-					susi_assign_msg_dump(__FUNCTION__, __LINE__,
-						&n2d_msg->msg_info.n2d_su_si_assign);
-					avd_sg_nored_susi_fail_func(cb, su, AVD_SU_SI_REL_NULL,
-								    n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-								    n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-				}
-				break;
+		/* Now process the acknowledge message based on
+		 * Success or failure.
+		 */
+		if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
+			if (q_flag == false) {
+				su->sg_of_su->susi_success(cb, su, AVD_SU_SI_REL_NULL,
+						n2d_msg->msg_info.n2d_su_si_assign.msg_act,
+						n2d_msg->msg_info.n2d_su_si_assign.ha_state);
 			}
+		} else {
+			susi_assign_msg_dump(__FUNCTION__, __LINE__,
+					&n2d_msg->msg_info.n2d_su_si_assign);
+			avd_sg_2n_susi_fail_func(cb, su, AVD_SU_SI_REL_NULL,
+					n2d_msg->msg_info.n2d_su_si_assign.msg_act,
+					n2d_msg->msg_info.n2d_su_si_assign.ha_state);
 		}
-
 	} else {		/* if (n2d_msg->msg_info.n2d_su_si_assign.si_name.length == 0) */
 
 		/* Single SU SI assignment find the SU SI structure */
@@ -1096,121 +823,28 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		 * in case of acknowledgment for quiescing.
 		 */
 
-		switch (susi->si->sg_of_si->sg_redundancy_model) {
-		case SA_AMF_2N_REDUNDANCY_MODEL:
-			/* Now process the acknowledge message based on
-			 * Success or failure.
-			 */
-			TRACE("%u", n2d_msg->msg_info.n2d_su_si_assign.error);
-			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
-				if (q_flag == false) {
-					avd_sg_2n_susi_sucss_func(cb, susi->su, susi,
-								  n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-								  n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-					if ((n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_ASGN)
-					    && (susi->su->sg_of_su->sg_ncs_spec == SA_TRUE)) {
-						/* Since a NCS SU has been assigned trigger the node FSM. */
-						/* For (ncs_spec == SA_TRUE), su will not be external, so su
+		/* Now process the acknowledge message based on
+		 * Success or failure.
+		 */
+		TRACE("%u", n2d_msg->msg_info.n2d_su_si_assign.error);
+		if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
+			if (q_flag == false) {
+				susi->si->sg_of_si->susi_success(cb, susi->su, susi,
+						n2d_msg->msg_info.n2d_su_si_assign.msg_act,
+						n2d_msg->msg_info.n2d_su_si_assign.ha_state);
+				if ((n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_ASGN) &&
+						(susi->su->sg_of_su->sg_ncs_spec == SA_TRUE)) {
+					/* Since a NCS SU has been assigned trigger the node FSM. */
+					/* For (ncs_spec == SA_TRUE), su will not be external, so su
 						   will have node attached. */
-						avd_nd_ncs_su_assigned(cb, susi->su->su_on_node);
-					}
-
+					avd_nd_ncs_su_assigned(cb, susi->su->su_on_node);
 				}
-			} else {
-				avd_sg_2n_susi_fail_func(cb, susi->su, susi,
-							 n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-							 n2d_msg->msg_info.n2d_su_si_assign.ha_state);
 			}
-			break;
-
-		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-			/* Now process the acknowledge message based on
-			 * Success or failure.
-			 */
-			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
-				if (q_flag == false) {
-					avd_sg_nway_susi_sucss_func(cb, susi->su, susi,
-								    n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-								    n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-					if ((n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_ASGN)
-					    && (susi->su->sg_of_su->sg_ncs_spec == SA_TRUE)) {
-						/* Since a NCS SU has been assigned trigger the node FSM. */
-						/* For (ncs_spec == SA_TRUE), su will not be external, so su
-						   will have node attached. */
-						avd_nd_ncs_su_assigned(cb, susi->su->su_on_node);
-					}
-				}
-			} else {
-				avd_sg_nway_susi_fail_func(cb, susi->su, susi,
-							   n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-							   n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-			}
-			break;
-
-		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-			/* Now process the acknowledge message based on
-			 * Success or failure.
-			 */
-			TRACE("%u", n2d_msg->msg_info.n2d_su_si_assign.error);
-			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
-				if (q_flag == false) {
-					avd_sg_nacvred_susi_sucss_func(cb, susi->su, susi,
-								       n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-								       n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-				}
-			} else {
-				avd_sg_nacvred_susi_fail_func(cb, susi->su, susi,
-							      n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-							      n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-			}
-			break;
-
-		case SA_AMF_NPM_REDUNDANCY_MODEL:
-			/* Now process the acknowledge message based on
-			 * Success or failure.
-			 */
-			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
-				if (q_flag == false) {
-					avd_sg_npm_susi_sucss_func(cb, susi->su, susi,
-								   n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-								   n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-				}
-			} else {
-				avd_sg_npm_susi_fail_func(cb, susi->su, susi,
-							  n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-							  n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-			}
-			break;
-
-		case SA_AMF_NO_REDUNDANCY_MODEL:
-		default:
-			/* Now process the acknowledge message based on
-			 * Success or failure.
-			 */
-			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
-				if (q_flag == false) {
-					avd_sg_nored_susi_sucss_func(cb, susi->su, susi,
-								     n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-								     n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-					if ((n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_ASGN)
-					    && (susi->su->sg_of_su->sg_ncs_spec == SA_TRUE)) {
-						/* Since a NCS SU has been assigned trigger the node FSM. */
-						/* For (ncs_spec == SA_TRUE), su will not be external, so su
-						   will have node attached. */
-						avd_nd_ncs_su_assigned(cb, susi->su->su_on_node);
-					}
-
-				}
-			} else {
-				avd_sg_nored_susi_fail_func(cb, susi->su, susi,
-							    n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-							    n2d_msg->msg_info.n2d_su_si_assign.ha_state);
-			}
-
-			break;
-
-		}		/* switch(susi->si->sg_of_si->su_redundancy_model) */
-
+		} else {
+			avd_sg_2n_susi_fail_func(cb, susi->su, susi,
+					n2d_msg->msg_info.n2d_su_si_assign.msg_act,
+					n2d_msg->msg_info.n2d_su_si_assign.ha_state);
+		}
 	}			/* else (n2d_msg->msg_info.n2d_su_si_assign.si_name.length == 0) */
 
 	/* If there is any admin action going on SU and it is complete then send its result to admin.
@@ -1485,28 +1119,8 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 
 				if (m_AVD_APP_SU_IS_INSVC(i_su, su_node_ptr)) {
 					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_IN_SERVICE);
-					switch (i_su->sg_of_su->sg_redundancy_model) {
-					case SA_AMF_2N_REDUNDANCY_MODEL:
-						avd_sg_2n_su_insvc_func(cb, i_su);
-						break;
+					i_su->sg_of_su->su_insvc(cb, i_su);
 
-					case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-						avd_sg_nway_su_insvc_func(cb, i_su);
-						break;
-
-					case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-						avd_sg_nacvred_su_insvc_func(cb, i_su);
-						break;
-
-					case SA_AMF_NPM_REDUNDANCY_MODEL:
-						avd_sg_npm_su_insvc_func(cb, i_su);
-						break;
-
-					case SA_AMF_NO_REDUNDANCY_MODEL:
-					default:
-						avd_sg_nored_su_insvc_func(cb, i_su);
-						break;
-					}
 					if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 						num_asgd_su++;
 					}
@@ -1590,142 +1204,40 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 		 * only when AvD is in AVD_APP_STATE. call the SG FSM with the new readiness
 		 * state.
 		 */
-
-		i_su = sg->list_of_su;
-		while (i_su != NULL) {
+		for (i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
 			m_AVD_GET_SU_NODE_PTR(cb, i_su, i_su_node_ptr);
 
 			if (m_AVD_APP_SU_IS_INSVC(i_su, i_su_node_ptr)) {
 				avd_su_readiness_state_set(i_su, SA_AMF_READINESS_IN_SERVICE);
 			}
-			/* get the next SU on the node */
-			i_su = i_su->sg_list_su_next;
 		}
 
-		switch (sg->sg_redundancy_model) {
-		case SA_AMF_2N_REDUNDANCY_MODEL:
-			if (avd_sg_2n_realign_func(cb, sg) == NCSCC_RC_FAILURE) {
-				/* set all the SUs to OOS return failure */
-				i_su = sg->list_of_su;
-				while (i_su != NULL) {
-					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
-					/* get the next SU of the SG */
-					i_su = i_su->sg_list_su_next;
-				}
+		if (sg->realign(cb, sg) == NCSCC_RC_FAILURE) {
+			/* set all the SUs to OOS return failure */
 
-				goto done;
-			}	/* if (avd_sg_2n_realign_func(cb,sg) == NCSCC_RC_FAILURE) */
-			break;
+			for (i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
+				avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+			}
 
-		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-			if (avd_sg_nway_realign_func(cb, sg) == NCSCC_RC_FAILURE) {
-				/* set all the SUs to OOS return failure */
-				i_su = sg->list_of_su;
-				while (i_su != NULL) {
-
-					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
-					/* get the next SU of the SG */
-					i_su = i_su->sg_list_su_next;
-				}
-
-				goto done;
-			}	/* if (avd_sg_nway_realign_func(cb,sg) == NCSCC_RC_FAILURE) */
-			break;
-
-		case SA_AMF_NPM_REDUNDANCY_MODEL:
-			if (avd_sg_npm_realign_func(cb, sg) == NCSCC_RC_FAILURE) {
-				/* set all the SUs to OOS return failure */
-				i_su = sg->list_of_su;
-				while (i_su != NULL) {
-
-					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
-					/* get the next SU of the SG */
-					i_su = i_su->sg_list_su_next;
-				}
-
-				goto done;
-			}	/* if (avd_sg_nway_realign_func(cb,sg) == NCSCC_RC_FAILURE) */
-			break;
-
-		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-			if (avd_sg_nacvred_realign_func(cb, sg) == NCSCC_RC_FAILURE) {
-				/* set all the SUs to OOS return failure */
-				i_su = sg->list_of_su;
-				while (i_su != NULL) {
-
-					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
-					/* get the next SU of the SG */
-					i_su = i_su->sg_list_su_next;
-				}
-
-				goto done;
-			}	/* if (avd_sg_nacvred_realign_func(cb,sg) == NCSCC_RC_FAILURE) */
-			break;
-		case SA_AMF_NO_REDUNDANCY_MODEL:
-		default:
-			if (avd_sg_nored_realign_func(cb, sg) == NCSCC_RC_FAILURE) {
-				/* set all the SUs to OOS return failure */
-				i_su = sg->list_of_su;
-				while (i_su != NULL) {
-
-					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
-					/* get the next SU of the SG */
-					i_su = i_su->sg_list_su_next;
-				}
-
-				goto done;
-			}	/* if (avd_sg_nored_realign_func(cb,sg) == NCSCC_RC_FAILURE) */
-			break;
+			goto done;
 		}
 
-		break;		/* case NCS_ADMIN_STATE_UNLOCK: */
+		break;
+
 	case SA_AMF_ADMIN_LOCKED:
 	case SA_AMF_ADMIN_SHUTTING_DOWN:
-
 		if ((sg->sg_fsm_state != AVD_SG_FSM_STABLE) && (sg->sg_fsm_state != AVD_SG_FSM_SG_ADMIN))
 			goto done;
 
-		switch (sg->sg_redundancy_model) {
-		case SA_AMF_2N_REDUNDANCY_MODEL:
-			if (avd_sg_2n_sg_admin_down(cb, sg) == NCSCC_RC_FAILURE) {
-				goto done;
-			}
-			break;
-
-		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-			if (avd_sg_nway_sg_admin_down(cb, sg) == NCSCC_RC_FAILURE) {
-				goto done;
-			}
-			break;
-
-		case SA_AMF_NPM_REDUNDANCY_MODEL:
-			if (avd_sg_npm_sg_admin_down(cb, sg) == NCSCC_RC_FAILURE) {
-				goto done;
-			}
-			break;
-
-		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-			if (avd_sg_nacvred_sg_admin_down(cb, sg) == NCSCC_RC_FAILURE) {
-				goto done;
-			}
-			break;
-
-		case SA_AMF_NO_REDUNDANCY_MODEL:
-		default:
-			if (avd_sg_nored_sg_admin_down(cb, sg) == NCSCC_RC_FAILURE) {
-				goto done;
-			}
-			break;
+		if (sg->sg_admin_down(cb, sg) == NCSCC_RC_FAILURE) {
+			goto done;
 		}
 
-		i_su = sg->list_of_su;
-
-		while (i_su != NULL) {
+		for (i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
 			avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
-			/* get the next SU of the SG */
-			i_su = i_su->sg_list_su_next;
 		}
-		break;		/* case NCS_ADMIN_STATE_LOCK: case NCS_ADMIN_STATE_SHUTDOWN: */
+		break;
+
 	default:
 		LOG_ER("%s: invalid adm state %u", __FUNCTION__, sg->saAmfSGAdminState);
 		goto done;
@@ -1802,47 +1314,11 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 			i_comp = i_comp->su_comp_next;
 		}
 
-		switch (i_su->sg_of_su->sg_redundancy_model) {
-		case SA_AMF_2N_REDUNDANCY_MODEL:
-			/* Now analyze the service group for the new HA state
-			 * assignments and send the SU SI assign messages
-			 * accordingly.
-			 */
-			avd_sg_2n_node_fail_func(cb, i_su);
-			break;
-
-		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-			/* Now analyze the service group for the new HA state
-			 * assignments and send the SU SI assign messages
-			 * accordingly.
-			 */
-			avd_sg_nway_node_fail_func(cb, i_su);
-			break;
-
-		case SA_AMF_NPM_REDUNDANCY_MODEL:
-			/* Now analyze the service group for the new HA state
-			 * assignments and send the SU SI assign messages
-			 * accordingly.
-			 */
-			avd_sg_npm_node_fail_func(cb, i_su);
-			break;
-
-		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-			/* Now analyze the service group for the new HA state
-			 * assignments and send the SU SI assign messages
-			 * accordingly.
-			 */
-			avd_sg_nacvred_node_fail_func(cb, i_su);
-			break;
-		case SA_AMF_NO_REDUNDANCY_MODEL:
-		default:
-			/* Now analyze the service group for the new HA state
-			 * assignments and send the SU SI assign messages
-			 * accordingly.
-			 */
-			avd_sg_nored_node_fail_func(cb, i_su);
-			break;
-		}
+		/* Now analyze the service group for the new HA state
+		 * assignments and send the SU SI assign messages
+		 * accordingly.
+		 */
+		i_su->sg_of_su->node_fail(cb, i_su);
 
 		/* Free all the SU SI assignments for all the SIs on the
 		 * the SU if there are any.
@@ -1916,48 +1392,12 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 	if (cb->init_state == AVD_APP_STATE) {
 		i_su = avnd->list_of_su;
 		while (i_su != NULL) {
-			switch (i_su->sg_of_su->sg_redundancy_model) {
-			case SA_AMF_2N_REDUNDANCY_MODEL:
-				/* Now analyze the service group for the new HA state
-				 * assignments and send the SU SI assign messages
-				 * accordingly.
-				 */
-				avd_sg_2n_node_fail_func(cb, i_su);
-				break;
+			/* Now analyze the service group for the new HA state
+			 * assignments and send the SU SI assign messages
+			 * accordingly.
+			 */
+			i_su->sg_of_su->node_fail(cb, i_su);
 
-			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-				/* Now analyze the service group for the new HA state
-				 * assignments and send the SU SI assign messages
-				 * accordingly.
-				 */
-				avd_sg_nway_node_fail_func(cb, i_su);
-				break;
-
-			case SA_AMF_NPM_REDUNDANCY_MODEL:
-				/* Now analyze the service group for the new HA state
-				 * assignments and send the SU SI assign messages
-				 * accordingly.
-				 */
-				avd_sg_npm_node_fail_func(cb, i_su);
-				break;
-
-			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-				/* Now analyze the service group for the new HA state
-				 * assignments and send the SU SI assign messages
-				 * accordingly.
-				 */
-				avd_sg_nacvred_node_fail_func(cb, i_su);
-				break;
-
-			case SA_AMF_NO_REDUNDANCY_MODEL:
-			default:
-				/* Now analyze the service group for the new HA state
-				 * assignments and send the SU SI assign messages
-				 * accordingly.
-				 */
-				avd_sg_nored_node_fail_func(cb, i_su);
-				break;
-			}
 			/* Free all the SU SI assignments for all the SIs on the
 			 * the SU if there are any.
 			 */

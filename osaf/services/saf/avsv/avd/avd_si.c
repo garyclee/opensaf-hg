@@ -801,26 +801,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		avd_si_admin_state_set(si, SA_AMF_ADMIN_UNLOCKED);
 
-		switch (si->sg_of_si->sg_redundancy_model) {
-		case SA_AMF_2N_REDUNDANCY_MODEL:
-			err = avd_sg_2n_si_func(avd_cb, si);
-			break;
-		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-			err = avd_sg_nacvred_si_func(avd_cb, si);
-			break;
-		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-			err = avd_sg_nway_si_func(avd_cb, si);
-			break;
-		case SA_AMF_NPM_REDUNDANCY_MODEL:
-			err = avd_sg_npm_si_func(avd_cb, si);
-			break;
-		case SA_AMF_NO_REDUNDANCY_MODEL:
-			err = avd_sg_nored_si_func(avd_cb, si);
-			break;
-		default:
-			osafassert(0);
-		}
-
+		err = si->sg_of_si->si_func(avd_cb, si);
 		if (err != NCSCC_RC_SUCCESS) {
 			LOG_WA("SI unlock of %s failed", objectName->value);
 			avd_si_admin_state_set(si, SA_AMF_ADMIN_LOCKED);
@@ -881,26 +862,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		back_val = si->saAmfSIAdminState;
 		avd_si_admin_state_set(si, (adm_state));
 
-		switch (si->sg_of_si->sg_redundancy_model) {
-		case SA_AMF_2N_REDUNDANCY_MODEL:
-			err = avd_sg_2n_si_admin_down(avd_cb, si);
-			break;
-		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-			err = avd_sg_nway_si_admin_down(avd_cb, si);
-			break;
-		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-			err = avd_sg_nacvred_si_admin_down(avd_cb, si);
-			break;
-		case SA_AMF_NPM_REDUNDANCY_MODEL:
-			err = avd_sg_npm_si_admin_down(avd_cb, si);
-			break;
-		case SA_AMF_NO_REDUNDANCY_MODEL:
-			err = avd_sg_nored_si_admin_down(avd_cb, si);
-			break;
-		default:
-			osafassert(0);
-		}
-
+		err = si->sg_of_si->si_admin_down(avd_cb, si);
 		if (err != NCSCC_RC_SUCCESS) {
 			LOG_WA("SI shutdown/lock of %s failed", objectName->value);
 			avd_si_admin_state_set(si, back_val);
@@ -910,27 +872,16 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		break;
 
 	case SA_AMF_ADMIN_SI_SWAP:
-		switch (si->sg_of_si->sg_redundancy_model) {
-		case SA_AMF_2N_REDUNDANCY_MODEL:
-			rc = avd_sg_2n_siswap_func(si, invocation);
-			break;
-		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-		case SA_AMF_NPM_REDUNDANCY_MODEL:
-			/* TODO , Will be done when the SI SWAP is implemented */
+		if (si->sg_of_si->si_swap != NULL)
+			rc = si->sg_of_si->si_swap(si, invocation);
+		else {
+			LOG_WA("SI SWAP of %s failed, not supported for redundancy model",
+					objectName->value);
 			rc = SA_AIS_ERR_NOT_SUPPORTED;
 			goto done;
-			break;
-			
-		case SA_AMF_NO_REDUNDANCY_MODEL:
-		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-		default:
-			LOG_WA("SI lock of %s failed, SI SWAP not Supported on redundancy model=%u",
-				objectName->value, si->sg_of_si->sg_redundancy_model);
-			rc = SA_AIS_ERR_NOT_SUPPORTED;
-			goto done;
-			break;
 		}
 		break;
+
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_RESTART:
