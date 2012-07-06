@@ -54,7 +54,8 @@ immomtest_SOURCES = \
 	test_saImmOmCcbObjectModify_2.c \
 	test_saImmOmCcbApply.c \
 	test_saImmOmCcbFinalize.c \
-	test_saImmOmAdminOperationContinue.c
+	test_saImmOmAdminOperationContinue.c \
+	test_cleanup.c
 
 immomtest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la

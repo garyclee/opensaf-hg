@@ -32,9 +32,13 @@ SaSelectionObjectT selectionObject;
 const SaImmClassNameT configClassName = (SaImmClassNameT) "TestClassConfig";
 const SaImmClassNameT runtimeClassName = "TestClassRuntime";
 
+void (*test_setup)(void) = NULL;
+void (*test_cleanup)(void) = NULL;
+
 int main(int argc, char **argv) 
 {
     int suite = ALL_SUITES, tcase = ALL_TESTS;
+    int rc = 0;
 
     srandom(getpid());
 
@@ -48,13 +52,22 @@ int main(int argc, char **argv)
         tcase = atoi(argv[2]);
     }
 
+    if(test_setup)
+        test_setup();
+
     if (suite == 0)
     {
         test_list();
-        return 0;
+    }
+    else
+    {
+        rc = test_run(suite, tcase);
     }
 
-    return test_run(suite, tcase);
+    if(test_cleanup)
+        test_cleanup();
+
+    return rc;
 }  
 
 SaAisErrorT config_class_create(SaImmHandleT immHandle)

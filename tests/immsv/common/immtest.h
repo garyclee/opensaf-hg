@@ -51,4 +51,8 @@ SaAisErrorT config_class_delete(SaImmHandleT immHandle);
 SaAisErrorT runtime_class_create(SaImmHandleT immHandle);
 SaAisErrorT runtime_class_delete(SaImmHandleT immHandle);
 
+/* Setup and cleanup functions */
+extern void (*test_setup)(void);
+extern void (*test_cleanup)(void);
+
 #endif

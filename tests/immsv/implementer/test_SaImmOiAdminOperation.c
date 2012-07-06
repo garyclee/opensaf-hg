@@ -163,8 +163,8 @@ static void *objectImplementerThreadMain(void *arg)
     safassert(saImmOiImplementerSet(handle, implementerName), SA_AIS_OK);
     TRACE("Setting implementer %s for object %s", implementerName, objectName->value);
     safassert(saImmOiObjectImplementerSet(handle, objectName, SA_IMM_ONE), SA_AIS_OK);
-    objectImplementerIsSet = SA_TRUE;
     safassert(saImmOiSelectionObjectGet(handle, &selObj), SA_AIS_OK);
+    objectImplementerIsSet = SA_TRUE;
 
     fds[0].fd = (int) selObj;
     fds[0].events = POLLIN;
@@ -600,6 +600,8 @@ void SaImmOiAdminOperation_07(void)
     safassert(saImmOmDispatch(handle, SA_DISPATCH_ONE), SA_AIS_OK);
 
 done:
+    pthread_join(thread, NULL);
+
     safassert(saImmOmCcbObjectDelete(ccbHandle, &rdn), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
     safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
@@ -607,8 +609,6 @@ done:
 
     safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
     safassert(saImmOmFinalize(handle), SA_AIS_OK);
-
-    pthread_join(thread, NULL);
 
     TRACE("%s", get_saf_error(immReturnValue));
     assert(immReturnValue == SA_AIS_OK);
@@ -671,6 +671,8 @@ done:
     TRACE("%s", get_saf_error(rc));
     test_validate(rc, SA_AIS_OK);
 
+    pthread_join(thread, NULL);
+
     safassert(saImmOmCcbObjectDelete(ccbHandle, &rdn), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
     safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
@@ -678,8 +680,6 @@ done:
 
     safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
     safassert(saImmOmFinalize(handle), SA_AIS_OK);
-
-    pthread_join(thread, NULL);
 
     TRACE_LEAVE();
 }
@@ -759,6 +759,8 @@ void SaImmOiAdminOperation_09(void)
 
     safassert(saImmOmAdminOperationMemoryFree(ownerHandle, returnParams), SA_AIS_OK);
 
+    pthread_join(thread, NULL);
+
     safassert(saImmOmCcbObjectDelete(ccbHandle, &rdn), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
     safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
@@ -766,8 +768,6 @@ void SaImmOiAdminOperation_09(void)
 
     safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
     safassert(saImmOmFinalize(handle), SA_AIS_OK);
-
-    pthread_join(thread, NULL);
 
     TRACE_LEAVE();
 }
@@ -848,6 +848,8 @@ void SaImmOiAdminOperation_10(void)
 
     safassert(saImmOmAdminOperationMemoryFree(ownerHandle, returnParams), SA_AIS_OK);
 
+    pthread_join(thread, NULL);
+
     safassert(saImmOmCcbObjectDelete(ccbHandle, &rdn), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
     safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
@@ -855,8 +857,6 @@ void SaImmOiAdminOperation_10(void)
 
     safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
     safassert(saImmOmFinalize(handle), SA_AIS_OK);
-
-    pthread_join(thread, NULL);
 
     TRACE_LEAVE();
 }
