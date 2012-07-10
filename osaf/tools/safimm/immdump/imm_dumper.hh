@@ -32,13 +32,17 @@
 /* Prototypes */
 typedef std::map<std::string, SaImmAttrFlagsT> AttrMap;
 
+/* PBE statement function */
+int finalizeSqlStatement(void *stmt);
+
 struct ClassInfo
 {
-	ClassInfo(unsigned int class_id) : mClassId(class_id) { }
-	~ClassInfo() { }
+	ClassInfo(unsigned int class_id) : mClassId(class_id), sqlStmt(NULL) { }
+	~ClassInfo() { finalizeSqlStatement(sqlStmt); }
     
 	unsigned int mClassId;
 	AttrMap mAttrMap;
+	void *sqlStmt;
 };
 typedef std::map<std::string, ClassInfo*> ClassMap;
 
