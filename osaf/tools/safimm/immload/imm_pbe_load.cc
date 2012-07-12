@@ -35,6 +35,31 @@
 static unsigned int pbe_ver_major = 0;
 static unsigned int pbe_ver_minor = 0;
 
+#define SQL_STMT_SIZE		7
+
+enum {
+	SQL_SEL_ATTR_DEF = 0,
+	SQL_SEL_ATTR_DFLT_INT,
+	SQL_SEL_ATTR_DFLT_TEXT,
+	SQL_SEL_ATTR_DFLT_REAL,
+	SQL_SEL_OBJECT_INT_MULTI,
+	SQL_SEL_OBJECT_TEXT_MULTI,
+	SQL_SEL_OBJECT_REAL_MULTI
+};
+
+static const char *preparedSql[] = {
+		"SELECT attr_type, attr_flags, attr_name FROM attr_def WHERE class_id = ?",
+		"SELECT int_dflt FROM attr_dflt WHERE class_id = ? AND attr_name = ?",
+		"SELECT text_dflt FROM attr_dflt WHERE class_id = ? AND attr_name = ?",
+		"SELECT real_dflt FROM attr_dflt WHERE class_id = ? AND attr_name = ?",
+		"SELECT int_val FROM objects_int_multi WHERE obj_id = ? AND attr_name = ?",
+		"SELECT text_val FROM objects_text_multi WHERE obj_id = ? AND attr_name = ?",
+		"SELECT real_val FROM objects_real_multi WHERE obj_id = ? AND attr_name = ?"
+};
+
+static sqlite3_stmt *preparedStmt[SQL_STMT_SIZE] = { NULL };
+
+
 void* checkPbeRepositoryInit(std::string dir, std::string file)
 {
 	SaImmRepositoryInitModeT rpi = (SaImmRepositoryInitModeT) 0;
@@ -138,6 +163,15 @@ void* checkPbeRepositoryInit(std::string dir, std::string file)
 	LOG_IN("PBE repository of rep-version <%u, %u>",
 		pbe_ver_major, pbe_ver_minor);
 
+	LOG_IN("Prepare SQL statements");
+	for(int i=0; i<SQL_STMT_SIZE; i++) {
+		rc = sqlite3_prepare_v2((sqlite3 *)dbHandle, preparedSql[i], -1, &(preparedStmt[i]), NULL);
+		if(rc != SQLITE_OK) {
+			LOG_ER("Failed to prepare SQL statement: %s", preparedSql[i]);
+			goto load_from_xml_file;
+		}
+	}
+
 	TRACE_LEAVE();
 	return dbHandle;
 
@@ -157,139 +191,153 @@ bool loadClassFromPbe(void* pbeHandle,
 	ClassInfo* class_info)
 {
 	sqlite3* dbHandle = (sqlite3 *) pbeHandle;
-	std::string sql("select attr_type,attr_flags,attr_name from attr_def where class_id = ");
+	sqlite3_stmt *stmt;
+	sqlite3_stmt *stmtDflt = NULL;
 	int rc=0;
-	char **result=NULL;
-	char *zErr=NULL;
-	int nrows=0;
 	int ncols=0;
 	int r,c;
 	std::list<SaImmAttrDefinitionT_2> attrDefs;
+	std::string attrName;
+	std::list<SaImmAttrDefinitionT_2>::iterator it;
 	TRACE_ENTER2("Loading class %s from PBE", className);
-	sql.append(class_id);
 
-	rc = sqlite3_get_table(dbHandle, sql.c_str(), &result, &nrows, &ncols,
-		&zErr);
-	if(rc) {
-		LOG_IN("Could not access table 'attr_def', error:%s", zErr);
-		sqlite3_free(zErr);
+	stmt = preparedStmt[SQL_SEL_ATTR_DEF];
+	rc = sqlite3_bind_int(stmt, 1, atoi(class_id));
+	if(rc != SQLITE_OK) {
+		LOG_ER("Failed to bind class_id");
 		goto bailout;
 	}
-	TRACE_2("Successfully accessed 'attr_def' table. Rows:%u cols:%u", 
-		nrows, ncols);
-	for(r=0; r<=nrows; ++r) {
-		SaImmAttrNameT attrName=NULL;
+	rc = sqlite3_step(stmt);
+	if(rc != SQLITE_ROW && rc != SQLITE_DONE) {
+		LOG_IN("Could not access table 'attr_def', error:%s", sqlite3_errmsg(dbHandle));
+		goto bailout;
+	}
+	TRACE_2("Successfully accessed 'attr_def' table.");
+
+	r = 0;
+	ncols = sqlite3_column_count(stmt);
+	while(rc == SQLITE_ROW) {
+		attrName.clear();
 		SaImmValueTypeT attrValueType= (SaImmValueTypeT) 0;
 		SaImmAttrFlagsT attrFlags = 0LL;
 		SaImmAttrValueT attDflt = NULL;
 		char buf[32];
-		snprintf(buf, 32, "Row(%u): <", r);
+		snprintf(buf, 32, "Row(%u): <", ++r);
 		std::string rowStr(buf);
 		AttrInfo * attr_info=NULL;
-		for(c=0;c<ncols;++c) {
-			rowStr.append("'");
-			rowStr.append(result[r*ncols+c]);
-			rowStr.append("' ");
+		char *val;
+		for(c=0;c<ncols;c++) {
+			if((val = (char *)sqlite3_column_text(stmt, c))) {
+				rowStr.append("'");
+				rowStr.append(val);
+				rowStr.append("' ");
+			} else
+				rowStr.append("(null) ");
 		}
 		rowStr.append(">");
 		TRACE_1("           ABT: %s", rowStr.c_str());
-		if(r==0) {continue;}
-		attrValueType = (SaImmValueTypeT) atoi(result[r*ncols]);
-		attrFlags = atoll(result[r*ncols+1]);
-		attrName = strdup(result[r*ncols+2]);
+		attrValueType = (SaImmValueTypeT)sqlite3_column_int(stmt, 0);
+		attrFlags = (SaImmAttrFlagsT)sqlite3_column_int64(stmt, 1);
+		attrName.append((char *)sqlite3_column_text(stmt, 2));
+
 
 		if(!(attrFlags & SA_IMM_ATTR_INITIALIZED)) {
 			/*Get any attribute default.*/
-			char **result2=NULL;
-			int nrows2=0;
-			int ncols2=0;
-			std::string sqlDflt("select ");
-			size_t len = 0;
 			switch(attrValueType) {
 				case SA_IMM_ATTR_SAINT32T:
 				case SA_IMM_ATTR_SAUINT32T:
 				case SA_IMM_ATTR_SAINT64T:
 				case SA_IMM_ATTR_SAUINT64T:
 				case SA_IMM_ATTR_SATIMET: // Int64T
-					sqlDflt.append("int_dflt from ");
+					stmtDflt = preparedStmt[SQL_SEL_ATTR_DFLT_INT];
 					break;
 
 				case SA_IMM_ATTR_SANAMET:
 				case SA_IMM_ATTR_SASTRINGT:
 				case SA_IMM_ATTR_SAANYT:
-					sqlDflt.append("text_dflt from ");
+					stmtDflt = preparedStmt[SQL_SEL_ATTR_DFLT_TEXT];
 					break;
 
 				case SA_IMM_ATTR_SAFLOATT:
 				case SA_IMM_ATTR_SADOUBLET:
-					sqlDflt.append("real_dflt from ");
+					stmtDflt = preparedStmt[SQL_SEL_ATTR_DFLT_REAL];
 					break;
 				default:
 					LOG_ER("BAD VALUE TYPE");
 					goto bailout;
 			}
 
-			sqlDflt.append("attr_dflt where class_id = ");
-			sqlDflt.append(class_id);
-			sqlDflt.append(" and attr_name = '");
-			sqlDflt.append(attrName);
-			sqlDflt.append("'");
-			TRACE("GENERATED sqlDflt:%s", sqlDflt.c_str());
-
-			rc = sqlite3_get_table(dbHandle, sqlDflt.c_str(), 
-				&result2, &nrows2, &ncols2, &zErr);
-			if(rc) {
-				LOG_IN("Could not access table 'attr_dflt', error:%s", zErr);
-				sqlite3_free(zErr);
+			if(sqlite3_bind_int(stmtDflt, 1, atoi(class_id)) != SQLITE_OK) {
+				LOG_ER("Failed to bind class_id");
 				goto bailout;
 			}
-			TRACE_2("Successfully accessed 'attr_dflt' table. Rows:%u cols:%u", nrows2, ncols2);
-			if(nrows2 && result2[1]) { 
-				/*There is a default and it is not null */
-				if(nrows2 > 1) {
-					LOG_ER("Expected 1 row got %u rows", 
-						nrows2);
-					goto bailout;
-				}
-				if(ncols2 != 1) {
-					LOG_ER("Expected 1 col got %u cols",
-						ncols2);
-					goto bailout;
-				}
-				len = strlen(result2[1]);
-				attDflt = malloc(len + 1);
-				strncpy((char *) attDflt, 
-					(const char*) result2[1], len);
-				((char *) attDflt)[len] = '\0';
-				sqlite3_free_table(result2);
-				TRACE("ABT Default value for %s is %s", 
-					attrName, (char *) attDflt);
-			} else {
-				TRACE("ABT No default for %s", attrName);
+			if(sqlite3_bind_text(stmtDflt, 2, attrName.c_str(), -1, NULL) != SQLITE_OK) {
+				LOG_ER("Failed to bind attr_name");
+				goto bailout;
 			}
+
+			rc = sqlite3_step(stmtDflt);
+			if(rc == SQLITE_DONE) {
+				TRACE("ABT No default for %s", attrName.c_str());
+			} else if(rc != SQLITE_ROW) {
+				LOG_IN("Could not access table 'attr_dflt', error:%s", sqlite3_errmsg(dbHandle));
+				goto bailout;
+			} else {
+				val = (char *)sqlite3_column_text(stmtDflt, 0);
+				if(val) {
+					attDflt = malloc(strlen(val) + 1);
+					strcpy((char *)attDflt, (char *)val);
+
+					rc = sqlite3_step(stmtDflt);
+					if(rc == SQLITE_ROW) {
+						free(attDflt);
+						LOG_ER("Expected 1 row got more then 1 row");
+						goto bailout;
+					} else {
+						TRACE("ABT Default value for %s is %s",
+								attrName.c_str(), (char *) attDflt);
+					}
+				} else {
+					TRACE("ABT No default for %s", attrName.c_str());
+				}
+			}
+
+			sqlite3_reset(stmtDflt);
+			stmtDflt = NULL;
 		}
 
 		attr_info = new AttrInfo;
-		attr_info->attrName = std::string(attrName);
+		attr_info->attrName = attrName;
 		attr_info->attrValueType = attrValueType;
 		attr_info->attrFlags = attrFlags;
 		class_info->attrInfoVector.push_back(attr_info);
 
-		addClassAttributeDefinition(attrName, attrValueType, attrFlags, 
+		addClassAttributeDefinition((SaImmAttrNameT)strdup(attrName.c_str()), attrValueType, attrFlags,
 			attDflt, &attrDefs);
-		/*Free attrDefs, default*/
+
+		if(attDflt) {
+			free(attDflt);
+			attDflt = NULL;
+		}
+
+		/* move to the next database result */
+		rc = sqlite3_step(stmt);
 	}
 
 	if (!createImmClass(immHandle, (char *) className, classCategory, &attrDefs)) {
+		LOG_ER("Failed to create IMM class");
 		goto bailout;
 	}
 
-	sqlite3_free_table(result);
+	sqlite3_reset(stmt);
+
 	TRACE_LEAVE();
 	return true;
 
- bailout:
-	sqlite3_free_table(result);
+bailout:
+	if(stmtDflt)
+		sqlite3_reset(stmtDflt);
+	sqlite3_reset(stmt);
 	TRACE_LEAVE();
 	return false;
 }
@@ -361,10 +409,10 @@ bool loadClassesFromPbe(void* pbeHandle, SaImmHandleT immHandle, ClassInfoMap* c
 bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT ccbHandle,
 	const char* object_id, ClassInfo* class_info, const char* dn)
 {
-	sqlite3* dbHandle = (sqlite3 *) pbeHandle;	
+	sqlite3* dbHandle = (sqlite3 *) pbeHandle;
+	sqlite3_stmt *stmt = NULL;
 	int rc=0;
 	char **resultF=NULL;
-	char **resultG=NULL;
 	char *zErr=NULL;
 	int nrows=0;
 	int ncols=0;
@@ -373,6 +421,7 @@ bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT 
 	bool attr_appended = false;
 	std::list<SaImmAttrValuesT_2> attrValuesList;
 	AttrInfoVector::iterator it;
+	int obj_id;
 
 	TRACE_ENTER2("Loading object id(%s) dn(%s) class(%s)(#atts %zu) from PBE",
 		object_id, dn, class_info->className.c_str(),
@@ -457,6 +506,7 @@ bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT 
 
 	/* Now add any multivalued attributes. */
 
+	obj_id = atoi(object_id);
 	it = class_info->attrInfoVector.begin();
 	while(it != class_info->attrInfoVector.end()) {
 		bool attr_is_multi=false;
@@ -480,94 +530,62 @@ bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT 
 				case SA_IMM_ATTR_SAINT64T:
 				case SA_IMM_ATTR_SAUINT64T:
 				case SA_IMM_ATTR_SATIMET: // Int64T
-					sqlG.append("int_val");
+					stmt = preparedStmt[SQL_SEL_OBJECT_INT_MULTI];
 					break;
 
 				case SA_IMM_ATTR_SANAMET:
 				case SA_IMM_ATTR_SASTRINGT:
 				case SA_IMM_ATTR_SAANYT:
-					sqlG.append("text_val");
+					stmt = preparedStmt[SQL_SEL_OBJECT_TEXT_MULTI];
 					break;
 
 				case SA_IMM_ATTR_SAFLOATT:
 				case SA_IMM_ATTR_SADOUBLET:
-					sqlG.append("real_val");
+					stmt = preparedStmt[SQL_SEL_OBJECT_REAL_MULTI];
 					break;
 				default:
 					LOG_ER("BAD VALUE TYPE");
 					goto bailout;
 			}
 
-			sqlG.append(" from ");
-
-			switch((*it)->attrValueType) {
-				case SA_IMM_ATTR_SAINT32T:
-				case SA_IMM_ATTR_SAUINT32T:
-				case SA_IMM_ATTR_SAINT64T:
-				case SA_IMM_ATTR_SAUINT64T:
-				case SA_IMM_ATTR_SATIMET: // Int64T
-					sqlG.append("objects_int_multi ");
-					break;
-
-				case SA_IMM_ATTR_SANAMET:
-				case SA_IMM_ATTR_SASTRINGT:
-				case SA_IMM_ATTR_SAANYT:
-					sqlG.append("objects_text_multi ");
-					break;
-
-				case SA_IMM_ATTR_SAFLOATT:
-				case SA_IMM_ATTR_SADOUBLET:
-					sqlG.append("objects_real_multi ");
-					break;
-				default:
-					LOG_ER("BAD VALUE TYPE");
-					goto bailout;
-			}
-			sqlG.append("where obj_id = ");
-			sqlG.append(object_id);
-			sqlG.append(" and attr_name = '");
-			sqlG.append((*it)->attrName);
-			sqlG.append("'");
-
-			TRACE("GENERATED G:%s", sqlG.c_str());
-
-			rc = sqlite3_get_table(dbHandle, sqlG.c_str(),
-				&resultG, &nrows, &ncols, &zErr);
-			if(rc) {
-				LOG_IN("Could not access table multi table, error:%s", zErr);
-				sqlite3_free(zErr);
+			if(sqlite3_bind_int(stmt, 1, obj_id) != SQLITE_OK) {
+				LOG_ER("Failed to bind obj_id, %d", __LINE__);
 				goto bailout;
 			}
-			if(ncols > 1) {
-				LOG_ER("Expected 1 collumn, got %u", ncols);
+			if(sqlite3_bind_text(stmt, 2, (*it)->attrName.c_str(), -1, NULL) != SQLITE_OK) {
+				LOG_ER("Failed to bind attr_name at: %d", __LINE__);
 				goto bailout;
 			}
-			TRACE_2("Successfully accessed multi table. rows:%u",
-				nrows);
-			if(nrows) {
-				int r;
-				std::list<char*> attrValueBuffers;
-				for(r=1; r<=nrows; ++r) {
-					if(resultG[r]) {
-						/* Guard for NULL values. */
-						size_t len = 
-							strlen(resultG[r]);
-						char * str =
-							(char *) malloc(len+1);
-						strncpy(str, (const char *) resultG[r], len);
-						str[len] = '\0';
-						attrValueBuffers.push_front(str);
-						TRACE("ABT pushed value:%s", str);
-					}
+
+			rc = sqlite3_step(stmt);
+			if(rc != SQLITE_DONE && rc != SQLITE_ROW) {
+				LOG_IN("Could not access table multi table, error:%s", sqlite3_errmsg(dbHandle));
+				goto bailout;
+			}
+
+			std::list<char*> attrValueBuffers;
+			char *val;
+			while(rc == SQLITE_ROW) {
+				val = (char *)sqlite3_column_text(stmt, 0);
+				if(val) {
+					/* Guard for NULL values. */
+					char *str = strdup(val);
+					attrValueBuffers.push_front(str);
+					TRACE("ABT pushed value:%s", str);
 				}
-				addObjectAttributeDefinition((char *) 
-					class_info->className.c_str(), 
-					(char *) (*it)->attrName.c_str(), 
-					&attrValueBuffers, 
-					(*it)->attrValueType,
-					&attrValuesList);
+
+				rc = sqlite3_step(stmt);
 			}
-			sqlite3_free_table(resultG);
+
+			if(attrValueBuffers.size() > 0)
+				addObjectAttributeDefinition((char *)
+						class_info->className.c_str(),
+						(char *) (*it)->attrName.c_str(),
+						&attrValueBuffers,
+						(*it)->attrValueType,
+						&attrValuesList);
+
+			sqlite3_reset(stmt);
 		}/*if(attr_is_multi && !attr_is_pure_rt)*/
 		++it;
 	}/*while*/
@@ -582,7 +600,9 @@ bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT 
 
 	return true;
 
- bailout:
+bailout:
+	if(stmt)
+		sqlite3_reset(stmt);
 	//sqlite3_close(dbHandle);
 	return false;
 }
