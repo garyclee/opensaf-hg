@@ -335,10 +335,14 @@ int main(int argc, char* argv[])
 
         if(SA_AIS_OK != errorCode)
         {
+            if(pbeDaemonCase) {
                 LOG_WA("Failed to initialize admin owner handle: err:%u - exiting",
                     errorCode);
-		pbeRepositoryClose(dbHandle);
-		exit(1);
+            } else {
+                std::cerr << "Failed to initialize admin owner handle; err:" 
+                    << errorCode << std::endl;
+            }
+            exit(1);
         }
 
         /*
