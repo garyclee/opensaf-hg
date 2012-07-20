@@ -2963,7 +2963,7 @@ ImmModel::attrCreate(ClassInfo* classInfo, const ImmsvAttrDefinition* attr,
             
         AttrInfo* attrInfo = new AttrInfo;
         attrInfo->mValueType = attr->attrValueType;
-	osafassert(attr->attrFlags < 0xffffffff);
+        osafassert(attr->attrFlags < 0xffffffff);
         attrInfo->mFlags = (SaUint32T) attr->attrFlags;
         attrInfo->mNtfId = attr->attrNtfId;
         if(attr->attrDefaultValue) {
@@ -3832,7 +3832,7 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
         SaUint32T implConn = impInfo->mConn;
         if(implConn) {
             if(impInfo->mDying) {
-                LOG_ER("LOST CONNECTION WITH IMPLEMENTER %s AFTER COMPLETED OK BUT "
+                LOG_WA("LOST CONNECTION WITH IMPLEMENTER %s AFTER COMPLETED OK BUT "
                     "BEFORE APPLY UC. CCB %u will apply ayway. "
                     "Discrepancy between Immsv and this implementer may be "
                     "the result", impInfo->mImplementerName.c_str(), ccbId);
@@ -3851,7 +3851,12 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     //implementers on the apply callback (no return code).
     ccb->mState = IMM_CCB_COMMITTED;
     if(ccbNotEmpty) {
-        LOG_NO("Ccb %u COMMITTED", ccb->mId);
+        AdminOwnerVector::iterator i;
+        i = std::find_if(sOwnerVector.begin(), sOwnerVector.end(),
+            IdIs(ccb->mAdminOwnerId));
+        osafassert(i != sOwnerVector.end());
+        LOG_NO("Ccb %u COMMITTED (%s)", ccb->mId, (*i)->mAdminOwnerName.c_str());
+
     }
     return pbeModeChange;
 }
@@ -3930,7 +3935,12 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
     if(ccb->mMutations.empty()) {
         TRACE_5("Ccb %u ABORTED", ccb->mId);
     } else {
-        LOG_NO("Ccb %u ABORTED", ccb->mId);
+        AdminOwnerVector::iterator i;
+        i = std::find_if(sOwnerVector.begin(), sOwnerVector.end(),
+            IdIs(ccb->mAdminOwnerId));
+        osafassert(i != sOwnerVector.end());
+
+        LOG_NO("Ccb %u ABORTED (%s)", ccb->mId, (*i)->mAdminOwnerName.c_str());
     }
     ccb->mState = IMM_CCB_ABORTED;
     ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
@@ -6367,7 +6377,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
         if(pbeImpl) {
             /* There is in fact a PBE (up) */
             osafassert(ccb->mState == IMM_CCB_PREPARE);
-            LOG_IN("GOING FROM IMM_CCB_PREPARE to IMM_CCB_CRITICAL");
+            LOG_IN("GOING FROM IMM_CCB_PREPARE to IMM_CCB_CRITICAL Ccb:%u", ccbId);
             ccb->mState = IMM_CCB_CRITICAL;
             *pbeIdPtr = pbeImpl->mId;
             /* Add pbe implementer to the ccb implementer collection. 
@@ -9663,7 +9673,7 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
             goto done;
         } else {/* obj->mImplementer == info. But check that it is not class-impl */
             if(doIt) {
-                /* Covers the idempotency case. */		
+                /* Covers the idempotency case. */
                 obj->mImplementer = info;
                 TRACE_5("Implementer for object '%s' is %s", objectName.c_str(),
                     info->mImplementerName.c_str());
@@ -10535,10 +10545,11 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
     osafassert(oMut->mOpType == IMM_CREATE);
 
     oMut->mAfterImage->mObjFlags &= ~IMM_CREATE_LOCK;
-    oMut->mAfterImage = NULL;
 
     if(error == SA_AIS_OK) {
-        LOG_NO("Create of PERSISTENT runtime object '%s'.", i2->first.c_str());
+        osafassert(oMut->mAfterImage->mImplementer);
+        LOG_NO("Create of PERSISTENT runtime object '%s' (%s).", i2->first.c_str(),
+            oMut->mAfterImage->mImplementer->mImplementerName.c_str());
     } else {
         bool dummy=false;
         ObjectMap::iterator oi = sObjectMap.find(i2->first);
@@ -10548,6 +10559,7 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
             i2->first.c_str(), error);
     }
 
+    oMut->mAfterImage = NULL;
     sPbeRtMutations.erase(i2);
     delete oMut;
     TRACE_LEAVE();
@@ -10583,7 +10595,9 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
 
         if(error == SA_AIS_OK) {
             if(oMut->mAfterImage->mObjFlags & IMM_PRTO_FLAG) {
-                LOG_NO("Delete of PERSISTENT runtime object '%s'.", i2->first.c_str());
+                osafassert(oMut->mAfterImage->mImplementer);
+                LOG_NO("Delete of PERSISTENT runtime object '%s' (%s).", i2->first.c_str(),
+                    oMut->mAfterImage->mImplementer->mImplementerName.c_str());
             } else {
                 TRACE("Delete of runtime object '%s'.", i2->first.c_str());
             }
@@ -10682,8 +10696,9 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
     ImmAttrValueMap::iterator oavi;
 
     if(error == SA_AIS_OK) {
-        LOG_IN("Update of PERSISTENT runtime attributes in object '%s'.", 
-            objName.c_str());
+        osafassert(beforeImage->mImplementer);
+        LOG_IN("Update of PERSISTENT runtime attributes in object '%s' (%s).", 
+            objName.c_str(), beforeImage->mImplementer->mImplementerName.c_str());
 
         if(afim->mAdminOwnerAttrVal && beforeImage->mAdminOwnerAttrVal->empty()) {
            /* Empty admin Owner can imply (hard) release during PRTA update.
@@ -12308,8 +12323,8 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             ioci->className.buf = 
                 strndup((char *) i3->first.c_str(), ioci->className.size);
             if(ci->mImplementer) {
-		    ioci->classImplName.size = (SaUint32T)
-                    ci->mImplementer->mImplementerName.size();
+                ioci->classImplName.size = (SaUint32T)
+                ci->mImplementer->mImplementerName.size();
                 ioci->classImplName.buf = 
                     strndup((char *)ci->mImplementer->mImplementerName.c_str(),
                         ioci->classImplName.size);
