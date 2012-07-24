@@ -3901,8 +3901,11 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
         AdminOwnerVector::iterator i;
         i = std::find_if(sOwnerVector.begin(), sOwnerVector.end(),
             IdIs(ccb->mAdminOwnerId));
-        osafassert(i != sOwnerVector.end());
-        LOG_NO("Ccb %u COMMITTED (%s)", ccb->mId, (*i)->mAdminOwnerName.c_str());
+        if(i != sOwnerVector.end()) {
+            LOG_NO("Ccb %u COMMITTED (%s)", ccb->mId, (*i)->mAdminOwnerName.c_str());
+        } else {
+            LOG_NO("Ccb %u COMMITTED (%s)", ccb->mId, "<released>");
+        }
 
     }
     return pbeModeChange;
@@ -3985,9 +3988,11 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
         AdminOwnerVector::iterator i;
         i = std::find_if(sOwnerVector.begin(), sOwnerVector.end(),
             IdIs(ccb->mAdminOwnerId));
-        osafassert(i != sOwnerVector.end());
-
-        LOG_NO("Ccb %u ABORTED (%s)", ccb->mId, (*i)->mAdminOwnerName.c_str());
+        if(i != sOwnerVector.end()) {
+            LOG_NO("Ccb %u ABORTED (%s)", ccb->mId, (*i)->mAdminOwnerName.c_str());
+        } else {
+            LOG_NO("Ccb %u ABORTED (%s)", ccb->mId, "<released>");
+        }
     }
     ccb->mState = IMM_CCB_ABORTED;
     ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
@@ -10594,9 +10599,13 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
     oMut->mAfterImage->mObjFlags &= ~IMM_CREATE_LOCK;
 
     if(error == SA_AIS_OK) {
-        osafassert(oMut->mAfterImage->mImplementer);
-        LOG_NO("Create of PERSISTENT runtime object '%s' (%s).", i2->first.c_str(),
-            oMut->mAfterImage->mImplementer->mImplementerName.c_str());
+        if(oMut->mAfterImage->mImplementer) {
+            LOG_NO("Create of PERSISTENT runtime object '%s' (%s).", i2->first.c_str(),
+                oMut->mAfterImage->mImplementer->mImplementerName.c_str());
+        } else {
+            LOG_NO("Create of PERSISTENT runtime object '%s' (%s).", i2->first.c_str(),
+                "<deteched>");
+        }
     } else {
         bool dummy=false;
         ObjectMap::iterator oi = sObjectMap.find(i2->first);
@@ -10642,9 +10651,13 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
 
         if(error == SA_AIS_OK) {
             if(oMut->mAfterImage->mObjFlags & IMM_PRTO_FLAG) {
-                osafassert(oMut->mAfterImage->mImplementer);
-                LOG_NO("Delete of PERSISTENT runtime object '%s' (%s).", i2->first.c_str(),
-                    oMut->mAfterImage->mImplementer->mImplementerName.c_str());
+                if(oMut->mAfterImage->mImplementer) {
+                    LOG_NO("Delete of PERSISTENT runtime object '%s' (%s).", i2->first.c_str(),
+                        oMut->mAfterImage->mImplementer->mImplementerName.c_str());
+                } else {
+                    LOG_NO("Delete of PERSISTENT runtime object '%s' (%s).", i2->first.c_str(), 
+                        "<detached>");
+                }
             } else {
                 TRACE("Delete of runtime object '%s'.", i2->first.c_str());
             }
@@ -10743,9 +10756,13 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
     ImmAttrValueMap::iterator oavi;
 
     if(error == SA_AIS_OK) {
-        osafassert(beforeImage->mImplementer);
-        LOG_IN("Update of PERSISTENT runtime attributes in object '%s' (%s).", 
-            objName.c_str(), beforeImage->mImplementer->mImplementerName.c_str());
+        if(beforeImage->mImplementer) {
+            LOG_IN("Update of PERSISTENT runtime attributes in object '%s' (%s).", 
+                objName.c_str(), beforeImage->mImplementer->mImplementerName.c_str());
+        } else {
+            LOG_IN("Update of PERSISTENT runtime attributes in object '%s' (%s).", 
+                objName.c_str(), "<detached>");
+        }
 
         if(afim->mAdminOwnerAttrVal && beforeImage->mAdminOwnerAttrVal->empty()) {
            /* Empty admin Owner can imply (hard) release during PRTA update.
