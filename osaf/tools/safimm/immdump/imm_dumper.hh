@@ -38,7 +38,12 @@ int finalizeSqlStatement(void *stmt);
 struct ClassInfo
 {
 	ClassInfo(unsigned int class_id) : mClassId(class_id), sqlStmt(NULL) { }
-	~ClassInfo() { finalizeSqlStatement(sqlStmt); }
+	~ClassInfo() {
+		finalizeSqlStatement(sqlStmt);
+		sqlStmt=NULL;
+		mClassId=0;
+		mAttrMap.clear();
+	}
     
 	unsigned int mClassId;
 	AttrMap mAttrMap;

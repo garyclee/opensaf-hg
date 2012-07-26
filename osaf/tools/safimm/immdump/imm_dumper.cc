@@ -145,6 +145,7 @@ int main(int argc, char* argv[])
     const char* trace_label = dump_trace_label;
     ClassMap classIdMap;
     unsigned int objCount=0;
+    bool fileReOpened=false;
 
     unsigned int           retryInterval = 1000000; /* 1 sec */
     unsigned int           maxTries = 70;          /* 70 times == max 70 secs */
@@ -239,6 +240,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
+ re_open:
     if(pbeDaemonCase && !pbeDumpCase && pbeRecoverFile) {
         /* This is the re-attachement case. 
 	   The PBE has crashed, 
@@ -292,6 +294,15 @@ int main(int argc, char* argv[])
         objCount = dumpObjectsToPbe(immHandle, &classIdMap, dbHandle);
         TRACE("Dump objects OK");
 
+	/* Discard the old classIdMap, will otherwise contain invalid
+	   pointer/member 'sqlStmt' after handle close below. */
+	ClassMap::iterator itr;
+	for(itr = classIdMap.begin(); itr != classIdMap.end(); ++itr) {
+		ClassInfo* ci = itr->second;
+		delete(ci);
+	}
+	classIdMap.clear();
+
 	pbeRepositoryClose(dbHandle);
 	dbHandle = NULL;
 	LOG_NO("Successfully dumped to file %s", localTmpFilename.c_str());
@@ -300,9 +311,21 @@ int main(int argc, char* argv[])
         if(!pbeDaemonCase) {
             exit(0);
         }
+
         /* Else the pbe dump was needed to get the initial pbe-file
            to be used by the pbeDaemon.
          */
+	if(fileReOpened) {
+		LOG_ER("immdump: will not re-open twice");
+		exit(1);
+	}
+
+	fileReOpened=true;
+	pbeDumpCase=false;
+	pbeRecoverFile=true;
+	assert(pbeDaemonCase); /* osafassert not available for 'tools' */
+	LOG_IN("Re-attaching to the new version of %s", filename.c_str());
+	goto re_open;
     }
 
 
