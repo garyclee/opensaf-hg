@@ -547,6 +547,8 @@ TEST_FUNC_DECLARATION(DS)
 
 FUNC_DECLARATION(DS)
 {
+	uint16_t ver_compare = 0;
+	ver_compare = 3; /* CPND_MDS_PVT_SUBPART_VERSION */
 	NCS_ENC_DEC_DECLARATION(DS);
 	NCS_ENC_DEC_ARRAY(DS) {
 
@@ -571,6 +573,9 @@ FUNC_DECLARATION(DS)
       {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPA/* Svc-ID */, NULL, EDU_EXIT, CPSV_SVC_SUB_ID_CPSV_SaUint32T /* Sub-ID */, 0, NULL},
 
       {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO), 0, 0, EDU_EXIT, (long)&((DS*)0)->info.ovwrite_error, 0, NULL},
+
+      {EDU_VER_GE, NULL, 0, 0, 1, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(ver_compare)))},
+      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->lcl_ckpt_id, 0, NULL},
 
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 

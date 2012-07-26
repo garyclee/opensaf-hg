@@ -3005,6 +3005,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_req(CPND_CB *cb, CPN
 
 	send_evt.type = CPSV_EVT_TYPE_CPND;
 	send_evt.info.cpnd.type = CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_RSP;
+	send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.lcl_ckpt_id = evt->info.ckpt_nd2nd_data.lcl_ckpt_id; 
 
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_nd2nd_data.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
@@ -3088,7 +3089,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb, CPN
 
 	TRACE_ENTER();
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_nd2nd_data_rsp.ckpt_id, &cp_node);
-	cpnd_evt_node_get(cb, evt->info.ckpt_nd2nd_data_rsp.ckpt_id, &evt_node);
+	cpnd_evt_node_get(cb, evt->info.ckpt_nd2nd_data_rsp.lcl_ckpt_id, &evt_node);
 
 	memset(&rsp_evt, '\0', sizeof(CPSV_EVT));
 
@@ -3610,7 +3611,7 @@ static uint32_t cpnd_evt_proc_timer_expiry(CPND_CB *cb, CPND_EVT *evt)
 	} 
 		
 	cpnd_ckpt_node_get(cb, evt->info.tmr_info.ckpt_id, &cp_node);
-	cpnd_evt_node_get(cb, evt->info.tmr_info.ckpt_id, &evt_node);
+	cpnd_evt_node_get(cb, evt->info.tmr_info.lcl_ckpt_hdl, &evt_node);
 
 	if ((evt->info.tmr_info.type == CPND_TMR_TYPE_RETENTION )   ||
 			(evt->info.tmr_info.type == CPND_TMR_TYPE_NON_COLLOC_RETENTION ) ||

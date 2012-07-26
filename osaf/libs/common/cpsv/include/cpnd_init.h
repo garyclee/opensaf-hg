@@ -152,11 +152,10 @@ void cpnd_client_node_get(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl, CPND_CKPT_
 void cpnd_client_node_getnext(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl, CPND_CKPT_CLIENT_NODE **ckpt_client_node);
 uint32_t cpnd_client_node_add(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *ckpt_node);
 uint32_t cpnd_client_node_del(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *ckpt_client_node);
-void cpnd_evt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT checkpointHandle, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node);
-void cpnd_evt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT checkpointHandle, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node);
+void cpnd_evt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT lcl_ckpt_id, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node);
+void cpnd_evt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT lcl_ckpt_id, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node);
 uint32_t cpnd_evt_node_add(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node);
 uint32_t cpnd_evt_node_del(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node);
-void cpnd_allrepl_write_stale_evt_node_cleanup(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_id);
 CPND_CKPT_NODE *cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaNameT ckpt_name);
 CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id);
 CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_create(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id);

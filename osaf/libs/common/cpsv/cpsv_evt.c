@@ -320,7 +320,7 @@ uint32_t cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UB
 	uint8_t *pstream = NULL;
 	uint32_t size, i;
 
-   size = 4 + 4 + 4 + 4 + 8 + 4 + 8;   
+   size = 4 + 4 + 4 + 4 + 8 + 4 + 8 + 8;   
    pstream = ncs_enc_reserve_space(io_uba, size);
    if(!pstream)
             return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,"Memory alloc failed in cpsv_data_access_rsp_encode\n");
@@ -331,6 +331,7 @@ uint32_t cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UB
    ncs_encode_64bit(&pstream , data_rsp->ckpt_id);
    ncs_encode_32bit(&pstream , data_rsp->error_index);
    ncs_encode_64bit(&pstream , data_rsp->from_svc);
+   ncs_encode_64bit(&pstream , data_rsp->lcl_ckpt_id);
    ncs_enc_claim_space(io_uba, size);
 
 	if (data_rsp->type == CPSV_DATA_ACCESS_WRITE_RSP) {
@@ -781,7 +782,7 @@ uint32_t cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UB
    uint8_t *pstream;
    uint32_t i,size , rc =NCSCC_RC_SUCCESS;
    
-   size = 4 + 4 + 4 + 4 + 8 + 4 +8;
+   size = 4 + 4 + 4 + 4 + 8 + 4 + 8 + 8;
    pstream = ncs_dec_flatten_space(io_uba, local_data , size);
    data_rsp->type      =     ncs_decode_32bit(&pstream);
    data_rsp->num_of_elmts =  ncs_decode_32bit(&pstream);
@@ -790,6 +791,7 @@ uint32_t cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UB
    data_rsp->ckpt_id   =     ncs_decode_64bit(&pstream);
    data_rsp->error_index      =     ncs_decode_32bit(&pstream);
    data_rsp->from_svc  =     ncs_decode_64bit(&pstream);
+   data_rsp->lcl_ckpt_id   = ncs_decode_64bit(&pstream);
    ncs_dec_skip_space(io_uba, size);
    if(data_rsp->type == CPSV_DATA_ACCESS_WRITE_RSP)
    {

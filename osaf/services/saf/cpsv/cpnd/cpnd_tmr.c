@@ -86,6 +86,7 @@ void cpnd_timer_expiry(NCSCONTEXT uarg)
 			case CPND_ALL_REPL_RSP_EXPI:
 				evt->info.cpnd.info.tmr_info.type = CPND_ALL_REPL_RSP_EXPI;
 				evt->info.cpnd.info.tmr_info.ckpt_id = tmr->ckpt_id;
+				evt->info.cpnd.info.tmr_info.lcl_ckpt_hdl = tmr->lcl_ckpt_hdl;
 				evt->info.cpnd.info.tmr_info.agent_dest = tmr->agent_dest;
 				evt->info.cpnd.info.tmr_info.write_type = tmr->write_type;
 				break;
