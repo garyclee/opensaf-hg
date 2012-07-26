@@ -528,7 +528,7 @@ typedef struct cpsv_nd2a_read_rsp
      CPSV_SAERR_INFO     ovwrite_error;
 
 	} info;
-
+   SaCkptCheckpointHandleT lcl_ckpt_id;
 } CPSV_ND2A_DATA_ACCESS_RSP;
 
 typedef struct cpsv_ckpt_status {

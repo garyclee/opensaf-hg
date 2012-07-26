@@ -151,7 +151,6 @@ void cpnd_ckpt_node_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 	}
 	cp_node->cpnd_dest_list = tmp;
 
-	cpnd_allrepl_write_stale_evt_node_cleanup(cb, cp_node->ckpt_id);
 	if (cp_node->open_active_sync_tmr.is_active)
 		cpnd_tmr_stop(&cp_node->open_active_sync_tmr);
 	if (cp_node->ret_tmr.is_active)
@@ -286,9 +285,9 @@ CPND_CKPT_NODE *cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaNameT ckpt_name)
  *
  * Notes         : None.
  *****************************************************************************/
-void cpnd_evt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT checkpointHandle, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node)
+void cpnd_evt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT lcl_ckpt_id, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node)
 {
-	*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_get(&cb->writeevt_db, (uint8_t *)&checkpointHandle);
+	*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_get(&cb->writeevt_db, (uint8_t *)&lcl_ckpt_id);
 	return;
 }
 
@@ -303,10 +302,10 @@ void cpnd_evt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT checkpointHandle, CP
  *
  * Notes         : None.
  *****************************************************************************/
-void cpnd_evt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT checkpointHandle, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node)
+void cpnd_evt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT lcl_ckpt_id, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node)
 {
-	if (checkpointHandle)
-		*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_getnext(&cb->writeevt_db, (uint8_t *)&checkpointHandle);
+	if (lcl_ckpt_id)
+		*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_getnext(&cb->writeevt_db, (uint8_t *)&lcl_ckpt_id);
 	else
 		*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_getnext(&cb->writeevt_db, (uint8_t *)NULL);
 	return;
@@ -327,7 +326,7 @@ uint32_t cpnd_evt_node_add(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node)
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	evt_node->patnode.key_info = (uint8_t *)&evt_node->ckpt_id;
+	evt_node->patnode.key_info = (uint8_t *)&evt_node->lcl_ckpt_id;
 
 	rc = ncs_patricia_tree_add(&cb->writeevt_db, (NCS_PATRICIA_NODE *)&evt_node->patnode);
 	return rc;
@@ -1126,36 +1125,3 @@ void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificati
 	return;
 }
 
-/****************************************************************************
- * Name          : cpnd_allrepl_write_stale_evt_node_cleanup
- * Description   : Function to cleanup writeevt_db info
- * Arguments     : CPND_CB *cb - CPND CB pointer
- * Return Values : NCSCC_RC_SUCCESS/Error.
- * Notes         : None.
- *****************************************************************************/
-
-void cpnd_allrepl_write_stale_evt_node_cleanup(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_id)
-{
-
-	CPSV_CPND_ALL_REPL_EVT_NODE *evt_node = NULL;
-	cpnd_evt_node_get(cb, ckpt_id, &evt_node);
-
-	if (evt_node != NULL) {
-		TRACE_ENTER2(" Deleting stale  evt_node->ckpt_id %llu ", (SaUint64T)evt_node->ckpt_id);
-
-		if (evt_node->write_rsp_tmr.is_active)
-			cpnd_tmr_stop(&evt_node->write_rsp_tmr);
-
-		/*Remove the all repl event node */
-		cpnd_evt_node_del(cb, evt_node);
-
-		/*Free the memory */
-		if (evt_node)
-			cpnd_allrepl_write_evt_node_free(evt_node);
-
-		TRACE_LEAVE();
-	}
-
-	return;
-
-}

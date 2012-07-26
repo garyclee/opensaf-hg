@@ -1297,6 +1297,7 @@ cpnd_proc_update_remote(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_EVT *in_evt,
 
 				/*Populate the Event node */
 				all_repl_evt->ckpt_id = cp_node->ckpt_id;
+				all_repl_evt->lcl_ckpt_id = in_evt->info.ckpt_write.lcl_ckpt_id;
 				all_repl_evt->sinfo = *sinfo;
 
 				/*Copy the entire dest_list info of ckpt node to  all_repl_evt dest_list */
@@ -1327,6 +1328,7 @@ cpnd_proc_update_remote(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_EVT *in_evt,
 				all_repl_evt->write_rsp_tmr.type = CPND_ALL_REPL_RSP_EXPI;
 				all_repl_evt->write_rsp_tmr.uarg = cb->cpnd_cb_hdl_id;
 				all_repl_evt->write_rsp_tmr.ckpt_id = cp_node->ckpt_id;
+				all_repl_evt->write_rsp_tmr.lcl_ckpt_hdl = in_evt->info.ckpt_write.lcl_ckpt_id;
 				all_repl_evt->write_rsp_tmr.agent_dest = sinfo->dest;
 				all_repl_evt->write_rsp_tmr.write_type = in_evt->info.ckpt_write.type;
 				rc = cpnd_tmr_start(&all_repl_evt->write_rsp_tmr,
@@ -1593,7 +1595,7 @@ uint32_t cpnd_all_repl_rsp_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
 
 	TRACE_ENTER();
 	cpnd_ckpt_node_get(cb, tmr_info->ckpt_id, &cp_node);
-	cpnd_evt_node_get(cb, tmr_info->ckpt_id, &evt_node);
+	cpnd_evt_node_get(cb, tmr_info->lcl_ckpt_hdl, &evt_node);
 
 	memset(&rsp_evt, 0, sizeof(CPSV_EVT));
 

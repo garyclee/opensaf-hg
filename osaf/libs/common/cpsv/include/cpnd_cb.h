@@ -96,7 +96,7 @@ uint32_t gl_cpnd_cb_hdl;
 
 /*CPND - CPND communication */
 #define CPND_WRT_CPND_SUBPART_VER_MIN 1
-#define CPND_WRT_CPND_SUBPART_VER_MAX 2
+#define CPND_WRT_CPND_SUBPART_VER_MAX 3
 
 #define CPND_WRT_CPND_SUBPART_VER_RANGE \
         (CPND_WRT_CPND_SUBPART_VER_MAX - \
@@ -155,6 +155,7 @@ typedef struct cpnd_all_repl_write_evt_node {
 	CPND_TMR write_rsp_tmr;	/*Used in ALL_REPL_WRITE to await rsp from remote nodes */
 	CPSV_CPND_UPDATE_DEST *cpnd_update_dest_list;
 	CPSV_SEND_INFO sinfo;
+	SaCkptCheckpointHandleT lcl_ckpt_id;
 /* struct cpnd_all_repl_write_evt_node *next;*/
 } CPSV_CPND_ALL_REPL_EVT_NODE;
 
