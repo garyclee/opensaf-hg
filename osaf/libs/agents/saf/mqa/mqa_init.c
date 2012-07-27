@@ -29,24 +29,16 @@
 */
 
 #include "mqa.h"
+#include <pthread.h>
+#include "osaf_utility.h"
 
 /* global cb handle */
 uint32_t gl_mqa_hdl = 0;
 MQA_CB mqa_cb;
 static uint32_t mqa_use_count = 0;
-/* MQA Agent creation specific LOCK */
-static uint32_t mqa_agent_lock_create = 0;
-NCS_LOCK mqa_agent_lock;
 
-#define m_MQA_AGENT_LOCK                        \
-   if (!mqa_agent_lock_create++)                \
-   {                                            \
-      m_NCS_LOCK_INIT(&mqa_agent_lock);         \
-   }                                            \
-   mqa_agent_lock_create = 1;                   \
-   m_NCS_LOCK(&mqa_agent_lock, NCS_LOCK_WRITE);
-
-#define m_MQA_AGENT_UNLOCK m_NCS_UNLOCK(&mqa_agent_lock, NCS_LOCK_WRITE)
+/* mutex for synchronising agent startup and shutdown */
+static pthread_mutex_t s_agent_startup_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void mqa_sync_with_mqnd(MQA_CB *cb);
 static void mqa_sync_with_mqd(MQA_CB *cb);
@@ -988,11 +980,11 @@ unsigned int ncs_mqa_startup(void)
 	NCS_LIB_REQ_INFO lib_create;
 	char *value = NULL;
 
-	m_MQA_AGENT_LOCK;
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 	if (mqa_use_count > 0) {
 		/* Already created, so just increment the use_count */
 		mqa_use_count++;
-		m_MQA_AGENT_UNLOCK;
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -1000,7 +992,7 @@ unsigned int ncs_mqa_startup(void)
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	if (mqa_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		m_MQA_AGENT_UNLOCK;
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	} else {
 		m_NCS_DBG_PRINTF("\nMQSV:MQA:ON");
@@ -1012,7 +1004,7 @@ unsigned int ncs_mqa_startup(void)
 		logtrace_init("mqa", value, CATEGORY_ALL);
 	}
 
-	m_MQA_AGENT_UNLOCK;
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1034,7 +1026,7 @@ unsigned int ncs_mqa_shutdown(void)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-	m_MQA_AGENT_LOCK;
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 	if (mqa_use_count > 1) {
 		/* Still users extis, so just decrement the use_count */
 		mqa_use_count--;
@@ -1049,7 +1041,7 @@ unsigned int ncs_mqa_shutdown(void)
 		mqa_use_count = 0;
 	}
 
-	m_MQA_AGENT_UNLOCK;
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 	TRACE_LEAVE();
 	return rc;
 }
