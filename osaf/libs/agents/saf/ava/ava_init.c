@@ -32,24 +32,15 @@
 */
 
 #include "ava.h"
+#include <pthread.h>
+#include "osaf_utility.h"
 
 /* global cb handle */
 uint32_t gl_ava_hdl = 0;
 static uint32_t ava_use_count = 0;
 
-/* AVA Agent creation specific LOCK */
-static uint32_t ava_agent_lock_create = 0;
-NCS_LOCK ava_agent_lock;
-
-#define m_AVA_AGENT_LOCK                        \
-   if (!ava_agent_lock_create++)                \
-   {                                            \
-      m_NCS_LOCK_INIT(&ava_agent_lock);         \
-   }                                            \
-   ava_agent_lock_create = 1;                   \
-   m_NCS_LOCK(&ava_agent_lock, NCS_LOCK_WRITE);
-
-#define m_AVA_AGENT_UNLOCK m_NCS_UNLOCK(&ava_agent_lock, NCS_LOCK_WRITE)
+/* mutex for synchronising agent startup and shutdown */
+static pthread_mutex_t s_agent_startup_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /*
  * To enable tracing early in saAmfInitialize, use a GCC constructor
@@ -321,12 +312,12 @@ unsigned int ncs_ava_startup(void)
 	NCS_LIB_REQ_INFO lib_create;
 	TRACE_ENTER();
 
-	m_AVA_AGENT_LOCK;
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 
 	if (ava_use_count > 0) {
 		/* Already created, so just increment the use_count */
 		ava_use_count++;
-		m_AVA_AGENT_UNLOCK;
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 		TRACE_LEAVE2("AVA use count = %d",ava_use_count);
 		return NCSCC_RC_SUCCESS;
 	}
@@ -335,14 +326,14 @@ unsigned int ncs_ava_startup(void)
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	if (ava_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		m_AVA_AGENT_UNLOCK;
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 		TRACE_LEAVE2("AVA lib create failed");
 		return NCSCC_RC_FAILURE;
 	} else {
 		ava_use_count = 1;
 	}
 
-	m_AVA_AGENT_UNLOCK;
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 
 	TRACE_LEAVE2("AVA Use count = %u",ava_use_count);
 	return NCSCC_RC_SUCCESS;
@@ -366,7 +357,7 @@ unsigned int ncs_ava_shutdown(void)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-	m_AVA_AGENT_LOCK;
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 
 	if (ava_use_count > 1) {
 		/* Still users exists, so just decrement the use_count */
@@ -381,7 +372,7 @@ unsigned int ncs_ava_shutdown(void)
 		ava_use_count = 0;
 	}
 
-	m_AVA_AGENT_UNLOCK;
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 	TRACE_LEAVE2("AVA use count = %d", ava_use_count);
 	return rc;
 }
