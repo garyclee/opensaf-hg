@@ -29,25 +29,16 @@
 */
 
 #include "eda.h"
+#include <pthread.h>
+#include "osaf_utility.h"
 #include "ncssysf_mem.h"
 
 /* global cb handle */
 uint32_t gl_eda_hdl = 0;
 static uint32_t eda_use_count = 0;
 
-/* EDA Agent creation specific LOCK */
-static uint32_t eda_agent_lock_create = 0;
-NCS_LOCK eda_agent_lock;
-
-#define m_EDA_AGENT_LOCK                        \
-   if (!eda_agent_lock_create++)                \
-   {                                            \
-      m_NCS_LOCK_INIT(&eda_agent_lock);         \
-   }                                            \
-   eda_agent_lock_create = 1;                   \
-   m_NCS_LOCK(&eda_agent_lock, NCS_LOCK_WRITE);
-
-#define m_EDA_AGENT_UNLOCK m_NCS_UNLOCK(&eda_agent_lock, NCS_LOCK_WRITE)
+/* mutex for synchronising agent startup and shutdown */
+static pthread_mutex_t s_agent_startup_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /*
  * Enable tracing early - GCC constructor
@@ -248,11 +239,11 @@ unsigned int ncs_eda_startup(void)
 	NCS_LIB_REQ_INFO lib_create;
 	TRACE_ENTER();
 
-	m_EDA_AGENT_LOCK;
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 	if (eda_use_count > 0) {
 		/* Already created, so just increment the use_count */
 		eda_use_count++;
-		m_EDA_AGENT_UNLOCK;
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 		TRACE_LEAVE2("Library use count: %u", eda_use_count);
 		return NCSCC_RC_SUCCESS;
 	}
@@ -261,14 +252,14 @@ unsigned int ncs_eda_startup(void)
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	if (ncs_eda_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		m_EDA_AGENT_UNLOCK;
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	} else {
 		eda_use_count = 1;
 		TRACE("EDA agent library initialized");
 	}
 
-	m_EDA_AGENT_UNLOCK;
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 	TRACE_LEAVE2("Library use count: %u", eda_use_count);
 	return NCSCC_RC_SUCCESS;
 }
@@ -291,7 +282,7 @@ unsigned int ncs_eda_shutdown(void)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-	m_EDA_AGENT_LOCK;
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 	if (eda_use_count > 1) {
 		/* Still users extis, so just decrement the use_count */
 		eda_use_count--;
@@ -306,7 +297,7 @@ unsigned int ncs_eda_shutdown(void)
 		eda_use_count = 0;
 	}
 
-	m_EDA_AGENT_UNLOCK;
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
 	TRACE_LEAVE2("Library use count: %u", eda_use_count);
 	return rc;
 }
