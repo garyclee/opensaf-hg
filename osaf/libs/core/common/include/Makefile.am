@@ -20,6 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
 	logtrace.h \
+	osaf_utility.h \
 	ncs_main_pub.h \
 	ncs_mda_pvt.h \
 	ncs_saf_edu.h \
