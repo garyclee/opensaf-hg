@@ -1757,6 +1757,7 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
 
     for(omuti=sPbeRtMutations.begin(); 
         omuti!=sPbeRtMutations.end(); ++omuti) {
+        ObjectInfo* grandParent = NULL;
         ObjectMutation* oMut = omuti->second;
         oi = sObjectMap.find(omuti->first);
         osafassert(oi != sObjectMap.end() ||
@@ -1791,6 +1792,24 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
 
                 oMut->mAfterImage->mObjFlags &= ~IMM_CREATE_LOCK;
                 oMut->mAfterImage = NULL;
+                /* Decrement mChildCount for all parents of the reverted 
+                   PRTO create. Note: There could be several PRTO creates to
+                   process in this purge, but none can be the parent of another 
+                   in this purge. This because a PRTO create of a subobject 
+                   to a parent object is not allowed if the create of the parent
+                   has not yet been ack'ed by the PBE. So one can never have 
+                   both parent and child being an un-acked PRTO create.
+                */
+                grandParent = oMut->mAfterImage->mParent;
+                while(grandParent) {
+                    std::string gpDn;
+                    getObjectName(grandParent, gpDn);
+                    grandParent->mChildCount--;
+                    LOG_IN("Childcount for (grand)parent %s of purged create prto %s adjusted to %u",
+                        gpDn.c_str(), omuti->first.c_str(), grandParent->mChildCount);
+                    grandParent = grandParent->mParent;
+                }
+
                 LOG_WA("Create of PERSISTENT runtime object '%s' REVERTED ",
                     omuti->first.c_str());
                 osafassert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
@@ -4104,6 +4123,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
         }
         
         ObjectMutationMap::iterator omit;
+        ObjectSet createsAbortedInCcb;
         for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit){
             ObjectMutation *omut = omit->second;
             ObjectInfo* afim = omut->mAfterImage;
@@ -4156,9 +4176,29 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                         //adminOwner of the cccb that creaed it. No other
                         //ccb/admin-owner can have seen the object. 
                     }
-                    delete afim;
+
+                    /*Aborting a ccb-create also means we need to decrement mChildcount
+                      for all parents of the object being reverted. */
+                    ObjectInfo* grandParent = afim->mParent;
+                    while(grandParent) {
+                        std::string gpDn;
+                        getObjectName(grandParent, gpDn);
+                        osafassert(grandParent->mChildCount >= (afim->mChildCount + 1));
+                        --grandParent->mChildCount;
+                        LOG_IN("Childcount for (grand)parent %s of aborted create %s "
+                               "decremented to %u", gpDn.c_str(), dn.c_str(), 
+                                grandParent->mChildCount);
+                        grandParent = grandParent->mParent;
+                    }
+
+                    /* Dont delete afim yet. Needed if aborting create of a subTREE! 
+                       That is, this afim may have children (creates) that are yet
+                       to be aborted. Afim needed as parent link in decrementing childCount.
+                       Deleted instead at #### below.
+                    */
+                    createsAbortedInCcb.insert(afim);
                 }
-                    break;
+                break;
                     
                 case IMM_MODIFY: {
                     osafassert(afim);
@@ -4178,6 +4218,15 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
             }//switch
             delete omut;
         }//for each mutation
+
+        /* #### Now delete afims from aborted creates. */
+        ObjectSet::iterator oi = createsAbortedInCcb.begin();
+        while(oi != createsAbortedInCcb.end()) {
+            delete (*oi);
+            ++oi;
+        }
+        createsAbortedInCcb.clear();
+
         ccb->mMutations.clear();
         if(ccb->mImplementers.size()) {
             LOG_WA("Ccb destroyed without notifying some implementers from IMMND.");
@@ -10625,6 +10674,17 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
         bool dummy=false;
         ObjectMap::iterator oi = sObjectMap.find(i2->first);
         osafassert(oi != sObjectMap.end());
+        /* Need to decrement mChildCount in parents. */
+        ObjectInfo* grandParent = oi->second->mParent;
+        while(grandParent) {
+            std::string gpDn;
+            getObjectName(grandParent, gpDn);
+            grandParent->mChildCount--;
+            LOG_IN("Childcount for (grand)parent %s of reverted create prto %s adjusted to %u",
+                gpDn.c_str(), i2->first.c_str(), grandParent->mChildCount);
+            grandParent = grandParent->mParent;
+        }
+
         osafassert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
         LOG_WA("Create of PERSISTENT runtime object '%s' REVERTED. PBE rc:%u", 
             i2->first.c_str(), error);
