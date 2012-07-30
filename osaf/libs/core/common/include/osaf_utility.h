@@ -59,7 +59,7 @@ static inline void osaf_mutex_unlock_ordie(pthread_mutex_t* __restrict i_mutex,
  */
 extern void osaf_abort(const char* __restrict i_file, uint32_t i_line,
 	uint32_t i_info1, uint32_t i_info2, uint32_t i_info3, uint32_t i_info4)
-	__attribute__ ((cold, nonnull, nothrow, noreturn));
+	__attribute__ ((nonnull, nothrow, noreturn));
 
 /**
  * @brief Lock a pthreads mutex and abort the process in case of failure.
