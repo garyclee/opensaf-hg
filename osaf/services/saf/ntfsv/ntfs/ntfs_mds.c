@@ -720,11 +720,11 @@ static uint32_t mds_dec(struct ncsmds_callback_info *info)
 		rc = NCSCC_RC_FAILURE;			
 	} 
 	
-done:
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE_2("dec mgs type %d, api type %d, returned err rc = %u",
 			     evt->info.msg.type, evt->info.msg.info.api_info.type, rc);
 	}
+done:
 	return rc;
 }
 

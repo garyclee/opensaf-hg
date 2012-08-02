@@ -46,8 +46,6 @@ public:
                     SaNtfNotificationTypeT notificationType,
                     ntfsv_send_not_req_t* sendNotInfo);
 
-    NtfNotification(const NtfNotification&);
-    NtfNotification();
     virtual ~NtfNotification();
     SaNtfNotificationTypeT getNotificationType() const;
     SaNtfIdentifierT getNotificationId() const;
@@ -69,9 +67,10 @@ public:
     bool loggFromCallback_;
 
 private:
-    void setData(SaNtfIdentifierT notificationId,
-                 SaNtfNotificationTypeT notificationType,
-                 const ntfsv_send_not_req_t* sendNotInfo);
+    NtfNotification();
+    NtfNotification(const NtfNotification&);
+    NtfNotification& operator=(const NtfNotification&);
+
     bool logged;
     SaNtfIdentifierT notificationId_;
     SaNtfNotificationTypeT notificationType_;

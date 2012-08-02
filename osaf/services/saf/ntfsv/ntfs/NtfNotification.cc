@@ -23,19 +23,6 @@
 #include "ntfsv_enc_dec.h"
 #include "ntfsv_mem.h"
 
-#define LGS_NOTIFICATION_TYPE_UNDEF (SaNtfNotificationTypeT) 0x9000
-
-NtfNotification::NtfNotification ()
-{
-    logged = false;
-    loggFromCallback_ = false;
-    TRACE_3("empty constructor %p", this);
-
-    /* to make destructor work */
-    notificationType_ = LGS_NOTIFICATION_TYPE_UNDEF;
-    sendNotInfo_ = NULL;
-}
-
 /**
  * This is the constructor.
  *
@@ -64,33 +51,6 @@ NtfNotification::NtfNotification
     notificationType_ = notificationType; /* deleted in destructor */
 }
 
-NtfNotification::NtfNotification(const NtfNotification& old)
-{
-    TRACE_3("copy constructor %p, notId: %llu, type: %x",
-            this,
-            old.notificationId_, 
-            old.notificationType_);
-    if (LGS_NOTIFICATION_TYPE_UNDEF != old.notificationType_)
-    {
-        TRACE_3("Notification type ok");
-        this->subscriptionList = old.subscriptionList;
-        sendNotInfo_ = (ntfsv_send_not_req_t*)calloc(1, sizeof(ntfsv_send_not_req_t));
-        if (sendNotInfo_ == NULL)
-        {
-            TRACE_2("sendNotInfo_ == NULL");
-            osafassert(0);
-        }
-        setData(old.notificationId_, old.notificationType_, old.sendNotInfo_);
-    }
-    else
-    {
-      /* copy empty notification work around TODO: fix reader impl avoid copying */
-        TRACE_3("LGS_NOTIFICATION_TYPE_UNDEF in copy constructor");
-        notificationType_ = LGS_NOTIFICATION_TYPE_UNDEF;
-        sendNotInfo_ = NULL;
-    }
-}
-
 /**
  * This is the destructor.
  */
@@ -98,41 +58,10 @@ NtfNotification::~NtfNotification()
 {
     TRACE_3("Notification %llu with type %x destroyed.\n destructor this = %p",
             notificationId_, notificationType_, this);
-    if (LGS_NOTIFICATION_TYPE_UNDEF != notificationType_)
-    {
-        ntfsv_dealloc_notification(sendNotInfo_);
-        if (sendNotInfo_ != NULL)
-        {
-            free(sendNotInfo_);
-            sendNotInfo_ = NULL;
-        }
-    }
-    else
-    {
-        TRACE_3("LGS_NOTIFICATION_TYPE_UNDEF");
-    }
-}
-
-void NtfNotification::setData (SaNtfIdentifierT notificationId,
-                               SaNtfNotificationTypeT notificationType,
-                               const ntfsv_send_not_req_t* sendNotInfo)
-{
-    TRACE_ENTER2("sendNotInfo_ = %p", sendNotInfo);
-    notificationId_ = notificationId;
-    notificationType_ = notificationType;
-    sendNotInfo_->notificationType = sendNotInfo->notificationType;
-    sendNotInfo_->subscriptionId = sendNotInfo->subscriptionId;
-    SaAisErrorT rc = ntfsv_alloc_and_copy_not(sendNotInfo_, sendNotInfo);
-    if (rc != SA_AIS_OK)
-    {    
-        LOG_ER("Copy notification failed rc = %u", rc);
-        osafassert(0);
-    }
-
-    SaNtfNotificationHeaderT *header;
-    ntfsv_get_ntf_header(sendNotInfo_, &header);
-    *header->notificationId = notificationId_;
-    TRACE_LEAVE();
+    osafassert(sendNotInfo_);
+    ntfsv_dealloc_notification(sendNotInfo_);
+    free(sendNotInfo_);
+    sendNotInfo_ = NULL;
 }
 
 /**

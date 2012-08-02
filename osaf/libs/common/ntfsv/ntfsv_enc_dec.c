@@ -760,6 +760,7 @@ static uint32_t ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *p
 {
 	uint8_t *p8;
 	uint32_t rv = NCSCC_RC_SUCCESS;
+	SaAisErrorT rc;
 	uint8_t local_data[8];
 	int i;
 	/* SaNtfNotificationHeaderT size params */
@@ -775,8 +776,8 @@ static uint32_t ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *p
 	numAdditionalInfo = ncs_decode_16bit(&p8);
 	ncs_dec_skip_space(uba, 6);
 
-	ntfsv_alloc_ntf_header(param, numCorrelatedNotifications, lengthAdditionalText, numAdditionalInfo);
-
+	rc = ntfsv_alloc_ntf_header(param, numCorrelatedNotifications, lengthAdditionalText, numAdditionalInfo);
+	osafassert(rc == SA_AIS_OK);
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	*param->eventType = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
@@ -1371,6 +1372,7 @@ uint32_t ntfsv_dec_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT 
 	uint8_t *p8;
 	uint32_t rv = NCSCC_RC_FAILURE;
 	uint8_t local_data[8];
+	SaAisErrorT rc;
 	
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	h->numEventTypes = ncs_decode_16bit(&p8);
@@ -1378,8 +1380,9 @@ uint32_t ntfsv_dec_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT 
 	h->numNotificationObjects = ncs_decode_16bit(&p8);
 	h->numNotifyingObjects = ncs_decode_16bit(&p8);
 	ncs_dec_skip_space(uba, 8);
-	ntfsv_filter_header_alloc(h, h->numEventTypes, h->numNotificationObjects, h->numNotifyingObjects,
+	rc = ntfsv_filter_header_alloc(h, h->numEventTypes, h->numNotificationObjects, h->numNotifyingObjects,
 		h->numNotificationClassIds);
+	osafassert(rc == SA_AIS_OK);
 	for (i = 0; i < h->numEventTypes; i++) {
 		p8 = ncs_dec_flatten_space(uba, local_data, 4);
 		if (!p8)

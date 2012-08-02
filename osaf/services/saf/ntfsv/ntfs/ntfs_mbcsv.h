@@ -18,7 +18,6 @@
 #ifndef NTFS_CKPT_H
 #define NTFS_CKPT_H
 
-#include "ntfs.h"
 
 #define NTFS_MBCSV_VERSION 1
 #define NTFS_MBCSV_VERSION_MIN 1

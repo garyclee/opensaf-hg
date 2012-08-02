@@ -849,7 +849,7 @@ SaAisErrorT ntfsv_array_val_alloc(v_data * vd,
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
-	addedSize = (numElements) * (elementSize);
+	addedSize = (SaUint64T)numElements * (SaUint64T)elementSize;
 
 	TRACE("ptrAlloc base=%p, size=%zd, numElements=%u, elementSize=%hu,"
 	      "addedSize=%llu\n", vd->p_base, vd->size, numElements, elementSize, addedSize);
@@ -857,7 +857,7 @@ SaAisErrorT ntfsv_array_val_alloc(v_data * vd,
 	if ((vd->size + addedSize) <= vd->max_data_size) {
 		void *p;
 		/* realloc */
-		p = realloc(vd->p_base, vd->size + (numElements) * (elementSize));
+		p = realloc(vd->p_base, vd->size + (size_t)addedSize);
 		if (p == NULL) {
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto done;
@@ -880,7 +880,7 @@ SaAisErrorT ntfsv_array_val_get(v_data * vd,
 				const SaNtfValueT *nv, void **arrayPtr, SaUint16T *numElements, SaUint16T *elementSize)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	SaUint64T maxOffset = nv->arrayVal.arrayOffset + nv->arrayVal.numElements * nv->arrayVal.elementSize;
+	SaUint64T maxOffset = (SaUint64T)nv->arrayVal.arrayOffset + (SaUint64T)nv->arrayVal.numElements * (SaUint64T)nv->arrayVal.elementSize;
 	SaUint64T llsize = 0;
 	llsize = (SaUint64T)vd->size;
 	TRACE("vd->base: %p vd->size: %zd ntfvalue: offset: %hu numE: %hu esize: %hu, maxOffset: %llu, llsize: %llu",
