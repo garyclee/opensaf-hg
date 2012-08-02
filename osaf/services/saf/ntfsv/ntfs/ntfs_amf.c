@@ -341,7 +341,7 @@ SaAisErrorT ntfs_amf_healthcheck_start()
 	health_key = (char *)getenv("NTFSV_ENV_HEALTHCHECK_KEY");
 
 	if (health_key == NULL) {
-		strcpy((char *)healthy.key, "F1B2");
+		strncpy((char *)healthy.key, "F1B2", SA_AMF_HEALTHCHECK_KEY_MAX);
 		healthy.keyLen = strlen((const char *)healthy.key);
 	} else {
 		healthy.keyLen = strlen(health_key);

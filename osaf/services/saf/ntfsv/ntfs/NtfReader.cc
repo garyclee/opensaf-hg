@@ -59,8 +59,12 @@ NtfReader::NtfReader(NtfLogger& ntfLogger, unsigned int readerId):
 coll_(ntfLogger.coll_),
 ffIter(coll_.begin()),
 readerId_(readerId),
-firstRead(true) 
+c_filter_(0),
+firstRead(true)
 {
+    searchCriteria_.eventTime = 0;
+    searchCriteria_.notificationId = 0;
+    searchCriteria_.searchMode = SA_NTF_SEARCH_NOTIFICATION_ID;
     TRACE_3("ntfLogger.coll_.size: %u", (unsigned int)ntfLogger.coll_.size());
 }
 

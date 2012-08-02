@@ -518,7 +518,7 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 		ntfs_ckpt_reg_msg_t ckpt_reg_rec;
 		ntfs_ckpt_subscribe_t subscribe_rec;
 		ntfs_ckpt_unsubscribe_t unsubscribe_rec;
-		EDU_ERR ederror = 0;
+		EDU_ERR ederror;
 
 	case NTFS_CKPT_INITIALIZE_REC:
 
