@@ -4146,15 +4146,8 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                     osafassert(oi != sObjectMap.end());
                     sObjectMap.erase(oi);
                     osafassert(afim);
-                    ImmAttrValueMap::iterator oavi;
                     SaUint32T adminOwnerId = (omut->mAugmentAdmo)? omut->mAugmentAdmo : ccb->mAdminOwnerId;
                     TRACE_2("Aborting Create of %s admo:%u", omit->first.c_str(), adminOwnerId);
-                    for(oavi = afim->mAttrValueMap.begin();
-                        oavi != afim->mAttrValueMap.end(); ++oavi) {
-                        delete oavi->second;
-                    }
-                    afim->mAttrValueMap.clear(); 
-                    
                     osafassert(!afim->mClassInfo->mExtent.empty());
                     osafassert(afim->mClassInfo->mExtent.erase(afim)==1);
                     
@@ -4194,6 +4187,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                     /* Dont delete afim yet. Needed if aborting create of a subTREE! 
                        That is, this afim may have children (creates) that are yet
                        to be aborted. Afim needed as parent link in decrementing childCount.
+                       Attributes of the afim also accessed in log info print of childcount.
                        Deleted instead at #### below.
                     */
                     createsAbortedInCcb.insert(afim);
@@ -4222,6 +4216,12 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
         /* #### Now delete afims from aborted creates. */
         ObjectSet::iterator oi = createsAbortedInCcb.begin();
         while(oi != createsAbortedInCcb.end()) {
+            ImmAttrValueMap::iterator oavi;
+            for(oavi = (*oi)->mAttrValueMap.begin();
+               oavi != (*oi)->mAttrValueMap.end(); ++oavi) {
+                delete oavi->second;
+            }
+            (*oi)->mAttrValueMap.clear();
             delete (*oi);
             ++oi;
         }
