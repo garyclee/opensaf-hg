@@ -27,6 +27,11 @@ static const SaNameT objectName = {
     .value = "opensafImm=opensafImm,safApp=safImmService",
     .length = sizeof("opensafImm=opensafImm,safApp=safImmService"),
 };
+static const SaNameT badObjectName = {
+    .value = "opensafImm=badOpensafImm,safApp=safImmService",
+    .length = sizeof("opensafImm=badOpensafImm,safApp=safImmService"),
+};
+
 
 static unsigned int print_SaImmAttrValuesT_2(SaImmAttrValuesT_2 **attributes)
 {
@@ -130,6 +135,48 @@ void saImmOmAccessorGet_2_04(void)
     cnt = print_SaImmAttrValuesT_2(attributes);
     assert(cnt == 5);
     test_validate(rc, SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOmAccessorGet_2_05(void)
+{
+    SaImmAttrNameT attributeNames[] = { NULL };
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    rc = saImmOmAccessorGet_2(accessorHandle, &objectName, attributeNames, NULL);
+    test_validate(rc, SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOmAccessorGet_2_06(void)
+{
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    rc = saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, NULL);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOmAccessorGet_2_07(void)
+{
+    SaImmAttrNameT attributeNames[] = { "SaImmAttrClassName", NULL };
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    rc = saImmOmAccessorGet_2(accessorHandle, &objectName, attributeNames, NULL);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOmAccessorGet_2_08(void)
+{
+    SaImmAttrNameT attributeNames[] = { NULL };
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    rc = saImmOmAccessorGet_2(accessorHandle, &badObjectName, attributeNames, NULL);
+    test_validate(rc, SA_AIS_ERR_NOT_EXIST);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 

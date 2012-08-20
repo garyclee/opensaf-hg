@@ -5099,6 +5099,7 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 	IMMA_CB *cb = &imma_cb;
 	IMMA_SEARCH_NODE *search_node = NULL;
 	SaNameT redundantName;
+	SaImmAttrValuesT_2 **attributeList = NULL;
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
@@ -5110,7 +5111,8 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	if (!attributes) {
+	/* Skip the case when attributeNames[0] == NULL and attributes == NULL (#2166) */
+	if (!attributes && (!attributeNames || attributeNames[0])) {
 		TRACE_2("ERR_INVALID_PARAM: attributes is NULL");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
@@ -5155,7 +5157,7 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 		redundantName.length = 0;
 		m_IMMSV_SET_SANAMET((&redundantName));
 
-		rc = saImmOmSearchNext_2(accessorHandle, &redundantName, attributes);
+		rc = saImmOmSearchNext_2(accessorHandle, &redundantName, &attributeList);
 
 		if (rc != SA_AIS_ERR_NOT_EXIST && rc != SA_AIS_ERR_BAD_HANDLE) {
 			TRACE_4("ERR_LIBRARY: Unexpected return code from internal searchNext: %u", rc);
@@ -5183,7 +5185,9 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 
 	redundantName.length = 0;
 	m_IMMSV_SET_SANAMET((&redundantName));
-	rc = saImmOmSearchNext_2(accessorHandle, &redundantName, attributes);
+	rc = saImmOmSearchNext_2(accessorHandle, &redundantName, &attributeList);
+	if(attributes)
+		*attributes = attributeList;
 	return rc;
 
 	/*error cases only */
