@@ -292,25 +292,25 @@ Building `OpenSAF'
 Some features needs to be configured at build time but don't have configure
 support, these are explained here.
 
-1) Configuring a flat MDS addressing scheme
+1) Configure a non flat MDS addressing scheme (optional)
 
-In the default scheme, TIPC addresses will be 1.1.31, 1.1.47. The slot ID is
-shifted up 4 bits and subslot ID is added in the 4 LSB. However this reduces
-the number of addressable TIPC nodes in the cluster. Besides most blade/server
-systems do not have any subslots. This is more likely used in xTCA type of
-systems if OpenSAF is used on a subslot.
+In the default (from 4.3) addressing scheme, TIPC node addresses looks like
+1.1.1, 1.1.2 etc.
 
-The use of subslot is disabled by:
+To re-enable the old (pre 4.3) non flat addressing, configure the constant
+MDS_USE_SUBSLOT_ID=1 at configure time as in:
 
-    % ./configure CFLAGS=-DMDS_USE_SUBSLOT_ID=0
+    % ./configure CFLAGS="-DMDS_USE_SUBSLOT_ID=1 ..."
 
-When use of subslot ID is disabled the TIPC addresses used will be 1.1.1,
-1.1.2, etc.
+In the non flat scheme, the slot ID is shifted up 4 bits and subslot ID is 
+added in the 4 LSB. The consequence of this is reduced number of
+addressable TIPC nodes in the cluster. This scheme is more likely to be used
+in xTCA type of systems and produces node addresses like 1.1.31, 1.1.47 etc.
 
 More configuration is needed, see nid.conf in 00-README.conf
 
 
-2) Run as root
+2) Run as root (optional)
 
 If the old (<4.2) behaviour of running all processes as root is desired, use
 the following configure command:
