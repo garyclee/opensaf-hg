@@ -242,13 +242,14 @@ bool mdtm_mailbox_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg);
 #define MDS_TIPC_COMMON_ID       0x01001000
 
 /*
- * In the default addressing scheme TIPC addresses will be 1.1.31, 1.1.47.
- * The slot ID is shifted 4 bits up and subslot ID is added in the 4 LSB.
- * When use of subslot ID is disabled (set MDS_USE_SUBSLOT_ID=0 in CFLAGS), the
- * TIPC addresses will be 1.1.1, 1.1.2, etc.
+ * In the default flat addressing scheme, TIPC node addresses looks like
+ * 1.1.1, 1.1.2 etc.
+ * In the non flat (old/legacy) addressing scheme TIPC addresses looks like
+ * 1.1.31, 1.1.47. The slot ID is shifted 4 bits up and subslot ID is added
+ * in the 4 LSB.
  */
 #ifndef MDS_USE_SUBSLOT_ID
-#define MDS_USE_SUBSLOT_ID 1
+#define MDS_USE_SUBSLOT_ID 0
 #endif
 
 #if (MDS_USE_SUBSLOT_ID == 0)
