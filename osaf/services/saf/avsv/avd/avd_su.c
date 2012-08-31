@@ -163,6 +163,9 @@ void avd_su_remove_comp(AVD_COMP *comp)
 {
 	AVD_COMP *i_comp = NULL;
 	AVD_COMP *prev_comp = NULL;
+	AVD_SU *su_ref = comp->su;
+
+	osafassert(su_ref != NULL);
 
 	if (comp->su != NULL) {
 		/* remove COMP from SU */
@@ -181,13 +184,14 @@ void avd_su_remove_comp(AVD_COMP *comp)
 			}
 
 			comp->su_comp_next = NULL;
+			/* Marking SU referance pointer to NULL, please dont use further in the routine */
 			comp->su = NULL;
 		}
 	}
 
-	if (comp->su->list_of_comp == NULL) {
+	if (su_ref->list_of_comp == NULL) {
 		/* Revert to def val */
-		comp->su->saAmfSUPreInstantiable = false;
+		su_ref->saAmfSUPreInstantiable = false;
 	}
 }
 
