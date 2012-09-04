@@ -43,6 +43,7 @@ extern void saImmOmAccessorGet_2_05(void);
 extern void saImmOmAccessorGet_2_06(void);
 extern void saImmOmAccessorGet_2_07(void);
 extern void saImmOmAccessorGet_2_08(void);
+extern void saImmOmAccessorGet_2_09(void);
 extern void saImmOmAccessorFinalize_01(void);
 extern void saImmOmAccessorFinalize_02(void);
 extern void saImmOmAccessorFinalize_03(void);
@@ -61,6 +62,7 @@ __attribute__ ((constructor)) static void saImmOmAccessorInitialize_constructor(
     test_case_add(4, saImmOmAccessorGet_2_06, "saImmOmAccessorGet_2 - SA_AIS_ERR_INVALID_PARAM - accessor get for attributeNames == NULL and attributes == NULL");
     test_case_add(4, saImmOmAccessorGet_2_07, "saImmOmAccessorGet_2 - SA_AIS_ERR_INVALID_PARAM - accessor get for attributeNames[0] != NULL and attributes == NULL");
     test_case_add(4, saImmOmAccessorGet_2_08, "saImmOmAccessorGet_2 - SA_AIS_ERR_NOT_EXIST - accessor get for non-existing object, attributeNames[0] == NULL and attributes == NULL");
+    test_case_add(4, saImmOmAccessorGet_2_09, "saImmOmAccessorGet_2 - SA_AIS_ERR_INVALID_PARAM - empty dn");
 
     test_case_add(4, saImmOmAccessorFinalize_01, "saImmOmAccessorFinalize - SA_AIS_OK");
     test_case_add(4, saImmOmAccessorFinalize_02, "saImmOmAccessorFinalize - SA_AIS_ERR_BAD_HANDLE - invalid handle");
