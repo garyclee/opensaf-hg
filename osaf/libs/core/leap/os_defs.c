@@ -2065,7 +2065,7 @@ unsigned int ncs_os_process_execute(char *exec_mod, char *argv[], NCS_OS_ENVIRON
 		node = set_env_args->env_arg;
 	}
 
-	osaf_mutex_lock_ordie(&s_cloexec_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_cloexec_mutex);
 	status = fork();
 	if (status == 0) {
 		/*
@@ -2092,11 +2092,11 @@ unsigned int ncs_os_process_execute(char *exec_mod, char *argv[], NCS_OS_ENVIRON
 	} else if (status == -1) {
 		/* Fork Failed */
 		/* Unlock and return */
-		osaf_mutex_unlock_ordie(&s_cloexec_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_cloexec_mutex);
 		return NCSCC_RC_FAILURE;
 	} else {
 		/* parent */
-		osaf_mutex_unlock_ordie(&s_cloexec_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_cloexec_mutex);
 	}
 	return NCSCC_RC_SUCCESS;
 }
@@ -2145,7 +2145,7 @@ uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 		}
 	}
 
-	osaf_mutex_lock_ordie(&s_cloexec_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_cloexec_mutex);
 
 	if ((pid = fork()) == 0) {
 		/*
@@ -2213,7 +2213,7 @@ uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 		 * Parent - Add new pid in the tree,
 		 * start a timer, Wait for a signal from child. 
 		 */
-		osaf_mutex_unlock_ordie(&s_cloexec_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_cloexec_mutex);
 
 		if (NCSCC_RC_SUCCESS != add_new_req_pid_in_list(req, pid)) {
 			m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
@@ -2223,7 +2223,7 @@ uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 	} else {
 		/* fork ERROR */
 		syslog(LOG_ERR, "%s: fork failed - %s", __FUNCTION__, strerror(errno));
-		osaf_mutex_unlock_ordie(&s_cloexec_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_cloexec_mutex);
 		m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
 		return NCSCC_RC_FAILURE;
 	}
@@ -2331,10 +2331,10 @@ uint32_t ncs_sel_obj_create(NCS_SEL_OBJ *o_sel_obj)
 	int s_pair[2];
 	int flags = 0;
 
-	osaf_mutex_lock_ordie(&s_cloexec_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_cloexec_mutex);
 	if (0 != socketpair(AF_UNIX, SOCK_STREAM, 0, s_pair)) {
 		syslog(LOG_ERR, "%s: socketpair failed - %s", __FUNCTION__, strerror(errno));
-		osaf_mutex_unlock_ordie(&s_cloexec_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_cloexec_mutex);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2344,7 +2344,7 @@ uint32_t ncs_sel_obj_create(NCS_SEL_OBJ *o_sel_obj)
 	flags = fcntl(s_pair[1], F_GETFD, 0);
 	fcntl(s_pair[1], F_SETFD, (flags | FD_CLOEXEC));
 
-	osaf_mutex_unlock_ordie(&s_cloexec_mutex, __FILE__, __LINE__);
+	osaf_mutex_unlock_ordie(&s_cloexec_mutex);
 
 	if (s_pair[0] > s_pair[1]) {
 		/* Ensure s_pair[1] is equal or greater */
@@ -2688,17 +2688,17 @@ FILE *ncs_os_fopen(const char *fpath, const char *fmode)
 {
 	FILE *fp = NULL;
 	int flags = 0;
-	osaf_mutex_lock_ordie(&s_cloexec_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_cloexec_mutex);
 	fp = fopen(fpath, fmode);
 	if (fp == NULL) {
-		osaf_mutex_unlock_ordie(&s_cloexec_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_cloexec_mutex);
 		return NULL;
 	}
 
 	flags = fcntl(fileno(fp), F_GETFD, 0);
 	fcntl(fileno(fp), F_SETFD, (flags | FD_CLOEXEC));
 
-	osaf_mutex_unlock_ordie(&s_cloexec_mutex, __FILE__, __LINE__);
+	osaf_mutex_unlock_ordie(&s_cloexec_mutex);
 
 	return fp;
 }

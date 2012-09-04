@@ -20,12 +20,9 @@
 #include <errno.h>
 #include <syslog.h>
 
-void osaf_abort(const char* __restrict i_file, uint32_t i_line,
-	uint32_t i_info1, uint32_t i_info2, uint32_t i_info3, uint32_t i_info4)
+void osaf_abort(long i_cause)
 {
-	syslog(LOG_ERR, "osaf_abort() called from %s:%u with info words "
-		"0x%x 0x%x 0x%x 0x%x. errno=%d", i_file, (unsigned) i_line,
-		(unsigned) i_info1, (unsigned) i_info2, (unsigned) i_info3,
-		(unsigned) i_info4, errno);
+	syslog(LOG_ERR, "osaf_abort(%ld) called from %p with errno=%d",
+		i_cause, __builtin_return_address(0), errno);
 	abort();
 }

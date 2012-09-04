@@ -15,7 +15,7 @@
  *
  */
 
-/** @file osaf_utility.h
+/** @file
  *
  * This file contains utility/convenience functions provided by libopensaf_core.
  * The definitions in this file are for internal use within OpenSAF only.
@@ -24,79 +24,60 @@
 #ifndef OPENSAF_CORE_OSAF_UTILITY_H_
 #define OPENSAF_CORE_OSAF_UTILITY_H_
 
-#include <stdint.h>
 #include <pthread.h>
 
 #ifdef	__cplusplus
 extern "C" {
 #endif
 
-static inline void osaf_mutex_lock_ordie(pthread_mutex_t* __restrict i_mutex,
-	const char* __restrict i_file, uint32_t i_line)
-	__attribute__ ((nonnull, nothrow));
-static inline void osaf_mutex_unlock_ordie(pthread_mutex_t* __restrict i_mutex,
-	const char* __restrict i_file, uint32_t i_line)
-	__attribute__ ((nonnull, nothrow));
-
-/**
- * @brief Log an error message and abort the process.
- * @param[in] i_file File name of caller (use the __FILE__ macro)
- * @param[in] i_line Line number of caller (use the __LINE__ macro)
- * @param[in] i_info1 Extra information word 1
- * @param[in] i_info2 Extra information word 2
- * @param[in] i_info3 Extra information word 3
- * @param[in] i_info4 Extra information word 4
- *
- * This is a convenience function that calls syslog(3) to log an error message,
- * and then aborts the process by calling abort(3). The error message will
- * contain information about the file name and line number where the error
- * condition was detected, provided by the caller in the i_file and i_line
- * parameters. The caller can optionally also provide up to four additional
- * numerical data in the i_info1 through i_info4 parameters. In addition, this
- * function will log the current value of errno, so the caller does not have
- * to include the errno value in the extra information words unless errno may
- * have changed since the point of error.
- */
-extern void osaf_abort(const char* __restrict i_file, uint32_t i_line,
-	uint32_t i_info1, uint32_t i_info2, uint32_t i_info3, uint32_t i_info4)
-	__attribute__ ((nonnull, nothrow, noreturn));
-
 /**
  * @brief Lock a pthreads mutex and abort the process in case of failure.
- * @param[in] i_mutex Pointer to a pthreads mutex to be locked.
- * @param[in] i_file File name of caller (use the __FILE__ macro)
- * @param[in] i_line Line number of caller (use the __LINE__ macro)
  *
  * This is a convenience function that behaves exactly like the POSIX function
  * pthread_mutex_lock(3P), except that instead of returning an error code it
- * aborts the process in case of an error. The caller shall provide file name
- * and line number for point of call, and this information is logged to syslog
- * before aborting the process.
+ * aborts the process in case of an error. A message is logged to syslog before
+ * aborting the process.
  */
-static inline void osaf_mutex_lock_ordie(pthread_mutex_t* __restrict i_mutex,
-	const char* __restrict i_file, uint32_t i_line)
-{
-	int result = pthread_mutex_lock(i_mutex);
-	if (result != 0) osaf_abort(i_file, i_line, result, 0, 0, 0);
-}
+static inline void osaf_mutex_lock_ordie(pthread_mutex_t* io_mutex)
+	__attribute__ ((nonnull, nothrow, always_inline));
 
 /**
  * @brief Unlock a pthreads mutex and abort the process in case of failure.
- * @param[in] i_mutex Pointer to a pthreads mutex to be unlocked.
- * @param[in] i_file File name of caller (use the __FILE__ macro)
- * @param[in] i_line Line number of caller (use the __LINE__ macro)
  *
  * This is a convenience function that behaves exactly like the POSIX function
  * pthread_mutex_unlock(3P), except that instead of returning an error code it
- * aborts the process in case of an error. The caller shall provide file name
- * and line number for point of call, and this information is logged to syslog
- * before aborting the process.
+ * aborts the process in case of an error. A message is logged to syslog before
+ * aborting the process.
  */
-static inline void osaf_mutex_unlock_ordie(pthread_mutex_t* __restrict i_mutex,
-	const char* __restrict i_file, uint32_t i_line)
+static inline void osaf_mutex_unlock_ordie(pthread_mutex_t* io_mutex)
+	__attribute__ ((nonnull, nothrow, always_inline));
+
+/**
+ * @brief Log an error message and abort the process.
+ *
+ * This is a convenience function that calls syslog(3) to log an error message,
+ * and then aborts the process by calling abort(3). The caller can provide a
+ * numerical value @a i_cause specifying the cause of the abort, which for
+ * example could be an error code. In addition, this function will log the
+ * current value of errno.
+ */
+extern void osaf_abort(long i_cause)
+	__attribute__ ((
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
+		cold,
+#endif
+		nothrow, noreturn));
+
+static inline void osaf_mutex_lock_ordie(pthread_mutex_t* io_mutex)
 {
-	int result = pthread_mutex_unlock(i_mutex);
-	if (result != 0) osaf_abort(i_file, i_line, result, 0, 0, 0);
+	int result = pthread_mutex_lock(io_mutex);
+	if (result != 0) osaf_abort(result);
+}
+
+static inline void osaf_mutex_unlock_ordie(pthread_mutex_t* io_mutex)
+{
+	int result = pthread_mutex_unlock(io_mutex);
+	if (result != 0) osaf_abort(result);
 }
 
 #ifdef	__cplusplus

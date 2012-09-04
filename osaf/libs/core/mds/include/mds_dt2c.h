@@ -445,10 +445,6 @@ extern uint32_t mds_mcm_subtn_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 #define m_MDS_GET_PWE_HDL_FROM_VDEST_HDL_AND_PWE_ID(vdest_hdl,pwe_id) ((uint32_t)pwe_id << 16 | (uint32_t) vdest_hdl)
 #define m_MDS_GET_SVC_HDL_FROM_PWE_ID_VDEST_ID_AND_SVC_ID(pwe_id,vdest_id,svc_id) (((uint64_t)pwe_id << 48) | ((uint64_t)vdest_id << 32) | ((uint64_t)svc_id))
 
-/* Lock Macros */
-#define m_MDS_UNLOCK(p,q) m_NCS_UNLOCK(p,q)
-#define m_MDS_LOCK(p,q) m_NCS_LOCK(p,q)
-
 /* Get VDEST id from MDSDEST INTERNAL */
 extern MDS_VDEST_ID ncs_get_internal_vdest_id_from_mds_dest(MDS_DEST mdsdest);
 #define m_MDS_GET_INTERNAL_VDEST_ID_FROM_MDS_DEST(mdsdest) (ncs_get_internal_vdest_id_from_mds_dest(mdsdest))

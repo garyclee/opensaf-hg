@@ -1139,11 +1139,11 @@ unsigned int ncs_gla_startup(void)
 	NCS_LIB_REQ_INFO lib_create;
 	char *value = NULL;
 
-	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 	if (gla_use_count > 0) {
 		/* Already created, so just increment the use_count */
 		gla_use_count++;
-		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -1151,7 +1151,7 @@ unsigned int ncs_gla_startup(void)
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	if (gla_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	} else {
 		TRACE("GLSV:GLA:ON");
@@ -1163,7 +1163,7 @@ unsigned int ncs_gla_startup(void)
                logtrace_init("gla", value, CATEGORY_ALL);
 	}
 
-	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1184,7 +1184,7 @@ unsigned int ncs_gla_shutdown(void)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 	if (gla_use_count > 1) {
 		/* Still users extis, so just decrement the use_count */
 		gla_use_count--;
@@ -1199,6 +1199,6 @@ unsigned int ncs_gla_shutdown(void)
 		gla_use_count = 0;
 	}
 
-	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 	return rc;
 }

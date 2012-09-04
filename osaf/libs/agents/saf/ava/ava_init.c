@@ -312,12 +312,12 @@ unsigned int ncs_ava_startup(void)
 	NCS_LIB_REQ_INFO lib_create;
 	TRACE_ENTER();
 
-	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 
 	if (ava_use_count > 0) {
 		/* Already created, so just increment the use_count */
 		ava_use_count++;
-		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 		TRACE_LEAVE2("AVA use count = %d",ava_use_count);
 		return NCSCC_RC_SUCCESS;
 	}
@@ -326,14 +326,14 @@ unsigned int ncs_ava_startup(void)
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	if (ava_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 		TRACE_LEAVE2("AVA lib create failed");
 		return NCSCC_RC_FAILURE;
 	} else {
 		ava_use_count = 1;
 	}
 
-	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 
 	TRACE_LEAVE2("AVA Use count = %u",ava_use_count);
 	return NCSCC_RC_SUCCESS;
@@ -357,7 +357,7 @@ unsigned int ncs_ava_shutdown(void)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 
 	if (ava_use_count > 1) {
 		/* Still users exists, so just decrement the use_count */
@@ -372,7 +372,7 @@ unsigned int ncs_ava_shutdown(void)
 		ava_use_count = 0;
 	}
 
-	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 	TRACE_LEAVE2("AVA use count = %d", ava_use_count);
 	return rc;
 }

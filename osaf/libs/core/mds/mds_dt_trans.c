@@ -23,6 +23,8 @@
 #include "mds_dt_tcp.h"
 #include "mds_dt_tcp_disc.h"
 #include "mds_dt_tcp_trans.h"
+#include "mds_core.h"
+#include "osaf_utility.h"
 
 #include <sys/poll.h>
 #include <poll.h>
@@ -854,7 +856,7 @@ uint32_t mdtm_process_recv_events_tcp(void)
 		pollres = poll(pfd, 2, MDTM_TCP_POLL_TIMEOUT);
 
 		if (pollres > 0) {	/* Check for EINTR and discard */
-			m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
+			osaf_mutex_lock_ordie(&gl_mds_library_mutex);
 
 			/* Check for Socket Read operation */
 			if (pfd[0].revents & POLLIN) {
@@ -876,14 +878,14 @@ uint32_t mdtm_process_recv_events_tcp(void)
 					/* Quit ASAP. We have acknowledge that MDS thread can be destroyed.
 					   Note that the destroying thread is waiting for the MDS_UNLOCK, before
 					   proceeding with pthread-cancel and pthread-join */
-					m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+					osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 
 					/* N O T E : No further system calls etc. This is to ensure that the
 					   pthread-cancel & pthread-join, do not get blocked. */
 					return NCSCC_RC_SUCCESS;	/* Thread quit */
 				}
 			}
-			m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+			osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 		}
 	}
 }
