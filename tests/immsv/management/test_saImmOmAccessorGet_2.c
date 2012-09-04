@@ -180,3 +180,18 @@ void saImmOmAccessorGet_2_08(void)
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
+void saImmOmAccessorGet_2_09(void)
+{
+    SaNameT objectName1 = {
+        .value = "",
+        .length = 1,
+    };
+
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    rc = saImmOmAccessorGet_2(accessorHandle, &objectName1, NULL, &attributes);
+    test_validate(rc, SA_AIS_ERR_NOT_EXIST);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
