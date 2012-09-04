@@ -26,6 +26,7 @@
 #ifndef _MDS_CORE_H
 #define _MDS_CORE_H
 
+#include <pthread.h>
 #include <ncsgl_defs.h>
 #include "mds_papi.h"
 #include "mds_dt2c.h"
@@ -37,8 +38,16 @@
 /* Declarations private to MDS Core module - Vishal */
 typedef uint32_t MDS_SYNC_TXN_ID;
 
-extern NCS_LOCK gl_lock;
-extern NCS_LOCK *mds_lock(void);
+/**
+ * This mutex protects MDS data from concurrent access by other threads within
+ * the program. The mutex is initialised in a static constructor and requires no
+ * explicit initialisation or finalisation. The mutex is recursive and can thus
+ * be locked several times by the same thread.
+ *
+ * There is only one mutex protecting all data for the entire MDS library, hence
+ * it is very important to keep the lock for as short time as possible.
+ */
+extern pthread_mutex_t gl_mds_library_mutex;
 
 /**************************************\
     MDS general internal structures

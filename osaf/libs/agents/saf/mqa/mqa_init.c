@@ -980,11 +980,11 @@ unsigned int ncs_mqa_startup(void)
 	NCS_LIB_REQ_INFO lib_create;
 	char *value = NULL;
 
-	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 	if (mqa_use_count > 0) {
 		/* Already created, so just increment the use_count */
 		mqa_use_count++;
-		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -992,7 +992,7 @@ unsigned int ncs_mqa_startup(void)
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	if (mqa_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	} else {
 		m_NCS_DBG_PRINTF("\nMQSV:MQA:ON");
@@ -1004,7 +1004,7 @@ unsigned int ncs_mqa_startup(void)
 		logtrace_init("mqa", value, CATEGORY_ALL);
 	}
 
-	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1026,7 +1026,7 @@ unsigned int ncs_mqa_shutdown(void)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 	if (mqa_use_count > 1) {
 		/* Still users extis, so just decrement the use_count */
 		mqa_use_count--;
@@ -1041,7 +1041,7 @@ unsigned int ncs_mqa_shutdown(void)
 		mqa_use_count = 0;
 	}
 
-	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 	TRACE_LEAVE();
 	return rc;
 }

@@ -15,6 +15,7 @@
  *
  */
 
+#define _GNU_SOURCE
 #include <configmake.h>
 
 /*****************************************************************************
@@ -27,6 +28,7 @@
 ******************************************************************************
 */
 
+#include <pthread.h>
 #include <ncsgl_defs.h>
 #include "ncssysf_def.h"
 #include "ncs_lib.h"
@@ -44,24 +46,49 @@
 #ifdef ENABLE_TIPC_TRANSPORT
 #include "mds_dt_tipc.h"
 #endif
+#include "osaf_utility.h"
 
 extern uint32_t mds_socket_domain;
 void mds_init_transport(void);
+static void mds_library_mutex_constructor(void) __attribute__ ((constructor));
+static void mds_library_mutex_destructor(void) __attribute__ ((destructor));
 
 /* MDS Control Block */
 MDS_MCM_CB *gl_mds_mcm_cb = NULL;
 
-NCS_LOCK gl_lock;
+/* See mds_core.h for description of this global variable. */
+pthread_mutex_t gl_mds_library_mutex;
 
-NCS_LOCK *mds_lock(void)
+/**
+ * @brief Constructor function that initialises the MDS library mutex.
+ *
+ * This function initialises the MDS library mutex when the library is loaded.
+ * The function is not intended to be called explicitly.
+ */
+static void mds_library_mutex_constructor(void)
 {
-	static int lock_inited = false;
-	/* Initialize the lock first time mds_lock() is called */
-	if (!lock_inited) {
-		m_NCS_LOCK_INIT(&gl_lock);
-		lock_inited = true;
-	}
-	return &gl_lock;
+	pthread_mutexattr_t attr;
+	int result;
+	result = pthread_mutexattr_init(&attr);
+	if (result != 0) osaf_abort(result);
+	result = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+	if (result != 0) osaf_abort(result);
+	result = pthread_mutex_init(&gl_mds_library_mutex, &attr);
+	if (result != 0) osaf_abort(result);
+	result = pthread_mutexattr_destroy(&attr);
+	if (result != 0) osaf_abort(result);
+}
+
+/**
+ * @brief Destructor function that destroys the MDS library mutex.
+ *
+ * This function destroys the MDS library mutex when the library is unloaded.
+ * The function is not intended to be called explicitly.
+ */
+static void mds_library_mutex_destructor(void)
+{
+	int result = pthread_mutex_destroy(&gl_mds_library_mutex);
+	if (result != 0) osaf_abort(result);
 }
 
 /* global Log level variable */
@@ -96,12 +123,12 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 	switch (req->i_op) {
 	case NCS_LIB_REQ_CREATE:
 
-		/* Take lock : Initialization of lock done in mds_lock(), if in case it is not initialized */
-		m_NCS_LOCK(mds_lock(), NCS_LOCK_WRITE);
+		/* Take lock : no need for initialization of the lock */
+		osaf_mutex_lock_ordie(&gl_mds_library_mutex);
 
 		if (gl_mds_mcm_cb != NULL) {
 			syslog(LOG_ERR, "MDS_LIB_CREATE : MDS is already initialized");
-			m_NCS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+			osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -116,7 +143,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 			if (sscanf(p_field + strlen("NODE_ID="), "%d", &node_id) != 1) {
 				syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in NODE_ID argument\n");
 				mds_mcm_destroy();
-				m_NCS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+				osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 			}
 		}
@@ -129,7 +156,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 			if (sscanf(p_field + strlen("CLUSTER_ID="), "%d", &cluster_id) != 1) {
 				syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in CLUSTER_ID argument\n");
 				mds_mcm_destroy();
-				m_NCS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+				osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 			}
 		}
@@ -150,7 +177,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 				if (sscanf(p_field + strlen("MDS_LOG_LEVEL="), "%d", &gl_mds_log_level) != 1) {
 					syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in MDS_LOG_LEVEL argument\n");
 					mds_mcm_destroy();
-					m_NCS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+					osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 				}
 			}
@@ -175,7 +202,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 				if (sscanf(p_field + strlen("MDS_CHECKSUM="), "%d", &gl_mds_checksum) != 1) {
 					syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in MDS_CHECKSUM argument\n");
 					mds_mcm_destroy();
-					m_NCS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+					osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 				}
 			}
@@ -198,7 +225,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 			if (sscanf(p_field + strlen("SUBSCRIPTION_TMR_VAL="), "%d", &MDS_SUBSCRIPTION_TMR_VAL) != 1) {
 				syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in SUBSCRIPTION_TMR_VAL argument\n");
 				mds_mcm_destroy();
-				m_NCS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+				osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 			}
 		}
@@ -211,7 +238,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 			if (sscanf(p_field + strlen("AWAIT_ACTIVE_TMR_VAL="), "%d", &MDS_AWAIT_ACTIVE_TMR_VAL) != 1) {
 				syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in AWAIT_ACTIVE_TMR_VAL argument\n");
 				mds_mcm_destroy();
-				m_NCS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+				osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 			}
 		}
@@ -224,7 +251,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 			if (sscanf(p_field + strlen("QUIESCED_TMR_VAL="), "%d", &MDS_QUIESCED_TMR_VAL) != 1) {
 				syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in QUIESCED_TMR_VAL argument\n");
 				mds_mcm_destroy();
-				m_NCS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+				osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 			}
 		}
@@ -237,7 +264,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 			if (sscanf(p_field + strlen("REASSEMBLE_TMR_VAL="), "%d", &MDTM_REASSEMBLE_TMR_VAL) != 1) {
 				syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in REASSEMBLE_TMR_VAL argument\n");
 				mds_mcm_destroy();
-				m_NCS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+				osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 			}
 		}
@@ -259,7 +286,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 			mds_log_init(buff, pref);
 		}
 
-		m_NCS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+		osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 
 		break;
 
@@ -269,8 +296,6 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 		/* STEP 2: Destroy MCM-CB;      */
 		/* ncs_patricia_tree_destroy(&gl_mds_mcm_cb->vdest_list); */
 		/* m_MMGR_FREE_MDS_CB(gl_mds_mcm_cb); */
-		/* Destroy lock */
-		/* m_NCS_LOCK_INIT(mds_lock); */
 
 		m_NCS_SEL_OBJ_CREATE(&destroy_ack_obj);
 
@@ -286,7 +311,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 		m_MDS_LOG_DBG("LIB_DESTROY:Destroy ack from MDS thread in %d ms", destroy_ack_tmout * 10);
 
 		/* Take the lock before killing the thread */
-		m_NCS_LOCK(mds_lock(), NCS_LOCK_WRITE);
+		osaf_mutex_lock_ordie(&gl_mds_library_mutex);
 
 		/* Now two things have happened 
 		   (1) MDS thread has acked the destroy-event. So it will do no further things beyound
@@ -305,7 +330,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 		/* Sanity check */
 		if (gl_mds_mcm_cb == NULL) {
 			syslog(LOG_ERR, "MDS_LIB_DESTROY : MDS is already Destroyed");
-			m_NCS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+			osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -319,7 +344,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 		}
 
 		/* Just Unlock the lock, Lock is never destroyed */
-		m_NCS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+		osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 		break;
 
 	default:

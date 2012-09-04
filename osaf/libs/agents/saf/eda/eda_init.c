@@ -239,11 +239,11 @@ unsigned int ncs_eda_startup(void)
 	NCS_LIB_REQ_INFO lib_create;
 	TRACE_ENTER();
 
-	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 	if (eda_use_count > 0) {
 		/* Already created, so just increment the use_count */
 		eda_use_count++;
-		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 		TRACE_LEAVE2("Library use count: %u", eda_use_count);
 		return NCSCC_RC_SUCCESS;
 	}
@@ -252,14 +252,14 @@ unsigned int ncs_eda_startup(void)
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	if (ncs_eda_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 		return NCSCC_RC_FAILURE;
 	} else {
 		eda_use_count = 1;
 		TRACE("EDA agent library initialized");
 	}
 
-	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 	TRACE_LEAVE2("Library use count: %u", eda_use_count);
 	return NCSCC_RC_SUCCESS;
 }
@@ -282,7 +282,7 @@ unsigned int ncs_eda_shutdown(void)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 	if (eda_use_count > 1) {
 		/* Still users extis, so just decrement the use_count */
 		eda_use_count--;
@@ -297,7 +297,7 @@ unsigned int ncs_eda_shutdown(void)
 		eda_use_count = 0;
 	}
 
-	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 	TRACE_LEAVE2("Library use count: %u", eda_use_count);
 	return rc;
 }
