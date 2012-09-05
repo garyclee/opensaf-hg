@@ -171,14 +171,13 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 	SaAmfHealthcheckKeyT healthy;
 	char *health_key = NULL;
 	SaAisErrorT amf_error;
-	NCS_OS_FILE file, file_read;
-	char *file1 = "/proc/sys/kernel/msgmax";
-	char *file2 = "/proc/sys/kernel/msgmni";
-	char *file3 = "/proc/sys/kernel/msgmnb";
 	SaClmCallbacksT clm_cbk;
 	SaClmClusterNodeT cluster_node;
 	SaVersionT clm_version;
 	char str_vector[10] = "";
+	FILE *file;
+	size_t bytes_read;
+
 	TRACE_ENTER();
 
 	/* allocate a CB  */
@@ -193,47 +192,53 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 	cb->hm_pool = info->pool_id;
 
 	/* Set attributes of queue in global variable */
-	file.info.open.i_file_name = file1;
-	file.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
-	m_NCS_OS_FILE(&file, NCS_OS_FILE_OPEN);
+	file = fopen("/proc/sys/kernel/msgmax", "r");
+	if (file == NULL) {
+		LOG_ER("fopen msgmax failed - %s", strerror(errno));
+		return NCSCC_RC_FAILURE;
+	}
 
-	file_read.info.read.i_file_handle = file.info.open.o_file_handle;
-	file_read.info.read.i_buffer = (uint8_t *)str_vector;
-	file_read.info.read.i_buf_size = sizeof(uint32_t);
-	m_NCS_OS_FILE(&file_read, NCS_OS_FILE_READ);
+	bytes_read = fread(str_vector, sizeof(uint32_t), 1, file);
+	if ((bytes_read == 0) || feof(file)) {
+		LOG_ER("fread msgmax failed - %s", strerror(errno));
+		return NCSCC_RC_FAILURE;
+	}
 
 	cb->gl_msg_max_msg_size = atoi(str_vector);
 
-	file_read.info.close.i_file_handle = file.info.open.o_file_handle;
-	m_NCS_OS_FILE(&file_read, NCS_OS_FILE_CLOSE);
+	fclose(file);
 
-	file.info.open.i_file_name = file2;
-	file.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
-	m_NCS_OS_FILE(&file, NCS_OS_FILE_OPEN);
+	file = fopen("/proc/sys/kernel/msgmni", "r");
+	if (file == NULL) {
+		LOG_ER("fopen msgmni failed - '%s'", strerror(errno));
+		return NCSCC_RC_FAILURE;
+	}
 
-	file_read.info.read.i_file_handle = file.info.open.o_file_handle;
-	file_read.info.read.i_buffer = (uint8_t *)str_vector;
-	file_read.info.read.i_buf_size = sizeof(uint32_t);
-	m_NCS_OS_FILE(&file_read, NCS_OS_FILE_READ);
+	bytes_read = fread(str_vector, sizeof(uint32_t), 1, file);
+	if ((bytes_read == 0) || ferror(file)) {
+		LOG_ER("fread msgmni failed - %s", strerror(errno));
+		return NCSCC_RC_FAILURE;
+	}
 
 	cb->gl_msg_max_no_of_q = atoi(str_vector);
 
-	file_read.info.close.i_file_handle = file.info.open.o_file_handle;
-	m_NCS_OS_FILE(&file_read, NCS_OS_FILE_CLOSE);
+	fclose(file);
 
-	file.info.open.i_file_name = file3;
-	file.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
-	m_NCS_OS_FILE(&file, NCS_OS_FILE_OPEN);
+	file = fopen("/proc/sys/kernel/msgmnb", "r");
+	if (file == NULL) {
+		LOG_ER("fopen msgmnb failed - '%s'", strerror(errno));
+		return NCSCC_RC_FAILURE;
+	}
 
-	file_read.info.read.i_file_handle = file.info.open.o_file_handle;
-	file_read.info.read.i_buffer = (uint8_t *)str_vector;
-	file_read.info.read.i_buf_size = sizeof(uint32_t);
-	m_NCS_OS_FILE(&file_read, NCS_OS_FILE_READ);
+	bytes_read = fread(str_vector, sizeof(uint32_t), 1, file);
+	if ((bytes_read == 0) || ferror(file)) {
+		LOG_ER("fread msgmnb failed - %s", strerror(errno));
+		return NCSCC_RC_FAILURE;
+	}
 
 	cb->gl_msg_max_q_size = atoi(str_vector);
 
-	file_read.info.close.i_file_handle = file.info.open.o_file_handle;
-	m_NCS_OS_FILE(&file_read, NCS_OS_FILE_CLOSE);
+	fclose(file);
 
 	/* As there is no specific limit for priority queue size at present it is kept as max msg size */
 	cb->gl_msg_max_prio_q_size = cb->gl_msg_max_q_size;
