@@ -750,11 +750,9 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 		{
 			NCS_OS_MQ_REQ_INFO os_req;
 			NCS_OS_MQ_KEY key;
-			NCS_OS_FILE file;
+			FILE *file;
 			char filename[264];
-			uint32_t rc;
 			struct msqid_ds buf;
-			void *file_handle;
 
 			memset(&buf, 0, sizeof(struct msqid_ds));
 
@@ -762,22 +760,15 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 
 			if (req->info.open.iflags & O_CREAT) {
 				os_req.req = NCS_OS_MQ_REQ_CREATE;
-				file.info.create.i_file_name = filename;
 
-				rc = ncs_os_file(&file, NCS_OS_FILE_CREATE);
-				if (rc != NCSCC_RC_SUCCESS)
+				file = fopen(filename, "w");
+				if (file == NULL)
 					return NCSCC_RC_FAILURE;
 
 				key = ftok(filename, 1);
 				os_req.info.create.i_key = &key;
 
-				/* Close the file to prevent file descriptor leakage */
-				file_handle = file.info.create.o_file_handle;
-				file.info.close.i_file_handle = file_handle;
-
-				rc = ncs_os_file(&file, NCS_OS_FILE_CLOSE);
-
-				if (rc != NCSCC_RC_SUCCESS)
+				if (fclose(file) != 0)
 					return NCSCC_RC_FAILURE;
 			} else {
 
@@ -830,14 +821,11 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 	case NCS_OS_POSIX_MQ_REQ_UNLINK:
 		{
 			char filename[264];
-			NCS_OS_FILE file;
 
 			memset(filename, 0, sizeof(filename));
 			sprintf(filename, "/tmp/%s%d", req->info.unlink.qname, req->info.unlink.node);
 
-			file.info.remove.i_file_name = filename;
-
-			if (ncs_os_file(&file, NCS_OS_FILE_REMOVE) != NCSCC_RC_SUCCESS)
+			if (unlink(filename) != 0)
 				return NCSCC_RC_FAILURE;
 		}
 		break;
@@ -983,393 +971,6 @@ uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
 		printf("Option Not supported %d \n", req->type);
 		return NCSCC_RC_FAILURE;
 		break;
-	}
-
-	return NCSCC_RC_SUCCESS;
-
-}
-
-/***************************************************************************
- *
- * unsigned int
- * ncs_os_file( NCS_OS_FILE *, NCS_OS_FILE_REQUEST )
- *
- * Description:
- *   This routine handles all operating system file operation primitives.
- *
- * Synopsis:
- *
- * Call Arguments:
- *    pfile   ............... pointer to a NCS_OS_FILE
- *    request ............... action request
- *
- * Returns:
- *   Returns NCSCC_RC_SUCCESS if successful, otherwise NCSCC_RC_FAILURE.
- *
- * Notes:
- *
- ****************************************************************************/
-unsigned int ncs_os_file(NCS_OS_FILE *pfile, NCS_OS_FILE_REQUEST request)
-{
-	int ret;
-
-   /** Supported Request codes
-    **/
-	switch (request) {
-	case NCS_OS_FILE_CREATE:	/* Create a new file for writing */
-		{
-			FILE *file_handle = fopen((const char *)pfile->info.create.i_file_name, "w");
-			pfile->info.create.o_file_handle = (void *)file_handle;
-			if (NULL == file_handle)
-				return NCSCC_RC_FAILURE;
-			else
-				return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_OPEN:
-		{
-			const char *mode;
-			FILE *file_handle;
-
-			switch (pfile->info.open.i_read_write_mask) {
-			case NCS_OS_FILE_PERM_READ:
-				mode = "rb";
-				break;
-			case NCS_OS_FILE_PERM_WRITE:
-				mode = "w+b";
-				break;
-			case NCS_OS_FILE_PERM_APPEND:
-				mode = "a+";
-				break;
-			default:
-				return NCSCC_RC_FAILURE;
-			}
-
-			file_handle = fopen((const char *)pfile->info.open.i_file_name, mode);
-
-			pfile->info.open.o_file_handle = (void *)file_handle;
-
-			if (NULL == file_handle)
-				return NCSCC_RC_FAILURE;
-			else
-				return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_CLOSE:
-		{
-			int ret = fclose((FILE *)pfile->info.close.i_file_handle);
-
-			if (!ret)
-				return NCSCC_RC_SUCCESS;
-			else
-				return NCSCC_RC_FAILURE;
-		}
-		break;
-
-	case NCS_OS_FILE_READ:
-		{
-			size_t bytes_read = fread((void *)pfile->info.read.i_buffer,
-						  1, pfile->info.read.i_buf_size,
-						  (FILE *)pfile->info.read.i_file_handle);
-
-			pfile->info.read.o_bytes_read = bytes_read;
-			if (0 == bytes_read) {	/* Check if an error has occurred */
-				if (feof((FILE *)pfile->info.read.i_file_handle))
-					return NCSCC_RC_SUCCESS;
-				else
-					return NCSCC_RC_FAILURE;
-			}
-			return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_WRITE:
-		{
-			size_t bytes_written = fwrite(pfile->info.write.i_buffer, 1,
-						      pfile->info.write.i_buf_size,
-						      (FILE *)pfile->info.write.i_file_handle);
-
-			pfile->info.write.o_bytes_written = bytes_written;
-
-			if (bytes_written != pfile->info.write.i_buf_size)
-				return NCSCC_RC_FAILURE;
-			else
-				return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_SEEK:
-		{
-			int ret = fseek((FILE *)pfile->info.seek.i_file_handle,
-					pfile->info.seek.i_offset, SEEK_SET);
-
-			if (ret == 0)
-				return NCSCC_RC_SUCCESS;
-			else
-				return NCSCC_RC_FAILURE;
-		}
-		break;
-
-	case NCS_OS_FILE_COPY:
-		{
-			char command[1024];
-
-			memset(command, 0, sizeof(command));
-			snprintf(command, sizeof(command) - 1,
-				 "\\cp -f %s %s", pfile->info.copy.i_file_name, pfile->info.copy.i_new_file_name);
-			ret = system(command);
-			if (ret != 0) {
-				syslog(LOG_ERR, "cp file '%s' to '%s' failed: %d",
-				       pfile->info.copy.i_file_name, pfile->info.copy.i_new_file_name, ret);
-				return NCSCC_RC_FAILURE;
-			} else
-				return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_RENAME:
-		{
-			int ret = rename((const char *)pfile->info.rename.i_file_name,
-					 (const char *)pfile->info.rename.i_new_file_name);
-
-			if (ret == -1)
-				return NCSCC_RC_FAILURE;
-			else
-				return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_REMOVE:
-		{
-			int ret = remove((const char *)pfile->info.remove.i_file_name);
-
-			if (ret == -1)
-				return NCSCC_RC_FAILURE;
-			else
-				return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_SIZE:
-		{
-			FILE *file_handle;
-			int ret;
-			long size;
-
-			pfile->info.size.o_file_size = 0;
-			file_handle = fopen((const char *)pfile->info.size.i_file_name, "r");
-			if (NULL == file_handle)
-				return NCSCC_RC_FAILURE;
-
-			ret = fseek(file_handle, 0, SEEK_END);
-			if (ret) {
-				fclose(file_handle);
-				return NCSCC_RC_FAILURE;
-			}
-
-			size = ftell(file_handle);
-			fclose(file_handle);
-
-			if (size == -1)
-				return NCSCC_RC_FAILURE;
-
-			pfile->info.size.o_file_size = size;
-			return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_EXISTS:
-		{
-			FILE *file_handle;
-
-			file_handle = fopen((const char *)pfile->info.file_exists.i_file_name, "r");
-			if (NULL == file_handle)
-				pfile->info.file_exists.o_file_exists = false;
-			else {
-				pfile->info.file_exists.o_file_exists = true;
-				fclose(file_handle);
-			}
-			return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_DIR_PATH:
-		{
-			memset(pfile->info.dir_path.io_buffer, 0, pfile->info.dir_path.i_buf_size);
-			snprintf((char *)pfile->info.dir_path.io_buffer,
-				 pfile->info.dir_path.i_buf_size - 1, "%s/%s",
-				 pfile->info.dir_path.i_main_dir, pfile->info.dir_path.i_sub_dir);
-			return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_CREATE_DIR:
-		{
-			char command[1024];
-
-			memset(command, 0, sizeof(command));
-			snprintf(command, sizeof(command) - 1, "\\mkdir -p %s", pfile->info.create_dir.i_dir_name);
-			ret = system(command);
-			if (ret != 0) {
-				syslog(LOG_ERR, "mkdir '%s' failed: %d", pfile->info.create_dir.i_dir_name, ret);
-				return NCSCC_RC_FAILURE;
-			} else
-				return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_DELETE_DIR:
-		{
-			char command[1024];
-
-			memset(command, 0, sizeof(command));
-			snprintf(command, sizeof(command) - 1, "\\rm -f -r %s", pfile->info.delete_dir.i_dir_name);
-			ret = system(command);
-			if (ret != 0) {
-				syslog(LOG_ERR, "rmdir %s failed: %d", pfile->info.delete_dir.i_dir_name, ret);
-				return NCSCC_RC_FAILURE;
-			} else
-				return NCSCC_RC_SUCCESS;
-
-			return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_COPY_DIR:
-		{
-			char command[1024];
-
-			memset(command, 0, sizeof(command));
-			snprintf(command, sizeof(command) - 1,
-				 "\\cp -f -r %s %s", pfile->info.copy_dir.i_dir_name,
-				 pfile->info.copy_dir.i_new_dir_name);
-			ret = system(command);
-			if (ret != 0) {
-				syslog(LOG_ERR, "cp dir '%s' to '%s' failed: %d",
-				       pfile->info.copy_dir.i_dir_name, pfile->info.copy_dir.i_new_dir_name, ret);
-				return NCSCC_RC_FAILURE;
-			} else
-				return NCSCC_RC_SUCCESS;
-
-			return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_DIR_EXISTS:
-		{
-			DIR *dir;
-
-			dir = opendir((const char *)pfile->info.dir_exists.i_dir_name);
-			if (dir != NULL) {
-				pfile->info.dir_exists.o_exists = true;
-				closedir(dir);
-				return NCSCC_RC_SUCCESS;
-			} else {
-				if (errno == ENOENT) {
-					pfile->info.dir_exists.o_exists = false;
-					return NCSCC_RC_SUCCESS;
-				} else
-					return NCSCC_RC_FAILURE;
-			}
-		}
-		break;
-
-	case NCS_OS_FILE_GET_NEXT:
-		/* Get a list of files and search in the list */
-		{
-			int i, n;
-			struct dirent **namelist;
-			bool found = false;
-
-			pfile->info.get_next.io_next_file[0] = '\0';
-			if (pfile->info.get_next.i_file_name == NULL)
-				found = true;
-
-			n = scandir((const char *)pfile->info.get_next.i_dir_name, &namelist, NULL, NULL);
-			if (n < 0)
-				return NCSCC_RC_FAILURE;
-
-			for (i = 0; i < n; i++) {
-				if (found == true) {
-					found = false;
-					strncpy((char *)pfile->info.get_next.io_next_file, namelist[i]->d_name,
-						pfile->info.get_next.i_buf_size);
-				}
-
-				if (pfile->info.get_next.i_file_name != NULL) {
-					if (strcmp(namelist[i]->d_name,
-						   (const char *)pfile->info.get_next.i_file_name) == 0)
-						found = true;
-				}
-
-				free(namelist[i]);
-			}
-
-			free(namelist);
-
-			return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	case NCS_OS_FILE_GET_LIST:
-		/* Get a list of files */
-		{
-			int i, j, n;
-			struct dirent **namelist;
-			char **name_list;
-
-			n = scandir((const char *)pfile->info.get_list.i_dir_name, &namelist, NULL, NULL);
-			if (n < 0)
-				return NCSCC_RC_FAILURE;
-
-			name_list = m_NCS_OS_MEMALLOC((n * sizeof(char *)), NULL);
-			if (name_list == NULL) {
-				for (j = 0; j < n; j++)
-					free(namelist[j]);
-				free(namelist);
-				return NCSCC_RC_FAILURE;
-			}
-
-			for (i = 0; i < n; i++) {
-				int len = 0;
-
-				len = strlen(namelist[i]->d_name);
-				name_list[i] = m_NCS_OS_MEMALLOC(len + 1, NULL);
-				if (name_list[i] == NULL) {
-					for (j = 0; j < n; j++) {
-						free(namelist[j]);
-						namelist[j] = NULL;
-					}
-					free(namelist);
-					for (j = 0; j < i; j++)
-						m_NCS_OS_MEMFREE(name_list[j], NULL);
-					m_NCS_OS_MEMFREE(name_list, NULL);
-					return NCSCC_RC_FAILURE;
-				}
-				memset(name_list[i], '\0', len + 1);
-				strcpy(name_list[i], namelist[i]->d_name);
-			}
-			pfile->info.get_list.o_list_count = n;
-			if (pfile->info.get_list.o_list_count == 0) {
-				m_NCS_OS_MEMFREE(name_list, NULL);
-				name_list = NULL;
-			}
-			pfile->info.get_list.o_namelist = name_list;
-
-			for (j = 0; j < n; j++) {
-				free(namelist[j]);
-				namelist[j] = NULL;
-			}
-			free(namelist);
-
-			return NCSCC_RC_SUCCESS;
-		}
-		break;
-
-	default:
-		return NCSCC_RC_FAILURE;
 	}
 
 	return NCSCC_RC_SUCCESS;
