@@ -519,19 +519,16 @@ uint32_t parse_nodeinit_conf(char *strbuf)
 	char buff[256], sbuf[200], *ch, *ch1;
 	uint32_t lineno = 0, retry = 0;
 	struct nid_resetinfo info = { {""}, -1 };
-	NCS_OS_FILE plat_conf, plat_conf_close;
+	FILE *file;
 
 	TRACE_ENTER();
 
-	plat_conf.info.open.i_file_name = NID_PLAT_CONF;
-	plat_conf.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
-
-	if (m_NCS_OS_FILE(&plat_conf, NCS_OS_FILE_OPEN) != NCSCC_RC_SUCCESS) {
-		sprintf(strbuf, NID_PLAT_CONF " file not found\n");
+	if ((file = fopen(NID_PLAT_CONF, "r")) == NULL) {
+		sprintf(strbuf, NID_PLAT_CONF " file open error '%s'\n", strerror(errno));
 		return NCSCC_RC_FAILURE;
 	}
 
-	while (fgets(buff, sizeof(buff), (FILE *)plat_conf.info.open.o_file_handle)) {
+	while (fgets(buff, sizeof(buff), file)) {
 		lineno++;
 
 		/* Skip Comments and tab spaces in the beginning */
@@ -574,12 +571,9 @@ uint32_t parse_nodeinit_conf(char *strbuf)
 		add2spawnlist(childinfo);
 	}
 
-	/* FIXME:Need to raise a bug  */
-	/* close the node_init_conf file once it is read,
-	   else this open fd will be passed to all its children */
-	plat_conf_close.info.close.i_file_handle = plat_conf.info.open.o_file_handle;
-	if (m_NCS_OS_FILE(&plat_conf_close, NCS_OS_FILE_CLOSE) != NCSCC_RC_SUCCESS) {
-		sprintf(strbuf, "Failed to close " NID_PLAT_CONF "\n");
+	if (fclose(file) != 0) {
+		sprintf(strbuf, "Failed to close " NID_PLAT_CONF "file close error '%s'\n",
+				strerror(errno));
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -913,11 +907,11 @@ uint32_t spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 	int32_t pid = -1, retry = 5;
 	int32_t i = 0, n = 0;
 	fd_set set;
-	NCS_OS_FILE fd1;
 	struct timeval tv;
 	NID_FIFO_MSG reqmsg;
 	char *magicno, *serv, *stat, *p;
 	char buff1[100], magic_str[15];
+	FILE *file;
 
 	TRACE_ENTER();
 
@@ -937,18 +931,14 @@ uint32_t spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 	*    1. If the executable exists.                     *
 	******************************************************/
 	if (service->pid == 0) {
-		fd1.info.open.i_file_name = service->s_name;
-		fd1.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
-		if (m_NCS_OS_FILE(&fd1, NCS_OS_FILE_OPEN) != NCSCC_RC_SUCCESS) {
+		if ((file = fopen(service->s_name, "r")) == NULL) {
 			if (errno != ETXTBSY) {
-				LOG_ER("Error while loading configuration, file=%s, serv=%s",
-					NID_PLAT_CONF, service->serv_name);
+				LOG_ER("Error while loading configuration, file=%s, serv=%s, error '%s'",
+					NID_PLAT_CONF, service->serv_name, strerror(errno));
 				exit(EXIT_FAILURE);
 			}
 		} else {
-			NCS_OS_FILE close_fd;
-			close_fd.info.close.i_file_handle = fd1.info.open.o_file_handle;
-			m_NCS_OS_FILE(&close_fd, NCS_OS_FILE_CLOSE);
+			(void) fclose(file);
 		}
 	}
 
