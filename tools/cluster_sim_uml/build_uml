@@ -200,6 +200,8 @@ cmd_create_rootfs()
     echo "Installing required dynamic libs..."
     cmd_installibs
 
+    cmd_installextra
+
     echo "Generating imm.xml for a default sized cluster" 
     cmd_generate_immxml
     echo -e "\n Command to generate the imm.xml for other size of cluster:\n \"build_uml generate_immxml [clustersize]\"\n"
@@ -244,6 +246,37 @@ cmd_installibs() {
     done
 }
 
+##   installextra
+##     Install extra files by extracting tar files found in $OSAF_UML_EXTRA.
+##
+cmd_installextra() {
+    if [ -n "$OSAF_UML_EXTRA" -a -d "$OSAF_UML_EXTRA" ]
+    then
+        echo "Installing extra files..."
+        for archive in $OSAF_UML_EXTRA/*
+        do
+            base=$(basename "$archive")
+            gzbase=$(basename "$archive" gz)
+            bz2base=$(basename "$archive" bz2)
+            xzbase=$(basename "$archive" xz)
+            if [ "$base" != "$gzbase" ]
+            then
+                echo "  Extracting $base..."
+                gzip -dc "$archive" | tar -C "$root" -xpf -
+            elif [ "$base" != "$bz2base" ]
+            then
+                echo "  Extracting $base..."
+                bzip2 -dc "$archive" | tar -C "$root" -xpf -
+            elif [ "$base" != "$xzbase" ]
+            then
+                echo "  Extracting $base..."
+                xz -dc "$archive" | tar -C "$root" -xpf -
+            else
+                echo "  Skipping $base"
+            fi
+        done
+    fi
+}
 
 ##   mklndircpio <fromdir> <archive> [prefix]
 ##     Creates cpio archive with a link-tree with absolute links.

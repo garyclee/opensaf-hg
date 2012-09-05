@@ -42,6 +42,14 @@ See the README file in the uml subdirectory for more information about UML.
 
 DIRECTORY STRUCTURE
 
+$OSAF_UML_EXTRA
+	  If this environment variable is set, it points to a directory
+	  containing compressed tar archives to be extracted into the guest file
+	  system. This is useful if you want to customise your UML guests by
+	  adding extra programs, or replace programs or libraries with your own
+	  versions that may be different from the ones installed on the host
+	  system.
+
 archive	  This directory contains a number of configuration files for the
 	  cluster. The 'scripts' subdirectory contains the init scripts that 
 	  are executed during UML startup. The scripts are copied from this 
