@@ -54,7 +54,6 @@
 #include "ncssysf_mem.h"
 #include "ncssysf_ipc.h"
 #include "ncssysf_tsk.h"
-#include "ncssysf_sem.h"
 #include "ncspatricia.h"
 #include "ncs_mds_def.h"
 

@@ -39,7 +39,6 @@ typedef struct {
 	NCSCONTEXT task_handle;
 	bool task_terminate;
 	bool fabric_interface;
-	NCS_OS_SEM semaphore;
 	uint32_t select_timeout;
 
 	PCS_RDA_ROLE ha_role;

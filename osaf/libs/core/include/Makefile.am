@@ -44,7 +44,6 @@ noinst_HEADERS = \
 	ncssysf_lck.h \
 	ncssysf_mem.h \
 	ncssysfpool.h \
-	ncssysf_sem.h \
 	ncssysf_tmr.h \
 	ncssysf_tsk.h \
 	ncs_tmr.h \

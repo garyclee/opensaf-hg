@@ -37,11 +37,12 @@
 ******************************************************************************
 */
 
+#include <semaphore.h>
+
 #include <ncsgl_defs.h>
 #include "ncs_osprm.h"
 #include "ncs_hdl.h"
 #include "ncssysf_def.h"
-#include "ncssysf_sem.h"
 #include "ncssysf_tsk.h"
 #include "ncssysfpool.h"
 
@@ -683,12 +684,24 @@ HM_FREE *hm_target_cell(HM_HDL *hdl)
 
 void hm_block_me(HM_CELL *cell, uint8_t pool_id)
 {
+	int rc;
+	sem_t sem;
 	m_HM_STAT_CRASH(gl_hm.woulda_crashed);
 
-	m_NCS_SEM_CREATE(&cell->data);	/* Create a semaphor to block this thread */
+	rc = sem_init(&sem, 0, 0);		/* Create a semaphor to block this thread */
+	osafassert(rc == 0);
+	cell->data = &sem;
 	m_NCS_UNLOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);	/* let others run */
-	m_NCS_SEM_TAKE(cell->data);	/* stay here till refcount == 1 */
-	m_NCS_SEM_RELEASE(cell->data);	/* OK, all set, continue on.... */
+
+wait_again:						/* stay here till refcount == 1 */
+	if (sem_wait(&sem) == -1) {
+		if (errno == EINTR)
+			goto wait_again;
+		else
+			osafassert(0);
+	}
+
+	(void)sem_destroy(&sem);	/* OK, all set, continue on.... */
 }
 
 /*****************************************************************************
@@ -702,7 +715,8 @@ void hm_block_me(HM_CELL *cell, uint8_t pool_id)
 
 void hm_unblock_him(HM_CELL *cell)
 {
-	m_NCS_SEM_GIVE(cell->data);	/* unblock that destroy thread */
+	int rc = sem_post((sem_t*)cell->data);	/* unblock that destroy thread */
+	osafassert(rc == 0);
 }
 
 /***************************************************************************
