@@ -109,12 +109,14 @@
 
 void *sysf_leap_alloc(uint32_t b, uint8_t pool_id, uint8_t pri)
 {
-	return m_NCS_MEM_ALLOC(b, NULL, NCS_SERVICE_ID_OS_SVCS, 0);
+	(void) pool_id; (void) pri;
+	return malloc(b);
 }
 
 void sysf_leap_free(void *data, uint8_t pool_id)
 {
-	m_NCS_MEM_FREE(data, NULL, NCS_SERVICE_ID_OS_SVCS, 0);
+	(void) pool_id;
+	free(data);
 }
 
 /***************************************************************************
@@ -125,12 +127,14 @@ void sysf_leap_free(void *data, uint8_t pool_id)
 
 void *sysf_heap_alloc(uint32_t b, uint8_t pool_id, uint8_t pri)
 {
-	return m_NCS_OS_MEMALLOC(b, NULL);
+	(void) pool_id; (void) pri;
+	return malloc(b);
 }
 
 void sysf_heap_free(void *data, uint8_t pool_id)
 {
-	m_NCS_OS_MEMFREE(data, NULL);
+	(void) pool_id;
+	free(data);
 }
 
 /***************************************************************************
@@ -168,7 +172,7 @@ UB_POOL_MGR gl_ub_pool_mgr = {
 	 {true, NCSUB_HEAP_POOL, sysf_heap_alloc, sysf_heap_free, 0, 0,
 	  },
 	 /* Pool-id 2 */
-	 {true, NCSUB_UDEF_POOL, m_OS_UDEF_ALLOC, m_OS_UDEF_FREE, 0, 0,
+	 {true, NCSUB_UDEF_POOL, ncs_os_udef_alloc, ncs_os_udef_free, 0, 0,
 	  },
 	 /* Pool-id 3 : FOR MDS : PM-23/Jan/2005
 	    Header break up for fragmented MDS messages - 

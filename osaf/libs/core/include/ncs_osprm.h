@@ -315,11 +315,7 @@ extern "C" {
  *
  ***************************************************************************/
 
-#ifndef m_OS_UDEF_ALLOC
-
-#define m_OS_UDEF_ALLOC  ncs_os_udef_alloc
-	void *ncs_os_udef_alloc(uint32_t size, uint8_t pool_id, uint8_t pri);
-#endif
+void *ncs_os_udef_alloc(uint32_t size, uint8_t pool_id, uint8_t pri);
 
 /****************************************************************************
  * User Defined Pool Memory Free Primitive definition
@@ -333,11 +329,7 @@ extern "C" {
  *
  ***************************************************************************/
 
-#ifndef m_OS_UDEF_FREE
-
-#define m_OS_UDEF_FREE   ncs_os_udef_free
-	void ncs_os_udef_free(void *ptr, uint8_t pool);
-#endif
+void ncs_os_udef_free(void *ptr, uint8_t pool);
 
 /****************************************************************************
  ****************************************************************************
@@ -354,25 +346,6 @@ extern "C" {
  ***************************************************************************/
 
 /****************************************************************************
- * m_NCS_OS_TARGET_INIT Primitive definition
- * This macro should be called at application genesis to initialize
- * OS and target specific functionality needed by NetPlane products.
- * The macro can be mapped to a ncs_os_target_init() function in
- * os_defs.h file.
- *
- * Macro arguments
- *  none
- *
- * Macro return codes
- *   void 
- *
- ***************************************************************************/
-
-#ifndef m_NCS_OS_TARGET_INIT
-#define m_NCS_OS_TARGET_INIT
-#endif
-
-/****************************************************************************
  * Task Primitive definition
  * The actual function ncs_os_task must be resolved in the os_defs.h file.
  *
@@ -387,11 +360,9 @@ extern "C" {
  *
  ***************************************************************************/
 
-#ifndef m_NCS_OS_TASK
 
 #define m_NCS_OS_TASK(pncs_os_task,req) ncs_os_task (pncs_os_task,req)
-	unsigned int ncs_os_task(NCS_OS_TASK *, NCS_OS_TASK_REQUEST);
-#endif
+unsigned int ncs_os_task(NCS_OS_TASK *, NCS_OS_TASK_REQUEST);
 
 /****************************************************************************
  * m_NCS_OS_TASK_PRELUDE Primitive definition
@@ -537,7 +508,7 @@ unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
 	} NCS_OS_MQ_REQ_INFO;
 
 #define m_NCS_OS_MQ ncs_os_mq
-	uint32_t ncs_os_mq(NCS_OS_MQ_REQ_INFO *req);
+uint32_t ncs_os_mq(NCS_OS_MQ_REQ_INFO *req);
 
 /****************************************************************************
  * POSIX Message-queues Primitive definition
@@ -568,7 +539,6 @@ unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
 	} NCS_OS_POSIX_MQ_REQ_TYPE;
 
 
-#ifndef NCS_OS_POSIX_MQ_ATTR
 	typedef struct ncs_os_posix_mq_attr {
 		uint32_t mq_flags;
 		uint32_t mq_maxmsg;
@@ -578,7 +548,6 @@ unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
 	} NCS_OS_POSIX_MQ_ATTR;
 
 #define NCS_OS_POSIX_MQ_ATTR struct ncs_os_posix_mq_attr
-#endif
 
 /*-----------------------------------*/
 	typedef struct ncs_mq_req_open_info {
@@ -648,7 +617,7 @@ unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
 	} NCS_OS_POSIX_MQ_REQ_INFO;
 
 #define m_NCS_OS_POSIX_MQ ncs_os_posix_mq
-	uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
+uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
 
 /****************************************************************************
  * POSIX shm_memory Primitive definition
@@ -1000,113 +969,6 @@ unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
  * E N D      :  S E L E C T I O N - O B J E C T    P R I M I T I V E S     *
 \****************************************************************************/
 
-
-/****************************************************************************
- * Memory Region Identifiers Definitions
- *
- * These are default definitions for the memory regions identifiers.  By
- * default, they are all set to NULL.  In order to override the default
- * setting, add #defines in os_defs.h.
- *
- * All regions should be visible to the CPU.  Some regions should also
- * be visible by other components (noted below).
- *
- * NCS_MEM_REGION_IO_DATA
- *   This region is used for payload data in packet buffers.  It should be
- *   visible to all I/O interfaces (e.g., SAR drivers, HDLC drivers).
- * NCS_MEM_REGION_IO_DATA_HDR
- *   This region is used for buffer overhead in packet buffers.  It may
- *   need to be visible to the I/O interfaces.
- * NCS_MEM_REGION_INTERPROCESSOR_DATA
- *   This region is used for payload data used to transfer information
- *   between processors (e.g., for redundancy or for multiprocessor PNNI).
- *   It should be visible to the interprocessor backplane.
- * NCS_MEM_REGION_INTERPROCESSOR_DATA_HDR
- *   This region is used for buffer overhead used to transfer information
- *   between processors (e.g., for redundancy or for multiprocessor PNNI).
- *   It may need to be visible to the interprocessor backplane.
- * NCS_MEM_REGION_PERSISTENT
- *   This region is used for general memory allocations.  It may be mapped
- *   directly to the system heap.  Structures allocated from this region
- *   persist for a relatively long time (e.g., an ATM signalling interface
- *   descriptor (QSCB)).
- * NCS_MEM_REGION_TRANSIENT
- *   This region is used for memory allocations which occur on a per-packet/
- *   per-call basis (or more frequently), such as event descriptors, call
- *   descriptors, etc.  These allocations will directly impact per-packet/
- *   per-call performance, and thus should probably not use malloc/free from
- *   the system heap.  Requests for memory in this region should be optimized.
- *   One way to do this is to have a pool of pre-sized memory chunks on a
- *   free list.
- *
- ***************************************************************************/
-#ifndef NCS_MEM_REGION_IO_DATA
-#define NCS_MEM_REGION_IO_DATA                   NULL
-#endif
-#ifndef NCS_MEM_REGION_IO_DATA_HDR
-#define NCS_MEM_REGION_IO_DATA_HDR               NULL
-#endif
-#ifndef NCS_MEM_REGION_INTERPROCESSOR_DATA
-#define NCS_MEM_REGION_INTERPROCESSOR_DATA       NULL
-#endif
-#ifndef NCS_MEM_REGION_INTERPROCESSOR_DATA_HDR
-#define NCS_MEM_REGION_INTERPROCESSOR_DATA_HDR   NULL
-#endif
-#ifndef NCS_MEM_REGION_PERSISTENT
-#define NCS_MEM_REGION_PERSISTENT                NULL
-#endif
-#ifndef NCS_MEM_REGION_TRANSIENT
-#define NCS_MEM_REGION_TRANSIENT                 NULL
-#endif
-
-/****************************************************************************
- * Memory Allocate Primitive definition
- *
- * Macro arguments
- *  'nbytes'           is the number of bytes of memory to allocate
- *  'region'           is the memory region to allocate the object from
- *
- * Macro return codes
- * The ncs_os_memalloc implemention must return one of the following codes:
- *   valid pointer     (successful), void pointer to allocated object.
- *   NULL pointer      (failure)
- *
- ***************************************************************************/
-#if (USE_MY_MALLOC==1)
-#ifndef MY_MALLOC_SIZE
-#define MY_MALLOC_SIZE 256	/* bytes */
-#endif
-#endif
-
-#ifndef m_NCS_OS_MEMALLOC
-#if (USE_MY_MALLOC==1)
-#define m_NCS_OS_MEMALLOC(nbytes, region) my_malloc(nbytes)
-	void *my_malloc(size_t nbytes);
-#else
-#define m_NCS_OS_MEMALLOC(nbytes, region) malloc(nbytes)
-#endif
-#endif
-
-/****************************************************************************
- * Memory Free Primitive definition
- *
- * Macro arguments
- *  'mem_p'            is void pointer to memory object to be freed.
- *  'region'           is the memory region to free the object to
- *
- * Macro return codes
- * none                void
- *
- ***************************************************************************/
-#ifndef m_NCS_OS_MEMFREE
-#if (USE_MY_MALLOC==1)
-#define m_NCS_OS_MEMFREE(mem_p, region)  my_free(mem_p)
-	void my_free(void *mem_p);
-#else
-#define m_NCS_OS_MEMFREE(mem_p, region)  free(mem_p)
-#endif
-#endif
-
 /*****************************************************************************
  **                                                                         **
  **                                                                         **
@@ -1120,30 +982,7 @@ unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
  **                             the ASCII string is limited to 32 octets.   **
  **                                                                         **
  ****************************************************************************/
-#ifndef m_NCS_OS_GET_TIME_STAMP
 #define m_NCS_OS_GET_TIME_STAMP(timestamp) timestamp=time((time_t*)0)
-#endif
-
-/* Note: localtime() is not reentrant 
- * Whereever reentrant version of localtime() is available it is 
- * overridden in corresponding os_defs.h 
- * For eg. In linux localtime_r() is available reentrant version 
- * of localtime_r() so in linux/os_defs.h it is overridden.
- */
-
-#ifndef m_NCS_OS_TIME_TO_STR
-#define m_NCS_OS_TIME_TO_STR(timestamp, asc_timestamp)  \
-{ \
-    strftime((char *)(asc_timestamp), 32, "%X", localtime(&timestamp)); \
-}
-#endif
-
-#ifndef m_NCS_OS_DATE_TIME_TO_STR
-#define m_NCS_OS_DATE_TIME_TO_STR(timestamp, asc_timestamp)  \
-{ \
-    strftime((char *)(asc_timestamp), 40, "%d%b%Y_%H.%M.%S", localtime(&timestamp)); \
-}
-#endif
 
 #ifndef m_NCS_OS_GET_ASCII_TIME_STAMP
 #define m_NCS_OS_GET_ASCII_TIME_STAMP(timestamp, asc_timestamp)  \
@@ -1161,14 +1000,6 @@ unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
 }
 #endif
 
-#ifndef m_NCS_OS_GET_ASCII_HDR_DATE_TIME_STAMP
-#define m_NCS_OS_GET_ASCII_HDR_DATE_TIME_STAMP(timestamp, asc_timestamp)  \
-{ \
-    timestamp=(time_t) (time((time_t *) 0)); \
-    strftime((char *)(asc_timestamp), 40, "%d %B %Y %H:%M:%S", localtime(&timestamp)); \
-}
-#endif
-
 /****************************************************************************
  **                                                                        **
  **                  Standard CLIB/STDIO Interfaces                        **
@@ -1179,21 +1010,10 @@ unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
  **                                                                        **
  ***************************************************************************/
 
-#ifndef m_NCS_OS_NTOHL
 #define m_NCS_OS_NTOHL(x)            ntohl(x)
-#endif
-
-#ifndef m_NCS_OS_HTONL
 #define m_NCS_OS_HTONL(x)            htonl(x)
-#endif
-
-#ifndef m_NCS_OS_NTOHS
 #define m_NCS_OS_NTOHS(s)            ntohs(s)
-#endif
-
-#ifndef m_NCS_OS_HTONS
 #define m_NCS_OS_HTONS(s)            htons(s)
-#endif
 
 /*********************************************************\
    m_NCS_OS_HTONLL_P :  Encodes a  64-bit integer into a 
@@ -1330,95 +1150,80 @@ unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
  **                                                                        **
  ***************************************************************************/
 
-	typedef uint64_t NCS_EXEC_HDL;
-	typedef uint64_t NCS_EXEC_USR_HDL;
+typedef uint64_t NCS_EXEC_HDL;
+typedef uint64_t NCS_EXEC_USR_HDL;
 
-	/* This Structure assists in passing the environment arguments needed to be
-	   set in the newly created process. */
+/* This Structure assists in passing the environment arguments needed to be
+   set in the newly created process. */
 
-	typedef struct ncs_os_environ_set_node_tag {
-		char *name;
-		char *value;
-		int overwrite;	/* zero the value is not overwritten else overwritten */
-	} NCS_OS_ENVIRON_SET_NODE;
+typedef struct ncs_os_environ_set_node_tag {
+	char *name;
+	char *value;
+	int overwrite;	/* zero the value is not overwritten else overwritten */
+} NCS_OS_ENVIRON_SET_NODE;
 
-	typedef struct ncs_os_environ_args_tag {
-		unsigned int num_args;
-		NCS_OS_ENVIRON_SET_NODE *env_arg;
-	} NCS_OS_ENVIRON_ARGS;
+typedef struct ncs_os_environ_args_tag {
+	unsigned int num_args;
+	NCS_OS_ENVIRON_SET_NODE *env_arg;
+} NCS_OS_ENVIRON_ARGS;
 
-	typedef enum {
-		/* Exec of script failed (script not readable or path wrong) */
-		NCS_OS_PROC_EXEC_FAIL,
+typedef enum {
+	/* Exec of script failed (script not readable or path wrong) */
+	NCS_OS_PROC_EXEC_FAIL,
 
-		/* Exec of script success, and script exits with status zero */
-		NCS_OS_PROC_EXIT_NORMAL,
+	/* Exec of script success, and script exits with status zero */
+	NCS_OS_PROC_EXIT_NORMAL,
 
-		/* Script did not exit within time */
-		NCS_OS_PROC_EXIT_WAIT_TIMEOUT,
+	/* Script did not exit within time */
+	NCS_OS_PROC_EXIT_WAIT_TIMEOUT,
 
-		/* Exec of script success, but script exits with non-zero status */
-		NCS_OS_PROC_EXIT_WITH_CODE,
+	/* Exec of script success, but script exits with non-zero status */
+	NCS_OS_PROC_EXIT_WITH_CODE,
 
-		/* Exec of script success, but script exits due to a signal */
-		NCS_OS_PROC_EXIT_ON_SIGNAL
-	} NCS_OS_PROC_EXEC_STATUS;
+	/* Exec of script success, but script exits due to a signal */
+	NCS_OS_PROC_EXIT_ON_SIGNAL
+} NCS_OS_PROC_EXEC_STATUS;
 
-	typedef struct {
-		NCS_OS_PROC_EXEC_STATUS value;
-		union {
-			struct {
-				uint32_t exit_code;
-			} exit_with_code;
+typedef struct {
+	NCS_OS_PROC_EXEC_STATUS value;
+	union {
+		struct {
+			uint32_t exit_code;
+		} exit_with_code;
 
-			struct {
-				uint32_t signal_num;
-			} exit_on_signal;
-		} info;
-	} NCS_OS_PROC_EXEC_STATUS_INFO;
+		struct {
+			uint32_t signal_num;
+		} exit_on_signal;
+	} info;
+} NCS_OS_PROC_EXEC_STATUS_INFO;
 
 /* CALLBACK structure definition */
-	typedef struct NCS_OS_PROC_EXECUTE_TIMED_CB_INFO {
-		NCS_EXEC_HDL i_exec_hdl;
-		NCS_EXEC_USR_HDL i_usr_hdl;
-		NCS_OS_PROC_EXEC_STATUS_INFO exec_stat;
+typedef struct NCS_OS_PROC_EXECUTE_TIMED_CB_INFO {
+	NCS_EXEC_HDL i_exec_hdl;
+	NCS_EXEC_USR_HDL i_usr_hdl;
+	NCS_OS_PROC_EXEC_STATUS_INFO exec_stat;
 
-	} NCS_OS_PROC_EXECUTE_TIMED_CB_INFO;
+} NCS_OS_PROC_EXECUTE_TIMED_CB_INFO;
 
 /* CALLBACK function prototype */
-	typedef uint32_t (*NCS_OS_PROC_EXECUTE_CB) (NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *);
+typedef uint32_t (*NCS_OS_PROC_EXECUTE_CB) (NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *);
 
 /* REQUEST structure definition */
-	typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO {
-		/* INPUTS */
-		char *i_script;	/* Command  */
-		uint32_t i_argc;
-		char **i_argv;
-		NCS_OS_ENVIRON_ARGS *i_set_env_args;
-		uint32_t i_timeout_in_ms;
-		NCS_EXEC_USR_HDL i_usr_hdl;
-		NCS_OS_PROC_EXECUTE_CB i_cb;
-		/* OUTPUTS */
-		NCS_EXEC_HDL o_exec_hdl;	/*  */
-	} NCS_OS_PROC_EXECUTE_TIMED_INFO;
+typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO {
+	/* INPUTS */
+	char *i_script;	/* Command  */
+	uint32_t i_argc;
+	char **i_argv;
+	NCS_OS_ENVIRON_ARGS *i_set_env_args;
+	uint32_t i_timeout_in_ms;
+	NCS_EXEC_USR_HDL i_usr_hdl;
+	NCS_OS_PROC_EXECUTE_CB i_cb;
+	/* OUTPUTS */
+	NCS_EXEC_HDL o_exec_hdl;	/*  */
+} NCS_OS_PROC_EXECUTE_TIMED_INFO;
 
-#define m_NCS_OS_PROCESS_EXECUTE_TIMED(arg)           ncs_os_process_execute_timed(arg)
-#define m_NCS_OS_PROCESS_EXECUTE(script,argv)         ncs_os_process_execute((char *)script,(char **)argv,(NCS_OS_ENVIRON_ARGS *)NULL)
-#define m_NCS_OS_PROCESS_TERMINATE(proc_id)           ncs_os_process_terminate((unsigned int)proc_id)
+uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
 
-#define m_NCS_OS_EXECUTE_SCRIPT(script)               ncs_os_process_execute((char *)script,(char *)NULL,(NCS_OS_ENVIRON_ARGS *))
-
-#define m_NCS_OS_PROCESS_SET_ENV_AND_EXECUTE(script,argv,set_env_args)         ncs_os_process_execute((char *)script,(char *)argv,(NCS_OS_ENVIRON_ARGS *)set_env_args)
-
-
-/* declarations */
-	uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
-
-	unsigned int ncs_os_process_execute(char *exec_mod, char *argv[], NCS_OS_ENVIRON_ARGS *set_env_args);
-
-	int ncs_os_process_terminate(unsigned int proc_id);
-
-	sighandler_t ncs_os_signal(int signalnum, sighandler_t handler);
 
 #ifdef  __cplusplus
 }

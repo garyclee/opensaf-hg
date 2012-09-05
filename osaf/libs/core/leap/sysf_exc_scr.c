@@ -265,8 +265,7 @@ void give_exec_mod_cb(int pid, uint32_t status, int type)
 
 		if (SYSF_EXEC_INFO_TIME_OUT == type) {
 			cb_info.exec_stat.value = NCS_OS_PROC_EXIT_WAIT_TIMEOUT;
-			/*printf("\n%d Process terminated, callback given\n",exec_pid->pid); */
-			m_NCS_OS_PROCESS_TERMINATE(exec_pid->pid);
+			kill(exec_pid->pid, SIGKILL);
 			exec_pid->exec_info_type = SYSF_EXEC_INFO_TIME_OUT;
 			cb_info.exec_stat.info.exit_with_code.exit_code = WEXITSTATUS(status);
 		} else {

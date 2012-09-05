@@ -74,7 +74,6 @@ struct msgbuf {
 extern "C" {
 #endif
 
-
 extern void ncs_os_atomic_init(void);
 extern void ncs_os_atomic_destroy(void);
 

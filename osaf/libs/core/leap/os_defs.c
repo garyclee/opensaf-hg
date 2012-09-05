@@ -1004,7 +1004,8 @@ uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
 
 void *ncs_os_udef_alloc(uint32_t size, uint8_t pool_id, uint8_t pri)
 {
-	return m_NCS_OS_MEMALLOC(size, NULL);
+	(void) pool_id; (void) pri;
+	return malloc(size);
 }
 
 /***************************************************************************
@@ -1032,80 +1033,8 @@ void *ncs_os_udef_alloc(uint32_t size, uint8_t pool_id, uint8_t pri)
 
 void ncs_os_udef_free(void *ptr, uint8_t pool_id)
 {
-	m_NCS_OS_MEMFREE(ptr, NULL);
-}
-
-/***************************************************************************
- *
- * ncs_os_process_execute
- *
- * Description: To execute a module in a new process.
- *
- * Synopsis:
- *
- * Call Arguments:
- *   Exec_mod - the module to be execute
- *   argv - An array of pointers to the arguments to the executable
- *   set_env_args - A list of values to be set in the environment
- *
- * Returns:
- *   Success or failure
- *
- * Notes:
- *
- **************************************************************************/
-unsigned int ncs_os_process_execute(char *exec_mod, char *argv[], NCS_OS_ENVIRON_ARGS *set_env_args)
-{
-	int count;
-	int status = 0;
-	NCS_OS_ENVIRON_SET_NODE *node = NULL;
-
-	if (exec_mod == NULL)
-		return NCSCC_RC_FAILURE;
-	if (fopen(exec_mod, "r") == NULL)
-		return NCSCC_RC_FAILURE;
-
-	if (set_env_args == NULL)
-		count = 0;
-	else {
-		count = set_env_args->num_args;
-		node = set_env_args->env_arg;
-	}
-
-	osaf_mutex_lock_ordie(&s_cloexec_mutex);
-	status = fork();
-	if (status == 0) {
-		/*
-		 ** Make sure forked processes have default scheduling class
-		 ** independent of the callers scheduling class.
-		 */
-		struct sched_param param = {.sched_priority = 0 };
-		if (sched_setscheduler(0, SCHED_OTHER, &param) == -1)
-			syslog(LOG_ERR, "Could not setscheduler: %s", strerror(errno));
-
-		/* set the environment variables */
-		for (; count > 0; count--) {
-			setenv(node->name, node->value, node->overwrite);
-			node++;
-		}
-
-		/* child part */
-		if (execvp(exec_mod, argv) == -1) {
-			char buf[256];
-			sprintf(buf, "EXECVP fails for %s ", exec_mod);
-			perror(buf);
-			exit(128);
-		}
-	} else if (status == -1) {
-		/* Fork Failed */
-		/* Unlock and return */
-		osaf_mutex_unlock_ordie(&s_cloexec_mutex);
-		return NCSCC_RC_FAILURE;
-	} else {
-		/* parent */
-		osaf_mutex_unlock_ordie(&s_cloexec_mutex);
-	}
-	return NCSCC_RC_SUCCESS;
+	(void) pool_id;
+	free(ptr);
 }
 
 /***************************************************************************
@@ -1237,29 +1166,6 @@ uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 
 	m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
 	return NCSCC_RC_SUCCESS;
-}
-
-/***************************************************************************
- *
- * ncs_os_process_terminate
- *
- * Description: To terminate a process
- *
- * Synopsis:
- *
- * Call Arguments:
- *   Process Id of the process.
- *
- * Returns:
- *   the success/failure
- *
- * Notes:
- *
- **************************************************************************/
-
-int ncs_os_process_terminate(unsigned int proc_id)
-{
-	return kill(proc_id, SIGKILL);
 }
 
 /***************************************************************************
