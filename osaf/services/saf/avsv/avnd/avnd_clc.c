@@ -2661,7 +2661,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 				cmd_info.i_set_env_args->env_arg->name,cmd_info.i_set_env_args->env_arg->value);
 
 	/* finally execute the command */
-	rc = m_NCS_OS_PROCESS_EXECUTE_TIMED(&cmd_info);
+	rc = ncs_os_process_execute_timed(&cmd_info);
 
 	/* Remove the env_set structure */
 	for (i = 0; i < env_counter; i++) {

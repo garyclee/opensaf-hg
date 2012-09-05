@@ -547,7 +547,7 @@ uint32_t parse_nodeinit_conf(char *strbuf)
 		}
 
 		/* Allocate mem for new child info */
-		while ((childinfo = (NID_SPAWN_INFO *)m_NCS_OS_MEMALLOC(sizeof(NID_SPAWN_INFO), NULL)) == NULL) {
+		while ((childinfo = malloc(sizeof(NID_SPAWN_INFO))) == NULL) {
 			if (retry++ == 5) {
 				sprintf(strbuf, "FAILURE: Out of memory\n");
 				return NCSCC_RC_FAILURE;
