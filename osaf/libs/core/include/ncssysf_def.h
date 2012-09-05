@@ -16,16 +16,12 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-..............................................................................
 
   DESCRIPTION:
 
   This module contains target system specific declarations related to
   System "hooks" and other assorted defines.
 
-..............................................................................
 */
 
 /*
@@ -42,42 +38,6 @@
 #ifdef  __cplusplus
 extern "C" {
 #endif
-
-/****************************************************************************
- ****************************************************************************
- ****************************************************************************
- ****************************************************************************
- **                                                                        **
- **                                                                        **
- **                  Logging & File Interface                              **
- **                                                                        **
- **                                                                        **
- **                                                                        **
- **                                                                        **
- ****************************************************************************
- ****************************************************************************
- ****************************************************************************
- ***************************************************************************/
-
-#define sysf_fopen(fname,fmode)     m_NCS_OS_LOG_FOPEN(fname,fmode)
-
-#define m_NCS_LOG_WRITE(filename, string)  m_NCS_TS_LOG_WRITE(filename, string)
-
-/****************************************************************************
- ****************************************************************************
- ****************************************************************************
- ****************************************************************************
- **                                                                        **
- **                                                                        **
- **                    CLIB Interfaces                                     **
- **                                                                        **
- **                                                                        **
- **                                                                        **
- **                                                                        **
- ****************************************************************************
- ****************************************************************************
- ****************************************************************************
- ***************************************************************************/
 
 /*****************************************************************************
  **                                                                         **
@@ -108,26 +68,8 @@ extern "C" {
 #define m_NCS_OS_NTOHL_P_INC(p8)     decode_32bitOS_inc(&p8)
 #define m_NCS_OS_NTOHS_P_INC(p8)    decode_16bitOS_inc(&p8)
 
-/*****************************************************************************
- **                                                                         **
- **                                                                         **
- **                Console Interfaces                                       **
- **                                                                         **
- **                                                                         **
- ****************************************************************************/
-#define m_NCS_CONS_UNBUF_GETCHAR  m_NCS_OS_UNBUF_GETCHAR
-
-/*****************************************************************************
- **                                                                         **
- **                                                                         **
- **                       Operating System Library Calls                    **
- **                                                                         **
- **                                                                         **
- ****************************************************************************/
-
-#define m_NCS_START(a,b)        m_NCS_OS_START(a,b)
-
-#define m_NCS_DBG_PRINTF         m_NCS_OS_DBG_PRINTF
+// should remove but require changes in a few service
+#define m_NCS_DBG_PRINTF         printf
 
 /*****************************************************************************
  **                                                                         **
@@ -187,11 +129,6 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
 #define m_GET_TIME_STAMP_STR(timestamp, asc_timestamp)  \
     m_NCS_OS_GET_TIME_STAMP_STR(timestamp, asc_timestamp)
 
-/** following is for subsystems which use the old style time stamping!
- **/
-#define sysf_time_stamp  ncs_time_stamp()
-
-	time_t ncs_time_stamp(void);
 
 /*****************************************************************************
  **                                                                         **
@@ -214,24 +151,6 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
  */
 #define m_LEAP_DBG_SINK(r)	(TRACE("IN LEAP_DBG_SINK"), r)
 #define m_LEAP_DBG_SINK_VOID	TRACE("IN LEAP_DBG_SINK")
-
-/*****************************************************************************
- **                                                                         **
- **                   Supplemental Macros                                   **
- **                                                                         **
- ****************************************************************************/
-
-#define m_NCS_JSE_CFUNC                     m_NCS_OS_JSE_CFUNC
-#define m_NCS_JSE_PFUNC                     m_NCS_OS_JSE_PFUNC
-#define m_NCS_JSECALLSEQ(type)              m_NCS_OS_JSECALLSEQ(type)
-
-#define m_NCS_IPV4_TO_IFIDX(hbo_ipv4)       m_NCS_OS_IPV4_TO_IFIDX(hbo_ipv4)
-
-#define m_NCS_CUR_CPU_USAGE                 m_NCS_OS_CUR_CPU_USAGE
-
-#define m_NCS_INIT_CPU_MON                  m_NCS_OS_INIT_CPU_MON
-
-#define m_NCS_SHUTDOWN_CPU_MON              m_NCS_OS_SHUTDOWN_CPU_MON
 
 /*****************************************************************************
  **                                                                         **

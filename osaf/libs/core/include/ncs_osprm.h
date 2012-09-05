@@ -16,40 +16,11 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-  MODULE NAME:  OS_PRIMS.H
-
-  REVISION HISTORY:
-
-  Date     Version  Name          Description
-  -------- -------  ------------  --------------------------------------------
-  04/22/98  1.0     Bellucci      Original
-
-  -------- -------  ------------  --------------------------------------------
-
-..............................................................................
 
   DESCRIPTION:
 
   This module contains declarations for Operating System Interfaces.
 
-  CONTENTS:
-
-    m_NCS_OS_MEMALLOC( nbytes ) ............. memory allocation interface
-    m_NCS_OS_MEMFREE( mem_p ) ............... memory free interface
-    m_NCS_OS_TIMER( pncs_timer, request ) .... to request timer services
-    m_NCS_OS_IPC( pncs_ipc, request ) ........ to request IPC services
-    m_NCS_OS_SEM( pncs_sem, request ) ........ to request Semaphore services
-    m_NCS_OS_TASK( pncs_task, request ) ...... to request task services
-    m_NCS_OS_LOCK( pncs_lock, request,type ) . to request lock services
-    m_NCS_OS_INIT_TASK_LOCK ..................to init for a task lock
-    m_NCS_OS_START_TASK_LOCK .................to start task lock
-    m_NCS_OS_END_TASK_LOCK ...................to stop task lock
-    m_NCS_OS_ATOMIC_INC( p_uint32_t ) .......... atomic increment
-    m_NCS_OS_ATOMIC_DEC( p_uint32_t ) .......... atomic decrement
-    m_NCS_OS_CLEANUP( ) ..................... to request OS cleanup services
-    m_NCS_OS_FILE( pncs_file, request ) ...... to request OS file operations
 
 ******************************************************************************
 */
@@ -170,58 +141,6 @@ extern "C" {
 		NCS_OS_TASK_JOIN,
 		NCS_OS_TASK_MAX
 	} NCS_OS_TASK_REQUEST;
-
-/****************************************************************************
- ****************************************************************************
- ****************************************************************************
- ****************************************************************************
- **                                                                        **
- **                                                                        **
- **                        Timer Interface Primitives                      **
- **                                                                        **
- **                                                                        **
- ** Various operating systems provide a varity of timer services, often    **
- ** with vastly different capabilities.  However, the m_NCS_OS_TIMER        **
- ** interface here only depends on the native os  for a a simple "tick"    **
- ** in the range of 10 - 100 millisecond intervals.  The port services     **
- ** layer provides the full timer services required by the H&J subsystems  **
- ** using this simple primitive.                                           **
- **                                                                        **
- ****************************************************************************
- ****************************************************************************
- ****************************************************************************
- ***************************************************************************/
-
-/****************************************************************************
- * Control Structure Definition
- ***************************************************************************/
-	typedef struct ncs_os_timer_tag {
-		union {
-			struct {
-				void *o_handle;	/* timer identifier                         */
-				NCS_OS_CB i_callback;	/* expiration callback function             */
-				void *i_cb_arg;	/* callback function argument               */
-				unsigned long i_period_in_ms;	/* timer expiration time                    */
-			} create;
-
-			struct {
-				void *i_handle;	/* timer identifier                         */
-			} release;
-
-		} info;
-
-	} NCS_OS_TIMER;
-
-/****************************************************************************
- * Supported Operations
- *  NCS_OS_TIMER_CREATE  (mandatory) Create/Initialize NCS_OS_TIMER object
- *  NCS_OS_TIMER_RELEASE (mandatory) Release resources for NCS_OS_TIMER object.
- ***************************************************************************/
-	typedef enum {
-		NCS_OS_TIMER_CREATE = 1,
-		NCS_OS_TIMER_RELEASE,
-		NCS_OS_TIMER_REQUEST_MAX
-	} NCS_OS_TIMER_REQUEST;
 
 /****************************************************************************
  ****************************************************************************
@@ -649,11 +568,8 @@ extern "C" {
 *
 ***************************************************************************/
 
-#ifndef m_NCS_OS_FILE
-
 #define m_NCS_OS_FILE(pncs_os_file,req) ncs_os_file (pncs_os_file,req)
-	unsigned int ncs_os_file(NCS_OS_FILE *, NCS_OS_FILE_REQUEST);
-#endif
+unsigned int ncs_os_file(NCS_OS_FILE *, NCS_OS_FILE_REQUEST);
 
 /****************************************************************************
  * m_NCS_OS_TASK_PRELUDE Primitive definition
@@ -667,51 +583,7 @@ extern "C" {
  * Macro return codes
  *  void 
  ***************************************************************************/
-#ifndef m_NCS_OS_TASK_PRELUDE
 #define m_NCS_OS_TASK_PRELUDE   {setbuf(stdin,NULL);setbuf(stdout,NULL);setbuf(stderr,NULL);}
-#endif
-
-/****************************************************************************
- * OS Cleanup Primitive definition
- * The actual function ncs_os_cleanup must be resolved in the os_defs.h file.
- *
- * Macro arguments
- *   NONE
- *
- * Macro return codes
- *   NONE
- *
- * This function is assumed to be called at system shutdown.
- *
- ***************************************************************************/
-
-#ifndef m_NCS_OS_CLEANUP
-
-#define m_NCS_OS_CLEANUP ncs_os_cleanup()
-	void ncs_os_cleanup(void);
-#endif
-
-/****************************************************************************
- * Timer Primitive definition
- * The actual macro ncs_os_timer must be resolved in the os_defs.h file.
- *
- * Macro arguments
- *  'pncs_os_timer' must be a pointer to a NCS_OS_TIMER provided by the caller
- *  'req'          is an NCS_OS_TIMER_REQUEST enum.
- *
- * Macro return codes
- * The ncs_os_timer implemention must return one of the following codes:
- *   NCSCC_RC_SUCCESS - interface call successful (normal return code)
- *   NCSCC_RC_FAILURE - interface call failed.
- *
- ***************************************************************************/
-#if 0
-#ifndef m_NCS_OS_TIMER
-
-#define m_NCS_OS_TIMER(pncs_os_timer,req) ncs_os_timer(pncs_os_timer,req)
-	unsigned int ncs_os_timer(NCS_OS_TIMER *, NCS_OS_TIMER_REQUEST);
-#endif
-#endif
 
 /****************************************************************************
  * LOCK Primitive definition
@@ -728,16 +600,8 @@ extern "C" {
  *   NCSCC_RC_FAILURE - interface call failed.
  *
  ***************************************************************************/
-
-#ifndef NCS_OS_LOCK
-#define NCS_OS_LOCK uint32_t*
-#endif
-
-#ifndef m_NCS_OS_LOCK
-
 #define m_NCS_OS_LOCK(pncs_os_lock,req,type) ncs_os_lock(pncs_os_lock,req,type)
-	unsigned int ncs_os_lock(NCS_OS_LOCK *, NCS_OS_LOCK_REQUEST, unsigned int);
-#endif
+unsigned int ncs_os_lock(NCS_OS_LOCK *, NCS_OS_LOCK_REQUEST, unsigned int);
 
 /****************************************************************************
  * Semaphore Primitive definition
@@ -754,32 +618,13 @@ extern "C" {
  *
  ***************************************************************************/
 
-#ifndef m_NCS_OS_SEM
-
 #define m_NCS_OS_SEM(pncs_os_sem,req) ncs_os_sem(pncs_os_sem,req)
-	unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
-#endif
+unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
 
-/*****************************************************************************
- **                                                                         **
- **                                                                         **
- **             Operating System Task Preemption Lock macros                **
- **                                                                         **
- **                                                                         **
- ****************************************************************************/
-#ifndef m_NCS_OS_INIT_TASK_LOCK
+// TODO: remove when changed other services
 #define m_NCS_OS_INIT_TASK_LOCK
-#endif
-
-#ifndef m_NCS_OS_START_TASK_LOCK
-#define m_NCS_OS_START_TASK_LOCK   ncs_os_start_task_lock()
-	void ncs_os_start_task_lock(void);
-#endif
-
-#ifndef m_NCS_OS_END_TASK_LOCK
-#define m_NCS_OS_END_TASK_LOCK     ncs_os_end_task_lock()
-	void ncs_os_end_task_lock(void);
-#endif
+#define m_NCS_OS_START_TASK_LOCK
+#define m_NCS_OS_END_TASK_LOCK
 
 /****************************************************************************
  * Message-queues Primitive definition
@@ -808,23 +653,6 @@ extern "C" {
 		NCS_OS_MQ_REQ_MAX
 	} NCS_OS_MQ_REQ_TYPE;
 
-/* If MQ has a real implementation for the platform we are building, then 
-** "os_defs.c" will have the appropriate definitions. Otherwise the 
-** following dummy definitions will apply and will allow successful 
-** compilation on unsupported platforms.
-*/
-#ifndef NCS_OS_MQ_KEY
-#define NCS_OS_MQ_KEY int	/* Dummy definition */
-#endif
-#ifndef NCS_OS_MQ_HDL
-#define NCS_OS_MQ_HDL int	/* Dummy definition */
-#endif
-#ifndef NCS_OS_MQ_MSG_LL_HDR
-#define NCS_OS_MQ_MSG_LL_HDR int	/* Dummy definition */
-#endif
-#ifndef NCS_OS_MQ_MAX_PAYLOAD
-#define NCS_OS_MQ_MAX_PAYLOAD 100	/* Dummy definition */
-#endif
 	typedef struct ncs_os_mq_msg {
 		/* ll_hdr is filled by the MQ-implementation. A MQ-user is expected
 		   to fill in the "data" portion only.
@@ -917,23 +745,6 @@ extern "C" {
 		NCS_OS_POSIX_MQ_REQ_MAX
 	} NCS_OS_POSIX_MQ_REQ_TYPE;
 
-/* If POSIX MQ has a real implementation for the platform we are building, then 
-** "os_defs.c" will have the appropriate definitions. Otherwise the 
-** following dummy definitions will apply and will allow successful 
-** compilation on unsupported platforms.
-*/
-#ifndef NCS_OS_POSIX_MQD
-#define NCS_OS_POSIX_MQD  uint32_t
-#endif
-
-#ifndef NCS_OS_POSIX_TIMESPEC
-	typedef struct posix_timespec {
-		uint32_t tv_nsec;
-		uint32_t tv_sec;
-	} posix_timespec;
-
-#define NCS_OS_POSIX_TIMESPEC struct posix_timespec
-#endif
 
 #ifndef NCS_OS_POSIX_MQ_ATTR
 	typedef struct ncs_os_posix_mq_attr {
@@ -1096,24 +907,6 @@ extern "C" {
 /****************************************************************************\
  * B E G I N  :  S E L E C T I O N - O B J E C T    P R I M I T I V E S     *
 \****************************************************************************/
-/****************************************************************************\
-
-  NCS_SEL_OBJ  :        A data type for a single selection object.  It is
-                        an object on which a POSIX "select()" or the
-                        m_NCS_SEL_OBJ_SELECT() could be invoked.
-
-  NCS_SEL_OBJ_SET:      A data type for a "set of selection-objects". Such 
-                        a set needs to be constructed for invoking a
-                        m_NCS_SEL_OBJ_SELECT() API.
-
-  The real definitions are present in respective osprims/<os>/os_defs.h. The
-  following are dummy definitions
-\****************************************************************************/
-#ifndef NCS_SEL_OBJ_DEFINED
-
-	typedef int NCS_SEL_OBJ;	/* DUMMY DEFINITION for unsupported OSes */
-	typedef int NCS_SEL_OBJ_SET;	/* DUMMY DEFINITION for unsupported OSes */
-#endif
 
 /****************************************************************************\
   
@@ -1385,73 +1178,6 @@ extern "C" {
  * E N D      :  S E L E C T I O N - O B J E C T    P R I M I T I V E S     *
 \****************************************************************************/
 
-/****************************************************************************
- * Atomic Increment definition
- *
- * Macro arguments
- *  'p_uns32' must be a pointer to a uint32_t to increment
- *
- * Macro return codes
- * uns32
- *
- ***************************************************************************/
-
-#ifndef m_NCS_OS_ATOMIC_INC
-#error Warning! Implementation needed for Atomic Increment
-#endif
-
-/****************************************************************************
- * Atomic Decrement definition
- *
- * Macro arguments
- *  'p_uns32' must be a pointer to a uint32_t to increment
- *
- * Macro return codes
- * uns32
- *
- ***************************************************************************/
-
-#ifndef m_NCS_OS_ATOMIC_DEC
-#error Warning! Implementation needed for Atomic Decrement
-#endif
-
-/****************************************************************************
- *                            Console I0 Macros                            *
- *                                                                         *
- ***************************************************************************/
-
-#ifndef m_NCS_OS_DBG_PRINTF
-#error Warning! Implementation needed for DBG Printf
-#endif
-
-/****************************************************************************
- * OS CPU usage Primitive definition
- *
- * returns current CPU usage in percents 
- *
- ***************************************************************************/
-
-#ifndef m_NCS_OS_CUR_CPU_USAGE
-#define m_NCS_OS_CUR_CPU_USAGE  os_cur_cpu_usage()
-	unsigned int os_cur_cpu_usage(void);
-#endif
-
-/****************************************************************************
- * OS CPU Monitor Primitive definitions
- *
- * returns current CPU usage in percents 
- *
- ***************************************************************************/
-
-#ifndef m_NCS_OS_INIT_CPU_MON
-#define m_NCS_OS_INIT_CPU_MON  ncs_cpu_mon_init()
-	unsigned int ncs_cpu_mon_init(void);
-#endif
-
-#ifndef m_NCS_OS_SHUTDOWN_CPU_MON
-#define m_NCS_OS_SHUTDOWN_CPU_MON  ncs_cpu_mon_shutdown()
-	unsigned int ncs_cpu_mon_shutdown(void);
-#endif
 
 /****************************************************************************
  * Memory Region Identifiers Definitions
@@ -1621,18 +1347,6 @@ extern "C" {
 }
 #endif
 
-#ifndef m_NCS_OS_GET_TIME_MS
-#define m_NCS_OS_GET_TIME_MS     0
-#endif
-
-#ifndef m_NCS_OS_GET_TIME_NS
-#define m_NCS_OS_GET_TIME_NS     0
-#endif
-
-#ifndef m_NCS_OS_GET_UPTIME
-#error Warning! macro for uptime usage to be defined
-#endif
-
 /****************************************************************************
  **                                                                        **
  **                  Standard CLIB/STDIO Interfaces                        **
@@ -1642,22 +1356,6 @@ extern "C" {
  **  if the default definition is not available on a given target          **
  **                                                                        **
  ***************************************************************************/
-
-#ifndef m_NCS_OS_LOG_FOPEN
-#define m_NCS_OS_LOG_FOPEN           fopen
-#endif
-
-#ifndef m_NCS_OS_START
-#define m_NCS_OS_START(a,b)          NCSCC_RC_FAILURE
-#endif
-
-#ifndef m_NCS_OS_UNBUF_GETCHAR
-#define m_NCS_OS_UNBUF_GETCHAR       getchar
-#endif
-
-#ifndef m_NCS_OS_NORMALIZE_CHR
-#define m_NCS_OS_NORMALIZE_CHR       getchar
-#endif
 
 #ifndef m_NCS_OS_NTOHL
 #define m_NCS_OS_NTOHL(x)            ntohl(x)
@@ -1890,7 +1588,6 @@ extern "C" {
 
 #define m_NCS_OS_PROCESS_SET_ENV_AND_EXECUTE(script,argv,set_env_args)         ncs_os_process_execute((char *)script,(char *)argv,(NCS_OS_ENVIRON_ARGS *)set_env_args)
 
-#define m_NCS_SIGNAL(signal,handler)                  ncs_os_signal(signal,handler)
 
 /* declarations */
 	uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
@@ -1900,109 +1597,6 @@ extern "C" {
 	int ncs_os_process_terminate(unsigned int proc_id);
 
 	sighandler_t ncs_os_signal(int signalnum, sighandler_t handler);
-
-/****************************************************************************
- **                                                                        **
- **                  Math Library Interface                                **
- **                                                                        **
- **                                                                        **
- ***************************************************************************/
-/* The natural logarithm [ln(x)] */
-#ifndef m_NCS_OS_LOG
-#define m_NCS_OS_LOG(double_x)     log(double_x)
-#endif
-
-/* The exponential function [e raised to x] */
-#ifndef m_NCS_OS_EXP
-#define m_NCS_OS_EXP(double_x)     exp(double_x)
-#endif
-
-/*****************************************************************************
- **                                                                         **
- **                   Task Priorities                                       **
- **                                                                         **
- ****************************************************************************/
-#ifndef NCS_OS_TASK_PRIORITY_0
-#define NCS_OS_TASK_PRIORITY_0            0
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_1
-#define NCS_OS_TASK_PRIORITY_1           16
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_2
-#define NCS_OS_TASK_PRIORITY_2           32
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_3
-#define NCS_OS_TASK_PRIORITY_3           48
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_4
-#define NCS_OS_TASK_PRIORITY_4           63
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_5
-#define NCS_OS_TASK_PRIORITY_5           79
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_6
-#define NCS_OS_TASK_PRIORITY_6           95
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_7
-#define NCS_OS_TASK_PRIORITY_7          111
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_8
-#define NCS_OS_TASK_PRIORITY_8          127
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_9
-#define NCS_OS_TASK_PRIORITY_9          143
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_10
-#define NCS_OS_TASK_PRIORITY_10         159
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_11
-#define NCS_OS_TASK_PRIORITY_11         175
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_12
-#define NCS_OS_TASK_PRIORITY_12         191
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_13
-#define NCS_OS_TASK_PRIORITY_13         207
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_14
-#define NCS_OS_TASK_PRIORITY_14         223
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_15
-#define NCS_OS_TASK_PRIORITY_15         239
-#endif
-
-#ifndef NCS_OS_TASK_PRIORITY_16
-#define NCS_OS_TASK_PRIORITY_16         255
-#endif
-
-/*****************************************************************************
- **                                                                         **
- **                              min and max                                **
- **                                                                         **
- ****************************************************************************/
-
-#ifndef min
-#define min(a,b) ((a) < (b) ? (a) : (b))
-#endif   /* min */
-
-#ifndef max
-#define max(a,b) ((a) > (b) ? (a) : (b))
-#endif   /* max */
 
 #ifdef  __cplusplus
 }

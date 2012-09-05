@@ -16,14 +16,11 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-  MODULE NAME:  OS_DEFS.H
 
   DESCRIPTION:
 
-  This module contains declarations for the OS-PRIMS implementation for the
-  Template.
+  This module contains old legacy interfaces
+  TODO: clean up and eventually (re)moved
 
 ******************************************************************************
 */
@@ -77,19 +74,9 @@ struct msgbuf {
 extern "C" {
 #endif
 
-/*****************************************************************************
 
-                     DECLARATIONS USED BY H&J BASE CODE
-
- ****************************************************************************/
-
-	extern void ncs_os_atomic_init(void);
-	extern void ncs_os_atomic_destroy(void);
-
-#ifndef m_NCS_OS_DBG_PRINTF
-	int ncs_dbg_logscreen(const char *str, ...);
-#define m_NCS_OS_DBG_PRINTF         ncs_dbg_logscreen
-#endif
+extern void ncs_os_atomic_init(void);
+extern void ncs_os_atomic_destroy(void);
 
 extern void ncs_os_atomic_inc(uint32_t *puns32);
 #define m_NCS_OS_ATOMIC_INC(p_uns32) ncs_os_atomic_inc(p_uns32);
@@ -97,27 +84,7 @@ extern void ncs_os_atomic_inc(uint32_t *puns32);
 extern void ncs_os_atomic_dec(uint32_t *p_uns32);
 #define m_NCS_OS_ATOMIC_DEC(p_uns32) ncs_os_atomic_dec(p_uns32);
 
-	extern void get_msec_time(uint32_t *seconds, uint32_t *millisec);
-
-#ifndef m_NCS_OS_GET_UPTIME
-	extern uint32_t ncs_get_uptime(uint64_t *o_uptime);
-#define m_NCS_OS_GET_UPTIME(p_uptime)  ncs_get_uptime(p_uptime)
-#endif
-
-	extern bool ncs_is_root(void);
 #define m_GET_MSEC_TIME_STAMP(seconds, millisec) get_msec_time(seconds, millisec)
-
-/*****************************************************************************
- **                                                                         **
- **             OS Prims prototypes                                         **
- **                                                                         **
- ****************************************************************************/
-
-	int getversion(void);
-
-	int ncs_console_status(void);
-	int ncs_unbuf_getch(void);
-	void ncs_stty_reset(void);	/* developed as a part of fxing the bug 58609 */
 
 /*****************************************************************************
  **                                                                         **
@@ -140,14 +107,6 @@ extern void ncs_os_atomic_dec(uint32_t *p_uns32);
 
 #define NCS_OS_POSIX_MQD      uint32_t
 #define NCS_OS_POSIX_TIMESPEC struct timespec
-
-/*****************************************************************************
- **                                                                         **
- **             Console macro definitions                                   **
- **                                                                         **
- ****************************************************************************/
-
-#define m_NCS_OS_UNBUF_GETCHAR           ncs_unbuf_getch
 
 #define __NCSINC_LINUX__
 
@@ -206,22 +165,17 @@ extern void ncs_os_atomic_dec(uint32_t *p_uns32);
  *
  ***************************************************************************/
 
-	typedef struct posixlock {
-		pthread_mutex_t lock;
-		unsigned long count;
-		pthread_t tid;
-	} POSIXLOCK;
+typedef struct posixlock {
+	pthread_mutex_t lock;
+	unsigned long count;
+	pthread_t tid;
+} POSIXLOCK;
 
 #define NCS_OS_LOCK POSIXLOCK
 
-	extern NCS_OS_LOCK *get_cloexec_lock(void);
+extern NCS_OS_LOCK *get_cloexec_lock(void);
 
-/* Extern defenition for sysf_fopen */
-	extern FILE *ncs_os_fopen(const char *fpath, const char *fmode);
-
-#ifndef m_NCS_OS_LOG_FOPEN
-#define m_NCS_OS_LOG_FOPEN(fname,fmode) ncs_os_fopen(fname,fmode)
-#endif
+extern FILE *ncs_os_fopen(const char *fpath, const char *fmode);
 
 #define m_NCS_OS_NTOHL_P(p8) (uint32_t)((*(uint8_t*)p8<<24)|(*(uint8_t*)(p8+1)<<16)| \
     (*(uint8_t*)(p8+2)<<8)|(*(uint8_t*)(p8+3)))
@@ -237,58 +191,19 @@ extern void ncs_os_atomic_dec(uint32_t *p_uns32);
    *p8     = (uint8_t)(v16>>8); \
    *(p8+1) = (uint8_t)v16; }
 
-/****************************************************************************
- * m_NCS_OS_TARGET_INIT
- *
- * Macro arguments
- *  none
- *
- * Macro return codes
- *  void
- *
- ***************************************************************************/
-#define m_NCS_OS_TARGET_INIT ncs_os_target_init()
-	extern unsigned int ncs_os_target_init(void);
-
-/*****************************************************************************
- **                                                                         **
- **                   Task Priorities                                       **
- **                                                                         **
- ****************************************************************************/
-#define NCS_OS_TASK_PRIORITY_0          0
-#define NCS_OS_TASK_PRIORITY_2          2
-#define NCS_OS_TASK_PRIORITY_3          3
-#define NCS_OS_TASK_PRIORITY_4          4
-#define NCS_OS_TASK_PRIORITY_5          5
-#define NCS_OS_TASK_PRIORITY_6          6
-#define NCS_OS_TASK_PRIORITY_7          7
-#define NCS_OS_TASK_PRIORITY_8          8
-#define NCS_OS_TASK_PRIORITY_9          9
-#define NCS_OS_TASK_PRIORITY_10         10
-#define NCS_OS_TASK_PRIORITY_11         11
-#define NCS_OS_TASK_PRIORITY_12         12
-#define NCS_OS_TASK_PRIORITY_13         13
-#define NCS_OS_TASK_PRIORITY_14         14
-#define NCS_OS_TASK_PRIORITY_15         15
-#define NCS_OS_TASK_PRIORITY_16         16
-
 /*****************************************************************************
  **                                                                         **
  **                                                                         **
  **             ncs_sel_obj_*  primitive definitions                        **
  **                                                                         **
- **           Override default definition in ncs_osprm.h                    **
  **                                                                         **
  **                                                                         **
  ****************************************************************************/
-#ifndef NCS_SEL_OBJ_DEFINED
-#define NCS_SEL_OBJ_DEFINED
-#endif
-	typedef struct ncs_sel_obj {
-		int raise_obj;
-		int rmv_obj;
-	} NCS_SEL_OBJ;
-	typedef fd_set NCS_SEL_OBJ_SET;
+typedef struct ncs_sel_obj {
+	int raise_obj;
+	int rmv_obj;
+} NCS_SEL_OBJ;
+typedef fd_set NCS_SEL_OBJ_SET;
 
 #ifdef  __cplusplus
 }

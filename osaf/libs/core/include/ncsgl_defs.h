@@ -19,8 +19,6 @@
   DESCRIPTION:
 
   This module contains data type defs usable throughout the system.
-  Inclusion of this module into all C-source modules is strongly
-  recommended.
 
 ******************************************************************************/
 
@@ -52,32 +50,12 @@ extern "C" {
 #define NCS_INT64_TO_PTR_CAST(x)   ((void*)(long)(x))
 #define NCS_UNS32_TO_PTR_CAST(x)   ((void*)(long)(x))
 
-	/* Last surviving bits of NCS IP related crap, for now ... */
-	typedef uint32_t NCS_IPV4_ADDR;
-
-	typedef enum ncs_ip_addr_type {
-		NCS_IP_ADDR_TYPE_NONE,
-		NCS_IP_ADDR_TYPE_IPV4,
-		NCS_IP_ADDR_TYPE_IPV6,
-		NCS_IP_ADDR_TYPE_MAX    /* Must be last. */
-	} NCS_IP_ADDR_TYPE;
-
-	typedef struct ncs_ip_addr {
-		NCS_IP_ADDR_TYPE type;
-		union {
-			NCS_IPV4_ADDR v4;
-		} info;
-	} NCS_IP_ADDR;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
                       Generic Function Return Codes                     
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
-/** Return Codes shared across the entire H&J product line...
-    Reserved Area: 0-thru-1023
- **/
 
 #define NCSCC_RC_SUCCESS               1
 #define NCSCC_RC_FAILURE               2
