@@ -436,7 +436,7 @@ uint32_t start_exec_mod_cb(void)
 
 	module_cb.init = true;
 
-	m_NCS_SIGNAL(SIGCHLD, ncs_exec_module_signal_hdlr);
+	signal(SIGCHLD, ncs_exec_module_signal_hdlr);
 
 	return NCSCC_RC_SUCCESS;
 
@@ -463,7 +463,7 @@ uint32_t exec_mod_cb_destroy(void)
 
 	if (module_cb.init == true) {
 		module_cb.init = false;
-		m_NCS_SIGNAL(SIGCHLD, SIG_DFL);
+		signal(SIGCHLD, SIG_DFL);
 
 		close(module_cb.write_fd);
 		close(module_cb.read_fd);

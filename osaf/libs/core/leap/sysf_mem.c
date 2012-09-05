@@ -1919,7 +1919,7 @@ uint32_t sysf_pick_output(char *str, char *fname)
 	FILE *file;
 
 	if (fname != NULL) {
-		if ((file = sysf_fopen(fname, "at")) == NULL)
+		if ((file = ncs_os_fopen(fname, "at")) == NULL)
 			return NCSCC_RC_FAILURE;
 		fprintf(file, "%s\n", str);
 		fclose(file);

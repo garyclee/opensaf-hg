@@ -16,18 +16,10 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-..............................................................................
 
   DESCRIPTION:
 
-  This module contains routines related to time stamps.
-..............................................................................
-
-  FUNCTIONS INCLUDED in this module:
-
-  ncs_time_stamp....get the time stamp
+  This module contains ?
 
  ******************************************************************************
  */
@@ -46,14 +38,6 @@
 #include "sysf_exc_scr.h"
 #include "usrbuf.h"
 
-time_t ncs_time_stamp()
-{
-	time_t timestamp;
-
-	m_GET_TIME_STAMP(timestamp);
-
-	return timestamp;
-}
 
 /*****************************************************************************
 
@@ -180,74 +164,6 @@ uint16_t decode_16bitOS_inc(uint8_t **stream)
 
 /*****************************************************************************
 
-  PROCEDURE NAME:    leap_failure
-
-  DESCRIPTION:
-
-   LEAP code has detected a condition that it deems wrong. No doubt there is
-   a bug to be found and cleaned up.
-   
-   Policies can be adjusted for each flavor of error, but so far, all such
-   errors are worthy of a crash according to NetPlane.
-      
-  ARGUMENTS:
-
-  uint32_t   l             line # in file
-  char*   f             file name where macro invoked
-  uint32_t   err           Error code value..
-  uint32_t   retval        return this to invoker, if we servive
-
-  RETURNS:
-
-  code
-
-  NOTES:
-
-*****************************************************************************/
-
-/* the array of error strings */
-
-char *gl_fail_str[] = {
-	"illegal string",	/* You shouldn't see this one */
-	"Double Delete of Memory",
-	"Freeing Null Pointer",
-	"Memory Is Screwed Up!?",
-	"Failed Bottom Marker Test",
-	"Freeing to a NULL pool",
-	"Memory DBG Record corrupted",
-	"Memory ownership rules violated"
-};
-
-/* The function that says it all */
-
-uint32_t leap_failure(uint32_t l, char *f, uint32_t err, uint32_t retval)
-{
-	switch (err) {
-	case NCSFAIL_DOUBLE_DELETE:
-	case NCSFAIL_FREEING_NULL_PTR:
-	case NCSFAIL_MEM_SCREWED_UP:
-	case NCSFAIL_FAILED_BM_TEST:
-	case NCSFAIL_MEM_NULL_POOL:
-	case NCSFAIL_MEM_REC_CORRUPTED:
-	case NCSFAIL_OWNER_CONFLICT:
-
-#if (NCS_MMGR_ERROR_BEHAVIOR == BANNER_ERR) || (NCS_MMGR_ERROR_BEHAVIOR == CRASH_ERR)
-
-		printf("MEMORY FAILURE: %s line %d, file %s\n", gl_fail_str[err], l, f);
-
-#if (NCS_MMGR_ERROR_BEHAVIOR == CRASH_ERR)
-
-		assert(0);	/* Policy is to crash! */
-#endif   /* CRASH */
-#endif   /* BANNER or CRASH */
-
-		break;
-	}
-	return retval;
-}
-
-/*****************************************************************************
-
   PROCEDURE NAME:    leap_env_init
 
   DESCRIPTION:
@@ -266,28 +182,14 @@ uint32_t leap_failure(uint32_t l, char *f, uint32_t err, uint32_t retval)
 
 static uint32_t leap_env_init_count = 0;
 
-uint32_t leap_env_init()
+uint32_t leap_env_init(void)
 {
-
 	if (leap_env_init_count++ != 0) {
 		return NCSCC_RC_SUCCESS;
 	}
 
-	/* 
-	 ** Change buffering type for the stdout stream to line buffered.
-	 ** Otherwise printf output will be block buffered and not immidiately
-	 ** printed to file.
-	 ** TODO: to be removed in OpenSAF 4.0
-	 */
-	if (setvbuf(stdout, (char *)NULL, _IOLBF, 0) != 0) {
-		fprintf(stderr, "%s:%d - setvbuf failed\n", __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
-	}
+	TRACE("INITIALIZING LEAP ENVIRONMENT");
 
-	m_NCS_DBG_PRINTF("\n\n\nINITIALIZING LEAP ENVIRONMENT\n");
-
-	/* initialize OS target */
-	m_NCS_OS_TARGET_INIT;
 	ncs_os_atomic_init();
 
 #if (NCSL_ENV_INIT_TMR == 1)
@@ -317,7 +219,7 @@ uint32_t leap_env_init()
 
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
-	m_NCS_DBG_PRINTF("\nDONE INITIALIZING LEAP ENVIRONMENT\n");
+	TRACE("DONE INITIALIZING LEAP ENVIRONMENT");
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -347,7 +249,7 @@ uint32_t leap_env_destroy()
 		return NCSCC_RC_SUCCESS;
 	}
 
-	m_NCS_DBG_PRINTF("\n\n\nDESTROYING LEAP ENVIRONMENT\n");
+	TRACE("DESTROYING LEAP ENVIRONMENT");
 
 	/* Destroying  execution control block */
 	exec_mod_cb_destroy();
@@ -364,7 +266,7 @@ uint32_t leap_env_destroy()
 
 	ncs_os_atomic_destroy();
 
-	m_NCS_DBG_PRINTF("\nDONE DESTROYING LEAP ENVIRONMENT\n");
+	TRACE("DONE DESTROYING LEAP ENVIRONMENT");
 
 	return NCSCC_RC_SUCCESS;
 }
