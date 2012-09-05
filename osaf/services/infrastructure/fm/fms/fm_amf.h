@@ -35,7 +35,6 @@ typedef struct fm_amf_cb {
 	SaAmfHandleT amf_hdl;	/* AMF handle */
 	SaSelectionObjectT amf_fd;	/* AMF selection fd */
 	bool is_amf_up;	/* For amf_fd and pipe_fd */
-	NCS_OS_SEM semaphore;	/* Semaphore for health check */
 } FM_AMF_CB;
 
 FM_AMF_CB *fm_amf_get_cb(void);

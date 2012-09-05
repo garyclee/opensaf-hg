@@ -41,7 +41,6 @@
 #include "ncssysf_tmr.h"
 #include "ncs_tasks.h"
 #include "signal.h"
-#include "ncssysf_sem.h"
 #include "ncssysf_tsk.h"
 #include "ncssysf_lck.h"
 #include "ncssysfpool.h"

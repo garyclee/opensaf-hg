@@ -35,7 +35,6 @@
 #include "ncs_tmr.h"
 #include "sysf_def.h"
 #include "ncssysf_def.h"
-#include "ncssysf_sem.h"
 #include "ncssysf_tmr.h"
 #include "ncssysf_tsk.h"
 #include "ncspatricia.h"

@@ -58,8 +58,6 @@ extern "C" {
 	typedef void (*NCS_OS_CB) (void *);
 	typedef void (*VR_CBF_V) (void);
 
-	typedef void (*sighandler_t) (int);
-
 /****************************************************************************
  ****************************************************************************
  ****************************************************************************
@@ -181,64 +179,6 @@ extern "C" {
 		NCS_OS_LOCK_UNLOCK,
 		NCS_OS_LOCK_REQUEST_MAX
 	} NCS_OS_LOCK_REQUEST;
-
-/****************************************************************************
- ****************************************************************************
- ****************************************************************************
- ****************************************************************************
- **                                                                        **
- **                                                                        **
- **                 Counting   Semaphore Interface Primitives              **
- **                                                                        **
- **                                                                        **
- ** This interface is used by the client to enable using a counting        **
- ** semaphore for messaging between concurrently running tasks.            **
- **                                                                        **
- **                                                                        **
- ****************************************************************************
- ****************************************************************************
- ****************************************************************************
- ***************************************************************************/
-
-/****************************************************************************
- * Control Structure Definition
- ***************************************************************************/
-	typedef struct ncs_os_sem_tag {
-		union {
-			struct {
-				void *o_handle;
-			} create;
-
-			struct {
-				void *i_handle;
-			} give;
-
-			struct {
-				void *i_handle;
-			} take;
-
-			struct {
-				void *i_handle;
-			} release;
-
-		} info;
-
-	} NCS_OS_SEM;
-
-/****************************************************************************
- * Supported Operations
- *  NCS_OS_SEM_CREATE  (mandatory) Create an NCS_OS_SEM object
- *  NCS_OS_SEM_GIVE    (mandatory) Increment/unblock a NCS_OS_SEM object.
- *  NCS_OS_SEM_TAKE    (mandatory) Wait for a NCS_OS_SEM object.
- *  NCS_OS_SEM_RELEASE (mandatory) Release resources for this NCS_OS_SEM object.
- ***************************************************************************/
-	typedef enum {
-		NCS_OS_SEM_CREATE = 1,
-		NCS_OS_SEM_GIVE,
-		NCS_OS_SEM_TAKE,
-		NCS_OS_SEM_RELEASE,
-		NCS_OS_SEM_REQUEST_MAX
-	} NCS_OS_SEM_REQUEST;
 
 /****************************************************************************
  ****************************************************************************
@@ -395,24 +335,6 @@ unsigned int ncs_os_task(NCS_OS_TASK *, NCS_OS_TASK_REQUEST);
  ***************************************************************************/
 #define m_NCS_OS_LOCK(pncs_os_lock,req,type) ncs_os_lock(pncs_os_lock,req,type)
 unsigned int ncs_os_lock(NCS_OS_LOCK *, NCS_OS_LOCK_REQUEST, unsigned int);
-
-/****************************************************************************
- * Semaphore Primitive definition
- * The actual function ncs_os_sem must be resolved in the os_defs.h file.
- *
- * Macro arguments
- *  'pncs_os_sem' must be a pointer to a NCS_OS_SEM provided by the caller
- *  'req'        is an NCS_OS_SEM_REQUEST enum.
- *
- * Macro return codes
- * The ncs_os_sem implemention must return one of the following codes:
- *   NCSCC_RC_SUCCESS - interface call successful (normal return code)
- *   NCSCC_RC_FAILURE - interface call failed.
- *
- ***************************************************************************/
-
-#define m_NCS_OS_SEM(pncs_os_sem,req) ncs_os_sem(pncs_os_sem,req)
-unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
 
 // TODO: remove when changed other services
 #define m_NCS_OS_INIT_TASK_LOCK
