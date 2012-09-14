@@ -628,7 +628,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		} else {
 			susi_assign_msg_dump(__FUNCTION__, __LINE__,
 					&n2d_msg->msg_info.n2d_su_si_assign);
-			avd_sg_2n_susi_fail_func(cb, su, AVD_SU_SI_REL_NULL,
+			su->sg_of_su->susi_failed(cb, su, AVD_SU_SI_REL_NULL,
 					n2d_msg->msg_info.n2d_su_si_assign.msg_act,
 					n2d_msg->msg_info.n2d_su_si_assign.ha_state);
 		}
@@ -856,7 +856,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				}
 			}
 		} else {
-			avd_sg_2n_susi_fail_func(cb, susi->su, susi,
+			su->sg_of_su->susi_failed(cb, susi->su, susi,
 					n2d_msg->msg_info.n2d_su_si_assign.msg_act,
 					n2d_msg->msg_info.n2d_su_si_assign.ha_state);
 		}
