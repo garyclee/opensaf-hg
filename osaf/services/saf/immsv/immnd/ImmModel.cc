@@ -7044,6 +7044,12 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     int soughtAttributes=0;
     SaImmSearchOptionsT notAllowedOptions = 0LL;
     
+    if (objectName.empty()) {
+        LOG_NO("ERR_INVALID_PARAM: Empty DN is not allowed");
+        err = SA_AIS_ERR_INVALID_PARAM;     
+        goto accessorExit;
+    }
+
     // Validate object name
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
