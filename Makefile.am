@@ -221,9 +221,10 @@ install-data-local:
 	cp -R samples/ $(DESTDIR)$(pkgdatadir)
 
 install-data-hook:
-	@for i in $$(grep -lr -e 'xxLIBDIRxx' -e 'xxCLCCLIDIRxx' $(DESTDIR)$(pkgimmxml_svcdir)/*.xml) ; do \
+	@for i in $$(grep -lr -e 'xxLIBDIRxx' -e 'xxLOGDIRxx' -e 'xxCLCCLIDIRxx' $(DESTDIR)$(pkgimmxml_svcdir)/*.xml) ; do \
 		sed -i 's|xxLIBDIRxx|$(pkglibdir)|g' "$$i"; \
 		sed -i 's|xxCLCCLIDIRxx|$(pkgclcclidir)|g' "$$i"; \
+		sed -i 's|xxLOGDIRxx|$(pkglogdir)|g' "$$i"; \
 	done
 	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxCLCCLIDIRxx' $(DESTDIR)$(pkgsysconfdir)/*) ; do \
 		sed --follow-symlinks -i 's|xxBINDIRxx|$(bindir)|g' "$$i"; \

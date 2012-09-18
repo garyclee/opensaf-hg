@@ -84,7 +84,7 @@ typedef struct lgs_cb {
                                                    down events Processing */
 	LGA_DOWN_LIST *lga_down_list_tail;
 
-	char *logsv_root_dir;	/* Root directory for log files */
+	const char *logsv_root_dir;	/* Root directory for log files */
 	unsigned int max_logrecsize;
 } lgs_cb_t;
 

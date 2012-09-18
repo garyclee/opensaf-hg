@@ -488,6 +488,10 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 		immutilWrapperProfile.nTries = 250; /* LOG will be blocked until IMM responds */
 		(void)immutil_saImmOiImplementerSet(lgs_cb->immOiHandle, "safLogService");
 		(void)immutil_saImmOiClassImplementerSet(lgs_cb->immOiHandle, "SaLogStreamConfig");
+		/* Do this only if the class exists */
+		if ( true == *(bool*) lgs_imm_logconf_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST, NULL)) {
+			(void)immutil_saImmOiClassImplementerSet(lgs_cb->immOiHandle, "OpenSafLogConfig");
+		}
 		immutilWrapperProfile.nTries = 20; /* Reset retry time to more normal value. */
 		
 		/* Agent down list has to be processed first */
@@ -526,8 +530,7 @@ done:
 uint32_t lgs_cb_init(lgs_cb_t *lgs_cb)
 {
 	NCS_PATRICIA_PARAMS reg_param;
-	char *val;
-	unsigned int max_logrecsize;
+	unsigned int max_logrecsize = 0;
 
 	TRACE_ENTER();
 
@@ -545,15 +548,16 @@ uint32_t lgs_cb_init(lgs_cb_t *lgs_cb)
 	lgs_cb->log_version.minorVersion = LOG_MINOR_VERSION;
 
 	lgs_cb->max_logrecsize = LOG_MAX_LOGRECSIZE;
-
-	if ((val = getenv("LOGSV_MAX_LOGRECSIZE")) != NULL) {
-		max_logrecsize = strtol(val, NULL, 0);
-		if (max_logrecsize >= 256)
-			lgs_cb->max_logrecsize = max_logrecsize;
-		else
-			LOG_NO("Too low LOGSV_MAX_LOGRECSIZE (%u), using default (%u)",
+		
+	max_logrecsize = *(unsigned int *) lgs_imm_logconf_get(LGS_IMM_LOG_MAX_LOGRECSIZE, NULL);
+	if (max_logrecsize >= 256) {
+		lgs_cb->max_logrecsize = max_logrecsize;
+	} else {
+		LOG_NO("Too low LOGSV_MAX_LOGRECSIZE (%u), using default (%u)",
 				max_logrecsize, lgs_cb->max_logrecsize);
 	}
+
+	TRACE("max_logrecsize = %u", max_logrecsize);
 
 	/* Initialize patricia tree for reg list */
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&lgs_cb->client_tree, &reg_param))

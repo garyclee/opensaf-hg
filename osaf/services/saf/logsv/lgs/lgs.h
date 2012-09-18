@@ -35,6 +35,8 @@
 #include <ncs_edu_pub.h>
 #include <ncs_util.h>
 #include <logtrace.h>
+#include <limits.h>
+#include <saAis.h>
 
 /* LGS files */
 #include "lgsv_defs.h"
@@ -70,10 +72,29 @@
 #define LGS_IPC_PRIO_SYS_STREAM NCS_IPC_PRIORITY_NORMAL
 #define LGS_IPC_PRIO_APP_STREAM NCS_IPC_PRIORITY_LOW
 
+/* The name of log service config object */    
+#define LGS_IMM_LOG_CONFIGURATION	"logConfig=1,safApp=safLogService"
+
 /* ========================================================================
  *   TYPE DEFINITIONS
  * ========================================================================
  */
+
+/* Used with function lgs_imm_logconf_get(...) */
+typedef enum {
+	LGS_IMM_LOG_ROOT_DIRECTORY,
+	LGS_IMM_LOG_MAX_LOGRECSIZE,
+	LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT,
+	LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT,
+	LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT,
+	LGS_IMM_LOG_STREAM_APP_LOW_LIMIT,
+	LGS_IMM_LOG_MAX_APPLICATION_STREAMS,
+
+	LGS_IMM_LOG_NUMBER_OF_PARAMS,
+	LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST,
+
+	LGS_IMM_LOG_NUMEND
+} lgs_logconfGet_t;
 
 /* ========================================================================
  *   DATA DECLARATIONS
@@ -97,5 +118,6 @@ extern uint32_t lgs_mds_msg_send(lgs_cb_t *cb,
 extern SaAisErrorT lgs_imm_activate(lgs_cb_t *cb);
 extern void lgs_imm_impl_set(lgs_cb_t *cb);
 extern SaAisErrorT lgs_imm_init(lgs_cb_t *cb);
+extern const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag);
 
 #endif   /* ifndef __LGS_H */

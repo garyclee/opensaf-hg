@@ -67,6 +67,11 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 	immutilWrapperProfile.nTries = 250; /* LOG will be blocked until IMM responds */
 	(void)immutil_saImmOiImplementerSet(lgs_cb->immOiHandle, "safLogService");
 	(void)immutil_saImmOiClassImplementerSet(lgs_cb->immOiHandle, "SaLogStreamConfig");
+	/* Do this only if the class exists */
+	if ( true == *(bool*) lgs_imm_logconf_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST, NULL)) {
+		(void)immutil_saImmOiClassImplementerSet(cb->immOiHandle, "OpenSafLogConfig");
+	}
+
 	immutilWrapperProfile.nTries = 20; /* Reset retry time to more normal value. */
 
 	/* check existing streams */

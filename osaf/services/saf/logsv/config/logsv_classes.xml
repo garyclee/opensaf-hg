@@ -154,4 +154,62 @@
 			<category>SA_RUNTIME</category>
 		</attr>
 	</class>
+	<class name="OpenSafLogConfig">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>logConfig</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</rdn>
+		<attr>
+			<name>logRootDirectory</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>logMaxLogrecsize</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+            <default-value>1024</default-value>
+		</attr>
+		<attr>
+			<name>logStreamSystemHighLimit</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+            <default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>logStreamSystemLowLimit</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+            <default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>logStreamAppHighLimit</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+            <default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>logStreamAppLowLimit</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+            <default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>logMaxApplicationStreams</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+            <default-value>64</default-value>
+		</attr>
+	</class>
 </imm:IMM-contents>
