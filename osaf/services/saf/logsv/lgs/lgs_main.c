@@ -142,30 +142,26 @@ static void sigusr1_handler(int sig)
  */
 static uint32_t configure_mailbox(void)
 {
-	char *p;
 	uint32_t limit = 0;
+	bool errorflag;
 
-	if ((p = getenv("LOG_STREAM_SYSTEM_HIGH_LIMIT")) != NULL) {
-		errno = 0;
-		limit = strtol(p, NULL, 0);
-		if (errno != 0) {
-			LOG_ER("Illegal value for LOG_STREAM_SYSTEM_HIGH_LIMIT - %s", strerror(errno));
-			return NCSCC_RC_FAILURE;
-		}
-
-		mbox_high[LGS_IPC_PRIO_SYS_STREAM] = limit;
-		mbox_low[LGS_IPC_PRIO_SYS_STREAM] =	LOG_STREAM_LOW_LIMIT_PERCENT * limit;
-
-		ncs_ipc_config_max_msgs(&lgs_mbx, LGS_IPC_PRIO_SYS_STREAM,
-								mbox_high[LGS_IPC_PRIO_SYS_STREAM]);
-		ncs_ipc_config_usr_counters(&lgs_mbx, LGS_IPC_PRIO_SYS_STREAM,
-									&mbox_msgs[LGS_IPC_PRIO_SYS_STREAM]);
+	limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT, &errorflag);
+	if (errorflag != false) {
+		LOG_ER("Illegal value for LOG_STREAM_SYSTEM_HIGH_LIMIT - %s", strerror(errno));
+		return NCSCC_RC_FAILURE;
 	}
 
-	if ((limit != 0) && (p = getenv("LOG_STREAM_SYSTEM_LOW_LIMIT")) != NULL) {
-		errno = 0;
-		limit = strtol(p, NULL, 0);
-		if (errno != 0) {
+	mbox_high[LGS_IPC_PRIO_SYS_STREAM] = limit;
+	mbox_low[LGS_IPC_PRIO_SYS_STREAM] = LOG_STREAM_LOW_LIMIT_PERCENT * limit;
+
+	ncs_ipc_config_max_msgs(&lgs_mbx, LGS_IPC_PRIO_SYS_STREAM,
+			mbox_high[LGS_IPC_PRIO_SYS_STREAM]);
+	ncs_ipc_config_usr_counters(&lgs_mbx, LGS_IPC_PRIO_SYS_STREAM,
+			&mbox_msgs[LGS_IPC_PRIO_SYS_STREAM]);
+
+	if (limit != 0) {
+		limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT, &errorflag);
+		if (errorflag != false) {
 			LOG_ER("Illegal value for LOG_STREAM_SYSTEM_LOW_LIMIT - %s", strerror(errno));
 			return NCSCC_RC_FAILURE;
 		}
@@ -173,28 +169,23 @@ static uint32_t configure_mailbox(void)
 		mbox_low[LGS_IPC_PRIO_SYS_STREAM] = limit;
 	}
 
-	limit = 0;
-	if ((p = getenv("LOG_STREAM_APP_HIGH_LIMIT")) != NULL) {
-		errno = 0;
-		limit = strtol(p, NULL, 0);
-		if (errno != 0) {
-			LOG_ER("Illegal value for LOG_STREAM_APP_HIGH_LIMIT - %s", strerror(errno));
-			return NCSCC_RC_FAILURE;
-		}
-
-		mbox_high[LGS_IPC_PRIO_APP_STREAM] = limit;
-		mbox_low[LGS_IPC_PRIO_APP_STREAM] =	LOG_STREAM_LOW_LIMIT_PERCENT * limit;
-
-		ncs_ipc_config_max_msgs(&lgs_mbx, LGS_IPC_PRIO_APP_STREAM,
-								mbox_high[LGS_IPC_PRIO_APP_STREAM]);
-		ncs_ipc_config_usr_counters(&lgs_mbx, LGS_IPC_PRIO_APP_STREAM,
-									&mbox_msgs[LGS_IPC_PRIO_APP_STREAM]);
+	limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT, &errorflag);
+	if (errorflag != false) {
+		LOG_ER("Illegal value for LOG_STREAM_APP_HIGH_LIMIT - %s", strerror(errno));
+		return NCSCC_RC_FAILURE;
 	}
 
-	if ((limit != 0) && (p = getenv("LOG_STREAM_APP_LOW_LIMIT")) != NULL) {
-		errno = 0;
-		limit = strtol(p, NULL, 0);
-		if (errno != 0) {
+	mbox_high[LGS_IPC_PRIO_APP_STREAM] = limit;
+	mbox_low[LGS_IPC_PRIO_APP_STREAM] = LOG_STREAM_LOW_LIMIT_PERCENT * limit;
+
+	ncs_ipc_config_max_msgs(&lgs_mbx, LGS_IPC_PRIO_APP_STREAM,
+			mbox_high[LGS_IPC_PRIO_APP_STREAM]);
+	ncs_ipc_config_usr_counters(&lgs_mbx, LGS_IPC_PRIO_APP_STREAM,
+			&mbox_msgs[LGS_IPC_PRIO_APP_STREAM]);
+
+	if (limit != 0) {
+		limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT, &errorflag);
+		if (errorflag != false) {
 			LOG_ER("Illegal value for LOG_STREAM_APP_LOW_LIMIT - %s", strerror(errno));
 			return NCSCC_RC_FAILURE;
 		}
@@ -244,11 +235,15 @@ static uint32_t log_initialize(void)
 	 * Get LOGSV root directory path. All created log files will be stored
 	 * relative to this directory as described in spec.
 	 */
-	if ((lgs_cb->logsv_root_dir = getenv("LOGSV_ROOT_DIRECTORY")) == NULL) {
+	bool errorflag;
+	lgs_cb->logsv_root_dir = lgs_imm_logconf_get(LGS_IMM_LOG_ROOT_DIRECTORY, &errorflag);
+
+	if (errorflag != false) {
 		LOG_ER("LOGSV_ROOT_DIRECTORY not found");
 		goto done;
 	}
-
+	TRACE("logsv_root_dir = %s", lgs_cb->logsv_root_dir);
+	
 	/* Initialize stream class */
 	if (log_stream_init() != NCSCC_RC_SUCCESS) {
 		LOG_ER("log_stream_init FAILED");

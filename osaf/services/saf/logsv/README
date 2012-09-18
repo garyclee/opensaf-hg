@@ -129,10 +129,49 @@ CONFIGURATION
 The LOG specification describes the configuration object class 
 SaLogStreamConfig which requires the three streams alarm, notification and 
 system to exist (in IMM). The two LOG classes and objects for the three
-default streams are included in the OpenSAF IMM configuration.
+default streams are included in the OpenSAF IMM configuration. There is also a
+configuration object class OpenSafLogConfig used to configure the LOG Service
+itself. This class is not described in the LOG specification.
 
-Some implementation defined configuration is done using a configuration
-file with environment variables. This config file is typically:
+Some implementation defined configuration can be done for the LOG service.
+Two ways of handling configuration is supported.
+
+1. Configuration using a configuration object in IMM:
+When the LOG service is started it looks for a configuration object of 
+OpenSafLogConfig class. If an object is found and is correct the parameters in the
+object will be used. The configuration file as described in section 2 will not
+be used. The parameters in the object corresponds with the parameters described
+in section 2. All parameters has a default value that is defined in the class
+definition. By default an object of this class is created with the object name
+"logConfig=1,safApp=safLogService" and no other attributes are set,
+meaning that all parameters will get their default value.
+
+The class defines the following parameters (logsv_classes.xml):
+
+NAME                        DEFAULT VALUE
+saLogRootDirectory          /var/log/opensaf/saflog
+saLogMaxLogrecsize          1024
+saLogStreamSystemHighLimit  0
+saLogStreamSystemLowLimit   0
+saLogAppHighLimit           0
+saLogAppLowLimit            0
+saLogMaxApplicationStreams  64
+
+All the above parameters except saLogRootDirectory has a default value
+set in the class definition (see logsv_classes.xml). The value for parameter
+saLogRootDirectory is instead defined when the imm.xml file is created. In
+the logsv_objects.xml file the parameter value is set to "xxLOGDIRxx/saflog"
+and when the imm.xml file is created "xxLOGDIRxx" is replaced by the content of
+$pkglogdir. See also LOGSV_ROOT_DIRECTORY in the logd.conf file.
+
+The configuration file is still used to "enable trace" and
+"enable info level logging". Also the environment variable
+LGSV_ENV_HEALTHCHECK_KEY is used.
+
+2. Configuration using a configuration file with environment variables:
+This is the "old" way of handling configuration and is kept for backwards
+compatibility and is used if no IMM configuration object is found .
+The config file is typically:
 
 /etc/opensaf/logd.conf
 
@@ -151,6 +190,10 @@ LOG streams, configure this directory to point to replicated (shared &
 persistent) partition.
 
 The following environment variables are optional:
+
+LOGSV_MAX_LOGRECSIZE
+
+The maximum size of a log record. The size must be at least 256 byte.
 
 LOG_STREAM_SYSTEM_HIGH_LIMIT
 
@@ -173,6 +216,10 @@ LOG_STREAM_APP_LOW_LIMIT
 The low limit for the all application streams. Only valid and used if
 a high limit has been defined. Defaults to some percent of the high limit
 (if not specified).
+
+LOG_MAX_APPLICATION_STREAMS
+
+The maximum number of application log streams that can be created.
 
 Don't forget the "export" keyword before the variable!
 

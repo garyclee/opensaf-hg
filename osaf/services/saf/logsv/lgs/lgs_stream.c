@@ -1023,20 +1023,18 @@ void log_stream_id_print(void)
 uint32_t log_stream_init(void)
 {
 	NCS_PATRICIA_PARAMS param;
-	char *stream_array_size_str;
+	SaUint32T value;
+	bool wa_flag = false;
 
 	/* Get configuration of how many application streams we should allow. */
-	stream_array_size_str = getenv("LOG_MAX_APPLICATION_STREAMS");
-	if (stream_array_size_str != NULL) {
-		long int value = strtol(stream_array_size_str, NULL, 10);
-		/* Check for correct conversion and a reasonable amount */
-		if (value == LONG_MIN || value == LONG_MAX) {
-			LOG_WA("Env var LOG_MAX_APPLICATION_STREAMS has wrong value, using default");
-			stream_array_size += DEFAULT_NUM_APP_LOG_STREAMS;
-		}
-		stream_array_size += value;
-	} else
+	value = *(SaUint32T *) lgs_imm_logconf_get(LGS_IMM_LOG_MAX_APPLICATION_STREAMS, &wa_flag);
+	/* Check for correct conversion and a reasonable amount */
+	if ( wa_flag == true) {
+		LOG_WA("Env var LOG_MAX_APPLICATION_STREAMS has wrong value, using default");
 		stream_array_size += DEFAULT_NUM_APP_LOG_STREAMS;
+	} else {
+		stream_array_size += value;
+	}
 
 	TRACE("Max %u application log streams", stream_array_size - 3);
 	stream_array = calloc(1, sizeof(log_stream_t *) * stream_array_size);

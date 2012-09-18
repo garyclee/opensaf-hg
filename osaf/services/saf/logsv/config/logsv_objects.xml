@@ -76,6 +76,13 @@
 			<value>0</value>
 		</attr>
 	</object>
+	<object class="OpenSafLogConfig">
+		<dn>logConfig=1,safApp=safLogService</dn>
+		<attr>
+			<name>logRootDirectory</name>
+			<value>xxLOGDIRxx/saflog</value>
+		</attr>
+	</object>
 	<object class="SaAmfCompBaseType">
 		<dn>safCompType=OpenSafCompTypeLOG</dn>
 	</object>
