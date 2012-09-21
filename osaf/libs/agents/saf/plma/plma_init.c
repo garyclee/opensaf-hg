@@ -340,25 +340,25 @@ uint32_t ncs_plma_startup()
 	NCS_LIB_REQ_INFO lib_create;
 		
 	TRACE_ENTER();
-	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 	if (plma_use_count > 0) {
 		/** Already created, so just increment the use_count */
 		plma_use_count++;
-		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 		return NCSCC_RC_SUCCESS;
 	}
 	/** Initialize PLMA library */
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	if (plma_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+		osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}else{
 		/** Initialize the library for the first time */
 		m_NCS_DBG_PRINTF("\nPLMSV:PLMA:ON");
 		plma_use_count = 1;
 	}
-	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -377,7 +377,7 @@ uint32_t ncs_plma_shutdown()
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	
-	osaf_mutex_lock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 
 
 	if (plma_use_count > 1) {
@@ -391,7 +391,7 @@ uint32_t ncs_plma_shutdown()
 		plma_use_count = 0;
 	}
 
-	osaf_mutex_unlock_ordie(&s_agent_startup_mutex, __FILE__, __LINE__);
+	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 
 	TRACE_LEAVE();
 	return rc;
