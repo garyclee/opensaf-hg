@@ -113,6 +113,7 @@ void stampObjectWithCcbId(void* db_handle, const char* object_id,
 SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T epoch);
 
 void discardPbeFile(std::string filename);
+void fsyncPbeJournalFile();
 
 /* XML-Writer related functions */
 
