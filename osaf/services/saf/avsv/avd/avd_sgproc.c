@@ -496,7 +496,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	AVD_AVND *node;
-	AVD_SU *su = NULL, *temp_su;
+	AVD_SU *su, *temp_su;
 	AVD_SU_SI_REL *susi;
 	bool q_flag = false, qsc_flag = false, all_su_unassigned = true, all_csi_rem = true;
 
@@ -856,7 +856,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				}
 			}
 		} else {
-			su->sg_of_su->susi_failed(cb, susi->su, susi,
+			susi->su->sg_of_su->susi_failed(cb, susi->su, susi,
 					n2d_msg->msg_info.n2d_su_si_assign.msg_act,
 					n2d_msg->msg_info.n2d_su_si_assign.ha_state);
 		}
