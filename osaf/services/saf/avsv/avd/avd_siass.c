@@ -760,7 +760,7 @@ uint32_t avd_susi_role_failover(AVD_SU_SI_REL *sisu, AVD_SU *su)
 		if (rc == NCSCC_RC_SUCCESS) {
 			if (sisu->si->num_dependents > 0) {
 				/* This is a Sponsor SI update its dependent states */
-				avd_update_depstate_si_failover(sisu->si, su);
+				avd_sidep_update_depstate_si_failover(sisu->si, su);
 			}
 		}
 	}

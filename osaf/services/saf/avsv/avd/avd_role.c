@@ -1027,8 +1027,10 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 
 	/* Screen through all the SG's in the sg database and update si's si_dep_state */
 	for (sg = avd_sg_getnext(&dn); sg != NULL; sg = avd_sg_getnext(&dn)) {
-		if (sg->sg_fsm_state == AVD_SG_FSM_STABLE)
-			avd_sg_screen_si_si_dependencies(cb, sg);
+		if (sg->sg_fsm_state == AVD_SG_FSM_STABLE) {
+			avd_sidep_update_si_dep_state_for_all_sis(sg);
+			avd_sidep_sg_take_action(sg);
+		}
 		dn = sg->name;
 	}
 

@@ -1766,7 +1766,7 @@ bool  quiesc_role_canbe_given_to_susi(const AVD_SU_SI_REL *susi)
 		memset(&si_indx, '\0', sizeof(si_indx));
 		si_indx.si_name_prim.length = susi->si->name.length;
 		memcpy(si_indx.si_name_prim.value, susi->si->name.value, si_indx.si_name_prim.length);
-		si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_indx, true);
+		si_dep_rec = avd_sidep_find_next(avd_cb, &si_indx, true);
 
 		while (si_dep_rec != NULL) {
 			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
@@ -1778,7 +1778,7 @@ bool  quiesc_role_canbe_given_to_susi(const AVD_SU_SI_REL *susi)
 			dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
 			if (dep_si == NULL) {
 				/* No corresponding SI node?? some thing wrong */
-				si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+				si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 				continue;
 			}
 			for (sisu = dep_si->list_of_sisu; sisu ; sisu = sisu->si_next) {
@@ -1791,7 +1791,7 @@ bool  quiesc_role_canbe_given_to_susi(const AVD_SU_SI_REL *susi)
 				}       
 
 			}
-			si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+			si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 		}
 	}
 done:
@@ -1955,7 +1955,7 @@ void avd_su_role_failover(AVD_SU *su, AVD_SU *stdby_su)
 		rc = avd_sg_su_si_mod_snd(avd_cb, stdby_su, SA_AMF_HA_ACTIVE);
 		if (rc == NCSCC_RC_SUCCESS) {
 			/* Update the dependent SI's dep_state */
-			avd_update_depstate_su_rolefailover(su);
+			avd_sidep_update_depstate_su_rolefailover(su);
 		}
 	}
 	TRACE_LEAVE();

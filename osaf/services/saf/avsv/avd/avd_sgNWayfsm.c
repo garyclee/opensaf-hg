@@ -363,7 +363,10 @@ uint32_t avd_sg_nway_susi_sucss_func(AVD_CL_CB *cb,
 				(su->sg_of_su->equal_ranked_su == true) &&
 				(su->sg_of_su->saAmfSGAutoAdjust == SA_TRUE))
 			avd_sg_nway_screen_si_distr_equal(su->sg_of_su);
-		avd_sg_screen_si_si_dependencies(cb, su->sg_of_su);
+		if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE) {
+			avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
+			avd_sidep_sg_take_action(su->sg_of_su);
+		}
 	}
 done:
 	TRACE_LEAVE2(" return value: %d",rc);
@@ -649,7 +652,10 @@ void avd_sg_nway_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 				(su->sg_of_su->equal_ranked_su == true) &&
 				(su->sg_of_su->saAmfSGAutoAdjust == SA_TRUE))
 			avd_sg_nway_screen_si_distr_equal(su->sg_of_su);
-		avd_sg_screen_si_si_dependencies(cb, su->sg_of_su);
+		if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE) {
+			avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
+			avd_sidep_sg_take_action(su->sg_of_su);
+		}
 	}
 
 done:	
@@ -1440,15 +1446,15 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 	sg->sg_fsm_state = AVD_SG_FSM_STABLE;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_FSM_STATE);
 
+	avd_sidep_update_si_dep_state_for_all_sis(sg);
 	/* assign active assignments to unassigned sis */
 	for (curr_si = sg->list_of_si; curr_si; curr_si = curr_si->sg_list_of_si_next) {
-		/* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
-		avd_screen_sponsor_si_state(cb, curr_si, false);
 
 		/* verify if si is ready and needs an assignment */
 		if ((curr_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
 		    (curr_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
 		    (curr_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
+		    (curr_si->si_dep_state == AVD_SI_READY_TO_UNASSIGN) ||
 		    (curr_si->list_of_csi == NULL))
 			continue;
 
@@ -1794,7 +1800,7 @@ uint32_t avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 			 */
 			for (curr_susi = su->list_of_susi;curr_susi != NULL;curr_susi = curr_susi->su_next) {
 				if(curr_susi->si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS)
-					si_dep_state_set(curr_susi->si, AVD_SI_SPONSOR_UNASSIGNED);
+					avd_sidep_si_dep_state_set(curr_susi->si, AVD_SI_SPONSOR_UNASSIGNED);
 				if (curr_susi->si->num_dependents > 0)
 					avd_sidep_reset_dependents_depstate_in_sufault(curr_susi->si);
 			}	
@@ -3104,6 +3110,9 @@ uint32_t avd_sg_nway_susi_succ_sg_admin(AVD_CL_CB *cb,
 			if (!sg->su_oper_list.su) {
 				avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_STABLE);
+				/*As sg is stable, screen for si dependencies and take action on whole sg*/
+				avd_sidep_update_si_dep_state_for_all_sis(sg);
+				avd_sidep_sg_take_action(sg); 
 			}
 		}
 	}
@@ -3191,7 +3200,8 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 				(su->sg_of_su->equal_ranked_su == true) &&
 				(su->sg_of_su->saAmfSGAutoAdjust == SA_TRUE))
 			avd_sg_nway_screen_si_distr_equal(su->sg_of_su);
-		avd_sg_screen_si_si_dependencies(cb, sg);
+		if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE)
+			avd_sidep_sg_take_action(su->sg_of_su);
 	}
 
 done:
@@ -3569,6 +3579,9 @@ void avd_sg_nway_node_fail_sg_admin(AVD_CL_CB *cb, AVD_SU *su)
 	if (!sg->su_oper_list.su) {
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 		m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_STABLE);
+		/*As sg is stable, screen for si dependencies and take action on whole sg*/
+		avd_sidep_update_si_dep_state_for_all_sis(sg);
+		avd_sidep_sg_take_action(sg); 
 	}
 	
 	TRACE_LEAVE();
