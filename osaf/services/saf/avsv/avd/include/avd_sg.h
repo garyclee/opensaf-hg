@@ -269,7 +269,6 @@ typedef struct avd_amf_sg_type_tag {
 	}\
 	if (state == AVD_SG_FSM_STABLE) {\
 		osafassert(sg->su_oper_list.su == NULL); \
-		avd_sg_screen_si_si_dependencies(cb, sg); \
 	}\
 }
 

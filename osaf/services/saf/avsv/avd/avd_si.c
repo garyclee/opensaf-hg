@@ -334,6 +334,7 @@ AVD_SI *avd_si_new(const SaNameT *dn)
 	si->saAmfSIAssignmentState = SA_AMF_ASSIGNMENT_UNASSIGNED;
 	si->alarm_sent = false;
 	si->num_dependents = 0;
+	si->tol_timer_count = 0;
 
 	return si;
 }

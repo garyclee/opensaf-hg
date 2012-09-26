@@ -67,6 +67,7 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	i_si = sg->list_of_si;
 	l_flag = true;
 
+	avd_sidep_update_si_dep_state_for_all_sis(sg);
 	while ((i_si != AVD_SI_NULL) && (l_flag == true)) {
 		/* verify that the SI is ready and needs come more assignments. */
 		if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
@@ -76,12 +77,10 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			continue;
 		}
 
-		/* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
-		avd_screen_sponsor_si_state(cb, i_si, false);
-
 		/* Cannot be assigned, as sponsors SIs are not in enabled state for this SI */
 		if ((i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
-		    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP)) {
+				(i_si->si_dep_state == AVD_SI_READY_TO_UNASSIGN) ||
+				(i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP)) {
 			i_si = i_si->sg_list_of_si_next;
 			continue;
 		}
@@ -697,6 +696,7 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 				if (avd_sg_nacvred_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 					/* No New assignments are been done in the SG. change the FSM state */
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+					avd_sidep_sg_take_action(su->sg_of_su); 
 					avd_sg_app_su_inst_func(cb, su->sg_of_su);
 					if (AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) {
 						/* If after avd_sg_app_su_inst_func call, 
@@ -811,6 +811,7 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 					if (avd_sg_nacvred_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 						/* No New assignments are been done in the SG. change the FSM state */
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+						avd_sidep_sg_take_action(su->sg_of_su); 
 						avd_sg_app_su_inst_func(cb, su->sg_of_su);
 						if (AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) {
 							/* If after avd_sg_app_su_inst_func call, 
@@ -856,6 +857,7 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 
 				/* change the FSM state */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				avd_sidep_sg_take_action(su->sg_of_su); 
 				avd_sg_app_su_inst_func(cb, su->sg_of_su);
 				if (AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) {
 					/* If after avd_sg_app_su_inst_func call, 
@@ -993,6 +995,9 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 				avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_LOCKED);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				/*As sg is stable, screen for si dependencies and take action on whole sg*/
+				avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
+				avd_sidep_sg_take_action(su->sg_of_su); 
 				if (AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) {
 					/* If after avd_sg_app_su_inst_func call, 
 					   still fsm is stable, then do screening 
@@ -1043,6 +1048,9 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 
 				/* change the FSM state */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				/*As sg is stable, screen for si dependencies and take action on whole sg*/
+				avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
+				avd_sidep_sg_take_action(su->sg_of_su); 
 				avd_sg_app_su_inst_func(cb, su->sg_of_su);
 				if (AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) {
 					/* If after avd_sg_app_su_inst_func call, 
@@ -1497,6 +1505,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 			if (avd_sg_nacvred_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 				/* No New assignments are been done in the SG. change the FSM state */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				avd_sidep_sg_take_action(su->sg_of_su); 
 				avd_sg_app_su_inst_func(cb, su->sg_of_su);
 				if (AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) {
 					/* If after avd_sg_app_su_inst_func call, 
@@ -1547,6 +1556,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 			if (avd_sg_nacvred_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 				/* No New assignments are been done in the SG. change the FSM state */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				avd_sidep_sg_take_action(su->sg_of_su); 
 				avd_sg_app_su_inst_func(cb, su->sg_of_su);
 				if (AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) {
 					/* If after avd_sg_app_su_inst_func call, 
@@ -1587,6 +1597,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 			if (avd_sg_nacvred_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 				/* No New assignments are been done in the SG. change the FSM state */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				avd_sidep_sg_take_action(su->sg_of_su); 
 				avd_sg_app_su_inst_func(cb, su->sg_of_su);
 				if (AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) {
 					/* If after avd_sg_app_su_inst_func call, 
@@ -1619,6 +1630,9 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 
 			/* change the FSM state */
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+			/*As sg is stable, screen for si dependencies and take action on whole sg*/
+			avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
+			avd_sidep_sg_take_action(su->sg_of_su); 
 			avd_sg_app_su_inst_func(cb, su->sg_of_su);
 			if (AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) {
 				/* If after avd_sg_app_su_inst_func call, 

@@ -23,8 +23,119 @@
 
   DESCRIPTION: 
   
-  This module deals with the creation, accessing and deletion of the SI-SI
+  This module deals with the creation, accessing and deletion of the SI
   dependency database.
+
+  THE MEANING OF SPONSOR AND DEPENDENT:
+  In various sections below terms like sponsor(s) and dependent(s) is used 
+  frequently. These two terms are used for SIs. A dependent SI or simply a
+  dependent means a SI which will be assigned active HA state only when the SI
+  on which it depends is either fully assigned or partially assigned. The SI 
+  on which it depends for active HA state is called sponsor SI or simply sponsor. 
+  A dependent may depend on more than one sponsors. Similarly a SI can be a sponsor
+  for more than one dependents.
+  For more details on SI dependency section 3.8.1.1 of specification SA-AIS-AMF-B.04.01
+  can be referred.
+ 
+  RULES FOR si_dep_state IN ANY SI:
+  In any SI si_dep_state represents state of SI from SI dependency 
+  perpespective. In any SI, si_dep_state can take values from enum 
+  AVD_SI_DEP_STATE based on following rules:
+  
+  1)A SI which is not participating in SI dependency can take 
+    AVD_SI_NO_DEPENDENCY for si_dep_state.
+    Such a SI will have si->spons_list as NULL and si->num_dependents 
+    as zero.
+  2)A SI with only dependents and no sponsors can take following values 
+    for si_dep_state:
+
+    AVD_SI_NO_DEPENDENCY,
+    AVD_SI_ASSIGNED.
+    Such a SI will have si->spons_list as NULL.
+
+  3)A SI having sponsors as well as dependents can take all values for 
+    si_dep_states except AVD_SI_NO_DEPENDENCY.
+
+
+  DESCRIPTION OF ALL SI DEPENDENCY STATES:
+  The meanings all values in enum AVD_SI_DEP_STATE : 
+  1)AVD_SI_NO_DEPENDENCY:
+  	A SI is moved to this state:
+  	1)If it has no sponsor and no dependents irrespective of it is assigned or unassigned.
+  	2)If SI has dependent and no sponsor then its si_dep_state will be AVD_SI_NO_DEPENDENCY
+            when unassigned and AVD_SI_ASSIGNED when assigned.
+  2)AVD_SI_SPONSOR_UNASSIGNED:
+  	 Only a dependent SI can have this state. A SI has to satisfy 
+  	 	all the following conditions to be in this state:
+  	 1)If it has atleast one sponsor. 
+  	 2)Atleast one sponsor is unassigned.
+  	 3)Tolerance timer has expired(if configured non zero).
+  	 4)and this dependent SI is unassigned.
+  3)AVD_SI_ASSIGNED:
+  	 A SI can have this dep state in any of the following conditions:
+  		1)If it is sponsor and assigned.
+  		2)If it is a dependent SI, assigned and all its sponsors are assigned.
+  		3)If it is a sponsor as well as a dependent, assigned and all sponsors assigned.
+  4)AVD_SI_TOL_TIMER_RUNNING:
+  	Only a dependent SI can have this state. A SI has to satisfy
+  		all the following conditions to be in this state:
+  	1)If it has atleast one sponsor. 
+  	2)Atleast one sponsor is unassigned.
+  	3)It has saAmfToleranceTime value nonzero for the SI-dependency
+  		in which sponsor is unassigned.
+  	4)Tolerance timer is running for the dependency mentioned in 3) in this section.
+  
+  5)AVD_SI_READY_TO_UNASSIGN:
+  	Only applicable to a dependent SI. A dependent SI can have this state when its 
+	sponsor is unassigned and this dependent SI is in assigned state. 
+  
+  6)AVD_SI_UNASSIGNING_DUE_TO_DEP:
+  	Only applicable to dependent SI. A dependent si is set to this state
+  	 before removing assignment from it.
+  
+  7)AVD_SI_FAILOVER_UNDER_PROGRESS:
+  	Only applicable to a SI which has atleast one sponsor. A dependent SI is
+  	set to this state when its sponsor is undergoing failover. It means, 
+  	failover for this dependent SI is delayed untill the completion of 
+  	sponsor's failover.
+  		
+  8)AVD_SI_READY_TO_ASSIGN:
+  	Only applicable to a dependent SI. A dependent SI can have this state when
+	all its sponsors are assigned and this dependent SI itself is unassigned.
+
+
+
+  SI-DEPENDENCY SI STATE TRASITION DIAGRAM :
+                                -------------------      (4)
+   ****************************>|                 |>***********************
+   *       ********************<| AVD_SI_ASSIGNED |<*******************   *     Triggering actions:
+   *       *                    -------------------     (2),(6)       *   *       (1)DEP_CONFIG
+   *       *                                                          *   *       (2)SPONSOR_ASSIGNED
+   *       *            (6)            ---------------------------    *   *       (3)SI_ASSIGNED
+   *       *            **************<|                         |    *   *       (4)SPONSOR_UNASSGINED    
+   *       *            *  ***********>|AVD_SI_SPONSOR_UNASSIGNED|    *   *       (5)SI_UNASSGINED 
+   *       *            *  *(4)        ---------------------------    *   *       (6)DEP_UNCOFIGURED
+   *       *(5)         *  *              ^  v    ^                   *   *       (7)TOL_TIMER_EXPIRY
+   *       *            v  ^              *  *    *(5)                ^   *       (8)TOL_TIMER > 0 
+   *       *    ----------------------    *  *   -----------------------  *       (9)TOL_TIMER == 0
+   *       *    |AVD_SI_NO_DEPENDENCY|    *  *   |AVD_SI_UNASSIGNING   |  * (4)              
+   *       *    |                    | (4)*  *   |DUE_TO_DEP           |  *       
+   *       *    ----------------------    *  *   -----------------------  *      
+   *       *           v                  *  *    *       ^               *        
+   *       *           *                  *  *    *       * (9)           * 
+   *       *           *                  *  *    *       ^               v   
+   *(3)    *           *(1)               *  *    *     --------------------------    
+   *       *           *                  *  *    *     |AVD_SI_READY_TO_UNASSIGN|         
+   *       v           v                  *  *    *     --------------------------             
+   *    ------------------------          *  *    *              V          
+   ****<|AVD_SI_READY_TO_ASSIGN|>**********  *    *              *        
+        |                      |<*************    *              *(8)     
+        ------------------------    (2)           *              *                
+                                                  * (7)          *          
+                                                  ^              v         
+                                              --------------------------          
+                                              |AVD_SI_TOL_TIMER_RUNNING|       
+                                              --------------------------       
 
 ..............................................................................
 
@@ -47,15 +158,15 @@
 #include <avd_proc.h>
 
 /* static function prototypes */
-static uint32_t avd_check_si_dep_sponsors(AVD_CL_CB *cb, AVD_SI *si, bool take_action);
-static void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, AVD_SI_SI_DEP *si_dep_rec);
-static uint32_t avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si);
-static uint32_t avd_check_si_state_enabled(AVD_CL_CB *cb, AVD_SI *si);
-static uint32_t avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si);
-static uint32_t avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep_idx);
-static uint32_t avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx);
-static void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt);
-static void avd_dependentsi_role_failover(AVD_SI *si);
+static bool avd_sidep_all_sponsors_active(AVD_SI *si);
+static void sidep_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, AVD_SI_SI_DEP *si_dep_rec);
+static uint32_t sidep_unassign_dependent(AVD_CL_CB *cb, AVD_SI *si);
+static bool sidep_is_si_active(AVD_SI *si);
+static uint32_t sidep_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si);
+static uint32_t sidep_si_dep_state_evt_send(AVD_CL_CB *cb, AVD_SI *si, AVD_EVT_TYPE evt_type);
+static uint32_t sidep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx);
+static void sidep_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt);
+static void sidep_dependentsi_role_failover(AVD_SI *si);
 
 static AVD_SI_DEP si_dep; /* SI-SI dependency data */
 
@@ -67,76 +178,86 @@ static const char *depstatename[] = {
 	"TOL_TIMER_RUNNING",
 	"READY_TO_UNASSIGN",
 	"UNASSIGNING_DUE_TO_DEP",
-	"FAILOVER_UNDER_PROGRESS"
+	"FAILOVER_UNDER_PROGRESS",
+	"READY_TO_ASSIGN"
 };
 
-void si_dep_state_set(AVD_SI *si, AVD_SI_DEP_STATE state)
+/**
+ * @brief       This function updates the si_dep_state in SI.  
+ *              Also if the amfd is standby then it will
+ *              take action on dependents.
+ *
+ * @param[in]   si - pointer to AVD_SI struct. 
+ * @param[in]   state - any state of AVD_SI_DEP_STATE type. 
+ *
+ * @return      Nothing 
+ *
+ **/
+void avd_sidep_si_dep_state_set(AVD_SI *si, AVD_SI_DEP_STATE state)
 {
 	AVD_SI_DEP_STATE old_state = si->si_dep_state;
-
-	if ((state != AVD_SI_TOL_TIMER_RUNNING) && (state != AVD_SI_READY_TO_UNASSIGN))
-		avd_si_dep_stop_tol_timer(avd_cb, si);
-
+	if (old_state == state)
+		return;
 	si->si_dep_state = state;
 	TRACE("'%s' si_dep_state %s => %s", si->name.value, depstatename[old_state], depstatename[state]);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_DEP_STATE);
 
-	if ((state == AVD_SI_SPONSOR_UNASSIGNED) && (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE))
-		avd_screen_sponsor_si_state(avd_cb, si, false);
+	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
+		TRACE("si->num_dependents:%u", si->num_dependents);
+		/* If the Sponsor SI is Unasigned then iterate through all its dependents 
+		   and start Tolerance timer for each dependent */
+		if ((si->num_dependents) &&
+				((si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
+				 (si->si_dep_state == AVD_SI_NO_DEPENDENCY) ||
+				 (si->si_dep_state == AVD_SI_READY_TO_ASSIGN))) {
+			/*Check if this SI is a sponsor SI for some other SI then 
+			  take appropriate action on dependents.*/
+			sidep_take_action_on_dependents(si);
+		}
+		/*If a dependent si moves to AVD_SI_READY_TO_UNASSIGN state 
+		  then start the tolerance timer.*/
+		if (si->si_dep_state == AVD_SI_READY_TO_UNASSIGN)
+			sidep_process_ready_to_unassign_depstate(si);
+	}
 }
 
 /*****************************************************************************
- * Function: avd_check_si_state_enabled 
+ * Function: sidep_is_si_active 
  *
- * Purpose:  This function check the active and the quiescing HA states for
- *           SI of all service units.
+ * Purpose:  This function checks if si is active from si-si dependency
+ *           perspective.Such an si will have atleast one sisu in active or
+ *           quiescing state and its si_dep_state will not be
+ *           AVD_SI_FAILOVER_UNDER_PROGRESS.
  *
- * Input:   cb - Pointer to AVD ctrl-block
- *          si - Pointer to AVD_SI struct
+ * Input:   si - Pointer to AVD_SI struct
  *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ * Returns: true/false.
  *
  * NOTES:
  *
  **************************************************************************/
-uint32_t avd_check_si_state_enabled(AVD_CL_CB *cb, AVD_SI *si)
+bool sidep_is_si_active(AVD_SI *si)
 {
 	AVD_SU_SI_REL *susi = NULL;
-	uint32_t rc = NCSCC_RC_FAILURE;
+	bool si_active = false;
 
 	TRACE_ENTER2("'%s'", si->name.value);
 
-	susi = si->list_of_sisu;
-	while (susi != AVD_SU_SI_REL_NULL) {
+	for (susi = si->list_of_sisu; susi != AVD_SU_SI_REL_NULL; susi = susi->si_next) {
 		if (((susi->state == SA_AMF_HA_ACTIVE) || (susi->state == SA_AMF_HA_QUIESCING)) &&
-			(susi->fsm == AVD_SU_SI_STATE_ASGND) &&
-			(susi->si->si_dep_state != AVD_SI_FAILOVER_UNDER_PROGRESS)) {
-			rc = NCSCC_RC_SUCCESS;
+				(susi->fsm == AVD_SU_SI_STATE_ASGND) &&
+				(susi->si->si_dep_state != AVD_SI_FAILOVER_UNDER_PROGRESS)) {
+			si_active = true;
 			break;
 		}
-
-		susi = susi->si_next;
 	}
 
-	if (rc == NCSCC_RC_SUCCESS) {
-		if (si->si_dep_state == AVD_SI_NO_DEPENDENCY) {
-			if (si->tol_timer_count == 0) {
-				si_dep_state_set(si, AVD_SI_ASSIGNED);
-			} else {
-				si_dep_state_set(si, AVD_SI_TOL_TIMER_RUNNING);
-			}
-		}
-	} else {
-		if (si->si_dep_state != AVD_SI_FAILOVER_UNDER_PROGRESS)
-			si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
-	}
-
-	TRACE_LEAVE2("%u", rc);
-	return rc;
+	TRACE_LEAVE2("%u", si_active);
+	return si_active;
 }
 
 /*****************************************************************************
- * Function: avd_si_dep_spons_list_del
+ * Function: sidep_spons_list_del
  *
  * Purpose:  This function deletes the spons-SI node from the spons-list of 
  *           dependent-SI.
@@ -149,7 +270,7 @@ uint32_t avd_check_si_state_enabled(AVD_CL_CB *cb, AVD_SI *si)
  * NOTES:
  * 
  **************************************************************************/
-void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
+void sidep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
 {
 	AVD_SI *dep_si = NULL;
 	AVD_SPONS_SI_NODE *spons_si_node = NULL;
@@ -158,17 +279,11 @@ void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
 	TRACE_ENTER();
 
 	/* Dependent SI should be active, if not return error */
-	if ((dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec))
-	    == AVD_SI_NULL) {
-		/* LOG the message */
-		goto done;
-	}
+	dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
+	osafassert(dep_si);
 
 	/* SI doesn't depend on any other SIs */
-	if (dep_si->spons_si_list == NULL) {
-		/* LOG the message */
-		goto done;
-	}
+	osafassert (dep_si->spons_si_list != NULL);
 
 	spons_si_node = dep_si->spons_si_list;
 
@@ -195,7 +310,6 @@ void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
 		}
 	}
 
-done:
 	TRACE_LEAVE();
 }
 
@@ -242,7 +356,7 @@ void avd_si_dep_spons_list_add(AVD_SI *dep_si, AVD_SI *spons_si, AVD_SI_SI_DEP *
 }
 
 /*****************************************************************************
- * Function: avd_si_dep_stop_tol_timer
+ * Function: sidep_stop_tol_timer
  *
  * Purpose:  This function is been called when SI was unassigned, checks 
  *           whether tolerance timers are running for this SI (because
@@ -256,7 +370,7 @@ void avd_si_dep_spons_list_add(AVD_SI *dep_si, AVD_SI *spons_si, AVD_SI_SI_DEP *
  * NOTES: 
  * 
  **************************************************************************/
-void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si)
+void sidep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SI_SI_DEP_INDX indx;
 	AVD_SI_SI_DEP *rec = NULL;
@@ -272,7 +386,7 @@ void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si)
 		memcpy(indx.si_name_prim.value, spons_si_node->si->name.value,
 		       spons_si_node->si->name.length);
 
-		if ((rec = avd_si_si_dep_find(cb, &indx, true)) != NULL) {
+		if ((rec = avd_sidep_find(cb, &indx, true)) != NULL) {
 			if (rec->si_dep_timer.is_active == true) {
 				avd_stop_tmr(cb, &rec->si_dep_timer);
 				TRACE("Tolerance timer stopped for '%s'", si->name.value);
@@ -288,11 +402,12 @@ void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si)
 }
 
 /*****************************************************************************
- * Function: avd_si_dep_si_unassigned
+ * Function: sidep_unassign_dependent
  *
  * Purpose:  This function removes the active and the quiescing HA states for
- *           SI from all service units and moves SI dependency state to
- *           SPONSOR_UNASSIGNED state.  
+ *           SI from all service units and if si is a dependent si then moves
+ *           SI dependency state to SPONSOR_UNASSIGNED state.For a si with no 
+ *           sponsor si_dp_state is set to AND_SI_NO_DEPENDENCY. 
  *
  * Input: cb - The AVD control block
  *        si - Pointer to AVD_SI struct
@@ -302,7 +417,7 @@ void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si)
  * NOTES:
  *
  **************************************************************************/
-uint32_t avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si)
+uint32_t sidep_unassign_dependent(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU_SI_REL *susi = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
@@ -311,7 +426,7 @@ uint32_t avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si)
 
 	susi = si->list_of_sisu;
 	while (susi != AVD_SU_SI_REL_NULL && susi->fsm != AVD_SU_SI_STATE_UNASGN) {
-		if (avd_susi_del_send(susi) != NCSCC_RC_SUCCESS)
+		if ((rc = avd_susi_del_send(susi)) != NCSCC_RC_SUCCESS)
 			goto done;
 
 		/* add the su to su-oper list */
@@ -319,14 +434,13 @@ uint32_t avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si)
 
 		susi = susi->si_next;
 	}
-
-	si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
+	if(si->spons_si_list == NULL)
+		avd_sidep_si_dep_state_set(si, AVD_SI_NO_DEPENDENCY);
+	else
+		avd_sidep_si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
 
 	/* transition to sg-realign state */
 	m_AVD_SET_SG_FSM(cb, si->sg_of_si, AVD_SG_FSM_SG_REALIGN);
-
-	/* Check if this SI is a sponsor SI for some other SI, the take appropriate action */
-	avd_si_dep_spons_state_modif(cb, si, NULL, AVD_SI_DEP_SPONSOR_UNASSIGNED);
 
 done:
 	TRACE_LEAVE2("rc:%u", rc);
@@ -334,7 +448,7 @@ done:
 }
 
 /*****************************************************************************
- * Function: avd_sg_red_si_process_assignment 
+ * Function: sidep_sg_red_si_process_assignment 
  *
  * Purpose:  This function process SI assignment process on a redundancy model
  *           that was associated with the SI.
@@ -347,26 +461,26 @@ done:
  * NOTES:
  *
  **************************************************************************/
-uint32_t avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
+uint32_t sidep_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s'", si->name.value);
 
 	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		TRACE("unstable");
+		TRACE("sg unstable, so defering sidep action on si:'%s'",si->name.value);
 		goto done;
 	}
 
 	if ((si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) &&
 		(cb->init_state == AVD_APP_STATE)) {
-
+		LOG_NO("Assigning due to dep '%s'",si->name.value);
 		if (si->sg_of_si->si_func(cb, si) != NCSCC_RC_SUCCESS) {
 			goto done;
 		}
 
-		if (avd_check_si_state_enabled(cb, si) == NCSCC_RC_SUCCESS) {
-			si_dep_state_set(si, AVD_SI_ASSIGNED);
+		if (sidep_is_si_active(si)) {
+			avd_sidep_si_dep_state_set(si, AVD_SI_ASSIGNED);
 			rc = NCSCC_RC_SUCCESS;
 		}
 	}
@@ -376,12 +490,14 @@ done:
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_si_dep_state_evt
+/*****************************************************************************************
+ * Function: sidep_si_dep_state_evt_send
  *
- * Purpose:  This function prepares the event to send AVD_EVT_SI_DEP_STATE
- *           event. This event is sent on expiry of tolerance timer or the 
- *           sponsor SI was unassigned and tolerance timer is "0".
+ * Purpose:  This function prepares the event to send either AVD_EVT_UNASSIGN_SI_DEP_STATE 
+ *           event or AVD_EVT_ASSIGN_SI_DEP_STATE event. AVD_EVT_UNASSIGN_SI_DEP_STATE event
+ *           is sent on expiry of tolerance timer or the sponsor SI was unassigned and 
+ *           tolerance timer is "0". AVD_EVT_ASSIGN_SI_DEP_STATE event is sent to assign a 
+ *           dependent si.
  *
  * Input:  cb - ptr to AVD control block
  *         si - ptr to AVD_SI struct.
@@ -390,13 +506,13 @@ done:
  *
  * NOTES:
  * 
- **************************************************************************/
-uint32_t avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep_idx)
+ *****************************************************************************************/
+uint32_t sidep_si_dep_state_evt_send(AVD_CL_CB *cb, AVD_SI *si, AVD_EVT_TYPE evt_type)
 {
 	AVD_EVT *evt = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	TRACE_ENTER2("'%s'", si->name.value);
+	TRACE_ENTER2("si:'%s' evt_type:%u", si->name.value, evt_type);
 
 	evt = calloc(1, sizeof(AVD_EVT));
 	if (evt == NULL) {
@@ -404,23 +520,15 @@ uint32_t avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* Update evt struct, using tmr field even though this field is not
+	/*Update evt struct, using tmr field even though this field is not
 	 * relevant for this event, but it accommodates the required data.
 	 */
-	evt->rcv_evt = AVD_EVT_SI_DEP_STATE;
+	evt->rcv_evt = evt_type;
+	evt->info.tmr.dep_si_name = si->name;
 
-	/* si_dep_idx is NULL for ASSIGN event non-NULL for UNASSIGN event */
-	if (si_dep_idx != NULL) {
-		evt->info.tmr.spons_si_name = si_dep_idx->si_name_prim;
-		evt->info.tmr.dep_si_name = si_dep_idx->si_name_sec;
-		si_dep_state_set(si, AVD_SI_READY_TO_UNASSIGN);
-	} else {		/* For ASSIGN evt, just enough to feed SI name */
-
-		evt->info.tmr.spons_si_name.length = si->name.length;
-		memcpy(evt->info.tmr.spons_si_name.value, si->name.value, si->name.length);
-	}
-
-	TRACE("%u", evt->rcv_evt);
+	/*For unassignment mark the si_dep_state t- AVD_SI_READY_TO_UNASSIGN*/
+	if (evt_type == AVD_EVT_UNASSIGN_SI_DEP_STATE) 
+		avd_sidep_si_dep_state_set(si, AVD_SI_READY_TO_UNASSIGN);
 
 	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: ipc send %u failed", __FUNCTION__, evt->rcv_evt);
@@ -435,7 +543,7 @@ done:
 }
 
 /*****************************************************************************
- * Function: avd_tmr_si_dep_tol_evh
+ * Function: avd_sidep_tol_tmr_evh
  *
  * Purpose:  On expiry of tolerance timer in SI-SI dependency context, this
  *           function initiates the process of SI unassignment due to its 
@@ -449,7 +557,7 @@ done:
  * NOTES:
  * 
  **************************************************************************/
-void avd_tmr_si_dep_tol_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_sidep_tol_tmr_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_SI *si = NULL;
 	AVD_SI *spons_si = NULL;
@@ -467,7 +575,7 @@ void avd_tmr_si_dep_tol_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	TRACE("expiry of tolerance timer '%s'", si->name.value);
+	LOG_NO("expiry of tolerance timer '%s'", si->name.value);
 
 	/* Since the tol-timer is been expired, can decrement tol_timer_count of 
 	 * the SI. 
@@ -475,148 +583,117 @@ void avd_tmr_si_dep_tol_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	if (si->tol_timer_count > 0)
 		si->tol_timer_count--;
 
+	if (cb->avail_state_avd != SA_AMF_HA_ACTIVE) 
+		goto done;
+
+	avd_sidep_si_dep_state_set(si, AVD_SI_UNASSIGNING_DUE_TO_DEP);
+	/* Do not take action on dependent si if its sg fsm is unstable. 
+	   When sg becomes stable, based on updated 
+	   si_dep_state action is taken.
+	 */
+	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
+		TRACE("sg unstable, so defering sidep action on si:'%s'",si->name.value);
+		goto done;
+	}
+
+
 	/* Before starting unassignment process of SI, check once again whether 
 	 * sponsor SIs are assigned back,if so move the SI state to ASSIGNED state 
 	 */
-	avd_screen_sponsor_si_state(cb, si, false);
-
-	switch (si->si_dep_state) {
-	case AVD_SI_NO_DEPENDENCY:
-		si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
-	case AVD_SI_SPONSOR_UNASSIGNED:
-		break;
-	case AVD_SI_ASSIGNED:
-	case AVD_SI_UNASSIGNING_DUE_TO_DEP:
-		/* LOG the ERROR message. Before moving to this state, need to ensure 
-		 * all the tolerance timers of this SI are in stopped state.
+	if (avd_sidep_all_sponsors_active(si)) {
+		/*Since all the sponsors got assigned we can assign this dependent. 
+		  If dependent si is already assigned then mark dep state to AVD_SI_ASSGINED
+		  and stop other tolerance timers.
 		 */
-		goto done;
-
-	default:
-		break;
-	}
-
-	/* If the SI is already been unassigned, nothing to proceed for 
-	 * unassignment 
-	 */
-	if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
-		si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
-		goto done;
-	}
-
-	/* Check if spons_si SI-Dep state is not in ASSIGNED state, then 
-	 * only initiate the unassignment process. Because the SI can be 
-	 * in this state due to some other spons-SI.
-	 */
-	if (avd_check_si_state_enabled(cb, spons_si) != NCSCC_RC_SUCCESS) {
-		if (cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
-			si_dep_state_set(si, AVD_SI_UNASSIGNING_DUE_TO_DEP);
-
-			if (avd_si_dep_si_unassigned(cb, si) != NCSCC_RC_SUCCESS) {
-				TRACE("'%s' Dep SI unassignment failed", si->name.value);
-			}
+		if (sidep_is_si_active(si)) 
+			avd_sidep_si_dep_state_set(si, AVD_SI_ASSIGNED);
+		 else 
+			sidep_sg_red_si_process_assignment(cb, si);
+		
+	} else {
+		/*Atleast one sponsor is unassigned. If dependent is already unassigned then
+		  mark its dep state to SPONSOR_UNASSGINED otherwise unassign it.
+		 */
+		if (sidep_is_si_active(si)) { 
+			LOG_NO("Unassigning due to dep'%s'",si->name.value);
+			sidep_unassign_dependent(cb, si);
 		}
+		else  
+			avd_sidep_si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
+		
 	}
+
 done:
 	TRACE_LEAVE();
 }
-
 /*****************************************************************************
- * Function: avd_check_si_dep_sponsors
+ * Function: avd_sidep_all_sponsors_active
  *
  * Purpose:  This function checks whether sponsor SIs of an SI are in enabled /
  *           disabled state.  
  *
- * Input:    cb - Pointer to AVD control block
- *           si - Pointer to AVD_SI struct 
- *           take_action - If true, process the impacts (SI-SI dependencies)
- *                      on dependent-SIs (of sponsor-SI being enabled/disabled)
+ * Input:    si - Pointer to AVD_SI struct 
  *
- * Returns: NCSCC_RC_SUCCESS - if sponsor-SI is in enabled state 
- *          NCSCC_RC_FAILURE - if sponsor-SI is in disabled state 
+ * Returns: true - if sponsor-SI is in enabled state 
+ *          false- if sponsor-SI is in disabled state 
  *
  * NOTES:  
  * 
  **************************************************************************/
-uint32_t avd_check_si_dep_sponsors(AVD_CL_CB *cb, AVD_SI *si, bool take_action)
+bool avd_sidep_all_sponsors_active(AVD_SI *si)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVD_SPONS_SI_NODE *spons_si_node = si->spons_si_list;
+	bool spons_state = true;
+	AVD_SPONS_SI_NODE *spons_si_node = NULL;
 
 	TRACE_ENTER2("'%s'", si->name.value);
 
-	while (spons_si_node) {
-		if (avd_check_si_state_enabled(cb, spons_si_node->si) != NCSCC_RC_SUCCESS) {
-			rc = NCSCC_RC_FAILURE;
-			if (take_action) {
-				avd_si_dep_spons_state_modif(cb, spons_si_node->si, si, AVD_SI_DEP_SPONSOR_UNASSIGNED);
-			} else {
-				/* Sponsors are not in enabled state */
-				break;
-			}
+	for (spons_si_node = si->spons_si_list; spons_si_node != NULL;
+			spons_si_node = spons_si_node->next) {
+		if (!sidep_is_si_active(spons_si_node->si)) {
+			spons_state = false;
+			break;
 		}
-
-		spons_si_node = spons_si_node->next;
 	}
 
-	/* All of the sponsors are in enabled state */
-	if ((rc == NCSCC_RC_SUCCESS) && (take_action)) {
-		si_dep_state_set(si, AVD_SI_ASSIGNED);
-
-		avd_si_dep_spons_state_modif(cb, si, NULL, AVD_SI_DEP_SPONSOR_ASSIGNED);
-	}
-
-	TRACE_LEAVE2("rc:%u", rc);
-	return rc;
+	TRACE_LEAVE2("spons_state:%u", spons_state);
+	return spons_state;
 }
-
 /*****************************************************************************
- * Function: avd_sg_screen_si_si_dependencies
+ * Function: avd_sidep_update_si_dep_state_for_all_sis
  *
- * Purpose:  This function screens SI-SI dependencies of the SG SIs. 
- *
- * Input: cb - The AVD control block
- *        sg - Pointer to AVD_SG struct 
+ * Purpose:  This function screens SI-SI dependencies of the all sis in SG. 
+ *           It will update si_dep_state of si based on its sponsors assignment state.
+ *               
+ * Input: sg - Pointer to AVD_SG struct 
  *
  * Returns: 
  *
  * NOTES:  
  * 
  **************************************************************************/
-void avd_sg_screen_si_si_dependencies(AVD_CL_CB *cb, AVD_SG *sg)
+void avd_sidep_update_si_dep_state_for_all_sis(AVD_SG *sg)
 {
 	AVD_SI *si = NULL;
 
 	TRACE_ENTER2("'%s'", sg->name.value);
 
-	si = sg->list_of_si;
-	while (si != AVD_SI_NULL) {
-		if (avd_check_si_state_enabled(cb, si) == NCSCC_RC_SUCCESS) {
-			/* SI was in enabled state, so check for the SI-SI dependencies
-			 * conditions and update the SI accordingly.
-			 */
-			avd_check_si_dep_sponsors(cb, si, true);
-		} else {
-			avd_screen_sponsor_si_state(cb, si, true);
-			if ((si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
-			    (si->si_dep_state == AVD_SI_NO_DEPENDENCY)) {
-				/* Check if this SI is a sponsor SI for some other SI, the take appropriate action */
-				avd_si_dep_spons_state_modif(cb, si, NULL, AVD_SI_DEP_SPONSOR_UNASSIGNED);
-			}
-		}
+	for (si = sg->list_of_si; si != NULL; si = si->sg_list_of_si_next) {
 
-		si = si->sg_list_of_si_next;
+		/*Avoid screening if si is neither a sponsor si nor a dependent si*/
+		if ((si->spons_si_list != NULL) || (si->num_dependents > 0)) 
+			sidep_si_screen_si_dependencies(si);
 	}
-
 	TRACE_LEAVE();
 }
 
 /*****************************************************************************
- * Function: avd_screen_sponsor_si_state 
+ * Function: sidep_si_screen_si_dependencies 
  *
  * Purpose:  This function checks whether the sponsor SIs are in ASSIGNED 
- *           state. If they are in assigned state, dependent SI changes its
- *           si_dep state accordingly.
+ *           state. If they are in assigned state, SI changes its
+ *           own si_dep state and its dependents si_dep_state accordingly. 
+ *           Action will be taken on the is or dependents based on the value of 
+ *           start_assignment.
  *
  * Input: cb - The AVD control block
  *        si - Pointer to AVD_SI struct 
@@ -626,123 +703,89 @@ void avd_sg_screen_si_si_dependencies(AVD_CL_CB *cb, AVD_SG *sg)
  * NOTES:  
  * 
  **************************************************************************/
-void avd_screen_sponsor_si_state(AVD_CL_CB *cb, AVD_SI *si, bool start_assignment)
+void sidep_si_screen_si_dependencies(AVD_SI *si)
 {
 	TRACE_ENTER2("%s", si->name.value);
 
-	/* Change the SI dependency state only when all of its sponsor SIs are 
-	 * in assigned state.
-	 */
-	if (avd_check_si_dep_sponsors(cb, si, false) != NCSCC_RC_SUCCESS) {
-		/* Nothing to do here, just return */
-		goto done;
-	}
+	/*update the si_dep_state of si based on assignement states of its sponsors*/	
+	sidep_update_si_self_dep_state(si);
 
-	switch (si->si_dep_state) {
-	case AVD_SI_TOL_TIMER_RUNNING:
-	case AVD_SI_READY_TO_UNASSIGN:
-		if (si->tol_timer_count == 0)
-			si_dep_state_set(si, AVD_SI_ASSIGNED);
-		break;
-	case AVD_SI_FAILOVER_UNDER_PROGRESS:
-		break;
+	/*update si_dep_state of dependent sis of si.*/	
+	if (si->num_dependents)
+		sidep_update_dependents_states(si);
 
-	case AVD_SI_SPONSOR_UNASSIGNED:
-		/* If SI-SI dependency cfg's are removed for this SI the update the 
-		 * SI dep state with AVD_SI_NO_DEPENDENCY 
-		 */
-		si_dep_state_set(si, AVD_SI_NO_DEPENDENCY);
-
-	case AVD_SI_NO_DEPENDENCY:
-		/* Initiate the process of ASSIGNMENT state, as all of its sponsor SIs
-		 * are in ASSIGNED state, should be done only when SI is been unassigned
-		 * due to SI-SI dependency (sponsor unassigned).
-		 */
-		if (start_assignment) {
-			if (avd_sg_red_si_process_assignment(cb, si) == NCSCC_RC_SUCCESS) {
-				/* Check if this SI is a sponsor SI for some other SI, the take appropriate action */
-				avd_si_dep_spons_state_modif(cb, si, NULL, AVD_SI_DEP_SPONSOR_ASSIGNED);
-			} else {
-				/* LOG the error message */
-				TRACE("SI assignment failed");
-			}
-		}
-		break;
-
-	default:
-		break;
-	}
-
-done:
 	TRACE_LEAVE();
 }
 
-/*****************************************************************************
- * Function: avd_process_si_dep_state_evh
+/**
+ * @brief       This function assigns dependent si as its all  
+ *              sponsor sis are assigned (SI dependency logics).
  *
- * Purpose:  This function starts SI unassignment process due to sponsor was  
- *           unassigned (SI-SI dependency logics).
+ * @param[in]   cb - pointer to avd_control block. 
+ * @param[in]   evt - pointer to AVD_EVT struct. 
  *
- * Input: cb - The AVD control block
- *        evt - Pointer to AVD_EVT struct 
+ * @return      Nothing 
  *
- * Returns: 
- *
- * NOTES:
- * 
- **************************************************************************/
-void avd_process_si_dep_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+ **/
+void avd_sidep_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_SI *si = NULL;
+	AVD_SI *dep_si = NULL;
 	bool role_failover_pending = false;
 
 	TRACE_ENTER();
 
 	if (evt == NULL) {
-		/* Log the message */
+		LOG_NO("Got NULL event");
 		goto done; 
 	}
 
-	/* Check whether rcv_evt is AVD_EVT_SI_DEP_STATE event, if not LOG the 
-	 * error message.
+	osafassert(evt->rcv_evt == AVD_EVT_ASSIGN_SI_DEP_STATE);
+
+	dep_si = avd_si_get(&evt->info.tmr.dep_si_name);
+	if (dep_si == NULL)
+		goto done;
+
+	/* Take action only when dependent sg fsm is stable.  When sg becomes
+	   stable, based on updated si_dep_state action is taken.
 	 */
-	if (evt->rcv_evt != AVD_EVT_SI_DEP_STATE) {
-		/* internal error */
-		osafassert(0);
+	if (dep_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) { 
+		TRACE("sg unstable, so defering sidep action on si:'%s'",dep_si->name.value);
 		goto done;
 	}
 
-	if (evt->info.tmr.dep_si_name.length == 0) {
-		/* Its an ASSIGN evt */
-		si = avd_si_get(&evt->info.tmr.spons_si_name);
-		if (si != NULL) {
+	/* Check if we are yet to do SI role failover for the dependent SI
+	 */
+	if (dep_si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS)
+		role_failover_pending = true;
 
-			/* Check if we are yet to do SI role failover for the dependent SI
-			 */
-			if (si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS)
-				role_failover_pending = true;
-			if ((si->list_of_sisu) && (si->list_of_sisu->state == SA_AMF_HA_STANDBY) &&
-				(si->list_of_sisu->fsm != AVD_SU_SI_STATE_UNASGN) &&
-				(si->list_of_sisu->si_next == NULL)) {
-					role_failover_pending = true;
-			}
-			if (role_failover_pending == true) {	
-				avd_dependentsi_role_failover(si);
-			} else {
-				avd_screen_sponsor_si_state(cb, si, true);
+	if ((dep_si->list_of_sisu) && (dep_si->list_of_sisu->state == SA_AMF_HA_STANDBY) &&
+			(dep_si->list_of_sisu->fsm != AVD_SU_SI_STATE_UNASGN) &&
+			(dep_si->list_of_sisu->si_next == NULL)) {
+		role_failover_pending = true;
+	}
+
+	if (role_failover_pending == true) {	
+		sidep_dependentsi_role_failover(dep_si);
+	} else {
+		/*Check sponsors state once agian then take action*/
+		sidep_update_si_self_dep_state(dep_si);
+		if (dep_si->si_dep_state == AVD_SI_READY_TO_ASSIGN) {
+			if ((sidep_sg_red_si_process_assignment(avd_cb, dep_si) == NCSCC_RC_FAILURE) &&
+					(dep_si->num_dependents != 0)) {
+				sidep_take_action_on_dependents(dep_si);
 			}
 		}
-	} else {		/* Process UNASSIGN evt */
-
-		avd_si_dep_start_unassign(cb, evt);
+		else
+			sidep_si_take_action(dep_si);
 	}
+
 
 done:
 	TRACE_LEAVE();
 }
 
 /*****************************************************************************
- * Function: avd_si_dep_start_unassign
+ * Function: sidep_si_dep_start_unassign
  *
  * Purpose:  This function starts SI unassignment process due to sponsor was  
  *           unassigned (SI-SI dependency logics).
@@ -755,7 +798,7 @@ done:
  * NOTES:
  * 
  **************************************************************************/
-void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
+void sidep_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_SI *si = NULL;
 	AVD_SI *spons_si = NULL;
@@ -765,13 +808,13 @@ void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 	si = avd_si_get(&evt->info.tmr.dep_si_name);
 	spons_si = avd_si_get(&evt->info.tmr.spons_si_name);
 
-	if ((!si) || (!spons_si)) {
-		/* Log the ERROR message */
+	if (!si) {
+		LOG_ER("Received si NULL");
 		goto done;
 	}
 
-	if (si->si_dep_state != AVD_SI_READY_TO_UNASSIGN) {
-		/* Log the message */
+	if (si->si_dep_state != AVD_SI_UNASSIGNING_DUE_TO_DEP) {
+		LOG_ER("wrong si_dep_state:%u of si:'%s'", si->si_dep_state, si->name.value);
 		goto done;
 	}
 
@@ -779,28 +822,21 @@ void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * sponsors are moved back to assigned state, if so it is not required to
 	 * initiate the unassignment process for the (dependent) SI.
 	 */
-	avd_screen_sponsor_si_state(cb, si, false);
-	if (si->si_dep_state == AVD_SI_ASSIGNED)
+	if (avd_sidep_all_sponsors_active(si)) {
+		avd_sidep_si_dep_state_set(si, AVD_SI_ASSIGNED);
 		goto done;
+	}
 
 	/* If the SI is already been unassigned, nothing to proceed for 
 	 * unassignment 
 	 */
 	if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
-		si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
+		avd_sidep_si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
 		goto done;
 	}
 
-	/* Check if spons_si SI-Dep state is not in ASSIGNED state, then 
-	 * only initiate the unassignment process. Because the SI can be 
-	 * in this state due to some other spons-SI.
-	 */
-	if (avd_check_si_state_enabled(cb, spons_si) != NCSCC_RC_SUCCESS) {
-		si_dep_state_set(si, AVD_SI_UNASSIGNING_DUE_TO_DEP);
-
-		if (avd_si_dep_si_unassigned(cb, si) != NCSCC_RC_SUCCESS) {
-			/* Log the error */
-		}
+	if (sidep_unassign_dependent(cb, si) != NCSCC_RC_SUCCESS) {
+		LOG_ER("'%s' unassignment failed",si->name.value);
 	}
 
 done:
@@ -808,7 +844,7 @@ done:
 }
 
 /*****************************************************************************
- * Function: avd_update_si_dep_state_for_spons_unassign 
+ * Function: sidep_update_si_dep_state_for_spons_unassign 
  *
  * Purpose:  Upon sponsor SI is unassigned, this function updates the SI  
  *           dependent states either to AVD_SI_READY_TO_UNASSIGN / 
@@ -823,167 +859,44 @@ done:
  * NOTES:
  * 
  **************************************************************************/
-void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, AVD_SI_SI_DEP *si_dep_rec)
+void sidep_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, AVD_SI_SI_DEP *si_dep_rec)
 {
-	TRACE_ENTER();
+	AVD_SI *spons_si = NULL;
 
-	switch (dep_si->si_dep_state) {
-	case AVD_SI_ASSIGNED:
-		if (si_dep_rec->saAmfToleranceTime > 0) {
-			TRACE("Starting Timer for SI:%s",dep_si->name.value);
-			/* Start the tolerance timer */
-			si_dep_state_set(dep_si, AVD_SI_TOL_TIMER_RUNNING);
+	TRACE_ENTER2("si:'%s', si_dep_state:'%s'",dep_si->name.value,depstatename[dep_si->si_dep_state]);
 
-			/* Start the tolerance timer */
-			m_AVD_SI_DEP_TOL_TMR_START(cb, si_dep_rec);
+	spons_si = avd_si_get(&si_dep_rec->indx_imm.si_name_prim);
+	osafassert(spons_si != NULL);
 
-			if (dep_si->tol_timer_count) {
-				/* It suppose to be "0", LOG the err msg and continue. */
-			}
-
-			dep_si->tol_timer_count = 1;
-		} else if (cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
-			/* Send an event to start SI unassignment process */
-			avd_si_dep_state_evt(cb, dep_si, &si_dep_rec->indx_imm);
-		}
-		break;
-
-	case AVD_SI_TOL_TIMER_RUNNING:
-	case AVD_SI_READY_TO_UNASSIGN:
-		if (si_dep_rec->saAmfToleranceTime > 0) {
-			if (si_dep_rec->si_dep_timer.is_active != true) {
-				/* Start the tolerance timer */
-				m_AVD_SI_DEP_TOL_TMR_START(cb, si_dep_rec);
-
-				/* SI is already in AVD_SI_TOL_TIMER_RUNNING state, so just 
-				 * increment tol_timer_count indicates that >1 sponsors are 
-				 * in unassigned state for this SI.
-				 */
-				dep_si->tol_timer_count++;
-			} else {
-				/* Should not happen, LOG the error message & go ahead */
-			}
-		} else {
-			if (!si_dep_rec->unassign_event) {
-				si_dep_rec->unassign_event = true;
-
-				/* Send an event to start SI unassignment process */
-				avd_si_dep_state_evt(cb, dep_si, &si_dep_rec->indx_imm);
-			}
-		}
-		break;
-
-	case AVD_SI_NO_DEPENDENCY:
-		si_dep_state_set(dep_si, AVD_SI_SPONSOR_UNASSIGNED);
-		break;
-
-	default:
-		break;
-	}
-
-	TRACE_LEAVE();
-}
-
-/*****************************************************************************
- * Function: avd_si_dep_spons_state_modif 
- *
- * Purpose:  Upon SI is assigned/unassigned and if this SI turns out to be 
- *           sponsor SI for some of the SIs (dependents),then update the states
- *           of dependent SIs accordingly (either to AVD_SI_READY_TO_UNASSIGN / 
- *           AVD_SI_TOL_TIMER_RUNNING states).
- *
- * Input:  cb - ptr to AVD control block
- *         si - ptr to AVD_SI struct (sponsor SI).
- *         si_dep - ptr to AVD_SI struct (dependent SI), NULL for all
- *                  dependent SIs of the above sponsor SI.
- *
- * Returns: 
- *
- * NOTES:
- * 
- **************************************************************************/
-void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD_SI_DEP_SPONSOR_SI_STATE spons_state)
-{
-	AVD_SI *dep_si = NULL;
-	AVD_SI_SI_DEP_INDX si_indx;
-	AVD_SI_SI_DEP *si_dep_rec = NULL;
-
-	TRACE_ENTER();
-
-	if (si_dep != NULL)
-	{
-		/* Check spons-SI & dep-SI belongs to the same SG */
-		if (m_CMP_NORDER_SANAMET(si->sg_of_si->name,
-					si_dep->sg_of_si->name) == 0)
-		{
-			/* If the SG is not in STABLE state, then not required to do state 
-			 * change for the dep-SI as it can be taken care as part of SG 
-			 * screening when SG becomes STABLE.
-			 */
-			if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-				TRACE("SG not in STABLE state");
-				goto done;
-			}
-		}
-	}
-
-	memset((char *)&si_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
-	si_indx.si_name_prim.length = si->name.length;
-	memcpy(si_indx.si_name_prim.value, si->name.value, si_indx.si_name_prim.length);
-
-	/* If si_dep is NULL, means adjust the SI dep states for all depended 
-	 * SIs of the sponsor SI.
+	/* Take action only when both sponsor and dependent belongs to same sg 
+	   or if dependent sg fsm is stable.  When sg becomes stable, 
+	   based on updated si_dep_state action is taken.
 	 */
-	if (si_dep == NULL) {
-		si_dep_rec = avd_si_si_dep_find_next(cb, &si_indx, true);
-		while (si_dep_rec != NULL) {
-			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
-				/* Seems no more node exists in spons_anchor tree with 
-				 * "si_indx.si_name_prim" as primary key 
-				 */
-				break;
-			}
+	if ((dep_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) && 
+		(dep_si->sg_of_si != spons_si->sg_of_si)) {
+		TRACE("sg unstable, so defering sidep action on si:'%s'",dep_si->name.value);
+		goto done;
+	}
 
-			dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
-			if (dep_si == NULL) {
-				/* No corresponding SI node?? some thing wrong */
-				si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_imm, true);
-				continue;
-			}
-
-			if (spons_state == AVD_SI_DEP_SPONSOR_UNASSIGNED) {
-				/* If the dependent SI is under AVD_SI_FAILOVER_UNDER_PROGRESS state
-				 * update its dep_state to AVD_SI_READY_TO_UNASSIGN
-				 */
-				if (dep_si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS) {
-					TRACE("Send an event to start SI unassignment process");
-					dep_si->si_dep_state = AVD_SI_READY_TO_UNASSIGN;
-				}
-				avd_update_si_dep_state_for_spons_unassign(cb, dep_si, si_dep_rec);
-			} else {
-				avd_si_dep_state_evt(cb, dep_si, NULL);
-			}
-
-			si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_imm, true);
+	if (si_dep_rec->saAmfToleranceTime > 0) { 
+		if (si_dep_rec->si_dep_timer.is_active != true) {
+			/* Start the tolerance timer since it not running */
+			m_AVD_SI_DEP_TOL_TMR_START(cb, si_dep_rec);
+			/* Increment tol_timer_count. tol_timer_count>1 means more 
+			   than 1 sponsors are in unassigned state for this SI.
+			 */
+			dep_si->tol_timer_count++;
+			LOG_NO("Tolerance timer started, sponsor si:'%s', dependent si:%s", 
+					spons_si->name.value, dep_si->name.value);
 		}
-	} else {
-		/* Just ignore and return if spons_state is AVD_SI_DEP_SPONSOR_ASSIGNED */
-		if (spons_state == AVD_SI_DEP_SPONSOR_ASSIGNED)
-			goto done;
-
-		/* Frame the index completely to the associated si_dep_rec */
-		si_indx.si_name_sec.length = si_dep->name.length;
-		memcpy(si_indx.si_name_sec.value, si_dep->name.value, si_dep->name.length);
-
-		si_dep_rec = avd_si_si_dep_find(cb, &si_indx, true);
-
-		if (si_dep_rec != NULL) {
-			/* si_dep_rec primary key should match with sponsor SI name */
-			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
-				osafassert(0);
-				goto done;
-			}
-			avd_update_si_dep_state_for_spons_unassign(cb, si_dep, si_dep_rec);
+		avd_sidep_si_dep_state_set(dep_si, AVD_SI_TOL_TIMER_RUNNING);
+	} else if (cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
+		/*Tolerance time is not configured for this si-si dependency. 
+		  If active amfd then send an event to start SI unassignment process.
+		 */
+		if (dep_si->si_dep_state != AVD_SI_UNASSIGNING_DUE_TO_DEP) {
+			avd_sidep_si_dep_state_set(dep_si, AVD_SI_READY_TO_UNASSIGN);
+			sidep_si_dep_state_evt_send(cb, dep_si, AVD_EVT_UNASSIGN_SI_DEP_STATE);
 		}
 	}
 
@@ -992,7 +905,78 @@ done:
 }
 
 /*****************************************************************************
- * Function: avd_si_si_dep_struc_crt
+ * Function: sidep_take_action_on_dependents 
+ *
+ * Purpose:  Upon SI is assigned/unassigned and if this SI turns out to be 
+ *           sponsor SI for some of the SIs (dependents),then update the states
+ *           of dependent SIs accordingly (either to AVD_SI_READY_TO_UNASSIGN / 
+ *           AVD_SI_TOL_TIMER_RUNNING states).
+ *
+ * Input:    si - ptr to AVD_SI struct (sponsor SI).
+ *
+ * Returns:  Nothing
+ *
+ * NOTES:
+ * 
+ **************************************************************************/
+void sidep_take_action_on_dependents(AVD_SI *si)
+{
+	AVD_SI *dep_si = NULL;
+	AVD_SI_SI_DEP_INDX si_indx;
+	AVD_SI_SI_DEP *si_dep_rec = NULL;
+
+	TRACE_ENTER();
+
+	memset((char *)&si_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
+	si_indx.si_name_prim.length = si->name.length;
+	memcpy(si_indx.si_name_prim.value, si->name.value, si_indx.si_name_prim.length);
+
+	/* If si_dep is NULL, means adjust the SI dep states for all depended 
+	 * SIs of the sponsor SI.
+	 */
+	si_dep_rec = avd_sidep_find_next(avd_cb, &si_indx, true);
+	while (si_dep_rec != NULL) {
+		if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
+			/* Seems no more node exists in spons_anchor tree with 
+			 * "si_indx.si_name_prim" as primary key 
+			 */
+			break;
+		}
+
+		dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
+		osafassert(dep_si != NULL);
+
+		/* Take action only when both sponsor and dependent belongs to same sg 
+		   or if dependent sg fsm is stable.  When sg becomes stable, 
+		   based on updated si_dep_state action is taken.
+		 */
+		if ((dep_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) &&
+				(dep_si->sg_of_si != si->sg_of_si)) {
+			si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+			continue;
+		}
+		if (dep_si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS) {
+			/* If the dependent SI is under AVD_SI_FAILOVER_UNDER_PROGRESS state
+			 * update its dep_state to AVD_SI_READY_TO_UNASSIGN
+			 */
+			TRACE("Send an event to start SI unassignment process");
+			dep_si->si_dep_state = AVD_SI_READY_TO_UNASSIGN;
+		}
+
+		if (dep_si->si_dep_state == AVD_SI_READY_TO_UNASSIGN) {
+			sidep_process_ready_to_unassign_depstate(dep_si);
+		} else if (dep_si->si_dep_state == AVD_SI_READY_TO_ASSIGN) { 
+			sidep_si_dep_state_evt_send(avd_cb, dep_si, AVD_EVT_ASSIGN_SI_DEP_STATE);
+		}
+
+		si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+	}
+
+	TRACE_LEAVE();
+}
+
+/*****************************************************************************
+ * Function: sidep_struc_crt
  *
  * Purpose: This function will create and add a AVD_SI_SI_DEP structure to the
  *          trees if an element with the same key value doesn't exist in the
@@ -1006,7 +990,7 @@ done:
  * NOTES:
  *
  **************************************************************************/
-AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
+AVD_SI_SI_DEP *sidep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 {
 	AVD_SI_SI_DEP *rec;
 	uint32_t si_prim_len = indx->si_name_prim.length;
@@ -1014,7 +998,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 
 	TRACE_ENTER();
 
-	if ((rec = avd_si_si_dep_find(cb, indx, true)) != NULL)
+	if ((rec = avd_sidep_find(cb, indx, true)) != NULL)
 		goto done;
 
 	/* Allocate a new block structure for imm rec now */
@@ -1066,7 +1050,7 @@ done:
 }
 
 /*****************************************************************************
- * Function: avd_si_si_dep_find 
+ * Function: avd_sidep_find 
  *
  * Purpose:  This function will find a AVD_SI_SI_DEP structure in the tree 
  *           with indx value as key. Indices can be provided as per the order
@@ -1081,7 +1065,7 @@ done:
  *        if it is in reverse order
  * 
  **************************************************************************/
-AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, bool isImmIdx)
+AVD_SI_SI_DEP *avd_sidep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, bool isImmIdx)
 {
 	AVD_SI_SI_DEP *rec = NULL;
 
@@ -1101,7 +1085,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, bool 
 }
 
 /*****************************************************************************
- * Function: avd_si_si_dep_find_next 
+ * Function: avd_sidep_find_next 
  *
  * Purpose:  This function will find next AVD_SI_SI_DEP structure in the tree
  *           with indx value as key. Indices can be provided as per the order
@@ -1116,7 +1100,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, bool 
  *        if it is in reverse order
  * 
  **************************************************************************/
-AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, bool isImmIdx)
+AVD_SI_SI_DEP *avd_sidep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, bool isImmIdx)
 {
 	AVD_SI_SI_DEP *rec = NULL;
 
@@ -1136,7 +1120,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, 
 }
 
 /*****************************************************************************
- * Function: avd_si_si_dep_del_row 
+ * Function: sidep_del_row 
  *
  * Purpose:  This function will delete and free AVD_SI_SI_DEP structure from 
  *           the tree. It will delete the record from both patricia trees
@@ -1149,7 +1133,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, 
  * NOTES:
  * 
  **************************************************************************/
-uint32_t avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
+uint32_t sidep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
 {
 	AVD_SI_SI_DEP *si_dep_rec = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
@@ -1159,7 +1143,7 @@ uint32_t avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
 	if (rec == NULL)
 		goto done;
 
-	if ((si_dep_rec = avd_si_si_dep_find(cb, &rec->indx, false)) != NULL) {
+	if ((si_dep_rec = avd_sidep_find(cb, &rec->indx, false)) != NULL) {
 		if (ncs_patricia_tree_del(&si_dep.dep_anchor, &si_dep_rec->tree_node)
 		    != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed deleting SI Dep from Dependent Anchor");
@@ -1169,7 +1153,7 @@ uint32_t avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
 
 	si_dep_rec = NULL;
 
-	if ((si_dep_rec = avd_si_si_dep_find(cb, &rec->indx_imm, true)) != NULL) {
+	if ((si_dep_rec = avd_sidep_find(cb, &rec->indx_imm, true)) != NULL) {
 		if (ncs_patricia_tree_del(&si_dep.spons_anchor, &si_dep_rec->tree_node_imm)
 		    != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed deleting SI Dep from Sponsor Anchor");
@@ -1187,7 +1171,7 @@ done:
 }
 
 /*****************************************************************************
- * Function: avd_si_si_dep_cyclic_dep_find 
+ * Function: sidep_cyclic_dep_find 
  *
  * Purpose:  This function will use to evalute that is new record will because
  *           of cyclic dependency exist in SIs or not.
@@ -1201,7 +1185,7 @@ done:
  *        buffer is not sufficient to process this request.
  *
  **************************************************************************/
-uint32_t avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
+uint32_t sidep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 {
 	AVD_SI_SI_DEP *rec = NULL;
 	AVD_SI_DEP_NAME_LIST *start = NULL;
@@ -1235,7 +1219,7 @@ uint32_t avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 		idx.si_name_prim.length = last->si_name.length;
 		memcpy(idx.si_name_prim.value, last->si_name.value, last->si_name.length);
 
-		rec = avd_si_si_dep_find_next(cb, &idx, false);
+		rec = avd_sidep_find_next(cb, &idx, false);
 
 		while ((rec != NULL) && (m_CMP_HORDER_SANAMET(rec->indx.si_name_prim, idx.si_name_prim) == 0)) {
 			if (m_CMP_HORDER_SANAMET(indx->si_name_sec, rec->indx.si_name_sec) == 0) {
@@ -1265,7 +1249,7 @@ uint32_t avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 				}
 			}
 
-			rec = avd_si_si_dep_find_next(cb, &rec->indx, false);
+			rec = avd_sidep_find_next(cb, &rec->indx, false);
 		}
 
 		if (rc == NCSCC_RC_SUCCESS) {
@@ -1411,7 +1395,7 @@ static uint32_t is_config_valid(SaNameT *sidep_name, CcbUtilOperationData_t *opd
 		goto done;
 	}
 
-	if (avd_si_si_dep_cyclic_dep_find(avd_cb, &indx) == NCSCC_RC_SUCCESS) {
+	if (sidep_cyclic_dep_find(avd_cb, &indx) == NCSCC_RC_SUCCESS) {
 		/* Return value that record cannot be added due to cyclic dependency */
 		LOG_ER("SI dep validation: cyclic dependency for '%s'", indx.si_name_sec.value);
 		goto done;
@@ -1435,7 +1419,7 @@ static AVD_SI_SI_DEP *sidep_new(SaNameT *sidep_name, const SaImmAttrValuesT_2 **
 
 	avd_sidep_indx_init(sidep_name, &indx);
 
-	if ((sidep = avd_si_si_dep_struc_crt(avd_cb, &indx)) == NULL) {
+	if ((sidep = sidep_struc_crt(avd_cb, &indx)) == NULL) {
 		LOG_ER("Unable create SI-SI dependency record");
 		goto done;
 	}
@@ -1451,24 +1435,14 @@ static AVD_SI_SI_DEP *sidep_new(SaNameT *sidep_name, const SaImmAttrValuesT_2 **
 	avd_si_dep_spons_list_add(dep_si, spons_si, sidep);
 
 	if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE)  {
-		/* Move the dependent SI to appropriate state, if the configured 
-		 * sponsor is not in assigned state. Not required to check with
-		 * the remaining states of SI Dep states, as they are kind of 
-		 * intermittent states towards SPONSOR_UNASSIGNED/ASSIGNED states. 
+		/* While configuring the dependencies, set the dependent dep state considering 
+		  all its sponsors assignment status. Possibly a call to *_chosen_asgn() after this 
+		  may be made and thus it will help in avoiding re-screening in *_chosen_asgn(). 
 		 */
-		if ((spons_si->si_dep_state == AVD_SI_NO_DEPENDENCY) ||
-			(spons_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED)) {
-			if (dep_si->si_dep_state == AVD_SI_NO_DEPENDENCY) {
-				si_dep_state_set(dep_si, AVD_SI_SPONSOR_UNASSIGNED);
-			} else {
-				if (dep_si->si_dep_state != AVD_SI_SPONSOR_UNASSIGNED) {
-					/* Sponsor SI is not in assigned state & Dependent SI has assignments, So unassign the
-					 * assignments and update the si_dep_state of Dependent SI
-					 */
-					avd_si_dep_spons_state_modif(avd_cb, spons_si, dep_si, AVD_SI_DEP_SPONSOR_UNASSIGNED);
-				}
-			}
-		}
+		if (avd_sidep_all_sponsors_active(dep_si))
+			avd_sidep_si_dep_state_set(dep_si, AVD_SI_READY_TO_ASSIGN);
+		else 
+			avd_sidep_si_dep_state_set(dep_si, AVD_SI_SPONSOR_UNASSIGNED);
 	}
 done:
 	TRACE_LEAVE();
@@ -1543,7 +1517,7 @@ static SaAisErrorT sidep_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_DELETE:
 	case CCBUTIL_MODIFY:
 		avd_sidep_indx_init(&opdata->objectName, &indx);
-		if (NULL == avd_si_si_dep_find(avd_cb, &indx, true))
+		if (NULL == avd_sidep_find(avd_cb, &indx, true))
 			rc = SA_AIS_ERR_BAD_OPERATION;
 		break;
 	default:
@@ -1573,7 +1547,7 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 	case CCBUTIL_DELETE:
 		avd_sidep_indx_init(&opdata->objectName, &indx);
-		sidep = avd_si_si_dep_find(avd_cb, &indx, true);
+		sidep = avd_sidep_find(avd_cb, &indx, true);
 		osafassert(dep_si = avd_si_get(&indx.si_name_sec));
 		/* If SI is in tolerance timer running state because of this
 		 * SI-SI dep cfg, then stop the tolerance timer.
@@ -1585,17 +1559,18 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 			if(dep_si->tol_timer_count > 0)
 				dep_si->tol_timer_count--;
 		}
-		avd_si_dep_spons_list_del(avd_cb, sidep);
-		avd_si_si_dep_del_row(avd_cb, sidep);
+		sidep_spons_list_del(avd_cb, sidep);
+		sidep_del_row(avd_cb, sidep);
 		if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE)  {
 			/* Update the SI according to its existing sponsors state */
-			avd_screen_sponsor_si_state(avd_cb, dep_si, true);
+			sidep_si_screen_si_dependencies(dep_si);
+			sidep_si_take_action(dep_si);
 		}
 		break;
 
 	case CCBUTIL_MODIFY:
 		avd_sidep_indx_init(&opdata->objectName, &indx);
-		sidep = avd_si_si_dep_find(avd_cb, &indx, true);
+		sidep = avd_sidep_find(avd_cb, &indx, true);
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 			if (!strcmp(attr_mod->modAttr.attrName, "saAmfToleranceTime")) {
 				sidep->saAmfToleranceTime = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
@@ -1638,9 +1613,9 @@ void avd_sidep_start_tolerance_timer_for_dependant(AVD_SI *dep_si, AVD_SI *spons
 	si_indx.si_name_sec.length = dep_si->name.length;
 	memcpy(si_indx.si_name_sec.value, dep_si->name.value, dep_si->name.length);
 
-	si_dep_rec = avd_si_si_dep_find(avd_cb, &si_indx, true);
+	si_dep_rec = avd_sidep_find(avd_cb, &si_indx, true);
 	if (si_dep_rec != NULL) {
-		avd_update_si_dep_state_for_spons_unassign(avd_cb, dep_si, si_dep_rec);
+		sidep_update_si_dep_state_for_spons_unassign(avd_cb, dep_si, si_dep_rec);
 	} else {
 		TRACE("si_dep_rec is NULL");
 	}
@@ -1680,7 +1655,7 @@ void avd_sidep_unassign_dependents(AVD_SI *si, AVD_SU *su)
 	memset(&si_indx, '\0', sizeof(si_indx));
 	si_indx.si_name_prim.length = si->name.length;
 	memcpy(si_indx.si_name_prim.value, si->name.value, si_indx.si_name_prim.length);
-	si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_indx, true);
+	si_dep_rec = avd_sidep_find_next(avd_cb, &si_indx, true);
 
 	while (si_dep_rec != NULL) {
 		if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
@@ -1692,7 +1667,7 @@ void avd_sidep_unassign_dependents(AVD_SI *si, AVD_SU *su)
 		dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
 		if (dep_si == NULL) {
 			/* No corresponding SI node?? some thing wrong */
-			si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+			si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 			continue;
 		}
 		/* Get the Active susi */
@@ -1703,7 +1678,7 @@ void avd_sidep_unassign_dependents(AVD_SI *si, AVD_SU *su)
 			}
 		}
 		if (sisu == NULL) {
-			si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+			si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 			continue;
 		}
 
@@ -1723,7 +1698,7 @@ void avd_sidep_unassign_dependents(AVD_SI *si, AVD_SU *su)
 		if (dep_si->num_dependents > 0)
                         avd_sidep_unassign_dependents(dep_si, su);
 
-		si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+		si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 	}
 	TRACE_LEAVE();
 }
@@ -1820,7 +1795,7 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 			/* Dependant SI and Tolerance timer is running
 			 * No need to to do role failover stop the Tolerance timer and delete the assignments
 			 */
-			avd_si_dep_stop_tol_timer(avd_cb, si);
+			sidep_stop_tol_timer(avd_cb, si);
 			avd_si_unassign(si);
 
 			failover_possible = false;
@@ -1901,16 +1876,16 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 			}
 			if ((failover_possible == false) && (valid_standby == false)) {
 				/* There is no Active assignment and no valid Standby which can take Active assignment */
-				if (si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING) {
-					for (tmp_sisu = si->list_of_sisu;tmp_sisu != NULL;tmp_sisu = tmp_sisu->si_next)
-						if (tmp_sisu->fsm != AVD_SU_SI_STATE_UNASGN)
-							avd_susi_del_send(tmp_sisu);
-				}
+				if (si->si_dep_state == AVD_SI_TOL_TIMER_RUNNING)
+					sidep_stop_tol_timer(avd_cb, si);
+				for (tmp_sisu = si->list_of_sisu;tmp_sisu != NULL;tmp_sisu = tmp_sisu->si_next)
+					if (tmp_sisu->fsm != AVD_SU_SI_STATE_UNASGN)
+						avd_susi_del_send(tmp_sisu);
 				goto done;
 			}
 		}
 		if (sponsor_in_modify_state == true) {
-			si_dep_state_set(si, AVD_SI_FAILOVER_UNDER_PROGRESS);
+			avd_sidep_si_dep_state_set(si, AVD_SI_FAILOVER_UNDER_PROGRESS);
 			failover_possible = false;
 			goto done;
 		}
@@ -1950,7 +1925,7 @@ bool avd_sidep_is_su_failover_possible(AVD_SU *su)
 			flag = avd_sidep_is_si_failover_possible(susi->si, su);
 			if (flag == false){
 				TRACE("Role failover is deferred as sponsors role failover is under going");
-				si_dep_state_set(susi->si, AVD_SI_FAILOVER_UNDER_PROGRESS);
+				avd_sidep_si_dep_state_set(susi->si, AVD_SI_FAILOVER_UNDER_PROGRESS);
 				goto done;
 			}
 		}
@@ -1996,7 +1971,7 @@ bool valid_standby_susi(AVD_SU_SI_REL *sisu)
  * @return	 
  *             
  **/
-void avd_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
+void avd_sidep_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 {
 	AVD_SI_SI_DEP_INDX si_indx;
 	AVD_SI_SI_DEP *si_dep_rec;
@@ -2010,7 +1985,7 @@ void avd_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 	si_indx.si_name_prim.length = si->name.length;
 	memcpy(si_indx.si_name_prim.value, si->name.value, si_indx.si_name_prim.length);
 
-	si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_indx, true);
+	si_dep_rec = avd_sidep_find_next(avd_cb, &si_indx, true);
 
 	while (si_dep_rec != NULL) {
 		if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
@@ -2022,7 +1997,7 @@ void avd_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 		dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
 		if (dep_si == NULL) {
 			TRACE("No corresponding SI node?? some thing wrong");
-			si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+			si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 			continue;
 		}
 		for (sisu = dep_si->list_of_sisu;sisu;sisu = sisu->si_next) {
@@ -2036,12 +2011,12 @@ void avd_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 						if(((dep_si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING) ||
 							(dep_si->si_dep_state != AVD_SI_READY_TO_UNASSIGN) ||
 							(dep_si->si_dep_state != AVD_SI_FAILOVER_UNDER_PROGRESS)) &&
-							(all_sponsors_assigned_active(dep_si))) {
+							(avd_sidep_sponsors_assignment_states(dep_si))) {
 
-							si_dep_state_set(dep_si, AVD_SI_FAILOVER_UNDER_PROGRESS);
+							avd_sidep_si_dep_state_set(dep_si, AVD_SI_FAILOVER_UNDER_PROGRESS);
 							if (dep_si->num_dependents > 0) {
 								/* This SI also has dependents under it, update their state also */
-								avd_update_depstate_si_failover(dep_si, su);
+								avd_sidep_update_depstate_si_failover(dep_si, su);
 							}
 						}
 					}
@@ -2050,10 +2025,10 @@ void avd_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 						(dep_si->si_dep_state != AVD_SI_READY_TO_UNASSIGN) ||
 						(dep_si->si_dep_state != AVD_SI_FAILOVER_UNDER_PROGRESS)) {
 
-						si_dep_state_set(dep_si, AVD_SI_FAILOVER_UNDER_PROGRESS);
+						avd_sidep_si_dep_state_set(dep_si, AVD_SI_FAILOVER_UNDER_PROGRESS);
 						if (dep_si->num_dependents > 0) {
 							/* This SI also has dependents under it, update their state also */
-							avd_update_depstate_si_failover(dep_si, su);
+							avd_sidep_update_depstate_si_failover(dep_si, su);
 						}
 					}
 				}
@@ -2061,8 +2036,7 @@ void avd_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 				/* In the case of su fault all the assignmemts on the Active SU will be removed
 				 * So we need to consider Standby assignment only for doing role failover
 				 */
-				if ((su->saAmfSuReadinessState == SA_AMF_READINESS_OUT_OF_SERVICE) &&
-						(su->su_on_node->saAmfNodeOperState != SA_AMF_OPERATIONAL_DISABLED)) {
+				if (su->su_on_node->saAmfNodeOperState != SA_AMF_OPERATIONAL_DISABLED) {
 
 					if ((((sisu->state == SA_AMF_HA_ACTIVE) || (sisu->state == SA_AMF_HA_QUIESCED)) &&
 						(sisu->fsm == AVD_SU_SI_STATE_UNASGN)) && (valid_standby_susi(sisu))) {
@@ -2092,9 +2066,9 @@ void avd_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 							   (dep_si->si_dep_state != AVD_SI_READY_TO_UNASSIGN) ||
 							   (dep_si->si_dep_state != AVD_SI_FAILOVER_UNDER_PROGRESS)) {
 
-								si_dep_state_set(dep_si, AVD_SI_FAILOVER_UNDER_PROGRESS);
+								avd_sidep_si_dep_state_set(dep_si, AVD_SI_FAILOVER_UNDER_PROGRESS);
 								if (dep_si->num_dependents > 0) {
-									avd_update_depstate_si_failover(dep_si, su);
+									avd_sidep_update_depstate_si_failover(dep_si, su);
 								}
 							}
 						}
@@ -2102,7 +2076,7 @@ void avd_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 				}
 			}
 		}
-		si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+		si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 	}
 	TRACE_LEAVE();
 }
@@ -2117,7 +2091,7 @@ void avd_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
  * @return 
  *             
  **/
-void avd_update_depstate_su_rolefailover(AVD_SU *su)
+void avd_sidep_update_depstate_su_rolefailover(AVD_SU *su)
 {
 	AVD_SU_SI_REL *susi;
 
@@ -2126,7 +2100,7 @@ void avd_update_depstate_su_rolefailover(AVD_SU *su)
 	for (susi = su->list_of_susi;susi != NULL;susi = susi->su_next) {
 		if (susi->si->num_dependents > 0) {
 			/* This is a Sponsor SI update its dependent states */
-			avd_update_depstate_si_failover(susi->si, su);
+			avd_sidep_update_depstate_si_failover(susi->si, su);
 			
 		}
 	}
@@ -2140,7 +2114,7 @@ void avd_update_depstate_su_rolefailover(AVD_SU *su)
  *
  * @return      Returns nothing
  **/
-static void avd_dependentsi_role_failover(AVD_SI *si)
+static void sidep_dependentsi_role_failover(AVD_SI *si)
 {
 	AVD_SU *stdby_su = NULL;
 	AVD_SU_SI_REL *susi;
@@ -2162,7 +2136,7 @@ static void avd_dependentsi_role_failover(AVD_SI *si)
 			 */
 			for (susi = stdby_su->list_of_susi;susi != NULL;susi = susi->su_next) {
 				if (susi->si->spons_si_list) {
-					if (avd_check_si_dep_sponsors(avd_cb, si, false) != NCSCC_RC_SUCCESS) {
+					if (!avd_sidep_all_sponsors_active(si)) {
 						TRACE("SI's sponsors are not yet assigned");
 						goto done;
 					}
@@ -2173,7 +2147,7 @@ static void avd_dependentsi_role_failover(AVD_SI *si)
 			 */
 			avd_sg_su_si_mod_snd(avd_cb, stdby_su, SA_AMF_HA_ACTIVE);
 
-			si_dep_state_set(si, AVD_SI_ASSIGNED);
+			avd_sidep_si_dep_state_set(si, AVD_SI_ASSIGNED);
 			if (si->sg_of_si->su_oper_list.su == NULL) {
 				/* add the SU to the operation list and change the SG FSM to SG realign. */
 				avd_sg_su_oper_list_add(avd_cb, stdby_su, false);
@@ -2182,13 +2156,13 @@ static void avd_dependentsi_role_failover(AVD_SI *si)
 		}
 		break;
 	case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-		if (avd_check_si_dep_sponsors(avd_cb, si, false) == NCSCC_RC_SUCCESS) {
+		if (avd_sidep_all_sponsors_active(si)) {
 			/* identify the most preferred standby su for this si */
 			susi = avd_find_preferred_standby_susi(si);
 			if (susi) {
 				avd_susi_mod_send(susi, SA_AMF_HA_ACTIVE);
 				m_AVD_SET_SG_FSM(avd_cb, si->sg_of_si, AVD_SG_FSM_SG_REALIGN);
-				si_dep_state_set(si, AVD_SI_ASSIGNED);
+				avd_sidep_si_dep_state_set(si, AVD_SI_ASSIGNED);
 			}
 		}
 		break;
@@ -2217,7 +2191,7 @@ void avd_sidep_reset_dependents_depstate_in_sufault(AVD_SI *si)
 	memset((char *)&si_indx, '\0', sizeof(si_indx));
 	si_indx.si_name_prim.length = si->name.length;
 	memcpy(si_indx.si_name_prim.value, si->name.value, si_indx.si_name_prim.length);
-	si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_indx, true);
+	si_dep_rec = avd_sidep_find_next(avd_cb, &si_indx, true);
 
 	while (si_dep_rec != NULL) {
 		if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
@@ -2229,13 +2203,13 @@ void avd_sidep_reset_dependents_depstate_in_sufault(AVD_SI *si)
 		dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
 		if (dep_si == NULL) {
 			/* No corresponding SI node?? some thing wrong */
-			si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+			si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 			continue;
 		}
 		if(dep_si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS) {
-			si_dep_state_set(dep_si, AVD_SI_SPONSOR_UNASSIGNED);
+			avd_sidep_si_dep_state_set(dep_si, AVD_SI_SPONSOR_UNASSIGNED);
 		}
-		si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+		si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 	}
 
 	TRACE_LEAVE();
@@ -2251,7 +2225,7 @@ void avd_sidep_reset_dependents_depstate_in_sufault(AVD_SI *si)
  *
  * @return	true/false 
  **/
-bool avd_si_dependency_exists_within_su(const AVD_SU *su)
+bool avd_sidep_si_dependency_exists_within_su(const AVD_SU *su)
 {
 	AVD_SU_SI_REL *susi;
 	bool spons_exist = false;
@@ -2280,7 +2254,7 @@ bool avd_si_dependency_exists_within_su(const AVD_SU *su)
  *
  * @returns 	nothing	
  **/
-void send_active_to_dependents(const AVD_SI *si)
+void avd_sidep_send_active_to_dependents(const AVD_SI *si)
 {
 	AVD_SI_SI_DEP_INDX si_indx;
 	AVD_SI_SI_DEP *si_dep_rec;
@@ -2302,7 +2276,7 @@ void send_active_to_dependents(const AVD_SI *si)
 	memset(&si_indx, '\0', sizeof(si_indx));
 	si_indx.si_name_prim.length = si->name.length;
 	memcpy(si_indx.si_name_prim.value, si->name.value, si_indx.si_name_prim.length);
-	si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_indx, true);
+	si_dep_rec = avd_sidep_find_next(avd_cb, &si_indx, true);
 
 	while (si_dep_rec != NULL) {
 		if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
@@ -2314,14 +2288,14 @@ void send_active_to_dependents(const AVD_SI *si)
 		dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
 		if (dep_si == NULL) {
 			/* No corresponding SI node?? some thing wrong */
-			si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+			si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 			continue;
 		}
 		TRACE("dependent si:%s dep_si->si_dep_state:%d",dep_si->name.value,dep_si->si_dep_state);
 		if(dep_si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS) {
-			if (avd_check_si_dep_sponsors(avd_cb, dep_si, false) != NCSCC_RC_SUCCESS) {
+			if (!avd_sidep_all_sponsors_active(dep_si)) {
 				/* Some of the sponsors are not yet in Active state */
-				si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+				si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 				continue;
 			}
 			AVD_SU_SI_REL *sisu;
@@ -2335,9 +2309,9 @@ void send_active_to_dependents(const AVD_SI *si)
 					}
 				}
 			}
-			si_dep_state_set(dep_si, AVD_SI_ASSIGNED);
+			avd_sidep_si_dep_state_set(dep_si, AVD_SI_ASSIGNED);
 		}
-		si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+		si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 	}
 	TRACE_LEAVE();
 }
@@ -2348,7 +2322,7 @@ void send_active_to_dependents(const AVD_SI *si)
  *
  * @return	true/false 
  **/
-bool quiesced_done_for_all_dependents(const AVD_SI *si, const AVD_SU *su)
+bool avd_sidep_quiesced_done_for_all_dependents(const AVD_SI *si, const AVD_SU *su)
 {
 	AVD_SI_SI_DEP_INDX si_indx;
 	AVD_SI_SI_DEP *si_dep_rec;
@@ -2361,7 +2335,7 @@ bool quiesced_done_for_all_dependents(const AVD_SI *si, const AVD_SU *su)
 	memset(&si_indx, '\0', sizeof(si_indx));
 	si_indx.si_name_prim.length = si->name.length;
 	memcpy(si_indx.si_name_prim.value, si->name.value, si_indx.si_name_prim.length);
-	si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_indx, true);
+	si_dep_rec = avd_sidep_find_next(avd_cb, &si_indx, true);
 
 	while (si_dep_rec != NULL) {
 		if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
@@ -2373,7 +2347,7 @@ bool quiesced_done_for_all_dependents(const AVD_SI *si, const AVD_SU *su)
 		dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
 		if (dep_si == NULL) {
 			/* No corresponding SI node?? some thing wrong */
-			si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+			si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 			continue;
 		}
 		for (sisu = dep_si->list_of_sisu; sisu ; sisu = sisu->si_next) {
@@ -2383,7 +2357,7 @@ bool quiesced_done_for_all_dependents(const AVD_SI *si, const AVD_SU *su)
 				goto done;
 			}
 		}
-		si_dep_rec = avd_si_si_dep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+		si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 	}
 
 done:
@@ -2400,7 +2374,7 @@ done:
  * @return      NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  **/
-bool all_sponsors_assigned_active(AVD_SI *si)
+bool avd_sidep_sponsors_assignment_states(AVD_SI *si)
 {
 	bool all_assigned_active = true;
 	AVD_SPONS_SI_NODE *spons_si;
@@ -2419,7 +2393,327 @@ bool all_sponsors_assigned_active(AVD_SI *si)
 	}
 
 done:
-	TRACE_LEAVE2("all_assigned_active:%u",AVSV_CKPT_SI_DEP_STATE);
+	TRACE_LEAVE2("spons actv:%u",all_assigned_active);
 	return all_assigned_active;
 }
 
+/**
+ * @brief       Updates si_dep_state of dependent SIs. Since a dependent SI  
+ *              can have more than one sponsors, si_dep_state is updated
+ *              based on the assignment states of all its sponsors.
+ *
+ * @param[in]   si - pointer to SI. 
+ *
+ * @return      Nothing 
+ *
+ **/
+void sidep_update_dependents_states(AVD_SI *si)
+{
+	AVD_SI *dep_si = NULL;
+	AVD_SI_SI_DEP_INDX si_indx;
+	AVD_SI_SI_DEP *si_dep_rec = NULL;
+
+	if (si->num_dependents == 0) 
+		return;
+
+	TRACE("sponsor si:'%s', dep state:'%s'", si->name.value, depstatename[si->si_dep_state]);
+
+	memset((char *)&si_indx, 0, sizeof(AVD_SI_SI_DEP_INDX));
+	si_indx.si_name_prim.length = si->name.length;
+	memcpy(si_indx.si_name_prim.value, si->name.value, si_indx.si_name_prim.length);
+
+	/* Update the si_dep_state for all dependents  
+	 * SIs of the sponsor SI.
+	 */
+	si_dep_rec = avd_sidep_find_next(avd_cb, &si_indx, true);
+	while (si_dep_rec != NULL) {
+		if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
+			/* Seems no more node exists in spons_anchor tree with 
+			 * "si_indx.si_name_prim" as primary key 
+			 */
+			break;
+		}
+
+		dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
+		osafassert(dep_si); 
+
+		/* update si_dep_state of dependent if its SG fsm is 
+		   stable or if both sponsor and dependent belongs to same SG.   
+		 */
+		if ((dep_si->sg_of_si->sg_fsm_state == AVD_SG_FSM_STABLE) ||
+				(dep_si->sg_of_si == si->sg_of_si)) 
+			sidep_update_si_self_dep_state(dep_si);
+
+		si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+	}
+}
+
+/**
+ * @brief       An SI updates its own si_dep_state based on the   
+ *              on the assignment states of all its sponsors.
+ *
+ * @param[in]   si - pointer to SI. 
+ *
+ * @return      Nothing 
+ *
+ **/
+void sidep_update_si_self_dep_state(AVD_SI *si) 
+{
+	bool all_sponsors_assgnd = false;	
+
+	TRACE_ENTER2("sponsor si:'%s'", si->name.value);
+
+	/*Any dependent SI is never expcted in this state when screening is going on.
+	In such situation do not update si_dep_state. It will be taken care during failover*/
+	if (si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS) {
+		TRACE("si:'%s', si_dep_state:%u", si->name.value, si->si_dep_state);
+		goto done;
+	}
+
+	/*Check assignment states and si_dep_states of all sponsors*/
+	all_sponsors_assgnd = avd_sidep_all_sponsors_active(si);
+
+	if (all_sponsors_assgnd) {
+		/*All the sponsors of this SI are assigned or no sponsors at all.*/
+
+		if (sidep_is_si_active(si)) {
+			/* Since SI is assigned set its si_dep_state to AVD_SI_ASSIGNED.*/
+			avd_sidep_si_dep_state_set(si, AVD_SI_ASSIGNED);
+			if (si->tol_timer_count > 0)
+				/*Stop any toleracne timer if running */
+				sidep_stop_tol_timer(avd_cb, si);
+		} else {
+			/*SI is unassigned. Modify its si_dep_state to
+			  AVD_SI_NO_DEPENDENCY if it does not have any sponsor
+			  otherwise modify it to AVD_SI_READY_TO_ASSIGN.
+			 */
+			if (si->spons_si_list == NULL)
+				avd_sidep_si_dep_state_set(si, AVD_SI_NO_DEPENDENCY);
+			else
+				avd_sidep_si_dep_state_set(si, AVD_SI_READY_TO_ASSIGN);
+		}
+	}
+	else {
+		/*It means atleast one sponsor is unassigned.*/
+
+		if (sidep_is_si_active(si)) {
+			/*Since SI is assigned, set dep state to AVD_SI_READY_TO_UASSIGN.
+			  Later while taking action, start the tolerance timer or unassign SI
+			  depending upon the value of saAmfToleranceTime for unassigned sponsors
+			 */
+			if (si->si_dep_state != AVD_SI_UNASSIGNING_DUE_TO_DEP) 
+				avd_sidep_si_dep_state_set(si, AVD_SI_READY_TO_UNASSIGN);
+		}
+		else 
+			avd_sidep_si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
+	}
+done:
+	TRACE_LEAVE();
+}
+
+
+/**
+ * @brief       Takes action on the SI from SI dependency perpspective
+ *              depending upon the si_dep_state.
+ *
+ * @param[in]   si - pointer to SI. 
+ *
+ * @return      Nothing 
+ *
+ **/
+void sidep_si_take_action(AVD_SI *si)
+{
+	TRACE_ENTER2("si:'%s', si_dep_state:'%s'",si->name.value, depstatename[si->si_dep_state]);
+	
+	LOG_NO("Taking sidep action si:'%s', si_dep_state:'%s'",
+			si->name.value, depstatename[si->si_dep_state]);
+	switch (si->si_dep_state) {
+		case AVD_SI_ASSIGNED:
+			/* SI is assigned. Assign all the unassigned dependents*/
+			if (si->num_dependents != 0)
+				sidep_take_action_on_dependents(si);
+			break;
+		case AVD_SI_READY_TO_ASSIGN:
+			/*If this SI is an sponsor, action will be taken on its
+			  dependents post SG stable screening.
+			 */
+			if (si->spons_si_list == NULL) {
+				sidep_sg_red_si_process_assignment(avd_cb, si);
+			}
+			else
+				sidep_si_dep_state_evt_send(avd_cb, si, AVD_EVT_ASSIGN_SI_DEP_STATE);
+				
+			break;
+		case AVD_SI_READY_TO_UNASSIGN:
+			/*Unassign this dependent because atleast one sponsor is
+			  unassigned.*/
+			if (si->spons_si_list == NULL)
+				/*If sponsor SI then unassigned it.*/
+				sidep_unassign_dependent(avd_cb,si);
+			else
+				/*For dependent SI start the tolerance timer or unassign it*/
+				sidep_process_ready_to_unassign_depstate(si);
+
+			break;
+		case AVD_SI_SPONSOR_UNASSIGNED:
+			/*This SI is unassigned so take action on dependents*/
+			if (si->num_dependents) 
+				sidep_take_action_on_dependents(si);
+			break;
+		case AVD_SI_TOL_TIMER_RUNNING:
+			/*Action will be taken at the expiry of tolerance timer.*/
+			break;
+		case AVD_SI_UNASSIGNING_DUE_TO_DEP:
+			sidep_unassign_dependent(avd_cb,si);
+			break;
+		case AVD_SI_FAILOVER_UNDER_PROGRESS:
+			/*No action action will taken during failover.*/
+			break;
+		case AVD_SI_NO_DEPENDENCY:
+			/*a SI not participating in SI dependency or 
+			  a SI having dependent(s) and no sponsor*/
+
+			if ((!sidep_is_si_active(si)) &&
+				(si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED)) {
+				/*This is a SI with no sponsor. Assign it.*/
+				sidep_sg_red_si_process_assignment(avd_cb, si);
+			}  
+			if (si->num_dependents) {
+				/*This is an unassigned SI with dependents but no sponsors.
+				  Take action on dependents.*/
+				sidep_take_action_on_dependents(si);
+			}
+			break;
+		default:
+			osafassert(0);
+			break;
+	}
+	TRACE_LEAVE();
+}
+/**
+ * @brief       Take action on each SI or on its dependents in sg->list_of_si.
+ *              Here it is assumed that all si_dep_states of all SIs 
+ *              are updated in SG.
+ *
+ * @param[in]   sg - pointer to SG. 
+ *
+ * @return      Nothing 
+ *
+ **/
+void avd_sidep_sg_take_action(AVD_SG *sg)
+{
+	AVD_SI *si = NULL;
+
+	TRACE_ENTER2("'%s'", sg->name.value);
+
+	for (si = sg->list_of_si; si != NULL; si = si->sg_list_of_si_next) {
+		if ((si->spons_si_list != NULL) || (si->num_dependents > 0)) 
+			sidep_si_take_action(si);
+	}
+	TRACE_LEAVE();
+}
+
+/**
+ * @brief       Starts tolerance timers as many as the no of unassigned sponsors.
+ *              For any SI dependency if sponsor is unassigned and saAmfToleranceTime 
+ *              is 0 then dependent SI will be unassigned.
+ *
+ * @param[in]   si - pointer to dependent SI. 
+ *
+ * @return      Nothing 
+ *
+ **/
+void sidep_process_ready_to_unassign_depstate(AVD_SI *dep_si) 
+{
+	AVD_SI *spons_si = NULL;
+	AVD_SI_SI_DEP_INDX si_indx;
+	AVD_SI_SI_DEP *si_dep_rec = NULL;
+	AVD_SPONS_SI_NODE *temp_spons_list = NULL;
+
+	TRACE_ENTER2("dep si:'%s'", dep_si->name.value);
+
+	for (temp_spons_list = dep_si->spons_si_list; temp_spons_list != NULL;
+			temp_spons_list = temp_spons_list->next) {
+		spons_si = temp_spons_list->si;
+		TRACE("spons si:'%s'",spons_si->name.value);
+
+		/* Frame the index completely to the associated si_dep_rec */
+		memset((char *)&si_indx, 0, sizeof(AVD_SI_SI_DEP_INDX));
+		si_indx.si_name_prim.length = spons_si->name.length;
+		memcpy(si_indx.si_name_prim.value, spons_si->name.value, si_indx.si_name_prim.length);
+		si_indx.si_name_sec.length = dep_si->name.length;
+		memcpy(si_indx.si_name_sec.value, dep_si->name.value, dep_si->name.length);
+
+		si_dep_rec = avd_sidep_find(avd_cb, &si_indx, true);
+		if (si_dep_rec == NULL)
+			goto done;
+
+		if (sidep_is_si_active(spons_si)) {
+			if (si_dep_rec->si_dep_timer.is_active == true) {
+				avd_stop_tmr(avd_cb, &si_dep_rec->si_dep_timer);
+				if(dep_si->tol_timer_count > 0)
+					dep_si->tol_timer_count--;
+			}
+		} else {
+			if (si_dep_rec->saAmfToleranceTime) {
+				/*start the tolerance timer and set si_dep_state to AVD_SI_TOL_TIMER_RUNNING*/
+				sidep_update_si_dep_state_for_spons_unassign(avd_cb, dep_si, si_dep_rec);
+			} else {
+				/*since we are going to unassign the dependent stop other timers*/
+				if (dep_si->tol_timer_count)
+					sidep_stop_tol_timer(avd_cb, dep_si);
+
+				if ((avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) &&
+						(dep_si->si_dep_state != AVD_SI_UNASSIGNING_DUE_TO_DEP))
+					sidep_si_dep_state_evt_send(avd_cb, dep_si, AVD_EVT_UNASSIGN_SI_DEP_STATE);
+				break;
+			}	
+		}
+	}
+done:
+	TRACE_LEAVE();
+}
+
+/**
+ * @brief       This function performs the unassignment of dependent SI as 
+ *              sponsor is unassigned (SI dependency logics).
+ *
+ * @param[in]   cb - pointer to avd_control block. 
+ * @param[in]   evt - pointer to AVD_EVT struct. 
+ *
+ * @return      Nothing 
+ *
+ **/
+void avd_sidep_unassign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+{
+	AVD_SI *dep_si = NULL;
+
+	TRACE_ENTER();
+
+	if (evt == NULL) {
+		LOG_NO("Got NULL event");
+		goto done; 
+	}
+
+	osafassert(evt->rcv_evt == AVD_EVT_UNASSIGN_SI_DEP_STATE);
+
+	dep_si = avd_si_get(&evt->info.tmr.dep_si_name);
+	osafassert(dep_si);
+
+	avd_sidep_si_dep_state_set(dep_si, AVD_SI_UNASSIGNING_DUE_TO_DEP);
+
+	/* Take action only when dependent sg fsm is stable.  When SG becomes
+	   stable, based on updated si_dep_state action is taken.
+	 */
+	if (dep_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) { 
+		TRACE("sg unstable, so defering sidep action on si:'%s'",dep_si->name.value);
+		goto done;
+	}
+
+	/* Process UNASSIGN evt */
+	LOG_NO("Unassigning due to dep'%s'",dep_si->name.value);
+	sidep_si_dep_start_unassign(cb, evt);
+
+done:
+	TRACE_LEAVE();
+}

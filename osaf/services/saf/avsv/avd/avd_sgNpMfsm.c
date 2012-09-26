@@ -176,7 +176,7 @@ static uint32_t avd_sg_npm_su_chk_snd(AVD_CL_CB *cb, AVD_SU *s_su, AVD_SU *q_su)
 			for (i_susi = s_su->list_of_susi;i_susi != NULL;i_susi = i_susi->su_next) {
 				if (i_susi->si->num_dependents > 0) {
 					/* This is a Sponsor SI update its dependent states */
-					avd_update_depstate_si_failover(i_susi->si, q_su);
+					avd_sidep_update_depstate_si_failover(i_susi->si, q_su);
 				}
 			}
 		}
@@ -334,8 +334,6 @@ static void avd_sg_npm_distribute_si_equal(AVD_SG *sg)
 
 	curr_si = sg->list_of_si;
 	while (curr_si != NULL) {
-		/* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
-		avd_screen_sponsor_si_state(avd_cb, curr_si, false);
 
 		/* verify that the SI is ready and needs active assignments. */
 		if ((curr_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
@@ -464,6 +462,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 	TRACE_ENTER();
 
+	avd_sidep_update_si_dep_state_for_all_sis(sg);
 	if (sg->equal_ranked_su == true ) {
 		/* In case of equal ranked SUs in the SG distribute the SIs equally among
 		 * the IN-SERVICE SUs, 
@@ -478,12 +477,11 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	actv_su_found = load_su_found = false;
 
 	while ((i_si != AVD_SI_NULL) && (su_found == true)) {
-		/* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
-		avd_screen_sponsor_si_state(cb, i_si, false);
 
 		/* verify that the SI is ready and needs active assignments. */
 		if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
 		    (i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
+		    (i_si->si_dep_state == AVD_SI_READY_TO_UNASSIGN) ||
 			(i_si->list_of_csi == NULL) ||
 		    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP)) {
 			i_si = i_si->sg_list_of_si_next;
@@ -653,8 +651,6 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		/* Identify the highest ranked active assigning SU.  */
 		i_su = avd_sg_npm_su_next_asgn(cb, sg, NULL, SA_AMF_HA_ACTIVE);
 		while ((i_si != AVD_SI_NULL) && (i_su != NULL)) {
-			/* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
-			avd_screen_sponsor_si_state(cb, i_si, false);
 			if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
 			    (i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
 			    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
@@ -1290,7 +1286,7 @@ static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 			AVD_SU_SI_REL *l_susi;
 			for (l_susi = su->list_of_susi;l_susi != NULL;l_susi = l_susi->su_next) {
 				if(l_susi->si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS)
-					si_dep_state_set(l_susi->si, AVD_SI_SPONSOR_UNASSIGNED);
+					avd_sidep_si_dep_state_set(l_susi->si, AVD_SI_SPONSOR_UNASSIGNED);
 				if (l_susi->si->num_dependents > 0)
 					avd_sidep_reset_dependents_depstate_in_sufault(l_susi->si);
 			}
@@ -1765,6 +1761,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 					/* all the assignments have already been done in the SG. */
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+					avd_sidep_sg_take_action(su->sg_of_su); 
 					avd_sg_app_su_inst_func(cb, su->sg_of_su);
 					if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) && 
 							(true == su->sg_of_su->equal_ranked_su) &&
@@ -1827,6 +1824,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 							/* all the assignments have already been done in the SG. */
 							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+							avd_sidep_sg_take_action(su->sg_of_su); 
 							avd_sg_app_su_inst_func(cb, su->sg_of_su);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
@@ -1858,6 +1856,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 					/* all the assignments have already been done in the SG. */
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+					avd_sidep_sg_take_action(su->sg_of_su); 
 					avd_sg_app_su_inst_func(cb, su->sg_of_su);
 					if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 							(true == su->sg_of_su->equal_ranked_su) &&
@@ -1935,6 +1934,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 							if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 								/* all the assignments have already been done in the SG. */
 								m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+								avd_sidep_sg_take_action(su->sg_of_su); 
 								avd_sg_app_su_inst_func(cb, su->sg_of_su);
 								if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
@@ -1966,6 +1966,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 							/* all the assignments have already been done in the SG. */
 							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+							avd_sidep_sg_take_action(su->sg_of_su); 
 							avd_sg_app_su_inst_func(cb, su->sg_of_su);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
@@ -2026,6 +2027,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 						/* all the assignments have already been done in the SG. */
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+						avd_sidep_sg_take_action(su->sg_of_su); 
 						avd_sg_app_su_inst_func(cb, su->sg_of_su);
 						if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 								(true == su->sg_of_su->equal_ranked_su) &&
@@ -2431,7 +2433,7 @@ static void avd_sg_npm_stdbysu_role_change(AVD_SU *su)
 
 							/* update dependents si_dep_state */
 							if (act_susi->si->num_dependents > 0) {
-								avd_update_depstate_si_failover(act_susi->si, su);
+								avd_sidep_update_depstate_si_failover(act_susi->si, su);
 							}
 						}
 
@@ -2446,7 +2448,7 @@ static void avd_sg_npm_stdbysu_role_change(AVD_SU *su)
 
 					} else {
 						TRACE("Role failover is deferred as sponsors role failover is under going");
-						si_dep_state_set(act_susi->si, AVD_SI_FAILOVER_UNDER_PROGRESS);
+						avd_sidep_si_dep_state_set(act_susi->si, AVD_SI_FAILOVER_UNDER_PROGRESS);
 					}
 				}
 			}
@@ -2632,6 +2634,7 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 				/* all the assignments have already been done in the SG. */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				avd_sidep_sg_take_action(su->sg_of_su); 
 				avd_sg_app_su_inst_func(cb, su->sg_of_su);
 				if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 						(true == su->sg_of_su->equal_ranked_su) &&
@@ -2946,6 +2949,9 @@ uint32_t avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 			if (su->sg_of_su->su_oper_list.su == NULL) {
 				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				/*As sg is stable, screen for si dependencies and take action on whole sg*/
+				avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
+				avd_sidep_sg_take_action(su->sg_of_su); 
 				if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 						(true == su->sg_of_su->equal_ranked_su) &&
 						(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
@@ -3423,6 +3429,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 						if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 							/* all the assignments have already been done in the SG. */
 							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+							avd_sidep_sg_take_action(su->sg_of_su); 
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
@@ -3460,6 +3467,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 						if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 							/* all the assignments have already been done in the SG. */
 							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+							avd_sidep_sg_take_action(su->sg_of_su); 
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
@@ -3519,6 +3527,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 						if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 							/* all the assignments have already been done in the SG. */
 							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+							avd_sidep_sg_take_action(su->sg_of_su); 
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
@@ -3572,6 +3581,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 						if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 							/* all the assignments have already been done in the SG. */
 							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+							avd_sidep_sg_take_action(su->sg_of_su); 
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
@@ -3686,6 +3696,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 				if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 					/* all the assignments have already been done in the SG. */
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+					avd_sidep_sg_take_action(su->sg_of_su); 
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
@@ -3814,6 +3825,7 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 			if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 				/* all the assignments have already been done in the SG. */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				avd_sidep_sg_take_action(su->sg_of_su); 
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
@@ -3965,6 +3977,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 						/* all the assignments have already been done in the SG. */
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+						avd_sidep_sg_take_action(su->sg_of_su); 
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
@@ -4007,6 +4020,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 						/* all the assignments have already been done in the SG. */
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+						avd_sidep_sg_take_action(su->sg_of_su); 
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
@@ -4064,6 +4078,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 						/* all the assignments have already been done in the SG. */
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+						avd_sidep_sg_take_action(su->sg_of_su); 
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
@@ -4120,6 +4135,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 						/* all the assignments have already been done in the SG. */
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+						avd_sidep_sg_take_action(su->sg_of_su); 
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
@@ -4257,6 +4273,9 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 			}
 
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+			/*As sg is stable, screen for si dependencies and take action on whole sg*/
+			avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
+			avd_sidep_sg_take_action(su->sg_of_su); 
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
 									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {

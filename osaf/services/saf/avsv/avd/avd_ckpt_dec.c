@@ -2006,14 +2006,7 @@ static uint32_t avsv_decode_ckpt_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
-	si_struct->si_dep_state = si_ptr_dec->si_dep_state;
-
-	TRACE("si:%s si_dep_state:%u si_struct->num_dependents:%u",si_struct->name.value,si_struct->si_dep_state,si_struct->num_dependents);
-	/* If the Sponsor SI is Unasiigned then iterate through all its dependents and start Tolerance timer for each dependent */
-	if ((si_struct->num_dependents) && (si_struct->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED)) {
-		/* Check if this SI is a sponsor SI for some other SI, the take appropriate action */
-		avd_si_dep_spons_state_modif(cb, si_struct, NULL, AVD_SI_DEP_SPONSOR_UNASSIGNED);
-	}
+	avd_sidep_si_dep_state_set(si_struct,si_ptr_dec->si_dep_state);
 
 	cb->async_updt_cnt.si_updt++;
 

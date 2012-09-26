@@ -70,7 +70,7 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 	/* active AvD timer events processing */
 	avd_tmr_snd_hb_evh,       /* AVD_EVT_TMR_SND_HB */
 	avd_cluster_tmr_init_evh, /* AVD_EVT_TMR_CL_INIT */
-	avd_tmr_si_dep_tol_evh,   /* AVD_EVT_TMR_SI_DEP_TOL */
+	avd_sidep_tol_tmr_evh,   /* AVD_EVT_TMR_SI_DEP_TOL */
 
 	/* active AvD MDS events processing */
 	avd_mds_avd_up_evh,	/* AVD_EVT_MDS_AVD_UP */
@@ -82,7 +82,9 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 	/* Role change Event processing */
 	avd_role_change_evh,	     /* AVD_EVT_ROLE_CHANGE */
 	avd_role_switch_ncs_su_evh,  /* AVD_EVT_SWITCH_NCS_SU */
-	avd_process_si_dep_state_evh /* AVD_EVT_SI_DEP_STATE */
+	avd_sidep_assign_evh, /* AVD_EVT_ASSIGN_SI_DEP_STATE */
+	avd_invalid_evh,		/* AVD_EVT_INVALID */
+	avd_sidep_unassign_evh /* AVD_EVT_UNASSIGN_SI_DEP_STATE */
 };
 
 /* list of all the function pointers related to handling the events
