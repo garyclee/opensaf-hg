@@ -61,6 +61,7 @@ typedef struct imma_client_node {
 	bool isImmA2bCbk;    /* Version A.02.11 callback*/
 	bool isApplier; /* True => This is an Applier-OI */
 	bool isAug;     /* True => handle internal to OI augmented CCB */
+	bool isBusy;	/* True => handle is locked by a thread until a function execution is done */
 	struct imma_oi_ccb_record *activeOiCcbs; /* For ccb termination on IMMND down.*/
 	SYSF_MBX callbk_mbx;	/*Mailbox Queue for clnt messages */
 } IMMA_CLIENT_NODE;

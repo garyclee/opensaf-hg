@@ -55,10 +55,12 @@ immomtest_SOURCES = \
 	test_saImmOmCcbApply.c \
 	test_saImmOmCcbFinalize.c \
 	test_saImmOmAdminOperationContinue.c \
+	test_saImmOmThreadInterference.c \
 	test_cleanup.c
 
 immomtest_LDADD = \
-	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la
 
 
 immpopulate_CPPFLAGS = \
