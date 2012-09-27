@@ -278,9 +278,9 @@ class SmfImmCreateOperation:public SmfImmOperation {
 ///
 /// Purpose: Create the attr values structure from previously added string values.
 /// @param   None.
-/// @return  None.
+/// @return  Bool true if successful, otherwise false.
 ///
-	void createAttrValues(void);
+	bool createAttrValues(void);
 
  private:
 ///
@@ -437,9 +437,9 @@ class SmfImmModifyOperation:public SmfImmOperation {
 ///
 /// Purpose: Create the attr modification structure from string representation.
 /// @param   None.
-/// @return  None.
+/// @return  Bool true if successful, otherwise false.
 ///
-	void createAttrMods(void);
+	bool createAttrMods(void);
 
 ///
 /// Purpose: Add a value for an attribute of the object to be modified.
@@ -534,9 +534,9 @@ class SmfImmRTCreateOperation {
 ///
 /// Purpose: Create the attr values structure from previously added string values.
 /// @param   None.
-/// @return  None.
+/// @return  Bool true if successful, otherwise false.
 ///
-	void createAttrValues(void);
+	bool createAttrValues(void);
 
  private:
 ///
@@ -612,9 +612,9 @@ class SmfImmRTUpdateOperation {
 ///
 /// Purpose: Create the attr values structure from previously added string values.
 /// @param   None.
-/// @return  None.
+/// @return  Bool true if successful, otherwise false.
 ///
-	void createAttrMods(void);
+	bool createAttrMods(void);
 
  private:
 ///

@@ -275,22 +275,30 @@ SmfForAddRemove::~SmfForAddRemove()
 	if (m_deactivationUnit != NULL) delete m_deactivationUnit;
 }
 
-void 
+bool 
 SmfForAddRemove::setActivationUnit(SmfActivationUnitType* actunit)
 {
-	osafassert(m_activationUnit == NULL);
+	if (m_activationUnit != NULL) {
+		LOG_ER("Activation unit already set");
+		return false;
+	}
 	m_activationUnit = actunit;
+	return true;
 }
 const SmfActivationUnitType*
 SmfForAddRemove::getActivationUnit(void) const
 {
 	return m_activationUnit;
 }
-void 
+bool 
 SmfForAddRemove::setDeactivationUnit(SmfActivationUnitType* deactunit)
 {
-	osafassert(m_deactivationUnit == NULL);
+	if (m_deactivationUnit != NULL) {
+		LOG_ER("Deactivation unit already set");
+		return false;
+	}
 	m_deactivationUnit = deactunit;
+	return true;
 }
 const SmfActivationUnitType*
 SmfForAddRemove::getDeactivationUnit(void) const
@@ -318,11 +326,15 @@ SmfForModify::~SmfForModify()
 	}
 }
 
-void 
+bool 
 SmfForModify::setActivationUnit(SmfActivationUnitType* actunit)
 {
-	osafassert(m_activationUnit == NULL);
+	if (m_activationUnit != NULL) {
+		LOG_ER("Activation unit already set");
+		return false;
+	}
 	m_activationUnit = actunit;
+	return true;
 }
 const SmfActivationUnitType*
 SmfForModify::getActivationUnit(void) const

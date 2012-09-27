@@ -300,7 +300,7 @@ SmfImmCreateOperation::getValues()
 //------------------------------------------------------------------------------
 // createAttrValues()
 //------------------------------------------------------------------------------
-void 
+bool 
 SmfImmCreateOperation::createAttrValues(void)
 {
 	TRACE_ENTER();
@@ -321,9 +321,13 @@ SmfImmCreateOperation::createAttrValues(void)
 		//Create structure for one attribute
 		SaImmAttrValuesT_2 *attr = new(std::nothrow) SaImmAttrValuesT_2();
 		osafassert(attr != 0);
-
 		attr->attrName = (char *)(*iter).m_name.c_str();
-		attr->attrValueType = smf_stringToImmType((char *)(*iter).m_type.c_str());
+		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), attr->attrValueType) == false) {
+			delete attr;
+			LOG_ER("Fails to convert string (%s) to imm type", (char *)(*iter).m_type.c_str());
+			TRACE_LEAVE();
+			return false;
+		}
 
 		if ((*iter).m_values.size() == 0) {	//Must have at least one value
 			LOG_NO("attr value is not given for attr name %s", (*iter).m_name.c_str());
@@ -333,7 +337,12 @@ SmfImmCreateOperation::createAttrValues(void)
 		} 
 		else {
         		attr->attrValuesNumber = (*iter).m_values.size();
-        		smf_stringsToValues(attr, (*iter).m_values);	//Convert the string to a SA Forum type
+        		if (smf_stringsToValues(attr, (*iter).m_values) == false) {	//Convert the string to a SA Forum type
+				delete attr;
+				LOG_ER("Fails to convert strings to values");
+				TRACE_LEAVE();
+				return false;
+			}
                 }
         
                 //Add the pointer to the SaImmAttrValuesT_2 structure to the attributes list
@@ -346,6 +355,7 @@ SmfImmCreateOperation::createAttrValues(void)
 	this->setAttrValues(attributeValues);
 
 	TRACE_LEAVE();
+	return true;
 }
 
 //------------------------------------------------------------------------------
@@ -368,7 +378,11 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
 	SaAisErrorT result = SA_AIS_OK;
 
 	//Convert the strings to structures and types accepted by the IMM interface
-	this->createAttrValues();
+	if (this->createAttrValues() == false) {
+		LOG_ER("Faied to convert to IMM attr structure");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_FAILED_OPERATION;
+	}
 
 	const char *className = m_className.c_str();
 
@@ -505,7 +519,11 @@ SmfImmCreateOperation::prepareRollback(SmfRollbackData* o_rollbackData)
 
 	for (iter = m_values.begin(); iter != m_values.end(); iter++) {
 		if (rdnAttrName == (*iter).m_name) {
-                        osafassert((*iter).m_values.size() == 1);	// Must have only one value
+			if ((*iter).m_values.size() != 1){
+				LOG_ER("Attribute %s contain %zu values, must contain exactly one value",
+				       rdnAttrName.c_str(), (*iter).m_values.size());
+				return SA_AIS_ERR_FAILED_OPERATION;
+			}
                         rdnAttrValue = (*iter).m_values.front();
                         break;
                 }
@@ -812,7 +830,7 @@ SmfImmModifyOperation::setOp(const std::string & i_op)
 //------------------------------------------------------------------------------
 // createAttrMods()
 //------------------------------------------------------------------------------
-void 
+bool 
 SmfImmModifyOperation::createAttrMods(void)
 {
 	TRACE_ENTER();
@@ -831,18 +849,40 @@ SmfImmModifyOperation::createAttrMods(void)
 		SaImmAttrModificationT_2 *mod = new(std::nothrow) SaImmAttrModificationT_2();
 		osafassert(mod != 0);
 		mod->modType = smf_stringToImmAttrModType((char *)m_op.c_str());	//Convert an store the modification type from string to SA Forum type
+		if (mod->modType == 0) {
+			delete mod;
+			LOG_ER("Fails to convert string (%s) to type", (char *)m_op.c_str());
+			TRACE_LEAVE();
+			return false;
+		}
 		mod->modAttr.attrName = (char *)(*iter).m_name.c_str();
-		mod->modAttr.attrValueType = smf_stringToImmType((char *)(*iter).m_type.c_str());
+		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), mod->modAttr.attrValueType) == false) {
+			delete mod;
+			LOG_ER("Failes to convert attr [%s] type to valid IMM type", mod->modAttr.attrName);
+			TRACE_LEAVE();			
+			return false;
+		}
 		TRACE("Modifying %s:%s = %s", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
 
-		osafassert((*iter).m_values.size() > 0);	//Must have at least one value
+		if ((*iter).m_values.size() <= 0){
+			LOG_ER("Attribute %s contain %zu values, must contain at least one value",
+			       (*iter).m_name.c_str(),(*iter).m_values.size());
+			delete mod;
+			TRACE_LEAVE();
+			return false;
+		}
                 if ((*iter).m_values.size() == 1 && (!strcmp((*iter).getValues().front().c_str(),"<_empty_>"))) {
                         mod->modAttr.attrValuesNumber = 0;
                 }
                 else {
                         mod->modAttr.attrValuesNumber = (*iter).m_values.size();
-                        smf_stringsToValues(&mod->modAttr, (*iter).m_values);	//Convert the string to a SA Forum type
-                }
+                        if (smf_stringsToValues(&mod->modAttr, (*iter).m_values) == false) {	//Convert the string to a SA Forum type
+				delete mod;
+				LOG_ER("Failes to convert attr [%s] value string to attr value", mod->modAttr.attrName);
+				TRACE_LEAVE();
+				return false;
+			}
+		}
 
                 //Add the pointer to the SaImmAttrModificationT_2 structure to the modifications list
                 attributeModifications[i++] = mod;
@@ -854,6 +894,7 @@ SmfImmModifyOperation::createAttrMods(void)
 	m_immAttrMods = attributeModifications;
 
 	TRACE_LEAVE();
+	return true;
 }
 
 //------------------------------------------------------------------------------
@@ -905,7 +946,11 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
 	SaAisErrorT result = SA_AIS_OK;
 
 	//Convert the strings to structures and types accepted by the IMM interface
-	this->createAttrMods();
+	if (this->createAttrMods() == false){
+		LOG_ER("Faied to convert to IMM attr structure");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_FAILED_OPERATION;
+	}
 
 	if (!m_ccbHandle) {
 		LOG_ER("SmfImmModifyOperation::execute: no ccb handle set");
@@ -1094,7 +1139,7 @@ SmfImmRTCreateOperation::addValue(const SmfImmAttribute & i_value)
 //------------------------------------------------------------------------------
 // createAttrValues()
 //------------------------------------------------------------------------------
-void 
+bool 
 SmfImmRTCreateOperation::createAttrValues(void)
 {
 	TRACE_ENTER();
@@ -1117,21 +1162,23 @@ SmfImmRTCreateOperation::createAttrValues(void)
 		osafassert(attr != 0);
 
 		attr->attrName = (char *)(*iter).m_name.c_str();
-		attr->attrValueType = smf_stringToImmType((char *)(*iter).m_type.c_str());
-
-#if 0
-		if (iter->m_values.size() == 0) {
-			TRACE("c=[%s], p=[%s], attr=[%s]", 
-			      m_className.c_str(), m_parentDn.c_str(), attr->attrName);
+		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), attr->attrValueType) == false) {
+			delete 	attr;
+			LOG_ER("Failes to convert attr [%s] type to valid IMM type", attr->attrName);
+			TRACE_LEAVE();
+			return false;
 		}
-		osafassert((*iter).m_values.size() > 0);	//Must have at least one value
-#endif
+
 		TRACE("c=[%s], p=[%s], attr=[%s]", m_className.c_str(), m_parentDn.c_str(), attr->attrName);
 
 		attr->attrValuesNumber = (*iter).m_values.size();
 
-		smf_stringsToValues(attr, (*iter).m_values);	//Convert the string to a SA Forum type
-
+		if (smf_stringsToValues(attr, (*iter).m_values) == false) {	//Convert the string to a SA Forum type
+			delete 	attr;
+			LOG_ER("Failes to convert attr [%s] value string to attr value", attr->attrName);
+			TRACE_LEAVE();
+			return false;
+		}
 		//Add the pointer to the SaImmAttrValuesT_2 structure to the attributes list
 		attributeValues[i++] = attr;
 
@@ -1142,6 +1189,7 @@ SmfImmRTCreateOperation::createAttrValues(void)
 	this->setAttrValues(attributeValues);
 
 	TRACE_LEAVE();
+	return true;
 }
 
 //------------------------------------------------------------------------------
@@ -1164,7 +1212,11 @@ SmfImmRTCreateOperation::execute()
 	SaAisErrorT result = SA_AIS_OK;
 
 	//Convert the strings to structures and types accepted by the IMM interface
-	this->createAttrValues();
+	if (this->createAttrValues() == false) {
+		LOG_ER("Faied to convert to IMM attr structure");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_FAILED_OPERATION;
+	}
 
 	const char *className = m_className.c_str();
 
@@ -1251,7 +1303,7 @@ SmfImmRTUpdateOperation::setImmHandle(const SaImmOiHandleT & i_handle)
 //------------------------------------------------------------------------------
 // createAttrMods()
 //------------------------------------------------------------------------------
-void 
+bool 
 SmfImmRTUpdateOperation::createAttrMods(void)
 {
 	TRACE_ENTER();
@@ -1270,15 +1322,35 @@ SmfImmRTUpdateOperation::createAttrMods(void)
 		SaImmAttrModificationT_2 *mod = new(std::nothrow) SaImmAttrModificationT_2();
 		osafassert(mod != 0);
 		mod->modType = smf_stringToImmAttrModType((char *)m_op.c_str());	//Convert an store the modification type from string to SA Forum type
+		if (mod->modType == 0) {
+			delete mod;
+			LOG_ER("Failes to convert string to IMM attribute modification type [%s:%s]",  m_dn.c_str(), (*iter).m_name.c_str());
+			TRACE_LEAVE();
+			return false;
+		}
 		mod->modAttr.attrName = (char *)(*iter).m_name.c_str();
-		mod->modAttr.attrValueType = smf_stringToImmType((char *)(*iter).m_type.c_str());
+		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), mod->modAttr.attrValueType) == false) {
+			delete mod;
+			LOG_ER("Failes to convert string to IMM attribute type [%s:%s]",  m_dn.c_str(), (*iter).m_name.c_str());
+			TRACE_LEAVE();
+			return false;
+		}
 		TRACE("Modifying %s:%s = %s", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
 
-		osafassert((*iter).m_values.size() > 0);	//Must have at least one value
+		if ((*iter).m_values.size() <= 0) { //Must have at least one value
+			LOG_ER("No values %s:%s (size=%zu)", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.size());
+			delete mod;
+			TRACE_LEAVE();
+			return false;
+		}
 		mod->modAttr.attrValuesNumber = (*iter).m_values.size();
 
-		smf_stringsToValues(&mod->modAttr, (*iter).m_values);	//Convert the string to a SA Forum type
-
+		if (smf_stringsToValues(&mod->modAttr, (*iter).m_values) == false) { //Convert the string to a SA Forum type
+			delete mod;
+			LOG_ER("Failes to convert string to value [%s:%s = %s]",  m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
+			TRACE_LEAVE();
+			return false;
+		}
 		//Add the pointer to the SaImmAttrModificationT_2 structure to the modifications list
 		attributeModifications[i++] = mod;
 
@@ -1289,6 +1361,7 @@ SmfImmRTUpdateOperation::createAttrMods(void)
 	m_immAttrMods = attributeModifications;
 
 	TRACE_LEAVE();
+	return true;
 }
 
 //------------------------------------------------------------------------------
@@ -1311,7 +1384,11 @@ SmfImmRTUpdateOperation::execute()
 	SaAisErrorT result = SA_AIS_OK;
 
 	//Convert the strings to structures and types accepted by the IMM interface
-	this->createAttrMods();
+	if (this->createAttrMods() == false){
+		LOG_ER("Faied to convert to IMM attr structure");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_FAILED_OPERATION;
+	}
 
 	if (m_dn.length() > SA_MAX_NAME_LENGTH) {
 		LOG_ER("SmfImmRTCreateOperation::execute:createObject failed Too long DN %zu",

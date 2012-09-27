@@ -29,6 +29,7 @@
 #include <vector>
 #include <string>
 #include <libxml/xpath.h>
+#include "SmfCallback.hh"
 
 class SmfUpgradeCampaign;
 class SmfUpgradeProcedure;
@@ -118,7 +119,7 @@ class SmfCampaignXmlParser {
 /// @param objattr Non-NULL if the attribute name differs in the node and
 ///   the object.
 ///
-	static void addAttribute(
+	bool addAttribute(
 		SmfImmCreateOperation* ico, xmlNode* n, char const* attrname, 
                 char const* attrtype, bool optional = false,
                 char const* objattr = NULL);
@@ -134,7 +135,7 @@ class SmfCampaignXmlParser {
 /// @param attrtype The attribute type
 ///
 
-	void elementToAttr(
+	bool elementToAttr(
 		SmfImmCreateOperation* ico, xmlNode* node, 
 		char const* tag, char const* attrname, char const* attrtype,
 		bool optional = true);
@@ -166,9 +167,9 @@ class SmfCampaignXmlParser {
 /// Purpose: Parse the opgradeProcedure part of the campaign   
 /// @param   io_up  A pointer to the procedure object.
 /// @param   i_node The xml node where the campaigninfo tag was found.
-/// @return  None
+/// @return  Bool true if successful, otherwise false
 ///
-	void parseUpgradeProcedure(SmfUpgradeProcedure * io_up, xmlNode * i_node);
+	bool parseUpgradeProcedure(SmfUpgradeProcedure * io_up, xmlNode * i_node);
 
 ///
 /// Purpose: Parse the procedure estimated time   
@@ -198,9 +199,9 @@ class SmfCampaignXmlParser {
 /// Purpose: Parse the rollingUpgrade part of the campaign   
 /// @param   a_rolling  A pointer to the SmfRollingUpgrade object.
 /// @param   i_node The xml node where the rollingUpgrade tag was found.
-/// @return  None
+/// @return  Bool true if successful, otherwise false
 ///
-	void parseRollingUpgrade(SmfRollingUpgrade * a_rolling, xmlNode * a_node);
+	bool parseRollingUpgrade(SmfRollingUpgrade * a_rolling, xmlNode * a_node);
 
 ///
 /// Purpose: Parse the byTemplate part of the campaign   
@@ -259,62 +260,78 @@ class SmfCampaignXmlParser {
 	void parseAttribute(SmfImmOperation * io_immo, xmlNode * i_node);
 
 ///
+/// Purpose: Parse the step counter
+/// @param   i_node The xml node
+/// @param   o_stepcount, the value of onEveryStep/onFirstStep/onLastStep/halfWay
+/// @return  Bool true if successful, otherwise false.
+///
+	bool parseStepCount(xmlNode* node, SmfCallback::StepCountT& o_stepcount);
+
+///
+/// Purpose: Parse the at action tag
+/// @param   i_node The xml node
+/// @param   o_ataction, the value of beforeTermination/afterImmModification/afterInstantiation/afterUnlock
+/// @return  Bool true if successful, otherwise false.
+///
+	bool parseAtAction(xmlNode* node,  SmfCallback::AtActionT& o_ataction);
+
+///
 /// Purpose: Parse Callback items. In the campaign these are pairs; customizationTime/callback
 ///   for rolling-upgrade and atAction/callback for singlestep-upgrade.
 /// @param   upgrade The Upgrade object that holds the callback list
 /// @param   node The first xml node to search for callbacks. Note; the sibling to this node
 ///   are searched, not the children.
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseCallback(SmfUpgradeMethod* upgrade, xmlNode* node);
+	bool parseCallback(SmfUpgradeMethod* upgrade, xmlNode* node);
 
 ///
 /// Purpose: Parse the singlestepUpgrade part of the campaign   
 /// @param   a_single  A pointer to the SmfSinglestepUpgrade object.
 /// @param   i_node The xml node where the singleStepUpgrade tag was found.
-/// @return  None
+/// @return  Bool true if successful, otherwise false
 ///
-	void parseSinglestepUpgrade(SmfSinglestepUpgrade* a_single, xmlNode* i_node);
+	bool parseSinglestepUpgrade(SmfSinglestepUpgrade* a_single, xmlNode* i_node);
 
 ///
 /// Purpose: Parse the ForAddRemove part of a single-step upgrade.
 /// @param   scope  A pointer to the SmfForAddRemove object.
 /// @param   a_node The xml node where the forAddRemove tag was found.
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseForAddRemove(SmfForAddRemove *scope, xmlNode *node);
+	bool parseForAddRemove(SmfForAddRemove *scope, xmlNode *node);
 
 ///
 /// Purpose: Parse the ForModify part of a single-step upgrade.
 /// @param   scope  A pointer to the SmfModify object.
 /// @param   a_node The xml node where the forModify tag was found.
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseForModify(SmfForModify *scope, xmlNode *node);
+	bool parseForModify(SmfForModify *scope, xmlNode *node);
 
 ///
 /// Purpose: Parse the (De-)ActivationUnit part of a single-step upgrade.
 /// @param   scope  A pointer to the SmfActivationUnit object.
 /// @param   node The xml node where the tag was found.
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseActivationUnit(SmfActivationUnitType *scope, xmlNode *node);
+	bool parseActivationUnit(SmfActivationUnitType *scope, xmlNode *node);
 
 ///
 /// Purpose: Parse a Entity List (part of a single-step upgrade).
 /// @param   entityList  A reference to a list of Entities.
 /// @param   node The xml node where the tag was found.
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseEntityList(std::list<SmfEntity>& entityList, xmlNode *node);
+	bool parseEntityList(std::list<SmfEntity>& entityList, xmlNode *node);
 
 ///
 /// Purpose: Parse the campaign init section
 /// @param   i_campaign A pointer to a SmfUpgradeCampaign object.
 /// @param   i_node The xml node where the campaignInitialization tag was found.
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseCampaignInitialization(SmfUpgradeCampaign * i_campaign, xmlNode * i_node);
+	bool parseCampaignInitialization(SmfUpgradeCampaign * i_campaign, xmlNode * i_node);
 
 ///
 /// Purpose: Parse the campaign wrapup section
@@ -328,9 +345,9 @@ class SmfCampaignXmlParser {
 /// Purpose: Parse addToImm in the campaignInitialization section
 /// @param   i_campaign A pointer to a SmfUpgradeCampaign object.
 /// @param   i_node The xml node where the addToImm tag was found.
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseAddToImm(SmfUpgradeCampaign * i_campaign, xmlNode * i_node);
+	bool parseAddToImm(SmfUpgradeCampaign * i_campaign, xmlNode * i_node);
 
 ///
 /// Purpose: Parse removeFromImm in the campaign campaignWrapup section
@@ -351,18 +368,18 @@ class SmfCampaignXmlParser {
 /// Purpose: Parse Amf Entity Types
 /// @param   i_campaign A pointer to a SmfUpgradeCampaign object.
 /// @param   i_node The xml node where the tag was found.
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseAmfEntityTypes(
+	bool parseAmfEntityTypes(
 		SmfUpgradeCampaign* i_campaign, xmlNode * i_node);
 
 /// Purpose: Parse AppType
 /// @param   i_campaign A pointer to a SmfUpgradeCampaign object.
 /// @param   i_node The xml node where the tag was found.
 /// @param   parent The Parent DN
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseAppType(
+	bool parseAppType(
 		SmfUpgradeCampaign* i_campaign, xmlNode * i_node, 
 		char const* parent);
 
@@ -370,9 +387,9 @@ class SmfCampaignXmlParser {
 /// @param   i_campaign A pointer to a SmfUpgradeCampaign object.
 /// @param   i_node The xml node where the tag was found.
 /// @param   parent The Parent DN
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseSGType(
+	bool parseSGType(
 		SmfUpgradeCampaign* i_campaign, xmlNode * i_node, 
 		char const* parent);
 
@@ -380,9 +397,9 @@ class SmfCampaignXmlParser {
 /// @param   i_campaign A pointer to a SmfUpgradeCampaign object.
 /// @param   i_node The xml node where the tag was found.
 /// @param   parent The Parent DN
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseSUType(
+	bool parseSUType(
 		SmfUpgradeCampaign* i_campaign, xmlNode * i_node, 
 		char const* parent);
 
@@ -400,9 +417,9 @@ class SmfCampaignXmlParser {
 /// @param   i_campaign A pointer to a SmfUpgradeCampaign object.
 /// @param   i_node The xml node where the tag was found.
 /// @param   parent The Parent DN
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseCompType(
+	bool parseCompType(
 		SmfUpgradeCampaign* i_campaign, xmlNode * i_node, 
 		char const* parent);
 
@@ -450,9 +467,9 @@ class SmfCampaignXmlParser {
 /// @param   i_campaign A pointer to a SmfUpgradeCampaign object.
 /// @param   i_node The xml node where the tag was found.
 /// @param   parent The Parent DN
-/// @return  None
+/// @return  Bool true if successful, otherwise false.
 ///
-	void parseCSType(
+	bool parseCSType(
 		SmfUpgradeCampaign* i_campaign, xmlNode * i_node, 
 		char const* parent);
 

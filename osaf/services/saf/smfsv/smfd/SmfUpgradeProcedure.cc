@@ -817,9 +817,19 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 		 * Handle the activation-unit.
 		 */
 		const SmfActivationUnitType* aunit = forAddRemove->getActivationUnit();
-		osafassert(aunit != NULL);
-		osafassert(aunit->getRemoved().size() == 0);
-		osafassert(aunit->getSwRemove().size() == 0);
+		if (aunit == NULL){
+			LOG_ER("No activation unit in forAddRemove");
+			return false;
+		}
+		if (aunit->getRemoved().size() != 0) {
+			LOG_ER("Removed not empty in forAddRemove");
+			return false;
+		}
+		if (aunit->getSwRemove().size() != 0) {
+			LOG_ER("SwRemove not empty in forAddRemove");
+			return false;
+		}
+
 		std::list<std::string> nodeList;
 		std::list<std::string> entityList;
 		std::list<SmfEntity>::const_iterator e;
@@ -835,7 +845,10 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 					newStep->addActivationUnit(*a);
 				}
 			} else {
-				osafassert(e->getName().length() > 0);
+				if (e->getName().length() == 0) {
+					LOG_ER("No DN given in single step actedOn");
+					return false;
+				}
 				//This a single step acted on list without template
 				std::string node = getNodeForCompSu(e->getName());
 				if (node.length() > 0) nodeList.push_back(node);
@@ -863,9 +876,19 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 		 * Handle the deactivation-unit.
 		 */
 		aunit = forAddRemove->getDeactivationUnit();
-		osafassert(aunit != NULL);
-		osafassert(aunit->getAdded().size() == 0);
-		osafassert(aunit->getSwAdd().size() == 0);
+		if (aunit == NULL){
+			LOG_ER("No deActivation unit in forAddRemove");
+			return false;
+		}
+		if (aunit->getAdded().size() != 0) {
+			LOG_ER("Added not empty in forAddRemove");
+			return false;
+		}
+		if (aunit->getSwAdd().size() != 0) {
+			LOG_ER("SwAdd not empty in forAddRemove");
+			return false;
+		}
+
 		for (e = aunit->getActedOn().begin(); e != aunit->getActedOn().end(); e++) {
 			if (e->getParent().length() > 0 || e->getType().length() > 0) {
 				std::list<std::string> deactUnits;
@@ -878,7 +901,10 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 					newStep->addDeactivationUnit(*a);
 				}
 			} else {
-				osafassert(e->getName().length() > 0);
+				if (e->getName().length() == 0){
+					LOG_ER("ActedOn contain no name");
+					return false;
+				}
 
 				std::string deactUnit;
 				std::string node;
@@ -912,7 +938,10 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
                                 delete newStep;
 				return false;
 			}
-			osafassert(e->getName().length() > 0);
+			if (e->getName().length() == 0) {
+				LOG_ER("No bundle DN given in single step swRemove");
+				return false;
+			}
 			SmfImmDeleteOperation* deleteop = new SmfImmDeleteOperation;
 			deleteop->setDn(e->getName());
 			newStep->addImmOperation(deleteop);
@@ -941,7 +970,10 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 
 		bool removeDuplicates = false;
 		const SmfActivationUnitType* aunit = forModify->getActivationUnit();
-		osafassert(aunit != NULL);
+		if (aunit == NULL){
+			LOG_ER("No activation unit in single step forModify");
+			return false;
+		}
 		std::list<std::string> nodeList;
 		std::list<SmfEntity>::const_iterator e;
 		std::list<std::string> actDeactUnits;
@@ -952,7 +984,10 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 					return false;
 				}
 			} else {
-				osafassert(e->getName().length() > 0);
+				if (e->getName().length() == 0){
+					LOG_ER("No actedOn in single step forModify");
+					return false;
+				}
 				std::string unit;
 				std::string node;
 				if(getActDeactUnitsAndNodes(e->getName(), unit, node) == false) {
@@ -2696,7 +2731,10 @@ SmfUpgradeProcedure::setEntitiesToAddRemMod(SmfUpgradeStep * i_step, SmfImmAttri
 				LOG_ER("getClassDescription FAILED for [%s]", createOper->getClassName().c_str());
 				return false;
 			}
-			osafassert(attrDefinitionsOut != NULL);
+			if (attrDefinitionsOut == NULL) {
+				LOG_ER("Could not get attributes for class [%s]", createOper->getClassName().c_str());
+				return false;
+			}
 
                         //Look in SaImmAttrDefinitionT_2 for an attribute with the SA_IMM_ATTR_RDN flag set
                         std::string rdnAttr;

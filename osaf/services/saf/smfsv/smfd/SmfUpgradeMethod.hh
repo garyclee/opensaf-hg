@@ -368,9 +368,9 @@ class SmfForAddRemove : public SmfUpgradeScope {
 /// Purpose: Set the activationUnitType.
 /// @param   actunit The ActivationUnitType object. It must be heap allocated
 ///   and will be deleted when this object is deleted.
-/// @return  None.
+/// @return  Bool true if successful, otherwise false.
 ///
-	void setActivationUnit(SmfActivationUnitType* actunit);
+	bool setActivationUnit(SmfActivationUnitType* actunit);
 
 ///
 /// Purpose: Get the activationUnitType.
@@ -383,9 +383,9 @@ class SmfForAddRemove : public SmfUpgradeScope {
 /// Purpose: Set thede activationUnitType.
 /// @param   deactunit The DeactivationUnitType object. It must be heap allocated
 ///   and will be deleted when this object is deleted.
-/// @return  None.
+/// @return  Bool true if successful, otherwise false.
 ///
-	void setDeactivationUnit(SmfActivationUnitType* deactunit);
+	bool setDeactivationUnit(SmfActivationUnitType* deactunit);
 
 ///
 /// Purpose: Get the deactivationUnitType.
@@ -442,9 +442,9 @@ class SmfForModify : public SmfUpgradeScope {
 /// Purpose: Set the activationUnit.
 /// @param   actunit The ActivationUnitType object. It must be heap allocated
 ///   and will be deleted when this object is deleted.
-/// @return  None.
+/// @return  Bool true if successful, otherwise false.
 ///
-	void setActivationUnit(SmfActivationUnitType* actunit);
+	bool setActivationUnit(SmfActivationUnitType* actunit);
 
 ///
 /// Purpose: Get the activationUnit.

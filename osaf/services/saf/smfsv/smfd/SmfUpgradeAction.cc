@@ -269,12 +269,12 @@ SmfAdminOperationAction::~SmfAdminOperationAction()
 // ------------------------------------------------------------------------------
 // createAdmOperParams()
 // ------------------------------------------------------------------------------
-const SaImmAdminOperationParamsT_2 ** 
-SmfAdminOperationAction::createAdmOperParams(std::list < SmfAdminOperationParameter > i_parameters)
+bool
+SmfAdminOperationAction::createAdmOperParams(std::list < SmfAdminOperationParameter >& i_parameters, SaImmAdminOperationParamsT_2 **& o_params)
 {
 	//Create space for param pointers
-	const SaImmAdminOperationParamsT_2 **params = 
-                (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2 *[i_parameters.size() + 1];
+	SaImmAdminOperationParamsT_2 **params = new(std::nothrow) SaImmAdminOperationParamsT_2 *[i_parameters.size() + 1];
+	osafassert(params != 0);
 
 	std::list < SmfAdminOperationParameter >::iterator iter;
 	std::list < SmfAdminOperationParameter >::iterator iterE;
@@ -290,7 +290,13 @@ SmfAdminOperationAction::createAdmOperParams(std::list < SmfAdminOperationParame
 		osafassert(par != 0);
 
 		par->paramName   = (SaStringT)(*iter).m_name.c_str();
-		par->paramType   = (SaImmValueTypeT)smf_stringToImmType((char *)(*iter).m_type.c_str());
+
+		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), par->paramType) == false) {
+			LOG_ER("Fails to convert string to IMM type for parameter [%s]", (*iter).m_name.c_str());
+			delete params;
+			return false;
+		}
+
                 smf_stringToValue(par->paramType, &par->paramBuffer, (*iter).m_value.c_str());
 
 		//Add the pointer to the SaImmAdminOperationParamsT_2 structure to the parameter list
@@ -301,7 +307,8 @@ SmfAdminOperationAction::createAdmOperParams(std::list < SmfAdminOperationParame
 
 	params[i] = NULL;	//Null terminate the list of parameter pointers
 
-        return params;
+	o_params = params;
+        return true;
 }
 
 //------------------------------------------------------------------------------
@@ -389,10 +396,16 @@ SmfAdminOperationAction::execute(const std::string* i_rollbackDn)
                 iter++;
 	}
 
-        const SaImmAdminOperationParamsT_2 **params = createAdmOperParams(m_doParameters);
+        SaImmAdminOperationParamsT_2 **params = 0;
+	if (createAdmOperParams(m_doParameters, params) == false) {
+		TRACE_LEAVE();
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
 
 	SmfImmUtils siu;
-        SaAisErrorT rc = siu.callAdminOperation(m_doDn, m_doOpId, params, smfd_cb->adminOpTimeout);
+        SaAisErrorT rc = siu.callAdminOperation(m_doDn, m_doOpId, 
+						const_cast<const SaImmAdminOperationParamsT_2 **>(params), 
+						smfd_cb->adminOpTimeout);
 
 	TRACE_LEAVE();
 
@@ -418,10 +431,17 @@ SmfAdminOperationAction::rollback(const std::string& i_rollbackDn)
                 iter++;
 	}
 
-        const SaImmAdminOperationParamsT_2 **params = createAdmOperParams(m_undoParameters);
+        SaImmAdminOperationParamsT_2 **params = 0;
+	if (createAdmOperParams(m_undoParameters, params) == false) {
+		TRACE_LEAVE();
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
 
 	SmfImmUtils siu;
-        SaAisErrorT rc = siu.callAdminOperation(m_undoDn, m_undoOpId, params, smfd_cb->adminOpTimeout);
+        SaAisErrorT rc = siu.callAdminOperation(m_undoDn, m_undoOpId, 
+						const_cast<const SaImmAdminOperationParamsT_2 **>(params), 
+						smfd_cb->adminOpTimeout);
 
 	TRACE_LEAVE();
 
