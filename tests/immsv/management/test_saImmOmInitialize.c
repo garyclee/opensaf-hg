@@ -278,6 +278,7 @@ extern void saImmOmDispatch_03(void);
 extern void saImmOmDispatch_04(void);
 extern void saImmOmFinalize_01(void);
 extern void saImmOmFinalize_02(void);
+extern void saImmOmThreadInterference_01(void);
 
 __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
 {
@@ -304,5 +305,7 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
 
     test_case_add(1, saImmOmFinalize_01, "saImmOmFinalize - SA_AIS_OK");
     test_case_add(1, saImmOmFinalize_02, "saImmOmFinalize - SA_AIS_ERR_BAD_HANDLE - invalid handle");
+
+    test_case_add(1, saImmOmThreadInterference_01, "IMM OM Thread Interference - SA_AIS_ERR_LIBRARY - error library");
 }
 

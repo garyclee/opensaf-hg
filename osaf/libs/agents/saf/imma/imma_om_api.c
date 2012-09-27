@@ -713,7 +713,11 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 	/*Increment before stale check to get uniform stale handling 
 	  before and after send (see stale_handle:)
 	*/
-	imma_proc_increment_pending_reply(cl_node);
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto bad_sync;
+	}
+
 
 	if (cl_node->stale) {
 		TRACE_1("Handle %llx is stale", immHandle);
@@ -820,7 +824,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 			cl_node->exposed = true;  /* But dont resurrect it either */
 		}
 
-		imma_proc_decrement_pending_reply(cl_node); 
+		imma_proc_decrement_pending_reply(cl_node, true);
 		imma_finalize_client(cb, cl_node);
 		/* Finalize the environment */  
 		if ( cb->pend_dis == 0) {
@@ -833,6 +837,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
  lock_fail1:
  mds_send_fail:
  node_not_found:
+ bad_sync:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -979,7 +984,10 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 		ao_node->mReleaseOnFinalize = true;
 	}
 
-	imma_proc_increment_pending_reply(cl_node);
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto admin_owner_node_free;
+	}
 	timeout = cl_node->syncr_timeout;
 
 	/* Unlock before MDS Send */
@@ -1025,7 +1033,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 		goto  admin_owner_node_free;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	if (cl_node->stale) {
 		if (isExposed(cb, cl_node)) {
@@ -1425,7 +1433,11 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 	ccb_node->mAdminOwnerHdl = adminOwnerHandle;
 	ccb_node->mApplied = true;
 
-	imma_proc_increment_pending_reply(cl_node);
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto remove_ccb_node;
+	}
+
 	rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 	cl_node=NULL;
 	if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
@@ -1453,7 +1465,7 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 		goto remove_ccb_node;
 	} 
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	if (cl_node->stale) {
 		if (isExposed(cb, cl_node)) {
@@ -1665,7 +1677,10 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	ao_node=NULL;
 
 	if (ccb_node->mApplied) { /* Current ccb-id is closed, get a new one.*/
-		imma_proc_increment_pending_reply(cl_node);
+		if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+			TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+			goto done;
+		}
 		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 		cl_node = NULL;
 		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
@@ -1691,7 +1706,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 			goto done;
 		}
 
-		imma_proc_decrement_pending_reply(cl_node);
+		imma_proc_decrement_pending_reply(cl_node, true);
 
 		if (rc != SA_AIS_OK) {
 			goto done;
@@ -1715,7 +1730,10 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	osafassert(cl_node);
 	osafassert(ccb_node);
 
-	imma_proc_increment_pending_reply(cl_node);
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto done;
+	}
 
 	/* Populate the Object-Create event */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
@@ -1940,7 +1958,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		goto done;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
 	if (!ccb_node) {	
@@ -2179,7 +2197,10 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 	ao_node=NULL;
 
 	if (ccb_node->mApplied) {  /* Current ccb-id is closed, get a new one.*/
-		imma_proc_increment_pending_reply(cl_node);
+		if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+			TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+			goto done;
+		}
 		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 		cl_node = NULL;
 		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
@@ -2205,7 +2226,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 			goto done;
 		}
 
-		imma_proc_decrement_pending_reply(cl_node);
+		imma_proc_decrement_pending_reply(cl_node, true);
 
 		if (rc != SA_AIS_OK) {
 			goto done;
@@ -2229,7 +2250,10 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 	osafassert(cl_node);
 	osafassert(ccb_node);
 
-	imma_proc_increment_pending_reply(cl_node);
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto done;
+	}
 
 	/* Populate the Object-Modify event */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
@@ -2390,7 +2414,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		goto done;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
 	if (!ccb_node) {	
@@ -2621,7 +2645,10 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	ao_node=NULL;
 
 	if (ccb_node->mApplied) {  /* Current ccb-id is closed, get a new one.*/
-		imma_proc_increment_pending_reply(cl_node);
+		if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+			TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+			goto done;
+		}
 		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 		cl_node = NULL;
 		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
@@ -2647,7 +2674,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 			goto done;
 		}
 
-		imma_proc_decrement_pending_reply(cl_node);
+		imma_proc_decrement_pending_reply(cl_node, true);
 
 		if (rc != SA_AIS_OK) {
 			goto done;
@@ -2671,7 +2698,10 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	osafassert(cl_node);
 	osafassert(ccb_node);
 
-	imma_proc_increment_pending_reply(cl_node);
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto done;
+	}
 
 	/* Populate the Object-Delete event */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
@@ -2743,7 +2773,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		goto done;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
 	if (!ccb_node) {	
@@ -2938,7 +2968,11 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	evt.info.immnd.type = IMMND_EVT_A2ND_CCB_APPLY;
 	evt.info.immnd.info.ccbId = ccb_node->mCcbId;
 
-	imma_proc_increment_pending_reply(cl_node);
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto done;
+	}
+
 	ccb_node->mExclusive = true; 
 	ccb_node->mApplying = true;
 	ccbId = ccb_node->mCcbId;
@@ -3000,7 +3034,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		} 
 	} else {
 		/* Normal case, cl_node still exists. */
-		imma_proc_decrement_pending_reply(cl_node);
+		imma_proc_decrement_pending_reply(cl_node, true);
 		if (cl_node->stale) {
 			TRACE_3("CCB APPLY - Handle %llx is stale on return, exposed:%u",
 				immHandle, cl_node->exposed);
@@ -3384,7 +3418,10 @@ static SaAisErrorT admin_op_invoke_common(
 		timeout = IMMSV_WAIT_TIME;
 	}
 
-	imma_proc_increment_pending_reply(cl_node);
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto bad_sync;
+	}
 
 	/* Populate the Admin-op event */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
@@ -3550,7 +3587,7 @@ static SaAisErrorT admin_op_invoke_common(
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);	
 	if (cl_node && cl_node->isOm) {
-		imma_proc_decrement_pending_reply(cl_node);
+		imma_proc_decrement_pending_reply(cl_node, true);
 	} else {
 		/*rc = SA_AIS_ERR_BAD_HANDLE;*/
 		TRACE_3("client_node_get failed. Handle closed during admop call");
@@ -3581,6 +3618,7 @@ static SaAisErrorT admin_op_invoke_common(
  ao_not_found:
  client_not_found:
  stale_handle:
+ bad_sync:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -3939,7 +3977,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 	   succeeding. The OM application *should* instead exit the dispatch loop
 	   with BAD_HANDLE so that it is made aware of the broken contract.
 	 */
-	imma_proc_increment_pending_reply(cl_node);
+	imma_proc_increment_pending_reply(cl_node, false);
 
 	/* out_evt is NULL => fevs is async */
 	rc = imma_evt_fake_evs(cb, &evt, NULL, 0, cl_node->handle, &locked, false);
@@ -4161,7 +4199,10 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 
 	timeout = cl_node->syncr_timeout;
 
-	imma_proc_increment_pending_reply(cl_node);
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto bad_sync;
+	}
 
 	/* Populate the ClassCreate event */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
@@ -4365,7 +4406,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 		goto  client_not_found;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	if ((rc == SA_AIS_ERR_BAD_HANDLE) && cl_node->stale) {
 		/* BAD_HANDLE from imma_proc_check_stale */
@@ -4375,6 +4416,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 
  client_not_found:
  stale_handle:
+ bad_sync:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -4451,6 +4493,11 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
 	}
 
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto bad_sync;
+	}
+
 	/* Populate the ClassDescriptionGet event */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
 	evt.type = IMMSV_EVT_TYPE_IMMND;
@@ -4463,7 +4510,6 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 
 	TRACE("ClassName: %s", className);
 
-	imma_proc_increment_pending_reply(cl_node);
 	timeout = cl_node->syncr_timeout;
 	cl_node = NULL;
 
@@ -4695,7 +4741,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 		goto  client_not_found;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	if((rc == SA_AIS_ERR_BAD_HANDLE) && cl_node->stale){
 		/* BAD_HANDLE from imma_proc_check_stale */
@@ -4704,6 +4750,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 
  client_not_found:
  stale_handle:
+ bad_sync:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -4857,6 +4904,11 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
 	}
 
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto bad_sync;
+	}
+
 	timeout = cl_node->syncr_timeout;
 
 	/* Populate the ClassDelete event */
@@ -4868,8 +4920,6 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 	evt.info.immnd.info.classDescr.className.buf = malloc(evt.info.immnd.info.classDescr.className.size);	/*alloc-1 */
 	strncpy(evt.info.immnd.info.classDescr.className.buf, className,
 		(size_t)evt.info.immnd.info.classDescr.className.size);
-
-	imma_proc_increment_pending_reply(cl_node);
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, timeout, cl_node->handle, &locked, true);
 
@@ -4910,7 +4960,7 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 		goto  client_not_found;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	if ((rc == SA_AIS_ERR_BAD_HANDLE) && cl_node->stale) {
 		/* BAD_HANDLE from imma_proc_check_stale */
@@ -4920,6 +4970,7 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 
  stale_handle:
  client_not_found:
+ bad_sync:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -5834,6 +5885,11 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		} while (proc_rc != NCSCC_RC_SUCCESS);
 	}
 
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto bad_sync;
+	}
+
 	/* Populate the SearchInit event */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
 	evt.type = IMMSV_EVT_TYPE_IMMND;
@@ -5899,7 +5955,6 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		TRACE("root: %s param:%p", rootName->value, searchParam);
 	}
 
-	imma_proc_increment_pending_reply(cl_node);
 	tmpSearchHandle = search_node->search_hdl;
 	timeout = cl_node->syncr_timeout;
 
@@ -5980,7 +6035,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		goto release_lock;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 	
 	imma_search_node_get(&cb->search_tree, &tmpSearchHandle, &search_node);
 	if ((!search_node) || (search_node->mImmHandle != immHandle)) {
@@ -6001,6 +6056,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		}
 	}
 
+ bad_sync:
 	if (rc == SA_AIS_OK) {
 		osafassert(out_evt);
 		search_node->mSearchId = out_evt->info.imma.info.searchInitRsp.searchId;
@@ -6116,13 +6172,16 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 		goto release_lock;
 	}
 
+	if((error = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto release_lock;
+	}
+
 	memset(&evt, 0, sizeof(IMMSV_EVT));
 	evt.type = IMMSV_EVT_TYPE_IMMND;
 	evt.info.immnd.type = IMMND_EVT_A2ND_SEARCHNEXT;
 	evt.info.immnd.info.searchOp.searchId = search_node->mSearchId;
 	evt.info.immnd.info.searchOp.client_hdl = immHandle;
-
-	imma_proc_increment_pending_reply(cl_node);
 
 	timeout = cl_node->syncr_timeout;
 
@@ -6170,7 +6229,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 		goto release_evt;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	imma_search_node_get(&cb->search_tree, &searchHandle, &search_node);
 	if (!search_node) {
@@ -6615,6 +6674,11 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 		ao_node = NULL;
 	}
 
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto done;
+	}
+
 	timeout = cl_node->syncr_timeout;
 
 	/* populate the structure */
@@ -6638,8 +6702,6 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 		ol->next = admo_set_evt.info.immnd.info.admReq.objectNames;	/*null initially */
 		admo_set_evt.info.immnd.info.admReq.objectNames = ol;
 	}
-
-	imma_proc_increment_pending_reply(cl_node);
 
 	rc = imma_evt_fake_evs(cb, &admo_set_evt, &out_evt, timeout, cl_node->handle, &locked, true);
 	cl_node =NULL;
@@ -6679,7 +6741,7 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 		goto done;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	/* Ignore possibly stale handle, will be discovered in next op. */
 
@@ -6808,6 +6870,11 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 		ao_node = NULL;
 	}
 
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto done;
+	}
+
 	timeout = cl_node->syncr_timeout;
 
 	/* populate the structure */
@@ -6831,8 +6898,6 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 		ol->next = admo_set_evt.info.immnd.info.admReq.objectNames;	/*null initially */
 		admo_set_evt.info.immnd.info.admReq.objectNames = ol;
 	}
-
-	imma_proc_increment_pending_reply(cl_node);
 
 	rc = imma_evt_fake_evs(cb, &admo_set_evt, &out_evt, timeout, cl_node->handle, &locked, true);
 	cl_node = NULL;
@@ -6878,7 +6943,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 		goto done;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	/* Ignore possibly stale handle */
 
@@ -6966,6 +7031,11 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
 	}
 
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto done;
+	}
+
 	timeout = cl_node->syncr_timeout;
 
 	/* populate the structure */
@@ -6989,8 +7059,6 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 		ol->next = admo_set_evt.info.immnd.info.admReq.objectNames;	/*null initially */
 		admo_set_evt.info.immnd.info.admReq.objectNames = ol;
 	}
-
-	imma_proc_increment_pending_reply(cl_node);
 
 	rc = imma_evt_fake_evs(cb, &admo_set_evt, &out_evt, timeout, cl_node->handle, &locked, true);
 	cl_node = NULL;
@@ -7036,7 +7104,7 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 		goto done;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	/* Ignore possibly stale handle */
 
@@ -7420,6 +7488,11 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 		goto fail;
 	}
 
+	if(imma_proc_increment_pending_reply(cl_node, true) != SA_AIS_OK) {
+		TRACE_2("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto fail;
+	}
+
 	nameLen = strlen(adm_found_node->mAdminOwnerName);
 
 	/* Populate & Send the Event to IMMND */
@@ -7432,7 +7505,6 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 		adm_found_node->mAdminOwnerName, nameLen + 1);
 	evt.info.immnd.info.adminitReq.i.releaseOwnershipOnFinalize = false;
 	
-	imma_proc_increment_pending_reply(cl_node);
 	temp_hdl = adm_found_node->admin_owner_hdl;
 	timeout = cl_node->syncr_timeout;
 	/* Unlock before MDS Send */
@@ -7488,7 +7560,7 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 		goto fail;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, true);
 
 	if (cl_node->stale) {
 		TRACE_3("Handle %llx is stale", immHandle);

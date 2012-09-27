@@ -247,7 +247,7 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 		return;
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	imma_proc_decrement_pending_reply(cl_node, false);
 
 	/* Allocate the Callback info */
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
@@ -2980,18 +2980,26 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 	return rc;
 }
 
-void
-imma_proc_increment_pending_reply(IMMA_CLIENT_NODE *cl_node)
+SaAisErrorT
+imma_proc_increment_pending_reply(IMMA_CLIENT_NODE *cl_node, bool isSync)
 {
+	if(isSync) {
+		if(cl_node->isBusy)
+			return SA_AIS_ERR_LIBRARY;
+		cl_node->isBusy = true;
+	}
+
 	if (cl_node->replyPending < 0xff) {
 		cl_node->replyPending++;
 	} else {
 		TRACE_3("More than 255 concurrent PENDING replies on handle!");
 	}
+
+	return SA_AIS_OK;
 }
 
-void
-imma_proc_decrement_pending_reply(IMMA_CLIENT_NODE *cl_node)
+SaAisErrorT
+imma_proc_decrement_pending_reply(IMMA_CLIENT_NODE *cl_node, bool isSync)
 {
 	if (cl_node->replyPending) {
 		if (cl_node->replyPending < 0xff) {
@@ -3011,8 +3019,15 @@ imma_proc_decrement_pending_reply(IMMA_CLIENT_NODE *cl_node)
 			cl_node->handle);
 		cl_node->replyPending = 0xff;
 	}
-}
 
+	if(isSync) {
+		if(!cl_node->isBusy)
+			return SA_AIS_ERR_LIBRARY;
+		cl_node->isBusy = false;
+	}
+
+	return SA_AIS_OK;
+}
 
 /**
  * Validate a value type
