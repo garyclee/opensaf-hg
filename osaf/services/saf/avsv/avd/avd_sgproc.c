@@ -895,7 +895,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 					if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE) {
 						avd_saImmOiAdminOperationResult(cb->immOiHandle,
-							su->pend_cbk.invocation, SA_AIS_OK);
+								su->pend_cbk.invocation, SA_AIS_OK);
 						su->pend_cbk.invocation = 0;
 						su->pend_cbk.admin_oper = 0;
 					} else
@@ -942,6 +942,22 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				su->su_on_node->su_cnt_admin_oper = 0;
 			}
 			/* else admin oper still not complete */
+		} else {
+			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
+				if ((su->sg_of_su->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL) && 
+						(su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE)) {
+					for (temp_su = su->sg_of_su->list_of_su; temp_su != NULL; 
+							temp_su = temp_su->sg_list_su_next) {
+						if (temp_su->pend_cbk.invocation != 0) {
+							avd_saImmOiAdminOperationResult(cb->immOiHandle,
+									temp_su->pend_cbk.invocation, SA_AIS_OK);
+							temp_su->pend_cbk.invocation = 0;
+							temp_su->pend_cbk.admin_oper = 0;
+						}
+					}
+				} else
+					; // wait for SG to become STABLE
+			}
 		}
 		/* also check for pending clm callback operations */ 
 		if (su->su_on_node->clm_pend_inv != 0) {
