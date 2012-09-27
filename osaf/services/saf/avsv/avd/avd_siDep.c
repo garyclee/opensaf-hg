@@ -801,12 +801,10 @@ done:
 void sidep_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_SI *si = NULL;
-	AVD_SI *spons_si = NULL;
 
 	TRACE_ENTER();
 
 	si = avd_si_get(&evt->info.tmr.dep_si_name);
-	spons_si = avd_si_get(&evt->info.tmr.spons_si_name);
 
 	if (!si) {
 		LOG_ER("Received si NULL");
