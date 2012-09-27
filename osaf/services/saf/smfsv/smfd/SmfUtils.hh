@@ -54,7 +54,7 @@ class SmfRollbackCcb;
 extern "C" {
 #endif
 
-	extern SaImmValueTypeT smf_stringToImmType(char *i_type);
+	extern bool smf_stringToImmType(char *i_type, SaImmValueTypeT& o_type);
         extern const char* smf_immTypeToString(SaImmValueTypeT i_type);
 	extern SaImmAttrModificationTypeT smf_stringToImmAttrModType(char
 								     *i_type);

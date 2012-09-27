@@ -195,14 +195,21 @@ SmfCampaignXmlParser::parseCampaignXml(std::string i_file)
 		} else if ((!strcmp((char *)cur->name, "campaignInitialization"))
 			   && (cur->ns == ns)) {
 			TRACE("xmlTag campaignInitialization found");
-			parseCampaignInitialization(campaign, cur);
+			if (parseCampaignInitialization(campaign, cur) == false){
+				LOG_ER("Parse of campaignInitialization failed");
+				goto error_exit;
+			}
 		} else if ((!strcmp((char *)cur->name, "upgradeProcedure"))
 			   && (cur->ns == ns)) {
 			TRACE("xmlTag upgradeProcedure found\n");
 			SmfUpgradeProcedure *up = new(std::nothrow) SmfUpgradeProcedure;
 			osafassert(up != NULL);
 
-			parseUpgradeProcedure(up, cur);
+			if (parseUpgradeProcedure(up, cur) == false){
+				delete up;
+				LOG_ER("Parse of upgradeProcedure failed");
+				goto error_exit;
+			}
 
 			//For the procedure, check if the same SwBudle DN exist in both swAdd and swRemove lists
 			//In that case the SwBundle shall not be touched, remove the SwBundle DN from the lists.
@@ -335,7 +342,7 @@ SmfCampaignXmlParser::parseCampaignInfo(SmfUpgradeCampaign * i_campaign, xmlNode
 // ------------------------------------------------------------------------------
 // parseUpgradeProcedure()
 // ------------------------------------------------------------------------------
-void 
+bool 
 SmfCampaignXmlParser::parseUpgradeProcedure(SmfUpgradeProcedure * io_up, xmlNode * i_node)
 {
 	TRACE_ENTER();
@@ -381,7 +388,12 @@ SmfCampaignXmlParser::parseUpgradeProcedure(SmfUpgradeProcedure * io_up, xmlNode
 					TRACE("xmlTag rollingUpgrade found\n");
 					SmfRollingUpgrade *ru = new(std::nothrow) SmfRollingUpgrade;
 					osafassert(ru != NULL);
-					parseRollingUpgrade(ru, cur2);
+					if (parseRollingUpgrade(ru, cur2) == false){
+						delete ru;
+						LOG_ER("Parsing of rolling upgrade failed");
+						TRACE_LEAVE();
+						return false;
+					}
 					io_up->setUpgradeMethod(ru);
 					break;
 				}
@@ -390,7 +402,12 @@ SmfCampaignXmlParser::parseUpgradeProcedure(SmfUpgradeProcedure * io_up, xmlNode
 					TRACE("xmlTag singleStepUpgrade found\n");
 					SmfSinglestepUpgrade *su = new(std::nothrow) SmfSinglestepUpgrade;
 					osafassert(su != NULL);
-					parseSinglestepUpgrade(su, cur2);
+					if (parseSinglestepUpgrade(su, cur2) == false){
+						delete su;
+						LOG_ER("Parsing of single step upgrade failed");
+						TRACE_LEAVE();						
+						return false;
+					}
 					io_up->setUpgradeMethod(su);
 					break;
 				}
@@ -403,6 +420,7 @@ SmfCampaignXmlParser::parseUpgradeProcedure(SmfUpgradeProcedure * io_up, xmlNode
 	}
 
 	TRACE_LEAVE();
+	return true;
 }
 
 // ------------------------------------------------------------------------------
@@ -558,7 +576,7 @@ SmfCampaignXmlParser::parseProcWrapupAction(SmfUpgradeProcedure * i_proc, xmlNod
 // ------------------------------------------------------------------------------
 // parseRollingUpgrade()
 // ------------------------------------------------------------------------------
-void 
+bool 
 SmfCampaignXmlParser::parseRollingUpgrade(SmfRollingUpgrade * io_rolling, xmlNode * i_node)
 {
 	TRACE_ENTER();
@@ -601,13 +619,18 @@ SmfCampaignXmlParser::parseRollingUpgrade(SmfRollingUpgrade * io_rolling, xmlNod
 				xmlFree(s);
 			}
 
-			parseCallback(io_rolling, cur->xmlChildrenNode);
+			if (parseCallback(io_rolling, cur->xmlChildrenNode) == false){
+				LOG_ER("Parse of upgrade step callback failed");
+				TRACE_LEAVE();
+				return false;
+			}
 		}
 
 		cur = cur->next;
 	}
 
 	TRACE_LEAVE();
+	return true;
 }
 
 // ------------------------------------------------------------------------------
@@ -937,62 +960,75 @@ SmfCampaignXmlParser::parseAttribute(SmfImmOperation * io_immo, xmlNode * i_node
 }
 
 // ------------------------------------------------------------------------------
-// parseCallback()
-//  (plus some help functions)
+// parseStepCount()
 // ------------------------------------------------------------------------------
-
-static SmfCallback::StepCountT parseStepCount(xmlNode* node)
+bool 
+SmfCampaignXmlParser::parseStepCount(xmlNode* node, SmfCallback::StepCountT& o_stepcount )
 {
 	xmlNsPtr ns = 0;
 	for (xmlNode* n = node->xmlChildrenNode; n != NULL; n = n->next) {
 		if (strcmp((char *)n->name, "onEveryStep") == 0 && node->ns == ns) {
 			TRACE("xmlTag onEveryStep found");
-			return SmfCallback::onEveryStep;
+			o_stepcount = SmfCallback::onEveryStep;
+			return true;
 		} else if (strcmp((char *)n->name, "onFirstStep") == 0 && node->ns == ns) {
 			TRACE("xmlTag onFirstStep found");
-			return SmfCallback::onFirstStep;
+			o_stepcount = SmfCallback::onFirstStep;
+			return true;
 		} else if (strcmp((char *)n->name, "onLastStep") == 0 && node->ns == ns) {
 			TRACE("xmlTag onLastStep found");
-			return SmfCallback::onLastStep;
+			o_stepcount = SmfCallback::onLastStep;
+			return true;
 		} else if (strcmp((char *)n->name, "halfWay") == 0 && node->ns == ns) {
 			TRACE("xmlTag halfWay found");
-			return SmfCallback::halfWay;
+			o_stepcount = SmfCallback::halfWay;
+			return true;
 		}
 	}
-        LOG_ER("parseStepCount aborting");
-	osafassert(0);
-	return SmfCallback::onEveryStep;
+        LOG_ER("parseStepCount fails, does not found any stepCount onEveryStep/onFirstStep/onLastStep/halfWay tags");
+	return false;
 }
 
-static SmfCallback::AtActionT parseAtAction(xmlNode* node)
+// ------------------------------------------------------------------------------
+// parseAtAction()
+// ------------------------------------------------------------------------------
+bool
+SmfCampaignXmlParser::parseAtAction(xmlNode* node, SmfCallback::AtActionT& o_ataction)
 {
 	xmlNsPtr ns = 0;
 	for (xmlNode* n = node->xmlChildrenNode; n != NULL; n = n->next) {
 		if (strcmp((char *)n->name, "beforeLock") == 0 && node->ns == ns) {
 			TRACE("xmlTag beforeLock found");
-			return SmfCallback::beforeLock;
+			o_ataction = SmfCallback::beforeLock;
+			return true;
 		} else if (strcmp((char *)n->name, "beforeTermination") == 0 && node->ns == ns) {
 			TRACE("xmlTag beforeTermination found");
-			return SmfCallback::beforeTermination;
+			o_ataction = SmfCallback::beforeTermination;
+			return true;
 		} else if (strcmp((char *)n->name, "afterImmModification") == 0 && node->ns == ns) {
 			TRACE("xmlTag afterImmModification found");
-			return SmfCallback::afterImmModification;
+			o_ataction = SmfCallback::afterImmModification;
+			return true;
 		} else if (strcmp((char *)n->name, "afterInstantiation") == 0 && node->ns == ns) {
 			TRACE("xmlTag afterInstantiation found");
-			return SmfCallback::afterInstantiation;
+			o_ataction = SmfCallback::afterInstantiation;
+			return true;
 		} else if (strcmp((char *)n->name, "afterUnlock") == 0 && node->ns == ns) {
 			TRACE("xmlTag afterUnlock found");
-			return SmfCallback::afterUnlock;
+			o_ataction = SmfCallback::afterUnlock;
+			return true;
 		}
 	}
-        LOG_ER("parseAtAction aborting");
-	osafassert(0);
-	return SmfCallback::beforeLock;
+
+        LOG_ER("parseAtAction fails, does not found any of beforeTermination/afterImmModification/afterInstantiation/afterUnlock");
+	return false;
 }
 
-void 
-SmfCampaignXmlParser::parseCallback(
-	SmfUpgradeMethod* upgrade, xmlNode* node)
+// ------------------------------------------------------------------------------
+// parseCallback()
+// ------------------------------------------------------------------------------
+bool 
+SmfCampaignXmlParser::parseCallback(SmfUpgradeMethod* upgrade, xmlNode* node)
 {
 	xmlNsPtr ns = 0;
 	while (node != NULL) {
@@ -1004,16 +1040,25 @@ SmfCampaignXmlParser::parseCallback(
 				for (xmlNode* n = node->xmlChildrenNode; n != NULL; n = n->next) {
 					if (strcmp((char *)n->name, "onStep") == 0 && n->ns == ns) {
 						TRACE("xmlTag onStep found");
-						cb->m_stepCount = parseStepCount(n);
+						if (parseStepCount(n, cb->m_stepCount) == false){
+							LOG_ER("Parse of customizationTime/onStep step counter fails");
+							return false;
+						}
 					} else if (strcmp((char *)n->name, "atAction") == 0 && n->ns == ns) {
 						TRACE("xmlTag atAction found");
-						cb->m_atAction = parseAtAction(n);
+						if (parseAtAction(n, cb->m_atAction) == false){
+							LOG_ER("Parse of customizationTime/atAction fails");
+							return false;
+						}
 					}
 				}
 				break;
 			} else if (strcmp((char *)node->name, "atAction") == 0 && node->ns == ns) {
 				TRACE("xmlTag atAction found");
-				cb->m_atAction = parseAtAction(node);
+				if (parseAtAction(node, cb->m_atAction) == false){
+					LOG_ER("Parse of atAction fails");
+					return false;
+				}
 				break;
 			}
 			node = node->next;
@@ -1030,17 +1075,23 @@ SmfCampaignXmlParser::parseCallback(
 			}
 			node = node->next;
 		}
-		osafassert(node != NULL); // A callback tag must have been found
+
+		if (node == NULL){ // A callback tag must have been found
+			LOG_ER("No callback found for customizationTime/atAction tag");
+			return false;
+		}
+
 		upgrade->addCallback(cb);
 		node = node->next;
 	}
-}
 
+	return true;
+}
 
 // ------------------------------------------------------------------------------
 // parseSinglestepUpgrade()
 // ------------------------------------------------------------------------------
-void
+bool
 SmfCampaignXmlParser::parseSinglestepUpgrade(
 	SmfSinglestepUpgrade* single, xmlNode* node)
 {
@@ -1056,14 +1107,24 @@ SmfCampaignXmlParser::parseSinglestepUpgrade(
 					TRACE("xmlTag forAddRemove found");
 					SmfForAddRemove* scope = new(std::nothrow) SmfForAddRemove;
 					osafassert(scope != NULL);
-					parseForAddRemove(scope, n);
+					if (parseForAddRemove(scope, n) == false ){
+						delete scope;
+						LOG_ER("Parse of upgradeScope/forAddRemove fails");
+						TRACE_LEAVE();
+						return false;
+					}
 					single->setUpgradeScope(scope);
 				}
 				if ((!strcmp((char *)n->name, "forModify")) && (n->ns == ns)) {
 					TRACE("xmlTag forModify found");
 					SmfForModify* scope = new(std::nothrow) SmfForModify;
 					osafassert(scope != NULL);
-					parseForModify(scope, n);
+					if (parseForModify(scope, n) == false ){
+						delete scope;
+						LOG_ER("Parse of upgradeScope/forModify fails");
+						TRACE_LEAVE();
+						return false;
+					}
 					single->setUpgradeScope(scope);
 				}
 			}
@@ -1084,17 +1145,22 @@ SmfCampaignXmlParser::parseSinglestepUpgrade(
 				xmlFree(s);
 			}
 
-			parseCallback(single, cur->xmlChildrenNode);
+			if (parseCallback(single, cur->xmlChildrenNode) == false) {
+				TRACE_LEAVE();
+				LOG_ER("Parse of upgradeStep callback fails");
+				return false;
+			}
 		}
 	}
 
 	TRACE_LEAVE();
+	return true;
 }
 
 // ------------------------------------------------------------------------------
 // parseForAddRemove()
 // ------------------------------------------------------------------------------
-void 
+bool 
 SmfCampaignXmlParser::parseForAddRemove(SmfForAddRemove *scope, xmlNode *node)
 {
 	xmlNsPtr ns = 0;
@@ -1102,22 +1168,42 @@ SmfCampaignXmlParser::parseForAddRemove(SmfForAddRemove *scope, xmlNode *node)
 		if ((!strcmp((char *)n->name, "deactivationUnit")) && (n->ns == ns)) {
 			TRACE("xmlTag deactivationUnit found");
 			SmfActivationUnitType* act = new(std::nothrow) SmfActivationUnitType;
-			parseActivationUnit(act, n);
-			scope->setDeactivationUnit(act);
+			osafassert(act != NULL);
+			if (parseActivationUnit(act, n) == false){
+				delete act;
+				LOG_ER("Parsing of deactivationUnit failed");
+				return false;
+			}
+			if (scope->setDeactivationUnit(act) == false){
+				delete act;
+				LOG_ER("Fail to set deactivationUnit");
+				return false;
+			}
 
 		} else if ((!strcmp((char *)n->name, "activationUnit")) && (n->ns == ns)) {
 			TRACE("xmlTag activationUnit found");
 			SmfActivationUnitType* act = new(std::nothrow) SmfActivationUnitType;
-			parseActivationUnit(act, n);
-			scope->setActivationUnit(act);
+			osafassert(act != NULL);
+			if (parseActivationUnit(act, n) == false){
+				delete act;
+				LOG_ER("Parsing of activationUnit failed");
+				return false;
+			}
+			if (scope->setActivationUnit(act) == false){
+				delete act;
+				LOG_ER("Fail to set activationUnit");
+				return false;
+			}
 		}
 	}
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------
 // parseForModify()
 // ------------------------------------------------------------------------------
-void 
+bool 
 SmfCampaignXmlParser::parseForModify(SmfForModify *scope, xmlNode *node)
 {
 	xmlNsPtr ns = 0;
@@ -1132,28 +1218,43 @@ SmfCampaignXmlParser::parseForModify(SmfForModify *scope, xmlNode *node)
 		} else if ((!strcmp((char *)n->name, "activationUnit")) && (n->ns == ns)) {
 			TRACE("xmlTag activationUnit found");
 			SmfActivationUnitType* act = new(std::nothrow) SmfActivationUnitType;
-			parseActivationUnit(act, n);
-			scope->setActivationUnit(act);
+			osafassert(act != NULL);
+			if (parseActivationUnit(act, n) == false){
+				delete act;
+				LOG_ER("Fail to parse activationUnit");
+				return false;
+			}
+			if (scope->setActivationUnit(act) == false){
+				delete act;
+				LOG_ER("Fail to set activationUnit");
+				return false;
+			}
 		}
 	}
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------
 // parseActivationUnit()
 // ------------------------------------------------------------------------------
-void
+bool
 SmfCampaignXmlParser::parseActivationUnit(SmfActivationUnitType *scope, xmlNode *node)
 {
 	xmlNsPtr ns = 0;
 	for (xmlNode* n = node->xmlChildrenNode; n != NULL; n = n->next) {
 		if ((!strcmp((char *)n->name, "actedOn")) && (n->ns == ns)) {
 			TRACE("xmlTag actedOn found");
-			parseEntityList(scope->m_actedOn, n);
-
+			if (parseEntityList(scope->m_actedOn, n) == false){
+				LOG_ER("parseActivationUnit fails");
+				return false;
+			}
 		} else if ((!strcmp((char *)n->name, "removed")) && (n->ns == ns)) {
 			TRACE("xmlTag removed found");
-			parseEntityList(scope->m_removed, n);
-
+			if (parseEntityList(scope->m_removed, n)== false){
+				LOG_ER("parseActivationUnit fails");
+				return false;
+			}
 		} else if ((!strcmp((char *)n->name, "added")) && (n->ns == ns)) {
 			TRACE("xmlTag added found");
 			SmfImmCreateOperation createop;
@@ -1174,22 +1275,26 @@ SmfCampaignXmlParser::parseActivationUnit(SmfActivationUnitType *scope, xmlNode 
 
 		}
 	}
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------
 // parseEntityList()
 // ------------------------------------------------------------------------------
 
-void 
-SmfCampaignXmlParser::parseEntityList(
-	std::list<SmfEntity>& entityList, xmlNode *node)
+bool 
+SmfCampaignXmlParser::parseEntityList(std::list<SmfEntity>& entityList, xmlNode *node)
 {
 	xmlNsPtr ns = 0;
 	for (xmlNode* n = node->xmlChildrenNode; n != NULL; n = n->next) {
 		if (strcmp((char *)n->name, "byName") == 0 && n->ns == ns) {
 			SmfEntity entity;
 			char* s = (char *)xmlGetProp(n, (const xmlChar *)"objectDN");
-			osafassert(s != NULL);
+			if (s == NULL){
+				LOG_ER("Could not find property of byName/objectDN");
+				return false;
+			}
 			entity.m_name = s;
 			entityList.push_back(entity);
 			xmlFree(s);
@@ -1197,15 +1302,27 @@ SmfCampaignXmlParser::parseEntityList(
 			SmfEntity entity;
 			for (xmlNode* n2 = n->xmlChildrenNode; n2 != NULL; n2 = n2->next) {
 				if ((!strcmp((char *)n2->name, "parent")) && (n->ns == ns)) {
-					osafassert(entity.m_parent.length() == 0);
+					if (entity.m_parent.length() != 0) {
+						LOG_ER("Only one parent allowed in parent/type pair. Create additional byTemplate sections for more parents.");
+						return false;
+					}
 					char* s = (char *)xmlGetProp(n2, (const xmlChar *)"objectDN");
-					osafassert(s != NULL);
+					if (s == NULL){
+						LOG_ER("Could not find property of byTemplate/parent objectDN");
+						return false;
+					}
 					entity.m_parent = s;
 					xmlFree(s);
 				} else if ((!strcmp((char *)n2->name, "type")) && (n->ns == ns)) {
-					osafassert(entity.m_type.length() == 0);
+					if (entity.m_type.length() != 0) {
+						LOG_ER("Only one type allowed in parent/type pair. Create additional byTemplate sections for more types.");
+						return false;
+					}
 					char* s = (char *)xmlGetProp(n2, (const xmlChar *)"objectDN");
-					osafassert(s != NULL);
+					if (s == NULL){
+						LOG_ER("Could not find property of byTemplate/type objectDN");
+						return false;
+					}
 					entity.m_type = s;
 					xmlFree(s);
 				}
@@ -1213,12 +1330,14 @@ SmfCampaignXmlParser::parseEntityList(
 			entityList.push_back(entity);
 		}
 	}
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------
 // parseCampaignInitialization()
 // ------------------------------------------------------------------------------
-void 
+bool 
 SmfCampaignXmlParser::parseCampaignInitialization(SmfUpgradeCampaign * i_campaign, xmlNode * i_node)
 {
 	TRACE_ENTER();
@@ -1230,7 +1349,11 @@ SmfCampaignXmlParser::parseCampaignInitialization(SmfUpgradeCampaign * i_campaig
 	while (cur != NULL) {
 		if ((!strcmp((char *)cur->name, "addToImm")) && (cur->ns == ns)) {
 			TRACE("xmlTag addToImm found");
-			parseAddToImm(i_campaign, cur);
+			if (parseAddToImm(i_campaign, cur) == false){
+				LOG_ER("Parsing of addToImm faild");
+				TRACE_LEAVE();
+				return false;
+			}
 		}
 		if ((!strcmp((char *)cur->name, "callbackAtInit"))
 		    && (cur->ns == ns)) {
@@ -1260,6 +1383,7 @@ SmfCampaignXmlParser::parseCampaignInitialization(SmfUpgradeCampaign * i_campaig
 	}
 
 	TRACE_LEAVE();
+	return true;
 }
 
 // ------------------------------------------------------------------------------
@@ -1316,7 +1440,7 @@ SmfCampaignXmlParser::parseCampaignWrapup(SmfUpgradeCampaign * i_campaign, xmlNo
 // ------------------------------------------------------------------------------
 // parseAddToImm()
 // ------------------------------------------------------------------------------
-void 
+bool 
 SmfCampaignXmlParser::parseAddToImm(SmfUpgradeCampaign * i_campaign, xmlNode * i_node)
 {
 	TRACE_ENTER();
@@ -1335,13 +1459,18 @@ SmfCampaignXmlParser::parseAddToImm(SmfUpgradeCampaign * i_campaign, xmlNode * i
 		} else if ((!strcmp((char *)cur->name, "amfEntityTypes"))
 		    && (cur->ns == ns)) {
 			TRACE("xmlTag amfEntityTypes found");
-			parseAmfEntityTypes(i_campaign, cur);
+			if (parseAmfEntityTypes(i_campaign, cur) == false){
+				LOG_ER("Failed to parse amfEntityTypes");
+				TRACE_LEAVE();
+				return false;
+			}
 		}
 
 		cur = cur->next;
 	}
 
 	TRACE_LEAVE();
+	return true;
 }
 
 // ------------------------------------------------------------------------------
@@ -1602,7 +1731,10 @@ SmfCampaignXmlParser::prepareCreateOperation(
 	std::string& dn, bool isnamet)
 {
 	char* s = (char *)xmlGetProp(node, (const xmlChar*)rdnAttribute);
-	osafassert(s != NULL);
+	if (s == NULL){
+		LOG_ER("Fail to get rdnAttribute property for create operation");
+		return NULL;
+	}
 
 	dn += s;
 	if (parent != NULL) {
@@ -1632,7 +1764,7 @@ SmfCampaignXmlParser::prepareCreateOperation(
 // ------------------------------------------------------------------------------
 // parseAmfEntityTypes()
 // ------------------------------------------------------------------------------
-void 
+bool 
 SmfCampaignXmlParser::parseAmfEntityTypes(SmfUpgradeCampaign* i_campaign, xmlNode * i_node)
 {
 	TRACE_ENTER();
@@ -1645,11 +1777,20 @@ SmfCampaignXmlParser::parseAmfEntityTypes(SmfUpgradeCampaign* i_campaign, xmlNod
 			TRACE("xmlTag AppBaseType found");
 			std::string dn;
 			ico = prepareCreateOperation(NULL, "SaAmfAppBaseType", cur, "safAppType", dn);
+			if (ico == NULL) {
+				LOG_ER("Fail prepare create operations for AMF entity types SaAmfAppBaseType/safAppType");
+				TRACE_LEAVE();
+				return false;
+			}
 			i_campaign->addCampInitAddToImm(ico);
 			for (xmlNode* n = cur->xmlChildrenNode; n != NULL; n = n->next) {
 				if (strcmp((char*)n->name, "AppType") == 0 && n->ns == ns) {
 					TRACE("xmlTag AppType found");
-					parseAppType(i_campaign, n, dn.c_str());
+					if (parseAppType(i_campaign, n, dn.c_str()) == false){
+						LOG_ER("Fail to parse AMF entity type AppType");
+						TRACE_LEAVE();
+						return false;
+					}
 				}
 			}
 
@@ -1657,11 +1798,20 @@ SmfCampaignXmlParser::parseAmfEntityTypes(SmfUpgradeCampaign* i_campaign, xmlNod
 			TRACE("xmlTag SUBaseType found");
 			std::string dn;
 			ico = prepareCreateOperation(NULL, "SaAmfSUBaseType", cur, "safSuType", dn);
+			if (ico == NULL) {
+				LOG_ER("Fail prepare create operation for AMF entity type SaAmfSUBaseType");
+				TRACE_LEAVE();
+				return false;
+			}
 			i_campaign->addCampInitAddToImm(ico);
 			for (xmlNode* n = cur->xmlChildrenNode; n != NULL; n = n->next) {
 				if (strcmp((char*)n->name, "SUType") == 0 && n->ns == ns) {
 					TRACE("xmlTag SUType found");
-					parseSUType(i_campaign, n, dn.c_str());
+					if (parseSUType(i_campaign, n, dn.c_str()) == false){
+						LOG_ER("Fail to parse AMF entity type SUType");
+						TRACE_LEAVE();
+						return false;
+					}
 				}
 			}
 
@@ -1669,11 +1819,20 @@ SmfCampaignXmlParser::parseAmfEntityTypes(SmfUpgradeCampaign* i_campaign, xmlNod
 			TRACE("xmlTag SGBaseType found");
 			std::string dn;
 			ico = prepareCreateOperation(NULL, "SaAmfSGBaseType", cur, "safSgType", dn);
+			if (ico == NULL) {
+				LOG_ER("Fail prepare create operation for AMF entity type SaAmfSGBaseType");
+				TRACE_LEAVE();
+				return false;
+			}
 			i_campaign->addCampInitAddToImm(ico);
 			for (xmlNode* n = cur->xmlChildrenNode; n != NULL; n = n->next) {
 				if (strcmp((char*)n->name, "SGType") == 0 && n->ns == ns) {
 					TRACE("xmlTag SGType found");
-					parseSGType(i_campaign, n, dn.c_str());
+					if (parseSGType(i_campaign, n, dn.c_str()) == false){
+						LOG_ER("Fail to parse AMF entity type SGType");
+						TRACE_LEAVE();
+						return false;
+					}
 				}
 			}
 
@@ -1681,11 +1840,20 @@ SmfCampaignXmlParser::parseAmfEntityTypes(SmfUpgradeCampaign* i_campaign, xmlNod
 			TRACE("xmlTag CompBaseType found");
 			std::string dn;
 			ico = prepareCreateOperation(NULL, "SaAmfCompBaseType", cur, "safCompType", dn);
+			if (ico == NULL) {
+				LOG_ER("Fail to prepare create operation for AMF entity type SaAmfCompBaseType");
+				TRACE_LEAVE();
+				return false;
+			}
 			i_campaign->addCampInitAddToImm(ico);
 			for (xmlNode* n = cur->xmlChildrenNode; n != NULL; n = n->next) {
 				if (strcmp((char*)n->name, "CompType") == 0 && n->ns == ns) {
 					TRACE("xmlTag CompType found");
-					parseCompType(i_campaign, n, dn.c_str());
+					if (parseCompType(i_campaign, n, dn.c_str()) == false){
+						LOG_ER("Fail to parse parse AMF entity type CompType");
+						TRACE_LEAVE();
+						return false;
+					}
 				}
 			}
 
@@ -1693,11 +1861,20 @@ SmfCampaignXmlParser::parseAmfEntityTypes(SmfUpgradeCampaign* i_campaign, xmlNod
 			TRACE("xmlTag CSBaseType found");
 			std::string dn;
 			ico = prepareCreateOperation(NULL, "SaAmfCSBaseType", cur, "safCSType", dn);
+			if (ico == NULL) {
+				LOG_ER("Fail to prepare create operation for AMF entity type SaAmfCSBaseType");
+				TRACE_LEAVE();
+				return false;
+			}
 			i_campaign->addCampInitAddToImm(ico);
 			for (xmlNode* n = cur->xmlChildrenNode; n != NULL; n = n->next) {
 				if (strcmp((char*)n->name, "CSType") == 0 && n->ns == ns) {
 					TRACE("xmlTag CSType found");
-					parseCSType(i_campaign, n, dn.c_str());
+					if (parseCSType(i_campaign, n, dn.c_str()) == false){
+						LOG_ER("Fail to parse parse AMF entity type CompType");
+						TRACE_LEAVE();
+						return false;
+					}
 				}
 			}
 
@@ -1705,6 +1882,11 @@ SmfCampaignXmlParser::parseAmfEntityTypes(SmfUpgradeCampaign* i_campaign, xmlNod
 			TRACE("xmlTag ServiceBaseType found");
 			std::string dn;
 			ico = prepareCreateOperation(NULL, "SaAmfSvcBaseType", cur, "safSvcType", dn);
+			if (ico == NULL) {
+				LOG_ER("Fail to prepare create operation SaAmfSvcBaseType/safSvcType");
+				TRACE_LEAVE();
+				return false;
+			}
 			i_campaign->addCampInitAddToImm(ico);
 			for (xmlNode* n = cur->xmlChildrenNode; n != NULL; n = n->next) {
 				if (strcmp((char*)n->name, "ServiceType") == 0 && n->ns == ns) {
@@ -1714,12 +1896,15 @@ SmfCampaignXmlParser::parseAmfEntityTypes(SmfUpgradeCampaign* i_campaign, xmlNod
 			}
 		}
 	}
+
+	TRACE_LEAVE();
+	return true;
 }
 
 // ------------------------------------------------------------------------------
 // parseAppType()
 // ------------------------------------------------------------------------------
-void 
+bool 
 SmfCampaignXmlParser::parseAppType(
 	SmfUpgradeCampaign* i_campaign, xmlNode * i_node, char const* parent)
 {
@@ -1735,26 +1920,35 @@ SmfCampaignXmlParser::parseAppType(
 		if (strcmp((char*)n->name, "serviceGroupType") == 0 && n->ns == ns) {
 			TRACE("xmlTag serviceGroupType found");
 			char* s = (char *)xmlGetProp(n, (const xmlChar*)"saAmfApptSGTypes");
-			osafassert(s != NULL);
+			if (s == NULL) {
+				LOG_ER("Fail to parse saAmfApptSGTypes");
+				return false;
+			}
 			attr.addValue(s);
 			xmlFree(s);
 		}
 	}
 	ico->addValue(attr);
 	i_campaign->addCampInitAddToImm(ico);
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------
 // addAttribute()
 // ------------------------------------------------------------------------------
 
-void SmfCampaignXmlParser::addAttribute(
+bool SmfCampaignXmlParser::addAttribute(
 	SmfImmCreateOperation* ico, xmlNode* n, char const* attrname, char const* attrtype,
 	bool optional, char const* objattr)
 {
 	char* s = (char *)xmlGetProp(n, (const xmlChar*)attrname);
-	if (s == NULL && optional) return;
-	osafassert(s != NULL);
+	if (s == NULL && optional) return true;
+	if (s == NULL) {
+		LOG_ER("Fail to get property of non optional attribute %s, no value", attrname);
+		return false;
+	}
+
 	SmfImmAttribute a;
 	if (objattr != NULL)
 		a.setName(objattr);
@@ -1764,13 +1958,14 @@ void SmfCampaignXmlParser::addAttribute(
 	a.addValue(s);
 	ico->addValue(a);
 	xmlFree(s);
+	return true;
 }
 
 // ------------------------------------------------------------------------------
 // parseSGType()
 // ------------------------------------------------------------------------------
 
-void 
+bool 
 SmfCampaignXmlParser::parseSGType(
 	SmfUpgradeCampaign* i_campaign, xmlNode * i_node, char const* parent)
 {
@@ -1788,7 +1983,10 @@ SmfCampaignXmlParser::parseSGType(
 		if (strcmp((char*)n->name, "suType") == 0 && n->ns == ns) {
 			TRACE("xmlTag suType found");
 			char* s = (char *)xmlGetProp(n, (const xmlChar*)"saAmfSgtValidSuTypes");
-			osafassert(s != NULL);
+			if (s == NULL) {
+				LOG_ER("Parsing of saAmfSgtValidSuTypes fails, no value");
+				return false;
+			}
 			attr.addValue(s);
 			xmlFree(s);
 
@@ -1826,13 +2024,15 @@ SmfCampaignXmlParser::parseSGType(
 
 	ico->addValue(attr);
 	i_campaign->addCampInitAddToImm(ico);
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------
 // parseSUType()
 // ------------------------------------------------------------------------------
 
-void 
+bool 
 SmfCampaignXmlParser::parseSUType(
 	SmfUpgradeCampaign* i_campaign, xmlNode * i_node, char const* parent)
 {
@@ -1851,7 +2051,10 @@ SmfCampaignXmlParser::parseSUType(
 		if (strcmp((char*)n->name, "supportedSvcType") == 0 && n->ns == ns) {
 			TRACE("xmlTag supportedSvcType found");
 			char* s = (char *)xmlGetProp(n, (const xmlChar*)"saAmfSutProvidesSvcType");
-			osafassert(s != NULL);
+			if (s == NULL){
+				LOG_ER("Parsing of saAmfSutProvidesSvcType fails, no value");
+				return false;
+			}
 			attr.addValue(s);
 			xmlFree(s);
 
@@ -1869,6 +2072,8 @@ SmfCampaignXmlParser::parseSUType(
 	}
 
 	ico->addValue(attr);
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------
@@ -1892,7 +2097,7 @@ SmfCampaignXmlParser::parseComponentType(
 // ------------------------------------------------------------------------------
 // elementToAttr()
 // ------------------------------------------------------------------------------
-void
+bool
 SmfCampaignXmlParser::elementToAttr(
 	SmfImmCreateOperation* ico, xmlNode* node, 
 	char const* tag, char const* attrname, char const* attrtype, bool optional)
@@ -1905,9 +2110,11 @@ SmfCampaignXmlParser::elementToAttr(
 	for (xmlNode* n = node->xmlChildrenNode; n != NULL; n = n->next) {
 		if (strcmp((char*)n->name, tag) == 0 && n->ns == ns) {
 			TRACE("xmlTag %s found", tag);
-			char* s = (char*)xmlNodeListGetString(
-				m_doc, n->xmlChildrenNode, 1);
-			osafassert(s != NULL);
+			char* s = (char*)xmlNodeListGetString(m_doc, n->xmlChildrenNode, 1);
+			if (s == NULL){
+				LOG_ER("xmlTag %s found but no value", tag);
+				return false;
+			}
 			attr.addValue(s);
 			xmlFree(s);
 			nElements++;
@@ -1915,16 +2122,19 @@ SmfCampaignXmlParser::elementToAttr(
 	}
 	if (nElements > 0) {
 		ico->addValue(attr);
-	} else {
-		osafassert(optional);
+	} else if (optional != true) {
+		LOG_ER("No elements in non optional attribute (%s)",attrname);
+		return false;
 	}
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------
 // parseCompType()
 // ------------------------------------------------------------------------------
 
-void 
+bool 
 SmfCampaignXmlParser::parseCompType(
 	SmfUpgradeCampaign* i_campaign, xmlNode * i_node, 
 	char const* parent)
@@ -1956,55 +2166,69 @@ SmfCampaignXmlParser::parseCompType(
 				ico, n, "saAmfCtDefQuiescingCompleteTimeout", "SA_IMM_ATTR_SATIMET", true);
 			addAttribute(
 				ico, n, "saAmfCtDefDisableRestart", "SA_IMM_ATTR_SAUINT32T", true);
-			elementToAttr(ico, n, "cmdEnv", "saAmfCtDefCmdEnv", "SA_IMM_ATTR_SASTRINGT");
+			if (elementToAttr(ico, n, "cmdEnv", "saAmfCtDefCmdEnv", "SA_IMM_ATTR_SASTRINGT") == false){
+				return false;
+			}
 
 		} else if (strcmp((char*)n->name, "instantiateCmd") == 0 && n->ns == ns) {
 			TRACE("xmlTag instantiateCmd found");
 			addAttribute(
 				ico, n, "saAmfCtRelPathInstantiateCmd", "SA_IMM_ATTR_SASTRINGT");
-			elementToAttr(
-				ico, n, "cmdArgv", "saAmfCtDefInstantiateCmdArgv",
-				"SA_IMM_ATTR_SASTRINGT");
+			if (elementToAttr(
+				    ico, n, "cmdArgv", "saAmfCtDefInstantiateCmdArgv", 
+				    "SA_IMM_ATTR_SASTRINGT") == false){
+				return false;			
+			}
 
 		} else if (strcmp((char*)n->name, "terminateCmd") == 0 && n->ns == ns) {
 			TRACE("xmlTag terminateCmd found");
 			addAttribute(
 				ico, n, "saAmfCtRelPathTerminateCmd", "SA_IMM_ATTR_SASTRINGT");
-			elementToAttr(
-				ico, n, "cmdArgv", "saAmfCtDefTerminateCmdArgv",
-				"SA_IMM_ATTR_SASTRINGT");
+			if (elementToAttr(
+				    ico, n, "cmdArgv", "saAmfCtDefTerminateCmdArgv",
+				    "SA_IMM_ATTR_SASTRINGT") == false){
+				return false;
+			}
 
 		} else if (strcmp((char*)n->name, "cleanupCmd") == 0 && n->ns == ns) {
 			TRACE("xmlTag cleanupCmd found");
 			addAttribute(
 				ico, n, "saAmfCtRelPathCleanupCmd", "SA_IMM_ATTR_SASTRINGT");
-			elementToAttr(
-				ico, n, "cmdArgv", "saAmfCtDefCleanupCmdArgv",
-				"SA_IMM_ATTR_SASTRINGT");
+			if (elementToAttr(
+				    ico, n, "cmdArgv", "saAmfCtDefCleanupCmdArgv",
+				    "SA_IMM_ATTR_SASTRINGT") == false){
+				return false;
+			}
 
 		} else if (strcmp((char*)n->name, "amStartCmd") == 0 && n->ns == ns) {
 			TRACE("xmlTag amStartCmd found");
 			addAttribute(
 				ico, n, "saAmfCtRelPathAmStartCmd", "SA_IMM_ATTR_SASTRINGT");
-			elementToAttr(
-				ico, n, "cmdArgv", "saAmfCtDefAmStartCmdArgv",
-				"SA_IMM_ATTR_SASTRINGT");
+			if (elementToAttr(
+				    ico, n, "cmdArgv", "saAmfCtDefAmStartCmdArgv",
+				    "SA_IMM_ATTR_SASTRINGT") == false){
+				return false;
+			}
 
 		} else if (strcmp((char*)n->name, "amStopCmd") == 0 && n->ns == ns) {
 			TRACE("xmlTag amStopCmd found");
 			addAttribute(
 				ico, n, "saAmfCtRelPathAmStopCmd", "SA_IMM_ATTR_SASTRINGT");
-			elementToAttr(
-				ico, n, "cmdArgv", "saAmfCtDefAmStopCmdArgv",
-				"SA_IMM_ATTR_SASTRINGT");
+			if (elementToAttr(
+				    ico, n, "cmdArgv", "saAmfCtDefAmStopCmdArgv",
+				    "SA_IMM_ATTR_SASTRINGT") == false){
+				return false;
+			}
 
 		} else if (strcmp((char*)n->name, "osafHcCmd") == 0 && n->ns == ns) {
 			TRACE("xmlTag osafHcCmd found");
 			addAttribute(
 				ico, n, "osafAmfCtRelPathHcCmd", "SA_IMM_ATTR_SASTRINGT", true);
-			elementToAttr(
-				ico, n, "cmdArgv", "osafAmfCtDefHcCmdArgv",
-				"SA_IMM_ATTR_SASTRINGT");
+			if (elementToAttr(
+				    ico, n, "cmdArgv", "osafAmfCtDefHcCmdArgv",
+				    "SA_IMM_ATTR_SASTRINGT") == false){
+				return false;
+			}
 
 		} else if (strcmp((char*)n->name, "healthCheck") == 0 && n->ns == ns) {
 			TRACE("xmlTag healthCheck found");
@@ -2018,6 +2242,7 @@ SmfCampaignXmlParser::parseCompType(
 		}
 	}
 
+	return true;
 }
 
 // ------------------------------------------------------------------------------
@@ -2114,7 +2339,7 @@ SmfCampaignXmlParser::parseCsType(
 // parseCSType()
 // ------------------------------------------------------------------------------
 
-void 
+bool 
 SmfCampaignXmlParser::parseCSType(
 	SmfUpgradeCampaign* i_campaign, xmlNode * i_node, 
 	char const* parent)
@@ -2133,7 +2358,10 @@ SmfCampaignXmlParser::parseCSType(
 		if (strcmp((char*)n->name, "csAttribute") == 0 && n->ns == ns) {
 			TRACE("xmlTag csAttribute found");
 			char* s = (char *)xmlGetProp(n, (const xmlChar*)"saAmfCSAttrName");
-			osafassert(s != NULL);
+			if (s == NULL){
+				LOG_ER("xmlTag csAttribute found but no value");
+				return false;
+			}
 			attr.addValue(s);
 			xmlFree(s);
 			cnt++;
@@ -2142,6 +2370,8 @@ SmfCampaignXmlParser::parseCSType(
 	if (cnt > 0) {
 		ico->addValue(attr);
 	}
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------

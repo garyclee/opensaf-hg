@@ -304,7 +304,8 @@ class SmfAdminOperationAction:public SmfUpgradeAction {
 /// @param   A std::list < SmfAdminOperationParameter >.
 /// @return  A SaImmAdminOperationParamsT_2 ** pointer if parameters exist, otherwise 0.
 ///
-         const SaImmAdminOperationParamsT_2 ** createAdmOperParams(std::list < SmfAdminOperationParameter > i_parameters);
+         bool createAdmOperParams(std::list < SmfAdminOperationParameter >& i_parameters,
+				  SaImmAdminOperationParamsT_2 **& o_params );
 
 	 std::string m_doDn;	// The object to do admin operation on 
 	 int m_doOpId;		// The id of the admin operation
