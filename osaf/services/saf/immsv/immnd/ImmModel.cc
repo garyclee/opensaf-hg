@@ -2767,8 +2767,8 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
         verifyFailed = true;
     }
 
-    return !verifyFailed;
     TRACE_LEAVE();
+    return !verifyFailed;
 }
 
 bool
@@ -4957,9 +4957,15 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     
     if ((i5 = sObjectMap.find(objectName)) != sObjectMap.end()) {
         if(i5->second->mObjFlags & IMM_CREATE_LOCK) {
-            TRACE_7("ERR_EXIST: object '%s' is already registered "
-                "for creation in a ccb, but not applied yet", 
-                objectName.c_str());
+            if(isLoading) {
+                LOG_ER("ERR_EXIST: object '%s' is already registered "
+                    "for creation in a ccb, but not applied yet",
+                    objectName.c_str());
+            } else {
+                TRACE_7("ERR_EXIST: object '%s' is already registered "
+                    "for creation in a ccb, but not applied yet",
+                    objectName.c_str());
+            }
         } else {
             TRACE_7("ERR_EXIST: object '%s' exists", objectName.c_str());
         }
