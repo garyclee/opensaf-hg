@@ -342,3 +342,122 @@ void saImmOmCcbObjectCreate_07(void)
     safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
+
+void saImmOmCcbObjectCreate_08(void)
+{
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT ccbHandle;
+    SaNameT rdn = {strlen("Obj1"), "Obj1"};
+    SaNameT* nameValues[] = {&rdn};
+    SaImmAttrValuesT_2 v2 = {"rdn",  SA_IMM_ATTR_SANAMET, 1, (void**)nameValues};
+    SaStringT str4Value = "";
+    SaStringT *str4Values[] = {&str4Value};
+    SaImmAttrValuesT_2 v4 = {"attr4", SA_IMM_ATTR_SASTRINGT, 1, (void**)str4Values};
+    const SaImmAttrValuesT_2 * attrValues[] = {&v2, &v4, NULL};
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+    safassert(config_class_create(immOmHandle), SA_AIS_OK);
+
+    test_validate(saImmOmCcbObjectCreate_2(ccbHandle, configClassName, NULL, attrValues), SA_AIS_OK);
+
+    saImmOmCcbObjectDelete(ccbHandle, &rdn);
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+    safassert(config_class_delete(immOmHandle), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOmCcbObjectCreate_09(void)
+{
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT ccbHandle;
+    SaNameT rdn = {strlen("Obj1=Sch\366ne"), "Obj1=Sch\366ne"};
+    SaNameT* nameValues[] = {&rdn};
+    SaImmAttrValuesT_2 v2 = {"rdn",  SA_IMM_ATTR_SANAMET, 1, (void**)nameValues};
+    const SaImmAttrValuesT_2 * attrValues[] = {&v2, NULL};
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+    safassert(config_class_create(immOmHandle), SA_AIS_OK);
+
+    test_validate(saImmOmCcbObjectCreate_2(ccbHandle, configClassName, NULL, attrValues), SA_AIS_ERR_INVALID_PARAM);
+
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+    safassert(config_class_delete(immOmHandle), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOmCcbObjectCreate_10(void)
+{
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT ccbHandle;
+    SaNameT rdn = {strlen("Obj1=Sch\303\266ne"), "Obj1=Sch\303\266ne"};
+    SaNameT* nameValues[] = {&rdn};
+    SaImmAttrValuesT_2 v2 = {"rdn",  SA_IMM_ATTR_SANAMET, 1, (void**)nameValues};
+    const SaImmAttrValuesT_2 * attrValues[] = {&v2, NULL};
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+    safassert(config_class_create(immOmHandle), SA_AIS_OK);
+
+    test_validate(saImmOmCcbObjectCreate_2(ccbHandle, configClassName, NULL, attrValues), SA_AIS_ERR_INVALID_PARAM);
+
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+    safassert(config_class_delete(immOmHandle), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOmCcbObjectCreate_11(void)
+{
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT ccbHandle;
+    SaNameT rdn = {strlen("Obj1=\001\002"), "\001\002"};
+    SaNameT* nameValues[] = {&rdn};
+    SaImmAttrValuesT_2 v2 = {"rdn",  SA_IMM_ATTR_SANAMET, 1, (void**)nameValues};
+    const SaImmAttrValuesT_2 * attrValues[] = {&v2, NULL};
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+    safassert(config_class_create(immOmHandle), SA_AIS_OK);
+
+    test_validate(saImmOmCcbObjectCreate_2(ccbHandle, configClassName, NULL, attrValues), SA_AIS_ERR_INVALID_PARAM);
+
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+    safassert(config_class_delete(immOmHandle), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOmCcbObjectCreate_12(void)
+{
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT ccbHandle;
+    SaNameT rdn = {strlen(""), ""};
+    SaNameT* nameValues[] = {&rdn};
+    SaImmAttrValuesT_2 v2 = {"rdn",  SA_IMM_ATTR_SANAMET, 1, (void**)nameValues};
+    const SaImmAttrValuesT_2 * attrValues[] = {&v2, NULL};
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+    safassert(config_class_create(immOmHandle), SA_AIS_OK);
+
+    test_validate(saImmOmCcbObjectCreate_2(ccbHandle, configClassName, NULL, attrValues), SA_AIS_ERR_INVALID_PARAM);
+
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+    safassert(config_class_delete(immOmHandle), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
