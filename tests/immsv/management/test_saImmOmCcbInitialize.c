@@ -121,6 +121,7 @@ extern void saImmOmCcbObjectCreate_09(void);
 extern void saImmOmCcbObjectCreate_10(void);
 extern void saImmOmCcbObjectCreate_11(void);
 extern void saImmOmCcbObjectCreate_12(void);
+extern void saImmOmCcbObjectCreate_13(void);
 extern void saImmOmCcbObjectDelete_01(void);
 extern void saImmOmCcbObjectDelete_02(void);
 extern void saImmOmCcbObjectDelete_03(void);
@@ -138,6 +139,7 @@ extern void saImmOmCcbObjectModify_2_09(void);
 extern void saImmOmCcbObjectModify_2_10(void);
 extern void saImmOmCcbObjectModify_2_11(void);
 extern void saImmOmCcbObjectModify_2_12(void);
+extern void saImmOmCcbObjectModify_2_13(void);
 extern void saImmOmCcbApply_01(void);
 extern void saImmOmCcbApply_02(void);
 extern void saImmOmCcbFinalize_01(void);
@@ -162,6 +164,7 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(6, saImmOmCcbObjectCreate_10, "saImmOmCcbObjectCreate - SA_AIS_ERR_INVALID_PARAM, valid UTF-8 non 7-bit ASCII rdn string");
     test_case_add(6, saImmOmCcbObjectCreate_11, "saImmOmCcbObjectCreate - SA_AIS_ERR_INVALID_PARAM, rdn contains control characters");
     test_case_add(6, saImmOmCcbObjectCreate_12, "saImmOmCcbObjectCreate - SA_AIS_ERR_INVALID_PARAM, rdn is empty string");
+    test_case_add(6, saImmOmCcbObjectCreate_13, "saImmOmCcbObjectCreate - SA_AIS_OK, empty SaAnyT");
 
     test_case_add(6, saImmOmCcbObjectDelete_01, "saImmOmCcbObjectDelete - SA_AIS_OK");
     test_case_add(6, saImmOmCcbObjectDelete_02, "saImmOmCcbObjectDelete - SA_AIS_ERR_BAD_HANDLE");
@@ -179,6 +182,7 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(6, saImmOmCcbObjectModify_2_10, "saImmOmCcbObjectModify_2 - SA_AIS_OK, UTF-8 string");
     test_case_add(6, saImmOmCcbObjectModify_2_11, "saImmOmCcbObjectModify_2 - SA_AIS_OK, control characters");
     test_case_add(6, saImmOmCcbObjectModify_2_12, "saImmOmCcbObjectModify_2 - SA_AIS_OK, empty string");
+    test_case_add(6, saImmOmCcbObjectModify_2_13, "saImmOmCcbObjectModify_2 - SA_AIS_OK, empty SaAnyT");
 
     test_case_add(6, saImmOmCcbApply_01, "saImmOmCcbApply - SA_AIS_OK");
     test_case_add(6, saImmOmCcbApply_02, "saImmOmCcbApply - SA_AIS_ERR_BAD_HANDLE");
