@@ -507,6 +507,78 @@ void saImmOmCcbObjectModify_2_12(void)
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
+void saImmOmCcbObjectModify_2_13(void)
+{
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT ccbHandle;
+    SaImmAccessorHandleT accessorHandle;
+    const SaNameT *objectNames[] = {&parentName, NULL};
+    SaAnyT anyValue = { 0, (SaUint8T *)"" };
+    SaAnyT* anyValues[] = { &anyValue, &anyValue, &anyValue };
+    SaImmAttrValuesT_2 any5 = {"attr5", SA_IMM_ATTR_SAANYT, 1, (void **)anyValues};
+    SaImmAttrValuesT_2 any6 = {"attr6", SA_IMM_ATTR_SAANYT, 3, (void **)anyValues};
+    SaImmAttrModificationT_2 attrMod5 = {SA_IMM_ATTR_VALUES_REPLACE, any5};
+    SaImmAttrModificationT_2 attrMod6 = {SA_IMM_ATTR_VALUES_REPLACE, any6};
+    const SaImmAttrModificationT_2 *attrMods[] = {&attrMod5, &attrMod6, NULL};
+    SaImmAttrValuesT_2 **attributes;
+    int i, k, counter;
+
+    safassert(saImmOmInitialize(&immOmHandle, NULL, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), SA_AIS_OK);
+    safassert(config_class_create(immOmHandle), SA_AIS_OK);
+    safassert(config_object_create(immOmHandle, ownerHandle, &parentName), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerSet(ownerHandle, dnObjs, SA_IMM_ONE), SA_AIS_OK);
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+
+    safassert(saImmOmCcbObjectModify_2(ccbHandle, &dnObj1, attrMods), SA_AIS_OK);
+    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    safassert(saImmOmAccessorGet_2(accessorHandle, &dnObj1, NULL, &attributes), SA_AIS_OK);
+
+    counter = 0;
+    for(i=0; attributes[i]; i++) {
+    	SaAnyT *any;
+    	if(!strcmp(attributes[i]->attrName, "attr5")) {
+    		counter++;
+    		/* Test that there is one SaAnyT value */
+    		assert(attributes[i]->attrValuesNumber == 1);
+    		/* ... and it's not NULL */
+    		assert(attributes[i]->attrValues);
+    		any = (SaAnyT *)(attributes[i]->attrValues[0]);
+    		/* ... and return value is empty string */
+    		assert(any);
+    		assert(any->bufferSize == 0);
+    	} else if(!strcmp(attributes[i]->attrName, "attr6")) {
+    		counter++;
+    		/* Test that there are three SaAnyT values */
+    		assert(attributes[i]->attrValuesNumber == 3);
+    		assert(attributes[i]->attrValues);
+    		/* All three values are empty strings */
+    		for(k=0; k<3; k++) {
+				any = (SaAnyT *)(attributes[i]->attrValues[k]);
+				assert(any);
+				assert(any->bufferSize == 0);
+    		}
+    	}
+    }
+
+    /* We have tested both parameters */
+    assert(counter == 2);
+
+    /* If we come here, then the test is successful */
+    test_validate(SA_AIS_OK, SA_AIS_OK);
+
+    safassert(saImmOmAccessorFinalize(accessorHandle), SA_AIS_OK);
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+    safassert(config_object_delete(immOmHandle, ownerHandle), SA_AIS_OK);
+    safassert(config_class_delete(immOmHandle), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
 
 __attribute__ ((constructor)) static void saImmOmCcbObjectModify_2_constructor(void)
 {
