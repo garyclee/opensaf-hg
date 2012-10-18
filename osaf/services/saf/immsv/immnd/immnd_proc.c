@@ -35,7 +35,7 @@
 #include "immsv_api.h"
 
 static const char *loaderBase = "immload";
-static const char *pbeBase = BINDIR "/immdump";
+static const char *pbeBase = "osafimmpbed";
 
 void immnd_ackToNid(uint32_t rc)
 {
@@ -1360,25 +1360,45 @@ static int immnd_forkSync(IMMND_CB *cb)
 
 static int immnd_forkPbe(IMMND_CB *cb)
 {
+	/* osafimmpbed is in the same directory as immnd,
+	 * and the path will be calculated from immnd path
+	 */
+
 	const char *base = basename(cb->mProgName);
+	char execPath[1024];
 	char pbePath[1024];
 	int pid = (-1);
+	int execDirLen = (int) (strlen(cb->mProgName) - strlen(base));
 	int dirLen = (int) strlen(cb->mDir);
 	int pbeLen = (int) strlen(cb->mPbeFile);
 	int i, j;
+	int pbeBaseLen = strlen(pbeBase);
+	int newLen = execDirLen + pbeBaseLen + (((execDirLen > 0) && (cb->mProgName[execDirLen - 1] == '/')) ? 0 : 1);
 	TRACE_ENTER();
 
+	if(newLen > 1023) {
+		LOG_ER("Pathname too long: %u max is 1023", newLen);
+		return -1;
+	}
+
+	strncpy(execPath, cb->mProgName, execDirLen);
+	execPath[execDirLen] = 0;
+	if((execDirLen == 0) || (cb->mProgName[execDirLen - 1] != '/'))
+		strncat(execPath, "/", 2);
+	strncat(execPath, pbeBase, pbeBaseLen + 1);
+
+	TRACE("exec-pbe-file-path:%s", execPath);
+
 	for (i = 0; i < dirLen; ++i) {
-           pbePath[i] = cb->mDir[i];
+		pbePath[i] = cb->mDir[i];
 	}
 
 	pbePath[i++] = '/';
 
 	for(j = 0; j < pbeLen; ++i, ++j) {
-            pbePath[i] = cb->mPbeFile[j];
+		pbePath[i] = cb->mPbeFile[j];
 	}
 	pbePath[i] = '\0';
-
 
 	TRACE("pbe-file-path:%s", pbePath);
 
@@ -1402,23 +1422,20 @@ static int immnd_forkPbe(IMMND_CB *cb)
 		/* TODO: Should close file-descriptors ... */
 		/*char * const pbeArgs[5] = { (char *) pbeBase, "--daemon", "--pbe", pbePath, "--recover", 0 };*/
 		char * pbeArgs[6];
-		pbeArgs[0] = (char *) pbeBase;
-		pbeArgs[1] =  "--daemon";
+		pbeArgs[0] = (char *) execPath;
 		if(cb->mPbeVeteran) {
-			pbeArgs[2] =  "--recover";
-			pbeArgs[3] = "--pbe";
-			pbeArgs[4] = pbePath;
-			pbeArgs[5] =  0;
-			LOG_IN("Exec: %s %s %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2], pbeArgs[3], pbeArgs[4]);
+			pbeArgs[1] =  "--recover";
+			pbeArgs[2] = pbePath;
+			pbeArgs[3] =  0;
+			LOG_IN("Exec: %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2]);
 		} else {
-			pbeArgs[2] = "--pbe";
-			pbeArgs[3] = pbePath;
-			pbeArgs[4] =  0;
-			LOG_IN("Exec: %s %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2], pbeArgs[3]);
+			pbeArgs[1] = pbePath;
+			pbeArgs[2] =  0;
+			LOG_IN("Exec: %s %s", pbeArgs[0], pbeArgs[1]);
 		}
 
-		execvp(pbeBase, pbeArgs);
-		LOG_ER("%s failed to exec '%s -pbe', error %u, exiting", base, pbeBase, errno);
+		execvp(execPath, pbeArgs);
+		LOG_ER("%s failed to exec '%s', error %u, exiting", base, pbeBase, errno);
 		exit(1);
 	}
 	TRACE_5("Parent %s, successfully forked %s, pid:%d", base, pbePath, pid);

@@ -24,4 +24,5 @@ noinst_HEADERS = \
 	immsv_evt.h \
 	immsv_evt_model.h \
 	immsv.h \
-	immutil.h
+	immutil.h \
+	immpbe_dump.hh

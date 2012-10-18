@@ -15,7 +15,7 @@
  *
  */
 
-#include "imm_dumper.hh"
+#include "immpbe.hh"
 #include <errno.h>
 #include <signal.h>
 #include <saImmOi.h>
@@ -1134,7 +1134,7 @@ void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap,
 			break;
 		}
 
-		if (immHandle && fds[FD_IMM_PBE_OM].revents & POLLIN) {
+		if (immHandle && (fds[FD_IMM_PBE_OM].revents & POLLIN)) {
 			error = saImmOmDispatch(immHandle, SA_DISPATCH_ONE);
 			if (error != SA_AIS_OK) {
 				LOG_WA("saImmOmDispatch returned %u PBE lost contact with IMMND - exiting", error);
@@ -1144,7 +1144,7 @@ void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap,
 			}
 		}
 
-		if (pbeOiHandle && fds[FD_IMM_PBE_OI].revents & POLLIN) {
+		if (pbeOiHandle && (fds[FD_IMM_PBE_OI].revents & POLLIN)) {
 			error = saImmOiDispatch(pbeOiHandle, SA_DISPATCH_ONE);
 
 			if (error == SA_AIS_ERR_BAD_HANDLE) {

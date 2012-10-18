@@ -47,29 +47,16 @@ static void usage(const char *progname)
     printf("\nOPTIONS\n");
     printf("\t-h, --help\n");
     printf("\t\tthis help\n\n");
+
     printf("\t-x, --xmlwriter   {<file name>}\n");
     printf("\t\tOption kept only for backward compatibility\n\n");
 
     printf("\t-p, --pbe   {<file name>}\n");
-    printf("\t\tInstead of xml file, generate/populate persistent back-end database/file\n");
+    printf("\t\tCreate an IMM database file from the current IMM state\n\n");
 
     printf("\nEXAMPLE\n");
-    printf("\timmdump /tmp/imm.xml\n");
+    printf("\t%s /tmp/imm.xml\n", progname);
 }
-/*
-  Hidden arguments, only intended to be used when immdump is forked by immnd.
-   --daemon
-   Tells immdump that it will be running as a slave daemon to the coord immnd.
-   The immdump process will try to connect back to the coord immnd.
-
-   --recover
-   If immdump is running as daemon then the recover argument tells immdump
-   NOT to initialize the db file from scratch. Instead it will try to
-   recover based on an existing db file. 
-   The --recover argument overrides the --pbe argument as far as generating
-   an initial dump, but the --pbe <file> argument still needs to be supplied
-   by immnd because the name for the db file is obtained this way. 
-*/
 
 
 static void saImmOmAdminOperationInvokeCallback(SaInvocationT invocation,
@@ -90,9 +77,7 @@ int main(int argc, char* argv[])
     int c;
     struct option long_options[] = {
         {"help", no_argument, 0, 'h'},
-        {"daemon", no_argument, 0, 'd'},
         {"pbe", required_argument, 0, 'p'},
-        {"recover", no_argument, 0, 'r'},
         {"xmlwriter", no_argument, 0, 'x'},
         {0, 0, 0, 0}
     };
@@ -100,7 +85,6 @@ int main(int argc, char* argv[])
     SaAisErrorT            errorCode;
     SaVersionT             version;
 
-    SaImmAdminOwnerHandleT ownerHandle;
     /*
     SaNameT immApp;
     immApp.length = strlen(OPENSAF_IMM_OBJECT_PARENT);
@@ -120,19 +104,11 @@ int main(int argc, char* argv[])
     const char* logPath;
     unsigned int category_mask = 0;
     bool pbeDumpCase = false;
-    bool pbeDaemonCase = false;
-    bool pbeRecoverFile = false;
     void* dbHandle=NULL;
     const char* dump_trace_label = "immdump";
-    const char* pbe_daemon_trace_label = "immpbe";
     const char* trace_label = dump_trace_label;
     ClassMap classIdMap;
     unsigned int objCount=0;
-    bool fileReOpened=false;
-
-    unsigned int           retryInterval = 1000000; /* 1 sec */
-    unsigned int           maxTries = 70;          /* 70 times == max 70 secs */
-    unsigned int           tryCount=0;
 
     if ((logPath = getenv("IMMSV_TRACE_PATHNAME")))
     {
@@ -150,13 +126,13 @@ int main(int argc, char* argv[])
 
     if ((argc < 2) || (argc > 5))
     {
-        printf("Usage: %s <xmldumpfile>\n", argv[0]);
-	usage(argv[0]);
+        printf("Usage: %s <xmldumpfile>\n", basename(argv[0]));
+	usage(basename(argv[0]));
         exit(1);
     }
 
     while (1) {
-    if ((c = getopt_long(argc, argv, "hdrp:x:y:", long_options, NULL)) == -1)
+    if ((c = getopt_long(argc, argv, "hp:x:", long_options, NULL)) == -1)
             break;
 
             switch (c) {
@@ -165,22 +141,10 @@ int main(int argc, char* argv[])
                     exit(EXIT_SUCCESS);
                     break;
 
-                case 'd':
-                    pbeDaemonCase = true;
-                    trace_label = pbe_daemon_trace_label;
-                    break;
-
                 case 'p':
-		    if(!pbeRecoverFile) {
 			    pbeDumpCase = true;
-		    }
 
 		    filename.append(optarg);
-                    break;
-
-                case 'r':
-		    pbeDumpCase = false;
-		    pbeRecoverFile = true;
                     break;
 
                 case 'x':
@@ -207,61 +171,27 @@ int main(int argc, char* argv[])
     errorCode = saImmOmInitialize(&immHandle, &callbacks, &version);
     if (SA_AIS_OK != errorCode)
     {
-        if(pbeDaemonCase) {
-            LOG_WA("Failed to initialize imm om handle - exiting");
-        } else {
-            std::cerr << "Failed to initialize the imm om interface - exiting" 
+        std::cerr << "Failed to initialize the imm om interface - exiting"
             << errorCode 
             <<  std::endl;
-        }
         exit(1);
     }
 
- re_open:
-    if(pbeDaemonCase && !pbeDumpCase && pbeRecoverFile) {
-        /* This is the re-attachement case. 
-	   The PBE has crashed, 
-	   or the IMMND-coord has crashed which will force the PBE to terminate,
-	   or the entire node on which immnd-coord and pbe was running has crashed.
-	   Try to re-attach to the db file and avoid regenerating it. 
-	*/
-        dbHandle = pbeRepositoryInit(filename.c_str(), false, localTmpFilename);
-	/* getClassIdMap */
-        if(dbHandle) {
-		objCount = verifyPbeState(immHandle, &classIdMap, dbHandle);
-		TRACE("Classes Verified");
-		if(!objCount) {dbHandle = NULL;}
-        } 
-
-	if(!dbHandle) {
-		LOG_WA("Pbe: Failed to re-attach to db file %s - regenerating db file",
-			filename.c_str());
-		pbeDumpCase = true;
-	}
-    }    
-
     if(pbeDumpCase) {
-        if(pbeDaemonCase) {
-            LOG_IN("Generating DB file from current IMM state. DB file: %s", filename.c_str());
-        } else {
-            std::cout << 
-                "Generating DB file from current IMM state. File: " << filename << 
-                 std::endl;
-        }
+    	/* Generate PBE database file from current IMM state */
+        std::cout <<
+            "Generating DB file from current IMM state. File: " << filename <<
+             std::endl;
 
-	/* Initialize access to PBE database. */
-	dbHandle = pbeRepositoryInit(filename.c_str(), true, localTmpFilename);
+        /* Initialize access to PBE database. */
+        dbHandle = pbeRepositoryInit(filename.c_str(), true, localTmpFilename);
 
 
         if(dbHandle) {
             TRACE_1("Opened persistent repository %s", filename.c_str());
         } else {
-            if(pbeDaemonCase) {
-                LOG_WA("immdump: pbe intialize failed - exiting");
-            } else {
-                std::cerr << "immdump: intialize failed - exiting, check syslog for details"
-                    << std::endl;
-            }
+            std::cerr << "immdump: intialize failed - exiting, check syslog for details"
+                << std::endl;
             exit(1);
         }
 
@@ -269,360 +199,88 @@ int main(int argc, char* argv[])
         TRACE("Dump classes OK");
 
         objCount = dumpObjectsToPbe(immHandle, &classIdMap, dbHandle);
-        TRACE("Dump objects OK");
+        TRACE("Dump %u objects OK", objCount);
 
-	/* Discard the old classIdMap, will otherwise contain invalid
-	   pointer/member 'sqlStmt' after handle close below. */
-	ClassMap::iterator itr;
-	for(itr = classIdMap.begin(); itr != classIdMap.end(); ++itr) {
-		ClassInfo* ci = itr->second;
-		delete(ci);
-	}
-	classIdMap.clear();
+        /* Discard the old classIdMap, will otherwise contain invalid
+           pointer/member 'sqlStmt' after handle close below. */
+        ClassMap::iterator itr;
+        for(itr = classIdMap.begin(); itr != classIdMap.end(); ++itr) {
+            ClassInfo* ci = itr->second;
+            delete(ci);
+        }
+        classIdMap.clear();
 
-	pbeRepositoryClose(dbHandle);
-	dbHandle = NULL;
-	LOG_NO("Successfully dumped to file %s", localTmpFilename.c_str());
+        pbeRepositoryClose(dbHandle);
+        dbHandle = NULL;
+        LOG_NO("Successfully dumped to file %s", localTmpFilename.c_str());
 
-	pbeAtomicSwitchFile(filename.c_str(), localTmpFilename);
-        if(!pbeDaemonCase) {
-            exit(0);
+        pbeAtomicSwitchFile(filename.c_str(), localTmpFilename);
+    } else {
+        /* Generate IMM XML file from current IMM state */
+        /* xmlWriter dump case */
+        std::cout << "Dumping current IMM state to XML file " << filename <<
+	        " using XMLWriter" << std::endl;
+
+        xmlTextWriterPtr writer=xmlNewTextWriterFilename(filename.c_str(),0);
+
+        if(writer == NULL)  {
+        	std::cout << "Error at xmlNewTextWriterFilename" << std::endl;
+        	exit(1);
         }
 
-        /* Else the pbe dump was needed to get the initial pbe-file
-           to be used by the pbeDaemon.
-         */
-	if(fileReOpened) {
-		LOG_ER("immdump: will not re-open twice");
-		exit(1);
-	}
-
-	fileReOpened=true;
-	pbeDumpCase=false;
-	pbeRecoverFile=true;
-	assert(pbeDaemonCase); /* osafassert not available for 'tools' */
-	LOG_IN("Re-attaching to the new version of %s", filename.c_str());
-	goto re_open;
-    }
-
-
-    if(pbeDaemonCase) {
-
-        if(!dbHandle) {
-            dbHandle = pbeRepositoryInit(filename.c_str(), false, localTmpFilename);
-            if(!dbHandle) {
-                LOG_WA("immdump: pbe intialize failed - exiting");
-                exit(1);
-                /* TODO SYNC with pbe-file AND with IMMSv */
-            }
+        if(xmlTextWriterSetIndent(writer,1) < 0)  {
+        	std::cout << "Error at xmlTextWriterSetIndent" << std::endl;
+        	exit(1);
         }
 
-
-        /* Creating an admin owner with release on finalize set.
-           This makes the handle non resurrectable, allowing us
-           to detect loss of immnd. If immnd goes down we also exit.
-           A new immnd coord will be elected which should start a new pbe process.
-         */
-        do {
-            if(tryCount) {
-                usleep(retryInterval);
-            }
-            ++tryCount;
-            errorCode = saImmOmAdminOwnerInitialize(immHandle, 
-                (char *) OPENSAF_IMM_SERVICE_NAME, SA_TRUE, &ownerHandle); 
-        } while ((errorCode == SA_AIS_ERR_TRY_AGAIN) &&
-                  (tryCount < maxTries)); 
-
-        if(SA_AIS_OK != errorCode)
-        {
-                LOG_WA("Failed to initialize admin owner handle: err:%u - exiting",
-                    errorCode);
-		pbeRepositoryClose(dbHandle);
-		exit(1);
+        if(xmlTextWriterSetIndentString(writer,(xmlChar *)"  ") < 0)  {
+        	std::cout << "Error at xmlTextWriterSetIndentString" << std::endl;
+        	exit(1);
         }
 
-        /*
-        errorCode = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
-        */
+        /* Create a new xml document */
+        if(xmlTextWriterStartDocument(writer,NULL,NULL,NULL) < 0) {
+        	std::cout << "Error at xmlTextWriterStartDocument" << std::endl;
+        	exit(1);
+        }
 
-	
-	/* If we allow pbe without prior dump we need to fix classIdMap. */
-	assert(classIdMap.size());
-        pbeDaemon(immHandle, dbHandle, &classIdMap, objCount);
-        TRACE("Exit from pbeDaemon");
-        exit(0);
-    }
+        if(xmlTextWriterStartElementNS(writer, (xmlChar*) "imm",(xmlChar *)"IMM-contents"
+                ,(xmlChar *)"http://www.saforum.org/IMMSchema") < 0) {
+        	std::cout <<"Error at xmlTextWriterStartElementNS (IMM-contents)" << std::endl;
+        	exit(1);
+        }
 
+        if(xmlTextWriterWriteAttributeNS(writer, (xmlChar*) "xmlns",(xmlChar *)"xsi", NULL,
+                (xmlChar *)"http://www.w3.org/2001/XMLSchema-instance") < 0) {
+        	std::cout <<"Error at xmlTextWriterWriteAttribute (attribute 1)" << std::endl;
+        	exit(1);
+        }
 
-    /* NOT pbeDaemonCase, i.e. plain imm.xml dump */
+        if(xmlTextWriterWriteAttributeNS(writer,
+                (xmlChar*)"xsi",(xmlChar *)"noNamespaceSchemaLocation", NULL,
+                (xmlChar*)"SAI-AIS-IMM-XSD-A.01.01.xsd") < 0) {
+        	std::cout <<"Error at xmlTextWriterWriteAttribute (attribute 2)" << std::endl;
+        	exit(1);
+        }
 
-    assert(!pbeDumpCase && !pbeDaemonCase);
+        classRDNMap = cacheRDNs(immHandle);
 
+        dumpClassesXMLw(immHandle, writer);
 
-    /* xmlWriter dump case */
-	std::cout << "Dumping current IMM state to XML file " << filename <<
-		" using XMLWriter" << std::endl;
+        dumpObjectsXMLw(immHandle, classRDNMap, writer);
 
-	xmlTextWriterPtr writer=xmlNewTextWriterFilename(filename.c_str(),0);
+        /* Close element named imm:IMM-contents */
+        if( xmlTextWriterEndElement(writer) < 0) {
+            std::cout << "Error at xmlTextWriterEndElement" << std::endl;
+            exit(1);
+        }
 
-	if(writer == NULL)  {
-		std::cout << "Error at xmlNewTextWriterFilename" << std::endl;
-		exit(1);
+        xmlFreeTextWriter(writer);
+        xmlCleanupParser();
+        xmlMemoryDump();
 	}
-
-	if(xmlTextWriterSetIndent(writer,1) < 0)  {
-		std::cout << "Error at xmlTextWriterSetIndent" << std::endl;
-		exit(1);
-	}
-
-	if(xmlTextWriterSetIndentString(writer,(xmlChar *)"  ") < 0)  {
-		std::cout << "Error at xmlTextWriterSetIndentString" << std::endl;
-		exit(1);
-	}
-
-	/* Create a new xml document */
-	if(xmlTextWriterStartDocument(writer,NULL,NULL,NULL) < 0) {
-		std::cout << "Error at xmlTextWriterStartDocument" << std::endl;
-		exit(1);
-	}
-
-	if(xmlTextWriterStartElementNS(writer, (xmlChar*) "imm",(xmlChar *)"IMM-contents"
-	   ,(xmlChar *)"http://www.saforum.org/IMMSchema") < 0) {
-		std::cout <<"Error at xmlTextWriterStartElementNS (IMM-contents)" << std::endl;
-		exit(1);
-	}
-
-	if(xmlTextWriterWriteAttributeNS(writer, (xmlChar*) "xmlns",(xmlChar *)"xsi", NULL,
-	   (xmlChar *)"http://www.w3.org/2001/XMLSchema-instance") < 0) {
-		std::cout <<"Error at xmlTextWriterWriteAttribute (attribute 1)" << std::endl;
-		exit(1);
-	}
-
-	if(xmlTextWriterWriteAttributeNS(writer,
-	   (xmlChar*)"xsi",(xmlChar *)"noNamespaceSchemaLocation", NULL,
-	   (xmlChar*)"SAI-AIS-IMM-XSD-A.01.01.xsd") < 0) {
-		std::cout <<"Error at xmlTextWriterWriteAttribute (attribute 2)" << std::endl;
-		exit(1);
-	}
-
-	classRDNMap = cacheRDNs(immHandle);
-
-	dumpClassesXMLw(immHandle, writer);
-
-	dumpObjectsXMLw(immHandle, classRDNMap, writer);
-
-	/* Close element named imm:IMM-contents */
-	if( xmlTextWriterEndElement(writer) < 0) {
-	  std::cout << "Error at xmlTextWriterEndElement" << std::endl;
-	  exit(1);
-	}
-
-	xmlFreeTextWriter(writer);
-	xmlCleanupParser();
-	xmlMemoryDump();
 
     return 0;
-}
-
-std::string getClassName(const SaImmAttrValuesT_2** attrs)
-{
-    int i;
-    std::string className;
-    TRACE_ENTER();
-
-    for (i = 0; attrs[i] != NULL; i++)
-    {
-        if (strcmp(attrs[i]->attrName,
-                   "SaImmAttrClassName") == 0)
-        {
-            if (attrs[i]->attrValueType == SA_IMM_ATTR_SANAMET)
-            {
-                className = 
-                    std::string((char*)
-                                ((SaNameT*)*attrs[i]->attrValues)->value, 
-                                (size_t) ((SaNameT*)*attrs[i]->attrValues)->length);
-                TRACE_LEAVE();
-                return className;
-            }
-            else if (attrs[i]->attrValueType == SA_IMM_ATTR_SASTRINGT)
-            {
-                className = 
-                    std::string(*((SaStringT*)*(attrs[i]->attrValues)));
-                TRACE_LEAVE();
-                return className;
-            }
-            else
-            {
-                std::cerr << "Invalid type for class name exiting" 
-                    << attrs[i]->attrValueType
-                    << std::endl;
-                exit(1);
-            }
-        }
-    }
-    std::cerr << "Could not find classname attribute -  exiting" 
-        << std::endl;    
-    exit(1);
-}
-
-std::string valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
-{
-    SaNameT* namep;
-    char* str;
-    SaAnyT* anyp;
-    std::ostringstream ost;
-
-    switch (type)
-    {
-        case SA_IMM_ATTR_SAINT32T: 
-            ost << *((int *) value);
-            break;
-        case SA_IMM_ATTR_SAUINT32T: 
-            ost << *((unsigned int *) value);
-            break;
-        case SA_IMM_ATTR_SAINT64T:  
-            ost << *((long long *) value);
-            break;
-        case SA_IMM_ATTR_SAUINT64T: 
-            ost << *((unsigned long long *) value);
-            break;
-        case SA_IMM_ATTR_SATIMET:   
-            ost << *((unsigned long long *) value);
-            break;
-        case SA_IMM_ATTR_SAFLOATT:  
-            ost << *((float *) value);
-            break;
-        case SA_IMM_ATTR_SADOUBLET: 
-            ost << *((double *) value);
-            break;
-        case SA_IMM_ATTR_SANAMET:
-            namep = (SaNameT *) value;
-
-            if (namep->length > 0)
-            {
-                namep->value[namep->length] = 0;
-                ost << (char*) namep->value;
-            }
-            break;
-        case SA_IMM_ATTR_SASTRINGT:
-            str = *((SaStringT *) value);
-            ost << str;
-            break;
-        case SA_IMM_ATTR_SAANYT:
-            anyp = (SaAnyT *) value;
-
-            for (unsigned int i = 0; i < anyp->bufferSize; i++)
-            {
-                ost << std::hex
-                    << (((int)anyp->bufferAddr[i] < 0x10)? "0":"")
-                << (int)anyp->bufferAddr[i];
-            }
-
-            break;
-        default:
-            std::cerr << "Unknown value type - exiting" << std::endl;
-            exit(1);
-    }
-
-    return ost.str().c_str();
-}
-
-std::list<std::string> getClassNames(SaImmHandleT immHandle)
-{
-    SaImmAccessorHandleT accessorHandle;
-    SaImmAttrValuesT_2** attributes;
-    SaImmAttrValuesT_2** p;
-    SaNameT opensafObjectName;
-    SaAisErrorT errorCode;
-    std::list<std::string> classNamesList;
-    TRACE_ENTER();
-
-    strcpy((char*)opensafObjectName.value, OPENSAF_IMM_OBJECT_DN);
-    opensafObjectName.length = strlen(OPENSAF_IMM_OBJECT_DN);
-
-    /* Initialize immOmSearch */
-    errorCode = saImmOmAccessorInitialize(immHandle, 
-                                          &accessorHandle);
-
-    if (SA_AIS_OK != errorCode)
-    {
-        std::cerr << "Failed on saImmOmAccessorInitialize - exiting " 
-            << errorCode 
-            << std::endl;
-        exit(1);
-    }
-
-    /* Get the first match */
-
-    errorCode = saImmOmAccessorGet_2(
-                                     accessorHandle,
-                                     &opensafObjectName,
-                                     NULL,
-                                     &attributes);
-
-    if (SA_AIS_OK != errorCode)
-    {
-        std::cerr << "Failed in saImmOmAccessorGet - exiting " 
-            << errorCode
-            << std::endl;
-        exit(1);
-    }
-
-    /* Find the classes attribute */
-    for (p = attributes; (*p) != NULL; p++)
-    {
-        if (strcmp((*p)->attrName, OPENSAF_IMM_ATTR_CLASSES) == 0)
-        {
-            attributes = p;
-            break;
-        }
-    }
-
-    if (NULL == (*p))
-    {
-        std::cerr << "Failed to get the classes attribute" << std::endl;
-        exit(1);
-    }
-
-    /* Iterate through the class names */
-    for (SaUint32T i = 0; i < (*attributes)->attrValuesNumber; i++)
-    {
-        if ((*attributes)->attrValueType == SA_IMM_ATTR_SASTRINGT)
-        {
-            std::string classNameString =
-                std::string(*(SaStringT*)(*attributes)->attrValues[i]);
-
-            classNamesList.push_front(classNameString);
-        }
-        else if ((*attributes)->attrValueType == SA_IMM_ATTR_SANAMET)
-        {
-	    //std::cout << "SANAMET" << std::endl;
-            std::string classNameString = 
-                std::string((char*)((SaNameT*)(*attributes)->attrValues + i)->value,
-                            ((SaNameT*)(*attributes)->attrValues + i)->length);
-
-            classNamesList.push_front(classNameString);
-        }
-        else
-        {
-            std::cerr << "Invalid class name value type for "
-                << (*attributes)->attrName
-                << std::endl;
-            exit(1);
-        }
-    }
-
-    errorCode = saImmOmAccessorFinalize(accessorHandle);
-    if (SA_AIS_OK != errorCode)
-    {
-        std::cerr << "Failed to finalize the accessor handle " 
-            << errorCode
-            << std::endl;
-        exit(1);
-    }
-
-    TRACE_LEAVE();
-    return classNamesList;
 }
 
 static std::map<std::string, std::string>
