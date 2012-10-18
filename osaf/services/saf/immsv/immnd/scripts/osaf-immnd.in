@@ -76,7 +76,7 @@ instantiate() {
 
 stop() {
 	echo -n "Stopping $prog: "
-    /usr/bin/killall immdump
+    /usr/bin/killall osafimmpbed
     /usr/bin/killall immload
 	killproc -p $pidfile $binary
 	RETVAL=$?

@@ -774,6 +774,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/immsv/config/Makefile
         osaf/services/saf/immsv/immd/Makefile
         osaf/services/saf/immsv/immnd/Makefile
+        osaf/services/saf/immsv/immpbed/Makefile
         osaf/services/saf/immsv/immd/scripts/Makefile
         osaf/services/saf/immsv/immd/scripts/osaf-immd
         osaf/services/saf/immsv/immnd/scripts/Makefile

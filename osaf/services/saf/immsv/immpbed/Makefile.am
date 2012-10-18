@@ -19,25 +19,26 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
-	imm_dumper.hh
+	immpbe.hh
 
-bin_PROGRAMS = immdump
+osaf_execbindir = $(pkglibdir)
+osaf_execbin_PROGRAMS = osafimmpbed
 
-immdump_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@ @SQLITE3_CFLAGS@
+osafimmpbed_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@ @SQLITE3_CFLAGS@
 
-immdump_SOURCES = \
+osafimmpbed_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
-	imm_dumper.cc \
+	immpbe.cc \
 	$(top_builddir)/osaf/libs/common/immsv/immpbe_dump.cc \
-	imm_xmlw_dump.cc
+	immpbe_daemon.cc
 
-immdump_CPPFLAGS = \
+osafimmpbed_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-immdump_LDFLAGS = @XML2_LIBS@ @SQLITE3_LIBS@
+osafimmpbed_LDFLAGS = @XML2_LIBS@ @SQLITE3_LIBS@
 
-immdump_LDADD = \
+osafimmpbed_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la

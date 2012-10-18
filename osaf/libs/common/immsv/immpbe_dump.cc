@@ -15,7 +15,7 @@
  *
  */
 
-#include "imm_dumper.hh"
+#include "immpbe_dump.hh"
 #include <errno.h>
 #include <fcntl.h>
 #include <assert.h>
@@ -27,7 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdint.h>
-#include <sys/stat.h>
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -2791,7 +2791,7 @@ void fsyncPbeJournalFile()
 #else
 void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmpFilename)
 {
-	LOG_WA("immdump not built with the --enable-imm-pbe option.");
+	LOG_WA("immdump/osafimmpbed not built with the --enable-imm-pbe option.");
 	return NULL;
 }
 
@@ -2955,4 +2955,206 @@ void discardPbeFile(std::string filename)
 	}
 
 }
+
+
+std::string getClassName(const SaImmAttrValuesT_2** attrs)
+{
+	int i;
+	std::string className;
+	TRACE_ENTER();
+
+	for (i = 0; attrs[i] != NULL; i++)
+	{
+		if (strcmp(attrs[i]->attrName,
+				   "SaImmAttrClassName") == 0)
+		{
+			if (attrs[i]->attrValueType == SA_IMM_ATTR_SANAMET)
+			{
+				className =
+					std::string((char*)
+								((SaNameT*)*attrs[i]->attrValues)->value,
+								(size_t) ((SaNameT*)*attrs[i]->attrValues)->length);
+				TRACE_LEAVE();
+				return className;
+			}
+			else if (attrs[i]->attrValueType == SA_IMM_ATTR_SASTRINGT)
+			{
+				className =
+					std::string(*((SaStringT*)*(attrs[i]->attrValues)));
+				TRACE_LEAVE();
+				return className;
+			}
+			else
+			{
+				std::cerr << "Invalid type for class name exiting"
+					<< attrs[i]->attrValueType
+					<< std::endl;
+				exit(1);
+			}
+		}
+	}
+	std::cerr << "Could not find classname attribute -  exiting"
+		<< std::endl;
+	exit(1);
+}
+
+std::string valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
+{
+	SaNameT* namep;
+	char* str;
+	SaAnyT* anyp;
+	std::ostringstream ost;
+
+	switch (type)
+	{
+		case SA_IMM_ATTR_SAINT32T:
+			ost << *((int *) value);
+			break;
+		case SA_IMM_ATTR_SAUINT32T:
+			ost << *((unsigned int *) value);
+			break;
+		case SA_IMM_ATTR_SAINT64T:
+			ost << *((long long *) value);
+			break;
+		case SA_IMM_ATTR_SAUINT64T:
+			ost << *((unsigned long long *) value);
+			break;
+		case SA_IMM_ATTR_SATIMET:
+			ost << *((unsigned long long *) value);
+			break;
+		case SA_IMM_ATTR_SAFLOATT:
+			ost << *((float *) value);
+			break;
+		case SA_IMM_ATTR_SADOUBLET:
+			ost << *((double *) value);
+			break;
+		case SA_IMM_ATTR_SANAMET:
+			namep = (SaNameT *) value;
+
+			if (namep->length > 0)
+			{
+				namep->value[namep->length] = 0;
+				ost << (char*) namep->value;
+			}
+			break;
+		case SA_IMM_ATTR_SASTRINGT:
+			str = *((SaStringT *) value);
+			ost << str;
+			break;
+		case SA_IMM_ATTR_SAANYT:
+			anyp = (SaAnyT *) value;
+
+			for (unsigned int i = 0; i < anyp->bufferSize; i++)
+			{
+				ost << std::hex
+					<< (((int)anyp->bufferAddr[i] < 0x10)? "0":"")
+				<< (int)anyp->bufferAddr[i];
+			}
+
+			break;
+		default:
+			std::cerr << "Unknown value type - exiting" << std::endl;
+			exit(1);
+	}
+
+	return ost.str().c_str();
+}
+
+std::list<std::string> getClassNames(SaImmHandleT immHandle)
+{
+	SaImmAccessorHandleT accessorHandle;
+	SaImmAttrValuesT_2** attributes;
+	SaImmAttrValuesT_2** p;
+	SaNameT opensafObjectName;
+	SaAisErrorT errorCode;
+	std::list<std::string> classNamesList;
+	TRACE_ENTER();
+
+	strcpy((char*)opensafObjectName.value, OPENSAF_IMM_OBJECT_DN);
+	opensafObjectName.length = strlen(OPENSAF_IMM_OBJECT_DN);
+
+	/* Initialize immOmSearch */
+	errorCode = saImmOmAccessorInitialize(immHandle,
+										  &accessorHandle);
+
+	if (SA_AIS_OK != errorCode)
+	{
+		std::cerr << "Failed on saImmOmAccessorInitialize - exiting "
+			<< errorCode
+			<< std::endl;
+		exit(1);
+	}
+
+	/* Get the first match */
+
+	errorCode = saImmOmAccessorGet_2(accessorHandle,
+									 &opensafObjectName,
+									 NULL,
+									 &attributes);
+
+	if (SA_AIS_OK != errorCode)
+	{
+		std::cerr << "Failed in saImmOmAccessorGet - exiting "
+			<< errorCode
+			<< std::endl;
+		exit(1);
+	}
+
+	/* Find the classes attribute */
+	for (p = attributes; (*p) != NULL; p++)
+	{
+		if (strcmp((*p)->attrName, OPENSAF_IMM_ATTR_CLASSES) == 0)
+		{
+			attributes = p;
+			break;
+		}
+	}
+
+	if (NULL == (*p))
+	{
+		std::cerr << "Failed to get the classes attribute" << std::endl;
+		exit(1);
+	}
+
+	/* Iterate through the class names */
+	for (SaUint32T i = 0; i < (*attributes)->attrValuesNumber; i++)
+	{
+		if ((*attributes)->attrValueType == SA_IMM_ATTR_SASTRINGT)
+		{
+			std::string classNameString =
+				std::string(*(SaStringT*)(*attributes)->attrValues[i]);
+
+			classNamesList.push_front(classNameString);
+		}
+		else if ((*attributes)->attrValueType == SA_IMM_ATTR_SANAMET)
+		{
+		//std::cout << "SANAMET" << std::endl;
+			std::string classNameString =
+				std::string((char*)((SaNameT*)(*attributes)->attrValues + i)->value,
+							((SaNameT*)(*attributes)->attrValues + i)->length);
+
+			classNamesList.push_front(classNameString);
+		}
+		else
+		{
+			std::cerr << "Invalid class name value type for "
+				<< (*attributes)->attrName
+				<< std::endl;
+			exit(1);
+		}
+	}
+
+	errorCode = saImmOmAccessorFinalize(accessorHandle);
+	if (SA_AIS_OK != errorCode)
+	{
+		std::cerr << "Failed to finalize the accessor handle "
+			<< errorCode
+			<< std::endl;
+		exit(1);
+	}
+
+	TRACE_LEAVE();
+	return classNamesList;
+}
+
 
