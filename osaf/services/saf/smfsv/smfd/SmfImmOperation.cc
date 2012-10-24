@@ -605,6 +605,14 @@ SmfImmDeleteOperation::execute(SmfRollbackData* o_rollbackData)
                 TRACE_LEAVE();
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
+
+	if (m_dn.length() > SA_MAX_NAME_LENGTH) {
+		LOG_ER("SmfImmDeleteOperation::execute: failed Too long dn %zu",
+		       m_dn.length());
+                TRACE_LEAVE();
+		return SA_AIS_ERR_NAME_TOO_LONG;
+	}
+
 	//Set IMM ownership
 	SaNameT objectName;
 	objectName.length = (SaUint16T) m_dn.length();
@@ -969,6 +977,14 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
                 TRACE_LEAVE();
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
+
+	if (m_dn.length() > SA_MAX_NAME_LENGTH) {
+		LOG_ER("SmfImmModifOperation::execute: failed Too long dn %zu",
+		       m_dn.length());
+                TRACE_LEAVE();
+		return SA_AIS_ERR_NAME_TOO_LONG;
+	}
+
 	//Set IMM ownership
 	SaNameT objectName;
 	objectName.length = (SaUint16T) m_dn.length();
