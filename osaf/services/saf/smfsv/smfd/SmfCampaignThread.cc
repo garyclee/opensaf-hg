@@ -21,6 +21,7 @@
 #include <saImmOi.h>
 #include <immutil.h>
 #include <saflog.h>
+#include <saf_error.h>
 
 #include <ncssysf_def.h>
 #include <ncssysf_ipc.h>
@@ -310,7 +311,7 @@ int SmfCampaignThread::initNtf(void)
 	}
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saNtfInitialize FAILED %d", rc);
+		LOG_ER("saNtfInitialize FAILED rc=%s", saf_error(rc));
 		return -1;
 	}
 
@@ -356,7 +357,7 @@ SmfCampaignThread::createImmHandle(SmfCampaign *i_campaign)
 		rc = immutil_saImmOiInitialize_2(&m_campOiHandle, NULL, &immVersion);	
 	}
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOiInitialize_2 fails rc=%d", rc);
+		LOG_ER("saImmOiInitialize_2 fails rc=%s", saf_error(rc));
 		goto done;
 	}
 
@@ -373,12 +374,12 @@ SmfCampaignThread::createImmHandle(SmfCampaign *i_campaign)
 			goto done;
 		}
 
-		TRACE("immutil_saImmOiImplementerSet rc = %d, wait 1 sec and retry", rc);
+		TRACE("immutil_saImmOiImplementerSet rc=%s, wait 1 sec and retry", saf_error(rc));
 		sleep(1);
 		rc = immutil_saImmOiImplementerSet(m_campOiHandle, (char *)campDn);	
 	}
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOiImplementerSet for DN=%s fails rc=%d", campDn, rc);
+		LOG_ER("saImmOiImplementerSet for DN=%s fails, rc=%s", campDn, saf_error(rc));
 		goto done;
 	}
 
@@ -405,7 +406,7 @@ SmfCampaignThread::deleteImmHandle()
 	}
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("SmfCampaignThread::deleteImmHandle:saImmOiImplementerClear fails rc=%d", rc);
+		LOG_ER("SmfCampaignThread::deleteImmHandle:saImmOiImplementerClear fails, rc=%s", saf_error(rc));
 		goto done;
 	}
 
@@ -416,7 +417,7 @@ SmfCampaignThread::deleteImmHandle()
 	}
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("SmfCampaignThread::deleteImmHandle:saImmOiFinalize fails rc=%d", rc);
+		LOG_ER("SmfCampaignThread::deleteImmHandle:saImmOiFinalize fails, rc=%s", saf_error(rc));
 	}
 
 	done:
@@ -461,7 +462,7 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uint32_t cl
 						  1,	/* num of state changes */
 						  0);	/* variable data size */
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saNtfStateChangeNotificationAllocate FAILED %d", rc);
+		LOG_ER("saNtfStateChangeNotificationAllocate FAILED, rc=%s", saf_error(rc));
 		return -1;
 	}
 
@@ -506,7 +507,7 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uint32_t cl
 	/* Send the notification */
 	rc = saNtfNotificationSend(ntfStateNot.notificationHandle);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saNtfNotificationSend FAILED %d", rc);
+		LOG_ER("saNtfNotificationSend FAILED, rc=%s", saf_error(rc));
 		result = -1;
 		goto done;
 	}
@@ -514,7 +515,7 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uint32_t cl
  done:
 	rc = saNtfNotificationFree(ntfStateNot.notificationHandle);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saNtfNotificationFree FAILED %d", rc);
+		LOG_ER("saNtfNotificationFree FAILED, rc=%s", saf_error(rc));
 	}
 
 	updateSaflog(dn, stateId, newState, oldState);

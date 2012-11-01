@@ -20,6 +20,7 @@
  * ========================================================================
  */
 #include <immutil.h>
+#include <saf_error.h>
 #include "logtrace.h"
 #include "SmfCampaign.hh"
 #include "SmfCampaignThread.hh"
@@ -146,7 +147,7 @@ SmfCampaignWrapup::executeCampWrapup()
 	while (cbkiter != m_callbackAtCommit.end()) {
 		SaAisErrorT rc = (*cbkiter)->execute(dn);
 		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
-			LOG_ER("SmfCampaignCommit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+			LOG_ER("SmfCampaignCommit callback %s failed, rc=%s", (*cbkiter)->getCallbackLabel().c_str(), saf_error(rc));
 			TRACE_LEAVE();
 			return false;
 		}
@@ -196,8 +197,8 @@ SmfCampaignWrapup::executeCampComplete()
         completeRollbackDn += SmfCampaignThread::instance()->campaign()->getDn();
 
         if ((result = smfCreateRollbackElement(completeRollbackDn)) != SA_AIS_OK) {
-                LOG_ER("SmfCampaignWrapup failed to create campaign complete rollback element %s, rc = %d", 
-                       completeRollbackDn.c_str(), result);
+                LOG_ER("SmfCampaignWrapup failed to create campaign complete rollback element %s, rc=%s", 
+                       completeRollbackDn.c_str(), saf_error(result));
                 return false;
         }
 
@@ -205,7 +206,7 @@ SmfCampaignWrapup::executeCampComplete()
 	iter = m_campCompleteAction.begin();
 	while (iter != m_campCompleteAction.end()) {
 		if ((result = (*iter)->execute(&completeRollbackDn)) != SA_AIS_OK) {
-			LOG_ER("SmfCampaignWrapup campCompleteAction %d failed %d", (*iter)->getId(), result);
+			LOG_ER("SmfCampaignWrapup campCompleteAction %d failed, rc=%s", (*iter)->getId(), saf_error(result));
 			return false;
 		}
 		iter++;
@@ -241,7 +242,7 @@ SmfCampaignWrapup::rollbackCampComplete()
 	for (upActiter = m_campCompleteAction.rbegin(); upActiter != m_campCompleteAction.rend(); upActiter++) {
 		rc = (*upActiter)->rollback(completeRollbackDn);
 		if (rc != SA_AIS_OK) {
-			LOG_ER("SmfCampaignWrapup rollback of complete action %d failed, rc = %d", (*upActiter)->getId(), rc);
+			LOG_ER("SmfCampaignWrapup rollback of complete action %d failed, rc=%s", (*upActiter)->getId(), saf_error(rc));
 			return false;
 		}
 		

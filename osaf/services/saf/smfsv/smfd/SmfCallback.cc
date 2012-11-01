@@ -37,6 +37,7 @@
 #include "logtrace.h"
 
 #include <smfsv_evt.h>
+#include <saf_error.h>
 #include "smfd.h"
 #include "smfd_smfnd.h"
 
@@ -78,7 +79,7 @@ SaAisErrorT SmfCallback::execute(std::string & step_dn)
 	TRACE_ENTER();
 	/* compose an event and send it to all SMF-NDs */
 	rc = send_callback_msg(SA_SMF_UPGRADE, step_dn);
-	TRACE_LEAVE2("rc = %d", rc);
+	TRACE_LEAVE2("rc = %s", saf_error(rc));
 	return rc;
 }
 //------------------------------------------------------------------------------
@@ -90,7 +91,7 @@ SaAisErrorT SmfCallback::rollback(std::string & step_dn)
 	TRACE_ENTER();
 	/* compose an event and send it to all SMF-NDs */
 	rc = send_callback_msg(SA_SMF_ROLLBACK, step_dn);
-	TRACE_LEAVE2("rc = %d", rc);
+	TRACE_LEAVE2("rc = %s", saf_error(rc));
 	return rc;
 }
 //------------------------------------------------------------------------------
@@ -218,13 +219,13 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
 	TRACE("before mds send ");
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("mds send failed, rc = %d", rc);
+		LOG_ER("mds send failed, rc=%d", rc);
 		/* Remove/Free the inv_id from the list */
 		ais_err = SA_AIS_ERR_FAILED_OPERATION;
 		goto rem_invid;
 	}
 
-	TRACE_2("mds send successful, rc = %d", rc);
+	TRACE_2("mds send successful, rc=%d", rc);
 	/* Wait for the response on select */
 	NCS_SEL_OBJ mbx_fd;
 	mbx_fd = ncs_ipc_get_sel_obj(cbk_mbx);

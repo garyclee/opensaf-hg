@@ -35,4 +35,5 @@ libopensaf_common_la_SOURCES = \
 	nid_start_util.c \
 	saf_edu.c \
 	daemon.c \
-	osaf_unicode.c
+	osaf_unicode.c \
+        saf_error.c

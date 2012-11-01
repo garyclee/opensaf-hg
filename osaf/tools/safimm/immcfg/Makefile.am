@@ -34,7 +34,6 @@ immcfg_CPPFLAGS = \
 
 immcfg_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
-	$(top_srcdir)/osaf/tools/safimm/src/saf_error.c \
 	imm_import.cc \
 	imm_cfg.c
 

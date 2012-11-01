@@ -26,8 +26,7 @@ saflogger_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/tools/saflog/include
 
 saflogger_SOURCES = \
-	saf_logger.c \
-	saf_error.c
+	saf_logger.c
 
 saflogger_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \

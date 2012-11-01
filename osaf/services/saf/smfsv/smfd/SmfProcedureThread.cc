@@ -32,6 +32,7 @@
 #include <saImmOm.h>
 #include <saImmOi.h>
 #include <immutil.h>
+#include <saf_error.h>
 
 /*====================================================================*/
 /*  Data Declarations                                                 */
@@ -185,20 +186,20 @@ SmfProcedureThread::init(void)
 
 	/* Create the mailbox used for communication with this thread */
 	if ((rc = m_NCS_IPC_CREATE(&m_mbx)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("m_NCS_IPC_CREATE FAILED %d", rc);
+		LOG_ER("SmfProcedureThread::init, m_NCS_IPC_CREATE FAILED %d", rc);
 		return -1;
 	}
 
 	/* Attach mailbox to this thread */
 	if ((rc = m_NCS_IPC_ATTACH(&m_mbx) != NCSCC_RC_SUCCESS)) {
-		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
+		LOG_ER("SmfProcedureThread::init, m_NCS_IPC_ATTACH FAILED %d", rc);
 		m_NCS_IPC_RELEASE(&m_mbx, NULL);
 		return -1;
 	}
 
 	/* Create the mailbox used for callback communication */
 	if ((rc = m_NCS_IPC_CREATE(&m_cbk_mbx)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("m_NCS_IPC_CREATE FAILED %d", rc);
+		LOG_ER("SmfProcedureThread::init, m_NCS_IPC_CREATE FAILED %d", rc);
 		m_NCS_IPC_DETACH(&m_mbx, NULL, NULL);
 		m_NCS_IPC_RELEASE(&m_mbx, NULL);
 		return -1;
@@ -206,7 +207,7 @@ SmfProcedureThread::init(void)
 
 	/* Attach mailbox to this thread */
 	if ((rc = m_NCS_IPC_ATTACH(&m_cbk_mbx) != NCSCC_RC_SUCCESS)) {
-		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
+		LOG_ER("SmfProcedureThread::init, m_NCS_IPC_ATTACH FAILED %d", rc);
 		m_NCS_IPC_DETACH(&m_mbx, NULL, NULL);
 		m_NCS_IPC_RELEASE(&m_mbx, NULL);
 		m_NCS_IPC_RELEASE(&m_cbk_mbx, NULL);
@@ -218,7 +219,7 @@ SmfProcedureThread::init(void)
 	if (result == SA_AIS_ERR_NOT_EXIST) {
 		/* Create our Imm runtime object */
 		if ((result = createImmProcedure(m_procedure)) != SA_AIS_OK) {
-			LOG_ER("createImmProcedure FAILED %d", result);
+			LOG_ER("SmfProcedureThread::init, createImmProcedure FAILED, rc=%s", saf_error(result));
 			m_NCS_IPC_DETACH(&m_mbx, NULL, NULL);
 			m_NCS_IPC_RELEASE(&m_mbx, NULL);
 			m_NCS_IPC_DETACH(&m_cbk_mbx, NULL, NULL);
@@ -230,7 +231,7 @@ SmfProcedureThread::init(void)
         		/* Procedure exists and it has been started at some time, get step data */
         		result = m_procedure->getImmSteps();
         		if (result != SA_AIS_OK) {
-        			LOG_ER("getImmSteps FAILED %d", result);
+        			LOG_ER("SmfProcedureThread::init, getImmSteps FAILED, rc=%s", saf_error(result));
 				m_NCS_IPC_DETACH(&m_mbx, NULL, NULL);
 				m_NCS_IPC_RELEASE(&m_mbx, NULL);
 				m_NCS_IPC_DETACH(&m_cbk_mbx, NULL, NULL);
@@ -239,7 +240,7 @@ SmfProcedureThread::init(void)
         		}
                 }
 	} else {
-		LOG_ER("getImmProcedure FAILED %d", result);
+		LOG_ER("SmfProcedureThread::init, getImmProcedure FAILED, rc=%s", saf_error(result));
 		m_NCS_IPC_DETACH(&m_mbx, NULL, NULL);
 		m_NCS_IPC_RELEASE(&m_mbx, NULL);
 		m_NCS_IPC_DETACH(&m_cbk_mbx, NULL, NULL);
@@ -263,7 +264,7 @@ SmfProcedureThread::send(PROCEDURE_EVT * evt)
 	//when SmfProcedureThread member variable m_mbx is used in m_NCS_IPC_SEND
 	SYSF_MBX tmp_mbx = m_mbx;
 	
-	TRACE("Procedure thread send event type %d", evt->type);
+	TRACE("SmfProcedureThread::send, procedure thread send event type %d", evt->type);
 	rc = m_NCS_IPC_SEND(&tmp_mbx, (NCSCONTEXT) evt, NCS_IPC_PRIORITY_HIGH);
 	return rc;
 }
@@ -306,14 +307,14 @@ SmfProcedureThread::getImmProcedure(SmfUpgradeProcedure * procedure)
 	TRACE("Get IMM data for %s", procedure->getDn().c_str());
 
 	if (immutil.getObject(procedure->getDn(), &attributes) == false) {
-		LOG_NO("IMM data for procedure %s not found", procedure->getDn().c_str());
+		LOG_NO("SmfProcedureThread::getImmProcedure, IMM data for procedure %s not found", procedure->getDn().c_str());
 		rc = SA_AIS_ERR_NOT_EXIST;
 		goto done;
 	}
 
 	rc = procedure->init((const SaImmAttrValuesT_2 **)attributes);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("Initialization failed for procedure %s", procedure->getDn().c_str());
+		LOG_ER("Initialization failed for procedure, rc=%s, dn=[%s]", saf_error(rc), procedure->getDn().c_str());
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		goto done;
 	}
@@ -475,7 +476,7 @@ SmfProcedureThread::updateImmAttr(const char *dn, SaImmAttrNameT attributeName, 
 	rc = immutil_update_one_rattr(getImmHandle(), dn, attributeName, attrValueType, value);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("update attribute failed %d, dn %s, attr %s", rc, dn, attributeName);
+		LOG_ER("SmfProcedureThread::updateImmAttr, update attr fail, rc=%s, dn=[%s], attr=[%s]", saf_error(rc), dn, attributeName);
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -630,7 +631,7 @@ SmfProcedureThread::main(void)
 			sem_post(m_semaphore);
 		}
 	} else {
-		LOG_ER("SmfProcedureThread: init failed");
+		LOG_ER("SmfProcedureThread::main, SmfProcedureThread: init failed");
                 if(m_semaphore != NULL) {
 			sem_post(m_semaphore);
 		}

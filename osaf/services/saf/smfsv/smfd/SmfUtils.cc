@@ -24,6 +24,7 @@
 #include <saAmf.h>
 #include <saSmf.h>
 #include <saAis.h>
+#include <saf_error.h>
 
 #include <immutil.h>
 #include <iostream>
@@ -229,7 +230,7 @@ SmfImmUtils::getClassDescription(const std::string & i_className, SaImmAttrDefin
 		m_omHandle, (SaImmClassNameT)i_className.c_str(), &classCategory, o_attributeDefs);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOmClassDescriptionGet_2 for [%s], rc = %d", i_className.c_str(), rc);
+		LOG_ER("saImmOmClassDescriptionGet_2 for [%s], rc=%s", i_className.c_str(), saf_error(rc));
 		return false;
 	}
 
@@ -246,7 +247,7 @@ SmfImmUtils::classDescriptionMemoryFree(SaImmAttrDefinitionT_2 ** i_attributeDef
         rc = immutil_saImmOmClassDescriptionMemoryFree_2(m_omHandle, i_attributeDefs);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOmClassDescriptionMemoryFree_2 failed, rc = %d", rc);
+		LOG_ER("saImmOmClassDescriptionMemoryFree_2 failed, rc=%s", saf_error(rc));
 		return false;
 	}
 
@@ -274,7 +275,7 @@ SmfImmUtils::getObject(const std::string & i_dn, SaImmAttrValuesT_2 *** o_attrib
 	rc = immutil_saImmOmAccessorGet_2(m_accessorHandle, &objectName, NULL, o_attributes);
 
 	if (rc != SA_AIS_OK) {
-		TRACE("saImmOmAccessorGet_2 failed, rc=%d object name=%s", rc, i_dn.c_str());
+		TRACE("saImmOmAccessorGet_2 failed, rc=%s, dn=[%s]", saf_error(rc), i_dn.c_str());
 		return false;
 	}
 
@@ -355,10 +356,10 @@ SmfImmUtils::getChildren(const std::string & i_dn, std::list < std::string > &o_
 							&immSearchHandle);
 		if(result != SA_AIS_OK) {
 			if (result == SA_AIS_ERR_NOT_EXIST) {
-				TRACE("immutil_saImmOmSearchInitialize_2 return rc=%d (class name = %s, parent = %s", (int)result, i_className, i_dn.c_str());
+				TRACE("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s], parent=[%s]", saf_error(result), i_className, i_dn.c_str());
 				goto done;
 			} else {
-				LOG_ER("immutil_saImmOmSearchInitialize_2 return rc=%d (class name = %s, parent = %s", (int)result, i_className, i_dn.c_str());
+				LOG_ER("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s], parent=[%s]", saf_error(result), i_className, i_dn.c_str());
 				rc = false;
 				goto done;
 			}
@@ -371,10 +372,10 @@ SmfImmUtils::getChildren(const std::string & i_dn, std::list < std::string > &o_
 							&immSearchHandle);
 		if(result != SA_AIS_OK) {
 			if (result == SA_AIS_ERR_NOT_EXIST) {
-				TRACE("immutil_saImmOmSearchInitialize_2 return rc=%d (class name = %s", (int)result, i_className);
+				TRACE("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s]", saf_error(result), i_className);
 				goto done;
 			} else {
-				LOG_ER("immutil_saImmOmSearchInitialize_2 return rc=%d (class name = %s", (int)result, i_className);
+				LOG_ER("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s]", saf_error(result), i_className);
 				rc = false;
 				goto done;
 			}
@@ -428,7 +429,7 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 
 	rc = immutil_saImmOmAdminOwnerSet(m_ownerHandle, objectNames, SA_IMM_ONE);
 	if ( rc != SA_AIS_OK) {
-		LOG_ER("SmfImmUtils::callAdminOperation: immutil_saImmOmAdminOwnerSet rc = %u", rc);
+		LOG_ER("Fail to set admin owner, rc=%s, dn=[%s]", saf_error(rc), i_dn.c_str());
 		goto done;
 	}
 
@@ -438,7 +439,8 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 		rc = immutil_saImmOmAdminOperationInvoke_2(m_ownerHandle, &objectName, 0, i_operationId, i_params,
 							   &returnValue, i_timeout);
 		if (retry <= 0) {
-			LOG_ER("immutil_saImmOmAdminOperationInvoke_2 returnValue = SA_AIS_ERR_TRY_AGAIN, giving up");
+			LOG_ER("Fail to invoke admin operation, too many SA_AIS_ERR_TRY_AGAIN, giving up. dn=[%s], opId=[%u]",
+			       i_dn.c_str(), i_operationId);
 			rc = SA_AIS_ERR_TRY_AGAIN;
 			goto done;
 		}
@@ -447,13 +449,12 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 	} while ((rc == SA_AIS_OK) && (returnValue == SA_AIS_ERR_TRY_AGAIN));
 
 	if ( rc != SA_AIS_OK) {
-		LOG_ER("SmfImmUtils::callAdminOperation: immutil_saImmOmAdminOperationInvoke_2 rc = %u", rc);
+		LOG_ER("Fail to invoke admin operation, rc=%s. dn=[%s], opId=[%u]",saf_error(rc), i_dn.c_str(), i_operationId);
 		goto done;
 	}
        
 	if ((returnValue != SA_AIS_OK ) && (returnValue != SA_AIS_ERR_REPAIR_PENDING)) {
-		TRACE("SmfImmUtils::callAdminOperation: admin operation %u on %s returned %u", i_operationId, i_dn.c_str(),
-		      returnValue);
+		TRACE("Admin operation %u on %s, return value=%s", i_operationId, i_dn.c_str(), saf_error(returnValue));
 	}
 	
 	rc = returnValue;
@@ -477,7 +478,7 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList,
 
 	result = immutil_saImmOmCcbInitialize(m_ownerHandle, ccbFlags, &immCcbHandle);
 	if (result != SA_AIS_OK) {
-		LOG_ER("SmfImmUtils::doImmOperations:saImmOmCcbInitialize failed  SaAisErrorT=%u", result);
+		LOG_ER("Fail to initialize OM CCB, rc=%s", saf_error(result));
 		return result;
 	}
 
@@ -493,7 +494,7 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList,
                 if (io_rollbackCcb != NULL) {
                         rollbackData = new (std::nothrow) SmfRollbackData(io_rollbackCcb);
                         if (rollbackData == NULL) {
-                                LOG_ER("SmfImmUtils::doImmOperations:execute failed to create SmfRollbackData");
+                                LOG_ER("Failed to create SmfRollbackData C++ object, no memory");
                                 return SA_AIS_ERR_NO_MEMORY;
                         }
                 }
@@ -512,13 +513,14 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList,
                                         delete rollbackData; 
                                         rollbackData = NULL;
                 		} else {
-                			LOG_ER("SmfImmUtils::doImmOperations: create failed %u", result);
+                			LOG_ER("Creation of object failed, rc=%s, class=[%s], parent=[%s]", 
+					       saf_error(result), createOperation->getClassName().c_str(), createOperation->getParentDn().c_str() );
                                         delete rollbackData;
                 			return result;
                 		}
                         }
                         else {
-        			LOG_ER("SmfImmUtils::doImmOperations:execute failed SaAisErrorT=%u", result);
+        			LOG_ER("Execution of IMM operation failed, rc=%s", saf_error(result));
                                 delete rollbackData;
         			return result;
                         }
@@ -532,14 +534,14 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList,
 	/* Apply the CCB */
 	result = immutil_saImmOmCcbApply(immCcbHandle);
 	if (result != SA_AIS_OK) {
-		LOG_ER("SmfImmUtils::doImmOperations:saImmOmCcbApply failed SaAisErrorT=%u", result);
+		LOG_ER("saImmOmCcbApply failed rc=%s", saf_error(result));
 		return result;
 	}
 
 	/* Finalize CCB and release the IMM CCB handle */
 	result = immutil_saImmOmCcbFinalize(immCcbHandle);
 	if (result != SA_AIS_OK) {
-		LOG_ER("SmfImmUtils::doImmOperations:saImmOmCcbFinalize failed SaAisErrorT=%u", result);
+		LOG_ER("saImmOmCcbFinalize failed rc=%s", saf_error(result));
 		return result;
 	}
 

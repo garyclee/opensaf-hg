@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <logtrace.h>
 #include <sstream>
+#include <saf_error.h>
 
 #include "SmfUpgradeStep.hh"
 #include "SmfCampaign.hh"
@@ -747,12 +748,12 @@ SmfUpgradeStep::modifyInformationModel()
 	rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(), &objectName);
 
 	if (rc != SA_AIS_OK) {
-		TRACE("immutil_saImmOiRtObjectDelete returned %u for %s, continuing", rc, modifyRollbackCcbDn.c_str());
+		TRACE("immutil_saImmOiRtObjectDelete returned %s for %s, continuing", saf_error(rc), modifyRollbackCcbDn.c_str());
 	}
 
         if ((rc = smfCreateRollbackElement(modifyRollbackCcbDn)) != SA_AIS_OK) {
-                LOG_ER("SmfUpgradeStep failed to create modify rollback element %s, rc = %d", 
-                       modifyRollbackCcbDn.c_str(), rc);
+                LOG_ER("SmfUpgradeStep failed to create modify rollback element %s, rc=%s", 
+                       modifyRollbackCcbDn.c_str(), saf_error(rc));
                 return rc;
         }
 
@@ -762,12 +763,12 @@ SmfUpgradeStep::modifyInformationModel()
                 SmfRollbackCcb rollbackCcb(modifyRollbackCcbDn);
 
 		if ((rc = immUtil.doImmOperations(m_modificationList, &rollbackCcb)) != SA_AIS_OK) {
-			LOG_ER("SmfUpgradeStep modify IMM failed %d", rc);
+			LOG_ER("SmfUpgradeStep modify IMM failed, rc=%s", saf_error(rc));
 			return rc;
 		}
 
                 if ((rc = rollbackCcb.execute()) != SA_AIS_OK) {
-			LOG_ER("SmfUpgradeStep failed to store rollback CCB %d", rc);
+			LOG_ER("SmfUpgradeStep failed to store rollback CCB, rc=%s", saf_error(rc));
 			return rc;
                 }
         } else {
@@ -791,7 +792,7 @@ SmfUpgradeStep::reverseInformationModel()
         SmfRollbackCcb rollbackCcb(modifyRollbackCcbDn);
 
         if ((rc = rollbackCcb.rollback()) != SA_AIS_OK) {
-                LOG_ER("SmfUpgradeStep failed to rollback Modify CCB %d", rc);
+                LOG_ER("SmfUpgradeStep failed to rollback Modify CCB, rc=%s", saf_error(rc));
                 return rc;
         }
 
@@ -914,7 +915,7 @@ SmfUpgradeStep::setMaintenanceState(SmfActivationUnit& i_units)
         }
 
         if ((result = immUtil.doImmOperations(operations)) != SA_AIS_OK) {
-                LOG_ER("SmfUpgradeStep::setMaintenanceState(), fails to set saAmfSUMaintenanceCampaign %d", result);
+                LOG_ER("Fails to set saAmfSUMaintenanceCampaign, rc=%s", saf_error(result));
                 rc = false;
                 goto exit;
         }
@@ -1459,7 +1460,7 @@ SmfUpgradeStep::setSingleStepRebootInfo(int i_rebootInfo)
 
 		rc = icoSingleStepInfo.execute(); //Create the object
 		if (rc != SA_AIS_OK){
-			LOG_ER("SmfUpgradeCampaign::setSingleStepRebootInfo: icoSingleStepInfo.execute() returned %d", rc);
+			LOG_ER("Creation of SingleStepInfo object fails, rc= %s, [dn=%s]", obj.c_str(), saf_error(rc));
 		}
 
 	} else { //Update the object
@@ -1478,7 +1479,8 @@ SmfUpgradeStep::setSingleStepRebootInfo(int i_rebootInfo)
 
 		rc = imoSingleStepInfo.execute(); //Modify the object
 		if (rc != SA_AIS_OK){
-			LOG_ER("SmfUpgradeCampaign::setSingleStepRebootInfo: imoSingleStepInfo.execute() returned %d", rc);
+			LOG_ER("Modification SingleStepInfo fails, rc=%s, dn=[%s], attr=[smfRebootType], value=[%s]", 
+			       saf_error(rc), obj.c_str(), buf);
 		}
 	}
 
@@ -1563,7 +1565,7 @@ SmfUpgradeStep::saveImmContent()
 
 	int result  = smf_system(cmd);
 	if (result != 0) {
-		TRACE("SmfUpgradeStep::saveImmContent fails, cmd=""%s"", rc=%d", cmd.c_str(), result);
+		TRACE("Fail to save IMM content to file, cmd=[%s], result=[%d]", cmd.c_str(), result);
 		rc = SA_AIS_ERR_ACCESS;
 	}
 

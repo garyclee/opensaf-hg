@@ -1,4 +1,4 @@
-/*      -*- OpenSAF  -*-
+/*      OpenSAF 
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  *
@@ -15,6 +15,18 @@
  *
  */
 
+#ifndef SAF_ERROR_H
+#define SAF_ERROR_H
+
 #include <saAis.h>
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 extern const char *saf_error(SaAisErrorT error);
+
+#ifdef  __cplusplus
+}
+#endif
+#endif				/* ifndef SAF_ERROR_H  */
