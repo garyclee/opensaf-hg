@@ -27,7 +27,6 @@ immadm_CPPFLAGS = \
 
 immadm_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
-	$(top_srcdir)/osaf/tools/safimm/src/saf_error.c \
 	imm_admin.c
 
 immadm_LDADD = \

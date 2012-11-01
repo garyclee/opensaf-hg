@@ -19,6 +19,9 @@
  *   INCLUDE FILES
  * ========================================================================
  */
+#include <immutil.h>
+#include <saf_error.h>
+
 #include "logtrace.h"
 #include "SmfUpgradeProcedure.hh"
 #include "SmfUpgradeStep.hh"
@@ -28,7 +31,6 @@
 #include "SmfProcedureThread.hh"
 #include "SmfUpgradeAction.hh"
 #include "SmfRollback.hh"
-#include <immutil.h>
 #include "SmfUtils.hh"
 #include "smfd.h"
 
@@ -263,8 +265,8 @@ SmfProcStateInitial::executeInit(SmfUpgradeProcedure * i_proc)
 
         if ((result = smfCreateRollbackElement(initRollbackDn)) != SA_AIS_OK) {
                 changeState(i_proc, SmfProcStateExecFailed::instance());
-                LOG_ER("SmfProcStateInitial failed to create init rollback element %s, rc = %d", 
-                       initRollbackDn.c_str(), result);
+                LOG_ER("SmfProcStateInitial failed to create init rollback element %s, %s", 
+                       initRollbackDn.c_str(), saf_error(result));
                 TRACE_LEAVE();
                 return SMF_PROC_FAILED;
         }
@@ -272,9 +274,9 @@ SmfProcStateInitial::executeInit(SmfUpgradeProcedure * i_proc)
 	std::vector < SmfUpgradeAction * >::const_iterator iter;
 
 	for (iter = initActions.begin(); iter != initActions.end(); ++iter) {
-                if ((*iter)->execute(&initRollbackDn) != SA_AIS_OK) {
+                if ((result = (*iter)->execute(&initRollbackDn)) != SA_AIS_OK) {
 			changeState(i_proc, SmfProcStateExecFailed::instance());
-                        LOG_ER("SmfProcStateInitial::executeInit:init action %d failed", (*iter)->getId());
+                        LOG_ER("Init action %d failed, rc=%s", (*iter)->getId(), saf_error(result));
                         TRACE_LEAVE();
                         return SMF_PROC_FAILED;
                 }
@@ -485,8 +487,8 @@ SmfProcStateExecuting::executeWrapup(SmfUpgradeProcedure * i_proc)
         wrapupRollbackDn += i_proc->getDn();
 
         if ((result = smfCreateRollbackElement(wrapupRollbackDn)) != SA_AIS_OK) {
-                LOG_ER("SmfProcStateExecuting failed to create wrapup rollback element %s, rc = %d", 
-                       wrapupRollbackDn.c_str(), result);
+                LOG_ER("SmfProcStateExecuting failed to create wrapup rollback element %s, rc=%s", 
+                       wrapupRollbackDn.c_str(), saf_error(result));
 
                 changeState(i_proc, SmfProcStateExecFailed::instance());
                 TRACE_LEAVE();
@@ -497,9 +499,9 @@ SmfProcStateExecuting::executeWrapup(SmfUpgradeProcedure * i_proc)
 	std::vector < SmfUpgradeAction * >::const_iterator iter;
 
         for (iter = wrapupActions.begin(); iter != wrapupActions.end(); ++iter) {
-		if ((*iter)->execute(&wrapupRollbackDn) != SA_AIS_OK) {
+		if ((result = (*iter)->execute(&wrapupRollbackDn)) != SA_AIS_OK) {
 			changeState(i_proc, SmfProcStateExecFailed::instance());
-			LOG_ER("wrapup action %d failed", (*iter)->getId());
+			LOG_ER("wrapup action %d failed, rc=%s", (*iter)->getId(), saf_error(result));
                         TRACE_LEAVE();
                         return SMF_PROC_FAILED;
 		}
@@ -583,6 +585,7 @@ SmfProcStateExecutionCompleted::rollbackWrapup(SmfUpgradeProcedure * i_proc)
 
 	LOG_NO("PROC: Rollback procedure wrapup actions");
 
+	SaAisErrorT result;
         std::string wrapupRollbackDn;
         wrapupRollbackDn = "smfRollbackElement=ProcWrapup,";
         wrapupRollbackDn += i_proc->getDn();
@@ -592,9 +595,9 @@ SmfProcStateExecutionCompleted::rollbackWrapup(SmfUpgradeProcedure * i_proc)
 	std::vector < SmfUpgradeAction * >::const_reverse_iterator iter;
 
 	for (iter = wrapupActions.rbegin(); iter != wrapupActions.rend(); iter++) {
-		if ((*iter)->rollback(wrapupRollbackDn) != SA_AIS_OK) {
+		if ((result = (*iter)->rollback(wrapupRollbackDn)) != SA_AIS_OK) {
 			changeState(i_proc, SmfProcStateRollbackFailed::instance());
-			LOG_ER("Rollback of wrapup action %d failed", (*iter)->getId());
+			LOG_ER("Rollback of wrapup action %d failed, rc=%s", (*iter)->getId(), saf_error(result));
                         TRACE_LEAVE();
                         return SMF_PROC_ROLLBACKFAILED;
 		}
@@ -961,7 +964,7 @@ SmfProcStateRollingBack::rollbackInit(SmfUpgradeProcedure * i_proc)
 	TRACE_ENTER();
 	LOG_NO("PROC: Rollback of procedure init actions");
 
-	TRACE("SmfProcStateExecuting::rollbackInit: Rollback init actions");
+	SaAisErrorT result;
         std::string initRollbackDn;
         initRollbackDn = "smfRollbackElement=ProcInit,";
         initRollbackDn += i_proc->getDn();
@@ -971,9 +974,10 @@ SmfProcStateRollingBack::rollbackInit(SmfUpgradeProcedure * i_proc)
         std::vector < SmfUpgradeAction * >::const_reverse_iterator iter;
 
 	for (iter = initActions.rbegin(); iter != initActions.rend(); iter++) {
-                if ((*iter)->rollback(initRollbackDn) != SA_AIS_OK) {
+                if ((result = (*iter)->rollback(initRollbackDn)) != SA_AIS_OK) {
 			changeState(i_proc, SmfProcStateRollbackFailed::instance());
-                        LOG_ER("SmfProcStateExecuting::rollbackInit: rollback of init action %d failed", (*iter)->getId());
+                        LOG_ER("SmfProcStateExecuting::rollbackInit: rollback of init action %d failed, rc=%s", 
+			       (*iter)->getId(), saf_error(result));
                         TRACE_LEAVE();
                         return SMF_PROC_ROLLBACKFAILED;
                 }

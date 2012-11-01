@@ -22,6 +22,7 @@
 #include <ncssysf_def.h>
 #include <ncssysf_ipc.h>
 #include <logtrace.h>
+#include <saf_error.h>
 
 #include "SmfCbkUtil.hh"
 #include "SmfUtils.hh"
@@ -101,7 +102,7 @@ void smf_cbk_util (SaSmfHandleT smfHandle, SaInvocationT invocation, SaSmfCallba
 
 	rc = saSmfResponse(smfHandle, invocation, cmdResult);
 	if (SA_AIS_OK != rc){
-		LOG_ER("smf_cbk_util saSmfResponse failed %d", rc);
+		LOG_ER("smf_cbk_util saSmfResponse failed, rc=%s", saf_error(rc));
 		return;
 	}
 	TRACE("smf_cbk_util saSmfResponse successful.\n");
@@ -321,7 +322,7 @@ int SmfCbkUtilThread::initSmfCbkApi(void)
 
 	rc = saSmfInitialize(&m_smfHandle, &cbk, &ver);
 	if (SA_AIS_OK != rc){
-		LOG_ER("SmfCbkUtilThread::initSmfCbkApi saSmfInitialize failed %d", rc);
+		LOG_ER("SmfCbkUtilThread::initSmfCbkApi saSmfInitialize failed, rc=%s", saf_error(rc));
 		return -1;
 	}
 	TRACE("SmfCbkUtilThread::initSmfCbkApi saSmfInitialize successful. Hdl: %llu.\n", m_smfHandle);
@@ -336,7 +337,7 @@ int SmfCbkUtilThread::initSmfCbkApi(void)
 
 	rc = saSmfCallbackScopeRegister(m_smfHandle, scope_id, &filter_arr);
 	if (SA_AIS_OK != rc){
-		LOG_ER("SmfCbkUtilThread::initSmfCbkApi saSmfCallbackScopeRegister failed %d", rc);
+		LOG_ER("SmfCbkUtilThread::initSmfCbkApi saSmfCallbackScopeRegister failed, rc=%s", saf_error(rc));
 		return -1;
 	}
 	TRACE("SmfCbkUtilThread::initSmfCbkApi saSmfCallbackScopeRegister successful. scope_id: %d, filter: %s\n",
@@ -355,10 +356,10 @@ int SmfCbkUtilThread::finalizeSmfCbkApi(void)
 	TRACE_ENTER();
 
 	if (m_smfHandle != 0) {
-		uint32_t rc;
+		SaAisErrorT rc;
 		rc = saSmfFinalize(m_smfHandle);
 		if (SA_AIS_OK != rc){
-			LOG_ER("SmfCbkUtilThread::finalizeSmfCbkApi saSmfFinalize failed %d", rc);
+			LOG_ER("SmfCbkUtilThread::finalizeSmfCbkApi saSmfFinalize failed, rc=%s", saf_error(rc));
 		}
 		m_smfHandle = 0;
 	}
@@ -438,7 +439,7 @@ int SmfCbkUtilThread::handleEvents(void)
 	/* SMF callback API fd */
 	rc = saSmfSelectionObjectGet(m_smfHandle, &smf_sel_obj);
 	if (SA_AIS_OK != rc){
-		LOG_ER("saSmfSelectionObjectGet failed %d", rc);
+		LOG_ER("saSmfSelectionObjectGet failed, rc=%s", saf_error(rc));
 		return 0;
 	}
 	fds[1].fd = smf_sel_obj;
@@ -468,7 +469,7 @@ int SmfCbkUtilThread::handleEvents(void)
 			/* dispatch SMF callback events */
 			rc = saSmfDispatch(m_smfHandle, SA_DISPATCH_ALL);	
 			if (SA_AIS_OK != rc){
-				LOG_ER("SmfCbkUtilThread saSmfDispatch failed %d", rc);
+				LOG_ER("SmfCbkUtilThread saSmfDispatch failed, rc=%s", saf_error(rc));
 			}
 		}
 	}

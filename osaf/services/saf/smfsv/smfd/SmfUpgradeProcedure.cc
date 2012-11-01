@@ -34,6 +34,7 @@
 #include <saImmOm.h>
 #include <saImmOi.h>
 #include <immutil.h>
+#include <saf_error.h>
 
 #include "stdio.h"
 #include "logtrace.h"
@@ -1943,7 +1944,7 @@ SmfUpgradeProcedure::createImmSteps()
 	while (iter != m_procSteps.end()) {
 		rc = createImmStep(*iter);
                 if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_EXIST)){
-                        LOG_ER("SmfUpgradeProcedure::createImmSteps: createImmStep returns SaAisErrorT=%d", rc);
+                        LOG_ER("SmfUpgradeProcedure::createImmSteps, creation of SaSmfStep object structure fails, rc=%s", saf_error(rc));
                         return false;
                 }
 		iter++;
@@ -2015,7 +2016,9 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 	// is taken over by the other controller.
         rc = icoSaSmfStep.execute(); //Create the object
 	if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_EXIST)){
-                LOG_ER("SmfUpgradeProcedure::createImmStep: icoSaSmfStep.execute() returned %d", rc);
+                LOG_ER("Creation of SaSmfStep object fails, rc=%s, [dn=%s]", 
+		       saf_error(rc), 
+		       (i_step->getRdn() + "," + getDn()).c_str());
                 TRACE_LEAVE();
                 return rc;
         }
@@ -2061,7 +2064,9 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 
 		rc = icoSaSmfDeactivationUnit.execute(); //Create the object
 		if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_EXIST)){
-			LOG_ER("SmfUpgradeProcedure::createImmStep: icoSaSmfDeactivationUnit.execute() returned %d", rc);
+			LOG_ER("Creation of SaSmfDeactivationUnit object fails, rc=%s, [dn=%s]",
+			       saf_error(rc),
+			       ("safSmfDu=smfDeactivationUnit," + i_step->getRdn() + "," + getDn()).c_str());
 			TRACE_LEAVE();
 			return rc;
 		}
@@ -2133,7 +2138,9 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 			icoSaSmfImageNodes.addValue(saSmfINNode);
 			rc = icoSaSmfImageNodes.execute(); //Create the object
 			if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_EXIST)){
-				LOG_ER("SmfUpgradeProcedure::createImmStep: icoSaSmfImageNodes.execute() returned %d", rc);
+				LOG_ER("Creation of SaSmfImageNodes object fails, rc=%s, [dn=%s]",
+				       saf_error(rc),
+				       (imageNode + "," + dnDeactUnit + "," + i_step->getRdn() + "," + getDn()).c_str());
 				TRACE_LEAVE();
 				return rc;
 			}
@@ -2180,7 +2187,9 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 
 		rc = icoSaSmfActivationUnit.execute(); //Create the object
 		if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_EXIST)){
-			LOG_ER("SmfUpgradeProcedure::createImmStep: icoSaSmfActivationUnit.execute() returned %d", rc);
+			LOG_ER("Creation of SaSmfActivationUnit object fails [rdn=%s], rc=%s",
+			       saf_error(rc),
+			       ("safSmfAu=smfActivationUnit," + i_step->getRdn() + "," + getDn()).c_str());
 			TRACE_LEAVE();
 			return rc;
 		}
@@ -2252,7 +2261,9 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 			icoSaSmfImageNodes.addValue(saSmfINNode);
 			rc = icoSaSmfImageNodes.execute(); //Create the object
 			if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_EXIST)){
-				LOG_ER("SmfUpgradeProcedure::createImmStep: icoSaSmfImageNodes.execute() returned %d", rc);
+				LOG_ER("Creation of SaSmfImageNodes object fails, rc=%s, [dn=%s]", 
+				       saf_error(rc),  
+				       (imageNode + dnActUnit + "," + i_step->getRdn() + "," + getDn()).c_str());
 				TRACE_LEAVE();
 				return rc;
 			}
@@ -3149,7 +3160,7 @@ SmfSwapThread::main(void)
 		if(retryCnt > max_swap_retry) {
 			SmfProcStateExecFailed::instance()->changeState(m_proc, SmfProcStateExecFailed::instance());
 
-			LOG_ER("SmfSwapThread::main: SA_AMF_ADMIN_SI_SWAP giving up after %d retries", retryCnt);
+			LOG_ER("SA_AMF_ADMIN_SI_SWAP giving up after %d retries", retryCnt);
 			CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
 			evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
 			evt->event.procResult.rc = SMF_PROC_FAILED;
@@ -3157,7 +3168,7 @@ SmfSwapThread::main(void)
 			SmfCampaignThread::instance()->send(evt);
 			break;
 		}
-		TRACE("SmfSwapThread::main: SI_AMF_ADMIN_SI_SWAP returns %d, wait 2 seconds and retry", rc);
+		TRACE("SI_AMF_ADMIN_SI_SWAP, rc=%d, wait 2 seconds and retry", rc);
 		sleep(2);
 	}
 

@@ -30,4 +30,5 @@ noinst_HEADERS = \
 	sprr_dl_api.h \
 	nid_start_util.h \
 	daemon.h \
-	osaf_unicode.h
+	osaf_unicode.h \
+        saf_error.h

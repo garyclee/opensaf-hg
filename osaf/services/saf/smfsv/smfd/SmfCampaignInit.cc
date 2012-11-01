@@ -21,6 +21,7 @@
  */
 #include <saAis.h>
 #include <immutil.h>
+#include <saf_error.h>
 #include "logtrace.h"
 #include "SmfCampaignInit.hh"
 #include "SmfCampaignThread.hh"
@@ -175,8 +176,8 @@ SmfCampaignInit::execute()
         addToImmRollbackCcbDn += SmfCampaignThread::instance()->campaign()->getDn();
 
         if ((result = smfCreateRollbackElement(addToImmRollbackCcbDn)) != SA_AIS_OK) {
-                LOG_ER("SmfCampaignInit failed to create addToImm rollback element %s, rc = %d", 
-                       addToImmRollbackCcbDn.c_str(), result);
+                LOG_ER("SmfCampaignInit failed to create addToImm rollback element %s, rc=%s", 
+                       addToImmRollbackCcbDn.c_str(), saf_error(result));
                 return false;
         }
 
@@ -190,7 +191,7 @@ SmfCampaignInit::execute()
 		}
 
                 if ((result = rollbackCcb.execute()) != SA_AIS_OK) {
-			LOG_ER("SmfCampaignInit failed to store rollback CCB %d", result);
+			LOG_ER("SmfCampaignInit failed to store rollback CCB rc=%s", saf_error(result));
 			return false;
                 }
 	}
@@ -205,8 +206,8 @@ SmfCampaignInit::execute()
         initRollbackDn += SmfCampaignThread::instance()->campaign()->getDn();
 
         if ((result = smfCreateRollbackElement(initRollbackDn)) != SA_AIS_OK) {
-                LOG_ER("SmfCampaignInit failed to create campaign init rollback element %s, rc = %d", 
-                       initRollbackDn.c_str(), result);
+                LOG_ER("SmfCampaignInit failed to create campaign init rollback element %s, rc=%s", 
+                       initRollbackDn.c_str(), saf_error(result));
                 return false;
         }
 
@@ -215,7 +216,7 @@ SmfCampaignInit::execute()
 	while (upActiter != m_campInitAction.end()) {
 		SaAisErrorT rc = (*upActiter)->execute(&initRollbackDn);
 		if (rc != SA_AIS_OK) {
-			LOG_ER("SmfCampaignInit init action %d failed, rc = %d", (*upActiter)->getId(), rc);
+			LOG_ER("SmfCampaignInit init action %d failed, rc=%s", (*upActiter)->getId(), saf_error(rc));
 			return false;
 		}
 		upActiter++;
@@ -229,7 +230,7 @@ SmfCampaignInit::execute()
 	while (cbkiter != m_callbackAtInit.end()) {
 		SaAisErrorT rc = (*cbkiter)->execute(initRollbackDn);
 		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
-			LOG_ER("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+			LOG_ER("SmfCampaignInit callback %s failed, rc=%s", (*cbkiter)->getCallbackLabel().c_str(), saf_error(rc));
 			TRACE_LEAVE();
 			return false;
 		}
@@ -267,7 +268,7 @@ SmfCampaignInit::executeBackup()
 	while (cbkiter != m_callbackAtBackup.end()) {
 		SaAisErrorT rc = (*cbkiter)->execute(dn);
 		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
-			LOG_ER("SmfCampaignInit callbackAtBackup %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+			LOG_ER("SmfCampaignInit callbackAtBackup %s failed, rc=%s", (*cbkiter)->getCallbackLabel().c_str(), saf_error(rc));
 			TRACE_LEAVE();
 			return false;
 		}
@@ -295,7 +296,7 @@ SmfCampaignInit::rollback()
 	for (upActiter = m_campInitAction.rbegin(); upActiter != m_campInitAction.rend(); upActiter++) {
 		rc = (*upActiter)->rollback(initRollbackDn);
 		if (rc != SA_AIS_OK) {
-			LOG_ER("SmfCampaignInit rollback of init action %d failed, rc = %d", (*upActiter)->getId(), rc);
+			LOG_ER("SmfCampaignInit rollback of init action %d failed, rc=%s", (*upActiter)->getId(), saf_error(rc));
 			return false;
 		}
 		
@@ -311,7 +312,7 @@ SmfCampaignInit::rollback()
         SmfRollbackCcb rollbackCcb(addToImmRollbackCcbDn);
 
         if ((rc = rollbackCcb.rollback()) != SA_AIS_OK) {
-                LOG_ER("SmfCampaignInit failed to rollback add to IMM CCB %d", rc);
+                LOG_ER("SmfCampaignInit failed to rollback add to IMM CCB, rc=%s", saf_error(rc));
                 return false;
 	}
 
@@ -338,9 +339,9 @@ SmfCampaignInit::executeCallbackAtRollback()
 	cbkiter = m_callbackAtRollback.begin();
 	while (cbkiter != m_callbackAtRollback.end()) {
 		SaAisErrorT rc = (*cbkiter)->rollback(dn);
-		LOG_NO("SmfCampaignInit callbackAtRollback returned %d", rc);
+		LOG_NO("SmfCampaignInit callbackAtRollback, rc=%s", saf_error(rc));
 		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
-			LOG_ER("SmfCampaignInit callbackAtRollback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+			LOG_ER("SmfCampaignInit callbackAtRollback %s failed, rc=%s", (*cbkiter)->getCallbackLabel().c_str(), saf_error(rc));
 			TRACE_LEAVE();
 			return false;
 		}

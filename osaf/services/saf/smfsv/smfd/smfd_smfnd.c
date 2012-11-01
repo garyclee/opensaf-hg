@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include <logtrace.h>
+#include <saf_error.h>
 
 #include "smfd.h"
 #include "smfd_smfnd.h"
@@ -115,7 +116,7 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest)
 	/* Find Clm info about the node */
 	rc = saClmInitialize(&clmHandle, NULL, &clmVersion);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saClmInitialize failed %d", rc);
+		LOG_ER("saClmInitialize failed, rc=%s", saf_error(rc));
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -138,14 +139,14 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest)
 	rc = saClmClusterNodeGet(clmHandle, i_node_id,
 				 10000000000LL, &smfnd->clmInfo);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saClmClusterNodeGet failed %d", rc);
+		LOG_ER("saClmClusterNodeGet failed, rc=%s", saf_error(rc));
 		free(smfnd);
 		return NCSCC_RC_FAILURE;
 	}
 
 	rc = saClmFinalize(clmHandle);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saClmFinalize failed %d", rc);
+		LOG_ER("saClmFinalize failed, rc=%s", saf_error(rc));
 		free(smfnd);
 		return NCSCC_RC_FAILURE;
 	}

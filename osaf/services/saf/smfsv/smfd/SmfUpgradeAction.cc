@@ -20,6 +20,7 @@
  * ========================================================================
  */
 #include <immutil.h>
+#include <saf_error.h>
 #include "stdio.h"
 #include "logtrace.h"
 #include "SmfUpgradeAction.hh"
@@ -513,8 +514,8 @@ SmfImmCcbAction::execute(const std::string* i_rollbackDn)
                 immRollbackCcbDn += *i_rollbackDn;
         
                 if ((result = smfCreateRollbackElement(immRollbackCcbDn)) != SA_AIS_OK) {
-                        LOG_ER("SmfImmCcbAction::execute failed to create rollback element %s, rc = %d", 
-                               immRollbackCcbDn.c_str(), result);
+                        LOG_ER("SmfImmCcbAction::execute failed to create rollback element %s, rc=%s", 
+                               immRollbackCcbDn.c_str(), saf_error(result));
                         return result;
                 }
 
@@ -535,7 +536,7 @@ SmfImmCcbAction::execute(const std::string* i_rollbackDn)
 
         if (rollbackCcb != NULL) {
                 if ((result = rollbackCcb->execute()) != SA_AIS_OK) {
-			LOG_ER("SmfImmCcbAction::execute failed to store rollback CCB %d", result);
+			LOG_ER("SmfImmCcbAction::execute failed to store rollback CCB, rc=%s", saf_error(result));
                 }
                 delete rollbackCcb;
         }
@@ -568,7 +569,7 @@ SmfImmCcbAction::rollback(const std::string& i_rollbackDn)
 	TRACE("Rollback IMM ccb actions id %d, dn %s", m_id, immRollbackCcbDn.c_str());
 
         if ((result = rollbackCcb.rollback()) != SA_AIS_OK) {
-                LOG_ER("SmfImmCcbAction::rollback failed to rollback CCB %s, %d", immRollbackCcbDn.c_str(), result);
+                LOG_ER("SmfImmCcbAction::rollback failed to rollback CCB %s, rc=%s", immRollbackCcbDn.c_str(), saf_error(result));
         }
 
 	return result;

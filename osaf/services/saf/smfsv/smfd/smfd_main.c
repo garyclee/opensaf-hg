@@ -38,6 +38,7 @@
 #include <saAis.h>
 #include <saImmOm.h>
 #include <immutil.h>
+#include <saf_error.h>
 
 #include "smfd.h"
 #include "smfsv_defs.h"
@@ -279,7 +280,7 @@ static void main_process(void)
 	SaVersionT immVersion = { 'A', 2, 1 };
 	SaAisErrorT rc = immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("immutil_saImmOmInitialize faild, rc = %d", rc);
+		LOG_ER("immutil_saImmOmInitialize faild, rc=%s", saf_error(rc));
 		return;
 	}
 	/* end of IMM featue code */
@@ -390,7 +391,7 @@ static void main_process(void)
 
 	rc = immutil_saImmOmAdminOwnerFinalize(omHandle);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("immutil_saImmOmAdminOwnerFinalize faild, rc = %d", rc);
+		LOG_ER("immutil_saImmOmAdminOwnerFinalize faild, rc=%s", saf_error(rc));
 	}
 }
 

@@ -29,6 +29,8 @@
 #include "SmfUtils.hh"
 #include "immutil.h"
 
+#include <saf_error.h>
+
 /* ========================================================================
  *   DEFINITIONS
  * ========================================================================
@@ -2031,7 +2033,7 @@ SmfStepTypeClusterReboot::execute()
         //this is the first time the step is executed i.e. the cluster has not yet been rebooted
         SaAisErrorT rc = m_step->getSingleStepRebootInfo(&singleStepRebootInfo);
         if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_NOT_EXIST)){
-                LOG_ER("Failed to get single step reboot info");
+                LOG_ER("SmfStepTypeClusterReboot::execute, fail to get single step reboot info");
                 return false;
 	}
 
@@ -2044,7 +2046,7 @@ SmfStepTypeClusterReboot::execute()
 		/* All online scripts could be installed here, also for those bundles which requires restart */
 		LOG_NO("STEP: Online installation of new software");
 		if (m_step->onlineInstallNewBundles() == false) {
-			LOG_ER("Failed to online install bundles");
+			LOG_ER("SmfStepTypeClusterReboot::execute, fail to online install bundles");
 			return false;
 		}
 
@@ -2058,7 +2060,7 @@ SmfStepTypeClusterReboot::execute()
 		/* Lock deactivation units */
 		LOG_NO("STEP: Lock deactivation units");
 		if (m_step->lockDeactivationUnits() == false) {
-			LOG_ER("Failed to Lock deactivation units in step=%s",m_step->getRdn().c_str());
+			LOG_ER("SmfStepTypeClusterReboot::execute, fail to Lock deact units in step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 
@@ -2072,21 +2074,21 @@ SmfStepTypeClusterReboot::execute()
 		/* Terminate deactivation units */
 		LOG_NO("STEP: Terminate deactivation units");
 		if (m_step->terminateDeactivationUnits() == false) {
-			LOG_ER("Failed to Terminate deactivation units in step=%s",m_step->getRdn().c_str());
+			LOG_ER("SmfStepTypeClusterReboot::execute, fail to term deact units in step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 
 		/* Offline uninstallation of old software */
 		LOG_NO("STEP: Offline uninstallation of old software");
 		if (m_step->offlineRemoveOldBundles() == false) {
-			LOG_ER("Failed to offline remove bundles in step=%s",m_step->getRdn().c_str());
+			LOG_ER("SmfStepTypeClusterReboot::execute, fail to offline remove bundles in step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 
 		/* Modify information model and set maintenance status */
 		LOG_NO("STEP: Modify information model and set maintenance status");
 		if (m_step->modifyInformationModel() != SA_AIS_OK) {
-			LOG_ER("Failed to Modify information model in step=%s",m_step->getRdn().c_str());
+			LOG_ER("SmfStepTypeClusterReboot::execute, fail to Modify information model in step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 
@@ -2098,7 +2100,7 @@ SmfStepTypeClusterReboot::execute()
 		}
 
 		if (m_step->setMaintenanceStateActUnits() == false) {
-			LOG_ER("Failed to set maintenance state in step=%s",m_step->getRdn().c_str());
+			LOG_ER("SmfStepTypeClusterReboot::execute, fail to set maintenance state in step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 
@@ -2118,7 +2120,7 @@ SmfStepTypeClusterReboot::execute()
 		while (bundleIter != addList.end()) {
 			/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
 			if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-				LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+				LOG_ER("SmfStepTypeClusterReboot::execute, sw bundle not found dn=[%s]", (*bundleIter).getBundleDn().c_str());
 				TRACE_LEAVE();
 				return false;
 			}
@@ -2127,7 +2129,7 @@ SmfStepTypeClusterReboot::execute()
 								       0);
 
 			if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
-				TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
+				TRACE("SmfStepTypeClusterReboot::execute, SW bundle %s requires reboot to install", 
 				      (*bundleIter).getBundleDn().c_str());
 
 				installationRebootNeeded = true;
@@ -2141,7 +2143,7 @@ SmfStepTypeClusterReboot::execute()
                         SaAisErrorT rc;
                         //Create smfSingleStepInfo object
                         if ((rc = m_step->setSingleStepRebootInfo(SMF_INSTALLATION_REBOOT)) != SA_AIS_OK){
-                                LOG_ER("Creation of SmfSingleStepInfo object fails, rc=%d", rc);
+                                LOG_ER("SmfStepTypeClusterReboot::execute, creation of SmfSingleStepInfo object fails, rc=%s", saf_error(rc));
                                 return false;
                         }
 
@@ -2150,14 +2152,14 @@ SmfStepTypeClusterReboot::execute()
 
                         //Save IMM content
                         if ((rc = m_step->saveImmContent()) != SA_AIS_OK){
-                                LOG_ER("Fails to save imm content, rc=%d", rc);
+                                LOG_ER("SmfStepTypeClusterReboot::execute, fail to save imm content, rc=%s", saf_error(rc));
                                 return false;
                         }
 
                         //Reboot cluster
                         LOG_NO("STEP: Order cluster reboot");
                         if ((rc = m_step->clusterReboot()) != SA_AIS_OK){
-                                LOG_ER("Failed to reboot cluster, rc=%d", rc);
+                                LOG_ER("SmfStepTypeClusterReboot::execute, fail to reboot cluster, rc=%s", saf_error(rc));
                                 return false;
                         }
 				
@@ -2178,7 +2180,7 @@ SmfStepTypeClusterReboot::execute()
 		while (bundleIter != removeList.end()) {
 			/* Read the saSmfBundleRemoveOfflineScope to detect if the bundle requires reboot */
 			if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-				LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+				LOG_ER("SmfStepTypeClusterReboot::execute, sw bundle not found dn=[%s]", (*bundleIter).getBundleDn().c_str());
 				TRACE_LEAVE();
 				return false;
 			}
@@ -2187,7 +2189,7 @@ SmfStepTypeClusterReboot::execute()
 						      0);
 
 			if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
-				TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
+				TRACE("SmfStepTypeClusterReboot::execute, the SW bundle %s requires reboot to install", 
 				      (*bundleIter).getBundleDn().c_str());
 
 				restartBundles.push_back((*bundleIter));
@@ -2209,7 +2211,7 @@ SmfStepTypeClusterReboot::execute()
                         SaAisErrorT rc;
                         //Create smfSingleStepInfo object
                         if ((rc = m_step->setSingleStepRebootInfo(SMF_REMOVAL_REBOOT)) != SA_AIS_OK){
-                                LOG_ER("Creation of SmfSingleStepInfo object fails, rc=%d", rc);
+                                LOG_ER("SmfStepTypeClusterReboot::execute, creation of SmfSingleStepInfo obj fail, rc=%s", saf_error(rc));
                                 return false;
                         }
 
@@ -2218,14 +2220,14 @@ SmfStepTypeClusterReboot::execute()
 
                         //Save IMM content
                         if ((rc = m_step->saveImmContent()) != SA_AIS_OK){
-                                LOG_ER("Fails to save imm content, rc=%d", rc);
+                                LOG_ER("SmfStepTypeClusterReboot::execute, fails to save imm content, rc=%s", saf_error(rc));
                                 return false;
                         }
 
                         //Reboot cluster
                         LOG_NO("STEP: Order cluster reboot");
                         if ((rc = m_step->clusterReboot()) != SA_AIS_OK){
-                                LOG_ER("Failed to reboot cluster, rc=%d", rc);
+                                LOG_ER("SmfStepTypeClusterReboot::execute, fail to reboot cluster, rc=%s", saf_error(rc));
                                 return false;
                         }
 				
@@ -2233,7 +2235,7 @@ SmfStepTypeClusterReboot::execute()
                         LOG_NO("STEP: Waiting for cluster to reboot");
                         sleep(100000);
                         //This should never happend !!
-                        LOG_ER("Cluster refuses to reboot");
+                        LOG_ER("SmfStepTypeClusterReboot::execute, cluster refuses to reboot");
                         return false;
 		}
                 /* Fall through */
@@ -2275,7 +2277,7 @@ SmfStepTypeClusterReboot::execute()
 		/* Unlock activation units */
 		LOG_NO("STEP: Unlock activation units");
 		if (m_step->unlockActivationUnits() == false) {
-			LOG_ER("Failed to Unlock activation units in step=%s",m_step->getRdn().c_str());
+			LOG_ER("SmfStepTypeClusterReboot::execute, fail to Unlock activation units in step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 
@@ -2294,7 +2296,7 @@ SmfStepTypeClusterReboot::execute()
 		/* Online uninstallation of old software (no reboot required) */
 		LOG_NO("STEP: Online uninstallation of old software");
 		if (m_step->onlineRemoveOldBundles() == false) {
-			LOG_ER("Failed to online remove bundles in step=%s",m_step->getRdn().c_str());
+			LOG_ER("SmfStepTypeClusterReboot::execute, fail to online remove bundles in step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 
@@ -2306,7 +2308,7 @@ SmfStepTypeClusterReboot::execute()
 		}
 #endif
 	default:
-                LOG_ER("Unknown reboot info %d", singleStepRebootInfo);
+                LOG_ER("SmfStepTypeClusterReboot::execute, unknown reboot info %d", singleStepRebootInfo);
                 return false;
         }		//End switch
 
@@ -2324,7 +2326,7 @@ SmfStepTypeClusterReboot::rollback()
 {
 	TRACE_ENTER();
 
-	LOG_ER("Rollback of cluster reboot step is not implemented");
+	LOG_ER("SmfStepTypeClusterReboot::rollback, rollback of cluster reboot step is not implemented");
 
         TRACE_LEAVE();
 	return false;
