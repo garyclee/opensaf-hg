@@ -70,7 +70,6 @@ immpopulate_CPPFLAGS = \
 
 immpopulate_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
-	$(top_srcdir)/osaf/tools/safimm/src/saf_error.c \
 	populate.c
 
 immpopulate_LDADD = \
