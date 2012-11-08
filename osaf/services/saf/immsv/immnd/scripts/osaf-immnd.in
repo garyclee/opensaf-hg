@@ -77,7 +77,7 @@ instantiate() {
 stop() {
 	echo -n "Stopping $prog: "
     /usr/bin/killall osafimmpbed
-    /usr/bin/killall immload
+    /usr/bin/killall osafimmloadd
 	killproc -p $pidfile $binary
 	RETVAL=$?
 	if [ $RETVAL -eq 0 ] || [ $RETVAL -eq 7 ]; then

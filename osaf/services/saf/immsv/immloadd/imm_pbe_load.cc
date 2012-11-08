@@ -797,7 +797,7 @@ int loadImmFromPbe(void* pbeHandle)
 void* checkPbeRepositoryInit(std::string dir, std::string file)
 {
 	TRACE_ENTER2("Not enabled");
-	LOG_WA("immload not built with the --enable-imm-pbe option");
+	LOG_WA("osafimmloadd not built with the --enable-imm-pbe option");
 	TRACE_LEAVE();
 	return NULL;
 }

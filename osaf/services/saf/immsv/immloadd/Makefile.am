@@ -22,19 +22,19 @@ noinst_HEADERS = \
 	imm_loader.hh
 
 osaf_execbindir = $(pkglibdir)
-osaf_execbin_PROGRAMS = immload
+osaf_execbin_PROGRAMS = osafimmloadd
 
-immload_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@ @SQLITE3_CFLAGS@
+osafimmloadd_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@ @SQLITE3_CFLAGS@
 
-immload_SOURCES = imm_loader.cc imm_pbe_load.cc
+osafimmloadd_SOURCES = imm_loader.cc imm_pbe_load.cc
 
-immload_CPPFLAGS = \
+osafimmloadd_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-immload_LDFLAGS = @XML2_LIBS@ @SQLITE3_LIBS@
+osafimmloadd_LDFLAGS = @XML2_LIBS@ @SQLITE3_LIBS@
 
-immload_LDADD = \
+osafimmloadd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la

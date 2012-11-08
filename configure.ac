@@ -775,6 +775,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/immsv/immd/Makefile
         osaf/services/saf/immsv/immnd/Makefile
         osaf/services/saf/immsv/immpbed/Makefile
+        osaf/services/saf/immsv/immloadd/Makefile
         osaf/services/saf/immsv/immd/scripts/Makefile
         osaf/services/saf/immsv/immd/scripts/osaf-immd
         osaf/services/saf/immsv/immnd/scripts/Makefile
@@ -850,7 +851,6 @@ AC_CONFIG_FILES([
         osaf/tools/safimm/immdump/Makefile
         osaf/tools/safimm/immfind/Makefile
         osaf/tools/safimm/immlist/Makefile
-        osaf/tools/safimm/immload/Makefile
         osaf/tools/safimm/immxml/Makefile
         osaf/tools/safimm/include/Makefile
         osaf/tools/saflog/Makefile

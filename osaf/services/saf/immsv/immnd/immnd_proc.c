@@ -34,7 +34,7 @@
 #include "immnd.h"
 #include "immsv_api.h"
 
-static const char *loaderBase = "immload";
+static const char *loaderBase = "osafimmloadd";
 static const char *pbeBase = "osafimmpbed";
 
 void immnd_ackToNid(uint32_t rc)

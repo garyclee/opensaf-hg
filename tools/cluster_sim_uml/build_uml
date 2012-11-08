@@ -230,7 +230,7 @@ cmd_installibs() {
     local deplib=$tmp/deplib
     cd $root
     cmd_getlibs \
-	$(find . -name immload) ./bin/* ./usr/bin/* ./usr/sbin/* |\
+	$(find . -name osafimmloadd) ./bin/* ./usr/bin/* ./usr/sbin/* |\
 	grep -v -e 'libSa\|libimmsv\|libsaf' \
 	-e "^/$lib_dir/ld-\|^/$lib_dir/libc.so" > $deplib
 
