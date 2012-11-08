@@ -967,6 +967,13 @@ uint32_t avsv_send_ckpt_data(AVD_CL_CB *cb, uint32_t action, MBCSV_REO_HDL reo_h
 	 		/* No need to send the message to old std as this async is newly added. */
 			return NCSCC_RC_SUCCESS;
 		}
+
+		/* AVD_SI_READY_TO_ASSIGN depstate is not supported in opensaf-4.2 so not checkpoint it. */ 
+		if ((((AVD_SI *)reo_hdl)->si_dep_state == AVD_SI_READY_TO_ASSIGN) &&
+					(avd_cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_6)) {
+			return NCSCC_RC_SUCCESS;
+		}
+
 		cb->async_updt_cnt.si_updt++;
 		break;
 	}
