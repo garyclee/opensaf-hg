@@ -1081,7 +1081,7 @@ fi
 %config(noreplace) %{_pkgsysconfdir}/immd.conf
 %{_pkglibdir}/osafimmd
 %{_pkgclcclidir}/osaf-immd
-%{_pkglibdir}/immload
+%{_pkglibdir}/osafimmloadd
 %if %is_immxml
 %{_pkgimmxmldir}/baseimm.py*
 %{_pkgimmxmldir}/README

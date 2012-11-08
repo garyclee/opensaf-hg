@@ -20,4 +20,4 @@ MAINTAINERCLEANFILES = Makefile.in
 
 EXTRA_DIST = README
 
-SUBDIRS = config immd immnd immpbed
+SUBDIRS = config immd immnd immpbed immloadd

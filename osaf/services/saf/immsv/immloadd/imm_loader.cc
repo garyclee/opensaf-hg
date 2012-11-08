@@ -497,7 +497,7 @@ bool createImmObject(SaImmClassNameT className,
     if (SA_AIS_OK != errorCode)
     {
 	LOG_ER("Failed to create object err: %d, class: %s, dn: '%s'. "
-		"Check for duplicate attributes, or trace immload",
+		"Check for duplicate attributes, or trace osafimmloadd",
 		errorCode, className, objectName);
         TRACE_LEAVE();
         return false;
@@ -2383,7 +2383,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (logtrace_init("immload", logPath, category_mask) == -1)
+    if (logtrace_init("osafimmloadd", logPath, category_mask) == -1)
     {
         printf("logtrace_init FAILED\n");
         syslog(LOG_ERR, "logtrace_init FAILED");
