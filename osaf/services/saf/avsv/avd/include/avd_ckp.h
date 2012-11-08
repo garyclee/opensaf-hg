@@ -34,9 +34,10 @@
 #define AVD_CKP_H
 
 // current version
-#define AVD_MBCSV_SUB_PART_VERSION      5
+#define AVD_MBCSV_SUB_PART_VERSION      6
 
 // supported versions
+#define AVD_MBCSV_SUB_PART_VERSION_6    6
 #define AVD_MBCSV_SUB_PART_VERSION_5    5
 #define AVD_MBCSV_SUB_PART_VERSION_4    4
 #define AVD_MBCSV_SUB_PART_VERSION_3    3
