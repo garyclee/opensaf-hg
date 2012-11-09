@@ -773,13 +773,6 @@ ClassInfo* classToPBE(std::string classNameString,
 	TRACE_ENTER();
 
 	std::string sql;
-	unsigned int sqlSize = 2048;  /* There appears to be a bug in the version of
-					  std:string I am using that is provoked (segv)
-					  when the string expands beyond aproximately
-					  1K in size.
-					  Preallocating large space to avoid this. 
-					  This is also more efficient.
-				       */
 
 	/* Get the class description */
 	errorCode = saImmOmClassDescriptionGet_2(immHandle,
@@ -829,7 +822,6 @@ ClassInfo* classToPBE(std::string classNameString,
 	}
 	sqlite3_reset(stmt);
 
-	sql.reserve(sqlSize);
 	sql.append("CREATE TABLE \"");
 	sql.append(classNameString);
 	sql.append("\" (obj_id integer primary key");
@@ -942,12 +934,6 @@ ClassInfo* classToPBE(std::string classNameString,
 				goto bailout;
 			}
 			sqlite3_reset(stmt);
-		}
-
-		if (sql.size() > sqlSize) {
-			LOG_ER("SQL statement too long:%zu max length:%u", 
-				sql.size(), sqlSize);
-			goto bailout;
 		}
 	}
 
