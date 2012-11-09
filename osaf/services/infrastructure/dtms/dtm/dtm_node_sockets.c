@@ -507,13 +507,13 @@ int comm_socket_setup_new(DTM_INTERNODE_CB * dtms_cb, const char *foreign_addres
 	char local_port_str[INET6_ADDRSTRLEN];
 	struct addrinfo *addr_list;
 	struct addrinfo addr_criteria, *p;	/* Criteria for address match */
-
+	char foreign_address_eth[INET6_ADDRSTRLEN + IFNAMSIZ];
 	TRACE_ENTER();
 
 	/* Construct the serv address structure */
 	TRACE("DTM:dgram_port_rcvr :%d", dtms_cb->dgram_port_rcvr);
 	snprintf(local_port_str, sizeof(local_port_str), "%d", foreign_port);
-
+	
 	/* Construct the serv address structure */
 	memset(&addr_criteria, 0, sizeof(addr_criteria));	/* Zero out structure */
 	addr_criteria.ai_family = AF_UNSPEC;	/* v4 or v6 is OK */
@@ -521,12 +521,21 @@ int comm_socket_setup_new(DTM_INTERNODE_CB * dtms_cb, const char *foreign_addres
 	addr_criteria.ai_protocol = IPPROTO_TCP;	/* Only TCP protocol */
 	addr_criteria.ai_flags |= AI_NUMERICHOST;
 
-	TRACE("DTM:foreign_address : %s local_port_str :%s", foreign_address, local_port_str);
-	if ((rv = getaddrinfo(foreign_address, local_port_str, &addr_criteria, &addr_list)) != 0) {
+	/* For link-local address, need to set sin6_scope_id to match the
+	   device index of the network device on it has to connecct */
+	if (dtms_cb->scope_link == true) {
+		memset(foreign_address_eth, 0, INET6_ADDRSTRLEN);
+		sprintf(foreign_address_eth,"%s%s%s", foreign_address, "%", dtms_cb->ifname);
+		rv = getaddrinfo(foreign_address_eth, local_port_str, &addr_criteria, &addr_list);
+		TRACE("DTM:foreign_address_eth : %s local_port_str :%s", foreign_address_eth, local_port_str);
+	} else {
+		rv = getaddrinfo(foreign_address, local_port_str, &addr_criteria, &addr_list);	
+		TRACE("DTM:foreign_address : %s local_port_str :%s", foreign_address, local_port_str);
+	}
+	if (rv != 0) {
 		LOG_ER("DTM:Unable to getaddrinfo() rtn_val :%d errno : %d", rv, GET_LAST_ERROR());
 		TRACE_LEAVE2("rc :%d", NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
-
 	}
 
 	if (addr_list == NULL) {
@@ -640,7 +649,7 @@ uint32_t dtm_stream_nonblocking_listener(DTM_INTERNODE_CB * dtms_cb)
 	struct addrinfo *addr_list = NULL, *p;;	/* List of serv addresses */
 	int size = DTM_INTERNODE_SOCK_SIZE;
 	int rv;
-
+	char ip_addr_eth[INET6_ADDRSTRLEN + IFNAMSIZ];
 	dtms_cb->stream_sock = -1;
 
 	TRACE_ENTER();
@@ -656,8 +665,18 @@ uint32_t dtm_stream_nonblocking_listener(DTM_INTERNODE_CB * dtms_cb)
 	/* snprintf(local_port_str, sizeof(local_port_str), "%d", htons(dtms_cb->stream_port)); */
 	snprintf(local_port_str, sizeof(local_port_str), "%d", dtms_cb->stream_port);
 
-	TRACE("DTM :ip_addr : %s local_port_str -%s", dtms_cb->ip_addr, local_port_str);
-	if ((rv = getaddrinfo(dtms_cb->ip_addr, local_port_str, &addr_criteria, &addr_list)) != 0) {
+	/* For link-local address, need to set sin6_scope_id to match the
+	   device index of the network device on it has to connecct */
+	if (dtms_cb->scope_link == true) {
+		memset(ip_addr_eth, 0, INET6_ADDRSTRLEN);
+		sprintf(ip_addr_eth,"%s%s%s", dtms_cb->ip_addr, "%", dtms_cb->ifname);
+		rv = getaddrinfo(ip_addr_eth, local_port_str, &addr_criteria, &addr_list);
+		TRACE("DTM:foreign_address_eth : %s local_port_str :%s", ip_addr_eth, local_port_str);
+	} else {
+		rv = getaddrinfo(dtms_cb->ip_addr, local_port_str, &addr_criteria, &addr_list);
+		TRACE("DTM :ip_addr : %s local_port_str -%s", dtms_cb->ip_addr, local_port_str);
+	}
+	if (rv != 0) {
 		LOG_ER("DTM:Unable to getaddrinfo() rtn_val :%d errno : %d", rv, GET_LAST_ERROR());
 		TRACE_LEAVE2("rc :%d", NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
@@ -735,6 +754,7 @@ uint32_t dtm_dgram_mcast_listener(DTM_INTERNODE_CB * dtms_cb)
 	char local_port_str[INET6_ADDRSTRLEN];
 	int rv;
 	struct addrinfo *addr_list;	/* Holder serv address */
+	char mcast_addr_eth[INET6_ADDRSTRLEN + IFNAMSIZ];
 	TRACE_ENTER();
 
 	TRACE("DTM :dgram_port_rcvr :%d", dtms_cb->dgram_port_rcvr);
@@ -748,8 +768,18 @@ uint32_t dtm_dgram_mcast_listener(DTM_INTERNODE_CB * dtms_cb)
 	addr_criteria.ai_protocol = IPPROTO_UDP;	/* Only UDP protocol */
 	addr_criteria.ai_flags |= AI_NUMERICHOST;	/* Don't try to resolve address */
 
-	TRACE("DTM :mcast_addr : %s local_port_str :%s", dtms_cb->mcast_addr, local_port_str);
-	if ((rv = getaddrinfo(dtms_cb->mcast_addr, local_port_str, &addr_criteria, &addr_list)) != 0) {
+	/* For link-local address, need to set sin6_scope_id to match the
+	   device index of the network device on it has to connecct */
+	if (dtms_cb->scope_link == true) {
+		memset(mcast_addr_eth, 0, INET6_ADDRSTRLEN);
+		sprintf(mcast_addr_eth,"%s%s%s", dtms_cb->mcast_addr, "%", dtms_cb->ifname);
+		rv = getaddrinfo(mcast_addr_eth, local_port_str, &addr_criteria, &addr_list);
+		TRACE("DTM:mcast_addr_eth : %s local_port_str :%s", mcast_addr_eth, local_port_str);
+	} else {
+		rv = getaddrinfo(dtms_cb->mcast_addr, local_port_str, &addr_criteria, &addr_list);
+		TRACE("DTM :mcast_addr : %s local_port_str :%s", dtms_cb->mcast_addr, local_port_str);
+	}
+	if (rv != 0) {
 		LOG_ER("DTM:Unable to getaddrinfo() rtn_val :%d errno :%d", rv, GET_LAST_ERROR());
 		TRACE_LEAVE2("rc :%d", NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
@@ -816,6 +846,7 @@ uint32_t dtm_dgram_mcast_sender(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
 	struct addrinfo addr_criteria, *p;	// Criteria for address match
 	char local_port_str[INET6_ADDRSTRLEN];
 	int rv;
+	char mcast_addr_eth[INET6_ADDRSTRLEN + IFNAMSIZ];
 	TRACE_ENTER();
 
 	dtms_cb->dgram_sock_sndr = -1;
@@ -829,8 +860,18 @@ uint32_t dtm_dgram_mcast_sender(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
 	addr_criteria.ai_protocol = IPPROTO_UDP;	/* Only UDP please */
 	addr_criteria.ai_flags |= AI_NUMERICHOST;	/* Don't try to resolve address */
 
-	TRACE("DTM :mcast_addr : %s local_port_str :%s", dtms_cb->mcast_addr, local_port_str);
-	if ((rv = getaddrinfo(dtms_cb->mcast_addr, local_port_str, &addr_criteria, &mcast_sender_addr)) != 0) {
+	/* For link-local address, need to set sin6_scope_id to match the
+	   device index of the network device on it has to connecct */
+	if (dtms_cb->scope_link == true) {
+		memset(mcast_addr_eth, 0, INET6_ADDRSTRLEN);
+		sprintf(mcast_addr_eth,"%s%s%s",dtms_cb->mcast_addr,"%",dtms_cb->ifname);
+		rv = getaddrinfo(mcast_addr_eth, local_port_str, &addr_criteria, &mcast_sender_addr);
+		TRACE("DTM :mcast_addr : %s local_port_str :%s",mcast_addr_eth, local_port_str);
+	} else {
+		rv = getaddrinfo(dtms_cb->mcast_addr, local_port_str, &addr_criteria, &mcast_sender_addr);
+		TRACE("DTM :mcast_addr : %s local_port_str :%s", dtms_cb->mcast_addr, local_port_str);
+	}
+	if (rv != 0) {
 		LOG_ER("DTM:Unable to getaddrinfo() rtn_val :%d errno :%d", rv, GET_LAST_ERROR());
 		TRACE_LEAVE2("rc :%d", NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;

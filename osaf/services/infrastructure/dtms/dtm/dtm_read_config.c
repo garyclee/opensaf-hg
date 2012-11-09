@@ -18,6 +18,7 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <configmake.h>
+#include <ifaddrs.h>
 #include "ncs_main_papi.h"
 #include "dtm.h"
 #include "dtm_socket.h"
@@ -50,32 +51,6 @@ typedef enum dtm_config_tags {
 	DTM_TCP_KEEPALIVE_PROBES
 } DTM_CONFIG_TAGS;
 
-/**
- * A function to return a list of available network interfaces
- *
- * @param ifconf
- *
- * @return NCSCC_RC_SUCCESS
- * @return NCSCC_RC_FAILURE
- *
- */
-static int dtm_get_iface_list(struct ifconf *ifconf)
-{
-	int sock, rval;
-
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock < 0) {
-		perror("socket");
-		return (-1);
-	}
-
-	if ((rval = ioctl(sock, SIOCGIFCONF, (char *)ifconf)) < 0)
-		perror("ioctl(SIOGIFCONF)");
-
-	close(sock);
-
-	return rval;
-}
 
 /**
  * print the configuration
@@ -122,6 +97,16 @@ void dtm_print_config(DTM_INTERNODE_CB * config)
  	TRACE("DTM : ");
 }
 
+
+bool in6_islinklocal(struct sockaddr_in6 *sin6)
+{
+	if (IN6_IS_ADDR_LINKLOCAL(&sin6->sin6_addr)) 
+		return true;
+	else
+		return false;
+}
+
+
 /**
  * validate the ip address
  *
@@ -133,94 +118,72 @@ void dtm_print_config(DTM_INTERNODE_CB * config)
  */
 char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 {
-	static struct ifreq ifreqs[20];
-	struct ifconf ifconf;
-	/* Location for storing the matched IP address */
-	int nifaces, i;
-	int s;			//, retval;
-	void *numericAddress = NULL;	/* Pointer to binary address */
-
+	struct ifaddrs *if_addrs = NULL;
+	struct ifaddrs *if_addr = NULL;
+	void *tmp = NULL;
+	char buf[INET6_ADDRSTRLEN];
 	memset(match_ip, 0, INET6_ADDRSTRLEN);
-	memset(&ifconf, 0, sizeof(ifconf));
-	ifconf.ifc_buf = (char *)(ifreqs);
-	ifconf.ifc_len = sizeof(ifreqs);
 
-	if (dtm_get_iface_list(&ifconf) < 0) {
-		LOG_ER("DTM: Unable to obtain interface list for  this node ");
-		return (NULL);
+	if (0 == getifaddrs(&if_addrs)) {
+		for (if_addr = if_addrs; if_addr != NULL; if_addr = if_addr->ifa_next) {
 
-	}
+			TRACE("Interface name : %s", if_addr->ifa_name);
 
-	nifaces = ifconf.ifc_len / sizeof(struct ifreq);
-
-	TRACE("DTM:Interfaces (count : %d):", nifaces);
-
-	s = socket(PF_INET, SOCK_DGRAM, 0);
-	for (i = 0; i < nifaces; i++) {
-		strncpy(ifreqs[i].ifr_name, ifreqs[i].ifr_name, sizeof(ifreqs[i].ifr_name));
-		if (ioctl(s, SIOCGIFADDR, &ifreqs[i]) >= 0) {
-
-			memset(match_ip, 0, INET6_ADDRSTRLEN);
-
-			if (ifreqs[i].ifr_addr.sa_family == DTM_IP_ADDR_TYPE_IPV4) {
-
-				numericAddress = &((struct sockaddr_in *)&ifreqs[i].ifr_addr)->sin_addr;
-
-			} else if (ifreqs[i].ifr_addr.sa_family == DTM_IP_ADDR_TYPE_IPV6) {
-				numericAddress = &((struct sockaddr_in6 *)&ifreqs[i].ifr_addr)->sin6_addr;
+			// Address
+			if (if_addr->ifa_addr->sa_family == AF_INET) {
+				tmp = &((struct sockaddr_in *)if_addr->ifa_addr)->sin_addr;
+			} else if (if_addr->ifa_addr->sa_family == AF_INET6)  {
+				tmp = &((struct sockaddr_in6 *)if_addr->ifa_addr)->sin6_addr;
 			}
+			TRACE("IP addr : %s",
+					inet_ntop(if_addr->ifa_addr->sa_family,
+						tmp,
+						match_ip,
+						sizeof(match_ip)));
 
-			if (inet_ntop(ifreqs[i].ifr_addr.sa_family, numericAddress, match_ip, INET6_ADDRSTRLEN) != NULL) {
-				TRACE("DTM:   %s Avalible IP address: %s sa_family : %d ", ifreqs[i].ifr_name,
-				      match_ip, ifreqs[i].ifr_addr.sa_family);
-				if (strcmp(match_ip, config->ip_addr) == 0) {
-					void *numericbcasrAddress = NULL;
-					if (ifreqs[i].ifr_flags & IFF_BROADCAST) {
-						if (ioctl(s, SIOCGIFBRDADDR, &ifreqs[i]) >= 0) {
-							if (ifreqs[i].ifr_addr.sa_family == DTM_IP_ADDR_TYPE_IPV4) {
-								numericbcasrAddress =
-								    &((struct sockaddr_in *)&ifreqs[i].ifr_broadaddr)->
-								    sin_addr;
-							} else if (ifreqs[i].ifr_addr.sa_family ==
-								   DTM_IP_ADDR_TYPE_IPV6) {
-								numericbcasrAddress =
-								    &((struct sockaddr_in6 *)&ifreqs[i].ifr_broadaddr)->
-								    sin6_addr;
-								    strncpy(config->ifname, ifreqs[i].ifr_name, IFNAMSIZ);
-							} else {
-								LOG_ER
-								    ("DTM:  Validation of  Bcast address failed : %s \n",
-								     config->ip_addr);
-								return (NULL);
-							}
-						}
-					} else {
-						LOG_ER("DTM: Validation of  Bcast address failed : %s \n",
-						       config->ip_addr);
-						return (NULL);
-					}
-					if (inet_ntop
-					    (ifreqs[i].ifr_addr.sa_family, numericbcasrAddress, config->bcast_addr,
-					     INET6_ADDRSTRLEN) == NULL) {
-						LOG_ER("DTM:   Validation of  Bcast address failed : %s \n",
-						       config->ip_addr);
-						return (NULL);
-					}
-					config->i_addr_family = ifreqs[i].ifr_addr.sa_family;
-					TRACE
-					    ("DTM:  %s Validate  IP address : %s  Bcast address : %s sa_family : %d \n",
-					     ifreqs[i].ifr_name, match_ip, config->bcast_addr, config->i_addr_family);
-					return (match_ip);
+			if (strcmp(match_ip, config->ip_addr) == 0) {
+
+				config->i_addr_family  = if_addr->ifa_addr->sa_family;
+				strncpy(config->ifname, if_addr->ifa_name, IFNAMSIZ);
+
+				//Bcast  Address
+				if (if_addr->ifa_addr->sa_family == AF_INET) {
+					tmp = &((struct sockaddr_in *)if_addr->ifa_broadaddr)->sin_addr;
+					TRACE("Bcast addr : %s",
+							inet_ntop(if_addr->ifa_addr->sa_family,
+								tmp,
+								config->bcast_addr,
+								sizeof(buf)));
+				} else if (if_addr->ifa_addr->sa_family == AF_INET6) {
+					struct sockaddr_in6 *addr = (struct sockaddr_in6 *)if_addr->ifa_addr;
+					if (in6_islinklocal(addr) == true ) {
+						config->scope_link = true;	
+						TRACE ("DTM:  %s scope_link : %d    IP address : %s  sa_family : %d ",
+								if_addr->ifa_name, config->scope_link, match_ip, config->i_addr_family);
+					}			
+					TRACE("Bcast addr : %s",
+							inet_ntop(if_addr->ifa_addr->sa_family,
+								addr,
+								config->bcast_addr,
+								sizeof(buf)));
+
 				}
+				TRACE ("DTM:  %s Validate  IP address : %s  Bcast address : %s sa_family : %d ",
+						if_addr->ifa_name, match_ip, config->bcast_addr, config->i_addr_family);
 
+				freeifaddrs(if_addrs);
+				if_addrs = NULL;
+				return (match_ip);
 			}
 
 		}
+		freeifaddrs(if_addrs);
+		if_addrs = NULL;
+	} else {
+		TRACE("getifaddrs() failed with errno =  %i %s", errno, strerror(errno));
 	}
-
-	LOG_ER("DTM:  Validation of  IP address failed : %s \n", config->ip_addr);
+	LOG_ER("DTM:  Validation of  IP address failed : %s ", config->ip_addr);
 	return (NULL);
-
 }
 
 /**
@@ -258,7 +221,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 	config->bcast_msg_freq = BCAST_FRE;
 	config->initial_dis_timeout = DIS_TIME_OUT;
 	config->mcast_flag = false;
-
+	config->scope_link = false;
 	config->node_id = m_NCS_GET_NODE_ID;
 	fp = fopen(PKGSYSCONFDIR "/node_name", "r");
 	if (fp == NULL) {
@@ -472,23 +435,13 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 	/* Close file. */
 	fclose(dtm_conf_file);
 
-	if (strlen(config->ip_addr) > INET_ADDRSTRLEN ) {
-		if (strlen(config->ip_addr) > INET6_ADDRSTRLEN) {
-			LOG_ER("DTM:IPV6 address validation failed");
-			return -1;
-		}
-		config->i_addr_family = DTM_IP_ADDR_TYPE_IPV6;
-		TRACE("DTM: IPV6 IP address : %s  sa_family : %d \n",
-				config->ip_addr, config->i_addr_family);
-	} else {
-		/*************************************************************/
-		/* Set up validate the IP & sa_family stuff  */
-		/*************************************************************/
-		local_match_ip = dtm_validate_listening_ip_addr(config);
-		if (local_match_ip == NULL) {
-			LOG_ER("DTM: ip_addr cannot match available network interfaces with IPs of node specified in the dtm.conf file");
-			return -1;
-		}
+	/*************************************************************/
+	/* Set up validate the IP & sa_family stuff  */
+	/*************************************************************/
+	local_match_ip = dtm_validate_listening_ip_addr(config);
+	if (local_match_ip == NULL) {
+		LOG_ER("DTM: ip_addr cannot match available network interfaces with IPs of node specified in the dtm.conf file");
+		return -1;
 	}
 
 	/* Test so we have all mandatory fields */
