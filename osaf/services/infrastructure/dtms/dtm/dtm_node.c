@@ -782,6 +782,9 @@ void node_discovery_process(void *arg)
 			} else if (fds[i].revents & POLLOUT) {
 				fd_check++;
 				dtm_internode_process_pollout(fds[i].fd);
+			} else if (fds[i].revents & POLLHUP) {
+				fd_check++;
+				close_conn = true;
 			}
 
 		/*******************************************************/
