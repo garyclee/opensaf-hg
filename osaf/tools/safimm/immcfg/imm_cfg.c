@@ -50,13 +50,16 @@ typedef enum {
 	DELETE_OBJECT = 2,
 	DELETE_CLASS = 3,
 	MODIFY_OBJECT = 4,
-	LOAD_IMMFILE = 5
+	LOAD_IMMFILE = 5,
+	VALIDATE_IMMFILE = 6
 } op_t;
 
 #define VERBOSE_INFO(format, args...) if (verbose) { fprintf(stderr, format, ##args); }
 
-// The interface function which implements the -f opton (imm_import.cc)
+// Interface functions which implement -f and -L options (imm_import.cc)
 int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ccb_safe);
+int validateImmXML(const char *xmlfile, int verbose);
+
 
 const SaImmCcbFlagsT defCcbFlags = SA_IMM_CCB_REGISTERED_OI | SA_IMM_CCB_ALLOW_NULL_OI;
 
@@ -79,13 +82,14 @@ static void usage(const char *progname)
 	printf("\t-d, --delete-object [object DN]... \n");
 	printf("\t-h, --help                    this help\n");
 	printf("\t-m, --modify-object [object DN]... \n");
-	printf("\t-v, --verbose (only valid with -f/--file option)\n");
+	printf("\t-v, --verbose (only valid with -f/--file and -L/--validate options)\n");
 	printf("\t-f, --file <imm.xml file containing classes and/or objects>\n");
 	printf("\t-t, --timeout <sec>\n");
 	printf("\t\tutility timeout in seconds\n");
 	printf("\t--ignore-duplicates  (only valid with -f/--file option, default)\n");
 	printf("\t--delete-class <classname> [classname2]... \n");
 	printf("\t-u, --unsafe\n");
+	printf("\t-L, --validate <imm.xml file>\n");
 
 	printf("\nEXAMPLE\n");
 	printf("\timmcfg -a saAmfNodeSuFailoverMax=7 safAmfNode=Node01,safAmfCluster=1\n");
@@ -680,6 +684,7 @@ int main(int argc, char *argv[])
 		{"timeout", required_argument, NULL, 't'},
 		{"verbose", no_argument, NULL, 'v'},
 		{"unsafe", no_argument, NULL, 'u'},
+		{"validate", required_argument, NULL, 'L'},
 		{0, 0, 0, 0}
 	};
 	SaAisErrorT error;
@@ -703,7 +708,7 @@ int main(int argc, char *argv[])
 
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "a:c:f:t:dhmvu", long_options, &option_index);
+		c = getopt_long(argc, argv, "a:c:f:t:dhmvuL:", long_options, &option_index);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
@@ -728,6 +733,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 		case 'h':
+			free(adminOwnerName);
 			usage(basename(argv[0]));
 			exit(EXIT_SUCCESS);
 			break;
@@ -749,7 +755,12 @@ int main(int argc, char *argv[])
 			op = verify_setoption(op, MODIFY_OBJECT);
 			break;
 		}
+		case 'L':
+			op = VALIDATE_IMMFILE;
+			xmlFilename = optarg;
+			break;
 		default:
+			free(adminOwnerName);
 			fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
 			exit(EXIT_FAILURE);
 			break;
@@ -762,10 +773,22 @@ int main(int argc, char *argv[])
 	immutilWrapperProfile.errorsAreFatal = 0;
 	immutilWrapperProfile.nTries = timeoutVal;
 	immutilWrapperProfile.retryInterval = 1000;
+
+	if (op == VALIDATE_IMMFILE) {
+		free(adminOwnerName);
+		VERBOSE_INFO("validateImmXML(xmlFilename=%s, verbose=%d)\n", xmlFilename, verbose);
+		rc = validateImmXML(xmlFilename, verbose);
+
+		if(rc == 0)
+			printf("Validation is successful\n");
+
+		exit(rc);
+	}
 	
 	if (op == LOAD_IMMFILE) {
 		VERBOSE_INFO("importImmXML(xmlFilename=%s, verbose=%d)\n", xmlFilename, verbose);
 		rc = importImmXML(xmlFilename, adminOwnerName, verbose, ccb_safe);
+		free(adminOwnerName);
 		exit(rc);
 	}
 
@@ -789,6 +812,7 @@ int main(int argc, char *argv[])
 
 	/* Remaining arguments should be object names or class names. Need at least one... */
 	if ((argc - optind) < 1) {
+		free(adminOwnerName);
 		fprintf(stderr, "error - specify at least one object or class\n");
 		exit(EXIT_FAILURE);
 	}
@@ -850,6 +874,7 @@ int main(int argc, char *argv[])
 	}
 
  done_om_finalize:
+	free(adminOwnerName);
 	error = immutil_saImmOmFinalize(immHandle);
 	if (SA_AIS_OK != error) {
                 fprintf(stderr, "error - saImmOmFinalize FAILED: %s\n", saf_error(error));
