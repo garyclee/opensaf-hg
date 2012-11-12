@@ -27,6 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdint.h>
+#include <sys/stat.h>
 
 
 #ifdef HAVE_CONFIG_H
