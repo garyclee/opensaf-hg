@@ -513,6 +513,20 @@ immModel_specialApplierTrimCreate(IMMND_CB *cb, SaUint32T clientId,
         specialApplierTrimCreate(clientId, req);
 }
 
+SaBoolT
+immModel_isSpecialAndAddModify(IMMND_CB *cb, SaUint32T clientId, SaUint32T ccbId)
+{
+    return ImmModel::instance(&cb->immModel)->
+        isSpecialAndAddModify(clientId, ccbId);
+}
+
+void
+immModel_genSpecialModify(IMMND_CB *cb, struct ImmsvOmCcbObjectModify *req)
+{
+    ImmModel::instance(&cb->immModel)->
+        genSpecialModify(req);
+}
+
 
 SaUint32T
 immModel_getLocalAppliersForObj(IMMND_CB *cb,
@@ -4842,6 +4856,84 @@ void ImmModel::getLocalAppliersForObj(const SaNameT* objName, SaUint32T ccbId,
     }
 }
 
+/*
+  Checks if the there is any local special applier AND if the CCB op callbacks
+  have not yet included information about admin-owner-name.
+  Admin-owner name is always included in create and modify callbacks directed at
+  special appliers. Delete callbacks do not contain any attribute info and so 
+  can not inform the special applier about the admin-owner-name for the CCB.
+  If this function returns true then it signals the need for generating a fake
+  modify-callback only containing the system attribute SaImmAttrAdminOwnerName.
+ */
+SaBoolT
+ImmModel::isSpecialAndAddModify(SaUint32T clientId, SaUint32T ccbId)
+{
+    ImplementerInfo* specialApplier = getSpecialApplier();
+    if(specialApplier && !(specialApplier->mDying) && specialApplier->mConn == clientId) {
+        CcbVector::iterator i;
+        i = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
+        osafassert(i != sCcbVector.end());
+        CcbInfo* ccb = (*i);
+        osafassert(ccb->isActive());
+        if(!(ccb->mCcbFlags & OPENSAF_IMM_CCB_ADMO_PROVIDED)) {
+            TRACE("isSpecialAndAddModify returns TRUE");
+            return SA_TRUE;
+        }
+    }
+
+    /* Admo already provided, no need for fake modify. */
+    TRACE("isSpecialAndAddModify returns FALSE");
+    return SA_FALSE;
+}
+
+/*
+  This function populates the fake modify callback to be directed at special appliers,
+  informing them of admin-owner-name related to a ccb. 
+*/
+void
+ImmModel::genSpecialModify(ImmsvOmCcbObjectModify* req)
+{
+    TRACE_ENTER();
+    std::string objAdminOwnerName;
+    std::string objectName((const char*)req->objectName.buf);
+    ObjectMap::iterator oi = sObjectMap.find(objectName);
+    osafassert(oi != sObjectMap.end());
+    ObjectInfo* object = oi->second;
+
+    CcbVector::iterator i1 = 
+        std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(req->ccbId));
+    osafassert(i1 != sCcbVector.end());
+    CcbInfo* ccb = *i1;
+    osafassert(ccb->isOk() && ccb->isActive());
+
+    AdminOwnerVector::iterator i2 = 
+        std::find_if(sOwnerVector.begin(), sOwnerVector.end(), IdIs(req->adminOwnerId));
+    osafassert(i2 != sOwnerVector.end());
+    AdminOwnerInfo* adminOwner = *i2;
+
+    object->getAdminOwnerName(&objAdminOwnerName);
+
+    osafassert(objAdminOwnerName == adminOwner->mAdminOwnerName);
+    osafassert(req->attrMods == NULL);
+
+    req->attrMods = (IMMSV_ATTR_MODS_LIST *) malloc(sizeof(IMMSV_ATTR_MODS_LIST)); /* alloc1 */
+    req->attrMods->attrModType = SA_IMM_ATTR_VALUES_REPLACE;
+    req->attrMods->next = NULL;
+
+    req->attrMods->attrValue.attrMoreValues = NULL;
+    req->attrMods->attrValue.attrValuesNumber = 1;
+    req->attrMods->attrValue.attrValueType = SA_IMM_ATTR_SASTRINGT;
+    req->attrMods->attrValue.attrName.size = strlen(SA_IMM_ATTR_ADMIN_OWNER_NAME)+1;
+    req->attrMods->attrValue.attrName.buf = strdup(SA_IMM_ATTR_ADMIN_OWNER_NAME); /* alloc2 */
+    req->attrMods->attrValue.attrValue.val.x.size = objAdminOwnerName.size() +1;
+    req->attrMods->attrValue.attrValue.val.x.buf = strdup(objAdminOwnerName.c_str()); /* alloc3 */
+
+    ccb->mCcbFlags |= OPENSAF_IMM_CCB_ADMO_PROVIDED;
+
+
+    TRACE_LEAVE();
+}
+
 immsv_attr_values_list * 
 ImmModel::specialApplierTrimCreate(SaUint32T clientId, ImmsvOmCcbObjectCreate* req)
 {
@@ -6686,11 +6778,12 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             /* Object not yet included in upcall list since there was no regular 
                local implementer. But object is persistent.
             */
-            if(pbeIsLocal || (
-                (
-                  !(oi->second->mClassInfo->mAppliers.empty()) &&
-                     hasLocalClassAppliers(oi->second->mClassInfo)
-                ) || hasLocalObjAppliers(oi->first))) {
+            if(pbeIsLocal
+               || (!(oi->second->mClassInfo->mAppliers.empty()) &&
+                     hasLocalClassAppliers(oi->second->mClassInfo))
+               || hasLocalObjAppliers(oi->first)
+               || specialApplyForClass(oi->second->mClassInfo)) {
+
                 /* PBE is local and/or possibly local appliers. 
                    Add object to upcall list with zeroed connection and
                    zeroed continuation (no reply wanted). 

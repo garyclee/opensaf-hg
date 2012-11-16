@@ -189,6 +189,9 @@ public:
 						     SaUint32T clientId,
 						     ImmsvOmCcbObjectCreate* req);
 
+    SaBoolT             isSpecialAndAddModify(SaUint32T clientId, SaUint32T ccbId);
+    void                genSpecialModify(ImmsvOmCcbObjectModify* req);
+
     void                getLocalAppliersForObj(
                                         const SaNameT* objName,
 					SaUint32T ccbId,

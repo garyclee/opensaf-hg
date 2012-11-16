@@ -5370,7 +5370,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 			int ix = 0;
 			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
 				if(implConnArr[ix] == 0) {
-					/* implConn zero => ony for PBE. */
+					/* implConn zero => ony for PBE or appliers. */
 					TRACE("Skiping over %s (was only for PBE)", objNameArr[ix]);
 					continue;
 				}
@@ -5458,18 +5458,56 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 				if (oi_cl_node->mIsStale) {
 					LOG_WA("Applier went down so no delete upcall to one client");
 					continue;
-				} else {
-					send_evt.info.imma.info.objDelete.immHandle = implHandle;
-					/*Yes that was a bit ugly. But the upcall message is the same 
-					   structure as the request message, except the semantics of one 
-					   integer member differs.
-					 */
-					TRACE_2("MAKING OI-APPLIER OBJ DELETE upcall ");
+				}
+
+				send_evt.info.imma.info.objDelete.immHandle = implHandle;
+
+				if((ix2 == (arrSize2 - 1)) && immModel_isSpecialAndAddModify(cb, applConnArr[ix2],
+						evt->info.objDelete.ccbId)) {
+					IMMSV_EVT send_evt2;
+					memset(&send_evt2, '\0', sizeof(IMMSV_EVT));
+					/* Last local applier may be special applier.
+					   If so then we may need to send a fake modify upcall,
+					   to inform the special applier of the ccb's admin-owner-name.
+					*/
+					TRACE("Special fake object-modify with admin-owner-name appended to ccb:%u",
+						evt->info.objDelete.ccbId);
+
+					send_evt2.type = IMMSV_EVT_TYPE_IMMA;
+					send_evt2.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC;
+					send_evt2.info.imma.info.objModify.ccbId = evt->info.objDelete.ccbId;
+					send_evt2.info.imma.info.objModify.adminOwnerId = 
+						evt->info.objDelete.adminOwnerId;  /* Temporary for downcall */
+					send_evt2.info.imma.info.objModify.objectName = 
+						send_evt.info.imma.info.objDelete.objectName;
+					send_evt2.info.imma.info.objModify.immHandle = implHandle;
+
+					immModel_genSpecialModify(cb, &(send_evt2.info.imma.info.objModify));
+					send_evt2.info.imma.info.objModify.adminOwnerId = 0;/* Reset to 0 for no reply*/
+
 					if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
-							       oi_cl_node->agent_mds_dest,
-							       &send_evt) != NCSCC_RC_SUCCESS) {
-						LOG_WA("Delete upcall for applier failed conn:%u", applConnArr[ix2]);
+							oi_cl_node->agent_mds_dest,
+							&send_evt2) != NCSCC_RC_SUCCESS) {
+						LOG_WA("Special modify upcall for applier failed conn:%u", applConnArr[ix2]);
 					}
+					/* Free temporary structures allocated in immModel_genSpecialModify */
+					free(send_evt2.info.imma.info.objModify.attrMods->attrValue.attrValue.val.x.buf); /* free3 */
+					send_evt2.info.imma.info.objModify.attrMods->attrValue.attrValue.val.x.buf=NULL;
+					send_evt2.info.imma.info.objModify.attrMods->attrValue.attrValue.val.x.size=0;
+
+					free(send_evt2.info.imma.info.objModify.attrMods->attrValue.attrName.buf); /* free2 */
+					send_evt2.info.imma.info.objModify.attrMods->attrValue.attrName.buf = NULL;
+					send_evt2.info.imma.info.objModify.attrMods->attrValue.attrName.size=0;
+
+					free(send_evt2.info.imma.info.objModify.attrMods); /* free1 */
+					send_evt2.info.imma.info.objModify.attrMods=NULL;
+				}
+
+				TRACE_2("MAKING OI-APPLIER OBJ DELETE upcall ");
+				if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+						oi_cl_node->agent_mds_dest,
+						&send_evt) != NCSCC_RC_SUCCESS) {
+					LOG_WA("Delete upcall for applier failed conn:%u", applConnArr[ix2]);
 				}
 			}	/* for(; ix2.. */
 			free(applConnArr);
