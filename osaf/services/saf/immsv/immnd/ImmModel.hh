@@ -56,6 +56,7 @@ struct ImmOiRtObjectCreate;
 
 struct immsv_oi_ccb_upcall_rsp;
 struct immsv_attr_values_list;
+struct immsv_attr_mods_list;
 
 struct ImmsvOmRspSearchNext;
 
@@ -188,6 +189,10 @@ public:
     immsv_attr_values_list* specialApplierTrimCreate(
 						     SaUint32T clientId,
 						     ImmsvOmCcbObjectCreate* req);
+
+    immsv_attr_mods_list* specialApplierTrimModify(
+						   SaUint32T clientId,
+						   ImmsvOmCcbObjectModify* req);
 
     SaBoolT             isSpecialAndAddModify(SaUint32T clientId, SaUint32T ccbId);
     void                genSpecialModify(ImmsvOmCcbObjectModify* req);

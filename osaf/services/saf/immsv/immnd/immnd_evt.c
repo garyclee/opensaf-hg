@@ -4869,6 +4869,17 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 				implHandle = m_IMMSV_PACK_HANDLE(applConnArr[ix], cb->node_id);
 				send_evt.info.imma.info.objModify.immHandle = implHandle;
 
+				if(ix == (arrSize -1)) {
+					/* Last local applier may be a special applier.
+					   If so then attribute-list will be trimmed for special applier.
+                                           If not special applier, then attribute-list will be untouched
+					   since the last applier is then a regular applier. 
+					 */
+					evt->info.objModify.attrMods = send_evt.info.imma.info.objModify.attrMods =
+						immModel_specialApplierTrimModify(cb, applConnArr[ix], &(evt->info.objModify));
+
+				}
+
 				/*Fetch client node for Applier OI ! */
 				immnd_client_node_get(cb, implHandle, &oi_cl_node);
 				osafassert(oi_cl_node != NULL);
