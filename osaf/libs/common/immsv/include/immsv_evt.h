@@ -565,6 +565,8 @@ void immsv_evt_enc_inline_string(NCS_UBAID *o_ub, IMMSV_OCTET_STRING *os);
 void immsv_evt_dec_inline_string(NCS_UBAID *i_ub, IMMSV_OCTET_STRING *os);
 
 void immsv_evt_free_att_val(IMMSV_EDU_ATTR_VAL *v, SaImmValueTypeT t);
+void immsv_evt_free_att_val_raw(IMMSV_EDU_ATTR_VAL *v, long t);
+void immsv_free_attr_list_raw(IMMSV_EDU_ATTR_VAL_LIST *al, const long avt);
 
 void immsv_msg_trace_send(MDS_DEST to, IMMSV_EVT *evt);
 void immsv_msg_trace_rec(MDS_DEST from, IMMSV_EVT *evt);

@@ -513,6 +513,14 @@ immModel_specialApplierTrimCreate(IMMND_CB *cb, SaUint32T clientId,
         specialApplierTrimCreate(clientId, req);
 }
 
+struct immsv_attr_mods_list * 
+immModel_specialApplierTrimModify(IMMND_CB *cb, SaUint32T clientId, 
+   struct ImmsvOmCcbObjectModify *req)
+{
+    return ImmModel::instance(&cb->immModel)->
+        specialApplierTrimModify(clientId, req);
+}
+
 SaBoolT
 immModel_isSpecialAndAddModify(IMMND_CB *cb, SaUint32T clientId, SaUint32T ccbId)
 {
@@ -4934,6 +4942,157 @@ ImmModel::genSpecialModify(ImmsvOmCcbObjectModify* req)
     TRACE_LEAVE();
 }
 
+immsv_attr_mods_list * 
+ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* req)
+{
+    /* 
+       Check for special applier, if not present then return modlist unmolested.
+
+       Go through attrmods. 
+       Filter out any mods on attributes that are not flagged for NOTIFY.
+
+       Canonicalize the remaining application level modifications to be
+       of type REPLACE and containing just the after-value.
+
+       Add fake attribute modifications for class-name and for admin-owner.
+       Fake admin-owner modification only added once per ccb.
+
+     */
+
+    immsv_attr_mods_list * attrMods = req->attrMods;
+    ImplementerInfo* specialApplier = getSpecialApplier();
+    if(specialApplier && specialApplier->mConn == clientId) { 
+        std::string objectName((const char*)req->objectName.buf);
+        ObjectMap::iterator oi = sObjectMap.find(objectName);
+        osafassert(oi != sObjectMap.end());
+        ObjectInfo* obj = oi->second;
+        ClassInfo* classInfo = obj->mClassInfo;
+        if(!specialApplyForClass(classInfo)) {goto done;}
+
+        CcbVector::iterator i1 = 
+            std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(req->ccbId));
+        osafassert(i1 != sCcbVector.end());
+        CcbInfo* ccb = *i1;
+
+        int x=0;
+        immsv_attr_mods_list** head = &attrMods;
+        immsv_attr_mods_list* current = attrMods;
+        bool processAdmoAttr=false;
+        bool processClassAttr=true;
+        immsv_attr_mods_list* tmp = (immsv_attr_mods_list *) calloc(1, sizeof(immsv_attr_mods_list));
+
+        /* Always prepend fake class-name-attr modification */
+        tmp->attrModType = SA_IMM_ATTR_VALUES_ADD; /* to trigger replacement below */
+        tmp->attrValue.attrName.buf = strdup(SA_IMM_ATTR_CLASS_NAME); 
+        tmp->attrValue.attrName.size = strlen(tmp->attrValue.attrName.buf) +1;
+        tmp->attrValue.attrValueType = SA_IMM_ATTR_SASTRINGT;
+        /* All other members zeroed in calloc above. */
+        tmp->next = attrMods;
+        current = attrMods = tmp;
+        tmp = NULL;
+        /* Prepend fake class-name attribute modification done */
+
+        if(ccb->mCcbFlags & OPENSAF_IMM_CCB_ADMO_PROVIDED) {
+            TRACE("Special applier already notified of admin-owner for ccb %u", req->ccbId);
+        } else {
+            /* Mark the ccb for admin-owner-name having been sent. */
+            ccb->mCcbFlags |= OPENSAF_IMM_CCB_ADMO_PROVIDED; 
+
+            /* Add admin-owner as fake modification. */
+            processAdmoAttr=true;
+            immsv_attr_mods_list* tmp = (immsv_attr_mods_list *) calloc(1, sizeof(immsv_attr_mods_list));
+            tmp->attrModType = SA_IMM_ATTR_VALUES_ADD; /* to trigger replacement below */
+            tmp->attrValue.attrName.buf = strdup(SA_IMM_ATTR_ADMIN_OWNER_NAME); 
+            tmp->attrValue.attrName.size = strlen(tmp->attrValue.attrName.buf) +1;
+            tmp->attrValue.attrValueType = SA_IMM_ATTR_SASTRINGT;
+            /* All other members zeroed in calloc above. */
+            tmp->next = attrMods;
+            current = attrMods = tmp;
+            tmp = NULL;
+        }
+
+        do {
+            std::string attName((const char*)current->attrValue.attrName.buf);
+            TRACE("Loop count:%u head:%p (*head):%p current:%p next:%p attr:%s", 
+               x++, head, *head, current, current->next, attName.c_str());
+
+            AttrMap::iterator iatt = classInfo->mAttrMap.find(attName);
+            osafassert(iatt != classInfo->mAttrMap.end());
+
+            if(iatt->second->mFlags & SA_IMM_ATTR_NOTIFY) {
+                TRACE("Attribute %s marked ATTR_NOTIFY, kept for special "
+                      "applier callback for ccb %u", current->attrValue.attrName.buf,
+                    req->ccbId);
+                goto keep_op;
+            } else if(processAdmoAttr) {
+                /* Admin-owner attribute was added as top list element. */
+                processAdmoAttr=false;
+                goto keep_op;
+            } else if(processClassAttr) {
+                /* Class attribute always added as top (or second) list element. */
+                processAdmoAttr=false;
+                goto keep_op;
+            }
+
+            /* Remove the attribute modification */
+            *head = current->next;
+            current->next = NULL;
+            immsv_free_attrmods(current);
+            current = *head;
+            TRACE("Discarded attribute %s", attName.c_str());
+            continue;
+
+        keep_op:
+            TRACE("Kept attribute %s", attName.c_str());
+            /* Canonicalize kept attribute to VALUES_REPLACE */
+            if(current->attrModType != SA_IMM_ATTR_VALUES_REPLACE) {
+                osafassert(current->attrModType == SA_IMM_ATTR_VALUES_ADD ||
+                           current->attrModType == SA_IMM_ATTR_VALUES_DELETE);
+
+                if (current->attrValue.attrValuesNumber) {
+                    /* Discard the attr-mod add/remove value, if any. */
+                    immsv_evt_free_att_val_raw(&(current->attrValue.attrValue), 
+                        current->attrValue.attrValueType);
+                    if (current->attrValue.attrValuesNumber > 1) {
+                        immsv_free_attr_list_raw(current->attrValue.attrMoreValues,
+                            current->attrValue.attrValueType);
+                        current->attrValue.attrMoreValues=NULL;
+                    }
+                    current->attrValue.attrValuesNumber = 0;
+                }
+
+                current->attrModType = SA_IMM_ATTR_VALUES_REPLACE;
+                TRACE("Replacing attr %s", attName.c_str());
+                /* Find the after-value in the object. */
+                ImmAttrValueMap::iterator j = obj->mAttrValueMap.find(attName);
+                osafassert(j != obj->mAttrValueMap.end());
+                ImmAttrValue* attVal = j->second;
+                if(!attVal->empty()) {
+                    /* Extract the head value "inline" */
+                    attVal->copyValueToEdu(&(current->attrValue.attrValue), 
+                       (SaImmValueTypeT) current->attrValue.attrValueType);
+                    if(attVal->extraValues()) {
+                        /*  Extract extra values */
+                        osafassert(attVal->isMultiValued());
+                        ImmAttrMultiValue* multiVal = (ImmAttrMultiValue *) attVal;
+                        multiVal->copyExtraValuesToEdu(&(current->attrValue.attrMoreValues), 
+                           (SaImmValueTypeT) current->attrValue.attrValueType);
+                    }
+                    current->attrValue.attrValuesNumber = 1 + attVal->extraValues();
+                }
+            }
+       
+            head = &((*head)->next);
+            current = *head;
+
+        } while (current);
+    }
+
+ done:
+    return attrMods;
+}
+
+
 immsv_attr_values_list * 
 ImmModel::specialApplierTrimCreate(SaUint32T clientId, ImmsvOmCcbObjectCreate* req)
 {
@@ -5852,6 +6011,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     ObjectMutation* oMut = 0;
     bool chainedOp = false;
     immsv_attr_mods_list* p = req->attrMods;
+    bool modifiedNotifyAttr=false;
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
@@ -6052,6 +6212,8 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             err = SA_AIS_ERR_INVALID_PARAM;
             break; //out of for-loop
         }
+
+        if(attr->mFlags & SA_IMM_ATTR_NOTIFY) {modifiedNotifyAttr=true;}
 
         if(attr->mValueType == SA_IMM_ATTR_SANAMET) {
             if(p->attrValue.attrValue.val.x.size >= SA_MAX_NAME_LENGTH) {
@@ -6357,9 +6519,13 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     }
 
  ccbObjectModifyExit:
-    if((err != SA_AIS_OK) ||
-       ((!classInfo || classInfo->mAppliers.empty()) &&
-        sObjAppliersMap.find(objectName) == sObjAppliersMap.end())) {
+    
+    modifiedNotifyAttr = modifiedNotifyAttr && getSpecialApplier();
+
+    if((err != SA_AIS_OK) || !classInfo || 
+       (classInfo->mAppliers.empty() && !modifiedNotifyAttr &&
+         sObjAppliersMap.find(objectName) == sObjAppliersMap.end()))
+    {
         objectName.clear();
     }
     TRACE_LEAVE(); 

@@ -266,6 +266,9 @@ extern "C" {
 	struct immsv_attr_values_list * 
 	immModel_specialApplierTrimCreate(IMMND_CB *cb, SaUint32T clientId, struct ImmsvOmCcbObjectCreate *req);
 
+	struct immsv_attr_mods_list * 
+	immModel_specialApplierTrimModify(IMMND_CB *cb, SaUint32T clientId, struct ImmsvOmCcbObjectModify *req);
+
 	SaBoolT immModel_isSpecialAndAddModify(IMMND_CB *cb, SaUint32T clientId, SaUint32T ccbId);
 
 	void immModel_genSpecialModify(IMMND_CB *cb, struct ImmsvOmCcbObjectModify *req);

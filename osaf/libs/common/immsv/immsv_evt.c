@@ -342,6 +342,11 @@ static void immsv_evt_dec_att_val(NCS_UBAID *i_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 	}
 }
 
+void immsv_evt_free_att_val_raw(IMMSV_EDU_ATTR_VAL *p, long valueType)
+{
+	immsv_evt_free_att_val(p, valueType);
+}
+
 void immsv_evt_free_att_val(IMMSV_EDU_ATTR_VAL *p, SaImmValueTypeT t)
 {
 	switch (t) {
@@ -499,6 +504,11 @@ void immsv_free_attr_list(IMMSV_EDU_ATTR_VAL_LIST *al, const SaImmValueTypeT avt
 		immsv_evt_free_att_val(&(tmp->n), avt);
 		free(tmp);
 	}
+}
+
+void immsv_free_attr_list_raw(IMMSV_EDU_ATTR_VAL_LIST *al, const long avt)
+{
+	immsv_free_attr_list(al, avt);
 }
 
 void immsv_free_attrmods(IMMSV_ATTR_MODS_LIST *p)
