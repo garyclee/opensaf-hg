@@ -9114,6 +9114,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     SaUint64T mds_dest)
 {
     SaAisErrorT err = SA_AIS_OK;
+    CcbVector::iterator i;
     TRACE_ENTER();
     
     //Check first if implementer name already exists.
@@ -9129,8 +9130,16 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
         //This return code not formally allowed here according to IMM standard.
     }
     
+    bool isApplier = (implName.at(0) == '@');
+
     ImplementerInfo* info = findImplementer(implName);
     if(info) {
+        CcbInfo* ccb = NULL;
+        ObjectMutationMap::iterator omit;
+        ObjectInfo* obj=NULL;
+        ObjectMap::iterator oi;
+        ImplementerSetMap::iterator ismIter;
+
         if(info->mId) { 
             TRACE_7("ERR_EXIST: Registered implementer already exists: %s", 
                 implName.c_str());
@@ -9146,6 +9155,49 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
 
         //Check objects for attachment to this implementer and 
         //verify that no ccb is active on them. Iterate over CCB vector!
+        for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
+            ccb = (*i);
+            if(ccb->isActive()) {
+                for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit) {
+                    oi = sObjectMap.find(omit->first);
+                    osafassert(oi != sObjectMap.end());
+                    obj = oi->second;
+
+                    if(obj->mImplementer == info) {
+                        osafassert(!isApplier);
+                        TRACE("TRY_AGAIN: ccb %u is active on object '%s' bound to OI name "
+                              "'%s'. Can not set re-attach implementer", ccb->mId,
+                              omit->first.c_str(), implName.c_str());
+                        err = SA_AIS_ERR_TRY_AGAIN;
+                        goto done;
+                    }
+
+                    if(isApplier) { 
+                        if( ! obj->mClassInfo->mAppliers.empty()) {
+                            ImplementerSet::iterator ii = obj->mClassInfo->mAppliers.begin();
+                            for(; ii != obj->mClassInfo->mAppliers.end(); ++ii) {
+                                if((*ii) == info) {
+                                    TRACE("TRY_AGAIN: ccb %u is active on object '%s' "
+                                       "bound to class applier '%s'. Can not re-attach applier",
+                                       ccb->mId, omit->first.c_str(), implName.c_str());
+                                    err = SA_AIS_ERR_TRY_AGAIN;
+                                    goto done;
+                                }
+                            }
+                        }
+
+                        ismIter = sObjAppliersMap.find(omit->first);
+                        if(ismIter != sObjAppliersMap.end()) {
+                            TRACE("TRY_AGAIN: ccb %u is active on object '%s' "
+                                  "bound to object applier '%s'. Can not re-attach applier",
+                                   ccb->mId, omit->first.c_str(), implName.c_str());
+                            err = SA_AIS_ERR_TRY_AGAIN;
+                            goto done;
+                        }
+                    }
+                }
+            }
+        }
     } else {
         TRACE_7("Creating FRESH NEW implementer for %s", implName.c_str());
         info = new ImplementerInfo;
@@ -9166,7 +9218,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     info->mMds_dest = mds_dest;
     info->mDying = false;
     
-    if(implName.at(0) == '@') {
+    if(isApplier) {
         info->mApplier = true;
         LOG_NO("Implementer (applier) connected: %u (%s) <%u, %x>",
             info->mId, info->mImplementerName.c_str(), info->mConn,
@@ -9184,7 +9236,6 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
        /* If we find any, then surgically replace the implId of the implAssoc with
            the new implId of the newly reincarnated PBE implementer.*/
 
-        CcbVector::iterator i;
         for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
             CcbInfo* ccb = (*i);
             if(ccb->mState == IMM_CCB_CRITICAL) {
@@ -9235,6 +9286,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
       info->mAdminOpBusy);
       }
      */
+ done:
     TRACE_LEAVE();
     return err;
 }
@@ -9301,14 +9353,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
     }
 
     if(info->mApplier) {
-        if(classInfo->mAppliers.find(info) != classInfo->mAppliers.end()) {
-            /* Idempotency */
-            TRACE_7("Applier %s ALREADY set for class %s", info->mImplementerName.c_str(),
-                className.c_str());
-            goto done;
-        }
-
-        /* Prevent adding applier to CCBs in progress. 
+        /* Prevent adding class applier to CCBs in progress. 
            Iterate over ccb-vector instead of class extent. */
         CcbVector::iterator i1;
         for(i1 = sCcbVector.begin(); i1 != sCcbVector.end(); ++i1) {
@@ -9328,6 +9373,13 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
                     }
                 }
             }
+        }
+
+        if(classInfo->mAppliers.find(info) != classInfo->mAppliers.end()) {
+            /* Idempotency */
+            TRACE_7("Applier %s ALREADY set for class %s", info->mImplementerName.c_str(),
+                className.c_str());
+            goto done;
         }
 
         /* Prevent mixing of ClassImplementerSet & ObjectImplementerSet for
@@ -9364,21 +9416,6 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
     }
 
     /* Regular OI */
-
-    if(classInfo->mImplementer) { /* Class implementer is already set. */
-        if(classInfo->mImplementer == info) {
-            /* Idempotency */
-            TRACE_7("Class '%s' already has %s as class implementer ",
-            className.c_str(), info->mImplementerName.c_str());
-        } else {
-            LOG_NO("ERR_EXIST: Class '%s' already has OTHER class implementer "
-                "%s != %s", className.c_str(), classInfo->mImplementer->
-                mImplementerName.c_str(), info->mImplementerName.c_str());
-            err = SA_AIS_ERR_EXIST;
-        }
-
-        goto done;
-    }
 
     /* Prevent mixing of ClassImplementerSet has to override 
        any previous ObjectImplementerSet for same main-implementer
@@ -9423,6 +9460,21 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
             }
         }
     }//for
+
+    if(classInfo->mImplementer) { /* Class implementer is already set. */
+        if(classInfo->mImplementer == info) {
+            /* Idempotency */
+            TRACE_7("Class '%s' already has %s as class implementer ",
+            className.c_str(), info->mImplementerName.c_str());
+        } else {
+            LOG_NO("ERR_EXIST: Class '%s' already has OTHER class implementer "
+                "%s != %s", className.c_str(), classInfo->mImplementer->
+                mImplementerName.c_str(), info->mImplementerName.c_str());
+            err = SA_AIS_ERR_EXIST;
+        }
+
+        goto done;
+    }
 
     osafassert(err == SA_AIS_OK);
 
@@ -9853,7 +9905,7 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
             sCcbVector.end(), CcbIdIs(obj->mCcbId));
         if(i1 != sCcbVector.end() && (*i1)->isActive()) {
             LOG_NO("ERR_BUSY: ccb %u is active on object %s Can not "
-                    "add objec %s", obj->mCcbId, objectName.c_str(),
+                    "add object %s", obj->mCcbId, objectName.c_str(),
                      (info->mApplier)?"applier":"implementer");
             err = SA_AIS_ERR_BUSY;
             /* Note: ERR_BUSY is actually not allowed here according to the 
