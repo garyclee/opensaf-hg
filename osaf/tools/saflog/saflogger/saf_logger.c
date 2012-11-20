@@ -87,13 +87,17 @@ static void usage(void)
 
 	printf("\nOPTIONS\n");
 
-	printf("  -h or --help                   this help\n");
-	printf("  -l or --alarm                  write to alarm stream\n");
-	printf("  -n or --notification           write to notification stream\n");
-	printf("  -y or --system                 write to system stream (default)\n");
-	printf("  -a NAME or --application=NAME  write to application stream NAME\n");
-	printf("  -s SEV or --severity=SEV       use severity SEV, default INFO\n");
-	printf("      valid severity names: emerg, alert, crit, error, warn, notice, info\n");
+	printf("\t-h or --help                   this help\n");
+	printf("\t-l or --alarm                  write to alarm stream\n");
+	printf("\t-n or --notification           write to notification stream\n");
+	printf("\t-y or --system                 write to system stream (default)\n");
+	printf("\t-a NAME or --application=NAME  write to application stream NAME (create it if not exist)\n");
+	printf("\t-s SEV or --severity=SEV       use severity SEV, default INFO\n");
+	printf("\t\tvalid severity names: emerg, alert, crit, error, warn, notice, info\n");
+
+	printf("\nEXAMPLES\n");
+	printf("\tsaflogger -a safLgStrCfg=Test \"Hello world\"\n");
+	printf("\tsaflogger -s crit \"I am going down\"\n\n");
 }
 
 static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error)
@@ -285,7 +289,10 @@ int main(int argc, char *argv[])
 			strcpy((char *)logStreamName.value, SA_LOG_STREAM_SYSTEM);
 			break;
 		case 'a':
-			sprintf((char *)logStreamName.value, "safLgStr=%s", optarg);
+			if (strstr(optarg, "safLgStr"))
+				strcpy((char *)logStreamName.value, optarg);
+			else
+				sprintf((char *)logStreamName.value, "safLgStr=%s", optarg);
 			logFileCreateAttributes = &appLogFileCreateAttributes;
 			appLogFileCreateAttributes.logFileName = strdup(optarg);
 			logStreamOpenFlags = SA_LOG_STREAM_CREATE;
@@ -338,11 +345,19 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	error = saLogStreamOpen_2(logHandle, &logStreamName,
-				  logFileCreateAttributes, logStreamOpenFlags, SA_TIME_ONE_SECOND, &logStreamHandle);
-	if (error != SA_AIS_OK) {
-		fprintf(stderr, "saLogStreamOpen_2 FAILED: %s\n", saf_error(error));
-		exit(EXIT_FAILURE);
+	/* Try open the stream before creating it. It might be a configured app
+	 * stream with other attributes than we have causing open with default
+	 * attributes to fail */
+	error = saLogStreamOpen_2(logHandle, &logStreamName, NULL, 0,
+			SA_TIME_ONE_SECOND, &logStreamHandle);
+
+	if (error == SA_AIS_ERR_NOT_EXIST) {
+		error = saLogStreamOpen_2(logHandle, &logStreamName, logFileCreateAttributes,
+				logStreamOpenFlags, SA_TIME_ONE_SECOND, &logStreamHandle);
+		if (error != SA_AIS_OK) {
+			fprintf(stderr, "saLogStreamOpen_2 FAILED: %s\n", saf_error(error));
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	if (write_log_record(logHandle, logStreamHandle, selectionObject, &logRecord) != SA_AIS_OK) {
