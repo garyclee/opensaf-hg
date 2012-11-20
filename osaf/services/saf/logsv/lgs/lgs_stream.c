@@ -52,6 +52,9 @@ close_retry:
 	if (rc == -1 && errno == EINTR)
 		goto close_retry;
 
+	if (rc == -1) {
+		LOG_ER("fileclose() %s",strerror(errno));
+	}
 	TRACE_LEAVE2("rc=%d", rc);
 	return rc;
 }
@@ -224,7 +227,7 @@ void log_stream_delete(log_stream_t **s)
 	TRACE_ENTER2("%s", stream->name);
 
 	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) 
-		if(stream->streamType == STREAM_TYPE_APPLICATION) {
+		if (stream->streamType == STREAM_TYPE_APPLICATION) {
 			SaAisErrorT rv;
 			TRACE("Stream is closed, I am HA active so remove IMM object");
 			SaNameT objectName;
@@ -518,7 +521,7 @@ log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
  *
  * @return int - the file descriptor or -1 on errors
  */
-static int log_file_open(log_stream_t *stream, int *errno_save)
+int log_file_open(log_stream_t *stream, int *errno_save)
 {
 	int fd;
 	char pathname[PATH_MAX + NAME_MAX + 1];
@@ -1051,15 +1054,18 @@ uint32_t log_stream_init(void)
 }
 
 /**
- * Close log file, change name of log file, create new log and
+ * Close log file, change name of log file, optionally create new log and
  * config file. Basically the same logic as described in 3.1.6.4
  * in A.02.01.
+ * create_files_f = true; New files are created
+ * create_files_f = false; New files are not creataed
+ * @param conf_mode
  * @param stream
  * @param current_file_name
  * 
  * @return int
  */
-int log_stream_config_change(log_stream_t *stream, const char *current_file_name)
+int log_stream_config_change(bool create_files_f, log_stream_t *stream, const char *current_file_name)
 {
 	int rc;
 	char *current_time;
@@ -1092,13 +1098,15 @@ int log_stream_config_change(log_stream_t *stream, const char *current_file_name
 	}
 
 	/* Creating the new config file */
-	if ((rc = lgs_create_config_file(stream)) != 0)
-		goto done;
+	if (create_files_f == LGS_STREAM_CREATE_FILES) {
+		if ((rc = lgs_create_config_file(stream)) != 0)
+			goto done;
 
-	sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
-	
-	/* Create the new log file based on updated configuration */
-	stream->fd = log_file_open(stream, NULL);
+		sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
+
+		/* Create the new log file based on updated configuration */
+		stream->fd = log_file_open(stream, NULL);
+	}
 
 	if (stream->fd == -1)
 		rc = -1;
