@@ -82,7 +82,7 @@ static lgs_conf_t _lgs_conf = {
 	.logStreamAppLowLimit_noteflag = false,
 	.logMaxApplicationStreams_noteflag = false
 };
-static const lgs_conf_t *lgs_conf = &_lgs_conf;
+static lgs_conf_t *lgs_conf = &_lgs_conf;
 
 static bool we_are_applier_flag = false;
 
@@ -145,44 +145,42 @@ static uint32_t lgs_ckpt_stream(log_stream_t *stream)
 }
 
 /**
- * Check if the given path is valid.
+ * Check if path is a writeable directory
  * We must have rwx access.
  * @param pathname
  * return: true  = Path is valid
  *         false = Path is invalid
  */
-static bool lgs_check_path_permissions(char* pathname)
+static bool path_is_writeable_dir(const char *pathname)
 {
-	bool rc=true;
+	bool is_writeable_dir = false;
 	struct stat pathstat;
 
 	TRACE_ENTER();
 
-	/* Check if the path points to a directory */
 	if (stat(pathname, &pathstat) != 0) {
-		TRACE("lgs_check_path_permissions() Directory %s does not exist",pathname);
-		rc = false;
+		LOG_NO("Path %s does not exist", pathname);
 		goto done;
 	}
+
+	/* Check if the path points to a directory */
 	if (!S_ISDIR(pathstat.st_mode)) {
-		TRACE("lgs_check_path_permissions() %s is not a directory",pathname);
-		rc = false;
+		LOG_NO("%s is not a directory", pathname);
 		goto done;
 	}
 
 	/* Check is we have correct permissions. Note that we check permissions for
 	 * real UID
 	 */
-	if (access(pathname,(R_OK | W_OK | X_OK)) != 0) {
-		TRACE("lgs_check_path_permissions() permission denied for %s, error %s",
-				pathname,strerror(errno));
-		rc = false;
+	if (access(pathname, (R_OK | W_OK | X_OK)) != 0) {
+		LOG_NO("permission denied for %s, error %s", pathname, strerror(errno));
 		goto done;
 	}
 
+	is_writeable_dir = true;
 done:
 	TRACE_LEAVE();
-	return rc;
+	return is_writeable_dir;
 }
 
 /**
@@ -196,19 +194,18 @@ done:
  * @param opId
  * @param params
  */
-static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
-					  SaInvocationT invocation,
-					  const SaNameT *objectName,
-					  SaImmAdminOperationIdT opId, const SaImmAdminOperationParamsT_2 **params)
+static void adminOperationCallback(SaImmOiHandleT immOiHandle,
+		SaInvocationT invocation, const SaNameT *objectName,
+		SaImmAdminOperationIdT opId, const SaImmAdminOperationParamsT_2 **params)
 {
 	SaUint32T severityFilter;
 	const SaImmAdminOperationParamsT_2 *param = params[0];
 	log_stream_t *stream;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("%s", objectName->value);
 
 	if (lgs_cb->ha_state != SA_AMF_HA_ACTIVE) {
-		TRACE("saImmOiAdminOperationCallback() Should never ger here");
+		LOG_ER("admin op callback in applier");
 		goto done;
 	}
 
@@ -270,24 +267,51 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 	TRACE_LEAVE();
 }
 
-static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
-					     SaImmOiCcbIdT ccbId, const SaNameT *objectName)
+static SaAisErrorT ccbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
+		SaImmOiCcbIdT ccbId, const SaNameT *objectName)
 {
-	TRACE_ENTER();
-	TRACE("saImmOiCcbObjectDeleteCallback() not allowed");
+	SaAisErrorT rc = SA_AIS_OK;
+	struct CcbUtilCcbData *ccbUtilCcbData;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", ccbId, objectName->value);
+
+	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
+		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
+			LOG_ER("Failed to get CCB object for %llu", ccbId);
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done;
+		}
+	}
+
+	ccbutil_ccbAddDeleteOperation(ccbUtilCcbData, objectName);
+
+done:
 	TRACE_LEAVE();
-	return SA_AIS_ERR_FAILED_OPERATION;
+	return rc;
 }
 
-static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle,
-					       SaImmOiCcbIdT ccbId,
-					       const SaImmClassNameT className,
-					       const SaNameT *parentName, const SaImmAttrValuesT_2 **attr)
+static SaAisErrorT ccbObjectCreateCallback(SaImmOiHandleT immOiHandle,
+		SaImmOiCcbIdT ccbId, const SaImmClassNameT className,
+		const SaNameT *parentName, const SaImmAttrValuesT_2 **attr)
 {
-	TRACE_ENTER();
-	TRACE("saImmOiCcbObjectCreateCallback() not allowed");
+	SaAisErrorT rc = SA_AIS_OK;
+	struct CcbUtilCcbData *ccbUtilCcbData;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", ccbId, className);
+
+	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
+		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
+			LOG_ER("Failed to get CCB object for %llu", ccbId);
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done;
+		}
+	}
+
+	ccbutil_ccbAddCreateOperation(ccbUtilCcbData, className, parentName, attr);
+
+done:
 	TRACE_LEAVE();
-	return SA_AIS_ERR_FAILED_OPERATION;
+	return rc;
 }
 
 /**
@@ -299,14 +323,14 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle,
  * @param attrMods
  * @return 
  */
-static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
-						  SaImmOiCcbIdT ccbId,
-						  const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods)
+static SaAisErrorT ccbObjectModifyCallback(SaImmOiHandleT immOiHandle,
+		SaImmOiCcbIdT ccbId, const SaNameT *objectName,
+		const SaImmAttrModificationT_2 **attrMods)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("CCB ID %llu, '%s'", ccbId, objectName->value);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
@@ -316,11 +340,287 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 		}
 	}
 
-	/* "memorize the modification request" */
 	ccbutil_ccbAddModifyOperation(ccbUtilCcbData, objectName, attrMods);
 
  done:
 	TRACE_LEAVE();
+	return rc;
+}
+
+static SaAisErrorT config_ccb_completed_create(const CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+
+	TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
+	LOG_NO("Creation of OpenSafLogConfig object is not supported");
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+static SaAisErrorT config_ccb_completed_modify(const CcbUtilOperationData_t *opdata)
+{
+	const SaImmAttrModificationT_2 *attrMod;
+	SaAisErrorT rc = SA_AIS_OK;
+	int i = 0;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	attrMod = opdata->param.modify.attrMods[i++];
+	while (attrMod != NULL) {
+		void *value;
+		const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
+
+		TRACE("attribute %s", attribute->attrName);
+
+		if (attribute->attrValuesNumber == 0) {
+			LOG_NO("deletion of value is not allowed for attribute %s stream %s",
+					attribute->attrName, opdata->objectName.value);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		value = attribute->attrValues[0];
+
+		if (!strcmp(attribute->attrName, "logRootDirectory")) {
+			char *pathName = *((char **)value);
+			if (!path_is_writeable_dir(pathName)) {
+				LOG_NO("pathName: %s is NOT accepted", pathName);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+			TRACE("pathName: %s is accepted", pathName);
+		} else if (!strcmp(attribute->attrName, "logMaxLogrecsize")) {
+			LOG_NO("%s cannot be changed", attribute->attrName);
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
+		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
+			LOG_NO("%s cannot be changed", attribute->attrName);
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
+		} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
+			LOG_NO("%s cannot be changed", attribute->attrName);
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
+		} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
+			LOG_NO("%s cannot be changed", attribute->attrName);
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
+		} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
+			LOG_NO("%s cannot be changed", attribute->attrName);
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
+		} else if (!strcmp(attribute->attrName, "logMaxApplicationStreams")) {
+			LOG_NO("%s cannot be changed", attribute->attrName);
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
+		} else {
+			LOG_NO("attribute %s not recognized", attribute->attrName);
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
+		}
+
+		attrMod = opdata->param.modify.attrMods[i++];
+	}
+
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+static SaAisErrorT config_ccb_completed_delete(const CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+
+	TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
+	LOG_NO("Deletion of OpenSafLogConfig object is not supported");
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+static SaAisErrorT config_ccb_completed(const CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+
+	TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
+
+	switch (opdata->operationType) {
+	case CCBUTIL_CREATE:
+		rc = config_ccb_completed_create(opdata);
+		break;
+	case CCBUTIL_MODIFY:
+		rc = config_ccb_completed_modify(opdata);
+		break;
+	case CCBUTIL_DELETE:
+		rc = config_ccb_completed_delete(opdata);
+		break;
+	default:
+		assert(0);
+		break;
+	}
+
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+static SaAisErrorT stream_ccb_completed_create(const CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+
+	TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
+	LOG_NO("Creation of SaLogStreamConfig objects is not supported");
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+static SaAisErrorT stream_ccb_completed_modify(const CcbUtilOperationData_t *opdata)
+{
+	const SaImmAttrModificationT_2 *attrMod;
+	SaAisErrorT rc = SA_AIS_OK;
+	int i = 0;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	log_stream_t *stream = log_stream_get_by_name((char*)opdata->objectName.value);
+	osafassert(stream);
+
+	attrMod = opdata->param.modify.attrMods[i++];
+	while (attrMod != NULL) {
+		void *value;
+		const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
+
+		TRACE("attribute %s", attribute->attrName);
+
+		if (attribute->attrValuesNumber == 0) {
+			LOG_NO("deletion of value is not allowed for attribute %s stream %s",
+					attribute->attrName, opdata->objectName.value);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		value = attribute->attrValues[0];
+
+		if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
+			struct stat pathstat;
+			char *fileName = *((char **)value);
+			if (stat(fileName, &pathstat) == 0) {
+				LOG_ER("File %s already exist", fileName);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+			TRACE("fileName: %s", fileName);
+		} else if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize")) {
+			SaUint64T maxLogFileSize = *((SaUint64T *)value);
+			TRACE("maxLogFileSize: %llu", maxLogFileSize);
+		} else if (!strcmp(attribute->attrName, "saLogStreamFixedLogRecordSize")) {
+			SaUint32T fixedLogRecordSize = *((SaUint32T *)value);
+			if (fixedLogRecordSize > stream->maxLogFileSize) {
+				LOG_ER("fixedLogRecordSize out of range");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+			TRACE("fixedLogRecordSize: %u", stream->fixedLogRecordSize);
+		} else if (!strcmp(attribute->attrName, "saLogStreamLogFullAction")) {
+			SaLogFileFullActionT logFullAction = *((SaUint32T *)value);
+			if ((logFullAction < SA_LOG_FILE_FULL_ACTION_WRAP) ||
+					(logFullAction > SA_LOG_FILE_FULL_ACTION_ROTATE)){
+				LOG_ER("logFullAction out of range");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+			if ((logFullAction == SA_LOG_FILE_FULL_ACTION_WRAP) ||
+					(logFullAction == SA_LOG_FILE_FULL_ACTION_HALT)){
+				LOG_ER("logFullAction:Current Implementation doesn't support  Wrap and halt");
+				rc = SA_AIS_ERR_NOT_SUPPORTED;
+				goto done;
+			}
+			TRACE("logFullAction: %u", logFullAction);
+		} else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold")) {
+			SaUint32T logFullHaltThreshold = *((SaUint32T *)value);
+			if (logFullHaltThreshold >= 100) {
+				LOG_ER("logFullHaltThreshold out of range");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+			TRACE("logFullHaltThreshold: %u", logFullHaltThreshold);
+		} else if (!strcmp(attribute->attrName, "saLogStreamMaxFilesRotated")) {
+			SaUint32T maxFilesRotated = *((SaUint32T *)value);
+			if (maxFilesRotated > 128) {
+				LOG_ER("Unreasonable maxFilesRotated: %x", maxFilesRotated);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+			TRACE("maxFilesRotated: %u", maxFilesRotated);
+		} else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat")) {
+			SaBoolT dummy;
+			char *logFileFormat = *((char **)value);
+			TRACE("logFileFormat: %s", logFileFormat);
+
+			if (!lgs_is_valid_format_expression(logFileFormat, stream->streamType, &dummy)) {
+				LOG_ER("Invalid logFileFormat: %s", logFileFormat);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
+			if ((stream->streamType != STREAM_TYPE_ALARM)
+					&& (stream->streamType != STREAM_TYPE_NOTIFICATION)) {
+
+				SaUint32T severityFilter = *((SaUint32T *)value);
+				if (severityFilter > 0x7f) {
+					LOG_ER("Invalid severity: %x", severityFilter);
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
+				TRACE("severityFilter: %u", severityFilter);
+			} else {
+				LOG_ER("severityFilter cannot be changed for Alarm amd Notification Stream");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+		} else {
+			LOG_ER("invalid attribute");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		attrMod = opdata->param.modify.attrMods[i++];
+	}
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+static SaAisErrorT stream_ccb_completed_delete(const CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	LOG_NO("Deletion of SaLogStreamConfig objects is not supported");
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+static SaAisErrorT stream_ccb_completed(const CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+
+	TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
+
+	switch (opdata->operationType) {
+	case CCBUTIL_CREATE:
+		rc = stream_ccb_completed_create(opdata);
+		break;
+	case CCBUTIL_MODIFY:
+		rc = stream_ccb_completed_modify(opdata);
+		break;
+	case CCBUTIL_DELETE:
+		rc = stream_ccb_completed_delete(opdata);
+		break;
+	default:
+		assert(0);
+		break;
+	}
+
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -331,26 +631,13 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
  * @param ccbId
  * @return 
  */
-static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
+static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
-	struct CcbUtilOperationData *ccbUtilOperationData;
-	log_stream_t *stream=NULL;
-	const SaImmAttrModificationT_2 *attrMod;
+	struct CcbUtilOperationData *opdata;
 
-	TRACE_ENTER();
-
-
-	/* Handling of OpenSafLogConfig.
-	 *	   If the updated attribute is logRootDirectory
-	 *	   If Not active.
-	 *		- Do nothing.
-	 *     If active.
-	 *		If updated attribute is logRootDirectory:
-	 *		- Check IF contained path exists and is r+w
-	 *		ELSE return SA_AIS_ERR_FAILED_OPERATION
-	 */
+	TRACE_ENTER2("CCB ID %llu", ccbId);
 
 	if (lgs_cb->ha_state != SA_AMF_HA_ACTIVE) {
 		TRACE("State Not Active. Nothing to do, we are an applier");
@@ -358,9 +645,9 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 	}
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
-		LOG_ER("Failed to find CCB object for %llu", ccbId);
+		LOG_ER("%s: Failed to find CCB object for %llu", __FUNCTION__, ccbId);
 		rc = SA_AIS_ERR_BAD_OPERATION;
-		goto done;
+		goto done; // or exit?
 	}
 
 	/*
@@ -368,170 +655,238 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 	 ** valid and that no errors will be generated when these changes
 	 ** are applied."
 	 */
-	ccbUtilOperationData = ccbUtilCcbData->operationListHead;
-	while (ccbUtilOperationData != NULL) {
-		int i = 0;
-		TRACE("Change stream %s", ccbUtilOperationData->param.modify.objectName->value);
-
-		/* Is there a valid object
-		 */
-		if (strcmp( (char *) ccbUtilOperationData->param.modify.objectName->value, LGS_IMM_LOG_CONFIGURATION) == 0) {
-			TRACE("Handle an OpenSafLogConfig object");
-		} else if ((stream = log_stream_get_by_name((char *)ccbUtilOperationData->param.modify.objectName->value)) !=
-		    NULL) {
-			TRACE("Handle a SaLogStreamConfig object");
-		} else {
-			LOG_ER("Object %s not found", ccbUtilOperationData->param.modify.objectName->value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			goto done;
+	for (opdata = ccbUtilCcbData->operationListHead; opdata; opdata = opdata->next) {
+		switch (opdata->operationType) {
+		case CCBUTIL_CREATE:
+			if (!strcmp(opdata->param.create.className, "OpenSafLogConfig"))
+				rc = config_ccb_completed(opdata);
+			else if (!strcmp(opdata->param.create.className, "SaLogStreamConfig"))
+				rc = stream_ccb_completed(opdata);
+			else
+				osafassert(0);
+			break;
+		case CCBUTIL_DELETE:
+		case CCBUTIL_MODIFY:
+			if (!strncmp((char*)opdata->objectName.value, "safLgStrCfg", 11))
+				rc = stream_ccb_completed(opdata);
+			else
+				rc = config_ccb_completed(opdata);
+			break;
+		default:
+			assert(0);
+			break;
 		}
-
-		attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
-		while (attrMod != NULL) {
-			void *value;
-			const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
-
-			TRACE("attribute %s", attribute->attrName);
-
-			if (attribute->attrValuesNumber == 0) {
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
-
-			value = attribute->attrValues[0];
-
-			/* Handle OpenSafLogConfig class parameters
-			   ----------------------------------------
-			 */
-			if (!strcmp(attribute->attrName, "logRootDirectory")) {
-				char *pathName = *((char **)value);
-				if (!lgs_check_path_permissions(pathName)) {
-					TRACE("pathName: %s is NOT accepted", pathName);
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				TRACE("pathName: %s is accepted", pathName);
-			} else if (!strcmp(attribute->attrName, "logMaxLogrecsize")) {
-				TRACE("%s cannot be changed",attribute->attrName);
-				rc = SA_AIS_ERR_FAILED_OPERATION;
-				goto done;
-			} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
-				TRACE("%s cannot be changed",attribute->attrName);
-				rc = SA_AIS_ERR_FAILED_OPERATION;
-				goto done;
-			} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
-				TRACE("%s cannot be changed",attribute->attrName);
-				rc = SA_AIS_ERR_FAILED_OPERATION;
-				goto done;
-			} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
-				TRACE("%s cannot be changed",attribute->attrName);
-				rc = SA_AIS_ERR_FAILED_OPERATION;
-				goto done;
-			} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
-				TRACE("%s cannot be changed",attribute->attrName);
-				rc = SA_AIS_ERR_FAILED_OPERATION;
-				goto done;
-			} else if (!strcmp(attribute->attrName, "logMaxApplicationStreams")) {
-				TRACE("%s cannot be changed",attribute->attrName);
-				rc = SA_AIS_ERR_FAILED_OPERATION;
-				goto done;
-			}
-
-
-			/* Handle SaLogStreamConfig class parameters
-			   -----------------------------------------
-			 */
-			else if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
-				struct stat pathstat;
-				char *fileName = *((char **)value);
-				if (stat(fileName, &pathstat) == 0) {
-					LOG_ER("File %s already exist", fileName);
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				TRACE("fileName: %s", fileName);
-			} else if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize")) {
-				SaUint64T maxLogFileSize = *((SaUint64T *)value);
-				TRACE("maxLogFileSize: %llu", maxLogFileSize);
-			} else if (!strcmp(attribute->attrName, "saLogStreamFixedLogRecordSize")) {
-				SaUint32T fixedLogRecordSize = *((SaUint32T *)value);
-				if (fixedLogRecordSize > stream->maxLogFileSize) {
-					LOG_ER("fixedLogRecordSize out of range");
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				TRACE("fixedLogRecordSize: %u", stream->fixedLogRecordSize);
-			} else if (!strcmp(attribute->attrName, "saLogStreamLogFullAction")) {
-				SaLogFileFullActionT logFullAction = *((SaUint32T *)value);
-				if ((logFullAction < SA_LOG_FILE_FULL_ACTION_WRAP) || 
-						(logFullAction > SA_LOG_FILE_FULL_ACTION_ROTATE)){
-					LOG_ER("logFullAction out of range");
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				if ((logFullAction == SA_LOG_FILE_FULL_ACTION_WRAP) ||(logFullAction == SA_LOG_FILE_FULL_ACTION_HALT)){
-					LOG_ER("logFullAction:Current Implementation doesn't support  Wrap and halt");
-					rc = SA_AIS_ERR_NOT_SUPPORTED;
-					goto done;
-				}
-				TRACE("logFullAction: %u", logFullAction);
-			} else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold")) {
-				SaUint32T logFullHaltThreshold = *((SaUint32T *)value);
-				if (logFullHaltThreshold >= 100) {
-					LOG_ER("logFullHaltThreshold out of range");
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				TRACE("logFullHaltThreshold: %u", logFullHaltThreshold);
-			} else if (!strcmp(attribute->attrName, "saLogStreamMaxFilesRotated")) {
-				SaUint32T maxFilesRotated = *((SaUint32T *)value);
-				if (maxFilesRotated > 128) {
-					LOG_ER("Unreasonable maxFilesRotated: %x", maxFilesRotated);
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				TRACE("maxFilesRotated: %u", maxFilesRotated);
-			} else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat")) {
-				SaBoolT dummy;
-				char *logFileFormat = *((char **)value);
-				TRACE("logFileFormat: %s", logFileFormat);
-
-				if (!lgs_is_valid_format_expression(logFileFormat, stream->streamType, &dummy)) {
-					LOG_ER("Invalid logFileFormat: %s", logFileFormat);
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-			} else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
-
-				if ((stream->streamType != STREAM_TYPE_ALARM)
-                                    && (stream->streamType != STREAM_TYPE_NOTIFICATION)) {
-
-					SaUint32T severityFilter = *((SaUint32T *)value);
-					if (severityFilter > 0x7f) {
-						LOG_ER("Invalid severity: %x", severityFilter);
-						rc = SA_AIS_ERR_BAD_OPERATION;
-						goto done;
-					}
-					TRACE("severityFilter: %u", severityFilter);
-				} else {
-					LOG_ER("severityFilter cannot be changed for Alarm amd Notification Stream");
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-			} else {
-				LOG_ER("invalid attribute");
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
-
-			attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
-		}
-		ccbUtilOperationData = ccbUtilOperationData->next;
 	}
 
  done:
 	TRACE_LEAVE2("rc=%u",rc);
 	return rc;
+}
+/**
+ * Set logRootDirectory to new value
+ *   - Close all open logfiles
+ *   - Rename all log files and .cfg files.
+ *   - Update lgs_conf with new path (logRootDirectory).
+ *   - Open all logfiles and .cfg files in new directory.
+ *
+ * @param logRootDirectory
+ */
+static void logRootDirectory_set(const char *logRootDirectory)
+{
+	log_stream_t *stream;
+	char *current_time = lgs_get_time();
+
+	/* Close and rename files at current path */
+	stream = log_stream_getnext_by_name(NULL);
+	while (stream != NULL) {
+		TRACE("Handling file %s", stream->logFileCurrent);
+		// TODO: restore/refactor log_stream_config_change back to original
+		if (log_stream_config_change(!LGS_STREAM_CREATE_FILES, stream, stream->fileName) != 0) {
+			LOG_ER("Old log files could not be renamed and closed, root-dir: %s",
+					lgs_cb->logsv_root_dir);
+		}
+		stream = log_stream_getnext_by_name(stream->name);
+	}
+
+	strncpy(lgs_conf->logRootDirectory, logRootDirectory, PATH_MAX);
+
+	/* Create new files at new path */
+	stream = log_stream_getnext_by_name(NULL);
+	while (stream != NULL) {
+		if (lgs_create_config_file(stream) != 0) {
+			LOG_ER("New config file could not be created for stream: %s",
+					stream->name);
+		}
+
+		/* Create the new log file based on updated configuration */
+		sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
+		if ((stream->fd = log_file_open(stream, NULL)) == -1) {
+			LOG_ER("New log file could not be created for stream: %s",
+					stream->name);
+		}
+		stream = log_stream_getnext_by_name(stream->name);
+	}
+}
+
+/**
+ * Apply validated changes
+ *
+ * @param opdata
+ */
+static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
+{
+	const SaImmAttrModificationT_2 *attrMod;
+	int i = 0;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	attrMod = opdata->param.modify.attrMods[i++];
+	while (attrMod != NULL) {
+		const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
+		void *value = attribute->attrValues[0];
+
+		TRACE("attribute %s", attribute->attrName);
+
+		if (!strcmp(attribute->attrName, "logRootDirectory")) {
+			/* Update saved configuration on both active and standby */
+			const char *logRootDirectory = *((char **)value);
+
+			if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+				logRootDirectory_set(logRootDirectory);
+			} else {
+				strcpy(lgs_conf->logRootDirectory, logRootDirectory);
+			}
+
+			LOG_NO("log root directory changed to: %s", lgs_cb->logsv_root_dir);
+		} else {
+			// validation should not allow any other change
+			osafassert(0);
+		}
+
+		attrMod = opdata->param.modify.attrMods[i++];
+	}
+
+	TRACE_LEAVE();
+}
+
+static void config_ccb_apply(const CcbUtilOperationData_t *opdata)
+{
+	TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
+
+	switch (opdata->operationType) {
+	case CCBUTIL_CREATE:
+		osafassert(0);
+		break;
+	case CCBUTIL_MODIFY:
+		config_ccb_apply_modify(opdata);
+		break;
+	case CCBUTIL_DELETE:
+		osafassert(0);
+		break;
+	default:
+		assert(0);
+		break;
+	}
+
+	TRACE_LEAVE();
+}
+
+static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
+{
+	const SaImmAttrModificationT_2 *attrMod;
+	int i = 0;
+	log_stream_t *stream;
+	char current_file_name[NAME_MAX];
+	bool new_cfg_file_needed = false;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	stream = log_stream_get_by_name((char*)opdata->objectName.value);
+	osafassert(stream);
+
+	strncpy(current_file_name, stream->fileName, sizeof(current_file_name));
+
+	attrMod = opdata->param.modify.attrMods[i++];
+	while (attrMod != NULL) {
+		void *value;
+		const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
+
+		TRACE("attribute %s", attribute->attrName);
+
+		value = attribute->attrValues[0];
+
+		if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
+			char *fileName = *((char **)value);
+			strcpy(stream->fileName, fileName);
+			new_cfg_file_needed = true;
+		} else if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize")) {
+			SaUint64T maxLogFileSize = *((SaUint64T *)value);
+			stream->maxLogFileSize = maxLogFileSize;
+			new_cfg_file_needed = true;
+		} else if (!strcmp(attribute->attrName, "saLogStreamFixedLogRecordSize")) {
+			SaUint32T fixedLogRecordSize = *((SaUint32T *)value);
+			stream->fixedLogRecordSize = fixedLogRecordSize;
+			new_cfg_file_needed = true;
+		} else if (!strcmp(attribute->attrName, "saLogStreamLogFullAction")) {
+			SaLogFileFullActionT logFullAction = *((SaUint32T *)value);
+			stream->logFullAction = logFullAction;
+			new_cfg_file_needed = true;
+		} else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold")) {
+			SaUint32T logFullHaltThreshold = *((SaUint32T *)value);
+			stream->logFullHaltThreshold = logFullHaltThreshold;
+		} else if (!strcmp(attribute->attrName, "saLogStreamMaxFilesRotated")) {
+			SaUint32T maxFilesRotated = *((SaUint32T *)value);
+			stream->maxFilesRotated = maxFilesRotated;
+			new_cfg_file_needed = true;
+		} else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat")) {
+			char *logFileFormat = *((char **)value);
+			if (stream->logFileFormat != NULL)
+				free(stream->logFileFormat);
+			stream->logFileFormat = strdup(logFileFormat);
+			new_cfg_file_needed = true;
+		} else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
+			SaUint32T severityFilter = *((SaUint32T *)value);
+			stream->severityFilter = severityFilter;
+		} else {
+			osafassert(0);
+		}
+
+		attrMod = opdata->param.modify.attrMods[i++];
+	}
+
+	if (new_cfg_file_needed) {
+		if (log_stream_config_change(LGS_STREAM_CREATE_FILES, stream, current_file_name) != 0) {
+			LOG_ER("log_stream_config_change failed");
+			exit(1);
+		}
+	}
+
+	/* Checkpoint to standby LOG server */
+	lgs_ckpt_stream(stream);
+
+	TRACE_LEAVE();
+}
+
+static void stream_ccb_apply(const CcbUtilOperationData_t *opdata)
+{
+	TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
+
+	switch (opdata->operationType) {
+	case CCBUTIL_CREATE:
+		osafassert(0);
+		break;
+	case CCBUTIL_MODIFY:
+		stream_ccb_apply_modify(opdata);
+		break;
+	case CCBUTIL_DELETE:
+		osafassert(0);
+		break;
+	default:
+		assert(0);
+		break;
+	}
+
+	TRACE_LEAVE();
 }
 
 /**
@@ -540,174 +895,39 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
  * @param immOiHandle
  * @param ccbId
  */
-static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
+static void ccbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
 {
 	struct CcbUtilCcbData *ccbUtilCcbData;
-	struct CcbUtilOperationData *ccbUtilOperationData;
-	log_stream_t *stream = NULL;
-	const SaImmAttrModificationT_2 *attrMod;
-	int new_cfg_file_needed=0;
-	char current_file_name[NAME_MAX];
+	struct CcbUtilOperationData *opdata;
 
-	TRACE_ENTER();
-
-	/* Handling of OpenSafLogConfig.
-	 *		   IF Not active.
-	 *			- Update lgs_conf only with new path (logRootDirectory).
-	           IF active.
-				- Update lgs_conf only with new path (logRootDirectory).
-				- Close all open logfiles and .cfg files.
-	 *			- Open all logfiles and .cfg files in new directory.
-	 */
+	TRACE_ENTER2("CCB ID %llu", ccbId);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
-		LOG_ER("Failed to find CCB object for %llu", ccbId);
-		goto done;
+		LOG_ER("%s: Failed to find CCB object for %llu", __FUNCTION__, ccbId);
+		goto done; // or exit?
 	}
 
-	ccbUtilOperationData = ccbUtilCcbData->operationListHead;
-	while (ccbUtilOperationData != NULL) {
-		int i = 0;
-		TRACE("Apply changes to object %s", ccbUtilOperationData->param.modify.objectName->value);
-
-		/* Is there a valid object */
-		if (strcmp( (char *) ccbUtilOperationData->param.modify.objectName->value, LGS_IMM_LOG_CONFIGURATION) == 0) {
-			TRACE("Handle an OpenSafLogConfig object");
-		} else if ((stream = log_stream_get_by_name((char *)ccbUtilOperationData->param.modify.objectName->value)) !=
-		    NULL) {
-			TRACE("Handle a SaLogStream");
-			strncpy(current_file_name, stream->fileName, sizeof(current_file_name));
-			new_cfg_file_needed = 0;
-		} else {
-			LOG_ER("Object %s not found", ccbUtilOperationData->param.modify.objectName->value);
-			goto done;
+	for (opdata = ccbUtilCcbData->operationListHead; opdata; opdata = opdata->next) {
+		switch (opdata->operationType) {
+		case CCBUTIL_CREATE:
+			if (!strcmp(opdata->param.create.className, "OpenSafLogConfig"))
+				config_ccb_apply(opdata);
+			else if (!strcmp(opdata->param.create.className, "SaLogStreamConfig"))
+				stream_ccb_apply(opdata);
+			else
+				osafassert(0);
+			break;
+		case CCBUTIL_DELETE:
+		case CCBUTIL_MODIFY:
+			if (!strncmp((char*)opdata->objectName.value, "safLgStrCfg", 11))
+				stream_ccb_apply(opdata);
+			else
+				config_ccb_apply(opdata);
+			break;
+		default:
+			assert(0);
+			break;
 		}
-
-		attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
-		while (attrMod != NULL) {
-			void *value;
-			const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
-
-			TRACE("attribute %s", attribute->attrName);
-
-			value = attribute->attrValues[0];
-
-			/* Handle OpenSafLogConfig class parameters
-			   ----------------------------------------
-			 */
-			if (!strcmp(attribute->attrName, "logRootDirectory")) {
-				TRACE("Apply changes to %s",attribute->attrName);
-
-				/* Update saved configuration on both active and stanby */
-				char *new_pathName = *((char **)value);
-				
-				if (lgs_cb->ha_state == SA_AMF_HA_STANDBY) {
-					/* We are standby. Update log root path */
-					TRACE("Apply, HA State is Standby. Update root path");
-					strcpy((char *) lgs_conf->logRootDirectory, new_pathName);
-					TRACE("New path is: %s",lgs_conf->logRootDirectory);
-				}
-				else if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
-					/* We are active. Handle files */
-					TRACE("Apply, HA State is Active. Handle files");
-
-					char *current_time = lgs_get_time();
-
-					stream = log_stream_getnext_by_name(NULL);
-					while (stream != NULL) {
-						TRACE("Handling file %s",stream->logFileCurrent);
-						/* Close and rename old files */
-						strncpy(current_file_name, stream->fileName, sizeof(current_file_name));
-						if (log_stream_config_change(!LGS_STREAM_CREATE_FILES,stream, current_file_name) != 0) {
-							LOG_ER("Old log files could not be renamed and closed, root-dir: %s",
-									lgs_cb->logsv_root_dir);
-							goto done;
-						}
-						stream = log_stream_getnext_by_name(stream->name);
-					}
-
-					/* Initialize the new path */
-					strcpy((char *) lgs_conf->logRootDirectory, new_pathName);
-
-					stream = log_stream_getnext_by_name(NULL);
-					while (stream != NULL) {
-						/* Create new files */
-						/* Creating the new config file */
-						if (lgs_create_config_file(stream) != 0) {
-							LOG_ER("New config file could not be created for stream: %s",
-									stream->name);
-							goto done;
-						}
-
-						/* Create the new log file based on updated configuration */
-						sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
-						if ((stream->fd = log_file_open(stream, NULL)) == -1) {
-							LOG_ER("New log file could not be created for stream: %s",
-									stream->name);
-							goto done;
-						}
-						stream = log_stream_getnext_by_name(stream->name);
-					}
-				}
-			}
-
-			/* Handle SaLogStreamConfig class parameters
-			   -----------------------------------------
-			 */
-			else if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
-				char *fileName = *((char **)value);
-				strcpy(stream->fileName, fileName);
-				new_cfg_file_needed = 1;
-			} else if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize")) {
-				SaUint64T maxLogFileSize = *((SaUint64T *)value);
-				stream->maxLogFileSize = maxLogFileSize;
-				new_cfg_file_needed = 1;
-			} else if (!strcmp(attribute->attrName, "saLogStreamFixedLogRecordSize")) {
-				SaUint32T fixedLogRecordSize = *((SaUint32T *)value);
-				stream->fixedLogRecordSize = fixedLogRecordSize;
-				new_cfg_file_needed = 1;
-			} else if (!strcmp(attribute->attrName, "saLogStreamLogFullAction")) {
-				SaLogFileFullActionT logFullAction = *((SaUint32T *)value);
-				stream->logFullAction = logFullAction;
-				new_cfg_file_needed = 1;
-			} else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold")) {
-				SaUint32T logFullHaltThreshold = *((SaUint32T *)value);
-				stream->logFullHaltThreshold = logFullHaltThreshold;
-			} else if (!strcmp(attribute->attrName, "saLogStreamMaxFilesRotated")) {
-				SaUint32T maxFilesRotated = *((SaUint32T *)value);
-				stream->maxFilesRotated = maxFilesRotated;
-				new_cfg_file_needed = 1;
-			} else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat")) {
-				char *logFileFormat = *((char **)value);
-				if (stream->logFileFormat != NULL)
-					free(stream->logFileFormat);
-				stream->logFileFormat = strdup(logFileFormat);
-				new_cfg_file_needed = 1;
-			} else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
-				SaUint32T severityFilter = *((SaUint32T *)value);
-				stream->severityFilter = severityFilter;
-			} else {
-				LOG_ER("invalid attribute");
-				goto done;
-			}
-
-			attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
-		}
-
-		if (stream != NULL) {
-			/* Do only if this is a stream */
-			if (new_cfg_file_needed) {
-				if (log_stream_config_change(LGS_STREAM_CREATE_FILES,stream, current_file_name) != 0) {
-					LOG_ER("log_stream_config_change failed");
-					exit(1);
-				}
-			}
-
-			/* Checkpoint to standby LOG server */
-			lgs_ckpt_stream(stream);
-		}
-
-		ccbUtilOperationData = ccbUtilOperationData->next;
 	}
 
 done:
@@ -715,16 +935,16 @@ done:
 	TRACE_LEAVE();
 }
 
-static void saImmOiCcbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
+static void ccbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
 {
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("CCB ID %llu", ccbId);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) != NULL)
 		ccbutil_deleteCcbData(ccbUtilCcbData);
 	else
-		LOG_ER("Failed to find CCB object for %llu", ccbId);
+		LOG_ER("%s: Failed to find CCB object for %llu", __FUNCTION__, ccbId);
 
 	TRACE_LEAVE();
 }
@@ -738,24 +958,23 @@ static void saImmOiCcbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
  * 
  * @return SaAisErrorT
  */
-static SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
-					       const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
+static SaAisErrorT rtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
+		const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
-	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
 	SaImmAttrNameT attributeName;
 	int i = 0;
 	log_stream_t *stream = log_stream_get_by_name((char *)objectName->value);
 
-	TRACE_ENTER();
+	TRACE_ENTER2("%s", objectName->value);
 
 	if (lgs_cb->ha_state != SA_AMF_HA_ACTIVE) {
-		TRACE("State is STANDBY, do nothing");
+		LOG_ER("admin op callback in applier");
 		goto done;
 	}
 
 	if (stream == NULL) {
-		LOG_ER("saImmOiRtAttrUpdateCallback, stream %s not found", objectName->value);
-		rc = SA_AIS_ERR_FAILED_OPERATION;	/* not really covered in spec */
+		LOG_ER("%s: stream %s not found", __FUNCTION__, objectName->value);
 		goto done;
 	}
 
@@ -765,13 +984,14 @@ static SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 			(void)immutil_update_one_rattr(immOiHandle, (char *)objectName->value,
 						       attributeName, SA_IMM_ATTR_SAUINT32T, &stream->numOpeners);
 		} else {
-			LOG_ER("saImmOiRtAttrUpdateCallback, unknown attribute %s", attributeName);
-			rc = SA_AIS_ERR_FAILED_OPERATION;	/* not really covered in spec */
+			LOG_ER("%s: unknown attribute %s", __FUNCTION__, attributeName);
 			goto done;
 		}
 	}
 
- done:
+	rc = SA_AIS_OK;
+
+done:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1202,14 +1422,14 @@ const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag)
 }
 
 static const SaImmOiCallbacksT_2 callbacks = {
-	.saImmOiAdminOperationCallback = saImmOiAdminOperationCallback,
-	.saImmOiCcbAbortCallback = saImmOiCcbAbortCallback,
-	.saImmOiCcbApplyCallback = saImmOiCcbApplyCallback,
-	.saImmOiCcbCompletedCallback = saImmOiCcbCompletedCallback,
-	.saImmOiCcbObjectCreateCallback = saImmOiCcbObjectCreateCallback,
-	.saImmOiCcbObjectDeleteCallback = saImmOiCcbObjectDeleteCallback,
-	.saImmOiCcbObjectModifyCallback = saImmOiCcbObjectModifyCallback,
-	.saImmOiRtAttrUpdateCallback = saImmOiRtAttrUpdateCallback
+	.saImmOiAdminOperationCallback = adminOperationCallback,
+	.saImmOiCcbAbortCallback = ccbAbortCallback,
+	.saImmOiCcbApplyCallback = ccbApplyCallback,
+	.saImmOiCcbCompletedCallback = ccbCompletedCallback,
+	.saImmOiCcbObjectCreateCallback = ccbObjectCreateCallback,
+	.saImmOiCcbObjectDeleteCallback = ccbObjectDeleteCallback,
+	.saImmOiCcbObjectModifyCallback = ccbObjectModifyCallback,
+	.saImmOiRtAttrUpdateCallback = rtAttrUpdateCallback
 };
 
 /**
