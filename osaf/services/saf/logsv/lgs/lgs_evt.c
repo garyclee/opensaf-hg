@@ -484,7 +484,12 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 		if (NCSCC_RC_SUCCESS != lgs_mbcsv_change_HA_state(lgs_cb))
 			goto done;
 
-		/* fail over, become implementer */
+		/* fail over, become implementer
+		 * If we want to be Oi implementer we have to give up the applier role first
+		 */
+		TRACE("Give up applier role and become implementer");
+		lgs_giveup_imm_applier(lgs_cb);
+
 		immutilWrapperProfile.nTries = 250; /* LOG will be blocked until IMM responds */
 		(void)immutil_saImmOiImplementerSet(lgs_cb->immOiHandle, "safLogService");
 		(void)immutil_saImmOiClassImplementerSet(lgs_cb->immOiHandle, "SaLogStreamConfig");
@@ -881,7 +886,7 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		/* If stream object was created in context of this function
 		 * but we have afile system problem, delete stream object.
 		 */
-		if(app_stream_created) {
+		if (app_stream_created) {
 			log_stream_delete(&logStream);
 			goto snd_rsp;
 		} else {

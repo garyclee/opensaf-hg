@@ -306,6 +306,10 @@ static uint32_t log_initialize(void)
 			goto done;
 		}
 	}
+	else {
+		lgs_become_imm_applier(lgs_cb);
+		goto done;
+	}
 
 	rc = NCSCC_RC_SUCCESS;
 
@@ -340,9 +344,7 @@ static void *imm_reinit_thread(void *_cb)
 		exit(EXIT_FAILURE);
 	}
 
-	/* If this is the active server, become implementer again. */
-	if (cb->ha_state == SA_AMF_HA_ACTIVE)
-		lgs_imm_impl_set(cb);
+	lgs_imm_impl_set(cb);
 
 	/* Wake up the main thread so it discovers the new imm descriptor. */
 	lgsv_evt = calloc(1, sizeof(lgsv_lgs_evt_t));

@@ -63,12 +63,16 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 		goto done;
 	}
 
-	/* switch over, become implementer */
+	/* switch over, become implementer
+	 * If a configuration object exists then we are an object applier that has
+	 * to be cleared before we can become an object implementer.
+	 */
+	lgs_giveup_imm_applier(lgs_cb);
 	immutilWrapperProfile.nTries = 250; /* LOG will be blocked until IMM responds */
 	(void)immutil_saImmOiImplementerSet(lgs_cb->immOiHandle, "safLogService");
 	(void)immutil_saImmOiClassImplementerSet(lgs_cb->immOiHandle, "SaLogStreamConfig");
 	/* Do this only if the class exists */
-	if ( true == *(bool*) lgs_imm_logconf_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST, NULL)) {
+	if (*(bool*) lgs_imm_logconf_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST, NULL)) {
 		(void)immutil_saImmOiClassImplementerSet(cb->immOiHandle, "OpenSafLogConfig");
 	}
 
@@ -107,7 +111,16 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 static SaAisErrorT amf_standby_state_handler(lgs_cb_t *cb, SaInvocationT invocation)
 {
 	TRACE_ENTER2("HA STANDBY request");
+	if (cb->ha_state == SA_AMF_HA_STANDBY) {
+		TRACE("Stat is already STANDBY and we are applier");
+		goto done;
+	}
+
+	TRACE("Become applier");
+	lgs_become_imm_applier(lgs_cb);
 	cb->mds_role = V_DEST_RL_STANDBY;
+
+done:
 	TRACE_LEAVE();
 	return SA_AIS_OK;
 }

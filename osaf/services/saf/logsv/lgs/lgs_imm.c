@@ -84,6 +84,7 @@ static lgs_conf_t _lgs_conf = {
 };
 static const lgs_conf_t *lgs_conf = &_lgs_conf;
 
+static bool we_are_applier_flag = false;
 
 const unsigned int sleep_delay_ms = 500;
 const unsigned int max_waiting_time_ms = 60 * 1000;	/* 60 secs */
@@ -95,9 +96,10 @@ static char *log_file_format[] = {
 	DEFAULT_APP_SYS_FORMAT_EXP
 };
 
-static SaVersionT immVersion = { 'A', 2, 1 };
+static SaVersionT immVersion = { 'A', 2, 11 };
 
 static const SaImmOiImplementerNameT implementerName = (SaImmOiImplementerNameT)"safLogService";
+static const SaImmOiImplementerNameT applierName = (SaImmOiImplementerNameT)"@safLogService";
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
@@ -143,6 +145,47 @@ static uint32_t lgs_ckpt_stream(log_stream_t *stream)
 }
 
 /**
+ * Check if the given path is valid.
+ * We must have rwx access.
+ * @param pathname
+ * return: true  = Path is valid
+ *         false = Path is invalid
+ */
+static bool lgs_check_path_permissions(char* pathname)
+{
+	bool rc=true;
+	struct stat pathstat;
+
+	TRACE_ENTER();
+
+	/* Check if the path points to a directory */
+	if (stat(pathname, &pathstat) != 0) {
+		TRACE("lgs_check_path_permissions() Directory %s does not exist",pathname);
+		rc = false;
+		goto done;
+	}
+	if (!S_ISDIR(pathstat.st_mode)) {
+		TRACE("lgs_check_path_permissions() %s is not a directory",pathname);
+		rc = false;
+		goto done;
+	}
+
+	/* Check is we have correct permissions. Note that we check permissions for
+	 * real UID
+	 */
+	if (access(pathname,(R_OK | W_OK | X_OK)) != 0) {
+		TRACE("lgs_check_path_permissions() permission denied for %s, error %s",
+				pathname,strerror(errno));
+		rc = false;
+		goto done;
+	}
+
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
  * LOG Admin operation handling. This function is executed as an
  * IMM callback. In LOG A.02.01 only SA_LOG_ADMIN_CHANGE_FILTER
  * is supported.
@@ -163,6 +206,11 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 	log_stream_t *stream;
 
 	TRACE_ENTER();
+
+	if (lgs_cb->ha_state != SA_AMF_HA_ACTIVE) {
+		TRACE("saImmOiAdminOperationCallback() Should never ger here");
+		goto done;
+	}
 
 	if ((stream = log_stream_get_by_name((char *)objectName->value)) == NULL) {
 		LOG_ER("Stream %s not found", objectName->value);
@@ -222,6 +270,26 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 	TRACE_LEAVE();
 }
 
+static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
+					     SaImmOiCcbIdT ccbId, const SaNameT *objectName)
+{
+	TRACE_ENTER();
+	TRACE("saImmOiCcbObjectDeleteCallback() not allowed");
+	TRACE_LEAVE();
+	return SA_AIS_ERR_FAILED_OPERATION;
+}
+
+static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle,
+					       SaImmOiCcbIdT ccbId,
+					       const SaImmClassNameT className,
+					       const SaNameT *parentName, const SaImmAttrValuesT_2 **attr)
+{
+	TRACE_ENTER();
+	TRACE("saImmOiCcbObjectCreateCallback() not allowed");
+	TRACE_LEAVE();
+	return SA_AIS_ERR_FAILED_OPERATION;
+}
+
 /**
  * Validate and "memorize" a change request
  * 
@@ -268,10 +336,26 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	struct CcbUtilOperationData *ccbUtilOperationData;
-	log_stream_t *stream;
+	log_stream_t *stream=NULL;
 	const SaImmAttrModificationT_2 *attrMod;
 
 	TRACE_ENTER();
+
+
+	/* Handling of OpenSafLogConfig.
+	 *	   If the updated attribute is logRootDirectory
+	 *	   If Not active.
+	 *		- Do nothing.
+	 *     If active.
+	 *		If updated attribute is logRootDirectory:
+	 *		- Check IF contained path exists and is r+w
+	 *		ELSE return SA_AIS_ERR_FAILED_OPERATION
+	 */
+
+	if (lgs_cb->ha_state != SA_AMF_HA_ACTIVE) {
+		TRACE("State Not Active. Nothing to do, we are an applier");
+		goto done;
+	}
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		LOG_ER("Failed to find CCB object for %llu", ccbId);
@@ -289,16 +373,15 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 		int i = 0;
 		TRACE("Change stream %s", ccbUtilOperationData->param.modify.objectName->value);
 
-		/* We are class implementer for the OpenSafLogConfig class but no changes are allowed */
-		if( strcmp( (char *) ccbUtilOperationData->param.modify.objectName->value, LGS_IMM_LOG_CONFIGURATION) == 0) {
-			TRACE("Changing attributes in OpenSafLogConfig object is not allowed");
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			goto done;
-		}
-
-		if ((stream = log_stream_get_by_name((char *)ccbUtilOperationData->param.modify.objectName->value)) ==
+		/* Is there a valid object
+		 */
+		if (strcmp( (char *) ccbUtilOperationData->param.modify.objectName->value, LGS_IMM_LOG_CONFIGURATION) == 0) {
+			TRACE("Handle an OpenSafLogConfig object");
+		} else if ((stream = log_stream_get_by_name((char *)ccbUtilOperationData->param.modify.objectName->value)) !=
 		    NULL) {
-			LOG_ER("Stream %s not found", ccbUtilOperationData->param.modify.objectName->value);
+			TRACE("Handle a SaLogStreamConfig object");
+		} else {
+			LOG_ER("Object %s not found", ccbUtilOperationData->param.modify.objectName->value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -317,7 +400,48 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 
 			value = attribute->attrValues[0];
 
-			if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
+			/* Handle OpenSafLogConfig class parameters
+			   ----------------------------------------
+			 */
+			if (!strcmp(attribute->attrName, "logRootDirectory")) {
+				char *pathName = *((char **)value);
+				if (!lgs_check_path_permissions(pathName)) {
+					TRACE("pathName: %s is NOT accepted", pathName);
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
+				TRACE("pathName: %s is accepted", pathName);
+			} else if (!strcmp(attribute->attrName, "logMaxLogrecsize")) {
+				TRACE("%s cannot be changed",attribute->attrName);
+				rc = SA_AIS_ERR_FAILED_OPERATION;
+				goto done;
+			} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
+				TRACE("%s cannot be changed",attribute->attrName);
+				rc = SA_AIS_ERR_FAILED_OPERATION;
+				goto done;
+			} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
+				TRACE("%s cannot be changed",attribute->attrName);
+				rc = SA_AIS_ERR_FAILED_OPERATION;
+				goto done;
+			} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
+				TRACE("%s cannot be changed",attribute->attrName);
+				rc = SA_AIS_ERR_FAILED_OPERATION;
+				goto done;
+			} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
+				TRACE("%s cannot be changed",attribute->attrName);
+				rc = SA_AIS_ERR_FAILED_OPERATION;
+				goto done;
+			} else if (!strcmp(attribute->attrName, "logMaxApplicationStreams")) {
+				TRACE("%s cannot be changed",attribute->attrName);
+				rc = SA_AIS_ERR_FAILED_OPERATION;
+				goto done;
+			}
+
+
+			/* Handle SaLogStreamConfig class parameters
+			   -----------------------------------------
+			 */
+			else if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
 				struct stat pathstat;
 				char *fileName = *((char **)value);
 				if (stat(fileName, &pathstat) == 0) {
@@ -406,7 +530,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 	}
 
  done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("rc=%u",rc);
 	return rc;
 }
 
@@ -422,10 +546,19 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 	struct CcbUtilOperationData *ccbUtilOperationData;
 	log_stream_t *stream = NULL;
 	const SaImmAttrModificationT_2 *attrMod;
-	int new_cfg_file_needed;
+	int new_cfg_file_needed=0;
 	char current_file_name[NAME_MAX];
 
 	TRACE_ENTER();
+
+	/* Handling of OpenSafLogConfig.
+	 *		   IF Not active.
+	 *			- Update lgs_conf only with new path (logRootDirectory).
+	           IF active.
+				- Update lgs_conf only with new path (logRootDirectory).
+				- Close all open logfiles and .cfg files.
+	 *			- Open all logfiles and .cfg files in new directory.
+	 */
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		LOG_ER("Failed to find CCB object for %llu", ccbId);
@@ -435,16 +568,20 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 	ccbUtilOperationData = ccbUtilCcbData->operationListHead;
 	while (ccbUtilOperationData != NULL) {
 		int i = 0;
-		TRACE("Apply changes to stream %s", ccbUtilOperationData->param.modify.objectName->value);
+		TRACE("Apply changes to object %s", ccbUtilOperationData->param.modify.objectName->value);
 
-		if ((stream = log_stream_get_by_name((char *)ccbUtilOperationData->param.modify.objectName->value)) ==
+		/* Is there a valid object */
+		if (strcmp( (char *) ccbUtilOperationData->param.modify.objectName->value, LGS_IMM_LOG_CONFIGURATION) == 0) {
+			TRACE("Handle an OpenSafLogConfig object");
+		} else if ((stream = log_stream_get_by_name((char *)ccbUtilOperationData->param.modify.objectName->value)) !=
 		    NULL) {
-			LOG_ER("Stream %s not found", ccbUtilOperationData->param.modify.objectName->value);
+			TRACE("Handle a SaLogStream");
+			strncpy(current_file_name, stream->fileName, sizeof(current_file_name));
+			new_cfg_file_needed = 0;
+		} else {
+			LOG_ER("Object %s not found", ccbUtilOperationData->param.modify.objectName->value);
 			goto done;
 		}
-
-		strncpy(current_file_name, stream->fileName, sizeof(current_file_name));
-		new_cfg_file_needed = 0;
 
 		attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
 		while (attrMod != NULL) {
@@ -455,7 +592,69 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 
 			value = attribute->attrValues[0];
 
-			if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
+			/* Handle OpenSafLogConfig class parameters
+			   ----------------------------------------
+			 */
+			if (!strcmp(attribute->attrName, "logRootDirectory")) {
+				TRACE("Apply changes to %s",attribute->attrName);
+
+				/* Update saved configuration on both active and stanby */
+				char *new_pathName = *((char **)value);
+				
+				if (lgs_cb->ha_state == SA_AMF_HA_STANDBY) {
+					/* We are standby. Update log root path */
+					TRACE("Apply, HA State is Standby. Update root path");
+					strcpy((char *) lgs_conf->logRootDirectory, new_pathName);
+					TRACE("New path is: %s",lgs_conf->logRootDirectory);
+				}
+				else if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+					/* We are active. Handle files */
+					TRACE("Apply, HA State is Active. Handle files");
+
+					char *current_time = lgs_get_time();
+
+					stream = log_stream_getnext_by_name(NULL);
+					while (stream != NULL) {
+						TRACE("Handling file %s",stream->logFileCurrent);
+						/* Close and rename old files */
+						strncpy(current_file_name, stream->fileName, sizeof(current_file_name));
+						if (log_stream_config_change(!LGS_STREAM_CREATE_FILES,stream, current_file_name) != 0) {
+							LOG_ER("Old log files could not be renamed and closed, root-dir: %s",
+									lgs_cb->logsv_root_dir);
+							goto done;
+						}
+						stream = log_stream_getnext_by_name(stream->name);
+					}
+
+					/* Initialize the new path */
+					strcpy((char *) lgs_conf->logRootDirectory, new_pathName);
+
+					stream = log_stream_getnext_by_name(NULL);
+					while (stream != NULL) {
+						/* Create new files */
+						/* Creating the new config file */
+						if (lgs_create_config_file(stream) != 0) {
+							LOG_ER("New config file could not be created for stream: %s",
+									stream->name);
+							goto done;
+						}
+
+						/* Create the new log file based on updated configuration */
+						sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
+						if ((stream->fd = log_file_open(stream, NULL)) == -1) {
+							LOG_ER("New log file could not be created for stream: %s",
+									stream->name);
+							goto done;
+						}
+						stream = log_stream_getnext_by_name(stream->name);
+					}
+				}
+			}
+
+			/* Handle SaLogStreamConfig class parameters
+			   -----------------------------------------
+			 */
+			else if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
 				char *fileName = *((char **)value);
 				strcpy(stream->fileName, fileName);
 				new_cfg_file_needed = 1;
@@ -495,15 +694,18 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 			attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
 		}
 
-		if (new_cfg_file_needed) {
-			if (log_stream_config_change(stream, current_file_name) != 0) {
-				LOG_ER("log_stream_config_change failed");
-				exit(1);
+		if (stream != NULL) {
+			/* Do only if this is a stream */
+			if (new_cfg_file_needed) {
+				if (log_stream_config_change(LGS_STREAM_CREATE_FILES,stream, current_file_name) != 0) {
+					LOG_ER("log_stream_config_change failed");
+					exit(1);
+				}
 			}
-		}
 
-		/* Checkpoint to standby LOG server */
-		lgs_ckpt_stream(stream);
+			/* Checkpoint to standby LOG server */
+			lgs_ckpt_stream(stream);
+		}
 
 		ccbUtilOperationData = ccbUtilOperationData->next;
 	}
@@ -545,6 +747,11 @@ static SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	log_stream_t *stream = log_stream_get_by_name((char *)objectName->value);
 
 	TRACE_ENTER();
+
+	if (lgs_cb->ha_state != SA_AMF_HA_ACTIVE) {
+		TRACE("State is STANDBY, do nothing");
+		goto done;
+	}
 
 	if (stream == NULL) {
 		LOG_ER("saImmOiRtAttrUpdateCallback, stream %s not found", objectName->value);
@@ -999,11 +1206,56 @@ static const SaImmOiCallbacksT_2 callbacks = {
 	.saImmOiCcbAbortCallback = saImmOiCcbAbortCallback,
 	.saImmOiCcbApplyCallback = saImmOiCcbApplyCallback,
 	.saImmOiCcbCompletedCallback = saImmOiCcbCompletedCallback,
-	.saImmOiCcbObjectCreateCallback = NULL,
-	.saImmOiCcbObjectDeleteCallback = NULL,
+	.saImmOiCcbObjectCreateCallback = saImmOiCcbObjectCreateCallback,
+	.saImmOiCcbObjectDeleteCallback = saImmOiCcbObjectDeleteCallback,
 	.saImmOiCcbObjectModifyCallback = saImmOiCcbObjectModifyCallback,
 	.saImmOiRtAttrUpdateCallback = saImmOiRtAttrUpdateCallback
 };
+
+/**
+ * Give up applier role.
+ */
+void lgs_giveup_imm_applier(lgs_cb_t *cb)
+{
+	TRACE_ENTER();
+
+	if (we_are_applier_flag == true){
+		immutilWrapperProfile.nTries = 250;
+		(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
+		immutilWrapperProfile.nTries = 20;
+		
+		we_are_applier_flag = false;
+		TRACE("Applier cleared");
+	} else {
+		TRACE("We are not an applier");
+	}
+	
+	TRACE_LEAVE();
+}
+
+/**
+ * Become object and class Applier
+ */
+void lgs_become_imm_applier(lgs_cb_t *cb)
+{
+	TRACE_ENTER();
+
+	/* Become an applier only if an OpenSafLogConfig object exists */
+	if ( false == *(bool*) lgs_imm_logconf_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST, NULL)) {
+		TRACE_LEAVE2("Cannot be applier. OpenSafLogConfig object does not exist");
+		return;
+	}
+
+	immutilWrapperProfile.nTries = 250; /* LOG will be blocked until IMM responds */
+	(void)immutil_saImmOiImplementerSet(cb->immOiHandle, applierName);
+	(void)immutil_saImmOiClassImplementerSet(cb->immOiHandle, "OpenSafLogConfig");
+	immutilWrapperProfile.nTries = 20; /* Reset retry time to more normal value. */
+
+	we_are_applier_flag = true;
+
+	TRACE_LEAVE();
+}
+
 
 /**
  * Retrieve the LOG stream configuration from IMM using the
@@ -1066,7 +1318,7 @@ SaAisErrorT lgs_imm_activate(lgs_cb_t *cb)
 }
 
 /**
- * Become object and class implementer. Wait max
+ * Become object and class implementer/applier. Wait max
  * 'max_waiting_time_ms'.
  * @param _cb
  * 
@@ -1077,34 +1329,51 @@ static void *imm_impl_set(void *_cb)
 	SaAisErrorT rc;
 	int msecs_waited;
 	lgs_cb_t *cb = (lgs_cb_t *)_cb;
+	SaImmOiImplementerNameT iname;
 
 	TRACE_ENTER();
 
+	/* Become object implementer or applier dependent on if standby or active
+	 * state
+	 */
+	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+		iname = implementerName;
+	} else {
+		iname = applierName;
+	}
+
 	msecs_waited = 0;
-	rc = saImmOiImplementerSet(cb->immOiHandle, implementerName);
+	rc = saImmOiImplementerSet(cb->immOiHandle, iname);
 	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_ms)) {
 		usleep(sleep_delay_ms * 1000);
 		msecs_waited += sleep_delay_ms;
-		rc = saImmOiImplementerSet(cb->immOiHandle, implementerName);
+		rc = saImmOiImplementerSet(cb->immOiHandle, iname);
 	}
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOiImplementerSet failed %u", rc);
 		exit(EXIT_FAILURE);
 	}
 
-	/* Do this only if the class exists */
+	/* Become class implementer/applier for the OpenSafLogConfig class if it
+	 * exists
+	 */
 	if ( true == *(bool*) lgs_imm_logconf_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST, NULL)) {
 		(void)immutil_saImmOiClassImplementerSet(cb->immOiHandle, "OpenSafLogConfig");
 	}
 
-	msecs_waited = 0;
-	rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaLogStreamConfig");
-	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_ms)) {
-		usleep(sleep_delay_ms * 1000);
-		msecs_waited += sleep_delay_ms;
+	/* Become class implementer for the SaLogStreamConfig class only if we are
+	 * active.
+	 */
+	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+		msecs_waited = 0;
 		rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaLogStreamConfig");
+		while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_ms)) {
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaLogStreamConfig");
+		}
 	}
-
+	
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOiClassImplementerSet failed %u", rc);
 		exit(EXIT_FAILURE);
@@ -1115,7 +1384,7 @@ static void *imm_impl_set(void *_cb)
 }
 
 /**
- * Become object and class implementer, non-blocking.
+ * Become object and class implementer or applier, non-blocking.
  * @param cb
  */
 void lgs_imm_impl_set(lgs_cb_t *cb)
@@ -1124,6 +1393,15 @@ void lgs_imm_impl_set(lgs_cb_t *cb)
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+	/* In standby state: Become applier for configuration object if it exists.
+	 * In active state: Become object implementer.
+	 */
+	if (cb->ha_state == SA_AMF_HA_STANDBY) {
+		if (!*(bool*) lgs_imm_logconf_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST, NULL)) {
+			return;
+		}
+	}
 
 	TRACE_ENTER();
 	if (pthread_create(&thread, &attr, imm_impl_set, cb) != 0) {
