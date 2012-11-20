@@ -93,6 +93,7 @@ const unsigned int max_waiting_time_ms = 60 * 1000;	/* 60 secs */
 static char *log_file_format[] = {
 	DEFAULT_ALM_NOT_FORMAT_EXP,
 	DEFAULT_ALM_NOT_FORMAT_EXP,
+	DEFAULT_APP_SYS_FORMAT_EXP,
 	DEFAULT_APP_SYS_FORMAT_EXP
 };
 
@@ -114,7 +115,7 @@ extern struct ImmutilWrapperProfile immutilWrapperProfile;
  * 
  * @return uns32
  */
-static uint32_t lgs_ckpt_stream(log_stream_t *stream)
+static uint32_t ckpt_stream(log_stream_t *stream)
 {
 	lgsv_ckpt_msg_t ckpt;
 	uint32_t rc;
@@ -137,6 +138,33 @@ static uint32_t lgs_ckpt_stream(log_stream_t *stream)
 	ckpt.ckpt_rec.stream_cfg.logFileFormat = stream->logFileFormat;
 	ckpt.ckpt_rec.stream_cfg.severityFilter = stream->severityFilter;
 	ckpt.ckpt_rec.stream_cfg.logFileCurrent = stream->logFileCurrent;
+
+	rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * Pack and send a open/close stream checkpoint using mbcsv
+ * @param stream
+ * @param recType
+ *
+ * @return uint32
+ */
+static uint32_t ckpt_stream_open_close(log_stream_t *stream, lgsv_ckpt_msg_type_t recType)
+{
+	lgsv_ckpt_msg_t ckpt;
+	uint32_t rc;
+
+	TRACE_ENTER();
+
+	memset(&ckpt, 0, sizeof(ckpt));
+	ckpt.header.ckpt_rec_type = recType;
+	ckpt.header.num_ckpt_records = 1;
+	ckpt.header.data_len = 1;
+
+	lgs_ckpt_stream_open_set(stream, &ckpt.ckpt_rec.stream_open);
 
 	rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
 
@@ -258,7 +286,7 @@ static void adminOperationCallback(SaImmOiHandleT immOiHandle,
 		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
 
 		/* Checkpoint to standby LOG server */
-		lgs_ckpt_stream(stream);
+		ckpt_stream(stream);
 	} else {
 		LOG_ER("Invalid operation ID, should be %d (one) for change filter", SA_LOG_ADMIN_CHANGE_FILTER);
 		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
@@ -297,7 +325,8 @@ static SaAisErrorT ccbObjectCreateCallback(SaImmOiHandleT immOiHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", ccbId, className);
+	TRACE_ENTER2("CCB ID %llu, class '%s', parent '%s'",
+			ccbId, className, parentName->value);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
@@ -462,129 +491,158 @@ static SaAisErrorT config_ccb_completed(const CcbUtilOperationData_t *opdata)
 	return rc;
 }
 
+/**
+ * Verify that attribute values are reasonable.
+ * @param ccbUtilOperationData
+ *
+ * @return SaAisErrorT
+ */
+static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	void *value;
+	const SaImmAttrValuesT_2 *attribute;
+	log_stream_t *stream = (opdata->operationType == CCBUTIL_CREATE) ? NULL
+			: log_stream_get_by_name((char *) opdata->param.modify.objectName->value);
+
+	TRACE_ENTER();
+
+	int i = 0;
+	while (rc == SA_AIS_OK) {
+		if (opdata->operationType == CCBUTIL_CREATE) {
+			attribute = opdata->param.create.attrValues[i];
+			value = (attribute != NULL && attribute->attrValuesNumber > 0) ?
+					attribute->attrValues[0] : NULL;
+		} else {
+			// CCBUTIL_MODIFY
+			attribute = (opdata->param.modify.attrMods[i] != NULL) ?
+					&opdata->param.modify.attrMods[i]->modAttr : NULL;
+			value = (attribute != NULL && attribute->attrValuesNumber > 0) ?
+					attribute->attrValues[0] : NULL;
+		}
+
+		if (attribute != NULL && value != NULL) {
+			TRACE("attribute %s", attribute->attrName);
+
+			if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
+				struct stat pathstat;
+				char *fileName = *((char **) value);
+				if (stat(fileName, &pathstat) == 0) {
+
+					LOG_ER("File %s already exist", fileName);
+					rc = SA_AIS_ERR_EXIST;
+				}
+				TRACE("fileName: %s", fileName);
+			} else if (!strcmp(attribute->attrName, "saLogStreamPathName")) {
+				struct stat pathstat;
+				char fileName[256];
+				strcpy(fileName, lgs_cb->logsv_root_dir);
+				strcat(fileName, "//");
+				strcat(fileName, *((char **) value));
+				strcat(fileName, "//.");
+				if (stat(fileName, &pathstat) != 0) {
+					LOG_ER("Path %s does not exist", fileName);
+					rc = SA_AIS_ERR_BAD_OPERATION;
+				}
+				TRACE("fileName: %s", fileName);
+			} else if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize")) {
+				SaUint64T maxLogFileSize = *((SaUint64T *) value);
+				// maxLogFileSize == 0 is interpreted as "infinite" size.
+				if (maxLogFileSize > 0 &&
+						stream != NULL &&
+						maxLogFileSize < stream->fixedLogRecordSize) {
+					LOG_ER("maxLogFileSize out of range");
+					rc = SA_AIS_ERR_BAD_OPERATION;
+				}
+				TRACE("maxLogFileSize: %llu", maxLogFileSize);
+			} else if (!strcmp(attribute->attrName, "saLogStreamFixedLogRecordSize")) {
+				SaUint32T fixedLogRecordSize = *((SaUint32T *) value);
+				if (stream->maxLogFileSize > 0 &&
+						stream != NULL &&
+						fixedLogRecordSize > stream->maxLogFileSize) {
+					LOG_ER("fixedLogRecordSize out of range");
+					rc = SA_AIS_ERR_BAD_OPERATION;
+				}
+				TRACE("fixedLogRecordSize: %u", fixedLogRecordSize);
+			} else if (!strcmp(attribute->attrName, "saLogStreamLogFullAction")) {
+				SaLogFileFullActionT logFullAction = *((SaUint32T *) value);
+				if ((logFullAction < SA_LOG_FILE_FULL_ACTION_WRAP) ||
+						(logFullAction > SA_LOG_FILE_FULL_ACTION_ROTATE)) {
+					LOG_ER("logFullAction out of range");
+					rc = SA_AIS_ERR_BAD_OPERATION;
+				}
+				if ((logFullAction == SA_LOG_FILE_FULL_ACTION_WRAP) ||
+						(logFullAction == SA_LOG_FILE_FULL_ACTION_HALT)) {
+					LOG_ER("logFullAction:Current Implementation doesn't support  Wrap and halt");
+					rc = SA_AIS_ERR_NOT_SUPPORTED;
+				}
+				TRACE("logFullAction: %u", logFullAction);
+			} else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold")) {
+				SaUint32T logFullHaltThreshold = *((SaUint32T *) value);
+				if (logFullHaltThreshold >= 100) {
+					LOG_ER("logFullHaltThreshold out of range");
+					rc = SA_AIS_ERR_BAD_OPERATION;
+				}
+				TRACE("logFullHaltThreshold: %u", logFullHaltThreshold);
+			} else if (!strcmp(attribute->attrName, "saLogStreamMaxFilesRotated")) {
+				SaUint32T maxFilesRotated = *((SaUint32T *) value);
+				if (maxFilesRotated < 1 || maxFilesRotated > 128) {
+					LOG_ER("Unreasonable maxFilesRotated: %x", maxFilesRotated);
+					rc = SA_AIS_ERR_BAD_OPERATION;
+				}
+				TRACE("maxFilesRotated: %u", maxFilesRotated);
+			} else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat")) {
+				SaBoolT dummy;
+				char *logFileFormat = *((char **) value);
+				TRACE("logFileFormat: %s", logFileFormat);
+
+				if (opdata->operationType == CCBUTIL_CREATE) {
+					if (!lgs_is_valid_format_expression(logFileFormat, STREAM_TYPE_APPLICATION, &dummy)) {
+						LOG_ER("Invalid logFileFormat: %s", logFileFormat);
+						rc = SA_AIS_ERR_BAD_OPERATION;
+					}
+				}
+				else {
+					if (!lgs_is_valid_format_expression(logFileFormat, stream->streamType, &dummy)) {
+						LOG_ER("Invalid logFileFormat: %s", logFileFormat);
+						rc = SA_AIS_ERR_BAD_OPERATION;
+					}
+				}
+			} else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
+				SaUint32T severityFilter = *((SaUint32T *) value);
+				if (severityFilter > 0x7f) {
+					LOG_ER("Invalid severity: %x", severityFilter);
+					rc = SA_AIS_ERR_BAD_OPERATION;
+				}
+				TRACE("severityFilter: %u", severityFilter);
+			} else {
+				LOG_ER("invalid attribute %s", attribute->attrName);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+			}
+		} else
+			break;
+		i++;
+	}
+	TRACE_LEAVE();
+	return rc;
+}
+
 static SaAisErrorT stream_ccb_completed_create(const CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
 	TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
-	LOG_NO("Creation of SaLogStreamConfig objects is not supported");
+	rc = check_attr_validity(opdata);
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
 static SaAisErrorT stream_ccb_completed_modify(const CcbUtilOperationData_t *opdata)
 {
-	const SaImmAttrModificationT_2 *attrMod;
-	SaAisErrorT rc = SA_AIS_OK;
-	int i = 0;
+	SaAisErrorT rc;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-
-	log_stream_t *stream = log_stream_get_by_name((char*)opdata->objectName.value);
-	osafassert(stream);
-
-	attrMod = opdata->param.modify.attrMods[i++];
-	while (attrMod != NULL) {
-		void *value;
-		const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
-
-		TRACE("attribute %s", attribute->attrName);
-
-		if (attribute->attrValuesNumber == 0) {
-			LOG_NO("deletion of value is not allowed for attribute %s stream %s",
-					attribute->attrName, opdata->objectName.value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			goto done;
-		}
-
-		value = attribute->attrValues[0];
-
-		if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
-			struct stat pathstat;
-			char *fileName = *((char **)value);
-			if (stat(fileName, &pathstat) == 0) {
-				LOG_ER("File %s already exist", fileName);
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
-			TRACE("fileName: %s", fileName);
-		} else if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize")) {
-			SaUint64T maxLogFileSize = *((SaUint64T *)value);
-			TRACE("maxLogFileSize: %llu", maxLogFileSize);
-		} else if (!strcmp(attribute->attrName, "saLogStreamFixedLogRecordSize")) {
-			SaUint32T fixedLogRecordSize = *((SaUint32T *)value);
-			if (fixedLogRecordSize > stream->maxLogFileSize) {
-				LOG_ER("fixedLogRecordSize out of range");
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
-			TRACE("fixedLogRecordSize: %u", stream->fixedLogRecordSize);
-		} else if (!strcmp(attribute->attrName, "saLogStreamLogFullAction")) {
-			SaLogFileFullActionT logFullAction = *((SaUint32T *)value);
-			if ((logFullAction < SA_LOG_FILE_FULL_ACTION_WRAP) ||
-					(logFullAction > SA_LOG_FILE_FULL_ACTION_ROTATE)){
-				LOG_ER("logFullAction out of range");
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
-			if ((logFullAction == SA_LOG_FILE_FULL_ACTION_WRAP) ||
-					(logFullAction == SA_LOG_FILE_FULL_ACTION_HALT)){
-				LOG_ER("logFullAction:Current Implementation doesn't support  Wrap and halt");
-				rc = SA_AIS_ERR_NOT_SUPPORTED;
-				goto done;
-			}
-			TRACE("logFullAction: %u", logFullAction);
-		} else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold")) {
-			SaUint32T logFullHaltThreshold = *((SaUint32T *)value);
-			if (logFullHaltThreshold >= 100) {
-				LOG_ER("logFullHaltThreshold out of range");
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
-			TRACE("logFullHaltThreshold: %u", logFullHaltThreshold);
-		} else if (!strcmp(attribute->attrName, "saLogStreamMaxFilesRotated")) {
-			SaUint32T maxFilesRotated = *((SaUint32T *)value);
-			if (maxFilesRotated > 128) {
-				LOG_ER("Unreasonable maxFilesRotated: %x", maxFilesRotated);
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
-			TRACE("maxFilesRotated: %u", maxFilesRotated);
-		} else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat")) {
-			SaBoolT dummy;
-			char *logFileFormat = *((char **)value);
-			TRACE("logFileFormat: %s", logFileFormat);
-
-			if (!lgs_is_valid_format_expression(logFileFormat, stream->streamType, &dummy)) {
-				LOG_ER("Invalid logFileFormat: %s", logFileFormat);
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
-		} else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
-			if ((stream->streamType != STREAM_TYPE_ALARM)
-					&& (stream->streamType != STREAM_TYPE_NOTIFICATION)) {
-
-				SaUint32T severityFilter = *((SaUint32T *)value);
-				if (severityFilter > 0x7f) {
-					LOG_ER("Invalid severity: %x", severityFilter);
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				TRACE("severityFilter: %u", severityFilter);
-			} else {
-				LOG_ER("severityFilter cannot be changed for Alarm amd Notification Stream");
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
-		} else {
-			LOG_ER("invalid attribute");
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			goto done;
-		}
-
-		attrMod = opdata->param.modify.attrMods[i++];
-	}
-done:
+	rc = check_attr_validity(opdata);
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
@@ -594,7 +652,27 @@ static SaAisErrorT stream_ccb_completed_delete(const CcbUtilOperationData_t *opd
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-	LOG_NO("Deletion of SaLogStreamConfig objects is not supported");
+
+	const char *name = (char*) opdata->param.deleteOp.objectName->value;
+	log_stream_t *stream = log_stream_get_by_name(name);
+
+	if (stream != NULL) {
+		if (stream->streamId < 3) {
+			LOG_ER("Stream delete: well known stream '%s' cannot be deleted", name);
+			goto done;
+		}
+
+		if (stream->numOpeners > 1) {
+			LOG_ER("Stream '%s' cannot be deleted: opened by %u clients", name, stream->numOpeners);
+			goto done;
+		}
+
+		rc = SA_AIS_OK;
+	} else {
+		LOG_ER("stream %s not found", name);
+	}
+
+done:
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
@@ -791,6 +869,126 @@ static void config_ccb_apply(const CcbUtilOperationData_t *opdata)
 	TRACE_LEAVE();
 }
 
+/**
+ * Allocate and initialize new application configuration stream object.
+ * @param ccb
+ *
+ * @return SaAisErrorT
+ */
+static SaAisErrorT stream_create_and_configure1(const struct CcbUtilOperationData* ccb,
+		log_stream_t** stream)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	*stream = NULL;
+	int i = 0;
+	SaNameT objectName;
+
+	TRACE_ENTER();
+
+	while (ccb->param.create.attrValues[i] != NULL) {
+		if (!strcmp(ccb->param.create.attrValues[i]->attrName, "safLgStrCfg")) {
+			if (ccb->param.create.parentName->length > 0) {
+				objectName.length = snprintf((char*) objectName.value, sizeof(objectName.value),
+						"%s,%s", *(const SaStringT*) ccb->param.create.attrValues[i]->attrValues[0],
+						ccb->param.create.parentName->value);
+			} else {
+				objectName.length = snprintf((char*) objectName.value, sizeof(objectName.value),
+						"%s", *(const SaStringT*) ccb->param.create.attrValues[i]->attrValues[0]);
+			}
+
+			if ((*stream = log_stream_new_2(&objectName, STREAM_NEW)) == NULL) {
+				rc = SA_AIS_ERR_NO_MEMORY;
+				goto done;
+			}
+		}
+		i++;
+	}
+
+	if (*stream == NULL)
+		goto done;
+
+	i = 0;
+
+	// a configurable application stream.
+	(*stream)->streamType = STREAM_TYPE_APPLICATION;
+
+	while (ccb->param.create.attrValues[i] != NULL) {
+		if (ccb->param.create.attrValues[i]->attrValuesNumber > 0) {
+			SaImmAttrValueT value = ccb->param.create.attrValues[i]->attrValues[0];
+
+			if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamFileName")) {
+				strcpy((*stream)->fileName, *((char **) value));
+				TRACE("fileName: %s", (*stream)->fileName);
+			} else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamPathName")) {
+				strcpy((*stream)->pathName, *((char **) value));
+				TRACE("pathName: %s", (*stream)->pathName);
+			} else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamMaxLogFileSize")) {
+				(*stream)->maxLogFileSize = *((SaUint64T *) value);
+				TRACE("maxLogFileSize: %llu", (*stream)->maxLogFileSize);
+			} else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamFixedLogRecordSize")) {
+				(*stream)->fixedLogRecordSize = *((SaUint32T *) value);
+				TRACE("fixedLogRecordSize: %u", (*stream)->fixedLogRecordSize);
+			} else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamLogFullAction")) {
+				(*stream)->logFullAction = *((SaUint32T *) value);
+				TRACE("logFullAction: %u", (*stream)->logFullAction);
+			} else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamLogFullHaltThreshold")) {
+				(*stream)->logFullHaltThreshold = *((SaUint32T *) value);
+				TRACE("logFullHaltThreshold: %u", (*stream)->logFullHaltThreshold);
+			} else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamMaxFilesRotated")) {
+				(*stream)->maxFilesRotated = *((SaUint32T *) value);
+				TRACE("maxFilesRotated: %u", (*stream)->maxFilesRotated);
+			} else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamLogFileFormat")) {
+				SaBoolT dummy;
+				char *logFileFormat = *((char **) value);
+				if (!lgs_is_valid_format_expression(logFileFormat, (*stream)->streamType, &dummy)) {
+					LOG_WA("Invalid logFileFormat for stream %s, using default", (*stream)->name);
+					logFileFormat = DEFAULT_APP_SYS_FORMAT_EXP;
+				}
+
+				(*stream)->logFileFormat = strdup(logFileFormat);
+				TRACE("logFileFormat: %s", (*stream)->logFileFormat);
+			} else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamSeverityFilter")) {
+				(*stream)->severityFilter = *((SaUint32T *) value);
+				TRACE("severityFilter: %u", (*stream)->severityFilter);
+			}
+		}
+		i++;
+	} // while
+
+	if ((*stream)->logFileFormat == NULL)
+		(*stream)->logFileFormat = strdup(log_file_format[(*stream)->streamType]);
+#if 0
+	// TODO: fails with NOT_EXIST, post an event to ourselves?
+	/* Update creation timestamp */
+	(void) immutil_update_one_rattr(lgs_cb->immOiHandle, (const char*) objectName.value,
+			"saLogStreamCreationTimestamp", SA_IMM_ATTR_SATIMET,
+			&(*stream)->creationTimeStamp);
+#endif
+	done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+static void stream_ccb_apply_create(const CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc;
+	log_stream_t *stream;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	if ((rc = stream_create_and_configure1(opdata, &stream)) == SA_AIS_OK) {
+		if (log_stream_open(stream) == SA_AIS_OK) {
+			ckpt_stream_open_close(stream, LGS_CKPT_OPEN_STREAM);
+		} else {
+			; // what?
+		}
+	} else {
+		LOG_IN("Stream create and configure failed %d", rc);
+	}
+
+	TRACE_LEAVE();
+}
+
 static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 {
 	const SaImmAttrModificationT_2 *attrMod;
@@ -862,9 +1060,22 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	}
 
 	/* Checkpoint to standby LOG server */
-	lgs_ckpt_stream(stream);
+	ckpt_stream(stream);
 
 	TRACE_LEAVE();
+}
+
+static void stream_ccb_apply_delete(const CcbUtilOperationData_t *opdata)
+{
+	log_stream_t *stream;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	stream = log_stream_get_by_name((char *) opdata->objectName.value);
+
+	/* Checkpoint to standby LOG server */
+	ckpt_stream_open_close(stream, LGS_CKPT_CLOSE_STREAM);
+	log_stream_close(&stream);
 }
 
 static void stream_ccb_apply(const CcbUtilOperationData_t *opdata)
@@ -873,13 +1084,13 @@ static void stream_ccb_apply(const CcbUtilOperationData_t *opdata)
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		osafassert(0);
+		stream_ccb_apply_create(opdata);
 		break;
 	case CCBUTIL_MODIFY:
 		stream_ccb_apply_modify(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		osafassert(0);
+		stream_ccb_apply_delete(opdata);
 		break;
 	default:
 		assert(0);
@@ -1036,11 +1247,11 @@ static SaAisErrorT stream_create_and_configure(const char *dn, log_stream_t **in
 	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
 
 	/* Get all attributes of the object */
-        if (immutil_saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes) != SA_AIS_OK) {
-                LOG_ER("Configuration for %s not found", objectName.value);
+	if (immutil_saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes) != SA_AIS_OK) {
+		LOG_ER("Configuration for %s not found", objectName.value);
 		rc = SA_AIS_ERR_NOT_EXIST;
 		goto done;
-        }
+	}
 
 	while ((attribute = attributes[i++]) != NULL) {
 		void *value;
@@ -1476,6 +1687,55 @@ void lgs_become_imm_applier(lgs_cb_t *cb)
 	TRACE_LEAVE();
 }
 
+/**
+ * Get all dynamically added configurable application streams.
+ * @param configNames
+ * @param noConfObjects
+ *
+ * @return -
+ */
+static void getConfigNames(char configNames[64][128], int *noConfObjects)
+{
+	TRACE_ENTER();
+
+	SaAisErrorT rc = SA_AIS_OK;
+	SaImmHandleT omHandle;
+	SaVersionT immVersion = {'A', 2, 1};
+	SaImmSearchHandleT immSearchHandle;
+	SaImmSearchParametersT_2 objectSearch;
+	SaImmAttrValuesT_2 **attributes;
+
+	(void) immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
+
+	/* Search for all objects of class "SaLogStreamConfig" */
+	objectSearch.searchOneAttr.attrName = "safLgStrCfg";
+	objectSearch.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	objectSearch.searchOneAttr.attrValue = NULL;
+
+	if ((rc = immutil_saImmOmSearchInitialize_2(omHandle, NULL,
+			SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR,
+			&objectSearch, NULL, /* Get no attributes */
+			&immSearchHandle)) == SA_AIS_OK) {
+
+		SaNameT objectName;
+		*noConfObjects = 0;
+		while (immutil_saImmOmSearchNext_2(immSearchHandle, &objectName, &attributes) == SA_AIS_OK) {
+			if (strcmp((char*) objectName.value, SA_LOG_STREAM_ALARM) &&
+					strcmp((char*) objectName.value, SA_LOG_STREAM_NOTIFICATION) &&
+					strcmp((char*) objectName.value, SA_LOG_STREAM_SYSTEM)) {
+				strcpy(configNames[*noConfObjects], (char*) objectName.value);
+				*noConfObjects += 1;
+			}
+		}
+	}
+	else {
+		LOG_IN("immutil_saImmOmSearchInitialize_2 %d", rc);
+	}
+	(void) immutil_saImmOmSearchFinalize(immSearchHandle);
+	(void) immutil_saImmOmFinalize(omHandle);
+
+	TRACE_LEAVE();
+}
 
 /**
  * Retrieve the LOG stream configuration from IMM using the
@@ -1498,6 +1758,19 @@ SaAisErrorT lgs_imm_activate(lgs_cb_t *cb)
 
 	if ((rc = stream_create_and_configure(SA_LOG_STREAM_SYSTEM, &cb->systemStream, 2)) != SA_AIS_OK)
 		goto done;
+
+	// Retrieve other configured streams
+	int noConfObjects = 0;
+	char configNames[64][128];
+	getConfigNames(configNames, &noConfObjects);
+
+	int i = 0;
+	int streamId = 3;
+	for (i = 0; i < noConfObjects; i++, streamId++) {
+		if ((rc = stream_create_and_configure(configNames[i], &stream, streamId)) != SA_AIS_OK) {
+			LOG_ER("stream_create_and_configure failed %d", rc);
+		}
+	}
 
 	immutilWrapperProfile.nTries = 250; /* After loading,allow missed sync of large data to complete */
 

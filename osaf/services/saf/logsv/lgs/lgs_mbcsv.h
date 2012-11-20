@@ -129,5 +129,6 @@ uint32_t lgs_mbcsv_init(lgs_cb_t *lgs_cb);
 uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb);
 uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 uint32_t lgs_ckpt_send_async(lgs_cb_t *cb, lgsv_ckpt_msg_t *ckpt_rec, uint32_t action);
+uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream, lgs_ckpt_stream_open_t *stream_open);
 
 #endif   /* !LGSV_CKPT_H */
