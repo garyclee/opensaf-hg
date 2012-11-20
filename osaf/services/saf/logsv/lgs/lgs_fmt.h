@@ -143,9 +143,9 @@ typedef enum {
 
 typedef enum {
 	STREAM_TYPE_ALARM = 0,
-	STREAM_TYPE_NOTIFICATION,
-	STREAM_TYPE_SYSTEM,
-	STREAM_TYPE_APPLICATION
+	STREAM_TYPE_NOTIFICATION = 1,
+	STREAM_TYPE_SYSTEM = 2,
+	STREAM_TYPE_APPLICATION = 3
 } logStreamTypeT;
 
 extern SaBoolT lgs_is_valid_format_expression(const SaStringT, logStreamTypeT, SaBoolT *);

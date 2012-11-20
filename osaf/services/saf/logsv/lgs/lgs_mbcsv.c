@@ -431,7 +431,7 @@ static uint32_t ckpt_enc_cold_sync_data(lgs_cb_t *lgs_cb, NCS_MBCSV_CB_ARG *cbk_
 	return rc;
 }	/*End  ckpt_enc_cold_sync_data() */
 
-static uint32_t ckpt_stream_open_set(log_stream_t *logStream, lgs_ckpt_stream_open_t *stream_open)
+uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream, lgs_ckpt_stream_open_t *stream_open)
 {
 	memset(stream_open, 0, sizeof(lgs_ckpt_stream_open_t));
 	stream_open->clientId = -1;	/* not used in this message */
@@ -481,7 +481,7 @@ static uint32_t edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba)
 
 	/* Walk through the reg list and encode record by record */
 	while (log_stream_rec != NULL) {
-		ckpt_stream_open_set(log_stream_rec, ckpt_stream_rec);
+		lgs_ckpt_stream_open_set(log_stream_rec, ckpt_stream_rec);
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl,
 				    edp_ed_open_stream_rec, uba, EDP_OP_TYPE_ENC, ckpt_stream_rec, &ederror);
 

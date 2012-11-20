@@ -483,7 +483,8 @@ static SaAisErrorT validate_open_params(SaLogHandleT logHandle,
 
 		/* SA_AIS_ERR_INVALID_PARAM, bullet 5 in SAI-AIS-LOG-A.02.01 
 		   Section 3.6.1, Return Values */
-		if (strncmp((const char *)logStreamName->value, "safLgStr=", 9) != 0) {
+		if (strncmp((const char *)logStreamName->value, "safLgStr=", 9) &&
+				strncmp((const char *)logStreamName->value, "safLgStrCfg=", 12)) {
 			TRACE("\"safLgStr=\" is missing in logStreamName");
 			return SA_AIS_ERR_INVALID_PARAM;
 		}
