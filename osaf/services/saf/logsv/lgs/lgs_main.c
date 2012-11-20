@@ -242,7 +242,7 @@ static uint32_t log_initialize(void)
 		LOG_ER("LOGSV_ROOT_DIRECTORY not found");
 		goto done;
 	}
-	TRACE("logsv_root_dir = %s", lgs_cb->logsv_root_dir);
+	LOG_NO("log root directory is: %s", lgs_cb->logsv_root_dir);
 	
 	/* Initialize stream class */
 	if (log_stream_init() != NCSCC_RC_SUCCESS) {
