@@ -493,6 +493,24 @@ void flagsToXMLw(SaImmAttrDefinitionT_2* p, xmlTextWriterPtr writer)
         }
     }
     
+    if (flags & SA_IMM_ATTR_NOTIFY)
+    {
+        if(xmlTextWriterWriteElement(writer, (xmlChar*) "flag",
+           (xmlChar*) "SA_NOTIFY") < 0 ) {
+            std::cout << "Error at xmlTextWriterWriteElement (flag - SA_NOTIFY)" << std::endl;
+            exit(1);
+        }
+    }
+     
+    if (flags & SA_IMM_ATTR_NO_DUPLICATES)
+    {
+        if(xmlTextWriterWriteElement(writer, (xmlChar*) "flag",
+           (xmlChar*) "SA_NO_DUPLICATES") < 0 ) {
+            std::cout << "Error at xmlTextWriterWriteElement (flag - SA_NO_DUPLICATES)" << std::endl;
+            exit(1);
+        }
+    }
+
 }
 
 void typeToXMLw(SaImmAttrDefinitionT_2* p, xmlTextWriterPtr writer)

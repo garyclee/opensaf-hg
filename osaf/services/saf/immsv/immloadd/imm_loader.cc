@@ -1439,6 +1439,14 @@ static SaImmAttrFlagsT charsToFlagsHelper(const xmlChar* str, size_t len)
     {
         return SA_IMM_ATTR_CACHED;
     }
+    else if (strncmp((const char*)str, "SA_NOTIFY", len) == 0)
+    {
+        return SA_IMM_ATTR_NOTIFY;
+    }
+    else if (strncmp((const char*)str, "SA_NO_DUPLICATES", len) == 0)
+    {
+        return SA_IMM_ATTR_NO_DUPLICATES;
+    }
 
     LOG_ER("UNKNOWN FLAGS, %s", str);
 
@@ -1822,7 +1830,7 @@ int loadImmXML(std::string xmldir, std::string file)
 
     version.releaseCode   = 'A';
     version.majorVersion  = 2;
-    version.minorVersion  = 11;
+    version.minorVersion  = 12;
 
     TRACE("Loading from %s/%s", xmldir.c_str(), file.c_str());
 
@@ -2250,7 +2258,7 @@ int immsync(int maxBatchSize)
 
     version.releaseCode   = 'A';
     version.majorVersion  = 2;
-    version.minorVersion  = 1;
+    version.minorVersion  = 12;
 
     int retries = 0;
     do

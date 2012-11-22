@@ -1591,6 +1591,10 @@ static SaImmAttrFlagsT charsToFlagsHelper(const xmlChar* str, size_t len)
 		return SA_IMM_ATTR_PERSISTENT;
 	} else if (strncmp((const char*)str, "SA_CACHED", len) == 0) {
 		return SA_IMM_ATTR_CACHED;
+	} else if (strncmp((const char*)str, "SA_NOTIFY", len) == 0) {
+		return SA_IMM_ATTR_NOTIFY;
+	} else if (strncmp((const char*)str, "SA_NO_DUPLICATES", len) == 0) {
+		return SA_IMM_ATTR_NO_DUPLICATES;
 	}
 
 	LOG_ER("UNKNOWN FLAGS, %s", str);
