@@ -540,8 +540,6 @@ bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT 
 		}
 
 		if(attr_is_multi && !attr_is_pure_rt) {
-			std::string sqlG("select ");
-
 			switch((*it)->attrValueType) {
 				case SA_IMM_ATTR_SAINT32T:
 				case SA_IMM_ATTR_SAUINT32T:
