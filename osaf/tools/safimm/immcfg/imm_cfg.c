@@ -756,7 +756,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 		case 'L':
-			op = VALIDATE_IMMFILE;
+			op = verify_setoption(op, VALIDATE_IMMFILE);
 			xmlFilename = optarg;
 			break;
 		default:
