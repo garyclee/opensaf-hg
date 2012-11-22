@@ -1816,7 +1816,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 		}
 		if(rc != SQLITE_ROW) {
 			LOG_ER("SQL statement ('%s') failed because:\n %s",
-					preparedSql[SQL_SEL_ATTR_DEF], sqlite3_errmsg(dbHandle));
+					preparedSql[SQL_SEL_CLASSES_ID], sqlite3_errmsg(dbHandle));
 			goto bailout;
 		}
 
@@ -2348,6 +2348,7 @@ void objectToPBE(std::string objectNameString,
 		goto bailout;
 	}
 	sqlite3_reset(stmt);
+	sqlite3_clear_bindings(stmt);
 
 	TRACE_LEAVE();
 	return;
