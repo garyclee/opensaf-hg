@@ -12808,7 +12808,10 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             //Sync currently existing implementers
             ImmsvImplList* ii = req->implementers;
             for( ; ii;  ii = ii->next) {
-                std::string implName(ii->implementerName.buf);
+                std::string implName;
+                size_t sz = strnlen((const char *) ii->implementerName.buf,
+                    (size_t) ii->implementerName.size);
+                implName.append((const char *) ii->implementerName.buf, sz);
                 ImplementerInfo* info = findImplementer(implName);
                 if(info) {
                     /* Named implemener already exists. This can happen since we
@@ -12843,12 +12846,12 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 info->mConn = 0;
                 info->mMds_dest = ii->mds_dest;
                 info->mDying = false; //only relevant on the implementers node.
-                info->mImplementerName.append((const char *) 
-                    ii->implementerName.buf,
-                    (size_t) ii->implementerName.size);
+                info->mImplementerName = implName;
                 info->mAdminOpBusy=0;
                 info->mApplier = (info->mImplementerName.at(0) == '@');
                 sImplementerVector.push_back(info);
+                TRACE_5("Immnd sync client synced implementer id:%u name:>>%s<< "
+                        "size:%zu", info->mId, implName.c_str(), implName.size());
             }
 
             LOG_IN("finalizeSync message contains %u implementers", 
@@ -12874,8 +12877,9 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                         //Implementer name may be assigned but none attached 
                         obj->mImplementer = impl;
                     } else {
-                      LOG_WA("Implementer %s for object %s is MISSING",
-                      implName.c_str(), oi->first.c_str());
+                        LOG_WA("Implementer %s for object %s is MISSING",
+                          implName.c_str(), oi->first.c_str());
+                        abort();
                     }
                 }
             }
@@ -13076,17 +13080,27 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                         (size_t) ii->implementerName.size));
                 
                 ImplementerInfo* info = findImplementer(implName);
-                osafassert(info!=NULL);
+                if(info == NULL) {
+                    ImplementerVector::iterator i;
+                    LOG_ER("Missing implementer size %u/%zu name:>>%s<< at veteran "
+                           "node in finalize sync - aborting", ii->implementerName.size,
+                           strlen(ii->implementerName.buf), ii->implementerName.buf);
+
+                    for(i = sImplementerVector.begin(); i != sImplementerVector.end(); ++i) {
+                        ImplementerInfo* info = (*i);
+                        LOG_NO("Implname:>>%s<< size:%zu", info->mImplementerName.c_str(),
+                            info->mImplementerName.size());
+                    }
+                    abort();
+                }
                 
                 if(info->mId != (unsigned int) ii->id) {
                     bool explained = false;
                     if(ii->id == 0) {
                         LOG_NO("Sync-verify: Veteran node has different "
-                            "Implementer-id %u for name: %s, should be 0 "
-                            "according to sync-verify. Discarding it.",
+                            "Implementer-id %u for implementer: %s, should be 0 "
+                            "according to finalizeSync. Assunimg implSet bypased finSync",
                             info->mId, implName.c_str());
-                        /*Does not delete struct that info points to.*/
-                        discardImplementer(info->mId, true);
                         explained = true;
                     } else if(info->mId == 0) {
                         /* Here info->mid == 0 i.e. veteran claims dead implementer 
