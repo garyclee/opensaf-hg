@@ -505,6 +505,15 @@ immModel_ccbObjectCreate(IMMND_CB *cb,
     return err;
 }
 
+struct immsv_attr_values_list * 
+immModel_specialApplierTrimCreate(IMMND_CB *cb, SaUint32T clientId, 
+   struct ImmsvOmCcbObjectCreate *req)
+{
+    return ImmModel::instance(&cb->immModel)->
+        specialApplierTrimCreate(clientId, req);
+}
+
+
 SaUint32T
 immModel_getLocalAppliersForObj(IMMND_CB *cb,
     const SaNameT* objName,
@@ -2221,6 +2230,49 @@ ImmModel::getPbeOi(SaUint32T* pbeConn, unsigned int* pbeNode, bool fevsSafe)
     *pbeNode = classInfo->mImplementer->mNodeId;
 
      return classInfo->mImplementer;
+}
+
+/**
+ * Fetches a special Applier, if one is attached at the local node.
+ * See README and ticket #2873.
+ */
+ImplementerInfo*
+ImmModel::getSpecialApplier()
+{
+    TRACE_ENTER();
+    const std::string spApplierA(OPENSAF_IMM_REPL_A_NAME);
+    const std::string spApplierB(OPENSAF_IMM_REPL_B_NAME);
+
+    ImplementerInfo *specialApplier = findImplementer(spApplierA);
+
+    if(!specialApplier || specialApplier->mDying || !(specialApplier->mConn)) {
+        specialApplier = findImplementer(spApplierB);
+        if(specialApplier && (specialApplier->mDying || !(specialApplier->mConn))) {
+            specialApplier = NULL;
+        }
+    }
+
+    TRACE_LEAVE();
+    return specialApplier;
+}
+
+bool
+ImmModel::specialApplyForClass(ClassInfo* classInfo)
+{
+    TRACE_ENTER();
+    osafassert(classInfo);
+    AttrMap::iterator atti;
+
+    if(getSpecialApplier()) {
+        for(atti=classInfo->mAttrMap.begin(); atti!=classInfo->mAttrMap.end();++atti) {
+            if(atti->second->mFlags & SA_IMM_ATTR_NOTIFY) {
+                return true;
+            }
+        }
+    }
+
+    TRACE_LEAVE();
+    return false;
 }
 
 
@@ -4780,8 +4832,94 @@ void ImmModel::getLocalAppliersForObj(const SaNameT* objName, SaUint32T ccbId,
                 TRACE("LOCAL instance appliers found for %s",
                    objectName.c_str());
             }
-        }        
-    } 
+        }
+    }
+
+    ImplementerInfo* impl = getSpecialApplier();
+    if(impl && specialApplyForClass(classInfo)) {
+        cv.push_back(impl->mConn);
+        ccb->mLocalAppliers.insert(impl);
+    }
+}
+
+immsv_attr_values_list * 
+ImmModel::specialApplierTrimCreate(SaUint32T clientId, ImmsvOmCcbObjectCreate* req)
+{
+    immsv_attr_values_list * attrValues = req->attrValues;
+    ImplementerInfo* specialApplier = getSpecialApplier();
+    if(specialApplier && specialApplier->mConn == clientId) {
+        /* Go through the attrValues and remove all except where the attrdef
+           in the classdef has the NOTIFY flag set. */
+        size_t sz = strnlen((char *) req->className.buf, (size_t)req->className.size);
+        std::string className((const char*)req->className.buf, sz);
+        ClassMap::iterator i3 = sClassMap.find(className);
+        osafassert(i3 != sClassMap.end());
+        ClassInfo* classInfo = i3->second;
+
+        if(!specialApplyForClass(classInfo)) {goto done;}
+
+        CcbVector::iterator i1 = 
+            std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(req->ccbId));
+        osafassert(i1 != sCcbVector.end());
+        CcbInfo* ccb = *i1;
+        ccb->mCcbFlags |= OPENSAF_IMM_CCB_ADMO_PROVIDED;
+        /* Marks the ccb for admin-owner-name having been sent. */
+    
+        immsv_attr_values_list** head = &attrValues;
+        immsv_attr_values_list* current = attrValues;
+        int x=0;
+        do {
+            sz = strnlen((char *) current->n.attrName.buf, 
+                  (size_t)current->n.attrName.size);
+            std::string attName((const char*)current->n.attrName.buf, sz);
+            TRACE("Loop count:%u head:%p (*head):%p current:%p next:%p attr:%s", 
+                x++, head, *head, current, current->next, attName.c_str());
+
+            AttrMap::iterator iatt = classInfo->mAttrMap.find(attName);
+            osafassert(iatt != classInfo->mAttrMap.end());
+
+            if(iatt->second->mFlags & SA_IMM_ATTR_NOTIFY) {
+                TRACE("Attribute %s marked ATTR_NOTIFY, kept for special "
+                      "applier callback for ccb %u", current->n.attrName.buf,
+                        req->ccbId);
+                goto keep_attr;
+            }
+
+            if(iatt->second->mFlags & SA_IMM_ATTR_RDN) {
+                TRACE("Attribute %s is the RDN attribute, kept for special "
+                      "applier callback for ccb %u", current->n.attrName.buf,
+                        req->ccbId);
+                goto keep_attr;
+            }
+
+            if(strncmp((char *) current->n.attrName.buf,
+               SA_IMM_ATTR_ADMIN_OWNER_NAME, current->n.attrName.size)==0) {
+                goto keep_attr;
+            }
+
+            if(strncmp((char *) current->n.attrName.buf,
+               SA_IMM_ATTR_CLASS_NAME, current->n.attrName.size)==0) {
+                goto keep_attr;
+            }
+
+            /* Remove the attribute */
+            *head = current->next;
+            current->next = NULL;
+            immsv_free_attrvalues_list(current);
+            current = *head;
+            TRACE("Discarded attribute %s", attName.c_str());
+            continue;
+
+          keep_attr:
+            TRACE("Kept attribute %s", attName.c_str());
+            head = &((*head)->next);
+            current = *head;
+        } while (current);
+
+    }
+
+ done:
+    return attrValues;
 }
 
 /** 
@@ -4832,6 +4970,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     bool nameCorrected = false;
     bool rdnAttFound=false;
     bool isAugAdmo=false;
+    bool isSpecialApplForClass=false;
 
     //int isLoading = this->getLoader() > 0;
     int isLoading = (sImmNodeState == IMM_NODE_LOADING);
@@ -5269,7 +5408,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             if(isLoading && i4->first == 
                 std::string(SA_IMM_ATTR_IMPLEMENTER_NAME)) {
                 if(!attrValue->empty()) {
-                    std::string implName(attrValue->getValueC_str());
+                    const std::string implName(attrValue->getValueC_str());
                     ImplementerInfo* impl = findImplementer(implName);
                     if(!impl) {
                         TRACE_5("Reviving implementor %s", implName.c_str());
@@ -5298,7 +5437,9 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         //
         //Also: append missing attributes and default values to immsv_attr_values_list
         //so the generated SaImmOiCcbObjectCreateCallbackT_2 will be complete. See #847.
-        //But dont append runtime attributes!
+        //But dont append non persistent runtime attributes.
+        isSpecialApplForClass = specialApplyForClass(classInfo);
+
         for(i6=object->mAttrValueMap.begin(); 
             i6!=object->mAttrValueMap.end() && err==SA_AIS_OK;
             ++i6) {
@@ -5318,11 +5459,11 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 continue;
             }
 
-
             if(pbeNodeIdPtr || /* PBE exists */
                   (object->mImplementer && object->mImplementer->mNodeId) || /* Implemener exists */
-                  (!classInfo->mAppliers.empty())) { /* Appliers exists */
-                /* PBE or impl or applier exists => ensure create up-call is complete
+                  (!classInfo->mAppliers.empty()) || /* Appliers exists */
+                  isSpecialApplForClass) {  /* Notifier exists */
+                /* PBE or impl or applier or notifier exists => ensure create up-call is complete
                    by appending missing attributes.
                 */
                 bool found = false;
@@ -5336,9 +5477,10 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 if(!found) {
                     TRACE("Attribute %s was missing from create input list", attrName.c_str());
 
-                    if(attr->mFlags & SA_IMM_ATTR_RUNTIME) {
-                       /* Runtime attributes not to be appended, skip this attribute. */
-                       continue;
+                    if((attr->mFlags & SA_IMM_ATTR_RUNTIME) && 
+                      ~(attr->mFlags & SA_IMM_ATTR_PERSISTENT)) {
+                        /* Non persistent runtime attributes not appended, skip this attribute. */
+                        continue;
                     }
 
                     p = new immsv_attr_values_list;
@@ -5565,7 +5707,8 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         }
     }
  ccbObjectCreateExit:
-    if((err != SA_AIS_OK) || !classInfo || classInfo->mAppliers.empty()) {
+
+    if((err != SA_AIS_OK) || !classInfo || (classInfo->mAppliers.empty() && !isSpecialApplForClass)) {
         /* Only class implementors can exist for object create. */
         objectName.clear();
     }
@@ -8494,7 +8637,7 @@ ImmModel::findImplementer(SaUint32T id)
 }
 
 ImplementerInfo*
-ImmModel::findImplementer(std::string& iname)
+ImmModel::findImplementer(const std::string& iname)
 {
     //TODO: use a map <name>->impl instead.
     ImplementerVector::iterator i;
@@ -9237,7 +9380,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     //If so check if occupied, if not re-use.
     size_t sz = strnlen((char *) implementerName->buf,
         (size_t)implementerName->size);
-    std::string implName((const char*)implementerName->buf, sz);
+    const std::string implName((const char*)implementerName->buf, sz);
     
     if(implName.empty() || !nameCheck(implName)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper implementer name");
@@ -13022,7 +13165,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 ImmAttrValue* att = obj->mAttrValueMap[implAttr];
                 osafassert(att);
                 if(!(att->empty())) {
-                    std::string implName(att->getValueC_str());
+                    const std::string implName(att->getValueC_str());
                    /*
                       TRACE_5("Attaching implementer %s to object %s",
                       implName.c_str(), oi->first.c_str());
@@ -13064,7 +13207,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 if(ioci->classImplName.size) {
                     sz = strnlen((char *) ioci->classImplName.buf, 
                         (size_t) ioci->classImplName.size);
-                    std::string clImplName((char *) ioci->classImplName.buf, 
+                    const std::string clImplName((char *) ioci->classImplName.buf, 
                         sz);
                     
                     ImplementerInfo* impl = findImplementer(clImplName);
@@ -13230,7 +13373,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             //Verify currently existing implementers
             ImmsvImplList* ii = req->implementers;
             while(ii) {
-                std::string implName((const char *) ii->implementerName.buf, 
+                const std::string implName((const char *) ii->implementerName.buf, 
                     (size_t) strnlen((const char *)
                         ii->implementerName.buf,
                         (size_t) ii->implementerName.size));
@@ -13325,7 +13468,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 if(ioci->classImplName.size) {
                     sz = strnlen((char *) ioci->classImplName.buf, 
                         (size_t) ioci->classImplName.size);
-                    std::string clImplName((char *) ioci->classImplName.buf, 
+                    const std::string clImplName((char *) ioci->classImplName.buf, 
                         sz);
                     ImplementerInfo* impl = findImplementer(clImplName);
                     if(!impl) {

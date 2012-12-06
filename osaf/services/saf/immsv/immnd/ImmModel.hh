@@ -55,6 +55,7 @@ struct ImmOiObjectImplementerSet;
 struct ImmOiRtObjectCreate;
 
 struct immsv_oi_ccb_upcall_rsp;
+struct immsv_attr_values_list;
 
 struct ImmsvOmRspSearchNext;
 
@@ -183,6 +184,10 @@ public:
                                         SaUint32T* pbeConn,
                                         unsigned int* pbeNodeId,
                                         std::string& objectName);
+
+    immsv_attr_values_list* specialApplierTrimCreate(
+						     SaUint32T clientId,
+						     ImmsvOmCcbObjectCreate* req);
 
     void                getLocalAppliersForObj(
                                         const SaNameT* objName,
@@ -445,9 +450,11 @@ public:
     bool              immNotWritable();
     bool              immNotPbeWritable(bool isPrtoClient = true);
     void*             getPbeOi(SaUint32T* pbeConn, unsigned int* pbeNode, bool fevsSafe=true);
+    ImplementerInfo*  getSpecialApplier();
+    bool              specialApplyForClass(ClassInfo* classInfo);
     SaUint32T         findConnForImplementerOfObject(std::string objectDn);
     ImplementerInfo*  findImplementer(SaUint32T);
-    ImplementerInfo*  findImplementer(std::string&);
+    ImplementerInfo*  findImplementer(const std::string&);
     SaUint32T         getImplementerId(SaUint32T localConn);
     void              discardImplementer(
                                          unsigned int implHandle, 
