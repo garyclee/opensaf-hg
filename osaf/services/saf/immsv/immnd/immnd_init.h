@@ -263,6 +263,9 @@ extern "C" {
 
 	SaBoolT immModel_pbeOiExists(IMMND_CB *cb);
 
+	struct immsv_attr_values_list * 
+	immModel_specialApplierTrimCreate(IMMND_CB *cb, SaUint32T clientId, struct ImmsvOmCcbObjectCreate *req);
+
 	SaBoolT immModel_protocol41Allowed(IMMND_CB *cb);
 
 	SaBoolT immModel_purgeSyncRequest(IMMND_CB *cb, SaUint32T clientId);
