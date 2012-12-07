@@ -379,7 +379,8 @@ public:
                                        unsigned int nodeId,
                                        SaUint32T* continuationId,
                                         SaUint32T* pbeConn,
-                                        unsigned int* pbeNodeId);
+ 				        unsigned int* pbeNodeId,
+                                        SaUint32T* spApplConn);
 
     
     SaAisErrorT         rtObjectUpdate(

@@ -1075,7 +1075,10 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 {
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT isPrtObj=(evt->info.objCreate.ccbId == 0);
+	bool isPrtObj=((evt->info.objCreate.ccbId == 0) && (evt->info.objCreate.adminOwnerId != 0));
+	bool isSpAppl = ((evt->info.objCreate.ccbId == 0) && (evt->info.objCreate.adminOwnerId == 0));
+	if(isSpAppl) {TRACE_3("ABT imma_proc_obj_create CCBID==0 admoId=0  SPECIAL APPLIER");}
+
 
 	SaImmOiHandleT implHandle = evt->info.objCreate.immHandle;
 
@@ -1135,7 +1138,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_CREATE for ccb %u", evt->info.objCreate.ccbId);
-		if(!isPrtObj) {
+		if(!isPrtObj && !isSpAppl) {
 			imma_oi_ccb_record_add(cl_node, evt->info.objCreate.ccbId, callback->inv);
 		}
 	}
@@ -2281,7 +2284,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					/* callback->inv == 0 means PBE CCB obj create upcall, NO reply.
 					   But note that for PBE PRTO, callback->inv != 0 and we reply
 					   immediately (no completed upcall. 
-					   Added support for applier OI. No reply to server there either.
+					   Added support for applier & special applier OI. No reply to server there either.
 					*/
 					osafassert(cl_node->isPbe || cl_node->isApplier);
 				}

@@ -340,8 +340,8 @@ extern "C" {
 	SaAisErrorT
 	    immModel_rtObjectCreate(IMMND_CB *cb,
 		    struct ImmsvOmCcbObjectCreate *req,
-		    SaUint32T implConn, SaClmNodeIdT implNodeId,
-		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId);
+		    SaUint32T implConn, SaClmNodeIdT implNodeId, SaUint32T *continuationId,
+		    SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, SaUint32T *spAplConn);
 
 	SaAisErrorT
 	    immModel_rtObjectDelete(IMMND_CB *cb,
