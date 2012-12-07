@@ -4388,6 +4388,7 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
 	SaUint32T continuationId = 0;
+	SaUint32T spApplConn = 0;  /* Special applier locally connected. */
 	TRACE_ENTER();
 
 	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
@@ -4400,10 +4401,10 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 
 	if (originatedAtThisNd) {
 		err = immModel_rtObjectCreate(cb, &(evt->info.objCreate), reqConn, nodeId,
-			&continuationId, &pbeConn, pbeNodeIdPtr);
+			&continuationId, &pbeConn, pbeNodeIdPtr, &spApplConn);
 	} else {
 		err = immModel_rtObjectCreate(cb, &(evt->info.objCreate), 0, nodeId,
-			&continuationId, &pbeConn, pbeNodeIdPtr);
+			&continuationId, &pbeConn, pbeNodeIdPtr, &spApplConn);
 	}
 
 	if(pbeNodeId && err == SA_AIS_OK) {
@@ -4452,6 +4453,39 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 			}
 			implHandle = 0LL;
 			pbe_cl_node = NULL;
+		}
+	}
+
+	if(spApplConn && (err == SA_AIS_OK) && !delayedReply) {
+		/* Indicates object is marked with SA_IMM_ATTR_NOTIFY and
+		   special applier is present at this node and we dont need to
+		   wait for ack from PBE (non persistent RTO or PBE not enabled).*/
+		implHandle = m_IMMSV_PACK_HANDLE(spApplConn, cb->node_id);
+		/*Fetch client node for Special applier OI ! */
+		cl_node = 0LL;
+		immnd_client_node_get(cb, implHandle, &cl_node);
+		osafassert(cl_node != NULL);
+
+		TRACE_2("Special applier needs to be notified of RTO create.");
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_CREATE_UC;
+		send_evt.info.imma.info.objCreate = evt->info.objCreate;
+		send_evt.info.imma.info.objCreate.adminOwnerId = 0;
+		send_evt.info.imma.info.objCreate.immHandle = implHandle;
+		osafassert(evt->info.objCreate.ccbId == 0);
+		evt->info.objCreate.attrValues =
+			send_evt.info.imma.info.objCreate.attrValues =
+			immModel_specialApplierTrimCreate(cb, spApplConn,
+				&(evt->info.objCreate));
+
+
+		if (cl_node->mIsStale) {
+			LOG_WA("Special applier client went down so create upcall not sent");
+		} else if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+				cl_node->agent_mds_dest, 
+				&send_evt) != NCSCC_RC_SUCCESS) {
+			LOG_WA("Create upcall for special applier failed");
 		}
 	}
 

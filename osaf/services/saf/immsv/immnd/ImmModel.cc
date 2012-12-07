@@ -1511,11 +1511,12 @@ immModel_rtObjectCreate(IMMND_CB *cb,
     SaClmNodeIdT implNodeId,
     SaUint32T* continuationId,
     SaUint32T* pbeConn,
-    SaClmNodeIdT* pbeNodeId)
+    SaClmNodeIdT* pbeNodeId,
+    SaUint32T* spApplConn)
 {
     return ImmModel::instance(&cb->immModel)->
         rtObjectCreate(req, implConn, (unsigned int) implNodeId, continuationId, 
-            pbeConn, pbeNodeId);
+            pbeConn, pbeNodeId, spApplConn);
 
 }
 
@@ -3049,7 +3050,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                             ClassMap::iterator i3 = sClassMap.find(className);
                             osafassert(i3 != sClassMap.end());
                             oldClassInfo = i3->second;
-			}
+                        }
 
                         if(obj->mClassInfo == oldClassInfo) {
                             LOG_NO("Ccb %u is active on object '%s', interferes with "
@@ -3057,8 +3058,8 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                                   ccb->mId, omit->first.c_str(), className.c_str(),
                                   attName.c_str());
                             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
-			    break; /* Out of inner loop. */
-			}
+                            break; /* Out of inner loop. */
+                        }
                     }
                 }
             }
@@ -5106,15 +5107,21 @@ ImmModel::specialApplierTrimCreate(SaUint32T clientId, ImmsvOmCcbObjectCreate* r
         ClassMap::iterator i3 = sClassMap.find(className);
         osafassert(i3 != sClassMap.end());
         ClassInfo* classInfo = i3->second;
+        CcbInfo* ccb = NULL;
 
         if(!specialApplyForClass(classInfo)) {goto done;}
 
-        CcbVector::iterator i1 = 
-            std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(req->ccbId));
-        osafassert(i1 != sCcbVector.end());
-        CcbInfo* ccb = *i1;
-        ccb->mCcbFlags |= OPENSAF_IMM_CCB_ADMO_PROVIDED;
-        /* Marks the ccb for admin-owner-name having been sent. */
+        if(classInfo->mCategory == SA_IMM_CLASS_CONFIG) {
+            CcbVector::iterator i1 = 
+                std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(req->ccbId));
+            osafassert(i1 != sCcbVector.end());
+            ccb = *i1;
+            ccb->mCcbFlags |= OPENSAF_IMM_CCB_ADMO_PROVIDED;
+            /* Marks the ccb for admin-owner-name having been sent. */
+        } else {
+            osafassert(req->ccbId == 0 && classInfo->mCategory == SA_IMM_CLASS_RUNTIME);
+
+        }
     
         immsv_attr_values_list** head = &attrValues;
         immsv_attr_values_list* current = attrValues;
@@ -5144,12 +5151,18 @@ ImmModel::specialApplierTrimCreate(SaUint32T clientId, ImmsvOmCcbObjectCreate* r
             }
 
             if(strncmp((char *) current->n.attrName.buf,
+               SA_IMM_ATTR_CLASS_NAME, current->n.attrName.size)==0) {
+                TRACE("Kept class name attribute");
+                goto keep_attr;
+            }
+
+            if(req->ccbId && strncmp((char *) current->n.attrName.buf,
                SA_IMM_ATTR_ADMIN_OWNER_NAME, current->n.attrName.size)==0) {
                 goto keep_attr;
             }
 
-            if(strncmp((char *) current->n.attrName.buf,
-               SA_IMM_ATTR_CLASS_NAME, current->n.attrName.size)==0) {
+            if(!(req->ccbId) && strncmp((char *) current->n.attrName.buf,
+               SA_IMM_ATTR_IMPLEMENTER_NAME, current->n.attrName.size)==0) {
                 goto keep_attr;
             }
 
@@ -5729,8 +5742,13 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     TRACE("Attribute %s was missing from create input list", attrName.c_str());
 
                     if((attr->mFlags & SA_IMM_ATTR_RUNTIME) && 
-                      ~(attr->mFlags & SA_IMM_ATTR_PERSISTENT)) {
-                        /* Non persistent runtime attributes not appended, skip this attribute. */
+                      ~(attr->mFlags & SA_IMM_ATTR_PERSISTENT) &&
+                      ~(attr->mFlags & SA_IMM_ATTR_NOTIFY)) {
+                        /* Persistent runtime attributes appended for PBE will be
+                           trimmed away if not needed by special applier. 
+                           Notify marked attributes (must be cached) are appeded for
+                           special applier, will be ignored by PBE if not persistent.
+                         */
                         continue;
                     }
 
@@ -10815,7 +10833,8 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
     unsigned int nodeId,
     SaUint32T* continuationId,
     SaUint32T* pbeConnPtr,
-    unsigned int* pbeNodeIdPtr)
+    unsigned int* pbeNodeIdPtr,
+    SaUint32T* spApplConnPtr)
 {
     TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationId, pbeConnPtr, pbeNodeIdPtr);
     SaAisErrorT err = SA_AIS_OK;
@@ -10849,6 +10868,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
     bool isPersistent = false;
     bool nameCorrected = false;
     bool rdnAttFound=false;
+    bool isSpecialApplForClass=false;
     
     /*Should rename member adminOwnerId. Used to store implid here.*/
     ImplementerInfo* info = findImplementer(req->adminOwnerId);
@@ -11218,8 +11238,15 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
             p = p->next;
         } //while(p)
         
+
         //Check that all attributes with CACHED flag have been set.
-        
+        //
+        //Also: append missing cached RTAs with default values to immsv_attr_values_list
+        //if there is a special-applier locally attached. This so the special applier will
+        //get informed of the initial value of all cached RTAs and system attributes. See #2873.
+         
+        isSpecialApplForClass = specialApplyForClass(classInfo);
+
         for(i6=object->mAttrValueMap.begin(); 
             i6!=object->mAttrValueMap.end() && err==SA_AIS_OK;
             ++i6) {
@@ -11227,11 +11254,12 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
             std::string attrName(i6->first);
             
             if(attrName == std::string(SA_IMM_ATTR_IMPLEMENTER_NAME)) {
-                if(pbeNodeIdPtr && isPersistent) {
+                if((pbeNodeIdPtr && isPersistent) || isSpecialApplForClass) {
                     /* #1872 Implementer-name attribute must be propagated to PBE
                        in create of persistent RTO. 
                        First set the implementer-name attribute value in the imm object.
                        Then add the value to the attribute list for the upcall to PBE.
+                       Also needed for special applier.
                     */
                     attrValue->setValueC_str(object->mImplementer->mImplementerName.c_str());
                     p = new immsv_attr_values_list;
@@ -11248,6 +11276,24 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                 continue;
             }
             
+            if(isSpecialApplForClass && attrName == std::string(SA_IMM_ATTR_CLASS_NAME)) {
+                /* 
+                  Class-name is needed by special aplier, will be ignored by
+                  PBE if not persistent. 
+                */
+                p = new immsv_attr_values_list;
+                p->n.attrName.size = (SaUint32T) attrName.size() + 1;
+                p->n.attrName.buf = strdup(attrName.c_str());
+                p->n.attrValueType = SA_IMM_ATTR_SASTRINGT;
+                p->n.attrMoreValues = NULL;
+                p->n.attrValuesNumber = 1;
+                attrValue->copyValueToEdu(&(p->n.attrValue), SA_IMM_ATTR_SASTRINGT);
+                p->next = req->attrValues;
+                req->attrValues = p;
+
+                continue;
+            }
+
             if(attrName == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
                 continue;
             }
@@ -11280,8 +11326,38 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                     err = SA_AIS_ERR_INVALID_PARAM;
                 }
             }
+
+            if((attr->mFlags & SA_IMM_ATTR_NOTIFY) && isSpecialApplForClass &&
+               !(attrValue->empty())) {
+                osafassert(attr->mFlags & SA_IMM_ATTR_CACHED);
+                /* Notify marked attribute has value & special applier present.
+                   Check that the attribute is in the input/callback list.
+                   Value could have been set by default value => add it to callback list.
+                */
+                attrValues = req->attrValues;
+                while(attrValues) {
+                    sz = strnlen((char *) attrValues->n.attrName.buf, 
+                        (size_t)attrValues->n.attrName.size);
+                    std::string inpAttrName((const char*)attrValues->n.attrName.buf, sz);
+                    if(inpAttrName == attrName) {
+                        break;
+                    }
+                    attrValues = attrValues->next;
+                }
+                if(!attrValues) {
+                    p = new immsv_attr_values_list;
+                    p->n.attrName.size = (SaUint32T) attrName.size() + 1;
+                    p->n.attrName.buf = strdup(attrName.c_str());
+                    p->n.attrValueType = (SaImmValueTypeT) attr->mValueType;
+                    p->n.attrMoreValues = NULL;
+                    p->n.attrValuesNumber = 1;  /* Defaults can not be multivalued. */
+                    attrValue->copyValueToEdu(&(p->n.attrValue), (SaImmValueTypeT) attr->mValueType);
+                    p->next = req->attrValues;
+                    req->attrValues = p;
+                }
+            }
         }
-        
+
         if(isPersistent && (err == SA_AIS_OK) && pbeNodeIdPtr) {
             /* PBE expected. */
             pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
@@ -11336,6 +11412,16 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
         } else {/* !isPersistent i.e. normal RTO */
             LOG_IN("Create runtime object '%s' by Impl id: %u",
                 objectName.c_str(), info->mId);
+        }
+
+        if(!pbe && isSpecialApplForClass) {
+            /* Not persistent RTO OR PBE not available => dont wait for 
+               response from PBE => Send upcalls to special applier if present.
+            */
+            ImplementerInfo* spAppl = getSpecialApplier();
+            if(spAppl) {
+                *spApplConnPtr = spAppl->mConn;
+            }
         }
         
         sObjectMap[objectName] = object;
