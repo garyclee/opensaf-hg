@@ -164,7 +164,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 	if ((requested_version.releaseCode == 'A') &&
             (requested_version.majorVersion == 0x02) &&
 	    (requested_version.minorVersion >= 0x0b)) {
-		TRACE("OM client version A.2.11");
+		TRACE("OM client version A.2.11 or higher");
 		cl_node->isImmA2b = true;
 	}
 

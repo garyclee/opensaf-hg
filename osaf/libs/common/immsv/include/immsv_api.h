@@ -56,8 +56,28 @@ extern "C" {
 #define IMMSV_MAX_OBJECTS 10000
 #define IMMSV_MAX_ATTRIBUTES 128
 
+/* The pair of magic names for special appliers (#2873)
+   If such an appliers are attached, then the immsv will generate
+   callbacks directed at them, for ccb-create, ccb-delete, ccb-modify,
+   rto-create, rto-delete or rta-update, when/if the operation
+   includes any attributes that have been flagged SA_IMM_ATTR_NOTIFY
+   in the class definition.
+*/
+#define OPENSAF_IMM_REPL_A_NAME "@OpenSafImmReplicatorA"
+#define OPENSAF_IMM_REPL_B_NAME "@OpenSafImmReplicatorB"
+
+/* Used internally in the SaImmCcbFlagsT space to indicate that
+   a ccb currently contains at least one create or at least one
+   modify on an object that has SA_IMM_ATTR_NOTIFY set on one of
+   its attributes and special applier is involved. This means that
+   the admin-owner for the ccb has already been communicated to
+   the special applier. 
+ */
+#define OPENSAF_IMM_CCB_ADMO_PROVIDED 0x80000000
+
+
 /* Used to encode fake OI reply on admin-op, when the OI has not 
-   registered any admin-op callback. Converted to SA_AIS_ERRBAD_OPERATION
+   registered any admin-op callback. Converted to SA_AIS_ERR_BAD_OPERATION
    return code on the OM invoking side. 
 */
 #define IMMSV_IMPOSSIBLE_ERROR 0xffff0000 

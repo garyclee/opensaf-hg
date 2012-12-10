@@ -120,36 +120,6 @@ extern "C" {
 				   const SaStringT **errorStrings);
 
 
-	/* 4.2.22 IMM Service Object Attributes */
-	/* Multivalued non-persistent RTA, not yet supported. */
-	/* See http://devel.opensaf.org/ticket/1827 */
-#define SA_IMM_ATTR_APPLIER_NAME "saImmAttrApplierName"  
-
-
-	/* 4.2.5 SaImmAttrFlagsT */
-	/*
-#define SA_IMM_ATTR_MULTI_VALUE   0x00000001
-#define SA_IMM_ATTR_RDN           0x00000002
-#define SA_IMM_ATTR_CONFIG        0x00000100
-#define SA_IMM_ATTR_WRITABLE      0x00000200
-#define SA_IMM_ATTR_INITIALIZED   0x00000400
-#define SA_IMM_ATTR_RUNTIME       0x00010000
-#define SA_IMM_ATTR_PERSISTENT    0x00020000
-#define SA_IMM_ATTR_CACHED        0x00040000
-	*/
-#define SA_IMM_ATTR_NO_DUPLICATES 0x0000000001000000 /* See: http://devel.opensaf.org/ticket/1545
-							Not yet supported. */
-
-        /* 4.2.12 SaImmSearchOptionsT */
-	/*
-#define SA_IMM_SEARCH_ONE_ATTR       0x0001
-#define SA_IMM_SEARCH_GET_ALL_ATTR   0x0100
-#define SA_IMM_SEARCH_GET_NO_ATTR    0x0200
-#define SA_IMM_SEARCH_GET_SOME_ATTR  0x0400
-	*/
-#define SA_IMM_SEARCH_GET_CONFIG_ATTR 0x0000000000010000   /* See: http://devel.opensaf.org/ticket/1897 
-							      Supported in OpenSaf 4.3 */
-
 	/* 4.2.14 SaImmCcbFlagsT */
 	/*
 #define SA_IMM_CCB_REGISTERED_OI 0x00000001
@@ -160,5 +130,7 @@ extern "C" {
 #ifdef  __cplusplus
 }
 #endif
+
+#include <saImmOm_A_2_12.h>
 
 #endif   /* _SA_IMM_OM_A_2_11_H */

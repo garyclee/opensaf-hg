@@ -30,6 +30,7 @@
 #include <util.h>
 
 /* Common globals */
+extern const SaVersionT constImmVersion;
 extern SaVersionT immVersion;
 extern SaAisErrorT rc;
 extern SaSelectionObjectT selectionObject;

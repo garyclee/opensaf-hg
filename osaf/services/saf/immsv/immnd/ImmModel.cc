@@ -2395,6 +2395,13 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                     persistentRdn = true;
                 }
             }
+
+            if((attr->attrFlags & SA_IMM_ATTR_NOTIFY) &&
+                !(attr->attrFlags & SA_IMM_ATTR_CACHED)){
+                LOG_NO("ERR_INVALID_PARAM: Runtime attribute:%s is not cached =>"
+                       "can not be delcared SA_IMM_ATTR_NOTIFY", attNm);
+                illegal = 1;
+            }
         } else {
             LOG_NO("ERR_INVALID_PARAM: Attribute '%s' is neither SA_IMM_ATTR_CONFIG nor "
                 "SA_IMM_ATTR_RUNTIME", attNm);
@@ -2831,6 +2838,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
     if(oldAttr) {
         /* Existing attribute, possibly changed. */
         bool change=false;
+        bool checkCcb=false;
         osafassert(changedAttrs);
         if(oldAttr->mValueType != newAttr->mValueType) {
             LOG_NO("Impossible upgrade, attribute %s:%s changes value type",
@@ -2925,6 +2933,60 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                     "SA_IMM_ATTR_PERSISTENT", className.c_str(), attName.c_str());
 
                 change = true; /* Instances dont need migration. */
+                checkCcb=true;
+            }
+
+            if(!(oldAttr->mFlags & SA_IMM_ATTR_NOTIFY) &&
+               (newAttr->mFlags & SA_IMM_ATTR_NOTIFY)) {
+                /* Check for CACHED on RTAs done in basic check. */
+                LOG_NO("Allowed upgrade, attribute %s:%s adds flag "
+                    "SA_IMM_ATTR_NOTIFY", className.c_str(), attName.c_str());
+                change = true; /* Instances dont need migration. */
+                checkCcb=true;
+            }
+
+            if((oldAttr->mFlags & SA_IMM_ATTR_NOTIFY) &&
+               !(newAttr->mFlags & SA_IMM_ATTR_NOTIFY)) {
+                LOG_NO("Allowed upgrade, attribute %s:%s removes flag "
+                    "SA_IMM_ATTR_NOTIFY", className.c_str(), attName.c_str());
+                change = true; /* Instances dont need migration. */
+                checkCcb=true;
+            }
+        }
+
+        if(checkCcb) { 
+            /* Check for ccb-interference. Changing ATTR_NOTIFY or ATTR_PERSISTENT
+               when there is an on-going ccb that is still open (not critical) and 
+               is operating on instances of the class could cause partial and
+               incomplete notification/persistification relative to the CCB.
+               Abort the ccb in that case.
+            */
+            CcbVector::iterator i;
+            ClassInfo* oldClassInfo=NULL;
+            for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
+                CcbInfo* ccb = (*i);
+                if(ccb->mState < IMM_CCB_CRITICAL && ccb->mVeto==SA_AIS_OK) {
+                    ObjectMutationMap::iterator omit;
+                    for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit) {
+                        ObjectMap::iterator oi = sObjectMap.find(omit->first);
+                        osafassert(oi != sObjectMap.end());
+                        ObjectInfo* obj = oi->second;
+                        if(oldClassInfo == NULL) {
+                            ClassMap::iterator i3 = sClassMap.find(className);
+                            osafassert(i3 != sClassMap.end());
+                            oldClassInfo = i3->second;
+			}
+
+                        if(obj->mClassInfo == oldClassInfo) {
+                            LOG_NO("Ccb %u is active on object '%s', interferes with "
+                                   "class change for class: %s attr: %s. Aborting Ccb.", 
+                                  ccb->mId, omit->first.c_str(), className.c_str(),
+                                  attName.c_str());
+                            ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+			    break; /* Out of inner loop. */
+			}
+                    }
+                }
             }
         }
 
@@ -3102,6 +3164,25 @@ ImmModel::attrCreate(ClassInfo* classInfo, const ImmsvAttrDefinition* attr,
                 err = SA_AIS_ERR_INVALID_PARAM;
                 goto done;
             }
+        }
+
+        SaImmAttrFlagsT unknownFlags = attr->attrFlags & 
+          ~(SA_IMM_ATTR_MULTI_VALUE |
+            SA_IMM_ATTR_RDN |
+            SA_IMM_ATTR_CONFIG |
+            SA_IMM_ATTR_WRITABLE |
+            SA_IMM_ATTR_INITIALIZED |
+            SA_IMM_ATTR_RUNTIME |
+            SA_IMM_ATTR_PERSISTENT |
+            SA_IMM_ATTR_CACHED |
+            SA_IMM_ATTR_NO_DUPLICATES |
+            SA_IMM_ATTR_NOTIFY);
+
+        if(unknownFlags) {
+            LOG_NO("ERR_INVALID_PARAM: invalid search option 0x%llx",
+                unknownFlags);
+            err = SA_AIS_ERR_INVALID_PARAM;
+            goto done;
         }
 
         TRACE_5("create attribute '%s'", attrName.c_str());
