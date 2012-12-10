@@ -1424,6 +1424,7 @@ fi
 %{_includedir}/saPlm.h
 %{_includedir}/saImmOi_A_2_11.h
 %{_includedir}/saImmOm_A_2_11.h
+%{_includedir}/saImmOm_A_2_12.h
 
 #TODO: Is it going out of the main opensaf repo?
 %files samples

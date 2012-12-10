@@ -20,12 +20,14 @@
 void saImmOiInitialize_2_01(void)
 {
     immOiHandle=4711;
+    immVersion = constImmVersion;
     safassert(saImmOiFinalize(immOiHandle), SA_AIS_ERR_BAD_HANDLE);
 
     if ((rc = saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion)) != SA_AIS_OK)
         goto done;
 
     safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
+    immVersion = constImmVersion;
     if ((rc = saImmOiInitialize_2(&immOiHandle, NULL, &immVersion)) != SA_AIS_OK)
         goto done;
 

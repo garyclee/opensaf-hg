@@ -41,6 +41,8 @@ static char *classes[] = {
 		"saImmOmClassDescriptionGet_2_02",
 		"saImmOmClassDescriptionMemoryFree_2_01",
 		"saImmOmClassDescriptionMemoryFree_2_02",
+		"saImmOmClassCreate_2_14",
+		"saImmOmClassDescriptionGet_2_04",
 		NULL
 };
 

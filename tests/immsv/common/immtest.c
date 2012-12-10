@@ -20,7 +20,8 @@
 #include <unistd.h>
 #include "immtest.h"
 
-SaVersionT immVersion = {'A', 0x02, 0x011}; 
+const SaVersionT constImmVersion = {'A', 0x02, 0x0c}; 
+SaVersionT immVersion = {'A', 0x02, 0x0c}; 
 SaAisErrorT rc;
 SaImmHandleT immOmHandle;
 SaImmHandleT immOiHandle;
