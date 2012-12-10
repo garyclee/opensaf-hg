@@ -1804,7 +1804,6 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
                 osafassert(oi->second == oMut->mAfterImage);
 
                 oMut->mAfterImage->mObjFlags &= ~IMM_CREATE_LOCK;
-                oMut->mAfterImage = NULL;
                 /* Decrement mChildCount for all parents of the reverted 
                    PRTO create. Note: There could be several PRTO creates to
                    process in this purge, but none can be the parent of another 
@@ -1822,7 +1821,7 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
                         gpDn.c_str(), omuti->first.c_str(), grandParent->mChildCount);
                     grandParent = grandParent->mParent;
                 }
-
+                oMut->mAfterImage = NULL;
                 LOG_WA("Create of PERSISTENT runtime object '%s' REVERTED ",
                     omuti->first.c_str());
                 osafassert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
