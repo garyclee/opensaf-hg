@@ -390,7 +390,9 @@ public:
                                        bool* isPureLocal,
                                        SaUint32T* continuationId,
                                        SaUint32T* pbeConn,
-                                       unsigned int* pbeNodeId);
+                                       unsigned int* pbeNodeId,
+                                       SaUint32T* specialApplCon);
+
     void                deferRtUpdate(ImmsvOmCcbObjectModify* req, SaUint64T msgNo);
     
 

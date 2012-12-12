@@ -355,8 +355,8 @@ extern "C" {
 	    immModel_rtObjectUpdate(IMMND_CB *cb,
 		    const struct ImmsvOmCcbObjectModify *req,
 		    SaUint32T implConn, SaClmNodeIdT implNodeId, 
-		    unsigned int *isPureLocal, 
-		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId);
+		    unsigned int *isPureLocal, SaUint32T *continuationId, SaUint32T *pbeConn,
+		    SaClmNodeIdT *pbeNodeId, SaUint32T *spAplConn);
 
 	SaAisErrorT immModel_ccbResult(IMMND_CB *cb, SaUint32T ccbId);
 
