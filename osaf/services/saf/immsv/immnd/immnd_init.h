@@ -349,7 +349,7 @@ extern "C" {
 		    SaUint32T implConn, SaClmNodeIdT implNodeId,
 		    SaUint32T *continuationId, SaUint32T *pbeConn,
 		    SaClmNodeIdT *pbeNodeId, SaStringT **objNameArr,
-		    SaUint32T* arrSize);
+		    SaUint32T* arrSize, SaUint32T* spApplConn);
 
 	SaAisErrorT
 	    immModel_rtObjectUpdate(IMMND_CB *cb,

@@ -401,13 +401,16 @@ public:
                                        SaUint32T* continuationId,
                                        SaUint32T* pbeConnPtr,
                                        unsigned int* pbeNodeIdPtr,
-                                       ObjectNameVector& objNameVector);
+                                       ObjectNameVector& objNameVector,
+                                       SaUint32T* specialApplCon);
+                  
     
     SaAisErrorT         deleteRtObject(
                                        ObjectMap::iterator& oi,
                                        bool doIt,
                                        ImplementerInfo* info,
-                                       bool& subTreeHasPersistent);
+                                       bool& subTreeHasPersistent,
+                                       bool& subTreeHasSpecialAppl);
     
     SaAisErrorT       objectSync(const ImmsvOmObjectSync* req);
     bool              fetchRtUpdate(ImmsvOmObjectSync* syncReq,

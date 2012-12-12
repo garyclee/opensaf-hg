@@ -5632,6 +5632,7 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 	SaUint32T continuationId = 0;
 	SaStringT *objNameArr;
 	SaUint32T arrSize = 0;
+	SaUint32T spApplConn=0;
 	TRACE_ENTER();
 
 #if 0				/*ABT DEBUG PRINTOUTS START */
@@ -5649,10 +5650,10 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 
 	if (originatedAtThisNd) {
 		err = immModel_rtObjectDelete(cb, &(evt->info.objDelete), reqConn, nodeId,
-			&continuationId, &pbeConn, pbeNodeIdPtr, &objNameArr, &arrSize);
+			&continuationId, &pbeConn, pbeNodeIdPtr, &objNameArr, &arrSize, &spApplConn);
 	} else {
 		err = immModel_rtObjectDelete(cb, &(evt->info.objDelete), 0, nodeId,
-			&continuationId, &pbeConn, pbeNodeIdPtr, &objNameArr, &arrSize);
+			&continuationId, &pbeConn, pbeNodeIdPtr, &objNameArr, &arrSize, &spApplConn);
 	}
 
 	if(pbeNodeId && (err == SA_AIS_OK) && arrSize) {
@@ -5738,6 +5739,46 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 			}
 			implHandle = 0LL;
 			pbe_cl_node = NULL;
+		}
+	} 
+
+        if(spApplConn && (err = SA_AIS_OK) && !delayedReply) {
+		int ix = 0;
+		/* Indicates object is marked with SA_IMM_ATTR_NOTIFY and
+		   special applier is present at this node and we dont need to
+		   wait for ack from PBE (non persistent RTO or PBE not enabled).*/
+		implHandle = m_IMMSV_PACK_HANDLE(spApplConn, cb->node_id);
+		/*Fetch client node for Special applier OI ! */
+		cl_node = 0LL;
+		immnd_client_node_get(cb, implHandle, &cl_node);
+		osafassert(cl_node != NULL);
+                if(cl_node->mIsStale) {
+			LOG_WA("Special applier is down => notify of rtObj delete is dropped");
+			goto done;
+		}
+		TRACE_2("Special applier needs to be notified of RTO delete.");
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_DELETE_UC;
+		send_evt.info.imma.info.objDelete.ccbId = 0;
+		send_evt.info.imma.info.objDelete.adminOwnerId = 0;
+		send_evt.info.imma.info.objDelete.immHandle = implHandle;
+
+		for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
+			send_evt.info.imma.info.objDelete.objectName.size = 
+				(SaUint32T) strlen(objNameArr[ix]);
+			send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
+
+			TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT RT-OBJ DELETE upcalls");
+			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+				cl_node->agent_mds_dest, &send_evt) != 	NCSCC_RC_SUCCESS) 
+			{
+				LOG_WA("Upcall over MDS for special applier rt obj delete failed!");
+				/* 
+				   This is an unhandled message loss case!
+				*/
+				goto done;
+			}
 		}
 	}
 

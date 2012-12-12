@@ -983,7 +983,9 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 {
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT isPrtObj=(evt->info.objDelete.ccbId == 0);
+	SaBoolT isPrtObj=((evt->info.objDelete.ccbId == 0) && (evt->info.objDelete.adminOwnerId != 0));
+	SaBoolT isSpApplRto=((evt->info.objDelete.ccbId == 0) && (evt->info.objDelete.adminOwnerId == 0));
+	if(isSpApplRto) {TRACE_3("imma_proc_obj_delete CCBID==0 admoId=0  SPECIAL applier RTO delete");}
 
 	SaImmOiHandleT implHandle = evt->info.objDelete.immHandle;
 
@@ -1038,7 +1040,9 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 			SaImmOiCcbIdT ccbId = 0LL;
 			ccbId = callback->inv + 0x100000000LL;  /* pseudo ccb-id */
 
-			imma_oi_ccb_record_add(cl_node, ccbId, 0);			
+			imma_oi_ccb_record_add(cl_node, ccbId, 0);
+		} else if(isSpApplRto) {
+			TRACE("Special applier RTO delete for %s", evt->info.objDelete.objectName.buf);
 		} else {
 			/* Regular CCB object delete arrives at... */
 			if(cl_node->isApplier) { /* applier*/
@@ -1076,8 +1080,8 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	bool isPrtObj=((evt->info.objCreate.ccbId == 0) && (evt->info.objCreate.adminOwnerId != 0));
-	bool isSpAppl = ((evt->info.objCreate.ccbId == 0) && (evt->info.objCreate.adminOwnerId == 0));
-	if(isSpAppl) {TRACE_3("ABT imma_proc_obj_create CCBID==0 admoId=0  SPECIAL APPLIER");}
+	bool isSpApplRto = ((evt->info.objCreate.ccbId == 0) && (evt->info.objCreate.adminOwnerId == 0));
+	if(isSpApplRto) {TRACE_3("imma_proc_obj_create CCBID==0 admoId=0  SPECIAL applier RTO create");}
 
 
 	SaImmOiHandleT implHandle = evt->info.objCreate.immHandle;
@@ -1138,7 +1142,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_CREATE for ccb %u", evt->info.objCreate.ccbId);
-		if(!isPrtObj && !isSpAppl) {
+		if(!isPrtObj && !isSpApplRto) {
 			imma_oi_ccb_record_add(cl_node, evt->info.objCreate.ccbId, callback->inv);
 		}
 	}

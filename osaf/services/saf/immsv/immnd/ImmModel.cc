@@ -180,6 +180,16 @@ typedef SaUint32T ImmObjectFlags;
 //delete object during the commit of the ccb/prto-delete, so that we can decrement
 //the child-counter in any parent(s) of the deleted subtree. 
 
+#define IMM_RTNFY_FLAG 0x00000040
+//Flag indicates that the object is a runtime object that has some
+//attributes flagged for special notification. See: SA_IMM_ATTR_NOTIFY.
+//This flag is not reliably set in general. I.e. it can not be
+//used in general to test if the object has a notifiable attribute.
+//If the flag is set then the object must have such an attribute.
+//But if the flag is not set, the object may still have such an attr.
+//It is currently only used in rtObjectDelete() and deleteRtObject()
+
+
 struct ObjectInfo  
 {
     ObjectInfo() : mAdminOwnerAttrVal(NULL), mCcbId(0),
@@ -1529,7 +1539,8 @@ immModel_rtObjectDelete(IMMND_CB *cb,
     SaUint32T* pbeConn,
     SaClmNodeIdT* pbeNodeId,
     SaStringT **objNameArr,
-    SaUint32T* arrSizePtr)
+    SaUint32T* arrSizePtr,
+    SaUint32T* spApplConn)
 {
     ObjectNameVector ov;
     ObjectNameVector::iterator oni;
@@ -1538,7 +1549,7 @@ immModel_rtObjectDelete(IMMND_CB *cb,
 
     SaAisErrorT err = ImmModel::instance(&cb->immModel)->
         rtObjectDelete(req, implConn, (unsigned int) implNodeId,
-            continuationId, pbeConn, pbeNodeId, ov);
+            continuationId, pbeConn, pbeNodeId, ov, spApplConn);
 
     (*arrSizePtr) = (SaUint32T) ov.size();
     if((err == SA_AIS_OK) && (*arrSizePtr)) {
@@ -1812,6 +1823,7 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
     ObjectInfo *afim = NULL;
     TRACE_ENTER();
     bool dummy=false;
+    bool dummy2=false;
 
     for(omuti=sPbeRtMutations.begin(); 
         omuti!=sPbeRtMutations.end(); ++omuti) {
@@ -1869,7 +1881,7 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
                 oMut->mAfterImage = NULL;
                 LOG_WA("Create of PERSISTENT runtime object '%s' REVERTED ",
                     omuti->first.c_str());
-                osafassert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
+                osafassert(deleteRtObject(oi, true, NULL, dummy, dummy2) == SA_AIS_OK);
             break;
 
             case IMM_DELETE:
@@ -11477,6 +11489,7 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
         }
     } else {
         bool dummy=false;
+        bool dummy2=false;
         ObjectMap::iterator oi = sObjectMap.find(i2->first);
         osafassert(oi != sObjectMap.end());
         /* Need to decrement mChildCount in parents. */
@@ -11490,7 +11503,7 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
             grandParent = grandParent->mParent;
         }
 
-        osafassert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
+        osafassert(deleteRtObject(oi, true, NULL, dummy, dummy2) == SA_AIS_OK);
         LOG_WA("Create of PERSISTENT runtime object '%s' REVERTED. PBE rc:%u", 
             i2->first.c_str(), error);
     }
@@ -11542,6 +11555,7 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
                 TRACE("Delete of runtime object '%s'.", i2->first.c_str());
             }
             bool dummy=false;
+            bool dummy2=false;
             ObjectMap::iterator oi = sObjectMap.find(i2->first);
             osafassert(oi != sObjectMap.end());
 
@@ -11563,7 +11577,7 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
                 }
             }
 
-            osafassert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
+            osafassert(deleteRtObject(oi, true, NULL, dummy, dummy2) == SA_AIS_OK);
         } else {
             if(oMut->mAfterImage->mObjFlags & IMM_PRTO_FLAG) {
                 LOG_WA("Delete of PERSISTENT runtime object '%s' REVERTED. PBE rc:%u", 
@@ -12363,9 +12377,15 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
         SaUint32T* continuationIdPtr,
         SaUint32T* pbeConnPtr,
         unsigned int* pbeNodeIdPtr,
-        ObjectNameVector& objNameVector)
+        ObjectNameVector& objNameVector,
+        SaUint32T* spApplConnPtr)
 {
+    (*spApplConnPtr) = 0;
     bool subTreeHasPersistent = false;
+    bool subTreeHasSpecialAppl = false;
+    /*
+      
+     */
 
     TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationIdPtr, pbeConnPtr,
         pbeNodeIdPtr);
@@ -12505,7 +12525,7 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
             oMut->mContinuationId = (*continuationIdPtr);
             oMut->mAfterImage = oi->second;
             sPbeRtMutations[oi->first] = oMut;
-           if(oi->second->mObjFlags & IMM_PRTO_FLAG) {
+            if((oi->second->mObjFlags & IMM_PRTO_FLAG) && (*pbeConnPtr)) {
                 TRACE("PRTO flag was set for root of subtree to delete");
                 if(oi->second->mObjFlags & IMM_DN_INTERNAL_REP) {
                     std::string tmpName(oi->first);
@@ -12527,9 +12547,31 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                     TRACE_5("Childcount for (grand)parent of deleted RTO %s adjusted to %u",
                         objectName.c_str(), grandParent->mChildCount);
                     grandParent = grandParent->mParent;
-                } 
+                }
+
+                if(subTreeHasSpecialAppl) {
+                    ImplementerInfo* spImpl = getSpecialApplier();
+                    if(spImpl && spImpl->mConn) {
+                        (*spApplConnPtr) = spImpl->mConn;
+
+                        if(oi->second->mObjFlags & IMM_RTNFY_FLAG) {
+                            TRACE("NOTIFY flag was set for root of subtree to delete");
+                            if(oi->second->mObjFlags & IMM_DN_INTERNAL_REP) {
+                                std::string tmpName(oi->first);
+                                nameToExternal(tmpName);
+                                objNameVector.push_back(tmpName);
+                            } else {
+                                objNameVector.push_back(oi->first);
+                            }
+                        }
+                    } else {
+                        /* No special applier connected at this node. */
+                        subTreeHasSpecialAppl = false;
+                        osafassert(!(*spApplConnPtr));
+		    }
+                }
             }
-            err = deleteRtObject(oi, doIt, info, subTreeHasPersistent);
+            err = deleteRtObject(oi, doIt, info, subTreeHasPersistent, subTreeHasSpecialAppl);
         }
 
         //Find all sub objects to the deleted object and delete them 
@@ -12553,8 +12595,8 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                         oMut->mContinuationId = (*continuationIdPtr);
                         oMut->mAfterImage = oi2->second;
                         sPbeRtMutations[subObjName] = oMut;
-                        if(oi2->second->mObjFlags & IMM_PRTO_FLAG) {
-                            TRACE("PRTO flag was set for subobj");
+                        if((oi2->second->mObjFlags & IMM_PRTO_FLAG) && (*pbeConnPtr)) {
+                            TRACE("PRTO flag was set for subobj: %s", subObjName.c_str());
                             if(oi2->second->mObjFlags & IMM_DN_INTERNAL_REP) {
                                 std::string tmpName(subObjName);
                                 nameToExternal(tmpName);
@@ -12565,8 +12607,18 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                         }
                     } else {
                         /* No PBE or no PRTOs in subtree => immediate delete */
+                        if(doIt && (*spApplConnPtr) && (oi2->second->mObjFlags & IMM_RTNFY_FLAG)) {
+                            TRACE("NOTIFY flag was set for subobj: %s", subObjName.c_str());
+                            if(oi2->second->mObjFlags & IMM_DN_INTERNAL_REP) {
+                                std::string tmpName(subObjName);
+                                nameToExternal(tmpName);
+                                objNameVector.push_back(tmpName);
+                            } else {
+                                objNameVector.push_back(subObjName);
+                            }
+                        }
                         ObjectMap::iterator oi3 = (doIt)?(oi2++):oi2;
-                        err = deleteRtObject(oi3, doIt, info, subTreeHasPersistent);
+                        err = deleteRtObject(oi3, doIt, info, subTreeHasPersistent, subTreeHasSpecialAppl);
                         deleted = doIt;
                     }//else
                     if(!childCount) {
@@ -12588,7 +12640,8 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
 
 SaAisErrorT
 ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt, 
-    ImplementerInfo* info, bool& subTreeHasPersistent)
+    ImplementerInfo* info, bool& subTreeHasPersistent, 
+    bool& subTreeHasSpecialAppl)
 {
     TRACE_ENTER();
     /* If param info!=NULL then this is a normal RTO delete.
@@ -12631,6 +12684,23 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
 
     if(isPersistent) {
         object->mObjFlags |= IMM_PRTO_FLAG;
+    } else {
+        /* Will correct for schema change that has removed persistence */
+        object->mObjFlags &= ~IMM_PRTO_FLAG;
+    }
+
+    i4 = std::find_if(classInfo->mAttrMap.begin(), classInfo->mAttrMap.end(),
+         AttrFlagIncludes(SA_IMM_ATTR_NOTIFY));
+     subTreeHasSpecialAppl = true;
+
+    bool isSpecialAppl = i4 != classInfo->mAttrMap.end();
+
+    if(isSpecialAppl) {
+        object->mObjFlags |= IMM_RTNFY_FLAG;
+        subTreeHasSpecialAppl = true;
+    } else {
+        /* Will correct for schema change that has removed notify */
+        object->mObjFlags &= ~IMM_RTNFY_FLAG;
     }
 
     if(!info) {
