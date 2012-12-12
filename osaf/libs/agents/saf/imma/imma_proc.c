@@ -1163,10 +1163,11 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 {
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT isPrtAttrs=(evt->info.objCreate.ccbId == 0);
+	SaBoolT isPrtAttrs=((evt->info.objModify.ccbId == 0) && (evt->info.objModify.adminOwnerId != 0));
+	SaBoolT isSpApplRtu = ((evt->info.objModify.ccbId == 0) && (evt->info.objModify.adminOwnerId == 0));
 	/* Can be a PRTO or a config obj with PRTAttrs. */
 	TRACE_ENTER();
-
+        if(isSpApplRtu) {TRACE_3("imma_proc_obj_modify CCBID==0 admoId=0  SPECIAL applier RTO create");}
 	SaImmOiHandleT implHandle = evt->info.objModify.immHandle;
 
 	/* get the CB Lock */
@@ -1224,7 +1225,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("IMMA_CALLBACK_OI_CCB_MODIFY Posted for ccb %u", evt->info.objModify.ccbId);
-		if(!isPrtAttrs) {
+		if(!isPrtAttrs && !isSpApplRtu) {
 			imma_oi_ccb_record_add(cl_node, evt->info.objModify.ccbId, callback->inv);
 		}
 	}

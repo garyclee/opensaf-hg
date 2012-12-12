@@ -2250,6 +2250,7 @@ static uint32_t immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	SaUint32T dummyPbeConn = 0;
 	NCS_NODE_ID *dummyPbeNodeIdPtr = NULL;
 	SaUint32T dummyContinuationId = 0;
+	SaUint32T spApplConn = 0;  /* Special applier locally connected. */
 	TRACE_ENTER();
 	unsigned int isPureLocal = 1;
 
@@ -2297,9 +2298,9 @@ static uint32_t immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	clientNode = m_IMMSV_UNPACK_HANDLE_LOW(client_hdl);
 
 	err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), clientId, clientNode, &isPureLocal,
-		&dummyContinuationId, &dummyPbeConn, dummyPbeNodeIdPtr);
+		&dummyContinuationId, &dummyPbeConn, dummyPbeNodeIdPtr, &spApplConn);
 
-	osafassert(!dummyContinuationId && !dummyPbeConn);/* Only used in the fevs variant*/
+	osafassert(!dummyContinuationId && !dummyPbeConn && !spApplConn);/* Only relevant for cached (fevs first) */
 
 	if (!isPureLocal && (err == SA_AIS_OK)) {
 		TRACE_2("immnd_evt_proc_rt_update was not pure local, i.e. cached RT attrs");
@@ -4336,7 +4337,7 @@ static void immnd_evt_proc_object_sync(IMMND_CB *cb,
 				LOG_IN("Applying deferred RTA update for object %s",
 					objModify.objectName.buf);
 				err = immModel_rtObjectUpdate(cb, &objModify, 0, 0, &isLocal,
-					NULL, NULL, NULL);
+					NULL, NULL, NULL, NULL);
 				//free(objModify.objectName.buf);
 				immsv_free_attrmods(objModify.attrMods);
 				memset(&objModify, '\0', sizeof(IMMSV_OM_CCB_OBJECT_MODIFY));
@@ -4358,7 +4359,7 @@ static void immnd_evt_proc_object_sync(IMMND_CB *cb,
  * Name          : immnd_evt_proc_rt_object_create
  *
  * Description   : Function to process the saImmOiRtObjectCreate/_2
- *                 operation from agent.
+ *                 operation received over fevs (cached/persisent RTAs).
  *                 
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
@@ -4479,13 +4480,13 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 			immModel_specialApplierTrimCreate(cb, spApplConn,
 				&(evt->info.objCreate));
 
-
 		if (cl_node->mIsStale) {
 			LOG_WA("Special applier client went down so create upcall not sent");
 		} else if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 				cl_node->agent_mds_dest, 
 				&send_evt) != NCSCC_RC_SUCCESS) {
-			LOG_WA("Create upcall for special applier failed");
+			LOG_WA("RTO Create upcall for special applier failed");
+			/* This is an unhandled message loss case!*/
 		}
 	}
 
@@ -4994,6 +4995,7 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
 	SaUint32T continuationId = 0;
+	SaUint32T spApplConn = 0;  /* Special applier locally connected. */
 	TRACE_ENTER();
 
 #if 0				/*DEBUG PRINTOUTS START */
@@ -5025,7 +5027,7 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 
 	if (originatedAtThisNd) {
 		err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), reqConn, nodeId, &isLocal,
-			&continuationId, &pbeConn, pbeNodeIdPtr);
+			&continuationId, &pbeConn, pbeNodeIdPtr, &spApplConn);
 		if(err != SA_AIS_OK) {
 			LOG_WA("Got error on non local rt object update err: %u", err);
 			if(cb->mIsCoord && immModel_immNotWritable(cb) && 
@@ -5040,7 +5042,7 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 		}
 	} else {
 		err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), 0, nodeId, &isLocal,
-			&continuationId, &pbeConn, pbeNodeIdPtr);
+			&continuationId, &pbeConn, pbeNodeIdPtr, &spApplConn);
 		if(err == SA_AIS_ERR_REPAIR_PENDING) {
 			/* This is the special case of an rtObjectUpdate arriving over fevs
 			   at a node that is being synced. If the object has been synced when
@@ -5115,6 +5117,40 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 		}
 	}
 
+
+	if(spApplConn && (err == SA_AIS_OK) && !delayedReply) {
+		/* Indicates object is marked with SA_IMM_ATTR_NOTIFY and
+		   special applier is present at this node and we dont need to
+		   wait for ack from PBE (non persistent RTO or PBE not enabled).*/
+
+		implHandle = m_IMMSV_PACK_HANDLE(spApplConn, cb->node_id);
+		/*Fetch client node for Special applier OI ! */
+		cl_node = 0LL;
+		immnd_client_node_get(cb, implHandle, &cl_node);
+		osafassert(cl_node != NULL);
+
+		TRACE_2("Special applier needs to be notified of RTA update.");
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC;
+		send_evt.info.imma.info.objModify = evt->info.objModify;
+		send_evt.info.imma.info.objModify.adminOwnerId = 0;
+		send_evt.info.imma.info.objModify.immHandle = implHandle;
+		osafassert(evt->info.objModify.ccbId == 0);
+		evt->info.objModify.attrMods =
+			send_evt.info.imma.info.objModify.attrMods =
+			immModel_specialApplierTrimModify(cb, spApplConn,
+				&(evt->info.objModify));
+
+		if (cl_node->mIsStale) {
+			LOG_WA("Special applier client went down so create upcall not sent");
+		} else if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+				cl_node->agent_mds_dest, 
+				&send_evt) != NCSCC_RC_SUCCESS) {
+			LOG_WA("RTO update upcall for special applier failed");
+			/* This is an unhandled message loss case!*/
+		}
+	}
 
 	if (originatedAtThisNd && !delayedReply) {
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
@@ -5773,11 +5809,8 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 				cl_node->agent_mds_dest, &send_evt) != 	NCSCC_RC_SUCCESS) 
 			{
-				LOG_WA("Upcall over MDS for special applier rt obj delete failed!");
-				/* 
-				   This is an unhandled message loss case!
-				*/
-				goto done;
+				LOG_WA("RTO delete Upcall special applier failed!");
+				/* This is an unhandled message loss case!*/
 			}
 		}
 	}

@@ -1573,7 +1573,8 @@ immModel_rtObjectUpdate(IMMND_CB *cb,
     unsigned int* isPureLocal,
     SaUint32T *continuationId,
     SaUint32T *pbeConn,
-    SaClmNodeIdT *pbeNodeId)
+    SaClmNodeIdT *pbeNodeId,
+    SaUint32T *spApplConn)
 {
     SaAisErrorT err = SA_AIS_OK;
     TRACE_ENTER();
@@ -1581,7 +1582,7 @@ immModel_rtObjectUpdate(IMMND_CB *cb,
     TRACE_5("on enter isPl:%u", isPl);
     err =  ImmModel::instance(&cb->immModel)->
         rtObjectUpdate(req, implConn, (unsigned int) implNodeId, &isPl,
-            continuationId, pbeConn, pbeNodeId);
+            continuationId, pbeConn, pbeNodeId, spApplConn);
     TRACE_5("on leave isPl:%u", isPl);
     *isPureLocal = isPl;
     TRACE_LEAVE();
@@ -4958,6 +4959,7 @@ ImmModel::genSpecialModify(ImmsvOmCcbObjectModify* req)
 immsv_attr_mods_list * 
 ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* req)
 {
+    TRACE_ENTER();
     /* 
        Check for special applier, if not present then return modlist unmolested.
 
@@ -4980,18 +4982,22 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
         osafassert(oi != sObjectMap.end());
         ObjectInfo* obj = oi->second;
         ClassInfo* classInfo = obj->mClassInfo;
+        CcbInfo* ccb = NULL;
+
         if(!specialApplyForClass(classInfo)) {goto done;}
 
-        CcbVector::iterator i1 = 
-            std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(req->ccbId));
-        osafassert(i1 != sCcbVector.end());
-        CcbInfo* ccb = *i1;
-
+	if((classInfo->mCategory == SA_IMM_CLASS_CONFIG) && req->ccbId) {
+            CcbVector::iterator i1 = 
+                std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(req->ccbId));
+            osafassert(i1 != sCcbVector.end());
+            ccb = *i1;
+	}
         int x=0;
         immsv_attr_mods_list** head = &attrMods;
         immsv_attr_mods_list* current = attrMods;
-        bool processAdmoAttr=false;
-        bool processClassAttr=true;
+        bool processAdmoAttr=false; /* AdminOwner attribute added for regular ccbs */
+        bool processImplAttr=false; /* Implementer attribute added for RTA updates (ccbId ==0) */
+        bool processClassAttr=true; /* Allways add class name attribute */
         immsv_attr_mods_list* tmp = (immsv_attr_mods_list *) calloc(1, sizeof(immsv_attr_mods_list));
 
         /* Always prepend fake class-name-attr modification */
@@ -5005,24 +5011,38 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
         tmp = NULL;
         /* Prepend fake class-name attribute modification done */
 
-        if(ccb->mCcbFlags & OPENSAF_IMM_CCB_ADMO_PROVIDED) {
-            TRACE("Special applier already notified of admin-owner for ccb %u", req->ccbId);
-        } else {
-            /* Mark the ccb for admin-owner-name having been sent. */
-            ccb->mCcbFlags |= OPENSAF_IMM_CCB_ADMO_PROVIDED; 
+	if(ccb) {
+            if(ccb->mCcbFlags & OPENSAF_IMM_CCB_ADMO_PROVIDED) {
+                TRACE("Special applier already notified of admin-owner for ccb %u", req->ccbId);
+            } else {
+                /* Mark the ccb for admin-owner-name having been sent. */
+                ccb->mCcbFlags |= OPENSAF_IMM_CCB_ADMO_PROVIDED; 
 
-            /* Add admin-owner as fake modification. */
-            processAdmoAttr=true;
-            immsv_attr_mods_list* tmp = (immsv_attr_mods_list *) calloc(1, sizeof(immsv_attr_mods_list));
-            tmp->attrModType = SA_IMM_ATTR_VALUES_ADD; /* to trigger replacement below */
-            tmp->attrValue.attrName.buf = strdup(SA_IMM_ATTR_ADMIN_OWNER_NAME); 
-            tmp->attrValue.attrName.size = strlen(tmp->attrValue.attrName.buf) +1;
-            tmp->attrValue.attrValueType = SA_IMM_ATTR_SASTRINGT;
-            /* All other members zeroed in calloc above. */
-            tmp->next = attrMods;
-            current = attrMods = tmp;
-            tmp = NULL;
-        }
+                /* Add admin-owner as fake modification. */
+                processAdmoAttr=true;
+                immsv_attr_mods_list* tmp = (immsv_attr_mods_list *) calloc(1, sizeof(immsv_attr_mods_list));
+                tmp->attrModType = SA_IMM_ATTR_VALUES_ADD; /* to trigger replacement below */
+                tmp->attrValue.attrName.buf = strdup(SA_IMM_ATTR_ADMIN_OWNER_NAME); 
+                tmp->attrValue.attrName.size = strlen(tmp->attrValue.attrName.buf) +1;
+                tmp->attrValue.attrValueType = SA_IMM_ATTR_SASTRINGT;
+                /* All other members zeroed in calloc above. */
+                tmp->next = attrMods;
+                current = attrMods = tmp;
+                tmp = NULL;
+            }
+        } else { /* RTA update */
+                /* Add implementer-name as fake modification. */
+                processImplAttr=true;
+                immsv_attr_mods_list* tmp = (immsv_attr_mods_list *) calloc(1, sizeof(immsv_attr_mods_list));
+                tmp->attrModType = SA_IMM_ATTR_VALUES_ADD; /* to trigger replacement below */
+                tmp->attrValue.attrName.buf = strdup(SA_IMM_ATTR_IMPLEMENTER_NAME); 
+                tmp->attrValue.attrName.size = strlen(tmp->attrValue.attrName.buf) +1;
+                tmp->attrValue.attrValueType = SA_IMM_ATTR_SASTRINGT;
+                /* All other members zeroed in calloc above. */
+                tmp->next = attrMods;
+                current = attrMods = tmp;
+                tmp = NULL;
+	}
 
         do {
             std::string attName((const char*)current->attrValue.attrName.buf);
@@ -5038,12 +5058,18 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
                     req->ccbId);
                 goto keep_op;
             } else if(processAdmoAttr) {
-                /* Admin-owner attribute was added as top list element. */
+                /* Admin-owner attribute was fake added as top list element. */
+		osafassert(!processImplAttr);
                 processAdmoAttr=false;
+                goto keep_op;
+            } else if(processImplAttr) {
+                /* Implementer attribute was fake added as top list element. */
+		osafassert(!processAdmoAttr);
+                processImplAttr=false;
                 goto keep_op;
             } else if(processClassAttr) {
                 /* Class attribute always added as top (or second) list element. */
-                processAdmoAttr=false;
+                processClassAttr=false; /* ABT corrected. */
                 goto keep_op;
             }
 
@@ -5102,6 +5128,7 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
     }
 
  done:
+    TRACE_LEAVE();
     return attrMods;
 }
 
@@ -10850,6 +10877,9 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
 {
     TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationId, pbeConnPtr, pbeNodeIdPtr);
     SaAisErrorT err = SA_AIS_OK;
+    if(spApplConnPtr) {
+        (*spApplConnPtr) = 0;
+    }
     
     if(immNotWritable()) { /*Check for persistent RTO further down. */
         TRACE_LEAVE();
@@ -11431,8 +11461,8 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                response from PBE => Send upcalls to special applier if present.
             */
             ImplementerInfo* spAppl = getSpecialApplier();
-            if(spAppl) {
-                *spApplConnPtr = spAppl->mConn;
+            if(spAppl && spApplConnPtr) {
+                (*spApplConnPtr) = spAppl->mConn;
             }
         }
         
@@ -11869,10 +11899,16 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     bool* isPureLocal,
     SaUint32T* continuationIdPtr,
     SaUint32T* pbeConnPtr,
-    unsigned int* pbeNodeIdPtr)
+    unsigned int* pbeNodeIdPtr,
+    SaUint32T *spApplConnPtr)
 {
     TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationIdPtr, pbeConnPtr, pbeNodeIdPtr);
     SaAisErrorT err = SA_AIS_OK;
+    bool modifiedNotifyAttr=false;
+    if(spApplConnPtr) {
+        (*spApplConnPtr) = 0;
+    }
+
     
     //Even if Imm is not writable (sync is on-going) we must allow
     //updates of non-cached and non-persistent attributes.
@@ -12130,6 +12166,8 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 break; //out of while-loop
             }
 
+            if(attr->mFlags & SA_IMM_ATTR_NOTIFY) {modifiedNotifyAttr=true;}
+
             if(attr->mValueType == SA_IMM_ATTR_SANAMET) {
                 if(p->attrValue.attrValue.val.x.size >= SA_MAX_NAME_LENGTH) {
                     LOG_NO("ERR_LIBRARY: attr '%s' of type SaNameT is too long:%u",
@@ -12361,6 +12399,13 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
         }//while(p)
         //err!=OK => breaks out of for loop
     }//for(int doIt...
+
+    if(modifiedNotifyAttr) {
+        ImplementerInfo* spAppl = getSpecialApplier();
+        if(spAppl && spApplConnPtr) {
+            (*spApplConnPtr) = spAppl->mConn;
+	}
+    }
  rtObjectUpdateExit:
     TRACE_5("isPureLocal: %u when leaving", *isPureLocal);
     TRACE_LEAVE();
@@ -12380,7 +12425,9 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
         ObjectNameVector& objNameVector,
         SaUint32T* spApplConnPtr)
 {
-    (*spApplConnPtr) = 0;
+    if(spApplConnPtr) {
+        (*spApplConnPtr) = 0;
+    }
     bool subTreeHasPersistent = false;
     bool subTreeHasSpecialAppl = false;
     /*
@@ -12563,12 +12610,13 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                             } else {
                                 objNameVector.push_back(oi->first);
                             }
+                            oi->second->mObjFlags &= ~IMM_RTNFY_FLAG;
                         }
                     } else {
                         /* No special applier connected at this node. */
                         subTreeHasSpecialAppl = false;
                         osafassert(!(*spApplConnPtr));
-		    }
+                    }
                 }
             }
             err = deleteRtObject(oi, doIt, info, subTreeHasPersistent, subTreeHasSpecialAppl);
@@ -12616,6 +12664,7 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                             } else {
                                 objNameVector.push_back(subObjName);
                             }
+                            oi2->second->mObjFlags &= ~IMM_RTNFY_FLAG;
                         }
                         ObjectMap::iterator oi3 = (doIt)?(oi2++):oi2;
                         err = deleteRtObject(oi3, doIt, info, subTreeHasPersistent, subTreeHasSpecialAppl);
@@ -12691,7 +12740,6 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
 
     i4 = std::find_if(classInfo->mAttrMap.begin(), classInfo->mAttrMap.end(),
          AttrFlagIncludes(SA_IMM_ATTR_NOTIFY));
-     subTreeHasSpecialAppl = true;
 
     bool isSpecialAppl = i4 != classInfo->mAttrMap.end();
 
