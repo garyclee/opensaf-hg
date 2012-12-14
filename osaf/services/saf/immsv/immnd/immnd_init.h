@@ -266,6 +266,9 @@ extern "C" {
 	struct immsv_attr_values_list * 
 	immModel_specialApplierTrimCreate(IMMND_CB *cb, SaUint32T clientId, struct ImmsvOmCcbObjectCreate *req);
 
+	void
+	immModel_specialApplierSavePrtoCreateAttrs(IMMND_CB *cb, struct ImmsvOmCcbObjectCreate *req, SaUint32T continuationId);
+
 	struct immsv_attr_mods_list * 
 	immModel_specialApplierTrimModify(IMMND_CB *cb, SaUint32T clientId, struct ImmsvOmCcbObjectModify *req);
 
@@ -303,7 +306,8 @@ extern "C" {
 
 	void immModel_pbePrtObjCreateContinuation(IMMND_CB *cb,
 		SaUint32T invocation, SaAisErrorT err,
-		SaClmNodeIdT nodeId, SaUint32T *reqConn);
+		SaClmNodeIdT nodeId, SaUint32T *reqConn, SaUint32T *spApplConn,
+		struct ImmsvOmCcbObjectCreate* req);
 
 	void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
 		SaUint32T invocation, SaAisErrorT err,

@@ -65,8 +65,6 @@ struct ContinuationInfo3
 
 typedef std::map<SaInvocationT, ContinuationInfo3> ContinuationMap3;
 
-//typedef std::map<SaInvocationT, SaUint32T> ContinuationMap;
-
 struct AttrInfo
 {
     AttrInfo():mValueType(0), mFlags(0), mNtfId(0){}
@@ -75,7 +73,6 @@ struct AttrInfo
     SaUint32T       mNtfId;
     ImmAttrValue    mDefaultValue;
 };
-//typedef std::map<std::string, AttrInfo*> AttrMap;
 
 struct ImplementerInfo
 {
@@ -211,7 +208,6 @@ struct ObjectInfo
     ObjectInfo*      mParent;       //<-Points to parent object
     SaUint32T        mChildCount;   //<-Nrof children, transitive
 };
-//typedef std::map<std::string, ObjectInfo*> ObjectMap;  
 
 struct DeferredRtAUpdate
 {
@@ -248,6 +244,7 @@ struct ObjectMutation
                                              mAfterImage(NULL), 
                                              mContinuationId(0),
                                              mAugmentAdmo(0),
+                                             mSavedData(NULL),
                                              mWaitForImplAck(false),
                                              mIsAugDelete(false) { }
     ~ObjectMutation() { osafassert(mAfterImage == NULL);
@@ -255,12 +252,28 @@ struct ObjectMutation
                         mAugmentAdmo=0;
                         mWaitForImplAck=false;
                         mIsAugDelete=false;
+                        if(mSavedData) {
+                            switch(mOpType) {
+                              case IMM_CREATE:
+                                immsv_free_attrvalues_list((IMMSV_ATTR_VALUES_LIST  *) mSavedData);
+                              break;
+
+                              case IMM_MODIFY:
+                                LOG_ER("Leaking memory");
+                              break;
+
+                              default:
+                                osafassert(false);
+                            }
+                            mSavedData = NULL;
+                        }
                       }
     
     ImmMutationType mOpType; 
     ObjectInfo* mAfterImage;
     SaUint32T mContinuationId;//used to identify related pending msg replies.
     SaUint32T mAugmentAdmo; /* Aug admo with ROF==true for aug ccbCreates #2428 */
+    void* mSavedData;        //For special applier PRTO. Type of data depends on mOpType
     bool mWaitForImplAck;  //ack required from implementer for THIS object
     bool mIsAugDelete;     //The mutation is an augmented delete.
 };
@@ -521,6 +534,14 @@ immModel_specialApplierTrimCreate(IMMND_CB *cb, SaUint32T clientId,
 {
     return ImmModel::instance(&cb->immModel)->
         specialApplierTrimCreate(clientId, req);
+}
+
+void
+immModel_specialApplierSavePrtoCreateAttrs(IMMND_CB *cb,
+    struct ImmsvOmCcbObjectCreate *req, SaUint32T continuationId)
+{
+    return ImmModel::instance(&cb->immModel)->
+        specialApplierSavePrtoCreateAttrs(req, continuationId);
 }
 
 struct immsv_attr_mods_list * 
@@ -1296,11 +1317,12 @@ immModel_ccbObjCreateContinuation(IMMND_CB *cb,
 }
 
 void immModel_pbePrtObjCreateContinuation(IMMND_CB *cb,
-        SaUint32T invocation, SaAisErrorT err,
-        SaClmNodeIdT nodeId, SaUint32T *reqConn)
+    SaUint32T invocation, SaAisErrorT err,
+    SaClmNodeIdT nodeId, SaUint32T *reqConn, SaUint32T *spApplConn,
+    struct ImmsvOmCcbObjectCreate* req)
 {
     ImmModel::instance(&cb->immModel)->pbePrtObjCreateContinuation(
-        invocation, err, nodeId, reqConn);
+        invocation, err, nodeId, reqConn, spApplConn, req);
 }
 
 void immModel_pbeClassCreateContinuation(IMMND_CB *cb,
@@ -4986,12 +5008,12 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
 
         if(!specialApplyForClass(classInfo)) {goto done;}
 
-	if((classInfo->mCategory == SA_IMM_CLASS_CONFIG) && req->ccbId) {
+        if((classInfo->mCategory == SA_IMM_CLASS_CONFIG) && req->ccbId) {
             CcbVector::iterator i1 = 
                 std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(req->ccbId));
             osafassert(i1 != sCcbVector.end());
             ccb = *i1;
-	}
+        }
         int x=0;
         immsv_attr_mods_list** head = &attrMods;
         immsv_attr_mods_list* current = attrMods;
@@ -5011,7 +5033,7 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
         tmp = NULL;
         /* Prepend fake class-name attribute modification done */
 
-	if(ccb) {
+        if(ccb) {
             if(ccb->mCcbFlags & OPENSAF_IMM_CCB_ADMO_PROVIDED) {
                 TRACE("Special applier already notified of admin-owner for ccb %u", req->ccbId);
             } else {
@@ -5042,7 +5064,7 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
                 tmp->next = attrMods;
                 current = attrMods = tmp;
                 tmp = NULL;
-	}
+        }
 
         do {
             std::string attName((const char*)current->attrValue.attrName.buf);
@@ -5059,12 +5081,12 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
                 goto keep_op;
             } else if(processAdmoAttr) {
                 /* Admin-owner attribute was fake added as top list element. */
-		osafassert(!processImplAttr);
+                osafassert(!processImplAttr);
                 processAdmoAttr=false;
                 goto keep_op;
             } else if(processImplAttr) {
                 /* Implementer attribute was fake added as top list element. */
-		osafassert(!processAdmoAttr);
+                osafassert(!processAdmoAttr);
                 processImplAttr=false;
                 goto keep_op;
             } else if(processClassAttr) {
@@ -5132,6 +5154,22 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
     return attrMods;
 }
 
+void
+ImmModel::specialApplierSavePrtoCreateAttrs(ImmsvOmCcbObjectCreate* req, SaUint32T invocation)
+{
+    TRACE_ENTER();
+    ObjectMutationMap::iterator i2;
+    for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ++i2) {
+        if(i2->second->mContinuationId == invocation) {break;}
+    }
+    
+    osafassert(i2 != sPbeRtMutations.end());
+
+    ObjectMutation* oMut = i2->second;
+    oMut->mSavedData = req->attrValues;
+    req->attrValues = NULL;
+    TRACE_LEAVE();
+}
 
 immsv_attr_values_list * 
 ImmModel::specialApplierTrimCreate(SaUint32T clientId, ImmsvOmCcbObjectCreate* req)
@@ -11456,12 +11494,10 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                 objectName.c_str(), info->mId);
         }
 
-        if(!pbe && isSpecialApplForClass) {
-            /* Not persistent RTO OR PBE not available => dont wait for 
-               response from PBE => Send upcalls to special applier if present.
-            */
+        if(isSpecialApplForClass) {
             ImplementerInfo* spAppl = getSpecialApplier();
             if(spAppl && spApplConnPtr) {
+                /* Special applier exists locally attached */
                 (*spApplConnPtr) = spAppl->mConn;
             }
         }
@@ -11479,9 +11515,14 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
 }
 
 void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
-    SaAisErrorT error, unsigned int nodeId, SaUint32T *reqConn)
+    SaAisErrorT error, unsigned int nodeId, SaUint32T *reqConn,
+    SaUint32T *spApplConnPtr, struct ImmsvOmCcbObjectCreate* req)
 {
     TRACE_ENTER();
+
+    if(spApplConnPtr) {
+        (*spApplConnPtr) = 0;
+    }
 
     SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
     ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
@@ -11515,7 +11556,44 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
                 oMut->mAfterImage->mImplementer->mImplementerName.c_str());
         } else {
             LOG_NO("Create of PERSISTENT runtime object '%s' (%s).", i2->first.c_str(),
-                "<deteched>");
+                "<detached>");
+        }
+        /* Check if there was/is a special applier locally attached. 
+           Note that we dont care if the special applier found here actually
+           attached *after* the PRTO operation was sent to the PBE. We know 
+           there *was* a special applier attached if oMut->mSavedData is set.
+           Even if this is a new special applier, each RTO create is a 
+           transaction unto itself. So there is no risk that a very recently
+           attached special applier gets an 'incomplete' picture when receiving 
+           the RTO create callback. 
+        */
+        ImplementerInfo* spAppl = getSpecialApplier();
+        if(spAppl && spApplConnPtr && oMut->mSavedData) {
+            osafassert(req);
+            (*spApplConnPtr) = spAppl->mConn;
+            if(oMut->mAfterImage->mParent) {
+                std::string parentName;
+                getParentDn(/*out*/ parentName, /* in */ i2->first.c_str());
+                req->parentName.size = parentName.size() +1;
+                req->parentName.buf = strdup(parentName.c_str());
+            } else {
+                req->parentName.size = 0;
+                req->parentName.buf = NULL;
+            }
+
+            req->attrValues = (immsv_attr_values_list *) oMut->mSavedData;
+            oMut->mSavedData = NULL;
+            immsv_attr_values_list* current = req->attrValues;
+            do {
+                if(strncmp((char *) current->n.attrName.buf, SA_IMM_ATTR_CLASS_NAME, 
+                   current->n.attrName.size)==0) {
+                    req->className.size = current->n.attrName.size;
+                    req->className.buf = strdup(current->n.attrName.buf);
+                    current = NULL;
+                } else {
+                    current = current->next;
+                }
+            } while (current);
         }
     } else {
         bool dummy=false;
@@ -12404,7 +12482,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
         ImplementerInfo* spAppl = getSpecialApplier();
         if(spAppl && spApplConnPtr) {
             (*spApplConnPtr) = spAppl->mConn;
-	}
+        }
     }
  rtObjectUpdateExit:
     TRACE_5("isPureLocal: %u when leaving", *isPureLocal);
