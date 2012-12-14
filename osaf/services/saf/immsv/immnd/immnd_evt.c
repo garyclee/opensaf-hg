@@ -3152,13 +3152,50 @@ static void immnd_evt_pbe_rt_obj_create_rsp(IMMND_CB *cb,
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
 	SaUint32T reqConn = 0;
+	SaUint32T spApplConn = 0;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 	TRACE_ENTER();
+	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
 	immModel_pbePrtObjCreateContinuation(cb, evt->info.ccbUpcallRsp.inv,
-		evt->info.ccbUpcallRsp.result, cb->node_id, &reqConn);
-	TRACE("Returned from pbePrtObjCreateContinuation err: %u reqConn:%x", 
-		evt->info.ccbUpcallRsp.result, reqConn);
+		evt->info.ccbUpcallRsp.result, cb->node_id, &reqConn, &spApplConn,
+		&(send_evt.info.imma.info.objCreate));
+	TRACE("Returned from pbePrtObjCreateContinuation err: %u reqConn:%x applConn:%x", 
+		evt->info.ccbUpcallRsp.result, reqConn, spApplConn);
+
+	if(spApplConn) {
+		SaImmHandleT implHandle = m_IMMSV_PACK_HANDLE(spApplConn, cb->node_id);
+		cl_node = 0LL;
+		immnd_client_node_get(cb, implHandle, &cl_node);
+		osafassert(cl_node != NULL);
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_CREATE_UC;
+		send_evt.info.imma.info.objCreate.adminOwnerId = 0;
+		send_evt.info.imma.info.objCreate.immHandle = implHandle;
+		send_evt.info.imma.info.objCreate.ccbId = 0;
+		osafassert(send_evt.info.imma.info.objCreate.attrValues);
+                TRACE("Sending special applier create");
+		if (cl_node->mIsStale) {
+			LOG_WA("Special applier client went down so create upcall not sent");
+		} else if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+				cl_node->agent_mds_dest, 
+				&send_evt) != NCSCC_RC_SUCCESS) {
+			LOG_WA("RTO Create upcall for special applier failed");
+			/* This is an unhandled message loss case!*/
+		}
+		immsv_free_attrvalues_list(send_evt.info.imma.info.objCreate.attrValues);
+		send_evt.info.imma.info.objCreate.attrValues = NULL;
+
+		free(send_evt.info.imma.info.objCreate.className.buf);
+		send_evt.info.imma.info.objCreate.className.buf = NULL;
+		send_evt.info.imma.info.objCreate.className.size = 0;
+
+		if(send_evt.info.imma.info.objCreate.parentName.buf) {
+			free(send_evt.info.imma.info.objCreate.parentName.buf);
+			send_evt.info.imma.info.objCreate.parentName.buf = NULL;
+			send_evt.info.imma.info.objCreate.parentName.size = 0;
+		}
+	}
 
 	if (reqConn) {
 		SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
@@ -4454,6 +4491,21 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 			}
 			implHandle = 0LL;
 			pbe_cl_node = NULL;
+		}
+
+		if(spApplConn) {
+			/* If we get here then there is a special applier attached locally
+			   at this node, but this RTO create was actually a PRTO create, PBE
+			   is enabled and running on some node. The PBE has just been notified
+			   of this PRTO create. The special applier callback has to wait for
+			   the reply on the successfull commit of the PRTO create from PBE.
+			   We need to save the pending special applier callback data with the 
+			   PRTO create continuation.
+			 */
+			evt->info.objCreate.attrValues = 
+				immModel_specialApplierTrimCreate(cb, spApplConn,
+					&(evt->info.objCreate));
+			immModel_specialApplierSavePrtoCreateAttrs(cb, &(evt->info.objCreate), continuationId);
 		}
 	}
 

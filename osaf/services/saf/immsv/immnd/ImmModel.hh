@@ -190,6 +190,11 @@ public:
 						     SaUint32T clientId,
 						     ImmsvOmCcbObjectCreate* req);
 
+    void specialApplierSavePrtoCreateAttrs(		     
+					ImmsvOmCcbObjectCreate* req,
+					SaUint32T continuationId);
+				
+
     immsv_attr_mods_list* specialApplierTrimModify(
 						   SaUint32T clientId,
 						   ImmsvOmCcbObjectModify* req);
@@ -276,11 +281,13 @@ public:
                                                  SaUint32T* reqConn);
 
 
-    void                 pbePrtObjCreateContinuation(
-                                                     SaUint32T invocation,
-                                                     SaAisErrorT error,
-                                                     unsigned int nodeId, 
-                                                     SaUint32T *reqConn);
+    void      pbePrtObjCreateContinuation(
+					  SaUint32T invocation,
+					  SaAisErrorT error,
+					  unsigned int nodeId, 
+					  SaUint32T *reqConn,
+					  SaUint32T *spApplConn,
+					  struct ImmsvOmCcbObjectCreate* req);
     
     void                 pbePrtObjDeletesContinuation(
                                                      SaUint32T invocation,
