@@ -3408,10 +3408,14 @@ static void immnd_evt_pbe_rt_obj_deletes_rsp(IMMND_CB *cb,
 	IMMSV_EVT send_evt;
 	SaUint32T reqConn = 0;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	SaStringT *objNameArr;
+	SaUint32T arrSize = 0;
+	SaUint32T spApplConn=0;
 	TRACE_ENTER();
 
 	immModel_pbePrtObjDeletesContinuation(cb, evt->info.ccbUpcallRsp.inv,
-		evt->info.ccbUpcallRsp.result, cb->node_id, &reqConn);
+		evt->info.ccbUpcallRsp.result, cb->node_id, &reqConn, 
+		&objNameArr, &arrSize, &spApplConn);
 	TRACE("Returned from pbePrtObjDeletesContinuation err: %u reqConn:%x", 
 		evt->info.ccbUpcallRsp.result, reqConn);
 
@@ -3437,6 +3441,53 @@ static void immnd_evt_pbe_rt_obj_deletes_rsp(IMMND_CB *cb,
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed to send response to agent/client over MDS rc:%u", rc);
 		}
+	}
+
+	if(spApplConn) {
+		int ix = 0;
+		SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(spApplConn, cb->node_id);
+		/*Fetch client node for Special applier OI */
+		cl_node = 0LL;
+		immnd_client_node_get(cb, tmp_hdl, &cl_node);
+	        osafassert(cl_node != NULL);
+		if (cl_node->mIsStale) {
+			LOG_WA("Special applier is down => notify of PrtObj delete is dropped");
+			goto done;
+		}
+
+		TRACE_2("Special applier needs to be notified of RTO delete.");
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_DELETE_UC;
+		send_evt.info.imma.info.objDelete.ccbId = 0;
+		send_evt.info.imma.info.objDelete.adminOwnerId = 0;
+		send_evt.info.imma.info.objDelete.immHandle = tmp_hdl;
+
+		for (; ix < arrSize ; ++ix) {
+			send_evt.info.imma.info.objDelete.objectName.size = 
+				(SaUint32T) strlen(objNameArr[ix]);
+			send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
+
+			TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT RT-OBJ DELETE upcalls");
+			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+				cl_node->agent_mds_dest, &send_evt) != 	NCSCC_RC_SUCCESS) 
+			{
+				LOG_WA("RTO delete Upcall special applier failed!");
+				/* This is an unhandled message loss case!*/
+			}
+		}
+	}
+	
+
+ done:
+	if (arrSize) {
+		int ix;
+		for (ix = 0; ix < arrSize; ++ix) {
+			free(objNameArr[ix]);
+		}
+		free(objNameArr);
+		objNameArr = NULL;
+		arrSize = 0;
 	}
 
 	TRACE_LEAVE();
@@ -5836,7 +5887,7 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 		   special applier is present at this node and we dont need to
 		   wait for ack from PBE (non persistent RTO or PBE not enabled).*/
 		implHandle = m_IMMSV_PACK_HANDLE(spApplConn, cb->node_id);
-		/*Fetch client node for Special applier OI ! */
+		/*Fetch client node for Special applier OI */
 		cl_node = 0LL;
 		immnd_client_node_get(cb, implHandle, &cl_node);
 		osafassert(cl_node != NULL);
@@ -5857,7 +5908,7 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 				(SaUint32T) strlen(objNameArr[ix]);
 			send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
 
-			TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT RT-OBJ DELETE upcalls");
+			TRACE_2("MAKING PBE-IMPLEMENTER RT-OBJ DELETE upcalls");
 			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 				cl_node->agent_mds_dest, &send_evt) != 	NCSCC_RC_SUCCESS) 
 			{

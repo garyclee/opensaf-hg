@@ -1348,10 +1348,28 @@ void immModel_pbeUpdateEpochContinuation(IMMND_CB *cb,
 
 void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
         SaUint32T invocation, SaAisErrorT err,
-        SaClmNodeIdT nodeId, SaUint32T *reqConn)
+        SaClmNodeIdT nodeId, SaUint32T *reqConn,
+        SaStringT **objNameArr, SaUint32T* arrSizePtr, 
+        SaUint32T* spApplConn)
 {
+    ObjectNameVector ov;
+    ObjectNameVector::iterator oni;
+    unsigned int ix = 0;
+    osafassert(arrSizePtr);
+
     ImmModel::instance(&cb->immModel)->pbePrtObjDeletesContinuation(
-        invocation, err, nodeId, reqConn);
+        invocation, err, nodeId, reqConn, ov, spApplConn);
+
+    (*arrSizePtr) = (SaUint32T) ov.size();
+    if(*arrSizePtr) {
+       *objNameArr = (SaStringT *) malloc((*arrSizePtr)* sizeof(SaStringT));
+
+       for(oni=ov.begin(); oni != ov.end(); ++oni, ++ix) {
+           std::string delObjName = (*oni);
+           (*objNameArr)[ix] = (SaStringT) strdup(delObjName.c_str());
+       }
+       osafassert(ix==(*arrSizePtr));
+    }
 }
 
 void immModel_pbePrtAttrUpdateContinuation(IMMND_CB *cb,
@@ -11623,9 +11641,12 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
 }
 
 void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
-    SaAisErrorT error, unsigned int nodeId, SaUint32T *reqConn)
+    SaAisErrorT error, unsigned int nodeId, SaUint32T *reqConn,
+     ObjectNameVector& objNameVector, SaUint32T* spApplConnPtr)
 {
     TRACE_ENTER();
+    osafassert(spApplConnPtr);
+    (*spApplConnPtr) = 0;
     unsigned int nrofDeletes=0;
     bool deleteRootFound=false;
     SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
@@ -11636,6 +11657,12 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
         *reqConn = ci->second.mConn;
         sPbeRtReqContinuationMap.erase(ci);
     } 
+
+    /* Lookup special applier */
+    ImplementerInfo* spImpl = getSpecialApplier();
+    if(spImpl && spImpl->mConn) {
+        (*spApplConnPtr) = spImpl->mConn;
+    }
 
     ObjectMutationMap::iterator i2;
     for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ) {
@@ -11666,6 +11693,19 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
             bool dummy2=false;
             ObjectMap::iterator oi = sObjectMap.find(i2->first);
             osafassert(oi != sObjectMap.end());
+
+            if(oMut->mAfterImage->mObjFlags & IMM_RTNFY_FLAG) {
+                if(*spApplConnPtr) {
+                    if(oMut->mAfterImage->mObjFlags & IMM_DN_INTERNAL_REP) {
+                        std::string tmpName(i2->first);
+                        nameToExternal(tmpName);
+                        objNameVector.push_back(tmpName);
+                    } else {
+                        objNameVector.push_back(i2->first);
+                    }
+		}
+                oMut->mAfterImage->mObjFlags &= ~IMM_RTNFY_FLAG; /* Reset the notify flag. */
+            }
 
             if(oMut->mAfterImage->mObjFlags & IMM_DELETE_ROOT) {
                 /* Adjust ChildCount for parent(s) of the root for the delete-op */
@@ -11703,6 +11743,11 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
         sPbeRtMutations.erase(i2);
         i2 = sPbeRtMutations.begin();
     } //for
+
+    /* If no notifications then reset spApplConnPtr to zero */
+    if((*spApplConnPtr) && objNameVector.empty()) {
+        (*spApplConnPtr) = 0;
+    }
 
     if(nrofDeletes == 0) {
         LOG_ER("PBE PRTO Deletes continuation missing! invoc:%u",
@@ -12503,14 +12548,11 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
         ObjectNameVector& objNameVector,
         SaUint32T* spApplConnPtr)
 {
-    if(spApplConnPtr) {
-        (*spApplConnPtr) = 0;
-    }
+    osafassert(spApplConnPtr);
+    (*spApplConnPtr) = 0;
+
     bool subTreeHasPersistent = false;
     bool subTreeHasSpecialAppl = false;
-    /*
-      
-     */
 
     TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationIdPtr, pbeConnPtr,
         pbeNodeIdPtr);
@@ -12821,7 +12863,7 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
 
     bool isSpecialAppl = i4 != classInfo->mAttrMap.end();
 
-    if(isSpecialAppl) {
+    if(isSpecialAppl) { /* check for spApplCon ?? If not present, why set the flag ? */
         object->mObjFlags |= IMM_RTNFY_FLAG;
         subTreeHasSpecialAppl = true;
     } else {

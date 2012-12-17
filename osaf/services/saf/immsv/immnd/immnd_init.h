@@ -311,7 +311,9 @@ extern "C" {
 
 	void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
 		SaUint32T invocation, SaAisErrorT err,
-		SaClmNodeIdT nodeId, SaUint32T *reqConn);
+		SaClmNodeIdT nodeId, SaUint32T *reqConn,
+		SaStringT **objNameArr, SaUint32T* arrSize, 
+		SaUint32T* spApplConn);
 
 	void immModel_pbePrtAttrUpdateContinuation(IMMND_CB *cb,
 		SaUint32T invocation, SaAisErrorT err,
