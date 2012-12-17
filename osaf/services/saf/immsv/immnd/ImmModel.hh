@@ -293,7 +293,9 @@ public:
                                                      SaUint32T invocation,
                                                      SaAisErrorT error,
                                                      unsigned int nodeId, 
-                                                     SaUint32T *reqConn);
+                                                     SaUint32T *reqConn,
+                                                     ObjectNameVector& objNameVector,
+                                                     SaUint32T* spApplConnPtr);
     
     void                 pbePrtAttrUpdateContinuation(
                                                      SaUint32T invocation,
