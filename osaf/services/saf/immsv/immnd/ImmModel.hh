@@ -194,6 +194,10 @@ public:
 					ImmsvOmCcbObjectCreate* req,
 					SaUint32T continuationId);
 				
+    void specialApplierSaveRtUpdateAttrs(		     
+					ImmsvOmCcbObjectModify* req,
+					SaUint32T continuationId);
+				
 
     immsv_attr_mods_list* specialApplierTrimModify(
 						   SaUint32T clientId,
@@ -301,7 +305,9 @@ public:
                                                      SaUint32T invocation,
                                                      SaAisErrorT error,
                                                      unsigned int nodeId, 
-                                                     SaUint32T *reqConn);
+                                                     SaUint32T *reqConn,
+						     SaUint32T *spApplConnPtr, 
+						     struct ImmsvOmCcbObjectModify* req);
 
     void                 pbeClassCreateContinuation(
                                                      SaUint32T invocation,

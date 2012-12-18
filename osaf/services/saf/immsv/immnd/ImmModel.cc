@@ -259,7 +259,11 @@ struct ObjectMutation
                               break;
 
                               case IMM_MODIFY:
-                                LOG_ER("Leaking memory");
+                                immsv_free_attrmods((IMMSV_ATTR_MODS_LIST *) mSavedData);
+                              break;
+
+                              case IMM_DELETE:
+                                TRACE("Nothing to do");
                               break;
 
                               default:
@@ -542,6 +546,14 @@ immModel_specialApplierSavePrtoCreateAttrs(IMMND_CB *cb,
 {
     return ImmModel::instance(&cb->immModel)->
         specialApplierSavePrtoCreateAttrs(req, continuationId);
+}
+
+void
+immModel_specialApplierSaveRtUpdateAttrs(IMMND_CB *cb,
+    struct ImmsvOmCcbObjectModify *req, SaUint32T continuationId)
+{
+    return ImmModel::instance(&cb->immModel)->
+        specialApplierSaveRtUpdateAttrs(req, continuationId);
 }
 
 struct immsv_attr_mods_list * 
@@ -1374,10 +1386,11 @@ void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
 
 void immModel_pbePrtAttrUpdateContinuation(IMMND_CB *cb,
         SaUint32T invocation, SaAisErrorT err,
-        SaClmNodeIdT nodeId, SaUint32T *reqConn)
+        SaClmNodeIdT nodeId, SaUint32T *reqConn,
+        SaUint32T *spApplConn, struct ImmsvOmCcbObjectModify* req)
 {
     ImmModel::instance(&cb->immModel)->pbePrtAttrUpdateContinuation(
-        invocation, err, nodeId, reqConn);
+        invocation, err, nodeId, reqConn, spApplConn, req);
 }
 
 void
@@ -5186,6 +5199,23 @@ ImmModel::specialApplierSavePrtoCreateAttrs(ImmsvOmCcbObjectCreate* req, SaUint3
     ObjectMutation* oMut = i2->second;
     oMut->mSavedData = req->attrValues;
     req->attrValues = NULL;
+    TRACE_LEAVE();
+}
+/* ABT: Unify these two, call unified form immModel_... */
+void
+ImmModel::specialApplierSaveRtUpdateAttrs(ImmsvOmCcbObjectModify* req, SaUint32T invocation)
+{
+    TRACE_ENTER();
+    ObjectMutationMap::iterator i2;
+    for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ++i2) {
+        if(i2->second->mContinuationId == invocation) {break;}
+    }
+    
+    osafassert(i2 != sPbeRtMutations.end());
+
+    ObjectMutation* oMut = i2->second;
+    oMut->mSavedData = req->attrMods;
+    req->attrMods = NULL;
     TRACE_LEAVE();
 }
 
@@ -11703,7 +11733,7 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
                     } else {
                         objNameVector.push_back(i2->first);
                     }
-		}
+                }
                 oMut->mAfterImage->mObjFlags &= ~IMM_RTNFY_FLAG; /* Reset the notify flag. */
             }
 
@@ -11759,9 +11789,14 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
 }
 
 void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
-    SaAisErrorT error, unsigned int nodeId, SaUint32T *reqConn)
+    SaAisErrorT error, unsigned int nodeId, SaUint32T *reqConn,
+    SaUint32T *spApplConnPtr, struct ImmsvOmCcbObjectModify* req)
 {
     TRACE_ENTER();
+    if(spApplConnPtr) {
+        (*spApplConnPtr) = 0;
+    }
+
     SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
     ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
     if(ci != sPbeRtReqContinuationMap.end()) {
@@ -11788,10 +11823,6 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
     osafassert(oMut->mOpType == IMM_MODIFY);
     ObjectInfo *afim =  oMut->mAfterImage;
     osafassert(afim);
-    oMut->mAfterImage = NULL;
-
-    sPbeRtMutations.erase(i2);
-    delete oMut; oMut=NULL;
 
     ObjectMap::iterator oi = sObjectMap.find(objName);
     osafassert(oi != sObjectMap.end());
@@ -11809,6 +11840,29 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
         } else {
             LOG_IN("Update of PERSISTENT runtime attributes in object '%s' (%s).", 
                 objName.c_str(), "<detached>");
+        }
+
+        /* Check if there was/is a special applier locally attached. 
+           Note that we dont care if the special applier found here actually
+           attached *after* the PRT operation was sent to the PBE. We know 
+           there *was* a special applier attached if oMut->mSavedData is set.
+           Even if this is a new special applier, each RTA update is a 
+           transaction unto itself. So there is no risk that a very recently
+           attached special applier gets an 'incomplete' picture when receiving 
+           the RTA update callback. 
+        */
+
+        if(oMut->mSavedData && spApplConnPtr) {
+            ImplementerInfo* spAppl = getSpecialApplier();
+            if(spAppl) {
+                osafassert(req);
+                (*spApplConnPtr) = spAppl->mConn;
+                 req->objectName.size = objName.size() +1;
+                 req->objectName.buf = strdup(objName.c_str());
+                 req->attrMods = (immsv_attr_mods_list*) oMut->mSavedData;
+		 oMut->mSavedData = NULL;
+
+            }
         }
 
         if(afim->mAdminOwnerAttrVal && beforeImage->mAdminOwnerAttrVal->empty()) {
@@ -11854,6 +11908,10 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
         afim->mAttrValueMap.clear(); 
         delete afim;
     }
+
+    oMut->mAfterImage = NULL;
+    sPbeRtMutations.erase(i2);
+    delete oMut; oMut=NULL;
 
     TRACE_LEAVE();
 }
@@ -12032,7 +12090,6 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
         (*spApplConnPtr) = 0;
     }
 
-    
     //Even if Imm is not writable (sync is on-going) we must allow
     //updates of non-cached and non-persistent attributes.
     

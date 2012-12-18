@@ -3174,13 +3174,13 @@ static void immnd_evt_pbe_rt_obj_create_rsp(IMMND_CB *cb,
 		send_evt.info.imma.info.objCreate.immHandle = implHandle;
 		send_evt.info.imma.info.objCreate.ccbId = 0;
 		osafassert(send_evt.info.imma.info.objCreate.attrValues);
-                TRACE("Sending special applier create");
+                TRACE("Sending special applier PRTO create");
 		if (cl_node->mIsStale) {
-			LOG_WA("Special applier client went down so create upcall not sent");
+			LOG_WA("Special applier client went down so PRTO create upcall not sent");
 		} else if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 				cl_node->agent_mds_dest, 
 				&send_evt) != NCSCC_RC_SUCCESS) {
-			LOG_WA("RTO Create upcall for special applier failed");
+			LOG_WA("PRTO Create upcall for special applier failed");
 			/* This is an unhandled message loss case!*/
 		}
 		immsv_free_attrvalues_list(send_evt.info.imma.info.objCreate.attrValues);
@@ -3246,13 +3246,44 @@ static void immnd_evt_pbe_rt_attr_update_rsp(IMMND_CB *cb,
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
 	SaUint32T reqConn = 0;
+	SaUint32T spApplConn = 0;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 	TRACE_ENTER();
+	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
 	immModel_pbePrtAttrUpdateContinuation(cb, evt->info.ccbUpcallRsp.inv,
-		evt->info.ccbUpcallRsp.result, cb->node_id, &reqConn);
-	TRACE("Returned from pbePrtAttrUpdateContinuation err: %u reqConn:%x", 
-		evt->info.ccbUpcallRsp.result, reqConn);
+		evt->info.ccbUpcallRsp.result, cb->node_id, &reqConn, &spApplConn,
+		&(send_evt.info.imma.info.objModify));
+	TRACE("Returned from pbePrtAttrUpdateContinuation err: %u reqConn:%x applConn:%x", 
+		evt->info.ccbUpcallRsp.result, reqConn, spApplConn);
+
+	if(spApplConn) {
+		SaImmHandleT implHandle = m_IMMSV_PACK_HANDLE(spApplConn, cb->node_id);
+		cl_node = 0LL;
+		immnd_client_node_get(cb, implHandle, &cl_node);
+		osafassert(cl_node != NULL);
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC;
+		send_evt.info.imma.info.objModify.adminOwnerId = 0;
+		send_evt.info.imma.info.objModify.immHandle = implHandle;
+		send_evt.info.imma.info.objModify.ccbId = 0;
+		osafassert(send_evt.info.imma.info.objModify.attrMods);
+                TRACE("Sending special applier PRTA update");
+		if (cl_node->mIsStale) {
+			LOG_WA("Special applier client went down so RTA update upcall not sent");
+		} else if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+				cl_node->agent_mds_dest, 
+				&send_evt) != NCSCC_RC_SUCCESS) {
+			LOG_WA("RTA update upcall for special applier failed");
+			/* This is an unhandled message loss case!*/
+		}
+		immsv_free_attrmods(send_evt.info.imma.info.objModify.attrMods);
+		send_evt.info.imma.info.objModify.attrMods = NULL;
+
+		free(send_evt.info.imma.info.objModify.objectName.buf);
+		send_evt.info.imma.info.objModify.objectName.buf = NULL;
+		send_evt.info.imma.info.objModify.objectName.size = 0;
+	}
 
 	if (reqConn) {
 		SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
@@ -5217,6 +5248,25 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 			}
 			implHandle = 0LL;
 			pbe_cl_node = NULL;
+		}
+
+		if(spApplConn) {
+			/* If we get here then there is a special applier attached locally
+			   at this node, but this RTA update was actually a PRTA update, PBE
+			   is enabled and running on some node. The PBE has just been notified
+			   of this PRTA update. The special applier callback has to wait for
+			   the reply on the successfull commit of the PRTA update from PBE.
+			   We need to save the pending special applier callback data with the 
+			   PRTA update continuation. 
+			   Note also that PRTA update could be directed at either a runtime 
+			   or config object. 
+			 */
+			evt->info.objModify.attrMods = 
+				immModel_specialApplierTrimModify(cb, spApplConn,
+					&(evt->info.objModify));
+
+			immModel_specialApplierSaveRtUpdateAttrs(cb, &(evt->info.objModify), continuationId);
+
 		}
 	}
 

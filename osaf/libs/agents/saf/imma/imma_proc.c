@@ -1167,7 +1167,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 	SaBoolT isSpApplRtu = ((evt->info.objModify.ccbId == 0) && (evt->info.objModify.adminOwnerId == 0));
 	/* Can be a PRTO or a config obj with PRTAttrs. */
 	TRACE_ENTER();
-        if(isSpApplRtu) {TRACE_3("imma_proc_obj_modify CCBID==0 admoId=0  SPECIAL applier RTO create");}
+        if(isSpApplRtu) {TRACE_3("imma_proc_obj_modify CCBID==0 admoId=0  SPECIAL applier RTA modify");}
 	SaImmOiHandleT implHandle = evt->info.objModify.immHandle;
 
 	/* get the CB Lock */
