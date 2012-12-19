@@ -254,7 +254,7 @@ SaAisErrorT smfa_dispatch_cbk_all(SMFA_CLIENT_INFO *client_info)
 		 */
 		if (SMF_CLBK_EVT != msg->evt_type){
 			LOG_ER("SMFA: Wrong evt is posted to client MBX. evt_type: %d",msg->evt_type);
-			smfa_evt_free(msg);
+			free(msg);
 			continue;	
 		}
 
@@ -287,7 +287,7 @@ SaAisErrorT smfa_dispatch_cbk_block(SMFA_CLIENT_INFO *client_info)
 		 */
 		if (SMF_CLBK_EVT != msg->evt_type){
 			LOG_ER("SMFA: Wrong evt is posted to client MBX. evt_type: %d",msg->evt_type);
-			smfa_evt_free(msg);
+			free(msg);
 			continue;	
 		}
 

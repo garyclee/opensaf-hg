@@ -1583,10 +1583,10 @@ SmfUpgradeStep::executeRemoteCmd( const std::string  &i_cmd,
 	TRACE_ENTER();
 	TRACE("Executing script '%s' on node '%s'", i_cmd.c_str(), i_node.c_str());
 	SaTimeT timeout;
-	int fc;
+	uint32_t cmdrc;
 	bool rc = true;
-	MDS_DEST nodeDest = getNodeDestination(i_node);
-	while (nodeDest == 0) {
+        SmfndNodeDest nodeDest;
+        if (!getNodeDestination(i_node, &nodeDest)) {
 		LOG_ER("no node destination found for node %s", i_node.c_str());
 		rc = false;
 		goto done;
@@ -1595,11 +1595,11 @@ SmfUpgradeStep::executeRemoteCmd( const std::string  &i_cmd,
 	/* Execute the script remote on node */
 	timeout = smfd_cb->cliTimeout;	/* Default timeout */
 
-	fc = smfnd_remote_cmd(i_cmd.c_str(), nodeDest, timeout / 10000000);
+	cmdrc = smfnd_exec_remote_cmd(i_cmd.c_str(), &nodeDest, timeout / 10000000, 0);
 	/* convert ns to 10 ms timeout */
-	if (fc != 0) {
-		LOG_ER("executing command '%s' on node '%s' failed with fcode %d", 
-		       i_cmd.c_str(), i_node.c_str(), fc);
+	if (cmdrc != 0) {
+		LOG_ER("executing command '%s' on node '%s' failed (%x)", 
+		       i_cmd.c_str(), i_node.c_str(), cmdrc);
 		rc = false;
 		goto done;
 	}
@@ -1660,17 +1660,18 @@ SmfUpgradeStep::callActivationCmd()
 		std::list<std::string>::const_iterator n;
 		for (n = swNodeList.begin(); n != swNodeList.end(); n++) {
 			char const* nodeName = n->c_str();
+                        SmfndNodeDest nodeDest;
+
 			TRACE("Executing activation command '%s' on node '%s' (single-step)", 
 			      actCommand.c_str(), nodeName);
-			MDS_DEST nodeDest = getNodeDestination(*n);
-			if (nodeDest == 0) {
+                        if (!getNodeDestination(*n, &nodeDest)) {
 				LOG_ER("no node destination found for node [%s]", nodeName);
 				result = false;
 				goto done;
 			}
-			int rc = smfnd_remote_cmd(actCommand.c_str(), nodeDest, timeout / 10000000);
+			uint32_t rc = smfnd_exec_remote_cmd(actCommand.c_str(), &nodeDest, timeout / 10000000, 0);
 			if (rc != 0) {
-				LOG_ER("executing activation command '%s' on node '%s' failed with rc %d", 
+				LOG_ER("executing activation command '%s' on node '%s' failed (%x)", 
 				       actCommand.c_str(), nodeName, rc);
 				result = false;
 				goto done;
@@ -1679,12 +1680,12 @@ SmfUpgradeStep::callActivationCmd()
 
 	} else {
 
+                SmfndNodeDest nodeDest;
 		TRACE("Executing  activation command '%s' on node '%s'", 
 		      actCommand.c_str(), getSwNode().c_str());
 		TRACE("Get node destination for %s", getSwNode().c_str());
 
-		MDS_DEST nodeDest = getNodeDestination(getSwNode());
-		if (nodeDest == 0) {
+		if (!getNodeDestination(getSwNode(), &nodeDest)) {
 			LOG_ER("no node destination found for node %s", getSwNode().c_str());
 			result = false;
 			goto done;
@@ -1694,10 +1695,10 @@ SmfUpgradeStep::callActivationCmd()
 		/* First fetch the script using e.g. wget etc */
 
 		/* Execute the bundle script remote on node */
-		int rc = smfnd_remote_cmd(actCommand.c_str(), nodeDest, timeout / 10000000);
+		uint32_t rc = smfnd_exec_remote_cmd(actCommand.c_str(), &nodeDest, timeout / 10000000, 0);
 		/* convert ns to 10 ms cliTimeouttimeout */
 		if (rc != 0) {
-			LOG_ER("executing activation command '%s' on node '%s' failed with rc %d", 
+			LOG_ER("executing activation command '%s' on node '%s' failed (%x)", 
 			       actCommand.c_str(), getSwNode().c_str(), rc);
 			result = false;
 			goto done;
@@ -1813,18 +1814,18 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 
 			std::list<std::string>::const_iterator n;
 			for (n = swNodeList.begin(); n != swNodeList.end(); n++) {
+                                SmfndNodeDest nodeDest;
 				char const* nodeName = n->c_str();
 				TRACE("Executing bundle script '%s' on node '%s' (single-step)", 
 				      command.c_str(), nodeName);
-				MDS_DEST nodeDest = getNodeDestination(*n);
-				if (nodeDest == 0) {
+				if (!getNodeDestination(*n, &nodeDest)) {
 					LOG_ER("no node destination found for node [%s]", nodeName);
 					result = false;
 					goto done;
 				}
-				int rc = smfnd_remote_cmd(command.c_str(), nodeDest, timeout / 10000000);
+				uint32_t rc = smfnd_exec_remote_cmd(command.c_str(), &nodeDest, timeout / 10000000, 0);
 				if (rc != 0) {
-					LOG_ER("executing command '%s' on node '%s' failed with rc %d", 
+					LOG_ER("executing command '%s' on node '%s' failed (%x)", 
 					       command.c_str(), nodeName, rc);
 					result = false;
 					goto done;
@@ -1833,19 +1834,18 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 
 		} else {
 
+                        SmfndNodeDest nodeDest;
 			TRACE("Executing bundle script '%s' on node '%s'", 
 			      command.c_str(), i_node.c_str());
 			TRACE("Get node destination for %s", i_node.c_str());
 
 			int interval = 5;
-			int timeout = smfd_cb->rebootTimeout/1000000000; //seconds
-			MDS_DEST nodeDest = getNodeDestination(i_node);
-			while (nodeDest == 0) {
-				if (timeout > 0) {
+			int nodetimeout = smfd_cb->rebootTimeout/1000000000; //seconds
+			while (!getNodeDestination(i_node, &nodeDest)) {
+				if (nodetimeout > 0) {
 					TRACE("No destination found, try again wait %d seconds", interval);
 					sleep(interval);
-					nodeDest = getNodeDestination(i_node);
-					timeout -= interval;
+					nodetimeout -= interval;
 				} else {
 					LOG_ER("no node destination found for node %s", i_node.c_str());
 					result = false;
@@ -1857,10 +1857,10 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 			/* First fetch the script using e.g. wget etc */
 
 			/* Execute the bundle script remote on node */
-			int rc = smfnd_remote_cmd(command.c_str(), nodeDest, timeout / 10000000);
+			uint32_t rc = smfnd_exec_remote_cmd(command.c_str(), &nodeDest, timeout / 10000000, 0);
 			/* convert ns to 10 ms timeout */
 			if (rc != 0) {
-				LOG_ER("executing command '%s' on node '%s' failed with rc %d", 
+				LOG_ER("executing command '%s' on node '%s' failed (%x)", 
 				       command.c_str(), i_node.c_str(), rc);
 				result = false;
 				goto done;
@@ -1962,30 +1962,35 @@ SmfUpgradeStep::nodeReboot()
 	TRACE_ENTER();
 
 	bool result = true;
-	MDS_DEST nodeDest;
-	int rc;
+	uint32_t cmdrc;
 	std::string cmd;        // Command to enter
 	int interval;           // Retry interval
 	int timeout;            // Connection timeout
 	int rebootTimeout = smfd_cb->rebootTimeout / 1000000000; //seconds
-	int cliTimeout    = 400;                                 // 400 * 10 ms = 4 seconds
+	int cliTimeout    = rebootTimeout/2 * 100;                // sec to cs (10 ms)
+	int localTimeout  = 500;                                  // 500 * 10 ms = 5 seconds
+        SmfndNodeDest nodeDest;
 
 	//Order smf node director to reboot the node
 	cmd = smfd_cb->smfNodeRebootCmd;
-	nodeDest = getNodeDestination(getSwNode());
 
-	if (nodeDest == 0) {
+	if (!getNodeDestination(getSwNode(), &nodeDest)) {
 		LOG_ER("SmfUpgradeStep::nodeReboot: no node destination found for node %s", getSwNode().c_str());
 		result = false;
 		goto done;
 	}
 
-	rc = smfnd_remote_cmd(cmd.c_str(), nodeDest, cliTimeout);
+        /* When executing a reboot command on a node the command will never return 
+           so we want a short local timeout. Since the smfnd is handling the 
+           cli timeout we want that to be much longer so that the reboot command process 
+           is not killed by a cli timeout in the smfnd. The reboot will interrupt the 
+           command execution anyway so it doesn't matter that the timeout is really long */
+	cmdrc = smfnd_exec_remote_cmd(cmd.c_str(), &nodeDest, cliTimeout, localTimeout);
 #if 0
 	// Do not wait for answer, the rebooted node will not answer
-	if (rc != 0) {
+	if (cmdrc != 0) {
 		LOG_ER("SmfUpgradeStep::nodeReboot: executing command '%s' on node '%s' failed with rc %d", 
-		       cmd.c_str(), getSwNode().c_str(), rc);
+		       cmd.c_str(), getSwNode().c_str(), cmdrc);
 		result = false;
 		goto done;
 	}
@@ -1995,11 +2000,9 @@ SmfUpgradeStep::nodeReboot()
 	timeout  = rebootTimeout; //seconds
 	interval = 1;
 	LOG_NO("SmfUpgradeStep::nodeReboot: Waiting for node destination to disappear");
-	nodeDest = getNodeDestination(getSwNode());
-	while (nodeDest != 0) {
+	while (getNodeDestination(getSwNode(), &nodeDest)) {
 		TRACE("SmfUpgradeStep::nodeReboot: Destination has not yet disappear, check again wait %d seconds", interval);
 		sleep(interval);
-		nodeDest = getNodeDestination(getSwNode());
 		if (timeout <= 0) {
 			LOG_ER("SmfUpgradeStep::nodeReboot: node destination has not disappear within time frame for node %s", getSwNode().c_str());
 			result = false;
@@ -2016,11 +2019,9 @@ SmfUpgradeStep::nodeReboot()
 	timeout  = rebootTimeout; //seconds
 	interval = 5;
 	LOG_NO("SmfUpgradeStep::nodeReboot: Waiting to get node destination");
-	nodeDest = getNodeDestination(getSwNode());
-	while (nodeDest == 0) {
+	while (!getNodeDestination(getSwNode(), &nodeDest)) {
 		TRACE("SmfUpgradeStep::nodeReboot: No destination found, try again wait %d seconds", interval);
 		sleep(interval);
-		nodeDest = getNodeDestination(getSwNode());
 		if (timeout <= 0) {
 			LOG_ER("SmfUpgradeStep::nodeReboot: no node destination found for node %s", getSwNode().c_str());
 			result = false;
@@ -2032,13 +2033,13 @@ SmfUpgradeStep::nodeReboot()
 
 	//Node destination is found, wait for node to accept command "true"
 	cmd      = "true";              //Command "true" should be available on all Linux systems
-	timeout  = rebootTimeout / 2;   //Use half of the reboot timeoot
+	timeout  = rebootTimeout / 2;   //Use half of the reboot timeout
 	interval = 5;
 	LOG_NO("SmfUpgradeStep::nodeReboot: Waiting for the node to accept command 'true'");
-	rc = smfnd_remote_cmd(cmd.c_str(), nodeDest, cliTimeout);
-	while(rc != 0){
+	cmdrc = smfnd_exec_remote_cmd(cmd.c_str(), &nodeDest, cliTimeout, 0);
+	while(cmdrc != 0){
 		sleep(interval);
-		rc = smfnd_remote_cmd(cmd.c_str(), nodeDest, cliTimeout);
+		cmdrc = smfnd_exec_remote_cmd(cmd.c_str(), &nodeDest, cliTimeout, 0);
 		if (timeout <= 0) {
 			LOG_ER("SmfUpgradeStep::nodeReboot: accept command timeout on node '%s'", getSwNode().c_str());
 			result = false;

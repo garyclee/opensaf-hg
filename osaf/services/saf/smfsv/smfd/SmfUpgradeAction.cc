@@ -173,8 +173,8 @@ SmfCliCommandAction::execute(const std::string* i_rollbackDn)
 
 	for (it = m_plmExecEnvList.begin(); it != m_plmExecEnvList.end(); ++it) {
 		const std::string& n = it->getPrefered();
-		MDS_DEST nodeDest = getNodeDestination(n);
-		if (nodeDest == 0) {
+                SmfndNodeDest nodeDest;
+		if (!getNodeDestination(n, &nodeDest)) {
 			LOG_ER("SmfCliCommandAction no node destination found for node %s", n.c_str());
 			result = SA_AIS_ERR_NOT_EXIST;
 			goto done;
@@ -183,10 +183,10 @@ SmfCliCommandAction::execute(const std::string* i_rollbackDn)
 		TRACE("executing command '%s' on node '%s'", command.c_str(), n.c_str());
 
 		/* Execute the script remote on node */
-		int rc = smfnd_remote_cmd(command.c_str(), nodeDest, timeout / 10000000);	/* convert ns to 10 ms timeout */
+		uint32_t rc = smfnd_exec_remote_cmd(command.c_str(), &nodeDest, timeout / 10000000, 0);	/* convert ns to 10 ms timeout */
 		if (rc != 0) {
-			LOG_ER("executing command '%s' on node '%s' failed with rc %d", command.c_str(), n.c_str(),
-			       rc);
+			LOG_ER("executing command '%s' on node '%s' failed (%x)", 
+                               command.c_str(), n.c_str(), rc);
 			result = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		}
@@ -220,8 +220,8 @@ SmfCliCommandAction::rollback(const std::string& i_rollbackDn)
         /* Execute the undo command on nodes in reverse order */
 	for (it = m_plmExecEnvList.rbegin(); it != m_plmExecEnvList.rend(); it++) {
 		const std::string& n = it->getPrefered();
-		MDS_DEST nodeDest = getNodeDestination(n);
-		if (nodeDest == 0) {
+                SmfndNodeDest nodeDest;
+		if (!getNodeDestination(n, &nodeDest)) {
 			LOG_ER("SmfCliCommandAction no node destination found for node %s", n.c_str());
 			result = SA_AIS_ERR_NOT_EXIST;
 			goto done;
@@ -230,9 +230,9 @@ SmfCliCommandAction::rollback(const std::string& i_rollbackDn)
 		TRACE("executing undo command '%s' on node '%s'", command.c_str(), n.c_str());
 
 		/* Execute the script remote on node */
-		int rc = smfnd_remote_cmd(command.c_str(), nodeDest, timeout / 10000000);	/* convert ns to 10 ms timeout */
+		uint32_t rc = smfnd_exec_remote_cmd(command.c_str(), &nodeDest, timeout / 10000000, 0);	/* convert ns to 10 ms timeout */
 		if (rc != 0) {
-			LOG_ER("executing undo command '%s' on node '%s' failed with rc %d", 
+			LOG_ER("executing undo command '%s' on node '%s' failed (%x)", 
                                command.c_str(), n.c_str(), rc);
 
 			result = SA_AIS_ERR_FAILED_OPERATION;

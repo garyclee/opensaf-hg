@@ -61,7 +61,7 @@ static void proc_mds_info(smfd_cb_t * cb, SMFSV_EVT * evt)
 		}
 
 		if (mds_info->svc_id == NCSMDS_SVC_ID_SMFND) {
-			smfnd_up(mds_info->node_id, mds_info->dest);
+			smfnd_up(mds_info->node_id, mds_info->dest, mds_info->rem_svc_pvt_ver);
 			cb->no_of_smfnd++;
 		}
 		break;

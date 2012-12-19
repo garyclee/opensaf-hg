@@ -69,8 +69,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-extern int executeRemoteCmd(const std::string & i_command, const std::string & i_node, SaTimeT i_timeout);
-extern MDS_DEST getNodeDestination(const std::string & i_node);
+extern bool getNodeDestination(const std::string & i_node, SmfndNodeDest* o_nodeDest);
 extern std::string replaceAllCopy(const std::string& i_haystack, const  std::string& i_needle, const  std::string& i_replacement);
 
 ///

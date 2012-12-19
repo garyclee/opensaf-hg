@@ -61,24 +61,8 @@ SaVersionT SmfImmUtils::s_immVersion = { 'A', 2, 1 };
  * ========================================================================
  */
 
-int 
-executeRemoteCmd(const std::string & i_command, const std::string & i_node, SaTimeT i_timeout)
-{
-	/* TODO implement */
-	TRACE("execute command '%s' on node '%s', timeout %llu", i_command.c_str(), i_node.c_str(), i_timeout);
-
-	MDS_DEST nodeDest = getNodeDestination(i_node);
-	if (nodeDest == 0) {
-		LOG_ER("no node destination found for node %s", i_node.c_str());
-		return -1;
-	}
-
-	/* Execute the command remote on node */
-	return smfnd_remote_cmd(i_command.c_str(), nodeDest, i_timeout / 10000000);	/* convert ns to 10 ms timeout */
-}
-
-MDS_DEST 
-getNodeDestination(const std::string & i_node)
+bool 
+getNodeDestination(const std::string & i_node, SmfndNodeDest* o_nodeDest)
 {
 	SmfImmUtils immUtil;
 	SaImmAttrValuesT_2 **attributes;
@@ -89,15 +73,14 @@ getNodeDestination(const std::string & i_node)
 	 * indicates that SaClmNode's are expected. Anyway an attempt
 	 * to go for it is probably faster that examining IMM classes
 	 * in most cases. /uablrek */
-	MDS_DEST dest = smfnd_dest_for_name(i_node.c_str());
-	if (dest != 0) {
+	if (smfnd_for_name(i_node.c_str(), o_nodeDest)) {
 		TRACE("Found dest for [%s]", i_node.c_str());
-		return smfnd_dest_for_name(i_node.c_str());
+		return true;
 	}
 
 	if (immUtil.getObject(i_node, &attributes) == false) {
 		LOG_ER("Failed to get IMM node object %s", i_node.c_str());
-		return 0;
+		return false;
 	}
 
 	const char *className = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes,
@@ -105,32 +88,32 @@ getNodeDestination(const std::string & i_node)
 
 	if (className == NULL) {
 		LOG_ER("Failed to get class name for node object %s", i_node.c_str());
-		return 0;
+		return false;
 	}
 
 	if (strcmp(className, "SaClmNode") == 0) {
-		return smfnd_dest_for_name(i_node.c_str());
+		return smfnd_for_name(i_node.c_str(), o_nodeDest);
 	} else if (strcmp(className, "SaAmfNode") == 0) {
 		const SaNameT *clmNode;
 		clmNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saAmfNodeClmNode", 0);
 
 		if (clmNode == NULL) {
 			LOG_ER("Failed to get clm node for amf node object %s", i_node.c_str());
-			return 0;
+			return false;
 		}
 
 		char *nodeName = strndup((const char *)clmNode->value, clmNode->length);
-		dest = smfnd_dest_for_name(nodeName);
-		if (dest == 0) {
+                bool result = smfnd_for_name(nodeName, o_nodeDest);
+		if (!result) {
 			LOG_NO("Failed to get node dest for clm node %s", nodeName);
 		}
 		free(nodeName);
-		return dest;
+		return result;
 	}
 
 	LOG_ER("Failed to get destination for node object %s, class %s", i_node.c_str(), className);
 
-	return 0;
+	return false;
 }
 
 //-----------------------------------------------------------------------------------------------

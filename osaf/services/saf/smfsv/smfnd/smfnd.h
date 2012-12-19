@@ -29,7 +29,8 @@
 #include "smfsv_evt.h"
 
 #define SMFND_HA_INIT_STATE 0
-#define SMFND_MDS_PVT_SUBPART_VERSION 1
+/* Added CMD_REQ_ASYNCH message to protocol */
+#define SMFND_MDS_PVT_SUBPART_VERSION 2
 
 /*
 This structure represents the mapping between the inv_id and all the agents need to
