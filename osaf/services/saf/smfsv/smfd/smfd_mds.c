@@ -278,9 +278,10 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info)
 		evt->info.smfd.event.mds_info.dest = svc_evt->i_dest;
 		evt->info.smfd.event.mds_info.svc_id = svc_evt->i_svc_id;
 		evt->info.smfd.event.mds_info.node_id = svc_evt->i_node_id;
+		evt->info.smfd.event.mds_info.rem_svc_pvt_ver = svc_evt->i_rem_svc_pvt_ver;
 
-		TRACE("SMFND SVC event %d for nodeid %x", svc_evt->i_change,
-		      svc_evt->i_node_id);
+		TRACE("SMFND SVC event %d for nodeid %x, svc version %u", svc_evt->i_change,
+		      svc_evt->i_node_id, svc_evt->i_rem_svc_pvt_ver);
 
 		/* Put it in SMFD's Event Queue */
 		rc = m_NCS_IPC_SEND(&smfd_cb->mbx, (NCSCONTEXT) evt,

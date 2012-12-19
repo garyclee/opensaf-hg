@@ -50,6 +50,7 @@ typedef enum {
 	SMFND_EVT_MDS_INFO = 1,
 	SMFND_EVT_CMD_REQ = 2,
 	SMFND_EVT_CBK_RSP = 3,
+	SMFND_EVT_CMD_REQ_ASYNCH = 4, /* Added in smfnd ver 2 */
 	SMFND_EVT_MAX
 } SMFND_EVT_TYPE;
 
@@ -102,12 +103,19 @@ typedef struct {
 	MDS_DEST dest;
 	MDS_SVC_ID svc_id;
 	NODE_ID node_id;
+        MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver;
 	V_DEST_RL role;
 } smfsv_mds_info;
 
 /****************************************************************************
  Events to SMFD 
  ****************************************************************************/
+
+/* Result types */
+#define SMFSV_CMD_EXEC_FAILED  0x10000
+#define SMFSV_CMD_TIMEOUT      0x20000
+#define SMFSV_CMD_RESULT_CODE  0x30000
+#define SMFSV_CMD_SIGNAL_TERM  0x40000
 
 /*** SMFD event definitions ***/
 typedef struct {
@@ -133,12 +141,20 @@ typedef struct {
 	char *cmd;
 } smfnd_evt_cmd_req;
 
+/* Added in smfnd ver 2 */
+typedef struct {
+	uint32_t timeout;
+	uint32_t cmd_len;
+	char *cmd;
+} smfnd_evt_cmd_req_asynch;
+
 typedef struct {
 	SMFND_EVT_TYPE type;	/* evt type */
 	union {
 		smfsv_mds_info 		mds_info;
 		smfnd_evt_cmd_req 	cmd_req;
 		struct smf_evt		cbk_req_rsp;
+		smfnd_evt_cmd_req_asynch cmd_req_asynch; /* Added in smfnd ver 2 */
 	} event;
 } SMFND_EVT;
 

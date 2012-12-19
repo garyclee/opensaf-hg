@@ -43,8 +43,49 @@
 ******************************************************************************/
 void smfsv_evt_destroy(SMFSV_EVT *evt)
 {
-    osafassert(evt != NULL);
-    free(evt);
+        if (evt == NULL) return;
+
+        if (evt->type == SMFSV_EVT_TYPE_SMFND) {
+                switch (evt->info.smfnd.type) {
+                case SMFND_EVT_CMD_REQ:
+                        {
+                                free(evt->info.smfnd.event.cmd_req.cmd);
+                                evt->info.smfnd.event.cmd_req.cmd = NULL;
+                                break;
+                        }
+                case SMFND_EVT_CBK_RSP:
+                        {
+                                switch (evt->info.smfnd.event.cbk_req_rsp.evt_type) {
+                                case SMF_CLBK_EVT:
+                                        {
+                                                free(evt->info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label);
+                                                evt->info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label = NULL;
+                                                free(evt->info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params);
+                                                evt->info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params = NULL;
+                                                break;
+                                        }
+                                case SMF_RSP_EVT:
+                                        {
+                                                /* Nothing to free */
+                                                break;
+                                        }
+                                }
+                                break;
+                        }
+                case SMFND_EVT_CMD_REQ_ASYNCH:
+                        {
+                                free(evt->info.smfnd.event.cmd_req_asynch.cmd);
+                                evt->info.smfnd.event.cmd_req_asynch.cmd = NULL;
+                                break;
+                        }
+                default:
+                        {
+                                break;
+        		}
+        	}
+        }
+
+        free(evt);
 }
 
 
@@ -384,7 +425,6 @@ err:
     return NCSCC_RC_FAILURE;
 }
 
-
 /****************************************************************************\
  PROCEDURE NAME : smfnd_dec_cmd_req
 
@@ -430,6 +470,117 @@ uint32_t smfnd_dec_cmd_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
         ncs_decode_n_octets_from_uba(i_ub,(uint8_t *)cmd, o_evt->info.smfnd.event.cmd_req.cmd_len);
         cmd[o_evt->info.smfnd.event.cmd_req.cmd_len] = 0; /* NULL terminate */
         o_evt->info.smfnd.event.cmd_req.cmd = cmd;
+    }
+
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+
+/****************************************************************************\
+ PROCEDURE NAME : smfnd_enc_cmd_req_asynch
+
+ DESCRIPTION    : Encodes the contents of SMFND_CMD_REQ_ASYNCH into userbuf
+
+ ARGUMENTS      : *i_evt - Event Struct.
+                   *o_ub - User Buff.
+
+ RETURNS        : None
+\*****************************************************************************/
+uint32_t smfnd_enc_cmd_req_asynch(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+{
+    uint32_t      rc = NCSCC_RC_SUCCESS;
+    uint8_t       *p8;
+
+    if (o_ub == NULL || i_evt == NULL)
+    {
+        LOG_ER("indata == NULL");
+        goto err;
+    }
+
+    /** encode the timeout *   */
+    p8 = ncs_enc_reserve_space(o_ub, 4);
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+
+    ncs_encode_32bit(&p8, i_evt->info.smfnd.event.cmd_req_asynch.timeout);
+    ncs_enc_claim_space(o_ub, 4);
+
+    /** encode the cmd length **/
+    p8 = ncs_enc_reserve_space(o_ub, 4);
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+
+    ncs_encode_32bit(&p8, i_evt->info.smfnd.event.cmd_req_asynch.cmd_len);
+    ncs_enc_claim_space(o_ub, 4);
+
+    /** encode the cmd **/
+    ncs_encode_n_octets_in_uba(o_ub, 
+                               (uint8_t*) i_evt->info.smfnd.event.cmd_req_asynch.cmd, 
+                               i_evt->info.smfnd.event.cmd_req_asynch.cmd_len);
+
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+
+
+/****************************************************************************\
+ PROCEDURE NAME : smfnd_dec_cmd_req_asynch
+
+ DESCRIPTION    : Decodes the contents of SMFND_CMD_REQ_ASYNCH from userbuf
+
+ ARGUMENTS      : *i_evt - Event Struct.
+                   *o_ub - User Buff.
+
+ RETURNS        : None
+\*****************************************************************************/
+uint32_t smfnd_dec_cmd_req_asynch(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+{
+    uint32_t      rc = NCSCC_RC_SUCCESS;
+    uint8_t       *p8;
+    uint8_t       local_data[20];
+
+    if (i_ub == NULL || o_evt == NULL)
+    {
+        LOG_ER("indata == NULL");
+        goto err;
+    }
+
+    /** decode the timeout **/
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
+    o_evt->info.smfnd.event.cmd_req_asynch.timeout = ncs_decode_32bit(&p8);
+    ncs_dec_skip_space(i_ub, 4);
+
+    /** decode the cmd length **/
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
+    o_evt->info.smfnd.event.cmd_req_asynch.cmd_len = ncs_decode_32bit(&p8);
+    ncs_dec_skip_space(i_ub, 4);
+
+    /** decode the cmd **/
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, o_evt->info.smfnd.event.cmd_req_asynch.cmd_len);
+    o_evt->info.smfnd.event.cmd_req_asynch.cmd = NULL; /* In case len 0 */
+
+    if (o_evt->info.smfnd.event.cmd_req_asynch.cmd_len != 0)
+    {
+        char*      cmd;
+
+    	cmd = malloc(o_evt->info.smfnd.event.cmd_req_asynch.cmd_len + 1); /* + 1 for NULL termination */
+        if (cmd == NULL)
+        {
+            LOG_ER("malloc == NULL");
+            goto err;
+        }
+
+        ncs_decode_n_octets_from_uba(i_ub,(uint8_t *)cmd, o_evt->info.smfnd.event.cmd_req_asynch.cmd_len);
+        cmd[o_evt->info.smfnd.event.cmd_req_asynch.cmd_len] = 0; /* NULL terminate */
+        o_evt->info.smfnd.event.cmd_req_asynch.cmd = cmd;
     }
 
     return rc;
@@ -773,6 +924,11 @@ uint32_t smfnd_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
             rc = smfnd_enc_cbk_req_rsp(i_evt, o_ub);
             break;
         }
+        case SMFND_EVT_CMD_REQ_ASYNCH:
+        {
+            rc = smfnd_enc_cmd_req_asynch(i_evt, o_ub);
+            break;
+        }
         default:
         {
             LOG_ER("Unknown SMFND evt type = %d", i_evt->info.smfnd.type);
@@ -820,6 +976,11 @@ uint32_t smfnd_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
         case SMFND_EVT_CBK_RSP:
         {
             rc = smfnd_dec_cbk_req_rsp (i_ub, o_evt);
+            break;
+        }
+        case SMFND_EVT_CMD_REQ_ASYNCH:
+        {
+            rc = smfnd_dec_cmd_req_asynch (i_ub, o_evt);
             break;
         }
         default:
@@ -1236,7 +1397,7 @@ uint32_t smfsv_mds_msg_sync_send (uint32_t       mds_handle,
       *o_evt = mds_info.info.svc_send.info.sndrsp.o_rsp;
    else
    {
-      LOG_NO("Failed to send sync mds message");
+      LOG_NO("Send sync mds message failed rc = %u", rc);
    }
 
    return rc;
