@@ -1191,6 +1191,8 @@ type for requesting only config attributes: SA_IMM_SEARCH_GET_CONFIG_ATTR.
 This feature did not make it into OpenSAF 4.2, but will now instead be part
 of OpenSaf 4.3.
 
+The IMM API version where this is implemented is now IMM A.2.12 in OpenSAF(4.3)
+
 The main driver for this feature is the very common need for an OI implementation
 to fetch the initial configuration, without also asking for the values of 
 runtime attributes. If an OI performs a read-request (over the OM API) that
@@ -1230,6 +1232,214 @@ extern SaAisErrorT
 immutil_saImmOmAccessorGetConfigAttrs(SaImmAccessorHandleT accessorHandle,
                                       const SaNameT *objectName,
                                       SaImmAttrValuesT_2 ***attributes);
+
+
+Support for redundant data export special applier OI (4.3)
+==============================================================================
+http://devel.opensaf.org/ticket/2873
+http://devel.opensaf.org/ticket/2883
+http://devel.opensaf.org/ticket/2892
+
+The 'special applier' enhancement implemented in OpenSAF 4.3 is a mechanism
+intended to assist the replication of chosen parts of the imm database to
+a generic receiver external to the imm service.
+
+As the name implies, it uses the same OI interface that regular appliers use.
+The difference is the way the subset of imm data to be sent to the applier
+is configured and that cached runtime data may be included.
+
+Regular appliers (and OIs) will get callbacks depending on which classes or
+objects they have explicitly registered for, using saImmOiClassImplementerSet
+or saImmOiObjectImplementerSet. This is a two level mapping:
+
+        oiHandle->implementerName 
+        implementerName->classes/objects
+
+The two level maping does not survive cluster restarts (it is not persistent),
+but the second level mapping survives disconnect at the first level. Thus the
+bindings related to an implementerName survives process termination or 
+oiHandle close. 
+
+Regular appliers (and OIs) are typically application specific, listening only
+for changes on config data that is relevant to their application. 
+
+The special applier is generic. It does not use saImmOiClassImplementerSet or
+saImmOiObjectImplementerSet to set up the second level map. Instead it
+will receive callbacks for objects with attribute values if the attribute
+definition in the class definition for the object has the SA_IMM_ATTR_NOTIFY
+flag set to on. 
+
+The IMM A.2.12 API extension supported in OpenSAF 4.3 reserves a new flag value,
+labeled:
+
+        SA_IMM_ATTR_NOTIFY
+
+in the SaImmAttrFlagsT type. The SaImmAttrFlagsT type is used when defining 
+atributes as part of an imm class definition. 
+
+The meaning of this new flag is that, if it is on, then any change to the value
+of that attribute in any instance (imm object) of that class, will generate a 
+callback for any attached special appliers. Because the flag is asociated with 
+class definitions, it is persistent. Toggling the flag on an attribute definition
+is in principle an imm schema change (see SCHEMA CHANGE section above). It is an
+update of a class definition. Since class definitions are persistent, the special
+applier second level mapping implementerName->class/attributes will survive a
+cluster restart. This is also necessary since there exists no regular implementer
+that can set up the second level binding dynamically at cluster start. 
+
+For the first level mapping oiHandle->implementerName, the special applier is
+currently fixed to only allow two "magic" applier names:
+
+        #define OPENSAF_IMM_REPL_A_NAME "@OpenSafImmReplicatorA"
+        #define OPENSAF_IMM_REPL_B_NAME "@OpenSafImmReplicatorB"
+
+These applier names are "magic" in the sense that the imm service will recognize
+these names as special and generate the special applier callbacks to them if
+they are attached. The limitation to two names may be relaxed in the future if
+needed. The current vision is that only one logical replicator is needed 
+because the service is generic. The generic replicator may then push the data
+on to a tracking service (such as Ntf) that in its turn allows multiple
+consumers. The generic replicator may even itself push the data on to more than
+one outgoing communication service. Thus there should typically not be needed
+more than one logical replicator. 
+
+The reason for two special applier names instead of just one, is to allow a
+logically unique replicator to be implemented redundantly as an active/standby
+pair. If only one special applier name would be used, then there would be an
+inevitable gap in time after the current active detaches and the new active
+attaches. An applier or implementer name can at most be attached to one 
+oi-handle in the cluster, at any given time. Thus the standby special applier
+needs to receive the same callback stream as the active, using a distinct 
+special applier name, but will discard the data based on information it
+receives from the active (e.g. via message based checkpoint).
+
+The SA_IMM_ATTR_NOTIFY flag may be toggled using immcfg (#2892), or as part
+of a regular schema change in an SMF campaign. Export/import of the new flag
+to imm xml format is supported by immdump/immload (#2883).
+
+Although the special applier uses the same SaImmOi callback interface as regular
+implementers and regular appliers, there are some special rules concerning the 
+contents of the parameters provided from the imm service. 
+
+----------------------------
+
+Config data is changed using Ccb's and the special applier will get the same 
+sequence of operational callbacks (create/modify/delete) followed by completed
+and apply. For the operational callbacks the following apply:
+
+SaImmOiCcbObjectCreateCallbackT_2 will contain attribute values for *all* 
+attributes that have the SA_IMM_ATTR_NOTIFY flag on. The attribute value may have
+been set explicitly by the om-client in the ceate downcall, or the value may be
+the default value for the attribute, or the value may be the empty value. 
+In addition, the callback will contain the Rdn attribute and the system attributes
+named SaImmAttrClassName and SaImmAttrAdminOwnerName. The Rdn attribute is
+necessary even if it is not flagged as notifiable, since the special applier needs
+it for constructing the DN for the object to be created. The class-name and 
+admin-owner name are needed for the special applier, or its downstream clients, to
+interpret what kind of object is being created and who is creating it.
+
+SaImmOiCcbObjectModifyCallbackT_2 will contain only attribute values that have
+been modified in this operation *and* that have the SA_IMM_ATTR_NOTIFY flag on.
+In addition, the callback will contain the system atributes SaImmAttrClassName
+and SaImmAdminOwnerName. The class-name may be needed if the special applier 
+attached after the object was created and had not yet initialized by reading
+from the imm. Indeed it is left open to the implementor of the special applier
+to decide how and even if they should initialize by reading from the imm.
+The admin-owner allows the receiver to interpret who is modifying the object.
+
+SaImmOiCcbObjectDeleteCallbackT can obviosly not contain any attribute values.
+Only the DN of the object to be deleted is provided, since that is how the
+callback is defined. However, the imm service guarantees that a CCB that 
+contains delete callbacks, will also contain at least one modify callback 
+containing at least the SaImmAdminOwnerName system attribute. If the real ccb 
+is a pure delete ccb, i.e. contains only delete operations, then the imm service
+will generate a 'fake' modify callback in order to provide the admin-owner name.
+This allows the receiver to interpret who is deleting the objects. The class-name
+for the object should not be needed since if the receiver is already aware of the
+object to be deleted, then they should already know the class for it and if they
+are not aware of the object, then they can simply discard the delete operation
+since it is a delete of an object that the receiver does not have. 
+
+The SaImmOiCcbCompletedCallbackT, saImmOiCcbApplyCallbackT and
+SaImmOiCcbAbortCallbackT have exactly the same semantics as always. The completed
+callback is typically ignored by appliers. 
+
+----------------------------
+
+Cached runtime data is created/updated and deleted by an implementer/OI. Each such
+OI downcall operation will generate only the single corresponding OI callback on
+the special applier, but with the ccbId parameter set to zero. No completed, apply
+or abort callbacks are generated for cached runtime data operations. Persistent
+runtime data is always also cached, so the same rules apply for persistent runtime
+data. Non cached runtime attributes are not allowed to have the SA_IMM_ATTR_NOTIFY
+flag set. 
+
+SaImmOiCcbObjectCreateCallbackT_2 will contain attribute values for *all* cached
+runtime attributes that have the SA_IMM_ATTR_NOTIFY flag on. The attribute value
+may have been set explicitly by the OI in the ceate downcall, or the value may be
+the default value for the attribute. Cached runtime attributes without default
+value must get a value provided by the OI in a saImmOiRtObjectCreate_2 call.
+In addition, the callback will contain the Rdn attribute and the system attributes
+named SaImmAttrClassName and SaImmAttrImplementerName. The Rdn attribute is
+necessary even if it is not flagged as notifiable, since the special applier needs
+it for constructing the DN for the runtime object to be created. The class-name and 
+implementer name are needed for the special applier, or its downstream clients, to
+interpret what kind of runtime object is being created and who (what implementer)
+is creating it. The ccbId parameter will be zero.
+
+SaImmOiCcbObjectModifyCallbackT_2 will contain only cached runtime attribute values
+that have been updated in this operation *and* that have the SA_IMM_ATTR_NOTIFY
+flag on. In addition, the callback will contain the system atributes
+SaImmAttrClassName and SaImmImplementerName. The class-name may be needed if the
+special applier attached after the object was created and had not yet initialized
+by reading from the imm. Indeed it is left open to the implementor of the special
+applier to decide how and even if they should initialize by reading from the imm.
+The implementer-name allows the receiver to interpret who is updating the runtime
+attributes. Note that the object containing the cached runtime attributes may be
+either a runtime object or a config object. This since config objects may contain
+runime attributes. The ccbId parameter will be zero. 
+
+SaImmOiCcbObjectDeleteCallbackT can obviosly not contain any attribute values.
+Only the DN of the object to be deleted is provided, since that is how the
+callback is defined. For runtime object deletes, the imm can not provide any
+'fake' modify callback to provide class-name and implementer-name. This is because
+runtime data is not operated on using Ccbs/transactions. So there is no way to
+group and corelate several operations as belonging to the same ccb. But the
+class-name for the runtime object should not be needed since if the receiver is
+already aware of the runtime object to be deleted, then they should already know
+the class for it and if they are not aware of the runtime object, then they can
+simply discard the delete operation, since it is a delete of an object that the
+receiver does not have. Similarly, the implementer-name should not be needed.
+Unlike admin-owner-name, which may be different for different ccbs operating on
+the same config object during its life cycle, implementer-name will never change
+for a runtime object. The ccbId parameter will be zero.
+
+
+
+Optimize subtree search           (4.3)
+==============================================================================
+http://devel.opensaf.org/ticket/1844
+
+
+Allow saImmOiImplementerSet during imm-sync       (4.3)
+=======================================================
+http://devel.opensaf.org/ticket/1871
+
+
+Catch some cases of thread interference over handles    (4.3)
+=============================================================
+http://devel.opensaf.org/ticket/1984
+
+
+Pbe & immload uses pre-compiled & parametrized queries  (4.3)
+=============================================================
+http://devel.opensaf.org/ticket/2467
+http://devel.opensaf.org/ticket/2696
+
+immcfg -L validate imm-xml file as xml loadable  (4.3)
+======================================================
+http://devel.opensaf.org/ticket/2766
+
 
 ----------------------------------------
 DEPENDENCIES
@@ -1441,7 +1651,9 @@ CONTRIBUTORS/MAINTAINERS
 Anders Bjornerstedt <Anders.Bjornerstedt@ericsson.com>
 Hans Feldt <Hans.Feldt@ericsson.com>
 Peter Strand <peter.strand@ericsson.com>
-Mahesh Alla <VAlla@goahead.com>
+Mahesh Alla <mahesh.valla@oracle.com>
+Neelakanta Reddy <reddy.neelakanta@oracle.com>
+Zoran Millinkovic <zoran.milinkovic@ericsson.com>
 
 The IMM service OpenSAF framework was originally cloned from the OpenSAF
 check-point service. 
