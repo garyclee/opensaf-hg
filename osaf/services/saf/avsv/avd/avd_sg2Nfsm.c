@@ -2068,8 +2068,7 @@ static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 		if (susi != NULL) {
 			if (all_quiesced(susi->su)) {
 				if ((s_susi != AVD_SU_SI_REL_NULL) &&
-					(s_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
-					(su->saAmfSuReadinessState != SA_AMF_READINESS_OUT_OF_SERVICE)) {
+					(s_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE)) {
 					/* Got quiesced respponse for all susi, so start Active role modification based on dependency */
 					if (avd_sidep_si_dependency_exists_within_su(su)) {
 						for (s_susi_temp = s_susi->su->list_of_susi;s_susi_temp != NULL;s_susi_temp = s_susi_temp->su_next) {
