@@ -335,6 +335,7 @@ uint32_t avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE 
 		osafassert(0);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
@@ -371,6 +372,7 @@ uint32_t avd_ckpt_si_trans(AVD_CL_CB *cb, AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt,
 		osafassert(0);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
@@ -512,6 +514,7 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 		osafassert(0);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 

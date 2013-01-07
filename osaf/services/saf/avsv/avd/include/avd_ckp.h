@@ -141,15 +141,15 @@ uint32_t avsv_send_data_req(struct cl_cb_tag *cb);
 uint32_t avsv_dequeue_async_update_msgs(struct cl_cb_tag *cb, bool pr_or_fr);
 
 /* Function Definations of avd_ckpt_enc.c */
-uint32_t avsv_encode_cold_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
-uint32_t avsv_encode_warm_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
-uint32_t avsv_encode_data_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
+uint32_t avd_enc_cold_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
+uint32_t avd_enc_warm_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
+uint32_t avd_enc_data_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
 
 /* Function Definations of avd_ckpt_dec.c */
-uint32_t avsv_decode_cold_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
-uint32_t avsv_decode_warm_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
-uint32_t avsv_decode_data_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
-uint32_t avsv_decode_data_req(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
+uint32_t avd_dec_cold_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
+uint32_t avd_dec_warm_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
+uint32_t avd_dec_data_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
+uint32_t avd_dec_data_req(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
 uint32_t avd_avnd_send_role_change(struct cl_cb_tag *cb, NODE_ID, uint32_t role);
 
 #endif

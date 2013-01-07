@@ -28,73 +28,73 @@
 #include <avd_si_dep.h>
 
 /* Declaration of async update functions */
-static uint32_t avsv_decode_ckpt_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uint32_t avsv_decode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_cs_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
 /* Declaration of static cold sync decode functions */
-static uint32_t avsv_decode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
-static uint32_t avsv_decode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
 
 /*
  * Function list for decoding the async data.
@@ -104,72 +104,72 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb,
  * This array _must_ correspond to avsv_ckpt_msg_reo_type in avd_ckpt_msg.h
  */
 
-const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[] = {
-	avsv_decode_ckpt_avd_cb_config,
-	avsv_decode_ckpt_avd_cluster_config,
-	avsv_decode_ckpt_avd_node_config,
-	avsv_decode_ckpt_avd_app_config,
-	avsv_decode_ckpt_avd_sg_config,
-	avsv_decode_ckpt_avd_su_config,
-	avsv_decode_ckpt_avd_si_config,
-	avsv_decode_ckpt_avd_oper_su,
-	avsv_decode_ckpt_avd_sg_admin_si,
-	avsv_decode_ckpt_avd_comp_config,
-	avsv_decode_ckpt_avd_comp_cs_type_config,
-	avsv_decode_ckpt_avd_siass,
-	avsv_decode_ckpt_avd_si_trans,
+const AVSV_DECODE_CKPT_DATA_FUNC_PTR avd_dec_data_func_list[] = {
+	dec_cb_config,
+	dec_cluster_config,
+	dec_node_config,
+	dec_app_config,
+	dec_sg_config,
+	dec_su_config,
+	dec_si_config,
+	dec_oper_su,
+	dec_sg_admin_si,
+	dec_comp_config,
+	dec_comp_cs_type_config,
+	dec_siass,
+	dec_si_trans,
 
 	/* 
 	 * Messages to update independent fields.
 	 */
 
 	/* AVND Async Update messages */
-	avsv_decode_ckpt_node_admin_state,
-	avsv_decode_ckpt_node_oper_state,
-	avsv_decode_ckpt_node_up_info,
-	avsv_decode_ckpt_node_state,
-	avsv_decode_ckpt_node_rcv_msg_id,
-	avsv_decode_ckpt_node_snd_msg_id,
+	dec_node_admin_state,
+	dec_node_oper_state,
+	dec_node_up_info,
+	dec_node_state,
+	dec_node_rcv_msg_id,
+	dec_node_snd_msg_id,
 
 	/* SG Async Update messages */
-	avsv_decode_ckpt_sg_admin_state,
-	avsv_decode_ckpt_sg_su_assigned_num,
-	avsv_decode_ckpt_sg_su_spare_num,
-	avsv_decode_ckpt_sg_su_uninst_num,
-	avsv_decode_ckpt_sg_adjust_state,
-	avsv_decode_ckpt_sg_fsm_state,
+	dec_sg_admin_state,
+	dec_sg_su_assigned_num,
+	dec_sg_su_spare_num,
+	dec_sg_su_uninst_num,
+	dec_sg_adjust_state,
+	dec_sg_fsm_state,
 
 	/* SU Async Update messages */
-	avsv_decode_ckpt_su_preinstan,
-	avsv_decode_ckpt_su_oper_state,
-	avsv_decode_ckpt_su_admin_state,
-	avsv_decode_ckpt_su_readiness_state,
-	avsv_decode_ckpt_su_pres_state,
-	avsv_decode_ckpt_su_si_curr_active,
-	avsv_decode_ckpt_su_si_curr_stby,
-	avsv_decode_ckpt_su_term_state,
-	avsv_decode_ckpt_su_switch,
-	avsv_decode_ckpt_su_act_state,
+	dec_su_preinstan,
+	dec_su_oper_state,
+	dec_su_admin_state,
+	dec_su_readiness_state,
+	dec_su_pres_state,
+	dec_su_si_curr_active,
+	dec_su_si_curr_stby,
+	dec_su_term_state,
+	dec_su_switch,
+	dec_su_act_state,
 
 	/* SI Async Update messages */
-	avsv_decode_ckpt_si_admin_state,
-	avsv_decode_ckpt_si_assignment_state,
-	avsv_decode_ckpt_si_su_curr_active,
-	avsv_decode_ckpt_si_su_curr_stby,
-	avsv_decode_ckpt_si_switch,
-	avsv_decode_ckpt_si_alarm_sent,
+	dec_si_admin_state,
+	dec_si_assignment_state,
+	dec_si_su_curr_active,
+	dec_si_su_curr_stby,
+	dec_si_switch,
+	dec_si_alarm_sent,
 
 	/* COMP Async Update messages */
-	avsv_decode_ckpt_comp_proxy_comp_name,
-	avsv_decode_ckpt_comp_curr_num_csi_actv,
-	avsv_decode_ckpt_comp_curr_num_csi_stby,
-	avsv_decode_ckpt_comp_oper_state,
-	avsv_decode_ckpt_comp_readiness_state,
-	avsv_decode_ckpt_comp_pres_state,
-	avsv_decode_ckpt_comp_restart_count,
+	dec_comp_proxy_comp_name,
+	dec_comp_curr_num_csi_actv,
+	dec_comp_curr_num_csi_stby,
+	dec_comp_oper_state,
+	dec_comp_readiness_state,
+	dec_comp_pres_state,
+	dec_comp_restart_count,
 	NULL,			/* AVSV_SYNC_COMMIT */
-	avsv_decode_ckpt_su_restart_count,
-	avsv_decode_ckpt_si_dep_state
+	dec_su_restart_count,
+	dec_si_dep_state
 };
 
 /*
@@ -177,25 +177,25 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[] = {
  * We will jump into this function using the reo_type received 
  * in the cold sync response argument.
  */
-const AVSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR avsv_dec_cold_sync_rsp_data_func_list[] = {
-	avsv_decode_cold_sync_rsp_avd_cb_config,
-	avsv_decode_cold_sync_rsp_avd_cluster_config,
-	avsv_decode_cold_sync_rsp_avd_node_config,
-	avsv_decode_cold_sync_rsp_avd_app_config,
-	avsv_decode_cold_sync_rsp_avd_sg_config,
-	avsv_decode_cold_sync_rsp_avd_su_config,
-	avsv_decode_cold_sync_rsp_avd_si_config,
-	avsv_decode_cold_sync_rsp_avd_sg_su_oper_list,
-	avsv_decode_cold_sync_rsp_avd_sg_admin_si,
-	avsv_decode_cold_sync_rsp_avd_comp_config,
-	avsv_decode_cold_sync_rsp_avd_comp_cs_type_config,
-	avsv_decode_cold_sync_rsp_avd_siass,
-	avsv_decode_cold_sync_rsp_avd_si_trans,
-	avsv_decode_cold_sync_rsp_avd_async_updt_cnt
+const AVSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR dec_cs_data_func_list[] = {
+	dec_cs_cb_config,
+	dec_cs_cluster_config,
+	dec_cs_node_config,
+	dec_cs_app_config,
+	dec_cs_sg_config,
+	dec_cs_su_config,
+	dec_cs_si_config,
+	dec_cs_sg_su_oper_list,
+	dec_cs_sg_admin_si,
+	dec_cs_comp_config,
+	dec_cs_comp_cs_type_config,
+	dec_cs_siass,
+	dec_cs_si_trans,
+	dec_cs_async_updt_cnt
 };
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avd_cb_config
+ * Function: dec_cb_config
  *
  * Purpose:  Decode entire CB data..
  *
@@ -208,7 +208,7 @@ const AVSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR avsv_dec_cold_sync_rsp_data_func_l
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_cb_config(AVD_CL_CB *cb_ptr, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_cb_config(AVD_CL_CB *cb_ptr, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
@@ -232,11 +232,12 @@ static uint32_t avsv_decode_ckpt_avd_cb_config(AVD_CL_CB *cb_ptr, NCS_MBCSV_CB_D
 	/* Since update is successful, update async update count */
 	cb->async_updt_cnt.cb_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_avnd_config
+ * Function: dec_avnd_config
  *
  * Purpose:  Decode entire AVD_AVND data..
  *
@@ -249,7 +250,7 @@ static uint32_t avsv_decode_ckpt_avd_cb_config(AVD_CL_CB *cb_ptr, NCS_MBCSV_CB_D
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status;
 	EDU_ERR ederror = 0;
@@ -271,7 +272,7 @@ static uint32_t avsv_decode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avd_node_config
+ * Function: dec_node_config
  *
  * Purpose:  Decode entire AVD_AVND data..
  *
@@ -284,14 +285,14 @@ static uint32_t avsv_decode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
 	AVD_AVND dec_avnd;
 	EDU_ERR ederror = 0;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
 	avnd_ptr = &dec_avnd;
 
@@ -331,11 +332,12 @@ static uint32_t avsv_decode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.node_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avd_app_config
+ * Function: dec_app_config
  *
  * Purpose:  Decode entire AVD_APP data..
  *
@@ -348,14 +350,14 @@ static uint32_t avsv_decode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_APP _app;
 	AVD_APP *app = &_app;
 	EDU_ERR ederror = 0;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -390,11 +392,12 @@ static uint32_t avsv_decode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.app_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avd_sg_config
+ * Function: dec_sg_config
  *
  * Purpose:  Decode entire AVD_SG data..
  *
@@ -407,14 +410,14 @@ static uint32_t avsv_decode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SG *sg_ptr;
 	AVD_SG dec_sg;
 	EDU_ERR ederror = 0;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
 	sg_ptr = &dec_sg;
 
@@ -452,11 +455,12 @@ static uint32_t avsv_decode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.sg_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avd_su_config
+ * Function: dec_su_config
  *
  * Purpose:  Decode entire AVD_SU data..
  *
@@ -469,14 +473,14 @@ static uint32_t avsv_decode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
 	AVD_SU dec_su;
 	EDU_ERR ederror = 0;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
 	su_ptr = &dec_su;
 
@@ -513,11 +517,12 @@ static uint32_t avsv_decode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.su_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avd_si_config
+ * Function: dec_si_config
  *
  * Purpose:  Decode entire AVD_SI data..
  *
@@ -530,14 +535,14 @@ static uint32_t avsv_decode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SI *si_ptr_dec;
 	AVD_SI dec_si;
 	EDU_ERR ederror = 0;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
 	si_ptr_dec = &dec_si;
 
@@ -577,11 +582,12 @@ static uint32_t avsv_decode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.si_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avd_sg_admin_si
+ * Function: dec_sg_admin_si
  *
  * Purpose:  Decode entire AVD_SG_ADMIN_SI data..
  *
@@ -594,11 +600,11 @@ static uint32_t avsv_decode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
 	status = avd_ckpt_sg_admin_si(cb, &dec->i_uba, dec->i_action);
 
@@ -606,6 +612,7 @@ static uint32_t avsv_decode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.sg_admin_si_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
@@ -614,14 +621,14 @@ static uint32_t avsv_decode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
  * @param[in] cb
  * @param[in] dec
  *************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt;
 	AVSV_SI_TRANS_CKPT_MSG dec_si_trans_ckpt;
 	EDU_ERR ederror = 0;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
 	si_trans_ckpt = &dec_si_trans_ckpt;
 
@@ -653,11 +660,12 @@ static uint32_t avsv_decode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.si_trans_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avd_siass
+ * Function: dec_siass
  *
  * Purpose:  Decode entire AVD_SU_SI_REL data..
  *
@@ -670,14 +678,14 @@ static uint32_t avsv_decode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt;
 	AVSV_SU_SI_REL_CKPT_MSG dec_su_si_ckpt;
 	EDU_ERR ederror = 0;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
 	su_si_ckpt = &dec_su_si_ckpt;
 	/* 
@@ -715,11 +723,12 @@ static uint32_t avsv_decode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.siass_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avd_comp_config
+ * Function: dec_comp_config
  *
  * Purpose:  Decode entire AVD_COMP data..
  *
@@ -732,14 +741,14 @@ static uint32_t avsv_decode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_COMP *comp_ptr;
 	AVD_COMP dec_comp;
 	EDU_ERR ederror = 0;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("i_action '%u'", dec->i_action);
 	comp_ptr = &dec_comp;
 
 	/* 
@@ -778,11 +787,12 @@ static uint32_t avsv_decode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.comp_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avd_oper_su
+ * Function: dec_oper_su
  *
  * Purpose:  Decode Operation SU name.
  *
@@ -795,14 +805,14 @@ static uint32_t avsv_decode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
 	AVD_SU dec_su;
 	EDU_ERR ederror = 0;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
 	su_ptr = &dec_su;
 
@@ -834,11 +844,12 @@ static uint32_t avsv_decode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.sg_su_oprlist_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_node_up_info
+ * Function: dec_node_up_info
  *
  * Purpose:  Decode avnd node up info.
  *
@@ -851,7 +862,7 @@ static uint32_t avsv_decode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
@@ -887,11 +898,12 @@ static uint32_t avsv_decode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	avnd_struct->adest = avnd_ptr->adest;
 
 	cb->async_updt_cnt.node_updt++;
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_node_admin_state
+ * Function: dec_node_admin_state
  *
  * Purpose:  Decode avnd su admin state info.
  *
@@ -904,7 +916,7 @@ static uint32_t avsv_decode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
@@ -934,11 +946,12 @@ static uint32_t avsv_decode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 
 	cb->async_updt_cnt.node_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_node_oper_state
+ * Function: dec_node_oper_state
  *
  * Purpose:  Decode avnd oper state info.
  *
@@ -951,7 +964,7 @@ static uint32_t avsv_decode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
@@ -981,11 +994,12 @@ static uint32_t avsv_decode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 
 	cb->async_updt_cnt.node_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_node_state
+ * Function: dec_node_state
  *
  * Purpose:  Decode node state info.
  *
@@ -998,7 +1012,7 @@ static uint32_t avsv_decode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
@@ -1027,11 +1041,12 @@ static uint32_t avsv_decode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	avnd_struct->node_state = avnd_ptr->node_state;
 
 	cb->async_updt_cnt.node_updt++;
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_node_rcv_msg_id
+ * Function: dec_node_rcv_msg_id
  *
  * Purpose:  Decode avnd receive message ID.
  *
@@ -1044,7 +1059,7 @@ static uint32_t avsv_decode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
@@ -1074,11 +1089,12 @@ static uint32_t avsv_decode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 
 	cb->async_updt_cnt.node_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avnd_snd_msg_id
+ * Function: dec_avnd_snd_msg_id
  *
  * Purpose:  Decode avnd Send message ID.
  *
@@ -1091,7 +1107,7 @@ static uint32_t avsv_decode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
@@ -1121,11 +1137,12 @@ static uint32_t avsv_decode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 
 	cb->async_updt_cnt.node_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_sg_admin_state
+ * Function: dec_sg_admin_state
  *
  * Purpose:  Decode SG admin state.
  *
@@ -1138,7 +1155,7 @@ static uint32_t avsv_decode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SG *sg_ptr;
@@ -1165,11 +1182,12 @@ static uint32_t avsv_decode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	sg_struct->saAmfSGAdminState = sg_ptr->saAmfSGAdminState;
 
 	cb->async_updt_cnt.sg_updt++;
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_sg_su_assigned_num
+ * Function: dec_sg_su_assigned_num
  *
  * Purpose:  Decode SG su assign number.
  *
@@ -1182,7 +1200,7 @@ static uint32_t avsv_decode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SG *sg_ptr;
@@ -1210,11 +1228,12 @@ static uint32_t avsv_decode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_
 
 	cb->async_updt_cnt.sg_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_sg_su_spare_num
+ * Function: dec_sg_su_spare_num
  *
  * Purpose:  Decode SG su spare number.
  *
@@ -1227,7 +1246,7 @@ static uint32_t avsv_decode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SG *sg_ptr;
@@ -1255,11 +1274,12 @@ static uint32_t avsv_decode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 
 	cb->async_updt_cnt.sg_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_sg_su_uninst_num
+ * Function: dec_sg_su_uninst_num
  *
  * Purpose:  Decode SG su uninst number.
  *
@@ -1272,7 +1292,7 @@ static uint32_t avsv_decode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SG *sg_ptr;
@@ -1300,11 +1320,12 @@ static uint32_t avsv_decode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 
 	cb->async_updt_cnt.sg_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_sg_adjust_state
+ * Function: dec_sg_adjust_state
  *
  * Purpose:  Decode SG adjust state.
  *
@@ -1317,7 +1338,7 @@ static uint32_t avsv_decode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SG *sg_ptr;
@@ -1345,11 +1366,12 @@ static uint32_t avsv_decode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 
 	cb->async_updt_cnt.sg_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_sg_fsm_state
+ * Function: dec_sg_fsm_state
  *
  * Purpose:  Decode SG FSM state.
  *
@@ -1362,7 +1384,7 @@ static uint32_t avsv_decode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SG *sg_ptr;
@@ -1390,11 +1412,12 @@ static uint32_t avsv_decode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	cb->async_updt_cnt.sg_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_preinstan
+ * Function: dec_su_preinstan
  *
  * Purpose:  Decode SU preinstatible object.
  *
@@ -1407,7 +1430,7 @@ static uint32_t avsv_decode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1435,11 +1458,12 @@ static uint32_t avsv_decode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	cb->async_updt_cnt.su_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_oper_state
+ * Function: dec_su_oper_state
  *
  * Purpose:  Decode SU Operation state.
  *
@@ -1452,7 +1476,7 @@ static uint32_t avsv_decode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1480,11 +1504,12 @@ static uint32_t avsv_decode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 
 	cb->async_updt_cnt.su_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_admin_state
+ * Function: dec_su_admin_state
  *
  * Purpose:  Decode SU Admin state.
  *
@@ -1497,7 +1522,7 @@ static uint32_t avsv_decode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1525,11 +1550,12 @@ static uint32_t avsv_decode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 
 	cb->async_updt_cnt.su_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_rediness_state
+ * Function: dec_su_rediness_state
  *
  * Purpose:  Decode SU Rediness state.
  *
@@ -1542,7 +1568,7 @@ static uint32_t avsv_decode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1570,11 +1596,12 @@ static uint32_t avsv_decode_ckpt_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_
 
 	cb->async_updt_cnt.su_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_pres_state
+ * Function: dec_su_pres_state
  *
  * Purpose:  Decode SU Presdece state.
  *
@@ -1587,7 +1614,7 @@ static uint32_t avsv_decode_ckpt_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1615,11 +1642,12 @@ static uint32_t avsv_decode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 
 	cb->async_updt_cnt.su_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_si_curr_active
+ * Function: dec_su_si_curr_active
  *
  * Purpose:  Decode SU Current number of Active SI.
  *
@@ -1632,7 +1660,7 @@ static uint32_t avsv_decode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1659,11 +1687,12 @@ static uint32_t avsv_decode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_D
 	su_struct->saAmfSUNumCurrActiveSIs = su_ptr->saAmfSUNumCurrActiveSIs;
 
 	cb->async_updt_cnt.su_updt++;
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_si_curr_stby
+ * Function: dec_su_si_curr_stby
  *
  * Purpose:  Decode SU Current number of Standby SI.
  *
@@ -1676,7 +1705,7 @@ static uint32_t avsv_decode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_D
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1704,11 +1733,12 @@ static uint32_t avsv_decode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 
 	cb->async_updt_cnt.su_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_term_state
+ * Function: dec_su_term_state
  *
  * Purpose:  Decode SU Admin state to terminate service.
  *
@@ -1721,7 +1751,7 @@ static uint32_t avsv_decode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1748,11 +1778,12 @@ static uint32_t avsv_decode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	su_struct->term_state = su_ptr->term_state;
 
 	cb->async_updt_cnt.su_updt++;
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_switch
+ * Function: dec_su_switch
  *
  * Purpose:  Decode SU toggle SI.
  *
@@ -1765,7 +1796,7 @@ static uint32_t avsv_decode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1793,11 +1824,12 @@ static uint32_t avsv_decode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	cb->async_updt_cnt.su_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_act_state
+ * Function: dec_su_act_state
  *
  * Purpose:  Decode SU action state.
  *
@@ -1810,7 +1842,7 @@ static uint32_t avsv_decode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1838,11 +1870,12 @@ static uint32_t avsv_decode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	cb->async_updt_cnt.su_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_restart_count
+ * Function: dec_su_restart_count
  *
  * Purpose:  Decode SU Restart count.
  *
@@ -1855,7 +1888,7 @@ static uint32_t avsv_decode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1883,11 +1916,12 @@ static uint32_t avsv_decode_ckpt_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 
 	cb->async_updt_cnt.su_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_si_admin_state
+ * Function: dec_si_admin_state
  *
  * Purpose:  Decode SI admin state.
  *
@@ -1900,7 +1934,7 @@ static uint32_t avsv_decode_ckpt_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SI *si_ptr_dec;
@@ -1928,11 +1962,12 @@ static uint32_t avsv_decode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 
 	cb->async_updt_cnt.si_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_si_assignment_state
+ * Function: dec_si_assignment_state
  *
  * Purpose:  Decode SI admin state.
  *
@@ -1945,7 +1980,7 @@ static uint32_t avsv_decode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SI *si_ptr_dec;
@@ -1973,6 +2008,7 @@ static uint32_t avsv_decode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB
 
 	cb->async_updt_cnt.si_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 /******************************************************************
@@ -1983,7 +2019,7 @@ static uint32_t avsv_decode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB
  * @param[in] dec
  *
  *****************************************************************/
-static uint32_t avsv_decode_ckpt_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SI *si_ptr_dec;
@@ -2010,11 +2046,12 @@ static uint32_t avsv_decode_ckpt_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	cb->async_updt_cnt.si_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_si_su_curr_active
+ * Function: dec_si_su_curr_active
  *
  * Purpose:  Decode number of active SU assignment for this SI.
  *
@@ -2027,13 +2064,14 @@ static uint32_t avsv_decode_ckpt_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SI *si_ptr_dec;
 	AVD_SI dec_si;
 	EDU_ERR ederror = 0;
 	AVD_SI *si;
+	TRACE_ENTER();
 
 	si_ptr_dec = &dec_si;
 
@@ -2054,11 +2092,12 @@ static uint32_t avsv_decode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_D
 
 	cb->async_updt_cnt.si_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_si_su_curr_stby
+ * Function: dec_si_su_curr_stby
  *
  * Purpose:  Decode number of standby SU assignment for this SI.
  *
@@ -2071,13 +2110,14 @@ static uint32_t avsv_decode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_D
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SI *si_ptr_dec;
 	AVD_SI dec_si;
 	EDU_ERR ederror = 0;
 	AVD_SI *si;
+	TRACE_ENTER();
 
 	si_ptr_dec = &dec_si;
 
@@ -2098,11 +2138,12 @@ static uint32_t avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 
 	cb->async_updt_cnt.si_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_si_switch
+ * Function: dec_si_switch
  *
  * Purpose:  Decode SI switch.
  *
@@ -2115,7 +2156,7 @@ static uint32_t avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SI *si_ptr_dec;
@@ -2143,11 +2184,12 @@ static uint32_t avsv_decode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	cb->async_updt_cnt.si_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_si_alarm_sent
+ * Function: dec_si_alarm_sent
  *
  * Purpose:  Decode SI alarm sent.
  *
@@ -2160,13 +2202,14 @@ static uint32_t avsv_decode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SI *si_ptr_dec;
 	AVD_SI dec_si;
 	EDU_ERR ederror = 0;
 	AVD_SI *si_struct;
+	TRACE_ENTER();
 
 	si_ptr_dec = &dec_si;
 
@@ -2187,10 +2230,11 @@ static uint32_t avsv_decode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 
 	cb->async_updt_cnt.si_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 /****************************************************************************\
- * Function: avsv_decode_ckpt_comp_proxy_comp_name
+ * Function: dec_comp_proxy_comp_name
  *
  * Purpose:  Decode COMP proxy compnent name.
  *
@@ -2203,7 +2247,7 @@ static uint32_t avsv_decode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_COMP *comp_ptr;
@@ -2232,11 +2276,12 @@ static uint32_t avsv_decode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_C
 
 	cb->async_updt_cnt.comp_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_comp_curr_num_csi_actv
+ * Function: dec_comp_curr_num_csi_actv
  *
  * Purpose:  Decode COMP Current number of CSI active.
  *
@@ -2249,7 +2294,7 @@ static uint32_t avsv_decode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_C
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_COMP *comp_ptr;
@@ -2280,11 +2325,12 @@ static uint32_t avsv_decode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV
 
 	cb->async_updt_cnt.comp_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_comp_curr_num_csi_stby
+ * Function: dec_comp_curr_num_csi_stby
  *
  * Purpose:  Decode COMP Current number of CSI standby.
  *
@@ -2297,7 +2343,7 @@ static uint32_t avsv_decode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_COMP *comp_ptr;
@@ -2330,11 +2376,12 @@ static uint32_t avsv_decode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV
 
 	cb->async_updt_cnt.comp_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_comp_oper_state
+ * Function: dec_comp_oper_state
  *
  * Purpose:  Decode COMP Operation State.
  *
@@ -2347,7 +2394,7 @@ static uint32_t avsv_decode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_COMP *comp_ptr;
@@ -2380,11 +2427,12 @@ static uint32_t avsv_decode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 
 	cb->async_updt_cnt.comp_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_comp_readiness_state
+ * Function: dec_comp_readiness_state
  *
  * Purpose:  Decode COMP Readiness State.
  *
@@ -2397,7 +2445,7 @@ static uint32_t avsv_decode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_COMP *comp_ptr;
@@ -2430,11 +2478,12 @@ static uint32_t avsv_decode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_C
 
 	cb->async_updt_cnt.comp_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_comp_pres_state
+ * Function: dec_comp_pres_state
  *
  * Purpose:  Decode COMP Presdece State.
  *
@@ -2447,7 +2496,7 @@ static uint32_t avsv_decode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_C
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_COMP *comp_ptr;
@@ -2480,11 +2529,12 @@ static uint32_t avsv_decode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 
 	cb->async_updt_cnt.comp_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_comp_restart_count
+ * Function: dec_comp_restart_count
  *
  * Purpose:  Decode COMP Restart count.
  *
@@ -2497,7 +2547,7 @@ static uint32_t avsv_decode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_COMP *comp_ptr;
@@ -2530,11 +2580,12 @@ static uint32_t avsv_decode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_
 
 	cb->async_updt_cnt.comp_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp
+ * Function: avd_dec_cold_sync_rsp
  *
  * Purpose:  Decode cold sync response message.
  *
@@ -2547,13 +2598,13 @@ static uint32_t avsv_decode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_
  *
  * 
 \**************************************************************************/
-uint32_t avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+uint32_t avd_dec_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t num_of_obj;
 	uint8_t *ptr;
 	char logbuff[SA_MAX_NAME_LENGTH];
 
-	TRACE_ENTER();
+	TRACE_ENTER2("dec->i_reo_type '%u'", dec->i_reo_type);
 
 	/* 
 	 * Since at decode we need to find out how many objects of particular data
@@ -2583,11 +2634,11 @@ uint32_t avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		   there might be some runtime attributes in the cold sync response */
 		dec->i_action = NCS_MBCSV_ACT_UPDATE;
 	}
-	return avsv_dec_cold_sync_rsp_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
+	return dec_cs_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_cb_config
+ * Function: dec_cs_cb_config
  *
  * Purpose:  Decode entire CB data..
  *
@@ -2600,7 +2651,7 @@ uint32_t avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
@@ -2616,11 +2667,12 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV
 				    EDP_OP_TYPE_DEC, (AVD_CL_CB **)&cb_ptr, &ederror, dec->i_peer_version);
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_avnd_config
+ * Function: dec_cs_cluster_config
  *
  * Purpose:  Decode entire AVD_AVND data..
  *
@@ -2633,7 +2685,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb,
+static uint32_t dec_cs_cluster_config(AVD_CL_CB *cb,
 	NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status;
@@ -2649,11 +2701,12 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb,
 	osafassert(status == NCSCC_RC_SUCCESS);
 	avd_cluster->saAmfClusterAdminState = cluster->saAmfClusterAdminState;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_avnd_config
+ * Function: dec_cs_avnd_config
  *
  * Purpose:  Decode entire AVD_AVND data..
  *
@@ -2666,7 +2719,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb,
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t count = 0;
@@ -2690,11 +2743,12 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBC
 		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_app_config
+ * Function: dec_cs_app_config
  *
  * Purpose:  Decode entire AVD_SG data..
  *
@@ -2707,7 +2761,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t count = 0;
@@ -2729,11 +2783,12 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCS
 		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_sg_config
+ * Function: dec_cs_sg_config
  *
  * Purpose:  Decode entire AVD_SG data..
  *
@@ -2746,7 +2801,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCS
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t count = 0;
@@ -2770,11 +2825,12 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV
 		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_su_config
+ * Function: dec_cs_su_config
  *
  * Purpose:  Decode entire AVD_SU data..
  *
@@ -2787,7 +2843,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t count = 0;
@@ -2811,11 +2867,12 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV
 		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_si_config
+ * Function: dec_cs_si_config
  *
  * Purpose:  Decode entire AVD_SI data..
  *
@@ -2828,7 +2885,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t count = 0;
@@ -2852,11 +2909,12 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV
 		status = avd_ckpt_si(cb, si_ptr_dec, dec->i_action);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_sg_su_oper_list
+ * Function: dec_cs_sg_su_oper_list
  *
  * Purpose:  Decode entire AVD_SG_SU_OPER_LIST data..
  *
@@ -2869,7 +2927,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t cs_count = 0;
@@ -2880,15 +2938,16 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS
 	 * Walk through the entire list and send the entire list data.
 	 */
 	for (cs_count = 0; cs_count < num_of_obj; cs_count++) {
-		if (NCSCC_RC_SUCCESS != avsv_decode_oper_su(cb, dec))
+		if (NCSCC_RC_SUCCESS != dec_cs_oper_su(cb, dec))
 			break;
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_sg_admin_si
+ * Function: dec_cs_sg_admin_si
  *
  * Purpose:  Decode entire AVD_SG_ADMIN_SI data..
  *
@@ -2901,7 +2960,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t count = 0;
@@ -2920,6 +2979,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBC
 
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
@@ -2929,7 +2989,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBC
  * @param[in] dec
  * @param[in] num_of_obj
  *****************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt;
@@ -2956,12 +3016,13 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_
 		}
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_su_si_rel
+ * Function: dec_cs_siass
  *
  * Purpose:  Decode entire AVD_SU_SI_REL data..
  *
@@ -2974,7 +3035,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt;
@@ -3007,11 +3068,12 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_
 		}
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_comp_config
+ * Function: dec_cs_comp_config
  *
  * Purpose:  Decode entire AVD_COMP data..
  *
@@ -3024,7 +3086,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_COMP *comp_ptr;
@@ -3056,11 +3118,12 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBC
 
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_async_updt_cnt
+ * Function: dec_cs_async_updt_cnt
  *
  * Purpose:  Send the latest async update count. This count will be used 
  *           during warm sync for verifying the data at stnadby. 
@@ -3074,7 +3137,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVSV_ASYNC_UPDT_CNT *updt_cnt;
@@ -3098,11 +3161,12 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_
 		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_warm_sync_rsp
+ * Function: avd_dec_warm_sync_rsp
  *
  * Purpose:  Decode Warm sync response message.
  *
@@ -3115,7 +3179,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_
  *
  * 
 \**************************************************************************/
-uint32_t avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+uint32_t avd_dec_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVSV_ASYNC_UPDT_CNT *updt_cnt;
@@ -3168,11 +3232,12 @@ uint32_t avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		status = NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_data_sync_rsp
+ * Function: avd_dec_data_sync_rsp
  *
  * Purpose:  Decode Data sync response message.
  *
@@ -3185,7 +3250,7 @@ uint32_t avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-uint32_t avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+uint32_t avd_dec_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t num_of_obj;
 	uint8_t *ptr;
@@ -3212,13 +3277,14 @@ uint32_t avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	{
 		/* 4.2 release onwards, no need to decode and process ADD/RMV messages 
 		   for the types above, since they are received as applier callbacks. */
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
-	return avsv_dec_cold_sync_rsp_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
+	return dec_cs_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
 }
 
 /****************************************************************************\
- * Function: avsv_decode_data_req
+ * Function: avd_dec_data_req
  *
  * Purpose:  Decode Data request message.
  *
@@ -3231,7 +3297,7 @@ uint32_t avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-uint32_t avsv_decode_data_req(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+uint32_t avd_dec_data_req(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	TRACE_ENTER();
 
@@ -3242,7 +3308,7 @@ uint32_t avsv_decode_data_req(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 }
 
 /****************************************************************************\
- * Function: avsv_decode_oper_su
+ * Function: dec_cs_oper_su
  *
  * Purpose:  Decode Operation SU's received.
  *
@@ -3255,7 +3321,7 @@ uint32_t avsv_decode_data_req(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_decode_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_cs_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t num_of_oper_su, count;
@@ -3294,11 +3360,12 @@ static uint32_t avsv_decode_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		}
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avd_comp_cs_type_config
+ * Function: dec_comp_cs_type_config
  *
  * Purpose:  Decode entire AVD_COMP_CS_TYPE data..
  *
@@ -3311,7 +3378,7 @@ static uint32_t avsv_decode_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  *
 \**************************************************************************/
-static uint32_t avsv_decode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
@@ -3352,11 +3419,12 @@ static uint32_t avsv_decode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCS
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.compcstype_updt++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_comp_cs_type_config
+ * Function: dec_cs_comp_cs_type_config
  *
  * Purpose:  Decode entire AVD_COMP_CS_TYPE data..
  *
@@ -3369,7 +3437,7 @@ static uint32_t avsv_decode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCS
  *
  *
 \**************************************************************************/
-static uint32_t avsv_decode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
+static uint32_t dec_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
@@ -3388,7 +3456,7 @@ static uint32_t avsv_decode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb,
 		status = avd_ckpt_compcstype(cb, comp_cs_ptr, dec->i_action);
 		osafassert(status == NCSCC_RC_SUCCESS);
 	}
-
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 

@@ -28,75 +28,75 @@
 #include <avd_cluster.h>
 
 /* Declaration of async update functions */
-static uint32_t avsv_encode_ckpt_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avsv_encode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avd_entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, bool c_sync);
+static uint32_t enc_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uint32_t entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, bool c_sync);
 
 /* Declaration of static cold sync encode functions */
-static uint32_t avsv_encode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
-static uint32_t avsv_encode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
 
-static uint32_t avsv_encode_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_ENC *enc);
+static uint32_t enc_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_ENC *enc);
 /*
  * Function list for encoding the async data.
  * We will jump into this function using the reo_type received 
@@ -104,73 +104,73 @@ static uint32_t avsv_encode_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB
  *
  * This array _must_ correspond to avsv_ckpt_msg_reo_type in avd_ckpt_msg.h
  */
-const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avsv_enc_ckpt_data_func_list[] = {
-	avsv_encode_ckpt_avd_cb_config,
-	avsv_encode_ckpt_avd_cluster_config,
-	avsv_encode_ckpt_avd_node_config,
-	avsv_encode_ckpt_avd_app_config,
-	avsv_encode_ckpt_avd_sg_config,
-	avsv_encode_ckpt_avd_su_config,
-	avsv_encode_ckpt_avd_si_config,
-	avsv_encode_ckpt_avd_oper_su,
-	avsv_encode_ckpt_avd_sg_admin_si,
-	avsv_encode_ckpt_avd_comp_config,
-	avsv_encode_ckpt_avd_comp_cs_type_config,
-	avsv_encode_ckpt_avd_siass,
+const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avd_enc_ckpt_data_func_list[] = {
+	enc_cb_config,
+	enc_cluster_config,
+	enc_node_config,
+	enc_app_config,
+	enc_sg_config,
+	enc_su_config,
+	enc_si_config,
+	enc_oper_su,
+	enc_sg_admin_si,
+	enc_comp_config,
+	enc_comp_cs_type_config,
+	enc_siass,
         /* SI transfer update messages */
-	avsv_encode_ckpt_avd_si_trans,
+	enc_si_trans,
 
 	/* 
 	 * Messages to update independent fields.
 	 */
 
 	/* Node Async Update messages */
-	avsv_encode_ckpt_node_admin_state,
-	avsv_encode_ckpt_node_oper_state,
-	avsv_encode_ckpt_node_up_info,
-	avsv_encode_ckpt_node_state,
-	avsv_encode_ckpt_node_rcv_msg_id,
-	avsv_encode_ckpt_node_snd_msg_id,
+	enc_node_admin_state,
+	enc_node_oper_state,
+	enc_node_up_info,
+	enc_node_state,
+	enc_node_rcv_msg_id,
+	enc_node_snd_msg_id,
 
 	/* SG Async Update messages */
-	avsv_encode_ckpt_sg_admin_state,
-	avsv_encode_ckpt_sg_su_assigned_num,
-	avsv_encode_ckpt_sg_su_spare_num,
-	avsv_encode_ckpt_sg_su_uninst_num,
-	avsv_encode_ckpt_sg_adjust_state,
-	avsv_encode_ckpt_sg_fsm_state,
+	enc_sg_admin_state,
+	enc_sg_su_assigned_num,
+	enc_sg_su_spare_num,
+	enc_sg_su_uninst_num,
+	enc_sg_adjust_state,
+	enc_sg_fsm_state,
 
 	/* SU Async Update messages */
-	avsv_encode_ckpt_su_preinstan,
-	avsv_encode_ckpt_su_oper_state,
-	avsv_encode_ckpt_su_admin_state,
-	avsv_encode_ckpt_su_readiness_state,
-	avsv_encode_ckpt_su_pres_state,
-	avsv_encode_ckpt_su_si_curr_active,
-	avsv_encode_ckpt_su_si_curr_stby,
-	avsv_encode_ckpt_su_term_state,
-	avsv_encode_ckpt_su_switch,
-	avsv_encode_ckpt_su_act_state,
+	enc_su_preinstan,
+	enc_su_oper_state,
+	enc_su_admin_state,
+	enc_su_readiness_state,
+	enc_su_pres_state,
+	enc_su_si_curr_active,
+	enc_su_si_curr_stby,
+	enc_su_term_state,
+	enc_su_switch,
+	enc_su_act_state,
 
 	/* SI Async Update messages */
-	avsv_encode_ckpt_si_admin_state,
-	avsv_encode_ckpt_si_assignment_state,
-	avsv_encode_ckpt_si_su_curr_active,
-	avsv_encode_ckpt_si_su_curr_stby,
-	avsv_encode_ckpt_si_switch,
-	avsv_encode_ckpt_si_alarm_sent,
+	enc_si_admin_state,
+	enc_si_assignment_state,
+	enc_si_su_curr_active,
+	enc_si_su_curr_stby,
+	enc_si_switch,
+	enc_si_alarm_sent,
 
 	/* COMP Async Update messages */
-	avsv_encode_ckpt_comp_proxy_comp_name,
-	avsv_encode_ckpt_comp_curr_num_csi_actv,
-	avsv_encode_ckpt_comp_curr_num_csi_stby,
-	avsv_encode_ckpt_comp_oper_state,
-	avsv_encode_ckpt_comp_readiness_state,
-	avsv_encode_ckpt_comp_pres_state,
-	avsv_encode_ckpt_comp_restart_count,
+	enc_comp_proxy_comp_name,
+	enc_comp_curr_num_csi_actv,
+	enc_comp_curr_num_csi_stby,
+	enc_comp_oper_state,
+	enc_comp_readiness_state,
+	enc_comp_pres_state,
+	enc_comp_restart_count,
 	NULL,			/* AVSV_SYNC_COMMIT */
-	avsv_encode_ckpt_su_restart_count,
-	avsv_encode_ckpt_si_dep_state
+	enc_su_restart_count,
+	enc_si_dep_state
 };
 
 /*
@@ -178,25 +178,25 @@ const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avsv_enc_ckpt_data_func_list[] = {
  * We will jump into this function using the reo_type received 
  * in the cold sync response argument.
  */
-const AVSV_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR avsv_enc_cold_sync_rsp_data_func_list[] = {
-	avsv_encode_cold_sync_rsp_avd_cb_config,
-	avsv_encode_cold_sync_rsp_avd_cluster_config,
-	avsv_encode_cold_sync_rsp_avd_node_config,
-	avsv_encode_cold_sync_rsp_avd_app_config,
-	avsv_encode_cold_sync_rsp_avd_sg_config,
-	avsv_encode_cold_sync_rsp_avd_su_config,
-	avsv_encode_cold_sync_rsp_avd_si_config,
-	avsv_encode_cold_sync_rsp_avd_sg_su_oper_list,
-	avsv_encode_cold_sync_rsp_avd_sg_admin_si,
-	avsv_encode_cold_sync_rsp_avd_comp_config,
-	avsv_encode_cold_sync_rsp_avd_comp_cs_type_config,
-	avsv_encode_cold_sync_rsp_avd_siass,
-	avsv_encode_cold_sync_rsp_avd_si_trans,
-	avsv_encode_cold_sync_rsp_avd_async_updt_cnt
+const AVSV_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR enc_cs_data_func_list[] = {
+	enc_cs_cb_config,
+	enc_cs_cluster_config,
+	enc_cs_node_config,
+	enc_cs_app_config,
+	enc_cs_sg_config,
+	enc_cs_su_config,
+	enc_cs_si_config,
+	enc_cs_sg_su_oper_list,
+	enc_cs_sg_admin_si,
+	enc_cs_comp_config,
+	enc_cs_comp_cs_type_config,
+	enc_cs_siass,
+	enc_cs_si_trans,
+	enc_cs_async_updt_cnt
 };
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_cb_config
+ * Function: enc_cb_config
  *
  * Purpose:  Encode entire CB data..
  *
@@ -209,10 +209,11 @@ const AVSV_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR avsv_enc_cold_sync_rsp_data_func_l
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * For updating CB, action is always to do update. We don't have add and remove
@@ -225,12 +226,12 @@ static uint32_t avsv_encode_ckpt_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
-
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_cluster_config
+ * Function: enc_cluster_config
  *
  * Purpose:  Encode entire AVD_AVND data.
  *
@@ -243,10 +244,11 @@ static uint32_t avsv_encode_ckpt_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	switch (enc->io_action) {
 	case NCS_MBCSV_ACT_UPDATE:
@@ -263,11 +265,12 @@ static uint32_t avsv_encode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_
 		return status;
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_node_config
+ * Function: enc_node_config
  *
  * Purpose:  Encode entire AVD_AVND data.
  *
@@ -280,10 +283,11 @@ static uint32_t avsv_encode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -313,11 +317,12 @@ static uint32_t avsv_encode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 		return status;
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_app_config
+ * Function: enc_app_config
  *
  * Purpose:  Encode entire AVD_AVND data.
  *
@@ -330,10 +335,11 @@ static uint32_t avsv_encode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -363,11 +369,12 @@ static uint32_t avsv_encode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
 		return status;
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_sg_config
+ * Function: enc_sg_config
  *
  * Purpose:  Encode entire AVD_SG data..
  *
@@ -380,10 +387,11 @@ static uint32_t avsv_encode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -412,11 +420,12 @@ static uint32_t avsv_encode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_su_config
+ * Function: enc_su_config
  *
  * Purpose:  Encode entire AVD_SU data..
  *
@@ -429,10 +438,11 @@ static uint32_t avsv_encode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -461,11 +471,12 @@ static uint32_t avsv_encode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_si_config
+ * Function: enc_si_config
  *
  * Purpose:  Encode entire AVD_SI data..
  *
@@ -478,10 +489,11 @@ static uint32_t avsv_encode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -512,11 +524,12 @@ static uint32_t avsv_encode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_sg_admin_si
+ * Function: enc_sg_admin_si
  *
  * Purpose:  Encode entire AVD_SG_ADMIN_SI data..
  *
@@ -529,10 +542,11 @@ static uint32_t avsv_encode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -560,6 +574,7 @@ static uint32_t avsv_encode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
@@ -568,13 +583,12 @@ static uint32_t avsv_encode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
  * @param[in] cb
  * @param[in] enc
  ********************************************************************/
-static uint32_t avsv_encode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVSV_SI_TRANS_CKPT_MSG si_trans_ckpt;
 	EDU_ERR ederror = 0;
-	
-	TRACE_ENTER();
+	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
 	memset(&si_trans_ckpt, 0, sizeof(AVSV_SI_TRANS_CKPT_MSG));
 	si_trans_ckpt.sg_name = ((AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->name;
@@ -602,11 +616,12 @@ static uint32_t avsv_encode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_siass
+ * Function: enc_siass
  *
  * Purpose:  Encode entire AVD_SU_SI_REL data..
  *
@@ -619,11 +634,12 @@ static uint32_t avsv_encode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVSV_SU_SI_REL_CKPT_MSG su_si_ckpt;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
 	memset(&su_si_ckpt, 0, sizeof(su_si_ckpt));
 	/* 
@@ -664,11 +680,12 @@ static uint32_t avsv_encode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_comp_config
+ * Function: enc_comp_config
  *
  * Purpose:  Encode entire AVD_COMP data..
  *
@@ -681,10 +698,11 @@ static uint32_t avsv_encode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -715,11 +733,12 @@ static uint32_t avsv_encode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_oper_su
+ * Function: enc_oper_su
  *
  * Purpose:  Encode Operation SU name.
  *
@@ -732,10 +751,11 @@ static uint32_t avsv_encode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
 	/* 
 	 * In case of both Add and remove request send the operation SU name. 
@@ -758,11 +778,12 @@ static uint32_t avsv_encode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *en
 	if (status != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 	}
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_node_up_info
+ * Function: enc_node_up_info
  *
  * Purpose:  Encode avnd node up info.
  *
@@ -775,10 +796,11 @@ static uint32_t avsv_encode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *en
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -795,11 +817,12 @@ static uint32_t avsv_encode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_node_admin_state
+ * Function: enc_node_admin_state
  *
  * Purpose:  Encode avnd su admin state info.
  *
@@ -812,10 +835,11 @@ static uint32_t avsv_encode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -831,11 +855,12 @@ static uint32_t avsv_encode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_EN
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_node_oper_state
+ * Function: enc_node_oper_state
  *
  * Purpose:  Encode avnd oper state info.
  *
@@ -848,10 +873,11 @@ static uint32_t avsv_encode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_EN
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -867,11 +893,12 @@ static uint32_t avsv_encode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_node_state
+ * Function: enc_node_state
  *
  * Purpose:  Encode avnd node state info.
  *
@@ -884,10 +911,11 @@ static uint32_t avsv_encode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -903,11 +931,12 @@ static uint32_t avsv_encode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_node_rcv_msg_id
+ * Function: enc_node_rcv_msg_id
  *
  * Purpose:  Encode avnd receive message ID.
  *
@@ -920,10 +949,11 @@ static uint32_t avsv_encode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -939,11 +969,12 @@ static uint32_t avsv_encode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_node_snd_msg_id
+ * Function: enc_node_snd_msg_id
  *
  * Purpose:  Encode avnd Send message ID.
  *
@@ -956,10 +987,11 @@ static uint32_t avsv_encode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -975,11 +1007,12 @@ static uint32_t avsv_encode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_sg_admin_state
+ * Function: enc_sg_admin_state
  *
  * Purpose:  Encode SG admin state.
  *
@@ -992,10 +1025,11 @@ static uint32_t avsv_encode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
@@ -1004,11 +1038,12 @@ static uint32_t avsv_encode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE();
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_sg_su_assigned_num
+ * Function: enc_sg_su_assigned_num
  *
  * Purpose:  Encode SG su assign number.
  *
@@ -1021,10 +1056,11 @@ static uint32_t avsv_encode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 
@@ -1034,11 +1070,12 @@ static uint32_t avsv_encode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_sg_su_spare_num
+ * Function: enc_sg_su_spare_num
  *
  * Purpose:  Encode SG su spare number.
  *
@@ -1051,10 +1088,11 @@ static uint32_t avsv_encode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
@@ -1067,7 +1105,7 @@ static uint32_t avsv_encode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_sg_su_uninst_num
+ * Function: enc_sg_su_uninst_num
  *
  * Purpose:  Encode SG su uninst number.
  *
@@ -1080,10 +1118,11 @@ static uint32_t avsv_encode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
@@ -1092,11 +1131,12 @@ static uint32_t avsv_encode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_EN
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_sg_adjust_state
+ * Function: enc_sg_adjust_state
  *
  * Purpose:  Encode SG adjust state.
  *
@@ -1109,10 +1149,11 @@ static uint32_t avsv_encode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_EN
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
@@ -1121,11 +1162,12 @@ static uint32_t avsv_encode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_sg_fsm_state
+ * Function: enc_sg_fsm_state
  *
  * Purpose:  Encode SG FSM state.
  *
@@ -1138,10 +1180,11 @@ static uint32_t avsv_encode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
@@ -1150,11 +1193,12 @@ static uint32_t avsv_encode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_su_preinstan
+ * Function: enc_su_preinstan
  *
  * Purpose:  Encode SU preinstatible object.
  *
@@ -1167,10 +1211,11 @@ static uint32_t avsv_encode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
@@ -1179,11 +1224,12 @@ static uint32_t avsv_encode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_su_oper_state
+ * Function: enc_su_oper_state
  *
  * Purpose:  Encode SU Operation state.
  *
@@ -1196,10 +1242,11 @@ static uint32_t avsv_encode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
@@ -1208,11 +1255,12 @@ static uint32_t avsv_encode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_su_admin_state
+ * Function: enc_su_admin_state
  *
  * Purpose:  Encode SU Admin state.
  *
@@ -1225,10 +1273,11 @@ static uint32_t avsv_encode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
@@ -1237,11 +1286,12 @@ static uint32_t avsv_encode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_su_rediness_state
+ * Function: enc_su_rediness_state
  *
  * Purpose:  Encode SU Rediness state.
  *
@@ -1254,10 +1304,11 @@ static uint32_t avsv_encode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
@@ -1266,11 +1317,12 @@ static uint32_t avsv_encode_ckpt_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_su_pres_state
+ * Function: enc_su_pres_state
  *
  * Purpose:  Encode SU Presence state.
  *
@@ -1283,10 +1335,11 @@ static uint32_t avsv_encode_ckpt_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
@@ -1295,11 +1348,12 @@ static uint32_t avsv_encode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_su_si_curr_active
+ * Function: enc_su_si_curr_active
  *
  * Purpose:  Encode SU Current number of Active SI.
  *
@@ -1312,10 +1366,11 @@ static uint32_t avsv_encode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
@@ -1324,11 +1379,12 @@ static uint32_t avsv_encode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_E
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_su_si_curr_stby
+ * Function: enc_su_si_curr_stby
  *
  * Purpose:  Encode SU Current number of Standby SI.
  *
@@ -1341,10 +1397,11 @@ static uint32_t avsv_encode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_E
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
@@ -1353,11 +1410,12 @@ static uint32_t avsv_encode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_su_term_state
+ * Function: enc_su_term_state
  *
  * Purpose:  Encode SU Admin state to terminate service.
  *
@@ -1370,10 +1428,11 @@ static uint32_t avsv_encode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
@@ -1382,11 +1441,12 @@ static uint32_t avsv_encode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_su_switch
+ * Function: enc_su_switch
  *
  * Purpose:  Encode SU toggle SI.
  *
@@ -1399,10 +1459,11 @@ static uint32_t avsv_encode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
@@ -1411,11 +1472,12 @@ static uint32_t avsv_encode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_su_act_state
+ * Function: enc_su_act_state
  *
  * Purpose:  Encode SU action state.
  *
@@ -1428,10 +1490,11 @@ static uint32_t avsv_encode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
@@ -1440,11 +1503,12 @@ static uint32_t avsv_encode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_su_restart_count
+ * Function: enc_su_restart_count
  *
  * Purpose:  Encode SU Restart count.
  *
@@ -1457,10 +1521,11 @@ static uint32_t avsv_encode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
@@ -1469,11 +1534,12 @@ static uint32_t avsv_encode_ckpt_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_EN
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_si_admin_state
+ * Function: enc_si_admin_state
  *
  * Purpose:  Encode SI admin state.
  *
@@ -1486,10 +1552,11 @@ static uint32_t avsv_encode_ckpt_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_EN
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
@@ -1498,11 +1565,12 @@ static uint32_t avsv_encode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_si_assignment_state
+ * Function: enc_si_assignment_state
  *
  * Purpose:  Encode SI assignment state.
  *
@@ -1515,10 +1583,11 @@ static uint32_t avsv_encode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
@@ -1527,6 +1596,7 @@ static uint32_t avsv_encode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 /******************************************************************
@@ -1537,10 +1607,11 @@ static uint32_t avsv_encode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB
  * @param[in] dec
  *
  *****************************************************************/
-static uint32_t avsv_encode_ckpt_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR edu_rror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1558,11 +1629,12 @@ static uint32_t avsv_encode_ckpt_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_si_su_curr_active
+ * Function: enc_si_su_curr_active
  *
  * Purpose:  Encode number of active SU assignment for this SI.
  *
@@ -1575,10 +1647,11 @@ static uint32_t avsv_encode_ckpt_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
@@ -1587,11 +1660,12 @@ static uint32_t avsv_encode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_E
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_si_su_curr_stby
+ * Function: enc_si_su_curr_stby
  *
  * Purpose:  Encode number of standby SU assignment for this SI.
  *
@@ -1604,10 +1678,11 @@ static uint32_t avsv_encode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_E
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
@@ -1616,11 +1691,12 @@ static uint32_t avsv_encode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_si_switch
+ * Function: enc_si_switch
  *
  * Purpose:  Encode SI switch.
  *
@@ -1633,10 +1709,11 @@ static uint32_t avsv_encode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
@@ -1645,11 +1722,12 @@ static uint32_t avsv_encode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_si_alarm_sent
+ * Function: enc_si_alarm_sent
  *
  * Purpose:  Encode SI alarm sent
  *
@@ -1662,10 +1740,11 @@ static uint32_t avsv_encode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
@@ -1674,10 +1753,11 @@ static uint32_t avsv_encode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 /****************************************************************************\
- * Function: avsv_encode_ckpt_comp_proxy_comp_name
+ * Function: enc_comp_proxy_comp_name
  *
  * Purpose:  Encode COMP proxy compnent name.
  *
@@ -1690,10 +1770,11 @@ static uint32_t avsv_encode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1709,11 +1790,12 @@ static uint32_t avsv_encode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_C
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_comp_curr_num_csi_actv
+ * Function: enc_comp_curr_num_csi_actv
  *
  * Purpose:  Encode COMP Current number of CSI active.
  *
@@ -1726,10 +1808,11 @@ static uint32_t avsv_encode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_C
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(0);
 
@@ -1747,11 +1830,12 @@ static uint32_t avsv_encode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_comp_curr_num_csi_stby
+ * Function: enc_comp_curr_num_csi_stby
  *
  * Purpose:  Encode COMP Current number of CSI standby.
  *
@@ -1764,10 +1848,11 @@ static uint32_t avsv_encode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	osafassert(0);
 
@@ -1785,11 +1870,12 @@ static uint32_t avsv_encode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_comp_oper_state
+ * Function: enc_comp_oper_state
  *
  * Purpose:  Encode COMP Operation State.
  *
@@ -1802,10 +1888,11 @@ static uint32_t avsv_encode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1821,11 +1908,12 @@ static uint32_t avsv_encode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_comp_readiness_state
+ * Function: enc_comp_readiness_state
  *
  * Purpose:  Encode COMP Presence State.
  *
@@ -1838,10 +1926,11 @@ static uint32_t avsv_encode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1857,11 +1946,12 @@ static uint32_t avsv_encode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_C
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_comp_pres_state
+ * Function: enc_comp_pres_state
  *
  * Purpose:  Encode COMP Presence State.
  *
@@ -1874,10 +1964,11 @@ static uint32_t avsv_encode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_C
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1893,11 +1984,12 @@ static uint32_t avsv_encode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_comp_restart_count
+ * Function: enc_comp_restart_count
  *
  * Purpose:  Encode COMP Restart count.
  *
@@ -1910,10 +2002,11 @@ static uint32_t avsv_encode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1929,11 +2022,12 @@ static uint32_t avsv_encode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_
 	} else
 		osafassert(0);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp
+ * Function: avd_enc_cold_sync_rsp
  *
  * Purpose:  Encode cold sync response message.
  *
@@ -1946,14 +2040,14 @@ static uint32_t avsv_encode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_
  *
  * 
 \**************************************************************************/
-uint32_t avsv_encode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+uint32_t avd_enc_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	TRACE_ENTER();
-	return avd_entire_data_update(cb, enc, true);
+	return entire_data_update(cb, enc, true);
 }
 
 /****************************************************************************\
- * Function: avd_entire_data_update
+ * Function: entire_data_update
  *
  * Purpose:  Encode entire data to be sent during cold sync or warm sync.
  *
@@ -1968,13 +2062,13 @@ uint32_t avsv_encode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * 
 \**************************************************************************/
-static uint32_t avd_entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, bool c_sync)
+static uint32_t entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, bool c_sync)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t num_of_obj = 0;
 	uint8_t *encoded_cnt_loc;
 
-	TRACE_ENTER2("%u", enc->io_reo_type);
+	TRACE_ENTER2("io_reo_type '%u', c_sync '%d'", enc->io_reo_type, c_sync);
 
 	/* 
 	 * Since at decode we need to find out how many objects of particular data
@@ -1992,7 +2086,7 @@ static uint32_t avd_entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, boo
 	 * which is CB. Next time onwards depending on the value of reo_type and reo_handle
 	 * send the next data structures.
 	 */
-	status = avsv_enc_cold_sync_rsp_data_func_list[enc->io_reo_type] (cb, enc, &num_of_obj);
+	status = enc_cs_data_func_list[enc->io_reo_type] (cb, enc, &num_of_obj);
 
 	/* Now encode the number of objects actually in the UBA. */
 	if (encoded_cnt_loc != NULL) {
@@ -2013,12 +2107,12 @@ static uint32_t avd_entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, boo
 	} else
 		enc->io_reo_type++;
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_cb_config
+ * Function: enc_cs_cb_config
  *
  * Purpose:  Encode entire CB data..
  *
@@ -2031,10 +2125,11 @@ static uint32_t avd_entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, boo
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Send the CB data.
@@ -2049,11 +2144,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV
 
 	*num_of_obj = 1;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_cluster_config
+ * Function: enc_cs_cluster_config
  *
  * Purpose:  Encode entire AVD_CLUSTER data..
  *
@@ -2066,10 +2162,11 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cluster, &enc->io_uba,
 		EDP_OP_TYPE_ENC, avd_cluster, &ederror, enc->i_peer_version);
@@ -2081,11 +2178,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb, NCS_
 
 	(*num_of_obj)++;
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_node_config
+ * Function: enc_cs_node_config
  *
  * Purpose:  Encode entire AVD_AVND data..
  *
@@ -2098,11 +2196,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb, NCS_
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_node = NULL;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2121,11 +2220,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBC
 		avnd_node = avd_node_getnext(&avnd_node->name);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_app_config
+ * Function: enc_cs_app_config
  *
  * Purpose:  Encode entire AVD_APP data..
  *
@@ -2138,12 +2238,13 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	SaNameT app_name;
 	AVD_APP *app;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2162,11 +2263,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCS
 		(*num_of_obj)++;
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_sg_config
+ * Function: enc_cs_sg_config
  *
  * Purpose:  Encode entire AVD_SG data..
  *
@@ -2179,12 +2281,13 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCS
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	SaNameT sg_name;
 	AVD_SG *sg;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2203,11 +2306,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV
 		(*num_of_obj)++;
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_su_config
+ * Function: enc_cs_su_config
  *
  * Purpose:  Encode entire AVD_SU data..
  *
@@ -2220,12 +2324,13 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su;
 	SaNameT su_name = {0};
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2244,11 +2349,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV
 		(*num_of_obj)++;
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_si_config
+ * Function: enc_cs_si_config
  *
  * Purpose:  Encode entire AVD_SI data..
  *
@@ -2261,12 +2367,13 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SI *si;
 	SaNameT si_name;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2286,11 +2393,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV
 		(*num_of_obj)++;
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_sg_su_oper_list
+ * Function: enc_cs_sg_su_oper_list
  *
  * Purpose:  Encode entire AVD_SG_SU_OPER_LIST data..
  *
@@ -2303,11 +2411,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	SaNameT sg_name;
 	AVD_SG *sg;
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire SG list and send the SU operation list
@@ -2315,7 +2424,7 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS
 	 */
 	sg_name.length = 0;
 	for (sg = avd_sg_getnext(&sg_name); sg != NULL; sg = avd_sg_getnext(&sg_name)) {
-		status = avsv_encode_su_oper_list(cb, sg, enc);
+		status = enc_su_oper_list(cb, sg, enc);
 
 		if (status != NCSCC_RC_SUCCESS) {
 			LOG_ER("%s: encode failed, %s", __FUNCTION__, sg->name.value);
@@ -2327,11 +2436,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS
 
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_sg_admin_si
+ * Function: enc_cs_sg_admin_si
  *
  * Purpose:  Encode entire AVD_SG_ADMIN_SI data..
  *
@@ -2344,12 +2454,13 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	SaNameT sg_name;
 	AVD_SG *sg;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2373,6 +2484,7 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBC
 		(*num_of_obj)++;
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
@@ -2382,7 +2494,7 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBC
  * @param[in] enc
  * @param[in] num_of_obj
  *******************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SG *sg;
@@ -2413,11 +2525,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_
 	    }
 	    sg_name = sg->name;
 	}
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_su_si_rel
+ * Function: enc_cs_su_si_rel
  *
  * Purpose:  Encode entire AVD_SU_SI_REL data..
  *
@@ -2430,7 +2543,7 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_
  *
  * 
  \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su;
@@ -2438,6 +2551,7 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_
 	AVSV_SU_SI_REL_CKPT_MSG su_si_ckpt;
 	AVD_SU_SI_REL *rel;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2469,11 +2583,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_
 		}
 		su_name = su->name;
 	}
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_comp_config
+ * Function: enc_cs_comp_config
  *
  * Purpose:  Encode entire AVD_COMP data..
  *
@@ -2486,12 +2601,13 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_COMP *comp;
 	SaNameT comp_name = {0};
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2511,11 +2627,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBC
 		(*num_of_obj)++;
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_async_updt_cnt
+ * Function: enc_cs_async_updt_cnt
  *
  * Purpose:  Send the latest async update count. This count will be used 
  *           during warm sync for verifying the data at stnadby. 
@@ -2529,10 +2646,11 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBC
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Encode and send async update counts for all the data structures.
@@ -2543,11 +2661,12 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_
 	if (status != NCSCC_RC_SUCCESS)
 		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_warm_sync_rsp
+ * Function: avd_enc_warm_sync_rsp
  *
  * Purpose:  Encode Warm sync response message.
  *
@@ -2560,10 +2679,11 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_
  *
  * 
 \**************************************************************************/
-uint32_t avsv_encode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+uint32_t avd_enc_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* 
 	 * Encode and send latest async update counts. (In the same manner we sent
@@ -2575,11 +2695,12 @@ uint32_t avsv_encode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	if (status != NCSCC_RC_SUCCESS)
 		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_data_sync_rsp
+ * Function: avd_enc_data_sync_rsp
  *
  * Purpose:  Encode Data sync response message.
  *
@@ -2592,14 +2713,14 @@ uint32_t avsv_encode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * 
 \**************************************************************************/
-uint32_t avsv_encode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+uint32_t avd_enc_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	TRACE_ENTER();
-	return avd_entire_data_update(cb, enc, false);
+	return entire_data_update(cb, enc, false);
 }
 
 /****************************************************************************\
- * Function: avsv_encode_su_oper_list
+ * Function: enc_su_oper_list
  *
  * Purpose:  Encode entire AVD_SG_SU_OPER_LIST data..
  *
@@ -2612,13 +2733,14 @@ uint32_t avsv_encode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * 
 \**************************************************************************/
-static uint32_t avsv_encode_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t num_of_opr_su = 0;
 	uint8_t *encoded_cnt_loc;
 	AVD_SG_OPER *oper_list_ptr = NULL;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER();
 
 	/* Reserve space for the number of operation SU to be encoded */
 	encoded_cnt_loc = ncs_enc_reserve_space(&enc->io_uba, sizeof(uint32_t));
@@ -2648,11 +2770,12 @@ static uint32_t avsv_encode_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB
 		ncs_encode_32bit(&encoded_cnt_loc, num_of_opr_su);
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_comp_cs_type_config
+ * Function: enc_comp_cs_type_config
  *
  * Purpose:  Encode entire AVD_COMP_CS_TYPE data..
  *
@@ -2665,10 +2788,11 @@ static uint32_t avsv_encode_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB
  *
  *
 \**************************************************************************/
-static uint32_t avsv_encode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uint32_t enc_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
+	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
 	/*
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -2696,11 +2820,12 @@ static uint32_t avsv_encode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCS
 	if (status != NCSCC_RC_SUCCESS)
 		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_encode_cold_sync_rsp_avd_comp_cs_type_config
+ * Function: enc_cs_comp_cs_type_config
  *
  * Purpose:  Encode entire AVD_COMP_CS_TYPE data..
  *
@@ -2713,12 +2838,13 @@ static uint32_t avsv_encode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCS
  *
  *
 \**************************************************************************/
-static uint32_t avsv_encode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
+static uint32_t enc_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_COMPCS_TYPE *compcstype;
 	EDU_ERR ederror = 0;
 	SaNameT dn = {0};
+	TRACE_ENTER();
 
 	/*
 	 * Walk through the entire list and send the entire list data.
@@ -2738,6 +2864,7 @@ static uint32_t avsv_encode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb,
 		(*num_of_obj)++;
 	}
 
+	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
 
