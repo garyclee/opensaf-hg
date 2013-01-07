@@ -54,9 +54,9 @@ static uint32_t avsv_mbcsv_close_ckpt(AVD_CL_CB *cb);
 static uint32_t avsv_mbcsv_finalize(AVD_CL_CB *cb);
 static uint32_t avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uint32_t reo_type);
 
-extern const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avsv_enc_ckpt_data_func_list[AVSV_CKPT_MSG_MAX];
+extern const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avd_enc_ckpt_data_func_list[AVSV_CKPT_MSG_MAX];
 
-extern const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[AVSV_CKPT_MSG_MAX];
+extern const AVSV_DECODE_CKPT_DATA_FUNC_PTR avd_dec_data_func_list[AVSV_CKPT_MSG_MAX];
 
 /****************************************************************************\
  * Function: avsv_mbcsv_register
@@ -225,7 +225,7 @@ static uint32_t avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 			TRACE("Async update");
 
-			status = avsv_enc_ckpt_data_func_list[arg->info.encode.io_reo_type] (cb, &arg->info.encode);
+			status = avd_enc_ckpt_data_func_list[arg->info.encode.io_reo_type] (cb, &arg->info.encode);
 		}
 		break;
 
@@ -244,7 +244,7 @@ static uint32_t avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP:
 		{
 			/* Encode Cold Sync Response message */
-			status = avsv_encode_cold_sync_rsp(cb, &arg->info.encode);
+			status = avd_enc_cold_sync_rsp(cb, &arg->info.encode);
 			TRACE("Cold sync resp");
 		}
 		break;
@@ -261,7 +261,7 @@ static uint32_t avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_WARM_SYNC_RESP:
 		{
 			/* Encode Warm Sync Response message */
-			status = avsv_encode_warm_sync_rsp(cb, &arg->info.encode);
+			status = avd_enc_warm_sync_rsp(cb, &arg->info.encode);
 			TRACE("Warm sync resp");
 			arg->info.encode.io_msg_type = NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE;
 		}
@@ -270,7 +270,7 @@ static uint32_t avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_DATA_RESP:
 		{
 			/* Encode Data Response message */
-			status = avsv_encode_data_sync_rsp(cb, &arg->info.encode);
+			status = avd_enc_data_sync_rsp(cb, &arg->info.encode);
 			TRACE("Data resp");
 		}
 		break;
@@ -388,7 +388,7 @@ static uint32_t avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 					}
 				}
 				status =
-					avsv_dec_ckpt_data_func_list[arg->info.decode.i_reo_type] (cb,
+					avd_dec_data_func_list[arg->info.decode.i_reo_type] (cb,
 												&arg->info.decode);
 			}
 		}
@@ -418,7 +418,7 @@ ignore_msg:
 				arg->info.decode.i_reo_type ++;
 
 			/* Decode Cold Sync Response message */
-			status = avsv_decode_cold_sync_rsp(cb, &arg->info.decode);
+			status = avd_dec_cold_sync_rsp(cb, &arg->info.decode);
 
 			if (NCSCC_RC_SUCCESS != status) {
 				LOG_ER("%s: cold sync decode failed %u", __FUNCTION__, status);
@@ -462,7 +462,7 @@ ignore_msg:
 				arg->info.decode.i_reo_type ++;
 
 			/* Decode Warm Sync Response message */
-			status = avsv_decode_warm_sync_rsp(cb, &arg->info.decode);
+			status = avd_dec_warm_sync_rsp(cb, &arg->info.decode);
 
 			/* If we find mismatch in data or warm sync fails set in_sync to false */
 			if (NCSCC_RC_FAILURE == status) {
@@ -475,7 +475,7 @@ ignore_msg:
 	case NCS_MBCSV_MSG_DATA_REQ:
 		{
 			/* Decode Data request message */
-			status = avsv_decode_data_req(cb, &arg->info.decode);
+			status = avd_dec_data_req(cb, &arg->info.decode);
 		}
 		break;
 
@@ -487,7 +487,7 @@ ignore_msg:
 				arg->info.decode.i_reo_type ++;
 
 			/* Decode Data response and data response complete message */
-			status = avsv_decode_data_sync_rsp(cb, &arg->info.decode);
+			status = avd_dec_data_sync_rsp(cb, &arg->info.decode);
 
 			if (NCSCC_RC_SUCCESS != status) {
 				LOG_ER("%s: data resp decode failed %u", __FUNCTION__, status);
@@ -1242,7 +1242,7 @@ uint32_t avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, bool pr_or_fr)
 					}
 				}
 			}
-			status = avsv_dec_ckpt_data_func_list[updt_msg->dec.i_reo_type] (cb, &updt_msg->dec);
+			status = avd_dec_data_func_list[updt_msg->dec.i_reo_type] (cb, &updt_msg->dec);
 		}
 free_msg:
 		free(updt_msg);
