@@ -1073,7 +1073,7 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
  ***************************************************************************/
 
 typedef uint64_t NCS_EXEC_HDL;
-typedef uint64_t NCS_EXEC_USR_HDL;
+typedef void* NCS_EXEC_USR_HDL;
 
 /* This Structure assists in passing the environment arguments needed to be
    set in the newly created process. */
