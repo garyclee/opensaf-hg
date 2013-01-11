@@ -374,6 +374,9 @@ extern "C" {
 
 	bool immModel_pbeNotWritable(IMMND_CB *cb);
 
+	SaAisErrorT immModel_implFree(IMMND_CB *cb,
+		const SaImmOiImplementerNameT implName);
+
 #ifdef __cplusplus
 }
 #endif
