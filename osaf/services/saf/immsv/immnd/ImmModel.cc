@@ -1154,6 +1154,19 @@ immModel_implementerSet(IMMND_CB *cb, const IMMSV_OCTET_STRING* implName,
             (SaUint64T) mds_dest);
 }
 
+SaAisErrorT 
+immModel_implFree(IMMND_CB *cb, const SaImmOiImplementerNameT impName)
+{
+    std::string implName(impName);
+    ImplementerInfo* impl = 
+        ImmModel::instance(&cb->immModel)->findImplementer(implName);
+    if(!impl) {return SA_AIS_OK;}
+
+    if(impl->mId == 0) {return SA_AIS_OK;}
+
+    return SA_AIS_ERR_EXIST;
+}
+
 SaUint32T
 immModel_getImplementerId(IMMND_CB* cb, SaUint32T deadConn)
 {
@@ -1908,6 +1921,9 @@ ImmModel::abortSync()
         
         case IMM_NODE_R_AVAILABLE:
             sImmNodeState = IMM_NODE_FULLY_AVAILABLE; 
+            sNodesDeadDuringSync.clear(); 
+            sImplsDeadDuringSync.clear(); 
+
             LOG_NO("NODE STATE-> IMM_NODE_FULLY_AVAILABLE (%u)", 
                 __LINE__);
             break;
@@ -1968,10 +1984,22 @@ ImmModel::abortSync()
                 }
             }
 
-            osafassert(!sOwnerVector.size());
-            osafassert(!sCcbVector.size());
-            osafassert(!sImplementerVector.size());
-            //osafassert(!sMissingParents.size());
+            sNodesDeadDuringSync.clear(); 
+            sImplsDeadDuringSync.clear(); 
+
+           if(!sImplementerVector.empty()) {
+                ImplementerVector::iterator i;
+                for(i = sImplementerVector.begin(); i != sImplementerVector.end();
+                   ++i) {
+                    ImplementerInfo* info = (*i);
+                    delete info;
+                }
+                sImplementerVector.clear();
+            }
+
+            osafassert(sOwnerVector.empty());
+            osafassert(sCcbVector.empty());
+
             sMissingParents.clear();
             break;
 
@@ -8424,7 +8452,16 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
         */
         TRACE_7("Sync client notes death of node %x", deadNode);
         sNodesDeadDuringSync.push_back(deadNode);
-        goto done; /* Postpone discardNode untill after finalizeSync. */
+        /* discardNode used to be postponed at sync clients. No longer
+           after #1871 Opensaf4.3. Instead perform it now and possibly
+           again after finalizeSync. We want to discard implementers
+           resident at the dead node also at sync clients, since after
+           #1871 they could have been created at sync clients during sync. 
+           sNodesDeadDuringSync is cleared after each sync message.
+           At finalizeSync it will only contain any nodes that died
+           in the window after the last sync message arrived but before
+           the finalizeSync message arrives. 
+        */
     }
 
     if(sImmNodeState == IMM_NODE_R_AVAILABLE) {
@@ -8495,7 +8532,6 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
             osafassert((*i3)->mOriginatingConn == 0); //Dead node can not be us!!
         }
     }
- done:    
     TRACE_LEAVE();
 }
 
@@ -8527,7 +8563,7 @@ ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard)
             //But we have a problem of ever growing number of distinct
             //implementers. Possible solution is to here iterate through all
             //classes and objects. If none point to this object then we can
-            //actually remove it.
+            //actually remove it. Removal must be via fevs though!
            if((sImmNodeState == IMM_NODE_R_AVAILABLE) ||
               (sImmNodeState == IMM_NODE_W_AVAILABLE)) {
                 /* Sync is ongoing. Remember the death of the implementer. */
@@ -12825,15 +12861,45 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 if(info) {
                     /* Named implemener already exists. This can happen since we
                        now (after #1871) allow saImmOiImplementeSet during sync.
-                       Discard the synced implementer, since the existing one should
-                       be valid.
-                    */
-                    LOG_NO("finalizeSync implementerSet for %s has bypassed finalizeSync, ignoring",
-                        ii->implementerName.buf);
-                    continue;
-                }
+                       Discard the synced implementer if the two are identical.
 
+                       If not identical, then we must abandon this sync because we
+                       can not distinguish between the following two cases:
+ 
+                       Case1: A correct and successfull implementerSet arrived at the
+                       sync-client after finalizeSync was sent from coord but before
+                       finalizeSync arrived at sync-client (over fevs). The impl-set
+                       will then be a correct implementer set also here at the sync-client,
+                       *differing* from the implementer record in finalizeSync.
+                       In this case the finalizeSync record is obsolete.
+
+                       Case2: An implementerSet that passes the existence check 
+                       (see immModel_implFree) locally at a veteran node, but fails
+                       on ERR_EXIST when arriving over fevs at all veteran nodes, because
+                       by then, some other user had already allocated the implementer over
+                       fevs. In this case the implementer-set will be rejected at veteran
+                       nodes, but possibly accepted (erroneously) at the sync-client, if
+                       the implementer-name did not yet exist.
+                       In this case the finalizeSync record is correct and the sync-client
+                       implementer should be discarded.
+
+                       Because we can not distinguish between these cases, we exit the
+                       sync-client immnd, forcing it to redo the sync.
+                    */
+                    if((info->mId == ii->id) && (info->mNodeId == ii->nodeId) &&
+                       (info->mMds_dest == ii->mds_dest)) {
+                        LOG_NO("finalizeSync implementerSet '%s' id: %u has bypassed "
+				"finalizeSync, ignoring",  info->mImplementerName.c_str(), 
+				info->mId);
+                        continue;
+                    } else {
+                        LOG_WA("Invalid implementer detected at sync client by finalizeSync -"
+                               " exiting");
+                        exit(1);
+                    }
+                } 
                 info = new ImplementerInfo;
+
                 IdVector::iterator ivi = sImplsDeadDuringSync.begin();
                 for(;ivi != sImplsDeadDuringSync.end(); ++ivi) {
                     if((*ivi) == ii->id) {

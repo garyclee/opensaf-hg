@@ -2056,6 +2056,20 @@ static uint32_t immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		goto agent_rsp;
 	}
 
+	/* Avoid sending the implSet request if the implementer is currently occupied 
+           locally. This greatly reduces the risk of a an incorrect create of implementer
+           at sync clients, where the create is rejected at veteran nodes. It can still
+           happen if the implementer is free here and now, but gets occupied soon after
+           in a subsequent implementerSet over fevs arriving before this implementerSet
+           arrives back over fevs. See finalizeSync #1871.
+        */
+	send_evt.info.imma.info.implSetRsp.error =
+		immModel_implFree(cb, evt->info.implSet.impl_name.buf);
+
+	if(send_evt.info.imma.info.implSetRsp.error != SA_AIS_OK) {
+		goto agent_rsp;
+	}
+
 
 	cb->fevs_replies_pending++;	/*flow control */
 	if (cb->fevs_replies_pending > 1) {
