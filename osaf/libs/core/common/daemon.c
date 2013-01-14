@@ -190,12 +190,6 @@ static void __parse_options(int argc, char *argv[])
 	} while (next_option != EOF);
 }
 
-static void sigterm_handler(int sig)
-{
-	syslog(LOG_NOTICE, "exiting on signal %u", SIGTERM);
-	exit(0);
-}
-
 void daemonize(int argc, char *argv[])
 {
 	pid_t pid, sid;
@@ -305,12 +299,7 @@ void daemonize(int argc, char *argv[])
 	signal(SIGTSTP, SIG_IGN);	/* Various TTY signals */
 	signal(SIGTTOU, SIG_IGN);
 	signal(SIGTTIN, SIG_IGN);
-
-	/* Install a common TERM handler. Tools like gcov requires a normal process exit */
-	if (signal(SIGTERM, sigterm_handler) == SIG_ERR) {
-		syslog(LOG_ERR, "registering SIGTERM failed, (%s)", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+	signal(SIGTERM, SIG_DFL);	/* Die on SIGTERM */
 
 	/* RUNASROOT gives the OpenSAF user a possibility to maintain the 4.1 behaviour
 	 * should eventually be removed. 
