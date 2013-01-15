@@ -239,8 +239,9 @@ static int prepareClassInsertStmt(sqlite3 *dbHandle, const char *className, bool
 		}
 
 		if(!(attr_is_pure_rt || attr_is_multi)) {
-			sql.append(", ");
+			sql.append(", \"");
 			sql.append((*p)->attrName);
+			sql.append("\"");
 			sqlParam.append(", @");
 			sqlParam.append((*p)->attrName);
 		}
@@ -1448,8 +1449,6 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 {
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
 	sqlite3_stmt *stmt;
-	std::string sql1("select obj_id,class_id from objects where dn = '");
-	std::string sql21("select attr_type,attr_flags from attr_def where class_id = ");
 
 	int rc=0;
 	std::string object_id_str;
@@ -1544,8 +1543,6 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 
 	if(attr_flags & SA_IMM_ATTR_MULTI_VALUE) {
 		/* Remove all matching values. */
-		std::string sql212("delete from objects_");
-		std::string val_attr;
 		unsigned int ix;
 		int sqlIndex;
 
