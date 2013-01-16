@@ -5033,7 +5033,7 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
         std::string objectName((const char*)req->objectName.buf);
         ObjectMap::iterator oi = sObjectMap.find(objectName);
         osafassert(oi != sObjectMap.end());
-        ObjectInfo* obj = oi->second;
+        ObjectInfo* obj = oi->second; /* Points to before image. */
         ClassInfo* classInfo = obj->mClassInfo;
         CcbInfo* ccb = NULL;
 
@@ -5155,7 +5155,23 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
 
                 current->attrModType = SA_IMM_ATTR_VALUES_REPLACE;
                 TRACE("Replacing attr %s", attName.c_str());
-                /* Find the after-value in the object. */
+                /* Find the after-value in the AFIM for the object. */
+                ObjectMutationMap::iterator omuti;
+                if(ccb) {
+                    /* For config data use after-image. */
+                    omuti =  ccb->mMutations.find(objectName);
+                    osafassert(omuti != ccb->mMutations.end());
+                    obj = omuti->second->mAfterImage;
+                } else {
+                    omuti =  sPbeRtMutations.find(objectName);
+                    if(omuti != sPbeRtMutations.end()) {
+                        /* For persistent RT data use after-image. */
+                        obj = omuti->second->mAfterImage;
+                    } /*else normal cached, use the before image*/
+                }
+
+                osafassert(obj);
+
                 ImmAttrValueMap::iterator j = obj->mAttrValueMap.find(attName);
                 osafassert(j != obj->mAttrValueMap.end());
                 ImmAttrValue* attVal = j->second;
@@ -11860,7 +11876,7 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
                  req->objectName.size = objName.size() +1;
                  req->objectName.buf = strdup(objName.c_str());
                  req->attrMods = (immsv_attr_mods_list*) oMut->mSavedData;
-		 oMut->mSavedData = NULL;
+                 oMut->mSavedData = NULL;
 
             }
         }
@@ -12346,8 +12362,6 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 break; //out of while-loop
             }
 
-            if(attr->mFlags & SA_IMM_ATTR_NOTIFY) {modifiedNotifyAttr=true;}
-
             if(attr->mValueType == SA_IMM_ATTR_SANAMET) {
                 if(p->attrValue.attrValue.val.x.size >= SA_MAX_NAME_LENGTH) {
                     LOG_NO("ERR_LIBRARY: attr '%s' of type SaNameT is too long:%u",
@@ -12446,6 +12460,11 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 } //skip pure locals when invocation was not local.
             }
             
+            if(attr->mFlags & SA_IMM_ATTR_NOTIFY) {
+                osafassert(!wasLocal);
+                modifiedNotifyAttr=true;
+            }
+
             IMMSV_OCTET_STRING tmpos; //temporary octet string
             
             switch(p->attrModType) {
@@ -12580,7 +12599,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
         //err!=OK => breaks out of for loop
     }//for(int doIt...
 
-    if(modifiedNotifyAttr) {
+    if(modifiedNotifyAttr && (err == SA_AIS_OK)) {
         ImplementerInfo* spAppl = getSpecialApplier();
         if(spAppl && spApplConnPtr) {
             (*spApplConnPtr) = spAppl->mConn;
