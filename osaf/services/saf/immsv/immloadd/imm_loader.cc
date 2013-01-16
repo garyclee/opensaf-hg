@@ -705,8 +705,16 @@ static const xmlChar *getAttributeValue(const xmlChar **attrs, const xmlChar *at
 
 static inline bool isBase64Encoded(const xmlChar **attrs) {
 	char *encoding;
+	bool isB64 = false;
 
-	return (encoding = (char *)getAttributeValue(attrs, (xmlChar *)"encoding")) ? !strcmp(encoding, "base64") : false;
+	if((encoding = (char *)getAttributeValue(attrs, (xmlChar *)"xsi:type")))
+		isB64 = !strcmp(encoding, "xs:base64Binary");
+
+	/* This verification has been left for backward compatibility */
+	if(!isB64 && (encoding = (char *)getAttributeValue(attrs, (xmlChar *)"encoding")))
+		isB64 = !strcmp(encoding, "base64");
+
+	return isB64;
 }
 
 /**

@@ -311,6 +311,18 @@ static void display_class_definition(const SaImmClassNameT className,
 			if (attrDefinition->attrFlags & SA_IMM_ATTR_WRITABLE)
 				printf(", WRITEABLE");
 
+			if (attrDefinition->attrFlags & SA_IMM_ATTR_INITIALIZED)
+				printf(", INITIALIZED");
+
+			if (attrDefinition->attrFlags & SA_IMM_ATTR_MULTI_VALUE)
+				printf(", MULTI_VALUE");
+
+			if (attrDefinition->attrFlags & SA_IMM_ATTR_NOTIFY)
+				printf(", NOTIFY");
+
+			if (attrDefinition->attrFlags & SA_IMM_ATTR_NO_DUPLICATES)
+				printf(", NO_DUPLICATES");
+
 		} else if (attrDefinition->attrFlags & SA_IMM_ATTR_RUNTIME) {
 			if (attrDefinition->attrDefaultValue != NULL) {
 				printf(" = ");
@@ -329,6 +341,15 @@ static void display_class_definition(const SaImmClassNameT className,
 
 			if (attrDefinition->attrFlags & SA_IMM_ATTR_PERSISTENT)
 				printf(", PERSISTENT");
+
+			if (attrDefinition->attrFlags & SA_IMM_ATTR_MULTI_VALUE)
+				printf(", MULTI_VALUE");
+
+			if (attrDefinition->attrFlags & SA_IMM_ATTR_NOTIFY)
+				printf(", NOTIFY");
+
+			if (attrDefinition->attrFlags & SA_IMM_ATTR_NO_DUPLICATES)
+				printf(", NO_DUPLICATES");
 		}
 
 		printf("}\n");
