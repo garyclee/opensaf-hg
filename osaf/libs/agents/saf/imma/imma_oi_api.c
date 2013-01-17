@@ -1610,7 +1610,7 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmCl
 	evt.info.immnd.info.implSet.impl_name.buf = className;
 	evt.info.immnd.info.implSet.impl_id = cl_node->mImplementerId;
 
-	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, false);
+	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, true);
 
 	cl_node=NULL;
 	evt.info.immnd.info.implSet.impl_name.buf = NULL;
@@ -1969,7 +1969,7 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 	evt.info.immnd.info.implSet.impl_id = cl_node->mImplementerId;
 	evt.info.immnd.info.implSet.scope = scope;
 
-	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, false);
+	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, true);
 
 	cl_node=NULL;
 	free(evt.info.immnd.info.implSet.impl_name.buf);
