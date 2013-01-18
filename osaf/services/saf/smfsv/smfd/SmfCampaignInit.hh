@@ -115,6 +115,13 @@ class SmfCampaignInit {
 	bool execute();
 
 ///
+/// Purpose: Execute callback at campaign init.
+/// @param   None.
+/// @return  SaAisErrorT SA_AIS_OK if ok, otherwise failure.
+///
+	SaAisErrorT executeCallbackAtInit();
+
+///
 /// Purpose: Perform backup actions.
 /// @param   None.
 /// @return  None.

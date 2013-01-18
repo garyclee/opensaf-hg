@@ -222,31 +222,32 @@ SmfCampaignInit::execute()
 		upActiter++;
 	}
 
-	//////////////////
-	//Callback at init
-	//////////////////
-	std::list < SmfCallback * >:: iterator cbkiter;
-	cbkiter = m_callbackAtInit.begin();
-	while (cbkiter != m_callbackAtInit.end()) {
-		SaAisErrorT rc = (*cbkiter)->execute(initRollbackDn);
-		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
-			LOG_ER("SmfCampaignInit callback %s failed, rc=%s", (*cbkiter)->getCallbackLabel().c_str(), saf_error(rc));
-			TRACE_LEAVE();
-			return false;
-		}
-		cbkiter++;
-	}
-
-
-#if 0
-	std::list < SmfCallbackOptions * >m_callbackAtInit;
-#endif
-
 	LOG_NO("CAMP: Campaign init completed");
 
 	TRACE_LEAVE();
 
 	return true;
+}
+
+//------------------------------------------------------------------------------
+// executeCallbackAtInit()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfCampaignInit::executeCallbackAtInit()
+{
+	std::string dn; //Dummy DN, needs only to be set for callback in a step.
+	std::list < SmfCallback * >:: iterator cbkiter;
+	cbkiter = m_callbackAtInit.begin();
+	while (cbkiter != m_callbackAtInit.end()) {
+		SaAisErrorT rc = (*cbkiter)->execute(dn);
+		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
+			LOG_NO("SmfCampaignInit callback at init %s failed, rc=%s", (*cbkiter)->getCallbackLabel().c_str(), saf_error(rc));
+			return rc;
+		}
+		cbkiter++;
+	}
+
+	return SA_AIS_OK;
 }
 
 //------------------------------------------------------------------------------
