@@ -573,7 +573,10 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	//TBD
 
 	//Prerequisite  check 10 "Upgrade-aware entities are ready for an upgrade campaign"
-	//TBD
+	if (i_camp->m_campInit.executeCallbackAtInit() != SA_AIS_OK) {
+		error = "Campaign callback at init failed";
+		goto exit_error;
+	}
 
 	// Check if parent/type has incorrect object DNs. This is an extra  prerequisite check not given in SMF specification
 	procIter = i_camp->m_procedure.begin();
@@ -651,8 +654,7 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	}
 
 	if (i_camp->m_campInit.executeBackup() != SA_AIS_OK) {
-		std::string error = "Campaign init backup callback failed";
-		LOG_ER("%s", error.c_str());
+		error = "Campaign init backup callback failed";
 		goto exit_error;
 	}
 	LOG_NO("CAMP: executed callbackAtBackup successfully in the campaign %s", i_camp->getCampaignName().c_str());
@@ -664,8 +666,7 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 
 	//Disable IMM PBE
 	if (i_camp->disablePbe() != SA_AIS_OK) {
-		std::string error = "Fails to disable IMM PBE";
-		LOG_ER("%s", error.c_str());
+		error = "Fails to disable IMM PBE";
 		goto exit_error;
 	}
 
@@ -677,7 +678,7 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	return initResult;
 
 exit_error:
-	LOG_ER("%s", error.c_str());
+	LOG_NO("%s", error.c_str());
 	SmfCampaignThread::instance()->campaign()->setError(error);
 
 	//Remain in state initial if prerequsites check or SMF backup fails
