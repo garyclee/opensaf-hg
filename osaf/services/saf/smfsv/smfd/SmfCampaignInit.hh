@@ -122,11 +122,11 @@ class SmfCampaignInit {
 	SaAisErrorT executeCallbackAtInit();
 
 ///
-/// Purpose: Perform backup actions.
+/// Purpose: Execute specified backup callbacks.
 /// @param   None.
-/// @return  None.
+/// @return  SaAisErrorT SA_AIS_OK if ok, otherwise failure.
 ///
-	bool executeBackup();
+	SaAisErrorT executeCallbackAtBackup();
 
 ///
 /// Purpose: Perform rollback actions.

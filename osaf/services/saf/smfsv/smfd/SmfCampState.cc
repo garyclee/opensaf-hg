@@ -631,6 +631,12 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	}
 
 	//Prerequisite  check 11 "All neccessary backup is created"
+	if (i_camp->m_campInit.executeCallbackAtBackup() != SA_AIS_OK) {
+		error = "Campaign init backup callback failed";
+		goto exit_error;
+	}
+	LOG_NO("CAMP: executed callbackAtBackup successfully in the campaign %s", i_camp->getCampaignName().c_str());
+
 	LOG_NO("CAMP: Create system backup %s", i_camp->getCampaignName().c_str());
 	if (smfd_cb->backupCreateCmd != NULL) {
 		std::string backupCmd = smfd_cb->backupCreateCmd;
@@ -652,12 +658,6 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 		error = "CAMP: No backup create command  found";
 		goto exit_error;
 	}
-
-	if (i_camp->m_campInit.executeBackup() != SA_AIS_OK) {
-		error = "Campaign init backup callback failed";
-		goto exit_error;
-	}
-	LOG_NO("CAMP: executed callbackAtBackup successfully in the campaign %s", i_camp->getCampaignName().c_str());
 
 	LOG_NO("CAMP: Start executing campaign %s", i_camp->getCampaignName().c_str());
 
