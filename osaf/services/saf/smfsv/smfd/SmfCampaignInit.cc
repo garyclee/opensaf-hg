@@ -251,18 +251,11 @@ SmfCampaignInit::executeCallbackAtInit()
 }
 
 //------------------------------------------------------------------------------
-// executeBackup()
+// executeCallbackAtBackup()
 //------------------------------------------------------------------------------
-bool 
-SmfCampaignInit::executeBackup()
+SaAisErrorT
+SmfCampaignInit::executeCallbackAtBackup()
 {
-#if 0
-	std::list < SmfCallbackOptions * >m_callbackAtBackup;
-#endif
-	///////////////////////
-	//Callback at backup
-	///////////////////////
-
 	std::list < SmfCallback * >:: iterator cbkiter;
 	std::string dn;
 	cbkiter = m_callbackAtBackup.begin();
@@ -270,12 +263,11 @@ SmfCampaignInit::executeBackup()
 		SaAisErrorT rc = (*cbkiter)->execute(dn);
 		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
 			LOG_ER("SmfCampaignInit callbackAtBackup %s failed, rc=%s", (*cbkiter)->getCallbackLabel().c_str(), saf_error(rc));
-			TRACE_LEAVE();
-			return false;
+			return rc;
 		}
 		cbkiter++;
 	}
-	return true;
+	return SA_AIS_OK;
 }
 
 //------------------------------------------------------------------------------
