@@ -7204,64 +7204,35 @@ static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 
 	if ((cb->highestProcessed + 1) < msgNo) {
 		/*We received an out-of-order (higher msgNo than expected) message */
-		SaUint64T next_expected = 0;
-		SaUint32T andHowManyMore = 0;	/*What are these used for ? */
 		if (cb->mAccepted) {
 			LOG_WA("MESSAGE:%llu OUT OF ORDER my highest processed:%llu, exiting", msgNo, cb->highestProcessed);
 			exit(1);
-			immnd_enqueue_incoming_fevs_msg(cb, msgNo, clnt_hdl, reply_dest, msg, &next_expected, &andHowManyMore);
 		}else if(cb->mSync){ /* If we receive out of sync message at the time of syncing */
 			LOG_WA("Sync MESSAGE:%llu OUT OF ORDER my highest processed:%llu", msgNo, cb->highestProcessed);
 			immnd_ackToNid(NCSCC_RC_FAILURE);
+			exit(1);
 		}
-
-		/*If next_expected!=0 we send request to re-send message(s) to Director. 
-		   This is a bit stupid. we KNOW that next expected is highestProcessed+1
-		 */
-		goto done;
 	}
 
 	/*NORMAL CASE: Received the expected in-order message. */
 
-	do {
-		SaAisErrorT err = SA_AIS_OK;
-		if(isObjSync && cb->mIsCoord && (cb->syncPid > 0)) {
-			TRACE("Coord discards object sync message");
+	SaAisErrorT err = SA_AIS_OK;
+	if(isObjSync && cb->mIsCoord && (cb->syncPid > 0)) {
+		TRACE("Coord discards object sync message");
+	} else {
+		err = immnd_evt_proc_fevs_dispatch(cb, msg, originatedAtThisNd, clnt_hdl,
+			reply_dest, msgNo);
+	}
+
+	if (err != SA_AIS_OK) {
+		if (err == SA_AIS_ERR_ACCESS) {
+			TRACE_2("DISCARDING msg no:%llu", msgNo);
 		} else {
-			err = immnd_evt_proc_fevs_dispatch(cb, msg, originatedAtThisNd, clnt_hdl,
-				reply_dest, msgNo);
+			LOG_ER("PROBLEM %u WITH msg no:%llu", err, msgNo);
 		}
+	}
 
-		if (err != SA_AIS_OK) {
-			if (err == SA_AIS_ERR_ACCESS) {
-				TRACE_2("DISCARDING msg no:%llu", msgNo);
-			} else {
-				LOG_ER("PROBLEM %u WITH msg no:%llu", err, msgNo);
-			}
-		}
-
-		msgNo = ++(cb->highestProcessed);
-
-		/*Check if the processed message releases some queued messages. */
-
-		if (cb->highestReceived > msgNo) {	/*queue is not empty */
-			msg = immnd_dequeue_incoming_fevs_msg(msg, cb, msgNo, &clnt_hdl, &reply_dest);
-			/* TODO: Perhaps add next_expected and andHowManyMore arg to trigger
-			   fetching of lost messages. Otherwise this will be triggered only when
-			   the next normal message arrives. 
-			   Or the ND can regularly send a ping over fevs => better, use for 
-			   GC of stored messages. 
-			 */
-			if (msg) {
-				originatedAtThisNd = (m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl) == cb->node_id);
-			}
-		} else {
-			msg = NULL;
-			osafassert(cb->fevs_in_list == NULL);
-		}
-	} while (msg);
-
- done:
+	msgNo = ++(cb->highestProcessed);
 	dequeue_outgoing(cb);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
