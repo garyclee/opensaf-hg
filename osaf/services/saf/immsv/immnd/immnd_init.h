@@ -411,15 +411,6 @@ void immnd_client_node_getnext(IMMND_CB *cb, SaImmHandleT imm_client_hdl, IMMND_
 uint32_t immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *imm_node);
 uint32_t immnd_client_node_del(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *imm_client_node);
 
-IMMSV_OCTET_STRING *immnd_dequeue_incoming_fevs_msg(IMMSV_OCTET_STRING *msg,
-	IMMND_CB *cb, SaUint64T msgNo, SaImmHandleT *clnt_hdl,
-	MDS_DEST *reply_dest);
-
-void immnd_enqueue_incoming_fevs_msg(IMMND_CB *cb, SaUint64T msgNo,
-	SaImmHandleT clnt_hdl, MDS_DEST reply_dest, IMMSV_OCTET_STRING *msg,
-	SaUint64T *next_expected,	//out
-	SaUint32T *andHowManyMore);	//out
-
 unsigned int immnd_dequeue_outgoing_fevs_msg(IMMND_CB *cb, 
 	IMMSV_OCTET_STRING *msg, SaImmHandleT *clnt_hdl);
 
