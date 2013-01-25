@@ -22,6 +22,8 @@
   structures in an IMMSV_EVT.
 *****************************************************************************/
 
+#define _GNU_SOURCE
+#include <string.h>
 #include "immsv.h"
 #include "immsv_api.h"
 
@@ -181,10 +183,27 @@ void immsv_evt_enc_inline_string(NCS_UBAID *o_ub, IMMSV_OCTET_STRING *os)
 {
 	if (os->size) {
 		if(ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)os->buf, os->size) != NCSCC_RC_SUCCESS) {
-			LOG_ER("Failure inside ncs_encode_n_octets_in_uba");
+			LOG_ER("Failure of ncs_encode_n_octets_in_uba in enc_inline_string");
 			abort();
 		}
 	}
+}
+
+bool immsv_evt_enc_inline_text(int line, NCS_UBAID *o_ub, IMMSV_OCTET_STRING *os)
+{
+	if (os->size) {
+		if(strnlen((char *) os->buf, os->size) +1 < os->size) {
+			LOG_WA("immsv_evt_enc_inline_text: Length missmatch from source line:%u (%zu %u '%s')", 
+				line, strnlen((char *) os->buf, os->size)+1, os->size, os->buf);
+			return false;
+		}
+
+		if(ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)os->buf, os->size) != NCSCC_RC_SUCCESS) {
+			LOG_ER("Failure of ncs_encode_n_octets_in_uba in enc_inline_text");
+			return false;
+		}
+	}
+	return true;
 }
 
 void immsv_evt_dec_inline_string(NCS_UBAID *i_ub, IMMSV_OCTET_STRING *os)
@@ -215,7 +234,12 @@ static void immsv_evt_enc_att_val(NCS_UBAID *o_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 		osafassert(v->val.x.size <= SA_MAX_NAME_LENGTH);
 		/* Intentional fall through */
 	case SA_IMM_ATTR_SASTRINGT:
-		/* Intentional fall through */
+		os = &(v->val.x);
+		IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+		ncs_encode_32bit(&p8, os->size);
+		ncs_enc_claim_space(o_ub, 4);
+		osafassert(immsv_evt_enc_inline_text(__LINE__, o_ub, os));
+		break;
 	case SA_IMM_ATTR_SAANYT:
 		os = &(v->val.x);
 		IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
@@ -386,7 +410,7 @@ static void immsv_evt_enc_attr_def(NCS_UBAID *o_ub, IMMSV_ATTR_DEF_LIST *ad)
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, os->size);
 	ncs_enc_claim_space(o_ub, 4);
-	immsv_evt_enc_inline_string(o_ub, os);
+	osafassert(immsv_evt_enc_inline_text(__LINE__, o_ub, os));
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, ad->d.attrValueType);
@@ -426,7 +450,7 @@ static void immsv_evt_enc_attr_mod(NCS_UBAID *o_ub, IMMSV_ATTR_MODS_LIST *p)
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, os->size);
 	ncs_enc_claim_space(o_ub, 4);
-	immsv_evt_enc_inline_string(o_ub, os);
+	osafassert(immsv_evt_enc_inline_text(__LINE__, o_ub, os));
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, p->attrValue.attrValueType);
@@ -467,7 +491,7 @@ static void immsv_evt_enc_attribute(NCS_UBAID *o_ub, IMMSV_ATTR_VALUES_LIST *p)
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, os->size);
 	ncs_enc_claim_space(o_ub, 4);
-	immsv_evt_enc_inline_string(o_ub, os);
+	osafassert(immsv_evt_enc_inline_text(__LINE__, o_ub, os));
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, p->n.attrValueType);
@@ -687,7 +711,9 @@ static uint32_t immsv_evt_enc_name_list(NCS_UBAID *o_ub, IMMSV_OBJ_NAME_LIST *p)
 		IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 		ncs_encode_32bit(&p8, os->size);
 		ncs_enc_claim_space(o_ub, 4);
-		immsv_evt_enc_inline_string(o_ub, os);
+		if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+			return NCSCC_RC_OUT_OF_MEM;
+		}
 
 		p = p->next;
 		IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
@@ -762,13 +788,13 @@ static void immsv_evt_enc_class(NCS_UBAID *o_ub, IMMSV_CLASS_LIST *r)
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, os->size);
 	ncs_enc_claim_space(o_ub, 4);
-	immsv_evt_enc_inline_string(o_ub, os);
+	osafassert(immsv_evt_enc_inline_text(__LINE__, o_ub, os));
 
 	os = &(r->classImplName);
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, os->size);
 	ncs_enc_claim_space(o_ub, 4);
-	immsv_evt_enc_inline_string(o_ub, os);
+	osafassert(immsv_evt_enc_inline_text(__LINE__, o_ub, os));
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, r->nrofInstances);
@@ -866,7 +892,7 @@ static void immsv_evt_enc_impl(NCS_UBAID *o_ub, IMMSV_IMPL_LIST *q)
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, os->size);
 	ncs_enc_claim_space(o_ub, 4);
-	immsv_evt_enc_inline_string(o_ub, os);
+	osafassert(immsv_evt_enc_inline_text(__LINE__, o_ub, os));
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
 	ncs_encode_64bit(&p8, q->mds_dest);
@@ -954,7 +980,10 @@ static uint32_t immsv_evt_enc_admo(NCS_UBAID *o_ub, IMMSV_ADMO_LIST *p)
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, os->size);
 	ncs_enc_claim_space(o_ub, 4);
-	immsv_evt_enc_inline_string(o_ub, os);
+	if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+		rc =  NCSCC_RC_OUT_OF_MEM;
+		goto done;
+	}
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
 	ncs_encode_8bit(&p8, (p->releaseOnFinalize) ? ((p->isDying)? 0x3 : 0x1) : 0x0);
@@ -967,6 +996,7 @@ static uint32_t immsv_evt_enc_admo(NCS_UBAID *o_ub, IMMSV_ADMO_LIST *p)
 	ncs_encode_8bit(&p8, (p->next) ? 1 : 0);
 	ncs_enc_claim_space(o_ub, 1);
 
+ done:
 	return rc;
 }
 
@@ -1055,7 +1085,7 @@ static void immsv_evt_enc_attrName(NCS_UBAID *o_ub, IMMSV_ATTR_NAME_LIST *p)
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, os->size);
 	ncs_enc_claim_space(o_ub, 4);
-	immsv_evt_enc_inline_string(o_ub, os);
+	osafassert(immsv_evt_enc_inline_text(__LINE__, o_ub, os));
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
 	ncs_encode_8bit(&p8, (p->next) ? 1 : 0);
@@ -1116,7 +1146,7 @@ static void immsv_evt_enc_admop_param(NCS_UBAID *o_ub, IMMSV_ADMIN_OPERATION_PAR
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, os->size);
 	ncs_enc_claim_space(o_ub, 4);
-	immsv_evt_enc_inline_string(o_ub, os);
+	osafassert(immsv_evt_enc_inline_text(__LINE__, o_ub, os));
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, op->paramType);
@@ -1282,7 +1312,9 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 			ncs_encode_32bit(&p8, os->size);
 			ncs_enc_claim_space(o_ub, 4);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
 			ncs_encode_8bit(&p8, (sn->attrValuesList) ? 1 : 0);
@@ -1308,11 +1340,15 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			int depth = 0;
 			/*Encode the className */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.imma.info.objCreate.className);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode the parentName */
 			os = &(i_evt->info.imma.info.objCreate.parentName);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode the list of attributes */
 			IMMSV_ATTR_VALUES_LIST *p = i_evt->info.imma.info.objCreate.attrValues;
@@ -1331,7 +1367,9 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 			/*Encode the objectName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.imma.info.objModify.objectName);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode the list of attribute modifications */
 			IMMSV_ATTR_MODS_LIST *p = i_evt->info.imma.info.objModify.attrMods;
@@ -1348,13 +1386,17 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 		} else if (i_evt->info.imma.type == IMMA_EVT_ND2A_OI_OBJ_DELETE_UC) {
 			/*Encode the objectName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.imma.info.objDelete.objectName);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 		} else if ((i_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ADMOP) ||
 			(i_evt->info.imma.type == IMMA_EVT_ND2A_IMM_PBE_ADMOP)) {
 			int depth = 0;
 			/*Encode the objectName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.imma.info.admOpReq.objectName);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode the param list */
 			IMMSV_ADMIN_OPERATION_PARAM *op = i_evt->info.imma.info.admOpReq.params;
@@ -1384,7 +1426,9 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			int depth = 0;
 			/*Encode the objectName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.imma.info.searchRemote.objectName);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode the list of attribute names */
 			IMMSV_ATTR_NAME_LIST *p = i_evt->info.imma.info.searchRemote.attributeNames;
@@ -1420,13 +1464,17 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			immsv_evt_enc_inline_string(o_ub, os);
 		} else if (i_evt->info.immd.type == IMMD_EVT_ND2D_IMPLSET_REQ) {
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immd.info.impl_set.r.impl_name);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 		} else if (i_evt->info.immd.type == IMMD_EVT_ND2D_OI_OBJ_MODIFY) {
 			int depth = 0;
 
 			/*Encode the objectName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immd.info.objModify.objectName);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode the list of attribute modifications */
 			IMMSV_ATTR_MODS_LIST *p = i_evt->info.immd.info.objModify.attrMods;
@@ -1455,13 +1503,17 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_IMPL_SET) ||
 			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_IMPL_REL)) {
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.implSet.impl_name);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 		} else if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_IMM_ADMOP) ||
 			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_IMM_ADMOP_ASYNC)) {
 			int depth = 0;
 			/*Encode the objectName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.admOpReq.objectName);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode the param list */
 			IMMSV_ADMIN_OPERATION_PARAM *op = i_evt->info.immnd.info.admOpReq.params;
@@ -1492,13 +1544,17 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			}
 		} else if (i_evt->info.immnd.type == IMMND_EVT_A2ND_CLASS_DELETE) {
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.classDescr.className);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 		} else if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_CLASS_CREATE) ||
 			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_CLASS_DESCR_GET)) {
 			int depth = 0;
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.classDescr.className);
 
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode attribute definitions. */
 			IMMSV_ATTR_DEF_LIST *ad = i_evt->info.immnd.info.classDescr.attrDefinitions;
@@ -1517,11 +1573,15 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Encode the className */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.objCreate.className);
 
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode the parentName */
 			os = &(i_evt->info.immnd.info.objCreate.parentName);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode the list of attributes */
 			IMMSV_ATTR_VALUES_LIST *p = i_evt->info.immnd.info.objCreate.attrValues;
@@ -1541,7 +1601,9 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 			/*Encode the objectName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.objModify.objectName);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode the list of attribute modifications */
 			IMMSV_ATTR_MODS_LIST *p = i_evt->info.immnd.info.objModify.attrMods;
@@ -1559,7 +1621,9 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_DELETE)) {
 			/*Encode the objectName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.objDelete.objectName);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 		} else if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC) ||
 			(i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC_2)) {
@@ -1578,11 +1642,15 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 				
 				/*Encode the className */
 				IMMSV_OCTET_STRING *os = &(obj_sync->className);
-				immsv_evt_enc_inline_string(o_ub, os);
+				if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+					return NCSCC_RC_OUT_OF_MEM;
+				}
 
 				/*Encode the objecttName */
 				os = &(obj_sync->objectName);
-				immsv_evt_enc_inline_string(o_ub, os);
+				if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+					return NCSCC_RC_OUT_OF_MEM;
+				}
 
 				/*Encode the list of attributes */
 				IMMSV_ATTR_VALUES_LIST *p = obj_sync->attrValues;
@@ -1713,15 +1781,15 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			int depth = 0;
 			/*Encode the rootName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.searchInit.rootName);
-			if (os->size) {
-				immsv_evt_enc_inline_string(o_ub, os);
+			if (!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
 			}
 
 			if (i_evt->info.immnd.info.searchInit.searchParam.present ==
 			    ImmOmSearchParameter_PR_oneAttrParam) {
 				os = &(i_evt->info.immnd.info.searchInit.searchParam.choice.oneAttrParam.attrName);
-				if (os->size) {
-					immsv_evt_enc_inline_string(o_ub, os);
+				if (!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+					return NCSCC_RC_OUT_OF_MEM;
 				}
 				immsv_evt_enc_att_val(o_ub,
 						      &(i_evt->info.immnd.info.searchInit.searchParam.choice.
@@ -1751,7 +1819,9 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			int depth = 0;
 			/*Encode the objectName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.rtAttUpdRpl.sr.objectName);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode the list of attribute names */
 			IMMSV_ATTR_NAME_LIST *p = i_evt->info.immnd.info.rtAttUpdRpl.sr.attributeNames;
@@ -1770,7 +1840,9 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			int depth = 0;
 			/*Encode the objectName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.searchRemote.objectName);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			/*Encode the list of attribute names */
 			IMMSV_ATTR_NAME_LIST *p = i_evt->info.immnd.info.searchRemote.attributeNames;
@@ -1796,7 +1868,9 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 			ncs_encode_32bit(&p8, os->size);
 			ncs_enc_claim_space(o_ub, 4);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
 			ncs_encode_8bit(&p8, (sn->attrValuesList) ? 1 : 0);
@@ -1825,7 +1899,9 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 		{
 			IMMSV_OCTET_STRING *os = 
 				&(i_evt->info.immnd.info.ccbUpcallRsp.errorString);
-			immsv_evt_enc_inline_string(o_ub, os);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
 		}
 	}
 
