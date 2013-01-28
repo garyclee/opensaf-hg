@@ -55,7 +55,7 @@ extern struct ImmutilWrapperProfile immutilWrapperProfile;
  * ========================================================================
  */
 SaAisErrorT 
-smfCreateRollbackElement(const std::string & i_dn)
+smfCreateRollbackElement(const std::string & i_dn, SaImmOiHandleT i_oiHandle)
 {
 	TRACE("Create rollback element '%s'", i_dn.c_str());
 
@@ -69,7 +69,7 @@ smfCreateRollbackElement(const std::string & i_dn)
 
         icoRollbackCcb.setClassName("OpenSafSmfRollbackElement");
 	icoRollbackCcb.setParentDn(parentDn);
-	icoRollbackCcb.setImmHandle(SmfCampaignThread::instance()->getImmHandle());
+	icoRollbackCcb.setImmHandle(i_oiHandle);
 
         SmfImmAttribute rdn;
         rdn.setName("smfRollbackElement");
@@ -141,7 +141,7 @@ SmfRollbackData::addAttrValue(const std::string & i_attrName,
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT 
-SmfRollbackData::execute()
+SmfRollbackData::execute(SaImmOiHandleT i_oiHandle)
 {
         SaAisErrorT result = SA_AIS_OK;
 
@@ -153,7 +153,7 @@ SmfRollbackData::execute()
 
 	icoRollbackData.setClassName("OpenSafSmfRollbackData");
 	icoRollbackData.setParentDn(m_ccb->getDn());
-	icoRollbackData.setImmHandle(SmfCampaignThread::instance()->getImmHandle());
+	icoRollbackData.setImmHandle(i_oiHandle);
 
         char idStr[16];
         sprintf(idStr, "%08u", m_id);
@@ -450,9 +450,10 @@ SmfRollbackData::rollbackModifyOperation(const SaImmAttrValuesT_2 ** i_attribute
 // Comments:
 //================================================================================
 
-SmfRollbackCcb::SmfRollbackCcb(const std::string& i_dn):
+SmfRollbackCcb::SmfRollbackCcb(const std::string& i_dn, SaImmOiHandleT i_oiHandle):
 	m_dn(i_dn),
-        m_dataId(1)
+        m_dataId(1),
+        m_oiHandle(i_oiHandle)
 {
 }
 
@@ -484,7 +485,7 @@ SmfRollbackCcb::execute()
         std::list < SmfRollbackData * >::iterator dataIter;
 
 	for (dataIter = m_rollbackData.begin(); dataIter != m_rollbackData.end(); dataIter++) {
-                if ((result = (*dataIter)->execute()) != SA_AIS_OK) {
+                if ((result = (*dataIter)->execute(m_oiHandle)) != SA_AIS_OK) {
                         LOG_ER("SmfRollbackCcb::execute, fail to execute rollback data, rc=%s", saf_error(result));
                         break;
                 }
