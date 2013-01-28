@@ -136,7 +136,7 @@ proc_state()
 		echo "$dn"
 
 		state=$(immlist -a saSmfProcState $dn 2> /dev/null) || \
-		    die "Campaign does not exist [$1]"
+		    die "Procedure does not exist [$1]"
 		eval $state
 		saSmfProcError=$(immlist -a saSmfProcError $dn | \
 		    sed -e 's,^saSmfProcError=,,' -e 's,<Empty>,,')
@@ -197,7 +197,7 @@ step_state()
 		echo "$dn"
 
 		state=$(immlist -a saSmfStepState $dn 2> /dev/null) || \
-		    die "Campaign does not exist [$1]"
+		    die "Step does not exist [$1]"
 		eval $state
 		saSmfStepError=$(immlist -a saSmfStepError $dn | \
 		    sed -e 's,^saSmfStepError=,,' -e 's,<Empty>,,')
