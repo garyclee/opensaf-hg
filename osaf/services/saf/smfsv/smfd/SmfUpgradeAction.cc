@@ -72,7 +72,7 @@ SmfUpgradeAction::~SmfUpgradeAction()
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT
-SmfUpgradeAction::execute(const std::string* i_rollbackDn)
+SmfUpgradeAction::execute(SaImmOiHandleT i_oiHandle, const std::string* i_rollbackDn)
 {
 	LOG_ER("execute must be specialised");
 	return SA_AIS_ERR_NOT_EXIST;
@@ -156,7 +156,7 @@ SmfCliCommandAction::setUndoCmdArgs(const std::string & i_cmdArgs)
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT 
-SmfCliCommandAction::execute(const std::string* i_rollbackDn)
+SmfCliCommandAction::execute(SaImmOiHandleT i_oiHandle, const std::string* i_rollbackDn)
 {
 	SaAisErrorT result = SA_AIS_OK;
 	SaTimeT timeout = smfd_cb->cliTimeout;	/* Default timeout */
@@ -382,7 +382,7 @@ SmfAdminOperationAction::addUndoParameter(const std::string & i_name, const std:
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT
-SmfAdminOperationAction::execute(const std::string* i_rollbackDn)
+SmfAdminOperationAction::execute(SaImmOiHandleT i_oiHandle, const std::string* i_rollbackDn)
 {
 	TRACE_ENTER();
 
@@ -496,7 +496,7 @@ SmfImmCcbAction::addOperation(SmfImmOperation * i_op)
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT 
-SmfImmCcbAction::execute(const std::string* i_rollbackDn)
+SmfImmCcbAction::execute(SaImmOiHandleT i_oiHandle, const std::string* i_rollbackDn)
 {
 	SaAisErrorT result = SA_AIS_OK;
         SmfRollbackCcb* rollbackCcb = NULL;
@@ -513,13 +513,14 @@ SmfImmCcbAction::execute(const std::string* i_rollbackDn)
                 immRollbackCcbDn += ",";
                 immRollbackCcbDn += *i_rollbackDn;
         
-                if ((result = smfCreateRollbackElement(immRollbackCcbDn)) != SA_AIS_OK) {
+                if ((result = smfCreateRollbackElement(immRollbackCcbDn,
+                                                       i_oiHandle)) != SA_AIS_OK) {
                         LOG_ER("SmfImmCcbAction::execute failed to create rollback element %s, rc=%s", 
                                immRollbackCcbDn.c_str(), saf_error(result));
                         return result;
                 }
 
-                rollbackCcb = new (std::nothrow) SmfRollbackCcb (immRollbackCcbDn);
+                rollbackCcb = new (std::nothrow) SmfRollbackCcb (immRollbackCcbDn, i_oiHandle);
                 if (rollbackCcb == NULL) {
                         LOG_ER("SmfImmCcbAction::execute failed to create SmfRollbackCcb");
                         return SA_AIS_ERR_NO_MEMORY;
@@ -564,7 +565,7 @@ SmfImmCcbAction::rollback(const std::string& i_rollbackDn)
         immRollbackCcbDn += ",";
         immRollbackCcbDn += i_rollbackDn;
 
-        SmfRollbackCcb rollbackCcb(immRollbackCcbDn);
+        SmfRollbackCcb rollbackCcb(immRollbackCcbDn, 0);
 
 	TRACE("Rollback IMM ccb actions id %d, dn %s", m_id, immRollbackCcbDn.c_str());
 
@@ -599,7 +600,7 @@ SmfCallbackAction::~SmfCallbackAction()
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT
-SmfCallbackAction::execute(const std::string* i_rollbackDn)
+SmfCallbackAction::execute(SaImmOiHandleT i_oiHandle, const std::string* i_rollbackDn)
 {
 	SaAisErrorT result;
 	std::string dn;
