@@ -4978,6 +4978,7 @@ ImmModel::genSpecialModify(ImmsvOmCcbObjectModify* req)
     TRACE_ENTER();
     std::string objAdminOwnerName;
     std::string objectName((const char*)req->objectName.buf);
+    osafassert(nameCheck(objectName)||nameToInternal(objectName));
     ObjectMap::iterator oi = sObjectMap.find(objectName);
     osafassert(oi != sObjectMap.end());
     ObjectInfo* object = oi->second;
@@ -5038,6 +5039,7 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
     ImplementerInfo* specialApplier = getSpecialApplier();
     if(specialApplier && specialApplier->mConn == clientId) { 
         std::string objectName((const char*)req->objectName.buf);
+        osafassert(nameCheck(objectName)||nameToInternal(objectName));
         ObjectMap::iterator oi = sObjectMap.find(objectName);
         osafassert(oi != sObjectMap.end());
         ObjectInfo* obj = oi->second; /* Points to before image. */
