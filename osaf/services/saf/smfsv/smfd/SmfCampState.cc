@@ -1230,7 +1230,8 @@ SmfCampStateExecSuspended::execute(SmfUpgradeCampaign * i_camp)
         const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
 	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
 
-	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
+	changeState(i_camp, SmfCampStateExecuting::instance());
+        for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
 		switch ((*iter)->getState()) {
 		case SA_SMF_PROC_SUSPENDED:
 			{
@@ -1248,7 +1249,6 @@ SmfCampStateExecSuspended::execute(SmfUpgradeCampaign * i_camp)
 		}
 	}
 
-	changeState(i_camp, SmfCampStateExecuting::instance());
         i_camp->m_noOfExecutingProc = numOfSuspendedProc;
 
         /* If no suspended procedures existed, execute next procedure in state initial.
@@ -1584,6 +1584,7 @@ SmfCampStateSuspendedByErrorDetected::execute(SmfUpgradeCampaign * i_camp)
         const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
 	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
 
+	changeState(i_camp, SmfCampStateExecuting::instance());
 	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
 		switch ((*iter)->getState()) {
 		case SA_SMF_PROC_SUSPENDED:
@@ -1609,7 +1610,6 @@ SmfCampStateSuspendedByErrorDetected::execute(SmfUpgradeCampaign * i_camp)
                 changeState(i_camp, SmfCampStateExecFailed::instance());
         }
 
-	changeState(i_camp, SmfCampStateExecuting::instance());
         i_camp->m_noOfExecutingProc = numOfSuspendedProc;
 
 	TRACE_LEAVE();
@@ -1840,7 +1840,8 @@ SmfCampRollingBack::suspend(SmfUpgradeCampaign * i_camp)
         const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
 	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
 
-	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
+        changeState(i_camp, SmfCampSuspendingRollback::instance());
+        for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
                 TRACE("SmfCampRollingBack::Procedure %s, send suspend",
                       (*iter)->getProcName().c_str());
                 SmfProcedureThread *procThread = (*iter)->getProcThread();
@@ -1850,7 +1851,6 @@ SmfCampRollingBack::suspend(SmfUpgradeCampaign * i_camp)
 	}
 
         i_camp->m_noOfProcResponses = 0;
-        changeState(i_camp, SmfCampSuspendingRollback::instance());
         /* Wait for suspend responses from all procedures (SmfCampSuspendingRollback::procResult) */
 
 	TRACE_LEAVE();
@@ -1955,6 +1955,7 @@ SmfCampRollbackSuspended::rollback(SmfUpgradeCampaign * i_camp)
         const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
 	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
 
+	changeState(i_camp, SmfCampRollingBack::instance());
 	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
 		switch ((*iter)->getState()) {
 		case SA_SMF_PROC_ROLLBACK_SUSPENDED:
@@ -1973,7 +1974,6 @@ SmfCampRollbackSuspended::rollback(SmfUpgradeCampaign * i_camp)
 		}
 	}
 
-	changeState(i_camp, SmfCampRollingBack::instance());
         i_camp->m_noOfExecutingProc = numOfSuspendedProc;
 
         /* If no suspended procedures existed, rollback next completed procedure.
