@@ -1229,11 +1229,17 @@ immModel_implementerSet(IMMND_CB *cb, const IMMSV_OCTET_STRING* implName,
 }
 
 SaAisErrorT 
-immModel_implFree(IMMND_CB *cb, const SaImmOiImplementerNameT impName)
+immModel_implIsFree(IMMND_CB *cb, const SaImmOiImplementerNameT impName)
 {
     std::string implName(impName);
+    if(implName.empty()) {
+        LOG_NO("ERR_INVALID_PARAM: Empty implementer name");
+        return SA_AIS_ERR_INVALID_PARAM; 
+    }
+
     ImplementerInfo* impl = 
         ImmModel::instance(&cb->immModel)->findImplementer(implName);
+
     if(!impl) {return SA_AIS_OK;}
 
     if(impl->mId == 0) {return SA_AIS_OK;}
@@ -10057,6 +10063,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
             /* Idempotency */
             TRACE_7("Applier %s ALREADY set for class %s", info->mImplementerName.c_str(),
                 className.c_str());
+            err = SA_AIS_ERR_NO_BINDINGS;
             goto done;
         }
 
@@ -10144,6 +10151,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
             /* Idempotency */
             TRACE_7("Class '%s' already has %s as class implementer ",
             className.c_str(), info->mImplementerName.c_str());
+            err = SA_AIS_ERR_NO_BINDINGS;
         } else {
             LOG_NO("ERR_EXIST: Class '%s' already has OTHER class implementer "
                 "%s != %s", className.c_str(), classInfo->mImplementer->
@@ -10379,6 +10387,7 @@ SaAisErrorT ImmModel::objectImplementerSet(const struct ImmsvOiImplSetReq* req,
     unsigned int nodeId)
 {
     SaAisErrorT err = SA_AIS_OK;
+    bool idempotencyOk = true; /* Hypothesis to be falsified. */
     ImplementerInfo* info = NULL;
     ObjectMap::iterator i1;
     ObjectInfo* rootObj = NULL;
@@ -10427,6 +10436,11 @@ SaAisErrorT ImmModel::objectImplementerSet(const struct ImmsvOiImplSetReq* req,
     for(int doIt=0; doIt<2 && err == SA_AIS_OK; ++doIt) {
         //ObjectInfo* objectInfo = i1->second;
         err = setImplementer(objectName, rootObj, info, doIt);
+        if(err == SA_AIS_ERR_NO_BINDINGS) {
+            err = SA_AIS_OK;
+        } else {
+            idempotencyOk = false;
+        }
         SaImmScopeT scope = (SaImmScopeT) req->scope;
         if(err == SA_AIS_OK && scope != SA_IMM_ONE) {
             // Find all sub objects to the root object
@@ -10441,8 +10455,12 @@ SaAisErrorT ImmModel::objectImplementerSet(const struct ImmsvOiImplSetReq* req,
                         if(scope==SA_IMM_SUBTREE || checkSubLevel(subObjName, pos)) {
                             --childCount;
                             ObjectInfo* subObj = i1->second;
-                            err = setImplementer(subObjName, 
-                            subObj, info, doIt);
+                            err = setImplementer(subObjName, subObj, info, doIt);
+                            if(err == SA_AIS_ERR_NO_BINDINGS) {
+                                err = SA_AIS_OK;
+                            } else {
+                                idempotencyOk = false;
+                            }
                             if(!childCount) {
                                 TRACE("Cutoff in impl-set-loop by childCount");
                             }
@@ -10451,6 +10469,11 @@ SaAisErrorT ImmModel::objectImplementerSet(const struct ImmsvOiImplSetReq* req,
                 }//if
             }//for
         }//if
+        if((err == SA_AIS_OK) && idempotencyOk) {
+            /* Idempotency. Bogus error code returned to allow local
+               detection & avoiding fevs broadcast. */
+            err = SA_AIS_ERR_NO_BINDINGS;
+        }
     }//for
 
  done:
@@ -10614,6 +10637,7 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
                 /* Idempotency */
                 TRACE_5("applier %s ALREADY set for object '%s'", 
                     info->mImplementerName.c_str(), objectName.c_str());
+                err = SA_AIS_ERR_NO_BINDINGS;
             }
         } else { // not doIt  => do checks
             if(classInfo->mAppliers.find(info) != classInfo->mAppliers.end()) {
@@ -10657,10 +10681,15 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
                             "conflicts with setting object implementer",
                         objectName.c_str(),
                         obj->mImplementer->mImplementerName.c_str());
-                } else if((obj->mImplementer != info) && immNotWritable()) {
-                    /* This was not the idempotency case for object-implementer set
-                       and sync is on-going => reject this mutation for now.  */
-                    err = SA_AIS_ERR_TRY_AGAIN;
+                } else if(immNotWritable()) {
+                    if(obj->mImplementer != info) {
+                        /* This was not the idempotency case for object-implementer set
+                           and sync is on-going => reject this mutation for now.  */
+                        err = SA_AIS_ERR_TRY_AGAIN;
+                    } else {
+                        /* Idempotency. */
+                        err = SA_AIS_ERR_NO_BINDINGS;
+                    }
                 }
             }//end of not doit
         }
@@ -13773,8 +13802,8 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     if((info->mId == ii->id) && (info->mNodeId == ii->nodeId) &&
                        (info->mMds_dest == ii->mds_dest)) {
                         LOG_NO("finalizeSync implementerSet '%s' id: %u has bypassed "
-				"finalizeSync, ignoring",  info->mImplementerName.c_str(), 
-				info->mId);
+                               "finalizeSync, ignoring",  info->mImplementerName.c_str(), 
+                               info->mId);
                         continue;
                     } else {
                         LOG_WA("Invalid implementer detected at sync client by finalizeSync -"

@@ -28,6 +28,7 @@
 #include "immsv_api.h"
 #include "ncssysf_mem.h"
 
+static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq);
 static uint32_t immnd_evt_proc_cb_dump(IMMND_CB *cb);
 static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
 static uint32_t immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
@@ -2064,7 +2065,7 @@ static uint32_t immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
            arrives back over fevs. See finalizeSync #1871.
         */
 	send_evt.info.imma.info.implSetRsp.error =
-		immModel_implFree(cb, evt->info.implSet.impl_name.buf);
+		immModel_implIsFree(cb, evt->info.implSet.impl_name.buf);
 
 	if(send_evt.info.imma.info.implSetRsp.error != SA_AIS_OK) {
 		goto agent_rsp;
@@ -2474,6 +2475,35 @@ static uint32_t immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 		}
 	}
 
+	if(newMsg) {
+		error = immnd_fevs_local_checks(cb, &(evt->info.fevsReq));
+		if(error != SA_AIS_OK) {
+			/*Fevs request will NOT be forwarded to IMMD.
+			  Return directly with error or OK for idempotent requests.
+			 */
+			if(error == SA_AIS_ERR_NO_BINDINGS) {
+				/* Bogus error code indicating that SA_AIS_OK
+				   should be returned immediately on grounds of
+				   idempotency. That is the state desired by the
+				   request is already in place. This short circuit
+				   of fevs due to idempotency detected *locally* 
+				   can only be done during on-going sync, where
+				   *no* other interfering mutating requests are
+				   allowed, i.e. such mutations could not already
+				   be in the buffered fevs backlog. 
+				 */
+				osafassert(immModel_immNotWritable(cb));
+				error = SA_AIS_OK;
+			}
+
+			if(asyncReq) {
+				LOG_ER("Asyncronous FEVS message failed verification - dropping message!");
+				return NCSCC_RC_FAILURE;
+			}
+			goto agent_rsp; //Fevs request is not forwarded to IMMD
+		}
+	}
+
 	if (evt->info.fevsReq.sender_count) { /* Special handling before forwarding. */
 		if(evt->info.fevsReq.sender_count > 0x1) {
 			/* sender_count greater than 1 if this is an admop message.
@@ -2643,6 +2673,332 @@ static uint32_t immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 
 	return rc;
+}
+
+/*
+  Function for performing immnd local checks on fevs packed messages.
+  Normally they pass the checks and are forwarded to the IMMD.
+  The intention is to prevent a bogus message from a bad client to
+  propagate to all IMMNDs. The intention is also to capture any IMMND
+  local handling that can or should be done before forwarding. 
+
+  For example, saImmOiClassImplementerSet and saImmOiObjectImplementerSet
+  are not allowed during imm-sync. But the idempotent case of trying to
+  set class/object implementer in a way that is already set should be
+  allowed. Such an idempotency case must be resolved locally at veteran
+  nodes and not propagated over fevs, because sync clients may not yet
+  have synced the implementer setting and thus reject the idempotent case. 
+*/
+static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq)
+{
+	SaAisErrorT error = SA_AIS_OK;
+	osafassert(fevsReq);
+	IMMSV_OCTET_STRING *msg = &fevsReq->msg;
+	SaImmHandleT clnt_hdl = fevsReq->client_hdl;
+	NCS_NODE_ID nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
+	SaUint32T conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	NCS_UBAID uba;
+	TRACE_ENTER();
+	uba.start = NULL;
+	IMMSV_EVT frwrd_evt;
+	memset(&frwrd_evt, '\0', sizeof(IMMSV_EVT));
+
+	immnd_client_node_get(cb, clnt_hdl, &cl_node);
+	if(cl_node == NULL || cl_node->mIsStale) {
+		error = SA_AIS_ERR_BAD_HANDLE;
+		goto unpack_failure;
+	}
+
+	/*Unpack the embedded message */
+	if (ncs_enc_init_space_pp(&uba, 0, 0) != NCSCC_RC_SUCCESS) {
+		LOG_ER("Failed init ubaid");
+		uba.start = NULL;
+		error = SA_AIS_ERR_NO_RESOURCES;
+		goto unpack_failure;
+	}
+
+	if (ncs_encode_n_octets_in_uba(&uba, (uint8_t *)msg->buf, msg->size) != NCSCC_RC_SUCCESS) {
+		LOG_ER("Failed buffer copy");
+		uba.start = NULL;
+		error = SA_AIS_ERR_NO_RESOURCES;
+		goto unpack_failure;
+	}
+
+	ncs_dec_init_space(&uba, uba.start);
+	uba.bufp = NULL;
+
+	/* Decode non flat. */
+	if (immsv_evt_dec(&uba, &frwrd_evt) != NCSCC_RC_SUCCESS) {
+		LOG_ER("Edu decode Failed");
+		error = SA_AIS_ERR_LIBRARY;
+		goto unpack_failure;
+	}
+
+	if (frwrd_evt.type != IMMSV_EVT_TYPE_IMMND) {
+		LOG_ER("IMMND - Wrong Event Type: %u", frwrd_evt.type);
+		error = SA_AIS_ERR_LIBRARY;
+		goto unpack_failure;
+	}
+
+	switch (frwrd_evt.info.immnd.type) {
+	case IMMND_EVT_A2ND_OBJ_CREATE:
+	case IMMND_EVT_A2ND_OBJ_MODIFY:
+	case IMMND_EVT_A2ND_OBJ_DELETE:
+	case IMMND_EVT_A2ND_CCB_FINALIZE:
+	case IMMND_EVT_A2ND_OI_CCB_AUG_INIT:
+	case IMMND_EVT_A2ND_AUG_ADMO:
+	case IMMND_EVT_A2ND_CCB_APPLY:
+		if(immModel_immNotWritable(cb)) {
+			LOG_WA("Ccb request type (%u) arrived during Sync", frwrd_evt.info.immnd.type);
+			error = SA_AIS_ERR_TRY_AGAIN;
+			/* Should in principle return ERR_LIBRARY here..*/
+		}
+		break;
+
+	case IMMND_EVT_A2ND_OBJ_SYNC:
+	case IMMND_EVT_A2ND_OBJ_SYNC_2:
+		if(fevsReq->sender_count != 0x0) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_OBJ_SYNC fevsReq->sender_count != 0x0");
+			error = SA_AIS_ERR_LIBRARY;
+		}
+
+		if(!(cl_node->mIsSync)) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_OBJ_SYNC can only arrive from sync client");
+			error = SA_AIS_ERR_LIBRARY;
+		}
+		break;
+
+	case IMMND_EVT_A2ND_IMM_ADMOP:
+	case IMMND_EVT_A2ND_IMM_ADMOP_ASYNC:
+		/* No restrictions at cluster level. */
+		break;
+
+	case IMMND_EVT_A2ND_CLASS_CREATE:
+		if(fevsReq->sender_count != 0x1) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_CLASS_CREATE fevsReq->sender_count != 0x1");
+			error = SA_AIS_ERR_LIBRARY;
+		} else if(!(cl_node->mIsSync) && (immModel_immNotWritable(cb) || cb->mSyncFinalizing)) {
+			/* Regular class create attempted during sync. */
+			error = SA_AIS_ERR_TRY_AGAIN;
+		}
+
+		break;
+
+	case IMMND_EVT_A2ND_CLASS_DELETE:
+		if(fevsReq->sender_count != 0x1) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_CLASS_CREATE fevsReq->sender_count != 0x1");
+			error = SA_AIS_ERR_LIBRARY;
+		} else if(immModel_immNotWritable(cb) || cb->mSyncFinalizing) {
+			error = SA_AIS_ERR_TRY_AGAIN;
+		}
+
+		break;
+
+	case IMMND_EVT_D2ND_DISCARD_IMPL:
+		LOG_WA("ERR_LIBRARY: IMMND_EVT_D2ND_DISCARD_IMPL can not arrive from client lib");
+		error = SA_AIS_ERR_LIBRARY;
+		break;
+
+	case IMMND_EVT_D2ND_DISCARD_NODE:
+		LOG_WA("ERR_LIBRARY: IMMND_EVT_D2ND_DISCARD_NODE can not arrive from client lib");
+		error = SA_AIS_ERR_LIBRARY;
+		break;
+
+	case IMMND_EVT_D2ND_ADMINIT:
+		LOG_WA("ERR_LIBRARY: IMMND_EVT_D2ND_ADMINIT can not arrive from client lib");
+		error = SA_AIS_ERR_LIBRARY;
+		break;
+
+	case IMMND_EVT_D2ND_IMPLSET_RSP:
+		LOG_WA("ERR_LIBRARY: IMMND_EVT_D2ND_IMPLSET_RSP can not arrive from client lib");
+		error = SA_AIS_ERR_LIBRARY;
+		break;
+
+	case IMMND_EVT_D2ND_CCBINIT:
+		LOG_WA("ERR_LIBRARY: IMMND_EVT_D2ND_CCBINIT can not arrive from client lib");
+		error = SA_AIS_ERR_LIBRARY;
+		break;
+
+	case IMMND_EVT_D2ND_ABORT_CCB:
+		LOG_WA("ERR_LIBRARY: IMMND_EVT_D2ND_ABORT_CCB can not arrive from client lib");
+		error = SA_AIS_ERR_LIBRARY;
+		break;
+
+	case IMMND_EVT_A2ND_OI_CL_IMPL_SET:
+
+		if(fevsReq->sender_count != 0x1) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_OI_OBJ_IMPL_SET fevsReq->sender_count != 0x1");
+			error = SA_AIS_ERR_LIBRARY;
+		} else if(immModel_immNotWritable(cb)) {// sync is on-going
+			error = immModel_classImplementerSet(cb, &(frwrd_evt.info.immnd.info.implSet),conn , nodeId);
+			osafassert(error != SA_AIS_OK); /* OK is impossible since we are not writable */
+			if(error == SA_AIS_ERR_NO_BINDINGS) {
+				TRACE("idempotent classImplementerSet locally detected, impl_id:%u",
+				      frwrd_evt.info.immnd.info.implSet.impl_id);
+			}
+		} else if(cb->mSyncFinalizing) {
+			//Writable, but sync is finalizing at coord.
+			error = SA_AIS_ERR_TRY_AGAIN;
+		}
+		/* Else when imm is writable, idempotency can not be trusted locally.
+		   OK will be returned, which will trigger forwarding over fevs. */
+
+		break;
+
+	case IMMND_EVT_A2ND_OI_OBJ_IMPL_SET:
+
+		if(fevsReq->sender_count != 0x1) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_OI_OBJ_IMPL_SET fevsReq->sender_count != 0x1");
+			error = SA_AIS_ERR_LIBRARY;
+		} else	if(immModel_immNotWritable(cb)) {// sync is on-going
+			error = immModel_objectImplementerSet(cb, &(frwrd_evt.info.immnd.info.implSet),	conn, nodeId);
+			osafassert(error != SA_AIS_OK); /* OK is impossible since we are not writable */
+			if(error == SA_AIS_ERR_NO_BINDINGS) {
+				TRACE("idempotent objectImplementerSet locally detected, impl_id:%u",
+				      frwrd_evt.info.immnd.info.implSet.impl_id);
+			}
+		} else if(cb->mSyncFinalizing) {
+			//Writable, but sync is finalizing at coord.
+			error = SA_AIS_ERR_TRY_AGAIN;
+		}
+		/* Else when imm is writable, idempotency can not be trusted locally.
+		   OK will be returned, which will trigger forwarding over fevs. */
+		break;
+
+	case IMMND_EVT_A2ND_OI_IMPL_CLR:
+		if(fevsReq->sender_count != 0x0) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_OI_IMPL_CLR fevsReq->sender_count != 0x0");
+			error = SA_AIS_ERR_LIBRARY;
+		}
+		break;
+
+
+	case IMMND_EVT_A2ND_OI_CL_IMPL_REL:
+		if(fevsReq->sender_count != 0x1) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_OI_CL_IMPL_REL fevsReq->sender_count != 0x1");
+			error = SA_AIS_ERR_LIBRARY;
+		}
+		break;
+
+	case IMMND_EVT_A2ND_OI_OBJ_IMPL_REL:
+		if(fevsReq->sender_count != 0x1) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_OI_OBJ_IMPL_REL fevsReq->sender_count != 0x1");
+			error = SA_AIS_ERR_LIBRARY;
+		}
+		break;
+
+	case IMMND_EVT_A2ND_OI_OBJ_CREATE:
+		if(fevsReq->sender_count != 0x1) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_OI_OBJ_CREATE fevsReq->sender_count != 0x1");
+			error = SA_AIS_ERR_LIBRARY;
+		}
+		break;
+
+	case IMMND_EVT_A2ND_OI_OBJ_MODIFY:
+		/* rtObjectUpdate is not encoded by imma client as fevs. */
+		LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_OI_OBJ_MODIFY can not arrive from client as fevs");
+		error = SA_AIS_ERR_LIBRARY;
+		break;
+
+
+	case IMMND_EVT_A2ND_OI_OBJ_DELETE:
+		if(fevsReq->sender_count != 0x1) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_OI_OBJ_DELETE fevsReq->sender_count != 0x1");
+			error = SA_AIS_ERR_LIBRARY;
+		}
+		break;
+
+	case IMMND_EVT_D2ND_ADMO_HARD_FINALIZE:
+		LOG_WA("ERR_LIBRARY: IMMND_EVT_D2ND_ADMO_HARD_FIMNALIZE can not arrive from client lib");
+		error = SA_AIS_ERR_LIBRARY;
+		break;
+
+	case IMMND_EVT_A2ND_ADMO_SET:
+	case IMMND_EVT_A2ND_ADMO_RELEASE:
+	case IMMND_EVT_A2ND_ADMO_CLEAR:
+		if(fevsReq->sender_count != 0x1) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_ADMO_XXX(%u) fevsReq->sender_count != 0x1",
+			       frwrd_evt.info.immnd.type);
+			error = SA_AIS_ERR_LIBRARY;
+			break;
+		}
+		/* Intentional fall through. */
+
+	case IMMND_EVT_A2ND_ADMO_FINALIZE:
+		if(immModel_immNotWritable(cb) || cb->mSyncFinalizing) {
+			error = SA_AIS_ERR_TRY_AGAIN;
+		}
+
+		break;
+
+	case IMMND_EVT_ND2ND_SYNC_FINALIZE:
+		if(!(cl_node->mIsSync)) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_ND2ND_SYNC_FINALIZE can only arrive from sync client");
+			error = SA_AIS_ERR_LIBRARY;
+		}
+		break;
+
+	case IMMND_EVT_ND2ND_SYNC_FINALIZE_2:
+		if(!(cl_node->mIsSync)) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_ND2ND_SYNC_FINALIZE_2 can not arrive from client lib");
+			error = SA_AIS_ERR_LIBRARY;
+		}
+		break;
+
+	case IMMND_EVT_A2ND_CCB_COMPLETED_RSP:
+	case IMMND_EVT_A2ND_CCB_COMPLETED_RSP_2:
+	case IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP:
+	case IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP:
+	case IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP_2:
+	case IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP:
+	case IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP:
+	case IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2:
+	case IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP:
+	case IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP:
+	case IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2:
+		if(fevsReq->sender_count != 0x0) {
+			LOG_WA("ERR_LIBRARY:  fevsReq->sender_count != 0x0 for OI response type:%u",
+				frwrd_evt.info.immnd.type);
+			error = SA_AIS_ERR_LIBRARY;
+		}
+		break;
+
+
+	case IMMND_EVT_A2ND_PBE_ADMOP_RSP:
+		if(fevsReq->sender_count != 0x0) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_PBE_ADMOP_RSP fevsReq->sender_count != 0x0");
+			error = SA_AIS_ERR_LIBRARY;
+		}
+		break;
+
+	case IMMND_EVT_D2ND_SYNC_FEVS_BASE:
+		LOG_WA("ERR_LIBRARY: IMMND_EVT_D2ND_SYNC_FEVS_BASE can not arrive from client lib");
+		error = SA_AIS_ERR_LIBRARY;
+		break;
+
+	default:
+		LOG_ER("UNPACK FAILURE, unrecognized message type: %u over FEVS", 
+			frwrd_evt.info.immnd.type);
+		error = SA_AIS_ERR_LIBRARY;
+		break;
+	}
+
+
+ unpack_failure:
+
+	if (uba.start) {
+		m_MMGR_FREE_BUFR_LIST(uba.start);
+	}
+
+	immnd_evt_destroy(&frwrd_evt, SA_FALSE, __LINE__);
+
+	if ((error != SA_AIS_OK) && (error != SA_AIS_ERR_NO_BINDINGS)) {
+		LOG_NO("Precheck of fevs message failed ERROR:%u", error);
+	}
+
+	TRACE_LEAVE();
+	return error;
 }
 
 /****************************************************************************
@@ -7886,6 +8242,12 @@ static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
 	err = immModel_classImplementerSet(cb, &(evt->info.implSet), (originatedAtThisNd) ? conn : 0, nodeId);
+	if(err == SA_AIS_ERR_NO_BINDINGS) {
+		/* Idempotency case. */
+		TRACE("Idempotent classImplementerSet for impl_id:%u detected in fevs received request.",
+		      evt->info.implSet.impl_id);
+		err = SA_AIS_OK;
+	} 
 
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
@@ -7896,12 +8258,7 @@ static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
 
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
-		if (err != SA_AIS_OK) {
-			send_evt.info.imma.info.errRsp.error = err;
-		} else {
-			send_evt.info.imma.info.errRsp.error = SA_AIS_OK;
-		}
-
+		send_evt.info.imma.info.errRsp.error = err;
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
@@ -8005,6 +8362,12 @@ static void immnd_evt_proc_obj_impl_set(IMMND_CB *cb,
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
 	err = immModel_objectImplementerSet(cb, &(evt->info.implSet), (originatedAtThisNd) ? conn : 0, nodeId);
+        if(err == SA_AIS_ERR_NO_BINDINGS) {
+		/* idempotency case. */
+		TRACE("Idempotent objectImplementerSet for impl_id:%u detected in fevs received request.",
+			evt->info.implSet.impl_id);
+		err = SA_AIS_OK;
+	}
 
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
