@@ -5114,6 +5114,8 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
             AttrMap::iterator iatt = classInfo->mAttrMap.find(attName);
             osafassert(iatt != classInfo->mAttrMap.end());
 
+            bool attrIsRuntime = (iatt->second->mFlags & SA_IMM_ATTR_RUNTIME);
+
             if(iatt->second->mFlags & SA_IMM_ATTR_NOTIFY) {
                 TRACE("Attribute %s marked ATTR_NOTIFY, kept for special "
                       "applier callback for ccb %u", current->attrValue.attrName.buf,
@@ -5175,7 +5177,15 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
                     omuti =  sPbeRtMutations.find(objectName);
                     if(omuti != sPbeRtMutations.end()) {
                         /* For persistent RT data use after-image. */
-                        obj = omuti->second->mAfterImage;
+                        if(attrIsRuntime) {
+                            obj = omuti->second->mAfterImage;
+                        } else {
+                            /* Config obj and config attr, use before image.
+                               Typically the implementer-name attr in a config object.
+                               To be appended to a PRTA update on the config object.
+                             */
+                            TRACE("Config attribute to append: %s", attName.c_str());
+                        }
                     } /*else normal cached, use the before image*/
                 }
 
