@@ -52,7 +52,8 @@ typedef enum {
 	MODIFY_OBJECT = 4,
 	LOAD_IMMFILE = 5,
 	VALIDATE_IMMFILE = 6,
-	CHANGE_CLASS = 7
+	CHANGE_CLASS = 7,
+	ADMINOWNER_CLEAR = 8
 } op_t;
 
 typedef enum {
@@ -100,6 +101,8 @@ static void usage(const char *progname)
 	printf("\t--disable-attr-notify (only valid with --class-name)\n");
 	printf("\t-u, --unsafe\n");
 	printf("\t-L, --validate <imm.xml file>\n");
+	printf("\t-o, --admin-owner <admin owner name>\n");
+	printf("\t--admin-owner-clear\n");
 
 	printf("\nEXAMPLE\n");
 	printf("\timmcfg -a saAmfNodeSuFailoverMax=7 safAmfNode=Node01,safAmfCluster=1\n");
@@ -120,6 +123,10 @@ static void usage(const char *progname)
 	printf("\t\tEnable attribute notifications for testUint32 and testString attributes in OpensafImmTest class\n");
 	printf("\timmcfg --class-name OpensafImmTest --disable-attr-notify testUint32 testString\n");
 	printf("\t\tDisable attribute notifications for testUint32 and testString attributes in OpensafImmTest class\n");
+	printf("\timmcfg -o myAdminOwner -a saAmfNodeSuFailoverMax=7 safAmfNode=Node01,safAmfCluster=1\n");
+	printf("\t\tuse 'myAdminOwnerName' as admin owner name for changing one attribute of one object\n");
+	printf("\timmcfg --admin-owner-clear safAmfNode=Node01,safAmfCluster=1\n");
+	printf("\t\tclear admin owner from one object\n");
 }
 
 /* signal handler for SIGALRM */
@@ -671,6 +678,17 @@ static char *create_adminOwnerName(char *base){
 	return unique_adminOwner;
 }
 
+static int admin_owner_clear(const SaNameT **objectNames, SaImmHandleT immHandle) {
+	SaAisErrorT error;
+
+	if((error = saImmOmAdminOwnerClear(immHandle, objectNames, SA_IMM_ONE)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmAdminOwnerClear FAILED: %s\n", saf_error(error));
+		return EXIT_FAILURE;
+	}
+
+	return 0;
+}
+
 static int class_change(SaImmHandleT immHandle, const SaImmAdminOwnerNameT adminOwnerName,
 		const SaImmClassNameT className, const char **attributeNames, attr_notify_t attrNotify)
 {
@@ -832,11 +850,14 @@ int main(int argc, char *argv[])
 		{"class-name", required_argument, NULL, 0},
 		{"enable-attr-notify", no_argument, NULL, 0},
 		{"disable-attr-notify", no_argument, NULL, 0},
+		{"admin-owner", required_argument, NULL, 'o'},
+		{"admin-owner-clear", no_argument, NULL, 0},
 		{0, 0, 0, 0}
 	};
 	SaAisErrorT error;
 	SaImmHandleT immHandle;
-	SaImmAdminOwnerNameT adminOwnerName = create_adminOwnerName(basename(argv[0]));
+	SaImmAdminOwnerNameT adminOwnerName = NULL;
+	int useAdminOwner = 1;
 	SaImmAdminOwnerHandleT ownerHandle;
 	SaNameT **objectNames = NULL;
 	int objectNames_len = 1;
@@ -858,7 +879,7 @@ int main(int argc, char *argv[])
 
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "a:c:f:t:dhmvuL:", long_options, &option_index);
+		c = getopt_long(argc, argv, "a:c:f:t:dhmvuL:o:", long_options, &option_index);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
@@ -868,6 +889,9 @@ int main(int argc, char *argv[])
 			VERBOSE_INFO("Long option[%d]: %s\n", option_index, long_options[option_index].name);
 			if (strcmp("delete-class", long_options[option_index].name) == 0) {
 				op = verify_setoption(op, DELETE_CLASS);
+			} else if (!strcmp("admin-owner-clear", long_options[option_index].name)) {
+				op = verify_setoption(op, ADMINOWNER_CLEAR);
+				useAdminOwner = 0;
 			} else if (strcmp("class-name", long_options[option_index].name) == 0) {
 				op = verify_setoption(op, CHANGE_CLASS);
 				className = optarg;
@@ -902,7 +926,8 @@ int main(int argc, char *argv[])
 			break;
 		}
 		case 'h':
-			free(adminOwnerName);
+			if(adminOwnerName)
+				free(adminOwnerName);
 			usage(basename(argv[0]));
 			exit(EXIT_SUCCESS);
 			break;
@@ -928,6 +953,14 @@ int main(int argc, char *argv[])
 			op = verify_setoption(op, VALIDATE_IMMFILE);
 			xmlFilename = optarg;
 			break;
+		case 'o':
+			if(adminOwnerName) {
+				fprintf(stderr, "Administrative owner name can be set only once\n");
+				exit(EXIT_FAILURE);
+			}
+			adminOwnerName = (SaImmAdminOwnerNameT)malloc(strlen(optarg) + 1);
+			strcpy(adminOwnerName, optarg);
+			break;
 		default:
 			free(adminOwnerName);
 			fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
@@ -935,6 +968,9 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}
+
+	if(!adminOwnerName)
+		adminOwnerName = create_adminOwnerName(basename(argv[0]));
 
 	signal(SIGALRM, sigalarmh);
 	alarm(timeoutVal);
@@ -1022,12 +1058,13 @@ int main(int argc, char *argv[])
                 goto done_om_finalize;
         }
 
-
-	error = immutil_saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, &ownerHandle);
-	if (error != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmAdminOwnerInitialize FAILED: %s\n", saf_error(error));
-		rc = EXIT_FAILURE;
-		goto done_om_finalize;
+	if(useAdminOwner) {
+		error = immutil_saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, &ownerHandle);
+		if (error != SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmAdminOwnerInitialize FAILED: %s\n", saf_error(error));
+			rc = EXIT_FAILURE;
+			goto done_om_finalize;
+		}
 	}
 
 	switch (op) {
@@ -1043,6 +1080,9 @@ int main(int argc, char *argv[])
 	case DELETE_CLASS:
 		rc = class_delete(classNames, immHandle);
 		break;
+	case ADMINOWNER_CLEAR:
+		rc = admin_owner_clear((const SaNameT **)objectNames, immHandle);
+		break;
 	case CHANGE_CLASS :
 		rc = class_change(immHandle, adminOwnerName, className, (const char **)attributeNames, attrNotify);
 		break;
@@ -1051,17 +1091,24 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	error = immutil_saImmOmAdminOwnerFinalize(ownerHandle);
-	if (SA_AIS_OK != error) {
-		fprintf(stderr, "error - saImmOmAdminOwnerFinalize FAILED: %s\n", saf_error(error));
-		rc = EXIT_FAILURE;
-		goto done_om_finalize;
+	if(useAdminOwner) {
+		error = immutil_saImmOmAdminOwnerFinalize(ownerHandle);
+		if (SA_AIS_OK != error) {
+			fprintf(stderr, "error - saImmOmAdminOwnerFinalize FAILED: %s\n", saf_error(error));
+			rc = EXIT_FAILURE;
+			goto done_om_finalize;
+		}
 	}
 
  done_om_finalize:
+	if(objectNames)
+		free(objectNames);
+	if(classNames)
+		free(classNames);
+	if(adminOwnerName)
+		free(adminOwnerName);
 	if(attributeNames)
 		free(attributeNames);
-	free(adminOwnerName);
 	error = immutil_saImmOmFinalize(immHandle);
 	if (SA_AIS_OK != error) {
                 fprintf(stderr, "error - saImmOmFinalize FAILED: %s\n", saf_error(error));
