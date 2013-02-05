@@ -140,6 +140,7 @@ extern void saImmOmCcbObjectModify_2_10(void);
 extern void saImmOmCcbObjectModify_2_11(void);
 extern void saImmOmCcbObjectModify_2_12(void);
 extern void saImmOmCcbObjectModify_2_13(void);
+extern void saImmOmCcbObjectModify_2_14(void);
 extern void saImmOmCcbApply_01(void);
 extern void saImmOmCcbApply_02(void);
 extern void saImmOmCcbFinalize_01(void);
@@ -183,6 +184,7 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(6, saImmOmCcbObjectModify_2_11, "saImmOmCcbObjectModify_2 - SA_AIS_OK, control characters");
     test_case_add(6, saImmOmCcbObjectModify_2_12, "saImmOmCcbObjectModify_2 - SA_AIS_OK, empty string");
     test_case_add(6, saImmOmCcbObjectModify_2_13, "saImmOmCcbObjectModify_2 - SA_AIS_OK, empty SaAnyT");
+    test_case_add(6, saImmOmCcbObjectModify_2_14, "saImmOmCcbObjectModify_2 - SA_AIS_ERR_INVALID_PARAM, duplicates not allowed");
 
     test_case_add(6, saImmOmCcbApply_01, "saImmOmCcbApply - SA_AIS_OK");
     test_case_add(6, saImmOmCcbApply_02, "saImmOmCcbApply - SA_AIS_ERR_BAD_HANDLE");

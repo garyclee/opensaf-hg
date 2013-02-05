@@ -579,6 +579,42 @@ void saImmOmCcbObjectModify_2_13(void)
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
+void saImmOmCcbObjectModify_2_14(void)
+{
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT ccbHandle;
+    const SaNameT *objectNames[] = {&parentName, NULL};
+    SaAnyT anyValue = { 0, (SaUint8T *)"" };
+    SaAnyT* anyValues[] = { &anyValue, &anyValue, &anyValue };
+    SaImmAttrValuesT_2 any5 = {"attr5", SA_IMM_ATTR_SAANYT, 1, (void **)anyValues};
+    SaImmAttrValuesT_2 any6 = {"attr6", SA_IMM_ATTR_SAANYT, 3, (void **)anyValues};
+    SaImmAttrValuesT_2 any7 = {"attr7", SA_IMM_ATTR_SAANYT, 3, (void **)anyValues};
+    SaImmAttrModificationT_2 attrMod5 = {SA_IMM_ATTR_VALUES_REPLACE, any5};
+    SaImmAttrModificationT_2 attrMod6 = {SA_IMM_ATTR_VALUES_REPLACE, any6};
+    SaImmAttrModificationT_2 attrMod7 = {SA_IMM_ATTR_VALUES_REPLACE, any7};
+    const SaImmAttrModificationT_2 *attrMods[] = {&attrMod5, &attrMod6, &attrMod7, NULL};
+
+    safassert(saImmOmInitialize(&immOmHandle, NULL, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), SA_AIS_OK);
+    safassert(config_class_create(immOmHandle), SA_AIS_OK);
+    safassert(config_object_create(immOmHandle, ownerHandle, &parentName), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerSet(ownerHandle, dnObjs, SA_IMM_ONE), SA_AIS_OK);
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+
+    safassert(saImmOmCcbObjectModify_2(ccbHandle, &dnObj1, attrMods), SA_AIS_ERR_INVALID_PARAM);
+
+    /* If we come here, then the test is successful */
+    test_validate(SA_AIS_OK, SA_AIS_OK);
+
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+    safassert(config_object_delete(immOmHandle, ownerHandle), SA_AIS_OK);
+    safassert(config_class_delete(immOmHandle), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
 
 __attribute__ ((constructor)) static void saImmOmCcbObjectModify_2_constructor(void)
 {
