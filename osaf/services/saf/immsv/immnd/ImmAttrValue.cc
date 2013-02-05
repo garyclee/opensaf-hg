@@ -229,6 +229,12 @@ ImmAttrValue::hasMatchingValue(const IMMSV_OCTET_STRING& match) const //virtual
         mValueSize) == 0 ;
 }
 
+bool
+ImmAttrValue::hasDuplicates() const //virtual
+{
+    return false; /* Single value can not have duplicates. */
+}
+
 ImmAttrMultiValue::ImmAttrMultiValue() : 
     ImmAttrValue(),
     mNext(NULL)
@@ -364,6 +370,14 @@ ImmAttrMultiValue::hasMatchingValue(const IMMSV_OCTET_STRING& match) const//virt
     
     //TODO: make non-recursive.
     return mNext?(mNext->hasMatchingValue(match)):false;
+}
+
+bool
+ImmAttrMultiValue::hasDuplicates() const//virtual
+{
+    IMMSV_OCTET_STRING match = {mValueSize, mValue};
+    
+    return mNext ? (mNext->hasMatchingValue(match) || mNext->hasDuplicates()):false;
 }
 
 //Note ImmAttrMultiValue::setValue(const IMMSV_OCTET_STRING& in)  
