@@ -41,6 +41,7 @@ public:
     virtual void     print() const;
     virtual void     removeValue(const IMMSV_OCTET_STRING& match);
     virtual bool     hasMatchingValue(const IMMSV_OCTET_STRING& match) const;
+    virtual bool     hasDuplicates() const;
 
     void printSimpleValue() const;
 
@@ -74,6 +75,7 @@ public:
     virtual void     print() const;
     virtual void     removeValue(const IMMSV_OCTET_STRING& match);
     virtual bool     hasMatchingValue(const IMMSV_OCTET_STRING& match) const;
+    virtual bool     hasDuplicates() const;
     
     void printMultiValue() const;
     

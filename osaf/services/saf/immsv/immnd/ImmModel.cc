@@ -2491,6 +2491,13 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             illegal = 1;
         }
 
+        if((attr->attrFlags & SA_IMM_ATTR_NO_DUPLICATES) &&
+            !(attr->attrFlags & SA_IMM_ATTR_MULTI_VALUE)) {
+            LOG_NO("ERR_INVALID_PARAM: Attribute '%s' can not have SA_IMM_ATTR_NO_DUPLICATES "
+                "when not SA_IMM_ATTR_MULTI_VALUE", attNm);
+            illegal = 1;
+        }
+
         if(attr->attrFlags & SA_IMM_ATTR_CONFIG) {
 
             if(req->classCategory == SA_IMM_CLASS_RUNTIME) {
@@ -2986,6 +2993,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
         /* Existing attribute, possibly changed. */
         bool change=false;
         bool checkCcb=false;
+        bool checkNoDup=false;
         osafassert(changedAttrs);
         if(oldAttr->mValueType != newAttr->mValueType) {
             LOG_NO("Impossible upgrade, attribute %s:%s changes value type",
@@ -3037,6 +3045,24 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                 change = true; /* Instances NEED migration. */
             }
 
+            if((oldAttr->mFlags & SA_IMM_ATTR_NO_DUPLICATES) &&
+               !(newAttr->mFlags & SA_IMM_ATTR_NO_DUPLICATES)) {
+                LOG_NO("Allowed upgrade, attribute %s:%s removes flag "
+                    "SA_IMM_ATTR_NO_DUPLICATES", className.c_str(), attName.c_str());
+                change = true; /* Instances dont need migration. */
+            }
+
+            if(!(oldAttr->mFlags & SA_IMM_ATTR_NO_DUPLICATES) &&
+               (newAttr->mFlags & SA_IMM_ATTR_NO_DUPLICATES)) {
+
+                LOG_NO("Allowed upgrade, attribute %s:%s adds flag "
+                    "SA_IMM_ATTR_NO_DUPLICATES", className.c_str(), attName.c_str());
+
+                change = true;   /* Instances dont need migration. */
+                checkCcb=true;   /* Check for ccb interference. */
+                checkNoDup=true; /* Instances need validation of no dup */
+            }
+
             if((oldAttr->mFlags & SA_IMM_ATTR_WRITABLE) &&
                !(newAttr->mFlags & SA_IMM_ATTR_WRITABLE)) {
                 LOG_NO("Impossible upgrade, attribute %s:%s removes flag "
@@ -3080,7 +3106,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                     "SA_IMM_ATTR_PERSISTENT", className.c_str(), attName.c_str());
 
                 change = true; /* Instances dont need migration. */
-                checkCcb=true;
+                checkCcb=true; /* Check for ccb interference. */
             }
 
             if(!(oldAttr->mFlags & SA_IMM_ATTR_NOTIFY) &&
@@ -3089,7 +3115,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                 LOG_NO("Allowed upgrade, attribute %s:%s adds flag "
                     "SA_IMM_ATTR_NOTIFY", className.c_str(), attName.c_str());
                 change = true; /* Instances dont need migration. */
-                checkCcb=true;
+                checkCcb=true; /* Check for ccb interference. */
             }
 
             if((oldAttr->mFlags & SA_IMM_ATTR_NOTIFY) &&
@@ -3097,41 +3123,74 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                 LOG_NO("Allowed upgrade, attribute %s:%s removes flag "
                     "SA_IMM_ATTR_NOTIFY", className.c_str(), attName.c_str());
                 change = true; /* Instances dont need migration. */
-                checkCcb=true;
+                checkCcb=true; /* Check for ccb interference. */
             }
         }
 
+        osafassert(!checkNoDup || checkCcb); //Duplicate-check implies ccb-check
+
         if(checkCcb) { 
             /* Check for ccb-interference. Changing ATTR_NOTIFY or ATTR_PERSISTENT
-               when there is an on-going ccb that is still open (not critical) and 
-               is operating on instances of the class could cause partial and
-               incomplete notification/persistification relative to the CCB.
-               Abort the ccb in that case.
+               or adding NO_DUPLICATES when there is an on-going ccb that is still
+               open (not critical) and is operating on instances of the class could
+               cause partial and incomplete notification/persistification/unique-check
+               relative to the CCB. Abort the ccb in that case. NO_DUPLICATES also
+               need to check for interference in ccbs that are in critical (waiting on PBE)
+               because such a CCB can not be aborted and could be adding duplicates just
+               as NO_DUPLICATES is added to an attribute by this schema change.
             */
             CcbVector::iterator i;
-            ClassInfo* oldClassInfo=NULL;
+            ClassMap::iterator i3 = sClassMap.find(className);
+            osafassert(i3 != sClassMap.end());
+            ClassInfo* oldClassInfo=i3->second;
+            ObjectInfo* obj = NULL;
+
             for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
                 CcbInfo* ccb = (*i);
-                if(ccb->mState < IMM_CCB_CRITICAL && ccb->mVeto==SA_AIS_OK) {
+                if(ccb->mState <= IMM_CCB_CRITICAL && ccb->mVeto==SA_AIS_OK) {
                     ObjectMutationMap::iterator omit;
                     for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit) {
                         ObjectMap::iterator oi = sObjectMap.find(omit->first);
                         osafassert(oi != sObjectMap.end());
-                        ObjectInfo* obj = oi->second;
-                        if(oldClassInfo == NULL) {
-                            ClassMap::iterator i3 = sClassMap.find(className);
-                            osafassert(i3 != sClassMap.end());
-                            oldClassInfo = i3->second;
-                        }
-
+                        obj = oi->second;
                         if(obj->mClassInfo == oldClassInfo) {
-                            LOG_NO("Ccb %u is active on object '%s', interferes with "
-                                   "class change for class: %s attr: %s. Aborting Ccb.", 
-                                  ccb->mId, omit->first.c_str(), className.c_str(),
-                                  attName.c_str());
-                            ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+                            if(ccb->mState < IMM_CCB_CRITICAL) {
+                                LOG_NO("Ccb %u is active on object '%s', interferes with "
+                                    "class change for class: %s attr: %s. Aborting Ccb.", 
+                                    ccb->mId, omit->first.c_str(), className.c_str(),
+                                    attName.c_str());
+                                ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+                            } else {
+                                osafassert(ccb->mState == IMM_CCB_CRITICAL);
+                                LOG_NO("Ccb %u in critical state (can not abort) is active "
+                                    "on object '%s', interferes with class change for "
+                                    "class: %s attr: %s. Aborting class change", 
+                                    ccb->mId, omit->first.c_str(), className.c_str(),
+                                    attName.c_str());
+                                return true;
+                            }
                             break; /* Out of inner loop. */
-                        }
+                        }//if
+                    }//for
+                }//if
+            }//for
+
+            if(checkNoDup) {
+                /* Screen all instances of class for no duplicates on attr. */
+                ObjectSet::iterator osi = oldClassInfo->mExtent.begin();
+                for(;osi!=oldClassInfo->mExtent.end();++osi) {
+                    obj = *osi;
+                    ImmAttrValueMap::iterator oavi = obj->mAttrValueMap.find(attName);
+                    osafassert(oavi!= obj->mAttrValueMap.end());
+                    osafassert(oavi->second->isMultiValued());
+                    if(oavi->second->hasDuplicates()) {
+                        std::string objName;
+                        getObjectName(obj, objName);
+                        LOG_NO("Impossible upgrade, attribute %s:%s adds flag "
+                            "SA_IMM_ATTR_NO_DUPLICATE, but object '%s' has "
+                            "duplicate values in that attribute", 
+                            className.c_str(), attName.c_str(), objName.c_str());
+                        return true;
                     }
                 }
             }
@@ -5722,7 +5781,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         
         // Set attribute values
         immsv_attr_values_list* p = req->attrValues;
-        while(p) {
+        while(p && (err == SA_AIS_OK)) {
             sz = strnlen((char *) p->n.attrName.buf, 
                 (size_t)p->n.attrName.size);
             std::string attrName((const char*)p->n.attrName.buf, sz);
@@ -5821,6 +5880,14 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                         while(al) {
                             eduAtValToOs(&tmpos, &(al->n), 
                                 (SaImmValueTypeT) p->n.attrValueType);
+                            if((attr->mFlags & SA_IMM_ATTR_NO_DUPLICATES) &&
+                               (multiattr->hasMatchingValue(tmpos))) {
+                                LOG_NO("ERR_INVALID_PARAM: multivalued attr '%s' with NO_DUPLICATES "
+                                    "yet duplicate values provided in ccb obj-create call. Class:'%s' obj:'%s'.",                                    
+                                     attrName.c_str(), className.c_str(), objectName.c_str());
+                                err = SA_AIS_ERR_INVALID_PARAM;
+                                break; //out of loop
+                            }
                             multiattr->setExtraValue(tmpos);
                             al = al->next;
                         }
@@ -5854,7 +5921,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             }
             
             p = p->next;
-        } //while(p)
+        } //while(p...
         
 
         //Check that all attributes with INITIALIZED flag have been set.
@@ -6469,6 +6536,15 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                     osafassert(attrValue->isMultiValued());
                     ImmAttrMultiValue* multiattr = 
                         (ImmAttrMultiValue *) attrValue;
+                    if((attr->mFlags & SA_IMM_ATTR_NO_DUPLICATES) &&
+                       (multiattr->hasMatchingValue(tmpos))) {
+                        LOG_NO("ERR_INVALID_PARAM: multivalued attr '%s' with NO_DUPLICATES "
+                            "yet duplicate values provided in modify call. Object:'%s'", 
+                             attrName.c_str(), objectName.c_str());
+                        err = SA_AIS_ERR_INVALID_PARAM;
+                        break; //out of for switch
+                    }
+
                     multiattr->setExtraValue(tmpos);
                 }
                 
@@ -6489,6 +6565,15 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                         while(al) {
                             eduAtValToOs(&tmpos, &(al->n),
                                 (SaImmValueTypeT) p->attrValue.attrValueType);
+                            if((attr->mFlags & SA_IMM_ATTR_NO_DUPLICATES) &&
+                               (multiattr->hasMatchingValue(tmpos))) {
+                                LOG_NO("ERR_INVALID_PARAM: multivalued attr '%s' with "
+                                    "NO_DUPLICATES yet duplicate values provided in modify call "
+                                     "Object:'%s'", attrName.c_str(), objectName.c_str());
+                                err = SA_AIS_ERR_INVALID_PARAM;
+                                break; //out of loop
+                            }
+
                             multiattr->setExtraValue(tmpos);
                             al = al->next;
                         }
@@ -11317,7 +11402,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
         
         // Set attribute values
         immsv_attr_values_list* p = req->attrValues;
-        while(p) {
+        while(p && (err == SA_AIS_OK)) {
             sz = strnlen((char *) p->n.attrName.buf, 
                 (size_t)p->n.attrName.size);
             std::string attrName((const char*)p->n.attrName.buf, sz);
@@ -11414,6 +11499,15 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                         while(al) {
                             eduAtValToOs(&tmpos, &(al->n), 
                                 (SaImmValueTypeT) p->n.attrValueType);
+                            if((attr->mFlags & SA_IMM_ATTR_NO_DUPLICATES) &&
+                               (multiattr->hasMatchingValue(tmpos))) {
+                                LOG_NO("ERR_INVALID_PARAM: multivalued attr '%s' with NO_DUPLICATES "
+                                       "yet duplicate values provided in rto-create call. Class: "
+                                       "'%s' obj:'%s'.", attrName.c_str(), className.c_str(),
+                                       objectName.c_str());
+                                err = SA_AIS_ERR_INVALID_PARAM;
+                                break; //out of loop
+                            }
                             multiattr->setExtraValue(tmpos);
                             al = al->next;
                         }
@@ -11422,7 +11516,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                 }
             } //if(p->n.attrValuesNumber > 1)
             p = p->next;
-        } //while(p)
+        } //while(p...
         
 
         //Check that all attributes with CACHED flag have been set.
@@ -12566,6 +12660,15 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                             osafassert(attrValue->isMultiValued());
                             ImmAttrMultiValue* multiattr = 
                                 (ImmAttrMultiValue *) attrValue;
+                            if((attr->mFlags & SA_IMM_ATTR_NO_DUPLICATES) &&
+                               (multiattr->hasMatchingValue(tmpos))) {
+                                LOG_NO("ERR_INVALID_PARAM: multivalued attr '%s' with NO_DUPLICATES "
+                                    "yet duplicate values provided in rta-update call. Object:'%s'.",
+                                     attrName.c_str(), objectName.c_str());
+                                err = SA_AIS_ERR_INVALID_PARAM;
+                                break; //out of for switch
+                            }
+
                             multiattr->setExtraValue(tmpos);
                         }
                     }
@@ -12587,6 +12690,15 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                             while(al) {
                                 eduAtValToOs(&tmpos, &(al->n),
                                     (SaImmValueTypeT) p->attrValue.attrValueType);
+                                if((attr->mFlags & SA_IMM_ATTR_NO_DUPLICATES) &&
+                                   (multiattr->hasMatchingValue(tmpos))) {
+                                    LOG_NO("ERR_INVALID_PARAM: multivalued attr '%s' with NO_DUPLICATES "
+                                        "yet duplicate values provided in rta-update call. Object:'%s'.", 
+                                         attrName.c_str(), objectName.c_str());
+                                    err = SA_AIS_ERR_INVALID_PARAM;
+                                    break; //out of loop
+                                }
+
                                 multiattr->setExtraValue(tmpos);
                                 al = al->next;
                             }
