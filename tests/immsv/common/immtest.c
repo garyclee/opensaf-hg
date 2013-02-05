@@ -98,7 +98,10 @@ SaAisErrorT config_class_create(SaImmHandleT immHandle)
     SaImmAttrDefinitionT_2 attr6 = {
         "attr6", SA_IMM_ATTR_SAANYT, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE | SA_IMM_ATTR_MULTI_VALUE, NULL};
 
-    const SaImmAttrDefinitionT_2* attributes[] = {&rdn, &attr1, &attr2, &attr3, &attr4, &attr5, &attr6, NULL};
+    SaImmAttrDefinitionT_2 attr7 = {
+        "attr7", SA_IMM_ATTR_SAANYT, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE | SA_IMM_ATTR_MULTI_VALUE | SA_IMM_ATTR_NO_DUPLICATES, NULL};
+
+    const SaImmAttrDefinitionT_2* attributes[] = {&rdn, &attr1, &attr2, &attr3, &attr4, &attr5, &attr6, &attr7, NULL};
 
     err = saImmOmClassCreate_2(immHandle, configClassName, SA_IMM_CLASS_CONFIG,
         attributes);

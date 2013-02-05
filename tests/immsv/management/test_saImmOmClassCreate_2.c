@@ -249,6 +249,23 @@ void saImmOmClassCreate_2_14(void)
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
+void saImmOmClassCreate_2_15(void)
+{
+    const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    SaImmAttrDefinitionT_2 attr1 =
+        {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_RDN | SA_IMM_ATTR_CACHED, NULL};
+    SaImmAttrDefinitionT_2 attr2 =
+        {"nodupnonmulti_rta",  SA_IMM_ATTR_SAUINT32T, SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_NO_DUPLICATES, NULL};
+    const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&attr1, &attr2, NULL};
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    /* config attributes in runtime class */
+    rc = saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_RUNTIME, attrDefinitions);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+    //safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
 
 
 extern void saImmOmClassDescriptionGet_2_01(void);
@@ -283,6 +300,7 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(2, saImmOmClassCreate_2_11, "saImmOmClassCreate_2 - SA_AIS_ERR_INVALID_PARAM, Invalid classCategory");
     test_case_add(2, saImmOmClassCreate_2_12, "saImmOmClassCreate_2 - SA_AIS_ERR_EXIST, className already exist");
     test_case_add(2, saImmOmClassCreate_2_14, "saImmOmClassCreate_2 - SA_AIS_ERR_INVALID_PARAM, flag SA_IMM_ATTR_NOTIFY not allowed on pure RTAs");
+    test_case_add(2, saImmOmClassCreate_2_15, "saImmOmClassCreate_2 - SA_AIS_ERR_INVALID_PARAM, flag SA_IMM_ATTR_NO_DUPLICATES only allowed on multivalued");
 
     test_case_add(2, saImmOmClassDescriptionGet_2_01, "saImmOmClassDescriptionGet_2 - SA_AIS_OK");
     test_case_add(2, saImmOmClassDescriptionGet_2_02, "saImmOmClassDescriptionGet_2 - SA_AIS_ERR_BAD_HANDLE");
