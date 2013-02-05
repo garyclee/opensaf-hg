@@ -797,6 +797,8 @@ static uint32_t immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 	SaAisErrorT error = SA_AIS_OK;
 	void *searchOp = NULL;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	IMMND_OM_SEARCH_NODE *sn = NULL;
+	uint16_t searchOpCount=0;
 
 	/* Official DUMP/BACKUP assumed when search is global for only persistent attrs and done at SC. */
         SaBoolT officialDump = cb->mCanBeCoord &&
@@ -840,6 +842,18 @@ static uint32_t immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 		}
 	}
 
+	sn = cl_node->searchOpList;
+	while(sn) {
+		++searchOpCount;
+		sn = sn->next;
+	}
+	if(searchOpCount >= 50) {
+		LOG_WA("ERR_NO_RESOURCES: Too many search operations (%u) on OM handle -"
+			" probable resource leak.", searchOpCount);
+		error = SA_AIS_ERR_NO_RESOURCES;
+		goto agent_rsp;
+	}
+
 	error = immModel_searchInitialize(cb, &(evt->info.searchInit), &searchOp, isSync);
 
 	if((error == SA_AIS_OK) && isSync) {
@@ -868,7 +882,7 @@ static uint32_t immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 
 	/*Generate search-id */
 	if (error == SA_AIS_OK) {
-		IMMND_OM_SEARCH_NODE *sn = calloc(1, sizeof(IMMND_OM_SEARCH_NODE));
+		sn = calloc(1, sizeof(IMMND_OM_SEARCH_NODE));
 		if (sn == NULL) {
 			send_evt.info.imma.info.searchInitRsp.error = SA_AIS_ERR_NO_MEMORY;
 			goto agent_rsp;
