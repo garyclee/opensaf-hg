@@ -16,6 +16,7 @@
  */
 
 #include "immtest.h"
+#include <unistd.h>
 
 void saImmOmSearchInitialize_2_01(void)
 {
@@ -106,6 +107,23 @@ void saImmOmSearchInitialize_2_07(void)
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
+void saImmOmSearchInitialize_2_08(void)
+{
+    SaImmSearchHandleT searchHandle;
+    int count=0;
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    do {
+	    rc = saImmOmSearchInitialize_2(immOmHandle, NULL, SA_IMM_SUBLEVEL,
+		    SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR, NULL, NULL, &searchHandle);
+	    ++count;
+    } while (rc == SA_AIS_OK);
+    count--; //last one failed
+    test_validate(rc, SA_AIS_ERR_NO_RESOURCES);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+
 extern void saImmOmSearchNext_2_01(void);
 extern void saImmOmSearchNext_2_02(void);
 extern void saImmOmSearchNext_2_03(void);
@@ -124,6 +142,8 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
         "saImmOmSearchInitialize_2 - SA_AIS_ERR_INVALID_PARAM, searchHandle set although SA_IMM_SEARCH_GET_SOME_ATTR is not set");
     test_case_add(3, saImmOmSearchInitialize_2_07,
         "saImmOmSearchInitialize_2 - SA_AIS_OK, Match on existence of attribute SA_IMM_ATTR_CLASS_NAME See: #1895");
+    test_case_add(3, saImmOmSearchInitialize_2_08,
+        "saImmOmSearchInitialize_2 - SA_AIS_NO_RESOURCES, Allocate too many search handles for one om-handle");
 
     test_case_add(3, saImmOmSearchNext_2_01, "saImmOmSearchNext_2 - SA_AIS_OK/SA_AIS_ERR_NOT_EXIST (tree walk)");
     test_case_add(3, saImmOmSearchNext_2_02, "saImmOmSearchNext_2 - SA_AIS_ERR_BAD_HANDLE");
