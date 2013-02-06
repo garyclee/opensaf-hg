@@ -182,6 +182,18 @@ static SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT handle,
     return SA_AIS_OK;
 }
 
+static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
+	const SaNameT *objectName, SaImmAdminOperationIdT operationId, 
+	const SaImmAdminOperationParamsT_2 **params)
+{
+	printf("AdminOperationCallback received by impl %s on object %s operation:%llu invocation:%llu\n", 
+		implName, (char *) objectName->value, operationId, invocation);
+	SaAisErrorT err = saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+	if(err != SA_AIS_OK) {
+		fprintf(stderr, "Reply on admin operation failed, err:%u\n", err);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	int c;
@@ -197,7 +209,7 @@ int main(int argc, char *argv[])
 	SaNameT objectName;
 	const SaImmAdminOperationParamsT_2 **params;
 	const SaImmOiCallbacksT_2 callbacks = {
-		.saImmOiAdminOperationCallback = NULL,
+		.saImmOiAdminOperationCallback = saImmOiAdminOperationCallback,
 		.saImmOiCcbAbortCallback = saImmOiCcbAbortCallback,
 		.saImmOiCcbApplyCallback = saImmOiCcbApplyCallback,
 		.saImmOiCcbCompletedCallback = saImmOiCcbCompletedCallback,
