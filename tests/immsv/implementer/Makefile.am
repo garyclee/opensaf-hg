@@ -51,7 +51,8 @@ immoitest_SOURCES = \
 
 immoitest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
-	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la
 
 
 immapplier_CPPFLAGS = \
@@ -65,5 +66,6 @@ immapplier_SOURCES = \
 
 immapplier_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
-	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la
 
