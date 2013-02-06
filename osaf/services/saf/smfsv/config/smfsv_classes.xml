@@ -461,4 +461,19 @@
 			<flag>SA_MULTI_VALUE</flag>
 		</attr>
 	</class>
+	<class name="OpenSafSmfMisc">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>openSafSmfMisc</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</rdn>
+		<attr>
+			<name>reason</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+	</class>
 </imm:IMM-contents>

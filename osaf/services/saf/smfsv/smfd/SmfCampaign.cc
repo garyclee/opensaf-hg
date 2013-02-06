@@ -33,6 +33,7 @@
 #include <saSmf.h>
 #include <logtrace.h>
 #include <immutil.h>
+#include <saf_error.h>
 
 /* We need some DN space for the step (~15),activation/deactivation (~30)
    and image node (~15) objects */
@@ -372,6 +373,15 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 			if (SmfCampaignThread::instance() == NULL) {
 				LOG_ER("Failed to rollback campaign, campaign not executing");
 				return SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
+			}
+
+			bool result = false;
+			std::string reason;
+			getUpgradeCampaign()->isCampRollbackDisabled(result,reason);
+			if (result == true) {
+				LOG_NO("Rollback is not allowed, reason=[%s]", reason.c_str());
+				setError(reason);
+				return SA_AIS_ERR_BAD_OPERATION;
 			}
 
                         if (m_adminOpBusy == true) {

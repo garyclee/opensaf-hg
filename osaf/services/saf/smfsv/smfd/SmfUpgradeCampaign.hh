@@ -275,6 +275,21 @@ class SmfUpgradeCampaign {
 	SaAisErrorT restorePbe();
 
 ///
+/// Purpose: Mark the campaign not possible to rollback
+/// @param   std::string& i_reason, reason information
+/// @return  SaAisErrorT
+///
+	SaAisErrorT disableCampRollback(std::string i_reason);
+
+///
+/// Purpose: Check if campaign is possible to rollback
+/// @param   bool o_result, true if disabled otherwise false
+/// @param   std::string& o_reason, reason information
+/// @return  SaAisErrorT
+///
+	SaAisErrorT isCampRollbackDisabled(bool& o_result, std::string& o_reason);
+
+///
 /// Purpose: Start or continue the execution of the campaign.
 /// @param   None.
 /// @return  None.
@@ -357,6 +372,12 @@ class SmfUpgradeCampaign {
 /// @return  None.
 ///
 	void removeRunTimeObjects();
+///
+/// Purpose: Remove config objects
+/// @param   None.
+/// @return  None.
+///
+	void removeConfigObjects();
 ///
 /// Purpose: Create SMF campaign restart indicator
 /// @param   None.

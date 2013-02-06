@@ -1328,19 +1328,36 @@ SmfUpgradeStep::calculateStepType()
 			    admin operation SWAP on the SI we belong to. Then the other
 			    controller will continue with this step and do the lock/reboot.
 			   
-			   -If single step  upgrade: No switchover is needed. A cluster reboot will be 
+			    -If single step  upgrade: No switchover is needed. A cluster reboot will be 
                             ordered within the step */
 
 			if (this->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_ROLLING) {
-				if (this->isCurrentNode(firstAuDu) == true) {
-					this->setSwitchOver(true);
-					return SA_AIS_OK; 
+				//In a single node system, treat a rolling upgrade with reboot as single step
+				SaAisErrorT rc;
+				bool result;
+				if ((rc = this->isSingleNodeSystem(result)) != SA_AIS_OK) {
+					LOG_ER("Fail to read if this is a single node system rc=%s", saf_error(rc));
+					return SA_AIS_ERR_FAILED_OPERATION;
 				}
 
-                                if (activateUsed == false)
-                                        this->setStepType(new SmfStepTypeNodeReboot(this));
-                                else
-                                        this->setStepType(new SmfStepTypeNodeRebootAct(this));
+				if(result == false) { //Normal multi node system
+					if (this->isCurrentNode(firstAuDu) == true) {
+						this->setSwitchOver(true);
+						return SA_AIS_OK;
+					}
+
+					if (activateUsed == false)
+						this->setStepType(new SmfStepTypeNodeReboot(this));
+					else
+						this->setStepType(new SmfStepTypeNodeRebootAct(this));
+
+				} else { //Single node system, treat as single step
+					LOG_NO("This is a rolling upgrade procedure with reboot in a single node system, treated as single step upgrade");
+					if (activateUsed == false)
+						this->setStepType(new SmfStepTypeClusterReboot(this));
+					else
+						this->setStepType(new SmfStepTypeClusterRebootAct(this));
+				}
 			}
                         else { // SINGLE STEP
                                 if (activateUsed == false)
@@ -1417,6 +1434,41 @@ SmfUpgradeStep::isCurrentNode(const std::string & i_amfNodeDN)
         } else {
 		LOG_ER("SmfUpgradeStep::isCurrentNode:Fails to get parent to %s", comp_name.c_str());  
 		rc = false;
+	}
+
+	TRACE_LEAVE();
+        return rc;
+}
+
+//------------------------------------------------------------------------------
+// isSingleNodeSystem()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfUpgradeStep::isSingleNodeSystem(bool& i_result)
+{
+	TRACE_ENTER();
+
+	SmfImmUtils immUtil;
+	SaAisErrorT rc = SA_AIS_OK;
+	std::list < std::string > o_nodeList;
+
+	/*
+	  Counting the number of steps in a node level procedure would have been possible
+	  But that would not have cover the case of a single node node group. In such situation
+	  the number of steps would have been one even if the cluster contain several nodes.
+	  Thats the reason the IMM has to be searched.
+	*/
+        /* Find all SaAmfNode objects in the system */
+	if (immUtil.getChildren("", o_nodeList, SA_IMM_SUBTREE, "SaAmfNode") == false) {
+		LOG_ER("SmfUpgradeStep::isSingleNodeSystem, Fail to get SaAmfNode instances");
+		rc = SA_AIS_ERR_BAD_OPERATION;
+	} else {
+	
+		if (o_nodeList.size() == 1) {
+			i_result = true; //Single AMF node
+		} else {
+			i_result = false; //Multi AMF node
+		}
 	}
 
 	TRACE_LEAVE();
