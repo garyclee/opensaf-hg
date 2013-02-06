@@ -548,11 +548,18 @@ class SmfUpgradeStep {
 	bool isCurrentNode(const std::string & i_amfNodeDN);
 
 ///
+/// Purpose:  isSingleNodeSystem  
+/// @param    bool& i_result, true if single node otherwise false 
+/// @return   SaAisErrorT
+///
+	SaAisErrorT isSingleNodeSystem(bool& i_result);
+
+///
 /// Purpose:  setSingleStepRebootInfo(int i_rebootInfo)
 /// @param    An int containing a SmfRebootT enum, specifying where to continue after a cluster reboot
 /// @return   SaAisErrorT
 ///
-	 SaAisErrorT setSingleStepRebootInfo(int i_rebootInfo);
+	SaAisErrorT setSingleStepRebootInfo(int i_rebootInfo);
 
 ///
 /// Purpose:  getSingleStepRebootInfo  

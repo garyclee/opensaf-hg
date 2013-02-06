@@ -1078,6 +1078,7 @@ SmfCampStateExecCompleted::commit(SmfUpgradeCampaign * i_camp)
 	}
 
         i_camp->removeRunTimeObjects(); // No action if it fails
+	i_camp->removeConfigObjects();  // No action if it fails
 
 	changeState(i_camp, SmfCampStateCommitted::instance());
 	LOG_NO("CAMP: Upgrade campaign committed %s", i_camp->getCampaignName().c_str());

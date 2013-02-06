@@ -2312,6 +2312,12 @@ SmfStepTypeClusterReboot::execute()
                 return false;
         }		//End switch
 
+	//Mark the campaign not possible to rollback (since it contain a cluster reboot procedure)
+	if (SmfCampaignThread::instance()->campaign()->getUpgradeCampaign()->
+	    disableCampRollback("Single step procedure reboot the cluster, campaign can not be rolled back") != SA_AIS_OK) {
+		LOG_NO("Fail to disable rollback, continue.");
+	}
+
 	LOG_NO("STEP: Upgrade cluster reboot step completed %s", m_step->getDn().c_str());
 
 	TRACE_LEAVE();
@@ -2519,6 +2525,12 @@ SmfStepTypeClusterRebootAct::execute()
                 return false;
         }		//End switch
 
+	//Mark the campaign not possible to rollback (since it contain a cluster reboot procedure)
+	if (SmfCampaignThread::instance()->campaign()->getUpgradeCampaign()->
+	    disableCampRollback("Single step procedure reboot the cluster, campaign can not be rolled back") != SA_AIS_OK) {
+		LOG_NO("Fail to disable rollback, continue.");
+	}
+	
 	LOG_NO("STEP: Upgrade cluster reboot activate step completed %s", m_step->getDn().c_str());
 
 	TRACE_LEAVE();

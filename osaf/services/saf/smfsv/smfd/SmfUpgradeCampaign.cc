@@ -696,6 +696,78 @@ SmfUpgradeCampaign::restorePbe()
 }
 
 //------------------------------------------------------------------------------
+// disableCampRollback()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeCampaign::disableCampRollback(std::string i_reason)
+{
+	TRACE_ENTER();
+        SmfImmUtils immUtil;
+	SaAisErrorT rc = SA_AIS_OK;
+
+	//Check if "disable rollback" object already exist
+	SaImmAttrValuesT_2 **attributes;
+	std::string objDn = "openSafSmfMisc=noRollback," + SmfCampaignThread::instance()->campaign()->getDn();
+	if (immUtil.getObject(objDn, &attributes) == true) {
+		TRACE_LEAVE();
+		return rc;
+	}
+
+	SmfImmCreateOperation icoOpenSafSmfMisc;
+
+	icoOpenSafSmfMisc.setClassName("OpenSafSmfMisc");
+	icoOpenSafSmfMisc.setParentDn(SmfCampaignThread::instance()->campaign()->getDn());
+
+	SmfImmAttribute attropenSafSmfMisc;
+	attropenSafSmfMisc.setName("openSafSmfMisc");
+	attropenSafSmfMisc.setType("SA_IMM_ATTR_SASTRINGT");
+	attropenSafSmfMisc.addValue("openSafSmfMisc=noRollback");
+	icoOpenSafSmfMisc.addValue(attropenSafSmfMisc);
+
+	SmfImmAttribute attrreason;
+	attrreason.setName("reason");
+	attrreason.setType("SA_IMM_ATTR_SASTRINGT");
+	attrreason.addValue(i_reason);
+	icoOpenSafSmfMisc.addValue(attrreason);
+
+	std::list <SmfImmOperation *> immOperations;
+	immOperations.push_back(&icoOpenSafSmfMisc);
+
+	rc = immUtil.doImmOperations(immOperations);
+	if (rc != SA_AIS_OK) {
+		LOG_NO("Can not create \"disable rollback\" object rc=%s, dn=[%s]", 
+		       saf_error(rc), SmfCampaignThread::instance()->campaign()->getDn().c_str());
+	} else {
+		LOG_NO("Rollback disabled, reason=%s",i_reason.c_str());
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+//------------------------------------------------------------------------------
+// isCampRollbackDisabled()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfUpgradeCampaign::isCampRollbackDisabled(bool& o_result, std::string& o_reason)
+{
+	SmfImmUtils immUtil;
+	SaImmAttrValuesT_2 **attributes;
+	std::string objectDn = "openSafSmfMisc=noRollback," + SmfCampaignThread::instance()->campaign()->getDn();
+
+	if (immUtil.getObject(objectDn, &attributes) == false) {
+		TRACE("Can not read object, continue, dn=[%s]", objectDn.c_str());
+		o_result = false;  //Rollback is allowed
+		return SA_AIS_OK;
+	}
+
+	//Object is found i.e. rollback not allowed
+	o_reason = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes, "reason", 0);
+	o_result = true; //Rollback is NOT allowed
+	return SA_AIS_OK;
+}
+
+//------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
 void 
@@ -1034,6 +1106,34 @@ SmfUpgradeCampaign::removeRunTimeObjects()
 
 	if (rc != SA_AIS_OK) {
 		LOG_ER("Fail to delete object, rc=%s, dn=[%s], continuing",  saf_error(rc), dn.c_str());
+	}
+
+	TRACE_LEAVE();
+}
+
+//------------------------------------------------------------------------------
+// removeConfigObjects()
+//------------------------------------------------------------------------------
+void 
+SmfUpgradeCampaign::removeConfigObjects()
+{
+	TRACE_ENTER();
+	//This method deletes config objects which has possibly been creared during the campaign execution
+	//All error codes are ignored
+
+        LOG_NO("CAMP: Campaign wrapup, Remove config objects");
+        SmfImmUtils immUtil;
+
+	//Always try to delete the "no rollback" indicator, don't care if it fails for any reason
+	SmfImmDeleteOperation doNoRollbackIndicator;
+	std::string objectDn = "openSafSmfMisc=noRollback," + SmfCampaignThread::instance()->campaign()->getDn();
+	doNoRollbackIndicator.setDn(objectDn);
+
+	std::list <SmfImmOperation *> immOperations;
+	immOperations.push_back(&doNoRollbackIndicator);
+	SaAisErrorT rc = immUtil.doImmOperations(immOperations);
+	if (rc != SA_AIS_OK) {
+		TRACE("Fail to delete \"no rollback\" indicator rc=%s continue, dn=[%s]", saf_error(rc), objectDn.c_str());
 	}
 
 	TRACE_LEAVE();
