@@ -93,6 +93,8 @@ typedef std::vector<ImplementerInfo*> ImplementerVector;
 typedef std::set<ImplementerInfo*> ImplementerSet;
 typedef std::map<std::string, ImplementerSet*> ImplementerSetMap;
 
+typedef std::map<ImplementerInfo*, ContinuationInfo2> ImplementerEvtMap;
+
 struct ImplementerCcbAssociation
 {
     ImplementerCcbAssociation(ImplementerInfo* impl) : mImplementer(impl),
@@ -388,6 +390,7 @@ static ObjectMutationMap sPbeRtMutations; /* Persistent Runtime Mutations
                                               At most one mutating op per Prto 
                                               is allowed. Entry removed on on 
                                               ack from PBE. */
+static ImplementerEvtMap sImplDetachTime; /* Give admop TRY_AGAIN when impl death is recent */
 static SaUint32T        sPbeRtMinContId = 0; /* Monitors that no PbePrto gets stuck. */
 static SaUint32T        sPbeRtBacklog = 0;   /* Monitors PbePrto capacity problems. */
 static SaUint32T        sPbeRegressPeriods = 0; 
@@ -8597,6 +8600,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
     //ClassInfo* classInfo = 0;
     ObjectInfo* object = 0;
     
+    ImplementerEvtMap::iterator iem;
     AdminOwnerVector::iterator i2;
     ObjectMap::iterator oi;
     std::string objAdminOwnerName;
@@ -8693,7 +8697,14 @@ SaAisErrorT ImmModel::adminOperationInvoke(
                 LOG_WA("Lost connection with implementer %s %u in admin op",
                     object->mImplementer->mImplementerName.c_str(),
                     object->mImplementer->mId);
-                err = SA_AIS_ERR_NOT_EXIST;
+
+                iem = sImplDetachTime.find(object->mImplementer);
+                err = (iem != sImplDetachTime.end())?
+                    SA_AIS_ERR_TRY_AGAIN:SA_AIS_ERR_NOT_EXIST;
+
+                if(reqConn) {
+                    fetchAdmReqContinuation(saInv, &reqConn);/* Remove any request cont. */
+                }
                 *implConn = 0;
             } else {
                 if(object->mImplementer->mAdminOpBusy) {
@@ -8722,9 +8733,14 @@ SaAisErrorT ImmModel::adminOperationInvoke(
             TRACE_7("Admin op on special object %s whith no implementer ret:%u",
                 objectName.c_str(), err);
         } else {
-            TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer", 
-                objectName.c_str());
-            err = SA_AIS_ERR_NOT_EXIST;
+            if(object->mImplementer && 
+               (iem = sImplDetachTime.find(object->mImplementer)) != sImplDetachTime.end()) {
+                   err = SA_AIS_ERR_TRY_AGAIN;
+            } else {
+                TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer", 
+                    objectName.c_str());
+                err = SA_AIS_ERR_NOT_EXIST;
+            }
         }
     }
     TRACE_LEAVE(); 
@@ -9235,6 +9251,10 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
             //But watch out for changes in discardImplementer
             LOG_NO("Implementer disconnected %u <%u, %x(down)> (%s)", info->mId,
                 info->mConn, info->mNodeId, info->mImplementerName.c_str());
+
+            //Note the time of death and id of the demised implementer.
+            sImplDetachTime[info] = ContinuationInfo2(info->mId, DEFAULT_TIMEOUT_SEC);
+
             info->mId = 0;
             info->mConn = 0;
             info->mNodeId = 0;
@@ -9295,6 +9315,10 @@ ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard)
             LOG_NO("Implementer disconnected %u <%u, %x> (%s)", 
                 info->mId, info->mConn, info->mNodeId,
                 info->mImplementerName.c_str());
+
+            //Note the time of death and id of the demised implementer.
+            sImplDetachTime[info] = ContinuationInfo2(info->mId, DEFAULT_TIMEOUT_SEC);
+
             info->mId = 0;
             info->mConn = 0;
             info->mNodeId = 0;
@@ -9705,6 +9729,7 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
     time_t now = time(NULL);
     osafassert(now > ((time_t) 0));
     ContinuationMap2::iterator ci2;
+    ImplementerEvtMap::iterator iem;
     CcbVector::iterator i3;
     CcbVector ccbsToGc;
     SaUint32T ccbsStuck=0; /* 0 or 1 */
@@ -9821,6 +9846,18 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
             ci2=sPbeRtReqContinuationMap.begin();
         } else {
             ++ci2;
+        }
+    }
+
+    /* Remove old implementer detach times. */
+    iem=sImplDetachTime.begin();
+    while(iem!=sImplDetachTime.end()) {
+        if(now - iem->second.mCreateTime >= DEFAULT_TIMEOUT_SEC) {
+            TRACE_5("Timeout on sImplDetachTime implid:%u", ci2->second.mConn);
+            sImplDetachTime.erase(iem);
+            iem=sImplDetachTime.begin();
+        } else {
+            ++iem;
         }
     }
 
@@ -10009,6 +10046,10 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
         LOG_NO("Implementer connected: %u (%s) <%u, %x>",
             info->mId, info->mImplementerName.c_str(), info->mConn,
             info->mNodeId);
+        ImplementerEvtMap::iterator iem = sImplDetachTime.find(info);
+        if(iem != sImplDetachTime.end()) {
+            sImplDetachTime.erase(iem);
+        }
     }
 
     if(implName == std::string(OPENSAF_IMM_PBE_IMPL_NAME)) {
