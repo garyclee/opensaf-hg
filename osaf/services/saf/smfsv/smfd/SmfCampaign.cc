@@ -348,7 +348,8 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
                                 return SA_AIS_ERR_BUSY;
                         }
 
-                        m_adminOpBusy = true; /* reset by campaign thread when admin op taken care of */
+			SmfCampaignThread::instance()->campaign()->setError("");
+            m_adminOpBusy = true; /* reset by campaign thread when admin op taken care of */
 
 			TRACE("Sending execute event to thread");
 			CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
@@ -464,6 +465,43 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 			break;
 		}
 
+	case SA_SMF_ADMIN_VERIFY:
+		{
+			switch (m_cmpgState) {
+			case SA_SMF_CMPG_INITIAL:				// can only verify from the initial state
+			{
+				if (m_adminOpBusy == true) {
+					LOG_ER("Campaign temporary busy handling another admin op");
+					return SA_AIS_ERR_BUSY;
+				}
+
+				if (SmfCampaignThread::instance() == NULL) {
+					if (SmfCampaignThread::start(this) != 0) {
+						return SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
+					}
+				} else {
+					LOG_ER("Another campaign thread is running");
+					return SA_AIS_ERR_BAD_OPERATION;
+				}
+
+				SmfCampaignThread::instance()->campaign()->setError("");
+				m_adminOpBusy = true; /* reset by campaign thread when admin op taken care of */
+
+				CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+				evt->type = CAMPAIGN_EVT_VERIFY;
+				SmfCampaignThread::instance()->send(evt);
+			}
+				break;
+
+			default:
+				{
+					LOG_ER("Failed to verify campaign, wrong state %u", m_cmpgState);
+					return SA_AIS_ERR_BAD_OPERATION;
+				}
+			}
+			break;
+		}
+
 	default:
 		{
 			LOG_ER("adminOperation, unknown operation %llu", opId);
@@ -518,6 +556,24 @@ SmfCampaign::adminOpRollback(void)
 {
 	getUpgradeCampaign()->rollback();
         m_adminOpBusy = false; /* allow new admin op */
+	return SA_AIS_OK;
+}
+
+/** 
+ * adminOpVerify
+ * Executes the administrative operation Execute
+ */
+SaAisErrorT
+SmfCampaign::adminOpVerify(void)
+{
+	getUpgradeCampaign()->verify();
+	m_adminOpBusy = false; /* allow new admin op */
+
+	/* Terminate campaign thread */
+	CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+	evt->type = CAMPAIGN_EVT_TERMINATE;
+	SmfCampaignThread::instance()->send(evt);
+
 	return SA_AIS_OK;
 }
 

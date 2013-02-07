@@ -58,6 +58,8 @@ public:
 		afterInstantiation,
 		afterUnlock,
 		atCampInit,
+		atCampVerify,
+		atAdminVerify,
 		atCampBackup,
 		atCampRollback,
 		atCampCommit,
@@ -105,6 +107,7 @@ public:
 
 private:
 	friend class SmfCampaignXmlParser;
+	friend class SmfCampStateInitial;
 	StepCountT m_stepCount;
 	AtActionT m_atAction;
 	std::string m_callbackLabel;

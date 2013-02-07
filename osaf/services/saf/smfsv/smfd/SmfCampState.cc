@@ -130,6 +130,30 @@ SmfCampState::rollback(SmfUpgradeCampaign * i_camp)
 }
 
 //------------------------------------------------------------------------------
+// verify()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfCampState::verify(SmfUpgradeCampaign * i_camp, std::string & error)
+{
+	TRACE_ENTER();
+	LOG_ER("SmfCampState::verify default implementation, should NEVER be executed.");
+	TRACE_LEAVE();
+	return SA_AIS_OK;
+}
+
+//------------------------------------------------------------------------------
+// prerequsitescheck()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfCampState::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string &error)
+{
+	TRACE_ENTER();
+	LOG_ER("SmfCampState::prerequsitescheck default implementation, should NEVER be executed.");
+	TRACE_LEAVE();
+	return SA_AIS_OK;
+}
+
+//------------------------------------------------------------------------------
 // suspend()
 //------------------------------------------------------------------------------
 SmfCampResultT 
@@ -232,17 +256,7 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	std::string error;
 	std::string s;
 	std::stringstream out;
-	std::vector < SmfUpgradeProcedure * >::iterator procIter;
-        SmfCampResultT initResult;
-
-	std::list < std::string > bundleInstallDnCamp;
-	std::list < std::string > notFoundInstallDn;
-	std::list < std::string > bundleRemoveDnCamp;
-	std::list < std::string > notFoundRemoveDn;
-	std::list < std::string >::iterator dnIter;
-
-        SaImmAttrValuesT_2 **attributes;
-        SmfImmUtils immUtil;
+	SmfCampResultT initResult;
 
 	TRACE("SmfCampStateInitial::execute implementation");
 
@@ -251,6 +265,143 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	//Reset error string in case the previous prerequsites check failed
         //In such case an error string is present in initial state
 	SmfCampaignThread::instance()->campaign()->setError("");
+
+	if (prerequsitescheck(i_camp, error) != SA_AIS_OK) {
+		goto exit_error;
+	}
+
+	//Verify pre-check
+	if (smfd_cb->smfVerifyEnable == SA_TRUE) {
+		if (verify(i_camp, error) != SA_AIS_OK) {
+			goto exit_error;
+		}
+	}
+
+	//Prerequisite  check 11 "All neccessary backup is created"
+	if (i_camp->m_campInit.executeCallbackAtBackup() != SA_AIS_OK) {
+		error = "Campaign init backup callback failed";
+		goto exit_error;
+	}
+	LOG_NO("CAMP: executed callbackAtBackup successfully in the campaign %s", i_camp->getCampaignName().c_str());
+
+	LOG_NO("CAMP: Create system backup %s", i_camp->getCampaignName().c_str());
+	if (smfd_cb->backupCreateCmd != NULL) {
+		std::string backupCmd = smfd_cb->backupCreateCmd;
+		backupCmd += " ";
+		backupCmd += i_camp->getCampaignName();
+
+		TRACE("Executing backup create cmd %s", backupCmd.c_str());
+		int rc = smf_system(backupCmd.c_str());
+		if (rc != 0) {
+			error = "CAMP: Backup create command ";
+			error += smfd_cb->backupCreateCmd;
+			error += " failed ";
+			out << rc;
+			s = out.str();
+			error += s;
+			goto exit_error;
+		}
+	} else {
+		error = "CAMP: No backup create command  found";
+		goto exit_error;
+	}
+
+	LOG_NO("CAMP: Start executing campaign %s", i_camp->getCampaignName().c_str());
+
+	TRACE("Create the SmfCampRestartInfo object");
+	i_camp->createCampRestartInfo();
+
+	//Disable IMM PBE
+	if (i_camp->disablePbe() != SA_AIS_OK) {
+		error = "Fails to disable IMM PBE";
+		goto exit_error;
+	}
+	//Preparation is ready, change state and execute campaign initialization
+	changeState(i_camp, SmfCampStateExecuting::instance());
+
+    initResult = executeInit(i_camp);
+	TRACE_LEAVE();
+	return initResult;
+
+exit_error:
+	LOG_NO("%s", error.c_str());
+	SmfCampaignThread::instance()->campaign()->setError(error);
+
+	//Remain in state initial if prerequsites check or SMF backup fails
+
+	/* Terminate campaign thread */
+	CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+	evt->type = CAMPAIGN_EVT_TERMINATE;
+	SmfCampaignThread::instance()->send(evt);
+
+	TRACE_LEAVE();
+	return SMF_CAMP_DONE;
+}
+
+//------------------------------------------------------------------------------
+// executeInit()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampStateInitial::executeInit(SmfUpgradeCampaign * i_camp)
+{
+	TRACE_ENTER();
+	TRACE("SmfCampStateExecuting::executeInit, Running campaign init actions");
+
+	if (i_camp->m_campInit.execute() != SA_AIS_OK) {
+		std::string error = "Campaign init failed";
+		LOG_ER("%s", error.c_str());
+		SmfCampaignThread::instance()->campaign()->setError(error);
+		changeState(i_camp, SmfCampStateExecFailed::instance());
+		return SMF_CAMP_FAILED;
+	}
+
+	TRACE("SmfCampStateExecuting::executeInit, campaign init actions completed");
+        return SMF_CAMP_CONTINUE; /* Continue in next state */
+} 
+
+//------------------------------------------------------------------------------
+// Verify_campaign()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfCampStateInitial::verify(SmfUpgradeCampaign * i_camp, std::string &error)
+{
+	TRACE_ENTER();
+	SmfCallback    cbk;
+	std::string    initDnStr = "";					// not used in the initial state
+
+	cbk.m_atAction      = SmfCallback::atCampVerify;
+	cbk.m_callbackLabel = "OsafSmfCbkVerify";
+	cbk.m_stringToPass  = "";
+	cbk.m_time          = smfd_cb->smfVerifyTimeout;
+
+	SaAisErrorT rc = cbk.execute(initDnStr);
+
+	if (SA_AIS_OK != rc) {
+		error = smf_valueToString(&rc, SA_IMM_ATTR_SAINT32T);
+		error = "Verify Failed, application error code = " + error;
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+//------------------------------------------------------------------------------
+// prerequsitescheck()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string &error)
+{
+	TRACE_ENTER();
+	std::string s;
+	std::stringstream out;
+	std::vector < SmfUpgradeProcedure * >::iterator procIter;
+	std::list < std::string > bundleInstallDnCamp;
+	std::list < std::string > notFoundInstallDn;
+	std::list < std::string > bundleRemoveDnCamp;
+	std::list < std::string > notFoundRemoveDn;
+	std::list < std::string >::iterator dnIter;
+	SmfImmUtils immUtil;
+	SaImmAttrValuesT_2 **attributes;
 
 	//Prerequisite  check 1 "The Software Management Framework is operational"
 	//If executing here, it is operational
@@ -630,88 +781,15 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 		procIter++;
 	}
 
-	//Prerequisite  check 11 "All neccessary backup is created"
-	if (i_camp->m_campInit.executeCallbackAtBackup() != SA_AIS_OK) {
-		error = "Campaign init backup callback failed";
-		goto exit_error;
-	}
-	LOG_NO("CAMP: executed callbackAtBackup successfully in the campaign %s", i_camp->getCampaignName().c_str());
 
-	LOG_NO("CAMP: Create system backup %s", i_camp->getCampaignName().c_str());
-	if (smfd_cb->backupCreateCmd != NULL) {
-		std::string backupCmd = smfd_cb->backupCreateCmd;
-		backupCmd += " ";
-		backupCmd += i_camp->getCampaignName();
-
-		TRACE("Executing backup create cmd %s", backupCmd.c_str());
-		int rc = smf_system(backupCmd.c_str());
-		if (rc != 0) {
-			error = "CAMP: Backup create command ";
-			error += smfd_cb->backupCreateCmd;
-			error += " failed ";
-			out << rc;
-			s = out.str();
-			error += s;
-			goto exit_error;
-		}
-	} else {
-		error = "CAMP: No backup create command  found";
-		goto exit_error;
-	}
-
-	LOG_NO("CAMP: Start executing campaign %s", i_camp->getCampaignName().c_str());
-
-	TRACE("Create the SmfCampRestartInfo object");
-	i_camp->createCampRestartInfo();
-
-	//Disable IMM PBE
-	if (i_camp->disablePbe() != SA_AIS_OK) {
-		error = "Fails to disable IMM PBE";
-		goto exit_error;
-	}
-
-	//Preparation is ready, change state and execute campaign initialization
-	changeState(i_camp, SmfCampStateExecuting::instance());
-
-        initResult = executeInit(i_camp);
 	TRACE_LEAVE();
-	return initResult;
+	return SA_AIS_OK;
 
 exit_error:
-	LOG_NO("%s", error.c_str());
-	SmfCampaignThread::instance()->campaign()->setError(error);
-
-	//Remain in state initial if prerequsites check or SMF backup fails
-
-	/* Terminate campaign thread */
-	CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
-	evt->type = CAMPAIGN_EVT_TERMINATE;
-	SmfCampaignThread::instance()->send(evt);
-
 	TRACE_LEAVE();
-	return SMF_CAMP_DONE;
+	return SA_AIS_ERR_FAILED_OPERATION;
 }
 
-//------------------------------------------------------------------------------
-// executeInit()
-//------------------------------------------------------------------------------
-SmfCampResultT 
-SmfCampStateInitial::executeInit(SmfUpgradeCampaign * i_camp)
-{
-	TRACE_ENTER();
-	TRACE("SmfCampStateExecuting::executeInit, Running campaign init actions");
-
-	if (i_camp->m_campInit.execute() != SA_AIS_OK) {
-		std::string error = "Campaign init failed";
-		LOG_ER("%s", error.c_str());
-		SmfCampaignThread::instance()->campaign()->setError(error);
-		changeState(i_camp, SmfCampStateExecFailed::instance());
-		return SMF_CAMP_FAILED;
-	}
-
-	TRACE("SmfCampStateExecuting::executeInit, campaign init actions completed");
-        return SMF_CAMP_CONTINUE; /* Continue in next state */
-}
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------

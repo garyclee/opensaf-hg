@@ -881,7 +881,29 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 		smfInactivatePbeDuringUpgrade = &tmp_pbe_off;
 	}
 	LOG_NO("Turn PBE off during upgrade = %u", *smfInactivatePbeDuringUpgrade);
+	
+	const SaUint32T *smfVerifyEnable = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes,
+			SMF_VERIFY_ENABLE_ATTR, 0);
+	unsigned int tmp_verify_enable = 0;
 
+	if (smfVerifyEnable == NULL) {
+		//Not found, set default value
+		smfVerifyEnable = &tmp_verify_enable;
+		LOG_NO("Attr %s is not available in %s, using default value %d", SMF_VERIFY_ENABLE_ATTR, SMF_CONFIG_OBJECT_DN, *smfVerifyEnable);
+	} else {
+		LOG_NO("Verify Enable = %d", *smfVerifyEnable);
+	}
+
+	const SaTimeT *verifyTimeout = immutil_getTimeAttr((const SaImmAttrValuesT_2 **)attributes,
+							    SMF_VERIFY_TIMEOUT_ATTR, 0);
+	SaTimeT tmp_verify_timeout = 100000000000;
+	if (verifyTimeout == NULL) {
+		//Not found, set default value		
+		verifyTimeout = &tmp_verify_timeout;
+		LOG_NO("Attr %s is not available in %s, using default value %llu", SMF_VERIFY_TIMEOUT_ATTR, SMF_CONFIG_OBJECT_DN, *verifyTimeout);
+	} else {
+		LOG_NO("Verify Timeout = %llu", *verifyTimeout);
+	}
 	//////////////////////////////////
 	//End of schema upgrade attributes
 	//////////////////////////////////
@@ -901,7 +923,8 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 	cb->smfImmPersistCmd = strdup(smfImmPersistCmd);
 	cb->smfNodeRebootCmd = strdup(smfNodeRebootCmd);
 	cb->smfInactivatePbeDuringUpgrade = *smfInactivatePbeDuringUpgrade;
-
+	cb->smfVerifyEnable = *smfVerifyEnable;
+	cb->smfVerifyTimeout = *verifyTimeout;
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }

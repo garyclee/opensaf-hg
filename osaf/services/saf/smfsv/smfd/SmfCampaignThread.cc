@@ -584,6 +584,12 @@ void SmfCampaignThread::processEvt(void)
 				break;
 			}
 
+		case CAMPAIGN_EVT_VERIFY:
+			{
+				m_campaign->adminOpVerify();
+				break;
+			}
+
 		case CAMPAIGN_EVT_EXECUTE_PROC:
 			{
 				m_campaign->getUpgradeCampaign()->executeProc();
