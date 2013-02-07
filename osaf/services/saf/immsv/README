@@ -1340,25 +1340,32 @@ interpret what kind of object is being created and who is creating it.
 
 SaImmOiCcbObjectModifyCallbackT_2 will contain only attribute values that have
 been modified in this operation *and* that have the SA_IMM_ATTR_NOTIFY flag on.
-In addition, the callback will contain the system atributes SaImmAttrClassName
-and SaImmAdminOwnerName. The class-name may be needed if the special applier 
-attached after the object was created and had not yet initialized by reading
-from the imm. Indeed it is left open to the implementor of the special applier
-to decide how and even if they should initialize by reading from the imm.
-The admin-owner allows the receiver to interpret who is modifying the object.
+In addition, the callback will contain the system atributes SaImmAttrClassName.
+The system attribute SaImmAdminOwnerName will also be included if the value
+has not been provided already in a previous callback for the CCB. Thus if a prior
+create or modify has been sent then the current modify will not add the admin-
+owner system attribute. Admin-owner never changes for a CCB. 
+The class-name may be needed if the special applier attached after the object
+was created and had not yet initialized by reading from the imm. Indeed it is
+left open to the implementor of the special applier to decide how and even if
+they should initialize by reading from the imm. The admin-owner allows the
+receiver to interpret who is modifying the object.
 
 SaImmOiCcbObjectDeleteCallbackT can obviosly not contain any attribute values.
 Only the DN of the object to be deleted is provided, since that is how the
 callback is defined. However, the imm service guarantees that a CCB that 
 contains delete callbacks, will also contain at least one modify callback 
-containing at least the SaImmAdminOwnerName system attribute. If the real ccb 
-is a pure delete ccb, i.e. contains only delete operations, then the imm service
-will generate a 'fake' modify callback in order to provide the admin-owner name.
+containing at least the SaImmAdminOwnerName system attribute. For any ccb 
+(where ccb != 0), the first special applier callback is guaranteed to hold the
+admin-owner-name. This means that if the first operation generated in the real
+ccb is a delete-operation, then the immsv will first send a fake modify on the
+same object/dn to be deleted, containing the admin-owner-name.
+
 This allows the receiver to interpret who is deleting the objects. The class-name
 for the object should not be needed since if the receiver is already aware of the
-object to be deleted, then they should already know the class for it and if they
-are not aware of the object, then they can simply discard the delete operation
-since it is a delete of an object that the receiver does not have. 
+object to be deleted, then they should already know the class for that object
+and if they are not aware of the object, then they can simply discard the delete
+operation since it is a delete of an object that the receiver does not have. 
 
 The SaImmOiCcbCompletedCallbackT, saImmOiCcbApplyCallbackT and
 SaImmOiCcbAbortCallbackT have exactly the same semantics as always. The completed
@@ -1368,10 +1375,10 @@ callback is typically ignored by appliers.
 
 Cached runtime data is created/updated and deleted by an implementer/OI. Each such
 OI downcall operation will generate only the single corresponding OI callback on
-the special applier, but with the ccbId parameter set to zero. No completed, apply
-or abort callbacks are generated for cached runtime data operations. Persistent
+the special applier, but with the ccbId parameter set to *zero*. No completed,
+apply or abort callbacks are generated for cached runtime data operations. Persistent
 runtime data is always also cached, so the same rules apply for persistent runtime
-data. Non cached runtime attributes are not allowed to have the SA_IMM_ATTR_NOTIFY
+data. Non-cached runtime attributes are not allowed to have the SA_IMM_ATTR_NOTIFY
 flag set. 
 
 SaImmOiCcbObjectCreateCallbackT_2 will contain attribute values for *all* cached
@@ -1415,6 +1422,44 @@ the same config object during its life cycle, implementer-name will never change
 for a runtime object. The ccbId parameter will be zero.
 
 
+Support for attribute definitions with SA_IMM_ATTR_NO_DUPLICATES (4.3)
+======================================================================
+http://devel.opensaf.org/ticket/1545
+
+The IMM A.2.11 API included an added flag value for the SaImmAttrFlagsT type
+used in attribute definitions for class create: SA_IMM_ATTR_NO_DUPLICATES.
+This feature did not make it into OpenSAF 4.2, but will now instead be part
+of OpenSaf 4.3
+
+The IMM API version where this is implemented is now IMM A.2.12 in OpenSAF(4.3)
+
+This can only be set in conjunction with the SA_IMM_ATTR_MULTI_VALUE flag. 
+The effect of setting also the SA_IMM_ATTR_NO_DUPLICATES flag is that the 
+attribute behaves as a 'set' instead of as a 'bag'. The SAF IMM standard
+defines multivalued attributes very loosely as attributes that may have many
+values. Nothing is said about uniquenes of values, hence duplicates must be
+allowed. In most cases the intention with a multi valued attribute is likely
+to be to not have duplicate values. It is now possible to get this more 
+restricted semantics by settign the SA_IMM_ATTR_NO_DUPLICATES_FLAG. 
+
+It is possible to add the NO_DUPLICATES flag to a MULTI_VALUE attribute
+definition in an existing class, via a schema change. But such an upgrade
+will only succeed if no current instances of the class have duplicates in
+this attribute. The imm service will perform a runtime check of this before
+allowing the upgrade. Application maintainers that intend to use this flag
+need to consider the fact that adding the flag may cause an upgrade campaign
+to fail due to site specific values on such multivalued attributes. 
+
+There is a reason why the imm service does not go one step further and
+consolidate duplicates instead of just check and reject upgrades that
+encounter duplicates. If the imm service where to do such consolidation,
+it would mutate the values of application data without informing the OI
+of such changes. We dont see that as acceptable and predictable behavior.
+The approach taken is insted to make it the apllications responsibility to 
+eliminate duplicates before the schema change attempt, possibly as a prior
+application step in the campaign.
+
+
 
 Optimize subtree search           (4.3)
 ==============================================================================
@@ -1436,9 +1481,37 @@ Pbe & immload uses pre-compiled & parametrized queries  (4.3)
 http://devel.opensaf.org/ticket/2467
 http://devel.opensaf.org/ticket/2696
 
+
 immcfg -L validate imm-xml file as xml loadable  (4.3)
 ======================================================
 http://devel.opensaf.org/ticket/2766
+
+
+AdminOp gets TRY_AGAIN if OI is transiently detached (4.3)
+==========================================================
+http://devel.opensaf.org/ticket/2593
+
+Limit number of coexisting search-handles per om-handle (4.3)
+==============================================================
+http://devel.opensaf.org/ticket/2977
+
+IMM server must protect itself from invalid data received from imm clients (4.3)
+================================================================================
+http://devel.opensaf.org/ticket/2747
+
+IMMNDs should subscribe in normal mode towards IMMD (4.3)
+=========================================================
+http://devel.opensaf.org/ticket/2446
+
+saImmOiImplementerClear can avoid exposing a stale oi-handle (4.3)
+==================================================================
+http://devel.opensaf.org/ticket/2465
+
+immdump should be split into a tool and a daemon (4.3)
+======================================================
+http://devel.opensaf.org/ticket/2835
+
+
 
 
 ----------------------------------------
