@@ -850,6 +850,24 @@ SmfUpgradeCampaign::rollback()
 }
 
 //------------------------------------------------------------------------------
+// verify()
+//------------------------------------------------------------------------------
+void
+SmfUpgradeCampaign::verify()
+{
+	TRACE_ENTER();
+	std::string error = "Verify Passed";
+
+	if (m_state->prerequsitescheck(this, error) == SA_AIS_OK) {
+		(void)m_state->verify(this, error);
+	}
+
+	SmfCampaignThread::instance()->campaign()->setError(error);
+
+	TRACE_LEAVE();
+}
+
+//------------------------------------------------------------------------------
 // rollbackProc()
 //------------------------------------------------------------------------------
 void 

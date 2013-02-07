@@ -325,6 +325,13 @@ class SmfUpgradeCampaign {
 	void rollback();
 
 ///
+/// Purpose: call application registered callback functions prior to the execution of the campaign.
+/// @param   None.
+/// @return  None.
+///
+void verify();
+
+///
 /// Purpose: Rollback the campaign upgrade procedure.
 /// @param   None.
 /// @return  None.

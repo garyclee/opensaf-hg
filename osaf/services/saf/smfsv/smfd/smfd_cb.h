@@ -59,6 +59,8 @@ typedef struct smfd_cb {
 	char *smfImmPersistCmd;	                    /* Command for IMM persistance */
 	char *smfNodeRebootCmd;	                    /* Command for node reboot */
 	SaUint32T smfInactivatePbeDuringUpgrade;    /* True (1) if PBE shall be deactivated during upgrade */
+	SaUint32T smfVerifyEnable;                  /* dis/enable pre-campaign verification callbacks */
+	SaTimeT smfVerifyTimeout;                   /* pre-campaign verification timeout */
 	SaInvocationT cbk_inv_id;                   /* Invocation ID of the callback */
 	SMFD_SMFND_ADEST_INVID_MAP *smfnd_list;     /* SMFNDs need to respond to the callback. */
 	uint32_t no_of_smfnd;

@@ -69,6 +69,14 @@
 			<name>smfInactivatePbeDuringUpgrade</name>
 			<value>1</value>
 		</attr>
+		<attr>
+			<name>smfVerifyEnable</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>smfVerifyTimeout</name>
+			<value>100000000000</value>
+		</attr>
 	</object>
 	<object class="SaAmfCompBaseType">
 		<dn>safCompType=OpenSafCompTypeSMF</dn>

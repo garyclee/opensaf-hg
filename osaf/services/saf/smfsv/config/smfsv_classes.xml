@@ -357,6 +357,20 @@
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
 		</attr>
+                <attr>
+                        <name>smfVerifyEnable</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                        <default-value>0</default-value>
+                </attr>
+                <attr>
+                        <name>smfVerifyTimeout</name>
+                        <type>SA_TIME_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                        <default-value>100000000000</default-value>
+                </attr>
 	</class>
 	<class name="OpenSafSmfCampRestartInfo">
 		<category>SA_RUNTIME</category>

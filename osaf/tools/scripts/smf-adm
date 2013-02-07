@@ -16,7 +16,7 @@
 
 usage()
 {
-	echo "usage: `basename $0` <execute|rollback|suspend|commit> <DN>"
+	echo "usage: `basename $0` <execute|rollback|suspend|commit|verify> <DN>"
 }
 
 if [ $# -ne 2 ]; then
@@ -28,6 +28,7 @@ ADMIN_EXECUTE=1
 ADMIN_ROLLBACK=2
 ADMIN_SUSPEND=3
 ADMIN_COMMIT=4
+ADMIN_VERIFY=10
 
 case $1 in
 	"execute")
@@ -41,6 +42,9 @@ case $1 in
 		;;
 	"commit")
 		immadm -o $ADMIN_COMMIT $2
+		;;
+	"verify")
+		immadm -o $ADMIN_VERIFY $2
 		;;
 	*)
 		echo "illegal SMF admin operation: $1"

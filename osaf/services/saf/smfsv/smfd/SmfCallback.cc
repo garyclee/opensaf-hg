@@ -130,6 +130,7 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
 			break;	
 		}
 		case atCampInit:
+		case atCampVerify:
 		case atCampBackup:
 		case atCampRollback:
 		case atCampCommit:
@@ -138,6 +139,12 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
 		case atCampCompleteAction:
 		{
 			dn = (SmfCampaignThread::instance())->campaign()->getDn();
+			cbk_mbx = &(SmfCampaignThread::instance()->getCbkMbx());
+			break;
+		}
+		case atAdminVerify:
+		{
+			dn = (SmfCampaignThread::instance())->campaign()->getDn();;
 			cbk_mbx = &(SmfCampaignThread::instance()->getCbkMbx());
 			break;
 		}
