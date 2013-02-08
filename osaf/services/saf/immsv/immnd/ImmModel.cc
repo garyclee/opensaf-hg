@@ -5256,6 +5256,13 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
                 ImmAttrValueMap::iterator j = obj->mAttrValueMap.find(attName);
                 osafassert(j != obj->mAttrValueMap.end());
                 ImmAttrValue* attVal = j->second;
+
+                if(attVal->empty() && 
+                     (j->first == std::string(SA_IMM_ATTR_IMPLEMENTER_NAME)) &&
+                     obj->mImplementer) {
+                    j->second->setValueC_str(obj->mImplementer->mImplementerName.c_str());
+                }
+
                 if(!attVal->empty()) {
                     /* Extract the head value "inline" */
                     attVal->copyValueToEdu(&(current->attrValue.attrValue), 
@@ -5268,6 +5275,8 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
                            (SaImmValueTypeT) current->attrValue.attrValueType);
                     }
                     current->attrValue.attrValuesNumber = 1 + attVal->extraValues();
+                } else {
+                    TRACE("attribute %s was EMPTY", attName.c_str());
                 }
             }
        
@@ -7943,7 +7952,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
         op.addAttribute(j->first, k->second->mValueType, k->second->mFlags);
         //Check if attribute is the implementername attribute.
         //If so add the value artificially
-        if(j->first.c_str() == std::string(SA_IMM_ATTR_IMPLEMENTER_NAME)) {
+        if(j->first == std::string(SA_IMM_ATTR_IMPLEMENTER_NAME)) {
             if(obj->mImplementer) {
                 j->second->
                     setValueC_str(obj->mImplementer->mImplementerName.c_str());
@@ -8068,7 +8077,7 @@ ImmModel::filterMatch(ObjectInfo* obj, ImmsvOmSearchOneAttr* filter,
     osafassert(j != obj->mAttrValueMap.end());
     
     //If the attribute is the implementer name attribute, then assign it now.
-    if((j->first.c_str() == std::string(SA_IMM_ATTR_IMPLEMENTER_NAME)) && 
+    if((j->first == std::string(SA_IMM_ATTR_IMPLEMENTER_NAME)) && 
         obj->mImplementer) {
         j->second->setValueC_str(obj->mImplementer->mImplementerName.c_str());
     }
@@ -8352,7 +8361,7 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                                 k->second->mFlags);
                             //Check if attribute is the implementername
                             //attribute. if so add the value artificially
-                            if(j->first.c_str() == 
+                            if(j->first == 
                                 std::string(SA_IMM_ATTR_IMPLEMENTER_NAME)) {
                                 if(obj->mImplementer) {
                                     j->second->setValueC_str(obj->
@@ -8540,7 +8549,7 @@ SaAisErrorT ImmModel::nextSyncResult(ImmsvOmRspSearchNext** rsp, ImmSearchOp& op
 
         //Check if attribute is the implementername
         //attribute. if so add the value artificially
-        if(j->first.c_str() == std::string(SA_IMM_ATTR_IMPLEMENTER_NAME)&&(obj->mImplementer)) {
+        if((j->first == std::string(SA_IMM_ATTR_IMPLEMENTER_NAME))&&(obj->mImplementer)) {
             j->second->setValueC_str(obj->mImplementer->mImplementerName.c_str());
         }
 
