@@ -6109,6 +6109,9 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 	IMMA_SEARCH_NODE *search_node = NULL;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T timeout = 0;
+	IMMSV_OM_RSP_SEARCH_NEXT *res_body = NULL;
+	IMMSV_OM_RSP_SEARCH_BUNDLE_NEXT *searchBundle = NULL;
+	bool bFreeSearchBundle = false;
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
@@ -6143,6 +6146,20 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 		goto release_lock;
 	}
 
+	if (search_node->mLastAttributes) {
+		imma_freeSearchAttrs((SaImmAttrValuesT_2 **)search_node->mLastAttributes);
+		search_node->mLastAttributes = 0;
+	}
+
+	/* Check if there is any result in the buffer */
+	if (search_node->searchBundle) {
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		locked = false;
+
+		/* Get search result from the buffer */
+		goto searchresult;
+	}
+
 	immHandle = search_node->mImmHandle;
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
@@ -6159,11 +6176,6 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 		error = SA_AIS_ERR_BAD_HANDLE;
 		/* We dont want to resurrect here because we know the search has failed. */
 		goto release_lock;
-	}
-
-	if (search_node->mLastAttributes) {
-		imma_freeSearchAttrs((SaImmAttrValuesT_2 **)search_node->mLastAttributes);
-		search_node->mLastAttributes = 0;
 	}
 
 	if (search_node->mSearchId == 0) {
@@ -6270,13 +6282,8 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 		*/
 	}
 
+searchresult:
 	if (out_evt && error == SA_AIS_OK) {
-		int noOfAttributes = 0;
-		int i = 0;
-		size_t attrDataSize = 0;
-		IMMSV_OM_RSP_SEARCH_NEXT *res_body = NULL;
-		SaImmAttrValuesT_2 **attr = NULL;
-
 		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
 		if (out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) {
 			error = out_evt->info.imma.info.errRsp.error;
@@ -6285,10 +6292,28 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 			out_evt = NULL;
 			goto release_lock;
 		}
-		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP);
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP ||
+				out_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHBUNDLENEXT_RSP);
 
-		res_body = out_evt->info.imma.info.searchNextRsp;
-		osafassert(res_body);
+		if(out_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP)
+			res_body = out_evt->info.imma.info.searchNextRsp;
+		else {
+			osafassert(!search_node->searchBundle);
+
+			search_node->searchIndex = 1;
+			search_node->searchBundle = out_evt->info.imma.info.searchBundleNextRsp;	/* Borrow the pointer */
+			out_evt->info.imma.info.searchBundleNextRsp = NULL;
+			res_body = search_node->searchBundle->searchResult[0];
+		}
+	} else if(search_node->searchBundle && error == SA_AIS_OK) {	/* Read from buffer */
+		res_body = search_node->searchBundle->searchResult[search_node->searchIndex++];
+	}
+
+	if(res_body && error == SA_AIS_OK) {
+		int noOfAttributes = 0;
+		int i = 0;
+		size_t attrDataSize = 0;
+		SaImmAttrValuesT_2 **attr = NULL;
 
 		objectName->length = 0;
 		m_IMMSV_SET_SANAMET(objectName);
@@ -6349,7 +6374,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 
 	if (out_evt) {
 		/* Free the search_next structure. */
-		if (out_evt->info.imma.info.searchNextRsp) {
+		if(out_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP && out_evt->info.imma.info.searchNextRsp) {
 			free(out_evt->info.imma.info.searchNextRsp->objectName.buf);
 			out_evt->info.imma.info.searchNextRsp->objectName.buf = NULL;
 			out_evt->info.imma.info.searchNextRsp->objectName.size = 0;
@@ -6357,9 +6382,30 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 			out_evt->info.imma.info.searchNextRsp->attrValuesList = NULL;
 			free(out_evt->info.imma.info.searchNextRsp);
 			out_evt->info.imma.info.searchNextRsp = NULL;
+		} else if(out_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHBUNDLENEXT_RSP && out_evt->info.imma.info.searchBundleNextRsp) {
+			bFreeSearchBundle = true;
+			searchBundle = out_evt->info.imma.info.searchBundleNextRsp;
 		}
 		free(out_evt);
 		out_evt=NULL;
+	}
+
+	if(search_node && search_node->searchBundle && search_node->searchIndex == search_node->searchBundle->resultSize) {
+		bFreeSearchBundle = true;
+		searchBundle = search_node->searchBundle;
+		search_node->searchBundle = NULL;
+	}
+
+	if(bFreeSearchBundle) {
+		uint32_t i;
+
+		for(i=0; i<searchBundle->resultSize; i++) {
+			free(searchBundle->searchResult[i]->objectName.buf);
+			immsv_free_attrvalues_list(searchBundle->searchResult[i]->attrValuesList);
+			free(searchBundle->searchResult[i]);
+		}
+		free(searchBundle->searchResult);
+		free(searchBundle);
 	}
 
  release_lock:
@@ -6440,6 +6486,18 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 		TRACE("Freeing last result");
 		imma_freeSearchAttrs((SaImmAttrValuesT_2 **)search_node->mLastAttributes);
 		search_node->mLastAttributes = 0;
+	}
+
+	if (search_node->searchBundle) {
+		uint32_t i;
+		TRACE("Freeing search buffer");
+		for(i=0; i<search_node->searchBundle->resultSize; i++) {
+			free(search_node->searchBundle->searchResult[i]->objectName.buf);
+			immsv_free_attrvalues_list(search_node->searchBundle->searchResult[i]->attrValuesList);
+		}
+		free(search_node->searchBundle->searchResult);
+		free(search_node->searchBundle);
+		search_node->searchBundle = NULL;
 	}
 
 	immHandle = search_node->mImmHandle;

@@ -69,9 +69,13 @@ public:
                                  SaUint32T conn, 
                                  unsigned int nodeId,
                                  SaUint64T mds_dest);
-    
+
+    SaAisErrorT   testTopResult(
+                                unsigned int* nodeIdp,
+                                SaBoolT* bRtsToFetch);
+
     SaAisErrorT   nextResult(
-                             IMMSV_OM_RSP_SEARCH_NEXT** rsp, 
+                             IMMSV_OM_RSP_SEARCH_NEXT** rsp,
                              SaUint32T* connp,
                              unsigned int* nodeIdp,
                              AttributeList** rtsToFetch,

@@ -190,6 +190,8 @@ extern "C" {
 
 	SaAisErrorT immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit *req, void **searchOp, SaBoolT isSync);
 
+	SaAisErrorT immModel_testTopResult(void *searchOp, SaUint32T *implNodeId, SaBoolT *bRtAttrsToFetch);
+
 	SaAisErrorT
 	    immModel_nextResult(IMMND_CB *cb, void *searchOp,
 				IMMSV_OM_RSP_SEARCH_NEXT **rsp,

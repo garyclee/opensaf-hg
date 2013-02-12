@@ -1182,6 +1182,17 @@ uint32_t imma_search_node_delete(IMMA_CB *cb, IMMA_SEARCH_NODE *search_node)
 	if (search_node == NULL)
 		return NCSCC_RC_FAILURE;
 
+	if (search_node->searchBundle) {
+		uint32_t i;
+		for(i=0; i<search_node->searchBundle->resultSize; i++) {
+			free(search_node->searchBundle->searchResult[i]->objectName.buf);
+			immsv_free_attrvalues_list(search_node->searchBundle->searchResult[i]->attrValuesList);
+		}
+		free(search_node->searchBundle->searchResult);
+		free(search_node->searchBundle);
+		search_node->searchBundle = NULL;
+	}
+
 	/* Remove the Node from the tree */
 	if (ncs_patricia_tree_del(&cb->search_tree, &search_node->patnode) != NCSCC_RC_SUCCESS) {
 		rc = NCSCC_RC_FAILURE;

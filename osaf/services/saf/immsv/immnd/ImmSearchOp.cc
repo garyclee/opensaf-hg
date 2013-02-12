@@ -86,6 +86,34 @@ ImmSearchOp::setImplementer(SaUint32T conn, unsigned int nodeId,
 }
 
 SaAisErrorT
+ImmSearchOp::testTopResult(unsigned int* nodeIdp, SaBoolT* bRtsToFetch)
+{
+    TRACE_ENTER();
+    SaAisErrorT err = SA_AIS_ERR_NOT_EXIST;
+
+    if (!mResultList.empty()) {
+        SearchObject& obj = mResultList.front();
+        err = SA_AIS_OK;
+        *bRtsToFetch = SA_FALSE;
+
+        // Check for pure runtime attribute
+        AttributeList::iterator i;
+        for (i = obj.attributeList.begin(); i != obj.attributeList.end(); i++) {
+            if(bRtsToFetch && ((*i).flags & SA_IMM_ATTR_RUNTIME) &&
+                            ! ((*i).flags & SA_IMM_ATTR_CACHED)) {
+                *bRtsToFetch = SA_TRUE;	/* true */
+                *nodeIdp = obj.implNodeId;
+                break;
+            }
+        }
+    }
+
+    TRACE_LEAVE();
+
+    return err;
+}
+
+SaAisErrorT
 ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, SaUint32T* connp, 
     unsigned int* nodeIdp,
     AttributeList** rtsToFetch,
@@ -112,7 +140,7 @@ ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, SaUint32T* connp,
         
         // Get attribute values
         AttributeList::iterator i;
-        for (i = obj.attributeList.begin(); i != obj.attributeList.end(); i++){
+        for (i = obj.attributeList.begin(); i != obj.attributeList.end(); i++) {
             IMMSV_ATTR_VALUES_LIST* attrl = (IMMSV_ATTR_VALUES_LIST *)
                 calloc(1, sizeof(IMMSV_ATTR_VALUES_LIST));
             IMMSV_ATTR_VALUES* attr = &(attrl->n);
