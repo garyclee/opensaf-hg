@@ -1111,7 +1111,14 @@ immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit* req,
 }
 
 SaAisErrorT
-immModel_nextResult(IMMND_CB *cb, void* searchOp, 
+immModel_testTopResult(void* searchOp, SaUint32T* implNodeId, SaBoolT* bRtAttrsToFetch)
+{
+	ImmSearchOp* op = (ImmSearchOp *) searchOp;
+	return op->testTopResult(implNodeId, bRtAttrsToFetch);
+}
+
+SaAisErrorT
+immModel_nextResult(IMMND_CB *cb, void* searchOp,
     IMMSV_OM_RSP_SEARCH_NEXT** rsp,
     SaUint32T* implConn, SaUint32T* implNodeId,
     struct ImmsvAttrNameList** rtAttrsToFetch,
@@ -1137,7 +1144,7 @@ immModel_nextResult(IMMND_CB *cb, void* searchOp,
         }
         err = ImmModel::instance(&cb->immModel)->nextSyncResult(rsp, *op);
     } else {
-        err = op->nextResult(rsp, implConn, implNodeId, 
+        err = op->nextResult(rsp, implConn, implNodeId,
             (rtAttrsToFetch)?(&rtAttrs):NULL,
             (SaUint64T*) implDest);
     }

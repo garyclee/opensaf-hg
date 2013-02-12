@@ -76,6 +76,11 @@ extern "C" {
 		IMMSV_ATTR_VALUES_LIST *attrValuesList;
 	} IMMSV_OM_RSP_SEARCH_NEXT;
 
+	typedef struct ImmsvOmRspSearchBundleNext {
+		SaUint32T resultSize;
+		IMMSV_OM_RSP_SEARCH_NEXT **searchResult;
+	} IMMSV_OM_RSP_SEARCH_BUNDLE_NEXT;
+
 	typedef struct ImmsvOmRspSearchRemote {
 		SaAisErrorT result;
 		SaUint32T requestNodeId;

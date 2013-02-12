@@ -1301,6 +1301,49 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 				LOG_ER("Class description: TOO MANY ATTR DEFS");
 				return NCSCC_RC_OUT_OF_MEM;
 			}
+		} else if (i_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHBUNDLENEXT_RSP) {
+			uint32_t i;
+			uint8_t *p8;
+			IMMSV_OM_RSP_SEARCH_NEXT *sn;
+			IMMSV_OCTET_STRING *os;
+			IMMSV_ATTR_VALUES_LIST *al;
+			IMMSV_OM_RSP_SEARCH_BUNDLE_NEXT *bsn = i_evt->info.imma.info.searchBundleNextRsp;
+			osafassert(bsn);
+
+			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+			ncs_encode_32bit(&p8, bsn->resultSize);
+			ncs_enc_claim_space(o_ub, 4);
+
+			for(i=0; i<bsn->resultSize; i++) {
+				sn = bsn->searchResult[i];
+				osafassert(sn);
+
+				os = &(sn->objectName);
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+				ncs_encode_32bit(&p8, os->size);
+				ncs_enc_claim_space(o_ub, 4);
+				if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+					return NCSCC_RC_OUT_OF_MEM;
+				}
+
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
+				ncs_encode_8bit(&p8, (sn->attrValuesList) ? 1 : 0);
+				ncs_enc_claim_space(o_ub, 1);
+
+				if (sn->attrValuesList) {
+					int depth = 0;
+					al = sn->attrValuesList;
+					do {
+						immsv_evt_enc_attribute(o_ub, al);
+						al = al->next;
+						++depth;
+					} while (al && (depth < IMMSV_MAX_ATTRIBUTES));
+					if (depth >= IMMSV_MAX_ATTRIBUTES) {
+						LOG_ER("Search next: TOO MANY ATTR DEFS line:%u", __LINE__);
+						return NCSCC_RC_OUT_OF_MEM;
+					}
+				}
+			}
 		} else if (i_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP) {
 			uint8_t *p8;
 			int depth = 0;
@@ -1932,6 +1975,47 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 				immsv_evt_dec_attr_def(i_ub, &ad);
 				o_evt->info.imma.info.classDescr.attrDefinitions = ad;
 			}
+		} else if (o_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHBUNDLENEXT_RSP) {
+			uint32_t i;
+			SaUint32T resultSize;
+			uint8_t *p8;
+			uint8_t c8;
+			uint8_t local_data[8];
+			IMMSV_OM_RSP_SEARCH_BUNDLE_NEXT *bsn;
+			IMMSV_OCTET_STRING *os;
+			IMMSV_ATTR_VALUES_LIST *p;
+
+			/*Decode searchBundleNext Response */
+			bsn = o_evt->info.imma.info.searchBundleNextRsp = calloc(1, sizeof(IMMSV_OM_RSP_SEARCH_BUNDLE_NEXT));
+
+			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+			resultSize = bsn->resultSize = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(i_ub, 4);
+
+			bsn->searchResult = calloc(resultSize, sizeof(IMMSV_OM_RSP_SEARCH_NEXT *));
+
+			for(i=0; i<bsn->resultSize; i++) {
+				 bsn->searchResult[i] = calloc(1, sizeof(IMMSV_OM_RSP_SEARCH_NEXT));
+
+				/* Decode object name */
+				os = &(bsn->searchResult[i]->objectName);
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+				os->size = ncs_decode_32bit(&p8);
+				ncs_dec_skip_space(i_ub, 4);
+				immsv_evt_dec_inline_string(i_ub, os);
+
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 1);
+				c8 = ncs_decode_8bit(&p8);
+				ncs_dec_skip_space(i_ub, 1);
+				if (c8) {
+					/*Decode the list of attributes */
+					p = NULL;
+					immsv_evt_dec_attributes(i_ub, &p);
+					bsn->searchResult[i]->attrValuesList = p;
+				} else {
+					bsn->searchResult[i]->attrValuesList = NULL;
+				}
+			}
 		} else if (o_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP) {
 			uint8_t *p8;
 			uint8_t c8;
@@ -2545,6 +2629,10 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 			ncs_encode_32bit(&p8, immaevt->info.searchInitRsp.searchId);
 			ncs_enc_claim_space(o_ub, 4);
+			break;
+
+		case IMMA_EVT_ND2A_SEARCHBUNDLENEXT_RSP:	//Response from for SearchNext
+			/*Totaly encoded in sublevel. */
 			break;
 
 		case IMMA_EVT_ND2A_SEARCHNEXT_RSP:	//Response from for SearchNext
@@ -3798,6 +3886,10 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
 			immaevt->info.searchInitRsp.searchId = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
+			break;
+
+		case IMMA_EVT_ND2A_SEARCHBUNDLENEXT_RSP:	//Response from for SearchNext
+			/*Totaly decoded in sublevel. */
 			break;
 
 		case IMMA_EVT_ND2A_SEARCHNEXT_RSP:	//Response from for SearchNext

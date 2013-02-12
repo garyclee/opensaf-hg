@@ -102,6 +102,8 @@ typedef struct imma_search_node {
 	SaImmHandleT mImmHandle;	/* The immOm handle */
 	SaUint32T mSearchId;
 	void *mLastAttributes;	/* From previous searchNext */
+	SaUint32T searchIndex;
+	IMMSV_OM_RSP_SEARCH_BUNDLE_NEXT *searchBundle;
 } IMMA_SEARCH_NODE;
 
 typedef struct imma_continuation_record {

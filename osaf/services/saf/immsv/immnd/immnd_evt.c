@@ -24,9 +24,15 @@
   immnd_process_evt .........IMMND Event processing routine.
 ******************************************************************************/
 
+#define _GNU_SOURCE
 #include "immnd.h"
 #include "immsv_api.h"
 #include "ncssysf_mem.h"
+
+
+#define IMMND_MAX_SEARCH_RESULT		10
+#define IMMND_SEARCH_BUNDLE_SIZE		4096
+
 
 static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq);
 static uint32_t immnd_evt_proc_cb_dump(IMMND_CB *cb);
@@ -1240,6 +1246,49 @@ static void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT *rsp, SaBoolT freeTop)
 	TRACE_LEAVE();
 }
 
+static uint32_t search_result_size(IMMSV_OM_RSP_SEARCH_NEXT *rsp)
+{
+	uint32_t size = strnlen(rsp->objectName.buf, rsp->objectName.size);
+	IMMSV_ATTR_VALUES_LIST *attrList = rsp->attrValuesList;
+
+	while(attrList) {
+		size += strnlen(attrList->n.attrName.buf, attrList->n.attrName.size);
+		size += 4;		/* type */
+		switch(attrList->n.attrValueType) {
+		case SA_IMM_ATTR_SAINT32T:
+		case SA_IMM_ATTR_SAUINT32T:
+			size += 4 * attrList->n.attrValuesNumber;
+			break;
+		case SA_IMM_ATTR_SAINT64T:
+		case SA_IMM_ATTR_SAUINT64T:
+		case SA_IMM_ATTR_SATIMET:
+			size += 8 * attrList->n.attrValuesNumber;
+			break;
+		case SA_IMM_ATTR_SAFLOATT:
+			size += sizeof(SaFloatT) * attrList->n.attrValuesNumber;
+			break;
+		case SA_IMM_ATTR_SADOUBLET:
+			size += sizeof(SaDoubleT) * attrList->n.attrValuesNumber;
+			break;
+
+		case SA_IMM_ATTR_SANAMET:
+		case SA_IMM_ATTR_SASTRINGT:
+		case SA_IMM_ATTR_SAANYT:
+			size += attrList->n.attrValue.val.x.size * attrList->n.attrValuesNumber;
+			break;
+
+		default:
+			TRACE_1("Incorrect value for SaImmValueTypeT: %ld. ", attrList->n.attrValueType);
+			osafassert(0);
+			break;
+		}
+
+		attrList = attrList->next;
+	}
+
+	return size;
+}
+
 /****************************************************************************
  * Name          : immnd_evt_proc_search_next
  *
@@ -1268,10 +1317,15 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 	SaUint32T implConn = 0;
 	SaUint32T implNodeId = 0;
 	IMMSV_OM_RSP_SEARCH_NEXT *rsp = NULL;
+	IMMSV_OM_RSP_SEARCH_NEXT *rsp1 = NULL;
+	IMMSV_OM_RSP_SEARCH_NEXT **rspList = NULL;
 	MDS_DEST implDest = 0LL;
 	SaBoolT retardSync = 
 		((cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) && 
 			cb->mIsCoord && (cb->syncPid > 0));
+	SaUint32T resultSize = 0;
+	IMMSV_OM_RSP_SEARCH_BUNDLE_NEXT bundleSearch = {0, NULL};
+	int ix;
 
 	TRACE_ENTER();
 
@@ -1412,16 +1466,59 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 		}
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
+	} else if(!rtAttrsToFetch) {	/*Case A */
+		IMMSV_ATTR_NAME_LIST *rtAttrs;
+		SaAisErrorT err;
+		SaBoolT bRtAttrs;
+		uint32_t size = search_result_size(rsp);
+		resultSize = 1;
+
+		/* Repeat to the maximum search result,
+		 * or the size os search results becomes bigger then IMMND_SEARCH_BUNDLE_SIZE,
+		 * or till the object with at least one pure runtime attribute */
+		while(resultSize < IMMND_MAX_SEARCH_RESULT && size < IMMND_SEARCH_BUNDLE_SIZE) {
+			err = immModel_testTopResult(sn->searchOp, &implNodeId, &bRtAttrs);
+			if ((err != SA_AIS_OK) || (bRtAttrs == SA_TRUE))
+				break;
+
+			err = immModel_nextResult(cb, sn->searchOp, &rsp1, &implConn, &implNodeId, &rtAttrs,
+					&implDest, retardSync);
+			if(err != SA_AIS_OK) {
+				osafassert(err == SA_AIS_ERR_NOT_EXIST);
+				break;
+			}
+
+			if(resultSize == 1) {
+				rspList = (IMMSV_OM_RSP_SEARCH_NEXT **)calloc(IMMND_MAX_SEARCH_RESULT, sizeof(IMMSV_OM_RSP_SEARCH_NEXT *));
+				rspList[0] = rsp;
+				rsp = NULL;
+			}
+
+			rspList[resultSize++] = rsp1;
+
+			size += search_result_size(rsp1);
+		}
+
+		immModel_clearLastResult(sn->searchOp);
 	}
-	/*Case A */
 
  agent_rsp:
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMA;
 
 	if (error == SA_AIS_OK) {
-		send_evt.info.imma.type = IMMA_EVT_ND2A_SEARCHNEXT_RSP;
-		send_evt.info.imma.info.searchNextRsp = rsp;
+		if(resultSize == 1) {
+			send_evt.info.imma.type = IMMA_EVT_ND2A_SEARCHNEXT_RSP;
+			send_evt.info.imma.info.searchNextRsp = rsp;
+		} else {
+			bundleSearch.resultSize = resultSize;
+			bundleSearch.searchResult = (IMMSV_OM_RSP_SEARCH_NEXT **)malloc(sizeof(IMMSV_OM_RSP_SEARCH_NEXT *) * resultSize);
+			for(ix=0; ix<resultSize; ix++)
+				bundleSearch.searchResult[ix] = rspList[ix];
+
+			send_evt.info.imma.type = IMMA_EVT_ND2A_SEARCHBUNDLENEXT_RSP;
+			send_evt.info.imma.info.searchBundleNextRsp = &bundleSearch;
+		}
 	} else {
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 		send_evt.info.imma.info.errRsp.error = error;
@@ -1429,10 +1526,22 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 
 	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 
-	if (rsp) {
+	if(rsp)
 		freeSearchNext(rsp, true);
+
+	if(rspList) {
+		for(ix=0; ix<IMMND_MAX_SEARCH_RESULT; ix++) {
+			if(rspList[ix]) {
+				freeSearchNext(rspList[ix], true);
+			}
+		}
+		free(rspList);
+
 		immModel_clearLastResult(sn->searchOp);
 	}
+
+	if(bundleSearch.searchResult)
+		free(bundleSearch.searchResult);
 
 	if (rtAttrsToFetch) {
 		immsv_evt_free_attrNames(rtAttrsToFetch);

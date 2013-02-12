@@ -87,6 +87,9 @@ typedef enum imma_evt_type {
 	IMMA_EVT_ND2A_IMM_ERROR_2 = 26,	        /*Generic error reply, errStrings added*/
 	IMMA_EVT_ND2A_ADMOP_RSP_2 = 27,	/*Response from AdminOp to OM client - extended */
 	IMMA_EVT_ND2A_CCB_AUG_INIT_RSP = 28, /* Response on IMMND_EVT_A2ND_OI_CCB_AUG_INIT */
+
+	IMMA_EVT_ND2A_SEARCHBUNDLENEXT_RSP = 29,	/*Response from SearchNext with more results */
+
 	IMMA_EVT_MAX
 } IMMA_EVT_TYPE;
 
@@ -427,6 +430,7 @@ typedef struct imma_evt {
 		IMMSV_ND2A_CCBINIT_RSP ccbInitRsp;
 		IMMSV_ND2A_SEARCHINIT_RSP searchInitRsp;
 		IMMSV_OM_RSP_SEARCH_NEXT *searchNextRsp;
+		IMMSV_OM_RSP_SEARCH_BUNDLE_NEXT *searchBundleNextRsp;
 		IMMSV_OM_SEARCH_REMOTE searchRemote;
 		IMMSV_OM_ADMIN_OP_INVOKE admOpReq;	//For the OI callback.
 		IMMSV_OI_ADMIN_OP_RSP admOpRsp;
