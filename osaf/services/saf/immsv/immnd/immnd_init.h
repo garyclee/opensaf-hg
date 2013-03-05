@@ -220,7 +220,7 @@ extern "C" {
 				      SaUint32T implConn, SaUint32T implNodeId);
 	SaAisErrorT
 	    immModel_classImplementerSet(IMMND_CB *cb, const struct ImmsvOiImplSetReq *req,
-					 SaUint32T implConn, SaUint32T implNodeId);
+		                         SaUint32T implConn, SaUint32T implNodeId, SaUint32T* ccbId);
 
 	SaAisErrorT
 	    immModel_classImplementerClear(IMMND_CB *cb,
@@ -235,7 +235,7 @@ extern "C" {
 	SaAisErrorT
 	    immModel_objectImplementerSet(IMMND_CB *cb,
 					  const struct ImmsvOiImplSetReq *req,
-					  SaUint32T implConn, SaUint32T implNodeId);
+                                          SaUint32T implConn, SaUint32T implNodeId, SaUint32T* ccbId);
 
 	SaAisErrorT
 	    immModel_objectImplementerRelease(IMMND_CB *cb,
