@@ -144,7 +144,7 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
 		}
 		case atAdminVerify:
 		{
-			dn = (SmfCampaignThread::instance())->campaign()->getDn();;
+			dn = (SmfCampaignThread::instance())->campaign()->getDn();
 			cbk_mbx = &(SmfCampaignThread::instance()->getCbkMbx());
 			break;
 		}

@@ -602,7 +602,6 @@ SmfUpgradeCampaign::disablePbe()
 	saImmRepositoryInit.setType("SA_IMM_ATTR_SAUINT32T");
 	saImmRepositoryInit.addValue("2");  //PBE disabled
 	modifyOper.addValue(saImmRepositoryInit);
-	rc = modifyOper.execute();
 	operations.push_back(&modifyOper);
 	if ((rc = immUtil.doImmOperations(operations)) != SA_AIS_OK) {
  		LOG_ER("Can not disable IMM PBE, rc=%s", saf_error(rc));

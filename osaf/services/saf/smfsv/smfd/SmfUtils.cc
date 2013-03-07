@@ -380,6 +380,84 @@ done:
 }
 
 // ------------------------------------------------------------------------------
+// getChildrenAndAttrBySearchHandle()
+// ------------------------------------------------------------------------------
+bool 
+SmfImmUtils::getChildrenAndAttrBySearchHandle(const std::string& i_dn, 
+					      SaImmSearchHandleT& io_immSearchHandle, 
+					      SaImmScopeT i_scope,  
+					      SaImmAttrNameT* i_attrNames, 
+					      const char *i_className)
+{
+	//The caller of this method is resposible to finalize the search handle in case of success
+	//To release the handler the call immutil_saImmOmSearchFinalize(io_immSearchHandle) shall be used.
+
+	SaImmSearchParametersT_2 objectSearch;
+	SaAisErrorT result;
+	bool rc = true;
+	SaNameT objectName;
+	SaNameT *objectNamePtr = NULL;
+	const SaStringT className = (const SaStringT)i_className;
+
+	TRACE_ENTER();
+
+	if (i_dn.size() > 0) {
+                if (i_dn.length() > SA_MAX_NAME_LENGTH) {
+                        LOG_ER("getChildren error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH);
+			rc =  false;
+			goto done;
+                }
+                
+		objectName.length = i_dn.length();
+		strncpy((char *)objectName.value, i_dn.c_str(), objectName.length);
+		objectName.value[objectName.length] = 0;
+		objectNamePtr = &objectName;
+	}
+
+	if (i_className != NULL) {
+		/* Search for all objects of class i_className */
+		objectSearch.searchOneAttr.attrName = (char*)SA_IMM_ATTR_CLASS_NAME;
+		objectSearch.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+		objectSearch.searchOneAttr.attrValue = (void *)&className;
+
+		result = immutil_saImmOmSearchInitialize_2(m_omHandle, objectNamePtr,	/* Search below i_dn object */
+							   i_scope, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR, 
+							   &objectSearch, i_attrNames,	&io_immSearchHandle);
+		if(result != SA_AIS_OK) {
+			if (result == SA_AIS_ERR_NOT_EXIST) {
+				TRACE("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s], parent=[%s]", saf_error(result), i_className, i_dn.c_str());
+				goto done;
+			} else {
+				LOG_NO("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s], parent=[%s]", saf_error(result), i_className, i_dn.c_str());
+				(void) immutil_saImmOmSearchFinalize(io_immSearchHandle);
+				rc =  false;
+				goto done;
+			}
+		}
+	} else {
+		/* Search for all objects */
+		result = immutil_saImmOmSearchInitialize_2(m_omHandle, objectNamePtr,	/* Search below i_dn object */
+							   i_scope, SA_IMM_SEARCH_GET_NO_ATTR,
+							   NULL, i_attrNames, &io_immSearchHandle);
+		if(result != SA_AIS_OK) {
+			if (result == SA_AIS_ERR_NOT_EXIST) {
+				TRACE("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s]", saf_error(result), i_className);
+				goto done;
+			} else {
+				LOG_NO("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s]", saf_error(result), i_className);
+				(void) immutil_saImmOmSearchFinalize(io_immSearchHandle);
+				rc = false;
+				goto done;
+			}
+		}
+	}
+
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+// ------------------------------------------------------------------------------
 // callAdminOperation()
 // ------------------------------------------------------------------------------
 SaAisErrorT

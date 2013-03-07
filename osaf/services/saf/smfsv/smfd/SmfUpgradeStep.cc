@@ -1497,7 +1497,7 @@ SmfUpgradeStep::setSingleStepRebootInfo(int i_rebootInfo)
 	SaImmAttrValuesT_2 **attributes;
 	std::string parent = getDn();
 	std::string rdn = "smfSingleStepInfo=info";
-	std::string obj = rdn + "," + parent;;
+	std::string obj = rdn + "," + parent;
 	SmfImmUtils immUtil;
 
 	//Check if the object exist
@@ -1564,7 +1564,7 @@ SmfUpgradeStep::getSingleStepRebootInfo(int *o_rebootInfo)
 	SaAisErrorT rc = SA_AIS_OK;
 	std::string parent = getDn();
 	std::string rdn = "smfSingleStepInfo=info";
-	std::string obj = rdn + "," + parent;;
+	std::string obj = rdn + "," + parent;
 
 	SaImmAttrValuesT_2 **attributes;
 
