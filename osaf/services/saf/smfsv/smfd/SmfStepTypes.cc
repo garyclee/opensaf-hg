@@ -1254,7 +1254,7 @@ SmfStepTypeNodeReboot::execute()
 	bool installationRebootNeeded;
 	
 	std::list < SmfBundleRef > restartBundles;
-        const std::list < SmfBundleRef >& removeList = m_step->getSwRemoveList();;
+        const std::list < SmfBundleRef >& removeList = m_step->getSwRemoveList();
 	bool removalRebootNeeded;
 
         /* Online installation of all new software */

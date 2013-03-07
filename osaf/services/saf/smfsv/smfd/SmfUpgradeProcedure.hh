@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <map>
 
 #include <saSmf.h>
 #include <saImmOi.h>
@@ -64,6 +65,22 @@ typedef enum {
 	SMF_AU_AMF_NODE = 2,
 	SMF_AU_SU_COMP = 3
 } SmfAuT;
+
+struct objectInst {
+	objectInst(std::string& i_node, 
+		   std::string& i_sg, 
+		   std::string& i_su, 
+		   std::string& i_suType,
+		   std::string& i_comp, 
+		   std::string& i_compType) 
+		: nodeDN(i_node), sgDN(i_sg),  suDN(i_su), suTypeDN(i_suType), compDN(i_comp), compTypeDN(i_compType){}
+	std::string nodeDN; 
+	std::string sgDN; 
+	std::string suDN; 
+	std::string suTypeDN; 
+	std::string compDN; 
+	std::string compTypeDN; 
+};
 
 /* ========================================================================
  *   DATA DECLARATIONS
@@ -283,14 +300,16 @@ class SmfUpgradeProcedure {
 /// @param    None.
 /// @return   None.
 ///
-	bool calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade);
+	bool calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade,
+				   std::multimap<std::string, objectInst> &i_objects);
 
 ///
 /// Purpose:  Calculate upgrade steps for single-step upgrade
 /// @param    Upgrade object.
 /// @return   None.
 ///
-	bool calculateSingleStep(SmfSinglestepUpgrade* i_upgrade);
+	bool calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
+				 std::multimap<std::string, objectInst> &i_objects);
 
 ///
 /// Purpose:  Calculate list of nodes from objectDn
@@ -311,11 +330,13 @@ class SmfUpgradeProcedure {
 ///
         bool calcActivationUnitsFromTemplate(SmfParentType * i_parentType, 
                                              const std::list < std::string >& i_nodeList,
+					     std::multimap<std::string, objectInst> &i_objects,
                                              std::list < std::string >& o_actDeactUnits,
 					     std::list<std::string>* o_nodeList = NULL);
 
 	bool calcActivationUnitsFromTemplateSingleStep(
 		SmfEntity const& i_entity,
+		std::multimap<std::string, objectInst> &i_objects,
 		std::list<std::string>& o_actDeactUnits,
 		std::list<std::string>& o_nodeList);
 ///
@@ -323,7 +344,7 @@ class SmfUpgradeProcedure {
 /// @param    i_dn The DN for the SU or component
 /// @return   The DN of the node hosting the input DN
 ///
-        std::string getNodeForCompSu(const std::string & i_objectDn);
+        std::string getNodeForCompSu(const std::string & i_objectDn, std::multimap<std::string, objectInst> &i_objects);
 
 ///
 /// Purpose:  Fetch callbacks from the upgrade method
@@ -347,7 +368,8 @@ class SmfUpgradeProcedure {
 ///
 	bool addStepModifications(SmfUpgradeStep * i_newStep,
 				  const std::list < SmfTargetEntityTemplate * >&i_targetEntityTemplate,
-                                  SmfAuT i_auType);
+                                  SmfAuT i_auType,
+				  std::multimap<std::string, objectInst> &i_objects);
 
 ///
 /// Purpose:  Add IMM step modifications for AU of type node
@@ -357,7 +379,8 @@ class SmfUpgradeProcedure {
 /// @return   True if successful otherwise false
 ///
 	bool addStepModificationsNode(SmfUpgradeStep * i_newStep, const SmfParentType * i_parentType,
-				      const std::list < SmfImmModifyOperation * >&i_modificationList);
+				      const std::list < SmfImmModifyOperation * >&i_modificationList,
+				      std::multimap<std::string, objectInst> &i_objects);
 
 ///
 /// Purpose:  Add IMM step modifications for AU of type SU
@@ -366,8 +389,9 @@ class SmfUpgradeProcedure {
 /// @param    i_modificationList A list of pointers to SmfImmModifyOperation objects.
 /// @return   None.
 ///
-	bool addStepModificationsSuComp(SmfUpgradeStep * i_newStep, const SmfParentType * i_parentType,
-				    const std::list < SmfImmModifyOperation * >&i_modificationList);
+	bool addStepModificationsSuOrComp(SmfUpgradeStep * i_newStep, const SmfParentType * i_parentType,
+					  const std::list < SmfImmModifyOperation * >&i_modificationList,
+					  std::multimap<std::string, objectInst> &i_objects);
 
 ///
 /// Purpose:  Add IMM modification list to step
@@ -378,6 +402,38 @@ class SmfUpgradeProcedure {
 ///
 	bool addStepModificationList(SmfUpgradeStep * i_newStep, const std::string & i_dn,
 				     const std::list < SmfImmModifyOperation * >&i_modificationList);
+
+///
+/// Purpose:  Add IMM step modifications for SU type
+/// @param    i_newStep A pointer to a SmfUpgradeStep object.
+/// @param    i_parentType A pointer to a SmfParentType object.
+/// @param    i_modificationList A list of pointers to SmfImmModifyOperation objects.
+/// @return   True if successful otherwise false
+///
+	bool addStepModificationsSu(SmfUpgradeStep * i_newStep, const SmfParentType * i_parentType,
+				    const std::list < SmfImmModifyOperation * >&i_modificationList,
+				    std::multimap<std::string, objectInst> &i_objects);
+
+///
+/// Purpose:  Add IMM step modifications for Comp type
+/// @param    i_newStep A pointer to a SmfUpgradeStep object.
+/// @param    i_parentType A pointer to a SmfParentType object.
+/// @param    i_modificationList A list of pointers to SmfImmModifyOperation objects.
+/// @return   True if successful otherwise false
+///
+	bool addStepModificationsComp(SmfUpgradeStep * i_newStep, const SmfParentType * i_parentType,
+				      const std::list < SmfImmModifyOperation * >&i_modificationList,
+				      std::multimap<std::string, objectInst> &i_objects);
+///
+/// Purpose:  Add IMM step modifications for children (SUs) to given parent
+/// @param    i_newStep A pointer to a SmfUpgradeStep object.
+/// @param    i_parentType A pointer to a SmfParentType object.
+/// @param    i_modificationList A list of pointers to SmfImmModifyOperation objects.
+/// @return   True if successful otherwise false
+///
+	bool addStepModificationsParentOnly(SmfUpgradeStep * i_newStep, const SmfParentType * i_parentType,
+					    const std::list < SmfImmModifyOperation * >&i_modificationList,
+					    std::multimap<std::string, objectInst> &i_objects);
 
 ///
 /// Purpose:  Create imm step objects for the calculated steps
@@ -464,7 +520,9 @@ class SmfUpgradeProcedure {
 /// @param    io_nodes The hosting node
 /// @return   True if restartable otherwise false.
 ///
-	bool getActDeactUnitsAndNodes(const std::string &i_dn, std::string& io_unit, std::string& io_node);
+	bool getActDeactUnitsAndNodes(const std::string &i_dn, std::string& io_unit, 
+				      std::string& io_node,
+				      std::multimap<std::string, objectInst> &i_objects);
 
 ///
 /// Purpose:  Get the list of callbacks beforeLock
@@ -505,6 +563,13 @@ class SmfUpgradeProcedure {
 	friend class SmfProcState;
 
  private:
+
+///
+/// Purpose:  Get iformation from AMF config in IMM about Components, SUs and nodes needed for upgrade 
+/// @param    A reference to a std::multimap<std::string, objectInst>
+/// @return   Bool true if successful otherwise false.
+///
+	bool getImmComponentInfo(std::multimap<std::string, objectInst> &i_objects);
 
 ///
 /// Purpose:  Change the procedure stste. If i_onlyInternalState == false, the IMM procedure object is updated and 

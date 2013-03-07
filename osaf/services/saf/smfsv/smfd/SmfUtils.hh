@@ -143,6 +143,20 @@ class SmfImmUtils {
 			 SA_IMM_SUBLEVEL, const char *i_className = NULL);
 
 ///
+/// Purpose: Get children objects to a parent. The caller of this method is resposible to finalize the search handle in case of success.
+/// @param   i_dn DN of the parent object.
+/// @param   io_immSearchHandle The resulting search handle
+/// @param   i_scope, The scope of the search
+/// @param   i_className Get children only of this type. NULL = all children.
+/// @return  True if successful, otherwise false
+///
+	bool getChildrenAndAttrBySearchHandle(const std::string& i_dn, 
+					      SaImmSearchHandleT& io_immSearchHandle, 
+					      SaImmScopeT i_scope,
+					      SaImmAttrNameT* i_attrNames,
+					      const char *i_className = NULL);
+
+///
 /// Purpose: Call administrative operation on an object.
 /// @param   i_dn DN of object to call.
 /// @param   i_operationId The operation id.
