@@ -40,7 +40,7 @@ static void usage(const char *progname)
     printf("\t%s - dump IMM model to file\n", progname);
 
     printf("\nSYNOPSIS\n");
-    printf("\t%s <file name>\n", progname);
+    printf("\t%s [ <file name> ]\n", progname);
 
     printf("\nDESCRIPTION\n");
     printf("\t%s is an IMM OM client used to dump, write the IMM model to file\n", progname);
@@ -125,9 +125,9 @@ int main(int argc, char* argv[])
         /* We allow the dump to execute anyway. */
     }
 
-    if ((argc < 2) || (argc > 5))
+    if (argc > 5)
     {
-        printf("Usage: %s <xmldumpfile>\n", basename(argv[0]));
+        printf("Usage: %s [ <xmldumpfile> ]\n", basename(argv[0]));
 	usage(basename(argv[0]));
         exit(1);
     }
@@ -160,10 +160,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    if(filename.empty()) {
-	    filename.append(argv[1]);
-    }
-
     version.releaseCode = RELEASE_CODE;
     version.majorVersion = MAJOR_VERSION;
     version.minorVersion = MINOR_VERSION;
@@ -180,7 +176,12 @@ int main(int argc, char* argv[])
 
     if(pbeDumpCase) {
     	/* Generate PBE database file from current IMM state */
-        std::cout <<
+
+        if(filename.empty()) {
+    	    filename.append(argv[1]);
+        }
+
+    	std::cout <<
             "Generating DB file from current IMM state. File: " << filename <<
              std::endl;
 
@@ -219,8 +220,14 @@ int main(int argc, char* argv[])
     } else {
         /* Generate IMM XML file from current IMM state */
         /* xmlWriter dump case */
-        std::cout << "Dumping current IMM state to XML file " << filename <<
-	        " using XMLWriter" << std::endl;
+    	if(filename.empty() && argc == 1) {
+    		filename.append("/proc/self/fd/1");
+    	} else {
+    		if(filename.empty())
+    			filename.append(argv[1]);
+    		std::cout << "Dumping current IMM state to XML file " << filename <<
+    				" using XMLWriter" << std::endl;
+    	}
 
         xmlTextWriterPtr writer=xmlNewTextWriterFilename(filename.c_str(),0);
 
