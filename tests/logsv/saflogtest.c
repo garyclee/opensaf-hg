@@ -94,6 +94,7 @@ static void usage(void)
 	printf("  -n or --notification           write to notification stream\n");
 	printf("  -y or --system                 write to system stream (default)\n");
 	printf("  -a NAME or --application=NAME  write to application stream NAME\n");
+	printf("  -b NAME or --capplication=NAME write to config application stream NAME\n");
 	printf("  -s SEV or --severity=SEV       use severity SEV, default INFO\n");
 	printf("  -i INT or --interval=INT       write with interval INT us (only with --count, default 0us)\n");
 	printf("  -c CNT or --count=CNT          write CNT number of times, -1 forever (with interval INT) \n");
@@ -233,6 +234,7 @@ int main(int argc, char *argv[])
 	struct option long_options[] = {
 		{"ack", no_argument, 0, 'k'},
 		{"application", required_argument, 0, 'a'},
+		{"capplication", required_argument, 0, 'b'},
 		{"alarm", no_argument, 0, 'l'},
 		{"notification", no_argument, 0, 'n'},
 		{"system", no_argument, 0, 'y'},
@@ -278,7 +280,7 @@ int main(int argc, char *argv[])
 	appLogFileCreateAttributes.logFileFmt = DEFAULT_FORMAT_EXPRESSION;
 
 	while (1) {
-		c = getopt_long(argc, argv, "hklnya:s:i:c:", long_options, NULL);
+		c = getopt_long(argc, argv, "hklnya:b:s:i:c:", long_options, NULL);
 		if (c == -1) {
 			break;
 		}
@@ -305,6 +307,10 @@ int main(int argc, char *argv[])
 			logFileCreateAttributes = &appLogFileCreateAttributes;
 			appLogFileCreateAttributes.logFileName = strdup(optarg);
 			logStreamOpenFlags = SA_LOG_STREAM_CREATE;
+			break;
+		case 'b':
+			sprintf((char *) logStreamName.value, "safLgStrCfg=%s", optarg);
+			strcat((char *) logStreamName.value, ",safApp=safLogService");
 			break;
 		case 's':
 			logRecord.logHeader.genericHdr.logSeverity = get_severity(optarg);
