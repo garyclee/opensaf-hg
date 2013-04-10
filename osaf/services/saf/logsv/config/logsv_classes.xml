@@ -73,6 +73,11 @@
 			<type>SA_UINT32_T</type>
 			<category>SA_RUNTIME</category>
 		</attr>
+		<attr>
+			<name>saLogStreamFilterCounter</name>
+			<type>SA_UINT64_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
 	</class>
 	<class name="SaLogStreamConfig">
 		<category>SA_CONFIG</category>
@@ -151,6 +156,11 @@
 		<attr>
 			<name>saLogStreamNumOpeners</name>
 			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saLogStreamFilterCounter</name>
+			<type>SA_UINT64_T</type>
 			<category>SA_RUNTIME</category>
 		</attr>
 	</class>
