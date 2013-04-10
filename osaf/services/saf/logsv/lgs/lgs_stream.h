@@ -43,6 +43,7 @@ typedef struct log_stream {
 	SaUint32T severityFilter;
 	SaTimeT creationTimeStamp;
 	SaUint32T numOpeners;
+	SaUint64T filtered;	/* discarded by server due to filtering */
 	/* --- end correspond to IMM Class --- */
 
 	uint32_t streamId;	/* The unique stream id for this stream */
@@ -52,7 +53,6 @@ typedef struct log_stream {
 	uint32_t logRecordId;	/* log record indentifier increased for each record */
 	SaBoolT twelveHourModeFlag;
 	logStreamTypeT streamType;
-	SaUint64T filtered;	/* discarded by server due to filtering */
 } log_stream_t;
 
 extern uint32_t log_stream_init(void);
