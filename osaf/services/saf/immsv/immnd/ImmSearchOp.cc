@@ -23,6 +23,7 @@ ImmSearchOp::ImmSearchOp()
 {
     mLastResult=NULL;
     mIsSync=false;
+    mIsAccessor=false;
     syncOsi=NULL;
     attrNameList=NULL;
     classInfo=NULL;
@@ -101,7 +102,7 @@ ImmSearchOp::testTopResult(unsigned int* nodeIdp, SaBoolT* bRtsToFetch)
         for (i = obj.attributeList.begin(); i != obj.attributeList.end(); i++) {
             if(bRtsToFetch && ((*i).flags & SA_IMM_ATTR_RUNTIME) &&
                             ! ((*i).flags & SA_IMM_ATTR_CACHED)) {
-                *bRtsToFetch = SA_TRUE;	/* true */
+                *bRtsToFetch = SA_TRUE;
                 *nodeIdp = obj.implNodeId;
                 break;
             }

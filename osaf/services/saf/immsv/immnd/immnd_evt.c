@@ -208,6 +208,8 @@ static uint32_t immnd_evt_proc_remote_search_rsp(IMMND_CB *cb, IMMND_EVT *evt, I
 
 static uint32_t immnd_evt_proc_search_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
+static uint32_t immnd_evt_proc_accessor_get(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
+
 static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt);
 
 /*static uint32_t immnd_evt_immd_new_active(IMMND_CB *cb);*/
@@ -347,7 +349,8 @@ uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
 		evt->info.immnd.info.searchRemote.attributeNames = NULL;
 	} else if (evt->info.immnd.type == IMMND_EVT_ND2ND_SEARCH_REMOTE_RSP) {
 		freeSearchNext(&evt->info.immnd.info.rspSrchRmte.runtimeAttrs, false);
-	} else if (evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) {
+	} else if ((evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) ||
+		(evt->info.immnd.type == IMMND_EVT_A2ND_ACCESSOR_GET)) {
 		free(evt->info.immnd.info.searchInit.rootName.buf);
 		evt->info.immnd.info.searchInit.rootName.buf = NULL;
 		evt->info.immnd.info.searchInit.rootName.size = 0;
@@ -587,6 +590,10 @@ void immnd_process_evt(void)
 
 	case IMMND_EVT_A2ND_SEARCHNEXT:
 		rc = immnd_evt_proc_search_next(cb, &evt->info.immnd, &evt->sinfo);
+		break;
+
+	case IMMND_EVT_A2ND_ACCESSOR_GET:
+		rc = immnd_evt_proc_accessor_get(cb, &evt->info.immnd, &evt->sinfo);
 		break;
 
 	case IMMND_EVT_A2ND_RT_ATT_UPPD_RSP:
@@ -860,7 +867,7 @@ static uint32_t immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 		goto agent_rsp;
 	}
 
-	error = immModel_searchInitialize(cb, &(evt->info.searchInit), &searchOp, isSync);
+	error = immModel_searchInitialize(cb, &(evt->info.searchInit), &searchOp, isSync, SA_FALSE);
 
 	if((error == SA_AIS_OK) && isSync) {
 		/* Special processing only for sync iterator. */
@@ -894,8 +901,11 @@ static uint32_t immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 			goto agent_rsp;
 		}
 
-		sn->searchId = cb->cli_id_gen++;	/* separate count for search */
-		sn->searchOp = searchOp;	/*TODO: wraparround */
+		sn->searchId = cb->cli_id_gen++;
+		if(cb->cli_id_gen == 0xffffffff) { /* handle wrap arround */
+			cb->cli_id_gen = 1;
+		}
+		sn->searchOp = searchOp;
 		sn->next = cl_node->searchOpList;
 		cl_node->searchOpList = sn;
 		send_evt.info.imma.info.searchInitRsp.searchId = sn->searchId;
@@ -926,6 +936,7 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 	IMMSV_ATTR_VALUES_LIST *oldRsp, *fetchedRsp;
 	IMMND_OM_SEARCH_NODE *sn = NULL;
 	SaAisErrorT err = reply->result;
+	SaBoolT isAccessor = SA_FALSE;
 	TRACE_ENTER();
 	osafassert(reply->requestNodeId == cb->node_id);
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -954,14 +965,12 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 	if (sn) {
 		immModel_fetchLastResult(sn->searchOp, &rsp);
 		immModel_clearLastResult(sn->searchOp);
+		isAccessor = immModel_isSearchOpAccessor(sn->searchOp);
 	} else {
 		LOG_ER("Could not find search node for search-ID:%u", reply->searchId);
 		if (err == SA_AIS_OK) {
 			err = SA_AIS_ERR_LIBRARY;
 		}
-	}
-
-	if (err != SA_AIS_OK) {
 		goto agent_rsp;
 	}
 
@@ -986,7 +995,8 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 		while (oldRsp) {	//Find the old value
 			IMMSV_ATTR_VALUES *att2 = &(oldRsp->n);
 			/*TRACE_2("Mattching against:%s", att2->attrName.buf);*/
-			if (att->attrName.size == att2->attrName.size && (strncmp((const char *)att->attrName.buf, (const char *)att2->attrName.buf, att->attrName.size) == 0)) {	//We have a match
+			if (att->attrName.size == att2->attrName.size && (strncmp((const char *)att->attrName.buf,
+						(const char *)att2->attrName.buf, att->attrName.size) == 0)) {
 				TRACE_2("MATCH FOUND nrof old values:%lu", att2->attrValuesNumber);
 				osafassert(att->attrValueType == att2->attrValueType);
 				/* delete the current old value & set attrValuesNumber to zero. */
@@ -1036,7 +1046,8 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 
  agent_rsp:
 	if (err == SA_AIS_OK) {
-		send_evt.info.imma.type = IMMA_EVT_ND2A_SEARCHNEXT_RSP;
+		send_evt.info.imma.type =
+			isAccessor ? IMMA_EVT_ND2A_ACCESSOR_GET_RSP : IMMA_EVT_ND2A_SEARCHNEXT_RSP;
 		send_evt.info.imma.info.searchNextRsp = rsp;
 	} else {		/*err != SA_AIS_OK */
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
@@ -1045,6 +1056,26 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 
 	if (immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt) != NCSCC_RC_SUCCESS) {
 		LOG_WA("Could not send reply to agent for search-next continuaton");
+	}
+
+	if(isAccessor) {
+		if(sn && cl_node) {
+			IMMND_OM_SEARCH_NODE **prev = &(cl_node->searchOpList);
+			IMMND_OM_SEARCH_NODE *n = cl_node->searchOpList;
+			while(n) {
+				if(n == sn) {
+					*prev = n->next;
+					break;
+				}
+				prev = &(n->next);
+				n = n->next;
+			}
+		}
+		if(sn) {
+			if(sn->searchOp)
+				immModel_deleteSearchOp(sn->searchOp);
+			free(sn);
+		}
 	}
 
 	if (rsp) {
@@ -1111,7 +1142,7 @@ static uint32_t immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMM
 		reqo.attributeNames = evt->info.rtAttUpdRpl.sr.attributeNames;	/*borrowing. */
 
 		TRACE_2("oi_att_pull_rpl Before searchInit");
-		err = immModel_searchInitialize(cb, &reqo, &searchOp, SA_FALSE);
+		err = immModel_searchInitialize(cb, &reqo, &searchOp, SA_FALSE, SA_FALSE);
 		if (err == SA_AIS_OK) {
 			TRACE_2("oi_att_pull_rpl searchInit returned OK, calling searchNext");
 			IMMSV_OM_RSP_SEARCH_NEXT *rsp = 0;
@@ -1326,6 +1357,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 	SaUint32T resultSize = 0;
 	IMMSV_OM_RSP_SEARCH_BUNDLE_NEXT bundleSearch = {0, NULL};
 	int ix;
+	SaBoolT isAccessor = SA_FALSE;
 
 	TRACE_ENTER();
 
@@ -1399,7 +1431,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 		 */
 
 		if (implConn) {
-			TRACE_2("The implementer is local");
+			TRACE_2("The implementer is local- case B");
 			/*Case B Invoke rtUpdateCallback directly. */
 			osafassert(implNodeId == cb->node_id);
 			send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -1429,7 +1461,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 				}
 			}
 		} else {
-			TRACE_2("The implementer is remote");
+			TRACE_2("The implementer is remote - case C");
 			/*Case C Send the message directly to nd where implementer resides. */
 			send_evt.type = IMMSV_EVT_TYPE_IMMND;
 			send_evt.info.immnd.type = IMMND_EVT_ND2ND_SEARCH_REMOTE;
@@ -1472,6 +1504,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 		SaBoolT bRtAttrs;
 		uint32_t size = search_result_size(rsp);
 		resultSize = 1;
+		isAccessor = immModel_isSearchOpAccessor(sn->searchOp);
 
 		/* Repeat to the maximum search result,
 		 * or the size os search results becomes bigger then IMMND_SEARCH_BUNDLE_SIZE,
@@ -1489,7 +1522,8 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 			}
 
 			if(resultSize == 1) {
-				rspList = (IMMSV_OM_RSP_SEARCH_NEXT **)calloc(IMMND_MAX_SEARCH_RESULT, sizeof(IMMSV_OM_RSP_SEARCH_NEXT *));
+				rspList = (IMMSV_OM_RSP_SEARCH_NEXT **)
+					calloc(IMMND_MAX_SEARCH_RESULT, sizeof(IMMSV_OM_RSP_SEARCH_NEXT *));
 				rspList[0] = rsp;
 				rsp = NULL;
 			}
@@ -1508,11 +1542,13 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 
 	if (error == SA_AIS_OK) {
 		if(resultSize == 1) {
-			send_evt.info.imma.type = IMMA_EVT_ND2A_SEARCHNEXT_RSP;
+			send_evt.info.imma.type = isAccessor ? IMMA_EVT_ND2A_ACCESSOR_GET_RSP:
+				IMMA_EVT_ND2A_SEARCHNEXT_RSP;
 			send_evt.info.imma.info.searchNextRsp = rsp;
 		} else {
 			bundleSearch.resultSize = resultSize;
-			bundleSearch.searchResult = (IMMSV_OM_RSP_SEARCH_NEXT **)malloc(sizeof(IMMSV_OM_RSP_SEARCH_NEXT *) * resultSize);
+			bundleSearch.searchResult = (IMMSV_OM_RSP_SEARCH_NEXT **)
+				malloc(sizeof(IMMSV_OM_RSP_SEARCH_NEXT *) * resultSize);
 			for(ix=0; ix<resultSize; ix++)
 				bundleSearch.searchResult[ix] = rspList[ix];
 
@@ -1522,12 +1558,14 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 	} else {
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 		send_evt.info.imma.info.errRsp.error = error;
+		send_evt.info.imma.info.errRsp.errStrings = NULL;
 	}
 
 	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 
-	if(rsp)
+	if(rsp) {
 		freeSearchNext(rsp, true);
+	}
 
 	if(rspList) {
 		for(ix=0; ix<IMMND_MAX_SEARCH_RESULT; ix++) {
@@ -1540,14 +1578,15 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 		immModel_clearLastResult(sn->searchOp);
 	}
 
-	if(bundleSearch.searchResult)
+	if(bundleSearch.searchResult) {
 		free(bundleSearch.searchResult);
+	}
 
 	if (rtAttrsToFetch) {
 		immsv_evt_free_attrNames(rtAttrsToFetch);
 	}
 
-	if(error == SA_AIS_ERR_NOT_EXIST) {
+	if(error == SA_AIS_ERR_NOT_EXIST || isAccessor) {
 		if(immnd_evt_proc_search_finalize(cb, evt, NULL) != NCSCC_RC_SUCCESS) {
 			LOG_WA("Failed in finalizing consumed iterator/accessor");
 		}
@@ -1628,6 +1667,91 @@ static uint32_t immnd_evt_proc_search_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMM
 	if(sinfo) {
 		rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 	}
+	TRACE_LEAVE();
+	return rc;
+}
+
+/****************************************************************************
+ * Name          : immnd_evt_proc_accessor_get
+ *
+ * Description   : Function to process the saImmOmAccessorGet call.
+ *                 Note that this is a read, local to the ND (does not go
+ *                 over FEVS).
+ *
+ * Arguments     : IMMND_CB *cb - IMMND CB pointer
+ *                 IMMND_EVT *evt - Received Event structure
+ *                 IMMSV_SEND_INFO *sinfo - sender info
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uint32_t immnd_evt_proc_accessor_get(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo)
+{
+	IMMSV_EVT send_evt;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT error = SA_AIS_OK;
+	void *searchOp = NULL;
+	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	IMMND_OM_SEARCH_NODE *sn = NULL;
+	TRACE_ENTER();
+
+	/* Search Init */
+
+	memset(&send_evt, 0, sizeof(IMMSV_EVT));
+	TRACE_2("ACCESSOR GET:%s", evt->info.searchInit.rootName.buf);
+
+	/*Look up client-node */
+	immnd_client_node_get(cb, evt->info.searchInit.client_hdl, &cl_node);
+	if (cl_node == NULL || cl_node->mIsStale) {
+		LOG_WA("IMMND - Client Node Get Failed for cli_hdl");
+		TRACE_2("Client Node get failed for handle:%llu", evt->info.searchInit.client_hdl);
+		error = SA_AIS_ERR_BAD_HANDLE;
+		goto search_init_err;
+	}
+
+	error = immModel_searchInitialize(cb, &(evt->info.searchInit), &searchOp, SA_FALSE, SA_TRUE);
+
+	if (error != SA_AIS_OK) {
+		goto search_init_err;
+	}
+
+	/*Generate search-id */
+	sn = calloc(1, sizeof(IMMND_OM_SEARCH_NODE));
+	if(sn == NULL) {
+		error = SA_AIS_ERR_NO_MEMORY;
+		goto search_init_err;
+	}
+
+	sn->searchId = cb->cli_id_gen++;
+	if(cb->cli_id_gen == 0xffffffff) { /* handle wrap arround */
+		cb->cli_id_gen = 1;
+	}
+	sn->searchOp = searchOp;
+	sn->next = cl_node->searchOpList;
+	cl_node->searchOpList = sn;
+
+	send_evt.info.immnd.type = IMMND_EVT_A2ND_SEARCHNEXT;
+	send_evt.info.immnd.info.searchOp.searchId = sn->searchId;
+	send_evt.info.immnd.info.searchOp.client_hdl = evt->info.searchInit.client_hdl;
+
+	/*  Search Next handles the rest, sends reply, error or not. */
+	rc = immnd_evt_proc_search_next(cb, &(send_evt.info.immnd), sinfo);
+	goto done;
+
+ search_init_err:
+	osafassert(error != SA_AIS_OK);
+
+	send_evt.type = IMMSV_EVT_TYPE_IMMA;
+	send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+	send_evt.info.imma.info.errRsp.error = error;
+	send_evt.info.imma.info.errRsp.errStrings = NULL;
+
+	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
+
+	if(searchOp) { immModel_deleteSearchOp(searchOp); }
+
+ done:
 	TRACE_LEAVE();
 	return rc;
 }
