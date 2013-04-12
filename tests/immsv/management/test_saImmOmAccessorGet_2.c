@@ -226,7 +226,7 @@ void saImmOmAccessorGet_2_11(void)
     for(i=0; i<maxSearchHandles; i++)
     	safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
 
-    rc = saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes);
+    rc = saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
 	test_validate(rc, SA_AIS_ERR_NO_RESOURCES);
 	safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
