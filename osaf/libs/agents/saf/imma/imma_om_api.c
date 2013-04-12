@@ -5110,6 +5110,7 @@ SaAisErrorT saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 	IMMA_SEARCH_NODE *search_node = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	SaImmHandleT immHandle=0LL;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -5128,37 +5129,32 @@ SaAisErrorT saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 
 	imma_search_node_get(&cb->search_tree, &accessorHandle, &search_node);
 
-	if (!search_node) {
+	if (!search_node || search_node->mSearchId != 0) {
 		TRACE_2("ERR_BAD_HANDLE: Search node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
 
-	if (search_node->mSearchId) {
-		/*Finalize as a searchHandle */
-		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		locked = false;
-		/*NOTE: We return directly in the next statement. */
-		return saImmOmSearchFinalize((SaImmSearchHandleT)accessorHandle);
+	if (search_node->mLastAttributes) {
+		imma_freeSearchAttrs((SaImmAttrValuesT_2 **)search_node->mLastAttributes);
+		search_node->mLastAttributes = NULL;
+	}
 
+	immHandle = search_node->mImmHandle;
+	proc_rc = imma_search_node_delete(cb, search_node);
+	search_node = NULL;
+	if (proc_rc != NCSCC_RC_SUCCESS) {
+		TRACE_4("ERR_LIBRARY: Could not delete search node");
+		rc = SA_AIS_ERR_LIBRARY;
 	} else {
-		SaImmHandleT immHandle = search_node->mImmHandle;
-		/*Search handle was apparently never used, just remove the node. */
-		proc_rc = imma_search_node_delete(cb, search_node);
-		search_node = NULL;
-		if (proc_rc != NCSCC_RC_SUCCESS) {
-			TRACE_4("ERR_LIBRARY: Could not delete search node");
-			rc = SA_AIS_ERR_LIBRARY;
+		/* Decrease number of search handles per IMM handle */
+		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+		if (cl_node && cl_node->isOm) {	/* TODO: Is osafassert(cl_node && cl_node->isOm) better solution */
+			osafassert(cl_node->searchHandleSize);
+			cl_node->searchHandleSize--;
 		} else {
-			/* Decrease number of search handles per IMM handle */
-			imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
-			if (cl_node && cl_node->isOm) {	/* TODO: Is osafassert(cl_node && cl_node->isOm) better solution */
-				osafassert(cl_node->searchHandleSize);
-				cl_node->searchHandleSize--;
-			} else {
-				TRACE_2("ERR_LIBRARY: Invalid SaImmHandleT related to search handle");
-				rc = SA_AIS_ERR_LIBRARY;
-			}
+			TRACE_2("ERR_LIBRARY: Invalid SaImmHandleT related to search handle");
+			rc = SA_AIS_ERR_LIBRARY;
 		}
 	}
 
@@ -5177,25 +5173,39 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 				 const SaImmAttrNameT *attributeNames, SaImmAttrValuesT_2 ***attributes)
 {
 	SaAisErrorT rc = SA_AIS_OK;
+	uint32_t proc_rc;
 	bool locked = true;
 	IMMA_CB *cb = &imma_cb;
+	IMMA_CLIENT_NODE *cl_node = NULL;
 	IMMA_SEARCH_NODE *search_node = NULL;
-	SaNameT redundantName;
-	SaImmAttrValuesT_2 **attributeList = NULL;
+	IMMSV_EVT evt;
+	IMMSV_EVT *out_evt = NULL;
+	SaUint32T timeout;
+
+	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_BAD_HANDLE;
+	}
+
+	if (cb->is_immnd_up == false) {
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
 	if ((objectName == NULL) || (objectName->length == 0) || (objectName->length >= SA_MAX_NAME_LENGTH)) {
 		TRACE_2("ERR_INVALID_PARAM: Incorrect parameter contents: objectName");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
 	/* Skip the case when attributeNames[0] == NULL and attributes == NULL (#2166) */
 	if (!attributes && (!attributeNames || attributeNames[0])) {
 		TRACE_2("ERR_INVALID_PARAM: attributes is NULL");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
@@ -5215,62 +5225,261 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 		goto release_lock;
 	}
 
+	if(search_node->mSearchId != 0) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_4("ERR_BAD_HANDLE: Handle is not an accessor handle");
+		goto release_lock;
+	}
+
 	SaImmHandleT immHandle = search_node->mImmHandle;
 
-	/* Stale check etc done in searchInit & searchNext below. */
+	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+	if (!(cl_node && cl_node->isOm)) {
+		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto release_lock;
+	}
 
-	/* Release locks and cb for normal cases as it uses SearchInit & 
+	if (cl_node->stale) {
+		TRACE_1("IMM Handle %llx is stale", immHandle);
+		bool resurrected = imma_om_resurrect(cb, cl_node, &locked);
+		cl_node = NULL;
+
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+			TRACE_4("ERR_LIBRARY: Lock failed");
+			rc = SA_AIS_ERR_LIBRARY;
+			goto release_cb;
+		}
+		locked = true;
+
+		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+
+		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = true;}
+			rc = SA_AIS_ERR_BAD_HANDLE;
+			goto release_lock;
+		}
+
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
+	}
+
+	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+		goto release_lock;
+	}
+
+	memset(&evt, 0, sizeof(IMMSV_EVT));
+	evt.type = IMMSV_EVT_TYPE_IMMND;
+	evt.info.immnd.type = IMMND_EVT_A2ND_ACCESSOR_GET;
+	IMMSV_OM_SEARCH_INIT *req = &(evt.info.immnd.info.searchInit);
+	req->client_hdl = immHandle;
+	req->rootName.size = strlen((char *)objectName->value) + 1;
+	if(objectName->length + 1 < req->rootName.size)
+		req->rootName.size = objectName->length + 1;
+	req->rootName.buf = malloc(req->rootName.size);	/* alloc-1 */
+	strncpy(req->rootName.buf, (char *)objectName->value, (size_t)req->rootName.size);
+	req->rootName.buf[req->rootName.size - 1] = 0;
+
+	req->scope = SA_IMM_ONE;
+	req->searchParam.present = ImmOmSearchParameter_PR_NOTHING;
+
+	req->attributeNames = NULL;
+	if(attributeNames) {
+		const SaImmAttrNameT *namev = attributeNames;
+		if(*namev && (*(namev +1))==NULL &&
+			strcmp(*attributeNames, "SA_IMM_SEARCH_GET_CONFIG_ATTR") == 0) {
+			/* This is a hack to cater for the very common simple case of the OM user
+			   needing to access ONE object, but only its config attributes. 
+			   The saImmOmAccessorGet_2 call has no search-options. The typical user
+			   is here actaully an OI that wants to initialize. The trick used is
+			   to "tunnel" a search option through the attributes parameter of that
+			   call so it reaches the searchInitialize here. The user will get ALL
+			   config attributes for the object in this way. If they only want some
+			   of the config attributes, then they just do a regular accessor get and
+			   enumerate teh attributes they want.
+	   
+			   We have here detected only one attribute in the attributes list and
+			   the name of that attribute is 'SA_IMM_SEARCH_GET_CONFIG_ATTR'.
+			   We then here assume that the user does not actually want an attribute
+			   with that name (an attribute with *that* name should definitely not
+			   be defined by any user) but wants all config attribues. 
+			   This feature is only available with the A.2.11 version of the IMMA-API.
+			*/
+
+			if (!(cl_node->isImmA2b)) {
+				TRACE("ERR_VERSION: search option SA_IMM_SEARCH_GET_CONFIG_ATTR "
+					"requires IMM version A.02.11");
+				rc = SA_AIS_ERR_VERSION;
+				goto release_lock;
+			}
+
+			req->searchOptions = SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_CONFIG_ATTR;
+			++namev; /* will be NULL and not enter loop directly below */
+		} else {
+			req->searchOptions = SA_IMM_SEARCH_ONE_ATTR |  SA_IMM_SEARCH_GET_SOME_ATTR;
+		}
+
+		for (; *namev; namev++) {
+			IMMSV_ATTR_NAME_LIST *p = (IMMSV_ATTR_NAME_LIST *)
+				malloc(sizeof(IMMSV_ATTR_NAME_LIST));	/* alloc-2 */
+			p->name.size = strlen(*namev) + 1;
+			p->name.buf = malloc(p->name.size);	/* alloc-3 */
+			strncpy(p->name.buf, *namev, p->name.size);
+			p->name.buf[p->name.size - 1] = 0;
+
+			p->next = req->attributeNames;	/*NULL in first iteration */
+			req->attributeNames = p;
+		}
+	} else {
+		req->searchOptions = SA_IMM_SEARCH_ONE_ATTR |  SA_IMM_SEARCH_GET_ALL_ATTR;
+	}
+
+	timeout = cl_node->syncr_timeout;
+
+	/* Release locks and cb for normal cases as it uses SearchInit &
 	   SearchNext.
 	 */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	locked = false;
 
-	/*The accessorHandle is actually just a searchhandle in this 
-	   implementation. 
-	   SaImmSearchHandleT searchHandle = (SaImmSearchHandleT) accessorHandle;
-	 */
+	/* IMMND GOES DOWN */
+	if (cb->is_immnd_up == false) {
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
+		goto mds_send_fail;
+	}
 
-	if (search_node->mSearchId) { /* TODO: Use of search_node not safe (unlocked) */
-		TRACE("Closing previous allocation :%u\n", search_node->mSearchId);
+	/* send the request to the IMMND */
+	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, &out_evt, timeout);
 
-		/*Perform a search-next, simply to discard any previous allocation. */
-		/*Cant do a searchFinalize since that will discard the node. */
+	switch(proc_rc) {
+		case NCSCC_RC_SUCCESS:
+			break;
 
-		redundantName.length = 0;
-		m_IMMSV_SET_SANAMET((&redundantName));
+		case NCSCC_RC_REQ_TIMOUT:
+			rc = imma_proc_check_stale(cb, immHandle, SA_AIS_ERR_TIMEOUT);
+			goto mds_send_fail;
 
-		rc = saImmOmSearchNext_2(accessorHandle, &redundantName, &attributeList);
+		default:
+			rc = SA_AIS_ERR_LIBRARY;
+			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			goto mds_send_fail;
+	}
 
-		if (rc != SA_AIS_ERR_NOT_EXIST && rc != SA_AIS_ERR_BAD_HANDLE) {
-			TRACE_4("ERR_LIBRARY: Unexpected return code from internal searchNext: %u", rc);
-			return SA_AIS_ERR_LIBRARY;	/*No handles to close here. */
+	if (search_node->mLastAttributes) {
+		imma_freeSearchAttrs((SaImmAttrValuesT_2 **)search_node->mLastAttributes);
+		search_node->mLastAttributes = NULL;
+	}
+
+	if(out_evt) {
+		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
+		if (out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR) {
+			rc = out_evt->info.imma.info.errRsp.error;
+			osafassert(rc && (rc != SA_AIS_OK));
+			free(out_evt);  /*BUGFIX (leak) 090506 */
+			out_evt = NULL;
+			goto mds_send_fail;
 		}
 
-		/* Close the previous search id.
-		   Cant use saImmOmSearchfinalize, because this will also close the 
-		   search handle and deallocate the search_node.
-		 */
+		osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_ACCESSOR_GET_RSP);
 
-		/* NOTE/TODO: Should Send a ImmOmSearchFinalize message to IMMND !! 
-		   This to discard the search on the server side. See searchFinalize. */
-		search_node->mSearchId = 0;
+		if(attributes) {
+			int noOfAttributes = 0;
+			int i = 0;
+			IMMSV_ATTR_VALUES_LIST *p;
+			IMMSV_ATTR_VALUES_LIST *attrValueList;
+			SaImmAttrValuesT_2 **attr;
+			osafassert(out_evt->info.imma.info.searchNextRsp);
+			attrValueList = out_evt->info.imma.info.searchNextRsp->attrValuesList;
+
+			p = attrValueList;
+			while(p) {
+				noOfAttributes++;
+				p = p->next;
+			}
+
+			p = attrValueList;
+			attr = calloc(noOfAttributes + 1, sizeof(SaImmAttrValuesT_2 *));	/* alloc-1 */
+			for(i=0; i<noOfAttributes; i++, p = p->next) {
+				IMMSV_ATTR_VALUES *q = &(p->n);
+				attr[i] = calloc(1, sizeof(SaImmAttrValuesT_2));	/* alloc-2 */
+				attr[i]->attrName = malloc(q->attrName.size + 1);	/* alloc-3 */
+				strncpy(attr[i]->attrName, (const char *)q->attrName.buf, q->attrName.size + 1);
+				attr[i]->attrName[q->attrName.size] = 0;	/*redundant. */
+				attr[i]->attrValuesNumber = q->attrValuesNumber;
+				attr[i]->attrValueType = (SaImmValueTypeT)q->attrValueType;
+
+				if (q->attrValuesNumber) {
+					attr[i]->attrValues = calloc(1, q->attrValuesNumber * sizeof(SaImmAttrValueT));	/*alloc-4 */
+					/*alloc-5 */
+					attr[i]->attrValues[0] = imma_copyAttrValue3(q->attrValueType, &(q->attrValue));
+
+					if (q->attrValuesNumber > 1) {
+						int ix;
+						IMMSV_EDU_ATTR_VAL_LIST *r = q->attrMoreValues;
+						for (ix = 1; ix < q->attrValuesNumber; ++ix) {
+							osafassert(r);
+							attr[i]->attrValues[ix] = imma_copyAttrValue3(q->attrValueType, &(r->n));	/*alloc-5 */
+							r = r->next;
+						}
+					}
+				}
+			}
+			*attributes = attr;
+			search_node->mLastAttributes = attr;
+		}
+	} else {
+		TRACE_4("ERR_LIBRARY: Empty return message from IMMND");
+		rc = SA_AIS_ERR_LIBRARY;
 	}
 
-	rc = saImmOmSearchInitialize_2(immHandle, objectName,	/*root == object */
-				       SA_IMM_ONE,	/* Normally illegal in search */
-				       0, NULL, attributeNames, &accessorHandle);
+mds_send_fail:
 
-	if (rc != SA_AIS_OK) {
-		search_node->mSearchId = 0;
-		return rc;
+	if(req->rootName.buf) {
+		free(req->rootName.buf);	/* free-1 */
+		req->rootName.buf = NULL;
+		req->rootName.size = 0;
+	}
+	if (req->attributeNames) {
+		immsv_evt_free_attrNames(req->attributeNames);	/* free-2 and free-3 */
+		req->attributeNames = NULL;
 	}
 
-	redundantName.length = 0;
-	m_IMMSV_SET_SANAMET((&redundantName));
-	rc = saImmOmSearchNext_2(accessorHandle, &redundantName, &attributeList);
-	if(attributes)
-		*attributes = attributeList;
-	return rc;
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("ERR_LIBRARY: Lock error");
+		goto release_cb;
+	}
+	locked = true;
+
+	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+	if (!(cl_node && cl_node->isOm)) {
+		TRACE_3("ERR_BAD_HANDLE: Client node is gone after down call");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto release_lock;
+	}
+
+	imma_proc_decrement_pending_reply(cl_node, true);
+
+	imma_search_node_get(&cb->search_tree, &accessorHandle, &search_node);
+	if ((!search_node) || (search_node->mImmHandle != immHandle)) {
+		TRACE_3("ERR_BAD_HANDLE: Search node is missing after down call");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto release_lock;
+	}
+
+	if (cl_node->stale) {
+		if (isExposed(cb, cl_node)) {
+			TRACE_2("ERR_BAD_HANDLE: client is stale after down call and exposed");
+			rc = SA_AIS_ERR_BAD_HANDLE;
+		} else {
+			TRACE_2("ERR_TRY_AGAIN: Handle %llx is stale after down call but "
+					"possible to resurrect", immHandle);
+			/* Can override BAD_HANDLE/TIMEOUT set in check_stale */
+			rc = SA_AIS_ERR_TRY_AGAIN;
+		}
+	}
 
 	/*error cases only */
  release_lock:
@@ -5278,8 +5487,20 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	}
 
+	if(out_evt) {
+		if(out_evt->info.imma.info.searchNextRsp) {
+			if(out_evt->info.imma.info.searchNextRsp->attrValuesList) {
+				immsv_free_attrvalues_list(out_evt->info.imma.info.searchNextRsp->attrValuesList);
+			}
+			free(out_evt->info.imma.info.searchNextRsp);
+			out_evt->info.imma.info.searchNextRsp = NULL;
+		}
+		free(out_evt);
+	}
+
  release_cb:
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -5745,7 +5966,6 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
-	bool isAccessor = false;
 	bool isAccGetConfigAttrs = false;
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT evt;
@@ -5831,98 +6051,57 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		goto release_lock;
 	}
 
-	if ((scope == SA_IMM_ONE) && (*searchHandle) && !searchParam && !searchOptions) {
-		TRACE("Special accessor case:%llx\n", *searchHandle);
-		isAccessor = true;
-		osafassert(!searchOptions && !searchParam);
+	*searchHandle = 0LL;
 
-		if(attributeNames && *attributeNames && (*(attributeNames + 1))==NULL && 
-		     strcmp(*attributeNames, "SA_IMM_SEARCH_GET_CONFIG_ATTR") == 0) {
-			/* This is a hack to cater for the very common simple case of the OM user
-			   needing to access ONE object, but only its config attributes. 
-			   The saImmOmAccessorGet_2 call has no search-options. The typical user
-			   is here actaully an OI that wants to initialize. The trick used is
-			   to "tunnel" a search option through the attributes parameter of that
-			   call so it reaches the searchInitialize here. The user will get ALL
-			   config attributes for the object in this way. If they only want some
-			   of the config attributes, then they just do a regular accessor get and
-			   enumerate teh attributes they want.
-	   
-			   We have here detected only one attribute in the attributes list and
-			   the name of that attribute is 'SA_IMM_SEARCH_GET_CONFIG_ATTR'.
-			   We then here assume that the user does not actually want an attribute
-			   with that name (an attribute with *that* name should definitely not
-			   be defined by any user) but wants all config attribues. 
-			   This feature is only available with the A.2.11 version of the IMMA-API.
-			*/
-			searchOptions = SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_CONFIG_ATTR;
-			isAccGetConfigAttrs = true;
-			TRACE("Special GET_CONFIG_ATTR accessor case");
-		} else {
-			searchOptions = SA_IMM_SEARCH_ONE_ATTR |
-				(attributeNames ? SA_IMM_SEARCH_GET_SOME_ATTR : SA_IMM_SEARCH_GET_ALL_ATTR);
-		}
-
-		/*Look up search handle */
-		imma_search_node_get(&cb->search_tree, searchHandle, &search_node);
-		if ((!search_node) || (search_node->mImmHandle != immHandle)) {
-			TRACE_2("ERR_BAD_HANDLE: Search node is missing");
-			rc = SA_AIS_ERR_BAD_HANDLE;
-			goto release_lock;
-		}
-	} else {		/*Normal case */
-		*searchHandle = 0LL;
-
-		if ((scope != SA_IMM_SUBLEVEL) && (scope != SA_IMM_SUBTREE)) {
-			TRACE_2("ERR_IVALID_PARAM: Invalid scope parameter");
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			goto release_lock;
-		}
-
-		if(attributeNames && (!(searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR))) {
-			TRACE_2("ERR_IVALID_PARAM: attributeNames != NULL yet searchOptions set to IMM_SEARCH_GET_SOME_ATTR");
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			goto release_lock;
-		}
-
-		if ((searchOptions & SA_IMM_SEARCH_GET_CONFIG_ATTR) && !(cl_node->isImmA2b)) {
-			TRACE("ERR_VERSION: search option SA_IMM_SEARCH_GET_CONFIG_ATTR "
-				"requires IMM version A.02.11");
-			rc = SA_AIS_ERR_VERSION;
-			goto release_lock;
-		}
-
-		/*Create search-node & handle   */
-		search_node = (IMMA_SEARCH_NODE *)
-		    calloc(1, sizeof(IMMA_SEARCH_NODE));
-		if (!search_node) {
-			rc = SA_AIS_ERR_NO_MEMORY;
-			goto release_lock;
-		}
-
-		search_node->search_hdl = (SaImmSearchHandleT)m_NCS_GET_TIME_NS;
-		search_node->mImmHandle = immHandle;
-
-
-		/* Add IMMA_SEARCH_NODE to search_tree */
-		do {
-			proc_rc = imma_search_node_add(&cb->search_tree, search_node);
-
-			if (proc_rc != NCSCC_RC_SUCCESS) {
-				IMMA_SEARCH_NODE *search_node_tmp = NULL;
-				imma_search_node_get(&cb->search_tree, &(search_node->search_hdl), &search_node_tmp);
-				if(!search_node_tmp) {
-					LOG_NO("Failed to add search node to search tree - aborting");
-					abort();
-				}
-				search_node->search_hdl++;
-				TRACE_4("Duplicate search handle %llu (poor clock resolution) adjusting it to %llu",
-					search_node_tmp->search_hdl, search_node->search_hdl);
-			}
-		} while (proc_rc != NCSCC_RC_SUCCESS);
-
-		cl_node->searchHandleSize++;
+	if ((scope != SA_IMM_SUBLEVEL) && (scope != SA_IMM_SUBTREE)) {
+		TRACE_2("ERR_IVALID_PARAM: Invalid scope parameter");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto release_lock;
 	}
+
+	if(attributeNames && (!(searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR))) {
+		TRACE_2("ERR_IVALID_PARAM: attributeNames != NULL yet searchOptions set to IMM_SEARCH_GET_SOME_ATTR");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto release_lock;
+	}
+
+	if ((searchOptions & SA_IMM_SEARCH_GET_CONFIG_ATTR) && !(cl_node->isImmA2b)) {
+		TRACE("ERR_VERSION: search option SA_IMM_SEARCH_GET_CONFIG_ATTR "
+			"requires IMM version A.02.11");
+		rc = SA_AIS_ERR_VERSION;
+		goto release_lock;
+	}
+
+	/*Create search-node & handle   */
+	search_node = (IMMA_SEARCH_NODE *)
+		calloc(1, sizeof(IMMA_SEARCH_NODE));
+	if (!search_node) {
+		rc = SA_AIS_ERR_NO_MEMORY;
+		goto release_lock;
+	}
+
+	search_node->search_hdl = (SaImmSearchHandleT)m_NCS_GET_TIME_NS;
+	search_node->mImmHandle = immHandle;
+
+
+	/* Add IMMA_SEARCH_NODE to search_tree */
+	do {
+		proc_rc = imma_search_node_add(&cb->search_tree, search_node);
+
+		if (proc_rc != NCSCC_RC_SUCCESS) {
+			IMMA_SEARCH_NODE *search_node_tmp = NULL;
+			imma_search_node_get(&cb->search_tree, &(search_node->search_hdl), &search_node_tmp);
+			if(!search_node_tmp) {
+				LOG_NO("Failed to add search node to search tree - aborting");
+				abort();
+			}
+			search_node->search_hdl++;
+			TRACE_4("Duplicate search handle %llu (poor clock resolution) adjusting it to %llu",
+				search_node_tmp->search_hdl, search_node->search_hdl);
+		}
+	} while (proc_rc != NCSCC_RC_SUCCESS);
+
+	cl_node->searchHandleSize++;
 
 	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
 		TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
@@ -6106,27 +6285,25 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		}
 	} else {
 		TRACE_3("Search initialize failed:%u", rc);
-		if (!isAccessor) {
-			proc_rc = imma_search_node_delete(cb, search_node);
-			search_node = NULL;	/*Node was removed from tree AND freed. */
-			if (proc_rc != NCSCC_RC_SUCCESS) {
-				TRACE_4("ERR_LIBRARY: Could not delete search node");
-				rc = SA_AIS_ERR_LIBRARY;
+		proc_rc = imma_search_node_delete(cb, search_node);
+		search_node = NULL;	/*Node was removed from tree AND freed. */
+		if (proc_rc != NCSCC_RC_SUCCESS) {
+			TRACE_4("ERR_LIBRARY: Could not delete search node");
+			rc = SA_AIS_ERR_LIBRARY;
+		} else {
+			if(!cl_node)
+				imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+			if (cl_node && cl_node->isOm) {
+				osafassert(cl_node->searchHandleSize);
+				cl_node->searchHandleSize--;
 			} else {
-				if(!cl_node)
-					imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
-				if (cl_node && cl_node->isOm) {
-					osafassert(cl_node->searchHandleSize);
-					cl_node->searchHandleSize--;
-				} else {
-					TRACE_2("ERR_LIBRARY: Invalid SaImmHandleT related to search handle");
-					rc = SA_AIS_ERR_LIBRARY;
-				}
+				TRACE_2("ERR_LIBRARY: Invalid SaImmHandleT related to search handle");
+				rc = SA_AIS_ERR_LIBRARY;
 			}
 		}
 	}
 
-	if (rc != SA_AIS_OK && search_node != NULL && !isAccessor) {
+	if (rc != SA_AIS_OK && search_node != NULL) {
 		/*Node never added to tree */
 		free(search_node);
 	}
