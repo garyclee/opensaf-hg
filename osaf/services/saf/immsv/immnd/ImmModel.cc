@@ -1107,12 +1107,20 @@ immModel_ccbAugmentAdmo(IMMND_CB *cb, SaUint32T adminOwnerId,
 
 SaAisErrorT
 immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit* req, 
-    void** searchOp, SaBoolT isSync)
+    void** searchOp, SaBoolT isSync, SaBoolT isAccessor)
 {
     ImmSearchOp* op = new ImmSearchOp();
     *searchOp = op;
 
     if(isSync) {op->setIsSync();}
+    if(isAccessor) {op->setIsAccessor();}
+
+    if(isAccessor) {
+        TRACE("Allocating accessor searchOp:%p", op);
+    } else {
+        TRACE("Allocating iterator searchOp:%p", op);
+    }
+
 
     return ImmModel::instance(&cb->immModel)->searchInitialize(req, *op);
 }
@@ -1120,8 +1128,8 @@ immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit* req,
 SaAisErrorT
 immModel_testTopResult(void* searchOp, SaUint32T* implNodeId, SaBoolT* bRtAttrsToFetch)
 {
-	ImmSearchOp* op = (ImmSearchOp *) searchOp;
-	return op->testTopResult(implNodeId, bRtAttrsToFetch);
+    ImmSearchOp* op = (ImmSearchOp *) searchOp;
+    return op->testTopResult(implNodeId, bRtAttrsToFetch);
 }
 
 SaAisErrorT
@@ -1191,6 +1199,11 @@ immModel_deleteSearchOp(void* searchOp)
                 op->classInfo = NULL;
             }
         }
+        if(op->isAccessor()) {
+            TRACE("Deleting accessor searchOp %p", op);
+        } else {
+            TRACE("Deleting iterator searchOp %p", op);
+        }
         delete op;
     }
 }
@@ -1207,6 +1220,13 @@ immModel_clearLastResult(void* searchOp)
 {
     ImmSearchOp* op = (ImmSearchOp *) searchOp;
     op->clearLastResult();
+}
+
+SaBoolT
+immModel_isSearchOpAccessor(void* searchOp)
+{
+    ImmSearchOp* op = (ImmSearchOp *) searchOp;
+    return op->isAccessor() ? SA_TRUE : SA_FALSE;
 }
 
 void

@@ -188,7 +188,7 @@ extern "C" {
 	SaBoolT immModel_ccbCommit(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *arrSize, SaUint32T **implConnArr);
 	SaAisErrorT immModel_ccbFinalize(IMMND_CB *cb, SaUint32T ccbId);
 
-	SaAisErrorT immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit *req, void **searchOp, SaBoolT isSync);
+	SaAisErrorT immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit *req, void **searchOp, SaBoolT isSync, SaBoolT isAccessor);
 
 	SaAisErrorT immModel_testTopResult(void *searchOp, SaUint32T *implNodeId, SaBoolT *bRtAttrsToFetch);
 
@@ -203,6 +203,8 @@ extern "C" {
 	void immModel_clearLastResult(void *searchOp);
 
 	void immModel_fetchLastResult(void *searchOp, IMMSV_OM_RSP_SEARCH_NEXT **rsp);
+
+	SaBoolT immModel_isSearchOpAccessor(void* searchOp);
 
 	void immModel_setAdmReqContinuation(IMMND_CB *cb, SaInvocationT invoc, SaUint32T reqCon);
 

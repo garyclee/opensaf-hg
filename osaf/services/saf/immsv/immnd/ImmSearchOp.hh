@@ -85,7 +85,9 @@ public:
     fetchLastResult() {return mLastResult;}
     void          clearLastResult() {mLastResult = NULL;}
     void          setIsSync() {mIsSync = true;}
+    void          setIsAccessor() {mIsAccessor = true;}
     bool          isSync() {return mIsSync;}
+    bool          isAccessor() {return mIsAccessor;}
     void*         syncOsi;
     void*         attrNameList;
     void*         classInfo;
@@ -95,6 +97,7 @@ private:
     //fetching of runtime attribute values.
     AttributeList mRtsToFetch;
     bool mIsSync;
+    bool mIsAccessor;
 };
 
 #endif
