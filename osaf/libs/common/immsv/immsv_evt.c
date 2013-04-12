@@ -168,6 +168,7 @@ static const char *immnd_evt_names[] = {
 	"IMMND_EVT_A2ND_OI_CCB_AUG_INIT",
 	"IMMND_EVT_A2ND_AUG_ADMO",
 	"IMMND_EVT_A2ND_CL_TIMEOUT",
+	"IMMND_EVT_A2ND_ACCESSOR_GET",
 	"undefined (high)"
 };
 
@@ -1344,7 +1345,8 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 					}
 				}
 			}
-		} else if (i_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP) {
+		} else if ((i_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP) ||
+			(i_evt->info.imma.type == IMMA_EVT_ND2A_ACCESSOR_GET_RSP)) {
 			uint8_t *p8;
 			int depth = 0;
 			/*Encode searchNext response */
@@ -1820,7 +1822,8 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 					ncs_enc_claim_space(o_ub, 1);
 				}
 			}
-		} else if (i_evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) {
+		} else if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) ||
+			(i_evt->info.immnd.type == IMMND_EVT_A2ND_ACCESSOR_GET)) {
 			int depth = 0;
 			/*Encode the rootName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.searchInit.rootName);
@@ -2016,7 +2019,8 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 					bsn->searchResult[i]->attrValuesList = NULL;
 				}
 			}
-		} else if (o_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP) {
+		} else if ((o_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP) ||
+			(o_evt->info.imma.type == IMMA_EVT_ND2A_ACCESSOR_GET_RSP)) {
 			uint8_t *p8;
 			uint8_t c8;
 			uint8_t local_data[8];
@@ -2342,7 +2346,8 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 					++depth;
 				}
 			}
-		} else if (o_evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) {
+		} else if ((o_evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) || 
+			(o_evt->info.immnd.type == IMMND_EVT_A2ND_ACCESSOR_GET)) {
 			/*Decode the rootName */
 			IMMSV_OCTET_STRING *os = &(o_evt->info.immnd.info.searchInit.rootName);
 			if (os->size) {
@@ -2636,6 +2641,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMA_EVT_ND2A_SEARCHNEXT_RSP:	//Response from for SearchNext
+		case IMMA_EVT_ND2A_ACCESSOR_GET_RSP:	//Response from for AccessorGet
 			/*Totaly encoded in sublevel. */
 			break;
 
@@ -3071,6 +3077,8 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMND_EVT_A2ND_SEARCHINIT:	/* SearchInitialize */
+		case IMMND_EVT_A2ND_ACCESSOR_GET:	/* AccessorGet */
+
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
 			ncs_encode_64bit(&p8, immndevt->info.searchInit.client_hdl);
 			ncs_enc_claim_space(o_ub, 8);
@@ -3893,6 +3901,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			break;
 
 		case IMMA_EVT_ND2A_SEARCHNEXT_RSP:	//Response from for SearchNext
+		case IMMA_EVT_ND2A_ACCESSOR_GET_RSP:	//Response from for AccessorGet
 			/*Totaly decoded in sublevel. */
 			break;
 
@@ -4343,6 +4352,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			ncs_dec_skip_space(i_ub, 8);
 			break;
 
+		case IMMND_EVT_A2ND_ACCESSOR_GET:	/* AccessorGet */
 		case IMMND_EVT_A2ND_SEARCHINIT:	/* SearchInitialize */
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 8);
 			immndevt->info.searchInit.client_hdl = ncs_decode_64bit(&p8);

@@ -89,6 +89,7 @@ typedef enum imma_evt_type {
 	IMMA_EVT_ND2A_CCB_AUG_INIT_RSP = 28, /* Response on IMMND_EVT_A2ND_OI_CCB_AUG_INIT */
 
 	IMMA_EVT_ND2A_SEARCHBUNDLENEXT_RSP = 29,	/*Response from SearchNext with more results */
+	IMMA_EVT_ND2A_ACCESSOR_GET_RSP = 30,	/* Response from accessorGet */
 
 	IMMA_EVT_MAX
 } IMMA_EVT_TYPE;
@@ -201,6 +202,8 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_A2ND_OI_CCB_AUG_INIT = 91, /* Init of OI augmented ccb handle */
 	IMMND_EVT_A2ND_AUG_ADMO = 92,        /* Inform IMMNDs of extra admo for augment ccb */
 	IMMND_EVT_A2ND_CL_TIMEOUT = 93, /* Inform local IMMND of a library timeout. */
+
+	IMMND_EVT_A2ND_ACCESSOR_GET = 94,	/* saImmOmAccessorGet_2 */
 
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
