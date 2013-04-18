@@ -294,7 +294,8 @@ SmfAdminOperationAction::createAdmOperParams(std::list < SmfAdminOperationParame
 
 		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), par->paramType) == false) {
 			LOG_ER("Fails to convert string to IMM type for parameter [%s]", (*iter).m_name.c_str());
-			delete params;
+			delete par;
+			delete [] params;
 			return false;
 		}
 
@@ -408,8 +409,13 @@ SmfAdminOperationAction::execute(SaImmOiHandleT i_oiHandle, const std::string* i
 						const_cast<const SaImmAdminOperationParamsT_2 **>(params), 
 						smfd_cb->adminOpTimeout);
 
-	TRACE_LEAVE();
+	//Delete the mem hold by SaImmAdminOperationParamsT_2
+	for (int i = 0; params[i] != 0; i++) {
+		delete params[i];
+	}
+	delete [] params;
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -444,8 +450,13 @@ SmfAdminOperationAction::rollback(const std::string& i_rollbackDn)
 						const_cast<const SaImmAdminOperationParamsT_2 **>(params), 
 						smfd_cb->adminOpTimeout);
 
-	TRACE_LEAVE();
+	//Delete the mem hold by SaImmAdminOperationParamsT_2
+	for (int i = 0; params[i] != 0; i++) {
+		delete params[i];
+	}
+	delete [] params;
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -507,7 +518,7 @@ SmfImmCcbAction::execute(SaImmOiHandleT i_oiHandle, const std::string* i_rollbac
         if (i_rollbackDn != NULL) {
                 std::string immRollbackCcbDn;
                 char idStr[16];
-                sprintf(idStr, "%08d", m_id);
+                snprintf(idStr, 16, "%08d", m_id);
                 immRollbackCcbDn = "smfRollbackElement=ccb_";
                 immRollbackCcbDn += idStr;
                 immRollbackCcbDn += ",";
@@ -559,7 +570,7 @@ SmfImmCcbAction::rollback(const std::string& i_rollbackDn)
 
         std::string immRollbackCcbDn;
         char idStr[16];
-        sprintf(idStr, "%08d", m_id);
+        snprintf(idStr, 16,"%08d", m_id);
         immRollbackCcbDn = "smfRollbackElement=ccb_";
         immRollbackCcbDn += idStr;
         immRollbackCcbDn += ",";

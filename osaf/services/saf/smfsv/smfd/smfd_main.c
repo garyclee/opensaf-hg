@@ -247,7 +247,7 @@ static void main_process(void)
 	  i.e. "ERR    |MDTM: SYSTEM has crossed the max =500 subscriptions"
 	  The code below will ensure there is always one IMM OM handle initialized.
 	*/
-	SaImmHandleT omHandle;
+	SaImmHandleT omHandle = 0;
 	SaVersionT immVersion = { 'A', 2, 1 };
 	SaAisErrorT rc = immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
 	if (rc != SA_AIS_OK) {

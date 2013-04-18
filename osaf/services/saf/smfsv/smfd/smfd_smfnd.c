@@ -238,7 +238,7 @@ uint32_t smfnd_exec_remote_cmd(const char *i_cmd,
                                uint32_t i_localTimeout)
 {
 	SMFSV_EVT cmd_req_asynch;
-	SMFSV_EVT *cmd_rsp;
+	SMFSV_EVT *cmd_rsp = 0;
 	uint32_t rc;
 
 	/* If i_cmd is empty, do nothing just return OK
@@ -336,7 +336,7 @@ uint32_t smfnd_exec_remote_cmd(const char *i_cmd,
 uint32_t smfnd_remote_cmd(const char *i_cmd, MDS_DEST i_smfnd_dest, uint32_t i_timeout)
 {
 	SMFSV_EVT cmd_req;
-	SMFSV_EVT *cmd_rsp;
+	SMFSV_EVT *cmd_rsp = NULL;
 	uint32_t rc;
 
 	/* If i_cmd is empty, do nothing just return OK

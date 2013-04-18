@@ -132,7 +132,11 @@ static SaAisErrorT amf_quiesced_state_handler(smfd_cb_t * cb,
 	}
 
 	cb->mds_role = V_DEST_RL_QUIESCED;
-	smfd_mds_change_role(cb);
+
+	if (smfd_mds_change_role(cb) != NCSCC_RC_SUCCESS) {
+		TRACE("smfd_mds_change_role FAILED");
+	}
+
 	cb->amf_invocation_id = invocation;
 	cb->is_quisced_set = true;
 	return SA_AIS_OK;
@@ -345,13 +349,13 @@ static SaAisErrorT amf_healthcheck_start(smfd_cb_t * cb)
 	health_key = getenv("SMFSV_ENV_HEALTHCHECK_KEY");
 
 	if (health_key == NULL) {
-		strcpy((char *)healthy.key, "A1B2");
+		strncpy((char *)healthy.key, "A1B2", SA_AMF_HEALTHCHECK_KEY_MAX);
 	} else {
 		if (strlen(health_key) > SA_AMF_HEALTHCHECK_KEY_MAX) {
 			LOG_ER("amf_healthcheck_start(): Helthcheck key to long");
 			return SA_AIS_ERR_NAME_TOO_LONG;
 		}
-		strcpy((char *)healthy.key, health_key);
+		strncpy((char *)healthy.key, health_key, strlen(health_key)); //The key does not need to be null terminated
 	}
 
 	healthy.keyLen = strlen((const char *)healthy.key);

@@ -453,7 +453,7 @@ uint32_t smfnd_dec_cmd_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
     ncs_dec_skip_space(i_ub, 4);
 
     /** decode the cmd **/
-    p8 =  ncs_dec_flatten_space(i_ub, local_data, o_evt->info.smfnd.event.cmd_req.cmd_len);
+    ncs_dec_flatten_space(i_ub, local_data, o_evt->info.smfnd.event.cmd_req.cmd_len);
     o_evt->info.smfnd.event.cmd_req.cmd = NULL; /* In case len 0 */
 
     if (o_evt->info.smfnd.event.cmd_req.cmd_len != 0)
@@ -564,7 +564,7 @@ uint32_t smfnd_dec_cmd_req_asynch(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
     ncs_dec_skip_space(i_ub, 4);
 
     /** decode the cmd **/
-    p8 =  ncs_dec_flatten_space(i_ub, local_data, o_evt->info.smfnd.event.cmd_req_asynch.cmd_len);
+    ncs_dec_flatten_space(i_ub, local_data, o_evt->info.smfnd.event.cmd_req_asynch.cmd_len);
     o_evt->info.smfnd.event.cmd_req_asynch.cmd = NULL; /* In case len 0 */
 
     if (o_evt->info.smfnd.event.cmd_req_asynch.cmd_len != 0)

@@ -176,29 +176,13 @@ void proc_callback_rsp(smfd_cb_t *cb, SMFSV_EVT *evt)
 					else {
 						prev->next_invid = temp->next_invid;
 					}
-#if 0
-					/* send the consolidated response to camp/proc thread */
-					if (temp->proc == NULL) {
-						/* callback was invoked from campaign thread */
-						SmfCampaignThread *camp_thread = SmfCampaignThread::instance();
-						rc = m_NCS_IPC_SEND(&camp_thread->m_resp_mbx, 
-									cbk_rsp->resp_evt,
-									NCS_IPC_PRIORITY_HIGH);
-						if (rc != NCSCC_RC_SUCCESS) {
-							LOG_CR("IPC send failed %d, %s", rc, strerror(errno));
-						}
-					}
-					else {
-						/* callback invoked from procedure thread */
-						rc = m_NCS_IPC_SEND(&temp->proc->m_resp_mbx, 
-									cbk_rsp->resp_evt,
-									NCS_IPC_PRIORITY_HIGH);
-						if (rc != NCSCC_RC_SUCCESS) {
-							LOG_CR("IPC send failed %d, %s", rc, strerror(errno));
-						}
-					}
-#endif
+
 					new_evt = (SMFSV_EVT *)calloc (1, sizeof(SMFSV_EVT));
+					if (new_evt == NULL) {
+						LOG_CR("No mem allocated for event");
+						free(temp);
+						break; /* from the while, otherwise return from function */
+                                        }
 					memcpy (new_evt, evt, sizeof(SMFSV_EVT));
 					rc = m_NCS_IPC_SEND(temp->cbk_mbx,
 								new_evt,

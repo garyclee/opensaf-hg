@@ -88,7 +88,8 @@ smfCreateRollbackElement(const std::string & i_dn, SaImmOiHandleT i_oiHandle)
 //================================================================================
 
 SmfRollbackData::SmfRollbackData(SmfRollbackCcb* i_ccb) :
-        m_ccb(i_ccb)
+        m_ccb(i_ccb),
+	m_id(0)
 {
 }
 
@@ -156,7 +157,7 @@ SmfRollbackData::execute(SaImmOiHandleT i_oiHandle)
 	icoRollbackData.setImmHandle(i_oiHandle);
 
         char idStr[16];
-        sprintf(idStr, "%08u", m_id);
+        snprintf(idStr, sizeof(idStr), "%08u", m_id);
         std::string rdnValue = "smfRollbackData=";
         rdnValue += idStr;
 
@@ -508,7 +509,7 @@ SmfRollbackCcb::rollback()
 
         std::list < std::string > rollbackData;
         SmfImmUtils immUtil;
-        immUtil.getChildren(m_dn, rollbackData, SA_IMM_SUBLEVEL, "OpenSafSmfRollbackData");
+        (void)immUtil.getChildren(m_dn, rollbackData, SA_IMM_SUBLEVEL, "OpenSafSmfRollbackData");
 
         if (rollbackData.size() == 0) {
                 LOG_NO("SmfRollbackCcb::rollback, no rollback data found for ccb %s", m_dn.c_str());

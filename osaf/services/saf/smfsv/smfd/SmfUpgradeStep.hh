@@ -526,7 +526,7 @@ class SmfUpgradeStep {
 /// @param    o_nodelist, the resulting list.
 /// @return   true on success else false
 ///
-	bool calculateSingleStepNodes(std::list<SmfPlmExecEnv> const& i_plmExecEnvList,
+	bool calculateSingleStepNodes(const std::list<SmfPlmExecEnv> & i_plmExecEnvList,
 				      std::list<std::string>& o_nodelist);
 
 ///
@@ -614,7 +614,7 @@ class SmfUpgradeStep {
 ///
 	bool nodeReboot();
 
-	bool checkAndInvokeCallback (std::list < SmfCallback * > &callback_list, unsigned int camp_phase);
+	bool checkAndInvokeCallback (const std::list < SmfCallback * > &callback_list, unsigned int camp_phase);
 
         friend class SmfStepState;
 

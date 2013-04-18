@@ -102,7 +102,12 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 	}
 
 	/* "memorize the creation request" */
-	ccbutil_ccbAddCreateOperation(ccbUtilCcbData, className, parentName, attrMods);
+	if (ccbutil_ccbAddCreateOperation(ccbUtilCcbData, className, parentName, attrMods) == 0) {
+		LOG_NO("saImmOiCcbObjectCreateCallback: Fail to add create operation for instance of %s to parent %s",
+		       className, parentName->value);
+		rc = SA_AIS_ERR_FAILED_OPERATION;
+		goto done;
+	}
 
  done:
 	TRACE_LEAVE();
@@ -151,7 +156,12 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle, Sa
 	}
 
 	/* "memorize the modification request" */
-	ccbutil_ccbAddModifyOperation(ccbUtilCcbData, objectName, attrMods);
+	if (ccbutil_ccbAddModifyOperation(ccbUtilCcbData, objectName, attrMods) != 0) {
+		LOG_NO("saImmOiCcbObjectModifyCallback: Fail to add modify operation for %s",
+		       objectName->value);
+		rc = SA_AIS_ERR_FAILED_OPERATION;
+		goto done;	
+	}
 
  done:
 	TRACE_LEAVE();
@@ -258,8 +268,20 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 				//Match the names of the installed bundles with the bundle requested to be removed 
 				std::string swBundleToRemove = (const char*)ccbUtilOperationData->param.deleteOp.objectName->value;
 				std::string::size_type pos1 = sizeof("safInstalledSwBundle=") - 1;
+
 				for (objit = objectList.begin(); objit != objectList.end(); ++objit) {
-					std::string swBundleInstalled = (*objit).substr(pos1, (*objit).find(",") - pos1);
+					std::string::size_type pos2 = (*objit).find(",");
+					if (pos2 == std::string::npos) {
+						LOG_NO("saImmOiCcbCompletedCallback:: Could not find separator \",\" in %s", (*objit).c_str());
+						rc = SA_AIS_ERR_BAD_OPERATION;
+						goto done;
+					}
+					std::string swBundleInstalled = (*objit).substr(pos1, pos2 - pos1);
+					if (swBundleInstalled.size() == 0) {
+						LOG_NO("saImmOiCcbCompletedCallback:: Could not find installed bundle from %s", (*objit).c_str());
+						rc = SA_AIS_ERR_BAD_OPERATION;
+						goto done;
+					}
 
 					if (swBundleInstalled == swBundleToRemove){
 						LOG_NO("SwBundle %s is in use, can not be removed", swBundleToRemove.c_str());
@@ -493,9 +515,9 @@ static const SaImmOiCallbacksT_2 callbacks = {
  */
 uint32_t create_campaign_objects(smfd_cb_t * cb)
 {
-	SaImmHandleT omHandle;
+	SaImmHandleT omHandle = 0;
 	SaImmAccessorHandleT accessorHandle;
-	SaImmSearchHandleT immSearchHandle;
+	SaImmSearchHandleT immSearchHandle = 0;
 	SaNameT objectName;
 	SaImmAttrValuesT_2 **attributes;
 	SaStringT className = campaignClassName;

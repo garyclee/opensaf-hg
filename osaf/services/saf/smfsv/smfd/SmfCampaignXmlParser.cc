@@ -222,6 +222,10 @@ SmfCampaignXmlParser::parseCampaignXml(std::string i_file)
 			{
 				SmfRollingUpgrade *rollingUpgrade = (SmfRollingUpgrade *) upgradeMethod;
 				const SmfByTemplate *byTemplate = (const SmfByTemplate *)rollingUpgrade->getUpgradeScope();
+				if (byTemplate == NULL) {
+					LOG_NO("SmfCampaignXmlParser::parseCampaignXml: No upgrade scope");
+					goto error_exit;
+				}
 				const SmfTargetNodeTemplate *nodeTemplate = byTemplate->getTargetNodeTemplate();
 
 	                        const_cast<SmfTargetNodeTemplate *>(nodeTemplate)->removeSwAddRemoveDuplicates();
@@ -622,6 +626,7 @@ SmfCampaignXmlParser::parseRollingUpgrade(SmfRollingUpgrade * io_rolling, xmlNod
 					SmfByTemplate *templ = new(std::nothrow) SmfByTemplate;
 					osafassert(templ != NULL);
 					if (parseByTemplate(templ, cur2) == false) {
+						delete templ;
 						LOG_NO("SmfCampaignXmlParser::parseRollingUpgrade: Parse of byTemplate failed");
 						TRACE_LEAVE();
 						return false;
@@ -1621,10 +1626,12 @@ SmfCampaignXmlParser::parseSoftwareBundle(SmfImmCreateOperation * i_createOper, 
 		xmlFree(s);
                 std::string parent;
                 std::string rdn = dn;
-		if (dn.find(",") != std::string::npos) { 
-			parent = dn.substr(dn.find(",") + 1);
-			rdn    = dn.substr(0, dn.find(","));
+		std::string::size_type pos;
+		if ((pos = dn.find(",")) != std::string::npos) {
+			parent = dn.substr(pos + 1);
+			rdn    = dn.substr(0, pos);
 		}
+
  		TRACE("SoftwareBundle: parent = %s ,rdn = %s\n", parent.c_str(), rdn.c_str());
                 i_createOper->setParentDn(parent);
 
@@ -1986,8 +1993,13 @@ SmfCampaignXmlParser::parseAppType(
 {
 	xmlNsPtr ns = 0;
 	std::string dn;
-	SmfImmCreateOperation* ico = prepareCreateOperation(
-		parent, "SaAmfAppType", i_node, "safVersion", dn);
+	SmfImmCreateOperation* ico = prepareCreateOperation(parent, "SaAmfAppType", i_node, "safVersion", dn);
+	if (ico == NULL) {
+		LOG_NO("SmfCampaignXmlParser::parseAppType: Fail to prepare create IMM Create Operation");
+		TRACE_LEAVE();
+		return false;
+	}
+
 	SmfImmAttribute attr;
 	attr.setName("saAmfApptSGTypes");
 	attr.setType("SA_IMM_ATTR_SANAMET");
@@ -2048,8 +2060,12 @@ SmfCampaignXmlParser::parseSGType(
 {
 	xmlNsPtr ns = 0;
 	std::string dn;
-	SmfImmCreateOperation* ico = prepareCreateOperation(
-		parent, "SaAmfSGType", i_node, "safVersion", dn);
+	SmfImmCreateOperation* ico = prepareCreateOperation(parent, "SaAmfSGType", i_node, "safVersion", dn);
+	if (ico == NULL) {
+		LOG_NO("SmfCampaignXmlParser::parseSGType: Fail to prepare create IMM Create Operation");
+		TRACE_LEAVE();
+		return false;
+	}
 
 	// saAmfSgtValidSuTypes is SA_MULTI_VALUE
 	SmfImmAttribute attr;
@@ -2115,8 +2131,13 @@ SmfCampaignXmlParser::parseSUType(
 {
 	xmlNsPtr ns = 0;
 	std::string dn;
-	SmfImmCreateOperation* ico = prepareCreateOperation(
-		parent, "SaAmfSUType", i_node, "safVersion", dn);
+	SmfImmCreateOperation* ico = prepareCreateOperation(parent, "SaAmfSUType", i_node, "safVersion", dn);
+	if (ico == NULL) {
+		LOG_NO("SmfCampaignXmlParser::parseSUType: Fail to prepare create IMM Create Operation");
+		TRACE_LEAVE();
+		return false;
+	}
+
 	i_campaign->addCampInitAddToImm(ico);
 
 	// saAmfSutProvidesSvcTypes is SA_MULTI_VALUE
@@ -2164,6 +2185,10 @@ SmfCampaignXmlParser::parseComponentType(
 	std::string dn;
 	SmfImmCreateOperation* ico = prepareCreateOperation(
 		parent, "SaAmfSutCompType", i_node, "safMemberCompType", dn, true);
+	if (ico == NULL) {
+		LOG_NO("SmfCampaignXmlParser::parseComponentType: Fail to create IMM Create Operation");
+		return;
+	}
 	addAttribute(
 		ico, i_node, "saAmfSutMinNumComponents", "SA_IMM_ATTR_SAUINT32T", true);
 	addAttribute(
@@ -2218,8 +2243,12 @@ SmfCampaignXmlParser::parseCompType(
 {
 	xmlNsPtr ns = 0;
 	std::string dn;
-	SmfImmCreateOperation* ico = prepareCreateOperation(
-		parent, "SaAmfCompType", i_node, "safVersion", dn);
+	SmfImmCreateOperation* ico = prepareCreateOperation(parent, "SaAmfCompType", i_node, "safVersion", dn);
+	if (ico == NULL) {
+		LOG_NO("SmfCampaignXmlParser::parseCompType: Fail to create IMM Create Operation");
+		return false;
+	}
+
 	i_campaign->addCampInitAddToImm(ico);
 
 	for (xmlNode* n = i_node->xmlChildrenNode; n != NULL; n = n->next) {
@@ -2334,6 +2363,11 @@ SmfCampaignXmlParser::parseProvidesCSType(
 	std::string dn;
 	SmfImmCreateOperation* ico = prepareCreateOperation(
 		parent, "SaAmfCtCsType", i_node, "safSupportedCsType", dn, true);
+	if (ico == NULL) {
+		LOG_NO("SmfCampaignXmlParser::parseProvidesCSType: Fail to create IMM Create Operation");
+		return;
+	}
+
 	i_campaign->addCampInitAddToImm(ico);
 
 	addAttribute(
@@ -2358,6 +2392,11 @@ SmfCampaignXmlParser::parseHealthCheck(
 	std::string dn;
 	SmfImmCreateOperation* ico = prepareCreateOperation(
 		parent, "SaAmfHealthcheckType", i_node, "safHealthcheckKey", dn);
+	if (ico == NULL) {
+		LOG_NO("SmfCampaignXmlParser::parseHealthCheck: Fail to create IMM Create Operation");
+		return;
+	}
+
 	i_campaign->addCampInitAddToImm(ico);
 	addAttribute(
 		ico, i_node, "saAmfHealthcheckPeriod", "SA_IMM_ATTR_SATIMET", false, "saAmfHctDefPeriod");
@@ -2378,6 +2417,11 @@ SmfCampaignXmlParser::parseServiceType(
 	std::string dn;
 	SmfImmCreateOperation* ico = prepareCreateOperation(
 		parent, "SaAmfSvcType", i_node, "safVersion", dn);
+	if (ico == NULL) {
+		LOG_NO("SmfCampaignXmlParser::parseServiceType: Fail to create IMM Create Operation");
+		return;
+	}
+
 	i_campaign->addCampInitAddToImm(ico);
 
 	for (xmlNode* n = i_node->xmlChildrenNode; n != NULL; n = n->next) {
@@ -2407,9 +2451,12 @@ SmfCampaignXmlParser::parseCsType(
 	std::string dn;
 	SmfImmCreateOperation* ico = prepareCreateOperation(
 		parent, "SaAmfSvcTypeCSTypes", i_node, "safMemberCSType", dn, true);
-	i_campaign->addCampInitAddToImm(ico);
-	addAttribute(
-		ico, i_node, "saAmfSvctMaxNumCSIs", "SA_IMM_ATTR_SAUINT32T", true);	
+	if (ico != NULL) {
+		i_campaign->addCampInitAddToImm(ico);
+		addAttribute(ico, i_node, "saAmfSvctMaxNumCSIs", "SA_IMM_ATTR_SAUINT32T", true);
+	} else {
+		LOG_NO("SmfCampaignXmlParser::parseCsType: Fail to create SmfImmCreateOperation");
+	}
 }
 
 // ------------------------------------------------------------------------------
@@ -2424,8 +2471,12 @@ SmfCampaignXmlParser::parseCSType(
 	xmlNsPtr ns = 0;
 	std::string dn;
 	unsigned int cnt = 0;
-	SmfImmCreateOperation* ico = prepareCreateOperation(
-		parent, "SaAmfCSType", i_node, "safVersion", dn);
+	SmfImmCreateOperation* ico = prepareCreateOperation(parent, "SaAmfCSType", i_node, "safVersion", dn);
+	if (ico == NULL) {
+		LOG_NO("SmfCampaignXmlParser::parseCSType: fail to get create SmfImmCreateOperation");
+		return false;	
+	}
+
 	i_campaign->addCampInitAddToImm(ico);
 
 	SmfImmAttribute attr;
@@ -2821,6 +2872,7 @@ SmfCampaignXmlParser::parseAdminOpAction(SmfAdminOperationAction * i_admOpAction
                                                 name = strdup(s);
                                                 xmlFree(s);
                                         }
+
 					if ((s = (char *)xmlGetProp(cur2, (const xmlChar *)"type"))) {
 						TRACE("type = %s", s);
                                                 type = strdup(s);
@@ -2842,7 +2894,19 @@ SmfCampaignXmlParser::parseAdminOpAction(SmfAdminOperationAction * i_admOpAction
                                                 cur3 = cur3->next;
                                         }
 
-                                        i_admOpAction->addDoParameter(name, type, value);
+					//Check if all parameters value was found
+                                        if (name != NULL && type != NULL && value != NULL) {
+						i_admOpAction->addDoParameter(name, type, value);
+					} else {
+						LOG_NO("SmfCampaignXmlParser::parseAdminOpAction: No parameter name, type or value given for doAdminOperation");
+					}
+
+					free(name);
+					name = NULL;
+					free(type);
+					type = NULL;
+					free(value);
+					value = NULL;
                                 }
 
                                 cur2 = cur2->next;
@@ -2873,11 +2937,15 @@ SmfCampaignXmlParser::parseAdminOpAction(SmfAdminOperationAction * i_admOpAction
                         while (cur2 != NULL) {
 				if ((!strcmp((char *)cur2->name, "param")) && (cur2->ns == ns)) {
 					TRACE("xmlTag param found");
-					if ((name = (char *)xmlGetProp(cur2, (const xmlChar *)"name"))) {
-						TRACE("name = %s", name);
+					if ((s = (char *)xmlGetProp(cur2, (const xmlChar *)"name"))) {
+						TRACE("name = %s", s);
+                                                name = strdup(s);
+                                                xmlFree(s);
                                         }
-					if ((type = (char *)xmlGetProp(cur2, (const xmlChar *)"type"))) {
-						TRACE("type = %s", type);
+					if ((s = (char *)xmlGetProp(cur2, (const xmlChar *)"type"))) {
+						TRACE("type = %s", s);
+                                                type = strdup(s);
+                                                xmlFree(s);
                                         }
 
                                         //Fetch the parameter value
@@ -2885,21 +2953,31 @@ SmfCampaignXmlParser::parseAdminOpAction(SmfAdminOperationAction * i_admOpAction
                                         while (cur3 != NULL) {
                                                 if ((!strcmp((char *)cur3->name, "value")) && (cur3->ns == ns)) {
                                                         TRACE("xmlTag value found");
-                                                        if ((value = (char *)xmlNodeListGetString(m_doc, cur3->xmlChildrenNode, 1))) {
-                                                                TRACE("value = %s", value);
+                                                        if ((s = (char *)xmlNodeListGetString(m_doc, cur3->xmlChildrenNode, 1))) {
+                                                                TRACE("value = %s", s);
+                                                                value = strdup(s);
+                                                                xmlFree(s);
                                                         }
                                                 }
 
                                                 cur3 = cur3->next;
                                         }
 
-                                        i_admOpAction->addUndoParameter(name, type, value);
-					if(name != 0)
-						xmlFree(name);
-					if(type != 0)
-						xmlFree(type);
-					if(value != 0)
-						xmlFree(value);
+					//Check if all parameters value was found
+                                        if (name != NULL && type != NULL && value != NULL) {
+						i_admOpAction->addUndoParameter(name, type, value);
+					} else {
+						LOG_NO("SmfCampaignXmlParser::parseAdminOpAction: No parameter name, type or value given for undoAdminOperation");
+					}
+
+					free(name);
+					name = NULL;
+
+					free(type);
+					type = NULL;
+
+					free(value);
+					value = NULL;
 				}
 
                                 cur2 = cur2->next;
