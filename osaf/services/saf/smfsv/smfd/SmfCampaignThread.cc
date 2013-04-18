@@ -121,10 +121,12 @@ void SmfCampaignThread::main(NCSCONTEXT info)
  SmfCampaignThread::SmfCampaignThread(SmfCampaign * campaign):
 	 m_task_hdl(0),
 	 m_mbx(0),
+	 m_cbkMbx(0),
 	 m_running(true), 
 	 m_campaign(campaign),
 	 m_semaphore(NULL),
 	 m_ntfHandle(0),
+	 m_campOiHandle(0),
 	 m_tmpSmfUpgradeCampaign()
 {
      
@@ -454,7 +456,7 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uint32_t cl
 {
 	SaAisErrorT rc;
 	int result = 0;
-	SaNtfStateChangeNotificationT ntfStateNot;
+	SaNtfStateChangeNotificationT ntfStateNot = {0, {NULL, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 0, NULL}, 0, NULL, NULL};
 
 	rc = saNtfStateChangeNotificationAllocate(m_ntfHandle, &ntfStateNot, 1,	/* numCorrelated Notifications */
 						  0,	/* length addition text */
@@ -469,16 +471,16 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uint32_t cl
 	/* Notifying object */
 	SaUint16T length = sizeof(SMF_NOTIFYING_OBJECT);
 	if (length >= SA_MAX_NAME_LENGTH) {
-		TRACE("notifyingObject length was %d, truncated to 256", length);
+		TRACE("notifyingObject length was %d, truncated to %d", length, SA_MAX_NAME_LENGTH - 1);
 		length = 255;
 	}
-	ntfStateNot.notificationHeader.notifyingObject->length = length - 1;
+	ntfStateNot.notificationHeader.notifyingObject->length = length;
 	strncpy((char *)ntfStateNot.notificationHeader.notifyingObject->value, SMF_NOTIFYING_OBJECT, length);
 
 	/* Notification object */
 	length = dn.length();
 	if (length >= SA_MAX_NAME_LENGTH) {
-		TRACE("notificationHeader length was %d, truncated to 256", length);
+		TRACE("notificationHeader length was %d, truncated to  %d", length, SA_MAX_NAME_LENGTH - 1);
 		length = 255;
 	}
 	ntfStateNot.notificationHeader.notificationObject->length = length;
@@ -631,14 +633,13 @@ void SmfCampaignThread::processEvt(void)
 int SmfCampaignThread::handleEvents(void)
 {
 	TRACE_ENTER();
-	NCS_SEL_OBJ mbx_fd;
+	NCS_SEL_OBJ mbx_fd = ncs_ipc_get_sel_obj(&m_mbx);
 	struct pollfd fds[1];
-
-	mbx_fd = ncs_ipc_get_sel_obj(&m_mbx);
 
 	/* Set up all file descriptors to listen to */
 	fds[0].fd = mbx_fd.rmv_obj;
 	fds[0].events = POLLIN;
+	fds[0].revents = 0;
 
 	TRACE("Campaign thread %s waiting for events", m_campaign->getDn().c_str());
 

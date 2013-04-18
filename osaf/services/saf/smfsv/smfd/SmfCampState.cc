@@ -455,8 +455,13 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 		SaSmfUpgrMethodT upType = (*procIter)->getUpgradeMethod()->getUpgradeMethod();
 		if (upType == SA_SMF_ROLLING) {
 			TRACE("SA_SMF_ROLLING procedure detected");
-			const std::list < SmfBundleRef * > b = ((SmfByTemplate*)(*procIter)->getUpgradeMethod()->
-								getUpgradeScope())->getTargetNodeTemplate()->getSwInstallList();
+			const SmfByTemplate *byTemplate = (SmfByTemplate*)(*procIter)->getUpgradeMethod()->getUpgradeScope();
+			if (byTemplate == NULL) {
+				TRACE("No upgrade scope found");
+				error = "CAMP: Procedure upgrade scope not found";
+				goto exit_error;
+			}
+			const std::list < SmfBundleRef * > b = byTemplate->getTargetNodeTemplate()->getSwRemoveList();
 
 			std::list< SmfBundleRef* >::const_iterator bIter;
 			bIter = b.begin();
@@ -516,8 +521,13 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 		SaSmfUpgrMethodT upType = (*procIter)->getUpgradeMethod()->getUpgradeMethod();
 		if (upType == SA_SMF_ROLLING) {
 			TRACE("SA_SMF_ROLLING procedure detected");
-			const std::list < SmfBundleRef * > b = ((SmfByTemplate*)(*procIter)->getUpgradeMethod()->
-								getUpgradeScope())->getTargetNodeTemplate()->getSwRemoveList();
+			const SmfByTemplate *byTemplate = (SmfByTemplate*)(*procIter)->getUpgradeMethod()->getUpgradeScope();
+			if (byTemplate == NULL) {
+				TRACE("No upgrade scope found");
+				error = "CAMP: Procedure upgrade scope not found";
+				goto exit_error;
+			}
+			const std::list < SmfBundleRef * > b = byTemplate->getTargetNodeTemplate()->getSwRemoveList();
 
 			std::list< SmfBundleRef* >::const_iterator bIter;
 			bIter = b.begin();

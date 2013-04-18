@@ -69,6 +69,7 @@ SmfProcedureThread::main(NCSCONTEXT info)
 SmfProcedureThread::SmfProcedureThread(SmfUpgradeProcedure * procedure):
 	m_task_hdl(0),
 	m_mbx(0),
+	m_cbk_mbx(0),
 	m_running(true), 
 	m_procedure(procedure),
 	m_procOiHandle(0),
@@ -711,6 +712,7 @@ SmfProcedureThread::handleEvents(void)
 	/* Set up all file descriptors to listen to */
 	fds[PROC_MBX_FD].fd = mbx_fd.rmv_obj;
 	fds[PROC_MBX_FD].events = POLLIN;
+	fds[PROC_MBX_FD].revents = 0; //Coverity
 
 	TRACE("Procedure thread %s waiting for events", m_procedure->getDn().c_str());
 

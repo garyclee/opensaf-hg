@@ -349,6 +349,7 @@ uint32_t smfnd_cbk_req_proc(smfnd_cb_t * cb, SMFSV_EVT *evt)
 	if (NCSCC_RC_SUCCESS != smfvs_mds_msg_bcast(cb->mds_handle,NCSMDS_SVC_ID_SMFND,NCSMDS_SVC_ID_SMFA,
 	&cbk_resp_evt,MDS_SEND_PRIORITY_MEDIUM,NCSMDS_SCOPE_INTRANODE)){
 		LOG_ER("SMFND: Cbk broadcast FAILED.");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 	
@@ -357,7 +358,9 @@ uint32_t smfnd_cbk_req_proc(smfnd_cb_t * cb, SMFSV_EVT *evt)
 	inv_node = (SMFND_SMFA_ADEST_INVID_MAP *)calloc(1, sizeof(SMFND_SMFA_ADEST_INVID_MAP));
 	if (NULL == inv_node){
 		LOG_ER("SMFND: calloc failed. Err: %s",strerror(errno));
-		osafassert(1);
+		osafassert(1); 
+		TRACE_LEAVE();
+		return NCSCC_RC_FAILURE; //This line is never executed, but Coverity tool is happy with a return after NULL check
 	}
 	inv_node->inv_id = evt->info.smfnd.event.cbk_req_rsp.evt.resp_evt.inv_id;
 	inv_node->no_of_cbk = cb->agent_cnt;

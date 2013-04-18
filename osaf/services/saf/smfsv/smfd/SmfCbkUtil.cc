@@ -433,7 +433,8 @@ int SmfCbkUtilThread::handleEvents(void)
 	/* Mailbox fd */
 	fds[0].fd = mbx_fd.rmv_obj;
 	fds[0].events = POLLIN;
-	
+	fds[0].revents = 0; /* Coverity */
+
 	/* SMF callback API fd */
 	rc = saSmfSelectionObjectGet(m_smfHandle, &smf_sel_obj);
 	if (SA_AIS_OK != rc){

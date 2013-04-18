@@ -99,7 +99,7 @@ SmfUpgradeMethod::setStepRestartOption(const SaUint32T i_opt)
 //------------------------------------------------------------------------------
 // getStepRestartOption()
 //------------------------------------------------------------------------------
-const SaUint32T 
+SaUint32T 
 SmfUpgradeMethod::getStepRestartOption(void) const
 {
 	return m_stepRestartOption;
@@ -117,7 +117,7 @@ SmfUpgradeMethod::setStepMaxRetryCount(const SaUint32T i_count)
 //------------------------------------------------------------------------------
 // getStepMaxRetryCount()
 //------------------------------------------------------------------------------
-const SaUint32T 
+SaUint32T 
 SmfUpgradeMethod::getStepMaxRetryCount(void) const
 {
 	return m_stepMaxRetryCount;

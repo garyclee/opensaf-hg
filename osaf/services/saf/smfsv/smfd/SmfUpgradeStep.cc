@@ -134,7 +134,7 @@ SmfUpgradeStep::init(const SaImmAttrValuesT_2 ** attrValues)
 			if ((state >= SA_SMF_STEP_INITIAL) && (state <= SA_SMF_STEP_ROLLBACK_FAILED)) {
 				setStepState((SaSmfStepStateT) state);
 			} else {
-				LOG_ER("SmfUpgradeStep: invalid step state %u", state);
+				LOG_NO("SmfUpgradeStep: invalid step state %u", state);
 				setStepState(SA_SMF_STEP_INITIAL);
 			}
 			TRACE("init saSmfStepState = %u", (int)state);
@@ -247,7 +247,7 @@ SmfUpgradeStep::setStepState(SaSmfStepStateT i_state)
 		}
 	default:
 		{
-			LOG_ER("SmfUpgradeStep::setStepState unknown state %d", i_state);
+			LOG_NO("SmfUpgradeStep::setStepState unknown state %d", i_state);
 		}
 	}
 
@@ -753,7 +753,7 @@ SmfUpgradeStep::modifyInformationModel()
 
         if ((rc = smfCreateRollbackElement(modifyRollbackCcbDn,
                                            getProcedure()->getProcThread()->getImmHandle())) != SA_AIS_OK) {
-                LOG_ER("SmfUpgradeStep failed to create modify rollback element %s, rc=%s", 
+                LOG_NO("SmfUpgradeStep failed to create modify rollback element %s, rc=%s", 
                        modifyRollbackCcbDn.c_str(), saf_error(rc));
                 return rc;
         }
@@ -765,12 +765,12 @@ SmfUpgradeStep::modifyInformationModel()
                                            getProcedure()->getProcThread()->getImmHandle());
 
 		if ((rc = immUtil.doImmOperations(m_modificationList, &rollbackCcb)) != SA_AIS_OK) {
-			LOG_ER("SmfUpgradeStep modify IMM failed, rc=%s", saf_error(rc));
+			LOG_NO("SmfUpgradeStep modify IMM failed, rc=%s", saf_error(rc));
 			return rc;
 		}
 
                 if ((rc = rollbackCcb.execute()) != SA_AIS_OK) {
-			LOG_ER("SmfUpgradeStep failed to store rollback CCB, rc=%s", saf_error(rc));
+			LOG_NO("SmfUpgradeStep failed to store rollback CCB, rc=%s", saf_error(rc));
 			return rc;
                 }
         } else {
@@ -795,7 +795,7 @@ SmfUpgradeStep::reverseInformationModel()
                                    getProcedure()->getProcThread()->getImmHandle());
 
         if ((rc = rollbackCcb.rollback()) != SA_AIS_OK) {
-                LOG_ER("SmfUpgradeStep failed to rollback Modify CCB, rc=%s", saf_error(rc));
+                LOG_NO("SmfUpgradeStep failed to rollback Modify CCB, rc=%s", saf_error(rc));
                 return rc;
         }
 
@@ -864,10 +864,16 @@ SmfUpgradeStep::setMaintenanceState(SmfActivationUnit& i_units)
                 } else if ((*it).find("safComp") == 0) {
                         //IF DN is a component, set saAmfSUMaintenanceCampaign for the hosting SU
                         //Extract the SU name from the DN
-                        std::string su = ((*it).substr((*it).find(",") + 1, std::string::npos));
+			std::string::size_type pos = (*it).find(",");
+			if (pos == std::string::npos) {
+				LOG_NO("SmfUpgradeStep::setMaintenanceState(): Separator \",\" not found in %s", (*it).c_str());
+				TRACE_LEAVE();
+				return false;
+			}
+                        std::string su = ((*it).substr(pos + 1, std::string::npos));
                         suList.push_back(su);
                 } else {
-                        LOG_ER("SmfUpgradeStep::setMaintenanceState(): unknown activation unit type %s", (*it).c_str());
+                        LOG_NO("SmfUpgradeStep::setMaintenanceState(): unknown activation unit type %s", (*it).c_str());
                         TRACE_LEAVE();
                         return false;
                 }
@@ -889,7 +895,7 @@ SmfUpgradeStep::setMaintenanceState(SmfActivationUnit& i_units)
         for (it = suList.begin(); it != suList.end(); ++it) {
 		//Read the attribute
 		if (immUtil.getObject((*it), &attributes) == false) {
-			LOG_ER("SmfUpgradeStep::setMaintenanceState():failed to get imm object %s", (*it).c_str());
+			LOG_NO("SmfUpgradeStep::setMaintenanceState():failed to get imm object %s", (*it).c_str());
 			rc = false;
 			goto exit;
 		}
@@ -899,7 +905,7 @@ SmfUpgradeStep::setMaintenanceState(SmfActivationUnit& i_units)
 		//If a value is set, this shall be the current campaign DN
 		if(saAmfSUMaintenanceCampaign != NULL) {
 			if(strncmp((char *)saAmfSUMaintenanceCampaign->value, campDn.c_str(), saAmfSUMaintenanceCampaign->length) != 0){ //Exist, but no match
-				LOG_ER("saAmfSUMaintenanceCampaign already set to unknown campaign dn = %s", (char *)saAmfSUMaintenanceCampaign->value);
+				LOG_NO("saAmfSUMaintenanceCampaign already set to unknown campaign dn = %s", (char *)saAmfSUMaintenanceCampaign->value);
 				rc = false;
 				goto exit;
 			}
@@ -918,7 +924,7 @@ SmfUpgradeStep::setMaintenanceState(SmfActivationUnit& i_units)
         }
 
         if ((result = immUtil.doImmOperations(operations)) != SA_AIS_OK) {
-                LOG_ER("Fails to set saAmfSUMaintenanceCampaign, rc=%s", saf_error(result));
+                LOG_NO("Fails to set saAmfSUMaintenanceCampaign, rc=%s", saf_error(result));
                 rc = false;
                 goto exit;
         }
@@ -1165,7 +1171,7 @@ SmfUpgradeStep::createSaAmfNodeSwBundlesOld()
 // calculateSingleStepNodes()
 //------------------------------------------------------------------------------
 bool SmfUpgradeStep::calculateSingleStepNodes(
-	std::list<SmfPlmExecEnv> const& i_plmExecEnvList,
+	const std::list<SmfPlmExecEnv> & i_plmExecEnvList,
 	std::list<std::string>& o_nodelist)
 {
 	TRACE_ENTER();
@@ -1182,7 +1188,7 @@ bool SmfUpgradeStep::calculateSingleStepNodes(
 		for (ee = i_plmExecEnvList.begin(); ee != i_plmExecEnvList.end(); ee++) {
 			std::string const& amfnode = ee->getAmfNode();
 			if (amfnode.length() == 0) {
-				LOG_ER("Only AmfNodes can be handled in plmExecEnv");
+				LOG_NO("Only AmfNodes can be handled in plmExecEnv");
 				TRACE_LEAVE();
 				return false;
 			}
@@ -1241,7 +1247,7 @@ SmfUpgradeStep::calculateStepType()
 	while (bundleIter != removeList.end()) {
 		/* Read the saSmfBundleRemoveOfflineScope to detect if the bundle requires reboot */
 		if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-			LOG_ER("Could not find remove software bundle  %s", (*bundleIter).getBundleDn().c_str());
+			LOG_NO("Could not find remove software bundle  %s", (*bundleIter).getBundleDn().c_str());
 			return SA_AIS_ERR_FAILED_OPERATION;
 		}
 		const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
@@ -1265,7 +1271,7 @@ SmfUpgradeStep::calculateStepType()
 		while (bundleIter != addList.end()) {
 			/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
 			if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-				LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+				LOG_NO("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
 				return SA_AIS_ERR_FAILED_OPERATION;
 			}
 			const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
@@ -1320,7 +1326,7 @@ SmfUpgradeStep::calculateStepType()
 		} else if (firstAuDu.find("safAmfNode") == 0) {
 			className = "SaAmfNode";
 		} else {
-			LOG_ER("Could not find class for AU/DU DN %s", firstAuDu.c_str());
+			LOG_NO("Could not find class for AU/DU DN %s", firstAuDu.c_str());
 			return SA_AIS_ERR_FAILED_OPERATION;
 		}
 	}
@@ -1347,7 +1353,7 @@ SmfUpgradeStep::calculateStepType()
 				SaAisErrorT rc;
 				bool result;
 				if ((rc = this->isSingleNodeSystem(result)) != SA_AIS_OK) {
-					LOG_ER("Fail to read if this is a single node system rc=%s", saf_error(rc));
+					LOG_NO("Fail to read if this is a single node system rc=%s", saf_error(rc));
 					return SA_AIS_ERR_FAILED_OPERATION;
 				}
 
@@ -1386,7 +1392,7 @@ SmfUpgradeStep::calculateStepType()
 	} else if (className == "SaAmfSU") {
 		/* AU is SU */
 		if (rebootNeeded) {
-			LOG_ER("A software bundle requires reboot but the AU is a SU (%s)", firstAuDu.c_str());
+			LOG_NO("A software bundle requires reboot but the AU is a SU (%s)", firstAuDu.c_str());
 			return SA_AIS_ERR_FAILED_OPERATION;
 		}
                 if (activateUsed == false)
@@ -1396,7 +1402,7 @@ SmfUpgradeStep::calculateStepType()
 	} else if (className == "SaAmfComp") {
 		/* AU is Component */
 		if (rebootNeeded) {
-			LOG_ER("A software bundle requires reboot but the AU is a Component (%s)", firstAuDu.c_str());
+			LOG_NO("A software bundle requires reboot but the AU is a Component (%s)", firstAuDu.c_str());
 			return SA_AIS_ERR_FAILED_OPERATION;
 		}
 
@@ -1405,7 +1411,7 @@ SmfUpgradeStep::calculateStepType()
                 else
                         this->setStepType(new SmfStepTypeAuRestartAct(this));
 	} else {
-		LOG_ER("class name %s for %s unknown as AU", className.c_str(), firstAuDu.c_str());
+		LOG_NO("class name %s for %s unknown as AU", className.c_str(), firstAuDu.c_str());
                 return SA_AIS_ERR_FAILED_OPERATION;
 	}
 
@@ -1423,7 +1429,14 @@ SmfUpgradeStep::isCurrentNode(const std::string & i_amfNodeDN)
 	SmfImmUtils immUtil;
 	SaImmAttrValuesT_2 **attributes;
 	bool rc = false;
-	std::string comp_name = getenv("SA_AMF_COMPONENT_NAME");
+	char* tmp_comp_name = getenv("SA_AMF_COMPONENT_NAME");
+	if (tmp_comp_name == NULL) {
+		LOG_NO("SmfUpgradeStep::isCurrentNode:Could not get env variable SA_AMF_COMPONENT_NAME");
+		TRACE_LEAVE();
+		return false;
+	}
+
+	std::string comp_name(tmp_comp_name);
 	TRACE("My components name is %s", comp_name.c_str());
 
 	// Find the parent SU to this component and read which node that is hosting the SU
@@ -1439,11 +1452,11 @@ SmfUpgradeStep::isCurrentNode(const std::string & i_amfNodeDN)
 				rc = true;
 			}
 		} else {
-			LOG_ER("SmfUpgradeStep::isCurrentNode:No hostedByNode attr set for components hosting SU %s", comp_name.c_str());  
+			LOG_NO("SmfUpgradeStep::isCurrentNode:No hostedByNode attr set for components hosting SU %s", comp_name.c_str());  
 			rc = false;
 		}
         } else {
-		LOG_ER("SmfUpgradeStep::isCurrentNode:Fails to get parent to %s", comp_name.c_str());  
+		LOG_NO("SmfUpgradeStep::isCurrentNode:Fails to get parent to %s", comp_name.c_str());  
 		rc = false;
 	}
 
@@ -1471,7 +1484,7 @@ SmfUpgradeStep::isSingleNodeSystem(bool& i_result)
 	*/
         /* Find all SaAmfNode objects in the system */
 	if (immUtil.getChildren("", o_nodeList, SA_IMM_SUBTREE, "SaAmfNode") == false) {
-		LOG_ER("SmfUpgradeStep::isSingleNodeSystem, Fail to get SaAmfNode instances");
+		LOG_NO("SmfUpgradeStep::isSingleNodeSystem, Fail to get SaAmfNode instances");
 		rc = SA_AIS_ERR_BAD_OPERATION;
 	} else {
 	
@@ -1526,7 +1539,7 @@ SmfUpgradeStep::setSingleStepRebootInfo(int i_rebootInfo)
 
 		rc = icoSingleStepInfo.execute(); //Create the object
 		if (rc != SA_AIS_OK){
-			LOG_ER("Creation of SingleStepInfo object fails, rc= %s, [dn=%s]", obj.c_str(), saf_error(rc));
+			LOG_NO("Creation of SingleStepInfo object fails, rc= %s, [dn=%s]", obj.c_str(), saf_error(rc));
 		}
 
 	} else { //Update the object
@@ -1545,7 +1558,7 @@ SmfUpgradeStep::setSingleStepRebootInfo(int i_rebootInfo)
 
 		rc = imoSingleStepInfo.execute(); //Modify the object
 		if (rc != SA_AIS_OK){
-			LOG_ER("Modification SingleStepInfo fails, rc=%s, dn=[%s], attr=[smfRebootType], value=[%s]", 
+			LOG_NO("Modification SingleStepInfo fails, rc=%s, dn=[%s], attr=[smfRebootType], value=[%s]", 
 			       saf_error(rc), obj.c_str(), buf);
 		}
 	}
@@ -1605,11 +1618,11 @@ SmfUpgradeStep::clusterReboot()
 			out << rc;
 			s = out.str();
 			error += s;
-			LOG_ER("%s", error.c_str());
+			LOG_NO("%s", error.c_str());
                         result = SA_AIS_ERR_FAILED_OPERATION;
 		}
 	} else {
-		LOG_ER("STEP: No cluster reboot command found");
+		LOG_NO("STEP: No cluster reboot command found");
                 result = SA_AIS_ERR_FAILED_OPERATION;
 	}
 
@@ -1653,7 +1666,7 @@ SmfUpgradeStep::executeRemoteCmd( const std::string  &i_cmd,
 	bool rc = true;
         SmfndNodeDest nodeDest;
         if (!getNodeDestination(i_node, &nodeDest)) {
-		LOG_ER("no node destination found for node %s", i_node.c_str());
+		LOG_NO("no node destination found for node %s", i_node.c_str());
 		rc = false;
 		goto done;
 	}
@@ -1664,7 +1677,7 @@ SmfUpgradeStep::executeRemoteCmd( const std::string  &i_cmd,
 	cmdrc = smfnd_exec_remote_cmd(i_cmd.c_str(), &nodeDest, timeout / 10000000, 0);
 	/* convert ns to 10 ms timeout */
 	if (cmdrc != 0) {
-		LOG_ER("executing command '%s' on node '%s' failed (%x)", 
+		LOG_NO("executing command '%s' on node '%s' failed (%x)", 
 		       i_cmd.c_str(), i_node.c_str(), cmdrc);
 		rc = false;
 		goto done;
@@ -1731,13 +1744,13 @@ SmfUpgradeStep::callActivationCmd()
 			TRACE("Executing activation command '%s' on node '%s' (single-step)", 
 			      actCommand.c_str(), nodeName);
                         if (!getNodeDestination(*n, &nodeDest)) {
-				LOG_ER("no node destination found for node [%s]", nodeName);
+				LOG_NO("no node destination found for node [%s]", nodeName);
 				result = false;
 				goto done;
 			}
 			uint32_t rc = smfnd_exec_remote_cmd(actCommand.c_str(), &nodeDest, timeout / 10000000, 0);
 			if (rc != 0) {
-				LOG_ER("executing activation command '%s' on node '%s' failed (%x)", 
+				LOG_NO("executing activation command '%s' on node '%s' failed (%x)", 
 				       actCommand.c_str(), nodeName, rc);
 				result = false;
 				goto done;
@@ -1752,7 +1765,7 @@ SmfUpgradeStep::callActivationCmd()
 		TRACE("Get node destination for %s", getSwNode().c_str());
 
 		if (!getNodeDestination(getSwNode(), &nodeDest)) {
-			LOG_ER("no node destination found for node %s", getSwNode().c_str());
+			LOG_NO("no node destination found for node %s", getSwNode().c_str());
 			result = false;
 			goto done;
 		}
@@ -1764,7 +1777,7 @@ SmfUpgradeStep::callActivationCmd()
 		uint32_t rc = smfnd_exec_remote_cmd(actCommand.c_str(), &nodeDest, timeout / 10000000, 0);
 		/* convert ns to 10 ms cliTimeouttimeout */
 		if (rc != 0) {
-			LOG_ER("executing activation command '%s' on node '%s' failed (%x)", 
+			LOG_NO("executing activation command '%s' on node '%s' failed (%x)", 
 			       actCommand.c_str(), getSwNode().c_str(), rc);
 			result = false;
 			goto done;
@@ -1884,13 +1897,13 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 				TRACE("Executing bundle script '%s' on node '%s' (single-step)", 
 				      command.c_str(), nodeName);
 				if (!getNodeDestination(*n, &nodeDest)) {
-					LOG_ER("no node destination found for node [%s]", nodeName);
+					LOG_NO("no node destination found for node [%s]", nodeName);
 					result = false;
 					goto done;
 				}
 				uint32_t rc = smfnd_exec_remote_cmd(command.c_str(), &nodeDest, timeout / 10000000, 0);
 				if (rc != 0) {
-					LOG_ER("executing command '%s' on node '%s' failed (%x)", 
+					LOG_NO("executing command '%s' on node '%s' failed (%x)", 
 					       command.c_str(), nodeName, rc);
 					result = false;
 					goto done;
@@ -1912,7 +1925,7 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 					sleep(interval);
 					nodetimeout -= interval;
 				} else {
-					LOG_ER("no node destination found for node %s", i_node.c_str());
+					LOG_NO("no node destination found for node %s", i_node.c_str());
 					result = false;
 					goto done;
 				}
@@ -1925,7 +1938,7 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 			uint32_t rc = smfnd_exec_remote_cmd(command.c_str(), &nodeDest, timeout / 10000000, 0);
 			/* convert ns to 10 ms timeout */
 			if (rc != 0) {
-				LOG_ER("executing command '%s' on node '%s' failed (%x)", 
+				LOG_NO("executing command '%s' on node '%s' failed (%x)", 
 				       command.c_str(), i_node.c_str(), rc);
 				result = false;
 				goto done;
@@ -1966,7 +1979,7 @@ SmfUpgradeStep::callAdminOperation(unsigned int i_operation,
 			} else if (rc == SA_AIS_ERR_BAD_OPERATION) {
 				TRACE("Entity %s already in state LOCKED-INSTANTIATION, continue", (*dnit).c_str());
 			} else if (rc != SA_AIS_OK) {
-				LOG_ER("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
 				result = false;
 				goto done;
 			}
@@ -1975,7 +1988,7 @@ SmfUpgradeStep::callAdminOperation(unsigned int i_operation,
 			if(rc == SA_AIS_ERR_NO_OP) {
 				TRACE("Entity %s already in state UNLOCKED, continue", (*dnit).c_str());
 			} else if (rc != SA_AIS_OK) {
-				LOG_ER("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
 				result = false;
 				goto done;
 			}
@@ -1984,7 +1997,7 @@ SmfUpgradeStep::callAdminOperation(unsigned int i_operation,
 			if(rc == SA_AIS_ERR_NO_OP) {
 				TRACE("Entity %s already in state LOCKED-INSTANTIATED, continue", (*dnit).c_str());
 			} else if (rc != SA_AIS_OK) {
-				LOG_ER("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
 				result = false;
 				goto done;
 			}
@@ -1993,20 +2006,20 @@ SmfUpgradeStep::callAdminOperation(unsigned int i_operation,
 			if(rc == SA_AIS_ERR_NO_OP) {
 				TRACE("Entity %s already in state UNLOCKED-INSTANTIATED, continue", (*dnit).c_str());
 			} else if (rc != SA_AIS_OK) {
-				LOG_ER("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
 				result = false;
 				goto done;
 			}
 			break;
 		case SA_AMF_ADMIN_RESTART:
 			if (rc != SA_AIS_OK) {
-				LOG_ER("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
 				result = false;
 				goto done;
 			}
 			break;
 		default:
-			LOG_ER("Unknown admin operation %u on %s", i_operation, (*dnit).c_str());
+			LOG_NO("Unknown admin operation %u on %s", i_operation, (*dnit).c_str());
 			result = false;
 			goto done;
 			break;
@@ -2040,7 +2053,7 @@ SmfUpgradeStep::nodeReboot()
 	cmd = smfd_cb->smfNodeRebootCmd;
 
 	if (!getNodeDestination(getSwNode(), &nodeDest)) {
-		LOG_ER("SmfUpgradeStep::nodeReboot: no node destination found for node %s", getSwNode().c_str());
+		LOG_NO("SmfUpgradeStep::nodeReboot: no node destination found for node %s", getSwNode().c_str());
 		result = false;
 		goto done;
 	}
@@ -2054,7 +2067,7 @@ SmfUpgradeStep::nodeReboot()
 #if 0
 	// Do not wait for answer, the rebooted node will not answer
 	if (cmdrc != 0) {
-		LOG_ER("SmfUpgradeStep::nodeReboot: executing command '%s' on node '%s' failed with rc %d", 
+		LOG_NO("SmfUpgradeStep::nodeReboot: executing command '%s' on node '%s' failed with rc %d", 
 		       cmd.c_str(), getSwNode().c_str(), cmdrc);
 		result = false;
 		goto done;
@@ -2069,7 +2082,7 @@ SmfUpgradeStep::nodeReboot()
 		TRACE("SmfUpgradeStep::nodeReboot: Destination has not yet disappear, check again wait %d seconds", interval);
 		sleep(interval);
 		if (timeout <= 0) {
-			LOG_ER("SmfUpgradeStep::nodeReboot: node destination has not disappear within time frame for node %s", getSwNode().c_str());
+			LOG_NO("SmfUpgradeStep::nodeReboot: node destination has not disappear within time frame for node %s", getSwNode().c_str());
 			result = false;
 			goto done;
 		}
@@ -2088,7 +2101,7 @@ SmfUpgradeStep::nodeReboot()
 		TRACE("SmfUpgradeStep::nodeReboot: No destination found, try again wait %d seconds", interval);
 		sleep(interval);
 		if (timeout <= 0) {
-			LOG_ER("SmfUpgradeStep::nodeReboot: no node destination found for node %s", getSwNode().c_str());
+			LOG_NO("SmfUpgradeStep::nodeReboot: no node destination found for node %s", getSwNode().c_str());
 			result = false;
 			goto done;
 		}
@@ -2106,7 +2119,7 @@ SmfUpgradeStep::nodeReboot()
 		sleep(interval);
 		cmdrc = smfnd_exec_remote_cmd(cmd.c_str(), &nodeDest, cliTimeout, 0);
 		if (timeout <= 0) {
-			LOG_ER("SmfUpgradeStep::nodeReboot: accept command timeout on node '%s'", getSwNode().c_str());
+			LOG_NO("SmfUpgradeStep::nodeReboot: accept command timeout on node '%s'", getSwNode().c_str());
 			result = false;
 			goto done;
 		}
@@ -2190,10 +2203,10 @@ SmfUpgradeStep::getProcedure()
 //------------------------------------------------------------------------------
 // checkAndInvokeCallback()
 //------------------------------------------------------------------------------
-bool SmfUpgradeStep::checkAndInvokeCallback (std::list < SmfCallback * > &callbackList, unsigned int camp_phase) 
+bool SmfUpgradeStep::checkAndInvokeCallback (const std::list < SmfCallback * > &callbackList, unsigned int camp_phase) 
 {
 	std::string stepDn = getDn();
-	std::list < SmfCallback * >:: iterator cbkiter;
+	std::list < SmfCallback * >:: const_iterator cbkiter;
 	SaAisErrorT rc = SA_AIS_OK;
 
 	std::vector < SmfUpgradeStep * >::const_iterator iter;
@@ -2216,7 +2229,7 @@ bool SmfUpgradeStep::checkAndInvokeCallback (std::list < SmfCallback * > &callba
 						rc = (*cbkiter)->rollback(stepDn);
 					}
 					if (rc == SA_AIS_ERR_FAILED_OPERATION) {
-						LOG_ER("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+						LOG_NO("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
 						TRACE_LEAVE();
 						return false;
 					}
@@ -2225,14 +2238,21 @@ bool SmfUpgradeStep::checkAndInvokeCallback (std::list < SmfCallback * > &callba
 		}
 		else if (stepCount == SmfCallback::onLastStep) {
 			/* check if this is last step */
+			SmfUpgradeStep* lastStep = NULL;
 			for (iter = procSteps.begin(); iter != procSteps.end(); iter++) {
 				if (iter+1 == procSteps.end()) {
+					lastStep = (*iter);
 					break;
 				}
 			}
-			/* iter is at the last step in procSteps now */
-			/* check if the current step is same as iter */
-			if (strcmp((*iter)->getDn().c_str(), stepDn.c_str()) == 0) {
+			if (lastStep == NULL) {
+				LOG_NO("SmfUpgradeStep::checkAndInvokeCallback: Last step not found");
+				TRACE_LEAVE();
+				return false;
+			}
+			/* lastStep is at the last step in procSteps now */
+			/* check if the current step is same as lastStep */
+			if (strcmp(lastStep->getDn().c_str(), stepDn.c_str()) == 0) {
 				/* This is the last step, so call callback */
 				if (camp_phase == SA_SMF_UPGRADE) {
 					rc = (*cbkiter)->execute(stepDn);
@@ -2241,7 +2261,7 @@ bool SmfUpgradeStep::checkAndInvokeCallback (std::list < SmfCallback * > &callba
 					rc = (*cbkiter)->rollback(stepDn);
 				}
 				if (rc == SA_AIS_ERR_FAILED_OPERATION) {
-					LOG_ER("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+					LOG_NO("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
 					TRACE_LEAVE();
 					return false;
 				}
@@ -2249,6 +2269,7 @@ bool SmfUpgradeStep::checkAndInvokeCallback (std::list < SmfCallback * > &callba
 		}
 		else if (stepCount == SmfCallback::halfWay) {
 			int noOfSteps = 0, halfWay;
+			SmfUpgradeStep* halfwayStep= 0;
 			for (iter = procSteps.begin(); iter != procSteps.end(); iter++) {
 				noOfSteps++;
 			}
@@ -2257,11 +2278,18 @@ bool SmfUpgradeStep::checkAndInvokeCallback (std::list < SmfCallback * > &callba
 			for (iter = procSteps.begin(); iter != procSteps.end(); iter++) {
 				noOfSteps++;
 				if (halfWay == noOfSteps) {
+					halfwayStep = (*iter);
 					break;
 				}
 			}
+
+			if (halfwayStep == 0) {
+				LOG_NO("SmfUpgradeStep::checkAndInvokeCallback: could not find halfway step");
+				TRACE_LEAVE();
+				return false;
+			}
 			/* iter is at halfWay of procSteps, check if current step is same as iter */
-			if (strcmp((*iter)->getDn().c_str(), stepDn.c_str()) == 0) {
+			if (strcmp(halfwayStep->getDn().c_str(), stepDn.c_str()) == 0) {
 				/* This is the halfWay step, so call callback */
 				if (camp_phase == SA_SMF_UPGRADE) {
 					rc = (*cbkiter)->execute(stepDn);
@@ -2270,7 +2298,7 @@ bool SmfUpgradeStep::checkAndInvokeCallback (std::list < SmfCallback * > &callba
 					rc = (*cbkiter)->rollback(stepDn);
 				}
 				if (rc == SA_AIS_ERR_FAILED_OPERATION) {
-					LOG_ER("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+					LOG_NO("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
 					TRACE_LEAVE();
 					return false;
 				}
@@ -2284,7 +2312,7 @@ bool SmfUpgradeStep::checkAndInvokeCallback (std::list < SmfCallback * > &callba
 				rc = (*cbkiter)->rollback(stepDn);
 			}
 			if (rc == SA_AIS_ERR_FAILED_OPERATION) {
-				LOG_ER("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+				LOG_NO("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
 				TRACE_LEAVE();
 				return false;
 			}

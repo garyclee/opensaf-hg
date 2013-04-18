@@ -102,7 +102,7 @@ class SmfUpgradeMethod {
 /// @param   None.
 /// @return  A SaUint32T containing the restart option.
 ///
-	const SaUint32T getStepRestartOption(void) const;
+	SaUint32T getStepRestartOption(void) const;
 
 ///
 /// Purpose: Set the number of step retries allowed before the steps in this procedure has failed..
@@ -116,7 +116,7 @@ class SmfUpgradeMethod {
 /// @param   None.
 /// @return  A SaUint32T containing the max number of retries.
 ///
-	const SaUint32T getStepMaxRetryCount(void) const;
+	SaUint32T getStepMaxRetryCount(void) const;
 
 ///
 /// Purpose: Get the list of Callbacks

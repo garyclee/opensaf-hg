@@ -79,7 +79,7 @@ getNodeDestination(const std::string & i_node, SmfndNodeDest* o_nodeDest)
 	}
 
 	if (immUtil.getObject(i_node, &attributes) == false) {
-		LOG_ER("Failed to get IMM node object %s", i_node.c_str());
+		LOG_NO("Failed to get IMM node object %s", i_node.c_str());
 		return false;
 	}
 
@@ -87,7 +87,7 @@ getNodeDestination(const std::string & i_node, SmfndNodeDest* o_nodeDest)
 						      SA_IMM_ATTR_CLASS_NAME, 0);
 
 	if (className == NULL) {
-		LOG_ER("Failed to get class name for node object %s", i_node.c_str());
+		LOG_NO("Failed to get class name for node object %s", i_node.c_str());
 		return false;
 	}
 
@@ -98,7 +98,7 @@ getNodeDestination(const std::string & i_node, SmfndNodeDest* o_nodeDest)
 		clmNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saAmfNodeClmNode", 0);
 
 		if (clmNode == NULL) {
-			LOG_ER("Failed to get clm node for amf node object %s", i_node.c_str());
+			LOG_NO("Failed to get clm node for amf node object %s", i_node.c_str());
 			return false;
 		}
 
@@ -111,7 +111,7 @@ getNodeDestination(const std::string & i_node, SmfndNodeDest* o_nodeDest)
 		return result;
 	}
 
-	LOG_ER("Failed to get destination for node object %s, class %s", i_node.c_str(), className);
+	LOG_NO("Failed to get destination for node object %s, class %s", i_node.c_str(), className);
 
 	return false;
 }
@@ -213,7 +213,7 @@ SmfImmUtils::getClassDescription(const std::string & i_className, SaImmAttrDefin
 		m_omHandle, (SaImmClassNameT)i_className.c_str(), &classCategory, o_attributeDefs);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOmClassDescriptionGet_2 for [%s], rc=%s", i_className.c_str(), saf_error(rc));
+		LOG_NO("saImmOmClassDescriptionGet_2 for [%s], rc=%s", i_className.c_str(), saf_error(rc));
 		return false;
 	}
 
@@ -230,7 +230,7 @@ SmfImmUtils::classDescriptionMemoryFree(SaImmAttrDefinitionT_2 ** i_attributeDef
         rc = immutil_saImmOmClassDescriptionMemoryFree_2(m_omHandle, i_attributeDefs);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOmClassDescriptionMemoryFree_2 failed, rc=%s", saf_error(rc));
+		LOG_NO("saImmOmClassDescriptionMemoryFree_2 failed, rc=%s", saf_error(rc));
 		return false;
 	}
 
@@ -246,8 +246,8 @@ SmfImmUtils::getObject(const std::string & i_dn, SaImmAttrValuesT_2 *** o_attrib
 	SaAisErrorT rc = SA_AIS_OK;
 	SaNameT objectName;
 
-        if (i_dn.length() > SA_MAX_NAME_LENGTH) {
-		LOG_ER("getObject error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH);
+        if (i_dn.length() >= SA_MAX_NAME_LENGTH) {
+		LOG_NO("getObject error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH - 1);
 		return false;
         }
 
@@ -274,8 +274,8 @@ SmfImmUtils::getObjectAisRC(const std::string & i_dn, SaImmAttrValuesT_2 *** o_a
 	SaAisErrorT rc = SA_AIS_OK;
 	SaNameT objectName;
 
-        if (i_dn.length() > SA_MAX_NAME_LENGTH) {
-		LOG_ER("getObjectAisRC error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH);
+        if (i_dn.length() >= SA_MAX_NAME_LENGTH) {
+		LOG_NO("getObjectAisRC error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH - 1);
 		return SA_AIS_ERR_NAME_TOO_LONG;
         }
 
@@ -305,20 +305,20 @@ bool
 SmfImmUtils::getChildren(const std::string & i_dn, std::list < std::string > &o_childList, SaImmScopeT i_scope,
 			      const char *i_className)
 {
-	SaImmSearchHandleT immSearchHandle;
+	SaImmSearchHandleT immSearchHandle = 0;
 	SaImmSearchParametersT_2 objectSearch;
-	SaAisErrorT result;
+	SaAisErrorT result = SA_AIS_OK;
 	bool rc = true;
 	SaNameT objectName;
 	SaNameT *objectNamePtr = NULL;
-	const SaStringT className = (const SaStringT)i_className;
+	const SaStringT className = (SaStringT)i_className;
 	SaImmAttrValuesT_2 **attributes;
 
 	TRACE_ENTER();
 
 	if (i_dn.size() > 0) {
-                if (i_dn.length() > SA_MAX_NAME_LENGTH) {
-                        LOG_ER("getChildren error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH);
+                if (i_dn.length() >= SA_MAX_NAME_LENGTH) {
+                        LOG_NO("getChildren error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH - 1);
                         return false;
                 }
                 
@@ -342,7 +342,7 @@ SmfImmUtils::getChildren(const std::string & i_dn, std::list < std::string > &o_
 				TRACE("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s], parent=[%s]", saf_error(result), i_className, i_dn.c_str());
 				goto done;
 			} else {
-				LOG_ER("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s], parent=[%s]", saf_error(result), i_className, i_dn.c_str());
+				LOG_NO("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s], parent=[%s]", saf_error(result), i_className, i_dn.c_str());
 				rc = false;
 				goto done;
 			}
@@ -358,7 +358,7 @@ SmfImmUtils::getChildren(const std::string & i_dn, std::list < std::string > &o_
 				TRACE("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s]", saf_error(result), i_className);
 				goto done;
 			} else {
-				LOG_ER("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s]", saf_error(result), i_className);
+				LOG_NO("immutil_saImmOmSearchInitialize_2, rc=%s, class name=[%s]", saf_error(result), i_className);
 				rc = false;
 				goto done;
 			}
@@ -397,13 +397,13 @@ SmfImmUtils::getChildrenAndAttrBySearchHandle(const std::string& i_dn,
 	bool rc = true;
 	SaNameT objectName;
 	SaNameT *objectNamePtr = NULL;
-	const SaStringT className = (const SaStringT)i_className;
+	const SaStringT className = (SaStringT)i_className;
 
 	TRACE_ENTER();
 
 	if (i_dn.size() > 0) {
-                if (i_dn.length() > SA_MAX_NAME_LENGTH) {
-                        LOG_ER("getChildren error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH);
+                if (i_dn.length() >= SA_MAX_NAME_LENGTH) {
+                        LOG_NO("getChildren error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH - 1);
 			rc =  false;
 			goto done;
                 }
@@ -470,7 +470,7 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 	int retry          = 100;
 
         if (i_dn.length() > SA_MAX_NAME_LENGTH) {
-                LOG_ER("callAdminOperation error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH);
+                LOG_NO("callAdminOperation error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH);
                 return SA_AIS_ERR_NAME_TOO_LONG;
         }
 
@@ -491,7 +491,7 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 
 	rc = immutil_saImmOmAdminOwnerSet(m_ownerHandle, objectNames, SA_IMM_ONE);
 	if ( rc != SA_AIS_OK) {
-		LOG_ER("Fail to set admin owner, rc=%s, dn=[%s]", saf_error(rc), i_dn.c_str());
+		LOG_NO("Fail to set admin owner, rc=%s, dn=[%s]", saf_error(rc), i_dn.c_str());
 		goto done;
 	}
 
@@ -501,7 +501,7 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 		rc = immutil_saImmOmAdminOperationInvoke_2(m_ownerHandle, &objectName, 0, i_operationId, i_params,
 							   &returnValue, i_timeout);
 		if (retry <= 0) {
-			LOG_ER("Fail to invoke admin operation, too many SA_AIS_ERR_TRY_AGAIN, giving up. dn=[%s], opId=[%u]",
+			LOG_NO("Fail to invoke admin operation, too many SA_AIS_ERR_TRY_AGAIN, giving up. dn=[%s], opId=[%u]",
 			       i_dn.c_str(), i_operationId);
 			rc = SA_AIS_ERR_TRY_AGAIN;
 			goto done;
@@ -511,7 +511,7 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 	} while ((rc == SA_AIS_OK) && (returnValue == SA_AIS_ERR_TRY_AGAIN));
 
 	if ( rc != SA_AIS_OK) {
-		LOG_ER("Fail to invoke admin operation, rc=%s. dn=[%s], opId=[%u]",saf_error(rc), i_dn.c_str(), i_operationId);
+		LOG_NO("Fail to invoke admin operation, rc=%s. dn=[%s], opId=[%u]",saf_error(rc), i_dn.c_str(), i_operationId);
 		goto done;
 	}
        
@@ -540,7 +540,7 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList,
 
 	result = immutil_saImmOmCcbInitialize(m_ownerHandle, ccbFlags, &immCcbHandle);
 	if (result != SA_AIS_OK) {
-		LOG_ER("Fail to initialize OM CCB, rc=%s", saf_error(result));
+		LOG_NO("Fail to initialize OM CCB, rc=%s", saf_error(result));
 		return result;
 	}
 
@@ -556,7 +556,7 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList,
                 if (io_rollbackCcb != NULL) {
                         rollbackData = new (std::nothrow) SmfRollbackData(io_rollbackCcb);
                         if (rollbackData == NULL) {
-                                LOG_ER("Failed to create SmfRollbackData C++ object, no memory");
+                                LOG_NO("Failed to create SmfRollbackData C++ object, no memory");
                                 return SA_AIS_ERR_NO_MEMORY;
                         }
                 }
@@ -575,14 +575,14 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList,
                                         delete rollbackData; 
                                         rollbackData = NULL;
                 		} else {
-                			LOG_ER("Creation of object failed, rc=%s, class=[%s], parent=[%s]", 
+                			LOG_NO("Creation of object failed, rc=%s, class=[%s], parent=[%s]", 
 					       saf_error(result), createOperation->getClassName().c_str(), createOperation->getParentDn().c_str() );
                                         delete rollbackData;
                 			return result;
                 		}
                         }
                         else {
-        			LOG_ER("Execution of IMM operation failed, rc=%s", saf_error(result));
+        			LOG_NO("Execution of IMM operation failed, rc=%s", saf_error(result));
                                 delete rollbackData;
         			return result;
                         }
@@ -596,14 +596,14 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList,
 	/* Apply the CCB */
 	result = immutil_saImmOmCcbApply(immCcbHandle);
 	if (result != SA_AIS_OK) {
-		LOG_ER("saImmOmCcbApply failed rc=%s", saf_error(result));
+		LOG_NO("saImmOmCcbApply failed rc=%s", saf_error(result));
 		return result;
 	}
 
 	/* Finalize CCB and release the IMM CCB handle */
 	result = immutil_saImmOmCcbFinalize(immCcbHandle);
 	if (result != SA_AIS_OK) {
-		LOG_ER("saImmOmCcbFinalize failed rc=%s", saf_error(result));
+		LOG_NO("saImmOmCcbFinalize failed rc=%s", saf_error(result));
 		return result;
 	}
 
@@ -657,7 +657,7 @@ smf_stringToImmType(char *i_type, SaImmValueTypeT& o_type)
 		return true;
 	}
 	else {
-		LOG_ER("SmfUtils::smf_stringToImmType unknown type (%s)", i_type);
+		LOG_NO("SmfUtils::smf_stringToImmType unknown type (%s)", i_type);
 	}
 	return false;
 }
@@ -683,7 +683,7 @@ const char*
 smf_immTypeToString(SaImmValueTypeT i_type)
 {
         if (i_type < SA_IMM_ATTR_SAINT32T || i_type > SA_IMM_ATTR_SAANYT) {
-		LOG_ER("SmfUtils::smf_immTypeToString type %d not found", i_type);
+		LOG_NO("SmfUtils::smf_immTypeToString type %d not found", i_type);
                 return NULL;
         }
 	return immTypeNames[i_type];
@@ -702,7 +702,7 @@ smf_stringToImmAttrModType(char *i_type)
 	else if (!strcmp("SA_IMM_ATTR_VALUES_REPLACE", i_type))
 		return SA_IMM_ATTR_VALUES_REPLACE;
 	else {
-		LOG_ER("SmfUtils::smf_stringToImmAttrModType type %s not found", i_type);
+		LOG_NO("SmfUtils::smf_stringToImmAttrModType type %s not found", i_type);
 	}
 	return (SaImmAttrModificationTypeT)0;
 }
@@ -723,7 +723,7 @@ smf_stringsToValues(SaImmAttrValuesT_2 * i_attribute, std::list < std::string >&
 
 	for (iter = i_values.begin(); iter != i_values.end(); iter++) {
                 if (!smf_stringToValue(i_attribute->attrValueType, value,  (*iter).c_str())) {
-                        LOG_ER("SmfUtils:smf_stringsToValues: Fails to convert a string to value");
+                        LOG_NO("SmfUtils:smf_stringsToValues: Fails to convert a string to value");
                         return false;
                 }
 		value++;	//Next value in (case of multivalue attribute)
@@ -764,8 +764,8 @@ smf_stringToValue(SaImmValueTypeT i_type, SaImmAttrValueT *i_value, const char* 
         case SA_IMM_ATTR_SANAMET:
                 len = strlen(i_str);
 
-                if (len > SA_MAX_NAME_LENGTH) {
-                        LOG_ER("smf_stringToValue error, SaNameT value too long (%zu), max %d", len, SA_MAX_NAME_LENGTH);
+                if (len >= SA_MAX_NAME_LENGTH) {
+                        LOG_NO("smf_stringToValue error, SaNameT value too long (%zu), max %d", len, SA_MAX_NAME_LENGTH - 1);
                         return false;
                 }
 
@@ -815,7 +815,7 @@ smf_stringToValue(SaImmValueTypeT i_type, SaImmAttrValueT *i_value, const char* 
                 TRACE("SIZE: %d", (int)((SaAnyT *) * i_value)->bufferSize);
                 break;
         default:
-                LOG_ER("smf_stringToValue: BAD TYPE (%d) specified for value (%s)",i_type ,i_str);
+                LOG_NO("smf_stringToValue: BAD TYPE (%d) specified for value (%s)",i_type ,i_str);
                 return false;
         }		//End switch
 
@@ -914,7 +914,7 @@ smf_opStringToInt(const char *i_str)
 	else if (!strcmp("SA_AMF_ADMIN_EAM_STOP", i_str))
 		return SA_AMF_ADMIN_EAM_STOP;
 	else {
-		LOG_ER("SmfUtils::smf_opStringToInt type %s not found, aborting", i_str);
+		LOG_NO("SmfUtils::smf_opStringToInt type %s not found, aborting", i_str);
 	}
 	return (SaAmfAdminOperationIdT)0;
 }

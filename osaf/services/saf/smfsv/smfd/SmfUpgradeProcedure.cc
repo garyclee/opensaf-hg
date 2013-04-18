@@ -532,9 +532,10 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade,
 		int stepCntr = 0;
 
 		for (it = nodeList.begin(); it != nodeList.end(); ++it) {
-                        char rdnStr[32];
+			int rdnStrSize = 32;
+                        char rdnStr[rdnStrSize];
 			stepCntr++;
-                        sprintf(rdnStr, "safSmfStep=%04u", stepCntr);
+                        snprintf(rdnStr, rdnStrSize, "safSmfStep=%04u", stepCntr);
 
 			SmfUpgradeStep *newStep = new SmfUpgradeStep();
 			newStep->setRdn(rdnStr);
@@ -585,9 +586,10 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade,
 		std::list < std::string >::const_iterator itActDeact;
                 for (itActDeact = actDeactUnits.begin(); itActDeact != actDeactUnits.end(); ++itActDeact) {
 			TRACE("Create step %d for %s", stepCntr, (*itActDeact).c_str());
-                        char rdnStr[32];
+			int rdnStrSize = 32;
+                        char rdnStr[rdnStrSize];
 			stepCntr++;
-                        sprintf(rdnStr, "safSmfStep=%04u", stepCntr);
+                        snprintf(rdnStr, rdnStrSize, "safSmfStep=%04u", stepCntr);
 
                         SmfUpgradeStep *newStep = new(std::nothrow) SmfUpgradeStep();
                         osafassert(newStep != NULL);
@@ -635,9 +637,10 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade,
 
 		//Create SW install steps for the nodes not found in the created steps.
 		for (nodeIt = nodeList.begin(); nodeIt != nodeList.end(); ++nodeIt) {
-                        char rdnStr[32];
+			int rdnStrSize = 32;
+                        char rdnStr[rdnStrSize];
 			stepCntr++;
-                        sprintf(rdnStr, "safSmfStep=%04u", stepCntr);
+                        snprintf(rdnStr, rdnStrSize, "safSmfStep=%04u", stepCntr);
 
 			SmfUpgradeStep *newStep = new SmfUpgradeStep();
 			newStep->setRdn(rdnStr);
@@ -768,14 +771,20 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 		const SmfActivationUnitType* aunit = forAddRemove->getActivationUnit();
 		if (aunit == NULL){
 			LOG_NO("SmfUpgradeProcedure::calculateSingleStep: No activation unit in forAddRemove");
+			delete newStep;
+			TRACE_LEAVE();
 			return false;
 		}
 		if (aunit->getRemoved().size() != 0) {
 			LOG_NO("SmfUpgradeProcedure::calculateSingleStep: Removed not empty in forAddRemove");
+			delete newStep;
+			TRACE_LEAVE();
 			return false;
 		}
 		if (aunit->getSwRemove().size() != 0) {
 			LOG_NO("SmfUpgradeProcedure::calculateSingleStep: SwRemove not empty in forAddRemove");
+			delete newStep;
+			TRACE_LEAVE();
 			return false;
 		}
 
@@ -787,6 +796,7 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 				std::list<std::string> actUnits;
 				if (!calcActivationUnitsFromTemplateSingleStep(*e, i_objects, actUnits, nodeList)) {
 					delete newStep;
+					TRACE_LEAVE();
 					return false;
 				}
 				std::list<std::string>::const_iterator a;
@@ -796,6 +806,8 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 			} else {
 				if (e->getName().length() == 0) {
 					LOG_NO("SmfUpgradeProcedure::calculateSingleStep: No DN given in single step actedOn");
+					delete newStep;
+					TRACE_LEAVE();
 					return false;
 				}
 				//This a single step acted on list without template
@@ -827,14 +839,20 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 		aunit = forAddRemove->getDeactivationUnit();
 		if (aunit == NULL){
 			LOG_NO("SmfUpgradeProcedure::calculateSingleStep: No deActivation unit in forAddRemove");
+			delete newStep;
+			TRACE_LEAVE();
 			return false;
 		}
 		if (aunit->getAdded().size() != 0) {
 			LOG_NO("SmfUpgradeProcedure::calculateSingleStep: Added not empty in forAddRemove");
+			delete newStep;
+			TRACE_LEAVE();
 			return false;
 		}
 		if (aunit->getSwAdd().size() != 0) {
 			LOG_NO("SmfUpgradeProcedure::calculateSingleStep: SwAdd not empty in forAddRemove");
+			delete newStep;
+			TRACE_LEAVE();
 			return false;
 		}
 
@@ -843,6 +861,7 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 				std::list<std::string> deactUnits;
 				if (!calcActivationUnitsFromTemplateSingleStep(*e, i_objects, deactUnits, nodeList)) {
 					delete newStep;
+					TRACE_LEAVE();
 					return false;
 				}
 				std::list<std::string>::const_iterator a;
@@ -852,6 +871,8 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 			} else {
 				if (e->getName().length() == 0){
 					LOG_NO("ActedOn contain no name");
+					delete newStep;
+					TRACE_LEAVE();
 					return false;
 				}
 
@@ -859,6 +880,7 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 				std::string node;
 				if(getActDeactUnitsAndNodes(e->getName(), deactUnit, node, i_objects) == false) {
 					LOG_NO("SmfUpgradeProcedure::calculateSingleStep: getActDeactUnitsAndNodes failes for DN=%s",e->getName().c_str());
+					delete newStep;
 					TRACE_LEAVE();
 					return false;
 				}
@@ -885,10 +907,13 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 			if (e->getParent().length() > 0 || e->getType().length() > 0) {
 				LOG_NO("SmfUpgradeProcedure::calculateSingleStep: (forAddRemove/removed) byTemplate not implemented");
                                 delete newStep;
+				TRACE_LEAVE();
 				return false;
 			}
 			if (e->getName().length() == 0) {
 				LOG_NO("SmfUpgradeProcedure::calculateSingleStep: No bundle DN given in single step swRemove");
+				delete newStep;
+				TRACE_LEAVE();
 				return false;
 			}
 			SmfImmDeleteOperation* deleteop = new SmfImmDeleteOperation;
@@ -902,6 +927,7 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 		}
 
 		addProcStep(newStep);
+		TRACE_LEAVE();
 		return true;		// <--------- RETURN HERE
 	}
 
@@ -921,6 +947,8 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 		const SmfActivationUnitType* aunit = forModify->getActivationUnit();
 		if (aunit == NULL){
 			LOG_NO("SmfUpgradeProcedure::calculateSingleStep: No activation unit in single step forModify");
+			delete newStep;
+			TRACE_LEAVE();
 			return false;
 		}
 		std::list<std::string> nodeList;
@@ -930,17 +958,21 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 			if (e->getParent().length() > 0 || e->getType().length() > 0) {
 				if (!calcActivationUnitsFromTemplateSingleStep(*e, i_objects,  actDeactUnits, nodeList)) {
 					delete newStep;
+					TRACE_LEAVE();
 					return false;
 				}
 			} else {
 				if (e->getName().length() == 0){
 					LOG_NO("SmfUpgradeProcedure::calculateSingleStep: No actedOn in single step forModify");
+					delete newStep;
+					TRACE_LEAVE();
 					return false;
 				}
 				std::string unit;
 				std::string node;
 				if(getActDeactUnitsAndNodes(e->getName(), unit, node, i_objects) == false) {
 					LOG_NO("SmfUpgradeProcedure::calculateSingleStep: getActDeactUnitsAndNodes failes for DN=%s",e->getName().c_str());
+					delete newStep;
 					TRACE_LEAVE();
 					return false;
 				}
@@ -980,15 +1012,18 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 					  SMF_AU_SU_COMP, 
 					  i_objects)) {
 			delete newStep;
+			TRACE_LEAVE();
 			return false;
 		}
 
 		addProcStep(newStep);
-                return true;		// <--------- RETURN HERE
+		TRACE_LEAVE();
+		return true;		// <--------- RETURN HERE
 	}
 
 	delete newStep;
 	LOG_NO("SmfUpgradeProcedure::calculateSingleStep: Unknown upgradeScope");
+	TRACE_LEAVE();
         return false;
 }
 
@@ -1847,7 +1882,8 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 	SaAisErrorT rc = SA_AIS_OK;
         std::string dnDeactUnit = "safSmfDu=smfDeactivationUnit";
         std::string dnActUnit   = "safSmfAu=smfActivationUnit";
-        char str[64];
+	int strSize = 64;
+        char str[strSize];
 
         /* Create the SaSmfStep object */
         SmfImmRTCreateOperation icoSaSmfStep;
@@ -1864,28 +1900,28 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
         SmfImmAttribute attrsaSmfStepMaxRetry;
         attrsaSmfStepMaxRetry.setName("saSmfStepMaxRetry");
         attrsaSmfStepMaxRetry.setType("SA_IMM_ATTR_SAUINT32T");
-        sprintf(str,"%d",i_step->getMaxRetry());
+        snprintf(str,strSize, "%d",i_step->getMaxRetry());
         attrsaSmfStepMaxRetry.addValue(str);
         icoSaSmfStep.addValue(attrsaSmfStepMaxRetry);
 
         SmfImmAttribute attrsaSmfStepRetryCount;
         attrsaSmfStepRetryCount.setName("saSmfStepRetryCount");
         attrsaSmfStepRetryCount.setType("SA_IMM_ATTR_SAUINT32T");
-        sprintf(str,"%d",i_step->getRetryCount());
+        snprintf(str, strSize,"%d",i_step->getRetryCount());
         attrsaSmfStepRetryCount.addValue(str);
         icoSaSmfStep.addValue(attrsaSmfStepRetryCount);
  
         SmfImmAttribute attrsaSmfStepRestartOption;
         attrsaSmfStepRestartOption.setName("saSmfStepRestartOption");
         attrsaSmfStepRestartOption.setType("SA_IMM_ATTR_SAUINT32T");
-        sprintf(str,"%d",i_step->getRestartOption());
+        snprintf(str, strSize, "%d",i_step->getRestartOption());
         attrsaSmfStepRestartOption.addValue(str);
         icoSaSmfStep.addValue(attrsaSmfStepRestartOption);
 
         SmfImmAttribute attrsaSmfStepState;
         attrsaSmfStepState.setName("saSmfStepState");
         attrsaSmfStepState.setType("SA_IMM_ATTR_SAUINT32T");
-        sprintf(str,"%d",i_step->getState());
+        snprintf(str, strSize, "%d",i_step->getState());
         attrsaSmfStepState.addValue(str);
         icoSaSmfStep.addValue(attrsaSmfStepState);
 
@@ -1978,6 +2014,11 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 			std::string imageNode = "safImageNode=";
 			std::string bundleName = (*bundleRefiter).getBundleDn();
 			std::string::size_type pos = bundleName.find("=");
+			if (pos == std::string::npos) {
+				LOG_NO("SmfUpgradeProcedure::createImmStep: No \"=\" separator found in bundle name [dn=%s]", bundleName.c_str());
+				TRACE_LEAVE();
+				return SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
+			}
 			pos++;
 			imageNode += bundleName.substr(pos, bundleName.find(",") - pos);
 			safIMageNode.addValue(imageNode);
@@ -2098,6 +2139,10 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 			std::string imageNode = "safImageNode=";
 			std::string bundleName = (*bundleRefiter).getBundleDn();
 			std::string::size_type pos = bundleName.find("=");
+			//Check if the "=" for some reason is not found
+			//This is only a recording object, dont fail just coninue.
+			if(pos == std::string::npos) 
+				break;
 			pos++;
 			imageNode += bundleName.substr(pos, bundleName.find(",") - pos);
 			safIMageNode.addValue(imageNode);
@@ -2165,7 +2210,8 @@ SmfUpgradeProcedure::getImmSteps()
 	SmfUpgradeMethod *upgradeMethod = getUpgradeMethod();
 	if (upgradeMethod == NULL) {
 		LOG_NO("SmfUpgradeProcedure::getImmSteps: no upgrade method found");
-		rc = SA_AIS_ERR_NOT_EXIST;
+		TRACE_LEAVE();
+		return SA_AIS_ERR_NOT_EXIST;
 	}
 			
 	if (upgradeMethod->getUpgradeMethod() == SA_SMF_ROLLING) {
@@ -2180,6 +2226,7 @@ SmfUpgradeProcedure::getImmSteps()
 		rc =  SA_AIS_ERR_NOT_EXIST;
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -2822,6 +2869,11 @@ SmfUpgradeProcedure::getImmComponentInfo(std::multimap<std::string, objectInst> 
 		std::string comp((char *)objectName.value);
 
 		typeRef = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saAmfCompType", 0);
+		if (typeRef == NULL) {
+			LOG_NO("SmfUpgradeProcedure::getImmComponentInfo: Could not get attr name saAmfCompType");
+			rc = false;
+			goto done;	
+		}
 
 		std::string compType((char *)typeRef->value);
 		std::string su(comp.substr(comp.find(',') + 1, std::string::npos));
@@ -3072,7 +3124,8 @@ SmfSwapThread::start(void)
 	}
 
 	/* Wait for the thread to start */
-	sem_wait(&m_semaphore);
+	while((sem_wait(&m_semaphore) == -1) && (errno == EINTR))
+               continue;       /* Restart if interrupted by handler */
 
 	TRACE_LEAVE();
 	return 0;

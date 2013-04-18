@@ -166,25 +166,42 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
        	smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.inv_id = ++(smfd_cb->cbk_inv_id);
        	smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.camp_phase = phase;
 
-       	smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.labelSize = strlen(m_callbackLabel.c_str());
+       	smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.labelSize = m_callbackLabel.size();
 	TRACE_2("cbk label c_str() %s, size %llu", m_callbackLabel.c_str(), 
 		smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.labelSize);
 	if (smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.labelSize == 0) {
 		TRACE_LEAVE();
 		return SA_AIS_ERR_FAILED_OPERATION;
 	}
-       	smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label = (SaUint8T*)
-		calloc ((smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.labelSize+1), sizeof(char));
-       	strcpy((char *)smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label, m_callbackLabel.c_str()); 
+       	smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label = 
+		(SaUint8T*)calloc ((smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.labelSize+1), sizeof(char));
+	if (smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label == NULL) {
+		TRACE_LEAVE();
+		return SA_AIS_ERR_FAILED_OPERATION;
+	}
+
+       	memcpy((char *)smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label, 
+	       m_callbackLabel.c_str(), 
+	       smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.labelSize); 
+
 	if (m_stringToPass.c_str() != NULL) {
+		smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params_len =  m_stringToPass.size();
 		smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params = 
-			(char *)calloc(strlen(m_stringToPass.c_str())+1, sizeof(char));
-       		strcpy(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params, m_stringToPass.c_str());
-		smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params_len = strlen(m_stringToPass.c_str());
+			(char *)calloc(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params_len+1, sizeof(char));
+		if (smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params == NULL) {
+			free(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label);
+			TRACE_LEAVE();
+			return SA_AIS_ERR_FAILED_OPERATION;
+		}
+
+		//The buffer is allocated with calloc one byte larger than string size i.e. null terminated
+       		memcpy(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params, 
+		       m_stringToPass.c_str(), smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params_len);
+
 		TRACE_2("stringToPass %s", m_stringToPass.c_str());
 	}
 
-	smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name.length = strlen(dn.c_str());
+	smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name.length = dn.size();
 	memcpy(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name.value, dn.c_str(), 
 		smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name.length);
 	TRACE_2("dn %s, size %d", dn.c_str(), 
@@ -194,6 +211,15 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
 	if (m_time != 0){
 		smfd_cb_lock();
 		new_inv_id = (SMFD_SMFND_ADEST_INVID_MAP*)calloc (1, sizeof(SMFD_SMFND_ADEST_INVID_MAP));
+		if (new_inv_id == NULL) {
+			if (m_stringToPass.c_str() != NULL) {
+				free(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label);
+				free(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params);
+			}
+			TRACE_LEAVE();
+			return SA_AIS_ERR_FAILED_OPERATION;	
+		}
+
 		new_inv_id->inv_id = inv_id_sent;
 		new_inv_id->no_of_cbks = smfd_cb->no_of_smfnd;
 		new_inv_id->cbk_mbx = cbk_mbx;
@@ -238,6 +264,7 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
 	mbx_fd = ncs_ipc_get_sel_obj(cbk_mbx);
 	fds[0].fd = mbx_fd.rmv_obj;
 	fds[0].events = POLLIN;
+	fds[0].revents = 0; /* Coverity */
 
 	TRACE_2("before poll, fds[0].fd = %d", fds[0].fd);
 	while (true) {

@@ -70,7 +70,8 @@ class SmfUpgradeProcedure;
     m_campInit(),
     m_waitToCommit(0),
     m_waitToAllowNewCampaign(0),
-    m_noOfExecutingProc(0)
+    m_noOfExecutingProc(0),
+    m_noOfProcResponses(0)
 {
 
 }
@@ -289,7 +290,7 @@ SmfUpgradeCampaign::setCampState(SaSmfCmpgStateT i_state)
 		}
 	default:
 		{
-			LOG_ER("SmfUpgradeCampaign: Trying to set unknown state %d", i_state);
+			LOG_NO("SmfUpgradeCampaign: Trying to set unknown state %d", i_state);
 		}
 	}
 
@@ -307,7 +308,7 @@ SmfUpgradeCampaign::addUpgradeProcedure(SmfUpgradeProcedure * i_procedure)
         iter = this->m_procedure.begin();
         while (iter != this->m_procedure.end()) {
                 if (!strcmp((*iter)->getProcName().c_str(), i_procedure->getProcName().c_str())){
-                        LOG_ER("CAMP: Procedure %s is already present, invalid upgrade campaign", i_procedure->getProcName().c_str());
+                        LOG_NO("CAMP: Procedure %s is already present, invalid upgrade campaign", i_procedure->getProcName().c_str());
                         return false;
                 }
                 iter++;
@@ -486,7 +487,7 @@ SmfUpgradeCampaign::createCampRestartInfo()
 
         rc = icoCampRestartInfo.execute(); //Create the object
 	if (rc != SA_AIS_OK){
-                LOG_ER("Fail to create smfRestartInfo object, rc=%s, dn=[%s]", 
+                LOG_NO("Fail to create smfRestartInfo object, rc=%s, dn=[%s]", 
 		       saf_error(rc), 
 		       ("smfRestartInfo=info," + SmfCampaignThread::instance()->campaign()->getDn()).c_str());
         }
@@ -532,7 +533,7 @@ SmfUpgradeCampaign::tooManyRestarts(bool *o_result)
 
 		rc = imoCampRestartInfo.execute(); //Modify the object
 		if (rc != SA_AIS_OK){
-			LOG_ER("Fail to modify object, rc=%s, dn=[%s]", saf_error(rc), dn.c_str());
+			LOG_NO("Fail to modify object, rc=%s, dn=[%s]", saf_error(rc), dn.c_str());
 		}
 	}
 
@@ -572,7 +573,7 @@ SmfUpgradeCampaign::disablePbe()
 	SaImmAttrValuesT_2 **attributes;
 
 	if (immUtil.getObject("safRdn=immManagement,safApp=safImmService", &attributes) == false) {
-		LOG_ER("Failed to get imm object safRdn=immManagement,safApp=safImmService");
+		LOG_NO("Failed to get imm object safRdn=immManagement,safApp=safImmService");
 		TRACE_LEAVE();
 		return SA_AIS_ERR_ACCESS;
 	}
@@ -580,7 +581,7 @@ SmfUpgradeCampaign::disablePbe()
 	const SaUint32T* immRepositoryInit = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
 						  "saImmRepositoryInit", 0);
 	if(immRepositoryInit == NULL) {
-		LOG_ER("Failed to read attribute saImmRepositoryInit in object SaImmMngt");
+		LOG_NO("Failed to read attribute saImmRepositoryInit in object SaImmMngt");
 		TRACE_LEAVE();
 		return SA_AIS_ERR_ACCESS;
 	}
@@ -604,7 +605,7 @@ SmfUpgradeCampaign::disablePbe()
 	modifyOper.addValue(saImmRepositoryInit);
 	operations.push_back(&modifyOper);
 	if ((rc = immUtil.doImmOperations(operations)) != SA_AIS_OK) {
- 		LOG_ER("Can not disable IMM PBE, rc=%s", saf_error(rc));
+ 		LOG_NO("Can not disable IMM PBE, rc=%s", saf_error(rc));
 		TRACE_LEAVE();
 		return rc;
         }
@@ -624,7 +625,7 @@ SmfUpgradeCampaign::disablePbe()
 
 	rc = icoSmfPbeIndicator.execute(); //Create the object
 	if (rc != SA_AIS_OK){
-		LOG_ER("Fail to create object OpenSafSmfPbeIndicator, rc=%s, dn=[%s]", saf_error(rc), "safRdn=smfPbeIndicator,safApp=safSmfService");
+		LOG_NO("Fail to create object OpenSafSmfPbeIndicator, rc=%s, dn=[%s]", saf_error(rc), "safRdn=smfPbeIndicator,safApp=safSmfService");
 	}
 
 	TRACE_LEAVE();
@@ -672,7 +673,7 @@ SmfUpgradeCampaign::restorePbe()
 	rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),
 					   &objectName);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("Fail to delete object %s,continue. %s", dn.c_str(), saf_error(rc));
+		LOG_NO("Fail to delete object %s,continue. %s", dn.c_str(), saf_error(rc));
 	}
 
  	//Enable PBE, set immRepositoryInit=1
@@ -687,7 +688,7 @@ SmfUpgradeCampaign::restorePbe()
 	modifyOper.addValue(saImmRepositoryInit);
 	operations.push_back(&modifyOper);
 	if ((rc = immUtil.doImmOperations(operations)) != SA_AIS_OK) {
-		LOG_ER("Can not enable IMM PBE. Fail to set saImmRepositoryInitn to SA_IMM_KEP_RESPOSITORY rc=%s, continue", saf_error(rc));
+		LOG_NO("Can not enable IMM PBE. Fail to set saImmRepositoryInitn to SA_IMM_KEP_RESPOSITORY rc=%s, continue", saf_error(rc));
         }
 
 	TRACE_LEAVE();
@@ -960,7 +961,7 @@ SmfUpgradeCampaign::continueExec()
 	//If not found the campaign restart was not initiated from SMF and the campaign shall fail
 	//If found the campaign restart was initiated from SMF, just remove it and continue.
 	if (checkSmfRestartIndicator() != SA_AIS_OK) {
-		LOG_ER("The campaign restart was not initiated by SMF, fail the campaign");
+		LOG_NO("The campaign restart was not initiated by SMF, fail the campaign");
 		std::string error = "Campaign was restarted by other than SMF";
 		SmfCampaignThread::instance()->campaign()->setError(error);
 		changeState(SmfCampStateExecFailed::instance());
@@ -975,7 +976,7 @@ SmfUpgradeCampaign::continueExec()
         bool o_result;
 	if (this->tooManyRestarts(&o_result) == SA_AIS_OK){
 		if (o_result == true) {
-			LOG_ER("The campaign have been restarted to many times");
+			LOG_NO("The campaign have been restarted to many times");
 			int cnt = smfd_cb->smfCampMaxRestart;
 			std::string error = "To many campaign restarts, max " + cnt;
 			SmfCampaignThread::instance()->campaign()->setError(error);
@@ -984,7 +985,7 @@ SmfUpgradeCampaign::continueExec()
 			return;
 		}
 	} else {
-		LOG_ER("continueExec() restart number check failed");
+		LOG_NO("continueExec() restart number check failed");
 		std::string error = "Restart number check failed";
 		SmfCampaignThread::instance()->campaign()->setError(error);
 		changeState(SmfCampStateExecFailed::instance());
@@ -1052,7 +1053,7 @@ SmfUpgradeCampaign::resetMaintenanceState()
         }
 
         if (immUtil.doImmOperations(operations) != SA_AIS_OK) {
-                LOG_ER("SmfUpgradeStep::setMaintenanceState(), fails to reset all saAmfSUMaintenanceCampaign attr");
+                LOG_NO("SmfUpgradeStep::setMaintenanceState(), fails to reset all saAmfSUMaintenanceCampaign attr");
         }
 
         //Delete the created SmfImmModifyOperation instances
@@ -1085,7 +1086,7 @@ SmfUpgradeCampaign::removeRunTimeObjects()
 					   &objectName);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("Fail to delete runtime object, rc=%s, dn=[%s], continue", saf_error(rc), dn.c_str());
+		LOG_NO("Fail to delete runtime object, rc=%s, dn=[%s], continue", saf_error(rc), dn.c_str());
 	}
 
 	/* Remove campaign rollback element runtime objects */
@@ -1098,7 +1099,7 @@ SmfUpgradeCampaign::removeRunTimeObjects()
                                            &objectName);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("Fail to delete object, rc=%s, dn=[%s], continuing",  saf_error(rc), dn.c_str());
+		LOG_NO("Fail to delete object, rc=%s, dn=[%s], continuing",  saf_error(rc), dn.c_str());
 	}
 
         dn = "smfRollbackElement=CampInit," + SmfCampaignThread::instance()->campaign()->getDn(); 
@@ -1110,7 +1111,7 @@ SmfUpgradeCampaign::removeRunTimeObjects()
 					   &objectName);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("Fail to delete object, rc=%s, dn=[%s], continuing",  saf_error(rc), dn.c_str());
+		LOG_NO("Fail to delete object, rc=%s, dn=[%s], continuing",  saf_error(rc), dn.c_str());
 	}
 
         dn = "smfRollbackElement=CampComplete," + SmfCampaignThread::instance()->campaign()->getDn(); 
@@ -1122,7 +1123,7 @@ SmfUpgradeCampaign::removeRunTimeObjects()
 					   &objectName);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("Fail to delete object, rc=%s, dn=[%s], continuing",  saf_error(rc), dn.c_str());
+		LOG_NO("Fail to delete object, rc=%s, dn=[%s], continuing",  saf_error(rc), dn.c_str());
 	}
 
 	TRACE_LEAVE();
@@ -1188,7 +1189,7 @@ SmfUpgradeCampaign::createSmfRestartIndicator()
 
 		rc = icoCampaignRestartInd.execute(); //Create the object
 		if (rc != SA_AIS_OK){
-			LOG_ER("Creation of OpenSafSmfCampRestartIndicator fails, rc= %s, dn=[%s]", saf_error(rc), objDn.c_str());
+			LOG_NO("Creation of OpenSafSmfCampRestartIndicator fails, rc= %s, dn=[%s]", saf_error(rc), objDn.c_str());
 		}
 	} else {
 		TRACE("OpenSafSmfRestart object already exist, no create. dn=[%s]", objDn.c_str());
@@ -1265,7 +1266,7 @@ SmfUpgradeCampaign::checkSmfRestartIndicator()
 			retries++;
 		}
 		if (rc != SA_AIS_OK) {
-			LOG_ER("Could not remove OpenSafSmfCampRestart object dn=%s", objDn.c_str());
+			LOG_NO("Could not remove OpenSafSmfCampRestart object dn=%s", objDn.c_str());
 		}
         }
 

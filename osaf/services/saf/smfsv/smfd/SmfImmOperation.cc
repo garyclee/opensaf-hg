@@ -158,7 +158,7 @@ SmfImmOperation::setImmOwnerHandle(SaImmAdminOwnerHandleT i_immOwnerHandle)
 void 
 SmfImmOperation::addValue(const SmfImmAttribute & i_value)
 {
-	LOG_ER("addValue must be specialised");
+	LOG_NO("addValue must be specialised");
 }
 
 //------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ SmfImmOperation::addAttrValue(const std::string & i_name,
                               const std::string & i_type,
                               const std::string & i_value)
 {
-	LOG_ER("addAttrValue must be specialised");
+	LOG_NO("addAttrValue must be specialised");
 }
 
 //------------------------------------------------------------------------------
@@ -178,7 +178,7 @@ SmfImmOperation::addAttrValue(const std::string & i_name,
 SaAisErrorT 
 SmfImmOperation::execute(SmfRollbackData* o_rollbackData)
 {
-	LOG_ER("execute must be specialised");
+	LOG_NO("execute must be specialised");
 	return (SaAisErrorT)-1;
 }
 
@@ -188,7 +188,7 @@ SmfImmOperation::execute(SmfRollbackData* o_rollbackData)
 int 
 SmfImmOperation::rollback()
 {
-	LOG_ER("rollback must be specialised");
+	LOG_NO("rollback must be specialised");
 	return -1;
 }
 
@@ -324,8 +324,9 @@ SmfImmCreateOperation::createAttrValues(void)
 		osafassert(attr != 0);
 		attr->attrName = (char *)(*iter).m_name.c_str();
 		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), attr->attrValueType) == false) {
+			delete [] attributeValues;
 			delete attr;
-			LOG_ER("Fails to convert string (%s) to imm type", (char *)(*iter).m_type.c_str());
+			LOG_NO("Fails to convert string (%s) to imm type", (char *)(*iter).m_type.c_str());
 			TRACE_LEAVE();
 			return false;
 		}
@@ -338,8 +339,10 @@ SmfImmCreateOperation::createAttrValues(void)
 		} else {
 			attr->attrValuesNumber = (*iter).m_values.size();
 			if (smf_stringsToValues(attr, (*iter).m_values) == false) {	//Convert the string to a SA Forum type
+				free(attr->attrValues);
 				delete attr;
-				LOG_ER("Fails to convert strings to values");
+				delete [] attributeValues;
+				LOG_NO("Fails to convert strings to values");
 				TRACE_LEAVE();
 				return false;
 			}
@@ -379,33 +382,33 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
 
 	//Convert the strings to structures and types accepted by the IMM interface
 	if (this->createAttrValues() == false) {
-		LOG_ER("Faied to convert to IMM attr structure");
+		LOG_NO("Faied to convert to IMM attr structure");
 		TRACE_LEAVE();
 		return SA_AIS_ERR_FAILED_OPERATION;
 	}
 
 	const char *className = m_className.c_str();
 
-	if (m_parentDn.length() > SA_MAX_NAME_LENGTH) {
-		LOG_ER("Object create op failed, parent name too long [%zu] max=[%d], parent=[%s]", m_parentDn.length(), SA_MAX_NAME_LENGTH,  m_parentDn.c_str());
+	if (m_parentDn.length() >= SA_MAX_NAME_LENGTH) {
+		LOG_NO("Object create op failed, parent name too long [%zu] max=[%d], parent=[%s]", m_parentDn.length(), SA_MAX_NAME_LENGTH - 1,  m_parentDn.c_str());
 		TRACE_LEAVE();
 		return SA_AIS_ERR_NAME_TOO_LONG;
 	}
 
 	if (!m_ccbHandle) {
-		LOG_ER("SmfImmCreateOperation::execute: no ccb handle set");
+		LOG_NO("SmfImmCreateOperation::execute: no ccb handle set");
 		TRACE_LEAVE();
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
 
 	if (!m_immOwnerHandle) {
-		LOG_ER("SmfImmCreateOperation::execute: no imm owner handle set");
+		LOG_NO("SmfImmCreateOperation::execute: no imm owner handle set");
 		TRACE_LEAVE();
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
 
 	if (!m_immAttrValues) {
-		LOG_ER("SmfImmCreateOperation::execute: no SaImmAttrValuesT_2** is set");
+		LOG_NO("SmfImmCreateOperation::execute: no SaImmAttrValuesT_2** is set");
 		TRACE_LEAVE();
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
@@ -442,14 +445,13 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
         }
 
 	//Create CCB
-	result = immutil_saImmOmCcbObjectCreate_2(m_ccbHandle, (const SaImmClassNameT)
-						  className, &objectName, (const SaImmAttrValuesT_2 **)
-						  m_immAttrValues);
+	result = immutil_saImmOmCcbObjectCreate_2(m_ccbHandle, (SaImmClassNameT)className, 
+						  &objectName, (const SaImmAttrValuesT_2 **)m_immAttrValues);
 	if (result != SA_AIS_OK) {
 		if (result == SA_AIS_ERR_EXIST) {
 			TRACE("SmfImmCreateOperation::execute: object already exists");
 		} else {
-			LOG_ER("Failed to create object of class=[%s] to parent=[%s]. rc=%s,", m_className.c_str(), m_parentDn.c_str(), saf_error(result));
+			LOG_NO("Failed to create object of class=[%s] to parent=[%s]. rc=%s,", m_className.c_str(), m_parentDn.c_str(), saf_error(result));
 			TRACE_LEAVE();
 			return result;
 		}
@@ -477,7 +479,7 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
         if (o_rollbackData != NULL) {
                 SaAisErrorT rollbackResult;
                 if ((rollbackResult = this->prepareRollback(o_rollbackData)) != SA_AIS_OK) {
-                        LOG_ER("SmfImmCreateOperation::execute, Failed to prepare rollback data rc=%s", saf_error(rollbackResult));
+                        LOG_NO("SmfImmCreateOperation::execute, Failed to prepare rollback data rc=%s", saf_error(rollbackResult));
                         TRACE_LEAVE();
                         return SA_AIS_ERR_FAILED_OPERATION;
                 }
@@ -497,7 +499,7 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
 int 
 SmfImmCreateOperation::rollback()
 {
-	LOG_ER("Rollback not implemented yet");
+	LOG_NO("Rollback not implemented yet");
 	return -1;
 }
 
@@ -508,10 +510,10 @@ SaAisErrorT
 SmfImmCreateOperation::prepareRollback(SmfRollbackData* o_rollbackData)
 {
         SmfImmUtils immUtil;
-        SaImmAttrDefinitionT_2 ** attributeDefs;
+        SaImmAttrDefinitionT_2 ** attributeDefs = NULL;
  
         if (immUtil.getClassDescription(m_className, &attributeDefs) == false) {
-                LOG_ER("SmfImmCreateOperation::prepareRollback, Could not find class %s", m_className.c_str());
+                LOG_NO("SmfImmCreateOperation::prepareRollback, Could not find class %s", m_className.c_str());
                 return SA_AIS_ERR_FAILED_OPERATION;
         }
 
@@ -527,7 +529,7 @@ SmfImmCreateOperation::prepareRollback(SmfRollbackData* o_rollbackData)
 
         immUtil.classDescriptionMemoryFree(attributeDefs);
         if (rdnAttrName.length() == 0) {
-                LOG_ER("SmfImmCreateOperation::prepareRollback, could not find RDN attribute in class %s", m_className.c_str());
+                LOG_NO("SmfImmCreateOperation::prepareRollback, could not find RDN attribute in class %s", m_className.c_str());
                 return SA_AIS_ERR_FAILED_OPERATION;
         }
 
@@ -538,7 +540,7 @@ SmfImmCreateOperation::prepareRollback(SmfRollbackData* o_rollbackData)
 	for (iter = m_values.begin(); iter != m_values.end(); iter++) {
 		if (rdnAttrName == (*iter).m_name) {
 			if ((*iter).m_values.size() != 1){
-				LOG_ER("SmfImmCreateOperation::prepareRollback, attribute %s contain %zu values, must contain exactly one value",
+				LOG_NO("SmfImmCreateOperation::prepareRollback, attribute %s contain %zu values, must contain exactly one value",
 				       rdnAttrName.c_str(), (*iter).m_values.size());
 				return SA_AIS_ERR_FAILED_OPERATION;
 			}
@@ -547,7 +549,7 @@ SmfImmCreateOperation::prepareRollback(SmfRollbackData* o_rollbackData)
                 }
 	}
         if (rdnAttrValue.length() == 0) {
-                LOG_ER("SmfImmCreateOperation::prepareRollback, could not find RDN value for %s, class %s", rdnAttrName.c_str(), m_className.c_str());
+                LOG_NO("SmfImmCreateOperation::prepareRollback, could not find RDN value for %s, class %s", rdnAttrName.c_str(), m_className.c_str());
                 return SA_AIS_ERR_FAILED_OPERATION;
         }
 
@@ -613,19 +615,19 @@ SmfImmDeleteOperation::execute(SmfRollbackData* o_rollbackData)
 	SaAisErrorT result = SA_AIS_OK;
 
 	if (!m_ccbHandle) {
-		LOG_ER("SmfImmDeleteOperation::execute: no ccb handle set");
+		LOG_NO("SmfImmDeleteOperation::execute: no ccb handle set");
                 TRACE_LEAVE();
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
 
 	if (!m_immOwnerHandle) {
-		LOG_ER("SmfImmDeleteOperation::execute: no imm owner handle set");
+		LOG_NO("SmfImmDeleteOperation::execute: no imm owner handle set");
                 TRACE_LEAVE();
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
 
-	if (m_dn.length() > SA_MAX_NAME_LENGTH) {
-		LOG_ER("SmfImmDeleteOperation::execute: failed Too long dn %zu",
+	if (m_dn.length() >= SA_MAX_NAME_LENGTH) {
+		LOG_NO("SmfImmDeleteOperation::execute: failed Too long dn %zu",
 		       m_dn.length());
                 TRACE_LEAVE();
 		return SA_AIS_ERR_NAME_TOO_LONG;
@@ -650,14 +652,14 @@ SmfImmDeleteOperation::execute(SmfRollbackData* o_rollbackData)
 
 	result = immutil_saImmOmCcbObjectDelete(m_ccbHandle, &objectName);
 	if (result != SA_AIS_OK) {
-		LOG_ER("SmfImmDeleteOperation::execute, immutil_saImmOmCcbObjectDelete failed rc=%s (child objects maybe exists)", saf_error(result));
+		LOG_NO("SmfImmDeleteOperation::execute, immutil_saImmOmCcbObjectDelete failed rc=%s (child objects maybe exists)", saf_error(result));
                 TRACE_LEAVE();
 		return result;
 	}
 
         if (o_rollbackData != NULL) {
                 if ((result = this->prepareRollback(o_rollbackData)) != SA_AIS_OK) {
-                        LOG_ER("SmfImmDeleteOperation::execute, failed to prepare rollback data rc=%s", saf_error(result));
+                        LOG_NO("SmfImmDeleteOperation::execute, failed to prepare rollback data rc=%s", saf_error(result));
                         TRACE_LEAVE();
                         return SA_AIS_ERR_FAILED_OPERATION;
                 }
@@ -685,7 +687,7 @@ SmfImmDeleteOperation::execute(SmfRollbackData* o_rollbackData)
 int 
 SmfImmDeleteOperation::rollback()
 {
-	LOG_ER("Rollback not implemented yet");
+	LOG_NO("Rollback not implemented yet");
 	return -1;
 }
 
@@ -703,18 +705,18 @@ SmfImmDeleteOperation::prepareRollback(SmfRollbackData* o_rollbackData)
         int                       i = 0;
 
         if (immUtil.getObject(m_dn, &attributes) == false) {
-                LOG_ER("Could not find object %s", m_dn.c_str());
+                LOG_NO("Could not find object %s", m_dn.c_str());
                 return SA_AIS_ERR_FAILED_OPERATION;
         }
 
         className = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes, SA_IMM_ATTR_CLASS_NAME, 0);
         if (className == NULL) {
-                LOG_ER("SmfImmDeleteOperation::prepareRollback, could not find class name for %s", m_dn.c_str());
+                LOG_NO("SmfImmDeleteOperation::prepareRollback, could not find class name for %s", m_dn.c_str());
                 return SA_AIS_ERR_FAILED_OPERATION;
         }
 
         if (immUtil.getClassDescription(className, &attributeDefs) == false) {
-                LOG_ER("SmfImmDeleteOperation::prepareRollback, could not find class %s", className);
+                LOG_NO("SmfImmDeleteOperation::prepareRollback, could not find class %s", className);
                 return SA_AIS_ERR_FAILED_OPERATION;
         }
 
@@ -877,24 +879,27 @@ SmfImmModifyOperation::createAttrMods(void)
 		osafassert(mod != 0);
 		mod->modType = smf_stringToImmAttrModType((char *)m_op.c_str());	//Convert an store the modification type from string to SA Forum type
 		if (mod->modType == 0) {
+			delete [] attributeModifications;
 			delete mod;
-			LOG_ER("SmfImmModifyOperation::createAttrMods, fails to convert string (%s) to type", (char *)m_op.c_str());
+			LOG_NO("SmfImmModifyOperation::createAttrMods, fails to convert string (%s) to type", (char *)m_op.c_str());
 			TRACE_LEAVE();
 			return false;
 		}
 		mod->modAttr.attrName = (char *)(*iter).m_name.c_str();
 		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), mod->modAttr.attrValueType) == false) {
+			LOG_NO("SmfImmModifyOperation::createAttrMods, failes to convert attr [%s] type to valid IMM type", mod->modAttr.attrName);
+			delete [] attributeModifications;
 			delete mod;
-			LOG_ER("SmfImmModifyOperation::createAttrMods, failes to convert attr [%s] type to valid IMM type", mod->modAttr.attrName);
 			TRACE_LEAVE();			
 			return false;
 		}
 		TRACE("Modifying %s:%s = %s", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
 
 		if ((*iter).m_values.size() <= 0){
-			delete mod;
-			LOG_ER("SmfImmModifyOperation::createAttrMods, attribute %s contain %zu values, must contain at least one value",
+			LOG_NO("SmfImmModifyOperation::createAttrMods, attribute %s contain %zu values, must contain at least one value",
 			       (*iter).m_name.c_str(),(*iter).m_values.size());
+			delete [] attributeModifications;
+			delete mod;
 			TRACE_LEAVE();
 			return false;
 		}
@@ -904,8 +909,9 @@ SmfImmModifyOperation::createAttrMods(void)
                 else {
                         mod->modAttr.attrValuesNumber = (*iter).m_values.size();
                         if (smf_stringsToValues(&mod->modAttr, (*iter).m_values) == false) {	//Convert the string to a SA Forum type
+				LOG_NO("SmfImmModifyOperation::createAttrMods, failes to convert attr [%s] value string to attr value", mod->modAttr.attrName);
+				delete [] attributeModifications;
 				delete mod;
-				LOG_ER("SmfImmModifyOperation::createAttrMods, failes to convert attr [%s] value string to attr value", mod->modAttr.attrName);
 				TRACE_LEAVE();
 				return false;
 			}
@@ -974,31 +980,31 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
 
 	//Convert the strings to structures and types accepted by the IMM interface
 	if (this->createAttrMods() == false){
-		LOG_ER("SmfImmModifyOperation::execute, fail to convert to IMM attr structure");
+		LOG_NO("SmfImmModifyOperation::execute, fail to convert to IMM attr structure");
 		TRACE_LEAVE();
 		return SA_AIS_ERR_FAILED_OPERATION;
 	}
 
 	if (!m_ccbHandle) {
-		LOG_ER("SmfImmModifyOperation::execute, no ccb handle set");
+		LOG_NO("SmfImmModifyOperation::execute, no ccb handle set");
                 TRACE_LEAVE();
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
 
 	if (!m_immOwnerHandle) {
-		LOG_ER("SmfImmModifyOperation::execute, no imm owner handle set");
+		LOG_NO("SmfImmModifyOperation::execute, no imm owner handle set");
                 TRACE_LEAVE();
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
 
 	if (!m_immAttrMods) {
-		LOG_ER("SmfImmModifyOperation::execute, no SaImmAttrModificationT_2** is set");
+		LOG_NO("SmfImmModifyOperation::execute, no SaImmAttrModificationT_2** is set");
                 TRACE_LEAVE();
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
 
-	if (m_dn.length() > SA_MAX_NAME_LENGTH) {
-		LOG_ER("SmfImmModifOperation::execute: failed Too long dn %zu",
+	if (m_dn.length() >= SA_MAX_NAME_LENGTH) {
+		LOG_NO("SmfImmModifOperation::execute: failed Too long dn %zu",
 		       m_dn.length());
                 TRACE_LEAVE();
 		return SA_AIS_ERR_NAME_TOO_LONG;
@@ -1028,7 +1034,7 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
 	result = immutil_saImmOmCcbObjectModify_2(m_ccbHandle, &objectName, (const SaImmAttrModificationT_2 **)
 						  m_immAttrMods);
 	if (result != SA_AIS_OK) {
-		LOG_ER("SmfImmModifyOperation::execute, saImmOmCcbObjectModify failed %s", saf_error(result));
+		LOG_NO("SmfImmModifyOperation::execute, saImmOmCcbObjectModify failed %s", saf_error(result));
                 TRACE_LEAVE();
 		return result;
 	}
@@ -1055,7 +1061,7 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
 
         if (o_rollbackData != NULL) {
                 if ((result = this->prepareRollback(o_rollbackData)) != SA_AIS_OK) {
-                        LOG_ER("SmfImmModifyOperation::execute, failed to prepare rollback data %s", saf_error(result));
+                        LOG_NO("SmfImmModifyOperation::execute, failed to prepare rollback data %s", saf_error(result));
                         TRACE_LEAVE();
                         return SA_AIS_ERR_FAILED_OPERATION;
                 }
@@ -1082,7 +1088,7 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
 int 
 SmfImmModifyOperation::rollback()
 {
-	LOG_ER("Rollback not implemented yet");
+	LOG_NO("Rollback not implemented yet");
 	return -1;
 }
 
@@ -1098,7 +1104,7 @@ SmfImmModifyOperation::prepareRollback(SmfRollbackData* o_rollbackData)
         int                       i;
 
         if (immUtil.getObject(m_dn, &attributes) == false) {
-                LOG_ER("Could not find object %s", m_dn.c_str());
+                LOG_NO("Could not find object %s", m_dn.c_str());
                 return SA_AIS_ERR_FAILED_OPERATION;
         }
 
@@ -1218,8 +1224,12 @@ SmfImmRTCreateOperation::createAttrValues(void)
 
 		attr->attrName = (char *)(*iter).m_name.c_str();
 		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), attr->attrValueType) == false) {
+			LOG_NO("SmfImmRTCreateOperation::createAttrValues, fail to convert attr [%s] type to valid IMM type", attr->attrName);
 			delete attr;
-			LOG_ER("SmfImmRTCreateOperation::createAttrValues, fail to convert attr [%s] type to valid IMM type", attr->attrName);
+			for (int k = 0; i > k; k++) {
+				delete attributeValues[k];
+			}
+			delete [] attributeValues;
 			TRACE_LEAVE();
 			return false;
 		}
@@ -1229,14 +1239,18 @@ SmfImmRTCreateOperation::createAttrValues(void)
 		attr->attrValuesNumber = (*iter).m_values.size();
 
 		if (smf_stringsToValues(attr, (*iter).m_values) == false) {	//Convert the string to a SA Forum type
+			LOG_NO("SmfImmRTCreateOperation::createAttrValues, fail to convert attr [%s] value string to attr value", attr->attrName);
+			free(attr->attrValues);
 			delete attr;
-			LOG_ER("SmfImmRTCreateOperation::createAttrValues, fail to convert attr [%s] value string to attr value", attr->attrName);
+			for (int k = 0; i > k; k++) {
+				delete attributeValues[k];
+			}
+			delete [] attributeValues;
 			TRACE_LEAVE();
 			return false;
 		}
 		//Add the pointer to the SaImmAttrValuesT_2 structure to the attributes list
 		attributeValues[i++] = attr;
-
 		iter++;
 	}
 
@@ -1268,22 +1282,22 @@ SmfImmRTCreateOperation::execute()
 
 	//Convert the strings to structures and types accepted by the IMM interface
 	if (this->createAttrValues() == false) {
-		LOG_ER("SmfImmRTCreateOperation::execute, fail to convert to IMM attr structure");
+		LOG_NO("SmfImmRTCreateOperation::execute, fail to convert to IMM attr structure");
 		TRACE_LEAVE();
 		return SA_AIS_ERR_FAILED_OPERATION;
 	}
 
 	const char *className = m_className.c_str();
 
-	if (m_parentDn.length() > SA_MAX_NAME_LENGTH) {
-		LOG_ER("SmfImmRTCreateOperation::execute, createObject failed Too long parent name %zu",
+	if (m_parentDn.length() >= SA_MAX_NAME_LENGTH) {
+		LOG_NO("SmfImmRTCreateOperation::execute, createObject failed Too long parent name %zu",
 		       m_parentDn.length());
                 TRACE_LEAVE();
 		return SA_AIS_ERR_NAME_TOO_LONG;
 	}
 
 	if (!m_immAttrValues) {
-		LOG_ER("SmfImmRTCreateOperation::execute, no SaImmAttrValuesT_2** is set");
+		LOG_NO("SmfImmRTCreateOperation::execute, no SaImmAttrValuesT_2** is set");
                 TRACE_LEAVE();
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
@@ -1333,7 +1347,8 @@ SmfImmRTCreateOperation::execute()
 
 SmfImmRTUpdateOperation::SmfImmRTUpdateOperation():
    m_dn(""), 
-   m_op(""), 
+   m_op(""),
+   m_immHandle(0),
    m_values(0), 
    m_immAttrMods(0)
 {
@@ -1396,22 +1411,25 @@ SmfImmRTUpdateOperation::createAttrMods(void)
 		osafassert(mod != 0);
 		mod->modType = smf_stringToImmAttrModType((char *)m_op.c_str());	//Convert an store the modification type from string to SA Forum type
 		if (mod->modType == 0) {
+			delete [] attributeModifications;
 			delete mod;
-			LOG_ER("SmfImmRTUpdateOperation::createAttrMods, fail convert string to IMM attr mod type [%s:%s]",  m_dn.c_str(), (*iter).m_name.c_str());
+			LOG_NO("SmfImmRTUpdateOperation::createAttrMods, fail convert string to IMM attr mod type [%s:%s]",  m_dn.c_str(), (*iter).m_name.c_str());
 			TRACE_LEAVE();
 			return false;
 		}
 		mod->modAttr.attrName = (char *)(*iter).m_name.c_str();
 		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), mod->modAttr.attrValueType) == false) {
+			delete [] attributeModifications;
 			delete mod;
-			LOG_ER("SmfImmRTUpdateOperation::createAttrMods, fail to convert string to IMM attr type [%s:%s]",  m_dn.c_str(), (*iter).m_name.c_str());
+			LOG_NO("SmfImmRTUpdateOperation::createAttrMods, fail to convert string to IMM attr type [%s:%s]",  m_dn.c_str(), (*iter).m_name.c_str());
 			TRACE_LEAVE();
 			return false;
 		}
 		TRACE("Modifying %s:%s = %s", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
 
 		if ((*iter).m_values.size() <= 0) { //Must have at least one value
-			LOG_ER("SmfImmRTUpdateOperation::createAttrMods, No values %s:%s (size=%zu)", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.size());
+			LOG_NO("SmfImmRTUpdateOperation::createAttrMods, No values %s:%s (size=%zu)", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.size());
+			delete [] attributeModifications;
 			delete mod;
 			TRACE_LEAVE();
 			return false;
@@ -1419,8 +1437,9 @@ SmfImmRTUpdateOperation::createAttrMods(void)
 		mod->modAttr.attrValuesNumber = (*iter).m_values.size();
 
 		if (smf_stringsToValues(&mod->modAttr, (*iter).m_values) == false) { //Convert the string to a SA Forum type
+			delete [] attributeModifications;
 			delete mod;
-			LOG_ER("SmfImmRTUpdateOperation::createAttrMods, fail to conv string to value [%s:%s = %s]",  m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
+			LOG_NO("SmfImmRTUpdateOperation::createAttrMods, fail to conv string to value [%s:%s = %s]",  m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
 			TRACE_LEAVE();
 			return false;
 		}
@@ -1458,21 +1477,21 @@ SmfImmRTUpdateOperation::execute()
 
 	//Convert the strings to structures and types accepted by the IMM interface
 	if (this->createAttrMods() == false){
-		LOG_ER("SmfImmRTUpdateOperation::execute, fail to convert to IMM attr structure");
-		TRACE_LEAVE();
-		return SA_AIS_ERR_FAILED_OPERATION;
+		LOG_NO("SmfImmRTUpdateOperation::execute, fail to convert to IMM attr structure");
+		result = SA_AIS_ERR_FAILED_OPERATION;
+		goto exit;
 	}
 
-	if (m_dn.length() > SA_MAX_NAME_LENGTH) {
-		LOG_ER("SmfImmRTUpdateOperation::execute, too long DN [%zu], max=[%d], dn=[%s]", m_dn.length(), SA_MAX_NAME_LENGTH, m_dn.c_str());
-                TRACE_LEAVE();
-		return SA_AIS_ERR_NAME_TOO_LONG;
+	if (m_dn.length() >= SA_MAX_NAME_LENGTH) {
+		LOG_NO("SmfImmRTUpdateOperation::execute, too long DN [%zu], max=[%d], dn=[%s]", m_dn.length(), SA_MAX_NAME_LENGTH - 1, m_dn.c_str());
+		result = SA_AIS_ERR_NAME_TOO_LONG;
+		goto exit;
 	}
 
-	if (!m_immAttrMods) {
-		LOG_ER("SmfImmRTUpdateOperation::execute, no SaImmAttrValuesT_2** is set");
-                TRACE_LEAVE();
-		return SA_AIS_ERR_UNAVAILABLE;
+	if (m_immAttrMods == NULL) {
+		LOG_NO("SmfImmRTUpdateOperation::execute, no SaImmAttrValuesT_2** is set");
+		result = SA_AIS_ERR_UNAVAILABLE;
+		goto exit;
 	}
 
 	SaNameT objectName;
@@ -1488,8 +1507,29 @@ SmfImmRTUpdateOperation::execute()
 		TRACE("saImmOiRtObjectUpdate_2 returned %s for %s", saf_error(result), objectName.value);
 	}
 
+exit:
+	//Free the m_immAttrMods mem
+	if (m_immAttrMods != NULL) {
+		for (int i = 0; m_immAttrMods[i] != 0; i++) {
+			SaImmAttrValueT* value = m_immAttrMods[i]->modAttr.attrValues;
+			for (unsigned int k = 0; m_immAttrMods[i]->modAttr.attrValuesNumber > k; k++) {
+				if (m_immAttrMods[i]->modAttr.attrValueType == SA_IMM_ATTR_SASTRINGT) {
+					free(*((SaStringT *) *value));
+				} else if (m_immAttrMods[i]->modAttr.attrValueType == SA_IMM_ATTR_SAANYT) {
+					free(((SaAnyT *) * value)->bufferAddr);
+				}
+
+				free(*value);
+				value++;
+			}
+			
+			free(m_immAttrMods[i]->modAttr.attrValues);
+			delete m_immAttrMods[i];
+		}
+
+		delete [] m_immAttrMods;
+	}
+
 	TRACE_LEAVE();
-
 	return result;
-
 }

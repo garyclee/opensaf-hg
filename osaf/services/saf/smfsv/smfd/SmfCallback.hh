@@ -40,7 +40,8 @@ public:
 		m_atAction(beforeLock),
 		m_callbackLabel(),
 		m_time(0),
-		m_stringToPass()
+		m_stringToPass(),
+		m_procedure(0)
 		{};
 
 	~SmfCallback(){};

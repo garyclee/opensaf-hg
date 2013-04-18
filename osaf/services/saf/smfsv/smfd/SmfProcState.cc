@@ -78,7 +78,7 @@ SmfProcResultT
 SmfProcState::execute(SmfUpgradeProcedure * i_proc)
 {
 	TRACE_ENTER();
-	LOG_ER("SmfProcState::execute default implementation, should NEVER be executed.");
+	LOG_NO("SmfProcState::execute default implementation, should NEVER be executed.");
 	TRACE_LEAVE();
         return SMF_PROC_DONE;
 }
@@ -90,7 +90,7 @@ SmfProcResultT
 SmfProcState::executeStep(SmfUpgradeProcedure * i_proc)
 {
 	TRACE_ENTER();
-	LOG_ER("SmfProcState:: executeStep default implementation, should NEVER be executed.");
+	LOG_NO("SmfProcState:: executeStep default implementation, should NEVER be executed.");
 	TRACE_LEAVE();
         return SMF_PROC_DONE;
 }
@@ -102,7 +102,7 @@ SmfProcResultT
 SmfProcState::rollbackStep(SmfUpgradeProcedure * i_proc)
 {
 	TRACE_ENTER();
-	LOG_ER("SmfProcState:: rollbackStep default implementation, should NEVER be executed.");
+	LOG_NO("SmfProcState:: rollbackStep default implementation, should NEVER be executed.");
 	TRACE_LEAVE();
         return SMF_PROC_DONE;
 }
@@ -114,7 +114,7 @@ SmfProcResultT
 SmfProcState::rollback(SmfUpgradeProcedure * i_proc)
 {
 	TRACE_ENTER();
-	LOG_ER("SmfProcState::rollback default implementation, should NEVER be executed.");
+	LOG_NO("SmfProcState::rollback default implementation, should NEVER be executed.");
 	TRACE_LEAVE();
         return SMF_PROC_DONE;
 }
@@ -161,7 +161,7 @@ SmfProcState::commit(SmfUpgradeProcedure * i_proc)
 					   &objectName);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("immutil_saImmOiRtObjectDelete returned %u for %s", rc, i_proc->getDn().c_str());
+		LOG_NO("immutil_saImmOiRtObjectDelete returned %u for %s", rc, i_proc->getDn().c_str());
 	}
 
 	TRACE_LEAVE();
@@ -244,7 +244,7 @@ SmfProcStateInitial::executeInit(SmfUpgradeProcedure * i_proc)
 	TRACE("SmfProcStateInitial::executeInit, Calculate steps");
         if( !i_proc->calculateSteps() ) {
                 changeState(i_proc, SmfProcStateExecFailed::instance());
-                LOG_ER("SmfProcStateExecuting::executeInit:Step calculation failes");
+                LOG_NO("SmfProcStateExecuting::executeInit:Step calculation failes");
                 TRACE_LEAVE();
                 return SMF_PROC_FAILED;
         }
@@ -252,7 +252,7 @@ SmfProcStateInitial::executeInit(SmfUpgradeProcedure * i_proc)
 	TRACE("SmfProcStateInitial::executeInit, Create step objects in IMM");
         if( !i_proc->createImmSteps() ) {
                 changeState(i_proc, SmfProcStateExecFailed::instance());
-                LOG_ER("SmfProcStateInitial::executeInit:createImmSteps in IMM failes");
+                LOG_NO("SmfProcStateInitial::executeInit:createImmSteps in IMM failes");
                 TRACE_LEAVE();
                 return SMF_PROC_FAILED;
         }
@@ -266,7 +266,7 @@ SmfProcStateInitial::executeInit(SmfUpgradeProcedure * i_proc)
         if ((result = smfCreateRollbackElement(initRollbackDn,
                                                i_proc->getProcThread()->getImmHandle())) != SA_AIS_OK) {
                 changeState(i_proc, SmfProcStateExecFailed::instance());
-                LOG_ER("SmfProcStateInitial failed to create init rollback element %s, %s", 
+                LOG_NO("SmfProcStateInitial failed to create init rollback element %s, %s", 
                        initRollbackDn.c_str(), saf_error(result));
                 TRACE_LEAVE();
                 return SMF_PROC_FAILED;
@@ -278,7 +278,7 @@ SmfProcStateInitial::executeInit(SmfUpgradeProcedure * i_proc)
                 if ((result = (*iter)->execute(i_proc->getProcThread()->getImmHandle(), 
                                                &initRollbackDn)) != SA_AIS_OK) {
 			changeState(i_proc, SmfProcStateExecFailed::instance());
-                        LOG_ER("Init action %d failed, rc=%s", (*iter)->getId(), saf_error(result));
+                        LOG_NO("Init action %d failed, rc=%s", (*iter)->getId(), saf_error(result));
                         TRACE_LEAVE();
                         return SMF_PROC_FAILED;
                 }
@@ -390,7 +390,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
                 default : {
                         changeState(i_proc, SmfProcStateExecFailed::instance());
 
-                        LOG_ER("Step %s in procedure %s failed, step result %u",
+                        LOG_NO("Step %s in procedure %s failed, step result %u",
                               (*iter)->getRdn().c_str(), i_proc->getProcName().c_str(), stepResult);
 
                         TRACE_LEAVE();
@@ -426,7 +426,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 			while (bundleIter != removeList.end()) {
 				/* Read the saSmfBundleRemoveOfflineScope to detect if the bundle shall be included */
 				if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-					LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+					LOG_NO("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
                                         changeState(i_proc, SmfProcStateExecFailed::instance());
 					TRACE_LEAVE();
 					return SMF_PROC_FAILED;
@@ -448,7 +448,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 			/* Run the online remove scripts for the bundles NOT restarted */
 			if ((*iter)->onlineRemoveBundlesUserList((*iter)->getSwNode(), nonRestartBundles) == false) {
 				changeState(i_proc, SmfProcStateExecFailed::instance());
-				LOG_ER("SmfProcStateExecuting::executeStep:Failed to online remove bundles");
+				LOG_NO("SmfProcStateExecuting::executeStep:Failed to online remove bundles");
 				TRACE_LEAVE();
 				return SMF_PROC_FAILED;
 			}
@@ -457,7 +457,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 			LOG_NO("PROC: Delete SaAmfNodeSwBundle objects");
 			if ((*iter)->deleteSaAmfNodeSwBundlesOld() == false) {
 				changeState(i_proc, SmfProcStateExecFailed::instance());
-				LOG_ER("SmfProcStateExecuting::executeStep:Failed to delete old SaAmfNodeSwBundle objects");
+				LOG_NO("SmfProcStateExecuting::executeStep:Failed to delete old SaAmfNodeSwBundle objects");
 				TRACE_LEAVE();
 				return SMF_PROC_FAILED;
 			}
@@ -490,7 +490,7 @@ SmfProcStateExecuting::executeWrapup(SmfUpgradeProcedure * i_proc)
 
         if ((result = smfCreateRollbackElement(wrapupRollbackDn,
                                                i_proc->getProcThread()->getImmHandle())) != SA_AIS_OK) {
-                LOG_ER("SmfProcStateExecuting failed to create wrapup rollback element %s, rc=%s", 
+                LOG_NO("SmfProcStateExecuting failed to create wrapup rollback element %s, rc=%s", 
                        wrapupRollbackDn.c_str(), saf_error(result));
 
                 changeState(i_proc, SmfProcStateExecFailed::instance());
@@ -504,7 +504,7 @@ SmfProcStateExecuting::executeWrapup(SmfUpgradeProcedure * i_proc)
         for (iter = wrapupActions.begin(); iter != wrapupActions.end(); ++iter) {
 		if ((result = (*iter)->execute(i_proc->getProcThread()->getImmHandle(), &wrapupRollbackDn)) != SA_AIS_OK) {
 			changeState(i_proc, SmfProcStateExecFailed::instance());
-			LOG_ER("wrapup action %d failed, rc=%s", (*iter)->getId(), saf_error(result));
+			LOG_NO("wrapup action %d failed, rc=%s", (*iter)->getId(), saf_error(result));
                         TRACE_LEAVE();
                         return SMF_PROC_FAILED;
 		}
@@ -600,7 +600,7 @@ SmfProcStateExecutionCompleted::rollbackWrapup(SmfUpgradeProcedure * i_proc)
 	for (iter = wrapupActions.rbegin(); iter != wrapupActions.rend(); iter++) {
 		if ((result = (*iter)->rollback(wrapupRollbackDn)) != SA_AIS_OK) {
 			changeState(i_proc, SmfProcStateRollbackFailed::instance());
-			LOG_ER("Rollback of wrapup action %d failed, rc=%s", (*iter)->getId(), saf_error(result));
+			LOG_NO("Rollback of wrapup action %d failed, rc=%s", (*iter)->getId(), saf_error(result));
                         TRACE_LEAVE();
                         return SMF_PROC_ROLLBACKFAILED;
 		}
@@ -878,7 +878,7 @@ SmfProcStateRollingBack::rollbackStep(SmfUpgradeProcedure * i_proc)
                 default : {
                         changeState(i_proc, SmfProcStateRollbackFailed::instance());
 
-                        LOG_ER("Rollback Step %s in procedure %s failed, step result %u",
+                        LOG_NO("Rollback Step %s in procedure %s failed, step result %u",
                                (*iter)->getRdn().c_str(), i_proc->getProcName().c_str(), stepResult);
 
                         TRACE_LEAVE();
@@ -915,7 +915,7 @@ SmfProcStateRollingBack::rollbackStep(SmfUpgradeProcedure * i_proc)
 			while (bundleIter != removeList.end()) {
 				/* Read the saSmfBundleRemoveOfflineScope to detect if the bundle shall be included */
 				if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-					LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+					LOG_NO("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
                                         changeState(i_proc, SmfProcStateExecFailed::instance());
 					TRACE_LEAVE();
 					return SMF_PROC_FAILED;
@@ -937,7 +937,7 @@ SmfProcStateRollingBack::rollbackStep(SmfUpgradeProcedure * i_proc)
 			/* Run the online remove scripts for the bundles NOT restarted */
 			if ((*iter)->onlineRemoveBundlesUserList((*iter)->getSwNode(), nonRestartBundles) == false) {
 				changeState(i_proc, SmfProcStateExecFailed::instance());
-				LOG_ER("SmfProcStateRollingBack::rollbackStep:Failed to online remove new bundles");
+				LOG_NO("SmfProcStateRollingBack::rollbackStep:Failed to online remove new bundles");
 				TRACE_LEAVE();
 				return SMF_PROC_FAILED;
 			}
@@ -946,7 +946,7 @@ SmfProcStateRollingBack::rollbackStep(SmfUpgradeProcedure * i_proc)
 			LOG_NO("PROC: Delete SaAmfNodeSwBundle objects");
 			if ((*iter)->deleteSaAmfNodeSwBundlesNew() == false) {
 				changeState(i_proc, SmfProcStateExecFailed::instance());
-				LOG_ER("SmfProcStateRollingBack::rollbackStep:Failed to delete new SaAmfNodeSwBundle objects");
+				LOG_NO("SmfProcStateRollingBack::rollbackStep:Failed to delete new SaAmfNodeSwBundle objects");
 				TRACE_LEAVE();
 				return SMF_PROC_FAILED;
 			}
@@ -979,7 +979,7 @@ SmfProcStateRollingBack::rollbackInit(SmfUpgradeProcedure * i_proc)
 	for (iter = initActions.rbegin(); iter != initActions.rend(); iter++) {
                 if ((result = (*iter)->rollback(initRollbackDn)) != SA_AIS_OK) {
 			changeState(i_proc, SmfProcStateRollbackFailed::instance());
-                        LOG_ER("SmfProcStateExecuting::rollbackInit: rollback of init action %d failed, rc=%s", 
+                        LOG_NO("SmfProcStateExecuting::rollbackInit: rollback of init action %d failed, rc=%s", 
 			       (*iter)->getId(), saf_error(result));
                         TRACE_LEAVE();
                         return SMF_PROC_ROLLBACKFAILED;

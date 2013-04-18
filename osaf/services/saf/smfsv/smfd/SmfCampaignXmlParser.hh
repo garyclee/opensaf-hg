@@ -89,12 +89,6 @@ class SmfCampaignXmlParser {
 	 std::string toString() const;
 
 ///
-/// Convert a string fetched from the campaign xml to a IMM SaImmValueTypeT enum 
-/// @return     A SaImmValueTypeT enum
-///    
-	const SaImmValueTypeT stringToImmType(std::string i_type) const;
-
-///
 /// Prepare a CreateOperation for a node.
 /// It assumes that the RDN attribute is an attribute in the node with the correct name.
 /// @param parent Parent DN or NULL.
