@@ -1089,133 +1089,7 @@ static uint32_t avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 		o_susi = su->sg_of_su->admin_si->list_of_sisu;
 	}
 
-	if (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) {
-		/* the SI switch operation is true */
-
-		/* If this SI relation with the SU is quiesced assigning or this SI
-		 * relation with the SU is quiesced assigned and the other SU is
-		 * active assigning. Change the SI switch state to false. Remove the
-		 * SI from the SI admin pointer. Add the SU to the SU operation list.
-		 * Change state to SU_operation.
-		 */
-		if (((l_susi->state == SA_AMF_HA_QUIESCED) && (l_susi->fsm == AVD_SU_SI_STATE_MODIFY))
-		    || ((l_susi->state == SA_AMF_HA_QUIESCED) && (l_susi->fsm == AVD_SU_SI_STATE_ASGND)
-			&& (o_susi->state == SA_AMF_HA_ACTIVE) && (o_susi->fsm == AVD_SU_SI_STATE_MODIFY))) {
-			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
-			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-			avd_sg_su_oper_list_add(cb, su, false);
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
-		} else if ((l_susi->state == SA_AMF_HA_QUIESCED) && (l_susi->fsm == AVD_SU_SI_STATE_ASGND)
-			   && (o_susi->state == SA_AMF_HA_STANDBY) && (o_susi->fsm == AVD_SU_SI_STATE_ASGND)) {
-			/* If this SI relation with the SU is quiesced assigned and the 
-			 * other SU is standby assigned. Change the SI switch state to false.
-			 * Remove the SI from the SI admin pointer. 
-			 * Send D2N-INFO_SU_SI_ASSIGN modify active all to the other SU. 
-			 * Add the SU to the operation list. Change state to SU_operation state.
-			 */
-			if (avd_sidep_si_dependency_exists_within_su(su)) {
-				AVD_SU_SI_REL *susi;
-				for (susi = o_susi->su->list_of_susi;susi != NULL;susi = susi->su_next) {
-					if (avd_susi_role_failover(susi, su) == NCSCC_RC_FAILURE) {
-						LOG_NO(" %s: %u: Active role modification failed for  %s ",
-							   __FILE__, __LINE__, susi->su->name.value);
-						goto done;
-					}
-				}
-			} else {
-				/* There is no dependency between SI's within SU, so trigger SU level failover */
-				avd_su_role_failover(su, o_susi->su);
-			}
-
-			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
-			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-
-			avd_sg_su_oper_list_add(cb, o_susi->su, false);
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
-		} else if ((l_susi->state == SA_AMF_HA_QUIESCED) && (l_susi->fsm == AVD_SU_SI_STATE_ASGND)
-			   && (o_susi->state == SA_AMF_HA_ACTIVE) && (o_susi->fsm == AVD_SU_SI_STATE_ASGND)) {
-			/* If this SI relation with the SU is quiesced assigned and the 
-			 * other SU is active assigned. Change the SI switch state to false.
-			 * Remove the SI from the SI admin pointer. 
-			 * Send D2N-INFO_SU_SI_ASSIGN remove all to the SU. Add that SU
-			 * to operation list. Change state to SG_realign.
-			 */
-			if (avd_sg_su_si_del_snd(cb, su) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
-				goto done;
-			}
-
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
-			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-		} else if ((l_susi->state == SA_AMF_HA_STANDBY) && (l_susi->fsm == AVD_SU_SI_STATE_ASGND)
-			   && ((o_susi->state == SA_AMF_HA_QUIESCED) || (o_susi->state == SA_AMF_HA_QUIESCING))) {
-			/* If this SI relation with the SU is standby assigned and the 
-			 * other SU is quiesced/quiescing assigned/assigning. Send 
-			 * D2N-INFO_SU_SI_ASSIGN with modified active all to the other SU.
-			 * Change the switch value of the SI to false. Remove the SI from
-			 * the admin pointer. Change state to SG_realign. Add that SU to
-			 * operation list. Send D2N-INFO_SU_SI_ASSIGN with remove all to
-			 * this SU. Add this SU to operation list.
-			 */
-			if (avd_sidep_si_dependency_exists_within_su(su)) {
-				AVD_SU_SI_REL *susi;
-				for (susi = o_susi->su->list_of_susi;susi != NULL;susi = susi->su_next) {
-					if (avd_susi_role_failover(susi, su) == NCSCC_RC_FAILURE) {
-						LOG_NO(" %s: %u: Active role modification failed for  %s ",
-							   __FILE__, __LINE__, susi->su->name.value);
-						goto done;
-					}
-				}
-			} else {
-				/* There is no dependency between SI's within SU, so trigger SU level failover */
-				avd_su_role_failover(su, o_susi->su);
-			}
-
-			avd_sg_su_si_del_snd(cb, su);
-
-			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
-			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-
-			avd_sg_su_oper_list_add(cb, o_susi->su, false);
-			avd_sg_su_oper_list_add(cb, su, false);
-
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-		} else if ((l_susi->state == SA_AMF_HA_ACTIVE) && (l_susi->fsm == AVD_SU_SI_STATE_MODIFY)
-			   && (o_susi->state == SA_AMF_HA_QUIESCED) && (o_susi->fsm == AVD_SU_SI_STATE_ASGND)) {
-			/* If this SI relation with the SU is active assigning and the
-			 * other SU is quiesced assigned. Change the switch value of the
-			 * SI to false. Remove the SI from the admin pointer. 
-			 * Send D2N-INFO_SU_SI_ASSIGN with modified quiesced all to this
-			 * SU. Add this and the other SU to operation list. 
-			 * Change state to SG_realign.
-			 */
-			if (avd_sidep_si_dependency_exists_within_su(su)) {
-				if (avd_sg_susi_mod_snd_honouring_si_dependency(su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-					LOG_NO("%s:%u: %s ", __FILE__, __LINE__, su->name.value);
-					goto done;
-				}
-			} else {
-				if(avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
-					goto done;
-				}
-			}
-
-			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
-			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-
-			avd_sg_su_oper_list_add(cb, o_susi->su, false);
-			avd_sg_su_oper_list_add(cb, su, false);
-
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-		} else {
-			LOG_ER("%s:%u: %u", __FILE__, __LINE__, l_susi->state);
-			goto done;
-		}
-
-	} /* if (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) */
-	else if (su->sg_of_su->admin_si->saAmfSIAdminState == SA_AMF_ADMIN_LOCKED) {
+	if (su->sg_of_su->admin_si->saAmfSIAdminState == SA_AMF_ADMIN_LOCKED) {
 		/* the SI admin operation is LOCK */
 
 		if (l_susi != AVD_SU_SI_REL_NULL) {
@@ -2369,12 +2243,7 @@ static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 				m_AVD_SET_SU_SWITCH(cb, su, AVSV_SI_TOGGLE_STABLE);
 			}
 
-		}		/* if (((a_susi->su == su) && 
-				   ((quiesced_susi_in_su(a_susi->su) == SA_AMF_HA_QUIESCED) ||
-				   (quiescing_susi_in_su(a_susi->su) == SA_AMF_HA_QUIESCING))) ||
-				   ((s_susi != AVD_SU_SI_REL_NULL) && (s_susi->su == su) &&
-				   (avd_su_state_determine(s_susi->su) == SA_AMF_HA_QUIESCED))) */
-		else {
+		} else {
 			/* Log error remove shouldnt happen in this state other than 
 			 * for quiesced SU SI assignment.
 			 */
@@ -2434,7 +2303,6 @@ done:
 static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
-	AVD_SU_SI_REL *i_susi, *s_susi, *a_susi;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s', act:%u, state:%u", su->name.value, act, state);
@@ -2511,69 +2379,7 @@ static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 			avd_compcsi_delete(cb, susi, false);
 			m_AVD_SU_SI_TRG_DEL(cb, susi);
 
-			if ((su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-			    (su->list_of_susi->si == su->sg_of_su->admin_si) &&
-			    (su->list_of_susi->su_next == AVD_SU_SI_REL_NULL)) {
-				/* the admin pointer SI switch state is true and only the SI
-				 * admin list SI has standby relation to the SU.
-				 * Send D2N-INFO_SU_SI_ASSIGN with modified active assignment
-				 * to the SU.
-				 */
-				avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_ACTIVE);
-			}
-
 		} /* if ((act == AVSV_SUSI_ACT_DEL) && (susi->state == SA_AMF_HA_STANDBY)) */
-		else if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_ACTIVE) &&
-			 (susi->si == su->sg_of_su->admin_si) && (susi->si->si_switch == AVSV_SI_TOGGLE_SWITCH)) {
-			/* message with modified active for a SI in the admin pointer with
-			 * switch value true.
-			 */
-			s_susi = AVD_SU_SI_REL_NULL;
-			if (susi->si_next != AVD_SU_SI_REL_NULL) {
-				s_susi = susi->si_next;
-			} else if (susi->si->list_of_sisu != susi) {
-				s_susi = susi->si->list_of_sisu;
-			}
-
-			if ((s_susi != AVD_SU_SI_REL_NULL) &&
-			    ((s_susi->su_next != AVD_SU_SI_REL_NULL) || (s_susi->su->list_of_susi != s_susi))) {
-				/* Send D2N-INFO_SU_SI_ASSIGN with remove for each of the 
-				 * SIs except this SI to the quiesced SU.
-				 */
-				i_susi = s_susi->su->list_of_susi;
-
-				while (i_susi != AVD_SU_SI_REL_NULL) {
-					if (i_susi != s_susi) {
-						avd_susi_del_send(i_susi);
-					}
-					i_susi = i_susi->su_next;
-				}
-			}	/* if ((s_susi != AVD_SU_SI_REL_NULL) && 
-				   ((s_susi->su_next != AVD_SU_SI_REL_NULL) ||
-				   (s_susi->su->list_of_susi != s_susi))) */
-			else if (s_susi != AVD_SU_SI_REL_NULL) {
-				/* Only the SI admin list SI has quiesced relation to the other SU 
-				 * Send D2N-INFO_SU_SI_ASSIGN with modified standby assignment to 
-				 * the SU. Change the SI switch state to false. Remove the SI from
-				 * the admin list. Add the SU to the operation list. 
-				 * Change state to SG_realign.
-				 */
-				if (avd_susi_mod_send(s_susi, SA_AMF_HA_STANDBY) != NCSCC_RC_SUCCESS)
-					goto done;
-
-				m_AVD_SET_SI_SWITCH(cb, (susi->si), AVSV_SI_TOGGLE_STABLE);
-				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-				avd_sg_su_oper_list_add(cb, s_susi->su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-			} /* if (s_susi != AVD_SU_SI_REL_NULL) */
-			else {
-				/* Integrity issue the standby is not there. */
-				LOG_EM("%s:%u", __FILE__, __LINE__);
-			}
-
-		}		/* if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_ACTIVE) && 
-				   (susi->si == su->sg_of_su->admin_si) && 
-				   (susi->si->si_switch == AVSV_SI_TOGGLE_SWITCH)) */
 		else if ((act == AVSV_SUSI_ACT_DEL) && (susi->state == SA_AMF_HA_QUIESCED)) {
 			/* message with remove for a SU SI relationship having quiesced value
 			 * Delete and free the SU SI relationship.
@@ -2606,62 +2412,9 @@ static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 		}
 
 	} else {		/* if (susi != AVD_SU_SI_REL_NULL) */
-
-		if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_QUIESCED) &&
-		    (su->sg_of_su->admin_si != AVD_SI_NULL) &&
-		    (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-		    ((a_susi = avd_su_susi_find(cb, su, &su->sg_of_su->admin_si->name))
-		     != AVD_SU_SI_REL_NULL)) {
-			/* message with modified quiesced all and an SI is in the admin
-			 * pointer with switch value true
-			 */
-			s_susi = AVD_SU_SI_REL_NULL;
-			if (a_susi->si_next != AVD_SU_SI_REL_NULL) {
-				s_susi = a_susi->si_next;
-			} else if (a_susi->si->list_of_sisu != a_susi) {
-				s_susi = a_susi->si->list_of_sisu;
-			}
-
-			if ((s_susi != AVD_SU_SI_REL_NULL) &&
-			    ((s_susi->su_next != AVD_SU_SI_REL_NULL) || (s_susi->su->list_of_susi != s_susi))) {
-				/* Send D2N-INFO_SU_SI_ASSIGN with remove for each of the 
-				 * SIs except this SI to the standby SU.
-				 */
-				i_susi = s_susi->su->list_of_susi;
-
-				while (i_susi != AVD_SU_SI_REL_NULL) {
-					if (i_susi != s_susi) {
-						avd_susi_del_send(i_susi);
-					}
-					i_susi = i_susi->su_next;
-				}
-			}	/* if ((s_susi != AVD_SU_SI_REL_NULL) && 
-				   ((s_susi->su_next != AVD_SU_SI_REL_NULL) ||
-				   (s_susi->su->list_of_susi != s_susi))) */
-			else if (s_susi != AVD_SU_SI_REL_NULL) {
-				/* Only the SI admin pointer SI has standby relation to the SU.
-				 * Send D2N-INFO_SU_SI_ASSIGN with modified active assignment
-				 * to the SUSI.
-				 */
-				if (avd_susi_mod_send(s_susi, SA_AMF_HA_ACTIVE) != NCSCC_RC_SUCCESS)
-					goto done;
-
-			} /* if (s_susi != AVD_SU_SI_REL_NULL) */
-			else {
-				/* Integrity issue the standby is not there. */
-				LOG_EM("%s:%u", __FILE__, __LINE__);
-			}
-
-		}		/* if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_QUIESCED) && 
-				   (su->sg_of_su->admin_si != AVD_SI_NULL) && 
-				   (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-				   ((a_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false))
-				   != AVD_SU_SI_REL_NULL)) */
-		else {
-			LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
-			LOG_EM("%s:%u: %u", __FILE__, __LINE__, su->sg_of_su->sg_fsm_state);
-			goto done;
-		}
+		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, su->sg_of_su->sg_fsm_state);
+		goto done;
 	}			/* else (susi != AVD_SU_SI_REL_NULL) */
 
 	rc = NCSCC_RC_SUCCESS;
@@ -3092,39 +2845,7 @@ uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 
-		}		/* if ((susi != AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
-				   ((state == SA_AMF_HA_QUIESCED) || (state == SA_AMF_HA_QUIESCING)) && 
-				   (susi->si == su->sg_of_su->admin_si)
-				   && (susi->si->admin_state == NCS_ADMIN_STATE_SHUTDOWN)) */
-		else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
-			 (state == SA_AMF_HA_QUIESCED) && (su->sg_of_su->admin_si != AVD_SI_NULL)
-			 && (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-			 (avd_su_susi_find(cb, su, &su->sg_of_su->admin_si->name)
-			  != AVD_SU_SI_REL_NULL)) {
-			/* Message with modified quiesced all and an SI is in the admin 
-			 * pointer with switch value true.  Send D2N-INFO_SU_SI_ASSIGN with 
-			 * modified active all to the SU. Change the switch value of the SI .
-			 * to false. Remove the SI from the admin pointer. Add the SU to 
-			 * operation list. Change state to SG_realign.
-			 */
-
-			if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_ACTIVE) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
-				goto done;
-			}
-
-			avd_sg_su_oper_list_add(cb, su, false);
-
-			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
-			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-		}		/* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
-				   (state == SA_AMF_HA_QUIESCED) && (su->sg_of_su->admin_si != AVD_SI_NULL)
-				   && (su->sg_of_su->admin_si == AVSV_SI_TOGGLE_SWITCH) &&
-				   (avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false)
-				   != AVD_SU_SI_REL_NULL)) */
-		else {
+		} else {
 			/* message with remove for a SU SI relationship having standby value.
 			 * message with modified active for a SI in the admin pointer with
 			 * switch value true; message with remove for a SU SI relationship
@@ -3513,181 +3234,12 @@ static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 static void avd_sg_2n_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
-	AVD_SU_SI_REL *a_susi, *s_susi, *susi_temp;
+	AVD_SU_SI_REL *s_susi, *susi_temp;
 	AVD_SU *o_su;
 
 	TRACE_ENTER();
 
-	if (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) {
-		/* the SI switch operation is true */
-		a_susi = avd_sg_2n_act_susi(cb, su->sg_of_su, &s_susi);
-
-		if ((a_susi->su == su) && (avd_su_state_determine(a_susi->su) == SA_AMF_HA_QUIESCED)) {
-			/* This SI relation with the SU is quiesced assigning or this SI 
-			 * relation with the SU is quiesced assigned and the other SU is
-			 * standby assigned, other SIs wrt to the SUs are being removed.
-			 * Change the SI switch state to false. Remove the SI from the SI
-			 * admin pointer. Mark all the SI relationships to this SU as
-			 * unassigning. 
-			 */
-
-			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
-			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-			if (s_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
-				if (avd_sidep_si_dependency_exists_within_su(su)) {
-					for (susi_temp = s_susi->su->list_of_susi; susi_temp != NULL;
-							susi_temp = susi_temp->su_next) {
-						if ((susi_temp->si->si_dep_state == AVD_SI_READY_TO_UNASSIGN) ||
-								(susi_temp->si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP)) {
-							/* Before starting unassignment process of SI, check once again whether 
-							 * sponsor SIs are assigned back,if so move the SI state to ASSIGNED state 
-							 */
-							if ((susi_temp->si))
-								avd_sidep_si_dep_state_set(susi_temp->si, AVD_SI_ASSIGNED);
-							else
-								avd_susi_del_send(susi_temp); 	
-						}
-						if (avd_susi_role_failover(susi_temp, su) == NCSCC_RC_FAILURE) {
-							LOG_NO(" %s: %u: Active role modification failed for  %s ",
-									__FILE__, __LINE__, susi_temp->su->name.value);
-						}
-					}
-				} else {
-
-					/* Send D2N-INFO_SU_SI_ASSIGN  modify active all. */
-					avd_su_role_failover(su, s_susi->su);
-				}
-				avd_sg_su_oper_list_add(cb, s_susi->su, false);
-			}
-
-			avd_sg_su_asgn_del_util(cb, su, true, false);
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-		} /* if ((a_susi->su == su) && (avd_su_state_determine(a_susi->su) == SA_AMF_HA_QUIESCED)) */
-		else if ((a_susi->su != su) && (avd_su_state_determine(a_susi->su) == SA_AMF_HA_ACTIVE) &&
-			 (avd_su_fsm_state_determine(a_susi->su) != AVD_SU_SI_STATE_ASGND)) {
-			/* this SI relation with the SU is quiesced assigned and the other
-			 * SU is active assigning. 
-			 * Change the SI switch state to false. Remove the SI from the
-			 * SI admin pointer. Mark all the SI relationships to this SU as
-			 * unassigning. Add the other SU to operation list. Change 
-			 * state to SG_realign state. Free all the SI assignments to this SU.
-			 */
-			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
-			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-			avd_sg_su_asgn_del_util(cb, su, true, false);
-			avd_sg_su_oper_list_add(cb, a_susi->su, false);
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-		}		/* if ((a_susi->su != su) && (a_susi->state == SA_AMF_HA_ACTIVE) &&
-				   (avd_su_fsm_state_determine(a_susi->su) != AVD_SU_SI_STATE_ASGND)) */
-		else if ((a_susi->su != su) && (avd_su_state_determine(a_susi->su) == SA_AMF_HA_ACTIVE)) {
-			/* This SI relation with the SU is quiesced assigned and the other
-			 * SU is active assigned. Change the SI switch state to false. 
-			 * Remove the SI from the SI admin pointer. Free all the 
-			 * SI assignments to this SU. Do the realignment of the SG.
-			 */
-			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
-			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-			avd_sg_su_asgn_del_util(cb, su, true, false);
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
-			if ((o_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) != NULL) {
-				/* add the SU to the operation list and change the SG FSM to SG realign. */
-				avd_sg_su_oper_list_add(cb, o_su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-			}
-			else
-				avd_sidep_sg_take_action(su->sg_of_su); 
-		} /* if ((a_susi->su != su) && (avd_su_state_determine(a_susi->su) == SA_AMF_HA_ACTIVE)) */
-		else if ((s_susi->su == su) && (avd_su_state_determine(s_susi->su) == SA_AMF_HA_STANDBY)) {
-			/* This SI relation with the SU is standby assigned and the
-			 * other SU is quiesced assigned/assigning. Send 
-			 * D2N-INFO_SU_SI_ASSIGN with modified active all to the other SU,
-			 * if inservice. Change the switch value of the SI to false. Remove
-			 * the SI from the admin pointer. Add that SU to operation list. 
-			 * Change state to SG_realign. Free all the SI assignments to
-			 * this SU.
-			 */
-			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
-			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-			if (a_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
-				/* in-service quiesced SU. Send D2N-INFO_SU_SI_ASSIGN modify
-				 * active all. Add that SU to operation list. Change state 
-				 * to SG_realign state. Free all the SI assignments to this SU.
-				 */
-				if (avd_sidep_si_dependency_exists_within_su(su)) {
-					for (susi_temp = a_susi->su->list_of_susi; susi_temp != NULL;
-							susi_temp = susi_temp->su_next) {
-						if ((susi_temp->si->si_dep_state == AVD_SI_READY_TO_UNASSIGN) ||
-								(susi_temp->si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP)) {
-							/* Before starting unassignment process of SI, check once again whether 
-							 * sponsor SIs are assigned back,if so move the SI state to ASSIGNED state 
-							 */
-							if (avd_sidep_sponsors_assignment_states(susi_temp->si))
-								avd_sidep_si_dep_state_set(susi_temp->si, AVD_SI_ASSIGNED);
-							else
-								avd_susi_del_send(susi_temp);
-						}
-						if (avd_susi_role_failover(susi_temp, su) == NCSCC_RC_FAILURE) {
-							LOG_NO(" %s: %u: Active role modification failed for  %s ",
-									__FILE__, __LINE__, susi_temp->su->name.value);
-						}
-					}
-				} else {
-					/* Send D2N-INFO_SU_SI_ASSIGN  modify active all. */
-					avd_su_role_failover(su, a_susi->su);
-				}
-				avd_sg_su_oper_list_add(cb, a_susi->su, false);
-			}
-
-			avd_sg_su_asgn_del_util(cb, su, true, false);
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-		} /* if ((s_susi->su == su) && (avd_su_state_determine(s_susi->su)== SA_AMF_HA_STANDBY)) */
-		else if ((a_susi->su == su) && (avd_su_state_determine(a_susi->su) == SA_AMF_HA_ACTIVE)) {
-			/* This SI relation with the SU is active assigning and the other
-			 * SU is quiesced assigned.  Change the switch value of the SI to
-			 * false. Remove the SI from the admin pointer. 
-			 * Send D2N-INFO_SU_SI_ASSIGN with modified active all to the 
-			 * other SU. Add that SU to operation list. Change state to 
-			 * SG_realign. Free all the SI assignments to this SU.
-			 */
-			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
-			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-			if (s_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
-				/* in-service quiesced SU. Send D2N-INFO_SU_SI_ASSIGN modify
-				 * active all. Add that SU to operation list. Change state 
-				 * to SG_realign state. Free all the SI assignments to this SU.
-				 */
-				if (avd_sidep_si_dependency_exists_within_su(su)) {
-					for (susi_temp = s_susi->su->list_of_susi; susi_temp != NULL;
-							susi_temp = susi_temp->su_next) {
-						if ((susi_temp->si->si_dep_state == AVD_SI_READY_TO_UNASSIGN) ||
-								(susi_temp->si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP)) {
-							/* Before starting unassignment process of SI, check once again whether 
-							 * sponsor SIs are assigned back,if so move the SI state to ASSIGNED state 
-							 */
-							if (avd_sidep_sponsors_assignment_states(susi_temp->si))
-								avd_sidep_si_dep_state_set(susi_temp->si, AVD_SI_ASSIGNED);
-							else
-								avd_susi_del_send(susi_temp); 	
-						}
-						if (avd_susi_role_failover(susi_temp, su) == NCSCC_RC_FAILURE) {
-							LOG_NO(" %s: %u: Active role modification failed for  %s ",
-									__FILE__, __LINE__, susi_temp->su->name.value);
-						}
-					}
-				} else {
-
-					/* Send D2N-INFO_SU_SI_ASSIGN  modify active all. */
-					avd_su_role_failover(su, s_susi->su);
-				}
-				avd_sg_su_oper_list_add(cb, s_susi->su, false);
-			}
-
-			avd_sg_su_asgn_del_util(cb, su, true, false);
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-		}
-		/* if ((a_susi->su == su) && (avd_su_state_determine(a_susi->su) == SA_AMF_HA_ACTIVE)) */
-	} /* if (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) */
-	else if (su->sg_of_su->admin_si->saAmfSIAdminState == SA_AMF_ADMIN_LOCKED) {
+	if (su->sg_of_su->admin_si->saAmfSIAdminState == SA_AMF_ADMIN_LOCKED) {
 		/* the SI admin operation is LOCK */
 		if ((avd_su_state_determine(su) == SA_AMF_HA_ACTIVE) || (avd_su_state_determine(su) == SA_AMF_HA_QUIESCED)) {
 			/* this SI relation with the SU is quiesced assigning.
@@ -3695,7 +3247,7 @@ static void avd_sg_2n_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			 * SI relationships to this SU as unassigning.
 			 */
 
-			a_susi = avd_sg_2n_act_susi(cb, su->sg_of_su, &s_susi);
+			(void) avd_sg_2n_act_susi(cb, su->sg_of_su, &s_susi);
 
 			if (s_susi != AVD_SU_SI_REL_NULL) {
 				if (s_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
@@ -3767,7 +3319,7 @@ static void avd_sg_2n_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			 * unassigning. 
 			 */
 
-			a_susi = avd_sg_2n_act_susi(cb, su->sg_of_su, &s_susi);
+			(void) avd_sg_2n_act_susi(cb, su->sg_of_su, &s_susi);
 
 			if (s_susi != AVD_SU_SI_REL_NULL) {
 				if (s_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
