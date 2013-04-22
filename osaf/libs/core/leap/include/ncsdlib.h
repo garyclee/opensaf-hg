@@ -37,6 +37,10 @@
 #define m_NCS_DBLIST_FIND_NEXT(node_ptr) (node_ptr)->next
 #define m_NCS_DBLIST_FIND_PREV(node_ptr) (node_ptr)->prev
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
  * Enumerated type used to arrange the doubly link list in order.
  *****************************************************************************/
@@ -152,5 +156,9 @@ uint32_t ncs_db_link_list_push(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE
  * This is the API used to pop the given node from the top of the list.
  *****************************************************************************/
 NCS_DB_LINK_LIST_NODE *ncs_db_link_list_pop(NCS_DB_LINK_LIST *list_ptr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif   /* NCSDLIB_H */

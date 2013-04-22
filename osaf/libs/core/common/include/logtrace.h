@@ -1,3 +1,4 @@
+
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
@@ -141,9 +142,9 @@ extern void _logtrace_trace(const char *file, unsigned int line, unsigned int ca
 #define TRACE_7(format, args...) _logtrace_trace(__FILE__, __LINE__, CAT_TRACE7, (format), ##args)
 #define TRACE_8(format, args...) _logtrace_trace(__FILE__, __LINE__, CAT_TRACE8, (format), ##args)
 #define TRACE_ENTER()                 _logtrace_trace(__FILE__, __LINE__, CAT_TRACE_ENTER, "%s ", __FUNCTION__)
-#define TRACE_ENTER2(format, args...) _logtrace_trace(__FILE__, __LINE__, CAT_TRACE_ENTER, "%s: "format, __FUNCTION__, ##args)
+#define TRACE_ENTER2(format, args...) _logtrace_trace(__FILE__, __LINE__, CAT_TRACE_ENTER, "%s: " format, __FUNCTION__, ##args)
 #define TRACE_LEAVE()                 _logtrace_trace(__FILE__, __LINE__, CAT_TRACE_LEAVE, "%s ", __FUNCTION__)
-#define TRACE_LEAVE2(format, args...) _logtrace_trace(__FILE__, __LINE__, CAT_TRACE_LEAVE, "%s: "format, __FUNCTION__, ##args)
+#define TRACE_LEAVE2(format, args...) _logtrace_trace(__FILE__, __LINE__, CAT_TRACE_LEAVE, "%s: " format, __FUNCTION__, ##args)
 
 #ifdef  __cplusplus
 }
