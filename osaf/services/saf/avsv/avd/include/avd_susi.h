@@ -132,7 +132,7 @@ typedef struct avd_sus_per_si_rank_tag {
 
 #define m_AVD_SU_SI_TRG_DEL(cb,susi) \
 {\
-   susi->csi_add_rem = false;\
+   susi->csi_add_rem = static_cast<SaBoolT>(false);			\
    m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, susi, AVSV_CKPT_AVD_SI_ASS);\
    avd_susi_delete(cb,susi,false);\
 }

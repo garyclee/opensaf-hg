@@ -39,6 +39,10 @@
 #include <avsv_defs.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* In Service upgrade support */
 #define AVND_MDS_SUB_PART_VERSION   4
 
@@ -616,5 +620,9 @@ typedef uint32_t (*AVSV_COPY_DND_MSG) (AVSV_DND_MSG *, AVSV_DND_MSG *);
 /* Extern Fuction Prototypes */
 void avsv_dnd_msg_free(AVSV_DND_MSG *);
 uint32_t avsv_dnd_msg_copy(AVSV_DND_MSG *, AVSV_DND_MSG *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif   /* !AVSV_D2NMSG_H */

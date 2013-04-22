@@ -56,7 +56,7 @@ extern "C" {
 
 	typedef void (*TMR_CALLBACK) (void *);
 
-	uint32_t gl_tmr_milliseconds;
+	extern uint32_t gl_tmr_milliseconds;
 
 /** Target system timer support functions...
  **/

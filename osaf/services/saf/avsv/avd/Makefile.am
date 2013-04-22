@@ -23,6 +23,8 @@ SUBDIRS = include scripts
 osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osafamfd
 
+osafamfd_CXXFLAGS =$(AM_CXXFLAGS)
+
 osafamfd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	$(AM_CPPFLAGS) \
@@ -31,63 +33,61 @@ osafamfd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include \
 	-I$(top_srcdir)/osaf/tools/saflog/include
 
-osafamfd_CFLAGS = $(AM_CFLAGS)
-
 osafamfd_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	$(top_srcdir)/osaf/tools/saflog/src/saflog.c \
-	amfd_main.c \
-	avd_app.c \
-	avd_apptype.c \
-	avd.c \
-	avd_chkop.c \
-	avd_ckpt_dec.c \
-	avd_ckpt_edu.c \
-	avd_ckpt_enc.c \
-	avd_ckpt_updt.c \
-	avd_cluster.c \
-	avd_clm.c \
-	avd_comp.c \
-	avd_compcstype.c \
-	avd_comptype.c \
-	avd_csi.c \
-	avd_csiattr.c \
-	avd_cstype.c \
-	avd_ctcstype.c \
-	avd_dmsg.c \
-	avd_hlt.c \
-	avd_hlttype.c \
-	avd_imm.c \
-	avd_mds.c \
-	avd_ndfsm.c \
-	avd_ndmsg.c \
-	avd_ndproc.c \
-	avd_node.c \
-	avd_nodegroup.c \
-	avd_nodeswbundle.c \
-	avd_pg.c \
-	avd_proc.c \
-	avd_role.c \
-	avd_sg2Nfsm.c \
-	avd_sg.c \
-	avd_sgtype.c \
-	avd_sgNAcvRfsm.c \
-	avd_sgNoRfsm.c \
-	avd_sgNpMfsm.c \
-	avd_sgNWayfsm.c \
-	avd_sgproc.c \
-	avd_si.c \
-	avd_siDep.c \
-	avd_su.c \
-	avd_siass.c \
-	avd_sirankedsu.c \
-	avd_sutcomptype.c \
-	avd_sutype.c \
-	avd_svctype.c \
-	avd_svctypecstypes.c \
-	avd_tmr.c \
-	avd_ntf.c \
-	avd_util.c
+	amfd_main.cc \
+	avd_app.cc \
+	avd_apptype.cc \
+	avd.cc \
+	avd_chkop.cc \
+	avd_ckpt_dec.cc \
+	avd_ckpt_edu.cc \
+	avd_ckpt_enc.cc \
+	avd_ckpt_updt.cc \
+	avd_cluster.cc \
+	avd_clm.cc \
+	avd_comp.cc \
+	avd_compcstype.cc \
+	avd_comptype.cc \
+	avd_csi.cc \
+	avd_csiattr.cc \
+	avd_cstype.cc \
+	avd_ctcstype.cc \
+	avd_dmsg.cc \
+	avd_hlt.cc \
+	avd_hlttype.cc \
+	avd_imm.cc \
+	avd_mds.cc \
+	avd_ndfsm.cc \
+	avd_ndmsg.cc \
+	avd_ndproc.cc \
+	avd_node.cc \
+	avd_nodegroup.cc \
+	avd_nodeswbundle.cc \
+	avd_pg.cc \
+	avd_proc.cc \
+	avd_role.cc \
+	avd_sg2Nfsm.cc \
+	avd_sg.cc \
+	avd_sgtype.cc \
+	avd_sgNAcvRfsm.cc \
+	avd_sgNoRfsm.cc \
+	avd_sgNpMfsm.cc \
+	avd_sgNWayfsm.cc \
+	avd_sgproc.cc \
+	avd_si.cc \
+	avd_siDep.cc \
+	avd_su.cc \
+	avd_siass.cc \
+	avd_sirankedsu.cc \
+	avd_sutcomptype.cc \
+	avd_sutype.cc \
+	avd_svctype.cc \
+	avd_svctypecstypes.cc \
+	avd_tmr.cc \
+	avd_ntf.cc \
+	avd_util.cc
 
 osafamfd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \

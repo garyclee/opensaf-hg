@@ -38,6 +38,7 @@
 #include <avsv_d2nmsg.h>
 #include <avd_cb.h>
 #include <stdbool.h>
+#include <avsv_util.h>
 
 typedef enum {
 	AVD_D2D_CHANGE_ROLE_REQ = AVSV_DND_MSG_MAX,
@@ -124,28 +125,6 @@ void avsv_d2d_msg_free(AVD_D2D_MSG *);
 uint32_t avd_d2d_msg_snd(struct cl_cb_tag *, AVD_D2D_MSG *);
 extern int avd_admin_state_is_valid(SaAmfAdminStateT state);
 extern SaAisErrorT avd_object_name_create(SaNameT *rdn_attr_value, SaNameT *parentName, SaNameT *object_name);
-
-/**
- * Search for "needle" in the "haystack" and create a DN from the result.
- * "haystack" must be a normal DN, with no escape characters.
- * @param haystack A normal DN
- * @param dn DN is written here
- * @param needle
- */
-extern void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn,
-	const char *needle);
-
-/**
- * Search for "needle" in the "haystack" and create a DN from the result.
- * "haystack" must be an association object DN, with escape characters.
- * 
- * @param haystack An association class DN
- * @param dn DN is written here
- * @param needle rdn tag of class
- * @param parent rdn tag of parent
- */
-extern void avsv_sanamet_init_from_association_dn(const SaNameT *haystack,
-	SaNameT *dn, const char *needle, const char *parent);
 
 extern int avd_admin_op_msg_snd(const SaNameT *dn, AVSV_AMF_CLASS_ID class_id,
 	SaAmfAdminOperationIdT opId, struct avd_avnd_tag *node);

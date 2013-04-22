@@ -38,6 +38,10 @@
 #include "ncssysf_def.h"
 #include "ncssysf_tsk.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* API Error Codes */
 #define NID_INV_PARAM    11
 #define NID_OFIFO_ERR    22
@@ -66,5 +70,9 @@ uint32_t nid_create_ipc(char *);
 uint32_t nid_open_ipc(int32_t *fd, char *);
 void nid_close_ipc(void);
 uint32_t nid_is_ipcopen(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif   /*NID_API_H */
