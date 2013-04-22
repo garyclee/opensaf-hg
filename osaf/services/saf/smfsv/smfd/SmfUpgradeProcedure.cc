@@ -2861,7 +2861,7 @@ done:
 
 done_without_finalize:
 	TRACE_LEAVE();
-	return true;
+	return rc;
 }
 
 //------------------------------------------------------------------------------
