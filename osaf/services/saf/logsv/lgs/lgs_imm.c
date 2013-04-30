@@ -1174,7 +1174,7 @@ static void ccbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
 
 /**
  * IMM requests us to update a non cached runtime attribute. The only
- * available attributes are saLogStreamNumOpeners and saLogStreamFilterCounter.
+ * available attributes are saLogStreamNumOpeners and logStreamDiscardedCounter.
  * @param immOiHandle
  * @param objectName
  * @param attributeNames
@@ -1206,7 +1206,7 @@ static SaAisErrorT rtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 		if (!strcmp(attributeName, "saLogStreamNumOpeners")) {
 			(void)immutil_update_one_rattr(immOiHandle, (char *)objectName->value,
 						       attributeName, SA_IMM_ATTR_SAUINT32T, &stream->numOpeners);
-		} else if (!strcmp(attributeName, "saLogStreamFilterCounter")) {
+		} else if (!strcmp(attributeName, "logStreamDiscardedCounter")) {
 			(void) immutil_update_one_rattr(immOiHandle, (char *) objectName->value,
 					attributeName, SA_IMM_ATTR_SAUINT64T, &stream->filtered);
 		} else {

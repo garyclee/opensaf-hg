@@ -74,7 +74,7 @@
 			<category>SA_RUNTIME</category>
 		</attr>
 		<attr>
-			<name>saLogStreamFilterCounter</name>
+			<name>logStreamDiscardedCounter</name>
 			<type>SA_UINT64_T</type>
 			<category>SA_RUNTIME</category>
 		</attr>
@@ -159,7 +159,7 @@
 			<category>SA_RUNTIME</category>
 		</attr>
 		<attr>
-			<name>saLogStreamFilterCounter</name>
+			<name>logStreamDiscardedCounter</name>
 			<type>SA_UINT64_T</type>
 			<category>SA_RUNTIME</category>
 		</attr>
