@@ -45,12 +45,12 @@
  */
 
 enum {
-	FD_USR1 = 0,
-	FD_AMF = 0,
+	FD_TERM = 0,
+	FD_USR1 = 1,
+	FD_AMF = 1,
 	FD_MBCSV,
 	FD_MBX,
 	FD_LOG,
-	FD_TERM,
 	SIZE_FDS
 } NTFS_FDS;
 
@@ -66,7 +66,6 @@ enum {
 static ntfs_cb_t _ntfs_cb;
 ntfs_cb_t *ntfs_cb = &_ntfs_cb;
 static NCS_SEL_OBJ usr1_sel_obj;
-static NCS_SEL_OBJ term_sel_obj; /* Selection object for TERM signal events */
 
 /* ========================================================================
  *   FUNCTION PROTOTYPES
@@ -141,27 +140,6 @@ static void sigusr1_handler(int sig)
 	signal(SIGUSR1, SIG_IGN);
 	ncs_sel_obj_ind(usr1_sel_obj);
 	TRACE("Got USR1 signal");
-}
-
-/**
- * TERM signal handler
- *
- * @param sig
- */
-static void sigterm_handler(int sig)
-{
-	ncs_sel_obj_ind(term_sel_obj);
-	signal(SIGTERM, SIG_IGN);
-}
-
-/**
- * TERM event handler
- */
-static void handle_sigterm_event(void)
-{
-	LOG_NO("exiting on signal %d", SIGTERM);
-	(void) stop_ntfimcn();
-	_Exit(EXIT_SUCCESS);
 }
 
 #if 0
@@ -282,6 +260,7 @@ int main(int argc, char *argv[])
 	SaAisErrorT error;
 	uint32_t rc;
 	struct pollfd fds[SIZE_FDS];
+	int term_fd;
 
 	TRACE_ENTER();
 
@@ -295,19 +274,12 @@ int main(int argc, char *argv[])
 	/* Start the imcn subprocess */
 	init_ntfimcn(ntfs_cb->ha_state);
 
-	if (ncs_sel_obj_create(&term_sel_obj) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncs_sel_obj_create failed");
-		exit(EXIT_FAILURE);
-	}
-
-	if (signal(SIGTERM, sigterm_handler) == SIG_ERR) {
-		LOG_ER("signal TERM failed: %s", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
 	mbx_fd = ncs_ipc_get_sel_obj(&ntfs_cb->mbx);
+	daemon_sigterm_install(&term_fd);
 
 	/* Set up all file descriptors to listen to */
+	fds[FD_TERM].fd = term_fd;
+	fds[FD_TERM].events = POLLIN;
 	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
 	fds[FD_USR1].events = POLLIN;
 	fds[FD_MBCSV].fd = ntfs_cb->mbcsv_sel_obj;
@@ -316,8 +288,6 @@ int main(int argc, char *argv[])
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_LOG].fd = ntfs_cb->logSelectionObject;
 	fds[FD_LOG].events = POLLIN;
-	fds[FD_TERM].fd = term_sel_obj.rmv_obj;
-	fds[FD_TERM].events = POLLIN;
 	
 	TRACE("Started. HA state is %s",ha_state_str(ntfs_cb->ha_state));
 
@@ -331,6 +301,11 @@ int main(int argc, char *argv[])
 
 			LOG_ER("poll failed - %s", strerror(errno));
 			break;
+		}
+
+		if (fds[FD_TERM].revents & POLLIN) {
+			(void) stop_ntfimcn();
+			daemon_exit();
 		}
 
 		if (fds[FD_AMF].revents & POLLIN) {
@@ -353,10 +328,6 @@ int main(int argc, char *argv[])
 				fds[FD_AMF].fd = ntfs_cb->amfSelectionObject;
 			}
 
-		}
-
-		if (fds[FD_TERM].revents & POLLIN) {
-			handle_sigterm_event();
 		}
 
 		if (fds[FD_MBCSV].revents & POLLIN) {
