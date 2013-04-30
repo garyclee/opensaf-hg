@@ -43,11 +43,12 @@
  * ========================================================================
  */
 
-#define FD_USR1 0
-#define FD_AMF 0
-#define FD_MBCSV 1
-#define FD_MBX 2
-#define FD_IMM 3		/* Must be the last in the fds array */
+#define FD_TERM 0
+#define FD_USR1 1
+#define FD_AMF 1
+#define FD_MBCSV 2
+#define FD_MBX 3
+#define FD_IMM 4		/* Must be the last in the fds array */
 
 #ifndef LOG_STREAM_LOW_LIMIT_PERCENT
 #define LOG_STREAM_LOW_LIMIT_PERCENT 0.6 // default value for low is 60%
@@ -79,8 +80,8 @@ bool mbox_full[NCS_IPC_PRIORITY_MAX];
 /* Lower limit which determines when to leave FULL state */
 uint32_t mbox_low[NCS_IPC_PRIORITY_MAX];
 
-static struct pollfd fds[4];
-static nfds_t nfds = 4;
+static struct pollfd fds[5];
+static nfds_t nfds = 5;
 static NCS_SEL_OBJ usr1_sel_obj;
 
 /* ========================================================================
@@ -402,6 +403,7 @@ int main(int argc, char *argv[])
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error = SA_AIS_OK;
 	uint32_t rc;
+	int term_fd;
 
 	daemonize(argc, argv);
 
@@ -411,8 +413,11 @@ int main(int argc, char *argv[])
 	}
 
 	mbx_fd = ncs_ipc_get_sel_obj(&lgs_mbx);
+	daemon_sigterm_install(&term_fd);
 
 	/* Set up all file descriptors to listen to */
+	fds[FD_TERM].fd = term_fd;
+	fds[FD_TERM].events = POLLIN;
 	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
 	fds[FD_USR1].events = POLLIN;
 	fds[FD_MBCSV].fd = lgs_cb->mbcsv_sel_obj;
@@ -440,6 +445,10 @@ int main(int argc, char *argv[])
 
 			LOG_ER("poll failed - %s", strerror(errno));
 			break;
+		}
+
+		if (fds[FD_TERM].revents & POLLIN) {
+			daemon_exit();
 		}
 
 		if (fds[FD_AMF].revents & POLLIN) {
