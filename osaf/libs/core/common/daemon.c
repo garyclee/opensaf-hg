@@ -37,7 +37,8 @@
 #include "daemon.h"
 #include "logtrace.h"
 
-#include "ncsgl_defs.h"
+#include <ncsgl_defs.h>
+#include <os_defs.h>
 
 
 #define DEFAULT_RUNAS_USERNAME	"opensaf"
@@ -337,3 +338,47 @@ void daemonize_as_user(const char *username, int argc, char *argv[])
 	daemonize(argc, argv);
 }
 
+static NCS_SEL_OBJ term_sel_obj; /* Selection object for TERM signal events */
+
+// symbols from ncs_osprm.h, don't pull in that file here!
+extern uint32_t ncs_sel_obj_create(NCS_SEL_OBJ *o_sel_obj);
+extern uint32_t ncs_sel_obj_ind(NCS_SEL_OBJ i_ind_obj);
+
+/**
+ * TERM signal handler
+ * @param sig
+ */
+static void sigterm_handler(int sig)
+{
+	ncs_sel_obj_ind(term_sel_obj);
+	signal(SIGTERM, SIG_IGN);
+}
+
+/**
+ * Exit process with a standard syslog message
+ * To be called after the service has cleaned up per service specific things
+ */
+void daemon_exit(void)
+{
+	syslog(LOG_NOTICE, "exiting on signal %d", SIGTERM);
+	_Exit(EXIT_SUCCESS);
+}
+
+/**
+ * Install TERM signal handler and return descriptor to monitor
+ * @param[out] term_fd  socket descriptor to monitor for SIGTERM event
+ */
+void daemon_sigterm_install(int *term_fd)
+{
+	if (ncs_sel_obj_create(&term_sel_obj) != NCSCC_RC_SUCCESS) {
+		syslog(LOG_ERR, "ncs_sel_obj_create failed");
+		exit(EXIT_FAILURE);
+	}
+
+	if (signal(SIGTERM, sigterm_handler) == SIG_ERR) {
+		syslog(LOG_ERR, "signal TERM failed: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	*term_fd = term_sel_obj.rmv_obj;
+}

@@ -29,8 +29,10 @@
 extern "C" {
 #endif
 
-extern void daemonize(int argc, char *argv[]);
-extern void daemonize_as_user(const char *username, int argc, char *argv[]);
+void daemonize(int argc, char *argv[]);
+void daemonize_as_user(const char *username, int argc, char *argv[]);
+void daemon_exit(void);
+void daemon_sigterm_install(int *term_fd);
 
 #ifdef __cplusplus
 }
