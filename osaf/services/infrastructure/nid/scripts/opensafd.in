@@ -114,15 +114,23 @@ final_clean() {
 	if [ "$MDS_TRANSPORT" = "TCP" ] ; then
 		pkill -9 dh_monitoring* >/dev/null 2>&1
 	fi
+
 	for cmd in `ls $pkgclcclidir/osaf-*`; do
-		$cmd stop >/dev/null 2>&1
+		# skip dtm here to allow shutdown of other services (e.g. amfd)
+		if [ "cmd" != "osaf-dtm" ]; then
+			$cmd stop >/dev/null 2>&1
+		fi
 	done
 
 	if [ "$MDS_TRANSPORT" = "TIPC" ] ; then
 		unload_tipc
 	else
-		rm -f $pkglocalstatedir/osaf_dtm_intra_server
+		# stop dtm, now all dependent services should be stopped
+		$pkgclcclidir/osaf-dtm stop >/dev/null 2>&1
+		rm -f /tmp/osaf_dtm_intra_server
+		rm -f /tmp/osaf_mdtm_process_*
 	fi
+
 	clean_shm
 
 	rm -f $lockfile
