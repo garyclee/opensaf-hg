@@ -25,6 +25,7 @@
 */
 
 #include <poll.h>
+#include <daemon.h>
 #include <logtrace.h>
 #include <nid_api.h>
 #include <avd.h>
@@ -33,7 +34,8 @@
 #include <avd_si_dep.h>
 
 enum {
-	FD_MBX = 0,
+	FD_TERM = 0,
+	FD_MBX,
 	FD_MBCSV,
 	FD_CLM,
 	FD_IMM
@@ -436,6 +438,7 @@ void avd_main_proc(void)
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error = SA_AIS_OK;
 	int polltmo = -1;
+	int term_fd;
 
 	if (avd_initialize() != NCSCC_RC_SUCCESS) {
 		LOG_ER("main: avd_initialize FAILED, exiting...");
@@ -444,7 +447,10 @@ void avd_main_proc(void)
 	}
 
 	mbx_fd = ncs_ipc_get_sel_obj(&cb->avd_mbx);
+	daemon_sigterm_install(&term_fd);
 
+	fds[FD_TERM].fd = term_fd;
+	fds[FD_TERM].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_MBCSV].fd = cb->mbcsv_sel_obj;
@@ -480,6 +486,10 @@ void avd_main_proc(void)
 			// poll time out, submit some jobs (if any)
 			polltmo = retval_to_polltmo(avd_job_fifo_execute(cb->immOiHandle));
 			continue;
+		}
+
+		if (fds[FD_TERM].revents & POLLIN) {
+			daemon_exit();
 		}
 
 		if (fds[FD_MBX].revents & POLLIN) {
