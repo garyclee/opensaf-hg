@@ -33,6 +33,7 @@
 #include <assert.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include <saAis.h>
 #include <saImmOm.h>
@@ -64,6 +65,8 @@ static void usage(const char *progname)
 	printf("\t\tthis help\n");
 	printf("\t-o, --operation-id <id>\n");
 	printf("\t\tnumerical operation ID (mandatory)\n");
+	printf("\t-O, --operation-name <name>\n");
+	printf("\t\toperation name (mandatory)\n");
 	printf("\t-p, --parameter <p>\n");
 	printf("\t\tparameter(s) to admin op\n");
 	printf("\t\tParameter syntax: <name>:<type>:<value>\n");
@@ -72,6 +75,7 @@ static void usage(const char *progname)
 	       "\t\t\tSA_TIME_T, SA_NAME_T, SA_FLOAT_T, SA_DOUBLE_T, SA_STRING_T\n");
 	printf("\t-t, --timeout <sec>\n");
 	printf("\t\tcommand timeout in seconds [default=60]\n");
+	printf("\t-v, --verbose\n");
 
 	printf("\nEXAMPLE\n");
 	printf("\t%s -o 2 safAmfNode=SC-2,safAmfCluster=myAmfCluster\n", progname);
@@ -165,6 +169,68 @@ void sigalarmh(int sig)
 	exit(EXIT_FAILURE);
 }
 
+void print_param(SaImmAdminOperationParamsT_2 *param) {
+	switch(param->paramType) {
+		case SA_IMM_ATTR_SAINT32T :
+			printf("%-50s %-12s %d (0x%x)\n", param->paramName, "SA_INT32_T",
+					(*((SaInt32T *)param->paramBuffer)), (*((SaInt32T *)param->paramBuffer)));
+			break;
+		case SA_IMM_ATTR_SAUINT32T :
+			printf("%-50s %-12s %u (0x%x)\n", param->paramName, "SA_UINT32_T",
+					(*((SaUint32T *)param->paramBuffer)), (*((SaUint32T *)param->paramBuffer)));
+			break;
+		case SA_IMM_ATTR_SAINT64T :
+			printf("%-50s %-12s %lld (0x%llx)\n", param->paramName, "SA_INT64_T",
+					(*((SaInt64T *)param->paramBuffer)), (*((SaInt64T *)param->paramBuffer)));
+			break;
+		case SA_IMM_ATTR_SAUINT64T :
+			printf("%-50s %-12s %llu (0x%llx)\n", param->paramName, "SA_UINT64_T",
+					(*((SaUint64T *)param->paramBuffer)), (*((SaUint64T *)param->paramBuffer)));
+			break;
+		case SA_IMM_ATTR_SATIMET :
+			{
+				char buf[32];
+				const time_t time = *((SaTimeT *)param->paramBuffer) / SA_TIME_ONE_SECOND;
+
+				ctime_r(&time, buf);
+				buf[strlen(buf) - 1] = '\0';	/* Remove new line */
+				printf("%-50s %-12s %llu (0x%llx, %s)\n", param->paramName, "SA_TIME_T",
+						(*((SaTimeT *)param->paramBuffer)), (*((SaTimeT *)param->paramBuffer)), buf);
+			}
+			break;
+		case SA_IMM_ATTR_SANAMET :
+			printf("%-50s %-12s %s\n", param->paramName, "SA_NAME_T", (*((SaNameT *)param->paramBuffer)).value);
+			break;
+		case SA_IMM_ATTR_SAFLOATT :
+			printf("%-50s %-12s %f\n", param->paramName, "SA_FLOAT_T", (*((SaFloatT *)param->paramBuffer)));
+			break;
+		case SA_IMM_ATTR_SADOUBLET :
+			printf("%-50s %-12s %lf\n", param->paramName, "SA_DOUBLE_T", (*((SaDoubleT *)param->paramBuffer)));
+			break;
+		case SA_IMM_ATTR_SASTRINGT :
+			printf("%-50s %-12s %s\n", param->paramName, "SA_STRING_T", (*((SaStringT *)param->paramBuffer)));
+			break;
+		case SA_IMM_ATTR_SAANYT :
+			printf("%-50s %-12s %s\n", param->paramName, "SA_ANY_T", "<Not shown>");
+			break;
+		default:
+			printf("%-50s <%-12s (%d)>\n", param->paramName, "Unknown value type", (int)param->paramType);
+			exit(EXIT_FAILURE);
+	}
+}
+
+void print_params(char *objectDn, SaImmAdminOperationParamsT_2 **params) {
+	int ix = 0;
+
+	printf("Object: %s\n", objectDn);
+	printf("%-50s %-12s Value(s)\n", "Name", "Type");
+	printf("========================================================================\n");
+	while(params[ix]) {
+		print_param(params[ix]);
+		++ix;
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	int c;
@@ -172,8 +238,10 @@ int main(int argc, char *argv[])
 		{"disable-tryagain", no_argument, 0, 'd'},
 		{"parameter", required_argument, 0, 'p'},
 		{"operation-id", required_argument, 0, 'o'},
+		{"operation-name", required_argument, 0, 'O'},
 		{"help", no_argument, 0, 'h'},
-                {"timeout", required_argument, 0, 't'},
+		{"timeout", required_argument, 0, 't'},
+		{"verbose", required_argument, 0, 'v'},
 		{0, 0, 0, 0}
 	};
 	SaAisErrorT error;
@@ -187,8 +255,10 @@ int main(int argc, char *argv[])
 	const SaImmAdminOperationParamsT_2 **params;
 	SaImmAdminOperationParamsT_2 **out_params=NULL;
 	SaImmAdminOperationIdT operationId = -1;
-        unsigned long timeoutVal = 60;  /* Default timeout value */
+	unsigned long timeoutVal = 60;  /* Default timeout value */
 	int disable_tryagain = false;
+	int isFirst = 1;
+	int verbose = 0;
 
 	int params_len = 0;
 
@@ -196,7 +266,7 @@ int main(int argc, char *argv[])
 	params[0] = NULL;
 
 	while (1) {
-		c = getopt_long(argc, argv, "dp:o:t:h", long_options, NULL);
+		c = getopt_long(argc, argv, "dp:o:O:t:hv", long_options, NULL);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
@@ -206,11 +276,31 @@ int main(int argc, char *argv[])
 			disable_tryagain = true;
 			break;
 		case 'o':
+			if(operationId != -1) {
+				fprintf(stderr, "Cannot set admin operation more then once");
+				exit(EXIT_FAILURE);
+			}
 			operationId = strtoll(optarg, (char **)NULL, 10);
 			if ((operationId == 0) && ((errno == EINVAL) || (errno == ERANGE))) {
 				fprintf(stderr, "Illegal operation ID\n");
 				exit(EXIT_FAILURE);
 			}
+			break;
+		case 'O':
+			if(operationId != -1) {
+				fprintf(stderr, "Cannot set admin operation more then once");
+				exit(EXIT_FAILURE);
+			}
+			operationId = SA_IMM_PARAM_ADMOP_ID_ESC;
+			params_len++;
+			params = realloc(params, (params_len + 1) * sizeof(SaImmAdminOperationParamsT_2 *));
+			param = malloc(sizeof(SaImmAdminOperationParamsT_2));
+			params[params_len - 1] = param;
+			params[params_len] = NULL;
+			param->paramName = strdup(SA_IMM_PARAM_ADMOP_NAME);
+			param->paramType = SA_IMM_ATTR_SASTRINGT;
+			param->paramBuffer = malloc(sizeof(SaStringT));
+			*((SaStringT *)(param->paramBuffer)) = strdup(optarg);
 			break;
 		case 'p':
 			params_len++;
@@ -235,6 +325,9 @@ int main(int argc, char *argv[])
 			usage(basename(argv[0]));
 			exit(EXIT_SUCCESS);
 			break;
+		case 'v':
+			verbose = 1;
+			break;
 		default:
 			fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
 			exit(EXIT_FAILURE);
@@ -243,7 +336,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (operationId == -1) {
-		fprintf(stderr, "error - must specify numerical operation ID\n");
+		fprintf(stderr, "error - must specify admin operation ID\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -315,7 +408,25 @@ retry:
 				}
 				++ix;
 			}
+
+			/* After printing error string, print all returned parameters */
+			if (verbose && out_params && out_params[0]) {
+				if(!isFirst)
+					printf("\n");
+
+				print_params(argv[optind], out_params);
+			}
+
 			exit(EXIT_FAILURE);
+		}
+
+		if (verbose && out_params && out_params[0]) {
+			if(!isFirst)
+				printf("\n");
+			else
+				isFirst = 0;
+
+			print_params(argv[optind], out_params);
 		}
 
 		error = saImmOmAdminOperationMemoryFree(ownerHandle, out_params);
