@@ -60,8 +60,6 @@ typedef struct {
 	bool is_quisced_set;
 	SaSelectionObjectT amfSelectionObject;	/* Selection Object to wait for amf events   */
 	SaAmfHAStateT ha_state;	                /* present AMF HA state of the component     */
-	NCS_SEL_OBJ usr1_sel_obj;	        /* Selection object for USR1 signal events   */
-	uint32_t nid_started;	                /* Started by NID or AMF                     */
 	SMFND_SMFA_ADEST_INVID_MAP *cbk_list;	/* Mapping between inv_id and all the agents */
 	uint32_t agent_cnt;			/* Count of SMF Agents */
 	MDS_DEST smfd_dest;			/* MDS DEST of SMFD */
