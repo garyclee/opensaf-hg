@@ -971,6 +971,9 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 		if (err == SA_AIS_OK) {
 			err = SA_AIS_ERR_LIBRARY;
 		}
+	}
+	
+	if (err != SA_AIS_OK) {
 		goto agent_rsp;
 	}
 
