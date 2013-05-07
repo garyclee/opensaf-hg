@@ -32,7 +32,6 @@
 #include <poll.h>
 
 #include <daemon.h>
-#include <nid_api.h>
 #include <ncs_main_papi.h>
 
 #include <saAis.h>
@@ -75,17 +74,6 @@ const SaNameT *smfApplDN = &_smfApplDN;
  *   FUNCTION PROTOTYPES
  * ========================================================================
  */
-
-/**
- * USR1 signal handler to activate AMF
- * @param sig
- */
-static void usr1_sig_handler(int sig)
-{
-	/*signal(SIGUSR1, SIG_IGN); */
-	if (smfd_cb->amf_hdl == 0)
-		ncs_sel_obj_ind(smfd_cb->usr1_sel_obj);
-}
 
 void smfd_cb_lock()
 {
@@ -205,13 +193,6 @@ static uint32_t initialize_smfd(void)
 		goto done;
 	}
 
-	/* Create a selection object for USR1 signal handling */
-	if ((rc =
-	     ncs_sel_obj_create(&smfd_cb->usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncs_sel_obj_create failed");
-		goto done;
-	}
-
 	/* Init mds communication */
 	if ((rc = smfd_mds_init(smfd_cb)) != NCSCC_RC_SUCCESS) {
 		TRACE("smfd_mds_init FAILED %d", rc);
@@ -224,13 +205,10 @@ static uint32_t initialize_smfd(void)
 		return rc;
 	}
 
-	/* Check if AMF started */
-	if (smfd_cb->nid_started == 0) {
-		/* Started by AMF, so let's init AMF */
-		if ((rc = smfd_amf_init(smfd_cb)) != NCSCC_RC_SUCCESS) {
-			LOG_ER("init amf failed");
-			goto done;
-		}
+	/* Init with AMF */
+	if ((rc = smfd_amf_init(smfd_cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("init amf failed");
+		goto done;
 	}
 
  done:
@@ -239,6 +217,7 @@ static uint32_t initialize_smfd(void)
 }
 
 typedef enum {
+	SMFD_TERM_FD,
 	SMFD_AMF_FD,
 	SMFD_MBX_FD,
 	SMFD_COI_FD,
@@ -247,15 +226,6 @@ typedef enum {
 
 struct pollfd fds[SMFD_MAX_FD];
 static nfds_t nfds =  SMFD_MAX_FD;
-/**
- * Restore USR1 signal handling.
- */
-uint32_t smfd_amf_disconnected(smfd_cb_t * cb)
-{
-	fds[SMFD_AMF_FD].fd = cb->usr1_sel_obj.rmv_obj;
-	cb->amf_hdl = 0;
-	return NCSCC_RC_SUCCESS;
-}
 
 /**
  * Forever wait on events and process them.
@@ -264,6 +234,7 @@ static void main_process(void)
 {
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error = SA_AIS_OK;
+	int term_fd;
 
 	TRACE_ENTER();
 
@@ -286,13 +257,12 @@ static void main_process(void)
 	/* end of IMM featue code */
 
 	mbx_fd = ncs_ipc_get_sel_obj(&smfd_cb->mbx);
+	daemon_sigterm_install(&term_fd);
 
 	/* Set up all file descriptors to listen to */
-	if (smfd_cb->nid_started)
-		fds[SMFD_AMF_FD].fd = smfd_cb->usr1_sel_obj.rmv_obj;
-	else
-		fds[SMFD_AMF_FD].fd = smfd_cb->amfSelectionObject;
-
+	fds[SMFD_TERM_FD].fd = term_fd;
+	fds[SMFD_TERM_FD].events = POLLIN;
+	fds[SMFD_AMF_FD].fd = smfd_cb->amfSelectionObject;
 	fds[SMFD_AMF_FD].events = POLLIN;
 	fds[SMFD_MBX_FD].fd = mbx_fd.rmv_obj;
 	fds[SMFD_MBX_FD].events = POLLIN;
@@ -319,29 +289,18 @@ static void main_process(void)
 			break;
 		}
 
+		if (fds[SMFD_TERM_FD].revents & POLLIN) {
+			daemon_exit();
+		}
+
 		/* Process all the AMF messages */
 		if (fds[SMFD_AMF_FD].revents & POLLIN) {
-			if (smfd_cb->amf_hdl != 0) {
-				/* dispatch all the AMF pending function */
-				if ((error =
-				     saAmfDispatch(smfd_cb->amf_hdl,
-						   SA_DISPATCH_ALL)) !=
-				    SA_AIS_OK) {
+			/* dispatch all the AMF pending function */
+			if ((error = saAmfDispatch(smfd_cb->amf_hdl,
+					SA_DISPATCH_ALL)) != SA_AIS_OK) {
 					LOG_ER("saAmfDispatch failed: %u",
 					       error);
 					break;
-				}
-			} else {
-				TRACE("SIGUSR1 event rec");
-
-				if (smfd_amf_init(smfd_cb) != NCSCC_RC_SUCCESS) {
-					LOG_ER("init amf failed");
-					break;
-				}
-
-				TRACE("AMF Initialization SUCCESS......");
-				fds[SMFD_AMF_FD].fd =
-				    smfd_cb->amfSelectionObject;
 			}
 		}
 
@@ -404,15 +363,6 @@ static void main_process(void)
  */
 int main(int argc, char *argv[])
 {
-	/* Determine how this process was started, by NID or AMF */
-	if (getenv("SA_AMF_COMPONENT_NAME") != NULL) {
-		/* AMF start */
-		smfd_cb->nid_started = 0;
-	} else {
-		/* NID start */
-		smfd_cb->nid_started = 1;
-	}
-
 	daemonize(argc, argv);
 
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
@@ -425,28 +375,11 @@ int main(int argc, char *argv[])
 		goto done;
 	}
 
-	if (signal(SIGUSR1, usr1_sig_handler) == SIG_ERR) {
-		LOG_ER("signal SIGUSR1 failed");
-		goto done;
-	}
-
-	if (smfd_cb->nid_started == 1) {
-		if (nid_notify("SMFD", NCSCC_RC_SUCCESS, NULL) !=
-		    NCSCC_RC_SUCCESS)
-			LOG_ER("nid_notify failed");
-	}
-
 	main_process();
 
 	exit(EXIT_SUCCESS);
 
  done:
-	if (smfd_cb->nid_started == 1) {
-		if (nid_notify("SMFD", NCSCC_RC_FAILURE, NULL) !=
-		    NCSCC_RC_SUCCESS)
-			LOG_ER("nid_notify failed");
-	}
-
 	LOG_ER("SMFD failed, exiting...");
 	exit(EXIT_FAILURE);
 }
