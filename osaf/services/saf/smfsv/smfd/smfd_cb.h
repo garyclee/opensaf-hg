@@ -41,9 +41,7 @@ typedef struct smfd_cb {
 	SaImmOiHandleT campaignOiHandle;            /* IMM Campaign OI handle                           */
 	SaSelectionObjectT campaignSelectionObject; /* Selection Object to wait for campaign IMM events */
 	SaAmfHAStateT ha_state;	                    /* present AMF HA state of the component            */
-	NCS_SEL_OBJ usr1_sel_obj;                   /* Selection object for USR1 signal events          */
 	MDS_DEST smfnd_dests[NCS_MAX_SLOTS];        /* destinations for all smfnd   */
-	uint32_t nid_started;	                    /* Started by NID or AMF        */
 	char *backupCreateCmd;	                    /* Backup create cmd string     */
 	char *bundleCheckCmd;	                    /* Bundle check cmd string      */
 	char *nodeCheckCmd;	                    /* Node check cmd string        */

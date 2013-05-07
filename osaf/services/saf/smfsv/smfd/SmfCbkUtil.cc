@@ -209,8 +209,6 @@ SmfCbkUtilThread::~SmfCbkUtilThread()
  */
 int SmfCbkUtilThread::startThread(void)
 {
-	LOG_NO("Starting SmfCbkUtilThread");
-
 	pthread_t thread;
 	pthread_attr_t attr;
 
