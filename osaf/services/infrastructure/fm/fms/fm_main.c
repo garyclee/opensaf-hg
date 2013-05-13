@@ -31,9 +31,10 @@ This file contains the main() routine for FM.
 
 
 enum {
-	FD_USR1 = 0,
+	FD_TERM = 0,
+	FD_USR1 = 1,
 	FD_AMF = FD_USR1,
-	FD_MBX = 1,
+	FD_MBX
 };
 
 FM_CB *fm_cb = NULL;
@@ -83,11 +84,11 @@ DESCRIPTION:          Main routine for FM
 int main(int argc, char *argv[])
 {
 	NCS_SEL_OBJ mbx_sel_obj;
-	nfds_t nfds = 2;
+	nfds_t nfds = 3;
 	struct pollfd fds[nfds];
 	int ret=0;
 	int rc = NCSCC_RC_FAILURE;
-
+	int term_fd;
 
 	daemonize(argc, argv);
 
@@ -162,6 +163,11 @@ int main(int argc, char *argv[])
 	/* Give CB hdl */
 	ncshm_give_hdl(gl_fm_hdl);
 
+	daemon_sigterm_install(&term_fd);
+
+	fds[FD_TERM].fd = term_fd;
+	fds[FD_TERM].events = POLLIN;
+
 	/* USR1/AMF fd */
 	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
 	fds[FD_USR1].events = POLLIN;
@@ -183,6 +189,11 @@ int main(int argc, char *argv[])
 			LOG_ER("poll failed - %s", strerror(errno));
 			break;
 		}
+
+		if (fds[FD_TERM].revents & POLLIN) {
+			daemon_exit();
+		}
+
 		if (fds[FD_AMF].revents & POLLIN) {
 			if (fm_cb->fm_amf_cb.amf_hdl != 0) {
 			SaAisErrorT error;
