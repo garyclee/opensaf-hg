@@ -39,24 +39,18 @@
  * ========================================================================
  */
 
+enum {
+	FD_TERM = 0,
+	FD_USR1,
+	FD_AMF = FD_USR1,
+	FD_MBCSV,
+	FD_MBX,
 #ifdef ENABLE_AIS_PLM
-#define FD_USR1 0
-#define FD_AMF 0
-#define FD_MBCSV 1
-#define FD_MBX 2
-#define FD_PLM 3
-#define FD_IMM 4 		/* Must be the last in the fds array */
-#define NUM_FD 5
-#else
-#define FD_USR1 0
-#define FD_AMF 0
-#define FD_MBCSV 1
-#define FD_MBX 2
-#define FD_IMM 3 		/* Must be the last in the fds array */
-#define NUM_FD 4
+	FD_PLM,
 #endif
-
-
+	FD_IMM, /* Must be the last in the fds array */
+	NUM_FD
+};
 
 /* ========================================================================
  *   TYPE DEFINITIONS
@@ -378,6 +372,7 @@ int main(int argc, char *argv[])
 	SaAisErrorT error = SA_AIS_OK;
 	uint32_t rc;
 	osaf_cluster = NULL;
+	int term_fd;
 
 	daemonize(argc, argv);
 
@@ -387,8 +382,11 @@ int main(int argc, char *argv[])
 	}
 
 	mbx_fd = ncs_ipc_get_sel_obj(&clms_cb->mbx);
+	daemon_sigterm_install(&term_fd);
 
 	/* Set up all file descriptors to listen to */
+	fds[FD_TERM].fd = term_fd;
+	fds[FD_TERM].events = POLLIN;
 	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
 	fds[FD_USR1].events = POLLIN;
 	fds[FD_MBCSV].fd = clms_cb->mbcsv_sel_obj;
@@ -422,6 +420,11 @@ int main(int argc, char *argv[])
 			LOG_ER("poll failed - %s", strerror(errno));
 			break;
 		}
+
+		if (fds[FD_TERM].revents & POLLIN) {
+			daemon_exit();
+		}
+
 		if (fds[FD_AMF].revents & POLLIN) {
 			if (clms_cb->amf_hdl != 0) {
 				if ((error = saAmfDispatch(clms_cb->amf_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
