@@ -31,10 +31,11 @@
 #define RDA_MAX_CLIENTS 32
 
 enum {
-	FD_USR1 = 0,
+	FD_TERM = 0,
+	FD_USR1 = 1,
 	FD_AMF = FD_USR1,
-	FD_MBX = 1,
-	FD_RDA_SERVER = 2,
+	FD_MBX,
+	FD_RDA_SERVER,
 	FD_CLIENT_START
 };
 
@@ -349,11 +350,12 @@ static int initialize_rde(void)
 int main(int argc, char *argv[])
 {
 	uint32_t rc;
-	nfds_t nfds = 3;
+	nfds_t nfds = 4;
 	struct pollfd fds[nfds + RDA_MAX_CLIENTS];
 	int i, ret;
 	NCS_SEL_OBJ mbx_sel_obj;
 	RDE_RDA_CB *rde_rda_cb = &rde_cb->rde_rda_cb;
+	int term_fd;
 
 	daemonize(argc, argv);
 
@@ -367,6 +369,11 @@ int main(int argc, char *argv[])
 
 	if ((rc = determine_role(mbx_sel_obj.rmv_obj)) == NCSCC_RC_FAILURE)
 		goto init_failed;
+
+	daemon_sigterm_install(&term_fd);
+
+	fds[FD_TERM].fd = term_fd;
+	fds[FD_TERM].events = POLLIN;
 
 	/* USR1/AMF fd */
 	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
@@ -394,6 +401,10 @@ int main(int argc, char *argv[])
 			
 			LOG_ER("poll failed - %s", strerror(errno));
 			break;
+		}
+
+		if (fds[FD_TERM].revents & POLLIN) {
+			daemon_exit();
 		}
 
 		if (fds[FD_AMF].revents & POLLIN) {
