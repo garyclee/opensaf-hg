@@ -61,7 +61,8 @@ static const char *immd_evt_names[] = {
 	"IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS",
 	"IMMD_EVT_ND2D_LOADING_FAILED",
 	"IMMD_EVT_ND2D_SYNC_FEVS_BASE",
-	"IMMD_EVT_ND2D_FEVS_REQ_2"
+	"IMMD_EVT_ND2D_FEVS_REQ_2",
+	"IMMD_EVT_ND2D_LOADING_COMPLETED"
 };
 
 static const char *immsv_get_immd_evt_name(unsigned int id)
@@ -2805,6 +2806,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 		case IMMD_EVT_ND2D_SYNC_ABORT:	/*Coordinator wants to abort sync. */
 		case IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS:/*Coord wants to purge rt obj mutations*/
 		case IMMD_EVT_ND2D_LOADING_FAILED:/*Coord informs that loading failed.*/
+		case IMMD_EVT_ND2D_LOADING_COMPLETED: /*Coord informs that loading completed*/
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 			ncs_encode_32bit(&p8, immdevt->info.ctrl_msg.ndExecPid);
@@ -4079,6 +4081,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 		case IMMD_EVT_ND2D_SYNC_ABORT:	/*Coordinator wants to abort sync. */
 		case IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS: /*Coord wants to purge rt obj mutations */
 		case IMMD_EVT_ND2D_LOADING_FAILED:/*Coord informs that loading failed.*/
+		case IMMD_EVT_ND2D_LOADING_COMPLETED:/* Coord informs that loading completed*/
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
 			immdevt->info.ctrl_msg.ndExecPid = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);

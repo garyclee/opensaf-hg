@@ -83,6 +83,7 @@ typedef struct immd_cb_tag {
 	bool is_loc_immnd_up;
 	bool is_rem_immnd_up;
 	bool is_quiesced_set;	/* ABT new csi_set */
+	bool is_loading;  /* True when loading */
 	MDS_DEST loc_immnd_dest;
 	MDS_DEST rem_immnd_dest;	/*ABT used if local immnd crashes ? */
 

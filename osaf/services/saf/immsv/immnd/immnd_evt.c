@@ -2963,6 +2963,7 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq)
 	NCS_NODE_ID nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 	SaUint32T conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	bool isLoading = (cb->mState == IMM_SERVER_LOADING_SERVER) &&immModel_getLoader(cb);
 	NCS_UBAID uba;
 	TRACE_ENTER();
 	uba.start = NULL;
@@ -3215,6 +3216,25 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq)
 	case IMMND_EVT_A2ND_ADMO_FINALIZE:
 		if(immModel_immNotWritable(cb) || cb->mSyncFinalizing) {
 			error = SA_AIS_ERR_TRY_AGAIN;
+		}
+		
+		if(isLoading && (error == SA_AIS_OK )) {
+       			IMMSV_EVT send_evt;
+			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+
+        		send_evt.type = IMMSV_EVT_TYPE_IMMD;
+		        send_evt.info.immd.type = IMMD_EVT_ND2D_LOADING_COMPLETED;
+		        send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
+		        send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
+		        send_evt.info.immd.info.ctrl_msg.pbeEnabled =
+		  		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+
+			error = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
+
+			if (error != NCSCC_RC_SUCCESS) {
+				LOG_ER("Coord failed to send 'loading completed' message to IMMD");
+				error = SA_AIS_ERR_LIBRARY;
+			}
 		}
 
 		break;
