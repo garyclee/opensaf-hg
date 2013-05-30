@@ -246,6 +246,8 @@ typedef enum immd_evt_type {
 
 	IMMD_EVT_ND2D_FEVS_REQ_2 = 24,	/*Fake EVS over Director. */
 
+	IMMD_EVT_ND2D_LOADING_COMPLETED = 25, /* loading completes sucessfully */
+
 	IMMD_EVT_MAX
 } IMMD_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMD_EVT_TYPE enum. */

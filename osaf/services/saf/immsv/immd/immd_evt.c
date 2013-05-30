@@ -35,6 +35,7 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 static uint32_t immd_evt_proc_immnd_req_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 static uint32_t immd_evt_proc_immnd_announce_load(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 static uint32_t immd_evt_proc_immnd_announce_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uint32_t immd_evt_proc_loading_completed(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
 static uint32_t immd_evt_proc_immnd_abort_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
@@ -165,6 +166,11 @@ void immd_process_evt(void)
 	case IMMD_EVT_LGA_CB:
 		rc = immd_evt_proc_lga_callback(cb, &evt->info.immd);
 		break;
+
+	case IMMD_EVT_ND2D_LOADING_COMPLETED:
+		rc = immd_evt_proc_loading_completed(cb, &evt->info.immd, &evt->sinfo);
+		break;
+
 	default:
 		/* Log the error TBD */
 		LOG_WA("UNRECOGNIZED IMMD EVENT: %u", evt->info.immd.type);
@@ -255,17 +261,17 @@ uint32_t immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sin
 	send_evt.info.immnd.info.fevsReq.isObjSync = (evt->type == IMMD_EVT_ND2D_FEVS_REQ_2)?
 		(fevs_req->isObjSync):0x0;
 
-	memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
-	mbcp_msg.type = IMMD_A2S_MSG_FEVS;
-	mbcp_msg.info.fevsReq = send_evt.info.immnd.info.fevsReq;
-
 	TRACE_5("immd_evt_proc_fevs_req send_count:%llu size:%u",
 		send_evt.info.immnd.info.fevsReq.sender_count, send_evt.info.immnd.info.fevsReq.msg.size);
 
 	if (isResend) {
 		LOG_IN("Resend of fevs message %llu, will not mbcp to peer IMMD",
 		       send_evt.info.immnd.info.fevsReq.sender_count);
-	} else {
+	} else if(!cb->is_loading) {
+		memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
+		mbcp_msg.type = IMMD_A2S_MSG_FEVS;
+		mbcp_msg.info.fevsReq = send_evt.info.immnd.info.fevsReq;
+
 		/*Checkpoint the message to standby director. 
 		   Syncronous call=>wait for ack */
 		proc_rc = immd_mbcsv_sync_update(cb, &mbcp_msg);
@@ -931,6 +937,11 @@ uint32_t immd_evt_proc_immnd_loading_failed(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SE
 		LOG_ER("Node not found %" PRIu64, sinfo->dest);
 		proc_rc = NCSCC_RC_FAILURE;
 	}
+	if (cb->is_loading){
+		cb->is_loading = false;
+		TRACE_5("Loading failed with epoch:%u", cb->mRulingEpoch);	
+	}
+
 	TRACE_LEAVE();
 	return proc_rc;
 }
@@ -1044,6 +1055,7 @@ static uint32_t immd_evt_proc_immnd_announce_load(IMMD_CB *cb, IMMD_EVT *evt, IM
 		cb->mRulingEpoch++;
 		node_info->epoch = cb->mRulingEpoch;
 		immd_announce_load_ok(cb, cb->mRulingEpoch);
+		cb->is_loading = true;
 		LOG_NO("Successfully announced loading. New ruling epoch:%u", cb->mRulingEpoch);
 	} else {
 		LOG_WA("Node not found %" PRIu64, sinfo->dest);
@@ -1052,6 +1064,67 @@ static uint32_t immd_evt_proc_immnd_announce_load(IMMD_CB *cb, IMMD_EVT *evt, IM
  fail:
 	TRACE_LEAVE();
 	return proc_rc;
+}
+
+/****************************************************************************
+ * Name          : immd_evt_proc_loading_completed
+ *
+ * Description   : Function to process the IMMD_EVT_ND2D_LOADING_COMPLETED event 
+ *
+ * Arguments     : IMMD_CB *cb - IMMD CB pointer
+ *                 IMMSV_EVT *evt - Received Event structure
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ *****************************************************************************/
+static uint32_t immd_evt_proc_loading_completed(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+{
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	IMMD_IMMND_INFO_NODE *node_info = NULL;
+	TRACE_ENTER();
+
+	immd_immnd_info_node_get(&cb->immnd_tree, &sinfo->dest, &node_info);
+	if (node_info) {
+		if (node_info->immnd_execPid != evt->info.ctrl_msg.ndExecPid) {
+			/*TODO Return error to coord, remove coord designation ?? */
+			LOG_WA("Wrong PID %u != %u", node_info->immnd_execPid, evt->info.ctrl_msg.ndExecPid);
+			proc_rc = NCSCC_RC_FAILURE;
+			goto fail;
+		}
+
+		if (node_info->immnd_key != cb->immnd_coord) {
+			LOG_WA("Not Coord! %x != %x", node_info->immnd_key, cb->immnd_coord);
+			proc_rc = NCSCC_RC_FAILURE;
+			goto fail;
+			/*TODO Return error to coord, remove coord designation ?? */
+		}
+
+		if (node_info->epoch != cb->mRulingEpoch) {
+			LOG_WA("Wrong Epoch %u != %u", node_info->epoch, cb->mRulingEpoch);
+			proc_rc = NCSCC_RC_FAILURE;
+			goto fail;
+			/*TODO Return error to coord, remove coord designation ?? */
+		}
+
+		if (evt->info.ctrl_msg.epoch != cb->mRulingEpoch ) {
+			LOG_WA("Wrong Epoch %u!=%u ", evt->info.ctrl_msg.epoch, cb->mRulingEpoch);
+			proc_rc = NCSCC_RC_FAILURE;
+			goto fail;
+			/*TODO Return error to coord, remove coord designation ?? */
+		}
+
+		if (cb->is_loading){
+                	cb->is_loading = false;
+			TRACE_5("Loading completed with epoch:%u", cb->mRulingEpoch);
+		}
+
+		} else {
+			LOG_WA("Node not found %" PRIu64, sinfo->dest);
+			proc_rc = NCSCC_RC_FAILURE;
+		}
+	fail:
+		TRACE_LEAVE();
+		return proc_rc;
 }
 
 /****************************************************************************
