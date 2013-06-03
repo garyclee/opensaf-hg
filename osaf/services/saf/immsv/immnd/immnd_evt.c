@@ -7670,7 +7670,7 @@ static uint32_t immnd_evt_proc_reset(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 		}
 		exit(1);
 	} else {
-		LOG_NO("IMMD received reset order from IMMD, but has just restarted - ignoring");
+		LOG_NO("IMMND received reset order from IMMD, but has just restarted - ignoring");
 	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;

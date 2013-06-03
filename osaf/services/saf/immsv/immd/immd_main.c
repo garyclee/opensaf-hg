@@ -201,6 +201,8 @@ int main(int argc, char *argv[])
 	SaAisErrorT error;
 	NCS_SEL_OBJ mbx_fd;
 	struct pollfd fds[3];
+	const int peerMaxWaitMin = 5; /*5 sec*/
+	const char * peerWaitStr = getenv("IMMSV_2PBE_PEER_SC_MAX_WAIT");
 
 	daemonize(argc, argv);
 
@@ -208,6 +210,20 @@ int main(int argc, char *argv[])
 		TRACE("initialize_immd failed");
 		goto done;
 	}
+
+	if(peerWaitStr) {
+		int32_t peerMaxWait = atoi(peerWaitStr);
+		if(peerMaxWait < peerMaxWaitMin) {
+			LOG_WA("IMMSV_PEER_SC_MAX_WAIT has value (%d) less than %u, "
+				"Correcting to %u", peerMaxWait, peerMaxWaitMin,
+				peerMaxWaitMin);
+			peerMaxWait = peerMaxWaitMin;
+		}
+		LOG_NO("2PBE configured with IMMSV_PEER_SC_MAX_WAIT: %d seconds", peerMaxWait);
+
+		immd_cb->mIs2Pbe = true; /* Redundant PBE */
+	}
+
 
 	/* Get file descriptor for mailbox */
 	mbx_fd = ncs_ipc_get_sel_obj(&immd_cb->mbx);

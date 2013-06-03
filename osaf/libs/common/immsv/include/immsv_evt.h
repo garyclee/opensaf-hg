@@ -171,7 +171,7 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_D2ND_ABORT_CCB = 62,	/* Abort CCB broadcast to NDs */
 	IMMND_EVT_D2ND_ADMO_HARD_FINALIZE = 63,	/* Admo hard finalize broadcast to NDs */
 	IMMND_EVT_D2ND_DISCARD_NODE = 64,	/* Crashed IMMND or node, broadcast to NDs */
-	IMMND_EVT_D2ND_RESET = 65,	/* Force all IMMNDs to start from scratch. */
+	IMMND_EVT_D2ND_RESET = 65,	/* Force all or some IMMNDs to start from scratch. */
 
 	IMMND_EVT_CB_DUMP = 66,
 
@@ -392,6 +392,9 @@ typedef struct immsv_d2nd_control {
 	uint8_t syncStarted;
 	SaUint32T nodeEpoch;
 	uint8_t pbeEnabled;
+	IMMSV_OCTET_STRING dir;
+	IMMSV_OCTET_STRING xmlFile;
+	IMMSV_OCTET_STRING pbeFile;	
 } IMMSV_D2ND_CONTROL;
 
 /****************************************************************************
@@ -403,6 +406,9 @@ typedef struct immsv_nd2d_control {
 	SaUint32T epoch;
 	uint8_t refresh;		//TRUE=> This is a refresh of epoch.
 	uint8_t pbeEnabled;
+	IMMSV_OCTET_STRING dir;
+	IMMSV_OCTET_STRING xmlFile;
+	IMMSV_OCTET_STRING pbeFile;
 } IMMSV_ND2D_CONTROL;
 
 typedef struct immsv_nd2d_adminit_req {

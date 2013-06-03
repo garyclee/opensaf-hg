@@ -115,7 +115,7 @@ typedef struct immnd_cb_tag {
 	uint8_t mPendSync;		//1=>sync announced but not received.
 	uint8_t mSyncFinalizing;   //1=>finalizeSync sent but not received.
 	uint8_t mSync;		//true => this node is being synced (client).
-	uint8_t mCanBeCoord;
+	uint8_t mCanBeCoord;    //If!=0 then SC, if 2 the 2pbe arbitration.
 	uint8_t mIsCoord;
 	uint8_t mLostNodes;       //Detached & not syncreq => delay sync start
 	uint8_t mBlockPbeEnable;  //Current PBE has not completed shutdown yet.

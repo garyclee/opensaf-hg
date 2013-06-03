@@ -602,12 +602,40 @@ static void immd_req_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 	TRACE_LEAVE();
 }
 
+static void immd_kill_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
+{
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	IMMSV_EVT kill_evt;
+	TRACE_ENTER();
+	memset(&kill_evt, 0, sizeof(IMMSV_EVT));
+	kill_evt.type = IMMSV_EVT_TYPE_IMMND;
+
+	/* Need to send a fake intro_rsp first otherwise the reset is ignored. */
+	kill_evt.info.immnd.type = IMMND_EVT_D2ND_INTRO_RSP;
+	kill_evt.info.immnd.info.ctrl.nodeId = node_info->immnd_key;
+
+	proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, node_info->immnd_dest, &kill_evt);
+	if (proc_rc != NCSCC_RC_SUCCESS) {
+		LOG_WA("Failed to send INTRO_RSP to IMMND %x", node_info->immnd_key);
+	}	
+
+	kill_evt.info.immnd.type = IMMND_EVT_D2ND_RESET;
+
+	proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, node_info->immnd_dest, &kill_evt);
+	if (proc_rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Failed to send termination message to IMMND %x", node_info->immnd_key);
+	}
+
+	TRACE_LEAVE();
+}
+
 static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, bool doReply)
 {
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT accept_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
 	bool isOnController = node_info->isOnController;
+	bool fsParamMbcp = false;
 	TRACE_ENTER();
 
 	memset(&accept_evt, 0, sizeof(IMMSV_EVT));
@@ -637,21 +665,33 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, bool 
 		accept_evt.info.immnd.info.ctrl.syncStarted = node_info->syncStarted;
 	}
 
-	mbcp_msg.type = IMMD_A2S_MSG_INTRO_RSP;
+	mbcp_msg.type = IMMD_A2S_MSG_INTRO_RSP;  /* Mbcp intro to SBY. */
 	mbcp_msg.info.ctrl = accept_evt.info.immnd.info.ctrl;
+	if(cb->mPbeFile && !(cb->mFsParamMbcp) && cb->immd_remote_up) { /* Send fs params to SBY. */
+		mbcp_msg.info.ctrl.pbeEnabled = 2; /* Extended intro sent only once to current SBY */
+		cb->mFsParamMbcp = true;
+		fsParamMbcp = true;
+		mbcp_msg.info.ctrl.dir.size = strlen(cb->mDir)+1;
+		mbcp_msg.info.ctrl.dir.buf = (char *) cb->mDir;
+		mbcp_msg.info.ctrl.xmlFile.size = strlen(cb->mFile)+1;
+		mbcp_msg.info.ctrl.xmlFile.buf = (char *) cb->mFile;
+		mbcp_msg.info.ctrl.pbeFile.size = strlen(cb->mPbeFile)+1;
+		mbcp_msg.info.ctrl.pbeFile.buf = (char *) cb->mPbeFile;
+	}
 
 	/*Checkpoint the message to standby director. 
 	   Syncronous call=>wait for ack */
 	proc_rc = immd_mbcsv_sync_update(cb, &mbcp_msg);
 
 	if (proc_rc != NCSCC_RC_SUCCESS) {
+		if(fsParamMbcp) {cb->mFsParamMbcp = false;}
 		LOG_WA("failed to replicate node accept message to stdby err:%u", proc_rc);
 		goto done;
 	}
 
-	if (doReply && (cb->is_loc_immnd_up || cb->is_rem_immnd_up)) {		/*If doReply is false then this was only an epoch refresh
-				   from an IMMND. */
-		/* Send reply on intro (accept) message back to sending IMMND */
+	if (doReply) {
+		/*If doReply is false then this was only an epoch refresh from an IMMND.
+		  Send reply on intro (accept) message back to sending IMMND */
 		proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, node_info->immnd_dest, &accept_evt);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed to send accept message to IMMND %x", node_info->immnd_key);
@@ -706,7 +746,6 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, bool 
 			}
 		}
 	} else {		/* Not doReply => epoch refresh => probably a sync => reset sync request. */
-
 		/*Reset any syncRequester to normal. */
 		node_info->syncRequested = 0;
 	}
@@ -1214,80 +1253,273 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 	TRACE_ENTER();
 
 	immd_immnd_info_node_get(&cb->immnd_tree, &sinfo->dest, &node_info);
-	if (node_info) {
-		oldPid = node_info->immnd_execPid;
-		oldEpoch = node_info->epoch;
-		newPid = evt->info.ctrl_msg.ndExecPid;
-		newEpoch = evt->info.ctrl_msg.epoch;
-
-		if (oldPid != newPid || oldEpoch != newEpoch) {
-			if (oldEpoch != newEpoch) {
-				LOG_NO("ACT: New Epoch for IMMND process at node %x "
-				       "old epoch: %u  new epoch:%u", node_info->immnd_key, oldEpoch, newEpoch);
-			}
-
-			node_info->immnd_execPid = newPid;
-			node_info->epoch = newEpoch;
-
-			if (node_info->syncStarted) {
-				osafassert(oldPid == newPid);
-				osafassert(node_info->isCoord);
-				osafassert(node_info->isOnController);
-				if(node_info->epoch != cb->mRulingEpoch) {
-					LOG_ER("immd_evt_proc_immnd_intro: syncStarted true for node with "
-						"strange epoch node_info->epoch(%u) != cb->mRulingEpoc(%u)",	
-						node_info->epoch, cb->mRulingEpoch);
-					abort();
-				}
-				/*node_info->epoch = cb->mRulingEpoch;*/
-				node_info->syncStarted = false;
-			}
-
-			/*is this check necessary ?? 
-			   It could happen with EVS but not with FEVS. */
-			if (oldPid && (oldPid != newPid)) {
-				LOG_NO("Detected new IMMND process at node %x "
-				       "old epoch: %u  new epoch:%u", node_info->immnd_key, oldEpoch, newEpoch);
-			}
-		}
-
-		TRACE_5("Node %x FOUND pid:%d epoch:%u syncR:%u",
-			node_info->immnd_key, node_info->immnd_execPid, node_info->epoch, node_info->syncRequested);
-
-		if (evt->info.ctrl_msg.refresh) {
-			TRACE_5("ONLY A REFRESH OF epoch for %x, newE:%u RulngE:%u",
-				node_info->immnd_key, node_info->epoch, cb->mRulingEpoch);
-			if (cb->mRulingEpoch < node_info->epoch) {
-				cb->mRulingEpoch = node_info->epoch;
-				LOG_NO("Ruling epoch changed to:%u", cb->mRulingEpoch);
-			}
-			immd_accept_node(cb, node_info, false);
-		} else {
-			if (sinfo->dest == cb->loc_immnd_dest) {
-				node_info->isOnController = true;
-				LOG_NO("New IMMND process is on ACTIVE Controller at %x", node_info->immnd_key);
-			} else if (cb->immd_remote_id &&
-				   m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
-						      immd_get_slot_and_subslot_id_from_mds_dest(sinfo->dest))) {
-				node_info->isOnController = true;
-
-				if (cb->is_rem_immnd_up) {
-					osafassert(cb->rem_immnd_dest == sinfo->dest);
-				} else {
-					cb->is_rem_immnd_up = true;	/*ABT BUGFIX 080811 */
-					cb->rem_immnd_dest = sinfo->dest;
-				}
-				LOG_NO("New IMMND process is on STANDBY Controller at %x", node_info->immnd_key);
-			} else {	/*if(cb->immd_remote_id) */
-
-				/*node_info->isOnPayload = true; */
-				LOG_IN("New IMMND process is on PAYLOAD at:%x", node_info->immnd_key);
-			}
-			immd_accept_node(cb, node_info, true);
-		}
-	} else {
+	if (!node_info) {
 		LOG_WA("Node not found %" PRIu64, sinfo->dest);
 		proc_rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
+	oldPid = node_info->immnd_execPid;
+	oldEpoch = node_info->epoch;
+	newPid = evt->info.ctrl_msg.ndExecPid;
+	newEpoch = evt->info.ctrl_msg.epoch;
+
+	if (oldPid != newPid || oldEpoch != newEpoch) {
+		if (oldEpoch != newEpoch) {
+			LOG_NO("ACT: New Epoch for IMMND process at node %x "
+				"old epoch: %u  new epoch:%u", node_info->immnd_key, oldEpoch, newEpoch);
+		}
+
+		node_info->immnd_execPid = newPid;
+		node_info->epoch = newEpoch;
+
+		if (node_info->syncStarted) {
+			osafassert(oldPid == newPid);
+			osafassert(node_info->isCoord);
+			osafassert(node_info->isOnController);
+			if(node_info->epoch != cb->mRulingEpoch) {
+				LOG_ER("immd_evt_proc_immnd_intro: syncStarted true for node with "
+					"strange epoch node_info->epoch(%u) != cb->mRulingEpoc(%u)",	
+					node_info->epoch, cb->mRulingEpoch);
+				abort();
+			}
+			node_info->syncStarted = false;
+		}
+
+		/*is this check necessary ?  It could happen with EVS but should not with FEVS. 
+		  Could maybe happen with TCP as transport. It means a new node join happens 
+		  before MDS detected detach of the node with same address.
+		 */
+		if (oldPid && (oldPid != newPid)) {
+			LOG_WA("Detected new IMMND process at node %x "
+				"old epoch: %u  new epoch:%u", node_info->immnd_key, oldEpoch, newEpoch);
+		}
+	}
+
+	TRACE_5("Node %x FOUND pid:%d epoch:%u syncR:%u",
+		node_info->immnd_key, node_info->immnd_execPid, node_info->epoch, node_info->syncRequested);
+
+	if (evt->info.ctrl_msg.refresh) {
+		TRACE_5("ONLY A REFRESH OF epoch for %x, newE:%u RulngE:%u",
+			node_info->immnd_key, node_info->epoch, cb->mRulingEpoch);
+		if (cb->mRulingEpoch < node_info->epoch) {
+			cb->mRulingEpoch = node_info->epoch;
+			LOG_NO("Ruling epoch changed to:%u", cb->mRulingEpoch);
+		}
+		immd_accept_node(cb, node_info, false);
+		goto done;
+	} 
+
+	/* Determine type of node. */
+	if (sinfo->dest == cb->loc_immnd_dest) {
+		node_info->isOnController = true;
+		LOG_NO("New IMMND process is on ACTIVE Controller at %x", node_info->immnd_key);
+	} else if (cb->immd_remote_id && m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
+			immd_get_slot_and_subslot_id_from_mds_dest(sinfo->dest))) {
+		node_info->isOnController = true;
+
+		if (cb->is_rem_immnd_up) {
+			osafassert(cb->rem_immnd_dest == sinfo->dest);
+		} else {
+			cb->is_rem_immnd_up = true;	/*ABT BUGFIX 080811 */
+			cb->rem_immnd_dest = sinfo->dest;
+		}
+		LOG_NO("New IMMND process is on STANDBY Controller at %x", node_info->immnd_key);
+	} else {
+		LOG_IN("New IMMND process is on PAYLOAD at:%x", node_info->immnd_key);
+	}
+
+	/* Check for consistent file/dir/pbe configuration. If problem is found
+	   then node is not accepted and no reply is sent for the intro request
+	   from that node. 
+	 */
+
+	if(evt->info.ctrl_msg.pbeEnabled == 2) { /* extended intro */
+		TRACE("Extended intro");
+		osafassert(evt->info.ctrl_msg.dir.size > 1); /* xml & dir ensured by immnd_initialize() */
+		osafassert(evt->info.ctrl_msg.xmlFile.size > 1);
+		if(evt->info.ctrl_msg.pbeFile.size > 1) {
+			node_info->pbeConfigured = true;
+		}
+	} 
+
+	if(!(node_info->pbeConfigured)) { /* New node does not have pbe configured. */
+		if(cb->mIs2Pbe) {
+			/* 2PBE configured at IMMD => all nodes *must* have pbe file defined. @@@ */
+			LOG_ER("2PBE is configured in immd.conf, but no Pbe file "
+				"is configured for node %x - rejecting node", node_info->immnd_key);
+			immd_kill_node(cb, node_info);
+			proc_rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+
+		if(cb->mPbeFile) {
+			/* This may need modification for upgrade 4.x -> 4.4.
+			   Any non 4.4 -IMMND that crashes and restarts will not get synced. */
+			LOG_ER("PBE is configured at first attached SC-immnd, but no Pbe file "
+				"is configured for immnd at node %x - rejecting node", node_info->immnd_key);
+			immd_kill_node(cb, node_info);
+			proc_rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+	}
+
+	/* If PBE is not configured at some node then it does not send any extended intro. 
+	   Thus consistency checking for files is not done for non PBE configurations.
+	   Such configurations may then use different directory and xml file name at
+	   different nodes. There is even a backwards compatibility argument possible here.
+	 */
+
+	if(cb->mDir) { /* First SC IMMND already attached *and* with pbe configured.
+			* Check that new file/dir base reported matches base already set by first SC.
+			* If cb->mDir is set then extended intro has been sent to IMMD. That is only
+			* done if at least 1-PBE is enabled.
+			*/
+		osafassert(cb->mPbeFile); 
+		osafassert(cb->mFile);
+		if(strcmp(cb->mPbeFile, evt->info.ctrl_msg.pbeFile.buf)) {
+			/* Missmatch on Pbe file */
+			if(cb->mIs2Pbe && node_info->pbeConfigured) {
+				/* As long as the pbe-file is not empty 2pbe accepts unequal names.*/
+				LOG_WA("Pbe file name differ (%s) != (%s). Allowed for 2PBE.",
+					cb->mPbeFile, evt->info.ctrl_msg.pbeFile.buf);
+			} else {
+				/* Shared filesystem */
+				LOG_ER("Unacceptable difference in PBE file name "
+					"between nodes: (%s)!=(%s) - rejecting node %x.",
+					cb->mPbeFile, evt->info.ctrl_msg.pbeFile.buf,
+					node_info->immnd_key);
+				immd_kill_node(cb, node_info);
+				proc_rc = NCSCC_RC_FAILURE;
+				goto done;
+			}
+		} else TRACE("pbeFile matches: %s", cb->mPbeFile);
+
+		if(strcmp(cb->mDir, evt->info.ctrl_msg.dir.buf)) {
+			/* Missmatch on directory */
+			if(cb->mIs2Pbe && node_info->pbeConfigured) {
+				LOG_WA("Pbe directory name differ on SCs (%s) != (%s)."
+					"Allowed for 2PBE.", cb->mDir, evt->info.ctrl_msg.dir.buf);
+			} else {
+				LOG_ER("Unacceptable difference in PBE directory name "
+					"on shared fs between nodes: (%s)!=(%s) - rejecting node %x.",
+					cb->mDir, evt->info.ctrl_msg.dir.buf,
+					node_info->immnd_key);
+				immd_kill_node(cb, node_info);
+				proc_rc = NCSCC_RC_FAILURE;
+				goto done;
+			}
+		} else TRACE("Dir matches: %s", cb->mDir);
+
+		if(strcmp(cb->mFile, evt->info.ctrl_msg.xmlFile.buf)) {
+			/* Missmatch on Xml file */
+			if(cb->mIs2Pbe && evt->info.ctrl_msg.xmlFile.buf) {
+				LOG_WA("Xml file name differ on nodess (%s) != (%s)."
+					"Allowed for 2PBE.",
+					cb->mFile, evt->info.ctrl_msg.xmlFile.buf);
+			} else {
+				LOG_ER("Unacceptable difference in XML file name "
+					"on shared fs between nodes: (%s)!=(%s) - rejecting node %x.",
+					cb->mFile, evt->info.ctrl_msg.xmlFile.buf,
+					node_info->immnd_key);
+				immd_kill_node(cb, node_info);
+				proc_rc = NCSCC_RC_FAILURE;
+				goto done;
+			}
+		} else TRACE("xmlFile matches:%s", cb->mFile);
+
+		goto accept_node;
+	}
+
+	osafassert(cb->mDir==NULL);
+	/* Either no IMMND at SC has attached or the one that atached was not
+	   configured for PBE (0-PBE). First IMMND at SC that introduces itself
+	   determines file/dir base. 0pbe, 1pbe or 2pbe
+	*/
+	if(cb->immnd_coord) {
+		/* First SC IMMND already arrived earlier with PBE *not* configured.
+		   It would then immediately have been chosen as coord IMMND.
+		 */
+		if(evt->info.ctrl_msg.pbeFile.buf) {
+			LOG_ER("PBE not configured at first attached SC-immnd, but Pbe "
+				"is configured for immnd at %x - rejecting node", 
+				node_info->immnd_key);
+			immd_kill_node(cb, node_info);
+			proc_rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		goto accept_node;
+	} else if(node_info->isOnController) {
+		/* No IMMND at SC has attached earlier, this is the first one. */
+		LOG_NO("First SC IMMND attached %x", node_info->immnd_key);
+
+		if(evt->info.ctrl_msg.pbeEnabled ==2) {
+			cb->mDir = evt->info.ctrl_msg.dir.buf;
+			evt->info.ctrl_msg.dir.buf = NULL; /*steal*/
+			evt->info.ctrl_msg.dir.size = 0;
+
+			cb->mFile = evt->info.ctrl_msg.xmlFile.buf;
+			evt->info.ctrl_msg.xmlFile.buf = NULL; /*steal*/
+			evt->info.ctrl_msg.xmlFile.size = 0;
+
+			cb->mPbeFile = evt->info.ctrl_msg.pbeFile.buf; 
+			evt->info.ctrl_msg.pbeFile.buf = NULL; /*steal*/
+			evt->info.ctrl_msg.pbeFile.size = 0;
+		}
+
+		if(cb->mPbeFile == NULL) {
+			osafassert(!node_info->pbeConfigured);
+			osafassert(!cb->mIs2Pbe);
+			LOG_NO("First IMMND at SC to attach is NOT configured for PBE");
+		}
+
+		TRACE("PBE fs init: dir:%s xmlfile:%s pbefile:%s", cb->mDir, cb->mFile, cb->mPbeFile);
+		if(!cb->mIs2Pbe && cb->mPbeFile) { 
+			/* 1-PBE: Verify payloads that attached prior to first SC agree about PBE. 
+			   Check only needed if 1pbe, i.e. not 2pbe since 2pbe is known apriori
+			   by IMMD and checked above at @@@ */
+			IMMD_IMMND_INFO_NODE *other_node_info = NULL;
+			MDS_DEST tmpDest = 0LL;
+			immd_immnd_info_node_getnext(&cb->immnd_tree, &tmpDest, &other_node_info);
+			osafassert(node_info); /* At least self must exist in db */
+			while(other_node_info) {
+				tmpDest = other_node_info->immnd_dest;
+				TRACE("Node:%x pid.%u pbeConf:%d", other_node_info->immnd_key,
+					other_node_info->immnd_execPid, other_node_info->pbeConfigured);
+				if(other_node_info->immnd_execPid && !(other_node_info->pbeConfigured)) {
+					osafassert(other_node_info != node_info); /* cant be self */
+					LOG_ER("PBE is configured at first SC, but no Pbe file is "
+						"configured for introduced node %x - "
+						"terminating that node", other_node_info->immnd_key);
+					immd_kill_node(cb, other_node_info);
+				}
+
+				immd_immnd_info_node_getnext(&cb->immnd_tree, &tmpDest, &other_node_info);
+			}
+		}
+	} else { /* No SC IMMND has attached yet*/
+		LOG_NO("Payload node %x introduced before first SC, can not yet "
+			"verify File/Directory base matches SC.", node_info->immnd_key);
+	}
+
+ accept_node:
+
+	immd_accept_node(cb, node_info, true);
+
+ done:
+
+	if(evt->info.ctrl_msg.pbeEnabled == 2) { /* extended intro */
+		free(evt->info.ctrl_msg.xmlFile.buf);
+		evt->info.ctrl_msg.xmlFile.buf=NULL;
+		evt->info.ctrl_msg.xmlFile.size=0;
+
+		free(evt->info.ctrl_msg.pbeFile.buf);
+		evt->info.ctrl_msg.pbeFile.buf=NULL;
+		evt->info.ctrl_msg.pbeFile.size=0;
+
+		free(evt->info.ctrl_msg.dir.buf);
+		evt->info.ctrl_msg.dir.buf=NULL;
+		evt->info.ctrl_msg.dir.size=0;
 	}
 	TRACE_LEAVE();
 	return proc_rc;
@@ -1512,8 +1744,6 @@ static uint32_t immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEN
 	impl_req->impl_name.size = 0;
 	return proc_rc;
 }
-
-
 
 
 /****************************************************************************
@@ -2135,6 +2365,8 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 			if(!(cb->ha_state == SA_AMF_HA_ACTIVE)) {
 				immd_proc_rebroadcast_fevs(cb, 2);
 			}
+
+			cb->mFsParamMbcp = false; /* Ensure FS params mbcp'ed when SBY re-attaches.*/
 		}
 		break;
 

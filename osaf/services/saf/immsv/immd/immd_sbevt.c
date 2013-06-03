@@ -130,6 +130,12 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 	TRACE_5("NodeId: %x epoch:%u canBeCoord:%u isCoord:%u syncStart:%u, rulingEpoch:%u pbe:%u",
 		ctrl->nodeId, ctrl->nodeEpoch, ctrl->canBeCoord, ctrl->isCoord, ctrl->syncStarted, 
 		ctrl->rulingEpoch, ctrl->pbeEnabled);
+
+	if((ctrl->canBeCoord > 1) && !(immd_cb->mIs2Pbe)) {
+		LOG_ER("Active IMMD has 2PBE enabled, yet this standby is not enabled for 2PBE - exiting");
+		exit(1);
+	}
+
 	if (cb->mRulingEpoch < ctrl->rulingEpoch) {
 		cb->mRulingEpoch = ctrl->rulingEpoch;
 		LOG_NO("Ruling epoch noted as:%u on IMMD standby", cb->mRulingEpoch);
@@ -185,6 +191,55 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 	} else {
 		LOG_IN("Standby IMMD could not find node with nodeId:%x", ctrl->nodeId);
 	}
+
+	if(ctrl->pbeEnabled == 2) { /* Extended intro. */
+		TRACE("Standby receiving FS params: %s %s %s", 
+			ctrl->dir.buf, ctrl->xmlFile.buf, ctrl->pbeFile.buf);
+
+		if(ctrl->dir.size && cb->mDir==NULL) {
+			cb->mDir = ctrl->dir.buf; /*steal*/
+		} else {
+			/* Should not get here since fs params sent only once.*/
+			if(strcmp(cb->mDir, ctrl->dir.buf)) {
+				LOG_WA("SBY: Discrepancy on IMM directory: %s != %s",
+					cb->mDir, ctrl->dir.buf);
+			}
+			free(ctrl->dir.buf);
+
+		}
+		ctrl->dir.buf=NULL;
+		ctrl->dir.size=0;
+
+
+		if(ctrl->xmlFile.size && cb->mFile==NULL) {
+			cb->mFile = ctrl->xmlFile.buf; /*steal*/
+		} else {
+			/* Should not get here since fs params sent only once.*/
+			if(strcmp(cb->mFile, ctrl->xmlFile.buf)) {
+				LOG_WA("SBY: Discrepancy on IMM XML file: %s != %s",
+					cb->mFile, ctrl->xmlFile.buf);
+			}
+			free(ctrl->xmlFile.buf);
+		}
+		ctrl->xmlFile.buf=NULL;
+		ctrl->xmlFile.size=0;
+
+
+		if(ctrl->pbeFile.size && cb->mPbeFile==NULL) {
+			cb->mPbeFile = ctrl->pbeFile.buf; /*steal*/
+		} else {
+			/* Should not get here since fs params sent only once.*/
+			if(strcmp(cb->mPbeFile, ctrl->pbeFile.buf)) {
+				LOG_WA("SBY: Discrepancy on IMM PBE file: %s != %s",
+					cb->mPbeFile, ctrl->pbeFile.buf);
+			}
+			free(ctrl->pbeFile.buf);
+		}
+		ctrl->pbeFile.buf=NULL;
+		ctrl->pbeFile.size=0;
+	}
+
+
 	TRACE_LEAVE();
 	immd_cb_dump();
 	return rc;

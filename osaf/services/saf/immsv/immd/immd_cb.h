@@ -58,6 +58,7 @@ typedef struct immd_immnd_info_node {
 	bool isOnController;
 	bool isCoord;
 	bool syncStarted;
+	bool pbeConfigured; /* Pbe-file-name configured. Pbe may still be disabled. */
 } IMMD_IMMND_INFO_NODE;
 
 typedef struct immd_cb_tag {
@@ -108,8 +109,6 @@ typedef struct immd_cb_tag {
 	/* Periodic Acks on the max-no received from each ND. */
 
 	SaUint32T mRulingEpoch;
-	uint8_t mExpectedNodes;	//Hint on number of nodes in cluster
-	uint8_t mWaitSecs;		//Max time to wait for mExpectedNodes
 	/* to join in cluster start. */
 	NCS_NODE_ID immnd_coord;	//The nodeid of the current IMMND Coord
 	NCS_SEL_OBJ usr1_sel_obj;	/* Selection object for USR1 signal events */
@@ -118,6 +117,13 @@ typedef struct immd_cb_tag {
 	IMMD_SAVED_FEVS_MSG *saved_msgs;
 
 	SaImmRepositoryInitModeT mRim; /* Should be the rim obtained from coord. */
+	const char *mDir;       /* The directory where imm.xml & pbe files reside */
+	const char *mFile;      /* The imm.xml file to start from */
+	const char *mPbeFile;   /* If the pbe feature is configured, without 2PBE suffix */
+	bool mFsParamMbcp;      /* True => FsParams have been chpointed to standby IMMD. */
+
+	bool mIs2Pbe;           /* true => Redundant PBE (2PBE). NYI */
+
 } IMMD_CB;
 
 uint32_t immd_immnd_info_tree_init(IMMD_CB *cb);

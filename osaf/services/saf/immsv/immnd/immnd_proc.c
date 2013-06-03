@@ -369,9 +369,34 @@ uint32_t immnd_introduceMe(IMMND_CB *cb)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_INTRO;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
-	send_evt.info.immd.info.ctrl_msg.refresh = cb->mIntroduced;
-	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
-		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+	if(cb->mIntroduced) {
+		send_evt.info.immd.info.ctrl_msg.refresh = SA_TRUE;
+		send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
+			cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+	} else if(cb->mPbeFile) {
+		/* First time send dir/file/pbe-file info so that IMMD can
+		   verify cluster consistent file setup. Pbe is tentatively
+		   enabled. May turn out to be disabled after loading.
+		   This uses an extension of the intro protocol that is 
+		   backwards compatible. By setting msg.pbeEnabled to 2
+		   receivers that are aware of the extension will act on
+		   the added info. Old implementaitons simply test on 
+		   pbeEnabled being zero or not.
+		*/
+		send_evt.info.immd.info.ctrl_msg.pbeEnabled = 2; 
+		send_evt.info.immd.info.ctrl_msg.dir.size = strlen(cb->mDir)+1;
+		send_evt.info.immd.info.ctrl_msg.dir.buf = (char *) cb->mDir;
+		send_evt.info.immd.info.ctrl_msg.xmlFile.size = strlen(cb->mFile)+1;
+		send_evt.info.immd.info.ctrl_msg.xmlFile.buf = (char *) cb->mFile;
+		send_evt.info.immd.info.ctrl_msg.pbeFile.size = strlen(cb->mPbeFile)+1;
+		send_evt.info.immd.info.ctrl_msg.pbeFile.buf = (char *) cb->mPbeFile;
+		/*
+		if(cb->node_id == 0x2040f) {
+			LOG_NO("ABT Fault inject on node 0x2040f");
+			send_evt.info.immd.info.ctrl_msg.pbeFile.size = 0;
+		}
+		*/
+	}
 
 	if (!immnd_is_immd_up(cb)) {
 		return NCSCC_RC_FAILURE;
