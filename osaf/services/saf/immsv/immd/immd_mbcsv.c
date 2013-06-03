@@ -565,6 +565,34 @@ static uint32_t mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 		ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.pbeEnabled);
 
+		if((arg->info.encode.io_reo_type == IMMD_A2S_MSG_INTRO_RSP)
+			&& (immd_msg->info.ctrl.pbeEnabled==2)) {  /* extended intro */
+			LOG_NO("Encoding Fs params for mbcp to standy immd");
+			
+			uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
+			osafassert(uns32_ptr);
+			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
+			ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.dir.size);
+
+			IMMSV_OCTET_STRING *os = &(immd_msg->info.ctrl.dir);
+			immsv_evt_enc_inline_string(&arg->info.encode.io_uba, os);
+
+			uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
+			osafassert(uns32_ptr);
+			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
+			ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.xmlFile.size);
+
+			os = &(immd_msg->info.ctrl.xmlFile);
+			immsv_evt_enc_inline_string(&arg->info.encode.io_uba, os);
+
+			uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
+			osafassert(uns32_ptr);
+			ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
+			ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.pbeFile.size);
+				
+			os = &(immd_msg->info.ctrl.pbeFile);
+			immsv_evt_enc_inline_string(&arg->info.encode.io_uba, os);
+		}
 		break;
 
 	case IMMD_A2S_MSG_RESET:
@@ -942,6 +970,28 @@ static uint32_t mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 		immd_msg->info.ctrl.pbeEnabled = ncs_decode_8bit(&ptr);
 		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
+
+		if((evt_type == IMMD_A2S_MSG_INTRO_RSP) && (immd_msg->info.ctrl.pbeEnabled==2)) {
+			TRACE("Decoding Fs params for mbcp to standy immd");
+
+			IMMSV_OCTET_STRING *os = &(immd_msg->info.ctrl.dir);
+			ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
+			os->size = ncs_decode_32bit(&ptr);
+			ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
+			immsv_evt_dec_inline_string(&arg->info.decode.i_uba, os);
+
+			os = &(immd_msg->info.ctrl.xmlFile);
+			ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
+			os->size = ncs_decode_32bit(&ptr);
+			ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
+			immsv_evt_dec_inline_string(&arg->info.decode.i_uba, os);
+
+			os = &(immd_msg->info.ctrl.pbeFile);
+			ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
+			os->size = ncs_decode_32bit(&ptr);
+			ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
+			immsv_evt_dec_inline_string(&arg->info.decode.i_uba, os);
+		}
 
 		rc = immd_process_node_accept(cb, &immd_msg->info.ctrl);
 		if (rc != NCSCC_RC_SUCCESS) {

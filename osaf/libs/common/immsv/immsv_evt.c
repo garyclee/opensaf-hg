@@ -1534,6 +1534,24 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 				LOG_ER("TOO MANY attribute modifications line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
+		} else if ((i_evt->info.immd.info.ctrl_msg.pbeEnabled == 2) &&
+			(i_evt->info.immd.type == IMMD_EVT_ND2D_INTRO)) { /* extended intro */
+
+			IMMSV_OCTET_STRING *os = &(i_evt->info.immd.info.ctrl_msg.dir);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
+
+			os = &(i_evt->info.immd.info.ctrl_msg.xmlFile);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
+
+			os = &(i_evt->info.immd.info.ctrl_msg.pbeFile);
+			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
+				return NCSCC_RC_OUT_OF_MEM;
+			}
+
 		}
 	} else if (i_evt->type == IMMSV_EVT_TYPE_IMMND) {
 		if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_IMM_FEVS) ||
@@ -2135,6 +2153,17 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 				immsv_evt_dec_attrmods(i_ub, &p);
 				o_evt->info.immd.info.objModify.attrMods = p;
 			}
+		} else if ((o_evt->info.immd.info.ctrl_msg.pbeEnabled == 2) && 
+			(o_evt->info.immd.type == IMMD_EVT_ND2D_INTRO)) { /* extended intro */
+
+			IMMSV_OCTET_STRING *os = &(o_evt->info.immd.info.ctrl_msg.dir);
+			immsv_evt_dec_inline_string(i_ub, os);
+
+			os = &(o_evt->info.immd.info.ctrl_msg.xmlFile);
+			immsv_evt_dec_inline_string(i_ub, os);
+
+			os = &(o_evt->info.immd.info.ctrl_msg.pbeFile);
+			immsv_evt_dec_inline_string(i_ub, os);
 		}
 	} else if (o_evt->type == IMMSV_EVT_TYPE_IMMND) {
 		if ((o_evt->info.immnd.type == IMMND_EVT_A2ND_IMM_FEVS) ||
@@ -2823,6 +2852,25 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
 			ncs_encode_8bit(&p8, immdevt->info.ctrl_msg.pbeEnabled);
 			ncs_enc_claim_space(o_ub, 1);
+
+			if((immdevt->info.ctrl_msg.pbeEnabled == 2) &&
+				(immdevt->type == IMMD_EVT_ND2D_INTRO)) { /* extended */
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+				ncs_encode_32bit(&p8, immdevt->info.ctrl_msg.dir.size);
+				ncs_enc_claim_space(o_ub, 4);
+				/* immdevt->info.ctrl_msg.dir.buf encoded by sublevel */
+
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+				ncs_encode_32bit(&p8, immdevt->info.ctrl_msg.xmlFile.size);
+				ncs_enc_claim_space(o_ub, 4);
+				/* immdevt->info.ctrl_msg.xmlFile.buf encoded by sublevel */
+
+
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+				ncs_encode_32bit(&p8, immdevt->info.ctrl_msg.pbeFile.size);
+				ncs_enc_claim_space(o_ub, 4);
+				/* immdevt->info.ctrl_msg.pbeFile.buf encoded by sublevel */
+			}
 			break;
 
 		case IMMD_EVT_ND2D_SYNC_FEVS_BASE:
@@ -4097,6 +4145,24 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 1);
 			immdevt->info.ctrl_msg.pbeEnabled = ncs_decode_8bit(&p8);
 			ncs_dec_skip_space(i_ub, 1);
+
+			if((immdevt->info.ctrl_msg.pbeEnabled == 2) &&
+				(immdevt->type == IMMD_EVT_ND2D_INTRO)) { /* extended */
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+				immdevt->info.ctrl_msg.dir.size = ncs_decode_32bit(&p8);
+				ncs_dec_skip_space(i_ub, 4);
+				/* immdevt->info.ctrl_msg.dir.buf decoded by sublevel */
+
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+				immdevt->info.ctrl_msg.xmlFile.size = ncs_decode_32bit(&p8);
+				ncs_dec_skip_space(i_ub, 4);
+				/* immdevt->info.ctrl_msg.xmlFile.buf decoded by sublevel */
+
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+				immdevt->info.ctrl_msg.pbeFile.size = ncs_decode_32bit(&p8);
+				ncs_dec_skip_space(i_ub, 4);
+				/* immdevt->info.ctrl_msg.pbeFile.buf decoded by sublevel */
+			}
 			break;
 
 		case IMMD_EVT_ND2D_SYNC_FEVS_BASE:
