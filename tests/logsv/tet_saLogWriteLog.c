@@ -24,6 +24,6 @@ void saLogWriteLog_01(void)
                            SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLog(logStreamHandle, SA_TIME_ONE_SECOND, &genLogRecord);
     safassert(saLogFinalize(logHandle), SA_AIS_OK);
-    test_validate(rc, SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_NOT_SUPPORTED);
 }
 

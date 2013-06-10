@@ -17,6 +17,10 @@
 
 #include <sys/time.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <aio.h>
 
 #include "logtest.h"
 
