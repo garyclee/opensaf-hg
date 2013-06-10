@@ -24,6 +24,6 @@ void saLogStreamOpenAsync_2_01(void)
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     rc = saLogStreamOpenAsync_2(logHandle, &systemStreamName, NULL, 0, invocation);
     safassert(saLogFinalize(logHandle), SA_AIS_OK);
-    test_validate(rc, SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_NOT_SUPPORTED);
 }
 

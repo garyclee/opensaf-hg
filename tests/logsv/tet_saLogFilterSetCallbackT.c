@@ -19,6 +19,6 @@
 
 void saLogFilterSetCallbackT_01(void)
 {
-    test_validate(SA_AIS_ERR_NOT_SUPPORTED, SA_AIS_OK);
+    test_validate(SA_AIS_ERR_NOT_SUPPORTED, SA_AIS_ERR_NOT_SUPPORTED);
 }
 

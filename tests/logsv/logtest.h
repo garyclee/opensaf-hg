@@ -31,7 +31,7 @@
 #define SA_LOG_STREAM_APPLICATION2 "safLgStr=saLogApplication2"
 #define SA_LOG_STREAM_APPLICATION3 "safLgStr=saLogApplication3"
 #define DEFAULT_APP_LOG_REC_SIZE 128
-#define DEFAULT_APP_LOG_FILE_SIZE 512
+#define DEFAULT_APP_LOG_FILE_SIZE 1024 * 1024
 #define DEFAULT_FORMAT_EXPRESSION "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sv @Sl \"@Cb\""
 #define SA_LOG_STREAM_APPLICATION1 "safLgStr=saLogApplication1"
 #define DEFAULT_ALM_LOG_REC_SIZE 1024  
@@ -40,8 +40,8 @@
 #define DEFAULT_NOT_LOG_BUFFER "Notification stream test" 
 #define DEFAULT_NOTIFYING_OBJECT "safSu=ntfyo,safSg=ntfyo,safApp=ntfyo" 
 #define DEFAULT_NOTIFICATION_OBJECT "safSu=ntfo,safSg=ntfo,safApp=ntfo"
-#define DEFAULT_APP_FILE_PATH_NAME "logtest"
-#define DEFAULT_APP_FILE_NAME "app1"
+#define DEFAULT_APP_FILE_PATH_NAME "saflogtest"
+#define DEFAULT_APP_FILE_NAME "saLogApplication1"
 #define DEFAULT_MAX_FILE_ROTATED 4
 
 extern SaNameT systemStreamName;
