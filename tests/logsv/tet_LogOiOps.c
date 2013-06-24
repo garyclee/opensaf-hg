@@ -603,7 +603,7 @@ void saLogOi_48()
     char command[256];
 
     sprintf(command, "mkdir -p /var/log/opensaf/saflog/xxtest");
-    system(command);
+    rc = system(command);
     sprintf(command, "immcfg -a logRootDirectory=/var/log/opensaf/saflog/xxtest logConfig=1,safApp=safLogService");
     rc = system(command);
     test_validate(WEXITSTATUS(rc), 0);
