@@ -856,8 +856,7 @@ sed -i 's/MDS_TRANSPORT=TIPC/MDS_TRANSPORT=TCP/g' %{_pkgsysconfdir}/nid.conf
 %endif
 
 # $1 == 1 (install), $1 == 2 (upgrade)
-if [ $1 = 1 ]; then
-	%{__ln_s} -f %{_pkgsysconfdir}/nodeinit.conf.controller %{_pkgsysconfdir}/nodeinit.conf
+if [ $1 = 1 ] || [ $1 = 2 ]; then
 	echo "controller" > %{_pkgsysconfdir}/node_type
 	hostname -s >  %{_pkgsysconfdir}/node_name
 fi
@@ -866,9 +865,6 @@ fi
 
 %preun controller
 # $1 == 1 (upgrade), $1 == 0, (uninstall)
-if [ $1 = 0 ]; then
-	%{__rm} -f %{_pkgsysconfdir}/nodeinit.conf
-fi
 
 %postun controller -p /sbin/ldconfig
 
@@ -879,8 +875,7 @@ sed -i 's/MDS_TRANSPORT=TIPC/MDS_TRANSPORT=TCP/g' %{_pkgsysconfdir}/nid.conf
 %endif
 
 # $1 == 1 (install), $1 == 2 (upgrade)
-if [ $1 = 1 ]; then
-	%{__ln_s} -f %{_pkgsysconfdir}/nodeinit.conf.payload %{_pkgsysconfdir}/nodeinit.conf
+if [ $1 = 1 ] || [ $1 = 2 ]; then
 	echo "payload" > %{_pkgsysconfdir}/node_type
 	hostname -s >  %{_pkgsysconfdir}/node_name
 fi
@@ -889,9 +884,6 @@ fi
 
 %preun payload
 # $1 == 1 (upgrade), $1 == 0, (uninstall)
-if [ $1 = 0 ]; then
-	%{__rm} -f %{_pkgsysconfdir}/nodeinit.conf
-fi
 
 %postun payload -p /sbin/ldconfig
 
@@ -913,7 +905,6 @@ fi
 %config %{_pkgsysconfdir}/osafdir.conf
 %config %{_pkgsysconfdir}/nid.conf
 %config %{_initddir}/opensafd
-%{_pkgsysconfdir}/nodeinit.conf
 %{_pkglibdir}/opensafd
 %{_pkglibdir}/opensaf_reboot
 %{_pkglibdir}/nid_tipc

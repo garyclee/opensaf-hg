@@ -516,15 +516,29 @@ uint32_t get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
 uint32_t parse_nodeinit_conf(char *strbuf)
 {
 	NID_SPAWN_INFO *childinfo;
-	char buff[256], sbuf[200], *ch, *ch1;
+	char buff[256], sbuf[200], *ch, *ch1, tmp[30], nidconf[256];
 	uint32_t lineno = 0, retry = 0;
 	struct nid_resetinfo info = { {""}, -1 };
-	FILE *file;
+	FILE *file, *ntfile;
 
 	TRACE_ENTER();
 
-	if ((file = fopen(NID_PLAT_CONF, "r")) == NULL) {
-		sprintf(strbuf, NID_PLAT_CONF " file open error '%s'\n", strerror(errno));
+	/* open node_type file from PKGSYSCONFDIR directory */
+	if ((ntfile = fopen(PKGSYSCONFDIR "/node_type", "r")) == NULL) {
+		LOG_ER("Could not open file %s %s", PKGSYSCONFDIR "/node_type", strerror(errno));
+		return NCSCC_RC_FAILURE;
+	}
+
+	/* read value of node_type file from PKGSYSCONFDIR directory */
+	if (fscanf(ntfile, "%s", tmp) > 0) {
+		/* Form complete name of nodeinit.conf.<controller or payload>. */
+		snprintf(nidconf, sizeof(nidconf), NID_PLAT_CONF ".%s", tmp);
+	}
+
+	(void)fclose(ntfile);
+
+	if ((file = fopen(nidconf, "r")) == NULL) {
+		sprintf(strbuf, "%s. file open error '%s'\n", nidconf, strerror(errno));
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1284,7 +1298,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (parse_nodeinit_conf(sbuf) != NCSCC_RC_SUCCESS) {
-		LOG_ER("Failed to parse " NID_PLAT_CONF " file %s, , exiting", sbuf);
+		LOG_ER("Failed to parse file %s. Exiting", sbuf);
 		exit(EXIT_FAILURE);
 	}
 
