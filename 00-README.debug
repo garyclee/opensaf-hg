@@ -11,7 +11,7 @@ System Controller Checklist
     type, etc.)
 
 2.  Have you checked the TIPC configuration? The following TIPC configuration 
-    parameters should be set appropriately in nodeinit.conf:
+    parameters should be set appropriately in nodeinit.conf.controller:
 
     a. TIPC network_id should be the same as ACTIVE system controller's 
        network_id.
@@ -60,7 +60,7 @@ Payload Node Checklist
 
 2.  Have you checked the TIPC configuration?
     The following TIPC configuration parameters should be set appropriately 
-    in nodeinit.conf:
+    in nodeinit.conf.payload:
 
     a. TIPC Network id should be the same as system controllers's network ID.
     b. The interface information is set with default values. This has to be 
