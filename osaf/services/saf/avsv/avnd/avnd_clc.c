@@ -1065,8 +1065,8 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			if (m_AVND_COMP_IS_FAILED(comp) && !comp->csi_list.n_nodes &&
 			    !m_AVND_SU_IS_ADMN_TERM(comp->su) &&
 			    (cb->oper_state == SA_AMF_OPERATIONAL_ENABLED)) {
-				/* No need to restart component during shutdown */
-				if (!m_AVND_IS_SHUTTING_DOWN(cb))
+				/* No need to restart component during shutdown and during sufailover*/
+				if (!m_AVND_IS_SHUTTING_DOWN(cb) && !sufailover_in_progress(comp->su))
 					rc = avnd_comp_clc_fsm_trigger(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_INST);
 			} else if (m_AVND_COMP_IS_FAILED(comp) && !comp->csi_list.n_nodes) {
 				m_AVND_COMP_FAILED_RESET(comp);	/*if we moved from restart -> term
@@ -1099,33 +1099,38 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 				goto done;
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
 
-			if (!m_AVND_COMP_IS_FAILED(comp)) {
-				/* csi-set / csi-rem succeeded.. generate csi-done indication */
-				csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-				osafassert(csi);
-				if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNING(csi))
-					rc = avnd_comp_csi_assign_done(cb, comp,
-								       m_AVND_COMP_IS_ALL_CSI(comp) ? 0 : csi);
-				else if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_REMOVING(csi))
-					rc = avnd_comp_csi_remove_done(cb, comp,
-								       m_AVND_COMP_IS_ALL_CSI(comp) ? 0 : csi);
-				if (NCSCC_RC_SUCCESS != rc)
-					goto done;
-			} else {
-				/* failed su is ready to take on si assignment.. inform avd */
-				if (!comp->csi_list.n_nodes) {
-					m_AVND_SU_IS_ENABLED(comp->su, is_en);
-					if (true == is_en) {
-						m_AVND_SU_OPER_STATE_SET(comp->su,SA_AMF_OPERATIONAL_ENABLED);
-						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
-						rc = avnd_di_oper_send(cb, comp->su, 0);
-						if (NCSCC_RC_SUCCESS != rc)
-							goto done;
+			if (sufailover_in_progress(comp->su)) {
+				/*Do not reset any flag, this will be done as a part of repair.*/
+			} 
+			else { 
+				if (!m_AVND_COMP_IS_FAILED(comp)) {
+					/* csi-set / csi-rem succeeded.. generate csi-done indication */
+					csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
+					osafassert(csi);
+					if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNING(csi))
+						rc = avnd_comp_csi_assign_done(cb, comp,
+								m_AVND_COMP_IS_ALL_CSI(comp) ? 0 : csi);
+					else if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_REMOVING(csi))
+						rc = avnd_comp_csi_remove_done(cb, comp,
+								m_AVND_COMP_IS_ALL_CSI(comp) ? 0 : csi);
+					if (NCSCC_RC_SUCCESS != rc)
+						goto done;
+				} else {
+					/* failed su is ready to take on si assignment.. inform avd */
+					if (!comp->csi_list.n_nodes) {
+						m_AVND_SU_IS_ENABLED(comp->su, is_en);
+						if (true == is_en) {
+							m_AVND_SU_OPER_STATE_SET(comp->su,SA_AMF_OPERATIONAL_ENABLED);
+							m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
+							rc = avnd_di_oper_send(cb, comp->su, 0);
+							if (NCSCC_RC_SUCCESS != rc)
+								goto done;
+						}
+						m_AVND_COMP_FAILED_RESET(comp);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 					}
-					m_AVND_COMP_FAILED_RESET(comp);
-					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
-				}
 
+				}
 			}
 		}
 
@@ -1190,12 +1195,17 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 
 		/* terminating -> uninstantiated */
 		if ((SA_AMF_PRESENCE_TERMINATING == prv_st) && (SA_AMF_PRESENCE_UNINSTANTIATED == final_st)) {
-			/* npi comps are enabled in uninstantiated state */
-			m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
-			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
-			if (NCSCC_RC_SUCCESS != rc)
-				goto done;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
+			if (sufailover_in_progress(comp->su)) {
+				/*Do not reset any flag, this will be done as a part of repair.*/
+			} 
+			else {
+				/* npi comps are enabled in uninstantiated state */
+				m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
+				m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+				if (NCSCC_RC_SUCCESS != rc)
+					goto done;
+				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
+			}
 		}
 
 		/* Instantiating -> Instantiationfailed */
@@ -2763,7 +2773,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 uint32_t avnd_instfail_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("Executing SU Failover: Instantiation failed SU: '%s' : Failed component: '%s'",
+	TRACE_ENTER2("Executing Component Failover: Instantiation failed SU: '%s' : Failed component: '%s'",
 								su->name.value, failed_comp->name.value);
 
 	/* mark the comp failed */
@@ -2812,12 +2822,12 @@ uint32_t avnd_instfail_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_c
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 
 		/* inform AvD */
-		rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
+		rc = avnd_di_oper_send(cb, su, SA_AMF_COMPONENT_FAILOVER);
 	}
 
  done:
 	if (rc == NCSCC_RC_SUCCESS)
-		LOG_NO("SU Failover trigerred for '%s': Failed component: '%s'",
+		LOG_NO("Component Failover trigerred for '%s': Failed component: '%s'",
 			su->name.value, failed_comp->name.value);
 	TRACE_LEAVE2("%u", rc);
 	return rc;

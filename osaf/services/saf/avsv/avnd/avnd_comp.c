@@ -872,7 +872,7 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 
 			/* inform AvD */
-			rc = avnd_di_oper_send(cb, comp->su, 0);
+			rc = avnd_di_oper_send(cb, comp->su, SA_AMF_COMPONENT_FAILOVER);
 		}
 	}
 
