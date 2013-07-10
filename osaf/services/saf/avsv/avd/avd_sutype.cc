@@ -237,6 +237,39 @@ done1:
 	return error;
 }
 
+/**
+ * This function handles modify operations on SaAmfSUType objects. 
+ * @param ptr to opdata 
+ */
+static void sutype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
+{
+	const SaImmAttrModificationT_2 *attr_mod;
+	int i = 0;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	avd_sutype *sut = avd_sutype_get(&opdata->objectName);
+
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSutDefSUFailover")) {
+			uint32_t old_value = sut->saAmfSutDefSUFailover;
+			sut->saAmfSutDefSUFailover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
+			/* Modify saAmfSUFailover for SUs which had inherited saAmfSutDefSUFailover.
+				Modification will not be done for the NPI SU */
+			if (old_value != sut->saAmfSutDefSUFailover) {
+				for (AVD_SU *su = sut->list_of_su; su; su = su->su_list_su_type_next) { 
+					if ((!su->saAmfSUFailover_configured) && (su->saAmfSUPreInstantiable)) {
+						su->saAmfSUFailover = static_cast<bool>(sut->saAmfSutDefSUFailover);
+						su_nd_attribute_update(su, saAmfSUFailOver_ID);
+					}
+				}
+			}
+		} else
+			osafassert(0);
+	}
+
+	TRACE_LEAVE();
+}
+
 static void sutype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	struct avd_sutype *sut;
@@ -249,6 +282,9 @@ static void sutype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		osafassert(sut);
 		sutype_db_add(sut);
 		break;
+	case CCBUTIL_MODIFY:
+		sutype_ccb_apply_modify_hdlr(opdata);
+		break;
 	case CCBUTIL_DELETE:
 		sut = avd_sutype_get(&opdata->objectName);
 		sutype_db_delete(sut);
@@ -260,6 +296,63 @@ static void sutype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	}
 
 	TRACE_LEAVE();
+}
+
+/**
+ * This routine validates modify CCB operations on SaAmfSUType objects.
+ * @param   Ccb Util Oper Data
+ */
+
+static SaAisErrorT sutype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	const SaImmAttrModificationT_2 *attr_mod;
+	int i = 0;
+	avd_sutype *sut = avd_sutype_get(&opdata->objectName);
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == NULL)) {
+			LOG_ER("Attributes cannot be deleted in SaAmfSUType");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSutDefSUFailover")) {
+			uint32_t sut_failover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
+
+			if (sut_failover > SA_TRUE) {
+				LOG_ER("invalid saAmfSutDefSUFailover in:'%s'", sut->name.value);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+			}	
+	
+			for (AVD_SU *su = sut->list_of_su; su; su = su->su_list_su_type_next) {
+				if (su->saAmfSUFailover_configured)
+					continue;
+
+				/* If SG is not in stable state and amfnd is already busy in the handling of some fault,
+				   modification of this attribute in an unstable SG can affects the recovery at amfd though 
+				   amfnd part of recovery had been done without the modified value of this attribute.
+				   So modification should be allowed only in the stable state of SG.
+				 */
+				if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) {
+					rc = SA_AIS_ERR_TRY_AGAIN;
+					LOG_WA("SG state is not stable"); 
+					goto done;
+				}
+			}
+		} else {
+			LOG_ER("attribute is non writable:'%s' ", attr_mod->modAttr.attrName);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+	}
+
+done:
+	TRACE_LEAVE();
+	return rc;
 }
 
 static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
@@ -278,7 +371,7 @@ static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		    rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfSUType not supported");
+		rc = sutype_ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
 		sut = avd_sutype_get(&opdata->objectName);
