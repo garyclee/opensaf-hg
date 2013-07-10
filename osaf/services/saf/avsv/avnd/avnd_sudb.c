@@ -28,6 +28,7 @@
 */
 
 #include "avnd.h"
+#include <immutil.h>
 
 /****************************************************************************
   Name          : avnd_sudb_init
@@ -292,6 +293,18 @@ uint32_t avnd_su_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
 		rc = avnd_sudb_rec_del(cb, &param->name);
 		break;
+	case AVSV_OBJ_OPR_MOD: {
+		switch (param->attr_id) {
+		case saAmfSUFailOver_ID:
+			osafassert(sizeof(uint32_t) == param->value_len);
+			su->sufailover = m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
+			break;
+		default:
+			LOG_NO("%s: Unsupported attribute %u", __FUNCTION__, param->attr_id);
+			goto done;
+		}
+		break;
+	}
 	default:
 		LOG_NO("%s: Unsupported action %u", __FUNCTION__, param->act);
 		goto done;
@@ -303,4 +316,47 @@ uint32_t avnd_su_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 done:
 	TRACE_LEAVE();
 	return rc;
+}
+
+/**
+ * Reads attributes from IMM which are required to be maintained at Amfnd also.
+ * At present saAmfSUFailover is read.
+ * 
+ * @param su 
+ * 
+ */
+void su_get_config_attributes(AVND_SU *su)
+{
+	SaImmAccessorHandleT accessorHandle;
+	const SaImmAttrValuesT_2 **attributes;
+	SaImmHandleT immOmHandle;
+	SaVersionT immVersion = { 'A', 2, 1 };
+	SaNameT sutype;
+	TRACE_ENTER2("'%s'", su->name.value);
+
+	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
+
+	if (immutil_saImmOmAccessorGet_2(accessorHandle, &su->name, NULL,
+		(SaImmAttrValuesT_2 ***)&attributes) != SA_AIS_OK) {
+		LOG_ER("saImmOmAccessorGet_2 FAILED for '%s'", su->name.value);
+		goto done;
+	}
+	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
+		if (immutil_getAttr("saAmfSUFailover", attributes, 0, &su->sufailover) != SA_AIS_OK) {
+			if (immutil_getAttr("saAmfSUType", attributes, 0, &sutype) == SA_AIS_OK) {
+				if (immutil_saImmOmAccessorGet_2(accessorHandle, &sutype, NULL,
+							(SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
+					immutil_getAttr("saAmfSutDefSUFailover", attributes, 0, &su->sufailover);
+				}
+			}
+		}
+	}
+	else
+		su->sufailover = true;
+	
+done:
+	immutil_saImmOmAccessorFinalize(accessorHandle);
+	immutil_saImmOmFinalize(immOmHandle);
+	TRACE_LEAVE2();
 }
