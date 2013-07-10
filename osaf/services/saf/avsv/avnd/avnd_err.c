@@ -401,8 +401,15 @@ uint32_t avnd_err_escalate(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t *
 		*io_esc_rcvr = comp->err_info.def_rec;
 
 	/* disallow comp-restart if it's disabled */
-	if ((SA_AMF_COMPONENT_RESTART == *io_esc_rcvr) && m_AVND_COMP_IS_RESTART_DIS(comp))
+	if ((SA_AMF_COMPONENT_RESTART == *io_esc_rcvr) && m_AVND_COMP_IS_RESTART_DIS(comp) && (!su->is_ncs)) {
+		LOG_NO("saAmfCompDisableRestart is true for '%s'",comp->name.value);
+		*io_esc_rcvr = SA_AMF_COMPONENT_FAILOVER;
+	}
+
+	if ((SA_AMF_COMPONENT_FAILOVER== *io_esc_rcvr) && (su->sufailover) && (!su->is_ncs)) {
+		LOG_NO("saAmfSUFailover is true for '%s'",comp->su->name.value);
 		*io_esc_rcvr = AVSV_ERR_RCVR_SU_FAILOVER;
+	}
 
 	switch (*io_esc_rcvr) {
 	case SA_AMF_COMPONENT_FAILOVER:	/* treat it as su failover */
@@ -519,7 +526,6 @@ uint32_t avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t rc
 		break;
 
 	case SA_AMF_COMPONENT_FAILOVER:
-		/* not supported */
 		rc = avnd_err_rcvr_comp_failover(cb, comp);
 		break;
 
@@ -642,45 +648,21 @@ uint32_t avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_co
 	return rc;
 }
 
-/****************************************************************************
-  Name          : avnd_err_rcvr_comp_failover
- 
-  Description   : This routine executes component failover recovery.
- 
-  Arguments     : cb   - ptr to the AvND control block
-                  comp - ptr to the comp
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_err_rcvr_comp_failover(AVND_CB *cb, AVND_COMP *comp)
+/**
+ * This function performs component failover recovery action. 
+ * 
+ * @param cb: ptr to AvND contol block. 
+ * @param comp: ptr to failed component. 
+ * 
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE. 
+ */
+uint32_t avnd_err_rcvr_comp_failover(AVND_CB *cb, AVND_COMP *failed_comp)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	LOG_NO("%s, Unsupported",__FUNCTION__);
+	AVND_SU *su;
 
-	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_err_rcvr_su_failover
- 
-  Description   : This routine executes SU failover recovery.
- 
-  Arguments     : cb          - ptr to the AvND control block
-                  su          - ptr to the SU to which the comp belongs
-                  failed_comp - ptr to the failed comp that triggered this 
-                                recovery
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER();
-
+	TRACE_ENTER2("'%s'", failed_comp->name.value);
+	su = failed_comp->su;
 	/* mark the comp failed */
 	m_AVND_COMP_FAILED_SET(failed_comp);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_comp, AVND_CKPT_COMP_FLAG_CHANGE);
@@ -703,7 +685,7 @@ uint32_t avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_c
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 
 	/* inform AvD */
-	rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
+	rc = avnd_di_oper_send(cb, su, SA_AMF_COMPONENT_FAILOVER);
 
 	/*
 	 *  su-sis may be in assigning/removing state. signal csi
@@ -734,6 +716,47 @@ uint32_t avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_c
 	return rc;
 }
 
+/**
+ * This function performs SU failover recovery action. 
+ * 
+ * @param cb: ptr to AvND contol block. 
+ * @param su: ptr to the SU which contains the failed component. 
+ * @param comp: ptr to failed component. 
+ * 
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE. 
+ */
+uint32_t avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
+{
+	AVND_COMP *comp;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+
+
+	TRACE_ENTER2("'%s' '%s'", su->name.value, failed_comp->name.value);
+	m_AVND_COMP_FAILED_SET(failed_comp);
+	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
+	m_AVND_SU_FAILED_SET(su);
+	m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
+
+	LOG_NO("Terminating components of '%s'(abruptly & unordered)",su->name.value);
+	/* Unordered cleanup of components of failed SU */
+	for (comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list));
+			comp;
+			comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&comp->su_dll_node))) {
+		if (comp->su->su_is_external)
+			continue;
+
+		rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
+		if (NCSCC_RC_SUCCESS != rc) {
+			LOG_ER("'%s' termination failed", comp->name.value);
+			goto done;
+		}
+	}
+done:
+
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
 /****************************************************************************
   Name          : avnd_err_rcvr_node_switchover
  
@@ -752,7 +775,7 @@ uint32_t avnd_err_rcvr_node_switchover(AVND_CB *cb, AVND_SU *failed_su, AVND_COM
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
-
+	AVND_COMP *comp;
 	/* increase log level to info */
 	setlogmask(LOG_UPTO(LOG_INFO));
 
@@ -772,6 +795,7 @@ uint32_t avnd_err_rcvr_node_switchover(AVND_CB *cb, AVND_SU *failed_su, AVND_COM
 		m_AVND_SU_FAILED_SET(failed_su);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_su, AVND_CKPT_SU_FLAG_CHANGE);
 	}
+	cb->term_state = AVND_TERM_STATE_NODE_SWITCHOVER_STARTED;
 
 	/* transition the su oper state to disabled */
 	m_AVND_SU_OPER_STATE_SET(failed_su, SA_AMF_OPERATIONAL_DISABLED);
@@ -807,11 +831,42 @@ uint32_t avnd_err_rcvr_node_switchover(AVND_CB *cb, AVND_SU *failed_su, AVND_COM
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
-	/* terminate the failed comp */
-	if (m_AVND_SU_IS_PREINSTANTIABLE(failed_su)) {
-		rc = avnd_comp_clc_fsm_run(cb, failed_comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
-		if (NCSCC_RC_SUCCESS != rc)
-			goto done;
+	/* In nodeswitchover context:
+	   a)If saAmfSUFailover is set for the faulted SU then this SU will be failed-over  
+	   	as a single entity. 
+	   b)If saAmfSUFailover is not set for the faulted SU then assignments of healthy components of the SU 
+	   	will be siwtched-over and assignments of only failed component will be failed-over.
+	   For other non faulted SUs hosted on this node, assignments will be switched-over.
+	   (SAI-AIS-AMF-B.04.01 Section 3.11.1.3.2 of SAI-AIS-AMF-B.04.01 spec.)
+
+	   So if saAmfSUFailover is set for the faulted SU then all components of this SU will be abruptly
+	   terminated. And if saAmfSUFailover is not set then perform clean up of only failed component.  
+	 */
+	if (m_AVND_SU_IS_FAILED(failed_comp->su) && (failed_comp->su->sufailover))
+	{
+		LOG_NO("Terminating components of '%s'(abruptly & unordered)",failed_su->name.value);
+		/* Unordered cleanup of components of failed SU */
+		for (comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&failed_su->comp_list));
+				comp;
+				comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&comp->su_dll_node))) {
+			if (comp->su->su_is_external)
+				continue;
+
+			rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
+			if (NCSCC_RC_SUCCESS != rc) {
+				LOG_ER("'%s' termination failed", comp->name.value);
+				goto done;
+			}
+		}
+		avnd_su_si_del(cb, &failed_comp->su->name);
+	}
+	else {
+		/* terminate the failed comp */
+		if (m_AVND_SU_IS_PREINSTANTIABLE(failed_su)) {
+			rc = avnd_comp_clc_fsm_run(cb, failed_comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
+			if (NCSCC_RC_SUCCESS != rc)
+				goto done;
+		}
 	}
 
  done:
@@ -1187,7 +1242,10 @@ uint32_t avnd_err_restart_esc_level_2(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEV
 	TRACE_ENTER();
 
 	/* first time in this level */
-	*esc_rcvr = AVSV_ERR_RCVR_SU_FAILOVER;
+	if (su->sufailover)
+		*esc_rcvr = AVSV_ERR_RCVR_SU_FAILOVER;
+	else
+		*esc_rcvr = SA_AMF_COMPONENT_FAILOVER;
 
 	/* External components are not supposed to escalate SU Failover of
 	   cluster components. For Ext component, SU Failover will be limited to
@@ -1249,7 +1307,10 @@ AVSV_ERR_RCVR avnd_err_esc_su_failover(AVND_CB *cb, AVND_SU *su, AVSV_ERR_RCVR *
 	TRACE_ENTER();
 
 	/* initalize */
-	*esc_rcvr = AVSV_ERR_RCVR_SU_FAILOVER;
+	if (su->sufailover)
+		*esc_rcvr = AVSV_ERR_RCVR_SU_FAILOVER;
+	else
+		*esc_rcvr = SA_AMF_COMPONENT_FAILOVER;
 
 	if (true == su->su_is_external) {
 		/* External component should not contribute to NODE FAILOVER of cluster
