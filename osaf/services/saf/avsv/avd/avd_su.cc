@@ -58,7 +58,7 @@ AVD_SU *avd_su_new(const SaNameT *dn)
 	su->name.length = dn->length;
 	su->tree_node.key_info = (uint8_t *)&(su->name);
 	avsv_sanamet_init(dn, &sg_name, "safSg");
-	su->saAmfSUFailover = static_cast<SaBoolT>(false);
+	su->saAmfSUFailover = false;
 	su->term_state = static_cast<SaBoolT>(false);
 	su->su_switch = AVSV_SI_TOGGLE_STABLE;
 	su->saAmfSUPreInstantiable = static_cast<SaBoolT>(false);
@@ -479,8 +479,11 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUFailover"), attributes, 0, &su->saAmfSUFailover) != SA_AIS_OK) {
-		su->saAmfSUFailover = static_cast<SaBoolT>(sut->saAmfSutDefSUFailover);
+		su->saAmfSUFailover = static_cast<bool>(sut->saAmfSutDefSUFailover);
+		su->saAmfSUFailover_configured = false;
 	}
+	else 
+		su->saAmfSUFailover_configured = true;
 
 	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUMaintenanceCampaign"), attributes, 0, &su->saAmfSUMaintenanceCampaign);
 
@@ -1228,9 +1231,22 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			continue;
 
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUFailover")) {
-			bool su_failover = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
+			AVD_SU *su = avd_su_get(&opdata->objectName);
+			uint32_t su_failover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
+
+			/* If SG is not in stable state and amfnd is already busy in the handling of some fault,
+			   modification of this attribute in an unstable SG can affects the recovery at amfd though 
+			   amfnd part of recovery had been done without the modified value of this attribute.
+			   So modification should be allowed only in the stable state of SG.
+			 */
+			if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) {
+				rc = SA_AIS_ERR_TRY_AGAIN;
+				TRACE("'%s' is not stable",su->sg_of_su->name.value); 
+				goto done;
+			}
+
 			if (su_failover > SA_TRUE) {
-				LOG_ER("Invalid saAmfSUFailover %u", su_failover);
+				LOG_ER("Invalid saAmfSUFailover SU:'%s'", su->name.value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -1410,10 +1426,19 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			value_is_deleted = false;
 
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUFailover")) {
-			if (value_is_deleted)
-				su->saAmfSUFailover = static_cast<SaBoolT>(su->su_type->saAmfSutDefSUFailover);
-			else
-				su->saAmfSUFailover = static_cast<SaBoolT>(*((SaUint32T *)attr_mod->modAttr.attrValues[0]));
+			if (value_is_deleted) {
+				su->saAmfSUFailover = static_cast<bool>(su->su_type->saAmfSutDefSUFailover);
+				su->saAmfSUFailover_configured = false;
+			}
+			else {
+				su->saAmfSUFailover = static_cast<bool>(*((SaUint32T *)attr_mod->modAttr.attrValues[0]));
+				su->saAmfSUFailover_configured = true;
+			}
+			if (!su->saAmfSUPreInstantiable) {
+				su->saAmfSUFailover = true;
+				su->saAmfSUFailover_configured = true;
+			}
+			su_nd_attribute_update(su, saAmfSUFailOver_ID);
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUMaintenanceCampaign")) {
 			if (value_is_deleted) {
 				su->saAmfSUMaintenanceCampaign.length = 0;
@@ -1432,7 +1457,14 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			su->saAmfSUType = sutype_name;
 			su->su_type = sut;
 			avd_sutype_add_su(su);
-			su->saAmfSUFailover = static_cast<SaBoolT>(sut->saAmfSutDefSUFailover);
+			if (su->saAmfSUPreInstantiable) {
+				su->saAmfSUFailover = static_cast<bool>(sut->saAmfSutDefSUFailover);
+				su->saAmfSUFailover_configured = false;
+			} else {
+				su->saAmfSUFailover = true;
+				su->saAmfSUFailover_configured = true;
+			}
+			su_nd_attribute_update(su, saAmfSUFailOver_ID);
 			su->su_is_external = sut->saAmfSutIsExternal;
 		} else
 			osafassert(0);
@@ -1565,3 +1597,50 @@ void avd_su_constructor(void)
 	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfSU"), su_rt_attr_cb, su_admin_op_cb, su_ccb_completed_cb, su_ccb_apply_cb);
 }
 
+/**
+ * send update of SU attribute to node director 
+ * @param su
+ * @param attrib_id
+ */
+void su_nd_attribute_update(const AVD_SU *su, AVSV_AMF_SU_ATTR_ID attrib_id)
+{
+	AVD_AVND *su_node_ptr = NULL;
+	AVSV_PARAM_INFO param;
+	memset(((uint8_t *)&param), '\0', sizeof(AVSV_PARAM_INFO));
+
+	TRACE_ENTER();
+
+	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
+		TRACE_LEAVE2("avd is not in active state");
+		return;
+	}
+	m_AVD_GET_SU_NODE_PTR(avd_cb, su, su_node_ptr);
+	param.class_id = AVSV_SA_AMF_SU;
+	param.act = AVSV_OBJ_OPR_MOD;
+	param.name = su->name;
+
+	switch (attrib_id) {
+	case saAmfSUFailOver_ID:
+	{
+		uint32_t sufailover; 
+		param.attr_id = saAmfSUFailOver_ID;
+		param.value_len = sizeof(uint32_t);
+		sufailover = htonl(su->saAmfSUFailover);
+		memcpy(&param.value[0], &sufailover, param.value_len);
+		break;
+	}
+	default:
+		osafassert(0);
+	}
+
+	/*Update this value on the node hosting this SU*/
+	if ((su_node_ptr) && ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
+			(su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+			(su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))) {
+		if (avd_snd_op_req_msg(avd_cb, su_node_ptr, &param) != NCSCC_RC_SUCCESS) {
+			LOG_ER("%s:failed for %s",__FUNCTION__, su_node_ptr->name.value);
+		}
+	}
+
+	TRACE_LEAVE();
+}

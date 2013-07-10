@@ -1449,8 +1449,13 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	/* if SU is not being deleted and the PreInstantiable state has changed
 	 * then update the IMM with the new value for saAmfSUPreInstantiable */
 	if (su_delete == SA_FALSE && old_val != comp->su->saAmfSUPreInstantiable) {
-		avd_saImmOiRtObjectUpdate(&comp->su->name, const_cast<SaImmAttrNameT>("saAmfSUPreInstantiable"), SA_IMM_ATTR_SAUINT32T,
-				&comp->su->saAmfSUPreInstantiable);
+		avd_saImmOiRtObjectUpdate(&comp->su->name, const_cast<SaImmAttrNameT>("saAmfSUPreInstantiable"), 
+				SA_IMM_ATTR_SAUINT32T, &comp->su->saAmfSUPreInstantiable);
+		/* If SU becomes NPI then enable saAmfSUFailover flag Sec 3.11.1.3.2 AMF-B.04.01 spec */
+		if (!comp->su->saAmfSUPreInstantiable) {
+			comp->su->saAmfSUFailover = true;
+			su_nd_attribute_update(comp->su, saAmfSUFailOver_ID);
+		}
 	}
 
 	/* send a message to the AVND deleting the
