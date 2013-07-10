@@ -721,7 +721,8 @@ uint32_t node_admin_unlock_instantiation(AVD_AVND *node)
 	while (su != NULL) {
 		if ((su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 		    (su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
-		    (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED)) {
+		    (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) && 
+		    (su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED)) {
 
 			if (su->saAmfSUPreInstantiable == true) {
 				if (su->sg_of_su->saAmfSGNumPrefInserviceSUs >
@@ -735,9 +736,7 @@ uint32_t node_admin_unlock_instantiation(AVD_AVND *node)
 						LOG_WA("Failed Instantiation '%s'", su->name.value);
 					}
 				}
-			} else {
-				avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
-			}
+			} 
 		}
 		su = su->avnd_list_su_next;
 	}

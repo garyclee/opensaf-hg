@@ -952,8 +952,9 @@ static void sg_app_sg_admin_unlock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 	/* Instantiate the SUs in this SG */
 	for (su = sg->list_of_su, su_try_inst = 0; su != NULL; su = su->sg_list_su_next) {
 		if ((su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
-				(su->su_on_node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)
-				&& (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED)) {
+				(su->su_on_node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
+				(su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
+				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED)) {
 
 			if (su->saAmfSUPreInstantiable == true) {
 				if (su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) {
@@ -971,9 +972,7 @@ static void sg_app_sg_admin_unlock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 				/* set uncondionally of msg snd outcome */
 				m_AVD_SET_SU_TERM(cb, su, false);
 
-			} else {
-				avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
-			}
+			} 
 		}
 	}
 
