@@ -293,7 +293,10 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGAutoRepair"), attributes, 0, &sg->saAmfSGAutoRepair) != SA_AIS_OK) {
 		sg->saAmfSGAutoRepair = sgt->saAmfSgtDefAutoRepair;
+		sg->saAmfSGAutoRepair_configured = false;
 	}
+	else 
+		sg->saAmfSGAutoRepair_configured = true; 
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGAutoAdjust"), attributes, 0, &sg->saAmfSGAutoAdjust) != SA_AIS_OK) {
 		sg->saAmfSGAutoAdjust = sgt->saAmfSgtDefAutoAdjust;
@@ -526,7 +529,6 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				LOG_ER("%s: Attribute saAmfSGSuHostNodeGroup cannot be modified", __FUNCTION__);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
-			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjust")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefActiveSUs")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefStandbySUs")) {
@@ -579,6 +581,13 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 					((avd_sg->sg_redundancy_model < SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) &&
 					 (pref_inservice_su < AVSV_SG_2N_PREF_INSVC_SU_MIN))) {
 					LOG_ER("%s: Minimum preferred num of su should be 2 in 2N, N+M and NWay red models", __FUNCTION__);
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
+			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
+				uint32_t sg_autorepair = *((SaUint32T *)attribute->attrValues[0]);
+				if (sg_autorepair > SA_TRUE) {
+					LOG_ER("Invalid saAmfSGAutoRepair SG:'%s'", avd_sg->name.value);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
@@ -744,10 +753,13 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				sg_nd_attribute_update(sg, saAmfSGCompRestartProb_ID);
 				sg_nd_attribute_update(sg, saAmfSGCompRestartMax_ID);
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
-				if (value_is_deleted)
+				if (value_is_deleted) {
 					sg->saAmfSGAutoRepair = sg_type->saAmfSgtDefAutoRepair;
-				else
+					sg->saAmfSGAutoRepair_configured = false;
+				} else {
 					sg->saAmfSGAutoRepair = static_cast<SaBoolT>(*((SaUint32T *)value));
+					sg->saAmfSGAutoRepair_configured = true; 
+				}
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjust")) {
 				if (value_is_deleted)
 					sg->saAmfSGAutoAdjust = sg_type->saAmfSgtDefAutoAdjust;
@@ -872,6 +884,14 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				else
 					sg->saAmfSGSuRestartMax = *((SaUint32T *)value);
 				sg_nd_attribute_update(sg, saAmfSGSuRestartMax_ID);
+			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
+				if (value_is_deleted) {
+					sg->saAmfSGAutoRepair = sg_type->saAmfSgtDefAutoRepair;
+					sg->saAmfSGAutoRepair_configured = false;
+				} else {
+					sg->saAmfSGAutoRepair = static_cast<SaBoolT>(*((SaUint32T *)value));
+					sg->saAmfSGAutoRepair_configured = true; 
+				}
 			} else {
 				osafassert(0);
 			}
