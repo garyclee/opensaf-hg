@@ -219,6 +219,89 @@ done:
 	return rc;
 }
 
+/**
+ * @brief	Sends repair operation message to node director to perform repair of the faulted SU.
+ *		This function is used to perform repiar after sufailover recovery.
+ *
+ * @param[in]   su
+ *
+ **/
+static void su_try_repair(const AVD_SU *su)
+{
+	TRACE_ENTER2("Repair for SU:'%s'", su->name.value);
+
+	if ((su->sg_of_su->saAmfSGAutoRepair) && (su->saAmfSUFailover) &&
+			(su->saAmfSUOperState == SA_AMF_OPERATIONAL_DISABLED) &&
+			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED) && 
+			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
+
+		saflog(LOG_NOTICE, amfSvcUsrName, "Ordering Auto repair of '%s' as sufailover repair action",
+				su->sg_of_su->name.value);
+		avd_admin_op_msg_snd(&su->name, AVSV_SA_AMF_SU,
+				static_cast<SaAmfAdminOperationIdT>(SA_AMF_ADMIN_REPAIRED), su->su_on_node); 
+	} else {
+		saflog(LOG_NOTICE, amfSvcUsrName, "Autorepair not done for '%s'", su->sg_of_su->name.value);
+	}
+
+	TRACE_LEAVE();
+}
+
+/**
+ * @brief	Perform failover of SU as a single entity and free all SUSIs associated with this SU.
+ * @param 	su 
+ * 
+ * @return SaAisErrorT
+ */
+static uint32_t sg_su_failover_func(AVD_SU *su)
+{
+	uint32_t rc = NCSCC_RC_FAILURE;
+
+	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
+
+	if (su->list_of_susi == AVD_SU_SI_REL_NULL) {
+		TRACE("'%s' has no assignments", su->name.value);
+		rc =  NCSCC_RC_SUCCESS;
+		goto done;
+	}
+
+	avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
+	avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
+	su_complete_admin_op(su, SA_AIS_ERR_TIMEOUT);
+	su_disable_comps(su, SA_AIS_ERR_TIMEOUT);
+
+	/*If the AvD is in AVD_APP_STATE then reassign all the SUSI assignments for this SU */
+	if (avd_cb->init_state == AVD_APP_STATE) {
+		su->sg_of_su->node_fail(avd_cb, su);
+		avd_sg_su_asgn_del_util(avd_cb, su, true, false);
+	}
+
+	rc =  NCSCC_RC_SUCCESS;
+
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * @brief	Performs sufailover or component failover	
+ *
+ * @param[in]   su
+ *
+ * @return	NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS 
+ **/
+static uint32_t su_recover_from_fault(AVD_SU *su)
+{
+	uint32_t rc;
+
+	if ((su->saAmfSUFailover) && (su->saAmfSUOperState == SA_AMF_OPERATIONAL_DISABLED)) {
+		rc = sg_su_failover_func(su);
+	} else {
+		rc = su->sg_of_su->su_fault(avd_cb, su);
+	}
+	return rc;
+}
+
+
 /*****************************************************************************
  * Function: avd_su_oper_state_func
  *
@@ -345,7 +428,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				 */
 				avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
 				node->recvr_fail_sw = true;
-				switch (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.saf_amf) {
+				switch (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.raw) {
 				case SA_AMF_NODE_FAILOVER:
 					if ((node->node_info.nodeId == cb->node_id_avd) && 
 							(node->saAmfNodeAutoRepair)) {
@@ -370,33 +453,58 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					while (i_su != NULL) {
 						avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
 						if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
-							node_reboot_req = false;
-							/* Since assignments exists call the SG FSM.
+							/* Delay Node reboot if:
+								a)Faulted SU has saAmfSUFailover set but 
+									other healthy SUs are present on node.
+								b)Only faulted SU exists on the node and its 
+									saAmfSUFailover is false.
 							 */
-							if (i_su->sg_of_su->su_fault(cb, i_su) == NCSCC_RC_FAILURE) {
-								/* Bad situation. Free the message and return since
-								 * receive id was not processed the event will again
-								 * comeback which we can then process.
-								 */
-								LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
-								goto done;
+							node_reboot_req = false;
+							if (((i_su == su) && (!i_su->saAmfSUFailover)) ||
+									((i_su != su) &&
+								 (i_su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED))) {
+
+								/* Since assignments exists call the SG FSM.*/
+								if (su_recover_from_fault(i_su) == NCSCC_RC_FAILURE) {
+									LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
+									goto done;
+								}
 							}
 						}
 
 						/* Verify the SG to check if any instantiations need
 						 * to be done for the SG on which this SU exists.
 						 */
-						if (avd_sg_app_su_inst_func(cb, i_su->sg_of_su) == NCSCC_RC_FAILURE) {
-							/* Bad situation. Free the message and return since
-							 * receive id was not processed the event will again
-							 * comeback which we can then process.
-							 */
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
-							goto done;
-						}
+						if ((!su->saAmfSUFailover))
+							if (avd_sg_app_su_inst_func(cb, i_su->sg_of_su) == NCSCC_RC_FAILURE) {
+								LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
+								goto done;
+							}
 
 						i_su = i_su->avnd_list_su_next;
-					}	/* while(i_su != AVD_SU_NULL) */
+					}
+					break;
+				case AVSV_ERR_RCVR_SU_FAILOVER:
+					/* This is a case when node switchover and su failover are happening together.
+					   Reboot node only:
+					   a) After gracefully removing all the assignments (SUs with saAmfSUFailover set).
+					   b) After termination of all components in faulted SU and after performing its failover
+					   	as a single entity (saAmfSUFailover set). 
+					 */
+					if (su_recover_from_fault(su) == NCSCC_RC_FAILURE) {
+						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+						goto done;
+					}
+					if (avd_sg_app_su_inst_func(cb, su->sg_of_su) == NCSCC_RC_FAILURE) {
+						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+						goto done;
+					}
+					for (i_su = node->list_of_su; i_su; i_su = i_su->avnd_list_su_next) {
+						if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
+							node_reboot_req = false;
+							break;
+						}
+					}
 					break;
 				default :
 					break;
@@ -410,41 +518,54 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						avd_d2n_reboot_snd(node);
 					} else {
 						saflog(LOG_NOTICE, amfSvcUsrName,
-								"Autorepair disabled for '%s', NO reboot ordered",
+								"NodeAutorepair disabled for '%s', NO reboot ordered",
 								node->name.value);
+						
 					}
 				}
 			} else { /* if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 
-					if (su->list_of_susi != AVD_SU_SI_REL_NULL) {
-						/* Since assignments exists call the SG FSM.
-						 */
+				if (su->list_of_susi != AVD_SU_SI_REL_NULL) {
+					/* Since assignments exists call the SG FSM. */
+					switch (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.raw) {
+					case SA_AMF_COMPONENT_FAILOVER:
 						if (su->sg_of_su->su_fault(cb, su) == NCSCC_RC_FAILURE) {
-							/* Bad situation. Free the message and return since
-							 * receive id was not processed the event will again
-							 * comeback which we can then process.
-							 */
 							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 							goto done;
 						}
+						break;
+					case AVSV_ERR_RCVR_SU_FAILOVER:
+						if (sg_su_failover_func(su) == NCSCC_RC_FAILURE) {
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+							goto done;
+						}
+						break;
+					default :
+						LOG_ER("Recovery:'%u' not supported",
+								n2d_msg->msg_info.n2d_opr_state.rec_rcvr.raw);
+						break;
 					}
+				}
 
-					/* Verify the SG to check if any instantiations need
-					 * to be done for the SG on which this SU exists.
+				if (su->list_of_susi == NULL)
+					su_try_repair(su);
+
+				/* Verify the SG to check if any instantiations need
+				 * to be done for the SG on which this SU exists.
+				 */
+				if (avd_sg_app_su_inst_func(cb, su->sg_of_su) == NCSCC_RC_FAILURE) {
+					/* Bad situation. Free the message and return since
+					 * receive id was not processed the event will again
+					 * comeback which we can then process.
 					 */
-					if (avd_sg_app_su_inst_func(cb, su->sg_of_su) == NCSCC_RC_FAILURE) {
-						/* Bad situation. Free the message and return since
-						 * receive id was not processed the event will again
-						 * comeback which we can then process.
-						 */
-						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->sg_of_su->name.value);
-						goto done;
-					}
+					LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->sg_of_su->name.value);
+					goto done;
+				}
 
-				} /* else (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
+			} /* else (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 
-			}
-			/* else if(cb->init_state == AVD_APP_STATE) */
+		}
+		/* else if(cb->init_state == AVD_APP_STATE) */
 	} /* if (n2d_msg->msg_info.n2d_opr_state.su_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 	else if (n2d_msg->msg_info.n2d_opr_state.su_oper_state == SA_AMF_OPERATIONAL_ENABLED) {
 		avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
@@ -471,7 +592,15 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			old_state = su->saAmfSuReadinessState;
 			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
+			/* If oper state of Uninstantiated SU got ENABLED so try to instantiate it 
+			   after evaluating SG. */
+			if (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) {
+				avd_sg_app_su_inst_func(cb, su->sg_of_su);
+				goto done;
+			}
+
 			if (m_AVD_APP_SU_IS_INSVC(su, su_node_ptr)) {
+
 				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
 				if ((cb->init_state == AVD_APP_STATE) && (old_state == SA_AMF_READINESS_OUT_OF_SERVICE)) {
 					/* An application SU has become in service call SG FSM */
@@ -908,17 +1037,10 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				if ((su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0)) {
 					/* For lock and shutdown, response to IMM admin operation should be
 					   sent when response for DEL operation is received */
-					if (AVSV_SUSI_ACT_DEL == n2d_msg->msg_info.n2d_su_si_assign.msg_act) {
-						avd_saImmOiAdminOperationResult(cb->immOiHandle, 
-								su->pend_cbk.invocation, SA_AIS_OK);
-						su->pend_cbk.invocation = 0;
-						su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
-					}
+					if (AVSV_SUSI_ACT_DEL == n2d_msg->msg_info.n2d_su_si_assign.msg_act)
+						su_complete_admin_op(su, SA_AIS_OK);
 				} else if (n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) {
-					avd_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation,
-									    SA_AIS_ERR_REPAIR_PENDING);
-					su->pend_cbk.invocation = 0;
-					su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+					su_complete_admin_op(su, SA_AIS_ERR_REPAIR_PENDING);
 				}
 				/* else lock is still not complete so don't send result. */
 			} else if (su->pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK) {
@@ -926,18 +1048,12 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				/* Respond to IMM when SG is STABLE or if a fault occured */
 				if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 					if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE) {
-						avd_saImmOiAdminOperationResult(cb->immOiHandle,
-								su->pend_cbk.invocation, SA_AIS_OK);
-						su->pend_cbk.invocation = 0;
-						su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+						su_complete_admin_op(su, SA_AIS_OK);
 					} else
 						; // wait for SG to become STABLE
-				} else {
-					avd_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation,
-									    SA_AIS_ERR_TIMEOUT);
-					su->pend_cbk.invocation = 0;
-					su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
-				}
+				} 
+				else
+					su_complete_admin_op(su, SA_AIS_ERR_TIMEOUT);
 			}
 		} else if (su->su_on_node->admin_node_pend_cbk.invocation != 0) {
 			/* decrement the SU count on the node undergoing admin operation  
@@ -979,12 +1095,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						(su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE)) {
 					for (temp_su = su->sg_of_su->list_of_su; temp_su != NULL; 
 							temp_su = temp_su->sg_list_su_next) {
-						if (temp_su->pend_cbk.invocation != 0) {
-							avd_saImmOiAdminOperationResult(cb->immOiHandle,
-									temp_su->pend_cbk.invocation, SA_AIS_OK);
-							temp_su->pend_cbk.invocation = 0;
-							temp_su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
-						}
+						su_complete_admin_op(temp_su, SA_AIS_OK);
 					}
 				} else
 					; // wait for SG to become STABLE
@@ -1035,7 +1146,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				avd_d2n_reboot_snd(node);
 			} else {
 				saflog(LOG_NOTICE, amfSvcUsrName,
-					"Autorepair disabled for '%s', NO reboot ordered",
+					"NodeAutorepair disabled for '%s', NO reboot ordered",
 					node->name.value);
 			}
 		}
@@ -1089,6 +1200,7 @@ void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
 			    (i_su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) && 
 			    (i_su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
+			    (i_su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) && 
 			    (i_su->su_on_node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) { 
 				if (i_su->saAmfSUPreInstantiable == true) {
 					if (i_su->sg_of_su->saAmfSGNumPrefInserviceSUs >
@@ -1184,8 +1296,8 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			if ((i_su->saAmfSUPreInstantiable == false) &&
 			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
 			    (su_node_ptr->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
+			    (i_su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
 			    (i_su->term_state == false)) {
-				avd_su_oper_state_set(i_su, SA_AMF_OPERATIONAL_ENABLED);
 				m_AVD_GET_SU_NODE_PTR(cb, i_su, su_node_ptr);
 
 				if (m_AVD_APP_SU_IS_INSVC(i_su, su_node_ptr)) {
@@ -1208,6 +1320,7 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 					(i_su->su_on_node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 					(su_node_ptr->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
 					(su_node_ptr->node_info.member == true) &&
+					(i_su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
 					(i_su->term_state == false)) {
 
 				/* Try to Instantiate this SU */
@@ -1346,7 +1459,6 @@ done:
 void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_SU *i_su;
-	AVD_COMP *i_comp;
 
 	TRACE_ENTER2("'%s'", avnd->name.value);
 
@@ -1362,31 +1474,8 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 		avd_su_oper_state_set(i_su, SA_AMF_OPERATIONAL_DISABLED);
 		avd_su_pres_state_set(i_su, SA_AMF_PRESENCE_UNINSTANTIATED);
 		avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
-
-		/* Check if there was any admin operations going on this SU. */
-		if (i_su->pend_cbk.invocation != 0) {
-			avd_saImmOiAdminOperationResult(cb->immOiHandle, i_su->pend_cbk.invocation,
-					SA_AIS_ERR_TIMEOUT);
-			i_su->pend_cbk.invocation = 0;
-			i_su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
-		}
-
-		i_comp = i_su->list_of_comp;
-		while (i_comp != NULL) {
-			i_comp->curr_num_csi_actv = 0;
-			i_comp->curr_num_csi_stdby = 0;
-			avd_comp_oper_state_set(i_comp, SA_AMF_OPERATIONAL_DISABLED);
-			avd_comp_pres_state_set(i_comp, SA_AMF_PRESENCE_UNINSTANTIATED);
-			i_comp->saAmfCompRestartCount = 0;
-			if (i_comp->admin_pend_cbk.invocation != 0) {
-				avd_saImmOiAdminOperationResult(cb->immOiHandle, 
-						i_comp->admin_pend_cbk.invocation, SA_AIS_ERR_TIMEOUT);
-				i_comp->admin_pend_cbk.invocation = 0;
-				i_comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
-			}
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_comp, AVSV_CKPT_AVD_COMP_CONFIG);
-			i_comp = i_comp->su_comp_next;
-		}
+		su_complete_admin_op(i_su, SA_AIS_ERR_TIMEOUT);
+		su_disable_comps(i_su, SA_AIS_ERR_TIMEOUT);
 
 		/* Now analyze the service group for the new HA state
 		 * assignments and send the SU SI assign messages
@@ -1394,21 +1483,8 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 		 */
 		i_su->sg_of_su->node_fail(cb, i_su);
 
-		/* Free all the SU SI assignments for all the SIs on the
-		 * the SU if there are any.
-		 */
-
-		while (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
-
-			/* free all the CSI assignments  */
-			avd_compcsi_delete(cb, i_su->list_of_susi, false);
-			/* Unassign the SUSI */
-			m_AVD_SU_SI_TRG_DEL(cb, i_su->list_of_susi);
-		}
-
-		i_su->saAmfSUNumCurrActiveSIs = 0;
-		i_su->saAmfSUNumCurrStandbySIs = 0;
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_su, AVSV_CKPT_AVD_SU_CONFIG);
+		/* Free all the SU SI assignments*/ 
+		avd_sg_su_asgn_del_util(cb, i_su, true, false);
 
 		i_su = i_su->avnd_list_su_next;
 
@@ -1441,7 +1517,6 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_SU *i_su;
-	AVD_COMP *i_comp;
 
 	TRACE_ENTER2("'%s'", avnd->name.value);
 
@@ -1454,29 +1529,8 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 		avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
 
 		/* Check if there was any admin operations going on this SU. */
-		if (i_su->pend_cbk.invocation != 0) {
-			avd_saImmOiAdminOperationResult(cb->immOiHandle, i_su->pend_cbk.invocation,
-					SA_AIS_ERR_TIMEOUT);
-			i_su->pend_cbk.invocation = 0;
-			i_su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
-		}
-
-		i_comp = i_su->list_of_comp;
-		while (i_comp != NULL) {
-			i_comp->curr_num_csi_actv = 0;
-			i_comp->curr_num_csi_stdby = 0;
-			avd_comp_oper_state_set(i_comp, SA_AMF_OPERATIONAL_DISABLED);
-			avd_comp_pres_state_set(i_comp, SA_AMF_PRESENCE_UNINSTANTIATED);
-			i_comp->saAmfCompRestartCount = 0;
-			if (i_comp->admin_pend_cbk.invocation != 0) {
-				avd_saImmOiAdminOperationResult(cb->immOiHandle, i_comp->admin_pend_cbk.invocation, 
-						SA_AIS_ERR_TIMEOUT);
-				i_comp->admin_pend_cbk.invocation = 0;
-				i_comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
-			}
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_comp, AVSV_CKPT_AVD_COMP_CONFIG);
-			i_comp = i_comp->su_comp_next;
-		}
+		su_complete_admin_op(i_su, SA_AIS_ERR_TIMEOUT);
+		su_disable_comps(i_su, SA_AIS_ERR_TIMEOUT);
 
 		i_su = i_su->avnd_list_su_next;
 	} /* while (i_su != AVD_SU_NULL) */
@@ -1494,21 +1548,8 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 			 */
 			i_su->sg_of_su->node_fail(cb, i_su);
 
-			/* Free all the SU SI assignments for all the SIs on the
-			 * the SU if there are any.
-			 */
-
-			while (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
-
-				/* free all the CSI assignments  */
-				avd_compcsi_delete(cb, i_su->list_of_susi, false);
-				/* Unassign the SUSI */
-				m_AVD_SU_SI_TRG_DEL(cb, i_su->list_of_susi);
-			}
-
-			i_su->saAmfSUNumCurrActiveSIs = 0;
-			i_su->saAmfSUNumCurrStandbySIs = 0;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_su, AVSV_CKPT_AVD_SU_CONFIG);
+			/* Free all the SU SI assignments*/ 
+			avd_sg_su_asgn_del_util(cb, i_su, true, false);
 
 			/* Since a SU has gone out of service relook at the SG to
 			 * re instatiate and terminate SUs if needed.
@@ -2042,4 +2083,55 @@ void avd_su_role_failover(AVD_SU *su, AVD_SU *stdby_su)
 	TRACE_LEAVE();
 }
 
+/**
+ * @brief	This function completes admin operation on SU. 
+ *              It responds IMM with the result of admin operation on SU.  
+ * @param 	ptr to su 
+ * @param 	result
+ * 
+ */
+void su_complete_admin_op(AVD_SU *su, SaAisErrorT result)
+{
+	if (su->pend_cbk.invocation != 0) {
+		avd_saImmOiAdminOperationResult(avd_cb->immOiHandle, su->pend_cbk.invocation, result);
+		su->pend_cbk.invocation = 0;
+		su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+	}
+}
 
+
+/**
+ * @brief	This function completes admin operation on component. 
+ *              It responds IMM with the result of admin operation on component.  
+ * @param 	ptr to comp 
+ * @param 	result
+ * 
+ */
+void comp_complete_admin_op(AVD_COMP *comp, SaAisErrorT result)
+{
+	if (comp->admin_pend_cbk.invocation != 0) {
+		avd_saImmOiAdminOperationResult(avd_cb->immOiHandle, comp->admin_pend_cbk.invocation, result);
+		comp->admin_pend_cbk.invocation = 0;
+		comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+	}
+}
+/**
+ * @brief	Disable all components since SU is disabled and out of service. 
+ *              It takes care of response to IMM for any admin operation pending on components.  
+ * @param 	ptr to su 
+ * @param 	result
+ * 
+ */
+void su_disable_comps(AVD_SU *su, SaAisErrorT result)
+{
+	AVD_COMP *comp;
+	for (comp = su->list_of_comp; comp; comp = comp->su_comp_next) {
+		comp->curr_num_csi_actv = 0;
+		comp->curr_num_csi_stdby = 0;
+		avd_comp_oper_state_set(comp, SA_AMF_OPERATIONAL_DISABLED);
+		avd_comp_pres_state_set(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
+		comp->saAmfCompRestartCount = 0;
+		comp_complete_admin_op(comp, result);
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
+	}
+}
