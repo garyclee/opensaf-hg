@@ -56,7 +56,6 @@ static uint32_t avnd_su_pres_inst_compinstfail_hdler(AVND_CB *, AVND_SU *, AVND_
 static uint32_t avnd_su_pres_instfailed_compuninst(AVND_CB *, AVND_SU *, AVND_COMP *);
 
 static uint32_t avnd_su_pres_st_chng_prc(AVND_CB *, AVND_SU *, SaAmfPresenceStateT, SaAmfPresenceStateT);
-
 /****************************************************************************
  * S E R V I C E  U N I T  P R E S  F S M  M A T R I X  D E F I N I T I O N *
  ****************************************************************************/
@@ -1262,6 +1261,29 @@ done:
 	return rc;
 }
 
+
+/**
+ * Check if all components have been terminated in the su.
+ * @param su
+ * @return bool
+ */
+static bool all_comps_terminated_in_su(const AVND_SU *su)
+{
+	AVND_COMP *comp;
+
+	for (comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list));
+			comp;
+			comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&comp->su_dll_node))) {
+
+		if (comp->pres != SA_AMF_PRESENCE_UNINSTANTIATED) {
+			TRACE("'%s' not terminated, pres.st=%u", comp->name.value, comp->pres);
+			return false;
+		}
+       }
+
+       return true;
+}
+
 /****************************************************************************
   Name          : avnd_su_pres_fsm_run
  
@@ -1299,6 +1321,23 @@ uint32_t avnd_su_pres_fsm_run(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVND_SU
 	final_st = su->pres;
 
 	TRACE_1("Exited SU presence state FSM: New State = %u",final_st);
+
+	/* TODO: This code related to sufailover handling will be moved to avnd_su_pres_st_chng_prc()
+	   once NPI SU support is more proper. */
+	if (((sufailover_in_progress(su)) || (sufailover_during_nodeswitchover(su))) && 
+			(all_comps_terminated_in_su(su))) {
+		TRACE("SU_FAILOVER for '%s'", su->name.value);
+                /* Since all components got successfully terminated, finish sufailover at amfnd
+                   by deleting SUSIs at amfnd and informing amfd about sufailover.*/
+                LOG_NO("Terminated all components in '%s'", su->name.value);
+                LOG_NO("Informing director of sufailover");
+                rc = avnd_di_oper_send(avnd_cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
+                osafassert(NCSCC_RC_SUCCESS == rc);
+                avnd_su_si_del(avnd_cb, &su->name);
+		if (!m_AVND_SU_IS_PREINSTANTIABLE(su))
+			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
+		goto done;
+        }
 
 	/* process state change */
 	if (prv_st != final_st)
@@ -1411,17 +1450,22 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 		/* terminating -> uninstantiated */
 		if ((SA_AMF_PRESENCE_TERMINATING == prv_st) && (SA_AMF_PRESENCE_UNINSTANTIATED == final_st)) {
 			TRACE("SU Terminating -> Uninstantiated");
-			/* reset the su failed flag */
-			if (m_AVND_SU_IS_FAILED(su)) {
-				m_AVND_SU_FAILED_RESET(su);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
+			if (sufailover_in_progress(su)) {
+				/*Do not reset any flag, this will be done as a part of repair.*/
 			}
+			else 
+			{
+				if (m_AVND_SU_IS_FAILED(su)) {
+					m_AVND_SU_FAILED_RESET(su);
+					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
+				}
 
-			/* reset the su restart falg */
-			if (m_AVND_SU_IS_RESTART(su)) {
-				m_AVND_SU_RESTART_RESET(su);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
+				if (m_AVND_SU_IS_RESTART(su)) {
+					m_AVND_SU_RESTART_RESET(su);
+					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
+				}
 			}
+			goto done;
 		}
 
 		/* instantiating -> inst-failed */
@@ -1430,7 +1474,7 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 			/* send the su-oper state msg (to indicate that instantiation failed) */
 			m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
-			rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
+			rc = avnd_di_oper_send(cb, su, SA_AMF_COMPONENT_FAILOVER);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
 		}
@@ -1457,7 +1501,7 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 				TRACE("SU oper state is enabled");
 				m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
-				rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
+				rc = avnd_di_oper_send(cb, su, SA_AMF_COMPONENT_FAILOVER);
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
 			}
@@ -1469,10 +1513,17 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 		if (((prv_st == SA_AMF_PRESENCE_RESTARTING) || (SA_AMF_PRESENCE_TERMINATING == prv_st)) 
 				&& (SA_AMF_PRESENCE_TERMINATION_FAILED == final_st)) {
 			TRACE("Terminating -> Termination Failed");
+			if (sufailover_in_progress(su)) {
+				/*Do not reset any flag, this will be done as a part of repair.*/
+				rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
+				osafassert(NCSCC_RC_SUCCESS == rc);
+				avnd_su_si_del(avnd_cb, &su->name);
+				goto done;
+			}
 			m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 			/* inform AvD about oper state change */
-			rc = avnd_di_oper_send(cb, su, 0);
+			rc = avnd_di_oper_send(cb, su, SA_AMF_COMPONENT_FAILOVER);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
 
@@ -1516,7 +1567,7 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 			m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 
-			rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
+			rc = avnd_di_oper_send(cb, su, SA_AMF_COMPONENT_FAILOVER);
 
 		}
 
@@ -1532,15 +1583,21 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 		/* terminating -> uninstantiated */
 		if ((SA_AMF_PRESENCE_TERMINATING == prv_st) && (SA_AMF_PRESENCE_UNINSTANTIATED == final_st)) {
 			TRACE("Terminating -> UnInstantiated");
-			/* si assignment/removal success.. generate si-oper done indication */
-			rc = avnd_su_si_oper_done(cb, su, m_AVND_SU_IS_ALL_SI(su) ? 0 : si);
-			m_AVND_SU_ALL_SI_RESET(su);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
+			if (sufailover_in_progress(su)) {
+				/*Do not reset any flag, this will be done as a part of repair.*/
+			}
+			else
+			{
+				/* si assignment/removal success.. generate si-oper done indication */
+				rc = avnd_su_si_oper_done(cb, su, m_AVND_SU_IS_ALL_SI(su) ? 0 : si);
+				m_AVND_SU_ALL_SI_RESET(su);
+				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
 
-			/* npi su is enabled in uninstantiated state */
-			m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_ENABLED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
-			rc = avnd_di_oper_send(cb, su, 0);
+				/* npi su is enabled in uninstantiated state */
+				m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_ENABLED);
+				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
+				rc = avnd_di_oper_send(cb, su, 0);
+			}
 		}
 
 		/* terminating/instantiated/restarting -> term-failed */
@@ -1548,10 +1605,17 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 		     (SA_AMF_PRESENCE_INSTANTIATED == prv_st) ||
 		     (SA_AMF_PRESENCE_RESTARTING == prv_st)) && (SA_AMF_PRESENCE_TERMINATION_FAILED == final_st)) {
 			TRACE("Terminating/Instantiated/Restarting -> Termination Failed");
+			 if (sufailover_in_progress(su)) {
+                                /*Do not reset any flag, this will be done as a part of repair.*/
+                                rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
+                                osafassert(NCSCC_RC_SUCCESS == rc);
+                                avnd_su_si_del(avnd_cb, &su->name);
+                                goto done;
+                        }
 			m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 			/* inform AvD about oper state change */
-			rc = avnd_di_oper_send(cb, su, 0);
+			rc = avnd_di_oper_send(cb, su, SA_AMF_COMPONENT_FAILOVER);
 
 			/* si assignment/removal failed.. inform AvD */
 			rc = avnd_di_susi_resp_send(cb, su, m_AVND_SU_IS_ALL_SI(su) ? 0 : si);
@@ -2086,11 +2150,8 @@ uint32_t avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 	TRACE_ENTER2("CompTerminating event in the Instantiated state:'%s' : '%s'",
 				 su->name.value, compname);
 
-	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
-		if (m_AVND_SU_IS_FAILED(su)) {
-			/* transition to terminating state */
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
-		}
+	if (m_AVND_SU_IS_FAILED(su)) {
+		avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
 	}
 
 	TRACE_LEAVE2("%u", rc);
@@ -2259,7 +2320,9 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 				 su->name.value, compname);
 
 	/* This case is for handling the case of admn su term while su is restarting */
-	if (m_AVND_SU_IS_PREINSTANTIABLE(su) && m_AVND_SU_IS_FAILED(su) && m_AVND_SU_IS_ADMN_TERM(su)) {
+	if (m_AVND_SU_IS_PREINSTANTIABLE(su) && m_AVND_SU_IS_FAILED(su) &&
+			(m_AVND_SU_IS_ADMN_TERM(su) || sufailover_in_progress(su)))
+	{
 		TRACE("PI SU");
 		for (curr_comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list));
 		     curr_comp;
@@ -2275,6 +2338,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 		}
 	}
 
+	
 	/* 
 	 * If pi su, pick the prv pi comp & trigger it's FSM with TermEv.
 	 */
@@ -2305,7 +2369,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 	/* 
 	 * If npi su, pick the prv csi & trigger it's comp fsm with TermEv.
 	 */
-	if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
+	if (!m_AVND_SU_IS_PREINSTANTIABLE(su) &&  !m_AVND_SU_IS_FAILED(su)) {
 		TRACE("NPI SU");
 		/* get the only csi rec */
 		curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
@@ -2729,5 +2793,35 @@ uint32_t avnd_su_pres_instfailed_compuninst(AVND_CB *cb, AVND_SU *su, AVND_COMP 
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;
+}
+
+/**
+ * This function checks if the sufailover is going on. 
+ * @param su: ptr to the SU . 
+ * 
+ * @return true/false. 
+ */
+bool sufailover_in_progress(const AVND_SU *su)
+{
+	if (m_AVND_SU_IS_FAILED(su) && (su->sufailover) && 
+			 (avnd_cb->oper_state != SA_AMF_OPERATIONAL_DISABLED) && (!su->is_ncs))
+				return true;
+	return false;
+}
+
+/**
+ * This function checks if the sufailover and node switchover are going on.
+ * @param su: ptr to the SU .
+ *
+ * @return true/false.
+ */
+bool sufailover_during_nodeswitchover(const AVND_SU *su)
+{
+	if ((m_AVND_SU_IS_FAILED(su) && (su->sufailover) && 
+				(avnd_cb->term_state == AVND_TERM_STATE_NODE_SWITCHOVER_STARTED) && 
+				(!su->is_ncs)))
+		return true;
+
+	return false;
 }
 
