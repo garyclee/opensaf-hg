@@ -158,6 +158,9 @@ typedef struct avnd_su_tag {
 	bool is_ncs;
 	bool su_is_external;	/*indicates if this SU is external */
 
+	/* To maintain saAmfSUFailover attribute of SU classs at Amfnd. */
+	bool sufailover; /* sufailover is enabled or not for the SU. */ 
+
 } AVND_SU;
 
 #define AVND_SU_NULL ((AVND_SU *)0)
@@ -401,5 +404,8 @@ extern struct avnd_su_si_rec *avnd_silist_getfirst(void);
 extern struct avnd_su_si_rec *avnd_silist_getnext(const struct avnd_su_si_rec *);
 extern struct avnd_su_si_rec *avnd_silist_getprev(const struct avnd_su_si_rec *);
 extern struct avnd_su_si_rec *avnd_silist_getlast(void);
+extern void su_get_config_attributes(AVND_SU *su);
+extern bool sufailover_in_progress(const AVND_SU *su);
+extern bool sufailover_during_nodeswitchover(const AVND_SU *su);
 
 #endif
