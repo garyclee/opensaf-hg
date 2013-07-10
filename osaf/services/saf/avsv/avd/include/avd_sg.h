@@ -69,6 +69,7 @@ typedef struct avd_sg_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
+	bool saAmfSGAutoRepair_configured; /* True when user configures saAmfSGAutoRepair else false */
    /******************** B.04 model *************************************************/
 	SaNameT saAmfSGType;	/* Network order. */
 	SaNameT saAmfSGSuHostNodeGroup;	/* Network order. */
@@ -242,7 +243,7 @@ typedef struct avd_sg_tag {
 typedef struct avd_amf_sg_type_tag {
 	NCS_PATRICIA_NODE tree_node;	/* key will be sg type name */
 	SaNameT name;
-
+	bool saAmfSgtDefAutoRepair_configured; /* True when user configures saAmfSGDefAutoRepair else false */
    /******************** B.04 model *************************************************/
 	SaNameT *saAmfSGtValidSuTypes;	/* array of DNs, size in number_su_type */
 	SaAmfRedundancyModelT saAmfSgtRedundancyModel;

@@ -221,7 +221,10 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoRepair"), attributes, 0, &sgt->saAmfSgtDefAutoRepair) != SA_AIS_OK) {
 		sgt->saAmfSgtDefAutoRepair = SA_TRUE;
+		sgt->saAmfSgtDefAutoRepair_configured = false;
 	}
+	else
+		sgt->saAmfSgtDefAutoRepair_configured = true;
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoAdjust"), attributes, 0, &sgt->saAmfSgtDefAutoAdjust) != SA_AIS_OK) {
 		sgt->saAmfSgtDefAutoAdjust = SA_FALSE;
@@ -314,6 +317,44 @@ SaAisErrorT avd_sgtype_config_get(void)
 	return error;
 }
 
+
+/**
+ * This routine validates modify CCB operations on SaAmfSGType objects.
+ * @param   Ccb Util Oper Data
+ * @return 
+ */
+
+static SaAisErrorT sgtype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	const SaImmAttrModificationT_2 *attr_mod;
+	int i = 0;
+	AVD_AMF_SG_TYPE *sgt = avd_sgtype_get(&opdata->objectName);
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == NULL))
+			continue;
+
+		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSgtDefAutoRepair")) {
+			uint32_t sgt_autorepair = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
+			if (sgt_autorepair > SA_TRUE) {
+				LOG_ER("invalid saAmfSgtDefAutoRepair in:'%s'", sgt->name.value);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+			}	
+		} else {
+			LOG_ER("Modification of attribute is Not Supported:'%s' ", attr_mod->modAttr.attrName);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+	}
+
+done:
+	return rc;
+}
+
 /**
  * Validate SaAmfSGType CCB completed
  * @param opdata
@@ -336,8 +377,7 @@ static SaAisErrorT sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfSGType not supported");
-		goto done;
+		rc = sgtype_ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
 		sgt = avd_sgtype_get(&opdata->objectName);
@@ -373,6 +413,51 @@ done:
 }
 
 /**
+ * This function handles modify operations on SaAmfSGType objects. 
+ * @param ptr to opdata 
+ */
+static void sgtype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
+{
+	const SaImmAttrModificationT_2 *attr_mod;
+	int i = 0;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	AVD_AMF_SG_TYPE *sgt = avd_sgtype_get(&opdata->objectName);
+
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		bool value_is_deleted; 
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||	(attr_mod->modAttr.attrValues == NULL))
+			/* Attribute value is deleted, revert to default value */
+			value_is_deleted = true;
+		else 
+			/* Attribute value is modified */
+			value_is_deleted = false;
+		
+		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSgtDefAutoRepair")) {
+			SaBoolT old_value = sgt->saAmfSgtDefAutoRepair;
+			if (value_is_deleted) {
+				sgt->saAmfSgtDefAutoRepair = static_cast<SaBoolT>(true);
+				sgt->saAmfSgtDefAutoRepair_configured = false;
+			} else {
+				sgt->saAmfSgtDefAutoRepair = static_cast<SaBoolT>(*((SaUint32T *)attr_mod->modAttr.attrValues[0]));
+				sgt->saAmfSgtDefAutoRepair_configured = true; 
+			}
+			/* Modify saAmfSGAutoRepair for SGs which had inherited saAmfSgtDefAutoRepair.*/
+			if (old_value != sgt->saAmfSgtDefAutoRepair) {
+				for (AVD_SG *sg = sgt->list_of_sg; sg; sg = sg->sg_list_sg_type_next) {  
+					if (!sg->saAmfSGAutoRepair_configured)
+						sg->saAmfSGAutoRepair = static_cast<SaBoolT>(sgt->saAmfSgtDefAutoRepair);
+				}
+			}
+		} 
+	}
+
+	TRACE_LEAVE();
+}
+
+
+/**
  * Apply SaAmfSGType CCB changes
  * @param opdata
  * 
@@ -389,6 +474,9 @@ static void sgtype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		sgt = sgtype_create(&opdata->objectName, opdata->param.create.attrValues);
 		osafassert(sgt);
 		sgtype_add_to_model(sgt);
+		break;
+	case CCBUTIL_MODIFY:
+		sgtype_ccb_apply_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
 		sgtype_delete(static_cast<AVD_AMF_SG_TYPE*>(opdata->userData));
@@ -410,4 +498,3 @@ void avd_sgtype_constructor(void)
 	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfSGType"), NULL, NULL, sgtype_ccb_completed_cb, sgtype_ccb_apply_cb);
 	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfSGBaseType"), NULL, NULL, avd_imm_default_OK_completed_cb, NULL);
 }
-
