@@ -1301,6 +1301,8 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			ev = AVND_SU_PRES_FSM_EV_COMP_TERM_FAIL;
 		else if ((SA_AMF_PRESENCE_TERMINATING == final_st) && (comp->su->pres == SA_AMF_PRESENCE_RESTARTING))
 			ev = AVND_SU_PRES_FSM_EV_COMP_TERMINATING;
+		else if (sufailover_in_progress(comp->su) && (SA_AMF_PRESENCE_UNINSTANTIATED == final_st))
+			ev = AVND_SU_PRES_FSM_EV_COMP_UNINSTANTIATED;
 	}
 
 	if ((m_AVND_SU_IS_PREINSTANTIABLE(comp->su) &&
