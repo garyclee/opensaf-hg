@@ -123,6 +123,8 @@ int main(int argc, char *argv[])
 	int rc = NCSCC_RC_FAILURE;
 	int term_fd;
 
+	opensaf_reboot_prepare();
+
 	daemonize(argc, argv);
 
 	if (fm_agents_startup() != NCSCC_RC_SUCCESS) {
