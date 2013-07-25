@@ -551,6 +551,13 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			} else if (!strcmp(attribute->attrName, "saAmfSGCompRestartMax")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartProb")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartMax")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
+				uint32_t sg_autorepair = *((SaUint32T *)attribute->attrValues[0]);
+				if (sg_autorepair > true ) {
+					LOG_ER("Invalid saAmfSGAutoRepair SG:'%s'", avd_sg->name.value);
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
 			} else {
 				osafassert(0);
 			}
