@@ -271,6 +271,20 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 
 	/*If the AvD is in AVD_APP_STATE then reassign all the SUSI assignments for this SU */
 	if (avd_cb->init_state == AVD_APP_STATE) {
+		/* Unlike active, quiesced and standby HA states, assignment counters
+		   in quiescing HA state are updated when AMFD receives assignment 
+		   response from AMFND. During sufailover amfd will not receive 
+		   assignment response from AMFND. 
+		   So if any SU is under going modify operation then update assignment 
+		   counters for those SUSIs which are in quiescing state in the SU.
+		 */ 
+		for (AVD_SU_SI_REL *susi = su->list_of_susi; susi; susi = susi->su_next) {
+			if ((susi->fsm == AVD_SU_SI_STATE_MODIFY) &&
+					(susi->state == SA_AMF_HA_QUIESCING)) {
+				avd_susi_update_assignment_counters(susi, AVSV_SUSI_ACT_MOD,
+						SA_AMF_HA_QUIESCING, SA_AMF_HA_QUIESCED);
+			}
+		}
 		su->sg_of_su->node_fail(avd_cb, su);
 		avd_sg_su_asgn_del_util(avd_cb, su, true, false);
 	}
@@ -1542,6 +1556,22 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 	if (cb->init_state == AVD_APP_STATE) {
 		i_su = avnd->list_of_su;
 		while (i_su != NULL) {
+
+			/* Unlike active, quiesced and standby HA states, assignment counters
+			   in quiescing HA state are updated when AMFD receives assignment 
+			   response from AMFND. During nodefailover amfd will not receive 
+			   assignment response from AMFND. 
+			   So if any SU is under going modify operation then update assignment 
+			   counters for those SUSIs which are in quiescing state in the SU.
+			 */ 
+			for (AVD_SU_SI_REL *susi = i_su->list_of_susi; susi; susi = susi->su_next) {
+				if ((susi->fsm == AVD_SU_SI_STATE_MODIFY) &&
+						(susi->state == SA_AMF_HA_QUIESCING)) {
+					avd_susi_update_assignment_counters(susi, AVSV_SUSI_ACT_MOD,
+							SA_AMF_HA_QUIESCING, SA_AMF_HA_QUIESCED);
+				}
+			}
+
 			/* Now analyze the service group for the new HA state
 			 * assignments and send the SU SI assign messages
 			 * accordingly.
