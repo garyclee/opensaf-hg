@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <!-- edited with XMLSpy v2006 sp1 U (http://www.altova.com) by Maria Toeroe (Ericsson Canada/Open Systems Research) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<!--
@@ -20,6 +20,10 @@
    Note: This is a modified schema.
    ================================
    The following modifications have been made:
+   Wed Aug 20 10:01:00 2013, Ingvar Bergstrom <ingvar.bergstrom@ericsson.com>
+       smfsv: ETF and Campaign schemas are not matching each other (#460)
+        -The component command arguments cardinality is changed from "single mandatory" to "0..*", i.e coluld be zero to infinite
+        -The sw bundle defaultCliTimeout is added, element is optional.
    Wed Feb 27 10:26:17 2013,  Bertil Engelholm <bertil.engelholm@ericsson.com>
        smfsv: updated ETF schema with healthcheck for non sa aware comp type (#3027)
    Wed Feb 29 07:13:00 2012, Hans Feldt <hans.feldt@ericsson.com>
@@ -29,7 +33,6 @@
       <xs:element maxOccurs="unbounded" name="AmfEntityType">
       to
       <xs:element minOccurs="0" maxOccurs="unbounded" name="AmfEntityType">
-
   -->
 	<xs:element name="entityTypesFile">
 		<xs:annotation>
@@ -111,19 +114,20 @@
 																</xs:annotation>
 																<xs:complexType>
 																	<xs:sequence>
-																		<xs:element ref="instantiateCmd">
+                                                                                                                                                <xs:element name="instantiateCmd">
 																			<xs:annotation>
-																				<xs:documentation>The instantiate CLC-CLI command. </xs:documentation>
+																				<xs:documentation>The instantiate CLC-CLI command.</xs:documentation>
 																			</xs:annotation>
+																			<xs:complexType>
+																				<xs:group ref="CliParameters"/>
+																			</xs:complexType>
 																		</xs:element>
 																		<xs:element name="cleanupCmd">
 																			<xs:annotation>
 																				<xs:documentation>The cleanup CLC-CLI command.</xs:documentation>
 																			</xs:annotation>
 																			<xs:complexType>
-																				<xs:sequence>
-																					<xs:group ref="CliParameters"/>
-																				</xs:sequence>
+																				<xs:group ref="CliParameters"/>
 																			</xs:complexType>
 																		</xs:element>
 																		<xs:element name="proxiedCompType" nillable="true" minOccurs="0" maxOccurs="unbounded">
@@ -174,9 +178,7 @@
 																<xs:documentation>The cleanup CLC-CLI command. Required for the instances being local.</xs:documentation>
 															</xs:annotation>
 															<xs:complexType>
-																<xs:sequence>
-																	<xs:group ref="CliParameters"/>
-																</xs:sequence>
+																<xs:group ref="CliParameters"/>
 															</xs:complexType>
 														</xs:element>
 													</xs:sequence>
@@ -194,10 +196,13 @@
 																<xs:documentation>If the non sa aware component support any healthcheck they need to be specified here. Key value is fixed (osafHealthCheck) but still needs to be specified here. </xs:documentation>
 															</xs:annotation>
 														</xs:element>
-														<xs:element ref="instantiateCmd">
+                                                                                                                <xs:element name="instantiateCmd">
 															<xs:annotation>
-																<xs:documentation>The instantiate CLC-CLI command </xs:documentation>
+																<xs:documentation>The instantiate CLC-CLI command.</xs:documentation>
 															</xs:annotation>
+															<xs:complexType>
+																<xs:group ref="CliParameters"/>
+															</xs:complexType>
 														</xs:element>
 														<xs:element name="terminateCmd">
 															<xs:annotation>
@@ -212,9 +217,7 @@
 																<xs:documentation>The cleanup CLC-CLI command.</xs:documentation>
 															</xs:annotation>
 															<xs:complexType>
-																<xs:sequence>
-																	<xs:group ref="CliParameters"/>
-																</xs:sequence>
+																<xs:group ref="CliParameters"/>
 															</xs:complexType>
 														</xs:element>
 													</xs:sequence>
@@ -520,6 +523,14 @@
 									</xs:sequence>
 								</xs:complexType>
 							</xs:element>
+                                                        <xs:element name="defaultCliTimeout" minOccurs="0">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Default timeout for all (un)install operations</xs:documentation>
+                                                                </xs:annotation>
+                                                                <xs:complexType>
+                                                                        <xs:attribute name="saSmfBundleDefaultCmdTimeout" type="SaTimeT" />
+                                                                </xs:complexType>
+                                                        </xs:element>
 						</xs:sequence>
 						<xs:attribute name="name" type="SwBundleNameT" use="required"/>
 					</xs:complexType>
@@ -543,14 +554,6 @@
 		<xs:annotation>
 			<xs:documentation>The value of Y. It denotes the maximum number of CSIs of the provided CSType that can be assigned as standby to a component of this type. If the element is not present the number of standby assignemts is unlimited.</xs:documentation>
 		</xs:annotation>
-	</xs:element>
-	<xs:element name="instantiateCmd">
-		<xs:annotation>
-			<xs:documentation>The instantiate CLC-CLI command.</xs:documentation>
-		</xs:annotation>
-		<xs:complexType>
-			<xs:group ref="CliParameters"/>
-		</xs:complexType>
 	</xs:element>
 	<xs:element name="numMaxActiveCsi" type="BoundedUInt32T">
 		<xs:annotation>
@@ -692,11 +695,13 @@ If a component has not responded within terminateCallbackTimeOut milliseconds it
 					<xs:documentation>The actual CLI command string including relative path. Needs to be adjusted to the execution environment.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="args" type="xs:string">
-				<xs:annotation>
-					<xs:documentation>Arguments to the CLI command. Needs to be adjusted to the execution environment. </xs:documentation>
-				</xs:annotation>
-			</xs:element>
+                        <xs:sequence>
+			        <xs:element minOccurs="0" maxOccurs="unbounded" name="args" type="xs:string">
+				        <xs:annotation>
+					          <xs:documentation>Arguments to the CLI command. Needs to be adjusted to the execution environment. </xs:documentation>
+				        </xs:annotation>
+			        </xs:element>
+                        </xs:sequence>
 		</xs:sequence>
 	</xs:group>
 	<xs:group name="CommonCompAttributes">
