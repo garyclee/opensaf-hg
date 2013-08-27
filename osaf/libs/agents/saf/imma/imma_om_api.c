@@ -5505,6 +5505,7 @@ mds_send_fail:
 			if(out_evt->info.imma.info.searchNextRsp->attrValuesList) {
 				immsv_free_attrvalues_list(out_evt->info.imma.info.searchNextRsp->attrValuesList);
 			}
+			free(out_evt->info.imma.info.searchNextRsp->objectName.buf);
 			free(out_evt->info.imma.info.searchNextRsp);
 			out_evt->info.imma.info.searchNextRsp = NULL;
 		}
@@ -6654,33 +6655,6 @@ searchresult:
 
  release_cb:
 	return error;
-}
-
-void imma_freeSearchAttrs(SaImmAttrValuesT_2 **attr)
-{
-	SaImmAttrValuesT_2 *att = NULL;
-	int ix;
-	for (ix = 0; attr[ix]; ++ix) {
-		int ix2;
-
-		att = attr[ix];
-		free(att->attrName);	/*free-3 */
-		att->attrName = NULL;
-
-		for (ix2 = 0; ix2 < att->attrValuesNumber; ++ix2) {
-			SaImmAttrValueT aval = att->attrValues[ix2];
-			imma_freeAttrValue3(aval, att->attrValueType);	/*free-5 */
-		}
-		free(att->attrValues);	/*free-4 */
-		att->attrValues = NULL;
-		att->attrValuesNumber = 0;
-		att->attrValueType = 0;
-
-		free(att);	/*free-2 */
-		attr[ix] = NULL;
-	}
-
-	free(attr);		/*free-1 */
 }
 
 SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
