@@ -191,7 +191,7 @@ Source Tree Structure
    |  |	   |	|+-infrastructure/ (Agents of Infrastructure services)
    |  |	   |	|	|+-rda/
    |  |	   |	|+-saf/ (Agents of SAF services)
-   |  |	   | 		|+-ava/
+   |  |	   | 		|+-amfa/
    |  |	   |		|+-clma/
    |  |	   |		|+-cpa/
    |  |    |	 	|+-eda/
@@ -226,7 +226,7 @@ Source Tree Structure
    |  |		|	|+-nid/
    |  |		|	|+-rde/
    |  |    	|+-saf/ (SAF services)
-   |  |			|+-avsv/
+   |  |			|+-amf/
    |  |			|+-clmsv/
    |  |			|+-cpsv/
    |  |			|+-edsv/
@@ -711,13 +711,13 @@ The `Makefile' looks for installed `SAF AIS' headers and `OpenSAF' libs in
 standard system wide locations (e.g. /usr/include/ & /usr/lib/):
 
     INCLUDES = -I.
-    LDFLAGS = -lSaAmf -lsaf_common -lavsv_common
+    LDFLAGS = -lSaAmf
 
 If you have `OpenSAF' development packages installed somewhere else, override
 the default values e.g.:
 
     % make INCLUDES="-I. -I/tmp/usr/local/include" \
-        LDFLAGS="-L/tmp/usr/local/lib -lSaAmf -lsaf_common -lavsv_common"
+        LDFLAGS="-L/tmp/usr/local/lib -lSaAmf -lopensaf_core"
 
 To run an application you will need a configured `OpenSAF' node running.
 
