@@ -34,18 +34,18 @@
 #define AVD_H
 
 #include "logtrace.h"
-#include "avsv.h"
+#include "amf.h"
 #include "logtrace.h"
 
 #include "ncsencdec_pub.h"
-#include "avsv_d2nmsg.h"
+#include "amf_d2nmsg.h"
 
 /* Porting Include Files */
 #include "avd_def.h"
-#include "avsv_ipc.h"
+#include "amf_ipc.h"
 
 /* AVD-AVND common EDPs */
-#include "avsv_d2nedu.h"
+#include "amf_d2nedu.h"
 
 #include "mbcsv_papi.h"
 #include "avd_ckp.h"

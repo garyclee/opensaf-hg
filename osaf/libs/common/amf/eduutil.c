@@ -34,10 +34,10 @@
 ******************************************************************************
 */
 
-#include "avsv.h"
+#include "amf.h"
 #include "ncs_saf_edu.h"
-#include "avsv_eduutil.h"
-#include "avsv_d2nmsg.h"
+#include "amf_eduutil.h"
+#include "amf_d2nmsg.h"
 
 /*****************************************************************************
 

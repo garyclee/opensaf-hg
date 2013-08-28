@@ -19,14 +19,14 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
-   avsv_amfparam.h \
-   avsv_d2nedu.h \
-   avsv_d2nmsg.h \
-   avsv_defs.h \
-   avsv_eduutil.h \
-   avsv.h \
-   avsv_ipc.h \
-   avsv_n2avaedu.h \
-   avsv_n2avamsg.h \
-   avsv_util.h \
-   avsv_nd2ndmsg.h 
+   amf_amfparam.h \
+   amf_d2nedu.h \
+   amf_d2nmsg.h \
+   amf_defs.h \
+   amf_eduutil.h \
+   amf.h \
+   amf_ipc.h \
+   amf_n2avaedu.h \
+   amf_n2avamsg.h \
+   amf_util.h \
+   amf_nd2ndmsg.h 

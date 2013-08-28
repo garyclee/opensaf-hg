@@ -35,7 +35,7 @@
 #ifndef AVSV_ND2NDMSG_H
 #define AVSV_ND2NDMSG_H
 
-#include<avsv_n2avamsg.h>
+#include <amf_n2avamsg.h>
 
 /* Message format versions */
 #define AVSV_AVND_AVND_MSG_FMT_VER_1    1

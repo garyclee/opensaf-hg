@@ -38,8 +38,8 @@
 #include <ncspatricia.h>
 #include <avd_su.h>
 #include <avd_si.h>
-#include <avsv_defs.h>
-#include <avsv_d2nmsg.h>
+#include <amf_defs.h>
+#include <amf_d2nmsg.h>
 
 /* The valid SG FSM states. */
 typedef enum {

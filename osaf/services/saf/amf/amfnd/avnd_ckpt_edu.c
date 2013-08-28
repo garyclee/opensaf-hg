@@ -33,11 +33,11 @@
 */
 
 #include "avnd.h"
-#include "avsv.h"
+#include "amf.h"
 #include "ncs_saf_edu.h"
 #include "avnd_ckpt_edu.h"
-#include "avsv_d2nedu.h"
-#include "avsv_n2avaedu.h"
+#include "amf_d2nedu.h"
+#include "amf_n2avaedu.h"
 
 /*****************************************************************************
 

@@ -36,7 +36,7 @@
 
 #include <saClm.h>
 #include <mds_papi.h>
-#include <avsv_defs.h>
+#include <amf_defs.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus

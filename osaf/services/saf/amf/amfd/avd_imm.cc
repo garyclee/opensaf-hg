@@ -35,7 +35,7 @@
 #include <avd_evt.h>
 #include <avd_util.h>
 #include <avd_cb.h>
-#include <avsv_defs.h>
+#include <amf_defs.h>
 #include <avd_imm.h>
 #include <avd_cluster.h>
 #include <avd_app.h>

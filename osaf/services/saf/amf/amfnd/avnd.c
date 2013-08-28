@@ -38,9 +38,9 @@
 #include <logtrace.h>
 
 #include "avnd.h"
-#include "avsv_d2nedu.h"
-#include "avsv_n2avaedu.h"
-#include "avsv_nd2ndmsg.h"
+#include "amf_d2nedu.h"
+#include "amf_n2avaedu.h"
+#include "amf_nd2ndmsg.h"
 #include "avnd_mon.h"
 
 /* global task handle */

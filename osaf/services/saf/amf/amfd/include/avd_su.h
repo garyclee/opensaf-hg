@@ -40,7 +40,7 @@
 #include <avd_cb.h>
 #include <avd_node.h>
 #include <avd_sg.h>
-#include <avsv_defs.h>
+#include <amf_defs.h>
 #include <avd_msg.h>
 #include <avd_comp.h>
 

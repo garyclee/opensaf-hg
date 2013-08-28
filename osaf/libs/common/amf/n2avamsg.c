@@ -32,10 +32,10 @@
 ******************************************************************************
 */
 
-#include "avsv.h"
-#include "avsv_amfparam.h"
-#include "avsv_n2avamsg.h"
-#include "avsv_nd2ndmsg.h"
+#include "amf.h"
+#include "amf_amfparam.h"
+#include "amf_n2avamsg.h"
+#include "amf_nd2ndmsg.h"
 
 /****************************************************************************
   Name          : avsv_nda_ava_msg_free

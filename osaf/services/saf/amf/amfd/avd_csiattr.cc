@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <logtrace.h>
 #include <avd_util.h>
-#include <avsv_util.h>
+#include <amf_util.h>
 #include <avd_csi.h>
 #include <avd_imm.h>
 

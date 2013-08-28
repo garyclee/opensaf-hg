@@ -35,7 +35,7 @@
 
 #include <saImmOm.h>
 
-#include "avsv.h"
+#include "amf.h"
 #include "ncs_main_papi.h"
 #include "ncssysf_def.h"
 #include "ncssysf_tsk.h"
@@ -44,13 +44,13 @@
 
 /* Porting Include Files */
 #include "avnd_defs.h"
-#include "avsv_ipc.h"
+#include "amf_ipc.h"
 
 /* AvSv Common Files */
-#include "avsv_amfparam.h"
-#include "avsv_d2nmsg.h"
-#include "avsv_n2avamsg.h"
-#include "avsv_nd2ndmsg.h"
+#include "amf_amfparam.h"
+#include "amf_d2nmsg.h"
+#include "amf_n2avamsg.h"
+#include "amf_nd2ndmsg.h"
 
 /* AvND Files */
 #include "mbcsv_papi.h"

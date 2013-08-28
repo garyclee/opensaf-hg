@@ -32,12 +32,12 @@
 ******************************************************************************
 */
 
-#include "avsv.h"
-#include "avsv_d2nmsg.h"
+#include "amf.h"
+#include "amf_d2nmsg.h"
 
 /* AVD-AVND common EDPs */
-#include "avsv_d2nedu.h"
-#include "avsv_eduutil.h"
+#include "amf_d2nedu.h"
+#include "amf_eduutil.h"
 
 /*****************************************************************************
 

@@ -41,7 +41,7 @@
 #include <ncsdlib.h>
 #include <mds_papi.h>
 #include <avd_su.h>
-#include <avsv_d2nmsg.h>
+#include <amf_d2nmsg.h>
 #include <avd_tmr.h>
 
 struct avd_cluster_tag;

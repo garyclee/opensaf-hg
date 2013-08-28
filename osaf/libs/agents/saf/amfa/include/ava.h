@@ -31,14 +31,14 @@
 #define AVA_H
 #include <ncs_main_papi.h>
 #include <ncsencdec_pub.h>
-#include "avsv.h"
+#include "amf.h"
 #include "ava_dl_api.h"
 /* Porting Include Files */
 #include "ava_def.h"
 
-#include "avsv_amfparam.h"
-#include "avsv_n2avamsg.h"
-#include "avsv_n2avaedu.h"
+#include "amf_amfparam.h"
+#include "amf_n2avamsg.h"
+#include "amf_n2avaedu.h"
 
 #include "ava_hdl.h"
 #include "ava_mds.h"
