@@ -29,8 +29,7 @@ lib_LTLIBRARIES = libSaAmf.la
 libSaAmf_la_SOURCES =
 
 libSaAmf_la_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
-	-DNCS_AVA=1 -DNCS_AVSV_LOG=1
+	$(AM_CPPFLAGS) 
 
 if HAVE_LD_VERSION_SCRIPT
 libSaAmf_la_LDFLAGS = \
@@ -43,5 +42,5 @@ endif
 
 libSaAmf_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/agents/saf/ava/libava.la \
-	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la
+	$(top_builddir)/osaf/libs/agents/saf/amfa/libava.la \
+	$(top_builddir)/osaf/libs/common/amf/libavsv_common.la

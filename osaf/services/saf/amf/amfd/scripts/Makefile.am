@@ -19,4 +19,4 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 nodist_pkgclccli_SCRIPTS = \
-	$(top_builddir)/osaf/services/saf/avsv/amfwdog/scripts/osaf-amfwd
+	$(top_builddir)/osaf/services/saf/amf/amfd/scripts/osaf-amfd

@@ -28,8 +28,8 @@ osafamfd_CXXFLAGS =$(AM_CXXFLAGS)
 osafamfd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/avsv/include \
-	-I$(top_srcdir)/osaf/services/saf/avsv/avd/include \
+	-I$(top_srcdir)/osaf/libs/common/amf/include \
+	-I$(top_srcdir)/osaf/services/saf/amf/amfd/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include \
 	-I$(top_srcdir)/osaf/tools/saflog/include
 
@@ -91,7 +91,7 @@ osafamfd_SOURCES = \
 
 osafamfd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
+	$(top_builddir)/osaf/libs/common/amf/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \

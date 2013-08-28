@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = avsv immsv logsv ntfsv clmsv
+SUBDIRS = amf immsv logsv ntfsv clmsv
 
 if ENABLE_AIS_PLM
 

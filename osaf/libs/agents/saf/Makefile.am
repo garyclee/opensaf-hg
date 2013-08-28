@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = ava imma lga ntfa clma
+SUBDIRS = amfa imma lga ntfa clma
 
 if ENABLE_AIS_PLM
 

@@ -26,8 +26,8 @@ osaf_execbin_PROGRAMS = osafamfnd
 osafamfnd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/avsv/include \
-	-I$(top_srcdir)/osaf/services/saf/avsv/avnd/include \
+	-I$(top_srcdir)/osaf/libs/common/amf/include \
+	-I$(top_srcdir)/osaf/services/saf/amf/amfnd/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osafamfnd_SOURCES = \
@@ -69,8 +69,8 @@ osafamfnd_SOURCES = \
 	avnd_proxydb.c
 
 osafamfnd_LDADD = \
-        $(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/amf/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la

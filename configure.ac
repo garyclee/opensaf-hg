@@ -669,8 +669,8 @@ AC_CONFIG_FILES([
         osaf/libs/agents/infrastructure/Makefile
         osaf/libs/agents/infrastructure/rda/Makefile
         osaf/libs/agents/saf/Makefile
-        osaf/libs/agents/saf/ava/Makefile
-        osaf/libs/agents/saf/ava/include/Makefile
+        osaf/libs/agents/saf/amfa/Makefile
+        osaf/libs/agents/saf/amfa/include/Makefile
         osaf/libs/agents/saf/imma/Makefile
         osaf/libs/agents/saf/plma/Makefile
         osaf/libs/agents/saf/lga/Makefile
@@ -692,8 +692,8 @@ AC_CONFIG_FILES([
         osaf/libs/core/mds/Makefile
         osaf/libs/core/mds/include/Makefile
         osaf/libs/common/Makefile
-        osaf/libs/common/avsv/Makefile
-        osaf/libs/common/avsv/include/Makefile
+        osaf/libs/common/amf/Makefile
+        osaf/libs/common/amf/include/Makefile
         osaf/libs/common/cpsv/Makefile
         osaf/libs/common/cpsv/include/Makefile
         osaf/libs/common/edsv/Makefile
@@ -776,19 +776,19 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/rde/config/Makefile
         osaf/services/infrastructure/rde/scripts/osaf-rded
         osaf/services/saf/Makefile
-        osaf/services/saf/avsv/Makefile
-        osaf/services/saf/avsv/config/Makefile
-        osaf/services/saf/avsv/avd/Makefile
-        osaf/services/saf/avsv/avd/include/Makefile
-        osaf/services/saf/avsv/avd/scripts/Makefile
-        osaf/services/saf/avsv/avd/scripts/osaf-amfd
-        osaf/services/saf/avsv/avnd/Makefile
-        osaf/services/saf/avsv/avnd/include/Makefile
-        osaf/services/saf/avsv/avnd/scripts/Makefile
-        osaf/services/saf/avsv/avnd/scripts/osaf-amfnd
-        osaf/services/saf/avsv/amfwdog/Makefile
-        osaf/services/saf/avsv/amfwdog/scripts/Makefile
-        osaf/services/saf/avsv/amfwdog/scripts/osaf-amfwd
+        osaf/services/saf/amf/Makefile
+        osaf/services/saf/amf/config/Makefile
+        osaf/services/saf/amf/amfd/Makefile
+        osaf/services/saf/amf/amfd/include/Makefile
+        osaf/services/saf/amf/amfd/scripts/Makefile
+        osaf/services/saf/amf/amfd/scripts/osaf-amfd
+        osaf/services/saf/amf/amfnd/Makefile
+        osaf/services/saf/amf/amfnd/include/Makefile
+        osaf/services/saf/amf/amfnd/scripts/Makefile
+        osaf/services/saf/amf/amfnd/scripts/osaf-amfnd
+        osaf/services/saf/amf/amfwdog/Makefile
+        osaf/services/saf/amf/amfwdog/scripts/Makefile
+        osaf/services/saf/amf/amfwdog/scripts/osaf-amfwd
         osaf/services/saf/immsv/Makefile
         osaf/services/saf/immsv/config/Makefile
         osaf/services/saf/immsv/immd/Makefile

@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2009 The OpenSAF Foundation
+# (C) Copyright 2008 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -18,4 +18,20 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = avd avnd config amfwdog
+SUBDIRS = include
+
+noinst_LTLIBRARIES = libava.la
+
+libava_la_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/osaf/libs/common/amf/include \
+	-I$(top_srcdir)/osaf/libs/agents/saf/amfa/include
+
+libava_la_LDFLAGS = -static
+
+libava_la_SOURCES = \
+	ava_api.c \
+	ava_hdl.c \
+	ava_init.c \
+	ava_mds.c \
+	ava_op.c
