@@ -28,8 +28,8 @@ if ENABLE_IMMXML
 dist_pkgimmxml_svc_DATA = \
 	common_pl_template.xml \
 	common_sc_template.xml \
-	avsv_classes.xml \
-	avsv_objects.xml \
+	amf_classes.xml \
+	amf_objects.xml \
 	amfwdog_sc_template.xml \
 	amfwdog_pl_template.xml \
 	amfwdog_objects.xml
