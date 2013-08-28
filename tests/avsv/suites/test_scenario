@@ -1,8 +1,0 @@
-all
-	"starting scenario"
-          :parallel:
-             /test_tet.sh
-#             /nd1.sh
-#             /app1.sh
-          :endparallel:
-        "completed "
