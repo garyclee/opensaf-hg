@@ -20,14 +20,13 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-noinst_LTLIBRARIES = libavsv_common.la
+noinst_LTLIBRARIES = libamf_common.la
 
-libavsv_common_la_CPPFLAGS = \
-	-DNCS_EDU=1 \
+libamf_common_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/amf/include
 
-libavsv_common_la_SOURCES = \
+libamf_common_la_SOURCES = \
 	avsv_d2nedu.c \
 	avsv_nd2ndedu.c \
 	avsv_d2nmsg.c \
