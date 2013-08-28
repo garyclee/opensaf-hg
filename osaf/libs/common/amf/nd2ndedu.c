@@ -32,15 +32,15 @@
 ******************************************************************************
 */
 
-#include "avsv.h"
-#include "avsv_amfparam.h"
-#include "avsv_d2nmsg.h"
+#include "amf.h"
+#include "amf_amfparam.h"
+#include "amf_d2nmsg.h"
 
 /* AVD-AVND common EDPs */
-#include "avsv_d2nedu.h"
-#include "avsv_eduutil.h"
-#include "avsv_n2avaedu.h"
-#include "avsv_nd2ndmsg.h"
+#include "amf_d2nedu.h"
+#include "amf_eduutil.h"
+#include "amf_n2avaedu.h"
+#include "amf_nd2ndmsg.h"
 
 int avsv_nd_nd_test_type_fnc(NCSCONTEXT arg);
 

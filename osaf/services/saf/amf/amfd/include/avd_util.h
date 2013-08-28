@@ -35,10 +35,10 @@
 #define AVD_MSG_H
 
 #include <stdbool.h>
-#include <avsv_d2nmsg.h>
+#include <amf_d2nmsg.h>
 #include <avd_cb.h>
 #include <stdbool.h>
-#include <avsv_util.h>
+#include <amf_util.h>
 
 typedef enum {
 	AVD_D2D_CHANGE_ROLE_REQ = AVSV_DND_MSG_MAX,

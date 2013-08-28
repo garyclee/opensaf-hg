@@ -37,7 +37,7 @@
 #include <saAmf.h>
 #include <saImm.h>
 #include <ncspatricia.h>
-#include <avsv_d2nmsg.h>
+#include <amf_d2nmsg.h>
 #include <avd_su.h>
 
 /* AMF Class SaAmfCompGlobalAttributes */

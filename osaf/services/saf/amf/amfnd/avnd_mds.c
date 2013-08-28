@@ -33,8 +33,8 @@
 
 #include <logtrace.h>
 #include "avnd.h"
-#include "avsv_d2nedu.h"
-#include "avsv_n2avaedu.h"
+#include "amf_d2nedu.h"
+#include "amf_n2avaedu.h"
 #include "ncsencdec_pub.h"
 
 const MDS_CLIENT_MSG_FORMAT_VER avnd_avd_msg_fmt_map_table[AVND_AVD_SUBPART_VER_MAX] =

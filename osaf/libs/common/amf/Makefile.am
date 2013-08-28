@@ -27,10 +27,10 @@ libamf_common_la_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/amf/include
 
 libamf_common_la_SOURCES = \
-	avsv_d2nedu.c \
-	avsv_nd2ndedu.c \
-	avsv_d2nmsg.c \
-	avsv_n2avamsg.c \
-	avsv_n2avaedu.c \
-	avsv_util.c \
-	avsv_eduutil.c
+	d2nedu.c \
+	nd2ndedu.c \
+	d2nmsg.c \
+	n2avamsg.c \
+	n2avaedu.c \
+	util.c \
+	eduutil.c

@@ -41,7 +41,7 @@
 #include <avd_sg.h>
 #include <avd_su.h>
 #include <avd_sg.h>
-#include <avsv_defs.h>
+#include <amf_defs.h>
 #include <avd_ckpt_msg.h>
 
 /* Enum values defines different SI-SI dependency FSM states. */

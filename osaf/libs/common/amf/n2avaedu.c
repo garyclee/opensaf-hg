@@ -39,11 +39,11 @@
 
 ******************************************************************************
 */
-#include "avsv.h"
-#include "avsv_amfparam.h"
-#include "avsv_n2avamsg.h"
-#include "avsv_n2avaedu.h"
-#include "avsv_eduutil.h"
+#include "amf.h"
+#include "amf_amfparam.h"
+#include "amf_n2avamsg.h"
+#include "amf_n2avaedu.h"
+#include "amf_eduutil.h"
 
 static uint32_t avsv_edp_api_resp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				    NCSCONTEXT ptr, uint32_t *ptr_data_len,

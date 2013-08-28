@@ -32,7 +32,7 @@
 
 #include <saAmf.h>
 #include <ncsgl_defs.h>
-#include <avsv_defs.h>
+#include <amf_defs.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -31,7 +31,7 @@
 #include <saImmOm.h>
 #include <immutil.h>
 #include <logtrace.h>
-#include <avsv_util.h>
+#include <amf_util.h>
 #include <avd_util.h>
 #include <avd_comp.h>
 #include <avd_imm.h>

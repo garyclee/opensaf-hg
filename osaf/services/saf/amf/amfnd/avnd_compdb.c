@@ -34,7 +34,7 @@
 #include <stdbool.h>
 
 #include <saImmOm.h>
-#include <avsv_util.h>
+#include <amf_util.h>
 #include <immutil.h>
 #include <logtrace.h>
 
