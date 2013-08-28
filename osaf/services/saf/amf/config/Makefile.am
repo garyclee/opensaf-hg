@@ -18,5 +18,20 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-nodist_pkgclccli_SCRIPTS = \
-	$(top_builddir)/osaf/services/saf/avsv/avnd/scripts/osaf-amfnd
+dist_pkgsysconf_DATA = \
+	$(top_srcdir)/osaf/services/saf/amf/config/amfd.conf \
+	$(top_srcdir)/osaf/services/saf/amf/config/amfnd.conf \
+	$(top_srcdir)/osaf/services/saf/amf/config/amfwdog.conf
+
+if ENABLE_IMMXML
+
+dist_pkgimmxml_svc_DATA = \
+	common_pl_template.xml \
+	common_sc_template.xml \
+	avsv_classes.xml \
+	avsv_objects.xml \
+	amfwdog_sc_template.xml \
+	amfwdog_pl_template.xml \
+	amfwdog_objects.xml
+
+endif
