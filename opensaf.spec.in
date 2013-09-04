@@ -928,8 +928,8 @@ fi
 %{_pkglibdir}/osafamfd
 %{_pkgclcclidir}/osaf-amfd
 %if %is_immxml
-%{_pkgimmxml_svcdir}/avsv_classes.xml
-%{_pkgimmxml_svcdir}/avsv_objects.xml
+%{_pkgimmxml_svcdir}/amf_classes.xml
+%{_pkgimmxml_svcdir}/amf_objects.xml
 %{_pkgimmxml_svcdir}/amfwdog_pl_template.xml
 %{_pkgimmxml_svcdir}/amfwdog_sc_template.xml
 %{_pkgimmxml_svcdir}/amfwdog_objects.xml
