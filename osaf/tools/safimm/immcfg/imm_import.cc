@@ -58,14 +58,21 @@ static char base64_dec_table[] = {
 
 extern "C"
 {
-	int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ccb_safe);
-	int validateImmXML(const char *xmlfile, int verbose);
+	int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ccb_safe,
+			SaImmHandleT *immHandle, SaImmAdminOwnerHandleT *ownerHandle, SaImmCcbHandleT *ccbHandle, int mode);
+	int validateImmXML(const char *xmlfile, int verbose, int mode);
 }
 
 extern ImmutilErrorFnT immutilError;
 static char* imm_import_adminOwnerName;
 static bool imm_import_verbose = false;
 static bool imm_import_ccb_safe = true;
+
+static int transaction_mode;
+static SaImmHandleT *imm_import_immHandle;
+static SaImmAdminOwnerHandleT *imm_import_ownerHandle;
+static SaImmCcbHandleT *imm_import_ccbHandle;
+
 
 /* The possible states of the parser */
 typedef enum {
@@ -128,10 +135,12 @@ typedef struct ParserStateStruct {
 	std::map<std::string, SaImmAttrValuesT_2>    classRDNMap;
 
 	SaImmHandleT         immHandle;
-	SaImmHandleT         ownerHandle;
-	SaImmHandleT         ccbHandle;
+	SaImmAdminOwnerHandleT ownerHandle;
+	SaImmCcbHandleT      ccbHandle;
 
 	bool validation;
+	xmlParserCtxtPtr ctxt;
+	int parsingStatus;		/* 0 = ok */
 } ParserState;
 
 
@@ -148,7 +157,7 @@ static void saveRDNAttribute(ParserState* parserState);
 static void getDNForClass(ParserState*,
 						  const SaImmClassNameT,
 						  SaImmAttrValuesT_2*);
-static void charsToValueHelper(SaImmAttrValueT*,
+static int charsToValueHelper(SaImmAttrValueT*,
 							   SaImmValueTypeT,
 							   const char*);
 static SaImmValueTypeT charsToTypeHelper(const xmlChar* str, size_t len);
@@ -215,6 +224,125 @@ xmlSAXHandler my_handler = {
 
 
 /* Function bodies */
+
+static void free_attr_value(SaImmValueTypeT attrValueType, SaImmAttrValueT attrValue) {
+	if(attrValue) {
+		if(attrValueType == SA_IMM_ATTR_SASTRINGT)
+			free(*((SaStringT *)attrValue));
+		else if(attrValueType == SA_IMM_ATTR_SAANYT)
+			free(((SaAnyT*)attrValue)->bufferAddr);
+		free(attrValue);
+	}
+}
+
+static void free_attr_values(SaImmAttrValuesT_2 *attrValues) {
+	if(attrValues) {
+		SaUint32T i;
+		for(i=0; i<attrValues->attrValuesNumber; i++)
+			free_attr_value(attrValues->attrValueType, attrValues->attrValues[i]);
+
+		free(attrValues->attrName);
+		free(attrValues->attrValues);
+		free(attrValues);
+	}
+}
+/*
+typedef struct ParserStateStruct1 {
+
+	char*                className;
+
+	char*                attrName;
+	char*                attrDefaultValueBuffer;
+
+	std::list<SaImmAttrDefinitionT_2> attrDefinitions;
+	std::map<std::string, std::map<std::string, SaImmValueTypeT> > classAttrTypeMap;
+	std::set<std::string> adminOwnerSetSet;
+
+	char*                objectClass;
+	char*                objectName;
+
+	std::list<SaImmAttrValuesT_2> attrValues;
+	std::list<char*>            attrValueBuffers;
+
+	std::map<std::string, SaImmAttrValuesT_2>    classRDNMap;
+
+} ;
+*/
+static void free_parserState(ParserState *state) {
+	free(state->className);
+	state->className = NULL;
+
+	free(state->attrName);
+	state->attrName = NULL;
+
+	free(state->objectClass);
+	state->objectClass = NULL;
+
+	free(state->objectName);
+	state->objectName = NULL;
+
+	state->classAttrTypeMap.clear();
+	state->adminOwnerSetSet.clear();
+
+	{
+		std::list<SaImmAttrDefinitionT_2>::iterator it;
+		it = state->attrDefinitions.begin();
+
+		while (it != state->attrDefinitions.end()) {
+			free(it->attrName);
+			it->attrName = NULL;
+			if(it->attrDefaultValue) {
+				if(it->attrValueType == SA_IMM_ATTR_SASTRINGT && *(void **)(it->attrDefaultValue))
+					free(*(void **)(it->attrDefaultValue));
+				else if(it->attrValueType == SA_IMM_ATTR_SAANYT && (SaAnyT *)(it->attrDefaultValue))
+					free(((SaAnyT *)(it->attrDefaultValue))->bufferAddr);
+				free(it->attrDefaultValue);
+				it->attrDefaultValue = NULL;
+			}
+			it++;
+		}
+
+		/* Free the attrDefinition array and empty the list */
+		state->attrDefinitions.clear();
+	}
+
+	{
+		std::list<SaImmAttrValuesT_2>::iterator it;
+		int i;
+
+		for(it = state->attrValues.begin(); it != state->attrValues.end(); it++) {
+			free(it->attrName);
+			for(i=0; it->attrValues[i]; i++) {
+				if(it->attrValueType == SA_IMM_ATTR_SASTRINGT
+						|| it->attrValueType == SA_IMM_ATTR_SAANYT) {
+					free(*(void **)(it->attrValues[i]));
+				}
+				free(it->attrValues[i]);
+			}
+			free(it->attrValues);
+		}
+		state->attrValues.clear();
+	}
+
+	{
+		std::list<char*>::iterator it;
+		for(it = state->attrValueBuffers.begin(); it != state->attrValueBuffers.end(); it++)
+			free(*it);
+		state->attrValueBuffers.clear();
+	}
+
+	{
+		std::map<std::string, SaImmAttrValuesT_2>::iterator it;
+		for(it = state->classRDNMap.begin(); it != state->classRDNMap.end(); it++)
+			free(it->second.attrName);
+		state->classRDNMap.clear();
+	}
+}
+
+static void stopParser(ParserState *state) {
+	xmlStopParser(state->ctxt);
+	free_parserState(state);
+}
 
 static int base64_decode(char *in, char *out) {
 	char ch1, ch2, ch3, ch4;
@@ -381,7 +509,9 @@ void setAdminOwnerHelper(ParserState* state, SaNameT *parentOfObject)
 
 		if (SA_AIS_OK != errorCode) {
 			LOG_ER("Failed to call saImmOmAdminOwnerSet on parent: '%s' , rc =  %d", tmpStr, errorCode);
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 	}
 
@@ -406,6 +536,8 @@ static void getClassFromImm(
 	if (err != SA_AIS_OK) {
 		LOG_ER("Failed to fetch class description for %s loaded in IMM, "
 			   "error code:%u", className, err);
+		stopParser(state);
+		state->parsingStatus = 1;
 		return;
 	}
 
@@ -428,7 +560,9 @@ static void getClassFromImm(
 			values.attrName = (char*)malloc(len + 1);
 			if (values.attrName == NULL) {
 				LOG_ER("Failed to malloc values.attrName");
-				return;
+				stopParser(state);
+				state->parsingStatus = 1;
+				break;
 			}
 			strncpy(values.attrName, attr->attrName, len);
 			values.attrName[len] = '\0';
@@ -472,7 +606,7 @@ static void createImmObject(ParserState* state)
 	SaImmClassNameT className;
 	SaNameT parentName;
 	SaImmAttrValuesT_2** attrValues;
-	SaAisErrorT errorCode;
+	SaAisErrorT errorCode = SA_AIS_OK;
 	int i = 0;
 	size_t DNlen;
 	SaNameT objectName;
@@ -513,10 +647,13 @@ static void createImmObject(ParserState* state)
 		if (parent != NULL) {
 			parentName.length = (SaUint16T)strlen(parent);
 			strncpy((char*)parentName.value, parent, parentName.length);
+			parentName.value[parentName.length] = 0;
 		}
 	} else {
 		LOG_ER("Empty DN for object");
-		exit(1);
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
 	}
 
 	// checks and sets AdminOwer if needed
@@ -544,7 +681,9 @@ static void createImmObject(ParserState* state)
 												   sizeof(SaImmAttrValuesT_2*));
 		if (attrValues == NULL) {
 			LOG_ER("Failed to malloc attrValues");
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 
 		/* Add the NULL termination */
@@ -561,18 +700,17 @@ static void createImmObject(ParserState* state)
 		}
 
 		/* Do the actual creation */
-		attrValues[i] = (SaImmAttrValuesT_2*)malloc(sizeof(SaImmAttrValuesT_2));
+		attrValues[i] = (SaImmAttrValuesT_2*)calloc(1, sizeof(SaImmAttrValuesT_2));
 		getDNForClass(state, className, attrValues[i]);
 
-		errorCode = immutil_saImmOmCcbObjectCreate_2(state->ccbHandle,
-													 className,
-													 &parentName,
-													 (const SaImmAttrValuesT_2**)
-													 attrValues);
-	} else {
+		if(state->ctxt->instate != XML_PARSER_EOF)
+			errorCode = immutil_saImmOmCcbObjectCreate_2(state->ccbHandle,
+														 className,
+														 &parentName,
+														 (const SaImmAttrValuesT_2**)
+														 attrValues);
+	} else
 		attrValues = NULL;
-		errorCode = SA_AIS_OK;
-	}
 
 	if (SA_AIS_OK != errorCode) {
 		if ((errorCode == SA_AIS_ERR_NOT_EXIST) && imm_import_ccb_safe) {
@@ -580,7 +718,9 @@ static void createImmObject(ParserState* state)
 					"NOTEXIST(%u): missing parent, class, implementer "
 					"or invalid attribute names (see also immcfg -h under '--unsafe')\n",
 					SA_AIS_ERR_NOT_EXIST);
-			exit(EXIT_FAILURE);
+			stopParser(state);
+			state->parsingStatus = 1;
+			goto done;
 		}
 
 		if (SA_AIS_ERR_EXIST == errorCode) {
@@ -594,7 +734,9 @@ static void createImmObject(ParserState* state)
 			errorCode = immutil_saImmOmAccessorInitialize(state->immHandle, &accessorHandle);
 			if (SA_AIS_OK != errorCode) {
 				fprintf(stderr, "FAILED: saImmOmAccessorInitialize failed: %u\n", errorCode);
-				exit(EXIT_FAILURE);
+				stopParser(state);
+				state->parsingStatus = 1;
+				goto done;
 			}
 
 			errorCode = immutil_saImmOmAccessorGet_2(accessorHandle, &objectName,
@@ -602,43 +744,54 @@ static void createImmObject(ParserState* state)
 													 &existing_attributes);
 			if (SA_AIS_OK != errorCode) {
 				fprintf(stderr, "FAILED: saImmOmAccessorGet_2 failed: %u\n", errorCode);
-				exit(EXIT_FAILURE);
+				stopParser(state);
+				state->parsingStatus = 1;
+				goto done;
 			}
 
 			attr = attrvalue_get(existing_attributes, "SaImmAttrClassName");
 			if (attr == NULL) {
 				fprintf(stderr, "FAILED: Attribute 'SaImmAttrClassName' missing\n");
-				exit(EXIT_FAILURE);
-			}	
+				stopParser(state);
+				state->parsingStatus = 1;
+			} else {
+				if(attr->attrValueType == SA_IMM_ATTR_SASTRINGT) {
+					existing_className = *((char**) attr->attrValues[0]);
 
-			assert(attr->attrValueType == SA_IMM_ATTR_SASTRINGT);
-			existing_className = *((char**) attr->attrValues[0]);
-
-			if (strcmp(existing_className, className) != 0) {
-				fprintf(stderr, "FAILED: '%s' of class '%s' "
+					if (strcmp(existing_className, className) != 0) {
+						fprintf(stderr, "FAILED: '%s' of class '%s' "
 								"is not of the same class as an existing object of class '%s'\n",
-						state->objectName, className, existing_className);
-				exit(EXIT_FAILURE);
-			}	
+								state->objectName, className, existing_className);
+						stopParser(state);
+						state->parsingStatus = 1;
+					}
+				} else {
+					LOG_ER("Attribute value type is not SA_IMM_ATTR_SASTRINGT");
+					stopParser(state);
+					state->parsingStatus = 1;
+				}
+			}
 
 			LOG_IN("OBJECT '%s' OK", state->objectName);
 
 			errorCode = immutil_saImmOmAccessorFinalize(accessorHandle);
 			if (SA_AIS_OK != errorCode) {
-                                fprintf(stderr, "FAILED: saImmOmAccessorFinalize failed: %u\n", errorCode);
-                                exit(EXIT_FAILURE);
-                        }
+				fprintf(stderr, "FAILED: saImmOmAccessorFinalize failed: %u\n", errorCode);
+				stopParser(state);
+				state->parsingStatus = 1;
+			}
 
 		} else {
 			fprintf(stderr, "FAILED to create object of class '%s', rc = %d\n",
 					className, errorCode);
-			exit(EXIT_FAILURE);
+			stopParser(state);
+			state->parsingStatus = 1;
 		}
 	} else {
 		state->adminOwnerSetSet.insert(state->objectName);
 	}
 
-
+done:
 	TRACE_8("CREATE DONE");
 
 	/* Free used parameters */
@@ -650,8 +803,7 @@ static void createImmObject(ParserState* state)
 	/* Free the DN attrName later since it's re-used */
 	/*free(attrValues[i]->attrValues);*/
 	if(attrValues) {
-		if(attrValues[i])
-			free(attrValues[i]);
+		free_attr_values(attrValues[i]);
 		free(attrValues);
 	}
 
@@ -756,7 +908,6 @@ static bool attrvalue_is_equal(SaImmValueTypeT valueType, SaImmAttrValueT val1, 
 		}
 	default:
 		fprintf(stderr, "FAILED: unknown valuetype %u\n", valueType);
-		exit(EXIT_FAILURE);
 		return false; // keep compiler happy
 		break; // keep compiler happy
 	}
@@ -772,7 +923,10 @@ static bool attrvalue_is_equal(SaImmValueTypeT valueType, SaImmAttrValueT val1, 
 static bool attrdefs_are_equal(SaImmAttrDefinitionT_2 *attrDef1,
 							   SaImmAttrDefinitionT_2 *attrDef2)
 {
-	assert(strcmp(attrDef1->attrName, attrDef2->attrName) == 0);
+	if(strcmp(attrDef1->attrName, attrDef2->attrName)) {
+		fprintf(stderr, "FAILED: attribute names are not same: '%s', '%s'\n", attrDef1->attrName, attrDef2->attrName);
+		return false;
+	}
 
 	if (attrDef1->attrFlags != attrDef2->attrFlags) {
 		fprintf(stderr, "FAILED: attrFlags mismatch for attribute '%s'\n", attrDef1->attrName);
@@ -824,7 +978,9 @@ static void createImmClass(ParserState* state)
 			classCategory = state->classCategory;
 		} else {
 			LOG_ER("NO CLASS CATEGORY");
-			exit(EXIT_FAILURE);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 
 		/* Set the attrDefinition array */
@@ -832,8 +988,10 @@ static void createImmClass(ParserState* state)
 						 calloc((state->attrDefinitions.size() + 1),
 								sizeof(SaImmAttrDefinitionT_2*));
 		if (new_attrDefinitions == NULL) {
-			LOG_ER("Failed to malloc attrDefinition");
-			exit(EXIT_FAILURE);
+			LOG_ER("Failed to allocate attrDefinition");
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 
 		new_attrDefinitions[state->attrDefinitions.size()] = NULL;
@@ -872,47 +1030,55 @@ static void createImmClass(ParserState* state)
 				if (SA_AIS_OK != errorCode) {
 					fprintf(stderr, "FAILED to get IMM class description for '%s', rc = %d\n",
 							className, errorCode);
-					exit(EXIT_FAILURE);
-				}
+					stopParser(state);
+					state->parsingStatus = 1;
+				} else {
+					if (existing_classCategory != classCategory) {
+						fprintf(stderr, "FAILED: Class category differ for '%s'\n", className);
+						stopParser(state);
+						state->parsingStatus = 1;
+					} else if (attrdef_array_size(existing_attrDefinitions) !=
+								attrdef_array_size(new_attrDefinitions)) {
+						// If there are more (or less) attributes in the new class description
+						// than in the existing one, this check will catch it.
+						fprintf(stderr, "FAILED: Number of attribute definitions differ for '%s'\n", className);
+						stopParser(state);
+						state->parsingStatus = 1;
+					} else {
+						for (i=0; existing_attrDefinitions[i] != NULL; i++) {
+							existing_attrDef = existing_attrDefinitions[i];
 
-				if (existing_classCategory != classCategory) {
-					fprintf(stderr, "FAILED: Class category differ for '%s'\n", className);
-					exit(EXIT_FAILURE);
-				}
+							// Skip IMM added attributes
+							if (strncmp(existing_attrDef->attrName, "SaImmAttr", 9) == 0)
+								continue;
 
-				// If there are more (or less) attributes in the new class description
-				// than in the existing one, this check will catch it.
-				if (attrdef_array_size(existing_attrDefinitions) !=
-					attrdef_array_size(new_attrDefinitions)) {
-					fprintf(stderr, "FAILED: Number of attribute definitions differ for '%s'\n", className);
-					exit(EXIT_FAILURE);
-				}
+							new_attrDef = attrdef_get(new_attrDefinitions, existing_attrDef->attrName);
+							if (new_attrDef == NULL) {
+								fprintf(stderr, "FAILED: Attribute '%s' missing in loaded class '%s'\n",
+										existing_attrDef->attrName, className);
+								stopParser(state);
+								state->parsingStatus = 1;
+								break;
+							}
 
-				for (i = 0; existing_attrDefinitions[i] != NULL; i++) {
-					existing_attrDef = existing_attrDefinitions[i];
-
-					// Skip IMM added attributes
-					if (strncmp(existing_attrDef->attrName, "SaImmAttr", 9) == 0)
-						continue;
-
-					new_attrDef = attrdef_get(new_attrDefinitions, existing_attrDef->attrName);
-					if (new_attrDef == NULL) {
-						fprintf(stderr, "FAILED: Attribute '%s' missing in loaded class '%s'\n",
-								existing_attrDef->attrName, className);
-						exit(EXIT_FAILURE);
+							if (!attrdefs_are_equal(existing_attrDef, new_attrDef)) {
+								stopParser(state);
+								state->parsingStatus = 1;
+								break;
+							}
+						}
 					}
 
-					if (!attrdefs_are_equal(existing_attrDef, new_attrDef))
-						exit(EXIT_FAILURE);
+					if(state->ctxt->instate != XML_PARSER_EOF && !existing_attrDefinitions[i])
+						LOG_IN("Class '%s' OK", state->className);
+
+					(void) saImmOmClassDescriptionMemoryFree_2(state->immHandle,
+															   existing_attrDefinitions);
 				}
-
-				(void) saImmOmClassDescriptionMemoryFree_2(state->immHandle,
-														   existing_attrDefinitions);
-
-				LOG_IN("Class '%s' OK", state->className);
 			} else {
 				fprintf(stderr, "FAILED to create class '%s', rc = %d\n", className, errorCode);
-				exit(EXIT_FAILURE);
+				stopParser(state);
+				state->parsingStatus = 1;
 			}
 		}
 
@@ -959,28 +1125,43 @@ static void getDNForClass(ParserState* state,
 		state->classRDNMap.end()) {
 		/* Attempt to read the class from the IMM */
 		getClassFromImm(state, className);
+		if(state->ctxt->instate == XML_PARSER_EOF)
+			return;
 		if (state->classRDNMap.find(classNameString) ==
 			state->classRDNMap.end()) {
 			LOG_ER("Cannot find CLASS %s loaded in IMM", className);
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 	}
 
 	*values = state->classRDNMap[classNameString];
 
-	values->attrValues = (SaImmAttrValueT*)malloc(sizeof(SaImmAttrValueT));
+	/* Make a copy of an attribute name. Coping a pointer is not enough */
+	values->attrName = strdup(values->attrName);
+
+	values->attrValues = (SaImmAttrValueT*)calloc(1, sizeof(SaImmAttrValueT));
 
 	values->attrValuesNumber = 1;
 
-	charsToValueHelper(values->attrValues,
-					   values->attrValueType,
-					   state->objectName);
+	if(charsToValueHelper(values->attrValues,
+						values->attrValueType,
+						state->objectName)) {
+		free(values->attrValues);
+		values->attrValues = NULL;
+
+		LOG_ER("Failed to parse DN value of class %s", className);
+		stopParser(state);
+		state->parsingStatus = 1;
+	}
 }
 
 static void errorHandler(void* userData,
 						 const char* format,
 						 ...)
 {
+	ParserState* state = (ParserState *)userData;
     va_list ap;
     char *errMsg=NULL;
     va_start(ap, format);
@@ -991,7 +1172,9 @@ static void errorHandler(void* userData,
         LOG_ER("Error (unknown) occured during XML parsing");
     }
     va_end(ap);
-    exit(1);
+
+    stopParser(state);
+    state->parsingStatus = 1;
 }
 
 static void warningHandler(void* userData,
@@ -1055,7 +1238,9 @@ static void startElementHandler(void* userData,
 
 	if (state->depth >= MAX_DEPTH) {
 		LOG_ER( "The document is too deeply nested");
-		exit(1);
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
 	}
 
 	/* <class ...> */
@@ -1064,7 +1249,9 @@ static void startElementHandler(void* userData,
 
 		if (state->doneParsingClasses) {
 			LOG_ER("CLASS TAG AT INVALID PLACE IN XML");
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 
 		state->state[state->depth] = CLASS;
@@ -1082,7 +1269,9 @@ static void startElementHandler(void* userData,
 			TRACE_8("CLASS NAME: %s", state->className);
 		} else {
 			LOG_ER( "NAME ATTRIBUTE IS NULL");
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 		/* <object ...> */
 	} else if (strcmp((const char*)name, "object") == 0) {
@@ -1108,7 +1297,9 @@ static void startElementHandler(void* userData,
 					state->objectClass);
 		} else {
 			LOG_ER("OBJECT %s HAS NO CLASS ATTRIBUTE", state->objectName);
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 
 		/* <dn> */
@@ -1165,7 +1356,8 @@ static void startElementHandler(void* userData,
 		state->state[state->depth] = IMM_CONTENTS;
 	} else {
 		LOG_ER("UNKNOWN TAG! (%s)", name);
-		exit(1);
+		stopParser(state);
+		state->parsingStatus = 1;
 	}
 }
 
@@ -1200,8 +1392,11 @@ static void endElementHandler(void* userData,
 
         	newlen = base64_decode(value, newvalue);
         	if(newlen == -1) {
+        		free(newvalue);
         		LOG_ER("Failed to decode base64 value in attribute %s (value)", state->attrName);
-        		exit(1);
+        		stopParser(state);
+        		state->parsingStatus = 1;
+        		return;
         	}
         	newvalue[newlen] = 0;
 
@@ -1234,8 +1429,11 @@ static void endElementHandler(void* userData,
 
         	newlen = base64_decode(value, newvalue);
         	if(newlen == -1) {
+        		free(newvalue);
         		LOG_ER("Failed to decode base64 default value in attribute %s (default-value)", state->attrName);
-        		exit(1);
+        		stopParser(state);
+        		state->parsingStatus = 1;
+        		return;
         	}
         	newvalue[newlen] = 0;
 
@@ -1247,7 +1445,9 @@ static void endElementHandler(void* userData,
 	} else if (strcmp((const char*)name, "class") == 0) {
 		if (state->doneParsingClasses) {
 			LOG_ER("INVALID CLASS PLACEMENT");
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		} else {
 			createImmClass(state);
 
@@ -1284,7 +1484,9 @@ static void endElementHandler(void* userData,
 			if (errorCode != SA_AIS_OK) {
 				LOG_ER("Failed on saImmOmAdminOwnerInitialize %d",
 					   errorCode);
-				exit(1);
+				stopParser(state);
+				state->parsingStatus = 1;
+				return;
 			}
 			state->adminInit = 1;
 
@@ -1294,7 +1496,9 @@ static void endElementHandler(void* userData,
 				&state->ccbHandle);
 			if (errorCode != SA_AIS_OK) {
 				LOG_ER("Failed to initialize ImmOmCcb %d", errorCode);
-				exit(1);
+				stopParser(state);
+				state->parsingStatus = 1;
+				return;
 			}
 			state->ccbInit = 1;
 
@@ -1304,47 +1508,19 @@ static void endElementHandler(void* userData,
 		createImmObject(state);
 		/* </imm:IMM-contents> */
 	} else if (strcmp((const char*)name, "imm:IMM-contents") == 0) {
-		SaAisErrorT errorCode;
+		if(!transaction_mode) {
+			SaAisErrorT errorCode;
 
-		/* Apply the object creations */
-		if (state->ccbInit) {
-			errorCode = immutil_saImmOmCcbApply(state->ccbHandle);
-			if (SA_AIS_OK != errorCode) {
-				LOG_ER("Failed to apply object creations %d", errorCode);
-				exit(1);
+			/* Apply the object creations */
+			if (state->ccbInit) {
+				errorCode = immutil_saImmOmCcbApply(state->ccbHandle);
+				if (SA_AIS_OK != errorCode) {
+					LOG_ER("Failed to apply object creations %d", errorCode);
+					stopParser(state);
+					state->parsingStatus = 1;
+					return;
+				}
 			}
-		}
-
-		/* Finalize the ccb connection*/
-		if (state->ccbInit) {
-			errorCode = immutil_saImmOmCcbFinalize(state->ccbHandle);
-			if (SA_AIS_OK != errorCode) {
-				LOG_WA("Failed to finalize the ccb object connection %d",
-					   errorCode);
-			} else {
-				state->ccbInit = 0;
-			}
-		}
-
-		/* Finalize the owner connection */
-		if (state->adminInit) {
-			errorCode = immutil_saImmOmAdminOwnerFinalize(state->ownerHandle);
-			if (SA_AIS_OK != errorCode) {
-				LOG_WA("Failed on saImmOmAdminOwnerFinalize (%d)",
-					   errorCode);
-			} else {
-				state->adminInit = 0;
-			}
-		}
-
-		/* Finalize the imm connection */
-		if (state->immInit) {
-			errorCode = immutil_saImmOmFinalize(state->immHandle);
-			if (SA_AIS_OK != errorCode) {
-				LOG_WA("Failed on saImmOmFinalize (%d)", errorCode);
-			}
-
-			state->immInit = 0;
 		}
 	}
 
@@ -1364,7 +1540,8 @@ static void endDocumentHandler(void* userData)
 {
 	if (((ParserState*)userData)->depth != 0) {
 		LOG_ER( "Document ends too early\n");
-		exit(1);
+		stopParser((ParserState *)userData);
+		((ParserState*)userData)->parsingStatus = 1;
 	}
 	TRACE_8("endDocument occured\n");
 }
@@ -1392,10 +1569,14 @@ static void charactersHandler(void* userData,
 	if (len > MAX_CHAR_BUFFER_SIZE) {
 		LOG_ER("The character field is too big len(%d) > max(%d)",
 			   len, MAX_CHAR_BUFFER_SIZE);
-		exit(1);
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
 	} else if (len < 0) {
 		LOG_ER("The character array length is negative %d", len);
-		exit(1);
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
 	}
 
 	/* Treat each tag type separately */
@@ -1414,7 +1595,12 @@ static void charactersHandler(void* userData,
 		break;
 	case DN:
 		/* Copy the distinguished name */
-		assert(len < SA_MAX_NAME_LENGTH);
+		if(len >= SA_MAX_NAME_LENGTH) {
+			LOG_ER("DN is too long (%d characters)", len);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
+		}
 		state->objectName = (char*)malloc((size_t)len + 1);
 
 		strncpy(state->objectName, (const char*)chars, (size_t)len);
@@ -1431,14 +1617,18 @@ static void charactersHandler(void* userData,
 			state->attrName = (char*)malloc((size_t)len + 1);
 			if (state->attrName == NULL) {
 				LOG_ER("Failed to malloc state->attrName");
-				exit(1);
+				stopParser(state);
+				state->parsingStatus = 1;
+				return;
 			}
 
 			strncpy(state->attrName, (const char*)chars, (size_t)len);
 			state->attrName[len] = '\0';
 		} else {
 			LOG_ER("Name not immediately inside an attribute tag");
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 		break;
 	case VALUE:
@@ -1451,7 +1641,9 @@ static void charactersHandler(void* userData,
 				str = (char*)malloc((size_t)len + 1);
 				if (str == NULL) {
 					LOG_ER("Failed to malloc value");
-					exit(1);
+					stopParser(state);
+					state->parsingStatus = 1;
+					return;
 				}
 
 				strncpy(str, (const char*)chars, (size_t)len);
@@ -1468,7 +1660,9 @@ static void charactersHandler(void* userData,
 				str = (char *) malloc(oldsize + len + 1);
 				if (str == NULL) {
 					LOG_ER("Failed to malloc value");
-					exit(1);
+					stopParser(state);
+					state->parsingStatus = 1;
+					return;
 				}
 				strncpy(str, state->attrValueBuffers.front(), oldsize + 1);
 				TRACE_8("COPIED OLD VALUE %u %s", oldsize, str);
@@ -1489,7 +1683,9 @@ static void charactersHandler(void* userData,
 
 		} else {
 			LOG_ER("UNKNOWN PLACEMENT OF VALUE");
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 		break;
 	case CATEGORY:
@@ -1503,7 +1699,9 @@ static void charactersHandler(void* userData,
 				category = SA_IMM_CLASS_RUNTIME;
 			} else {
 				LOG_ER("Unknown class category");
-				exit(1);
+				stopParser(state);
+				state->parsingStatus = 1;
+				return;
 			}
 
 			state->classCategorySet = 1;
@@ -1519,7 +1717,9 @@ static void charactersHandler(void* userData,
 				category = SA_IMM_ATTR_RUNTIME;
 			} else {
 				LOG_ER("Unknown attribute category");
-				exit(1);
+				stopParser(state);
+				state->parsingStatus = 1;
+				return;
 			}
 
 			state->attrFlags = state->attrFlags | category;
@@ -1548,11 +1748,17 @@ static void charactersHandler(void* userData,
 			}
 		} else {
 			LOG_ER("UNKNOWN PLACEMENT OF DEFAULT VALUE");
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 		break;
 	case TYPE:
-		state->attrValueType = charsToTypeHelper(chars, (size_t)len);
+		if(!(state->attrValueType = charsToTypeHelper(chars, (size_t)len))) {
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
+		}
 		state->attrValueTypeSet = 1;
 
 		addToAttrTypeCache(state, state->attrValueType);
@@ -1562,13 +1768,22 @@ static void charactersHandler(void* userData,
 
 		break;
 	case FLAG:
-		state->attrFlags =
-		state->attrFlags | charsToFlagsHelper(chars, (size_t)len);
+		{
+			SaImmAttrFlagsT flg = charsToFlagsHelper(chars, (size_t)len);
+			if(flg)
+				state->attrFlags |= flg;
+			else {
+				stopParser(state);
+				state->parsingStatus = 1;
+			}
+		}
 		break;
 	case NTFID:
 		if (atoi((const char*)chars) < 0) {
 			LOG_ER("NtfId can not be negative");
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 
 		state->attrNtfId = (SaUint32T)atoi((const char*)chars);
@@ -1576,7 +1791,9 @@ static void charactersHandler(void* userData,
 		break;
 	default:
 		LOG_ER("Unknown state");
-		exit(1);
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
 	}
 
 }
@@ -1614,9 +1831,18 @@ static SaImmAttrFlagsT charsToFlagsHelper(const xmlChar* str, size_t len)
 		return SA_IMM_ATTR_NO_DUPLICATES;
 	}
 
-	LOG_ER("UNKNOWN FLAGS, %s", str);
+	/* strlen("SA_NO_DUPLICATES") == 16 (the longest flag name)
+	 * A bit longer string is taken to log, max 20 characters.
+	 */
+	char unknown[21];
+	if(len > 20)
+		len = 20;
+	memcpy(unknown, str, len);
+	unknown[len] = 0;
 
-	exit(1);
+	LOG_ER("UNKNOWN FLAGS, %s", unknown);
+
+	return 0;
 }
 
 /**
@@ -1646,9 +1872,18 @@ static SaImmValueTypeT charsToTypeHelper(const xmlChar* str, size_t len)
 		return SA_IMM_ATTR_SAANYT;
 	}
 
-	LOG_ER("UNKNOWN VALUE TYPE, %s", str);
+	/* strlen("SA_DOUBLE_T") == 11 (the longest type name)
+	 * A bit longer string is taken to log, max 20 characters.
+	 */
+	char unknown[21];
+	if(len > 20)
+		len = 20;
+	memcpy(unknown, str, len);
+	unknown[len] = 0;
 
-	exit(1);
+	LOG_ER("UNKNOWN VALUE TYPE, %s", unknown);
+
+	return (SaImmValueTypeT)0;
 }
 
 /**
@@ -1661,7 +1896,7 @@ static char* getAttributeValue(const char* attr,
 
 	if (attrArray == NULL) {
 		LOG_ER("The document is TOO DEEPLY NESTED");
-		exit(1);
+		return NULL;
 	}
 
 	for (i = 0; attrArray != NULL && attrArray[i*2] != NULL; i++) {
@@ -1670,7 +1905,7 @@ static char* getAttributeValue(const char* attr,
 		}
 	}
 
-	LOG_WA( "RETURNING NULL");
+	LOG_WA("RETURNING NULL");
 	return NULL;
 }
 
@@ -1685,19 +1920,36 @@ static void addObjectAttributeDefinition(ParserState* state)
 	size_t len;
 
 	/* The attrName must be set */
-	assert(state->attrName);
+	if(!state->attrName) {
+		LOG_ER("The attrName must be set");
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
+	}
 
 	/* The value array can not be empty */
-	assert(state->attrValueBuffers.size() != 0);
+	if(!state->attrValueBuffers.size()) {
+		LOG_ER("The value array can not be empty");
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
+	}
 
 	/* The object class must be set */
-	assert(state->objectClass);
+	if(!state->objectClass) {
+		LOG_ER("The object class must be set");
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
+	}
 
 	std::list<SaImmAttrValuesT_2>::iterator iter;
 	for(iter=state->attrValues.begin(); iter != state->attrValues.end(); iter++) {
 		if(!strcmp(state->attrName, (*iter).attrName)) {
 			LOG_ER("Attribute '%s' is defined more than once in object '%s'", state->attrName, state->objectName);
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 	}
 
@@ -1709,6 +1961,8 @@ static void addObjectAttributeDefinition(ParserState* state)
 		attrValues.attrValueType = getClassAttrValueType(state,
 														 state->objectClass,
 														 state->attrName);
+		if(state->ctxt->instate == XML_PARSER_EOF)
+			return;
 	}
 
 	TRACE_8("addObjectAttributeDefinition %s, %s, %d",
@@ -1720,7 +1974,7 @@ static void addObjectAttributeDefinition(ParserState* state)
 	   store an array pointing to all in attrValues */
 	attrValues.attrValuesNumber = state->attrValueBuffers.size();
 	attrValues.attrValues = (SaImmAttrValueT*)
-							malloc(sizeof(SaImmAttrValuesT_2) *
+							calloc(1, sizeof(SaImmAttrValuesT_2) *
 								   attrValues.attrValuesNumber + 1);
 
 	attrValues.attrValues[attrValues.attrValuesNumber] = NULL;
@@ -1730,28 +1984,48 @@ static void addObjectAttributeDefinition(ParserState* state)
 	while (it != state->attrValueBuffers.end()) {
 		TRACE_8("NAME: %s", state->attrName);
 
-		charsToValueHelper(&attrValues.attrValues[i],
+		if(charsToValueHelper(&attrValues.attrValues[i],
 						   attrValues.attrValueType,
-						   *it);
+						   *it)) {
+			LOG_ER("Failed to parse a value of attribute %s", state->attrName);
+			stopParser(state);
+			state->parsingStatus = 1;
+			break;
+		}
 
 		i++;
 		it++;
 	}
 
 	/* Assign the name */
-	len = strlen(state->attrName);
-	attrValues.attrName = (char*) malloc(len + 1);
-	if (attrValues.attrName == NULL) {
-		LOG_ER("Failed to malloc attrValues.attrName");
-		exit(1);
-	}
-	strncpy(attrValues.attrName,
-			state->attrName,
-			len);
-	attrValues.attrName[len] = '\0';
+	if(state->ctxt->instate != XML_PARSER_EOF) {
+		len = strlen(state->attrName);
+		attrValues.attrName = (char*) malloc(len + 1);
+		if (attrValues.attrName == NULL) {
+			LOG_ER("Failed to malloc attrValues.attrName");
+			stopParser(state);
+			state->parsingStatus = 1;
+		} else {
+			strncpy(attrValues.attrName,
+					state->attrName,
+					len);
+			attrValues.attrName[len] = '\0';
 
-	/* Add attrValues to the list */
-	state->attrValues.push_front(attrValues);
+			/* Add attrValues to the list */
+			state->attrValues.push_front(attrValues);
+		}
+	} else {
+		i = 0;
+		while(attrValues.attrValues[i]) {
+			if(attrValues.attrValueType == SA_IMM_ATTR_SASTRINGT)
+				free(*((SaStringT *)attrValues.attrValues[i]));
+			else if(attrValues.attrValueType == SA_IMM_ATTR_SAANYT)
+				free(((SaAnyT*)attrValues.attrValues[i])->bufferAddr);
+			free(attrValues.attrValues[i]);
+			i++;
+		}
+		free(attrValues.attrValues);
+	}
 
 	/* Free unneeded data */
 	for (it = state->attrValueBuffers.begin();
@@ -1771,7 +2045,7 @@ static void addObjectAttributeDefinition(ParserState* state)
  */
 static void saveRDNAttribute(ParserState* state)
 {
-	if (state->attrFlags & SA_IMM_ATTR_RDN &&
+	if ((state->attrFlags & SA_IMM_ATTR_RDN) &&
 		state->classRDNMap.find(std::string(state->className)) ==
 		state->classRDNMap.end()) {
 		SaImmAttrValuesT_2 values;
@@ -1782,7 +2056,9 @@ static void saveRDNAttribute(ParserState* state)
 		values.attrName = (char*)malloc(len + 1);
 		if (values.attrName == NULL) {
 			LOG_ER( "Failed to malloc values.attrName");
-			exit(1);
+			stopParser(state);
+			state->parsingStatus = 1;
+			return;
 		}
 
 		strncpy(values.attrName, state->attrName, len);
@@ -1811,7 +2087,19 @@ static void addToAttrTypeCache(ParserState* state,
 							   SaImmValueTypeT valueType)
 {
 	/* className and attrName can not be NULL */
-	assert(state->className && state->attrName);
+	if(!state->className) {
+		LOG_ER("Class name is missing");
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
+	}
+
+	if(!state->attrName) {
+		LOG_ER("Attribute name is missing");
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
+	}
 
 	std::string classString;
 	std::string attrNameString;
@@ -1840,19 +2128,25 @@ static SaImmValueTypeT getClassAttrValueType(ParserState* state,
 	if (state->classAttrTypeMap.find(classNameString) ==
 		state->classAttrTypeMap.end()) {
 		getClassFromImm(state, (const SaImmClassNameT)className);
+		if(state->ctxt->instate == XML_PARSER_EOF)
+			return (SaImmValueTypeT)-1;
 		if (state->classAttrTypeMap.find(classNameString) ==
 			state->classAttrTypeMap.end()) {
+			stopParser(state);
+			state->parsingStatus = 1;
 			LOG_ER("Cannot find CLASS %s loaded in IMM", className);
-			exit(1);
+			return (SaImmValueTypeT)-1;
 		}
 	}
 
 
 	if (state->classAttrTypeMap[classNameString].find(attrNameString) ==
-		state->classAttrTypeMap[classNameString].end()) {
+			state->classAttrTypeMap[classNameString].end()) {
+		stopParser(state);
+		state->parsingStatus = 1;
 		LOG_ER("NO CORRESPONDING ATTRIBUTE %s in class %s", attrName,
 			   className);
-		exit(1);
+		return (SaImmValueTypeT)-1;
 	}
 
 	return state->classAttrTypeMap[classNameString][attrNameString];
@@ -1871,22 +2165,34 @@ static void addClassAttributeDefinition(ParserState* state)
 		for(it=state->attrDefinitions.begin(); it != state->attrDefinitions.end(); it++) {
 			if(!strcmp(state->attrName, (*it).attrName)) {
 				LOG_ER("Attribute '%s' is defined more than once in class '%s'", state->attrName, state->className);
-				exit(1);
+				stopParser(state);
+				state->parsingStatus = 1;
+				return;
 			}
 		}
 
 		attrDefinition.attrName = state->attrName;
 	} else {
 		LOG_ER( "NO ATTR NAME");
-		exit(1);
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
 	}
 
 	/* Save the attribute definition in classRDNMap if the RDN flag is
 	 * set */
 	saveRDNAttribute(state);
+	if(state->ctxt->instate == XML_PARSER_EOF)
+		return;
 
 	/* Set attrValueType */
-	assert(state->attrValueTypeSet);
+	if(!state->attrValueTypeSet) {
+		LOG_ER("Attribute value type is not set");
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
+	}
+
 	attrDefinition.attrValueType = state->attrValueType;
 	if (state->state[state->depth] == RDN) {
 		TRACE_8("ADDING RDN!");
@@ -1908,7 +2214,9 @@ static void addClassAttributeDefinition(ParserState* state)
 				attrDefinition.attrValueType);
 	} else {
 		LOG_ER("NO ATTR VALUE TYPE");
-		exit(1);
+		stopParser(state);
+		state->parsingStatus = 1;
+		return;
 	}
 
 	/* Set the flags */
@@ -1927,9 +2235,13 @@ static void addClassAttributeDefinition(ParserState* state)
 
 	/* Set the default value */
 	if (state->attrDefaultValueSet) {
-		charsToValueHelper(&attrDefinition.attrDefaultValue,
+		if(charsToValueHelper(&attrDefinition.attrDefaultValue,
 						   state->attrValueType,
-						   state->attrDefaultValueBuffer);
+						   state->attrDefaultValueBuffer)) {
+			LOG_ER("Failed to parse default value of attribute %s", state->attrName);
+			stopParser(state);
+			state->parsingStatus = 1;
+		}
 	} else {
 		attrDefinition.attrDefaultValue = NULL;
 	}
@@ -1940,12 +2252,14 @@ static void addClassAttributeDefinition(ParserState* state)
 	/* Free the default value */
 	free(state->attrDefaultValueBuffer);
 	state->attrDefaultValueBuffer = NULL;
+
+	state->attrName = NULL;
 }
 
 /**
  * Converts an array of chars to an SaImmAttrValueT
  */
-static void charsToValueHelper(SaImmAttrValueT* value,
+static int charsToValueHelper(SaImmAttrValueT* value,
 							   SaImmValueTypeT type,
 							   const char* str)
 {
@@ -1953,33 +2267,47 @@ static void charsToValueHelper(SaImmAttrValueT* value,
 	unsigned int i;
 	char byte[5];
 	char* endMark;
+	int rc = 0;
 
 	TRACE_8("CHARS TO VALUE HELPER");
 
 	switch (type) {
 	case SA_IMM_ATTR_SAINT32T:
 		*value = malloc(sizeof(SaInt32T));
-		*((SaInt32T*)*value) = (SaInt32T)strtol(str, NULL, 0);
+		*((SaInt32T*)*value) = (SaInt32T)strtol(str, &endMark, 0);
+		rc = *endMark != 0;
+		if(rc) free(*value);
 		break;
 	case SA_IMM_ATTR_SAUINT32T:
 		*value = malloc(sizeof(SaUint32T));
-		*((SaUint32T*)*value) = (SaUint32T)strtoul(str, NULL, 0);
+		*((SaUint32T*)*value) = (SaUint32T)strtoul(str, &endMark, 0);
+		rc = *endMark != 0;
+		if(rc) free(*value);
 		break;
 	case SA_IMM_ATTR_SAINT64T:
 		*value = malloc(sizeof(SaInt64T));
-		*((SaInt64T*)*value) = (SaInt64T)strtoll(str, NULL, 0);
+		*((SaInt64T*)*value) = (SaInt64T)strtoll(str, &endMark, 0);
+		rc = *endMark != 0;
+		if(rc) free(*value);
 		break;
 	case SA_IMM_ATTR_SAUINT64T:
 		*value = malloc(sizeof(SaUint64T));
-		*((SaUint64T*)*value) = (SaUint64T)strtoull(str, NULL, 0);
+		*((SaUint64T*)*value) = (SaUint64T)strtoull(str, &endMark, 0);
+		rc = *endMark != 0;
+		if(rc) free(*value);
 		break;
 	case SA_IMM_ATTR_SATIMET: // Int64T
 		*value = malloc(sizeof(SaInt64T));
-		*((SaTimeT*)*value) = (SaTimeT)strtoll(str, NULL, 0);
+		*((SaTimeT*)*value) = (SaTimeT)strtoll(str, &endMark, 0);
+		rc = *endMark != 0;
+		if(rc) free(*value);
 		break;
 	case SA_IMM_ATTR_SANAMET:
 		len = strlen(str);
-		assert(len < SA_MAX_NAME_LENGTH);
+		if(len >= SA_MAX_NAME_LENGTH) {
+			LOG_ER("SaNameT value is too long: %d characters", len);
+			return 1;
+		}
 		*value = malloc(sizeof(SaNameT));
 		((SaNameT*)*value)->length = (SaUint16T)len;
 		strncpy((char*)((SaNameT*)*value)->value, str, len);
@@ -1987,11 +2315,15 @@ static void charsToValueHelper(SaImmAttrValueT* value,
 		break;
 	case SA_IMM_ATTR_SAFLOATT:
 		*value = malloc(sizeof(SaFloatT));
-		*((SaFloatT*)*value) = (SaFloatT)atof(str);
+		*((SaFloatT*)*value) = (SaFloatT)strtof(str, &endMark);
+		rc = *endMark != 0;
+		if(rc) free(*value);
 		break;
 	case SA_IMM_ATTR_SADOUBLET:
 		*value = malloc(sizeof(SaDoubleT));
-		*((SaDoubleT*)*value) = (SaDoubleT)atof(str);
+		*((SaDoubleT*)*value) = (SaDoubleT)strtod(str, &endMark);
+		rc = *endMark != 0;
+		if(rc) free(*value);
 		break;
 	case SA_IMM_ATTR_SASTRINGT:
 		len = strlen(str);
@@ -2025,27 +2357,40 @@ static void charsToValueHelper(SaImmAttrValueT* value,
 		break;
 	default:
 		LOG_ER("BAD VALUE TYPE");
-		exit(1);
+		return -1;
 	}
+
+	return rc;
 }
 
-int loadImmXML(std::string xmlfile)
+int loadImmXML(const char *xmlfile)
 {
 	ParserState state;
 	SaVersionT version;
 	SaAisErrorT errorCode;
-	int result;
+	int result = 1;
 
 	version.releaseCode   = 'A';
 	version.majorVersion  = 2;
 	version.minorVersion  = 11;
 
-	TRACE_8("Loading from %s", xmlfile.c_str());
+	TRACE_8("Loading from %s", xmlfile);
 
-	errorCode = immutil_saImmOmInitialize(&(state.immHandle), NULL, &version);
-	if (SA_AIS_OK != errorCode) {
-		LOG_ER("Failed to initialize the IMM OM interface (%d)", errorCode);
-		exit(1);
+	if(!transaction_mode) {
+		errorCode = immutil_saImmOmInitialize(&(state.immHandle), NULL, &version);
+		if (SA_AIS_OK != errorCode) {
+			LOG_ER("Failed to initialize the IMM OM interface (%d)", errorCode);
+			return 1;
+		}
+	} else {
+		if(!(*imm_import_immHandle)) {
+			errorCode = immutil_saImmOmInitialize(&state.immHandle, NULL, &version);
+			if (SA_AIS_OK != errorCode) {
+				fprintf(stderr, "Failed to initialize the IMM OM interface (%d)", errorCode);
+				return 1;
+			}
+		} else
+			state.immHandle = *imm_import_immHandle;
 	}
 	state.immInit = 1;
 
@@ -2064,40 +2409,83 @@ int loadImmXML(std::string xmlfile)
 	state.depth               = 0;
 	state.attrFlags           = 0;
 
-	state.adminInit = 0;
-	state.ccbInit   = 0;
+	state.adminInit = *imm_import_ownerHandle != 0;
+	state.ownerHandle = *imm_import_ownerHandle;
+	state.ccbInit   = *imm_import_ccbHandle != (SaImmCcbHandleT)-1;
+	state.ccbHandle = *imm_import_ccbHandle;
 
 	state.validation = 0;
 
+	state.parsingStatus = 0;
+
 	//std::cout << "Loading " << xmlfile << std::endl;
 
-	result = xmlSAXUserParseFile(&my_handler, &state, xmlfile.c_str());
+	FILE *file = fopen(xmlfile, "rb");
+	if(file) {
+		char buf[1024];
+		int rd;
 
-	/* Make sure to finalize the imm connections */
-	/* Finalize the ccb connection*/
-	if (state.ccbInit) {
-		errorCode = immutil_saImmOmCcbFinalize(state.ccbHandle);
-		if (SA_AIS_OK != errorCode) {
-			LOG_WA("Failed to finalize the ccb object connection %d",
-				   errorCode);
+		rd = fread(buf, 1, 4, file);
+		if(rd > 0) {
+			state.ctxt = xmlCreatePushParserCtxt(&my_handler, &state, buf, rd, xmlfile);
+			while(state.ctxt->instate != XML_PARSER_EOF && (rd = fread(buf, 1, 1024, file)) > 0) {
+				if(xmlParseChunk(state.ctxt, buf, rd, 0))
+					break;
+			}
+
+			result = state.parsingStatus;
+
+			xmlParseChunk(state.ctxt, buf, 0, 1);
+
+			xmlFreeParserCtxt(state.ctxt);
 		}
+
+		fclose(file);
+	} else {
+		result = 1;
+		LOG_ER("Cannot open '%s'", xmlfile);
 	}
 
-	/* Finalize the owner connection */
-	if (state.adminInit) {
-		errorCode = immutil_saImmOmAdminOwnerFinalize(state.ownerHandle);
-		if (SA_AIS_OK != errorCode) {
-			LOG_WA("Failed on saImmOmAdminOwnerFinalize (%d)", errorCode);
+	if(!transaction_mode) {
+		/* Make sure to finalize the imm connections */
+		/* Finalize the ccb connection*/
+		if (state.ccbInit) {
+			errorCode = immutil_saImmOmCcbFinalize(state.ccbHandle);
+			if (SA_AIS_OK != errorCode) {
+				LOG_WA("Failed to finalize the ccb object connection %d",
+						errorCode);
+			}
 		}
+
+		/* Finalize the owner connection */
+		if (state.adminInit) {
+			errorCode = immutil_saImmOmAdminOwnerFinalize(state.ownerHandle);
+			if (SA_AIS_OK != errorCode) {
+				LOG_WA("Failed on saImmOmAdminOwnerFinalize (%d)", errorCode);
+			}
+		}
+
+		/* Finalize the imm connection */
+		if (state.immInit) {
+			errorCode = immutil_saImmOmFinalize(state.immHandle);
+			if (SA_AIS_OK != errorCode) {
+				LOG_WA("Failed on saImmOmFinalize (%d)", errorCode);
+			}
+		}
+	} else {
+		/* Save handles */
+		if(state.immInit)
+			*imm_import_immHandle = state.immHandle;
+		if(state.adminInit)
+			*imm_import_ownerHandle = state.ownerHandle;
+		if(state.ccbInit)
+			*imm_import_ccbHandle = state.ccbHandle;
 	}
 
-	/* Finalize the imm connection */
-	if (state.immInit) {
-		errorCode = immutil_saImmOmFinalize(state.immHandle);
-		if (SA_AIS_OK != errorCode) {
-			LOG_WA("Failed on saImmOmFinalize (%d)", errorCode);
-		}
-	}
+	if(state.attrName)
+		free(state.attrName);
+	if(state.className)
+		free(state.className);
 
 	std::map<std::string, SaImmAttrValuesT_2>::iterator it;
 	for(it = state.classRDNMap.begin(); it != state.classRDNMap.end(); it++)
@@ -2110,24 +2498,31 @@ int loadImmXML(std::string xmlfile)
 // C and c++ caller wrapper
 //  The objective is to keep the code copied from imm_load.cc as close to original as possible
 //  to ease a future refactoring towards common codebase
-int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ccb_safe)
+int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ccb_safe,
+		SaImmHandleT *immHandle, SaImmAdminOwnerHandleT *ownerHandle, SaImmCcbHandleT *ccbHandle, int mode)
 {
-	std::string xmlfile(xmlfileC);
 	imm_import_adminOwnerName = adminOwnerName;
 	imm_import_verbose = verbose;
 	imm_import_ccb_safe = ccb_safe;
+
+	imm_import_immHandle = immHandle;
+	imm_import_ownerHandle = ownerHandle;
+	imm_import_ccbHandle = ccbHandle;
+
+	transaction_mode = mode;
+
 	LOG_IN("file: %s adminOwner: %s", xmlfileC, adminOwnerName);
 
 	// assign own immutil errorhandler (no call to abort())
 	immutilError = imm_importImmutilError;
 
-	return loadImmXML(xmlfile);
+	return loadImmXML(xmlfileC);
 }
 
-int validateImmXML(const char *xmlfile, int verbose)
+int validateImmXML(const char *xmlfile, int verbose, int mode)
 {
 	ParserState state;
-	int result;
+	int result = 1;
 
 	TRACE_8("Loading from %s", xmlfile);
 
@@ -2154,7 +2549,36 @@ int validateImmXML(const char *xmlfile, int verbose)
 
 	state.validation = 1;
 
-	result = xmlSAXUserParseFile(&my_handler, &state, xmlfile);
+	state.parsingStatus = 0;
+
+	transaction_mode = mode;
+
+	FILE *file = fopen(xmlfile, "rb");
+	if(file) {
+		char buf[1024];
+		int rd;
+
+		rd = fread(buf, 1, 4, file);
+		if(rd > 0) {
+			state.ctxt = xmlCreatePushParserCtxt(&my_handler, &state, buf, rd, xmlfile);
+			while(state.ctxt->instate != XML_PARSER_EOF && (rd = fread(buf, 1, 1024, file)) > 0) {
+				if(xmlParseChunk(state.ctxt, buf, rd, 0))
+					break;
+			}
+
+			result = state.parsingStatus;
+
+			xmlParseChunk(state.ctxt, buf, 0, 1);
+
+			xmlFreeParserCtxt(state.ctxt);
+		}
+
+		fclose(file);
+	} else {
+		LOG_ER("Cannot open '%s'", xmlfile);
+		if(!transaction_mode)
+			exit(EXIT_FAILURE);
+	}
 
 	std::map<std::string, SaImmAttrValuesT_2>::iterator it;
 	for(it = state.classRDNMap.begin(); it != state.classRDNMap.end(); it++)
