@@ -20,6 +20,8 @@
  * Example: immcfg [-a attr-name[+|-]=attr-value]+ "safAmfNode=Node01,safAmfCluster=1"
  */
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,17 +33,26 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <libgen.h>
-#include <assert.h>
 #include <signal.h>
+#include <sys/stat.h>
+#include <dlfcn.h>
+#include <wordexp.h>
 
 #include <saAis.h>
 #include <saImmOm.h>
 #include <immutil.h>
 #include <saf_error.h>
 
+
 static SaVersionT immVersion = { 'A', 2, 11 };
 int verbose = 0;
 int ccb_safe = 1;
+
+int transaction_mode = 0;
+SaImmHandleT immHandle = 0;
+SaImmAdminOwnerNameT adminOwnerName = NULL;
+SaImmAdminOwnerHandleT ownerHandle = 0;
+SaImmCcbHandleT ccbHandle = -1;
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 typedef enum {
@@ -53,7 +64,10 @@ typedef enum {
 	LOAD_IMMFILE = 5,
 	VALIDATE_IMMFILE = 6,
 	CHANGE_CLASS = 7,
-	ADMINOWNER_CLEAR = 8
+	ADMINOWNER_CLEAR = 8,
+	TRANSACTION_MODE = 9,
+	CCB_APPLY = 10,
+	CCB_ABORT = 11
 } op_t;
 
 typedef enum {
@@ -65,8 +79,13 @@ typedef enum {
 #define VERBOSE_INFO(format, args...) if (verbose) { fprintf(stderr, format, ##args); }
 
 // Interface functions which implement -f and -L options (imm_import.cc)
-int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ccb_safe);
-int validateImmXML(const char *xmlfile, int verbose);
+int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ccb_safe,
+		SaImmHandleT *immHandle, SaImmAdminOwnerHandleT *ownerHandle, SaImmCcbHandleT *ccbHandle, int mode);
+int validateImmXML(const char *xmlfile, int verbose, int mode);
+static int imm_operation(int argc, char *argv[]);
+
+char *(*readln)(const char *);
+void (*addhistory)(const char *);
 
 
 const SaImmCcbFlagsT defCcbFlags = SA_IMM_CCB_REGISTERED_OI | SA_IMM_CCB_ALLOW_NULL_OI;
@@ -103,6 +122,8 @@ static void usage(const char *progname)
 	printf("\t-L, --validate <imm.xml file>\n");
 	printf("\t-o, --admin-owner <admin owner name>\n");
 	printf("\t--admin-owner-clear\n");
+	printf("\t--ccb-apply (only in a transaction mode)\n");
+	printf("\t--ccb-abort (only in a transaction mode)\n");
 
 	printf("\nEXAMPLE\n");
 	printf("\timmcfg -a saAmfNodeSuFailoverMax=7 safAmfNode=Node01,safAmfCluster=1\n");
@@ -136,6 +157,42 @@ void sigalarmh(int sig)
         exit(EXIT_FAILURE);
 }
 
+static void free_attr_value(SaImmValueTypeT attrValueType, SaImmAttrValueT attrValue) {
+	if(attrValue) {
+		if(attrValueType == SA_IMM_ATTR_SASTRINGT)
+			free(*((SaStringT *)attrValue));
+		else if(attrValueType == SA_IMM_ATTR_SAANYT)
+			free(((SaAnyT*)attrValue)->bufferAddr);
+		free(attrValue);
+	}
+}
+
+static void free_attr_values(SaImmAttrValuesT_2 *attrValues) {
+	int i;
+
+	if(attrValues) {
+		free(attrValues->attrName);
+
+		for(i=0; i<attrValues->attrValuesNumber; i++)
+			free_attr_value(attrValues->attrValueType, attrValues->attrValues[i]);
+
+		free(attrValues->attrValues);
+		free(attrValues);
+	}
+}
+
+static void free_attr_mod(SaImmAttrModificationT_2 *attrMod) {
+	if(attrMod) {
+		if(attrMod->modAttr.attrName)
+			free(attrMod->modAttr.attrName);
+		if(attrMod->modAttr.attrValues) {
+			free_attr_value(attrMod->modAttr.attrValueType, attrMod->modAttr.attrValues[0]);
+			free(attrMod->modAttr.attrValues);
+		}
+		free(attrMod);
+	}
+}
+
 /**
  * Alloc SaImmAttrModificationT_2 object and initialize its attributes from nameval (x=y)
  * @param objectName
@@ -146,8 +203,8 @@ void sigalarmh(int sig)
 static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *nameval)
 {
 	int res = 0;
-	char *tmp = strdup(nameval);
-	char *name, *value;
+	char *name = strdup(nameval);
+	char *value;
 	SaImmAttrModificationT_2 *attrMod = NULL;
 	SaImmClassNameT className = immutil_get_className(objectName);
 	SaAisErrorT error;
@@ -161,7 +218,7 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 
 	attrMod = malloc(sizeof(SaImmAttrModificationT_2));
 
-	if ((value = strstr(tmp, "=")) == NULL) {
+	if ((value = strstr(name, "=")) == NULL) {
 		res = -1;
 		goto done;
 	}
@@ -175,7 +232,6 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 		value[-1] = 0;
 	}
 
-	name = tmp;
 	*value = '\0';
 	value++;
 
@@ -194,6 +250,7 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 
 	attrMod->modType = modType;
 	attrMod->modAttr.attrName = name;
+	name = NULL;
 	if (strlen(value)) {
 		attrMod->modAttr.attrValuesNumber = 1;
 		attrMod->modAttr.attrValues = malloc(sizeof(SaImmAttrValueT *));
@@ -207,29 +264,53 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 	
  done:
 	free(className);
+
+	if(name)
+		free(name);
+
 	if (res != 0) {
-		free(attrMod);
-		attrMod = NULL;
+		if(attrMod) {
+			free(attrMod);
+			attrMod = NULL;
+		}
 	}
 	return attrMod;
 }
 
+static SaAisErrorT get_attrValueType(SaImmAttrDefinitionT_2 **attrDefinitions, SaImmAttrNameT attrName, SaImmValueTypeT *attrValueType) {
+	if(!attrDefinitions || !attrName)
+		return SA_AIS_ERR_NOT_EXIST;
+
+	int i=0;
+	while(attrDefinitions[i]) {
+		if(!strcmp(attrDefinitions[i]->attrName, attrName)) {
+			if(attrValueType)
+				*attrValueType = attrDefinitions[i]->attrValueType;
+			return SA_AIS_OK;
+		}
+		i++;
+	}
+
+	return SA_AIS_ERR_NOT_EXIST;
+}
+
 /**
  * Alloc SaImmAttrValuesT_2 object and initialize its attributes from nameval (x=y)
- * @param className
+ * @param attrDefinitions
  * @param nameval
+ * @param isRdn
  *
  * @return SaImmAttrValuesT_2*
  */
-static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char *nameval, int isRdn)
+static SaImmAttrValuesT_2 *new_attr_value(SaImmAttrDefinitionT_2 **attrDefinitions, char *nameval, int isRdn)
 {
 	int res = 0;
 	char *name = strdup(nameval), *p;
 	char *value;
-	SaImmAttrValuesT_2 *attrValue;
+	SaImmAttrValuesT_2 *attrValue = NULL;
 	SaAisErrorT error;
 
-	attrValue = malloc(sizeof(SaImmAttrValuesT_2));
+	attrValue = calloc(1, sizeof(SaImmAttrValuesT_2));
 
 	p = strchr(name, '=');
 	if (p == NULL){
@@ -240,19 +321,14 @@ static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char 
 	*p = '\0';
 	value = p + 1;
 
-	attrValue->attrName = strdup(name);
+	attrValue->attrName = name;
+	name = NULL;
 	VERBOSE_INFO("new_attr_value attrValue->attrName: '%s' value:'%s'\n", attrValue->attrName, isRdn ? nameval : value);
 
-	error = immutil_get_attrValueType(className, attrValue->attrName, &attrValue->attrValueType);
-
-	if (error == SA_AIS_ERR_NOT_EXIST) {
-		fprintf(stderr, "Class '%s' does not exist\n", className);
-		res = -1;
-		goto done;
-	}
+	error = get_attrValueType(attrDefinitions, attrValue->attrName, &attrValue->attrValueType);
 
 	if (error != SA_AIS_OK) {
-		fprintf(stderr, "Attribute '%s' does not exist in class '%s'\n", name, className);
+		fprintf(stderr, "Attribute '%s' does not exist in class\n", attrValue->attrName);
 		res = -1;
 		goto done;
 	}
@@ -264,8 +340,11 @@ static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char 
 		res = -1;
 
  done:
-	free(name);
+	if(name)
+		free(name);
 	if (res != 0) {
+		if(attrValue->attrName)
+			free(attrValue->attrName);
 		free(attrValue);
 		attrValue = NULL;
 	}
@@ -296,28 +375,39 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 	char *parent = NULL;
 	SaNameT dn;
 	SaNameT *parentName = NULL;
-	char *str, *delim;
+	char *str = NULL, *delim;
 	const SaNameT *parentNames[] = {parentName, NULL};
-	SaImmCcbHandleT ccbHandle;
 	const SaStringT* errStrings=NULL;
+	SaImmClassCategoryT classCategory;
+	SaImmAttrDefinitionT_2 **attrDefinitions = NULL;
+
+	if((error = saImmOmClassDescriptionGet_2(immHandle, className, &classCategory, &attrDefinitions)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmClassDescriptionGet_2. FAILED: %s\n", saf_error(error));
+		goto done;
+	}
 
 	for (i = 0; i < optargs_len; i++) {
-		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
 		VERBOSE_INFO("object_create optargs[%d]: '%s'\n", i, optargs[i]);
-		if ((attrValue = new_attr_value(className, optargs[i], 0)) == NULL){
+		if ((attrValue = new_attr_value(attrDefinitions, optargs[i], 0)) == NULL){
 			fprintf(stderr, "error - creating attribute from '%s'\n", optargs[i]);
 			goto done;
 		}
 
+		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
 		attrValues[attr_len - 1] = attrValue;
 		attrValues[attr_len] = NULL;
 		attr_len++;
 	}
 
-	if ((error = immutil_saImmOmCcbInitialize(ownerHandle, ccb_safe?defCcbFlags:0x0, &ccbHandle)) 
-		!= SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
-		goto done;
+	attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
+	attrValues[attr_len] = NULL;
+
+	if(ccbHandle == -1) {
+		if ((error = immutil_saImmOmCcbInitialize(ownerHandle, ccb_safe?defCcbFlags:0x0, &ccbHandle))
+			!= SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
+			goto done;
+		}
 	}
 
 	i = 0;
@@ -353,14 +443,13 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 			}
 		}
 
-		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
 		VERBOSE_INFO("object_create rdn attribute attrValues[%d]: '%s' \n", attr_len - 1, str);
-		if ((attrValue = new_attr_value(className, str, 1)) == NULL){
+		if ((attrValue = new_attr_value(attrDefinitions, str, 1)) == NULL){
 			fprintf(stderr, "error - creating rdn attribute from '%s'\n", str);
 			goto done;
 		}
 		attrValues[attr_len - 1] = attrValue;
-		attrValues[attr_len] = NULL;
+		attrValue = NULL;
 
 		if ((error = immutil_saImmOmCcbObjectCreate_2(ccbHandle, className, parentName,
 			(const SaImmAttrValuesT_2**)attrValues)) != SA_AIS_OK) {
@@ -383,51 +472,37 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
 				}
 			}
+
+			free_attr_values(attrValues[attr_len - 1]);
+
 			goto done;
 		}
+
+		free_attr_values(attrValues[attr_len - 1]);
+		attrValues[attr_len - 1] = NULL;
+
+		free(str);
+		str = NULL;
+
 		i++;
-	}
-
-	if ((error = immutil_saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
-
-		if(error == SA_AIS_ERR_TIMEOUT) {
-			fprintf(stderr, "saImmOmCcbApply returned SA_AIS_ERR_TIMEOUT, result for CCB is unknown\n");
-			goto done_release;
-		}
-		
-		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
-		SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
-		if(errStrings) {
-			int ix = 0;
-			while(errStrings[ix]) {
-				fprintf(stderr, "OI reports: %s\n", errStrings[ix]);
-				++ix;
-			}
-		} else if(rc2 != SA_AIS_OK) {
-			fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
-		}
-		
-		goto done_release;
-	}
-
-	if ((error = immutil_saImmOmCcbFinalize(ccbHandle)) != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmCcbFinalize FAILED: %s\n", saf_error(error));
-		goto done_release;
 	}
 
 	rc = 0;
 
-done_release:
-	/*  Skip explicit release of admin owner. It just causes problems when new objects
-	    (e.g. runtime objects have appeared in the subtree. Instead just rely on 
-	    releaseOwnershipOnFinalize being set to true in saImm*OmAdminOwnerinitialize. 
-	if (parent && (error = saImmOmAdminOwnerRelease(
-		ownerHandle, (const SaNameT **)parentNames, SA_IMM_SUBTREE)) != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
-		goto done;
-	}
-	*/
 done:
+
+	if(str)
+		free(str);
+
+	if(attrValues) {
+		for(i=0; i<attr_len-1; i++)
+			free_attr_values(attrValues[i]);
+		free(attrValues);
+	}
+
+	if(attrDefinitions)
+		saImmOmClassDescriptionMemoryFree_2(immHandle, attrDefinitions);
+
 	return rc;
 }
 
@@ -449,14 +524,15 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 	int rc = EXIT_FAILURE;
 	SaImmAttrModificationT_2 *attrMod;
 	SaImmAttrModificationT_2 **attrMods = NULL;
-	SaImmCcbHandleT ccbHandle;
 	const SaStringT* errStrings=NULL;
 
 	for (i = 0; i < optargs_len; i++) {
-		attrMods = realloc(attrMods, (attr_len + 1) * sizeof(SaImmAttrModificationT_2 *));
-		if ((attrMod = new_attr_mod(objectNames[0], optargs[i])) == NULL)
-			exit(EXIT_FAILURE);
+		if ((attrMod = new_attr_mod(objectNames[0], optargs[i])) == NULL) {
+			fprintf(stderr, "error - creating attribute from '%s'\n", optargs[i]);
+			goto done;
+		}
 
+		attrMods = realloc(attrMods, (attr_len + 1) * sizeof(SaImmAttrModificationT_2 *));
 		attrMods[attr_len - 1] = attrMod;
 		attrMods[attr_len] = NULL;
 		attr_len++;
@@ -471,10 +547,12 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 		goto done;
 	}
 
-	if ((error = immutil_saImmOmCcbInitialize(ownerHandle, ccb_safe?defCcbFlags:0x0, &ccbHandle))
-		!= SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
-		goto done_release;
+	if(ccbHandle == -1) {
+		if ((error = immutil_saImmOmCcbInitialize(ownerHandle, ccb_safe?defCcbFlags:0x0, &ccbHandle))
+			!= SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
+			goto done;
+		}
 	}
 
 	i = 0;
@@ -498,51 +576,21 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
 				}
 			}
-			goto done_release;
+			goto done;
 		}
 		i++;
 	}
 
-	if ((error = immutil_saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
-
-		if(error == SA_AIS_ERR_TIMEOUT) {
-			fprintf(stderr, "saImmOmCcbApply returned SA_AIS_ERR_TIMEOUT, result for CCB is unknown\n");
-			goto done_release;
-		}
-		
-		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
-		SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
-		if(errStrings) {
-			int ix = 0;
-			while(errStrings[ix]) {
-				fprintf(stderr, "OI reports: %s\n", errStrings[ix]);
-				++ix;
-			}
-		} else if(rc2 != SA_AIS_OK) {
-			fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
-		}
-
-		goto done_release;
-	}
-
-	if ((error = immutil_saImmOmCcbFinalize(ccbHandle)) != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmCcbFinalize FAILED: %s\n", saf_error(error));
-		goto done_release;
-	}
-
 	rc = 0;
 
- done_release:
-	/*  Skip explicit release of admin owner. It just causes problems when new objects
-	    (e.g. runtime objects have appeared in the subtree. Instead just rely on 
-	    releaseOwnershipOnFinalize being set to true in saImm*OmAdminOwnerinitialize. 
-	
-	if ((error = saImmOmAdminOwnerRelease(ownerHandle, (const SaNameT **)objectNames, SA_IMM_ONE)) != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
-		goto done;
-	}
-	*/
  done:
+
+	if(attrMods) {
+		for(i=0; i<attr_len; i++)
+			free_attr_mod(attrMods[i]);
+		free(attrMods);
+	}
+
 	return rc;
 }
 
@@ -557,7 +605,6 @@ int object_delete(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 {
 	SaAisErrorT error;
 	int rc = EXIT_FAILURE;
-	SaImmCcbHandleT ccbHandle;
 	int i = 0;
 	const SaStringT* errStrings=NULL;
 
@@ -572,10 +619,12 @@ int object_delete(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 		goto done;
 	}
 
-	if ((error = immutil_saImmOmCcbInitialize(ownerHandle, ccb_safe?defCcbFlags:0x0, &ccbHandle))
-		!= SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
-		goto done;
+	if(ccbHandle == -1) {
+		if ((error = immutil_saImmOmCcbInitialize(ownerHandle, ccb_safe?defCcbFlags:0x0, &ccbHandle))
+			!= SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
+			goto done;
+		}
 	}
 
 	while (objectNames[i] != NULL) {
@@ -604,33 +653,6 @@ int object_delete(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 		i++;
 	}
 
-	if ((error = immutil_saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
-
-		if(error == SA_AIS_ERR_TIMEOUT) {
-			fprintf(stderr, "saImmOmCcbApply returned SA_AIS_ERR_TIMEOUT, result for CCB is unknown\n");
-			goto done;
-		}
-
-		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
-		SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
-		if(errStrings) {
-			int ix = 0;
-			while(errStrings[ix]) {
-				fprintf(stderr, "OI reports: %s\n", errStrings[ix]);
-				++ix;
-			}
-		} else if(rc2 != SA_AIS_OK) {
-			fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
-		}
-
-		goto done;
-	}
-
-	if ((error = immutil_saImmOmCcbFinalize(ccbHandle)) != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmCcbFinalize FAILED: %s\n", saf_error(error));
-		goto done;
-	}
-
 	rc = 0;
 done:
 	return rc;
@@ -639,7 +661,7 @@ done:
 /**
  * Delete class(es) in the NULL terminated array
  * @param classNames
- * @param ownerHandle
+ * @param immHandle
  *
  * @return int
  */
@@ -672,7 +694,10 @@ static char *create_adminOwnerName(char *base){
 
 	if (gethostname(hostname, sizeof(hostname)) != 0){
 		fprintf(stderr, "error while retrieving hostname\n");
-		exit(EXIT_FAILURE);
+		if(transaction_mode)
+			return NULL;
+		else
+			exit(EXIT_FAILURE);
 	}
 	sprintf(unique_adminOwner, "%s_%s_%d", base, hostname, getpid());
 	return unique_adminOwner;
@@ -704,7 +729,6 @@ static int class_change(SaImmHandleT immHandle, const SaImmAdminOwnerNameT admin
 										2 - PBE disabled			*/
 	SaImmClassCategoryT classCategory;
 	SaImmAttrDefinitionT_2 **attrDefinitions = NULL;
-	SaImmAdminOwnerHandleT ownerHandle;
 	int rc = 0;
 
 	int attrNum = 0;
@@ -767,12 +791,6 @@ static int class_change(SaImmHandleT immHandle, const SaImmAdminOwnerNameT admin
 		SaImmAdminOperationParamsT_2 param = { "opensafImmNostdFlags", SA_IMM_ATTR_SAUINT32T, (SaImmAttrValueT)&nostdFlag };
 		const SaImmAdminOperationParamsT_2 *params[2] = { &param, NULL };
 
-		if((error = immutil_saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, &ownerHandle)) != SA_AIS_OK) {
-			fprintf(stderr, "Cannot initialize admin owner for admin operation\n");
-			rc = EXIT_FAILURE;
-			goto done;
-		}
-
 		if((error = immutil_saImmOmAdminOwnerSet(ownerHandle, objectNameList, SA_IMM_ONE)) != SA_AIS_OK) {
 			fprintf(stderr, "Cannot set admin owner on 'opensafImm=opensafImm,safApp=safImmService'\n");
 			rc = EXIT_FAILURE;
@@ -808,8 +826,6 @@ static int class_change(SaImmHandleT immHandle, const SaImmAdminOwnerNameT admin
 			fprintf(stderr, "Failed to disable schema changes. Error: %d\n", error);
 			rc = EXIT_FAILURE;
 		}
-
-		immutil_saImmOmAdminOwnerFinalize(ownerHandle);
 	}
 
 done:
@@ -819,6 +835,212 @@ done:
 	return rc;
 }
 
+static int ccb_apply() {
+	int rc = 0;
+	SaAisErrorT error;
+
+	if(ccbHandle != -1) {
+		if((error = immutil_saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
+			if(error == SA_AIS_ERR_TIMEOUT)
+				fprintf(stderr, "saImmOmCcbApply returned SA_AIS_ERR_TIMEOUT, result for CCB is unknown\n");
+			else
+				fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
+			rc = EXIT_FAILURE;
+			goto done;
+		}
+
+		if ((error = immutil_saImmOmCcbFinalize(ccbHandle)) != SA_AIS_OK) {
+			fprintf(stderr, "warning - successfully applied changes but saImmOmCcbFinalize FAILED: %s\n", saf_error(error));
+			rc = EXIT_FAILURE;
+		}
+
+		ccbHandle = -1;
+	}
+
+done:
+	return (transaction_mode) ? rc : 0;
+}
+
+static int ccb_abort() {
+	int rc = 0;
+	SaAisErrorT error;
+
+	if(ccbHandle != -1) {
+		if ((error = immutil_saImmOmCcbFinalize(ccbHandle)) != SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmCcbFinalize FAILED: %s\n", saf_error(error));
+			rc = EXIT_FAILURE;
+		}
+
+		ccbHandle = -1;
+	}
+
+	return (transaction_mode) ? rc : 0;
+}
+
+static char *stdreadline(const char *prompt) {
+	if(prompt)
+		printf("%s", prompt);
+
+	size_t len = 0;
+	char *line = NULL;
+	if(getline(&line, &len, stdin) == -1) {
+		free(line);
+		return NULL;
+	}
+
+	return line;
+}
+
+static void stdaddhistory(const char *line) {
+}
+
+static char *readinput(char *prompt) {
+	char *line;
+	char *rdline = NULL;
+	int len;
+	int rdlen = 0;
+	char *pmt = prompt;
+
+	while((line = readln(pmt))) {
+		if(!line) {
+			if(rdline)
+				free(rdline);
+			return NULL;
+		}
+
+		len = strlen(line);
+		if(len == 0) {
+			if(!rdline)
+				rdline = line;
+			break;
+		}
+
+		addhistory(line);
+
+		if(line[len - 1] == '\\') {
+			line[len - 1] = 0;
+			if(rdlen) {
+				rdline = realloc(rdline, rdlen + len);
+				strncat(rdline, line, len);
+				rdlen += len - 1;
+			} else {
+				rdline = line;
+				rdlen = len;
+			}
+			pmt = NULL;
+		} else {
+			if(rdline) {
+				rdline = realloc(rdline, rdlen + len + 1);
+				strncat(rdline, line, len + 1);
+			} else
+				rdline = line;
+
+			break;
+		}
+	}
+
+	return rdline;
+}
+
+static int start_cmd() {
+	char *line = NULL;
+	int rd;
+	int rc = 0;
+	struct stat st;
+	char *prompt = "> ";
+	void *dlhdl = NULL;
+	int isCmdLn = 0;
+
+	readln = stdreadline;
+	addhistory = stdaddhistory;
+
+	fstat(fileno(stdin), &st);
+	if(S_ISCHR(st.st_mode)) {
+		/* If immcfg is running in command line mode,
+		 * try to add readline features if it's supported by the system,
+		 * otherwise use simple getline() without history
+		 */
+		isCmdLn = 1;
+		dlhdl = dlopen("libreadline.so", RTLD_LAZY);
+		dlerror();
+		if(dlhdl) {
+			readln = (char *(*)(const char *))dlsym(dlhdl, "readline");
+			if(!dlerror() && readln) {
+				addhistory = (void (*)(const char *))dlsym(dlhdl, "add_history");
+				if(dlerror() != NULL || !addhistory)
+					addhistory = stdaddhistory;
+			} else
+				readln = stdreadline;
+		}
+	} else
+		prompt = NULL;
+
+	transaction_mode = 1;
+	optind = 0;
+
+	wordexp_t p;
+	while((line = readinput(prompt))) {
+		rd = strlen(line);
+		while(rd > 0 && (line[rd - 1] == 13 || line[rd - 1] == 10)) {
+			line[rd - 1] = 0;
+			rd--;
+		}
+
+		if(rd == 0)
+			goto done;
+
+		rc = wordexp(line, &p, 0);
+
+		if(rc) {
+			switch(rc) {
+				case WRDE_BADCHAR :
+					fprintf(stderr, "Illegal occurrence of newline or one of |, &, ;, <, >, (, ), {, }. Error: WRDE_BADCHAR\n");
+					break;
+				case WRDE_SYNTAX :
+					fprintf(stderr, "Shell syntax error, such as unbalanced parentheses or unmatched quotes. Error: WRDE_SYNTAX\n");
+					break;
+				default:
+					fprintf(stderr, "Error in parsing line. RC: %d\n", rc);
+					break;
+			}
+			if(!isCmdLn) {
+				free(line);
+				break;
+			}
+		}
+
+		if(p.we_wordc > 0) {
+			if(!strcmp(p.we_wordv[0], "immcfg")) {
+				optind = 0;
+				if((rc = imm_operation(p.we_wordc, p.we_wordv)) && !isCmdLn) {
+					free(line);
+					wordfree(&p);
+					break;
+				}
+				alarm(0);
+			} else
+				fprintf(stderr, "Not immcfg command\n");
+		}
+
+		wordfree(&p);
+
+done:
+		if(line) {
+			free(line);
+			line = NULL;
+		}
+	}
+
+	transaction_mode = 0;
+
+	if(dlhdl)
+		dlclose(dlhdl);
+
+	if(S_ISREG(st.st_mode))
+		printf("\n");
+
+	return rc;
+}
 
 static op_t verify_setoption(op_t prevValue, op_t newValue)
 {
@@ -826,11 +1048,14 @@ static op_t verify_setoption(op_t prevValue, op_t newValue)
 		return newValue;
 	else {
 		fprintf(stderr, "error - only one operation at a time supported\n");
-		exit(EXIT_FAILURE);
+		if(transaction_mode)
+			return INVALID;
+		else
+			exit(EXIT_FAILURE);
 	}
 }
 
-int main(int argc, char *argv[])
+static int imm_operation(int argc, char *argv[])
 {
 	int rc = EXIT_SUCCESS;
 	int c;
@@ -852,13 +1077,12 @@ int main(int argc, char *argv[])
 		{"disable-attr-notify", no_argument, NULL, 0},
 		{"admin-owner", required_argument, NULL, 'o'},
 		{"admin-owner-clear", no_argument, NULL, 0},
+		{"ccb-apply", no_argument, NULL, 0},
+		{"ccb-abort", no_argument, NULL, 0},
 		{0, 0, 0, 0}
 	};
 	SaAisErrorT error;
-	SaImmHandleT immHandle;
-	SaImmAdminOwnerNameT adminOwnerName = NULL;
 	int useAdminOwner = 1;
-	SaImmAdminOwnerHandleT ownerHandle;
 	SaNameT **objectNames = NULL;
 	int objectNames_len = 1;
 
@@ -901,7 +1125,10 @@ int main(int argc, char *argv[])
 				else {
 					fprintf(stderr, "error - enable-attr-notify cannot be used with %s\n",
 							(attrNotify == NOTIFY_DISABLED) ? "--disable-attr-notify" : "--enable-attr-notify");
-					exit(EXIT_FAILURE);
+					if(transaction_mode)
+						return -1;
+					else
+						exit(EXIT_FAILURE);
 				}
 			} else if (strcmp("disable-attr-notify", long_options[option_index].name) == 0) {
 				if(attrNotify == NOTIFY_UNDEFINED)
@@ -909,8 +1136,29 @@ int main(int argc, char *argv[])
 				else {
 					fprintf(stderr, "error - disable-attr-notify cannot be used with %s\n",
 							(attrNotify == NOTIFY_ENABLED) ? "--enable-attr-notify" : "--disable-attr-notify");
-					exit(EXIT_FAILURE);
+					if(transaction_mode)
+						return -1;
+					else
+						exit(EXIT_FAILURE);
 				}
+			} else if (strcmp("ccb-apply", long_options[option_index].name) == 0) {
+				if(argc != 2) {
+					fprintf(stderr, "error - ccb-apply option does not have any argument\n");
+					if(transaction_mode)
+						return -1;
+					else
+						exit(EXIT_FAILURE);
+				}
+				op = verify_setoption(op, CCB_APPLY);
+			} else if (strcmp("ccb-abort", long_options[option_index].name) == 0) {
+				if(argc != 2) {
+					fprintf(stderr, "error - ccb-abort option does not have any argument\n");
+					if(transaction_mode)
+						return -1;
+					else
+						exit(EXIT_FAILURE);
+				}
+				op = verify_setoption(op, CCB_ABORT);
 			}
 		break;
 		case 'a':
@@ -926,11 +1174,10 @@ int main(int argc, char *argv[])
 			break;
 		}
 		case 'h':
-			if(adminOwnerName)
+			if(!transaction_mode)
 				free(adminOwnerName);
 			usage(basename(argv[0]));
-			exit(EXIT_SUCCESS);
-			break;
+			return 0;
 		case 'f':
 			op = verify_setoption(op, LOAD_IMMFILE);
 			xmlFilename = optarg;
@@ -956,45 +1203,71 @@ int main(int argc, char *argv[])
 		case 'o':
 			if(adminOwnerName) {
 				fprintf(stderr, "Administrative owner name can be set only once\n");
-				exit(EXIT_FAILURE);
+				if(transaction_mode)
+					return -1;
+				else
+					exit(EXIT_FAILURE);
 			}
 			adminOwnerName = (SaImmAdminOwnerNameT)malloc(strlen(optarg) + 1);
 			strcpy(adminOwnerName, optarg);
 			break;
 		default:
-			free(adminOwnerName);
 			fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
-			exit(EXIT_FAILURE);
+			if(transaction_mode)
+				return -1;
+			else {
+				free(adminOwnerName);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		}
 	}
 
-	if(!adminOwnerName)
+	if(argc == 1)
+		op = TRANSACTION_MODE;
+
+	if(!transaction_mode && !adminOwnerName)
 		adminOwnerName = create_adminOwnerName(basename(argv[0]));
 
-	signal(SIGALRM, sigalarmh);
-	alarm(timeoutVal);
+	if(op != TRANSACTION_MODE) {
+		signal(SIGALRM, sigalarmh);
+		alarm(timeoutVal);
+	}
 
 	immutilWrapperProfile.errorsAreFatal = 0;
 	immutilWrapperProfile.nTries = timeoutVal;
 	immutilWrapperProfile.retryInterval = 1000;
 
 	if (op == VALIDATE_IMMFILE) {
-		free(adminOwnerName);
 		VERBOSE_INFO("validateImmXML(xmlFilename=%s, verbose=%d)\n", xmlFilename, verbose);
-		rc = validateImmXML(xmlFilename, verbose);
+		rc = validateImmXML(xmlFilename, verbose, transaction_mode);
 
 		if(rc == 0)
 			printf("Validation is successful\n");
 
-		exit(rc);
+		if(transaction_mode)
+			return rc;
+		else {
+			free(adminOwnerName);
+			exit(rc);
+		}
 	}
 	
 	if (op == LOAD_IMMFILE) {
 		VERBOSE_INFO("importImmXML(xmlFilename=%s, verbose=%d)\n", xmlFilename, verbose);
-		rc = importImmXML(xmlFilename, adminOwnerName, verbose, ccb_safe);
-		free(adminOwnerName);
-		exit(rc);
+		rc = importImmXML(xmlFilename, adminOwnerName, verbose, ccb_safe,
+				&immHandle, &ownerHandle, &ccbHandle, transaction_mode);
+		if(transaction_mode) {
+			if(rc) {
+				fprintf(stderr, "CCB is aborted\n");
+				ccb_abort();
+				return rc;
+			} else
+				return rc;
+		} else {
+			free(adminOwnerName);
+			exit(rc);
+		}
 	}
 
 	if (op == INVALID) {
@@ -1016,10 +1289,14 @@ int main(int argc, char *argv[])
 	}
 
 	/* Remaining arguments should be object names, class names or attribute names. Need at least one... */
-	if ((argc - optind) < 1) {
-		free(adminOwnerName);
+	if (((argc - optind) < 1) && (op != TRANSACTION_MODE) && (op != CCB_APPLY) && (op != CCB_ABORT)) {
 		fprintf(stderr, "error - specify at least one object or class\n");
-		exit(EXIT_FAILURE);
+		if(transaction_mode)
+			return -1;
+		else {
+			free(adminOwnerName);
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	if (op == DELETE_CLASS) {
@@ -1032,15 +1309,32 @@ int main(int argc, char *argv[])
 		int i = 0;
 
 		if(attrNotify == NOTIFY_UNDEFINED) {
-			free(adminOwnerName);
 			fprintf(stderr, "--class-name must be used in combination with --enable-attr-notify or --disable-attr-notify\n");
-			exit(EXIT_FAILURE);
+			if(transaction_mode)
+				return -1;
+			else {
+				free(adminOwnerName);
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		attributeNames = (char **)malloc(((argc - optind) + 1) * sizeof(char *));
 		while (optind < argc)
 			attributeNames[i++] = argv[optind++];
 		attributeNames[i] = NULL;
+	} else if (op == TRANSACTION_MODE) {
+		if(transaction_mode) {
+			fprintf(stderr, "immcfg is already in transaction mode\n");
+			return -1;
+		}
+	} else if (op == CCB_APPLY || op == CCB_ABORT) {
+		if(!transaction_mode) {
+			/* printing the error is not necessary. 0 will be returned if it is not in transaction mode.
+			 * 0 is on exit that an immcfg script does not get break if it is not run in transaction mode */
+			/* fprintf(stderr, "The command works only in transaction mode\n"); */
+			rc = EXIT_SUCCESS;
+			goto done_om_finalize;
+		}
 	} else {
 		while (optind < argc) {
 			objectNames = realloc(objectNames, (objectNames_len + 1) * sizeof(SaNameT*));
@@ -1050,20 +1344,21 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	if(!transaction_mode) {
+		error = immutil_saImmOmInitialize(&immHandle, NULL, &immVersion);
+        	if (error != SA_AIS_OK) {
+                	fprintf(stderr, "error - saImmOmInitialize FAILED: %s\n", saf_error(error));
+	                rc = EXIT_FAILURE;
+        	        goto done_om_finalize;
+	        }
 
-	error = immutil_saImmOmInitialize(&immHandle, NULL, &immVersion);
-        if (error != SA_AIS_OK) {
-                fprintf(stderr, "error - saImmOmInitialize FAILED: %s\n", saf_error(error));
-                rc = EXIT_FAILURE;
-                goto done_om_finalize;
-        }
-
-	if(useAdminOwner) {
-		error = immutil_saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, &ownerHandle);
-		if (error != SA_AIS_OK) {
-			fprintf(stderr, "error - saImmOmAdminOwnerInitialize FAILED: %s\n", saf_error(error));
-			rc = EXIT_FAILURE;
-			goto done_om_finalize;
+		if(useAdminOwner) {
+			error = immutil_saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, &ownerHandle);
+			if (error != SA_AIS_OK) {
+				fprintf(stderr, "error - saImmOmAdminOwnerInitialize FAILED: %s\n", saf_error(error));
+				rc = EXIT_FAILURE;
+				goto done_om_finalize;
+			}
 		}
 	}
 
@@ -1086,35 +1381,93 @@ int main(int argc, char *argv[])
 	case CHANGE_CLASS :
 		rc = class_change(immHandle, adminOwnerName, className, (const char **)attributeNames, attrNotify);
 		break;
+	case TRANSACTION_MODE :
+		rc = start_cmd();
+		break;
+	case CCB_APPLY :
+		rc = ccb_apply();
+		break;
+	case CCB_ABORT :
+		rc = ccb_abort();
+		break;
 	default:
 		fprintf(stderr, "error - no operation specified\n");
+		op = INVALID;
+		rc = EXIT_FAILURE;
 		break;
 	}
 
-	if(useAdminOwner) {
-		error = immutil_saImmOmAdminOwnerFinalize(ownerHandle);
-		if (SA_AIS_OK != error) {
-			fprintf(stderr, "error - saImmOmAdminOwnerFinalize FAILED: %s\n", saf_error(error));
-			rc = EXIT_FAILURE;
-			goto done_om_finalize;
+	if(!transaction_mode) {
+		if(ccbHandle != -1) {
+			if((error = immutil_saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
+				if(error == SA_AIS_ERR_TIMEOUT)
+					fprintf(stderr, "saImmOmCcbApply returned SA_AIS_ERR_TIMEOUT, result for CCB is unknown\n");
+				else
+					fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
+
+				const SaStringT *errStrings = NULL;
+				SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
+				if(errStrings) {
+					int ix = 0;
+					while(errStrings[ix]) {
+						fprintf(stderr, "OI reports: %s\n", errStrings[ix]);
+						++ix;
+					}
+				} else if(rc2 != SA_AIS_OK) {
+					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+				}
+
+				rc = EXIT_FAILURE;
+			}
+
+			if ((error = immutil_saImmOmCcbFinalize(ccbHandle)) != SA_AIS_OK) {
+				fprintf(stderr, "error - saImmOmCcbFinalize FAILED: %s\n", saf_error(error));
+				rc = EXIT_FAILURE;
+			}
 		}
+
+		if(useAdminOwner) {
+			error = immutil_saImmOmAdminOwnerFinalize(ownerHandle);
+			if (SA_AIS_OK != error) {
+				fprintf(stderr, "error - saImmOmAdminOwnerFinalize FAILED: %s\n", saf_error(error));
+				rc = EXIT_FAILURE;
+			}
+		}
+	} else if(rc && op != INVALID) {
+		fprintf(stderr, "CCB is aborted\n");
+		ccb_abort();
 	}
 
  done_om_finalize:
-	if(objectNames)
+	if(optargs) {
+		for(i=0; i<optargs_len; i++)
+			free(optargs[i]);
+		free(optargs);
+	}
+	if(objectNames) {
+		for(i=0; i<objectNames_len; i++)
+			free(objectNames[i]);
 		free(objectNames);
+	}
 	if(classNames)
 		free(classNames);
-	if(adminOwnerName)
-		free(adminOwnerName);
 	if(attributeNames)
 		free(attributeNames);
-	error = immutil_saImmOmFinalize(immHandle);
-	if (SA_AIS_OK != error) {
-                fprintf(stderr, "error - saImmOmFinalize FAILED: %s\n", saf_error(error));
-                rc = EXIT_FAILURE;
-        }
+	if(!transaction_mode) {
+		if(adminOwnerName)
+			free(adminOwnerName);
+		if(immHandle) {
+			error = immutil_saImmOmFinalize(immHandle);
+			if (SA_AIS_OK != error) {
+				fprintf(stderr, "error - saImmOmFinalize FAILED: %s\n", saf_error(error));
+				rc = EXIT_FAILURE;
+			}
+		}
+	}
 
+	return rc;
+}
 
-	exit(rc);
+int main(int argc, char *argv[]) {
+	return imm_operation(argc, argv);
 }
