@@ -2879,34 +2879,58 @@ SmfUpgradeProcedure::getImmComponentInfo(std::multimap<std::string, objectInst> 
 		std::string su(comp.substr(comp.find(',') + 1, std::string::npos));
 		std::string sg(su.substr(su.find(',') + 1, std::string::npos));
 
-		if (immUtil.getObject(su, &attributes) == false) {
-			LOG_NO("SmfUpgradeProcedure::getImmComponentInfo: Could not get object %s", su.c_str());
-			rc = false;
-			goto done;
-		}
+                //The attribute hostedByNode may not be set by AMF yet
+                //SMFD tries to read the attribute every 5 seconds until set
+                //Times out after time configured as reboot timeout
+                int interval = 5; //seconds
+                int timeout = smfd_cb->rebootTimeout/1000000000; //seconds
+                SaNameT *hostedByNode = 0;
+                bool nodeEmpty = false;  //Used to control log printout
+                while(true) {
+                        if (immUtil.getObject(su, &attributes) == false) {
+                                LOG_NO("SmfUpgradeProcedure::getImmComponentInfo: Could not get object %s", su.c_str());
+                                rc = false;
+                                goto done;
+                        }
 
-		typeRef = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saAmfSUType", 0);
-		std::string suType((char *)typeRef->value);
+                        hostedByNode = (SaNameT *)immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
+                                                                      "saAmfSUHostedByNode",
+                                                                      0);
+                        if (hostedByNode != NULL) {
+                                if (nodeEmpty == true) {
+                                        LOG_NO("SmfUpgradeProcedure::getImmComponentInfo:saAmfSUHostedByNode attribute in %s is now set, continue", su.c_str());
+                                }
+                                break;
+                        }
 
-		const SaNameT *hostedByNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
-								  "saAmfSUHostedByNode",
-								  0);
-		if (hostedByNode == NULL) {
-			LOG_NO("SmfUpgradeProcedure::getImmComponentInfo: No hostedByNode attr is set for %s", su.c_str());
-			rc = false;
-			goto done;
-		}
+                        if(timeout <= 0) { //Timeout
+                                LOG_NO("SmfUpgradeProcedure::getImmComponentInfo: No saAmfSUHostedByNode attribute was set for %s, timeout", su.c_str());
+                                rc = false;
+                                goto done;
+                        }
 
-		std::string node((char *)hostedByNode->value);
+                        if (nodeEmpty == false) {
+                                LOG_NO("SmfUpgradeProcedure::getImmComponentInfo:saAmfSUHostedByNode attribute in %s is empty, waiting for it to be set", su.c_str());
+                                nodeEmpty = true;
+                        }
 
-		//Save result in a multimap
-		//Node as key
-		i_objects.insert(std::pair<std::string, objectInst>(node, objectInst(node, 
-										     sg, 
-										     su, 
-										     suType,
-										     comp,
-										     compType)));
+                        sleep(interval);
+                        timeout -= interval;
+                        //No hostedByNode was set, read the same object again
+                } //End  while(true)
+
+                std::string node((char *)hostedByNode->value);
+                typeRef = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saAmfSUType", 0);
+                std::string suType((char *)typeRef->value);
+
+                //Save result in a multimap
+                //Node as key
+                i_objects.insert(std::pair<std::string, objectInst>(node, objectInst(node, 
+                                                                                     sg, 
+                                                                                     su, 
+                                                                                     suType,
+                                                                                     comp,
+                                                                                     compType)));
 	}
 done:
         (void) immutil_saImmOmSearchFinalize(immSearchHandle);
