@@ -34,6 +34,9 @@ static SaLogFileCreateAttributesT_2 appStreamLogFileCreateAttributes =
     .logFileFmt = DEFAULT_FORMAT_EXPRESSION
 };
 
+/**
+ * CCB Object Modify saLogStreamFileName
+ */
 void saLogOi_01(void)
 {
     int rc;
@@ -67,6 +70,9 @@ void saLogOi_02(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * CCB Object Modify saLogStreamMaxLogFileSize
+ */
 void saLogOi_03(void)
 {
     int rc;
@@ -78,6 +84,9 @@ void saLogOi_03(void)
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify saLogStreamFixedLogRecordSize
+ */
 void saLogOi_04(void)
 {
     int rc;
@@ -89,6 +98,9 @@ void saLogOi_04(void)
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify saLogStreamLogFullAction=1
+ */
 void saLogOi_05(void)
 {
     int rc;
@@ -100,6 +112,9 @@ void saLogOi_05(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * CCB Object Modify saLogStreamLogFullAction=2
+ */
 void saLogOi_06(void)
 {
     int rc;
@@ -111,6 +126,9 @@ void saLogOi_06(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * CCB Object Modify saLogStreamLogFullAction=3
+ */
 void saLogOi_07(void)
 {
     int rc;
@@ -122,6 +140,9 @@ void saLogOi_07(void)
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify saLogStreamLogFullAction=4, ERR invalid
+ */
 void saLogOi_08(void)
 {
     int rc;
@@ -134,6 +155,9 @@ void saLogOi_08(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * CCB Object Modify saLogStreamLogFullHaltThreshold=90%
+ */
 void saLogOi_09(void)
 {
     int rc;
@@ -145,6 +169,9 @@ void saLogOi_09(void)
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify saLogStreamLogFullHaltThreshold=101%, invalid
+ */
 void saLogOi_10(void)
 {
     int rc;
@@ -156,6 +183,9 @@ void saLogOi_10(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * CCB Object Modify saLogStreamMaxFilesRotated
+ */
 void saLogOi_11(void)
 {
     int rc;
@@ -167,6 +197,9 @@ void saLogOi_11(void)
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify saLogStreamLogFileFormat
+ */
 void saLogOi_12(void)
 {
     int rc;
@@ -178,6 +211,9 @@ void saLogOi_12(void)
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify saLogStreamLogFileFormat - wrong format
+ */
 void saLogOi_13(void)
 {
     int rc;
@@ -189,6 +225,9 @@ void saLogOi_13(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * CCB Object Modify saLogStreamSeverityFilter
+ */
 void saLogOi_14(void)
 {
     int rc;
@@ -200,6 +239,9 @@ void saLogOi_14(void)
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * saImmOiRtAttrUpdateCallback
+ */
 void saLogOi_15(void)
 {
     int rc;
@@ -210,6 +252,9 @@ void saLogOi_15(void)
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * Log Service Administration API, change sev filter for app stream OK
+ */
 void saLogOi_16(void)
 {
     int rc;
@@ -225,6 +270,9 @@ void saLogOi_16(void)
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * Log Service Administration API, change sev filter, ERR invalid stream
+ */
 void saLogOi_17(void)
 {
     int rc;
@@ -236,6 +284,9 @@ void saLogOi_17(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * Log Service Administration API, change sev filter, ERR invalid arg type
+ */
 void saLogOi_18(void)
 {
     int rc;
@@ -251,6 +302,9 @@ void saLogOi_18(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * Log Service Administration API, change sev filter, ERR invalid severity
+ */
 void saLogOi_19(void)
 {
     int rc;
@@ -266,6 +320,9 @@ void saLogOi_19(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * Log Service Administration API, change sev filter, ERR invalid param name
+ */
 void saLogOi_20(void)
 {
     int rc;
@@ -281,6 +338,9 @@ void saLogOi_20(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * Log Service Administration API, no change in sev filter, ERR NO OP
+ */
 void saLogOi_21(void)
 {
     int rc;
@@ -297,6 +357,9 @@ void saLogOi_21(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * Log Service Administration API, invalid opId
+ */
 void saLogOi_22(void)
 {
     int rc;
@@ -312,6 +375,9 @@ void saLogOi_22(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * CCB Object Create, strA
+ */
 void saLogOi_23()
 {
     int rc;
@@ -323,6 +389,9 @@ void saLogOi_23()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Create, strB
+ */
 void saLogOi_24()
 {
     int rc;
@@ -334,6 +403,9 @@ void saLogOi_24()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Create, strC
+ */
 void saLogOi_25()
 {
     int rc;
@@ -345,6 +417,9 @@ void saLogOi_25()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Delete, strB
+ */
 void saLogOi_26()
 {
     int rc;
@@ -355,6 +430,9 @@ void saLogOi_26()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Delete, strC
+ */
 void saLogOi_27()
 {
     int rc;
@@ -365,6 +443,9 @@ void saLogOi_27()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify, saLogStreamMaxFilesRotated=1, strA
+ */
 void saLogOi_28()
 {
     int rc;
@@ -384,6 +465,9 @@ void saLogOi_28()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify, saLogStreamMaxLogFileSize=0, strB
+ */
 void saLogOi_29()
 {
     int rc;
@@ -394,6 +478,9 @@ void saLogOi_29()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify, saLogStreamFixedLogRecordSize=80, strC
+ */
 void saLogOi_30()
 {
     int rc;
@@ -404,6 +491,9 @@ void saLogOi_30()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * immlist strA-strC
+ */
 void saLogOi_31()
 {
     int rc;
@@ -421,6 +511,9 @@ void saLogOi_31()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * immfind strA-strC
+ */
 void saLogOi_32()
 {
     int rc;
@@ -438,6 +531,9 @@ void saLogOi_32()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * saflogger, writing to notification
+ */
 void saLogOi_33()
 {
     int rc;
@@ -448,6 +544,9 @@ void saLogOi_33()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * saflogtest, writing to strA
+ */
 void saLogOi_34()
 {
     int rc;
@@ -460,6 +559,9 @@ void saLogOi_34()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * saflogtest, writing to strB
+ */
 void saLogOi_35()
 {
     int rc;
@@ -470,6 +572,9 @@ void saLogOi_35()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * saflogtest, writing to strC
+ */
 void saLogOi_36()
 {
     int rc;
@@ -480,6 +585,9 @@ void saLogOi_36()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify, saLogStreamMaxLogFileSize=2000, strC
+ */
 void saLogOi_37()
 {
     int rc;
@@ -490,6 +598,9 @@ void saLogOi_37()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify, saLogStreamFixedLogRecordSize=2048, strC, Error
+ */
 void saLogOi_38()
 {
     int rc;
@@ -501,6 +612,9 @@ void saLogOi_38()
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * CCB Object Modify, saLogStreamMaxLogFileSize=70, strC, Error
+ */
 void saLogOi_39()
 {
     int rc;
@@ -512,6 +626,9 @@ void saLogOi_39()
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * CCB Object Delete, strA
+ */
 void saLogOi_40()
 {
     int rc;
@@ -522,6 +639,9 @@ void saLogOi_40()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Create, strD, illegal path, Error
+ */
 void saLogOi_41()
 {
     int rc;
@@ -542,6 +662,9 @@ void saLogOi_41()
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * CCB Object Create, strD
+ */
 void saLogOi_42()
 {
     int rc;
@@ -553,6 +676,9 @@ void saLogOi_42()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify, saLogStreamLogFileFormat (strD)
+ */
 void saLogOi_43(void)
 {
     int rc;
@@ -565,6 +691,9 @@ void saLogOi_43(void)
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * saflogtest, writing to strD
+ */
 void saLogOi_44()
 {
     int rc;
@@ -575,6 +704,9 @@ void saLogOi_44()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify, saLogStreamFileName (strD)
+ */
 void saLogOi_45(void)
 {
     int rc;
@@ -587,6 +719,9 @@ void saLogOi_45(void)
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify, saLogStreamLogFileFormat (all tokens) (strD)
+ */
 void saLogOi_46()
 {
     int rc;
@@ -599,6 +734,9 @@ void saLogOi_46()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Delete, strD
+ */
 void saLogOi_47()
 {
     int rc;
@@ -624,6 +762,9 @@ void saLogOi_48()
     rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify, logStreamSystemHighLimit, not allowed
+ */
 void saLogOi_49()
 {
     int rc;
@@ -634,6 +775,9 @@ void saLogOi_49()
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/**
+ * saflogtest, writing to appTest
+ */
 void saLogOi_50()
 {
     int rc;
