@@ -42,7 +42,7 @@ void saLogOi_01(void)
     sprintf(command, "immcfg -a saLogStreamFileName=notification %s",
         SA_LOG_STREAM_NOTIFICATION);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 /**
@@ -64,7 +64,7 @@ void saLogOi_02(void)
 			tststr,
 			SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_03(void)
@@ -75,7 +75,7 @@ void saLogOi_03(void)
     sprintf(command, "immcfg -a saLogStreamMaxLogFileSize=1000000 %s",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_04(void)
@@ -86,7 +86,7 @@ void saLogOi_04(void)
     sprintf(command, "immcfg -a saLogStreamFixedLogRecordSize=300 %s",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_05(void)
@@ -97,7 +97,7 @@ void saLogOi_05(void)
     sprintf(command, "immcfg -a saLogStreamLogFullAction=1 %s 2> /dev/null",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_06(void)
@@ -108,7 +108,7 @@ void saLogOi_06(void)
     sprintf(command, "immcfg -a saLogStreamLogFullAction=2 %s 2> /dev/null",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_07(void)
@@ -119,7 +119,7 @@ void saLogOi_07(void)
     sprintf(command, "immcfg -a saLogStreamLogFullAction=3 %s",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_08(void)
@@ -131,7 +131,7 @@ void saLogOi_08(void)
     sprintf(command, "immcfg -a saLogStreamLogFullAction=4 %s 2> /dev/null",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_09(void)
@@ -142,7 +142,7 @@ void saLogOi_09(void)
     sprintf(command, "immcfg -a saLogStreamLogFullHaltThreshold=90 %s",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_10(void)
@@ -153,7 +153,7 @@ void saLogOi_10(void)
     sprintf(command, "immcfg -a saLogStreamLogFullHaltThreshold=101 %s 2> /dev/null",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_11(void)
@@ -164,7 +164,7 @@ void saLogOi_11(void)
     sprintf(command, "immcfg -a saLogStreamMaxFilesRotated=10 %s",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_12(void)
@@ -175,7 +175,7 @@ void saLogOi_12(void)
     sprintf(command, "immcfg -a saLogStreamLogFileFormat=\"@Cr @Ct @Nh:@Nn:@Ns @Nm/@Nd/@NY @Ne5 @No30 @Ng30 \"@Cb\"\" %s",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_13(void)
@@ -186,7 +186,7 @@ void saLogOi_13(void)
     sprintf(command, "immcfg -a saLogStreamLogFileFormat=\"@Cr @Ct @Sv @Ne5 @No30 @Ng30 \"@Cb\"\" %s 2> /dev/null",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_14(void)
@@ -197,7 +197,7 @@ void saLogOi_14(void)
     sprintf(command, "immcfg -a saLogStreamSeverityFilter=7 %s",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_15(void)
@@ -207,7 +207,7 @@ void saLogOi_15(void)
 
     sprintf(command, "immlist %s > /dev/null", SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_16(void)
@@ -222,7 +222,7 @@ void saLogOi_16(void)
         SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = system(command);
     safassert(saLogFinalize(logHandle), SA_AIS_OK);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_17(void)
@@ -233,7 +233,7 @@ void saLogOi_17(void)
     sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:7 %s 2> /dev/null",
         SA_LOG_STREAM_ALARM);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_18(void)
@@ -248,7 +248,7 @@ void saLogOi_18(void)
         SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = system(command);
     safassert(saLogFinalize(logHandle), SA_AIS_OK);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_19(void)
@@ -263,7 +263,7 @@ void saLogOi_19(void)
         SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = system(command);
     safassert(saLogFinalize(logHandle), SA_AIS_OK);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_20(void)
@@ -278,7 +278,7 @@ void saLogOi_20(void)
         SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = system(command);
     safassert(saLogFinalize(logHandle), SA_AIS_OK);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_21(void)
@@ -294,7 +294,7 @@ void saLogOi_21(void)
     rc = system(command); /* SA_AIS_OK */
     rc = system(command); /* will give SA_AIS_ERR_NO_OP */
     safassert(saLogFinalize(logHandle), SA_AIS_OK);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_22(void)
@@ -309,7 +309,7 @@ void saLogOi_22(void)
         SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = system(command);
     safassert(saLogFinalize(logHandle), SA_AIS_OK);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_23()
@@ -320,7 +320,7 @@ void saLogOi_23()
     sprintf(command, "immcfg -c SaLogStreamConfig safLgStrCfg=strA,safApp=safLogService "
 			"-a saLogStreamFileName=strA -a saLogStreamPathName=strAdir");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_24()
@@ -331,7 +331,7 @@ void saLogOi_24()
     sprintf(command, "immcfg -c SaLogStreamConfig safLgStrCfg=strB,safApp=safLogService "
 			"-a saLogStreamFileName=strB -a saLogStreamPathName=strBdir");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_25()
@@ -342,7 +342,7 @@ void saLogOi_25()
     sprintf(command, "immcfg -c SaLogStreamConfig safLgStrCfg=strC,safApp=safLogService "
 			"-a saLogStreamFileName=strC -a saLogStreamPathName=strCdir");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_26()
@@ -352,7 +352,7 @@ void saLogOi_26()
 
     sprintf(command, "immcfg -d safLgStrCfg=strB,safApp=safLogService");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_27()
@@ -362,7 +362,7 @@ void saLogOi_27()
 
     sprintf(command, "immcfg -d safLgStrCfg=strC,safApp=safLogService");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_28()
@@ -381,7 +381,7 @@ void saLogOi_28()
     sprintf(command, "immcfg -a saLogStreamMaxFilesRotated=3 safLgStrCfg=strA,safApp=safLogService");
     rc = system(command);
 	safassert(rc, 0);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_29()
@@ -391,7 +391,7 @@ void saLogOi_29()
 
     sprintf(command, "immcfg -a saLogStreamMaxLogFileSize=0 safLgStrCfg=strB,safApp=safLogService");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_30()
@@ -401,7 +401,7 @@ void saLogOi_30()
 
     sprintf(command, "immcfg -a saLogStreamFixedLogRecordSize=80 safLgStrCfg=strC,safApp=safLogService");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_31()
@@ -418,7 +418,7 @@ void saLogOi_31()
     sprintf(command, "immlist safLgStrCfg=strC,safApp=safLogService > /dev/null");
     rc = system(command);
 	safassert(rc, 0);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_32()
@@ -435,7 +435,7 @@ void saLogOi_32()
 	sprintf(command, "immfind safLgStrCfg=strC,safApp=safLogService > /dev/null");
     rc = system(command);
 	safassert(rc, 0);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_33()
@@ -445,7 +445,7 @@ void saLogOi_33()
 
     sprintf(command, "saflogger -n");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_34()
@@ -457,7 +457,7 @@ void saLogOi_34()
     rc = system(command);
     sprintf(command, "saflogtest -b strA --count=5 --interval=100000 \"saflogtest (5,100000) strA\"");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_35()
@@ -467,7 +467,7 @@ void saLogOi_35()
 
     sprintf(command, "saflogtest -b strB --count=500 --interval=5 \"saflogtest (500,5) strB\"");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_36()
@@ -477,7 +477,7 @@ void saLogOi_36()
 
     sprintf(command, "saflogtest -b strC --count=700 --interval=5 \"saflogtest (700,5) strC\"");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_37()
@@ -487,7 +487,7 @@ void saLogOi_37()
 
     sprintf(command, "immcfg -a saLogStreamMaxLogFileSize=2000 safLgStrCfg=strC,safApp=safLogService");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_38()
@@ -498,7 +498,7 @@ void saLogOi_38()
     sprintf(command, "immcfg -a saLogStreamFixedLogRecordSize=2048 safLgStrCfg=strC,safApp=safLogService "
 			"2> /dev/null");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_39()
@@ -509,7 +509,7 @@ void saLogOi_39()
     sprintf(command, "immcfg -a saLogStreamMaxLogFileSize=70 safLgStrCfg=strC,safApp=safLogService "
 			"2> /dev/null");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_40()
@@ -519,7 +519,7 @@ void saLogOi_40()
 
     sprintf(command, "immcfg -d safLgStrCfg=strA,safApp=safLogService");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_41()
@@ -539,7 +539,7 @@ void saLogOi_41()
 			"-a saLogStreamFileName=strDtest -a saLogStreamPathName=strDdir/../xyz 2> /dev/null");
     rc = system(command);
 	if (rc <= 0) safassert(rc, 0);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_42()
@@ -550,7 +550,7 @@ void saLogOi_42()
     sprintf(command, "immcfg -c SaLogStreamConfig safLgStrCfg=strD,safApp=safLogService "
 			"-a saLogStreamFileName=CrCtCdCyCb50CaSl30SvCx -a saLogStreamPathName=strDdir");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_43(void)
@@ -562,7 +562,7 @@ void saLogOi_43(void)
     sprintf(command, "immcfg -a saLogStreamLogFileFormat=\"%s\" safLgStrCfg=strD,safApp=safLogService",
 			logFileFormat);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_44()
@@ -572,7 +572,7 @@ void saLogOi_44()
 
     sprintf(command, "saflogtest -b strD --count=500 --interval=5 \"saflogtest (500,5) strD\"");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_45(void)
@@ -584,7 +584,7 @@ void saLogOi_45(void)
     sprintf(command, "immcfg -a saLogStreamFileName=\"%s\" safLgStrCfg=strD,safApp=safLogService",
 			logFileName);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_46()
@@ -596,7 +596,7 @@ void saLogOi_46()
     sprintf(command, "immcfg -a saLogStreamLogFileFormat=\"%s\" safLgStrCfg=strD,safApp=safLogService",
 			logFileFormat);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_47()
@@ -606,7 +606,7 @@ void saLogOi_47()
 
     sprintf(command, "immcfg -d safLgStrCfg=strD,safApp=safLogService");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 /**
@@ -621,7 +621,7 @@ void saLogOi_48()
     rc = system(command);
     sprintf(command, "immcfg -a logRootDirectory=%s/xxtest logConfig=1,safApp=safLogService",log_root_path);
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 void saLogOi_49()
@@ -631,7 +631,7 @@ void saLogOi_49()
 
     sprintf(command, "immcfg -a logStreamSystemHighLimit=90 logConfig=1,safApp=safLogService 2> /dev/null");
     rc = system(command);
-    test_validate(WEXITSTATUS(rc), 1);
+    rc_validate(WEXITSTATUS(rc), 1);
 }
 
 void saLogOi_50()
@@ -647,7 +647,7 @@ void saLogOi_50()
         rc = system(command);
 		safassert(rc, 0);
     }
-    test_validate(WEXITSTATUS(rc), 0);
+    rc_validate(WEXITSTATUS(rc), 0);
 }
 
 static int get_filter_cnt_attr(const SaNameT* objName)
@@ -706,7 +706,7 @@ void saLogOi_51(void)
 		sevType++;
 	}
 	safassert(saLogFinalize(logHandle), SA_AIS_OK);
-	test_validate(WEXITSTATUS(rc), 0);
+	rc_validate(WEXITSTATUS(rc), 0);
 }
 
 __attribute__ ((constructor)) static void saOiOperations_constructor(void)
