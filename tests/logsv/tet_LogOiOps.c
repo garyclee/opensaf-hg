@@ -19,6 +19,7 @@
 #include <sys/wait.h>
 #include <saImm.h>
 #include <saImmOm.h>
+#include <limits.h>
 #include "logtest.h"
 
 static SaLogFileCreateAttributesT_2 appStreamLogFileCreateAttributes =
@@ -44,13 +45,24 @@ void saLogOi_01(void)
     test_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify saLogStreamPathName, ERR not allowed
+ */
 void saLogOi_02(void)
 {
     int rc;
     char command[256];
+	
+	/* Create an illegal path name (log_root_path> cd ../) */
+	char tststr[PATH_MAX];
+	char *tstptr;
+	strcpy(tststr,log_root_path);
+	tstptr = strrchr(tststr, '/');
+	*tstptr = '\0';
 
-    sprintf(command, "immcfg -a saLogStreamPathName=/var/log %s 2> /dev/null",
-        SA_LOG_STREAM_ALARM);
+    sprintf(command, "immcfg -a saLogStreamPathName=/%s %s 2> /dev/null",
+			tststr,
+			SA_LOG_STREAM_ALARM);
     rc = system(command);
     test_validate(WEXITSTATUS(rc), 1);
 }
@@ -597,14 +609,17 @@ void saLogOi_47()
     test_validate(WEXITSTATUS(rc), 0);
 }
 
+/**
+ * CCB Object Modify, root directory
+ */
 void saLogOi_48()
 {
     int rc;
     char command[256];
-
-    sprintf(command, "mkdir -p /var/log/opensaf/saflog/xxtest");
+	
+    sprintf(command, "mkdir -p %s/xxtest",log_root_path);
     rc = system(command);
-    sprintf(command, "immcfg -a logRootDirectory=/var/log/opensaf/saflog/xxtest logConfig=1,safApp=safLogService");
+    sprintf(command, "immcfg -a logRootDirectory=%s/xxtest logConfig=1,safApp=safLogService",log_root_path);
     rc = system(command);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -655,6 +670,9 @@ static int get_filter_cnt_attr(const SaNameT* objName)
 	return filter_cnt;
 }
 
+/**
+ * saflogtest, writing to saLogApplication1, severity filtering check
+ */
 void saLogOi_51(void)
 {
 	int rc;
