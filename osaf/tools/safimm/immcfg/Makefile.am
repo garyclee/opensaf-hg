@@ -37,7 +37,9 @@ immcfg_SOURCES = \
 	imm_import.cc \
 	imm_cfg.c
 
-immcfg_LDFLAGS = @XML2_LIBS@
+immcfg_LDFLAGS = \
+	@XML2_LIBS@ \
+	-ldl
 
 immcfg_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
