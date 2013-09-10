@@ -101,7 +101,14 @@ static void usage(const char *progname)
 	printf("\nDESCRIPTION\n");
 	printf("\t%s is an IMM OM client used to create, delete an IMM or modify attribute(s) for IMM object(s)\n", progname);
 	printf("\tThe default operation if none specified is modify.\n");
-	printf("\tWhen creating or modifying several objects, they have to be of the same class.");
+	printf("\tWhen creating or modifying several objects, they have to be of the same class.\n");
+	printf("\tRunning immcfg without arguments, immcfg starts in explicit commit mode where is possible "
+		"to perform more IMM operations within one CCB.\n");
+	printf("\tIn explicit commit mode, immcfg accepts immcfg commands from stdin, pipe or a file.\n");
+	printf("\tOne immcfg command is like executing one immcfg in shell. "
+		"For example: \"immcfg -d safAmfNode=Node01,safAmfCluster=1\"\n");
+	printf("\tImmcfg command has the same syntax as immcfg in the command line. "
+		"For example: \"immcfg -d safAmfNode=Node01,safAmfCluster=1\"\n");
 
 	printf("\nOPTIONS\n");
 	printf("\t-a, --attribute name[+|-]=value [object DN]... \n");
@@ -148,6 +155,13 @@ static void usage(const char *progname)
 	printf("\t\tuse 'myAdminOwnerName' as admin owner name for changing one attribute of one object\n");
 	printf("\timmcfg --admin-owner-clear safAmfNode=Node01,safAmfCluster=1\n");
 	printf("\t\tclear admin owner from one object\n");
+	printf("\tcat test.cfg | immcfg\n");
+	printf("\t\tRunning immcfg in explicit commit mode where immfg accepts immcfg commands from a pipe\n");
+	printf("\timmcfg < test.cfg\n");
+	printf("\t\tRunning immcfg in explicit commit mode where immcfg accepts immcfg commands from test.cfg file\n");
+	printf("\timmcfg\n");
+	printf("\t\tRunning immcfg in explicit commit mode where immcfg accepts immcfg commands from command line\n");
+	printf("\t\tCtrl+D - commit changes and exit, Ctrl+C - abort CCB and exit\n");
 }
 
 /* signal handler for SIGALRM */
