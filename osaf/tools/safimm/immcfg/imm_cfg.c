@@ -105,8 +105,6 @@ static void usage(const char *progname)
 	printf("\tRunning immcfg without arguments, immcfg starts in explicit commit mode where is possible "
 		"to perform more IMM operations within one CCB.\n");
 	printf("\tIn explicit commit mode, immcfg accepts immcfg commands from stdin, pipe or a file.\n");
-	printf("\tOne immcfg command is like executing one immcfg in shell. "
-		"For example: \"immcfg -d safAmfNode=Node01,safAmfCluster=1\"\n");
 	printf("\tImmcfg command has the same syntax as immcfg in the command line. "
 		"For example: \"immcfg -d safAmfNode=Node01,safAmfCluster=1\"\n");
 
