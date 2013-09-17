@@ -66,6 +66,5 @@
 #include "avd_ckpt_edu.h"
 #include "avd_ckpt_updt.h"
 #include <stdbool.h>
-extern uint32_t avd_initialize(void);
 
 #endif

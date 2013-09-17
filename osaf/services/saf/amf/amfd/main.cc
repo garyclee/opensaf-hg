@@ -17,10 +17,24 @@
 
 /*****************************************************************************
 
-  DESCRIPTION: This module contains the array of function pointers, indexed by
-  the events for both active and standby AvD. It also has the processing
-  function that calls into one of these function pointers based on the event.
-  
+  This module contains:
+  * the main() routine for the AMF director process
+  * initialization logic
+  * an array of function pointers, indexed by the events for both active and
+  standby director.
+  * main event loop
+
+  Events are created for received MDS messages, MDS events and timer expiration.
+  CLM, IMM and MBCSV events are handled directly (not using the array of 
+  function pointers).
+
+  The AMF director process is mainly single threaded. But in the event of
+  getting a BAD_HANDLE return from saImmOiDispatch(), a temporary detached
+  thread is created to handle re-initialization as an IMM implementer. That
+  thread will return/exit once re-initialization is done.
+
+  There also exist a couple of threads in the core library (mds, timer, ...).
+
 ******************************************************************************
 */
 
@@ -45,7 +59,7 @@ enum {
 	FD_MBX,
 	FD_MBCSV,
 	FD_CLM,
-	FD_IMM
+	FD_IMM // must be last
 };
 
 // Singleton Control Block. Statically allocated
@@ -57,28 +71,28 @@ AVD_CL_CB *avd_cb = &_control_block;
 static nfds_t nfds = FD_IMM + 1;
 static struct pollfd fds[FD_IMM + 1];
 
-static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt);
-static void avd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt);
-static void avd_standby_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt);
-static void avd_qsd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt);
-static void avd_qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt);
+static void process_event(AVD_CL_CB *cb_now, AVD_EVT *evt);
+static void invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt);
+static void standby_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt);
+static void qsd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt);
+static void qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 
 /* list of all the function pointers related to handling the events
- * for active AvD.
+ * for active director.
  */
-static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
-	avd_invalid_evh,	/* AVD_EVT_INVALID */
+static const AVD_EVT_HDLR g_actv_list[AVD_EVT_MAX] = {
+	invalid_evh,	/* AVD_EVT_INVALID */
 
 	/* active AvD message events processing */
 	avd_node_up_evh,         /* AVD_EVT_NODE_UP_MSG */
 	avd_reg_su_evh,	         /* AVD_EVT_REG_SU_MSG */
-	avd_invalid_evh,         /* AVD_EVT_REG_COMP_MSG */
+	invalid_evh,         /* AVD_EVT_REG_COMP_MSG */
 	avd_su_oper_state_evh,   /* AVD_EVT_OPERATION_STATE_MSG */
 	avd_su_si_assign_evh,    /* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
 	avd_pg_trk_act_evh,      /* AVD_EVT_PG_TRACK_ACT_MSG */
 	avd_oper_req_evh,        /* AVD_EVT_OPERATION_REQUEST_MSG */
 	avd_data_update_req_evh, /* AVD_EVT_DATA_REQUEST_MSG */
-	avd_invalid_evh,         /* AVD_EVT_SHUTDOWN_APP_SU_MSG */
+	invalid_evh,         /* AVD_EVT_SHUTDOWN_APP_SU_MSG */
 	avd_ack_nack_evh,	     /* AVD_EVT_VERIFY_ACK_NACK_MSG */
 	avd_comp_validation_evh, /* AVD_EVT_COMP_VALIDATION_MSG */
 
@@ -98,73 +112,71 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 	avd_role_change_evh,	     /* AVD_EVT_ROLE_CHANGE */
 	avd_role_switch_ncs_su_evh,  /* AVD_EVT_SWITCH_NCS_SU */
 	avd_sidep_assign_evh, /* AVD_EVT_ASSIGN_SI_DEP_STATE */
-	avd_invalid_evh,		/* AVD_EVT_INVALID */
+	invalid_evh,		/* AVD_EVT_INVALID */
 	avd_sidep_unassign_evh /* AVD_EVT_UNASSIGN_SI_DEP_STATE */
 };
 
 /* list of all the function pointers related to handling the events
- * for standby AvD.
+ * for standby director.
  */
-
-static const AVD_EVT_HDLR g_avd_stndby_list[AVD_EVT_MAX] = {
-	avd_invalid_evh,	/* AVD_EVT_INVALID */
+static const AVD_EVT_HDLR g_stndby_list[AVD_EVT_MAX] = {
+	invalid_evh,	/* AVD_EVT_INVALID */
 
 	/* standby AvD message events processing */
-	avd_standby_invalid_evh,	/* AVD_EVT_NODE_UP_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_REG_SU_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_REG_COMP_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_OPERATION_STATE_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_OPERATION_REQUEST_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_DATA_REQUEST_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
+	standby_invalid_evh,	/* AVD_EVT_NODE_UP_MSG */
+	standby_invalid_evh,	/* AVD_EVT_REG_SU_MSG */
+	standby_invalid_evh,	/* AVD_EVT_REG_COMP_MSG */
+	standby_invalid_evh,	/* AVD_EVT_OPERATION_STATE_MSG */
+	standby_invalid_evh,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
+	standby_invalid_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */
+	standby_invalid_evh,	/* AVD_EVT_OPERATION_REQUEST_MSG */
+	standby_invalid_evh,	/* AVD_EVT_DATA_REQUEST_MSG */
+	standby_invalid_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
+	standby_invalid_evh,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
+	standby_invalid_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* standby AvD timer events processing */
 	avd_tmr_snd_hb_evh,           /* AVD_EVT_TMR_SND_HB */
-	avd_standby_invalid_evh,      /* AVD_EVT_TMR_CL_INIT */
-	avd_standby_invalid_evh,      /* AVD_EVT_TMR_SI_DEP_TOL */
+	standby_invalid_evh,      /* AVD_EVT_TMR_CL_INIT */
+	standby_invalid_evh,      /* AVD_EVT_TMR_SI_DEP_TOL */
 
 	/* standby AvD MDS events processing */
 	avd_mds_avd_up_evh,       /* AVD_EVT_MDS_AVD_UP */
 	avd_standby_avd_down_evh, /* AVD_EVT_MDS_AVD_DOWN */
 	avd_mds_avnd_up_evh,      /* AVD_EVT_MDS_AVND_UP */
 	avd_mds_avnd_down_evh,    /* AVD_EVT_MDS_AVND_DOWN */
-	avd_standby_invalid_evh,  /* AVD_EVT_MDS_QSD_ACK */
+	standby_invalid_evh,  /* AVD_EVT_MDS_QSD_ACK */
 
 	/* Role change Event processing */
 	avd_role_change_evh,	/* AVD_EVT_ROLE_CHANGE */
-	avd_standby_invalid_evh,	/* AVD_EVT_SWITCH_NCS_SU */
-	avd_standby_invalid_evh	/* AVD_EVT_SI_DEP_STATE */
+	standby_invalid_evh,	/* AVD_EVT_SWITCH_NCS_SU */
+	standby_invalid_evh	/* AVD_EVT_SI_DEP_STATE */
 };
 
 /* list of all the function pointers related to handling the events
- * for quiesced AvD.
+ * for quiesced director.
  */
-
-static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
+static const AVD_EVT_HDLR g_quiesc_list[AVD_EVT_MAX] = {
 	/* invalid event */
-	avd_invalid_evh,	/* AVD_EVT_INVALID */
+	invalid_evh,	/* AVD_EVT_INVALID */
 
 	/* active AvD message events processing */
-	avd_qsd_ignore_evh,	/* AVD_EVT_NODE_UP_MSG */
+	qsd_ignore_evh,	/* AVD_EVT_NODE_UP_MSG */
 	avd_reg_su_evh,	/* AVD_EVT_REG_SU_MSG */
-	avd_invalid_evh,	/* AVD_EVT_REG_COMP_MSG */
+	invalid_evh,	/* AVD_EVT_REG_COMP_MSG */
 	avd_su_oper_state_evh,	/* AVD_EVT_OPERATION_STATE_MSG */
 	avd_su_si_assign_evh,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
-	avd_qsd_ignore_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */
+	qsd_ignore_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */
 	avd_oper_req_evh,	/* AVD_EVT_OPERATION_REQUEST_MSG */
 	avd_data_update_req_evh,	/* AVD_EVT_DATA_REQUEST_MSG */
-	avd_invalid_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
-	avd_qsd_invalid_evh,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
+	invalid_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
+	qsd_invalid_evh,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
 	avd_comp_validation_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* active AvD timer events processing */
 	avd_tmr_snd_hb_evh,     /* AVD_EVT_TMR_SND_HB */
-	avd_qsd_ignore_evh,	/* AVD_EVT_TMR_CL_INIT */
-	avd_qsd_ignore_evh,	/* AVD_EVT_TMR_SI_DEP_TOL */
+	qsd_ignore_evh,	/* AVD_EVT_TMR_CL_INIT */
+	qsd_ignore_evh,	/* AVD_EVT_TMR_SI_DEP_TOL */
 
 	/* active AvD MDS events processing */
 	avd_mds_avd_up_evh,	/* AVD_EVT_MDS_AVD_UP */
@@ -175,28 +187,21 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 
 	/* Role change Event processing */
 	avd_role_change_evh,	/* AVD_EVT_ROLE_CHANGE */
-	avd_qsd_invalid_evh,	/* AVD_EVT_SWITCH_NCS_SU */
-	avd_qsd_invalid_evh	/* AVD_EVT_TMR_SI_DEP_TOL */
+	qsd_invalid_evh,	/* AVD_EVT_SWITCH_NCS_SU */
+	qsd_invalid_evh	/* AVD_EVT_TMR_SI_DEP_TOL */
 };
 
 /*****************************************************************************
- * Function: avd_invalid_evh
- *
  * Purpose:  This function is the handler for invalid events. It just
  * dumps the event to the debug log and returns.
  *
- * Input: cb - the AVD control block
+ * Input: cb - the control block
  *        evt - The event information.
  *
  * Returns: None.
- *
- *
- * NOTES:
- *
  * 
  **************************************************************************/
-
-static void avd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+static void invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	/* This function should never be called
 	 * log the event to the debug log and return
@@ -209,24 +214,17 @@ static void avd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 }
 
 /*****************************************************************************
- * Function: avd_standby_invalid_evh
- *
  * Purpose:  This function is the handler for invalid events in standby state.
  * This function might be called during system trauma. It just dumps the
  * event to the debug log at a information level and returns.
  *
- *
- * Input: cb - the AVD control block
+ * Input: cb - the control block
  *        evt - The event information.
  *
  * Returns: None.
  *
- * NOTES:
- *
- * 
  **************************************************************************/
-
-static void avd_standby_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+static void standby_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	/* This function should generally never be called
 	 * log the event to the debug log at information level and return
@@ -248,24 +246,18 @@ static void avd_standby_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 }
 
 /*****************************************************************************
- * Function: avd_quiesced_invalid_evh
- *
  * Purpose:  This function is the handler for invalid events in quiesced state.
  * This function might be called during system trauma. It just dumps the
  * event to the debug log at a information level and returns.
  *
  *
- * Input: cb - the AVD control block
+ * Input: cb - the control block
  *        evt - The event information.
  *
  * Returns: None.
- *
- * NOTES:
- *
  * 
  **************************************************************************/
-
-static void avd_qsd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+static void qsd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	/* This function should generally never be called
 	 * log the event to the debug log at information level and return
@@ -290,23 +282,17 @@ static void avd_qsd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 }
 
 /*****************************************************************************
- * Function: avd_qsd_ignore_evh 
- *
  * Purpose:  This function is the handler for events in quiesced state which
  * which are to be ignored.
  *
  *
- * Input: cb - the AVD control block
+ * Input: cb - the control block
  *        evt - The event information.
  *
  * Returns: None.
- *
- * NOTES:
- *
  * 
  **************************************************************************/
-
-static void avd_qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+static void qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	/* Ignore this Event. Free this msg */
 	AVD_DND_MSG *n2d_msg;
@@ -380,7 +366,7 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 	if ((evt->rcv_evt == AVD_EVT_VERIFY_ACK_NACK_MSG) ||
 	    (evt->rcv_evt == AVD_EVT_MDS_AVND_DOWN) ||
 	    (evt->rcv_evt == AVD_EVT_TMR_SND_HB)) {
-		avd_process_event(cb, evt);
+		process_event(cb, evt);
 	} else {
 		AVD_EVT_QUEUE *queue_evt;
 		/* Enqueue this event */
@@ -406,7 +392,7 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 		m_AVD_EVT_QUEUE_DEQUEUE(cb, queue_evt);
 
 		while (NULL != queue_evt) {
-			avd_process_event(cb, queue_evt->evt);
+			process_event(cb, queue_evt->evt);
 			free(queue_evt);
 			m_AVD_EVT_QUEUE_DEQUEUE(cb, queue_evt);
 		}
@@ -485,6 +471,11 @@ static uint32_t initialize(void)
 	char *val;
 
 	TRACE_ENTER();
+
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_agents_startup FAILED");
+		goto done;
+	}
 
 	/* run the class constructors */
 	avd_apptype_constructor();
@@ -636,12 +627,6 @@ static void main_loop(void)
 	int polltmo = -1;
 	int term_fd;
 
-	if (initialize() != NCSCC_RC_SUCCESS) {
-		LOG_ER("main: initialize FAILED, exiting...");
-		(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_FAILURE, NULL);
-		exit(EXIT_FAILURE);
-	}
-
 	mbx_fd = ncs_ipc_get_sel_obj(&cb->avd_mbx);
 	daemon_sigterm_install(&term_fd);
 
@@ -653,10 +638,8 @@ static void main_loop(void)
 	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_CLM].fd = cb->clm_sel_obj;
 	fds[FD_CLM].events = POLLIN;
-	fds[FD_IMM].fd = cb->imm_sel_obj;
+	fds[FD_IMM].fd = cb->imm_sel_obj; // IMM fd must be last in array
 	fds[FD_IMM].events = POLLIN;
-
-	(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_SUCCESS, NULL);
 
 	while (1) {
 		
@@ -710,7 +693,7 @@ static void main_loop(void)
 			if (cb->avd_fover_state) {
 				handle_event_in_failover_state(evt);
 			} else if (false == cb->avd_fover_state) {
-				avd_process_event(cb, evt);
+				process_event(cb, evt);
 			} else
 				osafassert(0);
 		}
@@ -762,7 +745,7 @@ static void main_loop(void)
 				/* flush messages possibly queued in the callback */
 				avd_d2n_msg_dequeue(cb);
 			}
-		}		/* End of if (cb->immOiHandle && fds[FD_IMM].revents & POLLIN)  */
+		}
 
 		// submit some jobs (if any)
 		polltmo = retval_to_polltmo(avd_job_fifo_execute(cb->immOiHandle));
@@ -774,27 +757,20 @@ static void main_loop(void)
 }
 
 /*****************************************************************************
- * Function: avd_process_event 
+ * Purpose: This function executes the event handler for the current state.
  *
- * Purpose: This function executes the event handler for the current AVD
- *           state. This function will be used in the main AVD thread.
- *
- * Input: cb  - AVD control block
- *        evt - ptr to AVD_EVT got from mailbox 
+ * Input: cb  - control block
+ *        evt - ptr to event from mailbox
  *
  * Returns: NONE.
- *
- * NOTES: None.
- *
  * 
  **************************************************************************/
-
-static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
+static void process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 {
 	/* check the HA state */
 	if (cb_now->avail_state_avd == SA_AMF_HA_ACTIVE) {
 		/* if active call g_avd_actv_list functions */
-		g_avd_actv_list[evt->rcv_evt] (cb_now, evt);
+		g_actv_list[evt->rcv_evt] (cb_now, evt);
 
 		/*
 		 * Just processed the event.
@@ -807,7 +783,7 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 		avd_d2n_msg_dequeue(cb_now);
 	} else if (cb_now->avail_state_avd == SA_AMF_HA_STANDBY) {
 		/* if standby call g_avd_stndby_list functions */
-		g_avd_stndby_list[evt->rcv_evt] (cb_now, evt);
+		g_stndby_list[evt->rcv_evt] (cb_now, evt);
 
 		/* Now it might have become standby to active in avd_role_change_evh() during switchover, 
 		   so just sent updates to quisced */
@@ -817,7 +793,7 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 		avd_d2n_msg_dequeue(cb_now);
 	} else if (cb_now->avail_state_avd == SA_AMF_HA_QUIESCED) {
 		/* if quiesced call g_avd_quiesc_list functions */
-		g_avd_quiesc_list[evt->rcv_evt] (cb_now, evt);
+		g_quiesc_list[evt->rcv_evt] (cb_now, evt);
 		/*
 		 * Just processed the event.
 		 * Time to send sync send the standby and then
@@ -837,35 +813,28 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	free(evt);
 }
 
-static int __init(void)
-{
-	if (ncs_agents_startup() != NCSCC_RC_SUCCESS)
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-
-	return (NCSCC_RC_SUCCESS);
-}
-
+/**
+ * Entry point for the AMF Director process
+ * @param argc
+ * @param argv
+ * @return
+ */
 int main(int argc, char *argv[])
 {
-	uint32_t error;
-
 	daemonize(argc, argv);
 
-	if (__init() != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "__init_avd() failed");
-		goto done;
+	if (initialize() != NCSCC_RC_SUCCESS) {
+		(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_FAILURE, NULL);
+		LOG_ER("initialize failed, exiting");
+		exit(EXIT_FAILURE);
 	}
 
-	/* should never return */
+	(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_SUCCESS, NULL);
+
 	main_loop();
 
- 	// TODO: amfd is not running as root, cannot reboot local node
- 	opensaf_reboot(0, NULL, "avd_main_proc exited");
-	exit(1);
+	/* should normally never get here */
+	LOG_ER("main loop returned, exiting");
 
-done:
-	(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_FAILURE, &error);
-	fprintf(stderr, "failed, exiting\n");
-	exit(1);
+	return 1;
 }
-
