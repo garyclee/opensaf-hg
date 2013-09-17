@@ -19,9 +19,9 @@
 #include <immutil.h>
 #include <logtrace.h>
 
-#include <avd.h>
-#include <avd_cluster.h>
-#include <avd_imm.h>
+#include <amfd.h>
+#include <cluster.h>
+#include <imm.h>
 
 static NCS_PATRICIA_TREE nodegroup_db;
 

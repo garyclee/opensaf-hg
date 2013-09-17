@@ -24,11 +24,12 @@
 ******************************************************************************
 */
 
+#include <string.h>
+
 #include <saImmOm.h>
 #include <immutil.h>
 #include <logtrace.h>
-#include <string.h>
-#include <avd.h>
+#include <amfd.h>
 
 static const SaNameT _amfSvcUsrName = {
 	sizeof("safApp=safAmfService"),

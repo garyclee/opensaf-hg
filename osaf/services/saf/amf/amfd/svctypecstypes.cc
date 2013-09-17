@@ -17,8 +17,8 @@
  */
 
 #include <logtrace.h>
-#include <avd_si.h>
-#include <avd_imm.h>
+#include <si.h>
+#include <imm.h>
 
 static NCS_PATRICIA_TREE svctypecstypes_db;
 

@@ -21,8 +21,8 @@
 #include <logtrace.h>
 
 #include <amf_util.h>
-#include <avd_comp.h>
-#include <avd_imm.h>
+#include <comp.h>
+#include <imm.h>
 
 /* Global variable for the singleton object used by comp class */
 AVD_COMP_GLOBALATTR avd_comp_global_attrs;

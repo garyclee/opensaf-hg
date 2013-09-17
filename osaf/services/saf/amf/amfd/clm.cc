@@ -17,10 +17,10 @@
 
 #include <saAis.h>
 #include <logtrace.h>
-#include <avd_cb.h>
-#include <avd.h>
-#include <avd_clm.h>
-#include <avd_node.h>
+#include <cb.h>
+#include <amfd.h>
+#include <clm.h>
+#include <node.h>
 
 static SaVersionT clmVersion = { 'B', 4, 1 };
 

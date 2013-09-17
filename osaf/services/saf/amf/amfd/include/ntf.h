@@ -28,8 +28,8 @@
 #ifndef AVD_NTF_H
 #define AVD_NTF_H
 
-#include <avd_comp.h>
-#include <avd_susi.h>
+#include <comp.h>
+#include <susi.h>
 
 #define ADDITION_TEXT_LENGTH 320
 #define AMF_NTF_SENDER "safApp=safAmfService"

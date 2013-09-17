@@ -33,9 +33,9 @@
 #ifndef AVD_PROC_H
 #define AVD_PROC_H
 
-#include <avd_cb.h>
-#include <avd_evt.h>
-#include <avd_susi.h>
+#include <cb.h>
+#include <evt.h>
+#include <susi.h>
 
 typedef void (*AVD_EVT_HDLR) (AVD_CL_CB *, AVD_EVT *);
 

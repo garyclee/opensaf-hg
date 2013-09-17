@@ -20,7 +20,7 @@
 #include <logtrace.h>
 #include <immutil.h>
 #include <ncsgl_defs.h>
-#include <avd_imm.h>
+#include <imm.h>
 
 static SaAisErrorT hct_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {

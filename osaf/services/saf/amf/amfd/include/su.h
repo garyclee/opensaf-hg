@@ -36,13 +36,13 @@
 
 #include <saAmf.h>
 #include <ncspatricia.h>
-#include <avd_def.h>
-#include <avd_cb.h>
-#include <avd_node.h>
-#include <avd_sg.h>
+#include <def.h>
+#include <cb.h>
+#include <node.h>
+#include <sg.h>
 #include <amf_defs.h>
-#include <avd_msg.h>
-#include <avd_comp.h>
+#include <msg.h>
+#include <comp.h>
 
 /* The semantics the SU is undergoing. */
 typedef enum {

@@ -39,8 +39,8 @@
 /*
  * Module Inclusion Control...
  */
-#include <avd_msg.h>
-#include "avd.h"
+#include <msg.h>
+#include "amfd.h"
 
 const MDS_CLIENT_MSG_FORMAT_VER avd_avnd_msg_fmt_map_table[AVD_AVND_SUBPART_VER_MAX] = {
 	AVSV_AVD_AVND_MSG_FMT_VER_1, AVSV_AVD_AVND_MSG_FMT_VER_2,

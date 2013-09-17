@@ -22,9 +22,9 @@
 #include <immutil.h>
 
 #include <amf_util.h>
-#include <avd_imm.h>
-#include <avd_hlt.h>
-#include <avd_comp.h>
+#include <imm.h>
+#include <hlt.h>
+#include <comp.h>
 
 static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 {

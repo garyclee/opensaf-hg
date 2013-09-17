@@ -20,8 +20,8 @@
 #include <immutil.h>
 #include <logtrace.h>
 
-#include <avd_comp.h>
-#include <avd_imm.h>
+#include <comp.h>
+#include <imm.h>
 
 static NCS_PATRICIA_TREE ctcstype_db;
 

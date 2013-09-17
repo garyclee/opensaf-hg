@@ -34,9 +34,9 @@
 #ifndef AVD_SUSI_H
 #define AVD_SUSI_H
 
-#include <avd_su.h>
-#include <avd_si.h>
-#include <avd_ntf.h>
+#include <su.h>
+#include <si.h>
+#include <ntf.h>
 
 typedef enum {
 	AVD_SU_SI_STATE_ABSENT = 1,

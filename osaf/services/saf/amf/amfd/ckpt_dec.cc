@@ -23,9 +23,9 @@
 ******************************************************************************/
 
 #include <logtrace.h>
-#include <avd.h>
-#include <avd_cluster.h>
-#include <avd_si_dep.h>
+#include <amfd.h>
+#include <cluster.h>
+#include <si_dep.h>
 
 extern "C" const AVSV_DECODE_CKPT_DATA_FUNC_PTR avd_dec_data_func_list[AVSV_CKPT_MSG_MAX];
 
@@ -103,7 +103,7 @@ static uint32_t dec_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec,
  * We will jump into this function using the reo_type received 
  * in the decode argument.
  *
- * This array _must_ correspond to avsv_ckpt_msg_reo_type in avd_ckpt_msg.h
+ * This array _must_ correspond to avsv_ckpt_msg_reo_type in ckpt_msg.h
  */
 
 const AVSV_DECODE_CKPT_DATA_FUNC_PTR avd_dec_data_func_list[] = {

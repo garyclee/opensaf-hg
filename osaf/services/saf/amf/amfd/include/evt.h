@@ -35,7 +35,7 @@
 #define AVD_EVT_H
 
 #include <amf_ipc.h>
-#include <avd_util.h>
+#include <util.h>
 
 /* event type enums */
 typedef enum avd_evt_type {

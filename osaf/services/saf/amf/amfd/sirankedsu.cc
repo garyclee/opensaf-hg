@@ -28,11 +28,11 @@
  */
 
 #include <amf_util.h>
-#include <avd_util.h>
-#include <avd_susi.h>
+#include <util.h>
+#include <susi.h>
 #include <immutil.h>
-#include <avd_imm.h>
-#include <avd_csi.h>
+#include <imm.h>
+#include <csi.h>
 #include <logtrace.h>
 
 static NCS_PATRICIA_TREE sirankedsu_db;

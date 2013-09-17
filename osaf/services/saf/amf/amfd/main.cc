@@ -45,14 +45,14 @@
 #include <nid_api.h>
 #include <rda_papi.h>
 
-#include <avd.h>
-#include <avd_imm.h>
-#include <avd_cluster.h>
-#include <avd_si_dep.h>
-#include <avd_hlt.h>
-#include <avd_clm.h>
-#include <avd_su.h>
-#include <avd_sutype.h>
+#include <amfd.h>
+#include <imm.h>
+#include <cluster.h>
+#include <si_dep.h>
+#include <hlt.h>
+#include <clm.h>
+#include <su.h>
+#include <sutype.h>
 
 enum {
 	FD_TERM = 0,

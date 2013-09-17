@@ -32,10 +32,9 @@
 #include <immutil.h>
 #include <logtrace.h>
 
-#include <avd.h>
-#include <avd_imm.h>
-#include <avd_cluster.h>
-#include <logtrace.h>
+#include <amfd.h>
+#include <imm.h>
+#include <cluster.h>
 
 /**
  * This function does a sanity check w.r.t the message received and returns the node structure

@@ -25,7 +25,7 @@
 #define AVD_CLUSTER_H
 
 #include <saAmf.h>
-#include <avd_node.h>
+#include <node.h>
 
 typedef struct avd_cluster_tag {
 	SaNameT saAmfCluster;

@@ -31,8 +31,8 @@
 #ifndef AVD_SI_DEP_H
 #define AVD_SI_DEP_H
 
-#include <avd_si.h>
-#include <avd_sg.h>
+#include <si.h>
+#include <sg.h>
 
 /*
  * Following struct is used to make a list which is used while checking the

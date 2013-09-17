@@ -19,9 +19,9 @@
 #include <saImmOm.h>
 #include <immutil.h>
 #include <logtrace.h>
-#include <avd.h>
-#include <avd_cluster.h>
-#include <avd_imm.h>
+#include <amfd.h>
+#include <cluster.h>
+#include <imm.h>
 
 /**
  * Validate configuration attributes for an AMF node Sw bundle object.

@@ -20,12 +20,12 @@
 #include <immutil.h>
 #include <logtrace.h>
 
-#include <avd_util.h>
-#include <avd_sutype.h>
-#include <avd_imm.h>
-#include <avd_cluster.h>
-#include <avd_ntf.h>
-#include <avd_proc.h>
+#include <util.h>
+#include <sutype.h>
+#include <imm.h>
+#include <cluster.h>
+#include <ntf.h>
+#include <proc.h>
 
 static NCS_PATRICIA_TREE sutype_db;
 

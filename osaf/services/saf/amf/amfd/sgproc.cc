@@ -29,11 +29,11 @@
 #include <immutil.h>
 #include <logtrace.h>
 
-#include <avd.h>
-#include <avd_imm.h>
-#include <avd_su.h>
-#include <avd_clm.h>
-#include <avd_si_dep.h>
+#include <amfd.h>
+#include <imm.h>
+#include <su.h>
+#include <clm.h>
+#include <si_dep.h>
 
 static SaAisErrorT avd_d2n_reboot_snd(AVD_AVND *node);
 

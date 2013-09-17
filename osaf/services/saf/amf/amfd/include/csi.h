@@ -34,9 +34,9 @@
 #ifndef AVD_CSI_H
 #define AVD_CSI_H
 
-#include <avd_susi.h>
-#include <avd_comp.h>
-#include <avd_pg.h>
+#include <susi.h>
+#include <comp.h>
+#include <pg.h>
 
 /* The attribute value structure for the CSIs. */
 typedef struct avd_csi_attr_tag {

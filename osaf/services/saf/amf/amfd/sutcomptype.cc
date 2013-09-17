@@ -20,10 +20,10 @@
 #include <immutil.h>
 #include <logtrace.h>
 
-#include <avd_util.h>
-#include <avd_su.h>
-#include <avd_sutype.h>
-#include <avd_imm.h>
+#include <util.h>
+#include <su.h>
+#include <sutype.h>
+#include <imm.h>
 
 static NCS_PATRICIA_TREE sutcomptype_db;
 
