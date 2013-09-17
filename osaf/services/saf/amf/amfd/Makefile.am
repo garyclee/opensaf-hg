@@ -64,7 +64,6 @@ osafamfd_SOURCES = \
 	avd_nodegroup.cc \
 	avd_nodeswbundle.cc \
 	avd_pg.cc \
-	avd_proc.cc \
 	avd_role.cc \
 	avd_sg2Nfsm.cc \
 	avd_sg.cc \
@@ -85,7 +84,8 @@ osafamfd_SOURCES = \
 	avd_svctypecstypes.cc \
 	avd_tmr.cc \
 	avd_ntf.cc \
-	avd_util.cc
+	avd_util.cc \
+	main.cc
 
 osafamfd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
