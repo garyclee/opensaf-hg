@@ -36,7 +36,6 @@ osafamfd_CPPFLAGS = \
 osafamfd_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	$(top_srcdir)/osaf/tools/saflog/src/saflog.c \
-	amfd_main.cc \
 	avd_app.cc \
 	avd_apptype.cc \
 	avd_chkop.cc \
