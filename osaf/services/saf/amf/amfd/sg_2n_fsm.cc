@@ -25,10 +25,10 @@
 
 #include <logtrace.h>
 #include <immutil.h>
-#include <avd.h>
-#include <avd_clm.h>
-#include <avd_si_dep.h>
-#include <avd_imm.h>
+#include <amfd.h>
+#include <clm.h>
+#include <si_dep.h>
+#include <imm.h>
 
 /**
  * @brief         Determine fsm state of an SU.

@@ -38,7 +38,7 @@
 #include <saImm.h>
 #include <ncspatricia.h>
 #include <amf_d2nmsg.h>
-#include <avd_su.h>
+#include <su.h>
 
 /* AMF Class SaAmfCompGlobalAttributes */
 typedef struct {

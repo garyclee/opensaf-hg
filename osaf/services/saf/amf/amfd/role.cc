@@ -36,14 +36,14 @@
 
 #include <immutil.h>
 #include <logtrace.h>
-
-#include <avd.h>
-#include <avd_imm.h>
-#include <avd_app.h>
-#include <avd_cluster.h>
-#include <avd_clm.h>
 #include <rda_papi.h>
-#include <avd_si_dep.h>
+
+#include <amfd.h>
+#include <imm.h>
+#include <app.h>
+#include <cluster.h>
+#include <clm.h>
+#include <si_dep.h>
 
 static uint32_t avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role);
 static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role);

@@ -20,7 +20,7 @@
 
 #include <saAis.h>
 #include <ncspatricia.h>
-#include <avd_su.h>
+#include <su.h>
 
 struct avd_sutype {
 	NCS_PATRICIA_NODE tree_node; /* key will be su type name */

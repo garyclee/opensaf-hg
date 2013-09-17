@@ -44,8 +44,8 @@
 #include <mbcsv_papi.h>
 #include <ncs_edu_pub.h>
 
-#include <avd_ckp.h>
-#include <avd_tmr.h>
+#include <ckpt.h>
+#include <timer.h>
 
 struct avd_avnd_tag;
 

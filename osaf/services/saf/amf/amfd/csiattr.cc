@@ -18,10 +18,10 @@
 
 #include <stdbool.h>
 #include <logtrace.h>
-#include <avd_util.h>
+#include <util.h>
 #include <amf_util.h>
-#include <avd_csi.h>
-#include <avd_imm.h>
+#include <csi.h>
+#include <imm.h>
 
 /*****************************************************************************
  * Function: csiattr_dn_to_csiattr_name

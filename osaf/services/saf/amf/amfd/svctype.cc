@@ -18,15 +18,15 @@
 
 #include <logtrace.h>
 
-#include <avd_si.h>
+#include <si.h>
 #include <saImmOm.h>
 #include <immutil.h>
-#include <avd_app.h>
-#include <avd_cluster.h>
-#include <avd_imm.h>
-#include <avd_susi.h>
-#include <avd_csi.h>
-#include <avd_proc.h>
+#include <app.h>
+#include <cluster.h>
+#include <imm.h>
+#include <susi.h>
+#include <csi.h>
+#include <proc.h>
 
 static NCS_PATRICIA_TREE svctype_db;
 

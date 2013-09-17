@@ -18,16 +18,16 @@
 
 #include <logtrace.h>
 
-#include <avd_util.h>
-#include <avd_cluster.h>
-#include <avd_app.h>
-#include <avd_imm.h>
-#include <avd_sutype.h>
-#include <avd_ckpt_msg.h>
-#include <avd_ntf.h>
-#include <avd_sg.h>
-#include <avd_proc.h>
-#include <avd_si_dep.h>
+#include <util.h>
+#include <cluster.h>
+#include <app.h>
+#include <imm.h>
+#include <sutype.h>
+#include <ckpt_msg.h>
+#include <ntf.h>
+#include <sg.h>
+#include <proc.h>
+#include <si_dep.h>
 
 static NCS_PATRICIA_TREE sg_db;
 static void avd_verify_equal_ranked_su(AVD_SG *avd_sg);

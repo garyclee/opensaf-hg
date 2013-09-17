@@ -38,7 +38,7 @@
  * Module Inclusion Control...
  */
 #include <logtrace.h>
-#include "avd.h"
+#include "amfd.h"
 
 static uint32_t avsv_mbcsv_cb(NCS_MBCSV_CB_ARG *arg);
 static uint32_t avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg);

@@ -32,20 +32,20 @@
 #include <logtrace.h>
 #include <saflog.h>
 
-#include <avd_evt.h>
-#include <avd_util.h>
-#include <avd_cb.h>
+#include <evt.h>
+#include <util.h>
+#include <cb.h>
 #include <amf_defs.h>
-#include <avd_imm.h>
-#include <avd_cluster.h>
-#include <avd_app.h>
-#include <avd_sg.h>
-#include <avd_su.h>
-#include <avd_sutype.h>
-#include <avd_comp.h>
-#include <avd_si.h>
-#include <avd_csi.h>
-#include <avd_si_dep.h>
+#include <imm.h>
+#include <cluster.h>
+#include <app.h>
+#include <sg.h>
+#include <su.h>
+#include <sutype.h>
+#include <comp.h>
+#include <si.h>
+#include <csi.h>
+#include <si_dep.h>
 
 /* ========================================================================
  *   DEFINITIONS

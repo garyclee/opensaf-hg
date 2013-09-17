@@ -24,8 +24,8 @@
 
 #include <logtrace.h>
 #include <saflog.h>
-#include <avd.h>
-#include <avd_cluster.h>
+#include <amfd.h>
+#include <cluster.h>
 
 extern "C" const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avd_enc_ckpt_data_func_list[AVSV_CKPT_MSG_MAX];
 
@@ -104,7 +104,7 @@ static uint32_t enc_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_ENC *en
  * We will jump into this function using the reo_type received 
  * in the encode argument.
  *
- * This array _must_ correspond to avsv_ckpt_msg_reo_type in avd_ckpt_msg.h
+ * This array _must_ correspond to avsv_ckpt_msg_reo_type in ckpt_msg.h
  */
 const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avd_enc_ckpt_data_func_list[] = {
 	enc_cb_config,

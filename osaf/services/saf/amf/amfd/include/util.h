@@ -36,7 +36,7 @@
 
 #include <stdbool.h>
 #include <amf_d2nmsg.h>
-#include <avd_cb.h>
+#include <cb.h>
 #include <stdbool.h>
 #include <amf_util.h>
 

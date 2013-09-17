@@ -18,9 +18,9 @@
 
 #include <logtrace.h>
 
-#include <avd_util.h>
-#include <avd_csi.h>
-#include <avd_imm.h>
+#include <util.h>
+#include <csi.h>
+#include <imm.h>
 
 static NCS_PATRICIA_TREE cstype_db;
 

@@ -37,7 +37,7 @@
  * Module Inclusion Control...
  */
 
-#include "avd.h"
+#include "amfd.h"
 #include "logtrace.h"
 
 /*****************************************************************************

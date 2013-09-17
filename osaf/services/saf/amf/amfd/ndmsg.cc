@@ -44,7 +44,7 @@
  * Module Inclusion Control...
  */
 
-#include "avd.h"
+#include "amfd.h"
 
 /****************************************************************************
   Name          : avd_mds_enc

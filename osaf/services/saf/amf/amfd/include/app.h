@@ -27,8 +27,8 @@
 #include <saAmf.h>
 #include <saImm.h>
 #include <ncspatricia.h>
-#include <avd_sg.h>
-#include <avd_si.h>
+#include <sg.h>
+#include <si.h>
 
 struct avd_sg_tag;
 struct avd_si_tag;

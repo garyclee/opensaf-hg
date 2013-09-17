@@ -25,8 +25,8 @@
 
 #include <logtrace.h>
 
-#include <avd.h>
-#include <avd_cluster.h>
+#include <amfd.h>
+#include <cluster.h>
 
 /*****************************************************************************
  * Function: avd_node_up_func

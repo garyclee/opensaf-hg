@@ -152,10 +152,10 @@
 #include <immutil.h>
 #include <logtrace.h>
 
-#include <avd_imm.h>
-#include <avd_si_dep.h>
-#include <avd_susi.h>
-#include <avd_proc.h>
+#include <imm.h>
+#include <si_dep.h>
+#include <susi.h>
+#include <proc.h>
 
 /* static function prototypes */
 static bool avd_sidep_all_sponsors_active(AVD_SI *si);

@@ -36,8 +36,8 @@
 
 #include <saAmf.h>
 #include <ncspatricia.h>
-#include <avd_su.h>
-#include <avd_si.h>
+#include <su.h>
+#include <si.h>
 #include <amf_defs.h>
 #include <amf_d2nmsg.h>
 

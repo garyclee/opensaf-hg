@@ -26,8 +26,8 @@
 
 #include <logtrace.h>
 
-#include <avd.h>
-#include <avd_si_dep.h>
+#include <amfd.h>
+#include <si_dep.h>
 
 static void avd_sg_npm_screening_for_si_redistr(AVD_SG *avd_sg);
 static void avd_sg_npm_si_transfer_for_redistr(AVD_SG *avd_sg);

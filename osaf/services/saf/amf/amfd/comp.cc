@@ -32,13 +32,13 @@
 #include <immutil.h>
 #include <logtrace.h>
 #include <amf_util.h>
-#include <avd_util.h>
-#include <avd_comp.h>
-#include <avd_imm.h>
-#include <avd_node.h>
-#include <avd_csi.h>
-#include <avd_proc.h>
-#include <avd_ckpt_msg.h>
+#include <util.h>
+#include <comp.h>
+#include <imm.h>
+#include <node.h>
+#include <csi.h>
+#include <proc.h>
+#include <ckpt_msg.h>
 
 static NCS_PATRICIA_TREE comp_db;
 

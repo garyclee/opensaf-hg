@@ -30,10 +30,10 @@
 #ifndef AVD_PG_H
 #define AVD_PG_H
 
-#include <avd_node.h>
-#include <avd_csi.h>
+#include <node.h>
+#include <csi.h>
 #include <ncsdlib.h>
-#include <avd_susi.h>
+#include <susi.h>
 
 /* csi pg node wrapper structure (maintained by csi) */
 typedef struct avd_pg_csi_node {

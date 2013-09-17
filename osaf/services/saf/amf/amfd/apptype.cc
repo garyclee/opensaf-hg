@@ -17,11 +17,11 @@
  */
 
 #include <logtrace.h>
-#include <avd_app.h>
-#include <avd_cluster.h>
-#include <avd_imm.h>
-#include <avd_si.h>
-#include <avd_util.h>
+#include <app.h>
+#include <cluster.h>
+#include <imm.h>
+#include <si.h>
+#include <util.h>
 
 static NCS_PATRICIA_TREE apptype_db;
 

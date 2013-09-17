@@ -18,11 +18,11 @@
 
 #include <logtrace.h>
 
-#include <avd_util.h>
+#include <util.h>
 #include <amf_util.h>
-#include <avd_csi.h>
-#include <avd_imm.h>
-#include <avd_proc.h>
+#include <csi.h>
+#include <imm.h>
+#include <proc.h>
 
 static NCS_PATRICIA_TREE csi_db;
 

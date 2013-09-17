@@ -26,9 +26,9 @@
 
 #include <logtrace.h>
 
-#include <avd.h>
-#include <avd_imm.h>
-#include <avd_si_dep.h>
+#include <amfd.h>
+#include <imm.h>
+#include <si_dep.h>
 
 static AVD_SU *avd_get_qualified_su(AVD_SG *avd_sg, AVD_SI *avd_si, 
 		bool *next_si_tobe_assigned);

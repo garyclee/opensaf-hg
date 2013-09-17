@@ -39,6 +39,10 @@ osafamfd_SOURCES = \
 	app.cc \
 	apptype.cc \
 	chkop.cc \
+	ckpt_dec.cc \
+	ckpt_edu.cc \
+	ckpt_enc.cc \
+	ckpt_updt.cc \
 	cluster.cc \
 	clm.cc \
 	comp.cc \
@@ -53,10 +57,6 @@ osafamfd_SOURCES = \
 	hlttype.cc \
 	imm.cc \
 	main.cc \
-	mbcsv_dec.cc \
-	mbcsv_edu.cc \
-	mbcsv_enc.cc \
-	mbcsv_updt.cc \
 	mds.cc \
 	ndfsm.cc \
 	ndmsg.cc \

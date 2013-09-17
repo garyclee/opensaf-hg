@@ -22,32 +22,48 @@
 
   DESCRIPTION:
 
-  This file contains macros for memory operations.
+  This module is the main include file for Availability Director.
   
 ******************************************************************************
 */
 
-#ifndef AVD_DEF_H
-#define AVD_DEF_H
+/*
+ * Module Inclusion Control...
+ */
+#ifndef AVD_H
+#define AVD_H
 
-#define NCS_AVD_NAME_STR "AVD"
-#define NCS_AVD_PRIORITY 0
-#define NCS_AVD_STCK_SIZE NCS_STACKSIZE_HUGE
+#include "logtrace.h"
+#include "amf.h"
+#include "logtrace.h"
 
-#define NCS_AVD_HB_NAME_STR "AVD_HB"
-#define NCS_AVD_HB_PRIORITY 0
-#define NCS_AVD_HB_STCK_SIZE NCS_STACKSIZE_HUGE
+#include "ncsencdec_pub.h"
+#include "amf_d2nmsg.h"
 
-/* The value to toggle a SI.*/
-typedef enum {
-	AVSV_SI_TOGGLE_STABLE,
-	AVSV_SI_TOGGLE_SWITCH
-} SaToggleState;
+/* Porting Include Files */
+#include "def.h"
 
-/* The value to re adjust a SG.*/
-typedef enum {
-	AVSV_SG_STABLE,
-	AVSV_SG_ADJUST
-} SaAdjustState;
+/* AMFD-AMFND common EDPs */
+#include "amf_d2nedu.h"
 
-#endif   /* !AVD_DEF_H */
+#include "mbcsv_papi.h"
+#include "ckpt.h"
+
+/* Director specific include files */
+#include "timer.h"
+#include "util.h"
+#include "cb.h"
+#include "pg.h"
+
+#include "evt.h"
+#include "proc.h"
+
+#include "mds.h"
+
+/* Checkpointing specific include files */
+#include "ckpt_msg.h"
+#include "ckpt_edu.h"
+#include "ckpt_updt.h"
+#include <stdbool.h>
+
+#endif

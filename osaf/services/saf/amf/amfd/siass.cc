@@ -32,12 +32,12 @@
 #include <saflog.h>
 
 #include <amf_util.h>
-#include <avd_util.h>
-#include <avd_susi.h>
-#include <avd_imm.h>
-#include <avd_csi.h>
-#include <avd_proc.h>
-#include <avd_si_dep.h>
+#include <util.h>
+#include <susi.h>
+#include <imm.h>
+#include <csi.h>
+#include <proc.h>
+#include <si_dep.h>
 
 /**
  * Create an SaAmfSIAssignment runtime object in IMM.

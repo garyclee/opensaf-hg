@@ -37,12 +37,12 @@
 #include <saAmf.h>
 #include <saImm.h>
 #include <ncspatricia.h>
-#include <avd_app.h>
-#include <avd_sg.h>
-#include <avd_su.h>
-#include <avd_sg.h>
+#include <app.h>
+#include <sg.h>
+#include <su.h>
+#include <sg.h>
 #include <amf_defs.h>
-#include <avd_ckpt_msg.h>
+#include <ckpt_msg.h>
 
 /* Enum values defines different SI-SI dependency FSM states. */
 typedef enum {

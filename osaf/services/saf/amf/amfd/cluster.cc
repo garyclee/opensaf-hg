@@ -20,11 +20,11 @@
 #include <logtrace.h>
 #include <saflog.h>
 
-#include <avd_util.h>
-#include <avd_cluster.h>
-#include <avd_imm.h>
-#include <avd_evt.h>
-#include <avd_proc.h>
+#include <util.h>
+#include <cluster.h>
+#include <imm.h>
+#include <evt.h>
+#include <proc.h>
 
 /* Singleton cluster object */
 static AVD_CLUSTER _avd_cluster;

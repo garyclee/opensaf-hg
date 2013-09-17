@@ -19,13 +19,13 @@
 #include <logtrace.h>
 #include <saflog.h>
 
-#include <avd_util.h>
-#include <avd_si.h>
-#include <avd_app.h>
-#include <avd_imm.h>
-#include <avd_csi.h>
-#include <avd_proc.h>
-#include <avd_si_dep.h>
+#include <util.h>
+#include <si.h>
+#include <app.h>
+#include <imm.h>
+#include <csi.h>
+#include <proc.h>
+#include <si_dep.h>
 
 static NCS_PATRICIA_TREE si_db;
 static void avd_si_add_csi_db(struct avd_csi_tag* csi);

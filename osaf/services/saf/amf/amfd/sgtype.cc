@@ -18,14 +18,14 @@
 
 #include <ncspatricia.h>
 #include <logtrace.h>
-#include <avd_cluster.h>
-#include <avd_app.h>
-#include <avd_imm.h>
-#include <avd_sutype.h>
-#include <avd_ckpt_msg.h>
-#include <avd_ntf.h>
-#include <avd_sg.h>
-#include <avd_proc.h>
+#include <cluster.h>
+#include <app.h>
+#include <imm.h>
+#include <sutype.h>
+#include <ckpt_msg.h>
+#include <ntf.h>
+#include <sg.h>
+#include <proc.h>
 
 static NCS_PATRICIA_TREE sgtype_db;
 

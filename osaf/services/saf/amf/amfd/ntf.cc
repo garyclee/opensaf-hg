@@ -23,8 +23,8 @@
 ******************************************************************************/
 
 #include <logtrace.h>
-#include <avd_util.h>
-#include <avd_ntf.h>
+#include <util.h>
+#include <ntf.h>
 
 /*****************************************************************************
   Name          :  avd_send_comp_inst_failed_alarm

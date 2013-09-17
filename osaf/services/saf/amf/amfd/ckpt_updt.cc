@@ -16,8 +16,8 @@
  */
 
 #include <logtrace.h>
-#include <avd.h>
-#include <avd_csi.h>
+#include <amfd.h>
+#include <csi.h>
 
 static char *action_name[] = {
 	const_cast<char*>("invalid"),

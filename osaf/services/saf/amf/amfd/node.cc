@@ -21,9 +21,9 @@
 #include <logtrace.h>
 #include <saflog.h>
 
-#include <avd.h>
-#include <avd_cluster.h>
-#include <avd_imm.h>
+#include <amfd.h>
+#include <cluster.h>
+#include <imm.h>
 
 static NCS_PATRICIA_TREE node_name_db;	/* SaNameT index */
 static NCS_PATRICIA_TREE node_id_db;	/* SaClmNodeIdT index */
