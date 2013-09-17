@@ -39,7 +39,6 @@ osafamfd_SOURCES = \
 	amfd_main.cc \
 	avd_app.cc \
 	avd_apptype.cc \
-	avd.cc \
 	avd_chkop.cc \
 	avd_ckpt_dec.cc \
 	avd_ckpt_edu.cc \
