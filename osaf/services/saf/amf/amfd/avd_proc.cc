@@ -621,22 +621,13 @@ done:
 }
 
 /*****************************************************************************
- * Function: avd_main_proc
- *
- * Purpose: This is the main infinite loop in which both the active and
- * standby AvDs execute waiting for events to happen. When woken up
+ * This is the main infinite loop in which both the active and
+ * standby waiting for events to happen. When woken up
  * due to an event, based on the HA state it moves to either the active
  * or standby processing modules. Even in Init state the same arrays are used.
  *
- * Input: cb - AVD control block
- *
- * Returns: NONE.
- *
- * NOTES: This function will never return execept in case of init errors.
- *
- * 
  **************************************************************************/
-void avd_main_proc(void)
+static void main_loop(void)
 {
 	AVD_CL_CB *cb = avd_cb;
 	AVD_EVT *evt;
@@ -844,5 +835,37 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	cb_now->sync_required = true;
 
 	free(evt);
+}
+
+static int __init(void)
+{
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+
+	return (NCSCC_RC_SUCCESS);
+}
+
+int main(int argc, char *argv[])
+{
+	uint32_t error;
+
+	daemonize(argc, argv);
+
+	if (__init() != NCSCC_RC_SUCCESS) {
+		syslog(LOG_ERR, "__init_avd() failed");
+		goto done;
+	}
+
+	/* should never return */
+	main_loop();
+
+ 	// TODO: amfd is not running as root, cannot reboot local node
+ 	opensaf_reboot(0, NULL, "avd_main_proc exited");
+	exit(1);
+
+done:
+	(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_FAILURE, &error);
+	fprintf(stderr, "failed, exiting\n");
+	exit(1);
 }
 
