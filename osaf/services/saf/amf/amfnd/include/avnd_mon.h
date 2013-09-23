@@ -30,9 +30,6 @@
 #ifndef AVND_MON_H
 #define AVND_MON_H
 
-
-uint32_t gl_avnd_hdl;
-
 void avnd_pid_mon_list_init(struct avnd_cb_tag *);
 void avnd_pid_mon_list_destroy(struct avnd_cb_tag *);
 void avnd_mon_process(void *);

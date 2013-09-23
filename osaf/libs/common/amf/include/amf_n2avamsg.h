@@ -34,6 +34,10 @@
 #ifndef AVSV_N2AVAMSG_H
 #define AVSV_N2AVAMSG_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
 /* Message format versions */
 #define AVSV_AVND_AVA_MSG_FMT_VER_1    1
 
@@ -104,5 +108,9 @@ void avsv_amf_cbk_free(AVSV_AMF_CBK_INFO *);
 void avsv_amf_csi_attr_list_free(SaAmfCSIAttributeListT *);
 
 uint32_t avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif   /* !AVSV_N2AVAMSG_H */

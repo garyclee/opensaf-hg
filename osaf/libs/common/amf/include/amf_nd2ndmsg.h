@@ -40,6 +40,10 @@
 /* Message format versions */
 #define AVSV_AVND_AVND_MSG_FMT_VER_1    1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
 typedef AVSV_NDA_AVA_MSG AVSV_ND2ND_AVA_MSG;
 
 /* AvND-AvND event type */
@@ -74,4 +78,7 @@ uint32_t avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
+#ifdef __cplusplus
+}
+#endif
 #endif   /* !AVSV_ND2NDMSG_H */
