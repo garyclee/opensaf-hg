@@ -91,7 +91,7 @@ typedef struct avnd_dnd_list_tag {
    (m).info.ava->type = AVSV_AVND_AMF_API_RESP_MSG; \
    (m).info.ava->info.api_resp_info.type = AVSV_AMF_HA_STATE_GET; \
    (m).info.ava->info.api_resp_info.rc = (amf_rc); \
-   (m).info.ava->info.api_resp_info.param.ha_get.ha = (has); \
+   (m).info.ava->info.api_resp_info.param.ha_get.ha = static_cast<SaAmfHAStateT>((has)); \
 }
 
 /* Macro to populate the 'component register' message */

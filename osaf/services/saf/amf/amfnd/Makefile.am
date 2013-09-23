@@ -23,6 +23,8 @@ SUBDIRS = include scripts
 osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osafamfnd
 
+osafamfd_CXXFLAGS =$(AM_CXXFLAGS)
+
 osafamfnd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	$(AM_CPPFLAGS) \
@@ -32,41 +34,39 @@ osafamfnd_CPPFLAGS = \
 
 osafamfnd_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
-	amfnd_main.c \
-	avnd.c \
-	avnd_cam.c \
-	avnd_cbq.c \
-	avnd_chc.c \
-	avnd_ckpt_dec.c \
-	avnd_ckpt_edu.c \
-	avnd_ckpt_enc.c \
-	avnd_ckpt_updt.c \
-	avnd_clc.c \
-	avnd_clm.c \
-	avnd_comp.c \
-	avnd_compdb.c \
-	avnd_cpm.c \
-	avnd_di.c \
-	avnd_err.c \
-	avnd_evt.c \
-	avnd_hcdb.c \
-	avnd_mds.c \
-	avnd_mbcsv.c \
-	avnd_mon.c \
-	avnd_pg.c \
-	avnd_pgdb.c \
-	avnd_proc.c \
-	avnd_sidb.c \
-	avnd_su.c \
-	avnd_sudb.c \
-	avnd_susm.c \
-	avnd_term.c \
-	avnd_tmr.c \
-	avnd_util.c \
-	avnd_verify.c \
-	avnd_avnd.c \
-	avnd_proxy.c \
-	avnd_proxydb.c
+	amfnd.cc \
+	cam.cc \
+	cbq.cc \
+	chc.cc \
+	ckpt_dec.cc \
+	ckpt_edu.cc \
+	ckpt_enc.cc \
+	ckpt_updt.cc \
+	clc.cc \
+	clm.cc \
+	comp.cc \
+	compdb.cc \
+	cpm.cc \
+	di.cc \
+	err.cc \
+	evt.cc \
+	hcdb.cc \
+	main.cc \
+	mbcsv.cc \
+	mds.cc \
+	mon.cc \
+	pg.cc \
+	pgdb.cc \
+	proxy.cc \
+	proxydb.cc \
+	sidb.cc \
+	su.cc \
+	sudb.cc \
+	susm.cc \
+	term.cc \
+	tmr.cc \
+	util.cc \
+	verify.cc 
 
 osafamfnd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
