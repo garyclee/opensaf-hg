@@ -66,12 +66,12 @@ syntax: regexp
 ^osaf/services/infrastructure/nid/scripts/opensafd$
 ^osaf/services/infrastructure/rde/osafrded$
 ^osaf/services/infrastructure/rde/scripts/osaf-rded$
-^osaf/services/saf/avsv/amfwdog/osafamfwd$
-^osaf/services/saf/avsv/amfwdog/scripts/osaf-amfwd$
-^osaf/services/saf/avsv/avd/osafamfd$
-^osaf/services/saf/avsv/avd/scripts/osaf-amfd$
-^osaf/services/saf/avsv/avnd/osafamfnd$
-^osaf/services/saf/avsv/avnd/scripts/osaf-amfnd$
+^osaf/services/saf/amf/amfwdog/osafamfwd$
+^osaf/services/saf/amf/amfwdog/scripts/osaf-amfwd$
+^osaf/services/saf/amf/amfd/osafamfd$
+^osaf/services/saf/amf/amfd/scripts/osaf-amfd$
+^osaf/services/saf/amf/amfnd/osafamfnd$
+^osaf/services/saf/amf/amfnd/scripts/osaf-amfnd$
 ^osaf/services/saf/clmsv/clms/osafclmd$
 ^osaf/services/saf/clmsv/clms/scripts/osaf-clmd$
 ^osaf/services/saf/clmsv/nodeagent/osafclmna$
@@ -132,7 +132,8 @@ syntax: regexp
 
 # UML
 ^tools/cluster_sim_uml/rootfs/
-^tools/cluster_sim_uml/repl-opensaf/immsv_store/imm\.xml$
+^tools/cluster_sim_uml/repl-opensaf/
+^tools/cluster_sim_uml/uml/archive/
 ^tools/cluster_sim_uml/uml/bin/busybox$
 ^tools/cluster_sim_uml/uml/bin/linux$
 ^tools/cluster_sim_uml/uml/bin/port-helper$
