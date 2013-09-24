@@ -660,6 +660,9 @@ static void createImmObject(ParserState* state)
 	// Note! it must be called before state->objectName is "null truncated"!!
 	setAdminOwnerHelper(state, &parentName);
 
+	if(state->ctxt->instate == XML_PARSER_EOF)
+		return;
+
 #ifdef TRACE_8
 	/* Get the length of the DN and truncate state->objectName */
 	if (parentName.length > 0) {
