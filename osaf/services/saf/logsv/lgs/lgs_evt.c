@@ -709,8 +709,6 @@ static uint32_t lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream, lgsv
 		ckpt.ckpt_rec.stream_open.logRecordId = logStream->logRecordId;
 		
 		ckpt.ckpt_rec.stream_open.files_initiated = logStream->files_initiated;
-		TRACE("LLDTEST: %s - logFileCurrent \"%s\"",__FUNCTION__,logStream->logFileCurrent);
-		TRACE("LLDTEST: %s - files_initiated = %d",__FUNCTION__,logStream->files_initiated);
 
 		async_rc = lgs_ckpt_send_async(cb, &ckpt, NCS_MBCSV_ACT_ADD);
 		if (async_rc == NCSCC_RC_SUCCESS) {
@@ -899,7 +897,7 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		app_stream_created = true;
 	}
 
-	ais_rv = log_stream_open_fh(logStream);
+	ais_rv = log_stream_open(logStream);
 	if (ais_rv != SA_AIS_OK) {
 		/* If stream object was created in context of this function
 		 * but we have afile system problem, delete stream object.
@@ -1087,8 +1085,6 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		ckpt.ckpt_rec.write_log.curFileSize = stream->curFileSize;
 		ckpt.ckpt_rec.write_log.logFileCurrent = stream->logFileCurrent;
 		ckpt.ckpt_rec.write_log.files_initiated = stream->files_initiated;
-		TRACE("LLDTEST: %s - logFileCurrent \"%s\"",__FUNCTION__,stream->logFileCurrent);
-		TRACE("LLDTEST: %s - files_initiated = %d",__FUNCTION__,stream->files_initiated);
 
 		(void)lgs_ckpt_send_async(cb, &ckpt, NCS_MBCSV_ACT_ADD);
 	}

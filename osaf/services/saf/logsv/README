@@ -28,6 +28,11 @@ The Log file property "High Availability flag" is not supported by LOG itself
 but by using a replicated file system. The LOG implementation is unaware of 
 such a file system and must be configured to use it, see below.
 
+Important!
+----------
+Contibutors/Maintainers see section
+IMPORTANT INFORMATION FOR CONTRIBUTORS/MAINTAINERS.
+
 
 DEPENDENCIES
 
@@ -281,10 +286,28 @@ TODO
 - Document manual test cases
 
 
+IMPORTANT INFORMATION FOR CONTRIBUTORS/MAINTAINERS
+
+File operations are no longer allowed in the log-server main thread. This is in
+order to prevent "hanging" of the log-server if a file operation does not return
+e.g. when a NFS filesystem is not working correctly. It is therfore very
+important that no future code do any file-system operations in the main thread.
+
+All file system operations are handled in a separate thread.
+Use this thread to handle complete functions or parts of functions that has any
+type of interaction with the file system. Internally all or some of the code is
+done in a "handler" that is running in the second thread.
+See lgs_filehdl.c, lgs_stream.c and lgs_util.c for examples.
+Functions that uses a "handler" has got extention _h in the function name
+e.g. fileopen(..) -> fileopen_h(..). All handlers can be found in file
+lgs_filehdl.c
+
+
 CONTRIBUTORS/MAINTAINERS
 
 Arne Eriksson <Arne.R.Eriksson@ericsson.com>
 Hans Feldt <Hans.Feldt@ericsson.com>
 Niklas Nilsson
+Lennart Lund <lennart.lund@ericsson.com>
 
 The LOG service was originally cloned from the edsv service.

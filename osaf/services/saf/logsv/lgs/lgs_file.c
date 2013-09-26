@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <unistd.h> /* LLDTEST */
+#include <unistd.h>
 
 #include <logtrace.h>
 #include <errno.h>
@@ -75,8 +75,6 @@ static void get_timeout_time(struct timespec *timeout_time, long int timeout_ms)
 	struct timespec start_time;
 	uint64_t millisec1,millisec2;
 	
-	TRACE_ENTER2("LLDTEST");
-	
 	GETTIME(start_time);
 	
 	/* Convert to ms */
@@ -88,8 +86,6 @@ static void get_timeout_time(struct timespec *timeout_time, long int timeout_ms)
 	/* Convert back to timespec */
 	timeout_time->tv_sec = millisec2 / 1000;
 	timeout_time->tv_nsec = (millisec2 % 1000) * 1000000;
-	
-	TRACE_LEAVE2("LLDTEST");
 }
 
 /*****************************************************************************
@@ -108,29 +104,27 @@ static void get_timeout_time(struct timespec *timeout_time, long int timeout_ms)
  */
 static void *file_hndl_thread(void *noparam)
 {
-	int rc;
-	int hndl_rc;
+	int rc = 0;
+	int hndl_rc = 0;
 	void *inbuf;
 	void *outbuf;
 	uint32_t max_outsize;
 	
 //#define LLD_DELAY_TST
-#ifdef LLD_DELAY_TST /* LLDTEST Let "file system" hang for n sec after start */
+#ifdef LLD_DELAY_TST /* Make "file system" hang for n sec after start */
 	static bool lld_start_f = true;
 	const unsigned int lld_sleep_sec = 10;
 #endif
 	
-	TRACE("LLDTEST: %s - is started",__FUNCTION__);
+	TRACE("%s - is started",__FUNCTION__);
 	
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK */
 	while(1) {
 		/* Wait for request */
-		//TRACE("LLDTEST: %s - Wait for request",__FUNCTION__);
 		if (lgs_com_data.request_f == false) {
 			rc = pthread_cond_wait(&request_cv, &lgs_ftcom_mutex); /* -> UNLOCK -> LOCK */
 			if (rc != 0) osaf_abort(rc);
 		} else {
-			//TRACE("LLDTEST: %s - Request recived",__FUNCTION__);
 
 			/* Handle communication buffer */
 			if (lgs_com_data.indata_size != 0) {
@@ -165,46 +159,36 @@ static void *file_hndl_thread(void *noparam)
 				goto lld_wait_end;
 			}
 #endif
-			
+			/* Invoke requested handler function */
 			switch (lgs_com_data.request_code)	{
 			case LGSF_FILEOPEN:
-				TRACE("LLDTEST: %s - LGSF_FILEOPEN received",__FUNCTION__);
 				hndl_rc = fileopen_hdl(inbuf, outbuf, max_outsize);
 				break;
 			case LGSF_FILECLOSE:
-				TRACE("LLDTEST: %s - LGSF_FILECLOSE received",__FUNCTION__);
 				hndl_rc = fileclose_hdl(inbuf, outbuf, max_outsize);
 				break;
 			case LGSF_DELETE_FILE:
-				TRACE("LLDTEST: %s - LGSF_DELETE_FILE received",__FUNCTION__);
 				hndl_rc = delete_file_hdl(inbuf, outbuf, max_outsize);
 				break;
 			case LGSF_GET_NUM_LOGFILES:
-				TRACE("LLDTEST: %s - LGSF_GET_NUM_LOGFILES received",__FUNCTION__);
 				hndl_rc = get_number_of_log_files_hdl(inbuf, outbuf, max_outsize);
 				break;
 			case LGSF_MAKELOGDIR:
-				TRACE("LLDTEST: %s - LGSF_MAKELOGDIR received",__FUNCTION__);
 				hndl_rc = make_log_dir_hdl(inbuf, outbuf, max_outsize);
 				break;
 			case LGSF_WRITELOGREC:
-				TRACE("LLDTEST: %s - LGSF_WRITELOGREC received",__FUNCTION__);
 				hndl_rc = write_log_record_hdl(inbuf, outbuf, max_outsize);
 				break;
 			case LGSF_CREATECFGFILE:
-				TRACE("LLDTEST: %s - LGSF_CREATECFGFILE received",__FUNCTION__);
 				hndl_rc = create_config_file_hdl(inbuf, outbuf, max_outsize);
 				break;
 			case LGSF_RENAME_FILE:
-				TRACE("LLDTEST: %s - LGSF_RENAME_FILE received",__FUNCTION__);
 				hndl_rc = rename_file_hdl(inbuf, outbuf, max_outsize);
 				break;
 			case LGSF_CHECKPATH:
-				TRACE("LLDTEST: %s - LGSF_CHECKPATH received",__FUNCTION__);
 				hndl_rc = check_path_exists_hdl(inbuf, outbuf, max_outsize);
 				break;
 			case LGSF_CHECKDIR:
-				TRACE("LLDTEST: %s - LGSF_CHECKDIR received",__FUNCTION__);
 				hndl_rc = path_is_writeable_dir_hdl(inbuf, outbuf, max_outsize);
 			default:
 				break;
@@ -220,7 +204,6 @@ static void *file_hndl_thread(void *noparam)
 			/* Handle answer flag and return data
 			 * Note: This must be done after handler is done (handler may hang)
 			 */
-			//TRACE("LLDTEST: %s - Handle return data",__FUNCTION__);
 			lgs_com_data.request_f = false; /* Prepare to take a new request */
 			lgs_com_data.request_code = LGSF_NOREQ;
 			free(inbuf);
@@ -237,10 +220,8 @@ static void *file_hndl_thread(void *noparam)
 				}
 
 				/* Signal the API function that we are done */
-				//TRACE("LLDTEST: %s - Signal answer",__FUNCTION__);
 				rc = pthread_cond_signal(&answer_cv); 
 				if (rc != 0) osaf_abort(rc);
-				//TRACE("LLDTEST: %s - Answer signaled",__FUNCTION__);
 			} else {
 				free(outbuf);
 			}
@@ -259,7 +240,7 @@ static int start_file_thread(void)
 	int tbd_inpar=1;
 	pthread_t thread;
 
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 
 	/* Init thread handling */
 	rc = pthread_mutex_init(&lgs_ftcom_mutex, NULL);
@@ -287,7 +268,7 @@ static int start_file_thread(void)
 	}
 
 done:
-	TRACE_LEAVE2("LLDTEST rc=%d",rc);
+	TRACE_LEAVE2("rc=%d",rc);
 	return rc;
 }
 
@@ -298,13 +279,13 @@ uint32_t lgs_file_init(void)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 	
 	if (start_file_thread() != 0) {
 		rc = NCSCC_RC_FAILURE;
 	}
 	
-	TRACE_LEAVE2("LLDTEST rc=%d",rc);
+	TRACE_LEAVE2("rc=%d",rc);
 	return rc;
 }
 
@@ -322,16 +303,16 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	struct timespec timeout_time, start_time, end_time;
 	uint64_t stime_ms, etime_ms, dtime_ms;
 	
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 	
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK */
 	
 	/* If busy_f is true the file thread is hanging. In this case don't send
-	 * a request. Make several attempts?
+	 * a request.
 	 */
 	if (lgs_com_data.request_f == true) {
 		api_rc = LGSF_BUSY;
-		TRACE("LLDTEST: %s - LGSF_BUSY",__FUNCTION__);
+		TRACE("%s - LGSF_BUSY",__FUNCTION__);
 		goto api_exit;
 	}
 	
@@ -356,13 +337,11 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	lgs_com_data.timeout_f = false;
 	
 	/* Wake up the thread */
-	//TRACE("LLDTEST: Wake up thread");
 	rc = pthread_cond_signal(&request_cv);
 	if (rc != 0) osaf_abort(rc);
 	
 	/* Wait for an answer */
-	//TRACE("LLDTEST: Waiting for answer");
-	GETTIME(start_time);
+	GETTIME(start_time); /* Used for TRACE of print of time to answer */
 	
 	get_timeout_time(&timeout_time, MAX_WAITTIME_ms);
 	
@@ -386,16 +365,15 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	 * 'outdata'. It is assumed that the calling function knows the format of
 	 * the returned data.
 	 */
-	//TRACE("LLDTEST: An answer is received");
 	apipar_in->hdl_ret_code_out = lgs_com_data.return_code;
 	memcpy(apipar_in->data_out, lgs_com_data.outdata, lgs_com_data.outdata_size);
-	//TRACE("LLDTEST: Return code for request - %d",lgs_com_data.return_code);
 
+	/* Measure answer time for TRACE */
 	GETTIME(end_time);
 	stime_ms = (start_time.tv_sec * 1000) + (start_time.tv_nsec / 1000000);
 	etime_ms = (end_time.tv_sec * 1000) + (end_time.tv_nsec / 1000000);
 	dtime_ms = etime_ms - stime_ms;
-	TRACE("LLDTEST: Time waited for answer %ld ms",dtime_ms);
+	TRACE("Time waited for answer %ld ms",dtime_ms);
 	
 	/* Prepare to take a new answer */
 	lgs_com_data.answer_f = false;
@@ -408,7 +386,7 @@ done:
 
 api_exit:
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK */
-	TRACE_LEAVE2("LLDTEST");
+	TRACE_LEAVE();
 	return api_rc;	
 }
 

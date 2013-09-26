@@ -28,7 +28,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include <unistd.h> /* LLDTEST */
+#include <unistd.h>
 
 #include <configmake.h>
 #include <logtrace.h>
@@ -61,36 +61,33 @@ int path_is_writeable_dir_hdl(void *indata, void *outdata, size_t max_outsize)
 	
 	char *pathname = (char *) indata;
 
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 	
-	TRACE("LLDTEST %s - pathname \"%s\"",__FUNCTION__,pathname);
+	TRACE("%s - pathname \"%s\"",__FUNCTION__,pathname);
 
+	/* Check if the pathname violates security rules e.g. contains ../ */
 	if (lgs_relative_path_check_ts(pathname) || stat(pathname, &pathstat) != 0) {
 		LOG_NO("Path %s not allowed", pathname);
-		TRACE("LLDTEST: %s - Path %s not allowed",__FUNCTION__,pathname);
 		goto done;
 	}
 
 	/* Check if the path points to a directory */
 	if (!S_ISDIR(pathstat.st_mode)) {
 		LOG_NO("%s is not a directory", pathname);
-		TRACE("LLDTEST: %s - %s is not a directory",__FUNCTION__,pathname);
 		goto done;
 	}
 
-	/* Check is we have correct permissions. Note that we check permissions for
+	/* Check if we have correct permissions. Note that we check permissions for
 	 * real UID
 	 */
 	if (access(pathname, (R_OK | W_OK | X_OK)) != 0) {
 		LOG_NO("permission denied for %s, error %s", pathname, strerror(errno));
-		TRACE("LLDTEST: %s - permission denied for %s, error %s",__FUNCTION__,
-				pathname, strerror(errno));
 		goto done;
 	}
 
 	is_writeable_dir = 1;
 done:
-	TRACE_LEAVE2("LLDTEST: is_writeable_dir = %d",is_writeable_dir);
+	TRACE_LEAVE2("is_writeable_dir = %d",is_writeable_dir);
 	return is_writeable_dir;	
 }
 
@@ -109,8 +106,8 @@ int check_path_exists_hdl(void *indata, void *outdata, size_t max_outsize)
 	int rc = 0;
 	
 	rc = stat(path_str, &pathstat);
-	TRACE("LLDTEST: %s - path \"%s\", rc=%d",__FUNCTION__,path_str,rc);
-	TRACE("LLDTEST: %s - errno \"%s\"",__FUNCTION__,strerror(errno));
+	TRACE("%s - path_str \"%s\", rc=%d",__FUNCTION__,path_str,rc);
+	TRACE("%s - errno \"%s\"",__FUNCTION__,strerror(errno));
 	return rc;
 }
 
@@ -126,7 +123,7 @@ int rename_file_hdl(void *indata, void *outdata, size_t max_outsize)
 {
 	int rc = 0;
 	
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 	size_t old_path_size = *((size_t *) indata);
 	char *old_path = (char *) indata + sizeof(size_t);
 	char *new_path = old_path + old_path_size;
@@ -134,7 +131,7 @@ int rename_file_hdl(void *indata, void *outdata, size_t max_outsize)
 	if ((rc = rename(old_path, new_path)) == -1)
 		LOG_NO("rename: FAILED - %s", strerror(errno));
 
-	TRACE_LEAVE2("LLDTEST");
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -155,8 +152,9 @@ int create_config_file_hdl(void *indata, void *outdata, size_t max_outsize)
 	char *logFileFormat = (char *) (indata + sizeof(ccfh_t));
 	char *file_path = (logFileFormat + params_in->logFileFormat_size);
 	
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 	
+	TRACE("%s - file_path \"%s\"",__FUNCTION__,file_path);
 fopen_retry:
 	if ((filp = fopen(file_path, "w")) == NULL) {
 		if (errno == EINTR)
@@ -171,38 +169,49 @@ fopen_retry:
 	if ((rc = fprintf(filp, "%s %c.%d.%d\n", LOG_VER_EXP,
 			params_in->version.releaseCode,
 			params_in->version.majorVersion,
-			params_in->version.minorVersion)) == -1)
+			params_in->version.minorVersion)) == -1) {
+		TRACE("%s - Print version failed",__FUNCTION__);
 		goto fprintf_done;
+	}
 
 	/* Format expression */
-	if ((rc = fprintf(filp, "%s%s\n", FMAT_EXP, logFileFormat)) == -1)
+	if ((rc = fprintf(filp, "%s%s\n", FMAT_EXP, logFileFormat)) == -1) {
+		TRACE("%s - Print Format expression failed",__FUNCTION__);
 		goto fprintf_done;
+	}
 
 	/* Max logfile size */
-	if ((rc = fprintf(filp, "%s %llu\n", CFG_EXP_MAX_FILE_SIZE, params_in->maxLogFileSize)) == -1)
+	if ((rc = fprintf(filp, "%s %llu\n", CFG_EXP_MAX_FILE_SIZE, params_in->maxLogFileSize)) == -1) {
+		TRACE("%s - Print Max logfile size failed",__FUNCTION__);
 		goto fprintf_done;
+	}
 
 	/* Fixed log record size */
-	if ((rc = fprintf(filp, "%s %d\n", CFG_EXP_FIXED_LOG_REC_SIZE, params_in->fixedLogRecordSize)) == -1)
+	if ((rc = fprintf(filp, "%s %d\n", CFG_EXP_FIXED_LOG_REC_SIZE, params_in->fixedLogRecordSize)) == -1) {
+		TRACE("%s - Print Fixed log record size failed",__FUNCTION__);
 		goto fprintf_done;
+	}
 
 	/* Log file full action */
 	rc = fprintf(filp, "%s %s %d\n", CFG_EXP_LOG_FULL_ACTION, DEFAULT_ALM_ACTION, params_in->maxFilesRotated);
+	if (rc == -1) {
+		TRACE("%s - Print version failed",__FUNCTION__);
+	}
 
  fprintf_done:
 	if (rc == -1)
-		LOG_NO("Could not write to '%s'", file_path);
+		LOG_NO("Could not write to \"%s\"", file_path);
 
 fclose_retry:
 	if ((rc = fclose(filp)) == -1) {
 		if (errno == EINTR)
 			goto fclose_retry;
 
-		LOG_NO("Could not close '%s' - '%s'", file_path, strerror(errno));
+		LOG_NO("Could not close \"%s\" - \"%s\"", file_path, strerror(errno));
 	}
 
 done:
-	TRACE_LEAVE2("LLDTEST: %u", rc);
+	TRACE_LEAVE2("rc = %d", rc);
 	return rc;	
 }
 
@@ -226,7 +235,7 @@ int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize)
 	int *errno_out_p = (int *) outdata;
 	*errno_out_p = 0;
 	
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 	
  retry:
 	rc = write(params_in->fd, &logrecord[bytes_written],
@@ -235,8 +244,8 @@ int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize)
 		if (errno == EINTR)
 			goto retry;
 
-		LOG_ER("LLDTEST write FAILED: %s", strerror(errno));
-		TRACE("LLDTEST %s - fd = %d",__FUNCTION__,params_in->fd);
+		LOG_ER("write FAILED: %s", strerror(errno));
+		TRACE("%s - fd = %d",__FUNCTION__,params_in->fd);
 		*errno_out_p = errno;
 		goto done;
 	} else {
@@ -247,15 +256,18 @@ int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize)
 	}
  
  done:
-	TRACE_LEAVE2("LLDTEST: rc=%d",rc);
+	TRACE_LEAVE2("rc = %d",rc);
 	return rc;
 }
 
 /**
  * Make directory. Handles creation of directory path.
- * Creates the relative in the directory given by the root path. If the root
- * path does not exist/is not available a root path is created based on the
- * default path taken from the configuration define PKGLOGDIR.
+ * Creates the relative directory in the directory given by the root path.
+ * If the root path does not exist/is not available a root path is created
+ * based on the default path.
+ * 
+ * TBD (Separate ticket):
+ * Default path taken from the configuration define PKGLOGDIR.
  * Settings: Read, Write, Exec for User, Group, Other
  * 
  * @param indata[in], Type mld_in_t
@@ -277,13 +289,12 @@ int make_log_dir_hdl(void *indata, void *outdata, size_t max_outsize)
 	char *spath_p;
 	char *epath_p;
 	struct stat statbuf;
+	int n;
 	
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 	
-	/* Guaranty that both rootpath and relpath is terminated within max size */
-	rootpath[PATH_MAX] = '\0';
-	relpath[PATH_MAX] = '\0';
-	dir_to_make[0] = '\0';
+	TRACE("rootpath \"%s\"",rootpath);
+	TRACE("relpath \"%s\"",relpath);
 	
 	/* 
 	 * Create root directory if it does not exists.
@@ -297,52 +308,73 @@ int make_log_dir_hdl(void *indata, void *outdata, size_t max_outsize)
 		rootpath = PKGLOGDIR;
 #endif
 		strncpy(out_path, rootpath, max_outsize);
+		n = snprintf(out_path, max_outsize, "%s", rootpath);
+		if (n >= max_outsize) {
+			LOG_WA("Invalid root path > max_outsize");
+			mldh_rc = -1;
+			goto done;
+		}
 		LOG_NO("LOG Root path does not exist. Will be created");
-		TRACE("LLDTEST: %s - create rootpath \"%s\"",__FUNCTION__,rootpath);
+		TRACE("%s - create rootpath \"%s\"",__FUNCTION__,rootpath);
 	}
 	
-	/* Create complete path string */
-	strcpy(dir_to_make, rootpath);
-	if (dir_to_make[strlen(rootpath)-1] != '/') { /* End root path with '/' */
-		dir_to_make[strlen(rootpath)] = '/';
-		dir_to_make[strlen(rootpath)+1] = '\0';
-	}
-	while (*relpath == '/') relpath++; /* Remove preceding '/' */
-	
-	/* Concatenate complete path. The function using this handler shall check
-	 * that the complete path is shorter than MAX_PATH
+	/*
+	 * Create root path without preceding '/' and ending '/'
+	 * Example: ro1/ro2/ro3
+	 * Check that not > PATH_MAX
 	 */
-	strncat(dir_to_make, relpath, PATH_MAX);
-	
-	if (lstat(dir_to_make, &statbuf) == 0) {
-		/* Directory already exists. Creation is not needed */
-		TRACE("LLDTEST: %s Directory already exists",__FUNCTION__);
+	n = snprintf(mpath, PATH_MAX, "%s", rootpath);
+	if (n >= PATH_MAX) {
+		LOG_WA("Could not create path, rootpath > PATH_MAX");
+		mldh_rc = -1;
 		goto done;
 	}
-	
+	char *rootpp = mpath;
+	while (*rootpp == '/') rootpp++; /* Remove preceding '/' */
+	while (mpath[strlen(mpath)-1] == '/') { /* Remove trailing '/' if needed */
+		mpath[strlen(mpath)-1] = '\0';
+	}
+
+	/*
+	 * Add relative path. Shall end with '/'
+	 * Example: ro1/ro2/ro3/re1/re2/re3/
+	 * Check that not > PATH_MAX
+	 */
+	if (relpath[strlen(relpath)-1] != '/') {
+		n = snprintf(dir_to_make, PATH_MAX, "/%s/%s/", rootpp, relpath);
+	} else {
+		n = snprintf(dir_to_make, PATH_MAX, "/%s/%s", rootpp, relpath);
+	}
+	if (n >= PATH_MAX) {
+		LOG_WA("Could not create path > PATH_MAX");
+		mldh_rc = -1;
+		goto done;
+	}
+	TRACE("%s - Path to create \"%s\"",__FUNCTION__,dir_to_make);
+		
 	/* Create the path */
+	int path_len = 0;
 	spath_p = epath_p = dir_to_make;
 	while ((epath_p = strchr(epath_p, '/')) != NULL) {
+		if (epath_p == spath_p) {
+			epath_p++;
+			continue; /* Don't try to create path "/" */
+		}
 		epath_p++;
-		strncpy(mpath, spath_p, (epath_p - spath_p));
+		path_len = epath_p - spath_p;
+		strncpy(mpath, spath_p, path_len);
+		mpath[path_len] = '\0';
 		rc = mkdir(mpath, S_IRWXU | S_IRWXG | S_IRWXO);
 		if ((rc != 0) && (errno != EEXIST)) {
-			LOG_ER("%s: Making directory error %s",__FUNCTION__,strerror(errno));
+			LOG_ER("Making directory error %s",strerror(errno));
 			mldh_rc = -1;
 			goto done;
 		}
 	}
-	strcpy(mpath, spath_p);
-	rc = mkdir(mpath, S_IRWXU | S_IRWXG | S_IRWXO);
-	if ((rc != 0) && (errno != EEXIST)) {
-		LOG_ER("%s: Making directory error %s",__FUNCTION__,strerror(errno));
-		mldh_rc = -1;
-		goto done;
-	}
-	TRACE("Dir \"%s\" created",mpath);
+	TRACE("%s - Dir \"%s\" created",__FUNCTION__, mpath);
 	
 done:
-	TRACE_LEAVE2("LLDTEST: %u", mldh_rc);
+	TRACE_LEAVE2("mldh_rc = %u", mldh_rc);
 	return mldh_rc;
 }
 
@@ -360,8 +392,9 @@ int fileopen_hdl(void *indata, void *outdata, size_t max_outsize)
 	char *filepath = (char *) indata;
 	int *errno_out_p = (int *) outdata;
 	
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 	
+	TRACE("%s - filepath \"%s\"",__FUNCTION__,filepath);
 open_retry:
 	fd_out = open(filepath, O_CREAT | O_RDWR | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP);
 
@@ -372,11 +405,11 @@ open_retry:
 		errno_save = errno;
 		/* Do not log with higher severity here to avoid flooding the log.
 		 * Can be called in context of log_stream_write */
-		LOG_IN("%s: Could not open: %s - %s", __FUNCTION__, filepath, strerror(errno));
+		LOG_IN("Could not open: %s - %s", filepath, strerror(errno));
 	}
 
 	*errno_out_p = errno_save;
-	TRACE_LEAVE2("LLDTEST");
+	TRACE_LEAVE();
 	return fd_out;
 }
 
@@ -402,7 +435,7 @@ close_retry:
 		goto close_retry;
 
 	if (rc == -1) {
-		LOG_ER("LLDTEST: fileclose() %s",strerror(errno));
+		LOG_ER("fileclose() %s",strerror(errno));
 	}
 	TRACE_LEAVE2("rc=%d", rc);
 	return rc;
@@ -420,7 +453,7 @@ int delete_file_hdl(void *indata, void *outdata, size_t max_outsize)
 	int rc = 0;
 	char *pathname = (char *) indata;
 	
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 	
 	if ((rc = unlink(pathname)) == -1) {
 		if (errno == ENOENT)
@@ -429,7 +462,7 @@ int delete_file_hdl(void *indata, void *outdata, size_t max_outsize)
 			LOG_NO("could not unlink: %s - %s", pathname, strerror(errno));
 	}
 
-	TRACE_LEAVE2("LLDTEST");
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -503,20 +536,25 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
 	char path[PATH_MAX];
 	gnolfh_in_t *params_in;
 	char *oldest_file;
-	int rc;
+	int rc = 0;
 	
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 	
 	params_in = (gnolfh_in_t *) indata;
 	oldest_file = (char *) outdata;
 	
 	/* Initialize the filter */
-	strncpy(file_prefix, params_in->file_name, SA_MAX_NAME_LENGTH);
+	n = snprintf(file_prefix, SA_MAX_NAME_LENGTH, "%s", params_in->file_name);
+	if (n >= SA_MAX_NAME_LENGTH) {
+		rc = -1;
+		LOG_WA("file_prefix > SA_MAX_NAME_LENGTH");
+		goto done_exit;
+	}
 
 	n = snprintf(path, PATH_MAX, "%s/%s",
 			params_in->logsv_root_dir, params_in->pathName);
-	if (n > PATH_MAX) {
-		LOG_ER("Parameter error: Path is longer than PATH_MAX");
+	if (n >= PATH_MAX) {
+		LOG_WA("path > PATH_MAX");
 		rc = -1;
 		goto done_exit;
 	}
@@ -528,7 +566,7 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
 	}
 
 	if (n < 0) {
-		LOG_ER("scandir:%s %s", strerror(errno), path);
+		LOG_WA("scandir:%s - %s", strerror(errno), path);
 		rc = -1;
 		goto done_exit;
 	}
@@ -548,11 +586,11 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
 		}
 	}
 	if (old_ind != -1) {
-		TRACE_1(" oldest: %s", namelist[old_ind]->d_name);
+		TRACE_1("oldest: %s", namelist[old_ind]->d_name);
 		n = snprintf(oldest_file, max_outsize, "%s/%s",
 				path, namelist[old_ind]->d_name);
 		if (n >= max_outsize) {
-			LOG_ER("Error: outdata out of limits");
+			LOG_WA("oldest_file > max_outsize");
 			rc = -1;
 			goto done_free;
 		} else {
@@ -569,6 +607,6 @@ done_free:
 	free(namelist);
 
 done_exit:	
-	TRACE_LEAVE2("LLDTEST");
+	TRACE_LEAVE();
 	return rc;
 }
