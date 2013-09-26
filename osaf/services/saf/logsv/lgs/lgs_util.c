@@ -441,6 +441,8 @@ int lgs_make_reldir_h(const char* path)
 	char new_rootstr[PATH_MAX];
 	size_t n1, n2;
 	
+	new_rootstr[0] = '\0'; /* Initiate to empty string */
+	
 	TRACE_ENTER();
 	
 	TRACE("lgs_cb->logsv_root_dir \"%s\"",lgs_cb->logsv_root_dir);
