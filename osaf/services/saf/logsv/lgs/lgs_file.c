@@ -32,17 +32,19 @@
 #include <time.h>
 #include <ncsgl_defs.h>
 
+#include "lgs.h"
 #include "osaf_utility.h"
 
-/* Max time to wait for file thread to finish */
-#define MAX_WAITTIME_ms 500 /* ms */
-/* Max time to wait for hanging file thread before recovery */
-#define MAX_RECOVERYTIME_s 600 /* s */
 #define GETTIME(x) osafassert(clock_gettime(CLOCK_REALTIME, &x) == 0);
 
 static pthread_mutex_t lgs_ftcom_mutex;	/* For locking communication */
 static pthread_cond_t request_cv;	/* File thread waiting for request */
 static pthread_cond_t answer_cv;	/* API waiting for answer (timed) */
+
+/* Max time to wait for file thread to finish */
+static SaUint32T max_waittime_ms = 500;
+/* Max time to wait for hanging file thread before recovery */
+static SaUint32T max_recoverytime_s = 600;
 
 struct file_communicate {
 	bool request_f;	/* True if pending request */
@@ -123,7 +125,7 @@ static void ft_check_recovery(void)
 
 		TRACE("dtime_ms = %ld",dtime_ms);
 
-		if (dtime_ms >= (MAX_RECOVERYTIME_s * 1000)) {
+		if (dtime_ms >= (max_recoverytime_s * 1000)) {
 			TRACE("Recovering file thread");
 			remove_file_thread();
 			rc = start_file_thread();
@@ -353,6 +355,16 @@ uint32_t lgs_file_init(void)
 	
 	TRACE_ENTER();
 	
+	/* Initiate timeouts from Log service IMM configuration object */
+	max_waittime_ms = *(SaUint32T*) lgs_imm_logconf_get(
+									LGS_IMM_FILEHDL_TIMEOUT, NULL);
+	TRACE("max_waittime_ms = %d",max_waittime_ms);
+	/* Max time to wait for hanging file thread before recovery */
+	max_recoverytime_s = *(SaUint32T*) lgs_imm_logconf_get(
+										LGS_IMM_FILEHDL_RECOVERY_TIMEOUT, NULL);
+	TRACE("max_recoverytime_s = %d",max_recoverytime_s);
+
+	
 	if (start_file_thread() != 0) {
 		rc = NCSCC_RC_FAILURE;
 	}
@@ -415,7 +427,7 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	/* Wait for an answer */
 	GETTIME(m_start_time); /* Used for TRACE of print of time to answer */
 	
-	get_timeout_time(&timeout_time, MAX_WAITTIME_ms);
+	get_timeout_time(&timeout_time, max_waittime_ms);
 	
 	while (lgs_com_data.answer_f == false) {
 		rc = pthread_cond_timedwait(
@@ -434,6 +446,13 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 		}
 	}
 	
+	/* Measure answer time for TRACE */
+	GETTIME(m_end_time);
+	stime_ms = (m_start_time.tv_sec * 1000) + (m_start_time.tv_nsec / 1000000);
+	etime_ms = (m_end_time.tv_sec * 1000) + (m_end_time.tv_nsec / 1000000);
+	dtime_ms = etime_ms - stime_ms;
+	TRACE("Time waited for answer %ld ms",dtime_ms);
+	
 	/* We have an answer
 	 * NOTE!
 	 * The out-data buffer 'par_out' must be big enough to handle the
@@ -443,13 +462,6 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	apipar_in->hdl_ret_code_out = lgs_com_data.return_code;
 	memcpy(apipar_in->data_out, lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
 
-	/* Measure answer time for TRACE */
-	GETTIME(m_end_time);
-	stime_ms = (m_start_time.tv_sec * 1000) + (m_start_time.tv_nsec / 1000000);
-	etime_ms = (m_end_time.tv_sec * 1000) + (m_end_time.tv_nsec / 1000000);
-	dtime_ms = etime_ms - stime_ms;
-	TRACE("Time waited for answer %ld ms",dtime_ms);
-	
 	/* Prepare to take a new answer */
 	lgs_com_data.answer_f = false;
 	lgs_com_data.return_code = LGSF_NORETC;
@@ -471,6 +483,13 @@ api_exit:
 	 */
 	 ft_check_recovery();
 
+	/* Measure answer time for TRACE */
+	GETTIME(m_end_time);
+	stime_ms = (m_start_time.tv_sec * 1000) + (m_start_time.tv_nsec / 1000000);
+	etime_ms = (m_end_time.tv_sec * 1000) + (m_end_time.tv_nsec / 1000000);
+	dtime_ms = etime_ms - stime_ms;
+	TRACE("Time leaving API %ld ms",dtime_ms);
+	
 	TRACE_LEAVE();
 	return api_rc;	
 }
