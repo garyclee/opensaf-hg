@@ -121,5 +121,6 @@ extern SaAisErrorT lgs_imm_activate(lgs_cb_t *cb);
 extern void lgs_imm_impl_set(lgs_cb_t *cb);
 extern SaAisErrorT lgs_imm_init(lgs_cb_t *cb);
 extern const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag);
+extern void lgs_imm_rootpathconf_set(char *root_path_str);
 
 #endif   /* ifndef __LGS_H */

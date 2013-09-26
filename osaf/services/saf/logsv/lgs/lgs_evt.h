@@ -19,6 +19,10 @@
 #define LGS_EVT_H
 
 #include <rda_papi.h>
+#include <mds_papi.h>
+#include <lgsv_msg.h>
+
+#include "lgs_cb.h"
 
 typedef enum lgsv_lgs_evt_type {
 	LGSV_LGS_LGSV_MSG = 0,

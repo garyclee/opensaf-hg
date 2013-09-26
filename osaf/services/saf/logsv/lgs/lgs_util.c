@@ -15,6 +15,18 @@
  *
  */
 
+/*****************************************************************************
+ * Important information
+ * ---------------------
+ * To prevent log service thread from "hanging" if communication with NFS is
+ * not working or is very slow all functions using file I/O must run their file
+ * handling in a separate thread.
+ * For more information on how to do that see the following files:
+ * lgs_file.h, lgs_file.c, lgs_filendl.c and lgs_filehdl.h
+ * Examples can be found in file lgs_stream.c, e.g. function fileopen(...)
+ */
+
+#include "lgs_util.h"
 #include <stdlib.h>
 #include <inttypes.h>
 #include <sys/stat.h>
@@ -22,17 +34,14 @@
 #include "lgs.h"
 #include "lgs_util.h"
 #include "lgs_fmt.h"
+#include "lgs_file.h"
+#include "lgs_filehdl.h"
 
 #define ALARM_STREAM_ENV_PREFIX "ALARM"
 #define NOTIFICATION_STREAM_ENV_PREFIX "NOTIFICATION"
 #define SYSTEM_STREAM_ENV_PREFIX "SYSTEM"
 #define LGS_CREATE_CLOSE_TIME_LEN 16
 #define START_YEAR 1900
-#define LOG_VER_EXP "LOG_SVC_VERSION:"
-#define FMAT_EXP "FORMAT:"
-#define CFG_EXP_MAX_FILE_SIZE "MAX_FILE_SIZE:"
-#define CFG_EXP_FIXED_LOG_REC_SIZE "FIXED_LOG_REC_SIZE:"
-#define CFG_EXP_LOG_FULL_ACTION "LOG_FULL_ACTION:"
 
 /**
  * Create config file according to spec.
@@ -41,79 +50,101 @@
  * 
  * @return int
  */
-int lgs_create_config_file(log_stream_t *stream)
+int lgs_create_config_file_h(log_stream_t *stream)
 {
-	int rc, n;
-	char pathname[PATH_MAX + NAME_MAX];
-	FILE *filp;
+	lgsf_apipar_t apipar;
+	lgsf_retcode_t api_rc;
+	void *params_in;
+	ccfh_t *header_in_p;
+	size_t params_in_size;
+	char *logFileFormat_p;
+	char *pathname_p;
+	
+	int rc;
+	int path_len, n;
+	char pathname[PATH_MAX];
 
-	TRACE_ENTER();
+	TRACE_ENTER2("LLDTEST");
 
-	/* check the existence of logsv_root_dir/pathName, create the path if it doesn't */
-	snprintf(pathname, PATH_MAX, "%s/%s", lgs_cb->logsv_root_dir, stream->pathName);
-	struct stat statbuf;
-	if (lgs_relative_path_check(pathname) || lstat(pathname, &statbuf) != 0) {
-		if (lgs_make_dir(lgs_cb->logsv_root_dir, stream->pathName) != 0) {
-			LOG_NO("Create directory '%s/%s' failed", lgs_cb->logsv_root_dir, stream->pathName);
-			rc = -1;
-			goto done;
-		}
+	/* check the existence of logsv_root_dir/pathName,
+	 * check that the path is safe.
+	 * If ok, create the path if it doesn't already exits
+	 */
+	path_len = snprintf(pathname, PATH_MAX, "%s/%s", lgs_cb->logsv_root_dir, stream->pathName);
+	if (path_len > PATH_MAX) {
+		LOG_WA("Directory path too long");
+		rc = -1;
+		goto done;
 	}
+	
+	if (lgs_relative_path_check_ts(pathname) == true) {
+		LOG_WA("Directory path not allowed");
+		rc = -1;
+		goto done;
+	}
+	
+	if (lgs_make_dir_h(stream->pathName) != 0) {
+		LOG_WA("Create directory '%s/%s' failed", lgs_cb->logsv_root_dir, stream->pathName);
+		rc = -1;
+		goto done;
+	}
+
 	/* create absolute path for config file */
-	n = snprintf(&pathname[strlen(pathname)], PATH_MAX, "/%s.cfg", stream->fileName);
-
-	/* Check if path got truncated */
-	if (n == sizeof(pathname)) {
-		LOG_ER("Path too long");
+	n = snprintf(pathname, PATH_MAX, "%s/%s/%s.cfg",
+			lgs_cb->logsv_root_dir, stream->pathName, stream->fileName);
+	
+	if (n >= PATH_MAX) {
+		LOG_WA("Config filename too long");
 		rc = -1;
 		goto done;
 	}
 
-fopen_retry:
-	if ((filp = fopen(pathname, "w")) == NULL) {
-		if (errno == EINTR)
-			goto fopen_retry;
+	/* 
+	 * Create the configuration file.
+	 * Open the file, write it's content and close the file
+	 */
+	
+	/* Allocate memory for parameters */
+	params_in_size = sizeof(ccfh_t) + (strlen(stream->logFileFormat) + 1) +
+			(strlen(pathname) + 1);
+	params_in = malloc(params_in_size);
+	
+	/* Set pointers to allocated memory */
+	header_in_p = params_in;
+	logFileFormat_p = params_in + sizeof(ccfh_t);
+	pathname_p = logFileFormat_p + strlen(stream->logFileFormat) + 1;
 
-		LOG_NO("Could not open '%s' - %s", pathname, strerror(errno));
+	/* Fill in in parameters */
+	header_in_p->version.releaseCode = lgs_cb->log_version.releaseCode;
+	header_in_p->version.majorVersion = lgs_cb->log_version.majorVersion;
+	header_in_p->version.minorVersion = lgs_cb->log_version.minorVersion;
+	header_in_p->logFileFormat_size = strlen(stream->logFileFormat)+1;
+	header_in_p->maxLogFileSize = stream->maxLogFileSize;
+	header_in_p->fixedLogRecordSize = stream->fixedLogRecordSize;
+	header_in_p->maxFilesRotated = stream->maxFilesRotated;
+	
+	strcpy(logFileFormat_p, stream->logFileFormat);
+	strcpy(pathname_p, pathname);
+	
+	/* Fill in API structure */
+	apipar.req_code_in = LGSF_CREATECFGFILE;
+	apipar.data_in_size = params_in_size;
+	apipar.data_in = (void*) params_in;
+	apipar.data_out_size = 0;
+	apipar.data_out = NULL;
+	
+	api_rc = log_file_api(&apipar);
+	if (api_rc != LGSF_SUCESS) {
+		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
 		rc = -1;
-		goto done;
+	} else {
+		rc = apipar.hdl_ret_code_out;
 	}
-
-	/* version */
-	if ((rc = fprintf(filp, "%s %c.%d.%d\n", LOG_VER_EXP,
-			  lgs_cb->log_version.releaseCode,
-			  lgs_cb->log_version.majorVersion, lgs_cb->log_version.minorVersion)) == -1)
-		goto fprintf_done;
-
-	/* Format expression */
-	if ((rc = fprintf(filp, "%s%s\n", FMAT_EXP, stream->logFileFormat)) == -1)
-		goto fprintf_done;
-
-	/* Max logfile size */
-	if ((rc = fprintf(filp, "%s %llu\n", CFG_EXP_MAX_FILE_SIZE, stream->maxLogFileSize)) == -1)
-		goto fprintf_done;
-
-	/* Fixed log record size */
-	if ((rc = fprintf(filp, "%s %d\n", CFG_EXP_FIXED_LOG_REC_SIZE, stream->fixedLogRecordSize)) == -1)
-		goto fprintf_done;
-
-	/* Log file full action */
-	rc = fprintf(filp, "%s %s %d\n", CFG_EXP_LOG_FULL_ACTION, DEFAULT_ALM_ACTION, stream->maxFilesRotated);
-
- fprintf_done:
-	if (rc == -1)
-		LOG_NO("Could not write to '%s'", pathname);
-
-fclose_retry:
-	if ((rc = fclose(filp)) == -1) {
-		if (errno == EINTR)
-			goto fclose_retry;
-
-		LOG_NO("Could not close '%s' - '%s'", pathname, strerror(errno));
-	}
-
+	
+	free(params_in);
+	
 done:
-	TRACE_LEAVE2("%u", rc);
+	TRACE_LEAVE2("LLDTEST: %u", rc);
 	return rc;
 }
 
@@ -174,22 +205,84 @@ SaTimeT lgs_get_SaTime(void)
  * @param time_stamp
  * @param suffix
  * 
- * @return int
+ * @return -1 if error
  */
-int lgs_file_rename(const char *path, const char *old_name, const char *time_stamp, const char *suffix)
+int lgs_file_rename_h(
+		const char *path,
+		const char *old_name,
+		const char *time_stamp,
+		const char *suffix)
 {
-	int ret;
-	char oldpath[PATH_MAX + NAME_MAX];
-	char newpath[PATH_MAX + NAME_MAX];
+	int rc;
+	char oldpath[PATH_MAX];
+	char newpath[PATH_MAX];
+	size_t n;
+	lgsf_apipar_t apipar;
+	void *params_in_p;
+	size_t params_in_size;
+	lgsf_retcode_t api_rc;
+	char *oldpath_in_p;
+	char *newpath_in_p;
+	size_t *oldpath_str_size_p;
+	
+	TRACE_ENTER2("LLDTEST");
 
-	sprintf(oldpath, "%s/%s/%s%s", lgs_cb->logsv_root_dir, path, old_name, suffix);
-	sprintf(newpath, "%s/%s/%s_%s%s", lgs_cb->logsv_root_dir, path, old_name, time_stamp, suffix);
-	TRACE_4("Rename file from %s", oldpath);
-	TRACE_4("              to %s", newpath);
-	if ((ret = rename(oldpath, newpath)) == -1)
-		LOG_NO("rename: FAILED - %s", strerror(errno));
+	n = snprintf(oldpath, PATH_MAX, "%s/%s/%s%s",
+			lgs_cb->logsv_root_dir, path, old_name, suffix);
+	if (n > PATH_MAX) {
+		LOG_ER("Cannot rename file, old path > PATH_MAX");
+		rc = -1;
+		goto done;
+	}
 
-	return ret;
+	n = snprintf(newpath, PATH_MAX, "%s/%s/%s_%s%s",
+			lgs_cb->logsv_root_dir, path, old_name, time_stamp, suffix);
+	if (n > PATH_MAX) {
+		LOG_ER("Cannot rename file, new path > PATH_MAX");
+		rc = -1;
+		goto done;
+	}
+	
+	TRACE_4("LLDTEST: Rename file from %s", oldpath);
+	TRACE_4("LLDTEST:               to %s", newpath);
+	
+	/* Allocate memory for parameters */
+	size_t oldpath_size = strlen(oldpath)+1;
+	size_t newpath_size = strlen(newpath)+1;
+	params_in_size = sizeof(size_t) + oldpath_size + newpath_size;
+	
+	params_in_p = malloc(params_in_size);
+	
+	/* Fill in pointer addresses */
+	oldpath_str_size_p = params_in_p;
+	oldpath_in_p = params_in_p + sizeof(size_t);
+	newpath_in_p = oldpath_in_p + oldpath_size;
+	
+	/* Fill in parameters */
+	*oldpath_str_size_p = oldpath_size;
+	memcpy(oldpath_in_p, oldpath, oldpath_size);
+	memcpy(newpath_in_p, newpath, newpath_size);
+	
+	/* Fill in API structure */
+	apipar.req_code_in = LGSF_RENAME_FILE;
+	apipar.data_in_size = params_in_size;
+	apipar.data_in = params_in_p;
+	apipar.data_out_size = 0;
+	apipar.data_out = NULL;
+	
+	api_rc = log_file_api(&apipar);
+	if (api_rc != LGSF_SUCESS) {
+		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+		rc = -1;
+	} else {
+		rc = apipar.hdl_ret_code_out;
+	}
+	
+	free(params_in_p);
+	
+done:
+	TRACE_LEAVE2("LLDTEST");
+	return rc;
 }
 
 void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr)
@@ -291,9 +384,12 @@ void lgs_free_write_log(const lgsv_write_log_async_req_t *param)
 
 /**
  * Check if a relative ("/../") path occurs in the path.
+ * Note: This function must be thread safe
+ * 
  * @param path
+ * @return true if path is allowed
  */
-bool lgs_relative_path_check(const char* path)
+bool lgs_relative_path_check_ts(const char* path)
 {
 	bool rc = false;
 	int len_path = strlen(path);
@@ -308,99 +404,118 @@ bool lgs_relative_path_check(const char* path)
 	return rc;
 }
 
-static void quick_fix_make_root_dir(const char* root_dir)
-{
-	struct stat statbuf;
-	char dir_to_make[PATH_MAX];
-	char* dir_ptr = strchr(root_dir, '/');
-	dir_ptr++;
-	while ((dir_ptr = strchr(dir_ptr, '/')) != NULL) {
-		dir_ptr++;
-		strncpy(dir_to_make, root_dir, dir_ptr - root_dir);
-		dir_to_make[dir_ptr - root_dir] = '\0';
-		if (lstat(dir_to_make, &statbuf) != 0) {
-			mkdir(dir_to_make, S_IRWXU | S_IRWXG | S_IRWXO);
-		}
-	}
-	if (lstat(root_dir, &statbuf) != 0) {
-		mkdir(root_dir, S_IRWXU | S_IRWXG | S_IRWXO);
-	}
-}
-
 /**
  * Create directory structure, if not already created.
- * @param path
+ * The structure is created in the log service root directory pointed to in
+ * lgs_cb->logsv_root_dir.
+ * 
+ * TBD: Fix with separate ticket. 
+ * Note: If the lgsv root directory does not exist a root directory is
+ * created based on the default path in PKGLOGDIR. The path in the configuration
+ * object is not updated. The reason is to make it possible for the log service
+ * to work even if there is no existing root path in the file system.
+ * 
+ * @param path, Path relative log service root directory
+ * @return -1 on error
  */
-int lgs_make_dir(const char* root, const char* path)
+int lgs_make_dir_h(const char* path)
 {
-	int rc = 0;
-	const int MAX_DEPTH = 10;
-	const char* path_p = path;
-	int dir_depth = 0;
-	size_t dirs_len[MAX_DEPTH];
-	struct stat buf;
-	char dir_to_make[PATH_MAX + NAME_MAX];
-	int i = 0;
-	int rel_idx = strlen(root);
-
-	TRACE_ENTER();
-
-	/* the root directory must already exist. */
-	struct stat statbuf;
-
-	/* quick temporary fix for ticket 3053 */
-	if (lstat(root, &statbuf) != 0) {
-		quick_fix_make_root_dir(root);
-	}
-	/* end tempoarary fix */
-
-	if (lgs_relative_path_check(root) || lstat(root, &statbuf) != 0 ||
-			(strlen(root) + strlen(path) + 2) > (PATH_MAX + NAME_MAX)) {
-		LOG_ER("root directory problem %s", root);
-		rc = -1;
+	lgsf_apipar_t apipar;
+	lgsf_retcode_t api_rc;
+	int rc = -1;
+	mld_in_t params_in;
+	char new_rootstr[PATH_MAX];
+	size_t n1, n2;
+	
+	TRACE_ENTER2("LLDTEST");
+	
+	TRACE("LLDTEST: lgs_cb->logsv_root_dir \"%s\"",lgs_cb->logsv_root_dir);
+	TRACE("LLDTEST: path \"%s\"",path);
+	
+	n1 = snprintf(params_in.root_dir, PATH_MAX, "%s", lgs_cb->logsv_root_dir);
+	if (n1 > PATH_MAX) {
+		LOG_WA("%s - Directory could not be created. Too long root path",__FUNCTION__);
 		goto done;
 	}
-	if (lgs_relative_path_check(path)) {
-		LOG_ER("relative path in directory %s", path);
-		rc = -1;
+	n2 = snprintf(params_in.rel_path, PATH_MAX, "%s", path);
+	if (n2 > PATH_MAX) {
+		LOG_WA("%s - Directory could not be created. Too long rel path",__FUNCTION__);
 		goto done;
 	}
-
-	/* Check the relative path directory depth, will not allow more than 10. */
-	while (dir_depth < MAX_DEPTH && (path_p = strchr(path_p, '/')) != NULL) {
-		if (path_p > &path[0]) {
-			/* cover the '//' situation */
-			if (*(path_p -1) != '/') {
-				dirs_len[dir_depth++] = path_p - &path[0];
-			}
-		}
-		path_p++;
-	}
-	/* cover the case when the string doesn't end with '/' */
-	if (path[strlen(path) -1] != '/') dirs_len[dir_depth++] = strlen(path);
-
-	if (path_p != NULL) {
-		LOG_ER("relative path directory problem %s", path);
-		rc = -1;
+	
+	/* Check that the complete path is not longer than PATH_MAX */
+	if ((strlen(params_in.root_dir) + strlen(params_in.rel_path)) > PATH_MAX) {
+		LOG_WA("%s - Path is too long. Cannot make dir",__FUNCTION__);
 		goto done;
 	}
-
-	strncpy(dir_to_make, root, strlen(root));
-	if (path[0] != '/' && root[strlen(root) -1] != '/') {
-		dir_to_make[strlen(root)] = '/';
-		rel_idx++;
+	
+	TRACE("LLDTEST: root_dir \"%s\"",params_in.root_dir);
+	TRACE("LLDTEST: rel_path \"%s\"",params_in.rel_path);
+	
+	/* Fill in API structure */
+	apipar.req_code_in = LGSF_MAKELOGDIR;
+	apipar.data_in_size = sizeof(mld_in_t);
+	apipar.data_in = (void*) &params_in;
+	apipar.data_out_size = PATH_MAX;
+	apipar.data_out = &new_rootstr;
+	
+	api_rc = log_file_api(&apipar);
+	if (api_rc != LGSF_SUCESS) {
+		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+		rc = -1;
+	} else {
+		rc = apipar.hdl_ret_code_out;
 	}
-	while (rc == 0 && i < dir_depth) {
-		strncpy(&dir_to_make[rel_idx], path, dirs_len[i]);
-		dir_to_make[rel_idx + dirs_len[i]] = '\0';
-		if (lstat(dir_to_make, &buf) != 0)
-		{
-			rc = mkdir(dir_to_make, S_IRWXU | S_IRWXG | S_IRWXO);
-		}
-		i++;
+	
+	/* Handle a possible change of root dir to default */
+	if (new_rootstr[0] != '\0') {
+		lgs_imm_rootpathconf_set(new_rootstr);
+		TRACE("%s - new_rootstr \"%s\"",__FUNCTION__,new_rootstr);
 	}
 
 done:
-	TRACE_LEAVE2("%u", rc);
+	TRACE_LEAVE2("LLDTEST");
+	
+	return rc;
+}
+
+/**
+ * Check if a path exists. See also stat(..)
+ * 
+ * @param path_to_check
+ * @return (-1) if not exists, 0 if exists
+ */
+int lgs_check_path_exists_h(const char *path_to_check)
+{
+	lgsf_apipar_t apipar;
+	lgsf_retcode_t api_rc;
+	void *params_in_p;
+	int rc = 0;
+	
+	TRACE_ENTER2("LLDTEST: path \"%s\"",path_to_check);
+	/* Allocate memory for parameter */
+	size_t params_in_size = strlen(path_to_check)+1;
+	params_in_p = malloc(params_in_size);
+	
+	/* Fill in path */
+	memcpy(params_in_p, path_to_check, params_in_size);
+	
+	/* Fill in API structure */
+	apipar.req_code_in = LGSF_CHECKPATH;
+	apipar.data_in_size = params_in_size;
+	apipar.data_in = params_in_p;
+	apipar.data_out_size = 0;
+	apipar.data_out = NULL;
+	
+	api_rc = log_file_api(&apipar);
+	if (api_rc != LGSF_SUCESS) {
+		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+		rc = -1;
+	} else {
+		rc = apipar.hdl_ret_code_out;
+	}
+	
+	free(params_in_p);
+	TRACE_LEAVE2("LLDTEST rc=%d",rc);
 	return rc;
 }

@@ -20,6 +20,7 @@
 
 #include <limits.h>
 #include "lgs_fmt.h"
+#include <ncspatricia.h>
 
 /**
  * Stream descriptor.
@@ -46,6 +47,7 @@ typedef struct log_stream {
 	SaUint64T filtered;	/* discarded by server due to filtering */
 	/* --- end correspond to IMM Class --- */
 
+	bool files_initiated; /* True when all files belonging to stream are initiated */
 	uint32_t streamId;	/* The unique stream id for this stream */
 	int32_t fd;		/* The stream file descriptor */
 	char logFileCurrent[NAME_MAX];	/* Current file name */
@@ -73,16 +75,16 @@ extern log_stream_t *log_stream_new(SaNameT *name,
 
 extern log_stream_t *log_stream_new_2(SaNameT *name, int stream_id);
 
-extern SaAisErrorT log_stream_open(log_stream_t *stream);
+extern SaAisErrorT log_stream_open_fh(log_stream_t *stream);
 
 extern int log_stream_close(log_stream_t **stream);
 extern int log_stream_file_close(log_stream_t *stream);
-extern int log_stream_write(log_stream_t *stream, const char *buf, size_t count);
+extern int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count);
 extern void log_stream_id_print(void);
 
 #define LGS_STREAM_CREATE_FILES true
 extern int log_stream_config_change(bool create_files_f, log_stream_t *stream, const char *current_file_name);
-extern int log_file_open(log_stream_t *stream, int *errno_save);
+extern int log_file_open_fh(log_stream_t *stream, int *errno_save);
 
 /* Accessor functions */
 extern log_stream_t *log_stream_get_by_name(const char *name);
