@@ -173,15 +173,21 @@ poll_retry:
 		return errorCode;
 	}
 
-	if ((cb_error != SA_AIS_ERR_TRY_AGAIN) && (cb_error != SA_AIS_OK)) {
-		fprintf(stderr, "logWriteLogCallbackT FAILED: %s\n", saf_error(cb_error));
-		return errorCode;
-	}
-
 	if (cb_error == SA_AIS_ERR_TRY_AGAIN) {
 		usleep(100000);	/* 100 ms */
 		try_agains++;
 		goto retry;
+	}
+
+	if (cb_error == SA_AIS_ERR_TIMEOUT) {
+		usleep(100000);	/* 100 ms */
+		fprintf(stderr, "got SA_AIS_ERR_TIMEOUT, retry\n");
+		goto retry;
+	}
+
+	if (cb_error != SA_AIS_OK) {
+		fprintf(stderr, "logWriteLogCallbackT FAILED: %s\n", saf_error(cb_error));
+		return errorCode;
 	}
 
 	if (try_agains > 0) {
