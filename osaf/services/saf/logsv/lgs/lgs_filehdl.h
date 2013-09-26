@@ -1,8 +1,18 @@
-/* 
- * File:   lgs_filehdl.h
- * Author: elunlen
+/*      -*- OpenSAF  -*-
  *
- * Created on May 7, 2013, 10:30 AM
+ * (C) Copyright 2013 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Ericsson AB
+ *
  */
 
 #ifndef LGS_FILEHDL_H
@@ -147,7 +157,7 @@ int path_is_writeable_dir_hdl(void *indata, void *outdata, size_t max_outsize);
 int check_path_exists_hdl(void *indata, void *outdata, size_t max_outsize);
 int rename_file_hdl(void *indata, void *outdata, size_t max_outsize);
 int create_config_file_hdl(void *indata, void *outdata, size_t max_outsize);
-int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize);
+int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize, bool *timeout_f);
 int make_log_dir_hdl(void *indata, void *outdata, size_t max_outsize);
 int fileopen_hdl(void *indata, void *outdata, size_t max_outsize);
 int fileclose_hdl(void *indata, void *outdata, size_t max_outsize);

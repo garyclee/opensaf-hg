@@ -40,6 +40,8 @@
 #include "lgs_file.h"
 
 
+extern pthread_mutex_t lgs_ftcom_mutex;	/* For locking communication */
+
 /*****************************************************************************
  * File operation handlers:
  * This is the part of a file system handling function that shall execute in
@@ -224,9 +226,10 @@ done:
  * @param max_outsize[in], always sizeof(int)
  * @return (-1) on error or number of written bytes
  */
-int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize)
+int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize, bool *timeout_f)
 {
 	int rc, bytes_written = 0;
+	off_t file_length = 0;
 	wlrh_t *params_in = (wlrh_t *) indata;
 	/* The logrecord is stored in the indata buffer right after the
 	 * wlrh_t structure
@@ -234,6 +237,12 @@ int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize)
 	char *logrecord = (char *) (indata + sizeof(wlrh_t));
 	int *errno_out_p = (int *) outdata;
 	*errno_out_p = 0;
+
+//#define LLD_DELAY_WRTST /* LLDTEST */
+#ifdef LLD_DELAY_WRTST /* Make "file system" hang for n sec at first write */
+	static bool lld_once_f = true;
+	const unsigned int lld_sleep_sec = 10;
+#endif
 	
 	TRACE_ENTER();
 	
@@ -244,8 +253,7 @@ int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize)
 		if (errno == EINTR)
 			goto retry;
 
-		LOG_ER("write FAILED: %s", strerror(errno));
-		TRACE("%s - fd = %d",__FUNCTION__,params_in->fd);
+		LOG_ER("%s - write FAILED: %s",__FUNCTION__, strerror(errno));
 		*errno_out_p = errno;
 		goto done;
 	} else {
@@ -254,8 +262,47 @@ int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize)
 		if (bytes_written < params_in->record_size)
 			goto retry;
 	}
+#ifdef LLD_DELAY_WRTST /* LLDTEST Wait first time thread is used */
+	if (strstr(logrecord, "xxx")) {
+		if (lld_once_f == true) {
+			lld_once_f = false;
+			TRACE("LLDTEST xxx Hang write");
+			//TRACE("LLDTEST: logrecord \"%s\"",logrecord);
+			sleep(lld_sleep_sec);
+			TRACE("LLDTEST End of sleep");
+		}
+	}
+	if (strstr(logrecord, "yyy")) {
+		lld_once_f = true;
+		TRACE("LLDTEST yyy Rearmed Hang write");
+	}
+#endif
  
- done:
+	/* If the thread was hanging and has timed out and the log record was
+	 * written it is invalid and shall be removed from file (log service has
+	 * returned SA_AIS_TRY_AGAIN). 
+	 */
+	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK */
+	if (*timeout_f == true) {
+		TRACE("Timeout, removing last log record");
+		file_length = lseek(params_in->fd, -bytes_written, SEEK_END);
+		if (file_length != -1) {
+			do { 
+				rc = ftruncate(params_in->fd, file_length);
+			} while ((rc == -1) && (errno == EINTR));
+		}
+
+		if (file_length == -1) {
+			LOG_WA("%s - lseek error, Could not remove redundant log record, %s",
+					__FUNCTION__,strerror(errno));
+		} else if (rc == -1) {
+			LOG_WA("%s - ftruncate error, Could not remove redundant log record, %s",
+					__FUNCTION__,strerror(errno));			
+		}
+	}
+	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK */
+ 
+done:
 	TRACE_LEAVE2("rc = %d",rc);
 	return rc;
 }

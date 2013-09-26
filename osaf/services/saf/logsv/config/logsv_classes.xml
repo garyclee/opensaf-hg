@@ -222,7 +222,7 @@
             <default-value>64</default-value>
 		</attr>
 		<attr>
-			<name>logFileHdlTimeoutMs</name>
+			<name>logFileIoTimeout</name>
 			<type>SA_UINT32_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
