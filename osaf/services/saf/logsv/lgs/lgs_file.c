@@ -37,7 +37,7 @@
 
 #define GETTIME(x) osafassert(clock_gettime(CLOCK_REALTIME, &x) == 0);
 
-static pthread_mutex_t lgs_ftcom_mutex;	/* For locking communication */
+pthread_mutex_t lgs_ftcom_mutex;	/* For locking communication */
 static pthread_cond_t request_cv;	/* File thread waiting for request */
 static pthread_cond_t answer_cv;	/* API waiting for answer (timed) */
 
@@ -61,8 +61,11 @@ struct file_communicate {
 static struct file_communicate lgs_com_data = {
 	.answer_f = false,
 	.request_f = false,
+	.timeout_f = false,
 	.request_code = LGSF_NOREQ,
-	.return_code = LGSF_NORETC
+	.return_code = LGSF_NORETC,
+	.indata_ptr = NULL,
+	.outdata_ptr = NULL
 };
 
 static pthread_t file_thread_id;
@@ -117,12 +120,6 @@ static void *file_hndl_thread(void *noparam)
 	int hndl_rc = 0;
 	int dummy;
 	
-//#define LLD_DELAY_TST
-#ifdef LLD_DELAY_TST /* Make "file system" hang for n sec after start */
-	static bool lld_start_f = true;
-	const unsigned int lld_sleep_sec = 10;
-#endif
-	
 	TRACE("%s - is started",__FUNCTION__);
 	/* Configure cancellation so that thread can be canceled at any time */
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &dummy);
@@ -146,14 +143,6 @@ static void *file_hndl_thread(void *noparam)
 			 */
 			osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK */
 		
-#ifdef LLD_DELAY_TST /* LLDTEST Wait first time thread is used */
-			if (lld_start_f == true) {
-				lld_start_f = false;
-				TRACE("LLDTEST: file_hndl_thread sleeping");
-				sleep(lld_sleep_sec);
-				goto lld_wait_end;
-			}
-#endif
 			/* Invoke requested handler function */
 			switch (lgs_com_data.request_code)	{
 			case LGSF_FILEOPEN:
@@ -178,7 +167,8 @@ static void *file_hndl_thread(void *noparam)
 				break;
 			case LGSF_WRITELOGREC:
 				hndl_rc = write_log_record_hdl(lgs_com_data.indata_ptr,
-						lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+						lgs_com_data.outdata_ptr, lgs_com_data.outdata_size,
+						&lgs_com_data.timeout_f);
 				break;
 			case LGSF_CREATECFGFILE:
 				hndl_rc = create_config_file_hdl(lgs_com_data.indata_ptr,
@@ -198,11 +188,6 @@ static void *file_hndl_thread(void *noparam)
 			default:
 				break;
 			}
-			
-#ifdef LLD_DELAY_TST
-			lld_wait_end:
-				TRACE("LLDTEST: file_hndl_thread is awake!");
-#endif
 			
 			osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK */
 
@@ -301,8 +286,6 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	lgsf_retcode_t api_rc = LGSF_SUCESS;
 	int rc = 0;
 	struct timespec timeout_time;
-	struct timespec m_start_time, m_end_time;
-	uint64_t stime_ms, etime_ms, dtime_ms;
 	
 	TRACE_ENTER();
 	
@@ -317,10 +300,19 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 		goto api_exit;
 	}
 	
-	/* Enter data for a request */
+	/* Free request data before allocating new memeory */
+	if (lgs_com_data.indata_ptr != NULL) free(lgs_com_data.indata_ptr);
+	if (lgs_com_data.outdata_ptr != NULL) free(lgs_com_data.outdata_ptr);
+
+	/* Allocate memory and enter data for a request */
 	lgs_com_data.request_code = apipar_in->req_code_in;
 	if (apipar_in->data_in_size != 0) {
 		lgs_com_data.indata_ptr = malloc(apipar_in->data_in_size);
+		if (lgs_com_data.indata_ptr == NULL) {
+			LOG_ER("%s Could not allocate memory for in data", __FUNCTION__);
+			api_rc = LGSF_FAIL;
+			goto api_exit;
+		}
 		memcpy(lgs_com_data.indata_ptr, apipar_in->data_in, apipar_in->data_in_size);
 	} else {
 		lgs_com_data.indata_ptr = NULL;
@@ -328,6 +320,11 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	
 	if (apipar_in->data_out_size != 0) {
 		lgs_com_data.outdata_ptr = malloc(apipar_in->data_out_size);
+		if (lgs_com_data.outdata_ptr == NULL) {
+			LOG_ER("%s Could not allocate memory for out data", __FUNCTION__);
+			api_rc = LGSF_FAIL;
+			goto api_exit;
+		}
 	} else {
 		lgs_com_data.outdata_ptr = NULL;
 	}
@@ -341,8 +338,6 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	if (rc != 0) osaf_abort(rc);
 	
 	/* Wait for an answer */
-	GETTIME(m_start_time); /* Used for TRACE of print of time to answer */
-	
 	get_timeout_time(&timeout_time, max_waittime_ms);
 	
 	while (lgs_com_data.answer_f == false) {
@@ -352,19 +347,12 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 			TRACE("Timed out before answer");
 			api_rc = LGSF_TIMEOUT;
 			lgs_com_data.timeout_f = true; /* Inform thread about timeout */
-			goto done;
+			goto api_exit;
 		} else if (rc != 0) {
 			TRACE("pthread wait Failed - %s",strerror(rc));
 			osaf_abort(rc);
 		}
 	}
-	
-	/* Measure answer time for TRACE */
-	GETTIME(m_end_time);
-	stime_ms = (m_start_time.tv_sec * 1000) + (m_start_time.tv_nsec / 1000000);
-	etime_ms = (m_end_time.tv_sec * 1000) + (m_end_time.tv_nsec / 1000000);
-	dtime_ms = etime_ms - stime_ms;
-	TRACE("Time waited for answer %ld ms",dtime_ms);
 	
 	/* We have an answer
 	 * NOTE!
@@ -379,21 +367,9 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	lgs_com_data.answer_f = false;
 	lgs_com_data.return_code = LGSF_NORETC;
 	
-done:
-	/* Prepare for new request/answer cycle */
-	if (lgs_com_data.indata_ptr != NULL) free(lgs_com_data.indata_ptr);
-	if (lgs_com_data.outdata_ptr != NULL) free(lgs_com_data.outdata_ptr);
-
 api_exit:
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK */
 
-	/* Measure answer time for TRACE */
-	GETTIME(m_end_time);
-	stime_ms = (m_start_time.tv_sec * 1000) + (m_start_time.tv_nsec / 1000000);
-	etime_ms = (m_end_time.tv_sec * 1000) + (m_end_time.tv_nsec / 1000000);
-	dtime_ms = etime_ms - stime_ms;
-	TRACE("Time leaving API %ld ms",dtime_ms);
-	
 	TRACE_LEAVE();
 	return api_rc;	
 }

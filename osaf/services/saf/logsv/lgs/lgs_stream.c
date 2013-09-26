@@ -956,7 +956,7 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 		/* Careful with log level here to avoid syslog flooding */
 		LOG_IN("write '%s' failed \"%s\"", stream->logFileCurrent,
 				strerror(write_errno));
-		
+	
 		if (stream->fd != -1) {
 			/* Try to close the file and invalidate the stream fd */
 			fileclose_h(stream->fd);

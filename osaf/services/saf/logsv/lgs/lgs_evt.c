@@ -1063,11 +1063,10 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	}
 
 	rc = log_stream_write_h(stream, logOutputString, n);
-	if (rc == -1) {
+
+	/* Always return try again on stream write error */
+	if ((rc == -1) || (rc == -2)) {
 		error = SA_AIS_ERR_TRY_AGAIN;
-		goto done;
-	} else if (rc == -2) {
-		error = SA_AIS_ERR_TIMEOUT;
 		goto done;
 	}
 

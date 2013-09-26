@@ -161,11 +161,9 @@ saLogStreamSystemLowLimit   0
 saLogAppHighLimit           0
 saLogAppLowLimit            0
 saLogMaxApplicationStreams  64
-logFileHdlTimeoutMs         500                   File I/O timeout (see file.c)
-logFileHdlRecoveryTimeoutS  600                   File I/O thread timeout (see
-                                                  file.c)
+logFileIoTimeout            500                   File I/O timeout (see file.c)
 
-All the above parameters except saLogRootDirectory has a default value
+All the above attributes except saLogRootDirectory has a default value
 set in the class definition (see logsv_classes.xml). The value for parameter
 saLogRootDirectory is instead defined when the imm.xml file is created. In
 the logsv_objects.xml file the parameter value is set to "xxLOGDIRxx/saflog"
@@ -175,6 +173,15 @@ $pkglogdir. See also LOGSV_ROOT_DIRECTORY in the logd.conf file.
 The configuration file is still used to "enable trace" and
 "enable info level logging". Also the environment variable
 LGSV_ENV_HEALTHCHECK_KEY is used.
+
+logFileIoTimeout
+
+File IO is used in the log service e.g. log records are written to file. File IO
+operations may "hang" if for example the file system is not working correctly.
+This attribute contains the maximum time the log service is allowed to wait for
+e.g. writing a log record to complete. If writing a log record times out
+SA_AIS_ERR_TRY_AGAIN is returned in the corresponding callback.
+
 
 2. Configuration using a configuration file with environment variables:
 This is the "old" way of handling configuration and is kept for backwards

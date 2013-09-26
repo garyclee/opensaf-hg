@@ -53,7 +53,7 @@ typedef struct {
 	SaUint32T logStreamAppHighLimit;
 	SaUint32T logStreamAppLowLimit;
 	SaUint32T logMaxApplicationStreams;
-	SaUint32T logFileHdlTimeoutMs;
+	SaUint32T logFileIoTimeout;
 	/* --- end correspond to IMM Class --- */
 
 	bool logInitiated;
@@ -66,7 +66,7 @@ typedef struct {
 	bool logStreamAppHighLimit_noteflag;
 	bool logStreamAppLowLimit_noteflag;
 	bool logMaxApplicationStreams_noteflag;
-	bool logFileHdlTimeoutMs_noteflag;
+	bool logFileIoTimeout_noteflag;
 } lgs_conf_t;
 
 /* DATA DECLARATIONS
@@ -84,7 +84,7 @@ static lgs_conf_t _lgs_conf = {
 	.logStreamAppHighLimit = 0,
 	.logStreamAppLowLimit = 0,
 	.logMaxApplicationStreams = 64,
-	.logFileHdlTimeoutMs = 500,
+	.logFileIoTimeout = 500,
 
 	/*
 	 * For the following flags, true means that no external configuration
@@ -105,7 +105,7 @@ static lgs_conf_t _lgs_conf = {
 	 * The following attributes cannot be configured in the config file
 	 * Will be set to false if the attribute exists in the IMM config object
 	 */
-	.logFileHdlTimeoutMs_noteflag = true
+	.logFileIoTimeout_noteflag = true
 };
 static lgs_conf_t *lgs_conf = &_lgs_conf;
 
@@ -485,7 +485,7 @@ static SaAisErrorT config_ccb_completed_modify(const CcbUtilOperationData_t *opd
 			LOG_NO("%s cannot be changed", attribute->attrName);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
-		} else if (!strcmp(attribute->attrName, "logFileHdlTimeoutMs")) {
+		} else if (!strcmp(attribute->attrName, "logFileIoTimeout")) {
 			LOG_NO("%s cannot be changed", attribute->attrName);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
@@ -1510,11 +1510,11 @@ static SaAisErrorT read_logsv_config_obj(const char *dn, lgs_conf_t *lgsConf) {
 			lgsConf->logMaxApplicationStreams = *((SaUint32T *) value);
 			param_cnt++;
 			TRACE("logMaxApplicationStreams: %u", lgsConf->logMaxApplicationStreams);
-		} else if (!strcmp(attribute->attrName, "logFileHdlTimeoutMs")) {
-			lgsConf->logFileHdlTimeoutMs = *((SaUint32T *) value);
+		} else if (!strcmp(attribute->attrName, "logFileIoTimeout")) {
+			lgsConf->logFileIoTimeout = *((SaUint32T *) value);
 			lgsConf->logMaxLogrecsize_noteflag = false;
 			param_cnt++;
-			TRACE("logFileHdlTimeoutMs: %u", lgsConf->logFileHdlTimeoutMs);
+			TRACE("logFileIoTimeout: %u", lgsConf->logFileIoTimeout);
 		}
 	}
 
@@ -1746,9 +1746,9 @@ const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag)
 		return (SaUint32T *) &lgs_conf->logMaxApplicationStreams;
 	case LGS_IMM_FILEHDL_TIMEOUT:
 		if (noteflag != NULL) {
-			*noteflag = lgs_conf->logFileHdlTimeoutMs_noteflag;
+			*noteflag = lgs_conf->logFileIoTimeout_noteflag;
 		}
-		return (SaUint32T *) &lgs_conf->logFileHdlTimeoutMs;
+		return (SaUint32T *) &lgs_conf->logFileIoTimeout;
 	case LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST:
 		if (noteflag != NULL) {
 			*noteflag = false;
