@@ -48,7 +48,7 @@
  * @param abspath
  * @param stream
  * 
- * @return int
+ * @return -1 on error
  */
 int lgs_create_config_file_h(log_stream_t *stream)
 {
@@ -64,26 +64,26 @@ int lgs_create_config_file_h(log_stream_t *stream)
 	int path_len, n;
 	char pathname[PATH_MAX];
 
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 
 	/* check the existence of logsv_root_dir/pathName,
 	 * check that the path is safe.
 	 * If ok, create the path if it doesn't already exits
 	 */
 	path_len = snprintf(pathname, PATH_MAX, "%s/%s", lgs_cb->logsv_root_dir, stream->pathName);
-	if (path_len > PATH_MAX) {
-		LOG_WA("Directory path too long");
+	if (path_len >= PATH_MAX) {
+		LOG_WA("logsv_root_dir + pathName > PATH_MAX");
 		rc = -1;
 		goto done;
 	}
 	
 	if (lgs_relative_path_check_ts(pathname) == true) {
-		LOG_WA("Directory path not allowed");
+		LOG_WA("Directory path \"%s\" not allowed", pathname);
 		rc = -1;
 		goto done;
 	}
 	
-	if (lgs_make_dir_h(stream->pathName) != 0) {
+	if (lgs_make_reldir_h(stream->pathName) != 0) {
 		LOG_WA("Create directory '%s/%s' failed", lgs_cb->logsv_root_dir, stream->pathName);
 		rc = -1;
 		goto done;
@@ -94,10 +94,11 @@ int lgs_create_config_file_h(log_stream_t *stream)
 			lgs_cb->logsv_root_dir, stream->pathName, stream->fileName);
 	
 	if (n >= PATH_MAX) {
-		LOG_WA("Config filename too long");
+		LOG_WA("Complete pathname > PATH_MAX");
 		rc = -1;
 		goto done;
 	}
+	TRACE("%s - Config file path \"%s\"",__FUNCTION__, pathname);
 
 	/* 
 	 * Create the configuration file.
@@ -112,7 +113,9 @@ int lgs_create_config_file_h(log_stream_t *stream)
 	/* Set pointers to allocated memory */
 	header_in_p = params_in;
 	logFileFormat_p = params_in + sizeof(ccfh_t);
+	size_t logFileFormat_size = params_in_size - sizeof(ccfh_t);
 	pathname_p = logFileFormat_p + strlen(stream->logFileFormat) + 1;
+	size_t pathname_size = logFileFormat_size - (strlen(stream->logFileFormat) + 1);
 
 	/* Fill in in parameters */
 	header_in_p->version.releaseCode = lgs_cb->log_version.releaseCode;
@@ -123,8 +126,18 @@ int lgs_create_config_file_h(log_stream_t *stream)
 	header_in_p->fixedLogRecordSize = stream->fixedLogRecordSize;
 	header_in_p->maxFilesRotated = stream->maxFilesRotated;
 	
-	strcpy(logFileFormat_p, stream->logFileFormat);
-	strcpy(pathname_p, pathname);
+	n = snprintf(logFileFormat_p, logFileFormat_size, "%s", stream->logFileFormat);
+	if (n >= logFileFormat_size) {
+		rc = -1;
+		LOG_WA("Log file format string too long");
+		goto done_free;
+	}
+	n = snprintf(pathname_p, pathname_size, "%s", pathname);
+	if (n >= pathname_size) {
+		rc = -1;
+		LOG_WA("Path name string too long");
+		goto done_free;
+	}
 	
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_CREATECFGFILE;
@@ -141,10 +154,11 @@ int lgs_create_config_file_h(log_stream_t *stream)
 		rc = apipar.hdl_ret_code_out;
 	}
 	
+done_free:
 	free(params_in);
 	
 done:
-	TRACE_LEAVE2("LLDTEST: %u", rc);
+	TRACE_LEAVE2("rc = %d", rc);
 	return rc;
 }
 
@@ -225,11 +239,11 @@ int lgs_file_rename_h(
 	char *newpath_in_p;
 	size_t *oldpath_str_size_p;
 	
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 
 	n = snprintf(oldpath, PATH_MAX, "%s/%s/%s%s",
 			lgs_cb->logsv_root_dir, path, old_name, suffix);
-	if (n > PATH_MAX) {
+	if (n >= PATH_MAX) {
 		LOG_ER("Cannot rename file, old path > PATH_MAX");
 		rc = -1;
 		goto done;
@@ -237,14 +251,14 @@ int lgs_file_rename_h(
 
 	n = snprintf(newpath, PATH_MAX, "%s/%s/%s_%s%s",
 			lgs_cb->logsv_root_dir, path, old_name, time_stamp, suffix);
-	if (n > PATH_MAX) {
+	if (n >= PATH_MAX) {
 		LOG_ER("Cannot rename file, new path > PATH_MAX");
 		rc = -1;
 		goto done;
 	}
 	
-	TRACE_4("LLDTEST: Rename file from %s", oldpath);
-	TRACE_4("LLDTEST:               to %s", newpath);
+	TRACE_4("Rename file from %s", oldpath);
+	TRACE_4("              to %s", newpath);
 	
 	/* Allocate memory for parameters */
 	size_t oldpath_size = strlen(oldpath)+1;
@@ -281,7 +295,7 @@ int lgs_file_rename_h(
 	free(params_in_p);
 	
 done:
-	TRACE_LEAVE2("LLDTEST");
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -418,7 +432,7 @@ bool lgs_relative_path_check_ts(const char* path)
  * @param path, Path relative log service root directory
  * @return -1 on error
  */
-int lgs_make_dir_h(const char* path)
+int lgs_make_reldir_h(const char* path)
 {
 	lgsf_apipar_t apipar;
 	lgsf_retcode_t api_rc;
@@ -427,30 +441,27 @@ int lgs_make_dir_h(const char* path)
 	char new_rootstr[PATH_MAX];
 	size_t n1, n2;
 	
-	TRACE_ENTER2("LLDTEST");
+	TRACE_ENTER();
 	
-	TRACE("LLDTEST: lgs_cb->logsv_root_dir \"%s\"",lgs_cb->logsv_root_dir);
-	TRACE("LLDTEST: path \"%s\"",path);
+	TRACE("lgs_cb->logsv_root_dir \"%s\"",lgs_cb->logsv_root_dir);
+	TRACE("path \"%s\"",path);
 	
 	n1 = snprintf(params_in.root_dir, PATH_MAX, "%s", lgs_cb->logsv_root_dir);
-	if (n1 > PATH_MAX) {
-		LOG_WA("%s - Directory could not be created. Too long root path",__FUNCTION__);
+	if (n1 >= PATH_MAX) {
+		LOG_WA("logsv_root_dir > PATH_MAX");
 		goto done;
 	}
 	n2 = snprintf(params_in.rel_path, PATH_MAX, "%s", path);
-	if (n2 > PATH_MAX) {
-		LOG_WA("%s - Directory could not be created. Too long rel path",__FUNCTION__);
+	if (n2 >= PATH_MAX) {
+		LOG_WA("path > PATH_MAX");
 		goto done;
 	}
 	
 	/* Check that the complete path is not longer than PATH_MAX */
-	if ((strlen(params_in.root_dir) + strlen(params_in.rel_path)) > PATH_MAX) {
-		LOG_WA("%s - Path is too long. Cannot make dir",__FUNCTION__);
+	if ((strlen(params_in.root_dir) + strlen(params_in.rel_path)) >= PATH_MAX) {
+		LOG_WA("root_dir + rel_path > PATH_MAX");
 		goto done;
 	}
-	
-	TRACE("LLDTEST: root_dir \"%s\"",params_in.root_dir);
-	TRACE("LLDTEST: rel_path \"%s\"",params_in.rel_path);
 	
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_MAKELOGDIR;
@@ -474,7 +485,7 @@ int lgs_make_dir_h(const char* path)
 	}
 
 done:
-	TRACE_LEAVE2("LLDTEST");
+	TRACE_LEAVE2("rc = %d",rc);
 	
 	return rc;
 }
@@ -492,7 +503,7 @@ int lgs_check_path_exists_h(const char *path_to_check)
 	void *params_in_p;
 	int rc = 0;
 	
-	TRACE_ENTER2("LLDTEST: path \"%s\"",path_to_check);
+	TRACE_ENTER2("path \"%s\"",path_to_check);
 	/* Allocate memory for parameter */
 	size_t params_in_size = strlen(path_to_check)+1;
 	params_in_p = malloc(params_in_size);
@@ -516,6 +527,6 @@ int lgs_check_path_exists_h(const char *path_to_check)
 	}
 	
 	free(params_in_p);
-	TRACE_LEAVE2("LLDTEST rc=%d",rc);
+	TRACE_LEAVE2("rc = %d",rc);
 	return rc;
 }

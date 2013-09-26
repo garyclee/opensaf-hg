@@ -739,7 +739,6 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
 	TRACE_ENTER();
 
 	/* Decode the message header */
-	TRACE("LLDTEST: %s - Decode the message header START",__FUNCTION__);
 	hdr = &ckpt_msg->header;
 	rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_ed_header_rec, &cbk_arg->info.decode.i_uba,
 			    EDP_OP_TYPE_DEC, &hdr, &ederror);
@@ -748,7 +747,6 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
 		m_NCS_EDU_PRINT_ERROR_STRING(ederror);
 		goto done;
 	}
-	TRACE("LLDTEST: %s - Decode the message header DONE",__FUNCTION__);
 
 	ederror = 0;
 	TRACE_2("ckpt_rec_type: %d ", (int)hdr->ckpt_rec_type);
@@ -1096,9 +1094,7 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	stream->logRecordId = param->recordId;
 	stream->curFileSize = param->curFileSize;
 	strcpy(stream->logFileCurrent, param->logFileCurrent);
-	stream->files_initiated = param->files_initiated; /* LLDTEST */
-	TRACE("LLDTEST: %s - logFileCurrent \"%s\"",__FUNCTION__,stream->logFileCurrent);
-	TRACE("LLDTEST %s - stream->files_initiated = %d",__FUNCTION__,stream->files_initiated);
+	stream->files_initiated = param->files_initiated;
 
  done:
 	free_edu_mem(param->logFileCurrent);
@@ -1136,7 +1132,6 @@ static uint32_t ckpt_proc_close_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 
 	(void)lgs_client_stream_rmv(param->clientId, param->streamId);
 
-	TRACE("LLDTEST: %s - log_stream_close()",__FUNCTION__);
 	if (log_stream_close(&stream) != 0) {
 		/* Do not allow standby to get out of sync */
 		lgs_exit("Client attributes differ", SA_AMF_COMPONENT_RESTART);
@@ -1165,7 +1160,6 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 {
 	lgs_ckpt_stream_open_t *param = &data->ckpt_rec.stream_open;
 	log_stream_t *stream;
-	int lldi=1; /*LLDTEST remove*/
 
 	TRACE_ENTER();
 
@@ -1174,7 +1168,6 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 		LOG_WA("Client %u does not exist, failed to create stream '%s'", param->clientId, param->logStreamName);
 		goto done;
 	}
-	TRACE("LLDTEST - %d",lldi++);
 
 	stream = log_stream_get_by_name(param->logStreamName);
 	if (stream != NULL) {
@@ -1191,24 +1184,19 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 		strcpy((char *)name.value, param->logStreamName);
 		name.length = strlen(param->logStreamName);
 
-		TRACE("LLDTEST - %d",lldi++);
 		stream = log_stream_new(&name, param->logFile, param->logPath, param->maxFileSize, param->maxLogRecordSize, param->logFileFullAction, param->maxFilesRotated, param->fileFmt, param->streamType, param->streamId, SA_FALSE,	// FIX sync or calculate?
 					param->logRecordId);
 
-		TRACE("LLDTEST - %d",lldi++);
 		if (stream == NULL) {
 			/* Do not allow standby to get out of sync */
 			LOG_ER("Failed to create stream '%s'", param->logStreamName);
 			goto done;
 		}
 
-		TRACE("LLDTEST - %d",lldi++);
 		stream->numOpeners = param->numOpeners;
 		stream->creationTimeStamp = param->creationTimeStamp;
 		strcpy(stream->logFileCurrent, param->logFileCurrent);
-		stream->files_initiated = param->files_initiated; /* LLDTEST */
-		TRACE("LLDTEST: %s - logFileCurrent \"%s\"",__FUNCTION__,stream->logFileCurrent);
-		TRACE("LLDTEST: %s - stream->files_initiated = %d",__FUNCTION__,stream->files_initiated);
+		stream->files_initiated = param->files_initiated;
 	}
 
 	log_stream_print(stream);
@@ -1217,16 +1205,13 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	 ** Create an association between this client_id and the stream
 	 ** A client ID of -1 indicates that no client exist, skip this step.
 	 */
-	TRACE("LLDTEST - %d",lldi++);
 	if ((param->clientId != -1) && lgs_client_stream_add(param->clientId, stream->streamId) != 0) {
 		/* Do not allow standby to get out of sync */
 		LOG_ER("Failed to add stream '%s' to client %u", param->logStreamName, param->clientId);
 		lgs_exit("Could not add stream to client", SA_AMF_COMPONENT_RESTART);
 	}
 
-	TRACE("LLDTEST - %d",lldi++);
  done:
-	TRACE("LLDTEST - %d",lldi++);
 	/* Free strings allocated by the EDU encoder */
 	free_edu_mem(param->logFile);
 	free_edu_mem(param->logPath);
@@ -1336,8 +1321,6 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	stream->severityFilter = param->severityFilter;
 	strcpy(stream->logFileCurrent, param->logFileCurrent);
 	stream->files_initiated = param->files_initiated;
-	TRACE("LLDTEST: %s - logFileCurrent \"%s\"",__FUNCTION__,stream->logFileCurrent);
-	TRACE("LLDTEST %s - files_initiated =%d",__FUNCTION__,param->files_initiated);
 
  done:
 	/* Free strings allocated by the EDU encoder */
@@ -1395,7 +1378,6 @@ uint32_t lgs_ckpt_send_async(lgs_cb_t *cb, lgsv_ckpt_msg_t *ckpt_rec, uint32_t a
 	/* Send async update */
 	if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
 		LOG_ER("MBCSV send FAILED rc=%u.", rc);
-		TRACE("LLDTEST: %s - MBCSV send FAILED rc=%u.",__FUNCTION__, rc);
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -1591,8 +1573,6 @@ static uint32_t edp_ed_write_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
-	TRACE("LLDTEST: %s",__FUNCTION__);
-	
 	if (op == EDP_OP_TYPE_ENC) {
 		ckpt_write_msg_ptr = (lgs_ckpt_write_log_t *)ptr;
 	} else if (op == EDP_OP_TYPE_DEC) {

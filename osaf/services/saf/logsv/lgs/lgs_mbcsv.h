@@ -60,7 +60,7 @@ typedef struct {
 	uint32_t recordId;
 	uint32_t curFileSize;
 	char *logFileCurrent;
-	bool files_initiated; /* LLDTEST */
+	bool files_initiated;
 } lgs_ckpt_write_log_t;
 
 typedef struct {
@@ -81,7 +81,7 @@ typedef struct {
 	char *logFileCurrent;
 	logStreamTypeT streamType;
 	uint32_t logRecordId;	/* log record indentifier increased for each record */
-	bool files_initiated; /* LLDTEST */
+	bool files_initiated;
 } lgs_ckpt_stream_open_t;
 
 typedef struct {
@@ -111,7 +111,7 @@ typedef struct {
 	char *logFileFormat;
 	SaUint32T severityFilter;
 	char *logFileCurrent;
-	bool files_initiated; /* LLDTEST */
+	bool files_initiated;
 } lgs_ckpt_stream_cfg_t;
 
 typedef struct {
