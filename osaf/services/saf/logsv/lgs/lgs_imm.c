@@ -53,6 +53,8 @@ typedef struct {
 	SaUint32T logStreamAppHighLimit;
 	SaUint32T logStreamAppLowLimit;
 	SaUint32T logMaxApplicationStreams;
+	SaUint32T logFileHdlTimeoutMs;
+	SaUint32T logFileHdlRecoveryTimeoutS;
 	/* --- end correspond to IMM Class --- */
 
 	bool logInitiated;
@@ -65,6 +67,8 @@ typedef struct {
 	bool logStreamAppHighLimit_noteflag;
 	bool logStreamAppLowLimit_noteflag;
 	bool logMaxApplicationStreams_noteflag;
+	bool logFileHdlTimeoutMs_noteflag;
+	bool logFileHdlRecoveryTimeoutS_noteflag;
 } lgs_conf_t;
 
 /* DATA DECLARATIONS
@@ -82,7 +86,14 @@ static lgs_conf_t _lgs_conf = {
 	.logStreamAppHighLimit = 0,
 	.logStreamAppLowLimit = 0,
 	.logMaxApplicationStreams = 64,
+	.logFileHdlTimeoutMs = 500,
+	.logFileHdlRecoveryTimeoutS = 600,
 
+	/*
+	 * For the following flags, true means that no external configuration
+	 * exists and the corresponding attributes hard-coded default value is used
+	 * See function lgs_imm_logconf_get() for more info.
+	 */
 	.logInitiated = false,
 	.OpenSafLogConfig_class_exist = false,
 			
@@ -92,7 +103,13 @@ static lgs_conf_t _lgs_conf = {
 	.logStreamSystemLowLimit_noteflag = false,
 	.logStreamAppHighLimit_noteflag = false,
 	.logStreamAppLowLimit_noteflag = false,
-	.logMaxApplicationStreams_noteflag = false
+	.logMaxApplicationStreams_noteflag = false,
+	/* 
+	 * The following attributes cannot be configured in the config file
+	 * Will be set to false if the attribute exists in the IMM config object
+	 */
+	.logFileHdlTimeoutMs_noteflag = true,
+	.logFileHdlRecoveryTimeoutS_noteflag = true
 };
 static lgs_conf_t *lgs_conf = &_lgs_conf;
 
@@ -469,6 +486,14 @@ static SaAisErrorT config_ccb_completed_modify(const CcbUtilOperationData_t *opd
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logMaxApplicationStreams")) {
+			LOG_NO("%s cannot be changed", attribute->attrName);
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
+		} else if (!strcmp(attribute->attrName, "logFileHdlTimeoutMs")) {
+			LOG_NO("%s cannot be changed", attribute->attrName);
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
+		} else if (!strcmp(attribute->attrName, "logFileHdlRecoveryTimeoutS")) {
 			LOG_NO("%s cannot be changed", attribute->attrName);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
@@ -1489,14 +1514,24 @@ static SaAisErrorT read_logsv_config_obj(const char *dn, lgs_conf_t *lgsConf) {
 			lgsConf->logMaxApplicationStreams = *((SaUint32T *) value);
 			param_cnt++;
 			TRACE("logMaxApplicationStreams: %u", lgsConf->logMaxApplicationStreams);
+		} else if (!strcmp(attribute->attrName, "logFileHdlTimeoutMs")) {
+			lgsConf->logFileHdlTimeoutMs = *((SaUint32T *) value);
+			lgsConf->logMaxLogrecsize_noteflag = false;
+			param_cnt++;
+			TRACE("logFileHdlTimeoutMs: %u", lgsConf->logFileHdlTimeoutMs);
+		} else if (!strcmp(attribute->attrName, "logFileHdlRecoveryTimeoutS")) {
+			lgsConf->logFileHdlRecoveryTimeoutS = *((SaUint32T *) value);
+			lgsConf->logMaxLogrecsize_noteflag = false;
+			param_cnt++;
+			TRACE("logFileHdlRecoveryTimeoutS: %u", lgsConf->logFileHdlRecoveryTimeoutS);
 		}
 	}
 
-	/* Check if missing parameters */
+	/* Check if missing attributes. Default value will be used if attribute is
+	 * missing.
+	 */
 	if (param_cnt != LGS_IMM_LOG_NUMBER_OF_PARAMS) {
-		lgsConf->OpenSafLogConfig_class_exist = false;
-		rc = SA_AIS_ERR_NOT_EXIST;
-		LOG_ER("read_logsv_configuration(), Parameter error. All parameters could not be read");
+		LOG_WA("read_logsv_configuration(). All attributes could not be read");
 	}
 
 done:
@@ -1718,6 +1753,16 @@ const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag)
 			*noteflag = lgs_conf->logMaxApplicationStreams_noteflag;
 		}
 		return (SaUint32T *) &lgs_conf->logMaxApplicationStreams;
+	case LGS_IMM_FILEHDL_TIMEOUT:
+		if (noteflag != NULL) {
+			*noteflag = lgs_conf->logFileHdlTimeoutMs_noteflag;
+		}
+		return (SaUint32T *) &lgs_conf->logFileHdlTimeoutMs;
+	case LGS_IMM_FILEHDL_RECOVERY_TIMEOUT:
+		if (noteflag != NULL) {
+			*noteflag = lgs_conf->logFileHdlRecoveryTimeoutS_noteflag;
+		}
+		return (SaUint32T *) &lgs_conf->logFileHdlRecoveryTimeoutS;
 	case LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST:
 		if (noteflag != NULL) {
 			*noteflag = false;

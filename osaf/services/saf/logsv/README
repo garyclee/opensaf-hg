@@ -153,14 +153,17 @@ meaning that all parameters will get their default value.
 
 The class defines the following parameters (logsv_classes.xml):
 
-NAME                        DEFAULT VALUE
-saLogRootDirectory          /var/log/opensaf/saflog
+NAME                        DEFAULT VALUE         COMMENT
+saLogRootDirectory          $pkglogdir/saflog
 saLogMaxLogrecsize          1024
 saLogStreamSystemHighLimit  0
 saLogStreamSystemLowLimit   0
 saLogAppHighLimit           0
 saLogAppLowLimit            0
 saLogMaxApplicationStreams  64
+logFileHdlTimeoutMs         500                   File I/O timeout (see file.c)
+logFileHdlRecoveryTimeoutS  600                   File I/O thread timeout (see
+                                                  file.c)
 
 All the above parameters except saLogRootDirectory has a default value
 set in the class definition (see logsv_classes.xml). The value for parameter
