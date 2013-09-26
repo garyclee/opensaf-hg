@@ -228,12 +228,5 @@
 			<flag>SA_WRITABLE</flag>
             <default-value>500</default-value>
 		</attr>
-		<attr>
-			<name>logFileHdlRecoveryTimeoutS</name>
-			<type>SA_UINT32_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_WRITABLE</flag>
-            <default-value>600</default-value>
-		</attr>
 	</class>
 </imm:IMM-contents>
