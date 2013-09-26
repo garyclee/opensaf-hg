@@ -54,7 +54,6 @@ typedef struct {
 	SaUint32T logStreamAppLowLimit;
 	SaUint32T logMaxApplicationStreams;
 	SaUint32T logFileHdlTimeoutMs;
-	SaUint32T logFileHdlRecoveryTimeoutS;
 	/* --- end correspond to IMM Class --- */
 
 	bool logInitiated;
@@ -68,7 +67,6 @@ typedef struct {
 	bool logStreamAppLowLimit_noteflag;
 	bool logMaxApplicationStreams_noteflag;
 	bool logFileHdlTimeoutMs_noteflag;
-	bool logFileHdlRecoveryTimeoutS_noteflag;
 } lgs_conf_t;
 
 /* DATA DECLARATIONS
@@ -87,7 +85,6 @@ static lgs_conf_t _lgs_conf = {
 	.logStreamAppLowLimit = 0,
 	.logMaxApplicationStreams = 64,
 	.logFileHdlTimeoutMs = 500,
-	.logFileHdlRecoveryTimeoutS = 600,
 
 	/*
 	 * For the following flags, true means that no external configuration
@@ -108,8 +105,7 @@ static lgs_conf_t _lgs_conf = {
 	 * The following attributes cannot be configured in the config file
 	 * Will be set to false if the attribute exists in the IMM config object
 	 */
-	.logFileHdlTimeoutMs_noteflag = true,
-	.logFileHdlRecoveryTimeoutS_noteflag = true
+	.logFileHdlTimeoutMs_noteflag = true
 };
 static lgs_conf_t *lgs_conf = &_lgs_conf;
 
@@ -1519,11 +1515,6 @@ static SaAisErrorT read_logsv_config_obj(const char *dn, lgs_conf_t *lgsConf) {
 			lgsConf->logMaxLogrecsize_noteflag = false;
 			param_cnt++;
 			TRACE("logFileHdlTimeoutMs: %u", lgsConf->logFileHdlTimeoutMs);
-		} else if (!strcmp(attribute->attrName, "logFileHdlRecoveryTimeoutS")) {
-			lgsConf->logFileHdlRecoveryTimeoutS = *((SaUint32T *) value);
-			lgsConf->logMaxLogrecsize_noteflag = false;
-			param_cnt++;
-			TRACE("logFileHdlRecoveryTimeoutS: %u", lgsConf->logFileHdlRecoveryTimeoutS);
 		}
 	}
 
@@ -1758,11 +1749,6 @@ const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag)
 			*noteflag = lgs_conf->logFileHdlTimeoutMs_noteflag;
 		}
 		return (SaUint32T *) &lgs_conf->logFileHdlTimeoutMs;
-	case LGS_IMM_FILEHDL_RECOVERY_TIMEOUT:
-		if (noteflag != NULL) {
-			*noteflag = lgs_conf->logFileHdlRecoveryTimeoutS_noteflag;
-		}
-		return (SaUint32T *) &lgs_conf->logFileHdlRecoveryTimeoutS;
 	case LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST:
 		if (noteflag != NULL) {
 			*noteflag = false;

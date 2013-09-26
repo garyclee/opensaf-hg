@@ -43,8 +43,6 @@ static pthread_cond_t answer_cv;	/* API waiting for answer (timed) */
 
 /* Max time to wait for file thread to finish */
 static SaUint32T max_waittime_ms = 500;
-/* Max time to wait for hanging file thread before recovery */
-static SaUint32T max_recoverytime_s = 600;
 
 struct file_communicate {
 	bool request_f;	/* True if pending request */
@@ -68,15 +66,12 @@ static struct file_communicate lgs_com_data = {
 };
 
 static pthread_t file_thread_id;
-static struct timespec ftr_start_time; /* Start time used for file thread recovery */
-static bool ftr_started_flag = false; /* Set to true if thread is hanging */
 
 /*****************************************************************************
  * Utility functions
  *****************************************************************************/
 
 static int start_file_thread(void);
-static void remove_file_thread(void);
 
 /**
  * Creates absolute time to use with pthread_cond_timedwait.
@@ -100,42 +95,6 @@ static void get_timeout_time(struct timespec *timeout_time, long int timeout_ms)
 	/* Convert back to timespec */
 	timeout_time->tv_sec = millisec2 / 1000;
 	timeout_time->tv_nsec = (millisec2 % 1000) * 1000000;
-}
-
-/**
- * Checks if time to recover the file thread. If timeout do the recovery
- * Global variables:
- *		ftr_start_time; Time saved when file thread was timed out.
- *		ftr_start_flag; Set to true when recovery timeout shall be measured.
- * 
- */
-static void ft_check_recovery(void)
-{
-	struct timespec end_time;
-	uint64_t stime_ms, etime_ms, dtime_ms;
-	int rc;
-
-	TRACE_ENTER2("ftr_started_flag = %d",ftr_started_flag);
-	if (ftr_started_flag == true) {
-		/* Calculate elapsed time */
-		GETTIME(end_time);
-		stime_ms = (ftr_start_time.tv_sec * 1000) + (ftr_start_time.tv_nsec / 1000000);
-		etime_ms = (end_time.tv_sec * 1000) + (end_time.tv_nsec / 1000000);
-		dtime_ms = etime_ms - stime_ms;
-
-		TRACE("dtime_ms = %ld",dtime_ms);
-
-		if (dtime_ms >= (max_recoverytime_s * 1000)) {
-			TRACE("Recovering file thread");
-			remove_file_thread();
-			rc = start_file_thread();
-			if (rc) {
-				LOG_ER("File thread could not be recovered. Exiting...");
-				_Exit(EXIT_FAILURE);
-			}
-		}
-	}
-	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -309,44 +268,6 @@ done:
 }
 
 /**
- * Remove and cleanup file thread
- */
-static void remove_file_thread(void)
-{
-	int rc;
-	
-	TRACE_ENTER();
-	
-	/* Remove the thread */
-	rc = pthread_cancel(file_thread_id);
-	if (rc) {
-		TRACE("pthread_cancel fail - %s",strerror(rc));
-	}
-	
-	/* Cleanup mutex and conditions */
-	rc = pthread_cond_destroy(&request_cv);
-	if (rc) {
-		TRACE("pthread_cond_destroy, request_cv fail - %s",strerror(rc));
-	}
-	rc = pthread_cond_destroy(&answer_cv);
-	if (rc) {
-		TRACE("pthread_cond_destroy, answer_cv fail - %s",strerror(rc));
-	}
-	rc = pthread_mutex_destroy(&lgs_ftcom_mutex);
-	if (rc) {
-		TRACE("pthread_cond_destroy, answer_cv fail - %s",strerror(rc));
-	}
-	
-	/* Clean up thread synchronization */
-	lgs_com_data.answer_f = false;
-	lgs_com_data.request_f = false;
-	lgs_com_data.request_code = LGSF_NOREQ;
-	lgs_com_data.return_code = LGSF_NORETC;
-	
-	TRACE_LEAVE();
-}
-
-/**
  * Initialize threaded file handling
  */
 uint32_t lgs_file_init(void)
@@ -359,11 +280,6 @@ uint32_t lgs_file_init(void)
 	max_waittime_ms = *(SaUint32T*) lgs_imm_logconf_get(
 									LGS_IMM_FILEHDL_TIMEOUT, NULL);
 	TRACE("max_waittime_ms = %d",max_waittime_ms);
-	/* Max time to wait for hanging file thread before recovery */
-	max_recoverytime_s = *(SaUint32T*) lgs_imm_logconf_get(
-										LGS_IMM_FILEHDL_RECOVERY_TIMEOUT, NULL);
-	TRACE("max_recoverytime_s = %d",max_recoverytime_s);
-
 	
 	if (start_file_thread() != 0) {
 		rc = NCSCC_RC_FAILURE;
@@ -436,9 +352,6 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 			TRACE("Timed out before answer");
 			api_rc = LGSF_TIMEOUT;
 			lgs_com_data.timeout_f = true; /* Inform thread about timeout */
-			/* Set start time for thread recovery timeout */
-			GETTIME(ftr_start_time);
-			ftr_started_flag = true; /* Switch on timeout check */
 			goto done;
 		} else if (rc != 0) {
 			TRACE("pthread wait Failed - %s",strerror(rc));
@@ -466,9 +379,6 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	lgs_com_data.answer_f = false;
 	lgs_com_data.return_code = LGSF_NORETC;
 	
-	/* We are not hanging. Switch off recovery timer if armed */
-	ftr_started_flag = false;
-	
 done:
 	/* Prepare for new request/answer cycle */
 	if (lgs_com_data.indata_ptr != NULL) free(lgs_com_data.indata_ptr);
@@ -476,12 +386,6 @@ done:
 
 api_exit:
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK */
-	/* If thread is hanging, check for how long time it has been hanging
-	 * by reading time and compare with start time for hanging.
-	 * If too long reset thread. Note: This must be done here after the mutex
-	 * is unlocked.
-	 */
-	 ft_check_recovery();
 
 	/* Measure answer time for TRACE */
 	GETTIME(m_end_time);
