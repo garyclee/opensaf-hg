@@ -449,7 +449,6 @@ uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream, lgs_ckpt_stream_open_
 	stream_open->numOpeners = logStream->numOpeners;
 	stream_open->streamType = logStream->streamType;
 	stream_open->logRecordId = logStream->logRecordId;
-	stream_open->files_initiated = logStream->files_initiated;
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -1094,7 +1093,6 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	stream->logRecordId = param->recordId;
 	stream->curFileSize = param->curFileSize;
 	strcpy(stream->logFileCurrent, param->logFileCurrent);
-	stream->files_initiated = param->files_initiated;
 
  done:
 	free_edu_mem(param->logFileCurrent);
@@ -1196,7 +1194,6 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 		stream->numOpeners = param->numOpeners;
 		stream->creationTimeStamp = param->creationTimeStamp;
 		strcpy(stream->logFileCurrent, param->logFileCurrent);
-		stream->files_initiated = param->files_initiated;
 	}
 
 	log_stream_print(stream);
@@ -1320,7 +1317,6 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	strcpy(stream->logFileFormat, param->logFileFormat);
 	stream->severityFilter = param->severityFilter;
 	strcpy(stream->logFileCurrent, param->logFileCurrent);
-	stream->files_initiated = param->files_initiated;
 
  done:
 	/* Free strings allocated by the EDU encoder */
@@ -1569,7 +1565,6 @@ static uint32_t edp_ed_write_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_write_log_t *)0)->streamId, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_write_log_t *)0)->curFileSize, 0, NULL},
 		{EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_write_log_t *)0)->logFileCurrent, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_write_log_t *)0)->files_initiated, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
@@ -1636,7 +1631,6 @@ static uint32_t edp_ed_open_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->numOpeners, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->streamType, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logRecordId, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->files_initiated, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
@@ -1804,7 +1798,6 @@ static uint32_t edp_ed_cfg_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t *)0)->logFileFormat, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t *)0)->severityFilter, 0, NULL},
 		{EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t *)0)->logFileCurrent, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t *)0)->files_initiated , 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 

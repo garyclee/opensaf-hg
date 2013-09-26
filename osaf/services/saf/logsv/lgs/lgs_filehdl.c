@@ -251,7 +251,7 @@ int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize)
 	} else {
 		/* Handle partial writes */
 		bytes_written += rc;
-		if (bytes_written < params_in->fixedLogRecordSize)
+		if (bytes_written < params_in->record_size)
 			goto retry;
 	}
  
@@ -379,7 +379,13 @@ done:
 }
 
 /**
- * Open/create a file for append
+ * Open/create a file for append in non blocking mode.
+ * Note: The file is opened in NONBLOCK mode directly. This makes it possible
+ *       that the open succeeds but the following write will fail. To avoid
+ *       this the file can be opened without the O_NONBLOCK flag and set this
+ *       flag using fcntl(). But write handling is done so that if a write
+ *       fails the log file will always be reopened.
+ *
  * @param indata[in], Null-terminated string containing filename to open
  * @param outdata[out], int errno, 0 if no error
  * @param max_outsize[in], always sizeof(int)
@@ -387,18 +393,19 @@ done:
  */
 int fileopen_hdl(void *indata, void *outdata, size_t max_outsize)
 {
-	int fd_out;
 	int errno_save = 0;
 	char *filepath = (char *) indata;
 	int *errno_out_p = (int *) outdata;
+	int fd;
 	
 	TRACE_ENTER();
 	
 	TRACE("%s - filepath \"%s\"",__FUNCTION__,filepath);
 open_retry:
-	fd_out = open(filepath, O_CREAT | O_RDWR | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP);
+	fd = open(filepath, O_CREAT | O_RDWR | O_APPEND | O_NONBLOCK,
+							S_IRUSR | S_IWUSR | S_IRGRP);
 
-	if (fd_out == -1) {
+	if (fd == -1) {
 		if (errno == EINTR)
 			goto open_retry;
 		/* save errno for caller logging */
@@ -410,7 +417,7 @@ open_retry:
 
 	*errno_out_p = errno_save;
 	TRACE_LEAVE();
-	return fd_out;
+	return fd;
 }
 
 /**

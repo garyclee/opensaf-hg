@@ -48,7 +48,7 @@ static int lgs_stream_array_remove(int id);
 static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file);
 
 /**
- * Open/Create a file
+ * Open/create a file for append in non blocking mode.
  * @param filepath[in]
  * @param errno_save[out], errno if error
  * @return File descriptor or -1 if error
@@ -277,12 +277,7 @@ static uint32_t log_stream_remove(const char *key)
 }
 
 /**
- * Initiate the files belonging to a stream if they are not already initiated.
- * The stream->files_initiated flag is set when the files are initiated.
- * If the files could not be initiated e.g. the file system is not working, the
- * files_initiated flag will not be set.
- * This function should be used when a stream is opened and every time a log
- * record is written.
+ * Initiate the files belonging to a stream
  * 
  * @param stream
  */
@@ -291,41 +286,35 @@ static void log_initiate_stream_files(log_stream_t *stream)
 	int errno_save;
 	
 	TRACE_ENTER();
-	TRACE_2("%s - stream->files_initiated = %d",__FUNCTION__,stream->files_initiated);
 	
-	if (stream->files_initiated == false) {
-		
-		/* Delete to get counting right. It might not exist. */
-		(void)delete_config_file(stream);
+	/* Initiate stream file descriptor to flag that no valid descriptor exist */
+	stream->fd = -1;
+	
+	/* Delete to get counting right. It might not exist. */
+	(void)delete_config_file(stream);
 
-		/* Save what filename that shall be the current log file */
-		snprintf(stream->logFileCurrent, NAME_MAX, "%s_%s", stream->fileName, lgs_get_time());
-
-		/* Remove files from a previous life if needed */
-		if (rotate_if_needed(stream) == -1) {
-			TRACE("%s - rotate_if_needed() FAIL",__FUNCTION__);
-			goto done;
-		}
-
-		if (lgs_make_reldir_h(stream->pathName) != 0){
-			TRACE("%s - lgs_make_dir_h() FAIL",__FUNCTION__);
-			goto done;
-		}
-
-		if (lgs_create_config_file_h(stream) != 0) {
-			TRACE("%s - lgs_create_config_file_h() FAIL",__FUNCTION__);
-			goto done;
-		}
-
-		if ((stream->fd = log_file_open(stream, &errno_save)) == -1) {
-			TRACE("%s - Could not open '%s' - %s",__FUNCTION__,
-					stream->logFileCurrent, strerror(errno_save));
-			goto done;
-		}
-		
-		stream->files_initiated = true;
+	/* Remove files from a previous life if needed */
+	if (rotate_if_needed(stream) == -1) {
+		TRACE("%s - rotate_if_needed() FAIL",__FUNCTION__);
+		goto done;
 	}
-	
+
+	if (lgs_make_reldir_h(stream->pathName) != 0){
+		TRACE("%s - lgs_make_dir_h() FAIL",__FUNCTION__);
+		goto done;
+	}
+
+	if (lgs_create_config_file_h(stream) != 0) {
+		TRACE("%s - lgs_create_config_file_h() FAIL",__FUNCTION__);
+		goto done;
+	}
+
+	if ((stream->fd = log_file_open(stream, &errno_save)) == -1) {
+		TRACE("%s - Could not open '%s' - %s",__FUNCTION__,
+				stream->logFileCurrent, strerror(errno_save));
+		goto done;
+	}
+
 done:
 	TRACE_LEAVE();
 }
@@ -685,7 +674,8 @@ log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
 }
 
 /**
- * Open file associated with stream
+ * Open log file associated with stream
+ * The file is opened in non blocking mode.
  * @param stream
  * @param errno_save - errno from open() returned here if supplied
  *
@@ -728,12 +718,9 @@ SaAisErrorT log_stream_open(log_stream_t *stream)
 
 	/* first time open? */
 	if (stream->numOpeners == 0) {
+		/* Create and save current log file name */
+		snprintf(stream->logFileCurrent, NAME_MAX, "%s_%s", stream->fileName, lgs_get_time());
 		log_initiate_stream_files(stream);
-	} else {
-		/* Second or more open on a stream */
-		if (stream->fd == -1) {
-			log_initiate_stream_files(stream);
-		}
 	}
 	
 	/* Opening a stream will always succeed. If file system problem a new
@@ -893,7 +880,9 @@ done:
  * @param buf
  * @param count
  * 
- * @return int -1 on error, 0 otherwise
+ * @return int 0 No error
+ *            -1 on error
+ *            -2 Write failed because of write timeout or EWOULDBLOCK/EAGAIN
  */
 int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 {
@@ -912,26 +901,17 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 	/* Open files on demand e.g. on new active after fail/switch-over. This
 	 * enables LOG to cope with temporary file system problems. */
 	if (stream->fd == -1) {
-		/* Creating directory of given path to store log and cfg files,
-		 * if not using shared file system. */
-		if (lgs_make_reldir_h(stream->pathName) != 0) {
-			LOG_NO("Create directory '%s/%s' failed", lgs_cb->logsv_root_dir, stream->pathName);
-			rc = -1;
-			goto done;
-		}
-		/* Creating config file on new ACTIVE */
-		if (lgs_create_config_file_h(stream) != 0) {
-			TRACE("Creating config file failed");
-			rc = -1;
-			goto done;
-		}
-		TRACE("stream: %s not opened, opening it now", stream->name);
-		stream->fd = log_file_open(stream, NULL);
+		/* Create directory and log files if they were not created at
+		 * stream open or reopen files if bad file descriptor.
+		 */
+		log_initiate_stream_files(stream);
+		
 		if (stream->fd == -1) {
-			rc = -1;
-			goto done;
+			TRACE("%s - Initiating stream files \"%s\" Failed", __FUNCTION__,
+					stream->name);
+		} else {
+			TRACE("%s - stream files initiated", __FUNCTION__);
 		}
-		TRACE("stream %s now opened", stream->name);
 	}
 	
 	TRACE("%s - stream->fd = %d",__FUNCTION__,stream->fd);
@@ -957,7 +937,10 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 	apipar.data_out = (void *) &write_errno;
 	
 	api_rc = log_file_api(&apipar);
-	if (api_rc != LGSF_SUCESS) {
+	if (api_rc == LGSF_TIMEOUT) {
+		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+		rc = -2;
+	} else if (api_rc != LGSF_SUCESS) {
 		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
 		rc = -1;
 	} else {
@@ -967,20 +950,29 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 	free(params_in);
 	/* End write the log record */	
 	
-	if (rc == -1) {
-		/* If writing failed because of invalid file descriptor then invalidate
-		 * the stream file descriptor.
+	if ((rc == -1) || (rc == -2)) {
+		/* If writing failed always invalidate the stream file descriptor.
 		 */
 		/* Careful with log level here to avoid syslog flooding */
 		LOG_IN("write '%s' failed \"%s\"", stream->logFileCurrent,
 				strerror(write_errno));
 		
-		if (write_errno == EBADF) {
+		if (stream->fd != -1) {
+			/* Try to close the file and invalidate the stream fd */
+			fileclose_h(stream->fd);
 			stream->fd = -1;
+		}
+		
+		if ((write_errno == EAGAIN) || (write_errno == EWOULDBLOCK)) {
+			/* Change return code to timeout if EAGAIN (would block) */
+			TRACE("Write would block");
+			rc = -2;
 		}
 		goto done;
 	}
  
+	/* Handle file size and rotate if needed
+	 */
 	rc = 0;
 	stream->curFileSize += count;
 

@@ -150,7 +150,6 @@ static uint32_t ckpt_stream(log_stream_t *stream)
 	ckpt.ckpt_rec.stream_cfg.logFileFormat = stream->logFileFormat;
 	ckpt.ckpt_rec.stream_cfg.severityFilter = stream->severityFilter;
 	ckpt.ckpt_rec.stream_cfg.logFileCurrent = stream->logFileCurrent;
-	ckpt.ckpt_rec.stream_cfg.files_initiated = stream->files_initiated;
 
 	rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
 
