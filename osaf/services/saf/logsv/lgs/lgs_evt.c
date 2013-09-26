@@ -707,8 +707,6 @@ static uint32_t lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream, lgsv
 
 		ckpt.ckpt_rec.stream_open.streamType = logStream->streamType;
 		ckpt.ckpt_rec.stream_open.logRecordId = logStream->logRecordId;
-		
-		ckpt.ckpt_rec.stream_open.files_initiated = logStream->files_initiated;
 
 		async_rc = lgs_ckpt_send_async(cb, &ckpt, NCS_MBCSV_ACT_ADD);
 		if (async_rc == NCSCC_RC_SUCCESS) {
@@ -1023,7 +1021,7 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	SaAisErrorT error = SA_AIS_OK;
 	SaStringT logOutputString = NULL;
 	SaUint32T buf_size;
-	int n;
+	int n, rc;
 
 	TRACE_ENTER2("client_id %u, stream ID %u", param->client_id, param->lstr_id);
 
@@ -1064,8 +1062,12 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		goto done;
 	}
 
-	if (log_stream_write_h(stream, logOutputString, n) == -1) {
+	rc = log_stream_write_h(stream, logOutputString, n);
+	if (rc == -1) {
 		error = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	} else if (rc == -2) {
+		error = SA_AIS_ERR_TIMEOUT;
 		goto done;
 	}
 
@@ -1084,7 +1086,6 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		ckpt.ckpt_rec.write_log.streamId = stream->streamId;
 		ckpt.ckpt_rec.write_log.curFileSize = stream->curFileSize;
 		ckpt.ckpt_rec.write_log.logFileCurrent = stream->logFileCurrent;
-		ckpt.ckpt_rec.write_log.files_initiated = stream->files_initiated;
 
 		(void)lgs_ckpt_send_async(cb, &ckpt, NCS_MBCSV_ACT_ADD);
 	}

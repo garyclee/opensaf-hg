@@ -47,7 +47,6 @@ typedef struct log_stream {
 	SaUint64T filtered;	/* discarded by server due to filtering */
 	/* --- end correspond to IMM Class --- */
 
-	bool files_initiated; /* True when all files belonging to stream are initiated */
 	uint32_t streamId;	/* The unique stream id for this stream */
 	int32_t fd;		/* The stream file descriptor */
 	char logFileCurrent[NAME_MAX];	/* Current file name */
