@@ -23,11 +23,21 @@
  * ========================================================================
  */
 #include <string.h>
+#include <saAis.h>
+#include <saAmf.h>
+
+#include "lgs_stream.h"
+#include "lgs_evt.h"
 
 /* ========================================================================
  *   DEFINITIONS
  * ========================================================================
  */
+#define LOG_VER_EXP "LOG_SVC_VERSION:"
+#define FMAT_EXP "FORMAT:"
+#define CFG_EXP_MAX_FILE_SIZE "MAX_FILE_SIZE:"
+#define CFG_EXP_FIXED_LOG_REC_SIZE "FIXED_LOG_REC_SIZE:"
+#define CFG_EXP_LOG_FULL_ACTION "LOG_FULL_ACTION:"
 
 /* ========================================================================
  *   TYPE DEFINITIONS
@@ -40,13 +50,14 @@
  */
 
 extern char *lgs_get_time(void);
-extern int lgs_create_config_file(log_stream_t *stream);
+extern int lgs_create_config_file_h(log_stream_t *stream);
 extern void lgs_evt_destroy(lgsv_lgs_evt_t *evt);
 extern SaTimeT lgs_get_SaTime(void);
-extern int lgs_file_rename(const char *path, const char *old_name, const char *time_stamp, const char *suffix);
-extern uint32_t lgs_create_known_streams(lgs_cb_t *lgs_cb);
+extern int lgs_file_rename_h(const char *path, const char *old_name, const char *time_stamp, const char *suffix);
+//extern uint32_t lgs_create_known_streams(lgs_cb_t *lgs_cb); /* Not used, no code */
 extern void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr);
-extern bool lgs_relative_path_check(const char* path);
-extern int lgs_make_dir(const char* root, const char* path);
+extern bool lgs_relative_path_check_ts(const char* path);
+extern int lgs_make_dir_h(const char* path);
+extern int lgs_check_path_exists_h(const char *path_to_check);
 
 #endif   /* ifndef __LGS_UTIL_H */

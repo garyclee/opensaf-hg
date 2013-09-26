@@ -15,7 +15,20 @@
  *
  */
 
+/*****************************************************************************
+ * Important information
+ * ---------------------
+ * To prevent log service thread from "hanging" if communication with NFS is
+ * not working or is very slow all functions using file I/O must run their file
+ * handling in a separate thread.
+ * For more information on how to do that see the following files:
+ * lgs_file.h, lgs_file.c, lgs_filendl.c and lgs_filehdl.h
+ * Examples can be found in this file, e.g. function fileopen(...) below
+ */
+
 #include "lgs.h"
+#include "lgs_file.h"
+#include "lgs_filehdl.h"
 
 #define DEFAULT_NUM_APP_LOG_STREAMS 64
 #define LGS_LOG_FILE_EXT ".log"
@@ -32,7 +45,51 @@ static unsigned int numb_of_streams;
 static int lgs_stream_array_insert(log_stream_t *stream, uint32_t id);
 static int lgs_stream_array_insert_new(log_stream_t *stream, uint32_t *id);
 static int lgs_stream_array_remove(int id);
-static int get_number_of_log_files(log_stream_t *logStream, char *oldest_file);
+static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file);
+
+/**
+ * Open/Create a file
+ * @param filepath[in]
+ * @param errno_save[out], errno if error
+ * @return File descriptor or -1 if error
+ */
+static int fileopen_h(char *filepath, int *errno_save)
+{
+	lgsf_apipar_t apipar;
+	lgsf_retcode_t api_rc;
+	size_t filepath_len;
+	int fd;
+	
+	TRACE_ENTER2("LLDTEST");
+	
+	osafassert(filepath != NULL);
+	filepath_len = strlen(filepath)+1; /* Include terminating null character */
+	
+	if (filepath_len > PATH_MAX) {
+		LOG_WA("Cannot open file, File path > PATH_MAX");
+		fd = -1;
+		goto done;
+	}
+	
+	/* Fill in API structure */
+	apipar.req_code_in = LGSF_FILEOPEN;
+	apipar.data_in_size = filepath_len;
+	apipar.data_in = (void*) filepath;
+	apipar.data_out_size = sizeof(int);
+	apipar.data_out = (void *) errno_save;
+	
+	api_rc = log_file_api(&apipar);
+	if (api_rc != LGSF_SUCESS) {
+		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+		fd = -1;
+	} else {
+		fd = apipar.hdl_ret_code_out;
+	}
+	
+done:
+	TRACE_LEAVE2("LLDTEST");
+	return fd;
+}
 
 /**
  * Close with retry at EINTR
@@ -40,64 +97,114 @@ static int get_number_of_log_files(log_stream_t *logStream, char *oldest_file);
  *
  * @return int
  */
-static int fileclose(int fd)
+static int fileclose_h(int fd)
 {
-	int rc;
-
-	TRACE_ENTER2("fd=%d", fd);
-
-close_retry:
-	rc = close(fd);
-
-	if (rc == -1 && errno == EINTR)
-		goto close_retry;
-
-	if (rc == -1) {
-		LOG_ER("fileclose() %s",strerror(errno));
+	lgsf_apipar_t apipar;
+	lgsf_retcode_t api_rc;
+	int rc = 0;
+	
+	TRACE_ENTER2("LLDTEST");
+	
+	/* Fill in API structure */
+	apipar.req_code_in = LGSF_FILECLOSE;
+	apipar.data_in_size = sizeof(int);
+	apipar.data_in = (void*) &fd;
+	apipar.data_out_size = 0;
+	apipar.data_out = NULL;
+	
+	api_rc = log_file_api(&apipar);
+	if (api_rc != LGSF_SUCESS) {
+		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+		rc = -1;
+	} else {
+		rc = apipar.hdl_ret_code_out;
 	}
-	TRACE_LEAVE2("rc=%d", rc);
+
+	TRACE_LEAVE2("LLDTEST: rc=%d",rc);
 	return rc;
+}
+
+/**
+ * Delete a file (unlink())
+ * 
+ * @param filepath A null terminated string containing the name of the file to
+ *        be deleted
+ * @return (-1) if error
+ */
+static int file_unlink_h(char *filepath)
+{
+	int rc = 0;
+	lgsf_apipar_t apipar;
+	lgsf_retcode_t api_rc;
+	size_t filepath_len;
+	
+	filepath_len = strlen(filepath)+1; /* Include terminating null character */
+	if (filepath_len > PATH_MAX) {
+		LOG_WA("Cannot delete file, File path > PATH_MAX");
+		rc = -1;
+		goto done;
+	}
+	
+	/* Fill in API structure */
+	apipar.req_code_in = LGSF_DELETE_FILE;
+	apipar.data_in_size = filepath_len;
+	apipar.data_in = (void*) filepath;
+	apipar.data_out_size = 0;
+	apipar.data_out = NULL;
+	
+	api_rc = log_file_api(&apipar);
+	if (api_rc != LGSF_SUCESS) {
+		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+		rc = -1;
+	} else {
+		rc = apipar.hdl_ret_code_out;
+	}
+
+done:
+	TRACE_LEAVE2("LLDTEST: rc=%d", rc);
+	return rc;
+	
 }
 
 /**
  * Delete config file.
  * @param stream
  * 
- * @return int
+ * @return -1 if error
  */
-static int delete_config_file(log_stream_t *stream)
+static int delete_config_file_fh(log_stream_t *stream)
 {
-	int rc, n;
-	char pathname[PATH_MAX + NAME_MAX];
+	int rc = 0;
+	int n;
+	char pathname[PATH_MAX];
 
-	TRACE_ENTER();
+	TRACE_ENTER2("LLDTEST");
 
 	/* create absolute path for config file */
 	n = snprintf(pathname, PATH_MAX, "%s/%s/%s.cfg", lgs_cb->logsv_root_dir, stream->pathName, stream->fileName);
-
-	osafassert(n < sizeof(pathname));
-
-	if ((rc = unlink(pathname)) == -1) {
-		if (errno == ENOENT)
-			rc = 0;
-		else
-			LOG_NO("could not unlink: %s - %s", pathname, strerror(errno));
+	if (n > PATH_MAX) {
+		LOG_WA("Config file could not be deleted, path > PATH_MAX");
+		rc = -1;
+		goto done;
 	}
 
-	TRACE_LEAVE2("rc=%d", rc);
+	rc = file_unlink_h(pathname);
+	
+done:
+	TRACE_LEAVE2("LLDTEST: rc=%d", rc);
 	return rc;
 }
 
-static int rotate_if_needed(log_stream_t *stream)
+static int rotate_if_needed_fh(log_stream_t *stream)
 {
-	char oldest_file[PATH_MAX + NAME_MAX];
+	char oldest_file[PATH_MAX];
 	int rc = 0;
 	int file_cnt;
 
 	TRACE_ENTER();
 
 	/* Rotate out files from previous lifes */
-	if ((file_cnt = get_number_of_log_files(stream, oldest_file)) == -1) {
+	if ((file_cnt = get_number_of_log_files_h(stream, oldest_file)) == -1) {
 		rc = -1;
 		goto done;
 	}
@@ -108,12 +215,12 @@ static int rotate_if_needed(log_stream_t *stream)
 	 */
 	while (file_cnt >= stream->maxFilesRotated) {
 		TRACE_1("remove oldest file: %s", oldest_file);
-		if ((rc = unlink(oldest_file)) == -1) {
-			LOG_NO("could not unlink: %s - %s", oldest_file, strerror(errno));
+		if ((rc = file_unlink_h(oldest_file)) == -1) {
+			LOG_NO("could not delete: %s - %s", oldest_file, strerror(errno));
 			goto done;
 		}
 
-		if ((file_cnt = get_number_of_log_files(stream, oldest_file)) == -1) {
+		if ((file_cnt = get_number_of_log_files_h(stream, oldest_file)) == -1) {
 			rc = -1;
 			goto done;
 		}
@@ -164,6 +271,61 @@ static uint32_t log_stream_remove(const char *key)
 
  done:
 	return rc;
+}
+
+/**
+ * Initiate the files belonging to a stream if they are not already initiated.
+ * The stream->files_initiated flag is set when the files are initiated.
+ * If the files could not be initiated e.g. the file system is not working, the
+ * files_initiated flag will not be set.
+ * This function should be used when a stream is opened and every time a log
+ * record is written.
+ * 
+ * @param stream
+ */
+static void log_initiate_stream_files(log_stream_t *stream)
+{
+	int errno_save;
+	
+	TRACE_ENTER2("LLDTEST");
+	TRACE("LLDTEST %s - stream->files_initiated = %d",__FUNCTION__,stream->files_initiated);
+	
+	if (stream->files_initiated == false) {
+		TRACE("LLDTEST: %s - Creating new files",__FUNCTION__);
+		
+		/* Delete to get counting right. It might not exist. */
+		(void)delete_config_file_fh(stream);
+
+		/* Save what filename that shall be the current log file */
+		sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, lgs_get_time());
+
+		/* Remove files from a previous life if needed */
+		if (rotate_if_needed_fh(stream) == -1) {
+			TRACE("LLDTEST: %s - rotate_if_needed_fh() FAIL",__FUNCTION__);
+			goto done;
+		}
+
+		if (lgs_make_dir_h(stream->pathName) != 0){
+			TRACE("LLDTEST: %s - lgs_make_dir_h() FAIL",__FUNCTION__);
+			goto done;
+		}
+
+		if (lgs_create_config_file_h(stream) != 0) {
+			TRACE("LLDTEST: %s - lgs_create_config_file_h() FAIL",__FUNCTION__);
+			goto done;
+		}
+
+		if ((stream->fd = log_file_open_fh(stream, &errno_save)) == -1) {
+			TRACE("LLDTEST: %s - Could not open '%s' - %s",__FUNCTION__,
+					stream->logFileCurrent, strerror(errno_save));
+			goto done;
+		}
+		
+		stream->files_initiated = true;
+	}
+	
+done:
+	TRACE_LEAVE2("LLDTEST");
 }
 
 log_stream_t *log_stream_get_by_name(const char *name)
@@ -292,7 +454,7 @@ log_stream_t *log_stream_new(SaNameT *dn,
 	osafassert(dn != NULL);
 	TRACE_ENTER2("%s, l: %u", dn->value, dn->length);
 
-	if (lgs_relative_path_check(pathname)) {
+	if (lgs_relative_path_check_ts(pathname)) {
 		goto done;
 	}
 	stream = calloc(1, sizeof(log_stream_t));
@@ -527,97 +689,62 @@ log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
  *
  * @return int - the file descriptor or -1 on errors
  */
-int log_file_open(log_stream_t *stream, int *errno_save)
+int log_file_open_fh(log_stream_t *stream, int *errno_save)
 {
 	int fd;
-	char pathname[PATH_MAX + NAME_MAX + 1];
+	char pathname[PATH_MAX];
+	int errno_ret;
+	int n;
 
-	TRACE_LEAVE2("%s", stream->logFileCurrent);
+	TRACE_ENTER2("LLDTEST");
 
-	sprintf(pathname, "%s/%s/%s.log", lgs_cb->logsv_root_dir, stream->pathName, stream->logFileCurrent);
-
-open_retry:
-	fd = open(pathname, O_CREAT | O_RDWR | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP);
-
-	if (fd == -1) {
-		if (errno == EINTR)
-			goto open_retry;
-		/* save errno for caller logging */
-		if (errno_save)
-			*errno_save = errno;
-		/* Do not log with higher severity here to avoid flooding the log.
-		 * Can be called in context of log_stream_write */
-		LOG_IN("%s: Could not open: %s - %s", __FUNCTION__, pathname, strerror(errno));
+	n = snprintf(pathname, PATH_MAX, "%s/%s/%s.log",
+			lgs_cb->logsv_root_dir, stream->pathName, stream->logFileCurrent);
+	if (n > PATH_MAX) {
+		LOG_ER("Cannot open log file, path > PATH_MAX");
+		fd = -1;
+		goto done;
+	}
+	
+	fd = fileopen_h(pathname, &errno_ret);
+	if (errno_save != 0) {
+		*errno_save = errno_ret;
 	}
 
-	TRACE_LEAVE2("%d", fd);
+done:
+	TRACE_LEAVE2("LLDTEST");
 	return fd;
 }
 
-SaAisErrorT log_stream_open(log_stream_t *stream)
+SaAisErrorT log_stream_open_fh(log_stream_t *stream)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	int errno_save;
 	
 	osafassert(stream != NULL);
 	TRACE_ENTER2("%s, numOpeners=%u", stream->name, stream->numOpeners);
 
 	/* first time open? */
 	if (stream->numOpeners == 0) {
-
-		/* Delete to get counting right. It might not exist. */
-		(void)delete_config_file(stream);
-
-		/* Remove files from a previous life if needed */
-		if (rotate_if_needed(stream) == -1) {
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			goto done;
-		}
-
-		if (lgs_make_dir(lgs_cb->logsv_root_dir, stream->pathName) != 0){
-			LOG_NO("Create directory '%s/%s' failed", lgs_cb->logsv_root_dir, stream->pathName);
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			goto done;
-		}
-
-		if (lgs_create_config_file(stream) != 0) {
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			goto done;
-		}
-
-		sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, lgs_get_time());
-		if ((stream->fd = log_file_open(stream, &errno_save)) == -1) {
-			LOG_NO("Could not open '%s' - %s", stream->logFileCurrent, strerror(errno_save));
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			goto done;
-		}
-		stream->numOpeners++;
+		TRACE("LLDTEST3 %s name \"%s\", files_initiated=%d, HA state=%d",
+				__FUNCTION__,
+				stream->name,stream->files_initiated, lgs_cb->ha_state);
+		log_initiate_stream_files(stream);
 	} else {
 		/* Second or more open on a stream */
-
-		/* All file system problems as treated as temporary. It is OK to open
-		an existing stream therefore the use count must be increased unconditionally. */
-		stream->numOpeners++;
-
-		if (stream->fd != -1) {
-			/* already opened, we're done */
-			goto done;
-		}
-
-		/* be nice to those without a shared file system, see #1138 */
-		if (lgs_create_config_file(stream) != 0) {
-			LOG_ER("%s: Creating config file failed", __FUNCTION__);
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			goto done;
-		}
-
-		if ((stream->fd = log_file_open(stream, &errno_save)) == -1) {
-			LOG_NO("Could not open '%s' - %s", stream->logFileCurrent, strerror(errno_save));
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			goto done;
+		if (stream->fd == -1) {
+			TRACE("LLDTEST3 fd = -1");
+			TRACE("LLDTEST3 %s name \"%s\", files_initiated=%d, HA state=%d",
+					__FUNCTION__,
+					stream->name,stream->files_initiated, lgs_cb->ha_state);
+			log_initiate_stream_files(stream);
 		}
 	}
- done:
+	
+	/* Opening a stream will always succeed. If file system problem a new
+	 * attempt to open the files is done when trying to write to the stream
+	 */
+	stream->numOpeners++;
+
 	TRACE_LEAVE2("rc=%u, numOpeners=%u", rc, stream->numOpeners);
 	return rc;
 }
@@ -636,6 +763,9 @@ int log_stream_close(log_stream_t **s)
 
 	osafassert(stream != NULL);
 	TRACE_ENTER2("%s, numOpeners=%u", stream->name, stream->numOpeners);
+	if (stream->numOpeners == 0) {
+		TRACE("LLDTEST: %s - numOpeners = 0, streamType = %u",__FUNCTION__,stream->streamType);
+	}
 
 	osafassert(stream->numOpeners > 0);
 	stream->numOpeners--;
@@ -645,16 +775,16 @@ int log_stream_close(log_stream_t **s)
 		osafassert(stream->streamType == STREAM_TYPE_APPLICATION);
 		if (stream->fd != -1) {
 			char *timeString = lgs_get_time();
-			if ((rc = fileclose(stream->fd)) == -1) {
+			if ((rc = fileclose_h(stream->fd)) == -1) {
 				LOG_ER("log_stream_close FAILED: %s", strerror(errno));
 				goto done;
 			}
 
-			rc = lgs_file_rename(stream->pathName, stream->logFileCurrent, timeString, LGS_LOG_FILE_EXT);
+			rc = lgs_file_rename_h(stream->pathName, stream->logFileCurrent, timeString, LGS_LOG_FILE_EXT);
 			if (rc == -1)
 				goto done;
 
-			rc = lgs_file_rename(stream->pathName, stream->fileName, timeString, LGS_LOG_FILE_CONFIG_EXT);
+			rc = lgs_file_rename_h(stream->pathName, stream->fileName, timeString, LGS_LOG_FILE_CONFIG_EXT);
 			if (rc == -1)
 				goto done;
 		}
@@ -685,7 +815,7 @@ int log_stream_file_close(log_stream_t *stream)
 	osafassert(stream->numOpeners > 0);
 
 	if (stream->fd != -1) {
-		if ((rc = fileclose(stream->fd)) == -1) {
+		if ((rc = fileclose_h(stream->fd)) == -1) {
 			LOG_ER("log_stream_file_close FAILED: %s", strerror(errno));
 			stream->fd = -1; /* Force reset the fd, otherwise fd will be stale. */
 		} else
@@ -696,113 +826,54 @@ int log_stream_file_close(log_stream_t *stream)
 	return rc;
 }
 
-static int check_oldest(char *line, char *fname_prefix, int fname_prefix_size, int *old_date, int *old_time)
-{
-	int date, time, c, d;
-	date = time = c = d = 0;
-	int len = 0;
-	char name_format[NAME_MAX+1];
-	char time_stamps[] = "_%d_%d_%d_%d.log";
-
-	len = strlen(time_stamps);
-	len += fname_prefix_size;
-
-	strncpy(name_format, fname_prefix, fname_prefix_size);
-	name_format[fname_prefix_size] = '\0';
-	TRACE_3("fname: %s", name_format);
-	strncat(name_format, time_stamps, NAME_MAX);
-	if (sscanf(line, name_format, &date, &time, &c, &d) == 4) {
-		TRACE_3("line: arg1: %d 2: %d 3: %d 4: %d ok", date, time, c, d);
-		if (date < *old_date || *old_date == -1) {
-			*old_date = date;
-			*old_time = time;
-			return 1;
-		} else if ((date == *old_date) && (time < *old_time)) {
-			*old_date = date;
-			*old_time = time;
-			return 1;
-		}
-	} else if (sscanf(line, name_format, &date, &time) == 2) {
-		TRACE_3("line: arg1: %d 2: %d ok", date, time);
-		if (date < *old_date || *old_date == -1) {
-			*old_date = date;
-			*old_time = time;
-			return 1;
-		} else if ((date == *old_date) && (time < *old_time)) {
-			*old_date = date;
-			*old_time = time;
-			return 1;
-		}
-	} else {
-		TRACE_3("no match");
-	}
-	return 0;
-}
-
-/* Filter function used by scandir. */
-static char file_prefix[NAME_MAX];
-static int filter_func(const struct dirent *finfo)
-{
-	int ret;
-	ret = strncmp(file_prefix, finfo->d_name, strlen(file_prefix));
-	return !ret;
-}
-
 /**
- * Return number of log files in a dir.
- * @param logStream
- * @param oldest_file
- * @param filter
+ * Return number of log files in a dir and the name of the oldest file.
+ * @param logStream[in]
+ * @param oldest_file[out]
  * 
- * @return int
+ * @return -1 if error else number of log files
  */
-static int get_number_of_log_files(log_stream_t *logStream, char *oldest_file)
+static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file)
 {
-	struct dirent **namelist;
-	int n, old_date = -1, old_time = -1, old_ind = -1, files, i, failed = 0;
-	char path[PATH_MAX];
-
-	osafassert(oldest_file != NULL);
-
-	/* Initialize the filter */
-	strcpy(file_prefix, logStream->fileName);
-
-	sprintf(path, "%s/%s", lgs_cb->logsv_root_dir, logStream->pathName);
-	files = n = scandir(path, &namelist, filter_func, alphasort);
-	if (n == -1 && errno == ENOENT)
-		return 0;
-
-	if (n < 0) {
-		LOG_ER("scandir:%s %s", strerror(errno), path);
-		return -1;
+	lgsf_apipar_t apipar;
+	lgsf_retcode_t api_rc;
+	gnolfh_in_t parameters_in;
+	size_t path_len;
+	int rc;
+	
+	TRACE_ENTER2("LLDTEST");
+	
+	strncpy(parameters_in.file_name, logStream->fileName, SA_MAX_NAME_LENGTH);
+	strncpy(parameters_in.logsv_root_dir, lgs_cb->logsv_root_dir, PATH_MAX);
+	strncpy(parameters_in.pathName, logStream->pathName, PATH_MAX);
+	
+	path_len =	strlen(parameters_in.file_name) + 
+				strlen(parameters_in.logsv_root_dir) +
+				strlen(parameters_in.pathName);
+	if (path_len > PATH_MAX) {
+		LOG_ER("Path to log files > PATH_MAX");
+		rc = -1;
+		goto done;
 	}
-
-	TRACE_3("There are %d files", n);
-	if (n == 0)
-		return files;
-
-	while (n--) {
-		TRACE_3("%s", namelist[n]->d_name);
-		if (check_oldest(namelist[n]->d_name, logStream->fileName,
-				 strlen(logStream->fileName), &old_date, &old_time)) {
-			old_ind = n;
-		} else {
-			failed++;	/* wrong format */
-		}
-	}
-	if (old_ind != -1) {
-		TRACE_1(" oldest: %s", namelist[old_ind]->d_name);
-		sprintf(oldest_file, "%s/%s", path, namelist[old_ind]->d_name);
+	
+	/* Fill in API structure */
+	apipar.req_code_in = LGSF_GET_NUM_LOGFILES;
+	apipar.data_in_size = sizeof(gnolfh_in_t);
+	apipar.data_in = (void*) &parameters_in;
+	apipar.data_out_size = PATH_MAX;
+	apipar.data_out = (void *) oldest_file;
+	
+	api_rc = log_file_api(&apipar);
+	if (api_rc != LGSF_SUCESS) {
+		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+		rc = -1;
 	} else {
-		TRACE("Only file/files with wrong format found");
+		rc = apipar.hdl_ret_code_out;
 	}
 
-	/* Free scandir allocated memory */
-	for (i = 0; i < files; i++)
-		free(namelist[i]);
-	free(namelist);
-
-	return (files - failed);
+done:
+	TRACE_LEAVE2("LLDTEST");
+	return rc;
 }
 
 /**
@@ -816,57 +887,92 @@ static int get_number_of_log_files(log_stream_t *logStream, char *oldest_file)
  * 
  * @return int -1 on error, 0 otherwise
  */
-int log_stream_write(log_stream_t *stream, const char *buf, size_t count)
+int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 {
-	int rc, bytes_written = 0;
+	int rc = 0;
+	lgsf_apipar_t apipar;
+	void *params_in;
+	wlrh_t *header_in_p;
+	char *logrec_p;
+	size_t params_in_size;
+	lgsf_retcode_t api_rc;
+	int write_errno=0;
 
 	osafassert(stream != NULL && buf != NULL);
 	TRACE_ENTER2("%s", stream->name);
 
 	/* Open files on demand e.g. on new active after fail/switch-over. This
 	 * enables LOG to cope with temporary file system problems. */
-	
 	if (stream->fd == -1) {
-		
 		/* Creating directory of given path to store log and cfg files,
 		 * if not using shared file system. */
-		if (lgs_make_dir(lgs_cb->logsv_root_dir, stream->pathName) != 0) {
+		if (lgs_make_dir_h(stream->pathName) != 0) {
 			LOG_NO("Create directory '%s/%s' failed", lgs_cb->logsv_root_dir, stream->pathName);
 			rc = -1;
 			goto done;
 		}
 		/* Creating config file on new ACTIVE */
-		if (lgs_create_config_file(stream) != 0) {
+		if (lgs_create_config_file_h(stream) != 0) {
 			TRACE("Creating config file failed");
 			rc = -1;
 			goto done;
 		}
 		TRACE("stream: %s not opened, opening it now", stream->name);
-		stream->fd = log_file_open(stream, NULL);
+		stream->fd = log_file_open_fh(stream, NULL);
 		if (stream->fd == -1) {
 			rc = -1;
 			goto done;
 		}
 		TRACE("stream %s now opened", stream->name);
 	}
-
- retry:
-	rc = write(stream->fd, &buf[bytes_written], count - bytes_written);
-	if (rc == -1) {
-		if (errno == EINTR)
-			goto retry;
-
-		LOG_ER("write FAILED: %s", strerror(errno));
-		/* Careful with log level here to avoid syslog flooding */
-		LOG_IN("write '%s' failed - %s", stream->logFileCurrent, strerror(errno));
-		goto done;
+	
+	TRACE("LLDTEST: %s - stream->fd = %d",__FUNCTION__,stream->fd);
+	/* Write the log record
+	 */
+	/* allocate memory for header + log record */
+	params_in_size = sizeof(wlrh_t) + count;
+	params_in = malloc(params_in_size);
+	
+	header_in_p = (wlrh_t *) params_in;
+	logrec_p = (char *) (params_in + sizeof(wlrh_t));
+	
+	header_in_p->fd = stream->fd;
+	header_in_p->fixedLogRecordSize = stream->fixedLogRecordSize;
+	header_in_p->record_size = count;
+	memcpy(logrec_p, buf, count);
+	
+	/* Fill in API structure */
+	apipar.req_code_in = LGSF_WRITELOGREC;
+	apipar.data_in_size = params_in_size;
+	apipar.data_in = params_in;
+	apipar.data_out_size = sizeof(int);
+	apipar.data_out = (void *) &write_errno;
+	
+	api_rc = log_file_api(&apipar);
+	if (api_rc != LGSF_SUCESS) {
+		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+		rc = -1;
 	} else {
-		/* Handle partial writes */
-		bytes_written += rc;
-		if (bytes_written < stream->fixedLogRecordSize)
-			goto retry;
+		rc = apipar.hdl_ret_code_out;
 	}
 
+	free(params_in);
+	/* End write the log record */	
+	
+	if (rc == -1) {
+		/* Careful with log level here to avoid syslog flooding */
+		LOG_IN("write '%s' failed", stream->logFileCurrent);
+		
+		/* If writing failed because of invalid file descriptor then invalidate
+		 * the stream file descriptor.
+		 */
+		TRACE("LLDTEST: error \"%s\"",strerror(write_errno));
+		if (write_errno == EBADF) {
+			stream->fd = -1;
+		}
+		goto done;
+	}
+ 
 	rc = 0;
 	stream->curFileSize += count;
 
@@ -874,13 +980,13 @@ int log_stream_write(log_stream_t *stream, const char *buf, size_t count)
 		int errno_save;
 		char *current_time = lgs_get_time();
 
-		if ((rc = fileclose(stream->fd)) == -1) {
+		if ((rc = fileclose_h(stream->fd)) == -1) {
 			LOG_ER("close FAILED: %s", strerror(errno));
 			goto done;
 		}
 		stream->fd = -1;
 
-		rc = lgs_file_rename(stream->pathName, stream->logFileCurrent, current_time, LGS_LOG_FILE_EXT);
+		rc = lgs_file_rename_h(stream->pathName, stream->logFileCurrent, current_time, LGS_LOG_FILE_EXT);
 		if (rc == -1)
 			goto done;
 
@@ -888,12 +994,12 @@ int log_stream_write(log_stream_t *stream, const char *buf, size_t count)
 		stream->logFileCurrent[0] = 0;
 
 		/* Remove oldest file if needed */
-		if ((rc = rotate_if_needed(stream)) == -1)
+		if ((rc = rotate_if_needed_fh(stream)) == -1)
 			goto done;
 
 		stream->creationTimeStamp = lgs_get_SaTime();
 		sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
-		if ((stream->fd = log_file_open(stream, &errno_save)) == -1) {
+		if ((stream->fd = log_file_open_fh(stream, &errno_save)) == -1) {
 			LOG_NO("Could not open '%s' - %s", stream->logFileCurrent, strerror(errno_save));
 			rc = -1;
 			goto done;
@@ -1059,7 +1165,7 @@ uint32_t log_stream_init(void)
  * config file. Basically the same logic as described in 3.1.6.4
  * in A.02.01.
  * create_files_f = true; New files are created
- * create_files_f = false; New files are not creataed
+ * create_files_f = false; New files are not created
  * @param conf_mode
  * @param stream
  * @param current_file_name
@@ -1084,29 +1190,29 @@ int log_stream_config_change(bool create_files_f, log_stream_t *stream, const ch
 	} else {
 		/* close the existing log file, and only when there is a valid fd */
 
-		if ((rc = fileclose(stream->fd)) == -1) {
+		if ((rc = fileclose_h(stream->fd)) == -1) {
 			LOG_ER("log_stream_config_change file close  FAILED: %s", strerror(errno));
 			goto done;
 		}
 
-		if ((rc = lgs_file_rename(stream->pathName, stream->logFileCurrent, current_time, LGS_LOG_FILE_EXT)) == -1) {
+		if ((rc = lgs_file_rename_h(stream->pathName, stream->logFileCurrent, current_time, LGS_LOG_FILE_EXT)) == -1) {
 			goto done;
 		}
 
-		if ((rc = lgs_file_rename(stream->pathName, current_file_name, current_time, LGS_LOG_FILE_CONFIG_EXT)) == -1) {
+		if ((rc = lgs_file_rename_h(stream->pathName, current_file_name, current_time, LGS_LOG_FILE_CONFIG_EXT)) == -1) {
 			goto done;
 		}
 	}
 
 	/* Creating the new config file */
 	if (create_files_f == LGS_STREAM_CREATE_FILES) {
-		if ((rc = lgs_create_config_file(stream)) != 0)
+		if ((rc = lgs_create_config_file_h(stream)) != 0)
 			goto done;
 
 		sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
 
 		/* Create the new log file based on updated configuration */
-		stream->fd = log_file_open(stream, NULL);
+		stream->fd = log_file_open_fh(stream, NULL);
 	}
 
 	if (stream->fd == -1)

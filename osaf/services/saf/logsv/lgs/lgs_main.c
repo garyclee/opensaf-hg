@@ -37,6 +37,7 @@
 
 #include "lgs.h"
 #include "lgs_util.h"
+#include "lgs_file.h"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -211,6 +212,11 @@ static uint32_t log_initialize(void)
 
 	TRACE_ENTER();
 
+	if (lgs_file_init() != NCSCC_RC_SUCCESS) {
+		LOG_ER("lgs_file_init FAILED");
+		goto done;
+	}
+
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_agents_startup FAILED");
 		goto done;
@@ -240,7 +246,7 @@ static uint32_t log_initialize(void)
 	lgs_cb->logsv_root_dir = lgs_imm_logconf_get(LGS_IMM_LOG_ROOT_DIRECTORY, &errorflag);
 
 	if (errorflag != false) {
-		LOG_ER("LOGSV_ROOT_DIRECTORY not found");
+		LOG_ER("Valid LOGSV_ROOT_DIRECTORY not found");
 		goto done;
 	}
 	LOG_NO("log root directory is: %s", lgs_cb->logsv_root_dir);
@@ -406,12 +412,12 @@ int main(int argc, char *argv[])
 	int term_fd;
 
 	daemonize(argc, argv);
-
+	
 	if (log_initialize() != NCSCC_RC_SUCCESS) {
 		LOG_ER("log_initialize failed");
 		goto done;
 	}
-
+	
 	mbx_fd = ncs_ipc_get_sel_obj(&lgs_mbx);
 	daemon_sigterm_install(&term_fd);
 

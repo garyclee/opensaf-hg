@@ -28,7 +28,9 @@ noinst_HEADERS = \
 	lgs_util.h \
 	lgs_evt.h \
 	lgs.h \
-	lgs_stream.h
+	lgs_stream.h \
+	lgs_file.h \
+	lgs_filehdl.h
 
 osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osaflogd
@@ -48,7 +50,9 @@ osaflogd_SOURCES = \
 	lgs_mbcsv.c \
 	lgs_mds.c \
 	lgs_stream.c \
-	lgs_util.c
+	lgs_util.c \
+	lgs_file.c \
+	lgs_filehdl.c
 
 osaflogd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \

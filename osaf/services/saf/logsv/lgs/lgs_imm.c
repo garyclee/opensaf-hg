@@ -15,6 +15,17 @@
  *
  */
 
+/*****************************************************************************
+ * Important information
+ * ---------------------
+ * To prevent log service thread from "hanging" if communication with NFS is
+ * not working or is very slow all functions using file I/O must run their file
+ * handling in a separate thread.
+ * For more information on how to do that see the following files:
+ * lgs_file.h, lgs_file.c, lgs_filendl.c and lgs_filehdl.h
+ * Examples can be found in file lgs_stream.c, e.g. function fileopen(...)
+ */
+
 #include <poll.h>
 #include <stdio.h>
 #include <errno.h>
@@ -28,6 +39,7 @@
 #include "immutil.h"
 #include "lgs.h"
 #include "lgs_util.h"
+#include "lgs_file.h"
 
 /* TYPE DEFINITIONS
  * ----------------
@@ -138,6 +150,7 @@ static uint32_t ckpt_stream(log_stream_t *stream)
 	ckpt.ckpt_rec.stream_cfg.logFileFormat = stream->logFileFormat;
 	ckpt.ckpt_rec.stream_cfg.severityFilter = stream->severityFilter;
 	ckpt.ckpt_rec.stream_cfg.logFileCurrent = stream->logFileCurrent;
+	ckpt.ckpt_rec.stream_cfg.files_initiated = stream->files_initiated;
 
 	rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
 
@@ -179,35 +192,53 @@ static uint32_t ckpt_stream_open_close(log_stream_t *stream, lgsv_ckpt_msg_type_
  * return: true  = Path is valid
  *         false = Path is invalid
  */
-static bool path_is_writeable_dir(const char *pathname)
+static bool path_is_writeable_dir_h(const char *pathname)
 {
 	bool is_writeable_dir = false;
-	struct stat pathstat;
 
-	TRACE_ENTER();
-
-	if (lgs_relative_path_check(pathname) || stat(pathname, &pathstat) != 0) {
-		LOG_NO("Path %s does not exist", pathname);
+	lgsf_apipar_t apipar;
+	lgsf_retcode_t api_rc;
+	void *params_in_p;
+	
+	TRACE_ENTER2("LLDTEST");
+	
+	TRACE("LLDTEST: %s - pathname \"%s\"",__FUNCTION__,pathname);
+	
+	size_t params_in_size = strlen(pathname)+1;
+	if (params_in_size > PATH_MAX) {
+		is_writeable_dir = false;
+		LOG_NO("%s - Path > PATH_MAX",__FUNCTION__);
 		goto done;
 	}
-
-	/* Check if the path points to a directory */
-	if (!S_ISDIR(pathstat.st_mode)) {
-		LOG_NO("%s is not a directory", pathname);
-		goto done;
+	
+	/* Allocate memory for parameter */
+	params_in_p = malloc(params_in_size);
+	
+	/* Fill in path */
+	memcpy(params_in_p, pathname, params_in_size);
+	
+	/* Fill in API structure */
+	apipar.req_code_in = LGSF_CHECKDIR;
+	apipar.data_in_size = params_in_size;
+	apipar.data_in = params_in_p;
+	apipar.data_out_size = 0;
+	apipar.data_out = NULL;
+	
+	api_rc = log_file_api(&apipar);
+	if (api_rc != LGSF_SUCESS) {
+		TRACE("LLDTEST: %s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+		is_writeable_dir = false;
+	} else {
+		if (apipar.hdl_ret_code_out == 0)
+			is_writeable_dir = false;
+		else
+			is_writeable_dir = true;
 	}
-
-	/* Check is we have correct permissions. Note that we check permissions for
-	 * real UID
-	 */
-	if (access(pathname, (R_OK | W_OK | X_OK)) != 0) {
-		LOG_NO("permission denied for %s, error %s", pathname, strerror(errno));
-		goto done;
-	}
-
-	is_writeable_dir = true;
+	
+	free(params_in_p);
+	
 done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("LLDTEST: is_writeable_dir = %d",is_writeable_dir);
 	return is_writeable_dir;
 }
 
@@ -412,7 +443,7 @@ static SaAisErrorT config_ccb_completed_modify(const CcbUtilOperationData_t *opd
 
 		if (!strcmp(attribute->attrName, "logRootDirectory")) {
 			char *pathName = *((char **)value);
-			if (!path_is_writeable_dir(pathName)) {
+			if (!path_is_writeable_dir_h(pathName)) {
 				LOG_NO("pathName: %s is NOT accepted", pathName);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -452,7 +483,7 @@ static SaAisErrorT config_ccb_completed_modify(const CcbUtilOperationData_t *opd
 	}
 
 done:
-	TRACE_LEAVE2("%u", rc);
+	TRACE_LEAVE2("rc=%u", rc);
 	return rc;
 }
 
@@ -505,7 +536,7 @@ static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata
 	log_stream_t *stream = (opdata->operationType == CCBUTIL_CREATE) ? NULL
 			: log_stream_get_by_name((char *) opdata->param.modify.objectName->value);
 
-	TRACE_ENTER();
+	TRACE_ENTER2("LLDTEST");
 
 	int i = 0;
 	while (rc == SA_AIS_OK) {
@@ -525,25 +556,23 @@ static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata
 			TRACE("attribute %s", attribute->attrName);
 
 			if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
-				struct stat pathstat;
 				char *fileName = *((char **) value);
-				if (stat(fileName, &pathstat) == 0) {
-
+				if (lgs_check_path_exists_h(fileName) == 0) {
 					LOG_ER("File %s already exist", fileName);
+					TRACE("LLDTEST: %s - File %s already exist",__FUNCTION__, fileName);
 					rc = SA_AIS_ERR_EXIST;
 				}
 				TRACE("fileName: %s", fileName);
 			} else if (!strcmp(attribute->attrName, "saLogStreamPathName")) {
-				struct stat pathstat;
 				char fileName[PATH_MAX];
 				strcpy(fileName, lgs_cb->logsv_root_dir);
 				strcat(fileName, "//");
 				strcat(fileName, *((char **) value));
 				strcat(fileName, "//.");
-				if (lgs_relative_path_check(fileName)) {
+				if (lgs_relative_path_check_ts(fileName)) {
 					LOG_ER("Path %s not valid", fileName);
 					rc = SA_AIS_ERR_INVALID_PARAM;
-				} else if (stat(lgs_cb->logsv_root_dir, &pathstat) != 0) {
+				} else if (lgs_check_path_exists_h(lgs_cb->logsv_root_dir) != 0) {
 					LOG_ER("Path %s does not exist", fileName);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 				}
@@ -634,7 +663,7 @@ static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata
 		}
 		i++;
 	}
-	TRACE_LEAVE();
+	TRACE_LEAVE2("LLDTEST");
 	return rc;
 }
 
@@ -652,9 +681,9 @@ static SaAisErrorT stream_ccb_completed_modify(const CcbUtilOperationData_t *opd
 {
 	SaAisErrorT rc;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("LLDTEST: CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 	rc = check_attr_validity(opdata);
-	TRACE_LEAVE2("%u", rc);
+	TRACE_LEAVE2("LLDTEST: %u", rc);
 	return rc;
 }
 
@@ -692,7 +721,7 @@ static SaAisErrorT stream_ccb_completed(const CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
-	TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
+	TRACE_ENTER2("LLDTEST: CCB ID %llu", opdata->ccbId);
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
@@ -700,6 +729,8 @@ static SaAisErrorT stream_ccb_completed(const CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_MODIFY:
 		rc = stream_ccb_completed_modify(opdata);
+		TRACE("LLDTEST: %s - %d = stream_ccb_completed_modify()",__FUNCTION__,
+				rc);
 		break;
 	case CCBUTIL_DELETE:
 		rc = stream_ccb_completed_delete(opdata);
@@ -709,7 +740,7 @@ static SaAisErrorT stream_ccb_completed(const CcbUtilOperationData_t *opdata)
 		break;
 	}
 
-	TRACE_LEAVE2("%u", rc);
+	TRACE_LEAVE2("LLDTEST: %u", rc);
 	return rc;
 }
 
@@ -723,10 +754,11 @@ static SaAisErrorT stream_ccb_completed(const CcbUtilOperationData_t *opdata)
 static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
 {
 	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT cb_rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	struct CcbUtilOperationData *opdata;
 
-	TRACE_ENTER2("CCB ID %llu", ccbId);
+	TRACE_ENTER2("LLDTEST: CCB ID %llu", ccbId);
 
 	if (lgs_cb->ha_state != SA_AMF_HA_ACTIVE) {
 		TRACE("State Not Active. Nothing to do, we are an applier");
@@ -735,7 +767,7 @@ static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		LOG_ER("%s: Failed to find CCB object for %llu", __FUNCTION__, ccbId);
-		rc = SA_AIS_ERR_BAD_OPERATION;
+		cb_rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done; // or exit?
 	}
 
@@ -756,10 +788,12 @@ static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
 			break;
 		case CCBUTIL_DELETE:
 		case CCBUTIL_MODIFY:
-			if (!strncmp((char*)opdata->objectName.value, "safLgStrCfg", 11))
+			if (!strncmp((char*)opdata->objectName.value, "safLgStrCfg", 11)) {
 				rc = stream_ccb_completed(opdata);
-			else
+				TRACE("LLDTEST: %s - CCBUTIL_MODIFY rc = %d",__FUNCTION__,rc);
+			} else {
 				rc = config_ccb_completed(opdata);
+			}
 			break;
 		default:
 			assert(0);
@@ -768,8 +802,13 @@ static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
 	}
 
  done:
-	TRACE_LEAVE2("rc=%u",rc);
-	return rc;
+	/* 
+	 * For now always return rc (original code)
+	 * TBD: Only use relevant return codes for Completed Callback
+	 */
+	cb_rc = rc;
+	TRACE_LEAVE2("LLDTEST: rc=%u",cb_rc);
+	return cb_rc;
 }
 /**
  * Set logRootDirectory to new value
@@ -802,14 +841,14 @@ static void logRootDirectory_set(const char *logRootDirectory)
 	/* Create new files at new path */
 	stream = log_stream_getnext_by_name(NULL);
 	while (stream != NULL) {
-		if (lgs_create_config_file(stream) != 0) {
+		if (lgs_create_config_file_h(stream) != 0) {
 			LOG_ER("New config file could not be created for stream: %s",
 					stream->name);
 		}
 
 		/* Create the new log file based on updated configuration */
 		sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
-		if ((stream->fd = log_file_open(stream, NULL)) == -1) {
+		if ((stream->fd = log_file_open_fh(stream, NULL)) == -1) {
 			LOG_ER("New log file could not be created for stream: %s",
 					stream->name);
 		}
@@ -873,7 +912,7 @@ static void config_ccb_apply(const CcbUtilOperationData_t *opdata)
 		osafassert(0);
 		break;
 	default:
-		assert(0);
+		osafassert(0);
 		break;
 	}
 
@@ -988,7 +1027,7 @@ static void stream_ccb_apply_create(const CcbUtilOperationData_t *opdata)
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	if ((rc = stream_create_and_configure1(opdata, &stream)) == SA_AIS_OK) {
-		if (log_stream_open(stream) == SA_AIS_OK) {
+		if (log_stream_open_fh(stream) == SA_AIS_OK) {
 			ckpt_stream_open_close(stream, LGS_CKPT_OPEN_STREAM);
 		} else {
 			; // what?
@@ -1087,6 +1126,7 @@ static void stream_ccb_apply_delete(const CcbUtilOperationData_t *opdata)
 
 	/* Checkpoint to standby LOG server */
 	ckpt_stream_open_close(stream, LGS_CKPT_CLOSE_STREAM);
+	TRACE("LLDTEST: %s - log_stream_close()",__FUNCTION__);
 	log_stream_close(&stream);
 }
 
@@ -1352,6 +1392,7 @@ static SaAisErrorT read_logsv_config_obj(const char *dn, lgs_conf_t *lgsConf) {
 	SaImmAttrValuesT_2 **attributes;
 	int i = 0;
 	int param_cnt = 0;
+	int n;
 
 	TRACE_ENTER2("(%s)", dn);
 
@@ -1381,7 +1422,13 @@ static SaAisErrorT read_logsv_config_obj(const char *dn, lgs_conf_t *lgsConf) {
 		value = attribute->attrValues[0];
 
 		if (!strcmp(attribute->attrName, "logRootDirectory")) {
-			strncpy((char *) lgsConf->logRootDirectory, *((char **) value), PATH_MAX);
+			n = snprintf(lgsConf->logRootDirectory, PATH_MAX, "%s",
+					*((char **) value));
+			if (n > PATH_MAX) {
+				LOG_WA("LOG root dir read from config object is > PATH_MAX");
+				lgsConf->logRootDirectory[0] = '\0';
+				lgsConf->logRootDirectory_noteflag = true;
+			}
 			param_cnt++;
 			TRACE("logRootDirectory: %s", lgsConf->logRootDirectory);
 		} else if (!strcmp(attribute->attrName, "logMaxLogrecsize")) {
@@ -1440,15 +1487,21 @@ done:
 static void read_logsv_config_environ_var(lgs_conf_t *lgsConf) {
 	char *val_str;
 	unsigned long int val_uint;
+	int n;
 
 	TRACE_ENTER2("Configured using default values and environment variables");
 
 	/* logRootDirectory */
 	if ((val_str = getenv("LOGSV_ROOT_DIRECTORY")) != NULL) {
-		strncpy((char *) lgsConf->logRootDirectory, val_str, PATH_MAX);
 		lgsConf->logRootDirectory_noteflag = false;
+		n = snprintf(lgsConf->logRootDirectory, PATH_MAX, "%s", val_str);
+		if (n > PATH_MAX) {
+			LOG_WA("LOG root dir read from config file is > PATH_MAX");
+			lgsConf->logRootDirectory[0] = '\0';
+			lgsConf->logRootDirectory_noteflag = true;
+		}
 	} else {
-		TRACE("LOGSV_ROOT_DIRECTORY not found");
+		LOG_WA("LOGSV_ROOT_DIRECTORY not found");
 		lgsConf->logRootDirectory_noteflag = true;
 	}
 	TRACE("logRootDirectory=%s, logRootDirectory_noteflag=%u",
@@ -1647,6 +1700,23 @@ const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag)
 	return NULL; /* Dummy */
 }
 
+/**
+ * Set the logRootDirectory parameter in the lgs_conf struct
+ * 
+ * Note: This is needed for #3053/#3023 quick fix.
+ * See also lgs_stream.c lgs_make_dir(...)
+ * 
+ * @param root_path_str
+ */
+void lgs_imm_rootpathconf_set(char *root_path_str)
+{
+	if ((strlen(root_path_str)+1) > PATH_MAX)
+		osafassert(0);
+	
+	strcpy(lgs_conf->logRootDirectory, root_path_str);
+	LOG_NO("lgsv root path is changed to \"%s\"",lgs_conf->logRootDirectory);
+}
+
 static const SaImmOiCallbacksT_2 callbacks = {
 	.saImmOiAdminOperationCallback = adminOperationCallback,
 	.saImmOiCcbAbortCallback = ccbAbortCallback,
@@ -1832,10 +1902,14 @@ SaAisErrorT lgs_imm_activate(lgs_cb_t *cb)
 				       "saLogStreamCreationTimestamp", SA_IMM_ATTR_SATIMET,
 				       &cb->systemStream->creationTimeStamp);
 
-	/* Open all streams */
+	/* Open all streams
+	 * Config file and log file will be created. If this fails we give up
+	 * without returning any error. A new attempt to create the files will
+	 * be done when trying to write a log record to the stream.
+	 */
 	stream = log_stream_getnext_by_name(NULL);
 	while (stream != NULL) {
-		if (log_stream_open(stream) != SA_AIS_OK)
+		if (log_stream_open_fh(stream) != SA_AIS_OK)
 			goto done;
 
 		stream = log_stream_getnext_by_name(stream->name);
