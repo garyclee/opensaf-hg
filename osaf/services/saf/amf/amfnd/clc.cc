@@ -2478,7 +2478,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	char env_val_comp_err[11];	/*we req only 10 */
 	char env_var_name[] = "SA_AMF_COMPONENT_NAME";
 	char env_var_nodeid[] = "NCS_ENV_NODE_ID";
-	char env_var_comp_err[] = "NCS_ENV_COMPONENT_ERROR_SRC";
+	char env_var_comp_err[] = "OSAF_COMPONENT_ERROR_SOURCE";
 	char *env_attr_val = 0;
 	AVND_CLC_EVT *clc_evt;
 	AVND_EVT *evt = 0;
@@ -2576,7 +2576,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	arg.num_args++;
 	env_counter++;
 
-	/* Note:- we will set NCS_ENV_COMPONENT_ERROR_SRC only for 
+	/* Note:- we will set OSAF_COMPONENT_ERROR_SOURCE only for 
 	 * cleanup script
 	 */
 
