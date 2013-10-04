@@ -1,5 +1,22 @@
-#ifndef _TET_MDSTIPC_H
-#define _TET_MDSTIPC_H
+/*          OpenSAF
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Ericsson AB
+ *
+ */
+
+#ifndef _MDSTIPC_H
+#define _MDSTIPC_H
 
 #include "ncssysf_tsk.h"
 #include "ncssysf_def.h"
@@ -196,13 +213,10 @@ int is_vdest_sel_obj_found(int ,int );
 void tet_mds_free_msg(NCSCONTEXT msg_to_be_freed);
 
 uint32_t mds_service_install(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_PVT_SUB_PART_VER ,NCSMDS_SCOPE_TYPE,bool,bool);
-uint32_t mds_service_subscribe(MDS_HDL,MDS_SVC_ID ,NCSMDS_SCOPE_TYPE ,uint8_t ,
-                            MDS_SVC_ID *);
-uint32_t mds_service_redundant_subscribe(MDS_HDL ,MDS_SVC_ID ,
-                                      NCSMDS_SCOPE_TYPE ,uint8_t ,MDS_SVC_ID *);
+uint32_t mds_service_subscribe(MDS_HDL,MDS_SVC_ID ,NCSMDS_SCOPE_TYPE ,uint8_t ,MDS_SVC_ID *);
+uint32_t mds_service_redundant_subscribe(MDS_HDL ,MDS_SVC_ID , NCSMDS_SCOPE_TYPE ,uint8_t ,MDS_SVC_ID *);
 uint32_t mds_service_system_subscribe(MDS_HDL ,MDS_SVC_ID ,EVT_FLTR );
-uint32_t mds_service_cancel_subscription(MDS_HDL ,MDS_SVC_ID ,uint8_t ,
-                                      MDS_SVC_ID *);
+uint32_t mds_service_cancel_subscription(MDS_HDL ,MDS_SVC_ID ,uint8_t , MDS_SVC_ID *);
 uint32_t mds_service_uninstall(MDS_HDL ,MDS_SVC_ID);
 
 uint32_t mds_send_message(MDS_HDL ,MDS_SVC_ID ,NCSCONTEXT ,MDS_SVC_ID ,
@@ -245,59 +259,199 @@ uint32_t is_service_on_adest(MDS_HDL ,MDS_SVC_ID );
 uint32_t change_role(MDS_HDL ,MDS_SVC_ID ,V_DEST_RL );
 
 /************** TEST CASE FUNCTION DECLARATIONS ************/
-void tet_adest_rcvr_thread(void);
-void tet_adest_all_rcvrack_thread(void);
-void tet_change_role_thread(void);
-void tet_vdest_rcvr_thread(void); 
-void tet_adest_all_chgrole_rcvr_thread(void);
-void tet_adest_all_rcvrack_chgrole_thread(void);
-void tet_vdest_Srcvr_thread(void); 
-void tet_vdest_Arcvr_thread(void);
-void tet_destroy_PWE_ADEST_twice_tp(void);
-void tet_create_PWE_ADEST_twice_tp(void);
-void tet_create_default_PWE_ADEST_tp(void);
-void tet_create_PWE_upto_MAX_tp(void);
+void  tet_svc_install_tp_01(void);
+void  tet_svc_install_tp_02(void);
+void  tet_svc_install_tp_03(void);
+void  tet_svc_install_tp_05(void);
+void  tet_svc_install_tp_06(void);
+void  tet_svc_install_tp_07(void);
+void  tet_svc_install_tp_08(void);
+void  tet_svc_install_tp_09(void);
+void  tet_svc_install_tp_10(void);
+void  tet_svc_install_tp_11(void);
+void  tet_svc_install_tp_12(void);
+void  tet_svc_install_tp_13(void);
+void  tet_svc_install_tp_14(void);
+void  tet_svc_install_tp_15(void);
+void  tet_svc_install_tp_16(void);
+void  tet_svc_install_tp_17(void);
+void tet_svc_unstall_tp_1(void);
+void tet_svc_unstall_tp_3(void);
+void tet_svc_unstall_tp_4(void);
+void tet_svc_unstall_tp_5(void);
+void tet_svc_subscr_VDEST_1(void);
+void tet_svc_subscr_VDEST_2(void);
+void tet_svc_subscr_VDEST_3(void);
+void tet_svc_subscr_VDEST_4(void);
+void tet_svc_subscr_VDEST_5(void);
+void tet_svc_subscr_VDEST_6(void);
+void tet_svc_subscr_VDEST_8(void);
+void tet_svc_subscr_VDEST_9(void);
+void tet_svc_subscr_VDEST_7(void);
+void tet_svc_subscr_VDEST_10(void);
+void tet_svc_subscr_VDEST_11(void);
+void tet_svc_subscr_VDEST_12(void);
+void cleanup_ADEST_srv(void);
+void tet_svc_subscr_ADEST_1(void);
+void tet_svc_subscr_ADEST_2(void);
+void tet_svc_subscr_ADEST_3(void);
+void tet_svc_subscr_ADEST_4(void);
+void tet_svc_subscr_ADEST_5(void);
+void tet_svc_subscr_ADEST_6(void);
+void tet_svc_subscr_ADEST_7(void);
+void tet_svc_subscr_ADEST_8(void);
+void tet_svc_subscr_ADEST_9(void);
+void tet_svc_subscr_ADEST_10(void);
+void tet_svc_subscr_ADEST_11(void);
+void tet_just_send_tp_1(void);
+void tet_just_send_tp_2(void);
+void tet_just_send_tp_3(void);
+void tet_just_send_tp_4(void);
+void tet_just_send_tp_5(void);
+void tet_just_send_tp_6(void);
+void tet_just_send_tp_7(void);
+void tet_just_send_tp_8(void);
+void tet_just_send_tp_9(void);
+void tet_just_send_tp_10(void);
+void tet_just_send_tp_11(void);
+void tet_just_send_tp_12(void);
+void tet_just_send_tp_13(void);
+void tet_just_send_tp_14(void);
+void tet_send_ack_tp_1(void);
+void tet_send_ack_tp_2(void);
+void tet_send_ack_tp_3(void);
+void tet_send_ack_tp_4(void);
+void tet_send_ack_tp_5(void);
+void tet_send_ack_tp_6(void);
+void tet_send_ack_tp_7(void);
+void tet_send_ack_tp_8(void);
+void tet_send_ack_tp_9(void);
+void tet_send_ack_tp_10(void);
+void tet_send_ack_tp_11(void);
+void tet_send_ack_tp_12(void);
+void tet_send_ack_tp_13(void);
+void tet_query_pwe_tp_1(void);
+void tet_query_pwe_tp_2(void);
+void tet_query_pwe_tp_3(void);
+void tet_send_response_tp_1(void);
+void tet_send_response_tp_2(void);
+void tet_send_response_tp_3(void);
+void tet_send_response_tp_4(void);
+void tet_send_response_tp_5(void);
+void tet_send_response_tp_6(void);
+void tet_send_response_tp_7(void);
+void tet_send_response_tp_8(void);
+void tet_send_response_tp_9(void);
+void tet_send_response_tp_10(void);
+void tet_send_response_tp_11(void);
+void tet_send_response_tp_12(void);
 
-void tet_create_Nway_VDEST(int);
-void tet_create_MxN_VDEST(int);
-void tet_create_OAC_VDEST_tp(int);
-void tet_destroy_VDEST_twice_tp(int);
-void tet_destroy_ACTIVE_MxN_VDEST_tp(int);
-void tet_test_PWE_VDEST_tp(int);
-void tet_create_default_PWE_VDEST_tp(void);
-void tet_chg_standby_to_queisced_tp(int);
-void tet_create_PWE_upto_MAX_VDEST(void);
-void tet_create_named_VDEST(int); 
-void tet_VDS(int);
+void tet_send_all_tp_1(void);
+void tet_send_all_tp_2(void);
+void tet_send_response_ack_tp_1(void);
+void tet_send_response_ack_tp_2(void);
+void tet_send_response_ack_tp_3(void);
+void tet_send_response_ack_tp_4(void);
+void tet_send_response_ack_tp_5(void);
+void tet_send_response_ack_tp_6(void);
+void tet_send_response_ack_tp_7(void);
+void tet_send_response_ack_tp_8(void);
+void tet_broadcast_to_svc_tp_1(void);
+void tet_broadcast_to_svc_tp_2(void);
+void tet_broadcast_to_svc_tp_3(void);
+void tet_broadcast_to_svc_tp_4(void);
+void tet_broadcast_to_svc_tp_5(void);
+void tet_broadcast_to_svc_tp_6(void);
+void tet_direct_just_send_tp_1(void);
+void tet_direct_just_send_tp_2(void);
+void tet_direct_just_send_tp_3(void);
+void tet_direct_just_send_tp_4(void);
+void tet_direct_just_send_tp_5(void);
+void tet_direct_just_send_tp_6(void);
+void tet_direct_just_send_tp_7(void);
+void tet_direct_just_send_tp_8(void);
+void tet_direct_just_send_tp_9(void);
+void tet_direct_just_send_tp_10(void);
+void tet_direct_just_send_tp_11(void);
+void tet_direct_just_send_tp_12(void);
+void tet_direct_just_send_tp_13(void);
+void tet_direct_just_send_tp_14(void);
+void tet_direct_just_send_tp_15(void);
+void tet_direct_send_all_tp_1(void);
+void tet_direct_send_all_tp_2(void);
+void tet_direct_send_all_tp_3(void);
+void tet_direct_send_all_tp_4(void);
+void tet_direct_send_all_tp_5(void);
+void tet_direct_send_all_tp_6(void);
+void tet_Dadest_all_chgrole_rcvr_thread(void);
+void tet_direct_send_ack_tp_1(void);
+void tet_direct_send_ack_tp_2(void);
+void tet_direct_send_ack_tp_3(void);
+void tet_direct_send_ack_tp_4(void);
+void tet_direct_send_ack_tp_5(void);
+void tet_direct_send_ack_tp_6(void);
+void tet_direct_send_ack_tp_7(void);
+void tet_direct_send_ack_tp_8(void);
+void tet_direct_send_ack_tp_9(void);
+void tet_direct_send_ack_tp_10(void);
+void tet_direct_send_ack_tp_11(void);
+void tet_direct_send_ack_tp_12(void);
+void tet_direct_send_ack_tp_13(void);
+void tet_direct_send_response_tp_1(void);
+void tet_direct_send_response_tp_2(void);
+void tet_direct_send_response_tp_3(void);
+void tet_direct_send_response_tp_4(void);
+void tet_direct_send_response_tp_5(void);
+void tet_direct_send_response_ack_tp_1(void);
+void tet_direct_send_response_ack_tp_2(void);
+void tet_direct_send_response_ack_tp_3(void);
+void tet_direct_send_response_ack_tp_4(void);
+void tet_direct_send_response_ack_tp_5(void);
+void tet_direct_broadcast_to_svc_tp_1(void);
+void tet_direct_broadcast_to_svc_tp_2(void);
+void tet_direct_broadcast_to_svc_tp_3(void);
+void tet_direct_broadcast_to_svc_tp_4(void);
+void tet_direct_broadcast_to_svc_tp_5(void);
+void tet_direct_broadcast_to_svc_tp_6(void);
+void tet_direct_broadcast_to_svc_tp_7(void);
+void tet_direct_broadcast_to_svc_tp_8(void);
+void tet_create_MxN_VDEST_1(void);
+void tet_create_MxN_VDEST_2(void);
+void tet_create_MxN_VDEST_3(void);
+void tet_create_MxN_VDEST_4(void);
+void tet_create_Nway_VDEST_1(void);
+void tet_create_Nway_VDEST_2(void);
+void tet_create_Nway_VDEST_3(void);
+void tet_create_Nway_VDEST_4(void);
+void tet_create_OAC_VDEST_tp_1(void);
+void tet_create_OAC_VDEST_tp_2(void);
+void tet_destroy_VDEST_twice_tp_1(void);
+void tet_destroy_VDEST_twice_tp_2(void);
+void tet_destroy_ACTIVE_MxN_VDEST_tp_1(void);
+void tet_destroy_ACTIVE_MxN_VDEST_tp_2(void);
+void tet_chg_standby_to_queisced_tp_1(void);
+void tet_chg_standby_to_queisced_tp_2(void);
+void tet_chg_standby_to_queisced_tp_3(void);
+void tet_chg_standby_to_queisced_tp_4(void);
+void tet_create_named_VDEST_1(void);
+void tet_create_named_VDEST_2(void);
+void tet_create_named_VDEST_3(void);
+void tet_create_named_VDEST_4(void);
+void tet_create_named_VDEST_5(void);
+void tet_create_named_VDEST_6(void);
+void tet_create_named_VDEST_7(void);
+void tet_create_named_VDEST_8(void);
+void tet_create_named_VDEST_9(void);
+void tet_test_PWE_VDEST_tp_1(void);
+void tet_test_PWE_VDEST_tp_2(void);
+void tet_test_PWE_VDEST_tp_3(void);
+void tet_test_PWE_VDEST_tp_4(void);
+void tet_test_PWE_VDEST_tp_5(void);
+void tet_test_PWE_VDEST_tp_6(void);
 
-void tet_svc_install_tp(int);
-void tet_svc_unstall_tp(int);
-void tet_svc_install_upto_MAX(void);
-void tet_svc_subscr_ADEST(int);
-void tet_svc_subscr_VDEST(int);
-
-void tet_just_send_tp(int);
-void tet_send_ack_tp(int);
-
-
-void tet_broadcast_to_svc_tp(int);
-void tet_send_response_tp(int);
-void tet_send_response_ack_tp(int choice);
-void tet_send_all_tp(int choice);
-
-
-void tet_direct_just_send_tp(int);
-void tet_direct_send_all_tp(int choice);
-void TET_direct_just_send_tp(int choice);
-void tet_direct_send_ack_tp(int);
-void tet_direct_broadcast_to_svc_tp(int);
-
-void tet_direct_send_response_tp(int);
-void tet_direct_send_response_ack_tp(int choice);
-
-void tet_query_pwe_tp(int choice);
 
 /*Multi Process/Node Test Case Functions*/
+/* Non imlemented */
 void tet_just_send_both(int);
 void tet_send_ack_both(int);
 void tet_send_response_both(int);
@@ -313,8 +467,6 @@ void tet_red_send_ack_both(int);
 void tet_red_send_resp_both(int);
 void tet_red_sendresp_ack_both(int);
 
-
-
 void tet_dispatch_blocking_both(int choice);
 void msg_priority_conformance(int);
 void sequential_delivery(int);
@@ -329,91 +481,58 @@ void tet_VDS_both(void);
 void tet_dummy_both(void);
 void tet_message_from_unknown_adest(void);
 void tet_svc_subscribe_MAX(void);
-void ncs_agents_shut_start(int choice); 
+void ncs_agents_shut_start(int choice);
+ 
+
+/* Implemented */
+uint32_t tet_initialise_setup(bool fail_no_active_sends); 
+void Print_return_status(uint32_t rs); 
 void tet_vdest_install_thread(void);
- void tet_svc_install_upto_MAX(void);
- void tet_vdest_uninstall_thread(void);
- void tet_adest_cancel_thread(void);
- void tet_adest_retrieve_thread(void);
- uint32_t tet_initialise_setup(bool fail_no_active_sends); 
- void tet_adest_rcvr_thread(void);
- void tet_adest_rcvr_svc_thread(void);
- void tet_vdest_rcvr_resp_thread(void);
- void tet_vdest_rcvr_thread(void);
- void tet_Dadest_all_rcvr_thread(void);
- void tet_Dadest_all_chgrole_rcvr_thread(void);
- void tet_adest_all_chgrole_rcvr_thread(void);
- void tet_vdest_all_rcvr_thread(void);
- void tet_adest_all_rcvrack_thread(void);
- void tet_adest_all_rcvrack_chgrole_thread(void);
- void tet_Dadest_all_rcvrack_chgrole_thread(void);
- void tet_change_role_thread(void);
- void tet_adest_all_rcvr_thread(void);
- void tet_vdest_Srcvr_thread(void);
- void tet_vdest_Arcvr_thread(void);
- void tet_Dadest_rcvr_thread(void);
- void tet_Dvdest_rcvr_thread(void);
- void tet_Dvdest_rcvr_all_rack_thread(void);
- void tet_Dvdest_rcvr_all_thread(void);
- void tet_Dvdest_rcvr_all_chg_role_thread(void);
- void tet_Dvdest_Srcvr_thread(void);
- void tet_Dvdest_Srcvr_all_thread(void);
- void tet_Dvdest_Arcvr_thread(void);
- void tet_Dvdest_Arcvr_all_thread(void);
- void tet_destroy_PWE_ADEST_twice_tp(void);
- void tet_create_PWE_ADEST_twice_tp(void);
- void tet_create_default_PWE_ADEST_tp(void);
- void tet_create_PWE_upto_MAX_tp(void);
- void tet_create_PWE_upto_MAX_VDEST(void);
- void tet_create_default_PWE_VDEST_tp(void);
- void Print_return_status(uint32_t rs); 
-void tet_vdest_install_thread(void);
- void tet_svc_install_upto_MAX(void);
- void tet_vdest_uninstall_thread(void);
- void tet_adest_cancel_thread(void);
- void tet_adest_retrieve_thread(void);
- void tet_adest_rcvr_thread(void);
- void tet_adest_rcvr_svc_thread(void);
- void tet_vdest_rcvr_resp_thread(void);
- void tet_vdest_rcvr_thread(void);
- void tet_Dadest_all_rcvr_thread(void);
- void tet_Dadest_all_chgrole_rcvr_thread(void);
- void tet_adest_all_chgrole_rcvr_thread(void);
- void tet_vdest_all_rcvr_thread(void);
- void tet_adest_all_rcvrack_thread(void);
- void tet_adest_all_rcvrack_chgrole_thread(void);
- void tet_Dadest_all_rcvrack_chgrole_thread(void);
- void tet_change_role_thread(void);
- void tet_adest_all_rcvr_thread(void);
- void tet_vdest_Srcvr_thread(void);
- void tet_vdest_Arcvr_thread(void);
- void tet_Dadest_rcvr_thread(void);
- void tet_Dvdest_rcvr_thread(void);
- void tet_Dvdest_rcvr_all_rack_thread(void);
- void tet_Dvdest_rcvr_all_thread(void);
- void tet_Dvdest_rcvr_all_chg_role_thread(void);
- void tet_Dvdest_Srcvr_thread(void);
- void tet_Dvdest_Srcvr_all_thread(void);
- void tet_Dvdest_Arcvr_thread(void);
- void tet_Dvdest_Arcvr_all_thread(void);
- void tet_destroy_PWE_ADEST_twice_tp(void);
- void tet_create_PWE_ADEST_twice_tp(void);
- void tet_create_default_PWE_ADEST_tp(void);
- void tet_create_PWE_upto_MAX_tp(void);
- void tet_create_PWE_upto_MAX_VDEST(void);
- void tet_create_default_PWE_VDEST_tp(void);
+void tet_svc_install_upto_MAX(void);
+void tet_vdest_uninstall_thread(void);
+void tet_adest_cancel_thread(void);
+void tet_adest_retrieve_thread(void);
+void tet_adest_rcvr_thread(void);
+void tet_adest_rcvr_svc_thread(void);
+void tet_vdest_rcvr_resp_thread(void);
+void tet_vdest_rcvr_thread(void);
+void tet_Dadest_all_rcvr_thread(void);
+void tet_adest_all_chgrole_rcvr_thread(void);
+void tet_vdest_all_rcvr_thread(void);
+void tet_adest_all_rcvrack_thread(void);
+void tet_adest_all_rcvrack_chgrole_thread(void);
+void tet_Dadest_all_rcvrack_chgrole_thread(void);
+void tet_change_role_thread(void);
+void tet_adest_all_rcvr_thread(void);
+void tet_vdest_Srcvr_thread(void);
+void tet_vdest_Arcvr_thread(void);
+void tet_Dadest_rcvr_thread(void);
+void tet_Dvdest_rcvr_thread(void);
+void tet_Dvdest_rcvr_all_rack_thread(void);
+void tet_Dvdest_rcvr_all_thread(void);
+void tet_Dvdest_rcvr_all_chg_role_thread(void);
+void tet_Dvdest_Srcvr_thread(void);
+void tet_Dvdest_Srcvr_all_thread(void);
+void tet_Dvdest_Arcvr_thread(void);
+void tet_Dvdest_Arcvr_all_thread(void);
+void tet_destroy_PWE_ADEST_twice_tp(void);
+void tet_create_PWE_ADEST_twice_tp(void);
+void tet_create_default_PWE_ADEST_tp(void);
+void tet_create_PWE_upto_MAX_tp(void);
+void tet_create_PWE_upto_MAX_VDEST(void);
+void tet_create_default_PWE_VDEST_tp(void);
 uint32_t mds_send_get_redack(MDS_HDL mds_hdl,
-                          MDS_SVC_ID svc_id,
-                          MDS_SVC_ID to_svc,
-                          MDS_DEST to_vdest,
-                          V_DEST_QA to_anc,
-                          uint32_t time_to_wait,
-                          MDS_SEND_PRIORITY_TYPE priority,
-                          TET_MDS_MSG *message);
-uint32_t mds_send_redrsp_getack(MDS_HDL mds_hdl,
                              MDS_SVC_ID svc_id,
+                             MDS_SVC_ID to_svc,
+                             MDS_DEST to_vdest,
+                             V_DEST_QA to_anc,
                              uint32_t time_to_wait,
-                             TET_MDS_MSG *response);
+                             MDS_SEND_PRIORITY_TYPE priority,
+                             TET_MDS_MSG *message);
+uint32_t mds_send_redrsp_getack(MDS_HDL mds_hdl,
+                                MDS_SVC_ID svc_id,
+                                uint32_t time_to_wait,
+                                TET_MDS_MSG *response);
 uint32_t   tet_sync_point(void);
 
 #endif

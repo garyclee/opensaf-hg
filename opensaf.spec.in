@@ -1443,6 +1443,7 @@ fi
 %{_bindir}/ntftest
 %{_bindir}/ntf_search_criteria_test.sh
 %{_bindir}/clmtest
+%{_bindir}/mdstest
 %if %is_ais_plm
 %{_bindir}/plmtest
 %endif
