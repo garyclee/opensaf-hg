@@ -166,6 +166,7 @@ SUBDIRS += \
 	tests/immsv/implementer \
 	tests/immsv/management \
 	tests/clmsv \
+	tests/mds \
 	tests/unit_test_fw
 
 if ENABLE_AIS_PLM

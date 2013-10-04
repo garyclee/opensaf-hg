@@ -1,7 +1,24 @@
-#include <tet_api.h>
+/*          OpenSAF
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Ericsson AB
+ *
+ */
+
 #include "mds_papi.h"
 #include "ncs_mda_papi.h"
-#include "tet_mdstipc.h"
+#include "ncssysf_tsk.h"
+#include "mdstipc.h"
 extern int fill_syncparameters(int);
 /****************** ADEST WRAPPERS ***********************/
 uint32_t adest_get_handle(void)
@@ -15,7 +32,9 @@ uint32_t adest_get_handle(void)
     {
 
       gl_tet_adest.adest=ada_info.info.adest_get_hdls.o_adest; 
-      printf("\nADEST <%llx > : GET_HDLS is SUCCESSFUL",gl_tet_adest.adest);
+      printf("\nADEST <%llx > : GET_HDLS is SUCCESSFUL", 
+             (long long unsigned int)gl_tet_adest.adest);
+
       gl_tet_adest.mds_pwe1_hdl=ada_info.info.adest_get_hdls.o_mds_pwe1_hdl; 
       gl_tet_adest.mds_adest_hdl=ada_info.info.adest_get_hdls.o_mds_adest_hdl;
       return NCSCC_RC_SUCCESS;
@@ -90,7 +109,7 @@ uint32_t create_vdest(NCS_VDEST_TYPE policy,
   if(ncsvda_api(&vda_info)==NCSCC_RC_SUCCESS)
     {
 
-      printf("\n %lld : VDEST_CREATE is SUCCESSFUL", vdest);
+      printf("\n %lld : VDEST_CREATE is SUCCESSFUL",  (long long unsigned int)vdest);
       fflush(stdout);
       gl_tet_vdest[gl_vdest_indx].mds_pwe1_hdl=
         vda_info.info.vdest_create.o_mds_pwe1_hdl;
@@ -116,7 +135,7 @@ uint32_t destroy_vdest(MDS_DEST vdest)
 
   if(ncsvda_api(&vda_info)==NCSCC_RC_SUCCESS)
     {
-      printf("\n %lld : VDEST_DESTROY is SUCCESSFULL",vdest);
+      printf("\n %lld : VDEST_DESTROY is SUCCESSFULL", (long long unsigned int)vdest);
       fflush(stdout);
       memset(&gl_tet_vdest[gl_vdest_indx],'\0',sizeof(TET_VDEST));
       gl_vdest_indx--;
@@ -137,7 +156,6 @@ uint32_t create_named_vdest(bool persistent,
   memset(&gl_tet_vdest[gl_vdest_indx],'\0',sizeof(TET_VDEST));  
 
   vda_info.req=NCSVDA_VDEST_CREATE;  
-  
 
   vda_info.info.vdest_create.i_persistent=persistent;
   vda_info.info.vdest_create.i_policy=policy;
@@ -197,7 +215,7 @@ uint32_t destroy_named_vdest(bool non_persistent,
 
   if(ncsvda_api(&vda_info)==NCSCC_RC_SUCCESS)
     {
-      printf("\n %lld : VDEST_NAMED DESTROY is SUCCESSFULL\n",vdest);
+      printf("\n %lld : VDEST_NAMED DESTROY is SUCCESSFULL\n", (long long unsigned int)vdest);
       memset(&gl_tet_vdest[gl_vdest_indx],'\0',sizeof(TET_VDEST));
       gl_vdest_indx--;
       return NCSCC_RC_SUCCESS;
@@ -236,7 +254,8 @@ MDS_DEST vdest_lookup(char *vname)
     }
   else
     printf("\n %lld : VDEST_LOOKUP is SUCCESSFULL\n",
-           vda_info.info.vdest_lookup.o_vdest);
+            (long long unsigned int)vda_info.info.vdest_lookup.o_vdest);
+
   return(vda_info.info.vdest_lookup.o_vdest);
 }
 
@@ -1475,12 +1494,9 @@ int is_sel_obj_found(int indx)
   /* int count=0;*/
   NCS_SEL_OBJ numfds;
   NCS_SEL_OBJ_SET readfd;
-  struct timeval tv;
   
   numfds.raise_obj=0;
   numfds.rmv_obj=0;
-  tv.tv_sec = 100;
-  tv.tv_usec = 10;
   
   m_NCS_SEL_OBJ_ZERO(&readfd);
   m_NCS_SEL_OBJ_SET(gl_tet_svc[indx].sel_obj,&readfd);
@@ -1505,12 +1521,9 @@ int is_vdest_sel_obj_found(int vi,int si)
   /*int count=0;*/
   NCS_SEL_OBJ numfds;
   NCS_SEL_OBJ_SET readfd;
-  struct timeval tv;
   
   numfds.raise_obj=0;
   numfds.rmv_obj=0;
-  tv.tv_sec = 100;
-  tv.tv_usec = 10;
   
   m_NCS_SEL_OBJ_ZERO(&readfd);
   m_NCS_SEL_OBJ_SET(gl_tet_vdest[vi].svc[si].sel_obj,&readfd);
@@ -1536,12 +1549,9 @@ int is_adest_sel_obj_found(int si)
   /*  int count=0;*/
   NCS_SEL_OBJ numfds;
   NCS_SEL_OBJ_SET readfd;
-  struct timeval tv;
   
   numfds.raise_obj=0;
   numfds.rmv_obj=0;
-  tv.tv_sec = 100;
-  tv.tv_usec = 10;
   
   m_NCS_SEL_OBJ_ZERO(&readfd);
   m_NCS_SEL_OBJ_SET(gl_tet_adest.svc[si].sel_obj,&readfd);
@@ -1563,17 +1573,23 @@ int is_adest_sel_obj_found(int si)
 uint32_t tet_create_task(NCS_OS_CB task_startup,
                       NCSCONTEXT t_handle)
 {
-  char taskname[]="My Task";
-  if ( m_NCS_TASK_CREATE(task_startup,
+  char taskname[]="MDS_Tipc test";
+  int policy = SCHED_OTHER; /*root defaults */
+  int prio_val = sched_get_priority_min(policy);
+
+  if  (m_NCS_TASK_CREATE(task_startup,
                          NULL,
                          taskname,
-                         NCS_TASK_PRIORITY_6,
+                         prio_val,
+                         policy,
                          NCS_STACKSIZE_MEDIUM,
-                         &t_handle)==NCSCC_RC_SUCCESS )
+                         &t_handle) == NCSCC_RC_SUCCESS)
+
     return NCSCC_RC_SUCCESS;
   else
     return NCSCC_RC_FAILURE;
 }
+
 uint32_t mds_service_retrieve(MDS_HDL mds_hdl,
                            MDS_SVC_ID svc_id,
                            SaDispatchFlagsT dispatchFlags)
@@ -1626,15 +1642,15 @@ uint32_t mds_query_vdest_for_role(MDS_HDL mds_hdl,
       /*=svc_to_mds_info.info.query_dest.o_adest*/
       /*=svc_to_mds_info.info.query_dest.o_vdest_rl*/
       if(svc_to_mds_info.info.query_dest.o_local)
-        printf("\n\tLOCAL service on Node = %x with Role = %d and its ADEST = \
-<%llx>\n ", svc_to_mds_info.info.query_dest.o_node_id,
+        printf("\n\tLOCAL service on Node = %x with Role = %d and its ADEST = <%llx>\n ", 
+               svc_to_mds_info.info.query_dest.o_node_id,
                svc_to_mds_info.info.query_dest.info.query_for_role.o_vdest_rl,
-               svc_to_mds_info.info.query_dest.o_adest);
+               (long long unsigned int)svc_to_mds_info.info.query_dest.o_adest);
       else
-        printf("\n\tNON-LOCAL service on Node = %x with Role = %d and its \
-ADEST = <%llx>\n",svc_to_mds_info.info.query_dest.o_node_id,
+        printf("\n\tNON-LOCAL service on Node = %x with Role = %d and its ADEST = <%llx>\n",
+               svc_to_mds_info.info.query_dest.o_node_id,
                svc_to_mds_info.info.query_dest.info.query_for_role.o_vdest_rl,
-               svc_to_mds_info.info.query_dest.o_adest);
+               (long long unsigned int)svc_to_mds_info.info.query_dest.o_adest);
       return  NCSCC_RC_SUCCESS; 
     }
   else 
@@ -1671,15 +1687,15 @@ SUCCESSFULL");
       /*=svc_to_mds_info.info.query_dest.o_anc*/
       
       if(svc_to_mds_info.info.query_dest.o_local)
-        printf("\n\tLOCAL service on Node = %x with Anchor = <%llx> and its\
- ADEST = <%llx>\n ", svc_to_mds_info.info.query_dest.o_node_id,
-               svc_to_mds_info.info.query_dest.info.query_for_anc.o_anc,
-               svc_to_mds_info.info.query_dest.o_adest);
+        printf("\n\tLOCAL service on Node = %x with Anchor = <%llx> and its ADEST = <%llx>\n ", 
+               svc_to_mds_info.info.query_dest.o_node_id,
+               (long long unsigned int)svc_to_mds_info.info.query_dest.info.query_for_anc.o_anc,
+               (long long unsigned int)svc_to_mds_info.info.query_dest.o_adest);
       else
-        printf("\n\tNON-LOCAL service on Node = %x with Anchor = <%llx> and \
-its ADEST = <%llx>\n",svc_to_mds_info.info.query_dest.o_node_id,
-               svc_to_mds_info.info.query_dest.info.query_for_anc.o_anc,
-               svc_to_mds_info.info.query_dest.o_adest);
+        printf("\n\tNON-LOCAL service on Node = %x with Anchor = <%llx> and its ADEST = <%llx>\n",
+               svc_to_mds_info.info.query_dest.o_node_id,
+               (long long unsigned int)svc_to_mds_info.info.query_dest.info.query_for_anc.o_anc,
+               (long long unsigned int)svc_to_mds_info.info.query_dest.o_adest);
       return  NCSCC_RC_SUCCESS; 
     }
   else 
@@ -1719,7 +1735,8 @@ uint32_t mds_service_query_for_pwe(MDS_HDL mds_hdl,
         {
           /*=svc_to_mds_info.info.query_pwe.info.abs_info.o_adest;*/
           printf("\nThe Service %d lives on ADEST = <%llx> of PWE id = %d\n",
-                 svc_id,svc_to_mds_info.info.query_pwe.info.abs_info.o_adest,
+                 svc_id,
+                 (long long unsigned int)svc_to_mds_info.info.query_pwe.info.abs_info.o_adest,
                  svc_to_mds_info.info.query_pwe.o_pwe_id);
         }
       else
@@ -1727,10 +1744,10 @@ uint32_t mds_service_query_for_pwe(MDS_HDL mds_hdl,
           /*=svc_to_mds_info.info.query_pwe.virt_info.o_vdest;*/
           /*=svc_to_mds_info.info.query_pwe.virt_info.o_anc;*/
           /*=svc_to_mds_info.info.query_pwe.virt_info.o_role;*/
-          printf("\nThe Service %d lives on VDEST id = <%llx> with Anchor =\
- <%llx> and Role = %d on PWE id = %d\n",svc_id,
-                 svc_to_mds_info.info.query_pwe.info.virt_info.o_vdest,
-                 svc_to_mds_info.info.query_pwe.info.virt_info.o_anc,
+          printf("\nThe Service %d lives on VDEST id = <%llx> with Anchor = <%llx> and Role = %d on PWE id = %d\n",
+                 svc_id,
+                 (long long unsigned int)svc_to_mds_info.info.query_pwe.info.virt_info.o_vdest,
+                 (long long unsigned int)svc_to_mds_info.info.query_pwe.info.virt_info.o_anc,
                  svc_to_mds_info.info.query_pwe.info.virt_info.o_role,
                  svc_to_mds_info.info.query_pwe.o_pwe_id);
         }
@@ -1910,10 +1927,10 @@ uint32_t tet_mds_cb_rcv(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   
   /* printf(" The Sender service is = %d \n",
      mds_to_svc_info->info.receive.i_fr_svc_id);*/
-  printf("\nThe Sender service = %d is on destination =<%llx> with anchor =\
- <%llx> Node %x and msg fmt ver = %d\n" ,mds_to_svc_info->info.receive.i_fr_svc_id,
-         mds_to_svc_info->info.receive.i_fr_dest,
-         mds_to_svc_info->info.receive.i_fr_anc,
+  printf("\nThe Sender service = %d is on destination =<%llx> with anchor = <%llx> Node %x and msg fmt ver = %d\n",
+         mds_to_svc_info->info.receive.i_fr_svc_id,
+         (long long unsigned int)mds_to_svc_info->info.receive.i_fr_dest,
+         (long long unsigned int)mds_to_svc_info->info.receive.i_fr_anc,
          mds_to_svc_info->info.receive.i_node_id,
          mds_to_svc_info->info.receive.i_msg_fmt_ver);
   /*
@@ -1922,7 +1939,7 @@ uint32_t tet_mds_cb_rcv(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   */
   printf("The Receiver service = %d is on destination =<%llx> \n",
          mds_to_svc_info->info.receive.i_to_svc_id,
-         mds_to_svc_info->info.receive.i_to_dest);
+         (long long unsigned int)mds_to_svc_info->info.receive.i_to_dest);
   
   /*Now Display what message did u receive*/
   printf("\nReceived Message len = %d \nThe message is=%s",
@@ -1960,16 +1977,16 @@ uint32_t tet_mds_cb_direct_rcv(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   recvd_len=mds_to_svc_info->info.direct_receive.i_direct_buff_len;
 #endif
   printf("\n\t\tDirect Receive callback\n");
-  printf(" The Sender service is = %d is on <%llx> destination with anchor =\
- <%llx> on Node = %x with msg fmt ver=%d\n" ,mds_to_svc_info->info.direct_receive.i_fr_svc_id,
-         mds_to_svc_info->info.direct_receive.i_fr_dest,
-         mds_to_svc_info->info.direct_receive.i_fr_anc,
+  printf(" The Sender service is = %d is on <%llx> destination with anchor = <%llx> on Node = %x with msg fmt ver=%d\n",
+         mds_to_svc_info->info.direct_receive.i_fr_svc_id,
+         (long long unsigned int)mds_to_svc_info->info.direct_receive.i_fr_dest,
+         (long long unsigned int)mds_to_svc_info->info.direct_receive.i_fr_anc,
          mds_to_svc_info->info.direct_receive.i_node_id,
          mds_to_svc_info->info.direct_receive.i_msg_fmt_ver);
   
   printf("\nThe Receiver service is = %d is on <%llx> destination",
          mds_to_svc_info->info.direct_receive.i_to_svc_id,
-         mds_to_svc_info->info.direct_receive.i_to_dest);
+         (long long unsigned int)mds_to_svc_info->info.direct_receive.i_to_dest);
   
   /*Now Display what message did u receive*/
   printf("\n\n\tReceived Message len = %d and the message is=%s\n",mds_to_svc_info->info.direct_receive.i_direct_buff_len,
@@ -2060,12 +2077,11 @@ uint32_t tet_mds_svc_event(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   
   if (mds_to_svc_info->info.svc_evt.i_change == NCSMDS_UP)
     {
-      printf("\nUP: Subscribed Svc = %d with svc pvt ver = %d is UP on dest= <%llx> anchor=\
- <%llx> role= %d with PWE id = %d on node = %x \n",
+      printf("\nUP: Subscribed Svc = %d with svc pvt ver = %d is UP on dest= <%llx> anchor= <%llx> role= %d with PWE id = %d on node = %x \n",
              mds_to_svc_info->info.svc_evt.i_svc_id,
              mds_to_svc_info->info.svc_evt.i_rem_svc_pvt_ver,
-             mds_to_svc_info->info.svc_evt.i_dest,
-             mds_to_svc_info->info.svc_evt.i_anc,
+             (long long unsigned int)mds_to_svc_info->info.svc_evt.i_dest,
+             (long long unsigned int) mds_to_svc_info->info.svc_evt.i_anc,
              mds_to_svc_info->info.svc_evt.i_role,
              mds_to_svc_info->info.svc_evt.i_pwe_id,
              mds_to_svc_info->info.svc_evt.i_node_id);
@@ -2076,12 +2092,11 @@ uint32_t tet_mds_svc_event(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
     }
   else if (mds_to_svc_info->info.svc_evt.i_change == NCSMDS_DOWN)
     {
-      printf("\nDOWN: Subscribed Svc = %d with svc pvt ver = %d is DOWN on dest= <%llx> anchor=\
- <%llx> role= %d with PWE id = %d on node = %x \n", 
+      printf("\nDOWN: Subscribed Svc = %d with svc pvt ver = %d is DOWN on dest= <%llx> anchor= <%llx> role= %d with PWE id = %d on node = %x \n", 
              mds_to_svc_info->info.svc_evt.i_svc_id,
              mds_to_svc_info->info.svc_evt.i_rem_svc_pvt_ver,
-             mds_to_svc_info->info.svc_evt.i_dest,
-             mds_to_svc_info->info.svc_evt.i_anc,
+             (long long unsigned int)mds_to_svc_info->info.svc_evt.i_dest,
+             (long long unsigned int)mds_to_svc_info->info.svc_evt.i_anc,
              mds_to_svc_info->info.svc_evt.i_role,
              mds_to_svc_info->info.svc_evt.i_pwe_id,
              mds_to_svc_info->info.svc_evt.i_node_id);
@@ -2091,20 +2106,20 @@ uint32_t tet_mds_svc_event(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   else if (mds_to_svc_info->info.svc_evt.i_change == NCSMDS_NO_ACTIVE)
     {
       printf("\nNO ACTIVE: Received NO ACTIVE Event\n");
-      printf(" In the system no active instance of Subscribed srv= %d with svc pvt ver = %d on dest=\
- <%llx> found \n",mds_to_svc_info->info.svc_evt.i_svc_id,
+      printf(" In the system no active instance of Subscribed srv= %d with svc pvt ver = %d on dest= <%llx> found \n",
+             mds_to_svc_info->info.svc_evt.i_svc_id,
              mds_to_svc_info->info.svc_evt.i_rem_svc_pvt_ver,
-             mds_to_svc_info->info.svc_evt.i_dest); 
+              (long long unsigned int)mds_to_svc_info->info.svc_evt.i_dest); 
       /*any messages send to this service will be stored internally*/
       fflush(stdout);
     }
   else if (mds_to_svc_info->info.svc_evt.i_change == NCSMDS_NEW_ACTIVE)
     {
       printf("\nNEW ACTIVE: Received NEW_ACTIVE Event\n");
-      printf(" In the system atleast one active instance of Subscribed service\
- = %d with svc pvt ver = %d  on destinatin = <%llx> found \n",mds_to_svc_info->info.svc_evt.i_svc_id,
+      printf(" In the system atleast one active instance of Subscribed service = %d with svc pvt ver = %d  on destinatin = <%llx> found \n",
+             mds_to_svc_info->info.svc_evt.i_svc_id,
              mds_to_svc_info->info.svc_evt.i_rem_svc_pvt_ver,
-             mds_to_svc_info->info.svc_evt.i_dest); 
+             (long long unsigned int)mds_to_svc_info->info.svc_evt.i_dest); 
       fflush(stdout);
     }
   else if (mds_to_svc_info->info.svc_evt.i_change == NCSMDS_RED_UP)
@@ -2114,8 +2129,8 @@ uint32_t tet_mds_svc_event(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
  anchor = <%llx> role = %d with PWE id = %d on node = %x \n ", 
              mds_to_svc_info->info.svc_evt.i_svc_id,
              mds_to_svc_info->info.svc_evt.i_rem_svc_pvt_ver,
-             mds_to_svc_info->info.svc_evt.i_dest,
-             mds_to_svc_info->info.svc_evt.i_anc,
+             (long long unsigned int)mds_to_svc_info->info.svc_evt.i_dest,
+             (long long unsigned int)mds_to_svc_info->info.svc_evt.i_anc,
              mds_to_svc_info->info.svc_evt.i_role,
              mds_to_svc_info->info.svc_evt.i_pwe_id,
              mds_to_svc_info->info.svc_evt.i_node_id);
@@ -2125,12 +2140,11 @@ uint32_t tet_mds_svc_event(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   else if (mds_to_svc_info->info.svc_evt.i_change == NCSMDS_RED_DOWN)
     {
       printf("\nRED DOWN: Received RED_DOWN Event\n");
-      printf(" The Subscribed Service = %d with svc pvt ver = %d is RED DOWN on destination = <%llx>\
-  anchor = <%llx> role = %d with PWE id = %d on node = %x \n ", 
+      printf(" The Subscribed Service = %d with svc pvt ver = %d is RED DOWN on destination = <%llx> anchor = <%llx> role = %d with PWE id = %d on node = %x \n ", 
              mds_to_svc_info->info.svc_evt.i_svc_id,
              mds_to_svc_info->info.svc_evt.i_rem_svc_pvt_ver,
-             mds_to_svc_info->info.svc_evt.i_dest,
-             mds_to_svc_info->info.svc_evt.i_anc,
+             (long long unsigned int)mds_to_svc_info->info.svc_evt.i_dest,
+             (long long unsigned int)mds_to_svc_info->info.svc_evt.i_anc,
              mds_to_svc_info->info.svc_evt.i_role,
              mds_to_svc_info->info.svc_evt.i_pwe_id,
              mds_to_svc_info->info.svc_evt.i_node_id);
@@ -2140,10 +2154,10 @@ uint32_t tet_mds_svc_event(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   else if (mds_to_svc_info->info.svc_evt.i_change == NCSMDS_CHG_ROLE)
     {
       printf("\nCHG ROLE: Received CHG_ROLE Event\n");
-      printf(" The Subscribed service = %d with svc pvt ver = %d on destinatin = <%llx> is changing\
-                          role\n ", mds_to_svc_info->info.svc_evt.i_svc_id,
+      printf(" The Subscribed service = %d with svc pvt ver = %d on destinatin = <%llx> is changing role\n", 
+             mds_to_svc_info->info.svc_evt.i_svc_id,
              mds_to_svc_info->info.svc_evt.i_rem_svc_pvt_ver,    
-             mds_to_svc_info->info.svc_evt.i_dest);
+             (long long unsigned int)mds_to_svc_info->info.svc_evt.i_dest);
       fflush(stdout);
     }
   return NCSCC_RC_SUCCESS;
