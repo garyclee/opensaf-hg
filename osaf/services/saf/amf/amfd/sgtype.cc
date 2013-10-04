@@ -443,11 +443,14 @@ static void sgtype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 				sgt->saAmfSgtDefAutoRepair = static_cast<SaBoolT>(*((SaUint32T *)attr_mod->modAttr.attrValues[0]));
 				sgt->saAmfSgtDefAutoRepair_configured = true; 
 			}
+			TRACE("Modified saAmfSgtDefAutoRepair is '%u'", sgt->saAmfSgtDefAutoRepair);
 			/* Modify saAmfSGAutoRepair for SGs which had inherited saAmfSgtDefAutoRepair.*/
 			if (old_value != sgt->saAmfSgtDefAutoRepair) {
 				for (AVD_SG *sg = sgt->list_of_sg; sg; sg = sg->sg_list_sg_type_next) {  
-					if (!sg->saAmfSGAutoRepair_configured)
+					if (!sg->saAmfSGAutoRepair_configured) {
 						sg->saAmfSGAutoRepair = static_cast<SaBoolT>(sgt->saAmfSgtDefAutoRepair);
+						TRACE("Modified saAmfSGAutoRepair is '%u'", sg->saAmfSGAutoRepair);
+					}
 				}
 			}
 		} 

@@ -1106,6 +1106,7 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				avd_si_adjust_si_assignments(si, mod_pref_assignments);
 				si->saAmfSIPrefActiveAssignments = mod_pref_assignments;
 			}
+			TRACE("Modified saAmfSIPrefActiveAssignments is '%u'", si->saAmfSIPrefActiveAssignments);
 			si_update_ass_state(si);
 		} else if (!strcmp(attribute->attrName, "saAmfSIPrefStandbyAssignments")) {
 			if (value_is_deleted)
@@ -1131,6 +1132,7 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				avd_si_adjust_si_assignments(si, mod_pref_assignments);
 				si->saAmfSIPrefStandbyAssignments = mod_pref_assignments;
 			}
+			TRACE("Modified saAmfSINumCurrStandbyAssignments is '%u'", si->saAmfSINumCurrStandbyAssignments);
 			si_update_ass_state(si);
 		} else {
 			osafassert(0);

@@ -1097,18 +1097,20 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 			SaNameT *dn = (SaNameT*) value;
 
+			TRACE("saAmfCompType modified from '%s' to '%s' for '%s'", comp->saAmfCompType.value, dn->value,
+					opdata->objectName.value);
 			avd_comptype_remove_comp(comp);
 			comp->saAmfCompType = *dn;
 			comp->comp_type = avd_comptype_get(dn);
 			avd_comptype_add_comp(comp);
 			param.attr_id = saAmfCompType_ID;
 			param.name_sec = *dn;
-			TRACE("saAmfCompType changed to '%s' for '%s'", dn->value, opdata->objectName.value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateCmdArgv")) {
 
 			/* Node director will reread configuration from IMM */
 			param.attr_id = saAmfCompInstantiateCmd_ID;
+			TRACE("saAmfCompInstantiateCmdArgv modified.");
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateTimeout")) {
 
@@ -1124,6 +1126,8 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompInstantiateTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
+			TRACE("saAmfCompInstantiationLevel modified from '%llu' to '%llu' for '%s'",
+					comp->comp_info.init_time, *((SaTimeT *)value), comp->comp_info.name.value);
 			comp->comp_info.init_time = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiationLevel")) {
@@ -1136,6 +1140,8 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompInstantiationLevel_ID;
 			param.value_len = sizeof(uint32_t);
 			memcpy(&param.value[0],(SaUint32T *)value , param.value_len);
+			TRACE("saAmfCompInstantiationLevel modified from '%u' to '%u' for '%s'",
+					comp->comp_info.inst_level, *((SaUint32T *)value), comp->comp_info.name.value);
 			comp->comp_info.inst_level = *((SaUint32T *)value);
 			
 			avd_su_remove_comp(comp);
@@ -1154,6 +1160,9 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.value_len = sizeof(uint32_t);
 			num_inst = htonl(num_inst);
 			memcpy(&param.value[0], &num_inst, param.value_len);
+			TRACE("saAmfCompNumMaxInstantiateWithoutDelay modified from '%u' to '%u' for '%s'",
+					comp->comp_info.max_num_inst, *((SaUint32T *)value), 
+					comp->comp_info.name.value);
 			comp->comp_info.max_num_inst = *((SaUint32T *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxInstantiateWithDelay")) {
@@ -1168,6 +1177,8 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.value_len = sizeof(uint32_t);
 			num_inst = htonl(num_inst);
 			memcpy(&param.value[0], &num_inst, param.value_len);
+			TRACE("saAmfCompNumMaxInstantiateWithDelay modified from '%u' to '%u' for '%s'",
+					comp->max_num_inst_delay, *((SaUint32T *)value), comp->comp_info.name.value);
 			comp->max_num_inst_delay = *((SaUint32T *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompDelayBetweenInstantiateAttempts")) {
@@ -1184,12 +1195,15 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompDelayBetweenInstantiateAttempts_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
+			TRACE("saAmfCompDelayBetweenInstantiateAttempts modified from '%llu' to '%llu' for '%s'",
+					comp->inst_retry_delay, *((SaTimeT *)value), comp->comp_info.name.value);
 			comp->inst_retry_delay = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompTerminateCmdArgv")) {
 
 			/* Node director will refresh from IMM */
 			param.attr_id = saAmfCompTerminateCmd_ID;
+			TRACE("saAmfCompTerminateCmdArgv modified.");
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompTerminateTimeout")) {
 
@@ -1205,12 +1219,15 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompTerminateTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
+			TRACE("saAmfCompTerminateTimeout modified from '%llu' to '%llu' for '%s'",
+					comp->comp_info.term_time, *((SaTimeT *)value), comp->comp_info.name.value);
 			comp->comp_info.term_time = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompCleanupCmdArgv")) {
 
 			/* Node director will reread configuration from IMM */
 			param.attr_id = saAmfCompCleanupCmd_ID;
+			TRACE("saAmfCompCleanupCmdArgv modified.");
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompCleanupTimeout")) {
 			SaTimeT timeout;
@@ -1225,12 +1242,15 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompCleanupTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
+			TRACE("saAmfCompCleanupTimeout modified from '%llu' to '%llu' for '%s'",
+					comp->comp_info.clean_time, *((SaTimeT *)value), comp->comp_info.name.value);
 			comp->comp_info.clean_time = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStartCmdArgv")) {
 
 			/* Node director will reread configuration from IMM */
 			param.attr_id = saAmfCompAmStartCmd_ID;
+			TRACE("saAmfCompAmStartCmdArgv modified.");
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStartTimeout")) {
 
@@ -1246,6 +1266,8 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompAmStartTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
+			TRACE("saAmfCompAmStartTimeout modified from '%llu' to '%llu' for '%s'",
+					comp->comp_info.amstart_time, *((SaTimeT *)value), comp->comp_info.name.value);
 			comp->comp_info.amstart_time = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStartAttempt")) {
@@ -1260,12 +1282,16 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.value_len = sizeof(uint32_t);
 			num_am_start = htonl(num_am_start);
 			memcpy(&param.value[0], &num_am_start, param.value_len);
+			TRACE("saAmfCompNumMaxAmStartAttempt modified from '%u' to '%u' for '%s'",
+					comp->comp_info.max_num_amstart, *((SaUint32T *)value), 
+					comp->comp_info.name.value);
 			comp->comp_info.max_num_amstart = *((SaUint32T *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStopCmdArgv")) {
 
 			/* Node director will reread configuration from IMM */
 			param.attr_id = saAmfCompAmStopCmd_ID;
+			TRACE("saAmfCompAmStopCmdArgv modified.");
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStopTimeout")) {
 
@@ -1281,6 +1307,8 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompAmStopTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
+			TRACE("saAmfCompAmStopTimeout modified from '%llu' to '%llu' for '%s'",
+					comp->comp_info.amstop_time, *((SaTimeT *)value), comp->comp_info.name.value);
 			comp->comp_info.amstop_time = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStopAttempt")) {
@@ -1295,6 +1323,9 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.value_len = sizeof(uint32_t);
 			num_am_stop = htonl(num_am_stop);
 			memcpy(&param.value[0], &num_am_stop, param.value_len);
+			TRACE("saAmfCompNumMaxAmStopAttempt modified from '%u' to '%u' for '%s'",
+					comp->comp_info.max_num_amstop, *((SaUint32T *)value), 
+					comp->comp_info.name.value);
 			comp->comp_info.max_num_amstop = *((SaUint32T *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompCSISetCallbackTimeout")) {
@@ -1311,6 +1342,9 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompCSISetCallbackTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
+			TRACE("saAmfCompCSISetCallbackTimeout modified from '%llu' to '%llu' for '%s'",
+					comp->comp_info.csi_set_callback_timeout, *((SaTimeT *)value), 
+					comp->comp_info.name.value);
 			comp->comp_info.csi_set_callback_timeout = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompCSIRmvCallbackTimeout")) {
@@ -1327,6 +1361,9 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompCSIRmvCallbackTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
+			TRACE("saAmfCompCSIRmvCallbackTimeout modified from '%llu' to '%llu' for '%s'",
+					comp->comp_info.csi_rmv_callback_timeout, *((SaTimeT *)value), 
+					comp->comp_info.name.value);
 			comp->comp_info.csi_rmv_callback_timeout = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompQuiescingCompleteTimeout")) {
@@ -1343,6 +1380,9 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompQuiescingCompleteTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
+			TRACE("saAmfCompQuiescingCompleteTimeout modified from '%llu' to '%llu' for '%s'",
+					comp->comp_info.quiescing_complete_timeout, *((SaTimeT *)value), 
+					comp->comp_info.name.value);
 			comp->comp_info.quiescing_complete_timeout = *((SaTimeT *)value);
 		} else if (!strcmp(attribute->attrName, "saAmfCompRecoveryOnError")) {
 			uint32_t recovery;
@@ -1357,6 +1397,8 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.value_len = sizeof(uint32_t);
 			recovery = htonl(recovery);
 			memcpy(&param.value[0], &recovery, param.value_len);
+			TRACE("saAmfCompRecoveryOnError modified from '%u' to '%u' for '%s'",
+					comp->comp_info.def_recvr, *((SaUint32T *)value), comp->comp_info.name.value);
 			comp->comp_info.def_recvr = static_cast<SaAmfRecommendedRecoveryT>(*((SaUint32T *)value));
 			if (comp->comp_info.def_recvr == SA_AMF_NO_RECOMMENDATION) {
 				comp->comp_info.def_recvr = SA_AMF_COMPONENT_FAILOVER;
@@ -1364,10 +1406,17 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 					   SA_AMF_COMPONENT_FAILOVER, SA_AMF_NO_RECOMMENDATION, comp->comp_info.name.value);
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompDisableRestart")) {
-			if (value_is_deleted)
+			if (value_is_deleted) {
+				TRACE("saAmfCompDisableRestart modified from '%u' to '%u' for '%s'",
+						comp->comp_info.comp_restart, comp_type->saAmfCtDefDisableRestart,
+						comp->comp_info.name.value);
 				comp->comp_info.comp_restart = comp_type->saAmfCtDefDisableRestart;
-			else
+			} else {
+				TRACE("saAmfCompDisableRestart modified from '%u' to '%u' for '%s'",
+						comp->comp_info.comp_restart, *((SaUint32T *)value),
+						comp->comp_info.name.value);
 				comp->comp_info.comp_restart = *((SaUint32T *)value);
+			}
 
 			param.attr_id = saAmfCompDisableRestart_ID;
 			param.value_len = sizeof(uint32_t);

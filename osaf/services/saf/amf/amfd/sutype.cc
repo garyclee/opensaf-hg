@@ -253,12 +253,16 @@ static void sutype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSutDefSUFailover")) {
 			uint32_t old_value = sut->saAmfSutDefSUFailover;
 			sut->saAmfSutDefSUFailover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
+			TRACE("Modified saAmfSutDefSUFailover from '%u' to '%u'", old_value,
+					sut->saAmfSutDefSUFailover);
 			/* Modify saAmfSUFailover for SUs which had inherited saAmfSutDefSUFailover.
 				Modification will not be done for the NPI SU */
 			if (old_value != sut->saAmfSutDefSUFailover) {
 				for (AVD_SU *su = sut->list_of_su; su; su = su->su_list_su_type_next) { 
 					if ((!su->saAmfSUFailover_configured) && (su->saAmfSUPreInstantiable)) {
 						su->saAmfSUFailover = static_cast<bool>(sut->saAmfSutDefSUFailover);
+						TRACE("Modified saAmfSutDefSUFailover to '%u' for Su'%s'",
+								su->saAmfSUFailover, su->name.value);
 						su_nd_attribute_update(su, saAmfSUFailOver_ID);
 					}
 				}

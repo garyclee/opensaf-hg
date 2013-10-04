@@ -1576,6 +1576,8 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		sidep = avd_sidep_find(avd_cb, &indx, true);
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 			if (!strcmp(attr_mod->modAttr.attrName, "saAmfToleranceTime")) {
+				TRACE("saAmfToleranceTime modified from '%llu' to '%llu'", sidep->saAmfToleranceTime,
+						*((SaTimeT *)attr_mod->modAttr.attrValues[0]));
 				sidep->saAmfToleranceTime = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
 			}
 		}

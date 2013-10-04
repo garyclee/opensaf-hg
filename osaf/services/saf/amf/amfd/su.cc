@@ -1445,6 +1445,7 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 				su->saAmfSUFailover = static_cast<bool>(*((SaUint32T *)attr_mod->modAttr.attrValues[0]));
 				su->saAmfSUFailover_configured = true;
 			}
+			TRACE("Modified saAmfSUFailover is '%u'", su->saAmfSUFailover);
 			if (!su->saAmfSUPreInstantiable) {
 				su->saAmfSUFailover = true;
 				su->saAmfSUFailover_configured = true;
@@ -1463,6 +1464,7 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUType")) {
 			struct avd_sutype *sut;
 			SaNameT sutype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
+			TRACE("Modified saAmfSUType from '%s' to '%s'", su->saAmfSUType.value, sutype_name.value);
 			sut = avd_sutype_get(&sutype_name);
 			avd_sutype_remove_su(su);
 			su->saAmfSUType = sutype_name;

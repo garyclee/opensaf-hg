@@ -571,7 +571,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			param.attr_id = saAmfNodeSuFailoverProb_ID;
 			param.act = AVSV_OBJ_OPR_MOD;
 			param.name = node->name;
-
+			TRACE("Old saAmfNodeSuFailOverProb is '%llu'", node->saAmfNodeSuFailOverProb);
 			if (node->node_state != AVD_AVND_STATE_ABSENT) {
 				param.value_len = sizeof(SaTimeT);
 				memcpy((char *)&param.value[0], (char *)&su_failover_prob, param.value_len);
@@ -582,6 +582,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			} else {
 				node->saAmfNodeSuFailOverProb = m_NCS_OS_NTOHLL_P(&su_failover_prob);
 			}
+			TRACE("Modified saAmfNodeSuFailOverProb is '%llu'", node->saAmfNodeSuFailOverProb);
 
 
 		} else if (!strcmp(attribute->attrName, "saAmfNodeSuFailoverMax")) {
@@ -594,6 +595,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			param.attr_id = saAmfNodeSuFailoverMax_ID;
 			param.act = AVSV_OBJ_OPR_MOD;
 			param.name = node->name;
+			TRACE("Old saAmfNodeSuFailoverMax is '%u'", node->saAmfNodeSuFailoverMax);
 
 			if (node->node_state != AVD_AVND_STATE_ABSENT) {
 				param.value_len = sizeof(uint32_t);
@@ -604,6 +606,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			} else {
 				node->saAmfNodeSuFailoverMax = failover_val;
 			}
+			TRACE("Modified saAmfNodeSuFailoverMax is '%u'", node->saAmfNodeSuFailoverMax);
 
 		} else {
 			osafassert(0);
