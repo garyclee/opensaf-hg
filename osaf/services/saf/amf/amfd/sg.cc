@@ -731,6 +731,8 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 			if (!strcmp(attribute->attrName, "saAmfSGType")) {
 				SaNameT sg_type_name = *((SaNameT *)value);
+				TRACE("saAmfSGType modified from '%s' to '%s' of Sg'%s'", sg->saAmfSGType.value, 
+						sg_type_name.value, sg->name.value);
 
 				sg_type = avd_sgtype_get(&sg_type_name);
 				osafassert(NULL != sg_type);
@@ -760,6 +762,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				sg_nd_attribute_update(sg, saAmfSGCompRestartProb_ID);
 				sg_nd_attribute_update(sg, saAmfSGCompRestartMax_ID);
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
+				TRACE("Old saAmfSGAutoRepair is '%u'", sg->saAmfSGAutoRepair);
 				if (value_is_deleted) {
 					sg->saAmfSGAutoRepair = sg_type->saAmfSgtDefAutoRepair;
 					sg->saAmfSGAutoRepair_configured = false;
@@ -767,69 +770,84 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					sg->saAmfSGAutoRepair = static_cast<SaBoolT>(*((SaUint32T *)value));
 					sg->saAmfSGAutoRepair_configured = true; 
 				}
+				TRACE("Modified saAmfSGAutoRepair is '%u'", sg->saAmfSGAutoRepair);
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjust")) {
+				TRACE("Old saAmfSGAutoAdjust is '%u'", sg->saAmfSGAutoAdjust);
 				if (value_is_deleted)
 					sg->saAmfSGAutoAdjust = sg_type->saAmfSgtDefAutoAdjust;
 				else
 					sg->saAmfSGAutoAdjust = static_cast<SaBoolT>(*((SaUint32T *)value));
+				TRACE("Modified saAmfSGAutoAdjust is '%u'", sg->saAmfSGAutoAdjust);
+			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjust")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefActiveSUs")) {
 				if (value_is_deleted)
 					sg->saAmfSGNumPrefActiveSUs = 1;
 				else
 					sg->saAmfSGNumPrefActiveSUs = *((SaUint32T *)value);
+				TRACE("Modified saAmfSGNumPrefActiveSUs is '%u'", sg->saAmfSGNumPrefActiveSUs);
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefStandbySUs")) {
 				if (value_is_deleted)
 					sg->saAmfSGNumPrefStandbySUs = 1;
 				else
 					sg->saAmfSGNumPrefStandbySUs = *((SaUint32T *)value);
+				TRACE("Modified saAmfSGNumPrefStandbySUs is '%u'", sg->saAmfSGNumPrefStandbySUs);
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefInserviceSUs")) {
 				if (value_is_deleted)
 					sg->saAmfSGNumPrefInserviceSUs = sg_su_cnt(sg);
 				else
 					sg->saAmfSGNumPrefInserviceSUs = *((SaUint32T *)value);
+				TRACE("Modified saAmfSGNumPrefInserviceSUs is '%u'", sg->saAmfSGNumPrefInserviceSUs);
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefAssignedSUs")) {
 				if (value_is_deleted)
 					sg->saAmfSGNumPrefAssignedSUs = sg->saAmfSGNumPrefInserviceSUs;
 				else
 					sg->saAmfSGNumPrefAssignedSUs = *((SaUint32T *)value);
+				TRACE("Modified saAmfSGNumPrefAssignedSUs is '%u'", sg->saAmfSGNumPrefAssignedSUs);
 			} else if (!strcmp(attribute->attrName, "saAmfSGMaxActiveSIsperSU")) {
 				if (value_is_deleted)
 					sg->saAmfSGMaxActiveSIsperSU = -1;
 				else
 					sg->saAmfSGMaxActiveSIsperSU = *((SaUint32T *)value);
+				TRACE("Modified saAmfSGMaxActiveSIsperSU is '%u'", sg->saAmfSGMaxActiveSIsperSU);
 			} else if (!strcmp(attribute->attrName, "saAmfSGMaxStandbySIsperSU")) {
 				if (value_is_deleted)
 					sg->saAmfSGMaxStandbySIsperSU = -1;
 				else
 					sg->saAmfSGMaxStandbySIsperSU = *((SaUint32T *)value);
+				TRACE("Modified saAmfSGMaxStandbySIsperSU is '%u'", sg->saAmfSGMaxStandbySIsperSU);
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjustProb")) {
 				if (value_is_deleted)
 					sg->saAmfSGAutoAdjustProb = sg_type->saAmfSgtDefAutoAdjustProb;
 				else
 					sg->saAmfSGAutoAdjustProb = *((SaTimeT *)value);
+				TRACE("Modified saAmfSGAutoAdjustProb is '%llu'", sg->saAmfSGAutoAdjustProb);
 			} else if (!strcmp(attribute->attrName, "saAmfSGCompRestartProb")) {
 				if (value_is_deleted)
 					sg->saAmfSGCompRestartProb = sg_type->saAmfSgtDefCompRestartProb;
 				else
 					sg->saAmfSGCompRestartProb = *((SaTimeT *)value);
+				TRACE("Modified saAmfSGCompRestartProb is '%llu'", sg->saAmfSGCompRestartProb);
 				sg_nd_attribute_update(sg, saAmfSGCompRestartProb_ID);
 			} else if (!strcmp(attribute->attrName, "saAmfSGCompRestartMax")) {
 				if (value_is_deleted)
 					sg->saAmfSGCompRestartMax = sg_type->saAmfSgtDefCompRestartMax;
 				else
 					sg->saAmfSGCompRestartMax = *((SaUint32T *)value);
+				TRACE("Modified saAmfSGCompRestartMax is '%u'", sg->saAmfSGCompRestartMax);
 				sg_nd_attribute_update(sg, saAmfSGCompRestartMax_ID);
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartProb")) {
 				if (value_is_deleted)
 					sg->saAmfSGSuRestartProb = sg_type->saAmfSgtDefSuRestartProb;
 				else
 					sg->saAmfSGSuRestartProb = *((SaTimeT *)value);
+				TRACE("Modified saAmfSGSuRestartProb is '%llu'", sg->saAmfSGSuRestartProb);
 				sg_nd_attribute_update(sg, saAmfSGSuRestartProb_ID);
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartMax")) {
 				if (value_is_deleted)
 					sg->saAmfSGSuRestartMax = sg_type->saAmfSgtDefSuRestartMax;
 				else
 					sg->saAmfSGSuRestartMax = *((SaUint32T *)value);
+				TRACE("Modified saAmfSGSuRestartMax is '%u'", sg->saAmfSGSuRestartMax);
 				sg_nd_attribute_update(sg, saAmfSGSuRestartMax_ID);
 			} else {
 				osafassert(0);
@@ -858,6 +876,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					sg->saAmfSGNumPrefInserviceSUs = sg_su_cnt(sg);
 				else
 					sg->saAmfSGNumPrefInserviceSUs = *((SaUint32T *)value);
+				TRACE("Modified saAmfSGNumPrefInserviceSUs is '%u'", sg->saAmfSGNumPrefInserviceSUs);
 
 				if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE)  {
 					if (avd_sg_app_su_inst_func(avd_cb, sg) != NCSCC_RC_SUCCESS) {
@@ -869,6 +888,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					sg->saAmfSGCompRestartProb = sg_type->saAmfSgtDefCompRestartProb;
 				else
 					sg->saAmfSGCompRestartProb = *((SaTimeT *)value);
+				TRACE("Modified saAmfSGCompRestartProb is '%llu'", sg->saAmfSGCompRestartProb);
 				sg_nd_attribute_update(sg, saAmfSGCompRestartProb_ID);
 
 			} else if (!strcmp(attribute->attrName, "saAmfSGCompRestartMax")) {
@@ -876,6 +896,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					sg->saAmfSGCompRestartMax = sg_type->saAmfSgtDefCompRestartMax;
 				else
 					sg->saAmfSGCompRestartMax = *((SaUint32T *)value);
+				TRACE("Modified saAmfSGCompRestartMax is '%u'", sg->saAmfSGCompRestartMax);
 				sg_nd_attribute_update(sg, saAmfSGCompRestartMax_ID);
 
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartProb")) {
@@ -883,6 +904,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					sg->saAmfSGSuRestartProb = sg_type->saAmfSgtDefSuRestartProb;
 				else
 					sg->saAmfSGSuRestartProb = *((SaTimeT *)value);
+				TRACE("Modified saAmfSGSuRestartProb is '%llu'", sg->saAmfSGSuRestartProb);
 				sg_nd_attribute_update(sg, saAmfSGSuRestartProb_ID);
 
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartMax")) {
@@ -890,6 +912,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					sg->saAmfSGSuRestartMax = sg_type->saAmfSgtDefSuRestartMax;
 				else
 					sg->saAmfSGSuRestartMax = *((SaUint32T *)value);
+				TRACE("Modified saAmfSGSuRestartMax is '%u'", sg->saAmfSGSuRestartMax);
 				sg_nd_attribute_update(sg, saAmfSGSuRestartMax_ID);
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
 				if (value_is_deleted) {
@@ -899,6 +922,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					sg->saAmfSGAutoRepair = static_cast<SaBoolT>(*((SaUint32T *)value));
 					sg->saAmfSGAutoRepair_configured = true; 
 				}
+				TRACE("Modified saAmfSGAutoRepair is '%u'", sg->saAmfSGAutoRepair);
 			} else {
 				osafassert(0);
 			}

@@ -323,12 +323,12 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 
 			if (!strcmp(attribute->attrName, "saAmfAppType")) {
+				LOG_NO("Modified saAmfAppType from '%s' to '%s' for '%s'", app->saAmfAppType.value,
+						(*((SaNameT*)attribute->attrValues[0])).value, app->name.value);
 				avd_apptype_remove_app(app);
 				app->saAmfAppType = *((SaNameT*)attribute->attrValues[0]);
 				app->app_type = avd_apptype_get(&app->saAmfAppType);
 				avd_apptype_add_app(app);
-				LOG_NO("Changed saAmfAppType to '%s' for '%s'",
-					app->saAmfAppType.value, app->name.value);
 				break;
 			}
 			else

@@ -132,8 +132,12 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 		memcpy(param.value, param_val, param.value_len);
 
 		if (!strcmp(attribute->attrName, "saAmfHealthcheckPeriod")) {
+			TRACE("saAmfHealthcheckPeriod modified to '%llu' for Comp'%s'", *param_val, 
+					comp->comp_info.name.value);
 			param.attr_id = saAmfHealthcheckPeriod_ID;
 		} else if (!strcmp(attribute->attrName, "saAmfHealthcheckMaxDuration")) {
+			TRACE("saAmfHealthcheckMaxDuration modified to '%llu' for Comp'%s'", *param_val, 
+					comp->comp_info.name.value);
 			param.attr_id = saAmfHealthcheckMaxDuration_ID;
 		} else
 			osafassert(0);

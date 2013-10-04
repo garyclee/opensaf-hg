@@ -492,24 +492,39 @@ static void avd_compglobalattrs_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_MODIFY:
 		while ((attrMod = opdata->param.modify.attrMods[i++]) != NULL) {
 			if (!strcmp("saAmfNumMaxInstantiateWithoutDelay", attrMod->modAttr.attrName)) {
+				TRACE("saAmfNumMaxInstantiateWithoutDelay modified from '%u' to '%u'",
+						avd_comp_global_attrs.saAmfNumMaxInstantiateWithoutDelay, 
+						*((SaUint32T *)attrMod->modAttr.attrValues[0]));
 				avd_comp_global_attrs.saAmfNumMaxInstantiateWithoutDelay =
-				    *((SaUint32T *)attrMod->modAttr.attrValues[0]);
+					*((SaUint32T *)attrMod->modAttr.attrValues[0]);
 			}
 			if (!strcmp("saAmfNumMaxInstantiateWithDelay", attrMod->modAttr.attrName)) {
+				TRACE("saAmfNumMaxInstantiateWithDelay modified from '%u' to '%u'",
+						avd_comp_global_attrs.saAmfNumMaxInstantiateWithDelay, 
+						*((SaUint32T *)attrMod->modAttr.attrValues[0]));
 				avd_comp_global_attrs.saAmfNumMaxInstantiateWithDelay =
-				    *((SaUint32T *)attrMod->modAttr.attrValues[0]);
+					*((SaUint32T *)attrMod->modAttr.attrValues[0]);
 			}
 			if (!strcmp("saAmfNumMaxAmStartAttempts", attrMod->modAttr.attrName)) {
+				TRACE("saAmfNumMaxAmStartAttempts modified from '%u' to '%u'",
+						avd_comp_global_attrs.saAmfNumMaxAmStartAttempts, 
+						*((SaUint32T *)attrMod->modAttr.attrValues[0]));
 				avd_comp_global_attrs.saAmfNumMaxAmStartAttempts =
 				    *((SaUint32T *)attrMod->modAttr.attrValues[0]);
 			}
 			if (!strcmp("saAmfNumMaxAmStopAttempts", attrMod->modAttr.attrName)) {
+				TRACE("saAmfNumMaxAmStopAttempts modified from '%u' to '%u'",
+						avd_comp_global_attrs.saAmfNumMaxAmStopAttempts, 
+						*((SaUint32T *)attrMod->modAttr.attrValues[0]));
 				avd_comp_global_attrs.saAmfNumMaxAmStopAttempts =
-				    *((SaUint32T *)attrMod->modAttr.attrValues[0]);
+					*((SaUint32T *)attrMod->modAttr.attrValues[0]);
 			}
 			if (!strcmp("saAmfDelayBetweenInstantiateAttempts", attrMod->modAttr.attrName)) {
+				TRACE("saAmfDelayBetweenInstantiateAttempts modified from '%llu' to '%llu'",
+						avd_comp_global_attrs.saAmfDelayBetweenInstantiateAttempts, 
+						*((SaTimeT *)attrMod->modAttr.attrValues[0]));
 				avd_comp_global_attrs.saAmfDelayBetweenInstantiateAttempts =
-				    *((SaTimeT *)attrMod->modAttr.attrValues[0]);
+					*((SaTimeT *)attrMod->modAttr.attrValues[0]);
 			}
 		}
 		break;

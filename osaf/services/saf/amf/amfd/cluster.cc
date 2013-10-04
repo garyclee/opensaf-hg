@@ -100,6 +100,8 @@ static void ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfClusterStartupTimeout")) {
 			SaTimeT cluster_startup_timeout = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
+			TRACE("saAmfClusterStartupTimeout modified from '%llu' to '%llu'", 
+					avd_cluster->saAmfClusterStartupTimeout, cluster_startup_timeout);
 			avd_cluster->saAmfClusterStartupTimeout = cluster_startup_timeout;
 		}
 	}
