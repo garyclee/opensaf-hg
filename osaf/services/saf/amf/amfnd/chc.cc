@@ -491,6 +491,7 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_HC
 	AVND_HC *hc = 0;
 	AVSV_HLT_KEY hlt_chk;
 	uint32_t l_num;
+	TRACE_ENTER2();
 
 	if ((0 == (rec = static_cast<AVND_COMP_HC_REC*>(calloc(1, sizeof(AVND_COMP_HC_REC))))))
 		goto err;
@@ -539,12 +540,13 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_HC
 	/* add the record to the healthcheck list */
 	m_AVND_COMPDB_REC_HC_ADD(*comp, *rec);
 
+	TRACE_LEAVE();
 	return rec;
 
  err:
 	if (rec)
 		avnd_comp_hc_rec_del(cb, comp, rec);
-
+	TRACE_LEAVE();
 	return 0;
 }
 
@@ -675,6 +677,7 @@ uint32_t avnd_comp_hc_rec_process(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC
 uint32_t avnd_comp_hc_rec_start(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* Invoke the hc callbk for AMF initiated healthcheck */
 	if (m_AVND_COMP_HC_REC_IS_AMF_INITIATED(rec)) {
@@ -822,6 +825,7 @@ uint32_t avnd_comp_hc_rec_stop(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *r
 {
 	AVND_COMP_CBK *cbk_rec = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* 
 	 * It may so happen that the callbk record is added to the callbk list 
@@ -863,6 +867,7 @@ uint32_t avnd_comp_hc_rec_confirm(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC
 {
 	AVND_ERR_INFO err_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* it has to be comp-initiated healthcheck */
 	osafassert(m_AVND_COMP_HC_REC_IS_COMP_INITIATED(rec));
@@ -878,7 +883,7 @@ uint32_t avnd_comp_hc_rec_confirm(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC
 		err_info.rec_rcvr.raw = rec->rec_rcvr.raw;
 		rc = avnd_err_process(cb, comp, &err_info);
 	}
-
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 

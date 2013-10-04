@@ -115,10 +115,11 @@ uint32_t avnd_pgdb_destroy(AVND_CB *cb)
                   0, otherwise
  
   Notes         : None.
-******************************************************************************/
+ ******************************************************************************/
 AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uint32_t *rc)
 {
 	AVND_PG *pg = 0;
+	TRACE_ENTER2("Csi '%s'", csi_name->value);
 
 	/* verify if this pg is already present in the db */
 	if (0 != m_AVND_PGDB_REC_GET(cb->pgdb, *csi_name)) {
@@ -185,6 +186,7 @@ uint32_t avnd_pgdb_rec_del(AVND_CB *cb, SaNameT *csi_name)
 {
 	AVND_PG *pg = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* get the pg record */
 	pg = m_AVND_PGDB_REC_GET(cb->pgdb, *csi_name);

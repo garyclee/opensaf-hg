@@ -689,6 +689,7 @@ uint32_t avnd_di_pg_act_send(AVND_CB *cb, SaNameT *csi_name, AVSV_PG_TRACK_ACT a
 {
 	AVND_MSG msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("Csi '%s'", csi_name->value);
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
@@ -711,7 +712,7 @@ uint32_t avnd_di_pg_act_send(AVND_CB *cb, SaNameT *csi_name, AVSV_PG_TRACK_ACT a
 
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
-
+	TRACE_LEAVE2("rc, '%u'", rc);
 	return rc;
 }
 

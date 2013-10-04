@@ -2064,6 +2064,7 @@ uint32_t avnd_amf_resp_send(AVND_CB *cb,
 	AVSV_NDA_AVA_MSG *temp_ptr = NULL;
 	NODE_ID node_id = 0;
 	MDS_SYNC_SND_CTXT temp_ctxt;
+	TRACE_ENTER();
 
 	/* Check if the response has to be sent or not. */
 	memset(&temp_ctxt, 0, sizeof(MDS_SYNC_SND_CTXT));
@@ -2115,6 +2116,7 @@ uint32_t avnd_amf_resp_send(AVND_CB *cb,
  done:
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
+	TRACE_LEAVE();
 	return rc;
 }
 
