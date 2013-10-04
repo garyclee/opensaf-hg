@@ -396,7 +396,7 @@ uint32_t avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 			/* get the pg rec */
 			pg = m_AVND_PGDB_REC_GET(cb->pgdb, info->csi_name);
-
+			TRACE("pg '%p', msg_on_fover '%u'", pg, info->msg_on_fover);
 			if (true == info->msg_on_fover) {
 				if (NULL != pg) {
 					if (false == pg->is_exist)
@@ -467,7 +467,7 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 		return NCSCC_RC_FAILURE;
 
 	osafassert(true == pg->is_exist);
-
+	TRACE("is_csi_del '%u'", info->is_csi_del);
 	if (true == info->is_csi_del) {
 		/* => this update is for csi deletion */
 
@@ -487,6 +487,7 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 		/* => this update is for csi updation */
 
 		/* update the pg mem-list */
+		TRACE("info->mem.change '%u'", info->mem.change);
 		switch (info->mem.change) {
 		case SA_AMF_PROTECTION_GROUP_ADDED:
 		case SA_AMF_PROTECTION_GROUP_STATE_CHANGE:

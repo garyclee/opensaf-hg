@@ -143,6 +143,7 @@ AVND_HCTYPE *avnd_hctypedb_rec_get(const SaNameT *comp_type_dn, const SaAmfHealt
 AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uint32_t *rc)
 {
 	AVND_HC *hc = 0;
+	TRACE_ENTER();
 
 	*rc = NCSCC_RC_SUCCESS;
 
@@ -202,6 +203,7 @@ uint32_t avnd_hcdb_rec_del(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
 {
 	AVND_HC *hc = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2();
 
 	/* get the healthcheck record */
 	hc = avnd_hcdb_rec_get(cb, hc_key);
