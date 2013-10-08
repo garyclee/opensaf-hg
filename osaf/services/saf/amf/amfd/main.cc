@@ -38,6 +38,7 @@
 ******************************************************************************
 */
 
+#include <new>
 #include <poll.h>
 
 #include <daemon.h>
@@ -611,6 +612,13 @@ done:
 	return rc;
 }
 
+// c++ new handler will be called if new fails.
+static void new_handler()
+{
+        syslog(LOG_ERR, "new failed, calling abort");
+        abort();
+}
+
 /*****************************************************************************
  * This is the main infinite loop in which both the active and
  * standby waiting for events to happen. When woken up
@@ -626,6 +634,10 @@ static void main_loop(void)
 	SaAisErrorT error = SA_AIS_OK;
 	int polltmo = -1;
 	int term_fd;
+
+        // function to be called if new fails. The alternative of using catch of std::bad_alloc
+        // will unwind the stack and thus no call chain will be available.
+        std::set_new_handler(new_handler);
 
 	mbx_fd = ncs_ipc_get_sel_obj(&cb->avd_mbx);
 	daemon_sigterm_install(&term_fd);
