@@ -16,6 +16,7 @@
  *
  */
 
+#include <new>
 #include <poll.h>
 #include <sched.h>
 #include <stdlib.h>
@@ -147,9 +148,20 @@ static int __init_avnd(void)
 	return (NCSCC_RC_SUCCESS);
 }
 
+// c++ new handler will be called if new fails.
+static void new_handler()
+{
+        syslog(LOG_ERR, "new failed, calling abort");
+        abort();
+}
+ 
 int main(int argc, char *argv[])
 {
 	uint32_t error;
+
+        // function to be called if new fails. The alternative of using catch of std::bad_alloc
+        // will unwind the stack and thus no call chain will be available.
+        std::set_new_handler(new_handler);
 
 	if (avnd_failed_state_file_exist()) {
 		syslog(LOG_ERR, "system is in repair pending state, reboot or "
