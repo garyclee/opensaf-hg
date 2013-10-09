@@ -953,16 +953,6 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		goto done;
 	}
 
-	/* Allow admin operations on middleware SUs, if saAmfSUMaintenanceCampaign is set for the SUs.*/
-	if (su->sg_of_su->sg_ncs_spec == true) {
-		if (su->saAmfSUMaintenanceCampaign.length == 0) {
-			LOG_ER("saAmfSUMaintenanceCampaign not set for %s, rejecting operation",
-					su->name.value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			goto done;
-		}
-	}
-
 	/* Validation has passed and admin operation should be done. Proceed with it... */
 	switch (op_id) {
 	case SA_AMF_ADMIN_UNLOCK:
