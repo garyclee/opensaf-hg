@@ -34,14 +34,11 @@ pidfile=$pkgpiddir/$prog.pid
 lockfile=$lockdir/$initscript
 
 RETVAL=0
-NID_SVC_NAME=DTM
 
 start() {
 	export LD_LIBRARY_PATH=$pkglibdir:$LD_LIBRARY_PATH
-	[ -p $NIDFIFO ] || exit 1
 	if ! [ -x $binary ] ; then
-		echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_NOT_FND" > $NIDFIFO
-		exit 5
+		return 5
 	fi
 
 	echo -n "Starting $prog: "
@@ -50,10 +47,8 @@ start() {
 	if [ $RETVAL -eq 0 ]; then
 		touch $lockfile
 		log_success_msg
-		$pkgclcclidir/dh_monitoring & > /dev/null
 	else
 		log_failure_msg
-		echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > $NIDFIFO
 	fi
 	return $RETVAL
 }

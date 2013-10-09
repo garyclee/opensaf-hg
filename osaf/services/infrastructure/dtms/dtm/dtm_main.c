@@ -328,9 +328,9 @@ int main(int argc, char *argv[])
 		goto done1;
 	}
 
-	rc = nid_notify("DTM", NCSCC_RC_SUCCESS, NULL);
+	rc = nid_notify("TRANSPORT", NCSCC_RC_SUCCESS, NULL);
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("DTM: nid_notify failed rc : %d ", rc);
+		LOG_ER("TRANSPORT: nid_notify failed rc : %d ", rc);
 		goto done1;
 	}
 	dis_time_out_usec = (dtms_cb->initial_dis_timeout * 1000000);
@@ -393,7 +393,7 @@ int main(int argc, char *argv[])
 
  done3:
 	TRACE_LEAVE();
-	(void)nid_notify("DTM", NCSCC_RC_FAILURE, NULL);
+	(void)nid_notify("TRANSPORT", NCSCC_RC_FAILURE, NULL);
 	exit(1);
 
 }

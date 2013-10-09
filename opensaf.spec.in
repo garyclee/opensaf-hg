@@ -14,7 +14,6 @@
 %define is_ais_lck %(test "@AIS_LCK_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_ais_msg %(test "@AIS_MSG_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_ais_smf %(test "@AIS_SMF_ENABLED@" = "yes" && echo 1 || echo 0)
-%define is_tipc_trans %(test "@TIPC_TRANSPORT_ENABLED@" = "yes" && echo 1 || echo 0)
 
 %define _pkglibdir %{_libdir}/%{name}
 %define _pkgsysconfdir %{_sysconfdir}/%{name}
@@ -850,10 +849,6 @@ sed -i '/isHpiSupported/{N;s|<value>0</value>|<value>1</value>|g}' \
 sed -i '/plmd/d'  %{_pkgsysconfdir}/nodeinit.conf.controller
 %endif
 
-%if !%is_tipc_trans
-sed -i '/TIPC/d'  %{_pkgsysconfdir}/nodeinit.conf.controller
-sed -i 's/MDS_TRANSPORT=TIPC/MDS_TRANSPORT=TCP/g' %{_pkgsysconfdir}/nid.conf
-%endif
 
 # $1 == 1 (install), $1 == 2 (upgrade)
 if [ $1 = 1 ] || [ $1 = 2 ]; then
@@ -869,10 +864,6 @@ fi
 %postun controller -p /sbin/ldconfig
 
 %post payload
-%if !%is_tipc_trans
-sed -i '/TIPC/d'  %{_pkgsysconfdir}/nodeinit.conf.payload
-sed -i 's/MDS_TRANSPORT=TIPC/MDS_TRANSPORT=TCP/g' %{_pkgsysconfdir}/nid.conf
-%endif
 
 # $1 == 1 (install), $1 == 2 (upgrade)
 if [ $1 = 1 ] || [ $1 = 2 ]; then
@@ -907,7 +898,7 @@ fi
 %config %{_initddir}/opensafd
 %{_pkglibdir}/opensafd
 %{_pkglibdir}/opensaf_reboot
-%{_pkglibdir}/nid_tipc
+%{_pkglibdir}/configure_tipc
 
 
 %files amf-libs
@@ -1337,7 +1328,8 @@ fi
 %{_pkgclcclidir}/osaf-fmd
 %{_pkglibdir}/osafdtmd
 %{_pkgclcclidir}/osaf-dtm
-%{_pkgclcclidir}/dh_monitoring
+%{_pkgclcclidir}/osaf-transport
+%{_pkgclcclidir}/osaf-transport-monitor
 %{_bindir}/rdegetrole
 %if %is_immxml
 %{_pkgimmxml_svcdir}/common_pl_template.xml
@@ -1356,8 +1348,8 @@ fi
 %config(noreplace) %{_pkgsysconfdir}/dtmd.conf
 %{_pkglibdir}/osafdtmd
 %{_pkgclcclidir}/osaf-dtm
-%{_pkgclcclidir}/dh_monitoring
-
+%{_pkgclcclidir}/osaf-transport
+%{_pkgclcclidir}/osaf-transport-monitor
 
 %files libs
 %defattr(-,root,root)

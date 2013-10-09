@@ -43,12 +43,12 @@
 #include "mds_dt_tcp_trans.h"
 #include <netdb.h>
 #include <config.h>
+#include "osaf_utility.h"
 #ifdef ENABLE_TIPC_TRANSPORT
 #include "mds_dt_tipc.h"
-#endif
-#include "osaf_utility.h"
 #include <configmake.h>
 #define MDS_MDTM_CONNECT_PATH PKGLOCALSTATEDIR "/osaf_dtm_intra_server"
+#endif
 
 extern uint32_t mds_socket_domain;
 void mds_init_transport(void);
@@ -362,6 +362,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 
 void mds_init_transport(void)
 {
+#ifdef ENABLE_TIPC_TRANSPORT
 	char *tipc_or_tcp = NULL;
 	int rc;
 	struct stat sockStat;
@@ -372,8 +373,26 @@ void mds_init_transport(void)
 	else
 		tipc_or_tcp = "TIPC";
 
+	if (strcmp(tipc_or_tcp, "TIPC") == 0) {
+		mds_mdtm_init = mdtm_tipc_init;
+		mds_mdtm_destroy = mdtm_tipc_destroy;
+		mds_mdtm_svc_subscribe = mds_mdtm_svc_subscribe_tipc;
+		mds_mdtm_svc_unsubscribe = mds_mdtm_svc_unsubscribe_tipc;
+		mds_mdtm_svc_install = mds_mdtm_svc_install_tipc;
+		mds_mdtm_svc_uninstall = mds_mdtm_svc_uninstall_tipc;
+		mds_mdtm_vdest_install = mds_mdtm_vdest_install_tipc;
+		mds_mdtm_vdest_uninstall = mds_mdtm_vdest_uninstall_tipc;
+		mds_mdtm_vdest_subscribe = mds_mdtm_vdest_subscribe_tipc;
+		mds_mdtm_vdest_unsubscribe = mds_mdtm_vdest_unsubscribe_tipc;
+		mds_mdtm_tx_hdl_register = mds_mdtm_tx_hdl_register_tipc;
+		mds_mdtm_tx_hdl_unregister = mds_mdtm_tx_hdl_unregister_tipc;
+		mds_mdtm_send = mds_mdtm_send_tipc;
+		mds_mdtm_node_subscribe = mds_mdtm_node_subscribe_tipc;
+		mds_mdtm_node_unsubscribe = mds_mdtm_node_unsubscribe_tipc;
+		return;
 
-	if (strcmp(tipc_or_tcp, "TCP") == 0) {
+	} else {
+#endif
 		mds_mdtm_init = mds_mdtm_init_tcp;
 		mds_mdtm_destroy = mds_mdtm_destroy_tcp;
 		mds_mdtm_svc_subscribe = mds_mdtm_svc_subscribe_tcp;
@@ -394,25 +413,9 @@ void mds_init_transport(void)
 		mds_socket_domain = AF_UNIX;
 
 		return;
-	}
 
 #ifdef ENABLE_TIPC_TRANSPORT
-	mds_mdtm_init = mdtm_tipc_init;
-	mds_mdtm_destroy = mdtm_tipc_destroy;
-	mds_mdtm_svc_subscribe = mds_mdtm_svc_subscribe_tipc;
-	mds_mdtm_svc_unsubscribe = mds_mdtm_svc_unsubscribe_tipc;
-	mds_mdtm_svc_install = mds_mdtm_svc_install_tipc;
-	mds_mdtm_svc_uninstall = mds_mdtm_svc_uninstall_tipc;
-	mds_mdtm_vdest_install = mds_mdtm_vdest_install_tipc;
-	mds_mdtm_vdest_uninstall = mds_mdtm_vdest_uninstall_tipc;
-	mds_mdtm_vdest_subscribe = mds_mdtm_vdest_subscribe_tipc;
-	mds_mdtm_vdest_unsubscribe = mds_mdtm_vdest_unsubscribe_tipc;
-	mds_mdtm_tx_hdl_register = mds_mdtm_tx_hdl_register_tipc;
-	mds_mdtm_tx_hdl_unregister = mds_mdtm_tx_hdl_unregister_tipc;
-	mds_mdtm_send = mds_mdtm_send_tipc;
-	mds_mdtm_node_subscribe = mds_mdtm_node_subscribe_tipc;
-	mds_mdtm_node_unsubscribe = mds_mdtm_node_unsubscribe_tipc;
-	return;
+	}
 #endif
 	/* Should never come here */
 	abort();

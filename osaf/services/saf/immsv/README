@@ -48,7 +48,7 @@ AMF. A crash of any director process, such as the IMMD, will escalate to a
 restart of the active controller, which of course implies a fail-over of the
 directors for all services.
 
-The active IMMD tracks the cluster membership (using MDS/tipc) and controls 
+The active IMMD tracks the cluster membership (using MDS) and controls 
 which nodes/IMMNDs currently can provide access to the IMM service. 
 Note: the current implementation of IMM does not use the SAF CLM service. 
 That service is only at the node level. The cluster that is tracked by the IMMD

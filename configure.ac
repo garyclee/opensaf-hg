@@ -229,10 +229,10 @@ AC_SUBST([AM4J_ENABLED], ["$enable_am4j"])
 #
 AC_MSG_CHECKING([whether to use TIPC as the transport])
 AC_ARG_ENABLE([tipc],
-        [AS_HELP_STRING([--disable-tipc],
-                [disable building the TIPC [default=no]])],
+        [AS_HELP_STRING([--enable-tipc],
+                [enable building the TIPC [default=no]])],
         [],
-        [enable_tipc=yes])
+        [enable_tipc=no])
 AC_MSG_RESULT([$enable_tipc])
  
 if test "$enable_tipc" = yes; then
@@ -757,7 +757,8 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/dtms/dtm/Makefile
         osaf/services/infrastructure/dtms/scripts/Makefile
         osaf/services/infrastructure/dtms/scripts/osaf-dtm
-        osaf/services/infrastructure/dtms/scripts/dh_monitoring
+        osaf/services/infrastructure/dtms/scripts/osaf-transport
+        osaf/services/infrastructure/dtms/scripts/osaf-transport-monitor
         osaf/services/infrastructure/dtms/config/Makefile
         osaf/services/infrastructure/dtms/include/Makefile
         osaf/services/infrastructure/fm/Makefile
@@ -768,7 +769,7 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/nid/Makefile
         osaf/services/infrastructure/nid/config/Makefile
         osaf/services/infrastructure/nid/scripts/Makefile
-        osaf/services/infrastructure/nid/scripts/nid_tipc
+        osaf/services/infrastructure/nid/scripts/configure_tipc
         osaf/services/infrastructure/nid/scripts/opensafd
         osaf/services/infrastructure/rde/Makefile
         osaf/services/infrastructure/rde/include/Makefile
