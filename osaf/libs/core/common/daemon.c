@@ -355,13 +355,16 @@ static void sigterm_handler(int sig)
 }
 
 /**
- * Exit process with a standard syslog message
- * To be called after the service has cleaned up per service specific things
+ * Exit calling process with exit(0) using a standard syslog message.
+ * This function should be called from the main thread of a server process in
+ * a "safe" context for calling exit(). Any service specific thing should be
+ * cleaned up before calling this function. By calling exit(), registered exit
+ * functions are called before the process is terminated.
  */
 void daemon_exit(void)
 {
 	syslog(LOG_NOTICE, "exiting on signal %d", SIGTERM);
-	_Exit(EXIT_SUCCESS);
+	exit(0);
 }
 
 /**
