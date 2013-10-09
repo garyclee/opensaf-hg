@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 osaf_execbindir = $(pkglibdir)
 nodist_osaf_execbin_SCRIPTS = \
-	$(top_builddir)/osaf/services/infrastructure/nid/scripts/nid_tipc
+        $(top_builddir)/osaf/services/infrastructure/nid/scripts/configure_tipc 
 
 dist_lsbinit_SCRIPTS = \
 	$(top_builddir)/osaf/services/infrastructure/nid/scripts/opensafd

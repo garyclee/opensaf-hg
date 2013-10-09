@@ -20,4 +20,5 @@ MAINTAINERCLEANFILES = Makefile.in
 
 nodist_pkgclccli_SCRIPTS = \
 	$(top_builddir)/osaf/services/infrastructure/dtms/scripts/osaf-dtm \
-	$(top_builddir)/osaf/services/infrastructure/dtms/scripts/dh_monitoring
+	$(top_builddir)/osaf/services/infrastructure/dtms/scripts/osaf-transport \
+        $(top_builddir)/osaf/services/infrastructure/dtms/scripts/osaf-transport-monitor

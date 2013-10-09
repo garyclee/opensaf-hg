@@ -53,8 +53,7 @@
 #                       processes.                                          #
 #############################################################################
 
-xxLIBDIRxx/nid_tipc:TIPC:S:xxLIBDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
-xxCLCCLIDIRxx/osaf-dtm:DTM:S:xxCLCCLIDIRxx/osaf-dtm:6000:-6:2:1:start:stop
+xxCLCCLIDIRxx/osaf-transport:TRANSPORT:S:xxLIBDIRxx/osaf-transport:6000:-6:2:1:start:stop
 xxCLCCLIDIRxx/osaf-immnd:IMMND:S:xxCLCCLIDIRxx/osaf-immnd:48000:4:2:1:start:stop
 xxCLCCLIDIRxx/osaf-noded:CLMNA:S:xxCLCCLIDIRxx/osaf-noded:4000::2:1:start:stop
 xxCLCCLIDIRxx/osaf-amfnd:AMFND:S:xxCLCCLIDIRxx/osaf-amfnd:99000::0:1:start:stop

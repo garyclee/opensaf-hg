@@ -1,0 +1,173 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides: osafdtmd
+# Required-Start: $local_fs $remote_fs $network $syslog
+# Required-Stop: $local_fs $remote_fs $network $syslog
+# Should-Start: 
+# Should-Stop: 
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: starts/stops the osafdtmd daemon
+# Description: starts/stops the osafdtmd daemon
+### END INIT INFO
+
+osafdirfile=/etc/opensaf/osafdir.conf
+ 
+# Source LSB functions library
+. /lib/lsb/init-functions
+ 
+if [ ! -r $osafdirfile ]; then
+        logger -t $prog "can't read $osafdirfile, exiting."
+        exit 6
+else
+        . $osafdirfile
+	. $pkgsysconfdir/nid.conf
+fi
+
+NIDSERV=TRANSPORT
+MANAGE_TIPC=${OPENSAF_MANAGE_TIPC:="yes"}
+RETVAL=0
+
+if [ ! "$MDS_TRANSPORT" = "TIPC" ] ; then
+       prog="osafdtmd"
+fi
+
+start() {
+	[ -p $NIDFIFO ] || return 1
+	if [ "$MDS_TRANSPORT" = "TIPC" ]; then
+		if [ $MANAGE_TIPC = "yes" ]; then
+			$pkglibdir/configure_tipc start $TIPC_ETH_IF $TIPC_NET_ID
+			RETVAL=$? 
+  			if [ $RETVAL -ne 0 ]; then
+			        echo "$NID_MAGIC:$NIDSERV:$DAEMON_START_FAILED" > $NIDFIFO
+			        return $RETVAL 
+			fi
+		else
+			 lsmod | grep tipc	
+			 RETVAL=$?
+			 if [ $RETVAL -ne 0 ]; then
+				logger -t osaf-transport  -s "TIPC module not loaded  to OpenSAF requirements, returning..."
+                        	echo "$NID_MAGIC:$NIDSERV:$DAEMON_START_FAILED" > $NIDFIFO
+                                return $RETVAL
+			 else
+				    ls $pkglocalstatedir/node_id
+			            RETVAL=$?
+	                            if [ $RETVAL -ne 0 ]; then
+					logger -t osaf-transport -s "$pkglocalstatedir/node_id not available whic is OpenSAF requirements, returning..."
+                	                echo "$NID_MAGIC:$NIDSERV:$DAEMON_START_FAILED" > $NIDFIFO
+                        	        return $RETVAL
+	               		    fi	 
+	       	         fi
+		fi
+
+		RETVAL=0
+		echo "$NID_MAGIC:$NIDSERV:$DAEMON_STARTED" > $NIDFIFO
+
+                $pkgclcclidir/osaf-transport-monitor start &
+                RETVAL=$?
+                if [ $RETVAL -ne 0 ]; then
+		  echo "Unable to start running Permanent loop to clean MDS Logs..."
+                fi
+
+	else
+		$pkgclcclidir/osaf-dtm start 
+		RETVAL=$?
+		if [ $RETVAL -ne 0 ]; then
+                        echo "$NID_MAGIC:$NIDSERV:$DAEMON_START_FAILED" > $NIDFIFO
+		fi
+                #Fot TCP osaf-transport-monitor start will be moved to osaf-dtm process to make this script restart on fault		
+		$pkgclcclidir/osaf-transport-monitor start &
+                RETVAL=$?
+                if [ $RETVAL -ne 0 ]; then
+                  echo "Unable to start running Permanent loop to clean MDS Logs..."
+                fi
+	fi
+
+}
+
+stop() {
+	if [ ! "$MDS_TRANSPORT" = "TIPC" ]; then
+		$pkgclcclidir/osaf-dtm stop	
+	fi
+	RETVAL=$?
+	return $RETVAL
+}
+
+restart() {
+        if [ ! "$MDS_TRANSPORT" = "TIPC" ]; then
+		$pkgclcclidir/osaf-dtm stop
+		$pkgclcclidir/osaf-dtm start
+	fi
+	RETVAL=$? 
+	return $RETVAL
+}
+
+tryrestart() {
+        if [ ! "$MDS_TRANSPORT" = "TIPC" ]; then
+		$pkgclcclidir/osaf-dtm tryrestart
+	fi
+	RETVAL=$?
+        return $RETVAL
+}
+
+reload() {
+        if [ ! "$MDS_TRANSPORT" = "TIPC" ]; then
+		$pkgclcclidir/osaf-dtm reload
+	fi
+        RETVAL=$?
+        return $RETVAL
+}
+
+forcereload() {
+        if [ ! "$MDS_TRANSPORT" = "TIPC" ]; then
+		 $pkgclcclidir/osaf-dtm reload
+		 $pkgclcclidir/osaf-dtm restart
+	fi
+        RETVAL=$?
+        return $RETVAL
+}
+
+status() {
+        if [ ! "$MDS_TRANSPORT" = "TIPC" ]; then
+		 $pkgclcclidir/osaf-dtm status 
+	fi
+        RETVAL=$?
+        return $RETVAL
+}
+
+case "$1" in
+  start)
+	start
+	RETVAL=$?
+	;;
+  stop)
+	stop
+	RETVAL=$?
+	;;
+  restart)
+	restart
+	RETVAL=$?
+	;;
+  try-restart|condrestart)
+	tryrestart
+	RETVAL=$?
+	;;
+  reload)
+	reload
+	RETVAL=$?
+	;;
+  force-reload)
+	forcereload
+	RETVAL=$?
+	;;
+  status)
+	status
+	RETVAL=$?
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|try-restart|reload|force-reload|status}"
+	RETVAL=2
+esac
+
+exit $RETVAL

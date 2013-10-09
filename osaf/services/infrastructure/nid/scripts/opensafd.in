@@ -45,8 +45,6 @@ if [ $osafversion = "1" ] ; then
 fi
 
 unload_tipc() {
-	# FIXME: Once tipc scripts are cleaned
-	pkill -9 nid_tipc*
 
   	# Unload TIPC if already loaded
 	if [ $MANAGE_TIPC = "yes" ] && grep tipc /proc/modules >/dev/null 2>&1; then
@@ -116,9 +114,7 @@ enable_coredump() {
 
 final_clean() {
 	# Loop throught all the OpenSAF LSB CLC-CLI scripts to clean staling pid/lock
-	if [ "$MDS_TRANSPORT" = "TCP" ] ; then
-		pkill -9 dh_monitoring* >/dev/null 2>&1
-	fi
+        killall -s KILL osaf-transport-monitor >/dev/null 2>&1
 
 	for cmd in `ls $pkgclcclidir/osaf-*`; do
 		# skip dtm here to allow shutdown of other services (e.g. amfd)
@@ -127,7 +123,7 @@ final_clean() {
 		fi
 	done
 
-	if [ "$MDS_TRANSPORT" = "TIPC" ] ; then
+	if [ "$MDS_TRANSPORT" = "TIPC" ]; then
 		unload_tipc
 	else
 		# stop dtm, now all dependent services should be stopped
@@ -184,27 +180,11 @@ generate_nodeid() {
 }
 
 check_transport() {
-	if [ "$MDS_TRANSPORT" = "TIPC" ] ; then
+	if [ "$MDS_TRANSPORT" = "TIPC" ]; then
 		# Transport TIPC
 		check_tipc
-		sed -i 's/#*\(.*nid_tipc*\)/\1/gI' $nodeinitdotconf
-		#Now comment the line in the nodeinit.conf for TIPC
-		grep "osaf-dtm:DTM" $nodeinitdotconf | grep "#" > /dev/null
-		ret_val=$?
-		if [ $ret_val -ne 0 ] ; then
-			#comment the line 
-		 	sed -i 's/\(.*osaf-dtm:DTM*\)/#\1/gI' $nodeinitdotconf
-		fi
 	else
 		# Transport TCP 
-		#Now comment the line in the nodeinit.conf for TCP
-		sed -i 's/#*\(.*osaf-dtm:DTM*\)/\1/gI' $nodeinitdotconf
-		grep "nid_tipc" $nodeinitdotconf | grep "#" > /dev/null
-		ret_val=$?
-		if [ $ret_val -ne 0 ] ; then
-			#comment the line 
-		 	sed -i 's/\(.*nid_tipc*\)/#\1/gI' $nodeinitdotconf
-		fi
 		generate_nodeid
 	fi
 }
@@ -253,9 +233,7 @@ start() {
 stop() {
 	logger -t $prog "Stopping OpenSAF Services"
 
-	if [ "$MDS_TRANSPORT" = "TCP" ] ; then
-		pkill -9 dh_monitoring* >/dev/null 2>&1
-	fi
+	killall -s KILL osaf-transport-monitor >/dev/null 2>&1
 
 	amfpid=`pidofproc -p $amfnd_pid $amfnd_bin`
 	echo -n "Stopping OpenSAF Services: "

@@ -252,10 +252,6 @@ Prerequisites
 
 The following software is required to build OpenSAF:
 
-    * The Linux Kernel with TIPC development support (This is not required when the opensaf is 
-	build with option --disable-tipc). OpenSAF works with TIPC version 1.5 onwards. But it 
-	is strongly adviced to use TIPC 1.6.2 and above, to get the TIPC service unsubscribe 
-	feature(Cancellation to a Subscription). 
     * libxml2-dev (Development files for the GNOME XML library)
     * automake
     * m4
@@ -266,6 +262,11 @@ The following software is required to build OpenSAF:
     * GNU make
     * python-dev(el)
     * Optionally:
+        * The Linux Kernel with TIPC development support. This is required when opensaf is 
+	  built with the option --enable-tipc. OpenSAF works with TIPC version 1.5 onwards. But it 
+	  is strongly adviced to use TIPC 1.6.2 and above to get the TIPC service unsubscribe 
+	  feature(Cancellation to a Subscription).
+
         * When PLM is enabled, an HPI implementation (e.g. OpenHPI)
         * When IMM PBE feature is enabled, sqlite3
 
@@ -283,7 +284,8 @@ Building `OpenSAF'
 Some features needs to be configured at build time but don't have configure
 support, these are explained here.
 
-1) Configure a non flat MDS addressing scheme (optional)
+1) Configure a non flat MDS addressing scheme (optional) when TIPC is chosen
+as the transport
 
 In the default (from 4.3) addressing scheme, TIPC node addresses looks like
 1.1.1, 1.1.2 etc.
@@ -329,6 +331,8 @@ steps before trying to `configure' (i.e. bootsrapping).
     OR
     % ./configure && make rpm
 
+By default, OpenSAF is built with TCP as the transport.
+
 By default, all 'OpenSAF' services are enabled to be built and
 `OpenSAF' will assume the following `configure' options by default:
 
@@ -346,15 +350,13 @@ are available w.r.t enabling/disabling the build for a particular OpenSAF servic
   --enable-python         enable the Python AIS bindings [default=yes]
   --enable-java           enable the Java AIS interface mapping [default=no]
   --enable-am4j           enable the AM4J agent [default=no]
-  --disable-tipc          disable building the TIPC [default=no]
+  --enable-tipc           enable building the TIPC [default=no]
   --enable-tests          enable building the OpenSAF testing programs
                           [default=no]
   --enable-imm-pbe        enable the IMM Persistent Backend Interface
                           [default=yes]
   --enable-ntf-imcn       enable the NTF Information Model Notification
                           producer [default=no]
-  --disable-tipc          disable building the TIPC as the transport for MDS 
-                          [default=no]
   --disable-ais-ckpt      disable building the SAI-AIS-CKPT service
                           [default=no]
   --disable-ais-evt       disable building the SAI-AIS-EVT service
@@ -428,6 +430,12 @@ the user thinks he's not using a specific HPI implementation. This is a build
 dependency and the user still needs to tell the build system to  be
 using the proper CPPFLAGS/CFLAGS/CXXFLAGS where to find a dummy <SaHpi.h>
 
+By using `./configure --enable-tipc', you are building OpenSAF to support TIPC 
+also as the transport. Upon enabling this option, the OpenSAF binaries
+support both TIPC and TCP as the transport and to use TIPC, you have to 
+change the variable MDS_TRANSPORT to TIPC in the 
+nid.conf file (see nid.conf in 00-README.conf).
+
 By using `./configure --enable-java', you are enabling the Java AIS mapping
 support in the build system. Specials M4 macros will be used to autodetect
 what `JDK' and `Ant' program you are using. By default this options is
@@ -452,19 +460,6 @@ autodetection.
 By using `./configure --disable-rpm-target', you are masking out the `make rpm'
 target, some build systems provide their own `make rpm` rule, it would then be
 clashing with the OpenSAF rule.
-
-By using `./configure --disable-tipc', you are building the MDS with the TCP as 
-the only transport of the OpenSAF(MDS transports supported are TCP and TIPC).
-
-If user wants to use TCP as the transport of MDS, build the opensaf with `--disable-tipc` option,  
-and update the variable DTM_NODE_IP to self node IP address  in the `/etc/opensaf/dtmd.conf`
-before starting the opensaf.
-
-If opensaf is built with default option,  MDS is built to support both TIPC and TCP,
-with TIPC selected as default transport.
-If user wants to use TCP as the transport with default built image, user needs 
-to change the variables MDS_TRANSPORT to TCP in the `/etc/opensaf/nid.conf` file
-and update the variable DTM_NODE_IP to self node IP address  in the `/etc/opensaf/dtmd.conf`.
 
 
 Building `OpenSAF' RPMs
@@ -662,7 +657,7 @@ The `OpenSAF' SysV init script is installed in `$sysconfdir/rc.d/init.d'
 Commands to Start OpenSAF When PLM is disabled:
 ===============================================
 After a minimum configuration of
- - slot_id, nodeinit.conf.controller, node_name, imm.xml(Generated) and nid_tipc(if needbe), for the controller 
+ - slot_id, nodeinit.conf.controller, node_name, imm.xml(Generated) and configure_tipc(if needbe), for the controller 
   (OR)
  - slot_id, nodeinit.conf.payload and node_name, for the payload.
 
@@ -674,7 +669,7 @@ Commands to Start OpenSAF When PLM is enabled:
 ==============================================
 After a minimum configuration of 
 
- - slot_id, nodeinit.conf.controller, node_name, imm.xml(Generated) and nid_tipc(if needbe) and the plmcd.conf, 
+ - slot_id, nodeinit.conf.controller, node_name, imm.xml(Generated) and configure_tipc(if needbe) and the plmcd.conf, 
    for the controller
   (OR)
  - slot_id, nodeinit.conf.payload, node_name and the plmcd.conf, for the payload

@@ -4,31 +4,48 @@ Troubleshooting OpenSAF
 System Controller Checklist
 ===========================
 
-1.  Did TIPC installation fail? The following error "FATAL: Error inserting 
+1.  If TIPC is chosen as the mds transport , did TIPC installation fail?
+    The following error "FATAL: Error inserting
     tipc (<kernel_modules_dir>/tipc.ko): Invalid module format" indicates that 
     user had not compiled TIPC with proper kernel files. Compile TIPC with 
     appropriate kernel header files (e.g. They are different for an smp kernel 
     type, etc.)
 
-2.  Have you checked the TIPC configuration? The following TIPC configuration 
-    parameters should be set appropriately in nodeinit.conf.controller:
+2.  If TIPC is chosen as the mds transport , have you checked the TIPC configuration?
+    The following TIPC configuration parameters should be set appropriately in nodeinit.conf:
+ 
+     a. TIPC network_id should be the same as ACTIVE system controller's 
+        network_id.
+     b. The interface information is set with default values. This has 
+        to be set correctly to ensure connectivity between the system 
+        controller and payload nodes.
+        Also, the TIPC zone_id and cluster_id values are currently hard-coded.
+        These have to be checked for correctness as below if zone_id and 
+        cluster_id are changed:
+     c. zone_id should be the same as ACTIVE system controller's zone_id.
+     d. cluster_id should be the same as ACTIVE system controller's cluster_id.
 
-    a. TIPC network_id should be the same as ACTIVE system controller's 
-       network_id.
-    b. The interface information is set with default values. This has 
-       to be set correctly to ensure connectivity between the system 
-       controller and payload nodes.
-       Also, the TIPC zone_id and cluster_id values are currently hard-coded.
-       These have to be checked for correctness as below if zone_id and 
-       cluster_id are changed:
-    c. zone_id should be the same as ACTIVE system controller's zone_id.
-    d. cluster_id should be the same as ACTIVE system controller's cluster_id.
+3.  If TCP is chosen as the mds transport with IPv6, have you checked the system configuration?
+ 
+     a. The kernel should be ipv6 compiled.
+      The following commands should succeed : 
+      - ls /proc/net/if_inet6
+      - modprobe ipv6
+      - lsmod |grep -w 'ipv6' && echo "IPv6 module successfully loaded"
+     b. For communication between ipv6 m/c's, firewall should be disabled.
+     c. If there is any router in between the m/c's, the router should be ipv6 enabled.
+     d. kernel should assign ipv6 link-local ip address automatically for the interface available.
 
-3.  Have you checked the slot_id?
+4.  If TCP is  chosen as the mds transport , have you checked the TCP configuration?
+    The following TCP configuration  parameters should be set appropriately in dtmd.conf:
+ 
+     a. DTM_NODE_IP should be configured same as system IP address.
+
+5.  Have you checked the slot_id?
     The slot_id should be unique and different from any other node. The system 
     controllers.
 
-4.  Have you checked the open source packages installation?
+6.  Have you checked the open source packages installation?
     Ensure that the following open source packages are installed
     (make install or the rpm packages are installed):
 
@@ -39,10 +56,10 @@ System Controller Checklist
        available. In cases of rpm installation, make sure the devel package 
        is installed.
 
-5.  Have you checked the chassis_id? The chassis_id should be the same as 
+7.  Have you checked the chassis_id? The chassis_id should be the same as 
     ACTIVE system controller.
 
-6.  Have you checked the node_name. It should contain the same name as the
+8.  Have you checked the node_name. It should contain the same name as the
     value specified in the nodes.cfg file while generating the imm.xml.
     "Unconfigured CLM nodes are not allowed to join the cluster if the node_names
      dont match and CLMNA will not allowed to be initialized".
@@ -52,13 +69,13 @@ NOTE: Also check for /var/log/messages for any errors during the startup.
 Payload Node Checklist
 ======================
 
-1.  Did TIPC installation fail? The following error "FATAL: Error inserting 
+1.  If TIPC is chosen as the mds transport ,did TIPC installation fail? The following error "FATAL: Error inserting 
     tipc (<kernel_modules_dir>/tipc.ko): Invalid module format" indicates that 
     user had not compiled TIPC with proper kernel files. Compile TIPC with 
     appropriate kernel header files (e.g. They are different for an smp kernel 
     type, etc.)
 
-2.  Have you checked the TIPC configuration?
+2.  If TIPC is chosen as the mds transport , have you checked the TIPC configuration?
     The following TIPC configuration parameters should be set appropriately 
     in nodeinit.conf.payload:
 
@@ -72,10 +89,26 @@ Payload Node Checklist
     c. zone_id should be the same as the system controllers's zone_id.
     d. cluster_id should be the same as the system controllers's cluster_id.
 
-3.  Have you checked the chassis_id? The chassis_id should be the same as 
+3.  If TCP is chosen as the mds transport with IPv6, have you checked the system configuration?
+ 
+     a. The kernel should be ipv6 compiled.
+      The following commands should succeed :
+      - ls /proc/net/if_inet6
+      - modprobe ipv6
+      - lsmod |grep -w 'ipv6' && echo "IPv6 module successfully loaded"
+     b. For communication between ipv6 m/c's, firewall should be disabled.
+     c. If there is any router in between the m/c's, the router should be ipv6 enabled.
+     d. kernel should assign ipv6 link-local ip address automatically for the interface available.
+
+4.  If TCP is chosen as the mds transport , have you checked the TCP configuration?
+    The following TCP configuration  parameters should be set appropriately in dtmd.conf:
+ 
+     a. DTM_NODE_IP should be configured same as system IP address.
+
+5.  Have you checked the chassis_id? The chassis_id should be the same as 
     ACTIVE & STANDBY system controllers.
 
-4.  Have you checked the node_name. It should contain the same name as the
+6.  Have you checked the node_name. It should contain the same name as the
     value specified in the nodes.cfg file while generating the imm.xml.
     "Unconfigured CLM nodes are not allowed to join the cluster if the node_names
      dont match and CLMNA will not allowed to be initialized".

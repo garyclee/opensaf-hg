@@ -34,8 +34,3 @@ install-data-hook: set-default-node-config
 if !ENABLE_AIS_PLM
 	sed -i '/plmd/d'  $(DESTDIR)$(pkgsysconfdir)/nodeinit.conf.controller
 endif
-if !ENABLE_TIPC_TRANSPORT
-	sed -i '/TIPC/d'  $(DESTDIR)$(pkgsysconfdir)/nodeinit.conf.controller
-	sed -i '/TIPC/d'  $(DESTDIR)$(pkgsysconfdir)/nodeinit.conf.payload
-	sed -i 's/MDS_TRANSPORT=TIPC/MDS_TRANSPORT=TCP/g' $(DESTDIR)$(pkgsysconfdir)/nid.conf
-endif

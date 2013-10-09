@@ -37,7 +37,6 @@ USE_SUBSLOT_ID=${TIPC_USE_SUBSLOT_ID:-"NO"}
 
 # constants
 SHIFT4=4
-NID_SVC_NAME=TIPC
 
 # Make sure tipc-config is available, either in path or in default location
 tipc_config=$(which tipc-config 2> /dev/null)
@@ -126,7 +125,6 @@ function tipc_configure ()
     ret_val=$?
     if [ $ret_val -ne 0 ] ; then
         logger -p user.err " TIPC Module could not be loaded "
-        echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > $NIDFIFO
         exit 1
     fi
 
@@ -210,16 +208,4 @@ else
     fi
 fi
 
-echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_STARTED" > $NIDFIFO
 
-echo "Running Permanent loop to clean MDS Logs..."
-while true
-do
-    MDS_LOG_FILE=$pkglogdir/mds.log
-    FILESIZE=`du -sk "$MDS_LOG_FILE" 2>/dev/null | cut -f1`
-    if [ 5000 -lt 0$FILESIZE ]; then
-        rm -f "$MDS_LOG_FILE.old"
-        mv -f "$MDS_LOG_FILE" "$MDS_LOG_FILE.old"
-    fi
-    sleep 15
-done

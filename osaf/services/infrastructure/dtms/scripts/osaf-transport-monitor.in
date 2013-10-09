@@ -1,0 +1,87 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides: osafdtmd
+# Required-Start: $local_fs $remote_fs $network $syslog
+# Required-Stop: $local_fs $remote_fs $network $syslog
+# Should-Start: 
+# Should-Stop: 
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: starts/stops the osafdtmd daemon
+# Description: starts/stops the osafdtmd daemon
+### END INIT INFO
+
+osafdirfile=/etc/opensaf/osafdir.conf
+ 
+# Source LSB functions library
+. /lib/lsb/init-functions
+ 
+if [ ! -r $osafdirfile ]; then
+        logger -t $prog "can't read $osafdirfile, exiting."
+        exit 6
+else
+        . $osafdirfile
+	. $pkgsysconfdir/nid.conf
+fi
+ 
+if [ ! "$MDS_TRANSPORT" = "TIPC" ] ; then
+       prog="osafdtmd"
+fi
+
+RETVAL=0
+
+start() {
+		echo "Running Permanent loop to clean MDS Logs..."
+		while true
+		do
+		    MDS_LOG_FILE=$pkglogdir/mds.log
+		    FILESIZE=`du -sk "$MDS_LOG_FILE" 2>/dev/null | cut -f1`
+		    if [ 5000 -lt 0$FILESIZE ]; then
+	        	rm -f "$MDS_LOG_FILE.old"
+		        mv -f "$MDS_LOG_FILE" "$MDS_LOG_FILE.old"
+		    fi
+		   
+                    if [ ! "$MDS_TRANSPORT" = "TIPC" ] ; then
+                        COUNT=0
+                        while ((COUNT < 15))
+                        do
+                           pidval=`cat $pkgpiddir/$prog.pid`
+                           if  ! test -d /proc/$pidval ; then
+                             logger -s -t $prog "$prog Process down, Rebooting the node"
+                             $pkglibdir/opensaf_reboot 0 
+                             exit 0;
+                           fi
+                           #logger "osafdtmd PID : $pidval  monitor COUNT = $COUNT"
+                           sleep 1
+                           ((COUNT=COUNT+1))
+                        done
+		    else
+			sleep 15
+		    fi
+		done
+}
+
+stop() {
+	if [ ! "$MDS_TRANSPORT" = "TIPC" ]; then
+		exit 0;
+	fi
+	RETVAL=$?
+	return $RETVAL
+}
+
+case "$1" in
+  start)
+	start
+	RETVAL=$?
+	;;
+  stop)
+	stop
+	RETVAL=$?
+	;;
+  *)
+	echo "Usage: $0 {start|stop}"
+	RETVAL=2
+esac
+
+exit $RETVAL
