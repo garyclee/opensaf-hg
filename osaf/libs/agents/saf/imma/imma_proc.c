@@ -2114,10 +2114,18 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				int i = 0;
 				if (cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback)
 				{
-					/* Anoying type diff for ccbid between OM and OI */
-					SaImmOiCcbIdT ccbid = callback->ccbID;
-
-					if(!(cl_node->isApplier)) {imma_oi_ccb_allow_error_string(cl_node, ccbid);}
+					SaImmOiCcbIdT ccbid = 0LL;
+					if(isPbeOp) {
+						osafassert(callback->ccbID == 0);
+						/* Pseudo ccb towards PBE for PRTO create */
+						ccbid = callback->inv + 0x100000000LL;
+					} else {
+						ccbid = callback->ccbID;
+						if(!(cl_node->isApplier)) {
+							/* Error strings are not relevant for PRT ops. */
+							imma_oi_ccb_allow_error_string(cl_node, callback->ccbID);
+						}
+					}
 
 					SaNameT parentName = callback->name;
 					const SaImmClassNameT className = callback->className;	/*0 */
@@ -2333,9 +2341,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 							ccbid, callback->name.value);
 					} else {
 						ccbid = callback->ccbID;
+						if(!(cl_node->isApplier)) {imma_oi_ccb_allow_error_string(cl_node, ccbid);}
 					}
-
-					if(!(cl_node->isApplier)) {imma_oi_ccb_allow_error_string(cl_node, ccbid);}
 
 					localEr = cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback(callback->lcl_imm_hdl,
 						ccbid, &(callback->name));
@@ -2448,9 +2455,18 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				int i = 0;
 				if (cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback) {
 					/* Anoying type diff for ccbid between OM and OI */
-					SaImmOiCcbIdT ccbid = callback->ccbID;
-
-					if(!(cl_node->isApplier)) {imma_oi_ccb_allow_error_string(cl_node, ccbid);}
+					SaImmOiCcbIdT ccbid = 0LL;
+					if(isPbeOp) {
+						osafassert(callback->ccbID == 0);
+						/* Pseudo ccb towards PBE for PRTO create */
+						ccbid = callback->inv + 0x100000000LL;
+					} else {
+						ccbid = callback->ccbID;
+						if(!(cl_node->isApplier)) {
+							/* Error strings are not relevant for PRT ops. */
+							imma_oi_ccb_allow_error_string(cl_node, callback->ccbID);
+						}
+					}					
 
 					SaNameT objectName = callback->name;
 					int noOfAttrMods = 0;

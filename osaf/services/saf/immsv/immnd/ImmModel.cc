@@ -249,7 +249,8 @@ struct ObjectMutation
                                              mAugmentAdmo(0),
                                              mSavedData(NULL),
                                              mWaitForImplAck(false),
-                                             mIsAugDelete(false) { }
+                                             mIsAugDelete(false),
+                                             m2PbeCount(0) { }
     ~ObjectMutation() { osafassert(mAfterImage == NULL);
                         mContinuationId=0;
                         mAugmentAdmo=0;
@@ -283,6 +284,7 @@ struct ObjectMutation
     void* mSavedData;        //For special applier PRTO. Type of data depends on mOpType
     bool mWaitForImplAck;  //ack required from implementer for THIS object
     bool mIsAugDelete;     //The mutation is an augmented delete.
+    SaUint8T m2PbeCount;   //How many PBE replies to wait for (2PBE only).
 };
 typedef std::map<std::string, ObjectMutation*> ObjectMutationMap;  
 
@@ -416,6 +418,7 @@ static const std::string immAttrEpoch(OPENSAF_IMM_ATTR_EPOCH);
 static const std::string immClassName(OPENSAF_IMM_CLASS_NAME);
 static const std::string immAttrNostFlags(OPENSAF_IMM_ATTR_NOSTD_FLAGS);
 static const std::string immSyncBatchSize(OPENSAF_IMM_SYNC_BATCH_SIZE);
+static const std::string immPbeBSlaveName(OPENSAF_IMM_PBE_RT_IMPL_NAME_B);
 
 static const std::string immManagementDn("safRdn=immManagement,safApp=safImmService");
 static const std::string saImmRepositoryInit("saImmRepositoryInit");
@@ -791,6 +794,18 @@ immModel_pbeOiExists(IMMND_CB *cb)
     unsigned int pbeNode=0;
     if(ImmModel::instance(&cb->immModel)->getPbeOi(&pbeConn, &pbeNode, false)) {
         return pbeNode;
+    }
+
+    return 0;
+}
+
+unsigned int
+immModel_pbeBSlaveExists(IMMND_CB *cb)
+{
+    SaUint32T pbeBConn=0;
+    unsigned int pbeBNode=0;
+    if(ImmModel::instance(&cb->immModel)->getPbeBSlave(&pbeBConn, &pbeBNode, false)) {
+        return pbeBNode;
     }
 
     return 0;
@@ -1421,19 +1436,21 @@ void immModel_pbeUpdateEpochContinuation(IMMND_CB *cb,
         invocation, nodeId);
 }
 
-void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
+int immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
         SaUint32T invocation, SaAisErrorT err,
         SaClmNodeIdT nodeId, SaUint32T *reqConn,
         SaStringT **objNameArr, SaUint32T* arrSizePtr, 
-        SaUint32T* spApplConn)
+        SaUint32T* spApplConn,
+        SaUint32T* pbe2BConn)
 {
     ObjectNameVector ov;
     ObjectNameVector::iterator oni;
     unsigned int ix = 0;
+    int numOps=0;
     osafassert(arrSizePtr);
 
-    ImmModel::instance(&cb->immModel)->pbePrtObjDeletesContinuation(
-        invocation, err, nodeId, reqConn, ov, spApplConn);
+    numOps = ImmModel::instance(&cb->immModel)->pbePrtObjDeletesContinuation(
+        invocation, err, nodeId, reqConn, ov, spApplConn, pbe2BConn);
 
     (*arrSizePtr) = (SaUint32T) ov.size();
     if(*arrSizePtr) {
@@ -1445,6 +1462,7 @@ void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
        }
        osafassert(ix==(*arrSizePtr));
     }
+    return numOps;
 }
 
 void immModel_pbePrtAttrUpdateContinuation(IMMND_CB *cb,
@@ -1642,11 +1660,13 @@ immModel_rtObjectCreate(IMMND_CB *cb,
     SaUint32T* continuationId,
     SaUint32T* pbeConn,
     SaClmNodeIdT* pbeNodeId,
-    SaUint32T* spApplConn)
+    SaUint32T* spApplConn,
+    SaUint32T* pbe2BConn)
+
 {
     return ImmModel::instance(&cb->immModel)->
         rtObjectCreate(req, implConn, (unsigned int) implNodeId, continuationId, 
-            pbeConn, pbeNodeId, spApplConn);
+            pbeConn, pbeNodeId, spApplConn, pbe2BConn);
 
 }
 
@@ -1660,7 +1680,8 @@ immModel_rtObjectDelete(IMMND_CB *cb,
     SaClmNodeIdT* pbeNodeId,
     SaStringT **objNameArr,
     SaUint32T* arrSizePtr,
-    SaUint32T* spApplConn)
+    SaUint32T* spApplConn,
+    SaUint32T* pbe2BConn)
 {
     ObjectNameVector ov;
     ObjectNameVector::iterator oni;
@@ -1669,7 +1690,7 @@ immModel_rtObjectDelete(IMMND_CB *cb,
 
     SaAisErrorT err = ImmModel::instance(&cb->immModel)->
         rtObjectDelete(req, implConn, (unsigned int) implNodeId,
-            continuationId, pbeConn, pbeNodeId, ov, spApplConn);
+            continuationId, pbeConn, pbeNodeId, ov, spApplConn, pbe2BConn);
 
     (*arrSizePtr) = (SaUint32T) ov.size();
     if((err == SA_AIS_OK) && (*arrSizePtr)) {
@@ -1694,7 +1715,8 @@ immModel_rtObjectUpdate(IMMND_CB *cb,
     SaUint32T *continuationId,
     SaUint32T *pbeConn,
     SaClmNodeIdT *pbeNodeId,
-    SaUint32T *spApplConn)
+    SaUint32T *spApplConn,
+    SaUint32T *pbe2BConn)
 {
     SaAisErrorT err = SA_AIS_OK;
     TRACE_ENTER();
@@ -1702,7 +1724,7 @@ immModel_rtObjectUpdate(IMMND_CB *cb,
     TRACE_5("on enter isPl:%u", isPl);
     err =  ImmModel::instance(&cb->immModel)->
         rtObjectUpdate(req, implConn, (unsigned int) implNodeId, &isPl,
-            continuationId, pbeConn, pbeNodeId, spApplConn);
+            continuationId, pbeConn, pbeNodeId, spApplConn, pbe2BConn);
     TRACE_5("on leave isPl:%u", isPl);
     *isPureLocal = isPl;
     TRACE_LEAVE();
@@ -1788,6 +1810,19 @@ ImmModel::immNotPbeWritable(bool isPrtoClient)
 
     if(!getPbeOi(&dummyCon, &dummyNode)) { 
         /* Pbe SHOULD be present but is NOT */
+        return true; 
+    }
+
+    /* ABT TODO need a solution for enable/disable 2-safe/1-safe 2PBE 
+       This has to be runtime data, can not be config data. 
+       There is a dilema with persistent config talking about degre of
+       persistent redundancy.
+       Catch this after loading, look up opensaf object and add an RTA
+       to reflect 2PBE status. 
+    */
+
+    if(pbeBSlaveHasExisted() && !getPbeBSlave(&dummyCon, &dummyNode)) {
+        /* Pbe slave SHOULD be present but is NOT. This is 2PBE 1-safe. */
         return true; 
     }
 
@@ -2428,6 +2463,43 @@ ImmModel::specialApplyForClass(ClassInfo* classInfo)
 
     TRACE_LEAVE();
     return false;
+}
+
+bool
+ImmModel::pbeBSlaveHasExisted()
+{
+    /* An IMMND never explicitly discard implementer names or applier names.
+       At IMMND process start, implementer names are synced *including* applier names.
+       But second level map for appliers is not synced (applier=>class etc).
+       The existence of the slave PBE applier-name indicates that this IMMND
+       has participated in a cluster where the slave PBE has been present.
+       If slave PBE is or is not present currently is answered by getPbeBSlave(). 
+     */
+    return findImplementer(immPbeBSlaveName)!=NULL;
+}
+
+void *
+ImmModel::getPbeBSlave(SaUint32T* pbeConn, unsigned int* pbeNode, bool fevsSafe)
+{
+    *pbeConn = 0;
+    *pbeNode = 0;
+    ImplementerInfo* pbeBSlave = findImplementer(immPbeBSlaveName);
+    if(pbeBSlave == NULL || pbeBSlave->mId==0) {
+        return NULL;
+    }
+
+    if(pbeBSlave->mDying) {
+        if(!fevsSafe) {
+            LOG_NO("ImmModel::getPbeBSlave reports missing PbeBSlave locally => unsafe");
+            return NULL;
+        }
+    } else {
+        *pbeConn = pbeBSlave->mConn;
+    }
+
+    *pbeNode = pbeBSlave->mNodeId;
+
+    return pbeBSlave;
 }
 
 
@@ -11340,7 +11412,8 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
     SaUint32T* continuationId,
     SaUint32T* pbeConnPtr,
     unsigned int* pbeNodeIdPtr,
-    SaUint32T* spApplConnPtr)
+    SaUint32T* spApplConnPtr,
+    SaUint32T* pbe2BConnPtr)
 {
     TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationId, pbeConnPtr, pbeNodeIdPtr);
     SaAisErrorT err = SA_AIS_OK;
@@ -11590,6 +11663,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
     
     if(err == SA_AIS_OK) {
         void* pbe = NULL;
+        void* pbe2B = NULL;
         object = new ObjectInfo();
         object->mClassInfo = classInfo;
         object->mImplementer = info;
@@ -11877,12 +11951,18 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
         }
 
         if(isPersistent && (err == SA_AIS_OK) && pbeNodeIdPtr) {
+            unsigned int slaveNodeId=0;
             /* PBE expected. */
             pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
             if(!pbe) {
                 LOG_ER("Pbe is not available, can not happen here");
                 abort();
-            } 
+            }
+
+            pbe2B = getPbeBSlave(pbe2BConnPtr, &slaveNodeId);
+
+            /* If 2PBE then not both PBEs on same processor. */
+            osafassert(!((*pbeConnPtr) && (*pbe2BConnPtr)));
         }
 
         if (err != SA_AIS_OK) {
@@ -11901,7 +11981,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
         }
 
         if(isPersistent) {
-            if(pbe) { /* Persistent back end is there. */
+            if(pbe) { /* Persistent back end is up (somewhere) */
 
                 object->mObjFlags |= IMM_CREATE_LOCK;
                 /* Dont overwrite IMM_DN_INTERNAL_REP*/
@@ -11923,6 +12003,9 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                 TRACE_5("Tentative create of PERSISTENT runtime object '%s' "
                     "by Impl %s pending PBE ack", objectName.c_str(),
                          info->mImplementerName.c_str());
+
+                oMut->m2PbeCount = pbe2B?2:1;
+
             } else { /* No pbe and no pbe expected. */
                        TRACE("Create of PERSISTENT runtime object '%s' by Impl %s",
                            objectName.c_str(), info->mImplementerName.c_str());
@@ -11957,34 +12040,48 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
     SaUint32T *spApplConnPtr, struct ImmsvOmCcbObjectCreate* req)
 {
     TRACE_ENTER();
-
     if(spApplConnPtr) {
         (*spApplConnPtr) = 0;
     }
 
     SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
-    ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
-    if(ci != sPbeRtReqContinuationMap.end()) {
-        /* The client was local. */
-        TRACE("CLIENT WAS LOCAL continuation found");
-        *reqConn = ci->second.mConn;
-        sPbeRtReqContinuationMap.erase(ci);
-    } 
-
     ObjectMutationMap::iterator i2;
     for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ++i2) {
         if(i2->second->mContinuationId == invocation) {break;}
     }
 
     if(i2 == sPbeRtMutations.end()) {
-        LOG_ER("PBE PRTO Create continuation missing! invoc:%u",
-            invocation);
+        if(error == SA_AIS_OK) {
+            LOG_ER("PBE PRTO Create continuation missing! invoc:%u", invocation);
+        }
         return;
     }
 
     ObjectMutation* oMut = i2->second;
 
     osafassert(oMut->mOpType == IMM_CREATE);
+
+    if(oMut->m2PbeCount) {
+        oMut->m2PbeCount--;
+        if(oMut->m2PbeCount && error == SA_AIS_OK) {
+            TRACE("pbePrtObjCreateContinuation Wait for reply from other PBE");
+            return;
+        }
+        if(error == SA_AIS_OK) {
+            TRACE("pbePrtObjCreateContinuation: All PBEs have responded with OK");
+        }
+        /* If any of the PBEs reply with error, then the PRTO create is aborted.
+           and this contiuation removed. 
+        */
+    }
+
+    ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
+    if(ci != sPbeRtReqContinuationMap.end()) {
+        /* The client was local. */
+        TRACE("CLIENT WAS LOCAL continuation found");
+        *reqConn = ci->second.mConn;
+        sPbeRtReqContinuationMap.erase(ci);
+    }
 
     oMut->mAfterImage->mObjFlags &= ~IMM_CREATE_LOCK;
 
@@ -12061,32 +12158,79 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
     TRACE_LEAVE();
 }
 
-void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
+SaInt32T ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
     SaAisErrorT error, unsigned int nodeId, SaUint32T *reqConn,
-     ObjectNameVector& objNameVector, SaUint32T* spApplConnPtr)
+    ObjectNameVector& objNameVector, SaUint32T* spApplConnPtr,
+     SaUint32T* pbe2BConnPtr)
 {
     TRACE_ENTER();
+    /* 2PBE => two invocations return bool arg to discriminate.
+       First invoc is the regular OK/NOK on PRTO delete.
+       Second invocation is just the closure of the slave PBE continuation.
+       We need to keep track of that *only* for pbe-stuck monitoring.
+     */
     osafassert(spApplConnPtr);
     (*spApplConnPtr) = 0;
+    osafassert(pbe2BConnPtr);
+    (*pbe2BConnPtr) = 0;
+    osafassert(reqConn);
+    (*reqConn) = 0;
+    unsigned int slaveNodeId=0;
     unsigned int nrofDeletes=0;
     bool deleteRootFound=false;
+    bool sendCompletedToSlave=false;
     SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
-    ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
-    if(ci != sPbeRtReqContinuationMap.end()) {
-        /* The client was local. */
-        TRACE("CLIENT WAS LOCAL continuation found");
-        *reqConn = ci->second.mConn;
-        sPbeRtReqContinuationMap.erase(ci);
-    } 
 
-    /* Lookup special applier */
-    ImplementerInfo* spImpl = getSpecialApplier();
-    if(spImpl && spImpl->mConn) {
-        (*spApplConnPtr) = spImpl->mConn;
+    ObjectMutationMap::iterator i2 = sPbeRtMutations.begin();
+    if(getPbeBSlave(pbe2BConnPtr, &slaveNodeId)) {
+        /* slave exists check if reply was from primary or slave.*/
+        for(;i2!=sPbeRtMutations.end(); ++i2) {
+            if(i2->second->mContinuationId != invocation) {
+                continue;
+            }
+
+            ObjectMutation* oMut = i2->second;
+            osafassert(oMut->mOpType == IMM_DELETE);
+            if(oMut->m2PbeCount) {
+                osafassert(oMut->mAfterImage->mObjFlags & IMM_DELETE_ROOT);
+                oMut->m2PbeCount--;
+                if(oMut->m2PbeCount) {
+                    osafassert(!sendCompletedToSlave); /* Can only have one deleteroot! and only 2 PBEs */
+                    if(error == SA_AIS_OK) {
+                        TRACE("pbePrtObjDeletesContinuation OK from primary PBE Wait for reply from slave PBE");
+                        sendCompletedToSlave=true;
+                    } else {
+                        LOG_WA("Error %u returned from primary PBE on PrtoDelete", error);
+                        break; /* out of for() */
+                    }
+                } else if (error != SA_AIS_OK) {
+                    LOG_ER("Error %u returned from slave PBE on PrtoDelete! should never happen", error);
+                    /* Possibly return -1 indicating slave PBE has to be shot down. 
+                       Or make this case *impossible* in the slave logic, i.e. catch
+                       this case in the slave.!! Possibly assert the immnd colocated with the slave (no).
+                    */
+                } else {
+                    TRACE("pbePrtObjDeletesContinuation: All PBEs have responded with OK");
+                    (*pbe2BConnPtr) = 0; /* Dont send duplicate completed to slave. */
+                }
+                
+            }
+            ++nrofDeletes;
+            /* If primary PBE replies with erro then the PRTO delete is aborted
+               and this contiuation removed. */
+        }
+        if(sendCompletedToSlave && error == SA_AIS_OK) {
+            TRACE("Send completed to slave for %u PRTO deletes", nrofDeletes);
+            return nrofDeletes;
+        }
     }
 
-    ObjectMutationMap::iterator i2;
-    for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ) {
+    /* Regular processing merges with reply from slave processing. */
+
+    TRACE("1PBE or 2PBE with error or 2PBE where both PBEs have replied.");
+    nrofDeletes=0;
+    
+    for(i2 = sPbeRtMutations.begin();i2!=sPbeRtMutations.end(); ) {
         if(i2->second->mContinuationId != invocation) {
             ++i2;
             continue;
@@ -12165,18 +12309,31 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
         i2 = sPbeRtMutations.begin();
     } //for
 
-    /* If no notifications then reset spApplConnPtr to zero */
-    if((*spApplConnPtr) && objNameVector.empty()) {
-        (*spApplConnPtr) = 0;
-    }
-
     if(nrofDeletes == 0) {
         LOG_ER("PBE PRTO Deletes continuation missing! invoc:%u",
             invocation);
-    } else {
+    } else if(error == SA_AIS_OK) {
         TRACE("PBE PRTO Deleted %u RT Objects", nrofDeletes);    
     }
+
+    ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
+    if(ci != sPbeRtReqContinuationMap.end()) {
+        /* The client was local. */
+        TRACE("CLIENT WAS LOCAL continuation found");
+        *reqConn = ci->second.mConn;
+        sPbeRtReqContinuationMap.erase(ci);
+    } 
+
+    /* Lookup special applier */
+    if(!objNameVector.empty()) {
+        ImplementerInfo* spImpl = getSpecialApplier();
+        if(spImpl && spImpl->mConn) {
+            (*spApplConnPtr) = spImpl->mConn;
+        }
+    }
+
     TRACE_LEAVE();
+    return 0;
 }
 
 void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
@@ -12189,14 +12346,6 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
     }
 
     SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
-    ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
-    if(ci != sPbeRtReqContinuationMap.end()) {
-        /* The client was local. */
-        TRACE("CLIENT WAS LOCAL continuation found");
-        *reqConn = ci->second.mConn;
-        sPbeRtReqContinuationMap.erase(ci);
-    } 
-
     ObjectMutationMap::iterator i2;
     for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ++i2) {
         if(i2->second->mContinuationId == invocation) {break;}
@@ -12209,9 +12358,32 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
     }
 
     ObjectMutation* oMut = i2->second;
-    std::string objName(i2->first);
 
+    std::string objName(i2->first);
     osafassert(oMut->mOpType == IMM_MODIFY);
+
+    if(oMut->m2PbeCount) {
+        oMut->m2PbeCount--;
+        if(oMut->m2PbeCount && error == SA_AIS_OK) {
+            TRACE("pbePrtObjUpdateContinuation Wait for reply from other PBE");
+            return;
+        }
+        if(error == SA_AIS_OK) {
+            TRACE("pbePrtObjUpdateContinuation: All PBEs have responded with OK");
+        }
+        /* If any of the PBEs reply with error, then the PRTO create is aborted.
+           and this contiuation removed. 
+        */
+    }
+
+    ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
+    if(ci != sPbeRtReqContinuationMap.end()) {
+        /* The client was local. */
+        TRACE("CLIENT WAS LOCAL continuation found");
+        *reqConn = ci->second.mConn;
+        sPbeRtReqContinuationMap.erase(ci);
+    }
+
     ObjectInfo *afim =  oMut->mAfterImage;
     osafassert(afim);
 
@@ -12257,11 +12429,11 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
         }
 
         if(afim->mAdminOwnerAttrVal && beforeImage->mAdminOwnerAttrVal->empty()) {
-           /* Empty admin Owner can imply (hard) release during PRTA update.
+            /*Empty admin Owner can imply (hard) release during PRTA update.
               The releaseOn finalize will have auto-released the adminOwner
               on the before-image but not on the after image of modify.
               Corrected here.
-           */
+            */
             afim->mAdminOwnerAttrVal->setValueC_str(NULL);
         }
 
@@ -12472,7 +12644,9 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     SaUint32T* continuationIdPtr,
     SaUint32T* pbeConnPtr,
     unsigned int* pbeNodeIdPtr,
-    SaUint32T *spApplConnPtr)
+    SaUint32T *spApplConnPtr,
+    SaUint32T* pbe2BConnPtr)
+
 {
     TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationIdPtr, pbeConnPtr, pbeNodeIdPtr);
     SaAisErrorT err = SA_AIS_OK;
@@ -12594,12 +12768,14 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     for(int doIt=0; (doIt < 2) && (err == SA_AIS_OK); ++doIt) {
         TRACE_5("update rt attributes doit: %u", doIt);
         void* pbe = NULL;
+        void* pbe2B = NULL;
         ImmAttrValueMap::iterator oavi;
         if(doIt && pbeNodeIdPtr && isPersistent && !wasLocal)
         {
             ObjectInfo* afim = 0;
             ImmAttrValueMap::iterator oavi;
             ObjectMutation* oMut = 0;
+            unsigned int slaveNodeId=0;
 
             TRACE("PRT ATTRs UPDATE case, defer updates of cached attrs, until ACK from PBE");
             /* 
@@ -12623,6 +12799,12 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                    TRY_AGAIN.
                 */
             }
+
+            pbe2B = getPbeBSlave(pbe2BConnPtr, &slaveNodeId);
+
+            /* If 2PBE then not both PBEs on same processor. */
+            osafassert(!((*pbeConnPtr) && (*pbe2BConnPtr)));
+
             *continuationIdPtr = ++sLastContinuationId;
             if(sLastContinuationId >= 0xfffffffe)
             {sLastContinuationId = 1;}
@@ -12678,6 +12860,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             oMut = new ObjectMutation(IMM_MODIFY);
             oMut->mAfterImage = afim;
             oMut->mContinuationId = (*continuationIdPtr);
+            oMut->m2PbeCount = pbe2B?2:1;
             sPbeRtMutations[objectName] = oMut;
 
             object = afim; /* Rest of the code below updates the afim and not 
@@ -13015,7 +13198,8 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
         SaUint32T* pbeConnPtr,
         unsigned int* pbeNodeIdPtr,
         ObjectNameVector& objNameVector,
-        SaUint32T* spApplConnPtr)
+        SaUint32T* spApplConnPtr,
+        SaUint32T* pbe2BConnPtr)
 {
     osafassert(spApplConnPtr);
     (*spApplConnPtr) = 0;
@@ -13033,6 +13217,8 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
         (*continuationIdPtr) = 0;
         osafassert(pbeConnPtr);
         (*pbeConnPtr) = 0;
+        osafassert(pbe2BConnPtr);
+        (*pbe2BConnPtr) = 0;
     }
 
     if(immNotWritable()) { /*Check for persistent RTOs further down. */
@@ -13107,9 +13293,11 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
     
     for(int doIt=0; (doIt < 2) && (err == SA_AIS_OK); ++doIt) {
         void* pbe = NULL;
+        void* pbe2B = NULL;
         SaUint32T childCount = oi->second->mChildCount;
 
         if(doIt && pbeNodeIdPtr && subTreeHasPersistent) {
+            unsigned int slaveNodeId=0;
             TRACE("PRTO DELETE case, deferred deletes until ACK from PBE");
             /* We expect a PBE and the recursive RTO delete includes
                some PERSISETENT RTOs, then dont delete the RTOs now,
@@ -13134,6 +13322,11 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                    TRY_AGAIN.
                 */
             }
+
+            pbe2B = getPbeBSlave(pbe2BConnPtr, &slaveNodeId);
+            TRACE("getPbeBSlave returned: %p", pbe2B);
+            /* If 2PBE then not both PBEs on same processor. */
+            osafassert(!((*pbeConnPtr) && (*pbe2BConnPtr)));
 
             /* If the subtree to delete includes PRTOs then we use a continuationId
                as a common pseudo ccbId for all the RTOs in the subtree.
@@ -13160,8 +13353,13 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
             ObjectMutation* oMut = new ObjectMutation(IMM_DELETE);
             oMut->mContinuationId = (*continuationIdPtr);
             oMut->mAfterImage = oi->second;
+            /* We count replies from both PBE's, despite that slave is
+               called after primary for PRTO deletes. This unifies the
+               error/recovery processing for all PRT ops towards PBE.
+            */
+            oMut->m2PbeCount = pbe2B?2:1; 
             sPbeRtMutations[oi->first] = oMut;
-            if((oi->second->mObjFlags & IMM_PRTO_FLAG) && (*pbeConnPtr)) {
+            if((oi->second->mObjFlags & IMM_PRTO_FLAG) && ((*pbeConnPtr) ||(*pbe2BConnPtr))) {
                 TRACE("PRTO flag was set for root of subtree to delete");
                 if(oi->second->mObjFlags & IMM_DN_INTERNAL_REP) {
                     std::string tmpName(oi->first);
@@ -13232,7 +13430,7 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                         oMut->mContinuationId = (*continuationIdPtr);
                         oMut->mAfterImage = oi2->second;
                         sPbeRtMutations[subObjName] = oMut;
-                        if((oi2->second->mObjFlags & IMM_PRTO_FLAG) && (*pbeConnPtr)) {
+                        if((oi2->second->mObjFlags & IMM_PRTO_FLAG) && ((*pbeConnPtr) ||(*pbe2BConnPtr))) {
                             TRACE("PRTO flag was set for subobj: %s", subObjName.c_str());
                             if(oi2->second->mObjFlags & IMM_DN_INTERNAL_REP) {
                                 std::string tmpName(subObjName);

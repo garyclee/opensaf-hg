@@ -36,6 +36,18 @@
 
 #ifdef HAVE_IMM_PBE
 
+/* Spinlock for sqlite access see pbeBeginTrans.
+   The lock will only be aquired in pbeBeginTrans().
+   It is relased in either pbeCommitTrans() or pbeAbortTrans().
+*/
+static volatile unsigned int sqliteTransLock=0;
+
+bool pbeTransStarted()
+{
+	return sqliteTransLock!=0;
+}
+
+
 #include <sqlite3.h> 
 #define STRINT_BSZ 32
 
@@ -1202,7 +1214,7 @@ void stampObjectWithCcbId(void* db_handle, const char* object_id,  SaUint64T ccb
 	TRACE_ENTER();
 
 	stmt = preparedStmt[SQL_UPD_OBJECTS];
-	if((rc = sqlite3_bind_int(stmt, 1, (int)ccb_id)) != SQLITE_OK) {
+	if((rc = sqlite3_bind_int64(stmt, 1, ccb_id)) != SQLITE_OK) {
 		LOG_ER("Failed to bind last_ccb with error code: %d", rc);
 		goto bailout;
 	}
@@ -1314,7 +1326,7 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
 	TRACE_2("Successfully accessed attr_def for class_id:%d attr_name:%s. (T:%d, F:%lld)",
 		class_id, attrValue->attrName, attr_type, attr_flags);
 
-	if(ccb_id == 0) { /* PRTAttr case */
+	if(ccb_id > 0x100000000LL) { /* PRTAttr case */
 		if(!(attr_flags & SA_IMM_ATTR_PERSISTENT)) {
 			TRACE_2("PRTAttr updates skipping non persistent RTAttr %s",
 				attrValue->attrName);
@@ -1530,7 +1542,7 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 	TRACE_2("Successfully accessed attr_def for class_id:%d attr_name:%s. (T:%d, F:%lld)",
 		class_id, attrValue->attrName, attr_type, attr_flags);
 
-	if(ccb_id == 0) { /* PRTAttr case */
+	if(ccb_id > 0x100000000LL) { /* PRTAttr case */
 		if(!(attr_flags & SA_IMM_ATTR_PERSISTENT)) {
 			TRACE_2("PRTAttr updates skipping non persistent RTAttr %s",
 				attrValue->attrName);
@@ -1778,7 +1790,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 	TRACE_2("Successfully accessed attr_def for class_id:%d attr_name:%s. (T:%d, F:%lld)",
 		class_id, attrValue->attrName, attr_type, attr_flags);
 
-	if(ccb_id == 0) { /* PRTAttr case */
+	if(ccb_id > 0x100000000LL) { /* PRTAttr case */
 		if(!(attr_flags & SA_IMM_ATTR_PERSISTENT)) {
 			TRACE_2("PRTAttr updates skipping non persistent RTAttr %s",
 				attrValue->attrName);
@@ -2262,7 +2274,7 @@ void objectToPBE(std::string objectNameString,
 		LOG_ER("Failed to bind dn with error code: %d", rc);
 		goto bailout;
 	}
-	if((rc = sqlite3_bind_int(stmt, 4, ccb_id)) != SQLITE_OK) {
+	if((rc = sqlite3_bind_int64(stmt, 4, ccb_id)) != SQLITE_OK) {
 		LOG_ER("Failed to bind last_ccb with error code: %d", rc);
 		goto bailout;
 	}
@@ -2592,6 +2604,88 @@ SaAisErrorT pbeBeginTrans(void* db_handle)
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
 	char *execErr=NULL;
 	int rc=0;
+	unsigned int try_count=0;
+	unsigned int max_tries=20;
+
+	/* Sqlite is supposedly threadsafe, but we dont want to rely on that.
+
+	   With 2PBE, the single sqlite handle is used from both the main thread
+           and the runtime thread, but only in in the *slave* PBE. The main thread
+	   is also called the applier-thread in the slave because the slave receives
+	   all regular ccb-oi-callbacks in the applier role. The other thread called
+	   the runtime thread is used by the slave to receives PRT operations and 
+	   requests from the primary to begin the commit protocol for ccbs.
+
+	   PRTO create and PRTA update are the simplest since they consist of just one
+	   operation request to be immediately commited. They are handled as one callback
+	   in the primary and in the slave done in paralell. Imm-ram counts in the two
+	   replies before committing the operations in the cluster. If replies dont
+	   arrive in time, the imm-ram will abort the operation and initiate restart
+	   of the PBE that failed to reply, (with regeneration of imm.db file).
+
+	   Regular ccbs are more complex since they in general consist of several
+	   operations and several callbacks. PRTO deletes are also complex because
+	   they can be cascading deletes and can thus involve many callbacks to complete.
+	   PRTO deletes are handled internally by the imm similarly to regular ccbs.
+	   
+	   The primary PBE still only uses the sqlite handle from the main thread,
+           just as in regular 1PBE. 
+
+	   The distributed protocol between primary PBE and slave PBE has been designed
+	   so that the two threads (in the slave) will never deadlock. The thread that 
+	   ocasionally has to wait for a lock should normally not need to wait for long
+	   because the sqlite lock is only obtained when the PBE has all information it needs
+	   to build and commit the complete ccb. Thus the thread that has the lock would 
+	   only itself block on problems with sqlite or below (i.e. the file system).
+	   Worst case for the waiting thread is that it times out and has to abort the ccb.
+
+	   For CCBs the entry into the commit protocol at the slave is guarded not just by
+	   sqliteTransLock (which is obtained only when sqlite processing really starts)
+	   but also by the volatile variables. s2PbeBCcbToCompleteAtB, s2PbeBCcbOpCountNowAtB
+	   and s2PbeBCcbUtilCcbData in immpbe_daemon.cc. 
+
+	   This sqliteTranslock also catches logical errors not necessarily related to
+	   multiple threads. Attempts to commit a non started transaction, or attempts to
+	   start a transaction when the previous has not yet been terminated by commit or
+	   abort, are caught.
+
+	   If there is a threading issue, it would be in reltion to the ccbUitls access in
+	   the slave. The ccbUtils may be mutating by operation calls received by the applier
+	   thread (for several ccbs developing concurently). At the same time the runtime
+	   thread in the applier may initiate the processing of a ccb-commit (at most one 
+	   at a time). That ccb-commit has to pick up the ccbUtils pointer to its CCB.
+	   The lookup (search for the root structure for the ccb) into the ccbUtils is
+	   done without any locking. The lookup, if apparently succeeding will get a pointer
+	   to the ccb root structure. A check is made here that the ccb-id member matches.
+
+	   This can go wrong, but it is (a) unlikely and (b) will result in failure or crash,
+	   not inconsistent commit. 
+	   Failure here means that the ccb will get aborted in the system. But if the lookup
+	   succeeds and the object pointed to is identifiable as being for the correct ccb,
+	   then all the rest should be safe. The ccb structure is only deallocated much later
+	   after slite commit, by the applier thread when it receives the apply callback. 
+	
+	   The sensitive pointer lookup is done only once per ccb, and the pointer is saved 
+	   in s2PbeBCcbUtilCcbData. Only one CCB can be committing at a time, even if several
+	   can be building up. 
+
+	   PRTO deletes are handled similarly to regular CCBs. The same structures and 
+	   callbacks are used as for regular CCBS. BUT, it is the runtime thread in the 
+	   gets all the callbacks. 
+	   
+	*/
+	while(sqliteTransLock) {
+		LOG_WA("Sqlite db locked by other thread.");
+		if(try_count < max_tries) {
+			usleep(500000);
+			++try_count;
+		} else {
+			LOG_ER("Sqlite db appears blocked on other transaction");
+			return SA_AIS_ERR_FAILED_OPERATION;
+		}
+	} 
+
+	++sqliteTransLock; /* Lock is set. */
 
 	rc = sqlite3_exec(dbHandle, "BEGIN EXCLUSIVE TRANSACTION", NULL, NULL, &execErr);
 	if(rc != SQLITE_OK) {
@@ -2603,37 +2697,48 @@ SaAisErrorT pbeBeginTrans(void* db_handle)
 	return SA_AIS_OK;
 }
 
-SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T currentEpoch)
+SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T currentEpoch, SaTimeT *externCommitTime)
 {
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
 	char *execErr=NULL;
 	int rc=0;
 	unsigned int commitTime=0;
 	time_t now = time(NULL);
+	SaAisErrorT err = SA_AIS_OK;
+
+	if(sqliteTransLock != 1) {
+		LOG_ER("pbeCommitTrans was called when sqliteTransLock(%u)!=1", sqliteTransLock);
+		abort();
+	}
 
 	if(ccbId) {
 		sqlite3_stmt *stmt = preparedStmt[SQL_INS_CCB_COMMITS];
 
 		commitTime = (unsigned int) now;
+		*externCommitTime = commitTime * SA_TIME_ONE_SECOND;
 
 		if((rc = sqlite3_bind_int64(stmt, 1, ccbId)) != SQLITE_OK) {
 			LOG_ER("Failed to bind ccb_id with error code: %d", rc);
-			return SA_AIS_ERR_FAILED_OPERATION;
+			err = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
 		}
 		if((rc = sqlite3_bind_int(stmt, 2, currentEpoch)) != SQLITE_OK) {
 			LOG_ER("Failed to bind epoch with error code: %d", rc);
-			return SA_AIS_ERR_FAILED_OPERATION;
+			err = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
 		}
 		if((rc = sqlite3_bind_int(stmt, 3, commitTime)) != SQLITE_OK) {
 			LOG_ER("Failed to bind commit_time with error code: %d", rc);
-			return SA_AIS_ERR_FAILED_OPERATION;
+			err = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
 		}
 		rc = sqlite3_step(stmt);
 		if(rc != SQLITE_DONE) {
 			LOG_ER("SQL statement ('%s') failed because:\n %s",
 				preparedSql[SQL_INS_CCB_COMMITS], sqlite3_errmsg(dbHandle));
 			pbeAbortTrans(db_handle);
-			return SA_AIS_ERR_FAILED_OPERATION;
+			err = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
 		}
 		sqlite3_reset(stmt);
 	}
@@ -2643,12 +2748,14 @@ SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T currentEp
 		LOG_ER("SQL statement ('COMMIT TRANSACTION') failed because:\n %s",
 			execErr);
 		sqlite3_free(execErr);
-		return SA_AIS_ERR_FAILED_OPERATION;
+		err = SA_AIS_ERR_FAILED_OPERATION;
+		goto done;
 	}
 
-	fsyncPbeJournalFile();
-
-	return SA_AIS_OK;
+ done:
+	--sqliteTransLock; /* Lock is released. */
+	fsyncPbeJournalFile(); /* This should not be needed. sqlite does double fsync itself */
+	return err;
 }
 
 void purgeCcbCommitsFromPbe(void* db_handle, SaUint32T currentEpoch)
@@ -2696,6 +2803,15 @@ void pbeAbortTrans(void* db_handle)
 		LOG_ER("Exiting (line:%u)", __LINE__);
 		exit(1);
 	}
+
+	if(sqliteTransLock == 0) {
+		LOG_WA("pbeAbortTrans was called when sqliteTransLock==0");
+	} else if(sqliteTransLock == 1) {
+		--sqliteTransLock;
+	} else {
+		LOG_ER("Illegal value on sqliteTransLock:%u", sqliteTransLock);
+		abort();
+	}
 }
 
 SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T currentEpoch)
@@ -2709,7 +2825,7 @@ SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T cur
 	TRACE_ENTER2("get Outcome for ccb:%llu", ccbId);
 
 	stmt = preparedStmt[SQL_SEL_CCB_COMMITS];
-	if((rc = sqlite3_bind_int(stmt, 1, ccbId)) != SQLITE_OK) {
+	if((rc = sqlite3_bind_int64(stmt, 1, ccbId)) != SQLITE_OK) {
 		LOG_ER("Failed to bind ccb_id with error code: %d", rc);
 		goto bailout;
 	}
@@ -2841,7 +2957,7 @@ SaAisErrorT pbeBeginTrans(void* db_handle)
 	return SA_AIS_ERR_NO_RESOURCES;
 }
 
-SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T epoch)
+SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T epoch, SaTimeT *externCommitTime)
 {
 	return SA_AIS_ERR_NO_RESOURCES;
 }

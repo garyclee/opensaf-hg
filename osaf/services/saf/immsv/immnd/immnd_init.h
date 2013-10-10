@@ -266,6 +266,8 @@ extern "C" {
 	void immModel_setLoader(IMMND_CB *cb, SaInt32T loaderPid);
 
 	unsigned int immModel_pbeOiExists(IMMND_CB *cb);
+	unsigned int immModel_pbeBSlaveExists(IMMND_CB *cb);
+
 
 	struct immsv_attr_values_list * 
 	immModel_specialApplierTrimCreate(IMMND_CB *cb, SaUint32T clientId, struct ImmsvOmCcbObjectCreate *req);
@@ -282,6 +284,7 @@ extern "C" {
 	SaBoolT immModel_isSpecialAndAddModify(IMMND_CB *cb, SaUint32T clientId, SaUint32T ccbId);
 
 	void immModel_genSpecialModify(IMMND_CB *cb, struct ImmsvOmCcbObjectModify *req);
+
 
 	SaBoolT immModel_protocol41Allowed(IMMND_CB *cb);
 	SaBoolT immModel_protocol43Allowed(IMMND_CB *cb);
@@ -317,11 +320,11 @@ extern "C" {
 		SaClmNodeIdT nodeId, SaUint32T *reqConn, SaUint32T *spApplConn,
 		struct ImmsvOmCcbObjectCreate* req);
 
-	void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
+	int immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
 		SaUint32T invocation, SaAisErrorT err,
 		SaClmNodeIdT nodeId, SaUint32T *reqConn,
 		SaStringT **objNameArr, SaUint32T* arrSize, 
-		SaUint32T* spApplConn);
+		SaUint32T* spApplConn, SaUint32T* pbe2BConn);
 
 	void immModel_pbePrtAttrUpdateContinuation(IMMND_CB *cb,
 		SaUint32T invocation, SaAisErrorT err,
@@ -356,7 +359,7 @@ extern "C" {
 	    immModel_rtObjectCreate(IMMND_CB *cb,
 		    struct ImmsvOmCcbObjectCreate *req,
 		    SaUint32T implConn, SaClmNodeIdT implNodeId, SaUint32T *continuationId,
-		    SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, SaUint32T *spAplConn);
+		    SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, SaUint32T *spAplConn, SaUint32T *pbe2BConn);
 
 	SaAisErrorT
 	    immModel_rtObjectDelete(IMMND_CB *cb,
@@ -364,14 +367,14 @@ extern "C" {
 		    SaUint32T implConn, SaClmNodeIdT implNodeId,
 		    SaUint32T *continuationId, SaUint32T *pbeConn,
 		    SaClmNodeIdT *pbeNodeId, SaStringT **objNameArr,
-		    SaUint32T* arrSize, SaUint32T* spApplConn);
+		    SaUint32T* arrSize, SaUint32T* spApplConn, SaUint32T *pbe2BConn);
 
 	SaAisErrorT
 	    immModel_rtObjectUpdate(IMMND_CB *cb,
 		    const struct ImmsvOmCcbObjectModify *req,
 		    SaUint32T implConn, SaClmNodeIdT implNodeId, 
 		    unsigned int *isPureLocal, SaUint32T *continuationId, SaUint32T *pbeConn,
-		    SaClmNodeIdT *pbeNodeId, SaUint32T *spAplConn);
+		    SaClmNodeIdT *pbeNodeId, SaUint32T *spAplConn, SaUint32T *pbe2BConn);
 
 	SaAisErrorT immModel_ccbResult(IMMND_CB *cb, SaUint32T ccbId);
 

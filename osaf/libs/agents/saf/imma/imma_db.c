@@ -192,8 +192,8 @@ struct imma_oi_ccb_record * imma_oi_ccb_record_find(IMMA_CLIENT_NODE *cl_node, S
 
 	if(tmp) TRACE("Record for ccbid:0x%llx handle:%llx client:%p found", 
 		ccbId, cl_node->handle, cl_node);
-	else    TRACE("Record for ccbid:0x%llx handle:%llx client:%p NOT found", 
-		ccbId, cl_node->handle, cl_node);
+	else if(ccbId) { TRACE("Record for ccbid:0x%llx handle:%llx client:%p NOT found", 
+			ccbId, cl_node->handle, cl_node);}
 
 	TRACE_LEAVE();
 	return tmp;
