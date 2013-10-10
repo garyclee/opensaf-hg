@@ -40,9 +40,14 @@ extern "C" {
 #define OPENSAF_IMM_OBJECT_DN "opensafImm=opensafImm,safApp=safImmService"
 #define OPENSAF_IMM_OBJECT_RDN "opensafImm=opensafImm"
 #define OPENSAF_IMM_OBJECT_PARENT "safApp=safImmService"
-
 #define OPENSAF_IMM_PBE_RT_CLASS_NAME   "OsafImmPbeRt"
+#define OPENSAF_IMM_PBE_IMPL_NAME "OpenSafImmPBE"
+#define OPENSAF_IMM_2PBE_APPL_NAME "@OpenSafImmPBE"
+#define OPENSAF_IMM_PBE_RT_IMPL_NAME_A "OsafImmPbeRt_A"
+#define OPENSAF_IMM_PBE_RT_IMPL_NAME_B "OsafImmPbeRt_B"
 #define OPENSAF_IMM_ATTR_PBE_RT_RDN "osafImmPbeRt"
+#define OPENSAF_IMM_PBE_RT_OBJECT_DN_A "osafImmPbeRt=A,opensafImm=opensafImm,safApp=safImmService"
+#define OPENSAF_IMM_PBE_RT_OBJECT_DN_B "osafImmPbeRt=B,opensafImm=opensafImm,safApp=safImmService"
 #define OPENSAF_IMM_ATTR_PBE_RT_EPOCH "epoch"
 #define OPENSAF_IMM_ATTR_PBE_RT_CCB "lastCcbApply"
 #define OPENSAF_IMM_ATTR_PBE_RT_TIME "lastApplyTime"
@@ -55,9 +60,6 @@ extern "C" {
 /*Max # of outstanding fevs messages towards director.*/
 /*Note max-max is 255. cb->fevs_replies_pending is an uint8_t*/
 #define IMMSV_DEFAULT_FEVS_MAX_PENDING 16
-
-
-#define OPENSAF_IMM_PBE_IMPL_NAME "OpenSafImmPBE"
 
 #define IMMSV_MAX_OBJECTS 10000
 #define IMMSV_MAX_ATTRIBUTES 128
@@ -95,6 +97,7 @@ extern "C" {
 #define OPENSAF_IMM_PBE_CLASS_DELETE 0x20000000
 #define OPENSAF_IMM_PBE_UPDATE_EPOCH 0x30000000
 #define OPENSAF_IMM_2PBE_PRELOAD_STAT 0x40000000
+#define OPENSAF_IMM_PBE_CCB_PREPARE 0x50000000
 
 /* Public operation ids on OpenSafImmPBE */
 #define OPENSAF_IMM_NOST_FLAG_ON     0x00000001

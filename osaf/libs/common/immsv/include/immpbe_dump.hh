@@ -90,12 +90,12 @@ void objectToPBE(std::string objectNameString,
 
 void objectDeleteToPBE(std::string objectNameString, void* db_handle);
 
-void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap,
-	unsigned int objCount);
-
 SaAisErrorT pbeBeginTrans(void* db_handle);
-SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T epoch);
+SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T epoch,
+	SaTimeT *externCommitTime);
 void pbeAbortTrans(void* db_handle);
+
+bool pbeTransStarted();
 
 void purgeCcbCommitsFromPbe(void* sDbHandle, SaUint32T currentEpoch);
 

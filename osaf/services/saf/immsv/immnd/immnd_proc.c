@@ -912,6 +912,7 @@ static void immnd_pbePrtoPurgeMutations(IMMND_CB *cb)
 		   of the DB file and abortion of the non completed PRTO ops.
 		 */
 		cb->mPbeVeteran = SA_FALSE;
+		cb->mPbeVeteranB = SA_FALSE;
 	}
 
 
@@ -954,19 +955,48 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 	SaUint32T stuck=0;
 	/*TRACE_ENTER(); */
 
-	if((cb->mRim == SA_IMM_KEEP_REPOSITORY) && !(cb->mPbeVeteran)) {
+	if(cb->mRim == SA_IMM_KEEP_REPOSITORY) {
+		if(!(cb->mPbeVeteran)) {
+			/*
+			  If we are coord then the PBE has to be LOCAL.
+			  If we are not coord then the PBE has to be remote.
+			*/
+			SaUint32T pbeNodeId = immModel_pbeOiExists(cb);
+			cb->mPbeVeteran = pbeNodeId && immModel_pbeIsInSync(cb, false) &&
+				(cb->mIsCoord) == (pbeNodeId == cb->node_id);
+			if(cb->mPbeVeteran && cb->mCanBeCoord) {
+				LOG_NO("PBE-OI established on %s SC. Dumping incrementally "
+					"to file %s", (cb->mIsCoord)?"this":"other", 
+					cb->mPbeFile);
+			}
+		}
 
-		/*
-		  If we are coord then the PBE has to be LOCAL.
-		  If we are not coord then the PBE has to be remote.
-		*/
-		SaUint32T nodeId = immModel_pbeOiExists(cb);
-		cb->mPbeVeteran = nodeId && immModel_pbeIsInSync(cb, false) &&
-			(cb->mIsCoord) == (nodeId == cb->node_id);
-
-		if(cb->mPbeVeteran && cb->mCanBeCoord) {		       
-			LOG_NO("PBE-OI established on %s SC. Dumping incrementally to file %s", 
-				(cb->mIsCoord)?"this":"other", 	cb->mPbeFile);
+		if(!(cb->mPbeVeteranB)) {
+			/*
+			  If we are coord then the PBE-B has to be remote.
+			  If we are SC but not coord then the PBE-B has to be LOCAL.
+			  For mPbeVeteranB (slave) we require that we currently
+			  dont have ccbs in critical. If the slave crashes in the
+			  gap between primary PBE having commited but slave not,
+			  then the slave must not re-attach because it would rollback
+			  (abort) the ccb in the local (slave's) file.
+			  This can only happen in critical, becaus only in critical
+			  can the PBE commit a transaction. The commit at PBE includes a 
+			  successfully acked reply on a prepare, from PBE-slave to PBE.
+			*/
+			SaUint32T pbeSlaveNodeId = immModel_pbeBSlaveExists(cb);
+		        cb->mPbeVeteranB = pbeSlaveNodeId && immModel_pbeIsInSync(cb, true) &&
+				(cb->mIsCoord) != (pbeSlaveNodeId == cb->node_id);
+			if(cb->mPbeVeteranB && cb->mCanBeCoord) {
+				if(cb->mPbeOldVeteranB) {
+					LOG_IN("PBE slave on %s SC is in sync", (cb->mIsCoord)?"other":"this");
+				} else {
+					LOG_NO("PBE slave established on %s SC. "
+						"Dumping incrementally to file %s", 
+						(cb->mIsCoord)?"other":"this", 	cb->mPbeFile);
+					cb->mPbeOldVeteranB = SA_TRUE;
+				}
+			}
 		}
 	}
 
@@ -1196,6 +1226,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 
 	if(pbePrtoStuck) {
 		if(cb->pbePid > 0) {
+			osafassert(iAmCoordNow);
 			if((cb->mPbeKills++)==0) {
 				LOG_WA("PBE process %u appears stuck on runtime data handling "
 					"- sending SIGTERM", cb->pbePid);
@@ -1204,6 +1235,14 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 				LOG_WA("PBE process %u appears stuck on runtime data handling "
 					"- sending SIGKILL", cb->pbePid);
 				kill(cb->pbePid, SIGKILL);
+			}
+		} else if(cb->pbePid2 > 0) {
+			if((cb->mPbeKills++)==0) {
+				LOG_WA("STOPPING SLAVE PBE process.");
+				kill(cb->pbePid2, SIGTERM);
+			} else if(cb->mPbeKills > 20) {
+				LOG_WA("SLAVE PBE process appears hung, sending SIGKILL");
+				kill(cb->pbePid2, SIGKILL);					
 			}
 		}
 	}
@@ -1440,7 +1479,7 @@ static int immnd_forkPbe(IMMND_CB *cb)
 
 	const char *base = basename(cb->mProgName);
 	char execPath[1024];
-	char pbePath[1024];
+	char dbFilePath[1024];
 	int pid = (-1);
 	int execDirLen = (int) (strlen(cb->mProgName) - strlen(base));
 	int dirLen = (int) strlen(cb->mDir);
@@ -1464,17 +1503,27 @@ static int immnd_forkPbe(IMMND_CB *cb)
 	TRACE("exec-pbe-file-path:%s", execPath);
 
 	for (i = 0; i < dirLen; ++i) {
-		pbePath[i] = cb->mDir[i];
+		dbFilePath[i] = cb->mDir[i];
 	}
 
-	pbePath[i++] = '/';
+	dbFilePath[i++] = '/';
 
-	for(j = 0; j < pbeLen; ++i, ++j) {
-		pbePath[i] = cb->mPbeFile[j];
+	for(j = 0; j < pbeLen && (i < 1024); ++i, ++j) {
+		dbFilePath[i] = cb->mPbeFile[j];
 	}
-	pbePath[i] = '\0';
 
-	TRACE("pbe-file-path:%s", pbePath);
+	if(cb->m2Pbe) {
+		/* 2PBE configured, add nodeId suffix to imm.db */
+		/* But just use IMMSV_PBE_FILE_SUFFIX */
+		char pbeSuffix[24];
+		snprintf(pbeSuffix, 24, ".%x", cb->node_id);
+		for(j = 0; (j < 24) && (i < 1024); ++i, ++j) {
+			dbFilePath[i] = pbeSuffix[j];
+		}
+	}
+	dbFilePath[i] = '\0';
+
+	LOG_NO("pbe-db-file-path:%s VETERAN:%u B:%u", dbFilePath, cb->mPbeVeteran, cb->mPbeVeteranB);
 
 	if(cb->mPbeVeteran && !immModel_pbeIsInSync(cb, false)) {
 		/* Currently we can not recover results for PRTO create/delete/updates
@@ -1484,9 +1533,10 @@ static int immnd_forkPbe(IMMND_CB *cb)
 		   of the DB file and abortion of the non completed PRTO ops.
 		 */
 		cb->mPbeVeteran = SA_FALSE;
+		cb->mPbeVeteranB = SA_FALSE;
 	}
 
-	pid = fork();		/*posix fork */
+	pid = fork();
 	if (pid == (-1)) {
 		LOG_ER("%s failed to fork, error %u", base, errno);
 		return (-1);
@@ -1494,31 +1544,38 @@ static int immnd_forkPbe(IMMND_CB *cb)
 
 	if (pid == 0) {		/*child */
 		/* TODO: Should close file-descriptors ... */
-		/*char * const pbeArgs[5] = { (char *) pbeBase, "--daemon", "--pbe", pbePath, "--recover", 0 };*/
-		char * pbeArgs[6];
+		/*char * const pbeArgs[5] = { (char *) execPath, "--recover", "--pbeXX", dbFilePath, 0 };*/
+		char * pbeArgs[5];
+		bool veteran = (cb->mIsCoord) ? (cb->mPbeVeteran) : (cb->m2Pbe && cb->mPbeVeteranB);
 		pbeArgs[0] = (char *) execPath;
-		if(cb->mPbeVeteran) {
+		if(veteran) {
 			pbeArgs[1] =  "--recover";
-			pbeArgs[2] = pbePath;
-			pbeArgs[3] =  0;
-			LOG_IN("Exec: %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2]);
+			pbeArgs[2] = (cb->m2Pbe)?((cb->mIsCoord)?"--pbe2A":"--pbe2B"):"--pbe";
+			pbeArgs[3] = dbFilePath; 
+			pbeArgs[4] =  0;
+			LOG_IN("Exec: %s %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2], pbeArgs[3]);
 		} else {
-			pbeArgs[1] = pbePath;
-			pbeArgs[2] =  0;
-			LOG_IN("Exec: %s %s", pbeArgs[0], pbeArgs[1]);
+			pbeArgs[1] = (cb->m2Pbe)?((cb->mIsCoord)?"--pbe2A":"--pbe2B"):"--pbe";
+			pbeArgs[2] = dbFilePath;
+			pbeArgs[3] =  0;
+			TRACE("Exec: %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2]);
 		}
 
 		execvp(execPath, pbeArgs);
 		LOG_ER("%s failed to exec '%s', error %u, exiting", base, pbeBase, errno);
 		exit(1);
 	}
-	TRACE_5("Parent %s, successfully forked %s, pid:%d", base, pbePath, pid);
-	if(cb->mPbeVeteran) {
+	TRACE_5("Parent %s, successfully forked %s, pid:%d", base, dbFilePath, pid);
+	cb->mPbeKills = 0; /* Rest kill count when we just created a new PBE. */
+	if(cb->mIsCoord && cb->mPbeVeteran) {
 		cb->mPbeVeteran = SA_FALSE;
 		/* If pbe crashes again before succeeding to attach as PBE implementer
 		   then dont try to re-attach the DB file, instead regenerate it.
 		 */
+	} else if(!(cb->mIsCoord) && cb->mPbeVeteranB) {
+		cb->mPbeVeteranB = SA_FALSE;
 	}
+
 	TRACE_LEAVE();
 	return pid;
 }
@@ -1549,10 +1606,10 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 	/*TRACE_ENTER(); */
 
 	if ((cb->mStep % printFrq) == 0) {
-		TRACE_5("tmout:%u ste:%u ME:%u RE:%u crd:%u rim:%s 4.3A:%u 2Pbe:%u",
+		TRACE_5("tmout:%u ste:%u ME:%u RE:%u crd:%u rim:%s 4.3A:%u 2Pbe:%u VetA/B: %u/%u",
 			*timeout, cb->mState, cb->mMyEpoch, cb->mRulingEpoch, cb->mIsCoord,
 			(cb->mRim==SA_IMM_KEEP_REPOSITORY)?"KEEP_REPO":"FROM_FILE", 
-			immModel_protocol43Allowed(cb), cb->m2Pbe);
+			immModel_protocol43Allowed(cb), cb->m2Pbe, cb->mPbeVeteran, cb->mPbeVeteranB);
 	}
 
 	if (cb->mState < IMM_SERVER_DUMP) {
@@ -1867,7 +1924,11 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			if (cb->pbePid > 0) {
 				int status = 0;
 				if (waitpid(cb->pbePid, &status, WNOHANG) > 0) {
-					LOG_WA("Persistent back-end process has apparently died.");
+					if (cb->mRim == SA_IMM_KEEP_REPOSITORY) {
+						LOG_WA("Persistent back-end process has apparently died.");
+					} else {
+						LOG_NO("Persistent back-end process has terminated.");
+					}
 					cb->pbePid = 0;
 					cb->mPbeKills = 0;
 					if(!immModel_pbeIsInSync(cb, false)) {
@@ -1955,6 +2016,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				}
 				cb->pbePid = 0;
 				cb->mPbeKills = 0;
+				osafassert(coord);
 				if(!immModel_pbeIsInSync(cb, false)) {
 					TRACE_5("Server-ready/coord invoking "
 						"immnd_pbePrtoPurgeMutations");
@@ -1968,6 +2030,22 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			if (waitpid(cb->preLoadPid, &status, WNOHANG) > 0) {
 				cb->preLoadPid = 0;
 				LOG_NO("Local preLoader has terminated.");
+			}
+		}
+
+		if (cb->pbePid2 > 0) {
+			int status = 0;
+			if (waitpid(cb->pbePid2, &status, WNOHANG) > 0) {
+				if(coord) {
+					LOG_NO("SLAVE PBE process terminated by coord.");
+				} else if (cb->mRim == SA_IMM_KEEP_REPOSITORY) {
+					LOG_WA("SLAVE PBE process has apparently died at non coord");
+				} else {
+					LOG_NO("SLAVE PBE process has been terminated");
+				}
+				cb->pbePid2 = 0;
+				cb->mPbeKills = 0;
+				cb->mPbeOldVeteranB = 0;
 			}
 		}
 
@@ -2009,8 +2087,20 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 					cb->mBlockPbeEnable = 0x0;
 					if (cb->mRim == SA_IMM_KEEP_REPOSITORY) {/* Pbe SHOULD run. */
 						if(immModel_pbeIsInSync(cb, false)) {
-							LOG_NO("STARTING persistent back end process.");
-							cb->pbePid = immnd_forkPbe(cb);
+							if(cb->pbePid2 <= 0) {
+								LOG_NO("STARTING PBE process.");
+								cb->pbePid = immnd_forkPbe(cb);
+							} else {
+								LOG_WA("Can not start PBE, waiting for SLAVE PBE to stop");
+								/* Primary PBE is only started by coord and remains there 
+								   untill the coord crashes or is taken down. However,
+								   the opposite is not true. The SLAVE PBE may transiently
+								   be executing at the coord. This can be the case, if the
+								   coord has crashed and immediately after the other SC immnd
+								   has been elected coord. SLAVE PBE must then be stopped
+								   at the new coord before the primary PBE can be started at
+								   the new coord */
+							}
 						} else {
 							/* ABT Probably remove this one. */
 							TRACE_5("Sync-server/coord invoking "
@@ -2019,21 +2109,58 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 						}
 					}
 				} else { /* Pbe is running. */
-					osafassert(cb->pbePid > 0); 
+					osafassert(cb->pbePid > 0);
 					if (cb->mRim == SA_IMM_INIT_FROM_FILE || cb->mBlockPbeEnable) {
 						/* Pbe should NOT run.*/
-						if((cb->mPbeKills++)==0) {
-							LOG_NO("STOPPING persistent back end process.");
+						if((cb->mPbeKills++)==0) { /* Send SIGTERM only once.*/
+							LOG_NO("STOPPING PBE process.");
 							kill(cb->pbePid, SIGTERM);
 						} else if(cb->mPbeKills > 20) {
-							LOG_WA("Persistent back end process appears hung, "
-								"sending SIGKILL");
+							LOG_WA("PBE process appears hung, sending SIGKILL");
 							kill(cb->pbePid, SIGKILL);
 						}
 					}
 				}
 			}
-		} /* if((coord == 1)...*/
+
+			if(cb->pbePid2 != 0) {
+				/* SLAVE PBE should not be running at cord. Can happen after coord failover. */
+				if((cb->mPbeKills++)==0) {
+					LOG_WA("STOPPING SLAVE PBE process at IMMND COORD.");
+					kill(cb->pbePid2, SIGTERM);
+				} else if(cb->mPbeKills > 20) {
+					LOG_WA("SLAVE PBE process appears hung, sending SIGKILL");
+					kill(cb->pbePid2, SIGKILL);					
+				}
+			}
+		} else if(coord != 1 && cb->mCanBeCoord) {/* => this is standby for coord immnd. */
+			osafassert(cb->pbePid <= 0); /* Primary PBE must never have been started at non coord. */
+			if (cb->mPbeFile && cb->m2Pbe) { /* 2PBE configured => impacts non coord sc immnd */
+				if (cb->mRim == SA_IMM_KEEP_REPOSITORY) {
+					/* PBE enabled => SLAVE PBE should run here */
+					if(immModel_pbeIsInSync(cb, false) && immModel_pbeOiExists(cb)) {
+						/* Primary PBE is available. */
+						if(cb->pbePid2 <= 0) {
+							/* SLAVE PBE is not running, try to start it. */
+							LOG_NO("STARTING SLAVE PBE process.");
+							cb->pbePid2 = immnd_forkPbe(cb);
+						}
+					} else if(cb->pbePid2 <= 0) {
+						LOG_IN("Postponing start of SLAVE PBE until primary PBE has atached.");
+					}
+				} else if(cb->pbePid2 > 0) { 
+					/* PBE disabled, yet SLAVE PBE is running => STOP it. */
+					if((cb->mPbeKills++)==0) {
+						LOG_NO("STOPPING SLAVE PBE process at non coord because PBE is disabled");
+						kill(cb->pbePid2, SIGTERM);
+					} else if(cb->mPbeKills > 20) {
+						LOG_WA("SLAVE PBE process appears hung, sending SIGKILL");
+						kill(cb->pbePid2, SIGKILL);
+					}
+				}
+			}
+		}
+
 		break;
 
 	default:

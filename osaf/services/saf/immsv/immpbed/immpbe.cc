@@ -31,28 +31,6 @@
 #define XML_VERSION "1.0"
 
 
-static void usage(const char *progname)
-{
-	printf("\nNAME\n");
-	printf("\t%s - generate/populate persistent back-end database/file\n", progname);
-
-	printf("\nSYNOPSIS\n");
-	printf("\t%s <file name>\n", progname);
-
-	printf("\nDESCRIPTION\n");
-	printf("\t%s is an IMM service to support PBE\n", progname);
-
-	printf("\nOPTIONS\n");
-	printf("\t-h, --help\n");
-	printf("\t\tthis help\n\n");
-
-	printf("\t-r, --recover\n");
-	printf("\t\tRecover persistent back-end database/file\n");
-
-	printf("\nEXAMPLE\n");
-	printf("\t%s --pbe /etc/opensaf/imm.db\n", progname);
-}
-
 static void saImmOmAdminOperationInvokeCallback(SaInvocationT invocation,
 	SaAisErrorT operationReturnValue,
 	SaAisErrorT)
@@ -98,14 +76,20 @@ fail:
 	exit(1);
 }
 
+static void usage(const char *progname)
+{
+	printf("\t%s - Persistent Back End process was not exec'ed correctly\n", progname);
+}
 
 /* Functions */
 int main(int argc, char* argv[])
 {
 	int c;
 	struct option long_options[] = {
-		{"help", no_argument, 0, 'h'},
 		{"recover", no_argument, 0, 'r'},
+		{"pbe", required_argument, 0, 'p'},
+		{"pbe2A", required_argument, 0, 'A'},
+		{"pbe2B", required_argument, 0, 'B'},
 		{0, 0, 0, 0}
 	};
 	SaImmHandleT		immHandle;
@@ -122,6 +106,8 @@ int main(int argc, char* argv[])
 	unsigned int category_mask = 0;
 	bool pbeDumpCase = true;
 	bool pbeRecoverFile = false;
+	bool pbe2 = false;
+	bool pbe2BCase = false;
 	void* dbHandle=NULL;
 	const char* dump_trace_label = "osafimmpbed";
 	const char* trace_label = dump_trace_label;
@@ -147,30 +133,47 @@ int main(int argc, char* argv[])
 		/* We allow the dump to execute anyway. */
 	}
 
-	if (argc < 2 || argc > 3)
+	if (argc < 2 || argc > 4)
 	{
 		usage(basename(argv[0]));
 		exit(EXIT_FAILURE);
 	}
 
+	int i=0;
+	while(i < argc) {
+		LOG_IN("arg[%u] == '%s'",i, argv[i]);
+		++i;
+	}
+
 	while (1) {
-		if ((c = getopt_long(argc, argv, "hr", long_options, NULL)) == -1)
+		if ((c = getopt_long(argc, argv, "rp:", long_options, NULL)) == -1)
 			break;
 
 		switch (c) {
-			case 'h':
-				usage(basename(argv[0]));
-				exit(EXIT_SUCCESS);
-				break;
-
 			case 'r':
 				pbeDumpCase = false;
 				pbeRecoverFile = true;
 				break;
 
+			case 'B':
+				pbe2 = true;
+				pbe2BCase = true;
+				// Intentional fall through. 
+
+			case 'A':
+				pbe2 = true;
+				// Intentional fall through. 
+
+			case 'p':
+				/* ABT This if statement is redundant. */
+				if(!pbeRecoverFile) {
+					pbeDumpCase = true;
+				}
+				break;
+
+
 			default:
-				fprintf(stderr, "Try '%s --help' for more information\n",
-					argv[0]);
+				LOG_ER("Invalid argument to %s.", argv[0]);
 				exit(EXIT_FAILURE);
 				break;
 		}
@@ -178,12 +181,12 @@ int main(int argc, char* argv[])
 
 	checkParentProcess();
 
-	if(pbeRecoverFile && argc == 3)
+	if(pbeRecoverFile && argc == 4)
+		filename.append(argv[3]);
+	else if(!pbeRecoverFile && argc == 3)
 		filename.append(argv[2]);
-	else if(!pbeRecoverFile && argc == 2)
-		filename.append(argv[1]);
 	else {
-		LOG_WA("File name is empty");
+		LOG_WA("File name is empty argc:%u recover?:%u", argc, pbeRecoverFile);
 		exit(1);
 	}
 
@@ -310,7 +313,7 @@ int main(int argc, char* argv[])
 
 	/* If we allow pbe without prior dump we need to fix classIdMap. */
 	assert(classIdMap.size());
-	pbeDaemon(immHandle, dbHandle, &classIdMap, objCount);
+	pbeDaemon(immHandle, dbHandle, ownerHandle, &classIdMap, objCount, pbe2, pbe2BCase);
 	TRACE("Exit from pbeDaemon");
 
 	return 0;

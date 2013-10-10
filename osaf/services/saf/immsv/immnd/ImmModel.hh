@@ -295,13 +295,14 @@ public:
 					  SaUint32T *spApplConn,
 					  struct ImmsvOmCcbObjectCreate* req);
     
-    void                 pbePrtObjDeletesContinuation(
+    int                  pbePrtObjDeletesContinuation(
                                                      SaUint32T invocation,
                                                      SaAisErrorT error,
                                                      unsigned int nodeId, 
                                                      SaUint32T *reqConn,
                                                      ObjectNameVector& objNameVector,
-                                                     SaUint32T* spApplConnPtr);
+                                                     SaUint32T* spApplConnPtr,
+                                                     SaUint32T* pbe2BConn);
     
     void                 pbePrtAttrUpdateContinuation(
                                                      SaUint32T invocation,
@@ -397,9 +398,10 @@ public:
                                        SaUint32T conn,
                                        unsigned int nodeId,
                                        SaUint32T* continuationId,
-                                        SaUint32T* pbeConn,
- 				        unsigned int* pbeNodeId,
-                                        SaUint32T* spApplConn);
+				       SaUint32T* pbeConn,
+				       unsigned int* pbeNodeId,
+				       SaUint32T* spApplConn,
+				       SaUint32T* pbe2BConn);
 
     
     SaAisErrorT         rtObjectUpdate(
@@ -410,7 +412,8 @@ public:
                                        SaUint32T* continuationId,
                                        SaUint32T* pbeConn,
                                        unsigned int* pbeNodeId,
-                                       SaUint32T* specialApplCon);
+                                       SaUint32T* specialApplCon,
+				       SaUint32T* pbe2BConn);
 
     void                deferRtUpdate(ImmsvOmCcbObjectModify* req, SaUint64T msgNo);
     
@@ -423,7 +426,8 @@ public:
                                        SaUint32T* pbeConnPtr,
                                        unsigned int* pbeNodeIdPtr,
                                        ObjectNameVector& objNameVector,
-                                       SaUint32T* specialApplCon);
+                                       SaUint32T* specialApplCon,
+				       SaUint32T* pbe2BConn);
                   
     
     SaAisErrorT         deleteRtObject(
@@ -483,6 +487,8 @@ public:
     bool              immNotWritable();
     bool              immNotPbeWritable(bool isPrtoClient = true);
     void*             getPbeOi(SaUint32T* pbeConn, unsigned int* pbeNode, bool fevsSafe=true);
+    void*             getPbeBSlave(SaUint32T* pbeConn, unsigned int* pbeNode, bool fevsSafe=true);
+    bool              pbeBSlaveHasExisted();
     ImplementerInfo*  getSpecialApplier();
     bool              specialApplyForClass(ClassInfo* classInfo);
     SaUint32T         findConnForImplementerOfObject(std::string objectDn);

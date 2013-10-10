@@ -137,6 +137,7 @@ typedef struct immnd_cb_tag {
 	int32_t loaderPid;
 	int32_t syncPid;
 	int32_t pbePid;   //Persistent back end (PBE) is running if pbePid > 0
+	int32_t pbePid2;  //Redundant PBE (2PBE) is running if pbePid2 > 0
 	IMMND_SERVER_STATE mState;
 	uint32_t mStep;		//Measures progress in immnd_proc_server
 	time_t mJobStart;       //Start time for major server tasks like start, load, sync.
@@ -150,7 +151,9 @@ typedef struct immnd_cb_tag {
 	uint8_t mExpectedNodes;
 	uint8_t mWaitSecs;
 	uint8_t mNumNodes;
-	uint8_t mPbeVeteran;       //false => generate. true => re-attach db-file
+	uint8_t mPbeVeteran;       //false => regenerate. true => re-attach db-file
+	uint8_t mPbeVeteranB;      //false => regenerate. true => re-attach db-file
+	uint8_t mPbeOldVeteranB;   //false => restarted,  true => stable. (only to reduce logging).
 
 	SaAmfHAStateT ha_state;	// present AMF HA state of the component
 	EDU_HDL immnd_edu_hdl;	// edu handle, obscurely needed by mds.

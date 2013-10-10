@@ -89,7 +89,6 @@ ImmSearchOp::setImplementer(SaUint32T conn, unsigned int nodeId,
 SaAisErrorT
 ImmSearchOp::testTopResult(unsigned int* nodeIdp, SaBoolT* bRtsToFetch)
 {
-    TRACE_ENTER();
     SaAisErrorT err = SA_AIS_ERR_NOT_EXIST;
 
     if (!mResultList.empty()) {
@@ -109,8 +108,6 @@ ImmSearchOp::testTopResult(unsigned int* nodeIdp, SaBoolT* bRtsToFetch)
         }
     }
 
-    TRACE_LEAVE();
-
     return err;
 }
 
@@ -120,7 +117,6 @@ ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, SaUint32T* connp,
     AttributeList** rtsToFetch,
     SaUint64T* implDest)
 {
-    TRACE_ENTER();
     SaAisErrorT err = SA_AIS_ERR_NOT_EXIST;
     if(!mRtsToFetch.empty()) {mRtsToFetch.clear();}
     
@@ -198,7 +194,6 @@ ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, SaUint32T* connp,
     } else {
         mLastResult=NULL;
     }
-    TRACE_LEAVE();
     return err;
 }
 
