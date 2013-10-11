@@ -155,10 +155,4 @@ typedef struct avnd_cb_tag {
 
 extern AVND_CB *avnd_cb;
 
-extern AVND_CB *avnd_cb;
-
-void avnd_dnd_list_destroy(AVND_CB *);
-
-uint32_t avnd_cb_destroy(AVND_CB *);
-
 #endif

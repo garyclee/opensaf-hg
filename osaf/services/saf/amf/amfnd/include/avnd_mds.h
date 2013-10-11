@@ -128,8 +128,6 @@ struct avnd_cb_tag;
 
 uint32_t avnd_mds_reg(struct avnd_cb_tag *);
 
-uint32_t avnd_mds_unreg(struct avnd_cb_tag *);
-
 uint32_t avnd_mds_cbk(NCSMDS_CALLBACK_INFO *info);
 
 uint32_t avnd_mds_send(struct avnd_cb_tag *, AVND_MSG *, MDS_DEST *, MDS_SYNC_SND_CTXT *);

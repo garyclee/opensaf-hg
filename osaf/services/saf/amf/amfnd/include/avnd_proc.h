@@ -109,7 +109,6 @@ uint32_t avnd_evt_last_step_term_evh(struct avnd_cb_tag *, struct avnd_evt_tag *
 void avnd_last_step_clean(struct avnd_cb_tag *cb);
 
 uint32_t avnd_evt_avd_set_leds_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
-uint32_t avnd_destroy(void);
 uint32_t avnd_evt_avnd_avnd_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 uint32_t avnd_evt_ha_state_change_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 uint32_t avnd_evt_comp_admin_op_req (struct avnd_cb_tag *, struct avnd_evt_tag *);

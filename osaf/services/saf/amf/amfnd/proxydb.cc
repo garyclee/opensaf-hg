@@ -175,45 +175,6 @@ uint32_t avnd_nodeid_to_mdsdest_map_db_init(AVND_CB *cb)
 }
 
 /****************************************************************************
-  Name          : avnd_nodeid_to_mdsdest_map_db_destroy
- 
-  Description   : This routine destroys the node_id to mds dest mapping database.
-                  It deletes all the mapping records from the database.
- 
-  Arguments     : cb  - ptr to the AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_nodeid_to_mdsdest_map_db_destroy(AVND_CB *cb)
-{
-	AVND_NODEID_TO_MDSDEST_MAP *mapping = 0;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	/* scan & delete each su */
-	while (0 != (mapping =
-		     (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_getnext(&cb->nodeid_mdsdest_db, (uint8_t *)0))) {
-		/* delete the record */
-		rc = avnd_nodeid_mdsdest_rec_del(cb, mapping->mds_dest);
-		if (NCSCC_RC_SUCCESS != rc)
-			goto err;
-	}
-
-	/* finally destroy patricia tree */
-	rc = ncs_patricia_tree_destroy(&cb->nodeid_mdsdest_db);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto err;
-
-	return rc;
-
- err:
-
-	LOG_ER("nodeid_to_mdsdest_map_db_destroy failed");
-	return rc;
-}
-
-/****************************************************************************
   Name          : avnd_internode_avail_comp_db_init
  
   Description   : This routine initializes the available internode components database.
@@ -238,45 +199,6 @@ uint32_t avnd_internode_avail_comp_db_init(AVND_CB *cb)
 		LOG_ER("internode_avail_comp_db initialization failed");
 	}
 
-	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_internode_avail_comp_db_destroy
- 
-  Description   : This routine destroys the available internode components database.
-                  It deletes all the components records from the database.
- 
-  Arguments     : cb  - ptr to the AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_internode_avail_comp_db_destroy(AVND_CB *cb)
-{
-	AVND_COMP *comp = 0;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	/* scan & delete each su */
-	while (0 != (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uint8_t *)0))) {
-		/* delete the record */
-		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
-		rc = avnd_internode_comp_del(cb, &cb->internode_avail_comp_db, &comp->name);
-		if (NCSCC_RC_SUCCESS != rc)
-			goto err;
-	}
-
-	/* finally destroy patricia tree */
-	rc = ncs_patricia_tree_destroy(&cb->internode_avail_comp_db);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto err;
-
-	return rc;
-
- err:
-
-	LOG_ER("internode_avail_comp_db_destroy failed");
 	return rc;
 }
 

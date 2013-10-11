@@ -64,46 +64,6 @@ void avnd_hcdb_init(AVND_CB *cb)
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
-/****************************************************************************
-  Name          : avnd_hcdb_destroy
- 
-  Description   : This routine destroys the healthcheck database. It deletes 
-                  all the healthcheck records in the database.
- 
-  Arguments     : cb  - ptr to the AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_hcdb_destroy(AVND_CB *cb)
-{
-	AVND_HC *hc = 0;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	/* scan & delete each healthcheck record */
-	while (0 != (hc = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uint8_t *)0))) {
-		/*AvND is going down, but don't send any async update even for 
-		   external components, otherwise external components will be deleted
-		   from ACT. */
-		rc = avnd_hcdb_rec_del(cb, &hc->key);
-		if (NCSCC_RC_SUCCESS != rc)
-			goto err;
-	}
-
-	/* finally destroy patricia tree */
-	rc = ncs_patricia_tree_destroy(&cb->hcdb);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto err;
-
-	TRACE("HC DB destroy success");
-	return rc;
-
- err:
-	LOG_ER("HC DB destroy failed");
-	return rc;
-}
-
 AVND_HC *avnd_hcdb_rec_get(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
 {
 	SaNameT dn;

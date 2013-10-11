@@ -201,50 +201,6 @@ done:
 }
 
 /****************************************************************************
-  Name          : avnd_compdb_destroy
- 
-  Description   : This routine destroys the component database. It deletes 
-                  all the component records in the database.
- 
-  Arguments     : cb  - ptr to the AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_compdb_destroy(AVND_CB *cb)
-{
-	AVND_COMP *comp = 0;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER();
-
-	/* scan & delete each comp */
-	while (0 != (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0))) {
-		/* delete the record 
-		   m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
-		   AvND is going down, but don't send any async update even for 
-		   external components, otherwise external components will be deleted
-		   from ACT. */
-		rc = avnd_compdb_rec_del(cb, &comp->name);
-		if (NCSCC_RC_SUCCESS != rc)
-			goto err;
-	}
-
-	/* finally destroy patricia tree */
-	rc = ncs_patricia_tree_destroy(&cb->compdb);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto err;
-
-	TRACE_LEAVE2("Component DB destroy success");
-	return rc;
-
- err:
-	LOG_CR("Component DB destroy failed");
-	TRACE_LEAVE();
-	return rc;
-}
-
-/****************************************************************************
   Name          : avnd_compdb_rec_add
  
   Description   : This routine adds a component record to the component 

@@ -286,23 +286,3 @@ done:
 	TRACE_LEAVE();
         return error;
 }
-
-SaAisErrorT avnd_clm_stop(void)
-{
-        SaAisErrorT error = SA_AIS_OK;
-	TRACE_ENTER();
-	error = saClmClusterTrackStop(avnd_cb->clmHandle);
-        if (SA_AIS_OK != error) {
-                LOG_ER("Failed to stop cluster tracking %u", error);
-                goto done;
-        }
-	error = saClmFinalize(avnd_cb->clmHandle);
-        if (SA_AIS_OK != error) {
-                LOG_ER("Failed to finalize with CLM %u", error);
-                goto done;
-        }
-done:
-	TRACE_LEAVE();
-        return error;
-}
-

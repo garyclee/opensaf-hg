@@ -46,8 +46,6 @@ uint32_t avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest);
 uint32_t avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest);
 uint32_t avnd_nodeid_to_mdsdest_map_db_init(AVND_CB *cb);
 uint32_t avnd_internode_avail_comp_db_init(AVND_CB *cb);
-uint32_t avnd_nodeid_to_mdsdest_map_db_destroy(AVND_CB *cb);
-uint32_t avnd_internode_avail_comp_db_destroy(AVND_CB *cb);
 uint32_t avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
 			     MDS_SYNC_SND_CTXT *ctxt, SaAisErrorT *o_amf_rc, bool *int_ext_comp);
 uint32_t avnd_avnd_msg_send(AVND_CB *cb, uint8_t *msg_info, AVSV_AMF_API_TYPE type, MDS_SYNC_SND_CTXT *ctxt, NODE_ID node_id);

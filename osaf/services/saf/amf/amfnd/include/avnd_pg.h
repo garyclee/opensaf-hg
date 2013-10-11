@@ -116,7 +116,6 @@ typedef struct avnd_pg {
  ***************************************************************************/
 
 uint32_t avnd_pgdb_init(struct avnd_cb_tag *);
-uint32_t avnd_pgdb_destroy(struct avnd_cb_tag *);
 AVND_PG *avnd_pgdb_rec_add(struct avnd_cb_tag *, SaNameT *, uint32_t *);
 uint32_t avnd_pgdb_rec_del(struct avnd_cb_tag *, SaNameT *);
 

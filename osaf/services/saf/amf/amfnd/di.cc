@@ -1028,36 +1028,6 @@ uint32_t avnd_diq_rec_send(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 	return rc;
 }
 
-/****************************************************************************
-  Name          : avnd_dnd_list_destroy
- 
-  Description   : This routine clean the dnd list in the cb
- 
-  Arguments     : cb  - ptr to the AvND control block
- 
-  Return Values : None.
- 
-  Notes         : None.
-******************************************************************************/
-void avnd_dnd_list_destroy(AVND_CB *cb)
-{
-	AVND_DND_LIST *list = &((cb)->dnd_list);
-	AVND_DND_MSG_LIST *rec = 0;
-
-	if (list)
-		rec = list->head;
-
-	while (rec) {
-		/* find & pop the matching record */
-		m_AVND_DIQ_REC_FIND_POP(cb, rec);
-		avnd_diq_rec_del(cb, rec);
-
-		rec = list->head;
-	}
-
-	return;
-}
-
 /**
  * Dispatch admin operation requests to the real handler
  * @param cb
