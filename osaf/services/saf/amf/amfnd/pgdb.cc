@@ -66,43 +66,6 @@ uint32_t avnd_pgdb_init(AVND_CB *cb)
 }
 
 /****************************************************************************
-  Name          : avnd_pgdb_destroy
- 
-  Description   : This routine destroys the PG database.
- 
-  Arguments     : cb  - ptr to the AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_pgdb_destroy(AVND_CB *cb)
-{
-	AVND_PG *pg = 0;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	/* scan & delete each pg rec */
-	while (0 != (pg = (AVND_PG *)ncs_patricia_tree_getnext(&cb->pgdb, (uint8_t *)0))) {
-		/* delete the record */
-		rc = avnd_pgdb_rec_del(cb, &pg->csi_name);
-		if (NCSCC_RC_SUCCESS != rc)
-			goto err;
-	}
-
-	/* finally destroy patricia tree */
-	rc = ncs_patricia_tree_destroy(&cb->pgdb);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto err;
-
-	TRACE("PG DB destroy success");
-	return rc;
-
- err:
-	LOG_CR("PG DB destroy failed");
-	return rc;
-}
-
-/****************************************************************************
   Name          : avnd_pgdb_rec_add
  
   Description   : This routine adds a record to the PG database.

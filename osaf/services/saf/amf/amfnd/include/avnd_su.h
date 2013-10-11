@@ -362,7 +362,6 @@ struct avnd_cb_tag;
 uint32_t avnd_su_pres_fsm_run(struct avnd_cb_tag *, AVND_SU *, AVND_COMP *, AVND_SU_PRES_FSM_EV);
 
 uint32_t avnd_sudb_init(struct avnd_cb_tag *);
-uint32_t avnd_sudb_destroy(struct avnd_cb_tag *);
 AVND_SU *avnd_sudb_rec_add(struct avnd_cb_tag *, AVND_SU_PARAM *, uint32_t *);
 uint32_t avnd_sudb_rec_del(struct avnd_cb_tag *, SaNameT *);
 

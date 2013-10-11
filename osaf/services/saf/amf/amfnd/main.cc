@@ -133,12 +133,6 @@ static uint32_t avnd_mbx_create(AVND_CB *);
 
 static uint32_t avnd_ext_intf_create(AVND_CB *);
 
-static uint32_t avnd_mbx_destroy(AVND_CB *);
-
-static uint32_t avnd_ext_intf_destroy(AVND_CB *);
-
-static bool avnd_mbx_clean(NCSCONTEXT, NCSCONTEXT);
-
 
 static int __init_avnd(void)
 {
@@ -279,55 +273,6 @@ uint32_t avnd_create(void)
 	}
 
 done:
-	/* if failed, perform the cleanup */
-	if (NCSCC_RC_SUCCESS != rc)
-		avnd_destroy();
-
-	TRACE_LEAVE();
-	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_destroy
- 
-  Description   : This routine destroys the PWE of AvND. It does the following:
-                  a) destroy external interfaces (logging service being the
-                     exception).
-                  b) detach & destroy AvND mailbox.
-                  c) destroy AvND control block.
-                  d) destroy AvND task.
- 
-  Arguments     : None.
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_destroy()
-{
-	AVND_CB *cb = avnd_cb;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER();
-
-        /* stop clm tracking and finalize */
-        avnd_clm_stop();
-
-	/* destroy external interfaces */
-	rc = avnd_ext_intf_destroy(cb);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto done;
-
-	/* destroy AvND control block */
-	rc = avnd_cb_destroy(cb);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto done;
-
-	/* destroy AvND task */
-	/*rc = avnd_task_destroy();
-	 *if ( NCSCC_RC_SUCCESS != rc ) goto done;
-	 */
-
-done:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -422,8 +367,6 @@ AVND_CB *avnd_cb_create()
 	return cb;
 
  err:
-	if (cb)
-		avnd_cb_destroy(cb);
 	TRACE_LEAVE();
 	return 0;
 }
@@ -463,9 +406,6 @@ uint32_t avnd_mbx_create(AVND_CB *cb)
 	return rc;
 
  err:
-	/* destroy the mailbox */
-	if (cb->mbx)
-		avnd_mbx_destroy(cb);
 	TRACE_LEAVE();
 	return rc;
 }
@@ -538,184 +478,8 @@ uint32_t avnd_ext_intf_create(AVND_CB *cb)
 	return rc;
 
  err:
-	/* destroy external interfaces */
-	avnd_ext_intf_destroy(cb);
 	TRACE_LEAVE();
 	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_cb_destroy
- 
-  Description   : This routine destroys AvND control block.
- 
-  Arguments     : cb - ptr to AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None
-******************************************************************************/
-uint32_t avnd_cb_destroy(AVND_CB *cb)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER();
-
-   /*** destroy all databases ***/
-
-	/* We should delete external SU-SI first */
-#ifdef NCS_AVND_MBCSV_CKPT
-	if (NCSCC_RC_SUCCESS != (rc = avnd_ext_comp_data_clean_up(cb, true)))
-		goto done;
-#endif
-	/* destroy comp db */
-	if (NCSCC_RC_SUCCESS != (rc = avnd_compdb_destroy(cb)))
-		goto done;
-
-	/* destroy su db */
-	if (NCSCC_RC_SUCCESS != (rc = avnd_sudb_destroy(cb)))
-		goto done;
-
-	/* destroy healthcheck db */
-	if (NCSCC_RC_SUCCESS != (rc = avnd_hcdb_destroy(cb)))
-		goto done;
-
-	/* destroy pg db */
-	if (NCSCC_RC_SUCCESS != (rc = avnd_pgdb_destroy(cb)))
-		goto done;
-
-	/* Clean PID monitoring list */
-	avnd_pid_mon_list_destroy(cb);
-
-	/* destroy nodeid to mds dest db */
-	if (NCSCC_RC_SUCCESS != (rc = avnd_nodeid_to_mdsdest_map_db_destroy(cb)))
-		goto done;
-
-	/* destroy available internode comp db */
-	if (NCSCC_RC_SUCCESS != (rc = avnd_internode_avail_comp_db_destroy(cb)))
-		goto done;
-
-	/* destroy DND list */
-	avnd_dnd_list_destroy(cb);
-
-	/* destroy the lock */
-	m_NCS_LOCK_DESTROY(&cb->lock);
-	TRACE("Destroyed the cb lock");
-
-	/* destroy the PID monitor lock */
-	m_NCS_LOCK_DESTROY(&cb->mon_lock);
-
-	/* detach & destroy AvND mailbox */
-	rc = avnd_mbx_destroy(cb);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto done;
-
-	cb = NULL;
-	TRACE("finalized the control block");
-
-done:
-	if (NCSCC_RC_SUCCESS != rc)
-		LOG_ER("cleanup failed");
-	TRACE_LEAVE();
-	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_mbx_destroy
- 
-  Description   : This routine destroys & detaches AvND mailbox.
- 
-  Arguments     : cb - ptr to AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None
-******************************************************************************/
-uint32_t avnd_mbx_destroy(AVND_CB *cb)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER();
-
-	/* detach the mail box */
-	rc = m_NCS_IPC_DETACH(&cb->mbx, avnd_mbx_clean, cb);
-	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("Mailbox detatch failed");
-		goto done;
-	}
-
-	/* delete the mail box */
-	rc = m_NCS_IPC_RELEASE(&cb->mbx, 0);
-	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("Mailbox delete failed");
-		goto done;
-	}
-
- done:
-	TRACE_LEAVE();
-	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_ext_intf_destroy
- 
-  Description   : This routine destroys external interfaces (logging service
-                  being the exception).
- 
-  Arguments     : cb - ptr to AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None
-******************************************************************************/
-uint32_t avnd_ext_intf_destroy(AVND_CB *cb)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER();
-
-	/* MDS unregistration */
-	rc = avnd_mds_unreg(cb);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto done;
-
-	/* EDU cleanup */
-	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
-
-	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl_avnd);
-
-	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl_ava);
-
- done:
-	TRACE_LEAVE();
-	return rc;
-}
-
-/****************************************************************************
-   Name          : avnd_mbx_clean
-  
-   Description   : This routine dequeues & deletes all the events from the 
-                   mailbox. It is invoked when mailbox is detached.
-  
-   Arguments     : arg - argument to be passed
-                   msg - ptr to the 1st event in the mailbox
-  
-   Return Values : true/false
-  
-   Notes         : None.
- *****************************************************************************/
-bool avnd_mbx_clean(NCSCONTEXT arg, NCSCONTEXT msg)
-{
-	AVND_EVT *curr;
-	AVND_EVT *temp;
-	TRACE_ENTER();
-
-	/* clean the entire mailbox */
-	for (curr = (AVND_EVT *)msg; curr;) {
-		temp = curr;
-		curr = curr->next;
-		avnd_evt_destroy(temp);
-	}
-
-	TRACE_LEAVE();
-	return true;
 }
 
 /****************************************************************************

@@ -74,37 +74,6 @@ void avnd_pid_mon_list_init(AVND_CB *cb)
 }
 
 /****************************************************************************
-  Name          : avnd_pid_mon_list_destroy
-
-  Description   : This routine destroys the entire pid_mon_list. It deletes
-                  all the records in the list.
-
-  Arguments     : cb - ptr to the AvND control block
-
-  Return Values : nothing
-
-  Notes         : This dosen't destroy the records directly. It parses thru
-                  the mon_req's and get the corresponding PM_REC, del the
-                  PM_REC and as result the mon_req table entry will get
-                  deleted.
-******************************************************************************/
-void avnd_pid_mon_list_destroy(AVND_CB *cb)
-{
-	NCS_DB_LINK_LIST *pid_mon_list;
-	AVND_MON_REQ *mon_req;
-
-	/* get pid_mon_list */
-	pid_mon_list = &cb->pid_mon_list;
-
-	/* traverse & delete all the MON records and their corresponding PM_REC */
-	while (0 != (mon_req = (AVND_MON_REQ *) m_NCS_DBLIST_FIND_FIRST(pid_mon_list))) {
-		osafassert(mon_req->pm_rec);
-
-		avnd_comp_pm_rec_del(cb, mon_req->pm_rec->comp, mon_req->pm_rec);
-	}
-}
-
-/****************************************************************************
   Name          : avnd_mon_req_add
 
   Description   : This routine adds a request (node) to the pid_mon list. If

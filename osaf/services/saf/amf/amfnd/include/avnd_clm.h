@@ -34,6 +34,5 @@
 struct avnd_cb_tag;
 
 extern SaAisErrorT avnd_clm_init(void);
-extern SaAisErrorT avnd_clm_stop(void);
 
 #endif

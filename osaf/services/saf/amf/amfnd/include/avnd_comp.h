@@ -804,7 +804,6 @@ extern void avnd_comp_cbq_rec_del(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_C
 extern uint32_t avnd_comp_cbq_rec_send(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *, bool);
 
 extern uint32_t avnd_compdb_init(struct avnd_cb_tag *);
-extern uint32_t avnd_compdb_destroy(struct avnd_cb_tag *);
 extern AVND_COMP *avnd_compdb_rec_add(struct avnd_cb_tag *, AVND_COMP_PARAM *, uint32_t *);
 extern uint32_t avnd_compdb_rec_del(struct avnd_cb_tag *, SaNameT *);
 extern AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get(struct avnd_cb_tag *, SaNameT *, SaNameT *);
@@ -832,13 +831,6 @@ extern uint32_t avnd_comp_curr_info_del(struct avnd_cb_tag *, AVND_COMP *);
 
 
 extern uint32_t avnd_comp_clc_cmd_execute(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CLC_CMD_TYPE);
-
-extern uint32_t avnd_srm_req_list_init(struct avnd_cb_tag *);
-extern uint32_t avnd_srm_req_list_destroy(struct avnd_cb_tag *);
-extern struct avnd_srm_req_tag *avnd_srm_req_add(struct avnd_cb_tag *, uint32_t, struct avnd_pm_rec *);
-extern uint32_t avnd_srm_req_del(struct avnd_cb_tag *, uint32_t);
-extern struct avnd_srm_req_tag *avnd_srm_req_get(struct avnd_cb_tag *, uint32_t);
-extern uint32_t avnd_srm_req_free(NCS_DB_LINK_LIST_NODE *);
 
 extern void avnd_pm_list_init(AVND_COMP *);
 extern uint32_t avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *);

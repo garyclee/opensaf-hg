@@ -31,7 +31,6 @@
 #define AVND_MON_H
 
 void avnd_pid_mon_list_init(struct avnd_cb_tag *);
-void avnd_pid_mon_list_destroy(struct avnd_cb_tag *);
 void avnd_mon_process(void *);
 uint32_t avnd_mon_task_create(void);
 uint32_t avnd_mon_req_del(struct avnd_cb_tag *, SaUint64T);

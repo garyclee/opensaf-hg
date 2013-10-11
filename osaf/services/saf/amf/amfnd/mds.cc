@@ -184,9 +184,6 @@ uint32_t avnd_mds_reg(AVND_CB *cb)
 	cb->is_avd_down = false;
 
  done:
-	if (NCSCC_RC_SUCCESS != rc)
-		rc = avnd_mds_unreg(cb);
-
 	return rc;
 }
 
@@ -251,37 +248,6 @@ uint32_t avnd_mds_vdest_reg(AVND_CB *cb)
 	}
 
 	return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
-  Name          : avnd_mds_unreg
- 
-  Description   : This routine unregisters the AVND Service from MDS.
- 
-  Arguments     : cb - ptr to the AVND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_mds_unreg(AVND_CB *cb)
-{
-	NCSMDS_INFO mds_info;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
-
-	mds_info.i_mds_hdl = cb->mds_hdl;
-	mds_info.i_svc_id = NCSMDS_SVC_ID_AVND;
-	mds_info.i_op = MDS_UNINSTALL;
-
-	rc = ncsmds_api(&mds_info);
-	if (NCSCC_RC_SUCCESS != rc)
-		LOG_CR("Unregistration with MDS failed");
-	else
-		TRACE("Unregistration with MDS success");
-
-	return rc;
 }
 
 /****************************************************************************
