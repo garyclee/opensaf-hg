@@ -5330,7 +5330,7 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 				TRACE("ERR_VERSION: search option SA_IMM_SEARCH_GET_CONFIG_ATTR "
 					"requires IMM version A.02.11");
 				rc = SA_AIS_ERR_VERSION;
-				goto release_lock;
+				goto mds_send_fail;
 			}
 
 			req->searchOptions = SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_CONFIG_ATTR;
