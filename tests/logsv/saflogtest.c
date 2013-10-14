@@ -99,6 +99,7 @@ static void usage(void)
 	printf("  -i INT or --interval=INT       write with interval INT us (only with --count, default 0us)\n");
 	printf("  -c CNT or --count=CNT          write CNT number of times, -1 forever (with interval INT) \n");
 	printf("      valid severity names: emerg, alert, crit, error, warn, notice, info\n");
+	printf("  -o Open log stream and wait forever. Exit on any key\n");
 }
 
 static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error)
@@ -222,6 +223,7 @@ static SaLogSeverityT get_severity(char *severity)
 
 int main(int argc, char *argv[])
 {
+	bool do_not_exit_f = false;
 	int c, i;
 	SaNameT logStreamName = {.length = 0 };
 	SaLogFileCreateAttributesT_2 *logFileCreateAttributes = NULL;
@@ -280,11 +282,14 @@ int main(int argc, char *argv[])
 	appLogFileCreateAttributes.logFileFmt = DEFAULT_FORMAT_EXPRESSION;
 
 	while (1) {
-		c = getopt_long(argc, argv, "hklnya:b:s:i:c:", long_options, NULL);
+		c = getopt_long(argc, argv, "ohklnya:b:s:i:c:", long_options, NULL);
 		if (c == -1) {
 			break;
 		}
 		switch (c) {
+		case 'o': /* Open log stream and wait forever. Exit on Enter key */
+			do_not_exit_f = true;
+			break;
 		case 'c':
 			write_count = atoi(optarg);
 			break;
@@ -375,6 +380,12 @@ int main(int argc, char *argv[])
 		write_log_record(logHandle, logStreamHandle, selectionObject, &logRecord, wait_for_ack);
 		if (interval > 0)
 			usleep(interval);
+	}
+
+	/* Open log stream and wait forever. Exit on any key */
+	if (do_not_exit_f == true) {
+		(void) getchar();
+		do_not_exit_f = false;
 	}
 
 	error = saLogStreamClose(logStreamHandle);

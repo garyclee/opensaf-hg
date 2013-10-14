@@ -133,6 +133,12 @@ extern struct ImmutilWrapperProfile immutilWrapperProfile;
  * ---------
  */
 
+static void report_oi_error(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
+		const char *format, ...) __attribute__ ((format(printf, 3, 4)));
+
+static void report_om_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
+		const char *format, ...) __attribute__ ((format(printf, 3, 4)));
+
 /**
  * To be used in OI callbacks to report errors by setting an error string
  * Also writes the same error string using TRACE
@@ -146,10 +152,36 @@ static void report_oi_error(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
 		const char *format, ...)
 {
 	char err_str[256];
+	va_list ap;
 	
-	(void) snprintf(err_str, 256, "%s", format);
+	va_start(ap, format);
+	(void) vsnprintf(err_str, 256, format, ap);
+	va_end(ap);
 	TRACE("%s", err_str);
 	(void) saImmOiCcbSetErrorString(immOiHandle, ccbId,	err_str);	
+}
+
+static void report_om_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
+		const char *format, ...)
+{
+	char ao_err_string[256];
+	SaStringT p_ao_err_string = ao_err_string;
+	SaImmAdminOperationParamsT_2 ao_err_param = {
+	SA_IMM_PARAM_ADMOP_ERROR,
+	SA_IMM_ATTR_SASTRINGT,
+	&p_ao_err_string };
+	const SaImmAdminOperationParamsT_2 *ao_err_params[2] = {
+	&ao_err_param,
+	NULL };
+	
+	va_list ap;
+	va_start(ap, format);
+	(void) vsnprintf(ao_err_string, 256, format, ap);
+	va_end(ap);
+	TRACE("%s",ao_err_string);
+	(void) saImmOiAdminOperationResult_o2(immOiHandle, invocation,
+		   SA_AIS_ERR_INVALID_PARAM,
+		   ao_err_params);
 }
 
 /**
@@ -291,7 +323,7 @@ static void adminOperationCallback(SaImmOiHandleT immOiHandle,
 	SaUint32T severityFilter;
 	const SaImmAdminOperationParamsT_2 *param = params[0];
 	log_stream_t *stream;
-
+	
 	TRACE_ENTER2("%s", objectName->value);
 
 	if (lgs_cb->ha_state != SA_AMF_HA_ACTIVE) {
@@ -300,36 +332,36 @@ static void adminOperationCallback(SaImmOiHandleT immOiHandle,
 	}
 
 	if ((stream = log_stream_get_by_name((char *)objectName->value)) == NULL) {
-		LOG_ER("Stream %s not found", objectName->value);
-		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+		report_om_error(immOiHandle, invocation, "Stream %s not found",
+				objectName->value);
 		goto done;
 	}
 
 	if (opId == SA_LOG_ADMIN_CHANGE_FILTER) {
 		/* Only allowed to update runtime objects (application streams) */
 		if (stream->streamType != STREAM_TYPE_APPLICATION) {
-			LOG_ER("Admin op change filter for non app stream");
-			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+			report_om_error(immOiHandle, invocation,
+					"Admin op change filter for non app stream");
 			goto done;
 		}
 
 		if (strcmp(param->paramName, "saLogStreamSeverityFilter") != 0) {
-			LOG_ER("Admin op change filter, invalid param name");
-			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+			report_om_error(immOiHandle, invocation,
+					"Admin op change filter, invalid param name");
 			goto done;
 		}
 
 		if (param->paramType != SA_IMM_ATTR_SAUINT32T) {
-			LOG_ER("Admin op change filter: invalid parameter type");
-			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+			report_om_error(immOiHandle, invocation,
+					"Admin op change filter: invalid parameter type");
 			goto done;
 		}
 
 		severityFilter = *((SaUint32T *)param->paramBuffer);
 
 		if (severityFilter > 0x7f) {	/* not a level, a bitmap */
-			LOG_ER("Admin op change filter: invalid severity");
-			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+			report_om_error(immOiHandle, invocation,
+					"Admin op change filter: invalid severity");
 			goto done;
 		}
 
@@ -350,8 +382,9 @@ static void adminOperationCallback(SaImmOiHandleT immOiHandle,
 		/* Checkpoint to standby LOG server */
 		ckpt_stream(stream);
 	} else {
-		LOG_ER("Invalid operation ID, should be %d (one) for change filter", SA_LOG_ADMIN_CHANGE_FILTER);
-		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+		report_om_error(immOiHandle, invocation,
+				"Invalid operation ID, should be %d (one) for change filter",
+				SA_LOG_ADMIN_CHANGE_FILTER);
 	}
  done:
 	TRACE_LEAVE();
@@ -457,11 +490,6 @@ static SaAisErrorT config_ccb_completed_create(SaImmOiHandleT immOiHandle,
 	report_oi_error(immOiHandle, opdata->ccbId,
 			"Creation of OpenSafLogConfig object is not allowed, ccbId = %llu",
 			opdata->ccbId);
-#if 0
-	TRACE("Creation of OpenSafLogConfig object is not allowed");
-	(void) saImmOiCcbSetErrorString(immOiHandle, opdata->ccbId,
-			"Creation of OpenSafLogConfig object is not allowed");
-#endif
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
@@ -719,7 +747,8 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
 				SaUint32T maxFilesRotated = *((SaUint32T *) value);
 				if (maxFilesRotated < 1 || maxFilesRotated > 128) {
 					report_oi_error(immOiHandle, opdata->ccbId,
-							"Unreasonable maxFilesRotated: %x", maxFilesRotated);
+							"maxFilesRotated out of range (min 1, max 127): %u",
+							maxFilesRotated);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 				}
 				TRACE("maxFilesRotated: %u", maxFilesRotated);
