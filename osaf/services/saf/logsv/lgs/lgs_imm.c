@@ -134,6 +134,25 @@ extern struct ImmutilWrapperProfile immutilWrapperProfile;
  */
 
 /**
+ * To be used in OI callbacks to report errors by setting an error string
+ * Also writes the same error string using TRACE
+ * 
+ * @param immOiHandle
+ * @param ccbId
+ * @param format
+ * @param ...
+ */
+static void report_oi_error(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
+		const char *format, ...)
+{
+	char err_str[256];
+	
+	(void) snprintf(err_str, 256, "%s", format);
+	TRACE("%s", err_str);
+	(void) saImmOiCcbSetErrorString(immOiHandle, ccbId,	err_str);	
+}
+
+/**
  * Pack and send a stream checkpoint using mbcsv
  * @param cb
  * @param logStream
@@ -348,7 +367,8 @@ static SaAisErrorT ccbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-			LOG_ER("Failed to get CCB object for %llu", ccbId);
+			report_oi_error(immOiHandle, ccbId,
+					"Failed to get CCB object for %llu", ccbId);
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto done;
 		}
@@ -373,7 +393,8 @@ static SaAisErrorT ccbObjectCreateCallback(SaImmOiHandleT immOiHandle,
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-			LOG_ER("Failed to get CCB object for %llu", ccbId);
+			report_oi_error(immOiHandle, ccbId,
+					"Failed to get CCB object for %llu", ccbId);
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto done;
 		}
@@ -406,7 +427,8 @@ static SaAisErrorT ccbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-			LOG_ER("Failed to get CCB objectfor %llu", ccbId);
+			report_oi_error(immOiHandle, ccbId,
+					"Failed to get CCB object for %llu", ccbId);
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto done;
 		}
@@ -419,17 +441,41 @@ static SaAisErrorT ccbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 	return rc;
 }
 
-static SaAisErrorT config_ccb_completed_create(const CcbUtilOperationData_t *opdata)
+/**
+ * Creation of log service configuration object. Not allowed
+ * 
+ * @param immOiHandle
+ * @param opdata
+ * @return 
+ */
+static SaAisErrorT config_ccb_completed_create(SaImmOiHandleT immOiHandle,
+		const CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
 	TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
-	LOG_NO("Creation of OpenSafLogConfig object is not supported");
+	report_oi_error(immOiHandle, opdata->ccbId,
+			"Creation of OpenSafLogConfig object is not allowed, ccbId = %llu",
+			opdata->ccbId);
+#if 0
+	TRACE("Creation of OpenSafLogConfig object is not allowed");
+	(void) saImmOiCcbSetErrorString(immOiHandle, opdata->ccbId,
+			"Creation of OpenSafLogConfig object is not allowed");
+#endif
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
-static SaAisErrorT config_ccb_completed_modify(const CcbUtilOperationData_t *opdata)
+/**
+ * Modification of attributes in log service configuration object.
+ * Only logRootDirectory can be modified
+ * 
+ * @param immOiHandle
+ * @param opdata
+ * @return 
+ */
+static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
+		const CcbUtilOperationData_t *opdata)
 {
 	const SaImmAttrModificationT_2 *attrMod;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -445,7 +491,8 @@ static SaAisErrorT config_ccb_completed_modify(const CcbUtilOperationData_t *opd
 		TRACE("attribute %s", attribute->attrName);
 
 		if (attribute->attrValuesNumber == 0) {
-			LOG_NO("deletion of value is not allowed for attribute %s stream %s",
+			report_oi_error(immOiHandle, opdata->ccbId,
+					"deletion of value is not allowed for attribute %s stream %s",
 					attribute->attrName, opdata->objectName.value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
@@ -456,45 +503,55 @@ static SaAisErrorT config_ccb_completed_modify(const CcbUtilOperationData_t *opd
 		if (!strcmp(attribute->attrName, "logRootDirectory")) {
 			char *pathName = *((char **)value);
 			if (!path_is_writeable_dir_h(pathName)) {
-				LOG_NO("pathName: %s is NOT accepted", pathName);
+				report_oi_error(immOiHandle, opdata->ccbId,
+						"pathName: %s is NOT accepted", pathName);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
 			TRACE("pathName: %s is accepted", pathName);
 		} else if (!strcmp(attribute->attrName, "logMaxLogrecsize")) {
-			LOG_NO("%s cannot be changed", attribute->attrName);
+			report_oi_error(immOiHandle, opdata->ccbId,
+					"%s cannot be changed", attribute->attrName);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
-			LOG_NO("%s cannot be changed", attribute->attrName);
+			report_oi_error(immOiHandle, opdata->ccbId,
+					"%s cannot be changed", attribute->attrName);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
-			LOG_NO("%s cannot be changed", attribute->attrName);
+			report_oi_error(immOiHandle, opdata->ccbId,
+					"%s cannot be changed", attribute->attrName);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
-			LOG_NO("%s cannot be changed", attribute->attrName);
+			report_oi_error(immOiHandle, opdata->ccbId,
+					"%s cannot be changed", attribute->attrName);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
-			LOG_NO("%s cannot be changed", attribute->attrName);
+			report_oi_error(immOiHandle, opdata->ccbId,
+					"%s cannot be changed", attribute->attrName);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logMaxApplicationStreams")) {
-			LOG_NO("%s cannot be changed", attribute->attrName);
+			report_oi_error(immOiHandle, opdata->ccbId,
+					"%s cannot be changed", attribute->attrName);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logFileIoTimeout")) {
-			LOG_NO("%s cannot be changed", attribute->attrName);
+			report_oi_error(immOiHandle, opdata->ccbId,
+					"%s cannot be changed", attribute->attrName);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logFileHdlRecoveryTimeoutS")) {
-			LOG_NO("%s cannot be changed", attribute->attrName);
+			report_oi_error(immOiHandle, opdata->ccbId,
+					"%s cannot be changed", attribute->attrName);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else {
-			LOG_NO("attribute %s not recognized", attribute->attrName);
+			report_oi_error(immOiHandle, opdata->ccbId,
+					"attribute %s not recognized", attribute->attrName);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		}
@@ -507,17 +564,27 @@ done:
 	return rc;
 }
 
-static SaAisErrorT config_ccb_completed_delete(const CcbUtilOperationData_t *opdata)
+/**
+ * Delete log service configuration object. Not allowed
+ * 
+ * @param immOiHandle
+ * @param opdata
+ * @return 
+ */
+static SaAisErrorT config_ccb_completed_delete(SaImmOiHandleT immOiHandle,
+		const CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
 	TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
-	LOG_NO("Deletion of OpenSafLogConfig object is not supported");
+	report_oi_error(immOiHandle, opdata->ccbId,
+			"Deletion of OpenSafLogConfig object is not allowed");
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
-static SaAisErrorT config_ccb_completed(const CcbUtilOperationData_t *opdata)
+static SaAisErrorT config_ccb_completed(SaImmOiHandleT immOiHandle,
+		const CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
@@ -525,13 +592,13 @@ static SaAisErrorT config_ccb_completed(const CcbUtilOperationData_t *opdata)
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		rc = config_ccb_completed_create(opdata);
+		rc = config_ccb_completed_create(immOiHandle, opdata);
 		break;
 	case CCBUTIL_MODIFY:
-		rc = config_ccb_completed_modify(opdata);
+		rc = config_ccb_completed_modify(immOiHandle, opdata);
 		break;
 	case CCBUTIL_DELETE:
-		rc = config_ccb_completed_delete(opdata);
+		rc = config_ccb_completed_delete(immOiHandle, opdata);
 		break;
 	default:
 		assert(0);
@@ -548,7 +615,8 @@ static SaAisErrorT config_ccb_completed(const CcbUtilOperationData_t *opdata)
  *
  * @return SaAisErrorT
  */
-static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata)
+static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
+		const struct CcbUtilOperationData *opdata)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	void *value;
@@ -579,7 +647,8 @@ static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata
 			if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
 				char *fileName = *((char **) value);
 				if (lgs_check_path_exists_h(fileName) == 0) {
-					LOG_ER("File %s already exist", fileName);
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"File %s already exist", fileName);
 					rc = SA_AIS_ERR_EXIST;
 				}
 				TRACE("fileName: %s", fileName);
@@ -589,13 +658,16 @@ static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata
 						lgs_cb->logsv_root_dir,
 						*((char **) value));
 				if (n >= PATH_MAX) {
-					LOG_ER("Path > PATH_MAX");
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"Path > PATH_MAX");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 				} else if (lgs_relative_path_check_ts(fileName)) {
-					LOG_ER("Path %s not valid", fileName);
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"Path %s not valid", fileName);
 					rc = SA_AIS_ERR_INVALID_PARAM;
 				} else if (lgs_check_path_exists_h(lgs_cb->logsv_root_dir) != 0) {
-					LOG_ER("Path %s does not exist", fileName);
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"Path %s does not exist", fileName);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 				}
 				TRACE("fileName: %s", fileName);
@@ -605,7 +677,8 @@ static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata
 				if (maxLogFileSize > 0 &&
 						stream != NULL &&
 						maxLogFileSize < stream->fixedLogRecordSize) {
-					LOG_ER("maxLogFileSize out of range");
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"maxLogFileSize out of range");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 				}
 				TRACE("maxLogFileSize: %llu", maxLogFileSize);
@@ -614,7 +687,8 @@ static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata
 				if (stream != NULL &&
 						stream->maxLogFileSize > 0 &&
 						fixedLogRecordSize > stream->maxLogFileSize) {
-					LOG_ER("fixedLogRecordSize out of range");
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"fixedLogRecordSize out of range");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 				}
 				TRACE("fixedLogRecordSize: %u", fixedLogRecordSize);
@@ -622,26 +696,30 @@ static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata
 				SaLogFileFullActionT logFullAction = *((SaUint32T *) value);
 				if ((logFullAction < SA_LOG_FILE_FULL_ACTION_WRAP) ||
 						(logFullAction > SA_LOG_FILE_FULL_ACTION_ROTATE)) {
-					LOG_ER("logFullAction out of range");
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"logFullAction out of range");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 				}
 				if ((logFullAction == SA_LOG_FILE_FULL_ACTION_WRAP) ||
 						(logFullAction == SA_LOG_FILE_FULL_ACTION_HALT)) {
-					LOG_ER("logFullAction:Current Implementation doesn't support  Wrap and halt");
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"logFullAction:Current Implementation doesn't support Wrap and halt");
 					rc = SA_AIS_ERR_NOT_SUPPORTED;
 				}
 				TRACE("logFullAction: %u", logFullAction);
 			} else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold")) {
 				SaUint32T logFullHaltThreshold = *((SaUint32T *) value);
 				if (logFullHaltThreshold >= 100) {
-					LOG_ER("logFullHaltThreshold out of range");
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"logFullHaltThreshold out of range");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 				}
 				TRACE("logFullHaltThreshold: %u", logFullHaltThreshold);
 			} else if (!strcmp(attribute->attrName, "saLogStreamMaxFilesRotated")) {
 				SaUint32T maxFilesRotated = *((SaUint32T *) value);
 				if (maxFilesRotated < 1 || maxFilesRotated > 128) {
-					LOG_ER("Unreasonable maxFilesRotated: %x", maxFilesRotated);
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"Unreasonable maxFilesRotated: %x", maxFilesRotated);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 				}
 				TRACE("maxFilesRotated: %u", maxFilesRotated);
@@ -652,20 +730,23 @@ static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata
 
 				if (opdata->operationType == CCBUTIL_CREATE) {
 					if (!lgs_is_valid_format_expression(logFileFormat, STREAM_TYPE_APPLICATION, &dummy)) {
-						LOG_ER("Invalid logFileFormat: %s", logFileFormat);
+						report_oi_error(immOiHandle, opdata->ccbId,
+								"Invalid logFileFormat: %s", logFileFormat);
 						rc = SA_AIS_ERR_BAD_OPERATION;
 					}
 				}
 				else {
 					if (!lgs_is_valid_format_expression(logFileFormat, stream->streamType, &dummy)) {
-						LOG_ER("Invalid logFileFormat: %s", logFileFormat);
+						report_oi_error(immOiHandle, opdata->ccbId,
+								"Invalid logFileFormat: %s", logFileFormat);
 						rc = SA_AIS_ERR_BAD_OPERATION;
 					}
 				}
 			} else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
 				SaUint32T severityFilter = *((SaUint32T *) value);
 				if (severityFilter > 0x7f) {
-					LOG_ER("Invalid severity: %x", severityFilter);
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"Invalid severity: %x", severityFilter);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 				}
 				TRACE("severityFilter: %u", severityFilter);
@@ -673,7 +754,8 @@ static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata
 					!strncmp(attribute->attrName, "safLg", 5)) {
 				;
 			} else {
-				LOG_ER("invalid attribute %s", attribute->attrName);
+				report_oi_error(immOiHandle, opdata->ccbId,
+						"invalid attribute %s", attribute->attrName);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 			}
 		} else {
@@ -689,27 +771,44 @@ static SaAisErrorT check_attr_validity(const struct CcbUtilOperationData *opdata
 	return rc;
 }
 
-static SaAisErrorT stream_ccb_completed_create(const CcbUtilOperationData_t *opdata)
+/**
+ * Create a log stream configuration object
+ * @param immOiHandle
+ * @param opdata
+ * @return 
+ */
+static SaAisErrorT stream_ccb_completed_create(SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
 	TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
-	rc = check_attr_validity(opdata);
+	rc = check_attr_validity(immOiHandle, opdata);
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
-static SaAisErrorT stream_ccb_completed_modify(const CcbUtilOperationData_t *opdata)
+/**
+ * Modify attributes in log stream configuration object
+ * @param opdata
+ * @return 
+ */
+static SaAisErrorT stream_ccb_completed_modify(SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-	rc = check_attr_validity(opdata);
+	rc = check_attr_validity(immOiHandle, opdata);
 	TRACE_LEAVE2("rc = %u", rc);
 	return rc;
 }
 
-static SaAisErrorT stream_ccb_completed_delete(const CcbUtilOperationData_t *opdata)
+/**
+ * Delete log stream configuration object
+ * @param immOiHandle
+ * @param opdata
+ * @return 
+ */
+static SaAisErrorT stream_ccb_completed_delete(SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
@@ -720,18 +819,22 @@ static SaAisErrorT stream_ccb_completed_delete(const CcbUtilOperationData_t *opd
 
 	if (stream != NULL) {
 		if (stream->streamId < 3) {
-			LOG_ER("Stream delete: well known stream '%s' cannot be deleted", name);
+			report_oi_error(immOiHandle, opdata->ccbId,
+					"Stream delete: well known stream '%s' cannot be deleted", name);
 			goto done;
 		}
 
 		if (stream->numOpeners > 1) {
-			LOG_ER("Stream '%s' cannot be deleted: opened by %u clients", name, stream->numOpeners);
+			report_oi_error(immOiHandle, opdata->ccbId,
+					"Stream '%s' cannot be deleted: opened by %u clients",
+					name, stream->numOpeners);
 			goto done;
 		}
 
 		rc = SA_AIS_OK;
 	} else {
-		LOG_ER("stream %s not found", name);
+		report_oi_error(immOiHandle, opdata->ccbId,
+				"stream %s not found", name);
 	}
 
 done:
@@ -739,7 +842,7 @@ done:
 	return rc;
 }
 
-static SaAisErrorT stream_ccb_completed(const CcbUtilOperationData_t *opdata)
+static SaAisErrorT stream_ccb_completed(SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
@@ -747,13 +850,13 @@ static SaAisErrorT stream_ccb_completed(const CcbUtilOperationData_t *opdata)
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		rc = stream_ccb_completed_create(opdata);
+		rc = stream_ccb_completed_create(immOiHandle, opdata);
 		break;
 	case CCBUTIL_MODIFY:
-		rc = stream_ccb_completed_modify(opdata);
+		rc = stream_ccb_completed_modify(immOiHandle, opdata);
 		break;
 	case CCBUTIL_DELETE:
-		rc = stream_ccb_completed_delete(opdata);
+		rc = stream_ccb_completed_delete(immOiHandle, opdata);
 		break;
 	default:
 		assert(0);
@@ -800,18 +903,18 @@ static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
 		switch (opdata->operationType) {
 		case CCBUTIL_CREATE:
 			if (!strcmp(opdata->param.create.className, "OpenSafLogConfig"))
-				rc = config_ccb_completed(opdata);
+				rc = config_ccb_completed(immOiHandle, opdata);
 			else if (!strcmp(opdata->param.create.className, "SaLogStreamConfig"))
-				rc = stream_ccb_completed(opdata);
+				rc = stream_ccb_completed(immOiHandle, opdata);
 			else
 				osafassert(0);
 			break;
 		case CCBUTIL_DELETE:
 		case CCBUTIL_MODIFY:
 			if (!strncmp((char*)opdata->objectName.value, "safLgStrCfg", 11)) {
-				rc = stream_ccb_completed(opdata);
+				rc = stream_ccb_completed(immOiHandle, opdata);
 			} else {
-				rc = config_ccb_completed(opdata);
+				rc = config_ccb_completed(immOiHandle, opdata);
 			}
 			break;
 		default:
