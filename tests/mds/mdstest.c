@@ -95,7 +95,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  return test_run(suite, tcase);
-
+  int rc = test_run(suite, tcase);
   mds_shutdown();
+  return rc;
 }

@@ -1257,7 +1257,7 @@ uint32_t mds_direct_send_message(MDS_HDL mds_hdl,
       if(direct_buff==NULL)
         perror("Direct Buffer not allocated properly");
       else
-        memset(direct_buff, 0, sizeof(direct_buff));
+        memset(direct_buff, 0, strlen(message)+1);
     }
   if(direct_buff&&message)
     {
@@ -1353,7 +1353,7 @@ uint32_t mds_direct_response(MDS_HDL mds_hdl,
   uint16_t direct_buff_len;
   /*Before Sending the Message: Allocate the Direct Buffer*/
   direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(msg)+1);
-  memset(direct_buff, 0, sizeof(direct_buff));
+  memset(direct_buff, 0, strlen(msg)+1);
   if(direct_buff==NULL)
     perror("Direct Buffer not allocated properly");
 
@@ -1437,12 +1437,12 @@ uint32_t mds_direct_broadcast_message(MDS_HDL mds_hdl,
                                    MDS_SEND_PRIORITY_TYPE priority)
 {
   char msg[]="Direct Message";
-  uint16_t direct_buff_len;
+  uint16_t direct_buff_len = 0;
  /* if(msg)*/
     {
       /*Allocating memory for the direct buffer*/
       direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(msg)+1);
-      memset(direct_buff, 0, sizeof(direct_buff));
+      memset(direct_buff, 0, strlen(msg)+1);
       if(direct_buff==NULL)
         perror("Direct Buffer not allocated properly");
     }
@@ -1776,8 +1776,9 @@ uint32_t tet_mds_cb_cpy(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   memset(out_msg, 0, sizeof(TET_MDS_MSG));
   in_msg =  (TET_MDS_MSG *)mds_to_svc_info->info.cpy.i_msg;
   out_msg->recvd_len = in_msg->send_len;
-  /*out_msg->recvd_data = (char *)malloc(out_msg->recvd_len);*/
-  strcpy(out_msg->recvd_data,in_msg->send_data);
+
+  strncpy(out_msg->recvd_data,in_msg->send_data, out_msg->recvd_len);
+
   mds_to_svc_info->info.cpy.o_msg_fmt_ver=mds_to_svc_info->info.cpy.i_rem_svc_pvt_ver;
   mds_to_svc_info->info.cpy.o_cpy = out_msg;
   printf("\nThe service to which the message needs to be delivered = %d",
@@ -1843,7 +1844,7 @@ uint32_t tet_mds_cb_dec(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   
   /*Decode data*/
   /*msg->recvd_data = (char *) malloc(msg->recvd_len+1);*/
-  memset(msg->recvd_data, 0, sizeof(msg->recvd_len+1));
+  memset(msg->recvd_data, 0, msg->recvd_len+1);
   ncs_decode_n_octets_from_uba(mds_to_svc_info->info.dec.io_uba, 
                                (uint8_t*)msg->recvd_data, msg->recvd_len);
   msg->recvd_data[msg->recvd_len] = 0; /* NULL termination for string */
@@ -1906,7 +1907,7 @@ uint32_t tet_mds_cb_dec_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   
   /*Decode data*/
   /*msg->recvd_data = (char *) malloc(msg->recvd_len+1);*/
-  memset(msg->recvd_data, 0, sizeof(msg->recvd_len+1));
+  memset(msg->recvd_data, 0, msg->recvd_len+1);
   ncs_decode_n_octets_from_uba(mds_to_svc_info->info.dec_flat.io_uba, 
                                (uint8_t*)msg->recvd_data, msg->recvd_len);
   msg->recvd_data[msg->recvd_len] = 0; /* NULL termination for string */
