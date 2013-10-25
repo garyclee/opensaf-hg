@@ -128,8 +128,7 @@ final_clean() {
 	else
 		# stop dtm, now all dependent services should be stopped
 		$pkgclcclidir/osaf-dtm stop >/dev/null 2>&1
-		rm -f /tmp/osaf_dtm_intra_server
-		rm -f /tmp/osaf_mdtm_process_*
+		rm -f $pkglocalstatedir/osaf_dtm_intra_server
 	fi
 
 	clean_shm
