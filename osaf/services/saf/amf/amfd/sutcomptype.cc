@@ -142,7 +142,7 @@ static SaAisErrorT sutcomptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		    rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfSUType not supported");
+		report_ccb_validation_error(opdata, "Modification of SaAmfSUType not supported");
 		break;
 	case CCBUTIL_DELETE:
 		sutcomptype = avd_sutcomptype_get(&opdata->objectName);

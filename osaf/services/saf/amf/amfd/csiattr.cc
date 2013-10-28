@@ -205,17 +205,17 @@ done:
 	return NULL;
 }
 
-static int is_config_valid(const SaNameT *dn)
+static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 {
 	char *parent;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	if (strncmp(++parent, "safCsi=", 7) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}
 
@@ -289,7 +289,7 @@ static SaAisErrorT csiattr_ccb_completed_create_hdlr(CcbUtilOperationData_t *opd
 
 	TRACE_ENTER();
 
-	if (!is_config_valid(&opdata->objectName))
+	if (!is_config_valid(&opdata->objectName, opdata))
 		goto done;
 
 	/* extract the parent csi dn */
@@ -309,7 +309,7 @@ static SaAisErrorT csiattr_ccb_completed_create_hdlr(CcbUtilOperationData_t *opd
 	/* check whether an attribute with this name already exists in csi
 	   if exists, only then the modification of attr values allowed */
 	if (is_csiattr_exists(csi, &opdata->objectName)) {
-		LOG_ER("csi attr already '%s' exists", opdata->objectName.value);
+		report_ccb_validation_error(opdata, "csi attr already '%s' exists", opdata->objectName.value);
 		rc = SA_AIS_ERR_EXIST;
 		goto done;
 	}
@@ -347,7 +347,7 @@ static SaAisErrorT csiattr_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opd
 
 	TRACE_ENTER();
 
-	if (!is_config_valid(&opdata->objectName)) goto done;
+	if (!is_config_valid(&opdata->objectName, opdata)) goto done;
 
 	/* extract the parent csi dn */
 	strncpy((char *)&csi_dn.value,
@@ -356,14 +356,14 @@ static SaAisErrorT csiattr_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opd
 	csi_dn.length = strlen((char *)&csi_dn.value);
 
 	if (NULL == (csi = avd_csi_get(&csi_dn))) {
-		LOG_ER("csi '%s' doesn't exists", csi_dn.value);
+		report_ccb_validation_error(opdata, "csi '%s' doesn't exists", csi_dn.value);
 		goto done;
 	}
 
 	/* check whether an attribute with this name already exists in csi
 	   if exists, only then the modification of attr values allowed */
 	if (!is_csiattr_exists(csi, &opdata->objectName)) {
-		LOG_ER("csi attr '%s' doesn't exists", opdata->objectName.value);
+		report_ccb_validation_error(opdata, "csi attr '%s' doesn't exists", opdata->objectName.value);
 		rc = SA_AIS_ERR_NOT_EXIST;
 		goto done;
 	}
@@ -374,14 +374,16 @@ static SaAisErrorT csiattr_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opd
 
 		if ((SA_IMM_ATTR_VALUES_ADD == attr_mod->modType) || (SA_IMM_ATTR_VALUES_DELETE == attr_mod->modType)) {
 			if (0 == attr_mod->modAttr.attrValuesNumber) {
-				LOG_ER("CSI Attr %s Add/Del with attrValuesNumber zero", opdata->objectName.value);
+				report_ccb_validation_error(opdata, "CSI Attr %s Add/Del with attrValuesNumber zero",
+						opdata->objectName.value);
 				goto done;
 			}
 		}
 		attribute = &attr_mod->modAttr;
 		if (SA_IMM_ATTR_VALUES_ADD == attr_mod->modType) {
 			if (delete_found) {
-                                LOG_ER("csi attr '%s' modify: no support for mixed ops", opdata->objectName.value);
+				report_ccb_validation_error(opdata, "csi attr '%s' modify: no support for mixed ops",
+						opdata->objectName.value);
                                 goto done;
                         }
 
@@ -391,14 +393,14 @@ static SaAisErrorT csiattr_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opd
 				char *value = *(char **)attribute->attrValues[i++];
 
 				if (csi_name_value_pair_find(csi, &csi_attr_name, value)) {
-					LOG_ER("csi attr name '%s' and value '%s' exists", csi_attr_name.value, value);
+					report_ccb_validation_error(opdata, "csi attr name '%s' and value '%s' exists", csi_attr_name.value, value);
 					rc = SA_AIS_ERR_EXIST;
 					goto done;
 				}
                         } /* for  */
 		} else if (SA_IMM_ATTR_VALUES_DELETE == attr_mod->modType) {
 			if (add_found) {
-				LOG_ER("csi attr '%s' modify: no support for mixed ops", opdata->objectName.value);
+				report_ccb_validation_error(opdata, "csi attr '%s' modify: no support for mixed ops", opdata->objectName.value);
 				goto done;
 			}
 			add_found = 1;
@@ -409,7 +411,7 @@ static SaAisErrorT csiattr_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opd
 				if (NULL == value) goto done;
 
 				if (NULL == csi_name_value_pair_find(csi, &csi_attr_name, value)) {
-					LOG_ER("csi attr name '%s' and value '%s' doesn't exist", 
+					report_ccb_validation_error(opdata, "csi attr name '%s' and value '%s' doesn't exist", 
 							csi_attr_name.value, value);
 					rc = SA_AIS_ERR_EXIST;
 					goto done;
@@ -455,14 +457,14 @@ static SaAisErrorT csiattr_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opd
         csi_dn.length = strlen((char *)&csi_dn.value);
 
         if (NULL == (csi = avd_csi_get(&csi_dn))) {
-                LOG_ER("csi '%s' doesn't exists", csi_dn.value);
+                report_ccb_validation_error(opdata, "csi '%s' doesn't exists", csi_dn.value);
                 goto done;
         }
 
         /* check whether an attribute with this name already exists in csi
            if exists, only then the modification of attr values allowed */
         if (!is_csiattr_exists(csi, &opdata->objectName)) {
-                LOG_ER("csi attr '%s' doesn't exists", opdata->objectName.value);
+                report_ccb_validation_error(opdata, "csi attr '%s' doesn't exists", opdata->objectName.value);
                 rc = SA_AIS_ERR_NOT_EXIST;
                 goto done;
         }

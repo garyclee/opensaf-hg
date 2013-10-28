@@ -117,7 +117,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfClusterStartupTimeout")) {
 			SaTimeT cluster_startup_timeout = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
 			if (0 == cluster_startup_timeout) {
-				LOG_ER("Invalid saAmfClusterStartupTimeout %llu",
+				report_ccb_validation_error(opdata, "Invalid saAmfClusterStartupTimeout %llu",
 					avd_cluster->saAmfClusterStartupTimeout);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -137,14 +137,14 @@ static SaAisErrorT cluster_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		LOG_ER("SaAmfCluster objects cannot be created");
+		report_ccb_validation_error(opdata, "SaAmfCluster objects cannot be created");
 		goto done;
 		break;
 	case CCBUTIL_MODIFY:
 		rc = ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		LOG_ER("SaAmfCluster objects cannot be deleted");
+		report_ccb_validation_error(opdata, "SaAmfCluster objects cannot be deleted");
 		goto done;
 		break;
 	default:

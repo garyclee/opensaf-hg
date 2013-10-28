@@ -64,13 +64,13 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	const SaImmAttrValuesT_2 *attr;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	/* AppType should be children to AppBaseType */
 	if (strncmp(++parent, "safAppType=", 11) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}
 
@@ -86,13 +86,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		sg_type = avd_sgtype_get(name);
 		if (sg_type == NULL) {
 			if (opdata == NULL) {
-				LOG_ER("'%s' does not exist in model", name->value);
+				report_ccb_validation_error(opdata, "'%s' does not exist in model", name->value);
 				return 0;
 			}
 			
 			/* SG type does not exist in current model, check CCB */
 			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == NULL) {
-				LOG_ER("'%s' does not exist either in model or CCB", name->value);
+				report_ccb_validation_error(opdata, "'%s' does not exist either in model or CCB",
+						name->value);
 				return 0;
 			}
 		}
@@ -158,7 +159,7 @@ static SaAisErrorT apptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfAppType not supported");
+		report_ccb_validation_error(opdata, "Modification of SaAmfAppType not supported");
 		break;
 	case CCBUTIL_DELETE:
 		app_type = avd_apptype_get(&opdata->objectName);
@@ -176,7 +177,7 @@ static SaAisErrorT apptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 				app = app->app_type_list_app_next;
 			}
 			if (app_exist == SA_TRUE) {
-				LOG_ER("SaAmfAppType '%s' is in use", app_type->name.value);
+				report_ccb_validation_error(opdata, "SaAmfAppType '%s' is in use", app_type->name.value);
 				goto done;
 			}
 		}

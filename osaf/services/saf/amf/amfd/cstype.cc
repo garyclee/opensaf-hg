@@ -132,18 +132,18 @@ void avd_cstype_remove_csi(AVD_CSI *csi)
 	}
 }
 
-static int is_config_valid(const SaNameT *dn)
+static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 {
 	char *parent;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	/* Should be children to the Comp Base type */
 	if (strncmp(++parent, "safCSType=", 10) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}
 
@@ -179,7 +179,7 @@ SaAisErrorT avd_cstype_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn))
+		if (!is_config_valid(&dn, NULL))
 			goto done2;
 
 		if ((cst = avd_cstype_get(&dn)) == NULL){
@@ -217,11 +217,11 @@ static SaAisErrorT cstype_ccb_completed_hdlr(CcbUtilOperationData_t *opdata)
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName))
+		if (is_config_valid(&opdata->objectName, opdata))
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfCSType not supported");
+		report_ccb_validation_error(opdata, "Modification of SaAmfCSType not supported");
 		break;
 	case CCBUTIL_DELETE:
 		cst = avd_cstype_get(&opdata->objectName);
@@ -239,7 +239,7 @@ static SaAisErrorT cstype_ccb_completed_hdlr(CcbUtilOperationData_t *opdata)
 				csi = csi->csi_list_cs_type_next;
 			}                       
 			if (csi_exist == SA_TRUE) {
-				LOG_ER("SaAmfCSType '%s' is in use", cst->name.value);
+				report_ccb_validation_error(opdata, "SaAmfCSType '%s' is in use", cst->name.value);
 				goto done;
 			}
 		}

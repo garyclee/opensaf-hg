@@ -86,5 +86,7 @@ extern void avd_imm_reinit_bg(void);
 extern void avd_saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
 									 SaInvocationT invocation,
 									 SaAisErrorT result);
+void report_ccb_validation_error(const CcbUtilOperationData_t *opdata,
+		const char *format, ...) __attribute__ ((format(printf, 2, 3)));
 
 #endif

@@ -33,7 +33,7 @@ static SaAisErrorT hct_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfHealthcheckType not supported");
+		report_ccb_validation_error(opdata, "Modification of SaAmfHealthcheckType not supported");
 		break;
 	case CCBUTIL_DELETE:
 		rc = SA_AIS_OK;

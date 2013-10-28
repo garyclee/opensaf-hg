@@ -92,7 +92,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	unsigned int values_number;
 
 	if ((parent = avd_getparent((const char*)dn->value)) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
@@ -107,12 +107,12 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	if (avd_cstype_get(&aname) == NULL) {
 		/* CS type does not exist in current model, check CCB if passed as param */
 		if (opdata == NULL) {
-			LOG_ER("'%s' does not exist in model", aname.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
 			return 0;
 		}
 
 		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
-			LOG_ER("'%s' does not exist in existing model or in CCB", aname.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
 	}
@@ -130,7 +130,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 			osafassert(rc == SA_AIS_OK);
 
 			if (strncmp((char*)dn->value, (char*)saAmfCSIDependency.value, sizeof(dn->value)) == 0) {
-				LOG_ER("'%s' validation failed - dependency configured to itself!", dn->value);
+				report_ccb_validation_error(opdata, "'%s' validation failed - dependency configured to"
+						" itself!", dn->value);
 				return 0;
 			}
 
@@ -139,25 +140,28 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 				if (opdata == NULL) {
 					/* initial loading, check IMM */
 					if (!object_exist_in_imm(&saAmfCSIDependency)) {
-						LOG_ER("'%s' validation failed - '%s' does not exist",
-							   dn->value, saAmfCSIDependency.value);
+						report_ccb_validation_error(opdata, "'%s' validation failed - '%s' does not"
+								" exist",
+								dn->value, saAmfCSIDependency.value);
 						return 0;
 					}
 				} else if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfCSIDependency) == NULL) {
-					LOG_ER("'%s' validation failed - '%s' does not exist in existing model or in CCB",
-						   dn->value, saAmfCSIDependency.value);
+					report_ccb_validation_error(opdata, "'%s' validation failed - '%s' does not exist"
+							" in existing model or in CCB",
+							dn->value, saAmfCSIDependency.value);
 					return 0;
 				}
 			}
 
 			if ((dep_parent = avd_getparent((const char*)saAmfCSIDependency.value)) == NULL) {
-				LOG_ER("'%s' validation failed - invalid saAmfCSIDependency '%s'",
-					   dn->value, saAmfCSIDependency.value);
+				report_ccb_validation_error(opdata, "'%s' validation failed - invalid "
+						"saAmfCSIDependency '%s'", dn->value, saAmfCSIDependency.value);
 				return 0;
 			}
 
 			if (strncmp(parent, dep_parent, sizeof(dn->value)) != 0) {
-				LOG_ER("'%s' validation failed - dependency to CSI in other SI is not allowed", dn->value);
+				report_ccb_validation_error(opdata, "'%s' validation failed - dependency to CSI in other"
+						" SI is not allowed", dn->value);
 				return 0;
 			}
 		}
@@ -173,18 +177,20 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		if (NULL != (avd_si = avd_si_get(&si_name))) {
 			/* Check for any admin operations undergoing. This is valid during dyn add*/
 			if((opdata != NULL) && (AVD_SG_FSM_STABLE != avd_si->sg_of_si->sg_fsm_state)) {
-				LOG_ER("SG('%s') fsm state('%u') is not in AVD_SG_FSM_STABLE(0)", 
+				report_ccb_validation_error(opdata, "SG('%s') fsm state('%u') is not in "
+						"AVD_SG_FSM_STABLE(0)", 
 						avd_si->sg_of_si->name.value, avd_si->sg_of_si->sg_fsm_state);
 				return 0;
 			}
 		} else {
 			if (opdata == NULL) {
-				LOG_ER("'%s' does not exist in model", si_name.value);
+				report_ccb_validation_error(opdata, "'%s' does not exist in model", si_name.value);
 				return 0;
 			}
 
 			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &si_name) == NULL) {
-				LOG_ER("'%s' does not exist in existing model or in CCB", si_name.value);
+				report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB",
+						si_name.value);
 				return 0;
 			}
 		}
@@ -428,7 +434,8 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 			t_sisu = avd_si->list_of_sisu;
 			while(t_sisu) {
 				if (t_sisu->csi_add_rem == true) {
-					LOG_WA("CSI create of '%s' rejected: pending assignment for '%s'", 
+					report_ccb_validation_error(opdata, "CSI create of '%s' rejected: pending assignment"
+							" for '%s'", 
 							opdata->objectName.value, t_sisu->su->name.value);
 					if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
 						rc = SA_AIS_ERR_BAD_OPERATION;
@@ -491,7 +498,8 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 					}
 				}
 				if (NULL == t_comp) {
-					LOG_ER("Compcsi doesn't exist or MaxActiveCSI/MaxStandbyCSI have reached for csi '%s'",
+					report_ccb_validation_error(opdata, "Compcsi doesn't exist or "
+							"MaxActiveCSI/MaxStandbyCSI have reached for csi '%s'",
 							opdata->objectName.value);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -536,18 +544,20 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			SaNameT cstype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
 			csi = avd_csi_get(&opdata->objectName);
 			if(SA_AMF_ADMIN_LOCKED != csi->si->saAmfSIAdminState) {
-				LOG_ER("Parent SI is not in locked state, SI state '%d'", csi->si->saAmfSIAdminState);
+				report_ccb_validation_error(opdata, "Parent SI is not in locked state, SI state '%d'",
+						csi->si->saAmfSIAdminState);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
 			if (avd_cstype_get(&cstype_name) == NULL) {
-				LOG_ER("CS Type not found '%s'", cstype_name.value);
+				report_ccb_validation_error(opdata, "CS Type not found '%s'", cstype_name.value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
 
 		} else {
-			LOG_ER("Modification of attribute '%s' not supported", attr_mod->modAttr.attrName);
+			report_ccb_validation_error(opdata, "Modification of attribute '%s' not supported",
+					attr_mod->modAttr.attrName);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -586,14 +596,15 @@ static SaAisErrorT csi_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 		if (csi == NULL) {
 			/* This means that csi has been deleted during checkpointing at STDBY and completed callback
 			   has arrived delayed.*/
-			LOG_WA("CSI delete completed (STDBY): '%s' does not exist", opdata->objectName.value);
+			report_ccb_validation_error(opdata, "CSI delete completed (STDBY): '%s' does not exist",
+					opdata->objectName.value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
 	}
 
 	if(AVD_SG_FSM_STABLE != csi->si->sg_of_si->sg_fsm_state) {
-		LOG_ER("SG('%s') fsm state('%u') is not in AVD_SG_FSM_STABLE(0)",
+		report_ccb_validation_error(opdata, "SG('%s') fsm state('%u') is not in AVD_SG_FSM_STABLE(0)",
 				csi->si->sg_of_si->name.value, csi->si->sg_of_si->sg_fsm_state);
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
@@ -605,15 +616,16 @@ static SaAisErrorT csi_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 		} else {/* Assigned to some SU, check whether the last csi. */
 			/* SI is unlocked and this is the last csi to be deleted, then donot allow it. */
 			if (csi->si->list_of_csi->si_list_of_csi_next == NULL) {
-				LOG_ER(" csi('%s') is the last csi in si('%s'). Lock SI and then delete csi.", csi->name.value,
-						csi->si->name.value);
+				report_ccb_validation_error(opdata, " csi('%s') is the last csi in si('%s'). Lock SI and"
+						" then delete csi.", csi->name.value, csi->si->name.value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
 			t_sisu = csi->si->list_of_sisu;
 			while(t_sisu) {
 				if (t_sisu->csi_add_rem == true) {
-					LOG_WA("CSI remove of '%s' rejected: pending assignment for '%s'", 
+					report_ccb_validation_error(opdata, "CSI remove of '%s' rejected: pending "
+							"assignment for '%s'", 
 							csi->name.value, t_sisu->su->name.value);
 					if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
 						rc = SA_AIS_ERR_BAD_OPERATION;
@@ -625,7 +637,7 @@ static SaAisErrorT csi_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 		}
 	} else {
 		if (csi->list_compcsi != NULL) {
-			LOG_ER("SaAmfCSI '%s' is in use", csi->name.value);
+			report_ccb_validation_error(opdata, "SaAmfCSI '%s' is in use", csi->name.value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}

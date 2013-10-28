@@ -175,13 +175,13 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	SaAisErrorT rc;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	/* Should be children to the Comp Base type */
 	if (strncmp(++parent, "safCompType=", 12) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}
 
@@ -190,7 +190,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	/* We do not support Proxy, Container and Contained as of now. */
 	if (IS_COMP_PROXY(category) || IS_COMP_CONTAINER(category)|| IS_COMP_CONTAINED(category)) {
-		LOG_ER("Unsupported saAmfCtCompCategory value '%u' for '%s'", category, dn->value);
+		report_ccb_validation_error(opdata, "Unsupported saAmfCtCompCategory value '%u' for '%s'",
+				category, dn->value);
 		return 0;
 	}
 
@@ -200,7 +201,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	*/
 	if (IS_COMP_LOCAL(category) &&
 	    (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefClcCliTimeout"), attributes, 0, &time) != SA_AIS_OK)) {
-		LOG_ER("Required attribute saAmfCtDefClcCliTimeout not configured for '%s'", dn->value);
+		report_ccb_validation_error(opdata, "Required attribute saAmfCtDefClcCliTimeout not configured for '%s'",
+				dn->value);
 		return 0;
 	}
 
@@ -210,7 +212,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	*/
 	if ((IS_COMP_PROXIED(category) || IS_COMP_SAAWARE(category)) &&
 	    (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefCallbackTimeout"), attributes, 0, &time) != SA_AIS_OK)) {
-		LOG_ER("Required attribute saAmfCtDefCallbackTimeout not configured for '%s'", dn->value);
+		report_ccb_validation_error(opdata, "Required attribute saAmfCtDefCallbackTimeout not configured for '%s'",
+				dn->value);
 		return 0;
 	}
 
@@ -220,7 +223,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	*/
 	if ((IS_COMP_SAAWARE(category) || IS_COMP_PROXIED_PI(category)) &&
 	    (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefQuiescingCompleteTimeout"), attributes, 0, &time) != SA_AIS_OK)) {
-		LOG_NO("Required attribute saAmfCtDefQuiescingCompleteTimeout not configured for '%s'", dn->value);
+		report_ccb_validation_error(opdata, "Required attribute saAmfCtDefQuiescingCompleteTimeout not configured"
+				" for '%s'", dn->value);
 
 		// this is OK for backwards compatibility reasons
 	}
@@ -231,13 +235,15 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	*/
 	if (!(IS_COMP_PROXIED(category) || IS_COMP_PROXIED_NPI(category)) && IS_COMP_LOCAL(category)) {
 
-	   if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtSwBundle"), attributes, 0, &name) != SA_AIS_OK) {
-			LOG_ER("Required attribute saAmfCtSwBundle not configured for '%s'", dn->value);
+		if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtSwBundle"), attributes, 0, &name) != SA_AIS_OK) {
+			report_ccb_validation_error(opdata, "Required attribute saAmfCtSwBundle not configured for '%s'",
+					dn->value);
 			return 0;
 		}
 
 		if (immutil_getStringAttr(attributes, "saAmfCtRelPathInstantiateCmd", 0) == NULL) {
-			LOG_ER("Required attribute saAmfCtRelPathInstantiateCmd not configured for '%s'", dn->value);
+			report_ccb_validation_error(opdata, "Required attribute saAmfCtRelPathInstantiateCmd not configured"
+					" for '%s'", dn->value);
 			return 0;
 		}
 	}
@@ -248,7 +254,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	*/
 	if (IS_COMP_LOCAL(category) && !(IS_COMP_PROXIED(category) || IS_COMP_PROXIED_NPI(category)) && !IS_COMP_SAAWARE(category) &&
 	    (immutil_getStringAttr(attributes, "saAmfCtRelPathTerminateCmd", 0) == NULL)) {
-		LOG_ER("Required attribute saAmfCtRelPathTerminateCmd not configured for '%s', cat=%x", dn->value, category);
+		report_ccb_validation_error(opdata, "Required attribute saAmfCtRelPathTerminateCmd not configured for '%s',"
+				" cat=%x", dn->value, category);
 		return 0;
 	}
 
@@ -257,8 +264,9 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	** non-proxied)"
 	*/
 	if (IS_COMP_LOCAL(category) && 
-	    (immutil_getStringAttr(attributes, "saAmfCtRelPathCleanupCmd", 0) == NULL)) {
-		LOG_ER("Required attribute saAmfCtRelPathCleanupCmd not configured for '%s'", dn->value);
+			(immutil_getStringAttr(attributes, "saAmfCtRelPathCleanupCmd", 0) == NULL)) {
+		report_ccb_validation_error(opdata, "Required attribute saAmfCtRelPathCleanupCmd not configured for '%s'",
+				dn->value);
 		return 0;
 	}
 
@@ -266,8 +274,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	osafassert(rc == SA_AIS_OK);
 
 	if ((value < SA_AMF_NO_RECOMMENDATION) || (value > SA_AMF_NODE_FAILFAST)) {
-		LOG_ER("Illegal/unsupported saAmfCtDefRecoveryOnError value %u for '%s'",
-			   value, dn->value);
+		report_ccb_validation_error(opdata, "Illegal/unsupported saAmfCtDefRecoveryOnError value %u for '%s'",
+				value, dn->value);
 		return 0;
 	}
 
@@ -277,7 +285,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefDisableRestart"), attributes, 0, &value);
 	if ((rc == SA_AIS_OK) && (value > SA_TRUE)) {
-		LOG_ER("Illegal saAmfCtDefDisableRestart value %u for '%s'",
+		report_ccb_validation_error(opdata, "Illegal saAmfCtDefDisableRestart value %u for '%s'",
 			   value, dn->value);
 		return 0;
 	}
@@ -380,7 +388,7 @@ static SaAisErrorT comptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfCompType not supported");
+		report_ccb_validation_error(opdata, "Modification of SaAmfCompType not supported");
 		break;
 	case CCBUTIL_DELETE:
 		comp_type = avd_comptype_get(&opdata->objectName);
@@ -398,7 +406,7 @@ static SaAisErrorT comptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 				comp = comp->comp_type_list_comp_next;
 			}
 			if (comp_exist == SA_TRUE) {
-				LOG_ER("SaAmfCompType '%s' is in use",comp_type->name.value);
+				report_ccb_validation_error(opdata, "SaAmfCompType '%s' is in use",comp_type->name.value);
 				goto done;
 			}
 		}
@@ -542,13 +550,13 @@ static SaAisErrorT avd_compglobalattrs_ccb_completed_cb(CcbUtilOperationData_t *
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		LOG_ER("SaAmfCompGlobalAttributes already created");
+		report_ccb_validation_error(opdata, "SaAmfCompGlobalAttributes already created");
 		break;
 	case CCBUTIL_MODIFY:
 		rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_DELETE:
-		LOG_ER("SaAmfCompGlobalAttributes cannot be deleted");
+		report_ccb_validation_error(opdata, "SaAmfCompGlobalAttributes cannot be deleted");
 		break;
 	default:
 		osafassert(0);

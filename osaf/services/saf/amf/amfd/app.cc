@@ -191,7 +191,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	/* Applications should be root objects */
 	if (strchr((char *)dn->value, ',') != NULL) {
-		LOG_ER("Parent to '%s' is not root", dn->value);
+		report_ccb_validation_error(opdata, "Parent to '%s' is not root", dn->value);
 		return 0;
 	}
 
@@ -201,19 +201,19 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	if (avd_apptype_get(&aname) == NULL) {
 		/* App type does not exist in current model, check CCB */
 		if (opdata == NULL) {
-			LOG_ER("'%s' does not exist in model", aname.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
 			return 0;
 		}
 
 		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
-			LOG_ER("'%s' does not exist in existing model or in CCB", aname.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfApplicationAdminState"), attributes, 0, &admstate) == SA_AIS_OK) &&
 	    !avd_admin_state_is_valid(admstate)) {
-		LOG_ER("Invalid saAmfApplicationAdminState %u for '%s'", admstate, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfApplicationAdminState %u for '%s'", admstate, dn->value);
 		return 0;
 	}
 
@@ -277,7 +277,7 @@ static SaAisErrorT app_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			if (!strcmp(attribute->attrName, "saAmfAppType")) {
 				SaNameT dn = *((SaNameT*)attribute->attrValues[0]);
 				if (NULL == avd_apptype_get(&dn)) {
-					LOG_ER("saAmfAppType '%s' not found", dn.value);
+					report_ccb_validation_error(opdata, "saAmfAppType '%s' not found", dn.value);
 					goto done;
 				}
 				rc = SA_AIS_OK;

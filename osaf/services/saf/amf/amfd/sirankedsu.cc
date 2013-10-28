@@ -348,18 +348,19 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
         if (avd_si == NULL) {
                 /* SI does not exist in current model, check CCB */
                 if (opdata == NULL) {
-                        LOG_ER("'%s' does not exist in model", si_name.value);
+                        report_ccb_validation_error(opdata, "'%s' does not exist in model", si_name.value);
                         return 0;
                 }
 
                 if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &si_name) == NULL) {
-                        LOG_ER("'%s' does not exist in existing model or in CCB", si_name.value);
+                        report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB",
+					si_name.value);
                         return 0;
                 }
         }
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfRank"), attributes, 0, &rank) != SA_AIS_OK) {
-		LOG_ER("saAmfRank not found for %s", dn->value);
+		report_ccb_validation_error(opdata, "saAmfRank not found for %s", dn->value);
 		return 0;  
 	}
 
@@ -367,7 +368,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	indx.su_rank = rank;
 	if ((avd_sirankedsu_find(avd_cb, indx)) != NULL ) {
 		if (opdata != NULL) {
-			LOG_ER("saAmfRankedSu exists %s, si'%s', rank'%u'", dn->value, si_name.value, rank);
+			report_ccb_validation_error(opdata, "saAmfRankedSu exists %s, si'%s', rank'%u'",
+					dn->value, si_name.value, rank);
 			return 0;
 		}
 		return SA_AIS_OK;  
@@ -510,7 +512,7 @@ static SaAisErrorT sirankedsu_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfSIRankedSU not supported");
+		report_ccb_validation_error(opdata, "Modification of SaAmfSIRankedSU not supported");
 		break;
 	case CCBUTIL_DELETE:
 		{
