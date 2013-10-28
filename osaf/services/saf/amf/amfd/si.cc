@@ -481,12 +481,12 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	char *parent;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	if (strncmp(++parent, "safApp=", 7) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}
 
@@ -496,37 +496,37 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	if (avd_svctype_get(&aname) == NULL) {
 		/* SVC type does not exist in current model, check CCB if passed as param */
 		if (opdata == NULL) {
-			LOG_ER("'%s' does not exist in model", aname.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
 			return 0;
 		}
 
 		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
-			LOG_ER("'%s' does not exist in existing model or in CCB", aname.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSIProtectedbySG"), attributes, 0, &aname) != SA_AIS_OK) {
-		LOG_ER("saAmfSIProtectedbySG not specified for '%s'", dn->value);
+		report_ccb_validation_error(opdata, "saAmfSIProtectedbySG not specified for '%s'", dn->value);
 		return 0;
 	}
 
 	if (avd_sg_get(&aname) == NULL) {
 		if (opdata == NULL) {
-			LOG_ER("'%s' does not exist", aname.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist", aname.value);
 			return 0;
 		}
 		
 		/* SG does not exist in current model, check CCB */
 		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
-			LOG_ER("'%s' does not exist in existing model or in CCB", aname.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSIAdminState"), attributes, 0, &admstate) == SA_AIS_OK) &&
 	    !avd_admin_state_is_valid(admstate)) {
-		LOG_ER("Invalid saAmfSIAdminState %u for '%s'", admstate, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSIAdminState %u for '%s'", admstate, dn->value);
 		return 0;
 	}
 
@@ -731,33 +731,34 @@ static SaAisErrorT si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 		if (!strcmp(attribute->attrName, "saAmfSIPrefActiveAssignments")) {
 			if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-				LOG_ER("SG'%s' is not stable (%u)", si->sg_of_si->name.value, 
+				report_ccb_validation_error(opdata, "SG'%s' is not stable (%u)", si->sg_of_si->name.value,
 						si->sg_of_si->sg_fsm_state);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				break;
 			}
 			if (si->sg_of_si->sg_redundancy_model != SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) {
-				LOG_ER("Invalid modification,saAmfSIPrefActiveAssignments can be updated only for" 
-						" N_WAY_ACTIVE_REDUNDANCY_MODEL");
+				report_ccb_validation_error(opdata, "Invalid modification,saAmfSIPrefActiveAssignments can"
+						" be updated only for N_WAY_ACTIVE_REDUNDANCY_MODEL");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				break;
 			}
 
 		} else if (!strcmp(attribute->attrName, "saAmfSIPrefStandbyAssignments")) {
 			if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-				LOG_ER("SG'%s' is not stable (%u)", si->sg_of_si->name.value, 
+				report_ccb_validation_error(opdata, "SG'%s' is not stable (%u)", si->sg_of_si->name.value,
 						si->sg_of_si->sg_fsm_state);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				break;
 			}
 			if( si->sg_of_si->sg_redundancy_model != SA_AMF_N_WAY_REDUNDANCY_MODEL ) {
-				LOG_ER("Invalid modification,saAmfSIPrefStandbyAssignments can be updated only for" 
-						" N_WAY_REDUNDANCY_MODEL");
+				report_ccb_validation_error(opdata, "Invalid modification,saAmfSIPrefStandbyAssignments"
+						" can be updated only for N_WAY_REDUNDANCY_MODEL");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				break;
 			}
 		} else {
-			LOG_ER("Modification of attribute %s is not supported", attribute->attrName);
+			report_ccb_validation_error(opdata, "Modification of attribute %s is not supported",
+					attribute->attrName);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			break;
 		}
@@ -947,12 +948,13 @@ static SaAisErrorT si_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_DELETE:
 		si = avd_si_get(&opdata->objectName);
 		if (NULL != si->list_of_sisu) {
-			LOG_ER("SaAmfSI is in use '%s'", si->name.value);
+			report_ccb_validation_error(opdata, "SaAmfSI is in use '%s'", si->name.value);
 			goto done;
 		}
 		/* check for any SI-SI dependency configurations */
 		if (0 != si->num_dependents || si->spons_si_list != NULL) {
-			LOG_ER("Sponsors or Dependents Exist; Cannot delete '%s'", si->name.value);
+			report_ccb_validation_error(opdata, "Sponsors or Dependents Exist; Cannot delete '%s'",
+					si->name.value);
 			goto done;
 		}
 		rc = SA_AIS_OK;

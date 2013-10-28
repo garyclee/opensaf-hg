@@ -138,7 +138,7 @@ static SaAisErrorT svctypecstypes_ccb_completed_cb(CcbUtilOperationData_t *opdat
 		rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfSvcTypeCSTypes not supported");
+		report_ccb_validation_error(opdata, "Modification of SaAmfSvcTypeCSTypes not supported");
 		break;
 	case CCBUTIL_DELETE:
 		svctypecstype = avd_svctypecstypes_get(&opdata->objectName);

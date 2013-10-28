@@ -115,13 +115,13 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	const SaImmAttrValuesT_2 *attr;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	/* SGType should be children to SGBaseType */
 	if (strncmp(++parent, "safSgType=", 10) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}
 
@@ -129,8 +129,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	osafassert(rc == SA_AIS_OK);
 
 	if ((value < SA_AMF_2N_REDUNDANCY_MODEL) || (value > SA_AMF_NO_REDUNDANCY_MODEL)) {
-		LOG_ER("Invalid saAmfSgtRedundancyModel %u for '%s'",
-			value, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSgtRedundancyModel %u for '%s'",
+				value, dn->value);
 		return 0;
 	}
 
@@ -146,32 +146,33 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		sut = avd_sutype_get(name);
 		if (sut == NULL) {
 			if (opdata == NULL) {
-				LOG_ER("'%s' does not exist in model", name->value);
+				report_ccb_validation_error(opdata, "'%s' does not exist in model", name->value);
 				return 0;
 			}
 			
 			/* SG type does not exist in current model, check CCB */
 			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == NULL) {
-				LOG_ER("'%s' does not exist either in model or CCB", name->value);
+				report_ccb_validation_error(opdata, "'%s' does not exist either in model or CCB",
+						name->value);
 				return 0;
 			}
 		}
 	}
 
 	if (j == 0) {
-		LOG_ER("No SU types configured for '%s'", dn->value);
+		report_ccb_validation_error(opdata, "No SU types configured for '%s'", dn->value);
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoRepair"), attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
-		LOG_ER("Invalid saAmfSgtDefAutoRepair %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSgtDefAutoRepair %u for '%s'", abool, dn->value);
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoAdjust"), attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
-		LOG_ER("Invalid saAmfSgtDefAutoAdjust %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSgtDefAutoAdjust %u for '%s'", abool, dn->value);
 		return 0;
 	}
 
@@ -340,12 +341,14 @@ static SaAisErrorT sgtype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSgtDefAutoRepair")) {
 			uint32_t sgt_autorepair = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
 			if (sgt_autorepair > SA_TRUE) {
-				LOG_ER("invalid saAmfSgtDefAutoRepair in:'%s'", sgt->name.value);
+				report_ccb_validation_error(opdata, "invalid saAmfSgtDefAutoRepair in:'%s'",
+						sgt->name.value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 			}	
 		} else {
-			LOG_ER("Modification of attribute is Not Supported:'%s' ", attr_mod->modAttr.attrName);
+			report_ccb_validation_error(opdata, "Modification of attribute is Not Supported:'%s' ",
+					attr_mod->modAttr.attrName);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -395,7 +398,7 @@ static SaAisErrorT sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 				sg = sg->sg_list_sg_type_next;
 			}                       
 			if (sg_exist == SA_TRUE) {
-				LOG_ER("SGs exist of this SG type '%s'",sgt->name.value);
+				report_ccb_validation_error(opdata, "SGs exist of this SG type '%s'",sgt->name.value);
 				goto done;
 			}                       
 		}

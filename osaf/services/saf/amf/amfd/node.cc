@@ -191,40 +191,42 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	SaNameT saAmfNodeClmNode;
 
 	if ((parent = strchr((char *)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	if (strncmp(++parent, "safAmfCluster=", 14) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfNodeAutoRepair"), attributes, 0, &abool) == SA_AIS_OK) && (abool > SA_TRUE)) {
-		LOG_ER("Invalid saAmfNodeAutoRepair %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfNodeAutoRepair %u for '%s'", abool, dn->value);
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfNodeFailfastOnTerminationFailure"), attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
-		LOG_ER("Invalid saAmfNodeFailfastOnTerminationFailure %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfNodeFailfastOnTerminationFailure %u for '%s'",
+				abool, dn->value);
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfNodeFailfastOnInstantiationFailure"), attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
-		LOG_ER("Invalid saAmfNodeFailfastOnInstantiationFailure %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfNodeFailfastOnInstantiationFailure %u for '%s'",
+				abool, dn->value);
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfNodeAdminState"), attributes, 0, &admstate) == SA_AIS_OK) &&
 	    !avd_admin_state_is_valid(admstate)) {
-		LOG_ER("Invalid saAmfNodeAdminState %u for '%s'", admstate, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfNodeAdminState %u for '%s'", admstate, dn->value);
 		return 0;
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfNodeClmNode"), attributes, 0, &saAmfNodeClmNode) != SA_AIS_OK) { 
-		LOG_ER("saAmfNodeClmNode not configured for '%s'", dn->value);
+		report_ccb_validation_error(opdata, "saAmfNodeClmNode not configured for '%s'", dn->value);
 		return 0;
 	}
 
@@ -429,18 +431,18 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
 	if (node->node_info.member) {
-		LOG_ER("Node '%s' is still cluster member", opdata->objectName.value);
+		report_ccb_validation_error(opdata, "Node '%s' is still cluster member", opdata->objectName.value);
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
 	if (node->type == AVSV_AVND_CARD_SYS_CON) {
-		LOG_ER("Cannot remove controller node");
+		report_ccb_validation_error(opdata, "Cannot remove controller node");
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
 	/* Check to see that the node is in admin locked state before delete */
 	if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-		LOG_ER("Node '%s' is not locked instantiation", opdata->objectName.value);
+		report_ccb_validation_error(opdata, "Node '%s' is not locked instantiation", opdata->objectName.value);
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
@@ -459,7 +461,7 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 			su = su->avnd_list_su_next;
 		}                       
 		if (su_exist == SA_TRUE) {
-			LOG_ER("Node '%s' still has SUs", opdata->objectName.value);
+			report_ccb_validation_error(opdata, "Node '%s' still has SUs", opdata->objectName.value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -484,16 +486,17 @@ static SaAisErrorT node_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata
 		if (!strcmp(attribute->attrName, "saAmfNodeSuFailOverProb")) {
 			SaTimeT su_failover_prob = *((SaTimeT *)attribute->attrValues[0]);
 			if (su_failover_prob == 0) {
-				LOG_ER("Modification of '%s' failed - invalid saAmfNodeSuFailOverProb (0)",
-					   opdata->objectName.value);
+				report_ccb_validation_error(opdata,
+						"Modification of '%s' failed - invalid saAmfNodeSuFailOverProb (0)",
+						opdata->objectName.value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfNodeSuFailoverMax")) {
 			/*  No validation needed, avoiding fall-through to Unknown Attribute error-case */
 		} else {
-			LOG_ER("Modification of '%s' failed - attribute '%s' cannot be modified", 
-				   opdata->objectName.value, attribute->attrName);
+			report_ccb_validation_error(opdata, "Modification of '%s' failed-attribute '%s' cannot be modified",
+					opdata->objectName.value, attribute->attrName);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}

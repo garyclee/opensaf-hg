@@ -130,7 +130,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	char *parent;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
@@ -138,7 +138,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	/* Should be children to the SU Base type */
 	if (strncmp(parent, "safSuType=", 10) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}
 #if 0
@@ -167,16 +167,16 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutDefSUFailover"), attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
-		LOG_ER("Invalid saAmfSutDefSUFailover %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSutDefSUFailover %u for '%s'", abool, dn->value);
 		return 0;
 	}
 
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutIsExternal"), attributes, 0, &abool);
 	osafassert(rc == SA_AIS_OK);
 
-			     if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutIsExternal"), attributes, 0, &abool) == SA_AIS_OK) &&
-	    (abool > SA_TRUE)) {
-		LOG_ER("Invalid saAmfSutIsExternal %u for '%s'", abool, dn->value);
+	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutIsExternal"), attributes, 0, &abool) == SA_AIS_OK) &&
+			(abool > SA_TRUE)) {
+		report_ccb_validation_error(opdata, "Invalid saAmfSutIsExternal %u for '%s'", abool, dn->value);
 		return 0;
 	}
 
@@ -318,7 +318,7 @@ static SaAisErrorT sutype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		
 		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == NULL)) {
-			LOG_ER("Attributes cannot be deleted in SaAmfSUType");
+			report_ccb_validation_error(opdata, "Attributes cannot be deleted in SaAmfSUType");
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -327,9 +327,9 @@ static SaAisErrorT sutype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 			uint32_t sut_failover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
 
 			if (sut_failover > SA_TRUE) {
-				LOG_ER("invalid saAmfSutDefSUFailover in:'%s'", sut->name.value);
+				report_ccb_validation_error(opdata, "invalid saAmfSutDefSUFailover in:'%s'", sut->name.value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
+				goto done;
 			}	
 	
 			for (AVD_SU *su = sut->list_of_su; su; su = su->su_list_su_type_next) {
@@ -343,12 +343,12 @@ static SaAisErrorT sutype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 				 */
 				if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) {
 					rc = SA_AIS_ERR_TRY_AGAIN;
-					LOG_WA("SG state is not stable"); 
+					report_ccb_validation_error(opdata, "SG state is not stable"); 
 					goto done;
 				}
 			}
 		} else {
-			LOG_ER("attribute is non writable:'%s' ", attr_mod->modAttr.attrName);
+			report_ccb_validation_error(opdata, "attribute is non writable:'%s' ", attr_mod->modAttr.attrName);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -393,7 +393,7 @@ static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 				su = su->su_list_su_type_next;
 			}                       
 			if (su_exist == SA_TRUE) {
-				LOG_ER("SaAmfSUType '%s'is in use",sut->name.value);
+				report_ccb_validation_error(opdata, "SaAmfSUType '%s'is in use",sut->name.value);
 				goto done;
 			}
 		}

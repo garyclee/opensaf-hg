@@ -251,12 +251,12 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	AVD_SG *sg;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	if (strncmp(++parent, "safSg=", 6) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}
 
@@ -268,12 +268,12 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	} else {
 		/* SU type does not exist in current model, check CCB if passed as param */
 		if (opdata == NULL) {
-			LOG_ER("'%s' does not exist in model", saAmfSUType.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in model", saAmfSUType.value);
 			return 0;
 		}
 
 		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfSUType)) == NULL) {
-			LOG_ER("'%s' does not exist in existing model or in CCB",
+			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB",
 				saAmfSUType.value);
 			return 0;
 		}
@@ -283,16 +283,20 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	/* Validate that a configured node or node group exist */
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUHostNodeOrNodeGroup"), attributes, 0, &saAmfSUHostNodeOrNodeGroup) == SA_AIS_OK) {
+	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUHostNodeOrNodeGroup"), attributes, 0, 
+				&saAmfSUHostNodeOrNodeGroup) == SA_AIS_OK) {
 		if (strncmp((char*)saAmfSUHostNodeOrNodeGroup.value, "safAmfNode=", 11) == 0) {
 			if (avd_node_get(&saAmfSUHostNodeOrNodeGroup) == NULL) {
 				if (opdata == NULL) {
-					LOG_ER("'%s' does not exist in model", saAmfSUHostNodeOrNodeGroup.value);
+					report_ccb_validation_error(opdata, "'%s' does not exist in model", 
+							saAmfSUHostNodeOrNodeGroup.value);
 					return 0;
 				}
 
 				if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfSUHostNodeOrNodeGroup) == NULL) {
-					LOG_ER("'%s' does not exist in existing model or in CCB", saAmfSUHostNodeOrNodeGroup.value);
+					report_ccb_validation_error(opdata, 
+							"'%s' does not exist in existing model or in CCB",
+							saAmfSUHostNodeOrNodeGroup.value);
 					return 0;
 				}
 			}
@@ -300,12 +304,15 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		else {
 			if (avd_ng_get(&saAmfSUHostNodeOrNodeGroup) == NULL) {
 				if (opdata == NULL) {
-					LOG_ER("'%s' does not exist in model", saAmfSUHostNodeOrNodeGroup.value);
+					report_ccb_validation_error(opdata, "'%s' does not exist in model",
+							saAmfSUHostNodeOrNodeGroup.value);
 					return 0;
 				}
 
 				if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfSUHostNodeOrNodeGroup) == NULL) {
-					LOG_ER("'%s' does not exist in existing model or in CCB", saAmfSUHostNodeOrNodeGroup.value);
+					report_ccb_validation_error(opdata,
+							"'%s' does not exist in existing model or in CCB",
+							saAmfSUHostNodeOrNodeGroup.value);
 					return 0;
 				}
 			}
@@ -319,12 +326,13 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		saAmfSGSuHostNodeGroup = sg->saAmfSGSuHostNodeGroup;
 	} else {
 		if (opdata == NULL) {
-			LOG_ER("SG '%s' does not exist in model", sg_name.value);
+			report_ccb_validation_error(opdata, "SG '%s' does not exist in model", sg_name.value);
 			return 0;
 		}
 
 		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg_name)) == NULL) {
-			LOG_ER("SG '%s' does not exist in existing model or in CCB", sg_name.value);
+			report_ccb_validation_error(opdata, "SG '%s' does not exist in existing model or in CCB",
+					sg_name.value);
 			return 0;
 		}
 
@@ -337,7 +345,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	    (strstr((char *)saAmfSUHostNodeOrNodeGroup.value, "safAmfNode=") == NULL) &&
 	    (strstr((char *)saAmfSUHostNodeOrNodeGroup.value, "safAmfNodeGroup=") == NULL) &&
 	    (strstr((char *)saAmfSGSuHostNodeGroup.value, "safAmfNodeGroup=") == NULL)) {
-		LOG_ER("node or node group configuration is missing for '%s'", dn->value);
+		report_ccb_validation_error(opdata, "node or node group configuration is missing for '%s'", dn->value);
 		return 0;
 	}
 
@@ -349,7 +357,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	    ((strstr((char *)saAmfSUHostNodeOrNodeGroup.value, "safAmfNode=") != NULL) ||
 	     (strstr((char *)saAmfSUHostNodeOrNodeGroup.value, "safAmfNodeGroup=") != NULL) ||
 	     (strstr((char *)saAmfSGSuHostNodeGroup.value, "safAmfNodeGroup=") != NULL))) {
-		LOG_ER("node or node group configured for external SU '%s'", dn->value);
+		report_ccb_validation_error(opdata, "node or node group configured for external SU '%s'", dn->value);
 		return 0;
 	}
 
@@ -370,21 +378,22 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 		ng_of_su = avd_ng_get(&saAmfSUHostNodeOrNodeGroup);
 		if (ng_of_su == NULL) {
-			LOG_ER("Invalid saAmfSUHostNodeOrNodeGroup '%s' for '%s'",
+			report_ccb_validation_error(opdata, "Invalid saAmfSUHostNodeOrNodeGroup '%s' for '%s'",
 				saAmfSUHostNodeOrNodeGroup.value, dn->value);
 			return 0;
 		}
 
 		ng_of_sg = avd_ng_get(&saAmfSGSuHostNodeGroup);
 		if (ng_of_su == NULL) {
-			LOG_ER("Invalid saAmfSGSuHostNodeGroup '%s' for '%s'",
+			report_ccb_validation_error(opdata, "Invalid saAmfSGSuHostNodeGroup '%s' for '%s'",
 				saAmfSGSuHostNodeGroup.value, dn->value);
 			return 0;
 		}
 
 		if (ng_of_su->number_nodes > ng_of_sg->number_nodes) {
-			LOG_ER("SU node group '%s' contains more nodes than the SG node group '%s'",
-				saAmfSUHostNodeOrNodeGroup.value, saAmfSGSuHostNodeGroup.value);
+			report_ccb_validation_error(opdata, 
+					"SU node group '%s' contains more nodes than the SG node group '%s'",
+					saAmfSUHostNodeOrNodeGroup.value, saAmfSGSuHostNodeGroup.value);
 			return 0;
 		}
 
@@ -402,8 +411,9 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 			}
 
 			if (!found) {
-				LOG_ER("SU node group '%s' is not a subset of the SG node group '%s'",
-					saAmfSUHostNodeOrNodeGroup.value, saAmfSGSuHostNodeGroup.value);
+				report_ccb_validation_error(opdata, 
+						"SU node group '%s' is not a subset of the SG node group '%s'",
+						saAmfSUHostNodeOrNodeGroup.value, saAmfSGSuHostNodeGroup.value);
 				return 0;
 			}
 
@@ -415,13 +425,13 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUFailover"), attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
-		LOG_ER("Invalid saAmfSUFailover %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSUFailover %u for '%s'", abool, dn->value);
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUAdminState"), attributes, 0, &admstate) == SA_AIS_OK) &&
 	    !avd_admin_state_is_valid(admstate)) {
-		LOG_ER("Invalid saAmfSUAdminState %u for '%s'", admstate, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSUAdminState %u for '%s'", admstate, dn->value);
 		return 0;
 	}
 
@@ -1242,12 +1252,12 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			 */
 			if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) {
 				rc = SA_AIS_ERR_TRY_AGAIN;
-				TRACE("'%s' is not stable",su->sg_of_su->name.value); 
+				report_ccb_validation_error(opdata, "'%s' is not stable",su->sg_of_su->name.value); 
 				goto done;
 			}
 
 			if (su_failover > SA_TRUE) {
-				LOG_ER("Invalid saAmfSUFailover SU:'%s'", su->name.value);
+				report_ccb_validation_error(opdata, "Invalid saAmfSUFailover SU:'%s'", su->name.value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -1255,7 +1265,8 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			AVD_SU *su = avd_su_get(&opdata->objectName);
 
 			if (su->saAmfSUMaintenanceCampaign.length > 0) {
-				LOG_ER("saAmfSUMaintenanceCampaign already set for %s", su->name.value);
+				report_ccb_validation_error(opdata, "saAmfSUMaintenanceCampaign already set for %s",
+						su->name.value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -1264,18 +1275,20 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			SaNameT sutype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
 			su = avd_su_get(&opdata->objectName);
 			if(SA_AMF_ADMIN_LOCKED_INSTANTIATION != su->saAmfSUAdminState) {
-				LOG_ER("SU is not in locked-inst, present state '%d'", su->saAmfSUAdminState);
+				report_ccb_validation_error(opdata, "SU is not in locked-inst, present state '%d'",
+						su->saAmfSUAdminState);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
 			if (avd_sutype_get(&sutype_name) == NULL) {
-				LOG_ER("SU Type not found '%s'", sutype_name.value);
+				report_ccb_validation_error(opdata, "SU Type not found '%s'", sutype_name.value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
 
 		} else {
-			LOG_ER("Modification of attribute '%s' not supported", attr_mod->modAttr.attrName);
+			report_ccb_validation_error(opdata, "Modification of attribute '%s' not supported",
+					attr_mod->modAttr.attrName);
 			rc = SA_AIS_ERR_NOT_SUPPORTED;
 			goto done;
 		}
@@ -1314,14 +1327,12 @@ static SaAisErrorT su_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 	osafassert(su != NULL);
 
 	if (is_app_su && (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
-		LOG_ER("Rejecting deletion of '%s'", su->name.value);
-		LOG_ER("Admin state is not locked instantiation required for deletion");
+		report_ccb_validation_error(opdata, "Admin state is not locked instantiation required for deletion");
 		goto done;
 	}
 
 	if (!is_app_su && (su->su_on_node->node_state != AVD_AVND_STATE_ABSENT)) {
-		LOG_ER("Rejecting deletion of '%s'", su->name.value);
-		LOG_ER("MW SU can only be deleted when its hosting node is down");
+		report_ccb_validation_error(opdata, "MW SU can only be deleted when its hosting node is down");
 		goto done;
 	}
 
@@ -1351,15 +1362,14 @@ static int is_ccb_create_config_valid(const SaNameT *dn, const SaImmAttrValuesT_
 		is_app_su = 0;
 
 	if (is_app_su && (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUAdminState"), attributes, 0, &admstate) != SA_AIS_OK)) {
-		LOG_ER("saAmfSUAdminState not configured for '%s'", dn->value);
+		report_ccb_validation_error(opdata, "saAmfSUAdminState not configured for '%s'", dn->value);
 		return 0;
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUAdminState"), attributes, 0, &admstate) == SA_AIS_OK) {
 		if (admstate != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			LOG_ER("Invalid saAmfSUAdminState %u for '%s'", admstate, dn->value);
-			LOG_NO("saAmfSUAdminState must be LOCKED_INSTANTIATION(%u) for dynamically created SUs",
-				SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+			report_ccb_validation_error(opdata, "saAmfSUAdminState must be LOCKED_INSTANTIATION(%u) for"
+					" dynamically created SUs", SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 			return 0;
 		}
 	}

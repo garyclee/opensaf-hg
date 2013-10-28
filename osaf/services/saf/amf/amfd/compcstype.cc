@@ -144,7 +144,7 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 
 	/* This is an association class, the parent (SaAmfComp) should come after the second comma */
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		goto free_cstype_name;
 	}
 
@@ -152,7 +152,7 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 
 	/* Second comma should be the parent */
 	if ((parent = strchr(parent, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		goto free_cstype_name;
 	}
 
@@ -160,7 +160,7 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 
 	/* Should be children to SaAmfComp */
 	if (strncmp(parent, "safComp=", 8) != 0) {
-		LOG_ER("Wrong parent '%s'", parent);
+		report_ccb_validation_error(opdata, "Wrong parent '%s'", parent);
 		goto free_cstype_name;
 	}
 
@@ -178,7 +178,7 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 		CcbUtilOperationData_t *tmp;
 
 		if (opdata == NULL) {
-			LOG_ER("'%s' does not exist in model", comp_name.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in model", comp_name.value);
 			goto free_cstype_name;
 		}
 
@@ -200,12 +200,13 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 
 	if (avd_ctcstype_get(&ctcstype_name) == NULL) {
 		if (opdata == NULL) {
-			LOG_ER("'%s' does not exist in model", ctcstype_name.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in model", ctcstype_name.value);
 			goto free_cstype_name;
 		}
 
 		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &ctcstype_name) == NULL) {
-			LOG_ER("'%s' does not exist in existing model or in CCB", ctcstype_name.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB",
+					ctcstype_name.value);
 			goto free_cstype_name;
 		}
 	}
@@ -355,7 +356,7 @@ static SaAisErrorT compcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	}
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfCompCsType not supported");
+		report_ccb_validation_error(opdata, "Modification of SaAmfCompCsType not supported");
 		break;
 	case CCBUTIL_DELETE:
 		cst = avd_compcstype_get(&opdata->objectName);
@@ -363,7 +364,8 @@ static SaAisErrorT compcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		if (cst->comp->su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)
 			rc = SA_AIS_OK;
 		else
-			LOG_ER("Deletion of SaAmfCompCsType requires parent SU to be in LOCKED-INSTANTIATION");
+			report_ccb_validation_error(opdata, "Deletion of SaAmfCompCsType requires parent SU to be in"
+					" LOCKED-INSTANTIATION");
 		break;
 	default:
 		osafassert(0);

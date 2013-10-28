@@ -99,13 +99,13 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	char *parent;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	/* Should be children to the SvcBasetype */
 	if (strncmp(++parent, "safSvcType=", 11) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}
 
@@ -128,7 +128,7 @@ static SaAisErrorT svctype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		    rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfSvcType not supported");
+		report_ccb_validation_error(opdata, "Modification of SaAmfSvcType not supported");
 		break;
 	case CCBUTIL_DELETE:
 		svc_type = avd_svctype_get(&opdata->objectName);
@@ -146,7 +146,7 @@ static SaAisErrorT svctype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 				si = si->si_list_svc_type_next;
 			}
 			if (si_exist == SA_TRUE) {
-				LOG_ER("SaAmfSvcType '%s' is in use",svc_type->name.value);
+				report_ccb_validation_error(opdata, "SaAmfSvcType '%s' is in use",svc_type->name.value);
 				goto done;
 			}
 		}

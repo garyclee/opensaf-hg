@@ -1771,3 +1771,27 @@ void avd_saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
 		LOG_NO("saImmOiAdminOperationResult for %llu failed %u", invocation, error);
 }
 
+/**
+ * To be used in OI callbacks to report errors by setting an error string
+ * Also writes the same error string using TRACE
+ *
+ * @param ccbId
+ * @param format
+ * @param ...
+ */
+void report_ccb_validation_error(const CcbUtilOperationData_t *opdata, const char *format, ...)
+{
+	char err_str[256];
+	va_list ap;
+
+	err_str[sizeof(err_str) - 1] = 0;
+	va_start(ap, format);
+	(void) vsnprintf(err_str, sizeof(err_str), format, ap);
+	va_end(ap);
+	TRACE("%s", err_str);
+	if (opdata != NULL)
+		(void) saImmOiCcbSetErrorString(avd_cb->immOiHandle, opdata->ccbId, err_str);
+	else
+		LOG_WA("%s", err_str);
+}
+

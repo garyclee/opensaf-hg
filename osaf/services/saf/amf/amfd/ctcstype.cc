@@ -38,24 +38,24 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	/* Second comma should be parent */
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	if ((parent = strchr(++parent, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	/* Should be children to SaAmfCompType */
 	if (strncmp(++parent, "safVersion=", 11) != 0) {
-		LOG_ER("Wrong parent '%s'", parent);
+		report_ccb_validation_error(opdata, "Wrong parent '%s'", parent);
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtCompCapability"), attributes, 0, &uint32) == SA_AIS_OK) &&
 	    (uint32 > SA_AMF_COMP_NON_PRE_INSTANTIABLE)) {
-		LOG_ER("Invalid saAmfCtCompCapability %u for '%s'", uint32, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfCtCompCapability %u for '%s'", uint32, dn->value);
 		return 0;
 	}
 
@@ -175,7 +175,7 @@ static SaAisErrorT ctcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfCtCsType not supported");
+		report_ccb_validation_error(opdata, "Modification of SaAmfCtCsType not supported");
 		break;
 	case CCBUTIL_DELETE:
 		rc = SA_AIS_OK;

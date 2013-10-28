@@ -39,13 +39,13 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	parent = avd_getparent((char*)dn->value);
 	if (parent == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	/* Should be children to nodes */
 	if (strncmp(parent, "safAmfNode=", 11) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}
 
@@ -53,7 +53,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	osafassert(path_prefix);
 
 	if (path_prefix[0] != '/') {
-		LOG_ER("Invalid absolute path '%s' for '%s' ", path_prefix, dn->value);
+		report_ccb_validation_error(opdata, "Invalid absolute path '%s' for '%s' ", path_prefix, dn->value);
 		return 0;
 	}
 
@@ -69,7 +69,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
  * @return int
  */
 static int is_swbdl_delete_ok_for_node(const SaNameT *bundle_dn_to_delete,
-	const SaNameT *node_dn, const AVD_SU *su_list)
+	const SaNameT *node_dn, const AVD_SU *su_list, CcbUtilOperationData_t *opdata)
 {
 	const AVD_SU *su;
 	const AVD_COMP *comp;
@@ -87,8 +87,8 @@ static int is_swbdl_delete_ok_for_node(const SaNameT *bundle_dn_to_delete,
 				     (comp->su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION))) {
 					continue;
 				} else {
-					LOG_ER("Deletion of '%s' not allowed", bundle_dn_to_delete->value);
-					LOG_ER("'%s' admin state is not locked instantiaion", su->name.value);
+					report_ccb_validation_error(opdata, "'%s' admin state is not locked instantiaion",
+							su->name.value);
 					return 0;
 				}
 			}
@@ -104,7 +104,7 @@ static int is_swbdl_delete_ok_for_node(const SaNameT *bundle_dn_to_delete,
  * 
  * @return int
  */
-static int is_swbdl_delete_ok(const SaNameT *bundle_dn)
+static int is_swbdl_delete_ok(const SaNameT *bundle_dn, CcbUtilOperationData_t *opdata)
 {
 	const AVD_AVND *node;
 	SaNameT node_dn;
@@ -113,10 +113,10 @@ static int is_swbdl_delete_ok(const SaNameT *bundle_dn)
 	avsv_sanamet_init(bundle_dn, &node_dn, "safAmfNode=");
 	node = avd_node_get(&node_dn);
 
-	if (!is_swbdl_delete_ok_for_node(bundle_dn, &node_dn, node->list_of_ncs_su))
+	if (!is_swbdl_delete_ok_for_node(bundle_dn, &node_dn, node->list_of_ncs_su, opdata))
 		return 0;
 
-	if (!is_swbdl_delete_ok_for_node(bundle_dn, &node_dn, node->list_of_su))
+	if (!is_swbdl_delete_ok_for_node(bundle_dn, &node_dn, node->list_of_su, opdata))
 		return 0;
 
 	return 1;
@@ -134,10 +134,10 @@ static SaAisErrorT nodeswbdl_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfNodeSwBundle not supported");
+		report_ccb_validation_error(opdata, "Modification of SaAmfNodeSwBundle not supported");
 		break;
 	case CCBUTIL_DELETE:
-		if (is_swbdl_delete_ok(&opdata->objectName))
+		if (is_swbdl_delete_ok(&opdata->objectName, opdata))
 			rc = SA_AIS_OK;
 		break;
 	default:

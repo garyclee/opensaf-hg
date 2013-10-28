@@ -83,12 +83,12 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	p = strchr((char *)dn->value, ',');
 	if (p == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	if (strncmp(++p, "safAmfCluster=", 14) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", p, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", p, dn->value);
 		return 0;
 	}
 
@@ -104,13 +104,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		AVD_AVND *node = avd_node_get(name);
 		if (node == NULL) {
 			if (opdata == NULL) {
-				LOG_ER("'%s' does not exist in model", name->value);
+				report_ccb_validation_error(opdata, "'%s' does not exist in model", name->value);
 				return 0;
 			}
 
 			/* Node does not exist in current model, check CCB */
 			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == NULL) {
-				LOG_ER("'%s' does not exist either in model or CCB", name->value);
+				report_ccb_validation_error(opdata, "'%s' does not exist either in model or CCB",
+						name->value);
 				return 0;
 			}
 		}
@@ -291,7 +292,7 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 		if (mod->modType == SA_IMM_ATTR_VALUES_DELETE) {
 			if (add_found) {
-				LOG_ER("ng modify: no support for mixed ops");
+				report_ccb_validation_error(opdata, "ng modify: no support for mixed ops");
 				goto done;
 			}
 
@@ -300,7 +301,8 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			for (j = 0; j < mod->modAttr.attrValuesNumber; j++) {
 				node = avd_node_get((SaNameT *)mod->modAttr.attrValues[j]);
 				if (node == NULL) {
-					LOG_ER("Node '%s' does not exist", ((SaNameT *)mod->modAttr.attrValues[j])->value);
+					report_ccb_validation_error(opdata, "Node '%s' does not exist",
+							((SaNameT *)mod->modAttr.attrValues[j])->value);
 					goto done;
 				}
 
@@ -311,8 +313,9 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				/* for all OpenSAF SUs hosted by this node */
 				for (su = node->list_of_ncs_su; su; su = su->avnd_list_su_next) {
 					if (su_is_mapped_to_node_via_nodegroup(su, ng)) {
-						LOG_NO("Cannot delete '%s' from '%s'. An SU is mapped using node group",
-							node->name.value, ng->ng_name.value);
+						report_ccb_validation_error(opdata, "Cannot delete '%s' from '%s'."
+								" An SU is mapped using node group",
+								node->name.value, ng->ng_name.value);
 						goto done;
 						
 					}
@@ -321,8 +324,9 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				/* for all application SUs hosted by this node */
 				for (su = node->list_of_su; su; su = su->avnd_list_su_next) {
 					if (su_is_mapped_to_node_via_nodegroup(su, ng)) {
-						LOG_NO("Cannot delete '%s' from '%s'. An SU is mapped using node group",
-							node->name.value, ng->ng_name.value);
+						report_ccb_validation_error(opdata, "Cannot delete '%s' from '%s'."
+								" An SU is mapped using node group",
+								node->name.value, ng->ng_name.value);
 						goto done;
 					}
 				}
@@ -331,7 +335,7 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 		if (mod->modType == SA_IMM_ATTR_VALUES_ADD) {
 			if (delete_found) {
-				LOG_ER("ng modify: no support for mixed ops");
+				report_ccb_validation_error(opdata, "ng modify: no support for mixed ops");
 				goto done;
 			}
 
@@ -342,8 +346,8 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				if ((node == NULL) &&
 					(ccbutil_getCcbOpDataByDN(opdata->ccbId, (SaNameT *)mod->modAttr.attrValues[j]) == NULL)) {
 
-					LOG_ER("'%s' does not exist in model or CCB",
-						((SaNameT *)mod->modAttr.attrValues[j])->value);
+					report_ccb_validation_error(opdata, "'%s' does not exist in model or CCB",
+							((SaNameT *)mod->modAttr.attrValues[j])->value);
 					goto done;
 				}
 
@@ -409,7 +413,7 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 		for (su = node->list_of_ncs_su; su; su = su->avnd_list_su_next) {
 			if (su_is_mapped_to_node_via_nodegroup(su, ng) &&
 			    is_deleted_in_ccb(opdata->ccbId, &su->name) == false) {
-				LOG_NO("Cannot delete '%s' because '%s' is mapped using it",
+				report_ccb_validation_error(opdata, "Cannot delete '%s' because '%s' is mapped using it",
 					ng->ng_name.value, su->name.value);
 				goto done;
 			}
@@ -418,7 +422,7 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 		for (su = node->list_of_su; su; su = su->avnd_list_su_next) {
 			if (su_is_mapped_to_node_via_nodegroup(su, ng) &&
 			    is_deleted_in_ccb(opdata->ccbId, &su->name) == false) {
-				LOG_NO("Cannot delete '%s' because '%s' is mapped using it",
+				report_ccb_validation_error(opdata, "Cannot delete '%s' because '%s' is mapped using it",
 					ng->ng_name.value, su->name.value);
 				goto done;
 			}

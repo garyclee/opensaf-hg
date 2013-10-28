@@ -37,14 +37,14 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 		if (!strcmp(attribute->attrName, "saAmfHealthcheckPeriod")) {
 			if (*value < (100 * SA_TIME_ONE_MILLISECOND)) {
-				LOG_ER("Unreasonable saAmfHealthcheckPeriod %llu for '%s' ",
-					*value, opdata->objectName.value);
+				report_ccb_validation_error(opdata, "Unreasonable saAmfHealthcheckPeriod %llu for '%s' ",
+						*value, opdata->objectName.value);
 				return SA_AIS_ERR_BAD_OPERATION;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfHealthcheckMaxDuration")) {
 			if (*value < (100 * SA_TIME_ONE_MILLISECOND)) {
-				LOG_ER("Unreasonable saAmfHealthcheckMaxDuration %llu for '%s' ",
-					*value, opdata->objectName.value);
+				report_ccb_validation_error(opdata, "Unreasonable saAmfHealthcheckMaxDuration %llu for '%s'",
+						*value, opdata->objectName.value);
 				return SA_AIS_ERR_BAD_OPERATION;
 			}
 		} else
@@ -66,8 +66,7 @@ static SaAisErrorT ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 	comp = avd_comp_get(&comp_name);
 
 	if (comp->su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-		LOG_ER("Rejecting deletion of '%s'", opdata->objectName.value);
-		LOG_ER("SU admin state is not locked instantiation required for deletion");
+		report_ccb_validation_error(opdata, "SU admin state is not locked instantiation required for deletion");
 		goto done;
 	}
 

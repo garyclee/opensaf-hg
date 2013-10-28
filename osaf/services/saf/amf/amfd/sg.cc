@@ -210,12 +210,12 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	char *parent;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
-		LOG_ER("No parent to '%s' ", dn->value);
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	if (strncmp(++parent, "safApp=", 7) != 0) {
-		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}
 
@@ -224,38 +224,38 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	if (avd_sgtype_get(&aname) == NULL) {
 		if (opdata == NULL) {
-			LOG_ER("'%s' does not exist in model", aname.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
 			return 0;
 		}
 
 		/* SG type does not exist in current model, check CCB */
 		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
-			LOG_ER("'%s' does not exist in existing model or in CCB", aname.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGAutoRepair"), attributes, 0, &abool) == SA_AIS_OK) &&
-	    (abool > SA_TRUE)) {
-		LOG_ER("Invalid saAmfSGAutoRepair %u for '%s'", abool, dn->value);
+			(abool > SA_TRUE)) {
+		report_ccb_validation_error(opdata, "Invalid saAmfSGAutoRepair %u for '%s'", abool, dn->value);
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGAutoAdjust"), attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
-		LOG_ER("Invalid saAmfSGAutoAdjust %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSGAutoAdjust %u for '%s'", abool, dn->value);
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGAdminState"), attributes, 0, &admstate) == SA_AIS_OK) &&
 	    !avd_admin_state_is_valid(admstate)) {
-		LOG_ER("Invalid saAmfSGAdminState %u for '%s'", admstate, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSGAdminState %u for '%s'", admstate, dn->value);
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGSuHostNodeGroup"), attributes, 0, &aname) == SA_AIS_OK) &&
 	    (avd_ng_get(&aname) == NULL)) {
-		LOG_ER("Invalid saAmfSGSuHostNodeGroup '%s' for '%s'", aname.value, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSGSuHostNodeGroup '%s' for '%s'", aname.value, dn->value);
 		return 0;
 	}
 
@@ -513,20 +513,22 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				SaNameT sg_type_name = *((SaNameT *)value);
 
 				if (avd_sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
-					LOG_ER("%s: Attribute saAmfSGType cannot be modified when SG is not in locked instantion", __FUNCTION__);
+					report_ccb_validation_error(opdata, "%s: Attribute saAmfSGType cannot be modified"
+							" when SG is not in locked instantion", __FUNCTION__);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
 
 				avd_sg_type = avd_sgtype_get(&sg_type_name);
 				if (NULL == avd_sg_type) {
-					LOG_ER("SG Type '%s' not found", sg_type_name.value);
+					report_ccb_validation_error(opdata, "SG Type '%s' not found", sg_type_name.value);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
 
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuHostNodeGroup")) {
-				LOG_ER("%s: Attribute saAmfSGSuHostNodeGroup cannot be modified", __FUNCTION__);
+				report_ccb_validation_error(opdata, "%s: Attribute saAmfSGSuHostNodeGroup cannot be"
+						" modified", __FUNCTION__);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjust")) {
@@ -539,7 +541,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				if ((pref_inservice_su == 0) ||
 					((avd_sg->sg_redundancy_model < SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) &&
 					 (pref_inservice_su < AVSV_SG_2N_PREF_INSVC_SU_MIN))) {
-					LOG_ER("%s: Minimum preferred num of su should be 2 in 2N, N+M and NWay red models", __FUNCTION__);
+					report_ccb_validation_error(opdata, "%s: Minimum preferred num of su should be 2 in"
+							" 2N, N+M and NWay red models", __FUNCTION__);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
@@ -554,7 +557,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
 				uint32_t sg_autorepair = *((SaUint32T *)attribute->attrValues[0]);
 				if (sg_autorepair > true ) {
-					LOG_ER("Invalid saAmfSGAutoRepair SG:'%s'", avd_sg->name.value);
+					report_ccb_validation_error(opdata, "Invalid saAmfSGAutoRepair SG:'%s'",
+							avd_sg->name.value);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
@@ -587,19 +591,22 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				if ((pref_inservice_su == 0) ||
 					((avd_sg->sg_redundancy_model < SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) &&
 					 (pref_inservice_su < AVSV_SG_2N_PREF_INSVC_SU_MIN))) {
-					LOG_ER("%s: Minimum preferred num of su should be 2 in 2N, N+M and NWay red models", __FUNCTION__);
+					report_ccb_validation_error(opdata, "%s: Minimum preferred num of su should be 2"
+							" in 2N, N+M and NWay red models", __FUNCTION__);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
 				uint32_t sg_autorepair = *((SaUint32T *)attribute->attrValues[0]);
 				if (sg_autorepair > SA_TRUE) {
-					LOG_ER("Invalid saAmfSGAutoRepair SG:'%s'", avd_sg->name.value);
+					report_ccb_validation_error(opdata, "Invalid saAmfSGAutoRepair SG:'%s'",
+							avd_sg->name.value);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
 			} else {
-				LOG_ER("%s: Attribute '%s' cannot be modified when SG is unlocked", __FUNCTION__, attribute->attrName);
+				report_ccb_validation_error(opdata, "%s: Attribute '%s' cannot be modified when SG is"
+						" unlocked", __FUNCTION__, attribute->attrName);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -1264,7 +1271,7 @@ static SaAisErrorT sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 				}
 			}
 			if (si_exist == SA_TRUE) {
-				LOG_ER("SIs still exist in SG '%s'", sg->name.value);
+				report_ccb_validation_error(opdata, "SIs still exist in SG '%s'", sg->name.value);
 				goto done;
 			}
 		}
