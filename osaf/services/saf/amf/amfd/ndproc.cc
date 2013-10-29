@@ -456,6 +456,99 @@ static void clm_pend_response(AVD_SU *su, SaAmfPresenceStateT pres)
 	TRACE_LEAVE();
 }
 
+/**
+ * Generate Cluster Startup Timer expiry event
+ *
+ * @param cb : Control Block
+ *
+ * @return : None
+ */
+void cluster_startup_expiry_event_generate(AVD_CL_CB *cb)
+{
+	AVD_EVT *evt;
+	TRACE_ENTER();
+
+	evt =static_cast<AVD_EVT*>(calloc(1, sizeof(AVD_EVT)));
+	osafassert(evt);
+
+	cb->amf_init_tmr.is_active = false;
+	cb->amf_init_tmr.type = AVD_TMR_CL_INIT;
+
+	evt->info.tmr = cb->amf_init_tmr;
+	evt->rcv_evt = static_cast<AVD_EVT_TYPE>((evt->info.tmr.type - AVD_TMR_CL_INIT) + AVD_EVT_TMR_CL_INIT);
+
+	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: ipc send failed", __FUNCTION__);
+		free(evt);
+	}
+}
+
+/**
+ * Check the SUs instantiation status, whether they are instantiated or  
+ * instantiation failed or termination failed state or still instantiating.
+ * @param SU : Pointer to SU
+ *
+ * @return : None
+ */
+bool cluster_su_instantiation_done(AVD_CL_CB *cb, AVD_SU *su)
+{
+	TRACE_ENTER2("%p", su);
+
+	if(su == NULL)
+		goto node_walk;
+
+	TRACE("SU '%s', SUPresenceState '%u'", su->name.value, su->saAmfSUPresenceState);
+	if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) ||
+			(su->saAmfSUPresenceState == 
+			 SA_AMF_PRESENCE_INSTANTIATION_FAILED) ||
+			(su->saAmfSUPresenceState == 
+			 SA_AMF_PRESENCE_TERMINATION_FAILED)) {
+	} else {
+		/* Don't calculate if SU is in transient state.*/
+		goto done;
+	}
+
+node_walk:
+
+	AVD_AVND *node;
+	for (node = avd_node_getnext(NULL); node != NULL; node = avd_node_getnext(&node->name)) {
+		TRACE("node name '%s', Oper'%u'", node->name.value, node->saAmfNodeOperState);
+		if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED)
+		{
+			AVD_SU *su_ptr;
+			su_ptr = node->list_of_su;
+			for (su_ptr = node->list_of_su; su_ptr != NULL; su_ptr = su_ptr->avnd_list_su_next) {
+				if ((su_ptr->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
+						(su_ptr->sg_of_su->saAmfSGAdminState != 
+						 SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
+						(su_ptr->su_on_node->saAmfNodeAdminState != 
+						 SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
+						(su_ptr->saAmfSUPreInstantiable == true)) {
+					if ((su_ptr->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) ||
+							(su_ptr->saAmfSUPresenceState == 
+							 SA_AMF_PRESENCE_INSTANTIATION_FAILED) ||
+							(su_ptr->saAmfSUPresenceState == 
+							 SA_AMF_PRESENCE_TERMINATION_FAILED)) {
+					} else {
+						goto done;
+					}
+				}
+			}
+
+		} else {
+			goto done;
+		}
+	}
+
+	if (node == NULL) {
+		TRACE("All nodes have joined the Cluster");
+		return true;
+	}
+done:
+	TRACE_LEAVE();
+	return false;
+}
+
 /*****************************************************************************
  * Function: avd_data_update_req_func
  *
@@ -655,6 +748,15 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					/* send response to pending clm callback */
 					if (su->su_on_node->clm_pend_inv != 0)
 						clm_pend_response(su, static_cast<SaAmfPresenceStateT>(l_val));
+
+					/* No application SUs hosted on this node. Check if all SUs are instantiated
+					   cluster-wide, if so start assignments */
+					if ((cb->amf_init_tmr.is_active == true) && 
+							(su->sg_of_su->sg_ncs_spec == false) && 
+							(cluster_su_instantiation_done(cb, su) == true)) {
+						avd_stop_tmr(cb, &cb->amf_init_tmr);
+						cluster_startup_expiry_event_generate(cb);
+					}
 				} else {
 					/* log error that a the  value len is invalid */
 					LOG_ER("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.

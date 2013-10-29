@@ -221,6 +221,14 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 			m_AVD_CLINIT_TMR_START(cb);
 		}
 
+		/* No application SUs hosted on this node. Check if all SUs are instantiated cluster-wide,
+		   if so start assignments */
+		if ((avnd->list_of_su == NULL) && (cb->amf_init_tmr.is_active == true) && 
+				(cluster_su_instantiation_done(cb, NULL) == true)) {
+			avd_stop_tmr(cb, &cb->amf_init_tmr);
+			cluster_startup_expiry_event_generate(cb);
+		}
+
 		/* Instantiate the application SUs. */
 		avd_sg_app_node_su_inst_func(cb, avnd);
 
