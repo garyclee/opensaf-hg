@@ -161,5 +161,7 @@ extern AVD_SU *get_other_su_from_oper_list(AVD_SU *su);
 extern void su_complete_admin_op(AVD_SU *su, SaAisErrorT result);
 extern void comp_complete_admin_op(AVD_COMP *comp, SaAisErrorT result);
 extern void su_disable_comps(AVD_SU *su, SaAisErrorT result);
+extern bool cluster_su_instantiation_done(AVD_CL_CB *cb, AVD_SU *su);
+extern void cluster_startup_expiry_event_generate(AVD_CL_CB *cb);
 
 #endif
