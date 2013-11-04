@@ -371,19 +371,26 @@ uint32_t immnd_introduceMe(IMMND_CB *cb)
 	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
 	if(cb->mIntroduced) {
 		send_evt.info.immd.info.ctrl_msg.refresh = SA_TRUE;
-		send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
-			cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+		send_evt.info.immd.info.ctrl_msg.pbeEnabled = /*see immsv_d2nd_control in immsv_ev.h*/
+			(cb->mPbeFile)?((cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:3):2;
+		TRACE("Refresher immnd_introduceMe pbeEnabled:%u NOT with file params",
+			send_evt.info.immd.info.ctrl_msg.pbeEnabled);
 	} else if(cb->mPbeFile) {
-		/* First time send dir/file/pbe-file info so that IMMD can
-		   verify cluster consistent file setup. Pbe is tentatively
-		   enabled. May turn out to be disabled after loading.
-		   This uses an extension of the intro protocol that is 
-		   backwards compatible. By setting msg.pbeEnabled to 2
-		   receivers that are aware of the extension will act on
-		   the added info. Old implementaitons simply test on 
-		   pbeEnabled being zero or not.
+		/* OpenSAF 4.4: First time send dir/file/pbe-file info so that IMMD can
+		   verify cluster consistent file setup. Pbe is by default disabled.
+		   May turn out to be enabled after loading/sync. 
+		   OpenSAF 4.4 uses an extension of the intro protocol that is 
+		   backwards compatible. By setting msg.pbeEnabled to 2, 3 or 4
+		   an IMMD executing 4.4 is aware of the potential extension and will
+		   act on the added info. Old implementaitons simply test on pbeEnabled
+		   being zero or non-zero, discarding the trailing file params in the message.
+		   OpenSAF 4.4 will not verify file params for nodes introducing themselves
+		   using 0/1 for pbeEnabled (i.e. pre 4.4 nodes), to allow upgrade to 4.4.
 		*/
-		send_evt.info.immd.info.ctrl_msg.pbeEnabled = 2; 
+		send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
+			(cb->mPbeFile)?((cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:3):2;
+		TRACE("First immnd_introduceMe, sending pbeEnabled:%u WITH params",
+			send_evt.info.immd.info.ctrl_msg.pbeEnabled);
 		send_evt.info.immd.info.ctrl_msg.dir.size = strlen(cb->mDir)+1;
 		send_evt.info.immd.info.ctrl_msg.dir.buf = (char *) cb->mDir;
 		send_evt.info.immd.info.ctrl_msg.xmlFile.size = strlen(cb->mFile)+1;
@@ -396,7 +403,14 @@ uint32_t immnd_introduceMe(IMMND_CB *cb)
 			send_evt.info.immd.info.ctrl_msg.pbeFile.size = 0;
 		}
 		*/
+	} else {
+		send_evt.info.immd.info.ctrl_msg.pbeEnabled = 2; 
+		/* Pbe not configured and then of course can not be enabled */
 	}
+
+	TRACE("Possibly extended intro from this IMMND pbeEnabled: %u  dirsize:%u",
+		send_evt.info.immd.info.ctrl_msg.pbeEnabled,
+		send_evt.info.immd.info.ctrl_msg.dir.size);
 
 	if (!immnd_is_immd_up(cb)) {
 		return NCSCC_RC_FAILURE;
@@ -470,8 +484,8 @@ static uint32_t immnd_announceLoading(IMMND_CB *cb, int32_t newEpoch)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_ANNOUNCE_LOADING;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = newEpoch;
-	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
-		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = /*see immsv_d2nd_control in immsv_ev.h*/
+		(cb->mPbeFile)?((cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:3):2;
 
 	if (immnd_is_immd_up(cb)) {
 		rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
@@ -500,8 +514,8 @@ static uint32_t immnd_requestSync(IMMND_CB *cb)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_REQ_SYNC;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
-	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
-		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = /*see immsv_d2nd_control in immsv_ev.h*/
+		(cb->mPbeFile)?((cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:3):2;
 	if (immnd_is_immd_up(cb)) {
 		rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
 	} else {
@@ -519,8 +533,8 @@ void immnd_announceDump(IMMND_CB *cb)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_ANNOUNCE_DUMP;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
-	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
-		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = /*see immsv_d2nd_control in immsv_ev.h*/
+		(cb->mPbeFile)?((cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:3):2;
 	if (immnd_is_immd_up(cb)) {
 		(void)immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
 	}
@@ -571,8 +585,8 @@ static uint32_t immnd_announceSync(IMMND_CB *cb, SaUint32T newEpoch)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_SYNC_START;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = newEpoch;
-	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
-		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = /*see immsv_d2nd_control in immsv_ev.h*/
+		(cb->mPbeFile)?((cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:3):2;
 
 	if (immnd_is_immd_up(cb)) {
 		rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
@@ -731,8 +745,8 @@ static void immnd_abortLoading(IMMND_CB *cb)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_LOADING_FAILED;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
-	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
-		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = /*see immsv_d2nd_control in immsv_ev.h*/
+		(cb->mPbeFile)?((cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:3):2;
 
 	rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
 
@@ -841,8 +855,8 @@ void immnd_abortSync(IMMND_CB *cb)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_SYNC_ABORT;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
-	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
-		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = /*see immsv_d2nd_control in immsv_ev.h*/
+		(cb->mPbeFile)?((cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:3):2;
 
 	LOG_NO("Coord broadcasting ABORT_SYNC, epoch:%u", cb->mRulingEpoch);
 	rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
@@ -889,8 +903,8 @@ static void immnd_pbePrtoPurgeMutations(IMMND_CB *cb)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
-	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
-		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = /*see immsv_d2nd_control in immsv_ev.h*/
+		(cb->mPbeFile)?((cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:3):2;
 
 	LOG_NO("Coord broadcasting PBE_PRTO_PURGE_MUTATIONS, epoch:%u", cb->mRulingEpoch);
 	rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
@@ -1727,7 +1741,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			cb->mState = IMM_SERVER_READY;
 			cb->mJobStart = now;
 			LOG_NO("SERVER STATE: IMM_SERVER_LOADING_CLIENT --> IMM_SERVER_READY");
-			if (cb->mPbeFile) {/* Pbe enabled */
+			if (cb->mPbeFile) {/* Pbe configured */
 				cb->mRim = immModel_getRepositoryInitMode(cb);
 
 				TRACE("RepositoryInitMode: %s", (cb->mRim==SA_IMM_KEEP_REPOSITORY)?

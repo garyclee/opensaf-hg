@@ -138,8 +138,10 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 
 	if (cb->mRulingEpoch < ctrl->rulingEpoch) {
 		cb->mRulingEpoch = ctrl->rulingEpoch;
-		LOG_NO("Ruling epoch noted as:%u on IMMD standby", cb->mRulingEpoch);
+		LOG_NO("SBY: Ruling epoch noted as:%u", cb->mRulingEpoch);
 	}
+
+	if(ctrl->pbeEnabled == 2) {ctrl->pbeEnabled = 0;} 
 
 	osafassert(cb->is_immnd_tree_up);
 	memset(&key, 0, sizeof(MDS_DEST));
@@ -168,17 +170,20 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 
 		immnd_info_node->isCoord = ctrl->isCoord;
 
-		if (ctrl->isCoord) {
-			SaImmRepositoryInitModeT oldRim = cb->mRim;
+		if(immnd_info_node->isCoord) {
 			cb->immnd_coord = immnd_info_node->immnd_key;
-			LOG_NO("IMMND coord at %x", immnd_info_node->immnd_key);
 			immnd_info_node->syncStarted = ctrl->syncStarted;
-			cb->mRim = (ctrl->pbeEnabled)?SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
-			if(cb->mRim != oldRim) {
-				LOG_NO("SaImmRepositoryInitModeT noted as '%s' at IMMD standby",
-					(ctrl->pbeEnabled)?
-					"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
-			}			
+			LOG_NO("IMMND coord at %x", immnd_info_node->immnd_key);
+		}
+
+		SaImmRepositoryInitModeT oldRim = cb->mRim;
+		cb->mRim = (ctrl->pbeEnabled==4)?SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
+		if(cb->mRim != oldRim) {
+			LOG_NO("SBY: SaImmRepositoryInitModeT changed and noted as '%s'",
+				(ctrl->pbeEnabled)?
+				"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+		} else {
+			TRACE("SBY: SaImmRepositoryInitModeT stable as %u ctrl->pbeEnabled:%u", oldRim, ctrl->pbeEnabled);
 		}
 
 		int oldPid = immnd_info_node->immnd_execPid;
@@ -216,28 +221,29 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		LOG_IN("Standby IMMD could not find node with nodeId:%x", ctrl->nodeId);
 	}
 
-	if(ctrl->pbeEnabled == 2) { /* Extended intro. */
+	if(ctrl->pbeEnabled >= 3) { /* Extended intro. */
 		TRACE("Standby receiving FS params: %s %s %s", 
 			ctrl->dir.buf, ctrl->xmlFile.buf, ctrl->pbeFile.buf);
 
-		if(ctrl->dir.size && cb->mDir==NULL) {
+		if(ctrl->dir.size && cb->mDir==NULL && ctrl->canBeCoord) {
+			TRACE("cb->mDir set to %s in standby", ctrl->dir.buf);
 			cb->mDir = ctrl->dir.buf; /*steal*/
-		} else {
+		} else if(ctrl->dir.size && cb->mDir) {
 			/* Should not get here since fs params sent only once.*/
 			if(strcmp(cb->mDir, ctrl->dir.buf)) {
 				LOG_WA("SBY: Discrepancy on IMM directory: %s != %s",
 					cb->mDir, ctrl->dir.buf);
 			}
 			free(ctrl->dir.buf);
-
 		}
 		ctrl->dir.buf=NULL;
 		ctrl->dir.size=0;
 
 
-		if(ctrl->xmlFile.size && cb->mFile==NULL) {
+		if(ctrl->xmlFile.size && cb->mFile==NULL && ctrl->canBeCoord) {
+			TRACE("cb->mFile set to %s in standby",ctrl->xmlFile.buf );
 			cb->mFile = ctrl->xmlFile.buf; /*steal*/
-		} else {
+		} else if(ctrl->xmlFile.size && cb->mFile) {
 			/* Should not get here since fs params sent only once.*/
 			if(strcmp(cb->mFile, ctrl->xmlFile.buf)) {
 				LOG_WA("SBY: Discrepancy on IMM XML file: %s != %s",
@@ -249,9 +255,10 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		ctrl->xmlFile.size=0;
 
 
-		if(ctrl->pbeFile.size && cb->mPbeFile==NULL) {
+		if(ctrl->pbeFile.size && cb->mPbeFile==NULL && ctrl->canBeCoord) {
+			TRACE("cb->mPbeFile set to %s in standby", ctrl->pbeFile.buf);
 			cb->mPbeFile = ctrl->pbeFile.buf; /*steal*/
-		} else {
+		} else if(ctrl->pbeFile.size && cb->mPbeFile) {
 			/* Should not get here since fs params sent only once.*/
 			if(strcmp(cb->mPbeFile, ctrl->pbeFile.buf)) {
 				LOG_WA("SBY: Discrepancy on IMM PBE file: %s != %s",

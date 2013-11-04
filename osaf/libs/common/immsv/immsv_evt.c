@@ -1534,7 +1534,7 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 				LOG_ER("TOO MANY attribute modifications line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
-		} else if ((i_evt->info.immd.info.ctrl_msg.pbeEnabled == 2) &&
+		} else if ((i_evt->info.immd.info.ctrl_msg.pbeEnabled >= 3) &&
 			(i_evt->info.immd.type == IMMD_EVT_ND2D_INTRO)) { /* extended intro */
 
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immd.info.ctrl_msg.dir);
@@ -2153,7 +2153,7 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 				immsv_evt_dec_attrmods(i_ub, &p);
 				o_evt->info.immd.info.objModify.attrMods = p;
 			}
-		} else if ((o_evt->info.immd.info.ctrl_msg.pbeEnabled == 2) && 
+		} else if ((o_evt->info.immd.info.ctrl_msg.pbeEnabled >= 3) && 
 			(o_evt->info.immd.type == IMMD_EVT_ND2D_INTRO)) { /* extended intro */
 
 			IMMSV_OCTET_STRING *os = &(o_evt->info.immd.info.ctrl_msg.dir);
@@ -2853,8 +2853,8 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_encode_8bit(&p8, immdevt->info.ctrl_msg.pbeEnabled);
 			ncs_enc_claim_space(o_ub, 1);
 
-			if((immdevt->info.ctrl_msg.pbeEnabled == 2) &&
-				(immdevt->type == IMMD_EVT_ND2D_INTRO)) { /* extended */
+			if((immdevt->info.ctrl_msg.pbeEnabled >= 3) &&
+				(immdevt->type == IMMD_EVT_ND2D_INTRO)) { /* extended intro */
 				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 				ncs_encode_32bit(&p8, immdevt->info.ctrl_msg.dir.size);
 				ncs_enc_claim_space(o_ub, 4);
@@ -4146,8 +4146,8 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			immdevt->info.ctrl_msg.pbeEnabled = ncs_decode_8bit(&p8);
 			ncs_dec_skip_space(i_ub, 1);
 
-			if((immdevt->info.ctrl_msg.pbeEnabled == 2) &&
-				(immdevt->type == IMMD_EVT_ND2D_INTRO)) { /* extended */
+			if((immdevt->info.ctrl_msg.pbeEnabled >= 3) &&
+				(immdevt->type == IMMD_EVT_ND2D_INTRO)) { /* extended intro */
 				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
 				immdevt->info.ctrl_msg.dir.size = ncs_decode_32bit(&p8);
 				ncs_dec_skip_space(i_ub, 4);

@@ -379,14 +379,19 @@ To enable this feature the folowing three steps are needed.
 	this is normally linked symbolically to 'hostfs/repl-opensaf/immsv_store'.
 
 	Define IMMSV_PBE_FILE to the file name of the sqlite3 database file,
-	normally 'imm.db'. 
-	Note that IMMSV_LOAD_FILE must still also be defined. Even with PBE
-	enabled, you typically initial start from an imm.xml file.
+	normally 'imm.db'. Note that IMMSV_PBE_FILE must be defined in immnd.conf
+	for *all* nodes in the cluster, including payloads, even if they cannot
+	access 	the file. The fact that this environment variable is nonempty
+	is what tells all nodes that PBE is configured. 
+
+	Note also that IMMSV_LOAD_FILE must still also be defined. Even with PBE
+	enabled, you typically initial start from an imm.xml file. A restore from
+	backup will also typically use an imm.xml file.
 
 	Optionally define IMMSV_PBE_TMP_DIR (see immnd.conf). The PBE sometimes
-        needs to regenerate the imm.db file. This is much faster (10 times) if
-        the file is generated in a non replicated file system and then copied
-        to the replicated file system.
+	needs to regenerate the imm.db file. This is much faster (10 times) if
+	the file is generated in a non replicated file system and then copied
+	to the replicated file system.
 
 	Initial start the system.
 	Ensure that it comes up (that the immsv loads properly from imm.xml).
@@ -407,7 +412,7 @@ To enable this feature the folowing three steps are needed.
 	A 'ps' on the controller where the IMMND coord currently resides 
 	should show something like:
 
-        618 root 22320 S N  /usr/local/bin/immdump --daemon --pbe /var/lib/..
+        618 root 22320 S N  /usr/local/bin/immpbed --daemon --pbe /var/lib/..
 
 The PBE feature can at any time be disabled by setting the saImmRepositoryInit
 attribute back to SA_IMM_FROM_FILE (2).

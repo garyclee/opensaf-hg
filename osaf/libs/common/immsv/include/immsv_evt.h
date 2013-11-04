@@ -391,7 +391,9 @@ typedef struct immsv_d2nd_control {
 	uint8_t isCoord;
 	uint8_t syncStarted;
 	SaUint32T nodeEpoch;
-	uint8_t pbeEnabled;
+	uint8_t pbeEnabled;/* See pbeEnabled for immsv_nd2d_control directly below.
+			      In general only 0 or 1 would be used D => ND. */
+
 	IMMSV_OCTET_STRING dir;
 	IMMSV_OCTET_STRING xmlFile;
 	IMMSV_OCTET_STRING pbeFile;	
@@ -405,7 +407,15 @@ typedef struct immsv_nd2d_control {
 	SaUint32T ndExecPid;
 	SaUint32T epoch;
 	uint8_t refresh;		//TRUE=> This is a refresh of epoch.
-	uint8_t pbeEnabled;
+	uint8_t pbeEnabled;/* OpenSaf4.4: 
+			      2:not-enabled-not-configured can be convertred to 0 in immd.
+			      3:not-enabled-configured
+			      4:enabled-configured.
+			      For 4 and 3, file parameters (dir/xmlf/pbef) *may* be appended.
+
+			      OpenSaf4.3 and earlier:
+			      0:not-enabled
+			      1: enabled. */
 	IMMSV_OCTET_STRING dir;
 	IMMSV_OCTET_STRING xmlFile;
 	IMMSV_OCTET_STRING pbeFile;

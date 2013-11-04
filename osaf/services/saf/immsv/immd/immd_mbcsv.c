@@ -566,8 +566,8 @@ static uint32_t mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.pbeEnabled);
 
 		if((arg->info.encode.io_reo_type == IMMD_A2S_MSG_INTRO_RSP)
-			&& (immd_msg->info.ctrl.pbeEnabled==2)) {  /* extended intro */
-			LOG_NO("Encoding Fs params for mbcp to standy immd");
+			&& (immd_msg->info.ctrl.pbeEnabled>=3)) {  /* extended intro */
+			TRACE("Encoding Fs params for mbcp to standy immd");
 			
 			uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 			osafassert(uns32_ptr);
@@ -971,7 +971,7 @@ static uint32_t mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		immd_msg->info.ctrl.pbeEnabled = ncs_decode_8bit(&ptr);
 		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
-		if((evt_type == IMMD_A2S_MSG_INTRO_RSP) && (immd_msg->info.ctrl.pbeEnabled==2)) {
+		if((evt_type == IMMD_A2S_MSG_INTRO_RSP) && (immd_msg->info.ctrl.pbeEnabled>=3)) {
 			TRACE("Decoding Fs params for mbcp to standy immd");
 
 			IMMSV_OCTET_STRING *os = &(immd_msg->info.ctrl.dir);

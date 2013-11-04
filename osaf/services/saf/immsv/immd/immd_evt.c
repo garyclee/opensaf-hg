@@ -359,6 +359,9 @@ static void immd_start_sync_ok(IMMD_CB *cb, SaUint32T rulingEpoch, IMMD_IMMND_IN
 
 	mbcp_msg.type = IMMD_A2S_MSG_SYNC_START;
 	mbcp_msg.info.ctrl = sync_evt.info.immnd.info.ctrl;
+	mbcp_msg.info.ctrl.pbeEnabled = 
+		(cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:((cb->mDir)?3:2);
+	TRACE("pbeEnabled sent to standby is:%u", mbcp_msg.info.ctrl.pbeEnabled);
 
 	proc_rc = immd_mbcsv_sync_update(cb, &mbcp_msg);
 	if (proc_rc != NCSCC_RC_SUCCESS) {
@@ -404,6 +407,8 @@ static void immd_abort_sync_ok(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 
 	mbcp_msg.type = IMMD_A2S_MSG_SYNC_ABORT;
 	mbcp_msg.info.ctrl = sync_evt.info.immnd.info.ctrl;
+	mbcp_msg.info.ctrl.pbeEnabled = 
+		(cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:((cb->mDir)?3:2);
 
 	proc_rc = immd_mbcsv_sync_update(cb, &mbcp_msg);
 	if (proc_rc != NCSCC_RC_SUCCESS) {
@@ -478,6 +483,10 @@ static int immd_dump_ok(IMMD_CB *cb, SaUint32T rulingEpoch, IMMD_IMMND_INFO_NODE
 
 	mbcp_msg.type = IMMD_A2S_MSG_DUMP_OK;
 	mbcp_msg.info.ctrl = dump_evt.info.immnd.info.ctrl;
+	mbcp_msg.info.ctrl.pbeEnabled = 
+		(cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:((cb->mDir)?3:2);
+
+	TRACE("pbeEnabled sent to standby is:%u", mbcp_msg.info.ctrl.pbeEnabled);
 
 	proc_rc = immd_mbcsv_sync_update(cb, &mbcp_msg);
 	if (proc_rc != NCSCC_RC_SUCCESS) {
@@ -528,13 +537,9 @@ static void immd_req_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 {
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT rqsync_evt;
-	IMMD_MBCSV_MSG mbcp_msg;
 
 	TRACE_ENTER();
 	memset(&rqsync_evt, 0, sizeof(IMMSV_EVT));
-	memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
-
-	/*TODO: Send mbcp message to sby <dest, pid, epoch>? */
 
 	rqsync_evt.type = IMMSV_EVT_TYPE_IMMND;
 	rqsync_evt.info.immnd.type = IMMND_EVT_D2ND_SYNC_REQ;
@@ -649,8 +654,8 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, bool 
 	accept_evt.info.immnd.info.ctrl.ndExecPid = node_info->immnd_execPid;
 	accept_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
 	accept_evt.info.immnd.info.ctrl.nodeEpoch = node_info->epoch;
-	accept_evt.info.immnd.info.ctrl.pbeEnabled = 
-		(cb->mRim == SA_IMM_KEEP_REPOSITORY);
+	/* Sending back pbeEnabled from IMMD to IMMNDs not really needed.*/
+	accept_evt.info.immnd.info.ctrl.pbeEnabled = (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	if (isOnController && (cb->immnd_coord == 0)) {
 		LOG_NO("First IMMND on controller found at %x this IMMD at %x."
@@ -668,7 +673,6 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, bool 
 	mbcp_msg.type = IMMD_A2S_MSG_INTRO_RSP;  /* Mbcp intro to SBY. */
 	mbcp_msg.info.ctrl = accept_evt.info.immnd.info.ctrl;
 	if(cb->mPbeFile && !(cb->mFsParamMbcp) && cb->immd_remote_up) { /* Send fs params to SBY. */
-		mbcp_msg.info.ctrl.pbeEnabled = 2; /* Extended intro sent only once to current SBY */
 		cb->mFsParamMbcp = true;
 		fsParamMbcp = true;
 		mbcp_msg.info.ctrl.dir.size = strlen(cb->mDir)+1;
@@ -678,6 +682,9 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, bool 
 		mbcp_msg.info.ctrl.pbeFile.size = strlen(cb->mPbeFile)+1;
 		mbcp_msg.info.ctrl.pbeFile.buf = (char *) cb->mPbeFile;
 	}
+	/* Sending pbeEnabled from active IMMD to standby IMMD is needed in case of fo/so */
+	mbcp_msg.info.ctrl.pbeEnabled = (cb->mRim==SA_IMM_KEEP_REPOSITORY)?4:(cb->mPbeFile)?3:2;
+
 
 	/*Checkpoint the message to standby director. 
 	   Syncronous call=>wait for ack */
@@ -784,9 +791,12 @@ static uint32_t immd_evt_proc_immnd_announce_dump(IMMD_CB *cb, IMMD_EVT *evt, IM
 		} else {
 			/* From coord. */
 			SaImmRepositoryInitModeT oldRim = cb->mRim;
-			cb->mRim = (evt->info.ctrl_msg.pbeEnabled)?SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
+
+			cb->mRim = (evt->info.ctrl_msg.pbeEnabled==4 || evt->info.ctrl_msg.pbeEnabled==1)?
+				SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
 			if(oldRim != cb->mRim) {
-				LOG_NO("SaImmRepositoryInitModeT noted as being: %s", 
+				LOG_IN("immd_announce_dump: pbeEnabled received as %u from IMMND coord", evt->info.ctrl_msg.pbeEnabled);
+				LOG_NO("ACT: SaImmRepositoryInitModeT changed and noted as being: %s", 
 					(cb->mRim == SA_IMM_KEEP_REPOSITORY)?"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
 			}
 		}
@@ -1209,7 +1219,7 @@ static uint32_t immd_evt_proc_immnd_req_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_S
 		}
 
 		if (node_info->isCoord) {
-			LOG_ER("SERIOUS INCONSISTENCY, current IMMND coord " "requests sync!");
+			LOG_ER("SERIOUS INCONSISTENCY, current IMMND coord requests sync!");
 			immd_proc_immd_reset(cb, true);
 			proc_rc = NCSCC_RC_FAILURE;
 		} else {
@@ -1306,9 +1316,21 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 			cb->mRulingEpoch = node_info->epoch;
 			LOG_NO("Ruling epoch changed to:%u", cb->mRulingEpoch);
 		}
+
+		if (node_info->isCoord) {
+			if((evt->info.ctrl_msg.pbeEnabled == 4) && (cb->mRim == SA_IMM_INIT_FROM_FILE)) {
+				cb->mRim = SA_IMM_KEEP_REPOSITORY;
+				LOG_NO("ACT: SaImmRepositoryInitModeT changed and noted as being: SA_IMM_KEEP_REPOSITORY");
+			} else if((evt->info.ctrl_msg.pbeEnabled <= 3) && (evt->info.ctrl_msg.pbeEnabled != 1)
+				&& (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
+				cb->mRim = SA_IMM_INIT_FROM_FILE;
+				LOG_NO("ACT: SaImmRepositoryInitModeT changed and noted as being: SA_IMM_INIT_FROM_FILE");
+			}
+		}
+
 		immd_accept_node(cb, node_info, false);
 		goto done;
-	} 
+	}
 
 	/* Determine type of node. */
 	if (sinfo->dest == cb->loc_immnd_dest) {
@@ -1331,11 +1353,20 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 
 	/* Check for consistent file/dir/pbe configuration. If problem is found
 	   then node is not accepted and no reply is sent for the intro request
-	   from that node. 
+	   from that node. But first check if node to be introduced is of older
+	   version => upgrade is ingoing, accept the old version node without checks.
 	 */
 
-	if(evt->info.ctrl_msg.pbeEnabled == 2) { /* extended intro */
-		TRACE("Extended intro");
+	if(evt->info.ctrl_msg.pbeEnabled < 2) { /* Node running old pre 4.4 OpenSAF */
+		LOG_NO("Intro from pre 4.4 node %x", node_info->immnd_key);
+		node_info->pbeConfigured = (evt->info.ctrl_msg.pbeEnabled == 1); /* dangerous ?*/
+		goto accept_node;
+	} else if(evt->info.ctrl_msg.pbeEnabled == 2) {
+		/* The value 2 means pbe is not configured in an IMMND running OpenSAF 4.4 or later. */
+		LOG_IN("4.4 intro pbeEnabled adjusted to be zero for node %x", node_info->immnd_key);
+		evt->info.ctrl_msg.pbeEnabled = 0;
+	} else if(evt->info.ctrl_msg.pbeEnabled >= 3) { /* extended intro */
+		LOG_NO("Extended intro from node %x", node_info->immnd_key);
 		osafassert(evt->info.ctrl_msg.dir.size > 1); /* xml & dir ensured by immnd_initialize() */
 		osafassert(evt->info.ctrl_msg.xmlFile.size > 1);
 		if(evt->info.ctrl_msg.pbeFile.size > 1) {
@@ -1346,7 +1377,7 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 	if(!(node_info->pbeConfigured)) { /* New node does not have pbe configured. */
 		if(cb->mIs2Pbe) {
 			/* 2PBE configured at IMMD => all nodes *must* have pbe file defined. @@@ */
-			LOG_ER("2PBE is configured in immd.conf, but no Pbe file "
+			LOG_WA("2PBE is configured in immd.conf, but no Pbe file "
 				"is configured for node %x - rejecting node", node_info->immnd_key);
 			immd_kill_node(cb, node_info);
 			proc_rc = NCSCC_RC_FAILURE;
@@ -1354,9 +1385,7 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 		}
 
 		if(cb->mPbeFile) {
-			/* This may need modification for upgrade 4.x -> 4.4.
-			   Any non 4.4 -IMMND that crashes and restarts will not get synced. */
-			LOG_ER("PBE is configured at first attached SC-immnd, but no Pbe file "
+			LOG_WA("PBE is configured at first attached SC-immnd, but no Pbe file "
 				"is configured for immnd at node %x - rejecting node", node_info->immnd_key);
 			immd_kill_node(cb, node_info);
 			proc_rc = NCSCC_RC_FAILURE;
@@ -1385,7 +1414,7 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 					cb->mPbeFile, evt->info.ctrl_msg.pbeFile.buf);
 			} else {
 				/* Shared filesystem */
-				LOG_ER("Unacceptable difference in PBE file name "
+				LOG_WA("Unacceptable difference in PBE file name "
 					"between nodes: (%s)!=(%s) - rejecting node %x.",
 					cb->mPbeFile, evt->info.ctrl_msg.pbeFile.buf,
 					node_info->immnd_key);
@@ -1401,7 +1430,7 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 				LOG_WA("Pbe directory name differ on SCs (%s) != (%s)."
 					"Allowed for 2PBE.", cb->mDir, evt->info.ctrl_msg.dir.buf);
 			} else {
-				LOG_ER("Unacceptable difference in PBE directory name "
+				LOG_WA("Unacceptable difference in PBE directory name "
 					"on shared fs between nodes: (%s)!=(%s) - rejecting node %x.",
 					cb->mDir, evt->info.ctrl_msg.dir.buf,
 					node_info->immnd_key);
@@ -1418,7 +1447,7 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 					"Allowed for 2PBE.",
 					cb->mFile, evt->info.ctrl_msg.xmlFile.buf);
 			} else {
-				LOG_ER("Unacceptable difference in XML file name "
+				LOG_WA("Unacceptable difference in XML file name "
 					"on shared fs between nodes: (%s)!=(%s) - rejecting node %x.",
 					cb->mFile, evt->info.ctrl_msg.xmlFile.buf,
 					node_info->immnd_key);
@@ -1440,20 +1469,10 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 		/* First SC IMMND already arrived earlier with PBE *not* configured.
 		   It would then immediately have been chosen as coord IMMND.
 		 */
-		if(evt->info.ctrl_msg.pbeFile.buf) {
-			LOG_ER("PBE not configured at first attached SC-immnd, but Pbe "
-				"is configured for immnd at %x - rejecting node", 
+		if(evt->info.ctrl_msg.pbeFile.buf && (evt->info.ctrl_msg.pbeEnabled >= 2)) {
+			LOG_WA("PBE not configured at first attached SC-immnd, but Pbe "
+				"is configured for immnd at %x - possible upgrade from pre 4.4", 
 				node_info->immnd_key);
-			immd_kill_node(cb, node_info);
-			proc_rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		goto accept_node;
-	} else if(node_info->isOnController) {
-		/* No IMMND at SC has attached earlier, this is the first one. */
-		LOG_NO("First SC IMMND attached %x", node_info->immnd_key);
-
-		if(evt->info.ctrl_msg.pbeEnabled ==2) {
 			cb->mDir = evt->info.ctrl_msg.dir.buf;
 			evt->info.ctrl_msg.dir.buf = NULL; /*steal*/
 			evt->info.ctrl_msg.dir.size = 0;
@@ -1465,6 +1484,36 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 			cb->mPbeFile = evt->info.ctrl_msg.pbeFile.buf; 
 			evt->info.ctrl_msg.pbeFile.buf = NULL; /*steal*/
 			evt->info.ctrl_msg.pbeFile.size = 0;
+
+			cb->mRim = (evt->info.ctrl_msg.pbeEnabled > 3)?
+				SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
+			LOG_IN("Initial SaImmRepositoryInitModeT noted as being: %s", 
+				(cb->mRim == SA_IMM_KEEP_REPOSITORY)?
+				"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+		}
+		goto accept_node;
+	} else if(node_info->isOnController) {
+		/* No IMMND at SC has attached earlier, this is the first one. */
+		LOG_NO("First SC IMMND (OpenSAF 4.4 or later) attached %x", node_info->immnd_key);
+
+		if(evt->info.ctrl_msg.pbeEnabled >= 3) {
+			cb->mDir = evt->info.ctrl_msg.dir.buf;
+			evt->info.ctrl_msg.dir.buf = NULL; /*steal*/
+			evt->info.ctrl_msg.dir.size = 0;
+
+			cb->mFile = evt->info.ctrl_msg.xmlFile.buf;
+			evt->info.ctrl_msg.xmlFile.buf = NULL; /*steal*/
+			evt->info.ctrl_msg.xmlFile.size = 0;
+
+			cb->mPbeFile = evt->info.ctrl_msg.pbeFile.buf; 
+			evt->info.ctrl_msg.pbeFile.buf = NULL; /*steal*/
+			evt->info.ctrl_msg.pbeFile.size = 0;
+
+			cb->mRim = (evt->info.ctrl_msg.pbeEnabled > 3)?
+				SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
+			LOG_IN("Initial SaImmRepositoryInitModeT noted as being: %s", 
+				(cb->mRim == SA_IMM_KEEP_REPOSITORY)?
+				"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
 		}
 
 		if(cb->mPbeFile == NULL) {
@@ -1487,8 +1536,9 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 				TRACE("Node:%x pid.%u pbeConf:%d", other_node_info->immnd_key,
 					other_node_info->immnd_execPid, other_node_info->pbeConfigured);
 				if(other_node_info->immnd_execPid && !(other_node_info->pbeConfigured)) {
+					/* Must not match file/dir info here because of upgrade tolerance. */
 					osafassert(other_node_info != node_info); /* cant be self */
-					LOG_ER("PBE is configured at first SC, but no Pbe file is "
+					LOG_WA("PBE is configured at first SC, but no Pbe file is "
 						"configured for introduced node %x - "
 						"terminating that node", other_node_info->immnd_key);
 					immd_kill_node(cb, other_node_info);
@@ -1508,7 +1558,7 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 
  done:
 
-	if(evt->info.ctrl_msg.pbeEnabled == 2) { /* extended intro */
+	if(evt->info.ctrl_msg.pbeEnabled >= 3) { /* extended intro */
 		free(evt->info.ctrl_msg.xmlFile.buf);
 		evt->info.ctrl_msg.xmlFile.buf=NULL;
 		evt->info.ctrl_msg.xmlFile.size=0;
