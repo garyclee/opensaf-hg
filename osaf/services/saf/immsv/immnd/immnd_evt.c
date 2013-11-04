@@ -3236,8 +3236,8 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq)
 		        send_evt.info.immd.type = IMMD_EVT_ND2D_LOADING_COMPLETED;
 		        send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 		        send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
-		        send_evt.info.immd.info.ctrl_msg.pbeEnabled =
-		  		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+		        send_evt.info.immd.info.ctrl_msg.pbeEnabled = /*see immsv_d2nd_control in immsv_ev.h*/
+		  		(cb->mPbeFile)?((cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:3):2; 
 
 			error = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
 
@@ -8398,6 +8398,13 @@ static void immnd_evt_proc_admo_finalize(IMMND_CB *cb,
 	err = immModel_adminOwnerDelete(cb, evt->info.admFinReq.adm_owner_id, 0);
 
 	if(wasLoading && (immModel_getLoader(cb) == 0)) {
+
+		if (cb->mPbeFile) {/* Pbe configured */
+			cb->mRim = immModel_getRepositoryInitMode(cb);
+			TRACE("RepositoryInitMode: %s", (cb->mRim==SA_IMM_KEEP_REPOSITORY)?
+				"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+		}
+
 		TRACE("Adjusting epoch directly after loading has completed");
 		immnd_adjustEpoch(cb, SA_TRUE); /* Moved to here from immnd_proc.c #1987 */
 	}
