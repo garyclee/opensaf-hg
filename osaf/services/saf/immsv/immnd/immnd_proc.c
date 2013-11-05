@@ -1295,7 +1295,7 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T duration, SaBoolT* p
 		return SA_TRUE;
 	}
 
-	SaBoolT ccbsTerminated = immModel_ccbsTerminated(cb);
+	SaBoolT ccbsTerminated = immModel_ccbsTerminated(cb, false);
 	SaBoolT pbeIsInSync = immModel_pbeIsInSync(cb, false);
 	SaUint32T largeAdmoId = immModel_getIdForLargeAdmo(cb);
 
