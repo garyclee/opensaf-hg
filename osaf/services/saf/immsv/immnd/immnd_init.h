@@ -299,7 +299,7 @@ extern "C" {
 
 	SaBoolT immModel_syncComplete(IMMND_CB *cb);
 
-	SaBoolT immModel_ccbsTerminated(IMMND_CB *cb);
+	SaBoolT immModel_ccbsTerminated(IMMND_CB *cb, bool allowEmpty);
 
 	void immModel_prepareForSync(IMMND_CB *cb, SaBoolT isJoining);
 

@@ -849,7 +849,7 @@ static uint32_t immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 
 		if (cb->m2Pbe) {
 			if(cb->mIsOtherScUp && immModel_oneSafe2PBEAllowed(cb)) {
-				LOG_WA("ERR_NO_RESOURCES: Cannot allow official dump/backup "
+				LOG_ER("ERR_NO_RESOURCES: Cannot allow official dump/backup "
 					"when 1-safe2PBE is allowed!!");
 				/* This is simply a guard. Only reason it is not an assert is
 				   that this does not signify imm-ram inconsistency, but a grave
@@ -860,7 +860,7 @@ static uint32_t immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 			}
 
 			if((!cb->mIsCoord) && immModel_pbeNotWritable(cb) && 
-				!immModel_ccbsTerminated(cb)) {
+				!immModel_ccbsTerminated(cb, true)) {
 				LOG_WA("ERR_NO_RESOURCES: Active Ccbs still exist in the system");
 				/*Not sure this is a problem though. These ccbs are dommed. 
 				  They will not be allowed to apply untill we are 2-safe.

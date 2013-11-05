@@ -1597,9 +1597,9 @@ immModel_syncComplete(IMMND_CB *cb)
 }
 
 SaBoolT 
-immModel_ccbsTerminated(IMMND_CB *cb)
+immModel_ccbsTerminated(IMMND_CB *cb, bool allowEmpty)
 {
-    return (SaBoolT) ImmModel::instance(&cb->immModel)->ccbsTerminated();
+    return (SaBoolT) ImmModel::instance(&cb->immModel)->ccbsTerminated(allowEmpty);
 }
 
 SaBoolT
@@ -1849,13 +1849,13 @@ ImmModel::immNotPbeWritable(bool isPrtoClient)
 
     if(pbeBSlaveHasExisted() && !getPbeBSlave(&dummyCon, &dummyNode)) {
         /* Pbe slave SHOULD be present but is NOT. Normally this
-	   means immNotPbeWritable() returns true. But if oneSafe2PBEAllowed()
-	   is true, (indicating SC repair or similar) then the unavailability
-	   of the slave is accepted, otherwise not. By default 
-	   oneSafePBEAllowed() is false. So normally we will exit with
-	   reject (true) here. 
-	 */
-	    if(!oneSafe2PBEAllowed()) {return true;}
+           means immNotPbeWritable() returns true. But if oneSafe2PBEAllowed()
+           is true, (indicating SC repair or similar) then the unavailability
+           of the slave is accepted, otherwise not. By default 
+           oneSafePBEAllowed() is false. So normally we will exit with
+           reject (true) here. 
+        */
+        if(!oneSafe2PBEAllowed()) {return true;}
     }
 
     /* Pbe is present but Check also for backlog. */
@@ -9706,7 +9706,7 @@ ImmModel::getCcbIdsForOrigCon(SaUint32T dead, IdVector& cv)
 
 /* Are all ccbs terminated ? */
 bool
-ImmModel::ccbsTerminated()
+ImmModel::ccbsTerminated(bool allowEmpty)
 {
     CcbVector::iterator i;
 
@@ -9714,6 +9714,10 @@ ImmModel::ccbsTerminated()
 
     for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
         if((*i)->mState < IMM_CCB_COMMITTED) {
+            if(allowEmpty && (*i)->mMutations.empty()) {
+                osafassert((*i)->mImplementers.empty());
+                continue;
+            }
             TRACE("Waiting for CCB:%u in state %u", 
                 (*i)->mId, (*i)->mState);
             return false;
