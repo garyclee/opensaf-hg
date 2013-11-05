@@ -127,8 +127,18 @@ void immd_proc_immd_reset(IMMD_CB *cb, bool active)
 	cb->mRulingEpoch = 0;
 	cb->immnd_coord = 0;
 	cb->fevsSendCount = 0LL;
-	
+
+	cb->locPbe.epoch = 0;
+	cb->locPbe.maxCcbId = 0;
+	cb->locPbe.maxCommitTime =  0;
+	cb->locPbe.maxWeakCcbId = 0LL;
+	cb->locPbe.maxWeakCommitTime = 0;
+	cb->remPbe = cb->locPbe;
+	cb->m2PbeCanLoad = false;
+	cb->m2PbeExtraWait = false;
+
 	cb->mRim = SA_IMM_INIT_FROM_FILE; /* Reset to default since we are reloading. */
+	/* Discard immnd node info ? */
 
 	TRACE_LEAVE();
 }
