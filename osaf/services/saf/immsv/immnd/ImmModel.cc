@@ -4779,7 +4779,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                         getObjectName(grandParent, gpDn);
                         osafassert(grandParent->mChildCount >= (afim->mChildCount + 1));
                         --grandParent->mChildCount;
-                        LOG_IN("Childcount for (grand)parent %s of aborted create %s "
+                        TRACE_2("Childcount for (grand)parent %s of aborted create %s "
                                "decremented to %u", gpDn.c_str(), dn.c_str(), 
                                 grandParent->mChildCount);
                         grandParent = grandParent->mParent;
@@ -14662,7 +14662,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 if(i2==sOwnerVector.end()) {
                     LOG_WA("Missing Admin Owner with id:%u in sync-verify "
                            "can happen after pre-loading (2PBE)", ai->id);
-                    osafassert(ai->id  < 3); /* admoId 1 & 2 used in preload. */
+                    osafassert(ai->id  < 10); /* Initial admoId used in 2PBE preload. */
                     continue;
                 }
 
