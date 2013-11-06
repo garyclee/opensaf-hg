@@ -67,6 +67,7 @@ static void usage(const char *progname)
 	printf("\t\tnumerical operation ID (mandatory)\n");
 	printf("\t-O, --operation-name <name>\n");
 	printf("\t\toperation name (mandatory)\n");
+	printf("\t-a, --admin-owner <admin owner name>\n");
 	printf("\t-p, --parameter <p>\n");
 	printf("\t\tparameter(s) to admin op\n");
 	printf("\t\tParameter syntax: <name>:<type>:<value>\n");
@@ -239,6 +240,7 @@ int main(int argc, char *argv[])
 		{"parameter", required_argument, 0, 'p'},
 		{"operation-id", required_argument, 0, 'o'},
 		{"operation-name", required_argument, 0, 'O'},
+		{"admin-owner", required_argument, 0, 'a'},
 		{"help", no_argument, 0, 'h'},
 		{"timeout", required_argument, 0, 't'},
 		{"verbose", required_argument, 0, 'v'},
@@ -247,6 +249,7 @@ int main(int argc, char *argv[])
 	SaAisErrorT error;
 	SaImmHandleT immHandle;
 	SaImmAdminOwnerNameT adminOwnerName = basename(argv[0]);
+	bool releaseAdmo=true;
 	SaImmAdminOwnerHandleT ownerHandle;
 	SaNameT objectName;
 	const SaNameT *objectNames[] = { &objectName, NULL };
@@ -266,7 +269,7 @@ int main(int argc, char *argv[])
 	params[0] = NULL;
 
 	while (1) {
-		c = getopt_long(argc, argv, "dp:o:O:t:hv", long_options, NULL);
+		c = getopt_long(argc, argv, "dp:o:O:a:t:hv", long_options, NULL);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
@@ -321,6 +324,11 @@ int main(int argc, char *argv[])
 				exit(EXIT_FAILURE);
 			}
 			break;
+		case 'a':
+			adminOwnerName = (SaImmAdminOwnerNameT)malloc(strlen(optarg) + 1);
+			strcpy(adminOwnerName, optarg);
+			releaseAdmo=false;
+			break;
 		case 'h':
 			usage(basename(argv[0]));
 			exit(EXIT_SUCCESS);
@@ -359,7 +367,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	error = immutil_saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, &ownerHandle);
+	error = immutil_saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, releaseAdmo?SA_TRUE:SA_FALSE, &ownerHandle);
 	if (error != SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmAdminOwnerInitialize FAILED: %s\n", saf_error(error));
 		exit(EXIT_FAILURE);
@@ -435,10 +443,12 @@ retry:
 			exit(EXIT_FAILURE);
 		}
 
-		error = immutil_saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_ONE);
-		if (error != SA_AIS_OK) {
-			fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
-			exit(EXIT_FAILURE);
+		if(releaseAdmo) {
+			error = immutil_saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_ONE);
+			if (error != SA_AIS_OK) {
+				fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		optind++;
