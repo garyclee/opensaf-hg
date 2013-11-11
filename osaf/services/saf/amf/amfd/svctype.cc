@@ -30,6 +30,17 @@
 
 static NCS_PATRICIA_TREE svctype_db;
 
+//
+// TODO(HANO) Temporary use this function instead of strdup which uses malloc.
+// Later on remove this function and use std::string instead
+#include <cstring>
+static char *StrDup(const char *s)
+{
+	char *c = new char[strlen(s) + 1];
+	std::strcpy(c,s);
+	return c;
+}
+
 static void svctype_db_add(AVD_SVC_TYPE *svct)
 {
 	unsigned int rc = ncs_patricia_tree_add(&svctype_db, &svct->tree_node);
@@ -50,7 +61,7 @@ static void svctype_delete(AVD_SVC_TYPE *svc_type)
 {
 	unsigned int rc = ncs_patricia_tree_del(&svctype_db, &svc_type->tree_node);
 	osafassert(rc == NCSCC_RC_SUCCESS);
-	free(svc_type);
+	delete svc_type;
 }
 
 static AVD_SVC_TYPE *svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
@@ -61,10 +72,7 @@ static AVD_SVC_TYPE *svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	if ((svct = static_cast<AVD_SVC_TYPE*>(calloc(1, sizeof(AVD_SVC_TYPE)))) == NULL) {
-		LOG_ER("calloc FAILED");
-		return NULL;
-	}
+	svct = new AVD_SVC_TYPE();
 
 	memcpy(svct->name.value, dn->value, dn->length);
 	svct->name.length = dn->length;
@@ -72,20 +80,20 @@ static AVD_SVC_TYPE *svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 
 
 	/* Optional, [0..*] */
 	if (immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfSvcDefActiveWeight"), attributes, &attrValuesNumber) == SA_AIS_OK) {
-		svct->saAmfSvcDefActiveWeight = static_cast<char**>( malloc((attrValuesNumber + 1) * sizeof(char *)));
+		svct->saAmfSvcDefActiveWeight = new char*[attrValuesNumber + 1];
 		for (i = 0; i < attrValuesNumber; i++) {
 			svct->saAmfSvcDefActiveWeight[i] =
-			    strdup(immutil_getStringAttr(attributes, "saAmfSvcDefActiveWeight", i));
+			    StrDup(immutil_getStringAttr(attributes, "saAmfSvcDefActiveWeight", i));
 		}
 		svct->saAmfSvcDefActiveWeight[i] = NULL;
 	}
 
 	/* Optional, [0..*] */
 	if (immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfSvcDefStandbyWeight"), attributes, &attrValuesNumber) == SA_AIS_OK) {
-		svct->saAmfSvcDefStandbyWeight = static_cast<char**>(malloc((attrValuesNumber + 1) * sizeof(char *)));
+		svct->saAmfSvcDefStandbyWeight = new char*[attrValuesNumber + 1];
 		for (i = 0; i < attrValuesNumber; i++) {
 			svct->saAmfSvcDefStandbyWeight[i] =
-			    strdup(immutil_getStringAttr(attributes, "saAmfSvcDefStandbyWeight", i));
+			    StrDup(immutil_getStringAttr(attributes, "saAmfSvcDefStandbyWeight", i));
 		}
 		svct->saAmfSvcDefStandbyWeight[i] = NULL;
 	}

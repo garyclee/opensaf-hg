@@ -31,12 +31,7 @@ static NCS_PATRICIA_TREE sutype_db;
 
 static struct avd_sutype *sutype_new(const SaNameT *dn)
 {
-	struct avd_sutype *sutype = static_cast<avd_sutype*>(calloc(1, sizeof(struct avd_sutype)));
-
-	if (sutype == NULL) {
-		LOG_ER("sutype_new: calloc FAILED");
-		return NULL;
-	}
+	struct avd_sutype *sutype = new avd_sutype();
 
 	memcpy(sutype->name.value, dn->value, dn->length);
 	sutype->name.length = dn->length;
@@ -48,8 +43,8 @@ static struct avd_sutype *sutype_new(const SaNameT *dn)
 static void sutype_delete(struct avd_sutype **sutype)
 {
 	osafassert(NULL == (*sutype)->list_of_su);
-	free((*sutype)->saAmfSutProvidesSvcTypes);
-	free(*sutype);
+	delete [] (*sutype)->saAmfSutProvidesSvcTypes;
+	delete *sutype;
 	*sutype = NULL;
 }
 
@@ -104,7 +99,7 @@ static struct avd_sutype *sutype_create(const SaNameT *dn, const SaImmAttrValues
 	osafassert(attr->attrValuesNumber > 0);
 
 	sutype->number_svc_types = attr->attrValuesNumber;
-	sutype->saAmfSutProvidesSvcTypes = static_cast<SaNameT*>(malloc(sutype->number_svc_types * sizeof(SaNameT)));
+	sutype->saAmfSutProvidesSvcTypes = new SaNameT[sutype->number_svc_types];
 
 	for (i = 0; i < sutype->number_svc_types; i++) {
 		if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutProvidesSvcTypes"), attributes, i, &sutype->saAmfSutProvidesSvcTypes[i]) != SA_AIS_OK) {

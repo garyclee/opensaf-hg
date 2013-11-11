@@ -136,10 +136,7 @@ static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	if ((ng = static_cast<AVD_AMF_NG*>(calloc(1, sizeof(AVD_AMF_NG)))) == NULL) {
-		LOG_ER("calloc failed");
-		return NULL;
-	}
+	ng = new AVD_AMF_NG();
 
 	memcpy(ng->ng_name.value, dn->value, dn->length);
 	ng->ng_name.length = dn->length;
@@ -163,7 +160,7 @@ static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 	rc = 0;
 done:
 	if (rc != 0) {
-		free(ng);
+		delete ng;
 		ng = NULL;
 	}
 
@@ -182,7 +179,7 @@ static void ng_delete(AVD_AMF_NG *ng)
 
 	osafassert(ng);
 	free(ng->saAmfNGNodeList);
-	free(ng);
+	delete ng;
 }
 
 /**

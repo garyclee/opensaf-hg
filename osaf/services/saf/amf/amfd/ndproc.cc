@@ -111,6 +111,7 @@ void avd_reg_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
 		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
+		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
 		goto done;
 	}
@@ -463,8 +464,7 @@ void cluster_startup_expiry_event_generate(AVD_CL_CB *cb)
 	AVD_EVT *evt;
 	TRACE_ENTER();
 
-	evt =static_cast<AVD_EVT*>(calloc(1, sizeof(AVD_EVT)));
-	osafassert(evt);
+	evt = new AVD_EVT();
 
 	cb->amf_init_tmr.is_active = false;
 	cb->amf_init_tmr.type = AVD_TMR_CL_INIT;
@@ -474,7 +474,7 @@ void cluster_startup_expiry_event_generate(AVD_CL_CB *cb)
 
 	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: ipc send failed", __FUNCTION__);
-		free(evt);
+		delete evt;
 	}
 }
 

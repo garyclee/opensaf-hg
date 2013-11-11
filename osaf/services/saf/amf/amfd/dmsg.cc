@@ -104,11 +104,7 @@ void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 	AVD_D2D_MSG *d2d_msg = 0;
 	NCS_UBAID *uba = dec_info->io_uba;
 
-	d2d_msg = static_cast<AVD_D2D_MSG*>(calloc(1, sizeof(AVD_D2D_MSG)));
-	if (d2d_msg == NULL) {
-		LOG_ER("calloc failed");
-		osafassert(0);
-	}
+	d2d_msg = new AVD_D2D_MSG();
 
 	data = ncs_dec_flatten_space(uba, data_buff, 3 * sizeof(uint32_t));
 	d2d_msg->msg_type = static_cast<AVD_D2D_MSG_TYPE>(ncs_decode_32bit(&data));
@@ -235,6 +231,6 @@ uint32_t avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg)
 
 void avsv_d2d_msg_free(AVD_D2D_MSG *d2d_msg)
 {
-	free(d2d_msg);
+	delete d2d_msg;
 	d2d_msg = NULL;
 }

@@ -155,15 +155,14 @@ void avd_tmr_exp(void *uarg)
 		tmr->is_active = false;
 
 		/* create & send the timer event */
-		evt =static_cast<AVD_EVT*>(calloc(1, sizeof(AVD_EVT)));
-		osafassert(evt);
+		evt = new AVD_EVT();
 
 		evt->info.tmr = *tmr;
 		evt->rcv_evt = static_cast<AVD_EVT_TYPE>((tmr->type - AVD_TMR_CL_INIT) + AVD_EVT_TMR_CL_INIT);
 
 		if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH) != NCSCC_RC_SUCCESS) {
 			LOG_ER("avd_tmp_exp: ipc send failed");
-			free(evt);
+			delete evt;
 		}
 	}
 

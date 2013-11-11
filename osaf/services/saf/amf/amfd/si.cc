@@ -31,6 +31,16 @@ static NCS_PATRICIA_TREE si_db;
 static void avd_si_add_csi_db(struct avd_csi_tag* csi);
 static void si_update_ass_state(AVD_SI *si);
 
+//
+// TODO(HANO) Temporary use this function instead of strdup which uses malloc.
+// Later on remove this function and use std::string instead
+#include <cstring>
+static char *StrDup(const char *s)
+{
+	char *c = new char[strlen(s) + 1];
+	std::strcpy(c,s);
+	return c;
+}
 
 /**
  * @brief Checks if the dependencies configured leads to loop
@@ -214,11 +224,7 @@ void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uint32_t saAmfRank)
 	avd_sirankedsu_t *ranked_su;
 	TRACE_ENTER();
 
-	ranked_su = static_cast<avd_sirankedsu_t*>(malloc(sizeof(avd_sirankedsu_t)));
-	if (NULL == ranked_su) {
-		LOG_ER("memory alloc failed error :%s", strerror(errno));
-		osafassert(0);
-	}
+	ranked_su = new avd_sirankedsu_t;
 	ranked_su->suname = *suname;
 	ranked_su->saAmfRank = saAmfRank;
 
@@ -261,7 +267,7 @@ void avd_si_remove_rankedsu(AVD_SI *si, const SaNameT *suname)
 	else
 		prev->next = tmp->next;
 
-	free(tmp);
+	delete tmp;
 	TRACE_LEAVE();
 }
 
@@ -320,10 +326,7 @@ AVD_SI *avd_si_new(const SaNameT *dn)
 {
 	AVD_SI *si;
 
-	if ((si = static_cast<AVD_SI*>(calloc(1, sizeof(AVD_SI)))) == NULL) {
-		LOG_ER("calloc FAILED");
-		return NULL;
-	}
+	si = new AVD_SI();
 
 	memcpy(si->name.value, dn->value, dn->length);
 	si->name.length = dn->length;
@@ -374,7 +377,7 @@ void avd_si_delete(AVD_SI *si)
 	avd_sg_remove_si(si->sg_of_si, si);
 	rc = ncs_patricia_tree_del(&si_db, &si->tree_node);
 	osafassert(rc == NCSCC_RC_SUCCESS);
-	free(si);
+	delete si;
 }
 /**
  * @brief    Deletes all assignments on a particular SI
@@ -566,7 +569,7 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 			while (compcsi != NULL) {
 				temp = compcsi;
 				compcsi = compcsi->susi_csicomp_next;
-				free(temp);
+				delete temp;
 			}
 			sisu->list_of_csicomp = NULL;
 			sisu = sisu->si_next;
@@ -592,10 +595,10 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 
 	/* Optional, [0..*] */
 	if (immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfSIActiveWeight"), attributes, &attrValuesNumber) == SA_AIS_OK) {
-		si->saAmfSIActiveWeight = static_cast<char**>(malloc(attrValuesNumber * sizeof(char *)));
+		si->saAmfSIActiveWeight = new char*[attrValuesNumber];
 		for (i = 0; i < attrValuesNumber; i++) {
 			si->saAmfSIActiveWeight[i] =
-			    strdup(immutil_getStringAttr(attributes, "saAmfSIActiveWeight", i));
+			    StrDup(immutil_getStringAttr(attributes, "saAmfSIActiveWeight", i));
 		}
 	} else {
 		/*  TODO */
@@ -603,10 +606,10 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 
 	/* Optional, [0..*] */
 	if (immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfSIStandbyWeight"), attributes, &attrValuesNumber) == SA_AIS_OK) {
-		si->saAmfSIStandbyWeight = static_cast<char**>(malloc(attrValuesNumber * sizeof(char *)));
+		si->saAmfSIStandbyWeight = new char*[attrValuesNumber];
 		for (i = 0; i < attrValuesNumber; i++) {
 			si->saAmfSIStandbyWeight[i] =
-			    strdup(immutil_getStringAttr(attributes, "saAmfSIStandbyWeight", i));
+			    StrDup(immutil_getStringAttr(attributes, "saAmfSIStandbyWeight", i));
 		}
 	} else {
 		/*  TODO */

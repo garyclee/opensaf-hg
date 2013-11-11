@@ -39,10 +39,7 @@ static AVD_SUTCOMP_TYPE *sutcomptype_create(SaNameT *dn, const SaImmAttrValuesT_
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	if ((sutcomptype = static_cast<AVD_SUTCOMP_TYPE*>(calloc(1, sizeof(AVD_SUTCOMP_TYPE)))) == NULL) {
-		LOG_ER("calloc failed");
-		return NULL;
-	}
+	sutcomptype = new AVD_SUTCOMP_TYPE();
 
 	memcpy(sutcomptype->name.value, dn->value, dn->length);
 	sutcomptype->name.length = dn->length;
@@ -63,7 +60,7 @@ static void sutcomptype_delete(AVD_SUTCOMP_TYPE *sutcomptype)
 
 	rc = ncs_patricia_tree_del(&sutcomptype_db, &sutcomptype->tree_node);
 	osafassert(rc == NCSCC_RC_SUCCESS);
-	free(sutcomptype);
+	delete sutcomptype;
 }
 
 AVD_SUTCOMP_TYPE *avd_sutcomptype_get(const SaNameT *dn)

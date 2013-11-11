@@ -70,10 +70,7 @@ static AVD_CTCS_TYPE *ctcstype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	if ((ctcstype = static_cast<AVD_CTCS_TYPE*>(calloc(1, sizeof(AVD_CTCS_TYPE)))) == NULL) {
-		LOG_ER("calloc FAILED");
-		return NULL;
-	}
+	ctcstype = new AVD_CTCS_TYPE();
 
 	memcpy(ctcstype->name.value, dn->value, dn->length);
 	ctcstype->name.length = dn->length;
@@ -93,7 +90,7 @@ static AVD_CTCS_TYPE *ctcstype_create(const SaNameT *dn, const SaImmAttrValuesT_
 	rc = 0;
 
 	if (rc != 0) {
-		free(ctcstype);
+		delete ctcstype;
 		ctcstype = NULL;
 	}
 	return ctcstype;
@@ -105,7 +102,7 @@ static void ctcstype_delete(AVD_CTCS_TYPE *ctcstype)
 
 	rc = ncs_patricia_tree_del(&ctcstype_db, &ctcstype->tree_node);
 	osafassert(rc == NCSCC_RC_SUCCESS);
-	free(ctcstype);
+	delete ctcstype;
 }
 
 AVD_CTCS_TYPE *avd_ctcstype_get(const SaNameT *dn)

@@ -37,7 +37,8 @@
 /*
  * Module Inclusion Control...
  */
-#include <logtrace.h>
+
+#include "logtrace.h"
 #include "amfd.h"
 
 static uint32_t avsv_mbcsv_cb(NCS_MBCSV_CB_ARG *arg);
@@ -748,11 +749,7 @@ uint32_t avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uint32_t role
 		goto done;
 	}
 
-	d2n_msg = static_cast<AVD_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	if (d2n_msg == NULL) {
-		LOG_ER("calloc failed");
-		osafassert(0);
-	}
+	d2n_msg = new AVD_DND_MSG();
 
 	d2n_msg->msg_type = AVSV_D2N_ROLE_CHANGE_MSG;
 	d2n_msg->msg_info.d2n_role_change_info.msg_id = ++(node->snd_msg_id);
@@ -763,7 +760,7 @@ uint32_t avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uint32_t role
 	if (avd_d2n_msg_snd(cb, node, d2n_msg) != NCSCC_RC_SUCCESS) {
 		--(node->snd_msg_id);
 		LOG_ER("%s: avd_d2n_msg_snd failed", __FUNCTION__);
-		avsv_dnd_msg_free(d2n_msg);
+		//TODO(UABHANO)d2n_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1155,11 +1152,7 @@ static uint32_t avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	/*
 	 * This is a FIFO queue. Add message at the tail of the queue.
 	 */
-	if (NULL == (updt_msg = static_cast<AVSV_ASYNC_UPDT_MSG_QUEUE*>(calloc(1, sizeof(AVSV_ASYNC_UPDT_MSG_QUEUE))))) {
-		LOG_ER("calloc failed");
-		osafassert(0);
-		return NCSCC_RC_FAILURE;
-	}
+	updt_msg = new AVSV_ASYNC_UPDT_MSG_QUEUE();
 
 	updt_msg->dec = *dec;
 
@@ -1245,7 +1238,7 @@ uint32_t avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, bool pr_or_fr)
 			status = avd_dec_data_func_list[updt_msg->dec.i_reo_type] (cb, &updt_msg->dec);
 		}
 free_msg:
-		free(updt_msg);
+		delete updt_msg;
 	}
 
 	/* All messages are dequeued. Set tail to NULL */

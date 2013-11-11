@@ -31,6 +31,17 @@
 
 static NCS_PATRICIA_TREE compcstype_db;
 
+//
+// TODO(HANO) Temporary use this function instead of strdup which uses malloc.
+// Later on remove this function and use std::string instead
+#include <cstring>
+static char *StrDup(const char *s)
+{
+	char *c = new char[strlen(s) + 1];
+	std::strcpy(c,s);
+	return c;
+}
+
 void avd_compcstype_db_add(AVD_COMPCS_TYPE *cst)
 {
 	unsigned int rc;
@@ -45,10 +56,7 @@ AVD_COMPCS_TYPE *avd_compcstype_new(const SaNameT *dn)
 {
 	AVD_COMPCS_TYPE *compcstype;
 
-	if ((compcstype = static_cast<AVD_COMPCS_TYPE*>(calloc(1, sizeof(*compcstype)))) == NULL) {
-		LOG_ER("calloc FAILED");
-		return NULL;
-	}
+	compcstype = new AVD_COMPCS_TYPE();
 	
 	memcpy(compcstype->name.value, dn->value, dn->length);
 	compcstype->name.length = dn->length;
@@ -63,7 +71,7 @@ void avd_compcstype_delete(AVD_COMPCS_TYPE **cst)
 
 	rc = ncs_patricia_tree_del(&compcstype_db, &(*cst)->tree_node);
 	osafassert(rc == NCSCC_RC_SUCCESS);
-	free(*cst);
+	delete *cst;
 	*cst = NULL;
 }
 
@@ -139,7 +147,7 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 	SaNameT ctcstype_name = {0};
 	char *parent;
 	AVD_COMP *comp;
-	char *cstype_name = strdup((char*)dn->value);
+	char *cstype_name = StrDup((char*)dn->value);
 	char *p;
 
 	/* This is an association class, the parent (SaAmfComp) should come after the second comma */
@@ -211,11 +219,11 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 		}
 	}
 
-	free(cstype_name);
+	delete [] cstype_name;
 	return 1;
 
 free_cstype_name:
-	free(cstype_name);
+	delete [] cstype_name;
 	return 0;
 }
 
@@ -225,7 +233,7 @@ static AVD_COMPCS_TYPE *compcstype_create(const SaNameT *dn, const SaImmAttrValu
 	AVD_COMPCS_TYPE *compcstype;
 	AVD_CTCS_TYPE *ctcstype;
 	SaNameT ctcstype_name = {0};
-	char *cstype_name = strdup((char*)dn->value);
+	char *cstype_name = StrDup((char*)dn->value);
 	char *p;
 	SaNameT comp_name;
 	AVD_COMP *comp;
@@ -277,7 +285,7 @@ static AVD_COMPCS_TYPE *compcstype_create(const SaNameT *dn, const SaImmAttrValu
 done:
 	if (rc != 0)
 		avd_compcstype_delete(&compcstype);
-	free(cstype_name);
+	delete [] cstype_name;
 
 	return compcstype;
 }

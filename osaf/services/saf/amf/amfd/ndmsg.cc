@@ -115,15 +115,11 @@ uint32_t avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
 		return NCSCC_RC_FAILURE;
 	}
 
-	dst_msg = static_cast<AVD_DND_MSG*>(malloc(sizeof(AVSV_DND_MSG)));
-	if (dst_msg == AVD_DND_MSG_NULL) {
-		LOG_ER("malloc failed");
-		osafassert(0);
-	}
+	dst_msg = new AVD_DND_MSG;
 
 	if (NCSCC_RC_SUCCESS != avsv_dnd_msg_copy(dst_msg, (AVSV_DND_MSG *)cpy_info->i_msg)) {
 		LOG_ER("%s: copy failed", __FUNCTION__);
-		free(dst_msg);
+		delete dst_msg;
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -203,10 +199,7 @@ static void avd_d2n_msg_enqueue(AVD_CL_CB *cb, NCSMDS_INFO *snd_mds)
 	 * Allocate the message and put it in the queue.
 	 * We will have to send it at later point of time.
 	 */
-	if (NULL == (nd_msg = static_cast<AVSV_ND_MSG_QUEUE*>(calloc(1, sizeof(AVSV_ND_MSG_QUEUE))))) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		osafassert(0);
-	}
+	nd_msg = new AVSV_ND_MSG_QUEUE();
 
 	memcpy(&nd_msg->snd_msg, snd_mds, sizeof(NCSMDS_INFO));
 
@@ -243,9 +236,9 @@ uint32_t avd_d2n_msg_dequeue(AVD_CL_CB *cb)
 			LOG_ER("%s: ncsmds_api failed %u", __FUNCTION__, rc);
 		}
 
-		avsv_dnd_msg_free((AVD_DND_MSG *)queue_elem->snd_msg.info.svc_send.i_msg);
+		d2n_msg_free((AVD_DND_MSG *)queue_elem->snd_msg.info.svc_send.i_msg);
 
-		free(queue_elem);
+		delete queue_elem;
 
 		m_AVD_DTOND_MSG_POP(cb, queue_elem);
 	}
@@ -357,11 +350,7 @@ uint32_t avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt
 	}
 
 	/* create the message event */
-	evt = static_cast<AVD_EVT*>(calloc(1, sizeof(AVD_EVT)));
-	if (evt == AVD_EVT_NULL) {
-		LOG_ER("calloc failed");
-		osafassert(0);
-	}
+	evt = new AVD_EVT();
 
 	if (node_id == cb->node_id_avd_other) {
 		/* We need to maintain version information of peer AvND. We shouldn't
@@ -376,7 +365,7 @@ uint32_t avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt
 		LOG_ER("%s: ncs_ipc_send failed", __FUNCTION__);
 		avsv_dnd_msg_free(rcv_msg);
 		evt->info.avnd_msg = NULL;
-		free(evt);
+		delete evt;
 		return NCSCC_RC_FAILURE;
 	}
 

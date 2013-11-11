@@ -54,7 +54,7 @@ static void comptype_delete(AVD_COMP_TYPE *avd_comp_type)
 	rc = ncs_patricia_tree_del(&comptype_db, &avd_comp_type->tree_node);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 
-	free(avd_comp_type);
+	delete avd_comp_type;
 }
 
 void avd_comptype_add_comp(AVD_COMP *comp)
@@ -97,10 +97,7 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	if ((compt = static_cast<AVD_COMP_TYPE*>(calloc(1, sizeof(AVD_COMP_TYPE)))) == NULL) {
-		LOG_ER("calloc FAILED");
-		return NULL;
-	}
+	compt = new AVD_COMP_TYPE();
 
 	memcpy(compt->name.value, dn->value, dn->length);
 	compt->name.length = dn->length;
