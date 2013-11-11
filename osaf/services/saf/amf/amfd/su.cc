@@ -52,8 +52,7 @@ AVD_SU *avd_su_new(const SaNameT *dn)
 	SaNameT sg_name;
 	AVD_SU *su;
 
-	su = static_cast<AVD_SU*>(calloc(1, sizeof(*su)));
-	osafassert(su);
+	su = new AVD_SU();
 	
 	memcpy(su->name.value, dn->value, dn->length);
 	su->name.length = dn->length;
@@ -94,7 +93,7 @@ void avd_su_delete(AVD_SU *su)
 	avd_sutype_remove_su(su);
 	avd_su_db_remove(su);
 	avd_sg_remove_su(su);
-	free(su);
+	delete su;
 
 	TRACE_LEAVE();
 }
@@ -505,7 +504,7 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 
 done:
 	if (rc != 0) {
-		free(su);
+		delete su;
 		su = NULL;
 	}
 
@@ -629,11 +628,7 @@ static void su_add_to_model(AVD_SU *su)
 		if (NULL == avd_cb->ext_comp_info.ext_comp_hlt_check) {
 			/* This is an external SU and we need to create the 
 			   supporting info. */
-			avd_cb->ext_comp_info.ext_comp_hlt_check = static_cast<AVD_AVND*>(malloc(sizeof(AVD_AVND)));
-			if (NULL == avd_cb->ext_comp_info.ext_comp_hlt_check) {
-				avd_sg_remove_su(su);
-				LOG_ER("Memory Alloc Failure");
-			}
+			avd_cb->ext_comp_info.ext_comp_hlt_check = new AVD_AVND;
 			memset(avd_cb->ext_comp_info.ext_comp_hlt_check, 0, sizeof(AVD_AVND));
 			avd_cb->ext_comp_info.local_avnd_node = avd_node_find_nodeid(avd_cb->node_id_avd);
 

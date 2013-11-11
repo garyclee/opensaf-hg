@@ -353,7 +353,7 @@ void avd_mds_avnd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		if (NULL != node_fovr) {
 			ncs_patricia_tree_del(&cb->node_list, &node_fovr->tree_node_id_node);
-			free(node_fovr);
+			delete node_fovr;
 		}
 	}
 done:
@@ -415,10 +415,7 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 			avd_pg_node_csi_del_all(cb, avnd);
 
 			/* Add this node in our fail-over node list */
-			if (NULL == (node_to_add = static_cast<AVD_FAIL_OVER_NODE*>(calloc(1, sizeof(AVD_FAIL_OVER_NODE))))) {
-				/* Log Error */
-				return;
-			}
+			node_to_add = new AVD_FAIL_OVER_NODE();
 
 			node_to_add->node_id = avnd->node_info.nodeId;
 			node_to_add->tree_node_id_node.key_info = (uint8_t *)&(node_to_add->node_id);
@@ -428,7 +425,7 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 
 			if (ncs_patricia_tree_add(&cb->node_list, &node_to_add->tree_node_id_node) != NCSCC_RC_SUCCESS) {
 				/* log an error */
-				free(node_to_add);
+				delete node_to_add;
 				return;
 			}
 		} else {
@@ -481,7 +478,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 								 (uint8_t *)&evt->info.avnd_msg->msg_info.
 								 n2d_ack_nack_info.node_id))) {
 		ncs_patricia_tree_del(&cb->node_list, &node_fovr->tree_node_id_node);
-		free(node_fovr);
+		delete node_fovr;
 	} else {
 		/* do i need to log an error */
 		avsv_dnd_msg_free(n2d_msg);

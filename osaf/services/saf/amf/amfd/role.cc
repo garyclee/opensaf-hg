@@ -471,14 +471,13 @@ static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 	/* Post an evt on mailbox to set active role to all NCS SU */
 	/* create the message event */
-	evt = static_cast<AVD_EVT*>(calloc(1, sizeof(AVD_EVT)));
-	osafassert(evt != NULL);
+	evt = new AVD_EVT();
 
 	evt->rcv_evt = AVD_EVT_SWITCH_NCS_SU;
 
 	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
 		LOG_ER("FAILOVER Quiesced --> Active FAILED, IPC SEND FAILED");
-		free(evt);
+		delete evt;
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -586,7 +585,7 @@ void avd_mds_qsd_role_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	cb->is_implementer = false;
 
 	/* Throw away all pending IMM updates, no longer implementer */
-	avd_job_fifo_empty();
+	Fifo::empty();
 
 	if (avd_imm_applier_set() != SA_AIS_OK) {
 		LOG_ER("avd_imm_applier_set FAILED");
@@ -685,10 +684,10 @@ uint32_t avd_post_amfd_switch_role_change_evt(AVD_CL_CB *cb, SaAmfHAStateT role)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_EVT *evt;
 
-	evt = static_cast<AVD_EVT*>(malloc(sizeof(AVD_EVT)));
-	osafassert(evt);
+	evt = new AVD_EVT;
+
 	evt->rcv_evt = AVD_EVT_ROLE_CHANGE;
-	evt->info.avd_msg = static_cast<AVD_D2D_MSG*>(malloc(sizeof(AVD_D2D_MSG)));
+	evt->info.avd_msg = new AVD_D2D_MSG;
 	evt->info.avd_msg->msg_type = AVD_D2D_CHANGE_ROLE_REQ;
 	evt->info.avd_msg->msg_info.d2d_chg_role_req.cause = AVD_SWITCH_OVER;
 	evt->info.avd_msg->msg_info.d2d_chg_role_req.role =  role; 

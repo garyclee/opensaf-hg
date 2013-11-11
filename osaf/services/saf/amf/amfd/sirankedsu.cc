@@ -75,10 +75,7 @@ static AVD_SUS_PER_SI_RANK *avd_sirankedsu_create(AVD_CL_CB *cb, AVD_SUS_PER_SI_
 {
 	AVD_SUS_PER_SI_RANK *ranked_su_per_si;
 
-	if ((ranked_su_per_si = static_cast<AVD_SUS_PER_SI_RANK*>(calloc(1, sizeof(AVD_SUS_PER_SI_RANK)))) == NULL) {
-		LOG_ER("Mem Alloc failed");
-		return NULL;
-	}
+	ranked_su_per_si = new AVD_SUS_PER_SI_RANK();
 
 	ranked_su_per_si->indx.si_name.length = indx.si_name.length;
 	memcpy(ranked_su_per_si->indx.si_name.value, indx.si_name.value,
@@ -234,7 +231,7 @@ static uint32_t avd_sirankedsu_delete(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *ranked
 		return NCSCC_RC_FAILURE;
 	}
 
-	free(ranked_su_per_si);
+	delete ranked_su_per_si;
 	return NCSCC_RC_SUCCESS;
 }
 

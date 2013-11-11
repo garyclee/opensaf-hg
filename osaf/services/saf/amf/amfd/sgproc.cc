@@ -1661,11 +1661,7 @@ uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 	}
 
 	/* Allocate the holder structure for having the pointer to the SU */
-	*i_su_opr =static_cast<AVD_SG_OPER*>(malloc(sizeof(AVD_SG_OPER)));
-	if (*i_su_opr == NULL) {
-		LOG_ER("%s: malloc failed", __FUNCTION__);
-		osafassert(0);
-	}
+	*i_su_opr = new AVD_SG_OPER;
 
 	/* Fill the content */
 	(*i_su_opr)->su = su;
@@ -1716,7 +1712,7 @@ uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 			su->sg_of_su->su_oper_list.next = temp_su_opr->next;
 			temp_su_opr->next = NULL;
 			temp_su_opr->su = NULL;
-			free(temp_su_opr);
+			delete temp_su_opr;
 		} else {
 			su->sg_of_su->su_oper_list.su = NULL;
 		}
@@ -1733,7 +1729,7 @@ uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 			*i_su_opr = temp_su_opr->next;
 			temp_su_opr->next = NULL;
 			temp_su_opr->su = NULL;
-			free(temp_su_opr);
+			delete temp_su_opr;
 
 			if (!ckpt)
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
@@ -2019,10 +2015,7 @@ static SaAisErrorT avd_d2n_reboot_snd(AVD_AVND *node)
 	/* Send reboot request to amfnd to reboot that node. */
 	AVD_DND_MSG *d2n_msg;
 
-	if ((d2n_msg = static_cast<AVD_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)))) == NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		return SA_AIS_ERR_NO_MEMORY;
-	}
+	d2n_msg = new AVD_DND_MSG();
 
 	d2n_msg->msg_type = AVSV_D2N_REBOOT_MSG;
 	d2n_msg->msg_info.d2n_reboot_info.node_id = node->node_info.nodeId;
@@ -2031,7 +2024,7 @@ static SaAisErrorT avd_d2n_reboot_snd(AVD_AVND *node)
 	/* Now send the message to the node director */
 	if (avd_d2n_msg_snd(avd_cb, node, d2n_msg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
-		avsv_dnd_msg_free(d2n_msg);
+		d2n_msg_free(d2n_msg);
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 	}
 

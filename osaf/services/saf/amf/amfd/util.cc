@@ -127,10 +127,7 @@ uint32_t avd_snd_node_ack_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id)
 {
 	AVD_DND_MSG *d2n_msg;
 
-	if ((d2n_msg = static_cast<AVD_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)))) == NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		return NCSCC_RC_FAILURE;
-	}
+	d2n_msg = new AVD_DND_MSG();
 
 	/* prepare the message */
 	d2n_msg->msg_type = AVSV_D2N_DATA_ACK_MSG;
@@ -141,7 +138,7 @@ uint32_t avd_snd_node_ack_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id)
 
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
-		avsv_dnd_msg_free(d2n_msg);
+		d2n_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -182,12 +179,7 @@ uint32_t avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 		return NCSCC_RC_FAILURE;
 	}
 
-	d2n_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	if (d2n_msg == AVD_DND_MSG_NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-	}
+	d2n_msg = new AVSV_DND_MSG();
 
 	/* prepare the message */
 	d2n_msg->msg_type = AVSV_D2N_DATA_VERIFY_MSG;
@@ -202,7 +194,7 @@ uint32_t avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	/* Now send the message to the node director */
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
-		avsv_dnd_msg_free(d2n_msg);
+		d2n_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -246,12 +238,7 @@ uint32_t avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id_ack)
 		return NCSCC_RC_FAILURE;
 	}
 
-	d2n_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	if (d2n_msg == AVD_DND_MSG_NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-	}
+	d2n_msg = new AVSV_DND_MSG();
 
 	/* prepare the message */
 	d2n_msg->msg_type = AVSV_D2N_NODE_UP_MSG;
@@ -265,7 +252,7 @@ uint32_t avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id_ack)
 	/* Now send the message to the node director */
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
-		avsv_dnd_msg_free(d2n_msg);
+		d2n_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -309,12 +296,7 @@ uint32_t avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id_a
 	}
 
 	/* prepare the node operation state ack message. */
-	d2n_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	if (d2n_msg == AVD_DND_MSG_NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-	}
+	d2n_msg = new AVSV_DND_MSG();
 
 	d2n_msg->msg_type = AVSV_D2N_DATA_ACK_MSG;
 	d2n_msg->msg_info.d2n_ack_info.msg_id_ack = msg_id_ack;
@@ -325,7 +307,7 @@ uint32_t avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id_a
 	/* send the message */
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
-		avsv_dnd_msg_free(d2n_msg);
+		d2n_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -362,11 +344,7 @@ uint32_t avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, bool term_state)
 	TRACE_ENTER2("%s '%s'", (term_state == true) ? "Terminate" : "Instantiate", su->name.value);
 
 	/* prepare the node update message. */
-	d2n_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	if (d2n_msg == AVD_DND_MSG_NULL) {
-		LOG_ER("%s: calloc FAILED", __FUNCTION__);
-		osafassert(0);
-	}
+	d2n_msg = new AVSV_DND_MSG();
 
 	/* prepare the SU presence state change notification message */
 	d2n_msg->msg_type = AVSV_D2N_PRESENCE_SU_MSG;
@@ -380,7 +358,7 @@ uint32_t avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, bool term_state)
 	/* send the message */
 	if (avd_d2n_msg_snd(cb, node, d2n_msg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
-		avsv_dnd_msg_free(d2n_msg);
+		d2n_msg_free(d2n_msg);
 		--(node->snd_msg_id);
 		goto done;
 	}
@@ -422,11 +400,7 @@ uint32_t avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *para
 	if (cb->avail_state_avd != SA_AMF_HA_ACTIVE) 
 		goto done;
 
-	op_req_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	if (op_req_msg == NULL) {
-		LOG_ER("calloc failed");
-		osafassert(0);
-	}
+	op_req_msg = new AVSV_DND_MSG();
 
 	/* prepare the operation request message. */
 	op_req_msg->msg_type = AVSV_D2N_OPERATION_REQUEST_MSG;
@@ -440,7 +414,7 @@ uint32_t avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *para
 		/* Broadcast the operation request message to all the nodes. */
 		avd_d2n_msg_bcast(cb, op_req_msg);
 
-		free(op_req_msg);
+		delete op_req_msg;
 		goto done;
 	}
 
@@ -449,7 +423,7 @@ uint32_t avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *para
 	    (avnd->node_state == AVD_AVND_STATE_GO_DOWN) ||
 		(avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN)) {
 		TRACE("Node %x down", avnd->node_info.nodeId);
-		free(op_req_msg);
+		delete op_req_msg;
 		goto done;
 	}
 
@@ -494,11 +468,7 @@ static uint32_t avd_prep_su_info(AVD_CL_CB *cb, AVD_SU *su, AVD_DND_MSG *su_msg)
 
 	TRACE_ENTER();
 
-	su_info = static_cast<AVSV_SU_INFO_MSG*>(calloc(1, sizeof(AVSV_SU_INFO_MSG)));
-	if (su_info == NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		return NCSCC_RC_FAILURE;
-	}
+	su_info = new AVSV_SU_INFO_MSG();
 
 	/* fill and add the SU into
 	 * the SU message at the top of the list
@@ -545,8 +515,7 @@ uint32_t avd_snd_su_reg_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool fail_over)
 
 	TRACE_ENTER2("%s", avnd->node_name);
 
-	su_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	osafassert(su_msg);
+	su_msg = new AVSV_DND_MSG();
 
 	/* prepare the SU message. */
 	su_msg->msg_type = AVSV_D2N_REG_SU_MSG;
@@ -584,7 +553,7 @@ uint32_t avd_snd_su_reg_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool fail_over)
 			/* Add information about this SU to the message */
 			if (avd_prep_su_info(cb, i_su, su_msg) == NCSCC_RC_FAILURE) {
 				/* Free all the messages and return error */
-				avsv_dnd_msg_free(su_msg);
+				d2n_msg_free(su_msg);
 				LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 				rc = NCSCC_RC_FAILURE;
 				goto done;
@@ -611,7 +580,7 @@ uint32_t avd_snd_su_reg_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool fail_over)
 	 */
 	if (su_msg->msg_info.d2n_reg_su.su_list == NULL) {
 		/* Free all the messages and return success */
-		avsv_dnd_msg_free(su_msg);
+		d2n_msg_free(su_msg);
 		goto done;
 	}
 
@@ -626,7 +595,7 @@ uint32_t avd_snd_su_reg_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool fail_over)
 	if (avd_d2n_msg_snd(cb, avnd, su_msg) == NCSCC_RC_FAILURE) {
 		--(avnd->snd_msg_id);
 		LOG_ER("%s: snd to %s failed", __FUNCTION__, avnd->node_name);
-		avsv_dnd_msg_free(su_msg);
+		d2n_msg_free(su_msg);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -674,12 +643,7 @@ uint32_t avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 
 	m_AVD_GET_SU_NODE_PTR(cb, su, node);
 
-	su_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	if (su_msg == AVD_DND_MSG_NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-	}
+	su_msg = new AVSV_DND_MSG();
 
 	/* prepare the SU  message. */
 
@@ -691,7 +655,7 @@ uint32_t avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 	if (avd_prep_su_info(cb, su, su_msg) == NCSCC_RC_FAILURE) {
 		/* Free the messages and return error */
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
-		free(su_msg);
+		delete su_msg;
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -706,7 +670,7 @@ uint32_t avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 	if (avd_d2n_msg_snd(cb, node, su_msg) == NCSCC_RC_FAILURE) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
 		--(node->snd_msg_id);
-		avsv_dnd_msg_free(su_msg);
+		d2n_msg_free(su_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -747,11 +711,7 @@ static uint32_t avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_in
 		return NCSCC_RC_SUCCESS;
 	}
 
-	compcsi_info->attrs.list = static_cast<AVSV_ATTR_NAME_VAL*>(calloc(1, compcsi->csi->num_attributes * sizeof(AVSV_ATTR_NAME_VAL)));
-	if (compcsi_info->attrs.list == NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		return NCSCC_RC_FAILURE;
-	}
+	compcsi_info->attrs.list = new AVSV_ATTR_NAME_VAL[compcsi->csi->num_attributes];
 
 	/* initilize both the message pointer and the database pointer. Also init the
 	 * message content. 
@@ -817,10 +777,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 	trans_dsc = SA_AMF_CSI_NEW_ASSIGN;
 
 	/* prepare the SU SI message. */
-	if ((susi_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)))) == NULL) {
-		LOG_ER("calloc failed");
-		osafassert(0);
-	}
+	susi_msg = new AVSV_DND_MSG();
 
 	susi_msg->msg_type = AVSV_D2N_INFO_SU_SI_ASSIGN_MSG;
 	susi_msg->msg_info.d2n_su_si_assign.node_id = avnd->node_info.nodeId;
@@ -843,13 +800,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 				osafassert(compcsi);
 				l_compcsi = compcsi;
 
-				compcsi_info = static_cast<AVSV_SUSI_ASGN*>(calloc(1, sizeof(AVSV_SUSI_ASGN)));
-				if (compcsi_info == NULL) {
-					LOG_ER("%s: calloc failed", __FUNCTION__);
-					LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-					avsv_dnd_msg_free(susi_msg);
-					return NCSCC_RC_FAILURE;
-				}
+				compcsi_info = new AVSV_SUSI_ASGN();
 
 				compcsi_info->comp_name = l_compcsi->comp->comp_info.name;
 				compcsi_info->csi_name = l_compcsi->csi->name;
@@ -892,7 +843,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 				 */
 				LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 				/* free the SUSI message */
-				avsv_dnd_msg_free(susi_msg);
+				d2n_msg_free(susi_msg);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -922,7 +873,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 			 */
 			LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 			/* free the SUSI message */
-			avsv_dnd_msg_free(susi_msg);
+			d2n_msg_free(susi_msg);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -947,7 +898,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 
 		/* Log a fatal error that it is an invalid action */
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, actn);
-		avsv_dnd_msg_free(susi_msg);
+		d2n_msg_free(susi_msg);
 		return NCSCC_RC_FAILURE;
 		break;
 	}			/* switch(actn) */
@@ -989,13 +940,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 			l_compcsi = l_susi->list_of_csicomp;
 
 		while (l_compcsi != NULL) {
-			compcsi_info = static_cast<AVSV_SUSI_ASGN*>(calloc(1, sizeof(AVSV_SUSI_ASGN)));
-			if (compcsi_info == NULL) {
-				LOG_ER("%s: calloc failed", __FUNCTION__);
-				LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-				avsv_dnd_msg_free(susi_msg);
-				return NCSCC_RC_FAILURE;
-			}
+			compcsi_info = new AVSV_SUSI_ASGN();
 
 			compcsi_info->comp_name = l_compcsi->comp->comp_info.name;
 			compcsi_info->csi_name = l_compcsi->csi->name;
@@ -1007,7 +952,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 				if (avd_prep_csi_attr_info(cb, compcsi_info, l_compcsi)
 				    == NCSCC_RC_FAILURE) {
 					LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-					avsv_dnd_msg_free(susi_msg);
+					d2n_msg_free(susi_msg);
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -1058,7 +1003,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 	if (avd_d2n_msg_snd(cb, avnd, susi_msg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		--(avnd->snd_msg_id);
-		avsv_dnd_msg_free(susi_msg);
+		d2n_msg_free(susi_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1093,11 +1038,7 @@ static uint32_t avd_prep_pg_mem_list(AVD_CL_CB *cb, AVD_CSI *csi, SaAmfProtectio
 
 	if (csi->compcsi_cnt) {
 		/* alloc the memory for the notify buffer */
-		mem_list->notification = static_cast<SaAmfProtectionGroupNotificationT*>(calloc(1, sizeof(SaAmfProtectionGroupNotificationT) * csi->compcsi_cnt));
-		if (!mem_list->notification) {
-			LOG_ER("%s: calloc failed", __FUNCTION__);
-			return NCSCC_RC_FAILURE;
-		}
+		mem_list->notification = new SaAmfProtectionGroupNotificationT[csi->compcsi_cnt]();
 
 		/* copy the contents */
 		for (curr = csi->list_compcsi; curr; curr = curr->csi_csicomp_next, i++) {
@@ -1136,12 +1077,7 @@ uint32_t avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N
 	TRACE_ENTER();
 
 	/* alloc the response msg */
-	pg_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	if (!pg_msg) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
+	pg_msg = new AVSV_DND_MSG();
 
 	pg_msg_info = &pg_msg->msg_info.d2n_pg_track_act_rsp;
 
@@ -1216,12 +1152,7 @@ uint32_t avd_snd_pg_upd_msg(AVD_CL_CB *cb,
 	TRACE_ENTER();
 
 	/* alloc the update msg */
-	pg_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	if (!pg_msg) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
+	pg_msg = new AVSV_DND_MSG();
 
 	pg_msg_info = &pg_msg->msg_info.d2n_pg_upd;
 
@@ -1245,8 +1176,7 @@ uint32_t avd_snd_pg_upd_msg(AVD_CL_CB *cb,
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
 	}
 
- done:
-	/* if (pg_msg) avsv_dnd_msg_free(pg_msg); */
+	/* if (pg_msg) d2n_msg_free(pg_msg); */
 	TRACE_LEAVE2("(%u)", rc);
 	return rc;
 }
@@ -1292,12 +1222,7 @@ uint32_t avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	}
 
 	/* prepare the message. */
-	d2n_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	if (d2n_msg == AVD_DND_MSG_NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-	}
+	d2n_msg = new AVSV_DND_MSG();
 
 	d2n_msg->msg_type = AVSV_D2N_SET_LEDS_MSG;
 	d2n_msg->msg_info.d2n_set_leds.node_id = avnd->node_info.nodeId;
@@ -1309,7 +1234,7 @@ uint32_t avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		--(avnd->snd_msg_id);
-		avsv_dnd_msg_free(d2n_msg);
+		d2n_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1344,12 +1269,7 @@ uint32_t avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *c
 	TRACE_ENTER();
 
 	/* prepare the component validation message. */
-	d2n_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	if (d2n_msg == AVD_DND_MSG_NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-	}
+	d2n_msg = new AVSV_DND_MSG();
 
 	/* prepare the componenet validation response message */
 	d2n_msg->msg_type = AVSV_D2N_COMP_VALIDATION_RESP_MSG;
@@ -1386,7 +1306,7 @@ uint32_t avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *c
 	/* send the message */
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
-		avsv_dnd_msg_free(d2n_msg);
+		d2n_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1609,11 +1529,7 @@ int avd_admin_op_msg_snd(const SaNameT *dn, AVSV_AMF_CLASS_ID class_id,
 
 	TRACE_ENTER2(" '%s' %u", dn->value, opId);
 
-	d2n_msg = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	if (d2n_msg == NULL) {
-		LOG_ER("calloc failed");
-		osafassert(0);
-	}
+	d2n_msg = new AVSV_DND_MSG();
 
 	d2n_msg->msg_type = AVSV_D2N_ADMIN_OP_REQ_MSG;
 	d2n_msg->msg_info.d2n_admin_op_req_info.msg_id = ++(node->snd_msg_id);
@@ -1624,7 +1540,7 @@ int avd_admin_op_msg_snd(const SaNameT *dn, AVSV_AMF_CLASS_ID class_id,
 	rc = avd_d2n_msg_snd(cb, node, d2n_msg);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
-		avsv_dnd_msg_free(d2n_msg);
+		d2n_msg_free(d2n_msg);
 		--(node->snd_msg_id);
 	}
 
@@ -1687,4 +1603,127 @@ const char *admin_op_name(SaAmfAdminOperationIdT opid)
 		return avd_adm_op_name[opid];
 	} else
 		return avd_adm_op_name[0];
+}
+
+
+/*****************************************************************************
+ * Function: free_d2n_su_msg_info
+ *
+ * Purpose:  This function frees the d2n SU message contents.
+ *
+ * Input: su_msg - Pointer to the SU message contents to be freed.
+ *
+ * Returns: None
+ *
+ * NOTES: none.
+ *
+ * 
+ **************************************************************************/
+
+static void free_d2n_su_msg_info(AVSV_DND_MSG *su_msg)
+{
+	AVSV_SU_INFO_MSG *su_info;
+
+	while (su_msg->msg_info.d2n_reg_su.su_list != NULL) {
+		su_info = su_msg->msg_info.d2n_reg_su.su_list;
+		su_msg->msg_info.d2n_reg_su.su_list = su_info->next;
+		delete su_info;
+	}
+}
+
+
+/*****************************************************************************
+ * Function: free_d2n_susi_msg_info
+ *
+ * Purpose:  This function frees the d2n SU SI message contents.
+ *
+ * Input: susi_msg - Pointer to the SUSI message contents to be freed.
+ *
+ * Returns: none
+ *
+ * NOTES: It also frees the array of attributes, which are sperately
+ * allocated and pointed to by AVSV_SUSI_ASGN structure.
+ *
+ * 
+ **************************************************************************/
+
+static void free_d2n_susi_msg_info(AVSV_DND_MSG *susi_msg)
+{
+	AVSV_SUSI_ASGN *compcsi_info;
+
+	while (susi_msg->msg_info.d2n_su_si_assign.list != NULL) {
+		compcsi_info = susi_msg->msg_info.d2n_su_si_assign.list;
+		susi_msg->msg_info.d2n_su_si_assign.list = compcsi_info->next;
+		if (compcsi_info->attrs.list != NULL) {
+			delete(compcsi_info->attrs.list);
+			compcsi_info->attrs.list = NULL;
+		}
+		delete compcsi_info;
+	}
+}
+
+/*****************************************************************************
+ * Function: free_d2n_pg_msg_info
+ *
+ * Purpose:  This function frees the d2n PG track response message contents.
+ *
+ * Input: pg_msg - Pointer to the PG message contents to be freed.
+ *
+ * Returns: None
+ *
+ * NOTES: None
+ *
+ * 
+ **************************************************************************/
+
+static void free_d2n_pg_msg_info(AVSV_DND_MSG *pg_msg)
+{
+	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info = &pg_msg->msg_info.d2n_pg_track_act_rsp;
+
+	if (info->mem_list.numberOfItems)
+		delete info->mem_list.notification;
+
+	info->mem_list.notification = 0;
+	info->mem_list.numberOfItems = 0;
+}
+
+/****************************************************************************
+  Name          : d2n_msg_free
+ 
+  Description   : This routine frees the Message structures used for
+                  communication between AvD and AvND. 
+ 
+  Arguments     : msg - ptr to the DND message that needs to be freed.
+ 
+  Return Values : None
+ 
+  Notes         : For : AVSV_D2N_REG_SU_MSG, AVSV_D2N_INFO_SU_SI_ASSIGN_MSG
+                  and AVSV_D2N_PG_TRACK_ACT_RSP_MSG, this procedure calls the
+                  corresponding information free function to free the
+                  list information in them before freeing the message.
+******************************************************************************/
+void d2n_msg_free(AVSV_DND_MSG *msg)
+{
+	if (msg == NULL)
+		return;
+
+	/* these messages have information list in them free them
+	 * first by calling the corresponding free routine.
+	 */
+	switch (msg->msg_type) {
+	case AVSV_D2N_REG_SU_MSG:
+		free_d2n_su_msg_info(msg);
+		break;
+	case AVSV_D2N_INFO_SU_SI_ASSIGN_MSG:
+		free_d2n_susi_msg_info(msg);
+		break;
+	case AVSV_D2N_PG_TRACK_ACT_RSP_MSG:
+		free_d2n_pg_msg_info(msg);
+		break;
+	default:
+		break;
+	}
+
+	/* free the message */
+	delete msg;
 }

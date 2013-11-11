@@ -25,6 +25,7 @@
 #define AVD_IMM_H
 
 #include <immutil.h>
+#include <queue>
 
 typedef void (*AvdImmOiCcbApplyCallbackT) (CcbUtilOperationData_t *opdata);
 typedef SaAisErrorT (*AvdImmOiCcbCompletedCallbackT) (CcbUtilOperationData_t *opdata);
@@ -48,8 +49,66 @@ typedef enum {
 
 } AvdJobDequeueResultT;
 
-extern AvdJobDequeueResultT avd_job_fifo_execute(SaImmOiHandleT immOiHandle);
-extern void avd_job_fifo_empty(void);
+// TODO HANO Write comments
+class Job {
+public:
+	virtual AvdJobDequeueResultT exec(SaImmOiHandleT immOiHandle) = 0;
+	virtual ~Job() = 0;
+};
+
+//
+class ImmObjCreate : public Job {
+public:
+	SaImmClassNameT className_;
+	SaNameT parentName_;
+	const SaImmAttrValuesT_2 **attrValues_;
+	
+	AvdJobDequeueResultT exec(SaImmOiHandleT immOiHandle);
+	
+	~ImmObjCreate();
+};
+
+//
+class ImmObjUpdate : public Job {
+public:
+	SaNameT dn_;
+	SaImmAttrNameT attributeName_;
+	SaImmValueTypeT attrValueType_;
+	void *value_;
+	
+	AvdJobDequeueResultT exec(SaImmOiHandleT immOiHandle);
+	
+	~ImmObjUpdate();
+};
+
+//
+class ImmObjDelete : public Job {
+public:
+	SaNameT dn_;
+	
+	AvdJobDequeueResultT exec(SaImmOiHandleT immOiHandle);
+	
+	~ImmObjDelete();
+};
+
+//
+class Fifo {
+public:
+        static Job* peek();
+    
+        static void queue(Job* job);
+
+        static Job* dequeue();
+    
+        static AvdJobDequeueResultT execute(SaImmOiHandleT immOiHandle);
+
+        static void empty();
+    
+private:
+        static std::queue<Job*> imm_job_;
+};
+//
+
 
 /**
  * Install callbacks associated with classNames

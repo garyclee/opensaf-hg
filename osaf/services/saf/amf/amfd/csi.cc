@@ -44,7 +44,7 @@ void avd_csi_delete(AVD_CSI *csi)
 
 	rc = ncs_patricia_tree_del(&csi_db, &csi->tree_node);
 	osafassert(rc == NCSCC_RC_SUCCESS);
-	free(csi);
+	delete csi;
 	TRACE_LEAVE2();
 }
 
@@ -255,10 +255,7 @@ AVD_CSI *csi_create(const SaNameT *csi_name)
 
 	TRACE_ENTER2("'%s'", csi_name->value);
 
-	if ((csi = static_cast<AVD_CSI*>(calloc(1, sizeof(*csi)))) == NULL) {
-		LOG_ER("calloc FAILED");
-		osafassert(0);
-	}
+	csi = new AVD_CSI();
 	memcpy(csi->name.value, csi_name->value, csi_name->length);
 	csi->name.length = csi_name->length;
 	csi->tree_node.key_info = (uint8_t *)&(csi->name);
@@ -303,7 +300,7 @@ static void csi_get_attr_and_add_to_model(AVD_CSI *csi, const SaImmAttrValuesT_2
 
 			for (i = 0; i < values_number; i++) {
 				if (!found)
-					new_csi_dep  =  static_cast<AVD_CSI_DEPS*>(calloc(1, sizeof(*new_csi_dep)));
+					new_csi_dep  =  new AVD_CSI_DEPS();
 				if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCSIDependencies"), attributes, i,
 					&new_csi_dep->csi_dep_name_value) != SA_AIS_OK) {
 					LOG_ER("Get saAmfCSIDependencies FAILED for '%s'", csi->name.value);
@@ -329,7 +326,7 @@ static void csi_get_attr_and_add_to_model(AVD_CSI *csi, const SaImmAttrValuesT_2
 
  done:
 	if (rc != 0) {
-		free(csi);
+		delete csi;
 		osafassert(0);
 	}
 	TRACE_LEAVE(); 
@@ -1003,10 +1000,7 @@ AVD_COMP_CSI_REL *avd_compcsi_create(AVD_SU_SI_REL *susi, AVD_CSI *csi,
 			goto done;
 	}
 
-	if ((compcsi = static_cast<AVD_COMP_CSI_REL*>(calloc(1, sizeof(AVD_COMP_CSI_REL)))) == NULL) {
-		LOG_ER("calloc FAILED");
-		return NULL;
-	}
+	compcsi = new AVD_COMP_CSI_REL();
 
 	compcsi->comp = comp;
 	compcsi->csi = csi;
@@ -1106,7 +1100,7 @@ uint32_t avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 		lcomp_csi->susi_csicomp_next = NULL;
 		prev_compcsi = NULL;
 		avd_delete_csiassignment_from_imm(&lcomp_csi->comp->comp_info.name, &lcomp_csi->csi->name);
-		free(lcomp_csi);
+		delete lcomp_csi;
 
 	}
 
@@ -1176,7 +1170,7 @@ void avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_REL 
 	if (!ckpt)
 		avd_snd_pg_upd_msg(avd_cb, comp_csi->comp->su->su_on_node, comp_csi, SA_AMF_PROTECTION_GROUP_REMOVED, 0);
 	avd_delete_csiassignment_from_imm(&comp_csi->comp->comp_info.name, &comp_csi->csi->name);
-	free(comp_csi);
+	delete comp_csi;
 
 	TRACE_LEAVE();
 }
@@ -1203,7 +1197,8 @@ void avd_csi_remove_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *attr)
 			csi->list_attributes = i_attr->attr_next;
 		} else {
 			p_attr->attr_next = i_attr->attr_next;
-			free(attr);
+			delete [] attr->name_value.string_ptr;
+			delete attr;
 		}
 	}
 

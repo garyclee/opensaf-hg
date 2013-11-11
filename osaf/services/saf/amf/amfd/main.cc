@@ -371,13 +371,9 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 	} else {
 		AVD_EVT_QUEUE *queue_evt;
 		/* Enqueue this event */
-		if (NULL != (queue_evt = static_cast<AVD_EVT_QUEUE*>(calloc(1, sizeof(AVD_EVT_QUEUE))))) {
-			queue_evt->evt = evt;
-			m_AVD_EVT_QUEUE_ENQUEUE(cb, queue_evt);
-		} else {
-			LOG_ER("%s: calloc failed", __FUNCTION__);
-			abort();
-		}
+		queue_evt = new AVD_EVT_QUEUE();
+		queue_evt->evt = evt;
+		m_AVD_EVT_QUEUE_ENQUEUE(cb, queue_evt);
 	}
 
 	if (cb->node_list.n_nodes == 0) {
@@ -394,7 +390,7 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 
 		while (NULL != queue_evt) {
 			process_event(cb, queue_evt->evt);
-			free(queue_evt);
+			delete queue_evt;
 			m_AVD_EVT_QUEUE_DEQUEUE(cb, queue_evt);
 		}
 
@@ -434,17 +430,9 @@ static void rda_cb(uint32_t notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_COD
 		uint32_t rc;
 		AVD_EVT *evt;
 
-		evt = static_cast<AVD_EVT*>(malloc(sizeof(AVD_EVT)));
-		if (evt == NULL) {
-			LOG_ER("malloc failed");
-			osafassert(0);
-		}
+		evt = new AVD_EVT;
 		evt->rcv_evt = AVD_EVT_ROLE_CHANGE;
-		evt->info.avd_msg = static_cast<AVD_D2D_MSG*>(malloc(sizeof(AVD_D2D_MSG)));
-		if (evt->info.avd_msg == NULL) {
-			LOG_ER("malloc failed");
-			osafassert(0);
-		}
+		evt->info.avd_msg = new AVD_D2D_MSG;
 		evt->info.avd_msg->msg_type = AVD_D2D_CHANGE_ROLE_REQ;
 		evt->info.avd_msg->msg_info.d2d_chg_role_req.cause = AVD_FAIL_OVER;
 		evt->info.avd_msg->msg_info.d2d_chg_role_req.role = (SaAmfHAStateT) cb_info->info.io_role;
@@ -675,7 +663,7 @@ static void main_loop(void)
 
 		if (pollretval == 0) {
 			// poll time out, submit some jobs (if any)
-			polltmo = retval_to_polltmo(avd_job_fifo_execute(cb->immOiHandle));
+			polltmo = retval_to_polltmo(Fifo::execute(cb->immOiHandle));
 			continue;
 		}
 
@@ -698,7 +686,7 @@ static void main_loop(void)
 
 			if (evt->rcv_evt == AVD_IMM_REINITIALIZED) {
 				TRACE("Received IMM reinit msg");
-				polltmo = retval_to_polltmo(avd_job_fifo_execute(cb->immOiHandle));
+				polltmo = retval_to_polltmo(Fifo::execute(cb->immOiHandle));
 				continue;
 			}
 
@@ -760,7 +748,7 @@ static void main_loop(void)
 		}
 
 		// submit some jobs (if any)
-		polltmo = retval_to_polltmo(avd_job_fifo_execute(cb->immOiHandle));
+		polltmo = retval_to_polltmo(Fifo::execute(cb->immOiHandle));
 	}
 
 	syslog(LOG_CRIT, "AVD Thread Failed");
@@ -822,7 +810,7 @@ static void process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	/* reset the sync falg */
 	cb_now->sync_required = true;
 
-	free(evt);
+	delete evt;
 }
 
 /**

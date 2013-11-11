@@ -158,11 +158,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 
 	/* Allocate a new block structure now
 	 */
-	if ((su_si = static_cast<AVD_SU_SI_REL*>(calloc(1, sizeof(AVD_SU_SI_REL)))) == NULL) {
-		/* log an error */
-		LOG_ER("Memory Alloc failed.");
-		return NULL;
-	}
+	su_si = new AVD_SU_SI_REL();
 
 	su_si->state = state;
 	su_si->fsm = AVD_SU_SI_STATE_ABSENT;
@@ -497,7 +493,7 @@ uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 	susi->si = NULL;
 	susi->su = NULL;
 
-	free(susi);
+	delete susi;
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;

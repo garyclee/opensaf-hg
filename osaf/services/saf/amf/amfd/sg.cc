@@ -100,10 +100,7 @@ AVD_SG *avd_sg_new(const SaNameT *dn)
 {
 	AVD_SG *sg;
 
-	if ((sg = static_cast<AVD_SG*>(calloc(1, sizeof(AVD_SG)))) == NULL) {
-		LOG_ER("calloc FAILED");
-		return NULL;
-	}
+	sg = new AVD_SG();
 
 	memcpy(sg->name.value, dn->value, dn->length);
 	sg->name.length = dn->length;
@@ -121,7 +118,7 @@ void avd_sg_delete(AVD_SG *sg)
 	osafassert(sg->list_of_su == NULL);
 	osafassert(sg->list_of_si == NULL);
 	sg_remove_from_model(sg);
-	free(sg);
+	delete sg;
 }
 
 void avd_sg_add_si(AVD_SG *sg, AVD_SI* si)

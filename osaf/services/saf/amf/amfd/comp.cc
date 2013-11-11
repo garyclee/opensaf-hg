@@ -56,10 +56,7 @@ AVD_COMP *avd_comp_new(const SaNameT *dn)
 {
 	AVD_COMP *comp;
 
-	if ((comp = static_cast<AVD_COMP*>(calloc(1, sizeof(AVD_COMP)))) == NULL) {
-		LOG_ER("calloc FAILED");
-		return NULL;
-	}
+	comp = new AVD_COMP();
 	
 	memcpy(comp->comp_info.name.value, dn->value, dn->length);
 	comp->comp_info.name.length = dn->length;
@@ -166,7 +163,7 @@ void avd_comp_delete(AVD_COMP *comp)
 	avd_su_remove_comp(comp);
 	avd_comptype_remove_comp(comp);
 	(void)ncs_patricia_tree_del(&comp_db, &comp->tree_node);
-	free(comp);
+	delete comp;
 }
 
 /**

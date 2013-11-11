@@ -35,10 +35,7 @@ static AVD_SVC_TYPE_CS_TYPE *svctypecstypes_create(SaNameT *dn, const SaImmAttrV
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	if ((svctypecstype = static_cast<AVD_SVC_TYPE_CS_TYPE*>(calloc(1, sizeof(AVD_SVC_TYPE_CS_TYPE)))) == NULL) {
-		LOG_ER("calloc failed");
-		return NULL;
-	}
+	svctypecstype = new AVD_SVC_TYPE_CS_TYPE();
 
 	memcpy(svctypecstype->name.value, dn->value, dn->length);
 	svctypecstype->name.length = dn->length;
@@ -56,7 +53,7 @@ static void svctypecstypes_delete(AVD_SVC_TYPE_CS_TYPE *svctypecstype)
 
 	rc = ncs_patricia_tree_del(&svctypecstypes_db, &svctypecstype->tree_node);
 	osafassert(rc == NCSCC_RC_SUCCESS);
-	free(svctypecstype);
+	delete svctypecstype;
 }
 
 AVD_SVC_TYPE_CS_TYPE *avd_svctypecstypes_get(const SaNameT *dn)

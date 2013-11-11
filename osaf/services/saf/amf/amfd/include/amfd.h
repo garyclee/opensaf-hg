@@ -34,8 +34,8 @@
 #define AVD_H
 
 #include "logtrace.h"
+
 #include "amf.h"
-#include "logtrace.h"
 
 #include "ncsencdec_pub.h"
 #include "amf_d2nmsg.h"

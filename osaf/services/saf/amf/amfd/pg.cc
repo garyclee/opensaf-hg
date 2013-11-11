@@ -198,12 +198,8 @@ uint32_t avd_pg_csi_node_add(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 	TRACE_ENTER();
 
 	/* alloc the pg-csi-node & pg-node-csi recs */
-	pg_csi_node = static_cast<AVD_PG_CSI_NODE*>(calloc(1, sizeof(AVD_PG_CSI_NODE)));
-	pg_node_csi = static_cast<AVD_PG_NODE_CSI*>(calloc(1, sizeof(AVD_PG_NODE_CSI)));
-	if (!pg_node_csi || !pg_node_csi) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		return NCSCC_RC_FAILURE;
-	}
+	pg_csi_node = new AVD_PG_CSI_NODE();
+	pg_node_csi = new AVD_PG_NODE_CSI();
 
 	/* add the node to the pg list maintained by csi */
 	pg_csi_node->node = node;
@@ -242,12 +238,12 @@ void avd_pg_csi_node_del(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 	/* free from pg list maintained on csi */
 	pg_csi_node = (AVD_PG_CSI_NODE *)ncs_db_link_list_remove(&csi->pg_node_list, (uint8_t *)&node);
 	if (pg_csi_node)
-		free(pg_csi_node);
+		delete pg_csi_node;
 
 	/* free from pg list maintained on node */
 	pg_node_csi = (AVD_PG_NODE_CSI *)ncs_db_link_list_remove(&node->pg_csi_list, (uint8_t *)&csi);
 	if (pg_node_csi)
-		free(pg_node_csi);
+		delete pg_node_csi;
 
 	TRACE_LEAVE();
 	return;

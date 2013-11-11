@@ -24,6 +24,17 @@
 
 static NCS_PATRICIA_TREE cstype_db;
 
+//
+// TODO(HANO) Temporary use this function instead of strdup which uses malloc.
+// Later on remove this function and use std::string instead
+#include <cstring>
+static char *StrDup(const char *s)
+{
+	char *c = new char[strlen(s) + 1];
+	std::strcpy(c,s);
+	return c;
+}
+
 static void cstype_add_to_model(avd_cstype_t *cst)
 {
 	unsigned int rc = ncs_patricia_tree_add(&cstype_db, &cst->tree_node);
@@ -37,10 +48,7 @@ static avd_cstype_t *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 *
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	if ((cst = static_cast<avd_cstype_t*>(calloc(1, sizeof(*cst)))) == NULL) {
-		LOG_ER("calloc failed");
-		return NULL;
-	}
+	cst = new avd_cstype_t();
 
 	memcpy(cst->name.value, dn->value, dn->length);
 	cst->name.length = dn->length;
@@ -50,9 +58,9 @@ static avd_cstype_t *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 *
 	    (values_number > 0)) {
 		unsigned int i;
 
-		cst->saAmfCSAttrName = static_cast<SaStringT*>(calloc((values_number + 1), sizeof(char *)));
+		cst->saAmfCSAttrName = new SaStringT[values_number + 1]();
 		for (i = 0; i < values_number; i++)
-			cst->saAmfCSAttrName[i] = strdup(immutil_getStringAttr(attributes, "saAmfCSAttrName", i));
+			cst->saAmfCSAttrName[i] = StrDup(immutil_getStringAttr(attributes, "saAmfCSAttrName", i));
 	}
 
 	return cst;
@@ -73,12 +81,12 @@ static void cstype_delete(avd_cstype_t *cst)
 
 	if (cst->saAmfCSAttrName != NULL) {
 		while ((p = cst->saAmfCSAttrName[i++]) != NULL) {
-			free(p);
+			delete [] p;
 		}
 	}
 
-	free(cst->saAmfCSAttrName);
-	free(cst);
+	delete [] cst->saAmfCSAttrName;
+	delete cst;
 }
 
 /**

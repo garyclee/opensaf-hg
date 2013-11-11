@@ -39,8 +39,8 @@ static void apptype_delete(AVD_APP_TYPE **apptype)
 {
 	unsigned int rc = ncs_patricia_tree_del(&apptype_db, &(*apptype)->tree_node);
 	osafassert(rc == NCSCC_RC_SUCCESS);
-	free((*apptype)->sgAmfApptSGTypes);
-	free(*apptype);
+	delete [] (*apptype)->sgAmfApptSGTypes;
+	delete *apptype;
 	*apptype = NULL;
 }
 
@@ -112,10 +112,7 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	if ((app_type = static_cast<AVD_APP_TYPE*>(calloc(1, sizeof(AVD_APP_TYPE)))) == NULL) {
-		LOG_ER("calloc FAILED");
-		goto done;
-	}
+	app_type = new AVD_APP_TYPE();
 
 	memcpy(app_type->name.value, dn->value, dn->length);
 	app_type->name.length = dn->length;
@@ -129,14 +126,13 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 	osafassert(attr->attrValuesNumber > 0);
 
 	app_type->no_sg_types = attr->attrValuesNumber;
-	app_type->sgAmfApptSGTypes = static_cast<SaNameT*>(malloc(attr->attrValuesNumber * sizeof(SaNameT)));
+	app_type->sgAmfApptSGTypes = new SaNameT[attr->attrValuesNumber];
 	for (j = 0; j < attr->attrValuesNumber; j++) {
 		app_type->sgAmfApptSGTypes[j] = *((SaNameT *)attr->attrValues[j]);
 	}
 
 	rc = 0;
 
- done:
 	if (rc != 0)
 		apptype_delete(&app_type);
 

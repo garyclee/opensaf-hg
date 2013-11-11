@@ -28,6 +28,17 @@
 static NCS_PATRICIA_TREE node_name_db;	/* SaNameT index */
 static NCS_PATRICIA_TREE node_id_db;	/* SaClmNodeIdT index */
 
+//
+// TODO(HANO) Temporary use this function instead of strdup which uses malloc.
+// Later on remove this function and use std::string instead
+#include <cstring>
+static char *StrDup(const char *s)
+{
+	char *c = new char[strlen(s) + 1];
+	std::strcpy(c,s);
+	return c;
+}
+
 uint32_t avd_node_add_nodeid(AVD_AVND *node)
 {
 	unsigned int rc;
@@ -68,10 +79,7 @@ AVD_AVND *avd_node_new(const SaNameT *dn)
 	char *node_name;
 	SaNameT rdn = *dn;
 
-	if ((node = static_cast<AVD_AVND*>(calloc(1, sizeof(AVD_AVND)))) == NULL) {
-		LOG_ER("calloc FAILED");
-		return NULL;
-	}
+	node = new AVD_AVND();
 
 	memcpy(node->name.value, dn->value, dn->length);
 	node->name.length = dn->length;
@@ -79,7 +87,7 @@ AVD_AVND *avd_node_new(const SaNameT *dn)
 	*node_name = 0;
 	node_name = strchr((char*)rdn.value, '=');
 	node_name++;
-	node->node_name = strdup(node_name);
+	node->node_name = StrDup(node_name);
 	node->tree_node_name_node.key_info = (uint8_t *)&(node->name);
 	node->pg_csi_list.order = NCS_DBLIST_ANY_ORDER;
 	node->pg_csi_list.cmp_cookie = avsv_dblist_uns32_cmp;
@@ -99,8 +107,8 @@ void avd_node_delete(AVD_AVND *node)
 		avd_node_delete_nodeid(node);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 	ncs_patricia_tree_del(&node_name_db, &node->tree_node_name_node);
-	free(node->node_name);
-	free(node);
+	delete [] node->node_name;
+	delete node;
 }
 
 static void node_add_to_model(AVD_AVND *node)

@@ -40,10 +40,7 @@ AVD_APP *avd_app_new(const SaNameT *dn)
 {
 	AVD_APP *app;
 
-	if ((app = static_cast<AVD_APP*>(calloc(1, sizeof(AVD_APP)))) == NULL) {
-		LOG_ER("calloc FAILED");
-		return NULL;
-	}
+	app = new AVD_APP();
 
 	memcpy(app->name.value, dn->value, dn->length);
 	app->name.length = dn->length;
@@ -58,7 +55,7 @@ void avd_app_delete(AVD_APP *app)
 	osafassert(rc == NCSCC_RC_SUCCESS);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
 	avd_apptype_remove_app(app);
-	free(app);
+	delete app;
 }
 
 AVD_APP *avd_app_get(const SaNameT *dn)

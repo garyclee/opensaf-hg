@@ -82,8 +82,8 @@ static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_obj_name, const SaImm
 		&values_number) == SA_AIS_OK) && (values_number > 0)) {
 		
 		for (i = 0; i < values_number; i++) {
-			tmp = static_cast<AVD_CSI_ATTR*>(calloc(1, sizeof(AVD_CSI_ATTR)));
-			osafassert(tmp);
+			tmp = new AVD_CSI_ATTR();
+
 			tmp->attr_next = csiattr;
 			csiattr = tmp;
 
@@ -91,8 +91,7 @@ static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_obj_name, const SaImm
 			memcpy(csiattr->name_value.name.value, dn.value, csiattr->name_value.name.length);
 
 			if ((value = immutil_getStringAttr(attributes, "saAmfCSIAttriValue", i)) != NULL) {
-				csiattr->name_value.string_ptr = static_cast<SaStringT>(calloc(1,strlen(value)+1));
-				osafassert(csiattr->name_value.string_ptr);
+				csiattr->name_value.string_ptr = new char[strlen(value)+1];
 				memcpy(csiattr->name_value.string_ptr, value, strlen(value)+1);
 				csiattr->name_value.value.length
 					= snprintf((char *)csiattr->name_value.value.value,
@@ -105,8 +104,8 @@ static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_obj_name, const SaImm
 		}
 	} else {
 		/* No values found, create value empty attribute */
-		csiattr = static_cast<AVD_CSI_ATTR*>(calloc(1, sizeof(AVD_CSI_ATTR)));
-		osafassert(csiattr);
+		csiattr = new AVD_CSI_ATTR();
+
 		csiattr->name_value.name.length = dn.length;
 		memcpy(csiattr->name_value.name.value, dn.value, csiattr->name_value.name.length);
 	}
@@ -116,7 +115,7 @@ done:
 		while (csiattr != NULL) {
 			tmp = csiattr;
 			csiattr = csiattr->attr_next;
-			free(tmp);
+			delete tmp;
 		}
 		csiattr = NULL;
 	}
@@ -540,8 +539,7 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 				* use this node for adding the first value
 				*/
 				char *value = *(char **)attribute->attrValues[0];
-				tmp_csi_attr->name_value.string_ptr = static_cast<SaStringT>(calloc(1,strlen(value)+1));
-				osafassert(tmp_csi_attr->name_value.string_ptr);
+				tmp_csi_attr->name_value.string_ptr = new char[strlen(value)+1]();
 				memcpy(tmp_csi_attr->name_value.string_ptr, value, strlen(value)+1);
 				tmp_csi_attr->name_value.value.length
 					= snprintf((char *)tmp_csi_attr->name_value.value.value,
@@ -550,18 +548,14 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 			} else{
 				for (i = 0; i < attribute->attrValuesNumber; i++) {
 					char *value = *(char **)attribute->attrValues[i++];
-					if ((i_attr = static_cast<AVD_CSI_ATTR*>(calloc(1, sizeof(AVD_CSI_ATTR)))) == NULL) {
-						LOG_ER("%s:calloc FAILED", __FUNCTION__);
-						return;
-					}
+					i_attr = new AVD_CSI_ATTR();
 
 					i_attr->attr_next = csiattr;
 					csiattr = i_attr;
 
 					csiattr->name_value.name.length = csi_attr_name.length;
 					memcpy(csiattr->name_value.name.value, csi_attr_name.value, csiattr->name_value.name.length);
-					csiattr->name_value.string_ptr = static_cast<SaStringT>(calloc(1,strlen(value)+1));
-					osafassert(csiattr->name_value.string_ptr);
+					csiattr->name_value.string_ptr = new char[strlen(value)+1]();
 					memcpy(csiattr->name_value.string_ptr, value, strlen(value)+1 );
 				} /* for  */
 			}
@@ -600,15 +594,14 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 			/* Add New CSI attr. */
 			for (i = 0; i < attribute->attrValuesNumber; i++) {
 				char *value = *(char **)attribute->attrValues[i++];
-				i_attr =  static_cast<AVD_CSI_ATTR*>(calloc(1, sizeof(AVD_CSI_ATTR)));
-				osafassert(i_attr);
+				i_attr =  new AVD_CSI_ATTR();
 
 				i_attr->attr_next = csiattr;
 				csiattr = i_attr;
 				csiattr->name_value.name.length = csi_attr_name.length;
 				memcpy(csiattr->name_value.name.value, csi_attr_name.value, csiattr->name_value.name.length);
-				csiattr->name_value.string_ptr = static_cast<SaStringT>(calloc(1, strlen(value)+1));
-				osafassert(csiattr->name_value.string_ptr);
+				csiattr->name_value.string_ptr = new char[strlen(value)+1]();
+
 				memcpy(csiattr->name_value.string_ptr, value, strlen(value)+1);
 			}
 			/* add the modified csiattr values to parent csi */

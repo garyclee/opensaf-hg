@@ -292,7 +292,7 @@ void sidep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
 		dep_si->spons_si_list = spons_si_node->next;
 		/* decrement the dependent SI count in sponsor SI */
 		spons_si_node->si->num_dependents --;
-		free(spons_si_node);
+		delete spons_si_node;
 	} else {
 		while (spons_si_node->next != NULL) {
 			if (m_CMP_HORDER_SANAMET(spons_si_node->next->si->name,
@@ -305,7 +305,7 @@ void sidep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
 			del_spons_si_node = spons_si_node->next;
 			spons_si_node->next = spons_si_node->next->next;
 			del_spons_si_node->si->num_dependents --;
-			free(del_spons_si_node);
+			delete del_spons_si_node;
 			break;
 		}
 	}
@@ -342,8 +342,7 @@ void avd_si_dep_spons_list_add(AVD_SI *dep_si, AVD_SI *spons_si, AVD_SI_SI_DEP *
 	if (rec_already_in_sponsor_list(dep_si, rec))
 		return;
 
-	spons_si_node = static_cast<AVD_SPONS_SI_NODE*>(calloc(1, sizeof(AVD_SPONS_SI_NODE)));
-	osafassert(spons_si_node);
+	spons_si_node = new AVD_SPONS_SI_NODE();
 
 	/* increment number of dependents in sponsor SI as well */
 	spons_si->num_dependents ++;
@@ -514,11 +513,7 @@ uint32_t sidep_si_dep_state_evt_send(AVD_CL_CB *cb, AVD_SI *si, AVD_EVT_TYPE evt
 
 	TRACE_ENTER2("si:'%s' evt_type:%u", si->name.value, evt_type);
 
-	evt = static_cast<AVD_EVT*>(calloc(1, sizeof(AVD_EVT)));
-	if (evt == NULL) {
-		TRACE("calloc failed");
-		return NCSCC_RC_FAILURE;
-	}
+	evt = new AVD_EVT();
 
 	/*Update evt struct, using tmr field even though this field is not
 	 * relevant for this event, but it accommodates the required data.
@@ -532,7 +527,7 @@ uint32_t sidep_si_dep_state_evt_send(AVD_CL_CB *cb, AVD_SI *si, AVD_EVT_TYPE evt
 
 	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: ipc send %u failed", __FUNCTION__, evt->rcv_evt);
-		free(evt);
+		delete evt;
 		goto done;
 	}
 
@@ -1005,10 +1000,7 @@ AVD_SI_SI_DEP *sidep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 		goto done;
 
 	/* Allocate a new block structure for imm rec now */
-	if ((rec = static_cast<AVD_SI_SI_DEP*>(calloc(1, sizeof(AVD_SI_SI_DEP)))) == NULL) {
-		LOG_ER("%s: calloc failed", __FUNCTION__);
-		return NULL;
-	}
+	rec = new AVD_SI_SI_DEP();
 
 	rec->indx_imm.si_name_prim.length = indx->si_name_prim.length;
 	memcpy(rec->indx_imm.si_name_prim.value, indx->si_name_prim.value, si_prim_len);
@@ -1034,7 +1026,7 @@ AVD_SI_SI_DEP *sidep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 
 	if (ncs_patricia_tree_add(&si_dep.spons_anchor, &rec->tree_node_imm) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: spons ncs_patricia_tree_add failed", __FUNCTION__);
-		free(rec);
+		delete rec;
 		rec = NULL;
 		goto done;
 	}
@@ -1042,7 +1034,7 @@ AVD_SI_SI_DEP *sidep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 	if (ncs_patricia_tree_add(&si_dep.dep_anchor, &rec->tree_node) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: dep ncs_patricia_tree_add failed", __FUNCTION__);
 		ncs_patricia_tree_del(&si_dep.spons_anchor, &rec->tree_node_imm);
-		free(rec);
+		delete rec;
 		rec = NULL;
 		goto done;
 	}
@@ -1165,7 +1157,7 @@ uint32_t sidep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
 	}
 
 	if (si_dep_rec)
-		free(si_dep_rec);
+		delete si_dep_rec;
 
 	rc = NCSCC_RC_SUCCESS;
 done:
@@ -1207,14 +1199,11 @@ uint32_t sidep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 		goto done;
 	}
 
-	if ((start =static_cast<AVD_SI_DEP_NAME_LIST*>(malloc(sizeof(AVD_SI_DEP_NAME_LIST)))) == NULL) {
-		/*Insufficient memory, record can not be added */
-		goto done;
-	} else {
-		start->si_name = indx->si_name_prim;
-		start->next = NULL;
-		last = start;
-	}
+	start = new AVD_SI_DEP_NAME_LIST;
+	start->si_name = indx->si_name_prim;
+	start->next = NULL;
+	last = start;
+	
 
 	while (last) {
 		memset((char *)&idx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
@@ -1241,12 +1230,7 @@ uint32_t sidep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 
 				/* SI Name not found in the list, add it */
 				if (temp->next == NULL) {
-					if ((temp->next = static_cast<AVD_SI_DEP_NAME_LIST*>(malloc(sizeof(AVD_SI_DEP_NAME_LIST)))) == NULL) {
-						/* Insufficient memory space */
-						rc = NCSCC_RC_SUCCESS;
-						break;
-					}
-
+					temp->next = new AVD_SI_DEP_NAME_LIST;
 					temp->next->si_name = rec->indx.si_name_sec;
 					temp->next->next = NULL;
 				}
@@ -1265,7 +1249,7 @@ uint32_t sidep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 	/* Free the allocated SI name list */
 	while (start) {
 		temp = start->next;
-		free(start);
+		delete start;
 		start = temp;
 	}
 

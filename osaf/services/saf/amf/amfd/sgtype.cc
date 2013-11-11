@@ -77,8 +77,8 @@ AVD_AMF_SG_TYPE *avd_sgtype_get(const SaNameT *dn)
 static void sgtype_delete(AVD_AMF_SG_TYPE *sg_type)
 {
 	(void)ncs_patricia_tree_del(&sgtype_db, &sg_type->tree_node);
-	free(sg_type->saAmfStgValidSuTypes);
-	free(sg_type);
+	delete sg_type->saAmfStgValidSuTypes;
+	delete sg_type;
 }
 
 /**
@@ -196,10 +196,7 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	if ((sgt = static_cast<AVD_AMF_SG_TYPE*>(calloc(1, sizeof(AVD_AMF_SG_TYPE)))) == NULL) {
-		LOG_ER("calloc failed");
-		return NULL;
-	}
+	sgt = new AVD_AMF_SG_TYPE();
 
 	memcpy(sgt->name.value, dn->value, dn->length);
 	sgt->name.length = dn->length;
@@ -216,7 +213,7 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 	osafassert(attr->attrValuesNumber > 0);
 
 	sgt->number_su_type = attr->attrValuesNumber;
-	sgt->saAmfSGtValidSuTypes = static_cast<SaNameT*>(malloc(attr->attrValuesNumber * sizeof(SaNameT)));
+	sgt->saAmfSGtValidSuTypes = new SaNameT[attr->attrValuesNumber];
 	for (j = 0; j < attr->attrValuesNumber; j++)
 		sgt->saAmfSGtValidSuTypes[j] = *((SaNameT *)attr->attrValues[j]);
 
@@ -260,7 +257,7 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 
  done:
 	if (rc != 0) {
-		free(sgt);
+		delete sgt;
 		sgt = NULL;
 	}
 

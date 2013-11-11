@@ -47,50 +47,274 @@
 #include <csi.h>
 #include <si_dep.h>
 
+
+
 /* ========================================================================
  *   DEFINITIONS
  * ========================================================================
  */
 
-enum job_type {
-	JOB_IMM_OBJCREATE = 1,
-	JOB_IMM_OBJUPDATE,
-	JOB_IMM_OBJDELETE
-};
+//
+// TODO(HANO) Temporary use this function instead of strdup which uses malloc.
+// Later on remove this function and use std::string instead
+#include <cstring>
+static char *StrDup(const char *s)
+{
+	char *c = new char[strlen(s) + 1];
+	std::strcpy(c,s);
+	return c;
+}
 
-struct job_imm_objcreate {
-	enum job_type type;
-	SaImmClassNameT className;
-	SaNameT parentName;
-	const SaImmAttrValuesT_2 **attrValues;
-};
+//
+Job::~Job()
+{
+}
 
-struct job_imm_objupdate {
-	enum job_type type;
-	SaNameT dn;
-	SaImmAttrNameT attributeName;
-	SaImmValueTypeT attrValueType;
-	void *value;
-};
+//
+AvdJobDequeueResultT ImmObjCreate::exec(SaImmOiHandleT immOiHandle)
+{
+	SaAisErrorT rc;
+	AvdJobDequeueResultT res;
+	
+	TRACE_ENTER();
 
-struct job_imm_objdelete {
-	enum job_type type;
-	SaNameT dn;
-};
+	rc = saImmOiRtObjectCreate_2(immOiHandle, className_,
+				     &parentName_, attrValues_);
 
-union job {
-	enum job_type type;
-	struct job_imm_objcreate objcreate;
-	struct job_imm_objupdate objupdate;
-	struct job_imm_objdelete objdelete;
-};
+	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_EXIST)) {
+		delete Fifo::dequeue();
+		res = JOB_EXECUTED;
+	} else if (rc == SA_AIS_ERR_TRY_AGAIN) {
+		TRACE("TRY-AGAIN");
+		res = JOB_ETRYAGAIN;
+	} else if (rc == SA_AIS_ERR_TIMEOUT) {
+		TRACE("TIMEOUT");
+		res = JOB_ETRYAGAIN;
+	} else if (rc == SA_AIS_ERR_BAD_HANDLE) {
+		TRACE("BADHANDLE");
+		avd_imm_reinit_bg();
+		res = JOB_ETRYAGAIN;
+	} else {
+		delete Fifo::dequeue();
+		LOG_ER("%s: create FAILED %u", __FUNCTION__, rc);
+		res = JOB_ERR;
+	}
+	
+	TRACE_LEAVE();
+	
+	return res;
+}
 
-struct fifo_node {
-	struct fifo_node *next;
-	void *value;
-};
+//
+ImmObjCreate::~ImmObjCreate()
+{
+	unsigned int i, j;
 
-static struct fifo_node *imm_update_fifo_tail, *imm_update_fifo_head;
+	TRACE_ENTER();
+
+	for (i = 0; attrValues_[i] != NULL; i++) {
+		SaImmAttrValuesT_2 *attrValue =
+			(SaImmAttrValuesT_2 *)attrValues_[i];
+		
+		if (attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
+			for (j = 0; j < attrValue->attrValuesNumber; j++) {
+				char *p = *((char**) attrValue->attrValues[j]);
+				delete [] p;
+			}
+		}
+		delete [] attrValue->attrName;
+		delete [] static_cast<char*>(attrValue->attrValues[0]); // free blob shared by all values
+		delete [] attrValue->attrValues;
+		delete attrValue;
+	}
+
+	delete [] className_;
+	delete [] attrValues_;
+	
+	TRACE_LEAVE();
+}
+
+//
+AvdJobDequeueResultT ImmObjUpdate::exec(SaImmOiHandleT immOiHandle)
+{
+	SaAisErrorT rc;
+	AvdJobDequeueResultT res;
+	
+	SaImmAttrModificationT_2 attrMod;
+	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, NULL};
+	SaImmAttrValueT attrValues[] = {value_};
+
+	TRACE_ENTER2("%s %s", dn_.value, attributeName_);
+
+	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
+	attrMod.modAttr.attrName = attributeName_;
+	attrMod.modAttr.attrValuesNumber = 1;
+	attrMod.modAttr.attrValueType = attrValueType_;
+	attrMod.modAttr.attrValues = attrValues;
+
+	rc = saImmOiRtObjectUpdate_2(immOiHandle, &dn_, attrMods);
+
+	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_EXIST)) {
+		delete Fifo::dequeue();
+		res = JOB_EXECUTED;
+	} else if (rc == SA_AIS_ERR_TRY_AGAIN) {
+		TRACE("TRY-AGAIN");
+		res = JOB_ETRYAGAIN;
+	} else if (rc == SA_AIS_ERR_TIMEOUT) {
+		TRACE("TIMEOUT");
+		res = JOB_ETRYAGAIN;
+	} else if (rc == SA_AIS_ERR_BAD_HANDLE) {
+		TRACE("BADHANDLE");
+		avd_imm_reinit_bg();
+		res = JOB_ETRYAGAIN;
+	} else {
+		delete Fifo::dequeue();
+		LOG_ER("%s: update FAILED %u", __FUNCTION__, rc);
+		res = JOB_ERR;
+	}
+	
+	TRACE_LEAVE();
+	return res;
+}
+	
+//
+ImmObjUpdate::~ImmObjUpdate()
+{
+	TRACE_ENTER();
+	delete [] attributeName_;
+	delete [] static_cast<char*>(value_);
+	TRACE_LEAVE();
+
+}
+
+//
+AvdJobDequeueResultT ImmObjDelete::exec(SaImmOiHandleT immOiHandle)
+{
+	SaAisErrorT rc;
+	AvdJobDequeueResultT res;
+
+	TRACE_ENTER2("Delete %s", dn_.value);
+
+	rc = saImmOiRtObjectDelete(immOiHandle, &dn_);
+
+	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_NOT_EXIST)) {
+		delete Fifo::dequeue();
+		res = JOB_EXECUTED;
+	} else if (rc == SA_AIS_ERR_TRY_AGAIN) {
+		TRACE("TRY-AGAIN");
+		res = JOB_ETRYAGAIN;
+	} else if (rc == SA_AIS_ERR_TIMEOUT) {
+		TRACE("TIMEOUT");
+		res = JOB_ETRYAGAIN;
+	} else if (rc == SA_AIS_ERR_BAD_HANDLE) {
+		TRACE("BADHANDLE");
+		avd_imm_reinit_bg();
+		res = JOB_ETRYAGAIN;
+	} else {
+		delete Fifo::dequeue();
+		LOG_ER("%s: delete FAILED %u", __FUNCTION__, rc);
+		res = JOB_ERR;
+	}
+	
+	TRACE_LEAVE();
+	return res;
+}
+
+//
+ImmObjDelete::~ImmObjDelete()
+{
+    	TRACE_ENTER();
+	TRACE_LEAVE();
+}
+
+//
+Job* Fifo::peek()
+{
+	Job* tmp;
+	
+	TRACE_ENTER();
+
+	if (imm_job_.empty()) {
+		tmp = 0;
+	}
+	else {
+		tmp = imm_job_.front();
+	}
+	
+	TRACE_LEAVE();
+	return tmp;
+}
+
+//
+void Fifo::queue(Job* job)
+{
+	TRACE_ENTER();
+	
+	imm_job_.push(job);
+	
+	TRACE_LEAVE();
+}
+
+//
+Job* Fifo::dequeue()
+{
+	Job* tmp;
+	
+	TRACE_ENTER();
+
+	if (imm_job_.empty()) {
+		tmp = 0;
+	}
+	else {
+		tmp = imm_job_.front();
+		imm_job_.pop();
+	}
+	
+	TRACE_LEAVE();
+	return tmp;
+}
+
+//
+AvdJobDequeueResultT Fifo::execute(SaImmOiHandleT immOiHandle)
+{
+	Job *ajob;
+	AvdJobDequeueResultT ret;
+
+	// Keep in queue during controller switch-over
+	if (!avd_cb->active_services_exist)
+		return JOB_ETRYAGAIN;
+
+	if (!avd_cb->is_implementer)
+		return JOB_EINVH;
+
+	if ((ajob = peek()) == NULL)
+		return JOB_ENOTEXIST;
+
+	TRACE_ENTER();
+
+	ret = ajob->exec(immOiHandle);
+	
+	TRACE_LEAVE2("%d", ret);
+
+	return ret;
+}
+
+//
+void Fifo::empty()
+{
+	Job *ajob;
+
+	TRACE_ENTER();
+
+	while ((ajob = dequeue()) != NULL) {
+		delete ajob;
+	}
+
+	TRACE_LEAVE();
+}
+//
+std::queue<Job*> Fifo::imm_job_;
+//
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
@@ -124,7 +348,7 @@ static char *avd_class_names[] = {
 	const_cast<char*>("SaAmfSUType"),
 	const_cast<char*>("SaAmfSutCompType"),
 	const_cast<char*>("SaAmfSGType"),
-	const_cast<char*>("SaAmfAppType"), 
+	const_cast<char*>("SaAmfAppType"),
 
 	const_cast<char*>("SaAmfCluster"),
 	const_cast<char*>("SaAmfNode"),
@@ -165,67 +389,6 @@ static AvdCcbApplyOrderedListT *ccb_apply_list;
  *   FUNCTION PROTOTYPES
  * ========================================================================
  */
-
-/**
- * Queue value at tail of FIFO
- * 
- * @param value
- * 
- * @return void*
- */
-static void fifo_queue(void *value)
-{
-	struct fifo_node *tmp = static_cast<fifo_node*>(malloc(sizeof(*tmp)));
-
-	tmp->next = NULL;
-	tmp->value = value;
-
-	if (imm_update_fifo_tail == NULL)
-		imm_update_fifo_tail = imm_update_fifo_head = tmp;
-	else  {
-		imm_update_fifo_tail->next = tmp;
-		imm_update_fifo_tail = tmp;
-	}
-}
-
-/**
- * Remove and return head FIFO node
- * 
- * @return void*
- */
-static void *fifo_dequeue(void)
-{
-	struct fifo_node *tmp;
-	void *value = NULL;
-
-	if (imm_update_fifo_head != NULL) {
-		if (imm_update_fifo_head == imm_update_fifo_tail)
-			imm_update_fifo_tail = NULL;
-
-		tmp = imm_update_fifo_head;
-		value = tmp->value;
-		imm_update_fifo_head = imm_update_fifo_head->next;
-		free(tmp);
-	}
-
-	return value;
-}
-
-/**
- * Return ptr to head FIFO node without removing it.
- * 
- * @return void*
- */
-static void *fifo_peek(void)
-{
-	struct fifo_node *tmp = imm_update_fifo_head;
-	void *value = NULL;
-
-	if (tmp != NULL)
-		value = tmp->value;
-
-	return value;
-}
 
 static size_t value_size(SaImmValueTypeT attrValueType)
 {
@@ -273,29 +436,26 @@ static void copySaImmAttrValuesT(SaImmAttrValuesT_2 *copy, const SaImmAttrValues
 	unsigned int i, valueCount = original->attrValuesNumber;
 	char *databuffer;
 
-	copy->attrName = strdup(original->attrName);
-	osafassert(copy->attrName != NULL);
+	copy->attrName = StrDup(original->attrName);
 
 	copy->attrValuesNumber = valueCount;
 	copy->attrValueType = original->attrValueType;
 	if (valueCount == 0)
 		return;		/* (just in case...) */
 
-	copy->attrValues = static_cast<SaImmAttrValueT*>(malloc(valueCount * sizeof(SaImmAttrValueT)));
-	osafassert(copy->attrValues != NULL);
+	copy->attrValues = new SaImmAttrValueT[valueCount];
 
 	valueSize = value_size(original->attrValueType);
 
 	// alloc blob shared by all values
-	databuffer = (char *)malloc(valueCount * valueSize);
-	osafassert(databuffer != NULL);
+	databuffer = new char[valueCount * valueSize];
+
 	for (i = 0; i < valueCount; i++) {
 		copy->attrValues[i] = databuffer;
 		if (original->attrValueType == SA_IMM_ATTR_SASTRINGT) {
 			char *cporig = *((char **)original->attrValues[i]);
 			char **cpp = (char **)databuffer;
-			*cpp = strdup(cporig);
-			osafassert(*cpp != NULL);
+			*cpp = StrDup(cporig);
 		} else {
 			memcpy(databuffer, original->attrValues[i], valueSize);
 		}
@@ -305,8 +465,8 @@ static void copySaImmAttrValuesT(SaImmAttrValuesT_2 *copy, const SaImmAttrValues
 
 static const SaImmAttrValuesT_2 *dupSaImmAttrValuesT(const SaImmAttrValuesT_2 *original)
 {
-	SaImmAttrValuesT_2 *copy = static_cast<SaImmAttrValuesT_2*>(malloc(sizeof(SaImmAttrValuesT_2)));
-	osafassert(copy != NULL);
+	SaImmAttrValuesT_2 *copy = new SaImmAttrValuesT_2;
+
 	copySaImmAttrValuesT(copy, original);
 	return copy;
 }
@@ -322,8 +482,7 @@ static const SaImmAttrValuesT_2 **dupSaImmAttrValuesT_array(const SaImmAttrValue
 	while (original[alen] != NULL)
 		alen++;
 
-	copy = static_cast<const SaImmAttrValuesT_2**>(calloc(1, ((alen + 1) * sizeof(SaImmAttrValuesT_2 *))));
-	osafassert(copy != NULL);
+	copy = new const SaImmAttrValuesT_2*[alen + 1]();
 
 	for (i = 0; i < alen; i++)
 		copy[i] = dupSaImmAttrValuesT(original[i]);
@@ -760,7 +919,7 @@ static void ccb_insert_ordered_list(AvdImmOiCcbApplyCallbackT ccb_apply_cb,
 
 	/* allocate memory */
 
-	temp =static_cast<AvdCcbApplyOrderedListT*>(malloc(sizeof(AvdCcbApplyOrderedListT)));
+	temp = new AvdCcbApplyOrderedListT;
 
 	temp->ccb_apply_cb = ccb_apply_cb;
 	temp->opdata = opdata;
@@ -934,7 +1093,7 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 	while (next != NULL) {
 		temp = next;
 		next = next->next_ccb_to_apply;
-		free(temp);
+		delete temp;
 	}
 
 	ccb_apply_list = NULL;
@@ -1323,24 +1482,26 @@ void avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn, SaImmAttrNameT attributeN
 void avd_saImmOiRtObjectUpdate(const SaNameT *dn, SaImmAttrNameT attributeName,
 	SaImmValueTypeT attrValueType, void *value)
 {
-	union job *ajob;
+	TRACE_ENTER();
+	
 	size_t sz;
 
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
 		return;
 
-	ajob = static_cast<job*>(malloc(sizeof(*ajob)));
-	osafassert(ajob != NULL);
+	ImmObjUpdate *ajob = new ImmObjUpdate;
+
 	sz = value_size(attrValueType);
-	ajob->type = JOB_IMM_OBJUPDATE;
-	ajob->objupdate.dn = *dn;
-	ajob->objupdate.attributeName = strdup(attributeName);
-	osafassert(ajob->objupdate.attributeName != NULL);
-	ajob->objupdate.attrValueType = attrValueType;
-	ajob->objupdate.value = malloc(sz);
-	osafassert(ajob->objupdate.value != NULL);
-	memcpy(ajob->objupdate.value, value, sz);
-	fifo_queue(ajob);
+
+	ajob->dn_= *dn;
+	ajob->attributeName_= StrDup(attributeName);
+	ajob->attrValueType_ = attrValueType;
+	ajob->value_ = new char[sz];
+
+	memcpy(ajob->value_, value, sz);
+	Fifo::queue(ajob);
+	
+	TRACE_LEAVE();
 }
 
 /**
@@ -1352,19 +1513,20 @@ void avd_saImmOiRtObjectUpdate(const SaNameT *dn, SaImmAttrNameT attributeName,
 void avd_saImmOiRtObjectCreate(const SaImmClassNameT className,
 	const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues)
 {
-	union job *ajob;
+	TRACE_ENTER();
 
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
 		return;
 
-	ajob = static_cast<job*>(malloc(sizeof(*ajob)));
-	osafassert(ajob != NULL);
-	ajob->type = JOB_IMM_OBJCREATE;
-	ajob->objcreate.className = strdup(className);
-	osafassert(ajob->objcreate.className != NULL);
-	ajob->objcreate.parentName = *parentName;
-	ajob->objcreate.attrValues = dupSaImmAttrValuesT_array(attrValues);
-	fifo_queue(ajob);
+	ImmObjCreate* ajob = new ImmObjCreate;
+
+	ajob->className_ = StrDup(className);
+	osafassert(ajob->className_ != NULL);
+	ajob->parentName_ = *parentName;
+	ajob->attrValues_ = dupSaImmAttrValuesT_array(attrValues);
+	Fifo::queue(ajob);
+	
+	TRACE_LEAVE();
 }
 
 /**
@@ -1373,16 +1535,17 @@ void avd_saImmOiRtObjectCreate(const SaImmClassNameT className,
  */
 void avd_saImmOiRtObjectDelete(const SaNameT* dn)
 {
-	union job *ajob;
-
+	TRACE_ENTER();
+	
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
 		return;
 
-	ajob = static_cast<job*>(malloc(sizeof(*ajob)));
-	osafassert(ajob != NULL);
-	ajob->type = JOB_IMM_OBJDELETE;
-	ajob->objdelete.dn = *dn;
-	fifo_queue(ajob);
+	ImmObjDelete *ajob = new ImmObjDelete;
+
+	ajob->dn_ = *dn;
+	Fifo::queue(ajob);
+	
+	TRACE_LEAVE();
 }
 
 /**
@@ -1459,214 +1622,6 @@ void avd_imm_update_runtime_attrs(void)
 	}
 }
 
-static void free_objcreate(struct job_imm_objcreate *objcreate)
-{
-	int i;
-	unsigned int j;
-
-	for (i = 0; objcreate->attrValues[i] != NULL; i++) {
-		SaImmAttrValuesT_2 *attrValue =
-			(SaImmAttrValuesT_2 *)objcreate->attrValues[i];
-		
-		if (attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
-			for (j = 0; j < attrValue->attrValuesNumber; j++) {
-				char *p = *((char **)attrValue->attrValues[j]);
-				free(p);
-			}
-		}
-		free(attrValue->attrName);
-		free(attrValue->attrValues[0]); // free blob shared by all values
-		free(attrValue->attrValues);
-		free(attrValue);
-	}
-
-	free(objcreate->className);
-	free(objcreate->attrValues);
-}
-
-static AvdJobDequeueResultT job_exec_imm_objcreate(SaImmOiHandleT immOiHandle,
-	struct job_imm_objcreate *objcreate)
-{
-	SaAisErrorT rc;
-
-	TRACE_ENTER();
-
-	rc = saImmOiRtObjectCreate_2(immOiHandle, objcreate->className,
-		&objcreate->parentName, objcreate->attrValues);
-
-	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_EXIST)) {
-		free_objcreate(objcreate);
-		free(fifo_dequeue());
-		return JOB_EXECUTED;
-	} else if (rc == SA_AIS_ERR_TRY_AGAIN) {
-		TRACE("TRY-AGAIN");
-		return JOB_ETRYAGAIN;
-	} else if (rc == SA_AIS_ERR_TIMEOUT) {
-		TRACE("TIMEOUT");
-		return JOB_ETRYAGAIN;
-	} else if (rc == SA_AIS_ERR_BAD_HANDLE) {
-		TRACE("BADHANDLE");
-		avd_imm_reinit_bg();
-		return JOB_ETRYAGAIN;
-	} else {
-		free_objcreate(objcreate);
-		free(fifo_dequeue());
-		LOG_ER("%s: create FAILED %u", __FUNCTION__, rc);
-		return JOB_ERR;
-	}
-}
-
-static AvdJobDequeueResultT job_exec_imm_objupdate(SaImmOiHandleT immOiHandle,
-	struct job_imm_objupdate *objupdate)
-{
-	SaAisErrorT rc;
-	SaImmAttrModificationT_2 attrMod;
-	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, NULL};
-	SaImmAttrValueT attrValues[] = {objupdate->value};
-
-	TRACE_ENTER2("%s %s", objupdate->dn.value, objupdate->attributeName);
-
-	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
-	attrMod.modAttr.attrName = objupdate->attributeName;
-	attrMod.modAttr.attrValuesNumber = 1;
-	attrMod.modAttr.attrValueType = objupdate->attrValueType;
-	attrMod.modAttr.attrValues = attrValues;
-
-	rc = saImmOiRtObjectUpdate_2(immOiHandle, &objupdate->dn, attrMods);
-
-	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_EXIST)) {
-		free(objupdate->attributeName);
-		free(objupdate->value);
-		free(fifo_dequeue());
-		return JOB_EXECUTED;
-	} else if (rc == SA_AIS_ERR_TRY_AGAIN) {
-		TRACE("TRY-AGAIN");
-		return JOB_ETRYAGAIN;
-	} else if (rc == SA_AIS_ERR_TIMEOUT) {
-		TRACE("TIMEOUT");
-		return JOB_ETRYAGAIN;
-	} else if (rc == SA_AIS_ERR_BAD_HANDLE) {
-		TRACE("BADHANDLE");
-		avd_imm_reinit_bg();
-		return JOB_ETRYAGAIN;
-	} else {
-		free(objupdate->attributeName);
-		free(objupdate->value);
-		free(fifo_dequeue());
-		LOG_ER("%s: update FAILED %u", __FUNCTION__, rc);
-		return JOB_ERR;
-	}
-}
-
-static AvdJobDequeueResultT job_exec_imm_objdelete(SaImmOiHandleT immOiHandle,
-	struct job_imm_objdelete *objdelete)
-{
-	SaAisErrorT rc;
-
-	TRACE_ENTER2("Delete %s", objdelete->dn.value);
-
-	rc = saImmOiRtObjectDelete(immOiHandle, &objdelete->dn);
-
-	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_NOT_EXIST)) {
-		free(fifo_dequeue());
-		return JOB_EXECUTED;
-	} else if (rc == SA_AIS_ERR_TRY_AGAIN) {
-		TRACE("TRY-AGAIN");
-		return JOB_ETRYAGAIN;
-	} else if (rc == SA_AIS_ERR_TIMEOUT) {
-		TRACE("TIMEOUT");
-		return JOB_ETRYAGAIN;
-	} else if (rc == SA_AIS_ERR_BAD_HANDLE) {
-		TRACE("BADHANDLE");
-		avd_imm_reinit_bg();
-		return JOB_ETRYAGAIN;
-	} else {
-		free(fifo_dequeue());
-		LOG_ER("%s: delete FAILED %u", __FUNCTION__, rc);
-		return JOB_ERR;
-	}
-}
-
-/**
- * Dequeue one job from the FIFO and execute it.
- * 
- * @param immOiHandle
- * 
- * @return AvdJobDequeueResultT
- */
-AvdJobDequeueResultT avd_job_fifo_execute(SaImmOiHandleT immOiHandle)
-{
-	union job *ajob;
-	int ret = -1;
-
-	// Keep in queue during controller switch-over
-	if (!avd_cb->active_services_exist)
-		return JOB_ETRYAGAIN;
-
-	if (!avd_cb->is_implementer)
-		return JOB_EINVH;
-
-	if ((ajob = static_cast<job*>(fifo_peek())) == NULL)
-		return JOB_ENOTEXIST;
-
-	TRACE_ENTER();
-
-	switch (ajob->type) {
-	case JOB_IMM_OBJCREATE:
-		ret = job_exec_imm_objcreate(immOiHandle, &ajob->objcreate);
-		break;
-	case JOB_IMM_OBJUPDATE:
-		ret = job_exec_imm_objupdate(immOiHandle, &ajob->objupdate);
-		break;
-	case JOB_IMM_OBJDELETE:
-		ret = job_exec_imm_objdelete(immOiHandle, &ajob->objdelete);
-		break;
-	default:
-		osafassert(0);
-		break;
-	}
-
-	TRACE_LEAVE2("%d", ret);
-	return static_cast<AvdJobDequeueResultT>(ret);
-}
-
-/**
- * Empty jobs in the queue, don't execute them.
- * @param immOiHandle
- */
-void avd_job_fifo_empty(void)
-{
-	union job *ajob;
-
-	TRACE_ENTER();
-
-	while ((ajob = static_cast<job*>(fifo_dequeue())) != NULL) {
-		switch (ajob->type) {
-		case JOB_IMM_OBJCREATE:
-			LOG_WA("discarding create of '%s'", ajob->objcreate.className);
-			free_objcreate(&ajob->objcreate);
-			free(ajob);
-			break;
-		case JOB_IMM_OBJUPDATE:
-			LOG_WA("discarding update to '%s' '%s'",
-				ajob->objupdate.dn.value, ajob->objupdate.attributeName);
-			free(ajob->objupdate.attributeName);
-			free(ajob->objupdate.value);
-			free(ajob);
-			break;
-		case JOB_IMM_OBJDELETE:
-			LOG_WA("discarding delete of '%s'", ajob->objdelete.dn.value);
-			free(ajob);
-			break;
-		default:
-			osafassert(0);
-			break;
-		}
-	}
-
-	TRACE_LEAVE();
-}
-
 /**
  * Thread main to re-initialize as IMM OI.
  * @param _cb
@@ -1714,8 +1669,8 @@ static void *avd_imm_reinit_bg_thread(void *_cb)
 	}
 
 	/* Wake up the main thread so it discovers the new IMM handle. */
-	evt = static_cast<AVD_EVT*>(calloc(1, sizeof(AVD_EVT)));
-	osafassert(evt != NULL);
+	evt = new AVD_EVT();
+
 	evt->rcv_evt = AVD_IMM_REINITIALIZED;
 	status = m_NCS_IPC_SEND(&avd_cb->avd_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH);
 	osafassert(status == NCSCC_RC_SUCCESS);
