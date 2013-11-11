@@ -291,6 +291,10 @@ extern "C" {
 		SaImmHandleT client_hdl;	//odd to put client_hdl here..
 	} IMMSV_SYNC_FEVS_BASE;
 
+/* Macros to pack and unpack imm handles */
+#define m_IMMSV_PACK_HANDLE(high, low) ((((SaUint64T) high) << 32) | ((SaUint32T) low))
+#define  m_IMMSV_UNPACK_HANDLE_HIGH(imm_handle) (SaUint32T) ((imm_handle) >> 32)
+#define  m_IMMSV_UNPACK_HANDLE_LOW(imm_handle) (SaUint32T) ((imm_handle) & 0x00000000ffffffff)
 
 #ifdef __cplusplus
 }

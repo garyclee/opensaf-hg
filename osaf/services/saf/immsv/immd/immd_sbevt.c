@@ -39,7 +39,12 @@ uint32_t immd_process_sb_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
 	TRACE_5("Message count: %llu", fevs_msg->sender_count);
 	TRACE_5("size:%u", fevs_msg->msg.size);
 	if (cb->fevsSendCount + 1 != fevs_msg->sender_count) {
-		LOG_WA("Message count:%llu + 1 != %llu", cb->fevsSendCount, fevs_msg->sender_count);
+		if(cb->fevsSendCount) {
+			/* After the fix for #280 standby starts getting 
+			   fevs *after* loading */
+			LOG_WA("Message count:%llu + 1 != %llu", 
+				cb->fevsSendCount, fevs_msg->sender_count);
+		}
 		cb->fevsSendCount = fevs_msg->sender_count;
 	} else {
 		cb->fevsSendCount++;
@@ -125,6 +130,7 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MDS_DEST key;
 	IMMD_IMMND_INFO_NODE *immnd_info_node;
+	bool checkImmd2Pbe=false;
 	TRACE_ENTER();
 
 	TRACE_5("NodeId: %x epoch:%u canBeCoord:%u isCoord:%u syncStart:%u, rulingEpoch:%u pbe:%u",
@@ -134,6 +140,12 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 	if((ctrl->canBeCoord > 1) && !(immd_cb->mIs2Pbe)) {
 		LOG_ER("Active IMMD has 2PBE enabled, yet this standby is not enabled for 2PBE - exiting");
 		exit(1);
+	} else if((cb->immnd_coord == 0) && immd_cb->mIs2Pbe && (ctrl->canBeCoord == 1)) {
+		/* If 2Pbe is enabled, then ctrl->canBeCoord must be 2 or 3 for first 
+		   node accpet message for each SC. Subsequent may have ctgrl->canBeCoord
+		   set to just 1. First message check done below using checkImmd2Pbe.
+		*/
+		checkImmd2Pbe=true;
 	}
 
 	if (cb->mRulingEpoch < ctrl->rulingEpoch) {
@@ -166,24 +178,33 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		if (!(immnd_info_node->isOnController) && ctrl->canBeCoord) {
 			immnd_info_node->isOnController = true;
 			TRACE_5("Corrected isOnController status for immnd node info");
+
+
+			if(checkImmd2Pbe) {
+				LOG_ER("Active IMMD does not have 2PBE enabled, yet this standby "
+					"is enabled for 2PBE - exiting %u %u %u",
+					cb->immnd_coord, immd_cb->mIs2Pbe, ctrl->canBeCoord);
+				exit(1);
+			}
 		}
 
 		immnd_info_node->isCoord = ctrl->isCoord;
 
-		if(immnd_info_node->isCoord) {
+		if(ctrl->isCoord) {
+			SaImmRepositoryInitModeT oldRim = cb->mRim;
 			cb->immnd_coord = immnd_info_node->immnd_key;
-			immnd_info_node->syncStarted = ctrl->syncStarted;
+			cb->m2PbeCanLoad = true;
 			LOG_NO("IMMND coord at %x", immnd_info_node->immnd_key);
-		}
-
-		SaImmRepositoryInitModeT oldRim = cb->mRim;
-		cb->mRim = (ctrl->pbeEnabled==4)?SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
-		if(cb->mRim != oldRim) {
-			LOG_NO("SBY: SaImmRepositoryInitModeT changed and noted as '%s'",
-				(ctrl->pbeEnabled)?
-				"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
-		} else {
-			TRACE("SBY: SaImmRepositoryInitModeT stable as %u ctrl->pbeEnabled:%u", oldRim, ctrl->pbeEnabled);
+			immnd_info_node->syncStarted = ctrl->syncStarted;
+			cb->mRim = (ctrl->pbeEnabled==4)?SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
+			if(cb->mRim != oldRim) {
+				LOG_NO("SBY: SaImmRepositoryInitModeT changed and noted as '%s'",
+					(ctrl->pbeEnabled)?
+					"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+			} else {
+				TRACE("SBY: SaImmRepositoryInitModeT stable as %u ctrl->pbeEnabled:%u", 
+					oldRim, ctrl->pbeEnabled);
+			}
 		}
 
 		int oldPid = immnd_info_node->immnd_execPid;

@@ -35,6 +35,7 @@
 #include <nid_api.h>
 
 #include "immd.h"
+#include <immd_proc.h>
 
 static IMMD_CB _immd_cb;
 IMMD_CB *immd_cb = &_immd_cb;
@@ -203,6 +204,10 @@ int main(int argc, char *argv[])
 	struct pollfd fds[3];
 	const int peerMaxWaitMin = 5; /*5 sec*/
 	const char * peerWaitStr = getenv("IMMSV_2PBE_PEER_SC_MAX_WAIT");
+	int32_t timeout = (-1);
+	int32_t total_wait = (-1);
+	int64_t start_time = 0LL;
+	uint32_t print_at_secs = 1LL;
 
 	daemonize(argc, argv);
 
@@ -221,7 +226,12 @@ int main(int argc, char *argv[])
 		}
 		LOG_NO("2PBE configured with IMMSV_PEER_SC_MAX_WAIT: %d seconds", peerMaxWait);
 
+		total_wait = peerMaxWait * 1000;
+		timeout = total_wait;
+		start_time = m_NCS_GET_TIME_MS;
+
 		immd_cb->mIs2Pbe = true; /* Redundant PBE */
+		immd_cb->m2PbeCanLoad = false; /* Not ready to load yet */
 	}
 
 
@@ -237,7 +247,7 @@ int main(int argc, char *argv[])
 	fds[FD_MBX].events = POLLIN;
 
 	while (1) {
-		int ret = poll(fds, 3, -1);
+		int ret = poll(fds, 3, timeout);
 
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -274,6 +284,45 @@ int main(int argc, char *argv[])
 
 				TRACE("AMF Initialization SUCCESS......");
 				fds[FD_AMF].fd = immd_cb->amf_sel_obj;
+			}
+		}
+
+		if(timeout > 0) {
+			if(immd_cb->m2PbeCanLoad) {
+				/* Peer immnd has been resolved. */
+				timeout = (-1);
+			} else {
+				/* Otherwise decrement timeout by time consumed. */
+				uint32_t passed_time = (uint32_t) (m_NCS_GET_TIME_MS - start_time);
+				if(passed_time < total_wait) {
+					timeout = total_wait - passed_time;
+					if(print_at_secs <= (passed_time/1000)) {
+						LOG_NO("2PBE wait. Passed time:%u new timeout: %d msecs", passed_time, timeout);
+						print_at_secs++;
+					}
+				} else if(!(immd_cb->m2PbeExtraWait) && immd_cb->is_loc_immnd_up && immd_cb->is_rem_immnd_up) {
+					/* We prolong the wait at most once and only if both SCs have been introduced,
+					   but loading arbitration has obviously not been completed yet.
+					   This is to avoid the second SC joining late, starting preloading and regular
+					   loading then starting before the second preloading has replied.
+					*/
+
+					immd_cb->m2PbeExtraWait = true; 
+					total_wait = 2 * 1000;
+					timeout = total_wait;
+					start_time = m_NCS_GET_TIME_MS;
+				} else {
+					LOG_WA("2PBE TIMEOUT WAITING FOR PEER, POSSIBLE REWIND OF IMM STATE.");
+					TRACE("Passed time:%u", passed_time);
+					timeout = (-1);
+					start_time = 0LL;
+					immd_cb->m2PbeCanLoad=true;
+					if (!(immd_cb->immnd_coord) && (immd_cb->ha_state == SA_AMF_HA_ACTIVE)) {
+						LOG_NO("Electing coord, my HA-STATE:%u", immd_cb->ha_state);
+						/* Will tell standby also */
+						immd_proc_arbitrate_2pbe_preload(immd_cb);
+					}
+				}
 			}
 		}
 	}

@@ -94,6 +94,8 @@ typedef struct immd_cb_tag {
 	bool is_loading;  /* True when loading */
 	MDS_DEST loc_immnd_dest;
 	MDS_DEST rem_immnd_dest;	/*ABT used if local immnd crashes ? */
+	IMMSV_ND2D_2_PBE locPbe;  /* If 2PBE, local Pbe start info. */
+	IMMSV_ND2D_2_PBE remPbe;  /* If 2PBE, remote Pbe start info.*/
 
 	NCS_PATRICIA_TREE immnd_tree;	/*ABT <- message count in each node? */
 	bool is_immnd_tree_up;	/* if true immnd_tree is UP */
@@ -130,8 +132,10 @@ typedef struct immd_cb_tag {
 	const char *mPbeFile;   /* If the pbe feature is configured, without 2PBE suffix */
 	bool mFsParamMbcp;      /* True => FsParams have been chpointed to standby IMMD. */
 
-	bool mIs2Pbe;           /* true => Redundant PBE (2PBE). NYI */
-
+	bool mIs2Pbe;           /* true => Redundant PBE (2PBE). */
+	bool m2PbeCanLoad;      /* true => 2PBE Loading arbitration completed */
+	bool m2PbeExtraWait;    /* true => Used only to prolong wait if both SCs
+				   have been introduced but one has not yet replied. */
 } IMMD_CB;
 
 uint32_t immd_immnd_info_tree_init(IMMD_CB *cb);

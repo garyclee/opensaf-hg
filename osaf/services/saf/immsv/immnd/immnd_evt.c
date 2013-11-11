@@ -724,6 +724,8 @@ static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 			error = SA_AIS_ERR_TRY_AGAIN;
 			goto agent_rsp;
 		}
+	} else if (evt->info.initReq.client_pid == cb->preLoadPid) {
+		LOG_IN("2PBE Pre-loader attached");
 	} else if (load_pid < 0) {
 		TRACE_2("Rejecting OM client attach. Waiting for loading or sync to complete");
 		error = SA_AIS_ERR_TRY_AGAIN;
@@ -3225,6 +3227,7 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq)
 
 	case IMMND_EVT_A2ND_ADMO_FINALIZE:
 		if(immModel_immNotWritable(cb) || cb->mSyncFinalizing) {
+			TRACE("PRECHECK ADMO_FINALIZE->TRY_AGAIN");
 			error = SA_AIS_ERR_TRY_AGAIN;
 		}
 		
@@ -4462,6 +4465,51 @@ static uint32_t immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 	return rc;
 }
 
+static void immnd_extract_preload_params(IMMND_CB *cb, const struct ImmsvOmAdminOperationInvoke* req)
+{
+	IMMSV_EVT send_evt;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	IMMSV_ADMIN_OPERATION_PARAM *param = req->params;
+	/* Successfully preloaded. */
+	cb->m2Pbe = 1;
+
+	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+	send_evt.type = IMMSV_EVT_TYPE_IMMD;
+	send_evt.info.immd.type = IMMD_EVT_ND2D_2PBE_PRELOAD;
+
+	do {	
+		osafassert(param->paramType == SA_IMM_ATTR_SAUINT32T ||
+			param->paramType == SA_IMM_ATTR_SAUINT64T);
+		TRACE("Param:%s ", param->paramName.buf);
+		if(!strncmp(param->paramName.buf, "epoch", param->paramName.size)) {
+			send_evt.info.immd.info.pbe2.epoch = param->paramBuffer.val.sauint32;
+			TRACE("Assigned epoch %u", send_evt.info.immd.info.pbe2.epoch);
+			/*cb->mMyEpoch = send_evt.info.immd.info.pbe2.epoch;*/
+		} else if(!strncmp(param->paramName.buf, "commit_time", param->paramName.size)) {
+			send_evt.info.immd.info.pbe2.maxCommitTime = param->paramBuffer.val.sauint32;
+			TRACE("Assigned commit_time %u", send_evt.info.immd.info.pbe2.maxCommitTime);
+		} else if(!strncmp(param->paramName.buf, "ccb_id", param->paramName.size)) {
+			send_evt.info.immd.info.pbe2.maxCcbId = param->paramBuffer.val.sauint32;
+			TRACE("Assigned ccb_id %u", send_evt.info.immd.info.pbe2.maxCcbId);
+		} else if(!strncmp(param->paramName.buf, "weak_commit_time", param->paramName.size)) {
+			send_evt.info.immd.info.pbe2.maxWeakCommitTime = param->paramBuffer.val.sauint32;
+			TRACE("Assigned weak_commit_time %u", send_evt.info.immd.info.pbe2.maxWeakCommitTime);
+		} else if(!strncmp(param->paramName.buf, "weak_ccb_id", param->paramName.size)) {
+			send_evt.info.immd.info.pbe2.maxWeakCcbId = param->paramBuffer.val.sauint64;
+			TRACE("Assigned weakccb_id %llu", send_evt.info.immd.info.pbe2.maxWeakCcbId);
+		}
+		param = param->next;
+	} while(param);
+
+	rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
+
+	/* Check against immd down not needed. Mds handles reduncancy. */
+
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Problem in sending RDND_PBE to IMMD over MDS IMMD UP?:%u", immnd_is_immd_up(cb));
+	}
+}
+
 /****************************************************************************
  * Name          : immnd_evt_proc_admop
  *
@@ -4644,6 +4692,12 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 					send_evt.info.imma.info.admOpRsp.result);
 				rc = immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt);
 				TRACE_2("SYNC REPLY SENT rc:%u", rc);
+				if((cb->mState  == IMM_SERVER_CLUSTER_WAITING) && (cb->m2Pbe == 2) &&
+					(evt->info.admOpReq.operationId == OPENSAF_IMM_2PBE_PRELOAD_STAT)) {
+					LOG_IN("2PBE Preload case: sending persistency stats to IMMD");
+					/* ABT process the params structure in the incoming message.*/
+					immnd_extract_preload_params(cb, &(evt->info.admOpReq));
+				}
 			}
 
 			if (rc != NCSCC_RC_SUCCESS) {
@@ -7091,6 +7145,13 @@ static uint32_t immnd_restricted_ok(IMMND_CB *cb, uint32_t id)
 		}
 	}
 
+	if ((cb->preLoadPid > 0)&&(cb->mState == IMM_SERVER_CLUSTER_WAITING)){
+		TRACE("Restricted OK TRUE in preload");
+		return 1;
+	}
+
+
+
 	return 0;
 }
 
@@ -7733,6 +7794,12 @@ static uint32_t immnd_evt_proc_loading_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 		cb->highestProcessed = evt->info.ctrl.fevsMsgStart;
 		cb->highestReceived = evt->info.ctrl.fevsMsgStart;
 		TRACE_2("prepareForLoading coord variant. fevsMsgCount reset to %llu", cb->highestProcessed);
+		if(cb->m2Pbe == 2) {
+			/* 2PBE but apparently did not succeed in obtaining preload parameters.
+			   Could for example be initial start. 
+			 */
+			cb->m2Pbe = 1;
+		}
 	} else {
 		/* Note: corrected for case of IMMND at *both* controllers failing.
 		   This must force down IMMND on all payloads, since these can
@@ -7801,8 +7868,43 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 
 	if (evt->info.ctrl.nodeId == cb->node_id) {
 		/*This node was introduced to the IMM cluster */
+		uint8_t oldCanBeCoord = cb->mCanBeCoord;
 		cb->mIntroduced = true;
+		if(evt->info.ctrl.canBeCoord == 3) {
+			cb->m2Pbe = 1;
+			evt->info.ctrl.canBeCoord = 1;
+			LOG_IN("2PBE SYNC CASE CAUGHT oldCanBeCoord:%u", oldCanBeCoord);
+		}
+
 		cb->mCanBeCoord = evt->info.ctrl.canBeCoord;
+		if((cb->mCanBeCoord == 2) && (cb->m2Pbe < 2)) {
+			LOG_NO("2PBE startup arbitration initiated from IMMD");
+			cb->m2Pbe = 2;
+			/* mCanBeCoord > 0  => This immnd resides on an SC. */
+			/* mCanBeCoord == 2  => IMMD has not chosen coord yet. */
+
+			/* m2Pbe > 0  => Redunant PBE configured */
+			/* m2Pbe == 2  => IMMND has not yet sent PBE stats to IMMD */
+		} else if((oldCanBeCoord == 2) && (cb->mCanBeCoord == 1)) {
+			LOG_NO("2PBE startup arbitration resolved by IMMD");
+			if(evt->info.ctrl.isCoord == 0) {
+				LOG_NO("2PBE other IMMND chosen as coord");
+			}
+		}
+
+		if(cb->m2Pbe && cb->mCanBeCoord) {
+			char pbeFileSuffix[64];
+			const char* pbe_file_suffix = getenv("IMMSV_PBE_FILE_SUFFIX");
+			if(!pbe_file_suffix) {
+				snprintf(pbeFileSuffix, 64, ".%x", cb->node_id);
+				osafassert(setenv("IMMSV_PBE_FILE_SUFFIX", pbeFileSuffix, 0)==0);
+			}
+			LOG_IN("cb->m2Pbe: %u  cb->mCanBeCoord:%u", cb->m2Pbe, cb->mCanBeCoord);
+			LOG_NO("2PBE configured, IMMSV_PBE_FILE_SUFFIX:%s (%s)",
+				getenv("IMMSV_PBE_FILE_SUFFIX"), (cb->mCanBeCoord == 2)?"preload":
+				((oldCanBeCoord == 2)?"load":"sync"));
+		}
+
 		if (evt->info.ctrl.isCoord) {
 			if (cb->mIsCoord) {
 				LOG_NO("This IMMND re-elected coord redundantly, failover ?");
@@ -7919,6 +8021,10 @@ static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 			LOG_WA("Sync MESSAGE:%llu OUT OF ORDER my highest processed:%llu", msgNo, cb->highestProcessed);
 			immnd_ackToNid(NCSCC_RC_FAILURE);
 			exit(1);
+		} else if(cb->mState < IMM_SERVER_LOADING_PENDING) {
+			LOG_NO("Fevs count adjusted to %llu preLoadPid: %u",
+				msgNo - 1, cb->preLoadPid);
+			cb->highestProcessed = msgNo - 1;
 		}
 	}
 
@@ -8397,16 +8503,23 @@ static void immnd_evt_proc_admo_finalize(IMMND_CB *cb,
 	osafassert(evt);
 	err = immModel_adminOwnerDelete(cb, evt->info.admFinReq.adm_owner_id, 0);
 
-	if(wasLoading && (immModel_getLoader(cb) == 0)) {
+	if(wasLoading) {
+		if(err == SA_AIS_ERR_NOT_READY) {
+ 			immnd_ackToNid(NCSCC_RC_FAILURE);
+ 			LOG_ER("Unexpected failure in loading - aborting");
+ 			abort();
+ 		}
 
-		if (cb->mPbeFile) {/* Pbe configured */
-			cb->mRim = immModel_getRepositoryInitMode(cb);
-			TRACE("RepositoryInitMode: %s", (cb->mRim==SA_IMM_KEEP_REPOSITORY)?
-				"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+		if(immModel_getLoader(cb) == 0) {
+			if (cb->mPbeFile) {/* Pbe configured */
+				cb->mRim = immModel_getRepositoryInitMode(cb);
+				TRACE("RepositoryInitMode: %s", (cb->mRim==SA_IMM_KEEP_REPOSITORY)?
+					"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+			}
+
+			TRACE("Adjusting epoch directly after loading has completed");
+			immnd_adjustEpoch(cb, SA_TRUE); /* Moved to here from immnd_proc.c #1987 */
 		}
-
-		TRACE("Adjusting epoch directly after loading has completed");
-		immnd_adjustEpoch(cb, SA_TRUE); /* Moved to here from immnd_proc.c #1987 */
 	}
 
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
@@ -8461,7 +8574,11 @@ static void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
 	TRACE("immnd_evt_proc_admo_hard_finalize of adm_owner_id: %u", evt->info.admFinReq.adm_owner_id);
 	err = immModel_adminOwnerDelete(cb, evt->info.admFinReq.adm_owner_id, 1);
 	if (err != SA_AIS_OK) {
-		LOG_WA("Failed in hard remove of admin owner %u", evt->info.admFinReq.adm_owner_id);
+		if(cb->loaderPid != (-1)) {
+			LOG_WA("Failed in hard remove of admin owner %u", evt->info.admFinReq.adm_owner_id);
+		} else {
+			TRACE("Failed in hard remove of admin owner %u. Preload?", evt->info.admFinReq.adm_owner_id);
+		}
 	}
 	TRACE_LEAVE();
 }

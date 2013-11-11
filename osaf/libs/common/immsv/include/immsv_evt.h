@@ -248,6 +248,8 @@ typedef enum immd_evt_type {
 
 	IMMD_EVT_ND2D_LOADING_COMPLETED = 25, /* loading completes sucessfully */
 
+	IMMD_EVT_ND2D_2PBE_PRELOAD = 26, /* Redundant PBE preload stats to IMMD. */
+
 	IMMD_EVT_MAX
 } IMMD_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMD_EVT_TYPE enum. */
@@ -387,7 +389,7 @@ typedef struct immsv_d2nd_control {
 	SaUint32T rulingEpoch;
 	SaUint64T fevsMsgStart;
 	SaUint32T ndExecPid;
-	uint8_t canBeCoord;
+	uint8_t canBeCoord; /* 0=>payload; 1=>SC; 2=>2PBE_preload; 3=>2PBE_sync*/
 	uint8_t isCoord;
 	uint8_t syncStarted;
 	SaUint32T nodeEpoch;
@@ -420,6 +422,14 @@ typedef struct immsv_nd2d_control {
 	IMMSV_OCTET_STRING xmlFile;
 	IMMSV_OCTET_STRING pbeFile;
 } IMMSV_ND2D_CONTROL;
+
+typedef struct immsv_nd2d_2_pbe {
+	SaUint32T epoch;
+	SaUint32T maxCcbId;
+	SaUint32T maxCommitTime;
+	SaUint64T maxWeakCcbId;  /* PRT-ops, class-create/delete */
+	SaUint32T maxWeakCommitTime;
+} IMMSV_ND2D_2_PBE;
 
 typedef struct immsv_nd2d_adminit_req {
 	SaImmHandleT client_hdl;
@@ -557,6 +567,7 @@ typedef struct immd_evt {
 
 		IMMSV_SYNC_FEVS_BASE syncFevsBase; /* FevsCount that sync is 
 						      based on . */
+		IMMSV_ND2D_2_PBE pbe2; /* Stats about a pbe file (redundant pbe)*/
 	} info;
 } IMMD_EVT;
 
@@ -605,11 +616,6 @@ void immsv_free_attrvalues_list(IMMSV_ATTR_VALUES_LIST *avl);
 void immsv_free_attrdefs_list(IMMSV_ATTR_DEF_LIST *adp);
 void immsv_evt_free_name_list(IMMSV_OBJ_NAME_LIST *p);
 void immsv_evt_free_ccbOutcomeList(IMMSV_CCB_OUTCOME_LIST *o);
-
-/* Macros to pack and unpack imm handles */
-#define m_IMMSV_PACK_HANDLE(high, low) ((((SaUint64T) high) << 32) | ((SaUint32T) low))
-#define  m_IMMSV_UNPACK_HANDLE_HIGH(imm_handle) (SaUint32T) ((imm_handle) >> 32)
-#define  m_IMMSV_UNPACK_HANDLE_LOW(imm_handle) (SaUint32T) ((imm_handle) & 0x00000000ffffffff)
 
 #ifdef __cplusplus
 }

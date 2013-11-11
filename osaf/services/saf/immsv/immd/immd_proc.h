@@ -26,7 +26,8 @@ void immd_process_evt(void);
 
 uint32_t immd_amf_init(IMMD_CB *immd_cb);
 uint32_t immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo, bool dealocate);
-int immd_proc_elect_coord(IMMD_CB *immd_cb, bool new_active);
+bool immd_proc_elect_coord(IMMD_CB *immd_cb, bool new_active);
+void immd_proc_arbitrate_2pbe_preload(IMMD_CB *immd_cb);
 void immd_proc_rebroadcast_fevs(IMMD_CB *immd_cb, uint16_t back_count);
 
 /* AMF Function Declerations */

@@ -70,4 +70,10 @@ void escalatePbe(std::string dir, std::string file);
 
 void* checkPbeRepositoryInit(std::string dir, std::string file);
 
-int loadImmFromPbe(void* pbeHandle);
+int loadImmFromPbe(void* pbeHandle, bool preload);
+
+void sendPreloadParams(SaImmHandleT immHandle, SaImmAdminOwnerHandleT ownerHandle, 
+	SaUint32T epoch, SaUint32T maxCcbId, SaUint32T maxCommitTime,
+	SaUint64T maxWeakCcbId, SaUint32T maxWeakCommitTime);
+
+bool opensafPbeRtClassCreate(SaImmHandleT immHandle);

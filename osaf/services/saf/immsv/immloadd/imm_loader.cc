@@ -26,12 +26,14 @@
 #include <configmake.h>
 #include <logtrace.h>
 #include <sys/stat.h>
+#include <ncsgl_defs.h>
 
 #define MAX_DEPTH 10
 #define MAX_CHAR_BUFFER_SIZE 8192  //8k
 
 static bool opensafClassCreated=false;
 static bool opensafObjectCreated=false;
+static bool opensafPbeRtClassCreated=false;
 
 static char base64_dec_table[] = {
 		62,																										/* + 			*/
@@ -107,8 +109,9 @@ typedef struct ParserStateStruct
     std::map<std::string, SaImmAttrValuesT_2>    classRDNMap;
 
     SaImmHandleT         immHandle;
-    SaImmHandleT         ownerHandle;
-    SaImmHandleT         ccbHandle;
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaImmCcbHandleT        ccbHandle;
+    SaUint32T* preloadEpochPtr;
 } ParserState;
 
 /* Helper functions */
@@ -324,6 +327,58 @@ void opensafClassCreate(SaImmHandleT immHandle)
     }
 }
 
+bool opensafPbeRtClassCreate(SaImmHandleT immHandle)
+{
+    SaAisErrorT err = SA_AIS_OK;
+    int retries=0;
+    SaImmAttrDefinitionT_2 d1, d2, d3, d4;
+
+    d1.attrName = (char *) OPENSAF_IMM_ATTR_PBE_RT_RDN;
+    d1.attrValueType = SA_IMM_ATTR_SASTRINGT;
+    d1.attrFlags = SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_RDN | SA_IMM_ATTR_CACHED;
+    d1.attrDefaultValue = NULL;
+
+    d2.attrName = (char *) OPENSAF_IMM_ATTR_PBE_RT_EPOCH;
+    d2.attrValueType = SA_IMM_ATTR_SAUINT32T;
+    d2.attrFlags = SA_IMM_ATTR_RUNTIME;
+    d2.attrDefaultValue = NULL;
+
+    d3.attrName = (char *) OPENSAF_IMM_ATTR_PBE_RT_CCB;
+    d3.attrValueType = SA_IMM_ATTR_SAUINT64T;
+    d3.attrFlags = SA_IMM_ATTR_RUNTIME;
+    d3.attrDefaultValue = NULL;
+
+    d4.attrName = (char *) OPENSAF_IMM_ATTR_PBE_RT_TIME;
+    d4.attrValueType = SA_IMM_ATTR_SATIMET;
+    d4.attrFlags = SA_IMM_ATTR_RUNTIME;
+    d4.attrDefaultValue = NULL;
+
+    const SaImmAttrDefinitionT_2* attrDefs[5] = {&d1, &d2, &d3, &d4, 0};
+
+    do {/* Create the class */
+        
+        if(err == SA_AIS_ERR_TRY_AGAIN) {
+            TRACE_8("Got TRY_AGAIN (retries:%u) on class create",
+                retries);
+            usleep(200000);
+            err = SA_AIS_OK;
+        }
+        err = saImmOmClassCreate_2(
+                                   immHandle, 
+                                   (char *) OPENSAF_IMM_PBE_RT_CLASS_NAME,
+                                   SA_IMM_CLASS_RUNTIME,
+                                   attrDefs);
+
+    } while(err == SA_AIS_ERR_TRY_AGAIN && ++retries < 32);
+
+    if(err != SA_AIS_OK)
+    {
+        LOG_WA("Failed to create the class %s err:%u", OPENSAF_IMM_PBE_RT_CLASS_NAME, err);
+        return false;
+    }
+    LOG_IN("Class %s created", OPENSAF_IMM_PBE_RT_CLASS_NAME);
+    return true;
+}
 
 static void opensafObjectCreate(SaImmCcbHandleT ccbHandle)
 {
@@ -596,6 +651,12 @@ bool createImmClass(SaImmHandleT immHandle,
         strcmp(className, OPENSAF_IMM_CLASS_NAME)==0)
     {
         opensafClassCreated = true;
+    }
+
+    if(!opensafPbeRtClassCreated && 
+        strcmp(className, OPENSAF_IMM_PBE_RT_CLASS_NAME)==0)
+    {
+        opensafPbeRtClassCreated = true;
     }
 
     TRACE_8("CREATED IMM CLASS %s", className);
@@ -971,7 +1032,7 @@ static void endElementHandler(void* userData,
             LOG_ER("INVALID CLASS PLACEMENT");
             exit(1);
         }
-        else
+        else if(!(state->preloadEpochPtr))
         {
             if(!createImmClass(state->immHandle, state->className,
                 state->classCategory, &(state->attrDefinitions)))
@@ -1023,6 +1084,7 @@ static void endElementHandler(void* userData,
     }
     else if (strcmp((const char*)name, "object") == 0)
     {
+        std::list<SaImmAttrValuesT_2>::iterator it;
         //TRACE_8("END OBJECT");
         if (!state->doneParsingClasses)
         {
@@ -1031,12 +1093,21 @@ static void endElementHandler(void* userData,
 
             state->doneParsingClasses = 1;
 
-            if(!opensafClassCreated) {
+            if(!opensafClassCreated && !(state->preloadEpochPtr)) {
                 opensafClassCreate(state->immHandle);
                 LOG_NO("The class %s has been created since it was missing from the "
                        "imm.xml load file", OPENSAF_IMM_CLASS_NAME);
             }
 
+            if(!opensafPbeRtClassCreated) {
+                if(opensafPbeRtClassCreate(state->immHandle)) {
+                    LOG_NO("The class %s has been created since it was missing from the "
+                       "imm.xml load file", OPENSAF_IMM_PBE_RT_CLASS_NAME);
+                } else {
+                    LOG_ER("Failed to create the class %s - exiting", OPENSAF_IMM_PBE_RT_CLASS_NAME);
+                    exit(1);
+                }
+            }
 
             /* First time, initialize the imm object api */
             errorCode = saImmOmAdminOwnerInitialize(state->immHandle,
@@ -1051,23 +1122,47 @@ static void endElementHandler(void* userData,
             }
             state->adminInit = 1;
 
-            /* ... and initialize the imm ccb api  */
-            errorCode = saImmOmCcbInitialize(state->ownerHandle,
-                                             0
-                                             /*(SaImmCcbFlagsT)
-                                               SA_IMM_CCB_REGISTERED_OI*/,
-                                             &state->ccbHandle);
-            if (errorCode != SA_AIS_OK)
-            {
-                LOG_ER("Failed to initialize ImmOmCcb %d", errorCode);
-                exit(1);
-            }
-            state->ccbInit = 1;
+	    if(!state->preloadEpochPtr) {
+		    /* ... and initialize the imm ccb api  */
+		    errorCode = saImmOmCcbInitialize(state->ownerHandle,
+			    0
+			    /*(SaImmCcbFlagsT)
+			      SA_IMM_CCB_REGISTERED_OI*/,
+			    &state->ccbHandle);
 
+		    if (errorCode != SA_AIS_OK)
+		    {
+			    LOG_ER("Failed to initialize ImmOmCcb %d", errorCode);
+			    exit(1);
+		    }
+		    state->ccbInit = 1;
+	    }
+        }
+
+        if(state->preloadEpochPtr) {
+            if(strcmp(state->objectName, OPENSAF_IMM_OBJECT_DN) == 0) {
+                for(it = state->attrValuesList.begin();
+                    it != state->attrValuesList.end(); it++) {
+                    if(!strcmp(it->attrName, OPENSAF_IMM_ATTR_EPOCH)) {
+                        osafassert(it->attrValuesNumber == 1);
+                        osafassert(it->attrValueType == SA_IMM_ATTR_SAUINT32T);
+                        (*(state->preloadEpochPtr)) = (*((SaUint32T *) it->attrValues[0]));
+			LOG_NO("Preload-epoch %u found in XML file:", *(state->preloadEpochPtr));
+                    }
+                }
+            }
+
+            for(it = state->attrValuesList.begin();
+                it != state->attrValuesList.end(); it++) {
+                free(it->attrName);
+                free(it->attrValues);
+            }
+            state->attrValuesList.clear();
+
+            goto done;
         }
 
         /* Create the object */
-        //createImmObject(state);
         if(!createImmObject(state->objectClass,
             state->objectName,
             &(state->attrValuesList),
@@ -1086,6 +1181,8 @@ static void endElementHandler(void* userData,
     else if (strcmp((const char*)name, "imm:IMM-contents") == 0)
     {
         SaAisErrorT errorCode;
+
+	if(state->preloadEpochPtr) {goto done;}
 
         if(!opensafObjectCreated) {
             opensafObjectCreate(state->ccbHandle);
@@ -1147,6 +1244,8 @@ static void endElementHandler(void* userData,
             state->immInit = 0;
         }
     }
+
+ done:
 
     ((ParserState*)userData)->depth--;
 }
@@ -1835,16 +1934,14 @@ static void charsToValueHelper(SaImmAttrValueT* value,
     }
 }
 
-int loadImmXML(std::string xmldir, std::string file)
+int loadImmXML(std::string xmldir, std::string file, SaUint32T* preloadEpochPtr)
 {
     ParserState state;
     SaVersionT version;
-    SaAisErrorT errorCode;
+    SaAisErrorT errorCode=SA_AIS_OK;
     std::string filename;
-    int result;
+    int error = -1;
     struct stat stat_buf;
-
-    result = -1;
 
     version.releaseCode   = 'A';
     version.majorVersion  = 2;
@@ -1878,6 +1975,10 @@ int loadImmXML(std::string xmldir, std::string file)
     state.immInit   = 0;
     state.adminInit = 0;
     state.ccbInit   = 0;
+    // state.immHandle = 0LL; state. immHandle initialized above.
+    state.ownerHandle = 0LL;
+    state.ccbHandle = 0LL;
+    state.preloadEpochPtr=preloadEpochPtr;
 
     /* Build the filename */
     filename = xmldir;
@@ -1891,7 +1992,12 @@ int loadImmXML(std::string xmldir, std::string file)
         goto bailout;
     }
 
-    result = xmlSAXUserParseFile(&my_handler, &state, filename.c_str());
+    error = xmlSAXUserParseFile(&my_handler, &state, filename.c_str());
+
+    if(preloadEpochPtr && !error) {
+	    LOG_IN("Obtained epoch:%u",(*preloadEpochPtr));
+	    sendPreloadParams(state.immHandle, state.ownerHandle, (*preloadEpochPtr), 0, 0, 0LL, 0);
+    }
 
     /* Make sure to finalize the imm connections */
     /* Finalize the ccb connection*/
@@ -1926,7 +2032,7 @@ int loadImmXML(std::string xmldir, std::string file)
     }
 
  bailout:
-    return !result; 
+    return !error; 
 }
 
 int getClassNames(SaImmHandleT& immHandle, std::list<std::string>& classNamesList)
@@ -2181,7 +2287,7 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle, int maxBa
             if(retries) {
                 usleep(150000);
             }
-	    /* Syncronous for throtteling sync */
+	    /* Synchronous for throttling sync */
 	    err = saImmOmSearchNext_2(searchHandle, &objectName, &attributes);
 
 	    retries++;
@@ -2356,11 +2462,18 @@ int immsync(int maxBatchSize)
  */
 int main(int argc, char* argv[])
 {
+    bool preload=false;
+    SaUint32T preloadEpoch=0;
     const char* defaultLog = PKGLOGDIR "/osafimmnd";
     const char* logPath;
     unsigned int category_mask = 0;
     void* pbeHandle=NULL;
-    const char* pbe_file;
+    const char* pbe_file = getenv("IMMSV_PBE_FILE");
+    const char* pbe_file_suffix = getenv("IMMSV_PBE_FILE_SUFFIX");
+    std::string pbeFile(pbe_file);
+    if(pbe_file_suffix) {
+        pbeFile.append(pbe_file_suffix);
+    }
 
     if (argc < 3)
     {
@@ -2407,42 +2520,86 @@ int main(int argc, char* argv[])
                 exit(1);
             }
         }
+
+        std::string preloadMarker("preload");
+        if (preloadMarker == std::string(argv[3]))
+        {
+	    preload = true;
+	}
     }
 
-    if (logtrace_init("osafimmloadd", logPath, category_mask) == -1)
-    {
-        printf("logtrace_init FAILED\n");
-        syslog(LOG_ERR, "logtrace_init FAILED");
+
+    if(preload) {
+        if (logtrace_init("preload", logPath, category_mask) == -1) {
+            syslog(LOG_ERR, "preload: logtrace_init FAILED");
+        }
+        LOG_NO("2PBE pre-load starting");
+    } else {
+        if (logtrace_init("osafimmloadd", logPath, category_mask) == -1) {
+            syslog(LOG_ERR, "osafimmloadd: logtrace_init FAILED");
+        }
+        LOG_NO("Load starting");
     }
 
-    LOG_NO("Load starting");
-
-    if ((pbe_file = getenv("IMMSV_PBE_FILE")) != NULL)
+    if (pbe_file != NULL)
     {
-        LOG_NO("IMMSV_PBE_FILE is defined (%s) check it for existence and SaImmRepositoryInitModeT", pbe_file);
-        pbeHandle = checkPbeRepositoryInit(xmldir, std::string(pbe_file));
+        LOG_NO("IMMSV_PBE_FILE is defined (%s) check it for existence "
+            "and SaImmRepositoryInitModeT", pbeFile.c_str());
+        pbeHandle = checkPbeRepositoryInit(xmldir, pbeFile);
+
+	if(!pbeHandle) {
+            LOG_WA("Could not open repository:%s", pbeFile.c_str());
+	    if(pbe_file_suffix) {
+		    LOG_NO("Trying without suffix");
+		    pbeFile = std::string(pbe_file);
+		    pbeHandle = checkPbeRepositoryInit(xmldir, pbeFile);
+	    }
+	}
     }
 
     if (pbeHandle) {
-        LOG_NO("***** Loading from PBE file %s at %s *****",pbe_file, argv[1]);
-        if(!loadImmFromPbe(pbeHandle)) {
+        if(preload) {
+             LOG_NO("2PBE Pre-loading from PBE file %s at %s", pbeFile.c_str(), argv[1]);
+        } else {
+             LOG_NO("***** Loading from PBE file %s at %s *****", pbeFile.c_str(), argv[1]);
+        }
+
+        if(!loadImmFromPbe(pbeHandle, preload)) {
             LOG_ER("Load from PBE ending ABNORMALLY dir:%s file:%s",
-                argv[1], pbe_file);
+                argv[1], pbeFile.c_str());
             /* Try to prevent cyclic restart. Escalation will only work if 
                xmldir is writable.
             */
-            escalatePbe(xmldir, std::string(pbe_file));
+            if(!preload) {/* Should perhaps escalate also if preload or return <0, 0, 0>*/
+                escalatePbe(xmldir, pbeFile.c_str());
+            }
             goto err; 
         }
     } else {
-        LOG_NO("***** Loading from XML file %s at %s *****", argv[2], argv[1]);
-        if (!loadImmXML(xmldir, xml_file)) {
-            LOG_ER("Load from imm.xml file ending ABNORMALLY dir:%s file:%s",
-                argv[1], argv[2]);
-            goto err;
+        if(preload) {
+            LOG_NO("2PBE: Pre-loading from XML file %s at %s", argv[2], argv[1]);
+	    if(!loadImmXML(xmldir, xml_file, &preloadEpoch)) {
+		    LOG_ER("Load from imm.xml file ending ABNORMALLY dir:%s file:%s",
+			    argv[1], argv[2]);
+		    goto err;
+	    }
+
+	    LOG_NO("2PBE preload completed epoch: %u", preloadEpoch);
+        } else {
+            LOG_NO("***** Loading from XML file %s at %s *****", argv[2], argv[1]);
+            if(!loadImmXML(xmldir, xml_file, NULL)) {
+                LOG_ER("Load from imm.xml file ending ABNORMALLY dir:%s file:%s",
+                    argv[1], argv[2]);
+                goto err;
+            }
         }
     }
-    LOG_NO("Load ending normally");
+
+    if(preload) {
+	    LOG_IN("Pre-load ending normally");
+    } else {
+	    LOG_NO("Load ending normally");
+    }
     return 0;
 
 err:
@@ -2450,3 +2607,75 @@ err:
     return 0;
 }
 
+void sendPreloadParams(SaImmHandleT immHandle, SaImmAdminOwnerHandleT ownerHandle, 
+	SaUint32T epoch, SaUint32T maxCcbId, SaUint32T maxCommitTime,
+	SaUint64T maxWeakCcbId, SaUint32T maxWeakCommitTime)
+{
+	SaStringT epoch_string = (SaStringT) "epoch";
+	SaStringT commit_time_string = (SaStringT)"commit_time";
+	SaStringT ccb_id_string = (SaStringT) "ccb_id";
+	SaStringT weak_commit_time_string = (SaStringT)"weak_commit_time";
+	SaStringT weak_ccb_id_string = (SaStringT) "weak_ccb_id";
+	const SaNameT objectName = {sizeof(OPENSAF_IMM_OBJECT_DN), OPENSAF_IMM_OBJECT_DN};
+	SaAisErrorT operationReturnValue = SA_AIS_OK;
+	SaAisErrorT            errorCode = SA_AIS_OK;
+
+	if(epoch == 0) {epoch=1;} /* Set epoch to one to avoid confusion with no epoch found */
+
+	const SaImmAdminOperationParamsT_2 param0 = {
+		epoch_string,
+		SA_IMM_ATTR_SAUINT32T,
+		&epoch
+	};
+
+	const SaImmAdminOperationParamsT_2 param1 = {
+		commit_time_string,
+		SA_IMM_ATTR_SAUINT32T,
+		&maxCommitTime
+	};
+
+	const SaImmAdminOperationParamsT_2 param2 = {
+		ccb_id_string,
+		SA_IMM_ATTR_SAUINT32T,
+		&maxCcbId
+	};
+
+	const SaImmAdminOperationParamsT_2 param3 = {
+		weak_commit_time_string,
+		SA_IMM_ATTR_SAUINT32T,
+		&maxWeakCommitTime
+	};
+
+	const SaImmAdminOperationParamsT_2 param4 = {
+		weak_ccb_id_string,
+		SA_IMM_ATTR_SAUINT64T,
+		&maxWeakCcbId
+	};
+
+	const SaImmAdminOperationParamsT_2 param5 = {
+		(char *) "Dummy",
+		SA_IMM_ATTR_SAUINT64T,
+		&maxWeakCcbId
+	};
+
+	const SaImmAdminOperationParamsT_2 *params[] = {&param0, &param1, &param2, &param3, &param4, &param5, NULL};
+
+	errorCode = saImmOmAdminOperationInvoke_2(ownerHandle,
+		&objectName,
+		0,
+		OPENSAF_IMM_2PBE_PRELOAD_STAT,
+		params,
+		&operationReturnValue,
+		SA_TIME_ONE_SECOND * 5);
+
+	/* TRY AGAIN handling ? Probably not, imm is not even up yet. */
+
+	if(errorCode != SA_AIS_OK) {
+		LOG_WA("Error: %u from immsv on admin-op 2PBE_PRELOAD_STAT", errorCode);
+	}
+
+	if(operationReturnValue != SA_AIS_OK) {
+		LOG_WA("Error: %u returned from admin-op 2PBE_PRELOAD_STAT",
+			operationReturnValue);
+	}
+}

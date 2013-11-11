@@ -41,6 +41,12 @@ extern "C" {
 #define OPENSAF_IMM_OBJECT_RDN "opensafImm=opensafImm"
 #define OPENSAF_IMM_OBJECT_PARENT "safApp=safImmService"
 
+#define OPENSAF_IMM_PBE_RT_CLASS_NAME   "OsafImmPbeRt"
+#define OPENSAF_IMM_ATTR_PBE_RT_RDN "osafImmPbeRt"
+#define OPENSAF_IMM_ATTR_PBE_RT_EPOCH "epoch"
+#define OPENSAF_IMM_ATTR_PBE_RT_CCB "lastCcbApply"
+#define OPENSAF_IMM_ATTR_PBE_RT_TIME "lastApplyTime"
+
 #define OPENSAF_IMM_SYNC_BATCH_SIZE "opensafImmSyncBatchSize"
 #define IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE 4096
 /*MDS_DIRECT_BUF_MAXSIZE 8000 possibly adjust fevs to this in the future. */
@@ -88,6 +94,8 @@ extern "C" {
 #define OPENSAF_IMM_PBE_CLASS_CREATE 0x10000000
 #define OPENSAF_IMM_PBE_CLASS_DELETE 0x20000000
 #define OPENSAF_IMM_PBE_UPDATE_EPOCH 0x30000000
+#define OPENSAF_IMM_2PBE_PRELOAD_STAT 0x40000000
+
 /* Public operation ids on OpenSafImmPBE */
 #define OPENSAF_IMM_NOST_FLAG_ON     0x00000001
 #define OPENSAF_IMM_NOST_FLAG_OFF    0x00000002

@@ -256,6 +256,9 @@ uint32_t immd_cb_db_init(IMMD_CB *cb)
 	}
 
 	cb->mRim = SA_IMM_INIT_FROM_FILE;
+	cb->mIs2Pbe = false;
+	cb->m2PbeCanLoad = true;
+	cb->is_loading = true;
 
 	return (NCSCC_RC_SUCCESS);
 }

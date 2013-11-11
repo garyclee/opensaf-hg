@@ -435,11 +435,22 @@ static int32_t immnd_iAmCoordinator(IMMND_CB *cb)
 	if (!cb->mIntroduced)
 		return (-1);
 
+	if(cb->m2Pbe && cb->mCanBeCoord == 2) {
+	        TRACE("2PBE enabled, coord not chosen yet.");
+		return (-1);
+	}
+
 	if (cb->mIsCoord) {
 		if (cb->mRulingEpoch > cb->mMyEpoch) {
 			LOG_ER("%u > %u, exiting", cb->mRulingEpoch, cb->mMyEpoch);
 			exit(1);
 		}
+
+		if(cb->m2Pbe == 2  && cb->mMyEpoch) {
+			LOG_WA("Verified epochs, but not zero at loading RE:%u ME:%u",
+				cb->mRulingEpoch, cb->mMyEpoch);
+		}
+
 		return 1;
 	}
 
@@ -452,6 +463,11 @@ static int32_t immnd_iAmLoader(IMMND_CB *cb)
 	if (coord == -1) {
 		LOG_IN("Loading is not possible, no coordinator");
 		return (-1);
+	}
+
+	if(cb->preLoadPid) {
+		TRACE_5("Loading is not possible, preLoader still attached");
+		return (-3);
 	}
 
 	if (cb->mMyEpoch != cb->mRulingEpoch) {
@@ -1309,7 +1325,7 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T duration, SaBoolT* p
 	return SA_FALSE;
 }
 
-static int immnd_forkLoader(IMMND_CB *cb)
+static int immnd_forkLoader(IMMND_CB *cb, bool preLoad)
 {
 	char loaderName[1024];
 	const char *base = basename(cb->mProgName);
@@ -1337,15 +1353,18 @@ static int immnd_forkLoader(IMMND_CB *cb)
 		loaderName[i] = loaderBase[j];
 	}
 	loaderName[i] = 0;
-	pid = fork();		/*posix fork */
+
+	pid = fork();
 	if (pid == (-1)) {
 		LOG_ER("%s failed to fork, error %u", base, errno);
+                if(preLoad) {exit(1);}
 		return (-1);
 	}
 	if (pid == 0) {		/*Child */
 		/* TODO Should close file-descriptors ... */
-		char *ldrArgs[4] = { loaderName, (char *)(cb->mDir ? cb->mDir : ""),
-			(char *)(cb->mFile ? cb->mFile : "imm.xml"), 0
+		char *ldrArgs[5] = { loaderName, (char *)(cb->mDir ? cb->mDir : ""),
+				     (char *)(cb->mFile ? cb->mFile : "imm.xml"), 
+				     (preLoad)?"preload":0, 0
 		};
 
 		TRACE_5("EXEC %s %s %s", ldrArgs[0], ldrArgs[1], ldrArgs[2]);
@@ -1395,7 +1414,7 @@ static int immnd_forkSync(IMMND_CB *cb)
 	}
 	loaderName[i] = 0;
 
-	pid = fork();		/*posix fork */
+	pid = fork();
 	if (pid == (-1)) {
 		LOG_ER("%s failed to fork sync-agent, error %u", base, errno);
 		return (-1);
@@ -1530,10 +1549,10 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 	/*TRACE_ENTER(); */
 
 	if ((cb->mStep % printFrq) == 0) {
-		TRACE_5("tmout:%u ste:%u ME:%u RE:%u crd:%u rim:%s 4.1A:%u",
+		TRACE_5("tmout:%u ste:%u ME:%u RE:%u crd:%u rim:%s 4.3A:%u 2Pbe:%u",
 			*timeout, cb->mState, cb->mMyEpoch, cb->mRulingEpoch, cb->mIsCoord,
-			(cb->mRim==SA_IMM_KEEP_REPOSITORY)?
-			"KEEP_REPO":"FROM_FILE", immModel_protocol41Allowed(cb));
+			(cb->mRim==SA_IMM_KEEP_REPOSITORY)?"KEEP_REPO":"FROM_FILE", 
+			immModel_protocol43Allowed(cb), cb->m2Pbe);
 	}
 
 	if (cb->mState < IMM_SERVER_DUMP) {
@@ -1584,9 +1603,27 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				cb->mJobStart = now;
 			}
 		} else {	/*We are not ready to start loading yet */
-			if (!(cb->mIntroduced) && !((cb->mStep + 1) % 10)) { /* Every 10th step */
-				LOG_WA("Resending introduce-me - problems with MDS ?");
+			if(cb->mIntroduced) {
+				if((cb->m2Pbe == 2) && !(cb->preLoadPid)) {
+					cb->preLoadPid = immnd_forkLoader(cb, true);
+				}
+			} else if (!(jobDuration%5)) { /* Every 5 seconds */
+				LOG_WA("Resending introduce-me - problems with MDS ? %u", jobDuration);
 				immnd_introduceMe(cb);
+			}
+
+			if(cb->preLoadPid > 0) {
+				int status = 0;
+				if (waitpid(cb->preLoadPid, &status, WNOHANG) > 0) {
+					cb->preLoadPid = 0;
+					if(cb->m2Pbe == 2) {
+						LOG_ER("Prealoader failed to obtain stats.");
+						rc = NCSCC_RC_FAILURE;	/*terminate. */
+						immnd_ackToNid(rc);
+					} else {
+						LOG_NO("Local preloader at %x completed successfully", cb->node_id);
+					}
+				}
 			}
 		}
 
@@ -1599,9 +1636,23 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 
 	case IMM_SERVER_LOADING_PENDING:
 		TRACE_5("IMM_SERVER_LOADING_PENDING");
+
+		if(cb->preLoadPid > 0) {
+			int status = 0;
+			if (waitpid(cb->preLoadPid, &status, WNOHANG) > 0) {
+				cb->preLoadPid = 0;
+				LOG_NO("Local preloader at %x completed successfully", cb->node_id);
+			} else {
+				LOG_IN("Wait for preloader to terminate before starting loader");
+				break;
+			}
+		}
+
 		newEpoch = immnd_iAmLoader(cb);
 		if (newEpoch < 0) {	/*Loading is not possible */
-			if (immnd_iAmCoordinator(cb) == 1) {
+			if(newEpoch == (-3)) {
+				LOG_IN("IM_SERVER_LOADIN_PENDING: preLoader still attached");
+			} else if ((immnd_iAmCoordinator(cb) == 1) && (newEpoch == (-2))) {
 				LOG_ER("LOADING NOT POSSIBLE, CLUSTER DOES NOT AGREE ON EPOCH.. TERMINATING");
 				rc = NCSCC_RC_FAILURE;
 				immnd_ackToNid(rc);
@@ -1679,7 +1730,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 		} else {
 			if (cb->loaderPid == (-1) && immModel_readyForLoading(cb)) {
 				TRACE_5("START LOADING");
-				cb->loaderPid = immnd_forkLoader(cb);
+				cb->loaderPid = immnd_forkLoader(cb, false);
 				cb->mJobStart = now;
 				if (cb->loaderPid > 0) {
 					immModel_setLoader(cb, cb->loaderPid);
@@ -1892,10 +1943,16 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			}
 		}
 
+		coord = immnd_iAmCoordinator(cb);
+
 		if (cb->pbePid > 0) {
 			int status = 0;
 			if (waitpid(cb->pbePid, &status, WNOHANG) > 0) {
-				LOG_WA("Persistent back-end process has apparently died.");
+				if (cb->mRim == SA_IMM_KEEP_REPOSITORY) {
+					LOG_WA("Persistent back-end process has apparently died.");
+				} else {
+					LOG_NO("Persistent back-end process has terminated.");
+				}
 				cb->pbePid = 0;
 				cb->mPbeKills = 0;
 				if(!immModel_pbeIsInSync(cb, false)) {
@@ -1906,7 +1963,13 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			}
 		}
 
-		coord = immnd_iAmCoordinator(cb);
+		if(cb->preLoadPid > 0) {
+			int status = 0;
+			if (waitpid(cb->preLoadPid, &status, WNOHANG) > 0) {
+				cb->preLoadPid = 0;
+				LOG_NO("Local preLoader has terminated.");
+			}
+		}
 
 		if((cb->mStep == 0) || (cb->mCleanedHouseAt != jobDuration)) {
 			immnd_cleanTheHouse(cb, coord == 1);

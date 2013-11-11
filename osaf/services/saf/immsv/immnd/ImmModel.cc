@@ -464,15 +464,31 @@ immModel_adminOwnerCreate(IMMND_CB *cb,
     SaUint32T conn,
     SaClmNodeIdT nodeId)
 {
-    return ImmModel::instance(&cb->immModel)->
+    bool preLoad = (cb->preLoadPid > 0);
+    ImmNodeState prevState = IMM_NODE_UNKNOWN;
+    SaAisErrorT err=SA_AIS_OK;
+    if(preLoad) {
+        prevState = sImmNodeState;
+        sImmNodeState = IMM_NODE_LOADING;
+        TRACE("Preload admo create");
+    }
+
+    err = ImmModel::instance(&cb->immModel)->
         adminOwnerCreate(req, ownerId, conn, nodeId);
+
+    if(preLoad) {
+        sImmNodeState = prevState;
+        TRACE("Preload, returning model state to %u", prevState);
+    }
+
+    return err;
 }
 
 SaAisErrorT
 immModel_adminOwnerDelete(IMMND_CB *cb, SaUint32T ownerId, SaUint32T hard)
 {
     return ImmModel::instance(&cb->immModel)->
-        adminOwnerDelete(ownerId, hard);
+        adminOwnerDelete(ownerId, hard, cb->m2Pbe);
 }
 
 
@@ -774,7 +790,7 @@ immModel_pbeOiExists(IMMND_CB *cb)
     SaUint32T pbeConn=0;
     unsigned int pbeNode=0;
     if(ImmModel::instance(&cb->immModel)->getPbeOi(&pbeConn, &pbeNode, false)) {
-	    return pbeNode;
+        return pbeNode;
     }
 
     return 0;
@@ -1537,6 +1553,10 @@ immModel_ccbsTerminated(IMMND_CB *cb)
 SaBoolT
 immModel_immNotWritable(IMMND_CB *cb)
 {
+    if(cb->preLoadPid > 0) {
+        TRACE("immModel_immNotWritable: WRITABLE in preload");
+        return SA_FALSE;
+    }
     return (SaBoolT) ImmModel::instance(&cb->immModel)->immNotWritable();
 }
 
@@ -3626,7 +3646,7 @@ ImmModel::adminOwnerCreate(const ImmsvOmAdminOwnerInitialize* req,
  * Deletes and admin owner.
  */
 SaAisErrorT
-ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard)
+ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard, bool pbe2)
 {
     SaAisErrorT err = SA_AIS_OK;
     
@@ -3652,20 +3672,31 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard)
             //In coord the loader-pid was positive. 
             //In non-coords the loader-pid was negative.
             if(hard) {
-                LOG_WA("Hard close of admin owner IMMLOADER "
-                    "=> Loading must have failed");
+                if((this->loaderPid > 0) && (!pbe2 || (ownerId >2))) {
+                    LOG_WA("Hard close of admin owner IMMLOADER id(%u)"
+                        "=> Loading must have failed", ownerId);
+                } else if(this->loaderPid == (-1)) {
+                    LOG_IN("Hard close of admin owner IMMLOADER id(%u) "
+                           "=> Must be from pre-loader ? %u", ownerId, pbe2);
+                } else if(loaderPid==0){
+                    LOG_IN("Hard close of admin owner IMMLOADER id(%u) "
+                        "but loading is done", ownerId);
+                }
             } else {
                 if(this->getLoader() && (sImmNodeState == IMM_NODE_LOADING)) {
-                    LOG_NO("Closing admin owner IMMLOADER, "
-                        "loading of IMM done");
+                    LOG_NO("Closing admin owner IMMLOADER id(%u), "
+                        "loading of IMM done", ownerId);
                     this->setLoader(0);
                     /* BEGIN Temporary code for enabling opensaf imm 4.1
                        protocol when cluster has been loaded.
                     */
                     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
                     if(oi == sObjectMap.end()) {
-                        LOG_ER("Failed to find object %s aborting", immObjectDn.c_str());
-                        abort();
+                        LOG_ER("Failed to find object %s - loading failed", immObjectDn.c_str());
+                        /* Return special error up to immnd_evt so that NackToNid can be sent
+                           before aborting. */
+                        err = SA_AIS_ERR_NOT_READY;
+                        goto done;
                     }
                     ObjectInfo* immObject = oi->second;
                     ImmAttrValueMap::iterator avi = 
@@ -3679,6 +3710,9 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard)
                     valuep->setValue_int(noStdFlags);
                     LOG_NO("%s changed to: 0x%x", immAttrNostFlags.c_str(), noStdFlags);
                     /* END Temporary code. */
+                } else {
+                    LOG_IN("Forcing close of preloader admo if:%u", ownerId);
+                    goto forced;
                 }
             }
         }
@@ -3691,8 +3725,10 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard)
                            "to clear way for sync", siz, ownerId);
                     goto forced;
                 }
-                LOG_WA("Postponing hard delete of admin owner with id:%u "
-                    "when imm is not writable", ownerId);
+                if(sImmNodeState > IMM_NODE_UNKNOWN) {
+                    LOG_WA("Postponing hard delete of admin owner with id:%u "
+                        "when imm is not writable state", ownerId);
+                }
                 (*i)->mDying = true;
                 err = SA_AIS_ERR_BUSY;
             } else {
@@ -8669,18 +8705,21 @@ SaAisErrorT ImmModel::adminOperationInvoke(
     SaUint32T adminOwnerId = req->adminOwnerId;
     
     AdminOwnerInfo* adminOwner = 0;
-    //ClassInfo* classInfo = 0;
     ObjectInfo* object = 0;
     
     ImplementerEvtMap::iterator iem;
     AdminOwnerVector::iterator i2;
     ObjectMap::iterator oi;
     std::string objAdminOwnerName;
-    
+    CcbVector::iterator i3;
+    SaUint32T ccbIdOfObj = 0;
+    bool admoMissmatch=false;
+    bool ccbBusy=false;
+
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
-        TRACE_LEAVE();
-        return SA_AIS_ERR_INVALID_PARAM;
+        err = SA_AIS_ERR_INVALID_PARAM;
+        goto done;
     }
     
     i2 = std::find_if(sOwnerVector.begin(), sOwnerVector.end(), 
@@ -8690,23 +8729,32 @@ SaAisErrorT ImmModel::adminOperationInvoke(
         TRACE_5("Attempt to use dead admin owner in adminOperationInvoke");
     }
     if (i2 == sOwnerVector.end()) {
-        LOG_NO("ERR_BAD_HANDLE: admin owner id %u does not exist", adminOwnerId);
-        TRACE_LEAVE();
-        return SA_AIS_ERR_BAD_HANDLE;
+        if(sImmNodeState > IMM_NODE_UNKNOWN) {
+            LOG_NO("ERR_BAD_HANDLE: admin owner id %u does not exist", adminOwnerId);
+        }
+        err = SA_AIS_ERR_BAD_HANDLE;
+        goto done;
     }
     adminOwner = *i2;
     
     if (objectName.empty()) {
         LOG_NO("ERR_INVALID_PARAM: Empty DN attribute value");
-        TRACE_LEAVE();
-        return SA_AIS_ERR_INVALID_PARAM;     
+        err = SA_AIS_ERR_INVALID_PARAM;
+        goto done;
     }
     
     oi = sObjectMap.find(objectName);
     if (oi == sObjectMap.end()) {
-        TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
-        TRACE_LEAVE();
-        return SA_AIS_ERR_NOT_EXIST;
+        /*ESCAPE SPECIAL CASE FOR HANDLING PRELOAD. */
+        if((sImmNodeState == IMM_NODE_UNKNOWN) && (objectName == immObjectDn) &&
+           (req->operationId == OPENSAF_IMM_2PBE_PRELOAD_STAT)) {
+            TRACE_7("Bouncing special preload admin-op");
+            err = SA_AIS_ERR_REPAIR_PENDING;
+        } else {
+            TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
+            err = SA_AIS_ERR_NOT_EXIST;
+        }
+        goto done;
     }
     
     object = oi->second;
@@ -8714,27 +8762,18 @@ SaAisErrorT ImmModel::adminOperationInvoke(
     
     if(objAdminOwnerName != adminOwner->mAdminOwnerName)
     {
-        LOG_NO("ERR_BAD_OPERATION: Mismatch on administrative owner %s/%u != %s/%u", 
-            objAdminOwnerName.c_str(), 
-            (unsigned int) objAdminOwnerName.size(),
-            adminOwner->mAdminOwnerName.c_str(),
-            (unsigned int) adminOwner->mAdminOwnerName.size());
-        TRACE_LEAVE();
-        return SA_AIS_ERR_BAD_OPERATION;
+        /* Let implementer errors overide this error. */
+        admoMissmatch=true; 
     }
     
-    CcbVector::iterator i3;
-    SaUint32T ccbIdOfObj = object->mCcbId;
+    ccbIdOfObj = object->mCcbId;
     if(ccbIdOfObj) {//check for ccb interference
         i3 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbIdOfObj));
         if (i3 != sCcbVector.end() && (*i3)->isActive()) {
-            LOG_NO("ERR_BUSY: ccb id %u is active on object %s", 
-                ccbIdOfObj, objectName.c_str());
-            TRACE_LEAVE();
-            return SA_AIS_ERR_BUSY;
+            /* Let implementer errors overide this error. */
+            ccbBusy=true;
         }
     }
-    
 
     // Check for call on object implementer
     if(object->mImplementer && object->mImplementer->mNodeId) {
@@ -8755,7 +8794,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
 
             ContinuationMap2::iterator ci = sAdmReqContinuationMap.find(saInv);
             if(ci == sAdmReqContinuationMap.end()) {
-                LOG_WA("Assuming reply for adminOp %llu arrived before request.", saInv);
+                LOG_IN("Assuming reply for adminOp %llu arrived before request.", saInv);
             } else {
                 TRACE("Located pre request continuation %llu adjusting timeout"
                     " to %u", saInv, timeout);
@@ -8809,12 +8848,31 @@ SaAisErrorT ImmModel::adminOperationInvoke(
                (iem = sImplDetachTime.find(object->mImplementer)) != sImplDetachTime.end()) {
                    err = SA_AIS_ERR_TRY_AGAIN;
             } else {
-                TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer", 
+                TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer",
                     objectName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
             }
         }
     }
+
+    if((err == SA_AIS_OK) && ccbBusy) {
+        LOG_NO("ERR_BUSY: ccb id %u is active on object %s", 
+            ccbIdOfObj, objectName.c_str());
+        err = SA_AIS_ERR_BUSY;
+    }
+
+    if((err == SA_AIS_OK) && admoMissmatch) {
+        LOG_NO("ERR_BAD_OPERATION: Mismatch on administrative owner '%s' != '%s'", 
+            objAdminOwnerName.c_str(), adminOwner->mAdminOwnerName.c_str());
+        err= SA_AIS_ERR_BAD_OPERATION;
+    }
+
+ done:
+
+    if(err != SA_AIS_OK) {
+        fetchAdmReqContinuation(saInv, &reqConn);/* Remove any request cont. */
+    }
+
     TRACE_LEAVE(); 
     return err;
 }
@@ -14337,11 +14395,18 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             }
             
             ImmsvAdmoList* ai = req->adminOwners;
-            while(ai) {
+            for(; ai!=NULL; ai=ai->next) {
                 int nrofTouchedObjs=0;
                 i2 = std::find_if(sOwnerVector.begin(), sOwnerVector.end(), 
                     IdIs(ai->id));
-                osafassert(!(i2==sOwnerVector.end()));
+
+                if(i2==sOwnerVector.end()) {
+                    LOG_WA("Missing Admin Owner with id:%u in sync-verify "
+                           "can happen after pre-loading (2PBE)", ai->id);
+                    osafassert(ai->id  < 3); /* admoId 1 & 2 used in preload. */
+                    continue;
+                }
+
                 AdminOwnerInfo* info = *i2;
                 std::string ownerName((const char *) ai->adminOwnerName.buf,
                     (size_t) strnlen((const char *) ai->adminOwnerName.buf,
@@ -14390,7 +14455,6 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                         nrofTouchedObjs);
                     abort();
                 }
-                ai = ai->next;
             }
 
             for(i2=sOwnerVector.begin(); i2!=sOwnerVector.end();) {

@@ -567,7 +567,7 @@ static uint32_t mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 		if((arg->info.encode.io_reo_type == IMMD_A2S_MSG_INTRO_RSP)
 			&& (immd_msg->info.ctrl.pbeEnabled>=3)) {  /* extended intro */
-			TRACE("Encoding Fs params for mbcp to standy immd");
+			TRACE_5("Encoding Fs params for mbcp to standy immd");
 			
 			uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 			osafassert(uns32_ptr);
