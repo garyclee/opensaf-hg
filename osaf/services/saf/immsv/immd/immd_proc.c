@@ -182,7 +182,7 @@ void immd_proc_abort_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *coord)
 	TRACE_LEAVE();
 }
 
-int immd_proc_elect_coord(IMMD_CB *cb, bool new_active)
+bool immd_proc_elect_coord(IMMD_CB *cb, bool new_active)
 {
 	IMMSV_EVT send_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
@@ -279,7 +279,7 @@ int immd_proc_elect_coord(IMMD_CB *cb, bool new_active)
 
 			TRACE_LEAVE();
 			immd_proc_immd_reset(cb, true);
-			return (-1);
+			return false;
 		}
 
 		if(self_re_elect) {
@@ -339,7 +339,223 @@ int immd_proc_elect_coord(IMMD_CB *cb, bool new_active)
 
 	immd_cb_dump();
 	TRACE_LEAVE();
-	return 0;
+	return true;
+}
+
+void immd_proc_arbitrate_2pbe_preload(IMMD_CB *cb)
+{
+	IMMSV_EVT send_evt;
+	IMMD_MBCSV_MSG mbcp_msg;
+	IMMD_IMMND_INFO_NODE *local_immnd_sc = NULL;
+	IMMD_IMMND_INFO_NODE *remote_immnd_sc = NULL;
+	IMMD_IMMND_INFO_NODE *immnd_info_node = NULL;
+	MDS_DEST key;
+	bool chooseLoc = false;
+	bool chooseRem = false;
+	TRACE_ENTER();
+
+	osafassert(cb->m2PbeCanLoad);
+	if(cb->immnd_coord) {
+		LOG_WA("immd_proc_arbitrate_2pbe_preload: Coord already selected.");
+		return;
+	}
+
+	memset(&key, 0, sizeof(MDS_DEST));
+	immd_immnd_info_node_getnext(&cb->immnd_tree, &key, &immnd_info_node);
+	while (immnd_info_node) {
+		key = immnd_info_node->immnd_dest;
+
+		if(immnd_info_node->immnd_dest == cb->loc_immnd_dest) {
+			local_immnd_sc = immnd_info_node;
+		} else if(immnd_info_node->immnd_dest == cb->rem_immnd_dest) {
+			remote_immnd_sc = immnd_info_node;
+		}
+		immd_immnd_info_node_getnext(&cb->immnd_tree, &key, &immnd_info_node);
+	}
+
+	if(!remote_immnd_sc) {
+		LOG_WA("REMOTE IMMND is unavailable or down, 2PBE arbitration defaults to local IMMND");
+		cb->remPbe.epoch = 0;
+		cb->remPbe.maxCcbId = 0;
+		cb->remPbe.maxCommitTime = 0;
+		/*return;*/
+	} else if(!local_immnd_sc) {
+		LOG_ER("LOCAL IMMND is down!,  can not arbitrate");
+		cb->locPbe.epoch = 0;
+		cb->locPbe.maxCcbId = 0;
+		cb->locPbe.maxCommitTime = 0;
+		cb->m2PbeCanLoad=false;
+		return;
+	}
+
+	if(cb->locPbe.epoch > cb->remPbe.epoch) {
+		chooseLoc = true;
+		LOG_NO("2PBE choosing LOCAL immnd as coord due to higher epoch %u > %u",
+			cb->locPbe.epoch, cb->remPbe.epoch);
+		goto decided;
+	} 
+
+	if(cb->locPbe.epoch < cb->remPbe.epoch) {
+		chooseRem = true;
+		LOG_NO("2PBE choosing REMOTE immnd as coord due to higher epoch %u > %u",
+			cb->remPbe.epoch, cb->locPbe.epoch);
+		goto decided;
+	} 
+
+	/* Epochs identical, check regular ccbs */
+	if(cb->locPbe.maxCcbId > cb->remPbe.maxCcbId) {
+		chooseLoc = true;
+		LOG_NO("2PBE choosing LOCAL immnd as coord due to higher ccbId %u > %u",
+			cb->locPbe.maxCcbId, cb->remPbe.maxCcbId);
+		goto decided;
+	}
+
+
+	if(cb->locPbe.maxCcbId < cb->remPbe.maxCcbId) {
+		chooseRem = true;
+		LOG_NO("2PBE choosing REMOTE immnd as coord due to higher ccbId %u > %u",
+			cb->remPbe.maxCcbId, cb->locPbe.maxCcbId);
+		goto decided;
+	}
+
+	/* Epochs and regular ccbs identical, check PRTOs & classes */
+	if(cb->locPbe.maxWeakCcbId > cb->remPbe.maxWeakCcbId) {
+		chooseLoc = true;
+		LOG_NO("2PBE choosing LOCAL immnd as coord due to higher weak ccbId %llu > %llu",
+			cb->locPbe.maxWeakCcbId, cb->remPbe.maxWeakCcbId);
+		goto decided;
+	} 
+
+	if(cb->locPbe.maxWeakCcbId < cb->remPbe.maxWeakCcbId) {
+		chooseRem = true;
+		LOG_NO("2PBE choosing REMOTE immnd as coord due to higher weak ccbId %llu > %llu",
+			cb->remPbe.maxWeakCcbId, cb->locPbe.maxWeakCcbId);
+		goto decided;
+	}
+
+	/* Epochs and all ccbs identical check comit times. */
+
+	if(cb->locPbe.maxCommitTime > cb->remPbe.maxCommitTime) {
+		chooseLoc = true;
+		LOG_NO("2PBE choosing LOCAL immnd as coord due to higher commitTime %u > %u",
+			cb->locPbe.maxCommitTime, cb->remPbe.maxCommitTime);
+		goto decided;
+	}
+
+	if(cb->locPbe.maxCommitTime < cb->remPbe.maxCommitTime) {
+		chooseRem = true;
+		LOG_NO("2PBE choosing REMOTE immnd as coord due to higher commitTime %u > %u",
+			cb->remPbe.maxCommitTime, cb->locPbe.maxCommitTime);
+		goto decided;
+	} 
+
+	if(cb->locPbe.maxWeakCommitTime > cb->remPbe.maxWeakCommitTime) {
+		chooseLoc = true;
+		LOG_NO("2PBE choosing LOCAL immnd as coord due to higher commitTime %u > %u",
+			cb->locPbe.maxWeakCommitTime, cb->remPbe.maxWeakCommitTime);
+		goto decided;
+	}
+
+	if(cb->locPbe.maxWeakCommitTime < cb->remPbe.maxWeakCommitTime) {
+		chooseRem = true;
+		LOG_NO("2PBE choosing REMOTE immnd as coord due to higher commitTime %u > %u",
+			cb->remPbe.maxWeakCommitTime, cb->locPbe.maxWeakCommitTime);
+		goto decided;
+	} 
+
+
+	LOG_NO("2PBE choosing REMOTE immnd as coord Equal stats epoch:%u Ccb:%u Time:%u",
+		cb->remPbe.epoch, cb->remPbe.maxCcbId, cb->remPbe.maxCommitTime);
+	chooseRem = true;
+
+	decided:
+
+
+	if(chooseRem) {
+		if(!remote_immnd_sc) {
+			LOG_WA("Stats dictate remote immnd/pbe should load, but it is down");
+			return;
+		}
+	} else if(chooseLoc) {
+		if(!local_immnd_sc) {
+			LOG_WA("Stats dictate local immnd/pbe should load, but it is down");
+			return;
+		}
+	}
+
+	/* First ack intro to node not chosen as coord.
+	   This increases chances that it will be ready as loading client.
+	*/
+
+	immnd_info_node = (chooseRem)?local_immnd_sc:remote_immnd_sc;
+
+	if(immnd_info_node) {
+		memset(&send_evt, 0, sizeof(IMMSV_EVT));
+		memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
+		send_evt.type = IMMSV_EVT_TYPE_IMMND;
+		send_evt.info.immnd.type = IMMND_EVT_D2ND_INTRO_RSP;
+		send_evt.info.immnd.info.ctrl.nodeId = immnd_info_node->immnd_key;
+		send_evt.info.immnd.info.ctrl.rulingEpoch = cb->mRulingEpoch;
+		send_evt.info.immnd.info.ctrl.canBeCoord = true;
+		send_evt.info.immnd.info.ctrl.ndExecPid = immnd_info_node->immnd_execPid;
+		send_evt.info.immnd.info.ctrl.isCoord = false;
+		send_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
+		send_evt.info.immnd.info.ctrl.syncStarted = false;
+		send_evt.info.immnd.info.ctrl.nodeEpoch = immnd_info_node->epoch;
+		send_evt.info.immnd.info.ctrl.pbeEnabled = (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+		mbcp_msg.type = IMMD_A2S_MSG_INTRO_RSP;
+		mbcp_msg.info.ctrl = send_evt.info.immnd.info.ctrl;
+		/*Checkpoint the non coordinator message to standby director. */
+		if (immd_mbcsv_sync_update(cb, &mbcp_msg) != NCSCC_RC_SUCCESS) {
+			LOG_ER("Mbcp message about NON chosen IMMND  failed");
+			/* ABT This case is not handled well. */
+		}
+
+		if (immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND,
+				immnd_info_node->immnd_dest, &send_evt) != NCSCC_RC_SUCCESS) {
+			LOG_ER("Failed to send MDS message about NON chosen IMMND failed");
+		}
+
+		usleep(250000); /* Just to increase chances of non-coord being ready to load. */
+	}
+
+	/* Elect coord */
+	immnd_info_node = (chooseRem)?remote_immnd_sc:local_immnd_sc;
+	osafassert(immnd_info_node);
+	immnd_info_node->isCoord = true;
+	cb->immnd_coord = immnd_info_node->immnd_key;
+
+	memset(&send_evt, 0, sizeof(IMMSV_EVT));
+	memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
+	send_evt.type = IMMSV_EVT_TYPE_IMMND;
+	send_evt.info.immnd.type = IMMND_EVT_D2ND_INTRO_RSP;
+	send_evt.info.immnd.info.ctrl.nodeId = immnd_info_node->immnd_key;
+	send_evt.info.immnd.info.ctrl.rulingEpoch = cb->mRulingEpoch;
+	send_evt.info.immnd.info.ctrl.canBeCoord = true;
+	send_evt.info.immnd.info.ctrl.ndExecPid = immnd_info_node->immnd_execPid;
+	send_evt.info.immnd.info.ctrl.isCoord = true;
+	send_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
+	send_evt.info.immnd.info.ctrl.syncStarted = false;
+	send_evt.info.immnd.info.ctrl.nodeEpoch = immnd_info_node->epoch;
+	send_evt.info.immnd.info.ctrl.pbeEnabled = (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+
+	
+
+	mbcp_msg.type = IMMD_A2S_MSG_INTRO_RSP;
+	mbcp_msg.info.ctrl = send_evt.info.immnd.info.ctrl;
+	/*Checkpoint the new coordinator message to standby director. 
+	  Syncronous call=>wait for ack */
+	if (immd_mbcsv_sync_update(cb, &mbcp_msg) != NCSCC_RC_SUCCESS) {
+		LOG_ER("Mbcp message about NON chosen IMMND  failed");
+		/* This case is not handled well. */
+	}
+
+	if (immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND,
+		    immnd_info_node->immnd_dest, &send_evt) != NCSCC_RC_SUCCESS) {
+		LOG_ER("Failed to send MDS message about NON chosen IMMND failed");
+	}
+
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -356,7 +572,7 @@ uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, 
 	IMMSV_EVT send_evt;
 	NCS_UBAID uba;
 	char *tmpData = NULL;
-	int res = 0;
+	bool coord_exists = true; /* Assumption at this point.*/
 	bool possible_fo = false;
 	TRACE_ENTER();
 
@@ -366,6 +582,7 @@ uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, 
 		uba.start = NULL;
 
 		if (immnd_info->isCoord) {
+			coord_exists = false;
 			LOG_WA("IMMND coordinator at %x apparently crashed => "
 			       "electing new coord", immnd_info->immnd_key);
 			if (immnd_info->syncStarted) {
@@ -378,7 +595,7 @@ uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, 
 			immnd_info->isCoord = 0;
 			immnd_info->isOnController = 0;
 			cb->immnd_coord = 0;
-			res = immd_proc_elect_coord(cb, false);
+			coord_exists = immd_proc_elect_coord(cb, false);
 		}
 	} else {
 		/* Check if it was the IMMND on the active controller that went down. */
@@ -406,7 +623,7 @@ uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, 
 		 ** redundant message, which they do in fevs_receive discarding
 		 ** any duplicate (same sequence no).
 		 */
-		if (res == 0) {
+		if (coord_exists) {
 			if (possible_fo) {
 				immd_proc_rebroadcast_fevs(cb, 2);
 			}

@@ -62,7 +62,9 @@ static const char *immd_evt_names[] = {
 	"IMMD_EVT_ND2D_LOADING_FAILED",
 	"IMMD_EVT_ND2D_SYNC_FEVS_BASE",
 	"IMMD_EVT_ND2D_FEVS_REQ_2",
-	"IMMD_EVT_ND2D_LOADING_COMPLETED"
+	"IMMD_EVT_ND2D_LOADING_COMPLETED",
+	"IMMD_EVT_ND2D_2PBE_PRELOAD",
+	"undefined (high)"
 };
 
 static const char *immsv_get_immd_evt_name(unsigned int id)
@@ -3003,6 +3005,28 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_enc_claim_space(o_ub, 4);
 			break;
 
+		case IMMD_EVT_ND2D_2PBE_PRELOAD:	/* 2PBE loading intialization */
+			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+			ncs_encode_32bit(&p8, immdevt->info.pbe2.epoch);
+			ncs_enc_claim_space(o_ub, 4);
+
+			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+			ncs_encode_32bit(&p8, immdevt->info.pbe2.maxCommitTime);
+			ncs_enc_claim_space(o_ub, 4);
+
+			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+			ncs_encode_32bit(&p8, immdevt->info.pbe2.maxCcbId);
+			ncs_enc_claim_space(o_ub, 4);
+
+			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+			ncs_encode_32bit(&p8, immdevt->info.pbe2.maxWeakCommitTime);
+			ncs_enc_claim_space(o_ub, 4);
+
+			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
+			ncs_encode_64bit(&p8, immdevt->info.pbe2.maxWeakCcbId);
+			ncs_enc_claim_space(o_ub, 8);
+			break;
+
 		case IMMD_EVT_MDS_INFO:
 			LOG_WA("Unexpected event over MDS->IMMD:%u", immdevt->type);
 		case IMMD_EVT_ND2D_IMM_SYNC_INFO:	/*May need for Director<->standby sync */
@@ -3665,7 +3689,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_enc_claim_space(o_ub, 4);
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
-			ncs_encode_8bit(&p8, (immndevt->info.ctrl.canBeCoord) ? 1 : 0);
+			ncs_encode_8bit(&p8, immndevt->info.ctrl.canBeCoord);
 			ncs_enc_claim_space(o_ub, 1);
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
@@ -4294,6 +4318,29 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
 			immdevt->info.admoId = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
+			break;
+
+		case IMMD_EVT_ND2D_2PBE_PRELOAD:  /* 2PBE loading intialization */
+			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+			immdevt->info.pbe2.epoch = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(i_ub, 4);
+
+			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+			immdevt->info.pbe2.maxCommitTime = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(i_ub, 4);
+
+			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+			immdevt->info.pbe2.maxCcbId = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(i_ub, 4);
+
+			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+			immdevt->info.pbe2.maxWeakCommitTime = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(i_ub, 4);
+
+			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 8);
+			immdevt->info.pbe2.maxWeakCcbId = ncs_decode_64bit(&p8);
+			ncs_dec_skip_space(i_ub, 8);
+
 			break;
 
 		case IMMD_EVT_MDS_INFO:
@@ -5009,9 +5056,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			ncs_dec_skip_space(i_ub, 4);
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 1);
-			if (ncs_decode_8bit(&p8)) {
-				immndevt->info.ctrl.canBeCoord = true;
-			}
+			immndevt->info.ctrl.canBeCoord = ncs_decode_8bit(&p8);
 			ncs_dec_skip_space(i_ub, 1);
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 1);

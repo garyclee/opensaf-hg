@@ -146,7 +146,8 @@ public:
                                          SaUint32T conn,
                                          unsigned int nodeId);
     
-    SaAisErrorT         adminOwnerDelete(SaUint32T ownerId, bool hard);
+    SaAisErrorT         adminOwnerDelete(SaUint32T ownerId, bool hard,
+                                         bool pbe2=false);
     
     SaAisErrorT         adminOwnerChange(
                                          const immsv_a2nd_admown_set* req, 

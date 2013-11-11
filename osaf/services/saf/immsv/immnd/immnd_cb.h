@@ -120,6 +120,7 @@ typedef struct immnd_cb_tag {
 	uint8_t mLostNodes;       //Detached & not syncreq => delay sync start
 	uint8_t mBlockPbeEnable;  //Current PBE has not completed shutdown yet.
 	uint8_t mPbeKills;        //If != 0 then immnd has tried to kill Pbe.
+	uint8_t m2Pbe;            //If!=0 => 2PBE, 2 => fetch PBE file info.
 
 	/* Information about the IMMD */
 	MDS_DEST immd_mdest_id;
@@ -132,6 +133,7 @@ typedef struct immnd_cb_tag {
 	SaClmNodeIdT clm_node_id;
 	SaAmfHandleT amf_hdl;	// AMF handle, obtained thru AMF init
 
+	int32_t preLoadPid; //Forked preloader probes PBE file, for 2Pbe.
 	int32_t loaderPid;
 	int32_t syncPid;
 	int32_t pbePid;   //Persistent back end (PBE) is running if pbePid > 0

@@ -176,12 +176,17 @@ void* checkPbeRepositoryInit(std::string dir, std::string file)
 		}
 	}
 
-	sqlite3_free_table(result);
-	
 	LOG_IN("PBE repository of rep-version <%u, %u>",
 		pbe_ver_major, pbe_ver_minor);
 
-	LOG_IN("Prepare SQL statements");
+	if(pbe_ver_major > 1) {
+		LOG_ER("Can not handle rep-version with major version %u greater than 1", pbe_ver_major);
+		goto load_from_xml_file;
+	}
+
+	sqlite3_free_table(result);
+	
+	TRACE_2("Prepare SQL statements");
 	for(int i=0; i<SQL_STMT_SIZE; i++) {
 		rc = sqlite3_prepare_v2((sqlite3 *)dbHandle, preparedSql[i], -1, &(preparedStmt[i]), NULL);
 		if(rc != SQLITE_OK) {
@@ -686,7 +691,7 @@ bool loadObjectsFromPbe(void* pbeHandle, SaImmHandleT immHandle,
 }
 
 
-int loadImmFromPbe(void* pbeHandle)
+int loadImmFromPbe(void* pbeHandle, bool preload)
 {
 	SaVersionT             version = {'A', 2, 12};
 	SaImmHandleT           immHandle=0LL;
@@ -738,12 +743,6 @@ int loadImmFromPbe(void* pbeHandle)
 		goto bailout;
 	}
 
-	/*Fetch classes from PBE and create in IMM */
-	if(!loadClassesFromPbe(pbeHandle, immHandle, &classInfoMap)) {
-		goto bailout;
-	}
-
-	/*Fetch objects from PBE and create in IMM */
 	errorCode = saImmOmAdminOwnerInitialize(immHandle, (char *) "IMMLOADER", 
 		SA_FALSE, &ownerHandle);
 	if (errorCode != SA_AIS_OK) {
@@ -751,6 +750,168 @@ int loadImmFromPbe(void* pbeHandle)
 		exit(1);
 	}
 
+        if(preload) { /* Break out this into a separate function. */
+               SaUint32T epoch=0;
+               SaUint32T maxCcbId=0;
+               SaUint32T maxCommitTime=0;
+               SaUint64T maxWeakCcbId=0;
+               SaUint32T maxWeakCommitTime=0;
+               std::string sqlEpoch("SELECT opensafImmEpoch FROM OpensafImm");
+               std::string sqlLowCommits("SELECT * FROM ccb_commits WHERE ccb_id < 4294967297");
+               std::string sqlCcbId("SELECT MAX(ccb_id) FROM ccb_commits WHERE ccb_id < 4294967297");
+               std::string sqlCommitTime("SELECT MAX(commit_time) FROM ccb_commits WHERE ccb_id < 4294967297");	
+               std::string sqlHighCommits("SELECT * FROM ccb_commits WHERE ccb_id > 4294967297");
+               std::string sqlWeakCcbId("SELECT MAX(ccb_id) FROM ccb_commits WHERE ccb_id > 4294967296");
+               std::string sqlWeakCommitTime("SELECT MAX(commit_time) FROM ccb_commits WHERE ccb_id > 4294967296");	
+
+               char **result=NULL;
+               char *qErr=NULL;
+               int nrows=0;
+               int ncols=0;
+
+	       /* Get latest epoch from local imm.db */
+	       rc = sqlite3_get_table(dbHandle, sqlEpoch.c_str(), &result, &nrows, &ncols, &qErr);
+	       if(rc) {
+		       LOG_ER("SQL statement ('%s') failed because:\n %s", sqlEpoch.c_str(), qErr);
+		       sqlite3_free(qErr);
+		       goto bailout;
+	       }
+
+	       if(nrows != 1) {
+		       LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
+		       goto bailout;
+	       }
+
+	       epoch = strtoul(result[ncols], NULL, 0);
+	       TRACE("Preload: epoch:%u", epoch);
+
+	       sqlite3_free_table(result);
+
+	       /* Check if any low (regular) commit records exist */
+	       rc = sqlite3_get_table(dbHandle, sqlLowCommits.c_str(), &result, &nrows, &ncols, &qErr);
+	       if(rc) {
+		       LOG_ER("SQL statement ('%s') failed because:\n %s", sqlLowCommits.c_str(), qErr);
+		       sqlite3_free(qErr);
+		       goto bailout;
+	       }
+
+	       sqlite3_free_table(result);
+
+	       if(nrows == 0) {
+		       LOG_NO("No regular ccb commit records found");
+	       } else {
+		       TRACE("Preload: We have %u low (regular) ccb commit records", nrows);
+		       /* Get max ccb-id from local imm.db */
+		       rc = sqlite3_get_table(dbHandle, sqlCcbId.c_str(), &result, &nrows, &ncols, &qErr);
+		       if(rc) {
+			       LOG_ER("SQL statement ('%s') failed because:\n %s", sqlCcbId.c_str(), qErr);
+			       sqlite3_free(qErr);
+			       goto bailout;
+		       }
+
+		       if(nrows != 1) {
+			       LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
+			       goto bailout;
+		       }
+
+		       maxCcbId = strtoul(result[ncols], NULL, 0);
+		       LOG_NO("Preload: maxCcbId:%u", maxCcbId);
+		       sqlite3_free_table(result);
+		       sleep(1);
+
+		       /* Get max commit-time from local imm.db */
+		       rc = sqlite3_get_table(dbHandle, sqlCommitTime.c_str(), &result, &nrows, 
+			       &ncols, &qErr);
+		       if(rc) {
+			       LOG_ER("SQL statement ('%s') failed because:\n %s", 
+				       sqlCommitTime.c_str(), qErr);
+			       sqlite3_free(qErr);
+			       goto bailout;
+		       }
+
+		       if(nrows != 1) {
+			       LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
+			       goto bailout;
+		       }
+
+		       maxCommitTime = strtoul(result[ncols], NULL, 0);
+		       TRACE("Preload: max commit-time:%u", maxCommitTime);
+		       sqlite3_free_table(result);
+	       }
+
+	       /* Check if any high (prto/class) commit records exist */
+	       rc = sqlite3_get_table(dbHandle, sqlHighCommits.c_str(), &result, &nrows, &ncols, &qErr);
+	       if(rc) {
+		       LOG_ER("SQL statement ('%s') failed because:\n %s", sqlHighCommits.c_str(), qErr);
+		       sqlite3_free(qErr);
+		       goto bailout;
+	       }
+
+	       sqlite3_free_table(result);
+
+	       if(nrows == 0) {
+		       LOG_NO("No high commit records found");
+	       } else {
+		       /* Get max weak ccb-id from local imm.db (PRTops, class-create/delete epoch-update) */
+		       rc = sqlite3_get_table(dbHandle, sqlWeakCcbId.c_str(), &result, &nrows, &ncols, &qErr);
+		       if(rc) {
+			       LOG_ER("SQL statement ('%s') failed because:\n %s", sqlWeakCcbId.c_str(), qErr);
+			       sqlite3_free(qErr);
+			       goto bailout;
+		       }
+
+		       if(nrows != 1) {
+			       LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
+			       goto bailout;
+		       }
+
+		       maxWeakCcbId = strtoull(result[ncols], NULL, 0);
+		       TRACE("Preload: maxWeakCcbId:%llu", maxWeakCcbId);
+		       sqlite3_free_table(result);
+
+		       /* Get max weak commit-time from local imm.db (PRTops, class-create/delete epoch-update) */
+		       rc = sqlite3_get_table(dbHandle, sqlWeakCommitTime.c_str(), &result, &nrows, 
+			       &ncols, &qErr);
+		       if(rc) {
+			       LOG_ER("SQL statement ('%s') failed because:\n %s", 
+				       sqlWeakCommitTime.c_str(), qErr);
+			       sqlite3_free(qErr);
+			       goto bailout;
+		       }
+
+		       if(nrows != 1) {
+			       LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
+			       goto bailout;
+		       }
+		       maxWeakCommitTime = strtoul(result[ncols], NULL, 0);
+		       TRACE("Preload: max weak commit-time:%u", maxWeakCommitTime);
+		       sqlite3_free_table(result);
+		       sleep(1);
+	       }
+
+               rc = sqlite3_exec(dbHandle, commitT, NULL, NULL, &execErr);
+
+               if (rc != SQLITE_OK) {
+                       LOG_ER("SQL statement ('%s') failed because:\n %s",
+                               commitT, execErr);
+                       sqlite3_free(execErr);
+                       goto bailout;
+               }
+               TRACE_2("Successfully executed %s", commitT);
+
+               sqlite3_close(dbHandle);
+
+	       sendPreloadParams(immHandle, ownerHandle, epoch, maxCcbId, maxCommitTime, 
+		       maxWeakCcbId, maxWeakCommitTime);
+	       goto done;
+        }
+
+	/*Fetch classes from PBE and create in IMM */
+	if(!loadClassesFromPbe(pbeHandle, immHandle, &classInfoMap)) {
+		goto bailout;
+	}
+
+	/*Fetch objects from PBE and create in IMM */
 	errorCode = saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle);
 	if (errorCode != SA_AIS_OK) {
 		LOG_ER("Failed to initialize ImmOmCcb %d", errorCode);
@@ -779,13 +940,51 @@ int loadImmFromPbe(void* pbeHandle)
 
 	TRACE_2("Successfully Applied the CCB ");
 	saImmOmCcbFinalize(ccbHandle);
+
+	errorCode = saImmOmClassDelete(immHandle, (char *) OPENSAF_IMM_PBE_RT_CLASS_NAME);
+	if((errorCode != SA_AIS_OK) && (errorCode != SA_AIS_ERR_NOT_EXIST)) {
+		int retryCount = 0;
+		do {
+			if(errorCode != SA_AIS_OK) {
+				LOG_WA("Delete of class %s returned errorCode:%u - unexpected",
+					(char *) OPENSAF_IMM_PBE_RT_CLASS_NAME, errorCode);
+			}
+			errorCode = saImmOmClassDelete(immHandle, (char *) OPENSAF_IMM_PBE_RT_CLASS_NAME);
+			if((errorCode != SA_AIS_OK) && (errorCode != SA_AIS_ERR_NOT_EXIST)) {
+				LOG_WA("Delete of class %s returned errorCode:%u - unexpected",
+					(char *) OPENSAF_IMM_PBE_RT_CLASS_NAME, errorCode);
+				usleep(200000);
+				++retryCount;
+			}
+		} while((errorCode == SA_AIS_ERR_TRY_AGAIN) && (retryCount < 32));
+
+		if((errorCode != SA_AIS_OK) && (errorCode!=SA_AIS_ERR_NOT_EXIST)) {
+			LOG_ER("Delete of class %s FAILED with errorCode:%u",
+				(char *) OPENSAF_IMM_PBE_RT_CLASS_NAME, errorCode);
+			goto bailout;
+		}
+	}
+
+	if(errorCode == SA_AIS_OK) {
+		LOG_IN("Removed class %s", (char *) OPENSAF_IMM_PBE_RT_CLASS_NAME);
+	} else if(errorCode == SA_AIS_ERR_NOT_EXIST) {
+		LOG_IN("Class %s did not exist", (char *) OPENSAF_IMM_PBE_RT_CLASS_NAME);
+	}
+
+	if(!opensafPbeRtClassCreate(immHandle)) {
+		/* Error already logged. */
+		goto bailout;
+	}
+
+ done:
+	sqlite3_close(dbHandle);
 	saImmOmAdminOwnerFinalize(ownerHandle);
 	saImmOmFinalize(immHandle);
-
 	TRACE_LEAVE();
 	return 1;
 
  bailout:
+TRACE("ABT bailout reached");
 	sqlite3_close(dbHandle);
 	return 0;
 }
@@ -800,7 +999,7 @@ void* checkPbeRepositoryInit(std::string dir, std::string file)
 	return NULL;
 }
 
-int loadImmFromPbe(void* pbeHandle)
+int loadImmFromPbe(void* pbeHandle, bool preload)
 {
 	TRACE_ENTER2("Not enabled");
 	TRACE_LEAVE();

@@ -59,6 +59,8 @@ static uint32_t immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt);
 
 static uint32_t immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
+static uint32_t immd_evt_proc_2pbe_preload(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+
 /****************************************************************************
  * Name          : immd_process_evt
  *
@@ -158,6 +160,10 @@ void immd_process_evt(void)
 
 	case IMMD_EVT_ND2D_SYNC_FEVS_BASE:
 		rc = immd_evt_proc_sync_fevs_base(cb, &evt->info.immd, &evt->sinfo);
+		break;
+
+	case IMMD_EVT_ND2D_2PBE_PRELOAD:
+		rc = immd_evt_proc_2pbe_preload(cb, &evt->info.immd, &evt->sinfo);
 		break;
 
 	case IMMD_EVT_CB_DUMP:
@@ -657,12 +663,30 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, bool 
 	/* Sending back pbeEnabled from IMMD to IMMNDs not really needed.*/
 	accept_evt.info.immnd.info.ctrl.pbeEnabled = (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
-	if (isOnController && (cb->immnd_coord == 0)) {
-		LOG_NO("First IMMND on controller found at %x this IMMD at %x."
-		       "\n\nCluster must be loading => designating this IMMND as coordinator",
-		       node_info->immnd_key, cb->node_id);
-		cb->immnd_coord = node_info->immnd_key;
-		node_info->isCoord = true;
+	if (isOnController) {
+		if(cb->immnd_coord == 0) {/* No coord */			
+			if(cb->mIs2Pbe) {
+				LOG_NO("IMMND on SC found at %x this IMMD at %x."
+					" Cluster is loading. 2PBE configured => Wait.",
+					node_info->immnd_key, cb->node_id);
+				accept_evt.info.immnd.info.ctrl.canBeCoord = 2; /* 2PBE => order preload. */
+			} else {
+				LOG_NO("First IMMND on SC found at %x this IMMD at %x."
+					" Cluster is loading, *not* 2PBE => designating that IMMND as coordinator",
+					node_info->immnd_key, cb->node_id);
+				cb->immnd_coord = node_info->immnd_key;
+				node_info->isCoord = true;
+			}
+		} else {
+			/* Coord already exists. An SC is joining the cluster. */
+			if(cb->mIs2Pbe) {
+				/* 2PBE is true => joining SC must sync AND get informed of 2PBE. */
+				accept_evt.info.immnd.info.ctrl.canBeCoord = 3; 
+			} else {
+				/* 1PBE or 0PBE joining SC must sync */
+				accept_evt.info.immnd.info.ctrl.canBeCoord = 1;
+			}
+		}
 	}
 
 	if (node_info->isCoord) {
@@ -1796,6 +1820,47 @@ static uint32_t immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEN
 }
 
 
+
+static uint32_t immd_evt_proc_2pbe_preload(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+{
+	TRACE_ENTER();
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	if(!(cb->mIs2Pbe)) {
+		LOG_ER("Received 2PBE pre-load message yet NOT a 2PBE system");
+		proc_rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
+	if(cb->is_loc_immnd_up && (sinfo->dest == cb->loc_immnd_dest)) {
+		LOG_NO("2PBE preload info for local SC. Epoch: %u MaxCcb:%u MaxTime%u",
+			evt->info.pbe2.epoch, evt->info.pbe2.maxCcbId,
+			evt->info.pbe2.maxCommitTime);
+		cb->locPbe = evt->info.pbe2;
+	} else if(cb->is_rem_immnd_up && (sinfo->dest == cb->rem_immnd_dest)) {
+		LOG_NO("2PBE preload info for remote SC Epoch: %u MaxCcb:%u MaxTime%u",
+			evt->info.pbe2.epoch, evt->info.pbe2.maxCcbId,
+			evt->info.pbe2.maxCommitTime);
+		cb->remPbe = evt->info.pbe2;
+	}
+
+	if(cb->m2PbeCanLoad) {
+		LOG_NO("m2PbeCanLoad already set (timeout ?)");
+	} else {
+		cb->m2PbeCanLoad = /* Both SC immnds up and pre-load info from both */
+			cb->is_loc_immnd_up && 	cb->is_rem_immnd_up && 
+			cb->locPbe.epoch && cb->remPbe.epoch;
+		LOG_IN("cb->m2PbeCanLoad:%u cb->locPbe.epoch: %u cb->remPbe.epoch:%u", 
+			cb->m2PbeCanLoad, cb->locPbe.epoch, cb->remPbe.epoch);
+	}
+
+	if(cb->m2PbeCanLoad) {
+		immd_proc_arbitrate_2pbe_preload(cb);
+	}
+ done:
+	TRACE_LEAVE();
+	return proc_rc;
+}
+
 /****************************************************************************
  * Name          : immd_evt_proc_sync_fevs_base
  *
@@ -2329,7 +2394,10 @@ static uint32_t immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt)
 		}
 
 		/* Change of role to active => We may need to elect new coord */
-		immd_proc_elect_coord(cb, true);
+		if(cb->m2PbeCanLoad) {
+			LOG_NO("ellect_coord invoke from lga_callback ACTIVE");
+			immd_proc_elect_coord(cb, true);
+		}
 		immd_db_purge_fevs(cb);
 		immd_pending_payload_discards(cb); /*Ensure node down for payloads.*/
 	}
