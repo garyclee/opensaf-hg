@@ -493,8 +493,7 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_HC
 	uint32_t l_num;
 	TRACE_ENTER2();
 
-	if ((0 == (rec = static_cast<AVND_COMP_HC_REC*>(calloc(1, sizeof(AVND_COMP_HC_REC))))))
-		goto err;
+	rec = new AVND_COMP_HC_REC();
 
 	/* create the association with hdl-mngr */
 	if ((0 == (rec->opq_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVND, (NCSCONTEXT)rec))))
@@ -579,7 +578,7 @@ void avnd_comp_hc_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 	m_AVND_COMPDB_REC_HC_REM(*comp, *rec);
 
 	/* free the record */
-	free(rec);
+	delete rec;
 }
 
 /****************************************************************************

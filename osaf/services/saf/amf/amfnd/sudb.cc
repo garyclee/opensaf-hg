@@ -84,11 +84,7 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uint32_t *rc)
 	}
 
 	/* a fresh su... */
-	su = static_cast<AVND_SU*>(calloc(1, sizeof(AVND_SU)));
-	if (!su) {
-		*rc = AVND_ERR_NO_MEMORY;
-		goto err;
-	}
+	su = new AVND_SU();
 
 	/*
 	 * Update the config parameters.
@@ -158,7 +154,7 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uint32_t *rc)
 	if (su) {
 		if (su->su_hdl)
 			ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, su->su_hdl);
-		free(su);
+		delete su;
 	}
 
 	LOG_CR("SU DB record %s add failed", info->name.value);
@@ -220,7 +216,7 @@ uint32_t avnd_sudb_rec_del(AVND_CB *cb, SaNameT *name)
 	ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, su->su_hdl);
 
 	/* free the memory */
-	free(su);
+	delete su;
 
 done:
 	if (rc == NCSCC_RC_SUCCESS)

@@ -858,8 +858,7 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 						if (NCSCC_RC_SUCCESS != rc)
 							goto done;
 						if(!cbk_info->param.csi_set.attrs.list[i].string_ptr) {
-                                                  value = static_cast<SaStringT>(calloc(1, cbk_info->param.csi_set.attrs.list[i].value.length+1));
-							osafassert(value);
+                                                  value = new char[cbk_info->param.csi_set.attrs.list[i].value.length+1]();
 							strcpy(value, (char *)cbk_info->param.csi_set.attrs.list[i].value.value);
 						}
 						else {
@@ -1106,6 +1105,7 @@ uint32_t avnd_mds_flat_ava_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 
 	ava_msg = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG)));
 	if (!ava_msg) {
+		rc = NCSCC_RC_FAILURE;
 		goto err;
 	}
 

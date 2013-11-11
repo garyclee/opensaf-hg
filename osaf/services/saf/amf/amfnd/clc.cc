@@ -626,7 +626,7 @@ static uint32_t comp_clc_resp_callback(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *info)
 	rc = avnd_evt_send(avnd_cb, evt);
 
  done:
-	free(clc_evt);
+	delete clc_evt;
 	/* free the event */
 	if (NCSCC_RC_SUCCESS != rc && evt)
 		avnd_evt_destroy(evt);
@@ -2512,7 +2512,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	TRACE_ENTER2("'%s':CLC CLI command type:'%s'",comp->name.value,clc_cmd_type[cmd_type]);
 
 	/* the allocated memory is normally freed in comp_clc_resp_callback */
-	clc_evt = (AVND_CLC_EVT *)calloc(1, sizeof(AVND_CLC_EVT));
+	clc_evt = new AVND_CLC_EVT;
 	memcpy(&clc_evt->comp_name, &comp->name, sizeof(SaNameT));
 	clc_evt->cmd_type = cmd_type;
 
@@ -2526,7 +2526,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 			/* create the event */
 			evt = avnd_evt_create(cb, AVND_EVT_CLC_RESP, 0, 0, 0, clc_evt, 0);
 			if (!evt) {
-				free(clc_evt);
+				delete clc_evt;
 				rc = NCSCC_RC_FAILURE;
 				goto err;
 			}
@@ -2534,11 +2534,11 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 			/* send the event */
 			rc = avnd_evt_send(cb, evt);
 			if (NCSCC_RC_SUCCESS != rc) {
-				free(clc_evt);
+				delete clc_evt;
 				goto err;
 			}
 
-			free(clc_evt);
+			delete clc_evt;
 			return rc;
 		} else {
 			LOG_ER("Command other than cleanup recvd for ext comp: Comp and cmd_type are '%s': %u",\
@@ -2549,7 +2549,6 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	/* Allocate environment variable set */
 	env_set_nmemb = comp->numOfCompCmdEnv + 3;
 	env_set = static_cast<NCS_OS_ENVIRON_SET_NODE*>(calloc(env_set_nmemb, sizeof(NCS_OS_ENVIRON_SET_NODE)));
-
 	memset(&cmd_info, 0, sizeof(NCS_OS_PROC_EXECUTE_TIMED_INFO));
 	memset(&arg, 0, sizeof(NCS_OS_ENVIRON_ARGS));
 
@@ -2645,8 +2644,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 					env_set[env_counter].value = strdup(csiattr->string_ptr);
 					osafassert(env_set[env_counter].value != NULL);
 				} else {
-					env_set[env_counter].value = static_cast<char*>(calloc(1,1)); 
-					memset(env_set[env_counter].value,0,1);
+					env_set[env_counter].value = new char(); 
 				}
 				arg.num_args++;
 				env_counter++;
@@ -2695,7 +2693,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 		/* create the event */
 		evt = avnd_evt_create(cb, AVND_EVT_CLC_RESP, 0, 0, 0, clc_evt, 0);
 		if (!evt) {
-			free(clc_evt);
+			delete clc_evt;
 			rc = NCSCC_RC_FAILURE;
 			goto err;
 		}
@@ -2703,10 +2701,10 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 		/* send the event */
 		rc = avnd_evt_send(cb, evt);
 		if (NCSCC_RC_SUCCESS != rc) {
-			free(clc_evt);
+			delete clc_evt;
 			goto err;
 		}
-		free(clc_evt);
+		delete clc_evt;
 	} else {
 		TRACE_2("The CLC CLI command execution success");
 		// outcome of command is reported in comp_clc_resp_callback()
@@ -2721,7 +2719,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 		avnd_evt_destroy(evt);
 	if (env_attr_val) {
 		/* Free the Memory allocated for CLC command environment Sets */
-		free(env_attr_val);
+		delete env_attr_val;
 	}
 
 	TRACE_LEAVE2("%u", rc);

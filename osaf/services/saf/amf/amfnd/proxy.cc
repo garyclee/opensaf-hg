@@ -109,38 +109,36 @@ uint32_t avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* populate the msg */
-	if (0 != (msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG))))) {
-		msg.type = AVND_MSG_AVD;
-		msg.info.avd->msg_type = AVSV_N2D_COMP_VALIDATION_MSG;
-		msg.info.avd->msg_info.n2d_comp_valid_info.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_comp_valid_info.node_id = cb->node_info.nodeId;
-		msg.info.avd->msg_info.n2d_comp_valid_info.comp_name =
-		    evt->info.ava.msg->info.api_info.param.reg.comp_name;
+	msg.info.avd = new AVSV_DND_MSG();
+	msg.type = AVND_MSG_AVD;
+	msg.info.avd->msg_type = AVSV_N2D_COMP_VALIDATION_MSG;
+	msg.info.avd->msg_info.n2d_comp_valid_info.msg_id = ++(cb->snd_msg_id);
+	msg.info.avd->msg_info.n2d_comp_valid_info.node_id = cb->node_info.nodeId;
+	msg.info.avd->msg_info.n2d_comp_valid_info.comp_name =
+	    evt->info.ava.msg->info.api_info.param.reg.comp_name;
 
-		/* add the record to the AvD msg list */
-		if ((0 != (rec = avnd_diq_rec_add(cb, &msg)))) {
-			/* These parameters would not be encoded or decoded so, wouldn't be sent to AvD. */
-			rec->msg.info.avd->msg_info.n2d_comp_valid_info.hdl = reg->hdl;
-			rec->msg.info.avd->msg_info.n2d_comp_valid_info.proxy_comp_name = reg->proxy_comp_name;
-			rec->msg.info.avd->msg_info.n2d_comp_valid_info.mds_dest = api_info->dest;
-			rec->msg.info.avd->msg_info.n2d_comp_valid_info.mds_ctxt = evt->mds_ctxt;
-			/* send the message */
-			rc = avnd_diq_rec_send(cb, rec);
+	/* add the record to the AvD msg list */
+	if ((0 != (rec = avnd_diq_rec_add(cb, &msg)))) {
+		/* These parameters would not be encoded or decoded so, wouldn't be sent to AvD. */
+		rec->msg.info.avd->msg_info.n2d_comp_valid_info.hdl = reg->hdl;
+		rec->msg.info.avd->msg_info.n2d_comp_valid_info.proxy_comp_name = reg->proxy_comp_name;
+		rec->msg.info.avd->msg_info.n2d_comp_valid_info.mds_dest = api_info->dest;
+		rec->msg.info.avd->msg_info.n2d_comp_valid_info.mds_ctxt = evt->mds_ctxt;
+		/* send the message */
+		rc = avnd_diq_rec_send(cb, rec);
 
-			if ((NCSCC_RC_SUCCESS != rc) && rec) {
-				LOG_ER("avnd_diq_rec_send:failed:%s,Type:%u and Hdl%llx",
-						    reg->comp_name.value, api_info->type, reg->hdl);
-				/* pop & delete */
-				m_AVND_DIQ_REC_FIND_POP(cb, rec);
-				avnd_diq_rec_del(cb, rec);
-			}
-		} else {
-			rc = NCSCC_RC_FAILURE;
-			LOG_ER("avnd_diq_rec_add failed::%s,Type:%u and Hdl%llx",
-						reg->comp_name.value, api_info->type, reg->hdl);
+		if ((NCSCC_RC_SUCCESS != rc) && rec) {
+			LOG_ER("avnd_diq_rec_send:failed:%s,Type:%u and Hdl%llx",
+					    reg->comp_name.value, api_info->type, reg->hdl);
+			/* pop & delete */
+			m_AVND_DIQ_REC_FIND_POP(cb, rec);
+			avnd_diq_rec_del(cb, rec);
 		}
-	} else
+	} else {
 		rc = NCSCC_RC_FAILURE;
+		LOG_ER("avnd_diq_rec_add failed::%s,Type:%u and Hdl%llx",
+					reg->comp_name.value, api_info->type, reg->hdl);
+	}
 
 	if (NCSCC_RC_FAILURE == rc) {
 		LOG_ER("avnd_evt_ava_comp_val_req:%s,Type:%u and Hdl%llx",
@@ -334,22 +332,14 @@ uint32_t avnd_avnd_msg_send(AVND_CB *cb, uint8_t *msg_info, AVSV_AMF_API_TYPE ty
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* populate the msg */
-	if (0 != (msg.info.avnd = static_cast<AVSV_ND2ND_AVND_MSG*>(calloc(1, sizeof(AVSV_ND2ND_AVND_MSG))))) {
-		msg.type = AVND_MSG_AVND;
+	msg.info.avnd = new AVSV_ND2ND_AVND_MSG();
+	msg.type = AVND_MSG_AVND;
 
-		if (0 == (nd_nd_ava_msg = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG))))) {
-			rc = NCSCC_RC_FAILURE;
-			free(msg.info.avnd);
-			goto done;
-		}
+	nd_nd_ava_msg = new AVSV_NDA_AVA_MSG();
 
-		msg.info.avnd->type = AVND_AVND_AVA_MSG;
-		msg.info.avnd->info.msg = nd_nd_ava_msg;
-		memcpy(&msg.info.avnd->mds_ctxt, ctxt, sizeof(MDS_SYNC_SND_CTXT));
-	} else {
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
+	msg.info.avnd->type = AVND_AVND_AVA_MSG;
+	msg.info.avnd->info.msg = nd_nd_ava_msg;
+	memcpy(&msg.info.avnd->mds_ctxt, ctxt, sizeof(MDS_SYNC_SND_CTXT));
 
 	switch (type) {
 	case AVSV_AMF_COMP_REG:
@@ -657,22 +647,17 @@ uint32_t avnd_avnd_cbk_del_send(AVND_CB *cb, SaNameT *comp_name, uint32_t *opq_h
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* populate the msg */
-	if (0 != (msg.info.avnd = static_cast<AVSV_ND2ND_AVND_MSG*>(calloc(1, sizeof(AVSV_ND2ND_AVND_MSG))))) {
-		msg.type = AVND_MSG_AVND;
-		msg.info.avnd->type = AVND_AVND_CBK_DEL;
-		msg.info.avnd->info.cbk_del.comp_name = *comp_name;
-		msg.info.avnd->info.cbk_del.opq_hdl = *opq_hdl;
-	} else {
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
+	msg.info.avnd = new AVSV_ND2ND_AVND_MSG();
+	msg.type = AVND_MSG_AVND;
+	msg.info.avnd->type = AVND_AVND_CBK_DEL;
+	msg.info.avnd->info.cbk_del.comp_name = *comp_name;
+	msg.info.avnd->info.cbk_del.opq_hdl = *opq_hdl;
 
 	i_to_dest = avnd_get_mds_dest_from_nodeid(cb, *node_id);
 
 	rc = avnd_avnd_mds_send(cb, i_to_dest, &msg);
 
- done:
-	if (NCSCC_RC_SUCCESS != rc) {
+ 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("AvND Send Failure:%s:NodeID:%u,opq_hdl:%u,MdsDest:%" PRId64,
 				    comp_name->value, *node_id, *opq_hdl, i_to_dest);
 	}

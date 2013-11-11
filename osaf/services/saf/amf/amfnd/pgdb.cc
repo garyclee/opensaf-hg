@@ -91,11 +91,7 @@ AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uint32_t *rc)
 	}
 
 	/* a fresh pg... */
-	pg = static_cast<AVND_PG*>(calloc(1, sizeof(AVND_PG)));
-	if (!pg) {
-		*rc = AVND_ERR_NO_MEMORY;
-		goto err;
-	}
+	pg = new AVND_PG();
 
 	/* update the csi-name (patricia key) */
 	pg->csi_name = *csi_name;
@@ -127,7 +123,7 @@ AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uint32_t *rc)
 
  err:
 	if (pg)
-		free(pg);
+		delete pg;
 
 	LOG_CR("PG DB record addition failed: CSI = %s",csi_name->value);
 	return 0;
@@ -174,7 +170,7 @@ uint32_t avnd_pgdb_rec_del(AVND_CB *cb, SaNameT *csi_name)
 	TRACE("PG DB record deleted: CSI = %s",csi_name->value);
 
 	/* free the memory */
-	free(pg);
+	delete pg;
 
 	return rc;
 
@@ -207,9 +203,7 @@ AVND_PG_TRK *avnd_pgdb_trk_rec_add(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK_INFO *t
 	pg_trk = m_AVND_PGDB_TRK_REC_GET(*pg, trk_info->key);
 	if (!pg_trk) {
 		/* a new record.. alloc & link it to the dll */
-		pg_trk = static_cast<AVND_PG_TRK*>(calloc(1, sizeof(AVND_PG_TRK)));
-		if (!pg_trk)
-			goto err;
+		pg_trk = new AVND_PG_TRK();
 
 		/* update the record key */
 		pg_trk->info.key = trk_info->key;
@@ -244,7 +238,7 @@ AVND_PG_TRK *avnd_pgdb_trk_rec_add(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK_INFO *t
 
  err:
 	if (pg_trk)
-		free(pg_trk);
+		delete pg_trk;
 
 	TRACE_LEAVE();
 	return 0;
@@ -277,7 +271,7 @@ void avnd_pgdb_trk_rec_del(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK_KEY *key)
 	ncs_db_link_list_remove(&pg->trk_list, (uint8_t *)key);
 
 	/* free the memory */
-	free(pg_trk);
+	delete pg_trk;
 
 	TRACE_LEAVE();
 	return;
@@ -332,9 +326,7 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_add(AVND_CB *cb, AVND_PG *pg, SaAmfProtectionGrou
 	pg_mem = m_AVND_PGDB_MEM_REC_GET(*pg, mem_info->member.compName);
 	if (!pg_mem) {
 		/* a new record.. alloc & link it to the dll */
-		pg_mem = static_cast<AVND_PG_MEM*>(calloc(1, sizeof(AVND_PG_MEM)));
-		if (!pg_mem)
-			goto err;
+		pg_mem = new AVND_PG_MEM();
 
 		/* a fresh rec.. mark this member as a new addition */
 		pg_mem->info.change = mem_info->change;
@@ -356,7 +348,7 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_add(AVND_CB *cb, AVND_PG *pg, SaAmfProtectionGrou
 
  err:
 	if (pg_mem)
-		free(pg_mem);
+		delete pg_mem;
 
 	TRACE_LEAVE();
 	return 0;
@@ -423,7 +415,7 @@ void avnd_pgdb_mem_rec_del(AVND_CB *cb, AVND_PG *pg, SaNameT *comp_name)
 		return;
 
 	/* free the memory */
-	free(pg_mem);
+	delete pg_mem;
 
 	TRACE_LEAVE();
 	return;

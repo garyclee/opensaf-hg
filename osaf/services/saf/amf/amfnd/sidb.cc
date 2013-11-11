@@ -209,11 +209,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *p
 	}
 
 	/* a fresh si... */
-	si_rec = static_cast<AVND_SU_SI_REC*>(calloc(1, sizeof(AVND_SU_SI_REC)));
-	if (!si_rec) {
-		*rc = AVND_ERR_NO_MEMORY;
-		goto err;
-	}
+	si_rec = new AVND_SU_SI_REC();
 
 	/*
 	 * Update the supplied parameters.
@@ -274,7 +270,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *p
  err:
 	if (si_rec) {
 		avnd_su_si_csi_del(cb, su, si_rec);
-		free(si_rec);
+		delete si_rec;
 	}
 
 	LOG_CR("SU-SI record addition failed, SU= %s : SI=%s",param->su_name.value,param->si_name.value);
@@ -338,11 +334,7 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 	}
 
 	/* a fresh csi... */
-	csi_rec = static_cast<AVND_COMP_CSI_REC*>(calloc(1, sizeof(AVND_COMP_CSI_REC)));
-	if (!csi_rec) {
-		*rc = AVND_ERR_NO_MEMORY;
-		goto err;
-	}
+	csi_rec = new AVND_COMP_CSI_REC();
 
 	/*
 	 * Update the supplied parameters.
@@ -427,7 +419,7 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 		/* remove from comp-csi & si-csi lists */
 		ncs_db_link_list_delink(&si_rec->csi_list, &csi_rec->si_dll_node);
 		m_AVND_COMPDB_REC_CSI_REM(*comp, *csi_rec);
-		free(csi_rec);
+		delete csi_rec;
 	}
 
 	LOG_CR("Comp-CSI record addition failed, Comp=%s : CSI=%s",param->comp_name.value,param->csi_name.value);
@@ -732,7 +724,7 @@ uint32_t avnd_su_si_rec_del(AVND_CB *cb, SaNameT *su_name, SaNameT *si_name)
 	TRACE_1("SU-SI record deleted, SU= %s : SI=%s",su_name->value,si_name->value);
 
 	/* free the memory */
-	free(si_rec);
+	delete si_rec;
 
 	return rc;
 
@@ -861,13 +853,13 @@ uint32_t avnd_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec
 	 */
 	/* free the csi attributes */
 	if (csi_rec->attrs.list)
-		free(csi_rec->attrs.list);
+		delete csi_rec->attrs.list;
 
 	/* free the pg list TBD */
 	TRACE_1("Comp-CSI record deletion success, Comp=%s : CSI=%s",csi_rec->comp->name.value,csi_rec->name.value);
 
 	/* finally free this record */
-	free(csi_rec);
+	delete csi_rec;
 
 	TRACE_LEAVE();
 	return rc;
@@ -933,11 +925,7 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM 
 	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* alloc the siq rec */
-	siq = static_cast<AVND_SU_SIQ_REC*>(calloc(1, sizeof(AVND_SU_SIQ_REC)));
-	if (!siq) {
-		*rc = AVND_ERR_NO_MEMORY;
-		goto err;
-	}
+	siq = new AVND_SU_SIQ_REC();
 
 	/* Add to the siq (maintained by su) */
 	m_AVND_SUDB_REC_SIQ_ADD(*su, *siq, *rc);
@@ -957,7 +945,7 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM 
 
  err:
 	if (siq)
-		free(siq);
+		delete siq;
 
 	TRACE_LEAVE();
 	return 0;
@@ -986,13 +974,13 @@ void avnd_su_siq_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SIQ_REC *siq)
 	while ((curr = siq->info.list) != 0) {
 		siq->info.list = curr->next;
 		if (curr->attrs.list)
-			free(curr->attrs.list);
+			delete curr->attrs.list;
 
-		free(curr);
+		delete curr;
 	}
 
 	/* free the rec */
-	free(siq);
+	delete siq;
 
 	TRACE_LEAVE();
 	return;

@@ -60,11 +60,7 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	AVND_EVT *evt = 0;
 
 	/* alloc avnd event */
-	evt = static_cast<AVND_EVT*>(calloc(1, sizeof(AVND_EVT)));
-	if (!evt) {
-		/* log */
-		goto done;
-	}
+	evt = new AVND_EVT();
 
 	/* fill the common fields */
 	if (mds_ctxt)
@@ -179,12 +175,11 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 		break;
 
 	default:
-		free(evt);
+		delete evt;
 		evt = NULL;
 		break;
 	}
 
- done:
 	if (!evt)
 		LOG_ER("AvND event creation failed for evt type %u",type);
 
@@ -305,7 +300,7 @@ void avnd_evt_destroy(AVND_EVT *evt)
 	}
 
 	/* free the avnd event */
-	free(evt);
+	delete evt;
 
 	return;
 }
