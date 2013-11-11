@@ -1016,11 +1016,7 @@ static uint32_t avnd_enqueue_async_update_msgs(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	/*
 	 * This is a FIFO queue. Add message at the tail of the queue.
 	 */
-	if (NULL == (updt_msg = static_cast<AVND_ASYNC_UPDT_MSG_QUEUE*>(calloc(1, sizeof(AVND_ASYNC_UPDT_MSG_QUEUE))))) {
-		/* Log error */
-		LOG_CR("calloc failed for AVND_ASYNC_UPDT_MSG_QUEUE");
-		return NCSCC_RC_FAILURE;
-	}
+	updt_msg = new AVND_ASYNC_UPDT_MSG_QUEUE();
 
 	updt_msg->dec = *dec;
 
@@ -1071,7 +1067,7 @@ uint32_t avnd_dequeue_async_update_msgs(AVND_CB *cb, bool pr_or_fr)
 		if (pr_or_fr)
 			status = avnd_dec_ckpt_data_func_list[updt_msg->dec.i_reo_type] (cb, &updt_msg->dec);
 
-		free(updt_msg);
+		delete updt_msg;
 	}
 
 	/* All messages are dequeued. Set tail to NULL */

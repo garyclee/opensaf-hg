@@ -204,8 +204,7 @@ static void handle_su_si_assign_in_term_state(AVND_CB *cb,
 
 	assert(cb->term_state == AVND_TERM_STATE_NODE_FAILOVER_TERMINATED);
 
-	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
-	osafassert(msg.info.avd);
+	msg.info.avd = new AVSV_DND_MSG();
 
 	msg.type = AVND_MSG_AVD;
 	msg.info.avd->msg_type = AVSV_N2D_INFO_SU_SI_ASSIGN_MSG;

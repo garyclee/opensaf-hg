@@ -114,11 +114,7 @@ AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uint32_t *rc)
 	}
 
 	/* a fresh healthcheck record... */
-	hc = static_cast<AVND_HC*>(calloc(1, sizeof(AVND_HC)));
-	if (!hc) {
-		*rc = AVND_ERR_NO_MEMORY;
-		goto err;
-	}
+	hc = new AVND_HC();
 
 	/* Update the config parameters */
 	memcpy(&hc->key, &info->name, sizeof(AVSV_HLT_KEY));
@@ -140,7 +136,7 @@ AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uint32_t *rc)
 
  err:
 	if (hc)
-		free(hc);
+		delete hc;
 
 	LOG_CR("HC DB rec add: %s failed",info->name.name.key);
 	return 0;
@@ -182,7 +178,7 @@ uint32_t avnd_hcdb_rec_del(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
 	TRACE("HC DB rec:%s delete success",hc_key->name.key);
 
 	/* free the memory */
-	free(hc);
+	delete hc;
 
 	return rc;
 
@@ -196,8 +192,7 @@ static AVND_HC *hc_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValuesT_2 **a
 	int rc = -1;
 	AVND_HC *hc = NULL;
   
-	if ((hc = static_cast<AVND_HC*>(calloc(1, sizeof(AVND_HC)))) == NULL)
-		goto done;
+	hc = new AVND_HC();
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfHealthcheckPeriod"), attributes, 0, &hc->period) != SA_AIS_OK) {
 		LOG_ER("Get saAmfHealthcheckPeriod FAILED for '%s'", dn->value);
@@ -217,7 +212,7 @@ static AVND_HC *hc_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValuesT_2 **a
 
  done:
 	if (rc != NCSCC_RC_SUCCESS) {
-		free(hc);
+		delete hc;
 		hc = NULL;
 	}
 
@@ -277,8 +272,7 @@ static AVND_HCTYPE *hctype_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValue
 	int rc = -1;
 	AVND_HCTYPE *hc;
 
-	if ((hc = static_cast<AVND_HCTYPE*>(calloc(1, sizeof(*hc)))) == NULL)
-		goto done;
+	hc = new AVND_HCTYPE();
 
 	hc->name = *dn;
 
@@ -297,7 +291,7 @@ static AVND_HCTYPE *hctype_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValue
 
  done:
 	if (rc != NCSCC_RC_SUCCESS) {
-		free(hc);
+		delete hc;
 		hc = NULL;
 	}
 

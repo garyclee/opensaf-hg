@@ -82,7 +82,7 @@ uint32_t avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *node)
 {
 	AVND_COMP_PM_REC *pm_rec = (AVND_COMP_PM_REC *)node;
 
-	free(pm_rec);
+	delete pm_rec;
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -330,8 +330,7 @@ AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	*sa_err = SA_AIS_OK;
 
-	if ((0 == (rec = static_cast<AVND_COMP_PM_REC*>(calloc(1, sizeof(AVND_COMP_PM_REC))))))
-		return rec;
+	rec = new AVND_COMP_PM_REC();
 
 	/* assign the pm params */
 	rec->desc_tree_depth = pm_start->desc_tree_depth;
@@ -345,7 +344,7 @@ AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_
 	/* add the rec to comp's PM_REC */
 	rc = avnd_comp_pm_rec_add(cb, comp, rec);
 	if (NCSCC_RC_SUCCESS != rc) {
-		free(rec);
+		delete rec;
 		rec = 0;
 	}
 

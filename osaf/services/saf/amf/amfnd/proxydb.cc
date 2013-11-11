@@ -52,26 +52,21 @@ uint32_t avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 				    mds_dest, node_id);
 		return NCSCC_RC_FAILURE;
 	} else {
-		rec = static_cast<AVND_NODEID_TO_MDSDEST_MAP*>(malloc(sizeof(AVND_NODEID_TO_MDSDEST_MAP)));
+		rec = new AVND_NODEID_TO_MDSDEST_MAP;
 
-		if (rec == NULL) {
-			return NCSCC_RC_FAILURE;
-		} else {
-			rec->node_id = node_id;
-			rec->mds_dest = mds_dest;
-			rec->tree_node.bit = 0;
-			rec->tree_node.key_info = (uint8_t *)&(rec->node_id);
+		rec->node_id = node_id;
+		rec->mds_dest = mds_dest;
+		rec->tree_node.bit = 0;
+		rec->tree_node.key_info = (uint8_t *)&(rec->node_id);
 
-			res = ncs_patricia_tree_add(&cb->nodeid_mdsdest_db, &rec->tree_node);
+		res = ncs_patricia_tree_add(&cb->nodeid_mdsdest_db, &rec->tree_node);
 
-			if (NCSCC_RC_SUCCESS != res) {
-				LOG_ER("Couldn't add nodeid_mdsdest rec, patricia add failed:MdsDest:%" PRId64 ", NodeId:%u",
-				     mds_dest, node_id);
-				free(rec);
-				return res;
-			}
-
-		}		/* Else of if(rec == NULL)  */
+		if (NCSCC_RC_SUCCESS != res) {
+			LOG_ER("Couldn't add nodeid_mdsdest rec, patricia add failed:MdsDest:%" PRId64 ", NodeId:%u",
+			     mds_dest, node_id);
+			delete rec;
+			return res;
+		}
 
 	}			/* Else of if(rec != NULL)  */
 
@@ -116,7 +111,7 @@ uint32_t avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest)
 
 	}			/* Else of if(rec == NULL) */
 
-	free(rec);
+	delete rec;
 
 	return res;
 }
@@ -239,11 +234,7 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
 	}
 
 	/* a fresh comp... */
-	comp = static_cast<AVND_COMP*>(calloc(1, sizeof(AVND_COMP)));
-	if (!comp) {
-		*rc = SA_AIS_ERR_NO_MEMORY;
-		goto err;
-	}
+	comp = new AVND_COMP();
 
 	/* update the comp-name (patricia key) */
 	memcpy(&comp->name, name, sizeof(SaNameT));

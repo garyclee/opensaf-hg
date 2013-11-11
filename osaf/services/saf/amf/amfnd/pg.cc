@@ -340,7 +340,7 @@ static uint32_t avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *p
 					return rc;
 			}	/* for */
 
-			free(pg_mem);
+			delete pg_mem;
 		}
 	} else {
 		/* => this update is for csi deletion */
@@ -519,7 +519,7 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 
 		/* if the member was previously removed, free it now */
 		if (SA_AMF_PROTECTION_GROUP_REMOVED == chg_mem->info.change)
-			free(chg_mem);
+			delete chg_mem;
 	}
 
 	TRACE_LEAVE();
@@ -721,10 +721,7 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 	TRACE_ENTER();
 
 	/* allocate cbk-info */
-	if ((0 == (cbk_info = static_cast<AVSV_AMF_CBK_INFO*>(calloc(1, sizeof(AVSV_AMF_CBK_INFO)))))) {
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
+	cbk_info = new AVSV_AMF_CBK_INFO();
 
 	pg_param = &cbk_info->param.pg_track;
 
@@ -750,12 +747,7 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 				number_of_items = number_of_items + 1;
 
 			/* allocate the buffer */
-			pg_param->buf.notification =
-			    static_cast<SaAmfProtectionGroupNotificationT*>(calloc(1, sizeof(SaAmfProtectionGroupNotificationT) * number_of_items));
-			if (!pg_param->buf.notification) {
-				rc = NCSCC_RC_FAILURE;
-				goto done;
-			}
+			pg_param->buf.notification = new SaAmfProtectionGroupNotificationT[number_of_items]();
 
 			/* fill all the current members */
 			for (curr_mem = (AVND_PG_MEM *)m_NCS_DBLIST_FIND_FIRST(&pg->mem_list), i = 0;
@@ -777,11 +769,7 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 
 		if (chg_mem && m_AVND_PG_TRK_IS_CHANGES_ONLY(trk)) {
 	 /*** include only the modified member ***/
-			pg_param->buf.notification = static_cast<SaAmfProtectionGroupNotificationT*>(malloc(sizeof(SaAmfProtectionGroupNotificationT)));
-			if (!pg_param->buf.notification) {
-				rc = NCSCC_RC_FAILURE;
-				goto done;
-			}
+			pg_param->buf.notification = new SaAmfProtectionGroupNotificationT;
 
 			*pg_param->buf.notification = chg_mem->info;
 			pg_param->buf.numberOfItems = 1;
@@ -798,8 +786,7 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 	/* reset the is_syn flag */
 	trk->info.is_syn = false;
 
- done:
-	if ((NCSCC_RC_SUCCESS != rc) && cbk_info)
+ 	if ((NCSCC_RC_SUCCESS != rc) && cbk_info)
 		avsv_amf_cbk_free(cbk_info);
 
 	TRACE_LEAVE2("rc '%u'", rc);
@@ -829,10 +816,7 @@ uint32_t avnd_pg_cbk_msg_send(AVND_CB *cb, AVND_PG_TRK *trk, AVSV_AMF_CBK_INFO *
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* allocate ava message */
-	if (0 == (msg.info.ava = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG))))) {
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
+	msg.info.ava = new AVSV_NDA_AVA_MSG();
 
 	/* populate the msg */
 	msg.type = AVND_MSG_AVA;
@@ -845,8 +829,7 @@ uint32_t avnd_pg_cbk_msg_send(AVND_CB *cb, AVND_PG_TRK *trk, AVSV_AMF_CBK_INFO *
 	if (NCSCC_RC_SUCCESS == rc)
 		msg.info.ava = 0;
 
- done:
-	/* free the contents of avnd message */
+ 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
 	TRACE_LEAVE2("rc '%u'", rc);
 	return rc;

@@ -220,10 +220,10 @@ uint32_t avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckp
 					}
 					/* free the csi attributes */
 					if (csi_rec->attrs.list)
-						free(csi_rec->attrs.list);
+						delete csi_rec->attrs.list;
 
 					/* finally free this record */
-					free(csi_rec);
+					delete csi_rec;
 				}	/* while ( 0 != csi_rec) */
 
 				/* Now delete the SU_SI record */
@@ -231,7 +231,7 @@ uint32_t avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckp
 				if (rc != NCSCC_RC_SUCCESS) {
 					return NCSCC_RC_FAILURE;
 				}
-				free(su_si_rec_ptr);
+				delete su_si_rec_ptr;
 			} /*if (NULL != su_si_rec_ptr) */
 			else {
 				return NCSCC_RC_FAILURE;
@@ -955,7 +955,7 @@ uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, bool avnd_shut_down)
 						    (AVND_COMP_PXIED_REC *)
 						    ncs_db_link_list_remove(&del_proxy->pxied_list,
 									    (uint8_t *)&del_comp->name);
-						free(del_rec);
+						delete del_rec;
 					}
 				}
 				rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(comp_name));
@@ -994,17 +994,17 @@ uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, bool avnd_shut_down)
 						}
 						/* free the csi attributes */
 						if (csi_rec->attrs.list)
-							free(csi_rec->attrs.list);
+							delete csi_rec->attrs.list;
 
 						/* finally free this record */
-						free(csi_rec);
+						delete csi_rec;
 					}	/* while ( 0 != csi_rec) */
 					/* Now delete the SU_SI record */
 					rc = m_AVND_SUDB_REC_SI_REM(*su, *curr_su_si);
 					if (rc != NCSCC_RC_SUCCESS) {
 						return NCSCC_RC_FAILURE;
 					}
-					free(curr_su_si);
+					delete curr_su_si;
 				}	/* while(0 != curr_su_si) */
 			}	/* if(true == su->su_is_external) */
 			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su_name);

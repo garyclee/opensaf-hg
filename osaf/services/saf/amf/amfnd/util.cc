@@ -83,21 +83,21 @@ void avnd_msg_content_free(AVND_CB *cb, AVND_MSG *msg)
 	switch (msg->type) {
 	case AVND_MSG_AVD:
 		if (msg->info.avd) {
-			avsv_dnd_msg_free(msg->info.avd);
+			dnd_msg_free(msg->info.avd);
 			msg->info.avd = 0;
 		}
 		break;
 
 	case AVND_MSG_AVND:
 		if (msg->info.avnd) {
-			avsv_nd2nd_avnd_msg_free(msg->info.avnd);
+			nd2nd_avnd_msg_free(msg->info.avnd);
 			msg->info.avnd = 0;
 		}
 		break;
 
 	case AVND_MSG_AVA:
 		if (msg->info.ava) {
-			avsv_nda_ava_msg_free(msg->info.ava);
+			nda_ava_msg_free(msg->info.ava);
 			msg->info.ava = 0;
 		}
 		break;
@@ -136,26 +136,17 @@ uint32_t avnd_msg_copy(AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
 
 	switch (smsg->type) {
 	case AVND_MSG_AVD:
-		if (0 == (dmsg->info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG))))) {
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
+		dmsg->info.avd = new AVSV_DND_MSG();
 		rc = avsv_dnd_msg_copy(dmsg->info.avd, smsg->info.avd);
 		break;
 
 	case AVND_MSG_AVND:
-		if (0 == (dmsg->info.avnd = static_cast<AVSV_ND2ND_AVND_MSG*>(calloc(1, sizeof(AVSV_ND2ND_AVND_MSG))))) {
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
+		dmsg->info.avnd = new AVSV_ND2ND_AVND_MSG();
 		rc = avsv_ndnd_avnd_msg_copy(dmsg->info.avnd, smsg->info.avnd);
 		break;
 
 	case AVND_MSG_AVA:
-		if (0 == (dmsg->info.ava = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG))))) {
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
+		dmsg->info.ava = new AVSV_NDA_AVA_MSG();
 		rc = avsv_nda_ava_msg_copy(dmsg->info.ava, smsg->info.ava);
 		break;
 
@@ -256,4 +247,293 @@ void avnd_failed_state_file_delete(void)
 const char *avnd_failed_state_file_location(void)
 {
 	return failed_state_file_name;
+}
+
+/*****************************************************************************
+ * Function: free_d2n_su_msg_info
+ *
+ * Purpose:  This function frees the d2n SU message contents.
+ *
+ * Input: su_msg - Pointer to the SU message contents to be freed.
+ *
+ * Returns: None
+ *
+ * NOTES: none.
+ *
+ * 
+ **************************************************************************/
+
+static void free_d2n_su_msg_info(AVSV_DND_MSG *su_msg)
+{
+	AVSV_SU_INFO_MSG *su_info;
+
+	while (su_msg->msg_info.d2n_reg_su.su_list != NULL) {
+		su_info = su_msg->msg_info.d2n_reg_su.su_list;
+		su_msg->msg_info.d2n_reg_su.su_list = su_info->next;
+		delete su_info;
+	}
+}
+
+
+/*****************************************************************************
+ * Function: free_d2n_susi_msg_info
+ *
+ * Purpose:  This function frees the d2n SU SI message contents.
+ *
+ * Input: susi_msg - Pointer to the SUSI message contents to be freed.
+ *
+ * Returns: none
+ *
+ * NOTES: It also frees the array of attributes, which are sperately
+ * allocated and pointed to by AVSV_SUSI_ASGN structure.
+ *
+ * 
+ **************************************************************************/
+
+static void free_d2n_susi_msg_info(AVSV_DND_MSG *susi_msg)
+{
+	AVSV_SUSI_ASGN *compcsi_info;
+
+	while (susi_msg->msg_info.d2n_su_si_assign.list != NULL) {
+		compcsi_info = susi_msg->msg_info.d2n_su_si_assign.list;
+		susi_msg->msg_info.d2n_su_si_assign.list = compcsi_info->next;
+		if (compcsi_info->attrs.list != NULL) {
+			delete(compcsi_info->attrs.list);
+			compcsi_info->attrs.list = NULL;
+		}
+		delete compcsi_info;
+	}
+}
+
+/*****************************************************************************
+ * Function: free_d2n_pg_msg_info
+ *
+ * Purpose:  This function frees the d2n PG track response message contents.
+ *
+ * Input: pg_msg - Pointer to the PG message contents to be freed.
+ *
+ * Returns: None
+ *
+ * NOTES: None
+ *
+ * 
+ **************************************************************************/
+
+static void free_d2n_pg_msg_info(AVSV_DND_MSG *pg_msg)
+{
+	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info = &pg_msg->msg_info.d2n_pg_track_act_rsp;
+
+	if (info->mem_list.numberOfItems)
+		delete info->mem_list.notification;
+
+	info->mem_list.notification = 0;
+	info->mem_list.numberOfItems = 0;
+}
+
+/****************************************************************************
+  Name          : dnd_msg_free
+ 
+  Description   : This routine frees the Message structures used for
+                  communication between AvD and AvND. 
+ 
+  Arguments     : msg - ptr to the DND message that needs to be freed.
+ 
+  Return Values : None
+ 
+  Notes         : For : AVSV_D2N_REG_SU_MSG, AVSV_D2N_INFO_SU_SI_ASSIGN_MSG
+                  and AVSV_D2N_PG_TRACK_ACT_RSP_MSG, this procedure calls the
+                  corresponding information free function to free the
+                  list information in them before freeing the message.
+******************************************************************************/
+void dnd_msg_free(AVSV_DND_MSG *msg)
+{
+	if (msg == NULL)
+		return;
+
+	/* these messages have information list in them free them
+	 * first by calling the corresponding free routine.
+	 */
+	switch (msg->msg_type) {
+	case AVSV_D2N_REG_SU_MSG:
+		free_d2n_su_msg_info(msg);
+		break;
+	case AVSV_D2N_INFO_SU_SI_ASSIGN_MSG:
+		free_d2n_susi_msg_info(msg);
+		break;
+	case AVSV_D2N_PG_TRACK_ACT_RSP_MSG:
+		free_d2n_pg_msg_info(msg);
+		break;
+	default:
+		break;
+	}
+
+	/* free the message */
+	delete msg;
+}
+
+/****************************************************************************
+  Name          : nda_ava_msg_free
+ 
+  Description   : This routine frees the AvA message.
+ 
+  Arguments     : msg - ptr to the AvA msg
+ 
+  Return Values : None
+ 
+  Notes         : None.
+******************************************************************************/
+void nda_ava_msg_free(AVSV_NDA_AVA_MSG *msg)
+{
+	if (!msg)
+		return;
+
+	/* free the message content */
+	nda_ava_msg_content_free(msg);
+
+	/* free the message */
+	delete msg;
+
+	return;
+}
+
+/****************************************************************************
+  Name          : nda_ava_msg_content_free
+ 
+  Description   : This routine frees the content of the AvA message.
+ 
+  Arguments     : msg - ptr to the AvA msg
+ 
+  Return Values : None.
+ 
+  Notes         : This routine is used by AvA as it does not alloc nda 
+                  message while decoding from mds.
+******************************************************************************/
+void nda_ava_msg_content_free(AVSV_NDA_AVA_MSG *msg)
+{
+	if (!msg)
+		return;
+
+	switch (msg->type) {
+	case AVSV_AVA_API_MSG:
+	case AVSV_AVND_AMF_API_RESP_MSG:
+		break;
+
+	case AVSV_AVND_AMF_CBK_MSG:
+		if (msg->info.cbk_info) {
+			avsv_amf_cbk_free(msg->info.cbk_info);
+			msg->info.cbk_info = 0;
+		}
+		break;
+
+	default:
+		break;
+	}
+
+	return;
+}
+
+/****************************************************************************
+  Name          : amf_csi_attr_list_free
+ 
+  Description   : This routine frees the csi attribute list.
+ 
+  Arguments     : attr - ptr to the csi-attr list
+ 
+  Return Values : None.
+ 
+  Notes         : None.
+******************************************************************************/
+void amf_csi_attr_list_free(SaAmfCSIAttributeListT *attrs)
+{
+	uint32_t cnt;
+
+	if (!attrs)
+		return;
+
+	/* free the attr name-val pair */
+	for (cnt = 0; cnt < attrs->number; cnt++) {
+		delete attrs->attr[cnt].attrName;
+		delete attrs->attr[cnt].attrValue;
+	}			/* for */
+
+	/* finally free the attr list ptr */
+	if (attrs->attr)
+		delete attrs->attr;
+
+	return;
+}
+
+/****************************************************************************
+  Name          : amf_cbk_free
+ 
+  Description   : This routine frees callback information.
+ 
+  Arguments     : cbk_info - ptr to the callback info
+ 
+  Return Values : None.
+ 
+  Notes         : None.
+******************************************************************************/
+void amf_cbk_free(AVSV_AMF_CBK_INFO *cbk_info)
+{
+	if (!cbk_info)
+		return;
+
+	switch (cbk_info->type) {
+	case AVSV_AMF_HC:
+	case AVSV_AMF_COMP_TERM:
+	case AVSV_AMF_CSI_REM:
+	case AVSV_AMF_PXIED_COMP_INST:
+	case AVSV_AMF_PXIED_COMP_CLEAN:
+		break;
+
+	case AVSV_AMF_PG_TRACK:
+		/* free the notify buffer */
+		if (cbk_info->param.pg_track.buf.numberOfItems)
+			delete cbk_info->param.pg_track.buf.notification;
+		break;
+
+	case AVSV_AMF_CSI_SET:
+		/* free the avsv csi attr list */
+		if (cbk_info->param.csi_set.attrs.number)
+			delete cbk_info->param.csi_set.attrs.list;
+
+		/* free the amf csi attr list */
+		amf_csi_attr_list_free(&cbk_info->param.csi_set.csi_desc.csiAttr);
+		break;
+
+	default:
+		break;
+	}
+
+	/* free the cbk-info ptr */
+	delete cbk_info;
+
+	return;
+}
+
+/****************************************************************************
+  Name          : nd2nd_avnd_msg_free
+ 
+  Description   : This routine frees the AvND message.
+ 
+  Arguments     : msg - ptr to the AvA msg
+ 
+  Return Values : None
+ 
+  Notes         : None.
+******************************************************************************/
+void nd2nd_avnd_msg_free(AVSV_ND2ND_AVND_MSG *msg)
+{
+	if (!msg)
+		return;
+
+	if (AVND_AVND_AVA_MSG == msg->type) {
+		/* free the message content after all these are AvA content. */
+		nda_ava_msg_free(msg->info.msg);
+	}
+	/* free the message */
+	delete msg;
+
+	return;
 }

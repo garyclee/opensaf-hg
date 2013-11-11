@@ -1960,11 +1960,7 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 			/* copy the attributes */
 			memset(&attr, 0, sizeof(AVSV_CSI_ATTRS));
 			if ((SA_AMF_CSI_ADD_ONE == csi_desc.csiFlags) && (curr_csi->attrs.number != 0)) {
-				attr.list = static_cast<AVSV_ATTR_NAME_VAL*>(malloc(sizeof(AVSV_ATTR_NAME_VAL) * curr_csi->attrs.number));
-				if (!attr.list) {
-					rc = NCSCC_RC_FAILURE;
-					goto done;
-				}
+				attr.list = new AVSV_ATTR_NAME_VAL[curr_csi->attrs.number];
 
 				memcpy(attr.list, curr_csi->attrs.list,
 				       sizeof(AVSV_ATTR_NAME_VAL) * curr_csi->attrs.number);
@@ -2078,10 +2074,7 @@ uint32_t avnd_amf_resp_send(AVND_CB *cb,
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
-	if (0 == (msg.info.ava = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG))))) {
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
+	msg.info.ava = new AVSV_NDA_AVA_MSG();
 
 	/* populate the response */
 	if (AVSV_AMF_HA_STATE_GET == type) {
@@ -2091,12 +2084,7 @@ uint32_t avnd_amf_resp_send(AVND_CB *cb,
 
 	if (true == msg_to_avnd) {
 		/* Fill informations.  */
-		avnd_msg = static_cast<AVSV_ND2ND_AVND_MSG*>(calloc(1, sizeof(AVSV_ND2ND_AVND_MSG)));
-		if (NULL == avnd_msg) {
-			free(msg.info.ava);
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
+		avnd_msg = new AVSV_ND2ND_AVND_MSG();
 
 		avnd_msg->comp_name = comp->name;
 		avnd_msg->mds_ctxt = *ctxt;
@@ -2116,7 +2104,7 @@ uint32_t avnd_amf_resp_send(AVND_CB *cb,
 		if (NCSCC_RC_SUCCESS == rc)
 			msg.info.ava = 0;
 	}
- done:
+ 
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
 	TRACE_LEAVE();
@@ -2172,10 +2160,7 @@ uint32_t avnd_comp_proxied_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp
 	TRACE_ENTER2("'%s' : '%s'", comp->name.value, pxy_comp->name.value);	
 
 	/* allocate memory for rec** */
-	if (0 == (rec = static_cast<AVND_COMP_PXIED_REC*>(calloc(1, sizeof(AVND_COMP_PXIED_REC))))) {
-		rc = NCSCC_RC_OUT_OF_MEM;	/*SA_AIS_ERR_NO_MEMORY */
-		goto done;
-	}
+	rec = new AVND_COMP_PXIED_REC();
 
 	/* fill the params */
 	rec->pxied_comp = comp;
@@ -2216,7 +2201,7 @@ uint32_t avnd_comp_proxied_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp
  done:
 	/* free mem */
 	if (rec)
-		free(rec);
+		delete rec;
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
@@ -2301,7 +2286,7 @@ uint32_t avnd_comp_proxied_del(AVND_CB *cb,
 	}
 	/* free the rec */
 	/*if(rec) */
-	free(rec);
+	delete rec;
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -2422,7 +2407,7 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 		}
 
 		/* now free the rec */
-		free(rec);
+		delete rec;
 	}
 
 	/* case of fault during avnd_di_object_upd_send*/

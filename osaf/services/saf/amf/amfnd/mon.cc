@@ -99,24 +99,16 @@ AVND_MON_REQ *avnd_mon_req_add(AVND_CB *cb, AVND_COMP_PM_REC *pm_rec)
 	mon_req = (AVND_MON_REQ *) ncs_db_link_list_find(pid_mon_list, (uint8_t *)&pm_rec->pid);
 	if (!mon_req) {
 		/* a new record.. alloc & link it to the dll */
-		mon_req = (AVND_MON_REQ *) malloc(sizeof(AVND_MON_REQ));
-		if (mon_req) {
-			memset(mon_req, 0, sizeof(AVND_MON_REQ));
+		mon_req = new AVND_MON_REQ();
 
-			mon_req->pid = pm_rec->pid;
+		mon_req->pid = pm_rec->pid;
 
-			/* update the record key */
-			mon_req->mon_dll_node.key = (uint8_t *)&mon_req->pid;
+		/* update the record key */
+		mon_req->mon_dll_node.key = (uint8_t *)&mon_req->pid;
 
-			rc = ncs_db_link_list_add(pid_mon_list, &mon_req->mon_dll_node);
-			if (NCSCC_RC_SUCCESS != rc) {
-				m_NCS_UNLOCK(&cb->mon_lock, NCS_LOCK_WRITE);
-				goto done;
-			}
-		} else {
+		rc = ncs_db_link_list_add(pid_mon_list, &mon_req->mon_dll_node);
+		if (NCSCC_RC_SUCCESS != rc) {
 			m_NCS_UNLOCK(&cb->mon_lock, NCS_LOCK_WRITE);
-			LOG_ER("Memory Alloc Failed for MON_REQ structure");
-			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
 	}
@@ -205,7 +197,7 @@ uint32_t avnd_mon_req_free(NCS_DB_LINK_LIST_NODE *node)
 	AVND_MON_REQ *mon_req = (AVND_MON_REQ *) node;
 
 	if (mon_req)
-		free(mon_req);
+		delete mon_req;
 
 	return NCSCC_RC_SUCCESS;
 }

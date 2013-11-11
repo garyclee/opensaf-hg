@@ -698,10 +698,8 @@ uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* allocate ava message */
-	if (0 == (msg.info.ava = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG))))) {
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
+        // zero-initialized (new T() POD types are value-initialized, c++98, 03 and 11)
+	msg.info.ava = new AVSV_NDA_AVA_MSG();
 
 	/* populate the msg */
 	msg.type = AVND_MSG_AVA;
@@ -722,11 +720,7 @@ uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec
 		   also. */
 		NODE_ID node_id = 0;
 		MDS_DEST i_to_dest = 0;
-		avnd_msg = static_cast<AVSV_ND2ND_AVND_MSG*>(calloc(1, sizeof(AVSV_ND2ND_AVND_MSG)));
-		if (NULL == avnd_msg) {
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
+		avnd_msg = new AVSV_ND2ND_AVND_MSG();
 
 		avnd_msg->comp_name = comp->name;
 		temp_ptr = msg.info.ava;
@@ -879,8 +873,7 @@ AVND_COMP_CBK *avnd_comp_cbq_rec_add(AVND_CB *cb,
 {
 	AVND_COMP_CBK *rec = 0;
 
-	if ((0 == (rec = static_cast<AVND_COMP_CBK*>(calloc(1, sizeof(AVND_COMP_CBK))))))
-		goto error;
+	rec = new AVND_COMP_CBK();
 
 	/* create the association with hdl-mngr */
 	if ((0 == (rec->opq_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVND, (NCSCONTEXT)rec))))
@@ -940,7 +933,7 @@ void avnd_comp_cbq_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec)
 		avsv_amf_cbk_free(rec->cbk_info);
 
 	/* free the record */
-	free(rec);
+	delete rec;
 
 	return;
 }
