@@ -978,6 +978,7 @@ int loadImmFromPbe(void* pbeHandle, bool preload)
 
  done:
 	sqlite3_close(dbHandle);
+	if(preload) {exit(0);} /* dont delay termination of preloader.*/
 	saImmOmAdminOwnerFinalize(ownerHandle);
 	saImmOmFinalize(immHandle);
 	TRACE_LEAVE();

@@ -89,6 +89,9 @@ extern "C" {
 			       SaUint32T ccbFlags,
 			       SaUint32T ccbId, unsigned int originatingNode, SaUint32T originatingConn);
 
+	SaUint32T
+	immModel_getAdmoIdForObj(IMMND_CB *cb, const char* objNameBuf);
+
 	SaAisErrorT
 	    immModel_adminOperationInvoke(IMMND_CB *cb,
 					  const struct ImmsvOmAdminOperationInvoke *req,
@@ -288,6 +291,7 @@ extern "C" {
 
 	SaBoolT immModel_protocol41Allowed(IMMND_CB *cb);
 	SaBoolT immModel_protocol43Allowed(IMMND_CB *cb);
+	SaBoolT immModel_oneSafe2PBEAllowed(IMMND_CB *cb);
 
 	SaBoolT immModel_purgeSyncRequest(IMMND_CB *cb, SaUint32T clientId);
 

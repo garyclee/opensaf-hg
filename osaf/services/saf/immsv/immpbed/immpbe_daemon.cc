@@ -249,7 +249,12 @@ static bool pbe2_start_prepare_ccb_A_to_B(SaImmOiCcbIdT ccbId, SaUint32T numOps)
 	} while (((rc2B == SA_AIS_ERR_TRY_AGAIN) || (slavePbeRtReply == SA_AIS_ERR_TRY_AGAIN)) && (msecs_waited < 3000));
 
 	if(rc2B != SA_AIS_OK) {
-		LOG_WA("Start prepare for ccb: %llx/%llu towards slave PBE returned: '%u' from Immsv", ccbId, ccbId, rc2B);
+		if((rc2B == SA_AIS_ERR_NOT_EXIST) && (sNoStdFlags & OPENSAF_IMM_FLAG_2PBE1_ALLOW)) {
+			LOG_NO("2PBE slave NOT available but NoStFlags 0x8 set");
+			retval=true;
+		} else {
+			LOG_WA("Start prepare for ccb: %llx/%llu towards slave PBE returned: '%u' from Immsv", ccbId, ccbId, rc2B);
+		}
 	} else if(slavePbeRtReply != SA_AIS_OK) {
 		LOG_WA("Start prepare for ccb: %llx/%llu towards slave PBE returned: '%u' from sttandby PBE", ccbId, ccbId, slavePbeRtReply);
 	} else {
@@ -836,7 +841,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		
 		if(!param || (param->paramType != SA_IMM_ATTR_SAUINT32T) || 
 			strcmp(param->paramName, (char *) OPENSAF_IMM_ATTR_NOSTD_FLAGS)) {
-			LOG_IN("Incorrect parameter to NostdFlags-ON, should be 'flags:SA_UINT32_T:nnnn");
+			LOG_IN("Incorrect parameter to NostdFlags-ON, should be 'opensafImmNostdFlags:SA_UINT32_T:nnnn'");
 			rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
 			goto fail;
 		}
@@ -844,7 +849,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		SaUint32T flagsToSet = (*((SaUint32T *) param->paramBuffer));
 
 		if(sPbe2 && !sPbe2B) {
-			/* Forward nost flag off to slave PBE. */
+			/* Forward nost flag ON to slave PBE. */
 			SaAisErrorT rc2B = SA_AIS_OK;
 			SaNameT slavePbeRtObjName = {sizeof(OPENSAF_IMM_PBE_RT_OBJECT_DN_B), OPENSAF_IMM_PBE_RT_OBJECT_DN_B};
 			SaAisErrorT slavePbeRtReply = SA_AIS_OK;
@@ -853,30 +858,46 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 			if(rc2B != SA_AIS_OK) {
 				if(rc2B == SA_AIS_ERR_NOT_EXIST) {
 					LOG_IN("Got ERR_NOT_EXIST on atempt to set nostFlags towards slave PBE - ignoring");
+					rc = rc2B = SA_AIS_OK;
 				} else {
-					LOG_WA("Failed to update nostFlags towards slave PBE. Rc:%u - ignoring", rc2B);
+					LOG_NO("Failed to update nostFlags towards slave PBE. Rc:%u", rc2B);
+					rc = rc2B;
 				}
-				rc2B = SA_AIS_OK;
 			} else if(slavePbeRtReply == SA_AIS_OK) {
 				LOG_IN("Slave PBE replied with OK on attempt to set nostFlags");
 			} else {
-				LOG_WA("Slave PBE replied with error '%u' on attempt to set nostFlags", slavePbeRtReply);
+				LOG_WA("Slave PBE replied with error %u on attempt to set nostFlags", slavePbeRtReply);
+				rc = slavePbeRtReply;
 			}
-		}
-		
-		if(rc == SA_AIS_OK) {
-			sNoStdFlags |= flagsToSet;
-			LOG_NO("NOSTD FLAGS switched on result:%u", sNoStdFlags);
 		}
 
-		if(rc == SA_AIS_OK && !sPbe2B) { /* Only primary PBE updates the cached RTA. */
-			rc = saImmOiRtObjectUpdate_2(immOiHandle, &myObj, attrMods);
-			if(rc != SA_AIS_OK) {
-				sNoStdFlags &= ~flagsToSet; /* restore the flag value */
-				LOG_ER("Update of cached attr %s in %s failed, rc=%u",
-					attMod.modAttr.attrName, (char *) myObj.value, rc);
-				/* ABT need to shoot down or undo for slave! */
+		if(sPbe2B && (flagsToSet == OPENSAF_IMM_FLAG_2PBE1_ALLOW)) {
+			LOG_WA("Attempt to togle *ON* value x%x in nostdFlags not allowed when PBE slave is running.",
+				OPENSAF_IMM_FLAG_2PBE1_ALLOW);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+		}
+
+
+		if(rc == SA_AIS_OK) {
+			sNoStdFlags |= flagsToSet;
+			LOG_NO("NOSTD FLAGS value 0x%x switched ON result:0x%x", flagsToSet, sNoStdFlags);
+			if(!sPbe2B) { /* Only primary PBE updates the cached RTA. */
+				rc = saImmOiRtObjectUpdate_2(immOiHandle, &myObj, attrMods);
+				if(rc != SA_AIS_OK) { 
+					/* Should never get TRY_AGAIN here. RTA update is always accepted,
+					   Except if local IMMND goes down, but then this PBE will go down also.
+					 */
+					sNoStdFlags &= ~flagsToSet; /* restore the flag value */
+					LOG_WA("Update of cached attr %s in %s failed, rc=%u",
+						attMod.modAttr.attrName, (char *) myObj.value, rc);
+					/* ABT shoot down or undo for slave ?
+					   The flags value in the slave is not really used.
+					   Slave only "becomes" primary by process restart,
+					   which will get noStdFlags from imm cached RTA.
+					 */
+				}
 			}
+
 		}
 
 		rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
@@ -892,7 +913,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		
 		if(!param || (param->paramType != SA_IMM_ATTR_SAUINT32T) ||
 			strcmp(param->paramName, (char *) OPENSAF_IMM_ATTR_NOSTD_FLAGS)) {
-			LOG_IN("Incorrect parameter to NostdFlags-OFF, should be 'flags:SA_UINT32_T:nnnn");
+			LOG_IN("Incorrect parameter to NostdFlags-OFF, should be 'opensafImmNostdFlags:SA_UINT32_T:nnnn'");
 			rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
 			goto fail;
 		}
@@ -900,7 +921,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		SaUint32T flagsToUnSet = (*((SaUint32T *) param->paramBuffer));
 
 		if(sPbe2 && !sPbe2B) {
-			/* Forward nost flag off to slave PBE. */
+			/* Forward nost flag OFF to slave PBE. */
 			SaAisErrorT rc2B = SA_AIS_OK;
 			SaNameT slavePbeRtObjName = {sizeof(OPENSAF_IMM_PBE_RT_OBJECT_DN_B), OPENSAF_IMM_PBE_RT_OBJECT_DN_B};
 			SaAisErrorT slavePbeRtReply = SA_AIS_OK;
@@ -908,30 +929,42 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 				params, &slavePbeRtReply, SA_TIME_ONE_SECOND * 10);
 			if(rc2B != SA_AIS_OK) {
 				if(rc2B == SA_AIS_ERR_NOT_EXIST) {
-					LOG_IN("Got ERR_NOT_EXIST on atempt to un-set nostFlags towards slave PBE");
+					LOG_IN("Got ERR_NOT_EXIST on atempt to un-set nostFlags towards slave PBE - ignoring");
+					rc = rc2B = SA_AIS_OK;
 				} else {
-					LOG_WA("Failed to update nostFlags towards slave PBE. Rc:%u", rc2B);
+					if(flagsToUnSet == OPENSAF_IMM_FLAG_2PBE1_ALLOW) {
+						LOG_NO("Failed to un-set flag 2PBE1_ALLOW towards slave PBE. Rc:%u - overriding",
+							rc2B);
+						rc = rc2B = SA_AIS_OK;
+					} else {
+						LOG_WA("Failed to update nostFlags towards slave PBE. Rc:%u", rc2B);
+						rc = rc2B;
+					}
 				}
 				rc2B = SA_AIS_OK;
 			} else if(slavePbeRtReply == SA_AIS_OK) {
 				LOG_IN("Slave PBE replied with OK on attempt to un-set nostFlags");
 			} else {
 				LOG_WA("Slave PBE replied with error '%u' on attempt to un-set nostFlags", slavePbeRtReply);
+				rc = slavePbeRtReply;
 			}
 		}
 
 		if(rc == SA_AIS_OK) {
 			sNoStdFlags &= ~flagsToUnSet;
-			LOG_NO("NOSTD FLAGS switched off result:%u", sNoStdFlags);
-		}
-
-		if(rc == SA_AIS_OK && !sPbe2B) { /* Only primary PBE updates the cached RTA. */
-			rc = saImmOiRtObjectUpdate_2(immOiHandle, &myObj, attrMods);
-			if(rc != SA_AIS_OK) {
-				sNoStdFlags |= flagsToUnSet; /* restore the flag value */
-				LOG_WA("Update of cached attribute attr %s in %s failed, rc=%u",
-					attMod.modAttr.attrName, (char *) myObj.value, rc);
-				/* ABT need to shoot down or undo! slave*/
+			LOG_NO("NOSTD FLAGS value 0x%x switched OFF result:0x%x", flagsToUnSet, sNoStdFlags);
+			if(!sPbe2B) { /* Only primary PBE updates the cached RTA. */
+				rc = saImmOiRtObjectUpdate_2(immOiHandle, &myObj, attrMods);
+				if(rc != SA_AIS_OK) {
+					sNoStdFlags |= flagsToUnSet; /* restore the flag value */
+					LOG_WA("Update of cached attribute attr %s in %s failed, rc=%u",
+						attMod.modAttr.attrName, (char *) myObj.value, rc);
+					/* ABT shoot down or undo for slave ?
+					   The flags value in the slave is not really used.
+					   Slave only "becomes" primary by process restart,
+					   which will get noStdFlags from imm cached RTA.
+					 */
+				}
 			}
 		}
 
@@ -1015,6 +1048,9 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 			rc = sqlite_prepare_ccb(immOiHandle, ccbId, ccbUtilOperationData);
 		}
 		//if(rc == SA_AIS_OK && ccbId == 4) exit(1); /* Fault inject. */
+	} else 	if(opId == OPENSAF_IMM_BAD_OP_BOUNCE) {
+		LOG_WA("ERR_BAD_OPERATION: bounced in PBE");
+		rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION);
 	} else {
 		LOG_WA("Invalid operation ID %llu", (SaUint64T) opId);
 		rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
@@ -1727,7 +1763,7 @@ SaAisErrorT pbe_daemon_imm_init(SaImmHandleT immHandle)
 	SaNameT pbeRtObjNameA = {sizeof(OPENSAF_IMM_PBE_RT_OBJECT_DN_A),OPENSAF_IMM_PBE_RT_OBJECT_DN_A};
 	SaNameT pbeRtObjNameB = {sizeof(OPENSAF_IMM_PBE_RT_OBJECT_DN_B),OPENSAF_IMM_PBE_RT_OBJECT_DN_B};
 
-	const SaNameT* admOwnNames[] = {(sPbe2B)?(&pbeRtObjNameB):(&pbeRtObjNameA), NULL};
+	const SaNameT* admOwnNames[] = {(sPbe2B)?(&pbeRtObjNameB):(&pbeRtObjNameA), &myParent, NULL};
 
 	TRACE_ENTER();
 
