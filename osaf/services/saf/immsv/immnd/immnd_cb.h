@@ -91,6 +91,7 @@ typedef struct immnd_cb_tag {
 	uint32_t immnd_mds_hdl;
 	MDS_DEST immnd_mdest_id;
 	NCS_NODE_ID node_id;
+	NCS_NODE_ID other_sc_node_id; //Not reliably set, see mIsOtherScUp (2pbe).
 
 	/*Nr of FEVS messages sent, but not received back at origin.*/
 	uint8_t fevs_replies_pending; 
@@ -121,6 +122,8 @@ typedef struct immnd_cb_tag {
 	uint8_t mBlockPbeEnable;  //Current PBE has not completed shutdown yet.
 	uint8_t mPbeKills;        //If != 0 then immnd has tried to kill Pbe.
 	uint8_t m2Pbe;            //If!=0 => 2PBE, 2 => fetch PBE file info.
+	bool mIsOtherScUp; //If set & this is an SC then other SC is up(2pbe).
+	           //False=> *allow* 1safe 2pbe. May err conservatively (true) 
 
 	/* Information about the IMMD */
 	MDS_DEST immd_mdest_id;

@@ -968,6 +968,14 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 				LOG_NO("PBE-OI established on %s SC. Dumping incrementally "
 					"to file %s", (cb->mIsCoord)?"this":"other", 
 					cb->mPbeFile);
+				if(!(cb->mIsCoord)) {
+					cb->other_sc_node_id = pbeNodeId;
+					if(!(cb->mIsOtherScUp)) {
+						LOG_ER("Late detection of other SC up");
+						osafassert(!immModel_oneSafe2PBEAllowed(cb));
+						cb->mIsOtherScUp = true;
+					}
+				}
 			}
 		}
 
@@ -995,6 +1003,14 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 						"Dumping incrementally to file %s", 
 						(cb->mIsCoord)?"other":"this", 	cb->mPbeFile);
 					cb->mPbeOldVeteranB = SA_TRUE;
+					if(cb->mIsCoord) {
+						cb->other_sc_node_id = pbeSlaveNodeId;
+						if(!(cb->mIsOtherScUp)) {
+							LOG_ER("Late detection of other SC up");
+							osafassert(!immModel_oneSafe2PBEAllowed(cb));
+							cb->mIsOtherScUp = true;
+						}
+					}
 				}
 			}
 		}
@@ -1606,10 +1622,11 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 	/*TRACE_ENTER(); */
 
 	if ((cb->mStep % printFrq) == 0) {
-		TRACE_5("tmout:%u ste:%u ME:%u RE:%u crd:%u rim:%s 4.3A:%u 2Pbe:%u VetA/B: %u/%u",
+		TRACE_5("tmout:%u ste:%u ME:%u RE:%u crd:%u rim:%s 4.3A:%u 2Pbe:%u VetA/B: %u/%u othsc:%u/%x",
 			*timeout, cb->mState, cb->mMyEpoch, cb->mRulingEpoch, cb->mIsCoord,
-			(cb->mRim==SA_IMM_KEEP_REPOSITORY)?"KEEP_REPO":"FROM_FILE", 
-			immModel_protocol43Allowed(cb), cb->m2Pbe, cb->mPbeVeteran, cb->mPbeVeteranB);
+			(cb->mRim==SA_IMM_KEEP_REPOSITORY)?"KEEP_REPO":"FROM_FILE",
+			immModel_protocol43Allowed(cb), cb->m2Pbe, cb->mPbeVeteran, cb->mPbeVeteranB,
+			cb->mIsOtherScUp, cb->other_sc_node_id);
 	}
 
 	if (cb->mState < IMM_SERVER_DUMP) {
@@ -1747,6 +1764,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				cb->mState = IMM_SERVER_LOADING_CLIENT;
 				cb->mStep = 0;
 				cb->mJobStart = now;
+				if(cb->mCanBeCoord) {cb->mIsOtherScUp = true;}
 			}
 		}
 		break;
@@ -1758,6 +1776,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			cb->mJobStart = now;
 			LOG_NO("SERVER STATE: IMM_SERVER_SYNC_PENDING --> IMM_SERVER_SYNC_CLIENT");
 			cb->mState = IMM_SERVER_SYNC_CLIENT;
+			if(cb->mCanBeCoord) {cb->mIsOtherScUp = true;}
 		} else {
 			/* Sync has not started yet. */
 			/* Sync client timeout removed. Any timeout handled by nid. */

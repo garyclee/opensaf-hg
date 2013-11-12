@@ -37,6 +37,7 @@ extern "C" {
 #define OPENSAF_IMM_ATTR_EPOCH "opensafImmEpoch"
 #define OPENSAF_IMM_ATTR_RDN "opensafImm"
 #define OPENSAF_IMM_ATTR_NOSTD_FLAGS "opensafImmNostdFlags"
+#define OPENSAF_IMM_ATTR_OTHER_SC_UP "mIsOtherScUp"
 #define OPENSAF_IMM_OBJECT_DN "opensafImm=opensafImm,safApp=safImmService"
 #define OPENSAF_IMM_OBJECT_RDN "opensafImm=opensafImm"
 #define OPENSAF_IMM_OBJECT_PARENT "safApp=safImmService"
@@ -98,14 +99,17 @@ extern "C" {
 #define OPENSAF_IMM_PBE_UPDATE_EPOCH 0x30000000
 #define OPENSAF_IMM_2PBE_PRELOAD_STAT 0x40000000
 #define OPENSAF_IMM_PBE_CCB_PREPARE 0x50000000
+#define OPENSAF_IMM_BAD_OP_BOUNCE 0x60000000
 
 /* Public operation ids on OpenSafImmPBE */
 #define OPENSAF_IMM_NOST_FLAG_ON     0x00000001
 #define OPENSAF_IMM_NOST_FLAG_OFF    0x00000002
 
+/* Flag values for nostdflags. */
 #define OPENSAF_IMM_FLAG_SCHCH_ALLOW 0x00000001
 #define OPENSAF_IMM_FLAG_PRT41_ALLOW 0x00000002
 #define OPENSAF_IMM_FLAG_PRT43_ALLOW 0x00000004
+#define OPENSAF_IMM_FLAG_2PBE1_ALLOW 0x00000008
 
 
 #define OPENSAF_IMM_SERVICE_NAME "safImmService"

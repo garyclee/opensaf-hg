@@ -846,6 +846,34 @@ static uint32_t immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 			error = SA_AIS_ERR_TRY_AGAIN;
 			goto agent_rsp;
 		}
+
+		if (cb->m2Pbe) {
+			if(cb->mIsOtherScUp && immModel_oneSafe2PBEAllowed(cb)) {
+				LOG_WA("ERR_NO_RESOURCES: Cannot allow official dump/backup "
+					"when 1-safe2PBE is allowed!!");
+				/* This is simply a guard. Only reason it is not an assert is
+				   that this does not signify imm-ram inconsistency, but a grave
+				   risk of causing an inconsistent joining PBE in 2PBE.
+				   We should never end up here. */
+				error = SA_AIS_ERR_NO_RESOURCES;
+				goto agent_rsp;
+			}
+
+			if((!cb->mIsCoord) && immModel_pbeNotWritable(cb) && 
+				!immModel_ccbsTerminated(cb)) {
+				LOG_WA("ERR_NO_RESOURCES: Active Ccbs still exist in the system");
+				/*Not sure this is a problem though. These ccbs are dommed. 
+				  They will not be allowed to apply untill we are 2-safe.
+				  And any ccbs that created ops before w-safe will fail in the apply
+				  because object count does not match at slave. 
+				  May need a way to get out of this state, such as starting a sync
+				  despite that we dont really need a sync. 
+				*/
+				error = SA_AIS_ERR_NO_RESOURCES;
+				goto agent_rsp;
+			}
+
+		}
 	}
 
 	if(isSync) {
@@ -4615,6 +4643,23 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 			LOG_ER("IMMND - Client %llu went down so no response", implHandle);
 			error = SA_AIS_ERR_NOT_EXIST;
 		} else {
+			if(cb->mIsOtherScUp && (evt->info.admOpReq.operationId ==  OPENSAF_IMM_NOST_FLAG_ON) &&
+				(evt->info.admOpReq.params!=NULL) && (evt->info.admOpReq.params->paramType == SA_IMM_ATTR_SAUINT32T) &&
+				(evt->info.admOpReq.params->paramBuffer.val.sauint32 == OPENSAF_IMM_FLAG_2PBE1_ALLOW) &&
+				(strcmp(evt->info.admOpReq.objectName.buf, OPENSAF_IMM_OBJECT_DN)==0) &&
+				(strcmp(evt->info.admOpReq.params->paramName.buf, OPENSAF_IMM_ATTR_NOSTD_FLAGS)==0))
+			{
+				/* Caught the special case of attempt to togle ON noStdFlags value 0x8 (OPENSAF_IMM_FLAG_2PBE1_ALLOW).
+				   This is not allowed as long as the other SC is up, regardless of whether the slave PBE is up.
+				   We "know" that >>here<< we are on the SC running the IMMND coord and thus the primary PBE,
+				   because this is the code branch for invoking callback on the implementer (implCon) for the admin-op
+				   and the implementer for OPENSAF_IMM_OBJECT_DN (if it exists) must be the PBE. 
+				*/
+				LOG_WA("Rejecting attempt to togle *ON* value x%x for %s in %s when both SCs are up",
+					OPENSAF_IMM_FLAG_2PBE1_ALLOW, OPENSAF_IMM_ATTR_NOSTD_FLAGS, OPENSAF_IMM_OBJECT_DN);
+				evt->info.admOpReq.operationId = OPENSAF_IMM_BAD_OP_BOUNCE;
+			}
+
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 			send_evt.type = IMMSV_EVT_TYPE_IMMA;
 			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ADMOP;
@@ -4743,7 +4788,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 				if((cb->mState  == IMM_SERVER_CLUSTER_WAITING) && (cb->m2Pbe == 2) &&
 					(evt->info.admOpReq.operationId == OPENSAF_IMM_2PBE_PRELOAD_STAT)) {
 					LOG_IN("2PBE Preload case: sending persistency stats to IMMD");
-					/* ABT process the params structure in the incoming message.*/
+					/* process the params structure in the incoming message.*/
 					immnd_extract_preload_params(cb, &(evt->info.admOpReq));
 				}
 			}
@@ -7981,6 +8026,7 @@ static uint32_t immnd_evt_proc_loading_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 			cb->mJobStart = time(NULL);
 			osafassert(cb->mJobStart > ((time_t) 0));
 			cb->mAccepted = true;
+			if(cb->mCanBeCoord) {cb->mIsOtherScUp = true;}
 		}
 	} else if (cb->mState == IMM_SERVER_LOADING_SERVER) {
 		osafassert(cb->mMyEpoch == cb->mRulingEpoch);
@@ -8129,6 +8175,57 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 		cb->mRulingEpoch = evt->info.ctrl.rulingEpoch;
 		if (cb->mRulingEpoch) {
 			TRACE_2("Ruling Epoch:%u", cb->mRulingEpoch);
+		}
+	} else {
+		/* Received intro for some other node. We should be an SC and the intro
+		   should be for the other SC. That should also mean we are coord. 
+		   If oneSAfe2PBEAllowed is true, then we now must turn it off.
+		   This is done by sending an admin-op to PBE turning off the oneSafe2PBEAllwed flag.
+		   This comes back to the cluster as an RTA update, turning off the flag also in imm-ram.
+		   The flag must be turned off to allow the rejoining slave PBE to take a fresh dump of
+		   from imm-ram to the sqlite file. No Ccbs can be allowed to start untill the slave PBE
+		   has rejoined establishing 2-safe 2PBE. See
+		   
+		*/
+		if(cb->mCanBeCoord && evt->info.ctrl.canBeCoord) {
+			LOG_IN("Other SC node (%x) has been introduced", evt->info.ctrl.nodeId);
+			cb->mIsOtherScUp = true; /* Prevents oneSafe2PBEAllowed from being turned on */
+			cb->other_sc_node_id = evt->info.ctrl.nodeId;
+			
+			if(cb->mIsCoord && immModel_oneSafe2PBEAllowed(cb)) {
+				/* oneSafe2PBE currently ON => turn it OFF. */
+				IMMSV_EVT fake_evt;
+				memset(&fake_evt, '\0', sizeof(IMMSV_EVT));
+				IMMSV_ADMIN_OPERATION_PARAM param;
+				char* opensafImmObj=OPENSAF_IMM_OBJECT_DN;
+				char* nostParam=OPENSAF_IMM_ATTR_NOSTD_FLAGS;
+				memset(&param, '\0', sizeof(IMMSV_ADMIN_OPERATION_PARAM));
+				LOG_NO("Internally generating 'admin-op' for toggling OFF: "
+					"1-safe2PBE(0x%x) in %s",	OPENSAF_IMM_FLAG_2PBE1_ALLOW,
+					OPENSAF_IMM_ATTR_NOSTD_FLAGS);
+
+				memset(&fake_evt, '\0', sizeof(IMMSV_EVT));
+				fake_evt.type = IMMSV_EVT_TYPE_IMMND;
+				fake_evt.info.immnd.type = IMMND_EVT_A2ND_IMM_ADMOP;
+
+				fake_evt.info.immnd.info.admOpReq.adminOwnerId = 
+					immModel_getAdmoIdForObj(cb, opensafImmObj);
+					
+				fake_evt.info.immnd.info.admOpReq.operationId = OPENSAF_IMM_NOST_FLAG_OFF;
+				fake_evt.info.immnd.info.admOpReq.continuationId = 0;
+				fake_evt.info.immnd.info.admOpReq.objectName.buf = opensafImmObj;
+				fake_evt.info.immnd.info.admOpReq.objectName.size = strlen(opensafImmObj)+1;
+				fake_evt.info.immnd.info.admOpReq.params = &param;
+				fake_evt.info.immnd.info.admOpReq.params->paramName.buf = nostParam;
+				fake_evt.info.immnd.info.admOpReq.params->paramName.size = strlen(nostParam);
+				fake_evt.info.immnd.info.admOpReq.params->paramType = SA_IMM_ATTR_SAUINT32T;
+				fake_evt.info.immnd.info.admOpReq.params->paramBuffer.val.sauint32 = 
+					OPENSAF_IMM_FLAG_2PBE1_ALLOW;
+
+				/* A *fake* fake-evs. */
+				LOG_NO("****Normalizing from 1-safe 2PBE to 2-safe 2PBE****");
+				immnd_evt_proc_admop(cb, &(fake_evt.info.immnd), SA_FALSE, 0LL, 0LL);
+			}
 		}
 	}
 	return NCSCC_RC_SUCCESS;
@@ -8329,6 +8426,11 @@ static void immnd_evt_proc_discard_node(IMMND_CB *cb,
 		free(idArr);
 		idArr = NULL;
 		arrSize = 0;
+	}
+
+	if(cb->other_sc_node_id == evt->info.ctrl.nodeId) {
+		/* Open up for *allowing* 1-safe 2pbe */
+		cb->mIsOtherScUp=false;
 	}
 
 	TRACE_LEAVE();

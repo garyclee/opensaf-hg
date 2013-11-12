@@ -360,7 +360,6 @@ struct AdminOwnerInfo
 };
 typedef std::vector<AdminOwnerInfo*> AdminOwnerVector;
 
-
 typedef enum {
     IMM_NODE_UNKNOWN = 0,      //Initial state
     IMM_NODE_LOADING = 1,      //We are participating in a cluster restart.
@@ -826,6 +825,13 @@ immModel_protocol43Allowed(IMMND_CB *cb)
 }
 
 SaBoolT
+immModel_oneSafe2PBEAllowed(IMMND_CB *cb)
+{
+    return (ImmModel::instance(&cb->immModel)->oneSafe2PBEAllowed()) ?
+        SA_TRUE : SA_FALSE;
+}
+
+SaBoolT
 immModel_purgeSyncRequest(IMMND_CB *cb, SaUint32T clientId)
 {
     return (ImmModel::instance(&cb->immModel)->purgeSyncRequest(clientId)) ?
@@ -1052,6 +1058,34 @@ immModel_adminOperationInvoke(IMMND_CB *cb,
     return ImmModel::instance(&cb->immModel)->
         adminOperationInvoke(req, reqConn, reply_dest, inv,
         implConn, implNodeId, pbeExpected);
+}
+
+SaUint32T  /* Returns admo-id for object if object exists and active admo exists, otherwise zero. */
+immModel_getAdmoIdForObj(IMMND_CB *cb, const char* opensafImmObj)
+{
+    TRACE_ENTER();
+    SaUint32T admoId=0;
+    std::string objectName(opensafImmObj);
+    std::string admOwner;
+
+    AdminOwnerVector::iterator i = sOwnerVector.begin();
+    ObjectMap::iterator oi = sObjectMap.find(objectName);
+    if(oi == sObjectMap.end()) {
+        TRACE("immModel_getAdmoIdForObj: Could not find %s", opensafImmObj);
+        goto done;
+    }
+
+    oi->second->getAdminOwnerName(&admOwner);
+    for(; i!=sOwnerVector.end(); ++i) {
+        if(!(*i)->mDying && (*i)->mAdminOwnerName == admOwner) {
+            admoId = (*i)->mId;
+            break;
+        }
+    }
+
+ done:
+    TRACE_LEAVE();
+    return admoId;
 }
 
 SaUint32T 
@@ -1813,17 +1847,15 @@ ImmModel::immNotPbeWritable(bool isPrtoClient)
         return true; 
     }
 
-    /* ABT TODO need a solution for enable/disable 2-safe/1-safe 2PBE 
-       This has to be runtime data, can not be config data. 
-       There is a dilema with persistent config talking about degre of
-       persistent redundancy.
-       Catch this after loading, look up opensaf object and add an RTA
-       to reflect 2PBE status. 
-    */
-
     if(pbeBSlaveHasExisted() && !getPbeBSlave(&dummyCon, &dummyNode)) {
-        /* Pbe slave SHOULD be present but is NOT. This is 2PBE 1-safe. */
-        return true; 
+        /* Pbe slave SHOULD be present but is NOT. Normally this
+	   means immNotPbeWritable() returns true. But if oneSafe2PBEAllowed()
+	   is true, (indicating SC repair or similar) then the unavailability
+	   of the slave is accepted, otherwise not. By default 
+	   oneSafePBEAllowed() is false. So normally we will exit with
+	   reject (true) here. 
+	 */
+	    if(!oneSafe2PBEAllowed()) {return true;}
     }
 
     /* Pbe is present but Check also for backlog. */
@@ -2999,6 +3031,28 @@ ImmModel::migrateObj(ObjectInfo* object,
                 oavi->first.c_str(), objectDn.c_str());
         }
     }
+}
+
+bool
+ImmModel::oneSafe2PBEAllowed()
+{
+    //TRACE_ENTER();
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+    if(oi == sObjectMap.end()) {
+        TRACE_LEAVE();
+        return false;
+    }
+
+    ObjectInfo* immObject =  oi->second;
+    ImmAttrValueMap::iterator avi = 
+        immObject->mAttrValueMap.find(immAttrNostFlags);
+    osafassert(avi != immObject->mAttrValueMap.end());
+    osafassert(!(avi->second->isMultiValued()));
+    ImmAttrValue* valuep = avi->second;
+    unsigned int noStdFlags = valuep->getValue_int();
+
+    //TRACE_LEAVE();
+    return noStdFlags & OPENSAF_IMM_FLAG_2PBE1_ALLOW;
 }
 
 bool
@@ -9265,6 +9319,13 @@ ImmModel::updateImmObject2(const ImmsvOmAdminOperationInvoke* req)
 
     if(req->operationId == OPENSAF_IMM_NOST_FLAG_ON) {
         SaUint32T flagsToSet = req->params->paramBuffer.val.sauint32;
+        /* Reject 1safe2pbe, only allowed to set when primary PBE is present. */
+        if(flagsToSet == OPENSAF_IMM_FLAG_2PBE1_ALLOW) {
+            LOG_NO("Imm %s: Rejecting toggling ON flag 0x%x when primary PBE is not attached",
+                immAttrNostFlags.c_str(),  OPENSAF_IMM_FLAG_2PBE1_ALLOW);
+            err = SA_AIS_ERR_BAD_OPERATION;
+            goto done;
+        }
         TRACE_5("Admin op NOST_FLAG_ON, current flags %x on flags %x", noStdFlags, flagsToSet);
         noStdFlags |= flagsToSet;
         valuep->setValue_int(noStdFlags);
