@@ -429,6 +429,8 @@ done:
 
 void SaImmOiAdminOperation_04(void)
 {
+    int ret;
+    pthread_t thread;
     SaAisErrorT rc;
     SaImmHandleT handle;
     SaImmAdminOwnerHandleT ownerHandle;
@@ -440,7 +442,7 @@ void SaImmOiAdminOperation_04(void)
     };
     const SaImmAdminOperationParamsT_2 *params[] = {&param, NULL};
 
-    TRACE_ENTER();
+    TRACE_ENTER2("BEGIN TEST");
     safassert(saImmOmInitialize(&handle, NULL, &immVersion), SA_AIS_OK);
     safassert(saImmOmAdminOwnerInitialize(handle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
     const SaNameT* nameValues[] = {&rdn, NULL};
@@ -456,10 +458,21 @@ void SaImmOiAdminOperation_04(void)
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
     safassert(saImmOmAdminOwnerRelease(ownerHandle, nameValues, SA_IMM_ONE), SA_AIS_OK);
 
+    objectImplementerIsSet = SA_FALSE;
+    ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
+    assert(ret == 0);
+
+    while (!objectImplementerIsSet)
+        usleep(100);
+
+    TRACE("Invoking Admin Operation");
     rc = saImmOmAdminOperationInvoke_2(
         ownerHandle, &rdn, 0, operationId,
         params, &rc, SA_TIME_ONE_SECOND);
 
+    pthread_join(thread, NULL);
+
+    TRACE("Admin Operation invoked:%u EXPECTED %u", rc, SA_AIS_ERR_BAD_OPERATION);
     safassert(saImmOmAdminOwnerSet(ownerHandle, nameValues, SA_IMM_ONE), SA_AIS_OK);
     safassert(saImmOmCcbObjectDelete(ccbHandle, &rdn), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
