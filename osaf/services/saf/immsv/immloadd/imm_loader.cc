@@ -1099,7 +1099,7 @@ static void endElementHandler(void* userData,
                        "imm.xml load file", OPENSAF_IMM_CLASS_NAME);
             }
 
-            if(!opensafPbeRtClassCreated) {
+            if(!opensafPbeRtClassCreated && !(state->preloadEpochPtr)) {
                 if(opensafPbeRtClassCreate(state->immHandle)) {
                     LOG_NO("The class %s has been created since it was missing from the "
                        "imm.xml load file", OPENSAF_IMM_PBE_RT_CLASS_NAME);
@@ -2470,7 +2470,8 @@ int main(int argc, char* argv[])
     void* pbeHandle=NULL;
     const char* pbe_file = getenv("IMMSV_PBE_FILE");
     const char* pbe_file_suffix = getenv("IMMSV_PBE_FILE_SUFFIX");
-    std::string pbeFile(pbe_file);
+    std::string pbeFile;
+    if(pbe_file) {pbeFile.append(pbe_file);}
     if(pbe_file_suffix) {
         pbeFile.append(pbe_file_suffix);
     }
