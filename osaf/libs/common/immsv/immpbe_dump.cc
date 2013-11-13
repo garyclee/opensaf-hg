@@ -2890,6 +2890,13 @@ void fsyncPbeJournalFile()
 }
 
 #else
+
+bool pbeTransStarted()
+{
+	return false;
+}
+
+
 void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmpFilename)
 {
 	LOG_WA("immdump/osafimmpbed not built with the --enable-imm-pbe option.");
