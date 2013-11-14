@@ -36,7 +36,7 @@ osafimmpbed_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-osafimmpbed_LDFLAGS = @XML2_LIBS@ @SQLITE3_LIBS@
+osafimmpbed_LDFLAGS = @XML2_LIBS@ @SQLITE3_LIBS@ -lpthread
 
 osafimmpbed_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
