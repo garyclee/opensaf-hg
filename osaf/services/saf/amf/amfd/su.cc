@@ -875,19 +875,18 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	SaAmfAdminStateT adm_state = static_cast<SaAmfAdminStateT>(SA_AMF_ADMIN_LOCK);
 	SaAmfReadinessStateT back_red_state;
 	SaAmfAdminStateT back_admin_state;
-	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER2("%llu, '%s', %llu", invocation, su_name->value, op_id);
 
 	if ( op_id > SA_AMF_ADMIN_SHUTDOWN && op_id != SA_AMF_ADMIN_REPAIRED) {
-		rc = SA_AIS_ERR_NOT_SUPPORTED;
-		LOG_WA("Unsupported admin op for SU: %llu", op_id);
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+				"Unsupported admin op for SU: %llu", op_id);
 		goto done;
 	}
 
 	if (cb->init_state != AVD_APP_STATE ) {
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		LOG_WA("AMF (state %u) is not available for admin ops", cb->init_state);
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL, 
+				"AMF (state %u) is not available for admin ops", cb->init_state);
 		goto done;
 	}
 
@@ -899,29 +898,30 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 
 	if ((su->sg_of_su->sg_ncs_spec == SA_TRUE)
 		&& (cb->node_id_avd == su->su_on_node->node_info.nodeId)) {
-		rc = SA_AIS_ERR_NOT_SUPPORTED;
-		LOG_WA("Admin operation on Active middleware SU is not allowed");
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL, 
+				"Admin operation on Active middleware SU is not allowed");
 		goto done;
 	}
 
 	/* Avoid multiple admin operations on other SUs belonging to the same SG. */
 	for (su_ptr = su->sg_of_su->list_of_su; su_ptr != NULL; su_ptr = su_ptr->sg_list_su_next) {
 		if (su_ptr->pend_cbk.invocation != 0) {
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			LOG_WA("Admin operation is already going on (su'%s')", su_ptr->name.value);
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+					"Admin operation is already going on (su'%s')", su_ptr->name.value);
 			goto done;
 		}
 	}
 
 	if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		LOG_WA("SG state is not stable"); /* whatever that means... */
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"SG state is not stable"); /* whatever that means... */
 		goto done;
 	}
 	/* if Tolerance timer is running for any SI's withing this SG, then return SA_AIS_ERR_TRY_AGAIN */
 	if (sg_is_tolerance_timer_running_for_any_si(su->sg_of_su)) {
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		LOG_WA("Tolerance timer is running for some of the SI's in the SG '%s', so differing admin opr",su->sg_of_su->name.value);
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"Tolerance timer is running for some of the SI's in the SG '%s', " 
+				"so differing admin opr",su->sg_of_su->name.value);
 		goto done;
 	}
 
@@ -931,8 +931,9 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	      (op_id == SA_AMF_ADMIN_LOCK_INSTANTIATION))                                     ||
 	     ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED)   && (op_id == SA_AMF_ADMIN_UNLOCK_INSTANTIATION))) {
 
-		rc = SA_AIS_ERR_NO_OP;
-		LOG_WA("Admin operation (%llu) has no effect on current state (%u)", op_id, su->saAmfSUAdminState);
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_NO_OP, NULL,
+				"Admin operation (%llu) has no effect on current state (%u)", op_id,
+				su->saAmfSUAdminState);
 		goto done;
 	}
 
@@ -950,16 +951,16 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	     ((su->saAmfSUAdminState != SA_AMF_ADMIN_UNLOCKED) &&
 		  (op_id == SA_AMF_ADMIN_SHUTDOWN))) {
 
-		rc = SA_AIS_ERR_BAD_OPERATION;
-		LOG_WA("State transition invalid, state %u, op %llu", su->saAmfSUAdminState, op_id);
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+				"State transition invalid, state %u, op %llu", su->saAmfSUAdminState, op_id);
 		goto done;
 	}
 
 	m_AVD_GET_SU_NODE_PTR(cb, su, node);
 	if (node->admin_node_pend_cbk.admin_oper != 0) {
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		LOG_WA("Node'%s' hosting SU'%s', undergoing admin operation'%u'", node->name.value, su->name.value,
-				node->admin_node_pend_cbk.admin_oper);
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"Node'%s' hosting SU'%s', undergoing admin operation'%u'", node->name.value,
+				su->name.value, node->admin_node_pend_cbk.admin_oper);
 		goto done;
 	}
 
@@ -1000,8 +1001,8 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		} else {
 			avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
-			rc = SA_AIS_ERR_FAILED_OPERATION;
-			LOG_WA("SG redundancy model specific handler failed");
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_FAILED_OPERATION, NULL,
+					"SG redundancy model specific handler failed");
 			goto done;
 		}
 
@@ -1042,8 +1043,8 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		} else {
 			avd_su_readiness_state_set(su, back_red_state);
 			avd_su_admin_state_set(su, back_admin_state);
-			rc = SA_AIS_ERR_FAILED_OPERATION;
-			LOG_WA("SG redundancy model specific handler failed");
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_FAILED_OPERATION, NULL,
+					"SG redundancy model specific handler failed");
 			goto done;
 		}
 
@@ -1059,8 +1060,8 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		}
 
 		if ( su->list_of_susi != NULL ) {
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			LOG_WA("SIs still assigned to this SU");
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+					"SIs still assigned to this SU");
 			goto done;
 		}
 
@@ -1089,8 +1090,8 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 
 				goto done;
 			}
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			LOG_ER("Internal error, could not send message to avnd");
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+					"Internal error, could not send message to avnd");
 			goto done;
 		} else {
 			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
@@ -1103,8 +1104,8 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 
 		if (NULL == su->list_of_comp) {
-			LOG_WA("There is no component configured for SU '%s'.", su->name.value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"There is no component configured for SU '%s'.", su->name.value);
 			goto done;
 		}
 
@@ -1119,9 +1120,9 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		}
 
 		if (su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) {
-			LOG_WA("Can't instantiate '%s', whose presense state is '%u'", su_name->value, 
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"Can't instantiate '%s', whose presense state is '%u'", su_name->value,
 					su->saAmfSUPresenceState);
-			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		} 
 
@@ -1141,8 +1142,8 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 
 				goto done;
 			}
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			LOG_ER("Internal error, could not send message to avnd");
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+					"Internal error, could not send message to avnd");
 		} else {
 			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
@@ -1152,8 +1153,8 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		break;
 	case SA_AMF_ADMIN_REPAIRED:
 		if (su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) {
-			LOG_NO("Admin repair request for '%s', op state already enabled", su_name->value);
-			rc = SA_AIS_ERR_NO_OP;
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"Admin repair request for '%s', op state already enabled", su_name->value);
 			goto done;
 		}
 
@@ -1162,24 +1163,21 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			su->su_on_node) == NCSCC_RC_SUCCESS) {
 			su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
 			su->pend_cbk.invocation = invocation;
-			rc = SA_AIS_OK;
 		}
 		else {
-			LOG_WA("Admin op request send failed '%s'", su_name->value);
-			rc = SA_AIS_ERR_TIMEOUT;
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TIMEOUT, NULL,
+					"Admin op request send failed '%s'", su_name->value);
 		}
 		break;
 	default:
-		LOG_ER("Unsupported admin op");
-		rc = SA_AIS_ERR_INVALID_PARAM;
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, NULL,
+				"Unsupported admin op");
 		break;
 	}
 
 done:
-	if (rc != SA_AIS_OK)
-		avd_saImmOiAdminOperationResult(immoi_handle, invocation, rc);
 
-	TRACE_LEAVE2("%u", rc);
+	TRACE_LEAVE2();
 }
 
 static SaAisErrorT su_rt_attr_cb(SaImmOiHandleT immOiHandle,

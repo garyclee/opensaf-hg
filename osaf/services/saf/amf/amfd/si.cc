@@ -772,39 +772,40 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	const SaNameT *objectName, SaImmAdminOperationIdT operationId,
 	const SaImmAdminOperationParamsT_2 **params)
 {
-	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t err = NCSCC_RC_FAILURE;
 	AVD_SI *si;
 	SaAmfAdminStateT adm_state = static_cast<SaAmfAdminStateT>(0);
 	SaAmfAdminStateT back_val;
+	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER2("%s op=%llu", objectName->value, operationId);
 
 	si = avd_si_get(objectName);
 	
 	if ((operationId != SA_AMF_ADMIN_SI_SWAP) && (si->sg_of_si->sg_ncs_spec == SA_TRUE)) {
-		rc = SA_AIS_ERR_NOT_SUPPORTED;
-		LOG_WA("Admin operation %llu on MW SI is not allowed", operationId);
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+				"Admin operation %llu on MW SI is not allowed", operationId);
 		goto done;
 	}
 	/* if Tolerance timer is running for any SI's withing this SG, then return SA_AIS_ERR_TRY_AGAIN */
         if (sg_is_tolerance_timer_running_for_any_si(si->sg_of_si)) {
-                rc = SA_AIS_ERR_TRY_AGAIN;
-                LOG_WA("Tolerance timer is running for some of the SI's in the SG '%s', so differing admin opr",si->sg_of_si->name.value);
-                goto done;
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"Tolerance timer is running for some of the SI's in the SG '%s', "
+				"so differing admin opr",si->sg_of_si->name.value);
+		goto done;
         }
 
 	switch (operationId) {
 	case SA_AMF_ADMIN_UNLOCK:
 		if (SA_AMF_ADMIN_UNLOCKED == si->saAmfSIAdminState) {
-			LOG_WA("SI unlock of %s failed, already unlocked", objectName->value);
-			rc = SA_AIS_ERR_NO_OP;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"SI unlock of %s failed, already unlocked", objectName->value);
 			goto done;
 		}
 
 		if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-			LOG_WA("SI unlock of %s failed, SG not stable", objectName->value);
-			rc = SA_AIS_ERR_TRY_AGAIN;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+					"SI unlock of %s failed, SG not stable", objectName->value);
 			goto done;
 		}
 
@@ -812,24 +813,25 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		err = si->sg_of_si->si_func(avd_cb, si);
 		if (err != NCSCC_RC_SUCCESS) {
-			LOG_WA("SI unlock of %s failed", objectName->value);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"SI unlock of %s failed", objectName->value);
 			avd_si_admin_state_set(si, SA_AMF_ADMIN_LOCKED);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
 		}
 
 		break;
 
 	case SA_AMF_ADMIN_SHUTDOWN:
 		if (SA_AMF_ADMIN_SHUTTING_DOWN == si->saAmfSIAdminState) {
-			LOG_WA("SI unlock of %s failed, already shutting down", objectName->value);
-			rc = SA_AIS_ERR_NO_OP;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"SI unlock of %s failed, already shutting down", objectName->value);
 			goto done;
 		}
 
 		if ((SA_AMF_ADMIN_LOCKED == si->saAmfSIAdminState) ||
 		    (SA_AMF_ADMIN_LOCKED_INSTANTIATION == si->saAmfSIAdminState)) {
-			LOG_WA("SI unlock of %s failed, is locked (instantiation)", objectName->value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"SI unlock of %s failed, is locked (instantiation)", objectName->value);
 			goto done;
 		}
 		adm_state = SA_AMF_ADMIN_SHUTTING_DOWN;
@@ -841,8 +843,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			adm_state = SA_AMF_ADMIN_LOCKED;
 
 		if (SA_AMF_ADMIN_LOCKED == si->saAmfSIAdminState) {
-			LOG_WA("SI lock of %s failed, already locked", objectName->value);
-			rc = SA_AIS_ERR_NO_OP;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"SI lock of %s failed, already locked", objectName->value);
 			goto done;
 		}
 
@@ -862,8 +864,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			if ((si->sg_of_si->sg_fsm_state != AVD_SG_FSM_SI_OPER) ||
 			    (si->saAmfSIAdminState != SA_AMF_ADMIN_SHUTTING_DOWN) ||
 			    (adm_state != SA_AMF_ADMIN_LOCKED)) {
-				LOG_WA("'%s' other semantics...", objectName->value);
-				rc = SA_AIS_ERR_TRY_AGAIN;
+				report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+						"'%s' other semantics...", objectName->value);
 				goto done;
 			}
 		}
@@ -873,20 +875,26 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		err = si->sg_of_si->si_admin_down(avd_cb, si);
 		if (err != NCSCC_RC_SUCCESS) {
-			LOG_WA("SI shutdown/lock of %s failed", objectName->value);
 			avd_si_admin_state_set(si, back_val);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"SI shutdown/lock of %s failed", objectName->value);
+			goto done;
 		}
 
 		break;
 
 	case SA_AMF_ADMIN_SI_SWAP:
-		if (si->sg_of_si->si_swap != NULL)
+		if (si->sg_of_si->si_swap != NULL) {
 			rc = si->sg_of_si->si_swap(si, invocation);
-		else {
-			LOG_WA("SI SWAP of %s failed, not supported for redundancy model",
+			if (rc != SA_AIS_OK) {
+				report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+						"SI Swap of %s failed", objectName->value);
+				goto done;
+			}
+		} else {
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+					"SI SWAP of %s failed, not supported for redundancy model",
 					objectName->value);
-			rc = SA_AIS_ERR_NOT_SUPPORTED;
 			goto done;
 		}
 		break;
@@ -895,14 +903,14 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_RESTART:
 	default:
-		LOG_WA("SI Admin operation %llu not supported", operationId);
-		rc = SA_AIS_ERR_NOT_SUPPORTED;
-		break;
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+				"SI Admin operation %llu not supported", operationId);
+		goto done;
 	}
 
-done:
-	if ((operationId != SA_AMF_ADMIN_SI_SWAP) || (rc != SA_AIS_OK))
+	if ((operationId != SA_AMF_ADMIN_SI_SWAP))
 		avd_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+done:
 	TRACE_LEAVE();
 }
 

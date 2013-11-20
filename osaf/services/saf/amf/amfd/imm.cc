@@ -1798,4 +1798,45 @@ void report_ccb_validation_error(const CcbUtilOperationData_t *opdata, const cha
 	else
 		LOG_WA("%s", err_str);
 }
+/**
+ * Respond admin op to IMM
+ * @param immOiHandle
+ * @param invocation
+ * @param result
+ * @param pend_cbk
+ * @param  format 
+ * @param  ... 
+ */
+void report_admin_op_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation, SaAisErrorT result,
+		AVD_ADMIN_OPER_CBK *pend_cbk, const char *format, ...)
+{
+	char ao_err_string[256];
+	SaAisErrorT error;
+	SaStringT p_ao_err_string = ao_err_string;
+	SaImmAdminOperationParamsT_2 ao_err_param = {
+		const_cast<SaStringT>(SA_IMM_PARAM_ADMOP_ERROR),
+		SA_IMM_ATTR_SASTRINGT,
+		const_cast<SaStringT *>	(&p_ao_err_string)};
+	const SaImmAdminOperationParamsT_2 *ao_err_params[2] = {
+		&ao_err_param,
+		NULL };
+	ao_err_string[sizeof(ao_err_string) - 1] = 0;
 
+	va_list ap;
+	va_start(ap, format);
+	(void) vsnprintf(ao_err_string, sizeof(ao_err_string), format, ap);
+	va_end(ap);
+	TRACE_ENTER2("inv:%llu, res:%u, Error String: '%s'", invocation, result, ao_err_string);
+	saflog(LOG_NOTICE, amfSvcUsrName, "Admin op done for invocation: %llu, result %u",
+		   invocation, result);
+
+	error= saImmOiAdminOperationResult_o2(immOiHandle, invocation, result, ao_err_params);
+	if (error != SA_AIS_OK)
+		LOG_ER("saImmOiAdminOperationResult_o2 for %llu failed %u", invocation, error);
+
+	if (pend_cbk) {
+		pend_cbk->admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+		pend_cbk->invocation = 0;
+	}
+
+}

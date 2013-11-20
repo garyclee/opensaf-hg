@@ -357,7 +357,6 @@ static void app_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation
 	const SaNameT *object_name, SaImmAdminOperationIdT op_id,
 	const SaImmAdminOperationParamsT_2 **params)
 {
-	SaAisErrorT rc;
 	AVD_APP *app;
 
 	TRACE_ENTER2("%s", object_name->value);
@@ -368,28 +367,28 @@ static void app_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation
 
 	if (op_id == SA_AMF_ADMIN_UNLOCK) {
 		if (app->saAmfApplicationAdminState == SA_AMF_ADMIN_UNLOCKED) {
-			LOG_ER("%s is already unlocked", object_name->value);
-			rc = SA_AIS_ERR_NO_OP;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"%s is already unlocked", object_name->value);
 			goto done;
 		}
 
 		if (app->saAmfApplicationAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			LOG_ER("%s is locked instantiation", object_name->value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"%s is locked instantiation", object_name->value);
 			goto done;
 		}
 	}
 
 	if (op_id == SA_AMF_ADMIN_LOCK) {
 		if (app->saAmfApplicationAdminState == SA_AMF_ADMIN_LOCKED) {
-			LOG_ER("%s is already locked", object_name->value);
-			rc = SA_AIS_ERR_NO_OP;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"%s is already locked", object_name->value);
 			goto done;
 		}
 
 		if (app->saAmfApplicationAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			LOG_ER("%s is locked instantiation", object_name->value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"%s is locked instantiation", object_name->value);
 			goto done;
 		}
 	}
@@ -409,11 +408,12 @@ static void app_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_RESTART:
 	default:
-		rc = SA_AIS_ERR_NOT_SUPPORTED;
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+				"Not supported");
 		break;
 	}
- done:
-	avd_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+done:
+	TRACE_LEAVE();
 }
 
 static SaAisErrorT app_rt_attr_cb(SaImmOiHandleT immOiHandle,
