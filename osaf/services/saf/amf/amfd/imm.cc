@@ -1827,6 +1827,11 @@ void report_admin_op_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	(void) vsnprintf(ao_err_string, sizeof(ao_err_string), format, ap);
 	va_end(ap);
 	TRACE_ENTER2("inv:%llu, res:%u, Error String: '%s'", invocation, result, ao_err_string);
+
+	// log error string separately to maintain some backwards compatibility
+	saflog(LOG_NOTICE, amfSvcUsrName,
+			"Admin op invocation: %llu, err: '%s'", invocation, ao_err_string);
+
 	saflog(LOG_NOTICE, amfSvcUsrName, "Admin op done for invocation: %llu, result %u",
 		   invocation, result);
 
