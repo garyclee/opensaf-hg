@@ -177,8 +177,6 @@ static void cluster_admin_op_cb(SaImmOiHandleT immOiHandle,
 	SaInvocationT invocation, const SaNameT *object_name,
 	SaImmAdminOperationIdT op_id, const SaImmAdminOperationParamsT_2 **params)
 {
-	SaAisErrorT rc = SA_AIS_OK;
-
 	switch (op_id) {
 	case SA_AMF_ADMIN_SHUTDOWN:
 	case SA_AMF_ADMIN_UNLOCK:
@@ -187,11 +185,9 @@ static void cluster_admin_op_cb(SaImmOiHandleT immOiHandle,
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_RESTART:
 	default:
-		rc = SA_AIS_ERR_NOT_SUPPORTED;
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL, "Not supported"); 
 		break;
 	}
-
-	avd_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
 }
 
 /**

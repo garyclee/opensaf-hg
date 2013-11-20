@@ -88,5 +88,8 @@ extern void avd_saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
 									 SaAisErrorT result);
 void report_ccb_validation_error(const CcbUtilOperationData_t *opdata,
 		const char *format, ...) __attribute__ ((format(printf, 2, 3)));
+void report_admin_op_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation, SaAisErrorT result,
+		struct admin_oper_cbk *pend_cbk,
+		const char *format, ...) __attribute__ ((format(printf, 5, 6)));
 
 #endif

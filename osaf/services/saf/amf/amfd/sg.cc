@@ -1041,7 +1041,6 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	const SaNameT *object_name, SaImmAdminOperationIdT op_id,
 	const SaImmAdminOperationParamsT_2 **params)
 {
-	SaAisErrorT rc = SA_AIS_OK;
 	AVD_SG *sg;
 	SaAmfAdminStateT adm_state;
 	AVD_SU *su;
@@ -1051,14 +1050,14 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	sg = avd_sg_get(object_name);
 
 	if (sg->sg_ncs_spec == SA_TRUE) {
-		LOG_ER("Admin Op on OpenSAF MW SG is not allowed");
-		rc = SA_AIS_ERR_BAD_OPERATION;
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+				"Admin Op on OpenSAF MW SG is not allowed");
 		goto done;
 	}
 
 	if (sg->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		LOG_WA("SG not in STABLE state (%s)", sg->name.value);
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"SG not in STABLE state (%s)", sg->name.value);
 		goto done;
 	}
 
@@ -1066,14 +1065,15 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	for (su = sg->list_of_su; su != NULL; su = su->sg_list_su_next) {
 		m_AVD_GET_SU_NODE_PTR(avd_cb, su, node);
 		if (su->pend_cbk.invocation != 0) {
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			LOG_WA("Admin operation'%u' is already going on su'%s' belonging to the same SG",
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+					"Admin operation'%u' is already going on su'%s' belonging to the same SG",
 					su->pend_cbk.admin_oper, su->name.value);
 			goto done;
 		} else if (node->admin_node_pend_cbk.admin_oper != 0) {
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			LOG_WA("Node'%s' hosting SU'%s' belonging to the same SG, undergoing admin operation'%u'",
-					node->name.value, su->name.value, node->admin_node_pend_cbk.admin_oper);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+					"Node'%s' hosting SU'%s' belonging to the same SG, undergoing admin"
+					" operation'%u'", node->name.value, su->name.value,
+					node->admin_node_pend_cbk.admin_oper);
 			goto done;
 		}
 	}
@@ -1081,21 +1081,22 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 	/* if Tolerance timer is running for any SI's withing this SG, then return SA_AIS_ERR_TRY_AGAIN */
 	if (sg_is_tolerance_timer_running_for_any_si(sg)) {
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		LOG_WA("Tolerance timer is running for some of the SI's in the SG '%s', so differing admin opr",sg->name.value);
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"Tolerance timer is running for some of the SI's in the SG '%s',"
+				" so differing admin opr", sg->name.value);
 		goto done;
 	}
 	switch (op_id) {
 	case SA_AMF_ADMIN_UNLOCK:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) {
-			LOG_ER("%s is already unlocked", object_name->value);
-			rc = SA_AIS_ERR_NO_OP;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"%s is already unlocked", object_name->value);
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			LOG_ER("%s is locked instantiation", object_name->value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"%s is locked instantiation", object_name->value);
 			goto done;
 		}
 
@@ -1103,21 +1104,22 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_UNLOCKED);
 		if (avd_sg_app_sg_admin_func(avd_cb, sg) != NCSCC_RC_SUCCESS) {
 			avd_sg_admin_state_set(sg, adm_state);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					NULL);
 			goto done;
 		}
 		break;
 
 	case SA_AMF_ADMIN_LOCK:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
-			LOG_ER("%s is already locked", object_name->value);
-			rc = SA_AIS_ERR_NO_OP;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"%s is already locked", object_name->value);
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			LOG_ER("%s is locked instantiation", object_name->value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"%s is locked instantiation", object_name->value);
 			goto done;
 		}
 
@@ -1125,22 +1127,23 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 		if (avd_sg_app_sg_admin_func(avd_cb, sg) != NCSCC_RC_SUCCESS) {
 			avd_sg_admin_state_set(sg, adm_state);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					NULL);
 			goto done;
 		}
 
 		break;
 	case SA_AMF_ADMIN_SHUTDOWN:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-			LOG_ER("%s is shutting down", object_name->value);
-			rc = SA_AIS_ERR_NO_OP;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"%s is shutting down", object_name->value);
 			goto done;
 		}
 
 		if ((sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) ||
 		    (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
-			LOG_ER("%s is locked (instantiation)", object_name->value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"%s is locked (instantiation)", object_name->value);
 			goto done;
 		}
 
@@ -1148,20 +1151,21 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_SHUTTING_DOWN);
 		if (avd_sg_app_sg_admin_func(avd_cb, sg) != NCSCC_RC_SUCCESS) {
 			avd_sg_admin_state_set(sg, adm_state);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					NULL);
 			goto done;
 		}
 		break;
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			LOG_ER("%s is already locked-instantiation", object_name->value);
-			rc = SA_AIS_ERR_NO_OP;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"%s is already locked-instantiation", object_name->value);
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED) {
-			LOG_ER("%s is not locked", object_name->value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"%s is not locked", object_name->value);
 			goto done;
 		}
 
@@ -1169,21 +1173,22 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 		if (sg_app_sg_admin_lock_inst(avd_cb, sg) != NCSCC_RC_SUCCESS) {
 			avd_sg_admin_state_set(sg, adm_state);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					NULL);
 			goto done;
 		}
 
 		break;
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
-			LOG_ER("%s is already locked", object_name->value);
-			rc = SA_AIS_ERR_NO_OP;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"%s is already locked", object_name->value);
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			LOG_ER("%s is not in locked instantiation state", object_name->value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"%s is not in locked instantiation state", object_name->value);
 			goto done;
 		}
 
@@ -1193,11 +1198,13 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		break;
 	case SA_AMF_ADMIN_SG_ADJUST:
 	default:
-		rc = SA_AIS_ERR_NOT_SUPPORTED;
-		break;
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+				"Admin Operation '%llu' not supported", op_id);
+		goto done;
 	}
- done:
-	avd_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+	avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+done:
+	TRACE_LEAVE();
 }
 
 static SaAisErrorT sg_rt_attr_cb(SaImmOiHandleT immOiHandle,

@@ -1104,11 +1104,9 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				su->su_on_node->admin_node_pend_cbk.invocation = 0;
 				su->su_on_node->admin_node_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 			} else if (n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) {
-				avd_saImmOiAdminOperationResult(cb->immOiHandle,
-					su->su_on_node->admin_node_pend_cbk.invocation,
-					SA_AIS_ERR_REPAIR_PENDING);
-				su->su_on_node->admin_node_pend_cbk.invocation = 0;
-				su->su_on_node->admin_node_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+				report_admin_op_error(cb->immOiHandle, su->su_on_node->admin_node_pend_cbk.invocation,
+						SA_AIS_ERR_REPAIR_PENDING, &su->su_on_node->admin_node_pend_cbk,
+						NULL);
 				su->su_on_node->su_cnt_admin_oper = 0;
 			}
 			/* else admin oper still not complete */
@@ -1519,10 +1517,8 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 	/* send pending callback for this node if any */
 	if (avnd->admin_node_pend_cbk.invocation != 0) {
 		LOG_WA("Response to admin callback due to node fail");
-		avd_saImmOiAdminOperationResult(cb->immOiHandle, avnd->admin_node_pend_cbk.invocation,
-				SA_AIS_ERR_REPAIR_PENDING);
-		avnd->admin_node_pend_cbk.invocation = 0;
-		avnd->admin_node_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+		report_admin_op_error(cb->immOiHandle, avnd->admin_node_pend_cbk.invocation,
+				SA_AIS_ERR_REPAIR_PENDING, &avnd->admin_node_pend_cbk, "node failure");
 		avnd->su_cnt_admin_oper = 0;
 	}
 

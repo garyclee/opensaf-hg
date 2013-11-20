@@ -819,7 +819,8 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				LOG_WA("invalid sg state %u for unlock", su->sg_of_su->sg_fsm_state);
 				
 				if (invocation != 0)
-					avd_saImmOiAdminOperationResult(cb->immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN);
+					report_admin_op_error(cb->immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+							"invalid sg state %u for unlock", su->sg_of_su->sg_fsm_state);
 				goto end;
 			}
 
@@ -895,7 +896,10 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 					    		(new_admin_state == SA_AMF_ADMIN_LOCKED)))) {
 						LOG_WA("Node lock/shutdown not allowed with two SUs on same node");
 						if (invocation != 0)
-							avd_saImmOiAdminOperationResult(cb->immOiHandle, invocation,SA_AIS_ERR_NOT_SUPPORTED);
+							report_admin_op_error(cb->immOiHandle, invocation,
+									SA_AIS_ERR_NOT_SUPPORTED, NULL,
+									"Node lock/shutdown not allowed with two SUs"
+									" on same node");
 						else {
 							saClmResponse_4(cb->clmHandle, node->clm_pend_inv, SA_CLM_CALLBACK_RESPONSE_ERROR);
 							node->clm_pend_inv = 0;
@@ -917,7 +921,10 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 						LOG_WA("invalid sg state %u for lock/shutdown",
 						       su->sg_of_su->sg_fsm_state);
 						if (invocation != 0)
-							avd_saImmOiAdminOperationResult(cb->immOiHandle, invocation,SA_AIS_ERR_TRY_AGAIN);
+							report_admin_op_error(cb->immOiHandle, invocation,
+									SA_AIS_ERR_TRY_AGAIN, NULL,
+									"invalid sg state %u for lock/shutdown",
+									su->sg_of_su->sg_fsm_state);
 						else {
 							saClmResponse_4(cb->clmHandle, node->clm_pend_inv, SA_CLM_CALLBACK_RESPONSE_ERROR);
 							node->clm_pend_inv = 0;
@@ -1037,8 +1044,8 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 	TRACE_ENTER2("%llu, '%s', %llu", invocation, objectName->value, operationId);
 
 	if (avd_cb->init_state != AVD_APP_STATE) {
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		LOG_WA("AVD not in APP_STATE");
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"AVD not in APP_STATE");
 		goto done;
 	}
 
@@ -1046,8 +1053,10 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 	osafassert(node != AVD_AVND_NULL);
 
 	if (node->admin_node_pend_cbk.admin_oper != 0) {
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		LOG_WA("Node undergoing admin operation");
+		/* Donot pass node->admin_node_pend_cbk here as previous counters will get reset in
+		   report_admin_op_error. */
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"Node undergoing admin operation");
 		goto done;
 	}
 
@@ -1056,36 +1065,36 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 	su = node->list_of_su;
 	while (su != NULL) {
 		if (su->pend_cbk.admin_oper != 0) {
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			LOG_WA("SU on this node is undergoing admin op (%s)", su->name.value);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+					"SU on this node is undergoing admin op (%s)", su->name.value);
 			goto done;
 		}
 		if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) {
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			LOG_WA("SG of SU on this node not in STABLE state (%s)", su->name.value);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+					"SG of SU on this node not in STABLE state (%s)", su->name.value);
 			goto done;
 		}
 		su = su->avnd_list_su_next;
 	}
 
 	if (node->clm_pend_inv != 0) {
-		LOG_NO("Clm lock operation going on");
-		rc = SA_AIS_ERR_TRY_AGAIN;
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"Clm lock operation going on");
 		goto done;
 	}
 
 	switch (operationId) {
 	case SA_AMF_ADMIN_SHUTDOWN:
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-			rc = SA_AIS_ERR_NO_OP;
-			LOG_WA("'%s' Already in SHUTTING DOWN state", node->name.value);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"'%s' Already in SHUTTING DOWN state", node->name.value);
 			goto done;
 		}
 
 		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_UNLOCKED) {
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			LOG_WA("'%s' Invalid Admin Operation SHUTDOWN in state %s",
-				node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"'%s' Invalid Admin Operation SHUTDOWN in state %s",
+					node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
 			goto done;
 		}
 
@@ -1101,15 +1110,15 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 	case SA_AMF_ADMIN_UNLOCK:
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) {
-			rc = SA_AIS_ERR_NO_OP;
-			LOG_WA("'%s' Already in UNLOCKED state", node->name.value);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"'%s' Already in UNLOCKED state", node->name.value);
 			goto done;
 		}
 
 		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED) {
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			LOG_WA("'%s' Invalid Admin Operation UNLOCK in state %s",
-				node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"'%s' Invalid Admin Operation UNLOCK in state %s",
+					node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
 			goto done;
 		}
 
@@ -1125,15 +1134,15 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 	case SA_AMF_ADMIN_LOCK:
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED) {
-			rc = SA_AIS_ERR_NO_OP;
-			LOG_WA("'%s' Already in LOCKED state", node->name.value);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"'%s' Already in LOCKED state", node->name.value);
 			goto done;
 		}
 
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			LOG_WA("'%s' Invalid Admin Operation LOCK in state %s",
-				node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"'%s' Invalid Admin Operation LOCK in state %s",
+					node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
 			goto done;
 		}
 
@@ -1149,15 +1158,15 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			rc = SA_AIS_ERR_NO_OP;
-			LOG_WA("'%s' Already in LOCKED INSTANTIATION state", node->name.value);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"'%s' Already in LOCKED INSTANTIATION state", node->name.value);
 			goto done;
 		}
 
 		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED) {
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			LOG_WA("'%s' Invalid Admin Operation LOCK_INSTANTIATION in state %s",
-				node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"'%s' Invalid Admin Operation LOCK_INSTANTIATION in state %s",
+					node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
 			goto done;
 		}
 
@@ -1188,8 +1197,8 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			else
 				avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
 		} else {
-			rc = SA_AIS_ERR_REPAIR_PENDING;
-			LOG_WA("LOCK_INSTANTIATION FAILED");
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_REPAIR_PENDING, NULL,
+					"LOCK_INSTANTIATION FAILED");
 			avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
 			goto done;
 		}
@@ -1197,15 +1206,15 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED) {
-			rc = SA_AIS_ERR_NO_OP;
-			LOG_WA("'%s' Already in LOCKED state", node->name.value);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"'%s' Already in LOCKED state", node->name.value);
 			goto done;
 		}
 
 		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			LOG_WA("'%s' Invalid Admin Operation UNLOCK_INSTANTIATION in state %s",
-				node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"'%s' Invalid Admin Operation UNLOCK_INSTANTIATION in state %s",
+					node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
 			goto done;
 		}
 
@@ -1237,21 +1246,19 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 				avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
 		} else {
 			rc = SA_AIS_ERR_TIMEOUT;
-			LOG_WA("UNLOCK_INSTANTIATION FAILED");
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TIMEOUT, NULL,
+					"UNLOCK_INSTANTIATION FAILED");
 			goto done;
 		}
 		break;
 
 	default:
-		rc = SA_AIS_ERR_NOT_SUPPORTED;
-		LOG_WA("UNSUPPORTED ADMIN OPERATION (%llu)", operationId);
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+				"UNSUPPORTED ADMIN OPERATION (%llu)", operationId);
 		break;
 	}
 
  done:
-	if (rc != SA_AIS_OK)
-		avd_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
-
 	TRACE_LEAVE2("%u", rc);
 }
 
