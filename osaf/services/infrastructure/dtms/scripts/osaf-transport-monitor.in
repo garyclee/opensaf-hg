@@ -1,87 +1,84 @@
 #!/bin/sh
 #
-### BEGIN INIT INFO
-# Provides: osafdtmd
-# Required-Start: $local_fs $remote_fs $network $syslog
-# Required-Stop: $local_fs $remote_fs $network $syslog
-# Should-Start: 
-# Should-Stop: 
-# Default-Start: 2 3 4 5
-# Default-Stop: 0 1 6
-# Short-Description: starts/stops the osafdtmd daemon
-# Description: starts/stops the osafdtmd daemon
-### END INIT INFO
+# (C) Copyright 2010 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Oracle 
+#
 
-osafdirfile=/etc/opensaf/osafdir.conf
- 
+osafdirfile=@sysconfdir@/@PACKAGE_NAME@/osafdir.conf
+
 # Source LSB functions library
 . /lib/lsb/init-functions
- 
+
 if [ ! -r $osafdirfile ]; then
-        logger -t $prog "can't read $osafdirfile, exiting."
-        exit 6
+	logger -t $prog "can't read $osafdirfile, exiting."
+	exit 6
 else
-        . $osafdirfile
+	. $osafdirfile
 	. $pkgsysconfdir/nid.conf
 fi
- 
+
 if [ ! "$MDS_TRANSPORT" = "TIPC" ] ; then
-       prog="osafdtmd"
+	prog="osafdtmd"
 fi
 
 RETVAL=0
 
-start() {
-		echo "Running Permanent loop to clean MDS Logs..."
-		while true
-		do
-		    MDS_LOG_FILE=$pkglogdir/mds.log
-		    FILESIZE=`du -sk "$MDS_LOG_FILE" 2>/dev/null | cut -f1`
-		    if [ 5000 -lt 0$FILESIZE ]; then
-	        	rm -f "$MDS_LOG_FILE.old"
-		        mv -f "$MDS_LOG_FILE" "$MDS_LOG_FILE.old"
-		    fi
-		   
-                    if [ ! "$MDS_TRANSPORT" = "TIPC" ] ; then
-                        COUNT=0
-                        while ((COUNT < 15))
-                        do
-                           pidval=`cat $pkgpiddir/$prog.pid`
-                           if  ! test -d /proc/$pidval ; then
-                             logger -s -t $prog "$prog Process down, Rebooting the node"
-                             $pkglibdir/opensaf_reboot 0 
-                             exit 0;
-                           fi
-                           #logger "osafdtmd PID : $pidval  monitor COUNT = $COUNT"
-                           sleep 1
-                           ((COUNT=COUNT+1))
-                        done
-		    else
-			sleep 15
-		    fi
-		done
-}
-
-stop() {
-	if [ ! "$MDS_TRANSPORT" = "TIPC" ]; then
+#Read the pid of dtmd.
+count=0
+while true
+do
+	if [ $count -eq 15 ] ; then
+		logger -s -t $prog "dtmd failed to come up. "
+		$pkglibdir/opensaf_reboot 0
 		exit 0;
 	fi
-	RETVAL=$?
-	return $RETVAL
-}
+		
+	pidval=`cat $pkgpiddir/$prog.pid`
+	if  ! test -d /proc/$pidval ; then
+		#dtmd may not have been spawned yet, wait for it.
+		sleep 1
+		count=$(($count + 1))
+	else
+		#found the pid
+		break;
+	fi
+done
 
-case "$1" in
-  start)
-	start
-	RETVAL=$?
-	;;
-  stop)
-	stop
-	RETVAL=$?
-	;;
-  *)
-	echo "Usage: $0 {start|stop}"
-	RETVAL=2
-esac
+#start monitoring dtmd pid and rotate MDS logs
+echo "Running Permanent loop to clean MDS Logs..."
+while true
+do
+	MDS_LOG_FILE=$pkglogdir/mds.log
+	FILESIZE=`du -sk "$MDS_LOG_FILE" 2>/dev/null | cut -f1`
+	if [ 5000 -lt 0$FILESIZE ]; then
+		rm -f "$MDS_LOG_FILE.old"
+		mv -f "$MDS_LOG_FILE" "$MDS_LOG_FILE.old"
+	fi
 
-exit $RETVAL
+	if [ ! "$MDS_TRANSPORT" = "TIPC" ] ; then
+		count=0
+		while [ $count -le 15 ]
+		do
+			if  ! test -d /proc/$pidval ; then
+				logger -s -t $prog "$prog Process down, Rebooting the node"
+				$pkglibdir/opensaf_reboot 0
+				exit 0;
+			fi
+			#logger "osafdtmd PID : $pidval  monitor count = $count"
+			sleep 1
+			count=$(($count + 1))
+		done
+	else
+		sleep 15
+	fi
+done
