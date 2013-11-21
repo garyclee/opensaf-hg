@@ -118,7 +118,7 @@ final_clean() {
 
 	for cmd in `ls $pkgclcclidir/osaf-*`; do
 		# skip dtm here to allow shutdown of other services (e.g. amfd)
-		if [ "cmd" != "osaf-dtm" ]; then
+		if [ "$cmd" != "$pkgclcclidir/osaf-dtm" ] && [ "$cmd" != "$pkgclcclidir/osaf-transport-monitor" ]; then
 			$cmd stop >/dev/null 2>&1
 		fi
 	done
