@@ -1602,6 +1602,15 @@ this flag. In summary:
 Bit 1 controls schema (imm class) changes allowed or not.
 Bit 2 controls OpenSAF4.1 protocols allowed or not.
 Bit 3 controls OpenSAF4.3 protocols allowed or not.
+Bit 4 controls 2PBE oneSAfe2PBE (see 2PBE feature in OpenSAF4.4 below).
+
+2PBE Allow IMM PBE to be configured without shared file system (4.4)
+===================================================================
+https://sourceforge.net/p/opensaf/tickets/21/
+
+The 2PBE enhancement allows the IMM to have PBE configred so that it
+does not rely on a shared filesystem, such as DRBD. 
+See: osaf/services/saf/immsv/README.2PBE.
 
 
 ----------------------------------------
