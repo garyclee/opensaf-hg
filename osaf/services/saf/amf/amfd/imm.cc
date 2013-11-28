@@ -1747,12 +1747,18 @@ void report_ccb_validation_error(const CcbUtilOperationData_t *opdata, const cha
 	va_start(ap, format);
 	(void) vsnprintf(err_str, sizeof(err_str), format, ap);
 	va_end(ap);
-	TRACE("%s", err_str);
-	if (opdata != NULL)
+
+	if (opdata != NULL) {
+		TRACE("%s", err_str);
+		saflog(LOG_NOTICE, amfSvcUsrName, "CCB %llu validation error: %s",
+			   opdata->ccbId, err_str);
 		(void) saImmOiCcbSetErrorString(avd_cb->immOiHandle, opdata->ccbId, err_str);
-	else
-		LOG_WA("%s", err_str);
+	} else {
+		// errors found during initial configuration read
+		LOG_WA("configuration validation error: %s", err_str);
+	}
 }
+
 /**
  * Respond admin op to IMM
  * @param immOiHandle
