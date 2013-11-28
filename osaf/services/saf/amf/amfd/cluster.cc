@@ -118,7 +118,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			SaTimeT cluster_startup_timeout = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
 			if (0 == cluster_startup_timeout) {
 				report_ccb_validation_error(opdata, "Invalid saAmfClusterStartupTimeout %llu",
-					avd_cluster->saAmfClusterStartupTimeout);
+						cluster_startup_timeout);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
