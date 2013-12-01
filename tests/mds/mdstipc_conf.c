@@ -19,6 +19,7 @@
 #include "ncs_mda_papi.h"
 #include "ncssysf_tsk.h"
 #include "mdstipc.h"
+#include "osaf_poll.h"
 extern int fill_syncparameters(int);
 /****************** ADEST WRAPPERS ***********************/
 uint32_t adest_get_handle(void)
@@ -1517,58 +1518,37 @@ int is_sel_obj_found(int indx)
 #endif
 int is_vdest_sel_obj_found(int vi,int si)
 {
-  uint32_t count=0;
-  /*int count=0;*/
-  NCS_SEL_OBJ numfds;
-  NCS_SEL_OBJ_SET readfd;
-  
-  numfds.raise_obj=0;
-  numfds.rmv_obj=0;
-  
-  m_NCS_SEL_OBJ_ZERO(&readfd);
-  m_NCS_SEL_OBJ_SET(gl_tet_vdest[vi].svc[si].sel_obj,&readfd);
-  numfds=m_GET_HIGHER_SEL_OBJ(gl_tet_vdest[vi].svc[si].sel_obj,numfds);
-  count=m_NCS_SEL_OBJ_SELECT(numfds,&readfd,NULL,NULL,0);
-  switch(count)
-    {
-    case 0: printf("                       TIMED OUT                  \n");
-      break;
-    case -1:printf("......................couldn't select..............\n");
-      return count;
-      break;
-    }
-  if( m_NCS_SEL_OBJ_ISSET(gl_tet_vdest[vi].svc[si].sel_obj,&readfd) )
-    return gl_tet_vdest[vi].svc[si].svc_id;
-  else
-    return 0; 
-  
+  struct pollfd sel;
+  unsigned count;
+  sel.fd = m_GET_FD_FROM_SEL_OBJ(gl_tet_vdest[vi].svc[si].sel_obj);
+  sel.events = POLLIN;
+  count = osaf_poll(&sel, 1, -1);
+  switch (count) {
+  case 0:
+    printf("                       TIMED OUT                  \n");
+    break;
+  case 1:
+    if ((sel.revents & POLLIN) != 0) return gl_tet_vdest[vi].svc[si].svc_id;
+    break;
+  }
+  return 0;
 }
 int is_adest_sel_obj_found(int si)
 {
-  uint32_t count=0;
-  /*  int count=0;*/
-  NCS_SEL_OBJ numfds;
-  NCS_SEL_OBJ_SET readfd;
-  
-  numfds.raise_obj=0;
-  numfds.rmv_obj=0;
-  
-  m_NCS_SEL_OBJ_ZERO(&readfd);
-  m_NCS_SEL_OBJ_SET(gl_tet_adest.svc[si].sel_obj,&readfd);
-  numfds=m_GET_HIGHER_SEL_OBJ(gl_tet_adest.svc[si].sel_obj,numfds);
-  count=m_NCS_SEL_OBJ_SELECT(numfds,&readfd,NULL,NULL,0);
-  switch(count)
-    {
-    case 0: printf("                       TIMED OUT                  \n");
-      break;
-    case -1:printf("......................couldn't select..............\n");
-      return count;
-      break;
-    }
-  if( m_NCS_SEL_OBJ_ISSET(gl_tet_adest.svc[si].sel_obj,&readfd) )
-    return gl_tet_adest.svc[si].svc_id;
-  else
-    return 0; 
+  struct pollfd sel;
+  unsigned count;
+  sel.fd = m_GET_FD_FROM_SEL_OBJ(gl_tet_adest.svc[si].sel_obj);
+  sel.events = POLLIN;
+  count = osaf_poll(&sel, 1, -1);
+  switch (count) {
+  case 0:
+    printf("                       TIMED OUT                  \n");
+    break;
+  case 1:
+    if ((sel.revents & POLLIN) != 0) return gl_tet_adest.svc[si].svc_id;
+    break;
+  }
+  return 0;
 }
 uint32_t tet_create_task(NCS_OS_CB task_startup,
                       NCSCONTEXT t_handle)
