@@ -57,6 +57,8 @@
 #include <configmake.h>
 #include <rda_papi.h>
 #include <logtrace.h>
+#include "osaf_poll.h"
+#include "osaf_time.h"
 
 #include "nodeinit.h"
 
@@ -115,23 +117,19 @@ char *nid_recerr[NID_MAXREC][4] = {
 /****************************************************************************
  * Name          : nid_sleep                                                *
  *                                                                          *
- * Description   : Select based sleep upto milli secs granularity           *
+ * Description   : nanosleep() based sleep upto milli secs granularity      *
  *                                                                          *
  * Arguments     : time_in _msec- time to sleep for milli secs              *
  *                                                                          *
  ***************************************************************************/
 void nid_sleep(uint32_t time_in_msec)
 {
-	struct timeval tv;
+	struct timespec ts;
 
 	TRACE_ENTER();
 
-	tv.tv_sec = time_in_msec / 1000;
-	tv.tv_usec = ((time_in_msec) % 1000) * 1000;
-
-	while (select(0, 0, 0, 0, &tv) != 0)
-		if (errno == EINTR)
-			continue;
+	osaf_millis_to_timespec(time_in_msec, &ts);
+	osaf_nanosleep(&ts);
 
 	TRACE_LEAVE();
 }
@@ -617,8 +615,6 @@ int32_t fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strb
 	struct sigaction sa;
 	int i = 0, filedes[2];
 	int32_t n;
-	fd_set set;
-	struct timeval tv;
 
 	TRACE_ENTER();
 
@@ -686,19 +682,12 @@ int32_t fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strb
 	close(filedes[1]);
 
 	/* Lets not block indefinitely for reading pid */
-	FD_ZERO(&set);
-	FD_SET(filedes[0], &set);
-	tv.tv_sec = 5;
-	tv.tv_usec = 0;
-
-	while ((n = select(filedes[0] + 1, &set, NULL, NULL, &tv)) <= 0) {
+	while ((n = osaf_poll_one_fd(filedes[0], 5 * kMillisPerSec)) <= 0) {
 		if (n == 0) {
 			LOG_ER("Writer couldn't return PID");
 			close(filedes[0]);
 			return tmp_pid;
 		}
-		if (errno == EINTR)
-			continue;
 	}
 
 	while (read(filedes[0], &tmp_pid, sizeof(int)) < 0)
@@ -922,8 +911,6 @@ uint32_t spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 {
 	int32_t pid = -1, retry = 5;
 	int32_t i = 0, n = 0;
-	fd_set set;
-	struct timeval tv;
 	NID_FIFO_MSG reqmsg;
 	char *magicno, *serv, *stat, *p;
 	char buff1[100], magic_str[15];
@@ -989,19 +976,8 @@ uint32_t spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 	service->pid = pid;
 
 	/* IF Everything is fine till now, wait till service notifies its initializtion status */
-	FD_ZERO(&set);
-	FD_SET(select_fd, &set);
-
-	/* it's in centi sec */
-	tv.tv_sec = (service->time_out) / 100;
-	tv.tv_usec = ((service->time_out) % 100) * 10000;
-
-	while ((n = select(select_fd + 1, &set, NULL, NULL, &tv)) <= 0) {
-		if ((errno == EINTR) && (n < 0)) {
-			FD_ZERO(&set);
-			FD_SET(select_fd, &set);
-			continue;
-		}
+	/* service->time_out is in centi sec */
+	while ((n = osaf_poll_one_fd(select_fd, service->time_out * 10)) <= 0) {
 		if (n == 0) {
 			LOG_ER("Timed-out for response from %s", service->serv_name);
 			return NCSCC_RC_FAILURE;
