@@ -32,9 +32,10 @@
 /*
 ** Includes
 */
-#include <rda.h>
-
+#include "rda.h"
 #include <sched.h>
+#include "logtrace.h"
+#include "osaf_poll.h"
 
 /*
 ** Global data
@@ -654,35 +655,12 @@ static uint32_t rda_write_msg(int sockfd, char *msg)
 *****************************************************************************/
 static uint32_t rda_read_msg(int sockfd, char *msg, int size)
 {
-	int rc = PCSRDA_RC_SUCCESS;
+	int rc;
 	int msg_size = 0;
-	int retry_cnt = 0;
-	fd_set readfds;
-	struct timeval tv;
 
- RDE_SELECT:
-	FD_ZERO(&readfds);
-
-	/* 
-	 * Set timeout value
-	 */
-	tv.tv_sec = 30;
-	tv.tv_usec = 0;
-
-	/*
-	 * Set RDA interface socket fd
-	 */
-	FD_SET(sockfd, &readfds);
-
-	rc = select(sockfd + 1, &readfds, NULL, NULL, &tv);
+	rc = osaf_poll_one_fd(sockfd, 30000);
 	if (rc < 0) {
-		if (errno == 4) {	/* EINTR */
-			printf("select: PCSRDA_RC_IPC_RECV_FAILED: rc=%d-%s\n", errno, strerror(errno));
-			if (retry_cnt < 5) {
-				retry_cnt++;
-				goto RDE_SELECT;
-			}
-		}
+		LOG_ER("poll: PCSRDA_RC_IPC_RECV_FAILED: rc=%d-%s\n", errno, strerror(errno));
 		return PCSRDA_RC_IPC_RECV_FAILED;
 	}
 
@@ -698,7 +676,7 @@ static uint32_t rda_read_msg(int sockfd, char *msg, int size)
 	 */
 	msg_size = recv(sockfd, msg, size, 0);
 	if (msg_size < 0) {
-		printf("recv: PCSRDA_RC_IPC_RECV_FAILED: rc=%d-%s\n", errno, strerror(errno));
+		LOG_ER("recv: PCSRDA_RC_IPC_RECV_FAILED: rc=%d-%s\n", errno, strerror(errno));
 		return PCSRDA_RC_IPC_RECV_FAILED;
 	}
 
