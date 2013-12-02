@@ -33,6 +33,7 @@
 ** Includes
 */
 #include "rda.h"
+#include <errno.h>
 #include <sched.h>
 #include "logtrace.h"
 #include "osaf_poll.h"
@@ -660,6 +661,7 @@ static uint32_t rda_read_msg(int sockfd, char *msg, int size)
 
 	rc = osaf_poll_one_fd(sockfd, 30000);
 	if (rc < 0) {
+		if (errno == EPIPE) return PCSRDA_RC_FATAL_IPC_CONNECTION_LOST;
 		LOG_ER("poll: PCSRDA_RC_IPC_RECV_FAILED: rc=%d-%s\n", errno, strerror(errno));
 		return PCSRDA_RC_IPC_RECV_FAILED;
 	}
