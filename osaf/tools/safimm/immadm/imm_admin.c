@@ -37,6 +37,7 @@
 
 #include <saAis.h>
 #include <saImmOm.h>
+#include <immsv_api.h>
 
 #include <immutil.h>
 #include <saf_error.h>
@@ -250,6 +251,7 @@ int main(int argc, char *argv[])
 	SaImmHandleT immHandle;
 	SaImmAdminOwnerNameT adminOwnerName = basename(argv[0]);
 	bool releaseAdmo=true;
+	bool explicitAdmo=false;
 	SaImmAdminOwnerHandleT ownerHandle;
 	SaNameT objectName;
 	const SaNameT *objectNames[] = { &objectName, NULL };
@@ -328,6 +330,7 @@ int main(int argc, char *argv[])
 			adminOwnerName = (SaImmAdminOwnerNameT)malloc(strlen(optarg) + 1);
 			strcpy(adminOwnerName, optarg);
 			releaseAdmo=false;
+			explicitAdmo=true;
 			break;
 		case 'h':
 			usage(basename(argv[0]));
@@ -365,6 +368,18 @@ int main(int argc, char *argv[])
 	if (error != SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmInitialize FAILED: %s\n", saf_error(error));
 		exit(EXIT_FAILURE);
+	}
+
+	if((optind < argc) && (!explicitAdmo)) {
+		strncpy((char *)objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
+		objectName.length = strlen((char *)objectName.value);
+
+		if(strcmp((char *) objectName.value, OPENSAF_IMM_OBJECT_DN)==0) {
+			releaseAdmo=false;
+			adminOwnerName = (SaImmAdminOwnerNameT) malloc(strlen(OPENSAF_IMM_SERVICE_NAME) + 1);
+			strcpy(adminOwnerName, OPENSAF_IMM_SERVICE_NAME);
+			printf("[using admin-owner: '%s']\n", adminOwnerName);
+		}
 	}
 
 	error = immutil_saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, releaseAdmo?SA_TRUE:SA_FALSE, &ownerHandle);
