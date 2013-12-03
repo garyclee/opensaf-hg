@@ -493,11 +493,9 @@ bool cluster_su_instantiation_done(AVD_CL_CB *cb, AVD_SU *su)
 		goto node_walk;
 
 	TRACE("SU '%s', SUPresenceState '%u'", su->name.value, su->saAmfSUPresenceState);
-	if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) ||
-			(su->saAmfSUPresenceState == 
-			 SA_AMF_PRESENCE_INSTANTIATION_FAILED) ||
-			(su->saAmfSUPresenceState == 
-			 SA_AMF_PRESENCE_TERMINATION_FAILED)) {
+	if (((su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) && (su->saAmfSUPresenceState == 
+					SA_AMF_PRESENCE_INSTANTIATED)) ||
+			(su->saAmfSUOperState == SA_AMF_OPERATIONAL_DISABLED)) {
 	} else {
 		/* Don't calculate if SU is in transient state.*/
 		goto done;
@@ -519,11 +517,11 @@ node_walk:
 						(su_ptr->su_on_node->saAmfNodeAdminState != 
 						 SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 						(su_ptr->saAmfSUPreInstantiable == true)) {
-					if ((su_ptr->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) ||
-							(su_ptr->saAmfSUPresenceState == 
-							 SA_AMF_PRESENCE_INSTANTIATION_FAILED) ||
-							(su_ptr->saAmfSUPresenceState == 
-							 SA_AMF_PRESENCE_TERMINATION_FAILED)) {
+					if (((su_ptr->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
+								(su_ptr->saAmfSUPresenceState == 
+								 SA_AMF_PRESENCE_INSTANTIATED)) ||
+							(su_ptr->saAmfSUOperState == 
+							 SA_AMF_OPERATIONAL_DISABLED)) {
 					} else {
 						goto done;
 					}
@@ -743,15 +741,6 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					/* send response to pending clm callback */
 					if (su->su_on_node->clm_pend_inv != 0)
 						clm_pend_response(su, static_cast<SaAmfPresenceStateT>(l_val));
-
-					/* No application SUs hosted on this node. Check if all SUs are instantiated
-					   cluster-wide, if so start assignments */
-					if ((cb->amf_init_tmr.is_active == true) && 
-							(su->sg_of_su->sg_ncs_spec == false) && 
-							(cluster_su_instantiation_done(cb, su) == true)) {
-						avd_stop_tmr(cb, &cb->amf_init_tmr);
-						cluster_startup_expiry_event_generate(cb);
-					}
 				} else {
 					/* log error that a the  value len is invalid */
 					LOG_ER("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.

@@ -411,6 +411,13 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
+	/* Check if all SUs are in 'in-service' cluster-wide, if so start assignments */
+	if ((cb->amf_init_tmr.is_active == true) &&
+			(cluster_su_instantiation_done(cb, su) == true)) {
+		avd_stop_tmr(cb, &cb->amf_init_tmr);
+		cluster_startup_expiry_event_generate(cb);
+	}
+
 	/* Verify that the SU operation state is disable and do the processing. */
 	if (n2d_msg->msg_info.n2d_opr_state.su_oper_state == SA_AMF_OPERATIONAL_DISABLED) {
 		/* if the SU is NCS SU, call the node FSM routine to handle the failure.
