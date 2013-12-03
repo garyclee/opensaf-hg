@@ -8407,7 +8407,12 @@ static void immnd_evt_proc_discard_node(IMMND_CB *cb,
 	SaUint32T arrSize = 0;
 	TRACE_ENTER();
 	osafassert(evt);
-	osafassert(evt->info.ctrl.nodeId != cb->node_id);
+	if(evt->info.ctrl.nodeId == cb->node_id) {
+		LOG_ER("immnd_evt_proc_discard_node for *this* node %u => "
+			"Cluster partitioned (\"split brain\") - exiting",
+			cb->node_id);
+		exit(1);
+	}
 	LOG_NO("Global discard node received for nodeId:%x pid:%u", evt->info.ctrl.nodeId, evt->info.ctrl.ndExecPid);
 	/* We should remember the nodeId/pid pair to avoid a redundant message
 	   causing a newly reattached node being discarded. 
