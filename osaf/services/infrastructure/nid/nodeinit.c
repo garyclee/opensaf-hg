@@ -46,6 +46,8 @@
 *            any notification.                                          *
 ************************************************************************/
 
+#include <unistd.h>
+#include <fcntl.h>
 #include <syslog.h>
 #include <libgen.h>
 #include <ctype.h>
@@ -625,6 +627,8 @@ int32_t fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strb
 
 	if(-1 == pipe(filedes))
 		LOG_ER("Problem creating pipe: %s", strerror(errno));
+	else
+		fcntl(filedes[0], F_SETFL, fcntl(filedes[0], F_GETFL) | O_NONBLOCK);
 
 	if ((pid = fork()) == 0) {
 		if (nis_fifofd > 0)
@@ -645,10 +649,10 @@ int32_t fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strb
 				continue;
 			else if (errno == EPIPE) {
 				LOG_ER("Reader not available to return my PID");
-				exit(2);
 			} else {
 				LOG_ER("Problem writing to pipe, err=%s", strerror(errno));
 			}
+			exit(2);
 		}
 
 		setsid();
@@ -688,6 +692,7 @@ int32_t fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strb
 			close(filedes[0]);
 			return tmp_pid;
 		}
+		break;
 	}
 
 	while (read(filedes[0], &tmp_pid, sizeof(int)) < 0)
@@ -982,7 +987,7 @@ uint32_t spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 			LOG_ER("Timed-out for response from %s", service->serv_name);
 			return NCSCC_RC_FAILURE;
 		}
-
+		break;
 	}
 
 	/* Read the message from FIFO and fill in structure. */
