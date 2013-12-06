@@ -1081,8 +1081,8 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
         /* Avoid if any single Csi assignment is undergoing on SG. */
         if (csi_assignment_validate(sg) == true) {
-                rc = SA_AIS_ERR_TRY_AGAIN;
-                LOG_WA("Single Csi assignment undergoing on (sg'%s')", sg->name.value);
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"Single Csi assignment undergoing on (sg'%s')", sg->name.value);
                 goto done;
         }
 
