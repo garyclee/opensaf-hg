@@ -27,6 +27,7 @@
 #include <imm.h>
 #include <ntf.h>
 #include <proc.h>
+#include <csi.h>
 
 static NCS_PATRICIA_TREE su_db;
 
@@ -910,6 +911,13 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 					"Admin operation is already going on (su'%s')", su_ptr->name.value);
 			goto done;
 		}
+	}
+
+	/* Avoid if any single Csi assignment is undergoing on SG. */
+	if (csi_assignment_validate(su->sg_of_su) == true) {
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		LOG_WA("Single Csi assignment undergoing on (sg'%s')", su->sg_of_su->name.value);
+		goto done;
 	}
 
 	if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) {
