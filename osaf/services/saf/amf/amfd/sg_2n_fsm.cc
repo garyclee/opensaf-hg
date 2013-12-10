@@ -149,38 +149,6 @@ bool all_assignments_done(const AVD_SU *su)
 	return true;
 }
 /**
- * @brief	  Quiesced role modifications has to be done in reverse order of si-si dependency.	  
- *		  When susi response is received for quiesced modification, this routine finds 
- *		  which is the next susi to be quiesced based on si-si dependency. 
- *
- * @param [in]	  susi for which we got the response 
- *
- * @returns	  pointer to AVD_SU_SI_REL 
- */
-static AVD_SU_SI_REL *next_susi_tobe_quiesced(const AVD_SU_SI_REL *susi)
-{
-	AVD_SU_SI_REL *a_susi;
-	AVD_SPONS_SI_NODE *spons_si_node;
-
-	TRACE_ENTER2("'%s' '%s'", susi->si->name.value, susi->su->name.value);
-
-	for (a_susi = susi->su->list_of_susi; a_susi; a_susi = a_susi->su_next) {
-		if (a_susi->state == SA_AMF_HA_ACTIVE) {
-			for (spons_si_node = susi->si->spons_si_list;spons_si_node;spons_si_node = spons_si_node->next) {
-				if (spons_si_node->si == a_susi->si) {
-					/* Check if quiesced response came for all of its dependents */ 
-					if (avd_sidep_quiesced_done_for_all_dependents(spons_si_node->si, susi->su)) {
-						goto done;
-					}
-				}
-			}
-		}
-	}
-done:
-	TRACE_LEAVE2("next_susi: %s",a_susi ? a_susi->si->name.value : NULL);
-	return a_susi;
-}
-/**
  * @brief       Checks if any assignment is changing into quiesced state. If yes, then return true.
  *              If all are quisced then return false.
  *
@@ -1883,14 +1851,14 @@ static uint32_t avd_sg_2n_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 					}
 				}
 			} else {
-				n_susi = next_susi_tobe_quiesced(susi);
+				n_susi = avd_siass_next_susi_to_quiesce(susi);
 				while (n_susi) {
 					rc = avd_susi_mod_send(n_susi, SA_AMF_HA_QUIESCED);
 					if (rc == NCSCC_RC_FAILURE) {
 						LOG_ER("%s:%u: %s ", __FILE__, __LINE__, su->name.value);
 						goto done;
 					}
-					n_susi = next_susi_tobe_quiesced(susi);
+					n_susi = avd_siass_next_susi_to_quiesce(susi);
 				}
 			}
 			goto done;
@@ -1977,7 +1945,7 @@ static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 				}
 			} else {
-				n_susi = next_susi_tobe_quiesced(susi);
+				n_susi = avd_siass_next_susi_to_quiesce(susi);
 				while (n_susi) {
 					/* determine the modify-state for active sis */
 					if ((su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) ||
@@ -1992,7 +1960,7 @@ static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 						LOG_ER("%s:%u: %s ", __FILE__, __LINE__, su->name.value);
 						goto done;
 					}
-					n_susi = next_susi_tobe_quiesced(susi);
+					n_susi = avd_siass_next_susi_to_quiesce(susi);
 				}
 			}
 		} else {
@@ -2547,7 +2515,7 @@ uint32_t avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 					}
 
 				} else {
-					n_susi = next_susi_tobe_quiesced(susi);
+					n_susi = avd_siass_next_susi_to_quiesce(susi);
 					while (n_susi) {
 
 						rc = avd_susi_mod_send(n_susi, state);
@@ -2555,7 +2523,7 @@ uint32_t avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 							LOG_ER("%s:%u: %s ", __FILE__, __LINE__, su->name.value);
 							goto done;
 						}
-						n_susi = next_susi_tobe_quiesced(susi);
+						n_susi = avd_siass_next_susi_to_quiesce(susi);
 					}
 				}
 			} else {
@@ -2618,14 +2586,14 @@ uint32_t avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 						a_su = a_su->sg_list_su_next;
 					}
 				} else {
-					n_susi = next_susi_tobe_quiesced(susi);
+					n_susi = avd_siass_next_susi_to_quiesce(susi);
 					while (n_susi) {
 						rc = avd_susi_mod_send(n_susi, static_cast<SaAmfHAStateT>(su->sg_of_su->saAmfSGAdminState));
 						if (rc == NCSCC_RC_FAILURE) {
 							LOG_ER("%s:%u: %s ", __FILE__, __LINE__, su->name.value);
 							goto done;
 						}
-						n_susi = next_susi_tobe_quiesced(susi);
+						n_susi = avd_siass_next_susi_to_quiesce(susi);
 					}
 				}
 			} else {
