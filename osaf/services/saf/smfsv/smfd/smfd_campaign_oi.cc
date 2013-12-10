@@ -341,18 +341,15 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 					}
 				//Handle the OpenSAFSmfConfig object
 				} else if (strncmp((char*)ccbUtilOperationData->param.modify.objectName->value, "smfConfig=", 10) == 0) {
+                                        //Modification of OpenSAFSmfConfig object is always allowed.
+                                        //The SMF control block structure is re-read at saImmOiCcbApplyCallback
 					TRACE("Modification of object %s", ccbUtilOperationData->param.modify.objectName->value);
-					//Check if any campaign is executing
-					if (SmfCampaignThread::instance() != NULL) {
-						LOG_NO("Modification not allowed, campaign %s is executing, ",
-						       SmfCampaignThread::instance()->campaign()->getDn().c_str());
-						rc = SA_AIS_ERR_BAD_OPERATION;
-						goto done;
-					}
+ 
 				//Handle the SaSmfSwBundle object
 				} else if (strncmp((char *)ccbUtilOperationData->param.modify.objectName->value, "safSmfBundle=", 13) == 0) {
 					//Always allow modification
-					goto done;
+					TRACE("Modification of object %s", ccbUtilOperationData->param.modify.objectName->value);
+
 				//Handle any unknown object
 				} else {
 					LOG_NO("Unknown object %s, can't be modified",
@@ -376,6 +373,7 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 {
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	struct CcbUtilOperationData *ccbUtilOperationData;
+        bool openSAFSmfConfigApply = false;
 
 	TRACE_ENTER();
 
@@ -430,15 +428,17 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 			//Handle the OpenSAFSmfConfig object
 			}else if (strncmp((char*)ccbUtilOperationData->param.modify.objectName->value, "smfConfig=", 10) == 0) {
 				TRACE("Modifying configuration object %s", ccbUtilOperationData->param.modify.objectName->value);
-				//Reread the SMF config object
-			        read_config_and_set_control_block(smfd_cb);
-
+                                openSAFSmfConfigApply = true;
 			}
 			break;
 		}
 		} //End switch
 		ccbUtilOperationData = ccbUtilOperationData->next;
 	}
+
+        //Reread the SMF config object once
+        if(openSAFSmfConfigApply == true)
+                read_config_and_set_control_block(smfd_cb);
 
 done:
 	ccbutil_deleteCcbData(ccbUtilCcbData);
