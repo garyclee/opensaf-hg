@@ -781,3 +781,93 @@ bool si_assignment_state_check(AVD_SI *si)
 	return assignmemt_status;
 }
 
+/**
+ * @brief	  Quiesced role modifications has to be done in reverse order of si-si dependency.	  
+ *		  When susi response is received for quiesced modification, this routine finds 
+ *		  which is the next susi to be quiesced based on si-si dependency. 
+ *
+ * @param [in]	  susi for which we got the response 
+ *
+ * @returns	  pointer to AVD_SU_SI_REL 
+ */
+AVD_SU_SI_REL *avd_siass_next_susi_to_quiesce(const AVD_SU_SI_REL *susi)
+{
+	AVD_SU_SI_REL *a_susi;
+	AVD_SPONS_SI_NODE *spons_si_node;
+
+	TRACE_ENTER2("'%s' '%s'", susi->si->name.value, susi->su->name.value);
+
+	for (a_susi = susi->su->list_of_susi; a_susi; a_susi = a_susi->su_next) {
+		if (a_susi->state == SA_AMF_HA_ACTIVE) {
+			for (spons_si_node = susi->si->spons_si_list;spons_si_node;spons_si_node = spons_si_node->next) {
+				if (spons_si_node->si == a_susi->si) {
+					/* Check if quiesced response came for all of its dependents */ 
+					if (avd_sidep_quiesced_done_for_all_dependents(spons_si_node->si, susi->su)) {
+						goto done;
+					}
+				}
+			}
+		}
+	}
+done:
+	TRACE_LEAVE2("next_susi: %s",a_susi ? a_susi->si->name.value : NULL);
+	return a_susi;
+}
+
+/**
+ * @brief	Checks whether quiesced role can be given to susi or not 
+ *
+ * @param[in]   susi
+ *
+ * @return	true/false 
+ **/
+bool avd_susi_quiesced_canbe_given(const AVD_SU_SI_REL *susi)
+{
+	AVD_SI_SI_DEP *si_dep_rec;
+	AVD_SI *dep_si;
+	AVD_SI_SI_DEP_INDX si_indx;
+	AVD_SU_SI_REL *sisu;
+	bool quiesc_role = true;
+
+	TRACE_ENTER2("%s %s", susi->su->name.value, susi->si->name.value);
+
+	if (!susi->si->num_dependents) {
+		/* This SI doesnot have any dependents on it, so quiesced role can be given */
+		return quiesc_role;
+	} else {
+		/* Check if any of its dependents assigned to same SU for which quiesced role is not yet given */
+		memset(&si_indx, '\0', sizeof(si_indx));
+		si_indx.si_name_prim.length = susi->si->name.length;
+		memcpy(si_indx.si_name_prim.value, susi->si->name.value, si_indx.si_name_prim.length);
+		si_dep_rec = avd_sidep_find_next(avd_cb, &si_indx, true);
+
+		while (si_dep_rec != NULL) {
+			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
+				/* Seems no more node exists in spons_anchor tree with
+				 * "si_indx.si_name_prim" as primary key
+				 */
+				break;
+			}
+			dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
+			if (dep_si == NULL) {
+				/* No corresponding SI node?? some thing wrong */
+				si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+				continue;
+			}
+			for (sisu = dep_si->list_of_sisu; sisu ; sisu = sisu->si_next) {
+				if (sisu->su == susi->su) {
+					if ((sisu->state == SA_AMF_HA_ACTIVE) ||
+						((sisu->state == SA_AMF_HA_QUIESCED) && (sisu->fsm == AVD_SU_SI_STATE_MODIFY))) {
+						quiesc_role = false;
+						goto done;
+					}       
+				}       
+
+			}
+			si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+		}
+	}
+done:
+	TRACE_LEAVE2("quiesc_role:%u",quiesc_role);
+	return quiesc_role;
+}
