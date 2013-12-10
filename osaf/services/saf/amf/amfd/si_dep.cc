@@ -2366,15 +2366,36 @@ void avd_sidep_send_active_to_dependents(const AVD_SI *si)
 				continue;
 			}
 			AVD_SU_SI_REL *sisu;
-			for (sisu = dep_si->list_of_sisu;sisu != NULL;sisu = sisu->si_next) {
-				if (sisu->su == active_su) {
-					if (((sisu->state == SA_AMF_HA_STANDBY) ||
-						(sisu->state == SA_AMF_HA_QUIESCED)) &&
-						(sisu->fsm != AVD_SU_SI_STATE_UNASGN)) {
-						avd_susi_mod_send(sisu, SA_AMF_HA_ACTIVE);
-						break;
+			switch (si->sg_of_si->sg_redundancy_model) {
+			case SA_AMF_NPM_REDUNDANCY_MODEL:
+			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
+			case SA_AMF_NO_REDUNDANCY_MODEL:
+			case SA_AMF_2N_REDUNDANCY_MODEL:
+				for (sisu = dep_si->list_of_sisu;sisu != NULL;sisu = sisu->si_next) {
+					if (sisu->su == active_su) {
+						if (((sisu->state == SA_AMF_HA_STANDBY) ||
+								(sisu->state == SA_AMF_HA_QUIESCED)) &&
+								(sisu->fsm != AVD_SU_SI_STATE_UNASGN)) {
+							avd_susi_mod_send(sisu, SA_AMF_HA_ACTIVE);
+							break;
+						}
 					}
 				}
+				break;
+			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
+				/* identify the most preferred standby su for this si */
+				sisu = avd_find_preferred_standby_susi(dep_si);
+				if (sisu) {
+					avd_susi_mod_send(sisu, SA_AMF_HA_ACTIVE);
+					avd_sidep_si_dep_state_set(dep_si, AVD_SI_ASSIGNED);
+				}
+				else
+					/* As susi failover is not possible, delete all the 
+					   assignments */
+					avd_si_assignments_delete(avd_cb, dep_si);
+				break;
+			default:
+				break;
 			}
 			avd_sidep_si_dep_state_set(dep_si, AVD_SI_ASSIGNED);
 		}
@@ -2418,7 +2439,8 @@ bool avd_sidep_quiesced_done_for_all_dependents(const AVD_SI *si, const AVD_SU *
 			continue;
 		}
 		for (sisu = dep_si->list_of_sisu; sisu ; sisu = sisu->si_next) {
-			if ((sisu->su == su) && ((sisu->state != SA_AMF_HA_QUIESCED) || 
+			if ((sisu->su == su) && 
+				(((sisu->state != SA_AMF_HA_STANDBY) && (sisu->state != SA_AMF_HA_QUIESCED)) || 
 						(sisu->fsm != AVD_SU_SI_STATE_ASGND))) {
 				quiesced = false;
 				goto done;
