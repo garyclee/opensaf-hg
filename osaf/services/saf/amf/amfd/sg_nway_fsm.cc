@@ -713,9 +713,11 @@ uint32_t avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 					continue;
 
 				/* send quiesced / quiescing assignment */
-				rc  = avd_susi_mod_send(curr_susi, state);
-				if (NCSCC_RC_SUCCESS != rc)
-					goto done;
+				if (avd_susi_quiesced_canbe_given(curr_susi)) {
+					rc  = avd_susi_mod_send(curr_susi, state);
+					if (NCSCC_RC_SUCCESS != rc)
+						goto done;
+				}
 
 				/* transition to su-oper state */
 				m_AVD_SET_SG_FSM(cb, su->sg_of_su, AVD_SG_FSM_SU_OPER);
@@ -2403,6 +2405,10 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 				if (!curr_susi)
 					avd_sg_su_oper_list_del(cb, su, false);
 			} else {
+				if ((susi->state == SA_AMF_HA_ACTIVE) && (susi->si->num_dependents > 0)) {
+					avd_sidep_send_active_to_dependents(susi->si);
+				}
+
 				/* identify the quiesced susi assignment */
 				for (curr_susi = susi->si->list_of_sisu;
 				     curr_susi && (SA_AMF_HA_QUIESCED != curr_susi->state);
@@ -2588,7 +2594,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 			curr_susi = find_pref_standby_susi(&tmp_susi);
 			if (curr_susi) {
 				/* send active assignment to curr_susi */
-				rc = avd_susi_mod_send(curr_susi, SA_AMF_HA_ACTIVE);
+				rc = avd_susi_role_failover(curr_susi, tmp_susi.su);
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
 			}
@@ -2716,16 +2722,36 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 	bool is_eng = false, flag;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *su_node_ptr = NULL;
+	SaAmfHAStateT hastate = SA_AMF_HA_QUIESCED;
 	TRACE_ENTER2("SU '%s'  ",su->name.value);
 
 	if (susi && (SA_AMF_HA_QUIESCED == state) && (AVSV_SUSI_ACT_DEL != act)) {
 		/* => single quiesced assignment success */
+		if ((su->su_on_node->admin_node_pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN) ||
+				(su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN))
+			hastate = SA_AMF_HA_QUIESCING;
+
+		curr_susi = avd_siass_next_susi_to_quiesce(susi);
+		while (curr_susi) {
+			rc = avd_susi_mod_send(curr_susi, hastate);
+			if (rc == NCSCC_RC_FAILURE) {
+				LOG_ER("%s:%u: %s ", __FILE__, __LINE__, su->name.value);
+				goto done;
+			}
+			curr_susi = avd_siass_next_susi_to_quiesce(susi);
+		}
 
 		/* identify the most preferred standby su for this si */
 		curr_sisu = find_pref_standby_susi(susi);
 		if (curr_sisu) {
-			if ((su->su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED)
-				|| (su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)) {
+			 /* TODO: In another enhancement with fault handling in NWAY for SI dependency
+			   enabled configuration, checks of if condition and else part will be removed  
+			   by a simple call to avd_susi_role_failover(). */
+			if ((su->su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) ||
+					(su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED) ||
+					(su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) ||
+					(su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) ||
+					(su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN)) {
 				rc = avd_susi_role_failover(curr_sisu, susi->su);
 				if (rc == NCSCC_RC_FAILURE) {
 					TRACE("Active role modification failed");
@@ -2771,6 +2797,10 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 		/* => single active assignment success */
 
 		avd_susi_update(susi, state);
+		if (susi->si->num_dependents > 0) {
+			avd_sidep_send_active_to_dependents(susi->si);
+		}
+
 		/* determine if all the standby sus are engaged */
 		m_AVD_SG_NWAY_ARE_STDBY_SUS_ENGAGED(sg->su_oper_list.su, 0, is_eng);
 		if (true == is_eng) {
@@ -2845,6 +2875,7 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 
                 /* free susi assignment */
                 m_AVD_SU_SI_TRG_DEL(cb, susi);
+
 
 		/* transition to sg-realign state or initiate si assignments */
 		if (sg->su_oper_list.su) {
