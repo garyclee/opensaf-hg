@@ -942,34 +942,44 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 }
 
 /**
+ * Terminate SU in reverse order  
+ * @param su
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ */
+static uint32_t avd_sg_su_term_in_reverse(AVD_SU *su)
+{
+  uint32_t rc = NCSCC_RC_SUCCESS; 
+  TRACE_ENTER2("su:'%s'", su ? su->name.value : NULL);
+  if (su->sg_list_su_next != NULL)
+	rc = avd_sg_su_term_in_reverse(su->sg_list_su_next);
+  if ((su->saAmfSUPreInstantiable == true) &&
+		  (su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
+		  (su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
+		  (su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
+
+	  if (avd_snd_presence_msg(avd_cb, su, true) == NCSCC_RC_SUCCESS) {
+		  m_AVD_SET_SU_TERM(avd_cb, su, true);
+	  } else {
+		  rc = NCSCC_RC_FAILURE;
+		  LOG_WA("Failed Termination '%s'", su->name.value);
+	  }
+  }
+  return rc ;
+}
+/**
  * perform lock-instantiation on a given SG
  * @param cb
  * @param sg
  */
 static uint32_t sg_app_sg_admin_lock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 {
-	AVD_SU *su;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%s", sg->name.value);
 
 	/* terminate all the SUs on this Node */
-	su = sg->list_of_su;
-	while (su != NULL) {
-		if ((su->saAmfSUPreInstantiable == true) &&
-			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
-			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
-			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
-
-			if (avd_snd_presence_msg(cb, su, true) == NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SU_TERM(cb, su, true);
-			} else {
-				rc = NCSCC_RC_FAILURE;
-				LOG_WA("Failed Termination '%s'", su->name.value);
-			}
-		}
-		su = su->sg_list_su_next;
-	}
+	if (sg->list_of_su != NULL)
+		rc = avd_sg_su_term_in_reverse(sg->list_of_su);
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;
