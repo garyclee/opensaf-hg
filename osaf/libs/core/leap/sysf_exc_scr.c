@@ -216,7 +216,7 @@ void ncs_exec_mod_hdlr(void)
 						ncs_patricia_tree_del(&module_cb.pid_list,
 								      (NCS_PATRICIA_NODE *)exec_pid);
 
-						m_MMGR_FREE_PRO_EXC(exec_pid);
+						free(exec_pid);
 						m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
 
 					} else {
@@ -300,7 +300,7 @@ void give_exec_mod_cb(int pid, uint32_t status, int type)
 			/* Remove entry from pat tree */
 			ncs_patricia_tree_del(&module_cb.pid_list, (NCS_PATRICIA_NODE *)exec_pid);
 
-			m_MMGR_FREE_PRO_EXC(exec_pid);
+			free(exec_pid);
 		}
 	}
 	m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
@@ -330,7 +330,7 @@ uint32_t add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uint32_t p
 	if (module_cb.init == false)
 		return m_LEAP_DBG_SINK(NCSCC_RC_SUCCESS);
 
-	if (NULL == (list_entry = m_MMGR_ALLOC_PRO_EXC))
+	if (NULL == (list_entry = (SYSF_PID_LIST *) malloc(sizeof(SYSF_PID_LIST))))
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 	list_entry->timeout_in_ms = req->i_timeout_in_ms;
@@ -344,7 +344,7 @@ uint32_t add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uint32_t p
 	m_NCS_LOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
 
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&module_cb.pid_list, (NCS_PATRICIA_NODE *)list_entry)) {
-		m_MMGR_FREE_PRO_EXC(list_entry);
+		free(list_entry);
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
@@ -479,7 +479,7 @@ uint32_t exec_mod_cb_destroy(void)
 			if (exec_pid->tmr_id != NULL)
 				m_NCS_TMR_DESTROY(exec_pid->tmr_id);
 
-			m_MMGR_FREE_PRO_EXC(exec_pid);
+			free(exec_pid);
 		}
 
 		if (ncs_patricia_tree_destroy(&module_cb.pid_list) != NCSCC_RC_SUCCESS) {

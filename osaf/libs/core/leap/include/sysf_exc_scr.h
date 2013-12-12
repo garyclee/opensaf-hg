@@ -81,16 +81,6 @@ typedef struct sysf_execute_module_cb {
 	bool init;
 } SYSF_EXECUTE_MODULE_CB;
 
-#define m_MMGR_ALLOC_PRO_EXC      (SYSF_PID_LIST*) m_NCS_MEM_ALLOC(sizeof(SYSF_PID_LIST),\
-                                               NCS_MEM_REGION_PERSISTENT, \
-                                               NCS_SERVICE_ID_COMMON,     \
-                                               0)
-
-#define m_MMGR_FREE_PRO_EXC(p)                 m_NCS_MEM_FREE(p,            \
-                                               NCS_MEM_REGION_PERSISTENT,   \
-                                               NCS_SERVICE_ID_COMMON,       \
-                                               0)
-
 
 #ifndef NCS_EXEC_MOD_STACKSIZE
 #define NCS_EXEC_MOD_STACKSIZE     NCS_STACKSIZE_HUGE
