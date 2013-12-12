@@ -97,7 +97,6 @@ uint32_t ncs_ipc_create(SYSF_MBX *mbx)
 
 	ncs_ipc->active_queue = 0;
 
-	m_NCS_SM_IPC_ELEM_ADD(ncs_ipc);
 	return rc;
 }
 
@@ -131,7 +130,6 @@ static uint32_t ipc_flush(NCS_IPC *ncs_ipc, NCS_IPC_CB remove_from_queue_cb, voi
 						cur_queue->tail = p_prev;
 				}
 
-				m_NCS_SM_IPC_ELEM_CUR_DEPTH_DEC(ncs_ipc);
 				ipc_dequeue_ind_processing(ncs_ipc, ind);
 			}
 			msg = p_next;
@@ -200,7 +198,6 @@ uint32_t ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb)
 	m_NCS_SEL_OBJ_RMV_OPERATION_SHUT(&ncs_ipc->sel_obj);
 
 	m_NCS_LOCK_DESTROY(&ncs_ipc->queue_lock);
-	m_NCS_SM_IPC_ELEM_DEL(ncs_ipc);
 
 	if (ncs_ipc->name != NULL)
 		m_NCS_MEM_FREE(ncs_ipc->name, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 1);
@@ -375,14 +372,11 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, bool block)
 			/* get item from head of (ACTIVE) queue... */
 			for (active_queue = 0; active_queue < NCS_IPC_PRIO_LEVELS; active_queue++) {
 				if ((msg = ncs_ipc->queue[active_queue].head) != NULL) {
-					m_NCS_SET_FN_QLAT();
 
 					if ((ncs_ipc->queue[active_queue].head = msg->next) == NULL)
 						ncs_ipc->queue[active_queue].tail = NULL;
 					msg->next = NULL;
 					/* ncs_ipc->active_queue = active_queue ^ 0x01; */
-
-					m_NCS_SM_IPC_ELEM_CUR_DEPTH_DEC(ncs_ipc);
 
 					if (ipc_dequeue_ind_processing(ncs_ipc, active_queue) != NCSCC_RC_SUCCESS) {
 						m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);

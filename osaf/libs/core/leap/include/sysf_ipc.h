@@ -41,24 +41,9 @@
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-            H&J Internal Messaging Facility Definitions
+            Internal Messaging Facility Definitions
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
-/**
- **
- ** Posting Events or IPC Messages.
- **
- ** The set of macros provided here can be modified at integration time to 
- ** make use of a Target System's IPC or Queueing facilities already in 
- ** existance.
- **
- **/
-
-#define m_NCS_SM_IPC_ELEM_ADD(a)
-#define m_NCS_SM_IPC_ELEM_DEL(a)
-#define m_NCS_SM_IPC_ELEM_CUR_DEPTH_INC(a)
-#define m_NCS_SM_IPC_ELEM_CUR_DEPTH_DEC(a)
 
 typedef struct ncs_ipc_queue {
 	NCS_IPC_MSG *head;
@@ -102,11 +87,5 @@ typedef struct tag_ncs_ipc {
 				 * to this IPC */
 	char *name;		/* mbx task name */
 } NCS_IPC;
-
-#define m_NCS_SYSM_LM_OP_IPC_LBGN(info)   NCSCC_RC_FAILURE
-#define m_NCS_SYSM_LM_OP_IPC_LTCY(info)   NCSCC_RC_FAILURE
-
-#define m_NCS_SET_ST_QLAT()
-#define m_NCS_SET_FN_QLAT()
 
 #endif   /* SYSF_IPC_H */
