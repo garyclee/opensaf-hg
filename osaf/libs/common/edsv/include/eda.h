@@ -22,7 +22,6 @@
 #include "ncs_main_papi.h"
 #include "ncs_svd.h"
 #include "usrbuf.h"
-#include "ncsft.h"
 #include "ncs_ubaid.h"
 #include "ncsencdec_pub.h"
 #include "ncs_lib.h"
