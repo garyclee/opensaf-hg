@@ -48,7 +48,6 @@
 
 #include <sysf_exc_scr.h>
 #include <ncssysf_tsk.h>
-#include "ncs_tasks.h"
 #include "ncssysf_lck.h"
 #include "ncssysf_def.h"
 #include "osaf_utility.h"

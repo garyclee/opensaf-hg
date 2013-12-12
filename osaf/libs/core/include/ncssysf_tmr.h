@@ -58,6 +58,11 @@ extern "C" {
 
 	extern uint32_t gl_tmr_milliseconds;
 
+
+#ifndef NCS_TMR_STACKSIZE
+#define NCS_TMR_STACKSIZE     NCS_STACKSIZE_HUGE
+#endif
+
 /** Target system timer support functions...
  **/
 
