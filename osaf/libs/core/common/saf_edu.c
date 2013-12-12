@@ -30,7 +30,7 @@
 
 #include <ncsgl_defs.h>
 
-#include "patricia.h"
+#include "ncspatricia.h"
 #include "ncsencdec_pub.h"
 
 #include "saAis.h"
