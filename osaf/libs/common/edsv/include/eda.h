@@ -25,7 +25,6 @@
 #include "ncsft.h"
 #include "ncs_ubaid.h"
 #include "ncsencdec_pub.h"
-#include "ncs_stack.h"
 #include "ncs_lib.h"
 
 #include "mds_papi.h"

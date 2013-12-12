@@ -23,7 +23,6 @@ noinst_HEADERS = \
 	ncs_edu.h \
 	ncsft.h \
 	ncs_hdl.h \
-	ncs_stack.h \
 	ncs_tasks.h \
 	patricia.h \
 	sysf_def.h \

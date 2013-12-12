@@ -32,7 +32,6 @@
 #include "ncssysf_mem.h"
 #include "sysf_def.h"
 #include "patricia.h"
-#include "ncs_stack.h"
 #include "ncssysfpool.h"
 #include "ncsencdec_pub.h"
 #include "ncs_edu.h"
