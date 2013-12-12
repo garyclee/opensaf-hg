@@ -42,7 +42,6 @@
 #include "ncs_svd.h"
 #include "ncssysf_def.h"
 #include "ncssysf_tmr.h"
-#include "sysf_def.h"
 #include "ncssysf_lck.h"
 #include "ncssysfpool.h"
 #include "sysf_exc_scr.h"

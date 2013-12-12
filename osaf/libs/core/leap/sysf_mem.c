@@ -51,7 +51,6 @@
 #include "ncssysf_mem.h"
 #include "usrbuf.h"
 #include "ncsusrbuf.h"
-#include "sysf_def.h"
 
 
 /*************************************************************************************/
