@@ -76,9 +76,6 @@ extern "C" {
 		uint32_t svc_sub_id;
 	} NCS_RP_TMR_INIT;
 
-#define m_IS_TIME_STAMP_SAME(dest_tmr, src_tmr) memcmp (&dest_tmr, &src_tmr, sizeof(time_t))
-#define m_RP_TMR_ALLOC(size, svc_id, sub_svc_id) m_NCS_MEM_ALLOC(size, NCS_MEM_REGION_PERSISTENT, svc_id, sub_svc_id)
-#define m_RP_TMR_FREE(ptr, svc_id, sub_svc_id) m_NCS_MEM_FREE(ptr, NCS_MEM_REGION_PERSISTENT, svc_id, sub_svc_id)
 
 #undef RP_LOG_ENB
 #ifdef RP_LOG_ENB
