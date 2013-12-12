@@ -47,7 +47,9 @@ plms_cb_dump_routine ()
 	he_base_info = (PLMS_HE_BASE_INFO *)ncs_patricia_tree_getnext(&cb->base_he_info,NULL);
 	ent = (PLMS_ENTITY *)ncs_patricia_tree_getnext(&cb->entity_info,NULL);
 
-	m_GET_ASCII_DATE_TIME_STAMP(tod, asc_tod);
+	/* Fetch the current timestamp, as an ascii string */
+    	tod=(time_t) (time((time_t *) 0));
+	strftime((char *)(asc_tod), 40, "%d%b%Y_%H.%M.%S", localtime(&tod));
 	
 	strcpy(tmp_file, PKGLOGDIR "/plms_dump.out");
 	strcat(tmp_file, asc_tod);
