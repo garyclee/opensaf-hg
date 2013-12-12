@@ -105,8 +105,7 @@ NCS_RP_TMR_CB *ncs_rp_tmr_init(NCS_RP_TMR_INIT *tmr_init_info)
 {
 	NCS_RP_TMR_CB *tmr_cb;
 
-	tmr_cb = (NCS_RP_TMR_CB *)m_RP_TMR_ALLOC(sizeof(NCS_RP_TMR_CB), tmr_init_info->svc_id,
-						 tmr_init_info->svc_sub_id);
+	tmr_cb = (NCS_RP_TMR_CB *)malloc(sizeof(NCS_RP_TMR_CB));
 
 	if (tmr_cb == NULL) {
 		m_RP_TMR_LOG_MSG("ncs_rp_tmr_init Os alloc failed", 0);
@@ -145,7 +144,7 @@ NCS_RP_TMR_HDL ncs_rp_tmr_create(NCS_RP_TMR_CB *tmr_cb)
 	NCS_RP_TMR_INFO *tmr_info;
 
 	/* allocate an leaf node and add it to the bucket */
-	tmr_info = (NCS_RP_TMR_INFO *)m_RP_TMR_ALLOC(sizeof(NCS_RP_TMR_INFO), tmr_cb->svc_id, tmr_cb->svc_sub_id);
+	tmr_info = (NCS_RP_TMR_INFO *)malloc(sizeof(NCS_RP_TMR_INFO));
 
 	if (tmr_info == NULL) {
 		m_RP_TMR_LOG_MSG("ncs_rp_tmr_start NCS_RP_TMR_INFO OS alloc failed", 0);
@@ -403,7 +402,7 @@ uint32_t ncs_rp_tmr_delete(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 			m_RP_TMR_LOG_MSG("ncs_rp_tmr_delete timer timer is not stoped", tmr_info);
 			ncs_rp_tmr_stop(tmr_cb, tmr_id);
 		}
-		m_RP_TMR_FREE(tmr_info, tmr_cb->svc_id, tmr_cb->svc_sub_id);
+		free(tmr_info);
 	} while (0);
 	m_NCS_UNLOCK(&tmr_cb->tmr_lock, NCS_LOCK_WRITE);
 	return (res);
@@ -440,7 +439,7 @@ uint32_t ncs_rp_tmr_destory(NCS_RP_TMR_CB **pptmr_cb)
 		pres_tmr_info = tmr_info;
 		for (; tmr_info != NULL;) {
 			tmr_info = tmr_info->pnext;
-			m_RP_TMR_FREE(pres_tmr_info, tmr_cb->svc_id, tmr_cb->svc_sub_id);
+			free(pres_tmr_info);
 			pres_tmr_info = tmr_info;
 		}
 
@@ -449,7 +448,7 @@ uint32_t ncs_rp_tmr_destory(NCS_RP_TMR_CB **pptmr_cb)
 	/* destroy the lock */
 	m_NCS_LOCK_DESTROY(&tmr_cb->tmr_lock);
 	/* free the RP control block */
-	m_RP_TMR_FREE(tmr_cb, tmr_cb->svc_id, tmr_cb->svc_sub_id);
+	free(tmr_cb);
 	*pptmr_cb = NULL;
 	return (NCSCC_RC_SUCCESS);
 }
