@@ -33,17 +33,16 @@
 
 typedef uint8_t MDS_SVC_ARCHWORD_TYPE;	/*MDS  app-svc arch and word_size combination */
 
-/* MDS_WORD_SIZE_TYPE and MDS_ARCH_TYPE are compile-time macros */
-
-#ifndef MDS_ARCH_TYPE
-#define MDS_ARCH_TYPE 0		/* Stands for unspecified architecture type */
-#elif (MDS_ARCH_TYPE > 7)
-#error MDS_ARCH_TYPE should be in the range 0 to 7.
-#endif
-
 #define MDS_WORD_SIZE_TYPE ((sizeof(long)/4) - 1)	/* 0 for 32-bit, 1 for 64-bit */
 
-#define MDS_SELF_ARCHWORD    ((MDS_SVC_ARCHWORD_TYPE) ((MDS_WORD_SIZE_TYPE<<3) | MDS_ARCH_TYPE))
+/*
+ * 4 bit ARCHWORD usage:
+ * Bit 3 is wordsize
+ * Bit 2:0 is a version field indicating capabilities.
+ *    Version 0 uses 1400 bytes fragmentation.
+ *    Version 1 uses TIPC max msg (66000 bytes) fragmentation.
+ */
+#define MDS_SELF_ARCHWORD ((MDS_SVC_ARCHWORD_TYPE) ((MDS_WORD_SIZE_TYPE<<3) | 1))
 
 typedef enum {
 	MDS_VIEW_NORMAL,

@@ -2024,7 +2024,16 @@ uint32_t mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 				m_MDS_LOG_INFO("MDTM: User Sending Data lenght=%d Fr_svc=%d to_svc=%d\n", len,
 					       req->src_svc_id, req->dest_svc_id);
 
-				int frag_size = MDTM_NORMAL_MSG_FRAG_SIZE;
+				// determine fragment limit using a bit in destination archword
+				int frag_size;
+				int version = req->msg_arch_word & 0x7;
+				if (version > 0) {
+					// normal mode, use TIPC fragmentation
+					frag_size = TIPC_MAX_USER_MSG_SIZE;
+				} else {
+					// old mode, completely skip TIPC fragmentation
+					frag_size = MDTM_NORMAL_MSG_FRAG_SIZE;
+				}
 
 				if (len > frag_size) {
 					/* Packet needs to be fragmented and send */

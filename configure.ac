@@ -470,27 +470,6 @@ if test "$enable_java" = no; then
 fi
 
 #############################################
-# MDS ARCH TYPE: MDS advises message encode/decode
-# optimization to its clients if the sender and receiver
-# are of "compatible-type". For this optimization to work, 
-# the sender's platform and receiver's platform should be 
-# similar (for e.g. both PowerPC) and use an libncs_core built 
-# with the same value for "mds_arch". An "mds_arch" value of 0 
-# is the default value and stands for a platform which is NOT
-# compatible with any platform. 
-#############################################
-
-AC_ARG_VAR([mds_arch], [The arch-type input to MDS - valid values 1-7])
-
-if test "$mds_arch" = ""; then
-        mdsarchtype=0
-else
-        mdsarchtype=$mds_arch
-fi
-
-AC_SUBST([MDS_WORD_ARCH_FLAGS], [" -DMDS_ARCH_TYPE=$mdsarchtype"])
-
-#############################################
 # Checks for libraries.
 #############################################
 PKG_CHECK_MODULES([XML2], [libxml-2.0])
