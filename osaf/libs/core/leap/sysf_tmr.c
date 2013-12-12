@@ -31,7 +31,6 @@
 #include <ncsgl_defs.h>
 #include "ncs_osprm.h"
 
-#include "ncs_tasks.h"
 #include "ncs_tmr.h"
 #include "sysf_def.h"
 #include "ncssysf_def.h"

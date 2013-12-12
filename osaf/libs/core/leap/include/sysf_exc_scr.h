@@ -39,7 +39,6 @@
 #include "ncssysf_def.h"
 #include "ncspatricia.h"
 #include "ncssysf_tmr.h"
-#include "ncs_tasks.h"
 #include "signal.h"
 #include "ncssysf_tsk.h"
 #include "ncssysf_lck.h"
@@ -91,6 +90,11 @@ typedef struct sysf_execute_module_cb {
                                                NCS_MEM_REGION_PERSISTENT,   \
                                                NCS_SERVICE_ID_COMMON,       \
                                                0)
+
+
+#ifndef NCS_EXEC_MOD_STACKSIZE
+#define NCS_EXEC_MOD_STACKSIZE     NCS_STACKSIZE_HUGE
+#endif
 
 extern SYSF_EXECUTE_MODULE_CB module_cb;
 
