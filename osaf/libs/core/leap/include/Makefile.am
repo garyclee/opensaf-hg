@@ -22,7 +22,6 @@ noinst_HEADERS = \
 	ncsdlib.h \
 	ncs_edu.h \
 	ncs_hdl.h \
-	patricia.h \
 	sysf_def.h \
 	sysf_exc_scr.h \
 	sysf_ipc.h \

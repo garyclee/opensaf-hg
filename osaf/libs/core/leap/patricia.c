@@ -43,7 +43,7 @@
 #include "ncs_osprm.h"
 #include "ncssysfpool.h"
 #include "ncssysf_def.h"
-#include "patricia.h"
+#include "ncspatricia.h"
 
 const static uint8_t BitMasks[9] = {
 	0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff

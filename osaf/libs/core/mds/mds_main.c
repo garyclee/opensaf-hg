@@ -35,7 +35,7 @@
 #include "ncssysf_tmr.h"
 #include "mds_dl_api.h"
 #include "mds_core.h"
-#include "patricia.h"
+#include "ncspatricia.h"
 #include "mds_log.h"
 #include "ncs_main_pub.h"
 #include "mds_dt_tcp.h"

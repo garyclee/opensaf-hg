@@ -28,7 +28,7 @@
 
 #include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-#include "patricia.h"
+#include "ncspatricia.h"
 #include "ncssysf_mem.h"
 #include "ncsencdec_pub.h"
 #include "ncs_edu.h"

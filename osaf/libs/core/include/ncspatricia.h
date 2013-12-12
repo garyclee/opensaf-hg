@@ -47,6 +47,9 @@ extern "C" {
 
 #include "ncsgl_defs.h"
 
+#define m_KEY_CMP(t, k1, k2) memcmp(k1, k2, (size_t)(t)->params.key_size)
+#define m_GET_BIT(key, bit)  ((bit < 0) ? 0 : ((int)((*((key) + (bit >> 3))) >> (7 - (bit & 0x07))) & 0x01))
+
 	typedef struct ncs_patricia_params {
 		int key_size;	/* 1..NCS_PATRICIA_MAX_KEY_SIZE - in OCTETS */
 		int info_size;	/* NOT USED!  Present for backward-compatibility only! */

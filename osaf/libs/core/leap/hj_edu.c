@@ -31,7 +31,7 @@
 #include "ncssysf_def.h"
 #include "ncssysf_mem.h"
 #include "sysf_def.h"
-#include "patricia.h"
+#include "ncspatricia.h"
 #include "ncssysfpool.h"
 #include "ncsencdec_pub.h"
 #include "ncs_edu.h"
