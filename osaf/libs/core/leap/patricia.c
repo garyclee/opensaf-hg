@@ -44,7 +44,6 @@
 #include "ncssysfpool.h"
 #include "ncssysf_def.h"
 #include "patricia.h"
-#include "sysf_pat.h"
 
 const static uint8_t BitMasks[9] = {
 	0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff
@@ -158,7 +157,7 @@ unsigned int ncs_patricia_tree_init(NCS_PATRICIA_TREE *const pTree, const NCS_PA
 	pTree->root_node.key_info = (uint8_t *)0;
 	pTree->root_node.bit = -1;
 	pTree->root_node.left = pTree->root_node.right = &pTree->root_node;
-	if ((pTree->root_node.key_info = m_MMGR_ALLOC_PATRICIA_STACK(pTree->params.key_size)) == NULL) {
+	if ((pTree->root_node.key_info = (NCS_PATRICIA_LEXICAL_STACK *)malloc(pTree->params.key_size)) == NULL) {
 		return (unsigned int)m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
@@ -192,7 +191,7 @@ unsigned int ncs_patricia_tree_init(NCS_PATRICIA_TREE *const pTree, const NCS_PA
 unsigned int ncs_patricia_tree_destroy(NCS_PATRICIA_TREE *const pTree)
 {
 	ncs_patricia_tree_clear(pTree);
-	m_MMGR_FREE_PATRICIA_STACK(pTree->root_node.key_info);
+	free(pTree->root_node.key_info);
 	return NCSCC_RC_SUCCESS;
 }
 
