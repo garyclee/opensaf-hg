@@ -656,80 +656,6 @@ uint32_t mainget_node_id(uint32_t *node_id)
 	return (res);
 }
 
-/* Fetchs the chassis type string */
-uint32_t ncs_get_chassis_type(uint32_t i_max_len, char *o_chassis_type)
-{
-	FILE *fp;
-	uint32_t res = NCSCC_RC_SUCCESS;
-	uint32_t d_len, f_len;
-	uint32_t file_size = 0;
-	char temp_ncs_config_root[MAX_NCS_CONFIG_FILEPATH_LEN + 1];
-
-	if ((res = ncs_set_config_root()) != NCSCC_RC_SUCCESS)
-		return NCSCC_RC_FAILURE;
-
-	memset(temp_ncs_config_root, 0, sizeof(temp_ncs_config_root));
-
-	strncpy(temp_ncs_config_root, ncs_config_root, sizeof(temp_ncs_config_root) - 1);
-
-	if (i_max_len > NCS_MAX_CHASSIS_TYPE_LEN)
-		return NCSCC_RC_FAILURE;
-
-	d_len = strlen(temp_ncs_config_root);
-
-	f_len = strlen("/chassis_type");
-	if ((d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN) {
-		TRACE_4("\n Filename too long \n");
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Hack ncs_config_root to construct path */
-	sprintf(temp_ncs_config_root + d_len, "%s", "/chassis_type");
-	fp = fopen(temp_ncs_config_root, "r");
-	if (fp == NULL) {
-		TRACE_4("\nNCS: Couldn't open %s/chassis_type \n", temp_ncs_config_root);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* positions the file pointer to the end of the file */
-	if (0 != fseek(fp, 0L, SEEK_END)) {
-		TRACE_4("fseek call failed with errno  %d \n", errno);
-		fclose(fp);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* gets the file pointer offset from the start of the file */
-	file_size = ftell(fp);
-	if (file_size == -1) {
-		TRACE_4("ftell call failed with errno %d \n", errno);
-		fclose(fp);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* validating the file size */
-	if ((file_size > NCS_MAX_CHASSIS_TYPE_LEN + 1) || (file_size > i_max_len + 1) || (file_size == 0)) {
-		TRACE_4("Some thing wrong with chassis_type file \n");
-		fclose(fp);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* positions the file pointer to the end of the file */
-	if (0 != fseek(fp, 0L, SEEK_SET)) {
-		TRACE_4("fseek call failed with errno  %d \n", errno);
-		fclose(fp);
-		return NCSCC_RC_FAILURE;
-	}
-
-	do {
-		/* reads the chassis type string from the file and copies into the user provided buffer */
-		file_get_string(&fp, o_chassis_type);
-
-		fclose(fp);
-
-	} while (0);
-
-	return (res);
-}
 
 static uint32_t ncs_set_config_root(void)
 {
@@ -860,28 +786,6 @@ uint32_t ncs_update_sys_param_args(void)
 	return NCSCC_RC_SUCCESS;
 }
 
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_util_get_char_option
-
-\***************************************************************************/
-char ncs_util_get_char_option(int argc, char *argv[], char *arg_prefix)
-{
-	char char_option;
-	char *p_field;
-
-	p_field = ncs_util_search_argv_list(argc, argv, arg_prefix);
-	if (p_field == NULL) {
-		return 0;
-	}
-	if (sscanf(p_field + strlen(arg_prefix), "%c", &char_option) != 1) {
-		return 0;
-	}
-	if (isupper(char_option))
-		char_option = (char)tolower(char_option);
-
-	return char_option;
-}
 
 /***************************************************************************\
 
@@ -901,33 +805,6 @@ char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix)
 	return NULL;
 }
 
-/****************************************************************************
-  Name          :  ncs_get_node_id_from_phyinfo
-
-  Description   :  This function combines  chassis id ,physical 
-                   slot id and  sub slot id into node_id
-
-  Arguments     :  i_chassis_id  - chassis id 
-                   i_phy_slot_id - physical slot id
-                   i_sub_slot_id - slot id 
-                   *o_node_id - node_id 
-
-  Return Values :  On Failure NCSCC_RC_FAILURE
-                   On Success NCSCC_RC_SUCCESS
-
-  Notes         :  None.
-******************************************************************************/
-uint8_t ncs_get_node_id_from_phyinfo(NCS_CHASSIS_ID i_chassis_id, NCS_PHY_SLOT_ID i_phy_slot_id,
-				  NCS_SUB_SLOT_ID i_sub_slot_id, NCS_NODE_ID *o_node_id)
-{
-	if (o_node_id == NULL)
-		return NCSCC_RC_FAILURE;
-
-	*o_node_id = ((NCS_CHASSIS_ID)i_chassis_id << 16) |
-	    ((NCS_NODE_ID)i_phy_slot_id << 8) | (NCS_NODE_ID)i_sub_slot_id;
-
-	return NCSCC_RC_SUCCESS;
-}
 
 /****************************************************************************
   Name          :  ncs_get_phyinfo_from_node_id
