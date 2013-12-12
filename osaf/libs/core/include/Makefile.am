@@ -37,7 +37,6 @@ noinst_HEADERS = \
 	ncs_queue.h \
 	ncs_saf.h \
 	ncs_sprr_papi.h \
-	ncs_stack_pub.h \
 	ncs_svd.h \
 	ncssysf_def.h \
 	ncssysf_ipc.h \

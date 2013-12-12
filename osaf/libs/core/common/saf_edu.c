@@ -31,7 +31,6 @@
 #include <ncsgl_defs.h>
 
 #include "patricia.h"
-#include "ncs_stack.h"
 #include "ncsencdec_pub.h"
 
 #include "saAis.h"

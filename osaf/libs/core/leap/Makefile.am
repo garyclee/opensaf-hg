@@ -45,7 +45,6 @@ libleap_la_SOURCES = \
 	hj_queue.c \
 	hj_hdl.c \
 	hj_tmr.c \
-	hj_stack.c \
 	hj_ubaid.c \
 	sysf_exc_scr.c \
 	os_defs.c
