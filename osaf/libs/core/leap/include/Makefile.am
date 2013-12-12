@@ -21,7 +21,6 @@ MAINTAINERCLEANFILES = Makefile.in
 noinst_HEADERS = \
 	ncsdlib.h \
 	ncs_edu.h \
-	ncsft.h \
 	ncs_hdl.h \
 	ncs_tasks.h \
 	patricia.h \
