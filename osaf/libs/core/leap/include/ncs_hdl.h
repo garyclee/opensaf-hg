@@ -282,31 +282,6 @@ typedef struct hm_core {
 #define m_HM_STAT_RMV_IN_USE(r,n)
 #endif
 
-/*************************************************************************** 
- * Required Memory Management Macros for Handle Manager
- ***************************************************************************/
-
-#define m_MMGR_ALLOC_HM_CELLS      (HM_CELLS*) m_NCS_MEM_ALLOC(sizeof(HM_CELLS),\
-                                               NCS_MEM_REGION_PERSISTENT, \
-                                               NCS_SERVICE_ID_COMMON,     \
-                                               0)
-#define m_MMGR_ALLOC_HM_UNIT       (HM_UNIT*)  m_NCS_MEM_ALLOC(sizeof(HM_UNIT),\
-                                               NCS_MEM_REGION_PERSISTENT, \
-                                               NCS_SERVICE_ID_COMMON,     \
-                                               0)
-
-/* The Free cases */
-
-#define m_MMGR_FREE_HM_CELLS(p)                m_NCS_MEM_FREE(p,            \
-                                               NCS_MEM_REGION_PERSISTENT,   \
-                                               NCS_SERVICE_ID_COMMON,       \
-                                               0)
-
-#define m_MMGR_FREE_HM_UNIT(p)                 m_NCS_MEM_FREE(p,            \
-                                               NCS_MEM_REGION_PERSISTENT,   \
-                                               NCS_SERVICE_ID_COMMON,       \
-                                               0)
-
 /***************************************************************************
  *
  * P r i v a t e  (i n t e r n a l)  H a n d l e   M g r   F u n c t i o n s

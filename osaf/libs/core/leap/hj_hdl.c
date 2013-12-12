@@ -245,9 +245,9 @@ void ncshm_delete(void)
 		if ((unit = gl_hm.unit[i]) != NULL) {
 			for (j = 0; j < HM_BANK_CNT; j++) {
 				if (unit->cells[j] != NULL)
-					m_MMGR_FREE_HM_CELLS(unit->cells[j]);
+					free(unit->cells[j]);
 			}
-			m_MMGR_FREE_HM_UNIT(unit);
+			free(unit);
 		}
 	}
 
@@ -553,7 +553,7 @@ uint32_t hm_make_free_cells(HM_PMGR *pmgr)
 	/* first time this pool has been used ?? */
 
 	if (unit == NULL) {
-		if ((unit = m_MMGR_ALLOC_HM_UNIT) == NULL)
+		if ((unit = (HM_UNIT*) malloc(sizeof(HM_UNIT))) == NULL)
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 		memset(unit, 0, sizeof(HM_UNIT));
@@ -570,8 +570,7 @@ uint32_t hm_make_free_cells(HM_PMGR *pmgr)
 	}
 
 	/* Now go make HM_CELL_CNT (4096) new cells */
-
-	if ((cells = m_MMGR_ALLOC_HM_CELLS) == NULL)
+	if ((cells = (HM_CELLS*) malloc(sizeof(HM_CELLS))) == NULL)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 	memset(cells, 0, sizeof(HM_CELLS));
@@ -622,7 +621,7 @@ HM_FREE *hm_target_cell(HM_HDL *hdl)
 	pmgr = &gl_hm.pool[m_HM_POOL_ID((uint8_t)hdl->idx1)];	/* determine pool */
 
 	if ((unit = gl_hm.unit[hdl->idx1]) == NULL) {
-		if ((unit = m_MMGR_ALLOC_HM_UNIT) == NULL) {
+		if ((unit = (HM_UNIT*)  malloc(sizeof(HM_UNIT))) == NULL) {
 			m_LEAP_DBG_SINK(NULL);
 			return NULL;
 		}
@@ -632,7 +631,7 @@ HM_FREE *hm_target_cell(HM_HDL *hdl)
 	}
 
 	if ((cells = unit->cells[hdl->idx2]) == NULL) {
-		if ((cells = m_MMGR_ALLOC_HM_CELLS) == NULL) {
+		if ((cells = (HM_CELLS*) malloc(sizeof(HM_CELLS))) == NULL) {
 			m_LEAP_DBG_SINK(NULL);
 			return NULL;
 		}
