@@ -69,7 +69,6 @@
 #include "ncssysf_mem.h"
 #include "ncsencdec_pub.h"
 #include "ncsusrbuf.h"
-#include "ncs_mds_def.h"
 
 #define SIXTYFOUR_BYTES 64
 

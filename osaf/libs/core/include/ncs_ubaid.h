@@ -44,7 +44,6 @@
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
 #include "ncsusrbuf.h"
-#include "ncs_mds_def.h"
 
 #ifdef  __cplusplus
 extern "C" {
