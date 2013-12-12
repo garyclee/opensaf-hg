@@ -30,7 +30,6 @@
 #include "ncs_osprm.h"
 #include "ncssysf_def.h"
 #include "ncssysf_mem.h"
-#include "sysf_def.h"
 #include "ncspatricia.h"
 #include "ncssysfpool.h"
 #include "ncsencdec_pub.h"
@@ -193,7 +192,7 @@ uint32_t ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba
 		/* Get the variable-arguments of this function into our storage */
 		int x = 0;
 
-		var_array = m_MMGR_ALLOC_EDP_SELECT_ARRAY(var_cnt);
+		var_array =  malloc(var_cnt*sizeof(int));
 
 		va_start(arguments, var_cnt);
 		for (x = 0; x < var_cnt; x++) {
@@ -250,7 +249,7 @@ uint32_t ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba
 #endif
 
 	if (var_array != NULL) {
-		m_MMGR_FREE_EDP_SELECT_ARRAY(var_array);
+		free(var_array);
 		var_array = NULL;
 	}
 
@@ -333,7 +332,7 @@ uint32_t ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 		/* Get the variable-arguments of this function into our storage */
 		int x = 0;
 
-		var_array = m_MMGR_ALLOC_EDP_SELECT_ARRAY(var_cnt);
+		var_array = malloc(var_cnt*sizeof(int));
 
 		va_start(arguments, var_cnt);
 		for (x = 0; x < var_cnt; x++) {
@@ -384,7 +383,7 @@ uint32_t ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 #endif
 
 	if (var_array != NULL) {
-		m_MMGR_FREE_EDP_SELECT_ARRAY(var_array);
+		free(var_array);
 		var_array = NULL;
 	}
 
@@ -673,7 +672,7 @@ int ncs_edu_exec_rule(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			if (--ppdb_node->refcount == 0) {
 				/* Destroy the node. */
 				edu_ppdb_node_del(&edu_tkn->ppdb, ppdb_node);
-				m_MMGR_FREE_EDU_PPDB_NODE_INFO(ppdb_node);
+				free(ppdb_node);
 			}
 		} else
 #endif
@@ -2506,7 +2505,7 @@ uint32_t ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 					*o_err = EDU_ERR_EXEC_INSTR_DOES_NOT_EXIST_FOR_OFFSET_OF_TEST_INSTR;
 					return NCSCC_RC_FAILURE;
 				}
-				if ((tmp = m_MMGR_ALLOC_EDP_TEST_INSTR_REC) == NULL) {
+				if ((tmp = (EDP_TEST_INSTR_REC *)malloc(sizeof(EDP_TEST_INSTR_REC))) == NULL) {
 					ncs_edu_free_test_instr_rec_list(*head);
 					*head = NULL;
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -2554,7 +2553,7 @@ uint32_t ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 					}
 				}
 				if (!already_added) {
-					if ((tmp = m_MMGR_ALLOC_EDP_TEST_INSTR_REC) == NULL) {
+					if ((tmp = (EDP_TEST_INSTR_REC *)malloc(sizeof(EDP_TEST_INSTR_REC))) == NULL) {
 						ncs_edu_free_test_instr_rec_list(*head);
 						*head = NULL;
 						*o_err = EDU_ERR_MEM_FAIL;
@@ -2594,7 +2593,7 @@ void ncs_edu_free_test_instr_rec_list(EDP_TEST_INSTR_REC *head)
 
 	while (head != NULL) {
 		tmp = head->next;
-		m_MMGR_FREE_EDP_TEST_INSTR_REC(head);
+		free(head);
 		head = tmp;
 	}
 
@@ -2717,7 +2716,7 @@ static EDU_PPDB_NODE_INFO *edu_ppdb_node_findadd(EDU_PPDB * ppdb,
 	     ncs_patricia_tree_get(&ppdb->tree, (uint8_t *)&key)) == NULL) {
 		if (add) {
 			/* This is a new one */
-			if ((node = (new_node = m_MMGR_ALLOC_EDU_PPDB_NODE_INFO)) == NULL) {
+			if ((node = (new_node = (EDU_PPDB_NODE_INFO *)malloc(sizeof(EDU_PPDB_NODE_INFO)))) == NULL) {
 				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
@@ -2740,7 +2739,7 @@ static EDU_PPDB_NODE_INFO *edu_ppdb_node_findadd(EDU_PPDB * ppdb,
 	if (rc != NCSCC_RC_SUCCESS) {
 		/* If an new entry is created free it. No need of any other cleanup */
 		if (new_node)
-			m_MMGR_FREE_EDU_PPDB_NODE_INFO(new_node);
+			free(new_node);
 		return NULL;
 	}
 	return node;
@@ -2773,7 +2772,7 @@ static void edu_ppdb_node_del(EDU_PPDB * ppdb, EDU_PPDB_NODE_INFO * node)
 	}
 
 	/* Free the node. */
-	m_MMGR_FREE_EDU_PPDB_NODE_INFO(node);
+	free(node);
 
 	return;
 }
@@ -3247,7 +3246,7 @@ uint32_t ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog, EDU_HDL_NO
 	/* If hdl_node entry not present, add now. */
 	if ((lcl_hdl_node = (EDU_HDL_NODE *)
 	     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&prog)) == NULL) {
-		if ((lcl_hdl_node = (new_node = m_MMGR_ALLOC_EDU_HDL_NODE)) == NULL) {
+		if ((lcl_hdl_node = (new_node = (EDU_HDL_NODE *) malloc(sizeof(EDU_HDL_NODE)))) == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}
@@ -3263,7 +3262,7 @@ uint32_t ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog, EDU_HDL_NO
 			/* If an new entry is created free it. No need of any other cleanup */
 			*o_err = EDU_ERR_MEM_FAIL;
 			if (new_node)
-				m_MMGR_FREE_EDU_HDL_NODE(new_node);
+				free(new_node);
 			return NCSCC_RC_FAILURE;
 		}
 		if (hdl_node != NULL)
@@ -3366,7 +3365,7 @@ static void edu_hdl_node_del(EDU_HDL *edu_hdl, EDU_HDL_NODE *node)
 	node->test_instr_store = NULL;
 
 	/* Free the node. */
-	m_MMGR_FREE_EDU_HDL_NODE(node);
+	free(node);
 
 	return;
 }

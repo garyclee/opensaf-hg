@@ -72,7 +72,6 @@
 #include "stdlib.h"
 
 /* From /leap/os_svcs/leap_basic/inc */
-#include "sysf_def.h"
 #include "mqsv_common.h"
 #include "ncs_util.h"
 

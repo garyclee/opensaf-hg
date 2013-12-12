@@ -32,7 +32,6 @@
 #include "ncssysf_mem.h"
 #include "ncsencdec_pub.h"
 #include "ncs_edu.h"
-#include "sysf_def.h"
 #include "ncs_ubaid.h"
 
 extern char gl_log_string[];
@@ -80,7 +79,7 @@ uint32_t ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			if (*(bool **)ptr == NULL) {
 				/* Since "ncs_edp_ncs_bool" is the responsibility of LEAP, LEAP
 				   is supposed to malloc this memory. */
-				(*(bool **)ptr) = uptr = m_MMGR_ALLOC_EDP_bool;
+				(*(bool **)ptr) = uptr = (bool *)malloc(sizeof(bool));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -114,7 +113,7 @@ uint32_t ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				/* We need populate the pointer here, so that it can
 				   be sent back to the parent invoker(most likely
 				   to be able to perform the TEST condition). */
-				uptr = m_MMGR_ALLOC_EDP_bool;
+				uptr = (bool*)malloc(sizeof(bool));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -222,7 +221,7 @@ uint32_t ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			if (*(uint8_t **)ptr == NULL) {
 				/* Since "ncs_edp_uns8" is the responsibility of LEAP, LEAP
 				   is supposed to malloc this memory. */
-				(*(uint8_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(len);
+				(*(uint8_t **)ptr) = uptr = malloc((len)*sizeof(uint8_t));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -278,7 +277,7 @@ uint32_t ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				len |= (uint16_t)*(p8)++;
 			}
 
-			uptr = m_MMGR_ALLOC_EDP_UNS8(len);
+			uptr = malloc((len)*sizeof(uint8_t));
 			if (uptr == NULL) {
 				/* Memory failure. */
 				*o_err = EDU_ERR_MEM_FAIL;
@@ -395,7 +394,7 @@ uint32_t ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			if (*(uint16_t **)ptr == NULL) {
 				/* Since "ncs_edp_uns16" is the responsibility of LEAP, LEAP
 				   is supposed to malloc this memory. */
-				(*(uint16_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(uint16_t) * len);
+				(*(uint16_t **)ptr) = uptr = malloc((sizeof(uint16_t) * len)*sizeof(uint8_t));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -444,7 +443,7 @@ uint32_t ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				len |= (uint16_t)*(p8)++;
 			}
 
-			uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(uint16_t) * len);
+			uptr = malloc((sizeof(uint16_t) * len)*sizeof(uint8_t));
 			if (uptr == NULL) {
 				/* Memory failure. */
 				*o_err = EDU_ERR_MEM_FAIL;
@@ -550,7 +549,7 @@ uint32_t ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			if (*(uint32_t **)ptr == NULL) {
 				/* Since "ncs_edp_uns32" is the responsibility of LEAP, LEAP
 				   is supposed to malloc this memory. */
-				(*(uint32_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(4 * len);
+				(*(uint32_t **)ptr) = uptr = malloc((4 * len)*sizeof(uint8_t));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -596,7 +595,7 @@ uint32_t ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				len = ((uint16_t)*(p8)++) << 8;
 				len |= (uint16_t)*(p8)++;
 			}
-			uptr = m_MMGR_ALLOC_EDP_UNS8(4 * len);
+			uptr = malloc((4 * len)*sizeof(uint8_t));
 			if (uptr == NULL) {
 				/* Memory failure. */
 				*o_err = EDU_ERR_MEM_FAIL;
@@ -685,7 +684,7 @@ uint32_t ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			if (*(uint8_t **)ptr == NULL) {
 				/* Since "ncs_edp_char" is the responsibility of LEAP, LEAP
 				   is supposed to malloc this memory. */
-				(*(char **)ptr) = uptr = m_MMGR_ALLOC_EDP_CHAR(*ptr_data_len);
+				(*(char **)ptr) = uptr = malloc((*ptr_data_len)*sizeof(char));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -719,7 +718,7 @@ uint32_t ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			char *uptr = NULL;
 
 			*ptr_data_len = 1;
-			uptr = m_MMGR_ALLOC_EDP_CHAR(*ptr_data_len);
+			uptr = malloc((*ptr_data_len)*sizeof(char));
 			if (uptr == NULL) {
 				/* Memory failure. */
 				*o_err = EDU_ERR_MEM_FAIL;
@@ -838,7 +837,7 @@ uint32_t ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			if (*(char **)ptr == NULL) {
 				/* Since "ncs_edp_string" is the responsibility of LEAP, LEAP
 				   is supposed to malloc this memory. */
-				(*(char **)ptr) = uptr = m_MMGR_ALLOC_EDP_CHAR(len + 1);
+				(*(char **)ptr) = uptr = malloc((len + 1)*sizeof(char));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -899,7 +898,7 @@ uint32_t ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			if (len != 0) {
 				char *uptr = NULL;
 
-				uptr = m_MMGR_ALLOC_EDP_CHAR(len + 1);
+				uptr = malloc((len + 1)sizeof(char));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -985,7 +984,7 @@ uint32_t ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			if (*(short **)ptr == NULL) {
 				/* Since "ncs_edp_short" is the responsibility of LEAP, LEAP
 				   is supposed to malloc this memory. */
-				(*(short **)ptr) = uptr = m_MMGR_ALLOC_EDP_SHORT;
+				(*(short **)ptr) = uptr = (short *)malloc(sizeof(short));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -1021,7 +1020,7 @@ uint32_t ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				/* We need populate the pointer here, so that it can
 				   be sent back to the parent invoker(most likely
 				   to be able to perform the TEST condition). */
-				uptr = m_MMGR_ALLOC_EDP_SHORT;
+				uptr = (short *)malloc(sizeof(short));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -1102,7 +1101,7 @@ uint32_t ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			if (*(int **)ptr == NULL) {
 				/* Since "ncs_edp_int" is the responsibility of LEAP, LEAP
 				   is supposed to malloc this memory. */
-				(*(int **)ptr) = uptr = m_MMGR_ALLOC_EDP_INT;
+				(*(int **)ptr) = uptr = (int *)malloc(sizeof(int));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -1138,7 +1137,7 @@ uint32_t ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				/* We need populate the pointer here, so that it can
 				   be sent back to the parent invoker(most likely
 				   to be able to perform the TEST condition). */
-				uptr = m_MMGR_ALLOC_EDP_INT;
+				uptr = (int *)malloc(sizeof(int));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -1215,7 +1214,7 @@ uint32_t ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			int8_t *uptr = NULL;
 
 			if (*(int8_t **)ptr == NULL) {
-				(*(int8_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_INT8;
+				(*(int8_t **)ptr) = uptr = (int8_t *)malloc(sizeof(int8_t));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -1251,7 +1250,7 @@ uint32_t ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				/* We need populate the pointer here, so that it can
 				   be sent back to the parent invoker(most likely
 				   to be able to perform the TEST condition). */
-				uptr = m_MMGR_ALLOC_EDP_INT8;
+				uptr = (int8_t*)malloc(sizeof(int8_t));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -1329,7 +1328,7 @@ uint32_t ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			int16_t *uptr = NULL;
 
 			if (*(int16_t **)ptr == NULL) {
-				(*(int16_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_INT16;
+				(*(int16_t **)ptr) = uptr = (int16_t *)malloc(sizeof(int16_t));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -1365,7 +1364,7 @@ uint32_t ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				/* We need populate the pointer here, so that it can
 				   be sent back to the parent invoker(most likely
 				   to be able to perform the TEST condition). */
-				uptr = m_MMGR_ALLOC_EDP_INT16;
+				uptr = (int16_t *)malloc(sizeof(int16_t));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -1443,7 +1442,7 @@ uint32_t ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			int32_t *uptr = NULL;
 
 			if (*(int32_t **)ptr == NULL) {
-				(*(int32_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_INT32;
+				(*(int32_t **)ptr) = uptr = (int32_t *)malloc(sizeof(int32_t));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -1479,7 +1478,7 @@ uint32_t ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				/* We need populate the pointer here, so that it can
 				   be sent back to the parent invoker(most likely
 				   to be able to perform the TEST condition). */
-				uptr = m_MMGR_ALLOC_EDP_INT32;
+				uptr = (int32_t *)malloc(sizeof(int32_t));
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -1659,7 +1658,7 @@ uint32_t ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		if (*(uint64_t **)ptr == NULL) {
 			/* Since "uns64" is the responsibility of LEAP, LEAP
 			   is supposed to malloc this memory. */
-			(*(uint64_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(uint64_t) / sizeof(uint8_t));
+			(*(uint64_t **)ptr) = uptr = malloc((sizeof(uint64_t) / sizeof(uint8_t))*sizeof(uint8_t));
 			if (uptr == NULL) {
 				/* Memory failure. */
 				*o_err = EDU_ERR_MEM_FAIL;
@@ -1699,7 +1698,7 @@ uint32_t ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		/* We need populate the pointer here, so that it can
 		   be sent back to the parent invoker(most likely
 		   to be able to perform the TEST condition). */
-		uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(uint64_t) / sizeof(uint8_t));
+		uptr = malloc((sizeof(uint64_t) / sizeof(uint8_t))*sizeof(uint8_t));
 		if (uptr == NULL) {
 			/* Memory failure. */
 			*o_err = EDU_ERR_MEM_FAIL;
@@ -1811,7 +1810,7 @@ uint32_t ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		if (*(int64_t **)ptr == NULL) {
 			/* Since "int64" is the responsibility of LEAP, LEAP
 			   is supposed to malloc this memory. */
-			(*(int64_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(int64_t) / sizeof(uint8_t));
+			(*(int64_t **)ptr) = uptr = malloc((sizeof(int64_t) / sizeof(uint8_t))*sizeof(uint8_t));
 			if (uptr == NULL) {
 				/* Memory failure. */
 				*o_err = EDU_ERR_MEM_FAIL;
@@ -1851,7 +1850,7 @@ uint32_t ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		/* We need populate the pointer here, so that it can
 		   be sent back to the parent invoker(most likely
 		   to be able to perform the TEST condition). */
-		uptr = m_MMGR_ALLOC_EDP_UNS8(sizeof(int64_t) / sizeof(uint8_t));
+		uptr = malloc((sizeof(int64_t) / sizeof(uint8_t))*sizeof(uint8_t));
 		if (uptr == NULL) {
 			/* Memory failure. */
 			*o_err = EDU_ERR_MEM_FAIL;
