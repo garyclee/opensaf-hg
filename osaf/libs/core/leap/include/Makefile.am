@@ -27,5 +27,4 @@ noinst_HEADERS = \
 	sysf_def.h \
 	sysf_exc_scr.h \
 	sysf_ipc.h \
-	sysf_pat.h \
 	usrbuf.h
