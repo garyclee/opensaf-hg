@@ -1483,10 +1483,10 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 	msg_send.dest_pwe_id = m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_cb->svc_hdl);
 	msg_send.dest_vdest_id = dest_vdest_id;
 	msg_send.src_svc_sub_part_ver = svc_cb->svc_sub_part_ver;
+	msg_send.msg_arch_word = to_msg->rem_svc_arch_word;
 	if (msg_send.msg.encoding == MDS_ENC_TYPE_FULL) {
 		if (NULL == bcast_ptr) {
-			msg_send.msg_fmt_ver = cbinfo.info.enc.o_msg_fmt_ver;	/* archword will be filled in next label */
-			msg_send.msg_arch_word = to_msg->rem_svc_arch_word;
+			msg_send.msg_fmt_ver = cbinfo.info.enc.o_msg_fmt_ver;
 		}
 	} else {
 		if (NULL == bcast_ptr) {
@@ -6502,14 +6502,10 @@ static uint32_t mcm_query_for_node_dest_on_archword(MDS_DEST adest, uint8_t *to,
 	if (m_MDS_GET_ADEST == adest) {
 		*to = DESTINATION_SAME_PROCESS;
 	} else if (MDS_SELF_ARCHWORD == arch_word) {
-		if ((0 == (MDS_SELF_ARCHWORD & 0x7) && (0 == (arch_word & 0x7)))) {
-			if (m_MDS_GET_NODE_ID_FROM_ADEST(m_MDS_GET_ADEST) == m_MDS_GET_NODE_ID_FROM_ADEST(adest)) {
-				*to = DESTINATION_ON_NODE;	/* This hash define may give a wrong impression, but actually it means to do flat_enc */
-			} else {
-				*to = DESTINATION_OFF_NODE;
-			}
+		if (m_MDS_GET_NODE_ID_FROM_ADEST(m_MDS_GET_ADEST) == m_MDS_GET_NODE_ID_FROM_ADEST(adest)) {
+			*to = DESTINATION_ON_NODE;	/* This hash define may give a wrong impression, but actually it means to do flat_enc */
 		} else {
-			*to = DESTINATION_ON_NODE;
+			*to = DESTINATION_OFF_NODE;
 		}
 	} else {
 		*to = DESTINATION_OFF_NODE;

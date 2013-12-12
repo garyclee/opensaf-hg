@@ -64,8 +64,8 @@ uint32_t mds_log_init(char *log_file_name, char *line_prefix)
 
 	if ((fh = fopen(lf, "a+")) != NULL) {
 		fclose(fh);
-		log_mds_notify("BEGIN MDS LOGGING| PID=%d|ARCH=%d|64bit=%ld\n",
-			       process_id, MDS_ARCH_TYPE, (long)MDS_WORD_SIZE_TYPE);
+		log_mds_notify("BEGIN MDS LOGGING| PID=%d|ARCHW=%x|64bit=%ld\n",
+			       process_id, MDS_SELF_ARCHWORD, (long)MDS_WORD_SIZE_TYPE);
 	}
 
 	return NCSCC_RC_SUCCESS;

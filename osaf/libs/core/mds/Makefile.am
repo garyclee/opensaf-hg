@@ -23,7 +23,6 @@ SUBDIRS = include
 noinst_LTLIBRARIES = libmds.la
 
 libmds_la_CPPFLAGS = \
-	@MDS_WORD_ARCH_FLAGS@ \
 	$(AM_CPPFLAGS)
 
 libmds_la_LDFLAGS = -static
