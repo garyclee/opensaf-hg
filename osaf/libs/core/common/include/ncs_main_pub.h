@@ -40,7 +40,6 @@
 ****     Utility APIs defined in  ncs_main_pub.c
 ****
 \***********************************************************************/
-char ncs_util_get_char_option(int argc, char *argv[], char *arg_prefix);
 char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix);
 uint32_t file_get_word(FILE **fp, char *o_chword);
 uint32_t file_get_string(FILE **fp, char *o_chword);
