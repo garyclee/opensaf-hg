@@ -38,8 +38,6 @@
 /***************************************************************************
  * NCSUB_POOL holds all info associated with a particular USRBUF pool
  ***************************************************************************/
-uint32_t ncs_lbp_create(void);
-uint32_t ncs_lbp_destroy(void);
 
 typedef struct ncsub_pool {
 	bool busy;
