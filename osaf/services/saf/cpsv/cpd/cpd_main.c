@@ -39,7 +39,7 @@ static int __init_cpd(void)
 	}
 
 	/* Init CPD */
-	m_NCS_DBG_PRINTF("\nCPSV:CPD:ON");
+	printf("\nCPSV:CPD:ON");
 	if (cpd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
 		LOG_ER("cpd_lib_req FAILED");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);

@@ -289,7 +289,6 @@ extern uint32_t mds_adest_info_tbl_query ();
 /* DEFINE THESE THINGS*/
 
 #define NCS_MDTM_TASKNAME       "MDTM"
-#define NCS_MDTM_PRIORITY       NCS_TASK_PRIORITY_4
 #define NCS_MDTM_STACKSIZE      NCS_STACKSIZE_HUGE
 
 #define MDTM_TIPC_POLL_TIMEOUT 20000

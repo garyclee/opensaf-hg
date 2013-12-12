@@ -35,7 +35,6 @@ extern uint8_t initial_discovery_phase;
 #define BMCAST_MSG_LEN ( sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t)
 
 #define m_NODE_DISCOVERY_TASKNAME       "NODE_DISCOVERY"
-#define m_NODE_DISCOVERY_TASK_PRIORITY   NCS_TASK_PRIORITY_4
 #define m_NODE_DISCOVERY_STACKSIZE       NCS_STACKSIZE_HUGE
 
 #define DTM_MAX_TAG_LEN	256

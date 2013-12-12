@@ -41,44 +41,9 @@ extern "C" {
 
 /*****************************************************************************
  **                                                                         **
- **                                                                         **
- **                      Byte order conversions                             **
- **                                                                         **
- **                                                                         **
- ****************************************************************************/
-#define sysf_ntohl(x)     m_NCS_OS_NTOHL(x)
-#define sysf_htonl(x)       m_NCS_OS_HTONL(x)
-#define sysf_ntohs(s)       m_NCS_OS_NTOHS(s)
-#define sysf_htons(s)       m_NCS_OS_HTONS(s)
-/*****************************************************************************
- **                                                                         **
- **                                                                         **
- **  Function Defines for byte order conversions with                       **
- **  autoincrement of the pointer                                           **
- **                                                                         **
- ****************************************************************************/
-
-	uint32_t decode_32bitOS_inc(uint8_t **stream);
-	uint32_t encode_32bitOS_inc(uint8_t **stream, uint32_t val);
-	uint32_t encode_16bitOS_inc(uint8_t **stream, uint32_t val);
-	uint16_t decode_16bitOS_inc(uint8_t **stream);
-
-#define m_NCS_OS_HTONL_P_INC(p8,v32) encode_32bitOS_inc(&p8, v32)
-#define m_NCS_OS_HTONS_P_INC(p8,v16) encode_16bitOS_inc(&p8, v16)
-#define m_NCS_OS_NTOHL_P_INC(p8)     decode_32bitOS_inc(&p8)
-#define m_NCS_OS_NTOHS_P_INC(p8)    decode_16bitOS_inc(&p8)
-
-// should remove but require changes in a few service
-#define m_NCS_DBG_PRINTF         printf
-
-/*****************************************************************************
- **                                                                         **
- **                                                                         **
  **             Operating System Task Premption Lock macros                 **
  **                                                                         **
- **                                                                         **
  ****************************************************************************/
-
 #define m_INIT_CRITICAL                m_NCS_OS_INIT_TASK_LOCK
 #define m_START_CRITICAL               m_NCS_OS_START_TASK_LOCK
 #define m_END_CRITICAL                 m_NCS_OS_END_TASK_LOCK
@@ -113,54 +78,16 @@ void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason);
 
 /*****************************************************************************
  **                                                                         **
- **                                                                         **
- **                   System Timestamp Interface Macros                     **
- **                                                                         **
- ** ncs_os_get_time_stamp:       Return the current timestamp as "time_t" in **
+ ** ncs_os_get_time_stamp:      Return the current timestamp as "time_t" in **
  **                             the argument tod.                           **
  **                                                                         **
- ** ncs_os_get_ascii_time_stamp: Fetch the current timestamp (tod), as an    **
- **                             ascii string, in asc_tod. Note the size of  **
- **                             the ASCII string is limited to 32 octets.   **
- **                                                                         **
  ****************************************************************************/
-
-#define m_GET_ASCII_TIME_STAMP(timestamp, asc_timestamp)  \
-    m_NCS_OS_GET_ASCII_TIME_STAMP(timestamp, asc_timestamp)
-
-#define m_NCS_DATE_TIME_TO_STR(timestamp, asc_timestamp)  \
-    m_NCS_OS_DATE_TIME_TO_STR(timestamp, asc_timestamp)
-
-#define m_NCS_TIME_TO_STR(timestamp, asc_timestamp)  \
-    m_NCS_OS_TIME_TO_STR(timestamp, asc_timestamp)
-
-#define m_GET_ASCII_DATE_TIME_STAMP(timestamp, asc_timestamp) \
-    m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(timestamp, asc_timestamp)
-
-#define m_GET_ASCII_HDR_DATE_TIME_STAMP(timestamp, asc_timestamp) \
-    m_NCS_OS_GET_ASCII_HDR_DATE_TIME_STAMP(timestamp, asc_timestamp)
-
 #define m_GET_TIME_STAMP(timestamp) \
     m_NCS_OS_GET_TIME_STAMP(timestamp)
 
-#define m_NCS_GET_TIME_MS  \
-    m_NCS_OS_GET_TIME_MS
-
-#define m_NCS_GET_TIME_NS  \
-    m_NCS_OS_GET_TIME_NS
-
-#define m_NCS_GET_UPTIME \
-    m_NCS_OS_GET_UPTIME
-
-#define m_GET_TIME_STAMP_STR(timestamp, asc_timestamp)  \
-    m_NCS_OS_GET_TIME_STAMP_STR(timestamp, asc_timestamp)
-
-
 /*****************************************************************************
  **                                                                         **
- **                                                                         **
  **             LEAP Debug conditional compile stuff                        **
- **                                                                         **
  **                                                                         **
  ****************************************************************************/
 
@@ -177,30 +104,6 @@ void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason);
  */
 #define m_LEAP_DBG_SINK(r)	(TRACE("IN LEAP_DBG_SINK"), r)
 #define m_LEAP_DBG_SINK_VOID	TRACE("IN LEAP_DBG_SINK")
-
-/*****************************************************************************
- **                                                                         **
- **                   Task Priorities                                       **
- **                                                                         **
- ****************************************************************************/
-
-#define NCS_TASK_PRIORITY_0               NCS_OS_TASK_PRIORITY_0
-#define NCS_TASK_PRIORITY_1               NCS_OS_TASK_PRIORITY_1
-#define NCS_TASK_PRIORITY_2               NCS_OS_TASK_PRIORITY_2
-#define NCS_TASK_PRIORITY_3               NCS_OS_TASK_PRIORITY_3
-#define NCS_TASK_PRIORITY_4               NCS_OS_TASK_PRIORITY_4
-#define NCS_TASK_PRIORITY_5               NCS_OS_TASK_PRIORITY_5
-#define NCS_TASK_PRIORITY_6               NCS_OS_TASK_PRIORITY_6
-#define NCS_TASK_PRIORITY_7               NCS_OS_TASK_PRIORITY_7
-#define NCS_TASK_PRIORITY_8               NCS_OS_TASK_PRIORITY_8
-#define NCS_TASK_PRIORITY_9               NCS_OS_TASK_PRIORITY_9
-#define NCS_TASK_PRIORITY_10              NCS_OS_TASK_PRIORITY_10
-#define NCS_TASK_PRIORITY_11              NCS_OS_TASK_PRIORITY_11
-#define NCS_TASK_PRIORITY_12              NCS_OS_TASK_PRIORITY_12
-#define NCS_TASK_PRIORITY_13              NCS_OS_TASK_PRIORITY_13
-#define NCS_TASK_PRIORITY_14              NCS_OS_TASK_PRIORITY_14
-#define NCS_TASK_PRIORITY_15              NCS_OS_TASK_PRIORITY_15
-#define NCS_TASK_PRIORITY_16              NCS_OS_TASK_PRIORITY_16
 
 /*****************************************************************************
  **                                                                         **
@@ -238,7 +141,7 @@ void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason);
  **             LEAP ENVIRONMENT INITIALIZATION AND CLEAN UP                **
  **                                                                         **
  ****************************************************************************/
-    uint32_t leap_env_init(void);
+uint32_t leap_env_init(void);
 uint32_t leap_env_destroy(void);
 
 #endif

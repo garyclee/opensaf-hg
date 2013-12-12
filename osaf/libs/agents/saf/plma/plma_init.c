@@ -355,7 +355,7 @@ uint32_t ncs_plma_startup()
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}else{
 		/** Initialize the library for the first time */
-		m_NCS_DBG_PRINTF("\nPLMSV:PLMA:ON");
+		printf("\nPLMSV:PLMA:ON");
 		plma_use_count = 1;
 	}
 	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);

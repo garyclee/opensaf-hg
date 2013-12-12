@@ -82,27 +82,22 @@ extern void ncs_os_atomic_inc(uint32_t *puns32);
 extern void ncs_os_atomic_dec(uint32_t *p_uns32);
 #define m_NCS_OS_ATOMIC_DEC(p_uns32) ncs_os_atomic_dec(p_uns32);
 
-#define m_GET_MSEC_TIME_STAMP(seconds, millisec) get_msec_time(seconds, millisec)
-
 /*****************************************************************************
  **                                                                         **
  **             Message queue primitive defintions                          **
  **                                                                         **
  ****************************************************************************/
-
 #define NCS_OS_MQ_KEY         key_t
 #define NCS_OS_MQ_HDL         int
 #define NCS_OS_MQ_MSG_LL_HDR  long	/* The "header" part of <struct msgbuf> */
 #define NCS_OS_MQ_MAX_PAYLOAD 4500	/* This is actually dependant on 
 					   configuration. Usual defaults in LINUX
 					   are about 8192. : Phani:28/10/03 */
-
 /*****************************************************************************
  **                                                                         **
  **             POSIX Message queue primitive defintions                          **
  **                                                                         **
  ****************************************************************************/
-
 #define NCS_OS_POSIX_MQD      uint32_t
 #define NCS_OS_POSIX_TIMESPEC struct timespec
 
@@ -115,47 +110,11 @@ extern void ncs_os_atomic_dec(uint32_t *p_uns32);
  **                                                                         **
  **                                                                         **
  ****************************************************************************/
-
 	int64_t ncs_os_time_ms(void);
-#define m_NCS_OS_GET_TIME_MS   ncs_os_time_ms()
+#define m_NCS_GET_TIME_MS   ncs_os_time_ms()
 
 	uint64_t ncs_os_time_ns(void);
-#define m_NCS_OS_GET_TIME_NS   ncs_os_time_ns()
-
-/* Over riding macros for linux */
-
-#define m_NCS_OS_TIME_TO_STR(timestamp, asc_timestamp)  \
-{ \
-    struct tm IR58027_temp_tm/* special auto var-name to avoid conflict with macro arguments */; \
-    strftime((char *)(asc_timestamp), 32, "%X", localtime_r(&timestamp, &IR58027_temp_tm)); \
-}
-
-#define m_NCS_OS_DATE_TIME_TO_STR(timestamp, asc_timestamp)  \
-{ \
-    struct tm IR58027_temp_tm/* special auto var-name to avoid conflict with macro arguments */; \
-    strftime((char *)(asc_timestamp), 40, "%d%b%Y_%H.%M.%S", localtime_r(&timestamp, &IR58027_temp_tm)); \
-}
-
-#define m_NCS_OS_GET_ASCII_TIME_STAMP(timestamp, asc_timestamp)  \
-{ \
-    struct tm IR58027_temp_tm; \
-    (timestamp) = (time_t) (time((time_t *) 0)); \
-    strftime((char *)(asc_timestamp), 32, "%X", localtime_r(&timestamp, &IR58027_temp_tm)); \
-}
-
-#define m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(timestamp, asc_timestamp)  \
-{ \
-    struct tm IR58027_temp_tm; \
-    timestamp=(time_t) (time((time_t *) 0)); \
-    strftime((char *)(asc_timestamp), 40, "%d%b%Y_%H.%M.%S", localtime_r(&timestamp, &IR58027_temp_tm)); \
-}
-
-#define m_NCS_OS_GET_ASCII_HDR_DATE_TIME_STAMP(timestamp, asc_timestamp)  \
-{ \
-    struct tm IR58027_temp_tm; \
-    timestamp=(time_t) (time((time_t *) 0)); \
-    strftime((char *)(asc_timestamp), 40, "%d %B %Y %H:%M:%S", localtime_r(&timestamp, &IR58027_temp_tm)); \
-}
+#define m_NCS_GET_TIME_NS   ncs_os_time_ns()
 
 /****************************************************************************
  *
@@ -191,10 +150,7 @@ extern FILE *ncs_os_fopen(const char *fpath, const char *fmode);
 
 /*****************************************************************************
  **                                                                         **
- **                                                                         **
  **             ncs_sel_obj_*  primitive definitions                        **
- **                                                                         **
- **                                                                         **
  **                                                                         **
  ****************************************************************************/
 typedef struct ncs_sel_obj {

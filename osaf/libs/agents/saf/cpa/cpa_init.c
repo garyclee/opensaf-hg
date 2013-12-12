@@ -297,7 +297,7 @@ unsigned int ncs_cpa_startup(void)
 		osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	} else {
-		m_NCS_DBG_PRINTF("\nCPSV:CPA:ON");
+		printf("\nCPSV:CPA:ON");
 		cpa_use_count = 1;
 	}
 
