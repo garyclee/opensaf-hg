@@ -42,15 +42,6 @@
 
 #include "ncs_edu_pub.h"
 
-#define m_NCS_EDU_ASSERT        assert(0)
-
-/* EDU Protocol Marker used in EDU header */
-#define EDU_PROT_MARKER 0xed
-
-/* Bitmap for EDU-options in the EDU-header */
-#define EDU_UBUF_USE_DIFF_EDP       0x01
-#define EDU_ALLOW_PARTIAL_DECODE    0x02	/* Allows one-time partial 
-						   decode of USRBUF */
 
 /* TLV Header size(for Type and Length) */
 #define EDU_TLV_HDR_SIZE            3
