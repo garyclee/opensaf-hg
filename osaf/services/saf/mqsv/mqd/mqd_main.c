@@ -40,7 +40,7 @@ static int __init_mqd(void)
 	}
 
 	/* Init MQD */
-	m_NCS_DBG_PRINTF("\nMQSV:MQD:ON");
+	printf("\nMQSV:MQD:ON");
 	if (mqd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
 		fprintf(stderr, "mqd_lib_req FAILED\n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);

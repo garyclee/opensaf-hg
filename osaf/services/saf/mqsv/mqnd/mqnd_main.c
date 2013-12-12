@@ -39,7 +39,7 @@ static int __init_mqnd(void)
 	}
 
 	/* Init MQND */
-	m_NCS_DBG_PRINTF("\nMQSV:MQND:ON");
+	printf("\nMQSV:MQND:ON");
 	if (mqnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
 		fprintf(stderr, "mqnd_lib_req FAILED\n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);

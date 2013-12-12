@@ -38,7 +38,7 @@ static int __init_cpnd(void)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 	/* Init CPND */
-	m_NCS_DBG_PRINTF("\nCPSV:CPND:ON");
+	printf("\nCPSV:CPND:ON");
 	if (cpnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
 		LOG_ER("cpnd_lib_req FAILED");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);

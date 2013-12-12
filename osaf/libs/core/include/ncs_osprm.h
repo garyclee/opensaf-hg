@@ -143,22 +143,15 @@ extern "C" {
 	} NCS_OS_TASK_REQUEST;
 
 /****************************************************************************
- ****************************************************************************
- ****************************************************************************
- ****************************************************************************
- **                                                                        **
  **                                                                        **
  **                         Lock Interface Primitives                      **
  **                                                                        **
  ** This interface is used by the client to control access to data or      **
- ** other shared resources. The interface utilizes the typedef NCS_OS_LOCK  **
- ** for processing object access requests. The NCS_OS_LOCK typedef is       **
+ ** other shared resources. The interface utilizes the typedef NCS_OS_LOCK **
+ ** for processing object access requests. The NCS_OS_LOCK typedef is      **
  ** DEFINED BY THE TARGET SYSTEM in any manner necessary to carry the      **
  ** information needed to implement the interface.                         **
  **                                                                        **
- ****************************************************************************
- ****************************************************************************
- ****************************************************************************
  ***************************************************************************/
 
 /****************************************************************************
@@ -805,21 +798,6 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
  ****************************************************************************/
 #define m_NCS_OS_GET_TIME_STAMP(timestamp) timestamp=time((time_t*)0)
 
-#ifndef m_NCS_OS_GET_ASCII_TIME_STAMP
-#define m_NCS_OS_GET_ASCII_TIME_STAMP(timestamp, asc_timestamp)  \
-{ \
-    (timestamp) = (time_t) (time((time_t *) 0)); \
-    strftime((char *)(asc_timestamp), 32, "%X", localtime(&timestamp)); \
-}
-#endif
-
-#ifndef m_NCS_OS_GET_ASCII_DATE_TIME_STAMP
-#define m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(timestamp, asc_timestamp)  \
-{ \
-    timestamp=(time_t) (time((time_t *) 0)); \
-    strftime((char *)(asc_timestamp), 40, "%d%b%Y_%H.%M.%S", localtime(&timestamp)); \
-}
-#endif
 
 /****************************************************************************
  **                                                                        **
