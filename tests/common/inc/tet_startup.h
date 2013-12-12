@@ -16,7 +16,6 @@
 #include "ncssysf_tsk.h"
 #include "ncssysf_ipc.h"
 #include "ncssysf_tmr.h"
-#include "ncs_mds_def.h"
 
 typedef struct sys_cfg_info {
 

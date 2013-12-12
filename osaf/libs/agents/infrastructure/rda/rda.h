@@ -55,7 +55,6 @@
 #include "ncssysf_ipc.h"
 #include "ncssysf_tsk.h"
 #include "ncspatricia.h"
-#include "ncs_mds_def.h"
 
 #include "ncs_queue.h"
 #include "ncssysf_lck.h"

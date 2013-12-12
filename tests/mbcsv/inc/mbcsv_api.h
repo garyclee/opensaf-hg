@@ -34,7 +34,6 @@
 #include "ncssysf_lck.h"
 #include "ncssysfpool.h"
 #include "ncssysf_tmr.h"
-#include "ncs_mds_def.h"
 #include "ncspatricia.h"
 #include "mds_papi.h"
 #include "ncs_mda_papi.h"
