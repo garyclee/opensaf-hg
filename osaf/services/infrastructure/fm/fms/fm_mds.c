@@ -57,7 +57,7 @@ fm_mds_async_send(FM_CB *fm_cb, NCSCONTEXT msg,
 uint32_t fm_mds_init(FM_CB *cb)
 {
 	NCSMDS_INFO arg;
-	MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_GFM };
+	MDS_SVC_ID svc_id[] = { NCSMDS_SVC_ID_GFM, NCSMDS_SVC_ID_AVND };
 
 /* Get the MDS handles to be used. */
 	if (fm_mds_get_adest_hdls(cb) != NCSCC_RC_SUCCESS) {
@@ -85,11 +85,10 @@ uint32_t fm_mds_init(FM_CB *cb)
 	arg.i_mds_hdl = cb->adest_pwe1_hdl;
 	arg.i_svc_id = NCSMDS_SVC_ID_GFM;
 
-/* Subcribe to AVM, AVND and FMSV MDS UP/DOWN events. */
+/* Subcribe to AVND and FMSV MDS UP/DOWN events. */
 	arg.i_op = MDS_SUBSCRIBE;
 	arg.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
-	arg.info.svc_subscribe.i_num_svcs = 1;
-
+	arg.info.svc_subscribe.i_num_svcs = 2;
 	arg.info.svc_subscribe.i_svc_ids = svc_id;
 
 	if (ncsmds_api(&arg) != NCSCC_RC_SUCCESS) {
@@ -315,7 +314,8 @@ static uint32_t fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
 	uint32_t return_val = NCSCC_RC_SUCCESS;
 	FM_EVT *fm_evt;
-        TRACE_ENTER();
+	TRACE_ENTER();
+
 	if (NULL == svc_evt) {
 		syslog(LOG_INFO, "fm_mds_svc_evt: svc_evt NULL.");
 		return NCSCC_RC_FAILURE;
@@ -325,9 +325,28 @@ static uint32_t fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 	case NCSMDS_DOWN:
 		switch (svc_evt->i_svc_id) {
 		case NCSMDS_SVC_ID_GFM:
-/* Processing only for alternate node. */
-			if ((svc_evt->i_node_id != cb->node_id) && (m_MDS_DEST_IS_AN_ADEST(svc_evt->i_dest) == true)) {
+			if (svc_evt->i_node_id == cb->peer_node_id)
 				cb->peer_adest = 0;
+			break;
+		case NCSMDS_SVC_ID_AVND:
+			/* Processing only for alternate node.
+			 * FM down is the same as NODE_DOWN from 4.4 onwards.
+			 * This is required to handle the usecase involving
+			 * '/etc/init.d/opensafd stop' without an OS reboot cycle
+			 */
+
+			if (svc_evt->i_node_id == cb->peer_node_id) {
+				fm_evt = m_MMGR_ALLOC_FM_EVT;
+				if (NULL == fm_evt) {
+					syslog(LOG_INFO, "fm_mds_rcv_evt: fm_evt allocation FAILED.");
+					return NCSCC_RC_FAILURE;
+				}
+				LOG_NO("Peer FM down on node_id: %u", svc_evt->i_node_id);
+				return_val = fm_fill_mds_evt_post_fm_mbx(cb, fm_evt, svc_evt->i_node_id, FM_EVT_NODE_DOWN);
+				if (return_val == NCSCC_RC_FAILURE) {
+					m_MMGR_FREE_FM_EVT(fm_evt);
+					fm_evt = NULL;
+				}
 			}
 			break;
 
