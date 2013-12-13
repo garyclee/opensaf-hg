@@ -55,7 +55,6 @@ start() {
 instantiate() {
 	echo -n "AMF Instantiating $prog: "
 	echo $SA_AMF_COMPONENT_NAME > $COMPNAMEFILE
-	TEMP=`cat $COMPNAMEFILE`
 	if [ -e $lockfile ]; then
 		killproc -p $pidfile $binary -USR1
 	else

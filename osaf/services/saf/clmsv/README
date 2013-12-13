@@ -32,6 +32,8 @@ OpenSAF node startup. The CLMNA fetches the saClmNode(node name)of the local nod
 the saClmNodeID(/etc/opensaf/node_id a "run time" attribute) 
 (and in future, the saClmNodeCurrAddressFamily  and saClmNodeCurrAddress "run time"attributes
 of the saClmNode class) and updates the CLMS.
+The CLMNA is modelled as component in a NoRedundancy Model with error recovery
+as NodeFailFast.
 
 The CLMA is the clm agent library that user applications shall link with.
 
@@ -59,21 +61,11 @@ tests/clmsv - CLMSv test suites
 CONFIGURATION FILES
 
 /etc/opensaf/clm.conf
+/etc/opensaf/clmna.conf
 /etc/opensaf/node_name
 
 
 CONTRIBUTORS/MAINTAINERS
 Meena Sangeeta <sangeeta.meena@emerson.com>
 Manoj Lalavat <manoj.lalavat@emerson.com>
-
-TODOS
-====
-
-1. Unit Testing is still in Progress.
-2. Basic functionality tests, API tests, failover tests are completed.
-3. Memory leak tests,PLM integration testing TBD next week.
-4. General Code cleanup, warnings, TBDs, Doxygen Commenting,locks,traces tuning, TBD.
-5. make rpm changes to reflect latest build system.
-6. Some hacks on imm.xml "attribute names" to be removed
-once AMF-CLM cleanup patch is in place next week.
 

@@ -135,7 +135,10 @@ final_clean() {
 
 	rm -f $lockfile
 	rm -f $NIDFIFO
-	rm -f $pkglocalstatedir/node_id
+	#remove node_id only if OpenSAF is managing TIPC
+	if [ "$MDS_TRANSPORT" = "TIPC" ] && [ $MANAGE_TIPC = "yes" ]; then
+		rm -f $pkglocalstatedir/node_id
+	fi
 }
 
 generate_nodeid() {
