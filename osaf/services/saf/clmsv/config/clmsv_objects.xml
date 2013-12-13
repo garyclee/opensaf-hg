@@ -106,4 +106,89 @@
 			<value>1</value>
 		</attr>
 	</object>
+
+	<object class="SaAmfCompBaseType">
+		<dn>safCompType=OpenSafCompTypeCLMNA</dn>
+	</object>
+	<object class="SaAmfCompType">
+		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeCLMNA</dn>
+		<attr>
+			<name>saAmfCtSwBundle</name>
+			<value>safSmfBundle=OpenSAF</value>
+		</attr>
+		<attr>
+			<name>saAmfCtCompCategory</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefClcCliTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCallbackTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathInstantiateCmd</name>
+			<value>osaf-clmna</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefInstantiateCmdArgv</name>
+			<value>instantiate</value>
+		</attr>
+		<attr>
+                        <name>saAmfCtDefInstantiationLevel</name>
+                        <value>2</value>
+                </attr>
+		<attr>
+			<name>saAmfCtRelPathCleanupCmd</name>
+			<value>osaf-clmna</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCleanupCmdArgv</name>
+			<value>stop</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefQuiescingCompleteTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefRecoveryOnError</name>
+			<value>6</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefDisableRestart</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfHealthcheckType">
+		<dn>safHealthcheckKey=Default,safVersion=4.0.0,safCompType=OpenSafCompTypeCLMNA</dn>
+		<attr>
+			<name>saAmfHctDefPeriod</name>
+			<value>240000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfHctDefMaxDuration</name>
+			<value>180000000000</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSBaseType">
+		<dn>safCSType=CLMNA-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCSType">
+		<dn>safVersion=4.0.0,safCSType=CLMNA-OpenSAF</dn>
+	</object>
+	<object class="SaAmfSutCompType">
+		<dn>safMemberCompType=safVersion=4.0.0\,safCompType=OpenSafCompTypeCLMNA,safVersion=4.0.0,safSuType=OpenSafSuTypeND</dn>
+	</object>
+	<object class="SaAmfSvcTypeCSTypes">
+		<dn>safMemberCSType=safVersion=4.0.0\,safCSType=CLMNA-OpenSAF,safVersion=4.0.0,safSvcType=NoRed-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCtCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=CLMNA-OpenSAF,safVersion=4.0.0,safCompType=OpenSafCompTypeCLMNA</dn>
+		<attr>
+			<name>saAmfCtCompCapability</name>
+			<value>1</value>
+		</attr>
+	</object>
 </imm:IMM-contents>
