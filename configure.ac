@@ -545,6 +545,22 @@ if test "$enable_imm_pbe" = yes; then
 	PKG_CHECK_MODULES([SQLITE3], [sqlite3])
 fi
 
+if test -z "$OSAF_HARDEN_FLAGS"; then
+	# _FORTIFY_SOURCE requires optimization, so only enable it in optimized
+	# builds, i.e. when -O is present in both CFLAGS and CXXFLAGS.
+	if echo "${CFLAGS}" | grep -q -- -O; then
+		if echo "${CXXFLAGS}" | grep -q -- -O; then
+			OSAF_HARDEN_FLAGS="-D_FORTIFY_SOURCE=2"
+		fi
+	fi
+	# Also check for -O0 (which explicitly disables optimisation)
+	if echo "${CFLAGS} ${CXXFLAGS}" | grep -q -- -O0; then
+		OSAF_HARDEN_FLAGS=""
+	fi
+	OSAF_HARDEN_FLAGS="${OSAF_HARDEN_FLAGS} -fstack-protector"
+fi
+AC_SUBST(OSAF_HARDEN_FLAGS)
+
 #############################################
 # Checks for header files.
 #############################################
@@ -925,8 +941,10 @@ echo ""
 echo " Compiling Options:"
 echo "${ECHO_T}  C Compiler: ${CC}"
 echo "${ECHO_T}  C++ Compiler: ${CXX}"
+echo "${ECHO_T}  CPPFLAGS: ${CPPFLAGS} ${AM_CPPFLAGS}"
 echo "${ECHO_T}  CFLAGS: ${CFLAGS} ${AM_CFLAGS}"
 echo "${ECHO_T}  CXXFLAGS: ${CXXFLAGS} ${AM_CXXFLAGS}"
+echo "${ECHO_T}  OSAF_HARDEN_FLAGS: ${OSAF_HARDEN_FLAGS}"
 echo "${ECHO_T}  LDFLAGS: ${LDFLAGS}"
 echo "${ECHO_T}  Enable RPATH: ${enable_rpath}"
 

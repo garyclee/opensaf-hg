@@ -293,7 +293,7 @@ In the default (from 4.3) addressing scheme, TIPC node addresses looks like
 To re-enable the old (pre 4.3) non flat addressing, configure the constant
 MDS_USE_SUBSLOT_ID=1 at configure time as in:
 
-    % ./configure CFLAGS="-DMDS_USE_SUBSLOT_ID=1 ..."
+    % ./configure CPPFLAGS="-DMDS_USE_SUBSLOT_ID=1 ..."
 
 In the non flat scheme, the slot ID is shifted up 4 bits and subslot ID is 
 added in the 4 LSB. The consequence of this is reduced number of
@@ -308,7 +308,7 @@ More configuration is needed, see nid.conf in 00-README.conf
 If the old (<4.2) behaviour of running all processes as root is desired, use
 the following configure command:
 
-    % ./configure CFLAGS=-DRUNASROOT
+    % ./configure CPPFLAGS=-DRUNASROOT
 
 
 3) Configure TIPC importance (optional)
@@ -317,12 +317,20 @@ The default TIPC importance is LOW for all services except for AVND which is HIG
 In some cases the default importance must be changed if e.g. an application starves the LOW importance communication level.
 To change the default importance, use the following configure command
 
-   % ./configure CFLAGS=-DTIPCIMPORTANCE=level
+   % ./configure CPPFLAGS=-DTIPCIMPORTANCE=level
    where level is any of TIPC_LOW_IMPORTANCE, TIPC_MEDIUM_IMPORTANCE or TIPC_HIGH_IMPORTANCE
-   e.g. configure CFLAGS=-DTIPCIMPORTANCE=TIPC_HIGH_IMPORTANCE
+   e.g. configure CPPFLAGS=-DTIPCIMPORTANCE=TIPC_HIGH_IMPORTANCE
 
 Note: Giving same importance to AVND & all other Opensaf models is not preferred option. The behavior is unsupported.
 
+
+4) Configure GCC hardening options (optional)
+
+By default, the options "-fstack-protector -D_FORTIFY_SOURCE=2" are passed to
+GCC for improved security. You can override these options by setting the
+OSAF_HARDEN_FLAGS when configuring OpenSAF. For example:
+
+   % ./configure OSAF_HARDEN_FLAGS="-fstack-protector-all -D_FORTIFY_SOURCE=2"
 
 If you are using a released archive (dist tarball) follow the simple common
 steps:

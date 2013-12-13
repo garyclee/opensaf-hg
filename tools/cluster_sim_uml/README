@@ -77,7 +77,7 @@ When the UML root file system is generated it will use 'make install' with
 DESTDIR set to the UML root file system. Make sure you have a default 
 configured Opensaf like this:
 
-$ ./configure CFLAGS=-DRUNASROOT
+$ ./configure CPPFLAGS=-DRUNASROOT
 
 - Execute './build_uml'.
 
