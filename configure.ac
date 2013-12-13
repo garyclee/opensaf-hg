@@ -840,7 +840,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/clmsv/clms/scripts/Makefile
         osaf/services/saf/clmsv/clms/scripts/osaf-clmd
         osaf/services/saf/clmsv/nodeagent/scripts/Makefile
-        osaf/services/saf/clmsv/nodeagent/scripts/osaf-noded
+        osaf/services/saf/clmsv/nodeagent/scripts/osaf-clmna
         osaf/services/saf/cpsv/Makefile
         osaf/services/saf/cpsv/config/Makefile
         osaf/services/saf/cpsv/cpd/Makefile

@@ -20,16 +20,24 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
+noinst_HEADERS = \
+	cb.h \
+	clmna.h \
+	evt.h
+
 osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osafclmna
 
 osafclmna_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/clmsv/include
+	-I$(top_srcdir)/osaf/libs/common/clmsv/include \
+	-I$(top_srcdir)/osaf/saf/services/saf/clmsv/nodeagent
 
 osafclmna_SOURCES = \
-	clms_nodeagent.c
+	main.c \
+	amf.c
 
 osafclmna_LDADD = \
 	$(top_builddir)/osaf/libs/common/clmsv/libclmsv_common.la \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la
