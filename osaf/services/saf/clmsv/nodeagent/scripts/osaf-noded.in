@@ -25,6 +25,7 @@ if [ ! -r $osafdirfile ]; then
 else
 	. $osafdirfile
 	. $pkgsysconfdir/nid.conf
+	. $pkgsysconfdir/clmna.conf
 fi	
 
 binary=$pkglibdir/$prog
@@ -33,15 +34,35 @@ lockfile=$lockdir/$initscript
 
 RETVAL=0
 NIDSERV="CLMNA"
+COMPNAMEFILE=$pkglocalstatedir/clmna_comp_name
 
 start() {
 	export LD_LIBRARY_PATH=$pkglibdir:$LD_LIBRARY_PATH
 	[ -x $binary ] || exit 5
+	export CLMNA_COMP_NAME_FILE=$COMPNAMEFILE
 	echo -n "Starting $prog: "
 	start_daemon -p $pidfile $binary $args
 	RETVAL=$?
 	if [ $RETVAL -eq 0 ]; then
 		touch $lockfile
+		log_success_msg
+	else
+		log_failure_msg
+	fi
+	return $RETVAL
+}
+
+instantiate() {
+	echo -n "AMF Instantiating $prog: "
+	echo $SA_AMF_COMPONENT_NAME > $COMPNAMEFILE
+	TEMP=`cat $COMPNAMEFILE`
+	if [ -e $lockfile ]; then
+		killproc -p $pidfile $binary -USR1
+	else
+		start_daemon -p $pidfile $binary $args
+	fi
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
 		log_success_msg
 	else
 		log_failure_msg

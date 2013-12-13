@@ -1014,8 +1014,9 @@ fi
 %defattr(-,root,root)
 %dir %{_pkgclcclidir}
 %dir %{_pkglibdir}
+%config(noreplace) %{_pkgsysconfdir}/clmna.conf
 %{_pkglibdir}/osafclmna
-%{_pkgclcclidir}/osaf-noded
+%{_pkgclcclidir}/osaf-clmna
 
 
 %if %is_ais_evt

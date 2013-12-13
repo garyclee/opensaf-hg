@@ -19,7 +19,8 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 dist_pkgsysconf_DATA = \
-	$(top_srcdir)/osaf/services/saf/clmsv/config/clmd.conf
+	$(top_srcdir)/osaf/services/saf/clmsv/config/clmd.conf \
+	$(top_srcdir)/osaf/services/saf/clmsv/config/clmna.conf
 
 if ENABLE_IMMXML
 
