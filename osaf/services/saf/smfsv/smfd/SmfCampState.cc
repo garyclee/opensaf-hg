@@ -461,7 +461,7 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 				error = "CAMP: Procedure upgrade scope not found";
 				goto exit_error;
 			}
-			const std::list < SmfBundleRef * > b = byTemplate->getTargetNodeTemplate()->getSwRemoveList();
+			const std::list < SmfBundleRef * > b = byTemplate->getTargetNodeTemplate()->getSwInstallList();
 
 			std::list< SmfBundleRef* >::const_iterator bIter;
 			bIter = b.begin();
