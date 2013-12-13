@@ -1088,8 +1088,7 @@ static uint32_t clms_mds_svc_event(struct ncsmds_callback_info *info)
 	}
 
 	/* If this evt was sent from CLMA act on this */
-	if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_CLMA) {
-		if (info->info.svc_evt.i_change == NCSMDS_DOWN) {
+	if (info->info.svc_evt.i_change == NCSMDS_DOWN) {
 			TRACE_8("MDS DOWN for CLMA dest: %" PRIx64 ", node ID: %x, svc_id: %d",
 				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
 
@@ -1100,16 +1099,20 @@ static uint32_t clms_mds_svc_event(struct ncsmds_callback_info *info)
 				goto done;
 			}
 
-			evt->type = CLMSV_CLMS_CLMA_DOWN;
-
 	    /** Initialize the Event Header **/
 			evt->cb_hdl = 0;
 			evt->fr_node_id = info->info.svc_evt.i_node_id;
 			evt->fr_dest = info->info.svc_evt.i_dest;
 
-	    /** Initialize the MDS portion of the header **/
-			evt->info.mds_info.node_id = info->info.svc_evt.i_node_id;
-			evt->info.mds_info.mds_dest_id = info->info.svc_evt.i_dest;
+			if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_CLMA) {
+				evt->type = CLMSV_CLMS_CLMA_DOWN;
+				evt->info.mds_info.node_id = info->info.svc_evt.i_node_id;
+				evt->info.mds_info.mds_dest_id = info->info.svc_evt.i_dest;
+			} else if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_CLMNA) {
+				evt->type = CLMSV_CLMS_CLMNA_DOWN;
+				evt->info.node_mds_info.node_id = info->info.svc_evt.i_node_id;
+				evt->info.node_mds_info.nodeup = false;
+			}
 
 			/* Push the event and we are done */
 			if (m_NCS_IPC_SEND(&clms_cb->mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
@@ -1118,7 +1121,6 @@ static uint32_t clms_mds_svc_event(struct ncsmds_callback_info *info)
 				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
-		}
 	}
  done:
 	TRACE_LEAVE();

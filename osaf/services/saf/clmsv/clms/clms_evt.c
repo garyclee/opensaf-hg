@@ -1279,6 +1279,9 @@ void clms_process_mbx(SYSF_MBX *mbx)
 	case CLMSV_CLMS_RDA_EVT:
 		proc_rda_evt(msg);
 		break;
+	case CLMSV_CLMS_CLMNA_DOWN:
+		proc_mds_node_evt(msg);
+		break;
 	default:
 		LOG_ER("message type invalid %d", msg->type);
 		break;
