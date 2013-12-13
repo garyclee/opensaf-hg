@@ -31,7 +31,8 @@
 #include<errno.h>
 
 enum {
-	FD_USR1 = 0,
+	FD_TERM = 0,
+	FD_USR1,
 	FD_AMF = FD_USR1,
 	FD_MBX,
 	NUM_FD
@@ -534,6 +535,7 @@ int main(int argc, char *argv[])
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	int ret;
 	SaAisErrorT error;
+	int term_fd;
 
 	daemonize(argc, argv);
 
@@ -582,7 +584,10 @@ int main(int argc, char *argv[])
 	}
 
 	clmna_cb->mbx_fd = ncs_ipc_get_sel_obj(&clmna_cb->mbx);
+	daemon_sigterm_install(&term_fd);
 
+	fds[FD_TERM].fd = term_fd;
+	fds[FD_TERM].events = POLLIN;
 	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
 	fds[FD_USR1].events = POLLIN;
 	fds[FD_MBX].fd = clmna_cb->mbx_fd.rmv_obj;
@@ -597,6 +602,10 @@ int main(int argc, char *argv[])
 
 			LOG_ER("%s: poll failed - %s", __FUNCTION__, strerror(errno));
 			break;
+		}
+
+		if (fds[FD_TERM].revents & POLLIN) {
+			daemon_exit();
 		}
 
 		if (fds[FD_AMF].revents & POLLIN) {
