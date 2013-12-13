@@ -12,8 +12,8 @@ AM_CPPFLAGS = \
 	$(CORE_INCLUDES) \
 	$(all_includes)
 
-AM_CFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC
-AM_CXXFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC -D__STDC_FORMAT_MACROS
+AM_CFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC @OSAF_HARDEN_FLAGS@
+AM_CXXFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC -D__STDC_FORMAT_MACROS @OSAF_HARDEN_FLAGS@
 AM_LDFLAGS = -ldl -lrt -lpthread
 
 #
