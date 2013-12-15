@@ -22,7 +22,7 @@
 /* Macros for Validating Version */
 #define IMMA_RELEASE_CODE 'A'
 #define IMMA_MAJOR_VERSION 0x02
-#define IMMA_MINOR_VERSION 0x0c
+#define IMMA_MINOR_VERSION 0x0d
 
 #define IMMSV_WAIT_TIME  1000 /* Default MDS wait time in 10ms units =>10 sec*/
 
