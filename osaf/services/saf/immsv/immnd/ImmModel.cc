@@ -189,6 +189,15 @@ typedef SaUint32T ImmObjectFlags;
 //But if the flag is not set, the object may still have such an attr.
 //It is currently only used in rtObjectDelete() and deleteRtObject()
 
+#define IMM_NO_DANGLING_FLAG 0x00000080
+// The flag indicates that a CCB operation is done on an object with
+// NO_DANGLING attributes.
+// The flag is set to the object in next cases:
+// a) creates an object with no dangling attribute(s) (that is/are not empty).
+// b) deletes an object that has no dangling attribute(s) (that are not empty).
+// c) modifies a NO_DANGLING attribute,
+// d) deletes an object that is referred to by some NO_DANGLING attribute.
+
 
 struct ObjectInfo  
 {
@@ -286,7 +295,6 @@ struct ObjectMutation
     bool mIsAugDelete;     //The mutation is an augmented delete.
     SaUint8T m2PbeCount;   //How many PBE replies to wait for (2PBE only).
 };
-typedef std::map<std::string, ObjectMutation*> ObjectMutationMap;  
 
 typedef enum {
     IMM_CCB_EMPTY = 1,      //State after creation 
@@ -381,6 +389,16 @@ static ClassMap          sClassMap;
 static AdminOwnerVector  sOwnerVector;
 static CcbVector         sCcbVector;
 static ObjectMap         sObjectMap;
+static ObjectMMap        sReverseRefsNoDanglingMMap;
+/* Maps an object pointer, to the set of pointers to *other* objects
+   (not including self and not including children AS CHILDREN)
+   where all those other objects contain at least one NO_DANGLING
+   flagged reference (SaNameT) containing the DN of this object.
+   Child objects could appear in the set of referencing objects if
+   the child *explicitly* points to the parent in such a NO_DANGLING
+   flagged attribute. That could be optimized out (?) but the main issue
+   is if that is more convenient for the rest of the code related to this.
+*/
 static ImplementerVector sImplementerVector;
 static MissingParentsMap sMissingParents;
 static ContinuationMap2  sAdmReqContinuationMap;
@@ -423,6 +441,41 @@ static const std::string immManagementDn("safRdn=immManagement,safApp=safImmServ
 static const std::string saImmRepositoryInit("saImmRepositoryInit");
 
 static SaImmRepositoryInitModeT immInitMode = SA_IMM_INIT_FROM_FILE;
+
+
+struct AttrFlagIncludes
+{
+    AttrFlagIncludes(SaUint32T attrFlag) : mFlag(attrFlag) { }
+
+    bool operator() (AttrMap::value_type& item) const {
+        return (item.second->mFlags & mFlag) != 0;
+    }
+
+    SaUint32T mFlag;
+};
+
+struct IdIs
+{
+    IdIs(SaUint32T id) : mId(id) { }
+
+    bool operator() (AdminOwnerInfo*& item) const {
+        return item->mId == mId;
+    }
+
+    SaUint32T mId;
+};
+
+struct CcbIdIs
+{
+    CcbIdIs(SaUint32T id) : mId(id) { }
+
+    bool operator() (CcbInfo*& item) const {
+        return item->mId == mId;
+    }
+
+    SaUint32T mId;
+};
+
 
 SaAisErrorT 
 immModel_ccbResult(IMMND_CB *cb, SaUint32T ccbId)
@@ -2173,6 +2226,8 @@ ImmModel::abortSync()
             LOG_NO("NODE STATE-> IMM_NODE_UNKNOW %u", __LINE__);
             /* Aborting a started but not completed sync. */
             LOG_NO("Abort sync: Discarding synced objects");
+            // Remove all NO_DANGLING references
+            sReverseRefsNoDanglingMMap.clear();
             while(sObjectMap.size()) {
                 ObjectMap::iterator oi = sObjectMap.begin();
                 TRACE("sObjectmap.size:%u delete: %s", 
@@ -2748,6 +2803,31 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                     "cached", attNm);
                 illegal = 1;
             }
+
+            if(attr->attrFlags & SA_IMM_ATTR_NO_DANGLING) {
+                LOG_NO("ERR_INVALID_PARAM: RDN '%s' cannot have NO_DANGLING flag",
+                    attNm);
+                illegal = 1;
+            }
+        }
+
+        if(attr->attrFlags & SA_IMM_ATTR_NO_DANGLING) {
+            if(req->classCategory == SA_IMM_CLASS_RUNTIME) {
+                LOG_NO("ERR_INVALID_PARAM: Runtime object '%s' cannot have NO_DANGLING "
+                    "attribute", attNm);
+                illegal = 1;
+            }
+
+            if(attr->attrValueType != SA_IMM_ATTR_SANAMET) {
+                LOG_NO("ERR_INVALID_PARAM: Attribute '%s' must be of type SaNameT", attNm);
+                illegal = 1;
+            }
+
+            if(attr->attrFlags & SA_IMM_ATTR_RUNTIME) {
+                LOG_NO("ERR_INVALID_PARAM: Runtime attribute '%s' cannot have "
+                    "NO_DANGLING flag", attNm);
+                illegal = 1;
+            }
         }
 
         if(attr->attrDefaultValue) {
@@ -2816,7 +2896,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
     }
 
     if(schemaChange && !illegal) {
-        /* 
+        /*
          If all basic checks passed and this is an upgrade, do upgrade specific checks.
         */
         if(verifySchemaChange(className, prevClassInfo, classInfo, newAttrs, changedAttrs)) {
@@ -2860,9 +2940,40 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
     } else {
         /* Schema upgrade case, Change the attr defs. */
         AttrMap::iterator ai;
+        AttrMap::iterator pcai;     // for prevClassInfo->mAttrMap
         AttrInfo* ainfo = NULL;
         ObjectSet::iterator oi;
+        bool hasNoDanglingRefChanges = false;
         osafassert(prevClassInfo);
+
+        /* Add NO_DANGLING flag changes */
+        for(ai=newAttrs.begin(); ai!=newAttrs.end(); ++ai) {
+            if(ai->second->mFlags & SA_IMM_ATTR_NO_DANGLING) {
+                hasNoDanglingRefChanges = true;
+                break;
+            }
+        }
+        if(!hasNoDanglingRefChanges) {
+            for(ai=changedAttrs.begin(); ai!=changedAttrs.end(); ++ai) {
+                if(ai->second->mFlags & SA_IMM_ATTR_NO_DANGLING) {
+                    hasNoDanglingRefChanges = true;
+                    break;
+                }
+                // Check NO_DANGLING flag of the attribute in the previous class
+                if((pcai = prevClassInfo->mAttrMap.find(ai->first)) != prevClassInfo->mAttrMap.end()
+                        && (pcai->second->mFlags & SA_IMM_ATTR_NO_DANGLING)) {
+                    hasNoDanglingRefChanges = true;
+                    break;
+                }
+            }
+        }
+
+        if(hasNoDanglingRefChanges) {
+            // Remove all no dangling references from all objects of the class
+            for(oi=prevClassInfo->mExtent.begin(); oi != prevClassInfo->mExtent.end(); ++oi) {
+                removeNoDanglingRefs(*oi, *oi);
+            }
+        }
 
         /* Remove old attr defs. */
         while(prevClassInfo->mAttrMap.size()) {
@@ -2920,6 +3031,12 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                 }
             }
 
+            if(hasNoDanglingRefChanges) {
+                // Set back no dangling references for all objects
+                for(oi=prevClassInfo->mExtent.begin(); oi != prevClassInfo->mExtent.end(); ++oi) {
+                    addNoDanglingRefs(*oi);
+                }
+            }
         }
 
         LOG_NO("Schema change completed for class %s %s", className.c_str(),
@@ -3202,6 +3319,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
         bool change=false;
         bool checkCcb=false;
         bool checkNoDup=false;
+        bool checkNoDanglingRefs=false;
         osafassert(changedAttrs);
         if(oldAttr->mValueType != newAttr->mValueType) {
             LOG_NO("Impossible upgrade, attribute %s:%s changes value type",
@@ -3333,6 +3451,24 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                 change = true; /* Instances dont need migration. */
                 checkCcb=true; /* Check for ccb interference. */
             }
+
+            if(!(oldAttr->mFlags & SA_IMM_ATTR_NO_DANGLING) &&
+               (newAttr->mFlags & SA_IMM_ATTR_NO_DANGLING)) {
+                LOG_NO("Allowed upgrade, attribute %s:%s adds flag "
+                    "SA_IMM_ATTR_NO_DANGLING", className.c_str(), attName.c_str());
+                change = true;
+                checkCcb=true;
+                checkNoDanglingRefs=true;
+            }
+
+            if((oldAttr->mFlags & SA_IMM_ATTR_NO_DANGLING) &&
+               !(newAttr->mFlags & SA_IMM_ATTR_NO_DANGLING)) {
+                LOG_NO("Allowed upgrade, attribute %s:%s removes flag "
+                    "SA_IMM_ATTR_NO_DANGLING", className.c_str(), attName.c_str());
+                change = true;
+                checkCcb=true;
+                checkNoDanglingRefs=true;
+            }
         }
 
         osafassert(!checkNoDup || checkCcb); //Duplicate-check implies ccb-check
@@ -3400,6 +3536,63 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                             className.c_str(), attName.c_str(), objName.c_str());
                         return true;
                     }
+                }
+            }
+        }
+
+        /* "changedAttrs != NULL" ensures that this check is only for the schema update */
+        if(checkNoDanglingRefs && changedAttrs) {
+            if(newAttr->mValueType != SA_IMM_ATTR_SANAMET)
+                return true;
+
+            ClassMap::iterator cmi = sClassMap.find(className);
+            osafassert(cmi != sClassMap.end());
+
+            ClassInfo *oldClassInfo = cmi->second;
+
+            // Collect attributes with added NO_DANGLING flags
+            for(ObjectSet::iterator osi=oldClassInfo->mExtent.begin(); osi!=oldClassInfo->mExtent.end(); ++osi) {
+                // Check if there is any create or delete CCB operation on objects in the attribute with NO_DANGLING flag
+                ImmAttrValueMap::iterator avmi = (*osi)->mAttrValueMap.find(attName);
+                osafassert(avmi != (*osi)->mAttrValueMap.end());
+                ObjectMap::iterator omi;
+                ImmAttrValue *av = avmi->second;
+                while(av) {
+                    if(av->getValueC_str()) {
+                        omi = sObjectMap.find(av->getValueC_str());
+                        if(omi == sObjectMap.end()) {
+                            std::string objName;
+                            getObjectName(*osi, objName);
+                            LOG_WA("Object %s attribute %s has a reference to a non-existing object %s. "
+                                    "Schema change to add NO_DANGLING is not possible",
+                                    objName.c_str(), attName.c_str(), av->getValueC_str());
+                            return true;
+                        }
+                        if(omi->second->mClassInfo->mCategory == SA_IMM_CLASS_RUNTIME &&
+                                std::find_if(omi->second->mClassInfo->mAttrMap.begin(),
+                                        omi->second->mClassInfo->mAttrMap.end(),
+                                        AttrFlagIncludes(SA_IMM_ATTR_PERSISTENT)) == omi->second->mClassInfo->mAttrMap.end()) {
+                            std::string objName;
+                            getObjectName(*osi, objName);
+                            LOG_WA("Object %s attribute %s has a reference to a non-persistent runtime object %s. "
+                                    "Schema change to add NO_DANGLING is not possible",
+                                    objName.c_str(), attName.c_str(), av->getValueC_str());
+                            return true;
+                        }
+                        if(omi->second->mObjFlags & (IMM_CREATE_LOCK | IMM_DELETE_LOCK)) {
+                            std::string objName;
+                            getObjectName(*osi, objName);
+                            LOG_WA("CCB in progress operating on object %s attribute %s referenced by object %s is being upgraded. "
+                                    "Schema change to add NO_DANGLING is not possible",
+                                    objName.c_str(), attName.c_str(), av->getValueC_str());
+                            return true;
+                        }
+                    }
+
+                    if(av->isMultiValued())
+                        av = ((ImmAttrMultiValue *)av)->getNextAttrValue();
+                    else
+                        break;
                 }
             }
         }
@@ -3590,7 +3783,8 @@ ImmModel::attrCreate(ClassInfo* classInfo, const ImmsvAttrDefinition* attr,
             SA_IMM_ATTR_PERSISTENT |
             SA_IMM_ATTR_CACHED |
             SA_IMM_ATTR_NO_DUPLICATES |
-            SA_IMM_ATTR_NOTIFY);
+            SA_IMM_ATTR_NOTIFY |
+            SA_IMM_ATTR_NO_DANGLING);
 
         if(unknownFlags) {
             LOG_NO("ERR_INVALID_PARAM: invalid search option 0x%llx",
@@ -3684,39 +3878,6 @@ ImmModel::classDescriptionGet(const IMMSV_OCTET_STRING* clName,
     TRACE_LEAVE();
     return err;
 }
-
-struct AttrFlagIncludes
-{
-    AttrFlagIncludes(SaUint32T attrFlag) : mFlag(attrFlag) { }
-    
-    bool operator() (AttrMap::value_type& item) const {
-        return (item.second->mFlags & mFlag) != 0;
-    }
-    
-    SaUint32T mFlag;
-};
-
-struct IdIs
-{
-    IdIs(SaUint32T id) : mId(id) { }
-    
-    bool operator() (AdminOwnerInfo*& item) const {
-        return item->mId == mId;
-    }
-    
-    SaUint32T mId;
-};
-
-struct CcbIdIs
-{
-    CcbIdIs(SaUint32T id) : mId(id) { }
-    
-    bool operator() (CcbInfo*& item) const {
-        return item->mId == mId;
-    }
-    
-    SaUint32T mId;
-};
 
 /** 
  * Creates an admin owner. 
@@ -4179,6 +4340,158 @@ ImmModel::ccbResult(SaUint32T ccbId)
     return err;
 }
 
+/*
+ * Validate NO_DANGLING references for an object in object create and object modify operations
+ */
+bool ImmModel::validateNoDanglingRefsModify(CcbInfo* ccb, ObjectMutationMap::iterator &omit) {
+    ClassInfo *classInfo = omit->second->mAfterImage->mClassInfo;
+    AttrMap::iterator amit;
+    AttrInfo *ai;
+    ImmAttrValueMap::iterator  avit;
+    ImmAttrValue *av;
+    ObjectMap::iterator omi;
+
+
+    TRACE_ENTER();
+
+    if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
+        TRACE_LEAVE();
+        return true;
+    }
+
+    for(amit=classInfo->mAttrMap.begin(); amit!=classInfo->mAttrMap.end(); ++amit) {
+        ai = amit->second;
+        if(ai->mFlags & SA_IMM_ATTR_NO_DANGLING) {
+            if((avit = omit->second->mAfterImage->mAttrValueMap.find(amit->first)) != omit->second->mAfterImage->mAttrValueMap.end()) {
+                av = avit->second;
+
+                while(av) {
+                    /* Empty attribute */
+                    if(av->getValueC_str()) {
+                        omi = sObjectMap.find(av->getValueC_str());
+                        if(omi == sObjectMap.end()) {
+                            LOG_NO("ERR_FAILED_OPERATION: NO_DANGLING reference (%s) is dangling (Ccb %u)",
+                                    av->getValueC_str(), ccb->mId);
+                            TRACE_LEAVE();
+                            return false;
+                        }
+
+                        osafassert(omi->second != NULL);
+
+                        if(omi->second->mClassInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
+                            if(std::find_if(omi->second->mClassInfo->mAttrMap.begin(),
+                                    omi->second->mClassInfo->mAttrMap.end(),
+                                    AttrFlagIncludes(SA_IMM_ATTR_PERSISTENT)) == omi->second->mClassInfo->mAttrMap.end()) {
+                                LOG_NO("ERR_FAILED_OPERATION: NO_DANGLING Reference (%s) "
+                                        "refers to a non-persistent RTO (Ccb %u)",
+                                        av->getValueC_str(), ccb->mId);
+                                TRACE_LEAVE();
+                                return false;
+                            }
+                        }
+
+                        if(omi->second->mObjFlags & IMM_DELETE_LOCK) {
+                            if(omi->second->mCcbId != ccb->mId) {   // Will be deleted by another CCB
+                                LOG_ER("ERR_FAILED_OPERATION: NO_DANGLING reference (%s) "
+                                        "refers to object flagged for delete by another Ccb: %u, (this Ccb %u)",
+                                        av->getValueC_str(), omi->second->mCcbId, ccb->mId);
+                            }
+                            TRACE_LEAVE();
+                            return false;
+                        }
+                        if((omi->second->mObjFlags & IMM_CREATE_LOCK) && (omi->second->mCcbId != ccb->mId)) {
+                            LOG_ER("ERR_FAILED_OPERATION: NO_DANGLING reference (%s) "
+                                    "refers to object flagged for create by another CCB: %u, (this Ccb %u)",
+                                    av->getValueC_str(), omi->second->mCcbId , ccb->mId);
+                            TRACE_LEAVE();
+                            return false;
+                        }
+                    }
+
+                    if(av->isMultiValued())
+                        av = ((ImmAttrMultiValue *)av)->getNextAttrValue();
+                    else
+                        break;
+                }
+            }
+        }
+    }
+
+    TRACE_LEAVE();
+
+    return true;
+}
+
+/*
+ * Validate NO_DANGLING references for an object in object delete operations
+ */
+bool ImmModel::validateNoDanglingRefsDelete(CcbInfo* ccb, ObjectMutationMap::iterator &omit) {
+    TRACE_ENTER();
+
+    ObjectMap::iterator omi = sObjectMap.find(omit->first.c_str());
+    osafassert(omi != sObjectMap.end());
+
+    bool rc = true;
+    ObjectMMap::iterator ommi = sReverseRefsNoDanglingMMap.find(omi->second);
+    while(ommi != sReverseRefsNoDanglingMMap.end() && ommi->first == omi->second) {
+        if(!(ommi->second->mObjFlags & IMM_DELETE_LOCK)) {
+            std::string objName;
+            getObjectName(ommi->second, objName);
+            LOG_ER("ERR_FAILED_OPERATION: Delete of object %s would violate NO_DANGLING reference "
+                    "from object %s, not scheduled for delete by this Ccb:%u",
+                    omit->first.c_str(), objName.c_str(), ccb->mId);
+            rc = false;
+            break;
+        }
+        if(ommi->second->mCcbId != ccb->mId) {
+            std::string objName;
+            getObjectName(ommi->second, objName);
+            LOG_ER("ERR_FAILED_OPERATION: Delete of object %s would violate NO_DANGLING reference "
+                    "from object %s, scheduled for delete by another Ccb:%u (this Ccb:%u)",
+                    omit->first.c_str(), objName.c_str(), ommi->second->mCcbId, ccb->mId);
+            rc = false;
+            break;
+        }
+
+        ++ommi;
+    }
+
+    TRACE_LEAVE();
+
+    return rc;
+}
+
+/*
+ * The function validates all objects that are affected by NO_DANGLING flag in CCB operations
+ */
+bool ImmModel::validateNoDanglingRefs(CcbInfo* ccb) {
+    if(!(ccb->mCcbFlags & OPENSAF_IMM_CCB_NO_DANGLING_MUTATE))
+        return true;    // No changes on NO_DANGLING attributes
+
+    TRACE_ENTER();
+
+    bool rc = true;
+    ObjectMutationMap::iterator omit;
+    for(omit=ccb->mMutations.begin(); rc && omit!=ccb->mMutations.end(); ++omit){
+        switch(omit->second->mOpType) {
+            case IMM_CREATE :
+            case IMM_MODIFY :
+                rc = validateNoDanglingRefsModify(ccb, omit);
+                break;
+            case IMM_DELETE :
+                rc = validateNoDanglingRefsDelete(ccb, omit);
+                break;
+            default :
+                osafassert(omit->second->mOpType <= IMM_DELETE);
+                break;
+        }
+    }
+
+    TRACE_LEAVE();
+
+    return rc;
+}
+
 /** 
  * Commits a CCB
  */
@@ -4232,8 +4545,8 @@ ImmModel::ccbApply(SaUint32T ccbId,
             }
             err = SA_AIS_ERR_FAILED_OPERATION;
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
-        } else {
-            /* Remove osafassert after component test */
+        } else if(validateNoDanglingRefs(ccb)) {
+            /* sMissingParents must be empty if err is SA_AIS_OK */
             osafassert(sMissingParents.empty());
 
             TRACE_5("Apply CCB %u", ccb->mId);
@@ -4280,8 +4593,10 @@ ImmModel::ccbApply(SaUint32T ccbId,
                     connVector.push_back(implConn);
                     implIds.push_back(impInfo->mId);
                     continuations.push_back(sLastContinuationId);
-                }                
+                }
             }
+        } else {
+            err = SA_AIS_ERR_FAILED_OPERATION;
         }
     }
  ignore:
@@ -4290,11 +4605,184 @@ ImmModel::ccbApply(SaUint32T ccbId,
     return err;
 }
 
+/**
+ * This function extracts all no dangling references that exist in "object"
+ * and insert them into sReverseRefsNoDanglingMMap, with "object" as a source
+ * and the object matching the DN in the no dangling attribute as a target.
+ */
+void
+ImmModel::addNoDanglingRefs(ObjectInfo *object)
+{
+    ClassInfo *ci = object->mClassInfo;
+    AttrMap::iterator ami;
+    ImmAttrValueMap::iterator avmi;
+    ImmAttrValue *av;
+    ObjectMap::iterator omi;
+    ObjectSet objSet;
+    ObjectSet::iterator osi;
+
+    TRACE_ENTER();
+
+    for(ami=ci->mAttrMap.begin(); ami!=ci->mAttrMap.end(); ++ami) {
+        if(ami->second->mFlags & SA_IMM_ATTR_NO_DANGLING) {
+            avmi = object->mAttrValueMap.find(ami->first);
+            osafassert(avmi != object->mAttrValueMap.end());
+            av = avmi->second;
+            while(av) {
+                if(av->getValueC_str()) {
+                    omi = sObjectMap.find(av->getValueC_str());
+                    osafassert(omi != sObjectMap.end());
+
+                    //  avoid duplicates
+                    objSet.insert(omi->second);
+                }
+
+                if(av->isMultiValued())
+                    av = ((ImmAttrMultiValue *)av)->getNextAttrValue();
+                else
+                    break;
+            }
+        }
+    }
+
+    for(osi=objSet.begin(); osi!=objSet.end(); ++osi) {
+        sReverseRefsNoDanglingMMap.insert(std::pair<ObjectInfo *, ObjectInfo *>(*osi, object));
+    }
+
+    TRACE_LEAVE();
+}
+
+/**
+ * Delete from sReverseRefsNoDanglingMMap all NO_DANGLING reference values existing *in* 'object'.
+ * If "removeRefsToObject" parameter is set to true, then *also* delete from sReverseRefsNoDanglingMMap
+ * all NO_DANGLING references pointing *to* 'object.'.
+ * "removeRefsToObject" parameter is set to "false" by default, and is an optional parameter.
+ */
+void
+ImmModel::removeNoDanglingRefs(ObjectInfo *object, ObjectInfo *afim, bool removeRefsToObject)
+{
+    ClassInfo *ci = object->mClassInfo;
+    AttrMap::iterator ami;
+    ImmAttrValueMap::iterator avmi;
+    ImmAttrValue *av;
+    ObjectMap::iterator omi;
+    ObjectMMap::iterator ommi;
+
+    TRACE_ENTER();
+
+    for(ami=ci->mAttrMap.begin(); ami!=ci->mAttrMap.end(); ++ami) {
+        if(ami->second->mFlags & SA_IMM_ATTR_NO_DANGLING) {
+            avmi = afim->mAttrValueMap.find(ami->first);
+            osafassert(avmi != afim->mAttrValueMap.end());
+            av = avmi->second;
+            while(av) {
+                if(av->getValueC_str()) {
+                    omi = sObjectMap.find(av->getValueC_str());
+                    if(omi != sObjectMap.end()) {
+                        ommi = sReverseRefsNoDanglingMMap.find(omi->second);
+                        while(ommi != sReverseRefsNoDanglingMMap.end() && ommi->first == omi->second) {
+                            if(ommi->second == object) {
+                                sReverseRefsNoDanglingMMap.erase(ommi);
+                                break;
+                            }
+                            ++ommi;
+                        }
+                    }
+                }
+
+                if(ami->second->mFlags & SA_IMM_ATTR_MULTI_VALUE)
+                    av = ((ImmAttrMultiValue *)av)->getNextAttrValue();
+                else
+                    break;
+            }
+        }
+    }
+
+    if(removeRefsToObject) {
+        ommi = sReverseRefsNoDanglingMMap.find(object);
+        while(ommi != sReverseRefsNoDanglingMMap.end()) {
+            sReverseRefsNoDanglingMMap.erase(ommi);
+            ommi = sReverseRefsNoDanglingMMap.find(object);
+        }
+    }
+
+    TRACE_LEAVE();
+}
+
+/*
+ * Select created objects which DNs are stored in "dnSet" and insert them to
+ * sReverseRefsNoDanglingMMap as target objects.
+ * "obj" will be inserted as a source object.
+ */
+void
+ImmModel::addNewNoDanglingRefs(ObjectInfo *obj, ObjectNameSet &dnSet)
+{
+    ObjectNameSet::iterator si;
+    ObjectMMap::iterator ommi;
+    ObjectMap::iterator omi;
+
+    TRACE_ENTER();
+
+    for(si=dnSet.begin(); si!=dnSet.end(); ++si) {
+        omi = sObjectMap.find(*si);
+        // After all validation, object must exist
+        osafassert(omi != sObjectMap.end());
+        if(omi->second->mObjFlags & IMM_CREATE_LOCK) {
+            sReverseRefsNoDanglingMMap.insert(std::pair<ObjectInfo *, ObjectInfo *>(omi->second, obj));
+        }
+    }
+
+    TRACE_LEAVE();
+}
+
+/*
+ * Remove NO_DANGLING references from sReverseRefsNoDanglingMMap where
+ * a target object DN is stored in "dnSet", and "obj" is used as a source object
+ */
+void
+ImmModel::removeNoDanglingRefSet(ObjectInfo *obj, ObjectNameSet &dnSet)
+{
+    ObjectNameSet::iterator si;
+    ObjectMMap::iterator ommi;
+    ObjectMap::iterator omi;
+
+    TRACE_ENTER();
+
+    for(si=dnSet.begin(); si!=dnSet.end(); ++si) {
+        omi = sObjectMap.find(*si);
+        if(omi != sObjectMap.end()) {
+            for(ommi = sReverseRefsNoDanglingMMap.find(omi->second);
+                    ommi != sReverseRefsNoDanglingMMap.end() && ommi->first == omi->second;
+                    ++ommi) {
+                if(ommi->second == obj) {
+                    sReverseRefsNoDanglingMMap.erase(ommi);
+                    break;
+                }
+            }
+        }
+    }
+
+    TRACE_LEAVE();
+}
+
 void
 ImmModel::commitCreate(ObjectInfo* obj)
 {
+    if(obj->mObjFlags & IMM_NO_DANGLING_FLAG) {
+        /* It's more efficient to first remove all NO_DANGLING references, and
+         * then add them all again.
+         * Otherwise, we need to have a lookup for each NO_DANGLING reference, and
+         * check if NO_DANGLING references exist.
+         * There could be a case when a target object is created in the same CCB,
+         * then NO_DANGLING references, that refer to the target object,
+         * don't exist yet.
+         */
+        removeNoDanglingRefs(obj, obj);
+        addNoDanglingRefs(obj);
+    }
+
     //obj->mCreateLock = false;
-    obj->mObjFlags &= ~IMM_CREATE_LOCK;
+    obj->mObjFlags &= ~(IMM_CREATE_LOCK | IMM_NO_DANGLING_FLAG);
     /*TRACE_5("Flags after remove create lock:%u", obj->mObjFlags);*/
 }
 
@@ -4319,7 +4807,35 @@ ImmModel::commitModify(const std::string& dn, ObjectInfo* afterImage)
         */
          afterImage->mAdminOwnerAttrVal->setValueC_str(NULL);
     }
-    
+
+    /* The set of references in the before-image minus the set of references
+       in the after-image constitutes the set of references *removed* by
+       the (possibly chained) modify operation.
+       The set of references in the after-image minus the set of references
+       in the before-image constitutes the set of  references *added* by
+       the (possibly chained) modify operation.
+    */
+    if(beforeImage->mObjFlags & IMM_NO_DANGLING_FLAG) {
+        ObjectNameSet origNDRefs, afimNDRefs, deletedNDRefs, addedNDRefs;
+
+        beforeImage->mObjFlags ^= IMM_NO_DANGLING_FLAG;
+
+        collectNoDanglingRefs(beforeImage, origNDRefs);
+        collectNoDanglingRefs(afterImage, afimNDRefs);
+
+        std::set_difference(origNDRefs.begin(), origNDRefs.end(),
+                            afimNDRefs.begin(), afimNDRefs.end(),
+                            std::inserter(deletedNDRefs, deletedNDRefs.end()));
+
+        removeNoDanglingRefSet(beforeImage, deletedNDRefs);
+
+        std::set_difference(afimNDRefs.begin(), afimNDRefs.end(),
+                            origNDRefs.begin(), origNDRefs.end(),
+                            std::inserter(addedNDRefs, addedNDRefs.end()));
+
+        addNewNoDanglingRefs(beforeImage, addedNDRefs);
+    }
+
     //  sObjectMap.erase(oi);
     //sObjectMap[dn] = afterImage;
     //instead of switching ObjectInfo record, I move the attribute values
@@ -4335,7 +4851,7 @@ ImmModel::commitModify(const std::string& dn, ObjectInfo* afterImage)
             delete oavi->second; 
         }
     }
-    
+
     for(oavi = afterImage->mAttrValueMap.begin();
         oavi != afterImage->mAttrValueMap.end(); ++oavi) {
         AttrMap::iterator i4 = classInfo->mAttrMap.find(oavi->first);
@@ -4377,6 +4893,10 @@ ImmModel::commitDelete(const std::string& dn)
     TRACE_5("COMMITING DELETE of %s", dn.c_str());
     ObjectMap::iterator oi = sObjectMap.find(dn);
     osafassert(oi != sObjectMap.end());
+
+    if(oi->second->mObjFlags & IMM_NO_DANGLING_FLAG) {
+        removeNoDanglingRefs(oi->second, oi->second, true);
+    }
 
     if(oi->second->mObjFlags & IMM_DELETE_ROOT) {
         oi->second->mObjFlags &= ~IMM_DELETE_ROOT;
@@ -4743,8 +5263,11 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                     
                 case IMM_CREATE: {
                     const std::string& dn = omit->first;
-                    ObjectMap::iterator oi = sObjectMap.find(dn);
+                    oi = sObjectMap.find(dn);
                     osafassert(oi != sObjectMap.end());
+                    if(oi->second->mObjFlags & IMM_NO_DANGLING_FLAG) {
+                        removeNoDanglingRefs(oi->second, oi->second, true);
+                    }
                     sObjectMap.erase(oi);
                     osafassert(afim);
                     SaUint32T adminOwnerId = (omut->mAugmentAdmo)? omut->mAugmentAdmo : ccb->mAdminOwnerId;
@@ -4796,7 +5319,14 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                 break;
                     
                 case IMM_MODIFY: {
+                    oi = sObjectMap.find(omit->first);
+                    osafassert(oi != sObjectMap.end());
                     osafassert(afim);
+                    // Remove all NO_DANGLING references from the original object and after image object
+                    removeNoDanglingRefs(oi->second, oi->second);
+                    removeNoDanglingRefs(oi->second, afim);
+                    // Add NO_DANGLING references from the original object
+                    addNoDanglingRefs(oi->second);
                     ImmAttrValueMap::iterator oavi;
                     for(oavi = afim->mAttrValueMap.begin();
                         oavi != afim->mAttrValueMap.end(); ++oavi) {
@@ -4815,16 +5345,16 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
         }//for each mutation
 
         /* #### Now delete afims from aborted creates. */
-        ObjectSet::iterator oi = createsAbortedInCcb.begin();
-        while(oi != createsAbortedInCcb.end()) {
+        ObjectSet::iterator osi = createsAbortedInCcb.begin();
+        while(osi != createsAbortedInCcb.end()) {
             ImmAttrValueMap::iterator oavi;
-            for(oavi = (*oi)->mAttrValueMap.begin();
-               oavi != (*oi)->mAttrValueMap.end(); ++oavi) {
+            for(oavi = (*osi)->mAttrValueMap.begin();
+               oavi != (*osi)->mAttrValueMap.end(); ++oavi) {
                 delete oavi->second;
             }
-            (*oi)->mAttrValueMap.clear();
-            delete (*oi);
-            ++oi;
+            (*osi)->mAttrValueMap.clear();
+            delete (*osi);
+            ++osi;
         }
         createsAbortedInCcb.clear();
 
@@ -5692,6 +6222,8 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     bool isAugAdmo=false;
     bool isSpecialApplForClass=false;
 
+    ObjectSet refObjectSet;
+
     //int isLoading = this->getLoader() > 0;
     int isLoading = (sImmNodeState == IMM_NODE_LOADING);
     
@@ -6077,7 +6609,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     break; //out of for-loop
                 }
             }
-            
+
             ImmAttrValue* attrValue = i6->second;
             IMMSV_OCTET_STRING tmpos; //temporary octet string
             eduAtValToOs(&tmpos, &(p->n.attrValue), 
@@ -6120,7 +6652,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                             if((attr->mFlags & SA_IMM_ATTR_NO_DUPLICATES) &&
                                (multiattr->hasMatchingValue(tmpos))) {
                                 LOG_NO("ERR_INVALID_PARAM: multivalued attr '%s' with NO_DUPLICATES "
-                                    "yet duplicate values provided in ccb obj-create call. Class:'%s' obj:'%s'.",                                    
+                                    "yet duplicate values provided in ccb obj-create call. Class:'%s' obj:'%s'.",
                                      attrName.c_str(), className.c_str(), objectName.c_str());
                                 err = SA_AIS_ERR_INVALID_PARAM;
                                 break; //out of loop
@@ -6156,10 +6688,10 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     object->mImplementer = impl;
                 }
             }
-            
+
             p = p->next;
         } //while(p...
-        
+
 
         //Check that all attributes with INITIALIZED flag have been set.
         //
@@ -6237,6 +6769,83 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 }
             }
         } //for(i6=object->...
+
+        /* Check NO_DANGLING references */
+        if(err == SA_AIS_OK) {
+            ObjectMap::iterator omi;
+            ImmAttrValue *attrVal;
+            ImmAttrValueMap::iterator avmi;
+
+            for(i4=classInfo->mAttrMap.begin();
+                    err == SA_AIS_OK && i4 != classInfo->mAttrMap.end();
+                    ++i4) {
+                if(i4->second->mFlags & SA_IMM_ATTR_NO_DANGLING) {
+                    i6 = object->mAttrValueMap.find(i4->first);
+                    osafassert(i6 != object->mAttrValueMap.end());
+
+                    attrVal = i6->second;
+                    while(attrVal) {
+                        if(attrVal->getValueC_str()) {
+                            omi = sObjectMap.find(attrVal->getValueC_str());
+                            if(omi != sObjectMap.end()) {
+                                /* Check if the object is PRTO */
+                                if(omi->second->mClassInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
+                                    if(std::find_if(omi->second->mClassInfo->mAttrMap.begin(),
+                                            omi->second->mClassInfo->mAttrMap.end(),
+                                            AttrFlagIncludes(SA_IMM_ATTR_PERSISTENT)) == omi->second->mClassInfo->mAttrMap.end()) {
+                                        LOG_NO("ERR_INVALID_PARAM: NO_DANGLING Creation of object %s attribute (%s) "
+                                                "refers to a non persistent RTO %s (Ccb %u)",
+                                                objectName.c_str(), i4->first.c_str(), attrVal->getValueC_str(), ccbId);
+                                        err = SA_AIS_ERR_INVALID_PARAM;
+                                        break;
+                                    }
+                                }
+
+                                if(omi->second->mObjFlags & IMM_DELETE_LOCK) {
+                                    if(omi->second->mCcbId == ccbId) {
+                                        LOG_NO("ERR_BAD_OPERATION: NO_DANGLING Creation of object %s attribute %s "
+                                                "refers to object %s that will be deleted in same Ccb (Ccb %u)",
+                                                objectName.c_str(), i4->first.c_str(), attrVal->getValueC_str(), ccbId);
+                                        err = SA_AIS_ERR_BAD_OPERATION;
+                                        break;
+                                    } else {
+                                        LOG_IN("ERR_BUSY: NO_DANGLING Creation of object %s attribute %s refers to "
+                                                "object %s flagged for deletion in other Ccb (%u), this (Ccb %u)",
+                                                objectName.c_str(), i4->first.c_str(), attrVal->getValueC_str(),
+                                                omi->second->mCcbId, ccbId);
+                                        err = SA_AIS_ERR_BUSY;
+                                        break;
+                                    }
+                                }
+
+                                if(omi->second->mObjFlags & IMM_CREATE_LOCK) {
+                                    if(omi->second->mCcbId != ccbId) {
+                                        LOG_IN("ERR_BUSY: NO_DANGLING Creation of object %s attribute %s refers to "
+                                                "object %s flagged for creation in other ccb (%u), this (Ccb %u)",
+                                                objectName.c_str(), i4->first.c_str(), attrVal->getValueC_str(),
+                                                omi->second->mCcbId, ccbId);
+                                        err = SA_AIS_ERR_BUSY;
+                                        break;
+                                    }
+                                } else {
+                                    // Add reference to the existing object
+                                    refObjectSet.insert(omi->second);
+                                }
+                            }
+
+                            object->mObjFlags |= IMM_NO_DANGLING_FLAG;
+                            ccb->mCcbFlags |= OPENSAF_IMM_CCB_NO_DANGLING_MUTATE;
+                        }
+
+                        if(attrVal->isMultiValued()) {
+                            attrVal = ((ImmAttrMultiValue *)attrVal)->getNextAttrValue();
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
          // Prepare for call on PersistentBackEnd
         if((err == SA_AIS_OK) && pbeNodeIdPtr) {
@@ -6373,6 +6982,12 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 //TRACE("Missing parent %s has child %p", parentName.c_str(), object);
             }
             
+            // Add NO_DANGLING references collected from NO_DANGLING attributes
+            ObjectSet::iterator rosi;   // refObjectSet iterator
+            for(rosi = refObjectSet.begin(); rosi != refObjectSet.end(); ++rosi) {
+                sReverseRefsNoDanglingMMap.insert(std::pair<ObjectInfo *, ObjectInfo *>(*rosi, object));
+            }
+
             unsigned int sze = (unsigned int) sObjectMap.size();
             if(sze >= 5000) {
                 if(sze%1000 == 0) {
@@ -6449,6 +7064,77 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     return err;
 }
 
+/**
+ * Collect all NO_DANGLING references from an object
+ */
+void
+ImmModel::collectNoDanglingRefs(ObjectInfo *object, ObjectNameSet &objSet) {
+    AttrMap::iterator ami;
+    ImmAttrValueMap::iterator avmi;
+    ImmAttrMultiValue *multiattr;
+    for(ami=object->mClassInfo->mAttrMap.begin(); ami!=object->mClassInfo->mAttrMap.end(); ++ami) {
+        if(ami->second->mFlags & SA_IMM_ATTR_NO_DANGLING) {
+            avmi = object->mAttrValueMap.find(ami->first);
+            osafassert(avmi != object->mAttrValueMap.end());
+            if(avmi->second->getValueC_str())
+                objSet.insert(avmi->second->getValueC_str());
+
+            if(ami->second->mFlags & SA_IMM_ATTR_MULTI_VALUE) {
+                multiattr = ((ImmAttrMultiValue *)avmi->second)->getNextAttrValue();
+                while(multiattr) {
+                    if(multiattr->getValueC_str())
+                        objSet.insert(multiattr->getValueC_str());
+
+                    multiattr = multiattr->getNextAttrValue();
+                }
+            }
+        }
+    }
+}
+
+/*
+ * Check new added NO_DANGLING reference from ObjectModify operation
+ */
+SaAisErrorT
+ImmModel::objectModifyNDTargetOk(const char *srcObjectName, const char *attrName, const char *targetObjectName, SaUint32T ccbId) {
+    ObjectMap::iterator omi = sObjectMap.find(targetObjectName);
+    if(omi != sObjectMap.end()) {
+        if(omi->second->mClassInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
+            if(std::find_if(omi->second->mClassInfo->mAttrMap.begin(),
+                    omi->second->mClassInfo->mAttrMap.end(),
+                    AttrFlagIncludes(SA_IMM_ATTR_PERSISTENT)) == omi->second->mClassInfo->mAttrMap.end()) {
+                LOG_NO("ERR_INVALID_PARAM: NO_DANGLING Object %s attribute %s refers to "
+                        "non persistent RTO %s (Ccb:%u)",
+                        srcObjectName, attrName, targetObjectName, ccbId);
+                return SA_AIS_ERR_INVALID_PARAM;
+            }
+        }
+        if(omi->second->mObjFlags & IMM_DELETE_LOCK) {
+            if(omi->second->mCcbId == ccbId) {
+                LOG_NO("ERR_BAD_OPERATION: NO_DANGLING Object %s attribute %s refers to "
+                        "object %s flagged for deletion (Ccb:%u)",
+                        srcObjectName, attrName, targetObjectName, ccbId);
+                return SA_AIS_ERR_BAD_OPERATION;
+            } else {
+                LOG_IN("ERR_BUSY: NO_DANGLING Object %s attribute %s refers to "
+                        "object %s flagged for deletion in other Ccb(%u), this Ccb(%u)",
+                        srcObjectName, attrName, targetObjectName, omi->second->mCcbId, ccbId);
+                return SA_AIS_ERR_BUSY;
+            }
+        }
+        if(omi->second->mObjFlags & IMM_CREATE_LOCK) {
+            if(omi->second->mCcbId != ccbId) {
+                LOG_IN("ERR_BUSY: NO_DANGLING Object %s attribute %s refers to "
+                        "object %s flagged for creation in other Ccb(%u), this Ccb(%u)",
+                        srcObjectName, attrName, targetObjectName, omi->second->mCcbId, ccbId);
+                return SA_AIS_ERR_BUSY;
+            }
+        }
+    }
+
+    return SA_AIS_OK;
+}
+
 /** 
  * Modifies an object
  */
@@ -6494,6 +7180,9 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     bool chainedOp = false;
     immsv_attr_mods_list* p = req->attrMods;
     bool modifiedNotifyAttr=false;
+
+    ObjectNameSet afimPreOpNDRefs;  // Set of NO_DANGLING references from after image before CCB operation
+    bool hasNoDanglingRefs = false;
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
@@ -6543,7 +7232,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     
     if (objectName.empty()) {
         LOG_NO("ERR_INVALID_PARAM: Empty DN attribute value");
-        err = SA_AIS_ERR_INVALID_PARAM;     
+        err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectModifyExit;
     }
     
@@ -6632,6 +7321,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         afim->mChildCount = object->mChildCount; /* Not used, but be consistent. */
         
         // Copy attribute values from existing object version to afim
+        bool hasNoDanglingAttr = false;
         for(oavi = object->mAttrValueMap.begin(); 
             oavi != object->mAttrValueMap.end();
             oavi++) {
@@ -6648,15 +7338,25 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 } else {
                     newValue = new ImmAttrValue(*oldValue);
                 }
-            
+
                 //Set admin owner as a regular attribute and then also a pointer
                 //to the attrValue for efficient access.
                 if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
                     afim->mAdminOwnerAttrVal = newValue;
                 }
                 afim->mAttrValueMap[oavi->first] = newValue;
+
+                if(i4->second->mFlags & SA_IMM_ATTR_NO_DANGLING)
+                    hasNoDanglingAttr = true;
             }
         }
+
+        // Skip collecting no dangling references if there is no any attribute with NO_DANGLING flag
+        if(hasNoDanglingAttr) {
+            collectNoDanglingRefs(afim, afimPreOpNDRefs);
+        }
+    } else {
+        collectNoDanglingRefs(afim, afimPreOpNDRefs);
     }
 
     for (p = req->attrMods; p; p=p->next) {
@@ -6733,9 +7433,14 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         
         ImmAttrValue* attrValue = i5->second;
         IMMSV_OCTET_STRING tmpos; //temporary octet string
-        
+        ImmAttrMultiValue* multiattr;
+
         switch(p->attrModType) {
             case SA_IMM_ATTR_VALUES_REPLACE:
+                // Save all DNs that will be replaces
+                if(attr->mFlags & SA_IMM_ATTR_NO_DANGLING)
+                    hasNoDanglingRefs = true;
+
                 //Remove existing values and then fall through to the add case.
                 attrValue->discardValues();
                 if(p->attrValue.attrValuesNumber == 0) {
@@ -6763,6 +7468,14 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 
                 if(attrValue->empty()) {
                     attrValue->setValue(tmpos);
+                    if((attr->mFlags & SA_IMM_ATTR_NO_DANGLING) && attrValue->getValueC_str()) {
+                        std::string ndRef = attrValue->getValueC_str();
+                        err = objectModifyNDTargetOk(objectName.c_str(), attrName.c_str(), ndRef.c_str(), ccbId);
+                        if(err != SA_AIS_OK)
+                            break;
+
+                        hasNoDanglingRefs = true;
+                    }
                 } else {
                     if(!(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
                         LOG_NO("ERR_INVALID_PARAM: attr '%s' is not multivalued, yet "
@@ -6771,8 +7484,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                         break; //out of switch
                     }
                     osafassert(attrValue->isMultiValued());
-                    ImmAttrMultiValue* multiattr = 
-                        (ImmAttrMultiValue *) attrValue;
+                    multiattr = (ImmAttrMultiValue *) attrValue;
                     if((attr->mFlags & SA_IMM_ATTR_NO_DUPLICATES) &&
                        (multiattr->hasMatchingValue(tmpos))) {
                         LOG_NO("ERR_INVALID_PARAM: multivalued attr '%s' with NO_DUPLICATES "
@@ -6780,6 +7492,15 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                              attrName.c_str(), objectName.c_str());
                         err = SA_AIS_ERR_INVALID_PARAM;
                         break; //out of for switch
+                    }
+
+                    if((attr->mFlags & SA_IMM_ATTR_NO_DANGLING) && (tmpos.size > 0)) {
+                        std::string ndRef(tmpos.buf, strnlen(tmpos.buf, tmpos.size));
+                        err = objectModifyNDTargetOk(objectName.c_str(), attrName.c_str(), ndRef.c_str(), ccbId);
+                        if(err != SA_AIS_OK)
+                            break;
+
+                        hasNoDanglingRefs = true;
                     }
 
                     multiattr->setExtraValue(tmpos);
@@ -6794,8 +7515,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                         break; //out of switch
                     } else {
                         osafassert(attrValue->isMultiValued());
-                        ImmAttrMultiValue* multiattr = 
-                            (ImmAttrMultiValue *) attrValue;
+                        multiattr = (ImmAttrMultiValue *) attrValue;
                         
                         IMMSV_EDU_ATTR_VAL_LIST* al = 
                             p->attrValue.attrMoreValues;
@@ -6809,6 +7529,15 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                                      "Object:'%s'", attrName.c_str(), objectName.c_str());
                                 err = SA_AIS_ERR_INVALID_PARAM;
                                 break; //out of loop
+                            }
+
+                            if((attr->mFlags & SA_IMM_ATTR_NO_DANGLING) && (tmpos.size > 0)) {
+                                std::string ndRef(tmpos.buf, strnlen(tmpos.buf, tmpos.size));
+                                err = objectModifyNDTargetOk(objectName.c_str(), attrName.c_str(), ndRef.c_str(), ccbId);
+                                if(err != SA_AIS_OK)
+                                    break;
+
+                                hasNoDanglingRefs = true;
                             }
 
                             multiattr->setExtraValue(tmpos);
@@ -6831,9 +7560,13 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                     eduAtValToOs(&tmpos, &(p->attrValue.attrValue),
                         (SaImmValueTypeT) p->attrValue.attrValueType);
                     
+                    if((attr->mFlags & SA_IMM_ATTR_NO_DANGLING) && (tmpos.size > 0) && attrValue->hasMatchingValue(tmpos)) {
+                        hasNoDanglingRefs = true;
+                    }
+
                     attrValue->removeValue(tmpos);
                     //Note: We allow the delete value to be multivalued even
-                    //ifthe attribute is single valued. The semantics is that
+                    //if the attribute is single valued. The semantics is that
                     //we delete ALL matchings of ANY delete value.
                     if(p->attrValue.attrValuesNumber > 1) {
                         IMMSV_EDU_ATTR_VAL_LIST* al = 
@@ -6841,6 +7574,11 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                         while(al) {
                             eduAtValToOs(&tmpos, &(al->n),
                                 (SaImmValueTypeT) p->attrValue.attrValueType);
+
+                            if((attr->mFlags & SA_IMM_ATTR_NO_DANGLING) && (tmpos.size > 0) && attrValue->hasMatchingValue(tmpos)) {
+                                hasNoDanglingRefs = true;
+                            }
+
                             attrValue->removeValue(tmpos);
                             al = al->next;
                         }
@@ -6867,9 +7605,8 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             break; //out of for-loop
         }
     }//for (p = ....)
-    
-    // Prepare for call on PersistentBackEnd
 
+    // Prepare for call on PersistentBackEnd
     if((err == SA_AIS_OK) && pbeNodeIdPtr) {
         void* pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
         if(!pbe) {
@@ -6885,6 +7622,80 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 err = SA_AIS_ERR_TRY_AGAIN;
             }
         }
+    }
+
+    // Handle NO_DANGLING attributes
+    if((err == SA_AIS_OK) && hasNoDanglingRefs) {
+        ObjectNameSet origNDRefs;        // Set of NO_DANGLING references from original object
+        ObjectNameSet afimPostOpNDRefs;  // Set of NO_DANGLING references from after image after CCB operation
+        ObjectNameSet s1, s2;
+        ObjectNameSet::iterator it;
+        ObjectMMap::iterator ommi;
+        ObjectMap::iterator omi;
+
+        // Collect all NO_DANGLING references from the original object
+        collectNoDanglingRefs(object, origNDRefs);
+        // Collect all NO_DANGLING references from afim after applying operations
+        collectNoDanglingRefs(afim, afimPostOpNDRefs);
+
+        /* Calculate which NO_DANGLING references can be and will be deleted from sReverseRefsNoDanglingMMap.
+         * Only NO_DANGLING references that are created in the CCB are allowed to be deleted from sReverseRefsNoDanglingMMap.
+         * First, we need to find all NO_DANGLING references that are created in CCB before modify operation
+         * (s1 = afimPreOpNDRefs - origNDRefs).
+         * Then, from the set of created NO_DANGLING references, before modify operation, we shall exclude a result of modify
+         * operation, and we shall get which NO_DANGLING references need to be removed from sReverseRefsNoDanglingMMap
+         * (s2 = s1 - afimPostOpNDRefs).
+         */
+        std::set_difference(afimPreOpNDRefs.begin(), afimPreOpNDRefs.end(), origNDRefs.begin(), origNDRefs.end(),
+                std::inserter(s1, s1.end()));
+        std::set_difference(s1.begin(), s1.end(), afimPostOpNDRefs.begin(), afimPostOpNDRefs.end(),
+                std::inserter(s2, s2.end()));
+
+        // Adjust sReverseRefsNoDanglingMMap
+        for(it=s2.begin(); it!=s2.end(); ++it) {
+            omi = sObjectMap.find(*it);
+            if(omi != sObjectMap.end()) {
+                ommi = sReverseRefsNoDanglingMMap.find(omi->second);
+                while((ommi != sReverseRefsNoDanglingMMap.end()) && (ommi->first == omi->second)) {
+                    if(ommi->second == object) {
+                        sReverseRefsNoDanglingMMap.erase(ommi);
+                        break;
+                    }
+                }
+            }
+        }
+
+        s1.clear();
+        s2.clear();
+
+        /* Calculate which NO_DANGLING references will be added to sReverseRefsNoDanglingMMap.
+         * It's allowed to add a NO_DANGLING reference only if the target object is already created object.
+         * First, we need to find all new NO_DANGLING references after modify operation
+         * which don't exist in the original object.
+         * (s1 = afimPostOpNDRefs - origNDRefs).
+         * Then, we shall exclude all already created NO_DANGLING references in CCB
+         * before modify operation from s1, and we shall get all new created NO_DANGLING references
+         * in modify operation that need to be added to sReverseRefsNoDanglingMMap.
+         * (s2 = s1 - afimPreOpNDRefs)
+         */
+        std::set_difference(afimPostOpNDRefs.begin(), afimPostOpNDRefs.end(), origNDRefs.begin(), origNDRefs.end(),
+                std::inserter(s1, s1.end()));
+        std::set_difference(s1.begin(), s1.end(), afimPreOpNDRefs.begin(), afimPreOpNDRefs.end(),
+                std::inserter(s2, s2.end()));
+
+        // Adjust sReverseRefsNoDanglingMMap
+        for(it=s2.begin(); it!=s2.end(); ++it) {
+            omi = sObjectMap.find(*it);
+            if(omi != sObjectMap.end()) {
+                if(!(omi->second->mObjFlags & IMM_CREATE_LOCK)) {   // Add only existing target objects
+                    sReverseRefsNoDanglingMMap.insert(std::pair<ObjectInfo *, ObjectInfo *>(omi->second, object));
+                }
+            }
+        }
+
+        // Set NO_DANGLING flags to the object and the CCB
+        object->mObjFlags |= IMM_NO_DANGLING_FLAG;
+        ccb->mCcbFlags |= OPENSAF_IMM_CCB_NO_DANGLING_MUTATE;
     }
 
     // Prepare for call on object implementer 
@@ -7162,7 +7973,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
         }
     }
 
-    if(oi->second->mObjFlags & IMM_DELETE_LOCK && 
+    if((oi->second->mObjFlags & IMM_DELETE_LOCK) &&
        !(oi->second->mObjFlags & IMM_DELETE_ROOT)) {
         TRACE_7("Object '%s' already scheduled for delete, not setting DELETE_ROOT flag", 
             objectName.c_str());
@@ -7285,6 +8096,83 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
                 TRACE_7("ERR_TRY_AGAIN: sub-object '%s' already registered for delete "
                         "but not yet applied by PRTO PBE ?", oi->first.c_str());
                 return SA_AIS_ERR_TRY_AGAIN;
+            }
+
+            // Check NO_DANGLING references for PRTO
+            if(std::find_if(oi->second->mClassInfo->mAttrMap.begin(),
+                            oi->second->mClassInfo->mAttrMap.end(),
+                            AttrFlagIncludes(SA_IMM_ATTR_PERSISTENT)) != oi->second->mClassInfo->mAttrMap.end()) {
+                ObjectMMap::iterator ommi = sReverseRefsNoDanglingMMap.find(oi->second);
+                if(ommi != sReverseRefsNoDanglingMMap.end()) {
+                    while(ommi != sReverseRefsNoDanglingMMap.end() && ommi->first == oi->second) {
+                        if((ommi->second->mObjFlags & IMM_DELETE_LOCK) && (ommi->second->mCcbId == ccb->mId)) {
+                            ++ommi;
+                            continue;
+                        } else {
+                            std::string objName;
+                            getObjectName(ommi->first, objName);
+                            LOG_NO("ERR_BAD_OPERATION: PRTO %s can't be deleted by Ccb(%u) "
+                                    "because another object %s has a NO_DANGLING reference to it",
+                                    oi->first.c_str(), ccb->mId, objName.c_str());
+                            return SA_AIS_ERR_BAD_OPERATION;
+                        }
+                    }
+
+                    oi->second->mObjFlags |= IMM_NO_DANGLING_FLAG;
+                    ccb->mCcbFlags |= OPENSAF_IMM_CCB_NO_DANGLING_MUTATE;
+                }
+            }
+        }
+    } else {    // Config object
+        if(!doIt) {
+            /* Check interference with NO_DANGLING references to the deleting object */
+            ObjectMMap::iterator ommi = sReverseRefsNoDanglingMMap.find(oi->second);
+            while(ommi != sReverseRefsNoDanglingMMap.end() && ommi->first == oi->second) {
+                if(ommi->second->mObjFlags & IMM_DELETE_LOCK) {
+                    if(ommi->second->mCcbId != ccb->mId) {
+                        std::string objName;
+                        getObjectName(ommi->first, objName);
+                        LOG_IN("ERR_BUSY: Object %s with NO_DANGLING reference to object %s "
+                                "is scheduled to be deleted in another Ccb(%u), this Ccb(%u)",
+                                objName.c_str(), oi->first.c_str(), ommi->second->mCcbId, ccb->mId);
+                        return SA_AIS_ERR_BUSY;
+                    }
+                } else if(ommi->second->mObjFlags & IMM_CREATE_LOCK) {
+                    std::string objName;
+                    getObjectName(ommi->first, objName);
+                    if(ommi->second->mCcbId == ccb->mId) {
+                        LOG_NO("ERR_BAD_OPERATION: Created object %s with NO_DANGLING reference to object %s "
+                                "flagged for deletion in the same Ccb(%u) is not allowed",
+                                objName.c_str(), oi->first.c_str(), ccb->mId);
+                        return SA_AIS_ERR_BAD_OPERATION;
+                    } else {
+                        LOG_IN("ERR_BUSY: Created object %s with NO_DANGLING reference to object %s "
+                                "flagged for deletion is not created in the same Ccb(%u), this Ccb(%u)",
+                                objName.c_str(), oi->first.c_str(), ommi->second->mCcbId, ccb->mId);
+                        return SA_AIS_ERR_BUSY;
+                    }
+                }
+
+                oi->second->mObjFlags |= IMM_NO_DANGLING_FLAG;
+                ccb->mCcbFlags |= OPENSAF_IMM_CCB_NO_DANGLING_MUTATE;
+
+                ++ommi;
+            }
+
+            if(!(oi->second->mObjFlags & IMM_NO_DANGLING_FLAG)) {
+                AttrMap::iterator ami = oi->second->mClassInfo->mAttrMap.begin();
+                ImmAttrValueMap::iterator iavmi;
+                for(; ami != oi->second->mClassInfo->mAttrMap.end(); ++ami) {
+                    if(ami->second->mFlags & SA_IMM_ATTR_NO_DANGLING) {
+                        iavmi = oi->second->mAttrValueMap.find(ami->first);
+                        osafassert(iavmi != oi->second->mAttrValueMap.end());
+                        if(iavmi->second != NULL) {
+                            oi->second->mObjFlags |= IMM_NO_DANGLING_FLAG;
+                            ccb->mCcbFlags |= OPENSAF_IMM_CCB_NO_DANGLING_MUTATE;
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
@@ -13584,6 +14472,16 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
     bool isPersistent = i4 != classInfo->mAttrMap.end();
 
     if(isPersistent) {
+        ObjectMMap::iterator ommi = sReverseRefsNoDanglingMMap.find(object);
+        if(ommi != sReverseRefsNoDanglingMMap.end()) {
+            std::string srcObject;
+            getObjectName(ommi->second, srcObject);
+            TRACE("ERR_BAD_OPERATION: Object %s is the target "
+                    "of a NO_DANGLING reference in config object %s",
+                    oi->first.c_str(), srcObject.c_str());
+            return SA_AIS_ERR_BAD_OPERATION;
+        }
+
         object->mObjFlags |= IMM_PRTO_FLAG;
     } else {
         /* Will correct for schema change that has removed persistence */
