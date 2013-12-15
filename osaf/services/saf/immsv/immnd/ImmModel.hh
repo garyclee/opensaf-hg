@@ -74,6 +74,15 @@ typedef std::vector<SaUint32T> IdVector;
 typedef std::map<std::string, ObjectInfo*> ObjectMap;
 typedef std::vector<SaInvocationT> InvocVector;
 
+/* Maps an object pointer, to a set of object pointers.*/
+typedef std::multimap<ObjectInfo*, ObjectInfo*> ObjectMMap;
+
+/* Object mutation */
+struct ObjectMutation;
+typedef std::map<std::string, ObjectMutation*> ObjectMutationMap;
+
+typedef std::set<std::string> ObjectNameSet;
+
 struct ImmOiImplementerClear;
 
 class ImmModel
@@ -161,7 +170,7 @@ public:
                                   SaUint32T ccbId,
                                   unsigned int originatingNode,
                                   SaUint32T originatingConn);
-    
+
     SaAisErrorT         ccbApply(
                                  SaUint32T ccbId,
                                  SaUint32T reqConn,
@@ -619,6 +628,18 @@ private:
     SaAisErrorT        updateImmObject2(const ImmsvOmAdminOperationInvoke* req);
     SaAisErrorT        admoImmMngtObject(const ImmsvOmAdminOperationInvoke* req);
     
+    void               addNoDanglingRefs(ObjectInfo *obj);
+    void               removeNoDanglingRefs(
+                                          ObjectInfo *object,
+                                          ObjectInfo *afim,
+                                          bool removeRefsToObject = false);
+    void               addNewNoDanglingRefs(
+                                                 ObjectInfo *obj,
+                                                 ObjectNameSet &dnSet);
+    void               removeNoDanglingRefSet(
+                                                    ObjectInfo *obj,
+                                                    ObjectNameSet &dnSet);
+
     void               commitCreate(ObjectInfo* afim);
     bool               commitModify(const std::string& dn, ObjectInfo* afim);
     void               commitDelete(const std::string& dn);
@@ -627,6 +648,24 @@ private:
                    // >0  => loading in progress here at coordinator.
                    //  0  => loading completed at coordinator and participants.
     
+    bool validateNoDanglingRefsModify(
+                                      CcbInfo* ccb,
+                                      ObjectMutationMap::iterator &omit);
+    bool validateNoDanglingRefsDelete(
+                                      CcbInfo* ccb,
+                                      ObjectMutationMap::iterator &omit);
+    bool validateNoDanglingRefs(CcbInfo* ccb);
+
+    void collectNoDanglingRefs(
+                               ObjectInfo *object,
+                               ObjectNameSet &objSet);
+
+    SaAisErrorT objectModifyNDTargetOk(
+                                       const char *srcObjectName,
+                                       const char *attrName,
+                                       const char *targetObjectName,
+                                       SaUint32T ccbId);
+
 };
 
 #endif

@@ -88,6 +88,8 @@ public:
     bool            hasExtraValueC_str(const char* str) const;
     bool            removeExtraValueC_str(const char* str);
     
+    ImmAttrMultiValue *getNextAttrValue() const {return mNext;};
+
 private:
     
     ImmAttrMultiValue* mNext;  //Singly linked list
