@@ -117,10 +117,14 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 	cl_node->isOm = false;
 
 	if ((requested_version.releaseCode == 'A') &&
-		(requested_version.majorVersion == 0x02) &&
-		(requested_version.minorVersion >= 0x0b)) {
-		TRACE_2("OI client version A.2.11");
-		cl_node->isImmA2b = 0x1;
+			(requested_version.majorVersion == 0x02)) {
+		TRACE_2("OI client version A.2.%u", requested_version.minorVersion);
+		if(requested_version.minorVersion >= 0x0b) {
+			cl_node->isImmA2b = 0x1;
+		}
+		if(requested_version.minorVersion >= 0x0d) {
+			cl_node->isImmA2d = 0x1;
+		}
 	}
 
 	if((timeout_env_value = getenv("IMMA_SYNCR_TIMEOUT"))!=NULL) {

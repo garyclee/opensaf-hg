@@ -76,6 +76,15 @@ extern "C" {
 #define OPENSAF_IMM_REPL_B_NAME "@OpenSafImmReplicatorB"
 
 /* Used internally in the SaImmCcbFlagsT space to indicate that
+   a ccb currently contains at lest one operation that either
+   a) creates an object with no dangling attribute(s) (that is/are not empty).
+   b) deletes an object that has no dangling attribute(s) (that are not empty).
+   c) modifies a NO_DANGLING attribute,
+   d) deletes an object that is referred to by some NO_DANGLING attribute.
+*/
+#define OPENSAF_IMM_CCB_NO_DANGLING_MUTATE 0x40000000
+
+/* Used internally in the SaImmCcbFlagsT space to indicate that
    a ccb currently contains at least one create or at least one
    modify on an object that has SA_IMM_ATTR_NOTIFY set on one of
    its attributes and special applier is involved. This means that

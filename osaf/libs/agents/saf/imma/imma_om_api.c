@@ -122,6 +122,10 @@ SaAisErrorT saImmOmInitialize_o2(SaImmHandleT *immHandle, const SaImmCallbacksT_
 
 	cl_node->isImmA2b = true;
 
+	if(requested_version.minorVersion >= 0x0d) {
+		cl_node->isImmA2d = true;
+	}
+
 	/* Store the callback functions, if set */
 	if (immCallbacks) {
 		cl_node->o.mCallbkA2b = *immCallbacks;
@@ -162,10 +166,14 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 	}
 
 	if ((requested_version.releaseCode == 'A') &&
-            (requested_version.majorVersion == 0x02) &&
-	    (requested_version.minorVersion >= 0x0b)) {
-		TRACE("OM client version A.2.11 or higher");
-		cl_node->isImmA2b = true;
+			(requested_version.majorVersion == 0x02)) {
+		TRACE("OM client version A.2.%u", requested_version.minorVersion);
+		if(requested_version.minorVersion >= 0x0b) {
+			cl_node->isImmA2b = true;
+		}
+		if(requested_version.minorVersion >= 0x0d) {
+			cl_node->isImmA2d = true;
+		}
 	}
 
 	/* Store the callback functions, if set */
@@ -4173,7 +4181,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 	for (i = 0; attr != 0; attr = attrDefinitions[++i]) {
 		if (attr->attrName == NULL)  {
 			TRACE("NULL attrName , not allowed.");
-                	TRACE_LEAVE();
+			TRACE_LEAVE();
 			return SA_AIS_ERR_INVALID_PARAM;
 		}
 
@@ -4181,21 +4189,47 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 			if(((attr->attrValueType != SA_IMM_ATTR_SANAMET ) && 
 						(attr->attrValueType != SA_IMM_ATTR_SASTRINGT))) {
 				TRACE("ERR_INVALID_PARAM: RDN '%s' must be of type SaNameT or SaStringT", attr->attrName);
-                		TRACE_LEAVE();
+				TRACE_LEAVE();
 				return SA_AIS_ERR_INVALID_PARAM;
 			}
 
 			if(attr->attrFlags & SA_IMM_ATTR_MULTI_VALUE) {
 				TRACE("ERR_INVALID_PARAM: RDN '%s' can not be multivalued", attr->attrName);
 				TRACE_LEAVE();
-                       		 return SA_AIS_ERR_INVALID_PARAM;
-    			}
+				return SA_AIS_ERR_INVALID_PARAM;
+			}
+
+			if(attr->attrFlags & SA_IMM_ATTR_NO_DANGLING) {
+				TRACE("ERR_INVALID_PARAM: RDN '%s' can not have NO_DANGLING flag", attr->attrName);
+				TRACE_LEAVE();
+				return SA_AIS_ERR_INVALID_PARAM;
+			}
+		}
+
+		if(attr->attrFlags & SA_IMM_ATTR_NO_DANGLING) {
+			if(classCategory == SA_IMM_CLASS_RUNTIME) {
+				TRACE("ERR_INVALID_PARAM: NO_DANGLING attribute '%s' cannot be defined for runtime class", attr->attrName);
+				TRACE_LEAVE();
+				return SA_AIS_ERR_INVALID_PARAM;
+			}
+
+			if(attr->attrValueType != SA_IMM_ATTR_SANAMET) {
+				TRACE("ERR_INVALID_PARAM: Attribute '%s' is flagged NO_DANGLING, must be of type SaNameT", attr->attrName);
+				TRACE_LEAVE();
+				return SA_AIS_ERR_INVALID_PARAM;
+			}
+
+			if(attr->attrFlags & SA_IMM_ATTR_RUNTIME) {
+				TRACE("ERR_INVALID_PARAM: Runtime attribute '%s' cannot have NO_DANGLING flag", attr->attrName);
+				TRACE_LEAVE();
+				return SA_AIS_ERR_INVALID_PARAM;
+			}
 		}
 	}
 
 	if (cb->is_immnd_up == false) {
 		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
-                TRACE_LEAVE();
+		TRACE_LEAVE();
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
@@ -4279,6 +4313,12 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 			continue;
 		} else if (strcmp(attr->attrName, sysaImplName) == 0) {
 			continue;
+		}
+
+		if ((attr->attrFlags & SA_IMM_ATTR_NO_DANGLING) && !(cl_node->isImmA2d)) {
+			TRACE_2("NO_DANGLING flag is supported in version A.02.13 or higher");
+			rc = SA_AIS_ERR_VERSION;
+			goto mds_send_fail;
 		}
 
 		IMMSV_ATTR_DEF_LIST *p =	/*alloc-2 */
