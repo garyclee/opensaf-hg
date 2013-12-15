@@ -508,6 +508,15 @@ void flagsToXMLw(SaImmAttrDefinitionT_2* p, xmlTextWriterPtr writer)
         }
     }
 
+    if (flags & SA_IMM_ATTR_NO_DANGLING)
+    {   
+        if(xmlTextWriterWriteElement(writer, (xmlChar*) "flag",
+           (xmlChar*) "SA_NO_DANGLING") < 0 ) { 
+            std::cout << "Error at xmlTextWriterWriteElement (flag - SA_NO_DANGLING)" << std::endl;
+            exit(1);
+        }   
+    }
+
 }
 
 void typeToXMLw(SaImmAttrDefinitionT_2* p, xmlTextWriterPtr writer)

@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
 
         if(xmlTextWriterWriteAttributeNS(writer,
                 (xmlChar*)"xsi",(xmlChar *)"noNamespaceSchemaLocation", NULL,
-                (xmlChar*)"SAI-AIS-IMM-XSD-A.02.12.xsd") < 0) {
+                (xmlChar*)"SAI-AIS-IMM-XSD-A.02.13.xsd") < 0) {
         	std::cout <<"Error at xmlTextWriterWriteAttribute (attribute 2)" << std::endl;
         	exit(1);
         }

@@ -1832,6 +1832,8 @@ static SaImmAttrFlagsT charsToFlagsHelper(const xmlChar* str, size_t len)
 		return SA_IMM_ATTR_NOTIFY;
 	} else if (len == strlen("SA_NO_DUPLICATES") && strncmp((const char*)str, "SA_NO_DUPLICATES", len) == 0) {
 		return SA_IMM_ATTR_NO_DUPLICATES;
+	} else if (len == strlen("SA_NO_DANGLING") && strncmp((const char*)str, "SA_NO_DANGLING", len) == 0) {
+		return SA_IMM_ATTR_NO_DANGLING;
 	}
 
 	/* strlen("SA_NO_DUPLICATES") == 16 (the longest flag name)
@@ -2375,7 +2377,7 @@ int loadImmXML(const char *xmlfile)
 
 	version.releaseCode   = 'A';
 	version.majorVersion  = 2;
-	version.minorVersion  = 11;
+	version.minorVersion  = 13;
 
 	TRACE_8("Loading from %s", xmlfile);
 

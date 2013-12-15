@@ -322,6 +322,9 @@ static void display_class_definition(const SaImmClassNameT className,
 			if (attrDefinition->attrFlags & SA_IMM_ATTR_NO_DUPLICATES)
 				printf(", NO_DUPLICATES");
 
+			if (attrDefinition->attrFlags & SA_IMM_ATTR_NO_DANGLING)
+				printf(", NO_DANGLING");
+
 		} else if (attrDefinition->attrFlags & SA_IMM_ATTR_RUNTIME) {
 			if (attrDefinition->attrDefaultValue != NULL) {
 				printf(" = ");
