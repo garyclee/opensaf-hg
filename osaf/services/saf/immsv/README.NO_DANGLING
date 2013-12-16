@@ -1,0 +1,116 @@
+Support for reference integrity checking - SA_IMM_ATTR_NO_DANGLING (4.4)
+========================================================================
+http://sourceforge.net/p/opensaf/tickets/49/
+OpenSAF 4.4 adds the immsv enhancement of supporting referential integrity
+checking. The feature is available for clients that register with imm API
+version A.2.13.
+
+A new attribute definition flag has been defined:
+#define SA_IMM_ATTR_NO_DANGLING   0x0000000004000000
+
+This flag can only be set for attribute definitions where the attribute data
+type is SaNameT and the attribute is a CONFIG attribute.
+
+The SaNameT type signifies that the value is a reference to an IMM object,
+i.e. the value is a DN. The IMM spec does not define any general consistency
+constraints for such references. In particular, the value may be a DN for a
+non existing object.
+
+The new attribute definition flag SA_IMM_ATTR_NO_DANGLING added with this
+enhancement, makes it possible for the imm service to monitor and maintain
+referential integrity. That is, the imm service can releive the OI from the
+burden of having to validate the existence of the object that the reference
+points to.
+
+The IMM service will thus guarantee that the value(s) of an attribute with the
+SA_IMM_ATTR_NO_DANGLING flag, when set, contains the distinguished name(s) of
+an existing IMM object(s). IMM will reject attempts to set it to anything that
+is not the distinguished name of an existing object, and it will reject
+attempts to delete objects that are referenced by such an attribute. This
+validation is performed when the CCB is applied, which means that it will take
+into account all changes performed within the CCB.
+
+The NO_DANGLING flag is not allowed to be set for RUNTIME attributes,
+(persistent or not). The reason is that runtime attribues and runtime objects
+are not changed using CCBs/transactions and so it is impossible for the IMM
+service to maintain inter-object consistency constraints for references
+emanating from runtime data.
+
+However, a NO_DANGLING flagged config attribute may refer *to* a PERSISTENT
+runtime object (PRTO). This will prevent such a PRTO from being deleted untill
+all such NO_DANGLING config attribute references to that object have been
+removed. PRTOs are deleted either by the saImmOiRtObjectDelete operation or
+indirectly by a cascading saImmOmCcbObjectDelete as part of a CCB.
+
+The validation of NO_DANGLING constraints is done as part of the apply of a
+CCB. The IMM service does such validation before any completed callbacks are
+sent to any OIs involved in the CCB. If the validation fails, no completed and
+of course no apply callback will be generated towards OIs. Instead an abort
+callback is generated to all OIs.
+
+Association objects (object that have a DN composed of the parent DN and an RDN
+value that is the DN of an associated object) can mark the RDN_ATTRIBUTE as also
+being NO_DANGLING. This means that the IMM will maintain the referential
+integrity towards the associated object. Note that implicit referential
+integrity from child to parent in the IMM naming tree has always been maintained
+by the IMM.
+
+The IMM will also perform interference checking in the operational phase of
+a CCB. A failed interference check will typically only reject that latest
+operation, without aborting the CCB. Interference checks are mainly for
+regulationg concurrency conflicts between CCBs, but also catch blatant errors
+that are local to the operation. The rejection of such a bad operation is done
+before any OIs receive the operation callback. If an interference check fails
+then no OI will get that operation callback. This is important because there is
+no "undo" callback for indiviudal operations. To undo any operation towards an
+OI can only be done by aborting the entire CCB.
+
+Here is a summary of the interference/operation checks performed in relaion
+to NO_DANGLING. Again note these are performed before the validation done as
+part of ccbApply.
+
+-          CCB Object Create:
+
+o   If the created object has a NO_DANGLING reference to a non-persistent
+    runtime object, return BAD_OPERATION.
+
+o   If the created object has a NO_DANGLING reference to an object deleted
+    within the same CCB, return BAD_OPERATION.
+
+o   If the created object has a NO_DANGLING reference to an object that is
+    flagged for delete by another CCB, return BUSY.
+
+o   If the created object has a NO_DANGLING reference to an object that is
+    flagged for creation by another CCB, return BUSY.
+
+-          CCB Object Modify (Add or Replace attribute value):
+
+o   If an updated attribute value has a NO_DANGLING reference to a
+    non-persistent runtime object, return BAD_OPERATION.
+
+o   If an updated attribute value has a NO_DANGLING reference to an object that
+    is deleted within the same CCB, return BAD_OPERATION.
+
+o   If an updated attribute value has a NO_DANGLING reference to an object that
+    is flagged for deletion by another CCB, return BUSY.
+
+o   If an updated attribute value has a NO_DANGLING reference to an object that
+    is flagged for creation by another CCB, return BUSY.
+
+-          CCB Object Delete:
+
+o   If an object is flagged for deletion or creation by another CCB with a
+    NO_DANGLING reference to the object that will be deleted, then return BUSY.
+
+o   If an object is flagged for creation by the same CCB, and has a NO_DANGLING
+    reference to the object proposed for delete, then return BAD_OPERATION.
+
+-          Deleting persistent runtime object:
+
+o   Check if there is a NO_DANGLING reference to the PRTO, if there is the
+    delete operation returns BAD_OPERATION.
+
+
+
+
+
