@@ -158,7 +158,6 @@ static uint32_t clmna_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 {
 	TRACE_ENTER2("%d", mds_cb_info->info.svc_evt.i_change);
 	CLMNA_EVT *evt;
-	uint32_t rc;
 
 	switch (mds_cb_info->info.svc_evt.i_change) {
 	case NCSMDS_NEW_ACTIVE:
@@ -170,7 +169,8 @@ static uint32_t clmna_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 			TRACE("svc_id %d", mds_cb_info->info.svc_evt.i_svc_id);
 			evt = calloc(1, sizeof(CLMNA_EVT));
 			evt->type = CLMNA_EVT_DUMMY_MSG;
-			rc = m_NCS_IPC_SEND(&clmna_cb->mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH);
+			if (m_NCS_IPC_SEND(&clmna_cb->mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH) != NCSCC_RC_SUCCESS)
+				LOG_ER("IPC send to mailbox failed: %s", __FUNCTION__);
 			break;
 		default:
 			break;
