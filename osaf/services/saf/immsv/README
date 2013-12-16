@@ -24,10 +24,10 @@ Application programmers intending to interface with immsv should primarily read
 the document "OpenSAF IMM Service Release 4 Programmer's Reference" and of
 course the IMM standard (SAI-AIS-IMM-A.02.01).
 
-This document provides an overview of the design and internals of the immsv. 
+This document provides an overview of the design and internals of the immsv.
 It is intended for maintainers or trouble-shooters of the immsv in OpenSAF.
 Familiarity with the IMM standard is obviously also needed for understanding
-this document. 
+this document.
 
 The IMM service follows the three tier OpenSAF "Service Director" framework
 (see OpenSAF Overview User's Guide).
@@ -40,21 +40,21 @@ As such, the process structure consists of:
 IMMD
 ====
 The IMMD is implemented as a server process executing on the controllers using
-a 2N redundancy model. The IMMD on the active controller can be seen as the 
+a 2N redundancy model. The IMMD on the active controller can be seen as the
 "central master" of the IMM service. The standby IMMD is kept up-to-date by the
-active IMMD using the message based checkpointing service. If the active 
+active IMMD using the message based checkpointing service. If the active
 controller goes down, the standby controller becomes active by order from the
 AMF. A crash of any director process, such as the IMMD, will escalate to a
 restart of the active controller, which of course implies a fail-over of the
 directors for all services.
 
-The active IMMD tracks the cluster membership (using MDS) and controls 
-which nodes/IMMNDs currently can provide access to the IMM service. 
-Note: the current implementation of IMM does not use the SAF CLM service. 
+The active IMMD tracks the cluster membership (using MDS) and controls
+which nodes/IMMNDs currently can provide access to the IMM service.
+Note: the current implementation of IMM does not use the SAF CLM service.
 That service is only at the node level. The cluster that is tracked by the IMMD
 will loose and gain membership not only when nodes leave and join, but also when
 IMMND processes crash and restart. The crash of an IMMND process does *not*
-imply the restart of the node where it executes. 
+imply the restart of the node where it executes.
 
 The set of IMMNDs known by the IMMD is the basis for the two main functions of
 the IMMD:
@@ -66,28 +66,28 @@ To understand the current implementation of the IMM service, it helps to know
 that it was first developed in a different context. That context used Extended
 Virtual Synchrony (EVS) as the basic cluster communication protocol.
 It had only one server process type implementing the IMM service and it executed
-symmetrically, one server process on each node. That implementation has now been 
+symmetrically, one server process on each node. That implementation has now been
 ported to the OpenSAF middle-ware. The single symmetrically distributed process
 now corresponds to the IMMND process type. The IMMD provides a replacement for
-EVS that we call FEVS. 
+EVS that we call FEVS.
 
 FEVS (Fake EVS) is so named because it roughly emulates the semantics (but not
-the API) of EVS. That is, FEVS tries to provide a reliable multicast over a set 
+the API) of EVS. That is, FEVS tries to provide a reliable multicast over a set
 of members plus control over changes of membership. By "reliable" we mean that
-any FEVS message arriving at a member, must arrive at all current members and 
+any FEVS message arriving at a member, must arrive at all current members and
 in the same order. Thus it provides non-loss and uniform ordering of messages.
 In addition, when a member joins or leaves, the other members see that join or
-leave at the same point in the FEVS message sequence. 
+leave at the same point in the FEVS message sequence.
 
 The other function of the IMMD, election of IMMND coordinator, concerns a minor
-asymmetry between the IMMNDs. One of the current IMMND members has to take on 
+asymmetry between the IMMNDs. One of the current IMMND members has to take on
 the role of IMMND coordinator. Exactly what this means is explained in the next
-section. Here it suffices to say that it does not matter which one of the 
+section. Here it suffices to say that it does not matter which one of the
 current IMMND members takes on this role, only that one and only one of the
 IMMNDs has this role at all times. The IMMD will always decide which IMMND is
-the current coordinator. 
+the current coordinator.
 
-The IMMD is quite lean, simple and small in its functionality. It is almost not 
+The IMMD is quite lean, simple and small in its functionality. It is almost not
 imm service specific at all. This increases the probability that it is robust
 and stays so. This is good given the serious escalation caused by the failure
 of any director process, in OpenSAF.
@@ -95,18 +95,18 @@ of any director process, in OpenSAF.
 
 IMMND
 =====
-The IMMND is implemented as a server process executing on all nodes (both 
+The IMMND is implemented as a server process executing on all nodes (both
 controllers and payloads) according to the "No Redundancy" model. Each IMMND
 handles all connections made by clients to the IMM service, at that node.
 This off-loads the central IMMD server from handling any client related data.
 In fact, an IMMD fail-over will not impact any clients, except the clients at
-the active controller itself which has to restart. 
+the active controller itself which has to restart.
 
 The IMMND process is the "real" IMM server. It contains the IMM data model,
-which holds the configuration and runtime objects that is the core of the 
-IMM service. It also has information about all implementers, admin-owners and 
-CCBs currently registered. In the current implementation, this repository is 
-symmetrically replicated over the IMMND at all processors. This will optimise 
+which holds the configuration and runtime objects that is the core of the
+IMM service. It also has information about all implementers, admin-owners and
+CCBs currently registered. In the current implementation, this repository is
+symmetrically replicated over the IMMND at all processors. This will optimise
 for read access, since all such accesses can be kept purely node-local.
 
 Updates on the other hand, must be replicated to all IMMNDs. To ensure that all
@@ -126,26 +126,26 @@ missing message(s). [The resend variant is not yet fully implemented.]
 
 The IMMND processes are in essence symmetrically equivalent. But there are a few
 important exceptions. First, the details of connections are maintained only at
-the local IMMND. Other IMMNDs will, for example, know which node an attached 
+the local IMMND. Other IMMNDs will, for example, know which node an attached
 implementer resides on, but not the exact connection for a remote implementer.
-Any need to reach a remote implementer is solved by communicating with the 
+Any need to reach a remote implementer is solved by communicating with the
 IMMND at that node. Second, at all times when the IMM service is operational,
-one and only one of the IMMNDs is designated the IMMND-coordinator. The IMMND 
+one and only one of the IMMNDs is designated the IMMND-coordinator. The IMMND
 that is currently the coordinator will take on the task of conducting a few
 cluster global operations when needed:
 
-        * Initial loading; 
-        * Sync of restarted IMMNDs; 
-        * Aborting CCBs waiting on apparently hung implementors. 
+        * Initial loading;
+        * Sync of restarted IMMNDs;
+        * Aborting CCBs waiting on apparently hung implementors.
 
-A very good question here is: why not move the IMMND coordinator role to the 
-active IMMD? This is indeed possible to do, but there are at least a few 
-arguments against it. 
+A very good question here is: why not move the IMMND coordinator role to the
+active IMMD? This is indeed possible to do, but there are at least a few
+arguments against it.
 
 First, these three tasks depend on knowledge of the current state of CCBs.
 At the start of a sync, there is a period of grace where the IMMSv will not
 accept new CCBs, but will allow already started CCBs to complete. A CCB can not
-be aborted if it is in the critical phase of distributed commit. Loading also 
+be aborted if it is in the critical phase of distributed commit. Loading also
 has to be coordinated with sync, because the loading is often followed
 immediately by a sync of any straggler nodes that missed the start of the
 loading sequence. The dependency on CCB state could be solved by involving the
@@ -159,9 +159,9 @@ the future.
 Second, there is a strong argument for keeping the IMMDs simple and by
 implication robust. A crash of an IMMD causes a controller fail-over, but a
 crash of an IMMND, even on the active controller, only causes a restart of the
-IMMND. 
+IMMND.
 
-Finally, another reason why the IMMND coordinator role does not reside with the 
+Finally, another reason why the IMMND coordinator role does not reside with the
 active IMMD is historical, that it was ported from an EVS based implementation.
 
 The coordinator IMMND can theoretically be any IMMND in the system. In the
@@ -169,11 +169,11 @@ current implementation we have restricted it to reside on a controller node.
 The only reason for this restriction is that the task of loading requires
 access to the file system and we do not wish to assume that payloads have such
 access. In the future we may enhance the reliability of the IMM service by
-allowing any IMMND to become coordinator once the IMMNDs have loaded. 
+allowing any IMMND to become coordinator once the IMMNDs have loaded.
 
 The current limitation, that the IMMND coordinator must reside on a controller,
 has a downside.  If the IMMNDs at both controllers fail, the IMMD can not elect
-any coordinator. Instead the IMMD has to order all IMMNDs to restart, which 
+any coordinator. Instead the IMMD has to order all IMMNDs to restart, which
 currently causes a cluster restart.
 
 
@@ -190,7 +190,7 @@ are kept node-local. In addition, the values for basic immsv handles:
         SaImmAccessorHandleT
         SaImmOiHandleT
 
-are all set by the local IMMND without going remote to the IMMD or other IMMNDs. 
+are all set by the local IMMND without going remote to the IMMD or other IMMNDs.
 The following handles are related to resource allocation, need global validity
 and therefore are initialised over FEVS.
 
@@ -201,16 +201,16 @@ and therefore are initialised over FEVS.
 Because the basic handles are allocated and known only by the local IMMND, a
 crash or termination of that IMMND will cause the IMMA library instantiations
 at the node to mark all its handles as stale. Even global handles allocated via
-the crashed IMMND are effectively stale because they depend on the local handles. 
+the crashed IMMND are effectively stale because they depend on the local handles.
 
-The restart of an IMMND should still normally be transparent to the clients 
+The restart of an IMMND should still normally be transparent to the clients
 at that node. The IMMA library tries to resurrect the handles once the IMMND
-at the node has restarted. In some cases the IMMA will not be able to 
+at the node has restarted. In some cases the IMMA will not be able to
 resurrect the handle. One example is if the handle is related to an admin-owner
-handle with the 'release-on-finalize' option set ot true. 
+handle with the 'release-on-finalize' option set ot true.
 Some clients may then get their handles invalidated. Any attempt by a client
 to use such a stale and unsuccessfully resurected handle will result in a
-reply of SA_AIS_ERR_BAD_HANDLE. 
+reply of SA_AIS_ERR_BAD_HANDLE.
 
 Note that it is at least not necessary for the client applications to restart.
 They may reconnect by simply allocating a new handle. Of course, CCBs that
@@ -222,7 +222,7 @@ From the perspective of the other nodes, the termination of a remote IMMND is
 handled in the same way as if the node it executed on terminated, i.e. the
 resources allocated by any client at that node are released. Note however that
 such a release of resources by the other IMMNDs is not done immediately or
-autonomously by each node. Instead a release order is sent over FEVS. 
+autonomously by each node. Instead a release order is sent over FEVS.
 The actual release is done when the FEVS message arrives at the IMMNDs,
 ensuring that all IMMNDs release the resource at the same point in the FEVS
 message sequence.
@@ -239,24 +239,24 @@ is allowed. In the latter case, the threads typically need to syncronize their
 use of the common handle to avoid overlapped use. And they need to understand
 the meaning of the term 'use' for the handle. An application thread that is
 blocked in a poll that uses a selection object obtained from a handle,
-is using that handle even when that thread is not executing. 
+is using that handle even when that thread is not executing.
 
-Each handle should be seen as a resource, which mutates its state 
+Each handle should be seen as a resource, which mutates its state
 when used by a thread. Part of the resource is a communications channel
 to/from the IMMND server. If more than one thread tries to send (syncronously
 or asyncronously) or receive (includes waiting for syncronous reply, poll
 and dispatch), using the same handle at the same time, the results are
 unpredictable. Messages may get lost and a reply may end up at the "wrong"
 receiver, the process may crash on assertion in the library.
-Each handle is also associated with some heap memory containing a 
-handle state. 
+Each handle is also associated with some heap memory containing a handle
+state.
 
 Interleaved use of a handle between several threads is thus possible,
 if done correctly. But we strongly recommend against it because any
-incorrect use will cause such strange and unpredictable symptoms. 
+incorrect use will cause such strange and unpredictable symptoms.
 
 Note that, used correctly(!) OpenSAF libraries are (should be) thread safe.
-But thread safe does not mean immune to any and all forms of incorrect use. 
+But thread safe does not mean immune to any and all forms of incorrect use.
 
 (ii) Sub-handles depend on the root handle resources.
 An OM-handle (SaImmHandleT) can be used to generate sub-handles such as:
@@ -268,21 +268,21 @@ An OM-handle (SaImmHandleT) can be used to generate sub-handles such as:
 
 Such sub-handles will share the *same* communication channel towards the
 IMMND server. Thus sub-handles to one SaImmHandleT should only be used by
-the thread currently using (owning) the root SaImmHandleT. 
+the thread currently using (owning) the root SaImmHandleT.
 
 (iii) Asyncronous admin-operations.
 A special case of (ii) is how to program the use of asyncronous admin-
 operations. The "vanilla" case is to simply use one thread, both for sending
 the asyncronous request and for receiving the asyncronous reply. Both events
-of course use the same handle. This is the recommended use if possible. 
-It is possible when the thread is event driven from a poll. External 
+of course use the same handle. This is the recommended use if possible.
+It is possible when the thread is event driven from a poll. External
 requests arrive causing the thread to sometimes send asyncronous admin-
 operation requests to some OI. The asyncronous reply from the OI is picked
 up by the same poll and typically forwarded out to the external user.
 Some form of continuation record would be kept by the requesting thread
 to identify the reply.
 
-But in some cases the developer wants to receive the replies on 
+But in some cases the developer wants to receive the replies on
 asyncronous operations in a separate thread from the thread that sent
 the request. This is possible, provided that the sending thread somehow
 submitts the handle for exclusive use by the receiving thread, immediately
@@ -290,7 +290,7 @@ after the send. Until the receiving thread has has received the reply,
 the original sending thread should not use the same handle, and it must
 not use the same handle for receiving anything (i.e. not poll on a selection
 object obtained from that handle and not invoke any syncronous calls using
-that handle). 
+that handle).
 
 (iv) Blocking & timeouts.
 Syncronous downcalls will block the client untill there is a reply.
@@ -314,25 +314,42 @@ can be altererd by setting the IMMA_SYNCR_TIMEOUT environment variable
 (see below).
 
 There is also a timeout in the IMMND server placed on each OI callback that
-is generated. This timeout is currently hard-coded to 6 seconds. 
+is generated. This timeout is currently hard-coded to 6 seconds.
 There is an enhancement planned to allow this global timeout value
 to be configured (http://devel.opensaf.org/ticket/2021).
 If the OI does not reply in time, the server will reply with error to the
 client, without waiting for the reply on the upcall. Exactly which error is
 generated depends on the type of call. Ccb related calls tend to generate
 FAILED_OPERATION, i.e. an abort of the CCB/transaction by the server.
-But with PBE enabled and congestion at the PBE, the server can not abort 
+But with PBE enabled and congestion at the PBE, the server can not abort
 any CCB that is being committed by the PBE. So there is the unfortunate
 possibility of getting TIMEOUT on a ccb-apply when applying a CCB with
 PBE enabled. TIMEOUT of course means that the client then does not
 know if the CCB committed, aborted, or is still being processed.
+
+(v) Return codes from OiCcbCallbacks.
+An OI returning a specific error code from a ccb-callback will often
+not result in that exact error code being transmitted to and returned by
+the originating OM interface. The OI is typically just a participant in
+the distributed thing (in space and time) that a CCB/transaction is. Thus
+the IMM server consolidates replies from several Ois and must also provide
+clear and unambiguous communication of the CCB state towards the CCB end user.
+This inevitably results in return codes from Ois being converted by the imm
+server to a different singe error code returned to the om-user. The cardinal
+example is the ERR_FAILED_OPERATION meaning CCB aborted, resulting from one
+or more Ois returning a different specific error on a callback. If the OIs
+return error-strings allong with the error code then these error strings
+will be provided over the om interface. The OI implementer should therefore
+avoid including a specific error code in any error string returned from
+a ccb-oi-callback.
+
 
 
 PERSISTENCE
 ===========
 The IMM standard mandates that configuration attributes and persistent runtime
 attributes shall be persistent in the sense that such values must survive a
-cluster restart and that this must hold for every applied CCB. 
+cluster restart and that this must hold for every applied CCB.
 
 The default option for the current implementation of the IMMSv in OpenSAF is
 that it does not fully support persistence at the CCB granularity. Instead
@@ -341,7 +358,7 @@ user must ensure that the IMM is dumped after important changes are made to
 such data. The configuration data and persistent runtime data will survive
 cluster restart, but only the latest dumped version will be recovered.
 
-One of the main new immsv features available in OpenSAF4.0 is the 
+One of the main new immsv features available in OpenSAF4.0 is the
 Persistent Back-End (PBE). By default this feature is not enabled.
 See the instructions below for how to enable it. Use of the PBE
 has a signifigant (negative) impact on performance for CCBs and
@@ -349,12 +366,12 @@ persitent runtime data, both response time and throughput.
 The upside is that the user does not need to do frequent dumps
 to get persistence. But it is still advisable dump the IMM
 (to the imm-xml form) periodically, for backup to an external
-filesystem, to support recovery from disasters. 
+filesystem, to support recovery from disasters.
 
 -----------------------------------------------
 
 The IMM-PBE feature is an optional feature.
-To enable this feature the folowing three steps are needed. 
+To enable this feature the folowing three steps are needed.
 
 	1) ++++++BUILD WITH PBE+++++++
 
@@ -369,7 +386,7 @@ To enable this feature the folowing three steps are needed.
 
 	2) ++++++CONFIGURE PBE DEPLOYMENT+++++++++
 
-	Edit 'osaf/services/saf/immsv/config/immnd.conf' or in the 
+	Edit 'osaf/services/saf/immsv/config/immnd.conf' or in the
 	deployed system typically '/etc/opensaf/immnd.conf'.
 
 	Ensure the IMMSV_ROOT_DIRECTORY points to a shared file system,
@@ -382,7 +399,7 @@ To enable this feature the folowing three steps are needed.
 	normally 'imm.db'. Note that IMMSV_PBE_FILE must be defined in immnd.conf
 	for *all* nodes in the cluster, including payloads, even if they cannot
 	access 	the file. The fact that this environment variable is nonempty
-	is what tells all nodes that PBE is configured. 
+	is what tells all nodes that PBE is configured.
 
 	Note also that IMMSV_LOAD_FILE must still also be defined. Even with PBE
 	enabled, you typically initial start from an imm.xml file. A restore from
@@ -406,10 +423,10 @@ To enable this feature the folowing three steps are needed.
 	This sets the saImmRepositoryInit attribute in the IMM service
 	object to SA_IMM_KEP_RESPOSITORY (1).
 
-	If this immcfg command succeeds, the pbe is runtime enabled and the 
+	If this immcfg command succeeds, the pbe is runtime enabled and the
 	pbe-daemon process should have started and it should have generated
 	the first dump to the pbe-file.
-	A 'ps' on the controller where the IMMND coord currently resides 
+	A 'ps' on the controller where the IMMND coord currently resides
 	should show something like:
 
         618 root 22320 S N  /usr/local/bin/immpbed --daemon --pbe /var/lib/..
@@ -423,7 +440,7 @@ attribute back to SA_IMM_FROM_FILE (2).
 The final transaction/CCB done towards the imm.db sqlite file will be to
 set the saImmRepositoryInit attribute also in this sqlite file. So any
 cluster restart that tries to load from the imm.db file will detect that
-PBE is disabled and instead load from the imm.xml file. 
+PBE is disabled and instead load from the imm.xml file.
 
 Finally, if the PBE is hung for some reason, it can also be forced to
 disabled, by the administrative operation:
@@ -435,7 +452,7 @@ attribute to 2, i.e. SaImmRepositoryInitModeT value SA_IMM_INIT_FROM_FILE,
 without using a ccb and ignoring any currently active PBE.
 But this way of disabling the PBE will NOT update the saImmRepositoryInit
 attribute in the sqlite file. So any subsequent cluster restart will use
-the imm.db file and come up with PBE enabled. So if possible, use the 
+the imm.db file and come up with PBE enabled. So if possible, use the
 recommended way, via immcfg, for disabling PBE.
 
 
@@ -448,14 +465,14 @@ changes at runtime to existing class definitions. For more background see
 ticket #1310: http://devel.opensaf.org/ticket/1310
 
 The new class definition must of course be valid in itself, i.e. it must
-pass all tests that a first version of a class has to pass. 
+pass all tests that a first version of a class has to pass.
 On top of this there are many restrictions that apply to a schema change.
 
 The kinds of change allowed in OpenSAF 4.1 are limited to addition of
 new attributes and changes to existing attributes. Removal of existing
 attributes are not allowed. Furthermore, not all kinds of additions or
 changes are allowed. In general, relaxation changes are allowed while
-restricting changes are not. 
+restricting changes are not.
 
 The following changes are allowed:
 
@@ -480,18 +497,18 @@ All other changes, such as change of attribute type, removal of default,
 addition of default, etc are not allowed.
 
 There is no API change. The existing saImmOmClassCreate_2 call is used
-to insert the new class version. The standard behavior is to reject 
+to insert the new class version. The standard behavior is to reject
 a class create call with ERR_EXIST if the class name matches an existing class.
 This is also still the defalt behavior. But if schema change is enabled,
-(explained below), then a new definition for an existing class is 
-interpreted as an attempt to change that existing definintion. 
+(explained below), then a new definition for an existing class is
+interpreted as an attempt to change that existing definintion.
 The implied change is analyzed to ensure that it is an allowed change
 according to the above rules. If it is allowed, the new class definition
-replaces the old and all existing instances are migrated to the new 
+replaces the old and all existing instances are migrated to the new
 representation. If PBE is enabled, the entire change is made persistent.
 
-To enable the non standard schema change support, the following admin 
-operation must be executed: 
+To enable the non standard schema change support, the following admin
+operation must be executed:
 
         immadm -o 1 -p opensafImmNostdFlags:SA_UINT32_T:1 \
            opensafImm=opensafImm,safApp=safImmService
@@ -501,19 +518,19 @@ attribute inside the immsv. Operation-id '1' invoked on the object
 'opensafImm=opensafImm,safApp=safImmService' has the meaning of 'flags-ON'.
 The lowest order flag is the allow-schema-change flag which controls the
 schema-change behavior. With this flag switched on, the immsv accepts
-legal schema changes. If this flag is off, the immsv follows the standard 
+legal schema changes. If this flag is off, the immsv follows the standard
 behavior of rejecting all implied schema changes with ERR_EXIST.
 
 The flag is switched off by a corresponding admin operation. Operation-id '2'
 invoked on the object 'opensafImm=opensafImm,safApp=safImmService' has the
-meaning of 'flags-OFF'. 
+meaning of 'flags-OFF'.
 
         immadm -o 2 -p opensafImmNostdFlags:SA_UINT32_T:1 \
            opensafImm=opensafImm,safApp=safImmService
 
 We strongly recommend that the flag is switched off as soon as any intended
-schema change has been completed. This to avoid legal but unintended (!) 
-schema changes. For example, two applications may accidentally use the 
+schema change has been completed. This to avoid legal but unintended (!)
+schema changes. For example, two applications may accidentally use the
 same class name. If the first application is already installed when the
 second application arrives and the second application redefines the class
 in such a way that it is valid when interpreted as an implied upgrade,
@@ -521,11 +538,11 @@ then the class could be upgraded. This could have many unintended
 consequences which also could be very hard to troubleshoot. The example
 also illustrates the importance of propper prefixing of classnames,
 since the class name-space is flat (as opposed to the naming tree
-for objects). 
+for objects).
 
 If PBE is enabled, the current value of opensafImmNostdFlags can be inspected
 via the cached non-persistent runtime attribute 'opensafImmNostdFlags' in the
-object  'opensafImm=opensafImm,safApp=safImmService'. 
+object  'opensafImm=opensafImm,safApp=safImmService'.
 If PBE is not enabled, then this runtime attribute is not accessible, because
 there is no regular implementer attached. But the above admin operations are
 still handled by the immsv and the schema change behavior is still controlled
@@ -539,14 +556,14 @@ configuration objects. An applier is an OI (object implementer) of lower
 rank than the primary OI. The primary OI validates the CCB and has veto
 rights to abort any CCB it participates in. If the CCB commits then the
 pimary OI will apply the changes into the service/application it represents.
-If the CCB aborts then the primary OI discards the changes. 
+If the CCB aborts then the primary OI discards the changes.
 
 The most signifficant deficiency of having only a primary OI per class/object
 is that it is not simple to implement hot-standby solutions.
 A hot-standby solution requires the primary OI to inform the standby, by
 implementing some form of message protocol at the service/application level.
 The concept of an "applier OI" removes this deficiency and allows the
-service/application to use the imm to disseminate the changes. 
+service/application to use the imm to disseminate the changes.
 
 An applier OI registers the same way as the main OI and receives exactly
 the same CCB related callbacks as the primary OI. The difference is that an
@@ -554,46 +571,46 @@ applier OI does not participate in CCB validation. The imm-service ignores
 any reply on the create,delete,modify and completed callbacks, from applier OIs.
 An applier OI does not get uppcalls for admin-operations or for updating
 runtime attributes. This should be obvious since admin-ops or updates
-to runtime attributes should only be handled by the main-oi. 
+to runtime attributes should only be handled by the main-oi.
 
 An applier OI is not allowed to create or delete runtime objects,
-or to update runtime attributes. 
+or to update runtime attributes.
 
 The applier OI is thus informed of the same changes as the primary OI
 and will be able to apply the changes if the CCB commits and discard them
 if the CCB aborts. Exaclty what "apply" here means is up to the application.
 The main point here is that it means that the applier has the tools to be
 a hot standby, or to perform whatever needs to be done in order to effect
-the configuration change that was applied. 
+the configuration change that was applied.
 
 There may be any number of appliers for any given class/object. Thus the
 applier OI concept may be used not just to solve the "hot standby" problem
 but also for the more general problem of effecting the apply of a CCB over
 the applications components in the cluster. In the AMF example above, the
-osafamfnd processes (node director processes) could in principle also 
+osafamfnd processes (node director processes) could in principle also
 attach as applier OIs and register any configuration changes that apply
-to the specific node. 
+to the specific node.
 
-Another way of stating this is that the applier-OI concept allows IMM 
-users to leverage the the IMM CCB protocol for more than the primary 
-purpose of that protocol. 
+Another way of stating this is that the applier-OI concept allows IMM
+users to leverage the the IMM CCB protocol for more than the primary
+purpose of that protocol.
 
 The A.02 API is used but the applier concept is only available to an OI
-that registers with version A.02.11 (or higher minor version). 
+that registers with version A.02.11 (or higher minor version).
 An OI-name is recognized as the name for an applier OI by the imm-service
-if the first character in the name is '@'. For example, the AMF OI is 
+if the first character in the name is '@'. For example, the AMF OI is
 named 'safAmfService' and implemented by the osafamfd process at the
 active SC. The osafamfd at the standby SC could become more of a hot
 standby by registering as the applier OI '@safAmfService'.
 
-As always, only one process/OI-handle may at any point in time be 
+As always, only one process/OI-handle may at any point in time be
 associated with a particular OI-name. This holds also for applier-OI
 names. And as always, an OI-handle may be associated with at most one
 implementer/applier-name at a time. So in case of a switch-over (si-swap),
-the osafamfd processes would close their current OI-handles (or invoke 
+the osafamfd processes would close their current OI-handles (or invoke
 saImmOiImplementerClear). Then the osafamfd processes would attach to
 either the main OI (safAmfService) or the applier OI (@safAmfService),
-using saImmOiImplementerSet. 
+using saImmOiImplementerSet.
 
 A word of caution about implementer names. Implementer names are to
 be re-used. They are never garbage collected by the imm service.
@@ -623,22 +640,22 @@ long as it has been bound to at least one object. But an applier name
 is not persistent in the face of a cluster restart, regardless of
 whether it has been bound to anything. The main reason for this is
 that the regular implementer name is stored with each object in the
-special single valued service attribute: saImmAttrImplementerName. 
+special single valued service attribute: saImmAttrImplementerName.
 
 Note here that the binding of a regular implementer-name to a class
-(as a result of saImmOiClassImplementerSet) does not survive a 
+(as a result of saImmOiClassImplementerSet) does not survive a
 cluster restart. So an application that intends to attach as a class
-implementer should always exlplicitly set the class implementer. 
-If the class implementer is already set, this operation returns 
+implementer should always exlplicitly set the class implementer.
+If the class implementer is already set, this operation returns
 SA_AIS_OK anyway. The "feature" of attachign to an already set
 up implementer structure is of dubious value, since the application
-must then be aware of its starting context. 
+must then be aware of its starting context.
 
 Applier bindings are even weaker in this "starting context" sense
 because applier bindings to object/class are not synced. The only
 applier data that is synced (after a node restart) is the existence of
 the applier name and whether ot not any client is currently attached as
-that applier. 
+that applier.
 
 The most efficient and simplest and normal way to bind an implementer
 or applier to objects is by using the saImmOiClassImplementerSet call.
@@ -646,21 +663,21 @@ This ensures that the implementer-name is always bound to all instances
 of that class. It ensures that the OI will get the saImmOiObjectCreate
 callback, which is only possible for class-implementers, since you can
 not register with saImmOiObjectImplementerSet on an object that does
-not yet exist. 
+not yet exist.
 
-The use of saImmOiObjectImplementerSet is mainly for cases when there 
-are very few instances of a class and each instance is to be linked 
-to a an implementer that behaves in a way specific to that instance. 
+The use of saImmOiObjectImplementerSet is mainly for cases when there
+are very few instances of a class and each instance is to be linked
+to a an implementer that behaves in a way specific to that instance.
 
 For appliers, attaching as an object-applier could be usefull as a
 way of "eavesdropping" on the changes affecting a particular object,
 or a few select objects. But invoking saImmObjectImplementerSet
 with an applier name, for a large subtree of objects will be much
 more expensive in memory than just registering for the class(es)
-of these objects. 
+of these objects.
 
 
-SUPPORT FOR CCB-OI ERROR STRINGS (4.2) 
+SUPPORT FOR CCB-OI ERROR STRINGS (4.2)
 =====================================
 http://devel.opensaf.org/ticket/1904
 OpenSAF 4.2 adds the immsv enhancement of supporting ccb error strings
@@ -676,7 +693,7 @@ saImmOiCcbSetErrorString(SaImmOiHandleT immOiHandle,  /* in */
   Arguments     :  immOiHandle - IMM OI handle
                    ccbId  -  The ccbId for the ccb related callback.
                    errorString - The errorString.
- 
+
   Return Values :  SA_AIS_OK
                    SA_AIS_ERR_BAD_HANDLE
                    SA_AIS_ERR_INVALID_PARAM
@@ -690,14 +707,14 @@ related callback. Setting an error string is only relevant if the OI will
 return with error (not SA_AIS_OK) on the callback.  The error
 string will be transmitted to the OM client. Only one error string
 will be accepted per OI callback. Setting additional error strings
-in the same OI callback will simply replace the previous one. 
+in the same OI callback will simply replace the previous one.
 Multiple error strings may however be set from different OIs
 in different callbacks related to the same OM downcall (e.g.
 saImmOmCcbApply). The error SA_AIS_ERR_BAD_OPERATION is returned if the
 call is not made from insdie the dynamic context of a valid OI callback.
 Setting an error string is only possible inside ccb-oi-callbacks that
 have a return code. Thus it is NOT possible inside SaImmOiCcbApplyCallbackT
-or SaImmOiCcbAbortCallbackT. For applier OIs, all return values on 
+or SaImmOiCcbAbortCallbackT. For applier OIs, all return values on
 callbacks are ignored and an applier OI will get BAD_OPERATION on any
 attempt to use this function.
 
@@ -711,9 +728,9 @@ saImmOmCcbGetErrorStrings(
                    errorStrings - Pointer to a pointer to a NULL terminated array
                                   of SaStringT. The list of strings is owned by
                                   the imma om library and is cleared/deallocated
-                                  in conjunction with the next downcall using the 
-                                  ccb-handle. 
- 
+                                  in conjunction with the next downcall using the
+                                  ccb-handle.
+
   Return Values :  SA_AIS_OK
                    SA_AIS_ERR_BAD_HANDLE
                    SA_AIS_ERR_INVALID_PARAM
@@ -723,7 +740,7 @@ saImmOmCcbGetErrorStrings(
 
 Allows the OM client to fetch error strings after the return of a
 ccb-related downcall and *before* making the next ccb-related
-downcall using the same ccb-handle. If any error string where 
+downcall using the same ccb-handle. If any error string where
 set by any OIs involved in the operation that returned with
 error, then these error strings should be included in the list.
 The imm server discards duplicate strings and allows a maximum
@@ -736,8 +753,8 @@ be expected to possibly have an error string.
 NOTE: It is very important that the OM client completes its
 processing of the errorStrings before invoking the next
 ccb downcall using the same ccbHandle. The next such downcall
-will free the error strings. If the om user needs the error 
-strings after re-using the ccbHandle, the user must copy the 
+will free the error strings. If the om user needs the error
+strings after re-using the ccbHandle, the user must copy the
 strings before such re-use. Note also that the 'errorStrings'
 out parameter is declared as 'const', indicating that deallocation
 of 'errorStrings' is here done by the library (not the user).
@@ -746,7 +763,7 @@ of 'errorStrings' is here done by the library (not the user).
 IMPROVED ADMIN-OPERATION API (4.2)
 ====================================
 http://devel.opensaf.org/ticket/1764
-Allows the OI to supply a return paramater list in the same way 
+Allows the OI to supply a return paramater list in the same way
 as the OM client has always been able to supply a parameter list
 as part of an admin-operation-invocation. The reply from the OI
 is in other respects identical to A.02.01.
@@ -774,18 +791,18 @@ saImmOiAdminOperationResult_o2(
                                   See A.02.01 spec for the 'params' arg
                                   of saImmOmAdminOperationInvoke_2.
 
-  Return Values : Same as saImmOiAdminOperationResult 
+  Return Values : Same as saImmOiAdminOperationResult
                   SA_AIS_ERR_VERSION for the case when
                   saImmOiAdminOperationResult_o2 is used with
-                  returnParams!=NULL and *not* with A.2.11 set 
+                  returnParams!=NULL and *not* with A.2.11 set
                   for the immOihandle.
 
 Allows the OI to reply on the admin-operation with the added list
-of return parameters. Works otherwise in the same way as the 
-original saImmOiAdminOperationResult. If returnParams is set to 
+of return parameters. Works otherwise in the same way as the
+original saImmOiAdminOperationResult. If returnParams is set to
 NULL then the reply is identical to using the original reply form.
 The returnParams argument is constructed in exactly the same way
-as the 'params' argument is constructed in 
+as the 'params' argument is constructed in
 saImmOmAdminOperationInvoke_2.
 
 
@@ -808,7 +825,7 @@ typedef struct {
               See A.02.01 spec for the 'params' arg of
               saImmOmAdminOperationInvoke_2.
 
-Defines a new OM callback that allows asyncronous admin-ops to 
+Defines a new OM callback that allows asyncronous admin-ops to
 receive the added return parameter list. Note that 'returnParams'
 is here a 'const' parameter, indicating that deallocation of the
 parameter list will be done by the library (not the user).
@@ -850,7 +867,7 @@ saImmOmAdminOperationInvoke_o2(
                    continuationId-      -"-
                    operationId  -       -"-
                    params       -       -"-
-                   operationReturnValue--"- 
+                   operationReturnValue--"-
                    timeout      -       -"-
                    returnParams - Parameters to return (new for A.2.11)
                                   See A.02.01 spec for the 'params' arg
@@ -860,7 +877,7 @@ saImmOmAdminOperationInvoke_o2(
                   i.e. no new return codes for the A.2.11 version,
                   except SA_AIS_ERR_VERSION for the case when
                   saImmOiAdminOperationInvoke_o2 is used but
-                  not with A.2.11 set for the Om-handle. 
+                  not with A.2.11 set for the Om-handle.
 
 
 The syncronous admin-operation downcall. The only difference with
@@ -899,29 +916,29 @@ string in the list of return parameters. Typically this will be the
 only paramteter included when there is an error, but the API allows
 any number of parameters to be returned regardless of the return code.
 The error string is identified by a parameter with the parameter-name
-of SA_IMM_PARAM_ADMOP_ERROR. This is a convention (and not yet 
+of SA_IMM_PARAM_ADMOP_ERROR. This is a convention (and not yet
 standard). But the convention at least allows for the decoupling of
 OM and OI. It allows an independently developed OM client to probe
 for an error string when it receives a non OK result.
 
 (7)
-#define SA_IMM_PARAM_ADMOP_ID_ESC     0x8000000000000000LL  
+#define SA_IMM_PARAM_ADMOP_ID_ESC     0x8000000000000000LL
 #define SA_IMM_PARAM_ADMOP_NAME       "SaImmAdminOperationName"
 
-If an OM client sets the 'operationId' to the value of 
-SA_IMM_PARAM_ADMOP_ID_ESC, then it indicates the intention to 
+If an OM client sets the 'operationId' to the value of
+SA_IMM_PARAM_ADMOP_ID_ESC, then it indicates the intention to
 identify the admin-operation using a string name instead of the
 numerical operationId. The OM client must then include a parameter
 with the name SA_IMM_PARAM_ADMOP_NAME in the paramter list.
 The type of this parameter must be SaStringT and the value is the
 name of the operation.
 This is a convention, but it allows decoupling between the OI
-client and OM client in the use of admin-operation names. 
+client and OM client in the use of admin-operation names.
 In future releases, this convention may also be the basis for
 supporting the inclusion of amdmin-operation definitions associated
 with an imm-class; and for supporting more elaborate runtime type
 checking of admin-operation invocations and replies, by the imm
-service. 
+service.
 
 
 OI AUGMENTED CCBs (4.2)
@@ -930,7 +947,7 @@ http://devel.opensaf.org/ticket/1963
 
 OpenSAF 4.2 adds the immsv enhancement of supporting OI augmented
 CCBs. This feature is available for OI clients that register with
-imm version A.2.11. 
+imm version A.2.11.
 
 The basic idea is to allow a configuration object implementer to
 add CCB operations to an existing CCB, in the context of create-,
@@ -940,7 +957,7 @@ that will commit or abort atomically with the original CCB.
 This could be seen as a variant of 'database triggers'. In
 other words, logic that is triggered by changes initiated
 by a client and which extends the set of modifications done by
-the transaction. 
+the transaction.
 
 Warnings.
 --------
@@ -948,10 +965,10 @@ A note of warning: This feature must be used with prudence
 and care by OI designers. The feature allows the OI to add side
 effects to a CCB, which the originator of the CCB typically is
 unaware of. It may also impact the performance characteristics
-of the ccb use-case, or prevent the ccb from being committed, 
+of the ccb use-case, or prevent the ccb from being committed,
 e.g. by causing timeout during processing. OI augmentations to
 the same objects operated on by the original OM client could
-subvert or interfere with the intended effect. 
+subvert or interfere with the intended effect.
 
 The OI designer also needs to take care in avoiding deadlocks
 with other OIs. More on this below.
@@ -968,8 +985,8 @@ atomic with them. Runtime data is used by the OI to communicate
 information *to* OM clients. Here we are instead talking about
 'private configuration data', or configuration data for a sub service,
 or related service, that needs to be modified as a side effect of
-the original modification and to be part of the atomic commit 
-of the CCB. 
+the original modification and to be part of the atomic commit
+of the CCB.
 
 Api
 ---
@@ -1031,19 +1048,19 @@ to include saImmOm.h lexically before the include of saImmOi.h).
 If the saImmOiAugmentCcbInitialize call succeeds, the OI can
 use the CCB handle to request create, delete, or modify operations,
 followed by an apply, or possibly a finalize without apply resulting
-in abort. 
+in abort.
 
-An abort of the augment CCB by the OI will abort the entire 
+An abort of the augment CCB by the OI will abort the entire
 originating CCB, unless the augmentation was empty at the time of
 abort/finalize. The augmentation is empty untill at least one
-augmented create, delete or modify operation has succeeded and 
+augmented create, delete or modify operation has succeeded and
 no augment operation has failed with SA_AIS_ERR_FAILED_OPERATION.
-The FAILED_OPERATION return code, as usual, means abort of *entire* 
+The FAILED_OPERATION return code, as usual, means abort of *entire*
 CCB, not just the operation that resulted in this return code.
 And *entire* CCB here means the OM originated parent CCB, not just
 the augmented CCB done by the OI. Thus augmented CCBs are not
-'nested transactions' in that they can not be aborted with contents, 
-independently of the parent CCB. 
+'nested transactions' in that they can not be aborted with contents,
+independently of the parent CCB.
 
 If the OI adds operations to the CCB for objects which it is itself
 the implementer for, then it will not receive any OI-callback for
@@ -1054,21 +1071,21 @@ about the changes it itself added. The OI may even create a modify
 on the object that is the basis of a create or modify callback it is
 executing in. (This should be an unusual case and done with care,
 as it is in some sense overriding the 'intention' of the original
-client). 
+client).
 
 It will still be posible for two or more OIs to get into a
 distributed deadlock with each other by their use of CCB
 augmentation. If such an callback cycle is created, the entire
 OM CCB will timeout and be aborted. This could make desirable
-and correct configuration changes impossible to commit/apply. 
+and correct configuration changes impossible to commit/apply.
 
-The saImmOiAugmentCcbInitialize call also returns 'ownerHandle'. 
+The saImmOiAugmentCcbInitialize call also returns 'ownerHandle'.
 This admin owner handle is initialized to the same admin-owner
 used by the originating OM client. It can be used by the OI to
 set admin-owner for objects the OI intends to modify or delete
 and where it does not know that the admin-owner is already set
 by the originating OM client, (create operations always get
-admin-owner set automatically as part of creation). 
+admin-owner set automatically as part of creation).
 The 'ownerHandle' always has 'releaseOwnershipOnFinalize (ROF) set
 to true. This is the case even if the original admin owner has it
 set to false. If the original admin-owner has ROF==true, then
@@ -1081,7 +1098,7 @@ with the same admin-owner-name and with ROF=true. The release
 of the OI augmented admin-owner is done when the parent CCB commits
 (is applied). The admin-owner can not be released when the augmented
 ccb is applied because the augmented operations are still pending
-the apply of the parent ccb. 
+the apply of the parent ccb.
 
 The OI designer needs to understand that if they set admin-owner
 on some objects which already have admin owner set by the original
@@ -1102,15 +1119,15 @@ OpenSAF 4.2 exteds the SaImmCcbFlagsT type with a new flag value:
 
   #define SA_IMM_CCB_ALLOW_NULL_OI 0x0000000000000100
 
-This flag is available for OI clients that register with 
-imm version A.2.11. 
+This flag is available for OI clients that register with
+imm version A.2.11.
 
 The flag should be set in *combination* with the existing
 SA_IMM_CCB_REGISTERED_OI flag. Its effect is that it relaxes
 the requirement on OI to allow no registered OI when there
 is no registered implementer *name* for the class/object.
 If an implementer name exists, but no implemener is currently
-attached, then the semantics is still the same as 
+attached, then the semantics is still the same as
 SA_IMM_CCB_REGISTERED_OI, the CCB operation is rejected with
 SA_AIS_ERR_NOT_EXIST.
 
@@ -1132,11 +1149,11 @@ is an OI name registered for it AND the OI is attached.
 This is the most safe way of executing a CCB, but it may be
 too restrictive in some cases. The best example is during
 installation when some config objects are created before
-the OI is started. 
+the OI is started.
 
-SA_IMM_CCB_REGISTERED_OI | SA_IMM_CCB_ALLOW_NULL_OI: 
+SA_IMM_CCB_REGISTERED_OI | SA_IMM_CCB_ALLOW_NULL_OI:
 This is the relatively safe variant in the middle.
-A CCB operation on an object is allowed if there is an 
+A CCB operation on an object is allowed if there is an
 implementer, or if there is no implementer name defined
 for the object.
 
@@ -1154,10 +1171,10 @@ value for the environment variable:
 
             IMMA_SYNCR_TIMEOUT.
 
-The unit of time is 10 milliseconds. Thus the default value 
+The unit of time is 10 milliseconds. Thus the default value
 for IMMA_SYNCR_TIMEOUT is 1000 (10 seconds). The minimum allowed
 value is 10 (0.1 seconds). Trying to set a value less than 10
-will only be interpreted as the value 10. 
+will only be interpreted as the value 10.
 
 The 10 second default timeout is a compromize. It is very long for
 some applications to be blocked for up to 10 seconds, for example
@@ -1167,14 +1184,14 @@ For other applications, 10 seconds is too short, for example
 "immcfg -f huge-batch.xml" with PBE enabled can get ERR_TIMEOUT
 during apply (http://devel.opensaf.org/ticket/1786).
 
-Applications with relatively tight realtime restrictions can set 
+Applications with relatively tight realtime restrictions can set
 IMMA_SYNCR_TIMEOUT to a low value, avoiding the risk of getting
 blocked for 10 seconds, but with an increased risk of getting
 ERR_TIMEOUT on syncronous calls.
 
 Some batch operations, particularly deletes of large subtrees of
 imm data, where one delete downcall is expanded into a cascade of
-deletes of objects in the subtree, can benefit from setting 
+deletes of objects in the subtree, can benefit from setting
 a high value on IMMA_SYNCR_TIMEOUT.
 
 The IMMA library samples the IMMA_SYNCR_TIMEOUT environment variable
@@ -1182,7 +1199,7 @@ at OM/OI handle initialize. The handle is stamped with the value of
 of IMMA_SYNCR_TIMEOUT (if it exists), at the time of handle create.
 
 This means that the timeout can not be altered for every individual
-downcall. But it also means that one process may have different 
+downcall. But it also means that one process may have different
 timeouts set for different handles. Sub-handles (ccb, admin-owner,
 iteration, accessor) inherit the timeout value of their associated
 om-handle.
@@ -1199,30 +1216,30 @@ of OpenSaf 4.3.
 The IMM API version where this is implemented is now IMM A.2.12 in OpenSAF(4.3)
 
 The main driver for this feature is the very common need for an OI implementation
-to fetch the initial configuration, without also asking for the values of 
+to fetch the initial configuration, without also asking for the values of
 runtime attributes. If an OI performs a read-request (over the OM API) that
 includes pure runtime attributes for which it itself is the implementer, then
 the OI will currently get into deadlock with itself (if the OI is not multihreaded).
 
 For cached runtime attributes this problem does not exist, but typically the OI
 is not interested in fetching its own cached runtime attributes, which means
-a waste of memory and execution. 
+a waste of memory and execution.
 
 The problem has been that the only way for the OI to only fetch its config
 attributes, is to explicitly enumerate all the config attributes it wants
 to fetch.
 
 This new feature will make it much simpler for the OI to express this
-common type of query. 
+common type of query.
 
 The SA_IMM_SEARCH_GET_CONFIG_ATTR can either be used in the obvious way
 by using it in a saImmOmSearchInitialize_2 request.
 
 For requests of a specific object, the saImmOmAccessorGet_2 api is simpler,
-but that API does not have any searchParameters argument. 
+but that API does not have any searchParameters argument.
 This enhancement still supports the GET_CONFIG_ATTR feature also for
 saImmOmAccessorGet, by what may be called a "hack" or a convention.
-If the 'attributeNames' parameter to saImmOmAccessorGet_2 has only one 
+If the 'attributeNames' parameter to saImmOmAccessorGet_2 has only one
 attributeName with the string value: "SA_IMM_SEARCH_GET_CONFIG_ATTR",
 then the immsv implementation will interpret this as request for all
 config attributes and NOT as a request for the attribute named
@@ -1230,10 +1247,10 @@ config attributes and NOT as a request for the attribute named
 
 The SA_IMM_SEARCH_GET_CONFIG_ATTR feature should work over immutils and
 immutills also has an added wrapper for the saImmOmAccessorGet_2 use
-that encapsulates the convention solution just described. 
+that encapsulates the convention solution just described.
 The new function added to immutils has the signature:
 
-extern SaAisErrorT 
+extern SaAisErrorT
 immutil_saImmOmAccessorGetConfigAttrs(SaImmAccessorHandleT accessorHandle,
                                       const SaNameT *objectName,
                                       SaImmAttrValuesT_2 ***attributes);
@@ -1257,40 +1274,40 @@ Regular appliers (and OIs) will get callbacks depending on which classes or
 objects they have explicitly registered for, using saImmOiClassImplementerSet
 or saImmOiObjectImplementerSet. This is a two level mapping:
 
-        oiHandle->implementerName 
+        oiHandle->implementerName
         implementerName->classes/objects
 
 The two level maping does not survive cluster restarts (it is not persistent),
 but the second level mapping survives disconnect at the first level. Thus the
-bindings related to an implementerName survives process termination or 
-oiHandle close. 
+bindings related to an implementerName survives process termination or
+oiHandle close.
 
 Regular appliers (and OIs) are typically application specific, listening only
-for changes on config data that is relevant to their application. 
+for changes on config data that is relevant to their application.
 
 The special applier is generic. It does not use saImmOiClassImplementerSet or
 saImmOiObjectImplementerSet to set up the second level map. Instead it
 will receive callbacks for objects with attribute values if the attribute
 definition in the class definition for the object has the SA_IMM_ATTR_NOTIFY
-flag set to on. 
+flag set to on.
 
 The IMM A.2.12 API extension supported in OpenSAF 4.3 reserves a new flag value,
 labeled:
 
         SA_IMM_ATTR_NOTIFY
 
-in the SaImmAttrFlagsT type. The SaImmAttrFlagsT type is used when defining 
-atributes as part of an imm class definition. 
+in the SaImmAttrFlagsT type. The SaImmAttrFlagsT type is used when defining
+atributes as part of an imm class definition.
 
 The meaning of this new flag is that, if it is on, then any change to the value
-of that attribute in any instance (imm object) of that class, will generate a 
-callback for any attached special appliers. Because the flag is associated with 
+of that attribute in any instance (imm object) of that class, will generate a
+callback for any attached special appliers. Because the flag is associated with
 class definitions, it is persistent. Toggling the flag on an attribute definition
 is in principle an imm schema change (see SCHEMA CHANGE section above). It is an
 update of a class definition. Since class definitions are persistent, the special
 applier second level mapping implementerName->class/attributes will survive a
 cluster restart. This is also necessary since there exists no regular implementer
-that can set up the second level binding dynamically at cluster start. 
+that can set up the second level binding dynamically at cluster start.
 
 For the first level mapping oiHandle->implementerName, the special applier is
 currently fixed to only allow two "magic" applier names:
@@ -1301,27 +1318,27 @@ currently fixed to only allow two "magic" applier names:
 These applier names are "magic" in the sense that the imm service will recognize
 these names as special and generate the special applier callbacks to them if
 they are attached. The limitation to two names may be relaxed in the future if
-needed. The current vision is that only one logical replicator is needed 
+needed. The current vision is that only one logical replicator is needed
 because the service is generic. The generic replicator may then push the data
 on to a tracking service (such as Ntf) that in its turn allows multiple
 consumers. The generic replicator may even itself push the data on to more than
 one outgoing communication service. Thus there should typically not be needed
-more than one logical replicator. 
+more than one logical replicator.
 
 The reason for two special applier names instead of just one, is to allow a
 logically unique replicator to be implemented redundantly as an active/standby
 pair. If only one special applier name would be used, then there would be an
 inevitable gap in time after the current active detaches and the new active
-attaches. An applier or implementer name can at most be attached to one 
+attaches. An applier or implementer name can at most be attached to one
 oi-handle in the cluster, at any given time. Thus the standby special applier
-needs to receive the same callback stream as the active, using a distinct 
+needs to receive the same callback stream as the active, using a distinct
 special applier name, but will discard the data based on information it
 receives from the active (e.g. via message based checkpoint).
 
 Having both special applier names attached at the same time on the same node
-should be avoided. The imm service will only generate the special applier 
+should be avoided. The imm service will only generate the special applier
 callbacks towards one special applier at one node at any point in time. Thus
-only one of them will receive the special applier callbacks if both are 
+only one of them will receive the special applier callbacks if both are
 attachhed on the same node. It is implementation dependent which one.
 
 The SA_IMM_ATTR_NOTIFY flag may be toggled using immcfg (#2892), or as part
@@ -1329,23 +1346,23 @@ of a regular schema change in an SMF campaign. Export/import of the new flag
 to imm xml format is supported by immdump/immload (#2883).
 
 Although the special applier uses the same SaImmOi callback interface as regular
-implementers and regular appliers, there are some special rules concerning the 
-contents of the parameters provided from the imm service. 
+implementers and regular appliers, there are some special rules concerning the
+contents of the parameters provided from the imm service.
 
 ----------------------------
 
-Config data is changed using Ccb's and the special applier will get the same 
+Config data is changed using Ccb's and the special applier will get the same
 sequence of operational callbacks (create/modify/delete) followed by completed
 and apply. For the operational callbacks the following apply:
 
-SaImmOiCcbObjectCreateCallbackT_2 will contain attribute values for *all* 
+SaImmOiCcbObjectCreateCallbackT_2 will contain attribute values for *all*
 attributes that have the SA_IMM_ATTR_NOTIFY flag on. The attribute value may have
 been set explicitly by the om-client in the ceate downcall, or the value may be
-the default value for the attribute, or the value may be the empty value. 
+the default value for the attribute, or the value may be the empty value.
 In addition, the callback will contain the Rdn attribute and the system attributes
 named SaImmAttrClassName and SaImmAttrAdminOwnerName. The Rdn attribute is
 necessary even if it is not flagged as notifiable, since the special applier needs
-it for constructing the DN for the object to be created. The class-name and 
+it for constructing the DN for the object to be created. The class-name and
 admin-owner name are needed for the special applier, or its downstream clients, to
 interpret what kind of object is being created and who is creating it.
 
@@ -1355,7 +1372,7 @@ In addition, the callback will contain the system atributes SaImmAttrClassName.
 The system attribute SaImmAdminOwnerName will also be included if the value
 has not been provided already in a previous callback for the CCB. Thus if a prior
 create or modify has been sent then the current modify will not add the admin-
-owner system attribute. Admin-owner never changes for a CCB. 
+owner system attribute. Admin-owner never changes for a CCB.
 The class-name may be needed if the special applier attached after the object
 was created and had not yet initialized by reading from the imm. Indeed it is
 left open to the implementor of the special applier to decide how and even if
@@ -1364,26 +1381,26 @@ receiver to interpret who is modifying the object.
 
 SaImmOiCcbObjectDeleteCallbackT can obviosly not contain any attribute values.
 Only the DN of the object to be deleted is provided, since that is how the
-callback is defined. However, the imm service guarantees that a CCB that 
+callback is defined. However, the imm service guarantees that a CCB that
 contains delete callbacks, will also contain at least one modify or create
 callback containing at least the SaImmAdminOwnerName system attribute.
 For any ccb (where ccb != 0), the first special applier callback is guaranteed
 to hold the admin-owner-name. If the first operation is a real create or modify
 then that will hold the admin-owner-name. But if the first operation in the real
 ccb is a delete-operation, then the immsv will first generate a fake modify to
-the special applier, using the same object/dn to be deleted, containing the 
+the special applier, using the same object/dn to be deleted, containing the
 admin-owner-name. After the fake modify, the real delete will be generated
-towards the special applier. 
+towards the special applier.
 
 This allows the receiver to interpret who is deleting the objects. The class-name
 for the object should not be needed since if the receiver is already aware of the
 object to be deleted, then they should already know the class for that object
 and if they are not aware of the object, then they can simply discard the delete
-operation since it is a delete of an object that the receiver does not have. 
+operation since it is a delete of an object that the receiver does not have.
 
 The SaImmOiCcbCompletedCallbackT, saImmOiCcbApplyCallbackT and
 SaImmOiCcbAbortCallbackT have exactly the same semantics as always. The completed
-callback is typically ignored by appliers. 
+callback is typically ignored by appliers.
 
 ----------------------------
 
@@ -1393,7 +1410,7 @@ the special applier, but with the ccbId parameter set to *zero*. No completed,
 apply or abort callbacks are generated for cached runtime data operations. Persistent
 runtime data is always also cached, so the same rules apply for persistent runtime
 data. Non-cached runtime attributes are not allowed to have the SA_IMM_ATTR_NOTIFY
-flag set. 
+flag set.
 
 SaImmOiCcbObjectCreateCallbackT_2 will contain attribute values for *all* cached
 runtime attributes that have the SA_IMM_ATTR_NOTIFY flag on. The attribute value
@@ -1403,7 +1420,7 @@ value must get a value provided by the OI in a saImmOiRtObjectCreate_2 call.
 In addition, the callback will contain the Rdn attribute and the system attributes
 named SaImmAttrClassName and SaImmAttrImplementerName. The Rdn attribute is
 necessary even if it is not flagged as notifiable, since the special applier needs
-it for constructing the DN for the runtime object to be created. The class-name and 
+it for constructing the DN for the runtime object to be created. The class-name and
 implementer name are needed for the special applier, or its downstream clients, to
 interpret what kind of runtime object is being created and who (what implementer)
 is creating it. The ccbId parameter will be zero.
@@ -1418,7 +1435,7 @@ applier to decide how and even if they should initialize by reading from the imm
 The implementer-name allows the receiver to interpret who is updating the runtime
 attributes. Note that the object containing the cached runtime attributes may be
 either a runtime object or a config object. This since config objects may contain
-runime attributes. The ccbId parameter will be zero. 
+runime attributes. The ccbId parameter will be zero.
 
 SaImmOiCcbObjectDeleteCallbackT can obviosly not contain any attribute values.
 Only the DN of the object to be deleted is provided, since that is how the
@@ -1447,14 +1464,14 @@ of OpenSaf 4.3
 
 The IMM API version where this is implemented is now IMM A.2.12 in OpenSAF(4.3)
 
-This can only be set in conjunction with the SA_IMM_ATTR_MULTI_VALUE flag. 
-The effect of setting also the SA_IMM_ATTR_NO_DUPLICATES flag is that the 
+This can only be set in conjunction with the SA_IMM_ATTR_MULTI_VALUE flag.
+The effect of setting also the SA_IMM_ATTR_NO_DUPLICATES flag is that the
 attribute behaves as a 'set' instead of as a 'bag'. The SAF IMM standard
 defines multivalued attributes very loosely as attributes that may have many
 values. Nothing is said about uniquenes of values, hence duplicates must be
 allowed. In most cases the intention with a multi valued attribute is likely
-to be to not have duplicate values. It is now possible to get this more 
-restricted semantics by settign the SA_IMM_ATTR_NO_DUPLICATES_FLAG. 
+to be to not have duplicate values. It is now possible to get this more
+restricted semantics by settign the SA_IMM_ATTR_NO_DUPLICATES_FLAG.
 
 It is possible to add the NO_DUPLICATES flag to a MULTI_VALUE attribute
 definition in an existing class, via a schema change. But such an upgrade
@@ -1462,14 +1479,14 @@ will only succeed if no current instances of the class have duplicates in
 this attribute. The imm service will perform a runtime check of this before
 allowing the upgrade. Application maintainers that intend to use this flag
 need to consider the fact that adding the flag may cause an upgrade campaign
-to fail due to site specific values on such multivalued attributes. 
+to fail due to site specific values on such multivalued attributes.
 
 There is a reason why the imm service does not go one step further and
 consolidate duplicates instead of just check and reject upgrades that
 encounter duplicates. If the imm service where to do such consolidation,
 it would mutate the values of application data without informing the OI
 of such changes. We dont see that as acceptable and predictable behavior.
-The approach taken is insted to make it the apllications responsibility to 
+The approach taken is insted to make it the apllications responsibility to
 eliminate duplicates before the schema change attempt, possibly as a prior
 application step in the campaign.
 
@@ -1483,28 +1500,28 @@ A relatively common error in imm applications is to omitt closing of
 search handles or accesor handles. This results in a "resource leak"
 which will be removed only if/when the application closes the om-handle
 under which the search/accessor handles where created, or when the
-application terminates. 
+application terminates.
 
 Such resource leaks will manifest themselves as increasing use of memory
 in the local IMMND server. How large such leaks will be depends on the
 applicaiton behavior. But if a search is initialized for iteration over
 a large part of the imm database and is dropped before it is consumed,
-then very large ammounts of memory could remain allocated. 
+then very large ammounts of memory could remain allocated.
 
 To make early detection of such resource leaks possible, a limit on
 the maximum number concurrently allocated search handles per om handle
 has been introduced in OpenSAF 4.3.
 
 A default maximum of 100 concurrently open search handles per om-handle
-are allowed. That is, at most 100 open handles of type SaImmSearchHandleT 
+are allowed. That is, at most 100 open handles of type SaImmSearchHandleT
 or SaImmAccessorHandleT created using the same SaImmHandleT are allowed.
 This limit, associated with each om-handle, is checked by the imma library
-each time a search/accessor handle is created. 
+each time a search/accessor handle is created.
 
 Applications that have special and legitimate needs to provide many
 concurrent imm searches, can change the limit from the default value.
 The application does this by setting a higher value on the environment
-variable IMMA_MAX_OPEN_SEARCHES_PER_HANDLE. 
+variable IMMA_MAX_OPEN_SEARCHES_PER_HANDLE.
 
 Applications can also avoid the limit by using more than one om-handle
 as the root resource for allocating search handles. For applications
@@ -1515,15 +1532,15 @@ to be controlled by more than one client thread.
 
 It may also be usefull for applications to *lower* the value in early
 testing. This increases the chances that application resource leaks are
-detected early in development. 
+detected early in development.
 
 The IMMA library samples the IMMA_MAX_OPEN_SEARCHES_PER_HANDLE environment
 variable at OM handle initialize. The om-handle is stamped with the value
-of this variable, if it exists, at the time of handle create. 
+of this variable, if it exists, at the time of handle create.
 
 There is also a much higher sanity limit defined on the server side.
 Currently defined as 5000 open searches per om-handle. That limit is
-not configurable. 
+not configurable.
 
 
 Optimize subtree search           (4.3)
@@ -1577,7 +1594,7 @@ http://devel.opensaf.org/ticket/2835
 Notes on upgrading from OpenSAF 4.1/4.2 to OpenSAF 4.3
 ======================================================
 Enhancement #1871 opens up for allowing saImmOiImplementerSet during imm-sync.
-This more liberal behavior does not work well during upgrade from earlier 
+This more liberal behavior does not work well during upgrade from earlier
 OpenSAF releases to the OpenSAF 4.3 release. See ticket #3071.
 
 Because of this upgrade problem, the older more restrictive behavior is still
@@ -1591,11 +1608,11 @@ The following is the shell command:
 This will set the third bit of the 'opensafImmNostdFlags' runtime attribute
 inside the immsv. Operation-id '1' invoked on the object:
 
- 'opensafImm=opensafImm,safApp=safImmService' 
+ 'opensafImm=opensafImm,safApp=safImmService'
 
 has the meaning of 'flags-ON'. Operation-id '2' has the meaning of 'flags-OFF'.
 This flag needs to be turned ON when the upgrade to OpenSAF 4.3 has been
-successfully completed. Thus in the final steps of the upgrade. A cluster 
+successfully completed. Thus in the final steps of the upgrade. A cluster
 start/restart of an OpenSAF4.3 system will always automatically turn on
 this flag. In summary:
 
@@ -1606,12 +1623,22 @@ Bit 4 controls 2PBE oneSAfe2PBE (see 2PBE feature in OpenSAF4.4 below).
 
 2PBE Allow IMM PBE to be configured without shared file system (4.4)
 ===================================================================
-https://sourceforge.net/p/opensaf/tickets/21/
+http://sourceforge.net/p/opensaf/tickets/21/
 
 The 2PBE enhancement allows the IMM to have PBE configred so that it
-does not rely on a shared filesystem, such as DRBD. 
-See: osaf/services/saf/immsv/README.2PBE.
+does not rely on a shared filesystem, such as DRBD.
 
+See: osaf/services/saf/immsv/README.2PBE for details.
+
+
+Support for reference integrity checking - SA_IMM_ATTR_NO_DANGLING (4.4)
+========================================================================
+http://sourceforge.net/p/opensaf/tickets/49/
+
+A new attribute definition flag has been defined:
+#define SA_IMM_ATTR_NO_DANGLING   0x0000000004000000
+
+See: osaf/services/saf/immsv/README.NO_DANGLING for details.
 
 ----------------------------------------
 DEPENDENCIES
@@ -1638,7 +1665,7 @@ The most important data structures for the IMMD process type are:
 
 The most important data structures for the IMMND process type are:
 
- IMMND_CB:                              The "control block" for the IMMND, a 
+ IMMND_CB:                              The "control block" for the IMMND, a
                                         singleton
  IMMND_IMM_CLIENT_NODE:                 Information about one client connection
  IMMND_IMM_CLIENT_NODE.client_info_db:  Collection of IMMND_IMM_CLIENT_NODEs
@@ -1732,7 +1759,7 @@ non-coordinators during loading and sync.
                                                          IMM_SERVER_SYNC_PENDING
     IMM_SERVER_LOADING_SERVER-(loading succeeded)->IMM_SERVER_READY
     IMM_SERVER_LOADING_CLIENT-(loading succeeded)->IMM_SERVER_READY
-    IMM_SERVER_SYNC_PENDING-(sync request accepted)->IMM_SERVER_SYNC_CLIENT	
+    IMM_SERVER_SYNC_PENDING-(sync request accepted)->IMM_SERVER_SYNC_CLIENT
     IMM_SERVER_READY-(coord and accept sync request)->IMM_SERVER_SYNC_SERVER
     IMM_SERVER_SYNC_CLIENT-(sync succeeded)->IMM_SERVER_READY
     IMM_SERVER_SYNC_SERVER-(sync terminated)->IMM_SERVER_READY
@@ -1741,16 +1768,16 @@ non-coordinators during loading and sync.
 OTHER IMPLEMENTATION POINTS
 
 There is an epoch-count maintained by the IMMD. The epoch count is incremented
-cluster-wide by the coordinator after important events such as: loading 
+cluster-wide by the coordinator after important events such as: loading
 completed, sync completed and dump completed. The epoch count is stored
 persistently in every dump so that a re-load using that dump will be starting
-from the saved epoch. 
+from the saved epoch.
 
 The central data model of the IMMND is implemented in C++ and uses STL (Standard
-Template Library) collections to represent the data model. 
+Template Library) collections to represent the data model.
 Other parts of IMMND are implemented in C.
 
-The immload and immdump programs are implemented in C++. These programs 
+The immload and immdump programs are implemented in C++. These programs
 communicate with the IMMSv using the IMM-OM API. They use libxml2 to parse and
 generate the imm.xml format.
 
@@ -1803,7 +1830,7 @@ To enable such trace uncomment:
 
 TEST
 
-Currently a "tetware like" test suite can be found in 'tests/immsv/'. 
+Currently a "tetware like" test suite can be found in 'tests/immsv/'.
 See tests/immsv/README for instructions.
 
 
@@ -1828,4 +1855,4 @@ Neelakanta Reddy <reddy.neelakanta@oracle.com>
 Zoran Millinkovic <zoran.milinkovic@ericsson.com>
 
 The IMM service OpenSAF framework was originally cloned from the OpenSAF
-check-point service. 
+check-point service.

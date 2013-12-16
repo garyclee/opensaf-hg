@@ -3,7 +3,7 @@
 https://sourceforge.net/p/opensaf/tickets/21/
 
 The 2PBE enhancement allows the IMM to have PBE configured so that it
-does not rely on a shared filesystem, such as DRBD. 
+does not rely on a shared filesystem, such as DRBD.
 
 Executing IMM without PBE configured or enabled (0PBE) of course also
 makes the IMM not rely on any shared filesystem, but you then do not get
@@ -11,12 +11,12 @@ automatic incremental persistence. Deployments that rarely update the
 configuration data and rarely alter the "administrative state" on AMF data,
 should still consider the option of running without PBE. Persistence is
 then acheived by performing an explicit dump after each CCB, after each
-admin-op to change administrative state, or at least after a set of such 
+admin-op to change administrative state, or at least after a set of such
 persistent changes have been completed. This is the simplest configuration
-with least overhead and lowest resource consumption. 
+with least overhead and lowest resource consumption.
 
 Regular 1PBE uses one Persistent Back End process started and controlled
-by the IMMND coordinator. 
+by the IMMND coordinator.
 
 With 2PBE a PBE process is started at *both* SCs. The PBE started by the
 coordinator is called the *primary* PBE and operates in much the same way
@@ -27,14 +27,14 @@ called the *slave* PBE.
 The primary PBE and the slave PBE each write to what should normally be a
 local database file. The database file has the same basic name as used by
 regular 1PBE (IMMSV_PBE_FILE in immnd.conf), except that a suffix is appended
-that consists of the processors node-id, as defined by MDS. This suffix 
+that consists of the processors node-id, as defined by MDS. This suffix
 *allows* 2PBE to be execued with the PBE files actually residing on a shared
 file system. That would not be a good solution for deployment, but it may
 simplify some test framweworks, that can then use the same file system
 configuration for testing both 1PBE and 2PBE.
 
 Configuring 2PBE
----------------- 
+----------------
 The configure for 2PBE, first configure the same parameters as used by 1PBE,
 although IMMSV_ROOT_DIRECTORY would for 2PBE normally point at a local file
 system directory. Then also comment in the following parameter in immd.conf
@@ -52,10 +52,10 @@ Note that it is not normal, i.e. not expected, for any given cluster to switch
 between 1PBE and 2PBE. The decision to use 1PBE or 2PBE should be based on what
 is available and intended to be used as storage for the imm service. Typically
 that does not change during the service lifetime for a cluster. Thus the choice
-of 1PBE or 2PBE (or 0PBE) is normally done at cluster installation time. 
+of 1PBE or 2PBE (or 0PBE) is normally done at cluster installation time.
 
 The cardinal example for a deployment that should use 2PBE (or 0PBE) is a down
-sized embedded system, that does not have any shared filesystem available. 
+sized embedded system, that does not have any shared filesystem available.
 
 A 2PBE system can disable PBE and enable PBE in the same way that a 1PBE system
 can. This is done in the same way, using the administrative operation for this,
@@ -66,7 +66,16 @@ Cluster-start & IMM loading from PBE-files for 2PBE
 The active IMMD will order each SC resident IMMND to execute a "preload", probing
 the SC local filesystem for the file state that *would* be loaded to the cluster
 if that SC IMMND was chosen as coord. The two SC IMMNDs send the preload stats to
-the active IMMD. 
+the active IMMD. On each SC, the file probe starts by attempting to open the
+database file with the 2PBE suffix (e.g. imm.db.2010f at SC1 and imm.db.2020f at
+SC2). If the file with suffix does not exist (can not be opened), then a new probe
+is tried using the database file without suffix (e.g imm.db at both SC1 and SC2).
+If that probe also fails, then the last alternative is to try to open the
+IMMSV_LOAD_FILE (e.g. imm.xml).
+
+When initial starting a 2PBE system, take care so that at least the imm.xml file
+exists at both SCs. Otherwise there is a risk that the preloading will hang for
+quite some time, when the IMMND restarts at an SC.
 
 The active IMMD will wait for the IMMNDs at *both* SCs to complete the preload
 task and then determine which SC has the apparently latest file state. The IMMND
@@ -74,7 +83,7 @@ at that SC will then be chosen as IMMND coord. Should the timeout be reached,
 then the active IMMD declares the only avaialble SC IMMND as coordinator. This
 should be avoided.
 
-Actual loading then proceeds in the same way as for regular 1PBE. The 
+Actual loading then proceeds in the same way as for regular 1PBE. The
 IMMSV_2PBE_PEER_SC_MAX_WAIT is by default 30 seconds. This value should
 be high enough to make it extremely unlikely that the active IMMD is forced
 choose coord/loader when only a single SC IMMND has joined. If that happens,
@@ -105,7 +114,7 @@ The primary PBE is thus the entity that decides the outcomme of a CCB that is
 in the crtitical state. [The critical state is defined by the commit request
 having been sent to the (primary) PBE]. If the pirmary PBE acks the commit, the
 CCB commits in imm-ram. Finally, all appliers that where tracking the CCB get
-the commit/apply callback, including the slave PBE. 
+the commit/apply callback, including the slave PBE.
 
 With 2PBE, *both* PBEs must be available for the imm to be persistent-writable.
 If one or both PBEs are unavailable (or unresponsive) then persistent writes
@@ -123,7 +132,7 @@ then the operator can also (directly or indirectly) request that persistent
 writes be allowed despite only one PBE being availble in a 2PBE system. This is
 also typically needed for an uncontrolled and unexpected departure of an SC if
 that SC does not immediately bounce back up. A repair is then apparently needed
-and the system *must* be allowed to function with only one PBE, despite that it 
+and the system *must* be allowed to function with only one PBE, despite that it
 only writes to one local filesystem using one PBE.
 
 The 1safe2PBE mechanism allows a 2PBE OpenSAF cluster to open up for persistent
@@ -144,7 +153,7 @@ opertion:
   immadm -o 2 -a safImmService -p opensafImmNostdFlags:SA_UINT32_T:8 \
      opensafImm=opensafImm,safApp=safImmService
 
-Note the explicit setting of admin-owner-name using "-a safImmService". This has to
+Note the explicit setting of admin-owner-name using "-a safImmService". This should
 be used for these admin-operations because the imm service needs admin-ownership
 over the object "opensafImm=opensafImm,safApp=safImmService" in order for 2PBE to
 work properly.
@@ -153,16 +162,16 @@ Hence the fourth bit in the opensafImmNostdFlags bitvector of the OpenSAF servic
 object, is used to toggle on/off oneSafe2PBE. Toggling this bit, on older systems,
 or systems that do not have 2PBE configured, will have no effect. Toggling this bit
 on (on a 2PBE system) is only accepted by the IMM service when there is only one SC
-available. 
+available.
 
-We reccommend that any deployment of OpenSAF that intends to allow usage of 2PBE, 
+We reccommend that any deployment of OpenSAF that intends to allow usage of 2PBE,
 invoke the toggling on of this bit in the wrapper function for performing a planned
 stop of an SC. Note however that the operation will only succeed when the SC has gone
 down, i.e. there is only one SC available. Similarly, if there is any alarm generated
 when an SC has gone down and not come back up quickly enough (a node repair needed
-alarm), then we suggest that the alarm trigger the invocation of the admin op to 
-toggle this flag on. 
+alarm), then we suggest that the alarm trigger the invocation of the admin op to
+toggle this flag on.
 
 For "normal", but unplanned, processor restarts, we recommend that this flag not be
-toggled on. This means that for such processor restarts, persistent writes will not be 
-allowed untill both SCs are available again. 
+toggled on. This means that for such processor restarts, persistent writes will not be
+allowed untill both SCs are available again.
