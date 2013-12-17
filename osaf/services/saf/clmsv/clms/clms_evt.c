@@ -1279,7 +1279,7 @@ void clms_process_mbx(SYSF_MBX *mbx)
 	case CLMSV_CLMS_RDA_EVT:
 		proc_rda_evt(msg);
 		break;
-	case CLMSV_CLMS_CLMNA_DOWN:
+	case CLMSV_AVND_DOWN_EVT:
 		proc_mds_node_evt(msg);
 		break;
 	default:

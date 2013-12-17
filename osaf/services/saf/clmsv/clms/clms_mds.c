@@ -1108,8 +1108,8 @@ static uint32_t clms_mds_svc_event(struct ncsmds_callback_info *info)
 				evt->type = CLMSV_CLMS_CLMA_DOWN;
 				evt->info.mds_info.node_id = info->info.svc_evt.i_node_id;
 				evt->info.mds_info.mds_dest_id = info->info.svc_evt.i_dest;
-			} else if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_CLMNA) {
-				evt->type = CLMSV_CLMS_CLMNA_DOWN;
+			} else if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_AVND) {
+				evt->type = CLMSV_AVND_DOWN_EVT;
 				evt->info.node_mds_info.node_id = info->info.svc_evt.i_node_id;
 				evt->info.node_mds_info.nodeup = false;
 			}
@@ -1244,7 +1244,7 @@ uint32_t clms_mds_init(CLMS_CB * cb)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
-	MDS_SVC_ID svc[] = { NCSMDS_SVC_ID_CLMA, NCSMDS_SVC_ID_CLMNA };
+	MDS_SVC_ID svc[] = { NCSMDS_SVC_ID_CLMA, NCSMDS_SVC_ID_CLMNA, NCSMDS_SVC_ID_AVND };
 
 	TRACE_ENTER();
 
@@ -1288,7 +1288,7 @@ uint32_t clms_mds_init(CLMS_CB * cb)
 	mds_info.i_svc_id = NCSMDS_SVC_ID_CLMS;
 	mds_info.i_op = MDS_SUBSCRIBE;
 	mds_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
-	mds_info.info.svc_subscribe.i_num_svcs = 2;
+	mds_info.info.svc_subscribe.i_num_svcs = 3;
 	mds_info.info.svc_subscribe.i_svc_ids = svc;
 
 	rc = ncsmds_api(&mds_info);
