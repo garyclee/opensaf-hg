@@ -15,142 +15,29 @@
 #
 # Author(s): Ericsson AB
 #
-# Default implementation of SMF bundle check
-
-# FROM THE SMF SPECIFICATION;
+# This command is called during the prerequisites test described in:
+# Service AvailabilityT Forum Application Interface Specification
+# Software Management Framework SAI-AIS-SMF-A.01.02
+# 4.1.1 Upgrade Prerequisites
+# Test 6. The desired version of the software is available in the software repository, and all
+#         the dependencies of the required packages have been checked and are satisfied.
 #
-# 3.2.2.1 Repository Management
+# This file contain the default implementation of SMF bundle check.
+# The default implementation is just a placeholder for the sw bundle test call from SMF.
+# The tests shall be written by the user to fit the actual system hosting OpenSAF.
 #
-#   It is assumed that an SA Forum system is associated with a
-#   logically single storage that collects all software bundles
-#   available in the system. In the software delivery phase, software
-#   bundles are made available to the system by copying them to the
-#   software repository. The source could be a remote file server, a
-#   CD, or some other media. The Software Management Framework
-#   specification currently does not specify how software packages
-#   and, as a consequence, software bundles are imported to the
-#   repository and made available to the system.
+# Interface: The command is called with the sw budle DN as parameter.
+#            configuredCommand <swBundleDN>
 #
-#   When software bundles are delivered to the software repository,
-#   they should be verified in an implementation-specific way (for
-#   instance, by the use of package handling utilities of an operating
-#   system or by other means). This verification should include for
-#   each software bundle:
-#
-#     - A check of the integrity and the origin of all software
-#       packages that make up the bundle.
-#
-#     - A check that all other packages indicated in the package
-#       dependency list are available in the repository or have been
-#       delivered at the same time.
-#
-#     - A check that the bundle has been properly added to the
-#       repository and can, therefore, be used as an installation
-#       source.
-#
-#   When all these operations and checks are successfully completed,
-#   the software bundle becomes available for the system and allows
-#   one to add an IMM object representing the software bundle to the
-#   information model of the software catalog.
-#
-#   If any of these operations fails, the bundle may not be added
-#   either to the repository or to the information model.
-
-# Now forget all of the above. This script checks something else...
-
-# FROM THE SMF WP Chapter III.D;
-# 1.      Administrator creating a Software Bundle object in IMM
-# 2.      IMM informing SMF that a new Software Bundle object is being
-#         created
-# 3.      SMF imports the software bundle associated with the Software
-#         Bundle object into the Software Repository
-# 4.      SMF verifies that the software bundle copy in the repository
-#         is valid and can be used for software installation and
-#         removal
-# 5.      At a latter time when the administrator initiates the
-#         execution of an Upgrade Campaign referencing the Software
-#         Bundle
-# 6.      IMM forwards to SMF the administrative operation
-# 7.      SMF checks if the Software Bundle object exists in IMM,
-#         which indicates that the software bundle has been imported
-#         into the repository
-
-# How SMF can perform item 3. when the procedure (according to the
-# spec) is not specified remains a mystery...
-
-# This script performs the check specified in item 4 in the list
-# above. Thus;
-#
-# This script assumes that the bundle is already imported to the
-# repository and that the corresponding SaSmfSwBundle object
-# exists. It is also assumed that the bundle should exist on the
-# current node (i.e. SaAmfNodeSwBundle object's are not checked).
-#
-# Checks made;
-#   - Verify that the "safSmfBundle=name" object exists.
-#   - Verify that the $REPOSITORY/name directory exists
-#   - Verify that both of online or offline install/remove
-#     commands are specified.
-#   - Verify that the above command-files exists and are executable.
-
-# About the "repository";
-# The repository is assumed to be a locally accessible directory.
-# Since nothing is specified about the location we require that the
-# repository is defined by the $REPOSITORY environment variable for now.
-
-# About "offline" scripts;
-# The offline scripts for an application are used on a restore from backup.
-# This is not a requirement from SAF or OpenSAF but is a consequence of the
-# way backups are realized in this example.
 
 prg=`basename $0`
 
-die() {
-    echo "ERROR: $@" >&2
-    logger -t $prg -p user.err "ERROR ($cmd): $@"
-    exit 1
-}
 log() {
     echo "$@"
     logger -t $prg -p user.debug "$@"
 }
-is_executable() {
-    if echo $1 | grep -q '^/'; then
-	# Abslolute path
-	test -x "$1"
-    else
-	test -x "$REPOSITORY/$name/$1"
-    fi
-}
 
-smfrc=${SMFRC:-/hostfs/smf.rc}
-test -r $smfrc && . $smfrc
-
-# Prerequisites;
-test -n "$1" || die "One package name must be given"
-test -n "$REPOSITORY" || die 'Variable $REPOSITORY not set'
-test -d $REPOSITORY || die "Not a directory [$REPOSITORY]"
-name=$1
-
-# Perform checks;
-log "Performing SMF bundle check actions, bundle name = $name"
-test -d $REPOSITORY/$name || die "Not a directory [$REPOSITORY/$name]"
-immlist safSmfBundle=$name -a SaImmAttrClassName > /dev/null 2>&1 ||\
-    die "Object not readable [safSmfBundle=$name]"
-
-InstallOnline=$(immlist safSmfBundle=$name -a saSmfBundleInstallOnlineCmdUri | cut -d= -f2-)
-RemoveOnline=$(immlist safSmfBundle=$name -a saSmfBundleRemoveOnlineCmdUri | cut -d= -f2-)
-InstallOffline=$(immlist safSmfBundle=$name -a saSmfBundleInstallOfflineCmdUri | cut -d= -f2-)
-RemoveOffline=$(immlist safSmfBundle=$name -a saSmfBundleRemoveOfflineCmdUri | cut -d= -f2-)
-
-test "$InstallOnline" = "<Empty>" && die "No InstallOnline specified"
-test "$InstallOffline" = "<Empty>" && die "No InstallOffline specified"
-test "$RemoveOnline"  = "<Empty>" && die "InstallOnline with no RemoveOnline"
-test "$RemoveOffline"  = "<Empty>" && die "InstallOffline with no RemoveOffline"
-
-is_executable $InstallOnline || die "Not executable [$InstallOnline]"
-is_executable $RemoveOnline || die "Not executable [$RemoveOnline]"
-is_executable $InstallOffline || die "Not executable [$InstallOffline]"
-is_executable $RemoveOffline || die "Not executable [$RemoveOffline]"
+#Perform the bundle tests
+log "SMF bundle check , bundle DN = $1"
 
 exit 0
