@@ -43,6 +43,8 @@
 
 #define DEFAULT_RUNAS_USERNAME	"opensaf"
 
+extern  void __gcov_flush(void) __attribute__((weak));
+
 static char __pidfile[NAME_MAX];
 static char __tracefile[NAME_MAX];
 static char __runas_username[UT_NAMESIZE];
@@ -364,7 +366,11 @@ static void sigterm_handler(int sig)
 void daemon_exit(void)
 {
 	syslog(LOG_NOTICE, "exiting on signal %d", SIGTERM);
-	exit(0);
+
+	if (__gcov_flush) {
+		__gcov_flush();
+	}
+	_Exit(0);
 }
 
 /**
