@@ -13,4 +13,21 @@
                         <value>50000000000</value>
                 </attr>
         </object>
+	<object class="SaAmfComp">
+		<dn>safComp=CLMNA,safSu=PL_2_3,safSg=NoRed,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeCLMNA</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSI">
+		<dn>safCsi=CLMNA,safSi=NoRed_TOKEN,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=4.0.0,safCSType=CLMNA-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=CLMNA-OpenSAF,safComp=CLMNA,safSu=PL_2_3,safSg=NoRed,safApp=OpenSAF</dn>
+	</object>
 </imm:IMM-contents>
