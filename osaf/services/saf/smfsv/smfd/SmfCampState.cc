@@ -395,11 +395,13 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 	std::string s;
 	std::stringstream out;
 	std::vector < SmfUpgradeProcedure * >::iterator procIter;
-	std::list < std::string > bundleInstallDnCamp;
-	std::list < std::string > notFoundInstallDn;
-	std::list < std::string > bundleRemoveDnCamp;
-	std::list < std::string > notFoundRemoveDn;
+	std::list < std::string > bundleInstallDnCamp;   //DNs of bundles to be installed found in campaign.xml
+	std::list < std::string > foundInstallDn;        //DNs of bundles to be installed found in campaign.xml, found in IMM
+	std::list < std::string > notFoundInstallDn;     //DNs of bundles to be installed found in campaign.xml, NOT found in IMM
+	std::list < std::string > bundleRemoveDnCamp;    //DNs of bundles to be removed found in campaign.xml
+	std::list < std::string > notFoundRemoveDn;      //DNs of bundles to be removed found in campaign.xml, NOT found in IMM
 	std::list < std::string >::iterator dnIter;
+        bool bundleCheckErrorFound = false;
 	SmfImmUtils immUtil;
 	SaImmAttrValuesT_2 **attributes;
 
@@ -517,7 +519,7 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 	TRACE("Find out which SW Bundles to remove");
 	procIter = i_camp->m_procedure.begin();
 	while (procIter != i_camp->m_procedure.end()) {
-		//Fetch the list of SW to add from each procedure
+		//Fetch the list of SW to remove from each procedure
 		SaSmfUpgrMethodT upType = (*procIter)->getUpgradeMethod()->getUpgradeMethod();
 		if (upType == SA_SMF_ROLLING) {
 			TRACE("SA_SMF_ROLLING procedure detected");
@@ -581,10 +583,13 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 	TRACE("Total number of bundles to remove in the campaign = %zd", bundleRemoveDnCamp.size());
 
 	//Check if SW Bundles to install can be found in IMM
+        //For bundles found in IMM, save the DN for each bundle, these bundles will later on be checked by configured command.
+        
 	TRACE("Check if SW Bundles to install can be found in IMM");
 	for (dnIter=bundleInstallDnCamp.begin(); dnIter != bundleInstallDnCamp.end(); ++dnIter) {
 		if (immUtil.getObject((*dnIter), &attributes) == true) { //found
 			TRACE("SW Bundle to install %s found in IMM", (*dnIter).c_str());
+                        foundInstallDn.push_back(*dnIter);
 		} else {
 			TRACE("SW Bundle to install %s NOT found in IMM", (*dnIter).c_str());
 			notFoundInstallDn.push_back(*dnIter);
@@ -628,12 +633,11 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 		addToImmBundleDn.unique();
 
 		//Match found bundles to be created with the remaining list of bundles to install
-		std::list < std::string >::iterator strIter;
-		strIter = addToImmBundleDn.begin();
-		while (strIter != addToImmBundleDn.end()) {
-			TRACE("Remove SW Bundle %s from list of missing SW Bundles", (*strIter).c_str());
-			notFoundInstallDn.remove(*strIter);
-			strIter++;
+		dnIter = addToImmBundleDn.begin();
+		while (dnIter != addToImmBundleDn.end()) {
+			TRACE("Remove SW Bundle %s from list of missing SW Bundles", (*dnIter).c_str());
+			notFoundInstallDn.remove(*dnIter);
+			dnIter++;
 		}
 	}
 
@@ -685,41 +689,73 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 		addToImmBundleDn.unique();
 
 		//Match found bundles to be created with the remaining list of bundles to install
-		std::list < std::string >::iterator strIter;
-		strIter = addToImmBundleDn.begin();
-		while (strIter != addToImmBundleDn.end()) {
-			TRACE("Remove SW Bundle %s from list of missing SW Bundles", (*strIter).c_str());
-			notFoundRemoveDn.remove(*strIter);
-			strIter++;
+		dnIter = addToImmBundleDn.begin();
+		while (dnIter != addToImmBundleDn.end()) {
+			TRACE("Remove SW Bundle %s from list of missing SW Bundles", (*dnIter).c_str());
+			notFoundRemoveDn.remove(*dnIter);
+			dnIter++;
 		}
 	}
 
 	//Here are the lists of bundles to install and remove. Shall be empty if all bundles was found 
 	//in Imm or was prepared to be created in <addToImm> portion of the campaigm
 	if ((notFoundInstallDn.size() > 0) || (notFoundRemoveDn.size() > 0)) {
-		std::list < std::string >::iterator strIter;
 		if (notFoundInstallDn.size() > 0) {
 			LOG_ER("CAMP: The following SW bundles to add was not found in system or campaign:");
-			strIter = notFoundInstallDn.begin();
-			while (strIter != notFoundInstallDn.end()) {
-                                LOG_ER("CAMP: %s", (*strIter).c_str());
-				strIter++;
+			dnIter = notFoundInstallDn.begin();
+			while (dnIter != notFoundInstallDn.end()) {
+                                LOG_ER("CAMP: %s", (*dnIter).c_str());
+				dnIter++;
 			}
 		}
 
 		if (notFoundRemoveDn.size() > 0) {
 			LOG_ER("CAMP: The following SW bundles to remove was not found in system:");
-			strIter = notFoundRemoveDn.begin();
-			while (strIter != notFoundRemoveDn.end()) {
-                                LOG_ER("CAMP: %s", (*strIter).c_str());
-				strIter++;
+			dnIter = notFoundRemoveDn.begin();
+			while (dnIter != notFoundRemoveDn.end()) {
+                                LOG_ER("CAMP: %s", (*dnIter).c_str());
+				dnIter++;
 			}
-
 		}
 
 		error = "CAMP: Bundles to add/remove was not found in system or campaign";
 		goto exit_error;
 	}
+        
+        //Call the configured bundleCheckCmd for all bundles listed for add in the campaign.xml.
+        //Bundles which does not yet exist in IMM, but will be created by the campaign are not checked.
+        LOG_NO("CAMP: Calling configured bundleCheckCmd for each bundle existing in IMM, to be installed by the campaign");
+        dnIter = foundInstallDn.begin();
+        while (dnIter != foundInstallDn.end()) {
+                std::string cmd = smfd_cb->bundleCheckCmd;
+                cmd = cmd + " " + *dnIter;
+                int rc = smf_system(cmd);
+                if (rc != 0) {
+                        bundleCheckErrorFound = true;
+                        LOG_NO("CAMP: bundleCheckCmd fail [%s] [rc=%d]", cmd.c_str(), rc);
+                }
+                dnIter++;
+        }
+
+        //Call the configured bundleCheckCmd for all bundles listed for remove in the campaign.xml.
+        LOG_NO("CAMP: Calling configured bundleCheckCmd for each bundle to be removed by the campaign");
+        dnIter = bundleRemoveDnCamp.begin();
+        while (dnIter != bundleRemoveDnCamp.end()) {
+                std::string cmd = smfd_cb->bundleCheckCmd;
+                cmd = cmd + " " + *dnIter;
+                int rc = smf_system(cmd);
+                if (rc != 0) {
+                        bundleCheckErrorFound = true;
+                        LOG_NO("CAMP: bundleCheckCmd fail [%s] [rc=%d]", cmd.c_str(), rc);
+               }
+                dnIter++;
+        }
+
+        if(bundleCheckErrorFound == true) {
+                LOG_NO("CAMP: Configured bundleCheckCmd fails for at least one sw bundle");
+                error = "Configured bundleCheckCmd fails for at least one sw bundle";
+                goto exit_error;
+        }
 
 	//Prerequisite  check 7 "All affected nodes are able to provide the resources (for instance, sufficient disk space 
 	//                       and proper access rights) needed to perform the upgrade campaign"
