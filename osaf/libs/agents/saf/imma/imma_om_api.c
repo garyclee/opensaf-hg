@@ -6027,6 +6027,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
 	bool isAccGetConfigAttrs = false;
+	bool isNoDanglingSearch = searchOptions & SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS;
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
@@ -6059,8 +6060,9 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	if ((searchParam) && ((searchParam->searchOneAttr.attrName == NULL) && 
-		(searchParam->searchOneAttr.attrValue != NULL))) {
+	if ((searchParam) && !isNoDanglingSearch &&
+			((searchParam->searchOneAttr.attrName == NULL) &&
+			(searchParam->searchOneAttr.attrValue != NULL))) {
 		TRACE_2("ERR_INVALID_PARAM: attrName is NULL but attrValue is not NULL");
 		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
@@ -6132,6 +6134,34 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		goto release_lock;
 	}
 
+	if (isNoDanglingSearch) {
+		if(!cl_node->isImmA2d) {
+			TRACE("ERR_VERSION: search option SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS "
+					"requires IMM version A.02.13 or higher");
+			rc = SA_AIS_ERR_VERSION;
+			goto release_lock;
+		}
+		if(!searchParam || !searchParam->searchOneAttr.attrValue) {
+			TRACE("ERR_INVALID_PARAM: DN of an object must be specified "
+					"when SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS flag is used");
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto release_lock;
+		}
+		if(searchParam->searchOneAttr.attrName) {
+			TRACE("ERR_INVALID_PARAM: attrName must be NULL "
+					"when SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS flag is used");
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto release_lock;
+		}
+		if(searchParam->searchOneAttr.attrValueType != SA_IMM_ATTR_SANAMET
+				&& searchParam->searchOneAttr.attrValueType != SA_IMM_ATTR_SASTRINGT) {
+			TRACE("ERR_INVALID_PARAM: attrValueType must be SA_IMM_ATTR_SANAMET or "
+					"SA_IMM_ATTR_SASTRINGT when SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS flag is used");
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto release_lock;
+		}
+	}
+
 	/*Create search-node & handle   */
 	search_node = (IMMA_SEARCH_NODE *)
 		calloc(1, sizeof(IMMA_SEARCH_NODE));
@@ -6188,18 +6218,24 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 
 	req->scope = scope;
 	req->searchOptions = searchOptions;
-	if (!searchParam || (!searchParam->searchOneAttr.attrName)) {
+	if (!searchParam || (!searchParam->searchOneAttr.attrName && !isNoDanglingSearch)) {
 		req->searchParam.present = ImmOmSearchParameter_PR_NOTHING;
 	} else {
 		req->searchParam.present = ImmOmSearchParameter_PR_oneAttrParam;
-		req->searchParam.choice.oneAttrParam.attrName.size = strlen(searchParam->searchOneAttr.attrName) + 1;
-		req->searchParam.choice.oneAttrParam.attrName.buf =	/*alloc-2 */
-			malloc(req->searchParam.choice.oneAttrParam.attrName.size);
-		strncpy(req->searchParam.choice.oneAttrParam.attrName.buf,
-			(char *)searchParam->searchOneAttr.attrName,
-			(size_t)req->searchParam.choice.oneAttrParam.attrName.size);
-		req->searchParam.choice.oneAttrParam.attrName.buf[req->searchParam.choice.oneAttrParam.attrName.size -
-								  1] = 0;
+
+		if(searchParam->searchOneAttr.attrName) {
+			req->searchParam.choice.oneAttrParam.attrName.size = strlen(searchParam->searchOneAttr.attrName) + 1;
+			req->searchParam.choice.oneAttrParam.attrName.buf =     /*alloc-2 */
+					malloc(req->searchParam.choice.oneAttrParam.attrName.size);
+			strncpy(req->searchParam.choice.oneAttrParam.attrName.buf,
+					(char *)searchParam->searchOneAttr.attrName,
+					(size_t)req->searchParam.choice.oneAttrParam.attrName.size);
+			req->searchParam.choice.oneAttrParam.attrName.buf[req->searchParam.choice.oneAttrParam.attrName.size - 1] = 0;
+		} else {
+			req->searchParam.choice.oneAttrParam.attrName.size = 0;
+			req->searchParam.choice.oneAttrParam.attrName.buf = NULL;
+		}
+
 		if (searchParam->searchOneAttr.attrValue) {
 			req->searchParam.choice.oneAttrParam.attrValueType = searchParam->searchOneAttr.attrValueType;
 			/*alloc-3 */
