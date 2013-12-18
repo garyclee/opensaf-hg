@@ -53,6 +53,19 @@ extern "C" {
 #define SA_IMM_ATTR_NO_DANGLING   0x0000000004000000    /* See: https://sourceforge.net/p/opensaf/tickets/49/ */
 
 
+    /* 4.2.12 SaImmSearchOptionsT */
+    /*
+#define SA_IMM_SEARCH_ONE_ATTR       0x0001
+#define SA_IMM_SEARCH_GET_ALL_ATTR   0x0100
+#define SA_IMM_SEARCH_GET_NO_ATTR    0x0200
+#define SA_IMM_SEARCH_GET_SOME_ATTR  0x0400
+#define SA_IMM_SEARCH_GET_CONFIG_ATTR 0x0000000000010000   / * See: http://devel.opensaf.org/ticket/1897
+                          Supported in OpenSaf 4.3 * /
+    */
+#define SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS  0x0000000100000000    /* See: https://sourceforge.net/p/opensaf/tickets/50/
+                                                                       Supported in OpenSaf 4.4 */
+
+
 #ifdef  __cplusplus
 }
 #endif
