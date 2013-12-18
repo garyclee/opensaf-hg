@@ -48,17 +48,10 @@ sent to any OIs involved in the CCB. If the validation fails, no completed and
 of course no apply callback will be generated towards OIs. Instead an abort
 callback is generated to all OIs.
 
-Association objects (object that have a DN composed of the parent DN and an RDN
-value that is the DN of an associated object) can mark the RDN_ATTRIBUTE as also
-being NO_DANGLING. This means that the IMM will maintain the referential
-integrity towards the associated object. Note that implicit referential
-integrity from child to parent in the IMM naming tree has always been maintained
-by the IMM.
-
 The IMM will also perform interference checking in the operational phase of
 a CCB. A failed interference check will typically only reject that latest
 operation, without aborting the CCB. Interference checks are mainly for
-regulationg concurrency conflicts between CCBs, but also catch blatant errors
+regulating concurrency conflicts between CCBs, but also catch blatant errors
 that are local to the operation. The rejection of such a bad operation is done
 before any OIs receive the operation callback. If an interference check fails
 then no OI will get that operation callback. This is important because there is
@@ -66,8 +59,8 @@ no "undo" callback for indiviudal operations. To undo any operation towards an
 OI can only be done by aborting the entire CCB.
 
 Here is a summary of the interference/operation checks performed in relaion
-to NO_DANGLING. Again note these are performed before the validation done as
-part of ccbApply.
+to NO_DANGLING. Again, these are performed before the validation done as part
+of ccbApply:
 
 -          CCB Object Create:
 
@@ -112,5 +105,49 @@ o   Check if there is a NO_DANGLING reference to the PRTO, if there is the
 
 
 
+Support search for objects having NO_DANGLING refrence to a target (4.4)
+========================================================================
+http://sourceforge.net/p/opensaf/tickets/50/
+OpenSAF 4.4 adds the immsv enhancement of supporting search/iteration
+for finding all objects that have a NO_DANGLING reference to a provided
+target. This feature is available for clients that register with imm API
+version A.2.13.
 
+The search API saImmOmSearchInitialize_2 is defined in section 4.5.1 of
+the IMM A.02.01 specification.
+
+Such a search will be created by filling in the arguments of
+saImmOmSearchInitialize_2 in the following way:
+
+1) The searchOptions parameter must set a new search-criteria flag:
+
+  #define SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS  0x0000000100000000
+
+This flag indicates that the intention of the search is to find all
+objects that have any NO_DANGLING reference pointing to a particular
+target object. The target object must of course be a currently existing
+imm object. Attribute-options (such as SA_IMM_SEARCH_GET_NO_ATTR) may
+also be or-ed to the searchOptions argument in the normal way, to avoid
+fetching not needed data.
+
+2) The target object is identified in the searchParam parameter as follows:
+
+ a) attrName must be set to NULL.
+ b) attrValue must be the DN of an object.
+ c) attrValueType may be either SA_IMM_ATTR_SANAMET or SA_IMM_ATTR_SASTRINGT.
+
+The value must of course be the DN of a currently existing object. The use
+of SaStringT is allowed here to accommodate future enhancements that
+replace the use of SaNameT with SaStringT.
+
+This makes it possible to find all objects that are no-dangling dependent
+on the target. Only NO_DANGLING references will be returned because only
+such references can efficiently be located for any given object DN as
+target.
+
+The return result is an iteration, as usual, where each searchNext returns
+an object that contains one or more NO_DANGLING flagged references pointing
+to the target. The reference attributes may be included (along with other
+attributes!) or not depending on the search options setting, e.g.
+SA_IMM_SEARCH_GET_ALL_ATTR.
 
