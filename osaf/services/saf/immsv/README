@@ -1619,24 +1619,53 @@ this flag. In summary:
 Bit 1 controls schema (imm class) changes allowed or not.
 Bit 2 controls OpenSAF4.1 protocols allowed or not.
 Bit 3 controls OpenSAF4.3 protocols allowed or not.
-Bit 4 controls 2PBE oneSAfe2PBE (see 2PBE feature in OpenSAF4.4 below).
+Bit 4 controls 2PBE oneSafe2PBE (see 2PBE feature in OpenSAF4.4 below).
 
 2PBE Allow IMM PBE to be configured without shared file system (4.4)
 ===================================================================
 http://sourceforge.net/p/opensaf/tickets/21/
-
-The 2PBE enhancement allows the IMM to have PBE configred so that it
+OpenSAF 4.4 adds the enhancement of supporting 2PBE.
+The 2PBE enhancement allows the IMM to have PBE configured so that it
 does not rely on a shared filesystem, such as DRBD.
 
 See: osaf/services/saf/immsv/README.2PBE for details.
 
+immadm supports argument for explicitly setting admin-owner (4.4)
+================================================================
+http://sourceforge.net/p/opensaf/tickets/613/
+http://sourceforge.net/p/opensaf/tickets/642/
+
+This was actually fixed as a defect made visible by the 2PBE enhancement.
+The IMM service takes stronger ownership of the OpenSAF Imm service object
+mentioned earlier:
+
+	  'opensafImm=opensafImm,safApp=safImmService'
+
+by more or less permanently setting adminOwner for this object to be
+safImmService. The 'immadm' command has been fixed to be aware of this more
+strict ownership on this particlar object and will automatically use the
+admin-owner 'safImmService' when requested to operate on this object.
+Normal OM API users should not notice any effect of this change.
 
 Support for reference integrity checking - SA_IMM_ATTR_NO_DANGLING (4.4)
 ========================================================================
 http://sourceforge.net/p/opensaf/tickets/49/
+OpenSAF 4.4 adds the immsv enhancement of supporting referential integrity
+checking. The feature is available for clients that register with imm API
+version A.2.13.
 
 A new attribute definition flag has been defined:
 #define SA_IMM_ATTR_NO_DANGLING   0x0000000004000000
+
+See: osaf/services/saf/immsv/README.NO_DANGLING for details.
+
+Support search for objects having NO_DANGLING refrence to a target (4.4)
+========================================================================
+http://sourceforge.net/p/opensaf/tickets/50/
+OpenSAF 4.4 adds the immsv enhancement of supporting search/iteration
+for finding all objects that have a NO_DANGLING reference to a provided
+target. This feature is available for clients that register with imm API
+version A.2.13.
 
 See: osaf/services/saf/immsv/README.NO_DANGLING for details.
 
