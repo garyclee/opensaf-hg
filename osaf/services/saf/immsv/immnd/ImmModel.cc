@@ -9209,6 +9209,34 @@ ImmModel::filterMatch(ObjectInfo* obj, ImmsvOmSearchOneAttr* filter,
     return j->second->hasMatchingValue(tmpos);
 }
 
+bool
+ImmModel::noDanglingRefExist(ObjectInfo *obj, const char *noDanglingRef)
+{
+    ImmAttrValueMap::iterator avmi;
+    ImmAttrValue *av;
+    AttrMap::iterator ami = obj->mClassInfo->mAttrMap.begin();
+    for(; ami != obj->mClassInfo->mAttrMap.end(); ++ami) {
+        if(ami->second->mFlags & SA_IMM_ATTR_NO_DANGLING) {
+            avmi = obj->mAttrValueMap.find(ami->first);
+            osafassert(avmi != obj->mAttrValueMap.end());
+            av = avmi->second;
+            while(av) {
+                if(av->getValueC_str() && !strcmp(av->getValueC_str(), noDanglingRef)) {
+                    return true;
+                }
+
+                if(av->isMultiValued()) {
+                    av = ((ImmAttrMultiValue *)av)->getNextAttrValue();
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 SaAisErrorT
 ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
 {
@@ -9224,9 +9252,19 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
     ObjectInfo* obj = NULL;
     ObjectMap::iterator omi;
     ObjectSet::iterator osi;
+    bool noDanglingSearch = req->searchOptions & SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS;
+    ObjectInfo* refObj = NULL;
+    ObjectMMap::iterator ommi = sReverseRefsNoDanglingMMap.end();
+    std::string refObjectName;
     SaUint32T childCount=0;
     
     if(scope == SA_IMM_ONE) {
+        if(noDanglingSearch) {
+             LOG_NO("ERR_INVALID_PARAM: SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS "
+                     "flag cannot be used with SA_IMM_ONE scope");
+             return SA_AIS_ERR_INVALID_PARAM;
+        }
+
         return this->accessorGet(req, op);
     }
     
@@ -9245,7 +9283,8 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
           SA_IMM_SEARCH_GET_SOME_ATTR |
           SA_IMM_SEARCH_GET_CONFIG_ATTR |
           SA_IMM_SEARCH_PERSISTENT_ATTRS |
-          SA_IMM_SEARCH_SYNC_CACHED_ATTRS);
+          SA_IMM_SEARCH_SYNC_CACHED_ATTRS |
+          SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS);
 
     if(unknownOptions) {
         LOG_NO("ERR_INVALID_PARAM: invalid search option 0x%llx",
@@ -9372,6 +9411,51 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
             */
             osafassert(nameToInternal(objectName));
         }
+    } else if(noDanglingSearch) {
+        // Validate parameters for searching no dangling references
+        if(req->searchParam.choice.oneAttrParam.attrName.size != 0) {
+            LOG_NO("ERR_INVALID_PARAM: attrName must be NULL "
+                    "when SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS flag is set");
+            err = SA_AIS_ERR_INVALID_PARAM;
+            goto searchInitializeExit;
+        }
+        if(req->searchParam.choice.oneAttrParam.attrValueType != SA_IMM_ATTR_SANAMET &&
+                req->searchParam.choice.oneAttrParam.attrValueType != SA_IMM_ATTR_SASTRINGT) {
+            LOG_NO("ERR_INVALID_PARAM: attrValueType must be type of SaNameT or SaStringT "
+                   "when SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS flag is set");
+            err = SA_AIS_ERR_INVALID_PARAM;
+            goto searchInitializeExit;
+        }
+
+        refObjectName = std::string(req->searchParam.choice.oneAttrParam.attrValue.val.x.buf,
+                strnlen(req->searchParam.choice.oneAttrParam.attrValue.val.x.buf,
+                        req->searchParam.choice.oneAttrParam.attrValue.val.x.size));
+
+        omi = sObjectMap.find(refObjectName);
+        if(omi == sObjectMap.end() || (omi->second->mObjFlags & IMM_CREATE_LOCK)) {
+            LOG_NO("ERR_INVALID_PARAM: attrValue contains a DN of non-existing object %s",
+            		refObjectName.c_str());
+            err = SA_AIS_ERR_INVALID_PARAM;
+            goto searchInitializeExit;
+        }
+
+        // Set initialize variables
+        refObj = omi->second;
+        omi = sObjectMap.end();
+
+        ommi = sReverseRefsNoDanglingMMap.find(refObj);
+        while(ommi != sReverseRefsNoDanglingMMap.end() && ommi->first == refObj &&
+                !noDanglingRefExist(ommi->second, refObjectName.c_str())) {
+            ++ommi;
+        }
+
+        if(ommi != sReverseRefsNoDanglingMMap.end() && ommi->first == refObj) {
+            obj = ommi->second;
+            getObjectName(obj, objectName);
+        } else {
+            // There is no any match
+            goto searchInitializeExit;
+        }
     } else {
         if(childCount > 1) {
             /* A root was provided and it has children => Initialize */
@@ -9392,8 +9476,10 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
     
     // Find root object and all sub objects to the root object.
     // Source set is either (a) entire object-map or (b) class extent set
+    // or (c) set of no-dangling dependents on refObj
     while(err==SA_AIS_OK && (omi != sObjectMap.end() || 
-            (classInfo && osi != classInfo->mExtent.end()))) {
+            (classInfo && osi != classInfo->mExtent.end()) ||
+            (ommi != sReverseRefsNoDanglingMMap.end() && ommi->first == refObj))) {
 
         /*Skip pending creates.*/
         if(obj->mObjFlags & IMM_CREATE_LOCK) {goto continue_while_loop;}
@@ -9571,6 +9657,17 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                     */
                     osafassert(nameToInternal(objectName));
                 }
+            }
+        } else if(noDanglingSearch) {
+            ++ommi;
+            while(ommi != sReverseRefsNoDanglingMMap.end() && ommi->first == refObj) {
+                if(noDanglingRefExist(ommi->second, refObjectName.c_str())) {
+                    obj = ommi->second;
+                    objectName.clear();
+                    getObjectName(obj, objectName);
+                    break;
+                }
+                ++ommi;
             }
         } else {
             ++omi;

@@ -666,6 +666,10 @@ private:
                                        const char *targetObjectName,
                                        SaUint32T ccbId);
 
+    bool noDanglingRefExist(
+                            ObjectInfo *obj,
+                            const char *noDanglingRef);
+
 };
 
 #endif
