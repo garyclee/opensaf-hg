@@ -657,7 +657,7 @@ SmfUpgradeCampaign::restorePbe()
 	//Note: When introducing SMF PBE on/off functionality (upgrade), the smfPbeIndicator will not be found and 
 	//      no action will be taken.
 	if (immUtil.getObject("safRdn=smfPbeIndicator,safApp=safSmfService", &attributes) == false) {
-		LOG_NO("IMM PBE was not turned off at campaign start and will not be turned on at commit.");
+		LOG_NO("IMM PBE was not turned off at campaign start and was not turned on at PBE restore.");
 		TRACE_LEAVE();
 		return SA_AIS_ERR_ACCESS;
 	}
