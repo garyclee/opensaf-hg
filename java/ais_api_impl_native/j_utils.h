@@ -22,7 +22,6 @@
  *************************************************************************/
 
 #include <jni.h>
-#include <sys/select.h>
 #include <saAis.h>
 #include <saClm.h>
 #include <saCkpt.h>
@@ -93,9 +92,6 @@ extern jint JNU_GetEnvForCallback(
 jclass JNU_GetGlobalClassRef(
 	JNIEnv* jniEnv,
 	const char* className );
-extern void U_convertTimeout(
-    struct timeval* to_timeout,
-    const jlong from_timeout );
 
 
 #endif //J_UTILS_H_
