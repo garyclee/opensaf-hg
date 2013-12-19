@@ -837,6 +837,10 @@ SmfCampStateExecuting::executeWrapup(SmfUpgradeCampaign * i_camp)
 		changeState(i_camp, SmfCampStateExecFailed::instance());
 		return SMF_CAMP_FAILED;
 	}
+
+	//Activate IMM BPE if active when campaign was started.
+	i_camp->restorePbe();
+
 	// TODO Start wait to complete timer
 	LOG_NO("CAMP: Start wait to complete timer (not implemented yet)");
 
@@ -992,6 +996,12 @@ SmfCampStateExecCompleted::rollback(SmfUpgradeCampaign * i_camp)
 {
         TRACE_ENTER();
 	LOG_NO("CAMP: Start rolling back completed campaign %s", i_camp->getCampaignName().c_str());
+
+        //Disable IMM PBE
+        if (i_camp->disablePbe() != SA_AIS_OK) {
+                LOG_NO("CAMP: Fail to disable IMM PBE at rollback, continue");
+        }
+
         changeState(i_camp, SmfCampRollingBack::instance());
 	if (i_camp->m_campInit.executeCallbackAtRollback() == false) {
 		std::string error = "Campaign rollback callback failed";
@@ -1054,9 +1064,6 @@ SmfCampStateExecCompleted::commit(SmfUpgradeCampaign * i_camp)
 
 	changeState(i_camp, SmfCampStateCommitted::instance());
 	LOG_NO("CAMP: Upgrade campaign committed %s", i_camp->getCampaignName().c_str());
-
-	//Activate IMM BPE if active when campaign was started.
-	i_camp->restorePbe();
 
 	// TODO Start wait to allow new campaign timer
 	LOG_NO("CAMP: Start wait to allow new campaign timer (not implemented yet)");
@@ -1739,6 +1746,9 @@ SmfCampRollingBack::rollbackInit(SmfUpgradeCampaign * i_camp)
 		return SMF_CAMP_FAILED;
 	}
 
+        //Activate IMM BPE if active when campaign was started.
+	i_camp->restorePbe();
+ 
         changeState(i_camp, SmfCampRollbackCompleted::instance());
         LOG_NO("CAMP: Upgrade campaign rollback completed %s", i_camp->getCampaignName().c_str());
         TRACE_LEAVE();
@@ -2103,9 +2113,6 @@ SmfCampRollbackCompleted::commit(SmfUpgradeCampaign * i_camp)
 
 	changeState(i_camp, SmfCampRollbackCommitted::instance());
 	LOG_NO("CAMP: Upgrade campaign rollback committed %s", i_camp->getCampaignName().c_str());
-
-	//Activate IMM BPE if active when campaign was started.
-	i_camp->restorePbe();
 
 	// TODO Start wait to allow new campaign timer
 	LOG_NO("CAMP: Start wait to allow new campaign timer (not implemented yet)");
