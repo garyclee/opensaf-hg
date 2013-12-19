@@ -38,8 +38,9 @@
 
 #include "immnd.h"
 
-#define FD_AMF 0
-#define FD_MBX 1
+#define FD_TERM 0
+#define FD_AMF 1
+#define FD_MBX 2
 
 static IMMND_CB _immnd_cb;
 IMMND_CB *immnd_cb = &_immnd_cb;
@@ -241,7 +242,8 @@ int main(int argc, char *argv[])
 				   server task when we are very bussy. */
 	int maxEvt = 100;
 	int64_t start_time = 0LL;
-	struct pollfd fds[2];
+	struct pollfd fds[3];
+	int term_fd;
 
 	daemonize(argc, argv);
 
@@ -250,10 +252,15 @@ int main(int argc, char *argv[])
 		goto done;
 	}
 
+	daemon_sigterm_install(&term_fd);
+
 	/* Get file descriptor for mailbox */
 	mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&immnd_cb->immnd_mbx);
 
 	/* Set up all file descriptors to listen to */
+	fds[FD_TERM].fd = term_fd;
+	fds[FD_TERM].events = POLLIN;
+
 	if (immnd_cb->nid_started)
 		fds[FD_AMF].fd = immnd_cb->usr1_sel_obj.rmv_obj;
 	else
@@ -280,7 +287,7 @@ int main(int argc, char *argv[])
 		if (!start_time) {
 			start_time = m_NCS_GET_TIME_MS;
 		}
-		int ret = poll(fds, 2, (passed_time < timeout) ? (timeout - passed_time) : 0);
+		int ret = poll(fds, 3, (passed_time < timeout) ? (timeout - passed_time) : 0);
 
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -292,6 +299,10 @@ int main(int argc, char *argv[])
 
 		if (ret > 0) {
 			++eventCount;
+
+			if (fds[FD_TERM].revents & POLLIN) {
+				daemon_exit();
+			}
 
 			if (fds[FD_AMF].revents & POLLIN) {
 				if (immnd_cb->amf_hdl != 0) {

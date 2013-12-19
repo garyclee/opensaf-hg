@@ -8534,6 +8534,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 		if(err != SA_AIS_OK) {
 			immnd_ackToNid(NCSCC_RC_FAILURE);
 			if(err == SA_AIS_ERR_BAD_OPERATION) {
+				LOG_NO("exiting");
 				exit(1); /* Dont core dump as this was not a local error */
 			} else {
 				LOG_ER("Unexpected local error %u in finalizeSync for sync client - aborting",
@@ -9401,7 +9402,7 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt)
 		immnd_proc_imma_down(cb, evt->info.mds_info.dest, evt->info.mds_info.svc_id);
 	} else if ((evt->info.mds_info.change == NCSMDS_DOWN) && evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMD) {
 		/* Cluster is going down. */
-		LOG_NO("No IMMD service => cluster restart");
+		LOG_NO("No IMMD service => cluster restart, exiting");
 		if(cb->mState < IMM_SERVER_SYNC_SERVER) {
 			immnd_ackToNid(NCSCC_RC_FAILURE);
 		}
