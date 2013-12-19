@@ -1286,7 +1286,7 @@ uint32_t avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 	prev_ha_state = cb->avail_state_avnd;
 
 	/* Ignore the duplicate roles. */
-	if (prev_ha_state == info->role) {
+	if (prev_ha_state == (SaAmfHAStateT)info->role) {
 		return NCSCC_RC_SUCCESS;
 	}
 
