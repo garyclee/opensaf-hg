@@ -27,10 +27,12 @@
   cpnd_main_process ...........Process all the events posted to CPND.
 ******************************************************************************/
 
+#include <daemon.h>
 #include "cpnd.h"
 #include "osaf_poll.h"
 
 enum {
+	FD_TERM,
 	FD_MBX,
 	FD_AMF,
 	FD_CLM,
@@ -504,11 +506,12 @@ void cpnd_main_process(CPND_CB *cb)
 	SaAmfHandleT amf_hdl;
 	SaAisErrorT amf_error;
 	SaAisErrorT clm_error;
-	struct pollfd sel[NUMBER_OF_FDS];
+	struct pollfd fds[NUMBER_OF_FDS];
+	int term_fd;
 
-	mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&cb->cpnd_mbx);
-	sel[FD_MBX].fd = m_GET_FD_FROM_SEL_OBJ(mbx_fd);
-	sel[FD_MBX].events = POLLIN;
+	mbx_fd = ncs_ipc_get_sel_obj(&cb->cpnd_mbx);
+	fds[FD_MBX].fd = m_GET_FD_FROM_SEL_OBJ(mbx_fd);
+	fds[FD_MBX].events = POLLIN;
 
 	amf_hdl = cb->amf_hdl;
 	amf_error = saAmfSelectionObjectGet(amf_hdl, &amf_sel_obj);
@@ -518,23 +521,32 @@ void cpnd_main_process(CPND_CB *cb)
 		TRACE_LEAVE();
 		return;
 	}
-	sel[FD_AMF].fd = amf_sel_obj;
-	sel[FD_AMF].events = POLLIN;
 
-	sel[FD_CLM].fd = cb->clm_sel_obj;
-	sel[FD_CLM].events = POLLIN;
+	daemon_sigterm_install(&term_fd);
+
+	fds[FD_TERM].fd = term_fd;
+	fds[FD_TERM].events = POLLIN;
+	fds[FD_AMF].fd = amf_sel_obj;
+	fds[FD_AMF].events = POLLIN;
+	fds[FD_CLM].fd = cb->clm_sel_obj;
+	fds[FD_CLM].events = POLLIN;
 	for (;;) {
-		osaf_poll(sel, NUMBER_OF_FDS, -1);
-		if (((sel[FD_AMF].revents | sel[FD_CLM].revents | sel[FD_MBX].revents) &
+		osaf_poll(fds, NUMBER_OF_FDS, -1);
+
+		if (fds[FD_TERM].revents & POLLIN) {
+			daemon_exit();
+		}
+
+		if (((fds[FD_AMF].revents | fds[FD_CLM].revents | fds[FD_MBX].revents) &
 			(POLLERR | POLLHUP | POLLNVAL)) != 0) {
 			LOG_ER("cpnd poll() failure: %hd %hd %hd",
-				sel[FD_AMF].revents, sel[FD_CLM].revents, sel[FD_MBX].revents);
+					fds[FD_AMF].revents, fds[FD_CLM].revents, fds[FD_MBX].revents);
 			TRACE_LEAVE();
 			return;
 		}
 
 		/* process all the AMF messages */
-		if (sel[FD_AMF].revents & POLLIN) {
+		if (fds[FD_AMF].revents & POLLIN) {
 			/* dispatch all the AMF pending function */
 			amf_error = saAmfDispatch(amf_hdl, SA_DISPATCH_ALL);
 			if (amf_error != SA_AIS_OK) {
@@ -542,16 +554,16 @@ void cpnd_main_process(CPND_CB *cb)
 			}
 		}
 
-		if (sel[FD_CLM].revents & POLLIN) {
+		if (fds[FD_CLM].revents & POLLIN) {
 			clm_error = saClmDispatch(cb->clm_hdl, SA_DISPATCH_ALL);
 			if (clm_error != SA_AIS_OK) {
 				LOG_ER("cpnd amf dispatch failure %u",clm_error);
 			}
 		}
 		/* process the CPND Mail box */
-		if (sel[FD_MBX].revents & POLLIN) {
+		if (fds[FD_MBX].revents & POLLIN) {
 
-			if (NULL != (evt = (CPSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&mbx, evt))) {
+			if (NULL != (evt = (CPSV_EVT *)ncs_ipc_non_blk_recv(&mbx))) {
 				/* now got the IPC mail box event */
 				cpnd_process_evt(evt);
 			}
