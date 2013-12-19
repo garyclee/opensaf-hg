@@ -40,10 +40,11 @@
 static IMMD_CB _immd_cb;
 IMMD_CB *immd_cb = &_immd_cb;
 
-#define FD_USR1 0
-#define FD_AMF 0
-#define FD_MBCSV 1
-#define FD_MBX 2
+#define FD_TERM 0
+#define FD_USR1 1
+#define FD_AMF 1
+#define FD_MBCSV 2
+#define FD_MBX 3
 
 /* ========================================================================
  *   FUNCTION PROTOTYPES
@@ -201,13 +202,14 @@ int main(int argc, char *argv[])
 {
 	SaAisErrorT error;
 	NCS_SEL_OBJ mbx_fd;
-	struct pollfd fds[3];
+	struct pollfd fds[4];
 	const int peerMaxWaitMin = 5; /*5 sec*/
 	const char * peerWaitStr = getenv("IMMSV_2PBE_PEER_SC_MAX_WAIT");
 	int32_t timeout = (-1);
 	int32_t total_wait = (-1);
 	int64_t start_time = 0LL;
 	uint32_t print_at_secs = 1LL;
+	int term_fd;
 
 	daemonize(argc, argv);
 
@@ -215,6 +217,8 @@ int main(int argc, char *argv[])
 		TRACE("initialize_immd failed");
 		goto done;
 	}
+
+	daemon_sigterm_install(&term_fd);
 
 	if(peerWaitStr) {
 		int32_t peerMaxWait = atoi(peerWaitStr);
@@ -239,6 +243,8 @@ int main(int argc, char *argv[])
 	mbx_fd = ncs_ipc_get_sel_obj(&immd_cb->mbx);
 
 	/* Set up all file descriptors to listen to */
+	fds[FD_TERM].fd = term_fd;
+	fds[FD_TERM].events = POLLIN;
 	fds[FD_USR1].fd = immd_cb->usr1_sel_obj.rmv_obj;
 	fds[FD_USR1].events = POLLIN;
 	fds[FD_MBCSV].fd = immd_cb->mbcsv_sel_obj;
@@ -247,7 +253,7 @@ int main(int argc, char *argv[])
 	fds[FD_MBX].events = POLLIN;
 
 	while (1) {
-		int ret = poll(fds, 3, timeout);
+		int ret = poll(fds, 4, timeout);
 
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -255,6 +261,10 @@ int main(int argc, char *argv[])
 
 			LOG_ER("poll failed - %s", strerror(errno));
 			break;
+		}
+
+		if (fds[FD_TERM].revents & POLLIN) {
+			daemon_exit();
 		}
 
 		if (fds[FD_MBCSV].revents & POLLIN) {
