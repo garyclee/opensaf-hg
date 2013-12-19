@@ -27,18 +27,24 @@
   cpd_main_process ........Process all the events posted to CPD.
 ******************************************************************************/
 
-#include "cpd.h"
-#include "cpd_imm.h"
 #include <poll.h>
 
-#define FD_AMF 0
-#define FD_CLM 1
-#define FD_MBCSV 2
-#define FD_MBX 3
-#define FD_IMM 4		/* Must be the last in the fds array */
+#include <daemon.h>
+#include "cpd.h"
+#include "cpd_imm.h"
 
-static struct pollfd fds[5];
-static nfds_t nfds = 5;
+enum {
+	FD_TERM = 0,
+	FD_AMF,
+	FD_CLM,
+	FD_MBCSV,
+	FD_MBX,
+	FD_IMM,
+	NUM_FD
+};
+
+static struct pollfd fds[NUM_FD];
+static nfds_t nfds = NUM_FD;
 uint32_t gl_cpd_cb_hdl = 0;
 
 /* Static Function Declerations */
@@ -423,6 +429,7 @@ void cpd_main_process(CPD_CB *cb)
 	NCS_MBCSV_ARG mbcsv_arg;
 	SaSelectionObjectT amf_sel_obj, clm_sel_obj;
 	SaAisErrorT error = SA_AIS_OK;
+	int term_fd;
 
 	mbx_fd = ncs_ipc_get_sel_obj(&cb->cpd_mbx);
 	error = saAmfSelectionObjectGet(cb->amf_hdl, &amf_sel_obj);
@@ -435,6 +442,8 @@ void cpd_main_process(CPD_CB *cb)
 		LOG_ER("cpd clm selectionobjget failed %u",error);
 		return;
 	}
+
+	daemon_sigterm_install(&term_fd);
 	
 	error = saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
 	 if (error != SA_AIS_OK) {
@@ -444,6 +453,8 @@ void cpd_main_process(CPD_CB *cb)
 
 
 	/* Set up all file descriptors to listen to */
+	fds[FD_TERM].fd = term_fd;
+	fds[FD_TERM].events = POLLIN;
 	fds[FD_AMF].fd = amf_sel_obj;
 	fds[FD_AMF].events = POLLIN;
 	fds[FD_CLM].fd = clm_sel_obj;
@@ -460,9 +471,9 @@ void cpd_main_process(CPD_CB *cb)
 		if (cb->immOiHandle != 0) {
 			fds[FD_IMM].fd = cb->imm_sel_obj;
 			fds[FD_IMM].events = POLLIN;
-			nfds = FD_IMM + 1;
+			nfds = NUM_FD;
 		} else {
-			nfds = FD_IMM;
+			nfds = NUM_FD - 1;
 		}
 
 		int ret = poll(fds, nfds, -1);
@@ -472,6 +483,11 @@ void cpd_main_process(CPD_CB *cb)
 				continue;
 			LOG_ER("poll failed - %s", strerror(errno));
 			break;
+		}
+
+		/* process the sig term */
+		if (fds[FD_TERM].revents & POLLIN) {
+			daemon_exit();
 		}
 
 		/* process all the AMF messages */
