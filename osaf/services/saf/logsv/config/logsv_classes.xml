@@ -205,7 +205,7 @@
 			<type>SA_UINT32_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
-            <default-value>0</default-value>
+            <default-value>1</default-value>
 		</attr>
 		<attr>
 			<name>logStreamAppLowLimit</name>
@@ -227,6 +227,13 @@
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
             <default-value>500</default-value>
+		</attr>
+		<attr>
+			<name>logFileSysConfig</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+            <default-value>1</default-value>
 		</attr>
 	</class>
 </imm:IMM-contents>

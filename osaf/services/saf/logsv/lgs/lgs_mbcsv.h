@@ -38,6 +38,7 @@ typedef enum {
 	LGS_CKPT_OPEN_STREAM = 4,
 	LGS_CKPT_CLOSE_STREAM = 5,
 	LGS_CKPT_CFG_STREAM = 6,
+	LGS_CKPT_LGS_CFG = 7,
 	LGS_CKPT_MSG_MAX
 } lgsv_ckpt_msg_type_t;
 
@@ -53,6 +54,7 @@ typedef struct {
 /* Finalize checkpoint record, used in cold/async checkpoint updates */
 typedef struct {
 	uint32_t client_id;	/* Client Id at Active */
+	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename */
 } lgs_ckpt_finalize_msg_t;
 
 typedef struct {
@@ -60,14 +62,16 @@ typedef struct {
 	uint32_t recordId;
 	uint32_t curFileSize;
 	char *logFileCurrent;
+	char *logRecord;
+	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename on Active */
 } lgs_ckpt_write_log_t;
 
 typedef struct {
 	uint32_t streamId;
 	uint32_t clientId;
 	/* correspond to SaLogFileCreateAttributes */
-	char *logFile;		/* logfile name */
-	char *logPath;		/* logfile path */
+	char *logFile;		/* log file name */
+	char *logPath;		/* log file path */
 	uint64_t maxFileSize;	/* max file size configurable */
 	int32_t maxLogRecordSize;	/* constant size of the records */
 	int32_t logFileFullAction;
@@ -79,12 +83,13 @@ typedef struct {
 	uint32_t numOpeners;
 	char *logFileCurrent;
 	logStreamTypeT streamType;
-	uint32_t logRecordId;	/* log record indentifier increased for each record */
+	uint32_t logRecordId;	/* log record identifier increased for each record */
 } lgs_ckpt_stream_open_t;
 
 typedef struct {
 	uint32_t streamId;
 	uint32_t clientId;
+	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename on Active */
 } lgs_ckpt_stream_close_t;
 
 /* Checkpoint message containing lgs data of a particular type.
@@ -112,15 +117,27 @@ typedef struct {
 } lgs_ckpt_stream_cfg_t;
 
 typedef struct {
+	/* Only attribute that can be updated */
+	char *logRootDirectory;
+	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename */
+} lgs_ckpt_lgs_cfg_t;
+
+typedef struct {
+	MDS_DEST agent_dest;
+	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename */
+} lgs_ckpt_agent_down_t;
+
+typedef struct {
 	lgsv_ckpt_header_t header;
 	union {
 		lgs_ckpt_initialize_msg_t initialize_client;
 		lgs_ckpt_finalize_msg_t finalize_client;
 		lgs_ckpt_write_log_t write_log;
-		MDS_DEST agent_dest;
+		MDS_DEST agent_dest; /* LLD TEST XXX Gör om till structure med c_currentTimeStamp */
 		lgs_ckpt_stream_open_t stream_open;
 		lgs_ckpt_stream_close_t stream_close;
 		lgs_ckpt_stream_cfg_t stream_cfg;
+		lgs_ckpt_lgs_cfg_t lgs_cfg;
 	} ckpt_rec;
 } lgsv_ckpt_msg_t;
 

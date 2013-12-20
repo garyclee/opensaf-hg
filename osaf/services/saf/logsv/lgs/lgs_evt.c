@@ -132,19 +132,24 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id, lgs_stream_l
 
 /**
  * Delete a client record and close all associated streams.
- * @param cb
- * @param client_id
+ * When closing streams open log files are closed.
  * 
+ * @param client_id[in]
+ * @param stream_file_close_time_ptr[out]
  * @return uns32
  */
-int lgs_client_delete(uint32_t client_id)
+int lgs_client_delete(uint32_t client_id, time_t *closetime_ptr)
 {
 	log_client_t *client;
 	uint32_t status = 0;
 	lgs_stream_list_t *cur_rec;
 
 	TRACE_ENTER2("client_id %u", client_id);
+	
+	/* Initiate close time value */	
+	*closetime_ptr = time(NULL);
 
+	/* Get client data */
 	if ((client = lgs_client_get_by_id(client_id)) == NULL) {
 		status = -1;
 		goto done;
@@ -155,7 +160,7 @@ int lgs_client_delete(uint32_t client_id)
 		lgs_stream_list_t *tmp_rec;
 		log_stream_t *stream = log_stream_get_by_id(cur_rec->stream_id);
 		TRACE_4("client_id: %u, REMOVE stream id: %u", client->client_id, cur_rec->stream_id);
-		log_stream_close(&stream);
+		log_stream_close(&stream, closetime_ptr);
 		tmp_rec = cur_rec->next;
 		free(cur_rec);
 		cur_rec = tmp_rec;
@@ -261,11 +266,12 @@ int lgs_client_stream_rmv(uint32_t client_id, uint32_t stream_id)
  * Search for a client that matches the MDS dest and delete all the associated
  * resources.
  * @param cb
- * @param mds_dest
+ * @param mds_dest[in]
+ * @param closetime_ptr[out]
  * 
  * @return int
  */
-int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest)
+int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest, time_t *closetime_ptr)
 {
 	uint32_t rc = 0;
 	log_client_t *rp = NULL;
@@ -278,7 +284,7 @@ int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest)
 	/** Store the client_id_net for get Next  */
 		client_id_net = rp->client_id_net;
 		if (m_NCS_MDS_DEST_EQUAL(&rp->mds_dest, &mds_dest))
-			rc = lgs_client_delete(rp->client_id);
+			rc = lgs_client_delete(rp->client_id, closetime_ptr);
 
 		rp = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree, (uint8_t *)&client_id_net);
 	}
@@ -352,6 +358,7 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 	TRACE_ENTER();
 	lgsv_ckpt_msg_t ckpt;
 	uint32_t async_rc = NCSCC_RC_SUCCESS;
+	time_t closetime = 0;
 
 	switch (evt->evt_type) {
 	case LGSV_LGS_EVT_LGA_UP:
@@ -359,7 +366,7 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 	case LGSV_LGS_EVT_LGA_DOWN:
 		if ((lgs_cb->ha_state == SA_AMF_HA_ACTIVE) || (lgs_cb->ha_state == SA_AMF_HA_QUIESCED)) {
 		/* Remove this LGA entry from our processing lists */
-		(void)lgs_client_delete_by_mds_dest(evt->fr_dest);
+		(void)lgs_client_delete_by_mds_dest(evt->fr_dest, &closetime);
 
 			/*Send an async checkpoint update to STANDBY EDS peer */
 			if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -368,6 +375,7 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 				ckpt.header.num_ckpt_records = 1;
 				ckpt.header.data_len = 1;
 				ckpt.ckpt_rec.agent_dest = evt->fr_dest;
+				//LLDTEST XXX Add checkpointing of file close time!!
 				async_rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
 				if (async_rc == NCSCC_RC_SUCCESS) {
 					TRACE("ASYNC UPDATE SEND SUCCESS for LGA_DOWN event..");
@@ -446,6 +454,7 @@ static void lgs_process_lga_down_list(void)
 	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
 		LGA_DOWN_LIST *lga_down_rec = NULL;
 		LGA_DOWN_LIST *temp_lga_down_rec = NULL;
+		time_t closetime = 0; /* LLDTEST XXX Handle!!! */
 
 		lga_down_rec = lgs_cb->lga_down_list_head;
 		while (lga_down_rec) {
@@ -453,7 +462,7 @@ static void lgs_process_lga_down_list(void)
 			/* Free the LGA_DOWN_REC */
 			/* Remove this LGA entry from our processing lists */
 			temp_lga_down_rec = lga_down_rec;
-			(void)lgs_client_delete_by_mds_dest(lga_down_rec->mds_dest);
+			(void)lgs_client_delete_by_mds_dest(lga_down_rec->mds_dest, &closetime);
 			lga_down_rec = lga_down_rec->next;
 			free(temp_lga_down_rec);
 		}
@@ -487,12 +496,7 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 		}
 
 		/* fail over, become implementer
-		 * If we want to be Oi implementer we have to give up the applier role first
-		 */
-		TRACE("Give up applier role and become implementer");
-		lgs_giveup_imm_applier(lgs_cb);
-
-		/* Declare implementership from a separate thread */
+		 * Declare implementership from a separate thread */
 		lgs_imm_impl_set(lgs_cb);
 
 		/* Agent down list has to be processed first */
@@ -503,7 +507,7 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 		if (!stream)
 			LOG_ER("No streams exist!");
 		while (stream != NULL) {
-			stream->fd = -1; /* Initialize fd */	
+			*stream->p_fd = -1; /* Initialize fd */	
 			stream = log_stream_getnext_by_name(stream->name);
 		}
 	}
@@ -631,12 +635,13 @@ static uint32_t proc_finalize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	uint32_t client_id = evt->info.msg.info.api_info.param.finalize.client_id;
 	lgsv_msg_t msg;
 	SaAisErrorT ais_rc = SA_AIS_OK;
+	time_t closetime = 0;
 
 	TRACE_ENTER2("client_id %u", client_id);
 
 	/* Free all resources allocated by this client. */
-	if ((rc = lgs_client_delete(client_id)) != 0) {
-		TRACE("lgs_client_delete FAILED: %u", rc);
+	if ((rc = lgs_client_delete(client_id, &closetime)) != 0) {
+		TRACE("lgs_client_delete FAILED: %d", rc);
 		ais_rc = SA_AIS_ERR_BAD_HANDLE;
 		goto snd_rsp;
 	}
@@ -645,6 +650,7 @@ static uint32_t proc_finalize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	ckpt.header.num_ckpt_records = 1;
 	ckpt.header.data_len = 1;
 	ckpt.ckpt_rec.finalize_client.client_id = client_id;
+	ckpt.ckpt_rec.finalize_client.c_file_close_time_stamp = (SaTimeT) closetime;
 	(void)lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_RMV);
 
  snd_rsp:
@@ -831,7 +837,7 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	lgsv_stream_open_req_t *open_sync_param = &(evt->info.msg.info.api_info.param.lstr_open_sync);
 	log_stream_t *logStream;
 	char name[SA_MAX_NAME_LENGTH + 1];
-	bool app_stream_created = false;
+	time_t file_closetime = 0;
 
 	/* Create null-terminated stream name */
 	memcpy(name, open_sync_param->lstr_name.value, open_sync_param->lstr_name.length);
@@ -868,34 +874,36 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 			goto snd_rsp;
 		}
 
+		/* Create the stream: 
+		 *  - Check parameters
+		 *  - Create the stream in the stream "data base"
+		 *  - If active create IMM runtime object
+		 * 
+		 * Note: Files are not created here
+		 */
 		ais_rv = create_new_app_stream(open_sync_param, &logStream);
 		if (ais_rv != SA_AIS_OK)
 			goto snd_rsp;
-		app_stream_created = true;
 	}
 
-	ais_rv = log_stream_open(logStream);
-	if (ais_rv != SA_AIS_OK) {
-		/* If stream object was created in context of this function
-		 * but we have afile system problem, delete stream object.
-		 */
-		if (app_stream_created) {
-			log_stream_delete(&logStream);
-			goto snd_rsp;
-		} else {
-			/* It is OK to open an existing stream while we have
-			 * file system problems.
-			 */
-			ais_rv = SA_AIS_OK;
-		}
-	}
+	/* Create the log files:
+	 * - Only if opened for the first time
+	 * - Relative directory is created if not exist
+	 * - Config file is created
+	 * - If max number of log files with same stream name exists the oldest
+	 *   file is removed (rotation)
+	 * 
+	 * Note: No error if the files could not be created. A new attempt will
+	 *       be done when trying to write to the stream.
+	 */
+	log_stream_open_fileinit(logStream);
 
-	log_stream_print(logStream);
+	log_stream_print(logStream); /* TRACE */
 
 	/* Create an association between this client and the stream */
 	rc = lgs_client_stream_add(open_sync_param->client_id, logStream->streamId);
 	if (rc != 0) {
-		log_stream_close(&logStream);
+		log_stream_close(&logStream, &file_closetime);
 		ais_rv = SA_AIS_ERR_TRY_AGAIN;
 		goto snd_rsp;
 	}
@@ -936,6 +944,7 @@ static uint32_t proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	lgsv_msg_t msg;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	uint32_t streamId;
+	time_t closetime = 0;
 
 	TRACE_ENTER2("client_id %u, stream ID %u", close_param->client_id, close_param->lstr_id);
 
@@ -944,13 +953,13 @@ static uint32_t proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		ais_rc = SA_AIS_ERR_BAD_HANDLE;
 		goto snd_rsp;
 	}
-
+	
 	if ((stream->streamType == STREAM_TYPE_APPLICATION) && (cb->immOiHandle == 0)) {
 		TRACE("IMM service unavailable, close stream failed");
 		ais_rc = SA_AIS_ERR_TRY_AGAIN;
 		goto snd_rsp;
 	}
-
+	
 	if (lgs_client_stream_rmv(close_param->client_id, close_param->lstr_id) != 0) {
 		TRACE("Bad client or stream ID");
 		ais_rc = SA_AIS_ERR_BAD_HANDLE;
@@ -958,16 +967,18 @@ static uint32_t proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	}
 
 	streamId = stream->streamId;
-	if (log_stream_close(&stream) != 0) {
+	if (log_stream_close(&stream, &closetime) != 0) {
 		ais_rc = SA_AIS_ERR_TRY_AGAIN;
 		goto snd_rsp;
 	}
+	
 	ckpt.header.ckpt_rec_type = LGS_CKPT_CLOSE_STREAM;
 	ckpt.header.num_ckpt_records = 1;
 	ckpt.header.data_len = 1;
 	ckpt.ckpt_rec.stream_close.clientId = close_param->client_id;
 	ckpt.ckpt_rec.stream_close.streamId = streamId;
-
+	ckpt.ckpt_rec.stream_close.c_file_close_time_stamp = closetime;
+	
 	(void)lgs_ckpt_send_async(cb, &ckpt, NCS_MBCSV_ACT_RMV);
 
  snd_rsp:
@@ -1028,7 +1039,7 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	** a buffer with an implementation defined size instead. We also do not pad in this mode.
 	*/
 	buf_size = stream->fixedLogRecordSize == 0 ? lgs_cb->max_logrecsize : stream->fixedLogRecordSize;
-	logOutputString = calloc(1, buf_size);
+	logOutputString = calloc(1, buf_size+1); /* Make room for a '\0' termination */
 	if (logOutputString == NULL) {
 		LOG_ER("Could not allocate %d bytes", stream->fixedLogRecordSize + 1);
 		error = SA_AIS_ERR_NO_MEMORY;
@@ -1040,8 +1051,14 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		error = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
-
+	
 	rc = log_stream_write_h(stream, logOutputString, n);
+	
+	/* '\0' terminate log record string before check pointing.
+	 * Since the log record always is a string '\0' can be used instead of
+	 * using an extra parameter for buffer size.
+	 */
+	logOutputString[n] = '\0';
 
 	/* Always return try again on stream write error */
 	if ((rc == -1) || (rc == -2)) {
@@ -1049,10 +1066,6 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		goto done;
 	}
 
-	/*
-	 ** FIX: Optimization: we only need to sync when file has been rotated
-	 ** Standby does stat() and calculates recordId and curFileSize.
-	 */
 	/* TODO: send fail back if ack is wanted, Fix counter for application stream!! */
 	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 		lgsv_ckpt_msg_t ckpt;
@@ -1064,6 +1077,8 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		ckpt.ckpt_rec.write_log.streamId = stream->streamId;
 		ckpt.ckpt_rec.write_log.curFileSize = stream->curFileSize;
 		ckpt.ckpt_rec.write_log.logFileCurrent = stream->logFileCurrent;
+		ckpt.ckpt_rec.write_log.logRecord = logOutputString;
+		ckpt.ckpt_rec.write_log.c_file_close_time_stamp = stream->act_last_close_timestamp;
 
 		(void)lgs_ckpt_send_async(cb, &ckpt, NCS_MBCSV_ACT_ADD);
 	}

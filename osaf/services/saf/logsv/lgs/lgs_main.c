@@ -313,13 +313,6 @@ static uint32_t log_initialize(void)
 			goto done;
 		}
 	}
-	else {
-		if (lgs_become_imm_applier(lgs_cb) != SA_AIS_OK) {
-			LOG_ER("becoming applier FAILED");
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-	}
 
 done:
 	if (nid_notify("LOGD", rc, NULL) != NCSCC_RC_SUCCESS) {

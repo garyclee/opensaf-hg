@@ -164,10 +164,14 @@ done:
 
 /**
  * Get date and time string as mandated by SAF LOG file naming
+ * Format: YYYYMMDD_HHMMSS
  * 
+ * @param time_in
+ *        Time to format.
+ *        If NULL time is fetched using time()
  * @return char*
  */
-char *lgs_get_time(void)
+char *lgs_get_time(time_t *time_in)
 {
 	struct tm *timeStampData;
 	static char timeStampString[LGS_CREATE_CLOSE_TIME_LEN];
@@ -175,7 +179,11 @@ char *lgs_get_time(void)
 	uint32_t stringSize;
 	time_t testTime;
 
-	time(&testTime);
+	if (time_in == NULL) {
+		time(&testTime);
+	} else {
+		testTime = *time_in;
+	}
 	timeStampData = localtime(&testTime);
 
 	stringSize = 5 * sizeof(char);
@@ -214,10 +222,16 @@ SaTimeT lgs_get_SaTime(void)
 
 /**
  * Rename a file to include a timestamp in the name
- * @param path
- * @param old_name
- * @param time_stamp
- * @param suffix
+ * @param path[in]
+ * @param old_name[in]
+ * @param time_stamp[in] 
+ *        String formatted with lgs_get_time(). LLDTEST XXX Not used so far! Remove???
+ *        Can be set to NULL but then new_name must be the complete new name
+ *        including time stamps but without suffix
+ * @param suffix[in]
+ * @param new_name[in/out] LLDTEST XXX Remove ?? Not used for now!
+ *        Pointer to char string of NAME_MAX size
+ *        Filename of renamed file. Can be set to NULL
  * 
  * @return -1 if error
  */
@@ -225,11 +239,13 @@ int lgs_file_rename_h(
 		const char *path,
 		const char *old_name,
 		const char *time_stamp,
-		const char *suffix)
+		const char *suffix,
+		char *new_name)
 {
 	int rc;
 	char oldpath[PATH_MAX];
 	char newpath[PATH_MAX];
+	char new_name_loc[NAME_MAX];
 	size_t n;
 	lgsf_apipar_t apipar;
 	void *params_in_p;
@@ -249,12 +265,21 @@ int lgs_file_rename_h(
 		goto done;
 	}
 
-	n = snprintf(newpath, PATH_MAX, "%s/%s/%s_%s%s",
-			lgs_cb->logsv_root_dir, path, old_name, time_stamp, suffix);
+	if (time_stamp != NULL) {
+		snprintf(new_name_loc, NAME_MAX, "%s_%s%s", old_name, time_stamp, suffix);
+	} else {
+		snprintf(new_name_loc, NAME_MAX, "%s%s", new_name, suffix);
+	}
+	n = snprintf(newpath, PATH_MAX, "%s/%s/%s",
+			lgs_cb->logsv_root_dir, path, new_name_loc);
 	if (n >= PATH_MAX) {
 		LOG_ER("Cannot rename file, new path > PATH_MAX");
 		rc = -1;
 		goto done;
+	}
+	
+	if (new_name != NULL) {
+		strcpy(new_name, new_name_loc);
 	}
 	
 	TRACE_4("Rename file from %s", oldpath);

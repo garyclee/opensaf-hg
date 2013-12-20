@@ -18,6 +18,7 @@
 #ifndef __LGS_STREAM_H
 #define __LGS_STREAM_H
 
+#include <time.h>
 #include <limits.h>
 #include "lgs_fmt.h"
 #include <ncspatricia.h>
@@ -48,12 +49,28 @@ typedef struct log_stream {
 	/* --- end correspond to IMM Class --- */
 
 	uint32_t streamId;	/* The unique stream id for this stream */
-	int32_t fd;		/* The stream file descriptor */
+	int32_t fd_shared;	/* Checkpointed stream file descriptor for shared fs */
+	int32_t fd_local;	/* Local stream file descriptor for split fs */
+	int32_t *p_fd;      /* Points to shared or local fd depending on fs config */
 	char logFileCurrent[NAME_MAX];	/* Current file name */
 	uint32_t curFileSize;	/* Bytes written to current log file */
 	uint32_t logRecordId;	/* log record indentifier increased for each record */
-	SaBoolT twelveHourModeFlag;
+	SaBoolT twelveHourModeFlag; /* Not used. Can be removed? */ 
 	logStreamTypeT streamType;
+	
+	/*
+	 *  Checkpointed parameters used by standby in split file mode
+	 */
+	/* Time when latest file close time stamp was created on active.
+	 * Seconds since Epoch.
+	 */
+	time_t act_last_close_timestamp;
+	
+	/* Not checkpointed parameters. Used by standby in split file mode */
+	uint32_t stb_logRecordId; /* Last written Id. For checking Id inconsistency */
+	char stb_logFileCurrent[NAME_MAX];	/* Current file name used on standby */
+	char stb_prev_actlogFileCurrent[NAME_MAX];	/* current file name on active when previous record was written */
+	uint32_t stb_curFileSize;	/* Bytes written to current log file */
 } log_stream_t;
 
 extern uint32_t log_stream_init(void);
@@ -74,16 +91,17 @@ extern log_stream_t *log_stream_new(SaNameT *name,
 
 extern log_stream_t *log_stream_new_2(SaNameT *name, int stream_id);
 
-extern SaAisErrorT log_stream_open(log_stream_t *stream);
+extern void log_stream_open_fileinit(log_stream_t *stream);
+extern void log_initiate_stream_files(log_stream_t *stream);
 
-extern int log_stream_close(log_stream_t **stream);
+extern int log_stream_close(log_stream_t **stream, time_t *close_time);
 extern int log_stream_file_close(log_stream_t *stream);
 extern int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count);
 extern void log_stream_id_print(void);
 
 #define LGS_STREAM_CREATE_FILES true
 extern int log_stream_config_change(bool create_files_f, log_stream_t *stream, const char *current_file_name);
-extern int log_file_open(log_stream_t *stream, int *errno_save);
+extern int log_file_open(log_stream_t *stream, const char* filename, int *errno_save);
 
 /* Accessor functions */
 extern log_stream_t *log_stream_get_by_name(const char *name);

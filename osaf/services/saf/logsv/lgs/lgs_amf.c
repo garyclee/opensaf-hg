@@ -67,7 +67,6 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 	 * If a configuration object exists then we are an object applier that has
 	 * to be cleared before we can become an object implementer.
 	 */
-	lgs_giveup_imm_applier(lgs_cb);
 	immutilWrapperProfile.nTries = 250; /* LOG will be blocked until IMM responds */
 	immutilWrapperProfile.errorsAreFatal = 0;
 	if ((error = immutil_saImmOiImplementerSet(lgs_cb->immOiHandle, "safLogService"))
@@ -94,7 +93,7 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 	if (!stream)
 		LOG_ER("No streams exist!");
 	while (stream != NULL) {
-		stream->fd = -1; /* First Initialize fd */
+		*stream->p_fd = -1; /* First Initialize fd */
 		stream = log_stream_getnext_by_name(stream->name);
 	}
 
@@ -128,9 +127,6 @@ static SaAisErrorT amf_standby_state_handler(lgs_cb_t *cb, SaInvocationT invocat
 
 	cb->ha_state = SA_AMF_HA_STANDBY;
 	cb->mds_role = V_DEST_RL_STANDBY;
-
-	TRACE("Become applier");
-	error = lgs_become_imm_applier(lgs_cb);
 
 	TRACE_LEAVE();
 	return error;

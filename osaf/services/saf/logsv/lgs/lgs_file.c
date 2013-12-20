@@ -287,8 +287,6 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	int rc = 0;
 	struct timespec timeout_time;
 	
-	TRACE_ENTER();
-	
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK */
 	
 	/* If busy_f is true the file thread is hanging. In this case don't send
@@ -370,7 +368,6 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 api_exit:
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK */
 
-	TRACE_LEAVE();
 	return api_rc;	
 }
 
