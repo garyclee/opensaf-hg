@@ -131,7 +131,8 @@ uint32_t rde_amf_init(RDE_AMF_CB *rde_amf_cb)
 
 	TRACE_ENTER();
 
-	if (amf_comp_name_get_set_from_file("RDE_COMP_NAME_FILE", &sname) != NCSCC_RC_SUCCESS)
+	if (rde_amf_cb->nid_started &&
+		amf_comp_name_get_set_from_file("RDE_COMP_NAME_FILE", &sname) != NCSCC_RC_SUCCESS)
 		return NCSCC_RC_FAILURE;
 
 	amfCallbacks.saAmfHealthcheckCallback = rde_saf_health_chk_callback;
