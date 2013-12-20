@@ -474,7 +474,9 @@ log_stream_t *log_stream_new(SaNameT *dn,
 			     SaLogFileFullActionT logFullAction,
 			     SaUint32T maxFilesRotated,
 			     const char *logFileFormat,
-			     logStreamTypeT streamType, int stream_id, SaBoolT twelveHourModeFlag, uint32_t logRecordId)
+			     logStreamTypeT streamType, int stream_id,
+				 SaBoolT twelveHourModeFlag,
+				 uint32_t logRecordId)
 {
 	int rc;
 	log_stream_t *stream = NULL;
@@ -510,6 +512,7 @@ log_stream_t *log_stream_new(SaNameT *dn,
 	stream->streamType = streamType;
 	stream->twelveHourModeFlag = twelveHourModeFlag;
 	stream->logRecordId = logRecordId;
+	stream->stb_logRecordId = 0;
 	
 	/* Initiate local or shared stream file descriptor dependant on shared or
 	 * split file system
@@ -667,7 +670,6 @@ log_stream_t *log_stream_new(SaNameT *dn,
 }
 
 /**
- * LLDTEST XXX. Seems not to be used at all. Try to remove...
  * Create a new stream object. Do not create an IMM runtime object.
  * @param name
  * @param stream_id
@@ -822,9 +824,6 @@ int log_stream_close(log_stream_t **s, time_t *close_time_ptr)
 	
 	osafassert(stream->numOpeners > 0);
 	stream->numOpeners--;
-#if 0	/* LLDTEST XXX Remove. Strange ??? */
-	*close_time_ptr = 0; /* Value if no time is fetched */
-#endif	
 
 	if (stream->numOpeners == 0) {
 		/* standard streams can never be deleted */
@@ -853,9 +852,6 @@ int log_stream_close(log_stream_t **s, time_t *close_time_ptr)
 			if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
 				file_to_rename = stream->logFileCurrent;
 			} else {
-				/* LLDTEST XXX Check! Can below outcommented be removed? */
-				//*close_time_ptr = (SaTimeT *) stream->c_currentTimeStamp;
-				//timeString = lgs_get_time(close_time_ptr);
 				file_to_rename = stream->stb_logFileCurrent;
 			}
 			
@@ -1405,7 +1401,6 @@ uint32_t log_stream_init(void)
 }
 
 /**
- * LLDTEST XXX Check handling of rename on Active and Standby !!!
  * Close log file, change name of log file, optionally create new log and
  * config file. Basically the same logic as described in 3.1.6.4
  * in A.02.01.

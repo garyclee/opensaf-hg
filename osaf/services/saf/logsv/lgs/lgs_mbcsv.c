@@ -18,6 +18,7 @@
 #include "lgs.h"
 #include "ncssysf_def.h"
 #include "ncssysf_mem.h"
+#include "lgs_fmt.h"
 /*
 LGS_CKPT_DATA_HEADER
        4                4               4                 2            
@@ -198,6 +199,7 @@ done:
 
 uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 {
+	TRACE_ENTER();
 	NCS_MBCSV_ARG mbcsv_arg;
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -211,6 +213,36 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 		LOG_ER("ncs_mbcsv_svc NCS_MBCSV_OP_CHG_ROLE FAILED");
 		return NCSCC_RC_FAILURE;
 	}
+	
+#if 1
+	/* If configured for split file system and becoming active some
+	 * stb stream parameters has to be copied to corresponding active. The
+	 * reason is that standby may have for example another current file in a
+	 * stream than the active and checkpointing is not done from standby to
+	 * active.
+	 */
+	log_stream_t *stream;
+	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
+								LGS_IMM_LOG_FILESYS_CFG, NULL);
+	if (lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) {
+		stream = log_stream_getnext_by_name(NULL);
+		while (stream != NULL) { /* Iterate over all streams */
+			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+				strcpy(stream->logFileCurrent, stream->stb_logFileCurrent);
+				stream->curFileSize = stream->stb_curFileSize;
+				*stream->p_fd = -1; /* Reopen files */
+			} else if (cb->ha_state == SA_AMF_HA_QUIESCED) {
+				strcpy(stream->stb_logFileCurrent, stream->logFileCurrent);
+				strcpy(stream->stb_prev_actlogFileCurrent, stream->stb_logFileCurrent);
+				stream->stb_curFileSize = stream->curFileSize;
+				*stream->p_fd = -1; /* Reopen files */
+			}
+			
+			stream = log_stream_getnext_by_name(stream->name);
+		}
+	}
+#endif
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
 }	/*End lgs_mbcsv_change_HA_state */
@@ -1081,6 +1113,110 @@ static uint32_t ckpt_proc_initialize_client(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	return NCSCC_RC_SUCCESS;
 }
 
+/**
+ * Helper functions for ckpt_proc_log_write()
+ * 
+ */
+static SaTimeT setLogTime(void)
+{
+	struct timeval currentTime;
+	SaTimeT logTime;
+
+	/* Fetch current system time for time stamp value */
+	(void)gettimeofday(&currentTime, 0);
+
+	logTime = ((unsigned)currentTime.tv_sec * 1000000000ULL) + ((unsigned)currentTime.tv_usec * 1000ULL);
+
+	return logTime;
+}
+
+static void insert_localmsg_in_stream(log_stream_t *stream, char *message)
+{
+	int n = 0;
+	int rc = 0;
+	SaLogRecordT log_record;
+	SaLogBufferT logBuffer;
+	SaStringT logOutputString = NULL;
+	SaUint32T buf_size;
+	const int LOG_REC_ID = 0;
+	const int sleep_delay_ms = 10;
+	const int max_waiting_time_ms = 100;
+	
+	/* Log record common */
+	//log_record.logTimeStamp = setLogTime();
+	log_record.logTimeStamp = setLogTime();
+	logBuffer.logBuf = (SaUint8T *) message;
+	logBuffer.logBufSize = strlen(message) + 1;
+	log_record.logBuffer = &logBuffer;
+	
+	SaNtfClassIdT SaNtfClassId;
+	SaNtfClassId.majorId = SA_SCV_LOG;
+	SaNtfClassId.minorId = 0;
+	SaNtfClassId.vendorId = SA_NTF_VENDOR_ID_SAF;
+	
+	/* Construct logSvcUsrName for log service */
+	char hostname[_POSIX_HOST_NAME_MAX];
+	if (gethostname(hostname, _POSIX_HOST_NAME_MAX) == -1) {
+		fprintf(stderr, "gethostname failed: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	SaNameT logSvcUsrName;
+	sprintf((char *)logSvcUsrName.value, "%s", "safApp=safLogService");
+	logSvcUsrName.length = strlen((char *)logSvcUsrName.value);
+
+
+	
+	/* Create a log header corresponding to type of stream */
+	if ((stream->streamType == STREAM_TYPE_ALARM) ||
+			(stream->streamType == STREAM_TYPE_NOTIFICATION)) {
+		log_record.logHdrType = SA_LOG_NTF_HEADER;
+		log_record.logHeader.ntfHdr.notificationClassId = &SaNtfClassId;
+		log_record.logHeader.ntfHdr.eventTime = setLogTime();
+		log_record.logHeader.ntfHdr.eventType = SA_NTF_APPLICATION_EVENT;
+		log_record.logHeader.ntfHdr.notificationId = SA_NTF_IDENTIFIER_UNUSED;
+		log_record.logHeader.ntfHdr.notificationObject = &logSvcUsrName;
+		log_record.logHeader.ntfHdr.notifyingObject = &logSvcUsrName;
+	} else {
+		log_record.logHdrType = SA_LOG_GENERIC_HEADER;
+		log_record.logHeader.genericHdr.notificationClassId = &SaNtfClassId;
+		log_record.logHeader.genericHdr.logSeverity =  SA_LOG_SEV_NOTICE;
+		log_record.logHeader.genericHdr.logSvcUsrName = &logSvcUsrName;
+	}
+	
+	/* Allocate memory for the resulting log record */
+	buf_size = stream->fixedLogRecordSize == 0 ? lgs_cb->max_logrecsize : stream->fixedLogRecordSize;
+	logOutputString = calloc(1, buf_size+1); /* Make room for a '\0' termination */
+	if (logOutputString == NULL) {
+		LOG_ER("%s - Could not allocate %d bytes",__FUNCTION__, stream->fixedLogRecordSize + 1);
+		goto done;
+	}
+
+	/* Format the log record */
+	if ((n = lgs_format_log_record(&log_record, stream->logFileFormat,
+			stream->fixedLogRecordSize, buf_size, logOutputString,
+			LOG_REC_ID)) == 0) {
+		LOG_ER("%s - Could not format internal log record",__FUNCTION__);
+		goto done;
+	}
+		
+	/* Write the log record to file */
+	int msecs_waited = 0;		
+	rc = log_stream_write_h(stream, logOutputString, n);
+	while ((rc == -2) && (msecs_waited < max_waiting_time_ms)) {
+		usleep(sleep_delay_ms * 1000);
+		msecs_waited += sleep_delay_ms;
+		rc = log_stream_write_h(stream, logOutputString, n);
+	}
+	if (rc != 0) {
+		TRACE("Error %d when writing log record",rc);
+	}
+
+	done:
+		if (logOutputString != NULL)
+			free(logOutputString);
+}
+
 /****************************************************************************
  * Name          : ckpt_proc_log_write
  *
@@ -1124,7 +1260,15 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 									LGS_IMM_LOG_FILESYS_CFG, NULL);
 	if (lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) {
 		size_t rec_len = strlen(param->logRecord);
-
+		
+		/* Check if record id numbering is inconsistent. If so there are
+		 * possible missed log records and a notification shall be inserted
+		 * in log file.
+		 */
+		if ((stream->stb_logRecordId + 1) != param->recordId) {
+			insert_localmsg_in_stream(stream, "Possible loss of log record");
+		}
+		
 		/* Make a limited number of attempts to write if file IO timed out when 
 		 * trying to write the log record.
 		 */
@@ -1138,29 +1282,10 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 		if (rc != 0) {
 			TRACE("Error %d when writing log record",rc);
 		}
-
-#if 0	/* LLDTEST XXX Remove */	
-		/* LLDTEST Write an extra dummy log record to make file grow faster
-		 * than on Active node. For testing standby log rotation
-		 */
-
-		char dummy_logrec[] = "LLDTEST dummy log";
-		rec_len = strlen(dummy_logrec) + 1;
 		
-		msecs_waited = 0;		
-		rc = log_stream_write_h(stream, dummy_logrec, rec_len);
-		while ((rc == -2) && (msecs_waited < max_waiting_time_ms)) {
-			usleep(sleep_delay_ms * 1000);
-			msecs_waited += sleep_delay_ms;
-			rc = log_stream_write_h(stream, dummy_logrec, rec_len);
-		}
-		if (rc != 0) {
-			TRACE("Error %d when writing log record",rc);
-			TRACE("LLDTEST Error %d when writing log record",rc);
-		}
-#endif
+		stream->stb_logRecordId = param->recordId;
 	}
-
+	
  done:
 	free_edu_mem(param->logFileCurrent);
 	free_edu_mem(param->logRecord);
@@ -1283,6 +1408,7 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 		strcpy(stream->logFileCurrent, param->logFileCurrent);
 		stream->stb_curFileSize = 0;
 		strcpy(stream->stb_prev_actlogFileCurrent, param->logFileCurrent);
+		strcpy(stream->stb_logFileCurrent, param->logFileCurrent);
 	}
 
 	/* If configured for split file system files shall be opened on stand by
@@ -1424,10 +1550,11 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	stream->severityFilter = param->severityFilter;
 	strcpy(stream->logFileCurrent, param->logFileCurrent);
 	stream->act_last_close_timestamp = param->c_file_close_time_stamp;
-	
+		
 	/* If split file mode, update standby files */
 	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
 									LGS_IMM_LOG_FILESYS_CFG, NULL);
+	
 	if (lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) {
 		int rc=0;
 		if ((rc = log_stream_config_change(LGS_STREAM_CREATE_FILES, stream,
@@ -1435,8 +1562,14 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 				!= 0) {
 			LOG_ER("log_stream_config_change failed: %d", rc);
 		}
+		
+		/* When modifying old files are closed and new are opened meaning that
+		 * we have a new  standby current log-file
+		 */
+		strcpy(stream->stb_prev_actlogFileCurrent, stream->logFileCurrent);
+		strcpy(stream->stb_logFileCurrent, stream->logFileCurrent);
 	}
-
+	
  done:
 	/* Free strings allocated by the EDU encoder */
 	free_edu_mem(param->fileName);
@@ -1465,9 +1598,10 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 
 static uint32_t ckpt_proc_lgs_cfg(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 {
+	TRACE_ENTER();
 	lgs_ckpt_lgs_cfg_t *param = &data->ckpt_rec.lgs_cfg;
 	
-	/* Handle log files for new directory */
+	/* Handle log files for new directory if configured for split file system */
 	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
 									LGS_IMM_LOG_FILESYS_CFG, NULL);
 	if (lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) {
@@ -1475,13 +1609,16 @@ static uint32_t ckpt_proc_lgs_cfg(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 		logRootDirectory_filemove(param->logRootDirectory,
 				(time_t *) &param->c_file_close_time_stamp);
 	} else {
-		/* Set new value for logRootDirectory */
-		lgs_imm_rootpathconf_set(param->logRootDirectory);
+		/* Save new root path */
+		lgs_imm_rootpathconf_set(param->logRootDirectory);		
 	}
+	
+	TRACE("Setting new rootpath on standby \"%s\"",param->logRootDirectory);
 	
 	/* Free strings allocated by the EDU encoder */
 	free_edu_mem(param->logRootDirectory);
 	
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -2263,10 +2400,6 @@ static uint32_t edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		 (long)&((lgsv_ckpt_msg_t *)0)->ckpt_rec.stream_close, 0, NULL},
 
 		/* Agent dest */
-#if 0	/* LLDTEST XXX Remove old code */
-		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, EDU_EXIT,
-		 (long)&((lgsv_ckpt_msg_t *)0)->ckpt_rec.agent_dest, 0, NULL},//edp_ed_agent_down_rec
-#endif
 		{EDU_EXEC, edp_ed_agent_down_rec, 0, 0, EDU_EXIT,
 		 (long)&((lgsv_ckpt_msg_t *)0)->ckpt_rec.stream_cfg, 0, NULL},
 

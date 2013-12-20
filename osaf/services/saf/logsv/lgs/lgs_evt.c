@@ -383,9 +383,6 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 				}
 			}
 		} else if (lgs_cb->ha_state == SA_AMF_HA_STANDBY) {
-			/* LLDTEST XXX Add handling of files ???
-			 * Not needed since agent down mbcsv process witt be run?
-			 */
 			LGA_DOWN_LIST *lga_down_rec = NULL;
 			if (lgs_lga_entry_valid(lgs_cb, evt->fr_dest)) {
 				if (NULL == (lga_down_rec = (LGA_DOWN_LIST *) malloc(sizeof(LGA_DOWN_LIST)))) {
@@ -459,7 +456,6 @@ static void lgs_process_lga_down_list(void)
 		LGA_DOWN_LIST *lga_down_rec = NULL;
 		LGA_DOWN_LIST *temp_lga_down_rec = NULL;
 		time_t closetime = time(NULL);
-		/* LLDTEST XXX Checkpoint close time ???*/
 
 		lga_down_rec = lgs_cb->lga_down_list_head;
 		while (lga_down_rec) {
@@ -1087,6 +1083,12 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 
 		(void)lgs_ckpt_send_async(cb, &ckpt, NCS_MBCSV_ACT_ADD);
 	}
+	
+	/* Save stb_recordId. Used by standby if configured for split file system.
+	 * It's save here in order to contain a correct value if this node becomes
+	 * standby.
+	 */
+	stream->stb_logRecordId = stream->logRecordId;
 
  done:
 	if (logOutputString != NULL)
