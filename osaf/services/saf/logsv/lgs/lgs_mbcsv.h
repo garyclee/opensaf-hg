@@ -114,6 +114,7 @@ typedef struct {
 	char *logFileFormat;
 	SaUint32T severityFilter;
 	char *logFileCurrent;
+	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename on Active */
 } lgs_ckpt_stream_cfg_t;
 
 typedef struct {
@@ -123,8 +124,8 @@ typedef struct {
 } lgs_ckpt_lgs_cfg_t;
 
 typedef struct {
-	MDS_DEST agent_dest;
-	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename */
+	MDS_DEST agent_dest; /* uint64_t */
+	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename (int64_t) */
 } lgs_ckpt_agent_down_t;
 
 typedef struct {
@@ -133,7 +134,8 @@ typedef struct {
 		lgs_ckpt_initialize_msg_t initialize_client;
 		lgs_ckpt_finalize_msg_t finalize_client;
 		lgs_ckpt_write_log_t write_log;
-		MDS_DEST agent_dest; /* LLD TEST XXX Gör om till structure med c_currentTimeStamp */
+		lgs_ckpt_agent_down_t agent_down; /* LLDTEST XXX */
+		//MDS_DEST agent_dest; /* LLD TEST XXX Gör om till structure med c_currentTimeStamp */
 		lgs_ckpt_stream_open_t stream_open;
 		lgs_ckpt_stream_close_t stream_close;
 		lgs_ckpt_stream_cfg_t stream_cfg;

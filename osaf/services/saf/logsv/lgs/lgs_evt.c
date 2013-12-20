@@ -135,7 +135,7 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id, lgs_stream_l
  * When closing streams open log files are closed.
  * 
  * @param client_id[in]
- * @param stream_file_close_time_ptr[out]
+ * @param stream_file_close_time_ptr[in]
  * @return uns32
  */
 int lgs_client_delete(uint32_t client_id, time_t *closetime_ptr)
@@ -146,8 +146,9 @@ int lgs_client_delete(uint32_t client_id, time_t *closetime_ptr)
 
 	TRACE_ENTER2("client_id %u", client_id);
 	
-	/* Initiate close time value */	
-	*closetime_ptr = time(NULL);
+	/* Initiate close time value if not provided via closetime_ptr */
+	if (closetime_ptr == NULL)
+		*closetime_ptr = time(NULL);
 
 	/* Get client data */
 	if ((client = lgs_client_get_by_id(client_id)) == NULL) {
@@ -267,7 +268,7 @@ int lgs_client_stream_rmv(uint32_t client_id, uint32_t stream_id)
  * resources.
  * @param cb
  * @param mds_dest[in]
- * @param closetime_ptr[out]
+ * @param closetime_ptr[in]
  * 
  * @return int
  */
@@ -358,7 +359,6 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 	TRACE_ENTER();
 	lgsv_ckpt_msg_t ckpt;
 	uint32_t async_rc = NCSCC_RC_SUCCESS;
-	time_t closetime = 0;
 
 	switch (evt->evt_type) {
 	case LGSV_LGS_EVT_LGA_UP:
@@ -366,7 +366,8 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 	case LGSV_LGS_EVT_LGA_DOWN:
 		if ((lgs_cb->ha_state == SA_AMF_HA_ACTIVE) || (lgs_cb->ha_state == SA_AMF_HA_QUIESCED)) {
 		/* Remove this LGA entry from our processing lists */
-		(void)lgs_client_delete_by_mds_dest(evt->fr_dest, &closetime);
+			time_t closetime = time(NULL);
+			(void)lgs_client_delete_by_mds_dest(evt->fr_dest, &closetime);
 
 			/*Send an async checkpoint update to STANDBY EDS peer */
 			if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -374,14 +375,17 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 				ckpt.header.ckpt_rec_type = LGS_CKPT_CLIENT_DOWN;
 				ckpt.header.num_ckpt_records = 1;
 				ckpt.header.data_len = 1;
-				ckpt.ckpt_rec.agent_dest = evt->fr_dest;
-				//LLDTEST XXX Add checkpointing of file close time!!
+				ckpt.ckpt_rec.agent_down.agent_dest = evt->fr_dest;
+				ckpt.ckpt_rec.agent_down.c_file_close_time_stamp = closetime;
 				async_rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
 				if (async_rc == NCSCC_RC_SUCCESS) {
 					TRACE("ASYNC UPDATE SEND SUCCESS for LGA_DOWN event..");
 				}
 			}
 		} else if (lgs_cb->ha_state == SA_AMF_HA_STANDBY) {
+			/* LLDTEST XXX Add handling of files ???
+			 * Not needed since agent down mbcsv process witt be run?
+			 */
 			LGA_DOWN_LIST *lga_down_rec = NULL;
 			if (lgs_lga_entry_valid(lgs_cb, evt->fr_dest)) {
 				if (NULL == (lga_down_rec = (LGA_DOWN_LIST *) malloc(sizeof(LGA_DOWN_LIST)))) {
@@ -454,7 +458,8 @@ static void lgs_process_lga_down_list(void)
 	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
 		LGA_DOWN_LIST *lga_down_rec = NULL;
 		LGA_DOWN_LIST *temp_lga_down_rec = NULL;
-		time_t closetime = 0; /* LLDTEST XXX Handle!!! */
+		time_t closetime = time(NULL);
+		/* LLDTEST XXX Checkpoint close time ???*/
 
 		lga_down_rec = lgs_cb->lga_down_list_head;
 		while (lga_down_rec) {
@@ -635,11 +640,11 @@ static uint32_t proc_finalize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	uint32_t client_id = evt->info.msg.info.api_info.param.finalize.client_id;
 	lgsv_msg_t msg;
 	SaAisErrorT ais_rc = SA_AIS_OK;
-	time_t closetime = 0;
 
 	TRACE_ENTER2("client_id %u", client_id);
 
 	/* Free all resources allocated by this client. */
+	time_t closetime = time(NULL);
 	if ((rc = lgs_client_delete(client_id, &closetime)) != 0) {
 		TRACE("lgs_client_delete FAILED: %d", rc);
 		ais_rc = SA_AIS_ERR_BAD_HANDLE;

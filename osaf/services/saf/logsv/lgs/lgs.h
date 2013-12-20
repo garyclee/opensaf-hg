@@ -127,6 +127,6 @@ extern void lgs_imm_impl_set(lgs_cb_t *cb);
 extern SaAisErrorT lgs_imm_init(lgs_cb_t *cb);
 extern const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag);
 extern void lgs_imm_rootpathconf_set(const char *root_path_str);
-extern void logRootDirectory_filemove(const char *logRootDirectory);
+extern void logRootDirectory_filemove(const char *logRootDirectory, time_t *cur_time_in);
 
 #endif   /* ifndef __LGS_H */

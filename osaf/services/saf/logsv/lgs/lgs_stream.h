@@ -100,7 +100,8 @@ extern int log_stream_write_h(log_stream_t *stream, const char *buf, size_t coun
 extern void log_stream_id_print(void);
 
 #define LGS_STREAM_CREATE_FILES true
-extern int log_stream_config_change(bool create_files_f, log_stream_t *stream, const char *current_file_name);
+extern int log_stream_config_change(bool create_files_f, log_stream_t *stream,
+		const char *current_file_name, time_t *cur_time_in);
 extern int log_file_open(log_stream_t *stream, const char* filename, int *errno_save);
 
 /* Accessor functions */

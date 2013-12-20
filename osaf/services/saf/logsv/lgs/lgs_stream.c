@@ -822,7 +822,9 @@ int log_stream_close(log_stream_t **s, time_t *close_time_ptr)
 	
 	osafassert(stream->numOpeners > 0);
 	stream->numOpeners--;
+#if 0	/* LLDTEST XXX Remove. Strange ??? */
 	*close_time_ptr = 0; /* Value if no time is fetched */
+#endif	
 
 	if (stream->numOpeners == 0) {
 		/* standard streams can never be deleted */
@@ -1407,23 +1409,26 @@ uint32_t log_stream_init(void)
  * Close log file, change name of log file, optionally create new log and
  * config file. Basically the same logic as described in 3.1.6.4
  * in A.02.01.
- * create_files_f = true; New files are created
- * create_files_f = false; New files are not created
+ * 
+ * @param create_files_f
+ *     create_files_f = true; New files are created
+ *     create_files_f = false; New files are not created
  * @param conf_mode
  * @param stream
- * @param current_file_name
+ * @param current_logfile_name
+ * @param cur_time_in
  * 
  * @return int
  */
-int log_stream_config_change(bool create_files_f, log_stream_t *stream, const char *current_file_name)
+int log_stream_config_change(bool create_files_f, log_stream_t *stream,
+		const char *current_logfile_name, time_t *cur_time_in)
 {
 	int rc;
-	char *current_time;
+	char *current_time = lgs_get_time(cur_time_in);
 
 	TRACE_ENTER2("%s", stream->name);
 
 	/* Peer sync needed due to change in logFileCurrent */
-	current_time = lgs_get_time(NULL);
 	
 	if (*stream->p_fd == -1) {
 		/* lgs has not yet recieved any stream operation request after this swtchover/failover.
@@ -1438,14 +1443,13 @@ int log_stream_config_change(bool create_files_f, log_stream_t *stream, const ch
 			goto done;
 		}
 
-		/* LLDTEST XXX If done on standby use time from active */
-		rc = lgs_file_rename_h(stream->pathName, stream->logFileCurrent,
+		rc = lgs_file_rename_h(stream->pathName, current_logfile_name,
 				current_time, LGS_LOG_FILE_EXT, NULL);
 		if (rc == -1) {
 			goto done;
 		}
 
-		rc = lgs_file_rename_h(stream->pathName, current_file_name,
+		rc = lgs_file_rename_h(stream->pathName, stream->fileName,
 				current_time, LGS_LOG_FILE_CONFIG_EXT, NULL);
 		if (rc == -1) {
 			goto done;
@@ -1463,10 +1467,11 @@ int log_stream_config_change(bool create_files_f, log_stream_t *stream, const ch
 		*stream->p_fd = log_file_open(stream, stream->logFileCurrent,NULL);
 	}
 
-	if (*stream->p_fd == -1)
+	if (*stream->p_fd == -1) {
 		rc = -1;
-	else
+	} else {
 		rc = 0;
+	}
 
  done:
 	TRACE_LEAVE();
