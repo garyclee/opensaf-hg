@@ -60,13 +60,15 @@ start() {
 instantiate() {
 	echo -n "AMF Instantiating $prog: "
 	echo $SA_AMF_COMPONENT_NAME > $COMPNAMEFILE
-	if [ -e $lockfile ]; then
+	pidofproc -p $pidfile $binary
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
 		killproc -p $pidfile $binary -USR1
-		rm -f $lockfile
+		RETVAL=$?
 	else
 		start_daemon -p $pidfile $binary $args
+		RETVAL=$?
 	fi
-	RETVAL=$?
 	if [ $RETVAL -eq 0 ]; then
 		log_success_msg
 	else
