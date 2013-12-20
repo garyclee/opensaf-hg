@@ -18,6 +18,7 @@
 #ifndef NTFS_CB_H
 #define NTFS_CB_H
 
+#include <stdbool.h>
 #include <saNtf.h>
 
 /* Default HA state assigned locally during ntfs initialization */
@@ -57,6 +58,7 @@ typedef struct ntfs_cb {
 	EDU_HDL edu_hdl;	/* Handle from EDU for encode/decode operations */
 	bool csi_assigned;
 	unsigned int cache_size; /* size of the reader cache */
+	bool nid_started;	/**< true if started by NID */
 } ntfs_cb_t;
 
 extern uint32_t ntfs_cb_init(ntfs_cb_t *);
