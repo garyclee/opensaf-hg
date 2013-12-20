@@ -295,10 +295,7 @@ void log_initiate_stream_files(log_stream_t *stream)
 	/* Initiate standby stream file parameters. Only needed if we are standby
 	 * and configured for split file system.
 	 */
-	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
-									LGS_IMM_LOG_FILESYS_CFG, NULL);
-	if ((lgs_cb->ha_state == SA_AMF_HA_STANDBY) && 
-			(lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM)) {
+	if ((lgs_cb->ha_state == SA_AMF_HA_STANDBY) && lgs_is_split_file_system()) {
 		stream->stb_curFileSize = 0;
 		strncpy(stream->stb_logFileCurrent, stream->logFileCurrent, NAME_MAX);
 		stream->stb_logFileCurrent[NAME_MAX-1] = 0;
@@ -436,9 +433,7 @@ void log_stream_delete(log_stream_t **s)
  */
 static void init_log_stream_fd(log_stream_t *stream)
 {
-	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
-									LGS_IMM_LOG_FILESYS_CFG, NULL);
-	if (lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) {
+	if (lgs_is_split_file_system()) {
 		stream->p_fd = &stream->fd_local;
 	} else {
 		stream->p_fd = &stream->fd_shared;

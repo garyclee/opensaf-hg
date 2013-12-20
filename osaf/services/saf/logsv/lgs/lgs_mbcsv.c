@@ -222,9 +222,7 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 	 * active.
 	 */
 	log_stream_t *stream;
-	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
-								LGS_IMM_LOG_FILESYS_CFG, NULL);
-	if (lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) {
+	if (lgs_is_split_file_system()) {
 		stream = log_stream_getnext_by_name(NULL);
 		while (stream != NULL) { /* Iterate over all streams */
 			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -271,6 +269,17 @@ uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
 	mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ALL;
 
 	return ncs_mbcsv_svc(&mbcsv_arg);
+}
+
+bool lgs_is_split_file_system(void)
+{
+	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
+									LGS_IMM_LOG_FILESYS_CFG, NULL);
+	if (lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /****************************************************************************
@@ -1256,9 +1265,7 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	/* If configured for split file system log records shall be written also if
 	 * we are standby.
 	 */
-	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
-									LGS_IMM_LOG_FILESYS_CFG, NULL);
-	if (lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) {
+	if (lgs_is_split_file_system()) {
 		size_t rec_len = strlen(param->logRecord);
 		
 		/* Check if record id numbering is inconsistent. If so there are
@@ -1287,8 +1294,10 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	}
 	
  done:
+	if (lgs_is_split_file_system()) {
+		free_edu_mem(param->logRecord);
+	}
 	free_edu_mem(param->logFileCurrent);
-	free_edu_mem(param->logRecord);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -1414,9 +1423,7 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	/* If configured for split file system files shall be opened on stand by
 	 * also.
 	 */
-	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
-									LGS_IMM_LOG_FILESYS_CFG, NULL);
-	if (lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) {
+	if (lgs_is_split_file_system()) {
 		if (stream->numOpeners <= 1) {
 			log_initiate_stream_files(stream);
 		}
@@ -1552,10 +1559,7 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	stream->act_last_close_timestamp = param->c_file_close_time_stamp;
 		
 	/* If split file mode, update standby files */
-	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
-									LGS_IMM_LOG_FILESYS_CFG, NULL);
-	
-	if (lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) {
+	if (lgs_is_split_file_system()) {
 		int rc=0;
 		if ((rc = log_stream_config_change(LGS_STREAM_CREATE_FILES, stream,
 				stream->stb_logFileCurrent, &stream->act_last_close_timestamp))
@@ -1602,9 +1606,7 @@ static uint32_t ckpt_proc_lgs_cfg(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	lgs_ckpt_lgs_cfg_t *param = &data->ckpt_rec.lgs_cfg;
 	
 	/* Handle log files for new directory if configured for split file system */
-	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
-									LGS_IMM_LOG_FILESYS_CFG, NULL);
-	if (lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) {
+	if (lgs_is_split_file_system()) {
 		/* Setting new root directory is done in logRootDirectory_filemove() */
 		logRootDirectory_filemove(param->logRootDirectory,
 				(time_t *) &param->c_file_close_time_stamp);
@@ -1850,6 +1852,9 @@ static uint32_t edp_ed_write_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgs_ckpt_write_log_t *ckpt_write_msg_ptr = NULL, **ckpt_write_msg_dec_ptr;
+	
+	/* XXX Fix. Handle logRecord when different log server versions on SC nodes */
+	
 
 	EDU_INST_SET ckpt_write_rec_ed_rules[] = {
 		{EDU_START, edp_ed_write_rec, 0, 0, 0, sizeof(lgs_ckpt_write_log_t), 0, NULL},
@@ -1858,7 +1863,7 @@ static uint32_t edp_ed_write_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_write_log_t *)0)->curFileSize, 0, NULL},
 		{EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_write_log_t *)0)->logFileCurrent, 0, NULL},
 		{EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_write_log_t *)0)->logRecord, 0, NULL},
-		{EDU_EXEC, ncs_edp_int64, 0, 0, 0, (long)&((lgs_ckpt_write_log_t *)0)->c_file_close_time_stamp, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_write_log_t *)0)->c_file_close_time_stamp, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 	
@@ -1978,7 +1983,7 @@ static uint32_t edp_ed_close_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		{EDU_START, edp_ed_close_stream_rec, 0, 0, 0, sizeof(lgs_ckpt_stream_close_t), 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_close_t *)0)->streamId, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_close_t *)0)->clientId, 0, NULL},
-		{EDU_EXEC, ncs_edp_int64, 0, 0, 0, (long)&((lgs_ckpt_stream_close_t *)0)->c_file_close_time_stamp, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_stream_close_t *)0)->c_file_close_time_stamp, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
@@ -2032,7 +2037,7 @@ static uint32_t edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	EDU_INST_SET ckpt_final_rec_ed_rules[] = {
 		{EDU_START, edp_ed_finalize_rec, 0, 0, 0, sizeof(lgs_ckpt_finalize_msg_t), 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_finalize_msg_t *)0)->client_id, 0, NULL},
-		{EDU_EXEC, ncs_edp_int64, 0, 0, 0, (long)&((lgs_ckpt_finalize_msg_t *)0)->c_file_close_time_stamp, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_finalize_msg_t *)0)->c_file_close_time_stamp, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
@@ -2095,7 +2100,7 @@ static uint32_t edp_ed_cfg_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t *)0)->logFileFormat, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t *)0)->severityFilter, 0, NULL},
 		{EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t *)0)->logFileCurrent, 0, NULL},
-		{EDU_EXEC, ncs_edp_int64, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t *)0)->c_file_close_time_stamp, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t *)0)->c_file_close_time_stamp, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
@@ -2148,7 +2153,7 @@ static uint32_t edp_ed_lgs_cfg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	EDU_INST_SET ckpt_lgs_cfg_rec_ed_rules[] = {
 		{EDU_START, edp_ed_lgs_cfg_rec, 0, 0, 0, sizeof(lgs_ckpt_lgs_cfg_t), 0, NULL},
 		{EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_lgs_cfg_t *)0)->logRootDirectory, 0, NULL},
-		{EDU_EXEC, ncs_edp_int64, 0, 0, 0, (long)&((lgs_ckpt_lgs_cfg_t *)0)->c_file_close_time_stamp, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_lgs_cfg_t *)0)->c_file_close_time_stamp, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
@@ -2202,7 +2207,7 @@ static uint32_t edp_ed_agent_down_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	EDU_INST_SET ckpt_lgs_agent_down_ed_rules[] = {
 		{EDU_START, edp_ed_lgs_cfg_rec, 0, 0, 0, sizeof(lgs_ckpt_agent_down_t), 0, NULL},
 		{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_agent_down_t *)0)->agent_dest, 0, NULL},
-		{EDU_EXEC, ncs_edp_int64, 0, 0, 0, (long)&((lgs_ckpt_agent_down_t *)0)->c_file_close_time_stamp, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_agent_down_t *)0)->c_file_close_time_stamp, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 

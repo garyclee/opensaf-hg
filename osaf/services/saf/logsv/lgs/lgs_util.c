@@ -184,7 +184,8 @@ char *lgs_get_time(time_t *time_in)
 	} else {
 		testTime = *time_in;
 	}
-	timeStampData = localtime(&testTime);
+	struct tm tm_info;
+	timeStampData = localtime_r(&testTime, &tm_info);
 
 	stringSize = 5 * sizeof(char);
 	snprintf(srcString, (size_t)stringSize, "%d", (timeStampData->tm_year + START_YEAR));

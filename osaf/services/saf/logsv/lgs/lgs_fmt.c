@@ -770,7 +770,8 @@ static int extractNotificationField(char *dest, size_t dest_size,
 	totalTime = (logRecord->logHeader.ntfHdr.eventTime / (SaTimeT)SA_TIME_ONE_SECOND);
 
 	/* Split timestamp in timeStampData */
-	eventTimeData = localtime((const time_t *)&totalTime);
+	struct tm tm_info;
+	eventTimeData = localtime_r((const time_t *)&totalTime, &tm_info);
 
 	switch (*fmtExpPtr++) {
 	case N_NOTIFICATION_ID_LETTER:
@@ -1175,7 +1176,8 @@ int lgs_format_log_record(SaLogRecordT *logRecord, const SaStringT formatExpress
 	totalTime = (logRecord->logTimeStamp / (SaTimeT)SA_TIME_ONE_SECOND);
 
 	/* Split timestamp in timeStampData */
-	timeStampData = localtime((const time_t *)&totalTime);
+	struct tm tm_info;
+	timeStampData = localtime_r((const time_t *)&totalTime, &tm_info);
 
 	/* Main formatting loop */
 	for (;;) {

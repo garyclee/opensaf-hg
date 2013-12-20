@@ -28,6 +28,7 @@ The Log file property "High Availability flag" is not supported by LOG itself
 but by using a replicated file system. The LOG implementation is unaware of 
 such a file system and must be configured to use it, see below.
 
+
 Important!
 ----------
 Contibutors/Maintainers see section
@@ -162,6 +163,7 @@ saLogAppHighLimit           0
 saLogAppLowLimit            0
 saLogMaxApplicationStreams  64
 logFileIoTimeout            500                   File I/O timeout (see file.c)
+logFileSysConfig            1                     Shared file system
 
 All the above attributes except saLogRootDirectory has a default value
 set in the class definition (see logsv_classes.xml). The value for parameter
@@ -182,6 +184,14 @@ This attribute contains the maximum time the log service is allowed to wait for
 e.g. writing a log record to complete. If writing a log record times out
 SA_AIS_ERR_TRY_AGAIN is returned in the corresponding callback.
 
+logFileSysConfig
+
+The log service can be configured to use a shared filesystem (default) or to
+write logs to two file systems e.g. local file system on SC nodes. In this
+configuration both active and standby handle log files.
+Possible configurations are:
+1 Shared file system
+2 Split file system
 
 2. Configuration using a configuration file with environment variables:
 This is the "old" way of handling configuration and is kept for backwards
@@ -298,6 +308,7 @@ TODO
 
 IMPORTANT INFORMATION FOR CONTRIBUTORS/MAINTAINERS
 
+File IO:
 File operations are no longer allowed in the log-server main thread. This is in
 order to prevent "hanging" of the log-server if a file operation does not return
 e.g. when a NFS filesystem is not working correctly. It is therfore very
@@ -311,6 +322,11 @@ See lgs_filehdl.c, lgs_stream.c and lgs_util.c for examples.
 Functions that uses a "handler" has got extention _h in the function name
 e.g. fileopen(..) -> fileopen_h(..). All handlers can be found in file
 lgs_filehdl.c
+
+File system configuration:
+When using UML (tools/cluster_sim_uml) the file system can be configured for
+both shared and split file system. This is done by setting the value of
+logFileSysConfig in logsv_objects.xml before running the ./build_uml script.
 
 
 CONTRIBUTORS/MAINTAINERS
