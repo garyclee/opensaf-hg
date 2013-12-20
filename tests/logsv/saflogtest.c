@@ -51,6 +51,8 @@
 #define VENDOR_ID 193
 #define DEFAULT_MAX_FILES_ROTATED 4
 
+#define MAX_NUM_STREAM 4
+
 static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error);
 
 static SaLogCallbacksT logCallbacks = { 0, 0, logWriteLogCallbackT };
@@ -59,6 +61,7 @@ static SaVersionT logVersion = { 'A', 2, 1 };
 static char *progname = "saflogtest";
 static SaInvocationT cb_invocation;
 static SaAisErrorT cb_error;
+
 
 static SaTimeT get_current_SaTime(void)
 {
@@ -89,17 +92,23 @@ static void usage(void)
 	printf("\nOPTIONS\n");
 
 	printf("  -h or --help                   this help\n");
-	printf("  -k or --ack                    wait for ack after each write, default no wait\n");
+	printf("  -k or --ack                    do not wait for ack after write, default wait\n");
 	printf("  -l or --alarm                  write to alarm stream\n");
 	printf("  -n or --notification           write to notification stream\n");
 	printf("  -y or --system                 write to system stream (default)\n");
-	printf("  -a NAME or --application=NAME  write to application stream NAME\n");
+	printf("%s%s%s",
+		   "  -a NAME or --application=NAME  write to application stream NAME\n",
+		   "     Can be used more than once, more than one stream can be opened\n",
+		   "     Cannot be used in combination with other streams\n");
+	printf("     Max %d application streams can be created\n",MAX_NUM_STREAM);
+	printf("     Example: > saflogtest -a tst1 \"tst1 msg\" -a tst2 -a tst3 \"tst3 msg\"\n");
 	printf("  -b NAME or --capplication=NAME write to config application stream NAME\n");
 	printf("  -s SEV or --severity=SEV       use severity SEV, default INFO\n");
+	printf("     valid severity names: emerg, alert, crit, error, warn, notice, info\n");
 	printf("  -i INT or --interval=INT       write with interval INT us (only with --count, default 0us)\n");
 	printf("  -c CNT or --count=CNT          write CNT number of times, -1 forever (with interval INT) \n");
-	printf("      valid severity names: emerg, alert, crit, error, warn, notice, info\n");
-	printf("  -o Open log stream and wait forever. Exit on any key\n");
+	printf("  -o Open log stream(s) and wait forever. Exit on any key\n");
+	printf("  -e Exit without closing stream(s) or finalizing after log records are written\n");
 }
 
 static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error)
@@ -129,7 +138,7 @@ static SaAisErrorT write_log_record(SaLogHandleT logHandle,
 	static int i = 0;
 	int try_agains = 0;
 	SaLogAckFlagsT ackflags;
-
+	
 	if (wait_for_ack)
 		ackflags = SA_LOG_RECORD_WRITE_ACK;
 	else
@@ -187,7 +196,7 @@ static SaAisErrorT write_log_record(SaLogHandleT logHandle,
 		}
 
 		if (try_agains > 0) {
-			fprintf(stderr, "got %u SA_AIS_ERR_TRY_AGAIN, waited %u secs\n", try_agains, try_agains / 10);
+			fprintf(stderr, "\tgot %u SA_AIS_ERR_TRY_AGAIN, waited %u secs\n", try_agains, try_agains / 10);
 		}
 	}
 
@@ -221,17 +230,103 @@ static SaLogSeverityT get_severity(char *severity)
 	exit(EXIT_FAILURE);
 }
 
+/**
+ * Creates a log record by filling in the log service API struct of
+ * type SaLogRecordT.
+ * Note: When the log record is written it has to be freed.
+ *       Use free_log_record() function 
+ * 
+ * @param logRecord[out]
+ * @param logHdrType[in]
+ * @param logSvcUsrName[in]
+ * @param notificationClassId[in]
+ *        Can be set to NULL if Hdr-type is SA_LOG_GENERIC_HEADER
+ * @param log_message[in]
+ *        Set to NULL if there is no message
+ */
+static void create_log_record(SaLogRecordT *logRecord,
+						SaLogHeaderTypeT logHdrType,
+						SaNameT *logSvcUsrName,
+						SaNtfClassIdT *notificationClassId,
+						char *log_message,
+						SaLogBufferT *logBuffer)
+{
+	logRecord->logTimeStamp = SA_TIME_UNKNOWN;	/* LOG service should supply timestamp */
+	logRecord->logBuffer = NULL;
+		
+	if (logHdrType == SA_LOG_GENERIC_HEADER) {
+		/* Setup generic header */
+		logRecord->logHdrType = SA_LOG_GENERIC_HEADER;
+		logRecord->logHeader.genericHdr.notificationClassId = NULL;
+		logRecord->logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO;
+		logRecord->logHeader.genericHdr.logSvcUsrName = logSvcUsrName;
+	} else if (logHdrType == SA_LOG_NTF_HEADER) {
+		/* Setup header for Alarm and Notification record */
+		logRecord->logHdrType = SA_LOG_NTF_HEADER;
+		logRecord->logHeader.ntfHdr.notificationId = SA_NTF_IDENTIFIER_UNUSED;
+		logRecord->logHeader.ntfHdr.eventType = SA_NTF_ALARM_PROCESSING;
+		logRecord->logHeader.ntfHdr.notificationObject = logSvcUsrName;
+		logRecord->logHeader.ntfHdr.notifyingObject = logSvcUsrName;
+		logRecord->logHeader.ntfHdr.notificationClassId = notificationClassId;
+		logRecord->logHeader.ntfHdr.eventTime = get_current_SaTime();
+	} else {
+		printf("\nInternal error when setting up log header\n");
+		exit(EXIT_FAILURE);
+	}
+
+	/* Create body of log record (if any) */
+	int sz;
+	char *logBuf = NULL;
+	
+	if (log_message != NULL) {
+		sz = strlen(log_message)+1;
+		logBuf = malloc(sz + 64);	/* add space for index/id in periodic writes */
+		strcpy(logBuf, log_message);
+		logBuffer->logBufSize = sz;
+		logBuffer->logBuf = (SaUint8T *)logBuf;
+		logRecord->logBuffer = logBuffer;
+	} else {
+		logRecord->logBuffer = NULL;
+	}
+}
+
+static void free_loc_record(SaLogRecordT *logRecord)
+{
+	if (logRecord->logBuffer != NULL) {
+		free(logRecord->logBuffer->logBuf);
+	}
+}
+
+static void set_logFileCreateAttributes(
+					SaLogFileCreateAttributesT_2 *logFileCreateAttributes,
+					SaStringT logFileName)
+{
+	/* Setup default values used when creating an application stream using API */
+	logFileCreateAttributes->logFilePathName = "saflogtest";
+	logFileCreateAttributes->maxLogFileSize = DEFAULT_APP_LOG_FILE_SIZE;
+	logFileCreateAttributes->maxLogRecordSize = DEFAULT_APP_LOG_REC_SIZE;
+	logFileCreateAttributes->haProperty = SA_TRUE;
+	logFileCreateAttributes->logFileFullAction = SA_LOG_FILE_FULL_ACTION_ROTATE;
+	logFileCreateAttributes->maxFilesRotated = DEFAULT_MAX_FILES_ROTATED;
+	logFileCreateAttributes->logFileFmt = DEFAULT_FORMAT_EXPRESSION;
+	logFileCreateAttributes->logFileName = strdup(logFileName);
+}
+
+static void free_logFileCreateAttributes(
+					SaLogFileCreateAttributesT_2 *logFileCreateAttributes)
+{
+	if (logFileCreateAttributes != NULL) {
+		free(logFileCreateAttributes->logFileName);
+	}
+}
+
+
 int main(int argc, char *argv[])
 {
-	bool do_not_exit_f = false;
 	int c, i;
-	SaNameT logStreamName = {.length = 0 };
-	SaLogFileCreateAttributesT_2 *logFileCreateAttributes = NULL;
-	SaLogFileCreateAttributesT_2 appLogFileCreateAttributes;
+	//SaNameT logStreamName;
 	SaLogStreamOpenFlagsT logStreamOpenFlags = 0;
-	SaLogRecordT logRecord;
 	SaNameT logSvcUsrName;
-	SaLogBufferT logBuffer;
 	SaNtfClassIdT notificationClassId = { 1, 2, 3 };
 	struct option long_options[] = {
 		{"ack", no_argument, 0, 'k'},
@@ -253,8 +348,27 @@ int main(int argc, char *argv[])
 	SaLogHandleT logHandle;
 	SaLogStreamHandleT logStreamHandle;
 	SaSelectionObjectT selectionObject;
-	bool wait_for_ack = false;
-
+	bool wait_for_ack = true;
+	bool do_not_exit_f = false;
+	bool no_finalize_exit = false;
+	char *log_message;
+	SaLogSeverityT logSeverity = SA_LOG_SEV_INFO;
+		
+	int stream_cnt = 0;
+	
+	/* Used with application streams to save info about all app streams to
+	 * create and send log-records to.
+	 */
+	struct {
+	   SaNameT logStreamName;
+	   SaLogRecordT logRecord;
+	} stream_info[MAX_NUM_STREAM];
+	
+	SaLogBufferT logBuffer[MAX_NUM_STREAM];
+	SaLogFileCreateAttributesT_2 logFileCreateAttributes[MAX_NUM_STREAM];
+	SaLogFileCreateAttributesT_2 *logFileCreateAttributes_ptr = NULL;
+	bool is_appl_stream = false;
+	
 	srandom(getpid());
 
 	if (gethostname(hostname, _POSIX_HOST_NAME_MAX) == -1) {
@@ -265,28 +379,15 @@ int main(int argc, char *argv[])
 	sprintf((char *)logSvcUsrName.value, "%s.%u@%s", "saflogtest", getpid(), hostname);
 	logSvcUsrName.length = strlen((char *)logSvcUsrName.value);
 
-	/* Setup default values */
-	strcpy((char *)logStreamName.value, SA_LOG_STREAM_SYSTEM);	/* system stream is default */
-	logRecord.logTimeStamp = SA_TIME_UNKNOWN;	/* LOG service should supply timestamp */
-	logRecord.logHdrType = SA_LOG_GENERIC_HEADER;
-	logRecord.logHeader.genericHdr.notificationClassId = NULL;
-	logRecord.logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO;
-	logRecord.logHeader.genericHdr.logSvcUsrName = &logSvcUsrName;
-	logRecord.logBuffer = NULL;
-	appLogFileCreateAttributes.logFilePathName = "saflogtest";
-	appLogFileCreateAttributes.maxLogFileSize = DEFAULT_APP_LOG_FILE_SIZE;
-	appLogFileCreateAttributes.maxLogRecordSize = DEFAULT_APP_LOG_REC_SIZE;
-	appLogFileCreateAttributes.haProperty = SA_TRUE;
-	appLogFileCreateAttributes.logFileFullAction = SA_LOG_FILE_FULL_ACTION_ROTATE;
-	appLogFileCreateAttributes.maxFilesRotated = DEFAULT_MAX_FILES_ROTATED;
-	appLogFileCreateAttributes.logFileFmt = DEFAULT_FORMAT_EXPRESSION;
-
 	while (1) {
-		c = getopt_long(argc, argv, "ohklnya:b:s:i:c:", long_options, NULL);
+		c = getopt_long(argc, argv, "eohklnya:b:s:i:c:", long_options, NULL);
 		if (c == -1) {
 			break;
 		}
 		switch (c) {
+		case 'e': /* Exit without closing any stream and without finalize */
+			no_finalize_exit = true;
+			break;
 		case 'o': /* Open log stream and wait forever. Exit on Enter key */
 			do_not_exit_f = true;
 			break;
@@ -294,31 +395,85 @@ int main(int argc, char *argv[])
 			write_count = atoi(optarg);
 			break;
 		case 'k':
-			wait_for_ack = true;
+			wait_for_ack = false;
 			break;
 		case 'l':
-			strcpy((char *)logStreamName.value, SA_LOG_STREAM_ALARM);
-			logRecord.logHdrType = SA_LOG_NTF_HEADER;
+			strcpy((char *) stream_info[0].logStreamName.value, SA_LOG_STREAM_ALARM);
+			stream_info[0].logStreamName.length = strlen(SA_LOG_STREAM_ALARM);
+			if (optind < argc) {
+				log_message = argv[optind];
+			} else {
+				log_message = NULL;
+			}
+			create_log_record(&stream_info[0].logRecord, SA_LOG_NTF_HEADER, &logSvcUsrName,
+					&notificationClassId, log_message, &logBuffer[0]);
+			stream_cnt = 1;
 			break;
 		case 'n':
-			strcpy((char *)logStreamName.value, SA_LOG_STREAM_NOTIFICATION);
-			logRecord.logHdrType = SA_LOG_NTF_HEADER;
+			strcpy((char *)stream_info[0].logStreamName.value, SA_LOG_STREAM_NOTIFICATION);
+			stream_info[0].logStreamName.length = strlen(SA_LOG_STREAM_NOTIFICATION);
+			if (optind < argc) {
+				log_message = argv[optind];
+			} else {
+				log_message = NULL;
+			}
+			create_log_record(&stream_info[0].logRecord, SA_LOG_NTF_HEADER, &logSvcUsrName,
+					&notificationClassId, log_message, &logBuffer[0]);
+			stream_cnt = 1;
 			break;
 		case 'y':
-			strcpy((char *)logStreamName.value, SA_LOG_STREAM_SYSTEM);
+			strcpy((char *)stream_info[0].logStreamName.value, SA_LOG_STREAM_SYSTEM);
+			stream_info[0].logStreamName.length = strlen(SA_LOG_STREAM_SYSTEM);
+			if (optind < argc) {
+				log_message = argv[optind];
+			} else {
+				log_message = NULL;
+			}
+			create_log_record(&stream_info[0].logRecord, SA_LOG_GENERIC_HEADER, &logSvcUsrName,
+					&notificationClassId, log_message, &logBuffer[0]);
+			stream_cnt = 1;
 			break;
 		case 'a':
-			sprintf((char *)logStreamName.value, "safLgStr=%s", optarg);
-			logFileCreateAttributes = &appLogFileCreateAttributes;
-			appLogFileCreateAttributes.logFileName = strdup(optarg);
+			if (stream_cnt >= MAX_NUM_STREAM) {
+				printf("Max %d streams can be opened\n",MAX_NUM_STREAM);
+				break;
+			}
+			is_appl_stream = true;
+			set_logFileCreateAttributes(&logFileCreateAttributes[stream_cnt],optarg);
 			logStreamOpenFlags = SA_LOG_STREAM_CREATE;
+			sprintf((char *)stream_info[stream_cnt].logStreamName.value,
+					"safLgStr=%s", optarg);
+			stream_info[stream_cnt].logStreamName.length = 
+					strlen((char *)stream_info[stream_cnt].logStreamName.value);
+			if (optind < argc) {
+				if (strcmp(argv[optind], "-a") != 0) {
+					log_message = argv[optind];
+				} else {
+					log_message = NULL;
+				}
+			} else {
+				log_message = NULL;
+			}
+			create_log_record(&stream_info[stream_cnt].logRecord,
+					SA_LOG_GENERIC_HEADER, &logSvcUsrName,
+					&notificationClassId, log_message, &logBuffer[stream_cnt]);
+			stream_cnt++;
 			break;
 		case 'b':
-			sprintf((char *) logStreamName.value, "safLgStrCfg=%s", optarg);
-			strcat((char *) logStreamName.value, ",safApp=safLogService");
+			sprintf((char *) stream_info[0].logStreamName.value, "safLgStrCfg=%s", optarg);
+			strcat((char *) stream_info[0].logStreamName.value, ",safApp=safLogService");
+			stream_info[0].logStreamName.length = strlen((char *) stream_info[0].logStreamName.value);
+			if (optind < argc) {
+				log_message = argv[optind];
+			} else {
+				log_message = NULL;
+			}
+			create_log_record(&stream_info[0].logRecord, SA_LOG_GENERIC_HEADER, &logSvcUsrName,
+					&notificationClassId, log_message, &logBuffer[0]);
+			stream_cnt = 1;
 			break;
 		case 's':
-			logRecord.logHeader.genericHdr.logSeverity = get_severity(optarg);
+			logSeverity = get_severity(optarg);
 			break;
 		case 'i':
 			interval = atoi(optarg);
@@ -331,31 +486,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}
-
-	if (logRecord.logHdrType == SA_LOG_NTF_HEADER) {
-		/* Setup some valid values */
-		logRecord.logHeader.ntfHdr.notificationId = SA_NTF_IDENTIFIER_UNUSED;
-		logRecord.logHeader.ntfHdr.eventType = SA_NTF_ALARM_PROCESSING;
-		logRecord.logHeader.ntfHdr.notificationObject = &logSvcUsrName;
-		logRecord.logHeader.ntfHdr.notifyingObject = &logSvcUsrName;
-		logRecord.logHeader.ntfHdr.notificationClassId = &notificationClassId;
-		logRecord.logHeader.ntfHdr.eventTime = get_current_SaTime();
-	}
-
-	logStreamName.length = strlen((char *)logStreamName.value);
-
-	/* Create body of log record (if any) */
-	if (optind < argc) {
-		int sz;
-		char *logBuf = NULL;
-		sz = strlen(argv[optind]);
-		logBuf = malloc(sz + 64);	/* add space for index/id in periodic writes */
-		strcpy(logBuf, argv[optind]);
-		logBuffer.logBufSize = sz;
-		logBuffer.logBuf = (SaUint8T *)logBuf;
-		logRecord.logBuffer = &logBuffer;
-	}
-
+	
 	error = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
 	if (error != SA_AIS_OK) {
 		fprintf(stderr, "saLogInitialize FAILED: %u\n", error);
@@ -364,34 +495,73 @@ int main(int argc, char *argv[])
 
 	error = saLogSelectionObjectGet(logHandle, &selectionObject);
 	if (error != SA_AIS_OK) {
-		printf("saLogSelectionObjectGet FAILED: %u\n", error);
 		exit(EXIT_FAILURE);
 	}
 
-	error = saLogStreamOpen_2(logHandle, &logStreamName,
-				  logFileCreateAttributes, logStreamOpenFlags,
-				  SA_TIME_ONE_SECOND, &logStreamHandle);
-	if (error != SA_AIS_OK) {
-		fprintf(stderr, "saLogStreamOpen_2 FAILED: %u\n", error);
-		exit(EXIT_FAILURE);
-	}
+	int j;
+	for (j=0; j < stream_cnt; j++) {
+		if (stream_info[j].logRecord.logHdrType == SA_LOG_GENERIC_HEADER) {
+			stream_info[j].logRecord.logHeader.genericHdr.logSeverity = logSeverity;
+		}
+		
+		if (is_appl_stream) {
+			logFileCreateAttributes_ptr = &logFileCreateAttributes[j];
+		} else {
+			logFileCreateAttributes_ptr = NULL;
+		}
 
-	for (i = 0; i < write_count; i++) {
-		write_log_record(logHandle, logStreamHandle, selectionObject, &logRecord, wait_for_ack);
-		if (interval > 0)
-			usleep(interval);
-	}
+		error = saLogStreamOpen_2(
+				logHandle,
+				&stream_info[j].logStreamName,
+				logFileCreateAttributes_ptr,
+				logStreamOpenFlags,
+				SA_TIME_ONE_SECOND,
+				&logStreamHandle);
+		if (error != SA_AIS_OK) {
+			fprintf(stderr, "saLogStreamOpen_2 FAILED: %u\n", error);
+			exit(EXIT_FAILURE);
+		}
+		free_logFileCreateAttributes(logFileCreateAttributes_ptr);
 
-	/* Open log stream and wait forever. Exit on any key */
+		if (stream_info[j].logRecord.logBuffer->logBuf != NULL) {
+			for (i = 0; i < write_count; i++) {
+				write_log_record(
+						logHandle,
+						logStreamHandle,
+						selectionObject,
+						&stream_info[j].logRecord,
+						wait_for_ack);
+				if (interval > 0)
+					usleep(interval);
+			}
+		}
+		
+		free_loc_record(&stream_info[j].logRecord);
+	} /* loop j < stream_cnt */
+
+	/* Wait for key press (any key) before closing stream(s) and or finalize */
 	if (do_not_exit_f == true) {
+		printf("\nWaiting for any key to close stream(s) and exit...\n");
 		(void) getchar();
 		do_not_exit_f = false;
 	}
+	
+	/* Exit without closing streams or finalize log API */
+	if (no_finalize_exit == true) {
+		printf("Exit witout stream close or finalize\n");
+		exit(EXIT_SUCCESS);
+	}
 
-	error = saLogStreamClose(logStreamHandle);
-	if (SA_AIS_OK != error) {
-		fprintf(stderr, "saLogStreamClose FAILED: %u\n", error);
-		exit(EXIT_FAILURE);
+	/* If only one stream is open it's closed before Finalize
+	 * If there are several open streams, just Finalize (streams will be closed
+	 * automatically)
+	 */
+	if (stream_cnt == 1) {
+		error = saLogStreamClose(logStreamHandle);
+		if (SA_AIS_OK != error) {
+			fprintf(stderr, "saLogStreamClose FAILED: %u\n", error);
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	error = saLogFinalize(logHandle);
