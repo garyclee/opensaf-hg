@@ -32,8 +32,7 @@
 
 enum {
 	FD_TERM = 0,
-	FD_USR1,
-	FD_AMF = FD_USR1,
+	FD_AMF,
 	FD_MBX,
 	NUM_FD
 };
@@ -481,8 +480,10 @@ SaAisErrorT clmna_process_dummyup_msg(void)
 
 	}
 done:
-	if (nid_notify("CLMNA", error, NULL) != NCSCC_RC_SUCCESS)
+	if (clmna_cb->nid_started &&
+		nid_notify("CLMNA", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid notify failed");
+	}
 	return rc;
 }
 
@@ -543,6 +544,10 @@ int main(int argc, char *argv[])
 	clmna_cb->amf_hdl = 0;
 	clmna_cb->server_synced = false;
 
+	/* Determine how this process was started, by NID or AMF */
+	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
+		clmna_cb->nid_started = true;
+
 	if (get_node_info(&clmna_cb->node_info) != 0) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -569,7 +574,8 @@ int main(int argc, char *argv[])
 		goto done;
 
 	/* Create a selection object */
-	if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+	if (clmna_cb->nid_started &&
+		(rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create failed");
 		goto done;
 	}
@@ -578,7 +584,8 @@ int main(int argc, char *argv[])
 	 ** Initialize a signal handler that will use the selection object.
 	 ** The signal is sent from our script when AMF does instantiate.
 	 */
-	if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+	if (clmna_cb->nid_started &&
+		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
 		LOG_ER("signal USR1 failed: %s", strerror(errno));
 		goto done;
 	}
@@ -586,10 +593,17 @@ int main(int argc, char *argv[])
 	clmna_cb->mbx_fd = ncs_ipc_get_sel_obj(&clmna_cb->mbx);
 	daemon_sigterm_install(&term_fd);
 
+	/* If AMF started register immediately */
+	if (!clmna_cb->nid_started &&
+		(rc = clmna_amf_init(clmna_cb)) != NCSCC_RC_SUCCESS) {
+		goto done;
+	}
+
 	fds[FD_TERM].fd = term_fd;
 	fds[FD_TERM].events = POLLIN;
-	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
-	fds[FD_USR1].events = POLLIN;
+	fds[FD_AMF].fd = clmna_cb->nid_started ?
+		usr1_sel_obj.rmv_obj : clmna_cb->amf_sel_obj;
+	fds[FD_AMF].events = POLLIN;
 	fds[FD_MBX].fd = clmna_cb->mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
 

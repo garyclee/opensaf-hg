@@ -409,7 +409,8 @@ SaAisErrorT clms_amf_init(CLMS_CB * cb)
 
 	TRACE_ENTER();
 
-	if (amf_comp_name_get_set_from_file("CLMD_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS)
+	if (cb->nid_started &&
+		amf_comp_name_get_set_from_file("CLMD_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS)
 		goto done;
 
 	/* Initialize AMF callbacks */
