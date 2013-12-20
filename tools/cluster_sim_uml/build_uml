@@ -178,11 +178,19 @@ cmd_create_rootfs()
     install /bin/tar bin
     install $(which nice) usr/bin
     
-    # Change LOG configuration to use "replicated" disk
-    sed -i 's/=$pkglogdir\/saflog/=\/repl_opensaf\/saflog/g' \
-	etc/opensaf/logd.conf
-    sed -i 's/\/var\/log\/opensaf\/saflog/\/repl_opensaf\/saflog/g' \
-	usr/local/share/opensaf/immxml/services/logsv_objects.xml
+	# Configure LOG root path depending of logFileSysConfig setting
+	if grep -A 3 logFileSysConfig usr/local/share/opensaf/immxml/services/logsv_objects.xml | \
+       grep -q -o "<value>2</value>"; then
+	    # Use default configuration
+		echo "Log filesystem config 2 (split)"
+	else
+		echo "Log filesystem config 1 (shared)"
+		# Change LOG configuration to use "replicated" disk
+		sed -i 's/=$pkglogdir\/saflog/=\/repl_opensaf\/saflog/g' \
+		etc/opensaf/logd.conf
+		sed -i 's/\/var\/log\/opensaf\/saflog/\/repl_opensaf\/saflog/g' \
+		usr/local/share/opensaf/immxml/services/logsv_objects.xml
+	fi
 
     # Change core pattern, uml cannot write cores to hostfs
     sed -i 's/var\/crash\/opensaf/tmp/g' etc/init.d/opensafd
