@@ -198,6 +198,12 @@ done:
 	return rc;
 }
 
+/**
+ * Remove oldest log file until there are 'maxFilesRotated' - 1 files left
+ * 
+ * @param stream
+ * @return -1 on error
+ */
 static int rotate_if_needed(log_stream_t *stream)
 {
 	char oldest_file[PATH_MAX];
@@ -211,13 +217,12 @@ static int rotate_if_needed(log_stream_t *stream)
 		rc = -1;
 		goto done;
 	}
-
+	
 	/*
 	 ** Remove until we have one less than allowed, we are just about to
 	 ** create a new one again.
 	 */
 	while (file_cnt >= stream->maxFilesRotated) {
-		TRACE_1("remove oldest file: %s", oldest_file);
 		if ((rc = file_unlink_h(oldest_file)) == -1) {
 			LOG_NO("could not delete: %s - %s", oldest_file, strerror(errno));
 			goto done;
@@ -281,14 +286,26 @@ static uint32_t log_stream_remove(const char *key)
  * 
  * @param stream
  */
-static void log_initiate_stream_files(log_stream_t *stream)
+void log_initiate_stream_files(log_stream_t *stream)
 {
 	int errno_save;
 	
 	TRACE_ENTER();
 	
+	/* Initiate standby stream file parameters. Only needed if we are standby
+	 * and configured for split file system.
+	 */
+	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
+									LGS_IMM_LOG_FILESYS_CFG, NULL);
+	if ((lgs_cb->ha_state == SA_AMF_HA_STANDBY) && 
+			(lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM)) {
+		stream->stb_curFileSize = 0;
+		strncpy(stream->stb_logFileCurrent, stream->logFileCurrent, NAME_MAX);
+		stream->stb_logFileCurrent[NAME_MAX-1] = 0;
+	}
+
 	/* Initiate stream file descriptor to flag that no valid descriptor exist */
-	stream->fd = -1;
+	*stream->p_fd = -1;
 	
 	/* Delete to get counting right. It might not exist. */
 	(void)delete_config_file(stream);
@@ -309,12 +326,13 @@ static void log_initiate_stream_files(log_stream_t *stream)
 		goto done;
 	}
 
-	if ((stream->fd = log_file_open(stream, &errno_save)) == -1) {
+	if ((*stream->p_fd = log_file_open(stream, stream->logFileCurrent,
+			&errno_save)) == -1) {
 		TRACE("%s - Could not open '%s' - %s",__FUNCTION__,
 				stream->logFileCurrent, strerror(errno_save));
 		goto done;
 	}
-
+	
 done:
 	TRACE_LEAVE();
 }
@@ -362,7 +380,7 @@ void log_stream_print(log_stream_t *stream)
 	TRACE_2("  creationTimeStamp:    %llu", stream->creationTimeStamp);
 	TRACE_2("  numOpeners:           %u", stream->numOpeners);
 	TRACE_2("  streamId:             %u", stream->streamId);
-	TRACE_2("  fd:                   %d", stream->fd);
+	TRACE_2("  fd:                   %d", *stream->p_fd);
 	TRACE_2("  logFileCurrent:       %s", stream->logFileCurrent);
 	TRACE_2("  curFileSize:          %u", stream->curFileSize);
 	TRACE_2("  logRecordId:          %u", stream->logRecordId);
@@ -408,6 +426,25 @@ void log_stream_delete(log_stream_t **s)
 	free(stream);
 	*s = NULL;
 	TRACE_LEAVE();
+}
+
+/**
+ * Point to local or shared fd dependant on shared or split file system
+ * Initiate the fd to -1
+ * 
+ * @param stream
+ */
+static void init_log_stream_fd(log_stream_t *stream)
+{
+	SaUint32T lgs_file_config = *(SaUint32T*) lgs_imm_logconf_get(
+									LGS_IMM_LOG_FILESYS_CFG, NULL);
+	if (lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) {
+		stream->p_fd = &stream->fd_local;
+	} else {
+		stream->p_fd = &stream->fd_shared;
+	}
+	
+	*stream->p_fd = -1;	
 }
 
 /**
@@ -469,11 +506,15 @@ log_stream_t *log_stream_new(SaNameT *dn,
 	}
 	stream->maxFilesRotated = maxFilesRotated;
 	stream->creationTimeStamp = lgs_get_SaTime();
-	stream->fd = -1;
 	stream->severityFilter = 0x7f;	/* by default all levels are allowed */
 	stream->streamType = streamType;
 	stream->twelveHourModeFlag = twelveHourModeFlag;
 	stream->logRecordId = logRecordId;
+	
+	/* Initiate local or shared stream file descriptor dependant on shared or
+	 * split file system
+	 */
+	init_log_stream_fd(stream);
 
 	/* Add stream to tree */
 	if (log_stream_add(&stream->pat_node, stream->name) != NCSCC_RC_SUCCESS) {
@@ -493,6 +534,7 @@ log_stream_t *log_stream_new(SaNameT *dn,
 		goto done;
 	}
 
+	/* Create IMM runtime object for stream (if ACTIVE) */
 	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
 		char *dndup = strdup(stream->name);
 		char *parent_name = strchr(stream->name, ',');
@@ -625,7 +667,8 @@ log_stream_t *log_stream_new(SaNameT *dn,
 }
 
 /**
- * Create a new stream object. Do not create an IMM object.
+ * LLDTEST XXX. Seems not to be used at all. Try to remove...
+ * Create a new stream object. Do not create an IMM runtime object.
  * @param name
  * @param stream_id
  * 
@@ -648,8 +691,12 @@ log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
 	stream->name[SA_MAX_NAME_LENGTH] = '\0';
 	stream->streamId = stream_id;
 	stream->creationTimeStamp = lgs_get_SaTime();
-	stream->fd = 0;
 	stream->severityFilter = 0x7f;	/* by default all levels are allowed */
+	
+	/* Initiate local or shared stream file descriptor dependant on shared or
+	 * split file system
+	 */
+	init_log_stream_fd(stream);	
 
 	/* Add stream to tree */
 	if (log_stream_add(&stream->pat_node, stream->name) != NCSCC_RC_SUCCESS) {
@@ -676,12 +723,17 @@ log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
 /**
  * Open log file associated with stream
  * The file is opened in non blocking mode.
+ * Note!
+ *     File name has to be provided separately since it is not always
+ *     logFileCurrent!
+ * 
  * @param stream
+ * @param filename
  * @param errno_save - errno from open() returned here if supplied
  *
  * @return int - the file descriptor or -1 on errors
  */
-int log_file_open(log_stream_t *stream, int *errno_save)
+int log_file_open(log_stream_t *stream, const char* filename, int *errno_save)
 {
 	int fd;
 	char pathname[PATH_MAX];
@@ -691,7 +743,7 @@ int log_file_open(log_stream_t *stream, int *errno_save)
 	TRACE_ENTER();
 
 	n = snprintf(pathname, PATH_MAX, "%s/%s/%s.log",
-			lgs_cb->logsv_root_dir, stream->pathName, stream->logFileCurrent);
+			lgs_cb->logsv_root_dir, stream->pathName, filename);
 	if (n >= PATH_MAX) {
 		LOG_WA("Cannot open log file, path > PATH_MAX");
 		fd = -1;
@@ -709,17 +761,30 @@ done:
 	return fd;
 }
 
-SaAisErrorT log_stream_open(log_stream_t *stream)
+/**
+ * If the stream is new (number of openers are 0) the stream files are created.
+ * This includes:
+ *  - Remove old rotated files if there are any from an earlier closed stream
+ *    with the same name.
+ *  - Create relative log directory
+ *  - Create configuration (.cfg) file
+ *  - Create current log file
+ * 
+ * Note: No error if files couldn't be handled but stream file descriptor for
+ *       current log file will be -1 indicating that files has to be opened
+ *       when trying to write to stream.
+ * 
+ * @param stream
+ */
+void log_stream_open_fileinit(log_stream_t *stream)
 {
-	SaAisErrorT rc = SA_AIS_OK;
-	
-	osafassert(stream != NULL);
 	TRACE_ENTER2("%s, numOpeners=%u", stream->name, stream->numOpeners);
+	osafassert(stream != NULL);
 
 	/* first time open? */
 	if (stream->numOpeners == 0) {
 		/* Create and save current log file name */
-		snprintf(stream->logFileCurrent, NAME_MAX, "%s_%s", stream->fileName, lgs_get_time());
+		snprintf(stream->logFileCurrent, NAME_MAX, "%s_%s", stream->fileName, lgs_get_time(NULL));
 		log_initiate_stream_files(stream);
 	}
 	
@@ -728,43 +793,79 @@ SaAisErrorT log_stream_open(log_stream_t *stream)
 	 */
 	stream->numOpeners++;
 
-	TRACE_LEAVE2("rc=%u, numOpeners=%u", rc, stream->numOpeners);
-	return rc;
+	TRACE_LEAVE2("numOpeners=%u", stream->numOpeners);
 }
 
 /**
  * if ref. count allows, close the associated file, rename it and delete the
  * stream object.
- * @param stream
+ * Renaming means that a a time string based on second since Epoch is added to
+ * the name of the closed log file.
  * 
+ * @param stream[in]
+ * @param close_time[in/out] Time in sec since Epoch (time()). If the value of
+ *                           this pointer is 0 time is fetched using time() and
+ *                           the value is updated (out) with this time.
+ *                           If the value contains a time (other than 0) this
+ *                           time is used
  * @return int
  */
-int log_stream_close(log_stream_t **s)
+int log_stream_close(log_stream_t **s, time_t *close_time_ptr)
 {
 	int rc = 0;
 	log_stream_t *stream = *s;
+	char *file_to_rename = NULL;
+	char *timeString = NULL;
 
 	osafassert(stream != NULL);
 	TRACE_ENTER2("%s, numOpeners=%u", stream->name, stream->numOpeners);
 	
 	osafassert(stream->numOpeners > 0);
 	stream->numOpeners--;
+	*close_time_ptr = 0; /* Value if no time is fetched */
 
 	if (stream->numOpeners == 0) {
 		/* standard streams can never be deleted */
 		osafassert(stream->streamType == STREAM_TYPE_APPLICATION);
-		if (stream->fd != -1) {
-			char *timeString = lgs_get_time();
-			if ((rc = fileclose_h(stream->fd)) == -1) {
+		
+		if (*stream->p_fd != -1) {
+			/* Note: Stream fd is always initiated to -1
+			 * If shared file system and we are standby no files are opened and
+			 * fd is still -1. This means we get here only if there is an open
+			 * log file on the node
+			 */
+			
+			/* Close the log file */
+			if ((rc = fileclose_h(*stream->p_fd)) == -1) {
 				LOG_ER("log_stream_close FAILED: %s", strerror(errno));
 				goto done;
 			}
 
-			rc = lgs_file_rename_h(stream->pathName, stream->logFileCurrent, timeString, LGS_LOG_FILE_EXT);
+			/* Handle time for renaming */
+			if (*close_time_ptr == 0) {
+				*close_time_ptr = time(NULL);
+			}
+			timeString = lgs_get_time(close_time_ptr);				
+			
+			/* If active */
+			if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+				file_to_rename = stream->logFileCurrent;
+			} else {
+				/* LLDTEST XXX Check! Can below outcommented be removed? */
+				//*close_time_ptr = (SaTimeT *) stream->c_currentTimeStamp;
+				//timeString = lgs_get_time(close_time_ptr);
+				file_to_rename = stream->stb_logFileCurrent;
+			}
+			
+			/* Rename stream log file */
+			rc = lgs_file_rename_h(stream->pathName, file_to_rename,
+					timeString, LGS_LOG_FILE_EXT, NULL);
 			if (rc == -1)
 				goto done;
 
-			rc = lgs_file_rename_h(stream->pathName, stream->fileName, timeString, LGS_LOG_FILE_CONFIG_EXT);
+			/* Rename stream config file */
+			rc = lgs_file_rename_h(stream->pathName, stream->fileName,
+					timeString, LGS_LOG_FILE_CONFIG_EXT, NULL);
 			if (rc == -1)
 				goto done;
 		}
@@ -794,12 +895,12 @@ int log_stream_file_close(log_stream_t *stream)
 
 	osafassert(stream->numOpeners > 0);
 
-	if (stream->fd != -1) {
-		if ((rc = fileclose_h(stream->fd)) == -1) {
+	if (*stream->p_fd != -1) {
+		if ((rc = fileclose_h(*stream->p_fd)) == -1) {
 			LOG_ER("log_stream_file_close FAILED: %s", strerror(errno));
-			stream->fd = -1; /* Force reset the fd, otherwise fd will be stale. */
+			*stream->p_fd = -1; /* Force reset the fd, otherwise fd will be stale. */
 		} else
-			stream->fd = -1;
+			*stream->p_fd = -1;
 	}
 
 	TRACE_LEAVE2("%d", rc);
@@ -872,6 +973,173 @@ done:
 }
 
 /**
+ * Handle log file rotation on standby node.
+ * This handler shall be used on standby only
+ * 
+ * @param stream
+ * @param count 
+ * @return 
+ */
+static int log_rotation_stb(log_stream_t *stream, size_t count)
+{
+	int rc = 0;
+	int errno_save;
+	char *current_time_str;
+	char new_current_log_filename[NAME_MAX];
+	bool do_rotate = false;
+	
+	TRACE_ENTER();
+
+	stream->stb_curFileSize += count;
+	
+	/* If active node has rotated files there is a new "logFileCurrent"
+	 * (check pointed). Standby always follows active rotation.
+	 * 
+	 * In some cases standby may reach file size limit before active. If this
+	 * happen standby must rotate. A new rotate is done when active has rotated
+	 * as described above.
+	 */
+	
+	/* XXX Should be handled...??
+	 * If local rotate has been done within one second before active is rotating
+	 * the file name in stb_logFileCurrent and logFileCurrent may be the same!
+	 * This means that a rotation on active when standby is running is not
+	 * guaranteed. This situation though is very unlikely.
+	 */
+	if (strcmp(stream->logFileCurrent, stream->stb_prev_actlogFileCurrent) != 0) {
+		TRACE("Active has rotated (follow active)");
+		/* Active has rotated */
+		strcpy(stream->stb_prev_actlogFileCurrent, stream->logFileCurrent);
+		/* Use close time from active for renaming of closed file
+		 */
+		
+		current_time_str = lgs_get_time(&stream->act_last_close_timestamp);
+		do_rotate = true;
+		/* Use same name as active for new current log file */
+		snprintf(new_current_log_filename, NAME_MAX, "%s", stream->logFileCurrent);
+	} else if (stream->stb_curFileSize > stream->maxLogFileSize) {
+		TRACE("Standby has rotated (filesize)");
+		/* Standby current log file has reached max limit */
+		/* Use internal time since active has not yet rotated */
+		current_time_str = lgs_get_time(NULL);
+		do_rotate = true;
+		/* Create new name for current log file based on local time */
+		snprintf(new_current_log_filename, NAME_MAX, "%s_%s",
+				stream->fileName, current_time_str);
+	}
+	
+	if (do_rotate) {
+		/* Time to use as "close time stamp" and "open time stamp" for new
+		 * log file as created by active.
+		 */
+		
+		/* Close current log file */
+		if ((rc = fileclose_h(*stream->p_fd)) == -1) {
+			LOG_IN("close FAILED: %s", strerror(errno));
+			goto done;
+		}
+		*stream->p_fd = -1;
+		
+		/* Rename file to give it the "close timestamp" */
+		rc = lgs_file_rename_h(stream->pathName, stream->stb_logFileCurrent,
+				current_time_str, LGS_LOG_FILE_EXT, NULL);
+		if (rc == -1)
+			goto done;
+
+		/* Remove oldest file if needed */
+		if ((rc = rotate_if_needed(stream)) == -1) {
+			TRACE("rotate_if_needed failed");
+			goto done;
+		}
+		
+		/* Save new name for current log file and open it */
+		snprintf(stream->stb_logFileCurrent, NAME_MAX, "%s", new_current_log_filename);
+		if ((*stream->p_fd = log_file_open(stream, stream->stb_logFileCurrent,
+				&errno_save)) == -1) {
+			LOG_IN("Could not open '%s' - %s", stream->stb_logFileCurrent,
+					strerror(errno_save));
+			rc = -1;
+			goto done;
+		}
+		
+		stream->stb_curFileSize = 0;
+	}
+		
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * Handle log file rotation. Do rotation if needed
+ * 
+ * @param stream
+ * @param count 
+ * @return -1 on error
+ */
+static int log_rotation_act(log_stream_t *stream, size_t count)
+{
+	int rc;
+	int errno_save;
+	
+	/* If file size > max file size:
+	 *  - Close the log file and create a new.
+	 *  - If number of files > max number of files delete the oldest
+	 */
+	rc = 0;
+	stream->curFileSize += count;
+
+	if ((stream->curFileSize) > stream->maxLogFileSize) {
+		time_t closetime = time(NULL);
+		char *current_time = lgs_get_time(&closetime);
+
+		/* Close current log file */
+		if ((rc = fileclose_h(*stream->p_fd)) == -1) {
+			LOG_IN("close FAILED: %s", strerror(errno));
+			goto done;
+		}
+		*stream->p_fd = -1;
+
+		/* Rename file to give it the "close timestamp" */
+		rc = lgs_file_rename_h(stream->pathName, stream->logFileCurrent,
+				current_time, LGS_LOG_FILE_EXT, NULL);
+		if (rc == -1)
+			goto done;
+
+		/* Save time when logFileCurrent was closed */
+		stream->act_last_close_timestamp = closetime;
+
+		/* Invalidate logFileCurrent for this stream */
+		stream->logFileCurrent[0] = 0;
+		
+		/* Remove oldest file if needed */
+		if ((rc = rotate_if_needed(stream)) == -1)
+			goto done;
+#if 0
+		/* LLDTEST XXX Must be wrong. Should be time when stream was created.
+		 * Why change this time here???
+		 */
+		stream->creationTimeStamp = lgs_get_SaTime();
+#endif		
+		/* Create a new file name that includes "open time stamp" and open the file */
+		snprintf(stream->logFileCurrent, NAME_MAX, "%s_%s", stream->fileName,
+				current_time);
+		if ((*stream->p_fd = log_file_open(stream, stream->logFileCurrent,
+				&errno_save)) == -1) {
+			LOG_IN("Could not open '%s' - %s", stream->logFileCurrent,
+					strerror(errno_save));
+			rc = -1;
+			goto done;
+		}
+		
+		stream->curFileSize = 0;
+	}
+	
+done:	
+	return rc;
+}
+
+/**
  * log_stream_write will write a number of bytes to the associated file. If
  * the file size gets too big, the file is closed, renamed and a new file is
  * opened. If there are too many files, the oldest file will be deleted.
@@ -900,13 +1168,13 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 
 	/* Open files on demand e.g. on new active after fail/switch-over. This
 	 * enables LOG to cope with temporary file system problems. */
-	if (stream->fd == -1) {
+	if (*stream->p_fd == -1) {
 		/* Create directory and log files if they were not created at
 		 * stream open or reopen files if bad file descriptor.
 		 */
 		log_initiate_stream_files(stream);
 		
-		if (stream->fd == -1) {
+		if (*stream->p_fd == -1) {
 			TRACE("%s - Initiating stream files \"%s\" Failed", __FUNCTION__,
 					stream->name);
 		} else {
@@ -914,7 +1182,7 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 		}
 	}
 	
-	TRACE("%s - stream->fd = %d",__FUNCTION__,stream->fd);
+	TRACE("%s - *stream->p_fd = %d",__FUNCTION__,*stream->p_fd);
 	/* Write the log record
 	 */
 	/* allocate memory for header + log record */
@@ -924,7 +1192,7 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 	header_in_p = (wlrh_t *) params_in;
 	logrec_p = (char *) (params_in + sizeof(wlrh_t));
 	
-	header_in_p->fd = stream->fd;
+	header_in_p->fd = *stream->p_fd;
 	header_in_p->fixedLogRecordSize = stream->fixedLogRecordSize;
 	header_in_p->record_size = count;
 	memcpy(logrec_p, buf, count);
@@ -957,10 +1225,10 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 		LOG_IN("write '%s' failed \"%s\"", stream->logFileCurrent,
 				strerror(write_errno));
 	
-		if (stream->fd != -1) {
+		if (*stream->p_fd != -1) {
 			/* Try to close the file and invalidate the stream fd */
-			fileclose_h(stream->fd);
-			stream->fd = -1;
+			fileclose_h(*stream->p_fd);
+			*stream->p_fd = -1;
 		}
 		
 		if ((write_errno == EAGAIN) || (write_errno == EWOULDBLOCK)) {
@@ -971,41 +1239,15 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 		goto done;
 	}
  
-	/* Handle file size and rotate if needed
+	/* Handle file size and rotate if needed.
+	 * Note: This is handled in different ways depending on if writing a log
+	 *       record on standby or active node. Standby can write if configured
+	 *       for split file system.
 	 */
-	rc = 0;
-	stream->curFileSize += count;
-
-	if ((stream->curFileSize + count) > stream->maxLogFileSize) {
-		int errno_save;
-		char *current_time = lgs_get_time();
-
-		if ((rc = fileclose_h(stream->fd)) == -1) {
-			LOG_IN("close FAILED: %s", strerror(errno));
-			goto done;
-		}
-		stream->fd = -1;
-
-		rc = lgs_file_rename_h(stream->pathName, stream->logFileCurrent, current_time, LGS_LOG_FILE_EXT);
-		if (rc == -1)
-			goto done;
-
-		/* Invalidate logFileCurrent for this stream */
-		stream->logFileCurrent[0] = 0;
-
-		/* Remove oldest file if needed */
-		if ((rc = rotate_if_needed(stream)) == -1)
-			goto done;
-
-		stream->creationTimeStamp = lgs_get_SaTime();
-		snprintf(stream->logFileCurrent, NAME_MAX, "%s_%s", stream->fileName, current_time);
-		if ((stream->fd = log_file_open(stream, &errno_save)) == -1) {
-			LOG_IN("Could not open '%s' - %s", stream->logFileCurrent, strerror(errno_save));
-			rc = -1;
-			goto done;
-		}
-
-		stream->curFileSize = 0;
+	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+		rc = log_rotation_act(stream, count);
+	} else {
+		rc = log_rotation_stb(stream, count);
 	}
 
  done:
@@ -1161,6 +1403,7 @@ uint32_t log_stream_init(void)
 }
 
 /**
+ * LLDTEST XXX Check handling of rename on Active and Standby !!!
  * Close log file, change name of log file, optionally create new log and
  * config file. Basically the same logic as described in 3.1.6.4
  * in A.02.01.
@@ -1180,9 +1423,9 @@ int log_stream_config_change(bool create_files_f, log_stream_t *stream, const ch
 	TRACE_ENTER2("%s", stream->name);
 
 	/* Peer sync needed due to change in logFileCurrent */
-	current_time = lgs_get_time();
+	current_time = lgs_get_time(NULL);
 	
-	if (stream->fd == -1) {
+	if (*stream->p_fd == -1) {
 		/* lgs has not yet recieved any stream operation request after this swtchover/failover.
 		 *  stream shall be opened on-request after a switchover, failover
 		 */	
@@ -1190,16 +1433,21 @@ int log_stream_config_change(bool create_files_f, log_stream_t *stream, const ch
 	} else {
 		/* close the existing log file, and only when there is a valid fd */
 
-		if ((rc = fileclose_h(stream->fd)) == -1) {
+		if ((rc = fileclose_h(*stream->p_fd)) == -1) {
 			LOG_ER("log_stream_config_change file close  FAILED: %s", strerror(errno));
 			goto done;
 		}
 
-		if ((rc = lgs_file_rename_h(stream->pathName, stream->logFileCurrent, current_time, LGS_LOG_FILE_EXT)) == -1) {
+		/* LLDTEST XXX If done on standby use time from active */
+		rc = lgs_file_rename_h(stream->pathName, stream->logFileCurrent,
+				current_time, LGS_LOG_FILE_EXT, NULL);
+		if (rc == -1) {
 			goto done;
 		}
 
-		if ((rc = lgs_file_rename_h(stream->pathName, current_file_name, current_time, LGS_LOG_FILE_CONFIG_EXT)) == -1) {
+		rc = lgs_file_rename_h(stream->pathName, current_file_name,
+				current_time, LGS_LOG_FILE_CONFIG_EXT, NULL);
+		if (rc == -1) {
 			goto done;
 		}
 	}
@@ -1212,10 +1460,10 @@ int log_stream_config_change(bool create_files_f, log_stream_t *stream, const ch
 		sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
 
 		/* Create the new log file based on updated configuration */
-		stream->fd = log_file_open(stream, NULL);
+		*stream->p_fd = log_file_open(stream, stream->logFileCurrent,NULL);
 	}
 
-	if (stream->fd == -1)
+	if (*stream->p_fd == -1)
 		rc = -1;
 	else
 		rc = 0;

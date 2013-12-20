@@ -75,6 +75,11 @@
 /* The name of log service config object */    
 #define LGS_IMM_LOG_CONFIGURATION	"logConfig=1,safApp=safLogService"
 
+/* The possible configurations for LGS_IMM_LOG_FILESYS_CFG */
+#define LGS_LOG_SHARED_FILESYSTEM 1		/* Use shared filesystem. Default */
+#define LGS_LOG_SPLIT_FILESYSTEM  2     /* Store logs on local file system on
+                                           each node */
+
 /* ========================================================================
  *   TYPE DEFINITIONS
  * ========================================================================
@@ -90,6 +95,7 @@ typedef enum {
 	LGS_IMM_LOG_STREAM_APP_LOW_LIMIT,
 	LGS_IMM_LOG_MAX_APPLICATION_STREAMS,
 	LGS_IMM_FILEHDL_TIMEOUT,
+	LGS_IMM_LOG_FILESYS_CFG,
 
 	LGS_IMM_LOG_NUMBER_OF_PARAMS,
 	LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST,
@@ -116,12 +122,11 @@ extern uint32_t lgs_mds_msg_send(lgs_cb_t *cb,
 			      lgsv_msg_t *msg,
 			      MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio);
 
-extern void lgs_giveup_imm_applier(lgs_cb_t *cb);
-extern SaAisErrorT lgs_become_imm_applier(lgs_cb_t *cb);
 extern SaAisErrorT lgs_imm_activate(lgs_cb_t *cb);
 extern void lgs_imm_impl_set(lgs_cb_t *cb);
 extern SaAisErrorT lgs_imm_init(lgs_cb_t *cb);
 extern const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag);
-extern void lgs_imm_rootpathconf_set(char *root_path_str);
+extern void lgs_imm_rootpathconf_set(const char *root_path_str);
+extern void logRootDirectory_filemove(const char *logRootDirectory);
 
 #endif   /* ifndef __LGS_H */

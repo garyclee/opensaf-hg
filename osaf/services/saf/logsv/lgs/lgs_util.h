@@ -49,11 +49,12 @@
  * ========================================================================
  */
 
-extern char *lgs_get_time(void);
+extern char *lgs_get_time(time_t *time_in);
 extern int lgs_create_config_file_h(log_stream_t *stream);
 extern void lgs_evt_destroy(lgsv_lgs_evt_t *evt);
 extern SaTimeT lgs_get_SaTime(void);
-extern int lgs_file_rename_h(const char *path, const char *old_name, const char *time_stamp, const char *suffix);
+extern int lgs_file_rename_h(const char *path, const char *old_name,
+		const char *time_stamp, const char *suffix, char *new_name_out);
 //extern uint32_t lgs_create_known_streams(lgs_cb_t *lgs_cb); /* Not used, no code */
 extern void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr);
 extern bool lgs_relative_path_check_ts(const char* path);
