@@ -41,7 +41,6 @@ static IMMD_CB _immd_cb;
 IMMD_CB *immd_cb = &_immd_cb;
 
 #define FD_TERM 0
-#define FD_USR1 1
 #define FD_AMF 1
 #define FD_MBCSV 2
 #define FD_MBX 3
@@ -111,6 +110,10 @@ static uint32_t immd_initialize(void)
 
 	TRACE_ENTER();
 
+	/* Determine how this process was started, by NID or AMF */
+	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
+		immd_cb->nid_started = true;
+
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_agents_startup FAILED");
 		goto done;
@@ -163,7 +166,8 @@ static uint32_t immd_initialize(void)
 	}
 
 	/* Create a selection object */
-	if ((rc = ncs_sel_obj_create(&immd_cb->usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+	if (immd_cb->nid_started &&
+		(rc = ncs_sel_obj_create(&immd_cb->usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create failed");
 		goto done;
 	}
@@ -172,9 +176,16 @@ static uint32_t immd_initialize(void)
 	 * Initialize a signal handler that will use the selection object.
 	 * The signal is sent from our script when AMF does instantiate.
 	 */
-	if ((signal(SIGUSR1, sigusr1_handler)) == SIG_ERR) {
+	if (immd_cb->nid_started &&
+		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
 		LOG_ER("signal USR1 failed: %s", strerror(errno));
 		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
+	/* If AMF started register immediately */
+	if (!immd_cb->nid_started &&
+		(rc = immd_amf_init(immd_cb)) != NCSCC_RC_SUCCESS) {
 		goto done;
 	}
 
@@ -182,7 +193,8 @@ static uint32_t immd_initialize(void)
 	       (immd_cb->ha_state == SA_AMF_HA_ACTIVE) ? "ACTIVE" : "STANDBY");
 
 done:
-	if (nid_notify("IMMD", rc, NULL) != NCSCC_RC_SUCCESS) {
+	if (immd_cb->nid_started &&
+		nid_notify("IMMD", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
 		rc = NCSCC_RC_FAILURE;
 	}
@@ -245,8 +257,9 @@ int main(int argc, char *argv[])
 	/* Set up all file descriptors to listen to */
 	fds[FD_TERM].fd = term_fd;
 	fds[FD_TERM].events = POLLIN;
-	fds[FD_USR1].fd = immd_cb->usr1_sel_obj.rmv_obj;
-	fds[FD_USR1].events = POLLIN;
+	fds[FD_AMF].fd = immd_cb->nid_started ?
+		immd_cb->usr1_sel_obj.rmv_obj : immd_cb->amf_sel_obj;
+	fds[FD_AMF].events = POLLIN;
 	fds[FD_MBCSV].fd = immd_cb->mbcsv_sel_obj;
 	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;

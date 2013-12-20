@@ -18,6 +18,7 @@
 #ifndef IMMD_CB_H
 #define IMMD_CB_H
 
+#include <stdbool.h>
 #include <saClm.h>
 
 #define IMMD_EVT_TIME_OUT 100
@@ -136,6 +137,7 @@ typedef struct immd_cb_tag {
 	bool m2PbeCanLoad;      /* true => 2PBE Loading arbitration completed */
 	bool m2PbeExtraWait;    /* true => Used only to prolong wait if both SCs
 				   have been introduced but one has not yet replied. */
+	bool nid_started;	/**< true if started by NID */
 } IMMD_CB;
 
 uint32_t immd_immnd_info_tree_init(IMMD_CB *cb);

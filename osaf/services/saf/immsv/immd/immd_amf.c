@@ -388,7 +388,8 @@ uint32_t immd_amf_init(IMMD_CB *immd_cb)
 
 	TRACE_ENTER();
 
-	if (amf_comp_name_get_set_from_file("IMMD_COMP_NAME_FILE",
+	if (immd_cb->nid_started &&
+		amf_comp_name_get_set_from_file("IMMD_COMP_NAME_FILE",
 			&immd_cb->comp_name) != NCSCC_RC_SUCCESS)
 		goto done;
 
