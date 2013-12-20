@@ -17,6 +17,8 @@
 #ifndef CLMS_CB_H
 #define CLMS_CB_H
 
+#include <stdbool.h>
+
 #define IMPLEMENTER_NAME	"safClmService"
 #define CLMS_HA_INIT_STATE	0
 
@@ -182,6 +184,7 @@ typedef struct clms_cb_t {
 	NODE_DOWN_LIST *node_down_list_head;	/*NODE_DOWN record - Fix when active node goes down */
 	NODE_DOWN_LIST *node_down_list_tail;
 	bool is_impl_set;
+	bool nid_started;	/**< true if started by NID */
 } CLMS_CB;
 
 typedef struct clms_lock_tmr_t {

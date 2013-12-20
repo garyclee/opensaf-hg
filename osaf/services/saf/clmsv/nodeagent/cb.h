@@ -51,6 +51,7 @@ typedef struct clmna_cb_t {
 	SaAmfHAStateT ha_state;	/* My current AMF HA state */
 	SaBoolT server_synced;
 	NODE_INFO node_info;
+	bool nid_started;	/**< true if started by NID */
 } CLMNA_CB;
 
 
