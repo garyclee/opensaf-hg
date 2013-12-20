@@ -57,6 +57,9 @@ typedef struct {
 	SaUint32T logFileSysConfig;
 	/* --- end correspond to IMM Class --- */
 
+	/* Used for checkpointing time when files are closed */
+	time_t chkp_file_close_time;
+	
 	bool logInitiated;
 	bool OpenSafLogConfig_class_exist;
 
@@ -204,6 +207,7 @@ static uint32_t ckpt_lgs_cfg(lgs_conf_t *lgs_conf)
 	ckpt.header.data_len = 1;
 
 	ckpt.ckpt_rec.lgs_cfg.logRootDirectory = lgs_conf->logRootDirectory;
+	ckpt.ckpt_rec.lgs_cfg.c_file_close_time_stamp = lgs_conf->chkp_file_close_time;
 
 	rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
 
@@ -240,6 +244,7 @@ static uint32_t ckpt_stream(log_stream_t *stream)
 	ckpt.ckpt_rec.stream_cfg.logFileFormat = stream->logFileFormat;
 	ckpt.ckpt_rec.stream_cfg.severityFilter = stream->severityFilter;
 	ckpt.ckpt_rec.stream_cfg.logFileCurrent = stream->logFileCurrent;
+	ckpt.ckpt_rec.stream_cfg.c_file_close_time_stamp = stream->act_last_close_timestamp;
 
 	rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
 
@@ -247,6 +252,7 @@ static uint32_t ckpt_stream(log_stream_t *stream)
 	return rc;
 }
 
+#if 0
 /**
  * Pack and send a open/close stream checkpoint using mbcsv
  * @param stream
@@ -254,7 +260,7 @@ static uint32_t ckpt_stream(log_stream_t *stream)
  *
  * @return uint32
  */
-static uint32_t ckpt_stream_open_close(log_stream_t *stream, lgsv_ckpt_msg_type_t recType)
+static uint32_t ckpt_stream_open(log_stream_t *stream, lgsv_ckpt_msg_type_t recType)
 {
 	lgsv_ckpt_msg_t ckpt;
 	uint32_t rc;
@@ -266,8 +272,69 @@ static uint32_t ckpt_stream_open_close(log_stream_t *stream, lgsv_ckpt_msg_type_
 	ckpt.header.num_ckpt_records = 1;
 	ckpt.header.data_len = 1;
 
-	lgs_ckpt_stream_open_set(stream, &ckpt.ckpt_rec.stream_open);
+	if (recType == LGS_CKPT_OPEN_STREAM) {
+		lgs_ckpt_stream_open_set(stream, &ckpt.ckpt_rec.stream_open);
+	} else if (recType == LGS_CKPT_CLOSE_STREAM) {
+		ckpt.ckpt_rec.stream_close.clientId = -1; /* Not used, no clients */
+		ckpt.ckpt_rec.stream_close.streamId = stream->streamId;
+		ckpt.ckpt_rec.stream_close.c_file_close_time_stamp = stream->act_last_close_timestamp;
+	}
 
+	rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
+
+	TRACE_LEAVE();
+	return rc;
+}
+#endif /* LLDTEST XXX Remove above. Replaced by fonction below */
+/**
+ * Pack and send an open stream checkpoint using mbcsv
+ * @param stream
+ * @param recType
+ *
+ * @return uint32
+ */
+static uint32_t ckpt_stream_open(log_stream_t *stream)
+{
+	lgsv_ckpt_msg_t ckpt;
+	uint32_t rc;
+
+	TRACE_ENTER();
+
+	memset(&ckpt, 0, sizeof(ckpt));
+	ckpt.header.ckpt_rec_type = LGS_CKPT_OPEN_STREAM;
+	ckpt.header.num_ckpt_records = 1;
+	ckpt.header.data_len = 1;
+
+	lgs_ckpt_stream_open_set(stream, &ckpt.ckpt_rec.stream_open);
+	rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * Pack and send a close stream checkpoint using mbcsv
+ * @param stream
+ * @param recType
+ *
+ * @return uint32
+ */
+static uint32_t ckpt_stream_close(log_stream_t *stream, time_t closetime)
+{
+	lgsv_ckpt_msg_t ckpt;
+	uint32_t rc;
+
+	TRACE_ENTER();
+
+	memset(&ckpt, 0, sizeof(ckpt));
+	ckpt.header.ckpt_rec_type = LGS_CKPT_CLOSE_STREAM;
+	ckpt.header.num_ckpt_records = 1;
+	ckpt.header.data_len = 1;
+
+	/* No client. Logservice itself has opened stream */
+	ckpt.ckpt_rec.stream_close.clientId = -1;
+    ckpt.ckpt_rec.stream_close.streamId = stream->streamId;
+	ckpt.ckpt_rec.stream_close.c_file_close_time_stamp = closetime;
 	rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
 
 	TRACE_LEAVE();
@@ -994,16 +1061,18 @@ static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
  *   - Update lgs_conf with new path (logRootDirectory).
  *   - Open all logfiles and .cfg files in new directory.
  *
- * @param logRootDirectory
+ * @param logRootDirectory[in]
+ *            String containg path for new root directory
+ * @param close_time[in]
+ *            Time for file close time stamp
  */
-void logRootDirectory_filemove(const char *logRootDirectory)
+void logRootDirectory_filemove(const char *new_logRootDirectory, time_t *cur_time_in)
 {
 	log_stream_t *stream;
-	char *current_time = lgs_get_time(NULL);
 	int n = 0;
-
+	
 	/* Shall never happen */
-	if (strlen(logRootDirectory) + 1 > PATH_MAX) {
+	if (strlen(new_logRootDirectory) + 1 > PATH_MAX) {
 		LOG_ER("%s Root path > PATH_MAX! Abort", __FUNCTION__);
 		osafassert(0);
 	}	
@@ -1013,7 +1082,8 @@ void logRootDirectory_filemove(const char *logRootDirectory)
 	while (stream != NULL) {
 		TRACE("Handling file %s", stream->logFileCurrent);
 
-		if (log_stream_config_change(!LGS_STREAM_CREATE_FILES, stream, stream->fileName) != 0) {
+		if (log_stream_config_change(!LGS_STREAM_CREATE_FILES, 
+				stream, stream->fileName, cur_time_in) != 0) {
 			LOG_ER("Old log files could not be renamed and closed, root-dir: %s",
 					lgs_cb->logsv_root_dir);
 		}
@@ -1021,6 +1091,7 @@ void logRootDirectory_filemove(const char *logRootDirectory)
 	}
 
 	/* Create new files at new path */
+	strcpy((char *) lgs_cb->logsv_root_dir, new_logRootDirectory);
 	stream = log_stream_getnext_by_name(NULL);
 	while (stream != NULL) {
 		if (lgs_create_config_file_h(stream) != 0) {
@@ -1029,6 +1100,7 @@ void logRootDirectory_filemove(const char *logRootDirectory)
 		}
 
 		/* Create the new log file based on updated configuration */
+		char *current_time = lgs_get_time(cur_time_in);
 		n = snprintf(stream->logFileCurrent, NAME_MAX, "%s_%s", stream->fileName,
 				current_time);
 		if (n >= NAME_MAX) {
@@ -1066,11 +1138,21 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 			/* Update saved configuration (on active. See ckpt_proc_lgs_cfg()
 			 * in lgs_mbcsv.c for corresponding update on standby)
 			 */
-			const char *logRootDirectory = *((char **)value);
+			const char *new_logRootDirectory = *((char **)value);
+			
+			time_t cur_time = time(NULL);
 			/* Change root dir in lgs*/
-			lgs_imm_rootpathconf_set(logRootDirectory);
-			logRootDirectory_filemove(logRootDirectory);
+			/* NOTE: This function is using the old root path still in lgs_cb
+			 * therefore it cannot be changed until filemove is done
+			 */
+			logRootDirectory_filemove(new_logRootDirectory, &cur_time);
 
+#if 0 /* This must be din inside logRootDirectory_filemove() */
+			/* Set the new root path */
+			lgs_imm_rootpathconf_set(new_logRootDirectory);
+#endif			
+			lgs_conf->chkp_file_close_time = cur_time;
+		
 			LOG_NO("Log root directory changed to: %s", lgs_cb->logsv_root_dir);
 		} else {
 			// validation should not allow any other change
@@ -1227,7 +1309,7 @@ static void stream_ccb_apply_create(const CcbUtilOperationData_t *opdata)
 
 	if ((rc = stream_create_and_configure1(opdata, &stream)) == SA_AIS_OK) {
 		log_stream_open_fileinit(stream);
-		ckpt_stream_open_close(stream, LGS_CKPT_OPEN_STREAM);
+		ckpt_stream_open(stream);
 	} else {
 		LOG_IN("Stream create and configure failed %d", rc);
 	}
@@ -1240,7 +1322,7 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	const SaImmAttrModificationT_2 *attrMod;
 	int i = 0;
 	log_stream_t *stream;
-	char current_file_name[NAME_MAX];
+	char current_logfile_name[NAME_MAX];
 	bool new_cfg_file_needed = false;
 	int n = 0;
 
@@ -1249,7 +1331,7 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	stream = log_stream_get_by_name((char*)opdata->objectName.value);
 	osafassert(stream);
 
-	n = snprintf(current_file_name, NAME_MAX, "%s", stream->fileName);
+	n = snprintf(current_logfile_name, NAME_MAX, "%s", stream->logFileCurrent);
 	if (n >= NAME_MAX) {
 		LOG_ER("Error: a. File name > NAME_MAX");
 		osafassert(0);		
@@ -1308,15 +1390,19 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 		attrMod = opdata->param.modify.attrMods[i++];
 	}
 
+	time_t cur_time = time(NULL);
 	if (new_cfg_file_needed) {
 		int rc;
-		if ((rc = log_stream_config_change(LGS_STREAM_CREATE_FILES, stream, current_file_name))
+		if ((rc = log_stream_config_change(LGS_STREAM_CREATE_FILES, stream,
+				current_logfile_name, &cur_time))
 				!= 0) {
 			LOG_ER("log_stream_config_change failed: %d", rc);
 		}
 	}
 
 	/* Checkpoint to standby LOG server */
+	/* Save time change was done for standby */
+	stream->act_last_close_timestamp = cur_time;
 	ckpt_stream(stream);
 
 	TRACE_LEAVE();
@@ -1325,15 +1411,16 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 static void stream_ccb_apply_delete(const CcbUtilOperationData_t *opdata)
 {
 	log_stream_t *stream;
-	time_t file_closetime = 0;
-
+	time_t file_closetime = time(NULL);
+	
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	stream = log_stream_get_by_name((char *) opdata->objectName.value);
 
 	/* Checkpoint to standby LOG server */
-	ckpt_stream_open_close(stream, LGS_CKPT_CLOSE_STREAM);
+	ckpt_stream_close(stream, file_closetime);
 	log_stream_close(&stream, &file_closetime);
+
 	TRACE_LEAVE();
 }
 
