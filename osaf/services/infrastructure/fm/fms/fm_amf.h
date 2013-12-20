@@ -19,6 +19,7 @@
 #define FM_AMF_H
 
 #include <configmake.h>
+#include <stdbool.h>
 
 /*
  * Macro used to get the AMF version used
@@ -35,6 +36,7 @@ typedef struct fm_amf_cb {
 	SaAmfHandleT amf_hdl;	/* AMF handle */
 	SaSelectionObjectT amf_fd;	/* AMF selection fd */
 	bool is_amf_up;	/* For amf_fd and pipe_fd */
+	bool nid_started;	/**< true if started by NID */
 } FM_AMF_CB;
 
 FM_AMF_CB *fm_amf_get_cb(void);

@@ -23,6 +23,8 @@ This file contains the main() routine for FM.
 ******************************************************************************/
 
 #include <configmake.h>
+#include <stdlib.h>
+#include <stdbool.h>
 #include <daemon.h>
 #include <logtrace.h>
 
@@ -32,8 +34,7 @@ This file contains the main() routine for FM.
 
 enum {
 	FD_TERM = 0,
-	FD_USR1 = 1,
-	FD_AMF = FD_USR1,
+	FD_AMF = 1,
 	FD_MBX
 };
 
@@ -122,27 +123,29 @@ int main(int argc, char *argv[])
 	int ret=0;
 	int rc = NCSCC_RC_FAILURE;
 	int term_fd;
+	bool nid_started = false;
 
 	opensaf_reboot_prepare();
 
 	daemonize(argc, argv);
 
+	/* Determine how this process was started, by NID or AMF */
+	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
+		nid_started = true;
+
 	if (fm_agents_startup() != NCSCC_RC_SUCCESS) {
-	/* notify the NID */
-		fm_nid_notify((uint32_t)NCSCC_RC_FAILURE);
 		goto fm_init_failed;
 	}
 
 	/* Allocate memory for FM_CB. */
 	fm_cb = m_MMGR_ALLOC_FM_CB;
 	if (NULL == fm_cb) {
-	/* notify the NID */
 		syslog(LOG_ERR, "CB Allocation failed.");
-		fm_nid_notify((uint32_t)NCSCC_RC_FAILURE);
 		goto fm_init_failed;
 	}
 
 	memset(fm_cb, 0, sizeof(FM_CB));
+	fm_cb->fm_amf_cb.nid_started = nid_started;
 
 	/* Create CB handle */
 	gl_fm_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_GFM, (NCSCONTEXT)fm_cb);
@@ -175,7 +178,6 @@ int main(int argc, char *argv[])
 
 /* RDA initialization */
 	if (fm_rda_init(fm_cb) != NCSCC_RC_SUCCESS) {
-		fm_nid_notify((uint32_t)NCSCC_RC_FAILURE);
 		goto fm_init_failed;
 	}
 
@@ -184,16 +186,22 @@ int main(int argc, char *argv[])
 		goto fm_init_failed;
 	}
 
-	if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+	if (nid_started &&
+		(rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create FAILED");
 		goto fm_init_failed;
 	}
 
 
-	if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+	if (nid_started &&
+		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
 		LOG_ER("signal USR1 FAILED: %s", strerror(errno));
 		goto fm_init_failed;
 	}
+
+	if (!nid_started &&
+		fm_amf_init(&fm_cb->fm_amf_cb) != NCSCC_RC_SUCCESS)
+		goto done;
 
 	fm_cb->csi_assigned = false;
 
@@ -209,8 +217,9 @@ int main(int argc, char *argv[])
 	fds[FD_TERM].events = POLLIN;
 
 	/* USR1/AMF fd */
-	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
-	fds[FD_USR1].events = POLLIN;
+	fds[FD_AMF].fd = nid_started ?
+		usr1_sel_obj.rmv_obj : fm_cb->fm_amf_cb.amf_fd;
+	fds[FD_AMF].events = POLLIN;
 
 	/* Mailbox */
 	fds[FD_MBX].fd = mbx_sel_obj.rmv_obj;
@@ -218,7 +227,8 @@ int main(int argc, char *argv[])
 
  
 	/* notify the NID */
-	fm_nid_notify(NCSCC_RC_SUCCESS);
+	if (nid_started)
+		fm_nid_notify(NCSCC_RC_SUCCESS);
 
 	while (1) {
 		ret = poll(fds, nfds, -1);
@@ -256,7 +266,8 @@ int main(int argc, char *argv[])
 	}
 
  fm_init_failed:
-	fm_nid_notify((uint32_t)NCSCC_RC_FAILURE);
+	if (nid_started)
+		fm_nid_notify((uint32_t) NCSCC_RC_FAILURE);
  done:
 	syslog(LOG_ERR, "Exiting...");
 	exit(1);
