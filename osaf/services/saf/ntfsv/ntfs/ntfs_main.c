@@ -46,7 +46,6 @@
 
 enum {
 	FD_TERM = 0,
-	FD_USR1 = 1,
 	FD_AMF = 1,
 	FD_MBCSV,
 	FD_MBX,
@@ -181,6 +180,10 @@ static uint32_t initialize()
 
 	TRACE_ENTER();
 
+	/* Determine how this process was started, by NID or AMF */
+	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
+		ntfs_cb->nid_started = true;
+
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_core_agents_startup FAILED");
 		goto done;
@@ -227,22 +230,29 @@ static uint32_t initialize()
 		return rc;
 	}
 
-	if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS)
+	if (ntfs_cb->nid_started &&
+		(rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS)
 	{
 		LOG_ER("ncs_sel_obj_create failed");
 		goto done;
 	}
 
-	if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+	if (ntfs_cb->nid_started &&
+		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
 		LOG_ER("signal USR1 failed: %s", strerror(errno));
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
 	initAdmin();
-	
+
+	if (!ntfs_cb->nid_started && ntfs_amf_init() != SA_AIS_OK) {
+		goto done;
+	}
+
 done:
-	if (nid_notify("NTFD", rc, NULL) != NCSCC_RC_SUCCESS) {
+	if (ntfs_cb->nid_started &&
+		nid_notify("NTFD", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
 		rc = NCSCC_RC_FAILURE;
 	}
@@ -280,8 +290,9 @@ int main(int argc, char *argv[])
 	/* Set up all file descriptors to listen to */
 	fds[FD_TERM].fd = term_fd;
 	fds[FD_TERM].events = POLLIN;
-	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
-	fds[FD_USR1].events = POLLIN;
+	fds[FD_AMF].fd = ntfs_cb->nid_started ?
+		usr1_sel_obj.rmv_obj : ntfs_cb->amfSelectionObject;
+	fds[FD_AMF].events = POLLIN;
 	fds[FD_MBCSV].fd = ntfs_cb->mbcsv_sel_obj;
 	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;

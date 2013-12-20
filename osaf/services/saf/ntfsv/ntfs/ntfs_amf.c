@@ -401,7 +401,8 @@ SaAisErrorT ntfs_amf_init()
 
 	TRACE_ENTER();
 
-	if (amf_comp_name_get_set_from_file("NTFD_COMP_NAME_FILE", &ntfs_cb->comp_name) != NCSCC_RC_SUCCESS)
+	if (ntfs_cb->nid_started &&
+		amf_comp_name_get_set_from_file("NTFD_COMP_NAME_FILE", &ntfs_cb->comp_name) != NCSCC_RC_SUCCESS)
 		goto done;
 
 	/* Initialize AMF callbacks */
