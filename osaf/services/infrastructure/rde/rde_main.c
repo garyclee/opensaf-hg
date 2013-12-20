@@ -17,6 +17,7 @@
  */
 
 #include <configmake.h>
+#include <stdlib.h>
 #include <poll.h>
 #include <libgen.h>
 
@@ -32,8 +33,7 @@
 
 enum {
 	FD_TERM = 0,
-	FD_USR1 = 1,
-	FD_AMF = FD_USR1,
+	FD_AMF = 1,
 	FD_MBX,
 	FD_RDA_SERVER,
 	FD_CLIENT_START
@@ -303,6 +303,10 @@ static int initialize_rde(void)
 	int rc = NCSCC_RC_FAILURE;
 	char *val;
 
+	/* Determine how this process was started, by NID or AMF */
+	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
+		rde_cb->rde_amf_cb.nid_started = true;
+
 	if ((val = getenv("RDE_DISCOVER_PEER_TIMEOUT")) != NULL)
 		discover_peer_timeout = strtoul(val, NULL, 0);
 
@@ -313,7 +317,8 @@ static int initialize_rde(void)
 		goto init_failed;
 	}
 
-	if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+	if (rde_cb->rde_amf_cb.nid_started &&
+		(rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create FAILED");
 		goto init_failed;
 	}
@@ -333,7 +338,8 @@ static int initialize_rde(void)
 	if ((rc = rde_rda_open(RDE_RDA_SOCK_NAME, rde_rda_cb)) != NCSCC_RC_SUCCESS)
 		goto init_failed;
 
-	if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+	if (rde_cb->rde_amf_cb.nid_started &&
+		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
 		LOG_ER("signal USR1 FAILED: %s", strerror(errno));
 		goto init_failed;
 	}
@@ -370,14 +376,27 @@ int main(int argc, char *argv[])
 	if ((rc = determine_role(mbx_sel_obj.rmv_obj)) == NCSCC_RC_FAILURE)
 		goto init_failed;
 
+	/* If AMF started register immediately */
+	if (!rde_cb->rde_amf_cb.nid_started &&
+		(rc = rde_amf_init(&rde_cb->rde_amf_cb)) != NCSCC_RC_SUCCESS) {
+		goto init_failed;
+	}
+
+	if (rde_cb->rde_amf_cb.nid_started &&
+		nid_notify("RDE", rc, NULL) != NCSCC_RC_SUCCESS) {
+		LOG_ER("nid_notify failed");
+		goto done;
+	}
+
 	daemon_sigterm_install(&term_fd);
 
 	fds[FD_TERM].fd = term_fd;
 	fds[FD_TERM].events = POLLIN;
 
 	/* USR1/AMF fd */
-	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
-	fds[FD_USR1].events = POLLIN;
+	fds[FD_AMF].fd = rde_cb->rde_amf_cb.nid_started ?
+		usr1_sel_obj.rmv_obj : rde_cb->rde_amf_cb.amf_fd;
+	fds[FD_AMF].events = POLLIN;
 
 	/* Mailbox */
 	fds[FD_MBX].fd = mbx_sel_obj.rmv_obj;
@@ -386,11 +405,6 @@ int main(int argc, char *argv[])
 	/* RDA server socket */
 	fds[FD_RDA_SERVER].fd = rde_cb->rde_rda_cb.fd;
 	fds[FD_RDA_SERVER].events = POLLIN;
-
-	if (nid_notify("RDE", rc, NULL) != NCSCC_RC_SUCCESS) {
-		LOG_ER("nid_notify failed");
-		goto init_failed;
-	}
 
 	while (1) {
 		ret = poll(fds, nfds, -1);
@@ -471,7 +485,11 @@ int main(int argc, char *argv[])
 	}
 
  init_failed:
-	(void)nid_notify("RDE", NCSCC_RC_FAILURE, NULL);
+	if (rde_cb->rde_amf_cb.nid_started &&
+		nid_notify("RDE", NCSCC_RC_FAILURE, NULL) != NCSCC_RC_SUCCESS) {
+		LOG_ER("nid_notify failed");
+		rc = NCSCC_RC_FAILURE;
+	}
 
  done:
 	syslog(LOG_ERR, "Exiting...");

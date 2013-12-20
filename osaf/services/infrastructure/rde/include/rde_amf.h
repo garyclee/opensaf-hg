@@ -36,6 +36,7 @@
  * Includes
  */
 
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdarg.h>
@@ -57,6 +58,7 @@ typedef struct {
 	SaAmfHandleT amf_hdl;	/* AMF handle */
 	SaSelectionObjectT amf_fd;	/* AMF selection fd */
 	bool is_amf_up;	/* For amf_fd and pipe_fd */
+	bool nid_started;	/**< true if started by NID */
 
 } RDE_AMF_CB;
 
