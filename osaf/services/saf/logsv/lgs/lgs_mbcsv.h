@@ -54,7 +54,7 @@ typedef struct {
 /* Finalize checkpoint record, used in cold/async checkpoint updates */
 typedef struct {
 	uint32_t client_id;	/* Client Id at Active */
-	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename */
+	uint64_t c_file_close_time_stamp; /* Time in sec for file rename */
 } lgs_ckpt_finalize_msg_t;
 
 typedef struct {
@@ -63,7 +63,7 @@ typedef struct {
 	uint32_t curFileSize;
 	char *logFileCurrent;
 	char *logRecord;
-	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename on Active */
+	uint64_t c_file_close_time_stamp; /* Time in sec for file rename on Active */
 } lgs_ckpt_write_log_t;
 
 typedef struct {
@@ -89,7 +89,7 @@ typedef struct {
 typedef struct {
 	uint32_t streamId;
 	uint32_t clientId;
-	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename on Active */
+	uint64_t c_file_close_time_stamp; /* Time in sec for file rename on Active */
 } lgs_ckpt_stream_close_t;
 
 /* Checkpoint message containing lgs data of a particular type.
@@ -114,18 +114,18 @@ typedef struct {
 	char *logFileFormat;
 	SaUint32T severityFilter;
 	char *logFileCurrent;
-	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename on Active */
+	uint64_t c_file_close_time_stamp; /* Time in sec for file rename on Active */
 } lgs_ckpt_stream_cfg_t;
 
 typedef struct {
 	/* Only attribute that can be updated */
 	char *logRootDirectory;
-	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename */
+	uint64_t c_file_close_time_stamp; /* Time in sec for file rename */
 } lgs_ckpt_lgs_cfg_t;
 
 typedef struct {
 	MDS_DEST agent_dest; /* uint64_t */
-	SaTimeT c_file_close_time_stamp; /* Time in sec for file rename (int64_t) */
+	uint64_t c_file_close_time_stamp; /* Time in sec for file rename (int64_t) */
 } lgs_ckpt_agent_down_t;
 
 typedef struct {
@@ -145,6 +145,7 @@ typedef struct {
 typedef uint32_t (*LGS_CKPT_HDLR) (lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
 uint32_t lgs_mbcsv_init(lgs_cb_t *lgs_cb);
 uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb);
+bool lgs_is_split_file_system(void);
 uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 uint32_t lgs_ckpt_send_async(lgs_cb_t *cb, lgsv_ckpt_msg_t *ckpt_rec, uint32_t action);
 uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream, lgs_ckpt_stream_open_t *stream_open);

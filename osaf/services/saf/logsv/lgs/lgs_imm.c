@@ -90,7 +90,7 @@ static lgs_conf_t _lgs_conf = {
 	.logStreamAppLowLimit = 0,
 	.logMaxApplicationStreams = 64,
 	.logFileIoTimeout = 500,
-	.logFileSysConfig = 0,
+	.logFileSysConfig = 1,
 
 	/*
 	 * For the following flags, true means that no external configuration
@@ -2175,7 +2175,8 @@ static void *imm_impl_set(void *_cb)
 	 */
 	msecs_waited = 0;
 	rc = saImmOiImplementerSet(cb->immOiHandle, implementerName);
-	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_60s)) {
+	while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST)) &&
+			(msecs_waited < max_waiting_time_60s)) {
 		usleep(sleep_delay_ms * 1000);
 		msecs_waited += sleep_delay_ms;
 		rc = saImmOiImplementerSet(cb->immOiHandle, implementerName);
@@ -2192,7 +2193,8 @@ static void *imm_impl_set(void *_cb)
 		(void)immutil_saImmOiClassImplementerSet(cb->immOiHandle, "OpenSafLogConfig");
 		msecs_waited = 0;
 		rc = saImmOiClassImplementerSet(cb->immOiHandle, "OpenSafLogConfig");
-		while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_60s)) {
+		while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST))
+				&& (msecs_waited < max_waiting_time_60s)) {
 			usleep(sleep_delay_ms * 1000);
 			msecs_waited += sleep_delay_ms;
 			rc = saImmOiClassImplementerSet(cb->immOiHandle, "OpenSafLogConfig");
@@ -2205,7 +2207,8 @@ static void *imm_impl_set(void *_cb)
 
 	msecs_waited = 0;
 	rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaLogStreamConfig");
-	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_60s)) {
+	while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST))
+			&& (msecs_waited < max_waiting_time_60s)) {
 		usleep(sleep_delay_ms * 1000);
 		msecs_waited += sleep_delay_ms;
 		rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaLogStreamConfig");

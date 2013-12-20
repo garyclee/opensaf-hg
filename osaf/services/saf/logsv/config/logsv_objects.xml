@@ -82,6 +82,10 @@
 			<name>logRootDirectory</name>
 			<value>xxLOGDIRxx/saflog</value>
 		</attr>
+		<attr>
+			<name>logFileSysConfig</name>
+			<value>1</value>
+		</attr>
 	</object>
 	<object class="SaAmfCompBaseType">
 		<dn>safCompType=OpenSafCompTypeLOG</dn>
