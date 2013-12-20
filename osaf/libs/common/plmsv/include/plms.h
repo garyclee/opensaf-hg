@@ -24,6 +24,7 @@
 #ifndef PLMS_H
 #define PLMS_H
 
+#include <stdbool.h>
 #include "ncsgl_defs.h"
 
 #include "ncs_saf.h"
@@ -334,6 +335,7 @@ typedef struct plms_cb
 	bool                  client_info_cold_sync_done;
         bool                  entity_grp_cold_sync_done;
         bool                  trk_step_info_cold_sync_done;
+	bool nid_started;	/**< true if started by NID */
 } PLMS_CB;
 
 typedef enum

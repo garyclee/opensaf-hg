@@ -41,8 +41,7 @@
 #include "plms_hrb.h"
 #include "plms_mbcsv.h"
 
-#define FD_USR1 0
-#define FD_AMF 0
+#define FD_AMF 0	/**< USR1/AMF fd */
 #define FD_MBCSV 1
 #define FD_MBX 2
 #define FD_IMM 3
@@ -259,6 +258,10 @@ static uint32_t plms_init()
 	}
 	memset(cb,0,sizeof(PLMS_CB));
 
+	/* Determine how this process was started, by NID or AMF */
+	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
+		cb->nid_started = true;
+
 	/* Initialize the PLMS LOCK */
 	m_NCS_LOCK_INIT(&cb->cb_lock);
 	m_NCS_LOCK(&cb->cb_lock,NCS_LOCK_WRITE);
@@ -359,7 +362,8 @@ static uint32_t plms_init()
         }
 
 	/* Create a selection object. This is used for amf initialization*/
-        if ((rc = ncs_sel_obj_create(&cb->usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+	if (cb->nid_started &&
+		(rc = ncs_sel_obj_create(&cb->usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
                 LOG_ER("ncs_sel_obj_create failed");
 		rc = NCSCC_RC_FAILURE;
                 goto done;
@@ -369,7 +373,8 @@ static uint32_t plms_init()
          ** Initialize a signal handler that will use the selection object.
          ** The signal is sent from our script when AMF does instantiate.
          */
-        if ((signal(SIGUSR1, sigusr1_handler)) == SIG_ERR) {
+	if (cb->nid_started &&
+		(signal(SIGUSR1, sigusr1_handler)) == SIG_ERR) {
                 LOG_ER("signal USR1 failed: %s", strerror(errno));
                 rc = NCSCC_RC_FAILURE;
                 goto done;
@@ -380,13 +385,21 @@ static uint32_t plms_init()
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
-									
+
+	if (!cb->nid_started &&
+		plms_amf_register() != NCSCC_RC_SUCCESS) {
+		LOG_ER("AMF Initialization failed");
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
         syslog(LOG_INFO, "Initialization Success, role %s",
                (cb->ha_state == SA_AMF_HA_ACTIVE) ? "ACTIVE" : "STANDBY");
 
 done:
 	m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
-         if (nid_notify("PLMD", rc, NULL) != NCSCC_RC_SUCCESS) {
+	if (cb->nid_started &&
+		nid_notify("PLMD", rc, NULL) != NCSCC_RC_SUCCESS) {
                  LOG_ER("nid_notify failed");
                  rc = NCSCC_RC_FAILURE;
          }
@@ -427,8 +440,9 @@ int main(int argc, char *argv[])
 	
 	/* Wait on all the FDs */
 	/* Set up all file descriptors to listen to */
-        fds[FD_USR1].fd = plms_cb->usr1_sel_obj.rmv_obj;
-        fds[FD_USR1].events = POLLIN;
+	fds[FD_AMF].fd = plms_cb->nid_started ?
+		plms_cb->usr1_sel_obj.rmv_obj : plms_cb->amf_sel_obj;
+	fds[FD_AMF].events = POLLIN;
         fds[FD_MBCSV].fd = plms_cb->mbcsv_sel_obj;
         fds[FD_MBCSV].events = POLLIN;
         fds[FD_MBX].fd = mbx_fd.rmv_obj;
