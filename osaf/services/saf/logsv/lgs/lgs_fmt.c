@@ -1139,7 +1139,7 @@ SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
 }
 
 /**
- * Format and write a log record
+ * Format a log record
  * 
  * @param logRecord
  * @param formatExpression format string

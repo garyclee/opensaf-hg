@@ -321,3 +321,178 @@ Niklas Nilsson
 Lennart Lund <lennart.lund@ericsson.com>
 
 The LOG service was originally cloned from the edsv service.
+
+
+=================
+Split file system
+=================
+
+
+GENERAL
+
+The log service can be configured to be used without a shared file system.
+In this configuration all handling of log files is done on both nodes local file
+system.
+
+
+CONFIGURATION
+
+The log service must be able to handle files in two ways.
+
+1. Using a shared file system the same way as today.
+
+2. Using the local file system on both nodes. The same log records will be
+   written on both file systems. The directory structure and file names are
+   also the same.
+
+An attribute in the log service configuration object is used to select
+configuration. Default configuration is shared file system (configuration 1).
+
+
+CHECK-POINTING
+
+Only the active node will receive requests from the agent. The request are
+handled in the event handler (lgs_evt). The standby node will get information
+about the requests from the active node via check pointing.
+
+In configuration 1; standby will use this information to update the internal
+information structure e.g. information about connected clients, used file names
+etc. but no files will be created or written.
+
+In configuration 2; standby will also create and open files and write log
+records. This is done in the check point handlers (lgs_mbcsv) that corresponds
+to the event handlers on the active node.
+
+As is changes of the log service configuration object is handled on standby
+using IMM applier. This is changed so that mbcsv is used for all
+synchronization.
+
+
+The following is check-pointed and done on standby:
+===================================================
+
+If something goes wrong the general behavior is to restart the component using
+saAmfComponentErrorReport(...,SA_AMF_COMPONENT_RESTART,...) in order to avoid
+being out of sync (will trig a mbcs cold sync).
+
+Checkpointed
+------------
+
+initialize client:
+    Adds a new client.
+
+finalize client:
+	Removes a client. Also removes streams that has no more clients.
+
+    If config 2:
+
+    closing and renaming the corresponding files.
+
+agent down:
+    Client corresponding to MDS destination is removed. See also finalize.
+
+log write:
+    The following is check-pointed and internal data is updated:
+    logRecordId
+    curFileSize
+    logFileCurrent
+
+    If config 2:
+
+    logRecordString
+    logRecordSize
+
+    Create files if new stream.
+    Write record to log file.
+    Rotate if logFileCurrent changes.
+    
+open stream:
+    Log files are created when a stream is opened for the first time. This means
+    creating the file names, creating a config file and creating and opening the
+    log file. If this fails the files are created and opened when trying to
+    write a log record to the stream. This is done in the event handler when
+    receiving an "stream open" event from the agent. 
+
+    If config 2:
+
+    As above but is done in the check point handler when receiving an "open
+    stream" check point.
+
+
+close stream:
+    A log stream is closed for a client.
+    
+    If config 2:
+
+	If last client files are closed and renamed same as on active node.
+
+cfg stream:
+    Attributes for a log stream are changed. Internal data is updated. This is
+    done for both streams with runtime objects and configuration objects. On
+    active node this is handled with an object implementer (lgs_imm) and changes
+    are check pointed to standby.
+
+    If config 2:
+
+    In some cases the configuration file and log file has to be handled. Must
+    be done also on standby. This is done in the check point handler.
+
+cfg config:
+    Attributes in the log service configuration object are changed. Internal
+    data is updated. On active node this is handled with an object implementer
+    (lgs_imm) and changes are check pointed to standby. Currently only attribute
+    logRootDirectory can be changed in runtime. When this happen all files are
+    closed and new files are created at the new location for all open streams.
+
+    If config 2:
+
+    Files has to be handled as on active. This is done in the check point
+    handler.
+
+
+SYNCHRONIZATION
+
+Synchronization of internal data
+--------------------------------
+
+The only synchronization that is used in the log service is mbcs cold sync. This
+synchronization is trigged when standby detects a new active.
+Cold sync:
+ - At start up / restart
+ - When changing role
+ - When standby detects out of sync.
+   AMF is requested to perform a component restart (of standby)
+   "saAmfComponentErrorReport(...,SA_AMF_COMPONENT_RESTART,...)"
+
+
+Synchronization of files and handling of log records
+----------------------------------------------------
+
+Active node check point parameter used for file handling changes to standby.
+
+On standby if configuration 2:
+ - Log files are created when a stream is opened for the first time. This means
+   creating the file names, creating a config file and creating and opening the
+   log file. If this fails the files are created and opened when trying to write
+   a log record to the stream.
+ - Rotate log files when "logFileCurrent" change (means that file rotation has
+   been done on active). Also rotate if the log files reaches it's size limit.
+   In this case the new file name is based on time read from own node.
+   If active check point a new "logFileCurrent" after a local file has been
+   created a file rotation is done and "logFileCurrent" is used as new file
+   name.
+
+ - For log records, time stamp and log-record-id check-pointed from active is
+   always used on standby.
+ - In some situations log records can be out of sync e.g. if standby is
+   restarted when active is writing log records. The log server detects this by
+   comparing last written log record id with the id of a log record to be
+   written. The id to write shall be last + 1 if we are in sync.
+   If out of sync the following is done:
+   - The log service creates a log record with id 0 (id 0 is not used for "real"
+     log records) and writes it to the stream log file. This log record has the
+     same format as the other log records. It contains a message with
+     information about the problem. The message also contains the Id of the
+     previous record and the Id of the record to be written.
+   - Write the check pointed log record.
+

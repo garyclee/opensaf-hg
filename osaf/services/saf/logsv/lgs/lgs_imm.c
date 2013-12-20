@@ -252,40 +252,6 @@ static uint32_t ckpt_stream(log_stream_t *stream)
 	return rc;
 }
 
-#if 0
-/**
- * Pack and send a open/close stream checkpoint using mbcsv
- * @param stream
- * @param recType
- *
- * @return uint32
- */
-static uint32_t ckpt_stream_open(log_stream_t *stream, lgsv_ckpt_msg_type_t recType)
-{
-	lgsv_ckpt_msg_t ckpt;
-	uint32_t rc;
-
-	TRACE_ENTER();
-
-	memset(&ckpt, 0, sizeof(ckpt));
-	ckpt.header.ckpt_rec_type = recType;
-	ckpt.header.num_ckpt_records = 1;
-	ckpt.header.data_len = 1;
-
-	if (recType == LGS_CKPT_OPEN_STREAM) {
-		lgs_ckpt_stream_open_set(stream, &ckpt.ckpt_rec.stream_open);
-	} else if (recType == LGS_CKPT_CLOSE_STREAM) {
-		ckpt.ckpt_rec.stream_close.clientId = -1; /* Not used, no clients */
-		ckpt.ckpt_rec.stream_close.streamId = stream->streamId;
-		ckpt.ckpt_rec.stream_close.c_file_close_time_stamp = stream->act_last_close_timestamp;
-	}
-
-	rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
-
-	TRACE_LEAVE();
-	return rc;
-}
-#endif /* LLDTEST XXX Remove above. Replaced by fonction below */
 /**
  * Pack and send an open stream checkpoint using mbcsv
  * @param stream
@@ -1068,8 +1034,10 @@ static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
  */
 void logRootDirectory_filemove(const char *new_logRootDirectory, time_t *cur_time_in)
 {
+	TRACE_ENTER();
 	log_stream_t *stream;
 	int n = 0;
+	char *current_logfile;
 	
 	/* Shall never happen */
 	if (strlen(new_logRootDirectory) + 1 > PATH_MAX) {
@@ -1082,8 +1050,16 @@ void logRootDirectory_filemove(const char *new_logRootDirectory, time_t *cur_tim
 	while (stream != NULL) {
 		TRACE("Handling file %s", stream->logFileCurrent);
 
+		if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+			current_logfile = stream->logFileCurrent;
+		} else {
+			current_logfile = stream->stb_logFileCurrent;
+		}
+
+		TRACE("current_logfile \"%s\"",current_logfile);
+
 		if (log_stream_config_change(!LGS_STREAM_CREATE_FILES, 
-				stream, stream->fileName, cur_time_in) != 0) {
+				stream, current_logfile, cur_time_in) != 0) {
 			LOG_ER("Old log files could not be renamed and closed, root-dir: %s",
 					lgs_cb->logsv_root_dir);
 		}
@@ -1111,8 +1087,15 @@ void logRootDirectory_filemove(const char *new_logRootDirectory, time_t *cur_tim
 			LOG_ER("New log file could not be created for stream: %s",
 					stream->name);
 		}
+		
+		/* Also update standby current file name
+		 * Used if standby and configured for split file system
+		 */
+		strcpy(stream->stb_logFileCurrent, stream->logFileCurrent);
+		
 		stream = log_stream_getnext_by_name(stream->name);
 	}
+	TRACE_LEAVE();
 }
 
 /**
