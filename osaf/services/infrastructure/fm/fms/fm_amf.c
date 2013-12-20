@@ -268,7 +268,8 @@ uint32_t fm_amf_init(FM_AMF_CB *fm_amf_cb)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
-	if (amf_comp_name_get_set_from_file("FM_COMP_NAME_FILE", &sname) != NCSCC_RC_SUCCESS)
+	if (fm_amf_cb->nid_started &&
+		amf_comp_name_get_set_from_file("FM_COMP_NAME_FILE", &sname) != NCSCC_RC_SUCCESS)
 		return NCSCC_RC_FAILURE;
  
 	amfCallbacks.saAmfHealthcheckCallback = fm_saf_health_chk_callback;
