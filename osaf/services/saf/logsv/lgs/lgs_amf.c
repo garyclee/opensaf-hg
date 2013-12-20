@@ -460,7 +460,9 @@ SaAisErrorT lgs_amf_init(lgs_cb_t *cb)
 
 	TRACE_ENTER();
 
-	if (amf_comp_name_get_set_from_file("LOGD_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS) {
+	if (cb->nid_started &&
+		amf_comp_name_get_set_from_file("LOGD_COMP_NAME_FILE",
+		&cb->comp_name) != NCSCC_RC_SUCCESS) {
 		error = SA_AIS_ERR_NOT_EXIST;
 		goto done;
 	}
