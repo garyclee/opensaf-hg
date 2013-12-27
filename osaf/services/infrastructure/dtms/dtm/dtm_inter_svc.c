@@ -112,7 +112,7 @@ uint32_t dtm_internode_process_rcv_down_msg(uint8_t *buffer, uint16_t len, NODE_
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_node_up(NODE_ID node_id, char *node_name, SYSF_MBX mbx)
+uint32_t dtm_node_up(NODE_ID node_id, char *node_name, char *node_ip, DTM_IP_ADDR_TYPE i_addr_family, SYSF_MBX mbx)
 {
 	/* Function call from inter thread */
 	/* Post the event to the mailbox of the intra_thread */
@@ -129,6 +129,10 @@ uint32_t dtm_node_up(NODE_ID node_id, char *node_name, SYSF_MBX mbx)
 	dtm_msg_elem->info.node.node_id = node_id;
 	dtm_msg_elem->info.node.mbx = mbx;
 	strcpy(dtm_msg_elem->info.node.node_name, node_name);
+	dtm_msg_elem->info.node.i_addr_family = i_addr_family;  /* Indicates V4 or V6 */
+	strcpy(dtm_msg_elem->info.node.node_ip, node_ip);
+	TRACE("DTM: node_ip:%s, node_id:%u i_addr_family:%d ", dtm_msg_elem->info.node.node_ip,
+			dtm_msg_elem->info.node.node_id, dtm_msg_elem->info.node.i_addr_family);
 
 	/* Do a mailbox post */
 	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem, dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {

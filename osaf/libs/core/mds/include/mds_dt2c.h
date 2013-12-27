@@ -394,10 +394,10 @@ extern uint32_t mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL 
 			      MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type);
 
 /* NODE UP */
-extern uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id);
+extern uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, char *node_ip, uint16_t addr_family);
 
 /* NODE DOWN */
-extern uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id);
+extern uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, uint16_t addr_family);
 
 /* VDEST UP */
 extern uint32_t mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest);

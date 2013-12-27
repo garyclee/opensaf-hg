@@ -1012,6 +1012,8 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 	case MDTM_LIB_NODE_DOWN_TYPE:
 
 		{
+			uint16_t addr_family; /* Indicates V4 or V6 */
+			char node_ip[INET6_ADDRSTRLEN];
 			node_id = ncs_decode_32bit(&buffer);
 			ref_val = ncs_decode_64bit(&buffer);
 
@@ -1021,11 +1023,21 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 			}
 
 			if (msg_type == MDTM_LIB_NODE_UP_TYPE) {
-				mds_mcm_node_up(svc_hdl, node_id);
+				addr_family = ncs_decode_8bit(&buffer);
+				memset(node_ip,0, INET6_ADDRSTRLEN);
+				memcpy(node_ip, (uint8_t *)buffer, INET6_ADDRSTRLEN);
+				m_MDS_LOG_INFO("MDTM: NODE_UP node_ip:%s, node_id:%u addr_family:%d msg_type:%d",
+						node_ip, node_id, addr_family, msg_type);
+				mds_mcm_node_up(svc_hdl, node_id, node_ip, addr_family);
 			}
 
 			if (msg_type == MDTM_LIB_NODE_DOWN_TYPE) {
-				mds_mcm_node_down(svc_hdl, node_id);
+				m_MDS_LOG_INFO("MDTM: NODE_DOWN  node_id:%u msg_type:%d",node_id, msg_type);
+				/* TBD if required this can be AF_INET or AF_INET6
+				   for now to distinguished between TCP & TIPC   hardcoding to AF_INET
+				   in case of TIPC  we receive this as AF_TIPC */
+				addr_family = AF_INET; /* AF_INET or AF_INET6 */
+				mds_mcm_node_down(svc_hdl, node_id, addr_family);
 			}
 		}
 		break;
