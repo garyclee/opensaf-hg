@@ -138,8 +138,6 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	CPD_CKPT_REPLOC_INFO *reploc_info = NULL;
-	CPD_NODE_REF_INFO *nref_info = NULL;
-	CPD_CKPT_REF_INFO *cref_info = NULL;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	SaCkptCheckpointHandleT ckpt_id = 0;
 	bool add_flag = true, create_reploc_node = false;
@@ -167,15 +165,6 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 		}
 	} else {
 		map_info = *io_map_info;
-	}
-
-	nref_info = m_MMGR_ALLOC_CPD_NODE_REF_INFO;
-	cref_info = m_MMGR_ALLOC_CPD_CKPT_REF_INFO;
-
-	if (!(nref_info && cref_info)) {
-		TRACE_4("CPD DB add failed");
-		proc_rc = NCSCC_RC_OUT_OF_MEM;
-		goto free_mem;
 	}
 
 	/* Get the CPD_CPND_INFO_NODE (CPND from where this ckpt is created) */
@@ -366,22 +355,11 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 
 	if (noncoll_rep_on_payload != true) {
 		/* Add the CPND Details (CPND reference) to the ckpt node */
-		memset(nref_info, 0, sizeof(CPD_NODE_REF_INFO));
-		nref_info->dest = *cpnd_dest;
-		cpd_node_ref_info_add(ckpt_node, nref_info);
+		cpd_node_ref_info_add(ckpt_node, cpnd_dest);
 
 		/* Add the ckpt reference to the CPND node info */
-		memset(cref_info, 0, sizeof(CPD_CKPT_REF_INFO));
-		cref_info->ckpt_node = ckpt_node;
-		cpd_ckpt_ref_info_add(node_info, cref_info);
-	} else {
-		if (cref_info)
-			m_MMGR_FREE_CPD_CKPT_REF_INFO(cref_info);
-
-		if (nref_info)
-			m_MMGR_FREE_CPD_NODE_REF_INFO(nref_info);
+		cpd_ckpt_ref_info_add(node_info, ckpt_node);
 	}
-
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -394,12 +372,6 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 	return proc_rc;
 
  free_mem:
-	if (cref_info)
-		m_MMGR_FREE_CPD_CKPT_REF_INFO(cref_info);
-
-	if (nref_info)
-		m_MMGR_FREE_CPD_NODE_REF_INFO(nref_info);
-
 	if (*io_map_info == NULL) {
 		if (ckpt_node)
 			m_MMGR_FREE_CPD_CKPT_INFO_NODE(ckpt_node);

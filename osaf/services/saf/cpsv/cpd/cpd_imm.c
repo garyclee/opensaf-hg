@@ -39,7 +39,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						   const SaNameT *objectName, const SaImmAttrNameT *attributeNames);
 static uint32_t cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
 static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
-static char* ckpt_replica_extract_node_name(char *src,char *key);
+static void  ckpt_replica_extract_node_name(SaNameT *nodeName, char *src);
 
 SaImmOiCallbacksT_2 oi_cbks = {
 	.saImmOiAdminOperationCallback = NULL,
@@ -126,10 +126,8 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	memset(node_name,0,(objectName->length-ckptName.length));
 	node_name = (char*)memcpy(node_name,(char*)objectName->value,objectName->length-ckptName.length-1);
 
-	node_name = ckpt_replica_extract_node_name(node_name,"\\");
-	node_name = node_name + 11;	
-	strcpy((char*)nodeName.value, node_name);
-	nodeName.length = strlen(node_name);
+	ckpt_replica_extract_node_name(&nodeName, node_name);
+	free(node_name);
 	}
 
 	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckptName, &map_info);
@@ -628,21 +626,30 @@ static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb
 
 
 
-static char *ckpt_replica_extract_node_name(char *src,char *key)
+static void ckpt_replica_extract_node_name(SaNameT *nodeName, char *src)
 {
-	char *dest = NULL;
+	char *dest = NULL, *dest_name;
 	SaUint32T len_src = 0;
 	SaUint32T i = 0, k = 0;
-	len_src = strlen( src );
-	dest = (char *) malloc( sizeof( char ) * len_src + 1 );
-	memset( dest, 0, sizeof( char ) * len_src + 1 );
-	for ( i = 0; i < len_src; i++ ) {
-                if ( src[i] != '\\' ) {
-                        dest[k] = src[i];
-                        k++;
-                }
+
+	len_src = strlen(src);
+	dest = (char *) malloc(sizeof(char) * len_src + 1);
+	memset(dest, 0, sizeof(char) * len_src + 1);
+	for (i = 0; i < len_src; i++) {
+		if (src[i] != '\\') {
+			dest[k] = src[i];
+			k++;
+		}
 	}
-	return dest;
+
+	/* 11 is the length of "safReplica=" */
+	dest_name = dest + 11;	
+	strcpy((char*)nodeName->value, dest_name);
+	nodeName->length = strlen(dest_name);
+
+	free(dest);
+
+	return;
 }
 
 /**
