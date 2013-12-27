@@ -439,7 +439,8 @@ uint32_t cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_repl
 			/* goto reploc_node_add_fail; */
 			TRACE_4("cpd db node add failed ");
 		}
-		rc = NCSCC_RC_FAILURE;
+
+		return NCSCC_RC_FAILURE;
 	}
 
 	/* Free the Client Node */
@@ -981,19 +982,24 @@ uint32_t cpd_cb_db_destroy(CPD_CB *cb)
  * Description   : CPD_CKPT_REF_INFO Linked list manipulation function
  *
  *****************************************************************************/
-void cpd_ckpt_ref_info_add(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cref_info)
+void cpd_ckpt_ref_info_add(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_INFO_NODE *ckpt_node)
 {
+	CPD_CKPT_REF_INFO *cref_info = NULL;
 
-	CPD_CKPT_REF_INFO *cref = NULL;
 	TRACE_ENTER();
 
-	cref = node_info->ckpt_ref_list;
-	while (cref) {
-		if (cref->ckpt_node->ckpt_id == cref_info->ckpt_node->ckpt_id)
+	cref_info = node_info->ckpt_ref_list;
+	while (cref_info) {
+		if (cref_info->ckpt_node->ckpt_id == ckpt_node->ckpt_id)
 			return;
 
-		cref = cref->next;
+		cref_info = cref_info->next;
 	}
+
+	cref_info = (CPD_CKPT_REF_INFO *)malloc(sizeof(CPD_CKPT_REF_INFO));
+	memset(cref_info, 0, sizeof(CPD_CKPT_REF_INFO));
+
+	cref_info->ckpt_node = ckpt_node;
 
 	/* Add the node at the begin of the linked list */
 	cref_info->next = node_info->ckpt_ref_list;
@@ -1048,18 +1054,24 @@ void cpd_ckpt_ref_info_del(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cre
  * Description   : CPD_NODE_REF_INFO Linked list manipulation function
  *
  *****************************************************************************/
-void cpd_node_ref_info_add(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nref_info)
+void cpd_node_ref_info_add(CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST *mds_dest)
 {
-	CPD_NODE_REF_INFO *nref = NULL;
+	CPD_NODE_REF_INFO *nref_info = NULL;
 
 	TRACE_ENTER();
-	nref = ckpt_node->node_list;
-	while (nref) {
-		if (nref->dest == nref_info->dest)
+
+	nref_info = ckpt_node->node_list;
+	while (nref_info) {
+		if (m_NCS_MDS_DEST_EQUAL(&nref_info->dest, mds_dest))
 			return;
 
-		nref = nref->next;
+		nref_info = nref_info->next;
 	}
+
+	nref_info = (CPD_NODE_REF_INFO *) malloc(sizeof(CPD_NODE_REF_INFO));
+	memset(nref_info, 0, sizeof(CPD_NODE_REF_INFO));
+
+	nref_info->dest = *mds_dest;
 
 	/* Add the node at the begin of the linked list */
 	nref_info->next = ckpt_node->node_list;

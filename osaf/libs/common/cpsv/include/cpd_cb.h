@@ -267,10 +267,9 @@ uint32_t cpd_cb_db_init(CPD_CB *cb);
 
 uint32_t cpd_cb_db_destroy(CPD_CB *cb);
 
-void cpd_ckpt_ref_info_add(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cref_info);
-
+void cpd_ckpt_ref_info_add(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_INFO_NODE *ckpt_node);
 void cpd_ckpt_ref_info_del(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cref_info);
-void cpd_node_ref_info_add(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nref_info);
+void cpd_node_ref_info_add(CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST *mds_dest);
 void cpd_node_ref_info_del(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nref_info);
 
 void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer,
