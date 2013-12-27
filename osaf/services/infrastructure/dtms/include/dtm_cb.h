@@ -40,6 +40,7 @@ typedef struct node_list {
 	NODE_ID node_id;
 	char node_name[MAX_NAME_LENGTH];
 	char node_ip[INET6_ADDRSTRLEN];
+	DTM_IP_ADDR_TYPE i_addr_family; /* Indicates V4 or V6 */
 	int comm_socket;
 	NCS_PATRICIA_NODE pat_nodeid;
 	NCS_PATRICIA_NODE pat_comm_socket;

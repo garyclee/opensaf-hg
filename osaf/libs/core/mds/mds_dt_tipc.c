@@ -1004,10 +1004,10 @@ static uint32_t mdtm_process_discovery_events(uint32_t discovery_event, struct t
 
 			if (TIPC_PUBLISHED == discovery_event) {
 				m_MDS_LOG_INFO("MDTM: Raising the NODE UP event for NODE id = %d", node_id);
-				return mds_mcm_node_up(svc_hdl, node_id);
+				return mds_mcm_node_up(svc_hdl, node_id, NULL, AF_TIPC);
 			} else if (TIPC_WITHDRAWN == discovery_event) {
 				m_MDS_LOG_INFO("MDTM: Raising the NODE DOWN event for NODE id = %d", node_id);
-				return mds_mcm_node_down(svc_hdl, node_id);
+				return mds_mcm_node_down(svc_hdl, node_id, AF_TIPC);
 			} else {
 				m_MDS_LOG_INFO
 				    ("MDTM: TIPC EVENT UNSUPPORTED for Node (other than Publish and Withdraw)\n");

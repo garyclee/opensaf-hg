@@ -58,7 +58,7 @@ static struct pollfd pfd_list[DTM_INTRANODE_MAX_PROCESSES];
 
 static int  dtm_intranode_max_fd;
 
-static uint32_t dtm_intra_processing_init(void);
+static uint32_t dtm_intra_processing_init(char *node_ip, DTM_IP_ADDR_TYPE i_addr_family);
 static void dtm_intranode_processing(void);
 static uint32_t dtm_intranode_add_poll_fdlist(int fd, uint16_t event);
 static uint32_t dtm_intranode_create_rcv_task(int task_hdl);
@@ -77,9 +77,9 @@ uint32_t dtm_socket_domain = AF_UNIX;
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_service_discovery_init(void)
+uint32_t dtm_service_discovery_init(DTM_INTERNODE_CB *dtms_cb)
 {
-	return dtm_intra_processing_init();
+	return dtm_intra_processing_init(dtms_cb->ip_addr, dtms_cb->i_addr_family);
 }
 
 #define DTM_INTRANODE_SOCK_SIZE 64000
@@ -92,7 +92,7 @@ uint32_t dtm_service_discovery_init(void)
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_intra_processing_init(void)
+uint32_t dtm_intra_processing_init(char *node_ip, DTM_IP_ADDR_TYPE i_addr_family)
 {
 
 	int servlen, size = DTM_INTRANODE_SOCK_SIZE;	/* For socket fd and server len */
@@ -244,7 +244,7 @@ uint32_t dtm_intra_processing_init(void)
 		return NCSCC_RC_FAILURE;
 	}
 
-	dtm_intranode_add_self_node_to_node_db(dtm_intranode_cb->nodeid);
+	dtm_intranode_add_self_node_to_node_db(dtm_intranode_cb->nodeid, node_ip, i_addr_family);
 
 	if (m_NCS_IPC_CREATE(&dtm_intranode_cb->mbx) != NCSCC_RC_SUCCESS) {
 		/* Mail box creation failed */
@@ -626,10 +626,18 @@ static void dtm_intranode_processing(void)
 											       node_id);
 							free(msg_elem->info.svc_event.buffer);
 						} else if (DTM_MBX_NODE_UP_TYPE == msg_elem->type) {
+							TRACE("DTM: node_ip:%s, node_id:%u i_addr_family:%d ",
+									msg_elem->info.node.node_ip, msg_elem->info.node.node_id,
+									msg_elem->info.node.i_addr_family);
 							dtm_intranode_process_node_up(msg_elem->info.node.node_id,
-										      msg_elem->info.node.node_name,
-										      msg_elem->info.node.mbx);
+									msg_elem->info.node.node_name,
+									msg_elem->info.node.node_ip,
+									msg_elem->info.node.i_addr_family,
+									msg_elem->info.node.mbx);
 						} else if (DTM_MBX_NODE_DOWN_TYPE == msg_elem->type) {
+							TRACE("DTM: node_ip:%s, node_id:%u i_addr_family:%d ",
+									msg_elem->info.node.node_ip, msg_elem->info.node.node_id,
+									msg_elem->info.node.i_addr_family);
 							dtm_intranode_process_node_down(msg_elem->info.node.node_id);
 						} else if (DTM_MBX_MSG_TYPE == msg_elem->type) {
 							dtm_process_rcv_internode_data_msg(msg_elem->info.data.buffer,

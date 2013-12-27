@@ -373,7 +373,8 @@ uint32_t dtm_comm_socket_close(int *comm_socket)
 	if (node != NULL) {
 		TRACE("DTM: node deleting  enty ");
 		if (true == node->comm_status) {
-			if (dtm_process_node_up_down(node->node_id, node->node_name, false) != NCSCC_RC_SUCCESS) {
+			TRACE("DTM: dtm_comm_socket_close node_ip:%s, node_id:%u i_addr_family:%d ", node->node_ip, node->node_id, node->i_addr_family);
+			if (dtm_process_node_up_down(node->node_id, node->node_name, node->node_ip, node->i_addr_family, false) != NCSCC_RC_SUCCESS) {
 				LOG_ER(" dtm_process_node_up_down() failed rc : %d ", rc);
 				rc = NCSCC_RC_FAILURE;
 				goto done;
@@ -1116,7 +1117,6 @@ int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uint8_t *data
 	DTM_NODE_DB node = { 0 };
 	DTM_NODE_DB *new_node = NULL;
 	uint8_t *buffer = data, mcast_flag;
-	DTM_IP_ADDR_TYPE ip_addr_type = 0;
 	TRACE_ENTER();
 
 	memset(&node, 0, sizeof(DTM_NODE_DB));
@@ -1149,8 +1149,8 @@ int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uint8_t *data
 
 	/* foreign_port = htons((in_port_t)(ncs_decode_16bit(&buffer))); */
 	foreign_port = ((in_port_t)(ncs_decode_16bit(&buffer)));
-	ip_addr_type = ncs_decode_8bit(&buffer);
-	memcpy(node.node_ip, buffer, INET6_ADDRSTRLEN);
+	node.i_addr_family = ncs_decode_8bit(&buffer);
+	memcpy(node.node_ip, (uint8_t *)buffer, INET6_ADDRSTRLEN);
 
 	if (initial_discovery_phase == true) {
 		if (node.node_id < dtms_cb->node_id) {
@@ -1205,11 +1205,12 @@ int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uint8_t *data
 		goto node_fail;
 	}
 
-	sock_desc = comm_socket_setup_new(dtms_cb, (char *)&node.node_ip, foreign_port, ip_addr_type);
+	sock_desc = comm_socket_setup_new(dtms_cb, (char *)&node.node_ip, foreign_port, node.i_addr_family);
 
 	new_node->comm_socket = sock_desc;
 	new_node->node_id = node.node_id;
 	memcpy(new_node->node_ip, node.node_ip, INET6_ADDRSTRLEN);
+	new_node->i_addr_family = node.i_addr_family;
 
 	if (sock_desc != -1) {
 
@@ -1238,6 +1239,8 @@ int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uint8_t *data
 			free(new_node);
 			goto node_fail;
 		}
+		else
+		  TRACE("DTM: dtm_node_add add .node_ip: %s, node_id: %u", new_node->node_ip, new_node->node_id);
 	}
 
  node_fail:
@@ -1325,6 +1328,7 @@ int dtm_process_accept(DTM_INTERNODE_CB * dtms_cb, int stream_sock)
 		goto done;
 	} else {
 		memcpy(node.node_ip, (uint8_t *)addrBuffer, INET6_ADDRSTRLEN);
+		node.i_addr_family = clnt_addr1->sa_family;
 	}
 
 	if (new_conn_sd != -1) {
@@ -1404,7 +1408,7 @@ int dtm_dgram_recvfrom_bmcast(DTM_INTERNODE_CB * dtms_cb, char *node_ip, void *b
 		if (inet_ntop(clnt_addr1->sa_family, numericAddress, addrBuffer, sizeof(addrBuffer)) == NULL) {
 			TRACE("DTM: invalid address :%s", addrBuffer);
 		} else {
-			memcpy(node_ip, (char *)addrBuffer, INET6_ADDRSTRLEN);
+			memcpy(node_ip, (uint8_t *)addrBuffer, INET6_ADDRSTRLEN);
 		}
 	}
 

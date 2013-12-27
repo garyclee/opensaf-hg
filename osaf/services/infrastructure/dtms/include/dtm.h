@@ -68,6 +68,9 @@ typedef struct dtm_rcv_msg_elem {
 			char node_name[255];
 			NODE_ID node_id;
 			SYSF_MBX mbx;
+			DTM_IP_ADDR_TYPE i_addr_family; /* Indicates V4 or V6 */
+			char node_ip[INET6_ADDRSTRLEN];
+
 		} node;
 	} info;
 
@@ -109,6 +112,6 @@ extern uint32_t dtm_node_add(DTM_NODE_DB * node, int i);
 extern uint32_t dtm_node_delete(DTM_NODE_DB * nnode, int i);
 extern DTM_NODE_DB *dtm_node_new(DTM_NODE_DB * new_node);
 extern int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file);
-uint32_t dtm_service_discovery_init(void);
+uint32_t dtm_service_discovery_init(DTM_INTERNODE_CB *dtms_cb);
 
 #endif

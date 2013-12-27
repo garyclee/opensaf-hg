@@ -816,6 +816,9 @@ unpack individual structure members. */
 		 */
 		NCSMDS_NODE_CHG  node_chg;
 		NODE_ID node_id;
+		uint16_t addr_family;
+		uint16_t length;
+		uint8_t ip_addr[INET6_ADDRSTRLEN];
 	} MDS_CALLBACK_NODE_EVENT_INFO;
 
 	typedef struct mds_callback_msg_loss_event_info {

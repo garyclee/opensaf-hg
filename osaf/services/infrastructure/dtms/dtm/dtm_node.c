@@ -124,7 +124,8 @@ uint32_t dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uint
 		} else
 			osafassert(0);
 
-		rc = dtm_process_node_up_down(node->node_id, node->node_name, node->comm_status);
+		TRACE("DTM: dtm_process_node_info node_ip:%s, node_id:%u i_addr_family:%d ", node->node_ip, node->node_id, node->i_addr_family);
+		rc = dtm_process_node_up_down(node->node_id, node->node_name, node->node_ip , node->i_addr_family, node->comm_status);
 
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("DTM: dtm_process_node_up_down() failed rc : %d ", rc);
@@ -161,7 +162,7 @@ uint32_t add_self_node(DTM_INTERNODE_CB * dtms_cb)
 	tmp_node.cluster_id = dtms_cb->cluster_id;
 	tmp_node.node_id = dtms_cb->node_id;
 	memcpy(tmp_node.node_ip, (uint8_t *)dtms_cb->ip_addr, INET6_ADDRSTRLEN);
-
+	tmp_node.i_addr_family = dtms_cb->i_addr_family;
 	strncpy(tmp_node.node_name, dtms_cb->node_name, strlen(dtms_cb->node_name));
 	tmp_node.comm_status = true;
 	tmp_node.comm_socket = 0;
@@ -238,10 +239,11 @@ void datagram_buff_dump(uint8_t *buff, uint32_t len, uint32_t max)
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_process_node_up_down(NODE_ID node_id, char *node_name, uint8_t comm_status)
+uint32_t dtm_process_node_up_down(NODE_ID node_id, char *node_name, char *node_ip, DTM_IP_ADDR_TYPE i_addr_family, uint8_t comm_status)
 {
 	if (true == comm_status) {
-		dtm_node_up(node_id, node_name, 0);
+		TRACE("DTM: dtm_process_node_up_down node_ip:%s, node_id:%u i_addr_family:%d ", node_ip, node_id, i_addr_family);
+		dtm_node_up(node_id, node_name, node_ip, i_addr_family, 0);
 	} else {
 		dtm_node_down(node_id, node_name, 0);
 	}
