@@ -1,0 +1,44 @@
+This directory contains an example proxy component (in proxy.c) for
+non-pre-instantiable proxied components.
+
+proxy.xml contains the AMF model for the proxy component in IMM XML format.
+
+proxied.xml contains the AMF model for a proxied component in IMM XML format.
+
+Steps to test on the local host (assuming opensaf is started):
+$ cd samples
+$ ./bootstrap.sh
+$ ./configure
+$ cd amf/proxy
+$ make
+$ sudo make install
+
+source the script:
+$ source test.sh
+
+results in syslog:
+Jan  1 17:24:54 Vostro osafamfnd[11462]: NO 'safSu=1,safSg=2N,safApp=Proxy' Presence State UNINSTANTIATED => INSTANTIATING
+Jan  1 17:24:54 Vostro proxy[11611]: 'safComp=1,safSu=1,safSg=2N,safApp=Proxy' started
+Jan  1 17:24:54 Vostro osafamfnd[11462]: NO 'safSu=1,safSg=2N,safApp=Proxy' Presence State INSTANTIATING => INSTANTIATED
+Jan  1 17:24:54 Vostro proxy[11611]: Registered with AMF and HC started
+Jan  1 17:24:54 Vostro proxy[11611]: Health check for 'safComp=1,safSu=1,safSg=2N,safApp=Proxy', key 'default'
+Jan  1 17:24:54 Vostro osafamfnd[11462]: NO Assigning 'safSi=1,safApp=Proxy' ACTIVE to 'safSu=1,safSg=2N,safApp=Proxy'
+Jan  1 17:24:54 Vostro proxy[11611]: csiSetCallback: 'safComp=1,safSu=1,safSg=2N,safApp=Proxy' ADD 'safCsi=1,safSi=1,safApp=Proxy' HAState Active
+Jan  1 17:24:54 Vostro osafamfnd[11462]: NO Assigned 'safSi=1,safApp=Proxy' ACTIVE to 'safSu=1,safSg=2N,safApp=Proxy'
+Jan  1 17:24:54 Vostro osafamfnd[11462]: NO Assigning 'safSi=1,safApp=Proxied' ACTIVE to 'safSu=1,safSg=2N,safApp=Proxied'
+Jan  1 17:24:54 Vostro proxy[11611]: csiSetCallback: 'safComp=1,safSu=1,safSg=2N,safApp=Proxied' ADD 'safCsi=1,safSi=1,safApp=Proxied' HAState Active
+Jan  1 17:24:54 Vostro proxy[11611]: Instantiating 'safComp=1,safSu=1,safSg=2N,safApp=Proxied'
+Jan  1 17:24:54 Vostro osafamfnd[11462]: NO 'safSu=1,safSg=2N,safApp=Proxied' Presence State UNINSTANTIATED => INSTANTIATING
+Jan  1 17:24:54 Vostro proxy[11611]: Health check for 'safComp=1,safSu=1,safSg=2N,safApp=Proxied', key 'shallow'
+Jan  1 17:24:54 Vostro proxy[11611]: Health check for 'safComp=1,safSu=1,safSg=2N,safApp=Proxied', key 'deep'
+Jan  1 17:24:54 Vostro osafamfnd[11462]: NO 'safSu=1,safSg=2N,safApp=Proxied' Presence State INSTANTIATING => INSTANTIATED
+Jan  1 17:24:54 Vostro osafamfnd[11462]: NO Assigned 'safSi=1,safApp=Proxied' ACTIVE to 'safSu=1,safSg=2N,safApp=Proxied'
+Jan  1 17:25:04 Vostro proxy[11611]: Health check for 'safComp=1,safSu=1,safSg=2N,safApp=Proxied', key 'shallow'
+Jan  1 17:25:54  proxy[11611]: last message repeated 4 times
+Jan  1 17:25:54 Vostro proxy[11611]: Health check for 'safComp=1,safSu=1,safSg=2N,safApp=Proxy', key 'default'
+Jan  1 17:25:54 Vostro proxy[11611]: Health check for 'safComp=1,safSu=1,safSg=2N,safApp=Proxied', key 'deep'
+Jan  1 17:25:55 Vostro proxy[11611]: Health check for 'safComp=1,safSu=1,safSg=2N,safApp=Proxied', key 'shallow'
+
+TODO
+- mulitple proxied components, does not work?
+- fix hardcoded proxied comp DN in proxy.c, use env var, CSI attr?
