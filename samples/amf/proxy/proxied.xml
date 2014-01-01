@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ *      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2013 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Ericsson
+ *
+
+IMM XML for a local, non-SA-aware, proxied, non-pre-instantiable component
+
+-->
+
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<object class="SaAmfAppBaseType">
+		<dn>safAppType=Proxied</dn>
+	</object>
+	<object class="SaAmfSGBaseType">
+		<dn>safSgType=Proxied</dn>
+	</object>
+	<object class="SaAmfSUBaseType">
+		<dn>safSuType=Proxied</dn>
+	</object>
+	<object class="SaAmfCompBaseType">
+		<dn>safCompType=Proxied</dn>
+	</object>
+	<object class="SaAmfSvcBaseType">
+	    <dn>safSvcType=Proxied</dn>
+	</object>
+	<object class="SaAmfCSBaseType">
+	    <dn>safCSType=Proxied</dn>
+	</object>
+	<object class="SaAmfSvcType">
+	    <dn>safVersion=1,safSvcType=Proxied</dn>
+	</object>
+	<object class="SaAmfAppType">
+		<dn>safVersion=1,safAppType=Proxied</dn>
+		<attr>
+			<name>saAmfApptSGTypes</name>
+			<value>safVersion=1,safSgType=Proxied</value>
+		</attr>
+	</object>
+	<object class="SaAmfSGType">
+		<dn>safVersion=1,safSgType=Proxied</dn>
+		<attr>
+			<name>saAmfSgtRedundancyModel</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtValidSuTypes</name>
+			<value>safVersion=1,safSuType=Proxied</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefAutoAdjustProb</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefCompRestartProb</name>
+			<value>4000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefCompRestartMax</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefSuRestartProb</name>
+			<value>4000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefSuRestartMax</name>
+			<value>10</value>
+		</attr>
+	</object>
+	<object class="SaAmfSUType">
+		<dn>safVersion=1,safSuType=Proxied</dn>
+		<attr>
+			<name>saAmfSutIsExternal</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSutDefSUFailover</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSutProvidesSvcTypes</name>
+			<value>safVersion=1,safSvcType=Proxied</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompType">
+		<dn>safVersion=1,safCompType=Proxied</dn>
+		<attr>
+			<name>saAmfCtCompCategory</name>
+			<value>0x48</value>
+		</attr>
+		<attr>
+			<name>saAmfCtSwBundle</name>
+			<value>safSmfBundle=Proxied</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefClcCliTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCallbackTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathCleanupCmd</name>
+			<value>proxied_script</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCleanupCmdArgv</name>
+			<value>cleanup</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefQuiescingCompleteTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefRecoveryOnError</name>
+			<value>2</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefDisableRestart</name>
+			<value>0</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSType">
+		<dn>safVersion=1,safCSType=Proxied</dn>
+	</object>
+	<object class="SaAmfSutCompType">
+		<dn>safMemberCompType=safVersion=1\,safCompType=Proxied,safVersion=1,safSuType=Proxied</dn>
+	</object>
+	<object class="SaAmfSvcTypeCSTypes">
+	  <dn>safMemberCSType=safVersion=1\,safCSType=Proxied,safVersion=1,safSvcType=Proxied</dn>
+	</object>
+	<object class="SaAmfCtCsType">
+		<dn>safSupportedCsType=safVersion=1\,safCSType=Proxied,safVersion=1,safCompType=Proxied</dn>
+		<attr>
+			<name>saAmfCtCompCapability</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfHealthcheckType">
+		<dn>safHealthcheckKey=shallow,safVersion=1,safCompType=Proxied</dn>
+		<attr>
+			<name>saAmfHctDefPeriod</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfHctDefMaxDuration</name>
+			<value>6000000000</value>
+		</attr>
+	</object>
+	<object class="SaAmfHealthcheckType">
+		<dn>safHealthcheckKey=deep,safVersion=1,safCompType=Proxied</dn>
+		<attr>
+			<name>saAmfHctDefPeriod</name>
+			<value>60000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfHctDefMaxDuration</name>
+			<value>30000000000</value>
+		</attr>
+	</object>
+
+	<object class="SaAmfApplication">
+		<dn>safApp=Proxied</dn>
+		<attr>
+			<name>saAmfAppType</name>
+			<value>safVersion=1,safAppType=Proxied</value>
+		</attr>
+	</object>
+	<object class="SaAmfSG">
+		<dn>safSg=2N,safApp=Proxied</dn>
+		<attr>
+			<name>saAmfSGType</name>
+			<value>safVersion=1,safSgType=Proxied</value>
+		</attr>
+		<attr>
+			<name>saAmfSGSuHostNodeGroup</name>
+			<value>safAmfNodeGroup=SCs,safAmfCluster=myAmfCluster</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoRepair</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoAdjust</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSGNumPrefInserviceSUs</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSGNumPrefAssignedSUs</name>
+			<value>10</value>
+		</attr>
+	</object>
+	<object class="SaAmfSI">
+		<dn>safSi=1,safApp=Proxied</dn>
+		<attr>
+			<name>saAmfSvcType</name>
+			<value>safVersion=1,safSvcType=Proxied</value>
+		</attr>
+		<attr>
+			<name>saAmfSIProtectedbySG</name>
+			<value>safSg=2N,safApp=Proxied</value>
+		</attr> 
+	</object>
+	<object class="SaAmfCSI">
+	    <dn>safCsi=1,safSi=1,safApp=Proxied</dn>
+	    <attr>
+		<name>saAmfCSType</name>
+		<value>safVersion=1,safCSType=Proxied</value>
+	    </attr>
+	</object>
+	<object class="SaSmfSwBundle">
+			<dn>safSmfBundle=Proxied</dn>
+	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=safSmfBundle=Proxied,safAmfNode=SC-1,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>/opt/amf_proxy_demo</value>
+		</attr>
+	</object>
+	<object class="SaAmfSU">
+		<dn>safSu=1,safSg=2N,safApp=Proxied</dn>
+		<attr>
+			<name>saAmfSUType</name>
+			<value>safVersion=1,safSuType=Proxied</value>
+		</attr>
+		<attr>
+			<name>saAmfSURank</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSUAdminState</name>
+			<value>3</value>
+		</attr>
+	</object>
+	<object class="SaAmfComp">
+		<dn>safComp=1,safSu=1,safSg=2N,safApp=Proxied</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=1,safCompType=Proxied</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+	    <dn>safSupportedCsType=safVersion=1\,safCSType=Proxied,safComp=1,safSu=1,safSg=2N,safApp=Proxied</dn>
+	</object>
+<!-- TODO multiple proxied components
+	<object class="SaAmfComp">
+		<dn>safComp=2,safSu=1,safSg=2N,safApp=Proxied</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=1,safCompType=Proxied</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+	    <dn>safSupportedCsType=safVersion=1\,safCSType=Proxied,safComp=2,safSu=1,safSg=2N,safApp=Proxied</dn>
+	</object>
+-->
+</imm:IMM-contents>

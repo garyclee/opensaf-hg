@@ -1,6 +1,8 @@
+#!/bin/sh
+#
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2010 The OpenSAF Foundation
+# (C) Copyright 2013 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,12 +13,44 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems 
+# Author(s): Ericsson
 #
 
-include $(top_srcdir)/Makefile.common
+name=$(basename $0)
 
-MAINTAINERCLEANFILES = Makefile.in
+if [ -z $SA_AMF_COMPONENT_NAME ]; then
+	logger -st $name "not AMF component context"
+	exit 199
+fi
 
-SUBDIRS = sa_aware non_sa_aware wrapper proxy
+RETVAL=0
+
+cleanup()
+{
+	logger -st $name "cleanup $SA_AMF_COMPONENT_NAME"
+	return $RETVAL
+}
+
+status()
+{
+	RETVAL=$?
+	return $RETVAL
+}
+
+CMD=$1
+case $CMD in
+	cleanup)
+		cleanup $*
+		RETVAL=$?
+		;;
+	status)
+		status
+		RETVAL=$?
+		;;
+	*)
+		echo "Usage: $0 {cleanup}"
+		RETVAL=2
+esac
+
+exit $RETVAL
 
