@@ -30,10 +30,26 @@ controller nodes in a 2N redundancy model.
 The CLMNA is an CLM node agent process that gets started on every node during
 OpenSAF node startup. The CLMNA fetches the saClmNode(node name)of the local node,
 the saClmNodeID(/etc/opensaf/node_id a "run time" attribute) 
-(and in future, the saClmNodeCurrAddressFamily  and saClmNodeCurrAddress "run time"attributes
 of the saClmNode class) and updates the CLMS.
 The CLMNA is modelled as component in a NoRedundancy Model with error recovery
 as NodeFailFast.
+
+OpenSAF 4.4 provides support for saClmNodeAddressFamily and saClmNodeAddress
+attributes when TCP is chosen as the mode of transport.
+These attributes shall represent the ipaddress and ipaddressfamily
+configured(in dtmd.conf) for a member node when TCP is used for OpenSAF
+communication.
+NOTES:
+- Currently, It shall be the responsibility of the user to 
+ensure that they use/configure the 'same ipaddress values' in dtmd.conf and in the imm.xml.
+i.e. CLM shall not attempt to validate them in 4.4.
+
+- When user chooses TIPC as mode of transport, then the address length will be
+set to 0 and address family shall contain the default value of 
+SA_CLM_AF_INET(i.e. AF_INET).
+This is done for backward compatibility with pre OpenSAF 4.4 libraries
+and also because the CLM spec does not support any value other than 
+SA_CLM_AF_INET(i.e. AF_INET) and SA_CLM_AF_INET6 (i.e. AF_INET6).
 
 The CLMA is the clm agent library that user applications shall link with.
 

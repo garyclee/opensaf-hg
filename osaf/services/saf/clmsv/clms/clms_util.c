@@ -1168,3 +1168,9 @@ uint32_t clms_num_mem_node(void)
 
 	return i;
 }
+
+bool ip_matched(uint16_t family1, uint8_t *ip1, uint16_t family2, uint8_t *ip2)
+{
+	return true;	
+}
+

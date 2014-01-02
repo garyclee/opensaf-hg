@@ -78,6 +78,8 @@
  */
 
 #define sec_to_nanosec 1000000000L
+#define OSAF_AF_TIPC 30
+
 extern CLMS_CB *clms_cb;
 extern CLMS_CLUSTER_INFO *osaf_cluster;
 extern const SaNameT *clmSvcUsrName;

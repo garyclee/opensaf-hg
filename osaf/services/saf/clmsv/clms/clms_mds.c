@@ -954,12 +954,69 @@ static uint32_t clms_mds_node_event(struct ncsmds_callback_info *mds_info)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	CLMSV_CLMS_EVT *clmsv_evt = NULL;
+	uint32_t node_id = 0;
+	IPLIST *ip = NULL;
 	TRACE_ENTER();
 
 	TRACE("node_id %d,nodeup %d", mds_info->info.node_evt.node_id, mds_info->info.node_evt.node_chg);
 
 	/* Send the message to clms */
 	/* Node up Events will be taken care by clms nodeagent */
+
+	node_id =  mds_info->info.node_evt.node_id;
+	if (mds_info->info.node_evt.node_chg == NCSMDS_NODE_UP) {
+		/* Store the ip info provided by MDS in the list.
+		 * The releases < 4.4 were storing default address family
+		 * as AF_INET4, any family other than AF_NET* was treated as invalid.
+		 * Now, in 4.4 MDS provides info of AF_TIPC also as an address family, but
+		 * this cannot yet be passed on to the clients yet because of checks
+		 * in the CLM library that prohibits this.
+		 * So, for backward compatibility reasons, when MDS provides
+		 * AF_TIPC address family, we default it to AF_INET4 before
+		 * sending it to the CLM clients.
+		 */
+		TRACE("Adding ipinformation to the ip list: %u", node_id);
+		node_id = mds_info->info.node_evt.node_id;
+		if ((ip = (IPLIST *)ncs_patricia_tree_get(&clms_cb->iplist, (uint8_t *)&node_id)) == NULL) {
+			IPLIST *ip = (IPLIST *)calloc(1,sizeof(IPLIST));
+			TRACE("node_id: %u not found, adding as a new node", ip->node_id);
+			ip->node_id = mds_info->info.node_evt.node_id;
+			ip->pat_node_id.key_info = (uint8_t *)&(ip->node_id);
+			if (mds_info->info.node_evt.addr_family == OSAF_AF_TIPC) {
+				ip->addr.family = 1; /* For backward compatibility */
+				ip->addr.length = 0;
+			} else {
+				if (mds_info->info.node_evt.addr_family == AF_INET)
+					ip->addr.family = SA_CLM_AF_INET;
+				else if (mds_info->info.node_evt.addr_family == AF_INET6)
+					ip->addr.family = SA_CLM_AF_INET6;
+				else
+					LOG_ER("Unsupported address family from MDS: %u",
+							mds_info->info.node_evt.addr_family);
+
+				ip->addr.length = mds_info->info.node_evt.length;
+				if (ip->addr.length) {
+					memcpy(ip->addr.value, mds_info->info.node_evt.ip_addr,
+							 mds_info->info.node_evt.length);
+				}
+			}
+			if (ncs_patricia_tree_add(&clms_cb->iplist, &ip->pat_node_id) != NCSCC_RC_SUCCESS)
+				TRACE("node add failed for node_id: %u", ip->node_id);
+		} else {
+			ip->node_id = mds_info->info.node_evt.node_id;
+			if (mds_info->info.node_evt.addr_family == OSAF_AF_TIPC) {
+				ip->addr.family = 1; /* For backward compatibility */
+				ip->addr.length = 0;
+			 } else {
+				ip->addr.family = mds_info->info.node_evt.addr_family;
+				ip->addr.length = mds_info->info.node_evt.length;
+				if (ip->addr.length) {
+					memcpy(ip->addr.value, mds_info->info.node_evt.ip_addr,
+							 mds_info->info.node_evt.length);
+				}
+			}
+		}
+	}
 
 	if (mds_info->info.node_evt.node_chg == NCSMDS_NODE_DOWN) {
 

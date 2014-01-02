@@ -452,6 +452,7 @@ static uint32_t ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 	CLMSV_CKPT_NODE_RUNTIME_INFO *param = &data->param.node_rec;
 	CLMS_CLUSTER_NODE *node = NULL;
+	IPLIST *ip = NULL;
 
 	TRACE_ENTER2("node_id %u", param->node_id);
 
@@ -486,6 +487,19 @@ static uint32_t ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 		}
 	}
 
+	/* Update the node with ipaddress information */
+	if ((ip = (IPLIST *)ncs_patricia_tree_get(&clms_cb->iplist, (uint8_t *)&node->node_id)) == NULL) {
+		LOG_NO("IP information not found for: %u", node->node_id);
+	} else {
+		if (ip->addr.length) {
+			node->node_addr.family = ip->addr.family;
+			node->node_addr.length = ip->addr.length;
+			memcpy(node->node_addr.value, ip->addr.value, ip->addr.length);
+		} else {
+			node->node_addr.family = 1; /* For backward compatibility */
+			node->node_addr.length = 0;
+		}
+	}
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
