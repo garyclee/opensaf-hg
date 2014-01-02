@@ -26,7 +26,7 @@ void saClmOi_01(void)
     	int rc;
     	char command[256];
 	
-	sprintf(command, "immcfg -a saClmNodeLockCallbackTimeout=4000000000 %s",node_name.value);
+	sprintf(command, "immcfg -a saClmNodeLockCallbackTimeout=4000000000 safNode=%s,safCluster=myClmCluster",node_name.value);
 
     	assert((rc = system(command)) != -1);
     	test_validate(WEXITSTATUS(rc), 0);
@@ -38,7 +38,7 @@ void saClmOi_02(void)
     	int rc;
     	char command[256];
 
-    	sprintf(command, "immcfg -a saClmNodeDisableReboot=1 %s",node_name.value);
+    	sprintf(command, "immcfg -a saClmNodeDisableReboot=1 safNode=%s,safCluster=myClmCluster",node_name.value);
     	assert((rc = system(command)) != -1);
  	test_validate(WEXITSTATUS(rc), 0);
 }
@@ -49,7 +49,7 @@ void saClmOi_03(void)
     	int rc;
     	char command[256];
 
-    	sprintf(command, "immcfg -a saClmNodeAddressFamily=2 %s", node_name.value);
+    	sprintf(command, "immcfg -a saClmNodeAddressFamily=2 safNode=%s,safCluster=myClmCluster", node_name.value);
     	assert((rc = system(command)) != -1);
     	test_validate(WEXITSTATUS(rc), 1);
 }
@@ -60,7 +60,7 @@ void saClmOi_04(void)
     	int rc;
     	char command[256];
 
-    	sprintf(command, "immcfg -a  saClmNodeAddress=10.130.100.186 %s",node_name.value);
+    	sprintf(command, "immcfg -a  saClmNodeAddress=10.130.100.186 safNode=%s,safCluster=myClmCluster",node_name.value);
     	assert((rc = system(command)) != -1);
     	test_validate(WEXITSTATUS(rc), 1);
 }
@@ -72,7 +72,7 @@ void saClmOi_05(void)
     	char command[256];
 	char new_eename[]="NewEEName";
 
-    	sprintf(command, "immcfg -a saClmNodeEE=%s %s",new_eename,node_name.value);
+    	sprintf(command, "immcfg -a saClmNodeEE=%s safNode=%s,safCluster=myClmCluster",new_eename,node_name.value);
     	assert((rc = system(command)) != -1);
     	test_validate(WEXITSTATUS(rc), 1);
 }
@@ -82,7 +82,7 @@ void saClmOi_06(void)
 {
     	int rc;
     	char command[256];
-    	sprintf(command, "immcfg -d  %s",node_name.value);
+    	sprintf(command, "immcfg -d  safNode=%s,safCluster=myClmCluster",node_name.value);
     	assert((rc = system(command)) != -1);
     	test_validate(WEXITSTATUS(rc), 1);
 }

@@ -48,7 +48,7 @@ void saClmClusterNotificationFree_02(void)
 void saClmClusterNotificationFree_03(void)
 {
         rc = saClmClusterNotificationFree_4(0, notificationBuffer_4.notification);
-        test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+        test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
         rc = saClmClusterNotificationFree_4(clmHandle, NULL);
         test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }

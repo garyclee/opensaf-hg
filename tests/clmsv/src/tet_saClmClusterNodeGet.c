@@ -20,7 +20,7 @@
 SaClmClusterNodeT clusterNode_1;
 SaClmClusterNodeT_4 clusterNode_4;
 SaClmNodeIdT nodeId;
-SaTimeT timeout = 1000;
+SaTimeT timeout = 10000000000;
 
 void saClmClusterNodeGet_01(void)
 {	
@@ -46,7 +46,7 @@ void saClmClusterNodeGet_03(void)
         safassert(saClmInitialize(&clmHandle, &clmCallbacks_1, &clmVersion_1), SA_AIS_OK);
         rc = saClmClusterNodeGet(0, nodeId, timeout, &clusterNode_1);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
-        test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+        test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 
         nodeId = 131343;
         safassert(saClmInitialize(&clmHandle, &clmCallbacks_1, &clmVersion_1), SA_AIS_OK);
@@ -58,7 +58,7 @@ void saClmClusterNodeGet_03(void)
         safassert(saClmInitialize_4(&clmHandle, &clmCallbacks_4, &clmVersion_4), SA_AIS_OK);
         rc = saClmClusterNodeGet_4(0, nodeId, timeout, &clusterNode_4);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
-        test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+        test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 
         nodeId = 131343;
         safassert(saClmInitialize_4(&clmHandle, &clmCallbacks_4, &clmVersion_4), SA_AIS_OK);
@@ -73,13 +73,13 @@ void saClmClusterNodeGet_04(void)
         safassert(saClmInitialize(&clmHandle, &clmCallbacks_1, &clmVersion_1), SA_AIS_OK);
         rc = saClmClusterNodeGet(clmHandle, nodeId, 0, &clusterNode_1);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
-        test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+        test_validate(rc, SA_AIS_ERR_TIMEOUT);
 
         nodeId = 131343;
         safassert(saClmInitialize_4(&clmHandle, &clmCallbacks_4, &clmVersion_4), SA_AIS_OK);
         rc = saClmClusterNodeGet_4(clmHandle, nodeId, 0, &clusterNode_4);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
-        test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+        test_validate(rc, SA_AIS_ERR_TIMEOUT);
 
 }
 
@@ -165,18 +165,11 @@ __attribute__ ((constructor)) static void  saClmClusterNodeGet_constructor(void)
         test_suite_add(5, "Test case for saClmClusterNodeGet");
 	test_case_add(5, saClmClusterNodeGet_01, "saClmClusterNodeGet with valid arguments, SA_AIS_OK");
 	test_case_add(5, saClmClusterNodeGet_02, "saClmClusterNodeGet_4 with valid arguments, SA_AIS_OK");
-	test_case_add(5, saClmClusterNodeGet_03, "saClmClusterNodeGet & saClmClusterNodeGet_4 \
-						  with Invalid handle");
-	test_case_add(5, saClmClusterNodeGet_04, "saClmClusterNodeGet & saClmClusterNodeGet_4 \
-                                                  with NULL timeout"); 
-	test_case_add(5, saClmClusterNodeGet_05, "saClmClusterNodeGet & saClmClusterNodeGet_4 \
-                                                  with NULL ClusterNode");
-        test_case_add(5, saClmClusterNodeGet_06, "saClmClusterNodeGet & saClmClusterNodeGet_4 \
-                                                  with nodeId which does not exist");
-        test_case_add(5, saClmClusterNodeGet_07, "saClmClusterNodeGet & saClmClusterNodeGet_4 \
-                                                  with nodeId of non member node");
-        test_case_add(5, saClmClusterNodeGet_08, "saClmClusterNodeGet & saClmClusterNodeGet_4 \
-                                                  call with cross version");
-        test_case_add(5, saClmClusterNodeGet_09, "saClmClusterNodeGet & saClmClusterNodeGet_4 \
-                                                  with nodeId as SA_CLM_LOCAL_NODE_ID");
+	test_case_add(5, saClmClusterNodeGet_03, "saClmClusterNodeGet & saClmClusterNodeGet_4 with Invalid handle");
+	test_case_add(5, saClmClusterNodeGet_04, "saClmClusterNodeGet & saClmClusterNodeGet_4 with NULL timeout"); 
+	test_case_add(5, saClmClusterNodeGet_05, "saClmClusterNodeGet & saClmClusterNodeGet_4 with NULL ClusterNode");
+        test_case_add(5, saClmClusterNodeGet_06, "saClmClusterNodeGet & saClmClusterNodeGet_4 with nodeId which does not exist");
+        test_case_add(5, saClmClusterNodeGet_07, "saClmClusterNodeGet & saClmClusterNodeGet_4 with nodeId of non member node");
+        test_case_add(5, saClmClusterNodeGet_08, "saClmClusterNodeGet & saClmClusterNodeGet_4 call with cross version");
+        test_case_add(5, saClmClusterNodeGet_09, "saClmClusterNodeGet & saClmClusterNodeGet_4 with nodeId as SA_CLM_LOCAL_NODE_ID");
 }

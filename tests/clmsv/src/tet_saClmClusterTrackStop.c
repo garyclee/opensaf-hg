@@ -79,10 +79,10 @@ void saClmClusterTrackStop_01(void)
 	rc = saClmClusterNodeGetAsync(clmHandle, invocation, nodeId);
 	rc = saClmClusterNodeGetAsync(clmHandle, invocation, nodeId);
         rc = saClmClusterTrack(clmHandle, trackFlags, NULL);
-        safassert(saClmClusterTrackStop(clmHandle), SA_AIS_OK);
+        safassert(saClmClusterTrackStop(clmHandle), SA_AIS_ERR_NOT_EXIST);
         safassert(saClmDispatch(clmHandle,SA_DISPATCH_ALL), SA_AIS_OK);
         rc = saClmClusterTrack(clmHandle, trackFlags, NULL);
-        safassert(saClmClusterTrackStop(clmHandle), SA_AIS_OK);
+        safassert(saClmClusterTrackStop(clmHandle), SA_AIS_ERR_NOT_EXIST);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
         test_validate(rc, SA_AIS_OK);
 }

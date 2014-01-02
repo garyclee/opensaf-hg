@@ -90,7 +90,7 @@ void saClmClusterNodeGetAsync_03(void)
         safassert(saClmInitialize(&clmHandle, &clmCallbacks1, &clmVersion_1), SA_AIS_OK);
         rc = saClmClusterNodeGetAsync(0, invocation, nodeId);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
-        test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+        test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 
         safassert(saClmInitialize(&clmHandle, &clmCallbacks1, &clmVersion_1), SA_AIS_OK);
         rc = saClmClusterNodeGetAsync(-1, invocation, nodeId);
@@ -100,7 +100,7 @@ void saClmClusterNodeGetAsync_03(void)
         safassert(saClmInitialize_4(&clmHandle, &clmCallbacks4, &clmVersion_4), SA_AIS_OK);
         rc = saClmClusterNodeGetAsync(0, invocation, nodeId);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
-        test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+        test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 
         safassert(saClmInitialize_4(&clmHandle, &clmCallbacks4, &clmVersion_4), SA_AIS_OK);
         rc = saClmClusterNodeGetAsync(-1, invocation, nodeId);
