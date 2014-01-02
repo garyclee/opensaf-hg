@@ -39,6 +39,7 @@ typedef struct clmsv_clms_mds_info_t {
 typedef struct clmsv_clms_node_mds_info_t {
 	SaUint32T node_id;
 	SaBoolT nodeup;
+	SaClmNodeAddressT addr;
 } CLMSV_CLMS_MDS_NODE_INFO;
 
 typedef struct clmsv_clms_rda_info_t {
@@ -91,5 +92,6 @@ extern void clms_clmresp_error_timeout(CLMS_CB * cb, CLMS_CLUSTER_NODE * node);
 extern bool clms_clma_entry_valid(CLMS_CB * cb, MDS_DEST mds_dest);
 extern void clms_process_mbx(SYSF_MBX *mbx);
 extern void clms_evt_destroy(CLMSV_CLMS_EVT * evt);
+extern bool ip_matched(uint16_t family1, uint8_t *ip1, uint16_t family2, uint8_t *ip2);
 
 #endif

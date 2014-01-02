@@ -198,6 +198,7 @@ uint32_t clms_cb_init(CLMS_CB * clms_cb)
 	NCS_PATRICIA_PARAMS id_param;
 	NCS_PATRICIA_PARAMS eename_param;
 	NCS_PATRICIA_PARAMS nodename_param;
+	NCS_PATRICIA_PARAMS ip_param;
 
 	TRACE_ENTER();
 
@@ -205,11 +206,13 @@ uint32_t clms_cb_init(CLMS_CB * clms_cb)
 	memset(&id_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	memset(&eename_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	memset(&nodename_param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	memset(&ip_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
 	client_param.key_size = sizeof(uint32_t);
 	id_param.key_size = sizeof(uint32_t);
 	eename_param.key_size = sizeof(SaNameT);
 	nodename_param.key_size = sizeof(SaNameT);
+	ip_param.key_size = sizeof(uint32_t);
 
 	/* Assign Initial HA state */
 	clms_cb->ha_state = CLMS_HA_INIT_STATE;
@@ -241,6 +244,10 @@ uint32_t clms_cb_init(CLMS_CB * clms_cb)
 
 	/* Initialize id_lookup patricia tree */
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->id_lookup, &id_param))
+		return NCSCC_RC_FAILURE;
+
+	/* Initialize ip_lookup patricia tree */
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->iplist, &ip_param))
 		return NCSCC_RC_FAILURE;
 
 	TRACE_LEAVE();

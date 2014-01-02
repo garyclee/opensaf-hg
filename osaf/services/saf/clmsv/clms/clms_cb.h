@@ -127,6 +127,18 @@ typedef struct node_down_list_tag {
 	struct node_down_list_tag *next;
 } NODE_DOWN_LIST;
 
+/* A list temporarily maintained to store ip information.
+ * This list will be populated whenever a MDS NODE_UP event arrives.
+ * The values in this list will be used to update the NODE_DB whenever
+ * a NODE_JOIN request is received.
+ */ 
+typedef struct temp_iplist_tag {
+	NCS_PATRICIA_NODE pat_node_id;
+	SaClmNodeIdT node_id;
+	SaClmNodeAddressT addr;
+	struct temp_iplist_tag *next;
+} IPLIST;
+
 /* CLM Server control block */
 typedef struct clms_cb_t {
 	/* MDS, MBX & thread related defs */
@@ -185,6 +197,7 @@ typedef struct clms_cb_t {
 	NODE_DOWN_LIST *node_down_list_tail;
 	bool is_impl_set;
 	bool nid_started;	/**< true if started by NID */
+	NCS_PATRICIA_TREE iplist;	/* To temporarily store ipaddress information recieved in MDS NODE_UP */
 } CLMS_CB;
 
 typedef struct clms_lock_tmr_t {

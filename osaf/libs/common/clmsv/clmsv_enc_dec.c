@@ -46,11 +46,6 @@ uint32_t clmsv_decodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	nodeAddress->family = ncs_decode_32bit(&p8);
-	if (nodeAddress->family < SA_CLM_AF_INET || nodeAddress->family > SA_CLM_AF_INET6) {
-		LOG_ER("nodeAddress->family is wrong: %hd", nodeAddress->family);
-		/* this should not happen */
-		osafassert(0);
-	}
 	ncs_dec_skip_space(uba, 4);
 	total_bytes += 4;
 

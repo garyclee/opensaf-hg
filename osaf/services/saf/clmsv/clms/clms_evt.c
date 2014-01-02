@@ -268,6 +268,7 @@ uint32_t proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	SaNameT node_name = { 0 };
 	CLMSV_MSG clm_msg;
 	SaBoolT check_member;
+	IPLIST *ip = NULL;
 
 	TRACE_ENTER2("Node up mesg for nodename length %d %s", nodeup_info->node_name.length,
 		     nodeup_info->node_name.value);
@@ -276,12 +277,33 @@ uint32_t proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	node_name.length = snprintf((char *)node_name.value, sizeof(node_name.value),
 				    "safNode=%s,%s", nodeup_info->node_name.value, osaf_cluster->name.value);
 
+	nodeid = evt->info.msg.info.api_info.param.nodeup_info.node_id;
+
 	node = clms_node_get_by_name(&node_name);
 	if (node == NULL) {
 		clm_msg.info.api_resp_info.rc = SA_AIS_ERR_NOT_EXIST;
 		LOG_ER("CLM NodeName: '%s' doesn't match entry in imm.xml. Specify a correct node name in" PKGSYSCONFDIR "/node_name",
 		       nodeup_info->node_name.value);
-	} else if ((cb->node_id != nodeup_info->node_id) && (node->nodeup == SA_TRUE)){
+	}
+
+	/* Retrieve IP information */
+	if ((ip = (IPLIST *)ncs_patricia_tree_get(&clms_cb->iplist, (uint8_t *)&nodeid)) == NULL) {
+		clm_msg.info.api_resp_info.rc = SA_AIS_ERR_NOT_EXIST;
+		LOG_ER("IP information not found for: %s with node_id: %u", nodeup_info->node_name.value, nodeid);
+	} else {
+		if (ip->addr.length) { /* If length = 0, it is AF_TIPC. So process only IPv4 or 6 addresses */
+			/* We might want to validate IP */
+			if (ip_matched(ip->addr.family, ip->addr.value, node->node_addr.family,node->node_addr.value)) {
+				clm_msg.info.api_resp_info.rc = SA_AIS_OK;
+			} else {
+				clm_msg.info.api_resp_info.rc = SA_AIS_ERR_NOT_EXIST;
+				LOG_ER("IP address on %s is not matching the ipaddress in" PKGSYSCONFDIR "/imm.xml",
+									nodeup_info->node_name.value);
+			}
+		}
+	}
+
+	if ((cb->node_id != nodeup_info->node_id) && (node->nodeup == SA_TRUE)){
 		clm_msg.info.api_resp_info.rc = SA_AIS_ERR_EXIST;
 		LOG_ER("Duplicate node join request for CLM node: '%s'. Specify a unique node name in" PKGSYSCONFDIR "/node_name",
 		       nodeup_info->node_name.value);
@@ -310,13 +332,10 @@ uint32_t proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	if (rc != NCSCC_RC_SUCCESS)
 		goto done;
 
-	nodeid = evt->info.msg.info.api_info.param.nodeup_info.node_id;
-
 	/* This has to be updated always */
 	node->nodeup = SA_TRUE;
 	check_member = node->member;
 	
-
 	/* Self Node needs to be added tp patricia tree before hand during init */
 	if (NULL ==  clms_node_get_by_id(nodeid)) {
 		node->node_id = evt->info.msg.info.api_info.param.nodeup_info.node_id;
@@ -328,6 +347,16 @@ uint32_t proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 		}
 	}
 	node->boot_time = clms_get_SaTime();
+
+	/* Update the node with ipaddress information */
+	if (ip->addr.length) {
+		node->node_addr.family = ip->addr.family;
+		node->node_addr.length = ip->addr.length;
+		memcpy(node->node_addr.value, ip->addr.value, ip->addr.length);
+	} else { /* AF_TIPC */
+		node->node_addr.family = 1; /* For backward compatibility */
+		node->node_addr.length = 0;
+	}
 
 	/*When plm not in model,membership status depends only on the nodeup */
 	if (node->admin_state == SA_CLM_ADMIN_UNLOCKED) {
@@ -518,7 +547,7 @@ static uint32_t proc_mds_node_evt(CLMSV_CLMS_EVT * evt)
 	node = clms_node_get_by_id(node_id);
 
 	if (node == NULL) {
-		LOG_ER("Node %d doesn't exist", node_id);
+		LOG_IN("Node %d doesn't exist", node_id);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
