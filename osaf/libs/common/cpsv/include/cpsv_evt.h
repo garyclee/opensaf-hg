@@ -30,6 +30,7 @@
 #define CPSV_EVT_H
 
 #include <saCkpt.h>
+#include <saCkpt_B_02_03.h>
 #include "ncssysf_tmr.h"
 
 /*****************************************************************************
@@ -115,7 +116,7 @@ typedef enum cpnd_evt_type {
 
 	CPND_EVT_A2ND_CKPT_ITER_GETNEXT,	/* Checkpoint Section Iternation Getnext Call */
 
-	CPND_EVT_A2ND_ARRIVAL_CB_REG,	/* Checkpoint Arrival Callback */
+	CPND_EVT_A2ND_ARRIVAL_CB_REG,	/* Checkpoint Arrival Callback Register*/
 
 	CPND_EVT_A2ND_CKPT_WRITE,	/* Checkpoint Write And overwrite call */
 	CPND_EVT_A2ND_CKPT_READ,	/* Checkpoint Read Call  */
@@ -177,6 +178,7 @@ typedef enum cpnd_evt_type {
    CPND_EVT_D2ND_CKPT_NUM_SECTIONS,
    CPND_EVT_A2ND_CKPT_REFCNTSET,        /* ref cont opener's set call */
    CPND_EVT_A2ND_CKPT_LIST_UPDATE,	/* Checkpoint ckpt list update Call */
+   CPND_EVT_A2ND_ARRIVAL_CB_UNREG,	/* Checkpoint Arrival Callback Un-Register*/
    CPND_EVT_MAX
 
 }CPND_EVT_TYPE;
@@ -393,6 +395,10 @@ typedef struct cpsv_a2nd_sect_iter_getnext {
 typedef struct cpsv_a2nd_arrival_reg {
 	SaCkptCheckpointHandleT client_hdl;
 } CPSV_A2ND_ARRIVAL_REG;
+
+typedef struct cpsv_a2nd_arrival_unreg {
+	SaCkptCheckpointHandleT client_hdl;
+} CPSV_A2ND_ARRIVAL_UNREG;
 
 typedef struct cpsv_a2nd_sync_ckpt {
 	SaCkptCheckpointHandleT ckpt_id;

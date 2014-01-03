@@ -59,6 +59,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_req(CPND_CB *cb, CPN
 static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uint32_t cpnd_evt_proc_ckpt_sync(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uint32_t cpnd_evt_proc_arrival_cbreg(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
+static uint32_t cpnd_evt_proc_arrival_cbunreg(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uint32_t cpnd_evt_proc_nd2nd_ckpt_sync_req(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uint32_t cpnd_evt_proc_nd2nd_ckpt_active_sync(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uint32_t cpnd_evt_proc_ckpt_read(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
@@ -105,7 +106,7 @@ static char *cpnd_evt_str[] = {
 	"CPND_EVT_A2ND_CKPT_READ",	/* Checkpoint Read Call  */
 	"CPND_EVT_A2ND_CKPT_SYNC",	/* Checkpoint Synchronize call */
 	"CPND_EVT_A2ND_CKPT_READ_ACK",	/* read ack */
-	"CPND_EVT_A2ND_ARRIVAL_CB_REG",	/* Arrival Callback Register */
+	"CPND_EVT_A2ND_ARRIVAL_CB_REG",	/* Track  Callback Register */
 
 	"CPND_EVT_ND2ND_ACTIVE_STATUS",	/* ckpt status info from active */	/* Not used Anywhere from 3.0.2 */
 	"CPND_EVT_ND2ND_ACTIVE_STATUS_ACK",	/* ckpt status ack from active */	/*Not used Anywhere from 3.0.2 */
@@ -148,6 +149,7 @@ static char *cpnd_evt_str[] = {
 	"CPND_EVT_D2ND_CKPT_NUM_SECTIONS",
 	"CPND_EVT_A2ND_CKPT_REFCNTSET", 
    	"CPND_EVT_A2ND_CKPT_LIST_UPDATE", 	/* Checkpoint ckpt list update Call */
+	"CPND_EVT_A2ND_ARRIVAL_CB_UNREG",	/* Track  Callback Un-Register */
 	"CPND_EVT_MAX"
 };
 #endif
@@ -263,6 +265,9 @@ void cpnd_process_evt(CPSV_EVT *evt)
 
 	case CPND_EVT_A2ND_ARRIVAL_CB_REG:
 		(void)cpnd_evt_proc_arrival_cbreg(cb, &evt->info.cpnd, &evt->sinfo);
+		break;
+	case CPND_EVT_A2ND_ARRIVAL_CB_UNREG:
+		(void)cpnd_evt_proc_arrival_cbunreg(cb, &evt->info.cpnd, &evt->sinfo);
 		break;
 	case CPND_EVT_D2ND_CKPT_ACTIVE_SET:	/* broadcast message */
 		(void)cpnd_evt_proc_ckpt_active_set(cb, &evt->info.cpnd, &evt->sinfo);
@@ -3306,6 +3311,38 @@ static uint32_t cpnd_evt_proc_arrival_cbreg(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 		return rc;
 	}
 	cl_node->arrival_cb_flag = true;
+
+	cpnd_restart_set_arrcb(cb, cl_node);
+	TRACE_LEAVE();
+	return rc;
+}
+
+/******************************************************************************
+ * Name          : cpnd_evt_proc_arrival_cbunreg
+ *
+ * Description   : Function to process the arrival callback registration
+ *
+ * Arguments     : CPND_CB *cb - CPND CB pointer
+ *                 CPSV_EVT *evt - Received Event structure
+ *                 CPSV_SEND_INFO *sinfo - Sender MDS information.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error
+ *
+ *****************************************************************************/
+static uint32_t cpnd_evt_proc_arrival_cbunreg(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo)
+{
+	CPND_CKPT_CLIENT_NODE *cl_node = NULL;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
+	cpnd_client_node_get(cb, evt->info.arr_ntfy.client_hdl, &cl_node);
+	if (cl_node == NULL) {
+		TRACE_4("cpnd client hdl get failed for client_hdl:%llx",evt->info.arr_ntfy.client_hdl);
+		rc = NCSCC_RC_FAILURE;
+		TRACE_LEAVE();
+		return rc;
+	}
+	cl_node->arrival_cb_flag = false;
 
 	cpnd_restart_set_arrcb(cb, cl_node);
 	TRACE_LEAVE();

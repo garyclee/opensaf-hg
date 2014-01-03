@@ -119,8 +119,9 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle, const SaCkptCallbacksT *
 
 	/* Store the callback functions, if set */
 	if (ckptCallbacks) {
-		cl_node->ckpt_callbk = *ckptCallbacks;
-
+		cl_node->ckpt_callbk.saCkptCheckpointOpenCallback = ckptCallbacks->saCkptCheckpointOpenCallback;
+		cl_node->ckpt_callbk.saCkptCheckpointSynchronizeCallback = ckptCallbacks->saCkptCheckpointSynchronizeCallback;
+		cl_node->ckpt_callbk.saCkptCheckpointTrackCallback = NULL;
 	}
 
         proc_rc = cpa_callback_ipc_init(cl_node);
@@ -278,11 +279,269 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle, const SaCkptCallbacksT *
 }
 
 /****************************************************************************
-  Name          :  saCkptSelectionObjectGet
+  Name          :  SaCkptInitialize_2
  
-  Description   :  This function returns the operating system handle 
-                   associated with the ckptHandle.
+  Description   :  This function initializes the Checkpoint Service for the
+                   invoking process and registers the various callback functions.
+                   The handle 'ckptHandle' is returned as the reference to this
+                   association between the process and the Checkpoint Service.
+                   
  
+  Arguments     :  ckptHandle - A pointer to the handle designating this 
+                                particular initialization of the Checkpoint 
+                                service that it to be returned by the Checkpoint
+                                Service.
+                   callbacks  - Pointer to a SaCkptCallbacksT_2 structure, 
+                                containing the callback functions of the process
+                                that the Checkpoint Service may invoke.
+                   version    - Is a pointer to the version of the Checkpoint 
+                                Service that the invoking process is using.
+ 
+  Return Values :  Refer to SAI-AIS specification for various return values.
+ 
+  Notes         :
+******************************************************************************/
+SaAisErrorT saCkptInitialize_2(SaCkptHandleT *ckptHandle, const SaCkptCallbacksT_2 *ckptCallbacks, SaVersionT *version)
+{
+	CPA_CB *cb = NULL;
+	SaAisErrorT rc = SA_AIS_OK;
+	CPSV_EVT init_evt;
+	CPSV_EVT *out_evt = NULL;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	CPA_CLIENT_NODE *cl_node = NULL;
+	bool locked = true;
+	SaVersionT client_version;
+
+	TRACE_ENTER();
+	proc_rc = ncs_agents_startup();
+	if (NCSCC_RC_SUCCESS != proc_rc) {
+		TRACE_4("cpa CkptInit:agents_startup Api failed with return value:%d", proc_rc);
+		return SA_AIS_ERR_LIBRARY;
+	}
+
+	proc_rc = ncs_cpa_startup();
+	if (NCSCC_RC_SUCCESS != proc_rc) {
+		TRACE_4("cpa CkptInit:agents_startup Api failed with return value:%d" , proc_rc);
+		ncs_agents_shutdown();
+		return SA_AIS_ERR_LIBRARY;
+	}
+
+	if ((!ckptHandle) || (!version)) {
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		TRACE_4("cpa CkptInit Api failed with return value :%d", rc);
+		goto end;
+	}
+
+	*ckptHandle = 0;
+
+	memcpy(&client_version, version, sizeof(SaVersionT));
+
+	if (m_CPA_VER_IS_BELOW_B_2_3(version)) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: Cpa version incompatible saCkptInitialize_2 SHOULD BE A VERSION B.02.03 and above initialize but claims to be"
+				"%c %u %u", version->releaseCode, version->majorVersion, version->minorVersion);
+		version->releaseCode = CPA_RELEASE_CODE;
+		version->majorVersion = CPA_MAJOR_VERSION;
+		version->minorVersion = CPA_MINOR_VERSION;
+		goto end;
+	}
+
+	/* Draft Validations : Version */
+	rc = cpa_version_validate(version);
+	if (rc != SA_AIS_OK) {
+		TRACE_4("cpa  CkptInit Api failed with return value:%d", rc);
+		goto end;
+	}
+
+	/* retrieve CPA CB */
+	m_CPA_RETRIEVE_CB(cb);
+	if (cb == NULL) {
+		TRACE_4("cpa CkptInit:HDL_TAKE");
+		return SA_AIS_ERR_LIBRARY;
+	}
+
+	/* Take the CB Lock */
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_4("cpa CkptInit:LOCK");
+		rc = SA_AIS_ERR_LIBRARY;
+		goto lock_fail;
+	}
+
+	/* Alloc the client info data structure & put it in the Pat tree */
+	cl_node = (CPA_CLIENT_NODE *)m_MMGR_ALLOC_CPA_CLIENT_NODE;
+	if (cl_node == NULL) {
+		TRACE_4("cpa mem alloc CkptInit:CPA_CLIENT_NODE");
+		rc = SA_AIS_ERR_NO_MEMORY;
+		goto cnode_alloc_fail;
+	}
+	memset(cl_node, 0, sizeof(CPA_CLIENT_NODE));
+
+	/* Store the callback functions, if set */
+	if (ckptCallbacks) {
+		cl_node->ckpt_callbk = *ckptCallbacks;
+	}
+
+	proc_rc = cpa_callback_ipc_init(cl_node);
+	if (proc_rc != NCSCC_RC_SUCCESS) {
+		/* Error handling */
+		rc = SA_AIS_ERR_LIBRARY;
+		/* ALready looged by cpa_callback_ipc_init */
+		goto ipc_init_fail;
+	}
+
+	/* populate the EVT structure */
+	memset(&init_evt, 0, sizeof(CPSV_EVT));
+	init_evt.type = CPSV_EVT_TYPE_CPND;
+	init_evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_INIT;
+	init_evt.info.cpnd.info.initReq.version = client_version;
+
+	/* Release the CB lock Before MDS Send */
+	if (locked)
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	locked = false;
+
+	/* CPND GOES DOWN */
+	if (false == cb->is_cpnd_up) {
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		TRACE_4("cpa: api failed in CkptInit:CPND_DOWN");
+		goto mds_fail;
+	}
+
+	/* send the request to the CPND */
+	proc_rc = cpa_mds_msg_sync_send(cb->cpa_mds_hdl, &cb->cpnd_mds_dest, &init_evt, &out_evt, CPSV_WAIT_TIME);
+
+	/* Error Handling */
+	switch (proc_rc) {
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			TRACE_4("cpa CkptInit:MDS Api failed with return value:%d,cpnd_mds_dest:%"PRIu64, proc_rc, cb->cpa_mds_dest);
+			rc = SA_AIS_ERR_TIMEOUT;
+			goto mds_fail;
+		default:
+			TRACE_4("cpa CkptInit:MDS Api failed with return value:%d,cpnd_mds_dest:%"PRIu64, proc_rc, cb->cpa_mds_dest);
+			rc = SA_AIS_ERR_TRY_AGAIN;
+			goto mds_fail;
+	}
+
+	if (out_evt) {
+		rc = out_evt->info.cpa.info.initRsp.error;
+		if (rc != SA_AIS_OK) {
+			TRACE_4("cpa CkptInit:CPND_ERR Api failed with return value:%d",rc);
+			goto rsp_not_ok;
+		}
+
+		if (m_CPA_VER_IS_ABOVE_B_1_1(version)) {
+			if (rc == SA_AIS_ERR_UNAVAILABLE) {
+				cb->is_cpnd_joined_clm = false;
+				if (locked)
+					m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+				locked = false;
+				goto clm_left;
+			} else {
+				cb->is_cpnd_joined_clm = true;
+			}
+		}
+		/* Take the CB lock after MDS Send */
+		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+			TRACE_4("cpa CkptInit:LOCK");
+			rc = SA_AIS_ERR_LIBRARY;
+			goto lock_fail1;
+		} else
+			locked = true;
+
+		cl_node->cl_hdl = out_evt->info.cpa.info.initRsp.ckptHandle;
+		cl_node->stale = false;
+		proc_rc = cpa_client_node_add(&cb->client_tree, cl_node);
+		if (proc_rc != NCSCC_RC_SUCCESS) {
+			rc = SA_AIS_ERR_LIBRARY;
+			TRACE_4("cpa api processing failed in CkptInit:client_node_add Api failed with return value:%d,cl_hdl:%llx ", rc, cl_node->cl_hdl);
+			goto node_add_fail;
+		}
+	} else {
+		TRACE_4("cpa api processing failed in CkptInit Api failed with return value:%d", rc);
+		rc = SA_AIS_ERR_NO_RESOURCES;
+	}
+
+	if (rc != SA_AIS_OK) {
+		TRACE_4("cpa CkptInit:CPND_ERR Api failed with return value:%d",rc);
+		goto cpnd_rsp_fail;
+	}
+
+	/*Error handling */
+cpnd_rsp_fail:
+node_add_fail:
+lock_fail1:
+	if (rc != SA_AIS_OK) {
+		CPSV_EVT finalize_evt, *out_evt1;
+
+		out_evt1 = NULL;
+		/* populate the structure */
+		memset(&finalize_evt, 0, sizeof(CPSV_EVT));
+		finalize_evt.type = CPSV_EVT_TYPE_CPND;
+		finalize_evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_FINALIZE;
+		finalize_evt.info.cpnd.info.finReq.client_hdl = cl_node->cl_hdl;
+
+		if (locked)
+			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		locked = false;
+
+		/* send the request to the CPND */
+		proc_rc = cpa_mds_msg_sync_send(cb->cpa_mds_hdl, &(cb->cpnd_mds_dest),
+				&finalize_evt, &out_evt1, CPSV_WAIT_TIME);
+		if (out_evt1)
+			m_MMGR_FREE_CPSV_EVT(out_evt1, NCS_SERVICE_ID_CPA);
+	}
+
+rsp_not_ok:
+mds_fail:
+
+	/* Free the IPC initialized for this client */
+	if (rc != SA_AIS_OK)
+		cpa_callback_ipc_destroy(cl_node);
+
+ipc_init_fail:
+	/* Free the Client NODE */
+	if (rc != SA_AIS_OK)
+		m_MMGR_FREE_CPA_CLIENT_NODE(cl_node);
+
+cnode_alloc_fail:
+	/* Release the CB lock */
+	if (locked)
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+
+lock_fail:
+clm_left:
+	/* Release the CB handle */
+	m_CPA_GIVEUP_CB;
+
+	/* Free the Out Event */
+	if (out_evt)
+		m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPA);
+
+	if (rc == SA_AIS_OK) {
+		memcpy(&(cl_node->version), &client_version, sizeof(SaVersionT));
+		/* Went well, return ckptHandle to the application */
+		*ckptHandle = cl_node->cl_hdl;
+		TRACE_1("cpa ckptInit Api success with return value:%d and cl_hdl:%llx", SA_AIS_OK, cl_node->cl_hdl);
+	}
+end:
+	if (rc != SA_AIS_OK) {
+		ncs_cpa_shutdown();
+		ncs_agents_shutdown();
+	}
+
+	TRACE_LEAVE2("API Return code = %u", rc);
+	return rc;
+}
+
+
+/****************************************************************************
+Name          :  saCkptSelectionObjectGet
+
+Description   :  This function returns the operating system handle
+associated with the ckptHandle.
+
   Arguments     :  ckptHandle - Checkpoint service handle.
                    selectionObject - Pointer to the operating system handle.
  
@@ -4166,7 +4425,7 @@ ncsCkptRegisterCkptArrivalCallback(SaCkptHandleT ckptHandle, ncsCkptCkptArrivalC
 	}
 
 	if (ckptArrivalCallback) {
-		cl_node->ckptArrivalCallback = ckptArrivalCallback;
+		cl_node->ckpt_callbk.saCkptCheckpointTrackCallback = ckptArrivalCallback;
 		if (cl_node->callbk_mbx == 0)
 			proc_rc = cpa_callback_ipc_init(cl_node);
 		else
@@ -4226,3 +4485,279 @@ ncsCkptRegisterCkptArrivalCallback(SaCkptHandleT ckptHandle, ncsCkptCkptArrivalC
 	TRACE_LEAVE2("API return code = %u", rc);
 	return rc;
 }
+
+/****************************************************************************
+Name          :  saCkptTrack
+
+Description   :  This function enable  the Ckpt Track call back
+
+Arguments     :  ckptHandle - Checkpoint handle.
+
+Return Values :  Refer to SAI-AIS specification for various return values.
+
+Notes         :
+ ******************************************************************************/
+SaAisErrorT saCkptTrack(SaCkptHandleT ckptHandle)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	CPSV_EVT evt;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	CPA_CLIENT_NODE *cl_node = NULL;
+	CPA_CB *cb = NULL;
+	bool is_locked = false;
+
+	/* retrieve CPA CB */
+	m_CPA_RETRIEVE_CB(cb);
+	if (!cb) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_4("cpa CkptArrivalCallback Api failed with return value:%d,ckptHandle:%llx",rc, ckptHandle);
+		goto done;
+	}
+
+	/* get the CB Lock */
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("cpa CkptArrivalCallback:LOCK Api failed with return value:%d,ckptHandle:%llx", rc, ckptHandle);
+		goto lock_fail;
+	}
+
+	is_locked = true;
+
+	/* Get the Client info */
+	rc = cpa_client_node_get(&cb->client_tree, &ckptHandle, &cl_node);
+
+	if (!cl_node) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_4("cpa CkptArrivalCallback:client_node_get Api failed with return value:%d,ckptHandle:%llx", rc, ckptHandle);
+		goto proc_fail;
+	}
+
+	if (m_CPA_VER_IS_BELOW_B_2_3(&cl_node->version)) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saCkptTrack SHOULD BE A VERSION B.02.03 and above API but claims to be"
+				"%c %u %u", cl_node->version.releaseCode, cl_node->version.majorVersion, cl_node->version.minorVersion);
+		goto proc_fail;
+	}
+
+	if (cl_node->ckpt_callbk.saCkptCheckpointTrackCallback) {
+		if (cl_node->callbk_mbx == 0)
+			proc_rc = cpa_callback_ipc_init(cl_node);
+		else
+			proc_rc = NCSCC_RC_SUCCESS;
+	} else {
+		rc = SA_AIS_ERR_INIT;
+		TRACE_4("cpa CkptArrivalCallback Api failed with return value:%d,ckptHandle:%llx", rc, ckptHandle);
+		goto proc_fail;
+
+	}
+
+	if (proc_rc != NCSCC_RC_SUCCESS) {
+		/* Error handling */
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("cpa CkptArrivalCallback Api failed with return value:%d,ckptHandle:%llx", rc, ckptHandle);
+		goto proc_fail;
+	}
+	/* Send it to CPND */
+	memset(&evt, 0, sizeof(CPSV_EVT));
+	evt.type = CPSV_EVT_TYPE_CPND;
+	evt.info.cpnd.type = CPND_EVT_A2ND_ARRIVAL_CB_REG;
+	evt.info.cpnd.info.arr_ntfy.client_hdl = ckptHandle;
+
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	is_locked = false;
+	/* IF CPND IS DOWN  */
+	if (false == cb->is_cpnd_up) {
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		TRACE_4("cpa CkptArrivalCallback Api failed with return value:%d,ckptHandle:%llx", rc, ckptHandle);
+		goto lock_fail;
+	}
+	proc_rc = cpa_mds_msg_send(cb->cpa_mds_hdl, &cb->cpnd_mds_dest, &evt, NCSMDS_SVC_ID_CPND);
+	/* Generate rc from proc_rc */
+	switch (proc_rc) {
+		case NCSCC_RC_SUCCESS:
+			cl_node->is_track_enabled = true;
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			rc = SA_AIS_ERR_TIMEOUT;
+			TRACE_4("cpa CkptArrivalCallback:MDS Api failed with return value:%d,ckptHandle:%llx,cpnd_mds_dest:%"PRIu64, proc_rc, ckptHandle, cb->cpnd_mds_dest);
+			goto proc_fail;
+		default:
+			rc = SA_AIS_ERR_NO_RESOURCES;
+			TRACE_4("cpa CkptArrivalCallback:MDS Api failed with return value:%d,ckptHandle:%llx,cpnd_mds_dest:%"PRIu64, proc_rc, ckptHandle, cb->cpnd_mds_dest);
+			goto proc_fail;
+	}
+
+proc_fail:
+	if (is_locked)
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+lock_fail:
+	m_CPA_GIVEUP_CB;
+
+done:
+	TRACE_LEAVE2("API return code = %u", rc);
+	return rc;
+}
+
+/****************************************************************************
+Name          :  saCkptTrackStop
+
+Description   :  This function disable the Ckpt Track call back
+
+Arguments     :  ckptHandle - Checkpoint handle.
+
+Return Values :  Refer to SAI-AIS specification for various return values.
+
+Notes         :
+ ******************************************************************************/
+SaAisErrorT saCkptTrackStop(SaCkptHandleT ckptHandle)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	CPSV_EVT evt;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	CPA_CLIENT_NODE *cl_node = NULL;
+	CPA_CB *cb = NULL;
+	bool is_locked = false;
+
+	/* retrieve CPA CB */
+	m_CPA_RETRIEVE_CB(cb);
+	if (!cb) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_4("cpa CkptArrivalCallback Api failed with return value:%d,ckptHandle:%llx",rc, ckptHandle);
+		goto done;
+	}
+
+	/* get the CB Lock */
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("cpa CkptArrivalCallback:LOCK Api failed with return value:%d,ckptHandle:%llx", rc, ckptHandle);
+		goto lock_fail;
+	}
+
+	is_locked = true;
+
+	/* Get the Client info */
+	rc = cpa_client_node_get(&cb->client_tree, &ckptHandle, &cl_node);
+
+	if (!cl_node) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_4("cpa CkptArrivalCallback:client_node_get Api failed with return value:%d,ckptHandle:%llx", rc, ckptHandle);
+		goto proc_fail;
+	}
+
+	if (m_CPA_VER_IS_BELOW_B_2_3(&cl_node->version)) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saCkptTrackStop SHOULD BE A VERSION B.02.03 and above API  but claims to be"
+				"%c %u %u", cl_node->version.releaseCode, cl_node->version.majorVersion, cl_node->version.minorVersion);
+		goto proc_fail;
+	}
+
+	if (cl_node->ckpt_callbk.saCkptCheckpointTrackCallback) {
+		if ((cl_node->callbk_mbx == 0) || (cl_node->is_track_enabled != true))
+			proc_rc = SA_AIS_ERR_NOT_EXIST;
+		else
+			proc_rc = NCSCC_RC_SUCCESS;
+	} else {
+		rc = SA_AIS_ERR_INIT;
+		TRACE_4("cpa CkptArrivalCallback Api failed with return value:%d,ckptHandle:%llx", rc, ckptHandle);
+		goto proc_fail;
+
+	}
+
+	if (proc_rc != NCSCC_RC_SUCCESS) {
+		/* Error handling */
+		rc = SA_AIS_ERR_NOT_EXIST;
+		TRACE_4("cpa CkptArrivalCallback Api failed with return value:%d,ckptHandle:%llx", rc, ckptHandle);
+		goto proc_fail;
+	}
+
+	/* Send it to CPND */
+	memset(&evt, 0, sizeof(CPSV_EVT));
+	evt.type = CPSV_EVT_TYPE_CPND;
+	evt.info.cpnd.type = CPND_EVT_A2ND_ARRIVAL_CB_UNREG;
+	evt.info.cpnd.info.arr_ntfy.client_hdl = ckptHandle;
+
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	is_locked = false;
+
+	/* IF CPND IS DOWN  */
+	if (false == cb->is_cpnd_up) {
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		TRACE_4("cpa CkptArrivalCallback Api failed with return value:%d,ckptHandle:%llx", rc, ckptHandle);
+		goto lock_fail;
+	}
+	proc_rc = cpa_mds_msg_send(cb->cpa_mds_hdl, &cb->cpnd_mds_dest, &evt, NCSMDS_SVC_ID_CPND);
+
+	/* Generate rc from proc_rc */
+	switch (proc_rc) {
+		case NCSCC_RC_SUCCESS:
+			cl_node->is_track_enabled = false;
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			rc = SA_AIS_ERR_TIMEOUT;
+			TRACE_4("cpa CkptArrivalCallback:MDS Api failed with return value:%d,ckptHandle:%llx,cpnd_mds_dest:%"PRIu64, proc_rc, ckptHandle, cb->cpnd_mds_dest);
+			goto proc_fail;
+		default:
+			rc = SA_AIS_ERR_NO_RESOURCES;
+			TRACE_4("cpa CkptArrivalCallback:MDS Api failed with return value:%d,ckptHandle:%llx,cpnd_mds_dest:%"PRIu64, proc_rc, ckptHandle, cb->cpnd_mds_dest);
+			goto proc_fail;
+	}
+
+proc_fail:
+	if (is_locked)
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+lock_fail:
+	m_CPA_GIVEUP_CB;
+
+done:
+	TRACE_LEAVE2("API return code = %u", rc);
+	return rc;
+}
+
+/****************************************************************************
+Name          :  saCkptCheckpointTrack 
+
+Description   :  This function enables  the specific Checkpoint Track call back
+
+Arguments     :  checkpointHandle - The handle that designates the checkpoint
+to enables Track.
+
+Return Values :  Refer to SAI-AIS specification for various return values.
+
+Notes         :
+ ******************************************************************************/
+SaAisErrorT saCkptCheckpointTrack(SaCkptCheckpointHandleT checkpointHandle)
+{
+	/* TODO: Not supported yet.
+	   In future to support checkpoint tracking start "per (checkpoint - handle) SaCkptCheckpointHandleT ".
+	   this is a placeholder for future enhancement the saCkptCheckpointTrack() is in place, but
+	   will return SA_AIS_ERR_NOT_SUPPORTED */
+	SaAisErrorT rc = SA_AIS_ERR_NOT_SUPPORTED;
+	TRACE_ENTER();
+	TRACE_LEAVE2("API return code = %u", rc);
+	return rc;
+}
+
+/****************************************************************************
+Name          :  saCkptCheckpointTrackStop 
+
+Description   :  This function disables the specific Checkpoint  Track call back
+
+Arguments     :  checkpointHandle - The handle that designates the checkpoint
+to disables Track.
+
+Return Values :  Refer to SAI-AIS specification for various return values.
+
+Notes         :
+ ******************************************************************************/
+SaAisErrorT saCkptCheckpointTrackStop(SaCkptCheckpointHandleT checkpointHandle)
+{
+	/* TODO: Not supported yet.
+	   In future to support checkpoint tracking stop "per (checkpoint - handle) SaCkptCheckpointHandleT ".
+	   this is a placeholder for future enhancement the saCkptCheckpointTrack() is in place, but
+	   will return SA_AIS_ERR_NOT_SUPPORTED */
+	SaAisErrorT rc = SA_AIS_ERR_NOT_SUPPORTED;
+	TRACE_ENTER();
+	TRACE_LEAVE2("API return code = %u", rc);
+	return rc;
+}
+
