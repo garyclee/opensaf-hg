@@ -28,9 +28,9 @@ typedef struct cpa_client_node {
 	SaCkptHandleT cl_hdl;	/* index for the tree */
 	uint8_t stale;		/*Loss of connection with cpnd because of clm node left
 				  will set this to true for the connection. */
-	SaCkptCallbacksT ckpt_callbk;
+	SaCkptCallbacksT_2 ckpt_callbk;
 	SYSF_MBX callbk_mbx;	/* Mailbox Queue for client messages */
-	ncsCkptCkptArrivalCallbackT ckptArrivalCallback;	/* NCS callback extention */
+	bool is_track_enabled;
 	SaVersionT version;
 } CPA_CLIENT_NODE;
 

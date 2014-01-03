@@ -1399,6 +1399,7 @@ fi
 %{_includedir}/saAis.h
 %{_includedir}/saAmf.h
 %{_includedir}/saCkpt.h
+%{_includedir}/saCkpt_B_02_03.h
 %{_includedir}/saClm.h
 %{_includedir}/saEvt.h
 %{_includedir}/saImm.h

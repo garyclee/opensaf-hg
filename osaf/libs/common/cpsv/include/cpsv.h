@@ -74,6 +74,13 @@
     ((ver)->releaseCode > 'B') )&& \
     ((ver)->majorVersion > 0x01 ) && \
     ((ver)->minorVersion > 0x01 ) )
+
+#define m_CPA_VER_IS_BELOW_B_2_3(ver) \
+	(((ver)->releaseCode != 'B') || \
+	((ver)->majorVersion != 0x02 ) || \
+	((ver)->minorVersion < 0x03 ) )
+
+
 #define m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(attr)                  \
     ((attr)->creationFlags & SA_CKPT_CHECKPOINT_COLLOCATED)
 

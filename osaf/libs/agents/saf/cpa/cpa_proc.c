@@ -1031,10 +1031,10 @@ static void cpa_process_callback_info(CPA_CB *cb, CPA_CLIENT_NODE *cl_node, CPA_
 		}
 		break;
 	case CPA_CALLBACK_TYPE_ARRIVAL_NTFY:
-		if (cl_node->ckptArrivalCallback) {
+		if (cl_node->ckpt_callbk.saCkptCheckpointTrackCallback) {
 			uint32_t i = 0;
-			cl_node->ckptArrivalCallback(callback->lcl_ckpt_hdl, callback->ioVector,
-						     callback->num_of_elmts);
+			cl_node->ckpt_callbk.saCkptCheckpointTrackCallback(callback->lcl_ckpt_hdl, callback->ioVector,
+						callback->num_of_elmts);
 			for (i = 0; i < callback->num_of_elmts; i++) {
 				if (callback->ioVector[i].sectionId.id != NULL
 				    && callback->ioVector[i].sectionId.idLen != 0)

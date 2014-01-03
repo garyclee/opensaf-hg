@@ -22,6 +22,7 @@ include_HEADERS = \
 	saAis.h \
 	saAmf.h \
 	saCkpt.h \
+	saCkpt_B_02_03.h \
 	saClm.h \
 	saEvt.h \
 	saImm.h \
