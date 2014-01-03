@@ -1023,20 +1023,12 @@ done:
 static SaAisErrorT comp_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
 	AVD_COMP *comp;
-	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER();
 
 	comp = avd_comp_get(&opdata->objectName);
 
-	if (comp->su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-		report_ccb_validation_error(opdata, "SU admin state is not locked instantiation required for deletion");
-		goto done;
-	}
-
-	rc = SA_AIS_OK;
-
-done:
 	TRACE_LEAVE();
 	return rc;
 }

@@ -367,19 +367,30 @@ static SaAisErrorT compcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		report_ccb_validation_error(opdata, "Modification of SaAmfCompCsType not supported");
 		break;
 	case CCBUTIL_DELETE:
+		AVD_COMP *comp;
+		SaNameT comp_name;
+		AVD_SU_SI_REL *curr_susi;
+		AVD_COMP_CSI_REL *compcsi;
+
 		cst = avd_compcstype_get(&opdata->objectName);
 		osafassert(cst);
-		if (cst->comp->su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)
-			rc = SA_AIS_OK;
-		else
-			report_ccb_validation_error(opdata, "Deletion of SaAmfCompCsType requires parent SU to be in"
-					" LOCKED-INSTANTIATION");
+		avsv_sanamet_init(&opdata->objectName, &comp_name, "safComp=");
+		comp = avd_comp_get(&comp_name);
+		for (curr_susi = comp->su->list_of_susi; curr_susi != NULL; curr_susi = curr_susi->su_next)
+			for (compcsi = curr_susi->list_of_csicomp; compcsi; compcsi = compcsi->susi_csicomp_next) {
+				if (compcsi->comp == comp) {
+					report_ccb_validation_error(opdata, "Deletion of SaAmfCompCsType requires"
+							" comp without any csi assignment");
+					goto done;
+				}
+			}
+		rc = SA_AIS_OK;
 		break;
 	default:
 		osafassert(0);
 		break;
 	}
-
+done:
 	return rc;
 }
 
