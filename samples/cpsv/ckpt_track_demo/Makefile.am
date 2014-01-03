@@ -18,5 +18,15 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = ckpt_demo ckpt_track_demo 
+bin_PROGRAMS = ckpt_track_demo
 
+ckpt_track_demo_CPPFLAGS = \
+	-DNCS_SAF=1 \
+	$(AM_CPPFLAGS)
+
+ckpt_track_demo_SOURCES = \
+	cpsv_main_track_app.c \
+	cpsv_test_track_app.c
+
+ckpt_track_demo_LDADD = \
+	@SAF_AIS_CKPT_LIBS@
