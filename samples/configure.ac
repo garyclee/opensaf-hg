@@ -66,6 +66,8 @@ AC_CONFIG_FILES([ \
         amf/wrapper/Makefile \
         amf/proxy/Makefile \
         cpsv/Makefile \
+        cpsv/ckpt_demo/Makefile \
+        cpsv/ckpt_track_demo/Makefile \
         edsv/Makefile \
 	glsv/Makefile \
         mqsv/Makefile \

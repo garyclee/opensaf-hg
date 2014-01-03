@@ -1,0 +1,65 @@
+The sa_aware subdirectory contains a sample implementation of 
+ckpt_demo and ckpt_track_demo.
+
+
+/*************************************************************************/
+Execute following steps to see Simple collocated Checkpoint demonstration :
+/*************************************************************************/
+
+1) On Node A
+	#/usr/local/bin/ckpt_demo 1
+ 
+2) On Node B
+	 #/usr/local/bin/ckpt_demo 0
+
+3) On Node A
+	#Press <Enter> key to continue...
+
+3) On Node B
+        #Press <Enter> key to continue...
+
+
+/***********************************************************************/
+
+Explain concept of tracking a checkpoint
+The Checkpoint Service allows a process to track changes on checkpoints.
+
+When multiple processes use the same checkpoint, a tracking process will
+be notified by a callback when a process writes to the checkpoint.
+
+The Checkpoint Service calls the callback, when writes , section create
+and section delete to a checkpoint It allows a process to be notified by
+a callback, when writes to a checkpoint are completely synchronized to
+the replica the process would retrieve its data from with the 
+saCkptCheckpointRead() interface.
+
+Before using the track interface a process needs to open the checkpoint
+it wants to track. To start tracking it needs to call the saCkptTrack() 
+function and specify the ckptHandle using the handle obtained through
+the saCkptInitialize_2()  functions.
+
+Subsequently the Checkpoint Service will inform the process about any 
+update of the checkpoint by calling the saCkptCheckpointTrackCallback() 
+callback function, which the process has registered at service initialization.
+
+
+Execute following steps to see Checkpoint Track Callback demonstration :
+
+/************************************************************************/
+ 
+1) On Node A
+        #/usr/local/bin/ckpt_track_demo 1
+ 
+2) On Node B
+        #/usr/local/bin/ckpt_track_demo 0
+ 
+3) On Node A
+        #Press <Enter> key to Writing to Checkpoint ...
+ 
+4) On Node B you will see Checkpoint Data which was written in On Node A
+ 
+        #CheckpointRead Checkpoint TrackCallback processed
+        #CheckpointData was written in sectionId: 11 = "************ This is the saCkptCheckpointTrackCallback demo ***********"
+ 
+5) On Node A
+        #Press <Enter> key to  Close Checkpoint ...
