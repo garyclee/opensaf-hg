@@ -1510,9 +1510,9 @@ uint32_t clms_mds_msg_send(CLMS_CB * cb,
 
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
-	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("clms_mds_msg_send FAILED: %u", rc);
-	}
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_IN("mds send returned: %u", rc);
+
 	TRACE_LEAVE();
 	return rc;
 }

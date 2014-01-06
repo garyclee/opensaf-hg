@@ -316,6 +316,8 @@ uint32_t proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 		clm_msg.info.api_resp_info.param.node_name = node_name;
 		rc = clms_mds_msg_send(cb, &clm_msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH,
 				       NCSMDS_SVC_ID_CLMNA);
+		if (rc != NCSCC_RC_SUCCESS)
+			LOG_NO("%s: send failed. dest:%" PRIx64, __FUNCTION__, evt->fr_dest);
 		/*as this is failure case of node == NULL, making rc = success to avoid irrelevant error from process_api_evt() */
 		rc = NCSCC_RC_SUCCESS;
 		goto done;
@@ -329,8 +331,10 @@ uint32_t proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	rc = clms_mds_msg_send(cb, &clm_msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH,
 			       NCSMDS_SVC_ID_CLMNA);
 	/*if mds send failed, we need to report failure */
-	if (rc != NCSCC_RC_SUCCESS)
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_NO("%s: send failed. dest:%" PRIx64, __FUNCTION__, evt->fr_dest);
 		goto done;
+	}
 
 	/* This has to be updated always */
 	node->nodeup = SA_TRUE;
@@ -921,7 +925,7 @@ static uint32_t proc_track_stop_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	clm_msg.info.api_resp_info.rc = ais_rc;
 	rc = clms_mds_msg_send(cb, &clm_msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
 	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("clms_mds_msg_send failed rc %u", (unsigned int)rc);
+		LOG_NO("%s: send failed. dest:%" PRIx64, __FUNCTION__, evt->fr_dest);
 		goto done;
 	}
 
@@ -1126,7 +1130,7 @@ static uint32_t proc_initialize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 
 	rc = clms_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_LEAVE2("clms_mds_msg_send FAILED rc = %u", (unsigned int)rc);
+		LOG_NO("%s: send failed. dest:%" PRIx64, __FUNCTION__, evt->fr_dest);
 		if (client != NULL)
 			clms_client_delete(client->client_id);
 		return rc;
@@ -1201,7 +1205,7 @@ static uint32_t proc_finalize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	msg.info.api_resp_info.param.client_id = param->client_id;
 	rc = clms_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_LEAVE2("clms_mds_msg_send failed rc = %u", (unsigned int)rc);
+		LOG_NO("%s: send failed. dest:%" PRIx64, __FUNCTION__, evt->fr_dest);
 		return rc;
 	}
 
@@ -1245,7 +1249,7 @@ static uint32_t process_api_evt(CLMSV_CLMS_EVT * evt)
 
 				if (clms_clma_api_msg_dispatcher[evt->info.msg.info.api_info.type] (clms_cb, evt) !=
 				    NCSCC_RC_SUCCESS) {
-					LOG_ER("clms_clma_api_msg_dispatcher FAILED: type %d", evt->info.msg.evt_type);
+					TRACE("Event type: %d", evt->info.msg.info.api_info.type);
 				}
 			} else
 				LOG_ER("Invalid msg type %d", evt->info.msg.info.api_info.type);
@@ -1360,7 +1364,7 @@ static void clms_track_current_apiresp(SaAisErrorT ais_rc, uint32_t num_mem, SaC
 
 	rc = clms_mds_msg_send(clms_cb, &msg, dest, ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE("clms_mds_msg_send failed");
+		LOG_NO("%s: send failed. dest:%" PRIx64, __FUNCTION__, *dest);
 	}
 
 	free(msg.info.api_resp_info.param.track.notify_info);
@@ -1408,7 +1412,7 @@ static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc, uint32_t num_mem
 
 	rc = clms_mds_msg_send(clms_cb, &msg, dest, NULL, MDS_SEND_PRIORITY_MEDIUM, NCSMDS_SVC_ID_CLMA);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE("clms_mds_msg_send failed rc = %d", rc);
+		LOG_NO("%s: send failed. dest:%" PRIx64, __FUNCTION__, *dest);
 	}
 
 	free(msg.info.cbk_info.param.track.root_cause_ent);
@@ -1657,7 +1661,7 @@ static uint32_t clms_ack_to_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt, SaA
 	msg.info.api_resp_info.rc = ais_rc;
 	mds_rc = clms_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
 	if (mds_rc != NCSCC_RC_SUCCESS) {
-		TRACE_LEAVE2("clms_mds_msg_send failed rc = %u", (unsigned int)mds_rc);
+		LOG_NO("%s: send failed. dest:%" PRIx64, __FUNCTION__, evt->fr_dest);
 		return mds_rc;
 	}
 	return mds_rc;
