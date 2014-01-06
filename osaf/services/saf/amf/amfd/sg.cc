@@ -478,23 +478,103 @@ done1:
 	return error;
 }
 
-static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
+/**
+ * Check if the node represented by nodename is a member of node group ng
+ * @param nodename
+ * @param ng
+ * @return
+ */
+static bool node_in_ng(const SaNameT *nodename, const AVD_AMF_NG *ng)
+{
+	for (unsigned i = 0; i < ng->number_nodes; i++) {
+		if (strncmp((char*)nodename->value,
+				(char*)ng->saAmfNGNodeList[i].value, SA_MAX_NAME_LENGTH) == 0)
+			return true;
+	}
+
+	return false;
+}
+
+/**
+ * Check if the node group represented by ngname is a subset of the node group
+ * represented by supername
+ * @param ngname
+ * @param supername
+ * @return true/false
+ */
+static bool ng_is_subset(const SaNameT *ngname, const AVD_AMF_NG *superng)
+{
+	const AVD_AMF_NG *ng = avd_ng_get(ngname);
+	const SaNameT *nodename;
+
+	if (superng->number_nodes < ng->number_nodes)
+		return false;
+
+	for (unsigned i = 0; i < ng->number_nodes; i++) {
+		nodename = &ng->saAmfNGNodeList[i];
+
+		if (node_in_ng(nodename, superng) == false)
+			return false;
+	}
+
+	return true;
+}
+
+/**
+ * Validate if the change in node group value is OK, report to IMM otherwise
+ * @param sg
+ * @param ng_name
+ * @param opdata
+ * @return true/false
+ */
+static bool ng_change_is_valid(const AVD_SG *sg, const SaNameT *ng_name,
+		const CcbUtilOperationData_t *opdata)
+{
+	if (sg->saAmfSGSuHostNodeGroup.length > 0) {
+		// A node group is currently configured for SG. A user wants
+		// to change it. Validate that the old node group is subset
+		// of the new one.
+
+		const AVD_AMF_NG *ng = avd_ng_get(ng_name);
+		if (ng == NULL) {
+			report_ccb_validation_error(opdata,
+					"Node Group '%s' not found", ng_name->value);
+			return false;
+		}
+
+		if (ng_is_subset(&sg->saAmfSGSuHostNodeGroup, ng) == false) {
+			report_ccb_validation_error(opdata,
+				"'%s' is not a subset of '%s'",
+				sg->saAmfSGSuHostNodeGroup.value, ng_name->value);
+			return false;
+		}
+	} else {
+		// a node group is currently not configured for this SG
+		// don't allow configuring it now, why?
+		report_ccb_validation_error(opdata,
+			"Attribute saAmfSGSuHostNodeGroup cannot be modified");
+		return false;
+	}
+
+	return true;
+}
+
+static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	AVD_SG *avd_sg = NULL;
-	AVD_AMF_SG_TYPE *avd_sg_type = NULL;
+	AVD_SG *sg;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
 	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
-	avd_sg = avd_sg_get(&opdata->objectName);
-	osafassert(avd_sg != NULL);
+	sg = avd_sg_get(&opdata->objectName);
+	osafassert(sg != NULL);
 
 	/* Validate whether we can modify it. */
 
-	if ((avd_sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) ||
-		(avd_sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED)) {
+	if ((sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) ||
+		(sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED)) {
 
 		i = 0;
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
@@ -502,7 +582,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			void *value = NULL;
 
 			/* Attribute value removed */
-			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attribute->attrValues == NULL))
+			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||
+					(attribute->attrValues == NULL))
 				continue;
 
 			value = attribute->attrValues[0];
@@ -510,25 +591,26 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			if (!strcmp(attribute->attrName, "saAmfSGType")) {
 				SaNameT sg_type_name = *((SaNameT *)value);
 
-				if (avd_sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
-					report_ccb_validation_error(opdata, "%s: Attribute saAmfSGType cannot be modified"
-							" when SG is not in locked instantion", __FUNCTION__);
+				if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
+					report_ccb_validation_error(opdata,
+						"%s: Attribute saAmfSGType cannot be modified"
+						" when SG is not in locked instantion", __FUNCTION__);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
 
-				avd_sg_type = avd_sgtype_get(&sg_type_name);
-				if (NULL == avd_sg_type) {
-					report_ccb_validation_error(opdata, "SG Type '%s' not found", sg_type_name.value);
+				if (avd_sgtype_get(&sg_type_name) == NULL) {
+					report_ccb_validation_error(opdata,
+						"SG Type '%s' not found", sg_type_name.value);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
 
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuHostNodeGroup")) {
-				report_ccb_validation_error(opdata, "%s: Attribute saAmfSGSuHostNodeGroup cannot be"
-						" modified", __FUNCTION__);
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
+				if (ng_change_is_valid(sg, (SaNameT *)value, opdata) == false) {
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjust")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefActiveSUs")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefStandbySUs")) {
@@ -537,10 +619,11 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				pref_inservice_su = *((SaUint32T *)value);
 
 				if ((pref_inservice_su == 0) ||
-					((avd_sg->sg_redundancy_model < SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) &&
+					((sg->sg_redundancy_model < SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) &&
 					 (pref_inservice_su < AVSV_SG_2N_PREF_INSVC_SU_MIN))) {
-					report_ccb_validation_error(opdata, "%s: Minimum preferred num of su should be 2 in"
-							" 2N, N+M and NWay red models", __FUNCTION__);
+					report_ccb_validation_error(opdata,
+						"%s: Minimum preferred num of su should be 2 in"
+						" 2N, N+M and NWay red models", __FUNCTION__);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
@@ -555,8 +638,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
 				uint32_t sg_autorepair = *((SaUint32T *)attribute->attrValues[0]);
 				if (sg_autorepair > true ) {
-					report_ccb_validation_error(opdata, "Invalid saAmfSGAutoRepair SG:'%s'",
-							avd_sg->name.value);
+					report_ccb_validation_error(opdata,
+						"Invalid saAmfSGAutoRepair SG:'%s'", sg->name.value);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
@@ -573,7 +656,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			void *value = NULL;
 
 			/* Attribute value removed */
-			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attribute->attrValues == NULL))
+			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||
+					(attribute->attrValues == NULL))
 				continue;
 
 			value = attribute->attrValues[0];
@@ -587,24 +671,31 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				pref_inservice_su = *((SaUint32T *)value);
 
 				if ((pref_inservice_su == 0) ||
-					((avd_sg->sg_redundancy_model < SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) &&
+					((sg->sg_redundancy_model < SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) &&
 					 (pref_inservice_su < AVSV_SG_2N_PREF_INSVC_SU_MIN))) {
-					report_ccb_validation_error(opdata, "%s: Minimum preferred num of su should be 2"
-							" in 2N, N+M and NWay red models", __FUNCTION__);
+					report_ccb_validation_error(opdata,
+						"%s: Minimum preferred num of su should be 2"
+						" in 2N, N+M and NWay red models", __FUNCTION__);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
 				uint32_t sg_autorepair = *((SaUint32T *)attribute->attrValues[0]);
 				if (sg_autorepair > SA_TRUE) {
-					report_ccb_validation_error(opdata, "Invalid saAmfSGAutoRepair SG:'%s'",
-							avd_sg->name.value);
+					report_ccb_validation_error(opdata,
+						"Invalid saAmfSGAutoRepair SG:'%s'", sg->name.value);
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
+			} else if (!strcmp(attribute->attrName, "saAmfSGSuHostNodeGroup")) {
+				if (ng_change_is_valid(sg, (SaNameT *)value, opdata) == false) {
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
 			} else {
-				report_ccb_validation_error(opdata, "%s: Attribute '%s' cannot be modified when SG is"
-						" unlocked", __FUNCTION__, attribute->attrName);
+				report_ccb_validation_error(opdata,
+					"%s: Attribute '%s' cannot be modified when SG is unlocked",
+					__FUNCTION__, attribute->attrName);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -854,6 +945,8 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					sg->saAmfSGSuRestartMax = *((SaUint32T *)value);
 				TRACE("Modified saAmfSGSuRestartMax is '%u'", sg->saAmfSGSuRestartMax);
 				sg_nd_attribute_update(sg, saAmfSGSuRestartMax_ID);
+			} else if (!strcmp(attribute->attrName, "saAmfSGSuHostNodeGroup")) {
+				sg->saAmfSGSuHostNodeGroup = *((SaNameT *)value);
 			} else {
 				osafassert(0);
 			}
@@ -928,6 +1021,8 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					sg->saAmfSGAutoRepair_configured = true; 
 				}
 				TRACE("Modified saAmfSGAutoRepair is '%u'", sg->saAmfSGAutoRepair);
+			} else if (!strcmp(attribute->attrName, "saAmfSGSuHostNodeGroup")) {
+				sg->saAmfSGSuHostNodeGroup = *((SaNameT *)value);
 			} else {
 				osafassert(0);
 			}
