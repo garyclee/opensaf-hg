@@ -91,7 +91,6 @@ SaClmCallbacksT Callback1 = {NULL, TrackCallback1};
 
 void saClmResponse_01(void)
 {
-        int ret;
 	struct pollfd fds[1];
 
         trackFlags = SA_TRACK_CHANGES|SA_TRACK_START_STEP;
@@ -104,7 +103,7 @@ void saClmResponse_01(void)
         fds[0].fd = (int) selectionObject;
         fds[0].events = POLLIN;
         while (1){
-                ret = poll(fds, 1, 1000);
+                (void)poll(fds, 1, 1000);
                 if (fds[0].revents & POLLIN){
                         break;
                 }
@@ -115,7 +114,7 @@ void saClmResponse_01(void)
         fds[0].fd = (int) selectionObject;
         fds[0].events = POLLIN;
         while (1){
-                ret = poll(fds, 1, 1000);
+                (void)poll(fds, 1, 1000);
                 if (fds[0].revents & POLLIN){
                         break;
                 }
@@ -131,7 +130,6 @@ void saClmResponse_01(void)
 
 void saClmResponse_02(void)
 {
-        int ret;
 	struct pollfd fds[1];
 
         trackFlags = SA_TRACK_CHANGES|SA_TRACK_START_STEP;
@@ -145,7 +143,7 @@ void saClmResponse_02(void)
         fds[0].fd = (int) selectionObject;
         fds[0].events = POLLIN;
         while (1){
-                ret = poll(fds, 1, 1000);
+                (void)poll(fds, 1, 1000);
                 if (fds[0].revents & POLLIN){
                         break;
                 }
@@ -156,7 +154,7 @@ void saClmResponse_02(void)
         fds[0].fd = (int) selectionObject;
         fds[0].events = POLLIN;
         while (1){
-                ret = poll(fds, 1, 1000);
+                (void)poll(fds, 1, 1000);
                 if (fds[0].revents & POLLIN){
                         break;
                 }
@@ -172,7 +170,6 @@ void saClmResponse_02(void)
 
 void saClmResponse_03(void)
 {
-        int ret;
 	struct pollfd fds[1];
 
         trackFlags = SA_TRACK_CHANGES|SA_TRACK_START_STEP;
@@ -187,7 +184,7 @@ void saClmResponse_03(void)
         fds[0].fd = (int) selectionObject;
         fds[0].events = POLLIN;
         while (1){
-                ret = poll(fds, 1, 1000);
+                (void)poll(fds, 1, 1000);
                 if (fds[0].revents & POLLIN){
                         break;
                 }
@@ -198,7 +195,7 @@ void saClmResponse_03(void)
         fds[0].fd = (int) selectionObject;
         fds[0].events = POLLIN;
         while (1){
-                ret = poll(fds, 1, 1000);
+                (void)poll(fds, 1, 1000);
                 if (fds[0].revents & POLLIN){
                         break;
                 }
