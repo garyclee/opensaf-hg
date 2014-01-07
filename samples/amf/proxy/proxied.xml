@@ -221,8 +221,15 @@ IMM XML for a local, non-SA-aware, proxied, non-pre-instantiable component
 	<object class="SaAmfCSI">
 	    <dn>safCsi=1,safSi=1,safApp=Proxied</dn>
 	    <attr>
-		<name>saAmfCSType</name>
-		<value>safVersion=1,safCSType=Proxied</value>
+			<name>saAmfCSType</name>
+			<value>safVersion=1,safCSType=Proxied</value>
+	    </attr>
+	</object>
+	<object class="SaAmfCSI">
+	    <dn>safCsi=2,safSi=1,safApp=Proxied</dn>
+	    <attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=1,safCSType=Proxied</value>
 	    </attr>
 	</object>
 	<object class="SaSmfSwBundle">
@@ -260,7 +267,6 @@ IMM XML for a local, non-SA-aware, proxied, non-pre-instantiable component
 	<object class="SaAmfCompCsType">
 	    <dn>safSupportedCsType=safVersion=1\,safCSType=Proxied,safComp=1,safSu=1,safSg=2N,safApp=Proxied</dn>
 	</object>
-<!-- TODO multiple proxied components
 	<object class="SaAmfComp">
 		<dn>safComp=2,safSu=1,safSg=2N,safApp=Proxied</dn>
 		<attr>
@@ -271,5 +277,4 @@ IMM XML for a local, non-SA-aware, proxied, non-pre-instantiable component
 	<object class="SaAmfCompCsType">
 	    <dn>safSupportedCsType=safVersion=1\,safCSType=Proxied,safComp=2,safSu=1,safSg=2N,safApp=Proxied</dn>
 	</object>
--->
 </imm:IMM-contents>
