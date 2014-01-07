@@ -1020,19 +1020,6 @@ done:
 	return rc;
 }
 
-static SaAisErrorT comp_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
-{
-	AVD_COMP *comp;
-	SaAisErrorT rc = SA_AIS_OK;
-
-	TRACE_ENTER();
-
-	comp = avd_comp_get(&opdata->objectName);
-
-	TRACE_LEAVE();
-	return rc;
-}
-
 static SaAisErrorT comp_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
@@ -1048,7 +1035,7 @@ static SaAisErrorT comp_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		rc = comp_ccb_completed_delete_hdlr(opdata);
+		rc = SA_AIS_OK;
 		break;
 	default:
 		osafassert(0);
