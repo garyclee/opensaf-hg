@@ -39,6 +39,7 @@
 #include <libgen.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <assert.h>
 #include <saAmf.h>
 
 /* AMF Handle for the proxy */
@@ -77,7 +78,7 @@ static bool is_proxy_comp_name(const SaNameT *comp_name)
 }
 
 /**
- * Instantiates proxied component
+ * Assigns proxy or instantiates proxied component
  * @param invocation
  * @param comp_name
  * @param ha_state
@@ -171,7 +172,7 @@ static void csiSetCallback(SaInvocationT invocation,
 }
 
 /**
- * Terminates proxied component
+ * Removes assignment from proxy or terminates proxied component
  *
  * @param invocation
  * @param comp_name
@@ -183,13 +184,13 @@ static void csiRemoveCallback(SaInvocationT invocation,
 							  const SaNameT *csi_name,
 							  SaAmfCSIFlagsT csi_flags)
 {
+	syslog(LOG_INFO, "csiRemoveCallback: '%s'", comp_name->value);
+
 	if (is_proxy_comp_name(comp_name) == true) {
-		syslog(LOG_INFO, "csiRemoveCallback '%s'", comp_name->value);
 		/* Reset the HA state */
 		proxy_ha_state = 0;
 	} else {
 		// terminate proxied component here before calling saAmfResponse
-		syslog(LOG_INFO, "Terminating '%s'", comp_name->value);
 	}
 
 	SaAisErrorT rc = saAmfResponse(proxy_amf_hdl, invocation, SA_AIS_OK);
@@ -212,7 +213,7 @@ static void healthcheckCallback(SaInvocationT inv,
 {
 	SaAisErrorT rc;
 
-	syslog(LOG_DEBUG, "Health check for '%s', key '%s'", comp_name->value,
+	syslog(LOG_DEBUG, "healthcheckCallback '%s', key '%s'", comp_name->value,
 		key->key);
 
 	if (is_proxy_comp_name(comp_name) == true) {
@@ -227,7 +228,6 @@ static void healthcheckCallback(SaInvocationT inv,
 		 * execute the given healthcheck and has reported an error on the faulty
 		 * component by invoking saAmfComponentErrorReport_4().
 		 */
-
 		rc = saAmfResponse(proxy_amf_hdl, inv, SA_AIS_OK);
 	}
 
@@ -242,27 +242,19 @@ static void proxiedComponentInstantiateCallback(
 		const SaNameT *proxiedCompName)
 {
 	// proxied comp is non pre instantiable, should not get here
-	syslog(LOG_ERR, "instantiate callback for npi comp");
+	syslog(LOG_ERR, "proxiedComponentInstantiateCallback - npi comp");
 }
 
 static void proxiedComponentCleanupCallback(
     SaInvocationT invocation,
     const SaNameT *proxiedCompName)
 {
-	syslog(LOG_NOTICE, "proxiedComponentCleanupCallback '%s'",
-			proxiedCompName->value);
-
-	// cleanup proxied component here before calling saAmfResponse
-
-	SaAisErrorT rc = saAmfResponse(proxy_amf_hdl, invocation, SA_AIS_OK);
-	if (rc != SA_AIS_OK) {
-		syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
-		exit(1);
-	}
+	// proxied comp is non pre instantiable, should not get here
+	syslog(LOG_ERR, "proxiedComponentCleanupCallback - npi comp");
 }
 
 /**
- * Terminates proxied component
+ * Terminates proxy component
  * 
  * @param inv
  * @param comp_name
@@ -270,28 +262,19 @@ static void proxiedComponentCleanupCallback(
 static void componentTerminateCallback(SaInvocationT inv,
 					  				   const SaNameT *comp_name)
 {
-	SaAisErrorT rc;
+	syslog(LOG_INFO, "componentTerminateCallback: '%s'", comp_name->value);
 
-	if (is_proxy_comp_name(comp_name) == true) {
-		syslog(LOG_NOTICE, "componentTerminateCallback proxy");
+	// proxied are non-pre-instantiable, should only get here for the proxy
+	assert(is_proxy_comp_name(comp_name) == true);
 
-		rc = saAmfResponse(proxy_amf_hdl, inv, SA_AIS_OK);
-		if (rc != SA_AIS_OK) {
-			syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
-			exit(1);
-		}
-
-		exit(0);
-	} else {
-		// terminate proxied component here before calling saAmfResponse
-		syslog(LOG_INFO, "Terminating '%s'", comp_name->value);
-
-		rc = saAmfResponse(proxy_amf_hdl, inv, SA_AIS_OK);
-		if (rc != SA_AIS_OK) {
-			syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
-			exit(1);
-		}
+	SaAisErrorT rc = saAmfResponse(proxy_amf_hdl, inv, SA_AIS_OK);
+	if (rc != SA_AIS_OK) {
+		syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
+		exit(1);
 	}
+
+	syslog(LOG_NOTICE, "exiting");
+	exit(0);
 }
 
 /**
@@ -345,6 +328,9 @@ static SaAisErrorT amf_initialize(SaSelectionObjectT *amf_sel_obj)
 	amf_callbacks.saAmfCSIRemoveCallback = csiRemoveCallback;
 	amf_callbacks.saAmfHealthcheckCallback = healthcheckCallback;
 	amf_callbacks.saAmfComponentTerminateCallback = componentTerminateCallback;
+
+	// must provide these even with non-pre-instantiable proxied components
+	// otherwise register for proxied fails
 	amf_callbacks.saAmfProxiedComponentInstantiateCallback =
 			proxiedComponentInstantiateCallback;
 	amf_callbacks.saAmfProxiedComponentCleanupCallback =
@@ -374,22 +360,24 @@ static SaAisErrorT amf_initialize(SaSelectionObjectT *amf_sel_obj)
 		goto done;
 	}
 	
-	// register proxied components here, DN hardcoded for now
+	// register proxied components
+	const char *name = getenv("PROXIED_X_DN");
 	SaNameT comp_name;
-	comp_name.length = sprintf((char*)comp_name.value, "%s",
-		"safComp=1,safSu=1,safSg=2N,safApp=Proxied");
+	comp_name.length = sprintf((char*)comp_name.value, "%s", name);
+	syslog(LOG_INFO, "registering: 'X' with DN '%s'", comp_name.value);
 	rc = saAmfComponentRegister(proxy_amf_hdl, &comp_name, &proxy_comp_name);
 	if (rc != SA_AIS_OK) {
-		syslog(LOG_ERR, "saAmfComponentRegister proxy FAILED %u", rc);
+		syslog(LOG_ERR, "saAmfComponentRegister proxied FAILED %u", rc);
 	}
-#if 0
-	comp_name.length = sprintf((char*)comp_name.value, "%s",
-		"safComp=2,safSu=1,safSg=2N,safApp=Proxied");
+
+	name = getenv("PROXIED_Y_DN");
+	comp_name.length = sprintf((char*)comp_name.value, "%s", name);
+	syslog(LOG_INFO, "registering: 'Y' with DN '%s'", comp_name.value);
 	rc = saAmfComponentRegister(proxy_amf_hdl, &comp_name, &proxy_comp_name);
 	if (rc != SA_AIS_OK) {
-		syslog(LOG_ERR, "saAmfComponentRegister proxy FAILED %u", rc);
+		syslog(LOG_ERR, "saAmfComponentRegister proxied FAILED %u", rc);
 	}
-#endif
+
 	rc = saAmfHealthcheckStart(proxy_amf_hdl, &proxy_comp_name, &proxy_healthcheck_key,
 		SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
 	if (rc != SA_AIS_OK) {

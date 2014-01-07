@@ -141,6 +141,11 @@ IMM XML for a proxy component
 			<name>saAmfCtDefDisableRestart</name>
 			<value>0</value>
 		</attr>
+		<attr>
+			<name>saAmfCtDefCmdEnv</name>
+			<value>PROXIED_X_DN=safComp=1,safSu=1,safSg=2N,safApp=Proxied</value>
+			<value>PROXIED_Y_DN=safComp=2,safSu=1,safSg=2N,safApp=Proxied</value>
+		</attr>
 	</object>
 	<object class="SaAmfCSType">
 		<dn>safVersion=1,safCSType=Proxy</dn>
