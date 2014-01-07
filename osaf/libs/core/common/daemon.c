@@ -43,6 +43,8 @@
 
 #define DEFAULT_RUNAS_USERNAME	"opensaf"
 
+static const char* internal_version_id_; 
+
 extern  void __gcov_flush(void) __attribute__((weak));
 
 static char __pidfile[NAME_MAX];
@@ -206,6 +208,8 @@ void daemonize(int argc, char *argv[])
 	char buf1[256] = { 0 };
 	char buf2[256] = { 0 };
 
+	internal_version_id_ = strdup("@(#) $Id: " INTERNAL_VERSION_ID " $"); 
+	
 	if (argc > 0 && argv != NULL) {	
 		__parse_options(argc, argv);
 		openlog(basename(argv[0]), LOG_PID, LOG_LOCAL0);

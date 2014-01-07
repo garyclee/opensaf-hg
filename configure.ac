@@ -32,6 +32,9 @@ AC_USE_SYSTEM_EXTENSIONS
 OPENSAF_LIB_VERSION=0:0:0
 AC_SUBST([OPENSAF_LIB_VERSION])
 
+INTERNAL_VERSION_ID=0:000000000000
+AC_SUBST([INTERNAL_VERSION_ID])
+
 # FIXME: Until the m4 macro gets cleaned for DSO symbol tests and not executable
 AM_CONDITIONAL(HAVE_LD_VERSION_SCRIPT, test "yes" = "yes")
 #m4_include([m4/linker-script.m4])
