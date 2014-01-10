@@ -323,10 +323,6 @@ AVND_CB *avnd_cb_create()
 		}
 	}
 
-	/* initialize the AvND cb lock */
-	m_NCS_LOCK_INIT(&cb->lock);
-	TRACE_1("Initialized the AvND lock");
-
 	/* initialize the PID monitor lock */
 	m_NCS_LOCK_INIT(&cb->mon_lock);
 
@@ -660,18 +656,12 @@ void avnd_evt_process(AVND_EVT *evt)
 	/* log the event reception */
 	TRACE("Evt type:%u",evt->type);
 
-	/* acquire cb write lock */
-	m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
-
 	/* invoke the event handler */
 	rc = g_avnd_func_list[evt->type] (cb, evt);
 
 	if ((SA_AMF_HA_ACTIVE == cb->avail_state_avnd) || (SA_AMF_HA_QUIESCED == cb->avail_state_avnd)) {
 		m_AVND_SEND_CKPT_UPDT_SYNC(cb, NCS_MBCSV_ACT_UPDATE, 0);
 	}
-
-	/* release cb write lock */
-	m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
 
 	/* log the result of event processing */
 	TRACE("Evt Type:%u %s",evt->type,((rc == NCSCC_RC_SUCCESS) ? "success" : "failure"));
