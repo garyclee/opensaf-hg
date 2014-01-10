@@ -171,8 +171,6 @@ static uint32_t avnd_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
-
 	switch (arg->i_op) {
 	case NCS_MBCSV_CBOP_ENC:
 		status = avnd_mbcsv_process_enc_cb(cb, arg);
@@ -199,8 +197,6 @@ static uint32_t avnd_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
 		status = NCSCC_RC_FAILURE;
 		break;
 	}
-
-	m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
 
 	TRACE_LEAVE2("%u", status);
 	return status;

@@ -16,19 +16,11 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-..............................................................................
 
   DESCRIPTION:
 
   This file contains AvND timer interface routines.
  
-..............................................................................
-
-  FUNCTIONS INCLUDED in this module:
-
-  
 ******************************************************************************
 */
 
@@ -70,27 +62,23 @@ static const char *tmr_type[] =
 *****************************************************************************/
 uint32_t avnd_start_tmr(AVND_CB *cb, AVND_TMR *tmr, AVND_TMR_TYPE type, SaTimeT period, uint32_t uarg)
 {
-	m_INIT_CRITICAL;
-
 	if (AVND_TMR_MAX <= tmr->type)
 		return NCSCC_RC_FAILURE;
 
 	if (tmr->tmr_id == TMR_T_NULL) {
 		tmr->type = type;
-                // m_NCS_TMR_CREATE(tmr->tmr_id, period / AVSV_NANOSEC_TO_LEAPTM, avnd_tmr_exp, (void *)tmr);
-                tmr->tmr_id = ncs_tmr_alloc(const_cast<char*>(__FILE__), __LINE__);
+		tmr->tmr_id = ncs_tmr_alloc(const_cast<char*>(__FILE__), __LINE__);
 	}
 
-	m_START_CRITICAL;
 	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
 		tmr->is_active = false;
 	}
 	tmr->opq_hdl = uarg;
-	//m_NCS_TMR_START(tmr->tmr_id, (uint32_t)(period / AVSV_NANOSEC_TO_LEAPTM), avnd_tmr_exp, (void *)tmr);
-        tmr->tmr_id = ncs_tmr_start(tmr->tmr_id, (uint32_t)(period / AVSV_NANOSEC_TO_LEAPTM), avnd_tmr_exp, tmr, const_cast<char*>(__FILE__), __LINE__);
+	tmr->tmr_id = ncs_tmr_start(tmr->tmr_id,
+		(uint32_t)(period / AVSV_NANOSEC_TO_LEAPTM), avnd_tmr_exp, tmr,
+		const_cast<char*>(__FILE__), __LINE__);
 	tmr->is_active = true;
-	m_END_CRITICAL;
 
 	if (TMR_T_NULL == tmr->tmr_id)
 		return NCSCC_RC_FAILURE;
@@ -118,19 +106,15 @@ uint32_t avnd_start_tmr(AVND_CB *cb, AVND_TMR *tmr, AVND_TMR_TYPE type, SaTimeT 
 *****************************************************************************/
 void avnd_stop_tmr(AVND_CB *cb, AVND_TMR *tmr)
 {
-	m_INIT_CRITICAL;
-
 	/* If timer type is invalid just return */
 	if (AVND_TMR_MAX <= tmr->type)
 		return;
 
 	/* Stop the timer if it is active... */
-	m_START_CRITICAL;
 	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
 		tmr->is_active = false;
 	}
-	m_END_CRITICAL;
 
 	/* Destroy the timer if it exists.. */
 	if (tmr->tmr_id != TMR_T_NULL) {
@@ -138,10 +122,7 @@ void avnd_stop_tmr(AVND_CB *cb, AVND_TMR *tmr)
 		tmr->tmr_id = TMR_T_NULL;
 	}
 
-	/* log */
 	TRACE("%s stopped",tmr_type[tmr->type]);
-
-	return;
 }
 
 /*****************************************************************************
@@ -193,5 +174,4 @@ void avnd_tmr_exp(void *uarg)
 		LOG_ER("Unable to post timer expiry event to mailbox");
 		avnd_evt_destroy(evt);
 	}
-
 }
