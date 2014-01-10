@@ -44,7 +44,6 @@
 
 /* Porting Include Files */
 #include "avnd_defs.h"
-#include "amf_ipc.h"
 
 /* AvSv Common Files */
 #include "amf_amfparam.h"
