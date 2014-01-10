@@ -34,7 +34,6 @@
 #ifndef AVD_EVT_H
 #define AVD_EVT_H
 
-#include <amf_ipc.h>
 #include <util.h>
 
 /* event type enums */
@@ -73,7 +72,7 @@ typedef enum avd_evt_type {
 
 /* AVD top-level event structure */
 typedef struct avd_evt_tag {
-	AVSV_MBX_MSG next;
+	NCS_IPC_MSG next;
 	AVD_EVT_TYPE rcv_evt;
 
 	union {

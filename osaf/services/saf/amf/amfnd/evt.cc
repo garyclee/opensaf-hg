@@ -319,13 +319,9 @@ void avnd_evt_destroy(AVND_EVT *evt)
 ******************************************************************************/
 uint32_t avnd_evt_send(AVND_CB *cb, AVND_EVT *evt)
 {
-	AVND_EVT_TYPE type = evt->type;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	/* send the event */
-	m_AVSV_MBX_SEND(cb, evt, evt->priority, rc);
+	uint32_t rc = m_NCS_IPC_SEND(&cb->mbx, evt, evt->priority);
 	if (NCSCC_RC_SUCCESS != rc)
-		LOG_CR("AvND send event to mailbox failed, type = %u",type);
+		LOG_CR("AvND send event to mailbox failed, type = %u", evt->type);
 
 	return rc;
 }
