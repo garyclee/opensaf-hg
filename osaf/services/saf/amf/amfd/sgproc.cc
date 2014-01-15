@@ -564,6 +564,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 							goto done;
 						}
 						break;
+					case 0: /* Support for older releases. */
 					case AVSV_ERR_RCVR_SU_FAILOVER:
 						if (sg_su_failover_func(su) == NCSCC_RC_FAILURE) {
 							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
