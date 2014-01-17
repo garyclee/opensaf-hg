@@ -334,7 +334,7 @@ void avnd_send_node_up_msg(void)
 
 	TRACE_ENTER();
 
-	if (cb->node_info.member != SA_TRUE) {
+	if (cb->node_info.member != true) {
 		TRACE("not member");
 		goto done;
 	}

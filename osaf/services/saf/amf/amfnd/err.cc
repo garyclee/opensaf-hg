@@ -310,7 +310,7 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	}
 
 	/* when undergoing admin oper do not process any component errors */
-	if (comp->admin_oper == SA_TRUE)
+	if (comp->admin_oper == true)
 		goto done;
 
 	/* Level3 escalation is node failover. we dont expect any
@@ -323,7 +323,7 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	 * component) is done for components which goes down after AVND_ERR_ESC_LEVEL_3 is set
 	 */
 	if ((cb->node_err_esc_level == AVND_ERR_ESC_LEVEL_3) &&
-	    (comp->su->is_ncs == SA_FALSE) && (esc_rcvr != SA_AMF_NODE_FAILFAST) &&
+	    (comp->su->is_ncs == false) && (esc_rcvr != SA_AMF_NODE_FAILFAST) &&
 					(AVND_ERR_SRC_AVA_DN != err_info->src)) {
 		/* For external component, comp->su->is_ncs is false, so no need to
 		   put a check here for external component explicitely. */

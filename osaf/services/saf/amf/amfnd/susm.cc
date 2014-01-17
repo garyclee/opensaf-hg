@@ -33,7 +33,6 @@
 ******************************************************************************
 */
 
-#include <stdbool.h>
 #include "avnd.h"
 
 /* static function declarations */

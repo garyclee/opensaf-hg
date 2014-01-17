@@ -206,7 +206,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 					"notifItem->clusterNode.nodeId %u, avnd_cb->node_info.nodeId %u",
 					notifItem->clusterNode.nodeName.value,avnd_cb->first_time_up,
 					notifItem->clusterNode.nodeId,avnd_cb->node_info.nodeId);
-			if(SA_FALSE == avnd_cb->first_time_up) {
+			if(false == avnd_cb->first_time_up) {
 				/* When node reboots, we will get an exit cbk, so ignore if avnd_cb->first_time_up
 				   is false. */
 				if(notifItem->clusterNode.nodeId == avnd_cb->node_info.nodeId) {
@@ -231,7 +231,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 			 SA_TRACK_CURRENT|CHANGES_ONLY and supply no buffer
 			 in saClmClusterTrack call so update the local database */
 			if (notifItem->clusterNode.nodeId == m_NCS_NODE_ID_FROM_MDS_DEST(avnd_cb->avnd_dest)) {
-				if (avnd_cb->first_time_up == SA_TRUE) { 
+				if (avnd_cb->first_time_up == true) { 
 					/* store the local node info */
 					memcpy(&(avnd_cb->node_info),
 					       &(notifItem->clusterNode),
@@ -239,7 +239,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 					/*get the amf node from clm node name */
 					clm_to_amf_node();
 					avnd_send_node_up_msg();
-					avnd_cb->first_time_up = SA_FALSE;
+					avnd_cb->first_time_up = false;
 				}
 			}
 		}
@@ -265,7 +265,7 @@ SaAisErrorT avnd_clm_init(void)
         SaUint8T trackFlags = SA_TRACK_CURRENT|SA_TRACK_CHANGES_ONLY;
 
 	TRACE_ENTER();
-	avnd_cb->first_time_up = SA_TRUE;
+	avnd_cb->first_time_up = true;
 	error = saClmInitialize_4(&avnd_cb->clmHandle, &callbacks, &Version);
         if (SA_AIS_OK != error) {
                 LOG_ER("Failed to Initialize with CLM: %u", error);
