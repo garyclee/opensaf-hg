@@ -76,7 +76,7 @@ void avnd_last_step_clean(AVND_CB *cb)
 			}
 
 			/* make avnd_err_process() a nop, will be called due to ava mds down */
-			comp->admin_oper = SA_TRUE;
+			comp->admin_oper = true;
 		}
 
 		comp = (AVND_COMP *)

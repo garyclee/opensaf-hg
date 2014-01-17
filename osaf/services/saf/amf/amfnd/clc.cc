@@ -895,7 +895,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 	 */
 
 	/* Count the number of restarts if not due to admin restart*/
-	if (SA_AMF_PRESENCE_RESTARTING == final_st && comp->admin_oper != SA_TRUE) {
+	if (SA_AMF_PRESENCE_RESTARTING == final_st && comp->admin_oper != true) {
 		comp->err_info.restart_cnt++;
 
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_ERR_INFO);
@@ -915,9 +915,9 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			goto done;
 	}
 	/* reset the admin-oper flag to false */
-	if (comp->admin_oper == SA_TRUE) {
+	if (comp->admin_oper == true) {
 		TRACE_1("Component restart is through admin opration, admin oper flag reset");
-		comp->admin_oper = SA_FALSE;
+		comp->admin_oper = false;
 	}
 
 	if ((SA_AMF_PRESENCE_INSTANTIATED == prv_st) && (SA_AMF_PRESENCE_UNINSTANTIATED != final_st)) {

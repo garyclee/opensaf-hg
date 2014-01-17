@@ -356,7 +356,7 @@ typedef struct avnd_comp_tag {
 	bool reg_resp_pending;	/* If the reg resp is pending from 
 					   proxied comp AvND, it true. */
 	SaNameT proxy_comp_name;	/* Used for Checkpointing. */
-	SaBoolT admin_oper;   /*set to true if undergoing admin operation */
+	bool admin_oper;   /*set to true if undergoing admin operation */
 	int config_is_valid; /* Used to indicate that config has to be refreshed from IMM */
 	bool assigned_flag; /* Used in finding multiple csi for a single comp while csi mod.*/
 	bool pending_delete; /* Used in deleting component when su is in

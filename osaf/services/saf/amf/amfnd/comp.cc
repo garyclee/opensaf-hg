@@ -2675,7 +2675,7 @@ uint32_t avnd_evt_comp_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 	case SA_AMF_ADMIN_RESTART:
 		if (comp->pres == SA_AMF_PRESENCE_INSTANTIATED) {
 			/* Now trigger the component admin restart */  
-			comp->admin_oper = SA_TRUE;
+			comp->admin_oper = true;
 			LOG_NO("Admin restart requested for '%s'", info->dn.value);
 			rc = comp_restart_initiate(comp);
 		}

@@ -126,7 +126,7 @@ typedef struct avnd_cb_tag {
 
 	SaClmHandleT clmHandle;
 	SaSelectionObjectT clm_sel_obj;
-	SaBoolT first_time_up;
+	bool first_time_up;
 	bool reboot_in_progress;
 	AVND_SU *failed_su;
 	bool cont_reboot_in_progress;

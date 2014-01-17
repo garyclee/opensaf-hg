@@ -31,8 +31,6 @@
 ******************************************************************************
 */
 
-#include <stdbool.h>
-
 #include <saImmOm.h>
 #include <amf_util.h>
 #include <immutil.h>
@@ -87,7 +85,7 @@ typedef struct amf_comp_type {
 	SaStringT *osafAmfCtDefHcCmdArgv;
 	SaTimeT    saAmfCompQuiescingCompleteTimeout;
 	SaAmfRecommendedRecoveryT saAmfCtDefRecoveryOnError;
-	SaBoolT saAmfCtDefDisableRestart;
+	bool saAmfCtDefDisableRestart;
 } amf_comp_type_t;
 
 /*****************************************************************************
@@ -810,8 +808,8 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				uint32_t disable_restart;
 				osafassert(sizeof(uint32_t) == param->value_len);
 				disable_restart = ntohl(*(uint32_t *)(param->value));
-				osafassert(disable_restart <= SA_TRUE);
-				comp->is_restart_en = (disable_restart == SA_TRUE) ? false : true;
+				osafassert(disable_restart <= true);
+				comp->is_restart_en = (disable_restart == true) ? false : true;
 				LOG_NO("saAmfCompDisableRestart changed to %u for '%s'", 
 					   disable_restart, comp->name.value);
 				break;
@@ -1104,7 +1102,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefDisableRestart"), attributes, 0, &compt->saAmfCtDefDisableRestart) != SA_AIS_OK)
-		compt->saAmfCtDefDisableRestart = SA_FALSE;
+		compt->saAmfCtDefDisableRestart = false;
 
 	rc = 0;
 
@@ -1357,7 +1355,7 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 	int res = -1;
 	amf_comp_type_t *comptype;
 	SaNameT nodeswbundle_name;
-	SaBoolT disable_restart;
+	bool disable_restart;
 	char *path_prefix = NULL;
 	unsigned int i;
 	unsigned int num_of_comp_env = 0;
@@ -1436,7 +1434,7 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompDisableRestart"), attributes, 0, &disable_restart) != SA_AIS_OK)
 		disable_restart = comptype->saAmfCtDefDisableRestart;
 
-	comp->is_restart_en = (disable_restart == SA_TRUE) ? false : true;
+	comp->is_restart_en = (disable_restart == true) ? false : true;
 
 	init_comp_category(comp, comptype->saAmfCtCompCategory);
 	init_clc_cli_attributes(comp, comptype, path_prefix, attributes);
