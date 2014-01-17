@@ -18,6 +18,7 @@
 #include <logtrace.h>
 #include <amfd.h>
 #include <csi.h>
+#include <app.h>
 
 static char *action_name[] = {
 	const_cast<char*>("invalid"),
@@ -95,14 +96,14 @@ done:
 uint32_t avd_ckpt_app(AVD_CL_CB *cb, AVD_APP *ckpt_app, NCS_MBCSV_ACT_TYPE action)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVD_APP *app;
 
 	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_app->name.value);
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (NULL == (app = avd_app_get(&ckpt_app->name))) {
-		LOG_ER("avd_app_get FAILED for '%s'", ckpt_app->name.value);
+	AVD_APP *app = app_db->find(&ckpt_app->name);
+	if (app == NULL) {
+		LOG_ER("%s failed to find '%s'", __FUNCTION__, ckpt_app->name.value);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}

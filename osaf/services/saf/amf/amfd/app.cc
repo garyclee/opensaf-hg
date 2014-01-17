@@ -24,58 +24,24 @@
 #include <imm.h>
 #include <si.h>
 
-static NCS_PATRICIA_TREE app_db;
+AmfDb<AVD_APP> *app_db = 0;
 
-void avd_app_db_add(AVD_APP *app)
+// TODO(hafe) change this to a constructor
+static AVD_APP *avd_app_new(const SaNameT *dn)
 {
-	unsigned int rc;
-
-	if (avd_app_get(&app->name) == NULL) {
-		rc = ncs_patricia_tree_add(&app_db, &app->tree_node);
-		osafassert(rc == NCSCC_RC_SUCCESS);
-	}
-}
-
-AVD_APP *avd_app_new(const SaNameT *dn)
-{
-	AVD_APP *app;
-
-	app = new AVD_APP();
-
+	AVD_APP *app = new AVD_APP();
 	memcpy(app->name.value, dn->value, dn->length);
 	app->name.length = dn->length;
-	app->tree_node.key_info = (uint8_t *)&(app->name);
-
 	return app;
 }
 
-void avd_app_delete(AVD_APP *app)
+// TODO(hafe) change this to a destructor
+static void avd_app_delete(AVD_APP *app)
 {
-	unsigned int rc = ncs_patricia_tree_del(&app_db, &app->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
+	app_db->erase(app);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
 	avd_apptype_remove_app(app);
 	delete app;
-}
-
-AVD_APP *avd_app_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_APP *)ncs_patricia_tree_get(&app_db, (uint8_t *)&tmp);
-}
-
-AVD_APP *avd_app_getnext(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_APP *)ncs_patricia_tree_getnext(&app_db, (uint8_t *)&tmp);
 }
 
 static void app_add_to_model(AVD_APP *app)
@@ -88,7 +54,8 @@ static void app_add_to_model(AVD_APP *app)
 		goto done;
 	}
 
-	avd_app_db_add(app);
+	app_db->insert(app);
+
 	/* Find application type and make a link with app type */
 	app->app_type = avd_apptype_get(&app->saAmfAppType);
 	osafassert(app->app_type);
@@ -229,7 +196,8 @@ AVD_APP *avd_app_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if (NULL == (app = avd_app_get(dn))) {
+	app = app_db->find(dn);
+	if (app == NULL) {
 		if ((app = avd_app_new(dn)) == NULL)
 			goto done;
 	} else
@@ -314,7 +282,7 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_MODIFY: {
 		const SaImmAttrModificationT_2 *attr_mod;
-		app = avd_app_get(&opdata->objectName);
+		app = app_db->find(&opdata->objectName);
 
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
@@ -334,7 +302,7 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	}
 	case CCBUTIL_DELETE:
-		app = avd_app_get(&opdata->objectName);
+		app = app_db->find(&opdata->objectName);
 		/* by this time all the SGs and SIs under this 
 		 * app object should have been *DELETED* just  
 		 * do a sanity check here
@@ -359,7 +327,7 @@ static void app_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation
 	TRACE_ENTER2("%s", object_name->value);
 
 	/* Find the app name. */
-	app = avd_app_get(object_name);
+	app = app_db->find(object_name);
 	osafassert(app != NULL);
 
 	if (op_id == SA_AMF_ADMIN_UNLOCK) {
@@ -416,7 +384,7 @@ done:
 static SaAisErrorT app_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
-	AVD_APP *app = avd_app_get(objectName);
+	AVD_APP *app = app_db->find(objectName);
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
@@ -493,12 +461,12 @@ SaAisErrorT avd_app_config_get(void)
 
 void avd_app_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
+	app_db = new AmfDb<AVD_APP>;
 
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&app_db, &patricia_params) == NCSCC_RC_SUCCESS);
-
-	avd_class_impl_set("SaAmfApplication", app_rt_attr_cb, app_admin_op_cb,
-		app_ccb_completed_cb, app_ccb_apply_cb);
+	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfApplication"),
+			   app_rt_attr_cb,
+			   app_admin_op_cb,
+			   app_ccb_completed_cb,
+			   app_ccb_apply_cb);
 }
 

@@ -1413,13 +1413,14 @@ void avsv_sanamet_init_from_association_dn(const SaNameT *haystack, SaNameT *dn,
 }
 
 /**
- * Call this function from GDB to dump the AVD state. Example 
- * below.
+ * Dumps the director state to file
+ * This can be done using GDB:
+ * $ gdb --pid=`pgrep osafamfd` -ex 'call amfd_file_dump("/tmp/osafamfd.dump")' \
+ *		/usr/local/lib/opensaf/osafamfd
  * 
  * @param path 
  */
-/* gdb --pid=`pgrep ncs_scap` -ex 'call	avd_file_dump("/tmp/avd.dump")'	/usr/local/lib/opensaf/ncs_scap */
-void avd_file_dump(const char *path)
+void amfd_file_dump(const char *path)
 {
 	SaNameT dn = {0};
 	FILE *f = fopen(path, "w");
@@ -1444,13 +1445,14 @@ void avd_file_dump(const char *path)
 		node_id = node->node_info.nodeId;
 	}
 
-	AVD_APP *app;
-	dn.length = 0;
-	for (app = avd_app_getnext(&dn); app != NULL; app = avd_app_getnext(&dn)) {
+	// If use std=c++11 in Makefile.common the following syntax can be used instead:
+	// for (auto it = app_db->begin()
+	for (std::map<std::string, AVD_APP*>::const_iterator it = app_db->begin();
+			it != app_db->end(); it++) {
+		const AVD_APP *app = it->second;
 		fprintf(f, "%s\n", app->name.value);
 		fprintf(f, "\tsaAmfApplicationAdminState=%u\n", app->saAmfApplicationAdminState);
 		fprintf(f, "\tsaAmfApplicationCurrNumSGs=%u\n", app->saAmfApplicationCurrNumSGs);
-		dn = app->name;
 	}
 
 	AVD_SG *sg;

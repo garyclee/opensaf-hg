@@ -26,9 +26,12 @@
 
 #include <saAmf.h>
 #include <saImm.h>
+
+// TODO(hafe) remove include below when apptype is using map
 #include <ncspatricia.h>
 #include <sg.h>
 #include <si.h>
+#include "db_template.h"
 
 struct avd_sg_tag;
 struct avd_si_tag;
@@ -42,8 +45,8 @@ typedef struct avd_app_type_tag {
 	struct avd_app_tag *list_of_app;
 } AVD_APP_TYPE;
 
+// TODO (hafe) change to class AmfApp
 typedef struct avd_app_tag {
-	NCS_PATRICIA_NODE tree_node;	/* key is name */
 	SaNameT name;
 	SaNameT saAmfAppType;
 	SaAmfAdminStateT saAmfApplicationAdminState;
@@ -54,11 +57,7 @@ typedef struct avd_app_tag {
 	struct avd_app_type_tag *app_type;
 } AVD_APP;
 
-extern void avd_app_db_add(AVD_APP *app);
-extern AVD_APP *avd_app_new(const SaNameT *dn);
-extern void avd_app_delete(AVD_APP *app);
-extern AVD_APP *avd_app_get(const SaNameT *app_name);
-extern AVD_APP *avd_app_getnext(const SaNameT *app_name);
+extern AmfDb<AVD_APP> *app_db;
 
 extern void avd_app_add_si(AVD_APP *app, struct avd_si_tag *si);
 extern void avd_app_remove_si(AVD_APP *app, struct avd_si_tag *si);

@@ -479,7 +479,7 @@ static void si_add_to_model(AVD_SI *si)
 	}
 
 	avsv_sanamet_init(&si->name, &dn, "safApp");
-	si->app = avd_app_get(&dn);
+	si->app = app_db->find(&dn);
 
 	avd_si_db_add(si);
 
