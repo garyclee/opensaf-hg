@@ -66,7 +66,7 @@ static void sg_add_to_model(AVD_SG *sg)
 	}
 
 	avsv_sanamet_init(&sg->name, &dn, "safApp");
-	sg->app = avd_app_get(&dn);
+	sg->app = app_db->find(&dn);
 
 	avd_sg_db_add(sg);
 	sg->sg_type = avd_sgtype_get(&sg->saAmfSGType);

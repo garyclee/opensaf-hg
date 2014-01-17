@@ -2243,16 +2243,14 @@ static uint32_t enc_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 static uint32_t enc_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	SaNameT app_name;
-	AVD_APP *app;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
-	/* 
-	 * Walk through the entire list and send the entire list data.
-	 */
-	app_name.length = 0;
-	for (app = avd_app_getnext(&app_name); app != NULL; app = avd_app_getnext(&app_name)) {
+	/* Walk through all application instances and encode. */
+	// If use std=c++11 in Makefile.common the following syntax can be used instead:
+	// for (auto it = app_db->begin()
+	for (std::map<std::string, AVD_APP*>::const_iterator it = app_db->begin(); it != app_db->end(); it++) {
+		AVD_APP *app = it->second;
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_app, &enc->io_uba,
 					    EDP_OP_TYPE_ENC, app, &ederror, enc->i_peer_version);
 
@@ -2261,7 +2259,6 @@ static uint32_t enc_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t
 			return NCSCC_RC_FAILURE;
 		}
 
-		app_name = app->name;
 		(*num_of_obj)++;
 	}
 
