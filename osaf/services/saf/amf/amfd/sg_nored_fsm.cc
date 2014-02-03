@@ -142,7 +142,7 @@ uint32_t avd_sg_nored_si_func(AVD_CL_CB *cb, AVD_SI *si)
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == false)) {
 		LOG_ER("%s:%u: %u", __FILE__, __LINE__, si->sg_of_si->sg_ncs_spec);
 		return NCSCC_RC_SUCCESS;
 	}
@@ -394,7 +394,7 @@ uint32_t avd_sg_nored_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == false)) {
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -922,7 +922,7 @@ uint32_t avd_sg_nored_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 	TRACE_ENTER2("'%s'", sg->name.value);
 
 	/* If the SG FSM state is not stable just return success. */
-	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == false)) {
 		goto done;
 	}
 
@@ -1185,7 +1185,7 @@ uint32_t avd_sg_nored_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 {
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
-	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == false)) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1260,7 +1260,7 @@ uint32_t avd_sg_nored_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 {
 	TRACE_ENTER2("%u", si->sg_of_si->sg_fsm_state);
 
-	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == false)) {
 		return NCSCC_RC_FAILURE;
 	}
 	if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
@@ -1341,7 +1341,7 @@ uint32_t avd_sg_nored_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 
 	TRACE_ENTER2("%u", sg->sg_fsm_state);
 
-	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == false)) {
 		return NCSCC_RC_FAILURE;
 	}
 

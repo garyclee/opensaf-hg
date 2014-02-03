@@ -538,7 +538,7 @@ static SaAisErrorT comptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_COMP_TYPE *comp_type;
 	AVD_COMP *comp;
-	SaBoolT comp_exist = SA_FALSE;
+	bool comp_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
@@ -562,12 +562,12 @@ static SaAisErrorT comptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			while (comp != NULL) {
 				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &comp->comp_info.name);
 				if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
-					comp_exist = SA_TRUE;
+					comp_exist = true;
 					break;
 				}
 				comp = comp->comp_type_list_comp_next;
 			}
-			if (comp_exist == SA_TRUE) {
+			if (comp_exist == true) {
 				report_ccb_validation_error(opdata, "SaAmfCompType '%s' is in use",comp_type->name.value);
 				goto done;
 			}

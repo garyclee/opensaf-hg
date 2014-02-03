@@ -76,7 +76,7 @@ static void sg_add_to_model(AVD_SG *sg)
 
 	/* SGs belonging to a magic app will be NCS, TODO Better name! */
 	if (!strcmp((char *)dn.value, "safApp=OpenSAF"))
-		sg->sg_ncs_spec = static_cast<SaBoolT>(true);
+		sg->sg_ncs_spec = true;
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
 done:
@@ -105,7 +105,7 @@ AVD_SG *avd_sg_new(const SaNameT *dn)
 	memcpy(sg->name.value, dn->value, dn->length);
 	sg->name.length = dn->length;
 	sg->tree_node.key_info = (uint8_t *)&(sg->name);
-	sg->sg_ncs_spec = SA_FALSE;
+	sg->sg_ncs_spec = false;
 	sg->sg_fsm_state = AVD_SG_FSM_STABLE;
 	sg->adjust_state = AVSV_SG_STABLE;
 
@@ -1139,7 +1139,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	TRACE_ENTER2("'%s', %llu", object_name->value, op_id);
 	sg = avd_sg_get(object_name);
 
-	if (sg->sg_ncs_spec == SA_TRUE) {
+	if (sg->sg_ncs_spec == true) {
 		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
 				"Admin Op on OpenSAF MW SG is not allowed");
 		goto done;
@@ -1341,7 +1341,7 @@ static SaAisErrorT sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_SG *sg;
 	AVD_SI *si;
-	SaBoolT si_exist = SA_FALSE;
+	bool si_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
@@ -1367,13 +1367,13 @@ static SaAisErrorT sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 				while (si != NULL) {
 					t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &si->name);
 					if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
-						si_exist = SA_TRUE;
+						si_exist = true;
 						break;
 					}
 					si = si->sg_list_of_si_next;
 				}
 			}
-			if (si_exist == SA_TRUE) {
+			if (si_exist == true) {
 				report_ccb_validation_error(opdata, "SIs still exist in SG '%s'", sg->name.value);
 				goto done;
 			}

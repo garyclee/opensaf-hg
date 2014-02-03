@@ -109,7 +109,7 @@ uint32_t avd_sg_nway_si_func(AVD_CL_CB *cb, AVD_SI *si)
 		goto done;
 	}
 
-	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == false)) {
 		LOG_ER("%s:%u: %u", __FILE__, __LINE__, si->sg_of_si->sg_ncs_spec);
 		goto done;
 	}
@@ -150,7 +150,7 @@ uint32_t avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 	 * not stable.
 	 */
 	if ((cb->init_state != AVD_APP_STATE) ||
-	    (si->sg_of_si->sg_ncs_spec == SA_TRUE) ||
+	    (si->sg_of_si->sg_ncs_spec == true) ||
 	    (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) || (si->list_of_sisu == AVD_SU_SI_REL_NULL)) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -282,7 +282,7 @@ uint32_t avd_sg_nway_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 	if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE)
         	goto done;
 
-	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == SA_FALSE))
+	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == false))
         	goto done;
 
 	/* a new su is available for assignments.. start assigning */
@@ -568,7 +568,7 @@ uint32_t avd_sg_nway_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 	TRACE_ENTER2("'%s'", sg->name.value);
 
 	/* If the SG FSM state is not stable just return success. */
-	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == false)) {
 		goto done;
 	}
 
@@ -689,7 +689,7 @@ uint32_t avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 
 	TRACE_ENTER2("su '%s' sg_fsm_state:%u",su->name.value, su->sg_of_su->sg_fsm_state);
 
-	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == false)) {
 		goto done;
 	}
 
@@ -795,7 +795,7 @@ uint32_t avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 
 	TRACE_ENTER2("%u", si->sg_of_si->sg_fsm_state);
 
-	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == false)) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -888,7 +888,7 @@ uint32_t avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 
 	TRACE_ENTER2("%u", sg->sg_fsm_state);
 
-	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == false)) {
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}

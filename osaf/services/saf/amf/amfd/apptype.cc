@@ -144,7 +144,7 @@ static SaAisErrorT apptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_APP_TYPE *app_type;
 	AVD_APP *app;
-	SaBoolT app_exist = SA_FALSE;
+	bool app_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
@@ -167,12 +167,12 @@ static SaAisErrorT apptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			while (app != NULL) {
 				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &app->name);
 				if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
-					app_exist = SA_TRUE;
+					app_exist = true;
 					break;
 				}
 				app = app->app_type_list_app_next;
 			}
-			if (app_exist == SA_TRUE) {
+			if (app_exist == true) {
 				report_ccb_validation_error(opdata, "SaAmfAppType '%s' is in use", app_type->name.value);
 				goto done;
 			}

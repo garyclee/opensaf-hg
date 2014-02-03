@@ -1507,7 +1507,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	AVD_AVND *su_node_ptr = NULL;
 	AVSV_PARAM_INFO param;
 	SaBoolT old_val;
-	SaBoolT su_delete = SA_FALSE;
+	bool su_delete = false;
 	struct CcbUtilOperationData *t_opData;
 
 	TRACE_ENTER();
@@ -1550,12 +1550,12 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	/* check whether the SU is also undergoing delete operation */
 	t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &comp->su->name);
 	if (t_opData && t_opData->operationType == CCBUTIL_DELETE) {
-		su_delete = SA_TRUE;
+		su_delete = true;
 	}
 
 	/* if SU is not being deleted and the PreInstantiable state has changed
 	 * then update the IMM with the new value for saAmfSUPreInstantiable */
-	if (su_delete == SA_FALSE && old_val != comp->su->saAmfSUPreInstantiable) {
+	if (su_delete == false && old_val != comp->su->saAmfSUPreInstantiable) {
 		avd_saImmOiRtObjectUpdate(&comp->su->name, const_cast<SaImmAttrNameT>("saAmfSUPreInstantiable"), 
 				SA_IMM_ATTR_SAUINT32T, &comp->su->saAmfSUPreInstantiable);
 		/* If SU becomes NPI then enable saAmfSUFailover flag Sec 3.11.1.3.2 AMF-B.04.01 spec */

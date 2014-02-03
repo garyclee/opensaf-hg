@@ -84,14 +84,14 @@ static void clm_node_exit_validate(AVD_AVND *node)
 {
 	AVD_SU *su;
 	AVD_SU_SI_REL *susi;
-	SaBoolT reject = SA_FALSE;
+	bool reject = false;
 	SaAisErrorT rc = SA_AIS_OK;
 
 	/*
 	 * Reject validate step on self node as this is active controller 
 	 */
 	if (node->node_info.nodeId == avd_cb->node_id_avd) {
-		reject = SA_TRUE;
+		reject = true;
 		LOG_NO("Validate Step on Active Controller %d",
 				avd_cb->node_id_avd);
 		goto done;
@@ -109,7 +109,7 @@ static void clm_node_exit_validate(AVD_AVND *node)
 			    (susi->si->saAmfSINumCurrStandbyAssignments == 0) &&
 			    (su->sg_of_su->sg_redundancy_model != SA_AMF_NO_REDUNDANCY_MODEL)) {
 				/* there is only one active assignment w.r.t this SUSI */
-				reject = SA_TRUE;
+				reject = true;
 				goto done;
 			}
 			susi = susi->su_next;
@@ -117,7 +117,7 @@ static void clm_node_exit_validate(AVD_AVND *node)
 	}
 
 done:
-	if(reject == SA_FALSE) { 
+	if(reject == false) { 
 		rc = saClmResponse_4(avd_cb->clmHandle, node->clm_pend_inv,
 						SA_CLM_CALLBACK_RESPONSE_OK);
 		LOG_NO("CLM track callback VALIDATE::ACCEPTED %u", rc);

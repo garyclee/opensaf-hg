@@ -61,7 +61,7 @@ void avd_csi_delete(AVD_CSI *csi)
 	TRACE_LEAVE2();
 }
 
-void csi_cmplt_delete(AVD_CSI *csi, SaBoolT ckpt)
+void csi_cmplt_delete(AVD_CSI *csi, bool ckpt)
 {
 	AVD_PG_CSI_NODE *curr;
 	TRACE_ENTER2("%s", csi->name.value);
@@ -694,7 +694,7 @@ static void ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 	AVD_CSI *csi = static_cast<AVD_CSI*>(opdata->userData);
 	AVD_CSI *csi_db;
 
-	SaBoolT first_sisu = static_cast<SaBoolT>(true);
+	bool first_sisu = true;
 
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) { 
 		/* A double check whether csi has been deleted from DB or not and whether pointer stored userData 
@@ -740,7 +740,7 @@ static void ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 			/* Mark comp-csi and sisu to be under csi add/rem.*/
 			/* Send csi assignment for act susi first to the corresponding amfnd. */
 			if ((SA_AMF_HA_ACTIVE == t_sisu->state) && (true == first_sisu)) {
-				first_sisu = static_cast<SaBoolT>(false);
+				first_sisu = false;
 				if (avd_snd_susi_msg(avd_cb, t_sisu->su, t_sisu, AVSV_SUSI_ACT_DEL, true, t_csicomp) != NCSCC_RC_SUCCESS) {
 					LOG_ER("susi send failure for su'%s' and si'%s'", t_sisu->su->name.value, t_sisu->si->name.value);
 					goto done;
@@ -755,7 +755,7 @@ static void ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 		}/* while(t_sisu) */
 
 	} else { /* if (NULL != csi->si->list_of_sisu) */
-		csi_cmplt_delete(csi, static_cast<SaBoolT>(false));
+		csi_cmplt_delete(csi, false);
 	}
 
 	/* Send pg update and delete csi after all csi gets removed. */
@@ -825,7 +825,7 @@ static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
         AVD_CSI *csi = NULL;
         AVD_COMP *t_comp;
 	AVD_SU_SI_REL *t_sisu;
-	SaBoolT first_sisu = static_cast<SaBoolT>(true);
+	bool first_sisu = true;
 	AVD_COMP_CSI_REL *compcsi;
 	AVD_COMPCS_TYPE *cst;
 
@@ -857,7 +857,7 @@ static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 
 			compcsi = t_sisu->list_of_csicomp;
 			while (compcsi != NULL) {
-				compcsi->comp->assign_flag = static_cast<SaBoolT>(true);
+				compcsi->comp->assign_flag = true;
 				compcsi = compcsi->susi_csicomp_next;
 			}
 
@@ -911,7 +911,7 @@ static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 			/* Mark comp-csi and sisu to be under csi add/rem.*/
 			/* Send csi assignment for act susi first to the corresponding amfnd. */
 			if ((SA_AMF_HA_ACTIVE == t_sisu->state) && (true == first_sisu)) {
-				first_sisu = static_cast<SaBoolT>(false);
+				first_sisu = false;
 				if (avd_snd_susi_msg(avd_cb, t_sisu->su, t_sisu, AVSV_SUSI_ACT_ASGN, true, compcsi) != NCSCC_RC_SUCCESS) {
 					/* free all the CSI assignments and end this loop */
 					avd_compcsi_delete(avd_cb, t_sisu, true); 

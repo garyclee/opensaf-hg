@@ -715,7 +715,7 @@ uint32_t avd_sg_2n_si_func(AVD_CL_CB *cb, AVD_SI *si)
 		goto done;
 	}
 
-	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == false)) {
 		LOG_NO("%s: state: %u", __FUNCTION__, cb->init_state);
 		goto done;
 	}
@@ -814,7 +814,7 @@ SaAisErrorT avd_sg_2n_siswap_func(AVD_SI *si, SaInvocationT invocation)
 		goto done;
 	}
 	if (susi->si->sg_of_si->sg_ncs_spec) {
-		if (SA_TRUE == avd_cb->swap_switch ) {
+		if (true == avd_cb->swap_switch ) {
 			LOG_NO("SI Swap not possible, Controller role switch under progress");
 			rc = SA_AIS_ERR_TRY_AGAIN;
 			goto done;
@@ -844,7 +844,7 @@ SaAisErrorT avd_sg_2n_siswap_func(AVD_SI *si, SaInvocationT invocation)
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s Swap initiated", susi->si->name.value);
 
 	if (susi->si->sg_of_si->sg_ncs_spec) {
-		avd_cb->swap_switch = SA_TRUE;
+		avd_cb->swap_switch = true;
 		avd_cb->active_services_exist = false;
 	}
 
@@ -1456,7 +1456,7 @@ uint32_t avd_sg_2n_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 		goto done;
 	}
 
-	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == false)) {
 		goto done;
 	}
 
@@ -2940,7 +2940,7 @@ uint32_t avd_sg_2n_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 	TRACE_ENTER2("'%s'", sg->name.value);
 
 	/* If the SG FSM state is not stable just return success. */
-	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == false)) {
 		goto done;
 	}
 
@@ -3399,9 +3399,9 @@ void avd_sg_2n_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
 
 	/* If we are in the middle of admin switch, Reset the flag. */
-	if ((cb->swap_switch == SA_TRUE) && (SA_TRUE == su->sg_of_su->sg_ncs_spec)) {
+	if ((cb->swap_switch == true) && (true == su->sg_of_su->sg_ncs_spec)) {
 		TRACE("Resetting swap_switch.");
-		cb->swap_switch = SA_FALSE;
+		cb->swap_switch = false;
 	}
 
 	if (su->list_of_susi == AVD_SU_SI_REL_NULL)
@@ -3703,7 +3703,7 @@ uint32_t avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 	TRACE_ENTER2("'%s'", su->name.value);
 	TRACE("SG state %u", su->sg_of_su->sg_fsm_state);
 
-	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == false)) {
 		TRACE("state:%u, ncs:%u", cb->init_state, su->sg_of_su->sg_ncs_spec);
 		goto done;
 	}
@@ -3846,7 +3846,7 @@ uint32_t avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 
 	TRACE_ENTER2("'%s', %u", si->name.value, si->sg_of_si->sg_fsm_state);
 
-	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == false)) {
 		LOG_NO("%s: state: %u", __FUNCTION__, cb->init_state);
 		goto done;
 	}
@@ -3972,7 +3972,7 @@ uint32_t avd_sg_2n_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 
 	TRACE_ENTER2("'%s', %u", sg->name.value, sg->sg_fsm_state);
 
-	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == SA_FALSE)) {
+	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == false)) {
 		LOG_NO("%s: state: %u", __FUNCTION__, cb->init_state);
 		goto done;
 	}

@@ -218,7 +218,7 @@ static SaAisErrorT cstype_ccb_completed_hdlr(CcbUtilOperationData_t *opdata)
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	avd_cstype_t *cst;
 	AVD_CSI *csi; 
-	SaBoolT csi_exist = SA_FALSE;
+	bool csi_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
@@ -241,12 +241,12 @@ static SaAisErrorT cstype_ccb_completed_hdlr(CcbUtilOperationData_t *opdata)
 			while (csi != NULL) {  
 				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &csi->name);
 				if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
-					csi_exist = SA_TRUE;   
+					csi_exist = true;   
 					break;                  
 				}                       
 				csi = csi->csi_list_cs_type_next;
 			}                       
-			if (csi_exist == SA_TRUE) {
+			if (csi_exist == true) {
 				report_ccb_validation_error(opdata, "SaAmfCSType '%s' is in use", cst->name.value);
 				goto done;
 			}

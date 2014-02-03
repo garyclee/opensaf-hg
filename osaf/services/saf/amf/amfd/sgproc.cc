@@ -463,7 +463,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	if (n2d_msg->msg_info.n2d_opr_state.su_oper_state == SA_AMF_OPERATIONAL_DISABLED) {
 		/* if the SU is NCS SU, call the node FSM routine to handle the failure.
 		 */
-		if (su->sg_of_su->sg_ncs_spec == SA_TRUE) {
+		if (su->sg_of_su->sg_ncs_spec == true) {
 			avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
 			avd_nd_ncs_su_failed(cb, node);
 			goto done;
@@ -644,7 +644,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* if the SU is NCS SU, mark the SU readiness state as in service and call
 		 * the SG FSM.
 		 */
-		if (su->sg_of_su->sg_ncs_spec == SA_TRUE) {
+		if (su->sg_of_su->sg_ncs_spec == true) {
 			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) { 
 				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
@@ -659,7 +659,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					goto done;
 				}
 			}
-		} else {	/* if(su->sg_of_su->sg_ncs_spec == SA_TRUE) */
+		} else {	/* if(su->sg_of_su->sg_ncs_spec == true) */
 
 			old_state = su->saAmfSuReadinessState;
 			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
@@ -939,7 +939,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				}/* while(t_sisu) */
 				if (true == all_csi_rem) {
 					/* All the csi removed, so now delete pg tracking and CSI. */
-					csi_cmplt_delete(csi_tobe_deleted, static_cast<SaBoolT>(false));
+					csi_cmplt_delete(csi_tobe_deleted, false);
 				}
 				/* Comsume this message. */
 				goto done;
@@ -1081,7 +1081,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						n2d_msg->msg_info.n2d_su_si_assign.msg_act,
 						n2d_msg->msg_info.n2d_su_si_assign.ha_state);
 				if ((n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_ASGN) &&
-						(susi->su->sg_of_su->sg_ncs_spec == SA_TRUE)) {
+						(susi->su->sg_of_su->sg_ncs_spec == true)) {
 					/* Since a NCS SU has been assigned trigger the node FSM. */
 					/* For (ncs_spec == SA_TRUE), su will not be external, so su
 						   will have node attached. */

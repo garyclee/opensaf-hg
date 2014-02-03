@@ -34,7 +34,6 @@
 #ifndef AVD_AVND_H
 #define AVD_AVND_H
 
-#include <stdbool.h>
 #include <saAmf.h>
 #include <saImm.h>
 #include <ncspatricia.h>

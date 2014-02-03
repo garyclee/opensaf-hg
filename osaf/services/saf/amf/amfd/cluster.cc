@@ -81,7 +81,7 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	for (i_sg = avd_sg_getnext(&lsg_name); i_sg != NULL; i_sg = avd_sg_getnext(&lsg_name)) {
 		lsg_name = i_sg->name;
 
-		if ((i_sg->list_of_su == NULL) || (i_sg->sg_ncs_spec == SA_TRUE)) {
+		if ((i_sg->list_of_su == NULL) || (i_sg->sg_ncs_spec == true)) {
 			continue;
 		}
 
