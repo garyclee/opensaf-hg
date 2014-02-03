@@ -359,7 +359,7 @@ static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	struct avd_sutype *sut;
 	AVD_SU *su; 
-	SaBoolT su_exist = SA_FALSE;
+	bool su_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
@@ -382,12 +382,12 @@ static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			while (su != NULL) {  
 				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
 				if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
-					su_exist = SA_TRUE;   
+					su_exist = true;   
 					break;                  
 				}                       
 				su = su->su_list_su_type_next;
 			}                       
-			if (su_exist == SA_TRUE) {
+			if (su_exist == true) {
 				report_ccb_validation_error(opdata, "SaAmfSUType '%s'is in use",sut->name.value);
 				goto done;
 			}

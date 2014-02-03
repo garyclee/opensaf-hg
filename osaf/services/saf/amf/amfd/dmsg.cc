@@ -182,7 +182,7 @@ uint32_t avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg)
 	switch (rcv_msg->msg_type) {
 	case AVD_D2D_CHANGE_ROLE_REQ:
 		if (SA_AMF_HA_ACTIVE == rcv_msg->msg_info.d2d_chg_role_req.role) {
-			cb->swap_switch = SA_TRUE;
+			cb->swap_switch = true;
 			TRACE("amfd role change req stdby -> actv, posting to mail box");
 			avd_post_amfd_switch_role_change_evt(cb, SA_AMF_HA_ACTIVE);
 		} else {

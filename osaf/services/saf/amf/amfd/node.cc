@@ -433,7 +433,7 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 	SaAisErrorT rc = SA_AIS_OK;
 	AVD_AVND *node = avd_node_get(&opdata->objectName);
 	AVD_SU *su; 
-	SaBoolT su_exist = SA_FALSE;
+	bool su_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
 	TRACE_ENTER2("'%s'", opdata->objectName.value);
@@ -463,12 +463,12 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 		while (su != NULL) {  
 			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
 			if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
-				su_exist = SA_TRUE;   
+				su_exist = true;   
 				break;                  
 			}                       
 			su = su->avnd_list_su_next;
 		}                       
-		if (su_exist == SA_TRUE) {
+		if (su_exist == true) {
 			report_ccb_validation_error(opdata, "Node '%s' still has SUs", opdata->objectName.value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
@@ -1331,7 +1331,7 @@ void avd_node_remove_su(AVD_SU *su)
 	AVD_SU *prev_su = NULL;
 	bool isNcs;
 
-	if ((su->sg_of_su) && (su->sg_of_su->sg_ncs_spec == SA_TRUE))
+	if ((su->sg_of_su) && (su->sg_of_su->sg_ncs_spec == true))
 		isNcs = true;
 	else
 		isNcs = false;

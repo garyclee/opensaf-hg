@@ -368,7 +368,7 @@ static SaAisErrorT sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_AMF_SG_TYPE *sgt;
 	AVD_SG *sg; 
-	SaBoolT sg_exist = SA_FALSE;
+	bool sg_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
@@ -391,12 +391,12 @@ static SaAisErrorT sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			while (sg != NULL) {  
 				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg->name);
 				if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
-					sg_exist = SA_TRUE;   
+					sg_exist = true;   
 					break;                  
 				}                       
 				sg = sg->sg_list_sg_type_next;
 			}                       
-			if (sg_exist == SA_TRUE) {
+			if (sg_exist == true) {
 				report_ccb_validation_error(opdata, "SGs exist of this SG type '%s'",sgt->name.value);
 				goto done;
 			}                       

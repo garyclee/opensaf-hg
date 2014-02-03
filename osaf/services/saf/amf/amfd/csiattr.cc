@@ -16,7 +16,6 @@
  *
  */
 
-#include <stdbool.h>
 #include <logtrace.h>
 #include <util.h>
 #include <amf_util.h>

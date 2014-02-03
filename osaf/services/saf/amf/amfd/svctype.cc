@@ -145,7 +145,7 @@ static SaAisErrorT svctype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_SVC_TYPE *svc_type;
 	AVD_SI *si;
-	SaBoolT si_exist = SA_FALSE;
+	bool si_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
@@ -168,12 +168,12 @@ static SaAisErrorT svctype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			while (si != NULL) {
 				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &si->name);
 				if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
-					si_exist = SA_TRUE;
+					si_exist = true;
 					break;
 				}
 				si = si->si_list_svc_type_next;
 			}
-			if (si_exist == SA_TRUE) {
+			if (si_exist == true) {
 				report_ccb_validation_error(opdata, "SaAmfSvcType '%s' is in use",svc_type->name.value);
 				goto done;
 			}

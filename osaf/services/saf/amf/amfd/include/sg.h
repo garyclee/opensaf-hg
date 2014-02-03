@@ -146,7 +146,7 @@ typedef struct avd_sg_tag {
 					 * Checkpointing - Updated independently.
 					 */
 
-	SaBoolT sg_ncs_spec;	/* This is set to true if the SG
+	bool sg_ncs_spec;	/* This is set to true if the SG
 				 * is a NCS specific SG.
 				 * Checkpointing - Sent as a one time update.
 				 */

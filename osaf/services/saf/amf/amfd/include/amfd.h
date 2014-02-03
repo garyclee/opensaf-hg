@@ -64,6 +64,5 @@
 #include "ckpt_msg.h"
 #include "ckpt_edu.h"
 #include "ckpt_updt.h"
-#include <stdbool.h>
 
 #endif

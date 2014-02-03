@@ -59,7 +59,7 @@ AVD_SU *avd_su_new(const SaNameT *dn)
 	su->tree_node.key_info = (uint8_t *)&(su->name);
 	avsv_sanamet_init(dn, &sg_name, "safSg");
 	su->saAmfSUFailover = false;
-	su->term_state = static_cast<SaBoolT>(false);
+	su->term_state = false;
 	su->su_switch = AVSV_SI_TOGGLE_STABLE;
 	su->saAmfSUPreInstantiable = static_cast<SaBoolT>(false);
 	/* saAmfSUOperState is set when the SU is added to model depending on
@@ -549,14 +549,14 @@ static AVD_AVND *map_su_to_node(AVD_SU *su)
 		node = avd_node_get(&ng->saAmfNGNodeList[i]);
 		osafassert(node);
 
-		if (su->sg_of_su->sg_ncs_spec == SA_TRUE) {
+		if (su->sg_of_su->sg_ncs_spec == true) {
 			for (su_temp = node->list_of_ncs_su; su_temp != NULL; su_temp = su_temp->avnd_list_su_next) {
 				if (su_temp->sg_of_su == su->sg_of_su)
 					break;
 			}
 		}
 
-		if (su->sg_of_su->sg_ncs_spec == SA_FALSE) {
+		if (su->sg_of_su->sg_ncs_spec == false) {
 			for (su_temp = node->list_of_su; su_temp != NULL; su_temp = su_temp->avnd_list_su_next) {
 				if (su_temp->sg_of_su == su->sg_of_su)
 					break;
@@ -867,7 +867,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	AVD_CL_CB *cb = (AVD_CL_CB*) avd_cb;
 	AVD_SU    *su, *su_ptr;
 	AVD_AVND  *node;
-	SaBoolT   is_oper_successful = SA_TRUE;
+	bool   is_oper_successful = true;
 	SaAmfAdminStateT adm_state = static_cast<SaAmfAdminStateT>(SA_AMF_ADMIN_LOCK);
 	SaAmfReadinessStateT back_red_state;
 	SaAmfAdminStateT back_admin_state;
@@ -892,7 +892,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		goto done;
 	}
 
-	if ((su->sg_of_su->sg_ncs_spec == SA_TRUE)
+	if ((su->sg_of_su->sg_ncs_spec == true)
 		&& (cb->node_id_avd == su->su_on_node->node_info.nodeId)) {
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL, 
 				"Admin operation on Active middleware SU is not allowed");
@@ -985,13 +985,13 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			 */
 			avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
 			if (su->sg_of_su->su_insvc(cb, su) != NCSCC_RC_SUCCESS)
-				is_oper_successful = SA_FALSE;
+				is_oper_successful = false;
 
 			avd_sg_app_su_inst_func(cb, su->sg_of_su);
 		} else
 			LOG_IN("SU is not in service");
 
-		if ( is_oper_successful == SA_TRUE ) {
+		if ( is_oper_successful == true ) {
 			if ( su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN ) {
 				/* Store the callback parameters to send operation result later on. */
 				su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
@@ -1030,11 +1030,11 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		avd_su_admin_state_set(su, adm_state);
 
 		if (su->sg_of_su->su_admin_down(cb, su, node) != NCSCC_RC_SUCCESS)
-			is_oper_successful = SA_FALSE;
+			is_oper_successful = false;
 
 		avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
 
-		if ( is_oper_successful == SA_TRUE ) {
+		if ( is_oper_successful == true ) {
 			if ( (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN) ||
 			     (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SU_OPER) ) {
 				/* Store the callback parameters to send operation result later on. */

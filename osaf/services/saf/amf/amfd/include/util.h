@@ -34,10 +34,8 @@
 #ifndef AVD_MSG_H
 #define AVD_MSG_H
 
-#include <stdbool.h>
 #include <amf_d2nmsg.h>
 #include <cb.h>
-#include <stdbool.h>
 #include <amf_util.h>
 
 typedef enum {
