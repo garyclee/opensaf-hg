@@ -236,7 +236,7 @@ typedef enum immd_evt_type {
 
 	IMMD_EVT_CB_DUMP = 18,
 	IMMD_EVT_MDS_QUIESCED_ACK_RSP = 19,
-	IMMD_EVT_LGA_CB = 20,
+	IMMD_EVT_RDA_CB = 20,
 
 	IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS = 21, /* Broadcast for cleanup*/
 
