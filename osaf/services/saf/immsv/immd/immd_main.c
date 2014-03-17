@@ -70,7 +70,7 @@ static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE
 	}
 
 	evt->type = IMMSV_EVT_TYPE_IMMD;
-	evt->info.immd.type = IMMD_EVT_LGA_CB;
+	evt->info.immd.type = IMMD_EVT_RDA_CB;
 	evt->info.immd.info.rda_info.io_role = cb_info->info.io_role;
 
 	rc = ncs_ipc_send(&immd_cb->mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);

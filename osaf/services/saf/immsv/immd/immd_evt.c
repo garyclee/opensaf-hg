@@ -55,7 +55,7 @@ static uint32_t immd_evt_proc_admo_hard_finalize(IMMD_CB *cb, IMMD_EVT *evt, IMM
 static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt);
 
 static uint32_t immd_evt_mds_quiesced_ack_rsp(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
-static uint32_t immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt);
+static uint32_t immd_evt_proc_rda_callback(IMMD_CB *cb, IMMD_EVT *evt);
 
 static uint32_t immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
@@ -169,8 +169,8 @@ void immd_process_evt(void)
 	case IMMD_EVT_CB_DUMP:
 		rc = immd_evt_proc_cb_dump(cb);
 		break;
-	case IMMD_EVT_LGA_CB:
-		rc = immd_evt_proc_lga_callback(cb, &evt->info.immd);
+	case IMMD_EVT_RDA_CB:
+		rc = immd_evt_proc_rda_callback(cb, &evt->info.immd);
 		break;
 
 	case IMMD_EVT_ND2D_LOADING_COMPLETED:
@@ -2360,7 +2360,7 @@ uint32_t immd_evt_proc_cb_dump(IMMD_CB *cb)
 }
 
 /****************************************************************************
- * Name          : immd_evt_proc_lga_callback
+ * Name          : immd_evt_proc_rda_callback
  *
  * Description   : Function process the role change message from RDA
  *
@@ -2371,7 +2371,7 @@ uint32_t immd_evt_proc_cb_dump(IMMD_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt)
+static uint32_t immd_evt_proc_rda_callback(IMMD_CB *cb, IMMD_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
@@ -2395,7 +2395,7 @@ static uint32_t immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt)
 
 		/* Change of role to active => We may need to elect new coord */
 		if(cb->m2PbeCanLoad) {
-			LOG_NO("ellect_coord invoke from lga_callback ACTIVE");
+			LOG_NO("ellect_coord invoke from rda_callback ACTIVE");
 			immd_proc_elect_coord(cb, true);
 		}
 		immd_db_purge_fevs(cb);
