@@ -270,7 +270,7 @@ CcbUtilOperationData_t *ccbutil_getCcbOpDataByDN(SaImmOiCcbIdT id, const SaNameT
  *
  * @return SaAisErrorT
  */
-extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
+extern SaAisErrorT immutil_getAttrValuesNumber(const char *attrName,
 	const SaImmAttrValuesT_2 **attr, SaUint32T *attrValuesNumber);
 
  /**
@@ -299,7 +299,7 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
  *
  * @return SaAisErrorT SA_AIS_OK when conversion was successful
  */
-        extern SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
+extern SaAisErrorT immutil_getAttr(const char *attrName,
 		const SaImmAttrValuesT_2 **attr, SaUint32T index, void *param);
 
 /**
@@ -411,10 +411,10 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 							     SaSelectionObjectT *selectionObject);
 
 	extern SaAisErrorT immutil_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle,
-							      const SaImmClassNameT className);
+							      const char *className);
 
 	extern SaAisErrorT immutil_saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle,
-								  const SaImmClassNameT className);
+								  const char *className);
 
 	extern SaAisErrorT immutil_saImmOiImplementerSet(SaImmOiHandleT immOiHandle,
 							 const SaImmOiImplementerNameT implementerName);

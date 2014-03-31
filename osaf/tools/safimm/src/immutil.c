@@ -377,7 +377,7 @@ char const *immutil_getStringAttr(const SaImmAttrValuesT_2 **attr, char const *n
 }
 
 SaAisErrorT immutil_getAttrValuesNumber(
-	const SaImmAttrNameT attrName, const SaImmAttrValuesT_2 **attr, SaUint32T *attrValuesNumber)
+	const char *attrName, const SaImmAttrValuesT_2 **attr, SaUint32T *attrValuesNumber)
 {
         SaAisErrorT error = SA_AIS_ERR_NAME_NOT_FOUND;
         int i;
@@ -397,7 +397,7 @@ SaAisErrorT immutil_getAttrValuesNumber(
 }
 
 /* note: SA_IMM_ATTR_SASTRINGT is intentionally not supported */
-SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
+SaAisErrorT immutil_getAttr(const char *attrName,
 	const SaImmAttrValuesT_2 **attr, SaUint32T index, void *param)
 {
         SaAisErrorT error = SA_AIS_ERR_NAME_NOT_FOUND;
@@ -993,13 +993,15 @@ SaAisErrorT immutil_saImmOiSelectionObjectGet(SaImmOiHandleT immOiHandle, SaSele
 	return rc;
 }
 
-SaAisErrorT immutil_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmClassNameT className)
+SaAisErrorT immutil_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const char *className)
 {
-	SaAisErrorT rc = saImmOiClassImplementerSet(immOiHandle, className);
+	SaAisErrorT rc = saImmOiClassImplementerSet(immOiHandle,
+			(const SaImmClassNameT) className);
 	unsigned int nTries = 1;
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries) {
 		usleep(immutilWrapperProfile.retryInterval * 1000);
-		rc = saImmOiClassImplementerSet(immOiHandle, className);
+		rc = saImmOiClassImplementerSet(immOiHandle,
+				(const SaImmClassNameT) className);
 		nTries++;
 	}
 	if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
@@ -1007,13 +1009,15 @@ SaAisErrorT immutil_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const
 	return rc;
 }
 
-SaAisErrorT immutil_saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaImmClassNameT className)
+SaAisErrorT immutil_saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const char *className)
 {
-	SaAisErrorT rc = saImmOiClassImplementerRelease(immOiHandle, className);
+	SaAisErrorT rc = saImmOiClassImplementerRelease(immOiHandle,
+			(const SaImmClassNameT) className);
 	unsigned int nTries = 1;
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries) {
 		usleep(immutilWrapperProfile.retryInterval * 1000);
-		rc = saImmOiClassImplementerRelease(immOiHandle, className);
+		rc = saImmOiClassImplementerRelease(immOiHandle,
+				(const SaImmClassNameT) className);
 		nTries++;
 	}
 	if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
