@@ -377,7 +377,7 @@ char const *immutil_getStringAttr(const SaImmAttrValuesT_2 **attr, char const *n
 }
 
 SaAisErrorT immutil_getAttrValuesNumber(
-	const SaImmAttrNameT attrName, const SaImmAttrValuesT_2 **attr, SaUint32T *attrValuesNumber)
+	const char *attrName, const SaImmAttrValuesT_2 **attr, SaUint32T *attrValuesNumber)
 {
         SaAisErrorT error = SA_AIS_ERR_NAME_NOT_FOUND;
         int i;
@@ -397,7 +397,7 @@ SaAisErrorT immutil_getAttrValuesNumber(
 }
 
 /* note: SA_IMM_ATTR_SASTRINGT is intentionally not supported */
-SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
+SaAisErrorT immutil_getAttr(const char *attrName,
 	const SaImmAttrValuesT_2 **attr, SaUint32T index, void *param)
 {
         SaAisErrorT error = SA_AIS_ERR_NAME_NOT_FOUND;
@@ -462,16 +462,16 @@ SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
 const SaTimeT* immutil_getTimeAttr(const SaImmAttrValuesT_2 **attr, char const* name, unsigned int index)
 {
         unsigned int i;
-        if (attr == NULL || attr[0] == NULL)
+        if (attr == NULL || attr[0] == NULL) 
                 return NULL;
         for (i = 0; attr[i] != NULL; i++) {
                 if (strcmp(attr[i]->attrName, name) == 0) {
-                        if (index >= attr[i]->attrValuesNumber
+                        if (index >= attr[i]->attrValuesNumber 
                             || attr[i]->attrValues == NULL
                             || attr[i]->attrValueType != SA_IMM_ATTR_SATIMET)
                                 return NULL;
                         return (SaTimeT*)attr[i]->attrValues[index];
-                }
+                }		
         }
         return NULL;
 }
@@ -524,16 +524,15 @@ SaAisErrorT immutil_update_one_rattr(SaImmOiHandleT immOiHandle,
 SaImmClassNameT immutil_get_className(const SaNameT *objectName)
 {
 	SaImmHandleT omHandle;
-	SaImmClassNameT className;
+	SaImmClassNameT className = NULL;
 	SaImmAccessorHandleT accessorHandle;
 	SaImmAttrValuesT_2 **attributes;
 	SaImmAttrNameT attributeNames[] = { "SaImmAttrClassName", NULL };
 
 	(void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
 	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
-        if (immutil_saImmOmAccessorGet_2(accessorHandle, objectName, attributeNames, &attributes) != SA_AIS_OK)
-                return NULL;
-	className = strdup(*((char **)attributes[0]->attrValues[0]));
+        if (immutil_saImmOmAccessorGet_2(accessorHandle, objectName, attributeNames, &attributes) == SA_AIS_OK)
+		className = strdup(*((char **)attributes[0]->attrValues[0]));
 	(void)immutil_saImmOmAccessorFinalize(accessorHandle);
 	(void)immutil_saImmOmFinalize(omHandle);
 
@@ -553,7 +552,7 @@ SaAisErrorT immutil_get_attrValueType(const SaImmClassNameT className,
         (void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
 
 	if ((rc = saImmOmClassDescriptionGet_2(omHandle, className, &classCategory, &attrDefinitions)) != SA_AIS_OK)
-		return rc;
+		goto done;
 
 	rc = SA_AIS_ERR_INVALID_PARAM;
 	while ((attrDef = attrDefinitions[i++]) != NULL) {
@@ -565,6 +564,8 @@ SaAisErrorT immutil_get_attrValueType(const SaImmClassNameT className,
 	}
 
 	(void)saImmOmClassDescriptionMemoryFree_2(omHandle, attrDefinitions);
+
+done:
 	(void)immutil_saImmOmFinalize(omHandle);
 	return rc;
 }
@@ -576,7 +577,7 @@ void *immutil_new_attrValue(SaImmValueTypeT attrValueType, const char *str)
 	char *endptr;
 
 	/*
-	** sizeof(long) varies between 32 and 64 bit machines. Therefore on a
+	** sizeof(long) varies between 32 and 64 bit machines. Therefore on a 
 	** 64 bit machine, a check is needed to ensure that the value returned
 	** from strtol() or strtoul() is not greater than what fits into 32 bits.
 	*/
@@ -692,7 +693,7 @@ void *immutil_new_attrValue(SaImmValueTypeT attrValueType, const char *str)
 			len = len/2;
 		}
 		attrValue = malloc(sizeof(SaAnyT));
-		((SaAnyT*)attrValue)->bufferAddr =
+		((SaAnyT*)attrValue)->bufferAddr = 
 			(SaUint8T*)malloc(sizeof(SaUint8T) * len);
 		((SaAnyT*)attrValue)->bufferSize = len;
 
@@ -709,7 +710,7 @@ void *immutil_new_attrValue(SaImmValueTypeT attrValueType, const char *str)
 			} else {
 				byte[3] = '0';
 			}
-			((SaAnyT*)attrValue)->bufferAddr[i] =
+			((SaAnyT*)attrValue)->bufferAddr[i] = 
 				(SaUint8T)strtod(byte, &endMark);
 		}
 	}
@@ -992,13 +993,15 @@ SaAisErrorT immutil_saImmOiSelectionObjectGet(SaImmOiHandleT immOiHandle, SaSele
 	return rc;
 }
 
-SaAisErrorT immutil_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmClassNameT className)
+SaAisErrorT immutil_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const char *className)
 {
-	SaAisErrorT rc = saImmOiClassImplementerSet(immOiHandle, className);
+	SaAisErrorT rc = saImmOiClassImplementerSet(immOiHandle,
+			(const SaImmClassNameT) className);
 	unsigned int nTries = 1;
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries) {
 		usleep(immutilWrapperProfile.retryInterval * 1000);
-		rc = saImmOiClassImplementerSet(immOiHandle, className);
+		rc = saImmOiClassImplementerSet(immOiHandle,
+				(const SaImmClassNameT) className);
 		nTries++;
 	}
 	if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
@@ -1006,13 +1009,15 @@ SaAisErrorT immutil_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const
 	return rc;
 }
 
-SaAisErrorT immutil_saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaImmClassNameT className)
+SaAisErrorT immutil_saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const char *className)
 {
-	SaAisErrorT rc = saImmOiClassImplementerRelease(immOiHandle, className);
+	SaAisErrorT rc = saImmOiClassImplementerRelease(immOiHandle,
+			(const SaImmClassNameT) className);
 	unsigned int nTries = 1;
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries) {
 		usleep(immutilWrapperProfile.retryInterval * 1000);
-		rc = saImmOiClassImplementerRelease(immOiHandle, className);
+		rc = saImmOiClassImplementerRelease(immOiHandle,
+				(const SaImmClassNameT) className);
 		nTries++;
 	}
 	if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
@@ -1178,17 +1183,17 @@ SaAisErrorT immutil_saImmOmAccessorGetConfigAttrs(SaImmAccessorHandleT accessorH
 {
 	SaImmAttrNameT accessorGetConfigAttrsToken[2] = {"SA_IMM_SEARCH_GET_CONFIG_ATTR", NULL };
 	/* This is a hack to cater for the very common simple case of the OM user needing
-	   to access ONE object, but only its config attributes. The saImmOmAccessorGet_2 call
+	   to access ONE object, but only its config attributes. The saImmOmAccessorGet_2 call 
 	   has no search-options. The trick here is to "tunnel" a search option through the
 	   attributes parameter. The user will get ALL config attributes for the object in
 	   this way. If they only want some of the config attributes, then they just do a
 	   regular accessor get and enumerate the attributes they want.
 
 	   The support for thus is really inside the implementation of saImmOmSearchInitialize,
-	   which saImmOmAccessorGet_2 uses in its implementation. If it detects
+	   which saImmOmAccessorGet_2 uses in its implementation. If it detects 
 	   only one attribute in the attributes list and the name of that attribute is
 	   'SA_IMM_SEARCH_GET_CONFIG_ATTR' then it will assume that the user does not actually
-	   want an attribute with *that* name, but wants all config attribues.
+	   want an attribute with *that* name, but wants all config attribues. 
 	   This feature is only available with the A.2.11 version of the IMMA-API.
 	 */
 
@@ -1477,12 +1482,12 @@ SaAisErrorT immutil_saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHa
                                                   SaTimeT timeout)
 
 {
-        SaAisErrorT rc = saImmOmAdminOperationInvoke_2(ownerHandle, objectName, continuationId,
+        SaAisErrorT rc = saImmOmAdminOperationInvoke_2(ownerHandle, objectName, continuationId, 
                                                        operationId, params, operationReturnValue, timeout);
         unsigned int nTries = 1;
         while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
                 usleep(immutilWrapperProfile.retryInterval * 1000);
-                rc = saImmOmAdminOperationInvoke_2(ownerHandle, objectName, continuationId,
+                rc = saImmOmAdminOperationInvoke_2(ownerHandle, objectName, continuationId, 
                                                    operationId, params, operationReturnValue, timeout);
                 nTries++;
         }
