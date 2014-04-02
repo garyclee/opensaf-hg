@@ -20,6 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 include_HEADERS = \
 	saAis.h \
+	saAis_B_5_14.h \
 	saAmf.h \
 	saCkpt.h \
 	saCkpt_B_02_03.h \

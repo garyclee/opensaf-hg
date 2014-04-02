@@ -179,5 +179,7 @@ typedef union {
 }
 #endif
 
+#include <saAis_B_5_14.h>
+
 #endif  /* _SA_AIS_H */
 
