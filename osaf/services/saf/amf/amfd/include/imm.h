@@ -137,7 +137,7 @@ extern void avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn,
 	SaImmAttrNameT attributeName, SaImmValueTypeT attrValueType, void *value);
 extern void avd_saImmOiRtObjectUpdate(const SaNameT* dn, const char *attributeName,
      SaImmValueTypeT attrValueType, void* value);
-extern void avd_saImmOiRtObjectCreate(const SaImmClassNameT className,
+extern void avd_saImmOiRtObjectCreate(const char *className,
 	const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues);
 extern void avd_saImmOiRtObjectDelete(const SaNameT* objectName);
 

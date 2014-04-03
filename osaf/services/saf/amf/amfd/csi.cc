@@ -1000,8 +1000,7 @@ static void avd_create_csiassignment_in_imm(SaAmfHAStateT ha_state,
 	avsv_create_association_class_dn(comp_dn, NULL, "safCSIComp", &dn);
 
 	TRACE("Adding %s", dn.value);
-	avd_saImmOiRtObjectCreate(const_cast<SaImmClassNameT>("SaAmfCSIAssignment"),
-			csi_dn, attrValues);
+	avd_saImmOiRtObjectCreate("SaAmfCSIAssignment",	csi_dn, attrValues);
 }
 
 AVD_COMP_CSI_REL *avd_compcsi_create(AVD_SU_SI_REL *susi, AVD_CSI *csi,

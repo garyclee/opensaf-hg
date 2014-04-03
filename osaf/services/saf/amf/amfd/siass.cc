@@ -77,8 +77,7 @@ static void avd_create_susi_in_imm(SaAmfHAStateT ha_state,
 		return;
 
 	avsv_create_association_class_dn(su_dn, NULL, "safSISU", &dn);
-	avd_saImmOiRtObjectCreate(const_cast<SaImmClassNameT>("SaAmfSIAssignment"),
-			si_dn, attrValues);
+	avd_saImmOiRtObjectCreate("SaAmfSIAssignment", si_dn, attrValues);
 }
 
 /** Delete an SaAmfSIAssignment from IMM
