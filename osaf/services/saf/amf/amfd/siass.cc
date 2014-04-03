@@ -118,14 +118,16 @@ void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
        saflog(LOG_NOTICE, amfSvcUsrName, "HA State %s of %s for %s",
 	       avd_ha_state[ha_state], susi->su->name.value, susi->si->name.value);
 
-       avd_saImmOiRtObjectUpdate(&dn,const_cast<SaImmAttrNameT>("saAmfSISUHAState"), SA_IMM_ATTR_SAUINT32T, &ha_state);
+       avd_saImmOiRtObjectUpdate(&dn, "saAmfSISUHAState",
+    		   SA_IMM_ATTR_SAUINT32T, &ha_state);
 
        /* Update all CSI assignments */
        for (compcsi = susi->list_of_csicomp; compcsi != NULL; compcsi = compcsi->susi_csicomp_next) {
 	       avsv_create_association_class_dn(&compcsi->comp->comp_info.name,
 		       &compcsi->csi->name, "safCSIComp", &dn);
 
-	       avd_saImmOiRtObjectUpdate(&dn,const_cast<SaImmAttrNameT>("saAmfCSICompHAState"), SA_IMM_ATTR_SAUINT32T, &ha_state);
+	       avd_saImmOiRtObjectUpdate(&dn, "saAmfCSICompHAState",
+	    	SA_IMM_ATTR_SAUINT32T, &ha_state);
        }
 }
 

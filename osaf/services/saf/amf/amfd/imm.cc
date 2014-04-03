@@ -1479,7 +1479,7 @@ void avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn, SaImmAttrNameT attributeN
  * @param attrValueType
  * @param value
  */
-void avd_saImmOiRtObjectUpdate(const SaNameT *dn, SaImmAttrNameT attributeName,
+void avd_saImmOiRtObjectUpdate(const SaNameT *dn, const char *attributeName,
 	SaImmValueTypeT attrValueType, void *value)
 {
 	TRACE_ENTER();
@@ -1565,25 +1565,20 @@ void avd_imm_update_runtime_attrs(void)
 	/* Update SU Class runtime cached attributes. */
 	su = avd_su_getnext(&su_name);
 	while (su != NULL) {
-		avd_saImmOiRtObjectUpdate(&su->name,
-					  const_cast<SaImmAttrNameT>("saAmfSUPreInstantiable"), SA_IMM_ATTR_SAUINT32T, 
-					  &su->saAmfSUPreInstantiable);
+		avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPreInstantiable",
+			SA_IMM_ATTR_SAUINT32T,  &su->saAmfSUPreInstantiable);
 
-		avd_saImmOiRtObjectUpdate(&su->name,
-					  const_cast<SaImmAttrNameT>("saAmfSUHostedByNode"), SA_IMM_ATTR_SANAMET, 
-					  &su->saAmfSUHostedByNode);
+		avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUHostedByNode",
+			SA_IMM_ATTR_SANAMET, &su->saAmfSUHostedByNode);
 
-		avd_saImmOiRtObjectUpdate(&su->name,
-					  const_cast<SaImmAttrNameT>("saAmfSUPresenceState"), SA_IMM_ATTR_SAUINT32T, 
-					  &su->saAmfSUPresenceState);
+		avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPresenceState",
+			SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPresenceState);
 
-		avd_saImmOiRtObjectUpdate(&su->name,
-					  const_cast<SaImmAttrNameT>("saAmfSUOperState"), SA_IMM_ATTR_SAUINT32T, 
-					  &su->saAmfSUOperState);
+		avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUOperState",
+			SA_IMM_ATTR_SAUINT32T, &su->saAmfSUOperState);
 
-		avd_saImmOiRtObjectUpdate(&su->name,
-					  const_cast<SaImmAttrNameT>("saAmfSUReadinessState"), SA_IMM_ATTR_SAUINT32T, 
-					  &su->saAmfSuReadinessState);
+		avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUReadinessState",
+			SA_IMM_ATTR_SAUINT32T, &su->saAmfSuReadinessState);
 
 		su = avd_su_getnext(&su->name);
 	}
@@ -1592,13 +1587,16 @@ void avd_imm_update_runtime_attrs(void)
 	comp = avd_comp_getnext(&comp_name);
 	while (comp != NULL) {
 		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
-					  const_cast<SaImmAttrNameT>("saAmfCompReadinessState"), SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
+			"saAmfCompReadinessState", SA_IMM_ATTR_SAUINT32T,
+			&comp->saAmfCompReadinessState);
 
 		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
-					  const_cast<SaImmAttrNameT>("saAmfCompOperState"), SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompOperState);
+			"saAmfCompOperState", SA_IMM_ATTR_SAUINT32T,
+			&comp->saAmfCompOperState);
 
 		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
-					  const_cast<SaImmAttrNameT>("saAmfCompPresenceState"), SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
+			"saAmfCompPresenceState", SA_IMM_ATTR_SAUINT32T,
+			&comp->saAmfCompPresenceState);
 
 		comp = avd_comp_getnext(&comp->comp_info.name);
 	}
@@ -1606,8 +1604,8 @@ void avd_imm_update_runtime_attrs(void)
 	/* Update Node Class runtime cached attributes. */
 	node = avd_node_getnext(&node_name);
 	while (node != NULL) {
-		avd_saImmOiRtObjectUpdate(&node->name, const_cast<SaImmAttrNameT>("saAmfNodeOperState"),
-					  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
+		avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeOperState",
+			SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
 
 		node = avd_node_getnext(&node->name);
 	}
@@ -1615,8 +1613,8 @@ void avd_imm_update_runtime_attrs(void)
 	/* Update Node Class runtime cached attributes. */
 	si = avd_si_getnext(&si_name);
 	while (si != NULL) {
-		avd_saImmOiRtObjectUpdate(&si->name, const_cast<SaImmAttrNameT>("saAmfSIAssignmentState"),
-					  SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
+		avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
+			SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
 
 		si = avd_si_getnext(&si->name);
 	}

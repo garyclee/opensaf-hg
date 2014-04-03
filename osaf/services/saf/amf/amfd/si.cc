@@ -492,7 +492,7 @@ static void si_add_to_model(AVD_SI *si)
 	avd_app_add_si(si->app, si);
 	avd_sg_add_si(si->sg_of_si, si);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
-	avd_saImmOiRtObjectUpdate(&si->name, const_cast<SaImmAttrNameT>("saAmfSIAssignmentState"),
+	avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
 		SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
 
 done:
@@ -1313,7 +1313,7 @@ static void si_update_ass_state(AVD_SI *si)
 			si->alarm_sent = false;
 		}
 
-		avd_saImmOiRtObjectUpdate(&si->name, const_cast<SaImmAttrNameT>("saAmfSIAssignmentState"),
+		avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
 			SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ASSIGNMENT_STATE);
 	}
@@ -1401,8 +1401,8 @@ void avd_si_admin_state_set(AVD_SI* si, SaAmfAdminStateT state)
        saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", si->name.value,
                   avd_adm_state_name[si->saAmfSIAdminState], avd_adm_state_name[state]);
        si->saAmfSIAdminState = state;
-       avd_saImmOiRtObjectUpdate(&si->name,
-				 const_cast<SaImmAttrNameT>("saAmfSIAdminState"), SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAdminState);
+       avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAdminState",
+    	SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAdminState);
        m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ADMIN_STATE);
        avd_send_admin_state_chg_ntf(&si->name, SA_AMF_NTFID_SI_ADMIN_STATE, old_state, si->saAmfSIAdminState);
 }

@@ -396,8 +396,8 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
 		 * event. Since we dont update oper_state in avnd_down because the role is
 		 * not set to Active(there is no implementer), so updating now.
 		 */
-		avd_saImmOiRtObjectUpdate(&node->name, const_cast<SaImmAttrNameT>("saAmfNodeOperState"),
-					SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
+		avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeOperState",
+			SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
 		return;
 	}
 	
@@ -407,8 +407,8 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s OperState %s => %s", node->name.value,
 		   avd_oper_state_name[node->saAmfNodeOperState], avd_oper_state_name[oper_state]);
 	node->saAmfNodeOperState = oper_state;
-        avd_saImmOiRtObjectUpdate(&node->name, const_cast<SaImmAttrNameT>("saAmfNodeOperState"),
-				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
+        avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeOperState",
+			SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_OPER_STATE);
 	
 	/* notification */
@@ -703,8 +703,8 @@ void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
 		saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", node->name.value,
 				avd_adm_state_name[node->saAmfNodeAdminState], avd_adm_state_name[admin_state]);
 		node->saAmfNodeAdminState = admin_state;
-		avd_saImmOiRtObjectUpdate(&node->name, const_cast<SaImmAttrNameT>("saAmfNodeAdminState"),
-				SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeAdminState);
+		avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeAdminState",
+			SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeAdminState);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_ADMIN_STATE);
 		avd_send_admin_state_chg_ntf(&node->name, SA_AMF_NTFID_NODE_ADMIN_STATE, old_state, node->saAmfNodeAdminState);
 	}
