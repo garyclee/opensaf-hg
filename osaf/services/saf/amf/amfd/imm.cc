@@ -1510,7 +1510,7 @@ void avd_saImmOiRtObjectUpdate(const SaNameT *dn, const char *attributeName,
  * @param parentName
  * @param attrValues
  */
-void avd_saImmOiRtObjectCreate(const SaImmClassNameT className,
+void avd_saImmOiRtObjectCreate(const char *className,
 	const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues)
 {
 	TRACE_ENTER();
