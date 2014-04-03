@@ -676,6 +676,7 @@ static void csiattr_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_csiattr_constructor(void)
 {
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfCSIAttribute"), NULL, NULL, csiattr_ccb_completed_cb, csiattr_ccb_apply_cb);
+	avd_class_impl_set("SaAmfCSIAttribute", NULL, NULL,
+		csiattr_ccb_completed_cb, csiattr_ccb_apply_cb);
 }
 

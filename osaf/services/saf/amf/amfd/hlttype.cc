@@ -100,7 +100,7 @@ static void hct_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_hctype_constructor(void)
 {
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfHealthcheckType"),
-			NULL, NULL, hct_ccb_completed_cb, hct_ccb_apply_cb);
+	avd_class_impl_set("SaAmfHealthcheckType", NULL, NULL,
+		hct_ccb_completed_cb, hct_ccb_apply_cb);
 }
 

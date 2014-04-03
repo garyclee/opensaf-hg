@@ -1484,7 +1484,8 @@ void avd_sg_constructor(void)
 	patricia_params.key_size = sizeof(SaNameT);
 	osafassert(ncs_patricia_tree_init(&sg_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfSG"), sg_rt_attr_cb, sg_admin_op_cb, sg_ccb_completed_cb, sg_ccb_apply_cb);
+	avd_class_impl_set("SaAmfSG", sg_rt_attr_cb, sg_admin_op_cb,
+		sg_ccb_completed_cb, sg_ccb_apply_cb);
 }
 
 void avd_sg_admin_state_set(AVD_SG* sg, SaAmfAdminStateT state)

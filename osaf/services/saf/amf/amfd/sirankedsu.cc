@@ -583,10 +583,11 @@ SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si)
 
 void avd_sirankedsu_constructor(void)
 {
-        NCS_PATRICIA_PARAMS patricia_params;
+	NCS_PATRICIA_PARAMS patricia_params;
 
-        patricia_params.key_size = sizeof(AVD_SUS_PER_SI_RANK_INDX);
-        osafassert(ncs_patricia_tree_init(&sirankedsu_db, &patricia_params) == NCSCC_RC_SUCCESS);
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfSIRankedSU"), NULL, NULL, sirankedsu_ccb_completed_cb, sirankedsu_ccb_apply_cb);
+	patricia_params.key_size = sizeof(AVD_SUS_PER_SI_RANK_INDX);
+	osafassert(ncs_patricia_tree_init(&sirankedsu_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	avd_class_impl_set("SaAmfSIRankedSU", NULL, NULL,
+		sirankedsu_ccb_completed_cb, sirankedsu_ccb_apply_cb);
 }
 

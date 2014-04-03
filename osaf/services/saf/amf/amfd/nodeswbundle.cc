@@ -167,6 +167,6 @@ static void nodeswbdl_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_nodeswbundle_constructor(void)
 {
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfNodeSwBundle"), NULL, NULL, nodeswbdl_ccb_completed_cb, nodeswbdl_ccb_apply_cb);
+	avd_class_impl_set("SaAmfNodeSwBundle", NULL, NULL,
+		nodeswbdl_ccb_completed_cb, nodeswbdl_ccb_apply_cb);
 }
-

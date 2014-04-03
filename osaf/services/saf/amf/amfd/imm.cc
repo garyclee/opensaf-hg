@@ -328,47 +328,47 @@ static const SaImmOiImplementerNameT implementerName =
 static SaVersionT immVersion = { 'A', 2, 11 };
 
 /* This string array must match the AVSV_AMF_CLASS_ID enum */
-static char *avd_class_names[] = {
-	const_cast<char*>("Invalid"),
+static const char *avd_class_names[] = {
+	"Invalid",
 
-	const_cast<char*>("SaAmfCompBaseType"),
-	const_cast<char*>("SaAmfSUBaseType"),
-	const_cast<char*>("SaAmfSGBaseType"),
-	const_cast<char*>("SaAmfAppBaseType"),
-	const_cast<char*>("SaAmfSvcBaseType"),
-	const_cast<char*>("SaAmfCSBaseType"),
-	const_cast<char*>("SaAmfCompGlobalAttributes"),
+	"SaAmfCompBaseType",
+	"SaAmfSUBaseType",
+	"SaAmfSGBaseType",
+	"SaAmfAppBaseType",
+	"SaAmfSvcBaseType",
+	"SaAmfCSBaseType",
+	"SaAmfCompGlobalAttributes",
 
-	const_cast<char*>("SaAmfCompType"),
-	const_cast<char*>("SaAmfCSType"),
-	const_cast<char*>("SaAmfCtCsType"),
-	const_cast<char*>("SaAmfHealthcheckType"),
-	const_cast<char*>("SaAmfSvcType"),
-	const_cast<char*>("SaAmfSvcTypeCSTypes"),
-	const_cast<char*>("SaAmfSUType"),
-	const_cast<char*>("SaAmfSutCompType"),
-	const_cast<char*>("SaAmfSGType"),
-	const_cast<char*>("SaAmfAppType"),
+	"SaAmfCompType",
+	"SaAmfCSType",
+	"SaAmfCtCsType",
+	"SaAmfHealthcheckType",
+	"SaAmfSvcType",
+	"SaAmfSvcTypeCSTypes",
+	"SaAmfSUType",
+	"SaAmfSutCompType",
+	"SaAmfSGType",
+	"SaAmfAppType",
 
-	const_cast<char*>("SaAmfCluster"),
-	const_cast<char*>("SaAmfNode"),
-	const_cast<char*>("SaAmfNodeGroup"),
-	const_cast<char*>("SaAmfNodeSwBundle"),
+	"SaAmfCluster",
+	"SaAmfNode",
+	"SaAmfNodeGroup",
+	"SaAmfNodeSwBundle",
 
-	const_cast<char*>("SaAmfApplication"),
-	const_cast<char*>("SaAmfSG"),
-	const_cast<char*>("SaAmfSI"),
-	const_cast<char*>("SaAmfCSI"),
-	const_cast<char*>("SaAmfCSIAttribute"),
-	const_cast<char*>("SaAmfSU"),
-	const_cast<char*>("SaAmfComp"),
-	const_cast<char*>("SaAmfHealthcheck"),
-	const_cast<char*>("SaAmfCompCsType"),
-	const_cast<char*>("SaAmfSIDependency"),
-	const_cast<char*>("SaAmfSIRankedSU"),
+	"SaAmfApplication",
+	"SaAmfSG",
+	"SaAmfSI",
+	"SaAmfCSI",
+	"SaAmfCSIAttribute",
+	"SaAmfSU",
+	"SaAmfComp",
+	"SaAmfHealthcheck",
+	"SaAmfCompCsType",
+	"SaAmfSIDependency",
+	"SaAmfSIRankedSU",
 
-	const_cast<char*>("SaAmfCSIAssignment"),
-	const_cast<char*>("SaAmfSIAssignment")
+	"SaAmfCSIAssignment",
+	"SaAmfSIAssignment"
 };
 
 static AvdImmOiCcbApplyCallbackT ccb_apply_callback[AVSV_SA_AMF_CLASS_MAX];
@@ -490,7 +490,7 @@ static const SaImmAttrValuesT_2 **dupSaImmAttrValuesT_array(const SaImmAttrValue
 	return copy;
 }
 
-static AVSV_AMF_CLASS_ID class_name_to_class_type(const SaImmClassNameT className)
+static AVSV_AMF_CLASS_ID class_name_to_class_type(const char *className)
 {
 	int i;
 
@@ -1336,7 +1336,7 @@ void avd_imm_applier_set_task_create(void)
 	}
 }
 
-void avd_class_impl_set(const SaImmClassNameT className,
+void avd_class_impl_set(const char *className,
 	SaImmOiRtAttrUpdateCallbackT rtattr_cb, SaImmOiAdminOperationCallbackT_2 adminop_cb,
 	AvdImmOiCcbCompletedCallbackT ccb_compl_cb, AvdImmOiCcbApplyCallbackT ccb_apply_cb)
 {

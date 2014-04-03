@@ -445,6 +445,8 @@ void avd_sutype_constructor(void)
 	patricia_params.key_size = sizeof(SaNameT);
 	osafassert(ncs_patricia_tree_init(&sutype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfSUBaseType"), NULL, NULL, avd_imm_default_OK_completed_cb, NULL);
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfSUType"), NULL, NULL, sutype_ccb_completed_cb, sutype_ccb_apply_cb);
+	avd_class_impl_set("SaAmfSUBaseType", NULL, NULL,
+		avd_imm_default_OK_completed_cb, NULL);
+	avd_class_impl_set("SaAmfSUType", NULL, NULL,
+		sutype_ccb_completed_cb, sutype_ccb_apply_cb);
 }

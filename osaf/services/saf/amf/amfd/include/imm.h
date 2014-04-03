@@ -119,7 +119,7 @@ private:
  * @param ccb_apply_cb
  * @param ccb_abort_cb
  */
-void avd_class_impl_set(const SaImmClassNameT className,
+void avd_class_impl_set(const char *className,
 	SaImmOiRtAttrUpdateCallbackT rtattr_cb, SaImmOiAdminOperationCallbackT_2 adminop_cb,
 	AvdImmOiCcbCompletedCallbackT ccb_compl_cb, AvdImmOiCcbApplyCallbackT ccb_apply_cb);
 /**

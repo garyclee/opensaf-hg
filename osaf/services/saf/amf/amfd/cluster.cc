@@ -263,7 +263,7 @@ SaAisErrorT avd_cluster_config_get(void)
 
 void avd_cluster_constructor(void)
 {
-   avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfCluster"), NULL, cluster_admin_op_cb,
+   avd_class_impl_set("SaAmfCluster", NULL, cluster_admin_op_cb,
 		cluster_ccb_completed_cb, cluster_ccb_apply_cb);
 }
 

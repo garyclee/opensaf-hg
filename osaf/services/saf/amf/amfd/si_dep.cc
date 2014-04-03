@@ -1592,7 +1592,8 @@ void avd_sidep_constructor(void)
 	rc = ncs_patricia_tree_init(&si_dep.dep_anchor, &patricia_params);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfSIDependency"), NULL, NULL, sidep_ccb_completed_cb, sidep_ccb_apply_cb);
+	avd_class_impl_set("SaAmfSIDependency", NULL, NULL, sidep_ccb_completed_cb,
+		sidep_ccb_apply_cb);
 }
 void avd_sidep_start_tolerance_timer_for_dependant(AVD_SI *dep_si, AVD_SI *spons_si)
 {
