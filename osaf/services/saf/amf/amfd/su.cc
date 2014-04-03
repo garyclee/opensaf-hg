@@ -666,16 +666,16 @@ static void su_add_to_model(AVD_SU *su)
 	}
 
 done:
-	avd_saImmOiRtObjectUpdate(&su->name, const_cast<SaImmAttrNameT>("saAmfSUPreInstantiable"),
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPreInstantiable",
 		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPreInstantiable);
 
-	avd_saImmOiRtObjectUpdate(&su->name, const_cast<SaImmAttrNameT>("saAmfSUHostedByNode"),
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUHostedByNode",
 		SA_IMM_ATTR_SANAMET, &su->saAmfSUHostedByNode);
 
-	avd_saImmOiRtObjectUpdate(&su->name, const_cast<SaImmAttrNameT>("saAmfSUPresenceState"),
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPresenceState",
 		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPresenceState);
 
-	avd_saImmOiRtObjectUpdate(&su->name, const_cast<SaImmAttrNameT>("saAmfSUReadinessState"),
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUReadinessState",
 		SA_IMM_ATTR_SAUINT32T, &su->saAmfSuReadinessState);
 
 	TRACE_LEAVE();
@@ -771,8 +771,8 @@ void avd_su_pres_state_set(AVD_SU *su, SaAmfPresenceStateT pres_state)
 		/* alarm & notifications */
 		avd_send_su_pres_state_chg_ntf(&su->name, old_state, su->saAmfSUPresenceState);
 	}
-	avd_saImmOiRtObjectUpdate(&su->name,
-				  const_cast<SaImmAttrNameT>("saAmfSUPresenceState"), SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPresenceState);
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPresenceState",
+		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPresenceState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_PRES_STATE);
 }
 
@@ -794,8 +794,8 @@ void avd_su_oper_state_set(AVD_SU *su, SaAmfOperationalStateT oper_state)
 	/* alarm & notifications */
 	avd_send_oper_chg_ntf(&su->name, SA_AMF_NTFID_SU_OP_STATE, old_state, su->saAmfSUOperState);
 
-	avd_saImmOiRtObjectUpdate(&su->name,
-				  const_cast<SaImmAttrNameT>("saAmfSUOperState"), SA_IMM_ATTR_SAUINT32T, &su->saAmfSUOperState);
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUOperState",
+		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUOperState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_OPER_STATE);
 }
 
@@ -814,8 +814,8 @@ void avd_su_readiness_state_set(AVD_SU *su, SaAmfReadinessStateT readiness_state
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s ReadinessState %s => %s", su->name.value,
 		   avd_readiness_state_name[su->saAmfSuReadinessState], avd_readiness_state_name[readiness_state]);
 	su->saAmfSuReadinessState = readiness_state;
-	avd_saImmOiRtObjectUpdate(&su->name,
-				  const_cast<SaImmAttrNameT>("saAmfSUReadinessState"), SA_IMM_ATTR_SAUINT32T, &su->saAmfSuReadinessState);
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUReadinessState",
+		SA_IMM_ATTR_SAUINT32T, &su->saAmfSuReadinessState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_READINESS_STATE);
 
 	/* Since Su readiness state has changed, we need to change it for all the component in this SU.*/
@@ -845,8 +845,8 @@ void avd_su_admin_state_set(AVD_SU *su, SaAmfAdminStateT admin_state)
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", su->name.value,
 		   avd_adm_state_name[su->saAmfSUAdminState], avd_adm_state_name[admin_state]);
 	su->saAmfSUAdminState = admin_state;
-	avd_saImmOiRtObjectUpdate(&su->name,
-				  const_cast<SaImmAttrNameT>("saAmfSUAdminState"), SA_IMM_ATTR_SAUINT32T, &su->saAmfSUAdminState);
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUAdminState",
+		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUAdminState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_ADMIN_STATE);
 	avd_send_admin_state_chg_ntf(&su->name, SA_AMF_NTFID_SU_ADMIN_STATE, old_state, su->saAmfSUAdminState);
 }

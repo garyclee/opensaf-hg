@@ -98,9 +98,8 @@ void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state)
 	}
 
 	comp->saAmfCompPresenceState = pres_state;
-	avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
-				  const_cast<SaImmAttrNameT>("saAmfCompPresenceState"),
-				  SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
+	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompPresenceState",
+		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_COMP_PRES_STATE);
 
 	if(comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED)
@@ -130,8 +129,8 @@ void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state)
 		comp->comp_info.name.value, avd_oper_state_name[comp->saAmfCompOperState], avd_oper_state_name[oper_state]);
 
 	comp->saAmfCompOperState = oper_state;
-	avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
-				  const_cast<SaImmAttrNameT>("saAmfCompOperState"), SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompOperState);
+	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompOperState",
+		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompOperState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_COMP_OPER_STATE);
 }
 
@@ -145,8 +144,8 @@ void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness
 		comp->comp_info.name.value,
 		avd_readiness_state_name[comp->saAmfCompReadinessState], avd_readiness_state_name[readiness_state]);
 	comp->saAmfCompReadinessState = readiness_state;
-	avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
-				  const_cast<SaImmAttrNameT>("saAmfCompReadinessState"), SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
+	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompReadinessState",
+		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_COMP_READINESS_STATE);
 }
 
@@ -282,16 +281,16 @@ static void comp_add_to_model(AVD_COMP *comp)
 		avd_comp_oper_state_set(comp, SA_AMF_OPERATIONAL_ENABLED);
 
 	/* Set runtime cached attributes. */
-	avd_saImmOiRtObjectUpdate(&su->name, const_cast<SaImmAttrNameT>("saAmfSUPreInstantiable"),
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPreInstantiable",
 		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPreInstantiable);
 
-	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, const_cast<SaImmAttrNameT>("saAmfCompReadinessState"),
+	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompReadinessState",
 		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
 
-	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, const_cast<SaImmAttrNameT>("saAmfCompOperState"),
+	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompOperState",
 		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompOperState);
 	
-	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, const_cast<SaImmAttrNameT>("saAmfCompPresenceState"),
+	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompPresenceState",
 		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
@@ -1556,7 +1555,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	/* if SU is not being deleted and the PreInstantiable state has changed
 	 * then update the IMM with the new value for saAmfSUPreInstantiable */
 	if (su_delete == false && old_val != comp->su->saAmfSUPreInstantiable) {
-		avd_saImmOiRtObjectUpdate(&comp->su->name, const_cast<SaImmAttrNameT>("saAmfSUPreInstantiable"), 
+		avd_saImmOiRtObjectUpdate(&comp->su->name, "saAmfSUPreInstantiable",
 				SA_IMM_ATTR_SAUINT32T, &comp->su->saAmfSUPreInstantiable);
 		/* If SU becomes NPI then enable saAmfSUFailover flag Sec 3.11.1.3.2 AMF-B.04.01 spec */
 		if (!comp->su->saAmfSUPreInstantiable) {
