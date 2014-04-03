@@ -184,6 +184,7 @@ static void hc_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_hc_constructor(void)
 {
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfHealthcheck"), NULL, NULL, hc_ccb_completed_cb, hc_ccb_apply_cb);
+	avd_class_impl_set("SaAmfHealthcheck", NULL, NULL, hc_ccb_completed_cb,
+		hc_ccb_apply_cb);
 }
 

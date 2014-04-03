@@ -216,6 +216,7 @@ void avd_ctcstype_constructor(void)
 
 	patricia_params.key_size = sizeof(SaNameT);
 	osafassert(ncs_patricia_tree_init(&ctcstype_db, &patricia_params) == NCSCC_RC_SUCCESS);
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfCtCsType"), NULL, NULL, ctcstype_ccb_completed_cb, ctcstype_ccb_apply_cb);
+	avd_class_impl_set("SaAmfCtCsType", NULL, NULL,
+		ctcstype_ccb_completed_cb, ctcstype_ccb_apply_cb);
 }
 

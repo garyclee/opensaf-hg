@@ -296,7 +296,9 @@ void avd_apptype_constructor(void)
 	patricia_params.key_size = sizeof(SaNameT);
 	osafassert(ncs_patricia_tree_init(&apptype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfAppBaseType"), NULL, NULL, avd_imm_default_OK_completed_cb, NULL);
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfAppType"), NULL, NULL, apptype_ccb_completed_cb, apptype_ccb_apply_cb);
+	avd_class_impl_set("SaAmfAppBaseType", NULL, NULL,
+			avd_imm_default_OK_completed_cb, NULL);
+	avd_class_impl_set("SaAmfAppType", NULL, NULL, apptype_ccb_completed_cb,
+			apptype_ccb_apply_cb);
 }
 

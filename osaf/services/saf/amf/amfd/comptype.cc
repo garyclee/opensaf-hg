@@ -591,8 +591,10 @@ void avd_comptype_constructor(void)
 	patricia_params.key_size = sizeof(SaNameT);
 	osafassert(ncs_patricia_tree_init(&comptype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfCompBaseType"), NULL, NULL, avd_imm_default_OK_completed_cb, NULL);
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfCompType"), NULL, NULL,	comptype_ccb_completed_cb, comptype_ccb_apply_cb);
+	avd_class_impl_set("SaAmfCompBaseType", NULL, NULL,
+		avd_imm_default_OK_completed_cb, NULL);
+	avd_class_impl_set("SaAmfCompType", NULL, NULL,
+		comptype_ccb_completed_cb, comptype_ccb_apply_cb);
 }
 
 /*****************************************************************************/
@@ -730,7 +732,7 @@ static SaAisErrorT avd_compglobalattrs_ccb_completed_cb(CcbUtilOperationData_t *
 
 void avd_compglobalattrs_constructor(void)
 {
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfCompGlobalAttributes"), NULL, NULL,
+	avd_class_impl_set("SaAmfCompGlobalAttributes", NULL, NULL,
 		avd_compglobalattrs_ccb_completed_cb, avd_compglobalattrs_ccb_apply_cb);
 }
 

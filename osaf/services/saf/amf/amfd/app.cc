@@ -498,7 +498,7 @@ void avd_app_constructor(void)
 	patricia_params.key_size = sizeof(SaNameT);
 	osafassert(ncs_patricia_tree_init(&app_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfApplication"), app_rt_attr_cb, app_admin_op_cb,
+	avd_class_impl_set("SaAmfApplication", app_rt_attr_cb, app_admin_op_cb,
 		app_ccb_completed_cb, app_ccb_apply_cb);
 }
 

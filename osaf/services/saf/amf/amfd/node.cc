@@ -1391,6 +1391,7 @@ void avd_node_constructor(void)
 	patricia_params.key_size = sizeof(SaClmNodeIdT);
 	osafassert(ncs_patricia_tree_init(&node_id_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfNode"), NULL, node_admin_op_cb, node_ccb_completed_cb, node_ccb_apply_cb);
+	avd_class_impl_set("SaAmfNode", NULL, node_admin_op_cb,
+		node_ccb_completed_cb, node_ccb_apply_cb);
 }
 

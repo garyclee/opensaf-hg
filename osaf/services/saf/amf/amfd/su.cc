@@ -1608,7 +1608,8 @@ void avd_su_constructor(void)
 	patricia_params.key_size = sizeof(SaNameT);
 	osafassert(ncs_patricia_tree_init(&su_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfSU"), su_rt_attr_cb, su_admin_op_cb, su_ccb_completed_cb, su_ccb_apply_cb);
+	avd_class_impl_set("SaAmfSU", su_rt_attr_cb, su_admin_op_cb,
+		su_ccb_completed_cb, su_ccb_apply_cb);
 }
 
 /**

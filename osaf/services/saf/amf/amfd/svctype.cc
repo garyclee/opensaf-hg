@@ -314,7 +314,9 @@ void avd_svctype_constructor(void)
 
 	osafassert(ncs_patricia_tree_init(&svctype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfSvcType"), NULL, NULL, svctype_ccb_completed_cb, svctype_ccb_apply_cb);
-	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfSvcBaseType"), NULL, NULL, avd_imm_default_OK_completed_cb, NULL);
+	avd_class_impl_set("SaAmfSvcType", NULL, NULL, svctype_ccb_completed_cb,
+			svctype_ccb_apply_cb);
+	avd_class_impl_set("SaAmfSvcBaseType", NULL, NULL,
+			avd_imm_default_OK_completed_cb, NULL);
 }
 
