@@ -59,5 +59,6 @@ extern SaAisErrorT avnd_hc_config_get(struct avnd_comp_tag *comp);
 extern SaAisErrorT avnd_hctype_config_get(SaImmHandleT immOmHandle, const SaNameT *comptype_dn);
 extern AVND_HCTYPE *avnd_hctypedb_rec_get(const SaNameT *comp_type_dn, const SaAmfHealthcheckKeyT *key);
 extern uint32_t avnd_hc_oper_req(struct avnd_cb_tag *, AVSV_PARAM_INFO *param);
+extern uint32_t avnd_hctype_oper_req(struct avnd_cb_tag *, AVSV_PARAM_INFO *param);
 
 #endif   /* !AVND_HC_H */
