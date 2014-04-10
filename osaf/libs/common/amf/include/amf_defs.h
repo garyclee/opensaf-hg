@@ -254,6 +254,13 @@ typedef enum
    saAmfHealthcheckMaxDuration_ID = 2,
 } AVSV_AMF_HEALTHCHECK_ATTR_ID; 
 
+/* Attribute ID enum for the SaAmfHealthcheckType class */
+typedef enum
+{
+   saAmfHctDefPeriod_ID = 1,
+   saAmfHctDefMaxDuration_ID = 2,
+} AVSV_AMF_HEALTHCHECK_TYPE_ATTR_ID; 
+
 
 #define AVSV_COMMON_SUB_ID_DEFAULT_VAL 1
 #define SA_AMF_PRESENCE_ORPHANED (SA_AMF_PRESENCE_TERMINATION_FAILED+1)

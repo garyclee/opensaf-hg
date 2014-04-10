@@ -228,6 +228,9 @@ uint32_t avnd_evt_avd_operation_request_evh(AVND_CB *cb, AVND_EVT *evt)
 	case AVSV_SA_AMF_HEALTH_CHECK:
 		rc = avnd_hc_oper_req(cb, param);
 		break;
+	case AVSV_SA_AMF_HEALTH_CHECK_TYPE:
+		rc = avnd_hctype_oper_req(cb, param);
+		break;
 	default:
 		LOG_NO("%s: Unknown class ID %u", __FUNCTION__, param->class_id);
 		rc = NCSCC_RC_FAILURE;

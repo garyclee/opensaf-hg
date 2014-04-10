@@ -36,6 +36,7 @@
 #include "avnd.h"
 #include <saImmOm.h>
 #include <immutil.h>
+#include <string>
 
 static NCS_PATRICIA_TREE hctypedb;	/* healthcheck type db */
 
@@ -339,6 +340,90 @@ SaAisErrorT avnd_hctype_config_get(SaImmHandleT immOmHandle, const SaNameT *comp
 	return error;
 }
 
+// Search for a given key and return its value  or empty string if not found. 
+static std::string search_key(const std::string& str, const std::string& key)
+{
+	std::string value;
+
+	std::string::size_type idx1;
+
+	idx1 = str.find(key);
+
+	// if key was found
+	if (idx1 != std::string::npos) {
+		// get value 
+		idx1 += key.length();
+		std::string part2 = str.substr(idx1);
+
+		idx1 = part2.find(",");
+
+		// get value
+		value = part2.substr(0, idx1);
+	}
+
+	return value;
+}
+
+static void comp_hctype_update_compdb(AVND_CB *cb, AVSV_PARAM_INFO *param)
+{
+	AVND_COMP_HC_REC *comp_hc_rec;
+	AVND_COMP * comp;
+	char *comp_type_name;
+	AVSV_HLT_KEY hlt_chk;
+	AVND_COMP_HC_REC tmp_hc_rec;
+		
+	// 1. find component from componentType, 
+	// input example, param->name.value = safHealthcheckKey=AmfDemo,safVersion=1,safCompType=AmfDemo1	
+	comp_type_name = strstr((char *)param->name.value, "safVersion");
+	TRACE("comp_type_name: %s", comp_type_name);
+	osafassert(comp_type_name);
+	
+	// 2. search each component for a matching compType
+	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
+	while (comp != 0) {
+		if (strncmp((const char*) comp->saAmfCompType.value, comp_type_name, comp->saAmfCompType.length) == 0) {
+
+			// 3. matching compType found, check that component does not have a SaAmfHealthcheck rec (specialization)
+			std::string hlt_chk_key = search_key((const char*) param->name.value, "safHealthcheckKey=");
+			if (hlt_chk_key.size() == 0) {
+				LOG_ER("%s: failed to get healthcheckKey from %s", __FUNCTION__, param->name.value);
+				return;
+			}
+			
+			memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
+			hlt_chk.comp_name.length = comp->name.length;
+			memcpy(hlt_chk.comp_name.value, comp->name.value, hlt_chk.comp_name.length);
+			hlt_chk.key_len = hlt_chk_key.size();
+			memcpy(hlt_chk.name.key, hlt_chk_key.c_str(), hlt_chk_key.size());
+			hlt_chk.name.keyLen = hlt_chk.key_len;
+			TRACE("comp_name %s key %s keyLen %u", hlt_chk.comp_name.value, hlt_chk.name.key, hlt_chk.name.keyLen);
+			if (avnd_hcdb_rec_get(cb, &hlt_chk) == NULL) {
+				TRACE("comp uses healthcheckType rec");
+				// 4. found a component that uses the healthcheckType record, update the comp_hc_rec
+				memset(&tmp_hc_rec, '\0', sizeof(AVND_COMP_HC_REC));
+				tmp_hc_rec.key = hlt_chk.name;
+				tmp_hc_rec.req_hdl = comp->reg_hdl;
+				TRACE("tmp_hc_rec: key %s req_hdl %llu", tmp_hc_rec.key.key, tmp_hc_rec.req_hdl);
+				if ((comp_hc_rec = m_AVND_COMPDB_REC_HC_GET(*comp, tmp_hc_rec)) != NULL) {
+					TRACE("comp_hc_rec: period %llu max_dur %llu", comp_hc_rec->period, comp_hc_rec->max_dur);
+					switch (param->attr_id) {
+					case saAmfHctDefPeriod_ID:
+						comp_hc_rec->period = *((SaTimeT *)param->value);
+						break;
+					case saAmfHctDefMaxDuration_ID:
+						comp_hc_rec->max_dur = *((SaTimeT *)param->value);
+						break;
+					default:
+						osafassert(0);
+						break;
+					}
+				}
+			}
+		}	
+		comp = (AVND_COMP *) ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name);
+	}
+}
+
 uint32_t avnd_hc_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
@@ -397,6 +482,71 @@ uint32_t avnd_hc_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	rc = NCSCC_RC_SUCCESS;
 
 done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+uint32_t avnd_hctype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
+{
+	uint32_t rc = NCSCC_RC_FAILURE;
+
+	TRACE_ENTER2("'%s'", param->name.value);
+	AVND_HCTYPE *hctype = (AVND_HCTYPE *)ncs_patricia_tree_get(&hctypedb, (uint8_t *)&param->name);
+	
+	switch (param->act) {
+	case AVSV_OBJ_OPR_MOD: {
+		if (!hctype) {
+			LOG_ER("%s: failed to get %s", __FUNCTION__, param->name.value);
+			goto done;
+		}
+
+		switch (param->attr_id) {
+		case saAmfHctDefPeriod_ID:
+			osafassert(sizeof(SaTimeT) == param->value_len);
+			hctype->saAmfHctDefPeriod = *((SaTimeT *)param->value);
+			comp_hctype_update_compdb(cb, param);
+			//m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_PERIOD);
+			break;
+
+		case saAmfHctDefMaxDuration_ID:
+			osafassert(sizeof(SaTimeT) == param->value_len);
+			hctype->saAmfHctDefMaxDuration = *((SaTimeT *)param->value);
+			comp_hctype_update_compdb(cb, param);
+			//m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_MAX_DUR);
+			break;
+
+		default:
+			LOG_NO("%s: Unsupported attribute %u", __FUNCTION__, param->attr_id);
+			goto done;
+		}
+		break;
+	}
+
+	case AVSV_OBJ_OPR_DEL: {
+		if (hctype != NULL) {
+			rc = ncs_patricia_tree_del(&hctypedb, &hctype->tree_node);
+			osafassert(rc == NCSCC_RC_SUCCESS);
+			LOG_IN("Deleted '%s'", param->name.value);
+		} else {
+			/* 
+			** Normal case that happens if a parent of this HC was
+			** the real delete target for the CCB.
+			*/
+			TRACE("already deleted!");
+		}
+
+		break;
+	}
+	default:
+		LOG_NO("%s: Unsupported action %u", __FUNCTION__, param->act);
+		goto done;
+	}
+
+	rc = NCSCC_RC_SUCCESS;
+
+done:
+	rc = NCSCC_RC_SUCCESS;
+	
 	TRACE_LEAVE();
 	return rc;
 }

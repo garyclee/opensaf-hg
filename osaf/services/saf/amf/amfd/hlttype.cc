@@ -15,12 +15,16 @@
  *
  */
 
+#include <string>
+#include <set>
 #include <string.h>
-
+#include "util.h"
+#include "node.h"
 #include <logtrace.h>
 #include <immutil.h>
 #include <ncsgl_defs.h>
 #include <imm.h>
+#include "comp.h"
 
 /**
  * Validates proposed change in comptype
@@ -54,6 +58,70 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 
 done:
 	return rc;
+}
+
+static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
+{
+	const SaImmAttrModificationT_2 *attr_mod;
+	int i;
+	const AVD_COMP_TYPE *comp_type;
+	SaNameT comp_type_dn;
+	SaNameT comp_type_name;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	// input example: opdata.objectName.value, safHealthcheckKey=AmfDemo,safVersion=1,safCompType=AmfDemo1
+	avsv_sanamet_init(&opdata->objectName, &comp_type_name, "safVersion=");
+
+	comp_type_dn.length = 
+		snprintf((char *)comp_type_dn.value, SA_MAX_NAME_LENGTH, "%s", (const char*) comp_type_name.value);
+	
+	if ((comp_type = comptype_db->find(Amf::to_string(&comp_type_dn))) == 0) {
+		LOG_ER("Internal error: %s not found", comp_type_dn.value);
+		return;
+	}
+
+	// Create a set of nodes where components "may" be using the given SaAmfHealthcheckType. 
+	// A msg will be sent to the related node regarding this change. If a component has an 
+	// SaAmfHealthcheck record that overrides this SaAmfHealthcheckType it will be handled by the amfnd.
+	std::set<AVD_AVND*> node_set;
+
+	AVD_COMP *comp = comp_type->list_of_comp;
+	while (comp != NULL) {
+		node_set.insert(comp->su->su_on_node);
+		TRACE("comp name %s on node %s", comp->comp_info.name.value,  comp->su->su_on_node->name.value);
+		comp = comp->comp_type_list_comp_next;
+	}			
+		
+	std::set<AVD_AVND*>::iterator it;
+	for (it = node_set.begin(); it != node_set.end(); ++it) {
+		i = 0;
+		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+			AVSV_PARAM_INFO param;
+			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
+			SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
+
+			memset(&param, 0, sizeof(param));
+			param.class_id = AVSV_SA_AMF_HEALTH_CHECK_TYPE;
+			param.act = AVSV_OBJ_OPR_MOD;
+			param.name = opdata->objectName;
+			param.value_len = sizeof(*param_val);
+			memcpy(param.value, param_val, param.value_len);
+
+			if (!strcmp(attribute->attrName, "saAmfHctDefPeriod")) {
+				TRACE("saAmfHctDefPeriod modified to '%llu' for CompType '%s' on node '%s'", *param_val, 
+				      opdata->objectName.value, (*it)->name.value);
+				param.attr_id = saAmfHctDefPeriod_ID;
+			} else if (!strcmp(attribute->attrName, "saAmfHctDefMaxDuration")) {
+				TRACE("saAmfHctDefMaxDuration modified to '%llu' for CompType '%s' on node '%s", *param_val, 
+				      opdata->objectName.value, (*it)->name.value);
+				param.attr_id = saAmfHctDefMaxDuration_ID;
+			} else
+				LOG_WA("Unexpected attribute name: %s", attribute->attrName);
+
+			avd_snd_op_req_msg(avd_cb, *it, &param);
+		}
+	}	
 }
 
 static SaAisErrorT hct_ccb_completed_cb(CcbUtilOperationData_t *opdata)
@@ -90,7 +158,7 @@ static void hct_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_DELETE:
 		break;
 	case CCBUTIL_MODIFY:
-		// values not used, no need to reinitialize type
+		ccb_apply_modify_hdlr(opdata);
 		break;
 	default:
 		osafassert(0);
