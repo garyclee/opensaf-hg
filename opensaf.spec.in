@@ -1397,6 +1397,7 @@ fi
 %{_libdir}/libSa*.a
 %{_includedir}/%{name}/cpsv_papi.h
 %{_includedir}/saAis.h
+%{_includedir}/saAis_B_5_14.h
 %{_includedir}/saAmf.h
 %{_includedir}/saCkpt.h
 %{_includedir}/saCkpt_B_02_03.h
