@@ -43,6 +43,7 @@
 #include <amf_d2nmsg.h>
 #include <timer.h>
 
+class AVD_SU;
 struct avd_cluster_tag;
 struct avd_node_sw_bundle_tag;
 struct CcbUtilOperationData;
@@ -114,10 +115,10 @@ typedef struct avd_avnd_tag {
 					 * Checkpointing - Sent independent update 
 					 */
 
-	struct avd_su_tag *list_of_ncs_su;	/* the list of NCS service units on
+	AVD_SU *list_of_ncs_su;	/* the list of NCS service units on
 						 * this node.
 						 */
-	struct avd_su_tag *list_of_su;	/* the list of service units on this
+	AVD_SU *list_of_su;	/* the list of service units on this
 					 * node that are application specific.
 					 */
 	NCS_DB_LINK_LIST pg_csi_list;	/* list of csis for which pg is tracked 
@@ -197,8 +198,8 @@ extern void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state);
 extern void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state);
 extern void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state);
 extern void avd_node_constructor(void);
-extern void avd_node_add_su(struct avd_su_tag *su);
-extern void avd_node_remove_su(struct avd_su_tag *su);
+extern void avd_node_add_su(AVD_SU *su);
+extern void avd_node_remove_su(AVD_SU *su);
 extern uint32_t avd_node_admin_lock_instantiation(AVD_AVND *node);
 extern uint32_t node_admin_unlock_instantiation(AVD_AVND *node);
 extern void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,

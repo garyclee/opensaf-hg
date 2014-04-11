@@ -55,8 +55,8 @@ typedef enum {
  * This data structure lives in the AvD and reflects data points
  * associated with the Service Unit (SU) on the AvD.
  */
-typedef struct avd_su_tag {
-
+class AVD_SU {
+ public:
 	NCS_PATRICIA_NODE tree_node;	/* key will be the SU name */
 
 	SaNameT name;
@@ -105,11 +105,11 @@ typedef struct avd_su_tag {
 	struct avd_avnd_tag *su_on_node;	/*  the node on which this SU resides */
 	struct avd_su_si_rel_tag *list_of_susi;	/* the list of su si relationship elements */
 	struct avd_comp_tag *list_of_comp;	/* the list of  components in this SU */
-	struct avd_su_tag *sg_list_su_next;	/* the next SU in the SG */
-	struct avd_su_tag *avnd_list_su_next;	/* the next SU in the AvND */
+	AVD_SU *sg_list_su_next;	/* the next SU in the SG */
+	AVD_SU *avnd_list_su_next;	/* the next SU in the AvND */
 	struct avd_sutype *su_type;
-	struct avd_su_tag *su_list_su_type_next;
-} AVD_SU;
+	AVD_SU *su_list_su_type_next;
+};
 
 typedef struct {
 	NCS_PATRICIA_NODE tree_node;	/* key is name */

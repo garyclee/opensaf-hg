@@ -70,7 +70,7 @@ typedef struct avd_d2d_msg {
 
 struct cl_cb_tag;
 struct avd_avnd_tag;
-struct avd_su_tag;
+class AVD_SU;
 struct avd_su_si_rel_tag;
 struct avd_comp_tag;
 struct avd_comp_csi_rel_tag;
@@ -91,11 +91,11 @@ uint32_t avd_snd_node_data_verify_msg(struct cl_cb_tag *cb, struct avd_avnd_tag 
 uint32_t avd_snd_node_info_on_fover_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
 uint32_t avd_snd_node_update_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
 uint32_t avd_snd_node_up_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, uint32_t msg_id_ack);
-uint32_t avd_snd_presence_msg(struct cl_cb_tag *cb, struct avd_su_tag *su, bool term_state);
+uint32_t avd_snd_presence_msg(struct cl_cb_tag *cb, AVD_SU *su, bool term_state);
 uint32_t avd_snd_oper_state_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, uint32_t msg_id_ack);
 uint32_t avd_snd_op_req_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, AVSV_PARAM_INFO *param_info);
-uint32_t avd_snd_su_msg(struct cl_cb_tag *cb, struct avd_su_tag *su);
-uint32_t avd_snd_susi_msg(struct cl_cb_tag *cb, struct avd_su_tag *su, struct avd_su_si_rel_tag *susi,
+uint32_t avd_snd_su_msg(struct cl_cb_tag *cb, AVD_SU *su);
+uint32_t avd_snd_susi_msg(struct cl_cb_tag *cb, AVD_SU *su, struct avd_su_si_rel_tag *susi,
 				AVSV_SUSI_ACT actn, SaBoolT single_csi, struct avd_comp_csi_rel_tag*);
 uint32_t avd_snd_set_leds_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
 

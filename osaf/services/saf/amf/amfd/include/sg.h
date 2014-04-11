@@ -41,6 +41,8 @@
 #include <amf_defs.h>
 #include <amf_d2nmsg.h>
 
+class AVD_SU;
+
 /* The valid SG FSM states. */
 typedef enum {
 	AVD_SG_FSM_STABLE = 0,
@@ -54,7 +56,7 @@ typedef enum {
  * undergoing operations on them.
  */
 typedef struct avd_sg_oper_tag {
-	struct avd_su_tag *su;	/* SU undergoing operation */
+	AVD_SU *su;	/* SU undergoing operation */
 	struct avd_sg_oper_tag *next;	/* The next SU undergoing operation. */
 } AVD_SG_OPER;
 
@@ -174,7 +176,7 @@ typedef struct avd_sg_tag {
 							 * Checkpointing - Sent as a one time update.
 							 */
 
-	struct avd_su_tag *list_of_su;	/* the list of service units in this
+	AVD_SU *list_of_su;	/* the list of service units in this
 					 * group in the descending order of
 					 * the rank.
 					 */
@@ -190,8 +192,8 @@ typedef struct avd_sg_tag {
 	bool equal_ranked_su; /* This flag is set when ranks of all SU is the same.
 				     It is used in equal distribution of SIs on SU 
 				     in Nway, N+M and Nway-Act Red models.*/
-	struct avd_su_tag *max_assigned_su;
-	struct avd_su_tag *min_assigned_su;
+	AVD_SU *max_assigned_su;
+	AVD_SU *min_assigned_su;
 	struct avd_si_tag *si_tobe_redistributed;
 	uint32_t try_inst_counter; /* It should be used when amfd try to send
 				      instantiate command to amfnd in a loop
@@ -203,7 +205,7 @@ typedef struct avd_sg_tag {
 	// Function pointers to redundancy model specific handlers
 
 	// Handle node failure and fail over assignments
-	void (*node_fail)(AVD_CL_CB *cb, struct avd_su_tag *su);
+	void (*node_fail)(AVD_CL_CB *cb, AVD_SU *su);
 
 	// Handle SG realign
 	uint32_t (*realign)(AVD_CL_CB *cb, struct avd_sg_tag *sg);
@@ -221,21 +223,21 @@ typedef struct avd_sg_tag {
 	uint32_t (*sg_admin_down)(AVD_CL_CB *cb, struct avd_sg_tag *sg);
 
 	// Handle SU inservice event, possibly assign the SU
-	uint32_t (*su_insvc)(AVD_CL_CB *cb, struct avd_su_tag *su);
+	uint32_t (*su_insvc)(AVD_CL_CB *cb, AVD_SU *su);
 
 	// Handle SU failure and switch over assignments
-	uint32_t (*su_fault)(AVD_CL_CB *cb, struct avd_su_tag *su);
+	uint32_t (*su_fault)(AVD_CL_CB *cb, AVD_SU *su);
 
 	// Handle SU admin op LOCK/SHUTDOWN
-	uint32_t (*su_admin_down)(AVD_CL_CB *cb, struct avd_su_tag *su,
+	uint32_t (*su_admin_down)(AVD_CL_CB *cb, AVD_SU *su,
 			struct avd_avnd_tag *avnd);
 
 	// Handle successful SUSI assignment
-	uint32_t (*susi_success)(AVD_CL_CB *cb, struct avd_su_tag *su,
+	uint32_t (*susi_success)(AVD_CL_CB *cb, AVD_SU *su,
 			struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 
 	// Handle failed SUSI assignment
-	uint32_t (*susi_failed)(AVD_CL_CB *cb, struct avd_su_tag *su,
+	uint32_t (*susi_failed)(AVD_CL_CB *cb, AVD_SU *su,
 			struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 
 } AVD_SG;
@@ -340,8 +342,8 @@ extern AVD_SG *avd_sg_getnext(const SaNameT *sg_name);
 extern void avd_sg_add_si(AVD_SG *sg, struct avd_si_tag *si);
 extern void avd_sg_remove_si(AVD_SG *sg, struct avd_si_tag *si);
 extern SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, struct avd_app_tag *app);
-extern void avd_sg_add_su(struct avd_su_tag* su);
-extern void avd_sg_remove_su(struct avd_su_tag *su);
+extern void avd_sg_add_su(AVD_SU *su);
+extern void avd_sg_remove_su(AVD_SU *su);
 extern void avd_sg_constructor(void);
 
 extern SaAisErrorT avd_sgtype_config_get(void);
@@ -352,7 +354,7 @@ extern void avd_sgtype_constructor(void);
 extern void avd_sg_admin_state_set(AVD_SG* sg, SaAmfAdminStateT state);
 extern void avd_sg_nwayact_screening_for_si_distr(AVD_SG *avd_sg);
 extern void avd_sg_nway_screen_si_distr_equal(AVD_SG *sg);
-extern void avd_su_role_failover(struct avd_su_tag *su, struct avd_su_tag *stdby_su);
+extern void avd_su_role_failover(AVD_SU *su, AVD_SU *stdby_su);
 extern bool sg_is_tolerance_timer_running_for_any_si(AVD_SG *sg);
 extern void avd_sg_adjust_config(AVD_SG *sg);
 extern uint32_t sg_instantiated_su_count(const AVD_SG *sg);
