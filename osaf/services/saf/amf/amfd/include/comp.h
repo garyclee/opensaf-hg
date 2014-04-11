@@ -38,7 +38,9 @@
 #include <saImm.h>
 #include <ncspatricia.h>
 #include <amf_d2nmsg.h>
-#include <su.h>
+#include <cb.h>
+
+class AVD_SU;
 
 /* AMF Class SaAmfCompGlobalAttributes */
 typedef struct {
@@ -113,7 +115,7 @@ typedef struct avd_comp_tag {
 				 */
 	struct avd_amf_comp_type_tag *comp_type;
 	struct avd_comp_tag *comp_type_list_comp_next;
-	struct avd_su_tag *su;		/* SU to which this component belongs */
+	AVD_SU *su;		/* SU to which this component belongs */
 	struct avd_comp_tag *su_comp_next;	/* the next component in list of  components
 						 * in this SU */
 	AVD_ADMIN_OPER_CBK admin_pend_cbk;  /* holds callback invocation for admin operation */
@@ -209,7 +211,7 @@ extern void avd_comp_delete(AVD_COMP *comp);
 extern AVD_COMP *avd_comp_get(const SaNameT *comp_name);
 extern AVD_COMP *avd_comp_getnext(const SaNameT *comp_name);
 extern void avd_su_remove_comp(AVD_COMP* comp);
-extern SaAisErrorT avd_comp_config_get(const SaNameT* su_name, struct avd_su_tag* su);
+extern SaAisErrorT avd_comp_config_get(const SaNameT* su_name, AVD_SU *su);
 extern void avd_comp_constructor(void);
 
 extern SaAisErrorT avd_comptype_config_get(void);

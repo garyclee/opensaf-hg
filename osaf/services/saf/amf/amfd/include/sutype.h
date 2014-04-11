@@ -29,7 +29,7 @@ struct avd_sutype {
 	SaUint32T saAmfSutDefSUFailover;
 	SaNameT *saAmfSutProvidesSvcTypes; /* array of DNs, size in number_svc_types */
 	unsigned int number_svc_types;	/* size of array saAmfSutProvidesSvcTypes */
-	struct avd_su_tag *list_of_su;
+	AVD_SU *list_of_su;
 };
 
 /**
@@ -56,12 +56,12 @@ extern void avd_sutype_constructor(void);
  * Add SU to SU Type internal list
  * @param su
  */
-extern void avd_sutype_add_su(struct avd_su_tag* su);
+extern void avd_sutype_add_su(AVD_SU* su);
 
 /**
  * Remove SU from SU Type internal list
  * @param su
  */
-extern void avd_sutype_remove_su(struct avd_su_tag* su);
+extern void avd_sutype_remove_su(AVD_SU* su);
 
 #endif
