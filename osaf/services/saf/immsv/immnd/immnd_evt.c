@@ -5732,11 +5732,18 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = err;
-		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		send_evt.info.imma.info.errRsp.errStrings = immModel_ccbGrabErrStrings(cb, evt->info.objCreate.ccbId);
+
+		if(send_evt.info.imma.info.errRsp.errStrings) {
+			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+		} else {
+			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		}
 
 		if (immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt) != NCSCC_RC_SUCCESS) {
 			LOG_WA("Failed to send result to Agent over MDS");
 		}
+		immsv_evt_free_attrNames(send_evt.info.imma.info.errRsp.errStrings);
 	}
 	TRACE_LEAVE();
 }
@@ -5957,11 +5964,18 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = err;
-		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		send_evt.info.imma.info.errRsp.errStrings = immModel_ccbGrabErrStrings(cb, evt->info.objModify.ccbId);
+
+		if(send_evt.info.imma.info.errRsp.errStrings) {
+			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+		} else {
+			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		}
 
 		if (immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt) != NCSCC_RC_SUCCESS) {
 			LOG_WA("Failed to send result to Agent over MDS");
 		}
+		immsv_evt_free_attrNames(send_evt.info.imma.info.errRsp.errStrings);
 	}
 
  done:
@@ -6715,11 +6729,18 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = err;
-		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		send_evt.info.imma.info.errRsp.errStrings = immModel_ccbGrabErrStrings(cb, evt->info.objDelete.ccbId);
+
+		if(send_evt.info.imma.info.errRsp.errStrings) {
+			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+		} else {
+			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		}
 
 		if (immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt) != NCSCC_RC_SUCCESS) {
 			LOG_WA("Failed to send result to Agent over MDS");
 		}
+		immsv_evt_free_attrNames(send_evt.info.imma.info.errRsp.errStrings);
 	}
 }
 

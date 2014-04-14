@@ -259,6 +259,11 @@ public:
                                      IdVector& continuations,
                                      unsigned int pbeIsLocal);
     
+    void                setCcbErrorString(
+                                          CcbInfo *ccb,
+                                          const char *errorString,
+                                          ...);
+
     bool                hasLocalClassAppliers(ClassInfo* classInfo);
     bool                hasLocalObjAppliers(const std::string& objName);
 

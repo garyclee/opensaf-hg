@@ -6359,6 +6359,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     
     if (i3 == sClassMap.end()) {
         TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
+        setCcbErrorString(ccb, "ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto ccbObjectCreateExit;
     } else if(sPbeRtMutations.find(className) != sPbeRtMutations.end()) {
@@ -6625,6 +6626,8 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             
             if (i6 == object->mAttrValueMap.end()) {
                 TRACE_7("ERR_NOT_EXIST: attr '%s' not defined", attrName.c_str());
+                setCcbErrorString(ccb, "ERR_NOT_EXIST: attr '%s' not defined",
+                        attrName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
                 break; //out of for-loop
             }
@@ -7004,6 +7007,10 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     TRACE_7("ERR_NOT_EXIST: object '%s' does not have an "
                         "implementer and flag SA_IMM_CCB_REGISTERED_OI is set", 
                         objectName.c_str());
+                    setCcbErrorString(ccb,
+                            "ERR_NOT_EXIST: object '%s' exist but "
+                            "no implementer (which is required)",
+                            objectName.c_str());
                     err = SA_AIS_ERR_NOT_EXIST;
                 }
             } else { /* SA_IMM_CCB_REGISTERED_OI NOT set */
@@ -7434,6 +7441,9 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         if(i4==classInfo->mAttrMap.end()) {
             TRACE_7("ERR_NOT_EXIST: attr '%s' does not exist in object %s",
                 attrName.c_str(), objectName.c_str());
+            setCcbErrorString(ccb,
+                "ERR_NOT_EXIST: attr '%s' does not exist in object %s",
+                attrName.c_str(), objectName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             break; //out of for-loop
         }
@@ -7844,6 +7854,10 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 TRACE_7("ERR_NOT_EXIST: object '%s' does not have an "
                     "implementer and flag SA_IMM_CCB_REGISTERED_OI is set", 
                     objectName.c_str());
+                setCcbErrorString(ccb,
+                        "ERR_NOT_EXIST: object '%s' exist but "
+                        "no implementer (which is required)",
+                        objectName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
             }
         } else { /* SA_IMM_CCB_REGISTERED_OI NOT set */
@@ -8255,6 +8269,10 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
                 TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer "
                     "and flag SA_IMM_CCB_REGISTERED_OI is set", 
                     oi->first.c_str());
+                setCcbErrorString(ccb,
+                        "ERR_NOT_EXIST: object '%s' exist but "
+                        "no implementer (which is required)",
+                        oi->first.c_str());
                 return SA_AIS_ERR_NOT_EXIST;
             } 
         } else {  /* SA_IMM_CCB_REGISTERED_OI NOT set */
@@ -8422,6 +8440,54 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
     }
     /*TRACE_LEAVE();*/
     return SA_AIS_OK;
+}
+
+void
+ImmModel::setCcbErrorString(CcbInfo *ccb, const char *errorString, ...)
+{
+    int errLen = strlen(errorString) + 1;
+    char *fmtError = (char *)malloc(errLen);
+    int len;
+    va_list vl;
+
+    va_start(vl, errorString);
+    len = vsnprintf(fmtError, errLen, errorString, vl);
+    va_end(vl);
+
+    osafassert(len >= 0);
+    len++;	/* Reserve one byte for null-terminated sign '\0' */
+    if(len > errLen) {
+        fmtError = (char *)realloc(fmtError, len);
+        va_start(vl, errorString);
+        osafassert(vsnprintf(fmtError, len, errorString, vl) >= 0);
+        va_end(vl);
+    }
+
+    unsigned int ix=0;
+    ImmsvAttrNameList* errStr = ccb->mErrorStrings;
+    ImmsvAttrNameList** errStrTail = &(ccb->mErrorStrings);
+    while(errStr) {
+        if(!strncmp(fmtError, errStr->name.buf, len)) {
+            TRACE_5("Discarding duplicate error string '%s' for ccb id %u",
+                fmtError, ccb->mId);
+            free(fmtError);
+            return;
+        }
+        ++ix;
+        errStrTail = &(errStr->next);
+        errStr = errStr->next;
+    }
+
+    if(ix >= IMMSV_MAX_ATTRIBUTES) {
+        TRACE_5("Discarding error string '%s' for ccb id %u (too many)",
+            fmtError, ccb->mId);
+        free(fmtError);
+    } else {
+        (*errStrTail) = (ImmsvAttrNameList *) malloc(sizeof(ImmsvAttrNameList));
+        (*errStrTail)->next = NULL;
+        (*errStrTail)->name.size = len;
+        (*errStrTail)->name.buf = fmtError;
+    }
 }
 
 bool
