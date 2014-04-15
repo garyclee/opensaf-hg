@@ -1375,7 +1375,7 @@ uint32_t avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 					o_susi = AVD_SU_SI_REL_NULL;
 					a_su = su->sg_of_su->list_of_su;
 					while (a_su != NULL) {
-						avd_su_readiness_state_set(a_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+						a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 						if ((a_su->list_of_susi != AVD_SU_SI_REL_NULL)
 							&& (avd_su_state_determine(a_su) == SA_AMF_HA_STANDBY)){
 							o_susi = a_su->list_of_susi;
@@ -1404,7 +1404,7 @@ uint32_t avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 					o_susi = AVD_SU_SI_REL_NULL;
 					a_su = su->sg_of_su->list_of_su;
 					while (a_su != NULL) {
-						avd_su_readiness_state_set(a_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+						a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 						if ((a_su->list_of_susi != AVD_SU_SI_REL_NULL)
 								&& (avd_su_state_determine(a_su) == SA_AMF_HA_STANDBY)){
 							o_susi = a_su->list_of_susi;
@@ -2567,7 +2567,7 @@ uint32_t avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 				a_su = su->sg_of_su->list_of_su;
 				while (a_su != NULL) {
-					avd_su_readiness_state_set(a_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+					a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 					a_su = a_su->sg_list_su_next;
 				}
 			}	/* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
@@ -2596,7 +2596,7 @@ uint32_t avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 					avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 					a_su = su->sg_of_su->list_of_su;
 					while (a_su != NULL) {
-						avd_su_readiness_state_set(a_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+						a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 						a_su = a_su->sg_list_su_next;
 					}
 				} else {
@@ -2889,7 +2889,7 @@ uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 			avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 			a_su = su->sg_of_su->list_of_su;
 			while (a_su != NULL) {
-				avd_su_readiness_state_set(a_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+				a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 				a_su = a_su->sg_list_su_next;
 			}
 
@@ -3660,7 +3660,7 @@ void avd_sg_2n_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 
 				i_su = su->sg_of_su->list_of_su;
 				while (i_su != NULL) {
-					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+					i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 					i_su = i_su->sg_list_su_next;
 				}
 			} /* if (avd_su_state_determine(su) == SA_AMF_HA_QUIESCING) */

@@ -808,28 +808,32 @@ void AVD_SU::set_oper_state(SaAmfOperationalStateT oper_state) {
  * @param su
  * @param readiness_state
  */
-void avd_su_readiness_state_set(AVD_SU *su, SaAmfReadinessStateT readiness_state)
-{
-	AVD_COMP *comp = NULL;
-	if (su->saAmfSuReadinessState == readiness_state)
+void AVD_SU::set_readiness_state(SaAmfReadinessStateT readiness_state) {
+	if (this->saAmfSuReadinessState == readiness_state)
 		return;
-	osafassert(readiness_state <= SA_AMF_READINESS_STOPPING);
-	TRACE_ENTER2("'%s' %s", su->name.value, avd_readiness_state_name[readiness_state]);
-	saflog(LOG_NOTICE, amfSvcUsrName, "%s ReadinessState %s => %s", su->name.value,
-		   avd_readiness_state_name[su->saAmfSuReadinessState], avd_readiness_state_name[readiness_state]);
-	su->saAmfSuReadinessState = readiness_state;
-	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUReadinessState",
-		SA_IMM_ATTR_SAUINT32T, &su->saAmfSuReadinessState);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_READINESS_STATE);
 
-	/* Since Su readiness state has changed, we need to change it for all the component in this SU.*/
-	comp = su->list_of_comp;
+	AVD_COMP *comp = NULL;
+	osafassert(readiness_state <= SA_AMF_READINESS_STOPPING);
+	TRACE_ENTER2("'%s' %s", this->name.value,
+		avd_readiness_state_name[readiness_state]);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s ReadinessState %s => %s",
+		this->name.value,
+		avd_readiness_state_name[this->saAmfSuReadinessState],
+		avd_readiness_state_name[readiness_state]);
+	this->saAmfSuReadinessState = readiness_state;
+	avd_saImmOiRtObjectUpdate(&this->name, "saAmfSUReadinessState",
+		SA_IMM_ATTR_SAUINT32T, &this->saAmfSuReadinessState);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_READINESS_STATE);
+
+	/* Since Su readiness state has changed, we need to change it for all the
+	 * component in this SU.*/
+	comp = this->list_of_comp;
 	while (comp != NULL) {
 		SaAmfReadinessStateT saAmfCompReadinessState;
-		if ((su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
+		if ((this->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
 				(comp->saAmfCompOperState == SA_AMF_OPERATIONAL_ENABLED)) {
 			saAmfCompReadinessState = SA_AMF_READINESS_IN_SERVICE;
-		} else if((su->saAmfSuReadinessState == SA_AMF_READINESS_STOPPING) &&
+		} else if((this->saAmfSuReadinessState == SA_AMF_READINESS_STOPPING) &&
 				(comp->saAmfCompOperState == SA_AMF_OPERATIONAL_ENABLED)) {
 			saAmfCompReadinessState = SA_AMF_READINESS_STOPPING;
 		} else
@@ -838,6 +842,8 @@ void avd_su_readiness_state_set(AVD_SU *su, SaAmfReadinessStateT readiness_state
 		avd_comp_readiness_state_set(comp, saAmfCompReadinessState);
 		comp = comp->su_comp_next;
 	}
+
+	TRACE_LEAVE();
 }
 
 void avd_su_admin_state_set(AVD_SU *su, SaAmfAdminStateT admin_state)
@@ -987,7 +993,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			 * node oper state and SU oper state are marked enabled after they gets assignments.
 			 * So, we cann't check compatibility with m_AVD_APP_SU_IS_INSVC for them.
 			 */
-			avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
+			su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 			if (su->sg_of_su->su_insvc(cb, su) != NCSCC_RC_SUCCESS)
 				is_oper_successful = false;
 
@@ -1006,7 +1012,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 				goto done;
 			}
 		} else {
-			avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
+			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_FAILED_OPERATION, NULL,
 					"SG redundancy model specific handler failed");
@@ -1021,7 +1027,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 
 	case SA_AMF_ADMIN_LOCK:
 		if (su->list_of_susi == NULL) {
-			avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
+			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 			avd_sg_app_su_inst_func(cb, su->sg_of_su);
 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
@@ -1030,7 +1036,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 
 		back_red_state = su->saAmfSuReadinessState;
 		back_admin_state = su->saAmfSUAdminState;
-		avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
+		su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 		avd_su_admin_state_set(su, adm_state);
 
 		if (su->sg_of_su->su_admin_down(cb, su, node) != NCSCC_RC_SUCCESS)
@@ -1048,7 +1054,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 				avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
 			}
 		} else {
-			avd_su_readiness_state_set(su, back_red_state);
+			su->set_readiness_state(back_red_state);
 			avd_su_admin_state_set(su, back_admin_state);
 			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_FAILED_OPERATION, NULL,
 					"SG redundancy model specific handler failed");
