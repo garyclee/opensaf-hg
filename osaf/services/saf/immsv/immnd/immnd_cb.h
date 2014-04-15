@@ -68,6 +68,10 @@ typedef struct immnd_immom_client_node {
 				  The tmp client is then removed, anticipating
 				  a resurrect request by the IMMA.
                                */
+	time_t mLastSearch;		/* Time of the latest used search handle
+	 	 	 	 	 	 	   It is used to reduce number of iterations
+	 	 	 	 	 	 	   of inactive search handles.
+	 	 	 	 	 	 	 */
 } IMMND_IMM_CLIENT_NODE;
 
 /******************************************************************************

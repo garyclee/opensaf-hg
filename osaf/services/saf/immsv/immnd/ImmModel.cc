@@ -33,6 +33,7 @@
 #define PRT_LOW_THRESHOLD 1 /* See ImmModel::immNotPbeWritable */
 #define PRT_HIGH_THRESHOLD 4 /* See ImmModel::immNotPbeWritable */
 #define CCB_CRIT_THRESHOLD 8 /* See ImmModel::immNotPbeWritable */
+#define SEARCH_TIMEOUT_SEC 600 /* Search timeout */
 
 
 struct ContinuationInfo2
@@ -968,6 +969,56 @@ immModel_cleanTheBasement(IMMND_CB *cb,
         osafassert(ix==(*pbePrtoReqArrSize));
     }
 
+    time_t now = time(NULL);
+    time_t nextSearch = 0;
+    time_t opSearchTime;
+    ImmSearchOp *op;
+    IMMND_OM_SEARCH_NODE *searchOp;
+    IMMND_OM_SEARCH_NODE **prevSearchOp;
+    IMMND_IMM_CLIENT_NODE *cl_node =
+            (IMMND_IMM_CLIENT_NODE *)ncs_patricia_tree_getnext(&cb->client_info_db, NULL);
+    int clearCounter = 0;
+    while(cl_node) {
+        if(!cl_node->mIsSync && cl_node->searchOpList
+                && (now - cl_node->mLastSearch > SEARCH_TIMEOUT_SEC)) {
+            nextSearch = now;
+            clearCounter = 0;
+            searchOp = cl_node->searchOpList;
+            prevSearchOp = &cl_node->searchOpList;
+            while(searchOp) {
+                osafassert(searchOp->searchOp);
+                op = (ImmSearchOp *)searchOp->searchOp;
+                opSearchTime = op->getLastSearchTime();
+                if(!op->isSync() && now - opSearchTime > SEARCH_TIMEOUT_SEC) {
+                    TRACE_2("Clear search result. Timeout %dsec. Search id: %d, OM handle: %llx",
+                            SEARCH_TIMEOUT_SEC, searchOp->searchId, cl_node->imm_app_hdl);
+                    *prevSearchOp = searchOp->next;
+                    immModel_deleteSearchOp(op);
+                    free(searchOp);
+                    searchOp = *prevSearchOp;
+                    clearCounter++;
+                } else {
+                    if(opSearchTime < nextSearch) {
+                    	nextSearch = opSearchTime;
+                    }
+                    prevSearchOp = &searchOp->next;
+                    searchOp = searchOp->next;
+                }
+            }
+
+            cl_node->mLastSearch = nextSearch;
+
+            if(clearCounter) {
+                LOG_NO("Clear %d search result(s) for OM handle %llx. Search timeout %dsec",
+                        clearCounter, cl_node->imm_app_hdl, SEARCH_TIMEOUT_SEC);
+            }
+        }
+
+        cl_node = (IMMND_IMM_CLIENT_NODE *)ncs_patricia_tree_getnext(
+                &cb->client_info_db,
+                cl_node->patnode.key_info);
+    }
+
     return stuck;
 }
 
@@ -1281,6 +1332,9 @@ immModel_nextResult(IMMND_CB *cb, void* searchOp,
         }
         err = ImmModel::instance(&cb->immModel)->nextSyncResult(rsp, *op);
     } else {
+        /* Reset search time */
+        op->updateSearchTime();
+
         err = op->nextResult(rsp, implConn, implNodeId,
             (rtAttrsToFetch)?(&rtAttrs):NULL,
             (SaUint64T*) implDest);
@@ -9284,6 +9338,9 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
     std::string refObjectName;
     SaUint32T childCount=0;
     
+    /* Reset search time */
+    op.updateSearchTime();
+
     if(scope == SA_IMM_ONE) {
         if(noDanglingSearch) {
              LOG_NO("ERR_INVALID_PARAM: SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS "
@@ -9293,7 +9350,7 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
 
         return this->accessorGet(req, op);
     }
-    
+
     size_t sz = strnlen((char *) req->rootName.buf, 
         (size_t)req->rootName.size);
     std::string rootName((const char*)req->rootName.buf, sz);
