@@ -1815,7 +1815,7 @@ uint32_t avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 			    (SA_AMF_ADMIN_SHUTTING_DOWN == su_node_ptr->saAmfNodeAdminState)) {
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
-					avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
+					su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 					if (flag == true) {

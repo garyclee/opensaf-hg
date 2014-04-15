@@ -291,7 +291,7 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 	}
 
 	su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
-	avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
+	su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 	if (su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED)
 		su_complete_admin_op(su, SA_AIS_OK);
 	else
@@ -481,7 +481,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		if (cb->init_state == AVD_INIT_DONE) {
 			su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
-			avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
+			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 			if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) {
 				/* Mark the node operational state as disable and make all the
 				 * application SUs in the node as O.O.S.
@@ -490,14 +490,14 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				node->recvr_fail_sw = true;
 				i_su = node->list_of_su;
 				while (i_su != NULL) {
-					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+					su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 					i_su = i_su->avnd_list_su_next;
 				}
 			}	/* if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 		} /* if(cb->init_state == AVD_INIT_DONE) */
 		else if (cb->init_state == AVD_APP_STATE) {
 			su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
-			avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
+			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 			if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) {
 				/* Mark the node operational state as disable and make all the
 				 * application SUs in the node as O.O.S. Also call the SG FSM
@@ -528,7 +528,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				case SA_AMF_NODE_SWITCHOVER:
 					i_su = node->list_of_su;
 					while (i_su != NULL) {
-						avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+						i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 						if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 							/* Delay Node reboot if:
 								a)Faulted SU has saAmfSUFailover set but 
@@ -653,7 +653,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		if (su->sg_of_su->sg_ncs_spec == true) {
 			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) { 
-				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
+				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 				/* Run the SG FSM */
 				if (su->sg_of_su->su_insvc(cb, su) == NCSCC_RC_FAILURE) {
 					/* Bad situation. Free the message and return since
@@ -661,7 +661,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					 * comeback which we can then process.
 					 */
 					LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
-					avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
+					su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 					goto done;
 				}
 			}
@@ -678,8 +678,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			}
 
 			if (m_AVD_APP_SU_IS_INSVC(su, su_node_ptr)) {
-
-				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
+				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 				if ((cb->init_state == AVD_APP_STATE) && (old_state == SA_AMF_READINESS_OUT_OF_SERVICE)) {
 					/* An application SU has become in service call SG FSM */
 					if (su->sg_of_su->su_insvc(cb, su) == NCSCC_RC_FAILURE) {
@@ -1294,7 +1293,7 @@ void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 					m_AVD_GET_SU_NODE_PTR(cb, i_su, su_node_ptr);
 
 					if (m_AVD_APP_SU_IS_INSVC(i_su, su_node_ptr)) {
-						avd_su_readiness_state_set(i_su, SA_AMF_READINESS_IN_SERVICE);
+						i_su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 					}
 				}
 			}
@@ -1376,7 +1375,7 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 				m_AVD_GET_SU_NODE_PTR(cb, i_su, su_node_ptr);
 
 				if (m_AVD_APP_SU_IS_INSVC(i_su, su_node_ptr)) {
-					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_IN_SERVICE);
+					i_su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 					i_su->sg_of_su->su_insvc(cb, i_su);
 
 					if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
@@ -1473,7 +1472,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 					((i_su->saAmfSUPreInstantiable) ?
 					 (i_su->saAmfSUPresenceState == 
 					  SA_AMF_PRESENCE_INSTANTIATED):true)) {
-				avd_su_readiness_state_set(i_su, SA_AMF_READINESS_IN_SERVICE);
+				i_su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 			}
 		}
 
@@ -1481,7 +1480,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 			/* set all the SUs to OOS return failure */
 
 			for (i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
-				avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+				i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 			}
 
 			goto done;
@@ -1499,7 +1498,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 		}
 
 		for (i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
-			avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+			i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 		}
 		break;
 
@@ -1551,7 +1550,7 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 	while (i_su != NULL) {
 		i_su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 		avd_su_pres_state_set(i_su, SA_AMF_PRESENCE_UNINSTANTIATED);
-		avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+		i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 		su_complete_admin_op(i_su, SA_AIS_ERR_TIMEOUT);
 		su_disable_comps(i_su, SA_AIS_ERR_TIMEOUT);
 
@@ -1602,7 +1601,7 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 	while (i_su != NULL) {
 		i_su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 		avd_su_pres_state_set(i_su, SA_AMF_PRESENCE_UNINSTANTIATED);
-		avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+		i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 
 		/* Check if there was any admin operations going on this SU. */
 		su_complete_admin_op(i_su, SA_AIS_ERR_TIMEOUT);

@@ -887,7 +887,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				 * state, so AMFND will not assign the role to components. Anyway when SU gets 
 				 * instantiated, then assignment will be given to components/SU.
 				 */
-				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
+				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 
 				su->sg_of_su->su_insvc(cb, su);
 
@@ -1005,7 +1005,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 		su = node->list_of_su;
 		while (su != NULL) {
 			is_assignments_done = false;
-			avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
+			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 			if (su->list_of_susi != AVD_SU_SI_REL_NULL) {
 				is_assignments_done = true;
 				su->sg_of_su->su_admin_down(cb, su, node);
