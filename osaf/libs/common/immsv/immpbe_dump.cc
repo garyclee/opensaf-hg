@@ -3176,9 +3176,11 @@ std::string valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
 			ost << *((unsigned long long *) value);
 			break;
 		case SA_IMM_ATTR_SAFLOATT:
+			ost.precision(8);
 			ost << *((float *) value);
 			break;
 		case SA_IMM_ATTR_SADOUBLET:
+			ost.precision(17);
 			ost << *((double *) value);
 			break;
 		case SA_IMM_ATTR_SANAMET:
