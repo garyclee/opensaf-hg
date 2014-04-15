@@ -592,12 +592,25 @@ bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT 
 			std::list<char*> attrValueBuffers;
 			char *val;
 			while(rc == SQLITE_ROW) {
-				val = (char *)sqlite3_column_text(stmt, 0);
-				if(val) {
-					/* Guard for NULL values. */
-					char *str = strdup(val);
-					attrValueBuffers.push_front(str);
-					TRACE("ABT pushed value:%s", str);
+				if((*it)->attrValueType == SA_IMM_ATTR_SADOUBLET) {
+					double d = sqlite3_column_double(stmt, 0);
+					/* 30 bytes will be enough large for storing a double value */
+					val = (char *)malloc(30);
+					int size = snprintf(val, 30, "%.17g", d);
+					size++;
+					if(size > 30) {
+						val = (char *)realloc(val, size);
+						snprintf(val, size, "%.17g", d);
+					}
+					attrValueBuffers.push_front(val);
+				} else {
+					val = (char *)sqlite3_column_text(stmt, 0);
+					if(val) {
+						/* Guard for NULL values. */
+						char *str = strdup(val);
+						attrValueBuffers.push_front(str);
+						TRACE("ABT pushed value:%s", str);
+					}
 				}
 
 				rc = sqlite3_step(stmt);
