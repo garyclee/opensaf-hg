@@ -207,7 +207,7 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 		/* Make application SUs operational state ENABLED */
 		for (su = avnd->list_of_su; su != NULL; su = su->avnd_list_su_next) {
-			avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
+			su->set_oper_state(SA_AMF_OPERATIONAL_ENABLED);
 			AVD_COMP *comp;
 			for (comp = su->list_of_comp; comp; comp = comp->su_comp_next)
 				avd_comp_oper_state_set(comp, SA_AMF_OPERATIONAL_ENABLED);

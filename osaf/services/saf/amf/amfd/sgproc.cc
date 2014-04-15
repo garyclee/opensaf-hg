@@ -290,7 +290,7 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 		goto done;
 	}
 
-	avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
+	su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 	avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 	if (su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED)
 		su_complete_admin_op(su, SA_AIS_OK);
@@ -449,7 +449,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	    (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) &&
 	    (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.saf_amf == SA_AMF_NODE_FAILFAST)) {
 		/* as of now do the same opearation as ncs su failure */
-		avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
+		su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 		if ((node->type == AVSV_AVND_CARD_SYS_CON) && (node->node_info.nodeId == cb->node_id_avd)) {
 			TRACE("Component in %s requested FAILFAST", su->name.value);
 		}
@@ -470,7 +470,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* if the SU is NCS SU, call the node FSM routine to handle the failure.
 		 */
 		if (su->sg_of_su->sg_ncs_spec == true) {
-			avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
+			su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 			avd_nd_ncs_su_failed(cb, node);
 			goto done;
 		}
@@ -480,7 +480,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		 */
 
 		if (cb->init_state == AVD_INIT_DONE) {
-			avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
+			su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 			avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 			if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) {
 				/* Mark the node operational state as disable and make all the
@@ -496,7 +496,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			}	/* if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 		} /* if(cb->init_state == AVD_INIT_DONE) */
 		else if (cb->init_state == AVD_APP_STATE) {
-			avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
+			su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 			avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 			if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) {
 				/* Mark the node operational state as disable and make all the
@@ -646,7 +646,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* else if(cb->init_state == AVD_APP_STATE) */
 	} /* if (n2d_msg->msg_info.n2d_opr_state.su_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 	else if (n2d_msg->msg_info.n2d_opr_state.su_oper_state == SA_AMF_OPERATIONAL_ENABLED) {
-		avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
+		su->set_oper_state(SA_AMF_OPERATIONAL_ENABLED);
 		/* if the SU is NCS SU, mark the SU readiness state as in service and call
 		 * the SG FSM.
 		 */
@@ -1289,8 +1289,7 @@ void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 					}
 
 				} else {
-					/* mark the non preinstatiable as enable. */
-					avd_su_oper_state_set(i_su, SA_AMF_OPERATIONAL_ENABLED);
+					i_su->set_oper_state(SA_AMF_OPERATIONAL_ENABLED);
 
 					m_AVD_GET_SU_NODE_PTR(cb, i_su, su_node_ptr);
 
@@ -1550,7 +1549,7 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 	i_su = avnd->list_of_ncs_su;
 	osafassert(i_su != 0);
 	while (i_su != NULL) {
-		avd_su_oper_state_set(i_su, SA_AMF_OPERATIONAL_DISABLED);
+		i_su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 		avd_su_pres_state_set(i_su, SA_AMF_PRESENCE_UNINSTANTIATED);
 		avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
 		su_complete_admin_op(i_su, SA_AIS_ERR_TIMEOUT);
@@ -1601,7 +1600,7 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 	 */
 	i_su = avnd->list_of_su;
 	while (i_su != NULL) {
-		avd_su_oper_state_set(i_su, SA_AMF_OPERATIONAL_DISABLED);
+		i_su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 		avd_su_pres_state_set(i_su, SA_AMF_PRESENCE_UNINSTANTIATED);
 		avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
 
