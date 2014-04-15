@@ -22,6 +22,7 @@
 #include "ImmAttrValue.hh"
 #include <string>
 #include <list>
+#include <time.h>
 
 
 struct SearchAttribute
@@ -88,6 +89,8 @@ public:
     void          setIsAccessor() {mIsAccessor = true;}
     bool          isSync() {return mIsSync;}
     bool          isAccessor() {return mIsAccessor;}
+    time_t        getLastSearchTime() { return mLastSearch; }
+    void          updateSearchTime() { mLastSearch = time(NULL); }
     void*         syncOsi;
     void*         attrNameList;
     void*         classInfo;
@@ -98,6 +101,7 @@ private:
     AttributeList mRtsToFetch;
     bool mIsSync;
     bool mIsAccessor;
+    time_t mLastSearch;
 };
 
 #endif
