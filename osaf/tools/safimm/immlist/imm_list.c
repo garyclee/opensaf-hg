@@ -96,10 +96,10 @@ static void print_attr_value_raw(SaImmValueTypeT attrValueType, SaImmAttrValueT 
 		printf("%llu",  *((SaTimeT *)attrValue));
 		break;
 	case SA_IMM_ATTR_SAFLOATT:
-		printf("%f", *((SaFloatT *)attrValue));
+		printf("%.8g", *((SaFloatT *)attrValue));
 		break;
 	case SA_IMM_ATTR_SADOUBLET:
-		printf("%17.15f", *((SaDoubleT *)attrValue));
+		printf("%.17g", *((SaDoubleT *)attrValue));
 		break;
 	case SA_IMM_ATTR_SANAMET: {
 		SaNameT *myNameT = (SaNameT *)attrValue;
@@ -158,10 +158,10 @@ static void print_attr_value(SaImmValueTypeT attrValueType, SaImmAttrValueT *att
 			break;
 		}
 	case SA_IMM_ATTR_SAFLOATT:
-		printf("%f ", *((SaFloatT *)attrValue));
+		printf("%.8g", *((SaFloatT *)attrValue));
 		break;
 	case SA_IMM_ATTR_SADOUBLET:
-		printf("%17.15f", *((SaDoubleT *)attrValue));
+		printf("%.17g", *((SaDoubleT *)attrValue));
 		break;
 	case SA_IMM_ATTR_SANAMET:
 		{
