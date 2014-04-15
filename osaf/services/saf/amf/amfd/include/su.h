@@ -109,6 +109,11 @@ class AVD_SU {
 	AVD_SU *avnd_list_su_next;	/* the next SU in the AvND */
 	struct avd_sutype *su_type;
 	AVD_SU *su_list_su_type_next;
+
+	void set_oper_state(SaAmfOperationalStateT state);
+	void set_oper_state(uint32_t state) {
+		set_oper_state(static_cast<SaAmfOperationalStateT>(state));
+	};
 };
 
 typedef struct {
@@ -202,7 +207,6 @@ void avd_su_del_avnd_list(AVD_CL_CB *cb, AVD_SU *su);
 extern SaAisErrorT avd_su_config_get(const SaNameT *sg_name, struct avd_sg_tag *sg);
 
 extern void avd_su_pres_state_set(AVD_SU *su, SaAmfPresenceStateT pres_state);
-extern void avd_su_oper_state_set(AVD_SU *su, SaAmfOperationalStateT oper_state);
 extern void avd_su_readiness_state_set(AVD_SU *su, SaAmfReadinessStateT readiness_state);
 extern void avd_su_admin_state_set(AVD_SU *su, SaAmfAdminStateT admin_state);
 

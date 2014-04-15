@@ -727,7 +727,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				TRACE("oper pres state");
 				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uint32_t)) {
 					l_val = ntohl(*((uint32_t *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
-					avd_su_oper_state_set(su, static_cast<SaAmfOperationalStateT>(l_val));
+					su->set_oper_state(l_val);
 				}
 				break;
 			case saAmfSUPresenceState_ID:
