@@ -91,6 +91,22 @@ public:
 	~ImmObjDelete();
 };
 
+class ImmAdminResponse : public Job {
+ public:
+	ImmAdminResponse(const SaInvocationT invocation,
+		const SaAisErrorT result) {
+		this->invocation_ = invocation;
+		this->result_ = result;
+	}
+	AvdJobDequeueResultT exec(SaImmOiHandleT immOiHandle);
+	
+	~ImmAdminResponse() {}
+ private:
+	ImmAdminResponse();
+	SaInvocationT invocation_;
+	SaAisErrorT result_;
+};
+
 //
 class Fifo {
 public:
