@@ -228,6 +228,40 @@ ImmObjDelete::~ImmObjDelete()
 }
 
 //
+AvdJobDequeueResultT ImmAdminResponse::exec(const SaImmOiHandleT handle) {
+	SaAisErrorT rc;
+	AvdJobDequeueResultT res;
+
+	TRACE_ENTER2("Admin resp inv:%llu res:%u", this->invocation_, this->result_);
+
+	rc = saImmOiAdminOperationResult(handle, this->invocation_, this->result_);
+
+	switch (rc) {
+	case SA_AIS_OK:
+		delete Fifo::dequeue();
+		res = JOB_EXECUTED;
+		break;
+	case SA_AIS_ERR_TRY_AGAIN:
+		TRACE("TRY-AGAIN");
+		res = JOB_ETRYAGAIN;
+		break;
+	case SA_AIS_ERR_BAD_HANDLE:
+		// there is no need to reattempt reply,
+		// fall through to default to remove from queue
+		TRACE("BADHANDLE");
+		avd_imm_reinit_bg();
+	default:
+		delete Fifo::dequeue();
+		LOG_ER("Admin op failed for invocation: %llu, result %u",
+			this->invocation_, this->result_);
+		res = JOB_ERR;
+		break;
+	}
+
+	TRACE_LEAVE2("%u", res);
+	return res;
+}
+
 Job* Fifo::peek()
 {
 	Job* tmp;
@@ -1715,15 +1749,12 @@ void avd_saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
 									 SaInvocationT invocation,
 									 SaAisErrorT result)
 {
-	SaAisErrorT error;
-
 	TRACE_ENTER2("inv:%llu, res:%u", invocation, result);
-	saflog(LOG_NOTICE, amfSvcUsrName, "Admin op done for invocation: %llu, result %u",
-		   invocation, result);
 
-	error = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, result);
-	if (error != SA_AIS_OK)
-		LOG_NO("saImmOiAdminOperationResult for %llu failed %u", invocation, error);
+	ImmAdminResponse *job = new ImmAdminResponse(invocation, result);
+	Fifo::queue(job);
+
+	TRACE_LEAVE();
 }
 
 /**
