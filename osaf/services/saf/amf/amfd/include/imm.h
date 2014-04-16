@@ -88,7 +88,7 @@ public:
 	
 	AvdJobDequeueResultT exec(SaImmOiHandleT immOiHandle);
 	
-	~ImmObjDelete();
+	~ImmObjDelete() {}
 };
 
 class ImmAdminResponse : public Job {
