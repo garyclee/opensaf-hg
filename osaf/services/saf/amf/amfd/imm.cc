@@ -76,7 +76,7 @@ AvdJobDequeueResultT ImmObjCreate::exec(SaImmOiHandleT immOiHandle)
 	SaAisErrorT rc;
 	AvdJobDequeueResultT res;
 	
-	TRACE_ENTER();
+	TRACE_ENTER2("Create %s", parentName_.value);
 
 	rc = saImmOiRtObjectCreate_2(immOiHandle, className_,
 				     &parentName_, attrValues_);
@@ -110,8 +110,6 @@ ImmObjCreate::~ImmObjCreate()
 {
 	unsigned int i, j;
 
-	TRACE_ENTER();
-
 	for (i = 0; attrValues_[i] != NULL; i++) {
 		SaImmAttrValuesT_2 *attrValue =
 			(SaImmAttrValuesT_2 *)attrValues_[i];
@@ -130,8 +128,6 @@ ImmObjCreate::~ImmObjCreate()
 
 	delete [] className_;
 	delete [] attrValues_;
-	
-	TRACE_LEAVE();
 }
 
 //
@@ -144,7 +140,7 @@ AvdJobDequeueResultT ImmObjUpdate::exec(SaImmOiHandleT immOiHandle)
 	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, NULL};
 	SaImmAttrValueT attrValues[] = {value_};
 
-	TRACE_ENTER2("%s %s", dn_.value, attributeName_);
+	TRACE_ENTER2("Update '%s' %s", dn_.value, attributeName_);
 
 	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
 	attrMod.modAttr.attrName = attributeName_;
@@ -180,11 +176,8 @@ AvdJobDequeueResultT ImmObjUpdate::exec(SaImmOiHandleT immOiHandle)
 //
 ImmObjUpdate::~ImmObjUpdate()
 {
-	TRACE_ENTER();
 	delete [] attributeName_;
 	delete [] static_cast<char*>(value_);
-	TRACE_LEAVE();
-
 }
 
 //
@@ -218,13 +211,6 @@ AvdJobDequeueResultT ImmObjDelete::exec(SaImmOiHandleT immOiHandle)
 	
 	TRACE_LEAVE();
 	return res;
-}
-
-//
-ImmObjDelete::~ImmObjDelete()
-{
-    	TRACE_ENTER();
-	TRACE_LEAVE();
 }
 
 //
@@ -266,27 +252,19 @@ Job* Fifo::peek()
 {
 	Job* tmp;
 	
-	TRACE_ENTER();
-
 	if (imm_job_.empty()) {
 		tmp = 0;
-	}
-	else {
+	} else {
 		tmp = imm_job_.front();
 	}
 	
-	TRACE_LEAVE();
 	return tmp;
 }
 
 //
 void Fifo::queue(Job* job)
 {
-	TRACE_ENTER();
-	
 	imm_job_.push(job);
-	
-	TRACE_LEAVE();
 }
 
 //
@@ -294,17 +272,13 @@ Job* Fifo::dequeue()
 {
 	Job* tmp;
 	
-	TRACE_ENTER();
-
 	if (imm_job_.empty()) {
 		tmp = 0;
-	}
-	else {
+	} else {
 		tmp = imm_job_.front();
 		imm_job_.pop();
 	}
 	
-	TRACE_LEAVE();
 	return tmp;
 }
 
@@ -1516,7 +1490,7 @@ void avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn, SaImmAttrNameT attributeN
 void avd_saImmOiRtObjectUpdate(const SaNameT *dn, const char *attributeName,
 	SaImmValueTypeT attrValueType, void *value)
 {
-	TRACE_ENTER();
+	TRACE_ENTER2("'%s' %s", dn->value, attributeName);
 	
 	size_t sz;
 
@@ -1547,7 +1521,7 @@ void avd_saImmOiRtObjectUpdate(const SaNameT *dn, const char *attributeName,
 void avd_saImmOiRtObjectCreate(const char *className,
 	const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues)
 {
-	TRACE_ENTER();
+	TRACE_ENTER2("%s %s", className, parentName->value);
 
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
 		return;
@@ -1569,7 +1543,7 @@ void avd_saImmOiRtObjectCreate(const char *className,
  */
 void avd_saImmOiRtObjectDelete(const SaNameT* dn)
 {
-	TRACE_ENTER();
+	TRACE_ENTER2("%s", dn->value);
 	
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
 		return;
