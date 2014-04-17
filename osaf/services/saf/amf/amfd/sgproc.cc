@@ -836,10 +836,13 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 				if (n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_QUIESCING) {
 					q_flag = true;
-					avd_sg_su_asgn_del_util(cb, su, false, false);
+					su->set_all_susis_assigned();
 				} else {
 					/* set the  assigned or quiesced state in the SUSIs. */
-					avd_sg_su_asgn_del_util(cb, su, false, qsc_flag);
+					if (qsc_flag == true)
+						su->set_all_susis_assigned_quiesced();
+					else
+						su->set_all_susis_assigned();
 				}
 			}
 			break;
@@ -1791,82 +1794,6 @@ uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 done:
 	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
-}
-
-/*****************************************************************************
- * Function: avd_sg_su_asgn_del_util
- *
- * Purpose:  This function is a utility routine that changes the assigning or
- * modifing FSM to assigned for all the SUSIs for the SU. If delete it removes
- * all the SUSIs assigned to the SU.    
- *
- * Input: cb - the AVD control block
- *        su - The pointer to the SU.
- *        del_flag - The delete flag indicating if this is a delete.
- *        q_flag - The flag indicating if the HA state needs to be changed to
- *                 quiesced.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, bool del_flag, bool q_flag)
-{
-	AVD_SU_SI_REL *i_susi;
-
-	TRACE_ENTER2("'%s', del:%u, q:%u", su->name.value, del_flag, q_flag);
-
-	i_susi = su->list_of_susi;
-	if (del_flag == true) {
-		while (su->list_of_susi != AVD_SU_SI_REL_NULL) {
-			/* free all the CSI assignments  */
-			avd_compcsi_delete(cb, su->list_of_susi, false);
-			/* Unassign the SUSI */
-			m_AVD_SU_SI_TRG_DEL(cb, su->list_of_susi);
-		}
-
-		su->saAmfSUNumCurrStandbySIs = 0;
-		su->saAmfSUNumCurrActiveSIs = 0;
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_AVD_SU_CONFIG);
-	} else {
-		if (q_flag == true) {
-			while (i_susi != AVD_SU_SI_REL_NULL) {
-				if (i_susi->fsm != AVD_SU_SI_STATE_UNASGN) {
-					i_susi->state = SA_AMF_HA_QUIESCED;
-					i_susi->fsm = AVD_SU_SI_STATE_ASGND;
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
-					avd_gen_su_ha_state_changed_ntf(cb, i_susi);
-					avd_susi_update_assignment_counters(i_susi, AVSV_SUSI_ACT_MOD,
-                                                 SA_AMF_HA_QUIESCING, SA_AMF_HA_QUIESCED);
-
-					/* trigger pg upd */
-					avd_pg_susi_chg_prc(cb, i_susi);
-
-				}
-
-				i_susi = i_susi->su_next;
-			}
-
-		} else {
-			while (i_susi != AVD_SU_SI_REL_NULL) {
-				if (i_susi->fsm != AVD_SU_SI_STATE_UNASGN) {
-					i_susi->fsm = AVD_SU_SI_STATE_ASGND;
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
-
-					/* trigger pg upd */
-					avd_pg_susi_chg_prc(cb, i_susi);
-				}
-
-				i_susi = i_susi->su_next;
-			}
-		}
-	}
-
-	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
