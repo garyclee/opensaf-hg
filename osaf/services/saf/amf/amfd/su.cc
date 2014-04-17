@@ -1686,3 +1686,58 @@ void su_nd_attribute_update(const AVD_SU *su, AVSV_AMF_SU_ATTR_ID attrib_id)
 
 	TRACE_LEAVE();
 }
+
+/**
+ * Delete all SUSIs assigned to the SU.
+ *
+ */
+void AVD_SU::delete_all_susis(void) {
+	TRACE_ENTER2("'%s'", this->name.value);
+
+	while (this->list_of_susi != NULL) {
+		avd_compcsi_delete(avd_cb, this->list_of_susi, false);
+		m_AVD_SU_SI_TRG_DEL(avd_cb, this->list_of_susi);
+	}
+
+	this->saAmfSUNumCurrStandbySIs = 0;
+	this->saAmfSUNumCurrActiveSIs = 0;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_AVD_SU_CONFIG);
+
+	TRACE_LEAVE();
+}
+
+void AVD_SU::set_all_susis_assigned_quiesced(void) {
+	AVD_SU_SI_REL *susi = this->list_of_susi;
+
+	TRACE_ENTER2("'%s'", this->name.value);
+
+	for (; susi != NULL; susi = susi->su_next) {
+		if (susi->fsm != AVD_SU_SI_STATE_UNASGN) {
+			susi->state = SA_AMF_HA_QUIESCED;
+			susi->fsm = AVD_SU_SI_STATE_ASGND;
+			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
+			avd_gen_su_ha_state_changed_ntf(avd_cb, susi);
+			avd_susi_update_assignment_counters(susi, AVSV_SUSI_ACT_MOD,
+					SA_AMF_HA_QUIESCING, SA_AMF_HA_QUIESCED);
+			avd_pg_susi_chg_prc(avd_cb, susi);
+		}
+	}
+
+	TRACE_LEAVE();
+}
+
+void AVD_SU::set_all_susis_assigned(void) {
+	AVD_SU_SI_REL *susi = this->list_of_susi;
+
+	TRACE_ENTER2("'%s'", this->name.value);
+
+	for (; susi != NULL; susi = susi->su_next) {
+		if (susi->fsm != AVD_SU_SI_STATE_UNASGN) {
+			susi->fsm = AVD_SU_SI_STATE_ASGND;
+			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
+			avd_pg_susi_chg_prc(avd_cb, susi);
+		}
+	}
+
+	TRACE_LEAVE();
+}
