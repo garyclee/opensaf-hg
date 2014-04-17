@@ -342,7 +342,7 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 			}
 		}
 		su->sg_of_su->node_fail(avd_cb, su);
-		avd_sg_su_asgn_del_util(avd_cb, su, true, false);
+		su->delete_all_susis();
 	}
 
 	rc =  NCSCC_RC_SUCCESS;
@@ -1561,7 +1561,7 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 		i_su->sg_of_su->node_fail(cb, i_su);
 
 		/* Free all the SU SI assignments*/ 
-		avd_sg_su_asgn_del_util(cb, i_su, true, false);
+		i_su->delete_all_susis();
 
 		i_su = i_su->avnd_list_su_next;
 
@@ -1640,7 +1640,7 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 			i_su->sg_of_su->node_fail(cb, i_su);
 
 			/* Free all the SU SI assignments*/ 
-			avd_sg_su_asgn_del_util(cb, i_su, true, false);
+			i_su->delete_all_susis();
 
 			/* Since a SU has gone out of service relook at the SG to
 			 * re instatiate and terminate SUs if needed.

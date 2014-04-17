@@ -1749,7 +1749,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			/* free all the SUSI relationships to this SU. remove this SU from the
 			 * SU oper list.SU in the operation list 
 			 */
-			avd_sg_su_asgn_del_util(cb, su, true, false);
+			su->delete_all_susis();
 			avd_sg_su_oper_list_del(cb, su, false);
 
 			if ((su->sg_of_su->su_oper_list.su == NULL) && (su->sg_of_su->admin_si == AVD_SI_NULL)) {
@@ -2585,7 +2585,7 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 		 * relationships for the SU. 
 		 */
 
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 
 	}			/* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL) && 
 				   (su->sg_of_su->su_oper_list.su != su)) */
@@ -2622,7 +2622,7 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 		/* free all the SUSI relationships to this SU. remove this SU from the
 		 * SU oper list.SU in the operation list 
 		 */
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 		avd_sg_su_oper_list_del(cb, su, false);
 
 		if (su->sg_of_su->su_oper_list.su == NULL) {
@@ -2887,7 +2887,7 @@ uint32_t avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 		/* Do the action specified in the message if delete else no action. */
 		if (act == AVSV_SUSI_ACT_DEL) {
 			if (susi == AVD_SU_SI_REL_NULL) {
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 			} else {
 				/* free all the CSI assignments  */
 				avd_compcsi_delete(cb, susi, false);
@@ -2944,7 +2944,7 @@ uint32_t avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 			 * SU oper list is empty,  change the SG admin state to LOCK, 
 			 * Change state to stable.
 			 */
-			avd_sg_su_asgn_del_util(cb, su, true, false);
+			su->delete_all_susis();
 			avd_sg_su_oper_list_del(cb, su, false);
 			if (su->sg_of_su->su_oper_list.su == NULL) {
 				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
@@ -3021,7 +3021,7 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 		/* Do the action specified in the message if delete else no action. */
 		if (act == AVSV_SUSI_ACT_DEL) {
 			if (susi == AVD_SU_SI_REL_NULL) {
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 			} else {
 				/* free all the CSI assignments  */
 				avd_compcsi_delete(cb, susi, false);
@@ -3379,7 +3379,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 			}	/* else (l_flag == true) */
 
 			/* Free all the SI assignments to this SU. */
-			avd_sg_su_asgn_del_util(cb, su, true, false);
+			su->delete_all_susis();
 
 		} else {	/* if (l_susi == AVD_SU_SI_REL_NULL) */
 
@@ -3412,7 +3412,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					avd_sg_su_oper_list_del(cb, su, false);
 
 					/* Free all the SI assignments to this SU. */
-					avd_sg_su_asgn_del_util(cb, su, true, false);
+					su->delete_all_susis();
 
 					/* Change the SI switch state to false. Remove the SI from the 
 					 * SI admin pointer.
@@ -3456,7 +3456,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 					/* Free all the SI assignments to this SU. */
-					avd_sg_su_asgn_del_util(cb, su, true, false);
+					su->delete_all_susis();
 
 					if (su->sg_of_su->su_oper_list.su == NULL) {
 						/* both the SI admin pointer and SU oper list are empty.
@@ -3486,7 +3486,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 						avd_sg_su_oper_list_del(cb, su, false);
 
 					/* Free all the SI assignments to this SU. */
-					avd_sg_su_asgn_del_util(cb, su, true, false);
+					su->delete_all_susis();
 				} /* else if (l_susi->state == SA_AMF_HA_STANDBY) */
 				else if (l_susi->state == SA_AMF_HA_ACTIVE) {
 					/* this SI relation with the SU is standby. */
@@ -3516,7 +3516,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 					/* Free all the SI assignments to this SU. */
-					avd_sg_su_asgn_del_util(cb, su, true, false);
+					su->delete_all_susis();
 
 					if (su->sg_of_su->su_oper_list.su == NULL) {
 						/* both the SI admin pointer and SU oper list are empty.
@@ -3567,7 +3567,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					}
 
 					/* Free all the SI assignments to this SU. */
-					avd_sg_su_asgn_del_util(cb, su, true, false);
+					su->delete_all_susis();
 
 					/*  Remove the SI from the SI admin pointer.  */
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
@@ -3601,7 +3601,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 						avd_sg_su_oper_list_del(cb, su, false);
 
 					/* Free all the SI assignments to this SU. */
-					avd_sg_su_asgn_del_util(cb, su, true, false);
+					su->delete_all_susis();
 
 				}	/* else if (l_susi->state == SA_AMF_HA_STANDBY) */
 			}	/* else (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) */
@@ -3659,7 +3659,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 				}
 
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 
 				/* remove the SU from the operation list. */
 				avd_sg_su_oper_list_del(cb, su, false);
@@ -3679,7 +3679,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					   (su->list_of_susi->state == SA_AMF_HA_QUIESCING) ||
 					   (su->list_of_susi->state == SA_AMF_HA_ACTIVE)) */
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 
 				/* remove the SU from the operation list. */
 				avd_sg_su_oper_list_del(cb, su, false);
@@ -3733,7 +3733,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 
 			/* if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 			/* Free all the SI assignments to this SU. */
-			avd_sg_su_asgn_del_util(cb, su, true, false);
+			su->delete_all_susis();
 
 		}		/* else (l_flag == true) */
 
@@ -3801,7 +3801,7 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 		}
 
 		/* Free all the SI assignments to this SU. */
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 
 		/* remove the SU from the operation list. */
 		avd_sg_su_oper_list_del(cb, su, false);
@@ -3866,7 +3866,7 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 		/* if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 		/* Free all the SI assignments to this SU. */
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 
 	}			/* else (su->sg_of_su->su_oper_list.su == su) */
 
@@ -3933,7 +3933,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 		/* if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 		/* Free all the SI assignments to this SU. */
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 
 	} else {		/* if (l_susi == AVD_SU_SI_REL_NULL) */
 
@@ -3960,7 +3960,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				}
 
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 
 				/* Change the SI switch state to false. Remove the SI from the 
 				 * SI admin pointer.
@@ -4009,7 +4009,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 
 				if (su->sg_of_su->su_oper_list.su == NULL) {
 					/* both the SI admin pointer and SU oper list are empty.
@@ -4040,7 +4040,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				   (l_susi->fsm == AVD_SU_SI_STATE_ASGND)) */
 			else if (l_susi->state == SA_AMF_HA_STANDBY) {
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 			} /* else if (l_susi->state == SA_AMF_HA_STANDBY) */
 			else if (l_susi->state == SA_AMF_HA_ACTIVE) {
 				/* this SI relation with the SU is standby. */
@@ -4067,7 +4067,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 
 				if (su->sg_of_su->su_oper_list.su == NULL) {
 					/* both the SI admin pointer and SU oper list are empty.
@@ -4121,7 +4121,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				}
 
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 
 				/*  Remove the SI from the SI admin pointer.  */
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
@@ -4156,7 +4156,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				   (l_susi->state == SA_AMF_HA_QUIESCED)) */
 			else if (l_susi->state == SA_AMF_HA_STANDBY) {
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 
 			}	/* else if (l_susi->state == SA_AMF_HA_STANDBY) */
 		}		/* else (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) */
@@ -4203,7 +4203,7 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 			avd_sg_npm_stdbysu_role_change(su);
 
 			/* Free all the SI assignments to this SU. */
-			avd_sg_su_asgn_del_util(cb, su, true, false);
+			su->delete_all_susis();
 
 		} else {	/* if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 
@@ -4216,7 +4216,7 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 			 * stay in the stable state.
 			 */
 
-			avd_sg_su_asgn_del_util(cb, su, true, false);
+			su->delete_all_susis();
 			if ((o_su = avd_sg_npm_su_chose_asgn(cb, su->sg_of_su)) != NULL) {
 				/* add the SU to the operation list and change the SG FSM to SG realign. */
 				avd_sg_su_oper_list_add(cb, o_su, false);
@@ -4262,7 +4262,7 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 
 		/* if (su->sg_of_su->admin_state == NCS_ADMIN_STATE_SHUTDOWN) */
 		/* Free all the SI assignments to this SU. */
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 
 		/* remove the SU from the operation list. */
 		avd_sg_su_oper_list_del(cb, su, false);

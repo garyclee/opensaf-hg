@@ -2638,7 +2638,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 		}
 
 		/* delete the si assignments to this su */
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 
 		/* remove the su from the su-oper list */
 		avd_sg_su_oper_list_del(cb, su, false);
@@ -2857,7 +2857,7 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 		}		/* for */
 
 		/* free all the SI assignments to this SU */
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 
 		/* transition to sg-realign state or initiate si assignments */
 		if (sg->su_oper_list.su) {
@@ -3133,7 +3133,7 @@ uint32_t avd_sg_nway_susi_succ_sg_admin(AVD_CL_CB *cb,
 		if ((SA_AMF_ADMIN_LOCKED == sg->saAmfSGAdminState) ||
 		    (SA_AMF_ADMIN_SHUTTING_DOWN == sg->saAmfSGAdminState)) {
 			/* free all the SI assignments to this SU */
-			avd_sg_su_asgn_del_util(cb, su, true, false);
+			su->delete_all_susis();
 
 			/* delete the su from the oper list */
 			avd_sg_su_oper_list_del(cb, su, false);
@@ -3221,7 +3221,7 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 	}			/* for */
 
 	/* delete the si assignments to this su */
-	avd_sg_su_asgn_del_util(cb, su, true, false);
+	su->delete_all_susis();
 
 	/* if sg is still in stable state, initiate si assignments */
 	if (AVD_SG_FSM_STABLE == sg->sg_fsm_state) {
@@ -3351,7 +3351,7 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 	}
 
 	/* delete the si assignments to this su */
-	avd_sg_su_asgn_del_util(cb, su, true, false);
+	su->delete_all_susis();
 
 done:
 	TRACE_LEAVE();
@@ -3603,7 +3603,7 @@ void avd_sg_nway_node_fail_sg_admin(AVD_CL_CB *cb, AVD_SU *su)
 	TRACE_ENTER2("SU '%s'",su->name.value);
 
 	/* delete the si assignments to this su */
-	avd_sg_su_asgn_del_util(cb, su, true, false);
+	su->delete_all_susis();
 
 	/* delete the su from the su-oper list */
 	avd_sg_su_oper_list_del(cb, su, false);
