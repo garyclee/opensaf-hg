@@ -634,7 +634,7 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 		/* Do the action specified in the message if delete else no action. */
 		if (act == AVSV_SUSI_ACT_DEL) {
 			if (susi == AVD_SU_SI_REL_NULL) {
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 			} else {
 				/* free all the CSI assignments  */
 				avd_compcsi_delete(cb, susi, false);
@@ -658,7 +658,7 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 				m_AVD_SU_SI_TRG_DEL(cb, susi);
 			} else {
 				/* Remove all the SI relationships to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 			}
 
 			if (su->sg_of_su->admin_si != AVD_SI_NULL) {
@@ -834,7 +834,7 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 		if (act == AVSV_SUSI_ACT_DEL) {
 			if (susi == AVD_SU_SI_REL_NULL) {
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 
 			} else {
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
@@ -980,7 +980,7 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 				m_AVD_SU_SI_TRG_DEL(cb, susi);
 			} else {
 				/* Remove all the SI relationships to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, true, false);
+				su->delete_all_susis();
 			}
 
 			if (su->sg_of_su->admin_si->list_of_sisu != AVD_SU_SI_REL_NULL) {
@@ -1040,7 +1040,7 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 			 * Change the SG FSM state to stable.
 			 */
 
-			avd_sg_su_asgn_del_util(cb, su, true, false);
+			su->delete_all_susis();
 
 			avd_sg_su_oper_list_del(cb, su, false);
 
@@ -1415,7 +1415,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 		 * stable state.
 		 */
 
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 
 		if (avd_sg_nacvred_su_chose_asgn(cb, su->sg_of_su) != NULL) {
 			/* new assignments are been done in the SG. change the FSM state */
@@ -1469,7 +1469,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 				   pointers.*/
 			}
 		}
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 
 		if (su->sg_of_su->admin_si != AVD_SI_NULL) {
 			if (su->sg_of_su->admin_si->list_of_sisu != AVD_SU_SI_REL_NULL) {
@@ -1523,7 +1523,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 	case AVD_SG_FSM_SU_OPER:
 
 		/* Remove the SI relationship to this SU. */
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 
 		if (su->sg_of_su->su_oper_list.su == su) {
 			/*  SU is same as the SU in the list. If this SU admin is shutdown 
@@ -1582,7 +1582,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 		 * If this SI admin is shutdown change to LOCK. Remove the SI from 
 		 * SI admin pointer. Add the SU to operation list. Change state to SG_realign.
 		 */
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 
 		if (su->sg_of_su->admin_si->list_of_sisu != AVD_SU_SI_REL_NULL) {
 			if ((su->sg_of_su->admin_si->list_of_sisu->fsm
@@ -1623,7 +1623,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 		 * to stable.
 		 */
 
-		avd_sg_su_asgn_del_util(cb, su, true, false);
+		su->delete_all_susis();
 
 		avd_sg_su_oper_list_del(cb, su, false);
 
