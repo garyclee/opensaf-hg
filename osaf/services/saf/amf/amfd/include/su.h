@@ -115,6 +115,9 @@ class AVD_SU {
 	void set_oper_state(uint32_t state) {
 		set_oper_state(static_cast<SaAmfOperationalStateT>(state));
 	};
+	void delete_all_susis(void);
+	void set_all_susis_assigned_quiesced(void);
+	void set_all_susis_assigned(void);
 };
 
 typedef struct {
