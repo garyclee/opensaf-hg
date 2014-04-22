@@ -27,8 +27,6 @@
 #include <saAmf.h>
 #include <saImm.h>
 
-// TODO(hafe) remove include below when apptype is using map
-#include <ncspatricia.h>
 #include <sg.h>
 #include <si.h>
 #include "db_template.h"
@@ -37,8 +35,6 @@ struct avd_sg_tag;
 struct avd_si_tag;
 
 typedef struct avd_app_type_tag {
-
-	NCS_PATRICIA_NODE tree_node;	/* key is name */
 	SaNameT name;
 	SaNameT *sgAmfApptSGTypes;
 	uint32_t no_sg_types;
