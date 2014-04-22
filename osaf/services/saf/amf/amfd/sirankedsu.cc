@@ -194,7 +194,7 @@ AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext_valid(AVD_CL_CB *cb,
 	}
 
 	/* get the su & si */
-	su = avd_su_get(&ranked_su_per_si->su_name);
+	su = su_db->find(&ranked_su_per_si->su_name);
 	si = avd_si_get(&indx.si_name);
 
 	/* validate this entry */

@@ -178,7 +178,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	for (su_rank_rec = avd_sirankedsu_getnext(cb, i_idx);
 	     su_rank_rec && (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, si->name) == 0);
 	     su_rank_rec = avd_sirankedsu_getnext(cb, su_rank_rec->indx)) {
-		curr_su = avd_su_get(&su_rank_rec->su_name);
+		curr_su = su_db->find(&su_rank_rec->su_name);
 		if (curr_su == su)
 			break;
 	}
@@ -201,7 +201,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 			     i_su_rank_rec
 			     && (m_CMP_HORDER_SANAMET(i_su_rank_rec->indx.si_name, si->name) == 0);
 			     i_su_rank_rec = avd_sirankedsu_getnext(cb, i_su_rank_rec->indx)) {
-				curr_su = avd_su_get(&i_su_rank_rec->su_name);
+				curr_su = su_db->find(&i_su_rank_rec->su_name);
 				if (curr_su == i_su_si->su)
 					break;
 			}
@@ -324,82 +324,10 @@ AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const SaNameT *su_name, const SaName
 {
 	AVD_SU *su;
 
-	if ((su = avd_su_get(su_name)) == NULL)
+	if ((su = su_db->find(su_name)) == NULL)
 		return NULL;
 
 	return avd_su_susi_find(cb, su, si_name);
-}
-
-/*****************************************************************************
- * Function: avd_susi_find_next
- *
- * Purpose:  This function will find the next AVD_SU_SI_REL structure from the
- * list of susis in a su. If NULL, it will find the first SUSI for the next
- * SU in the tree.
- *
- * Input: cb - the AVD control block
- *        su_name - The SU name of the SU SI relation. 
- *        si_name - The SI name of the SU SI relation.
- *        
- * Returns: The AVD_SU_SI_REL structure that was found.
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-AVD_SU_SI_REL *avd_susi_find_next(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_name)
-{
-	AVD_SU *su;
-	AVD_SU_SI_REL *su_si = NULL;
-	SaNameT lsu_name, lsi_name;
-
-	/* check if exact match of SU is found so that the next SU SI
-	 * in the list of SU can be found. If not select the next SUs
-	 * first SU SI relation
-	 */
-	if (su_name.length != 0) {
-		su = avd_su_get(&su_name);
-		if (su == NULL)
-			su_si = NULL;
-		else
-			su_si = su->list_of_susi;
-	}
-
-	memset((char *)&lsi_name, '\0', sizeof(SaNameT));
-	memcpy(lsi_name.value, si_name.value, si_name.length);
-	lsi_name.length = si_name.length;
-	
-	while ((su_si != NULL) && (m_CMP_HORDER_SANAMET(su_si->si->name, lsi_name) <= 0)) {
-		su_si = su_si->su_next;
-	}
-
-	if (su_si != NULL) {
-		return su_si;
-	}
-
-	/* Find the the first SU SI relation in the next SU with
-	 * a SU SI relation.
-	 */
-	lsu_name = su_name;
-
-	while ((su = avd_su_getnext(&lsu_name)) != NULL) {
-		if (su->list_of_susi != NULL)
-			break;
-
-		lsu_name = su->name;
-	}
-
-	/* The given element didn't have a exact match but an element with
-	 * a greater SI name was found in the list
-	 */
-
-	if (su == NULL)
-		return NULL;
-	else
-		return su->list_of_susi;
-
-	return su_si;
 }
 
 /*****************************************************************************

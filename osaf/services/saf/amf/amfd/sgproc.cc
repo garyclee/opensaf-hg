@@ -429,7 +429,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	/* get the SU from the tree */
 
-	if ((su = avd_su_get(&n2d_msg->msg_info.n2d_opr_state.su_name)) == NULL) {
+	if ((su = su_db->find(&n2d_msg->msg_info.n2d_opr_state.su_name)) == NULL) {
 		LOG_ER("%s: %s not found", __FUNCTION__, n2d_msg->msg_info.n2d_opr_state.su_name.value);
 		goto done;
 	}
@@ -794,7 +794,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		 * SU operation. 
 		 */
 
-		if ((su = avd_su_get(&n2d_msg->msg_info.n2d_su_si_assign.su_name)) == NULL) {
+		if ((su = su_db->find(&n2d_msg->msg_info.n2d_su_si_assign.su_name)) == NULL) {
 			LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, n2d_msg->msg_info.n2d_su_si_assign.su_name.value);
 			goto done;
 		}
@@ -1108,7 +1108,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	   SI could be assigned to SU successfully if there was any. The operation failed if
 	   AvND encountered error while assigning/unassigning SI to the SU. */
 
-	su = avd_su_get(&n2d_msg->msg_info.n2d_su_si_assign.su_name);
+	su = su_db->find(&n2d_msg->msg_info.n2d_su_si_assign.su_name);
 
 	if (su != NULL) {
 		if (su->pend_cbk.invocation != 0) {

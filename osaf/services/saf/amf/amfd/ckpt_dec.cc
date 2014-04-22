@@ -1452,7 +1452,7 @@ static uint32_t dec_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
+	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1544,7 +1544,7 @@ static uint32_t dec_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
+	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1590,7 +1590,7 @@ static uint32_t dec_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
+	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1636,7 +1636,7 @@ static uint32_t dec_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
+	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1682,7 +1682,7 @@ static uint32_t dec_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
+	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1727,7 +1727,7 @@ static uint32_t dec_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
+	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1773,7 +1773,7 @@ static uint32_t dec_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
+	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1818,7 +1818,7 @@ static uint32_t dec_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
+	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1864,7 +1864,7 @@ static uint32_t dec_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
+	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1910,7 +1910,7 @@ static uint32_t dec_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
+	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
