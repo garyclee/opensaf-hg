@@ -23,22 +23,17 @@
 #include <si.h>
 #include <util.h>
 
-static NCS_PATRICIA_TREE apptype_db;
+AmfDb<AVD_APP_TYPE> *app_type_db = 0;
 
 AVD_APP_TYPE *avd_apptype_get(const SaNameT *dn)
 {
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_APP_TYPE *)ncs_patricia_tree_get(&apptype_db, (uint8_t *)&tmp);
+	return app_type_db->find(dn);
 }
 
 static void apptype_delete(AVD_APP_TYPE **apptype)
 {
-	unsigned int rc = ncs_patricia_tree_del(&apptype_db, &(*apptype)->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
+	app_type_db->erase(*apptype);
+	
 	delete [] (*apptype)->sgAmfApptSGTypes;
 	delete *apptype;
 	*apptype = NULL;
@@ -47,10 +42,10 @@ static void apptype_delete(AVD_APP_TYPE **apptype)
 static void apptype_add_to_model(AVD_APP_TYPE *app_type)
 {
 	unsigned int rc;
-
 	osafassert(app_type != NULL);
 	TRACE("'%s'", app_type->name.value);
-	rc = ncs_patricia_tree_add(&apptype_db, &app_type->tree_node);
+	
+	rc = app_type_db->insert(app_type);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
@@ -113,11 +108,10 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 	TRACE_ENTER2("'%s'", dn->value);
 
 	app_type = new AVD_APP_TYPE();
-
+	
 	memcpy(app_type->name.value, dn->value, dn->length);
 	app_type->name.length = dn->length;
-	app_type->tree_node.key_info = (uint8_t *)&(app_type->name);
-
+	
 	while ((attr = attributes[i++]) != NULL)
 		if (!strcmp(attr->attrName, "saAmfApptSGTypes"))
 			break;
@@ -291,10 +285,7 @@ void avd_apptype_remove_app(AVD_APP *app)
 
 void avd_apptype_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&apptype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	app_type_db = new AmfDb<AVD_APP_TYPE>;
 
 	avd_class_impl_set("SaAmfAppBaseType", NULL, NULL,
 			avd_imm_default_OK_completed_cb, NULL);
