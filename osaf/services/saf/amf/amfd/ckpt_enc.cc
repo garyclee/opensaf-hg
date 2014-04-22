@@ -2334,8 +2334,9 @@ static uint32_t enc_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t 
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	for (su = avd_su_getnext(&su_name); su != NULL;
-	     su = avd_su_getnext(&su_name)) {
+	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
+			it != su_db->end(); it++) {
+		su = it->second;
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 					    EDP_OP_TYPE_ENC, su, &ederror, enc->i_peer_version);
 
@@ -2546,7 +2547,6 @@ static uint32_t enc_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SU *su;
-	SaNameT su_name = {0};
 	AVSV_SU_SI_REL_CKPT_MSG su_si_ckpt;
 	AVD_SU_SI_REL *rel;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
@@ -2558,10 +2558,10 @@ static uint32_t enc_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num
 	 * are sent.We will send the corresponding COMP_CSI relationship for that SU_SI
 	 * in the same update.
 	 */
-	su_name.length = 0;
 	memset(&su_si_ckpt, 0, sizeof(su_si_ckpt));
-	for (su = avd_su_getnext(&su_name); su != NULL;
-	     su = avd_su_getnext(&su_name)) {
+	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
+			it != su_db->end(); it++) {
+		su = it->second;
 		su_si_ckpt.su_name = su->name;
 
 		for (rel = su->list_of_susi; rel != NULL; rel = rel->su_next) {
@@ -2580,7 +2580,6 @@ static uint32_t enc_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num
 
 			(*num_of_obj)++;
 		}
-		su_name = su->name;
 	}
 	TRACE_LEAVE2("status '%u'", status);
 	return status;

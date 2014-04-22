@@ -1553,8 +1553,6 @@ void avd_saImmOiRtObjectDelete(const SaNameT* dn)
  */
 void avd_imm_update_runtime_attrs(void)
 {
-	SaNameT su_name = {0};
-	AVD_SU  *su;
 	SaNameT comp_name ={0};
 	AVD_COMP *comp;
 	SaNameT node_name = {0};
@@ -1563,8 +1561,9 @@ void avd_imm_update_runtime_attrs(void)
 	AVD_SI  *si;
 
 	/* Update SU Class runtime cached attributes. */
-	su = avd_su_getnext(&su_name);
-	while (su != NULL) {
+	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
+			it != su_db->end(); it++) {
+		AVD_SU *su = it->second;
 		avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPreInstantiable",
 			SA_IMM_ATTR_SAUINT32T,  &su->saAmfSUPreInstantiable);
 
@@ -1580,7 +1579,6 @@ void avd_imm_update_runtime_attrs(void)
 		avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUReadinessState",
 			SA_IMM_ATTR_SAUINT32T, &su->saAmfSuReadinessState);
 
-		su = avd_su_getnext(&su->name);
 	}
 
 	/* Update Component Class runtime cached attributes. */

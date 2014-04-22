@@ -35,7 +35,6 @@
 #define AVD_SU_H
 
 #include <saAmf.h>
-#include <ncspatricia.h>
 #include <def.h>
 #include <cb.h>
 #include <node.h>
@@ -43,6 +42,7 @@
 #include <amf_defs.h>
 #include <msg.h>
 #include <comp.h>
+#include "include/db_template.h"
 
 /* The semantics the SU is undergoing. */
 typedef enum {
@@ -57,8 +57,6 @@ typedef enum {
  */
 class AVD_SU {
  public:
-	NCS_PATRICIA_NODE tree_node;	/* key will be the SU name */
-
 	SaNameT name;
 	SaNameT saAmfSUType;
 	uint32_t saAmfSURank;
@@ -120,6 +118,8 @@ class AVD_SU {
 	void set_all_susis_assigned(void);
 };
 
+extern AmfDb<AVD_SU> *su_db;
+
 typedef struct {
 	NCS_PATRICIA_NODE tree_node;	/* key is name */
 	SaNameT name;
@@ -165,36 +165,6 @@ extern AVD_SU *avd_su_new(const SaNameT *dn);
  * @param su
  */
 extern void avd_su_delete(AVD_SU *su);
-
-/**
- * Add SU to SU DB.
- * @param su
- */
-extern void avd_su_db_add(AVD_SU *su);
-
-/**
- * Remove SU from SU DB
- * @param su
- */
-extern void avd_su_db_remove(AVD_SU *su);
-
-/**
- * Get SU object from DB using given key
- * 
- * @param dn
- * 
- * @return struct AVD_SU*
- */
-extern AVD_SU *avd_su_get(const SaNameT *dn);
-
-/**
- * Get next SU object from DB using given key
- * 
- * @param dn
- * 
- * @return struct AVD_SU*
- */
-extern AVD_SU *avd_su_getnext(const SaNameT *dn);
 
 extern void avd_su_remove_comp(struct avd_comp_tag *comp);
 extern void avd_su_add_comp(struct avd_comp_tag *comp);

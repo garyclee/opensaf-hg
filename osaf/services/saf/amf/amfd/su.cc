@@ -29,23 +29,7 @@
 #include <proc.h>
 #include <csi.h>
 
-static NCS_PATRICIA_TREE su_db;
-
-void avd_su_db_add(AVD_SU *su)
-{
-	unsigned int rc;
-
-	if (avd_su_get(&su->name) == NULL) {
-		rc = ncs_patricia_tree_add(&su_db, &su->tree_node);
-		osafassert(rc == NCSCC_RC_SUCCESS);
-	}
-}
-
-void avd_su_db_remove(AVD_SU *su)
-{
-	unsigned int rc = ncs_patricia_tree_del(&su_db, &su->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
-}
+AmfDb<AVD_SU> *su_db = NULL;
 
 AVD_SU *avd_su_new(const SaNameT *dn)
 {
@@ -56,7 +40,6 @@ AVD_SU *avd_su_new(const SaNameT *dn)
 	
 	memcpy(su->name.value, dn->value, dn->length);
 	su->name.length = dn->length;
-	su->tree_node.key_info = (uint8_t *)&(su->name);
 	avsv_sanamet_init(dn, &sg_name, "safSg");
 	su->saAmfSUFailover = false;
 	su->term_state = false;
@@ -91,21 +74,11 @@ void avd_su_delete(AVD_SU *su)
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
 	avd_node_remove_su(su);
 	avd_sutype_remove_su(su);
-	avd_su_db_remove(su);
+	su_db->erase(su);
 	avd_sg_remove_su(su);
 	delete su;
 
 	TRACE_LEAVE();
-}
-
-AVD_SU *avd_su_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_SU *)ncs_patricia_tree_get(&su_db, (uint8_t *)&tmp);
 }
 
 /**
@@ -117,27 +90,19 @@ AVD_SU *avd_su_get(const SaNameT *dn)
  */
 AVD_SU *avd_su_get_or_create(const SaNameT *dn)
 {
-	AVD_SU *su = avd_su_get(dn);
+	AVD_SU *su = su_db->find(dn);
 
-	if (!su) {
+	if (su == NULL) {
 		TRACE("'%s' does not exist, creating it", dn->value);
 		su = avd_su_new(dn);
 		osafassert(su != NULL);
-		avd_su_db_add(su);
+		unsigned int rc = su_db->insert(su);
+		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 
 	return su;
 }
 
-AVD_SU *avd_su_getnext(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_SU *)ncs_patricia_tree_getnext(&su_db, (uint8_t *)&tmp);
-}
 /**
  * @brief   gets the current no of assignmnents on a SU for a particular state
  *
@@ -459,7 +424,7 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if ((su = avd_su_get(dn)) == NULL) {
+	if ((su = su_db->find(dn)) == NULL) {
 		if ((su = avd_su_new(dn)) == NULL)
 			goto done;
 	} else
@@ -583,7 +548,8 @@ static void su_add_to_model(AVD_SU *su)
 {
 	SaNameT dn;
 	AVD_AVND *node;
-	int new_su = 0;
+	bool new_su = false;
+	unsigned int rc;
 
 	TRACE_ENTER2("%s", su->name.value);
 
@@ -594,8 +560,8 @@ static void su_add_to_model(AVD_SU *su)
 	}
 
 	/* Determine of the SU is added now, if so msg to amfnd needs to be sent */
-	if (avd_su_get(&su->name) == NULL)
-		new_su = 1;
+	if (su_db->find(&su->name) == NULL)
+		new_su = true;
 
 	avsv_sanamet_init(&su->name, &dn, "safSg");
 
@@ -607,7 +573,8 @@ static void su_add_to_model(AVD_SU *su)
 	su->sg_of_su = avd_sg_get(&dn);
 	osafassert(su->sg_of_su);
 
-	avd_su_db_add(su);
+	rc = su_db->insert(su);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 	su->su_type = avd_sutype_get(&su->saAmfSUType);
 	osafassert(su->su_type);
 	avd_sutype_add_su(su);
@@ -647,7 +614,7 @@ static void su_add_to_model(AVD_SU *su)
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) 
 		goto done;
 
-	if (new_su) {
+	if (new_su == true) {
 		if ((node->node_state == AVD_AVND_STATE_PRESENT) ||
 		    (node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
 		    (node->node_state == AVD_AVND_STATE_NCS_INIT)) {
@@ -896,7 +863,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		goto done;
 	}
 
-	if (NULL == (su = avd_su_get(su_name))) {
+	if (NULL == (su = su_db->find(su_name))) {
 		LOG_CR("SU '%s' not found", su_name->value);
 		/* internal error? osafassert instead? */
 		goto done;
@@ -1213,7 +1180,7 @@ done:
 static SaAisErrorT su_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
-	AVD_SU *su = avd_su_get(objectName);
+	AVD_SU *su = su_db->find(objectName);
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
@@ -1270,7 +1237,7 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			continue;
 
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUFailover")) {
-			AVD_SU *su = avd_su_get(&opdata->objectName);
+			AVD_SU *su = su_db->find(&opdata->objectName);
 			uint32_t su_failover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
 
 			/* If SG is not in stable state and amfnd is already busy in the handling of some fault,
@@ -1290,7 +1257,7 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUMaintenanceCampaign")) {
-			AVD_SU *su = avd_su_get(&opdata->objectName);
+			AVD_SU *su = su_db->find(&opdata->objectName);
 
 			if (su->saAmfSUMaintenanceCampaign.length > 0) {
 				report_ccb_validation_error(opdata, "saAmfSUMaintenanceCampaign already set for %s",
@@ -1301,7 +1268,7 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUType")) {
 			AVD_SU *su;
 			SaNameT sutype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
-			su = avd_su_get(&opdata->objectName);
+			su = su_db->find(&opdata->objectName);
 			if(SA_AMF_ADMIN_LOCKED_INSTANTIATION != su->saAmfSUAdminState) {
 				report_ccb_validation_error(opdata, "SU is not in locked-inst, present state '%d'",
 						su->saAmfSUAdminState);
@@ -1351,7 +1318,7 @@ static SaAisErrorT su_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 	if (strstr((char *)opdata->objectName.value, "safApp=OpenSAF") != NULL)
 		is_app_su = 0;
 
-	su = avd_su_get(&opdata->objectName);
+	su = su_db->find(&opdata->objectName);
 	osafassert(su != NULL);
 
 	if (is_app_su && (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
@@ -1455,7 +1422,7 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
-	su = avd_su_get(&opdata->objectName);
+	su = su_db->find(&opdata->objectName);
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		/* Attribute value removed */
@@ -1630,11 +1597,7 @@ void avd_su_dec_curr_stdby_si(AVD_SU *su)
 
 void avd_su_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&su_db, &patricia_params) == NCSCC_RC_SUCCESS);
-
+	su_db = new AmfDb<AVD_SU>;
 	avd_class_impl_set("SaAmfSU", su_rt_attr_cb, su_admin_op_cb,
 		su_ccb_completed_cb, su_ccb_apply_cb);
 }

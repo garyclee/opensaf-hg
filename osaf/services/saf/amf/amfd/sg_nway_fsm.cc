@@ -1389,7 +1389,7 @@ AVD_SU *avd_sg_nway_si_find_highest_sirankedsu(AVD_CL_CB *cb, AVD_SI *si, AVD_SU
 	/* Iterate through the si->rankedsu_list_head to find the highest sirankedsu */
 	sirankedsu = si->rankedsu_list_head;
 	for (; sirankedsu ; sirankedsu = sirankedsu->next) {
-		if ((ranked_su = avd_su_get(&sirankedsu->suname)) != NULL) {
+		if ((ranked_su = su_db->find(&sirankedsu->suname)) != NULL) {
 			if (ranked_su == *assigned_su) {
                                 TRACE("SI is assigned to highest SIRankedSU for this SI");
                                 break;

@@ -715,7 +715,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 	case AVSV_SA_AMF_SU:{
 			/* Find the component record in the database, specified in the message. */
-			if ((su = avd_su_get(&n2d_msg->msg_info.n2d_data_req.param_info.name)) == NULL) {
+			if ((su = su_db->find(&n2d_msg->msg_info.n2d_data_req.param_info.name)) == NULL) {
 				LOG_ER("%s: Invalid SU '%s' (%u)", __FUNCTION__,
 					n2d_msg->msg_info.n2d_data_req.param_info.name.value,
 					n2d_msg->msg_info.n2d_data_req.param_info.name.length);

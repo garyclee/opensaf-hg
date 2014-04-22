@@ -24,6 +24,7 @@
 ******************************************************************************
 */
 
+#include <vector>
 #include <string.h>
 
 #include <saImmOm.h>
@@ -445,34 +446,15 @@ done:
 	return rc;
 }
 
- /*****************************************************************************
- * Function: avd_prep_su_info
- *
- * Purpose:  This function prepares the SU
- * information for the given SU and adds it to the message. 
- *
- * Input: cb - Pointer to the AVD control block
- *        su - Pointer to the SU related to which the messages need to be sent.
- *        su_msg - Pointer to the SU message being prepared.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-static uint32_t avd_prep_su_info(AVD_CL_CB *cb, AVD_SU *su, AVD_DND_MSG *su_msg)
+/**
+ * Creates and initializes the su_info part of the REG_SU message
+ * @param su_msg
+ * @param su
+ */
+static void reg_su_msg_init_su_info(AVD_DND_MSG *su_msg, const AVD_SU *su)
 {
-	AVSV_SU_INFO_MSG *su_info;
+	AVSV_SU_INFO_MSG *su_info = new AVSV_SU_INFO_MSG();
 
-	TRACE_ENTER();
-
-	su_info = new AVSV_SU_INFO_MSG();
-
-	/* fill and add the SU into
-	 * the SU message at the top of the list
-	 */
 	su_info->name = su->name;
 	su_info->comp_restart_max = su->sg_of_su->saAmfSGCompRestartMax;
 	su_info->comp_restart_prob = su->sg_of_su->saAmfSGCompRestartProb;
@@ -485,9 +467,6 @@ static uint32_t avd_prep_su_info(AVD_CL_CB *cb, AVD_SU *su, AVD_DND_MSG *su_msg)
 	su_info->next = su_msg->msg_info.d2n_reg_su.su_list;
 	su_msg->msg_info.d2n_reg_su.su_list = su_info;
 	su_msg->msg_info.d2n_reg_su.num_su++;
-
-	return NCSCC_RC_SUCCESS;
-
 }
 
 /*****************************************************************************
@@ -508,71 +487,40 @@ static uint32_t avd_prep_su_info(AVD_CL_CB *cb, AVD_SU *su, AVD_DND_MSG *su_msg)
 
 uint32_t avd_snd_su_reg_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool fail_over)
 {
-	AVD_SU *i_su = NULL;
-	AVD_DND_MSG *su_msg;
-	uint32_t i, count = 0;
-	SaNameT temp_su_name = {0};
+	AVD_SU *su = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%s", avnd->node_name);
 
-	su_msg = new AVSV_DND_MSG();
-
-	/* prepare the SU message. */
+	AVD_DND_MSG *su_msg = new AVSV_DND_MSG();
 	su_msg->msg_type = AVSV_D2N_REG_SU_MSG;
 	su_msg->msg_info.d2n_reg_su.nodeid = avnd->node_info.nodeId;
 	su_msg->msg_info.d2n_reg_su.msg_on_fover = fail_over;
 
-	/* build the SU message for both the NCS and application SUs. */
+	// Add osaf SUs
+	for (su = avnd->list_of_ncs_su; su != NULL; su = su->avnd_list_su_next)
+		reg_su_msg_init_su_info(su_msg, su);
 
-	/* Check whether the AvND belongs to ACT controller. If yes, then send all
-	   the external SUs/Components to it, otherwise send only cluster 
-	   components. */
+	// Add app SUs
+	for (su = avnd->list_of_su; su != NULL; su = su->avnd_list_su_next)
+		reg_su_msg_init_su_info(su_msg, su);
+
+	// Add external SUs but only if node belongs to ACT controller
 	if (avnd->node_info.nodeId == cb->node_id_avd) {
-		count = 2;
-	} else
-		count = 1;
-
-	for (i = 0; i <= count; ++i) {
-		if (i == 0)
-			i_su = avnd->list_of_ncs_su;
-		else if (i == 1)
-			i_su = avnd->list_of_su;
-		else {
-			/* For external component, we don't have any node attached to it. 
-			   So, get the first external SU. */
-			temp_su_name.length = 0;
-			while (NULL != (i_su = avd_su_getnext(&temp_su_name))) {
-				if (true == i_su->su_is_external)
-					break;
-
-				temp_su_name = i_su->name;
-			}
+		// filter out external SUs from all SUs
+		std::vector<AVD_SU*> ext_su_vec;
+		for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
+				it != su_db->end(); it++) {
+			su = it->second;
+			if (su->su_is_external == true)
+				ext_su_vec.push_back(su);
 		}
 
-		while (i_su != NULL) {
-			/* Add information about this SU to the message */
-			if (avd_prep_su_info(cb, i_su, su_msg) == NCSCC_RC_FAILURE) {
-				/* Free all the messages and return error */
-				d2n_msg_free(su_msg);
-				LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
-				rc = NCSCC_RC_FAILURE;
-				goto done;
-			}
-
-			/* get the next SU in the node */
-			if ((0 == i) || (1 == i))
-				i_su = i_su->avnd_list_su_next;
-			else {
-				/* Get the next external SU. */
-				temp_su_name = i_su->name;
-				while (NULL != (i_su = avd_su_getnext(&temp_su_name))) {
-					if (true == i_su->su_is_external)
-						break;
-
-					temp_su_name = i_su->name;
-				}
-			}
+		// And add them
+		for (std::vector<AVD_SU*>::iterator it = ext_su_vec.begin();
+				it != ext_su_vec.end(); it++) {
+			su = *it;
+			reg_su_msg_init_su_info(su_msg, su);
 		}
 	}
 
@@ -627,44 +575,17 @@ done:
 
 uint32_t avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 {
-	AVD_DND_MSG *su_msg;
 	AVD_AVND *node = NULL;
 
 	TRACE_ENTER();
 
-	if (su == NULL) {
-		/* This is a invalid situation as the SU
-		 * needs to be mentioned.
-		 */
-
-		/* Log a fatal error that su can't be null */
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
-		return NCSCC_RC_FAILURE;
-	}
-
 	m_AVD_GET_SU_NODE_PTR(cb, su, node);
 
-	su_msg = new AVSV_DND_MSG();
-
-	/* prepare the SU  message. */
-
+	AVD_DND_MSG *su_msg = new AVSV_DND_MSG();
 	su_msg->msg_type = AVSV_D2N_REG_SU_MSG;
-
 	su_msg->msg_info.d2n_reg_su.nodeid = node->node_info.nodeId;
-
-	/* Add information about this SU to the message */
-	if (avd_prep_su_info(cb, su, su_msg) == NCSCC_RC_FAILURE) {
-		/* Free the messages and return error */
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
-		delete su_msg;
-		return NCSCC_RC_FAILURE;
-	}
-
+	reg_su_msg_init_su_info(su_msg, su);
 	su_msg->msg_info.d2n_reg_su.msg_id = ++(node->snd_msg_id);
-
-	/* send the SU message to the node if return value is failure
-	 * free messages and return error.
-	 */
 
 	TRACE("Sending %u to %x", AVSV_D2N_REG_SU_MSG, node->node_info.nodeId);
 
@@ -1468,9 +1389,9 @@ void amfd_file_dump(const char *path)
 		dn = sg->name;
 	}
 
-	AVD_SU *su;
-	dn.length = 0;
-	for (su = avd_su_getnext(&dn); su != NULL; su = avd_su_getnext(&dn)) {
+	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
+			it != su_db->end(); it++) {
+		const AVD_SU *su = it->second;
 		fprintf(f, "%s\n", su->name.value);
 		fprintf(f, "\tsaAmfSUPreInstantiable=%u\n", su->saAmfSUPreInstantiable);
 		fprintf(f, "\tsaAmfSUOperState=%u\n", su->saAmfSUOperState);
@@ -1512,14 +1433,14 @@ void amfd_file_dump(const char *path)
 	}
 
 	AVD_SU_SI_REL *rel;
-	dn.length = 0;
-	for (su = avd_su_getnext(&dn); su != NULL; su = avd_su_getnext(&dn)) {
+	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
+			it != su_db->end(); it++) {
+		const AVD_SU *su = it->second;
 		for (rel = su->list_of_susi; rel != NULL; rel = rel->su_next) {
 			fprintf(f, "%s,%s\n", rel->su->name.value, rel->si->name.value);
 			fprintf(f, "\thastate=%u\n", rel->state);
 			fprintf(f, "\tfsm=%u\n", rel->fsm);
 		}
-		dn = su->name;
 	}
 
 	dn.length = 0;
