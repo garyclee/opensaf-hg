@@ -98,7 +98,7 @@ AVD_SG::AVD_SG():
 		saAmfSGAutoAdjust(SA_FALSE),
 		saAmfSGNumPrefActiveSUs(0),
 		saAmfSGNumPrefStandbySUs(0),
-		saAmfSGNumPrefInserviceSUs(0),
+		saAmfSGNumPrefInserviceSUs(~0),
 		saAmfSGNumPrefAssignedSUs(0),
 		saAmfSGMaxActiveSIsperSU(0),
 		saAmfSGMaxStandbySIsperSU(0),
@@ -812,17 +812,6 @@ static void sg_nd_attribute_update(AVD_SG *sg, uint32_t attrib_id)
 	TRACE_LEAVE();
 }
 
-static unsigned int sg_su_cnt(AVD_SG *sg)
-{
-	AVD_SU *su;
-	int cnt;
-
-	for (su = sg->list_of_su, cnt = 0; su; su = su->sg_list_su_next)
-		cnt++;
-
-	return cnt;
-}
-
 static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 {
 	AVD_SG *sg;
@@ -920,7 +909,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				TRACE("Modified saAmfSGNumPrefStandbySUs is '%u'", sg->saAmfSGNumPrefStandbySUs);
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefInserviceSUs")) {
 				if (value_is_deleted)
-					sg->saAmfSGNumPrefInserviceSUs = sg_su_cnt(sg);
+					sg->saAmfSGNumPrefInserviceSUs = ~0;
 				else
 					sg->saAmfSGNumPrefInserviceSUs = *((SaUint32T *)value);
 				TRACE("Modified saAmfSGNumPrefInserviceSUs is '%u'", sg->saAmfSGNumPrefInserviceSUs);
@@ -1002,7 +991,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 			if (!strcmp(attribute->attrName, "saAmfSGNumPrefInserviceSUs")) {
 				if (value_is_deleted)
-					sg->saAmfSGNumPrefInserviceSUs = sg_su_cnt(sg);
+					sg->saAmfSGNumPrefInserviceSUs = ~0;
 				else
 					sg->saAmfSGNumPrefInserviceSUs = *((SaUint32T *)value);
 				TRACE("Modified saAmfSGNumPrefInserviceSUs is '%u'", sg->saAmfSGNumPrefInserviceSUs);
@@ -1637,16 +1626,6 @@ void avd_sg_adjust_config(AVD_SG *sg)
 			}
 		}
 
-	}
-
-	/* adjust saAmfSGNumPrefInserviceSUs if not configured */
-	if (sg->saAmfSGNumPrefInserviceSUs == 0) {
-		sg->saAmfSGNumPrefInserviceSUs = sg_su_cnt(sg);
-		if ((sg->sg_type->saAmfSgtRedundancyModel == SA_AMF_2N_REDUNDANCY_MODEL) &&
-				(sg->saAmfSGNumPrefInserviceSUs < 2)) {
-			sg->saAmfSGNumPrefInserviceSUs = 2;
-			LOG_NO("'%s' saAmfSGNumPrefInserviceSUs adjusted to 2", sg->name.value);
-		}
 	}
 
 	/* adjust saAmfSGNumPrefAssignedSUs if not configured, only applicable for
