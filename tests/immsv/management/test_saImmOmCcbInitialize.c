@@ -164,6 +164,9 @@ extern void saImmOmCcbApply_01(void);
 extern void saImmOmCcbApply_02(void);
 extern void saImmOmCcbFinalize_01(void);
 extern void saImmOmCcbFinalize_02(void);
+extern void saImmOmCcbAbort_01(void);
+extern void saImmOmCcbAbort_02(void);
+extern void saImmOmCcbAbort_03(void);
 
 __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
 {
@@ -235,5 +238,8 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
 
     test_case_add(6, saImmOmCcbObjectModify_2_08, "saImmOmCcbObjectModify_2 SA_IMM_ATTR_DELETE multi/single - SA_AIS_OK");
     test_case_add(6, saImmOmCcbObjectModify_2_07, "saImmOmCcbObjectModify_2 SA_IMM_ATTR_DELETE multi/multi - SA_AIS_OK");
+    test_case_add(6, saImmOmCcbAbort_01, "saImmOmCcbAbort - SA_AIS_OK");
+    test_case_add(6, saImmOmCcbAbort_02, "saImmOmCcbAbort  continued ccb handle usage - SA_AIS_OK");
+    test_case_add(6, saImmOmCcbAbort_03, "saImmOmCcbAbort after apply with lower imm version - SA_AIS_ERR_VERSION");
 }
 

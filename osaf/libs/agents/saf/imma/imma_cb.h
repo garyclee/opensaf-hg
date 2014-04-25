@@ -60,6 +60,7 @@ typedef struct imma_client_node {
 	bool isImmA2b;       /* Version A.02.11 */
 	bool isImmA2bCbk;    /* Version A.02.11 callback*/
 	bool isImmA2d;       /* Version A.02.13 */
+	bool isImmA2e;       /* Version A.02.14 */
 	bool isApplier; /* True => This is an Applier-OI */
 	bool isAug;     /* True => handle internal to OI augmented CCB */
 	bool isBusy;	/* True => handle is locked by a thread until a function execution is done */

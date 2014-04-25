@@ -121,9 +121,12 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 		TRACE_2("OI client version A.2.%u", requested_version.minorVersion);
 		if(requested_version.minorVersion >= 0x0b) {
 			cl_node->isImmA2b = 0x1;
-		}
-		if(requested_version.minorVersion >= 0x0d) {
-			cl_node->isImmA2d = 0x1;
+			if(requested_version.minorVersion >= 0x0d) {
+				cl_node->isImmA2d = true;
+				if(requested_version.minorVersion >= 0x0e) {
+					cl_node->isImmA2e = true;
+				}
+			}
 		}
 	}
 

@@ -53,7 +53,7 @@ static const char *sysaAdmName = SA_IMM_ATTR_ADMIN_OWNER_NAME;
 static const char *sysaImplName = SA_IMM_ATTR_IMPLEMENTER_NAME;
 
 static int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked);
-
+static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandleOpen);
 
 /****************************************************************************
   Name          :  SaImmOmInitialize
@@ -124,6 +124,9 @@ SaAisErrorT saImmOmInitialize_o2(SaImmHandleT *immHandle, const SaImmCallbacksT_
 
 	if(requested_version.minorVersion >= 0x0d) {
 		cl_node->isImmA2d = true;
+		if(requested_version.minorVersion >= 0x0e) {
+			cl_node->isImmA2e = true;
+		}
 	}
 
 	/* Store the callback functions, if set */
@@ -170,9 +173,12 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 		TRACE("OM client version A.2.%u", requested_version.minorVersion);
 		if(requested_version.minorVersion >= 0x0b) {
 			cl_node->isImmA2b = true;
-		}
-		if(requested_version.minorVersion >= 0x0d) {
-			cl_node->isImmA2d = true;
+			if(requested_version.minorVersion >= 0x0d) {
+				cl_node->isImmA2d = true;
+				if(requested_version.minorVersion >= 0x0e) {
+					cl_node->isImmA2e = true;
+				}
+			}
 		}
 	}
 
@@ -3257,6 +3263,40 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	TRACE_LEAVE();
 	return rc;
 }
+
+/****************************************************************************
+  Name          :  saImmOmCcbAbort
+ 
+  Description   :  Aborts a CCB(id) without finalizing the ccb-handle.
+                   Discards any ccb operations currently associated with the ccb-handle.
+                   If SA_AIS_OK is returned then ccb-handle can continue to be used and
+                   is in the same empty state as if it had just been initialized.
+
+                   Previously it was only possible to explicitly abort an active ccb
+                   by invoking saImOmCcbFinalize() which also closes the ccb-handle.
+
+                   This a blocking syncronous call.
+
+                   
+  Arguments     :  ccbHandle - Ccb Handle
+
+  Return Values :  SA_AIS_OK; - Means the ccb contents has been discarded.
+                                and involved Ois receive abort callback.
+                                Ccb handle is still valid.
+
+                   SA_AIS_ERR_VERSION - Not allowed for IMM API version below A.2.14.
+                   SA_AIS_ERR_BAD_OPERATION - saImmOmCcbAbort not allowed on augmented ccb.
+
+                   Remaining returncodes identical to saImmOmFinalize.
+
+ 
+******************************************************************************/
+SaAisErrorT saImmOmCcbAbort(SaImmCcbHandleT ccbHandle)
+{
+	return imma_finalizeCcb(ccbHandle, true);
+}
+
+
 
 /****************************************************************************
   Name          :  saImmOmAdminOperationInvoke_2/_o2
@@ -7615,7 +7655,7 @@ SaAisErrorT saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT adminOwnerHandle)
 	return rc;
 }
 
-SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
+static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandleOpen)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
@@ -7661,6 +7701,12 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 	}
 
 	if (ccb_node->mAugCcb) {
+		if(keepCcbHandleOpen) {
+			LOG_IN("ERR_BAD_OPERATION: saImmOmCcbAbort() not allowed inside a ccb augmentation");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
 		if(!(ccb_node->mApplied || ccb_node->mAborted)) {
 			if(ccb_node->mAugIsTainted) {
 				ccb_node->mAborted = true;
@@ -7678,38 +7724,45 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 
 	ccb_node->mExclusive = true; 
 
+	/* Get the Admin Owner info  */
+	imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHdl, &ao_node);
+	if (!ao_node) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_3("ERR_BAD_HANDLE: Amin-Owner node associated with Ccb is missing");
+		goto done;
+	}
+
+	osafassert(immHandle == ao_node->mImmHandle);
+	ao_node = NULL;
+
+	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+	if (!(cl_node && cl_node->isOm)) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("ERR_LIBRARY: No valid SaImmHandleT associated with Ccb");
+		goto done;
+	}
+
+	if (cl_node->stale) {
+		TRACE_1("IMM Handle %llx is stale", immHandle);
+		rc = SA_AIS_OK;	/*Dont punish the client for closing stale handle */
+		imma_ccb_node_delete(cb, ccb_node);
+		ccb_node = NULL;
+		goto done;
+	}
+
+	if(keepCcbHandleOpen && !(cl_node->isImmA2e)) {
+		ccb_node->mExclusive = false;
+		LOG_IN("ERR_VERSION: saImmOmCcbAbort() only supported in version A.02.14 or higher");
+		rc = SA_AIS_ERR_VERSION;
+		goto done;
+	}
+
 	if (ccbActive) {
 		TRACE("Ccb is active when finalizing");
 		/* If the ccb is not active, then there is no CCB (id) in the server.
 		   Then the CCB session (node) only exists in the IMMA library.
 		   No message should be sent to the server for that case. 
 		 */
-
-		/* Get the Admin Owner info  */
-		imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHdl, &ao_node);
-		if (!ao_node) {
-			rc = SA_AIS_ERR_BAD_HANDLE;
-			TRACE_3("ERR_BAD_HANDLE: Amin-Owner node associated with Ccb is missing");
-			goto done;
-		}
-
-		osafassert(immHandle == ao_node->mImmHandle);
-		ao_node = NULL;
-
-		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
-		if (!(cl_node && cl_node->isOm)) {
-			rc = SA_AIS_ERR_LIBRARY;
-			TRACE_4("ERR_LIBRARY: No valid SaImmHandleT associated with Ccb");
-			goto done;
-		}
-
-		if (cl_node->stale) {
-			TRACE_1("IMM Handle %llx is stale", immHandle);
-			rc = SA_AIS_OK;	/*Dont punish the client for closing stale handle */
-			imma_ccb_node_delete(cb, ccb_node);
-			ccb_node = NULL;
-			goto done;
-		}
 
 		timeout = cl_node->syncr_timeout;
 
@@ -7759,11 +7812,17 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 
 	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
 	if(ccb_node) {
-		if(rc == SA_AIS_OK) {/* i.e. not TRY_AGAIN or TIMEOUT */
-			imma_ccb_node_delete(cb, ccb_node);
-			ccb_node = NULL;
+		if(rc == SA_AIS_OK) {/* Not TRY_AGAIN or TIMEOUT */
+			if(!keepCcbHandleOpen) {
+				imma_ccb_node_delete(cb, ccb_node);
+				ccb_node = NULL;
+			}
 		} else {
 			/* TRY_AGAIN or TIMEOUT => allow user to try finalize again. */
+			ccb_node->mExclusive = false;
+		}
+		if(keepCcbHandleOpen) { /* saImmOmCcbAbort */
+			ccb_node->mApplied = true;
 			ccb_node->mExclusive = false;
 		}
 	}
@@ -7777,6 +7836,13 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 	TRACE_LEAVE();
 	return rc;
 }
+
+
+SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
+{
+	return imma_finalizeCcb(ccbHandle, false);
+}
+
 
 
 /* 
