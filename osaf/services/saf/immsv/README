@@ -1680,6 +1680,94 @@ version A.2.13.
 
 See: osaf/services/saf/immsv/README.NO_DANGLING for details.
 
+
+Support for saImmOmCcbAbort() and saImmOmCcbValidate() (4.5)
+========================================================================
+https://sourceforge.net/p/opensaf/tickets/798/
+
+Adds adds support for an OM client to explicitly request abort of the current
+CCB(id) without finalizing the handle.
+Also support for an OM client to explicitly request validation of the current
+CCB state without any immediate and automatic ccb commit if validation succeeds.
+
+These API additions are available to OM clients that initialize their OM-handle
+with IMM API version A.2.14.
+
+(1)
+extern SaAisErrorT
+saImmOmCcbAbort(SaImmCcbHandleT ccbHandle): /* in */
+
+  Arguments     :  ccbHandle  - The ccbHandle for the ccb to be aborted.
+
+  Return Values :  SA_AIS_OK
+
+                   SA_AIS_ERR_BAD_OPERATION - Not allowed inside a ccb augmentation.
+
+                   SA_AIS_ERR_VERSION  (not using A.2.14)
+
+                   Returncodes otherwise identical to saImmOmFinalize.
+
+Aborts a CCB(id) without finalizing the ccb-handle.
+Discards any ccb operations currently associated with the ccb-handle.
+Also resets a ccbHandle that has previously received the abort return
+code SA_AIS_ERR_FAILED_OPERATION. 
+Previously it was only possible to explicitly abort an active ccb
+by invoking saImOmCcbFinalize() which also closes the ccb-handle.
+And previously it was not possible to reset a ccbHandle that had
+received the ccb-aborted return code: SA_AIS_ERR_FAILED_OPERATION.
+Such a ccb-handle was doomed and could only be finalized. This is
+no longer the case when the ccbAbort alterative exists. Invoking
+ccbAbort is an explicit handshake between the om-user and the immsv
+that any previous ccb-state is cleared and the current ccb-state is
+empty. If SA_AIS_OK is returned then ccb-handle can continue to be
+used and is in the same empty state as if it had just been initialized.                   
+This is a blocking syncronous call.
+
+(2)
+extern SaAisErrorT
+saImmOmCcbValidate(SaImmCcbHandleT ccbHandle): /* in */
+
+  Arguments     :  ccbHandle  - The ccbHandle for the ccb to be validated.
+
+  Return Values :  SA_AIS_OK - Validation succeeded. Ccb has *not* been
+                               committed. No additional operations can now
+                               be added to the current ccb(id). This ccb(id)
+                               can now be aborted or an attempt can be made
+                               to commit it using saImmOmCcbApply().
+
+                   SA_AIS_ERR_FAILED_OPERATION - Validation failed, the ccb
+                               can now only be aborted, using either 
+                               saImmOmCcbAbort() or saImmOmCcbFinalize().
+
+                   SA_AIS_ERR_BAD_OPERATION - Not allowed inside a ccb augmentation.
+
+                   SA_AIS_ERR_VERSION  (not using A.2.14)
+
+                   Returncodes otherwise identical to saImmOmCcbApply().
+
+Performs only the validation part of a regular saImmOmCcbApply().
+All involved OIs receive the completed-callback and perform their
+validations. If validation fails (FAILED_OPERATION) then the ccb(id)
+is in the same aborted state as if validation had failed during a
+saImmOmCcbApply(). But if validation succeeds (SA_AIS_OK) then the
+OM client has the option to either commit the CCB using saImmOmCcbApply()
+or to abort the CCB using either saImmOmCcbFinalize() or saImmOmCcbAbort().
+The OM client can not add new operations to a CCB that has been validated. 
+The saImmOmCcbValidate call is suitable for clients that wish to perform
+incremental validation. This can be achieved by validating a CCB, aborting
+it then replaying the same operations (that validated), followed by adding
+more operations. Replay is necessary because the OIs ccb-protocol can only
+cope with one invocation of validation (completed callback) for any given
+ccb-id. Another possible us is in integrating IMM transaction commit
+with the commit of some other transaction handling system. By validating
+without committing, the risk is significantly reduced that a final
+commit/apply will fail. The invocation of saImmOmCcbApply after a 
+successfull invocation of saImmOmCcbValidate can still fail/abort
+but only due to resource problems (such as server crash or filesystem
+unavailability). 
+
+This is a blocking syncronous call.
+
 ----------------------------------------
 DEPENDENCIES
 ============
