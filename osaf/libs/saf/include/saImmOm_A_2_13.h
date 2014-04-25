@@ -71,4 +71,6 @@ extern "C" {
 }
 #endif
 
+#include <saImmOm_A_2_14.h>
+
 #endif   /* _SA_IMM_OM_A_2_13_H */
