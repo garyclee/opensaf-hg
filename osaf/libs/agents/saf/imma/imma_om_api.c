@@ -54,6 +54,7 @@ static const char *sysaImplName = SA_IMM_ATTR_IMPLEMENTER_NAME;
 
 static int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked);
 static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandleOpen);
+static SaAisErrorT imma_applyCcb(SaImmCcbHandleT ccbHandle, bool onlyValidate);
 
 /****************************************************************************
   Name          :  SaImmOmInitialize
@@ -2873,6 +2874,11 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 ******************************************************************************/
 SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 {
+	return imma_applyCcb(ccbHandle, false);
+}
+
+SaAisErrorT imma_applyCcb(SaImmCcbHandleT ccbHandle, bool onlyValidate)
+{
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT evt;
@@ -2924,7 +2930,9 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		   ccb-id has been EXPLICITLY applied by the user. 
 		   This can only be done by a successful explicit 
 		   saImmOmCcbApply. A ccb-handle with an aborted ccb-id
-		   can not be used any more. Only finalize is allowed on handle.
+		   can only be used again after an explcit saImmOmCcbAbort() has been
+		   invoked on the handle. Otherwise only finalize is allowed on
+                   the handle.
 
 		   Setting mApplied to true opens for the IMPLICIT 
 		   start of a new ccb-id with the current and same SaImmCcbHandleT value.
@@ -2946,6 +2954,11 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		TRACE_2("ERR_FAILED_OPERATION: Ccb %u has already been applied",
 			ccb_node->mCcbId);
+		goto done;
+	}
+
+	if (ccb_node->mValidated && onlyValidate) {
+		rc = SA_AIS_OK; /* Validation is idempotent on clientr side */
 		goto done;
 	}
 
@@ -2978,8 +2991,13 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	}
 
 	if(ccb_node->mAugCcb) {
-		TRACE("Apply for augmentation for CcbId %u", ccb_node->mCcbId);
-		ccb_node->mApplied = true;
+		if(onlyValidate) {
+			LOG_IN("ERR_BAD_OPERATION: saImmOmCcbValidate() not allowed on augmented ccbs");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+		} else {
+			TRACE("Apply for augmentation for CcbId %u", ccb_node->mCcbId);
+			ccb_node->mApplied = true;
+		}
 		goto done;
 	}
 
@@ -2988,7 +3006,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	/* Populate the CcbApply event */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
 	evt.type = IMMSV_EVT_TYPE_IMMND;
-	evt.info.immnd.type = IMMND_EVT_A2ND_CCB_APPLY;
+	evt.info.immnd.type = (onlyValidate) ? IMMND_EVT_A2ND_CCB_VALIDATE : IMMND_EVT_A2ND_CCB_APPLY;
 	evt.info.immnd.info.ccbId = ccb_node->mCcbId;
 
 	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
@@ -2997,7 +3015,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	}
 
 	ccb_node->mExclusive = true; 
-	ccb_node->mApplying = true;
+	ccb_node->mApplying = !onlyValidate;
 	ccbId = ccb_node->mCcbId;
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, false);
@@ -3086,7 +3104,8 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 			ccb_node->mApplying = false;
 			osafassert(ccb_node->mErrorStrings == NULL);
 			if (rc == SA_AIS_OK) {
-				ccb_node->mApplied = true;  
+				ccb_node->mValidated = true;
+				ccb_node->mApplied = !onlyValidate;
 				TRACE_1("CCB APPLY - Successful Apply for ccb id %u", 
 					ccb_node->mCcbId);
 			} else {
@@ -3184,6 +3203,18 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		  we dont want it to indicate aborted, nor applied, nor active.
 		*/
 		TRACE_3("client_node %p exposed :%u", cl_node, cl_node ? (cl_node->exposed) : 0);
+		if(onlyValidate) {
+			/* Let ERR_TIMEOUT reach the user when only validation was attempted.
+			   This means the user does not know if validation succeeded or not.
+			   They can choose to try to apply/commit the ccb which could succeed if
+			   validation did succeed. But if validation failed then the apply/commit
+			   will fail. 
+
+			   If the validation is still on-going when the attempt to apply/commit
+			   reaches the immsv, then the user should get TRY_AGAIN from local IMMND.
+			 */
+			goto done;
+		}
 
 		/* Reset the ccb_node flags back to indicate apply is in progress. */
 		ccb_node->mExclusive = true; 
@@ -3269,11 +3300,17 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
  
   Description   :  Aborts a CCB(id) without finalizing the ccb-handle.
                    Discards any ccb operations currently associated with the ccb-handle.
-                   If SA_AIS_OK is returned then ccb-handle can continue to be used and
-                   is in the same empty state as if it had just been initialized.
+                   Also resetts a ccbHandle that has previously received the abort
+                   return code SA_AIS_ERR_FAILED_OPERATION. 
 
                    Previously it was only possible to explicitly abort an active ccb
                    by invoking saImOmCcbFinalize() which also closes the ccb-handle.
+
+                   Previously it was also not possible to reset a ccbHandle that had
+                   received the ccb-aborted return code: SA_AIS_ERR_FAILED_OPERATION.
+                   
+                   If SA_AIS_OK is returned then ccb-handle can continue to be used and
+                   is in the same empty state as if it had just been initialized.                   
 
                    This a blocking syncronous call.
 
@@ -3294,6 +3331,52 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 SaAisErrorT saImmOmCcbAbort(SaImmCcbHandleT ccbHandle)
 {
 	return imma_finalizeCcb(ccbHandle, true);
+}
+
+
+/****************************************************************************
+  Name          :  saImmOmCcbValidate
+ 
+  Description   :  Performs the validation part of ccb-apply for the CCB in its 
+                   current active state. If validation succeeds, then no additional
+                   ccb-operations can be added to the ccb until the current set of
+                   operations have been applied or aborted. An apply of a successfully
+                   validated ccb is highly likely to succeed, but still not guaranteed
+                   to succeed. If an apply of a validated ccb fails, it will obviously
+                   not be due to any failure in validation, but for "physical" reasons,
+                   such as some problem with the PBE (persistent back end), or a crash
+                   of some vital IMM process. 
+
+                   Thus after a successfull saImmOmCcbVAlidate, the ccb is in a state
+                   that only accepts one of:
+
+                      - saImmOmCcbApply(ccbHandle);  - Only applicable if saImmOmCcbValidate
+                                                       returned SA_AIS_OK, SA_AIS_ERR_TIMEOUT,
+                                                       or SA_AIS_ERR_TRY_AGAIN (validation not done).
+
+                      - saImmOmCcbAbort(ccbHandle);    - Always applicable if handle is valid.
+                      - saImmOmCcbFinalize(ccbHandle); - Always applicable if handle is valid.
+                   
+  Arguments     :  ccbHandle - Ccb Handle
+
+  Return Values :  Same return values as saImmOmCcbApply with the following adjustment:
+                   SA_AIS_OK - Validation succeeded. Ccb has not been committed/applied.
+                               This ccb can now be aborted or an attempt may be made to
+                               apply/commit. 
+
+                   Refer to SAI-AIS IMM A.2.1 specification for the other return values
+                   and to the OpenSAF_IMMSv_PR (programmers reference) for implementation
+                   specific details. 
+
+                   Note that just as for regular saImm*OmCcbApply an abort is signalled by:
+                   SA_AIS_ERR_FAILED_OPERATION - Ccb is aborted possibly due to failed
+                                                 validation.
+
+ 
+******************************************************************************/
+SaAisErrorT saImmOmCcbValidate(SaImmCcbHandleT ccbHandle)
+{
+	return imma_applyCcb(ccbHandle, true);
 }
 
 
@@ -7669,6 +7752,7 @@ static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandl
 	SaUint32T ccbId = 0;
 	SaImmHandleT immHandle = 0LL;
 	SaImmAdminOwnerHandleT adminOwnerHdl = 0LL;
+	SaUint32T adminOwnerId = 0;
 	SaUint32T timeout = 0;
 	TRACE_ENTER();
 
@@ -7823,7 +7907,67 @@ static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandl
 		}
 		if(keepCcbHandleOpen) { /* saImmOmCcbAbort */
 			ccb_node->mApplied = true;
+			ccb_node->mAborted = false;
+			ccb_node->mValidated = false;
 			ccb_node->mExclusive = false;
+
+			/* Fetch cl_node again and generate new ccb_id.  We need to set up
+			   a pristine ccb-id to make the ccb-handle identical to a one just
+			   obtained from a saImmOmCcbInitialize.
+			 */
+			imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+			if (!(cl_node && cl_node->isOm)) {
+				rc = SA_AIS_ERR_LIBRARY;
+				TRACE_4("ERR_LIBRARY: No valid SaImmHandleT associated with Ccb");
+				goto done;
+			}
+
+			if (cl_node->stale) {
+				TRACE_1("IMM Handle %llx is stale", immHandle);
+				rc = SA_AIS_OK;	
+				imma_ccb_node_delete(cb, ccb_node);
+				ccb_node = NULL;
+				goto done;
+			}
+
+			/* Get the Admin Owner info  */
+			imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHdl, &ao_node);
+			if (!ao_node) {
+				rc = SA_AIS_ERR_BAD_HANDLE;
+				TRACE_3("ERR_BAD_HANDLE: Amin-Owner node associated with Ccb is missing");
+				goto done;
+			}
+
+			adminOwnerId = ao_node->mAdminOwnerId;
+
+			if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+				TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+				goto done;
+			}
+
+			rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
+			cl_node=NULL;
+			if(rc != SA_AIS_OK) {goto done;}
+			/* ccb_node still valid if rc == SA_AIS_OK. */
+			if(rc == SA_AIS_OK) {
+				osafassert(!(ccb_node->mExclusive));
+				osafassert(locked);
+			}
+
+			imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+			if (!(cl_node && cl_node->isOm)) {
+				rc = SA_AIS_ERR_BAD_HANDLE;
+				TRACE_3("ERR_BAD_HANDLE: Client node not found after down call");
+				imma_ccb_node_delete(cb, ccb_node); /*Remove node from tree and free it. */
+				ccb_node = NULL;
+				goto done;
+			}
+
+			imma_proc_decrement_pending_reply(cl_node, true);
+
+			/* Dont care if cl_node is stale here. This will be caught
+			   in the next attempt to use the related handle(s).
+			 */
 		}
 	}
 

@@ -140,8 +140,8 @@ extern "C" {
 	SaAisErrorT
 	    immModel_ccbApply(IMMND_CB *cb,
 			      SaUint32T ccbId,
-			      SaUint32T replyConn,
-			      SaUint32T *arrSize, SaUint32T **implConnArr, SaUint32T **implIdArr, SaUint32T **ctnArr);
+			      SaUint32T replyConn, SaUint32T *arrSize, SaUint32T **implConnArr,
+		    SaUint32T **implIdArr, SaUint32T **ctnArr, bool validateOnly);
 
 	bool immModel_ccbAbort(IMMND_CB *cb,
 		SaUint32T ccbId, SaUint32T *arrSize, SaUint32T **implConnArr, SaUint32T *client,

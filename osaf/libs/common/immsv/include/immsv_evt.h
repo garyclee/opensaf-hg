@@ -204,6 +204,7 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_A2ND_CL_TIMEOUT = 93, /* Inform local IMMND of a library timeout. */
 
 	IMMND_EVT_A2ND_ACCESSOR_GET = 94,	/* saImmOmAccessorGet_2 */
+	IMMND_EVT_A2ND_CCB_VALIDATE = 95,	/* saImmOmCcbValidate */
 
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;

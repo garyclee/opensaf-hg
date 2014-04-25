@@ -37,6 +37,9 @@ extern "C" {
 /* 4.8.x saImmOmCcb */
 
 	extern SaAisErrorT
+	 saImmOmCcbValidate(SaImmCcbHandleT ccbHandle);
+
+	extern SaAisErrorT
 	 saImmOmCcbAbort(SaImmCcbHandleT ccbHandle);
 
 #ifdef  __cplusplus

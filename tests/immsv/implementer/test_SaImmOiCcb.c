@@ -260,7 +260,7 @@ static void *classImplementerThreadMain(void *arg)
     return NULL;
 }
 
-static SaAisErrorT om_ccb_exec(void)
+static SaAisErrorT om_ccb_exec(unsigned int control)
 {
     SaAisErrorT rc;
     SaImmHandleT handle;
@@ -293,7 +293,29 @@ static SaAisErrorT om_ccb_exec(void)
     if ((rc = saImmOmCcbObjectCreate_2(ccbHandle, configClassName, &rootObj, attrValues)) != SA_AIS_OK)
         goto done;
 
-    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+    switch(control) {
+
+	    case 0:
+		    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+		    break;
+
+	    case 1: safassert(saImmOmCcbValidate(ccbHandle), SA_AIS_OK);
+		    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+		    break;
+
+	    case 2: safassert(saImmOmCcbValidate(ccbHandle), SA_AIS_OK);
+		    safassert(saImmOmCcbAbort(ccbHandle), SA_AIS_OK);
+		    break;
+
+	    case 3: safassert(saImmOmCcbValidate(ccbHandle), SA_AIS_ERR_FAILED_OPERATION);
+		    safassert(saImmOmCcbAbort(ccbHandle), SA_AIS_OK);
+		    break;
+
+
+
+	    default:
+		    TRACE("Incorrect control parameter:%u to om_ccb_exec", control);
+    }
 
 done:
     if(rc != SA_AIS_OK) {
@@ -392,7 +414,7 @@ static void saImmOiCcb_01(void)
     assert(res == 0);
 
     sleep(1); /* Race condition, allow implementer threads to set up !*/
-    rc = om_ccb_exec();
+    rc = om_ccb_exec(0);
 
     pthread_join(thread[0], NULL);
     pthread_join(thread[1], NULL);
@@ -419,7 +441,7 @@ static void saImmOiCcb_02(void)
 
     saImmOiCcbObjectDeleteCallback_response = SA_AIS_ERR_BAD_OPERATION;
     sleep(1); /* Race condition, allow implementer threads to set up!*/
-    rc = om_ccb_exec();
+    rc = om_ccb_exec(0);
 
     pthread_join(thread[0], NULL);
     pthread_join(thread[1], NULL);
@@ -453,7 +475,7 @@ static void saImmOiCcb_03(void)
     assert(res == 0);
     
     sleep(1); /* Race condition, allow implementer threads to set up!*/
-    rc = om_ccb_exec();
+    rc = om_ccb_exec(0);
 
     pthread_join(thread[0], NULL);
  
@@ -477,7 +499,7 @@ static void saImmOiCcb_04(void)
  
     saImmOiCcbObjectModifyCallback_response = SA_AIS_ERR_BAD_OPERATION;
     sleep(1); /* Race condition, allow implementer threads to set up!*/
-    rc = om_ccb_exec();
+    rc = om_ccb_exec(0);
 
     pthread_join(threadid, NULL);
  
@@ -516,7 +538,7 @@ static void saImmOiCcb_05(void)
     /* Set saveErrorStrings to 1 and save error strings in om_ccb_exec() */
     returnErrorStrings = NULL;
     saveErrorStrings = 1;
-    rc = om_ccb_exec();
+    rc = om_ccb_exec(0);
     saveErrorStrings = 0;
 
     /* There is at least one error string */
@@ -549,6 +571,87 @@ static void saImmOiCcb_05(void)
     TRACE_LEAVE();
 }
 
+static void saImmOiCcb_06(void)
+{
+    int res;
+    pthread_t thread[2];
+
+    TRACE_ENTER();
+    om_setup();
+
+    /* Create implementer threads */
+    res = pthread_create(&thread[0], NULL, objectImplementerThreadMain, &dnObj1);
+    assert(res == 0);
+    res = pthread_create(&thread[1], NULL, objectImplementerThreadMain, &dnObj2);
+    assert(res == 0);
+
+    sleep(1); /* Race condition, allow implementer threads to set up !*/
+    rc = om_ccb_exec(1);
+
+    pthread_join(thread[0], NULL);
+    pthread_join(thread[1], NULL);
+
+    test_validate(rc, SA_AIS_OK);
+
+    om_teardown();
+    TRACE_LEAVE();
+}
+
+static void saImmOiCcb_07(void)
+{
+    int res;
+    pthread_t thread[2];
+
+    TRACE_ENTER();
+    om_setup();
+
+    /* Create implementer threads */
+    res = pthread_create(&thread[0], NULL, objectImplementerThreadMain, &dnObj1);
+    assert(res == 0);
+    res = pthread_create(&thread[1], NULL, objectImplementerThreadMain, &dnObj2);
+    assert(res == 0);
+
+    sleep(1); /* Race condition, allow implementer threads to set up !*/
+    rc = om_ccb_exec(2);
+
+    pthread_join(thread[0], NULL);
+    pthread_join(thread[1], NULL);
+
+    test_validate(rc, SA_AIS_OK);
+
+    om_teardown();
+    TRACE_LEAVE();
+}
+
+static void saImmOiCcb_08(void)
+{
+    int res;
+    pthread_t thread[2];
+
+    TRACE_ENTER();
+    om_setup();
+
+    /* Create implementer threads */
+    res = pthread_create(&thread[0], NULL, objectImplementerThreadMain, &dnObj1);
+    assert(res == 0);
+    res = pthread_create(&thread[1], NULL, objectImplementerThreadMain, &dnObj2);
+    assert(res == 0);
+
+    saImmOiCcbObjectDeleteCallback_response = SA_AIS_ERR_BAD_OPERATION;
+    sleep(1); /* Race condition, allow implementer threads to set up!*/
+    rc = om_ccb_exec(3);
+
+    pthread_join(thread[0], NULL);
+    pthread_join(thread[1], NULL);
+
+    test_validate(rc, SA_AIS_ERR_FAILED_OPERATION);
+
+    om_teardown();
+    saImmOiCcbObjectDeleteCallback_response = SA_AIS_OK;
+    TRACE_LEAVE();
+}
+
+
 __attribute__ ((constructor)) static void saImmOiCcb_constructor(void)
 {
     dnObj1.length = (SaUint16T) sprintf((char*) dnObj1.value, "%s,%s", rdnObj1.value, rootObj.value);
@@ -561,5 +664,8 @@ __attribute__ ((constructor)) static void saImmOiCcb_constructor(void)
     test_case_add(4, saImmOiCcb_03, "saImmOiCcb - SA_AIS_OK - 1 classImplementer thread");
     test_case_add(4, saImmOiCcb_04, "saImmOiCcb - SA_AIS_ERR_BAD_OPERATION/FAILED_OPERATION - 1 classImplementer thread");
     test_case_add(4, saImmOiCcb_05, "saImmOiCcb - SA_AIS_ERR_BAD_OPERATION/FAILED_OPERATION - saImmOiCcbSetErrorString and saImmOmCcbGetErrorStrings");
+    test_case_add(4, saImmOiCcb_06, "saImmOiCcb - SA_AIS_OK - saImmOmCcbValidate followed by saImmOmCcbApply");
+    test_case_add(4, saImmOiCcb_07, "saImmOiCcb - SA_AIS_OK - saImmOmCcbValidate followed by saImmOmCcbAbort");
+    test_case_add(4, saImmOiCcb_08, "saImmOiCcb - SA_AIS_ERR_FAILED_OPERATION - saImmOmCcbValidate (OI reports error) followed by saImmOmCcbAbort");
 }
 
