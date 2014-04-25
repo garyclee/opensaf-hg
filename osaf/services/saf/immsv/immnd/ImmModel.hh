@@ -176,7 +176,8 @@ public:
                                  SaUint32T reqConn,
                                  ConnVector& connVector,
                                  IdVector& implIds,
-                                 IdVector& continuations);
+                                 IdVector& continuations,
+                                 bool validateOnly);
     
     SaAisErrorT         ccbTerminate(SaUint32T ccbId);
 

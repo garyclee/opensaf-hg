@@ -30,6 +30,8 @@ typedef struct ImmThreadArg {
 static int objectDispatchThreadIsSet = 0;
 static int classDispatchThreadIsSet = 0;
 static int useAdminOwner = 0;
+static int testValidate = 0;
+static SaAisErrorT globalRc = SA_AIS_OK;
 
 static const SaNameT rdnObj1 = {sizeof("Obj1"), "Obj1"};
 static const SaNameT rdnObj2 = {sizeof("Obj2"), "Obj2"};
@@ -229,9 +231,14 @@ static SaAisErrorT saImmOiAugCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
     callbackCounter++;
     safassert(saImmOiAugmentCcbInitialize(immOiHandle, ccbId, &ccbHandle, &ownerHandle), SA_AIS_OK);
     if(useAdminOwner)
-    	safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), SA_AIS_OK);
-    if((rc = saImmOmCcbObjectModify_2(ccbHandle, &rdnObj2, attrMods)) == SA_AIS_OK)
-    	rc = saImmOmCcbApply(ccbHandle);
+    	safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), SA_AIS_OK); 
+    if((rc = saImmOmCcbObjectModify_2(ccbHandle, &rdnObj2, attrMods)) == SA_AIS_OK) {
+	    if(testValidate) {
+		    globalRc = saImmOmCcbValidate(ccbHandle);
+	    } //else {
+		    rc = saImmOmCcbApply(ccbHandle);
+	    //}
+    }
     TRACE_LEAVE2();
     return rc;
 }
@@ -523,7 +530,9 @@ static void saImmOiCcbAugmentInitialize_02(void)
 done:
 	pthread_join(threadid, NULL);
 
-	test_validate(rc, SA_AIS_OK);
+	if(!testValidate) {
+		test_validate(rc, SA_AIS_OK);
+	}
 
     safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
     safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
@@ -711,6 +720,26 @@ done:
     TRACE_LEAVE();
 }
 
+static void saImmOiCcbAugmentInitialize_05(void)
+{
+	/*
+    SaImmHandleT handle;
+    ImmThreadArg arg;
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FILE__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    const SaNameT *objectNames[] = { &rdnObj1, &rdnObj2, NULL };
+    SaImmCcbHandleT ccbHandle;
+    SaAisErrorT rc;
+    pthread_t threadid;
+	*/
+    TRACE_ENTER();
+
+    testValidate = 1;
+    saImmOiCcbAugmentInitialize_02();
+    test_validate(globalRc, SA_AIS_ERR_BAD_OPERATION);
+
+    TRACE_LEAVE();
+}
 
 __attribute__ ((constructor)) static void saImmOiCcbAugmentInitialize_constructor(void)
 {
@@ -719,5 +748,6 @@ __attribute__ ((constructor)) static void saImmOiCcbAugmentInitialize_constructo
     test_case_add(6, saImmOiCcbAugmentInitialize_02, "saImmOiCcbAugmentInitialize - SA_AIS_OK - one object implementer: modify, delete");
     test_case_add(6, saImmOiCcbAugmentInitialize_03, "saImmOiCcbAugmentInitialize - SA_AIS_OK - two object implementers: modify, delete");
     test_case_add(6, saImmOiCcbAugmentInitialize_04, "saImmOiCcbAugmentInitialize - SA_AIS_OK - two object implementers: modify and delete with saImmOmAdminOwnerSet");
+    test_case_add(6, saImmOiCcbAugmentInitialize_05, "saImmOiCcbAugmentInitialize - SA_AIS_ERR_BAD_OPERATION - saImmOmValidate not allowed in augmentation");
 }
 

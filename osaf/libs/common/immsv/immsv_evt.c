@@ -172,6 +172,7 @@ static const char *immnd_evt_names[] = {
 	"IMMND_EVT_A2ND_AUG_ADMO",
 	"IMMND_EVT_A2ND_CL_TIMEOUT",
 	"IMMND_EVT_A2ND_ACCESSOR_GET",
+	"IMMND_EVT_A2ND_CCB_VALIDATE",	/* saImmOmCcbValidate */
 	"undefined (high)"
 };
 
@@ -3365,6 +3366,8 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 		case IMMND_EVT_A2ND_CCB_APPLY:	/* saImmOmCcbApply */
 		case IMMND_EVT_A2ND_CCB_FINALIZE:	/* saImmOmCcbFinalize */
 		case IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME:
+		case IMMND_EVT_A2ND_CCB_VALIDATE:	/* saImmOmCcbValidate */
+
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 			ncs_encode_32bit(&p8, immndevt->info.ccbId);
 			ncs_enc_claim_space(o_ub, 4);
@@ -4698,6 +4701,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 		case IMMND_EVT_A2ND_CCB_APPLY:	/* saImmOmCcbApply */
 		case IMMND_EVT_A2ND_CCB_FINALIZE:	/* saImmOmCcbFinalize */
 		case IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME:
+		case IMMND_EVT_A2ND_CCB_VALIDATE:	/* saImmOmCcbValidate */
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
 			immndevt->info.ccbId = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);

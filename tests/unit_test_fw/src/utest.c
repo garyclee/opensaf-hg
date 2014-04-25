@@ -37,7 +37,7 @@ static unsigned int test_passed;
 static unsigned int test_failed;
 
 #define NO_SUITES 64
-#define NR_TESTS 64
+#define NR_TESTS 128
 static struct test testlist[NO_SUITES][NR_TESTS];
 static const char *suite_name[NO_SUITES];
 static int last_test_status;

@@ -167,9 +167,8 @@ static void immnd_evt_pbe_admop_rsp(IMMND_CB *cb,
 static void immnd_evt_proc_object_sync(IMMND_CB *cb,
 	IMMND_EVT *evt, SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest, SaUint64T msgNo);
 
-static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
-				     IMMND_EVT *evt,
-				     SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT originatedAtThisNd,
+	                             SaImmHandleT clnt_hdl, MDS_DEST reply_dest, SaBoolT validateOnly);
 
 static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 					 IMMND_EVT *evt,
@@ -3053,6 +3052,7 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq)
 		break;
 
 	case IMMND_EVT_A2ND_CCB_APPLY:
+	case IMMND_EVT_A2ND_CCB_VALIDATE:
 		if(immModel_pbeNotWritable(cb)) {
 			/* NO_RESOURCES is here imm internal proxy for TRY_AGAIN.
 			   The library code for saImmOmCcbApply will translate NO_RESOURCES
@@ -3652,8 +3652,9 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 			reqConn = 0; /* Ensure we dont reply to OM client yet. */
 		}
 	} else {
-		TRACE("Finished waiting for completed Acks from implementers (and PBE)");
+		bool validateOnly = false;
 		if (err == SA_AIS_OK) {	/*Proceed with commit */
+			TRACE("Finished waiting for completed Acks from implementers (and PBE)");
 			/*If we arrive here, the assumption is that all implementors have agreed
 			   to commit and all immnds are prepared to commit this ccb. Fevs must
 			   guarantee that all have seen the same replies from implementers. 
@@ -3786,10 +3787,18 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 				free(applConnArr);
 				applConnArr = NULL;
 			}			
-		} else {	/*err != SA_AIS_OK => generate SaImmOiCcbAbortCallbackT upcall
-				   for all local implementers involved in the Ccb */
+		} else if (err == SA_AIS_ERR_INTERRUPT) {
+			/* ERR_INTERRUPT => validateOnly. */
+				TRACE("Explicit validation finished OK with completed Acks from OIs "
+					"(not includingPBE)");
+
+				err = SA_AIS_OK;
+				validateOnly = true;
+		} else {
 			errStrings = immModel_ccbGrabErrStrings(cb, evt->info.ccbUpcallRsp.ccbId);
 			TRACE("Abort in immnd_evt_proc_ccb_compl_rsp reqConn: %u", reqConn);
+			/*err != SA_AIS_OK => generate SaImmOiCcbAbortCallbackT upcall
+				   for all local implementers involved in the Ccb */
 			immnd_evt_ccb_abort(cb, evt->info.ccbUpcallRsp.ccbId, NULL);
 		}
 		/* Either commit or abort has been decided. Ccb is now done.
@@ -3799,8 +3808,8 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 		 */
 
 		if (reqConn) {
-			SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 
+			SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 			immnd_client_node_get(cb, tmp_hdl, &cl_node);
 			if (cl_node == NULL || cl_node->mIsStale) {
 				LOG_WA("IMMND - Client went down so no response");
@@ -3828,6 +3837,8 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 			}
 		}
 	finalize_ccb:
+		if(validateOnly) { goto done;}
+
 		immsv_evt_free_attrNames(errStrings);
 		TRACE_2("CCB COMPLETED: TERMINATING CCB:%u", evt->info.ccbUpcallRsp.ccbId);
 		err = immModel_ccbFinalize(cb, evt->info.ccbUpcallRsp.ccbId);
@@ -3836,6 +3847,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 			/* There is really not much we can do here. */
 		}
 	}
+ done:
 	TRACE_LEAVE();
 }
 
@@ -7087,12 +7099,12 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
  *                                         is to be sent (only relevant if
  *                                         originatedAtThisNode is false).
+ *                 SaBoolT validateOnly - SA_TRUE => only do validation, not commit/apply.
  * Return Values : None
  *
  *****************************************************************************/
-static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
-				     IMMND_EVT *evt,
-				     SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT originatedAtThisNd,
+                                     SaImmHandleT clnt_hdl, MDS_DEST reply_dest, SaBoolT validateOnly)
 {
 	SaAisErrorT err = SA_AIS_OK;
 	IMMSV_EVT send_evt;
@@ -7139,11 +7151,11 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 	}
 
 	err = immModel_ccbApply(cb, evt->info.ccbId, originatedAtThisNd ? conn : 0,
-				&arrSize, &implConnArr, &implIdArr, &ctnArr);
+		&arrSize, &implConnArr, &implIdArr, &ctnArr, validateOnly);
 
 	if (err == SA_AIS_OK) {
 		if (arrSize) {
-			TRACE_2("THERE ARE LOCAL IMPLEMENTERS in ccb:%u", evt->info.ccbId);
+			TRACE_2("THERE ARE LOCAL IMPLEMENTERS in ccb:%u sending completed upcall", evt->info.ccbId);
 			delayedReply = SA_TRUE;
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 			send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -7224,6 +7236,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 			}
 		} else {
 			TRACE_2("NO IMPLEMENTERS AT ALL AND NO PBE. for ccb:%u err:%u sz:%u", evt->info.ccbId, err, arrSize);
+			TRACE("delayedReply:%u", delayedReply);
 		}
 	}
 	/* err != SA_AIS_OK or no implementers => immediate reply. */
@@ -7243,6 +7256,35 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 	/*REPLY can not be sent immediately if there are implementers or PBE.
 	   Must wait for prepare votes. */
 	if (!delayedReply) {
+		if (err == SA_AIS_ERR_INTERRUPT) {
+			/* ERR_INTERUPT is an IMMND internal error code indicating
+			   that this was etiher a saImmOmCcbValidate that is now
+			   complete, i.e. we need to interrupt and return without
+			   continuing with the commit/apply part. Or it was an
+			   saImmOmCcbApply continuting such interrupted processing,
+			   i.e. we must here skip sending completed callbacks (validation)
+			   since this is done already for this ccb.			   
+			 */
+			err = SA_AIS_OK;
+			if(validateOnly) {
+				TRACE("Explicit validation finished OK");
+				goto immediate_reply;
+			} else {
+				/* Fake continuation of end of validation. 
+				   To avoid writing large ammounts of new code almost
+				   identical to existing, we fake a reply from a non existent
+				   OI on a final completed callback. This is what would trigger
+				   the commit/apply of a normal CCB. 
+				 */
+				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+				send_evt.type = IMMSV_EVT_TYPE_IMMND;
+				send_evt.info.immnd.type = IMMND_EVT_A2ND_CCB_COMPLETED_RSP;
+				send_evt.info.immnd.info.ccbUpcallRsp.ccbId = evt->info.ccbId;
+				immnd_evt_proc_ccb_compl_rsp(cb, &(send_evt.info.immnd), originatedAtThisNd, clnt_hdl, reply_dest);
+				goto done;
+			}
+		}
+
 		if (err == SA_AIS_OK) {
 			/*No implementers anywhere and all is OK */
 			/* Check for appliers. */
@@ -7559,7 +7601,11 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 		break;
 
 	case IMMND_EVT_A2ND_CCB_APPLY:
-		immnd_evt_proc_ccb_apply(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
+		immnd_evt_proc_ccb_apply(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest, SA_FALSE);
+		break;
+
+	case IMMND_EVT_A2ND_CCB_VALIDATE:
+		immnd_evt_proc_ccb_apply(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest, SA_TRUE);
 		break;
 
 	case IMMND_EVT_A2ND_CCB_FINALIZE:

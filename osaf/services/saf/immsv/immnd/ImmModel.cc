@@ -303,12 +303,14 @@ typedef enum {
     IMM_CCB_CREATE_OP = 3,  //Ongoing create (pending implementer calls/replies)
     IMM_CCB_MODIFY_OP = 4,  //Ongoing modify (pending implementer calls/replies)
     IMM_CCB_DELETE_OP = 5,  //Ongoing delete (pending implementer calls/replies)
-    IMM_CCB_PREPARE = 6,    //Waiting for nodes prepare & completed calls/replies
-    IMM_CCB_CRITICAL = 7,   //Unilateral abort no longer allowed (except by PBE). 
-    IMM_CCB_PBE_ABORT = 8,  //The Persistent back end replied with abort
-    IMM_CCB_COMMITTED = 9,  //Committed at nodes pending implementer apply calls
-    IMM_CCB_ABORTED = 10,   //READY->ABORTED PREPARE->ABORTED
-    IMM_CCB_ILLEGAL = 11   //CCB has been removed.
+    IMM_CCB_VALIDATING = 6, //Explicit validate started (saImmOmCcbValidate only)
+    IMM_CCB_VALIDATED = 7,  //Explicit validate has completed (saImmOmCcbValidate only)
+    IMM_CCB_PREPARE = 8,    //Waiting for nodes prepare & completed calls/replies
+    IMM_CCB_CRITICAL = 9,   //Unilateral abort no longer allowed (except by PBE). 
+    IMM_CCB_PBE_ABORT = 10, //The Persistent back end replied with abort
+    IMM_CCB_COMMITTED = 11, //Committed at nodes pending implementer apply calls
+    IMM_CCB_ABORTED = 12,   //READY->ABORTED PREPARE->ABORTED
+    IMM_CCB_ILLEGAL = 13    //CCB has been removed.
 } ImmCcbState;
 
 
@@ -1029,7 +1031,8 @@ immModel_ccbApply(IMMND_CB *cb,
     SaUint32T* arrSize,
     SaUint32T** implConnArr,
     SaUint32T** implIdArr,
-    SaUint32T** ctnArr)
+    SaUint32T** ctnArr,
+    bool validateOnly)
 {
     ConnVector cv;
     IdVector implsv;
@@ -1041,7 +1044,7 @@ immModel_ccbApply(IMMND_CB *cb,
     
     
     SaAisErrorT err = ImmModel::instance(&cb->immModel)->
-        ccbApply(ccbId, reqConn, cv, implsv, ctnv);
+        ccbApply(ccbId, reqConn, cv, implsv, ctnv, validateOnly);
     
     *arrSize = (SaUint32T) cv.size();
     if(*arrSize) {
@@ -4376,20 +4379,32 @@ ImmModel::ccbResult(SaUint32T ccbId)
             case IMM_CCB_CREATE_OP:
             case IMM_CCB_MODIFY_OP:
             case IMM_CCB_DELETE_OP:
-                LOG_WA("ccbResult: CCB %u is active! state:%u.", ccbId, (*i)->mState);
+                LOG_WA("ccbResult: CCB %u is active, state:%u.", ccbId, (*i)->mState);
                     err = SA_AIS_ERR_TRY_AGAIN;
-                break; //Unusual
+                break; 
 
             case IMM_CCB_PREPARE:
-                LOG_WA("ccbResult: CCB %u in prepare! Commit/abort in progress?", 
+                LOG_WA("ccbResult: CCB %u in state 'prepare' validation in progress", 
                     ccbId);
                 err = SA_AIS_ERR_TRY_AGAIN;
-                break; //Unusual
+                break; 
+
+            case IMM_CCB_VALIDATING:
+                LOG_WA("ccbResult: CCB %u in state 'validating' explicit validation in progress", 
+                    ccbId);
+                err = SA_AIS_ERR_TRY_AGAIN;
+                break; 
+
+            case IMM_CCB_VALIDATED:
+                LOG_WA("ccbResult: CCB %u in state 'validated'. Waiting for apply or abort/finalize", 
+                    ccbId);
+                err = SA_AIS_ERR_TRY_AGAIN;
+                break;
 
             case IMM_CCB_CRITICAL:
-                LOG_NO("ccbResult: CCB %u in critical state! Commit/apply in progress?", ccbId);
+                LOG_NO("ccbResult: CCB %u in critical state! Commit/apply in progress", ccbId);
                 err = SA_AIS_ERR_TRY_AGAIN;
-                break; //Can happen if PBE crashes.
+                break; //Can be here if PBE is crashed, hung on fs, or backloged.
 
             default:
                 LOG_ER("ccbResult: Illegal state %u in ccb %u", (*i)->mState, ccbId);
@@ -4559,11 +4574,16 @@ ImmModel::ccbApply(SaUint32T ccbId,
     SaUint32T reqConn,
     ConnVector& connVector,
     IdVector& implIds,
-    IdVector& continuations)
+    IdVector& continuations,
+    bool validateOnly)
 {
     SaAisErrorT err = SA_AIS_OK;
     TRACE_ENTER();
-    TRACE_5("APPLYING CCB ID:%u", ccbId);
+    if(validateOnly) {
+        TRACE_5("Explicit VALIDATE started for CCB ID:%u", ccbId);
+    } else {
+        TRACE_5("APPLYING CCB ID:%u", ccbId);
+    }
     
     CcbVector::iterator i;
     AdminOwnerVector::iterator i2;
@@ -4584,10 +4604,41 @@ ImmModel::ccbApply(SaUint32T ccbId,
                 ccb->mAdminOwnerId);
             ccb->mVeto = SA_AIS_ERR_BAD_HANDLE;
         } else if(ccb->mState > IMM_CCB_READY) {
-            LOG_NO("Ccb <%u> not in correct state (%u) for Apply ignoring request",
-                ccb->mId, ccb->mState);
-            err = SA_AIS_ERR_ACCESS_DENIED;
-            goto ignore;
+            if(ccb->mState == IMM_CCB_VALIDATING) {
+                LOG_IN("Ccb <%u> in incorrect state 'CCB_VALIDATING for "
+                       "saImmOmCcbValidate() ignoring request", ccb->mId);
+                err = SA_AIS_ERR_ACCESS_DENIED;
+                goto done;
+            } else if(ccb->mState == IMM_CCB_VALIDATED) {
+                if(validateOnly) {
+                    LOG_IN("Ccb <%u> in incorrect state 'CCB_VALIDATED for "
+                           "saImmOmCcbValidate() ignoring request", ccb->mId);
+                    err = SA_AIS_ERR_ACCESS_DENIED;
+                    goto done;
+                } else {
+                    LOG_IN("Ccb <%u> in state (IMM_CCB_VALIDATED) received apply/commit",
+                               ccb->mId);
+                    err = ccb->mVeto;
+                    if(err == SA_AIS_OK) {
+                        if(!ccb->mImplementers.empty()) {
+                            /* apply callback needs to be sent to implementers. */
+                           err = SA_AIS_ERR_INTERRUPT;
+                        }
+                    }
+                    goto done;
+               }
+
+            } else {
+                LOG_NO("Ccb <%u> not in correct state (%u) for Apply ignoring request",
+                    ccb->mId, ccb->mState);
+                /* This includes state IMM_CCB_VALIDATING which means explicit validation
+                   is in progress. Neihter a redundant saImmOmValidate(), nor a premature
+                   saImmOmCcbApply() can be accepted in this state. But a saImmOmCcbAbort()
+                   or a saImmOmCcbFinalize would be accepted. 
+                */
+                err = SA_AIS_ERR_ACCESS_DENIED;
+                goto done;
+            }
         }
 
         osafassert(reqConn==0 || (ccb->mOriginatingConn == reqConn));
@@ -4604,12 +4655,21 @@ ImmModel::ccbApply(SaUint32T ccbId,
             }
             err = SA_AIS_ERR_FAILED_OPERATION;
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
-        } else if(validateNoDanglingRefs(ccb)) {
+        } else if(!validateNoDanglingRefs(ccb)) {
+            err = SA_AIS_ERR_FAILED_OPERATION;
+            ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+        } else {
             /* sMissingParents must be empty if err is SA_AIS_OK */
             osafassert(sMissingParents.empty());
 
-            TRACE_5("Apply CCB %u", ccb->mId);
-            ccb->mState = IMM_CCB_PREPARE;
+            if(validateOnly) {
+                TRACE_5("Validate CCB %u", ccb->mId);
+                ccb->mState = IMM_CCB_VALIDATING;
+            } else {
+                TRACE_5("Apply CCB %u", ccb->mId);
+                ccb->mState = IMM_CCB_PREPARE;
+            }
+
             CcbImplementerMap::iterator isi;
             for(isi = ccb->mImplementers.begin();
                 isi != ccb->mImplementers.end();
@@ -4654,11 +4714,9 @@ ImmModel::ccbApply(SaUint32T ccbId,
                     continuations.push_back(sLastContinuationId);
                 }
             }
-        } else {
-            err = SA_AIS_ERR_FAILED_OPERATION;
         }
     }
- ignore:
+ done:
     
     TRACE_LEAVE();
     return err;
@@ -5026,8 +5084,9 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     if(ccb->mState == IMM_CCB_PREPARE) {
         ccb->mState = IMM_CCB_CRITICAL;
     } else {
+        TRACE_5("Ccb %u comitted by PBE now in state:%u", ccbId, ccb->mState);
         osafassert(ccb->mState == IMM_CCB_CRITICAL);
-        TRACE_5("Ccb %u comitted by persistent back end", ccbId);
+        TRACE_5("Comitting Ccb %u in IMMND", ccbId);
     }
     ccb->mWaitStartTime = 0;
 
@@ -5150,7 +5209,13 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
             break;
             
         case IMM_CCB_PREPARE:
-            LOG_NO("Ccb %u aborted in COMPLETED processing", ccbId);
+        case IMM_CCB_VALIDATING:
+            LOG_NO("Ccb %u aborted in COMPLETED processing (validation)", ccbId);
+            *client = ccb->mOriginatingConn;
+            break;
+            
+        case IMM_CCB_VALIDATED:
+            LOG_NO("Ccb %u aborted after explicit validation", ccbId);
             *client = ccb->mOriginatingConn;
             break;
             
@@ -5286,12 +5351,18 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                 return SA_AIS_ERR_TRY_AGAIN;
                 
             case IMM_CCB_PREPARE:
+            case IMM_CCB_VALIDATING:
             case IMM_CCB_PBE_ABORT:
                 LOG_WA("Will not terminate ccb %u while waiting for "
                     "replies from implementers on completed ack", ccbId);
                 TRACE_LEAVE();
                 return SA_AIS_ERR_TRY_AGAIN;
                 
+            case IMM_CCB_VALIDATED: /* Could logically be allowed, but prefer propper cleanup */
+                LOG_NO("Will not terminate ccb %u in validated state, should be aborted first",  ccbId);
+                TRACE_LEAVE();
+                return SA_AIS_ERR_TRY_AGAIN;
+
             case IMM_CCB_CRITICAL:
                 LOG_WA("Will not terminate ccb %u in critical state ",  ccbId);
                 TRACE_LEAVE();
@@ -5521,6 +5592,8 @@ ImmModel::ccbAugmentInit(immsv_oi_ccb_upcall_rsp* rsp,
             case IMM_CCB_COMMITTED:
             case IMM_CCB_ABORTED:
             case IMM_CCB_PREPARE:
+            case IMM_CCB_VALIDATING:
+            case IMM_CCB_VALIDATED:
             case IMM_CCB_PBE_ABORT:
             case IMM_CCB_CRITICAL:
                 LOG_ER("Ccb Augment attempted in wrong CCB state");
@@ -8618,6 +8691,27 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
        will force attempts to recover ccb-outcome from the current PBE.
     */
 
+    if(ccb->mState == IMM_CCB_VALIDATING) {
+        /* Explicit validation (saImmOmCcbValidate) stop waiting. */
+        ccb->mState = IMM_CCB_VALIDATED;
+        TRACE_5("Explicit validation completed err state:%u for ccb:%u", *err, ccbId);
+        if((*err) == SA_AIS_OK) {
+           /* We interrupt the validate/apply after validation is completed and before
+              the commit phase of hte apply.
+           */
+            *err = SA_AIS_ERR_INTERRUPT;
+        }
+
+        return false;
+    }
+
+    if((ccb->mState == IMM_CCB_VALIDATED) && ((*err) == SA_AIS_OK)) {
+        TRACE("Continuing apply/commit for explicitly validated ccb:%u err state:%u", ccbId, *err);
+        TRACE("Dont think we ever get here.");
+        LOG_IN("GOING FROM IMM_CCB_VALIDATED to IMM_CCB_PREPARE Ccb:%u", ccbId);
+        ccb->mState = IMM_CCB_PREPARE;
+    }
+
     if(ccb->mState == IMM_CCB_CRITICAL) {
         /* This must be the PBE reply. Stop waiting. */
         TRACE_5("PBE replied with rc:%u for ccb:%u", *err, ccbId);
@@ -8804,6 +8898,7 @@ ImmModel::ccbCompletedContinuation(immsv_oi_ccb_upcall_rsp* rsp,
     SaUint32T ccbId = rsp->ccbId;
     CcbInfo* ccb = 0;
     CcbVector::iterator i1;
+    CcbImplementerMap::iterator ix;
     
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
@@ -8812,9 +8907,14 @@ ImmModel::ccbCompletedContinuation(immsv_oi_ccb_upcall_rsp* rsp,
         return;
     }
     ccb = *i1;
+
+    if(ccb->mState == IMM_CCB_VALIDATED) {
+        LOG_IN("GOING FROM IMM_CCB_VALIDATED to IMM_CCB_PREPARE Ccb:%u", ccbId);
+        ccb->mState = IMM_CCB_PREPARE;
+        goto done;
+    }
     
-    CcbImplementerMap::iterator ix =
-        ccb->mImplementers.find(rsp->implId);
+    ix = ccb->mImplementers.find(rsp->implId);
     if(ix == ccb->mImplementers.end()) {
         if((ccb->mVeto == SA_AIS_OK) && (ccb->mState < IMM_CCB_CRITICAL)) {
             LOG_WA("Completed continuation: implementer '%u' Not found "
@@ -8909,6 +9009,7 @@ ImmModel::ccbCompletedContinuation(immsv_oi_ccb_upcall_rsp* rsp,
             }
         }
     }
+ done:
     TRACE_LEAVE();  
 }
 

@@ -98,6 +98,7 @@ typedef struct imma_ccb_node {
 						  timeout => Ccb-outcome to be recovered. */
 	bool mApplied;     /* Current mCcbId applied&terminated */
 	bool mAborted;     /* Current mCcbId aborted */
+	bool mValidated;   /* Current mCcbId validated */
 	bool mAugCcb;      /* Current and only mCcbId is an augment. */
 	bool mAugIsTainted;/* AugCcb has tainted root CCB => apply aug or abort root*/
 } IMMA_CCB_NODE;
