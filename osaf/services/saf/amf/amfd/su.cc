@@ -50,7 +50,6 @@ AVD_SU *avd_su_new(const SaNameT *dn)
 	su->saAmfSUOperState = static_cast<SaAmfOperationalStateT>(0);
 	su->saAmfSUPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
 	su->saAmfSuReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
-	su->su_act_state = AVD_SU_NO_STATE;
 	su->su_is_external = false;
 
 	return su;
@@ -776,31 +775,31 @@ void AVD_SU::set_oper_state(SaAmfOperationalStateT oper_state) {
  * @param readiness_state
  */
 void AVD_SU::set_readiness_state(SaAmfReadinessStateT readiness_state) {
-	if (this->saAmfSuReadinessState == readiness_state)
+	if (saAmfSuReadinessState == readiness_state)
 		return;
 
 	AVD_COMP *comp = NULL;
 	osafassert(readiness_state <= SA_AMF_READINESS_STOPPING);
-	TRACE_ENTER2("'%s' %s", this->name.value,
+	TRACE_ENTER2("'%s' %s", name.value,
 		avd_readiness_state_name[readiness_state]);
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s ReadinessState %s => %s",
-		this->name.value,
-		avd_readiness_state_name[this->saAmfSuReadinessState],
+		name.value,
+		avd_readiness_state_name[saAmfSuReadinessState],
 		avd_readiness_state_name[readiness_state]);
-	this->saAmfSuReadinessState = readiness_state;
-	avd_saImmOiRtObjectUpdate(&this->name, "saAmfSUReadinessState",
-		SA_IMM_ATTR_SAUINT32T, &this->saAmfSuReadinessState);
+	saAmfSuReadinessState = readiness_state;
+	avd_saImmOiRtObjectUpdate(&name, "saAmfSUReadinessState",
+		SA_IMM_ATTR_SAUINT32T, &saAmfSuReadinessState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_READINESS_STATE);
 
 	/* Since Su readiness state has changed, we need to change it for all the
 	 * component in this SU.*/
-	comp = this->list_of_comp;
+	comp = list_of_comp;
 	while (comp != NULL) {
 		SaAmfReadinessStateT saAmfCompReadinessState;
-		if ((this->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
+		if ((saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
 				(comp->saAmfCompOperState == SA_AMF_OPERATIONAL_ENABLED)) {
 			saAmfCompReadinessState = SA_AMF_READINESS_IN_SERVICE;
-		} else if((this->saAmfSuReadinessState == SA_AMF_READINESS_STOPPING) &&
+		} else if((saAmfSuReadinessState == SA_AMF_READINESS_STOPPING) &&
 				(comp->saAmfCompOperState == SA_AMF_OPERATIONAL_ENABLED)) {
 			saAmfCompReadinessState = SA_AMF_READINESS_STOPPING;
 		} else
@@ -1655,24 +1654,24 @@ void su_nd_attribute_update(const AVD_SU *su, AVSV_AMF_SU_ATTR_ID attrib_id)
  *
  */
 void AVD_SU::delete_all_susis(void) {
-	TRACE_ENTER2("'%s'", this->name.value);
+	TRACE_ENTER2("'%s'", name.value);
 
-	while (this->list_of_susi != NULL) {
-		avd_compcsi_delete(avd_cb, this->list_of_susi, false);
-		m_AVD_SU_SI_TRG_DEL(avd_cb, this->list_of_susi);
+	while (list_of_susi != NULL) {
+		avd_compcsi_delete(avd_cb, list_of_susi, false);
+		m_AVD_SU_SI_TRG_DEL(avd_cb, list_of_susi);
 	}
 
-	this->saAmfSUNumCurrStandbySIs = 0;
-	this->saAmfSUNumCurrActiveSIs = 0;
+	saAmfSUNumCurrStandbySIs = 0;
+	saAmfSUNumCurrActiveSIs = 0;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_AVD_SU_CONFIG);
 
 	TRACE_LEAVE();
 }
 
 void AVD_SU::set_all_susis_assigned_quiesced(void) {
-	AVD_SU_SI_REL *susi = this->list_of_susi;
+	AVD_SU_SI_REL *susi = list_of_susi;
 
-	TRACE_ENTER2("'%s'", this->name.value);
+	TRACE_ENTER2("'%s'", name.value);
 
 	for (; susi != NULL; susi = susi->su_next) {
 		if (susi->fsm != AVD_SU_SI_STATE_UNASGN) {
@@ -1690,9 +1689,9 @@ void AVD_SU::set_all_susis_assigned_quiesced(void) {
 }
 
 void AVD_SU::set_all_susis_assigned(void) {
-	AVD_SU_SI_REL *susi = this->list_of_susi;
+	AVD_SU_SI_REL *susi = list_of_susi;
 
-	TRACE_ENTER2("'%s'", this->name.value);
+	TRACE_ENTER2("'%s'", name.value);
 
 	for (; susi != NULL; susi = susi->su_next) {
 		if (susi->fsm != AVD_SU_SI_STATE_UNASGN) {

@@ -16,21 +16,12 @@
  */
 
 /*****************************************************************************
-..............................................................................
 
-..............................................................................
-
-  DESCRIPTION:
-
-  This module is the include file for handling Availability Directors 
-  service unit structure.
+  DESCRIPTION: Service Unit class definition
   
 ******************************************************************************
 */
 
-/*
- * Module Inclusion Control...
- */
 #ifndef AVD_SU_H
 #define AVD_SU_H
 
@@ -44,16 +35,8 @@
 #include <comp.h>
 #include "include/db_template.h"
 
-/* The semantics the SU is undergoing. */
-typedef enum {
-	AVD_SU_NO_STATE = 0,
-	AVD_SU_OPER,
-	AVD_SU_NODE_OPER
-} AVD_SU_STATE;
-
-/* Avialability directors Service Unit structure(AVD_SU):
- * This data structure lives in the AvD and reflects data points
- * associated with the Service Unit (SU) on the AvD.
+/**
+ * AMF director Service Unit representation.
  */
 class AVD_SU {
  public:
@@ -62,7 +45,8 @@ class AVD_SU {
 	uint32_t saAmfSURank;
 	SaNameT saAmfSUHostNodeOrNodeGroup;
 	bool saAmfSUFailover;
-	bool saAmfSUFailover_configured; /* True when user configures saAmfSUFailover else false */
+	/* true when user has configured saAmfSUFailover */
+	bool saAmfSUFailover_configured;
 	SaNameT saAmfSUMaintenanceCampaign;
 
 	/* runtime attributes */
@@ -71,11 +55,10 @@ class AVD_SU {
 	SaAmfAdminStateT saAmfSUAdminState;
 	SaAmfReadinessStateT saAmfSuReadinessState;
 	SaAmfPresenceStateT saAmfSUPresenceState;
-	SaNameT **saAmfSUAssignedSIs;
 	SaNameT saAmfSUHostedByNode;
 	SaUint32T saAmfSUNumCurrActiveSIs;
 	SaUint32T saAmfSUNumCurrStandbySIs;
-	SaUint32T saAmfSURestartCount;	// TODO use this!
+	SaUint32T saAmfSURestartCount;
 
 	AVD_ADMIN_OPER_CBK pend_cbk;	/* Stores zero invocation value of imm adm cbk
 					 * when no admin operation is going on.
@@ -94,10 +77,7 @@ class AVD_SU {
 
 	bool su_is_external;	/* indicates if this SU is external */
 
-	AVD_SU_STATE su_act_state;	/* The current action flow of
-					 * the SU w.r.t to the node.
-					 * Checkpointing - Updated independently.
-					 */
+	int su_act_state; // not used, kept for EDU, remove later
 
 	struct avd_sg_tag *sg_of_su;	/* the service group of this SU */
 	struct avd_avnd_tag *su_on_node;	/*  the node on which this SU resides */
@@ -168,10 +148,6 @@ extern void avd_su_delete(AVD_SU *su);
 
 extern void avd_su_remove_comp(struct avd_comp_tag *comp);
 extern void avd_su_add_comp(struct avd_comp_tag *comp);
-
-void avd_su_add_sg_list(AVD_CL_CB *cb, AVD_SU *su);
-void avd_su_del_sg_list(AVD_CL_CB *cb, AVD_SU *su);
-void avd_su_del_avnd_list(AVD_CL_CB *cb, AVD_SU *su);
 
 /**
  * Get SUs from IMM and create internal objects

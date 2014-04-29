@@ -1404,7 +1404,6 @@ void amfd_file_dump(const char *path)
 		fprintf(f, "\tsaAmfSURestartCount=%u\n", su->saAmfSURestartCount);
 		fprintf(f, "\tterm_state=%u\n", su->term_state);
 		fprintf(f, "\tsu_switch=%u\n", su->su_switch);
-		fprintf(f, "\tsu_act_state=%u\n", su->su_act_state);
 		dn = su->name;
 	}
 

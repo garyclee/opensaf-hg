@@ -1846,34 +1846,10 @@ static uint32_t dec_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SU *su_struct;
-
 	TRACE_ENTER();
-
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 13);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->su_act_state = su_ptr->su_act_state;
-
 	cb->async_updt_cnt.su_updt++;
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\

@@ -200,7 +200,6 @@ uint32_t avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 	memcpy(&su->saAmfSUHostedByNode, &ckpt_su->saAmfSUHostedByNode, sizeof(SaNameT));
 	su->term_state = ckpt_su->term_state;
 	su->su_switch = ckpt_su->su_switch;
-	su->su_act_state = ckpt_su->su_act_state;
 	su->saAmfSURestartCount = ckpt_su->saAmfSURestartCount;
 
 done:
