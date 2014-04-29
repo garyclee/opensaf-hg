@@ -734,7 +734,7 @@ uint32_t avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 				}
 
 				if (SA_AMF_ADMIN_SHUTTING_DOWN == su->saAmfSUAdminState) {
-					avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				}
 
 				/* transition to sg-realign state */
@@ -1814,7 +1814,7 @@ uint32_t avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 			if ((SA_AMF_ADMIN_SHUTTING_DOWN == su->saAmfSUAdminState) ||
 			    (SA_AMF_ADMIN_SHUTTING_DOWN == su_node_ptr->saAmfNodeAdminState)) {
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-					avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 					su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
@@ -1969,7 +1969,7 @@ uint32_t avd_sg_nway_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 		if ((SA_AMF_ADMIN_SHUTTING_DOWN == su->saAmfSUAdminState) ||
 		    (SA_AMF_ADMIN_SHUTTING_DOWN == su_node_ptr->saAmfNodeAdminState)) {
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 				if (flag == true) {
@@ -2435,7 +2435,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 
 							/* if su-shutdown semantics in progress, mark it locked */
 							if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-								avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+								su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 							} else if (su_node_ptr->saAmfNodeAdminState ==
 								   SA_AMF_ADMIN_SHUTTING_DOWN) {
 								m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
@@ -2526,7 +2526,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 
 						/* if su-shutdown semantics in progress, mark it locked */
 						if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-							avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+							su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 						} else if (su_node_ptr->saAmfNodeAdminState ==
 							   SA_AMF_ADMIN_SHUTTING_DOWN) {
 							m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
@@ -2629,7 +2629,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 		m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
 		if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 		} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 			if (flag == true) {
@@ -2777,7 +2777,7 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 
 				/* if su-shutdown semantics in progress, mark it locked */
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-					avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 					if (flag == true) {
@@ -2816,7 +2816,7 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 
 			/* if su-shutdown semantics in progress, mark it locked */
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 				if (flag == true) {
@@ -3272,7 +3272,7 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 		m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
 		if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 		} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 			if (flag == true) {
@@ -3654,7 +3654,7 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 		if (true == is_su_present) {
 			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 				if (flag == true) {

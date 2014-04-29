@@ -810,19 +810,21 @@ void AVD_SU::set_readiness_state(SaAmfReadinessStateT readiness_state) {
 	TRACE_LEAVE();
 }
 
-void avd_su_admin_state_set(AVD_SU *su, SaAmfAdminStateT admin_state)
-{
-	SaAmfAdminStateT old_state = su->saAmfSUAdminState;
-	
+void AVD_SU::set_admin_state(SaAmfAdminStateT admin_state) {
+	SaAmfAdminStateT old_state = saAmfSUAdminState;
+
 	osafassert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
-	TRACE_ENTER2("'%s' %s => %s", su->name.value, avd_adm_state_name[old_state], avd_adm_state_name[admin_state]);
-	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", su->name.value,
-		   avd_adm_state_name[su->saAmfSUAdminState], avd_adm_state_name[admin_state]);
-	su->saAmfSUAdminState = admin_state;
-	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUAdminState",
-		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUAdminState);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_ADMIN_STATE);
-	avd_send_admin_state_chg_ntf(&su->name, SA_AMF_NTFID_SU_ADMIN_STATE, old_state, su->saAmfSUAdminState);
+	TRACE_ENTER2("'%s' %s => %s", name.value,
+		avd_adm_state_name[old_state], avd_adm_state_name[admin_state]);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", name.value,
+		avd_adm_state_name[saAmfSUAdminState],
+		avd_adm_state_name[admin_state]);
+	saAmfSUAdminState = admin_state;
+	avd_saImmOiRtObjectUpdate(&name, "saAmfSUAdminState",
+		SA_IMM_ATTR_SAUINT32T, &saAmfSUAdminState);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_ADMIN_STATE);
+	avd_send_admin_state_chg_ntf(&name, SA_AMF_NTFID_SU_ADMIN_STATE,
+			old_state, saAmfSUAdminState);
 }
 
 /**
@@ -944,7 +946,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	/* Validation has passed and admin operation should be done. Proceed with it... */
 	switch (op_id) {
 	case SA_AMF_ADMIN_UNLOCK:
-		avd_su_admin_state_set(su, SA_AMF_ADMIN_UNLOCKED);
+		su->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 		if (((m_AVD_APP_SU_IS_INSVC(su, node)) || (su->sg_of_su->sg_ncs_spec == true)) &&
 			((su->saAmfSUPreInstantiable) ?
 			 (su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED):true)) {
@@ -977,7 +979,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			}
 		} else {
 			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_FAILED_OPERATION, NULL,
 					"SG redundancy model specific handler failed");
 			goto done;
@@ -992,7 +994,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	case SA_AMF_ADMIN_LOCK:
 		if (su->list_of_susi == NULL) {
 			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			avd_sg_app_su_inst_func(cb, su->sg_of_su);
 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
 			goto done;
@@ -1001,7 +1003,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		back_red_state = su->saAmfSuReadinessState;
 		back_admin_state = su->saAmfSUAdminState;
 		su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-		avd_su_admin_state_set(su, adm_state);
+		su->set_admin_state(adm_state);
 
 		if (su->sg_of_su->su_admin_down(cb, su, node) != NCSCC_RC_SUCCESS)
 			is_oper_successful = false;
@@ -1019,7 +1021,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			}
 		} else {
 			su->set_readiness_state(back_red_state);
-			avd_su_admin_state_set(su, back_admin_state);
+			su->set_admin_state(back_admin_state);
 			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_FAILED_OPERATION, NULL,
 					"SG redundancy model specific handler failed");
 			goto done;
@@ -1031,7 +1033,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 
 		/* For non-preinstantiable SU lock-inst is same as lock */
 		if ( su->saAmfSUPreInstantiable == false ) {
-			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+			su->set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
 			goto done;
 		}
@@ -1054,7 +1056,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED) || 
 				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED)) {
 			/* No need to terminate the SUs in Unins/Inst Failed/Term Failed state */
-			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+			su->set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
 			m_AVD_SET_SU_TERM(cb, su, true);
 			LOG_NO("'%s' presence state is '%u'", su_name->value, su->saAmfSUPresenceState);
@@ -1068,8 +1070,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			   and so store the callback parameters to send response later on. */
 			if (avd_snd_presence_msg(cb, su, true) == NCSCC_RC_SUCCESS) {
 				m_AVD_SET_SU_TERM(cb, su, true);
-				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
-
+				su->set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 				su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
 				su->pend_cbk.invocation = invocation;
 
@@ -1079,7 +1080,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 					"Internal error, could not send message to avnd");
 			goto done;
 		} else {
-			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+			su->set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
 			m_AVD_SET_SU_TERM(cb, su, true);
 		}
@@ -1099,7 +1100,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			/* Adjusting saAmfSGMaxActiveSIsperSU and saAmfSGMaxStandbySIsperSU
 			   is required when SG and SUs/Comps are created in different CCBs. */
 			avd_sg_adjust_config(su->sg_of_su);
-			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
 			goto done;
 		}
@@ -1120,7 +1121,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			   and so store the callback parameters to send response later on. */
 			if (avd_snd_presence_msg(cb, su, false) == NCSCC_RC_SUCCESS) {
 				m_AVD_SET_SU_TERM(cb, su, false);
-				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 
 				su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
 				su->pend_cbk.invocation = invocation;
@@ -1130,7 +1131,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
 					"Internal error, could not send message to avnd");
 		} else {
-			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
 			m_AVD_SET_SU_TERM(cb, su, false);
 		}
