@@ -88,6 +88,7 @@ class AVD_SU {
 	struct avd_sutype *su_type;
 	AVD_SU *su_list_su_type_next;
 
+	void set_pres_state(SaAmfPresenceStateT state);
 	void set_readiness_state(SaAmfReadinessStateT readiness_state);
 	void set_oper_state(SaAmfOperationalStateT state);
 	void set_oper_state(uint32_t state) {
@@ -156,7 +157,6 @@ extern void avd_su_add_comp(struct avd_comp_tag *comp);
  */
 extern SaAisErrorT avd_su_config_get(const SaNameT *sg_name, struct avd_sg_tag *sg);
 
-extern void avd_su_pres_state_set(AVD_SU *su, SaAmfPresenceStateT pres_state);
 extern void avd_su_admin_state_set(AVD_SU *su, SaAmfAdminStateT admin_state);
 
 /**
