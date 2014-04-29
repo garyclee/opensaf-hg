@@ -82,12 +82,17 @@ class AVD_SU {
 	struct avd_sg_tag *sg_of_su;	/* the service group of this SU */
 	struct avd_avnd_tag *su_on_node;	/*  the node on which this SU resides */
 	struct avd_su_si_rel_tag *list_of_susi;	/* the list of su si relationship elements */
+
+	// TODO: use some container for the comp list
 	struct avd_comp_tag *list_of_comp;	/* the list of  components in this SU */
+
 	AVD_SU *sg_list_su_next;	/* the next SU in the SG */
 	AVD_SU *avnd_list_su_next;	/* the next SU in the AvND */
 	struct avd_sutype *su_type;
 	AVD_SU *su_list_su_type_next;
 
+	void add_comp(struct avd_comp_tag *comp);
+	void remove_comp(struct avd_comp_tag *comp);
 	void set_admin_state(SaAmfAdminStateT admin_state);
 	void set_pres_state(SaAmfPresenceStateT state);
 	void set_readiness_state(SaAmfReadinessStateT readiness_state);
@@ -147,9 +152,6 @@ extern AVD_SU *avd_su_new(const SaNameT *dn);
  * @param su
  */
 extern void avd_su_delete(AVD_SU *su);
-
-extern void avd_su_remove_comp(struct avd_comp_tag *comp);
-extern void avd_su_add_comp(struct avd_comp_tag *comp);
 
 /**
  * Get SUs from IMM and create internal objects
