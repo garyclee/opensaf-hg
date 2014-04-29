@@ -105,18 +105,16 @@ AVD_SU *avd_su_get_or_create(const SaNameT *dn)
 /**
  * @brief   gets the current no of assignmnents on a SU for a particular state
  *
- * @param[in] su
  * @param[in] ha_state  
  *
  * @return returns current assignment cnt
  */
-uint32_t avd_su_get_current_no_of_assignments(AVD_SU *su, SaAmfHAStateT ha_state)
-{
-	AVD_SU_SI_REL *curr_susi;
-	uint32_t curr_assignment_cnt = 0;
+int AVD_SU::hastate_assignments_count(SaAmfHAStateT ha_state) {
+	const AVD_SU_SI_REL *susi;
+	int curr_assignment_cnt = 0;
 
-	for (curr_susi = su->list_of_susi;curr_susi != NULL;curr_susi = curr_susi->su_next) {
-		if (curr_susi->state == ha_state)
+	for (susi = list_of_susi; susi != NULL; susi = susi->su_next) {
+		if (susi->state == ha_state)
 			curr_assignment_cnt++;
 	}
 
