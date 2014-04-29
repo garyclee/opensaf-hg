@@ -91,6 +91,7 @@ class AVD_SU {
 	struct avd_sutype *su_type;
 	AVD_SU *su_list_su_type_next;
 
+	int hastate_assignments_count(SaAmfHAStateT ha_state);
 	void add_comp(struct avd_comp_tag *comp);
 	void remove_comp(struct avd_comp_tag *comp);
 	void set_admin_state(SaAmfAdminStateT admin_state);
@@ -192,7 +193,6 @@ extern void avd_su_inc_curr_act_si(AVD_SU *su);
 extern void avd_su_dec_curr_act_si(AVD_SU *su);
 extern void avd_su_inc_curr_stdby_si(AVD_SU *su);
 extern void avd_su_dec_curr_stdby_si(AVD_SU *su);
-extern uint32_t avd_su_get_current_no_of_assignments(AVD_SU *su, SaAmfHAStateT ha_state);
 extern AVD_SU *avd_su_get_or_create(const SaNameT *dn);
 extern void su_nd_attribute_update(const AVD_SU *su, AVSV_AMF_SU_ATTR_ID attrib_id);
 

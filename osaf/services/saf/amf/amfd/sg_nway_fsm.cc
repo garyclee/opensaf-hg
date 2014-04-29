@@ -1321,7 +1321,7 @@ AVD_SU *avd_sg_nway_get_su_std_equal(AVD_SG *sg, AVD_SI *curr_si)
 		l_flag = true;
 
 		/* Get the current no of Standby assignments on the su */
-		curr_su_stdby_cnt = avd_su_get_current_no_of_assignments(curr_su, SA_AMF_HA_STANDBY);
+		curr_su_stdby_cnt = curr_su->hastate_assignments_count(SA_AMF_HA_STANDBY);
 
 		/* first try to select an SU which has no assignments */
 		if ((curr_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
