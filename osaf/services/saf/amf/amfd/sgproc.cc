@@ -1562,7 +1562,7 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 	osafassert(i_su != 0);
 	while (i_su != NULL) {
 		i_su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
-		avd_su_pres_state_set(i_su, SA_AMF_PRESENCE_UNINSTANTIATED);
+		i_su->set_pres_state(SA_AMF_PRESENCE_UNINSTANTIATED);
 		i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 		su_complete_admin_op(i_su, SA_AIS_ERR_TIMEOUT);
 		su_disable_comps(i_su, SA_AIS_ERR_TIMEOUT);
@@ -1613,7 +1613,7 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 	i_su = avnd->list_of_su;
 	while (i_su != NULL) {
 		i_su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
-		avd_su_pres_state_set(i_su, SA_AMF_PRESENCE_UNINSTANTIATED);
+		i_su->set_pres_state(SA_AMF_PRESENCE_UNINSTANTIATED);
 		i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 
 		/* Check if there was any admin operations going on this SU. */

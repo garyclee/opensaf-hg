@@ -712,34 +712,32 @@ SaAisErrorT avd_su_config_get(const SaNameT *sg_name, AVD_SG *sg)
 	return error;
 }
 
-void avd_su_pres_state_set(AVD_SU *su, SaAmfPresenceStateT pres_state)
-{
-	SaAmfPresenceStateT old_state;
-
-	if (su->saAmfSUPresenceState == pres_state)
+void AVD_SU::set_pres_state(SaAmfPresenceStateT pres_state) {
+	if (saAmfSUPresenceState == pres_state)
 		return;
 
 	osafassert(pres_state <= SA_AMF_PRESENCE_TERMINATION_FAILED);
-	TRACE_ENTER2("'%s' %s => %s",	su->name.value,
-				 avd_pres_state_name[su->saAmfSUPresenceState],
+	TRACE_ENTER2("'%s' %s => %s", name.value,
+				 avd_pres_state_name[saAmfSUPresenceState],
 				 avd_pres_state_name[pres_state]);
 
-	old_state = su->saAmfSUPresenceState;
-	su->saAmfSUPresenceState = pres_state;
+	SaAmfPresenceStateT old_state = saAmfSUPresenceState;
+	saAmfSUPresenceState = pres_state;
 	/* only log for certain changes, see notifications in spec */
 	if (pres_state == SA_AMF_PRESENCE_UNINSTANTIATED ||
 	    pres_state == SA_AMF_PRESENCE_INSTANTIATED ||
 	    pres_state == SA_AMF_PRESENCE_RESTARTING) {
 
-		saflog(LOG_NOTICE, amfSvcUsrName, "%s PresenceState %s => %s", su->name.value,
-			   avd_pres_state_name[old_state], avd_pres_state_name[su->saAmfSUPresenceState]);
+		saflog(LOG_NOTICE, amfSvcUsrName, "%s PresenceState %s => %s",
+			name.value, avd_pres_state_name[old_state],
+			avd_pres_state_name[saAmfSUPresenceState]);
 
-		/* alarm & notifications */
-		avd_send_su_pres_state_chg_ntf(&su->name, old_state, su->saAmfSUPresenceState);
+		avd_send_su_pres_state_chg_ntf(&name, old_state,
+			saAmfSUPresenceState);
 	}
-	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPresenceState",
-		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPresenceState);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_PRES_STATE);
+	avd_saImmOiRtObjectUpdate(&name, "saAmfSUPresenceState",
+		SA_IMM_ATTR_SAUINT32T, &saAmfSUPresenceState);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_PRES_STATE);
 }
 
 void AVD_SU::set_oper_state(SaAmfOperationalStateT oper_state) {
