@@ -123,8 +123,7 @@ uint32_t avd_su_get_current_no_of_assignments(AVD_SU *su, SaAmfHAStateT ha_state
 	return curr_assignment_cnt;
 }
 
-void avd_su_remove_comp(AVD_COMP *comp)
-{
+void AVD_SU::remove_comp(AVD_COMP *comp) {
 	AVD_COMP *i_comp = NULL;
 	AVD_COMP *prev_comp = NULL;
 	AVD_SU *su_ref = comp->su;
@@ -159,8 +158,7 @@ void avd_su_remove_comp(AVD_COMP *comp)
 	}
 }
 
-void avd_su_add_comp(AVD_COMP *comp)
-{
+void AVD_SU::add_comp(AVD_COMP *comp) {
 	AVD_COMP *i_comp = comp->su->list_of_comp;
 	AVD_COMP *prev_comp = NULL; 
 	bool found_pos= false;

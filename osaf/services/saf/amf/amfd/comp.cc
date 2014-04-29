@@ -188,8 +188,9 @@ AVD_COMP *avd_comp_getnext(const SaNameT *dn)
 
 void avd_comp_delete(AVD_COMP *comp)
 {
+	AVD_SU *su = comp->su;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
-	avd_su_remove_comp(comp);
+	su->remove_comp(comp);
 	avd_comptype_remove_comp(comp);
 	(void)ncs_patricia_tree_del(&comp_db, &comp->tree_node);
 	delete comp;
@@ -219,7 +220,7 @@ static void comp_add_to_model(AVD_COMP *comp)
 	comp->comp_type = avd_comptype_get(&comp->saAmfCompType);
 	osafassert(comp->comp_type);
 	avd_comptype_add_comp(comp);
-	avd_su_add_comp(comp);
+	su->add_comp(comp);
 
 	/* check if the
 	 * corresponding node is UP send the component information
@@ -238,7 +239,7 @@ static void comp_add_to_model(AVD_COMP *comp)
 		} else {
 			/* This is not a valid external component. External SU has 
 			   been assigned a cluster component. */
-			avd_su_remove_comp(comp);
+			su->remove_comp(comp);
 			LOG_ER("Not A Valid External Component: Category '%u'configured",
 				comp->comp_info.category);
 			return;
@@ -1199,9 +1200,9 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 					comp->comp_info.inst_level, *((SaUint32T *)value), comp->comp_info.name.value);
 			comp->comp_info.inst_level = *((SaUint32T *)value);
 			
-			avd_su_remove_comp(comp);
+			su->remove_comp(comp);
 			comp->su = su;
-			avd_su_add_comp(comp);
+			su->add_comp(comp);
 			
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxInstantiateWithoutDelay")) {
 
