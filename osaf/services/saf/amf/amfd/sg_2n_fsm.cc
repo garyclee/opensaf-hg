@@ -935,7 +935,7 @@ static uint32_t avd_sg_2n_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 				if (flag == true) {
@@ -2044,7 +2044,7 @@ static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 		 * are quiesced
 		 */
 		if ((su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) && ((all_quiesced(su) || all_unassigned(su)))) {
-			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 		} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 			if (flag == true) {
@@ -2226,7 +2226,7 @@ static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 
 			/* the admin state of the SU is shutdown change it to lock. */
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 				if (flag == true) {
@@ -2735,7 +2735,7 @@ uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 
 			/* the admin state of the SU is shutdown change it to lock. */
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 				if (flag == true) {
@@ -3049,7 +3049,7 @@ static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 			/* the admin state of the SU is shutdown change it to lock. */
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 				if (flag == true) {
@@ -3076,7 +3076,7 @@ static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 			/* the admin state of the SU is shutdown change it to lock. */
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 				if (flag == true) {
@@ -3781,7 +3781,7 @@ uint32_t avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 				/* add the SU to the operation list and change the SG FSM to SG realign. */
 				avd_sg_su_oper_list_add(cb, su, false);
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN)
-					avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
+					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			}	/* else (avd_su_state_determine(su) == SA_AMF_HA_ACTIVE) */
 		}		/* if ((su->admin_state == NCS_ADMIN_STATE_SHUTDOWN) ||
