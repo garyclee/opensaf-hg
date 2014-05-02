@@ -1427,19 +1427,19 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUFailover")) {
 			if (value_is_deleted) {
-				su->saAmfSUFailover = static_cast<bool>(su->su_type->saAmfSutDefSUFailover);
+				su->set_su_failover(su->su_type->saAmfSutDefSUFailover);
 				su->saAmfSUFailover_configured = false;
 			}
 			else {
-				su->saAmfSUFailover = static_cast<bool>(*((SaUint32T *)attr_mod->modAttr.attrValues[0]));
+				bool value =
+					static_cast<bool>(*((SaUint32T *)attr_mod->modAttr.attrValues[0]));
+				su->set_su_failover(value);
 				su->saAmfSUFailover_configured = true;
 			}
-			TRACE("Modified saAmfSUFailover is '%u'", su->saAmfSUFailover);
 			if (!su->saAmfSUPreInstantiable) {
-				su->saAmfSUFailover = true;
+				su->set_su_failover(true);
 				su->saAmfSUFailover_configured = true;
 			}
-			su_nd_attribute_update(su, saAmfSUFailOver_ID);
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUMaintenanceCampaign")) {
 			if (value_is_deleted) {
 				su->saAmfSUMaintenanceCampaign.length = 0;
@@ -1460,13 +1460,12 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			su->su_type = sut;
 			avd_sutype_add_su(su);
 			if (su->saAmfSUPreInstantiable) {
-				su->saAmfSUFailover = static_cast<bool>(sut->saAmfSutDefSUFailover);
+				su->set_su_failover(static_cast<bool>(sut->saAmfSutDefSUFailover));
 				su->saAmfSUFailover_configured = false;
 			} else {
-				su->saAmfSUFailover = true;
+				su->set_su_failover(true);
 				su->saAmfSUFailover_configured = true;
 			}
-			su_nd_attribute_update(su, saAmfSUFailOver_ID);
 			su->su_is_external = sut->saAmfSutIsExternal;
 		} else
 			osafassert(0);
@@ -1601,8 +1600,7 @@ void avd_su_constructor(void)
  * @param su
  * @param attrib_id
  */
-void su_nd_attribute_update(const AVD_SU *su, AVSV_AMF_SU_ATTR_ID attrib_id)
-{
+void AVD_SU::send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id) {
 	AVD_AVND *su_node_ptr = NULL;
 	AVSV_PARAM_INFO param;
 	memset(((uint8_t *)&param), '\0', sizeof(AVSV_PARAM_INFO));
@@ -1613,10 +1611,10 @@ void su_nd_attribute_update(const AVD_SU *su, AVSV_AMF_SU_ATTR_ID attrib_id)
 		TRACE_LEAVE2("avd is not in active state");
 		return;
 	}
-	m_AVD_GET_SU_NODE_PTR(avd_cb, su, su_node_ptr);
+	m_AVD_GET_SU_NODE_PTR(avd_cb, this, su_node_ptr);
 	param.class_id = AVSV_SA_AMF_SU;
 	param.act = AVSV_OBJ_OPR_MOD;
-	param.name = su->name;
+	param.name = name;
 
 	switch (attrib_id) {
 	case saAmfSUFailOver_ID:
@@ -1624,7 +1622,7 @@ void su_nd_attribute_update(const AVD_SU *su, AVSV_AMF_SU_ATTR_ID attrib_id)
 		uint32_t sufailover; 
 		param.attr_id = saAmfSUFailOver_ID;
 		param.value_len = sizeof(uint32_t);
-		sufailover = htonl(su->saAmfSUFailover);
+		sufailover = htonl(saAmfSUFailover);
 		memcpy(&param.value[0], &sufailover, param.value_len);
 		break;
 	}
@@ -1642,6 +1640,13 @@ void su_nd_attribute_update(const AVD_SU *su, AVSV_AMF_SU_ATTR_ID attrib_id)
 	}
 
 	TRACE_LEAVE();
+}
+
+void AVD_SU::set_su_failover(bool value) {
+	saAmfSUFailover = value;
+	TRACE("Modified saAmfSUFailover to '%u' for '%s'",
+		saAmfSUFailover, name.value);
+	send_attribute_update(saAmfSUFailOver_ID);
 }
 
 /**

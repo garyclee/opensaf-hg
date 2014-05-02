@@ -38,6 +38,7 @@
 /**
  * AMF director Service Unit representation.
  */
+//TODO: all attributes that have a setter should probably have an getter
 class AVD_SU {
  public:
 	SaNameT name;
@@ -91,6 +92,7 @@ class AVD_SU {
 	struct avd_sutype *su_type;
 	AVD_SU *su_list_su_type_next;
 
+	void set_su_failover(bool value);
 	void dec_curr_stdby_si();
 	void inc_curr_stdby_si();
 	void inc_curr_act_si();
@@ -108,6 +110,9 @@ class AVD_SU {
 	void delete_all_susis(void);
 	void set_all_susis_assigned_quiesced(void);
 	void set_all_susis_assigned(void);
+
+ private:
+	void send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id);
 };
 
 extern AmfDb<AVD_SU> *su_db;
@@ -194,6 +199,5 @@ extern SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, struct avd_s
 extern void avd_sutcomptype_constructor(void);
 
 extern AVD_SU *avd_su_get_or_create(const SaNameT *dn);
-extern void su_nd_attribute_update(const AVD_SU *su, AVSV_AMF_SU_ATTR_ID attrib_id);
 
 #endif
