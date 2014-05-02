@@ -350,6 +350,7 @@ AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const SaNameT *su_name, const SaName
 uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 {
 	AVD_SU_SI_REL *p_su_si, *p_si_su, *i_su_si;
+	AVD_SU *su = susi->su;
 
 	TRACE_ENTER2("%s %s", susi->su->name.value, susi->si->name.value);
 
@@ -406,10 +407,10 @@ uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 			   only happens when active -> qsd and standby rebooted */
 		} else if ((susi->fsm == AVD_SU_SI_STATE_ASGND) || (susi->fsm == AVD_SU_SI_STATE_ASGN)){ 
 			if (SA_AMF_HA_STANDBY == susi->state) {
-				avd_su_dec_curr_stdby_si(susi->su);
+				su->dec_curr_stdby_si();
 				avd_si_dec_curr_stdby_ass(susi->si);
 			} else if ((SA_AMF_HA_ACTIVE == susi->state) || (SA_AMF_HA_QUIESCING == susi->state)) { 
-				avd_su_dec_curr_act_si(susi->su);
+				su->dec_curr_act_si();
 				avd_si_dec_curr_act_ass(susi->si);
 			}
 		}
@@ -596,52 +597,54 @@ done:
  */
 void avd_susi_update_assignment_counters(AVD_SU_SI_REL *susi, AVSV_SUSI_ACT action, SaAmfHAStateT current_ha_state, SaAmfHAStateT new_ha_state)
 {
+	AVD_SU *su = susi->su;
+
 	TRACE_ENTER2("SI:'%s', SU:'%s' action:%u current_ha_state:%u new_ha_state:%u",
 		susi->si->name.value, susi->su->name.value, action, current_ha_state, new_ha_state); 
 
 	switch (action) {
 	case AVSV_SUSI_ACT_ASGN:
 		if (new_ha_state == SA_AMF_HA_ACTIVE) {
-			avd_su_inc_curr_act_si(susi->su);
+			su->inc_curr_act_si();
 			avd_si_inc_curr_act_ass(susi->si);
 		} else if (new_ha_state == SA_AMF_HA_STANDBY) { 
-			avd_su_inc_curr_stdby_si(susi->su);
+			su->inc_curr_stdby_si();
 			avd_si_inc_curr_stdby_ass(susi->si);
 		}
 		break;
 	case AVSV_SUSI_ACT_MOD:
 		if ((current_ha_state == SA_AMF_HA_STANDBY) && (new_ha_state == SA_AMF_HA_ACTIVE)) {
 			/* standby to active */
-			avd_su_inc_curr_act_si(susi->su);
-			avd_su_dec_curr_stdby_si(susi->su);
+			su->inc_curr_act_si();
+			su->dec_curr_stdby_si();
 			avd_si_inc_curr_act_dec_std_ass(susi->si);
 		} else if (((current_ha_state == SA_AMF_HA_ACTIVE) || (current_ha_state == SA_AMF_HA_QUIESCING))
 				&& (new_ha_state == SA_AMF_HA_QUIESCED)) {
 			/* active or quiescing to quiesced */
-			avd_su_dec_curr_act_si(susi->su);
+			su->dec_curr_act_si();
 			avd_si_dec_curr_act_ass(susi->si);
 		} else if ((current_ha_state == SA_AMF_HA_QUIESCED) && (new_ha_state == SA_AMF_HA_STANDBY)) {
 			/* active or quiescinf to standby */
-			avd_su_inc_curr_stdby_si(susi->su);
+			su->inc_curr_stdby_si();
 			avd_si_inc_curr_stdby_ass(susi->si);
 		} else if (((current_ha_state == SA_AMF_HA_ACTIVE) || (current_ha_state == SA_AMF_HA_QUIESCING))
 				&& (new_ha_state == SA_AMF_HA_STANDBY)) {
 			/* active or quiescinf to standby */
-			avd_su_dec_curr_act_si(susi->su);
-			avd_su_inc_curr_stdby_si(susi->su);
+			su->dec_curr_act_si();
+			su->inc_curr_stdby_si();
 			avd_si_inc_curr_stdby_dec_act_ass(susi->si);
 		} else if ((current_ha_state == SA_AMF_HA_QUIESCED) && (new_ha_state == SA_AMF_HA_ACTIVE)) {
 			/* quiescing to active */
-			avd_su_inc_curr_act_si(susi->su);
+			su->inc_curr_act_si();
 			avd_si_inc_curr_act_ass(susi->si);
 		}
 		break;
 	case AVSV_SUSI_ACT_DEL:
 		if (susi->state == SA_AMF_HA_STANDBY) {
-			avd_su_dec_curr_stdby_si(susi->su);
+			su->dec_curr_stdby_si();
 			avd_si_dec_curr_stdby_ass(susi->si);
 		} else if ((susi->state == SA_AMF_HA_ACTIVE) || (susi->state == SA_AMF_HA_QUIESCING)) {
-			avd_su_dec_curr_act_si(susi->su);
+			su->dec_curr_act_si();
 			avd_si_dec_curr_act_ass(susi->si);
 		}
 		break;

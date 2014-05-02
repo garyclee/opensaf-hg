@@ -91,6 +91,10 @@ class AVD_SU {
 	struct avd_sutype *su_type;
 	AVD_SU *su_list_su_type_next;
 
+	void dec_curr_stdby_si();
+	void inc_curr_stdby_si();
+	void inc_curr_act_si();
+	void dec_curr_act_si();
 	int hastate_assignments_count(SaAmfHAStateT ha_state);
 	void add_comp(struct avd_comp_tag *comp);
 	void remove_comp(struct avd_comp_tag *comp);
@@ -189,10 +193,6 @@ extern SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, struct avd_s
  */
 extern void avd_sutcomptype_constructor(void);
 
-extern void avd_su_inc_curr_act_si(AVD_SU *su);
-extern void avd_su_dec_curr_act_si(AVD_SU *su);
-extern void avd_su_inc_curr_stdby_si(AVD_SU *su);
-extern void avd_su_dec_curr_stdby_si(AVD_SU *su);
 extern AVD_SU *avd_su_get_or_create(const SaNameT *dn);
 extern void su_nd_attribute_update(const AVD_SU *su, AVSV_AMF_SU_ATTR_ID attrib_id);
 

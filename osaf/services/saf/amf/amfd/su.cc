@@ -1559,34 +1559,34 @@ static void su_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	TRACE_LEAVE();
 }
 
-void avd_su_inc_curr_act_si(AVD_SU *su)
-{
-	su->saAmfSUNumCurrActiveSIs++;
-	TRACE("%s saAmfSUNumCurrActiveSIs=%u", su->name.value, su->saAmfSUNumCurrActiveSIs);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_SI_CURR_ACTIVE);
+void AVD_SU::inc_curr_act_si() {
+	saAmfSUNumCurrActiveSIs++;
+	TRACE("%s saAmfSUNumCurrActiveSIs=%u", name.value,
+		saAmfSUNumCurrActiveSIs);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_SI_CURR_ACTIVE);
 }
 
-void avd_su_dec_curr_act_si(AVD_SU *su)
-{
-	osafassert(su->saAmfSUNumCurrActiveSIs > 0);
-	su->saAmfSUNumCurrActiveSIs--;
-	TRACE("%s saAmfSUNumCurrActiveSIs=%u", su->name.value, su->saAmfSUNumCurrActiveSIs);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_SI_CURR_ACTIVE);
+void AVD_SU::dec_curr_act_si() {
+	osafassert(saAmfSUNumCurrActiveSIs > 0);
+	saAmfSUNumCurrActiveSIs--;
+	TRACE("%s saAmfSUNumCurrActiveSIs=%u", name.value,
+		saAmfSUNumCurrActiveSIs);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_SI_CURR_ACTIVE);
 }
 
-void avd_su_inc_curr_stdby_si(AVD_SU *su)
-{
-	su->saAmfSUNumCurrStandbySIs++;
-	TRACE("%s saAmfSUNumCurrStandbySIs=%u", su->name.value, su->saAmfSUNumCurrStandbySIs);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_SI_CURR_STBY);
+void AVD_SU::inc_curr_stdby_si() {
+	saAmfSUNumCurrStandbySIs++;
+	TRACE("%s saAmfSUNumCurrStandbySIs=%u", name.value,
+		saAmfSUNumCurrStandbySIs);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_SI_CURR_STBY);
 }
 
-void avd_su_dec_curr_stdby_si(AVD_SU *su)
-{
-	osafassert(su->saAmfSUNumCurrStandbySIs > 0);
-	su->saAmfSUNumCurrStandbySIs--;
-	TRACE("%s saAmfSUNumCurrStandbySIs=%u", su->name.value, su->saAmfSUNumCurrStandbySIs);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_SI_CURR_STBY);
+void AVD_SU::dec_curr_stdby_si() {
+	osafassert(saAmfSUNumCurrStandbySIs > 0);
+	saAmfSUNumCurrStandbySIs--;
+	TRACE("%s saAmfSUNumCurrStandbySIs=%u", name.value,
+		saAmfSUNumCurrStandbySIs);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_SI_CURR_STBY);
 }
 
 void avd_su_constructor(void)
