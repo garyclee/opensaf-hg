@@ -110,6 +110,7 @@ class AVD_SU {
 	void delete_all_susis(void);
 	void set_all_susis_assigned_quiesced(void);
 	void set_all_susis_assigned(void);
+	void set_term_state(bool state);
 
  private:
 	void send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id);
@@ -126,11 +127,6 @@ typedef struct {
 	SaUint32T curr_num_components;
 
 } AVD_SUTCOMP_TYPE;
-
-#define m_AVD_SET_SU_TERM(cb,su,state) {\
-su->term_state = state;\
-m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_SU_TERM_STATE);\
-}
 
 #define m_AVD_SET_SU_SWITCH(cb,su,state) {\
 su->su_switch = state;\

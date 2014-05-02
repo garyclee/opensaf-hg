@@ -59,7 +59,7 @@ static void clm_node_join_complete(AVD_AVND *node)
 							(sg_instantiated_su_count(su->sg_of_su) +
 							 su->sg_of_su->try_inst_counter)) {
 						if (avd_snd_presence_msg(avd_cb, su, false) == NCSCC_RC_SUCCESS) {
-							m_AVD_SET_SU_TERM(avd_cb, su, false);
+							su->set_term_state(false);
 							su->sg_of_su->try_inst_counter++;
 						} else {
 							LOG_ER("Internal error, could not send message to avnd");
