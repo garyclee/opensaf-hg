@@ -255,10 +255,7 @@ static void sutype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			if (old_value != sut->saAmfSutDefSUFailover) {
 				for (AVD_SU *su = sut->list_of_su; su; su = su->su_list_su_type_next) { 
 					if ((!su->saAmfSUFailover_configured) && (su->saAmfSUPreInstantiable)) {
-						su->saAmfSUFailover = static_cast<bool>(sut->saAmfSutDefSUFailover);
-						TRACE("Modified saAmfSutDefSUFailover to '%u' for Su'%s'",
-								su->saAmfSUFailover, su->name.value);
-						su_nd_attribute_update(su, saAmfSUFailOver_ID);
+						su->set_su_failover(static_cast<bool>(sut->saAmfSutDefSUFailover));
 					}
 				}
 			}

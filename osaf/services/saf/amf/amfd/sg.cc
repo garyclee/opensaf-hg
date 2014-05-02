@@ -1564,8 +1564,7 @@ void avd_sg_adjust_config(AVD_SG *sg)
 		/* saAmfSUFailover must be true for a NPI SU sec 3.11.1.3.2 AMF-B.04.01 spec */
 		for (AVD_SU *su = sg->list_of_su; su != NULL; su = su->sg_list_su_next) {
 			if (!su->saAmfSUFailover) {
-				su->saAmfSUFailover = true;
-				su_nd_attribute_update(su, saAmfSUFailOver_ID);
+				su->set_su_failover(true);
 			}
 		}
 
