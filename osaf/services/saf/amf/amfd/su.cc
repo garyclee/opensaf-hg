@@ -1054,7 +1054,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			/* No need to terminate the SUs in Unins/Inst Failed/Term Failed state */
 			su->set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			m_AVD_SET_SU_TERM(cb, su, true);
+			su->set_term_state(true);
 			LOG_NO("'%s' presence state is '%u'", su_name->value, su->saAmfSUPresenceState);
 			goto done;
 		}
@@ -1065,7 +1065,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			/* When the SU will terminate then prescence state change message will come
 			   and so store the callback parameters to send response later on. */
 			if (avd_snd_presence_msg(cb, su, true) == NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SU_TERM(cb, su, true);
+				su->set_term_state(true);
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 				su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
 				su->pend_cbk.invocation = invocation;
@@ -1078,7 +1078,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		} else {
 			su->set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			m_AVD_SET_SU_TERM(cb, su, true);
+			su->set_term_state(true);
 		}
 
 		break;
@@ -1116,7 +1116,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			/* When the SU will instantiate then prescence state change message will come
 			   and so store the callback parameters to send response later on. */
 			if (avd_snd_presence_msg(cb, su, false) == NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SU_TERM(cb, su, false);
+				su->set_term_state(false);
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 
 				su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
@@ -1129,7 +1129,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		} else {
 			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			m_AVD_SET_SU_TERM(cb, su, false);
+			su->set_term_state(false);
 		}
 
 		break;
@@ -1702,4 +1702,10 @@ void AVD_SU::set_all_susis_assigned(void) {
 	}
 
 	TRACE_LEAVE();
+}
+
+void AVD_SU::set_term_state(bool state) {
+	term_state = state;
+	TRACE("%s term_state %u", name.value, term_state);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_TERM_STATE);
 }

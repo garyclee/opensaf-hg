@@ -1037,7 +1037,7 @@ static uint32_t avd_sg_su_term_in_reverse(AVD_SU *su)
 		  (su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
 
 	  if (avd_snd_presence_msg(avd_cb, su, true) == NCSCC_RC_SUCCESS) {
-		  m_AVD_SET_SU_TERM(avd_cb, su, true);
+		  su->set_term_state(true);
 	  } else {
 		  rc = NCSCC_RC_FAILURE;
 		  LOG_WA("Failed Termination '%s'", su->name.value);
@@ -1098,8 +1098,7 @@ static void sg_app_sg_admin_unlock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 				}
 
 				/* set uncondionally of msg snd outcome */
-				m_AVD_SET_SU_TERM(cb, su, false);
-
+				su->set_term_state(false);
 			} 
 		}
 	}

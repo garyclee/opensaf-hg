@@ -1055,7 +1055,7 @@ static void node_sus_termstate_set(AVD_AVND *node, bool term_state)
 
 	for (su = node->list_of_su; su; su = su->avnd_list_su_next) {
 		if (su->saAmfSUPreInstantiable == true)
-			m_AVD_SET_SU_TERM(avd_cb, su, term_state);
+			su->set_term_state(term_state);
 	}
 }
 
