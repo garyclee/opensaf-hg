@@ -877,9 +877,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 
 		su = node->list_of_su;
 		while (su != NULL) {
-			su_node_ptr = su->get_node_ptr();
-
-			if (m_AVD_APP_SU_IS_INSVC(su, su_node_ptr) &&
+			if ((su->is_in_service() == true) &&
 				((su->saAmfSUPreInstantiable) ?
 				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED):true)) {
 				/* Pres state check is to prevent assignment to SU in case node is instantiating
