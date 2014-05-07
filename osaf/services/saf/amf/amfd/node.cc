@@ -877,7 +877,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 
 		su = node->list_of_su;
 		while (su != NULL) {
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 
 			if (m_AVD_APP_SU_IS_INSVC(su, su_node_ptr) &&
 				((su->saAmfSUPreInstantiable) ?
@@ -920,8 +920,8 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				 */
 				su_sg = su->sg_of_su->list_of_su;
 				while (su_sg != NULL) {
-					m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
-					m_AVD_GET_SU_NODE_PTR(cb, su_sg, su_sg_node_ptr);
+					su_node_ptr = su->get_node_ptr();
+					su_sg_node_ptr = su_sg->get_node_ptr();
 
 					if ((su != su_sg) &&
 					    (su_node_ptr == su_sg_node_ptr) &&

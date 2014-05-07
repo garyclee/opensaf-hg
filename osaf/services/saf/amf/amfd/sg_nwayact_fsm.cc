@@ -395,7 +395,7 @@ uint32_t avd_sg_nacvred_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 			}
 			m_AVD_CHK_OPLIST(su, flag);
 			if (flag == true) {
-				m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+				su_node_ptr = su->get_node_ptr();
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -427,7 +427,7 @@ uint32_t avd_sg_nacvred_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 					return NCSCC_RC_FAILURE;
 				}
 
-				m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+				su_node_ptr = su->get_node_ptr();
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -746,7 +746,7 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 					return NCSCC_RC_FAILURE;
 				}
 
-				m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+				su_node_ptr = su->get_node_ptr();
 				if (su->sg_of_su->admin_si != AVD_SI_NULL) {
 					if ((su->sg_of_su->admin_si->list_of_sisu->su == su) &&
 					    (su->sg_of_su->admin_si->list_of_sisu->si_next == AVD_SU_SI_REL_NULL)) {
@@ -948,7 +948,7 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 
-					m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+					su_node_ptr = su->get_node_ptr();
 					if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 						su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 					} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -1169,7 +1169,7 @@ uint32_t avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL 
 					return NCSCC_RC_FAILURE;
 				}
 
-				m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+				su_node_ptr = su->get_node_ptr();
 				if (su->sg_of_su->admin_si != AVD_SI_NULL) {
 					if ((su->sg_of_su->admin_si->list_of_sisu->su == su) &&
 					    (su->sg_of_su->admin_si->list_of_sisu->si_next == AVD_SU_SI_REL_NULL)) {
@@ -1246,7 +1246,7 @@ uint32_t avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL 
 						return NCSCC_RC_SUCCESS;
 					}
 
-					m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+					su_node_ptr = su->get_node_ptr();
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 
 					if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -1492,7 +1492,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 		if (flag == true) {
 			avd_sg_su_oper_list_del(cb, su, false);
 
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -1545,7 +1545,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 				su->sg_of_su->si_tobe_redistributed = NULL;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, su->sg_of_su, AVSV_CKPT_AVD_SI_TRANS);
 			}
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {

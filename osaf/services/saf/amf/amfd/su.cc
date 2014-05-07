@@ -924,7 +924,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		goto done;
 	}
 
-	m_AVD_GET_SU_NODE_PTR(cb, su, node);
+	node = su->get_node_ptr();
 	if (node->admin_node_pend_cbk.admin_oper != 0) {
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
 				"Node'%s' hosting SU'%s', undergoing admin operation'%u'", node->name.value,
@@ -1487,7 +1487,7 @@ static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 		goto done;
 	}
 
-	m_AVD_GET_SU_NODE_PTR(avd_cb, su, su_node_ptr);
+	su_node_ptr = su->get_node_ptr();
 
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
@@ -1607,7 +1607,7 @@ void AVD_SU::send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id) {
 		TRACE_LEAVE2("avd is not in active state");
 		return;
 	}
-	m_AVD_GET_SU_NODE_PTR(avd_cb, this, su_node_ptr);
+
 	param.class_id = AVSV_SA_AMF_SU;
 	param.act = AVSV_OBJ_OPR_MOD;
 	param.name = name;
@@ -1627,6 +1627,7 @@ void AVD_SU::send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id) {
 	}
 
 	/*Update this value on the node hosting this SU*/
+	su_node_ptr = get_node_ptr();
 	if ((su_node_ptr) && ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 			(su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
 			(su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))) {
@@ -1710,4 +1711,11 @@ void AVD_SU::set_su_switch(SaToggleState state) {
 	su_switch = state;
 	TRACE("%s su_switch %u", name.value, su_switch);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_SWITCH);
+}
+
+struct avd_avnd_tag *AVD_SU::get_node_ptr(void) {
+	 if (su_is_external == true)
+		 return avd_cb->ext_comp_info.local_avnd_node;
+	 else
+		 return su_on_node;
 }

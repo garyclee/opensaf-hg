@@ -1126,7 +1126,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	param.name = comp->comp_info.name;
 	comp_type = avd_comptype_get(&comp->saAmfCompType);
 
-	m_AVD_GET_SU_NODE_PTR(avd_cb, comp->su, su_node_ptr);
+	su_node_ptr = comp->su->get_node_ptr();
 
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
@@ -1567,7 +1567,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	/* send a message to the AVND deleting the
 	 * component.
 	 */
-	m_AVD_GET_SU_NODE_PTR(avd_cb, comp->su, su_node_ptr);
+	su_node_ptr = comp->su->get_node_ptr();
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT)) {

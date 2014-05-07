@@ -116,6 +116,7 @@ class AVD_SU {
 	void set_term_state(bool state);
 	void remove_from_model();
 	void set_su_switch(SaToggleState state);
+	avd_avnd_tag *get_node_ptr(void);
 
  private:
 	void send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id);
@@ -144,10 +145,6 @@ typedef struct {
 (i_su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&\
 (i_su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED)\
 )
-
-#define m_AVD_GET_SU_NODE_PTR(avd_cb,i_su,su_node_ptr)  \
- if(true == i_su->su_is_external) su_node_ptr = avd_cb->ext_comp_info.local_avnd_node; \
- else su_node_ptr = i_su->su_on_node;
 
 /**
  * Get SUs from IMM and create internal objects

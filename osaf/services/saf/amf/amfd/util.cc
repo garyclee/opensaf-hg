@@ -338,11 +338,10 @@ uint32_t avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, bool term_state)
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_DND_MSG *d2n_msg;
-	AVD_AVND *node = NULL;
+	AVD_AVND *node = su->get_node_ptr();
 
-	m_AVD_GET_SU_NODE_PTR(cb, su, node);
-
-	TRACE_ENTER2("%s '%s'", (term_state == true) ? "Terminate" : "Instantiate", su->name.value);
+	TRACE_ENTER2("%s '%s'", (term_state == true) ? "Terminate" : "Instantiate",
+		su->name.value);
 
 	/* prepare the node update message. */
 	d2n_msg = new AVSV_DND_MSG();
@@ -356,7 +355,6 @@ uint32_t avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, bool term_state)
 
 	TRACE("Sending %u to %x", AVSV_D2N_PRESENCE_SU_MSG, node->node_info.nodeId);
 
-	/* send the message */
 	if (avd_d2n_msg_snd(cb, node, d2n_msg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
 		d2n_msg_free(d2n_msg);
@@ -575,12 +573,9 @@ done:
 
 uint32_t avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 {
-	AVD_AVND *node = NULL;
-
 	TRACE_ENTER();
 
-	m_AVD_GET_SU_NODE_PTR(cb, su, node);
-
+	AVD_AVND *node = su->get_node_ptr();
 	AVD_DND_MSG *su_msg = new AVSV_DND_MSG();
 	su_msg->msg_type = AVSV_D2N_REG_SU_MSG;
 	su_msg->msg_info.d2n_reg_su.nodeid = node->node_info.nodeId;
@@ -693,11 +688,9 @@ static SaAmfCompCapabilityModelT get_comp_capability(const AVD_CSI *csi,
  * 
  **************************************************************************/
 
-uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT actn, bool single_csi, 
-		AVD_COMP_CSI_REL *compcsi) {
-
+uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
+		AVSV_SUSI_ACT actn, bool single_csi, AVD_COMP_CSI_REL *compcsi) {
 	AVD_DND_MSG *susi_msg;
-	AVD_AVND *avnd;
 	AVD_COMP_CSI_REL *l_compcsi;
 	AVD_SU_SI_REL *l_susi, *i_susi;
 	AVSV_SUSI_ASGN *compcsi_info;
@@ -705,11 +698,11 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 
 	TRACE_ENTER();
 
-	/* Get the node information from the SU */
-	m_AVD_GET_SU_NODE_PTR(cb, su, avnd);
+	AVD_AVND *avnd = su->get_node_ptr();
 
 	/* Need not proceed further if node is not in proper state */
-	if ((avnd->node_state == AVD_AVND_STATE_ABSENT) || (avnd->node_state == AVD_AVND_STATE_GO_DOWN))
+	if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
+			(avnd->node_state == AVD_AVND_STATE_GO_DOWN))
 		return NCSCC_RC_SUCCESS;
 
 	/* Initialize the local variables to avoid warnings */

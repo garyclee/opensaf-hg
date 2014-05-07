@@ -1809,7 +1809,7 @@ uint32_t avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 			}	
 
 			/* => su is present in the su-oper list */
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 
 			if ((SA_AMF_ADMIN_SHUTTING_DOWN == su->saAmfSUAdminState) ||
 			    (SA_AMF_ADMIN_SHUTTING_DOWN == su_node_ptr->saAmfNodeAdminState)) {
@@ -1962,8 +1962,7 @@ uint32_t avd_sg_nway_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 	TRACE_ENTER2("SU '%s'",su->name.value);
 
 	if (su->sg_of_su->su_oper_list.su == su) {
-
-		m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+		su_node_ptr = su->get_node_ptr();
 
 		/* => su-lock/shutdown is followed by su-disable event */
 		if ((SA_AMF_ADMIN_SHUTTING_DOWN == su->saAmfSUAdminState) ||
@@ -2431,7 +2430,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 								goto done;
 							}
 
-							m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+							su_node_ptr = su->get_node_ptr();
 
 							/* if su-shutdown semantics in progress, mark it locked */
 							if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -2522,7 +2521,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 							goto done;
 						}
 
-						m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+						su_node_ptr = su->get_node_ptr();
 
 						/* if su-shutdown semantics in progress, mark it locked */
 						if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -2626,7 +2625,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 	} else if (!susi && (AVSV_SUSI_ACT_DEL == act)) {
 		/* => remove all success */
 		/* if su-shutdown semantics in progress, mark it locked */
-		m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+		su_node_ptr = su->get_node_ptr();
 
 		if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
@@ -2773,7 +2772,7 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 					goto done;
 				}
 
-				m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+				su_node_ptr = su->get_node_ptr();
 
 				/* if su-shutdown semantics in progress, mark it locked */
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -2812,7 +2811,7 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 				goto done;
 			}
 
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 
 			/* if su-shutdown semantics in progress, mark it locked */
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -3269,7 +3268,7 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 	m_AVD_CHK_OPLIST(su, is_su_present);
 
 	if (is_su_present) {
-		m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+		su_node_ptr = su->get_node_ptr();
 
 		if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
@@ -3652,7 +3651,7 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 		m_AVD_CHK_OPLIST(su, is_su_present);
 
 		if (true == is_su_present) {
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {

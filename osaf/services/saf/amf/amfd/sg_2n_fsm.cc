@@ -932,7 +932,7 @@ static uint32_t avd_sg_2n_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				}
 			}
 
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
@@ -1935,7 +1935,7 @@ static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 		(su->sg_of_su->su_oper_list.su == su)) {
 		/* quiesced all and SU is in the operation list */
 
-		m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+		su_node_ptr = su->get_node_ptr();
 
 		avd_sg_2n_act_susi(cb, su->sg_of_su, &s_susi);
 		if (susi != NULL) {
@@ -2223,7 +2223,7 @@ static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 				/* realign the SG. */
 			}
 
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 
 			/* the admin state of the SU is shutdown change it to lock. */
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -2731,7 +2731,7 @@ uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 				goto done;
 			}
 
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 
 			/* the admin state of the SU is shutdown change it to lock. */
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -3046,7 +3046,7 @@ static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 					avd_sidep_sg_take_action(su->sg_of_su); 
 			}	/* else (s_susi != AVD_SU_SI_REL_NULL) */
 
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 			/* the admin state of the SU is shutdown change it to lock. */
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
@@ -3072,7 +3072,7 @@ static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 			avd_sg_su_oper_list_del(cb, su, false);
 			su->delete_all_susis();
 
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 
 			/* the admin state of the SU is shutdown change it to lock. */
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
