@@ -866,7 +866,7 @@ SaAisErrorT avd_sg_2n_siswap_func(AVD_SI *si, SaInvocationT invocation)
 	/* Add the SU to the operation list and change the SG state to SU_operation. */
 	avd_sg_su_oper_list_add(avd_cb, susi->su, false);
 	m_AVD_SET_SG_FSM(avd_cb, susi->su->sg_of_su, AVD_SG_FSM_SU_OPER);
-	m_AVD_SET_SU_SWITCH(avd_cb, susi->su, AVSV_SI_TOGGLE_SWITCH);
+	susi->su->set_su_switch(AVSV_SI_TOGGLE_SWITCH);
 	si->invocation = invocation;
 
 	LOG_NO("%s Swap initiated", susi->si->name.value);
@@ -917,7 +917,7 @@ static uint32_t avd_sg_2n_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 	if (su->sg_of_su->su_oper_list.su == su) {
 		su_ha_state = avd_su_state_determine(su);
 		if (su_ha_state == SA_AMF_HA_QUIESCED) {
-			m_AVD_SET_SU_SWITCH(cb, su, AVSV_SI_TOGGLE_STABLE);
+			su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
 		} else if (su_ha_state == SA_AMF_HA_QUIESCING) {
 			if (avd_sidep_si_dependency_exists_within_su(su)) {
 				if (avd_sg_susi_mod_snd_honouring_si_dependency(su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
@@ -999,7 +999,7 @@ static uint32_t avd_sg_2n_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 					avd_su_role_failover(su, a_su);
 				}
 
-				m_AVD_SET_SU_SWITCH(cb, a_su, AVSV_SI_TOGGLE_STABLE);
+				a_su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
 			}
 
 		} /* if(su_ha_state == SA_AMF_HA_STANDBY) */
@@ -1039,8 +1039,8 @@ static uint32_t avd_sg_2n_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 			if ((a_su->su_switch == AVSV_SI_TOGGLE_SWITCH) &&
 			    (a_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
-			    (a_su_ha_state == SA_AMF_HA_QUIESCED)) {
-				m_AVD_SET_SU_SWITCH(cb, a_su, AVSV_SI_TOGGLE_STABLE);
+			    	(a_su_ha_state == SA_AMF_HA_QUIESCED)) {
+				a_su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
 			} else if (a_su_ha_state == SA_AMF_HA_QUIESCED) {
 				/* the other SU has quiesced assignments meaning either it is
 				 * out of service or locked. So just send a remove request
@@ -2127,8 +2127,9 @@ static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 		}
 
 		/* Finish the SI SWAP admin operation */
-		m_AVD_SET_SU_SWITCH(cb, su->sg_of_su->su_oper_list.su, AVSV_SI_TOGGLE_STABLE);
-		avd_sg_su_oper_list_del(cb, su->sg_of_su->su_oper_list.su, false);
+		AVD_SU *su_at_head = su->sg_of_su->su_oper_list.su;
+		su_at_head->set_su_switch(AVSV_SI_TOGGLE_STABLE);
+		avd_sg_su_oper_list_del(cb, su_at_head, false);
 		m_AVD_SET_SG_FSM(cb, su->sg_of_su, AVD_SG_FSM_STABLE);
 		/*As sg is stable, screen for si dependencies and take action on whole sg*/
 		avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
@@ -2233,8 +2234,7 @@ static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			} else if (su->su_switch == AVSV_SI_TOGGLE_SWITCH) {
-				/* this SU switch state is true change to false. */
-				m_AVD_SET_SU_SWITCH(cb, su, AVSV_SI_TOGGLE_STABLE);
+				su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
 			}
 
 		} else {
@@ -2714,7 +2714,7 @@ uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 				goto done;
 			}
 
-			m_AVD_SET_SU_SWITCH(cb, su, AVSV_SI_TOGGLE_STABLE);
+			su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			complete_siswap(su, SA_AIS_ERR_BAD_OPERATION);
 
@@ -3056,7 +3056,7 @@ static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			} else {
-				m_AVD_SET_SU_SWITCH(cb, su, AVSV_SI_TOGGLE_STABLE);
+				su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
 			}
 
 		}		/* if ((quiesced_susi_in_su(su)) || (quiescing_susi_in_su(su))) */
@@ -3083,7 +3083,7 @@ static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			} else {
-				m_AVD_SET_SU_SWITCH(cb, su, AVSV_SI_TOGGLE_STABLE);
+				su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
 			}
 			avd_sg_su_oper_list_add(cb, a_susi->su, false);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -3157,7 +3157,8 @@ static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			}
 
-			m_AVD_SET_SU_SWITCH(cb, (su->sg_of_su->su_oper_list.su), AVSV_SI_TOGGLE_STABLE);
+			AVD_SU *su_at_head = su->sg_of_su->su_oper_list.su;
+			su_at_head->set_su_switch(AVSV_SI_TOGGLE_STABLE);
 			su->delete_all_susis();
 
 		} /* if(avd_su_state_determine(su) == SA_AMF_HA_STANDBY) */
@@ -3193,7 +3194,8 @@ static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			}
 
-			m_AVD_SET_SU_SWITCH(cb, (su->sg_of_su->su_oper_list.su), AVSV_SI_TOGGLE_STABLE);
+			AVD_SU *su_at_head = su->sg_of_su->su_oper_list.su;
+			su_at_head->set_su_switch(AVSV_SI_TOGGLE_STABLE);
 			su->delete_all_susis();
 
 		}

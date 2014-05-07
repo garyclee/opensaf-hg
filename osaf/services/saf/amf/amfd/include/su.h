@@ -115,6 +115,7 @@ class AVD_SU {
 	void set_all_susis_assigned(void);
 	void set_term_state(bool state);
 	void remove_from_model();
+	void set_su_switch(SaToggleState state);
 
  private:
 	void send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id);
@@ -135,11 +136,6 @@ typedef struct {
 	SaUint32T curr_num_components;
 
 } AVD_SUTCOMP_TYPE;
-
-#define m_AVD_SET_SU_SWITCH(cb,su,state) {\
-su->su_switch = state;\
-m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_SU_SWITCH);\
-}
 
 #define m_AVD_APP_SU_IS_INSVC(i_su,su_node_ptr) \
 ((su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) && \
