@@ -117,6 +117,7 @@ class AVD_SU {
 	void remove_from_model();
 	void set_su_switch(SaToggleState state);
 	avd_avnd_tag *get_node_ptr(void);
+	bool is_in_service(void);
 
  private:
 	void send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id);
@@ -137,14 +138,6 @@ typedef struct {
 	SaUint32T curr_num_components;
 
 } AVD_SUTCOMP_TYPE;
-
-#define m_AVD_APP_SU_IS_INSVC(i_su,su_node_ptr) \
-((su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) && \
-(su_node_ptr->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) && \
-(i_su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) &&\
-(i_su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&\
-(i_su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED)\
-)
 
 /**
  * Get SUs from IMM and create internal objects

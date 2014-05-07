@@ -936,7 +936,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	switch (op_id) {
 	case SA_AMF_ADMIN_UNLOCK:
 		su->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
-		if (((m_AVD_APP_SU_IS_INSVC(su, node)) || (su->sg_of_su->sg_ncs_spec == true)) &&
+		if (((su->is_in_service() == true) || (su->sg_of_su->sg_ncs_spec == true)) &&
 			((su->saAmfSUPreInstantiable) ?
 			 (su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED):true)) {
 			/* Pres state check is to prevent assignment to SU in case SU is instantiating in
@@ -1718,4 +1718,14 @@ struct avd_avnd_tag *AVD_SU::get_node_ptr(void) {
 		 return avd_cb->ext_comp_info.local_avnd_node;
 	 else
 		 return su_on_node;
+}
+
+bool AVD_SU::is_in_service(void) {
+	struct avd_avnd_tag *node = get_node_ptr();
+
+	return (node->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+			(node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
+			(sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+			(saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+			(saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED);
 }
