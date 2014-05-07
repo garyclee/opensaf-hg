@@ -92,6 +92,9 @@ class AVD_SU {
 	struct avd_sutype *su_type;
 	AVD_SU *su_list_su_type_next;
 
+	AVD_SU() {};
+	AVD_SU(const SaNameT *dn);
+	~AVD_SU() {};
 	void set_su_failover(bool value);
 	void dec_curr_stdby_si();
 	void inc_curr_stdby_si();
@@ -111,9 +114,14 @@ class AVD_SU {
 	void set_all_susis_assigned_quiesced(void);
 	void set_all_susis_assigned(void);
 	void set_term_state(bool state);
+	void remove_from_model();
 
  private:
 	void send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id);
+
+	// disallow copy and assign, TODO(hafe) add common macro for this
+	AVD_SU(const AVD_SU&);
+	void operator=(const AVD_SU&);
 };
 
 extern AmfDb<AVD_SU> *su_db;
@@ -144,20 +152,6 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_SU_SWITCH);\
 #define m_AVD_GET_SU_NODE_PTR(avd_cb,i_su,su_node_ptr)  \
  if(true == i_su->su_is_external) su_node_ptr = avd_cb->ext_comp_info.local_avnd_node; \
  else su_node_ptr = i_su->su_on_node;
-
-/**
- * Allocate SU memory and initialize attributes to defaults
- * @param dn
- * 
- * @return AVD_SU*
- */
-extern AVD_SU *avd_su_new(const SaNameT *dn);
-
-/**
- * Free SU memory
- * @param su
- */
-extern void avd_su_delete(AVD_SU *su);
 
 /**
  * Get SUs from IMM and create internal objects
