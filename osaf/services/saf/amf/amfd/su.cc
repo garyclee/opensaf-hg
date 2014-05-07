@@ -31,51 +31,46 @@
 
 AmfDb<AVD_SU> *su_db = NULL;
 
-AVD_SU *avd_su_new(const SaNameT *dn)
-{
-	SaNameT sg_name;
-	AVD_SU *su;
-
-	su = new AVD_SU();
-	
-	memcpy(su->name.value, dn->value, dn->length);
-	su->name.length = dn->length;
-	avsv_sanamet_init(dn, &sg_name, "safSg");
-	su->saAmfSUFailover = false;
-	su->term_state = false;
-	su->su_switch = AVSV_SI_TOGGLE_STABLE;
-	su->saAmfSUPreInstantiable = static_cast<SaBoolT>(false);
-	/* saAmfSUOperState is set when the SU is added to model depending on
-	 * node state. Initialized to invalid due to filtering in avd_su_oper_state_set. */
-	su->saAmfSUOperState = static_cast<SaAmfOperationalStateT>(0);
-	su->saAmfSUPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
-	su->saAmfSuReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
-	su->su_is_external = false;
-
-	return su;
+AVD_SU::AVD_SU(const SaNameT *dn) {
+	memcpy(name.value, dn->value, sizeof(name.value));
+	name.length = dn->length;
+	saAmfSUFailover = false;
+	term_state = false;
+	su_switch = AVSV_SI_TOGGLE_STABLE;
+	saAmfSUPreInstantiable = static_cast<SaBoolT>(false);
+	saAmfSUOperState = SA_AMF_OPERATIONAL_DISABLED;
+	saAmfSUPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
+	saAmfSuReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
+	su_is_external = false;
+	sg_of_su = NULL;
+	su_on_node = NULL;
+	list_of_susi = NULL;
+	list_of_comp = NULL;
+	sg_list_su_next = NULL;
+	avnd_list_su_next = NULL;
+	su_type = NULL;
+	su_list_su_type_next = NULL;
+	saAmfSUHostedByNode.length = 0;
 }
 
 /**
  * Delete the SU from the model. Check point with peer. Send delete order
- * to node director. Delete all contained components.
- * 
- * @param i_su
+ * to node director.
  */
-void avd_su_delete(AVD_SU *su)
-{
-	TRACE_ENTER2("'%s'", su->name.value);
-	
+void AVD_SU::remove_from_model() {
+	TRACE_ENTER2("'%s'", name.value);
+
 	/* All the components under this SU should have been deleted
 	 * by now, just do the sanity check to confirm it is done 
 	 */
-	osafassert(su->list_of_comp == NULL);
+	osafassert(list_of_comp == NULL);
+	osafassert(list_of_susi == NULL);
 
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
-	avd_node_remove_su(su);
-	avd_sutype_remove_su(su);
-	su_db->erase(su);
-	avd_sg_remove_su(su);
-	delete su;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, this, AVSV_CKPT_AVD_SU_CONFIG);
+	avd_node_remove_su(this);
+	avd_sutype_remove_su(this);
+	su_db->erase(this);
+	avd_sg_remove_su(this);
 
 	TRACE_LEAVE();
 }
@@ -93,8 +88,7 @@ AVD_SU *avd_su_get_or_create(const SaNameT *dn)
 
 	if (su == NULL) {
 		TRACE("'%s' does not exist, creating it", dn->value);
-		su = avd_su_new(dn);
-		osafassert(su != NULL);
+		su = new AVD_SU(dn);
 		unsigned int rc = su_db->insert(su);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
@@ -420,8 +414,7 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 	** but needs to get configuration attributes initialized.
 	*/
 	if ((su = su_db->find(dn)) == NULL) {
-		if ((su = avd_su_new(dn)) == NULL)
-			goto done;
+		su = new AVD_SU(dn);
 	} else
 		TRACE("already created, refreshing config...");
 
@@ -1489,7 +1482,8 @@ static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	TRACE_ENTER2("'%s'", su->name.value);
 
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
-		avd_su_delete(su);
+		su->remove_from_model();
+		delete su;
 		goto done;
 	}
 
@@ -1505,7 +1499,9 @@ static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 		avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
 	}
 
-	avd_su_delete(su);
+	su->remove_from_model();
+	delete su;
+
 	if (AVD_SG_FSM_STABLE == sg->sg_fsm_state) {
 		/*if su of uneqal rank has been delete and all SUs are of same rank then do screening
 		  for SI Distribution. */
