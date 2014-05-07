@@ -1705,3 +1705,9 @@ void AVD_SU::set_term_state(bool state) {
 	TRACE("%s term_state %u", name.value, term_state);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_TERM_STATE);
 }
+
+void AVD_SU::set_su_switch(SaToggleState state) {
+	su_switch = state;
+	TRACE("%s su_switch %u", name.value, su_switch);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_SWITCH);
+}
