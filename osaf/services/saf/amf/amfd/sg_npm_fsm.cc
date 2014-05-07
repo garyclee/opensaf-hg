@@ -985,7 +985,7 @@ static uint32_t avd_sg_npm_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				return NCSCC_RC_FAILURE;
 			}
 
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
@@ -1305,7 +1305,7 @@ static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					return NCSCC_RC_FAILURE;
 				}
 
-				m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+				su_node_ptr = su->get_node_ptr();
 
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
@@ -1712,7 +1712,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				/* Send D2N-INFO_SU_SI_ASSIGN message remove all to this SU. If
 				 * the SUs admin state is shutdown change it to LOCK.
 				 */
-				m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+				su_node_ptr = su->get_node_ptr();
 
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
@@ -2562,7 +2562,7 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				/* Send D2N-INFO_SU_SI_ASSIGN message remove all to this SU. If
 		 		* the SUs admin state is shutdown change it to LOCK.
 		 		*/
-				m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+				su_node_ptr = su->get_node_ptr();
 
 				/* If the admin state of the SU is shutdown change it to lock*/
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -3047,7 +3047,7 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 				return NCSCC_RC_FAILURE;
 			}
 
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+			su_node_ptr = su->get_node_ptr();
 
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
@@ -3664,7 +3664,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 				/* remove the SU from the operation list. */
 				avd_sg_su_oper_list_del(cb, su, false);
 
-				m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+				su_node_ptr = su->get_node_ptr();
 
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
@@ -3806,7 +3806,7 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 		/* remove the SU from the operation list. */
 		avd_sg_su_oper_list_del(cb, su, false);
 
-		m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+		su_node_ptr = su->get_node_ptr();
 		if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 		} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {

@@ -752,7 +752,7 @@ static void sg_nd_attribute_update(AVD_SG *sg, uint32_t attrib_id)
 	/* This value has to be updated on each SU on this SG */
 	su = sg->list_of_su;
 	while (su) {
-		m_AVD_GET_SU_NODE_PTR(avd_cb, su, su_node_ptr);
+		su_node_ptr = su->get_node_ptr();
 
 		if ((su_node_ptr) && (su_node_ptr->node_state == AVD_AVND_STATE_PRESENT)) {
 			param.name = su->name;
@@ -1152,7 +1152,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 	/* Avoid multiple admin operations on other SUs belonging to the same SG. */
 	for (su = sg->list_of_su; su != NULL; su = su->sg_list_su_next) {
-		m_AVD_GET_SU_NODE_PTR(avd_cb, su, node);
+		node = su->get_node_ptr();
 		if (su->pend_cbk.invocation != 0) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
 					"Admin operation'%u' is already going on su'%s' belonging to the same SG",

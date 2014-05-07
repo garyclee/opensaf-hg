@@ -444,7 +444,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+	su_node_ptr = su->get_node_ptr();
 
 	if (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.saf_amf == SA_AMF_NODE_SWITCHOVER) {
 		saflog(LOG_NOTICE, amfSvcUsrName, "Node Switch-Over requested by '%s'",
@@ -661,7 +661,6 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		 * the SG FSM.
 		 */
 		if (su->sg_of_su->sg_ncs_spec == true) {
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) { 
 				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 				/* Run the SG FSM */
@@ -676,9 +675,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				}
 			}
 		} else {	/* if(su->sg_of_su->sg_ncs_spec == true) */
-
 			old_state = su->saAmfSuReadinessState;
-			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
 			/* If oper state of Uninstantiated SU got ENABLED so try to instantiate it 
 			   after evaluating SG. */
@@ -1302,8 +1299,7 @@ void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 				} else {
 					i_su->set_oper_state(SA_AMF_OPERATIONAL_ENABLED);
-
-					m_AVD_GET_SU_NODE_PTR(cb, i_su, su_node_ptr);
+					su_node_ptr = i_su->get_node_ptr();
 
 					if (m_AVD_APP_SU_IS_INSVC(i_su, su_node_ptr)) {
 						i_su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
@@ -1368,7 +1364,7 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 
 	i_su = sg->list_of_su;
 	while (i_su != NULL) {
-		m_AVD_GET_SU_NODE_PTR(cb, i_su, su_node_ptr);
+		su_node_ptr = i_su->get_node_ptr();
 		num_su++;
 		/* Check if the SU is inservice */
 		if (i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
@@ -1384,8 +1380,8 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
 			    (su_node_ptr->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
 			    (i_su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
-			    (i_su->term_state == false)) {
-				m_AVD_GET_SU_NODE_PTR(cb, i_su, su_node_ptr);
+			    	(i_su->term_state == false)) {
+				su_node_ptr = i_su->get_node_ptr();
 
 				if (m_AVD_APP_SU_IS_INSVC(i_su, su_node_ptr)) {
 					i_su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
@@ -1479,7 +1475,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 		 * state.
 		 */
 		for (i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
-			m_AVD_GET_SU_NODE_PTR(cb, i_su, i_su_node_ptr);
+			i_su_node_ptr = i_su->get_node_ptr();
 			// TODO(nagu) remove saAmfSUPreInstantiable check and move into m_AVD_APP_SU_IS_INSVC
 			if (m_AVD_APP_SU_IS_INSVC(i_su, i_su_node_ptr) &&
 					((i_su->saAmfSUPreInstantiable) ?
