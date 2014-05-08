@@ -31,6 +31,9 @@ static SaAisErrorT immReturnValue;
 static SaAisErrorT operationReturnValue;
 static SaInvocationT userInvocation = 0xdead;
 
+static SaBoolT useImplementerNameAsTarget = SA_FALSE;
+static SaImmOiImplementerNameT implementerName = NULL;;
+
 /* SaImmAdminOperationError */
 static SaStringT adminOperationErrorString = NULL;
 static SaImmAdminOperationParamsT_2 adminOperationErrorParam = {
@@ -179,7 +182,7 @@ static void *objectImplementerThreadMain(void *arg)
 {
     struct pollfd fds[1];
     int ret;
-    const SaImmOiImplementerNameT implementerName = (SaImmOiImplementerNameT) __FUNCTION__;
+    implementerName = (SaImmOiImplementerNameT) __FUNCTION__;
     SaSelectionObjectT selObj;
     SaImmHandleT handle;
     const SaNameT *objectName = arg;
@@ -223,23 +226,34 @@ static SaAisErrorT om_admin_exec(SaAisErrorT *imm_rc, const SaNameT *objectName,
     SaImmHandleT handle;
     SaImmAdminOwnerHandleT ownerHandle;
     const SaNameT *objectNames[] = {objectName, NULL};
+    SaNameT localRdn = rdn;
     SaImmAdminOperationParamsT_2 param = {
         "TEST",
         SA_IMM_ATTR_SAUINT64T,
         &value
     };
     const SaImmAdminOperationParamsT_2 *params[] = {&param, NULL};
+    SaImmAdminOwnerNameT admoName = adminOwnerName;
 
     if (in_rc == SA_AIS_ERR_INVALID_PARAM)
         param.paramType = -1;
 
     TRACE_ENTER();
     safassert(saImmOmInitialize(&handle, NULL, &immVersion), SA_AIS_OK);
-    safassert(saImmOmAdminOwnerInitialize(handle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
-    safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_SUBTREE), SA_AIS_OK);
+    if(useImplementerNameAsTarget) {
+        localRdn.length = strlen(implementerName);
+        assert(localRdn.length < 256);
+        strcpy((char *) localRdn.value, implementerName);
+        admoName = (char *) implementerName;
+    }
+
+    safassert(saImmOmAdminOwnerInitialize(handle, admoName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+    if(!useImplementerNameAsTarget) {
+        safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_SUBTREE), SA_AIS_OK);
+    }
 
     *imm_rc = saImmOmAdminOperationInvoke_2(
-        ownerHandle, &rdn, 0, operationId,
+        ownerHandle, &localRdn, 0, operationId,
         params, &rc, SA_TIME_ONE_SECOND);
 
     saImmOmAdminOwnerFinalize(ownerHandle); /* Tend to get timeout here with PBE */
@@ -306,8 +320,9 @@ void SaImmOiAdminOperation_01(void)
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
     safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+    useImplementerNameAsTarget = SA_FALSE;
 
-    assert(imm_rc == SA_AIS_OK);
+    if(imm_rc != SA_AIS_OK) {rc = imm_rc;}
     test_validate(rc, SA_AIS_OK);
     TRACE_LEAVE();
 }
@@ -1033,6 +1048,14 @@ done:
     TRACE_LEAVE();
 }
 
+
+void SaImmOiAdminOperation_13(void)
+{
+	useImplementerNameAsTarget = SA_TRUE;
+	SaImmOiAdminOperation_01();
+}
+
+
 __attribute__ ((constructor)) static void saImmOiInitialize_2_constructor(void)
 {
     test_suite_add(5, "Administrative Operations");
@@ -1048,5 +1071,6 @@ __attribute__ ((constructor)) static void saImmOiInitialize_2_constructor(void)
     test_case_add(5, SaImmOiAdminOperation_10, "SaImmOiAdminOperation - SA_AIS_ERR_BAD_OPERATION, SaImmAdminOperationName");
     test_case_add(5, SaImmOiAdminOperation_11, "SaImmOiAdminOperation - SA_AIS_OK, SaImmAdminOperationName (first param) - async");
     test_case_add(5, SaImmOiAdminOperation_12, "SaImmOiAdminOperation - SA_AIS_OK, SaImmAdminOperationName (first param) - sync");
+    test_case_add(5, SaImmOiAdminOperation_13, "SaImmOiAdminOperation - SA_AIS_OK, Same as 5 1 but with implementername as target");
 }
 

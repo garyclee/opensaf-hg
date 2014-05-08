@@ -395,9 +395,14 @@ int main(int argc, char *argv[])
 
 		error = immutil_saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
 		if (error != SA_AIS_OK) {
-			if (error == SA_AIS_ERR_NOT_EXIST)
+			if (error == SA_AIS_ERR_NOT_EXIST) {
+				if(strcmp(adminOwnerName, (const char *) objectName.value)==0) {
+					fprintf(stderr, "AdminOwnerName == ImplementerName (%s) - Could be direct admin-op on OI\n", adminOwnerName);
+					goto retry;
+				}
 				fprintf(stderr, "error - saImmOmAdminOwnerSet - object '%s' does not exist\n",
 					objectName.value);
+			}
 			else
 				fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
 			exit(EXIT_FAILURE);

@@ -901,12 +901,6 @@ static SaAisErrorT admin_op_result_common(
 		TRACE_1("Reactive ressurect of handle %llx succeeded", immOiHandle);
 	}
 
-	if (cl_node->isApplier) {
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is associated with an >>applier<< name");
-		goto stale_handle;
-	}
-
 	if(isA2bCall && !(cl_node->isImmA2b)) {
 		rc = SA_AIS_ERR_VERSION;
 		TRACE_2("ERR_VERSION: saImmOmAdminOperationInvoke_o2 only supported for "

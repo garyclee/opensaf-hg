@@ -10067,6 +10067,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
     
     AdminOwnerInfo* adminOwner = 0;
     ObjectInfo* object = 0;
+    struct ObjectInfo dummyObject; /* Constructor zeroes members of stack allocated object */
     
     ImplementerEvtMap::iterator iem;
     AdminOwnerVector::iterator i2;
@@ -10112,6 +10113,18 @@ SaAisErrorT ImmModel::adminOperationInvoke(
             TRACE_7("Bouncing special preload admin-op");
             err = SA_AIS_ERR_REPAIR_PENDING;
         } else {
+            dummyObject.mImplementer = findImplementer(objectName);
+            if(dummyObject.mImplementer) {
+                 /* Appears to be an admin-op directed at OI. 
+                    Verify that admo-name matches impl-name. */
+                if(objectName == adminOwner->mAdminOwnerName) {
+                    object = &dummyObject;
+                    goto fake_obj;
+                }
+                LOG_NO("ERR_NOT_EXIST: Admin-op on OI rejected. Implementer '%s' != adminowner '%s'",
+			objectName.c_str(), adminOwner->mAdminOwnerName.c_str());
+            }
+
             TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
         }
@@ -10136,6 +10149,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
         }
     }
 
+ fake_obj:
     // Check for call on object implementer
     if(object->mImplementer && object->mImplementer->mNodeId) {
         *implConn = object->mImplementer->mConn;
