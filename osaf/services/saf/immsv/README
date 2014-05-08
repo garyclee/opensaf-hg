@@ -1758,15 +1758,95 @@ incremental validation. This can be achieved by validating a CCB, aborting
 it then replaying the same operations (that validated), followed by adding
 more operations. Replay is necessary because the OIs ccb-protocol can only
 cope with one invocation of validation (completed callback) for any given
-ccb-id. Another possible us is in integrating IMM transaction commit
+ccb-id. Another possible use is in integrating IMM transaction commit
 with the commit of some other transaction handling system. By validating
 without committing, the risk is significantly reduced that a final
 commit/apply will fail. The invocation of saImmOmCcbApply after a 
-successfull invocation of saImmOmCcbValidate can still fail/abort
+successfull invocation of saImmOmCcbValidate can still fail/abort,
 but only due to resource problems (such as server crash or filesystem
 unavailability). 
 
 This is a blocking syncronous call.
+
+
+Allow admin-operations directly targeting an implementer or applier (4.5)
+======================================================================
+https://sourceforge.net/p/opensaf/tickets/799/
+
+
+The existing IMM admin-operation API in OpenSAF:
+
+    saImmOmAdminOperationInvoke_2()
+    saImmOmAdminOperationInvoke_o2()
+    saImmOmAdminOperationInvokeAsync_2()
+    SaImmOmAdminOperationInvokeCallbackT()
+    SaImmOmAdminOperationInvokeCallbackT_o2()
+
+    SaImmOiAdminOperationCallbackT_2()
+    saImmOiAdminOPerationResult()
+    saImmOiAdminOperationResult_o2()
+
+allows OM clients to invoke procedural requests directed at an imm object.
+The OM client needs to have an admin-owner handle associated with an admin-owner
+name that matches the admin-owner for the object. The actual target/receiver of
+the admin-operation is really the implementer/OI registered for the object or
+class. The object that anchors the request is effectively a parameter in the
+request to the OI.
+
+This enhancement (#799) does not add any new API. It extends the allowed scope
+for the existing admin-operation API to cover the case where the target is an OI
+directly. Instead of supplying the DN of an object as the address/target, an
+implementer-name is provided as the address/target. This allows the OM client to
+invoke admin-operations directly and explicitly on an OI. The implementer-name
+is used as a proxy for the object-name in the admin-operation API.
+
+Because the extended scope does not require the addition of any new API, access
+to this extension is not based on the handle version used. But the enhancement
+is introduced in OpenSAF release 4.5 and thus only available in that release or
+later releases. 
+
+The om-side admin-operation-invoke call takes an admin-owner-handle as argument.
+The admin-owner handle needs to be an initialized handle and it must set the
+admin-owner-name to be the *same* as the implementer-name. This may seem peculiar
+and unnecessary. But it serves both as a confirmation that the OM client has not
+made some mistake in using the new extended scope; and as a possible future
+entry point for authorizing admin-operation access directly targeting the OI. 
+
+The main benefit of this extension of scope, is that it allows a simple way for
+applications to set up cluster scoped remote procedure call communication, where the
+request arives FEVS-synchronously at the target. FEVS is the cluster synchronized
+messaging mechanism used by the Immsv (see earlier in this README).
+
+The receiver process only needs to register as an implementer or applier with IMM.
+In many cases the receiving process has done this anyway for other reasons.
+The sender only needs to know the name of the implementer/applier, the operation-id
+and expected arguments for the call. For this extended scope usage, the OI does not
+necessarily need to be the real implementer/OI for *any* imm object at all.
+
+Another use case is that it allows an om-client to communicate with (or probe) an
+OI/applier as such. An OI may be the OI for many objects and classes. In some cases,
+requests for information, or requests for adjustments in behavior of the OI/applier
+are generic and not associated with any specific object. For example, statistics or
+resource utilization data, last processed ccb, for the OI or Applier.
+
+Appliers are only listeners/trackers of ccb changes. An applier is never reachable
+via any *regular* admin-op invoked via some object. This since the applier will never
+be *the* OI for any object. But this enhancement allows an OM client to communicate
+directly also with appliers. This can for example be usefull if a main-OI needs
+an applier to read the before-ccb-commit versions of objects being changed in a CCB.
+The main OI can achieve this by sending a synchrnous admin-op to that applier from
+inside the completed callback for the main OI. Because the main-OI has not returned
+from the completed callback, the apply of that CCB is suspended waiting on the reply
+on the completed callback. Once the applier has read the before-image data, from
+inside the admin-op callback, it replies on the admin-op towards the main OI. The
+main OI can then finish the validation and reply to the immsv. Note that the main OI
+is in this example using both the OI and the OM API concurrently.
+
+One note of warning. Care needs to be taken when using *synchronous* admin-operations 
+not to create deadlock cycles between the involved processes. Any such deadlock will
+be resolved by the timeout of the synchronous admin-ops, so the problem would be lack
+of progress on some task, not a permanently hung set of processes. 
+
 
 ----------------------------------------
 DEPENDENCIES
