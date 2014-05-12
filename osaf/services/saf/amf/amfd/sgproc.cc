@@ -1375,7 +1375,7 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
 			    (su_node_ptr->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
 			    (i_su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
-			    	(i_su->term_state == false)) {
+			    (i_su->term_state == false)) {
 
 				if (i_su->is_in_service() == true) {
 					i_su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
@@ -1468,11 +1468,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 		 * state.
 		 */
 		for (i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
-			// TODO(nagu) remove saAmfSUPreInstantiable check and move into m_AVD_APP_SU_IS_INSVC
-			if ((i_su->is_in_service() == true) &&
-					((i_su->saAmfSUPreInstantiable) ?
-					 (i_su->saAmfSUPresenceState == 
-					  SA_AMF_PRESENCE_INSTANTIATED):true)) {
+			if (i_su->is_in_service() == true) {
 				i_su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 			}
 		}

@@ -28,6 +28,7 @@
 #include <ntf.h>
 #include <proc.h>
 #include <csi.h>
+#include <cluster.h>
 
 AmfDb<AVD_SU> *su_db = NULL;
 
@@ -936,14 +937,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	switch (op_id) {
 	case SA_AMF_ADMIN_UNLOCK:
 		su->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
-		if (((su->is_in_service() == true) || (su->sg_of_su->sg_ncs_spec == true)) &&
-			((su->saAmfSUPreInstantiable) ?
-			 (su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED):true)) {
-			/* Pres state check is to prevent assignment to SU in case SU is instantiating in
-			 * locked state and somebody issues UNLOCK on SU. Since comp are in instantiating state,
-			 * so AMFND will not assign the role to components. Anyway when SU gets instantiated, then
-			 * assignment will be given to components/SU.
-			 */
+		if ((su->is_in_service() == true) || (su->sg_of_su->sg_ncs_spec == true)) {
 			/* Reason for adding "su->sg_of_su->sg_ncs_spec == true" is for Middleware component
 			 * node oper state and SU oper state are marked enabled after they gets assignments.
 			 * So, we cann't check compatibility with m_AVD_APP_SU_IS_INSVC for them.
@@ -1720,12 +1714,35 @@ struct avd_avnd_tag *AVD_SU::get_node_ptr(void) {
 		 return su_on_node;
 }
 
+/**
+ * Checks if the SU can be made in-service
+ * For reference see 3.2.1.4 and for pre-instantiable SUs Table 4
+ *
+ * @param su
+ * @return true if SU can be made in-service
+ */
 bool AVD_SU::is_in_service(void) {
 	struct avd_avnd_tag *node = get_node_ptr();
+	const AVD_SG *sg = sg_of_su;
+	const AVD_APP *app = sg->app;
 
-	return (node->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) &&
-			(node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
-			(sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) &&
-			(saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
-			(saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED);
+    if (saAmfSUPreInstantiable == true) {
+    	return (avd_cluster->saAmfClusterAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+    			(app->saAmfApplicationAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+    			(saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+    			(sg->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+    			(node->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+    			(node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
+    			(saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
+    			((saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED ||
+    					saAmfSUPresenceState == SA_AMF_PRESENCE_RESTARTING));
+    } else {
+            return (avd_cluster->saAmfClusterAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+            		(app->saAmfApplicationAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+            		(saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+            		(sg->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+            		(node->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+            		(node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
+            		(saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED);
+    }
 }
