@@ -52,6 +52,8 @@ AVD_SU::AVD_SU(const SaNameT *dn) {
 	su_type = NULL;
 	su_list_su_type_next = NULL;
 	saAmfSUHostedByNode.length = 0;
+	pend_cbk.invocation = 0;
+	pend_cbk.admin_oper = (SaAmfAdminOperationIdT)0;
 }
 
 /**
