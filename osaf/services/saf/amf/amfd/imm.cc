@@ -218,12 +218,15 @@ AvdJobDequeueResultT ImmAdminResponse::exec(const SaImmOiHandleT handle) {
 	SaAisErrorT rc;
 	AvdJobDequeueResultT res;
 
-	TRACE_ENTER2("Admin resp inv:%llu res:%u", this->invocation_, this->result_);
+	TRACE_ENTER2("Admin resp inv:%llu res:%u", invocation_, result_);
 
-	rc = saImmOiAdminOperationResult(handle, this->invocation_, this->result_);
+	rc = saImmOiAdminOperationResult(handle, invocation_, result_);
 
 	switch (rc) {
 	case SA_AIS_OK:
+		saflog(LOG_NOTICE, amfSvcUsrName,
+			"Admin op done for invocation: %llu, result %u",
+			invocation_, result_);
 		delete Fifo::dequeue();
 		res = JOB_EXECUTED;
 		break;
@@ -237,9 +240,9 @@ AvdJobDequeueResultT ImmAdminResponse::exec(const SaImmOiHandleT handle) {
 		TRACE("BADHANDLE");
 		avd_imm_reinit_bg();
 	default:
+		LOG_ER("saImmOiAdminOperationResult failed with %u for admin op "
+				"invocation: %llu, result %u", rc, invocation_, result_);
 		delete Fifo::dequeue();
-		LOG_ER("Admin op failed for invocation: %llu, result %u",
-			this->invocation_, this->result_);
 		res = JOB_ERR;
 		break;
 	}
