@@ -247,9 +247,7 @@ static void comp_add_to_model(AVD_COMP *comp)
 	}
 
 	/* Verify if the SUs preinstan value need to be changed */
-	if ((comp->comp_info.category == AVSV_COMP_TYPE_SA_AWARE) ||
-	    (comp->comp_info.category == AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
-	    (comp->comp_info.category == AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE)) {
+	if (comp_is_preinstantiable(comp) == true) {
 		su->saAmfSUPreInstantiable = static_cast<SaBoolT>(true);
 	}
 
@@ -1524,16 +1522,11 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	old_val = comp->su->saAmfSUPreInstantiable;
 
 	/* Verify if the SUs preinstan value need to be changed */
-	if ((AVSV_COMP_TYPE_SA_AWARE == comp->comp_info.category) ||
-	    (AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == comp->comp_info.category) ||
-	    (AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == comp->comp_info.category)) {
+	if (comp_is_preinstantiable(comp) == true) {
 		isPre = false;
 		i_comp = comp->su->list_of_comp;
 		while (i_comp) {
-			if (((AVSV_COMP_TYPE_SA_AWARE == i_comp->comp_info.category) ||
-			     (AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == i_comp->comp_info.category) ||
-			     (AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == i_comp->comp_info.category))
-			    && (i_comp != comp)) {
+			if ((comp_is_preinstantiable(i_comp) == true) && (i_comp != comp)) {
 				isPre = true;
 				break;
 			}
@@ -1639,3 +1632,14 @@ void avd_comp_constructor(void)
 		comp_ccb_completed_cb, comp_ccb_apply_cb);
 }
 
+/**
+ * Returns true if the component is pre-instantiable
+ * @param comp
+ * @return
+ */
+bool comp_is_preinstantiable(const AVD_COMP *comp) {
+	AVSV_COMP_TYPE_VAL category = comp->comp_info.category;
+	return ((category == AVSV_COMP_TYPE_SA_AWARE) ||
+			(category == AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
+			(category == AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE));
+}
