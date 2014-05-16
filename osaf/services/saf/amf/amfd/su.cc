@@ -1799,3 +1799,22 @@ void AVD_SU::reset_all_comps_assign_flag() {
 		t_comp = t_comp->su_comp_next;
 	}
 }
+
+/**
+ * Finds an unassigned component that provides the specified CSType
+ * @param cstype
+ * @return
+ */
+AVD_COMP *AVD_SU::find_unassigned_comp_that_provides_cstype(const SaNameT *cstype) {
+	AVD_COMP *l_comp = list_of_comp;
+	while (l_comp != NULL) {
+		if (l_comp->assign_flag == false) {
+			AVD_COMPCS_TYPE *cst = avd_compcstype_find_match(cstype, l_comp);
+			if (cst != NULL)
+				break;
+		}
+		l_comp = l_comp->su_comp_next;
+	}
+
+	return l_comp;
+}
