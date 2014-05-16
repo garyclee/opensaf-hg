@@ -90,12 +90,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 		l_csi = l_csi->si_list_of_csi_next;
 	}
 
-	/* reset the assign flag */
-	l_comp = su->list_of_comp;
-	while (l_comp != NULL) {
-		l_comp->assign_flag = false;
-		l_comp = l_comp->su_comp_next;
-	}
+	su->reset_all_comps_assign_flag();
 
 	l_csi = si->list_of_csi;
 	while (l_csi != NULL) {
