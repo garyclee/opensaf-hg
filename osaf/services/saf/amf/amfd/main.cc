@@ -52,8 +52,9 @@
 #include <si_dep.h>
 #include <hlt.h>
 #include <clm.h>
-#include <su.h>
+#include <sutcomptype.h>
 #include <sutype.h>
+#include <su.h>
 
 static const char* internal_version_id_  __attribute__ ((unused)) = "@(#) $Id: " INTERNAL_VERSION_ID " $";
 

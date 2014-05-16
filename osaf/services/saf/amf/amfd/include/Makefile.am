@@ -43,6 +43,7 @@ noinst_HEADERS = \
    sg.h \
    si.h \
    su.h \
+   sutcomptype.h \
    sutype.h \
    susi.h \
    timer.h \

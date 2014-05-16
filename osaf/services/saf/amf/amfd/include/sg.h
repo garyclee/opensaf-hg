@@ -36,6 +36,7 @@
 
 #include <saAmf.h>
 #include <ncspatricia.h>
+#include <def.h>
 #include <su.h>
 #include <si.h>
 #include <amf_defs.h>
