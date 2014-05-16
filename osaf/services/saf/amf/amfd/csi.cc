@@ -420,12 +420,12 @@ SaAisErrorT avd_csi_config_get(const SaNameT *si_name, AVD_SI *si)
  **************************************************************************/
 static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 {
-        SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	SaNameT si_name;
-        AVD_SI *avd_si;
-        AVD_COMP *t_comp;
-        AVD_SU_SI_REL *t_sisu;
-        AVD_COMP_CSI_REL *compcsi;
+	AVD_SI *avd_si;
+	AVD_COMP *t_comp;
+	AVD_SU_SI_REL *t_sisu;
+	AVD_COMP_CSI_REL *compcsi;
 	SaNameT cstype_name;
 	AVD_COMPCS_TYPE *cst;
 
@@ -455,13 +455,10 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 
 			t_sisu = avd_si->list_of_sisu;
 			while(t_sisu) {
+				AVD_SU *su = t_sisu->su;
 				/* We need to assign this csi if an extra component exists, which is unassigned.*/
-				/* reset the assign flag */
-				t_comp = t_sisu->su->list_of_comp;
-				while (t_comp != NULL) {
-					t_comp->assign_flag = false;
-					t_comp = t_comp->su_comp_next;
-				}/* while (t_comp != NULL) */
+
+				su->reset_all_comps_assign_flag();
 
 				compcsi = t_sisu->list_of_csicomp;
 				while (compcsi != NULL) {
@@ -469,7 +466,7 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 					compcsi = compcsi->susi_csicomp_next;
 				}
 
-				t_comp = t_sisu->su->list_of_comp;
+				t_comp = su->list_of_comp;
 				while (t_comp != NULL) {
 					if ((t_comp->assign_flag == false) &&
 							(avd_compcstype_find_match(&cstype_name, t_comp) != NULL)) {
@@ -483,7 +480,7 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 				if (NULL == t_comp) {
 					/* This means that all the components are assigned, let us assigned it to assigned 
 					   component.*/
-					t_comp = t_sisu->su->list_of_comp;
+					t_comp = su->list_of_comp;
 					while (t_comp != NULL) {
 						if (NULL != (cst = avd_compcstype_find_match(&cstype_name, t_comp))) {
 							if (SA_AMF_HA_ACTIVE == t_sisu->state) {
@@ -871,12 +868,8 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 		t_sisu = csi->si->list_of_sisu;
 		while(t_sisu) {
 			/* We need to assign this csi if an extra component exists, which is unassigned.*/
-			/* reset the assign flag */
-			t_comp = t_sisu->su->list_of_comp;
-			while (t_comp != NULL) {
-				t_comp->assign_flag = false;
-				t_comp = t_comp->su_comp_next;
-			}/* while (t_comp != NULL) */
+
+			t_sisu->su->reset_all_comps_assign_flag();
 
 			compcsi = t_sisu->list_of_csicomp;
 			while (compcsi != NULL) {

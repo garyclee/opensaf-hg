@@ -118,6 +118,7 @@ class AVD_SU {
 	void set_su_switch(SaToggleState state);
 	avd_avnd_tag *get_node_ptr(void);
 	bool is_in_service(void);
+	void reset_all_comps_assign_flag();
 
  private:
 	void send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id);

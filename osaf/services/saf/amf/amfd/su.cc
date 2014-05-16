@@ -1787,3 +1787,15 @@ void AVD_SU::set_saAmfSUPreInstantiable(bool value) {
 			SA_IMM_ATTR_SAUINT32T, &saAmfSUPreInstantiable);
 	TRACE("%s saAmfSUPreInstantiable %u", name.value, value);
 }
+
+/**
+ * resets the assign flag for all contained components
+ */
+void AVD_SU::reset_all_comps_assign_flag() {
+	AVD_COMP *t_comp = list_of_comp;
+	// TODO(hafe) add and use a comp method
+	while (t_comp != NULL) {
+		t_comp->assign_flag = false;
+		t_comp = t_comp->su_comp_next;
+	}
+}
