@@ -466,15 +466,7 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 					compcsi = compcsi->susi_csicomp_next;
 				}
 
-				t_comp = su->list_of_comp;
-				while (t_comp != NULL) {
-					if ((t_comp->assign_flag == false) &&
-							(avd_compcstype_find_match(&cstype_name, t_comp) != NULL)) {
-						/* We have found the component. Assign csi to it. */
-						break;
-					}
-					t_comp = t_comp->su_comp_next;
-				}/* while (t_comp != NULL) */
+				t_comp = su->find_unassigned_comp_that_provides_cstype(&cstype_name);
 
 				/* Component not found.*/
 				if (NULL == t_comp) {
@@ -877,15 +869,7 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 				compcsi = compcsi->susi_csicomp_next;
 			}
 
-			t_comp = t_sisu->su->list_of_comp;
-			while (t_comp != NULL) {
-				if ((t_comp->assign_flag == false) &&
-						(NULL != (cst = avd_compcstype_find_match(&csi->saAmfCSType, t_comp)))) {
-					/* We have found the component. Assign csi to it. */
-					break;
-				}
-				t_comp = t_comp->su_comp_next;
-			}/* while (t_comp != NULL) */
+			t_comp = t_sisu->su->find_unassigned_comp_that_provides_cstype(&csi->saAmfCSType);
 
 			/* Component not found.*/
 			if (NULL == t_comp) {
