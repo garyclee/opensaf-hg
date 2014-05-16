@@ -147,9 +147,30 @@ void AVD_SU::remove_comp(AVD_COMP *comp) {
 		}
 	}
 
-	if (su_ref->list_of_comp == NULL) {
-		/* Revert to def val */
-		su_ref->saAmfSUPreInstantiable = static_cast<SaBoolT>(false);
+	bool old_preinst_value = saAmfSUPreInstantiable;
+	bool curr_preinst_value = false;
+
+	// check if preinst possibly is still true
+	if (comp_is_preinstantiable(comp) == true) {
+		i_comp = list_of_comp;
+		while (i_comp) {
+			if (comp_is_preinstantiable(i_comp) == true) {
+				curr_preinst_value = true;
+				break;
+			}
+			i_comp = i_comp->su_comp_next;
+		}
+	}
+
+	// if preinst has changed, update IMM and recalculate saAmfSUFailover
+	if (curr_preinst_value != old_preinst_value) {
+		set_saAmfSUPreInstantiable(curr_preinst_value);
+
+		/* If SU becomes NPI then set saAmfSUFailover flag
+		 * Sec 3.11.1.3.2 AMF-B.04.01 spec */
+		if (saAmfSUPreInstantiable == false) {
+			comp->su->set_su_failover(true);
+		}
 	}
 }
 
@@ -184,6 +205,11 @@ void AVD_SU::add_comp(AVD_COMP *comp) {
 	} else {
 		prev_comp->su_comp_next = comp;
 		comp->su_comp_next = i_comp;
+	}
+
+	/* Verify if the SUs preinstan value need to be changed */
+	if (comp_is_preinstantiable(comp) == true) {
+		set_saAmfSUPreInstantiable(true);
 	}
 }
 
@@ -1753,4 +1779,11 @@ bool AVD_SU::is_in_service(void) {
             		(node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
             		(saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED);
     }
+}
+
+void AVD_SU::set_saAmfSUPreInstantiable(bool value) {
+	saAmfSUPreInstantiable = static_cast<SaBoolT>(value);
+	avd_saImmOiRtObjectUpdate(&name, "saAmfSUPreInstantiable",
+			SA_IMM_ATTR_SAUINT32T, &saAmfSUPreInstantiable);
+	TRACE("%s saAmfSUPreInstantiable %u", name.value, value);
 }
