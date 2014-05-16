@@ -237,5 +237,6 @@ extern AVD_COMPCS_TYPE *avd_compcstype_getnext(const SaNameT *dn);
 extern AVD_COMPCS_TYPE * avd_compcstype_find_match(const SaNameT *csi, const AVD_COMP *comp);
 extern void avd_compcstype_constructor(void);
 extern AVD_COMP *avd_comp_get_or_create(const SaNameT *dn);
+bool comp_is_preinstantiable(const AVD_COMP *comp);
 
 #endif
