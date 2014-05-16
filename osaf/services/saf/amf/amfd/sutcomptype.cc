@@ -21,8 +21,7 @@
 #include <logtrace.h>
 
 #include <util.h>
-#include <su.h>
-#include <sutype.h>
+#include <sutcomptype.h>
 #include <imm.h>
 
 static NCS_PATRICIA_TREE sutcomptype_db;

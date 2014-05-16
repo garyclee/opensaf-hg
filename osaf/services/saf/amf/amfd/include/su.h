@@ -129,16 +129,6 @@ class AVD_SU {
 
 extern AmfDb<AVD_SU> *su_db;
 
-typedef struct {
-	NCS_PATRICIA_NODE tree_node;	/* key is name */
-	SaNameT name;
-	SaUint32T saAmfSutMaxNumComponents;
-	SaUint32T saAmfSutMinNumComponents;
-
-	SaUint32T curr_num_components;
-
-} AVD_SUTCOMP_TYPE;
-
 /**
  * Get SUs from IMM and create internal objects
  * 
@@ -150,29 +140,6 @@ extern SaAisErrorT avd_su_config_get(const SaNameT *sg_name, struct avd_sg_tag *
  * Class constructor, must be called before any other function
  */
 extern void avd_su_constructor(void);
-
-/**
- * Get SaAmfSutCompType object from DB using given key
- * 
- * @param dn
- * 
- * @return AVD_SUTCOMP_TYPE*
- */
-extern AVD_SUTCOMP_TYPE *avd_sutcomptype_get(const SaNameT *dn);
-
-/**
- * Get configuration for all SaAmfSutCompType objects from IMM and
- * create AVD internal objects.
- * @param cb
- * 
- * @return int
- */
-extern SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, struct avd_sutype *sut);
-
-/**
- * Class constructor, must be called before any other function
- */
-extern void avd_sutcomptype_constructor(void);
 
 extern AVD_SU *avd_su_get_or_create(const SaNameT *dn);
 

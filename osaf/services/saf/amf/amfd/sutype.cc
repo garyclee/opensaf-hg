@@ -22,6 +22,7 @@
 
 #include <util.h>
 #include <sutype.h>
+#include <sutcomptype.h>
 #include <imm.h>
 #include <cluster.h>
 #include <ntf.h>
