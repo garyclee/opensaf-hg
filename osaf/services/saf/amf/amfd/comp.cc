@@ -246,11 +246,6 @@ static void comp_add_to_model(AVD_COMP *comp)
 		}
 	}
 
-	/* Verify if the SUs preinstan value need to be changed */
-	if (comp_is_preinstantiable(comp) == true) {
-		su->saAmfSUPreInstantiable = static_cast<SaBoolT>(true);
-	}
-
 	/* This is a case of adding a component in SU which is instantiated
 	   state. This could be used in upgrade scenarios. When components
 	   are added, it is sent to Amfnd for instantiation and Amfnd
@@ -280,9 +275,6 @@ static void comp_add_to_model(AVD_COMP *comp)
 		avd_comp_oper_state_set(comp, SA_AMF_OPERATIONAL_ENABLED);
 
 	/* Set runtime cached attributes. */
-	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPreInstantiable",
-		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPreInstantiable);
-
 	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompReadinessState",
 		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
 
@@ -1500,17 +1492,9 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 {
-	AVD_COMP *comp = NULL, *i_comp = NULL;
-	bool isPre;
-	AVD_AVND *su_node_ptr = NULL;
-	AVSV_PARAM_INFO param;
-	SaBoolT old_val;
-	bool su_delete = false;
-	struct CcbUtilOperationData *t_opData;
-
 	TRACE_ENTER();
 
-	comp = avd_comp_get(&opdata->objectName);
+	AVD_COMP *comp = avd_comp_get(&opdata->objectName);
 	/* comp should be found in the database even if it was 
 	 * due to parent su delete the changes are applied in 
 	 * bottom up order so all the component deletes are applied 
@@ -1519,58 +1503,21 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	 **/
 	osafassert(comp != NULL);
 
-	old_val = comp->su->saAmfSUPreInstantiable;
-
-	/* Verify if the SUs preinstan value need to be changed */
-	if (comp_is_preinstantiable(comp) == true) {
-		isPre = false;
-		i_comp = comp->su->list_of_comp;
-		while (i_comp) {
-			if ((comp_is_preinstantiable(i_comp) == true) && (i_comp != comp)) {
-				isPre = true;
-				break;
-			}
-			i_comp = i_comp->su_comp_next;
-		}		/* end while */
-
-		if (isPre == true) {
-			comp->su->saAmfSUPreInstantiable = static_cast<SaBoolT>(true);
-		} else {
-			comp->su->saAmfSUPreInstantiable = static_cast<SaBoolT>(false);
-		}
-	}
-
-	/* check whether the SU is also undergoing delete operation */
-	t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &comp->su->name);
-	if (t_opData && t_opData->operationType == CCBUTIL_DELETE) {
-		su_delete = true;
-	}
-
-	/* if SU is not being deleted and the PreInstantiable state has changed
-	 * then update the IMM with the new value for saAmfSUPreInstantiable */
-	if (su_delete == false && old_val != comp->su->saAmfSUPreInstantiable) {
-		avd_saImmOiRtObjectUpdate(&comp->su->name, "saAmfSUPreInstantiable",
-				SA_IMM_ATTR_SAUINT32T, &comp->su->saAmfSUPreInstantiable);
-		/* If SU becomes NPI then enable saAmfSUFailover flag Sec 3.11.1.3.2 AMF-B.04.01 spec */
-		if (!comp->su->saAmfSUPreInstantiable) {
-			comp->su->set_su_failover(true);
-		}
-	}
-
-	/* send a message to the AVND deleting the
-	 * component.
-	 */
-	su_node_ptr = comp->su->get_node_ptr();
+	// send message to ND requesting delete of the component
+	AVD_AVND *su_node_ptr = comp->su->get_node_ptr();
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT)) {
+		AVSV_PARAM_INFO param;
 		memset(((uint8_t *)&param), '\0', sizeof(AVSV_PARAM_INFO));
 		param.act = AVSV_OBJ_OPR_DEL;
 		param.name = comp->comp_info.name;
 		param.class_id = AVSV_SA_AMF_COMP;
 		avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
 	}
+
 	avd_comp_delete(comp);
+
 	TRACE_LEAVE();
 }
 

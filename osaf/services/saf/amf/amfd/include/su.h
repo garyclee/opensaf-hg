@@ -121,6 +121,7 @@ class AVD_SU {
 
  private:
 	void send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id);
+	void set_saAmfSUPreInstantiable(bool value);
 
 	// disallow copy and assign, TODO(hafe) add common macro for this
 	AVD_SU(const AVD_SU&);
