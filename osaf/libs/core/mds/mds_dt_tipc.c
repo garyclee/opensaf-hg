@@ -2029,9 +2029,9 @@ uint32_t mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 				int version = req->msg_arch_word & 0x7;
 				if (version > 0) {
 					// normal mode, use TIPC fragmentation
-					frag_size = TIPC_MAX_USER_MSG_SIZE;
+					frag_size = MDS_DIRECT_BUF_MAXSIZE;
 				} else {
-					// old mode, completely skip TIPC fragmentation
+					// old mode, use some TIPC fragmentation but not full capabilities
 					frag_size = MDTM_NORMAL_MSG_FRAG_SIZE;
 				}
 
