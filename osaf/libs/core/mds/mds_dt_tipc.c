@@ -93,7 +93,7 @@ uint32_t mds_mdtm_send_tipc(MDTM_SEND_REQ *req);
 /* Tipc actual send, can be made as Macro even*/
 static uint32_t mdtm_sendto(uint8_t *buffer, uint16_t buff_len, struct tipc_portid tipc_id);
 
-uint32_t mdtm_frag_and_send(MDTM_SEND_REQ *req, uint32_t seq_num, struct tipc_portid id);
+uint32_t mdtm_frag_and_send(MDTM_SEND_REQ *req, uint32_t seq_num, struct tipc_portid id, int frag_size);
 
 static uint32_t mdtm_add_mds_hdr(uint8_t *buffer, MDTM_SEND_REQ *req);
 
@@ -2024,11 +2024,11 @@ uint32_t mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 				m_MDS_LOG_INFO("MDTM: User Sending Data lenght=%d Fr_svc=%d to_svc=%d\n", len,
 					       req->src_svc_id, req->dest_svc_id);
 
-				if (len > MDTM_NORMAL_MSG_FRAG_SIZE) {
-					/* Packet needs to be fragmented and send */
-					status = mdtm_frag_and_send(req, frag_seq_num, tipc_id);
-					return status;
+				int frag_size = MDTM_NORMAL_MSG_FRAG_SIZE;
 
+				if (len > frag_size) {
+					/* Packet needs to be fragmented and send */
+					return mdtm_frag_and_send(req, frag_seq_num, tipc_id, frag_size);
 				} else {
 					uint8_t *p8;
 					uint8_t body[len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN];
@@ -2141,7 +2141,6 @@ uint32_t mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-#define MDTM_MAX_SEND_PKT_SIZE   (MDTM_NORMAL_MSG_FRAG_SIZE+SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN)	/* Includes the 30 header bytes(2+8+20) */
 
 #ifdef MDS_CHECKSUM_ENABLE_FLAG
 #define MDTM_FRAG_HDR_PLUS_LEN_2   13
@@ -2149,7 +2148,8 @@ uint32_t mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 #define MDTM_FRAG_HDR_PLUS_LEN_2   10
 #endif
 
-uint32_t mdtm_frag_and_send(MDTM_SEND_REQ *req, uint32_t seq_num, struct tipc_portid id)
+uint32_t mdtm_frag_and_send(MDTM_SEND_REQ *req, uint32_t seq_num,
+                            struct tipc_portid id, int frag_size)
 {
 	USRBUF *usrbuf;
 	uint32_t len = 0;
@@ -2157,6 +2157,7 @@ uint32_t mdtm_frag_and_send(MDTM_SEND_REQ *req, uint32_t seq_num, struct tipc_po
 	uint8_t *p8;
 	uint16_t i = 1;
 	uint16_t frag_val = 0;
+	int max_send_pkt_size = frag_size + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN;
 
 	switch (req->msg.encoding) {
 	case MDS_ENC_TYPE_FULL:
@@ -2173,22 +2174,23 @@ uint32_t mdtm_frag_and_send(MDTM_SEND_REQ *req, uint32_t seq_num, struct tipc_po
 
 	len = m_MMGR_LINK_DATA_LEN(usrbuf);	/* Getting total len */
 
-	if (len > (32767 * MDTM_NORMAL_MSG_FRAG_SIZE)) {	/* We have 15 bits for frag number so 2( pow 15) -1=32767 */
+	/* We have 15 bits for frag number so 2( pow 15) -1=32767 */
+	if (len > (32767 * frag_size)) {
 		m_MDS_LOG_CRITICAL
-		    ("MDTM: App. is trying to send data more than MDTM Can fragment and send, Max size is =%d\n",
-		     32767 * MDTM_NORMAL_MSG_FRAG_SIZE);
+		    ("MDTM: App. is trying to send data more than MDTM Can fragment "
+		    "and send, Max size is =%d\n", 32767 * frag_size);
 		m_MMGR_FREE_BUFR_LIST(usrbuf);
 		return NCSCC_RC_FAILURE;
 	}
 
 	while (len != 0) {
-		if (len > MDTM_NORMAL_MSG_FRAG_SIZE) {
+		if (len > frag_size) {
 			if (i == 1) {
-				len_buf = MDTM_MAX_SEND_PKT_SIZE;
+				len_buf = max_send_pkt_size;
 				frag_val = MORE_FRAG_BIT | i;
 			} else {
-				if ((len + MDTM_FRAG_HDR_PLUS_LEN_2) > MDTM_MAX_SEND_PKT_SIZE) {
-					len_buf = MDTM_MAX_SEND_PKT_SIZE;
+				if ((len + MDTM_FRAG_HDR_PLUS_LEN_2) > max_send_pkt_size) {
+					len_buf = max_send_pkt_size;
 					frag_val = MORE_FRAG_BIT | i;
 				} else {
 					len_buf = len + MDTM_FRAG_HDR_PLUS_LEN_2;
