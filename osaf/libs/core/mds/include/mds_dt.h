@@ -111,9 +111,6 @@ typedef struct mdtm_reassembly_queue {
 
 #define MDTM_NORMAL_MSG_FRAG_SIZE   1400
 
-#define MDTM_RECV_BUFFER_SIZE ((MDS_DIRECT_BUF_MAXSIZE>MDTM_NORMAL_MSG_FRAG_SIZE)? \
-                      (MDS_DIRECT_BUF_MAXSIZE+SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN):(MDTM_NORMAL_MSG_FRAG_SIZE+SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN))
-
 /* Prefixes and defines regarding to the MDS_TIPC*/
 
 #define MDS_TIPC_PREFIX         0x56000000

@@ -113,7 +113,7 @@ typedef struct mdtm_tipc_cb {
 	SYSF_MBX tmr_mbx;
 	int tmr_fd;
 	uint32_t node_id;
-
+	uint8_t *recvbuf; /* receive buffer for receive thread */
 } MDTM_TIPC_CB;
 
 MDTM_TIPC_CB tipc_cb;
@@ -487,33 +487,25 @@ static uint32_t mdtm_tipc_own_node(int fd)
 
 static uint32_t mdtm_create_rcv_task(int mdtm_hdle)
 {
-	/*
-	   STEP 1: Create a recv task which will recv data and
-	   captures the discovery events as well */
-
 	int policy = SCHED_RR; /*root defaults */
 	int max_prio = sched_get_priority_max(policy);
 	int min_prio = sched_get_priority_min(policy);
-	int prio_val = ((max_prio - min_prio) * 0.87); 
-	
-	if (m_NCS_TASK_CREATE((NCS_OS_CB)mdtm_process_recv_events,
-			      (NCSCONTEXT)(long)mdtm_hdle,
-			      (char *)"OSAF_MDS",
-			      prio_val, policy, NCS_MDTM_STACKSIZE, &tipc_cb.mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
+	int prio_val = ((max_prio - min_prio) * 0.87);
+
+	tipc_cb.recvbuf = malloc(TIPC_MAX_USER_MSG_SIZE);
+	if (tipc_cb.recvbuf == NULL) {
+		m_MDS_LOG_ERR("%s: malloc failed", __FUNCTION__);
+		return NCSCC_RC_OUT_OF_MEM;
+	}
+
+	if (ncs_task_create((NCS_OS_CB)mdtm_process_recv_events,
+		(NCSCONTEXT)(long)mdtm_hdle, "OSAF_MDS", prio_val, policy,
+			NCS_MDTM_STACKSIZE,	&tipc_cb.mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
 		m_MDS_LOG_ERR("MDTM: Task Creation-failed:\n");
+		free(tipc_cb.recvbuf);
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* Start the created task,
-	 *   if start fails,
-	 *        release the task by calling the NCS task release function*/
-	if (m_NCS_TASK_START(tipc_cb.mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
-		m_MDS_LOG_ERR("MDTM: Start of the Created Task-failed:\n");
-		m_NCS_TASK_RELEASE(tipc_cb.mdtm_hdle_task);
-		m_MDS_LOG_ERR("MDTM: START of created task failed");
-		return NCSCC_RC_FAILURE;
-	}
-	/* return NCS success */
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -531,16 +523,13 @@ static uint32_t mdtm_create_rcv_task(int mdtm_hdle)
 *********************************************************/
 static uint32_t mdtm_destroy_rcv_task(void)
 {
-	if (m_NCS_TASK_STOP(tipc_cb.mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
+	if (ncs_task_release(tipc_cb.mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
 		m_MDS_LOG_ERR("MDTM: Stop of the Created Task-failed:\n");
 	}
 
-	if (m_NCS_TASK_RELEASE(tipc_cb.mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
-		m_MDS_LOG_ERR("MDTM: Stop of the Created Task-failed:\n");
-	}
+	free(tipc_cb.recvbuf);
 
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /*********************************************************
@@ -637,7 +626,7 @@ static uint32_t mdtm_process_recv_events(void)
 
 				/* Data Received */
 
-				uint8_t inbuf[MDTM_RECV_BUFFER_SIZE];
+				uint8_t *inbuf = tipc_cb.recvbuf;
 				uint8_t *data;	/* Used for decoding */
 				uint16_t recd_bytes = 0;
 #ifdef MDS_CHECKSUM_ENABLE_FLAG
@@ -650,7 +639,7 @@ static uint32_t mdtm_process_recv_events(void)
 				uint16_t recd_buf_len = 0;
 				m_MDS_LOG_INFO("MDTM: Data received: Processing data ");
 
-				recd_bytes = recvfrom(tipc_cb.BSRsock, inbuf, sizeof(inbuf), 0,
+				recd_bytes = recvfrom(tipc_cb.BSRsock, inbuf, TIPC_MAX_USER_MSG_SIZE, 0,
 						      (struct sockaddr *)&client_addr, &alen);
 				if (recd_bytes == 0) {	/* As we had disabled the feature of receving the bounced messages, recd_bytes==0 indicates a fatal condition so abort */
 					m_MDS_LOG_CRITICAL
