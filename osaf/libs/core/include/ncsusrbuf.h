@@ -48,7 +48,7 @@
 extern "C" {
 #endif
 
-#define PAYLOAD_BUF_SIZE 1400	/* default size of packet_data bufrs */
+#define PAYLOAD_BUF_SIZE 8000	/* default size of packet_data bufrs */
 
 /*****************************************************************************
 

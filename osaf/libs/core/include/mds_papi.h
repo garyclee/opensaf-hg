@@ -208,8 +208,11 @@ extern "C" {
 #define NCSMDS_MAX_VDEST    32767
 #define NCSMDS_MAX_SVCS     1023
 
-#define MDS_DIRECT_BUF_MAXSIZE 8000
-	typedef uint8_t *MDS_DIRECT_BUFF;
+/* Maximum size of the buffer used with MDS_DIRECT_SEND (no encoding) */
+#define MDS_DIRECT_BUF_MAXSIZE  (65535 - 56)
+
+typedef uint8_t *MDS_DIRECT_BUFF;
+
 #define m_MDS_ALLOC_DIRECT_BUFF(size) mds_alloc_direct_buff(size)
 #define m_MDS_FREE_DIRECT_BUFF(x) mds_free_direct_buff(x)
 	MDS_DIRECT_BUFF mds_alloc_direct_buff(uint16_t size);

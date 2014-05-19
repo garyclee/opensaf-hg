@@ -109,7 +109,7 @@ typedef struct mdtm_reassembly_queue {
 
 #define MDTM_MAX_DIRECT_BUFF_SIZE  MDTM_MAX_SEGMENT_SIZE
 
-#define MDTM_NORMAL_MSG_FRAG_SIZE   1400
+#define MDTM_NORMAL_MSG_FRAG_SIZE   8000
 
 /* Prefixes and defines regarding to the MDS_TIPC*/
 
