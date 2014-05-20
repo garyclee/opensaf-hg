@@ -436,9 +436,7 @@ bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT 
 	sqlite3* dbHandle = (sqlite3 *) pbeHandle;
 	sqlite3_stmt *stmt = NULL;
 	int rc=0;
-	char **resultF=NULL;
 	char *zErr=NULL;
-	int nrows=0;
 	int ncols=0;
 	int c;
 	std::string sqlF("select \"");
@@ -486,33 +484,44 @@ bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT 
 
 	TRACE("GENERATED F:%s", sqlF.c_str());
 
-	rc = sqlite3_get_table(dbHandle, sqlF.c_str(), &resultF, &nrows,
-		&ncols, &zErr);
-	if(rc) {
+	rc = sqlite3_prepare_v2(dbHandle, sqlF.c_str(), -1, &stmt, NULL);
+	if(rc != SQLITE_OK) {
+		LOG_IN("Failed to prepare SQL statement");
+		goto bailout;
+	}
+
+	rc = sqlite3_step(stmt);
+	if(rc != SQLITE_ROW && rc != SQLITE_DONE) {
 		LOG_IN("Could not access table '%s', error:%s",
 			class_info->className.c_str(), zErr);
 		sqlite3_free(zErr);
 		goto bailout;
 	}
-	if(nrows != 1) {
-		LOG_ER("Expected 1 row got %u rows", nrows);
+
+	if(rc == SQLITE_DONE) {
+		LOG_ER("Expected 1 row got 0 rows");
 		goto bailout;
 	}
+
+	ncols = sqlite3_column_count(stmt);
 	TRACE_2("Successfully accessed '%s' table. cols:%u",
 		class_info->className.c_str(), ncols);
 
+	const unsigned char *res;
 	for(c=0; c<ncols; ++c) {
-		if(resultF[ncols+c]) {
-			std::list<char*> attrValueBuffers;
+		res = sqlite3_column_text(stmt, c);
+		if(res) {
 			SaImmValueTypeT attrType = (SaImmValueTypeT) 0;
-			size_t len = strlen(resultF[ncols+c]);
-			char * str = (char *) malloc(len+1);
-			strncpy(str, (const char *) resultF[ncols+c], len);
-			str[len] = '\0';
-			attrValueBuffers.push_front(str);
+			const char *colname = sqlite3_column_name(stmt, c);
+			assert(colname != NULL);
+
+			if((strcmp(colname, "SaImmAttrImplementerName") == 0) &&
+					(class_info->class_category == SA_IMM_CLASS_CONFIG))
+				continue;
+
 			it = class_info->attrInfoVector.begin();
 			while(it != class_info->attrInfoVector.end()) {
-				if((*it)->attrName == std::string(resultF[c]))
+				if((*it)->attrName == std::string(colname))
 				{
 					attrType = (*it)->attrValueType;
 					break;
@@ -520,17 +529,42 @@ bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT 
 				++it;
 			}
 			assert(it != class_info->attrInfoVector.end());
-			if((strcmp(resultF[c], "SaImmAttrImplementerName") == 0) && 
-					(class_info->class_category == SA_IMM_CLASS_CONFIG))
-				continue;
-					
-			addObjectAttributeDefinition((char *) 
-				class_info->className.c_str(), 
-				resultF[c], &attrValueBuffers, 
+
+			char *val;
+			if(attrType == SA_IMM_ATTR_SADOUBLET) {
+				double dbl = sqlite3_column_double(stmt, c);
+
+				val = (char *)malloc(30);
+				int size = snprintf(val, 30, "%.17g", dbl);
+				size++;
+				if(size > 30) {
+					val = (char *)realloc(val, size);
+					snprintf(val, size, "%.17g", dbl);
+				}
+			} else {
+				val = strdup((const char *)res);
+			}
+
+			std::list<char*> attrValueBuffers;
+			attrValueBuffers.push_front(val);
+
+			addObjectAttributeDefinition((char *)
+				class_info->className.c_str(),
+				(SaImmAttrNameT)colname, &attrValueBuffers,
 				attrType, &attrValuesList);
 		}
 	}
-	sqlite3_free_table(resultF);
+
+	rc = sqlite3_step(stmt);
+	if(rc != SQLITE_DONE) {
+		LOG_ER("Expected 1 row got more rows");
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	stmt = NULL;
 
 	/* Now add any multivalued attributes. */
 
