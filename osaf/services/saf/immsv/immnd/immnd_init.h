@@ -291,6 +291,7 @@ extern "C" {
 
 	SaBoolT immModel_protocol41Allowed(IMMND_CB *cb);
 	SaBoolT immModel_protocol43Allowed(IMMND_CB *cb);
+	SaBoolT immModel_protocol45Allowed(IMMND_CB *cb);
 	SaBoolT immModel_oneSafe2PBEAllowed(IMMND_CB *cb);
 
 	SaBoolT immModel_purgeSyncRequest(IMMND_CB *cb, SaUint32T clientId);

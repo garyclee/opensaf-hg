@@ -888,6 +888,14 @@ immModel_oneSafe2PBEAllowed(IMMND_CB *cb)
 }
 
 SaBoolT
+immModel_protocol45Allowed(IMMND_CB *cb)
+{
+    return (ImmModel::instance(&cb->immModel)->protocol45Allowed()) ?
+        SA_TRUE : SA_FALSE;
+}
+
+
+SaBoolT
 immModel_purgeSyncRequest(IMMND_CB *cb, SaUint32T clientId)
 {
     return (ImmModel::instance(&cb->immModel)->purgeSyncRequest(clientId)) ?
@@ -3260,6 +3268,28 @@ ImmModel::protocol43Allowed()
 }
 
 bool
+ImmModel::protocol45Allowed()
+{
+    //TRACE_ENTER();
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+    if(oi == sObjectMap.end()) {
+        TRACE_LEAVE();
+        return false;
+    }
+
+    ObjectInfo* immObject =  oi->second;
+    ImmAttrValueMap::iterator avi = 
+        immObject->mAttrValueMap.find(immAttrNostFlags);
+    osafassert(avi != immObject->mAttrValueMap.end());
+    osafassert(!(avi->second->isMultiValued()));
+    ImmAttrValue* valuep = avi->second;
+    unsigned int noStdFlags = valuep->getValue_int();
+
+    //TRACE_LEAVE();
+    return noStdFlags & OPENSAF_IMM_FLAG_PRT45_ALLOW;
+}
+
+bool
 ImmModel::protocol41Allowed()
 {
     //TRACE_ENTER();
@@ -4056,6 +4086,7 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard, bool pbe2)
                     unsigned int noStdFlags = valuep->getValue_int();
                     noStdFlags |= OPENSAF_IMM_FLAG_PRT41_ALLOW;
                     noStdFlags |= OPENSAF_IMM_FLAG_PRT43_ALLOW;
+                    noStdFlags |= OPENSAF_IMM_FLAG_PRT45_ALLOW;
                     valuep->setValue_int(noStdFlags);
                     LOG_NO("%s changed to: 0x%x", immAttrNostFlags.c_str(), noStdFlags);
                     /* END Temporary code. */

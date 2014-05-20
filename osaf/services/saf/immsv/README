@@ -1625,12 +1625,7 @@ has the meaning of 'flags-ON'. Operation-id '2' has the meaning of 'flags-OFF'.
 This flag needs to be turned ON when the upgrade to OpenSAF 4.3 has been
 successfully completed. Thus in the final steps of the upgrade. A cluster
 start/restart of an OpenSAF4.3 system will always automatically turn on
-this flag. In summary:
-
-Bit 1 controls schema (imm class) changes allowed or not.
-Bit 2 controls OpenSAF4.1 protocols allowed or not.
-Bit 3 controls OpenSAF4.3 protocols allowed or not.
-Bit 4 controls 2PBE oneSafe2PBE (see 2PBE feature in OpenSAF4.4 below).
+this flag. 
 
 2PBE Allow IMM PBE to be configured without shared file system (4.4)
 ===================================================================
@@ -1846,6 +1841,45 @@ One note of warning. Care needs to be taken when using *synchronous* admin-opera
 not to create deadlock cycles between the involved processes. Any such deadlock will
 be resolved by the timeout of the synchronous admin-ops, so the problem would be lack
 of progress on some task, not a permanently hung set of processes. 
+
+
+
+Notes on upgrading from OpenSAF 4.[1,2,3,4] to OpenSAF 4.5
+==========================================================
+Several enhancements in OpenSAF4.5 add new message types or add new imm server states
+for ccb handling (#798,  #799, #16). During a rolling upgrade from an earlier OpenSAF
+release to the 4.5 release there will be nodes executing the older release concurrently
+with nodes executing OpenSAF 4.5. Nodes executing the earlier release will not
+recognize new message types originating from nodes executing 4.5 and messages from
+nodes executing the old release may interfere with the extended state machine for ccbs
+in new 4.5 nodes.
+
+Because of this upgrade issue, the older more restrictive behavior is still enforced
+in OpenSAF 4.5 unless a flag is toggled on in the opensafImmNostdFlags runtime
+attribute in the object: opensafImm=opensafImm,safApp=safImmService.
+The following is the shell command:
+
+        immadm -o 1 -p opensafImmNostdFlags:SA_UINT32_T:16 \
+           opensafImm=opensafImm,safApp=safImmService
+
+This will set bit 5 of the 'opensafImmNostdFlags' runtime attribute inside the immsv.
+Operation-id '1' invoked on the object:
+
+ 'opensafImm=opensafImm,safApp=safImmService'
+
+has the meaning of 'flags-ON'. Operation-id '2' has the meaning of 'flags-OFF'.
+This flag (and possibly other relevant flags) needs to be toggled ON when the upgrade
+to OpenSAF 4.5 has been successfully completed. This would be in some final step of
+the upgrade. Any cluster start/restart of an OpenSAF4.5 system will always
+automatically toggle on relevant flags. 
+
+In summary:
+
+Bit 1 controls schema (imm class) changes allowed or not.
+Bit 2 controls OpenSAF4.1 protocols allowed or not.
+Bit 3 controls OpenSAF4.3 protocols allowed or not.
+Bit 4 controls 2PBE oneSafe2PBE (see 2PBE feature in OpenSAF4.4 above).
+Bit 5 controls OpenSAF4.5 protocols allowed or not.
 
 
 ----------------------------------------
