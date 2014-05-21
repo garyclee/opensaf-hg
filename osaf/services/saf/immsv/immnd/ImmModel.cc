@@ -10153,7 +10153,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
                     goto fake_obj;
                 }
                 LOG_NO("ERR_NOT_EXIST: Admin-op on OI rejected. Implementer '%s' != adminowner '%s'",
-			objectName.c_str(), adminOwner->mAdminOwnerName.c_str());
+                    objectName.c_str(), adminOwner->mAdminOwnerName.c_str());
             }
 
             TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
@@ -15391,7 +15391,8 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
     TRACE_ENTER();
     SaAisErrorT err=SA_AIS_OK;
     osafassert(!(isCoord && isSyncClient));
-    
+    bool prt45allowed = this->protocol45Allowed();
+
     switch(sImmNodeState){ 
         case IMM_NODE_W_AVAILABLE:
             osafassert(isSyncClient);
@@ -15599,7 +15600,11 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             ImmsvCcbOutcomeList* ol = (ImmsvCcbOutcomeList *)
                 calloc(1, sizeof(ImmsvCcbOutcomeList));
             ol->ccbId = (*ccbItr)->mId;
-            ol->ccbState = (*ccbItr)->mState;
+            /* OpenSAF 4.5 adds two new ccb states before IMM_CCB_PREPARE. Only terminated
+               Ccbs can currently be synced (COMMITTED or ABORTED). These two states are
+               shifted up by 2 in OpenSAF 4.5
+            */
+            ol->ccbState = prt45allowed ? (*ccbItr)->mState : ((*ccbItr)->mState - 2);
             ol->next = req->ccbResults;
             req->ccbResults = ol;
         }
@@ -15872,7 +15877,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 newCcb->mOriginatingNode = 0;
                 newCcb->mOriginatingConn = 0;
                 newCcb->mVeto = SA_AIS_OK;
-                newCcb->mState = (ImmCcbState) ol->ccbState;
+                newCcb->mState = (ImmCcbState) (prt45allowed ? ol->ccbState : (ol->ccbState + 2));
                 newCcb->mWaitStartTime = time(NULL);
                 if(newCcb->mWaitStartTime <= ((time_t) 0)) {
                     LOG_ER("newCcb->mWaitStartTime <= 0");
@@ -16165,7 +16170,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     ++gone;
                 } else {
                     CcbInfo* ccb = *i1;
-                    if(ccb->mState != (ImmCcbState) ol->ccbState) {
+                    if(ccb->mState != (ImmCcbState) (prt45allowed ? ol->ccbState : (ol->ccbState + 2))) {
                         LOG_ER("ccb->mState:%u  !=  ol->ccbState:%u for CCB:%u",
                             ccb->mState, ol->ccbState, ccb->mId);
                         osafassert(ccb->mState == (ImmCcbState) ol->ccbState);

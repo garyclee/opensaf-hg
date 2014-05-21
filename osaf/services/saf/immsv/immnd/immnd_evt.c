@@ -3051,8 +3051,14 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq)
 		}
 		break;
 
-	case IMMND_EVT_A2ND_CCB_APPLY:
 	case IMMND_EVT_A2ND_CCB_VALIDATE:
+		if(!immModel_protocol45Allowed(cb)) {
+			LOG_NO("saImmOmCcbValidate rejected during upgrade to 4.5 (OPENSAF_IMM_FLAG_PRT45_ALLOW is false)");
+			error = SA_AIS_ERR_NO_RESOURCES;
+			break;
+		}
+		/* intentional fallthrough. */
+	case IMMND_EVT_A2ND_CCB_APPLY:
 		if(immModel_pbeNotWritable(cb)) {
 			/* NO_RESOURCES is here imm internal proxy for TRY_AGAIN.
 			   The library code for saImmOmCcbApply will translate NO_RESOURCES
