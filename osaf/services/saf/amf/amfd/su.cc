@@ -169,7 +169,7 @@ void AVD_SU::remove_comp(AVD_COMP *comp) {
 		/* If SU becomes NPI then set saAmfSUFailover flag
 		 * Sec 3.11.1.3.2 AMF-B.04.01 spec */
 		if (saAmfSUPreInstantiable == false) {
-			comp->su->set_su_failover(true);
+			set_su_failover(true);
 		}
 	}
 }
