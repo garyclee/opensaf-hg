@@ -1412,9 +1412,9 @@ void amfd_file_dump(const char *path)
 		dn = comp->comp_info.name;
 	}
 
-	AVD_SI *si;
-	dn.length = 0;
-	for (si = avd_si_getnext(&dn); si != NULL; si = avd_si_getnext(&dn)) {
+	for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
+			it != si_db->end(); it++) {
+		const AVD_SI *si = it->second;
 		fprintf(f, "%s\n", si->name.value);
 		fprintf(f, "\tsaAmfSIAdminState=%u\n", si->saAmfSIAdminState);
 		fprintf(f, "\tsaAmfSIAssignmentStatee=%u\n", si->saAmfSIAssignmentState);

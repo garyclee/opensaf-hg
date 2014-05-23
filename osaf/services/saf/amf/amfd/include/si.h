@@ -132,6 +132,7 @@ typedef struct {
 
 } AVD_SVC_TYPE_CS_TYPE;
 
+extern AmfDb<AVD_SI> *si_db;
 #define AVD_SI_NULL ((AVD_SI *)0)
 #define m_AVD_SI_ACTV_MAX_SU(l_si) (l_si)->saAmfSIPrefActiveAssignments
 #define m_AVD_SI_ACTV_CURR_SU(l_si) (l_si)->saAmfSINumCurrActiveAssignments
@@ -150,7 +151,6 @@ extern AVD_SI *avd_si_new(const SaNameT *dn);
 extern void avd_si_delete(AVD_SI *si);
 extern void avd_si_db_add(AVD_SI *si);
 extern AVD_SI *avd_si_get(const SaNameT *si_name);
-extern AVD_SI *avd_si_getnext(const SaNameT *si_name);
 extern SaAisErrorT avd_si_config_get(struct avd_app_tag *app);
 extern void avd_si_constructor(void);
 

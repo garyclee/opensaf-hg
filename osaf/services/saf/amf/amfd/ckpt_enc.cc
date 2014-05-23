@@ -2370,7 +2370,6 @@ static uint32_t enc_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t 
 static uint32_t enc_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SI *si;
 	SaNameT si_name;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
@@ -2378,9 +2377,9 @@ static uint32_t enc_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t 
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	si_name.length = 0;
-	for (si = avd_si_getnext(&si_name); si != NULL;
-	     si = avd_si_getnext(&si_name)) {
+	for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
+			it != si_db->end(); it++) {
+		AVD_SI *si = it->second;
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 					    EDP_OP_TYPE_ENC, si, &ederror, enc->i_peer_version);
 

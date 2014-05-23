@@ -27,7 +27,8 @@
 #include <proc.h>
 #include <si_dep.h>
 
-static NCS_PATRICIA_TREE si_db;
+AmfDb<AVD_SI> *si_db = NULL;
+
 static void avd_si_add_csi_db(struct avd_csi_tag* csi);
 static void si_update_ass_state(AVD_SI *si);
 
@@ -365,8 +366,6 @@ static void si_delete_csis(AVD_SI *si)
 
 void avd_si_delete(AVD_SI *si)
 {
-	unsigned int rc;
-
 	TRACE_ENTER2("%s", si->name.value);
 
 	/* All CSI under this should have been deleted by now on the active 
@@ -385,8 +384,7 @@ void avd_si_delete(AVD_SI *si)
 				SA_NTF_SOFTWARE_ERROR);
 	}
 
-	rc = ncs_patricia_tree_del(&si_db, &si->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
+	si_db->erase(si);
 	
 	if (si->saAmfSIActiveWeight != NULL) {
 		unsigned int i = 0;
@@ -434,8 +432,8 @@ void avd_si_db_add(AVD_SI *si)
 {
 	unsigned int rc;
 
-	if (avd_si_get(&si->name) == NULL) {
-		rc = ncs_patricia_tree_add(&si_db, &si->tree_node);
+	if (si_db->find(&si->name) == NULL) {
+		rc = si_db->insert(si);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
@@ -450,21 +448,10 @@ AVD_SI *avd_si_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_SI *)ncs_patricia_tree_get(&si_db, (uint8_t *)&tmp);
+	return si_db->find(dn); 
 }
 
-AVD_SI *avd_si_getnext(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
 
-	if (dn->length > SA_MAX_NAME_LENGTH)
-		return NULL;
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_SI *)ncs_patricia_tree_getnext(&si_db, (uint8_t *)&tmp);
-}
 
 static void si_add_to_model(AVD_SI *si)
 {
@@ -581,7 +568,7 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if (NULL == (si = avd_si_get(si_name))) {
+	if ((si = si_db->find(si_name)) == NULL) {
 		if ((si = avd_si_new(si_name)) == NULL)
 			goto done;
 	} else {
@@ -1386,10 +1373,7 @@ void avd_si_inc_curr_stdby_dec_act_ass(AVD_SI *si)
 
 void avd_si_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&si_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	si_db = new AmfDb<AVD_SI>;
 	avd_class_impl_set("SaAmfSI", si_rt_attr_cb, si_admin_op_cb,
 		si_ccb_completed_cb, si_ccb_apply_cb);
 }
