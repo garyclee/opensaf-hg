@@ -42,6 +42,8 @@ AVD_SU::AVD_SU(const SaNameT *dn) {
 	saAmfSUOperState = SA_AMF_OPERATIONAL_DISABLED;
 	saAmfSUPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
 	saAmfSuReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
+	saAmfSUNumCurrActiveSIs = 0;
+	saAmfSUNumCurrStandbySIs = 0;
 	su_is_external = false;
 	sg_of_su = NULL;
 	su_on_node = NULL;
