@@ -1579,8 +1579,6 @@ void avd_imm_update_runtime_attrs(void)
 	AVD_COMP *comp;
 	SaNameT node_name = {0};
 	AVD_AVND *node;
-	SaNameT si_name = {0};
-	AVD_SI  *si;
 
 	/* Update SU Class runtime cached attributes. */
 	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
@@ -1631,12 +1629,11 @@ void avd_imm_update_runtime_attrs(void)
 	}
 
 	/* Update Node Class runtime cached attributes. */
-	si = avd_si_getnext(&si_name);
-	while (si != NULL) {
+	for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
+			it != si_db->end(); it++) {
+		AVD_SI *si = it->second;
 		avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
 			SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
-
-		si = avd_si_getnext(&si->name);
 	}
 }
 
