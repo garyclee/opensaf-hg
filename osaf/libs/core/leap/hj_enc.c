@@ -1,6 +1,6 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2008-2014 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,7 +11,7 @@
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
- * Author(s): Emerson Network Power
+ * Author(s): Emerson Network Power, Ericsson
  *
  */
 
@@ -39,25 +39,6 @@
 
 ..............................................................................
 
-  FUNCTIONS INCLUDED in this module:
-
-The following set does buffer chaining management
-  ncs_encode_n_octets....Encode "n" octets in the control frame
-  ncs_encode_uint16_t   ....Encode short
-  ncs_encode_uint32_t   ....Encode long
-  ncs_encode_uint64_t   ....Encode long long
-  ncs_prepend_n_octets...Encode "n" octets encapsulating given frame
-  ncs_prepend_uint16_t   ...Encode 16 bit unsigned encapsulating given frame
-  ncs_prepend_uint32_t   ...Encode 32 bit unsigned encapsulating given frame
-  ncs_prepend_uint64_t   ...Encode 64 bit unsigned encapsulating given frame
-
-The following set does NOT do buffer chaining management
-  ncs_encode_64bit   ....Encode 64 bits of a 64 bit value
-  ncs_encode_32bit   ....Encode 32 bits of a 32 bit value
-  ncs_encode_24bit   ....Encode 24 least significant octets of a 32 bit value
-  ncs_encode_16bit   ....Encode 16 least significant octets of a 32 bit value
-  ncs_encode_8bit    ....Encode  8 least significant octets of a 32 bit value
-  ncs_encode_octets  ....Encode "n" octets encapsulating given frame
 
 *******************************************************************************
 */
@@ -310,3 +291,124 @@ uint32_t ncs_encode_octets(uint8_t **stream, uint8_t *val, uint32_t count)
 		*(*stream)++ = *val++;
 	return count;
 }
+
+/***** new style (2014) encoding/decoding functions follows ******/
+
+static uint8_t *encode_reserve_space(NCS_UBAID *ub, int32_t count)
+{
+    uint8_t *p8 = ncs_enc_reserve_space(ub, count);
+    osafassert(p8);
+    return p8;
+}
+
+static uint8_t *decode_flatten_space(NCS_UBAID *uba, uint8_t *os, int32_t count)
+{
+	uint8_t *p8 = ncs_dec_flatten_space(uba, os, count);
+	osafassert(p8);
+	return p8;
+}
+
+void osaf_encode_uint8(NCS_UBAID *ub, uint8_t value)
+{
+	uint8_t *p8 = encode_reserve_space(ub, 1);
+	ncs_encode_8bit(&p8, value);
+	ncs_enc_claim_space(ub, 1);
+}
+
+void osaf_decode_uint8(NCS_UBAID *ub, uint8_t *to)
+{
+	uint8_t buf[1];
+
+	uint8_t *p8 = decode_flatten_space(ub, buf, 1);
+	*to = ncs_decode_8bit(&p8);
+	ncs_dec_skip_space(ub, 1);
+}
+
+void osaf_encode_uint16(NCS_UBAID *ub, uint16_t value)
+{
+	uint8_t *p8 = encode_reserve_space(ub, 2);
+	ncs_encode_16bit(&p8, value);
+	ncs_enc_claim_space(ub, 2);
+}
+
+void osaf_decode_uint16(NCS_UBAID *ub, uint16_t *to)
+{
+	uint8_t buf[2];
+
+	uint8_t *p8 = decode_flatten_space(ub, buf, 2);
+	*to = ncs_decode_16bit(&p8);
+	ncs_dec_skip_space(ub, 2);
+}
+
+void osaf_encode_uint32(NCS_UBAID *ub, uint32_t value)
+{
+	uint8_t *p8 = encode_reserve_space(ub, 4);
+	ncs_encode_32bit(&p8, value);
+	ncs_enc_claim_space(ub, 4);
+}
+
+void osaf_decode_uint32(NCS_UBAID *ub, uint32_t *to)
+{
+	uint8_t buf[4];
+
+	uint8_t *p8 = decode_flatten_space(ub, buf, 4);
+	*to = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(ub, 4);
+}
+
+void osaf_encode_uint64(NCS_UBAID *ub, uint64_t value)
+{
+	uint8_t *p8 = encode_reserve_space(ub, 8);
+	ncs_encode_64bit(&p8, value);
+	ncs_enc_claim_space(ub, 8);
+}
+
+void osaf_decode_uint64(NCS_UBAID *ub, uint64_t *to)
+{
+	uint8_t buf[8];
+
+	uint8_t *p8 = decode_flatten_space(ub, buf, 8);
+	*to = ncs_decode_64bit(&p8);
+	ncs_dec_skip_space(ub, 8);
+}
+
+void osaf_encode_sanamet(NCS_UBAID *ub, const SaNameT *name)
+{
+	int i;
+	osaf_encode_uint16(ub, name->length);
+	for (i = 0; i < SA_MAX_NAME_LENGTH; i++)
+		osaf_encode_uint8(ub, name->value[i]);
+}
+
+void osaf_decode_sanamet(NCS_UBAID *ub, SaNameT *name)
+{
+	int i;
+	osaf_decode_uint16(ub, &name->length);
+	for (i = 0; i < SA_MAX_NAME_LENGTH; i++)
+		osaf_decode_uint8(ub, &name->value[i]);
+}
+
+void osaf_encode_satimet(NCS_UBAID *ub, SaTimeT time)
+{
+	osaf_encode_uint64(ub, time);
+}
+
+void osaf_decode_satimet(NCS_UBAID *ub, SaTimeT *time)
+{
+	osaf_decode_uint64(ub, (uint64_t*)time);
+}
+
+void osaf_encode_bool(NCS_UBAID *ub, bool value)
+{
+	// for backwards compatibility reasons a bool is encoded as 4 bytes
+	uint32_t tmp = value;
+	osaf_encode_uint32(ub, tmp);
+}
+
+void osaf_decode_bool(NCS_UBAID *ub, bool *to)
+{
+	uint32_t value;
+	osaf_decode_uint32(ub, &value);
+	*to = (bool)value;
+}
+

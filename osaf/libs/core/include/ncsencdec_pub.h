@@ -1,6 +1,6 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2008-2014 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,7 +11,7 @@
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
- * Author(s): Emerson Network Power
+ * Author(s): Emerson Network Power, Ericsson
  *
  */
 
@@ -92,6 +92,8 @@
 
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
+#include <saAis.h>
+#include <ncs_ubaid.h>
 #include "ncsusrbuf.h"
 #include "ncs_svd.h"
 
@@ -102,84 +104,68 @@ extern "C" {
 /*
  * NCS_ENC encode functions
  */
-	USRBUF *ncs_encode_n_octets(USRBUF *, uint8_t *, unsigned int);
-	USRBUF *ncs_encode_uns8(USRBUF *u, uint8_t val8);
-	USRBUF *ncs_encode_uns16(USRBUF *u, uint16_t val16);
-	USRBUF *ncs_encode_uns32(USRBUF *u, uint32_t val32);
-	USRBUF *ncs_encode_uns64(USRBUF *u, uint64_t val64);
-	USRBUF *ncs_prepend_n_octets(USRBUF *pbuf, uint8_t *os, unsigned int);
-	USRBUF *ncs_prepend_uns16(USRBUF *u, uint16_t);
-	USRBUF *ncs_prepend_uns32(USRBUF *u, uint32_t);
-	USRBUF *ncs_prepend_uns64(USRBUF *u, uint64_t);
-	USRBUF *ncs_encode_float(USRBUF *u, float obj_val);
+USRBUF *ncs_encode_n_octets(USRBUF *, uint8_t *, unsigned int);
+USRBUF *ncs_encode_uns8(USRBUF *u, uint8_t val8);
+USRBUF *ncs_encode_uns16(USRBUF *u, uint16_t val16);
+USRBUF *ncs_encode_uns32(USRBUF *u, uint32_t val32);
+USRBUF *ncs_encode_uns64(USRBUF *u, uint64_t val64);
+USRBUF *ncs_prepend_n_octets(USRBUF *pbuf, uint8_t *os, unsigned int);
+USRBUF *ncs_prepend_uns16(USRBUF *u, uint16_t);
+USRBUF *ncs_prepend_uns32(USRBUF *u, uint32_t);
+USRBUF *ncs_prepend_uns64(USRBUF *u, uint64_t);
+USRBUF *ncs_encode_float(USRBUF *u, float obj_val);
 
-	uint64_t ncs_encode_64bit(uint8_t **stream, uint64_t);
-	uint32_t ncs_encode_32bit(uint8_t **stream, uint32_t);
-	uint32_t ncs_encode_24bit(uint8_t **stream, uint32_t);
-	uint32_t ncs_encode_16bit(uint8_t **stream, uint32_t);
-	uint32_t ncs_encode_8bit(uint8_t **stream, uint32_t);
-	uint32_t ncs_encode_key(uint8_t **stream, NCS_KEY *key);
-
-	uint32_t ncs_encode_octets(uint8_t **stream, uint8_t *val, uint32_t count);
+uint64_t ncs_encode_64bit(uint8_t **stream, uint64_t);
+uint32_t ncs_encode_32bit(uint8_t **stream, uint32_t);
+uint32_t ncs_encode_24bit(uint8_t **stream, uint32_t);
+uint32_t ncs_encode_16bit(uint8_t **stream, uint32_t);
+uint32_t ncs_encode_8bit(uint8_t **stream, uint32_t);
+uint32_t ncs_encode_key(uint8_t **stream, NCS_KEY *key);
+uint32_t ncs_encode_octets(uint8_t **stream, uint8_t *val, uint32_t count);
 
 /*
  * NCS_DEC decode functions
  */
-	USRBUF *ncs_decode_n_octets(USRBUF *, uint8_t *, uint32_t);
+USRBUF *ncs_decode_n_octets(USRBUF *, uint8_t *, uint32_t);
 
-	USRBUF *ncs_skip_n_octets(USRBUF *, uint32_t);
-	uint8_t *ncs_flatten_n_octets(USRBUF *u, uint8_t *os, uint32_t count);
+USRBUF *ncs_skip_n_octets(USRBUF *, uint32_t);
+uint8_t *ncs_flatten_n_octets(USRBUF *u, uint8_t *os, uint32_t count);
 
-	uint32_t ncs_decode_short(uint8_t **stream);
-	uint32_t ncs_decode_24bit(uint8_t **stream);
-	uint32_t ncs_decode_32bit(uint8_t **stream);
-	uint16_t ncs_decode_16bit(uint8_t **stream);
-	uint64_t ncs_decode_64bit(uint8_t **stream);
-	uint8_t ncs_decode_8bit(uint8_t **stream);
-	uint32_t ncs_decode_key(uint8_t **stream, NCS_KEY *key);
+uint32_t ncs_decode_short(uint8_t **stream);
+uint32_t ncs_decode_24bit(uint8_t **stream);
+uint32_t ncs_decode_32bit(uint8_t **stream);
+uint16_t ncs_decode_16bit(uint8_t **stream);
+uint64_t ncs_decode_64bit(uint8_t **stream);
+uint8_t ncs_decode_8bit(uint8_t **stream);
+uint32_t ncs_decode_key(uint8_t **stream, NCS_KEY *key);
+float ncs_decode_float(uint8_t **stream);
 
-	float ncs_decode_float(uint8_t **stream);
-
-/*****************************************************************************
- * STRUCTURE NAME:     USRFRAME
- *
- * DESCRIPTION:        This structure is an alternative to the userbuf
- *                     for passing data across the sysf_ip interface.
- * NOTES:
- * Header goes from *bufp to *(bufp+header_len-1)
- * data goes from *(bufp+header_len) to *(bufp+len-1)
- *
- * This used to be located in ncs_ip.h.  The USRFRAME is used outside of
- * sysf_ip and hence, must be located outside of ncs_ip.h
- *
- ****************************************************************************/
-	typedef struct {
-		unsigned int header_len;	/* header length */
-		unsigned int len;	/* length of entire frame including header */
-		char *bufp;	/* ptr to a (flat) buffer containing the frame */
-	} USRFRAME;
+/***** new style (2014) encoding/decoding functions follows ******/
+void osaf_encode_uint8(NCS_UBAID *ub, uint8_t value);
+void osaf_decode_uint8(NCS_UBAID *ub, uint8_t *to);
+void osaf_encode_uint16(NCS_UBAID *ub, uint16_t value);
+void osaf_decode_uint16(NCS_UBAID *ub, uint16_t *to);
+void osaf_encode_uint32(NCS_UBAID *ub, uint32_t value);
+void osaf_decode_uint32(NCS_UBAID *ub, uint32_t *to);
+void osaf_decode_int(NCS_UBAID *ub, int *to);
+void osaf_encode_uint64(NCS_UBAID *ub, uint64_t value);
+void osaf_decode_uint64(NCS_UBAID *ub, uint64_t *to);
+void osaf_encode_sanamet(NCS_UBAID *ub, const SaNameT *name);
+void osaf_decode_sanamet(NCS_UBAID *ub, SaNameT *name);
+void osaf_encode_satimet(NCS_UBAID *ub, SaTimeT time);
+void osaf_decode_satimet(NCS_UBAID *ub, SaTimeT *time);
+void osaf_encode_bool(NCS_UBAID *ub, bool value);
+void osaf_decode_bool(NCS_UBAID *ub, bool *to);
 
 /* encode float */
-#if defined(__NCSINC_PSOS__)
 #define m_NCS_ENCODE_FLOAT(f, enc) {\
           *((uint32_t *)(enc)) = htonl(*((uint32_t *)&(f))); \
          }
-#else
-#define m_NCS_ENCODE_FLOAT(f, enc) {\
-          *((uint32_t *)(enc)) = htonl(*((uint32_t *)&(f))); \
-         }
-#endif
 
 /* decode float */
-#if defined(__NCSINC_PSOS__)
 #define m_NCS_DECODE_FLOAT(n, dec) {\
           *((uint32_t *) (dec)) = (n); \
          }
-#else
-#define m_NCS_DECODE_FLOAT(n, dec) {\
-          *((uint32_t *) (dec)) = (n); \
-         }
-#endif
 
 #ifdef  __cplusplus
 }
