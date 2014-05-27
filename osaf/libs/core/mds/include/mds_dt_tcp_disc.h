@@ -70,7 +70,6 @@ server_instance_upper + sub_ref_val + sub_ref_val  + node_id  +process_id */
 #define MDS_SND_VERSION 1
 #define MDS_RCV_IDENTIFIRE 0x56123456
 #define MDS_RCV_VERSION 1
-#define DTM_INTRANODE_MSG_SIZE 1500
 #define DTM_INTRANODE_UNSENT_MSG 200
 
 #define MDS_MDTM_LOWER_INSTANCE 0x00000000
