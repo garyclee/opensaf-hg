@@ -90,6 +90,8 @@ typedef struct dtm_internode_cb {
 	int comm_keepidle_time;
 	int comm_keepalive_intvl;
 	int comm_keepalive_probes;
+	int32_t sock_sndbuf_size; /* The value of SO_SNDBUF */
+	int32_t sock_rcvbuf_size; /* The value of SO_RCVBUF */
 	SYSF_MBX mbx;
 	int mbx_fd;
 } DTM_INTERNODE_CB;
@@ -116,6 +118,8 @@ typedef struct dtm_intranode_cb {
 	SYSF_MBX mbx;
 	int mbx_fd;
 	int sock_domain;
+	int32_t sock_sndbuf_size; /* The value of SO_SNDBUF */
+	int32_t sock_rcvbuf_size; /* The value of SO_RCVBUF*/
 } DTM_INTRANODE_CB;
 
 extern DTM_INTRANODE_CB *dtm_intranode_cb;

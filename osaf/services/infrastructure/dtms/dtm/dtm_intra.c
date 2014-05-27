@@ -42,7 +42,6 @@ DTM_INTRANODE_CB *dtm_intranode_cb = NULL;
 
 #define DTM_INTRANODE_MAX_PROCESSES   100
 #define DTM_INTRANODE_POLL_TIMEOUT 20000
-#define DTM_RECV_BUFFER_SIZE 1500
 #define DTM_INTRANODE_TASKNAME  "DTM_INTRANODE"
 #define DTM_INTRANODE_STACKSIZE  NCS_STACKSIZE_HUGE
 
@@ -58,7 +57,7 @@ static struct pollfd pfd_list[DTM_INTRANODE_MAX_PROCESSES];
 
 static int  dtm_intranode_max_fd;
 
-static uint32_t dtm_intra_processing_init(char *node_ip, DTM_IP_ADDR_TYPE i_addr_family);
+static uint32_t dtm_intra_processing_init(char *node_ip, DTM_IP_ADDR_TYPE i_addr_family, int32_t sndbuf_size, int32_t rcvbuf_size);
 static void dtm_intranode_processing(void);
 static uint32_t dtm_intranode_add_poll_fdlist(int fd, uint16_t event);
 static uint32_t dtm_intranode_create_rcv_task(int task_hdl);
@@ -79,10 +78,9 @@ uint32_t dtm_socket_domain = AF_UNIX;
  */
 uint32_t dtm_service_discovery_init(DTM_INTERNODE_CB *dtms_cb)
 {
-	return dtm_intra_processing_init(dtms_cb->ip_addr, dtms_cb->i_addr_family);
+	return dtm_intra_processing_init(dtms_cb->ip_addr, dtms_cb->i_addr_family, dtms_cb->sock_sndbuf_size,dtms_cb->sock_rcvbuf_size);
 }
 
-#define DTM_INTRANODE_SOCK_SIZE 64000
 
 /**
  * Function to init the intranode processing
@@ -92,10 +90,10 @@ uint32_t dtm_service_discovery_init(DTM_INTERNODE_CB *dtms_cb)
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_intra_processing_init(char *node_ip, DTM_IP_ADDR_TYPE i_addr_family)
+uint32_t dtm_intra_processing_init(char *node_ip, DTM_IP_ADDR_TYPE i_addr_family, int32_t sndbuf_size, int32_t rcvbuf_size)
 {
 
-	int servlen, size = DTM_INTRANODE_SOCK_SIZE;	/* For socket fd and server len */
+	int servlen;	/* For socket fd and server len */
 	struct sockaddr_un serv_addr;	/* For Unix Sock address */
 	char server_ux_name[255];
 	NCS_PATRICIA_PARAMS pat_tree_params;
@@ -112,6 +110,8 @@ uint32_t dtm_intra_processing_init(char *node_ip, DTM_IP_ADDR_TYPE i_addr_family
 		return NCSCC_RC_FAILURE;
 	}
 	dtm_intranode_cb->sock_domain = dtm_socket_domain;
+	dtm_intranode_cb->sock_sndbuf_size = sndbuf_size;
+	dtm_intranode_cb->sock_rcvbuf_size = rcvbuf_size;
 
 	/* Open a socket, If socket opens to fail return Error */
 	dtm_intranode_cb->server_sockfd = socket(dtm_socket_domain, SOCK_STREAM, 0);
@@ -137,13 +137,13 @@ uint32_t dtm_intra_processing_init(char *node_ip, DTM_IP_ADDR_TYPE i_addr_family
 	}
 
 	/* Increase the socket buffer size */
-	if (setsockopt(dtm_intranode_cb->server_sockfd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size)) != 0) {
+	if ((rcvbuf_size > 0) && (setsockopt(dtm_intranode_cb->server_sockfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, sizeof(rcvbuf_size)) != 0)) {
 		LOG_ER("DTM: Unable to set the SO_RCVBUF err :%s ", strerror(errno)); 
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
 	}
-	if (setsockopt(dtm_intranode_cb->server_sockfd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size)) != 0) {
+	if ((sndbuf_size > 0) && (setsockopt(dtm_intranode_cb->server_sockfd, SOL_SOCKET, SO_SNDBUF, &sndbuf_size, sizeof(sndbuf_size)) != 0)) {
 		LOG_ER("DTM: Unable to set the SO_SNDBUF err :%s ", strerror(errno));
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
@@ -894,7 +894,8 @@ static uint32_t dtm_intranode_process_incoming_conn(void)
 {
 	 int flags;
 	/* Accept processing */
-	int accept_fd = 0,  retry_count = 0, size = DTM_INTRANODE_SOCK_SIZE;
+	int accept_fd = 0,  retry_count = 0;
+	int sndbuf_size = dtm_intranode_cb->sock_sndbuf_size, rcvbuf_size = dtm_intranode_cb->sock_rcvbuf_size;
 	socklen_t len = sizeof(struct sockaddr_un);
 	struct sockaddr_un cli_addr;
 	/* Accept should be non_block */
@@ -924,12 +925,12 @@ tryagain:
 			goto tryagain;
 		}
 	}
-	if (setsockopt(accept_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size)) != 0) {
+	if ((rcvbuf_size > 0) && (setsockopt(accept_fd, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, sizeof(rcvbuf_size)) != 0)) {
 		LOG_ER("DTM: Unable to set the SO_RCVBUF ");
 		close(accept_fd);
 		return NCSCC_RC_FAILURE;
 	}
-	if (setsockopt(accept_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size)) != 0) {
+	if ((sndbuf_size > 0) &&  (setsockopt(accept_fd, SOL_SOCKET, SO_SNDBUF, &sndbuf_size, sizeof(sndbuf_size)) != 0)) {
 		LOG_ER("DTM: Unable to set the SO_SNDBUF ");
 		close(accept_fd);
 		return NCSCC_RC_FAILURE;

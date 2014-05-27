@@ -26,7 +26,6 @@
 
 #define MYPORT "6900"
 #define MAXBUFLEN 100
-#define DTM_INTERNODE_SOCK_SIZE 64000
 
 struct addrinfo *mcast_sender_addr;	/* Holder for mcast_sender_addr address */
 
@@ -431,7 +430,7 @@ uint32_t dtm_comm_socket_send(int sock_desc, const void *buffer, int buffer_len)
 	int rtn = 0;
 	int err = 0;
 	int rc = NCSCC_RC_SUCCESS;
-	rtn = send(sock_desc, (raw_type *) buffer, buffer_len, 0);
+	rtn = send(sock_desc, (raw_type *) buffer, buffer_len, MSG_NOSIGNAL);
 	err = errno;
 	if (rtn < 0) {
 		if (!IS_BLOCKIN_ERROR(err)) {
@@ -508,7 +507,7 @@ static char *comm_get_foreign_address(int sock_desc)
 int comm_socket_setup_new(DTM_INTERNODE_CB * dtms_cb, const char *foreign_address, in_port_t foreign_port,
 			  DTM_IP_ADDR_TYPE ip_addr_type)
 {
-	int sock_desc = -1, size = DTM_INTERNODE_SOCK_SIZE;
+	int sock_desc = -1, sndbuf_size = dtms_cb->sock_sndbuf_size, rcvbuf_size = dtms_cb->sock_rcvbuf_size;
 	int err = 0, rv;
 	char local_port_str[INET6_ADDRSTRLEN];
 	struct addrinfo *addr_list;
@@ -565,14 +564,14 @@ int comm_socket_setup_new(DTM_INTERNODE_CB * dtms_cb, const char *foreign_addres
 		dtm_comm_socket_close(&sock_desc);
 		goto done;
 	}
-
-	if (setsockopt(sock_desc, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size)) != 0) {
+	
+	if ((rcvbuf_size > 0) && (setsockopt(sock_desc, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, sizeof(rcvbuf_size)) != 0)) {
 		LOG_ER("DTM:Socket rcv buf size set failed err :%s", strerror(errno));
 		dtm_comm_socket_close(&sock_desc);
 		goto done;
 	}
 
-	if (setsockopt(sock_desc, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size)) != 0) {
+	if ((sndbuf_size > 0) && (setsockopt(sock_desc, SOL_SOCKET, SO_SNDBUF, &sndbuf_size, sizeof(sndbuf_size)) != 0)) {
 		LOG_ER("DTM:Socket snd buf size set failed err :%s", strerror(errno));
 		dtm_comm_socket_close(&sock_desc);
 		goto done;
@@ -660,7 +659,7 @@ uint32_t dtm_stream_nonblocking_listener(DTM_INTERNODE_CB * dtms_cb)
 	struct addrinfo addr_criteria;	/* Criteria for address match */
 	char local_port_str[6];
 	struct addrinfo *addr_list = NULL, *p;;	/* List of serv addresses */
-	int size = DTM_INTERNODE_SOCK_SIZE;
+	int sndbuf_size = dtms_cb->sock_sndbuf_size, rcvbuf_size = dtms_cb->sock_rcvbuf_size; 
 	int rv;
 	char ip_addr_eth[INET6_ADDRSTRLEN + IFNAMSIZ];
 	dtms_cb->stream_sock = -1;
@@ -720,11 +719,11 @@ uint32_t dtm_stream_nonblocking_listener(DTM_INTERNODE_CB * dtms_cb)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (setsockopt(dtms_cb->stream_sock, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size)) != 0) {
+	if ((rcvbuf_size > 0) && (setsockopt(dtms_cb->stream_sock, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, sizeof(rcvbuf_size)) != 0)) {
 		LOG_ER("DTM:Socket rcv buf size set failed err :%s", strerror(errno));
 	}
 
-	if (setsockopt(dtms_cb->stream_sock, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size)) != 0) {
+	if ((sndbuf_size > 0) && (setsockopt(dtms_cb->stream_sock, SOL_SOCKET, SO_SNDBUF, &sndbuf_size, sizeof(sndbuf_size)) != 0)) {
 		LOG_ER("DTM:Socket snd buf size set failed err :%s", strerror(errno));
 	}
 
@@ -1314,7 +1313,6 @@ int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uint8_t *data
 
 }
 
-#define DTM_INTERNODE_SOCK_SIZE 64000
 
 /**
  * Function for dtm accept the connection
@@ -1335,7 +1333,7 @@ int dtm_process_accept(DTM_INTERNODE_CB * dtms_cb, int stream_sock)
 	int err = 0;
 	DTM_NODE_DB node;
 	DTM_NODE_DB *new_node;
-	int new_conn_sd, size = DTM_INTERNODE_SOCK_SIZE;
+	int new_conn_sd, sndbuf_size = dtms_cb->sock_sndbuf_size, rcvbuf_size = dtms_cb->sock_rcvbuf_size;
 	const struct sockaddr *clnt_addr1 = (struct sockaddr *)&clnt_addr;
 	TRACE_ENTER();
 
@@ -1352,12 +1350,12 @@ int dtm_process_accept(DTM_INTERNODE_CB * dtms_cb, int stream_sock)
 
 	}
 
-	if (setsockopt(new_conn_sd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size)) != 0) {
+	if ((rcvbuf_size > 0) && (setsockopt(new_conn_sd, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, sizeof(rcvbuf_size)) != 0)) {
 		LOG_ER("DTM: Unable to set the SO_RCVBUF ");
 		dtm_comm_socket_close(&new_conn_sd);
 		goto done;
 	}
-	if (setsockopt(new_conn_sd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size)) != 0) {
+	if ((sndbuf_size > 0) && (setsockopt(new_conn_sd, SOL_SOCKET, SO_SNDBUF, &sndbuf_size, sizeof(sndbuf_size)) != 0)) {
 		LOG_ER("DTM: Unable to set the SO_SNDBUF ");
 		dtm_comm_socket_close(&new_conn_sd);
 		goto done;
