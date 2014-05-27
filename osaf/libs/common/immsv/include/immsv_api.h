@@ -54,9 +54,9 @@ extern "C" {
 #define OPENSAF_IMM_ATTR_PBE_RT_TIME "lastApplyTime"
 
 #define OPENSAF_IMM_SYNC_BATCH_SIZE "opensafImmSyncBatchSize"
-#define IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE 4096
-/*MDS_DIRECT_BUF_MAXSIZE 8000 possibly adjust fevs to this in the future. */
-#define IMMSV_MAX_OBJS_IN_SYNCBATCH 400
+/* Adjust to MDS_DIRECT_BUF_MAXSIZE  */
+#define IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE MDS_DIRECT_BUF_MAXSIZE
+#define IMMSV_MAX_OBJS_IN_SYNCBATCH (MDS_DIRECT_BUF_MAXSIZE/10) 
 
 /*Max # of outstanding fevs messages towards director.*/
 /*Note max-max is 255. cb->fevs_replies_pending is an uint8_t*/
