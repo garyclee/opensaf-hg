@@ -17,8 +17,6 @@
 #ifndef DTM_INTRA_DISC_H
 #define DTM_INTRA_DISC_H
 
-#define DTM_INTRANODE_MSG_SIZE      1400
-#define DTM_INTERNODE_MSG_SIZE      DTM_INTRANODE_MSG_SIZE
 
 /* 2 -len(0), 4 - iden(2), 1- ver(6), 1-msg type(7), 4- server_type (8),
 			4 -server lower(12), 4 -server lower(16), 8 -ref(20), 4 - nodeid(28),

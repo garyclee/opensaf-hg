@@ -96,6 +96,11 @@ void dtm_print_config(DTM_INTERNODE_CB * config)
  	TRACE("  %d", config->initial_dis_timeout);
  	TRACE("  DTM_BCAST_FRE_MSECS: ");
 	TRACE("  %d", config->bcast_msg_freq);
+	TRACE("  DTM_SOCK_SND_BUF_SIZE: ");
+	TRACE("  %d", config->sock_sndbuf_size);
+	TRACE("  DTM_SOCK_RCV_BUF_SIZE: ");
+	TRACE("  %d", config->sock_rcvbuf_size);
+
  	TRACE("DTM : ");
 }
 
@@ -217,6 +222,8 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 	config->i_addr_family = DTM_IP_ADDR_TYPE_IPV4;
 	config->bcast_msg_freq = BCAST_FRE;
 	config->initial_dis_timeout = DIS_TIME_OUT;
+	config->sock_sndbuf_size = 0;
+	config->sock_rcvbuf_size = 0;
 	config->mcast_flag = false;
 	config->scope_link = false;
 	config->node_id = m_NCS_GET_NODE_ID;
@@ -421,6 +428,33 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				tag_len = 0;
 
 			}
+			if (strncmp(line, "DTM_SOCK_SND_RCV_BUF_SIZE=", strlen("DTM_SOCK_SND_RCV_BUF_SIZE=")) == 0) {
+				tag_len = strlen("DTM_SOCK_SND_RCV_BUF_SIZE=");
+				uint32_t sndbuf_size = 0; /* Send buffer size */
+				uint32_t rcvbuf_size = 0;  /* Receive buffer size */
+				socklen_t optlen; /* Option length */
+				int sockfd;
+				sockfd = socket(AF_INET, SOCK_STREAM, 0);
+				optlen = sizeof(rcvbuf_size);
+				getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, &optlen);
+				if ((rcvbuf_size < DTM_SOCK_SND_RCV_BUF_SIZE) && (atoi(&line[tag_len]) < DTM_SOCK_SND_RCV_BUF_SIZE)) {
+					config->sock_rcvbuf_size = DTM_SOCK_SND_RCV_BUF_SIZE;
+				} else if (atoi(&line[tag_len]) > rcvbuf_size) {
+					config->sock_rcvbuf_size = atoi(&line[tag_len]);
+				}  
+
+				optlen = sizeof(sndbuf_size);
+				getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &sndbuf_size, &optlen);
+				if ((sndbuf_size < DTM_SOCK_SND_RCV_BUF_SIZE) && (atoi(&line[tag_len]) < DTM_SOCK_SND_RCV_BUF_SIZE)){
+					config->sock_sndbuf_size = DTM_SOCK_SND_RCV_BUF_SIZE;
+				} else if (atoi(&line[tag_len]) > sndbuf_size) {
+					config->sock_sndbuf_size = atoi(&line[tag_len]);
+				}  
+
+				tag = 0;
+				tag_len = 0;
+			}
+
 		}
 
 		memset(line, 0, DTM_MAX_TAG_LEN);
