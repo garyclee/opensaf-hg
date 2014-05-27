@@ -28,11 +28,11 @@
 #include "immnd.h"
 #include "immsv_api.h"
 #include "ncssysf_mem.h"
+#include "mds_papi.h"
 
-
-#define IMMND_MAX_SEARCH_RESULT		10
-#define IMMND_SEARCH_BUNDLE_SIZE		4096
-
+/* Adjust to 90% of MDS_DIRECT_BUF_MAXSIZE  */
+#define IMMND_SEARCH_BUNDLE_SIZE ((MDS_DIRECT_BUF_MAXSIZE / 100) * 90)   
+#define IMMND_MAX_SEARCH_RESULT (IMMND_SEARCH_BUNDLE_SIZE / 300)  
 
 static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq);
 static uint32_t immnd_evt_proc_cb_dump(IMMND_CB *cb);

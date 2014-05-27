@@ -16,6 +16,7 @@
  */
 
 #include "imm_loader.hh"
+#include "mds_papi.h"
 #include <iostream>
 #include <set>
 #include <libxml/parser.h>
