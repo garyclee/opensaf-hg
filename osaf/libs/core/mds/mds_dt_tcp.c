@@ -38,7 +38,6 @@
 #include <configmake.h>
 
 #define MDS_MDTM_SUN_PATH 255
-#define MDS_SND_RCV_SIZE 64000
 #define MDS_MDTM_CONNECT_PATH PKGLOCALSTATEDIR "/osaf_dtm_intra_server"
 
 #ifndef MDS_PORT_NUMBER
@@ -53,6 +52,9 @@
 /* Send_buffer_size + MDS_MDTM_DTM_PID_BUFFER_SIZE   */
 #define MDS_MDTM_DTM_PID_BUFFER_SIZE (2 + MDS_MDTM_DTM_PID_SIZE)
 
+/* The default value is set by the rmem_default/wmem_default  */
+#define MDS_SOCK_SND_RCV_BUF_SIZE 65536  
+ 
 extern uint32_t mdtm_num_subscriptions;
 extern MDS_SUBTN_REF_VAL mdtm_handle;
 extern uint32_t mdtm_global_frag_num_tcp;
@@ -79,11 +81,14 @@ uint32_t mdtm_process_recv_events_tcp(void);
 uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 {
 	uint32_t flags;
-	uint32_t size = MDS_SND_RCV_SIZE;
+	uint32_t sndbuf_size = 0; /* Send buffer size */
+	uint32_t rcvbuf_size = 0;  /* Receive buffer size */
+	socklen_t optlen; /* Option length */
 	struct sockaddr_un server_addr_un, dhserver_addr_un;
 	struct sockaddr_in server_addr_in;
 	struct sockaddr_in6 server_addr_in6;
 	uint8_t buffer[MDS_MDTM_DTM_PID_BUFFER_SIZE];
+	char *ptr;
 
 	mdtm_pid = getpid();
 
@@ -125,14 +130,47 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 		return NCSCC_RC_FAILURE;
 	}
 
+	/*  setting MDS_SOCK_SND_RCV_BUF_SIZE  from environment variable if given.
+	    The default value is set to MDS_SOCK_SND_RCV_BUF_SIZE (126976).
+	    based on application requirements user need to  export MDS_SOCK_SND_RCV_BUF_SIZE
+	    varible.
+
+	    If MDS_SOCK_SND_RCV_BUF_SIZE exported to new value
+	    it is also mandatory to  change `DTM_SOCK_SND_RCV_BUF_SIZE=` with  the same value of
+	    for example if we export MDS_SOCK_SND_RCV_BUF_SIZE=126976 
+	    DTM_SOCK_SND_RCV_BUF_SIZE=126976 also need to be changed in /etc/opensaf/dtm.conf */
+	if ((ptr = getenv("MDS_SOCK_SND_RCV_BUF_SIZE")) != NULL) {
+		sndbuf_size = rcvbuf_size = atoi(ptr);
+		if ( sndbuf_size < MDS_SOCK_SND_RCV_BUF_SIZE) {
+			sndbuf_size = rcvbuf_size = MDS_SOCK_SND_RCV_BUF_SIZE;
+		} else {
+			rcvbuf_size = sndbuf_size;
+		}
+	} else {
+		optlen = sizeof(rcvbuf_size);
+		getsockopt(tcp_cb->DBSRsock, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, &optlen);
+		if (rcvbuf_size < MDS_SOCK_SND_RCV_BUF_SIZE) {
+			rcvbuf_size = MDS_SOCK_SND_RCV_BUF_SIZE;
+		} else {
+			rcvbuf_size = 0;
+		} 
+		optlen = sizeof(sndbuf_size);
+		getsockopt(tcp_cb->DBSRsock, SOL_SOCKET, SO_SNDBUF, &sndbuf_size, &optlen);
+		if ( sndbuf_size < MDS_SOCK_SND_RCV_BUF_SIZE) {
+			sndbuf_size = MDS_SOCK_SND_RCV_BUF_SIZE;
+		} else {
+			sndbuf_size = 0;
+		} 
+	}
+
 	/* Increase the socket buffer size */
-	if (setsockopt(tcp_cb->DBSRsock, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size)) != 0) {
+	if ((rcvbuf_size > 0) && (setsockopt(tcp_cb->DBSRsock, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, sizeof(rcvbuf_size)) != 0)) {
 		syslog(LOG_ERR, "MDS:MDTM:TCP Unable to set the SO_RCVBUF for DBSRsock  err :%s", strerror(errno));
 		close(tcp_cb->DBSRsock);
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (setsockopt(tcp_cb->DBSRsock, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size)) != 0) {
+	if ((sndbuf_size > 0) && (setsockopt(tcp_cb->DBSRsock, SOL_SOCKET, SO_SNDBUF, &sndbuf_size, sizeof(sndbuf_size)) != 0)) {
 		syslog(LOG_ERR, "MDS:MDTM:TCP Unable to set the SO_SNDBUF for DBSRsock  err :%s", strerror(errno));
 		close(tcp_cb->DBSRsock);
 		return NCSCC_RC_FAILURE;

@@ -41,7 +41,7 @@
 
 #define SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP ((2 + MDS_SEND_ADDRINFO_TCP + MDTM_FRAG_HDR_LEN_TCP + MDS_HDR_LEN_TCP))
 
-#define MDTM_MAX_SEND_PKT_SIZE_TCP   (MDTM_NORMAL_MSG_FRAG_SIZE+SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP)	/* Includes the 30 header bytes(2+8+20) */
+#define MDTM_MAX_SEND_PKT_SIZE_TCP   (MDS_DIRECT_BUF_MAXSIZE+SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP)	/* Includes the 30 header bytes(2+8+20) */
 
 uint32_t mdtm_global_frag_num_tcp;
 extern struct pollfd pfd[2];
@@ -363,16 +363,16 @@ static uint32_t mdtm_frag_and_send_tcp(MDTM_SEND_REQ *req, uint32_t seq_num, MDS
 
 	len = m_MMGR_LINK_DATA_LEN(usrbuf);	/* Getting total len */
 
-	if (len > (32767 * MDTM_NORMAL_MSG_FRAG_SIZE)) {	/* We have 15 bits for frag number so 2( pow 15) -1=32767 */
+	if (len > (32767 * MDS_DIRECT_BUF_MAXSIZE)) {	/* We have 15 bits for frag number so 2( pow 15) -1=32767 */
 		m_MDS_LOG_CRITICAL
-		    ("MDTM: App. is trying to send data more than MDTM Can fragment and send, Max size is =%d\n",
-		     32767 * MDTM_NORMAL_MSG_FRAG_SIZE);
+			("MDTM: App. is trying to send data more than MDTM Can fragment and send, Max size is =%d\n",
+			 32767 * MDS_DIRECT_BUF_MAXSIZE);
 		m_MMGR_FREE_BUFR_LIST(usrbuf);
 		return NCSCC_RC_FAILURE;
 	}
 
 	while (len != 0) {
-		if (len > MDTM_NORMAL_MSG_FRAG_SIZE) {
+		if (len > MDS_DIRECT_BUF_MAXSIZE) {
 			if (i == 1) {
 				len_buf = MDTM_MAX_SEND_PKT_SIZE_TCP;
 				frag_val = MORE_FRAG_BIT | i;
@@ -552,7 +552,7 @@ uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 				m_MDS_LOG_INFO("MDTM: User Sending Data lenght=%d Fr_svc=%d to_svc=%d\n", len,
 					       req->src_svc_id, req->dest_svc_id);
 
-				if (len > MDTM_NORMAL_MSG_FRAG_SIZE) {
+				if (len > MDS_DIRECT_BUF_MAXSIZE) {
 					/* Packet needs to be fragmented and send */
 					status = mdtm_frag_and_send_tcp(req, frag_seq_num, id);
 					return status;
@@ -678,7 +678,7 @@ void mdtm_process_poll_recv_data_tcp(void)
 			/* Receive all incoming data on this socket */
 			/*******************************************************/
 
-			recd_bytes = recv(tcp_cb->DBSRsock, tcp_cb->len_buff, 2, 0);
+			recd_bytes = recv(tcp_cb->DBSRsock, tcp_cb->len_buff, 2, MSG_NOSIGNAL);
 			if (0 == recd_bytes) {
 				LOG_ER("MDTM:socket_recv() = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
 				close(tcp_cb->DBSRsock);
