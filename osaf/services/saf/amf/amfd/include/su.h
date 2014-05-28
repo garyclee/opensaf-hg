@@ -93,7 +93,7 @@ class AVD_SU {
 	AVD_SU *su_list_su_type_next;
 
 	AVD_SU() {};
-	AVD_SU(const SaNameT *dn);
+	explicit AVD_SU(const SaNameT *dn);
 	~AVD_SU() {};
 	void set_su_failover(bool value);
 	void dec_curr_stdby_si();
