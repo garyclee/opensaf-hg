@@ -146,8 +146,7 @@ typedef struct avd_avnd_tag {
 
 typedef struct avd_ng_tag {
 
-	NCS_PATRICIA_NODE tree_node;	/* key will be AMF  node group name */
-	SaNameT ng_name;
+	SaNameT name;
 	uint32_t number_nodes;	/* number of element in saAmfNGNodeList */
 	SaNameT *saAmfNGNodeList;	/* array of node names in group */
 
