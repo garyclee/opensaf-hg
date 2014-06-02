@@ -375,8 +375,18 @@ static uint32_t enc_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	return status;
 }
 
+static void encode_sg(NCS_UBAID *ub, const AVD_SG *sg)
+{
+	osaf_encode_sanamet(ub, &sg->name);
+	osaf_encode_uint32(ub, sg->saAmfSGAdminState);
+	osaf_encode_uint32(ub, sg->saAmfSGNumCurrAssignedSUs);
+	osaf_encode_uint32(ub, sg->saAmfSGNumCurrInstantiatedSpareSUs);
+	osaf_encode_uint32(ub, sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
+	osaf_encode_uint32(ub, sg->adjust_state);
+	osaf_encode_uint32(ub, sg->sg_fsm_state);
+}
+
 /****************************************************************************\
- * Function: enc_sg_config
  *
  * Purpose:  Encode entire AVD_SG data..
  *
@@ -391,39 +401,24 @@ static uint32_t enc_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
+
 	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
-	/* 
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is update or add, encode entire data. If it is rmv
-	 * send key information only.
-	 */
 	switch (enc->io_action) {
 	case NCS_MBCSV_ACT_ADD:
 	case NCS_MBCSV_ACT_UPDATE:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
-			EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-			&ederror, enc->i_peer_version);
+		encode_sg(&enc->io_uba, sg);
 		break;
 	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
-			EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-			&ederror, enc->i_peer_version, 1, 1);
+		osaf_encode_sanamet(&enc->io_uba, &sg->name);
 		break;
 	default:
 		osafassert(0);
 	}
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-	}
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 static void encode_su(NCS_UBAID *ub, AVD_SU *su, uint16_t peer_version)
@@ -1005,7 +1000,6 @@ static uint32_t enc_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 }
 
 /****************************************************************************\
- * Function: enc_sg_admin_state
  *
  * Purpose:  Encode SG admin state.
  *
@@ -1020,23 +1014,18 @@ static uint32_t enc_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
-	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
-		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-		&ederror, enc->i_peer_version, 2, 1, 2);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
+	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
+	osaf_encode_sanamet(&enc->io_uba, &sg->name);
+	osaf_encode_uint32(&enc->io_uba, sg->saAmfSGAdminState);
 
 	TRACE_LEAVE();
-	return status;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: enc_sg_su_assigned_num
  *
  * Purpose:  Encode SG su assign number.
  *
@@ -1051,24 +1040,18 @@ static uint32_t enc_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
+	osaf_encode_sanamet(&enc->io_uba, &sg->name);
+	osaf_encode_uint32(&enc->io_uba, sg->saAmfSGNumCurrAssignedSUs);
 
-	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
-		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-		&ederror, enc->i_peer_version, 2, 1, 3);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: enc_sg_su_spare_num
  *
  * Purpose:  Encode SG su spare number.
  *
@@ -1083,22 +1066,18 @@ static uint32_t enc_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
-	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
-		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-		&ederror, enc->i_peer_version, 2, 1, 4);
+	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
+	osaf_encode_sanamet(&enc->io_uba, &sg->name);
+	osaf_encode_uint32(&enc->io_uba, sg->saAmfSGNumCurrInstantiatedSpareSUs);
 
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: enc_sg_su_uninst_num
  *
  * Purpose:  Encode SG su uninst number.
  *
@@ -1113,23 +1092,18 @@ static uint32_t enc_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
-	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
-		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-		&ederror, enc->i_peer_version, 2, 1, 5);
+	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
+	osaf_encode_sanamet(&enc->io_uba, &sg->name);
+	osaf_encode_uint32(&enc->io_uba, sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
 
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: enc_sg_adjust_state
  *
  * Purpose:  Encode SG adjust state.
  *
@@ -1144,23 +1118,18 @@ static uint32_t enc_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
-	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
-		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-		&ederror, enc->i_peer_version, 2, 1, 6);
+	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
+	osaf_encode_sanamet(&enc->io_uba, &sg->name);
+	osaf_encode_uint32(&enc->io_uba, sg->adjust_state);
 
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: enc_sg_fsm_state
  *
  * Purpose:  Encode SG FSM state.
  *
@@ -1175,19 +1144,15 @@ static uint32_t enc_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
-	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
-		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-		&ederror, enc->i_peer_version, 2, 1, 7);
+	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
+	osaf_encode_sanamet(&enc->io_uba, &sg->name);
+	osaf_encode_uint32(&enc->io_uba, sg->sg_fsm_state);
 
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -2198,8 +2163,7 @@ static uint32_t enc_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t 
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	SaNameT sg_name;
-	AVD_SG *sg;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	const AVD_SG *sg;
 	TRACE_ENTER();
 
 	/* 
@@ -2207,14 +2171,7 @@ static uint32_t enc_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t 
 	 */
 	sg_name.length = 0;
 	for (sg = avd_sg_getnext(&sg_name); sg != NULL; sg = avd_sg_getnext(&sg_name)) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
-					    EDP_OP_TYPE_ENC, sg, &ederror, enc->i_peer_version);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-			return NCSCC_RC_FAILURE;
-		}
-
+		encode_sg(&enc->io_uba, sg);
 		sg_name = sg->name;
 		(*num_of_obj)++;
 	}
