@@ -41,6 +41,7 @@ noinst_HEADERS = \
    pg.h \
    proc.h \
    sg.h \
+   sgtype.h \
    si.h \
    su.h \
    sutcomptype.h \

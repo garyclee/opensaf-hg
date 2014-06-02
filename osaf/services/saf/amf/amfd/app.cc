@@ -22,7 +22,6 @@
 #include <app.h>
 #include <cluster.h>
 #include <imm.h>
-#include <si.h>
 
 AmfDb<AVD_APP> *app_db = 0;
 

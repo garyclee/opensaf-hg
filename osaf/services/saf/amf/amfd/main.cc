@@ -52,6 +52,7 @@
 #include <si_dep.h>
 #include <hlt.h>
 #include <clm.h>
+#include <sgtype.h>
 #include <sutcomptype.h>
 #include <sutype.h>
 #include <su.h>

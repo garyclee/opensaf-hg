@@ -17,6 +17,7 @@
 
 #include <logtrace.h>
 #include <amfd.h>
+#include <sg.h>
 #include <csi.h>
 #include <app.h>
 

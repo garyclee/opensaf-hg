@@ -31,9 +31,6 @@
 #include <si.h>
 #include "db_template.h"
 
-struct avd_sg_tag;
-struct avd_si_tag;
-
 typedef struct avd_app_type_tag {
 	SaNameT name;
 	SaNameT *sgAmfApptSGTypes;
