@@ -20,6 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
    app.h \
+   apptype.h \
    node.h \
    cb.h \
    ckpt.h \
