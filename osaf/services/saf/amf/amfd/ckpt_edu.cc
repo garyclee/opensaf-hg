@@ -69,10 +69,6 @@ uint32_t avd_compile_ckpt_edp(AVD_CL_CB *cb)
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
 
-	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &err);
-	if (rc != NCSCC_RC_SUCCESS)
-		goto error;
-
 	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &err);
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
@@ -357,70 +353,6 @@ uint32_t avsv_edp_ckpt_msg_sg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	}
 
 	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_sg_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
-
-	return rc;
-}
-
-/*****************************************************************************
-
-  PROCEDURE NAME:   avsv_edp_ckpt_msg_su
-
-  DESCRIPTION:      EDU program handler for "AVD_SU" data. This 
-                    function is invoked by EDU for performing encode/decode 
-                    operation on "AVD_SU" data.
-
-  RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-
-*****************************************************************************/
-uint32_t avsv_edp_ckpt_msg_su(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVD_SU *struct_ptr = NULL, **d_ptr = NULL;
-	uint16_t ver_compare = AVD_MBCSV_SUB_PART_VERSION_2;
-
-	EDU_INST_SET avsv_ckpt_msg_su_rules[] = {
-		{EDU_START, avsv_edp_ckpt_msg_su, 0, 0, 0, sizeof(AVD_SU), 0, NULL},
-
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVD_SU *)0)->name, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SU *)0)->saAmfSUPreInstantiable, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SU *)0)->saAmfSUOperState, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SU *)0)->saAmfSUAdminState, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SU *)0)->saAmfSuReadinessState, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SU *)0)->saAmfSUPresenceState, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVD_SU *)0)->saAmfSUHostedByNode, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SU *)0)->saAmfSUNumCurrActiveSIs, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SU *)0)->saAmfSUNumCurrStandbySIs, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SU *)0)->saAmfSURestartCount, 0, NULL},
-
-		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((AVD_SU *)0)->term_state, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SU *)0)->su_switch, 0, NULL},
-		{EDU_EXEC, ncs_edp_int, 0, 0, 0, (long)&((AVD_SU *)0)->su_act_state, 0, NULL},
-
-		{EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(ver_compare)))},
-
-		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0,
-		 (long)&((AVD_SU *)0)->su_is_external, 0, NULL},
-
-		/* Fill here AVD SU data structure encoding rules */
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-	};
-
-	if (op == EDP_OP_TYPE_ENC) {
-		struct_ptr = (AVD_SU *)ptr;
-	} else if (op == EDP_OP_TYPE_DEC) {
-		d_ptr = (AVD_SU **)ptr;
-		if (*d_ptr == NULL) {
-			*o_err = EDU_ERR_MEM_FAIL;
-			return NCSCC_RC_FAILURE;
-		}
-		memset(*d_ptr, '\0', sizeof(AVD_SU));
-		struct_ptr = *d_ptr;
-	} else {
-		struct_ptr =  static_cast<AVD_SU*>(ptr);
-	}
-
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_su_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
 
 	return rc;
 }
