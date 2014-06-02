@@ -399,8 +399,18 @@ static uint32_t dec_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	return status;
 }
 
+static void decode_sg(NCS_UBAID *ub, AVD_SG *sg)
+{
+	osaf_decode_sanamet(ub, &sg->name);
+	osaf_decode_uint32(ub, (uint32_t*)&sg->saAmfSGAdminState);
+	osaf_decode_uint32(ub, &sg->saAmfSGNumCurrAssignedSUs);
+	osaf_decode_uint32(ub, &sg->saAmfSGNumCurrInstantiatedSpareSUs);
+	osaf_decode_uint32(ub, &sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
+	osaf_decode_uint32(ub, (uint32_t*)&sg->adjust_state);
+	osaf_decode_uint32(ub, (uint32_t*)&sg->sg_fsm_state);
+}
+
 /****************************************************************************\
- * Function: dec_sg_config
  *
  * Purpose:  Decode entire AVD_SG data..
  *
@@ -415,50 +425,18 @@ static uint32_t dec_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SG *sg_ptr;
-	AVD_SG dec_sg;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVD_SG sg;
 
 	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
-	sg_ptr = &dec_sg;
+	osafassert(dec->i_action == NCS_MBCSV_ACT_UPDATE);
+	decode_sg(&dec->i_uba, &sg);
+	uint32_t status = avd_ckpt_sg(cb, &sg, dec->i_action);
 
-	/* 
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is add then create new element, if it is update
-	 * request then just update data structure, and if it is remove then 
-	 * remove entry from the list.
-	 */
-	switch (dec->i_action) {
-	case NCS_MBCSV_ACT_ADD:
-	case NCS_MBCSV_ACT_UPDATE:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror,
-			dec->i_peer_version);
-		break;
-
-	case NCS_MBCSV_ACT_RMV:
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 1, 1);
-		break;
-	default:
-		osafassert(0);
-	}
-
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-
-	status = avd_ckpt_sg(cb, sg_ptr, dec->i_action);
-
-	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.sg_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
+	TRACE_LEAVE2("status '%u', sg_updt:%d", status, cb->async_updt_cnt.sg_updt);
 	return status;
 }
 
@@ -1116,7 +1094,6 @@ static uint32_t dec_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 }
 
 /****************************************************************************\
- * Function: dec_sg_admin_state
  *
  * Purpose:  Decode SG admin state.
  *
@@ -1131,37 +1108,23 @@ static uint32_t dec_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SG *sg_ptr;
-	AVD_SG dec_sg;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SG *sg_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	sg_ptr = &dec_sg;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 2);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	sg_struct->saAmfSGAdminState = sg_ptr->saAmfSGAdminState;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SG *sg = avd_sg_get(&name);
+	osafassert(sg != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->saAmfSGAdminState);
 
 	cb->async_updt_cnt.sg_updt++;
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+
+	TRACE_LEAVE2("'%s', saAmfSGAdminState=%u, sg_updt:%d",
+		sg->name.value, sg->saAmfSGAdminState, cb->async_updt_cnt.sg_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_sg_su_assigned_num
  *
  * Purpose:  Decode SG su assign number.
  *
@@ -1176,38 +1139,24 @@ static uint32_t dec_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SG *sg_ptr;
-	AVD_SG dec_sg;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SG *sg_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	sg_ptr = &dec_sg;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 3);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	sg_struct->saAmfSGNumCurrAssignedSUs = sg_ptr->saAmfSGNumCurrAssignedSUs;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SG *sg = avd_sg_get(&name);
+	osafassert(sg != NULL);
+	osaf_decode_uint32(&dec->i_uba, &sg->saAmfSGNumCurrAssignedSUs);
 
 	cb->async_updt_cnt.sg_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSGNumCurrAssignedSUs=%u, sg_updt:%d",
+		sg->name.value, sg->saAmfSGNumCurrAssignedSUs,
+		cb->async_updt_cnt.sg_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_sg_su_spare_num
  *
  * Purpose:  Decode SG su spare number.
  *
@@ -1222,38 +1171,24 @@ static uint32_t dec_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SG *sg_ptr;
-	AVD_SG dec_sg;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SG *sg_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	sg_ptr = &dec_sg;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 4);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	sg_struct->saAmfSGNumCurrInstantiatedSpareSUs = sg_ptr->saAmfSGNumCurrInstantiatedSpareSUs;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SG *sg = avd_sg_get(&name);
+	osafassert(sg != NULL);
+	osaf_decode_uint32(&dec->i_uba, &sg->saAmfSGNumCurrInstantiatedSpareSUs);
 
 	cb->async_updt_cnt.sg_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSGNumCurrInstantiatedSpareSUs=%u, sg_updt:%d",
+		sg->name.value, sg->saAmfSGNumCurrInstantiatedSpareSUs,
+		cb->async_updt_cnt.sg_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_sg_su_uninst_num
  *
  * Purpose:  Decode SG su uninst number.
  *
@@ -1268,38 +1203,24 @@ static uint32_t dec_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SG *sg_ptr;
-	AVD_SG dec_sg;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SG *sg_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	sg_ptr = &dec_sg;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 5);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	sg_struct->saAmfSGNumCurrNonInstantiatedSpareSUs = sg_ptr->saAmfSGNumCurrNonInstantiatedSpareSUs;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SG *sg = avd_sg_get(&name);
+	osafassert(sg != NULL);
+	osaf_decode_uint32(&dec->i_uba, &sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
 
 	cb->async_updt_cnt.sg_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSGNumCurrNonInstantiatedSpareSUs=%u, sg_updt:%d",
+		sg->name.value, sg->saAmfSGNumCurrNonInstantiatedSpareSUs,
+		cb->async_updt_cnt.sg_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_sg_adjust_state
  *
  * Purpose:  Decode SG adjust state.
  *
@@ -1314,38 +1235,23 @@ static uint32_t dec_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SG *sg_ptr;
-	AVD_SG dec_sg;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SG *sg_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	sg_ptr = &dec_sg;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 6);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	sg_struct->adjust_state = sg_ptr->adjust_state;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SG *sg = avd_sg_get(&name);
+	osafassert(sg != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->adjust_state);
 
 	cb->async_updt_cnt.sg_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', adjust_state=%u, sg_updt:%d",
+		sg->name.value, sg->adjust_state, cb->async_updt_cnt.sg_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_sg_fsm_state
  *
  * Purpose:  Decode SG FSM state.
  *
@@ -1360,34 +1266,20 @@ static uint32_t dec_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SG *sg_ptr;
-	AVD_SG dec_sg;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SG *sg_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	sg_ptr = &dec_sg;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 7);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	sg_struct->sg_fsm_state = sg_ptr->sg_fsm_state;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SG *sg = avd_sg_get(&name);
+	osafassert(sg != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->sg_fsm_state);
 
 	cb->async_updt_cnt.sg_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', sg_fsm_state=%u, sg_updt:%d",
+		sg->name.value, sg->sg_fsm_state, cb->async_updt_cnt.sg_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -2591,7 +2483,6 @@ static uint32_t dec_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t
 }
 
 /****************************************************************************\
- * Function: dec_cs_sg_config
  *
  * Purpose:  Decode entire AVD_SG data..
  *
@@ -2607,28 +2498,18 @@ static uint32_t dec_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t
 static uint32_t dec_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	uint32_t count = 0;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	uint32_t count;
 	AVD_SG dec_sg;
-	AVD_SG *sg_ptr;
-
-	sg_ptr = &dec_sg;
 
 	TRACE_ENTER();
 
-	/* 
-	 * Walk through the entire list and send the entire list data.
-	 */
 	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror,
-					    dec->i_peer_version);
-		osafassert(status == NCSCC_RC_SUCCESS);
-		status = avd_ckpt_sg(cb, sg_ptr, dec->i_action);
+		decode_sg(&dec->i_uba, &dec_sg);
+		status = avd_ckpt_sg(cb, &dec_sg, dec->i_action);
 		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
-	TRACE_LEAVE2("status '%u'", status);
+	TRACE_LEAVE2("status %u, count %u", status, count);
 	return status;
 }
 
