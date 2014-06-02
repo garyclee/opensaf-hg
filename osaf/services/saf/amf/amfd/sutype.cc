@@ -260,8 +260,9 @@ static void sutype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 					}
 				}
 			}
-		} else
+		} else {
 			osafassert(0);
+		}
 	}
 
 	TRACE_LEAVE();
