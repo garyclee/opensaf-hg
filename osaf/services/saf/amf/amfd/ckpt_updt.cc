@@ -266,19 +266,17 @@ done:
  *
  * 
 \**************************************************************************/
-uint32_t avd_ckpt_su_oper_list(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
+uint32_t avd_ckpt_su_oper_list(const SaNameT *name, NCS_MBCSV_ACT_TYPE action)
 {
-	AVD_SU *su;
+	TRACE_ENTER2("'%s'", name->value);
 
-	TRACE_ENTER2("'%s'", ckpt_su->name.value);
-
-	su = su_db->find(&ckpt_su->name);
+	AVD_SU *su = su_db->find(name);
 	osafassert(su);
 
 	if (NCS_MBCSV_ACT_ADD == action)
-		avd_sg_su_oper_list_add(cb, su, true);
+		avd_sg_su_oper_list_add(avd_cb, su, true);
 	else if (NCS_MBCSV_ACT_RMV == action)
-		avd_sg_su_oper_list_del(cb, su, true);
+		avd_sg_su_oper_list_del(avd_cb, su, true);
 	else
 		osafassert(0);
 

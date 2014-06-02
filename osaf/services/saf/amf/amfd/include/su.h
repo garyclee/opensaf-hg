@@ -51,7 +51,7 @@ class AVD_SU {
 	SaNameT saAmfSUMaintenanceCampaign;
 
 	/* runtime attributes */
-	SaBoolT saAmfSUPreInstantiable;
+	SaBoolT saAmfSUPreInstantiable;  // TODO(hafe) change to bool
 	SaAmfOperationalStateT saAmfSUOperState;
 	SaAmfAdminStateT saAmfSUAdminState;
 	SaAmfReadinessStateT saAmfSuReadinessState;

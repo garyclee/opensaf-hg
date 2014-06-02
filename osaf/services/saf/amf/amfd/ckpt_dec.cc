@@ -462,8 +462,27 @@ static uint32_t dec_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	return status;
 }
 
+static void decode_su(NCS_UBAID *ub, AVD_SU *su, uint16_t peer_version)
+{
+	osaf_decode_sanamet(ub, &su->name);
+	osaf_decode_bool(ub, (bool*)&su->saAmfSUPreInstantiable);
+	osaf_decode_uint32(ub, (uint32_t*)&su->saAmfSUOperState);
+	osaf_decode_uint32(ub, (uint32_t*)&su->saAmfSUAdminState);
+	osaf_decode_uint32(ub, (uint32_t*)&su->saAmfSuReadinessState);
+	osaf_decode_uint32(ub, (uint32_t*)&su->saAmfSUPresenceState);
+	osaf_decode_sanamet(ub, &su->saAmfSUHostedByNode);
+	osaf_decode_uint32(ub, &su->saAmfSUNumCurrActiveSIs);
+	osaf_decode_uint32(ub, &su->saAmfSUNumCurrStandbySIs);
+	osaf_decode_uint32(ub, &su->saAmfSURestartCount);
+	osaf_decode_bool(ub, &su->term_state);
+	osaf_decode_uint32(ub, (uint32_t*)&su->su_switch);
+	osaf_decode_uint32(ub, (uint32_t*)&su->su_act_state);
+
+	if (peer_version >= AVD_MBCSV_SUB_PART_VERSION_2)
+		osaf_decode_bool(ub, &su->su_is_external);
+}
+
 /****************************************************************************\
- * Function: dec_su_config
  *
  * Purpose:  Decode entire AVD_SU data..
  *
@@ -478,49 +497,18 @@ static uint32_t dec_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVD_SU su;
 
 	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
-	su_ptr = &dec_su;
+	osafassert(dec->i_action == NCS_MBCSV_ACT_UPDATE);
+	decode_su(&dec->i_uba, &su, dec->i_peer_version);
+	uint32_t status = avd_ckpt_su(cb, &su, dec->i_action);
 
-	/* 
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is add then create new element, if it is update
-	 * request then just update data structure, and if it is remove then 
-	 * remove entry from the list.
-	 */
-	switch (dec->i_action) {
-	case NCS_MBCSV_ACT_ADD:
-	case NCS_MBCSV_ACT_UPDATE:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror,
-			dec->i_peer_version);
-		break;
-	case NCS_MBCSV_ACT_RMV:
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 1, 1);
-		break;
-	default:
-		osafassert(0);
-	}
-
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-
-	status = avd_ckpt_su(cb, su_ptr, dec->i_action);
-
-	/* If update is successful, update async update count */
-	if (NCSCC_RC_SUCCESS == status)
+	if (status == NCSCC_RC_SUCCESS)
 		cb->async_updt_cnt.su_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
+	TRACE_LEAVE2("status:%u, su_updt:%d", status, cb->async_updt_cnt.su_updt);
 	return status;
 }
 
@@ -795,7 +783,6 @@ static uint32_t dec_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 }
 
 /****************************************************************************\
- * Function: dec_oper_su
  *
  * Purpose:  Decode Operation SU name.
  *
@@ -811,43 +798,27 @@ static uint32_t dec_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 static uint32_t dec_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	SaNameT name;
 
 	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
-	su_ptr = &dec_su;
-
-	/* 
-	 * In case of both Add and remove request send the operation SU name. 
-	 * We don't have update for this reo_type.
-	 */
 	switch (dec->i_action) {
 	case NCS_MBCSV_ACT_ADD:
 	case NCS_MBCSV_ACT_RMV:
-		/* Send entire data */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &dec->i_uba,
-				      EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 1, 1);
+		osaf_decode_sanamet(&dec->i_uba, &name);
 		break;
-
 	case NCS_MBCSV_ACT_UPDATE:
 	default:
 		osafassert(0);
 	}
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
+	status = avd_ckpt_su_oper_list(&name, dec->i_action);
 
-	status = avd_ckpt_su_oper_list(cb, su_ptr, dec->i_action);
-
-	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.sg_su_oprlist_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
+	TRACE_LEAVE2("'%s', status '%u', updt %d",
+		name.value, status, cb->async_updt_cnt.sg_su_oprlist_updt);
 	return status;
 }
 
@@ -1420,7 +1391,6 @@ static uint32_t dec_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 }
 
 /****************************************************************************\
- * Function: dec_su_preinstan
  *
  * Purpose:  Decode SU preinstatible object.
  *
@@ -1435,38 +1405,24 @@ static uint32_t dec_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SU *su_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 2);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->saAmfSUPreInstantiable = su_ptr->saAmfSUPreInstantiable;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SU *su = su_db->find(&name);
+	osafassert(su != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUPreInstantiable);
 
 	cb->async_updt_cnt.su_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSUPreInstantiable=%u, su_updt:%d",
+		name.value, su->saAmfSUPreInstantiable, cb->async_updt_cnt.su_updt);
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_su_oper_state
  *
  * Purpose:  Decode SU Operation state.
  *
@@ -1481,38 +1437,23 @@ static uint32_t dec_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SU *su_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 3);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	su_struct = avd_su_get_or_create(&su_ptr->name);
-	osafassert(su_struct != NULL);
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->saAmfSUOperState = su_ptr->saAmfSUOperState;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SU *su = su_db->find(&name);
+	osafassert(su != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUOperState);
 
 	cb->async_updt_cnt.su_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSUOperState=%u, su_updt:%d",
+		name.value, su->saAmfSUOperState, cb->async_updt_cnt.su_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_su_admin_state
  *
  * Purpose:  Decode SU Admin state.
  *
@@ -1527,38 +1468,23 @@ static uint32_t dec_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SU *su_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 4);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->saAmfSUAdminState = su_ptr->saAmfSUAdminState;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SU *su = su_db->find(&name);
+	osafassert(su != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUAdminState);
 
 	cb->async_updt_cnt.su_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSUAdminState=%u, su_updt:%d",
+		name.value, su->saAmfSUAdminState, cb->async_updt_cnt.su_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_su_rediness_state
  *
  * Purpose:  Decode SU Rediness state.
  *
@@ -1573,40 +1499,25 @@ static uint32_t dec_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SU *su_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 5);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->saAmfSuReadinessState = su_ptr->saAmfSuReadinessState;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SU *su = su_db->find(&name);
+	osafassert(su != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSuReadinessState);
 
 	cb->async_updt_cnt.su_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSuReadinessState=%u, su_updt:%d",
+		name.value, su->saAmfSuReadinessState, cb->async_updt_cnt.su_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_su_pres_state
  *
- * Purpose:  Decode SU Presdece state.
+ * Purpose:  Decode SU Presence state.
  *
  * Input: cb - CB pointer.
  *        dec - Decode arguments passed by MBCSV.
@@ -1619,38 +1530,23 @@ static uint32_t dec_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SU *su_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 6);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->saAmfSUPresenceState = su_ptr->saAmfSUPresenceState;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SU *su = su_db->find(&name);
+	osafassert(su != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUPresenceState);
 
 	cb->async_updt_cnt.su_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSUPresenceState=%u, su_updt:%d",
+		name.value, su->saAmfSUPresenceState, cb->async_updt_cnt.su_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_su_si_curr_active
  *
  * Purpose:  Decode SU Current number of Active SI.
  *
@@ -1665,37 +1561,23 @@ static uint32_t dec_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SU *su_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 8);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->saAmfSUNumCurrActiveSIs = su_ptr->saAmfSUNumCurrActiveSIs;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SU *su = su_db->find(&name);
+	osafassert(su != NULL);
+	osaf_decode_uint32(&dec->i_uba, &su->saAmfSUNumCurrActiveSIs);
 
 	cb->async_updt_cnt.su_updt++;
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+
+	TRACE_LEAVE2("'%s', saAmfSUNumCurrActiveSIs=%u, su_updt:%d",
+		name.value, su->saAmfSUNumCurrActiveSIs, cb->async_updt_cnt.su_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_su_si_curr_stby
  *
  * Purpose:  Decode SU Current number of Standby SI.
  *
@@ -1710,40 +1592,25 @@ static uint32_t dec_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SU *su_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 9);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->saAmfSUNumCurrStandbySIs = su_ptr->saAmfSUNumCurrStandbySIs;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SU *su = su_db->find(&name);
+	osafassert(su != NULL);
+	osaf_decode_uint32(&dec->i_uba, &su->saAmfSUNumCurrStandbySIs);
 
 	cb->async_updt_cnt.su_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSUNumCurrStandbySIs=%u, su_updt:%d",
+		name.value, su->saAmfSUNumCurrStandbySIs, cb->async_updt_cnt.su_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_su_term_state
  *
- * Purpose:  Decode SU Admin state to terminate service.
+ * Purpose:  Decode SU term state
  *
  * Input: cb - CB pointer.
  *        dec - Decode arguments passed by MBCSV.
@@ -1756,37 +1623,23 @@ static uint32_t dec_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SU *su_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-	   &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 11);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->term_state = su_ptr->term_state;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SU *su = su_db->find(&name);
+	osafassert(su != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->term_state);
 
 	cb->async_updt_cnt.su_updt++;
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+
+	TRACE_LEAVE2("'%s', term_state=%u, su_updt:%d",
+		name.value, su->term_state, cb->async_updt_cnt.su_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_su_switch
  *
  * Purpose:  Decode SU toggle SI.
  *
@@ -1801,38 +1654,23 @@ static uint32_t dec_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SU *su_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 12);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->su_switch = su_ptr->su_switch;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SU *su = su_db->find(&name);
+	osafassert(su != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->su_switch);
 
 	cb->async_updt_cnt.su_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', su_switch=%u, su_updt:%d",
+		name.value, su->su_switch, cb->async_updt_cnt.su_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_su_act_state
  *
  * Purpose:  Decode SU action state.
  *
@@ -1849,12 +1687,11 @@ static uint32_t dec_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	TRACE_ENTER();
 	cb->async_updt_cnt.su_updt++;
-	TRACE_LEAVE();
+	TRACE_LEAVE2("su_updt=%u", cb->async_updt_cnt.su_updt);
 	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
- * Function: dec_su_restart_count
  *
  * Purpose:  Decode SU Restart count.
  *
@@ -1869,34 +1706,20 @@ static uint32_t dec_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SU *su_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 10);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (su_struct = su_db->find(&su_ptr->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->saAmfSURestartCount = su_ptr->saAmfSURestartCount;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SU *su = su_db->find(&name);
+	osafassert(su != NULL);
+	osaf_decode_uint32(&dec->i_uba, &su->saAmfSURestartCount);
 
 	cb->async_updt_cnt.su_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSURestartCount=%u, su_updt:%d",
+		name.value, su->saAmfSURestartCount, cb->async_updt_cnt.su_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -2826,24 +2649,13 @@ static uint32_t dec_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t 
 static uint32_t dec_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	uint32_t count = 0;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SU dec_su;
-	AVD_SU *su_ptr;
-
-	su_ptr = &dec_su;
+	AVD_SU su;
 
 	TRACE_ENTER();
 
-	/* 
-	 * Walk through the entire list and send the entire list data.
-	 */
-	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror,
-					    dec->i_peer_version);
-		osafassert(status == NCSCC_RC_SUCCESS);
-		status = avd_ckpt_su(cb, su_ptr, dec->i_action);
+	for (unsigned i = 0; i < num_of_obj; i++) {
+		decode_su(&dec->i_uba, &su, dec->i_peer_version);
+		status = avd_ckpt_su(cb, &su, dec->i_action);
 		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
@@ -3306,43 +3118,24 @@ static uint32_t dec_cs_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t num_of_oper_su, count;
-	uint8_t *ptr;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_oper_su, sizeof(uint32_t));
-	num_of_oper_su = ncs_decode_32bit(&ptr);
-	ncs_dec_skip_space(&dec->i_uba, sizeof(uint32_t));
+	osaf_decode_uint32(&dec->i_uba, &num_of_oper_su);
 
-	su_ptr = &dec_su;
-
-	/* 
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is add then create new element, if it is update
-	 * request then just update data structure, and if it is remove then 
-	 * remove entry from the list.
-	 */
 	for (count = 0; count < num_of_oper_su; count++) {
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &dec->i_uba,
-				      EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 1, 1);
+		osaf_decode_sanamet(&dec->i_uba, &name);
 
-		if (status != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-			return status;
-		}
-
-		status = avd_ckpt_su_oper_list(cb, su_ptr, dec->i_action);
+		status = avd_ckpt_su_oper_list(&name, dec->i_action);
 		if (status != NCSCC_RC_SUCCESS) {
 			LOG_ER("%s: avd_ckpt_su_oper_list failed", __FUNCTION__);
 			return status;
 		}
 	}
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("%d", status);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
