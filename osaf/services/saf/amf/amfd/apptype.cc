@@ -22,6 +22,7 @@
 #include <imm.h>
 #include <si.h>
 #include <util.h>
+#include <sgtype.h>
 
 AmfDb<AVD_APP_TYPE> *app_type_db = 0;
 

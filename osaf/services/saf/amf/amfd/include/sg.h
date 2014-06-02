@@ -36,9 +36,9 @@
 
 #include <saAmf.h>
 #include <ncspatricia.h>
+#include <cb.h>
 #include <def.h>
-#include <su.h>
-#include <si.h>
+#include <sgtype.h>
 #include <amf_defs.h>
 #include <amf_d2nmsg.h>
 
@@ -243,27 +243,6 @@ typedef struct avd_sg_tag {
 
 } AVD_SG;
 
-typedef struct avd_amf_sg_type_tag {
-	NCS_PATRICIA_NODE tree_node;	/* key will be sg type name */
-	SaNameT name;
-	bool saAmfSgtDefAutoRepair_configured; /* True when user configures saAmfSGDefAutoRepair else false */
-   /******************** B.04 model *************************************************/
-	SaNameT *saAmfSGtValidSuTypes;	/* array of DNs, size in number_su_type */
-	SaAmfRedundancyModelT saAmfSgtRedundancyModel;
-	SaBoolT saAmfSgtDefAutoRepair;
-	SaBoolT saAmfSgtDefAutoAdjust;
-	SaTimeT saAmfSgtDefAutoAdjustProb;
-	SaTimeT saAmfSgtDefCompRestartProb;
-	SaUint32T saAmfSgtDefCompRestartMax;
-	SaTimeT saAmfSgtDefSuRestartProb;
-	SaUint32T saAmfSgtDefSuRestartMax;
-   /******************** B.04 model *************************************************/
-
-	uint32_t number_su_type;	/* size of array saAmfSGtValidSuTypes */
-	struct avd_sg_tag *list_of_sg;
-
-} AVD_AMF_SG_TYPE;
-
 #define m_AVD_SET_SG_ADJUST(cb,sg,state) {\
 	TRACE("adjust_state %u => %u", sg->adjust_state, state); \
 	sg->adjust_state = state;\
@@ -347,11 +326,6 @@ extern void avd_sg_add_su(AVD_SU *su);
 extern void avd_sg_remove_su(AVD_SU *su);
 extern void avd_sg_constructor(void);
 
-extern SaAisErrorT avd_sgtype_config_get(void);
-extern AVD_AMF_SG_TYPE *avd_sgtype_get(const SaNameT *dn);
-extern void avd_sgtype_add_sg(AVD_SG *sg);
-extern void avd_sgtype_remove_sg(AVD_SG *sg);
-extern void avd_sgtype_constructor(void);
 extern void avd_sg_admin_state_set(AVD_SG* sg, SaAmfAdminStateT state);
 extern void avd_sg_nwayact_screening_for_si_distr(AVD_SG *avd_sg);
 extern void avd_sg_nway_screen_si_distr_equal(AVD_SG *sg);

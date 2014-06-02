@@ -39,6 +39,7 @@
 #include <imm.h>
 #include <cluster.h>
 #include <app.h>
+#include <sgtype.h>
 #include <sg.h>
 #include <su.h>
 #include <sutype.h>

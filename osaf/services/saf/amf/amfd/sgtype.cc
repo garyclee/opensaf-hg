@@ -25,7 +25,7 @@
 #include <sutype.h>
 #include <ckpt_msg.h>
 #include <ntf.h>
-#include <sg.h>
+#include <sgtype.h>
 #include <proc.h>
 
 static NCS_PATRICIA_TREE sgtype_db;

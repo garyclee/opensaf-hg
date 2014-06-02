@@ -26,6 +26,7 @@
 #include <amfd.h>
 #include <cluster.h>
 #include <si_dep.h>
+#include <sg.h>
 
 extern "C" const AVSV_DECODE_CKPT_DATA_FUNC_PTR avd_dec_data_func_list[AVSV_CKPT_MSG_MAX];
 
