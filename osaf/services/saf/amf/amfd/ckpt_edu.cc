@@ -65,10 +65,6 @@ uint32_t avd_compile_ckpt_edp(AVD_CL_CB *cb)
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
 
-	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &err);
-	if (rc != NCSCC_RC_SUCCESS)
-		goto error;
-
 	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &err);
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
@@ -298,61 +294,6 @@ uint32_t avsv_edp_ckpt_msg_app(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	}
 
 	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_app_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
-
-	return rc;
-}
-
-/*****************************************************************************
-
-  PROCEDURE NAME:   avsv_edp_ckpt_msg_sg
-
-  DESCRIPTION:      EDU program handler for "AVD_SG" data. This 
-                    function is invoked by EDU for performing encode/decode 
-                    operation on "AVD_SG" data.
-
-  RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-
-*****************************************************************************/
-uint32_t avsv_edp_ckpt_msg_sg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVD_SG *struct_ptr = NULL, **d_ptr = NULL;
-
-	EDU_INST_SET avsv_ckpt_msg_sg_rules[] = {
-		{EDU_START, avsv_edp_ckpt_msg_sg, 0, 0, 0, sizeof(AVD_SG), 0, NULL},
-
-		/* AVD SG runtime attribute encoding rules */
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVD_SG *)0)->name, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SG *)0)->saAmfSGAdminState, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SG *)0)->saAmfSGNumCurrAssignedSUs, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SG *)0)->saAmfSGNumCurrInstantiatedSpareSUs, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SG *)0)->saAmfSGNumCurrNonInstantiatedSpareSUs, 0, NULL},
-		{EDU_EXEC, ncs_edp_int, 0, 0, 0, (long)&((AVD_SG *)0)->adjust_state, 0, NULL},
-		{EDU_EXEC, ncs_edp_int, 0, 0, 0, (long)&((AVD_SG *)0)->sg_fsm_state, 0, NULL},
-
-		/*
-		 * Rules for Admin SI and SU operation list to be added
-		 * here.
-		 */
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-	};
-
-	if (op == EDP_OP_TYPE_ENC) {
-		struct_ptr = (AVD_SG *)ptr;
-	} else if (op == EDP_OP_TYPE_DEC) {
-		d_ptr = (AVD_SG **)ptr;
-		if (*d_ptr == NULL) {
-			*o_err = EDU_ERR_MEM_FAIL;
-			return NCSCC_RC_FAILURE;
-		}
-		memset(*d_ptr, '\0', sizeof(AVD_SG));
-		struct_ptr = *d_ptr;
-	} else {
-		struct_ptr = static_cast<AVD_SG*>(ptr);
-	}
-
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_sg_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
 
 	return rc;
 }
