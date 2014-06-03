@@ -24,16 +24,16 @@
 #include <util.h>
 #include <sgtype.h>
 
-AmfDb<AVD_APP_TYPE> *app_type_db = 0;
+AmfDb<std::string, AVD_APP_TYPE> *app_type_db = 0;
 
 AVD_APP_TYPE *avd_apptype_get(const SaNameT *dn)
 {
-	return app_type_db->find(dn);
+	return app_type_db->find(Amf::to_string(dn));
 }
 
 static void apptype_delete(AVD_APP_TYPE **apptype)
 {
-	app_type_db->erase(*apptype);
+	app_type_db->erase(Amf::to_string(&(*apptype)->name));
 	
 	delete [] (*apptype)->sgAmfApptSGTypes;
 	delete *apptype;
@@ -46,7 +46,7 @@ static void apptype_add_to_model(AVD_APP_TYPE *app_type)
 	osafassert(app_type != NULL);
 	TRACE("'%s'", app_type->name.value);
 	
-	rc = app_type_db->insert(app_type);
+	rc = app_type_db->insert(Amf::to_string(&app_type->name), app_type);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
@@ -286,7 +286,7 @@ void avd_apptype_remove_app(AVD_APP *app)
 
 void avd_apptype_constructor(void)
 {
-	app_type_db = new AmfDb<AVD_APP_TYPE>;
+	app_type_db = new AmfDb<std::string, AVD_APP_TYPE>;
 
 	avd_class_impl_set("SaAmfAppBaseType", NULL, NULL,
 			avd_imm_default_OK_completed_cb, NULL);
