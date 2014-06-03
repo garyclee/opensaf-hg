@@ -132,7 +132,7 @@ typedef struct {
 
 } AVD_SVC_TYPE_CS_TYPE;
 
-extern AmfDb<AVD_SI> *si_db;
+extern AmfDb<std::string, AVD_SI> *si_db;
 #define AVD_SI_NULL ((AVD_SI *)0)
 #define m_AVD_SI_ACTV_MAX_SU(l_si) (l_si)->saAmfSIPrefActiveAssignments
 #define m_AVD_SI_ACTV_CURR_SU(l_si) (l_si)->saAmfSINumCurrActiveAssignments
