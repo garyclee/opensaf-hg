@@ -23,7 +23,7 @@
 #include <cluster.h>
 #include <imm.h>
 
-AmfDb<AVD_AMF_NG> *nodegroup_db = 0;
+AmfDb<std::string, AVD_AMF_NG> *nodegroup_db = 0;
 
 /**
  * Lookup object in db using dn
@@ -33,7 +33,7 @@ AmfDb<AVD_AMF_NG> *nodegroup_db = 0;
  */
 AVD_AMF_NG *avd_ng_get(const SaNameT *dn)
 {
-	return nodegroup_db->find(dn);
+	return nodegroup_db->find(Amf::to_string(dn));
 }
 
 /**
@@ -142,7 +142,7 @@ done:
  */
 static void ng_delete(AVD_AMF_NG *ng)
 {
-	nodegroup_db->erase(ng);
+	nodegroup_db->erase(Amf::to_string(&ng->name));
 	free(ng->saAmfNGNodeList);
 	delete ng;
 }
@@ -196,7 +196,7 @@ SaAisErrorT avd_ng_config_get(void)
 		if ((ng = ng_create(&dn, (const SaImmAttrValuesT_2 **)attributes)) == NULL)
 			goto done2;
 
-		nodegroup_db->insert(ng);
+		nodegroup_db->insert(Amf::to_string(&ng->name), ng);
 	}
 
 	rc = SA_AIS_OK;
@@ -539,7 +539,7 @@ static void ng_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_CREATE:
 		ng = ng_create(&opdata->objectName, opdata->param.create.attrValues);
 		osafassert(ng);
-		nodegroup_db->insert(ng);
+		nodegroup_db->insert(Amf::to_string(&ng->name), ng);
 		break;
 	case CCBUTIL_MODIFY:
 		ng_ccb_apply_modify_hdlr(opdata);
@@ -561,7 +561,7 @@ static void ng_ccb_apply_cb(CcbUtilOperationData_t *opdata)
  */
 void avd_ng_constructor(void)
 {
-	nodegroup_db = new AmfDb<AVD_AMF_NG>;
+	nodegroup_db = new AmfDb<std::string, AVD_AMF_NG>;
 	avd_class_impl_set("SaAmfNodeGroup", NULL, NULL, ng_ccb_completed_cb,
 			ng_ccb_apply_cb);
 }
