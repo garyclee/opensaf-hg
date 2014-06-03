@@ -44,7 +44,7 @@ typedef struct avd_app_tag {
 	struct avd_app_type_tag *app_type;
 } AVD_APP;
 
-extern AmfDb<AVD_APP> *app_db;
+extern AmfDb<std::string, AVD_APP> *app_db;
 
 extern void avd_app_add_si(AVD_APP *app, struct avd_si_tag *si);
 extern void avd_app_remove_si(AVD_APP *app, struct avd_si_tag *si);

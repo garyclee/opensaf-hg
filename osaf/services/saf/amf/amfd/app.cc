@@ -23,7 +23,7 @@
 #include <cluster.h>
 #include <imm.h>
 
-AmfDb<AVD_APP> *app_db = 0;
+AmfDb<std::string, AVD_APP> *app_db = 0;
 
 // TODO(hafe) change this to a constructor
 static AVD_APP *avd_app_new(const SaNameT *dn)
@@ -37,7 +37,7 @@ static AVD_APP *avd_app_new(const SaNameT *dn)
 // TODO(hafe) change this to a destructor
 static void avd_app_delete(AVD_APP *app)
 {
-	app_db->erase(app);
+	app_db->erase(Amf::to_string(&app->name));
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
 	avd_apptype_remove_app(app);
 	delete app;
@@ -53,7 +53,7 @@ static void app_add_to_model(AVD_APP *app)
 		goto done;
 	}
 
-	app_db->insert(app);
+	app_db->insert(Amf::to_string(&app->name), app);
 
 	/* Find application type and make a link with app type */
 	app->app_type = avd_apptype_get(&app->saAmfAppType);
@@ -195,7 +195,7 @@ AVD_APP *avd_app_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	app = app_db->find(dn);
+	app = app_db->find(Amf::to_string(dn));
 	if (app == NULL) {
 		if ((app = avd_app_new(dn)) == NULL)
 			goto done;
@@ -287,7 +287,7 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_MODIFY: {
 		const SaImmAttrModificationT_2 *attr_mod;
-		app = app_db->find(&opdata->objectName);
+		app = app_db->find(Amf::to_string(&opdata->objectName));
 
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
@@ -307,7 +307,7 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	}
 	case CCBUTIL_DELETE:
-		app = app_db->find(&opdata->objectName);
+		app = app_db->find(Amf::to_string(&opdata->objectName));
 		/* by this time all the SGs and SIs under this 
 		 * app object should have been *DELETED* just  
 		 * do a sanity check here
@@ -332,7 +332,7 @@ static void app_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation
 	TRACE_ENTER2("%s", object_name->value);
 
 	/* Find the app name. */
-	app = app_db->find(object_name);
+	app = app_db->find(Amf::to_string(object_name));
 	osafassert(app != NULL);
 
 	if (op_id == SA_AMF_ADMIN_UNLOCK) {
@@ -389,7 +389,7 @@ done:
 static SaAisErrorT app_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
-	AVD_APP *app = app_db->find(objectName);
+	AVD_APP *app = app_db->find(Amf::to_string(objectName));
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
@@ -467,7 +467,7 @@ SaAisErrorT avd_app_config_get(void)
 
 void avd_app_constructor(void)
 {
-	app_db = new AmfDb<AVD_APP>;
+	app_db = new AmfDb<std::string, AVD_APP>;
 
 	avd_class_impl_set(const_cast<SaImmClassNameT>("SaAmfApplication"),
 			   app_rt_attr_cb,
