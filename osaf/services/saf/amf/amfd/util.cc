@@ -107,6 +107,11 @@ const char *avd_ha_state[] = {
 	"QUIESCING"
 };
 
+std::string to_string(const SaNameT &s) 
+{
+	return std::string((char*)s.value, s.length);
+}
+
 /*****************************************************************************
  * Function: avd_snd_node_ack_msg
  *

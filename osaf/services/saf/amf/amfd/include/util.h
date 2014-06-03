@@ -34,6 +34,8 @@
 #ifndef AVD_MSG_H
 #define AVD_MSG_H
 
+#include <string>
+
 #include <amf_d2nmsg.h>
 #include <cb.h>
 #include <amf_util.h>
@@ -125,6 +127,9 @@ uint32_t avd_snd_comp_validation_resp(struct cl_cb_tag *cb, struct avd_avnd_tag 
 					    struct avd_comp_tag *comp_ptr, AVD_DND_MSG *n2d_msg);
 void avsv_d2d_msg_free(AVD_D2D_MSG *);
 uint32_t avd_d2d_msg_snd(struct cl_cb_tag *, AVD_D2D_MSG *);
+
+std::string to_string(const SaNameT &s);
+
 extern int avd_admin_state_is_valid(SaAmfAdminStateT state);
 extern SaAisErrorT avd_object_name_create(SaNameT *rdn_attr_value, SaNameT *parentName, SaNameT *object_name);
 
@@ -142,5 +147,4 @@ extern uint32_t amfd_switch_qsd_actv(AVD_CL_CB *cb);
 extern uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb);
 extern bool object_exist_in_imm(const SaNameT *dn);
 extern const char *admin_op_name(SaAmfAdminOperationIdT opid);
-
 #endif

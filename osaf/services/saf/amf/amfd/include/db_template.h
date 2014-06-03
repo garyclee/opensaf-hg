@@ -19,16 +19,22 @@
 
 #include <map>
 #include <string>
-#include "ncsgl_defs.h"
 
-template <typename T>
+//
+class Amf {
+public:
+  static std::string to_string(const SaNameT *name) {return std::string((char*)name->value, name->length);}
+};
+
+//
+template <typename Key, typename T>
 class AmfDb {
   public:
-   unsigned int insert(T *obj);
-   void erase(T *obj);
-   T *find(const SaNameT *name);
+   unsigned int insert(const Key &key, T *obj);
+   void erase(const Key &key);
+   T *find(const Key &name);
    
-   typedef std::map<std::string, T*> AmfDbMap;
+   typedef std::map<Key, T*> AmfDbMap;
    typedef typename AmfDbMap::const_iterator const_iterator;
 
    const_iterator begin() const {return db.begin();}
@@ -38,32 +44,31 @@ class AmfDb {
    AmfDbMap db;
 };
 
-template <typename T>
-unsigned int AmfDb<T>::insert(T *obj) {
+//
+template <typename Key, typename T>
+unsigned int AmfDb<Key, T>::insert(const Key &key, T *obj) {
   osafassert(obj);
-  std::string name((const char*)obj->name.value, obj->name.length);
-  if (db.insert(std::make_pair(name, obj)).second) {
-    return NCSCC_RC_SUCCESS;
+  
+  if (db.insert(std::make_pair(key, obj)).second) {
+    return 1; // NCSCC_RC_SUCCESS
   }
    else {
-      return NCSCC_RC_FAILURE; // Duplicate
+      return 2; // Duplicate (NCSCC_RC_FAILURE)
     }
  }
 
-template <typename T>
-void AmfDb<T>::erase(T *obj) {
-  osafassert(obj);
-  std::string name((const char*)obj->name.value, obj->name.length);
-  db.erase(name);
+//
+template <typename Key, typename T>
+void AmfDb<Key, T>::erase(const Key &key) {
+  db.erase(key);
 }
 
-template <typename T>
-T *AmfDb<T>::find(const SaNameT *dn) {
-  osafassert(dn);
-  std::string name((const char*)dn->value, dn->length);
-  typename AmfDbMap::iterator it = db.find(name);
+//
+template <typename Key, typename T>
+T *AmfDb<Key, T>::find(const Key &key) {
+  typename AmfDbMap::iterator it = db.find(key);
   if (it == db.end())
-    return NULL;
+    return 0;
   else
     return it->second;
 }
