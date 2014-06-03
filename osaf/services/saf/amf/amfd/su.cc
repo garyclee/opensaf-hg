@@ -598,8 +598,10 @@ static void su_add_to_model(AVD_SU *su)
 	su->sg_of_su = avd_sg_get(&dn);
 	osafassert(su->sg_of_su);
 
-	rc = su_db->insert(su);
-	osafassert(rc == NCSCC_RC_SUCCESS);
+	if (su_db->find(&su->name) == NULL) {
+		rc = su_db->insert(su);
+		osafassert(rc == NCSCC_RC_SUCCESS);
+	}
 	su->su_type = avd_sutype_get(&su->saAmfSUType);
 	osafassert(su->su_type);
 	avd_sutype_add_su(su);
