@@ -178,7 +178,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	for (su_rank_rec = avd_sirankedsu_getnext(cb, i_idx);
 	     su_rank_rec && (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, si->name) == 0);
 	     su_rank_rec = avd_sirankedsu_getnext(cb, su_rank_rec->indx)) {
-		curr_su = su_db->find(&su_rank_rec->su_name);
+		curr_su = su_db->find(Amf::to_string(&su_rank_rec->su_name));
 		if (curr_su == su)
 			break;
 	}
@@ -201,7 +201,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 			     i_su_rank_rec
 			     && (m_CMP_HORDER_SANAMET(i_su_rank_rec->indx.si_name, si->name) == 0);
 			     i_su_rank_rec = avd_sirankedsu_getnext(cb, i_su_rank_rec->indx)) {
-				curr_su = su_db->find(&i_su_rank_rec->su_name);
+				curr_su = su_db->find(Amf::to_string(&i_su_rank_rec->su_name));
 				if (curr_su == i_su_si->su)
 					break;
 			}
@@ -324,7 +324,7 @@ AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const SaNameT *su_name, const SaName
 {
 	AVD_SU *su;
 
-	if ((su = su_db->find(su_name)) == NULL)
+	if ((su = su_db->find(Amf::to_string(su_name))) == NULL)
 		return NULL;
 
 	return avd_su_susi_find(cb, su, si_name);
