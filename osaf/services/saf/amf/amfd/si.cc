@@ -27,7 +27,7 @@
 #include <proc.h>
 #include <si_dep.h>
 
-AmfDb<AVD_SI> *si_db = NULL;
+AmfDb<std::string, AVD_SI> *si_db = NULL;
 
 static void avd_si_add_csi_db(struct avd_csi_tag* csi);
 static void si_update_ass_state(AVD_SI *si);
@@ -384,7 +384,7 @@ void avd_si_delete(AVD_SI *si)
 				SA_NTF_SOFTWARE_ERROR);
 	}
 
-	si_db->erase(si);
+	si_db->erase(Amf::to_string(&si->name));
 	
 	if (si->saAmfSIActiveWeight != NULL) {
 		unsigned int i = 0;
@@ -432,8 +432,8 @@ void avd_si_db_add(AVD_SI *si)
 {
 	unsigned int rc;
 
-	if (si_db->find(&si->name) == NULL) {
-		rc = si_db->insert(si);
+	if (si_db->find(Amf::to_string(&si->name)) == NULL) {
+		rc = si_db->insert(Amf::to_string(&si->name), si);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
@@ -448,7 +448,7 @@ AVD_SI *avd_si_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return si_db->find(dn); 
+	return si_db->find(Amf::to_string(dn)); 
 }
 
 
@@ -466,7 +466,7 @@ static void si_add_to_model(AVD_SI *si)
 	}
 
 	avsv_sanamet_init(&si->name, &dn, "safApp");
-	si->app = app_db->find(&dn);
+	si->app = app_db->find(Amf::to_string(&dn));
 
 	avd_si_db_add(si);
 
@@ -568,7 +568,7 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if ((si = si_db->find(si_name)) == NULL) {
+	if ((si = si_db->find(Amf::to_string(si_name))) == NULL) {
 		if ((si = avd_si_new(si_name)) == NULL)
 			goto done;
 	} else {
@@ -1374,7 +1374,7 @@ void avd_si_inc_curr_stdby_dec_act_ass(AVD_SI *si)
 
 void avd_si_constructor(void)
 {
-	si_db = new AmfDb<AVD_SI>;
+	si_db = new AmfDb<std::string, AVD_SI>;
 	avd_class_impl_set("SaAmfSI", si_rt_attr_cb, si_admin_op_cb,
 		si_ccb_completed_cb, si_ccb_apply_cb);
 }
