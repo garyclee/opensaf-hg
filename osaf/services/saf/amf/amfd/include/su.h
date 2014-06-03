@@ -130,7 +130,7 @@ class AVD_SU {
 	void operator=(const AVD_SU&);
 };
 
-extern AmfDb<AVD_SU> *su_db;
+extern AmfDb<std::string, AVD_SU> *su_db;
 
 /**
  * Get SUs from IMM and create internal objects

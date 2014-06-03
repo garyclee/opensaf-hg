@@ -30,7 +30,7 @@
 #include <csi.h>
 #include <cluster.h>
 
-AmfDb<AVD_SU> *su_db = NULL;
+AmfDb<std::string, AVD_SU> *su_db = NULL;
 
 AVD_SU::AVD_SU(const SaNameT *dn):
 		saAmfSURank(0),
@@ -80,7 +80,7 @@ void AVD_SU::remove_from_model() {
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, this, AVSV_CKPT_AVD_SU_CONFIG);
 	avd_node_remove_su(this);
 	avd_sutype_remove_su(this);
-	su_db->erase(this);
+	su_db->erase(Amf::to_string(&name));
 	avd_sg_remove_su(this);
 
 	TRACE_LEAVE();
@@ -95,12 +95,12 @@ void AVD_SU::remove_from_model() {
  */
 AVD_SU *avd_su_get_or_create(const SaNameT *dn)
 {
-	AVD_SU *su = su_db->find(dn);
+	AVD_SU *su = su_db->find(Amf::to_string(dn));
 
 	if (su == NULL) {
 		TRACE("'%s' does not exist, creating it", dn->value);
 		su = new AVD_SU(dn);
-		unsigned int rc = su_db->insert(su);
+		unsigned int rc = su_db->insert(Amf::to_string(&su->name), su);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 
@@ -450,7 +450,7 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if ((su = su_db->find(dn)) == NULL) {
+	if ((su = su_db->find(Amf::to_string(dn))) == NULL) {
 		su = new AVD_SU(dn);
 	} else
 		TRACE("already created, refreshing config...");
@@ -585,7 +585,7 @@ static void su_add_to_model(AVD_SU *su)
 	}
 
 	/* Determine of the SU is added now, if so msg to amfnd needs to be sent */
-	if (su_db->find(&su->name) == NULL)
+	if (su_db->find(Amf::to_string(&su->name)) == NULL)
 		new_su = true;
 
 	avsv_sanamet_init(&su->name, &dn, "safSg");
@@ -598,8 +598,8 @@ static void su_add_to_model(AVD_SU *su)
 	su->sg_of_su = avd_sg_get(&dn);
 	osafassert(su->sg_of_su);
 
-	if (su_db->find(&su->name) == NULL) {
-		rc = su_db->insert(su);
+	if (su_db->find(Amf::to_string(&su->name)) == NULL) {
+		rc = su_db->insert(Amf::to_string(&su->name), su);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 	su->su_type = avd_sutype_get(&su->saAmfSUType);
@@ -890,7 +890,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		goto done;
 	}
 
-	if (NULL == (su = su_db->find(su_name))) {
+	if (NULL == (su = su_db->find(Amf::to_string(su_name)))) {
 		LOG_CR("SU '%s' not found", su_name->value);
 		/* internal error? osafassert instead? */
 		goto done;
@@ -1205,7 +1205,7 @@ done:
 static SaAisErrorT su_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
-	AVD_SU *su = su_db->find(objectName);
+	AVD_SU *su = su_db->find(Amf::to_string(objectName));
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
@@ -1263,7 +1263,7 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			continue;
 
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUFailover")) {
-			AVD_SU *su = su_db->find(&opdata->objectName);
+			AVD_SU *su = su_db->find(Amf::to_string(&opdata->objectName));
 			uint32_t su_failover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
 
 			/* If SG is not in stable state and amfnd is already busy in the handling of some fault,
@@ -1283,7 +1283,7 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUMaintenanceCampaign")) {
-			AVD_SU *su = su_db->find(&opdata->objectName);
+			AVD_SU *su = su_db->find(Amf::to_string(&opdata->objectName));
 
 			if (su->saAmfSUMaintenanceCampaign.length > 0) {
 				report_ccb_validation_error(opdata, "saAmfSUMaintenanceCampaign already set for %s",
@@ -1294,7 +1294,7 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUType")) {
 			AVD_SU *su;
 			SaNameT sutype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
-			su = su_db->find(&opdata->objectName);
+			su = su_db->find(Amf::to_string(&opdata->objectName));
 			if(SA_AMF_ADMIN_LOCKED_INSTANTIATION != su->saAmfSUAdminState) {
 				report_ccb_validation_error(opdata, "SU is not in locked-inst, present state '%d'",
 						su->saAmfSUAdminState);
@@ -1344,7 +1344,7 @@ static SaAisErrorT su_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 	if (strstr((char *)opdata->objectName.value, "safApp=OpenSAF") != NULL)
 		is_app_su = 0;
 
-	su = su_db->find(&opdata->objectName);
+	su = su_db->find(Amf::to_string(&opdata->objectName));
 	osafassert(su != NULL);
 
 	if (is_app_su && (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
@@ -1448,7 +1448,7 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
-	su = su_db->find(&opdata->objectName);
+	su = su_db->find(Amf::to_string(&opdata->objectName));
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		/* Attribute value removed */
@@ -1626,7 +1626,7 @@ void AVD_SU::dec_curr_stdby_si() {
 
 void avd_su_constructor(void)
 {
-	su_db = new AmfDb<AVD_SU>;
+	su_db = new AmfDb<std::string, AVD_SU>;
 	avd_class_impl_set("SaAmfSU", su_rt_attr_cb, su_admin_op_cb,
 		su_ccb_completed_cb, su_ccb_apply_cb);
 }
