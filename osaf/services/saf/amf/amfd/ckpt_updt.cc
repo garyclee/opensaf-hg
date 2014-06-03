@@ -102,7 +102,7 @@ uint32_t avd_ckpt_app(AVD_CL_CB *cb, AVD_APP *ckpt_app, NCS_MBCSV_ACT_TYPE actio
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	AVD_APP *app = app_db->find(&ckpt_app->name);
+	AVD_APP *app = app_db->find(Amf::to_string(&ckpt_app->name));
 	if (app == NULL) {
 		LOG_ER("%s failed to find '%s'", __FUNCTION__, ckpt_app->name.value);
 		rc = NCSCC_RC_FAILURE;
@@ -185,7 +185,7 @@ uint32_t avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (NULL == (su = su_db->find(&ckpt_su->name))) {
+	if (NULL == (su = su_db->find(Amf::to_string(&ckpt_su->name)))) {
 		LOG_ER("su_db->find FAILED for '%s'", ckpt_su->name.value);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -270,7 +270,7 @@ uint32_t avd_ckpt_su_oper_list(const SaNameT *name, NCS_MBCSV_ACT_TYPE action)
 {
 	TRACE_ENTER2("'%s'", name->value);
 
-	AVD_SU *su = su_db->find(name);
+	AVD_SU *su = su_db->find(Amf::to_string(name));
 	osafassert(su);
 
 	if (NCS_MBCSV_ACT_ADD == action)
@@ -357,8 +357,8 @@ uint32_t avd_ckpt_si_trans(AVD_CL_CB *cb, AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt,
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
 		sg_ptr->si_tobe_redistributed = avd_si_get(&si_trans_ckpt->si_name); 
-		sg_ptr->min_assigned_su = su_db->find(&si_trans_ckpt->min_su_name); 
-		sg_ptr->max_assigned_su = su_db->find(&si_trans_ckpt->max_su_name); 
+		sg_ptr->min_assigned_su = su_db->find(Amf::to_string(&si_trans_ckpt->min_su_name)); 
+		sg_ptr->max_assigned_su = su_db->find(Amf::to_string(&si_trans_ckpt->max_su_name)); 
 		break;
 
 	case NCS_MBCSV_ACT_RMV:
@@ -406,7 +406,7 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 
 	su_si_rel_ptr = avd_susi_find(cb, &su_si_ckpt->su_name, &su_si_ckpt->si_name);
 
-	su_ptr = su_db->find(&su_si_ckpt->su_name);
+	su_ptr = su_db->find(Amf::to_string(&su_si_ckpt->su_name));
 	osafassert(su_ptr);
 	si_ptr_up = avd_si_get(&su_si_ckpt->si_name);
 	osafassert(si_ptr_up);

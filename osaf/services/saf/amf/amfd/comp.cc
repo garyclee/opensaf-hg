@@ -214,7 +214,7 @@ static void comp_add_to_model(AVD_COMP *comp)
 	}
 
 	avsv_sanamet_init(&comp->comp_info.name, &dn, "safSu");
-	su = comp->su = su_db->find(&dn);
+	su = comp->su = su_db->find(Amf::to_string(&dn));
 
 	avd_comp_db_add(comp);
 	comp->comp_type = avd_comptype_get(&comp->saAmfCompType);

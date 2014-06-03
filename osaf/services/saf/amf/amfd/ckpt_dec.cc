@@ -1302,7 +1302,7 @@ static uint32_t dec_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SU *su = su_db->find(&name);
+	AVD_SU *su = su_db->find(Amf::to_string(&name));
 	osafassert(su != NULL);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUPreInstantiable);
 
@@ -1334,7 +1334,7 @@ static uint32_t dec_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SU *su = su_db->find(&name);
+	AVD_SU *su = su_db->find(Amf::to_string(&name));
 	osafassert(su != NULL);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUOperState);
 
@@ -1365,7 +1365,7 @@ static uint32_t dec_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SU *su = su_db->find(&name);
+	AVD_SU *su = su_db->find(Amf::to_string(&name));
 	osafassert(su != NULL);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUAdminState);
 
@@ -1396,7 +1396,7 @@ static uint32_t dec_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SU *su = su_db->find(&name);
+	AVD_SU *su = su_db->find(Amf::to_string(&name));
 	osafassert(su != NULL);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSuReadinessState);
 
@@ -1427,7 +1427,7 @@ static uint32_t dec_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SU *su = su_db->find(&name);
+	AVD_SU *su = su_db->find(Amf::to_string(&name));
 	osafassert(su != NULL);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUPresenceState);
 
@@ -1458,7 +1458,7 @@ static uint32_t dec_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SU *su = su_db->find(&name);
+	AVD_SU *su = su_db->find(Amf::to_string(&name));
 	osafassert(su != NULL);
 	osaf_decode_uint32(&dec->i_uba, &su->saAmfSUNumCurrActiveSIs);
 
@@ -1489,7 +1489,7 @@ static uint32_t dec_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SU *su = su_db->find(&name);
+	AVD_SU *su = su_db->find(Amf::to_string(&name));
 	osafassert(su != NULL);
 	osaf_decode_uint32(&dec->i_uba, &su->saAmfSUNumCurrStandbySIs);
 
@@ -1520,7 +1520,7 @@ static uint32_t dec_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SU *su = su_db->find(&name);
+	AVD_SU *su = su_db->find(Amf::to_string(&name));
 	osafassert(su != NULL);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->term_state);
 
@@ -1551,7 +1551,7 @@ static uint32_t dec_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SU *su = su_db->find(&name);
+	AVD_SU *su = su_db->find(Amf::to_string(&name));
 	osafassert(su != NULL);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->su_switch);
 
@@ -1603,7 +1603,7 @@ static uint32_t dec_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SU *su = su_db->find(&name);
+	AVD_SU *su = su_db->find(Amf::to_string(&name));
 	osafassert(su != NULL);
 	osaf_decode_uint32(&dec->i_uba, &su->saAmfSURestartCount);
 
