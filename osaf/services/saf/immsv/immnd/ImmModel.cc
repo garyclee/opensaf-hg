@@ -10149,11 +10149,16 @@ SaAisErrorT ImmModel::adminOperationInvoke(
                  /* Appears to be an admin-op directed at OI. 
                     Verify that admo-name matches impl-name. */
                 if(objectName == adminOwner->mAdminOwnerName) {
-                    object = &dummyObject;
-                    goto fake_obj;
+                    if(this->protocol45Allowed()) {
+                        object = &dummyObject;
+                        goto fake_obj;
+                    } else {
+                        LOG_NO("ERR_NOT_EXIST: Admin-op on OI rejected. Protocol4.5 not allowed");
+                    }
+                } else {
+                    LOG_NO("ERR_NOT_EXIST: Admin-op on OI rejected. Implementer '%s' != adminowner '%s'",
+                        objectName.c_str(), adminOwner->mAdminOwnerName.c_str());
                 }
-                LOG_NO("ERR_NOT_EXIST: Admin-op on OI rejected. Implementer '%s' != adminowner '%s'",
-                    objectName.c_str(), adminOwner->mAdminOwnerName.c_str());
             }
 
             TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
