@@ -296,7 +296,7 @@ static SaAisErrorT csiattr_ccb_completed_create_hdlr(CcbUtilOperationData_t *opd
 			SA_MAX_NAME_LENGTH); 
 	csi_dn.length = strlen((char *)&csi_dn.value);
 
-	if (NULL == (csi = avd_csi_get(&csi_dn))) {
+	if (NULL == (csi = csi_db->find(Amf::to_string(&csi_dn)))) {
 		/* if CSI is NULL, that means the CSI is added in the same CCB
 		 * so allow the csi attributes also to be added in any state of the parent SI
 		 */
@@ -353,7 +353,7 @@ static SaAisErrorT csiattr_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opd
 			SA_MAX_NAME_LENGTH);
 	csi_dn.length = strlen((char *)&csi_dn.value);
 
-	if (NULL == (csi = avd_csi_get(&csi_dn))) {
+	if (NULL == (csi = csi_db->find(Amf::to_string(&csi_dn)))) {
 		report_ccb_validation_error(opdata, "csi '%s' doesn't exists", csi_dn.value);
 		goto done;
 	}
@@ -454,7 +454,7 @@ static SaAisErrorT csiattr_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opd
                         SA_MAX_NAME_LENGTH);
         csi_dn.length = strlen((char *)&csi_dn.value);
 
-        if (NULL == (csi = avd_csi_get(&csi_dn))) {
+        if (NULL == (csi = csi_db->find(Amf::to_string(&csi_dn)))) {
                 report_ccb_validation_error(opdata, "csi '%s' doesn't exists", csi_dn.value);
                 goto done;
         }
@@ -505,7 +505,7 @@ static void csiattr_create_apply(CcbUtilOperationData_t *opdata)
 	AVD_CSI *csi;
 
 	csiattr = csiattr_create(&opdata->objectName, opdata->param.create.attrValues);
-	csi = avd_csi_get(opdata->param.create.parentName);
+	csi = csi_db->find(Amf::to_string(opdata->param.create.parentName));
 	avd_csi_add_csiattr(csi, csiattr);
 }
 
@@ -525,7 +525,7 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
                         SA_MAX_NAME_LENGTH);
         csi_dn.length = strlen((char *)&csi_dn.value);
 
-        csi = avd_csi_get(&csi_dn);
+        csi = csi_db->find(Amf::to_string(&csi_dn));
 
         csiattr_dn_to_csiattr_name(&opdata->objectName, &csi_attr_name);
 	/* create new name-value pairs for the modified csi attribute */
@@ -634,7 +634,7 @@ static void csiattr_delete_apply(CcbUtilOperationData_t *opdata)
                         SA_MAX_NAME_LENGTH);
         csi_dn.length = strlen((char *)&csi_dn.value);
 
-        csi = avd_csi_get(&csi_dn);
+        csi = csi_db->find(Amf::to_string(&csi_dn));
 
 	if (NULL == csi) {
 		/* This is the case when csi might have been deleted before csi attr. 
