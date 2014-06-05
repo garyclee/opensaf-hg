@@ -20,11 +20,11 @@
 #include <si.h>
 #include <imm.h>
 
-static NCS_PATRICIA_TREE svctypecstypes_db;
 
+AmfDb<std::string, AVD_SVC_TYPE_CS_TYPE> *svctypecstypes_db = NULL;
 static void svctypecstype_db_add(AVD_SVC_TYPE_CS_TYPE *svctypecstype)
 {
-	unsigned int rc = ncs_patricia_tree_add(&svctypecstypes_db, &svctypecstype->tree_node);
+	uint32_t rc = svctypecstypes_db->insert(Amf::to_string(&svctypecstype->name),svctypecstype);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
@@ -39,31 +39,11 @@ static AVD_SVC_TYPE_CS_TYPE *svctypecstypes_create(SaNameT *dn, const SaImmAttrV
 
 	memcpy(svctypecstype->name.value, dn->value, dn->length);
 	svctypecstype->name.length = dn->length;
-	svctypecstype->tree_node.key_info = (uint8_t *)&(svctypecstype->name);
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSvctMaxNumCSIs"), attributes, 0, &svctypecstype->saAmfSvctMaxNumCSIs) != SA_AIS_OK)
 		svctypecstype->saAmfSvctMaxNumCSIs = -1; /* no limit */
 
 	return svctypecstype;
-}
-
-static void svctypecstypes_delete(AVD_SVC_TYPE_CS_TYPE *svctypecstype)
-{
-	uint32_t rc;
-
-	rc = ncs_patricia_tree_del(&svctypecstypes_db, &svctypecstype->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
-	delete svctypecstype;
-}
-
-AVD_SVC_TYPE_CS_TYPE *avd_svctypecstypes_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_SVC_TYPE_CS_TYPE*)ncs_patricia_tree_get(&svctypecstypes_db, (uint8_t *)&tmp);
 }
 
 /**
@@ -100,7 +80,7 @@ SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name)
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 
-		if ((svctypecstype = avd_svctypecstypes_get(&dn))== NULL) {
+		if ((svctypecstype = svctypecstypes_db->find(Amf::to_string(&dn)))== NULL) {
 			if ((svctypecstype = svctypecstypes_create(&dn, attributes)) == NULL) {
 				error = SA_AIS_ERR_FAILED_OPERATION;
 				goto done2;
@@ -138,7 +118,7 @@ static SaAisErrorT svctypecstypes_ccb_completed_cb(CcbUtilOperationData_t *opdat
 		report_ccb_validation_error(opdata, "Modification of SaAmfSvcTypeCSTypes not supported");
 		break;
 	case CCBUTIL_DELETE:
-		svctypecstype = avd_svctypecstypes_get(&opdata->objectName);
+		svctypecstype = svctypecstypes_db->find(Amf::to_string(&opdata->objectName));
 		if (svctypecstype->curr_num_csis == 0) {
 			rc = SA_AIS_OK;
 			opdata->userData = svctypecstype;
@@ -171,7 +151,12 @@ static void svctypecstypes_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		svctypecstype_db_add(svctypecstype);
 		break;
 	case CCBUTIL_DELETE:
-		svctypecstypes_delete(static_cast<AVD_SVC_TYPE_CS_TYPE*>(opdata->userData));
+		svctypecstype = svctypecstypes_db->find(Amf::to_string(&opdata->objectName));
+		if (svctypecstype != NULL) {
+			svctypecstypes_db->erase(Amf::to_string(&opdata->objectName));
+			delete svctypecstype;
+		}
+
 		break;
 	default:
 		osafassert(0);
@@ -181,10 +166,7 @@ static void svctypecstypes_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_svctypecstypes_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&svctypecstypes_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	svctypecstypes_db = new AmfDb<std::string, AVD_SVC_TYPE_CS_TYPE>;
 	avd_class_impl_set("SaAmfSvcTypeCSTypes", NULL, NULL,
 		svctypecstypes_ccb_completed_cb, svctypecstypes_ccb_apply_cb);
 }

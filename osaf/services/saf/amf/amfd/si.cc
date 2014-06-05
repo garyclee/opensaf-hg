@@ -331,7 +331,6 @@ AVD_SI *avd_si_new(const SaNameT *dn)
 
 	memcpy(si->name.value, dn->value, dn->length);
 	si->name.length = dn->length;
-	si->tree_node.key_info = (uint8_t *)&si->name;
 	si->si_switch = AVSV_SI_TOGGLE_STABLE;
 	si->saAmfSIAdminState = SA_AMF_ADMIN_UNLOCKED;
 	si->si_dep_state = AVD_SI_NO_DEPENDENCY;

@@ -69,7 +69,6 @@ typedef struct avd_sirankedsu {
  */
 typedef struct avd_si_tag {
 
-	NCS_PATRICIA_NODE tree_node;	/* key will be the SI name */
 	SaNameT name;
 
 	/******************** B.04 model *************************************************/
@@ -121,7 +120,6 @@ typedef struct avd_amf_svc_type_tag {
 } AVD_SVC_TYPE;
 
 typedef struct {
-	NCS_PATRICIA_NODE tree_node;	/* key is name */
 	SaNameT name;
 	SaUint32T saAmfSvctMaxNumCSIs;
 
@@ -133,6 +131,7 @@ typedef struct {
 } AVD_SVC_TYPE_CS_TYPE;
 
 extern AmfDb<std::string, AVD_SI> *si_db;
+extern AmfDb<std::string, AVD_SVC_TYPE_CS_TYPE> *svctypecstypes_db;
 #define AVD_SI_NULL ((AVD_SI *)0)
 #define m_AVD_SI_ACTV_MAX_SU(l_si) (l_si)->saAmfSIPrefActiveAssignments
 #define m_AVD_SI_ACTV_CURR_SU(l_si) (l_si)->saAmfSINumCurrActiveAssignments
@@ -161,7 +160,6 @@ extern void avd_svctype_remove_si(AVD_SI *si);
 extern void avd_svctype_constructor(void);
 
 extern SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name);
-extern AVD_SVC_TYPE_CS_TYPE *avd_svctypecstypes_get(const SaNameT *svctypecstypes_name);
 extern void avd_svctypecstypes_constructor(void);
 extern void avd_si_inc_curr_act_ass(AVD_SI *si);
 extern void avd_si_dec_curr_act_ass(AVD_SI *si);
