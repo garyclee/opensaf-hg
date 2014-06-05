@@ -206,7 +206,7 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 
 	ctcstype_name.length = sprintf((char*)ctcstype_name.value, "%s,%s", cstype_name, comptype_name->value);
 
-	if (avd_ctcstype_get(&ctcstype_name) == NULL) {
+	if (ctcstype_db->find(Amf::to_string(&ctcstype_name)) == NULL) {
 		if (opdata == NULL) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", ctcstype_name.value);
 			goto free_cstype_name;
@@ -258,7 +258,7 @@ static AVD_COMPCS_TYPE *compcstype_create(const SaNameT *dn, const SaImmAttrValu
 	ctcstype_name.length = sprintf((char*)ctcstype_name.value,
 		"%s,%s", cstype_name, comp->comp_type->name.value);
 
-	ctcstype = avd_ctcstype_get(&ctcstype_name);
+	ctcstype = ctcstype_db->find(Amf::to_string(&ctcstype_name));
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompNumMaxActiveCSIs"), attributes, 0,
 				&num_max_act_csi) != SA_AIS_OK) {
