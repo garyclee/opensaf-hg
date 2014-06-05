@@ -163,6 +163,7 @@ typedef struct avd_comp_cs_type_tag {
 	SaNameT *saAmfCompAssignedCsi;
 	AVD_COMP *comp;
 } AVD_COMPCS_TYPE;
+extern  AmfDb<std::string, AVD_COMPCS_TYPE> *compcstype_db;
 
 /* AMF Class SaAmfCtCsType */
 typedef struct {

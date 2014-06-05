@@ -1440,10 +1440,9 @@ void amfd_file_dump(const char *path)
 		}
 	}
 
-	dn.length = 0;
-	AVD_COMPCS_TYPE *compcstype;
-	for (compcstype = avd_compcstype_getnext(&dn); compcstype != NULL;
-	     compcstype = avd_compcstype_getnext(&dn)) {
+	for (std::map<std::string, AVD_COMPCS_TYPE*>::const_iterator it = compcstype_db->begin();
+			it != compcstype_db->end(); it++) {
+		const AVD_COMPCS_TYPE *compcstype = it->second;
 		fprintf(f, "%s\n", compcstype->name.value);
 		fprintf(f, "\tsaAmfCompNumCurrActiveCSIs=%u\n", compcstype->saAmfCompNumCurrActiveCSIs);
 		fprintf(f, "\tsaAmfCompNumCurrStandbyCSIs=%u\n", compcstype->saAmfCompNumCurrStandbyCSIs);

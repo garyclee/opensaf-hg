@@ -586,8 +586,8 @@ uint32_t avd_ckpt_compcstype(AVD_CL_CB *cb, AVD_COMPCS_TYPE *ckpt_compcstype, NC
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (NULL == (ccst = avd_compcstype_get(dn))) {
-		LOG_ER("avd_compcstype_get FAILED for '%s'", dn->value);
+	if (NULL == (ccst = compcstype_db->find(Amf::to_string(dn)))) {
+		LOG_ER("compcstype_db->find()FAILED for '%s'", dn->value);
 		goto done;
 	}
 	ccst->saAmfCompNumCurrActiveCSIs = ckpt_compcstype->saAmfCompNumCurrActiveCSIs;

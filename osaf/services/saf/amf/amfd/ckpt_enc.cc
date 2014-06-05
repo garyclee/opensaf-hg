@@ -2686,7 +2686,6 @@ static uint32_t enc_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 static uint32_t enc_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_COMPCS_TYPE *compcstype;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	SaNameT dn = {0};
 	TRACE_ENTER();
@@ -2694,9 +2693,9 @@ static uint32_t enc_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc,
 	/*
 	 * Walk through the entire list and send the entire list data.
 	 */
-	dn.length = 0;
-	for (compcstype = avd_compcstype_getnext(&dn); compcstype != NULL;
-	     compcstype = avd_compcstype_getnext(&dn)) {
+	for (std::map<std::string, AVD_COMPCS_TYPE*>::const_iterator it = compcstype_db->begin();
+			it != compcstype_db->end(); it++) {
+		AVD_COMPCS_TYPE *compcstype = it->second;
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type, &enc->io_uba,
 					    EDP_OP_TYPE_ENC, compcstype, &ederror, enc->i_peer_version);
 
