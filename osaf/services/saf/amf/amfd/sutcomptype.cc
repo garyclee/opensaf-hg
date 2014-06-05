@@ -24,11 +24,11 @@
 #include <sutcomptype.h>
 #include <imm.h>
 
-static NCS_PATRICIA_TREE sutcomptype_db;
+AmfDb<std::string, AVD_SUTCOMP_TYPE> *sutcomptype_db = NULL;
 
 static void sutcomptype_db_add(AVD_SUTCOMP_TYPE *sutcomptype)
 {
-	unsigned int rc = ncs_patricia_tree_add(&sutcomptype_db, &sutcomptype->tree_node);
+	unsigned int rc = sutcomptype_db->insert(Amf::to_string(&sutcomptype->name),sutcomptype);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
@@ -42,7 +42,6 @@ static AVD_SUTCOMP_TYPE *sutcomptype_create(SaNameT *dn, const SaImmAttrValuesT_
 
 	memcpy(sutcomptype->name.value, dn->value, dn->length);
 	sutcomptype->name.length = dn->length;
-	sutcomptype->tree_node.key_info = (uint8_t *)&(sutcomptype->name);
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutMaxNumComponents"), attributes, 0, &sutcomptype->saAmfSutMaxNumComponents) != SA_AIS_OK)
 		sutcomptype->saAmfSutMaxNumComponents = -1; /* no limit */
@@ -55,21 +54,8 @@ static AVD_SUTCOMP_TYPE *sutcomptype_create(SaNameT *dn, const SaImmAttrValuesT_
 
 static void sutcomptype_delete(AVD_SUTCOMP_TYPE *sutcomptype)
 {
-	uint32_t rc;
-
-	rc = ncs_patricia_tree_del(&sutcomptype_db, &sutcomptype->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
+	sutcomptype_db->erase(Amf::to_string(&sutcomptype->name));
 	delete sutcomptype;
-}
-
-AVD_SUTCOMP_TYPE *avd_sutcomptype_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_SUTCOMP_TYPE *)ncs_patricia_tree_get(&sutcomptype_db, (uint8_t *)&tmp);
 }
 
 static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
@@ -106,7 +92,7 @@ SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, struct avd_sutype *
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
-		if ((sutcomptype = avd_sutcomptype_get(&dn)) == NULL) {
+		if ((sutcomptype = sutcomptype_db->find(Amf::to_string(&dn))) == NULL) {
 			if ((sutcomptype = sutcomptype_create(&dn, attributes)) == NULL) {
 				error = SA_AIS_ERR_FAILED_OPERATION;
 				goto done2;
@@ -141,7 +127,7 @@ static SaAisErrorT sutcomptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		report_ccb_validation_error(opdata, "Modification of SaAmfSUType not supported");
 		break;
 	case CCBUTIL_DELETE:
-		sutcomptype = avd_sutcomptype_get(&opdata->objectName);
+		sutcomptype = sutcomptype_db->find(Amf::to_string(&opdata->objectName));
 		if (sutcomptype->curr_num_components == 0) {
 			rc = SA_AIS_OK;
 			opdata->userData = sutcomptype;	/* Save for later use in apply */
@@ -178,11 +164,8 @@ static void sutcomptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_sutcomptype_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
 
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&sutcomptype_db, &patricia_params) == NCSCC_RC_SUCCESS);
-
+	sutcomptype_db = new AmfDb<std::string, AVD_SUTCOMP_TYPE>;
 	avd_class_impl_set("SaAmfSutCompType", NULL, NULL,
 		sutcomptype_ccb_completed_cb, sutcomptype_ccb_apply_cb);
 }

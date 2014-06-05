@@ -30,14 +30,13 @@
 #include "sutype.h"
 
 typedef struct {
-	NCS_PATRICIA_NODE tree_node;	/* key is name */
 	SaNameT name;
 	SaUint32T saAmfSutMaxNumComponents;
 	SaUint32T saAmfSutMinNumComponents;
 	SaUint32T curr_num_components;
 } AVD_SUTCOMP_TYPE;
+extern AmfDb<std::string, AVD_SUTCOMP_TYPE> *sutcomptype_db;
 
-AVD_SUTCOMP_TYPE *avd_sutcomptype_get(const SaNameT *dn);
 SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, struct avd_sutype *sut);
 void avd_sutcomptype_constructor(void);
 
