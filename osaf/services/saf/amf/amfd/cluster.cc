@@ -51,9 +51,6 @@ AVD_CLUSTER *avd_cluster = &_avd_cluster;
 
 void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	SaNameT lsg_name;
-	AVD_SG *i_sg;
-
 	TRACE_ENTER();
 	saflog(LOG_NOTICE, amfSvcUsrName, "Cluster startup timeout, assigning SIs to SUs");
 
@@ -77,14 +74,12 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * system that are not NCS specific.
 	 */
 
-	lsg_name.length = 0;
-	for (i_sg = avd_sg_getnext(&lsg_name); i_sg != NULL; i_sg = avd_sg_getnext(&lsg_name)) {
-		lsg_name = i_sg->name;
-
+	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
+			it != sg_db->end(); it++) {
+		AVD_SG *i_sg = it->second;
 		if ((i_sg->list_of_su == NULL) || (i_sg->sg_ncs_spec == true)) {
 			continue;
 		}
-
 		i_sg->realign(cb, i_sg);
 	}
 

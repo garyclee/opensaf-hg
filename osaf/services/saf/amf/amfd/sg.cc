@@ -30,24 +30,20 @@
 #include <si_dep.h>
 #include <csi.h>
 
-static NCS_PATRICIA_TREE sg_db;
+AmfDb<std::string, AVD_SG> *sg_db = NULL;
+
 static void avd_verify_equal_ranked_su(AVD_SG *avd_sg);
 
 void avd_sg_db_add(AVD_SG *sg)
 {
 	unsigned int rc;
 
-	if (avd_sg_get(&sg->name) == NULL) {
-		rc = ncs_patricia_tree_add(&sg_db, &sg->tree_node);
+	if (sg_db->find(Amf::to_string(&sg->name)) == NULL) {
+		rc = sg_db->insert(Amf::to_string(&sg->name),sg);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
 
-void avd_sg_db_remove(AVD_SG *sg)
-{
-	unsigned int rc = ncs_patricia_tree_del(&sg_db, &sg->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
-}
 
 /**
  * Add the SG to the model
@@ -91,7 +87,7 @@ static void sg_remove_from_model(AVD_SG *sg)
 {
 	avd_sgtype_remove_sg(sg);
 	avd_app_remove_sg(sg->app, sg);
-	avd_sg_db_remove(sg);
+	sg_db->erase(Amf::to_string(&sg->name));
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
 }
@@ -104,7 +100,6 @@ AVD_SG *avd_sg_new(const SaNameT *dn)
 
 	memcpy(sg->name.value, dn->value, dn->length);
 	sg->name.length = dn->length;
-	sg->tree_node.key_info = (uint8_t *)&(sg->name);
 	sg->sg_ncs_spec = false;
 	sg->sg_fsm_state = AVD_SG_FSM_STABLE;
 	sg->adjust_state = AVSV_SG_STABLE;
@@ -169,26 +164,6 @@ void avd_sg_remove_si(AVD_SG *sg, AVD_SI* si)
 			si->sg_of_si = NULL;
 		}
 	}
-}
-
-AVD_SG *avd_sg_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_SG *)ncs_patricia_tree_get(&sg_db, (uint8_t *)&tmp);
-}
-
-AVD_SG *avd_sg_getnext(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_SG *)ncs_patricia_tree_getnext(&sg_db, (uint8_t *)&tmp);
 }
 
 /**
@@ -273,7 +248,7 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if (NULL == (sg = avd_sg_get(sg_name))) {
+	if (NULL == (sg = sg_db->find(Amf::to_string(sg_name)))) {
 		if ((sg = avd_sg_new(sg_name)) == NULL)
 			goto done;
 	} else
@@ -551,7 +526,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 
 	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
-	sg = avd_sg_get(&opdata->objectName);
+	sg = sg_db->find(Amf::to_string(&opdata->objectName));
 	osafassert(sg != NULL);
 
 	/* Validate whether we can modify it. */
@@ -819,7 +794,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
-	sg = avd_sg_get(&opdata->objectName);
+	sg = sg_db->find(Amf::to_string(&opdata->objectName));
 	assert(sg != NULL);
 
 	sg_type = avd_sgtype_get(&sg->saAmfSGType);
@@ -1181,7 +1156,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	AVD_AVND *node;
 
 	TRACE_ENTER2("'%s', %llu", object_name->value, op_id);
-	sg = avd_sg_get(object_name);
+	sg = sg_db->find(Amf::to_string(object_name));
 
 	if (sg->sg_ncs_spec == true) {
 		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
@@ -1363,7 +1338,7 @@ done:
 static SaAisErrorT sg_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
-	AVD_SG *sg = avd_sg_get(objectName);
+	AVD_SG *sg = sg_db->find(Amf::to_string(objectName));
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
@@ -1413,7 +1388,7 @@ static SaAisErrorT sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		sg = avd_sg_get(&opdata->objectName);
+		sg = sg_db->find(Amf::to_string(&opdata->objectName));
 		if (sg->list_of_si != NULL) {
 			/* check whether there is parent app delete */
 			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg->app->name);
@@ -1537,11 +1512,7 @@ void avd_sg_add_su(AVD_SU* su)
 
 void avd_sg_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&sg_db, &patricia_params) == NCSCC_RC_SUCCESS);
-
+	sg_db = new AmfDb<std::string, AVD_SG>;
 	avd_class_impl_set("SaAmfSG", sg_rt_attr_cb, sg_admin_op_cb,
 		sg_ccb_completed_cb, sg_ccb_apply_cb);
 }

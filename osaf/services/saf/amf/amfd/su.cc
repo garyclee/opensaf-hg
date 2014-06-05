@@ -312,7 +312,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	/* Get value of saAmfSGSuHostNodeGroup */
 	avsv_sanamet_init(dn, &sg_name, "safSg");
-	sg = avd_sg_get(&sg_name);
+	sg = sg_db->find(Amf::to_string(&sg_name));
 	if (sg) {
 		saAmfSGSuHostNodeGroup = sg->saAmfSGSuHostNodeGroup;
 	} else {
@@ -595,7 +595,7 @@ static void su_add_to_model(AVD_SU *su)
 	** An SU can be created (on the standby) from the checkpointing logic.
 	** In that case the SG reference could now be NULL.
 	*/
-	su->sg_of_su = avd_sg_get(&dn);
+	su->sg_of_su = sg_db->find(Amf::to_string(&dn));
 	osafassert(su->sg_of_su);
 
 	if (su_db->find(Amf::to_string(&su->name)) == NULL) {

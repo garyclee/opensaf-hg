@@ -142,8 +142,8 @@ uint32_t avd_ckpt_sg(AVD_CL_CB *cb, AVD_SG *ckpt_sg, NCS_MBCSV_ACT_TYPE action)
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (NULL == (sg = avd_sg_get(&ckpt_sg->name))) {
-		LOG_ER("avd_sg_get FAILED for '%s'", ckpt_sg->name.value);
+	if (NULL == (sg = sg_db->find(Amf::to_string(&ckpt_sg->name)))) {
+		LOG_ER("sg_db->find() FAILED for '%s'", ckpt_sg->name.value);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -244,7 +244,7 @@ uint32_t avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 	si->saAmfSIAssignmentState = ckpt_si->saAmfSIAssignmentState;
 	si->saAmfSIProtectedbySG = ckpt_si->saAmfSIProtectedbySG;
 	si->alarm_sent = ckpt_si->alarm_sent;
-	si->sg_of_si = avd_sg_get(&si->saAmfSIProtectedbySG);
+	si->sg_of_si = sg_db->find(Amf::to_string(&si->saAmfSIProtectedbySG));
 
 	rc = NCSCC_RC_SUCCESS;
 done:
@@ -351,7 +351,7 @@ uint32_t avd_ckpt_si_trans(AVD_CL_CB *cb, AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt,
 
 	TRACE_ENTER2("'%s'", si_trans_ckpt->sg_name.value);
 
-	sg_ptr = avd_sg_get(&si_trans_ckpt->sg_name);
+	sg_ptr = sg_db->find(Amf::to_string(&si_trans_ckpt->sg_name));
 	osafassert(sg_ptr);
 
 	switch (action) {

@@ -1105,7 +1105,7 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 		// TODO: would be more elegant with yet another function pointer
 		type = object_name_to_class_type(&next->opdata->objectName);
 		if ((type == AVSV_SA_AMF_SG) && (next->opdata->operationType == CCBUTIL_CREATE)) {
-			AVD_SG *sg = avd_sg_get(&next->opdata->objectName);
+			AVD_SG *sg = sg_db->find(Amf::to_string(&next->opdata->objectName));
 			avd_sg_adjust_config(sg);
 		}
 		next = next->next_ccb_to_apply;
@@ -1444,12 +1444,10 @@ unsigned int avd_imm_config_get(void)
 
 	// SGs needs to adjust configuration once all instances have been added
 	{
-		AVD_SG *sg;
-		SaNameT dn = {0};
-
-		for (sg = avd_sg_getnext(&dn); sg; sg = avd_sg_getnext(&dn)) {
+		for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
+				it != sg_db->end(); it++) {
+			AVD_SG *sg = it->second;
 			avd_sg_adjust_config(sg);
-			dn = sg->name;
 		}
 	}
 

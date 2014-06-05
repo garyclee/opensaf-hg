@@ -472,7 +472,7 @@ static void si_add_to_model(AVD_SI *si)
 	si->svc_type = svctype_db->find(Amf::to_string(&si->saAmfSvcType));
 
 	if (si->saAmfSIProtectedbySG.length > 0)
-		si->sg_of_si = avd_sg_get(&si->saAmfSIProtectedbySG);
+		si->sg_of_si = sg_db->find(Amf::to_string(&si->saAmfSIProtectedbySG));
 
 	avd_svctype_add_si(si);
 	avd_app_add_si(si->app, si);
@@ -529,7 +529,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		return 0;
 	}
 
-	if (avd_sg_get(&aname) == NULL) {
+	if (sg_db->find(Amf::to_string(&aname)) == NULL) {
 		if (opdata == NULL) {
 			report_ccb_validation_error(opdata, "'%s' does not exist", aname.value);
 			return 0;
