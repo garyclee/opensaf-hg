@@ -1966,7 +1966,7 @@ static uint32_t dec_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	if (status != NCSCC_RC_SUCCESS)
 		osafassert(0);
 
-	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name)))
+	if (NULL == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name))))
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -2013,7 +2013,7 @@ static uint32_t dec_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	if (status != NCSCC_RC_SUCCESS)
 		osafassert(0);
 
-	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
+	if (NULL == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
 		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
@@ -2064,7 +2064,7 @@ static uint32_t dec_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
+	if (NULL == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
 		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
@@ -2163,7 +2163,7 @@ static uint32_t dec_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
+	if (NULL == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
 		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
@@ -2214,7 +2214,7 @@ static uint32_t dec_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
+	if (NULL == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
 		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
@@ -2265,7 +2265,7 @@ static uint32_t dec_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
+	if (NULL == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
 		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}

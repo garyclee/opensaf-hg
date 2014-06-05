@@ -1405,16 +1405,15 @@ void amfd_file_dump(const char *path)
 		dn = su->name;
 	}
 
-	AVD_COMP *comp;
-	dn.length = 0;
-	for (comp = avd_comp_getnext(&dn); comp != NULL; comp = avd_comp_getnext(&dn)) {
+	for (std::map<std::string, AVD_COMP*>::const_iterator it = comp_db->begin();
+			it != comp_db->end(); it++) {
+		const AVD_COMP *comp  = it->second;
 		fprintf(f, "%s\n", comp->comp_info.name.value);
 		fprintf(f, "\tsaAmfCompOperState=%u\n", comp->saAmfCompOperState);
 		fprintf(f, "\tsaAmfCompReadinessState=%u\n", comp->saAmfCompReadinessState);
 		fprintf(f, "\tsaAmfCompPresenceState=%u\n", comp->saAmfCompPresenceState);
 		fprintf(f, "\tsaAmfCompRestartCount=%u\n", comp->saAmfCompRestartCount);
 		fprintf(f, "\tsaAmfCompOperState=%s\n", comp->saAmfCompCurrProxyName.value);
-		dn = comp->comp_info.name;
 	}
 
 	for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();

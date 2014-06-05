@@ -439,8 +439,8 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 				su_si_rel_ptr->comp_name = su_si_ckpt->comp_name;
 				su_si_rel_ptr->csi_name = su_si_ckpt->csi_name;
 				TRACE("compcsi create for '%s' '%s'", su_si_rel_ptr->comp_name.value, su_si_rel_ptr->csi_name.value);
-				if ((comp_ptr = avd_comp_get(&(su_si_rel_ptr->comp_name))) == NULL) {
-					LOG_ER("avd_comp_get FAILED for '%s'", su_si_rel_ptr->comp_name.value);
+				if ((comp_ptr = comp_db->find(Amf::to_string(&(su_si_rel_ptr->comp_name)))) == NULL) {
+					LOG_ER("comp_db->find() FAILED for '%s'", su_si_rel_ptr->comp_name.value);
 					return NCSCC_RC_FAILURE;
 				}
 				if ((csi_ptr = csi_db->find(Amf::to_string(&(su_si_rel_ptr->csi_name)))) == NULL) {
@@ -469,8 +469,8 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 		if (NULL != su_si_rel_ptr) {
 			if(su_si_ckpt->csi_add_rem) {
 				TRACE("compcsi remove for '%s' '%s'", su_si_ckpt->comp_name.value, su_si_ckpt->csi_name.value);
-				if ((comp_ptr = avd_comp_get(&(su_si_ckpt->comp_name))) == NULL) {
-					LOG_ER("avd_comp_get FAILED for '%s'",su_si_ckpt->comp_name.value);
+				if ((comp_ptr = comp_db->find(Amf::to_string(&(su_si_ckpt->comp_name)))) == NULL) {
+					LOG_ER("comp_db->find() FAILED for '%s'",su_si_ckpt->comp_name.value);
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -543,8 +543,8 @@ uint32_t avd_ckpt_comp(AVD_CL_CB *cb, AVD_COMP *ckpt_comp, NCS_MBCSV_ACT_TYPE ac
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (NULL == (comp = avd_comp_get(dn))) {
-		LOG_ER("avd_comp_get FAILED for '%s'", dn->value);
+	if (NULL == (comp = comp_db->find(Amf::to_string(dn)))) {
+		LOG_ER("comp_db->find() FAILED for '%s'", dn->value);
 		goto done;
 	}
 	comp->saAmfCompOperState = ckpt_comp->saAmfCompOperState;

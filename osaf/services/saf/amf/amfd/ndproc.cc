@@ -607,7 +607,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	switch (n2d_msg->msg_info.n2d_data_req.param_info.class_id) {
 	case AVSV_SA_AMF_COMP:{
 			/* Find the component record in the database, specified in the message. */
-			if ((comp = avd_comp_get(&n2d_msg->msg_info.n2d_data_req.param_info.name)) == NULL) {
+			if ((comp = comp_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_data_req.param_info.name))) == NULL) {
 				/* In case of component delete, component gets
 				   deleted at Amfd first and then it gets
 				   uninstantiated and then deleted at Amfnd.
@@ -830,7 +830,7 @@ void avd_comp_validation_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* Update the receive id for the node */
 	m_AVD_SET_AVND_RCV_ID(cb, node, (valid_info->msg_id));
 
-	comp_ptr = avd_comp_get(&valid_info->comp_name);
+	comp_ptr = comp_db->find(Amf::to_string(&valid_info->comp_name));
 
 	if (NULL != comp_ptr) {
 		/* We found the component, reply to AvND. */

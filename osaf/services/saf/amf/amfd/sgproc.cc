@@ -911,7 +911,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV (avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
 
 				susi->csi_add_rem = static_cast<SaBoolT>(false);
-				comp = avd_comp_get(&susi->comp_name);
+				comp = comp_db->find(Amf::to_string(&susi->comp_name));
 				osafassert(comp);
 				csi = csi_db->find(Amf::to_string(&susi->csi_name));
 				osafassert(csi);
@@ -933,7 +933,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				while(t_sisu) {
 					if (true == t_sisu->csi_add_rem) {
 						all_csi_rem = false;
-						comp = avd_comp_get(&t_sisu->comp_name);
+						comp = comp_db->find(Amf::to_string(&t_sisu->comp_name));
 						osafassert(comp);
 						csi = csi_db->find(Amf::to_string(&t_sisu->csi_name));
 						osafassert(csi);
@@ -972,7 +972,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 				osafassert(susi->csi_add_rem);
 				susi->csi_add_rem = static_cast<SaBoolT>(false);
-				comp = avd_comp_get(&susi->comp_name);
+				comp = comp_db->find(Amf::to_string(&susi->comp_name));
 				osafassert(comp);
 				csi = csi_db->find(Amf::to_string(&susi->csi_name));
 				osafassert(csi);
@@ -989,7 +989,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				while(t_sisu) {
 					if (true == t_sisu->csi_add_rem) {
 						/* Find the comp csi relationship. */
-						comp = avd_comp_get(&t_sisu->comp_name);
+						comp = comp_db->find(Amf::to_string(&t_sisu->comp_name));
 						osafassert(comp);
 						csi = csi_db->find(Amf::to_string(&t_sisu->csi_name));
 						osafassert(csi);
