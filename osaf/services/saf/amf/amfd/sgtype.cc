@@ -28,7 +28,7 @@
 #include <sgtype.h>
 #include <proc.h>
 
-static NCS_PATRICIA_TREE sgtype_db;
+AmfDb<std::string, AVD_AMF_SG_TYPE> *sgtype_db = NULL;
 
 void avd_sgtype_add_sg(AVD_SG *sg)
 {
@@ -65,19 +65,9 @@ void avd_sgtype_remove_sg(AVD_SG *sg)
 	}
 }
 
-AVD_AMF_SG_TYPE *avd_sgtype_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_AMF_SG_TYPE *)ncs_patricia_tree_get(&sgtype_db, (uint8_t *)&tmp);
-}
-
 static void sgtype_delete(AVD_AMF_SG_TYPE *sg_type)
 {
-	(void)ncs_patricia_tree_del(&sgtype_db, &sg_type->tree_node);
+	sgtype_db->erase(Amf::to_string(&sg_type->name));
 	delete [] sg_type->saAmfSGtValidSuTypes;
 	delete sg_type;
 }
@@ -88,9 +78,7 @@ static void sgtype_delete(AVD_AMF_SG_TYPE *sg_type)
  */
 static void sgtype_add_to_model(AVD_AMF_SG_TYPE *sgt)
 {
-	unsigned int rc;
-
-	rc = ncs_patricia_tree_add(&sgtype_db, &sgt->tree_node);
+	unsigned int rc = sgtype_db->insert(Amf::to_string(&sgt->name),sgt);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
@@ -201,7 +189,6 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 
 	memcpy(sgt->name.value, dn->value, dn->length);
 	sgt->name.length = dn->length;
-	sgt->tree_node.key_info = (uint8_t *)&(sgt->name);
 
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtRedundancyModel"), attributes, 0, &sgt->saAmfSgtRedundancyModel);
 	osafassert(error == SA_AIS_OK);
@@ -300,7 +287,7 @@ SaAisErrorT avd_sgtype_config_get(void)
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
-		if (( sgt = avd_sgtype_get(&dn)) == NULL) {
+		if (( sgt = sgtype_db->find(Amf::to_string(&dn))) == NULL) {
 			if ((sgt = sgtype_create(&dn, attributes)) == NULL)
 				goto done2;
 
@@ -329,7 +316,7 @@ static SaAisErrorT sgtype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
-	AVD_AMF_SG_TYPE *sgt = avd_sgtype_get(&opdata->objectName);
+	AVD_AMF_SG_TYPE *sgt = sgtype_db->find(Amf::to_string(&opdata->objectName));
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
@@ -382,7 +369,7 @@ static SaAisErrorT sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = sgtype_ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		sgt = avd_sgtype_get(&opdata->objectName);
+		sgt = sgtype_db->find(Amf::to_string(&opdata->objectName));
 		if (sgt->list_of_sg != NULL) {
 			/* check whether there exists a delete operation for 
 			 * each of the SG in the sg_type list in the current CCB 
@@ -425,7 +412,7 @@ static void sgtype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
-	AVD_AMF_SG_TYPE *sgt = avd_sgtype_get(&opdata->objectName);
+	AVD_AMF_SG_TYPE *sgt = sgtype_db->find(Amf::to_string(&opdata->objectName));
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		bool value_is_deleted; 
@@ -500,11 +487,8 @@ static void sgtype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_sgtype_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
 
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&sgtype_db, &patricia_params) == NCSCC_RC_SUCCESS);
-
+	sgtype_db = new AmfDb<std::string, AVD_AMF_SG_TYPE>;
 	avd_class_impl_set("SaAmfSGType", NULL, NULL, sgtype_ccb_completed_cb,
 		sgtype_ccb_apply_cb);
 	avd_class_impl_set("SaAmfSGBaseType", NULL, NULL,

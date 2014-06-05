@@ -26,12 +26,11 @@
 #define AVD_SGTYPE_H
 
 #include <saAmf.h>
-#include <ncspatricia.h>
+#include <include/db_template.h>
 
 struct avd_sg_tag;
 
 typedef struct avd_amf_sg_type_tag {
-	NCS_PATRICIA_NODE tree_node;	/* key will be sg type name */
 	SaNameT name;
 	bool saAmfSgtDefAutoRepair_configured; /* True when user configures saAmfSGDefAutoRepair else false */
    /******************** B.04 model *************************************************/
@@ -51,6 +50,7 @@ typedef struct avd_amf_sg_type_tag {
 
 } AVD_AMF_SG_TYPE;
 
+extern AmfDb<std::string, AVD_AMF_SG_TYPE> *sgtype_db;
 SaAisErrorT avd_sgtype_config_get(void);
 AVD_AMF_SG_TYPE *avd_sgtype_get(const SaNameT *dn);
 void avd_sgtype_add_sg(struct avd_sg_tag *sg);
