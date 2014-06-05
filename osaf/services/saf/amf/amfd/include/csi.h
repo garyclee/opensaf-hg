@@ -84,11 +84,12 @@ typedef struct avd_csi_tag {
 } AVD_CSI;
 
 typedef struct avd_cstype {
-	NCS_PATRICIA_NODE tree_node;	/* key is name */
 	SaNameT name;		/* name of the CSType */
 	SaStringT *saAmfCSAttrName;
 	AVD_CSI *list_of_csi;
 } avd_cstype_t;
+
+extern AmfDb<std::string, avd_cstype_t> *cstype_db;
 
 /* This data structure lives in the AvD and reflects relationship
  * between the component and CSI on the AvD.
