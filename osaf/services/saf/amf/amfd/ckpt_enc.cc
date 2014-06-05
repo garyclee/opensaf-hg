@@ -2446,17 +2446,15 @@ static uint32_t enc_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num
 static uint32_t enc_cs_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_COMP *comp;
-	SaNameT comp_name = {0};
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	comp_name.length = 0;
-	for (comp = avd_comp_getnext(&comp_name); comp != NULL;
-	     comp = avd_comp_getnext(&comp_name)) {
+	for (std::map<std::string, AVD_COMP*>::const_iterator it = comp_db->begin();
+			it != comp_db->end(); it++) {
+		AVD_COMP *comp  = it->second;
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp, &enc->io_uba,
 					    EDP_OP_TYPE_ENC, comp, &ederror, enc->i_peer_version);
 
@@ -2465,7 +2463,6 @@ static uint32_t enc_cs_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 			return NCSCC_RC_FAILURE;
 		}
 
-		comp_name = comp->comp_info.name;
 		(*num_of_obj)++;
 	}
 

@@ -55,7 +55,6 @@ typedef struct {
 /* AMF Class SaAmfCompType */
 typedef struct avd_comp_tag {
 
-	NCS_PATRICIA_NODE tree_node;	/* key will be the component name */
 	SaNameT saAmfCompType;
 
 	/* Detailed as in data structure definition */
@@ -121,6 +120,8 @@ typedef struct avd_comp_tag {
 						 * in this SU */
 	AVD_ADMIN_OPER_CBK admin_pend_cbk;  /* holds callback invocation for admin operation */
 } AVD_COMP;
+
+extern AmfDb<std::string, AVD_COMP> *comp_db;
 
 /* AMF Class SaAmfCompType */
 typedef struct avd_amf_comp_type_tag {
@@ -211,8 +212,6 @@ extern void avd_comp_db_add(AVD_COMP *comp);
 
 extern AVD_COMP *avd_comp_new(const SaNameT *dn);
 extern void avd_comp_delete(AVD_COMP *comp);
-extern AVD_COMP *avd_comp_get(const SaNameT *comp_name);
-extern AVD_COMP *avd_comp_getnext(const SaNameT *comp_name);
 extern void avd_su_remove_comp(AVD_COMP* comp);
 extern SaAisErrorT avd_comp_config_get(const SaNameT* su_name, AVD_SU *su);
 extern void avd_comp_constructor(void);

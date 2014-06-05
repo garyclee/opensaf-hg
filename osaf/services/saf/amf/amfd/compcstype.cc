@@ -71,7 +71,7 @@ static void compcstype_add_to_model(AVD_COMPCS_TYPE *cst)
 		SaNameT dn;
 		avd_compcstype_db_add(cst);
 		avsv_sanamet_init(&cst->name, &dn, "safComp=");
-		cst->comp = avd_comp_get(&dn);
+		cst->comp = comp_db->find(Amf::to_string(&dn));
 	}
 }
 
@@ -147,7 +147,7 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 	*/
 
 	avsv_sanamet_init(dn, &comp_name, "safComp=");
-	comp = avd_comp_get(&comp_name);
+	comp = comp_db->find(Amf::to_string(&comp_name));
 
 	if (comp != NULL)
 		comptype_name = &comp->saAmfCompType;
@@ -219,7 +219,7 @@ static AVD_COMPCS_TYPE *compcstype_create(const SaNameT *dn, const SaImmAttrValu
 		goto done;
 
 	avsv_sanamet_init(dn, &comp_name, "safComp=");
-	comp = avd_comp_get(&comp_name);
+	comp = comp_db->find(Amf::to_string(&comp_name));
 
 	p = strchr(cstype_name, ',') + 1;
 	p = strchr(p, ',');
@@ -344,7 +344,7 @@ static SaAisErrorT compcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		cst = compcstype_db->find(Amf::to_string(&opdata->objectName));
 		osafassert(cst);
 		avsv_sanamet_init(&opdata->objectName, &comp_name, "safComp=");
-		comp = avd_comp_get(&comp_name);
+		comp = comp_db->find(Amf::to_string(&comp_name));
 		for (curr_susi = comp->su->list_of_susi; curr_susi != NULL; curr_susi = curr_susi->su_next)
 			for (compcsi = curr_susi->list_of_csicomp; compcsi; compcsi = compcsi->susi_csicomp_next) {
 				if (compcsi->comp == comp) {

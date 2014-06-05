@@ -40,14 +40,14 @@
 #include <proc.h>
 #include <ckpt_msg.h>
 
-static NCS_PATRICIA_TREE comp_db;
+AmfDb<std::string, AVD_COMP> *comp_db = NULL;
 
 void avd_comp_db_add(AVD_COMP *comp)
 {
 	unsigned int rc;
 
-	if (avd_comp_get(&comp->comp_info.name) == NULL) {
-		rc = ncs_patricia_tree_add(&comp_db, &comp->tree_node);
+	if (comp_db->find(Amf::to_string(&comp->comp_info.name)) == NULL) {
+		rc = comp_db->insert(Amf::to_string(&comp->comp_info.name), comp);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
@@ -60,7 +60,6 @@ AVD_COMP *avd_comp_new(const SaNameT *dn)
 	
 	memcpy(comp->comp_info.name.value, dn->value, dn->length);
 	comp->comp_info.name.length = dn->length;
-	comp->tree_node.key_info = (uint8_t *)&(comp->comp_info.name);
 	comp->comp_info.cap = SA_AMF_COMP_ONE_ACTIVE_OR_ONE_STANDBY;
 	comp->comp_info.category = AVSV_COMP_TYPE_NON_SAF;
 	comp->comp_info.def_recvr = SA_AMF_COMPONENT_RESTART;
@@ -166,33 +165,13 @@ void avd_comp_proxy_status_change(AVD_COMP *comp, SaAmfProxyStatusT proxy_status
 
 }
 
-AVD_COMP *avd_comp_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_COMP *)ncs_patricia_tree_get(&comp_db, (uint8_t *)&tmp);
-}
-
-AVD_COMP *avd_comp_getnext(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_COMP *)ncs_patricia_tree_getnext(&comp_db, (uint8_t *)&tmp);
-}
-
 void avd_comp_delete(AVD_COMP *comp)
 {
 	AVD_SU *su = comp->su;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
 	su->remove_comp(comp);
 	avd_comptype_remove_comp(comp);
-	(void)ncs_patricia_tree_del(&comp_db, &comp->tree_node);
+	comp_db->erase(Amf::to_string(&comp->comp_info.name));
 	delete comp;
 }
 
@@ -474,7 +453,7 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if (NULL == (comp = avd_comp_get(dn))) {
+	if (NULL == (comp = comp_db->find(Amf::to_string(dn)))) {
 		if ((comp = avd_comp_new(dn)) == NULL)
 			goto done;
 	}
@@ -749,7 +728,7 @@ static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 {
         TRACE_ENTER2("%llu, '%s', %llu", invocation, objectName->value, opId);
 
-	AVD_COMP *comp = avd_comp_get(objectName);
+	AVD_COMP *comp = comp_db->find(Amf::to_string(objectName));
 	osafassert(comp != NULL);
 
 	switch (opId) {
@@ -803,7 +782,7 @@ static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 static SaAisErrorT comp_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
-	AVD_COMP *comp = avd_comp_get(objectName);
+	AVD_COMP *comp = comp_db->find(Amf::to_string(objectName));
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
@@ -837,7 +816,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 	TRACE_ENTER();
 
-	comp = avd_comp_get(&opdata->objectName);
+	comp = comp_db->find(Amf::to_string(&opdata->objectName));
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
@@ -1113,7 +1092,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	param.class_id = AVSV_SA_AMF_COMP;
 	param.act = AVSV_OBJ_OPR_MOD;
 
-	comp = avd_comp_get(&opdata->objectName);
+	comp = comp_db->find(Amf::to_string(&opdata->objectName));
 	param.name = comp->comp_info.name;
 	comp_type = comptype_db->find(Amf::to_string(&comp->saAmfCompType));
 
@@ -1495,7 +1474,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 {
 	TRACE_ENTER();
 
-	AVD_COMP *comp = avd_comp_get(&opdata->objectName);
+	AVD_COMP *comp = comp_db->find(Amf::to_string(&opdata->objectName));
 	/* comp should be found in the database even if it was 
 	 * due to parent su delete the changes are applied in 
 	 * bottom up order so all the component deletes are applied 
@@ -1557,7 +1536,7 @@ static void comp_ccb_apply_cb(CcbUtilOperationData_t *opdata)
  */
 AVD_COMP *avd_comp_get_or_create(const SaNameT *dn)
 {
-	AVD_COMP *comp = avd_comp_get(dn);
+	AVD_COMP *comp = comp_db->find(Amf::to_string(dn));
 
 	if (!comp) {
 		TRACE("'%s' does not exist, creating it", dn->value);
@@ -1571,11 +1550,8 @@ AVD_COMP *avd_comp_get_or_create(const SaNameT *dn)
 
 void avd_comp_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
 
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&comp_db, &patricia_params) == NCSCC_RC_SUCCESS);
-
+	comp_db = new AmfDb<std::string, AVD_COMP>;
 	avd_class_impl_set("SaAmfComp", comp_rt_attr_cb, comp_admin_op_cb,
 		comp_ccb_completed_cb, comp_ccb_apply_cb);
 }

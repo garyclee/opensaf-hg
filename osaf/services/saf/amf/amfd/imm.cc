@@ -1574,8 +1574,6 @@ void avd_saImmOiRtObjectDelete(const SaNameT* dn)
  */
 void avd_imm_update_runtime_attrs(void)
 {
-	SaNameT comp_name ={0};
-	AVD_COMP *comp;
 	SaNameT node_name = {0};
 	AVD_AVND *node;
 
@@ -1601,8 +1599,9 @@ void avd_imm_update_runtime_attrs(void)
 	}
 
 	/* Update Component Class runtime cached attributes. */
-	comp = avd_comp_getnext(&comp_name);
-	while (comp != NULL) {
+	for (std::map<std::string, AVD_COMP*>::const_iterator it = comp_db->begin();
+			it != comp_db->end(); it++) {
+		AVD_COMP *comp  = it->second;
 		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
 			"saAmfCompReadinessState", SA_IMM_ATTR_SAUINT32T,
 			&comp->saAmfCompReadinessState);
@@ -1615,7 +1614,6 @@ void avd_imm_update_runtime_attrs(void)
 			"saAmfCompPresenceState", SA_IMM_ATTR_SAUINT32T,
 			&comp->saAmfCompPresenceState);
 
-		comp = avd_comp_getnext(&comp->comp_info.name);
 	}
 
 	/* Update Node Class runtime cached attributes. */

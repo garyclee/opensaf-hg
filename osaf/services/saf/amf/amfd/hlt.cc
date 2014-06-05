@@ -70,7 +70,7 @@ static SaAisErrorT ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 	TRACE_ENTER();
 	avsv_sanamet_init(&opdata->objectName, &comp_name, "safComp=");
 
-	comp = avd_comp_get(&comp_name);
+	comp = comp_db->find(Amf::to_string(&comp_name));
 	for (curr_susi = comp->su->list_of_susi; curr_susi != NULL; curr_susi = curr_susi->su_next)
 		for (compcsi = curr_susi->list_of_csicomp; compcsi; compcsi = compcsi->susi_csicomp_next) {
 			if (compcsi->comp == comp) {
@@ -125,7 +125,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	comp_name = strstr((char *)opdata->objectName.value, "safComp");
 	osafassert(comp_name);
 	comp_dn.length = sprintf((char *)comp_dn.value, "%s", comp_name);
-	comp = avd_comp_get(&comp_dn);
+	comp = comp_db->find(Amf::to_string(&comp_dn));
 	osafassert(comp);
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
