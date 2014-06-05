@@ -22,7 +22,7 @@
 #include <csi.h>
 #include <imm.h>
 
-static NCS_PATRICIA_TREE cstype_db;
+AmfDb<std::string, avd_cstype_t> *cstype_db = NULL;
 
 //
 // TODO(HANO) Temporary use this function instead of strdup which uses malloc.
@@ -37,7 +37,7 @@ static char *StrDup(const char *s)
 
 static void cstype_add_to_model(avd_cstype_t *cst)
 {
-	unsigned int rc = ncs_patricia_tree_add(&cstype_db, &cst->tree_node);
+	uint32_t rc = cstype_db->insert(Amf::to_string(&cst->name),cst);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
@@ -52,7 +52,6 @@ static avd_cstype_t *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 *
 
 	memcpy(cst->name.value, dn->value, dn->length);
 	cst->name.length = dn->length;
-	cst->tree_node.key_info = (uint8_t *)&cst->name;
 
 	if ((immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfCSAttrName"), attributes, &values_number) == SA_AIS_OK) &&
 	    (values_number > 0)) {
@@ -72,37 +71,18 @@ static avd_cstype_t *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 *
  */
 static void cstype_delete(avd_cstype_t *cst)
 {
-	unsigned int rc;
 	char *p;
 	int i = 0;
 
-	rc = ncs_patricia_tree_del(&cstype_db, &cst->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
+	cstype_db->erase(Amf::to_string(&cst->name));
 
 	if (cst->saAmfCSAttrName != NULL) {
 		while ((p = cst->saAmfCSAttrName[i++]) != NULL) {
 			delete [] p;
 		}
 	}
-
 	delete [] cst->saAmfCSAttrName;
 	delete cst;
-}
-
-/**
- * Lookup object using name in DB
- * @param dn
- * 
- * @return avd_cstype_t*
- */
-avd_cstype_t *avd_cstype_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (avd_cstype_t *)ncs_patricia_tree_get(&cstype_db, (uint8_t *)&tmp);
 }
 
 void avd_cstype_add_csi(AVD_CSI *csi)
@@ -190,7 +170,7 @@ SaAisErrorT avd_cstype_config_get(void)
 		if (!is_config_valid(&dn, NULL))
 			goto done2;
 
-		if ((cst = avd_cstype_get(&dn)) == NULL){
+		if ((cst = cstype_db->find(Amf::to_string(&dn))) == NULL){
 			if ((cst = cstype_create(&dn, attributes)) == NULL)
 				goto done2;
 
@@ -232,7 +212,7 @@ static SaAisErrorT cstype_ccb_completed_hdlr(CcbUtilOperationData_t *opdata)
 		report_ccb_validation_error(opdata, "Modification of SaAmfCSType not supported");
 		break;
 	case CCBUTIL_DELETE:
-		cst = avd_cstype_get(&opdata->objectName);
+		cst = cstype_db->find(Amf::to_string(&opdata->objectName));
 		if (cst->list_of_csi != NULL) {
 			/* check whether there exists a delete operation for 
 			 * each of the CSI in the cs_type list in the current CCB 
@@ -286,10 +266,7 @@ static void cstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_cstype_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&cstype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	cstype_db= new AmfDb<std::string, avd_cstype_t>;
 
 	avd_class_impl_set("SaAmfCSType", NULL, NULL, cstype_ccb_completed_hdlr,
 		cstype_ccb_apply_cb);

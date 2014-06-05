@@ -117,7 +117,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCSType"), attributes, 0, &aname);
 	osafassert(rc == SA_AIS_OK);
 
-	if (avd_cstype_get(&aname) == NULL) {
+	if (cstype_db->find(Amf::to_string(&aname)) == NULL) {
 		/* CS type does not exist in current model, check CCB if passed as param */
 		if (opdata == NULL) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
@@ -331,7 +331,7 @@ static void csi_get_attr_and_add_to_model(AVD_CSI *csi, const SaImmAttrValuesT_2
 		TRACE_ENTER2("DEP not configured, marking rank 1. Csi'%s', Rank'%u'",csi->name.value,csi->rank);
 	}
 
-	csi->cstype = avd_cstype_get(&csi->saAmfCSType);
+	csi->cstype = cstype_db->find(Amf::to_string(&csi->saAmfCSType));
 	csi->si = avd_si_get(si_name);
 
 	avd_cstype_add_csi(csi);
@@ -546,7 +546,7 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
-			if (avd_cstype_get(&cstype_name) == NULL) {
+			if (cstype_db->find(Amf::to_string(&cstype_name)) == NULL) {
 				report_ccb_validation_error(opdata, "CS Type not found '%s'", cstype_name.value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -778,7 +778,7 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			SaNameT cstype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
 			TRACE("saAmfCSType modified from '%s' to '%s' for Csi'%s'", csi->saAmfCSType.value,
 					cstype_name.value, csi->name.value);
-			csi_type = avd_cstype_get(&cstype_name);
+			csi_type = cstype_db->find(Amf::to_string(&cstype_name));
 			avd_cstype_remove_csi(csi);
 			csi->saAmfCSType = cstype_name;
 			csi->cstype = csi_type;
