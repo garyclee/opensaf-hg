@@ -65,7 +65,7 @@ static void sg_add_to_model(AVD_SG *sg)
 	sg->app = app_db->find(Amf::to_string(&dn));
 
 	avd_sg_db_add(sg);
-	sg->sg_type = avd_sgtype_get(&sg->saAmfSGType);
+	sg->sg_type = sgtype_db->find(Amf::to_string(&sg->saAmfSGType));
 	osafassert(sg->sg_type);
 	avd_sgtype_add_sg(sg);
 	avd_app_add_sg(sg->app, sg);
@@ -195,7 +195,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGType"), attributes, 0, &aname);
 	osafassert(rc == SA_AIS_OK);
 
-	if (avd_sgtype_get(&aname) == NULL) {
+	if (sgtype_db->find(Amf::to_string(&aname)) == NULL) {
 		if (opdata == NULL) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
 			return 0;
@@ -258,7 +258,7 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGType"), attributes, 0, &sg->saAmfSGType);
 	osafassert(error == SA_AIS_OK);
 
-	sgt = avd_sgtype_get(&sg->saAmfSGType);
+	sgt = sgtype_db->find(Amf::to_string(&sg->saAmfSGType));
 	osafassert(sgt);
 	sg->sg_type = sgt;
 
@@ -557,7 +557,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 					goto done;
 				}
 
-				if (avd_sgtype_get(&sg_type_name) == NULL) {
+				if (sgtype_db->find(Amf::to_string(&sg_type_name)) == NULL) {
 					report_ccb_validation_error(opdata,
 						"SG Type '%s' not found", sg_type_name.value);
 					rc = SA_AIS_ERR_BAD_OPERATION;
@@ -797,7 +797,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	sg = sg_db->find(Amf::to_string(&opdata->objectName));
 	assert(sg != NULL);
 
-	sg_type = avd_sgtype_get(&sg->saAmfSGType);
+	sg_type = sgtype_db->find(Amf::to_string(&sg->saAmfSGType));
 	osafassert(NULL != sg_type);
 
 	if (sg->saAmfSGAdminState != SA_AMF_ADMIN_UNLOCKED) {
@@ -819,7 +819,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				TRACE("saAmfSGType modified from '%s' to '%s' of Sg'%s'", sg->saAmfSGType.value, 
 						sg_type_name.value, sg->name.value);
 
-				sg_type = avd_sgtype_get(&sg_type_name);
+				sg_type = sgtype_db->find(Amf::to_string(&sg_type_name));
 				osafassert(NULL != sg_type);
 
 				/* Remove from old type */
