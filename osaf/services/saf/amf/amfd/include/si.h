@@ -132,6 +132,7 @@ typedef struct {
 
 extern AmfDb<std::string, AVD_SI> *si_db;
 extern AmfDb<std::string, AVD_SVC_TYPE_CS_TYPE> *svctypecstypes_db;
+extern AmfDb<std::string, AVD_SVC_TYPE> *svctype_db;
 #define AVD_SI_NULL ((AVD_SI *)0)
 #define m_AVD_SI_ACTV_MAX_SU(l_si) (l_si)->saAmfSIPrefActiveAssignments
 #define m_AVD_SI_ACTV_CURR_SU(l_si) (l_si)->saAmfSINumCurrActiveAssignments
@@ -153,7 +154,6 @@ extern AVD_SI *avd_si_get(const SaNameT *si_name);
 extern SaAisErrorT avd_si_config_get(struct avd_app_tag *app);
 extern void avd_si_constructor(void);
 
-extern AVD_SVC_TYPE *avd_svctype_get(const SaNameT *dn);
 extern SaAisErrorT avd_svctype_config_get(void);
 extern void avd_svctype_add_si(AVD_SI *si);
 extern void avd_svctype_remove_si(AVD_SI *si);

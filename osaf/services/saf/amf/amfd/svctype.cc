@@ -28,7 +28,7 @@
 #include <csi.h>
 #include <proc.h>
 
-static NCS_PATRICIA_TREE svctype_db;
+AmfDb<std::string, AVD_SVC_TYPE> *svctype_db = NULL;
 
 //
 // TODO(HANO) Temporary use this function instead of strdup which uses malloc.
@@ -43,24 +43,14 @@ static char *StrDup(const char *s)
 
 static void svctype_db_add(AVD_SVC_TYPE *svct)
 {
-	unsigned int rc = ncs_patricia_tree_add(&svctype_db, &svct->tree_node);
+	unsigned int rc = svctype_db->insert(Amf::to_string(&svct->name),svct);
 	osafassert (rc == NCSCC_RC_SUCCESS);
 }
 
-AVD_SVC_TYPE *avd_svctype_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_SVC_TYPE *)ncs_patricia_tree_get(&svctype_db, (uint8_t *)&tmp);
-}
 
 static void svctype_delete(AVD_SVC_TYPE *svc_type)
 {
-	unsigned int rc = ncs_patricia_tree_del(&svctype_db, &svc_type->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
+	svctype_db->erase(Amf::to_string(&svc_type->name));
 
 	if (svc_type->saAmfSvcDefActiveWeight != NULL) {
 		unsigned int i = 0;
@@ -94,7 +84,6 @@ static AVD_SVC_TYPE *svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 
 
 	memcpy(svct->name.value, dn->value, dn->length);
 	svct->name.length = dn->length;
-	svct->tree_node.key_info = (uint8_t *)&svct->name;
 	svct->saAmfSvcDefActiveWeight = NULL;
 	svct->saAmfSvcDefStandbyWeight = NULL;
 
@@ -159,7 +148,7 @@ static SaAisErrorT svctype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		report_ccb_validation_error(opdata, "Modification of SaAmfSvcType not supported");
 		break;
 	case CCBUTIL_DELETE:
-		svc_type = avd_svctype_get(&opdata->objectName);
+		svc_type = svctype_db->find(Amf::to_string(&opdata->objectName));
 		if (NULL != svc_type->list_of_si) {
 			/* check whether there exists a delete operation for
 			 * each of the SI in the svc_type list in the current CCB
@@ -250,7 +239,7 @@ SaAisErrorT avd_svctype_config_get(void)
 		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
 
-		if ((svc_type = avd_svctype_get(&dn))==NULL) {
+		if ((svc_type = svctype_db->find(Amf::to_string(&dn))) == NULL) {
 			if ((svc_type = svctype_create(&dn, attributes)) == NULL)
 				goto done2;
 
@@ -308,11 +297,7 @@ void avd_svctype_remove_si(AVD_SI *si)
 
 void avd_svctype_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(SaNameT);
-
-	osafassert(ncs_patricia_tree_init(&svctype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	svctype_db = new AmfDb<std::string, AVD_SVC_TYPE>;
 
 	avd_class_impl_set("SaAmfSvcType", NULL, NULL, svctype_ccb_completed_cb,
 			svctype_ccb_apply_cb);
