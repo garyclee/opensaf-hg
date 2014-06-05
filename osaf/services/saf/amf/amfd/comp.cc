@@ -217,7 +217,7 @@ static void comp_add_to_model(AVD_COMP *comp)
 	su = comp->su = su_db->find(Amf::to_string(&dn));
 
 	avd_comp_db_add(comp);
-	comp->comp_type = avd_comptype_get(&comp->saAmfCompType);
+	comp->comp_type = comptype_db->find(Amf::to_string(&comp->saAmfCompType));
 	osafassert(comp->comp_type);
 	avd_comptype_add_comp(comp);
 	su->add_comp(comp);
@@ -316,7 +316,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompType"), attributes, 0, &aname);
 	osafassert(rc == SA_AIS_OK);
 
-	if (avd_comptype_get(&aname) == NULL) {
+	if (comptype_db->find(Amf::to_string(&aname)) == NULL) {
 		/* Comp type does not exist in current model, check CCB */
 		if (opdata == NULL) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
@@ -484,7 +484,7 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompType"), attributes, 0, &comp->saAmfCompType);
 	osafassert(error == SA_AIS_OK);
 
-	if ((comptype = avd_comptype_get(&comp->saAmfCompType)) == NULL) {
+	if ((comptype = comptype_db->find(Amf::to_string(&comp->saAmfCompType))) == NULL) {
 		LOG_ER("saAmfCompType '%s' does not exist", comp->saAmfCompType.value);
 		goto done;
 	}
@@ -851,7 +851,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 		if (!strcmp(attribute->attrName, "saAmfCompType")) {
 			SaNameT dn = *((SaNameT*)value);
-			if (NULL == avd_comptype_get(&dn)) {
+			if (NULL == comptype_db->find(Amf::to_string(&dn))) {
 				report_ccb_validation_error(opdata, "saAmfCompType '%s' not found", dn.value);
 				goto done;
 			}
@@ -1115,7 +1115,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 	comp = avd_comp_get(&opdata->objectName);
 	param.name = comp->comp_info.name;
-	comp_type = avd_comptype_get(&comp->saAmfCompType);
+	comp_type = comptype_db->find(Amf::to_string(&comp->saAmfCompType));
 
 	su_node_ptr = comp->su->get_node_ptr();
 
@@ -1148,7 +1148,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 					opdata->objectName.value);
 			avd_comptype_remove_comp(comp);
 			comp->saAmfCompType = *dn;
-			comp->comp_type = avd_comptype_get(dn);
+			comp->comp_type = comptype_db->find(Amf::to_string(dn));
 			avd_comptype_add_comp(comp);
 			param.attr_id = saAmfCompType_ID;
 			param.name_sec = *dn;

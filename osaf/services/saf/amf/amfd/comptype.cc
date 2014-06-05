@@ -27,33 +27,19 @@
 /* Global variable for the singleton object used by comp class */
 AVD_COMP_GLOBALATTR avd_comp_global_attrs;
 
-static NCS_PATRICIA_TREE comptype_db;
+AmfDb<std::string, AVD_COMP_TYPE> *comptype_db = NULL;
+
 
 static void comptype_db_add(AVD_COMP_TYPE *compt)
 {
-	unsigned int rc = ncs_patricia_tree_add(&comptype_db, &compt->tree_node);
+	unsigned int rc = comptype_db->insert(Amf::to_string(&compt->name),compt);
 	osafassert (rc == NCSCC_RC_SUCCESS);
-}
-
-AVD_COMP_TYPE *avd_comptype_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_COMP_TYPE *)ncs_patricia_tree_get(&comptype_db, (uint8_t *)&tmp);
 }
 
 static void comptype_delete(AVD_COMP_TYPE *avd_comp_type)
 {
-	unsigned int rc;
-
 	osafassert(NULL == avd_comp_type->list_of_comp);
-
-	rc = ncs_patricia_tree_del(&comptype_db, &avd_comp_type->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
-
+	comptype_db->erase(Amf::to_string(&avd_comp_type->name));
 	delete avd_comp_type;
 }
 
@@ -101,7 +87,6 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 	memcpy(compt->name.value, dn->value, dn->length);
 	compt->name.length = dn->length;
-	compt->tree_node.key_info = (uint8_t *)&(compt->name);
 
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtCompCategory"), attributes, 0, &compt->saAmfCtCompCategory);
 	osafassert(error == SA_AIS_OK);
@@ -391,7 +376,7 @@ SaAisErrorT avd_comptype_config_get(void)
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 		if (config_is_valid(&dn, attributes, NULL) == false)
 			goto done2;
-		if ((comp_type = avd_comptype_get(&dn)) == NULL) {
+		if ((comp_type = comptype_db->find(Amf::to_string(&dn))) == NULL) {
 			if ((comp_type = comptype_create(&dn, attributes)) == NULL)
 				goto done2;
 
@@ -553,7 +538,7 @@ static SaAisErrorT comptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		comp_type = avd_comptype_get(&opdata->objectName);
+		comp_type = comptype_db->find(Amf::to_string(&opdata->objectName));
 		if (NULL != comp_type->list_of_comp) {
 			/* check whether there exists a delete operation for 
 			 * each of the Comp in the comp_type list in the current CCB
@@ -586,11 +571,7 @@ done:
 
 void avd_comptype_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&comptype_db, &patricia_params) == NCSCC_RC_SUCCESS);
-
+	comptype_db = new AmfDb<std::string, AVD_COMP_TYPE>;
 	avd_class_impl_set("SaAmfCompBaseType", NULL, NULL,
 		avd_imm_default_OK_completed_cb, NULL);
 	avd_class_impl_set("SaAmfCompType", NULL, NULL,
