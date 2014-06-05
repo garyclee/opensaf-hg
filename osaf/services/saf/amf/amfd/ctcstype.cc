@@ -23,11 +23,11 @@
 #include <comp.h>
 #include <imm.h>
 
-static NCS_PATRICIA_TREE ctcstype_db;
+AmfDb<std::string, AVD_CTCS_TYPE> *ctcstype_db = NULL;
 
 static void ctcstype_db_add(AVD_CTCS_TYPE *ctcstype)
 {
-	unsigned int rc = ncs_patricia_tree_add(&ctcstype_db, &ctcstype->tree_node);
+	unsigned int rc = ctcstype_db->insert(Amf::to_string(&ctcstype->name),ctcstype);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
@@ -74,7 +74,6 @@ static AVD_CTCS_TYPE *ctcstype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 	memcpy(ctcstype->name.value, dn->value, dn->length);
 	ctcstype->name.length = dn->length;
-	ctcstype->tree_node.key_info = (uint8_t *)&(ctcstype->name);
 
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtCompCapability"), attributes, 0, &ctcstype->saAmfCtCompCapability);
 	osafassert(error == SA_AIS_OK);
@@ -94,25 +93,6 @@ static AVD_CTCS_TYPE *ctcstype_create(const SaNameT *dn, const SaImmAttrValuesT_
 		ctcstype = NULL;
 	}
 	return ctcstype;
-}
-
-static void ctcstype_delete(AVD_CTCS_TYPE *ctcstype)
-{
-	unsigned int rc;
-
-	rc = ncs_patricia_tree_del(&ctcstype_db, &ctcstype->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
-	delete ctcstype;
-}
-
-AVD_CTCS_TYPE *avd_ctcstype_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_CTCS_TYPE *)ncs_patricia_tree_get(&ctcstype_db, (uint8_t *)&tmp);
 }
 
 SaAisErrorT avd_ctcstype_config_get(const SaNameT *comp_type_dn, AVD_COMP_TYPE *comp_type)
@@ -143,7 +123,7 @@ SaAisErrorT avd_ctcstype_config_get(const SaNameT *comp_type_dn, AVD_COMP_TYPE *
 		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
 
-		if ((ctcstype = avd_ctcstype_get(&dn)) == NULL ) {
+		if ((ctcstype = ctcstype_db->find(Amf::to_string(&dn))) == NULL ) {
 			if ((ctcstype = ctcstype_create(&dn, attributes)) == NULL)
 				goto done2;
 
@@ -199,8 +179,11 @@ static void ctcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		ctcstype_db_add(ctcstype);
 		break;
 	case CCBUTIL_DELETE:
-		ctcstype = avd_ctcstype_get(&opdata->objectName);
-		ctcstype_delete(ctcstype);
+		ctcstype = ctcstype_db->find(Amf::to_string(&opdata->objectName));
+		if (ctcstype != NULL) {
+			ctcstype_db->erase(Amf::to_string(&ctcstype->name));
+			delete ctcstype;
+		}
 		break;
 	default:
 		osafassert(0);
@@ -212,10 +195,8 @@ static void ctcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_ctcstype_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
+	ctcstype_db = new AmfDb<std::string, AVD_CTCS_TYPE>;
 
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&ctcstype_db, &patricia_params) == NCSCC_RC_SUCCESS);
 	avd_class_impl_set("SaAmfCtCsType", NULL, NULL,
 		ctcstype_ccb_completed_cb, ctcstype_ccb_apply_cb);
 }

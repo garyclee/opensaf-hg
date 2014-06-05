@@ -666,7 +666,7 @@ static SaAmfCompCapabilityModelT get_comp_capability(const AVD_CSI *csi,
 	SaNameT dn;
 	avsv_create_association_class_dn(&csi->cstype->name,
 		&comp->comp_type->name,	"safSupportedCsType", &dn);
-	AVD_CTCS_TYPE *ctcs_type = avd_ctcstype_get(&dn);
+	AVD_CTCS_TYPE *ctcs_type = ctcstype_db->find(Amf::to_string(&dn));
 	osafassert(ctcs_type);
 	return ctcs_type->saAmfCtCompCapability;
 }

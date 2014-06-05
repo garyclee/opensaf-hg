@@ -39,6 +39,7 @@
 #include <ncspatricia.h>
 #include <amf_d2nmsg.h>
 #include <cb.h>
+#include "db_template.h"
 
 class AVD_SU;
 
@@ -165,13 +166,14 @@ typedef struct avd_comp_cs_type_tag {
 
 /* AMF Class SaAmfCtCsType */
 typedef struct {
-	NCS_PATRICIA_NODE tree_node;	/* name is key */
 	SaNameT name;
 	SaAmfCompCapabilityModelT saAmfCtCompCapability;
 	SaUint32T saAmfCtDefNumMaxActiveCSIs;
 	SaUint32T saAmfCtDefNumMaxStandbyCSIs;
 	AVD_COMP_TYPE *comptype;
 } AVD_CTCS_TYPE;
+
+extern AmfDb<std::string, AVD_CTCS_TYPE> *ctcstype_db;
 
 extern AVD_COMP_GLOBALATTR avd_comp_global_attrs;
 
@@ -224,7 +226,6 @@ extern SaAisErrorT avd_compglobalattrs_config_get(void);
 extern void avd_compglobalattrs_constructor(void);
 
 extern SaAisErrorT avd_ctcstype_config_get(const SaNameT *comp_type_dn, AVD_COMP_TYPE *comp_type);
-extern AVD_CTCS_TYPE *avd_ctcstype_get(const SaNameT *dn);
 extern void avd_ctcstype_constructor(void);
 
 extern AVD_COMPCS_TYPE *avd_compcstype_new(const SaNameT *dn);
