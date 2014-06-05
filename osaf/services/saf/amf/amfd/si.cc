@@ -469,7 +469,7 @@ static void si_add_to_model(AVD_SI *si)
 
 	avd_si_db_add(si);
 
-	si->svc_type = avd_svctype_get(&si->saAmfSvcType);
+	si->svc_type = svctype_db->find(Amf::to_string(&si->saAmfSvcType));
 
 	if (si->saAmfSIProtectedbySG.length > 0)
 		si->sg_of_si = avd_sg_get(&si->saAmfSIProtectedbySG);
@@ -511,7 +511,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSvcType"), attributes, 0, &aname);
 	osafassert(rc == SA_AIS_OK);
 
-	if (avd_svctype_get(&aname) == NULL) {
+	if (svctype_db->find(Amf::to_string(&aname)) == NULL) {
 		/* SVC type does not exist in current model, check CCB if passed as param */
 		if (opdata == NULL) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
