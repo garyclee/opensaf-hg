@@ -29,7 +29,7 @@
 #include <proc.h>
 #include <ckpt_msg.h>
 
-static NCS_PATRICIA_TREE compcstype_db;
+AmfDb<std::string, AVD_COMPCS_TYPE> *compcstype_db = NULL;;
 
 //
 // TODO(HANO) Temporary use this function instead of strdup which uses malloc.
@@ -46,8 +46,8 @@ void avd_compcstype_db_add(AVD_COMPCS_TYPE *cst)
 {
 	unsigned int rc;
 
-	if (avd_compcstype_get(&cst->name) == NULL) {
-		rc = ncs_patricia_tree_add(&compcstype_db, &cst->tree_node);
+	if (compcstype_db->find(Amf::to_string(&cst->name)) == NULL) {
+		rc = compcstype_db->insert(Amf::to_string(&cst->name),cst); 
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
@@ -60,19 +60,8 @@ AVD_COMPCS_TYPE *avd_compcstype_new(const SaNameT *dn)
 	
 	memcpy(compcstype->name.value, dn->value, dn->length);
 	compcstype->name.length = dn->length;
-	compcstype->tree_node.key_info = (uint8_t *)&(compcstype->name);
 
 	return compcstype;
-}
-
-void avd_compcstype_delete(AVD_COMPCS_TYPE **cst)
-{
-	unsigned int rc;
-
-	rc = ncs_patricia_tree_del(&compcstype_db, &(*cst)->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
-	delete *cst;
-	*cst = NULL;
 }
 
 static void compcstype_add_to_model(AVD_COMPCS_TYPE *cst)
@@ -110,28 +99,8 @@ AVD_COMPCS_TYPE * avd_compcstype_find_match(const SaNameT *cstype_name, const AV
 	TRACE_ENTER();
 	avsv_create_association_class_dn(cstype_name, &comp->comp_info.name, "safSupportedCsType", &dn);
 	TRACE("'%s'", dn.value);
-	cst = (AVD_COMPCS_TYPE *)ncs_patricia_tree_get(&compcstype_db, (uint8_t *)&dn);
+	cst = compcstype_db->find(Amf::to_string(&dn));
 	return cst;
-}
-
-AVD_COMPCS_TYPE *avd_compcstype_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_COMPCS_TYPE *)ncs_patricia_tree_get(&compcstype_db, (uint8_t *)&tmp);
-}
-
-AVD_COMPCS_TYPE *avd_compcstype_getnext(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, dn->length);
-
-	return (AVD_COMPCS_TYPE *)ncs_patricia_tree_getnext(&compcstype_db, (uint8_t *)&tmp);
 }
 
 /**
@@ -245,7 +214,7 @@ static AVD_COMPCS_TYPE *compcstype_create(const SaNameT *dn, const SaImmAttrValu
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if ((NULL == (compcstype = avd_compcstype_get(dn))) &&
+	if ((NULL == (compcstype = compcstype_db->find(Amf::to_string(dn)))) &&
 	    ((compcstype = avd_compcstype_new(dn)) == NULL))
 		goto done;
 
@@ -284,7 +253,7 @@ static AVD_COMPCS_TYPE *compcstype_create(const SaNameT *dn, const SaImmAttrValu
 
 done:
 	if (rc != 0)
-		avd_compcstype_delete(&compcstype);
+		compcstype_db->erase(Amf::to_string(&compcstype->name));
 	delete [] cstype_name;
 
 	return compcstype;
@@ -372,7 +341,7 @@ static SaAisErrorT compcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		AVD_SU_SI_REL *curr_susi;
 		AVD_COMP_CSI_REL *compcsi;
 
-		cst = avd_compcstype_get(&opdata->objectName);
+		cst = compcstype_db->find(Amf::to_string(&opdata->objectName));
 		osafassert(cst);
 		avsv_sanamet_init(&opdata->objectName, &comp_name, "safComp=");
 		comp = avd_comp_get(&comp_name);
@@ -407,8 +376,11 @@ static void compcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		compcstype_add_to_model(cst);
 		break;
 	case CCBUTIL_DELETE:
-		cst = avd_compcstype_get(&opdata->objectName);
-		avd_compcstype_delete(&cst);
+		cst = compcstype_db->find(Amf::to_string(&opdata->objectName));
+		if (cst != NULL) {
+			compcstype_db->erase(Amf::to_string(&cst->name));
+			delete cst;
+		}
 		break;
 	default:
 		osafassert(0);
@@ -419,7 +391,7 @@ static void compcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 static SaAisErrorT compcstype_rt_attr_callback(SaImmOiHandleT immOiHandle,
 	const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
-	AVD_COMPCS_TYPE *cst = avd_compcstype_get(objectName);
+	AVD_COMPCS_TYPE *cst = compcstype_db->find(Amf::to_string(objectName));
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
@@ -445,10 +417,7 @@ static SaAisErrorT compcstype_rt_attr_callback(SaImmOiHandleT immOiHandle,
 
 void avd_compcstype_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&compcstype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	compcstype_db = new AmfDb<std::string, AVD_COMPCS_TYPE>;
 	avd_class_impl_set("SaAmfCompCsType", compcstype_rt_attr_callback, NULL,
 		compcstype_ccb_completed_cb, compcstype_ccb_apply_cb);
 }
