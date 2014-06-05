@@ -254,7 +254,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUType"), attributes, 0, &saAmfSUType);
 	osafassert(rc == SA_AIS_OK);
 
-	if ((sut = avd_sutype_get(&saAmfSUType)) != NULL) {
+	if ((sut = sutype_db->find(Amf::to_string(&saAmfSUType))) != NULL) {
 		saAmfSutIsExternal = sut->saAmfSutIsExternal;
 	} else {
 		/* SU type does not exist in current model, check CCB if passed as param */
@@ -473,7 +473,7 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 
 	(void) immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUHostNodeOrNodeGroup"), attributes, 0, &su->saAmfSUHostNodeOrNodeGroup);
 
-	if ((sut = avd_sutype_get(&su->saAmfSUType)) == NULL) {
+	if ((sut = sutype_db->find(Amf::to_string(&su->saAmfSUType))) == NULL) {
 		LOG_ER("saAmfSUType '%s' does not exist", su->saAmfSUType.value);
 		goto done;
 	}
@@ -602,7 +602,7 @@ static void su_add_to_model(AVD_SU *su)
 		rc = su_db->insert(Amf::to_string(&su->name), su);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
-	su->su_type = avd_sutype_get(&su->saAmfSUType);
+	su->su_type = sutype_db->find(Amf::to_string(&su->saAmfSUType));
 	osafassert(su->su_type);
 	avd_sutype_add_su(su);
 	avd_sg_add_su(su);
@@ -1301,7 +1301,7 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
-			if (avd_sutype_get(&sutype_name) == NULL) {
+			if (sutype_db->find(Amf::to_string(&sutype_name)) == NULL) {
 				report_ccb_validation_error(opdata, "SU Type not found '%s'", sutype_name.value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -1486,7 +1486,7 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			struct avd_sutype *sut;
 			SaNameT sutype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
 			TRACE("Modified saAmfSUType from '%s' to '%s'", su->saAmfSUType.value, sutype_name.value);
-			sut = avd_sutype_get(&sutype_name);
+			sut = sutype_db->find(Amf::to_string(&sutype_name));
 			avd_sutype_remove_su(su);
 			su->saAmfSUType = sutype_name;
 			su->su_type = sut;

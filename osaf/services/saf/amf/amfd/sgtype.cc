@@ -144,7 +144,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
 		SaNameT *name = (SaNameT *)attr->attrValues[j];
-		sut = avd_sutype_get(name);
+		sut = sutype_db->find(Amf::to_string(name));
 		if (sut == NULL) {
 			if (opdata == NULL) {
 				report_ccb_validation_error(opdata, "'%s' does not exist in model", name->value);

@@ -31,6 +31,7 @@ struct avd_sutype {
 	unsigned int number_svc_types;	/* size of array saAmfSutProvidesSvcTypes */
 	AVD_SU *list_of_su;
 };
+extern AmfDb<std::string, avd_sutype> *sutype_db;
 
 /**
  * Get SaAmfSUType from IMM and create internal objects
@@ -38,14 +39,6 @@ struct avd_sutype {
  * @return SaAisErrorT
  */
 extern SaAisErrorT avd_sutype_config_get(void);
-
-/**
- * Get SaAmfSUType object using given key
- * @param dn
- * 
- * @return struct avd_sutype*
- */
-extern struct avd_sutype *avd_sutype_get(const SaNameT *dn);
 
 /**
  * Class constructor, must be called before any other function
