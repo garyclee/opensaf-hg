@@ -41,6 +41,7 @@
 #include <sgtype.h>
 #include <amf_defs.h>
 #include <amf_d2nmsg.h>
+#include "db_template.h"
 
 class AVD_SU;
 
@@ -66,7 +67,6 @@ typedef struct avd_sg_oper_tag {
  * associated with the Service group (SG).
  */
 typedef struct avd_sg_tag {
-	NCS_PATRICIA_NODE tree_node;	/* key will be the SG name */
 
 	SaNameT name;		/* the service group DN used as the index.
 				 * Checkpointing - Sent as a one time update.
@@ -243,6 +243,8 @@ typedef struct avd_sg_tag {
 
 } AVD_SG;
 
+extern AmfDb<std::string, AVD_SG> *sg_db;
+
 #define m_AVD_SET_SG_ADJUST(cb,sg,state) {\
 	TRACE("adjust_state %u => %u", sg->adjust_state, state); \
 	sg->adjust_state = state;\
@@ -317,8 +319,6 @@ extern AVD_SG *avd_sg_new(const SaNameT *dn);
 extern void avd_sg_delete(AVD_SG *sg);
 extern void avd_sg_db_add(AVD_SG *sg);
 extern void avd_sg_db_remove(AVD_SG *sg);
-extern AVD_SG *avd_sg_get(const SaNameT *sg_name);
-extern AVD_SG *avd_sg_getnext(const SaNameT *sg_name);
 extern void avd_sg_add_si(AVD_SG *sg, struct avd_si_tag *si);
 extern void avd_sg_remove_si(AVD_SG *sg, struct avd_si_tag *si);
 extern SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, struct avd_app_tag *app);

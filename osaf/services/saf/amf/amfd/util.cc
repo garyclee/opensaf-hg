@@ -1374,9 +1374,9 @@ void amfd_file_dump(const char *path)
 		fprintf(f, "\tsaAmfApplicationCurrNumSGs=%u\n", app->saAmfApplicationCurrNumSGs);
 	}
 
-	AVD_SG *sg;
-	dn.length = 0;
-	for (sg = avd_sg_getnext(&dn); sg != NULL; sg = avd_sg_getnext(&dn)) {
+	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
+			it != sg_db->end(); it++) {
+		const AVD_SG *sg = it->second;
 		fprintf(f, "%s\n", sg->name.value);
 		fprintf(f, "\tsaAmfSGAdminState=%u\n", sg->saAmfSGAdminState);
 		fprintf(f, "\tsaAmfSGNumCurrAssignedSUs=%u\n", sg->saAmfSGNumCurrAssignedSUs);

@@ -946,8 +946,6 @@ uint32_t amfd_switch_qsd_stdby(AVD_CL_CB *cb)
 uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SG *sg;
-	SaNameT dn = {0};
 	SaAisErrorT rc;
 	
 	TRACE_ENTER();
@@ -1039,12 +1037,13 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 	avd_d2d_chg_role_rsp(cb, NCSCC_RC_SUCCESS, SA_AMF_HA_ACTIVE);
 
 	/* Screen through all the SG's in the sg database and update si's si_dep_state */
-	for (sg = avd_sg_getnext(&dn); sg != NULL; sg = avd_sg_getnext(&dn)) {
+	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
+			it != sg_db->end(); it++) {
+		AVD_SG *sg = it->second;
 		if (sg->sg_fsm_state == AVD_SG_FSM_STABLE) {
 			avd_sidep_update_si_dep_state_for_all_sis(sg);
 			avd_sidep_sg_take_action(sg);
 		}
-		dn = sg->name;
 	}
 
 	LOG_NO("Controller switch over done");

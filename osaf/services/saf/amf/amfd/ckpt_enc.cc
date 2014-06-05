@@ -2162,17 +2162,15 @@ static uint32_t enc_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t
 static uint32_t enc_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	SaNameT sg_name;
-	const AVD_SG *sg;
 	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	sg_name.length = 0;
-	for (sg = avd_sg_getnext(&sg_name); sg != NULL; sg = avd_sg_getnext(&sg_name)) {
+	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
+			it != sg_db->end(); it++) {
+		AVD_SG *sg = it->second;
 		encode_sg(&enc->io_uba, sg);
-		sg_name = sg->name;
 		(*num_of_obj)++;
 	}
 
@@ -2268,16 +2266,15 @@ static uint32_t enc_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t 
 static uint32_t enc_cs_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	SaNameT sg_name;
-	AVD_SG *sg;
 	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire SG list and send the SU operation list
 	 * for that SG and then move to next SG.
 	 */
-	sg_name.length = 0;
-	for (sg = avd_sg_getnext(&sg_name); sg != NULL; sg = avd_sg_getnext(&sg_name)) {
+	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
+			it != sg_db->end(); it++) {
+		AVD_SG *sg = it->second;
 		status = enc_su_oper_list(cb, sg, enc);
 
 		if (status != NCSCC_RC_SUCCESS) {
@@ -2285,7 +2282,6 @@ static uint32_t enc_cs_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uin
 			return NCSCC_RC_FAILURE;
 		}
 
-		sg_name = sg->name;
 		(*num_of_obj)++;
 
 	}
@@ -2311,20 +2307,17 @@ static uint32_t enc_cs_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uin
 static uint32_t enc_cs_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	SaNameT sg_name;
-	AVD_SG *sg;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	sg_name.length = 0;
-	for (sg = avd_sg_getnext(&sg_name); sg != NULL; sg = avd_sg_getnext(&sg_name)) {
-		if (NULL == sg->admin_si) {
-			sg_name = sg->name;
+	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
+			it != sg_db->end(); it++) {
+		AVD_SG *sg = it->second;
+		if (NULL == sg->admin_si) 
 			continue;
-		}
 
 		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 						EDP_OP_TYPE_ENC, sg->admin_si, &ederror, enc->i_peer_version, 1, 1);
@@ -2334,7 +2327,6 @@ static uint32_t enc_cs_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 			return NCSCC_RC_FAILURE;
 		}
 
-		sg_name = sg->name;
 		(*num_of_obj)++;
 	}
 
@@ -2351,15 +2343,14 @@ static uint32_t enc_cs_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 static uint32_t enc_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SG *sg;
-	SaNameT sg_name = {0};
 	AVSV_SI_TRANS_CKPT_MSG si_trans_ckpt;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 
 	TRACE_ENTER();
 
-	sg_name.length = 0;
-	for (sg = avd_sg_getnext(&sg_name); sg != NULL; sg = avd_sg_getnext(&sg_name)) {
+	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
+			it != sg_db->end(); it++) {
+		AVD_SG *sg = it->second;
 	    if (sg->si_tobe_redistributed != NULL) { 
 		si_trans_ckpt.sg_name = sg->name;
 		si_trans_ckpt.si_name = sg->si_tobe_redistributed->name;
@@ -2377,7 +2368,6 @@ static uint32_t enc_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *
 
 		(*num_of_obj)++;
 	    }
-	    sg_name = sg->name;
 	}
 	TRACE_LEAVE2("status '%u'", status);
 	return status;

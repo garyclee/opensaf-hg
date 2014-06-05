@@ -1113,7 +1113,7 @@ static uint32_t dec_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SG *sg = avd_sg_get(&name);
+	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
 	osafassert(sg != NULL);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->saAmfSGAdminState);
 
@@ -1144,7 +1144,7 @@ static uint32_t dec_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SG *sg = avd_sg_get(&name);
+	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
 	osafassert(sg != NULL);
 	osaf_decode_uint32(&dec->i_uba, &sg->saAmfSGNumCurrAssignedSUs);
 
@@ -1176,7 +1176,7 @@ static uint32_t dec_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SG *sg = avd_sg_get(&name);
+	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
 	osafassert(sg != NULL);
 	osaf_decode_uint32(&dec->i_uba, &sg->saAmfSGNumCurrInstantiatedSpareSUs);
 
@@ -1208,7 +1208,7 @@ static uint32_t dec_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SG *sg = avd_sg_get(&name);
+	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
 	osafassert(sg != NULL);
 	osaf_decode_uint32(&dec->i_uba, &sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
 
@@ -1240,7 +1240,7 @@ static uint32_t dec_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SG *sg = avd_sg_get(&name);
+	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
 	osafassert(sg != NULL);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->adjust_state);
 
@@ -1271,7 +1271,7 @@ static uint32_t dec_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SG *sg = avd_sg_get(&name);
+	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
 	osafassert(sg != NULL);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->sg_fsm_state);
 
