@@ -28,7 +28,7 @@
 #include <ntf.h>
 #include <proc.h>
 
-static NCS_PATRICIA_TREE sutype_db;
+AmfDb<std::string, avd_sutype> *sutype_db = NULL;
 
 static struct avd_sutype *sutype_new(const SaNameT *dn)
 {
@@ -36,7 +36,6 @@ static struct avd_sutype *sutype_new(const SaNameT *dn)
 
 	memcpy(sutype->name.value, dn->value, dn->length);
 	sutype->name.length = dn->length;
-	sutype->tree_node.key_info = (uint8_t *)&(sutype->name);
 
 	return sutype;
 }
@@ -51,24 +50,8 @@ static void sutype_delete(struct avd_sutype **sutype)
 
 static void sutype_db_add(struct avd_sutype *sutype)
 {
-	unsigned int rc = ncs_patricia_tree_add(&sutype_db, &sutype->tree_node);
+	unsigned int rc = sutype_db->insert(Amf::to_string(&sutype->name),sutype);
 	osafassert(rc == NCSCC_RC_SUCCESS);
-}
-
-static void sutype_db_delete(struct avd_sutype *sutype)
-{
-	unsigned int rc = ncs_patricia_tree_del(&sutype_db, &sutype->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
-}
-
-struct avd_sutype *avd_sutype_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (struct avd_sutype *)ncs_patricia_tree_get(&sutype_db, (uint8_t *)&tmp);
 }
 
 static struct avd_sutype *sutype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
@@ -208,7 +191,7 @@ SaAisErrorT avd_sutype_config_get(void)
 		if (!is_config_valid(&dn, attributes, NULL))
 		    goto done2;
 
-		if (( sut = avd_sutype_get(&dn)) == NULL) {
+		if (( sut = sutype_db->find(Amf::to_string(&dn))) == NULL) {
 
 			if ((sut = sutype_create(&dn, attributes)) == NULL) {
 				error = SA_AIS_ERR_FAILED_OPERATION;
@@ -243,7 +226,7 @@ static void sutype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	int i = 0;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-	avd_sutype *sut = avd_sutype_get(&opdata->objectName);
+	avd_sutype *sut = sutype_db->find(Amf::to_string(&opdata->objectName));
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSutDefSUFailover")) {
@@ -284,8 +267,8 @@ static void sutype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		sutype_ccb_apply_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		sut = avd_sutype_get(&opdata->objectName);
-		sutype_db_delete(sut);
+		sut = sutype_db->find(Amf::to_string(&opdata->objectName));
+		sutype_db->erase(Amf::to_string(&sut->name));
 		sutype_delete(&sut);
 		break;
 	default:
@@ -306,7 +289,7 @@ static SaAisErrorT sutype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
-	avd_sutype *sut = avd_sutype_get(&opdata->objectName);
+	avd_sutype *sut = sutype_db->find(Amf::to_string(&opdata->objectName));
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
@@ -372,7 +355,7 @@ static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = sutype_ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		sut = avd_sutype_get(&opdata->objectName);
+		sut = sutype_db->find(Amf::to_string(&opdata->objectName));
 		if (NULL != sut->list_of_su) {
 			/* check whether there exists a delete operation for 
 			 * each of the SU in the su_type list in the current CCB 
@@ -439,11 +422,8 @@ void avd_sutype_remove_su(AVD_SU* su)
 
 void avd_sutype_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
 
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&sutype_db, &patricia_params) == NCSCC_RC_SUCCESS);
-
+	sutype_db = new AmfDb<std::string, avd_sutype>;
 	avd_class_impl_set("SaAmfSUBaseType", NULL, NULL,
 		avd_imm_default_OK_completed_cb, NULL);
 	avd_class_impl_set("SaAmfSUType", NULL, NULL,
