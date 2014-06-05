@@ -443,7 +443,7 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 					LOG_ER("avd_comp_get FAILED for '%s'", su_si_rel_ptr->comp_name.value);
 					return NCSCC_RC_FAILURE;
 				}
-				if ((csi_ptr = avd_csi_get (&(su_si_rel_ptr->csi_name))) == NULL) {
+				if ((csi_ptr = csi_db->find(Amf::to_string(&(su_si_rel_ptr->csi_name)))) == NULL) {
 					/* This condition will arise if there is some delay in the ccb apply callback
 					 * So create csi and add it to the csi_db here, later in the ccb apply callback
 					 * attributes will be updated and csi will be added to the model
@@ -474,8 +474,8 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 					return NCSCC_RC_FAILURE;
 				}
 
-				if ((csi_ptr = avd_csi_get (&(su_si_ckpt->csi_name))) == NULL) {
-					LOG_ER("avd_csi_get FAILED for '%s'",su_si_ckpt->csi_name.value);
+				if ((csi_ptr = csi_db->find(Amf::to_string(&(su_si_ckpt->csi_name)))) == NULL) {
+					LOG_ER("csi_db->find() FAILED for '%s'",su_si_ckpt->csi_name.value);
 					return NCSCC_RC_FAILURE;
 				}
 				/* Find the relevant comp-csi to send susi delete. */

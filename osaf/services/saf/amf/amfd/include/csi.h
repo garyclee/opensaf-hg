@@ -54,7 +54,6 @@ typedef struct avd_csi_deps_tag {
  * associated with the CSI on the AvD.
  */
 typedef struct avd_csi_tag {
-	NCS_PATRICIA_NODE tree_node;	/* key will be the CSI name */
 
 	SaNameT name;
 	SaNameT saAmfCSType;
@@ -82,6 +81,7 @@ typedef struct avd_csi_tag {
 	bool assign_flag;   /* Flag used while assigning. to mark this csi has been assigned a Comp 
 				   from * current SI being assigned */
 } AVD_CSI;
+extern AmfDb<std::string, AVD_CSI> *csi_db;
 
 typedef struct avd_cstype {
 	SaNameT name;		/* name of the CSType */

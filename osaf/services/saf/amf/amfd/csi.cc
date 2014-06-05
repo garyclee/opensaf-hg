@@ -24,12 +24,11 @@
 #include <imm.h>
 #include <proc.h>
 
-static NCS_PATRICIA_TREE csi_db;
+AmfDb<std::string, AVD_CSI> *csi_db = NULL;
 
 void avd_csi_delete(AVD_CSI *csi)
 {
 	AVD_CSI_ATTR *temp;
-	unsigned int rc;
 	TRACE_ENTER2("%s", csi->name.value);
 
 	/* Delete CSI attributes */
@@ -42,8 +41,7 @@ void avd_csi_delete(AVD_CSI *csi)
 	avd_cstype_remove_csi(csi);
 	avd_si_remove_csi(csi);
 
-	rc = ncs_patricia_tree_del(&csi_db, &csi->tree_node);
-	osafassert(rc == NCSCC_RC_SUCCESS);
+	csi_db->erase(Amf::to_string(&csi->name));
 	
 	if (csi->saAmfCSIDependencies != NULL) {
 		AVD_CSI_DEPS *csi_dep;
@@ -79,16 +77,6 @@ void csi_cmplt_delete(AVD_CSI *csi, bool ckpt)
         /* free memory and remove from DB */
         avd_csi_delete(csi);
 	TRACE_LEAVE2();
-}
-
-AVD_CSI *avd_csi_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-	
-	return (AVD_CSI *)ncs_patricia_tree_get(&csi_db, (uint8_t *)&tmp);
 }
 
 /**
@@ -148,7 +136,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 				return 0;
 			}
 
-			if (avd_csi_get(&saAmfCSIDependency) == NULL) {
+			if (csi_db->find(Amf::to_string(&saAmfCSIDependency)) == NULL) {
 				/* CSI does not exist in current model, check CCB if passed as param */
 				if (opdata == NULL) {
 					/* initial loading, check IMM */
@@ -271,9 +259,8 @@ AVD_CSI *csi_create(const SaNameT *csi_name)
 	csi = new AVD_CSI();
 	memcpy(csi->name.value, csi_name->value, csi_name->length);
 	csi->name.length = csi_name->length;
-	csi->tree_node.key_info = (uint8_t *)&(csi->name);
 
-	if (ncs_patricia_tree_add(&csi_db, &csi->tree_node) != NCSCC_RC_SUCCESS)
+	if (csi_db->insert(Amf::to_string(&csi->name), csi) != NCSCC_RC_SUCCESS)
 		osafassert(0);
 
 	return csi;
@@ -382,7 +369,7 @@ SaAisErrorT avd_csi_config_get(const SaNameT *si_name, AVD_SI *si)
 		if (!is_config_valid(&csi_name, attributes, NULL))
 			goto done2;
 
-		if ((csi = avd_csi_get (&csi_name)) == NULL)
+		if ((csi = csi_db->find(Amf::to_string(&csi_name))) == NULL)
 		{
 			csi = csi_create(&csi_name);
 
@@ -539,7 +526,7 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSType")) {
 			AVD_CSI *csi;
 			SaNameT cstype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
-			csi = avd_csi_get(&opdata->objectName);
+			csi = csi_db->find(Amf::to_string(&opdata->objectName));
 			if(SA_AMF_ADMIN_LOCKED != csi->si->saAmfSIAdminState) {
 				report_ccb_validation_error(opdata, "Parent SI is not in locked state, SI state '%d'",
 						csi->si->saAmfSIAdminState);
@@ -587,7 +574,7 @@ static SaAisErrorT csi_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
-	csi = avd_csi_get(&opdata->objectName);
+	csi = csi_db->find(Amf::to_string(&opdata->objectName));
 
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
 		if (csi == NULL) {
@@ -677,15 +664,15 @@ static void ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 	AVD_SU_SI_REL *t_sisu;
 	AVD_COMP_CSI_REL *t_csicomp;
 	AVD_CSI *csi = static_cast<AVD_CSI*>(opdata->userData);
-	AVD_CSI *csi_db;
+	AVD_CSI *csi_in_db;
 
 	bool first_sisu = true;
 
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) { 
 		/* A double check whether csi has been deleted from DB or not and whether pointer stored userData 
 		   is still valid. */
-		csi_db =  avd_csi_get(&opdata->objectName);
-		if ((csi == NULL) || (csi_db == NULL)) {
+		csi_in_db =  csi_db->find(Amf::to_string(&opdata->objectName));
+		if ((csi == NULL) || (csi_in_db == NULL)) {
 			/* This means that csi has been deleted during checkpointing at STDBY and delete callback
 			   has arrived delayed.*/
 			LOG_WA("CSI delete apply (STDBY): csi does not exist");
@@ -771,7 +758,7 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
         TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
  
-	csi = avd_csi_get(&opdata->objectName);
+	csi = csi_db->find(Amf::to_string(&opdata->objectName));
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSType")) {
 			struct avd_cstype *csi_type;
@@ -809,7 +796,7 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 {
 	AVD_CSI *csi = NULL;
-	if ((csi = avd_csi_get (&opdata->objectName)) == NULL) {
+	if ((csi = csi_db->find(Amf::to_string(&opdata->objectName))) == NULL) {
 		/* this check is added because, some times there is
 		   possibility that before getting ccb apply callback
 		   we might get compcsi create checkpoint and csi will
@@ -1255,10 +1242,7 @@ void avd_csi_add_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *csiattr)
 
 void avd_csi_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&csi_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	csi_db = new AmfDb<std::string, AVD_CSI>;
 	avd_class_impl_set("SaAmfCSI", NULL, NULL, csi_ccb_completed_cb,
 		csi_ccb_apply_cb);
 }

@@ -82,7 +82,7 @@ void avd_pg_trk_act_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	/* get the node & csi */
-	csi = avd_csi_get(&info->csi_name);
+	csi = csi_db->find(Amf::to_string(&info->csi_name));
 
 	/* update the pg lists maintained on csi & node */
 	if (csi != NULL) {
