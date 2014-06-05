@@ -125,7 +125,6 @@ typedef struct avd_comp_tag {
 /* AMF Class SaAmfCompType */
 typedef struct avd_amf_comp_type_tag {
 
-	NCS_PATRICIA_NODE tree_node;	/* name is key */
 	SaNameT name;
 	SaUint32T saAmfCtCompCategory;
 	SaNameT saAmfCtSwBundle;
@@ -150,6 +149,7 @@ typedef struct avd_amf_comp_type_tag {
 	struct avd_comp_tag *list_of_comp;
 
 } AVD_COMP_TYPE;
+extern  AmfDb<std::string, AVD_COMP_TYPE> *comptype_db;
 
 /* AMF Class SaAmfCompCsType */
 typedef struct avd_comp_cs_type_tag {
