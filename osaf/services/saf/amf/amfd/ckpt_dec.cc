@@ -1334,8 +1334,9 @@ static uint32_t dec_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
-	AVD_SU *su = su_db->find(Amf::to_string(&name));
-	osafassert(su != NULL);
+	
+	AVD_SU *su = avd_su_get_or_create(&name);
+	
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUOperState);
 
 	cb->async_updt_cnt.su_updt++;
