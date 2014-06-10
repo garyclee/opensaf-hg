@@ -323,6 +323,13 @@ static uint32_t enc_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	return status;
 }
 
+static void encode_app(NCS_UBAID *ub, const AVD_APP *app)
+{
+	osaf_encode_sanamet(ub, &app->name);
+	osaf_encode_uint32(ub, app->saAmfApplicationAdminState);
+	osaf_encode_uint32(ub, app->saAmfApplicationCurrNumSGs);
+}
+	
 /****************************************************************************\
  * Function: enc_app_config
  *
@@ -339,8 +346,8 @@ static uint32_t enc_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	const AVD_APP *app = (AVD_APP *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
+	
 	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
 	/* 
@@ -351,28 +358,17 @@ static uint32_t enc_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	switch (enc->io_action) {
 	case NCS_MBCSV_ACT_ADD:
 	case NCS_MBCSV_ACT_UPDATE:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_app, &enc->io_uba,
-			EDP_OP_TYPE_ENC, (AVD_APP *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-			&ederror, enc->i_peer_version);
+		encode_app(&enc->io_uba, app);	
 		break;
 	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_app, &enc->io_uba,
-			EDP_OP_TYPE_ENC, (AVD_APP*)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-			&ederror, enc->i_peer_version, 1, 1);
+		osaf_encode_sanamet(&enc->io_uba, &app->name);
 		break;
 	default:
 		osafassert(0);
 	}
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2();
+	return NCSCC_RC_SUCCESS;
 }
 
 static void encode_sg(NCS_UBAID *ub, const AVD_SG *sg)
@@ -2121,8 +2117,6 @@ static uint32_t enc_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 \**************************************************************************/
 static uint32_t enc_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	/* Walk through all application instances and encode. */
@@ -2130,19 +2124,12 @@ static uint32_t enc_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t
 	// for (auto it = app_db->begin()
 	for (std::map<std::string, AVD_APP*>::const_iterator it = app_db->begin(); it != app_db->end(); it++) {
 		AVD_APP *app = it->second;
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_app, &enc->io_uba,
-					    EDP_OP_TYPE_ENC, app, &ederror, enc->i_peer_version);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-			return NCSCC_RC_FAILURE;
-		}
-
+		encode_app(&enc->io_uba, app);
 		(*num_of_obj)++;
 	}
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
