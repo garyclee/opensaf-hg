@@ -339,6 +339,13 @@ static uint32_t dec_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	return status;
 }
 
+static void decode_app(NCS_UBAID *ub, AVD_APP *app)
+{
+	osaf_decode_sanamet(ub, &app->name);
+	osaf_decode_uint32(ub, (uint32_t*)&app->saAmfApplicationAdminState);
+	osaf_decode_uint32(ub, &app->saAmfApplicationCurrNumSGs);
+}
+
 /****************************************************************************\
  * Function: dec_app_config
  *
@@ -356,46 +363,17 @@ static uint32_t dec_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 static uint32_t dec_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_APP _app;
-	AVD_APP *app = &_app;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-
-	TRACE_ENTER2("i_action '%u'", dec->i_action);
-
-	/* 
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is add then create new element, if it is update
-	 * request then just update data structure, and if it is remove then 
-	 * remove entry from the list.
-	 */
-	switch (dec->i_action) {
-	case NCS_MBCSV_ACT_ADD:
-	case NCS_MBCSV_ACT_UPDATE:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_app,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_APP **)&app, &ederror,
-			dec->i_peer_version);
-		break;
-
-	case NCS_MBCSV_ACT_RMV:
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_app,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_APP **)&app, &ederror, 1, 1);
-		break;
-	default:
-		osafassert(0);
-	}
-
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-
-	status = avd_ckpt_app(cb, app, dec->i_action);
+	AVD_APP app;
+	
+	osafassert(dec->i_action == NCS_MBCSV_ACT_UPDATE);
+	decode_app(&dec->i_uba, &app);
+	
+	status = avd_ckpt_app(cb, &app, dec->i_action);
 
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.app_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
+	TRACE_LEAVE2("status:%u, su_updt:%d", status, cb->async_updt_cnt.app_updt);
 	return status;
 }
 
