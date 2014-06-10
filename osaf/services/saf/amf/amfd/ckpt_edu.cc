@@ -61,10 +61,6 @@ uint32_t avd_compile_ckpt_edp(AVD_CL_CB *cb)
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
 
-	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_app, &err);
-	if (rc != NCSCC_RC_SUCCESS)
-		goto error;
-
 	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &err);
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
@@ -171,7 +167,7 @@ uint32_t avsv_edp_ckpt_msg_cluster(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	AVD_CLUSTER *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avsv_ckpt_msg_cluster_rules[] = {
-		{EDU_START, avsv_edp_ckpt_msg_app, 0, 0, 0, sizeof(AVD_CLUSTER), 0, NULL},
+		{EDU_START, avsv_edp_ckpt_msg_cluster, 0, 0, 0, sizeof(AVD_CLUSTER), 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_CLUSTER *)0)->saAmfClusterAdminState, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
@@ -249,51 +245,6 @@ uint32_t avsv_edp_ckpt_msg_node(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	}
 
 	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_node_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
-
-	return rc;
-}
-
-/*****************************************************************************
-
-  PROCEDURE NAME:   avsv_edp_ckpt_msg_app_config
-
-  DESCRIPTION:      EDU program handler for "AVD_APP" data. This 
-                    function is invoked by EDU for performing encode/decode 
-                    operation on "AVD_AVND" data.
-
-  RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-
-*****************************************************************************/
-uint32_t avsv_edp_ckpt_msg_app(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVD_APP *struct_ptr = NULL, **d_ptr = NULL;
-
-	EDU_INST_SET avsv_ckpt_msg_app_rules[] = {
-		{EDU_START, avsv_edp_ckpt_msg_app, 0, 0, 0, sizeof(AVD_APP), 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVD_APP *)0)->name, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_APP *)0)->saAmfApplicationAdminState, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_APP *)0)->saAmfApplicationCurrNumSGs, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-	};
-
-	if (op == EDP_OP_TYPE_ENC) {
-		struct_ptr = (AVD_APP *)ptr;
-	} else if (op == EDP_OP_TYPE_DEC) {
-		d_ptr = (AVD_APP **)ptr;
-		if (*d_ptr == NULL) {
-			*o_err = EDU_ERR_MEM_FAIL;
-			return NCSCC_RC_FAILURE;
-		}
-		memset(*d_ptr, '\0', sizeof(AVD_APP));
-		struct_ptr = *d_ptr;
-	} else {
-		struct_ptr = static_cast<AVD_APP*>(ptr);
-	}
-
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_app_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
 
 	return rc;
 }

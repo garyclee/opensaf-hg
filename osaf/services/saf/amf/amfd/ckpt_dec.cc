@@ -2424,7 +2424,7 @@ static uint32_t dec_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_
 /****************************************************************************\
  * Function: dec_cs_app_config
  *
- * Purpose:  Decode entire AVD_SG data..
+ * Purpose:  Decode entire AVD_APP data.
  *
  * Input: cb - CB pointer.
  *        dec - Decode arguments passed by MBCSV.
@@ -2438,10 +2438,8 @@ static uint32_t dec_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_
 static uint32_t dec_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	uint32_t count = 0;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_APP _app;
-	AVD_APP *app = &_app;
+	uint32_t count;
+	AVD_APP dec_app;
 
 	TRACE_ENTER();
 
@@ -2449,15 +2447,12 @@ static uint32_t dec_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t
 	 * Walk through the entire list and send the entire list data.
 	 */
 	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_app,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_APP **)&app, &ederror,
-					    dec->i_peer_version);
-		osafassert(status == NCSCC_RC_SUCCESS);
-		status = avd_ckpt_app(cb, app, dec->i_action);
+		decode_app(&dec->i_uba, &dec_app);
+		status = avd_ckpt_app(cb, &dec_app, dec->i_action);
 		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
-	TRACE_LEAVE2("status '%u'", status);
+	TRACE_LEAVE2("status %u, count %u", status, count);
 	return status;
 }
 
