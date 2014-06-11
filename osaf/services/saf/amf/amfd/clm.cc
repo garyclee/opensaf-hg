@@ -322,13 +322,14 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				   SA_TRACK_CURRENT|CHANGES_ONLY and supply no buffer
 				   in saClmClusterTrack call so update the local database */
 				/* get the first node */
-				node = avd_node_getnext(NULL);
-				while (node != NULL && 
-					0 != strncmp((char*)node->saAmfNodeClmNode.value,
-						(char*)notifItem->clusterNode.nodeName.value,
-						notifItem->clusterNode.nodeName.length))
-				{
-					node = avd_node_getnext(&node->name);
+				node = NULL;
+				for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
+						it != node_name_db->end(); it++) {
+					node = it->second;
+					if (0 == strncmp((char*)node->saAmfNodeClmNode.value,
+								(char*)notifItem->clusterNode.nodeName.value,
+								notifItem->clusterNode.nodeName.length));
+					break;
 				}
 				if ( node != NULL ) {
 					memcpy(&(node->node_info), &(notifItem->clusterNode),

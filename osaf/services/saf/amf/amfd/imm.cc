@@ -1574,9 +1574,6 @@ void avd_saImmOiRtObjectDelete(const SaNameT* dn)
  */
 void avd_imm_update_runtime_attrs(void)
 {
-	SaNameT node_name = {0};
-	AVD_AVND *node;
-
 	/* Update SU Class runtime cached attributes. */
 	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
 			it != su_db->end(); it++) {
@@ -1617,12 +1614,11 @@ void avd_imm_update_runtime_attrs(void)
 	}
 
 	/* Update Node Class runtime cached attributes. */
-	node = avd_node_getnext(&node_name);
-	while (node != NULL) {
+	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
+			it != node_name_db->end(); it++) {
+		AVD_AVND *node = it->second;
 		avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeOperState",
-			SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
-
-		node = avd_node_getnext(&node->name);
+				SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
 	}
 
 	/* Update Node Class runtime cached attributes. */

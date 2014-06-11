@@ -1349,9 +1349,9 @@ void amfd_file_dump(const char *path)
 		return;
 	}
 
-	AVD_AVND *node;
-	SaClmNodeIdT node_id = 0;
-	while (NULL != (node = avd_node_getnext_nodeid(node_id))) {
+	for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
+			it != node_id_db->end(); it++) {
+		AVD_AVND *node = it->second;
 		fprintf(f, "%s\n", node->name.value);
 		fprintf(f, "\tsaAmfNodeAdminState=%u\n", node->saAmfNodeAdminState);
 		fprintf(f, "\tsaAmfNodeOperState=%u\n", node->saAmfNodeOperState);
@@ -1361,7 +1361,6 @@ void amfd_file_dump(const char *path)
 		fprintf(f, "\trcv_msg_id=%u\n", node->rcv_msg_id);
 		fprintf(f, "\tsnd_msg_id=%u\n", node->snd_msg_id);
 		fprintf(f, "\tnodeId=%x\n", node->node_info.nodeId);
-		node_id = node->node_info.nodeId;
 	}
 
 	// If use std=c++11 in Makefile.common the following syntax can be used instead:

@@ -42,6 +42,7 @@
 #include <su.h>
 #include <amf_d2nmsg.h>
 #include <timer.h>
+#include <db_template.h>
 
 class AVD_SU;
 struct avd_cluster_tag;
@@ -73,12 +74,6 @@ typedef struct avd_fail_over_node {
  */
 
 typedef struct avd_avnd_tag {
-
-	NCS_PATRICIA_NODE tree_node_id_node;	/* key will be the node id */
-	NCS_PATRICIA_NODE tree_node_name_node;	/* key will be the node name with len
-						 * in network order.
-						 */
-
 	SaNameT name; /* DN */ 
 	char *node_name;    /* RDN value, normally the short host name */
 	SaClmClusterNodeT_4 node_info;	/* the node information of the node on
@@ -144,6 +139,9 @@ typedef struct avd_avnd_tag {
 	bool recvr_fail_sw; /* to indicate there was node reboot because of node failover/switchover.*/
 } AVD_AVND;
 
+extern AmfDb<std::string, AVD_AVND> *node_name_db;
+extern AmfDb<uint32_t, AVD_AVND> *node_id_db;
+
 typedef struct avd_ng_tag {
 
 	SaNameT name;
@@ -191,7 +189,6 @@ extern AVD_AVND *avd_node_getnext(const SaNameT *node_name);
 extern uint32_t avd_node_add_nodeid(AVD_AVND *avnd);
 extern void avd_node_delete_nodeid(AVD_AVND *node);
 extern AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id);
-extern AVD_AVND *avd_node_getnext_nodeid(SaClmNodeIdT node_id);
 extern SaAisErrorT avd_node_config_get(void);
 extern void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state);
 extern void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state);

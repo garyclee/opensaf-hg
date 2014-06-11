@@ -26,6 +26,7 @@
 #include <saflog.h>
 #include <amfd.h>
 #include <cluster.h>
+#include <db_template.h>
 
 extern "C" const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avd_enc_ckpt_data_func_list[AVSV_CKPT_MSG_MAX];
 
@@ -2076,17 +2077,17 @@ static uint32_t enc_cs_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint
 static uint32_t enc_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd_node = NULL;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	avnd_node = avd_node_getnext(NULL);
-	while (avnd_node != NULL) {
+	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
+			it != node_name_db->end(); it++) {
+		AVD_AVND *avnd_node = it->second;
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-					    &enc->io_uba, EDP_OP_TYPE_ENC, avnd_node, &ederror, enc->i_peer_version);
+				&enc->io_uba, EDP_OP_TYPE_ENC, avnd_node, &ederror, enc->i_peer_version);
 
 		if (status != NCSCC_RC_SUCCESS) {
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
@@ -2094,7 +2095,6 @@ static uint32_t enc_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 		}
 
 		(*num_of_obj)++;
-		avnd_node = avd_node_getnext(&avnd_node->name);
 	}
 
 	TRACE_LEAVE2("status '%u'", status);

@@ -25,8 +25,8 @@
 #include <cluster.h>
 #include <imm.h>
 
-static NCS_PATRICIA_TREE node_name_db;	/* SaNameT index */
-static NCS_PATRICIA_TREE node_id_db;	/* SaClmNodeIdT index */
+AmfDb<std::string, AVD_AVND> *node_name_db = 0;	/* SaNameT index */
+AmfDb<uint32_t, AVD_AVND> *node_id_db = 0;	/* SaClmNodeIdT index */
 
 //
 // TODO(HANO) Temporary use this function instead of strdup which uses malloc.
@@ -43,14 +43,9 @@ uint32_t avd_node_add_nodeid(AVD_AVND *node)
 {
 	unsigned int rc;
 
-	if ((avd_node_find_nodeid(node->node_info.nodeId) == NULL) && (node->node_info.nodeId != 0)) {
-
-		node->tree_node_id_node.key_info = (uint8_t *)&(node->node_info.nodeId);
-		node->tree_node_id_node.bit = 0;
-		node->tree_node_id_node.left = NCS_PATRICIA_NODE_NULL;
-		node->tree_node_id_node.right = NCS_PATRICIA_NODE_NULL;
-
-		rc = ncs_patricia_tree_add(&node_id_db, &node->tree_node_id_node);
+	if ((node_id_db->find(node->node_info.nodeId) == NULL) &&
+			(node->node_info.nodeId != 0)) {
+		rc = node_id_db->insert(node->node_info.nodeId, node);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 
@@ -59,16 +54,15 @@ uint32_t avd_node_add_nodeid(AVD_AVND *node)
 
 void avd_node_delete_nodeid(AVD_AVND *node)
 {
-	if (node->tree_node_id_node.key_info != NULL)
-		(void)ncs_patricia_tree_del(&node_id_db, &node->tree_node_id_node);
+	node_id_db->erase(node->node_info.nodeId);
 }
 
 void avd_node_db_add(AVD_AVND *node)
 {
 	unsigned int rc;
 
-	if (avd_node_get(&node->name) == NULL) {
-		rc = ncs_patricia_tree_add(&node_name_db, &node->tree_node_name_node);
+	if (node_name_db->find(Amf::to_string(&node->name)) == NULL) {
+		rc = node_name_db->insert(Amf::to_string(&node->name), node);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
@@ -88,7 +82,6 @@ AVD_AVND *avd_node_new(const SaNameT *dn)
 	node_name = strchr((char*)rdn.value, '=');
 	node_name++;
 	node->node_name = StrDup(node_name);
-	node->tree_node_name_node.key_info = (uint8_t *)&(node->name);
 	node->pg_csi_list.order = NCS_DBLIST_ANY_ORDER;
 	node->pg_csi_list.cmp_cookie = avsv_dblist_uns32_cmp;
 	node->saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
@@ -106,7 +99,7 @@ void avd_node_delete(AVD_AVND *node)
 	if (node->node_info.nodeId)
 		avd_node_delete_nodeid(node);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
-	ncs_patricia_tree_del(&node_name_db, &node->tree_node_name_node);
+	node_name_db->erase(Amf::to_string(&node->name));
 	delete [] node->node_name;
 	delete node;
 }
@@ -132,56 +125,12 @@ done:
 
 AVD_AVND *avd_node_get(const SaNameT *dn)
 {
-	AVD_AVND *node;
-	SaNameT tmp = { 0 };
-
-        tmp.length = dn->length;
-        memcpy(tmp.value, dn->value, tmp.length);
-
-        node = (AVD_AVND *)ncs_patricia_tree_get(&node_name_db, (uint8_t *)&tmp);
-
-        if (node != NULL) {
-                /* Adjust the pointer
-                 */
-                node = (AVD_AVND *)(((char *)node)
-                                    - (((char *)&(AVD_AVND_NULL->tree_node_name_node))
-                                       - ((char *)AVD_AVND_NULL)));
-        }
-
-        return node;
+	return node_name_db->find(Amf::to_string(dn));
 }
 
 AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id)
 {
-	return (AVD_AVND *)ncs_patricia_tree_get(&node_id_db, (uint8_t *)&node_id);
-}
-
-AVD_AVND *avd_node_getnext(const SaNameT *dn)
-{
-	AVD_AVND *node;
-	SaNameT tmp = { 0 };
-
-        if (dn != NULL) {
-                tmp.length = dn->length;
-                memcpy(tmp.value, dn->value, tmp.length);
-                node = (AVD_AVND *)ncs_patricia_tree_getnext(&node_name_db, (uint8_t *)&tmp);
-        } else 
-                node = (AVD_AVND *)ncs_patricia_tree_getnext(&node_name_db, (uint8_t *)0);
-
-
-	if (node != NULL) {
-		/* Adjust the pointer */
-		node = (AVD_AVND *)(((char *)node)
-				    - (((char *)&(AVD_AVND_NULL->tree_node_name_node))
-				       - ((char *)AVD_AVND_NULL)));
-	}
-
-	return node;
-}
-
-AVD_AVND *avd_node_getnext_nodeid(SaClmNodeIdT node_id)
-{
-	return (AVD_AVND *)ncs_patricia_tree_getnext(&node_id_db, (uint8_t *)&node_id);
+	return node_id_db->find(node_id);
 }
 
 /**
@@ -1396,14 +1345,10 @@ void node_reset_su_try_inst_counter(const AVD_AVND *node)
 
 void avd_node_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(SaNameT);
-	osafassert(ncs_patricia_tree_init(&node_name_db, &patricia_params) == NCSCC_RC_SUCCESS);
-	patricia_params.key_size = sizeof(SaClmNodeIdT);
-	osafassert(ncs_patricia_tree_init(&node_id_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	node_name_db = new AmfDb<std::string, AVD_AVND>;
+	node_id_db = new AmfDb<uint32_t, AVD_AVND>;
 
 	avd_class_impl_set("SaAmfNode", NULL, node_admin_op_cb,
-		node_ccb_completed_cb, node_ccb_apply_cb);
+			node_ccb_completed_cb, node_ccb_apply_cb);
 }
 
