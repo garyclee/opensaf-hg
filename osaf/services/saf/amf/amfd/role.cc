@@ -880,8 +880,6 @@ uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb)
 
 uint32_t amfd_switch_qsd_stdby(AVD_CL_CB *cb)
 {
-	AVD_AVND *avnd = NULL;
-	uint32_t node_id = 0;
 	uint32_t status = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -912,11 +910,10 @@ uint32_t amfd_switch_qsd_stdby(AVD_CL_CB *cb)
 		LOG_ER("rde role change failed from qsd -> stdby");
 	}
 
-	node_id = 0;
-
 	/* Walk through all the nodes and  free PG records. */
-	while (NULL != (avnd = avd_node_getnext_nodeid(node_id))) {
-		node_id = avnd->node_info.nodeId;
+	for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
+			it != node_id_db->end(); it++) {
+		AVD_AVND *avnd = it->second;
 		avd_pg_node_csi_del_all(cb, avnd);
 	}
 

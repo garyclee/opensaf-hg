@@ -487,6 +487,7 @@ void cluster_startup_expiry_event_generate(AVD_CL_CB *cb)
  */
 bool cluster_su_instantiation_done(AVD_CL_CB *cb, AVD_SU *su)
 {
+	AVD_AVND *node = NULL;
 	TRACE_ENTER2("%p", su);
 
 	if(su == NULL)
@@ -503,8 +504,9 @@ bool cluster_su_instantiation_done(AVD_CL_CB *cb, AVD_SU *su)
 
 node_walk:
 
-	AVD_AVND *node;
-	for (node = avd_node_getnext(NULL); node != NULL; node = avd_node_getnext(&node->name)) {
+	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
+			it != node_name_db->end(); it++) {
+		node = it->second;
 		TRACE("node name '%s', Oper'%u'", node->name.value, node->saAmfNodeOperState);
 		if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED)
 		{

@@ -378,7 +378,6 @@ void avd_mds_avnd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
  **************************************************************************/
 void avd_fail_over_event(AVD_CL_CB *cb)
 {
-	AVD_AVND *avnd;
 	SaClmNodeIdT node_id = 0;
 	AVD_FAIL_OVER_NODE *node_to_add;
 
@@ -386,7 +385,9 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 	cb->avd_fover_state = true;
 
 	/* Walk through all the nodes and send verify message to them. */
-	while (NULL != (avnd = avd_node_getnext_nodeid(node_id))) {
+	for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
+			it != node_id_db->end(); it++) {
+		AVD_AVND *avnd = it->second;
 		node_id = avnd->node_info.nodeId;
 
 		/*

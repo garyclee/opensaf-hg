@@ -382,8 +382,6 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 
 	if (cb->node_list.n_nodes == 0) {
 		AVD_EVT_QUEUE *queue_evt;
-		AVD_AVND *node;
-		SaClmNodeIdT node_id = 0;
 
 		/* We have received the info from all the nodes. */
 		cb->avd_fover_state = false;
@@ -403,9 +401,9 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 		 * during the failover state and the susi failover is differed till
 		 * failover completes 
 		 */
-		while (NULL != (node = avd_node_getnext_nodeid(node_id))) {
-			node_id = node->node_info.nodeId;
-
+		for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
+				it != node_id_db->end(); it++) {
+			AVD_AVND *node = it->second;
 			if (AVD_AVND_STATE_ABSENT == node->node_state) {
 				avd_node_failover(node);
 			}
