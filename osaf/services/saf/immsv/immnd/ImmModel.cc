@@ -439,6 +439,7 @@ static const std::string immClassName(OPENSAF_IMM_CLASS_NAME);
 static const std::string immAttrNostFlags(OPENSAF_IMM_ATTR_NOSTD_FLAGS);
 static const std::string immSyncBatchSize(OPENSAF_IMM_SYNC_BATCH_SIZE);
 static const std::string immPbeBSlaveName(OPENSAF_IMM_2PBE_APPL_NAME);
+static const std::string immLongDnsAllowed(OPENSAF_IMM_LONG_DNS_ALLOWED);
 
 static const std::string immManagementDn("safRdn=immManagement,safApp=safImmService");
 static const std::string saImmRepositoryInit("saImmRepositoryInit");
@@ -2528,6 +2529,29 @@ ImmModel::getMaxSyncBatchSize()
     }
     TRACE_LEAVE();
     return mbSize;
+}
+
+bool
+ImmModel::getLongDnsAllowed()
+{
+    TRACE_ENTER();
+    bool longDnsAllowed = false;
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+    if(oi == sObjectMap.end()) {
+        TRACE_LEAVE();
+        return false;
+    }
+
+    ObjectInfo* immObject =  oi->second;
+    ImmAttrValueMap::iterator avi = 
+        immObject->mAttrValueMap.find(immLongDnsAllowed);
+    if(avi != immObject->mAttrValueMap.end()) {
+        osafassert(!(avi->second->isMultiValued()));
+        ImmAttrValue* valuep = avi->second;
+        longDnsAllowed = (valuep->getValue_int() != 0);
+    }
+    TRACE_LEAVE();
+    return longDnsAllowed;
 }
 
 /**

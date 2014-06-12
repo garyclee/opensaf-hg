@@ -1840,8 +1840,33 @@ is in this example using both the OI and the OM API concurrently.
 One note of warning. Care needs to be taken when using *synchronous* admin-operations 
 not to create deadlock cycles between the involved processes. Any such deadlock will
 be resolved by the timeout of the synchronous admin-ops, so the problem would be lack
-of progress on some task, not a permanently hung set of processes. 
+of progress on some task, not a permanently hung set of processes.
 
+
+Attribute 'longDnsAllowed' added to class 'OpensafImm' (4.5)
+===========================================================
+https://sourceforge.net/p/opensaf/tickets/897
+
+This enhancement is part of the general enhancement for supporting long DNs in
+OpenSAF tracked by ticket: #191 and adding support for long DNs to IMM tracked by
+ticket: #886.
+
+A config attribute named 'longDnsAllowed' is added to the class 'OpensafImm'.
+The default value is 0 with the intended meaning that long DNs are not allowed.
+Any other value has the meaning that long DNs are allowed. A boolean function 
+getLongDnsAllowed()' has been added to ImmModel. This function will be used by
+the function ImmModel::ccbObjectCreate() when it detects that an object proposed
+to be created has a DN longer than 255 bytes. The creation will only be allowed
+if getLongDnsAllowed() returns true.
+
+Validation of updates to the value of  'longDnsAllowed' will be added as part of
+ticket #934. Transitioning from true to false will only be allowed at a site if
+the imm database at the site currently has no object with a long DN.
+
+An imm xml file containing the extended class definition for OpensafImm has been
+added at samples/immsv/OpensafImm_Upgrade_4.5.xml.
+The xml file should be used for upgrading the class when older OpenSAF systems are
+upgraded to OpenSAF 4.5 and that system must be capable of supporting long DNs.
 
 
 Notes on upgrading from OpenSAF 4.[1,2,3,4] to OpenSAF 4.5
