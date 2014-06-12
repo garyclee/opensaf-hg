@@ -483,6 +483,7 @@ public:
 
     SaImmRepositoryInitModeT getRepositoryInitMode();
     unsigned int      getMaxSyncBatchSize();
+    bool              getLongDnsAllowed();
     void              prepareForLoading();
     bool              readyForLoading();
     void              prepareForSync(bool isJoining);

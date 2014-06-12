@@ -58,6 +58,8 @@ extern "C" {
 #define IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE MDS_DIRECT_BUF_MAXSIZE
 #define IMMSV_MAX_OBJS_IN_SYNCBATCH (MDS_DIRECT_BUF_MAXSIZE/10) 
 
+#define OPENSAF_IMM_LONG_DNS_ALLOWED "longDnsAllowed"
+
 /*Max # of outstanding fevs messages towards director.*/
 /*Note max-max is 255. cb->fevs_replies_pending is an uint8_t*/
 #define IMMSV_DEFAULT_FEVS_MAX_PENDING 16
