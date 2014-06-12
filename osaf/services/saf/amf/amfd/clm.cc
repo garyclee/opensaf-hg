@@ -328,7 +328,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 					node = it->second;
 					if (0 == strncmp((char*)node->saAmfNodeClmNode.value,
 								(char*)notifItem->clusterNode.nodeName.value,
-								notifItem->clusterNode.nodeName.length));
+								notifItem->clusterNode.nodeName.length))
 					break;
 				}
 				if ( node != NULL ) {
