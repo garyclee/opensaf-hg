@@ -122,6 +122,15 @@ class AVD_SU {
 	AVD_COMP *find_unassigned_comp_that_provides_cstype(const SaNameT *cstype);
 	void disable_comps(SaAisErrorT result);
 	void complete_admin_op(SaAisErrorT result);
+	void unlock(SaImmOiHandleT immoi_handle, SaInvocationT invocation);
+	void lock_instantiation(SaImmOiHandleT immoi_handle,
+		SaInvocationT invocation);
+	void unlock_instantiation(SaImmOiHandleT immoi_handle,
+		SaInvocationT invocation);
+	void repaired(SaImmOiHandleT immoi_handle, SaInvocationT invocation);
+	void shutdown(SaImmOiHandleT immoi_handle, SaInvocationT invocation);
+	void lock(SaImmOiHandleT immoi_handle, SaInvocationT invocation,
+		SaAmfAdminStateT adm_state);
 
 
  private:

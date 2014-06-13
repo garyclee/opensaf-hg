@@ -855,6 +855,245 @@ void AVD_SU::set_admin_state(SaAmfAdminStateT admin_state) {
 			old_state, saAmfSUAdminState);
 }
 
+void AVD_SU::unlock(SaImmOiHandleT immoi_handle, SaInvocationT invocation) {
+	bool is_oper_successful = true;
+
+	TRACE_ENTER2("'%s'", name.value);
+	set_admin_state(SA_AMF_ADMIN_UNLOCKED);
+
+	if ((is_in_service() == true) || (sg_of_su->sg_ncs_spec == true)) {
+		/* Reason for checking for MW component is that node oper state and
+		 * SU oper state are marked enabled after they gets assignments.
+		 * So, we can't check compatibility with is_in_service() for them.
+		 */
+		set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+		if (sg_of_su->su_insvc(avd_cb, this) != NCSCC_RC_SUCCESS)
+			is_oper_successful = false;
+
+		avd_sg_app_su_inst_func(avd_cb, sg_of_su);
+	} else
+		LOG_IN("SU '%s' is not in service", name.value);
+
+	if (is_oper_successful == true) {
+		if (sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN ) {
+			pend_cbk.admin_oper = SA_AMF_ADMIN_UNLOCK;
+			pend_cbk.invocation = invocation;
+		} else {
+			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+		}
+	} else {
+		set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+		set_admin_state(SA_AMF_ADMIN_LOCKED);
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_FAILED_OPERATION, NULL,
+				"SG redundancy model specific handler failed");
+	}
+
+	TRACE_LEAVE();
+}
+
+void AVD_SU::lock(SaImmOiHandleT immoi_handle, SaInvocationT invocation,
+                  SaAmfAdminStateT adm_state = SA_AMF_ADMIN_LOCKED) {
+	AVD_AVND *node = get_node_ptr();
+	SaAmfReadinessStateT back_red_state;
+	SaAmfAdminStateT back_admin_state;
+	bool is_oper_successful = true;
+
+	TRACE_ENTER2("'%s'", name.value);
+
+	if (list_of_susi == NULL) {
+		set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+		set_admin_state(SA_AMF_ADMIN_LOCKED);
+		avd_sg_app_su_inst_func(avd_cb, sg_of_su);
+		avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+		goto done;
+	}
+
+	back_red_state = saAmfSuReadinessState;
+	back_admin_state = saAmfSUAdminState;
+	set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+	set_admin_state(adm_state);
+
+	if (sg_of_su->su_admin_down(avd_cb, this, node) != NCSCC_RC_SUCCESS)
+		is_oper_successful = false;
+
+	avd_sg_app_su_inst_func(avd_cb, sg_of_su);
+
+	if (is_oper_successful == true) {
+		if ((sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN) ||
+				(sg_of_su->sg_fsm_state == AVD_SG_FSM_SU_OPER)) {
+			pend_cbk.admin_oper = (adm_state == SA_AMF_ADMIN_SHUTTING_DOWN) ?
+				SA_AMF_ADMIN_SHUTDOWN : SA_AMF_ADMIN_LOCK;
+			pend_cbk.invocation = invocation;
+		} else {
+			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+		}
+	} else {
+		set_readiness_state(back_red_state);
+		set_admin_state(back_admin_state);
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_FAILED_OPERATION, NULL,
+				"SG redundancy model specific handler failed");
+	}
+
+done:
+	TRACE_LEAVE();
+}
+
+void AVD_SU::shutdown(SaImmOiHandleT immoi_handle, SaInvocationT invocation) {
+	TRACE_ENTER2("'%s'", name.value);
+	lock(immoi_handle, invocation, SA_AMF_ADMIN_SHUTTING_DOWN);
+	TRACE_LEAVE();
+}
+
+void AVD_SU::lock_instantiation(SaImmOiHandleT immoi_handle,
+                                SaInvocationT invocation) {
+	AVD_AVND *node = get_node_ptr();
+
+	TRACE_ENTER2("'%s'", name.value);
+
+	/* For non-preinstantiable SU lock-inst is same as lock */
+	if (saAmfSUPreInstantiable == false) {
+		set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+		avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+		goto done;
+	}
+
+	if (list_of_susi != NULL) {
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+			"SIs still assigned to this SU '%s'", name.value);
+		goto done;
+	}
+
+	if ((saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATING) ||
+		(saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATING) ||
+			(saAmfSUPresenceState == SA_AMF_PRESENCE_RESTARTING)) {
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"'%s' presence state is '%u'", name.value, saAmfSUPresenceState);
+		goto done;
+	}
+
+	if ((saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) ||
+		(saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED) ||
+			(saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED)) {
+		/* No need to terminate the SUs in Unins/Inst Failed/Term Failed state */
+		set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+		avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+		set_term_state(true);
+		goto done;
+	}
+
+	if ( ( node->node_state == AVD_AVND_STATE_PRESENT )   ||
+	     ( node->node_state == AVD_AVND_STATE_NO_CONFIG ) ||
+	     ( node->node_state == AVD_AVND_STATE_NCS_INIT ) ) {
+		/* When the SU will terminate then presence state change message will come
+		   and so store the callback parameters to send response later on. */
+		if (avd_snd_presence_msg(avd_cb, this, true) == NCSCC_RC_SUCCESS) {
+			set_term_state(true);
+			set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+			pend_cbk.admin_oper = SA_AMF_ADMIN_LOCK_INSTANTIATION;
+			pend_cbk.invocation = invocation;
+			goto done;
+		}
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"Internal error, could not send message to avnd");
+		goto done;
+	} else {
+		set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+		avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+		set_term_state(true);
+	}
+done:
+	TRACE_LEAVE();
+}
+
+void AVD_SU::unlock_instantiation(SaImmOiHandleT immoi_handle,
+                                  SaInvocationT invocation) {
+	AVD_AVND *node = get_node_ptr();
+
+	TRACE_ENTER2("'%s'", name.value);
+
+	if (list_of_comp == NULL) {
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+				"There is no component configured for SU '%s'.", name.value);
+		goto done;
+	}
+
+	/* For non-preinstantiable SU unlock-inst will not lead to its inst until unlock. */
+	if (saAmfSUPreInstantiable == false) {
+		/* Adjusting saAmfSGMaxActiveSIsperSU and saAmfSGMaxStandbySIsperSU
+		   is required when SG and SUs/Comps are created in different CCBs. */
+		avd_sg_adjust_config(sg_of_su);
+		set_admin_state(SA_AMF_ADMIN_LOCKED);
+		avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+		goto done;
+	}
+
+	if (saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) {
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			"Can't instantiate '%s', whose presence state is '%u'", name.value,
+			saAmfSUPresenceState);
+		goto done;
+	}
+
+	if ((node->node_state == AVD_AVND_STATE_PRESENT) &&
+		((node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
+		(sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) &&
+		 (saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
+		 (sg_of_su->saAmfSGNumPrefInserviceSUs > sg_instantiated_su_count(sg_of_su))) {
+		/* When the SU will instantiate then prescence state change message will come
+		   and so store the callback parameters to send response later on. */
+		if (avd_snd_presence_msg(avd_cb, this, false) == NCSCC_RC_SUCCESS) {
+			set_term_state(false);
+			set_admin_state(SA_AMF_ADMIN_LOCKED);
+			pend_cbk.admin_oper = SA_AMF_ADMIN_UNLOCK_INSTANTIATION;
+			pend_cbk.invocation = invocation;
+			goto done;
+		}
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"Internal error, could not send message to avnd");
+	} else {
+		set_admin_state(SA_AMF_ADMIN_LOCKED);
+		avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+		set_term_state(false);
+	}
+
+done:
+		TRACE_LEAVE();
+}
+
+void AVD_SU::repaired(SaImmOiHandleT immoi_handle,
+                      SaInvocationT invocation) {
+	TRACE_ENTER2("'%s'", name.value);
+
+	if (saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) {
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			"Admin repair request for '%s', op state already enabled", name.value);
+		goto done;
+	}
+
+	if ((saAmfSUOperState == SA_AMF_OPERATIONAL_DISABLED) &&
+			(su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED)) {
+		/* This means that node on which this su is hosted, is absent. */
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			"Admin repair request for '%s', hosting node'%s' is absent",
+			name.value, su_on_node->name.value);
+		goto done;
+	}
+
+	/* forward the admin op req to the node director */
+	if (avd_admin_op_msg_snd(&name, AVSV_SA_AMF_SU, SA_AMF_ADMIN_REPAIRED,
+			su_on_node) == NCSCC_RC_SUCCESS) {
+		pend_cbk.admin_oper = SA_AMF_ADMIN_REPAIRED;
+		pend_cbk.invocation = invocation;
+	}
+	else {
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TIMEOUT, NULL,
+			"Admin op request send failed '%s'", name.value);
+	}
+
+done:
+	TRACE_LEAVE();
+}
+
 /**
  * Handle admin operations on SaAmfSU objects.
  * 
@@ -871,10 +1110,6 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	AVD_CL_CB *cb = (AVD_CL_CB*) avd_cb;
 	AVD_SU    *su, *su_ptr;
 	AVD_AVND  *node;
-	bool   is_oper_successful = true;
-	SaAmfAdminStateT adm_state = static_cast<SaAmfAdminStateT>(SA_AMF_ADMIN_LOCK);
-	SaAmfReadinessStateT back_red_state;
-	SaAmfAdminStateT back_admin_state;
 
 	TRACE_ENTER2("%llu, '%s', %llu", invocation, su_name->value, op_id);
 
@@ -896,8 +1131,8 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		goto done;
 	}
 
-	if ((su->sg_of_su->sg_ncs_spec == true)
-		&& (cb->node_id_avd == su->su_on_node->node_info.nodeId)) {
+	if ((su->sg_of_su->sg_ncs_spec == true)	&&
+			(cb->node_id_avd == su->su_on_node->node_info.nodeId)) {
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL, 
 				"Admin operation on Active middleware SU is not allowed");
 		goto done;
@@ -974,222 +1209,22 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	/* Validation has passed and admin operation should be done. Proceed with it... */
 	switch (op_id) {
 	case SA_AMF_ADMIN_UNLOCK:
-		su->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
-		if ((su->is_in_service() == true) || (su->sg_of_su->sg_ncs_spec == true)) {
-			/* Reason for adding "su->sg_of_su->sg_ncs_spec == true" is for Middleware component
-			 * node oper state and SU oper state are marked enabled after they gets assignments.
-			 * So, we cann't check compatibility with m_AVD_APP_SU_IS_INSVC for them.
-			 */
-			su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
-			if (su->sg_of_su->su_insvc(cb, su) != NCSCC_RC_SUCCESS)
-				is_oper_successful = false;
-
-			avd_sg_app_su_inst_func(cb, su->sg_of_su);
-		} else
-			LOG_IN("SU is not in service");
-
-		if ( is_oper_successful == true ) {
-			if ( su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN ) {
-				/* Store the callback parameters to send operation result later on. */
-				su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
-				su->pend_cbk.invocation = invocation;
-				goto done;
-			} else {
-				avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-				goto done;
-			}
-		} else {
-			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
-			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_FAILED_OPERATION, NULL,
-					"SG redundancy model specific handler failed");
-			goto done;
-		}
-
+		su->unlock(immoi_handle, invocation);
 		break;
-
 	case SA_AMF_ADMIN_SHUTDOWN:
-		adm_state = SA_AMF_ADMIN_SHUTTING_DOWN;
-		/* fall-through */
-
+		su->shutdown(immoi_handle, invocation);
+		break;
 	case SA_AMF_ADMIN_LOCK:
-		if (su->list_of_susi == NULL) {
-			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
-			avd_sg_app_su_inst_func(cb, su->sg_of_su);
-			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			goto done;
-		}
-
-		back_red_state = su->saAmfSuReadinessState;
-		back_admin_state = su->saAmfSUAdminState;
-		su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-		su->set_admin_state(adm_state);
-
-		if (su->sg_of_su->su_admin_down(cb, su, node) != NCSCC_RC_SUCCESS)
-			is_oper_successful = false;
-
-		avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
-
-		if ( is_oper_successful == true ) {
-			if ( (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN) ||
-			     (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SU_OPER) ) {
-				/* Store the callback parameters to send operation result later on. */
-				su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
-				su->pend_cbk.invocation = invocation;
-			} else {
-				avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			}
-		} else {
-			su->set_readiness_state(back_red_state);
-			su->set_admin_state(back_admin_state);
-			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_FAILED_OPERATION, NULL,
-					"SG redundancy model specific handler failed");
-			goto done;
-		}
-
+		su->lock(immoi_handle, invocation);
 		break;
-
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
-
-		/* For non-preinstantiable SU lock-inst is same as lock */
-		if ( su->saAmfSUPreInstantiable == false ) {
-			su->set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
-			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			goto done;
-		}
-
-		if ( su->list_of_susi != NULL ) {
-			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
-					"SIs still assigned to this SU");
-			goto done;
-		}
-
-		if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATING) ||
-				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATING) || 
-				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_RESTARTING)) {
-			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
-					"'%s' presence state is '%u'", su_name->value, su->saAmfSUPresenceState);
-			goto done;
-		}
-
-		if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) ||
-				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED) || 
-				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED)) {
-			/* No need to terminate the SUs in Unins/Inst Failed/Term Failed state */
-			su->set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
-			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			su->set_term_state(true);
-			LOG_NO("'%s' presence state is '%u'", su_name->value, su->saAmfSUPresenceState);
-			goto done;
-		}
-
-		if ( ( node->node_state == AVD_AVND_STATE_PRESENT )   ||
-		     ( node->node_state == AVD_AVND_STATE_NO_CONFIG ) ||
-		     ( node->node_state == AVD_AVND_STATE_NCS_INIT ) ) {
-			/* When the SU will terminate then prescence state change message will come
-			   and so store the callback parameters to send response later on. */
-			if (avd_snd_presence_msg(cb, su, true) == NCSCC_RC_SUCCESS) {
-				su->set_term_state(true);
-				su->set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
-				su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
-				su->pend_cbk.invocation = invocation;
-
-				goto done;
-			}
-			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
-					"Internal error, could not send message to avnd");
-			goto done;
-		} else {
-			su->set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
-			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			su->set_term_state(true);
-		}
-
+		su->lock_instantiation(immoi_handle, invocation);
 		break;
-
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
-
-		if (NULL == su->list_of_comp) {
-			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
-					"There is no component configured for SU '%s'.", su->name.value);
-			goto done;
-		}
-
-		/* For non-preinstantiable SU unlock-inst will not lead to its inst until unlock. */
-		if ( su->saAmfSUPreInstantiable == false ) {
-			/* Adjusting saAmfSGMaxActiveSIsperSU and saAmfSGMaxStandbySIsperSU
-			   is required when SG and SUs/Comps are created in different CCBs. */
-			avd_sg_adjust_config(su->sg_of_su);
-			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
-			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			goto done;
-		}
-
-		if (su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) {
-			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
-					"Can't instantiate '%s', whose presense state is '%u'", su_name->value,
-					su->saAmfSUPresenceState);
-			goto done;
-		} 
-
-		/* Middleware sus are not enabled until node joins. During
-		   starting of opensaf, if mw su is locked-in and unlock-in
-		   command is issued, su should get instantiated. */
-		if (((node->node_state == AVD_AVND_STATE_PRESENT) ||
-					(node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
-					(node->node_state == AVD_AVND_STATE_NCS_INIT)) &&
-				((node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) && 
-				 (su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) && 
-				((su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) ||
-				 (su->sg_of_su->sg_ncs_spec == true)) && 
-				(su->sg_of_su->saAmfSGNumPrefInserviceSUs > sg_instantiated_su_count(su->sg_of_su))) {
-			/* When the SU will instantiate then prescence state change message will come
-			   and so store the callback parameters to send response later on. */
-			if (avd_snd_presence_msg(cb, su, false) == NCSCC_RC_SUCCESS) {
-				su->set_term_state(false);
-				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
-
-				su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
-				su->pend_cbk.invocation = invocation;
-
-				goto done;
-			}
-			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
-					"Internal error, could not send message to avnd");
-		} else {
-			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
-			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			su->set_term_state(false);
-		}
-
+		su->unlock_instantiation(immoi_handle, invocation);
 		break;
 	case SA_AMF_ADMIN_REPAIRED:
-		if (su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) {
-			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_NO_OP, NULL,
-					"Admin repair request for '%s', op state already enabled", su_name->value);
-			goto done;
-		}
-
-		if ((su->saAmfSUOperState == SA_AMF_OPERATIONAL_DISABLED) && 
-				(su->su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED)) {
-			/* This means that node on which this su is hosted, is absent. */
-			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
-					"Admin repair request for '%s', hosting node'%s' is absent",
-					su_name->value, su->su_on_node->name.value);
-			goto done;
-		}
-
-		/* forward the admin op req to the node director */
-		if (avd_admin_op_msg_snd(su_name, AVSV_SA_AMF_SU, static_cast<SaAmfAdminOperationIdT>(op_id),
-			su->su_on_node) == NCSCC_RC_SUCCESS) {
-			su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
-			su->pend_cbk.invocation = invocation;
-		}
-		else {
-			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TIMEOUT, NULL,
-					"Admin op request send failed '%s'", su_name->value);
-		}
+		su->repaired(immoi_handle, invocation);
 		break;
 	default:
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, NULL,
