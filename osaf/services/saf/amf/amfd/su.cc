@@ -1830,3 +1830,22 @@ AVD_COMP *AVD_SU::find_unassigned_comp_that_provides_cstype(const SaNameT *cstyp
 
 	return l_comp;
 }
+
+/**
+ * Disables all components since SU is disabled and out of service.
+ * Takes care of response to IMM for any admin operation pending on components.
+ * @param result
+ */
+void AVD_SU::disable_comps(SaAisErrorT result)
+{
+	AVD_COMP *comp;
+	for (comp = list_of_comp; comp; comp = comp->su_comp_next) {
+		comp->curr_num_csi_actv = 0;
+		comp->curr_num_csi_stdby = 0;
+		avd_comp_oper_state_set(comp, SA_AMF_OPERATIONAL_DISABLED);
+		avd_comp_pres_state_set(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
+		comp->saAmfCompRestartCount = 0;
+		comp_complete_admin_op(comp, result);
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
+	}
+}
