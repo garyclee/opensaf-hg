@@ -290,9 +290,9 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 	su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 	su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 	if (su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED)
-		su_complete_admin_op(su, SA_AIS_OK);
+		su->complete_admin_op(SA_AIS_OK);
 	else
-		su_complete_admin_op(su, SA_AIS_ERR_TIMEOUT);
+		su->complete_admin_op(SA_AIS_ERR_TIMEOUT);
 	su->disable_comps(SA_AIS_ERR_TIMEOUT);
 	if (su->su_on_node->admin_node_pend_cbk.invocation != 0) {
 		/* Node level operation is going on the node hosting the SU for which 
@@ -1136,9 +1136,9 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					/* For lock and shutdown, response to IMM admin operation should be
 					   sent when response for DEL operation is received */
 					if (AVSV_SUSI_ACT_DEL == n2d_msg->msg_info.n2d_su_si_assign.msg_act)
-						su_complete_admin_op(su, SA_AIS_OK);
+						su->complete_admin_op(SA_AIS_OK);
 				} else if (n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) {
-					su_complete_admin_op(su, SA_AIS_ERR_REPAIR_PENDING);
+					su->complete_admin_op(SA_AIS_ERR_REPAIR_PENDING);
 				}
 				/* else lock is still not complete so don't send result. */
 			} else if (su->pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK) {
@@ -1146,12 +1146,12 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				/* Respond to IMM when SG is STABLE or if a fault occured */
 				if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 					if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE) {
-						su_complete_admin_op(su, SA_AIS_OK);
+						su->complete_admin_op(SA_AIS_OK);
 					} else
 						; // wait for SG to become STABLE
 				} 
 				else
-					su_complete_admin_op(su, SA_AIS_ERR_TIMEOUT);
+					su->complete_admin_op(SA_AIS_ERR_TIMEOUT);
 			}
 		} else if (su->su_on_node->admin_node_pend_cbk.invocation != 0) {
 			/* decrement the SU count on the node undergoing admin operation  
@@ -1191,7 +1191,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						(su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE)) {
 					for (temp_su = su->sg_of_su->list_of_su; temp_su != NULL; 
 							temp_su = temp_su->sg_list_su_next) {
-						su_complete_admin_op(temp_su, SA_AIS_OK);
+						temp_su->complete_admin_op(SA_AIS_OK);
 					}
 				} else
 					; // wait for SG to become STABLE
@@ -1562,7 +1562,7 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 		i_su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 		i_su->set_pres_state(SA_AMF_PRESENCE_UNINSTANTIATED);
 		i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-		su_complete_admin_op(i_su, SA_AIS_ERR_TIMEOUT);
+		i_su->complete_admin_op(SA_AIS_ERR_TIMEOUT);
 		i_su->disable_comps(SA_AIS_ERR_TIMEOUT);
 
 		/* Now analyze the service group for the new HA state
@@ -1613,13 +1613,10 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 		i_su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 		i_su->set_pres_state(SA_AMF_PRESENCE_UNINSTANTIATED);
 		i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-
-		/* Check if there was any admin operations going on this SU. */
-		su_complete_admin_op(i_su, SA_AIS_ERR_TIMEOUT);
+		i_su->complete_admin_op(SA_AIS_ERR_TIMEOUT);
 		i_su->disable_comps(SA_AIS_ERR_TIMEOUT);
-
 		i_su = i_su->avnd_list_su_next;
-	} /* while (i_su != AVD_SU_NULL) */
+	}
 
 	/* If the AvD is in AVD_APP_STATE run through all the application SUs and 
 	 * reassign all the SUSI assignments for the SG of which the SU is a member
@@ -2008,23 +2005,6 @@ void avd_su_role_failover(AVD_SU *su, AVD_SU *stdby_su)
 	}
 	TRACE_LEAVE();
 }
-
-/**
- * @brief	This function completes admin operation on SU. 
- *              It responds IMM with the result of admin operation on SU.  
- * @param 	ptr to su 
- * @param 	result
- * 
- */
-void su_complete_admin_op(AVD_SU *su, SaAisErrorT result)
-{
-	if (su->pend_cbk.invocation != 0) {
-		avd_saImmOiAdminOperationResult(avd_cb->immOiHandle, su->pend_cbk.invocation, result);
-		su->pend_cbk.invocation = 0;
-		su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
-	}
-}
-
 
 /**
  * @brief	This function completes admin operation on component. 
