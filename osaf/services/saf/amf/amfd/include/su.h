@@ -121,6 +121,7 @@ class AVD_SU {
 	void reset_all_comps_assign_flag();
 	AVD_COMP *find_unassigned_comp_that_provides_cstype(const SaNameT *cstype);
 	void disable_comps(SaAisErrorT result);
+	void complete_admin_op(SaAisErrorT result);
 
 
  private:

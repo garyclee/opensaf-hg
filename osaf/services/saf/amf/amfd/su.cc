@@ -1849,3 +1849,20 @@ void AVD_SU::disable_comps(SaAisErrorT result)
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
 	}
 }
+
+/**
+ * @brief	This function completes admin operation on SU.
+ *              It responds IMM with the result of admin operation on SU.
+ * @param 	ptr to su
+ * @param 	result
+ *
+ */
+void AVD_SU::complete_admin_op(SaAisErrorT result)
+{
+	if (pend_cbk.invocation != 0) {
+		avd_saImmOiAdminOperationResult(avd_cb->immOiHandle,
+			pend_cbk.invocation, result);
+		pend_cbk.invocation = 0;
+		pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+	}
+}
