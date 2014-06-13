@@ -293,7 +293,7 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 		su_complete_admin_op(su, SA_AIS_OK);
 	else
 		su_complete_admin_op(su, SA_AIS_ERR_TIMEOUT);
-	su_disable_comps(su, SA_AIS_ERR_TIMEOUT);
+	su->disable_comps(SA_AIS_ERR_TIMEOUT);
 	if (su->su_on_node->admin_node_pend_cbk.invocation != 0) {
 		/* Node level operation is going on the node hosting the SU for which 
 		   sufailover got escalated. Sufailover event will always come after the 
@@ -1563,7 +1563,7 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 		i_su->set_pres_state(SA_AMF_PRESENCE_UNINSTANTIATED);
 		i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 		su_complete_admin_op(i_su, SA_AIS_ERR_TIMEOUT);
-		su_disable_comps(i_su, SA_AIS_ERR_TIMEOUT);
+		i_su->disable_comps(SA_AIS_ERR_TIMEOUT);
 
 		/* Now analyze the service group for the new HA state
 		 * assignments and send the SU SI assign messages
@@ -1616,7 +1616,7 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 		/* Check if there was any admin operations going on this SU. */
 		su_complete_admin_op(i_su, SA_AIS_ERR_TIMEOUT);
-		su_disable_comps(i_su, SA_AIS_ERR_TIMEOUT);
+		i_su->disable_comps(SA_AIS_ERR_TIMEOUT);
 
 		i_su = i_su->avnd_list_su_next;
 	} /* while (i_su != AVD_SU_NULL) */
@@ -2039,25 +2039,5 @@ void comp_complete_admin_op(AVD_COMP *comp, SaAisErrorT result)
 		avd_saImmOiAdminOperationResult(avd_cb->immOiHandle, comp->admin_pend_cbk.invocation, result);
 		comp->admin_pend_cbk.invocation = 0;
 		comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
-	}
-}
-/**
- * @brief	Disable all components since SU is disabled and out of service. 
- *              It takes care of response to IMM for any admin operation pending on components.  
- * @param 	ptr to su 
- * @param 	result
- * 
- */
-void su_disable_comps(AVD_SU *su, SaAisErrorT result)
-{
-	AVD_COMP *comp;
-	for (comp = su->list_of_comp; comp; comp = comp->su_comp_next) {
-		comp->curr_num_csi_actv = 0;
-		comp->curr_num_csi_stdby = 0;
-		avd_comp_oper_state_set(comp, SA_AMF_OPERATIONAL_DISABLED);
-		avd_comp_pres_state_set(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
-		comp->saAmfCompRestartCount = 0;
-		comp_complete_admin_op(comp, result);
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
 	}
 }
