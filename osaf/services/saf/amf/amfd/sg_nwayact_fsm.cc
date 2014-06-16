@@ -58,8 +58,6 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	AVD_SU *i_su, *qualified_su;
 	AVD_SI *i_si;
 	bool l_flag, next_si_tobe_assigned = true;
-	AVD_SUS_PER_SI_RANK_INDX i_idx;
-	AVD_SUS_PER_SI_RANK *su_rank_rec;
 	AVD_SU_SI_REL *tmp_rel;
 
 	TRACE_ENTER2("'%s'", sg->name.value);
@@ -88,15 +86,21 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		/* identify a in-service SU which is not assigned to this SI and can
 		 * take more assignments so that the SI can be assigned. 
 		 */
-		memset((uint8_t *)&i_idx, '\0', sizeof(i_idx));
-		i_idx.si_name = i_si->name;
-		i_idx.su_rank = 0;
-		for (su_rank_rec = avd_sirankedsu_getnext_valid(cb, i_idx, &i_su);
-		     (su_rank_rec != AVD_SU_PER_SI_RANK_NULL)
-		     && (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, i_si->name) == 0);
-		     su_rank_rec = avd_sirankedsu_getnext_valid(cb, su_rank_rec->indx, &i_su)) {
-			if (i_su == NULL)
-				continue;
+		for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
+				it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
+			AVD_SUS_PER_SI_RANK *su_rank_rec = it->second;
+			{
+				if (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, i_si->name) != 0)
+					continue;
+
+				/* get the su & si */
+				i_su = su_db->find(Amf::to_string(&su_rank_rec->su_name));
+				AVD_SI *si = avd_si_get(&su_rank_rec->indx.si_name);
+
+				/* validate this entry */
+				if ((si == NULL) || (i_su == NULL) || (si->sg_of_si != i_su->sg_of_su))
+					continue;
+			}
 
 			if ((i_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
 			    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU != 0)
@@ -128,9 +132,7 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_su->name.value, i_su->name.length);
 			}
 
-		}		/* for (su_rank_rec = avd_sus_per_si_rank_struc_find_valid_next(cb,i_idx, &i_su); 
-				   (su_rank_rec != AVD_SU_PER_SI_RANK_NULL) && (m_CMP_NORDER_SANAMET(su_rank_rec->si_name,i_si->name) == 0);
-				   su_rank_rec = avd_sus_per_si_rank_struc_find_valid_next(cb,su_rank_rec->indx, &i_su) ) */
+		}
 
 		/* identify a in-service SU which is not assigned to this SI and can
 		 * take more assignments so that the SI can be assigned. 

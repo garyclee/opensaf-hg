@@ -35,13 +35,14 @@
 #include <csi.h>
 #include <logtrace.h>
 
-static NCS_PATRICIA_TREE sirankedsu_db;
+AmfDb<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK> *sirankedsu_db= NULL;
 static void avd_susi_namet_init(const SaNameT *object_name, SaNameT *su_name, SaNameT *si_name);
 
 static void avd_sirankedsu_db_add(AVD_SUS_PER_SI_RANK *sirankedsu)
 {
         AVD_SI *avd_si = NULL;
-        unsigned int rc = ncs_patricia_tree_add(&sirankedsu_db, &sirankedsu->tree_node);
+	unsigned int rc = sirankedsu_db->insert(make_pair(Amf::to_string(&(sirankedsu->indx.si_name)),
+				sirankedsu->indx.su_rank), sirankedsu);
         osafassert(rc == NCSCC_RC_SUCCESS);
 
         /* Find the si name. */
@@ -83,11 +84,6 @@ static AVD_SUS_PER_SI_RANK *avd_sirankedsu_create(AVD_CL_CB *cb, AVD_SUS_PER_SI_
 
 	ranked_su_per_si->indx.su_rank = indx.su_rank;
 
-	ranked_su_per_si->tree_node.key_info = (uint8_t *)(&ranked_su_per_si->indx);
-	ranked_su_per_si->tree_node.bit = 0;
-	ranked_su_per_si->tree_node.left = NULL;
-	ranked_su_per_si->tree_node.right = NULL;
-
 	return ranked_su_per_si;
 }
 
@@ -117,91 +113,9 @@ static AVD_SUS_PER_SI_RANK *avd_sirankedsu_find(AVD_CL_CB *cb, AVD_SUS_PER_SI_RA
 	memcpy(rank_indx.si_name.value, indx.si_name.value, indx.si_name.length);
 	rank_indx.su_rank = indx.su_rank;
 
-	ranked_su_per_si = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_get(&sirankedsu_db, (uint8_t *)&rank_indx);
+	ranked_su_per_si = sirankedsu_db->find(make_pair(Amf::to_string(&(rank_indx.si_name)),
+				rank_indx.su_rank));
 
-	return ranked_su_per_si;
-}
-
-/*****************************************************************************
- * Function: avd_sirankedsu_getnext
- *
- * Purpose:  This function will find the next AVD_SUS_PER_SI_RANK structure in the
- * tree whose key value is next of the given key value.
- *
- * Input: cb - the AVD control block
- *        indx - The key value.
- *
- * Returns: The pointer to AVD_SUS_PER_SI_RANK structure found in the tree. 
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx)
-{
-	AVD_SUS_PER_SI_RANK *ranked_su_per_si = NULL;
-	AVD_SUS_PER_SI_RANK_INDX rank_indx;
-
-	memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
-	rank_indx.si_name.length = indx.si_name.length;
-	memcpy(rank_indx.si_name.value, indx.si_name.value, indx.si_name.length);
-	rank_indx.su_rank = indx.su_rank;
-
-	ranked_su_per_si = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_getnext(&sirankedsu_db, (uint8_t *)&rank_indx);
-
-	return ranked_su_per_si;
-}
-
-/*****************************************************************************
- * Function: avd_sirankedsu_getnext_valid
- *
- * Purpose:  This function will find the next AVD_SUS_PER_SI_RANK structure in the
- * tree whose key value is next of the given key value. It also verifies if the 
- * the si & su belong to the same sg.
- *
- * Input: cb - the AVD control block
- *        indx - The key value.
- *       o_su - output field indicating the pointer to the pointer of
- *                the SU in the SISU rank list. Filled when return value is not
- *              NULL.
- *
- * Returns: The pointer to AVD_SUS_PER_SI_RANK structure found in the tree. 
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext_valid(AVD_CL_CB *cb,
-	AVD_SUS_PER_SI_RANK_INDX indx, AVD_SU **o_su)
-{
-	AVD_SUS_PER_SI_RANK *ranked_su_per_si = NULL;
-	AVD_SUS_PER_SI_RANK_INDX rank_indx;
-	AVD_SI *si = NULL;
-	AVD_SU *su = NULL;
-
-	memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
-	rank_indx.si_name.length = indx.si_name.length;
-	memcpy(rank_indx.si_name.value, indx.si_name.value, indx.si_name.length);
-	rank_indx.su_rank = indx.su_rank;
-
-	ranked_su_per_si = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_getnext(&sirankedsu_db, (uint8_t *)&rank_indx);
-
-	if (ranked_su_per_si == NULL) {
-		/*  return NULL */
-		return ranked_su_per_si;
-	}
-
-	/* get the su & si */
-	su = su_db->find(Amf::to_string(&ranked_su_per_si->su_name));
-	si = avd_si_get(&indx.si_name);
-
-	/* validate this entry */
-	if ((si == NULL) || (su == NULL) || (si->sg_of_si != su->sg_of_su))
-		return avd_sirankedsu_getnext_valid(cb, ranked_su_per_si->indx, o_su);
-
-	*o_su = su;
 	return ranked_su_per_si;
 }
 
@@ -225,12 +139,8 @@ static uint32_t avd_sirankedsu_delete(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *ranked
 	if (ranked_su_per_si == NULL)
 		return NCSCC_RC_FAILURE;
 
-	if (ncs_patricia_tree_del(&sirankedsu_db, &ranked_su_per_si->tree_node)
-	    != NCSCC_RC_SUCCESS) {
-		/* log error */
-		return NCSCC_RC_FAILURE;
-	}
-
+	sirankedsu_db->erase(make_pair(Amf::to_string(&(ranked_su_per_si->indx.si_name)),
+				ranked_su_per_si->indx.su_rank));
 	delete ranked_su_per_si;
 	return NCSCC_RC_SUCCESS;
 }
@@ -443,7 +353,6 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 	AVD_SI *si = NULL;
 	SaNameT su_name;
 	SaNameT si_name;
-	AVD_SUS_PER_SI_RANK_INDX indx;
 	AVD_SUS_PER_SI_RANK *su_rank_rec = 0;
 	bool found = false;
 
@@ -454,14 +363,13 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 	avd_susi_namet_init(opdata->param.deleteOp.objectName, &su_name, &si_name);
 
 	/* determine if the su is ranked per si */
-	memset((uint8_t *)&indx, '\0', sizeof(indx));
-	indx.si_name = si_name;
-	indx.su_rank = 0;
-	for (su_rank_rec = avd_sirankedsu_getnext(avd_cb, indx);
-			su_rank_rec && (memcmp(&(su_rank_rec->indx.si_name), &si_name, sizeof(SaNameT))
-				== 0);
-			su_rank_rec = avd_sirankedsu_getnext(avd_cb, su_rank_rec->indx)) {
-		if (memcmp(&su_rank_rec->su_name.value, &su_name.value, su_name.length) == 0) {
+	for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
+			it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
+		AVD_SUS_PER_SI_RANK *su_rank_rec = it->second;
+		if ((memcmp(&(su_rank_rec->indx.si_name), &si_name, sizeof(SaNameT))
+					== 0) &&
+				(memcmp(&su_rank_rec->su_name.value, 
+					&su_name.value, su_name.length) == 0)) {
 			found = true;
 			break;
 		}
@@ -583,10 +491,7 @@ SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si)
 
 void avd_sirankedsu_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(AVD_SUS_PER_SI_RANK_INDX);
-	osafassert(ncs_patricia_tree_init(&sirankedsu_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	sirankedsu_db = new AmfDb<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK>;
 	avd_class_impl_set("SaAmfSIRankedSU", NULL, NULL,
 		sirankedsu_ccb_completed_cb, sirankedsu_ccb_apply_cb);
 }

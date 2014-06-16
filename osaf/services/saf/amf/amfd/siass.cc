@@ -151,7 +151,6 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 {
 	AVD_SU_SI_REL *su_si, *p_su_si, *i_su_si;
 	AVD_SU *curr_su = 0;
-	AVD_SUS_PER_SI_RANK_INDX i_idx;
 	AVD_SUS_PER_SI_RANK *su_rank_rec = 0, *i_su_rank_rec = 0;
 	uint32_t rank1, rank2;
 
@@ -172,12 +171,11 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	 */
 
 	/* determine if the su is ranked per si */
-	memset((uint8_t *)&i_idx, '\0', sizeof(i_idx));
-	i_idx.si_name = si->name;
-	i_idx.su_rank = 0;
-	for (su_rank_rec = avd_sirankedsu_getnext(cb, i_idx);
-	     su_rank_rec && (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, si->name) == 0);
-	     su_rank_rec = avd_sirankedsu_getnext(cb, su_rank_rec->indx)) {
+	for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
+			it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
+		AVD_SUS_PER_SI_RANK *su_rank_rec = it->second;
+		if (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, si->name) != 0)
+			continue;
 		curr_su = su_db->find(Amf::to_string(&su_rank_rec->su_name));
 		if (curr_su == su)
 			break;
@@ -194,13 +192,11 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 				continue;
 
 			/* determine the su_rank rec for this rec */
-			memset((uint8_t *)&i_idx, '\0', sizeof(i_idx));
-			i_idx.si_name = si->name;
-			i_idx.su_rank = 0;
-			for (i_su_rank_rec = avd_sirankedsu_getnext(cb, i_idx);
-			     i_su_rank_rec
-			     && (m_CMP_HORDER_SANAMET(i_su_rank_rec->indx.si_name, si->name) == 0);
-			     i_su_rank_rec = avd_sirankedsu_getnext(cb, i_su_rank_rec->indx)) {
+			for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
+					it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
+				AVD_SUS_PER_SI_RANK *i_su_rank_rec = it->second;
+				if (m_CMP_HORDER_SANAMET(i_su_rank_rec->indx.si_name, si->name) != 0)
+					continue;
 				curr_su = su_db->find(Amf::to_string(&i_su_rank_rec->su_name));
 				if (curr_su == i_su_si->su)
 					break;
