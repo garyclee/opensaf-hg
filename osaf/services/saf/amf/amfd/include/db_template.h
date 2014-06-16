@@ -23,7 +23,9 @@
 //
 class Amf {
 public:
-  static std::string to_string(const SaNameT *name) {return std::string((char*)name->value, name->length);}
+  static std::string to_string(const SaNameT *name) {
+	  return std::string((char*)name->value, name->length);
+  }
 };
 
 //
