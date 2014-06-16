@@ -1312,53 +1312,6 @@ void avd_imm_impl_set_task_create(void)
 	}
 }
 
-/*****************************************************************************
- * @brief 		This function calls the routines to become applier for
- *			all AMF objects and to read the configuration from IMM.
- *
- * @param[in]		cb  - Pointer to AVD control block
- *
- * @return		void pointer.
- *
- **************************************************************************/
-static void *avd_imm_applier_set_task(void *_cb)
-{
-	if (avd_imm_applier_set() != SA_AIS_OK) {
-		LOG_ER("exiting since avd_imm_applier_set failed");
-		exit(EXIT_FAILURE);
-	}
-
-	if (avd_imm_config_get() != NCSCC_RC_SUCCESS) {
-		LOG_ER("avd_imm_config_get FAILED");
-		exit(EXIT_FAILURE);
-	}
-
-	return NULL;
-}
-
-/*****************************************************************************
- * @brief		This function spawns thread for setting object and class 
- *          		applier, non-blocking.
- *
- * @param[in]		Nothing
- *
- * @return		Nothing
- *
- **************************************************************************/
-void avd_imm_applier_set_task_create(void)
-{
-	pthread_t thread;
-	pthread_attr_t attr;
-
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-	if (pthread_create(&thread, &attr, avd_imm_applier_set_task, avd_cb) != 0) {
-		LOG_ER("pthread_create FAILED: %s", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-}
-
 void avd_class_impl_set(const char *className,
 	SaImmOiRtAttrUpdateCallbackT rtattr_cb, SaImmOiAdminOperationCallbackT_2 adminop_cb,
 	AvdImmOiCcbCompletedCallbackT ccb_compl_cb, AvdImmOiCcbApplyCallbackT ccb_apply_cb)
