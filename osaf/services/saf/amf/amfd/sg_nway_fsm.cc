@@ -1438,8 +1438,6 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 	AVD_SI *curr_si = 0;
 	AVD_SU *curr_su = NULL;
 	AVD_SU *pref_su = NULL;
-	AVD_SUS_PER_SI_RANK_INDX i_idx;
-	AVD_SUS_PER_SI_RANK *su_rank_rec = 0;
 	bool is_act_ass_sent = false, is_all_su_oos = true, is_all_si_ok = false, su_found = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SU_SI_REL *tmp_susi;
@@ -1492,17 +1490,22 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 			continue;
 		}
 		/* we've an unassigned si.. find su for active assignment */
-
 		/* first, scan based on su rank for this si */
-		memset((uint8_t *)&i_idx, '\0', sizeof(i_idx));
-		i_idx.si_name = curr_si->name;
-		i_idx.su_rank = 0;
-		curr_su = NULL;
-		for (su_rank_rec = avd_sirankedsu_getnext_valid(cb, i_idx, &curr_su);
-		     su_rank_rec; su_rank_rec = avd_sirankedsu_getnext_valid(cb, su_rank_rec->indx, &curr_su)) {
-			if (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, curr_si->name) != 0) {
-				curr_su = 0;
-				break;
+		for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
+				it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
+			AVD_SUS_PER_SI_RANK *su_rank_rec = it->second;
+			{
+				if (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, curr_si->name) != 0) {
+					continue;
+				}
+
+				/* get the su & si */
+				curr_su = su_db->find(Amf::to_string(&su_rank_rec->su_name));
+				AVD_SI *si = avd_si_get(&su_rank_rec->indx.si_name);
+
+				/* validate this entry */
+				if ((si == NULL) || (curr_su == NULL) || (si->sg_of_si != curr_su->sg_of_su))
+					continue;
 			}
 
 			if (!curr_su)
@@ -1602,12 +1605,22 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 		/* we've a not-so-fully-assigned si.. find sus for standby assignment */
 
 		/* first, scan based on su rank for this si */
-		memset((uint8_t *)&i_idx, '\0', sizeof(i_idx));
-		i_idx.si_name = curr_si->name;
-		i_idx.su_rank = 0;
-		for (su_rank_rec = avd_sirankedsu_getnext_valid(cb, i_idx, &curr_su);
-		     su_rank_rec && (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, curr_si->name) == 0);
-		     su_rank_rec = avd_sirankedsu_getnext_valid(cb, su_rank_rec->indx, &curr_su)) {
+		for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
+				it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
+			AVD_SUS_PER_SI_RANK *su_rank_rec = it->second;
+			{
+				if (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, curr_si->name) != 0)
+					continue;
+
+				/* get the su & si */
+				curr_su = su_db->find(Amf::to_string(&su_rank_rec->su_name));
+				AVD_SI *si = avd_si_get(&su_rank_rec->indx.si_name);
+
+				/* validate this entry */
+				if ((si == NULL) || (curr_su == NULL) || (si->sg_of_si != curr_su->sg_of_su))
+					continue;
+			}
+
 			/* verify if this su can take the standby assignment */
 			if (!curr_su || (curr_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
 			    ((curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU != 0) &&

@@ -84,14 +84,14 @@ typedef struct avd_sus_per_si_rank_index_tag {
  * from the AVD Control Block.
  */
 typedef struct avd_sus_per_si_rank_tag {
-
-	NCS_PATRICIA_NODE tree_node;	/* key will be the SI name and Rank */
 	AVD_SUS_PER_SI_RANK_INDX indx;	/* Table index */
 	SaNameT su_name;	/* name of the SU as SaNameT */
 	struct avd_si_tag *sus_per_si_rank_on_si;
 	struct avd_sus_per_si_rank_tag *sus_per_si_rank_list_si_next;
 
 } AVD_SUS_PER_SI_RANK;
+
+extern AmfDb<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK> *sirankedsu_db;
 
 #define   AVD_SU_PER_SI_RANK_NULL   ((AVD_SUS_PER_SI_RANK *)0)
 
@@ -143,9 +143,6 @@ extern void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
 
 AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const SaNameT *si_name);
 uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt);
-extern AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext_valid(AVD_CL_CB *cb,
-	AVD_SUS_PER_SI_RANK_INDX indx, AVD_SU **o_su);
-extern AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx);
 extern SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si);
 extern void avd_sirankedsu_constructor(void);
 extern void avd_susi_ha_state_set(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
