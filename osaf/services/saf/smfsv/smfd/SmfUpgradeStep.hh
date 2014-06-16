@@ -51,6 +51,10 @@ typedef enum {
 	SMF_REMOVAL_REBOOT = 2
 } SmfRebootT;
 
+struct SmfNodeUpInfo {
+        std::string node_name;
+        unsigned int nd_up_cntr;
+};
 
 /* ========================================================================
  *   DATA DECLARATIONS
@@ -307,6 +311,13 @@ class SmfUpgradeStep {
 /// @return   None
 ///
 	void addSwNode(const std::string& i_swNode);
+
+///
+/// Purpose:  Remove duplicate nodes in list where sw should be added/removed (single step)
+/// @param    None
+/// @return   None
+///
+	void removeSwNodeListDuplicates();
 
 ///
 /// Purpose:  Get the node where sw should be added/removed (rolling)

@@ -371,6 +371,13 @@
                         <flag>SA_WRITABLE</flag>
                         <default-value>100000000000</default-value>
                 </attr>
+		<attr>
+			<name>smfClusterControllers</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
 	</class>
 	<class name="OpenSafSmfCampRestartInfo">
 		<category>SA_RUNTIME</category>

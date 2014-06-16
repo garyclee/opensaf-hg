@@ -25,6 +25,7 @@
 #include <logtrace.h>
 #include <sstream>
 #include <saf_error.h>
+#include "osaf_time.h"
 #include "osaf_extended_name.h"
 
 #include "SmfUpgradeStep.hh"
@@ -510,6 +511,16 @@ void
 SmfUpgradeStep::addSwNode(const std::string& i_swNode)
 {
         m_swNodeList.push_back(i_swNode);
+}
+
+//------------------------------------------------------------------------------
+// removeSwNodeListDuplicates()
+//------------------------------------------------------------------------------
+void
+SmfUpgradeStep::removeSwNodeListDuplicates()
+{
+        m_swNodeList.sort();
+        m_swNodeList.unique();
 }
 
 //------------------------------------------------------------------------------
@@ -1340,23 +1351,23 @@ SmfUpgradeStep::calculateStepType()
 
 		if (rebootNeeded) {
 			/* -If rolling upgrade: Check if the step will lock/reboot our own node and if so
-			    move our campaign execution to the other controller using e.g. 
-			    admin operation SWAP on the SI we belong to. Then the other
-			    controller will continue with this step and do the lock/reboot.
+                           move our campaign execution to the other controller using e.g. 
+                           admin operation SWAP on the SI we belong to. Then the other
+                           controller will continue with this step and do the lock/reboot.
 			   
-			    -If single step  upgrade: No switchover is needed. A cluster reboot will be 
-                            ordered within the step */
+                           -If single step  upgrade: No switchover is needed. A cluster reboot will be
+                           ordered within the step */
+
+                        SaAisErrorT rc;
+                        bool isSingleNode;
+                        if ((rc = this->isSingleNodeSystem(isSingleNode)) != SA_AIS_OK) {
+                                LOG_NO("Fail to read if this is a single node system rc=%s", saf_error(rc));
+                                return SA_AIS_ERR_FAILED_OPERATION;
+                        }
 
 			if (this->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_ROLLING) {
 				//In a single node system, treat a rolling upgrade with reboot as single step
-				SaAisErrorT rc;
-				bool result;
-				if ((rc = this->isSingleNodeSystem(result)) != SA_AIS_OK) {
-					LOG_NO("Fail to read if this is a single node system rc=%s", saf_error(rc));
-					return SA_AIS_ERR_FAILED_OPERATION;
-				}
-
-				if(result == false) { //Normal multi node system
+				if(isSingleNode == false) { //Normal multi node system
 					if (this->isCurrentNode(firstAuDu) == true) {
 						this->setSwitchOver(true);
 						return SA_AIS_OK;
@@ -1375,13 +1386,105 @@ SmfUpgradeStep::calculateStepType()
 						this->setStepType(new SmfStepTypeClusterRebootAct(this));
 				}
 			}
-                        else { // SINGLE STEP
-                                if (activateUsed == false)
-                                        this->setStepType(new SmfStepTypeClusterReboot(this));
-                                else
-                                        this->setStepType(new SmfStepTypeClusterRebootAct(this));
+                        else {  // SINGLE STEP
+                                //Figure out what kind of step to use.
+                                //-If no controllers are configured, cluster reboot step is selected.
+                                //-If controllers are not included in step nodes, node reboot step is selected.
+                                //-If all controllers (single or dual controller cluster) are included in step nodes,
+                                // cluster reboot step is selected.
+                                //-If one controller (in dual controller cluster) is included in step nodes:
+                                //  *If SMF execute on the controller included, swap controllers
+                                //  *Otherwise , node reboot step is selected.
+
+                                bool allControllersAffected = false; //Assume all controllers is not within the single step list of nodes
+                                int noOfAffectedControllers = 0;
+                                std::string matchingController;
+
+                                if (smfd_cb->smfClusterControllers[0] != NULL) {  //Controller is configured
+
+                                        //Count the number of controllers configured
+                                        int noOfConfControllers = 0;
+                                        for(int ix = 0; ix <= 1; ix++) {
+                                                if (smfd_cb->smfClusterControllers[ix] != NULL) {
+                                                        noOfConfControllers++;
+                                                }
+                                        }
+
+                                        std::string clmNode; //CLM nodes are expected in attribute smfClusterControllers.
+                                        std::list <std::string> nodeList = this->getSwNodeList();
+                                        std::list < std::string >::const_iterator nodeit = nodeList.begin();
+                                        std::string smfClusterController;
+
+#if 0
+                                        LOG_NO("Size of nodeList = %lu", nodeList.size());
+                                        nodeList.sort();
+                                        nodeList.unique();
+                                        LOG_NO("Unique size of nodeList = %lu", nodeList.size());
+#endif
+                                        while ((nodeit != nodeList.end()) && (allControllersAffected == false)) {
+                                                //Convert node given for the bundles to install, to CLM node addresses
+                                                immutil.nodeToClmNode(*nodeit, clmNode);
+
+                                                //Check if the node is equal to any of the smfClusterControllers configured
+                                                for(int ix = 0; ix <= 1; ix++) {
+                                                        if (smfd_cb->smfClusterControllers[ix] != NULL) {
+                                                                smfClusterController = smfd_cb->smfClusterControllers[ix];
+                                                                if(clmNode == smfClusterController) {
+                                                                        TRACE("SmfUpgradeStep::calculateStepType:node [%s] is configured as controller", clmNode.c_str());
+                                                                        noOfAffectedControllers++;
+                                                                        //Save the controller name to later decide if controller switch is needed
+                                                                        matchingController = smfClusterController;
+                                                                        break;
+                                                                }
+                                                        }
+                                                }
+
+                                                if (noOfAffectedControllers == noOfConfControllers) { //Stop searching if all controllers are found
+                                                        allControllersAffected = true;  //This will also break the while loop
+                                                        TRACE("SmfUpgradeStep::calculateStepType: all controllers was found within the step list of nodes");
+                                                }
+
+                                                ++nodeit;
+                                        } //End while
+                                } else {
+                                        //No smfClusterControllers are configured, use old behavior i.e. cluster reboot
+                                        allControllersAffected = true;
+                                        LOG_NO("No smfClusterControllers are configured, treat as all controllers included");
+                                }
+
+                                //Select the type of step
+                                if (allControllersAffected == true ) { //All controlles (dual or single) are within the step list of nodes
+                                        LOG_NO("All controllers are included, cluster reboot step type is selected");
+                                        if (activateUsed == false)
+                                                this->setStepType(new SmfStepTypeClusterReboot(this));
+                                        else
+                                                this->setStepType(new SmfStepTypeClusterRebootAct(this));
+
+                                } else if (noOfAffectedControllers == 0) { //No controller is within the step list of nodes
+                                        LOG_NO("No controller is included, node reboot step type is selected");
+                                        if (activateUsed == false)
+                                                this->setStepType(new SmfStepTypeNodeReboot(this));
+                                        else
+                                                this->setStepType(new SmfStepTypeClusterRebootAct(this));
+
+                                } else { //One of two configured controllers is within the step list of nodes
+                                        LOG_NO("One of two controllers is included, check if included controller is current node");
+                                        //Check if smfd is executing on the controller affected by the step
+                                        if (this->isCurrentNode(matchingController) == true) {
+                                                LOG_NO("Included controller is current node, switch controller and try again");
+                                                this->setSwitchOver(true);
+                                                return SA_AIS_OK;
+                                        }
+
+                                        LOG_NO("Included controller is not current node, node reboot step type is selected");
+                                        if (activateUsed == false)
+                                                this->setStepType(new SmfStepTypeNodeReboot(this));
+                                        else
+                                                this->setStepType(new SmfStepTypeClusterRebootAct(this));
+                                }
                         }
-		} else {
+		} //End if (rebootNeeded)
+                else {
                         if (activateUsed == false)
                                 this->setStepType(new SmfStepTypeAuLock(this));
                         else
@@ -1421,45 +1524,69 @@ SmfUpgradeStep::calculateStepType()
 // isCurrentNode()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::isCurrentNode(const std::string & i_amfNodeDN)
+SmfUpgradeStep::isCurrentNode(const std::string & i_nodeDN)
 {
-	TRACE_ENTER();
+        TRACE_ENTER();
 
-	SmfImmUtils immUtil;
-	SaImmAttrValuesT_2 **attributes;
-	bool rc = false;
-	char* tmp_comp_name = getenv("SA_AMF_COMPONENT_NAME");
-	if (tmp_comp_name == NULL) {
-		LOG_NO("SmfUpgradeStep::isCurrentNode:Could not get env variable SA_AMF_COMPONENT_NAME");
-		TRACE_LEAVE();
-		return false;
-	}
+        SmfImmUtils immUtil;
+        SaImmAttrValuesT_2 **attributes;
+        bool rc = false;
+        char* tmp_comp_name = getenv("SA_AMF_COMPONENT_NAME");
+        if (tmp_comp_name == NULL) {
+                LOG_NO("Could not get env variable SA_AMF_COMPONENT_NAME");
+                TRACE_LEAVE();
+                return false;
+        }
 
-	std::string comp_name(tmp_comp_name);
-	TRACE("My components name is %s", comp_name.c_str());
+        std::string comp_name(tmp_comp_name);
+        TRACE("My components name is %s", comp_name.c_str());
 
-	// Find the parent SU to this component and read which node that is hosting the SU
-	if (immUtil.getParentObject(comp_name, &attributes) == true) {
-		const SaNameT *hostedByNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
-								  "saAmfSUHostedByNode", 
-								  0);
-		if (hostedByNode != NULL){
-			TRACE("The SU is hosted by node %s", osaf_extended_name_borrow(hostedByNode));
-			if (strcmp(i_amfNodeDN.c_str(), osaf_extended_name_borrow(hostedByNode)) == 0) {
-				/* The SU is hosted by the node */
-				TRACE("SmfUpgradeStep::isCurrentNode:MATCH, component %s hosted by %s", comp_name.c_str(), i_amfNodeDN.c_str());
-				rc = true;
-			}
-		} else {
-			LOG_NO("SmfUpgradeStep::isCurrentNode:No hostedByNode attr set for components hosting SU %s", comp_name.c_str());  
-			rc = false;
-		}
+        // Find the parent SU to this component and read which node that is hosting the SU
+        if (immUtil.getParentObject(comp_name, &attributes) != true) {
+                LOG_NO("No hostedByNode attr set for components hosting SU %s", comp_name.c_str());
+                TRACE_LEAVE();
+                return false;
+        }
+
+        const SaNameT *hostedByNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
+                                                          "saAmfSUHostedByNode",
+                                                          0);
+        if (hostedByNode == NULL) {
+                LOG_NO("No hostedByNode attr set for components hosting SU %s", comp_name.c_str());
+                rc = false;
+                goto done;
+        }
+
+        TRACE("SmfUpgradeStep::isCurrentNode:The SU is hosted by AMF node %s", osaf_extended_name_borrow(hostedByNode));
+
+        //Check if input is a CLM or AMF node
+        if (i_nodeDN.find("safAmfNode") == 0) {  //AMF node
+                if (strcmp(i_nodeDN.c_str(), osaf_extended_name_borrow(hostedByNode)) == 0) {
+                        /* The SU is hosted by the node */
+                        TRACE("SmfUpgradeStep::isCurrentNode:MATCH, component %s hosted by %s", comp_name.c_str(), i_nodeDN.c_str());
+                        rc = true;
+                }
+        } else if (i_nodeDN.find("safNode") == 0) {  //CLM node
+                //Read the CLM node from the AMF node object
+                std::string clmMNode;
+                if (immUtil.nodeToClmNode(osaf_extended_name_borrow(hostedByNode), clmMNode) != true) {
+                        LOG_NO("Conversion of node [%s] to CLM node fail", osaf_extended_name_borrow(hostedByNode));
+                        rc = false;
+                        goto done;
+                }
+
+                if (i_nodeDN == clmMNode) {
+                        TRACE("SmfUpgradeStep::isCurrentNode:MATCH, component %s hosted by %s", comp_name.c_str(), i_nodeDN.c_str());
+                        rc = true;
+                }
+
         } else {
-		LOG_NO("SmfUpgradeStep::isCurrentNode:Fails to get parent to %s", comp_name.c_str());  
-		rc = false;
-	}
+                LOG_NO("Node of unknown node type [%s]", i_nodeDN.c_str());
+                rc = false;
+        }
 
-	TRACE_LEAVE();
+done:
+        TRACE_LEAVE();
         return rc;
 }
 
@@ -2003,81 +2130,107 @@ SmfUpgradeStep::nodeReboot()
 	int cliTimeout    = rebootTimeout/2 * 100;                // sec to cs (10 ms)
 	int localTimeout  = 500;                                  // 500 * 10 ms = 5 seconds
         SmfndNodeDest nodeDest;
+        std::list<std::string> nodeList;
+
+        //Copy the step node/nodelist into a local node list
+	if (getSwNode().length() == 0) { //Single step procedure
+                nodeList = getSwNodeList();
+        } else {                         //Rolling procedure
+                nodeList.push_back(getSwNode());
+        }
+
+	std::list<std::string>::iterator listIt;
+        std::list<SmfNodeUpInfo> rebootedNodeList;
+        std::list<SmfNodeUpInfo> cmdNodeList;
+	std::list<SmfNodeUpInfo>::iterator nodeIt;
 
 	//Order smf node director to reboot the node
 	cmd = smfd_cb->smfNodeRebootCmd;
 
-	if (!getNodeDestination(getSwNode(), &nodeDest)) {
-		LOG_NO("SmfUpgradeStep::nodeReboot: no node destination found for node %s", getSwNode().c_str());
-		result = false;
-		goto done;
-	}
+	for (listIt = nodeList.begin(); listIt != nodeList.end(); ++listIt) {
+                if (!getNodeDestination(*listIt, &nodeDest)) {
+                        LOG_NO("SmfUpgradeStep::nodeReboot: no node destination found for node %s", (*listIt).c_str());
+                        result = false;
+                        goto done;
+                }
 
-        /* When executing a reboot command on a node the command will never return 
-           so we want a short local timeout. Since the smfnd is handling the 
-           cli timeout we want that to be much longer so that the reboot command process 
-           is not killed by a cli timeout in the smfnd. The reboot will interrupt the 
-           command execution anyway so it doesn't matter that the timeout is really long */
-	cmdrc = smfnd_exec_remote_cmd(cmd.c_str(), &nodeDest, cliTimeout, localTimeout);
-#if 0
-	// Do not wait for answer, the rebooted node will not answer
-	if (cmdrc != 0) {
-		LOG_NO("SmfUpgradeStep::nodeReboot: executing command '%s' on node '%s' failed with rc %d", 
-		       cmd.c_str(), getSwNode().c_str(), cmdrc);
-		result = false;
-		goto done;
-	}
-#endif
+                /* When executing a reboot command on a node the command will never return
+                   so we want a short local timeout. Since the smfnd is handling the
+                   cli timeout we want that to be much longer so that the reboot command process
+                   is not killed by a cli timeout in the smfnd. The reboot will interrupt the
+                   command execution anyway so it doesn't nodeReboot()matter that the timeout is really long */
+                cmdrc = smfnd_exec_remote_cmd(cmd.c_str(), &nodeDest, cliTimeout, localTimeout);
+                if (cmdrc != 0) {
+                        LOG_NO("Reboot command [%s] on node [%s] failed rc=[%x], continue", cmd.c_str(), (*listIt).c_str(), cmdrc);
+                }
 
-	//Wait for the node to be down i.e. the node detination to disappear
-	timeout  = rebootTimeout; //seconds
-	interval = 1;
-	LOG_NO("SmfUpgradeStep::nodeReboot: Waiting for node destination to disappear");
-	while (getNodeDestination(getSwNode(), &nodeDest)) {
-		TRACE("SmfUpgradeStep::nodeReboot: Destination has not yet disappear, check again wait %d seconds", interval);
-		sleep(interval);
-		if (timeout <= 0) {
-			LOG_NO("SmfUpgradeStep::nodeReboot: node destination has not disappear within time frame for node %s", getSwNode().c_str());
-			result = false;
-			goto done;
-		}
+                /* Save the nodename and node UP counter for later use */
+                SmfNodeUpInfo nodeUpInfo;
+                nodeUpInfo.node_name = *listIt;
+                nodeUpInfo.nd_up_cntr = nodeDest.nd_up_cntr;
+                rebootedNodeList.push_back(nodeUpInfo);
+        }
 
-		timeout -= interval;
-	}
-
-	sleep(5);
-
-	//The node has stop answering commands, wait for the node to start answering commands
-	//Try to get the node detination
+	//The nodes has been rebooted, wait for the nodes to come UP with stepped UP counter
 	timeout  = rebootTimeout; //seconds
 	interval = 5;
-	LOG_NO("SmfUpgradeStep::nodeReboot: Waiting to get node destination");
-	while (!getNodeDestination(getSwNode(), &nodeDest)) {
-		TRACE("SmfUpgradeStep::nodeReboot: No destination found, try again wait %d seconds", interval);
-		sleep(interval);
-		if (timeout <= 0) {
-			LOG_NO("SmfUpgradeStep::nodeReboot: no node destination found for node %s", getSwNode().c_str());
-			result = false;
-			goto done;
+	LOG_NO("SmfUpgradeStep::nodeReboot: Waiting to get node destination with increased UP counter");
+
+	while (!rebootedNodeList.empty()) {
+                for (nodeIt = rebootedNodeList.begin(); nodeIt != rebootedNodeList.end();) {
+                        if(getNodeDestination((*nodeIt).node_name, &nodeDest)) {
+                                /* Check if node UP counter have been stepped */
+                                if(nodeDest.nd_up_cntr > (*nodeIt).nd_up_cntr) {
+                                        cmdNodeList.push_back(*nodeIt);           //Save rebooted nodes for next step
+                                        nodeIt = rebootedNodeList.erase(nodeIt);  //The node have come back
+                                }
+                        } else {
+                                nodeIt++;
+                                TRACE("SmfUpgradeStep::nodeReboot: Node not yet rebooted, check again in %d seconds", interval);
+                       }
 		}
+
+                struct timespec time = { interval, 0 };
+                osaf_nanosleep(&time);
+                if (timeout <= 0) {
+                        LOG_NO("SmfUpgradeStep::nodeReboot: the following nodes has not been correctly rebooted");
+                        for (nodeIt = rebootedNodeList.begin(); nodeIt != rebootedNodeList.end(); nodeIt++) {
+                                LOG_NO("Node %s", (*nodeIt).node_name.c_str());
+                        }
+                        result = false;
+			goto done;
+                }
 
 		timeout -= interval;
 	}
 
-	//Node destination is found, wait for node to accept command "true"
+	//Node is UP, wait for node to accept command "true"
 	cmd      = "true";              //Command "true" should be available on all Linux systems
 	timeout  = rebootTimeout / 2;   //Use half of the reboot timeout
 	interval = 5;
 	LOG_NO("SmfUpgradeStep::nodeReboot: Waiting for the node to accept command 'true'");
-	cmdrc = smfnd_exec_remote_cmd(cmd.c_str(), &nodeDest, cliTimeout, 0);
-	while(cmdrc != 0){
-		sleep(interval);
-		cmdrc = smfnd_exec_remote_cmd(cmd.c_str(), &nodeDest, cliTimeout, 0);
-		if (timeout <= 0) {
-			LOG_NO("SmfUpgradeStep::nodeReboot: accept command timeout on node '%s'", getSwNode().c_str());
-			result = false;
+
+	while (!cmdNodeList.empty()) {
+                for (nodeIt = cmdNodeList.begin(); nodeIt != cmdNodeList.end();) {
+                        if(getNodeDestination((*nodeIt).node_name, &nodeDest)) {
+                                if (smfnd_exec_remote_cmd(cmd.c_str(), &nodeDest, cliTimeout, 0) == 0) {
+                                        nodeIt = cmdNodeList.erase(nodeIt);  //The node have accepted the command
+                                }
+                        } else {
+                                ++listIt;
+                        }
+                }
+
+                struct timespec time = { interval, 0 };
+                osaf_nanosleep(&time);
+                if (timeout <= 0) {
+                        LOG_NO("SmfUpgradeStep::nodeReboot: the following nodes has not accept command [%s]", cmd.c_str());
+                        for (nodeIt = cmdNodeList.begin(); nodeIt != cmdNodeList.end(); nodeIt++) {
+                                LOG_NO("Node %s", (*nodeIt).node_name.c_str());
+                        }
+                        result = false;
 			goto done;
-		}
+                }
 
 		timeout -= interval;
 	}

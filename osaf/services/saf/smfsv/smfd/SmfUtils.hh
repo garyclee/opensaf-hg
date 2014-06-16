@@ -184,6 +184,14 @@ class SmfImmUtils {
 ///
 	SaAisErrorT doImmOperations(std::list < SmfImmOperation * >&i_immOperationList, SmfRollbackCcb* io_rollbackCcb = NULL);
 
+///
+/// Purpose: Convert a node to a CLM node
+/// @param   i_node An AMF or CLM node.
+/// @param   o_node A CLM node.
+/// @return  True if successful, otherwise false
+///
+  bool nodeToClmNode(const std::string& i_node, std::string& o_clmNode);
+
  private:
 	bool initialize(void);
 	bool finalize(void);

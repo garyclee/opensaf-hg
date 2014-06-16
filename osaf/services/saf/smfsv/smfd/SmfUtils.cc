@@ -26,6 +26,7 @@
 #include <saSmf.h>
 #include <saAis.h>
 #include <saf_error.h>
+#include "osaf_time.h"
 
 #include <immutil.h>
 #include <iostream>
@@ -113,8 +114,22 @@ getNodeDestination(const std::string & i_node, SmfndNodeDest* o_nodeDest)
 		return false;
 	}
 
+        //Try to get the node director for a while. If the nodes reboot very fast
+        //after a cluster reboot, it could happend the rebooted nodes comes up before
+        //the last one is rebooted. This could make the campaign to fail when the campaign continue.
 	if (strcmp(className, "SaClmNode") == 0) {
-		return smfnd_for_name(i_node.c_str(), o_nodeDest);
+                int timeout = 10;
+                while(smfnd_for_name(i_node.c_str(), o_nodeDest) == false) {
+                        if (timeout <= 0) {
+                                LOG_NO("Failed to get node dest for clm node %s", i_node.c_str());
+                                return false;
+                        }
+                        struct timespec time = { 2, 0 };
+                        osaf_nanosleep(&time);
+                        timeout--;
+                }
+                return true;
+
 	} else if (strcmp(className, "SaAmfNode") == 0) {
 		const SaNameT *clmNode;
 		clmNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saAmfNodeClmNode", 0);
@@ -125,17 +140,24 @@ getNodeDestination(const std::string & i_node, SmfndNodeDest* o_nodeDest)
 		}
 
 		char *nodeName = strdup(osaf_extended_name_borrow(clmNode));
-                bool result = smfnd_for_name(nodeName, o_nodeDest);
-		if (!result) {
-			LOG_NO("Failed to get node dest for clm node %s", nodeName);
-		}
-		free(nodeName);
-		return result;
-	}
+                int timeout = 10;
+                while(smfnd_for_name(nodeName, o_nodeDest) == false) {
+                        if (timeout <= 0) {
+                                LOG_NO("Failed to get node dest for clm node %s", nodeName);
+                                free(nodeName);
+                                return false;
+                        }
+                        struct timespec time = { 2, 0 };
+                        osaf_nanosleep(&time);
+                        timeout--;
+                }
+                free(nodeName);
+        } else {
+                LOG_NO("Unknown class name %s", className);
+                return false;
+        }
 
-	LOG_NO("Failed to get destination for node object %s, class %s", i_node.c_str(), className);
-
-	return false;
+        return true;
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -648,6 +670,45 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList,
 	}
 
 	return result;
+}
+
+// ------------------------------------------------------------------------------
+// nodeToCmlNode()
+// ------------------------------------------------------------------------------
+bool
+SmfImmUtils::nodeToClmNode(const std::string& i_node, std::string& o_clmNode)
+{
+        //Convert the AMF nodes in activation unit list to CLM-nodes
+        std::string className;
+        SaImmAttrValuesT_2 **attributes;
+        if (getObject(i_node, &attributes) == false) {
+                LOG_NO("Failed to get IMM node object [%s]", i_node.c_str());
+                return false;
+        }
+
+        className = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes,
+                                          SA_IMM_ATTR_CLASS_NAME, 0);
+
+        if (className.empty()) {
+                LOG_NO("Failed to get class name for node object [%s]", i_node.c_str());
+                return false;
+        }
+
+        if (className == "SaClmNode") {
+                o_clmNode = i_node;
+        } else if (className == "SaAmfNode") {
+                o_clmNode = osaf_extended_name_borrow(immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
+                                                                          "saAmfNodeClmNode", 0));
+                if (o_clmNode.empty()) {
+                        LOG_NO("Failed to get clm node for amf node object [%s]", i_node.c_str());
+                        return false;
+                }
+        } else {
+                LOG_NO("Unknown class name [%s] for node object [%s]", className.c_str(), i_node.c_str());
+                return false;
+        }
+
+        return true;
 }
 
 // ------------------------------------------------------------------------------

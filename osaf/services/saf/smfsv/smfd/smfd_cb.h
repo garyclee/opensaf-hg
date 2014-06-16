@@ -59,6 +59,7 @@ typedef struct smfd_cb {
 	SaUint32T smfInactivatePbeDuringUpgrade;    /* True (1) if PBE shall be deactivated during upgrade */
 	SaUint32T smfVerifyEnable;                  /* dis/enable pre-campaign verification callbacks */
 	SaTimeT smfVerifyTimeout;                   /* pre-campaign verification timeout */
+        char *smfClusterControllers[2];/* list of nodes where amfd is execting */
 	SaInvocationT cbk_inv_id;                   /* Invocation ID of the callback */
 	SMFD_SMFND_ADEST_INVID_MAP *smfnd_list;     /* SMFNDs need to respond to the callback. */
 	uint32_t no_of_smfnd;
