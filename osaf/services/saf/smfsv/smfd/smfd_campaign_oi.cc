@@ -204,6 +204,12 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
                 {
                         //Handle the campaign object
                         if (strcmp(ccbUtilOperationData->param.create.className, campaignClassName) == 0) {
+                                //Note: By purpose the test of existence of the pointed out campaign.xml in
+                                //attribute saSmfCmpgFileUri is not made when the campaign object is created.
+                                //This test is only made when the attribute is modified.
+                                //The reason is that user procedures does not always provide campaign.xml files
+                                //at the same time the campaign object is created in IMM.
+
                                 SmfCampaign test(ccbUtilOperationData->param.create.parentName,
                                                  ccbUtilOperationData->param.create.attrValues);
                                 //Save the class name enum for use in later phases
@@ -390,7 +396,87 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
                                 TRACE("Modification of object %s", objToModify.c_str());
                                 //Save the class name enum for use in later phases
                                 ccbUtilOperationData->userData = (void*)SMF_CLASS_CONFIG;
+                                //Check that the smfClusterControllers attribute contain max two CLM nodes after the modification
+                                //Read the OpenSAFSmfConfig object and check the number of values already stored
+                                SaImmAttrValuesT_2 **attributes;
+                                if (immUtil.getObject(SMF_CONFIG_OBJECT_DN, &attributes) == false) {
+                                        LOG_NO("Failed to get object %s", SMF_CONFIG_OBJECT_DN);
+                                        rc = SA_AIS_ERR_BAD_OPERATION;
+                                        goto done;;
+                                }
 
+                                SaUint32T noOfConfigControllers;
+                                rc = immutil_getAttrValuesNumber((char*)"smfClusterControllers",
+                                                                 (const SaImmAttrValuesT_2 **)attributes ,
+                                                                 &noOfConfigControllers);
+
+                                if (rc != SA_AIS_OK) {
+                                        LOG_ER("could not find smfClusterControllers attribute");
+                                        rc = SA_AIS_ERR_BAD_OPERATION;
+                                        goto done;
+                                }
+
+                                const SaImmAttrModificationT_2 ** attrMods = ccbUtilOperationData->param.modify.attrMods;
+                                int i = 0;
+                                const SaImmAttrModificationT_2 *attrMod;
+                                attrMod = attrMods[i++];
+                                while (attrMod != NULL) {
+                                        //Find the smfClusterControllers attribute
+                                        const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
+                                        if (strcmp(attribute->attrName, "smfClusterControllers") == 0) {
+                                                TRACE("verifying attribute %s", attribute->attrName);
+                                                //Read what type of modification
+                                                SaImmAttrModificationTypeT mod = attrMod->modType;
+
+                                                //Add values
+                                                if (mod == SA_IMM_ATTR_VALUES_ADD) {
+                                                        LOG_NO("SA_IMM_ATTR_VALUES_ADD attribute->attrValuesNumber %d",
+                                                               attribute->attrValuesNumber);
+
+                                                        if (attribute->attrValuesNumber + noOfConfigControllers > 2) {
+                                                                LOG_NO("Max number of values for attribute [%s] is 2 (try to set %u)",
+                                                                       attribute->attrName,
+                                                                       attribute->attrValuesNumber + noOfConfigControllers);
+                                                                rc = SA_AIS_ERR_BAD_OPERATION;
+                                                                goto done;
+                                                        }
+
+                                                        //Check if CLM node
+                                                        for(unsigned int ix = 0; ix <= attribute->attrValuesNumber-1; ix++) {
+                                                                std::string clmNodeDn = *((char **)attribute->attrValues[ix]);
+                                                                if (clmNodeDn.find("safNode=") != 0) {
+                                                                        LOG_NO("Attribute smfClusterControllers, invalid DN [%s]. Must point to an instance of class SaClmNode",
+                                                                               clmNodeDn.c_str());
+                                                                        rc = SA_AIS_ERR_BAD_OPERATION;
+                                                                        goto done;
+                                                                }
+                                                        }
+
+                                                //Delete values
+                                                } else if (mod == SA_IMM_ATTR_VALUES_DELETE) {
+                                                        LOG_NO("SA_IMM_ATTR_VALUES_DELETE attribute->attrValuesNumber %d",
+                                                               attribute->attrValuesNumber);
+
+                                                //Replace values
+                                                } else if (mod == SA_IMM_ATTR_VALUES_REPLACE) {
+                                                        LOG_NO("SA_IMM_ATTR_VALUES_REPLACE attribute->attrValuesNumber %d",
+                                                               attribute->attrValuesNumber);
+                                                        if (attribute->attrValuesNumber > 2) {
+                                                                LOG_NO("Max number of values for attribute [%s] is 2 (try to set %u)",
+                                                                       attribute->attrName,
+                                                                       attribute->attrValuesNumber);
+                                                                rc = SA_AIS_ERR_BAD_OPERATION;
+                                                                goto done;
+                                                        }
+                                                } else {
+                                                        LOG_NO("Unknown modification type [%d]", attrMod->modType);
+                                                        rc = SA_AIS_ERR_BAD_OPERATION;
+                                                        goto done;
+                                                }
+                                        }
+
+                                        attrMod = attrMods[i++];
+                                }
                         //Handle the SaSmfSwBundle object
                         } else if (className == smfSwBundleClassName){
                                 //Always allow modification
@@ -858,9 +944,6 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 		LOG_NO("Node bundle activation cmd = %s", smfNodeBundleActCmd);
 	}
 
-	////////////////////////////////////////////////////
-	//The attributes below is a part of a schema upgrade
-	////////////////////////////////////////////////////
 	const char *smfSiSwapSiName = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes,
 							     SMF_SI_SWAP_SI_NAME_ATTR, 0);
 	if (smfSiSwapSiName == NULL) {
@@ -963,9 +1046,28 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 	} else {
 		LOG_NO("Verify Timeout = %llu", *verifyTimeout);
 	}
-	//////////////////////////////////
-	//End of schema upgrade attributes
-	//////////////////////////////////
+
+        //Free memory for old smfClusterControllers values
+        int ix;
+        for(ix = 0; ix < 2; ix++) {
+                if (cb->smfClusterControllers[0] != NULL) {
+                        free(cb->smfClusterControllers[ix]);
+                        cb->smfClusterControllers[ix] = NULL;
+                }
+        }
+
+        //Read new smfClusterControllers values
+        char* controller;
+        for(int ix = 0; (controller = (char*)immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes,
+                                                        SMF_CLUSTER_CONTROLLERS_ATTR, ix)) != NULL; ix++) {
+                if(ix > 1) {
+                        LOG_NO("Maximum of two cluster controllers can be defined, controller [%s] ignored", controller);
+                        break;
+                }
+
+                cb->smfClusterControllers[ix] = strdup(controller);
+                LOG_NO("AMFD controller[%d] = %s",ix ,controller);
+        }
 
 	cb->backupCreateCmd = strdup(backupCreateCmd);
 	cb->bundleCheckCmd = strdup(bundleCheckCmd);

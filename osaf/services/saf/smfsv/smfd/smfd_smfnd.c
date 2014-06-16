@@ -76,10 +76,11 @@ bool smfnd_for_name(const char *i_nodeName, SmfndNodeDest* o_nodeDest)
         pthread_mutex_lock(&smfnd_list_lock);
         smfnd = firstSmfnd;     
 	while (smfnd != NULL) {
-		if (strcmp(osaf_extended_name_borrow(&smfnd->clmInfo.nodeName),
-			i_nodeName) == 0) {
+		if ((strcmp(osaf_extended_name_borrow(&smfnd->clmInfo.nodeName),i_nodeName) == 0) &&
+                    (smfnd->nd_state == ndUp)) {
                         o_nodeDest->dest = smfnd->dest;
                         o_nodeDest->rem_svc_pvt_ver = smfnd->rem_svc_pvt_ver;
+                        o_nodeDest->nd_up_cntr = smfnd->nd_up_cntr;
                         pthread_mutex_unlock(&smfnd_list_lock);
                         return true;
 		}
@@ -118,21 +119,29 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
 	SaAisErrorT rc;
 	SaClmHandleT clmHandle;
 	SmfndNodeT *smfnd = NULL;
-	SmfndNodeT *smfnd_old = NULL;
+        bool newNode = false;
 
 	TRACE("SMFND UP for node id %x, version %u", i_node_id, i_rem_svc_pvt_ver);
+
+	/* Check if the node id does already exists */
+        pthread_mutex_lock(&smfnd_list_lock);
+	smfnd = get_smfnd(i_node_id);
+        pthread_mutex_unlock(&smfnd_list_lock);
+
+	if (smfnd == NULL) {
+                TRACE("New node Id, create new SmfndNodeT structure");
+                smfnd = calloc(1, sizeof(SmfndNodeT));
+                if (smfnd == NULL) {
+                        LOG_ER("alloc of SmfndNodeT failed");
+                        return NCSCC_RC_FAILURE;
+                }
+                newNode = true;
+	}
 
 	/* Find Clm info about the node */
 	rc = saClmInitialize(&clmHandle, NULL, &clmVersion);
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saClmInitialize failed, rc=%s", saf_error(rc));
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Create a new cleared smfnd structure */
-	smfnd = calloc(1, sizeof(SmfndNodeT));
-	if (smfnd == NULL) {
-		LOG_ER("alloc failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -150,35 +159,30 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
 		LOG_ER("saClmFinalize failed, rc=%s", saf_error(rc));
 	}
 
+        pthread_mutex_lock(&smfnd_list_lock);
+
 	/* Store the destination to the smfnd */
 	smfnd->dest = i_smfnd_dest;
 
         /* Store the version of the smfnd */
         smfnd->rem_svc_pvt_ver = i_rem_svc_pvt_ver;
+        /* Step up-counter */
+        smfnd->nd_up_cntr++;
+        /* Store the nd state */
+        smfnd->nd_state = ndUp;
 
-	TRACE("Adding SMFND for node name %s, id %x, version %u",
-		osaf_extended_name_borrow(&smfnd->clmInfo.nodeName),
-		smfnd->clmInfo.nodeId, smfnd->rem_svc_pvt_ver);
-
-        pthread_mutex_lock(&smfnd_list_lock);
-
-	/* Make shure the node id does not already exists */
-	smfnd_old = get_smfnd(i_node_id);
-
-	if (smfnd_old != NULL) {
-		LOG_ER("smfnd already exists %x", i_node_id);
-                pthread_mutex_unlock(&smfnd_list_lock);
-                free(smfnd);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Store the node info in the smfnd list */
-	smfnd->next = firstSmfnd;
-	firstSmfnd = smfnd;
-
-	TRACE("SMFND added for node name %s, id %x, version %u",
-		osaf_extended_name_borrow(&smfnd->clmInfo.nodeName),
-		smfnd->clmInfo.nodeId, smfnd->rem_svc_pvt_ver);
+        /* If the node was new, link it to the smfnd list */
+        if (newNode == true) {
+                smfnd->next = firstSmfnd;
+                firstSmfnd = smfnd;
+                TRACE("New SMFND data linked to node list for node name %s, id %x, version %u",
+                      osaf_extended_name_borrow(&smfnd->clmInfo.nodeName), smfnd->clmInfo.nodeId,
+                      smfnd->rem_svc_pvt_ver);
+        } else {
+                TRACE("Existing SMFND data updated for node name %s, id %x, version %u",
+                      osaf_extended_name_borrow(&smfnd->clmInfo.nodeName), smfnd->clmInfo.nodeId,
+                      smfnd->rem_svc_pvt_ver);
+        }
 
         pthread_mutex_unlock(&smfnd_list_lock);
 
@@ -192,39 +196,29 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
 uint32_t smfnd_down(SaClmNodeIdT i_node_id)
 {
 	SmfndNodeT *smfnd = NULL;
-	SmfndNodeT *previous = NULL;
 
 	TRACE("SMFND DOWN for node id %x", i_node_id);
 
         pthread_mutex_lock(&smfnd_list_lock);
         smfnd = firstSmfnd;
-        previous = firstSmfnd;
 
-	/* Clear the node info */
+        /* Update the node info */
 	while (smfnd != NULL) {
-		if (smfnd->clmInfo.nodeId == i_node_id) {
-			if (smfnd == firstSmfnd) {
-				firstSmfnd = smfnd->next;
-			} else {
-				previous->next = smfnd->next;
-			}
-
-			TRACE("SMFND removed for node name %s, id %x",
-			      osaf_extended_name_borrow(&smfnd->clmInfo.nodeName),
-			      smfnd->clmInfo.nodeId);
-			free(smfnd);
-
+  		if (smfnd->clmInfo.nodeId == i_node_id) {
+                        /* Store the nd state */
+                        TRACE("SMFND state updated for node [%s], id [%x]", 
+                              osaf_extended_name_borrow(&smfnd->clmInfo.nodeName), smfnd->clmInfo.nodeId);
+                        smfnd->nd_state = ndDown;
                         pthread_mutex_unlock(&smfnd_list_lock);
-			return NCSCC_RC_SUCCESS;
-		}
+                        return NCSCC_RC_SUCCESS;
+                }
 
-		previous = smfnd;
-		smfnd = smfnd->next;
-	}
+                smfnd = smfnd->next;
+        }
 
         pthread_mutex_unlock(&smfnd_list_lock);
-	LOG_ER("node id %x not found for removal", i_node_id);
-	return NCSCC_RC_FAILURE;
+        LOG_ER("node id [%x] not found for state update DOWN", i_node_id);
+        return NCSCC_RC_FAILURE;
 }
 
 /**

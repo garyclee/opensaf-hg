@@ -199,11 +199,15 @@ smfInactivatePbeDuringUpgrade                      SA_UINT32_T  1 (0x1)
 smfImmPersistCmd                                   SA_STRING_T  immdump /etc/opensaf/imm.xml 
 smfConfig                                          SA_STRING_T  smfConfig=1 
 smfClusterRebootCmd                                SA_STRING_T  /usr/local/lib/opensaf/smf-cluster-reboot 
+smfClusterControllers                              SA_STRING_T  safNode=SC-1,safCluster=myClmCluster safNode=SC-2,safCluster=myClmCluster
 smfCliTimeout                                      SA_TIME_T    600000000000 (0x8bb2c97000, Thu Jan  1 01:10:00 1970)
 smfCampMaxRestart                                  SA_UINT32_T  10 (0xa)
 smfBundleCheckCmd                                  SA_STRING_T  /usr/local/lib/opensaf/smf-bundle-check 
 smfBackupCreateCmd                                 SA_STRING_T  /usr/local/lib/opensaf/smf-backup-create 
 smfAdminOpTimeout                                  SA_TIME_T    600000000000 (0x8bb2c97000, Thu Jan  1 01:10:00 1970)
+SaImmAttrImplementerName                           SA_STRING_T  safSmfService
+SaImmAttrClassName                                 SA_STRING_T  OpenSafSmfConfig
+SaImmAttrAdminOwnerName                            SA_STRING_T  <Empty>
 
 RPM
 ===

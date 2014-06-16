@@ -548,7 +548,7 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade,
 			newStep->setRestartOption(i_rollingUpgrade->getStepRestartOption());
 			newStep->addSwRemove(nodeTemplate->getSwRemoveList());
 			newStep->addSwAdd(nodeTemplate->getSwInstallList());
-			newStep->setSwNode(*it);
+                        newStep->setSwNode(*it);
 
 			TRACE("SmfUpgradeProcedure::calculateRollingSteps: new step added %s with activation/deactivation unit %s",
 			      newStep->getRdn().c_str(), (*it).c_str());
@@ -650,7 +650,7 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade,
 			newStep->setMaxRetry(i_rollingUpgrade->getStepMaxRetryCount());
 			newStep->addSwRemove(nodeTemplate->getSwRemoveList());
 			newStep->addSwAdd(nodeTemplate->getSwInstallList());
-			newStep->setSwNode(*nodeIt);
+                        newStep->setSwNode(*nodeIt);
 
 			TRACE("SmfUpgradeProcedure::calculateRollingSteps:calculateRollingSteps new SW install step added %s (with no act/deact unit) for node %s",
 			      newStep->getRdn().c_str(), (*nodeIt).c_str());
@@ -764,7 +764,8 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 	getCallbackList(i_upgrade);
 
 	if (forAddRemove != NULL) {
-
+                //TODO:
+                //forAddRemove/removed by Template is not implemented (same as getImmStepsSingleStep())
 		TRACE("CalculateSingleStep: SmfForAddRemove");
 
 		/*
@@ -2217,7 +2218,6 @@ SmfUpgradeProcedure::getImmSteps()
 	if (upgradeMethod->getUpgradeMethod() == SA_SMF_ROLLING) {
 		TRACE("Rolling upgrade");
 		rc = getImmStepsRolling();
-
 	} else if (upgradeMethod->getUpgradeMethod() == SA_SMF_SINGLE_STEP) {
 		TRACE("Single step upgrade");
 		rc = getImmStepsSingleStep();
@@ -2299,7 +2299,7 @@ SmfUpgradeProcedure::getImmStepsRolling()
 		// The AU/DU and software bundles can be fetched from IMM.
 		// The modification must be recalculated.
                 
-                TRACE("Step %s found in state %d", getDn().c_str(), newStep->getState());
+                TRACE("SmfUpgradeProcedure::getImmStepsRolling: Step %s found in state %d", getDn().c_str(), newStep->getState());
 
                 newStep->setDn(newStep->getRdn() + "," + getDn());
 
@@ -2319,7 +2319,7 @@ SmfUpgradeProcedure::getImmStepsRolling()
 
 		rc = readCampaignImmModel(newStep);
 		if (rc != SA_AIS_OK) {
-			LOG_NO("SmfUpgradeProcedure::getImmStepsSingleStep: Fail to read campaign IMM model");
+			LOG_NO("SmfUpgradeProcedure::getImmStepsRolling: Fail to read campaign IMM model");
 			TRACE_LEAVE();
 			return rc;
 		}
@@ -2420,21 +2420,12 @@ SmfUpgradeProcedure::getImmStepsSingleStep()
 	const SmfForAddRemove* forAddRemove = dynamic_cast<const SmfForAddRemove*>(scope);
 	const SmfForModify*    forModify    = dynamic_cast<const SmfForModify*>(scope);
 
-	if (forAddRemove != NULL) {
-		const SmfActivationUnitType* aunit;
-		aunit = forAddRemove->getActivationUnit();
-		newStep->addSwAdd(aunit->getSwAdd());
-		aunit = forAddRemove->getDeactivationUnit();
-		newStep->addSwRemove(aunit->getSwRemove());
-	} else if (forModify != NULL) {
-		const SmfActivationUnitType* aunit = forModify->getActivationUnit();
-		newStep->addSwAdd(aunit->getSwAdd());
-		newStep->addSwRemove(aunit->getSwRemove());
-	} else {
+        if ((forAddRemove == NULL)&&(forModify == NULL)) {
 		LOG_NO("SmfUpgradeProcedure::getImmStepsSingleStep: Procedure scope not found (SmfForAddRemove/forModify)");
+                delete newStep;
 		TRACE_LEAVE();
 		return SA_AIS_ERR_NOT_EXIST;
-	}
+        }
 
 	//----------------------------------------------------------
 	// The step was calculated before the campaign was restarted
@@ -2446,6 +2437,41 @@ SmfUpgradeProcedure::getImmStepsSingleStep()
 		LOG_NO("SmfUpgradeProcedure::getImmStepsSingleStep: Fail to read campaign IMM model");
 		TRACE_LEAVE();
 		return rc;
+	}
+
+	if (forAddRemove != NULL) {
+                //TODO:
+                //forAddRemove/removed by Template is not implemented (same as calculateSingleStep())
+		const SmfActivationUnitType* aunit;
+		aunit = forAddRemove->getActivationUnit();
+		newStep->addSwAdd(aunit->getSwAdd());
+		aunit = forAddRemove->getDeactivationUnit();
+		newStep->addSwRemove(aunit->getSwRemove());
+	} else if (forModify != NULL) {
+		const SmfActivationUnitType* aunit = forModify->getActivationUnit();
+		newStep->addSwAdd(aunit->getSwAdd());
+		newStep->addSwRemove(aunit->getSwRemove());
+                //Add step modifications.
+                //For simplicity reasons this is always made.
+                //Needed only if the single step procedure swap the controllers before executing the step.
+                //This is made if the affected nodes to reboot only affect one of the two controllers.
+                std::multimap<std::string, objectInst> objInstances;
+                if (!getImmComponentInfo(objInstances)) {
+                        LOG_NO("SmfUpgradeProcedure::calculateSteps: Config info from IMM could not be read");
+                        delete newStep;
+                        TRACE_LEAVE();
+                        return SA_AIS_ERR_INIT;
+                }
+
+                //Find out modifications from TargetEntityTemplates
+                if (!addStepModifications(newStep, 
+                                          forModify->getTargetEntityTemplate(),
+                                          SMF_AU_SU_COMP,
+                                          objInstances)) {
+                        delete newStep;
+                        TRACE_LEAVE();
+                        return SA_AIS_ERR_INIT;
+                }
 	}
 
 	TRACE("Adding procedure step %s from IMM", newStep->getDn().c_str());
@@ -2628,11 +2654,18 @@ SmfUpgradeProcedure::readCampaignImmModel(SmfUpgradeStep *i_newStep)
 							TRACE_LEAVE();
 							return SA_AIS_ERR_NOT_EXIST;
 						}
-					}
+                                        }
 				}
 			}
 		} //if (duList.size() != 0)
 	}
+
+        //If single step procedure, the same node may have occured several times in different saSmfINNode
+        //in the routine above. Nodes was added to the list by "addSwNode" call.
+        //Remove duplicates from list
+        if (getUpgradeMethod()->getUpgradeMethod() == SA_SMF_SINGLE_STEP) {
+                i_newStep->removeSwNodeListDuplicates();
+        }
 
 	TRACE_LEAVE();
 	return SA_AIS_OK;
@@ -2840,7 +2873,7 @@ done:
 }
 
 //------------------------------------------------------------------------------
-// execute()
+// getImmComponentInfo()
 //------------------------------------------------------------------------------
 bool 
 SmfUpgradeProcedure::getImmComponentInfo(std::multimap<std::string, objectInst> &i_objects)

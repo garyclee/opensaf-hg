@@ -40,6 +40,11 @@ extern "C" {
  * ========================================================================
  */
 
+typedef enum SmfNdStateT {
+        ndUp,
+        ndDown
+} SmfNdStateT;
+
 /* ========================================================================
  *   TYPE DEFINITIONS
  * ========================================================================
@@ -48,6 +53,7 @@ extern "C" {
 typedef struct SmfndNodeDest {
 	MDS_DEST dest;
         MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver;
+        uint32_t nd_up_cntr;
 } SmfndNodeDest;
 
 typedef struct SmfndNodeT {
@@ -55,6 +61,8 @@ typedef struct SmfndNodeT {
 	SaClmClusterNodeT clmInfo;
 	MDS_DEST dest;
         MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver;
+        SmfNdStateT nd_state;
+        uint32_t nd_up_cntr;
 } SmfndNodeT;
 
 typedef struct smfd_smfnd_adest_invid_map{

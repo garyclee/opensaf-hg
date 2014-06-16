@@ -45,6 +45,7 @@
 #define SMF_INACTIVATE_PBE_ATTR   "smfInactivatePbeDuringUpgrade"
 #define SMF_VERIFY_ENABLE_ATTR    "smfVerifyEnable"
 #define SMF_VERIFY_TIMEOUT_ATTR   "smfVerifyTimeout"
+#define SMF_CLUSTER_CONTROLLERS_ATTR "smfClusterControllers"
 #define SMF_UPDATE_ELAPSED_TIME_INTERVAL 10000
 
 class SmfUpgradeCampaign;
