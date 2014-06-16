@@ -156,6 +156,4 @@ extern SaAisErrorT avd_su_config_get(const SaNameT *sg_name, struct avd_sg_tag *
  */
 extern void avd_su_constructor(void);
 
-extern AVD_SU *avd_su_get_or_create(const SaNameT *dn);
-
 #endif

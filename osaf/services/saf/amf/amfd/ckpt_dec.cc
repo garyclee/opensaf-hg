@@ -1313,7 +1313,13 @@ static uint32_t dec_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	
-	AVD_SU *su = avd_su_get_or_create(&name);
+	AVD_SU *su = su_db->find(Amf::to_string(&name));
+	if (su == NULL) {
+		TRACE("'%s' does not exist, creating it", name.value);
+		su = new AVD_SU(&name);
+		unsigned int rc = su_db->insert(Amf::to_string(&su->name), su);
+		osafassert(rc == NCSCC_RC_SUCCESS);
+	}
 	
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUOperState);
 

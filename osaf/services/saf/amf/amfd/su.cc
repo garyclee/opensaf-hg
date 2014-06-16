@@ -87,27 +87,6 @@ void AVD_SU::remove_from_model() {
 }
 
 /**
- * Return an SU object if it exist, otherwise create it and
- * return a reference to the new object.
- * @param dn
- * 
- * @return AVD_SU*
- */
-AVD_SU *avd_su_get_or_create(const SaNameT *dn)
-{
-	AVD_SU *su = su_db->find(Amf::to_string(dn));
-
-	if (su == NULL) {
-		TRACE("'%s' does not exist, creating it", dn->value);
-		su = new AVD_SU(dn);
-		unsigned int rc = su_db->insert(Amf::to_string(&su->name), su);
-		osafassert(rc == NCSCC_RC_SUCCESS);
-	}
-
-	return su;
-}
-
-/**
  * @brief   gets the current no of assignmnents on a SU for a particular state
  *
  * @param[in] ha_state  
