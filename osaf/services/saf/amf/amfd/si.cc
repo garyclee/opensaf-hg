@@ -1301,66 +1301,66 @@ static void si_update_ass_state(AVD_SI *si)
 	}
 }
 
-void avd_si_inc_curr_act_ass(AVD_SI *si)
+void AVD_SI::inc_curr_act_ass()
 {
-	si->saAmfSINumCurrActiveAssignments++;
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_ACTIVE);
-	TRACE("%s saAmfSINumCurrActiveAssignments=%u", si->name.value, si->saAmfSINumCurrActiveAssignments);
-	si_update_ass_state(si);
+	saAmfSINumCurrActiveAssignments++;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_ACTIVE);
+	TRACE("%s saAmfSINumCurrActiveAssignments=%u", name.value, saAmfSINumCurrActiveAssignments);
+	si_update_ass_state(this);
 }
 
-void avd_si_dec_curr_act_ass(AVD_SI *si)
+void AVD_SI::dec_curr_act_ass()
 {
-	osafassert(si->saAmfSINumCurrActiveAssignments > 0);
-	si->saAmfSINumCurrActiveAssignments--;
-	TRACE("%s saAmfSINumCurrActiveAssignments=%u", si->name.value, si->saAmfSINumCurrActiveAssignments);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_ACTIVE);
-	si_update_ass_state(si);
+	osafassert(saAmfSINumCurrActiveAssignments > 0);
+	saAmfSINumCurrActiveAssignments--;
+	TRACE("%s saAmfSINumCurrActiveAssignments=%u", name.value, saAmfSINumCurrActiveAssignments);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_ACTIVE);
+	si_update_ass_state(this);
 }
 
-void avd_si_inc_curr_stdby_ass(AVD_SI *si)
+void AVD_SI::inc_curr_stdby_ass()
 {
-	si->saAmfSINumCurrStandbyAssignments++;
-	TRACE("%s saAmfSINumCurrStandbyAssignments=%u", si->name.value, si->saAmfSINumCurrStandbyAssignments);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_STBY);
-	si_update_ass_state(si);
+	saAmfSINumCurrStandbyAssignments++;
+	TRACE("%s saAmfSINumCurrStandbyAssignments=%u", name.value, saAmfSINumCurrStandbyAssignments);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_STBY);
+	si_update_ass_state(this);
 }
 
-void avd_si_dec_curr_stdby_ass(AVD_SI *si)
+void AVD_SI::dec_curr_stdby_ass()
 {
-	osafassert(si->saAmfSINumCurrStandbyAssignments > 0);
-	si->saAmfSINumCurrStandbyAssignments--;
-	TRACE("%s saAmfSINumCurrStandbyAssignments=%u", si->name.value, si->saAmfSINumCurrStandbyAssignments);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_STBY);
-	si_update_ass_state(si);
+	osafassert(saAmfSINumCurrStandbyAssignments > 0);
+	saAmfSINumCurrStandbyAssignments--;
+	TRACE("%s saAmfSINumCurrStandbyAssignments=%u", name.value, saAmfSINumCurrStandbyAssignments);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_STBY);
+	si_update_ass_state(this);
 }
 
-void avd_si_inc_curr_act_dec_std_ass(AVD_SI *si)
+void AVD_SI::inc_curr_act_dec_std_ass()
 {
-        si->saAmfSINumCurrActiveAssignments++;
-        m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_ACTIVE);
-        TRACE("%s saAmfSINumCurrActiveAssignments=%u", si->name.value, si->saAmfSINumCurrActiveAssignments);
+        saAmfSINumCurrActiveAssignments++;
+        m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_ACTIVE);
+        TRACE("%s saAmfSINumCurrActiveAssignments=%u", name.value, saAmfSINumCurrActiveAssignments);
 
-        osafassert(si->saAmfSINumCurrStandbyAssignments > 0);
-        si->saAmfSINumCurrStandbyAssignments--;
-        TRACE("%s saAmfSINumCurrStandbyAssignments=%u", si->name.value, si->saAmfSINumCurrStandbyAssignments);
-        m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_STBY);
+        osafassert(saAmfSINumCurrStandbyAssignments > 0);
+        saAmfSINumCurrStandbyAssignments--;
+        TRACE("%s saAmfSINumCurrStandbyAssignments=%u", name.value, saAmfSINumCurrStandbyAssignments);
+        m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_STBY);
 
-        si_update_ass_state(si);
+        si_update_ass_state(this);
 }
 
-void avd_si_inc_curr_stdby_dec_act_ass(AVD_SI *si)
+void AVD_SI::inc_curr_stdby_dec_act_ass()
 {
-        si->saAmfSINumCurrStandbyAssignments++;
-        TRACE("%s saAmfSINumCurrStandbyAssignments=%u", si->name.value, si->saAmfSINumCurrStandbyAssignments);
-        m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_STBY);
+        saAmfSINumCurrStandbyAssignments++;
+        TRACE("%s saAmfSINumCurrStandbyAssignments=%u", name.value, saAmfSINumCurrStandbyAssignments);
+        m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_STBY);
 
-        osafassert(si->saAmfSINumCurrActiveAssignments > 0);
-        si->saAmfSINumCurrActiveAssignments--;
-        TRACE("%s saAmfSINumCurrActiveAssignments=%u", si->name.value, si->saAmfSINumCurrActiveAssignments);
-        m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_SU_CURR_ACTIVE);
+        osafassert(saAmfSINumCurrActiveAssignments > 0);
+        saAmfSINumCurrActiveAssignments--;
+        TRACE("%s saAmfSINumCurrActiveAssignments=%u", name.value, saAmfSINumCurrActiveAssignments);
+        m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_ACTIVE);
 
-        si_update_ass_state(si);
+        si_update_ass_state(this);
 }
 
 void avd_si_constructor(void)
