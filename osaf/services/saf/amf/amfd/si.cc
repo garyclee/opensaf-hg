@@ -1348,17 +1348,17 @@ void avd_si_constructor(void)
 
 void AVD_SI::set_admin_state(SaAmfAdminStateT state)
 {
-	   SaAmfAdminStateT old_state = saAmfSIAdminState;
-	
-       osafassert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
-       TRACE_ENTER2("%s AdmState %s => %s", name.value,
-                  avd_adm_state_name[saAmfSIAdminState], avd_adm_state_name[state]);
-       saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", name.value,
-                  avd_adm_state_name[saAmfSIAdminState], avd_adm_state_name[state]);
-       saAmfSIAdminState = state;
-       avd_saImmOiRtObjectUpdate(&name, "saAmfSIAdminState",
-    	SA_IMM_ATTR_SAUINT32T, &saAmfSIAdminState);
-       m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_ADMIN_STATE);
-       avd_send_admin_state_chg_ntf(&name, SA_AMF_NTFID_SI_ADMIN_STATE, old_state, saAmfSIAdminState);
+	const SaAmfAdminStateT old_state = saAmfSIAdminState;
+
+	osafassert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
+	TRACE_ENTER2("%s AdmState %s => %s", name.value,
+		avd_adm_state_name[saAmfSIAdminState], avd_adm_state_name[state]);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", name.value,
+		avd_adm_state_name[saAmfSIAdminState], avd_adm_state_name[state]);
+	saAmfSIAdminState = state;
+	avd_saImmOiRtObjectUpdate(&name, "saAmfSIAdminState",
+		SA_IMM_ATTR_SAUINT32T, &saAmfSIAdminState);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_ADMIN_STATE);
+	avd_send_admin_state_chg_ntf(&name, SA_AMF_NTFID_SI_ADMIN_STATE, old_state, saAmfSIAdminState);
 }
 
