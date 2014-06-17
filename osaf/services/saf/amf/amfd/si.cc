@@ -32,17 +32,6 @@ AmfDb<std::string, AVD_SI> *si_db = NULL;
 static void avd_si_add_csi_db(struct avd_csi_tag* csi);
 static void si_update_ass_state(AVD_SI *si);
 
-//
-// TODO(HANO) Temporary use this function instead of strdup which uses malloc.
-// Later on remove this function and use std::string instead
-#include <cstring>
-static char *StrDup(const char *s)
-{
-	char *c = new char[strlen(s) + 1];
-	std::strcpy(c,s);
-	return c;
-}
-
 /**
  * @brief Checks if the dependencies configured leads to loop
  *	  If loop is detected amf will just osafassert
@@ -326,8 +315,6 @@ void avd_si_remove_csi(AVD_CSI* csi)
 
 AVD_SI::AVD_SI() :
 	saAmfSIRank(0),
-	saAmfSIActiveWeight(NULL),
-	saAmfSIStandbyWeight(NULL),
 	saAmfSIPrefActiveAssignments(0),
 	saAmfSIPrefStandbyAssignments(0),
 	saAmfSIAdminState(SA_AMF_ADMIN_UNLOCKED),
@@ -409,24 +396,6 @@ void avd_si_delete(AVD_SI *si)
 	}
 
 	si_db->erase(Amf::to_string(&si->name));
-	
-	if (si->saAmfSIActiveWeight != NULL) {
-		unsigned int i = 0;
-		while (si->saAmfSIActiveWeight[i] != NULL) {
-			delete [] si->saAmfSIActiveWeight[i];
-			++i;
-		}
-		delete [] si->saAmfSIActiveWeight;
-	}
-	
-	if (si->saAmfSIStandbyWeight != NULL) {
-		unsigned int i = 0;
-		while (si->saAmfSIStandbyWeight[i] != NULL) {
-			delete [] si->saAmfSIStandbyWeight[i];
-			++i;
-		}
-		delete [] si->saAmfSIStandbyWeight;	
-	}
 	
 	delete si;
 }
@@ -635,24 +604,22 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 
 	/* Optional, [0..*] */
 	if (immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfSIActiveWeight"), attributes, &attrValuesNumber) == SA_AIS_OK) {
-		si->saAmfSIActiveWeight = new char*[attrValuesNumber + 1];
 		for (i = 0; i < attrValuesNumber; i++) {
-			si->saAmfSIActiveWeight[i] =
-			    StrDup(immutil_getStringAttr(attributes, "saAmfSIActiveWeight", i));
+			si->saAmfSIActiveWeight.push_back(
+				std::string(immutil_getStringAttr(attributes, "saAmfSIActiveWeight", i))
+			);
 		}
-		si->saAmfSIActiveWeight[i] = NULL;
 	} else {
 		/*  TODO */
 	}
 
 	/* Optional, [0..*] */
 	if (immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfSIStandbyWeight"), attributes, &attrValuesNumber) == SA_AIS_OK) {
-		si->saAmfSIStandbyWeight = new char*[attrValuesNumber + 1];
 		for (i = 0; i < attrValuesNumber; i++) {
-			si->saAmfSIStandbyWeight[i] =
-			    StrDup(immutil_getStringAttr(attributes, "saAmfSIStandbyWeight", i));
+			si->saAmfSIStandbyWeight.push_back(
+				std::string(immutil_getStringAttr(attributes, "saAmfSIStandbyWeight", i))
+			);
 		}
-		si->saAmfSIStandbyWeight[i] = NULL;
 	} else {
 		/*  TODO */
 	}
