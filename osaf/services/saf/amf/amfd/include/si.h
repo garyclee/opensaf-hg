@@ -116,6 +116,8 @@ public:
 	void dec_curr_stdby_ass();
 	void inc_curr_stdby_dec_act_ass();
 	void inc_curr_act_dec_std_ass();
+	
+	void adjust_si_assignments(uint32_t mod_pref_assignments);
 
 private:
 	AVD_SI(const AVD_SI&);
