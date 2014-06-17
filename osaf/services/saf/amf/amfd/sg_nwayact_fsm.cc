@@ -70,7 +70,7 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		/* verify that the SI is ready and needs come more assignments. */
 		if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
 			(i_si->list_of_csi == NULL) ||
-		    (m_AVD_SI_ACTV_MAX_SU(i_si) <= m_AVD_SI_ACTV_CURR_SU(i_si))) {
+		    (i_si->pref_active_assignments() <= i_si->curr_active_assignments() )) {
 			i_si = i_si->sg_list_of_si_next;
 			continue;
 		}
@@ -124,7 +124,7 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 				/* Check if the SI can take more assignments. If not exit the SU loop.                         
 				 */
-				if (m_AVD_SI_ACTV_MAX_SU(i_si) <= m_AVD_SI_ACTV_CURR_SU(i_si)) {
+				if (i_si->pref_active_assignments() <= i_si->curr_active_assignments() ) {
 					break;
 				}
 			} else {
@@ -149,7 +149,7 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 			l_flag = true;
 
-			if (m_AVD_SI_ACTV_MAX_SU(i_si) <= m_AVD_SI_ACTV_CURR_SU(i_si)) {
+			if (i_si->pref_active_assignments() <= i_si->curr_active_assignments() ) {
 				/* The preferred number of active assignments for SI has reached, so continue
 				   to next SI */
 				i_su = NULL;
@@ -172,7 +172,7 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 				/* Check if the SI can take more assignments. If not exit the SU loop.
 				 */
-				if (m_AVD_SI_ACTV_MAX_SU(i_si) <= m_AVD_SI_ACTV_CURR_SU(i_si)) {
+				if (i_si->pref_active_assignments() <= i_si->curr_active_assignments() ) {
 					i_su = NULL;
 					continue;
 				}
@@ -1984,7 +1984,7 @@ static AVD_SU *avd_get_qualified_su(AVD_SG *sg, AVD_SI *i_si,
 	AVD_SU *i_su, *pref_su = NULL, *pre_temp_su = NULL;
 	bool l_flag = false, l_flag_1 = false;
 	TRACE_ENTER();
-	if (m_AVD_SI_ACTV_MAX_SU(i_si) <= m_AVD_SI_ACTV_CURR_SU(i_si)) {
+	if (i_si->pref_active_assignments() <= i_si->curr_active_assignments() ) {
 		/* The preferred number of active assignments for SI has reached, so return
 		   and try assigning next SI*/
 		*next_si_tobe_assigned = true; 
