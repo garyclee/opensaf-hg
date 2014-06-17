@@ -36,11 +36,12 @@
 
 #include <saAmf.h>
 #include <saImm.h>
-#include <ncspatricia.h>
 #include <app.h>
 #include <sg.h>
 #include <su.h>
 #include <sg.h>
+#include <svctype.h>
+#include <svctypecstype.h>
 #include <amf_defs.h>
 #include <ckpt_msg.h>
 #include <vector>
@@ -132,30 +133,7 @@ private:
 	AVD_SI& operator=(const AVD_SI&);
 };
 
-typedef struct avd_amf_svc_type_tag {
-
-	NCS_PATRICIA_NODE tree_node;	/* key will be svc type name */
-	SaNameT name;
-	char **saAmfSvcDefActiveWeight;
-	char **saAmfSvcDefStandbyWeight;
-	AVD_SI *list_of_si;
-
-} AVD_SVC_TYPE;
-
-typedef struct {
-	SaNameT name;
-	SaUint32T saAmfSvctMaxNumCSIs;
-
-	SaUint32T curr_num_csis;
-
-	struct avd_amf_svc_type_tag *cs_type_on_svc_type;
-	struct avd_svc_type_cs_type_tag *cs_type_list_svc_type_next;
-
-} AVD_SVC_TYPE_CS_TYPE;
-
 extern AmfDb<std::string, AVD_SI> *si_db;
-extern AmfDb<std::string, AVD_SVC_TYPE_CS_TYPE> *svctypecstypes_db;
-extern AmfDb<std::string, AVD_SVC_TYPE> *svctype_db;
 #define AVD_SI_NULL ((AVD_SI *)0)
 #define m_AVD_SI_ACTV_MAX_SU(l_si) (l_si)->saAmfSIPrefActiveAssignments
 #define m_AVD_SI_ACTV_CURR_SU(l_si) (l_si)->saAmfSINumCurrActiveAssignments
@@ -171,14 +149,6 @@ extern void avd_si_db_add(AVD_SI *si);
 extern AVD_SI *avd_si_get(const SaNameT *si_name);
 extern SaAisErrorT avd_si_config_get(struct avd_app_tag *app);
 extern void avd_si_constructor(void);
-
-extern SaAisErrorT avd_svctype_config_get(void);
-extern void avd_svctype_add_si(AVD_SI *si);
-extern void avd_svctype_remove_si(AVD_SI *si);
-extern void avd_svctype_constructor(void);
-
-extern SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name);
-extern void avd_svctypecstypes_constructor(void);
 
 extern void avd_si_assignments_delete(AVD_CL_CB *cb, AVD_SI *si);
 
