@@ -2,6 +2,7 @@
 
 {
 	global:
+		saAis*;
 		saClm*;
 
 	local:

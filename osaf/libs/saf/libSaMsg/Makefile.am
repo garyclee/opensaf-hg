@@ -42,5 +42,6 @@ endif
 
 libSaMsg_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/ais/libais_common.la \
 	$(top_builddir)/osaf/libs/agents/saf/mqa/libmqa.la \
 	$(top_builddir)/osaf/libs/common/mqsv/libmqsv_common.la

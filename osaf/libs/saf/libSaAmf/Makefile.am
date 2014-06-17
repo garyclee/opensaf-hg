@@ -42,5 +42,6 @@ endif
 
 libSaAmf_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/ais/libais_common.la \
 	$(top_builddir)/osaf/libs/agents/saf/amfa/libava.la \
 	$(top_builddir)/osaf/libs/common/amf/libamf_common.la

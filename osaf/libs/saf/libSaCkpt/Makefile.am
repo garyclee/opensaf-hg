@@ -43,5 +43,6 @@ endif
 
 libSaCkpt_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/ais/libais_common.la \
 	$(top_builddir)/osaf/libs/agents/saf/cpa/libcpa.la \
 	$(top_builddir)/osaf/libs/common/cpsv/libcpsv_common.la
