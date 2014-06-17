@@ -1193,7 +1193,7 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				return NCSCC_RC_FAILURE;
 			}
 			avd_sg_su_oper_list_add(cb, su, false);
-			avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
+			su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 			if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SI_OPER) {
@@ -2056,7 +2056,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			if (avd_susi_del_send(susi) == NCSCC_RC_FAILURE)
 				return NCSCC_RC_FAILURE;
 			avd_sg_su_oper_list_add(cb, susi->su, false);
-			avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_LOCKED);
+			su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			if (su->sg_of_su->admin_si->list_of_sisu == susi)
 				i_susi = susi->si_next;
 			else
@@ -2745,7 +2745,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				return NCSCC_RC_FAILURE;
 
 			avd_sg_su_oper_list_add(cb, susi->su, false);
-			avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_LOCKED);
+			su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			if (su->sg_of_su->admin_si->list_of_sisu == susi)
 				i_susi = susi->si_next;
 			else
@@ -3544,7 +3544,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 				/* admin pointer SI admin operation is LOCK/shutdown. */
 				if ((l_susi->state == SA_AMF_HA_QUIESCING) || (l_susi->state == SA_AMF_HA_QUIESCED)) {
 					/* Change the admin operation to UNLOCK. */
-					avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
+					su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 
 					if (o_susi != AVD_SU_SI_REL_NULL) {
 						if ((o_susi->fsm == AVD_SU_SI_STATE_ASGND) &&
@@ -4101,7 +4101,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			/* admin pointer SI admin operation is LOCK/shutdown. */
 			if ((l_susi->state == SA_AMF_HA_QUIESCING) || (l_susi->state == SA_AMF_HA_QUIESCED)) {
 				/* Change the admin operation to UNLOCK. */
-				avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
+				su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 
 				if (o_susi != AVD_SU_SI_REL_NULL) {
 					if (o_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
