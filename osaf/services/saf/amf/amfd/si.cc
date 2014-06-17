@@ -1367,3 +1367,23 @@ void AVD_SI::set_si_switch(AVD_CL_CB *cb, const SaToggleState state)
 	si_switch = state;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, this, AVSV_CKPT_SI_SWITCH);
 }
+
+uint32_t AVD_SI::pref_active_assignments() const
+{
+	return saAmfSIPrefActiveAssignments;
+}
+
+uint32_t AVD_SI::curr_active_assignments() const
+{
+	return saAmfSINumCurrActiveAssignments;
+}
+
+uint32_t AVD_SI::pref_standby_assignments() const
+{
+	return saAmfSIPrefStandbyAssignments;
+}
+
+uint32_t AVD_SI::curr_standby_assignments() const
+{
+	return saAmfSINumCurrStandbyAssignments;
+}

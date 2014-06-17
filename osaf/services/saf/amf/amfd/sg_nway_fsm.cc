@@ -1599,7 +1599,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 			continue;
 
 		/* verify if si needs more assigments */
-		if (m_AVD_SI_STDBY_CURR_SU(curr_si) == m_AVD_SI_STDBY_MAX_SU(curr_si))
+		if (curr_si->curr_standby_assignments() == curr_si->pref_standby_assignments())
 			continue;
 
 		/* we've a not-so-fully-assigned si.. find sus for standby assignment */
@@ -1639,7 +1639,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 
 				/* verify if si needs more assigments */
-				if (m_AVD_SI_STDBY_CURR_SU(curr_si) == m_AVD_SI_STDBY_MAX_SU(curr_si))
+				if (curr_si->curr_standby_assignments() == curr_si->pref_standby_assignments())
 					break;
 			} else {
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_si->name.value, curr_si->name.length);
@@ -1647,7 +1647,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 		}
 
 		/* verify if si needs more assigments */
-		if (m_AVD_SI_STDBY_CURR_SU(curr_si) == m_AVD_SI_STDBY_MAX_SU(curr_si))
+		if (curr_si->curr_standby_assignments() == curr_si->pref_standby_assignments())
 			continue;
 
 		if (sg->equal_ranked_su == true) {
@@ -1667,7 +1667,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 					m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 
 					/* verify if si needs more assigments */
-					if (m_AVD_SI_STDBY_CURR_SU(curr_si) == m_AVD_SI_STDBY_MAX_SU(curr_si))
+					if (curr_si->curr_standby_assignments() == curr_si->pref_standby_assignments())
 						break;
 				} else {
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_si->name.value, curr_si->name.length);
@@ -1704,7 +1704,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 
 				/* verify if si needs more assigments */
-				if (m_AVD_SI_STDBY_CURR_SU(curr_si) == m_AVD_SI_STDBY_MAX_SU(curr_si))
+				if (curr_si->curr_standby_assignments() == curr_si->pref_standby_assignments())
 					break;
 			} else {
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_si->name.value, curr_si->name.length);
