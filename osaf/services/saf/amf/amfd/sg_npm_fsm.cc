@@ -1111,7 +1111,7 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				 * operation list.  Identify the other SU assigned to this SI,
 				 * add it to the SU oper list.
 				 */
-				m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+				su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				if (avd_sg_su_si_del_snd(cb, su) == NCSCC_RC_FAILURE) {
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 					return NCSCC_RC_FAILURE;
@@ -1136,7 +1136,7 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				 * Change the SI switch state to false. Remove the SI from 
 				 * the SI admin pointer. Add the SU to the SU operation list.
 				 */
-				m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+				su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				avd_sg_su_oper_list_add(cb, su, false);
 				if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SI_OPER) {
@@ -1611,8 +1611,8 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 											 su->name.length);
 							return NCSCC_RC_FAILURE;
 						}
-						m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si),
-								    AVSV_SI_TOGGLE_STABLE);
+						su->sg_of_su->admin_si->set_si_switch(cb,
+							AVSV_SI_TOGGLE_STABLE);
 						avd_sg_su_oper_list_add(cb, su, false);
 						m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
@@ -1643,8 +1643,8 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 						avd_sg_su_si_del_snd(cb, su);
 						avd_sg_su_oper_list_add(cb, su, false);
-						m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si),
-								    AVSV_SI_TOGGLE_STABLE);
+						su->sg_of_su->admin_si->set_si_switch(cb,
+							AVSV_SI_TOGGLE_STABLE);
 						m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 					}
@@ -1804,7 +1804,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						return NCSCC_RC_FAILURE;
 					}
 					avd_sg_su_oper_list_add(cb, o_susi->su, false);
-					m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+					su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 				}	/* if ((su->sg_of_su->admin_si != AVD_SI_NULL) && 
@@ -1913,8 +1913,8 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 							return NCSCC_RC_FAILURE;
 						}
 						avd_sg_su_oper_list_add(cb, o_susi->su, false);
-						m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si),
-								    AVSV_SI_TOGGLE_STABLE);
+						su->sg_of_su->admin_si->set_si_switch(cb,
+							AVSV_SI_TOGGLE_STABLE);
 						m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 					}	/* if ((su->sg_of_su->admin_si != AVD_SI_NULL) && 
@@ -2719,7 +2719,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					}
 
 					avd_sg_su_oper_list_add(cb, o_susi->su, false);
-					m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+					su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 				}
@@ -2787,7 +2787,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 					return NCSCC_RC_FAILURE;
 				}
-				m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+				su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				avd_sg_su_oper_list_add(cb, su, false);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -2832,7 +2832,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						return NCSCC_RC_FAILURE;
 					}
 					avd_sg_su_oper_list_add(cb, o_susi->su, false);
-					m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+					su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 				}
@@ -3146,7 +3146,7 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 
 			avd_sg_su_oper_list_add(cb, su, false);
 
-			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+			su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
@@ -3417,7 +3417,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					/* Change the SI switch state to false. Remove the SI from the 
 					 * SI admin pointer.
 					 */
-					m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+					su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 					if (su->sg_of_su->su_oper_list.su == NULL) {
@@ -3452,7 +3452,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					/* Change the SI switch state to false. Remove the SI from the 
 					 * SI admin pointer.
 					 */
-					m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+					su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 					/* Free all the SI assignments to this SU. */
@@ -3512,7 +3512,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					/* Change the SI switch state to false. Remove the SI from the 
 					 * SI admin pointer.
 					 */
-					m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+					su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 					/* Free all the SI assignments to this SU. */
@@ -3965,7 +3965,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				/* Change the SI switch state to false. Remove the SI from the 
 				 * SI admin pointer.
 				 */
-				m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+				su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 				if (su->sg_of_su->su_oper_list.su == NULL) {
@@ -4005,7 +4005,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				/* Change the SI switch state to false. Remove the SI from the 
 				 * SI admin pointer.
 				 */
-				m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+				su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 				/* Free all the SI assignments to this SU. */
@@ -4063,7 +4063,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				/* Change the SI switch state to false. Remove the SI from the 
 				 * SI admin pointer.
 				 */
-				m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+				su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 				/* Free all the SI assignments to this SU. */
