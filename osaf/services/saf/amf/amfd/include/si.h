@@ -122,6 +122,9 @@ public:
 
 	void set_admin_state(SaAmfAdminStateT state);
 
+	void add_rankedsu(const SaNameT *suname, uint32_t saAmfRank);
+	void remove_rankedsu(const SaNameT *suname);
+
 private:
 	AVD_SI(const AVD_SI&);
 	AVD_SI& operator=(const AVD_SI&);
@@ -181,7 +184,5 @@ extern SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name);
 extern void avd_svctypecstypes_constructor(void);
 
 extern void avd_si_assignments_delete(AVD_CL_CB *cb, AVD_SI *si);
-extern void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uint32_t saAmfRank);
-extern void avd_si_remove_rankedsu(AVD_SI *si, const SaNameT *suname);
 
 #endif
