@@ -48,6 +48,8 @@ noinst_HEADERS = \
    sutcomptype.h \
    sutype.h \
    susi.h \
+   svctype.h \
+   svctypecstype.h \
    timer.h \
    util.h \
    ntf.h \
