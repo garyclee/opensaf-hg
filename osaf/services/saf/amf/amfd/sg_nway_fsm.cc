@@ -2226,7 +2226,7 @@ uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			if ((SA_AMF_HA_QUIESCING == curr_susi->state) ||
 			    ((SA_AMF_HA_QUIESCED == curr_susi->state) && (AVD_SU_SI_STATE_MODIFY == curr_susi->fsm))) {
 				/* si operation aborted */
-				avd_si_admin_state_set(si, SA_AMF_ADMIN_UNLOCKED);
+				si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
 
 				/* if quiescing, send quiesced assignment */
@@ -2245,7 +2245,7 @@ uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				AVD_SU_SI_REL *susi = 0;
 
 				/* si operation aborted */
-				avd_si_admin_state_set(si, SA_AMF_ADMIN_UNLOCKED);
+				si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
 
 				/* identify the quiesced assigning susi */
@@ -2272,7 +2272,7 @@ uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			AVD_SU_SI_REL *susi = 0;
 
 			/* si operation aborted */
-			avd_si_admin_state_set(si, SA_AMF_ADMIN_UNLOCKED);
+			si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
 
 			/* identify the quiesced assigning susi */
@@ -2953,7 +2953,7 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 
 			/* transition to locked admin state (if shutdown) */
 			if (SA_AMF_ADMIN_SHUTTING_DOWN == susi->si->saAmfSIAdminState) {
-				avd_si_admin_state_set(susi->si, SA_AMF_ADMIN_LOCKED);
+				susi->si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			}
 		} else if (AVSV_SI_TOGGLE_SWITCH == susi->si->si_switch) {
 			/* si switch semantics in progress.. 
@@ -3468,7 +3468,7 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 		} else {
 			/* abort the si lock / shutdown operation */
-			avd_si_admin_state_set(susi->si, SA_AMF_ADMIN_UNLOCKED);
+			susi->si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
 
 			if (((SA_AMF_HA_QUIESCED == susi->state) ||

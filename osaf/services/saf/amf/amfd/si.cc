@@ -807,7 +807,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			goto done;
 		}
 
-		avd_si_admin_state_set(si, SA_AMF_ADMIN_UNLOCKED);
+		si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 
 		err = si->sg_of_si->si_func(avd_cb, si);
 		if (si->list_of_sisu == NULL)
@@ -816,7 +816,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		if (err != NCSCC_RC_SUCCESS) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
 					"SI unlock of %s failed", objectName->value);
-			avd_si_admin_state_set(si, SA_AMF_ADMIN_LOCKED);
+			si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			goto done;
 		}
 
@@ -850,7 +850,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 
 		if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
-			avd_si_admin_state_set(si, SA_AMF_ADMIN_LOCKED);
+			si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			/* This may happen when SUs are locked before SI is locked. */
 			LOG_WA("SI lock of %s, has no assignments", objectName->value);
 			rc = SA_AIS_OK;
@@ -873,11 +873,11 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 
 		back_val = si->saAmfSIAdminState;
-		avd_si_admin_state_set(si, (adm_state));
+		si->set_admin_state(adm_state);
 
 		err = si->sg_of_si->si_admin_down(avd_cb, si);
 		if (err != NCSCC_RC_SUCCESS) {
-			avd_si_admin_state_set(si, back_val);
+			si->set_admin_state(back_val);
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
 					"SI shutdown/lock of %s failed", objectName->value);
 			goto done;
@@ -1346,19 +1346,19 @@ void avd_si_constructor(void)
 		si_ccb_completed_cb, si_ccb_apply_cb);
 }
 
-void avd_si_admin_state_set(AVD_SI* si, SaAmfAdminStateT state)
+void AVD_SI::set_admin_state(SaAmfAdminStateT state)
 {
-	   SaAmfAdminStateT old_state = si->saAmfSIAdminState;
+	   SaAmfAdminStateT old_state = saAmfSIAdminState;
 	
        osafassert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
-       TRACE_ENTER2("%s AdmState %s => %s", si->name.value,
-                  avd_adm_state_name[si->saAmfSIAdminState], avd_adm_state_name[state]);
-       saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", si->name.value,
-                  avd_adm_state_name[si->saAmfSIAdminState], avd_adm_state_name[state]);
-       si->saAmfSIAdminState = state;
-       avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAdminState",
-    	SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAdminState);
-       m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ADMIN_STATE);
-       avd_send_admin_state_chg_ntf(&si->name, SA_AMF_NTFID_SI_ADMIN_STATE, old_state, si->saAmfSIAdminState);
+       TRACE_ENTER2("%s AdmState %s => %s", name.value,
+                  avd_adm_state_name[saAmfSIAdminState], avd_adm_state_name[state]);
+       saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", name.value,
+                  avd_adm_state_name[saAmfSIAdminState], avd_adm_state_name[state]);
+       saAmfSIAdminState = state;
+       avd_saImmOiRtObjectUpdate(&name, "saAmfSIAdminState",
+    	SA_IMM_ATTR_SAUINT32T, &saAmfSIAdminState);
+       m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_ADMIN_STATE);
+       avd_send_admin_state_chg_ntf(&name, SA_AMF_NTFID_SI_ADMIN_STATE, old_state, saAmfSIAdminState);
 }
 
