@@ -44,6 +44,7 @@ noinst_HEADERS = \
    sg.h \
    sgtype.h \
    si.h \
+   sirankedsu.h \
    su.h \
    sutcomptype.h \
    sutype.h \
