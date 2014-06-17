@@ -69,6 +69,7 @@ typedef struct avd_sirankedsu {
  */
 class AVD_SI {
 public:
+	AVD_SI();
 	SaNameT name;
 
 	/******************** B.04 model *************************************************/
@@ -106,7 +107,11 @@ public:
 	avd_sirankedsu_t *rankedsu_list_head;
 	SaInvocationT invocation;
 	
-	uint32_t alarm_sent; /* SI unassigned alarm has been sent */
+	bool alarm_sent; /* SI unassigned alarm has been sent */
+
+private:
+	AVD_SI(const AVD_SI&);
+	AVD_SI& operator=(const AVD_SI&);
 };
 
 typedef struct avd_amf_svc_type_tag {
