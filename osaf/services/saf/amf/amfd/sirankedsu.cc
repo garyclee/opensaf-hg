@@ -47,7 +47,7 @@ static void avd_sirankedsu_db_add(AVD_SUS_PER_SI_RANK *sirankedsu)
 
         /* Find the si name. */
         avd_si = avd_si_get(&(sirankedsu->indx.si_name));
-	avd_si_add_rankedsu(avd_si, &sirankedsu->su_name, sirankedsu->indx.su_rank);
+	avd_si->add_rankedsu(&sirankedsu->su_name, sirankedsu->indx.su_rank);
 
         /* Add sus_per_si_rank to si */
         sirankedsu->sus_per_si_rank_on_si = avd_si;
@@ -228,7 +228,7 @@ static void avd_sirankedsu_del_si_list(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *sus_p
 				    sus_per_si_rank->sus_per_si_rank_list_si_next;
 			}
 		}
-		avd_si_remove_rankedsu(sus_per_si_rank->sus_per_si_rank_on_si,&sus_per_si_rank->su_name);
+		sus_per_si_rank->sus_per_si_rank_on_si->remove_rankedsu(&sus_per_si_rank->su_name);
 
 		sus_per_si_rank->sus_per_si_rank_list_si_next = NULL;
 		sus_per_si_rank->sus_per_si_rank_on_si = NULL;

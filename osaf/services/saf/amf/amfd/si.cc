@@ -206,7 +206,7 @@ static void avd_si_add_csi_db(struct avd_csi_tag* csi)
  * @param suname
  * @param saAmfRank
  */
-void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uint32_t saAmfRank)
+void AVD_SI::add_rankedsu(const SaNameT *suname, uint32_t saAmfRank)
 {
 	avd_sirankedsu_t *tmp;
 	avd_sirankedsu_t *prev = NULL;
@@ -217,7 +217,7 @@ void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uint32_t saAmfRank)
 	ranked_su->suname = *suname;
 	ranked_su->saAmfRank = saAmfRank;
 
-	for (tmp = si->rankedsu_list_head; tmp != NULL; tmp = tmp->next) {
+	for (tmp = rankedsu_list_head; tmp != NULL; tmp = tmp->next) {
 		if (tmp->saAmfRank >= saAmfRank)
 			break;
 		else
@@ -225,8 +225,8 @@ void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uint32_t saAmfRank)
 	}
 
 	if (prev == NULL) {
-		ranked_su->next = si->rankedsu_list_head;
-		si->rankedsu_list_head = ranked_su;
+		ranked_su->next = rankedsu_list_head;
+		rankedsu_list_head = ranked_su;
 	} else {
 		ranked_su->next = prev->next;
 		prev->next = ranked_su;
@@ -239,20 +239,20 @@ void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uint32_t saAmfRank)
  * @param si
  * @param suname
  */
-void avd_si_remove_rankedsu(AVD_SI *si, const SaNameT *suname)
+void AVD_SI::remove_rankedsu(const SaNameT *suname)
 {
 	avd_sirankedsu_t *tmp;
 	avd_sirankedsu_t *prev = NULL;
 	TRACE_ENTER();
 
-	for (tmp = si->rankedsu_list_head; tmp != NULL; tmp = tmp->next) {
+	for (tmp = rankedsu_list_head; tmp != NULL; tmp = tmp->next) {
 		if (memcmp(&tmp->suname, suname, sizeof(*suname)) == 0)
 			break;
 		prev = tmp;
 	}
 
 	if (prev == NULL)
-		si->rankedsu_list_head = NULL;
+		rankedsu_list_head = NULL;
 	else
 		prev->next = tmp->next;
 
