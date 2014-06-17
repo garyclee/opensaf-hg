@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2009 The OpenSAF Foundation
+# (C) Copyright 2014 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,47 +11,17 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Ericsson AB
 #
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = ais amf immsv logsv ntfsv clmsv
+noinst_LTLIBRARIES = libais_common.la
 
-if ENABLE_AIS_PLM
+libais_common_la_CPPFLAGS = \
+	$(AM_CPPFLAGS)
 
-SUBDIRS += plmsv
-
-endif
-
-if ENABLE_AIS_CKPT
-
-SUBDIRS += cpsv
-
-endif
-
-if ENABLE_AIS_EVT
-
-SUBDIRS += edsv
-
-endif
-
-if ENABLE_AIS_LCK
-
-SUBDIRS += glsv
-
-endif
-
-if ENABLE_AIS_MSG
-
-SUBDIRS += mqsv
-
-endif
-
-if ENABLE_AIS_SMF
-
-SUBDIRS += smfsv
-
-endif
+libais_common_la_SOURCES = \
+	aisa_api.c

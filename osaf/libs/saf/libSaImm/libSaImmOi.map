@@ -6,6 +6,7 @@
 
 OPENSAF_IMM_A.02.01 {
 	global:
+		saAis*;
 		saImmOi*;
 
 	local:

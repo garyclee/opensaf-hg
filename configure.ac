@@ -690,6 +690,7 @@ AC_CONFIG_FILES([
         osaf/libs/core/mds/Makefile
         osaf/libs/core/mds/include/Makefile
         osaf/libs/common/Makefile
+        osaf/libs/common/ais/Makefile
         osaf/libs/common/amf/Makefile
         osaf/libs/common/amf/include/Makefile
         osaf/libs/common/cpsv/Makefile
