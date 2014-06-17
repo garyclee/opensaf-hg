@@ -30,6 +30,7 @@ noinst_HEADERS = \
 	sprr_dl_api.h \
 	nid_start_util.h \
 	daemon.h \
+	osaf_extended_name.h \
 	osaf_unicode.h \
 	osaf_poll.h \
 	osaf_time.h \
