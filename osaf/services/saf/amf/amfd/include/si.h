@@ -118,6 +118,7 @@ public:
 	void inc_curr_act_dec_std_ass();
 	
 	void adjust_si_assignments(uint32_t mod_pref_assignments);
+	void update_ass_state();
 
 private:
 	AVD_SI(const AVD_SI&);
