@@ -329,7 +329,7 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 				   saAmfSINumCurrActiveAssignments was increased when active  
 				   assignment had been sent. So decrement the count in SI before 
 				   deleting the SUSI. */
-				avd_si_dec_curr_act_ass(susi->si);
+				susi->si->dec_curr_act_ass();
 			}
 			/* Reply to IMM for admin operation on SI */
 			if (susi->si->invocation != 0) {

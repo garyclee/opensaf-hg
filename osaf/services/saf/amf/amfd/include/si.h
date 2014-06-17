@@ -110,6 +110,13 @@ public:
 	
 	bool alarm_sent; /* SI unassigned alarm has been sent */
 
+	void inc_curr_act_ass();
+	void dec_curr_act_ass();
+	void inc_curr_stdby_ass();
+	void dec_curr_stdby_ass();
+	void inc_curr_stdby_dec_act_ass();
+	void inc_curr_act_dec_std_ass();
+
 private:
 	AVD_SI(const AVD_SI&);
 	AVD_SI& operator=(const AVD_SI&);
@@ -167,12 +174,7 @@ extern void avd_svctype_constructor(void);
 
 extern SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name);
 extern void avd_svctypecstypes_constructor(void);
-extern void avd_si_inc_curr_act_ass(AVD_SI *si);
-extern void avd_si_dec_curr_act_ass(AVD_SI *si);
-extern void avd_si_inc_curr_stdby_ass(AVD_SI *si);
-extern void avd_si_dec_curr_stdby_ass(AVD_SI *si);
-extern void avd_si_inc_curr_stdby_dec_act_ass(AVD_SI *si);
-extern void avd_si_inc_curr_act_dec_std_ass(AVD_SI *si);
+
 extern void avd_si_admin_state_set(AVD_SI* si, SaAmfAdminStateT state);
 extern void avd_si_assignments_delete(AVD_CL_CB *cb, AVD_SI *si);
 extern void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uint32_t saAmfRank);
