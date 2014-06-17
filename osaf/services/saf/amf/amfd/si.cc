@@ -323,6 +323,40 @@ void avd_si_remove_csi(AVD_CSI* csi)
 	}			/* if (csi->si != AVD_SI_NULL) */
 }
 
+
+AVD_SI::AVD_SI() :
+	saAmfSIRank(0),
+	saAmfSIActiveWeight(NULL),
+	saAmfSIStandbyWeight(NULL),
+	saAmfSIPrefActiveAssignments(0),
+	saAmfSIPrefStandbyAssignments(0),
+	saAmfSIAdminState(SA_AMF_ADMIN_UNLOCKED),
+	saAmfSIAssignmentState(SA_AMF_ASSIGNMENT_UNASSIGNED),
+	saAmfSINumCurrActiveAssignments(0),
+	saAmfSINumCurrStandbyAssignments(0),
+	si_switch(AVSV_SI_TOGGLE_STABLE),
+	sg_of_si(NULL),
+	list_of_csi(NULL),
+	sg_list_of_si_next(NULL),
+	list_of_sisu(NULL),
+	si_dep_state(AVD_SI_NO_DEPENDENCY),
+	spons_si_list(NULL),
+	num_dependents(0),
+	tol_timer_count(0),
+	svc_type(NULL),
+	si_list_svc_type_next(NULL),
+	app(NULL),
+	si_list_app_next(NULL),
+	list_of_sus_per_si_rank(NULL),
+	rankedsu_list_head(NULL),
+	invocation(0),
+	alarm_sent(false)
+{
+	memset(&name, 0, sizeof(SaNameT));
+	memset(&saAmfSvcType, 0, sizeof(SaNameT));
+	memset(&saAmfSIProtectedbySG, 0, sizeof(SaNameT));
+}
+
 AVD_SI *avd_si_new(const SaNameT *dn)
 {
 	AVD_SI *si;
@@ -331,15 +365,6 @@ AVD_SI *avd_si_new(const SaNameT *dn)
 
 	memcpy(si->name.value, dn->value, dn->length);
 	si->name.length = dn->length;
-	si->si_switch = AVSV_SI_TOGGLE_STABLE;
-	si->saAmfSIAdminState = SA_AMF_ADMIN_UNLOCKED;
-	si->si_dep_state = AVD_SI_NO_DEPENDENCY;
-	si->saAmfSIAssignmentState = SA_AMF_ASSIGNMENT_UNASSIGNED;
-	si->alarm_sent = false;
-	si->num_dependents = 0;
-	si->tol_timer_count = 0;
-	si->saAmfSIActiveWeight = NULL;
-	si->saAmfSIStandbyWeight = NULL;
 
 	return si;
 }
