@@ -182,6 +182,5 @@ extern void avd_si_admin_state_set(AVD_SI* si, SaAmfAdminStateT state);
 extern void avd_si_assignments_delete(AVD_CL_CB *cb, AVD_SI *si);
 extern void avd_si_add_rankedsu(AVD_SI *si, const SaNameT *suname, uint32_t saAmfRank);
 extern void avd_si_remove_rankedsu(AVD_SI *si, const SaNameT *suname);
-extern avd_sirankedsu_t *avd_si_getnext_rankedsu(const AVD_SI *si, uint32_t saAmfRank);
 
 #endif
