@@ -43,6 +43,7 @@
 #include <sg.h>
 #include <amf_defs.h>
 #include <ckpt_msg.h>
+#include <vector>
 
 /* Enum values defines different SI-SI dependency FSM states. */
 typedef enum {
@@ -76,8 +77,8 @@ public:
 	SaNameT saAmfSvcType;
 	SaNameT saAmfSIProtectedbySG;
 	uint32_t saAmfSIRank;
-	char **saAmfSIActiveWeight;
-	char **saAmfSIStandbyWeight;
+	std::vector<std::string> saAmfSIActiveWeight;
+	std::vector<std::string> saAmfSIStandbyWeight;
 	uint32_t saAmfSIPrefActiveAssignments;  /* only applicable for the N-way active redundancy model */
 	uint32_t saAmfSIPrefStandbyAssignments; /* only applicable for the N-way active redundancy model */
 	SaAmfAdminStateT saAmfSIAdminState;
