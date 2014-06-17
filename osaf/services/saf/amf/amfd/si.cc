@@ -30,7 +30,6 @@
 AmfDb<std::string, AVD_SI> *si_db = NULL;
 
 static void avd_si_add_csi_db(struct avd_csi_tag* csi);
-static void si_update_ass_state(AVD_SI *si);
 
 /**
  * @brief Checks if the dependencies configured leads to loop
@@ -1025,7 +1024,7 @@ void AVD_SI::adjust_si_assignments(const uint32_t mod_pref_assignments)
 				/* No New assignments are been done in the SG
 				   reason might be no more inservice SUs to take new assignments or
 				   SUs are already assigned to saAmfSGMaxActiveSIsperSU capacity */
-				si_update_ass_state(this);
+				update_ass_state();
 				TRACE("No New assignments are been done SI:%s", name.value);
 			}
 		} else {
@@ -1139,7 +1138,7 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				si->saAmfSIPrefActiveAssignments = mod_pref_assignments;
 			}
 			TRACE("Modified saAmfSIPrefActiveAssignments is '%u'", si->saAmfSIPrefActiveAssignments);
-			si_update_ass_state(si);
+			si->update_ass_state();
 		} else if (!strcmp(attribute->attrName, "saAmfSIPrefStandbyAssignments")) {
 			if (value_is_deleted)
 				mod_pref_assignments = si->saAmfSIPrefStandbyAssignments = 1;
@@ -1165,7 +1164,7 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				si->saAmfSIPrefStandbyAssignments = mod_pref_assignments;
 			}
 			TRACE("Modified saAmfSINumCurrStandbyAssignments is '%u'", si->saAmfSINumCurrStandbyAssignments);
-			si_update_ass_state(si);
+			si->update_ass_state();
 		} else {
 			osafassert(0);
 		}
@@ -1202,11 +1201,10 @@ static void si_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 /**
  * Update the SI assignment state. See table 11 p.88 in AMF B.04
  * IMM is updated aswell as the standby peer.
- * @param si
  */
-static void si_update_ass_state(AVD_SI *si)
+void AVD_SI::update_ass_state()
 {
-	SaAmfAssignmentStateT oldState = si->saAmfSIAssignmentState;
+	const SaAmfAssignmentStateT oldState = saAmfSIAssignmentState;
 	SaAmfAssignmentStateT newState = SA_AMF_ASSIGNMENT_UNASSIGNED;
 
 	/*
@@ -1215,48 +1213,48 @@ static void si_update_ass_state(AVD_SI *si)
 	** osafassert(si->saAmfSINumCurrActiveAssignments == 1);
 	** since AMF temporarily goes above the limit during fail over
 	 */
-	switch (si->sg_of_si->sg_type->saAmfSgtRedundancyModel) {
+	switch (sg_of_si->sg_type->saAmfSgtRedundancyModel) {
 	case SA_AMF_2N_REDUNDANCY_MODEL:
 		/* fall through */
 	case SA_AMF_NPM_REDUNDANCY_MODEL:
-		if ((si->saAmfSINumCurrActiveAssignments == 0) &&
-				(si->saAmfSINumCurrStandbyAssignments == 0)) {
+		if ((saAmfSINumCurrActiveAssignments == 0) &&
+				(saAmfSINumCurrStandbyAssignments == 0)) {
 			newState = SA_AMF_ASSIGNMENT_UNASSIGNED;
-		} else if ((si->saAmfSINumCurrActiveAssignments == 1) &&
-				(si->saAmfSINumCurrStandbyAssignments == 1)) {
+		} else if ((saAmfSINumCurrActiveAssignments == 1) &&
+				(saAmfSINumCurrStandbyAssignments == 1)) {
 			newState = SA_AMF_ASSIGNMENT_FULLY_ASSIGNED;
 		} else
 			newState = SA_AMF_ASSIGNMENT_PARTIALLY_ASSIGNED;
 
 		break;
 	case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-		if ((si->saAmfSINumCurrActiveAssignments == 0) &&
-				(si->saAmfSINumCurrStandbyAssignments == 0)) {
+		if ((saAmfSINumCurrActiveAssignments == 0) &&
+				(saAmfSINumCurrStandbyAssignments == 0)) {
 			newState = SA_AMF_ASSIGNMENT_UNASSIGNED;
-		} else if ((si->saAmfSINumCurrActiveAssignments == 1) &&
-		           (si->saAmfSINumCurrStandbyAssignments == si->saAmfSIPrefStandbyAssignments)) {
+		} else if ((saAmfSINumCurrActiveAssignments == 1) &&
+		           (saAmfSINumCurrStandbyAssignments == saAmfSIPrefStandbyAssignments)) {
 		        newState = SA_AMF_ASSIGNMENT_FULLY_ASSIGNED;
 		} else
 		        newState = SA_AMF_ASSIGNMENT_PARTIALLY_ASSIGNED;
                 break;
 	case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-		if (si->saAmfSINumCurrActiveAssignments == 0) {
+		if (saAmfSINumCurrActiveAssignments == 0) {
 			newState = SA_AMF_ASSIGNMENT_UNASSIGNED;
 		} else {
-			osafassert(si->saAmfSINumCurrStandbyAssignments == 0);
-			osafassert(si->saAmfSINumCurrActiveAssignments <= si->saAmfSIPrefActiveAssignments);
-			if (si->saAmfSINumCurrActiveAssignments == si->saAmfSIPrefActiveAssignments)
+			osafassert(saAmfSINumCurrStandbyAssignments == 0);
+			osafassert(saAmfSINumCurrActiveAssignments <= saAmfSIPrefActiveAssignments);
+			if (saAmfSINumCurrActiveAssignments == saAmfSIPrefActiveAssignments)
 				newState = SA_AMF_ASSIGNMENT_FULLY_ASSIGNED;
 			else
 				newState = SA_AMF_ASSIGNMENT_PARTIALLY_ASSIGNED;
 		}
 		break;
 	case SA_AMF_NO_REDUNDANCY_MODEL:
-		if (si->saAmfSINumCurrActiveAssignments == 0) {
+		if (saAmfSINumCurrActiveAssignments == 0) {
 			newState = SA_AMF_ASSIGNMENT_UNASSIGNED;
 		} else {
-			osafassert(si->saAmfSINumCurrActiveAssignments == 1);
-			osafassert(si->saAmfSINumCurrStandbyAssignments == 0);
+			osafassert(saAmfSINumCurrActiveAssignments == 1);
+			osafassert(saAmfSINumCurrStandbyAssignments == 0);
 			newState = SA_AMF_ASSIGNMENT_FULLY_ASSIGNED;
 		}
 		break;
@@ -1264,38 +1262,38 @@ static void si_update_ass_state(AVD_SI *si)
 		osafassert(0);
 	}
 
-	if (newState != si->saAmfSIAssignmentState) {
-		TRACE("'%s' %s => %s", si->name.value,
-				   avd_ass_state[si->saAmfSIAssignmentState], avd_ass_state[newState]);
+	if (newState != saAmfSIAssignmentState) {
+		TRACE("'%s' %s => %s", name.value,
+				   avd_ass_state[saAmfSIAssignmentState], avd_ass_state[newState]);
 		#if 0
 		saflog(LOG_NOTICE, amfSvcUsrName, "%s AssignmentState %s => %s", si->name.value,
 			   avd_ass_state[si->saAmfSIAssignmentState], avd_ass_state[newState]);
 		#endif
 		
-		si->saAmfSIAssignmentState = newState;
+		saAmfSIAssignmentState = newState;
 
 		/* alarm & notifications */
-		if (si->saAmfSIAssignmentState == SA_AMF_ASSIGNMENT_UNASSIGNED) {
-			avd_send_si_unassigned_alarm(&si->name);
-			si->alarm_sent = true;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ALARM_SENT);
+		if (saAmfSIAssignmentState == SA_AMF_ASSIGNMENT_UNASSIGNED) {
+			avd_send_si_unassigned_alarm(&name);
+			alarm_sent = true;
+			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_ALARM_SENT);
 		}
 		else {
-			avd_send_si_assigned_ntf(&si->name, oldState, si->saAmfSIAssignmentState);
+			avd_send_si_assigned_ntf(&name, oldState, saAmfSIAssignmentState);
 			
 			/* Clear of alarm */
-			if ((oldState == SA_AMF_ASSIGNMENT_UNASSIGNED) && si->alarm_sent) {
-				avd_alarm_clear(&si->name, SA_AMF_NTFID_SI_UNASSIGNED, SA_NTF_SOFTWARE_ERROR);
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ALARM_SENT);
+			if ((oldState == SA_AMF_ASSIGNMENT_UNASSIGNED) && alarm_sent) {
+				avd_alarm_clear(&name, SA_AMF_NTFID_SI_UNASSIGNED, SA_NTF_SOFTWARE_ERROR);
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_ALARM_SENT);
 			}
 
 			/* always reset in case the SI has been recycled */
-			si->alarm_sent = false;
+			alarm_sent = false;
 		}
 
-		avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
-			SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ASSIGNMENT_STATE);
+		avd_saImmOiRtObjectUpdate(&name, "saAmfSIAssignmentState",
+			SA_IMM_ATTR_SAUINT32T, &saAmfSIAssignmentState);
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_ASSIGNMENT_STATE);
 	}
 }
 
@@ -1304,7 +1302,7 @@ void AVD_SI::inc_curr_act_ass()
 	saAmfSINumCurrActiveAssignments++;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_ACTIVE);
 	TRACE("%s saAmfSINumCurrActiveAssignments=%u", name.value, saAmfSINumCurrActiveAssignments);
-	si_update_ass_state(this);
+	update_ass_state();
 }
 
 void AVD_SI::dec_curr_act_ass()
@@ -1313,7 +1311,7 @@ void AVD_SI::dec_curr_act_ass()
 	saAmfSINumCurrActiveAssignments--;
 	TRACE("%s saAmfSINumCurrActiveAssignments=%u", name.value, saAmfSINumCurrActiveAssignments);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_ACTIVE);
-	si_update_ass_state(this);
+	update_ass_state();
 }
 
 void AVD_SI::inc_curr_stdby_ass()
@@ -1321,7 +1319,7 @@ void AVD_SI::inc_curr_stdby_ass()
 	saAmfSINumCurrStandbyAssignments++;
 	TRACE("%s saAmfSINumCurrStandbyAssignments=%u", name.value, saAmfSINumCurrStandbyAssignments);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_STBY);
-	si_update_ass_state(this);
+	update_ass_state();
 }
 
 void AVD_SI::dec_curr_stdby_ass()
@@ -1330,7 +1328,7 @@ void AVD_SI::dec_curr_stdby_ass()
 	saAmfSINumCurrStandbyAssignments--;
 	TRACE("%s saAmfSINumCurrStandbyAssignments=%u", name.value, saAmfSINumCurrStandbyAssignments);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_STBY);
-	si_update_ass_state(this);
+	update_ass_state();
 }
 
 void AVD_SI::inc_curr_act_dec_std_ass()
@@ -1344,7 +1342,7 @@ void AVD_SI::inc_curr_act_dec_std_ass()
         TRACE("%s saAmfSINumCurrStandbyAssignments=%u", name.value, saAmfSINumCurrStandbyAssignments);
         m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_STBY);
 
-        si_update_ass_state(this);
+        update_ass_state();
 }
 
 void AVD_SI::inc_curr_stdby_dec_act_ass()
@@ -1358,7 +1356,7 @@ void AVD_SI::inc_curr_stdby_dec_act_ass()
         TRACE("%s saAmfSINumCurrActiveAssignments=%u", name.value, saAmfSINumCurrActiveAssignments);
         m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_ACTIVE);
 
-        si_update_ass_state(this);
+        update_ass_state();
 }
 
 void avd_si_constructor(void)
