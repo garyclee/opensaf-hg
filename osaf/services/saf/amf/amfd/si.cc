@@ -1004,39 +1004,37 @@ done:
  * @brief  Readjust the SI assignments whenever PrefActiveAssignments  & PrefStandbyAssignments is updated
  * 	   using IMM interface 
  * 
- * @param[in]  SI 
- * 
  * @return void 
  */
-static void avd_si_adjust_si_assignments(AVD_SI *si, uint32_t mod_pref_assignments)
+void AVD_SI::adjust_si_assignments(const uint32_t mod_pref_assignments)
 {
 	AVD_SU_SI_REL *sisu, *tmp_sisu;
 	uint32_t no_of_sisus_to_delete;
 	uint32_t i = 0;
 
-	TRACE_ENTER2("for SI:%s ", si->name.value);
+	TRACE_ENTER2("for SI:%s ", name.value);
 	
-	if( si->sg_of_si->sg_redundancy_model == SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL ) {
-		if( mod_pref_assignments > si->saAmfSINumCurrActiveAssignments ) {
+	if( sg_of_si->sg_redundancy_model == SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL ) {
+		if( mod_pref_assignments > saAmfSINumCurrActiveAssignments ) {
 			/* SI assignment is not yet complete, choose and assign to appropriate SUs */
-			if ( avd_sg_nacvred_su_chose_asgn(avd_cb, si->sg_of_si ) != NULL ) {
+			if ( avd_sg_nacvred_su_chose_asgn(avd_cb, sg_of_si ) != NULL ) {
 				/* New assignments are been done in the SG.
                                    change the SG FSM state to AVD_SG_FSM_SG_REALIGN */
-				m_AVD_SET_SG_FSM(avd_cb, si->sg_of_si, AVD_SG_FSM_SG_REALIGN);
+				m_AVD_SET_SG_FSM(avd_cb, sg_of_si, AVD_SG_FSM_SG_REALIGN);
 			} else {
 				/* No New assignments are been done in the SG
 				   reason might be no more inservice SUs to take new assignments or
 				   SUs are already assigned to saAmfSGMaxActiveSIsperSU capacity */
-				si_update_ass_state(si);
-				TRACE("No New assignments are been done SI:%s",si->name.value);
+				si_update_ass_state(this);
+				TRACE("No New assignments are been done SI:%s", name.value);
 			}
 		} else {
-			no_of_sisus_to_delete = si->saAmfSINumCurrActiveAssignments -
+			no_of_sisus_to_delete = saAmfSINumCurrActiveAssignments -
 						mod_pref_assignments;
 
 			/* Get the sisu pointer from the  si->list_of_sisu list from which 
 			no of sisus need to be deleted based on SI ranked SU */
-			sisu = tmp_sisu = si->list_of_sisu;
+			sisu = tmp_sisu = list_of_sisu;
 			for( i = 0; i < no_of_sisus_to_delete && NULL != tmp_sisu; i++ ) {
 				tmp_sisu = tmp_sisu->si_next;
 			}
@@ -1054,23 +1052,23 @@ static void avd_si_adjust_si_assignments(AVD_SI *si, uint32_t mod_pref_assignmen
 				sisu = sisu->si_next;
 			}
 			/* Change the SG FSM to AVD_SG_FSM_SG_REALIGN SG to Stable state */
-			m_AVD_SET_SG_FSM(avd_cb,  si->sg_of_si, AVD_SG_FSM_SG_REALIGN);
+			m_AVD_SET_SG_FSM(avd_cb,  sg_of_si, AVD_SG_FSM_SG_REALIGN);
 		}
 	} 
-	if( si->sg_of_si->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL ) {
-		if( mod_pref_assignments > si->saAmfSINumCurrStandbyAssignments ) {
+	if( sg_of_si->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL ) {
+		if( mod_pref_assignments > saAmfSINumCurrStandbyAssignments ) {
 			/* SI assignment is not yet complete, choose and assign to appropriate SUs */
-			if( avd_sg_nway_si_assign(avd_cb, si->sg_of_si ) == NCSCC_RC_FAILURE ) {
-				LOG_ER("SI new assignmemts failed  SI:%s",si->name.value);
+			if( avd_sg_nway_si_assign(avd_cb, sg_of_si ) == NCSCC_RC_FAILURE ) {
+				LOG_ER("SI new assignmemts failed  SI:%s", name.value);
 			} 
 		} else {
 			no_of_sisus_to_delete = 0;
-			no_of_sisus_to_delete = si->saAmfSINumCurrStandbyAssignments -
+			no_of_sisus_to_delete = saAmfSINumCurrStandbyAssignments -
 						mod_pref_assignments; 
 
 			/* Get the sisu pointer from the  si->list_of_sisu list from which 
 			no of sisus need to be deleted based on SI ranked SU */
-			sisu = tmp_sisu = si->list_of_sisu;
+			sisu = tmp_sisu = list_of_sisu;
 			for(i = 0; i < no_of_sisus_to_delete && (NULL != tmp_sisu); i++) {
 				tmp_sisu = tmp_sisu->si_next;
 			}
@@ -1088,7 +1086,7 @@ static void avd_si_adjust_si_assignments(AVD_SI *si, uint32_t mod_pref_assignmen
 				sisu = sisu->si_next;
 			}
 			/* Change the SG FSM to AVD_SG_FSM_SG_REALIGN */ 
-			m_AVD_SET_SG_FSM(avd_cb,  si->sg_of_si, AVD_SG_FSM_SG_REALIGN);
+			m_AVD_SET_SG_FSM(avd_cb, sg_of_si, AVD_SG_FSM_SG_REALIGN);
 		}
 	}
 	TRACE_LEAVE();	
@@ -1135,9 +1133,9 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				si->saAmfSIPrefActiveAssignments = mod_pref_assignments;
 			} else if (mod_pref_assignments > si->saAmfSINumCurrActiveAssignments) {
 				si->saAmfSIPrefActiveAssignments = mod_pref_assignments;
-				avd_si_adjust_si_assignments(si, mod_pref_assignments);
+				si->adjust_si_assignments(mod_pref_assignments);
 			} else if (mod_pref_assignments < si->saAmfSINumCurrActiveAssignments) {
-				avd_si_adjust_si_assignments(si, mod_pref_assignments);
+				si->adjust_si_assignments(mod_pref_assignments);
 				si->saAmfSIPrefActiveAssignments = mod_pref_assignments;
 			}
 			TRACE("Modified saAmfSIPrefActiveAssignments is '%u'", si->saAmfSIPrefActiveAssignments);
@@ -1161,9 +1159,9 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				si->saAmfSIPrefStandbyAssignments = mod_pref_assignments;
 			} else if (mod_pref_assignments > si->saAmfSINumCurrStandbyAssignments) {
 				si->saAmfSIPrefStandbyAssignments = mod_pref_assignments;
-				avd_si_adjust_si_assignments(si, mod_pref_assignments);
+				si->adjust_si_assignments(mod_pref_assignments);
 			} else if (mod_pref_assignments < si->saAmfSINumCurrStandbyAssignments) {
-				avd_si_adjust_si_assignments(si, mod_pref_assignments);
+				si->adjust_si_assignments(mod_pref_assignments);
 				si->saAmfSIPrefStandbyAssignments = mod_pref_assignments;
 			}
 			TRACE("Modified saAmfSINumCurrStandbyAssignments is '%u'", si->saAmfSINumCurrStandbyAssignments);
