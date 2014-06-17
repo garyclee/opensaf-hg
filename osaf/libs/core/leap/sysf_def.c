@@ -46,6 +46,7 @@
 #include "ncssysfpool.h"
 #include "sysf_exc_scr.h"
 #include "usrbuf.h"
+#include "osaf_extended_name.h"
 
 /**
  *  File descriptor pointing to /proc/sysrq-trigger. If a process wants to be
@@ -87,6 +88,8 @@ uint32_t leap_env_init(void)
 	}
 
 	TRACE("INITIALIZING LEAP ENVIRONMENT");
+
+	osaf_extended_name_init();
 
 	ncs_os_atomic_init();
 
