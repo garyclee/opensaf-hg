@@ -27,9 +27,6 @@ immoitest_CPPFLAGS = \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 
 immoitest_SOURCES = \
-	$(top_srcdir)/tests/unit_test_fw/src/util.c \
-	$(top_srcdir)/tests/unit_test_fw/src/utest.c \
-	$(top_srcdir)/tests/immsv/common/immtest.c \
 	test_saImmOiInitialize_2.c \
 	test_saImmOiSelectionObjectGet.c \
 	test_saImmOiDispatch.c \
@@ -52,7 +49,9 @@ immoitest_SOURCES = \
 immoitest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/tests/unit_test_fw/src/libutest.la \
+	$(top_builddir)/tests/immsv/common/libimmtest.la
 
 
 immapplier_CPPFLAGS = \
@@ -61,11 +60,10 @@ immapplier_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 immapplier_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	applier.c
 
 immapplier_LDADD = \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la
-

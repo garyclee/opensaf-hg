@@ -31,14 +31,13 @@ mdstest_CPPFLAGS = \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 
 mdstest_SOURCES = \
-	$(top_srcdir)/tests/unit_test_fw/src/utest.c \
-	$(top_srcdir)/tests/unit_test_fw/src/util.c \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	mdstest.c \
 	mdstipc_api.c \
 	mdstipc_conf.c
 
 mdstest_LDADD = \
+	$(top_builddir)/tests/unit_test_fw/src/libutest.la \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \

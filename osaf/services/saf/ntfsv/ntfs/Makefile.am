@@ -44,7 +44,6 @@ osafntfd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/tools/saflog/include
 
 osafntfd_SOURCES = \
-	$(top_srcdir)/osaf/tools/saflog/src/saflog.c \
 	ntfs_amf.c \
 	ntfs_evt.c \
 	ntfs_mbcsv.c \
@@ -66,8 +65,9 @@ osafntfd_SOURCES += ntfs_imcnutil.c
 endif
 
 osafntfd_LDADD = \
+	$(top_builddir)/osaf/tools/saflog/src/libsaflog.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la \
-	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la 
+	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la

@@ -20,3 +20,13 @@ MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
 	immtest.h
+
+noinst_LTLIBRARIES = libimmtest.la
+
+libimmtest_la_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/tests/unit_test_fw/inc \
+	-I$(top_srcdir)/osaf/libs/saf/include
+
+libimmtest_la_SOURCES = \
+	immtest.c

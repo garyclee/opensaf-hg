@@ -33,7 +33,6 @@ immcfg_CPPFLAGS = \
 	@XML2_CFLAGS@
 
 immcfg_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	imm_import.cc \
 	imm_cfg.c
 
@@ -42,6 +41,7 @@ immcfg_LDFLAGS = \
 	-ldl
 
 immcfg_LDADD = \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la

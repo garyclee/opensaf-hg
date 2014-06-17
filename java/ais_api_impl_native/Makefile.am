@@ -51,23 +51,23 @@ libjava_ais_api_native_la_CPPFLAGS = \
 	-DSA_CLM_B01
 
 libjava_ais_api_native_la_SOURCES = \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_amf.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_amf_compRegistry.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_amf_csiManager.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_amf_errReporting.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_amf_healthcheck.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_amf_libHandle.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_amf_pgManager.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_amf_pm.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_clm.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_clm_libHandle.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_clm_manager.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_libHandle.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_ais_socketUtil.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_utils.c \
-	$(top_srcdir)/java/ais_api_impl_native/j_utilsPrint.c \
-	$(top_srcdir)/java/ais_api_impl_native/tracer.c
+	j_ais.c \
+	j_ais_amf.c \
+	j_ais_amf_compRegistry.c \
+	j_ais_amf_csiManager.c \
+	j_ais_amf_errReporting.c \
+	j_ais_amf_healthcheck.c \
+	j_ais_amf_libHandle.c \
+	j_ais_amf_pgManager.c \
+	j_ais_amf_pm.c \
+	j_ais_clm.c \
+	j_ais_clm_libHandle.c \
+	j_ais_clm_manager.c \
+	j_ais_libHandle.c \
+	j_ais_socketUtil.c \
+	j_utils.c \
+	j_utilsPrint.c \
+	tracer.c
 
 libjava_ais_api_native_la_LIBADD = \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \

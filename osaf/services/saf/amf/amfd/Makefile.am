@@ -34,8 +34,6 @@ osafamfd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/tools/saflog/include
 
 osafamfd_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
-	$(top_srcdir)/osaf/tools/saflog/src/saflog.c \
 	app.cc \
 	apptype.cc \
 	chkop.cc \
@@ -88,6 +86,8 @@ osafamfd_SOURCES = \
 	util.cc
 
 osafamfd_LDADD = \
+	$(top_builddir)/osaf/tools/saflog/src/libsaflog.la \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/amf/libamf_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
@@ -96,4 +96,3 @@ osafamfd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
 	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la
-

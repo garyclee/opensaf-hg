@@ -14,15 +14,15 @@
 # Author(s): Wind River Systems
 #
 
-AC_PREREQ([2.59])
-AC_INIT([opensafdemo], [0.9], [opensaf-devel@lists.sourceforge.net])
+AC_PREREQ([2.61])
+AC_INIT([opensafdemo], [0.9], [opensaf-users@lists.sourceforge.net], [opensafdemo])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
 AC_CONFIG_SRCDIR([INSTALL])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
+AM_INIT_AUTOMAKE
 
 #
 # Check for configure deps

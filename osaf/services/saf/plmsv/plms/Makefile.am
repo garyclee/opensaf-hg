@@ -34,7 +34,6 @@ osafplmd_CPPFLAGS = \
 osafplmd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 osafplmd_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	plms_main.c \
 	plms_amf.c \
 	plms_mds.c \
@@ -51,6 +50,7 @@ osafplmd_SOURCES = \
 
 osafplmd_LDADD = \
 	@HPI_LIBS@ \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/plmsv/plmc/libplmc.la \
 	$(top_builddir)/osaf/libs/common/plmsv/libplmsv_common.la \

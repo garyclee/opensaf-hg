@@ -29,9 +29,6 @@ logtest_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 logtest_SOURCES = \
-	$(top_srcdir)/tests/unit_test_fw/src/utest.c \
-	$(top_srcdir)/tests/unit_test_fw/src/util.c \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	logtest.c \
 	tet_saLogInitialize.c \
 	tet_saLogSelectionObjectGet.c \
@@ -49,6 +46,8 @@ logtest_SOURCES = \
 	tet_LogOiOps.c
 
 logtest_LDADD = \
+	$(top_builddir)/tests/unit_test_fw/src/libutest.la \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
@@ -58,6 +57,7 @@ saflogtest_SOURCES = \
 	saflogtest.c
 
 saflogtest_LDADD = \
+	$(top_builddir)/tests/unit_test_fw/src/libutest.la \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la
-

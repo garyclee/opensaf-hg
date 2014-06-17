@@ -22,7 +22,7 @@ MAINTAINERCLEANFILES = Makefile.in
 bin_PROGRAMS = clmtest
 
 noinst_HEADERS = \
-	$(top_srcdir)/tests/clmsv/src/clmtest.h
+	clmtest.h
 
 clmtest_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
@@ -30,22 +30,20 @@ clmtest_CPPFLAGS = \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 
 clmtest_SOURCES = \
-	$(top_srcdir)/osaf/libs/core/common/logtrace.c \
-	$(top_srcdir)/tests/unit_test_fw/src/utest.c \
-	$(top_srcdir)/tests/unit_test_fw/src/util.c \
-	$(top_srcdir)/tests/clmsv/src/clmtest.c \
-	$(top_srcdir)/tests/clmsv/src/tet_saClmInitialize.c \
-	$(top_srcdir)/tests/clmsv/src/tet_saClmClusterNodeGetAsync.c \
-	$(top_srcdir)/tests/clmsv/src/tet_saClmClusterTrack.c \
-	$(top_srcdir)/tests/clmsv/src/tet_saClmClusterTrackStop.c \
-	$(top_srcdir)/tests/clmsv/src/tet_saClmClusterNotificationFree.c \
-	$(top_srcdir)/tests/clmsv/src/tet_saClmClusterNodeGet.c \
-	$(top_srcdir)/tests/clmsv/src/tet_saClmResponse.c \
-	$(top_srcdir)/tests/clmsv/src/tet_ClmOiOps.c \
-	$(top_srcdir)/tests/clmsv/src/tet_saClmDispatch.c \
-	$(top_srcdir)/tests/clmsv/src/tet_saClmSelectionObjectGet.c \
-	$(top_srcdir)/tests/clmsv/src/tet_saClmFinalize.c
+	clmtest.c \
+	tet_saClmInitialize.c \
+	tet_saClmClusterNodeGetAsync.c \
+	tet_saClmClusterTrack.c \
+	tet_saClmClusterTrackStop.c \
+	tet_saClmClusterNotificationFree.c \
+	tet_saClmClusterNodeGet.c \
+	tet_saClmResponse.c \
+	tet_ClmOiOps.c \
+	tet_saClmDispatch.c \
+	tet_saClmSelectionObjectGet.c \
+	tet_saClmFinalize.c
 
 clmtest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/tests/unit_test_fw/src/libutest.la

@@ -18,5 +18,5 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include ntfsend ntfsubscribe ntfread
+SUBDIRS = include src ntfsend ntfsubscribe ntfread
 

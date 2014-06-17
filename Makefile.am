@@ -160,14 +160,14 @@ if ENABLE_TESTS
 EXTRA_DIST += tests
 
 SUBDIRS += \
+	tests/unit_test_fw \
 	tests/logsv \
 	tests/ntfsv \
 	tests/immsv \
 	tests/immsv/implementer \
 	tests/immsv/management \
 	tests/clmsv \
-	tests/mds \
-	tests/unit_test_fw
+	tests/mds
 
 if ENABLE_AIS_PLM
 SUBDIRS += \

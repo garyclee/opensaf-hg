@@ -27,9 +27,9 @@ ntfread_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/ntfsv/include
 
 ntfread_SOURCES = \
-	ntfread.c \
-	../src/ntfclient.c
+	ntfread.c
 
 ntfread_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la
+	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
+	$(top_builddir)/osaf/tools/safntf/src/libntfclient.la

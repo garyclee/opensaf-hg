@@ -27,9 +27,7 @@ osaf_execbin_PROGRAMS = osafimmpbed
 osafimmpbed_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@ @SQLITE3_CFLAGS@
 
 osafimmpbed_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	immpbe.cc \
-	$(top_builddir)/osaf/libs/common/immsv/immpbe_dump.cc \
 	immpbe_daemon.cc
 
 osafimmpbed_CPPFLAGS = \
@@ -39,6 +37,8 @@ osafimmpbed_CPPFLAGS = \
 osafimmpbed_LDFLAGS = @XML2_LIBS@ @SQLITE3_LIBS@ -lpthread
 
 osafimmpbed_LDADD = \
+	$(top_builddir)/osaf/libs/common/immsv/libimmpbe_dump.la \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la

@@ -15,14 +15,14 @@
 #
 
 AC_PREREQ([2.61])
-AC_INIT([opensaf], [4.5.M0], [opensaf-devel@lists.sourceforge.net])
+AC_INIT([opensaf], [4.5.M0], [opensaf-users@lists.sourceforge.net], [opensaf])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
-AC_CONFIG_SRCDIR([INSTALL])
+AC_CONFIG_SRCDIR([opensaf.spec.in])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
+AM_INIT_AUTOMAKE
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -872,11 +872,14 @@ AC_CONFIG_FILES([
         osaf/tools/safimm/immlist/Makefile
         osaf/tools/safimm/immxml/Makefile
         osaf/tools/safimm/include/Makefile
+        osaf/tools/safimm/src/Makefile
         osaf/tools/saflog/Makefile
         osaf/tools/saflog/include/Makefile
         osaf/tools/saflog/saflogger/Makefile
+        osaf/tools/saflog/src/Makefile
         osaf/tools/safntf/Makefile
         osaf/tools/safntf/include/Makefile
+        osaf/tools/safntf/src/Makefile
         osaf/tools/safntf/ntfsend/Makefile
         osaf/tools/safntf/ntfsubscribe/Makefile
         osaf/tools/safntf/ntfread/Makefile
@@ -891,10 +894,12 @@ AC_CONFIG_FILES([
         tests/logsv/Makefile
         tests/clmsv/Makefile
         tests/ntfsv/Makefile
+	tests/plmsv/common/Makefile
         tests/plmsv/plms/Makefile
         tests/plmsv/Makefile
         tests/mds/Makefile
         tests/unit_test_fw/Makefile
+	tests/unit_test_fw/src/Makefile
         tests/unit_test_fw/inc/Makefile])
 
 AC_CONFIG_SUBDIRS([contrib/plmc])

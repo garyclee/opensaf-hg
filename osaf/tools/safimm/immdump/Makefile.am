@@ -26,18 +26,18 @@ bin_PROGRAMS = immdump
 immdump_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@ @SQLITE3_CFLAGS@
 
 immdump_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	imm_dumper.cc \
-	$(top_builddir)/osaf/libs/common/immsv/immpbe_dump.cc \
 	imm_xmlw_dump.cc
 
 immdump_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-immdump_LDFLAGS = @XML2_LIBS@ @SQLITE3_LIBS@
+immdump_LDFLAGS = @XML2_LIBS@
 
 immdump_LDADD = \
+	$(top_builddir)/osaf/libs/common/immsv/libimmpbe_dump.la \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la

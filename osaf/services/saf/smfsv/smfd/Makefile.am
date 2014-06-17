@@ -61,8 +61,6 @@ osafsmfd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/tools/saflog/include
 
 osafsmfd_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
-	$(top_srcdir)/osaf/tools/saflog/src/saflog.c \
 	smfd_amf.c \
 	smfd_evt.c \
 	smfd_main.c \
@@ -96,6 +94,8 @@ osafsmfd_LDFLAGS = \
 	@XML2_LIBS@
 
 osafsmfd_LDADD = \
+	$(top_builddir)/osaf/tools/saflog/src/libsaflog.la \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/smfsv/libsmfsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaSmf/libSaSmf.la \

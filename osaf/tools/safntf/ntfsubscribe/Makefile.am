@@ -27,10 +27,10 @@ ntfsubscribe_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/ntfsv/include
 
 ntfsubscribe_SOURCES = \
-	ntfsubscribe.c\
-	../src/ntfclient.c
+	ntfsubscribe.c
 
 
 ntfsubscribe_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la
+	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
+	$(top_builddir)/osaf/tools/safntf/src/libntfclient.la

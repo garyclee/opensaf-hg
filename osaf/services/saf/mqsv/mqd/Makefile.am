@@ -31,7 +31,6 @@ osafmsgd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osafmsgd_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	mqd_sbevt.c \
 	mqd_mbcsv.c \
 	mqd_mbedu.c \
@@ -48,9 +47,10 @@ osafmsgd_SOURCES = \
 	mqd_tmr.c
 
 osafmsgd_LDADD = \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/mqsv/libmqsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
-	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la	
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la
