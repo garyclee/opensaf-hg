@@ -42,6 +42,7 @@
 #include <sg.h>
 #include <svctype.h>
 #include <svctypecstype.h>
+#include <sirankedsu.h>
 #include <amf_defs.h>
 #include <ckpt_msg.h>
 #include <vector>
@@ -58,12 +59,6 @@ typedef enum {
 	AVD_SI_READY_TO_ASSIGN,
 	AVD_SI_DEP_MAX_STATE
 } AVD_SI_DEP_STATE;
-
-typedef struct avd_sirankedsu {
-	SaNameT suname;
-	uint32_t saAmfRank;
-	struct avd_sirankedsu *next;
-} avd_sirankedsu_t;
 
 /* Availability directors Service Instance structure(AVD_SI):
  * This data structure lives in the AvD and reflects data points 
