@@ -33,7 +33,6 @@ osaflckd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osaflckd_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	gld_amf.c \
 	gld_api.c \
 	gld_evt.c \
@@ -47,8 +46,9 @@ osaflckd_SOURCES = \
 	gld_tmr.c
 
 osaflckd_LDADD =  \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/glsv/libglsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
-	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la 
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la

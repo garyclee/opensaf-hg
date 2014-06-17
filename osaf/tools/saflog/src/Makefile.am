@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2014 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -18,22 +18,12 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include
+noinst_LTLIBRARIES = libsaflog.la
 
-noinst_LTLIBRARIES = libimmsv_common.la libimmpbe_dump.la
-
-libimmsv_common_la_CPPFLAGS = \
+libsaflog_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include
+	-I$(top_srcdir)/osaf/libs/saf/include \
+	-I$(top_srcdir)/osaf/tools/saflog/include
 
-libimmsv_common_la_SOURCES = \
-	immsv_evt.c
-
-libimmpbe_dump_la_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include
-
-libimmpbe_dump_la_LDFLAGS = @SQLITE3_LIBS@
-
-libimmpbe_dump_la_SOURCES = \
-	immpbe_dump.cc
+libsaflog_la_SOURCES = \
+	saflog.c

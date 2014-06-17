@@ -31,10 +31,10 @@ immfind_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 immfind_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	imm_find.c
 
 immfind_LDADD = \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la

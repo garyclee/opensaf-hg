@@ -31,7 +31,6 @@ osafmsgnd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osafmsgnd_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	mqnd_amf.c \
 	mqnd_db.c \
 	mqnd_evt.c \
@@ -48,6 +47,7 @@ osafmsgnd_SOURCES = \
 	mqnd_util.c
 
 osafmsgnd_LDADD = \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/mqsv/libmqsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \

@@ -26,9 +26,6 @@ immomtest_CPPFLAGS = \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 
 immomtest_SOURCES = \
-	$(top_srcdir)/tests/unit_test_fw/src/utest.c \
-	$(top_srcdir)/tests/unit_test_fw/src/util.c \
-	$(top_srcdir)/tests/immsv/common/immtest.c \
 	test_saImmOmInitialize.c \
 	test_saImmOmSelectionObjectGet.c \
 	test_saImmOmDispatch.c \
@@ -61,7 +58,9 @@ immomtest_SOURCES = \
 immomtest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/tests/unit_test_fw/src/libutest.la \
+	$(top_builddir)/tests/immsv/common/libimmtest.la
 
 
 immpopulate_CPPFLAGS = \
@@ -70,12 +69,10 @@ immpopulate_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 immpopulate_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	populate.c
 
 immpopulate_LDADD = \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la
-
-

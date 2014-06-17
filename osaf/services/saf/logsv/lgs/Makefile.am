@@ -43,7 +43,6 @@ osaflogd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osaflogd_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	lgs_amf.c \
 	lgs_evt.c \
 	lgs_fmt.c \
@@ -59,6 +58,7 @@ osaflogd_SOURCES = \
 	lgs_filehdl.c
 
 osaflogd_LDADD = \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \

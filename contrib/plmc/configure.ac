@@ -14,15 +14,15 @@
 # Author(s): Wind River Systems
 #
 
-AC_PREREQ([2.59])
-AC_INIT([plmc], [0.9], [opensaf-devel@lists.sourceforge.net])
+AC_PREREQ([2.61])
+AC_INIT([plmc], [0.9], [opensaf-users@lists.sourceforge.net], [plmc])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
 AC_CONFIG_SRCDIR([INSTALL])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
+AM_INIT_AUTOMAKE
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
 #

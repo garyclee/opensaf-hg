@@ -31,7 +31,6 @@ osafevtd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osafevtd_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	eds_amf.c \
 	eds_api.c \
 	eds_cb.c \
@@ -46,6 +45,7 @@ osafevtd_SOURCES = \
 	eds_util.c
 
 osafevtd_LDADD = \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/edsv/libedsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \

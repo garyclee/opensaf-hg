@@ -10,9 +10,6 @@ plmtest_CPPFLAGS = \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 
 plmtest_SOURCES = \
-	$(top_srcdir)/tests/unit_test_fw/src/utest.c \
-	$(top_srcdir)/tests/unit_test_fw/src/util.c \
-	$(top_srcdir)/tests/plmsv/common/plmtest.c \
 	test_saPlmInitialize.c  \
 	test_saPlmSelectionObjectGet.c \
 	test_saPlmDispatch.c  \
@@ -25,4 +22,6 @@ plmtest_SOURCES = \
 
 plmtest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaPlm/libSaPlm.la \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/tests/unit_test_fw/src/libutest.la \
+	$(top_builddir)/tests/plmsv/common/libplmtest.la

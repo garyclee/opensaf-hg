@@ -33,9 +33,6 @@ ntftest_CPPFLAGS = \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 
 ntftest_SOURCES = \
-	$(top_srcdir)/tests/unit_test_fw/src/utest.c \
-	$(top_srcdir)/tests/unit_test_fw/src/util.c \
-	$(top_srcdir)/osaf/libs/core/common/logtrace.c \
 	tet_ntf_main.c \
 	sa_error.c \
 	tet_ntf_common.c \
@@ -69,15 +66,18 @@ ntftest_SOURCES = \
 	tet_saNtfPtrValGet.c \
 	test_ntfFilterVerification.c
 
+ntftest_LDADD = \
+	$(top_builddir)/tests/unit_test_fw/src/libutest.la
+
 if ENABLE_NTFIMCN
 
 ntftest_SOURCES += test_ntf_imcn.c
-ntftest_SOURCES += $(top_srcdir)/osaf/tools/safimm/src/immutil.c
+ntftest_LDADD += $(top_builddir)/osaf/tools/safimm/src/libimmutil.la
 ntftest_CPPFLAGS += -I$(top_srcdir)/osaf/libs/common/immsv/include
 
 endif
 
-ntftest_LDADD = \
+ntftest_LDADD += \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \

@@ -38,8 +38,6 @@ osafclmd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/tools/saflog/include
 
 osafclmd_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
-	$(top_srcdir)/osaf/tools/saflog/src/saflog.c \
 	clms_amf.c \
 	clms_evt.c \
 	clms_imm.c \
@@ -50,6 +48,8 @@ osafclmd_SOURCES = \
 	clms_mds.c
 
 osafclmd_LDADD = \
+	$(top_builddir)/osaf/tools/saflog/src/libsaflog.la \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/clmsv/libclmsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \

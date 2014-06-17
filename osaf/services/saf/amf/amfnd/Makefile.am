@@ -33,7 +33,6 @@ osafamfnd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osafamfnd_SOURCES = \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	amfnd.cc \
 	cam.cc \
 	cbq.cc \
@@ -69,6 +68,7 @@ osafamfnd_SOURCES = \
 	verify.cc 
 
 osafamfnd_LDADD = \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/amf/libamf_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \

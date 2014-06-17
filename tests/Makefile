@@ -52,6 +52,7 @@ include Makefile.common
 # add logsv to this list when it's ready
 #
 SERVICES_DIRS := \
+	unit_test_fw \
 	cpsv \
 	edsv \
 	glsv \
@@ -73,7 +74,7 @@ TET_SUITE_FILES := \
 	$(SERVICES_DIRS)
 
 TETSUITES := tet_suites_$(TARGET_ARCH)
-	
+
 all clean clobber: $(SERVICES_DIRS)
 
 tetsuites: all
