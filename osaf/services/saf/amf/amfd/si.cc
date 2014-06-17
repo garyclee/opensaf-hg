@@ -260,26 +260,6 @@ void avd_si_remove_rankedsu(AVD_SI *si, const SaNameT *suname)
 	TRACE_LEAVE();
 }
 
-/**
- * @brief Get next SI ranked SU with lower rank than specified
- *
- * @param si
- * @param saAmfRank, 0 means get highest rank
- * 
- * @return avd_sirankedsu_t*
- */
-avd_sirankedsu_t *avd_si_getnext_rankedsu(const AVD_SI *si, uint32_t saAmfRank)
-{
-	avd_sirankedsu_t *tmp;
-
-	for (tmp = si->rankedsu_list_head; tmp != NULL; tmp = tmp->next) {
-		if (tmp->saAmfRank > saAmfRank)
-			return tmp;
-	}
-
-	return NULL;
-}
-
 void avd_si_remove_csi(AVD_CSI* csi)
 {
 	AVD_CSI *i_csi = NULL;
