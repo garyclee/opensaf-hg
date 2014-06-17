@@ -79,7 +79,7 @@ typedef struct avd_si_si_dep {
 
 /* Spons-SI node of the spons-list in SI struct */
 typedef struct avd_spons_si_tag {
-	struct avd_si_tag *si;
+	AVD_SI *si;
 	AVD_SI_SI_DEP *sidep_rec;
 	struct avd_spons_si_tag *next;
 } AVD_SPONS_SI_NODE;
@@ -94,22 +94,22 @@ uint32_t sidep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec);
 void avd_sidep_tol_tmr_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_sidep_assign_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_sidep_unassign_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-void sidep_si_screen_si_dependencies(struct avd_si_tag *si);
+void sidep_si_screen_si_dependencies(AVD_SI *si);
 void avd_sidep_update_si_dep_state_for_all_sis(struct avd_sg_tag *sg);
-void sidep_stop_tol_timer(AVD_CL_CB *cb, struct avd_si_tag *si);
+void sidep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si);
 extern SaAisErrorT avd_sidep_config_get(void);
 extern void avd_sidep_constructor(void);
-extern void avd_sidep_reset_dependents_depstate_in_sufault(struct avd_si_tag *si);
-extern void avd_sidep_si_dep_state_set(struct avd_si_tag *si, AVD_SI_DEP_STATE state);
+extern void avd_sidep_reset_dependents_depstate_in_sufault(AVD_SI *si);
+extern void avd_sidep_si_dep_state_set(AVD_SI *si, AVD_SI_DEP_STATE state);
 extern bool avd_sidep_is_su_failover_possible(AVD_SU *su);
-extern bool avd_sidep_is_si_failover_possible(struct avd_si_tag *si, AVD_SU *su);
+extern bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su);
 extern void avd_sidep_update_depstate_su_rolefailover(AVD_SU *su);
-extern void avd_sidep_update_depstate_si_failover(struct avd_si_tag *si, AVD_SU *su);
+extern void avd_sidep_update_depstate_si_failover(AVD_SI *si, AVD_SU *su);
 extern bool avd_sidep_si_dependency_exists_within_su(const AVD_SU *su);
-extern void avd_sidep_send_active_to_dependents(const struct avd_si_tag *si);
-extern bool avd_sidep_quiesced_done_for_all_dependents(const struct avd_si_tag *si, const AVD_SU *su);
-extern void sidep_take_action_on_dependents(struct avd_si_tag *si);
-extern bool avd_sidep_sponsors_assignment_states(struct avd_si_tag *si);
+extern void avd_sidep_send_active_to_dependents(const AVD_SI *si);
+extern bool avd_sidep_quiesced_done_for_all_dependents(const AVD_SI *si, const AVD_SU *su);
+extern void sidep_take_action_on_dependents(AVD_SI *si);
+extern bool avd_sidep_sponsors_assignment_states(AVD_SI *si);
 extern void sidep_si_take_action(AVD_SI *si);
 extern void sidep_update_si_self_dep_state(AVD_SI *si);
 extern void sidep_update_dependents_states(AVD_SI *si);

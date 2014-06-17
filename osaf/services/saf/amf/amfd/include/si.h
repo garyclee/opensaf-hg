@@ -67,8 +67,8 @@ typedef struct avd_sirankedsu {
  * This data structure lives in the AvD and reflects data points 
  * associated with the Service Instance (SI) on the AvD.
  */
-typedef struct avd_si_tag {
-
+class AVD_SI {
+public:
 	SaNameT name;
 
 	/******************** B.04 model *************************************************/
@@ -92,22 +92,22 @@ typedef struct avd_si_tag {
 
 	struct avd_sg_tag *sg_of_si;	/* the service group of this SI */
 	struct avd_csi_tag *list_of_csi;	/* The list of CSIs in the SI */
-	struct avd_si_tag *sg_list_of_si_next;	/* next SI in the SG list of SIs */
+	AVD_SI *sg_list_of_si_next;	/* next SI in the SG list of SIs */
 	struct avd_su_si_rel_tag *list_of_sisu;	/* the list of su si relationship elements */
 	AVD_SI_DEP_STATE si_dep_state;	/* SI-SI dep state of this SI */
 	struct avd_spons_si_tag *spons_si_list;
 	uint32_t num_dependents; /* number of dependent SIs */
 	uint32_t tol_timer_count;
 	struct avd_amf_svc_type_tag *svc_type;
-	struct avd_si_tag *si_list_svc_type_next;
+	AVD_SI *si_list_svc_type_next;
 	struct avd_app_tag *app;
-	struct avd_si_tag *si_list_app_next;
+	AVD_SI *si_list_app_next;
 	struct avd_sus_per_si_rank_tag *list_of_sus_per_si_rank;
 	avd_sirankedsu_t *rankedsu_list_head;
 	SaInvocationT invocation;
 	
 	uint32_t alarm_sent; /* SI unassigned alarm has been sent */
-} AVD_SI;
+};
 
 typedef struct avd_amf_svc_type_tag {
 
@@ -115,7 +115,7 @@ typedef struct avd_amf_svc_type_tag {
 	SaNameT name;
 	char **saAmfSvcDefActiveWeight;
 	char **saAmfSvcDefStandbyWeight;
-	struct avd_si_tag *list_of_si;
+	AVD_SI *list_of_si;
 
 } AVD_SVC_TYPE;
 

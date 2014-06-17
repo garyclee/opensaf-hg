@@ -86,7 +86,7 @@ typedef struct avd_sus_per_si_rank_index_tag {
 typedef struct avd_sus_per_si_rank_tag {
 	AVD_SUS_PER_SI_RANK_INDX indx;	/* Table index */
 	SaNameT su_name;	/* name of the SU as SaNameT */
-	struct avd_si_tag *sus_per_si_rank_on_si;
+	AVD_SI *sus_per_si_rank_on_si;
 	struct avd_sus_per_si_rank_tag *sus_per_si_rank_list_si_next;
 
 } AVD_SUS_PER_SI_RANK;
