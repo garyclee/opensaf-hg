@@ -70,7 +70,9 @@ typedef SaUint64T             SaSelectionObjectT;
 #define SA_TIME_ONE_DAY         86400000000000LL
 #define SA_TIME_MAX             SA_TIME_END
 
+#ifndef SA_EXTENDED_NAME_SOURCE
 #define SA_MAX_NAME_LENGTH 256
+#endif /* SA_EXTENDED_NAME_SOURCE */
 
 #define SA_TRACK_CURRENT       0x01
 #define SA_TRACK_CHANGES       0x02
@@ -156,10 +158,12 @@ typedef struct {
    SaUint8T  *bufferAddr;
 } SaAnyT;
 
+#ifndef SA_EXTENDED_NAME_SOURCE
 typedef struct {
     SaUint16T length;
     SaUint8T value[SA_MAX_NAME_LENGTH];
 } SaNameT;
+#endif /* SA_EXTENDED_NAME_SOURCE */
 
 typedef struct {
     SaUint8T releaseCode;

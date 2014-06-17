@@ -31,6 +31,23 @@ extern "C" {
 
 typedef const char* SaConstStringT;
 
+#ifdef SA_EXTENDED_NAME_SOURCE
+#define SA_MAX_UNEXTENDED_NAME_LENGTH 256
+
+typedef struct {
+    SaUint16T _opaque[129];
+} SaNameT;
+
+extern void
+saAisNameLend(
+    SaConstStringT value,
+    SaNameT* name);
+
+extern SaConstStringT
+saAisNameBorrow(
+    const SaNameT* name);
+#endif /* SA_EXTENDED_NAME_SOURCE */
+
 #ifdef  __cplusplus
 }
 #endif
