@@ -39,15 +39,15 @@ typedef struct avd_app_tag {
 	SaAmfAdminStateT saAmfApplicationAdminState;
 	SaUint32T saAmfApplicationCurrNumSGs;
 	struct avd_sg_tag *list_of_sg;
-	struct avd_si_tag *list_of_si;
+	AVD_SI *list_of_si;
 	struct avd_app_tag *app_type_list_app_next;
 	struct avd_app_type_tag *app_type;
 } AVD_APP;
 
 extern AmfDb<std::string, AVD_APP> *app_db;
 
-extern void avd_app_add_si(AVD_APP *app, struct avd_si_tag *si);
-extern void avd_app_remove_si(AVD_APP *app, struct avd_si_tag *si);
+extern void avd_app_add_si(AVD_APP *app, AVD_SI *si);
+extern void avd_app_remove_si(AVD_APP *app, AVD_SI *si);
 extern void avd_app_add_sg(AVD_APP *app, struct avd_sg_tag *sg);
 extern void avd_app_remove_sg(AVD_APP *app, struct avd_sg_tag *sg);
 extern SaAisErrorT avd_app_config_get(void);

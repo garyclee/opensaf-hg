@@ -44,6 +44,7 @@
 #include "db_template.h"
 
 class AVD_SU;
+class AVD_SI;
 
 /* The valid SG FSM states. */
 typedef enum {
@@ -161,11 +162,11 @@ typedef struct avd_sg_tag {
 					 * Checkpointing - Updated independently.
 					 */
 
-	struct avd_si_tag *admin_si;	/* Applicable when sg_fsm_state has
-					 * AVD_SG_FSM_SI_OPER.It will contain
-					 * the SI undergoing admin
-					 * operation.
-					 */
+	AVD_SI *admin_si;	/* Applicable when sg_fsm_state has
+				 * AVD_SG_FSM_SI_OPER.It will contain
+				 * the SI undergoing admin
+				 * operation.
+				 */
 
 	AVD_SG_OPER su_oper_list;	/* The list of SUs that have operations
 					 * happening on them used in parallel
@@ -181,10 +182,10 @@ typedef struct avd_sg_tag {
 					 * group in the descending order of
 					 * the rank.
 					 */
-	struct avd_si_tag *list_of_si;	/* the list of service instances in 
-					 * this group in the descending order 
-					 * of the rank.
-					 */
+	AVD_SI *list_of_si;	/* the list of service instances in 
+				 * this group in the descending order 
+				 * of the rank.
+				 */
 
 	struct avd_sg_tag *sg_list_sg_type_next;
 	struct avd_amf_sg_type_tag *sg_type;
@@ -195,7 +196,7 @@ typedef struct avd_sg_tag {
 				     in Nway, N+M and Nway-Act Red models.*/
 	AVD_SU *max_assigned_su;
 	AVD_SU *min_assigned_su;
-	struct avd_si_tag *si_tobe_redistributed;
+	AVD_SI *si_tobe_redistributed;
 	uint32_t try_inst_counter; /* It should be used when amfd try to send
 				      instantiate command to amfnd in a loop
 				      for all those SUs hosted on a particular
@@ -212,13 +213,13 @@ typedef struct avd_sg_tag {
 	uint32_t (*realign)(AVD_CL_CB *cb, struct avd_sg_tag *sg);
 
 	// Handle new SI or admin op UNLOCK of SI
-	uint32_t (*si_func)(AVD_CL_CB *cb, struct avd_si_tag *si);
+	uint32_t (*si_func)(AVD_CL_CB *cb, AVD_SI *si);
 
 	// Handle SI admin op LOCK/SHUTDOWN
-	uint32_t (*si_admin_down)(AVD_CL_CB *cb, struct avd_si_tag *si);
+	uint32_t (*si_admin_down)(AVD_CL_CB *cb, AVD_SI *si);
 
 	// Handle SI admin op SWAP
-	SaAisErrorT (*si_swap)(struct avd_si_tag *si, SaInvocationT invocation);
+	SaAisErrorT (*si_swap)(AVD_SI *si, SaInvocationT invocation);
 
 	// Handle SG admin op LOCK/SHUTDOWN
 	uint32_t (*sg_admin_down)(AVD_CL_CB *cb, struct avd_sg_tag *sg);
@@ -319,8 +320,8 @@ extern AVD_SG *avd_sg_new(const SaNameT *dn);
 extern void avd_sg_delete(AVD_SG *sg);
 extern void avd_sg_db_add(AVD_SG *sg);
 extern void avd_sg_db_remove(AVD_SG *sg);
-extern void avd_sg_add_si(AVD_SG *sg, struct avd_si_tag *si);
-extern void avd_sg_remove_si(AVD_SG *sg, struct avd_si_tag *si);
+extern void avd_sg_add_si(AVD_SG *sg, AVD_SI *si);
+extern void avd_sg_remove_si(AVD_SG *sg, AVD_SI *si);
 extern SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, struct avd_app_tag *app);
 extern void avd_sg_add_su(AVD_SU *su);
 extern void avd_sg_remove_su(AVD_SU *su);
