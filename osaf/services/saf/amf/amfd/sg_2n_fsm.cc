@@ -2393,7 +2393,7 @@ static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_S
 				 */
 				avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_STANDBY);
 
-				m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
+				su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				avd_sg_su_oper_list_add(cb, su, false);
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);

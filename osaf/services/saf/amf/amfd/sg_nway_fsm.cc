@@ -180,7 +180,7 @@ uint32_t avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 		goto done;
 
 	/* set the toggle switch flag */
-	m_AVD_SET_SI_SWITCH(cb, si, AVSV_SI_TOGGLE_SWITCH);
+	si->set_si_switch(cb, AVSV_SI_TOGGLE_SWITCH);
 
 	/* Add the SI to the SG admin pointer and change the SG state to SI_operation. */
 	m_AVD_SET_SG_ADMIN_SI(cb, si);
@@ -432,7 +432,7 @@ uint32_t avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 
 			/* reset the switch operation */
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
-			m_AVD_SET_SI_SWITCH(cb, susi->si, AVSV_SI_TOGGLE_STABLE);
+			susi->si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 
 			/* add the su to su-oper list */
 			avd_sg_su_oper_list_add(cb, susi->su, false);
@@ -1874,7 +1874,7 @@ uint32_t avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 			if (si->si_switch == AVSV_SI_TOGGLE_SWITCH) {
 				if (SA_AMF_HA_QUIESCED == curr_susi->state) {
 					/* si switch operation aborted */
-					m_AVD_SET_SI_SWITCH(cb, si, AVSV_SI_TOGGLE_STABLE);
+					si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
 
 					/* identify all the active assigned assignments & send quiesced assignment */
@@ -2137,7 +2137,7 @@ uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 			if ((SA_AMF_HA_QUIESCED == curr_susi->state) && (AVD_SU_SI_STATE_MODIFY == curr_susi->fsm)) {
 				/* si switch operation aborted */
-				m_AVD_SET_SI_SWITCH(cb, si, AVSV_SI_TOGGLE_STABLE);
+				si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
 
 				/* transition to su-oper state */
@@ -2156,7 +2156,7 @@ uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			} else if ((SA_AMF_HA_QUIESCED == curr_susi->state) &&
 				   (AVD_SU_SI_STATE_ASGND == curr_susi->fsm)) {
 				/* si switch operation aborted */
-				m_AVD_SET_SI_SWITCH(cb, si, AVSV_SI_TOGGLE_STABLE);
+				si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
 
 				/* add su to the su-oper list */
@@ -2165,7 +2165,7 @@ uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				AVD_SU_SI_REL *susi = 0;
 
 				/* si switch operation aborted */
-				m_AVD_SET_SI_SWITCH(cb, si, AVSV_SI_TOGGLE_STABLE);
+				si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
 
 				/* identify the quiesced assigning susi */
@@ -2191,7 +2191,7 @@ uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			/* => relationship doesnt exist */
 
 			/* si switch operation aborted */
-			m_AVD_SET_SI_SWITCH(cb, si, AVSV_SI_TOGGLE_STABLE);
+			si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
 
 			/* identify the quiesced assigning susi */
@@ -2400,7 +2400,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 
 				/* reset the switch operation */
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
-				m_AVD_SET_SI_SWITCH(cb, susi->si, AVSV_SI_TOGGLE_STABLE);
+				susi->si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 
 				/* add the su to su-oper list */
 				avd_sg_su_oper_list_add(cb, curr_susi->su, false);
@@ -2505,7 +2505,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 
 				/* reset the switch operation */
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
-				m_AVD_SET_SI_SWITCH(cb, susi->si, AVSV_SI_TOGGLE_STABLE);
+				susi->si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 
 				/* add both sus to su-oper list */
 				avd_sg_su_oper_list_add(cb, curr_susi->su, false);
@@ -2586,7 +2586,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 
 					/* reset the switch operation */
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
-					m_AVD_SET_SI_SWITCH(cb, susi->si, AVSV_SI_TOGGLE_STABLE);
+					susi->si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 
 					/* add the su to su-oper list */
 					avd_sg_su_oper_list_add(cb, curr_susi->su, false);
@@ -2969,7 +2969,7 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 			} else {
 				/* reset the switch operation */
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
-				m_AVD_SET_SI_SWITCH(cb, susi->si, AVSV_SI_TOGGLE_STABLE);
+				susi->si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 
 				/* no standby.. send the prv active (now quiesced) active */
 				rc  = avd_susi_mod_send(susi, SA_AMF_HA_ACTIVE);
@@ -3040,7 +3040,7 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 		if ((sg->admin_si == susi->si) && (AVSV_SI_TOGGLE_SWITCH == susi->si->si_switch)) {
 			/* reset the switch operation */
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
-			m_AVD_SET_SI_SWITCH(cb, susi->si, AVSV_SI_TOGGLE_STABLE);
+			susi->si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 
 			/* identify the prv active su (now quiesced) */
 			for (curr_susi = susi->si->list_of_sisu;
@@ -3525,7 +3525,7 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				avd_sg_su_oper_list_add(cb, curr_sisu->su, false);
 
 				/* si switch operation aborted */
-				m_AVD_SET_SI_SWITCH(cb, sg->admin_si, AVSV_SI_TOGGLE_STABLE);
+				sg->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
 			}
 
@@ -3541,7 +3541,7 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			    ((SA_AMF_HA_STANDBY == susi->state) && (AVD_SU_SI_STATE_ASGND == susi->fsm))
 			    ) {
 				/* si switch operation aborted */
-				m_AVD_SET_SI_SWITCH(cb, susi->si, AVSV_SI_TOGGLE_STABLE);
+				susi->si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
 
 				/* identify the susi that has to be assigned active */

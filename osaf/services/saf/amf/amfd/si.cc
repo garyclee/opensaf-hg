@@ -1362,3 +1362,8 @@ void AVD_SI::set_admin_state(SaAmfAdminStateT state)
 	avd_send_admin_state_chg_ntf(&name, SA_AMF_NTFID_SI_ADMIN_STATE, old_state, saAmfSIAdminState);
 }
 
+void AVD_SI::set_si_switch(AVD_CL_CB *cb, const SaToggleState state)
+{
+	si_switch = state;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, this, AVSV_CKPT_SI_SWITCH);
+}

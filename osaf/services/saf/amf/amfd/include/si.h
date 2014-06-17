@@ -124,6 +124,8 @@ public:
 
 	void add_rankedsu(const SaNameT *suname, uint32_t saAmfRank);
 	void remove_rankedsu(const SaNameT *suname);
+	
+	void set_si_switch(AVD_CL_CB *cb, const SaToggleState state);
 
 private:
 	AVD_SI(const AVD_SI&);
@@ -160,11 +162,6 @@ extern AmfDb<std::string, AVD_SVC_TYPE> *svctype_db;
 
 #define m_AVD_SI_STDBY_MAX_SU(l_si)       (l_si)->saAmfSIPrefStandbyAssignments
 #define m_AVD_SI_STDBY_CURR_SU(l_si)      (l_si)->saAmfSINumCurrStandbyAssignments
-
-#define m_AVD_SET_SI_SWITCH(cb,si,state) {\
-si->si_switch = state;\
-m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si, AVSV_CKPT_SI_SWITCH);\
-}
 
 extern void avd_si_add_csi(struct avd_csi_tag* csi);
 extern void avd_si_remove_csi(struct avd_csi_tag *csi);
