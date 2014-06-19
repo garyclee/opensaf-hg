@@ -1324,31 +1324,7 @@ uint32_t avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL 
 
 }
 
- /*****************************************************************************
- * Function: avd_sg_nacvred_realign_func
- *
- * Purpose:  This function will call the chose assign function to check and
- * assign SIs. If any assigning is being done it adds the SUs to the operation
- * list and sets the SG FSM state to SG realign. It resets the ncsSGAdjustState.
- * If everything is 
- * fine, it calls the routine to bring the preffered number of SUs to 
- * inservice state and change the SG state to stable. The functionality is
- * described in the SG FSM. The same function is used for both cluster_timer and
- * and sg_operator events as described in the SG FSM.
- *
- * Input: cb - the AVD control block
- *        sg - The pointer to the service group.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_nacvred_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
-{
+uint32_t SG_NACV::realign(AVD_CL_CB *cb, AVD_SG *sg) {
 	TRACE_ENTER2("'%s'", sg->name.value);
 
 	/* If the SG FSM state is not stable just return success. */
@@ -2145,7 +2121,6 @@ done:
  */
 void avd_sg_nacv_init(AVD_SG *sg)
 {
-	sg->realign = avd_sg_nacvred_realign_func;
 	sg->si_func = avd_sg_nacvred_si_func;
 	sg->si_admin_down = avd_sg_nacvred_si_admin_down;
 	sg->sg_admin_down = avd_sg_nacvred_sg_admin_down;
