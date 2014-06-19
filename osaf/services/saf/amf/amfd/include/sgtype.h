@@ -28,7 +28,7 @@
 #include <saAmf.h>
 #include <include/db_template.h>
 
-struct avd_sg_tag;
+class AVD_SG;
 
 typedef struct avd_amf_sg_type_tag {
 	SaNameT name;
@@ -46,15 +46,15 @@ typedef struct avd_amf_sg_type_tag {
    /******************** B.04 model *************************************************/
 
 	uint32_t number_su_type;	/* size of array saAmfSGtValidSuTypes */
-	struct avd_sg_tag *list_of_sg;
+	AVD_SG *list_of_sg;
 
 } AVD_AMF_SG_TYPE;
 
 extern AmfDb<std::string, AVD_AMF_SG_TYPE> *sgtype_db;
 SaAisErrorT avd_sgtype_config_get(void);
 AVD_AMF_SG_TYPE *avd_sgtype_get(const SaNameT *dn);
-void avd_sgtype_add_sg(struct avd_sg_tag *sg);
-void avd_sgtype_remove_sg(struct avd_sg_tag *sg);
+void avd_sgtype_add_sg(AVD_SG *sg);
+void avd_sgtype_remove_sg(AVD_SG *sg);
 void avd_sgtype_constructor(void);
 
 #endif

@@ -29,11 +29,12 @@
 #include <def.h>
 #include <cb.h>
 #include <node.h>
-#include <sg.h>
 #include <amf_defs.h>
 #include <msg.h>
 #include <comp.h>
 #include "include/db_template.h"
+
+class AVD_SG;
 
 /**
  * AMF director Service Unit representation.
@@ -80,7 +81,7 @@ class AVD_SU {
 
 	int su_act_state; // not used, kept for EDU, remove later
 
-	struct avd_sg_tag *sg_of_su;	/* the service group of this SU */
+	AVD_SG *sg_of_su;	/* the service group of this SU */
 	struct avd_avnd_tag *su_on_node;	/*  the node on which this SU resides */
 	struct avd_su_si_rel_tag *list_of_susi;	/* the list of su si relationship elements */
 
@@ -149,7 +150,7 @@ extern AmfDb<std::string, AVD_SU> *su_db;
  * 
  * @return SaAisErrorT
  */
-extern SaAisErrorT avd_su_config_get(const SaNameT *sg_name, struct avd_sg_tag *sg);
+extern SaAisErrorT avd_su_config_get(const SaNameT *sg_name, AVD_SG *sg);
 
 /**
  * Class constructor, must be called before any other function

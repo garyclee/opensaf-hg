@@ -92,17 +92,55 @@ static void sg_remove_from_model(AVD_SG *sg)
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
 }
 
+AVD_SG::AVD_SG():
+		saAmfSGAutoRepair_configured(false),
+		saAmfSGAutoRepair(SA_FALSE),
+		saAmfSGAutoAdjust(SA_FALSE),
+		saAmfSGNumPrefActiveSUs(0),
+		saAmfSGNumPrefStandbySUs(0),
+		saAmfSGNumPrefInserviceSUs(0),
+		saAmfSGNumPrefAssignedSUs(0),
+		saAmfSGMaxActiveSIsperSU(0),
+		saAmfSGMaxStandbySIsperSU(0),
+		saAmfSGAutoAdjustProb(0),
+		saAmfSGCompRestartProb(0),
+		saAmfSGCompRestartMax(0),
+		saAmfSGSuRestartProb(0),
+		saAmfSGSuRestartMax(0),
+		saAmfSGAdminState(SA_AMF_ADMIN_UNLOCKED),
+		saAmfSGNumCurrAssignedSUs(0),
+		saAmfSGNumCurrInstantiatedSpareSUs(0),
+		saAmfSGNumCurrNonInstantiatedSpareSUs(0),
+		adjust_state(AVSV_SG_STABLE),
+		sg_ncs_spec(false),
+		sg_fsm_state(AVD_SG_FSM_STABLE),
+		admin_si(NULL),
+		list_of_su(NULL),
+		list_of_si(NULL),
+		sg_list_sg_type_next(NULL),
+		sg_type(NULL),
+		sg_list_app_next(NULL),
+		app(NULL),
+		equal_ranked_su(false),
+		max_assigned_su(NULL),
+		min_assigned_su(NULL),
+		si_tobe_redistributed(NULL),
+		try_inst_counter(0)
+{
+	memset(&name, 0, sizeof(SaNameT));
+	memset(&saAmfSGType, 0, sizeof(SaNameT));
+	memset(&saAmfSGSuHostNodeGroup, 0, sizeof(SaNameT));
+	su_oper_list.su = NULL;
+	su_oper_list.next = NULL;
+}
+
 AVD_SG *avd_sg_new(const SaNameT *dn)
 {
 	AVD_SG *sg;
 
 	sg = new AVD_SG();
-
 	memcpy(sg->name.value, dn->value, dn->length);
 	sg->name.length = dn->length;
-	sg->sg_ncs_spec = false;
-	sg->sg_fsm_state = AVD_SG_FSM_STABLE;
-	sg->adjust_state = AVSV_SG_STABLE;
 
 	return sg;
 }

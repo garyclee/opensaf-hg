@@ -88,7 +88,7 @@ public:
 					 * Checkpointing - Updated independently.
 					 */
 
-	struct avd_sg_tag *sg_of_si;	/* the service group of this SI */
+	AVD_SG *sg_of_si;	/* the service group of this SI */
 	struct avd_csi_tag *list_of_csi;	/* The list of CSIs in the SI */
 	AVD_SI *sg_list_of_si_next;	/* next SI in the SG list of SIs */
 	struct avd_su_si_rel_tag *list_of_sisu;	/* the list of su si relationship elements */
