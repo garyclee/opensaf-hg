@@ -4632,3 +4632,7 @@ void avd_sg_npm_init(AVD_SG *sg)
 	sg->susi_success = avd_sg_npm_susi_sucss_func;
 	sg->susi_failed = avd_sg_npm_susi_fail_func;
 }
+
+SG_NPM::~SG_NPM() {
+}
+

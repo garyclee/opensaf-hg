@@ -403,7 +403,7 @@ static void decode_sg(NCS_UBAID *ub, AVD_SG *sg)
 \**************************************************************************/
 static uint32_t dec_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	AVD_SG sg;
+	SG_2N sg;
 
 	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
@@ -2479,7 +2479,7 @@ static uint32_t dec_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t 
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t count;
-	AVD_SG dec_sg;
+	SG_2N dec_sg;
 
 	TRACE_ENTER();
 

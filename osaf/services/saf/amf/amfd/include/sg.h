@@ -63,13 +63,13 @@ typedef struct avd_sg_oper_tag {
 	struct avd_sg_oper_tag *next;	/* The next SU undergoing operation. */
 } AVD_SG_OPER;
 
-/* Availability directors Service Group structure(AVD_SG):
- * This data structure lives in the AvD and reflects data points
- * associated with the Service group (SG).
+/**
+ * Service group abstract base class
  */
 class AVD_SG {
 public:
 	AVD_SG();
+	virtual ~AVD_SG() {};
 
 	SaNameT name;		/* the service group DN used as the index.
 				 * Checkpointing - Sent as a one time update.
@@ -252,6 +252,47 @@ private:
 
 extern AmfDb<std::string, AVD_SG> *sg_db;
 
+/**
+ * 2N redundancy model SG specialization
+ */
+class SG_2N : public AVD_SG {
+public:
+	~SG_2N();
+};
+
+/**
+ * No redundancy specialization
+ */
+class SG_NORED : public AVD_SG {
+public:
+	~SG_NORED();
+};
+
+/**
+ * N+M redundancy specialization
+ */
+class SG_NPM : public AVD_SG {
+public:
+	~SG_NPM();
+};
+
+/**
+ * N-Way active specialization
+ */
+class SG_NACV : public AVD_SG {
+public:
+	~SG_NACV();
+};
+
+/**
+ * N-Way specialization
+ */
+class SG_NWAY : public AVD_SG {
+public:
+	~SG_NWAY();
+};
+
+
 #define m_AVD_SET_SG_ADJUST(cb,sg,state) {\
 	TRACE("adjust_state %u => %u", sg->adjust_state, state); \
 	sg->adjust_state = state;\
@@ -322,7 +363,6 @@ extern AmfDb<std::string, AVD_SG> *sg_db;
    }\
 }
 
-extern AVD_SG *avd_sg_new(const SaNameT *dn);
 extern void avd_sg_delete(AVD_SG *sg);
 extern void avd_sg_db_add(AVD_SG *sg);
 extern void avd_sg_db_remove(AVD_SG *sg);

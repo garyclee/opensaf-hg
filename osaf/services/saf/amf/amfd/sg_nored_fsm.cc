@@ -1452,3 +1452,7 @@ void avd_sg_nored_init(AVD_SG *sg)
 	sg->susi_success = avd_sg_nored_susi_sucss_func;
 	sg->susi_failed = avd_sg_nored_susi_fail_func;
 }
+
+SG_NORED::~SG_NORED() {
+}
+
