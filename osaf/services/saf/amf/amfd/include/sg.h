@@ -67,7 +67,9 @@ typedef struct avd_sg_oper_tag {
  * This data structure lives in the AvD and reflects data points
  * associated with the Service group (SG).
  */
-typedef struct avd_sg_tag {
+class AVD_SG {
+public:
+	AVD_SG();
 
 	SaNameT name;		/* the service group DN used as the index.
 				 * Checkpointing - Sent as a one time update.
@@ -187,9 +189,9 @@ typedef struct avd_sg_tag {
 				 * of the rank.
 				 */
 
-	struct avd_sg_tag *sg_list_sg_type_next;
+	AVD_SG *sg_list_sg_type_next;
 	struct avd_amf_sg_type_tag *sg_type;
-	struct avd_sg_tag *sg_list_app_next;
+	AVD_SG *sg_list_app_next;
 	struct avd_app_tag *app;
 	bool equal_ranked_su; /* This flag is set when ranks of all SU is the same.
 				     It is used in equal distribution of SIs on SU 
@@ -210,7 +212,7 @@ typedef struct avd_sg_tag {
 	void (*node_fail)(AVD_CL_CB *cb, AVD_SU *su);
 
 	// Handle SG realign
-	uint32_t (*realign)(AVD_CL_CB *cb, struct avd_sg_tag *sg);
+	uint32_t (*realign)(AVD_CL_CB *cb, AVD_SG *sg);
 
 	// Handle new SI or admin op UNLOCK of SI
 	uint32_t (*si_func)(AVD_CL_CB *cb, AVD_SI *si);
@@ -222,7 +224,7 @@ typedef struct avd_sg_tag {
 	SaAisErrorT (*si_swap)(AVD_SI *si, SaInvocationT invocation);
 
 	// Handle SG admin op LOCK/SHUTDOWN
-	uint32_t (*sg_admin_down)(AVD_CL_CB *cb, struct avd_sg_tag *sg);
+	uint32_t (*sg_admin_down)(AVD_CL_CB *cb, AVD_SG *sg);
 
 	// Handle SU inservice event, possibly assign the SU
 	uint32_t (*su_insvc)(AVD_CL_CB *cb, AVD_SU *su);
@@ -242,7 +244,11 @@ typedef struct avd_sg_tag {
 	uint32_t (*susi_failed)(AVD_CL_CB *cb, AVD_SU *su,
 			struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 
-} AVD_SG;
+private:
+	// disallow copy and assign, TODO(hafe) add common macro for this
+	AVD_SG(const AVD_SG&);
+	void operator=(const AVD_SG&);
+};
 
 extern AmfDb<std::string, AVD_SG> *sg_db;
 

@@ -160,7 +160,7 @@ extern void avd_compcsi_from_csi_and_susi_delete(struct avd_su_si_rel_tag *susi,
 extern void avd_csi_delete(struct avd_csi_tag *csi);
 extern void csi_cmplt_delete(struct avd_csi_tag *csi, bool ckpt);
 extern AVD_CSI *csi_create(const SaNameT *csi_name);
-extern bool csi_assignment_validate(struct avd_sg_tag *sg);
+extern bool csi_assignment_validate(AVD_SG *sg);
 extern SaAisErrorT csi_assign_hdlr(AVD_CSI *csi);
 
 #endif

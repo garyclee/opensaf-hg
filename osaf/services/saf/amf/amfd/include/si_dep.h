@@ -95,7 +95,7 @@ void avd_sidep_tol_tmr_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_sidep_assign_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_sidep_unassign_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void sidep_si_screen_si_dependencies(AVD_SI *si);
-void avd_sidep_update_si_dep_state_for_all_sis(struct avd_sg_tag *sg);
+void avd_sidep_update_si_dep_state_for_all_sis(AVD_SG *sg);
 void sidep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si);
 extern SaAisErrorT avd_sidep_config_get(void);
 extern void avd_sidep_constructor(void);
