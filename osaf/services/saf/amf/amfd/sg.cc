@@ -134,11 +134,23 @@ AVD_SG::AVD_SG():
 	su_oper_list.next = NULL;
 }
 
-AVD_SG *avd_sg_new(const SaNameT *dn)
+static AVD_SG *sg_new(const SaNameT *dn, SaAmfRedundancyModelT redundancy_model)
 {
 	AVD_SG *sg;
 
-	sg = new AVD_SG();
+	if (redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL)
+		sg = new SG_2N();
+	else if (redundancy_model == SA_AMF_NPM_REDUNDANCY_MODEL)
+		sg = new SG_NPM();
+	else if (redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL)
+		sg = new SG_NWAY();
+	else if (redundancy_model == SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL)
+		sg = new SG_NACV();
+	else if (redundancy_model == SA_AMF_NO_REDUNDANCY_MODEL)
+		sg = new SG_NORED();
+	else
+		assert(0);
+
 	memcpy(sg->name.value, dn->value, dn->length);
 	sg->name.length = dn->length;
 
@@ -282,22 +294,13 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 
 	TRACE_ENTER2("'%s'", sg_name->value);
 
-	/*
-	** If called at new active at failover, the object is found in the DB
-	** but needs to get configuration attributes initialized.
-	*/
-	if (NULL == (sg = sg_db->find(Amf::to_string(sg_name)))) {
-		if ((sg = avd_sg_new(sg_name)) == NULL)
-			goto done;
-	} else
-		TRACE("already created, refreshing config...");
-
-
-	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGType"), attributes, 0, &sg->saAmfSGType);
+	SaNameT sgtype_dn;
+	error = immutil_getAttr("saAmfSGType", attributes, 0, &sgtype_dn);
 	osafassert(error == SA_AIS_OK);
-
-	sgt = sgtype_db->find(Amf::to_string(&sg->saAmfSGType));
+	sgt = sgtype_db->find(Amf::to_string(&sgtype_dn));
 	osafassert(sgt);
+	sg = sg_new(sg_name, sgt->saAmfSgtRedundancyModel);
+	sg->saAmfSGType = sgtype_dn;
 	sg->sg_type = sgt;
 
 	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGSuHostNodeGroup"), attributes, 0, &sg->saAmfSGSuHostNodeGroup);
@@ -399,7 +402,6 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 
 	rc = 0;
 
-done:
 	if (rc != 0) {
 		avd_sg_delete(sg);
 		sg = NULL;

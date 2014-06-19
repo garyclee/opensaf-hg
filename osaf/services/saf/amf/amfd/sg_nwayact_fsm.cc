@@ -2175,3 +2175,7 @@ void avd_sg_nacv_init(AVD_SG *sg)
 	sg->susi_success = avd_sg_nacvred_susi_sucss_func;
 	sg->susi_failed = avd_sg_nacvred_susi_fail_func;
 }
+
+SG_NACV::~SG_NACV() {
+}
+
