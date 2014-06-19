@@ -3376,26 +3376,8 @@ static void avd_sg_2n_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 	TRACE_LEAVE();
 }
-/*****************************************************************************
- * Function: avd_sg_2n_node_fail_func
- *
- * Purpose:  This function is called when the node has already failed and
- *           the SIs have to be failed over. It does the functionality 
- *           specified in the design.
- *
- * Input: cb - the AVD control block
- *        su - The SU that has faulted because of the node failure.
- *        
- *
- * Returns: None.
- *
- * NOTES: This is a 2N redundancy model specific function.
- *
- * 
- **************************************************************************/
 
-void avd_sg_2n_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
-{
+void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 	AVD_SU_SI_REL *a_susi, *s_susi;
 	AVD_SU *o_su, *i_su;
 	bool flag;
@@ -4174,7 +4156,6 @@ AVD_SU *get_other_su_from_oper_list(AVD_SU *su)
  */
 void avd_sg_2n_init(AVD_SG *sg)
 {
-	sg->node_fail = avd_sg_2n_node_fail_func;
 	sg->realign = avd_sg_2n_realign_func;
 	sg->si_func = avd_sg_2n_si_func;
 	sg->si_admin_down = avd_sg_2n_si_admin_down;
