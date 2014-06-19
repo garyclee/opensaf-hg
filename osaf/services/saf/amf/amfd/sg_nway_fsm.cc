@@ -595,23 +595,7 @@ uint32_t avd_sg_nway_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 	return NCSCC_RC_SUCCESS;
 }
 
-/*****************************************************************************
- * Function: avd_sg_nway_node_fail_func
- *
- * Purpose:  This function is called when the node has already failed and
- *           the SIs have to be failed over. It does the functionality 
- *           specified in the design.
- *
- * Input: cb - the AVD control block
- *        su - The SU that has faulted because of the node failure.
- *        
- * Returns: None.
- *
- * Notes: This is a N-Way redundancy model specific function.
- * 
- **************************************************************************/
-void avd_sg_nway_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
-{
+void SG_NWAY::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
 	if (!su->list_of_susi)
@@ -3696,7 +3680,6 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
  */
 void avd_sg_nway_init(AVD_SG *sg)
 {
-	sg->node_fail = avd_sg_nway_node_fail_func;
 	sg->realign = avd_sg_nway_realign_func;
 	sg->si_func = avd_sg_nway_si_func;
 	sg->si_admin_down = avd_sg_nway_si_admin_down;

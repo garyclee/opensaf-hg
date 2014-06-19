@@ -206,10 +206,15 @@ public:
 				      use.*/
 
 
-	// Function pointers to redundancy model specific handlers
-
-	// Handle node failure and fail over assignments
-	void (*node_fail)(AVD_CL_CB *cb, AVD_SU *su);
+	/**
+	 * Handle node failure and fail over assignments
+	 * Called when the node hosting the SU has already failed and the SIs
+	 * assigned to the specified SU needs to be failed over.
+	 *
+	 * @param cb
+	 * @param su
+	 */
+	virtual void node_fail(AVD_CL_CB *cb, AVD_SU *su) = 0;
 
 	// Handle SG realign
 	uint32_t (*realign)(AVD_CL_CB *cb, AVD_SG *sg);
@@ -258,6 +263,7 @@ extern AmfDb<std::string, AVD_SG> *sg_db;
 class SG_2N : public AVD_SG {
 public:
 	~SG_2N();
+	void node_fail(AVD_CL_CB*, AVD_SU*);
 };
 
 /**
@@ -266,6 +272,7 @@ public:
 class SG_NORED : public AVD_SG {
 public:
 	~SG_NORED();
+	void node_fail(AVD_CL_CB*, AVD_SU*);
 };
 
 /**
@@ -274,6 +281,7 @@ public:
 class SG_NPM : public AVD_SG {
 public:
 	~SG_NPM();
+	void node_fail(AVD_CL_CB*, AVD_SU*);
 };
 
 /**
@@ -282,6 +290,7 @@ public:
 class SG_NACV : public AVD_SG {
 public:
 	~SG_NACV();
+	void node_fail(AVD_CL_CB*, AVD_SU*);
 };
 
 /**
@@ -290,6 +299,7 @@ public:
 class SG_NWAY : public AVD_SG {
 public:
 	~SG_NWAY();
+	void node_fail(AVD_CL_CB*, AVD_SU*);
 };
 
 
