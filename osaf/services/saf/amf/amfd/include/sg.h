@@ -216,8 +216,18 @@ public:
 	 */
 	virtual void node_fail(AVD_CL_CB *cb, AVD_SU *su) = 0;
 
-	// Handle SG realign
-	uint32_t (*realign)(AVD_CL_CB *cb, AVD_SG *sg);
+	/**
+	 * Handle SG realign
+	 * Assign SIs if needed. If any assigning is gets done it adds
+	 * the SUs to the operation list and sets the SG FSM state to SG realign.
+	 * If everything is fine, it calls the routine to bring the preferred
+	 * number of SUs to inservice state and change the SG state to stable.
+	 *
+	 * @param cb
+	 * @param sg
+	 * @return
+	 */
+	virtual uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg) = 0;
 
 	// Handle new SI or admin op UNLOCK of SI
 	uint32_t (*si_func)(AVD_CL_CB *cb, AVD_SI *si);
@@ -264,6 +274,7 @@ class SG_2N : public AVD_SG {
 public:
 	~SG_2N();
 	void node_fail(AVD_CL_CB*, AVD_SU*);
+	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
 };
 
 /**
@@ -273,6 +284,7 @@ class SG_NORED : public AVD_SG {
 public:
 	~SG_NORED();
 	void node_fail(AVD_CL_CB*, AVD_SU*);
+	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
 };
 
 /**
@@ -282,6 +294,7 @@ class SG_NPM : public AVD_SG {
 public:
 	~SG_NPM();
 	void node_fail(AVD_CL_CB*, AVD_SU*);
+	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
 };
 
 /**
@@ -291,6 +304,7 @@ class SG_NACV : public AVD_SG {
 public:
 	~SG_NACV();
 	void node_fail(AVD_CL_CB*, AVD_SU*);
+	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
 };
 
 /**
@@ -300,6 +314,7 @@ class SG_NWAY : public AVD_SG {
 public:
 	~SG_NWAY();
 	void node_fail(AVD_CL_CB*, AVD_SU*);
+	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
 };
 
 
