@@ -65,7 +65,6 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i;
 	const AVD_COMP_TYPE *comp_type;
-	SaNameT comp_type_dn;
 	SaNameT comp_type_name;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
@@ -73,11 +72,8 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 	// input example: opdata.objectName.value, safHealthcheckKey=AmfDemo,safVersion=1,safCompType=AmfDemo1
 	avsv_sanamet_init(&opdata->objectName, &comp_type_name, "safVersion=");
 
-	comp_type_dn.length = 
-		snprintf((char *)comp_type_dn.value, SA_MAX_NAME_LENGTH, "%s", (const char*) comp_type_name.value);
-	
-	if ((comp_type = comptype_db->find(Amf::to_string(&comp_type_dn))) == 0) {
-		LOG_ER("Internal error: %s not found", comp_type_dn.value);
+	if ((comp_type = comptype_db->find(Amf::to_string(&comp_type_name))) == 0) {
+		LOG_ER("Internal error: %s not found", comp_type_name.value);
 		return;
 	}
 
