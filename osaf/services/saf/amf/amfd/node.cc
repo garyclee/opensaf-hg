@@ -28,22 +28,15 @@
 AmfDb<std::string, AVD_AVND> *node_name_db = 0;	/* SaNameT index */
 AmfDb<uint32_t, AVD_AVND> *node_id_db = 0;	/* SaClmNodeIdT index */
 
-bool operator<(const AVD_AVND &lhs, AVD_AVND &rhs) {
+bool operator<(const AVD_AVND &lhs, const AVD_AVND &rhs) {
   if (strncmp((const char*) lhs.name.value, (const char*) rhs.name.value, lhs.name.length) < 0)
     return true;
   else
     return false;
 }
 
-namespace std {
-template <>
-struct less<AVD_AVND*>
-{
-  bool operator() (const AVD_AVND* lhs, const AVD_AVND* rhs)
-  {
-    return *lhs < *rhs;
-  }
-};
+bool NodeNameCompare::operator() (const AVD_AVND* lhs, const AVD_AVND* rhs) {
+  return *lhs < *rhs;
 }
 
 //

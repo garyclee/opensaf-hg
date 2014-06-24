@@ -80,7 +80,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 	// Create a set of nodes where components "may" be using the given SaAmfHealthcheckType. 
 	// A msg will be sent to the related node regarding this change. If a component has an 
 	// SaAmfHealthcheck record that overrides this SaAmfHealthcheckType it will be handled by the amfnd.
-	std::set<AVD_AVND*> node_set;
+	std::set<AVD_AVND*, NodeNameCompare> node_set;
 
 	AVD_COMP *comp = comp_type->list_of_comp;
 	while (comp != NULL) {
