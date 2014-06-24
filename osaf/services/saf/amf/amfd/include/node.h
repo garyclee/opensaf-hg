@@ -141,6 +141,10 @@ typedef struct avd_avnd_tag {
 
 bool operator<(const AVD_AVND& lhs, const AVD_AVND& rhs);
 
+struct NodeNameCompare: public std::binary_function<AVD_AVND*, AVD_AVND*, bool> {
+  bool operator() (const AVD_AVND* lhs, const AVD_AVND* rhs);
+};
+
 extern AmfDb<std::string, AVD_AVND> *node_name_db;
 extern AmfDb<uint32_t, AVD_AVND> *node_id_db;
 
