@@ -749,18 +749,7 @@ done:
 	return NCSCC_RC_SUCCESS;
 }
 
-/**
- * This function is called when a operator does a SI swap admin operation on
- * an SU that belongs to 2N redundancy model SG. The 2N redundancy model requires
- * that all SIs assigned to this SU are swapped at the same time.
- * 
- * @param si
- * @param invocation
- * 
- * @return SaAisErrorT
- */
-SaAisErrorT avd_sg_2n_siswap_func(AVD_SI *si, SaInvocationT invocation)
-{
+SaAisErrorT SG_2N::si_swap(AVD_SI *si, SaInvocationT invocation) {
 	AVD_SU_SI_REL *susi;
 	SaAisErrorT rc = SA_AIS_OK;
         AVD_AVND *node;
@@ -4092,7 +4081,6 @@ AVD_SU *get_other_su_from_oper_list(AVD_SU *su)
  */
 void avd_sg_2n_init(AVD_SG *sg)
 {
-	sg->si_swap = avd_sg_2n_siswap_func;
 	sg->sg_admin_down = avd_sg_2n_sg_admin_down;
 	sg->su_insvc = avd_sg_2n_su_insvc_func;
 	sg->su_fault = avd_sg_2n_su_fault_func;

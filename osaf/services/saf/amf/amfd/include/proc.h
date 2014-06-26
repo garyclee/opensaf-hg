@@ -54,7 +54,6 @@ uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su);
 
 /* The following are for 2N redundancy model */
 uint32_t avd_sg_2n_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su);
-extern SaAisErrorT avd_sg_2n_siswap_func(AVD_SI *si, SaInvocationT invocation);
 uint32_t avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su);
 uint32_t avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					 AVSV_SUSI_ACT act, SaAmfHAStateT state);
@@ -67,7 +66,6 @@ void avd_sg_2n_init(AVD_SG *sg);
 /* The following are for N-Way redundancy model */
 uint32_t avd_sg_nway_si_assign(AVD_CL_CB *, AVD_SG *);
 uint32_t avd_sg_nway_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su);
-uint32_t avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nway_su_fault_func(AVD_CL_CB *cb, AVD_SU *su);
 uint32_t avd_sg_nway_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					   AVSV_SUSI_ACT act, SaAmfHAStateT state);
@@ -79,7 +77,6 @@ void avd_sg_nway_init(AVD_SG *sg);
 
 /* The following are for N+M redundancy model */
 uint32_t avd_sg_npm_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su);
-uint32_t avd_sg_npm_siswitch_func(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_npm_su_fault_func(AVD_CL_CB *cb, AVD_SU *su);
 uint32_t avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state);
