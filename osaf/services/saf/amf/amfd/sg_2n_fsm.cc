@@ -3568,29 +3568,7 @@ done:
 	TRACE_LEAVE();
 }
 
-/*****************************************************************************
- * Function: avd_sg_2n_su_admin_fail
- *
- * Purpose:  This function is called when SU become OOS because of the
- * LOCK or shutdown of the SU or node.The functionality will be as described in
- * the SG design FSM. 
- *
- * Input: cb - the AVD control block
- *        su - The SU that has failed because of the admin operation.
- *        avnd - The AvND structure of the node that is being operated upon.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: This is a 2N redundancy model specific function. The avnd pointer
- * value is valid only if this is a SU operation being done because of the node
- * admin change.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
-{
+uint32_t SG_2N::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s'", su->name.value);
@@ -4024,7 +4002,6 @@ AVD_SU *get_other_su_from_oper_list(AVD_SU *su)
  */
 void avd_sg_2n_init(AVD_SG *sg)
 {
-	sg->su_admin_down = avd_sg_2n_su_admin_fail;
 	sg->susi_success = avd_sg_2n_susi_sucss_func;
 	sg->susi_failed = avd_sg_2n_susi_fail_func;
 }

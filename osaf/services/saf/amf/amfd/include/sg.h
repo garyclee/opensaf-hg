@@ -278,9 +278,15 @@ public:
 	 */
 	virtual uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su) = 0;
 
-	// Handle SU admin op LOCK/SHUTDOWN
-	uint32_t (*su_admin_down)(AVD_CL_CB *cb, AVD_SU *su,
-			struct avd_avnd_tag *avnd);
+	/**
+	 * Handle SU admin op LOCK/SHUTDOWN
+	 * @param cb
+	 * @param su
+	 * @param avnd
+	 * @return
+	 */
+	virtual uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su,
+			struct avd_avnd_tag *avnd) = 0;
 
 	// Handle successful SUSI assignment
 	uint32_t (*susi_success)(AVD_CL_CB *cb, AVD_SU *su,
@@ -312,6 +318,7 @@ public:
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
 	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
+	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
 };
 
 /**
@@ -327,6 +334,7 @@ public:
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
 	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
+	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
 };
 
 /**
@@ -342,6 +350,7 @@ public:
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
 	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
+	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
 };
 
 /**
@@ -357,6 +366,7 @@ public:
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
 	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
+	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
 };
 
 /**
@@ -372,6 +382,7 @@ public:
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
 	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
+	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
 };
 
 
