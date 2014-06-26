@@ -717,23 +717,7 @@ done:
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_sg_nway_si_admin_down
- *
- * Purpose:  This function is called when SIs admin state is changed to
- * LOCK or shutdown. The functionality will be as described in
- * the SG design FSM. 
- *
- * Input: cb - the AVD control block
- *        si - The SI pointer.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * Notes: This is a N-Way redundancy model specific function.
- *
- **************************************************************************/
-uint32_t avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
-{
+uint32_t SG_NWAY::si_admin_down(AVD_CL_CB *cb, AVD_SI *si) {
 	AVD_SU_SI_REL *curr_susi = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
@@ -3640,7 +3624,6 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
  */
 void avd_sg_nway_init(AVD_SG *sg)
 {
-	sg->si_admin_down = avd_sg_nway_si_admin_down;
 	sg->sg_admin_down = avd_sg_nway_sg_admin_down;
 	sg->su_insvc = avd_sg_nway_su_insvc_func;
 	sg->su_fault = avd_sg_nway_su_fault_func;

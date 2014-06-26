@@ -3763,26 +3763,7 @@ done:
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_sg_2n_si_admin_down
- *
- * Purpose:  This function is called when SIs admin state is changed to
- * LOCK or shutdown. The functionality will be as described in
- * the SG design FSM. 
- *
- * Input: cb - the AVD control block
- *        si - The SI pointer.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: This is a 2N redundancy model specific function.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
-{
+uint32_t SG_2N::si_admin_down(AVD_CL_CB *cb, AVD_SI *si) {
 	AVD_SU_SI_REL *a_susi = NULL, *s_susi = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
@@ -4111,7 +4092,6 @@ AVD_SU *get_other_su_from_oper_list(AVD_SU *su)
  */
 void avd_sg_2n_init(AVD_SG *sg)
 {
-	sg->si_admin_down = avd_sg_2n_si_admin_down;
 	sg->si_swap = avd_sg_2n_siswap_func;
 	sg->sg_admin_down = avd_sg_2n_sg_admin_down;
 	sg->su_insvc = avd_sg_2n_su_insvc_func;

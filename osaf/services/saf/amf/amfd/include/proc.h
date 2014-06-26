@@ -61,7 +61,6 @@ uint32_t avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
-uint32_t avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_2n_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 void avd_sg_2n_init(AVD_SG *sg);
 
@@ -75,7 +74,6 @@ uint32_t avd_sg_nway_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *s
 uint32_t avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
-uint32_t avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 void avd_sg_nway_init(AVD_SG *sg);
 
@@ -88,7 +86,6 @@ uint32_t avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					 AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_npm_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
-uint32_t avd_sg_npm_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_npm_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 void avd_sg_npm_init(AVD_SG *sg);
 
@@ -100,7 +97,6 @@ uint32_t avd_sg_nored_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *
 uint32_t avd_sg_nored_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					   AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_nored_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
-uint32_t avd_sg_nored_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nored_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 void avd_sg_nored_init(AVD_SG *sg);
 
@@ -113,7 +109,6 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 uint32_t avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					     AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_nacvred_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
-uint32_t avd_sg_nacvred_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nacvred_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 void avd_sg_nacv_init(AVD_SG *sg);
 
