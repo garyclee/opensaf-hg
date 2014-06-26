@@ -300,34 +300,8 @@ done:
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_sg_nway_susi_fail_func
- *
- * Purpose:  This function is called when a SU SI ack function is
- * received from the AVND with some error value. The message may be an
- * ack for a particular SU SI or for the entire SU. It will log an event
- * about the failure. Since if a CSI set callback returns error it is
- * considered as failure of the component, AvND would have updated that
- * info for each of the components that failed and also for the SU an
- * operation state message would be sent the processing will be done in that
- * event context. For faulted SU this event would be considered as
- * completion of action, for healthy SU no SUSI state change will be done. 
- * 
- *
- * Input: cb - the AVD control block
- *        su - In case of entire SU related operation the SU for
- *               which the ack is received.
- *        susi - The pointer to the service unit service instance relationship.
- *        act  - The action received in the ack message.
- *        state - The HA state in the message.
- *        
- * Returns:  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * Notes: This is a N-Way redundancy model specific function.
- * 
- **************************************************************************/
-uint32_t avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
-{
+uint32_t SG_NWAY::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
+		AVSV_SUSI_ACT act, SaAmfHAStateT state) {
 	AVD_SU_SI_REL *curr_susi = 0;
 	AVD_SG *sg = su->sg_of_su;
 	bool is_eng = false;
@@ -3535,7 +3509,6 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
  */
 void avd_sg_nway_init(AVD_SG *sg)
 {
-	sg->susi_failed = avd_sg_nway_susi_fail_func;
 }
 
 SG_NWAY::~SG_NWAY() {
