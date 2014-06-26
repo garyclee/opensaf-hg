@@ -574,26 +574,7 @@ done:
 	TRACE_LEAVE();
 }
 
-/*****************************************************************************
- * Function: avd_sg_nway_su_admin_fail
- *
- * Purpose:  This function is called when SU become OOS because of the
- * LOCK or shutdown of the SU or node.The functionality will be as described in
- * the SG design FSM. 
- *
- * Input: cb - the AVD control block
- *        su - The SU that has failed because of the admin operation.
- *        avnd - The AvND structure of the node that is being operated upon.
- *        
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * Notes: This is a N-Way redundancy model specific function. The avnd pointer
- * value is valid only if this is a SU operation being done because of the node
- * admin change.
- *
- **************************************************************************/
-uint32_t avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
-{
+uint32_t SG_NWAY::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 	AVD_SU_SI_REL *curr_susi = 0;
 	SaAmfHAStateT state;
 	bool is_all_stdby = true;
@@ -3576,7 +3557,6 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
  */
 void avd_sg_nway_init(AVD_SG *sg)
 {
-	sg->su_admin_down = avd_sg_nway_su_admin_fail;
 	sg->susi_success = avd_sg_nway_susi_sucss_func;
 	sg->susi_failed = avd_sg_nway_susi_fail_func;
 }

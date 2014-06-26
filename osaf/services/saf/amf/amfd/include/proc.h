@@ -57,7 +57,6 @@ uint32_t avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 					 AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					AVSV_SUSI_ACT act, SaAmfHAStateT state);
-uint32_t avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 void avd_sg_2n_init(AVD_SG *sg);
 
 /* The following are for N-Way redundancy model */
@@ -66,7 +65,6 @@ uint32_t avd_sg_nway_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *s
 					   AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state);
-uint32_t avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 void avd_sg_nway_init(AVD_SG *sg);
 
 /* The following are for N+M redundancy model */
@@ -74,7 +72,6 @@ uint32_t avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					 AVSV_SUSI_ACT act, SaAmfHAStateT state);
-uint32_t avd_sg_npm_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 void avd_sg_npm_init(AVD_SG *sg);
 
 /* The following are for No redundancy model */
@@ -82,7 +79,6 @@ uint32_t avd_sg_nored_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *
 					    AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_nored_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					   AVSV_SUSI_ACT act, SaAmfHAStateT state);
-uint32_t avd_sg_nored_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 void avd_sg_nored_init(AVD_SG *sg);
 
 /* The following are for N-way Active redundancy model */
@@ -91,7 +87,6 @@ uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL
 					      AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					     AVSV_SUSI_ACT act, SaAmfHAStateT state);
-uint32_t avd_sg_nacvred_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 void avd_sg_nacv_init(AVD_SG *sg);
 
 void avd_node_up_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
