@@ -237,8 +237,13 @@ public:
 	 */
 	virtual uint32_t si_assign(AVD_CL_CB *cb, AVD_SI *si) = 0;
 
-	// Handle SI admin op LOCK/SHUTDOWN
-	uint32_t (*si_admin_down)(AVD_CL_CB *cb, AVD_SI *si);
+	/**
+	 * Handle SI admin op LOCK/SHUTDOWN
+	 * @param cb
+	 * @param si
+	 * @return
+	 */
+	virtual uint32_t si_admin_down(AVD_CL_CB *cb, AVD_SI *si) = 0;
 
 	// Handle SI admin op SWAP
 	SaAisErrorT (*si_swap)(AVD_SI *si, SaInvocationT invocation);
@@ -281,6 +286,7 @@ public:
 	void node_fail(AVD_CL_CB*, AVD_SU*);
 	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t si_assign(AVD_CL_CB *cb, AVD_SI *si);
+	uint32_t si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 };
 
 /**
@@ -292,6 +298,7 @@ public:
 	void node_fail(AVD_CL_CB*, AVD_SU*);
 	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t si_assign(AVD_CL_CB *cb, AVD_SI *si);
+	uint32_t si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 };
 
 /**
@@ -303,6 +310,7 @@ public:
 	void node_fail(AVD_CL_CB*, AVD_SU*);
 	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t si_assign(AVD_CL_CB *cb, AVD_SI *si);
+	uint32_t si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 };
 
 /**
@@ -314,6 +322,7 @@ public:
 	void node_fail(AVD_CL_CB*, AVD_SU*);
 	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t si_assign(AVD_CL_CB *cb, AVD_SI *si);
+	uint32_t si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 };
 
 /**
@@ -325,6 +334,7 @@ public:
 	void node_fail(AVD_CL_CB*, AVD_SU*);
 	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t si_assign(AVD_CL_CB *cb, AVD_SI *si);
+	uint32_t si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 };
 
 
