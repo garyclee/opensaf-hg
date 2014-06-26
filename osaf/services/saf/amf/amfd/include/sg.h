@@ -205,6 +205,47 @@ public:
 				      node. It should be reset to zero after
 				      use.*/
 
+	/**
+	 * Set SG admin state, logs, checkpoints and sends notification
+	 * @param state
+	 */
+	void set_admin_state(SaAmfAdminStateT state);
+
+	/**
+	 * Set FSM state
+	 * @param sg_fsm_state
+	 */
+	void set_fsm_state(AVD_SG_FSM_STATE sg_fsm_state);
+
+	/**
+	 * Set adjust state
+	 * @param state
+	 */
+	void set_adjust_state(SaAdjustState state);
+
+	/**
+	 * Set admin SI
+	 * @param si
+	 */
+	void set_admin_si(AVD_SI *si);
+
+	/**
+	 * Clear admin SI
+	 */
+	void clear_admin_si();
+
+	/**
+	 * For all SUs in SG set readiness state
+	 * @param state
+	 */
+	void for_all_su_set_readiness_state(SaAmfReadinessStateT state);
+
+	/**
+	 * Checks if su is in operlist
+	 * @param su
+	 * @return
+	 */
+	bool in_su_oper_list(const AVD_SU *su);
 
 	/**
 	 * Handle node failure and fail over assignments

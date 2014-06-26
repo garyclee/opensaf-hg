@@ -1554,6 +1554,78 @@ void avd_sg_admin_state_set(AVD_SG* sg, SaAmfAdminStateT state)
 					old_state,
 					sg->saAmfSGAdminState);
 }
+
+void AVD_SG::set_admin_state(SaAmfAdminStateT state) {
+	SaAmfAdminStateT old_state = saAmfSGAdminState;
+
+	osafassert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
+	TRACE_ENTER2("%s AdmState %s => %s", name.value,
+			avd_adm_state_name[old_state], avd_adm_state_name[state]);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", name.value,
+                  avd_adm_state_name[old_state], avd_adm_state_name[state]);
+	saAmfSGAdminState = state;
+	avd_saImmOiRtObjectUpdate(&name,
+		  const_cast<SaImmAttrNameT>("saAmfSGAdminState"), SA_IMM_ATTR_SAUINT32T,
+		  &saAmfSGAdminState);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SG_ADMIN_STATE);
+
+	avd_send_admin_state_chg_ntf(&name, SA_AMF_NTFID_SG_ADMIN_STATE, old_state,
+		saAmfSGAdminState);
+}
+
+void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state) {
+	if (sg_fsm_state != state) {
+		TRACE("%s sg_fsm_state %u => %u", name.value, sg_fsm_state, state);
+		sg_fsm_state = state;
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SG_FSM_STATE);
+	}
+
+	if (state == AVD_SG_FSM_STABLE) {
+		osafassert(su_oper_list.su == NULL);
+	}
+}
+
+void AVD_SG::set_adjust_state(SaAdjustState state) {
+	TRACE("%s adjust_state %u => %u", name.value, adjust_state, state);
+	adjust_state = state;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SG_ADJUST_STATE);
+}
+
+void AVD_SG::set_admin_si(AVD_SI *si) {
+	TRACE("%s admin_si set to %s", name.value, si->name.value);
+	admin_si = si;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, this, AVSV_CKPT_AVD_SG_ADMIN_SI);
+}
+
+void AVD_SG::clear_admin_si() {
+	if (admin_si != NULL) {
+		TRACE("%s admin_si cleared", name.value);
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, this, AVSV_CKPT_AVD_SG_ADMIN_SI);
+		admin_si = NULL;
+	}
+}
+
+void AVD_SG::for_all_su_set_readiness_state(SaAmfReadinessStateT state) {
+	for (AVD_SU *su = list_of_su; su != NULL; su = su->sg_list_su_next)
+		su->set_readiness_state(state);
+}
+
+bool AVD_SG::in_su_oper_list(const AVD_SU *i_su) {
+	if (su_oper_list.su == i_su) {
+		return true;
+	} else if (su_oper_list.next != NULL) {
+		AVD_SG_OPER *l_suopr = su_oper_list.next;
+		while (l_suopr != NULL) {
+			if (l_suopr->su == i_su)
+				return true;
+
+			l_suopr = l_suopr->next;
+		}
+	}
+
+	return false;
+}
+
 /**
  *
  * @brief  This function verifies whether SU ranks are equal or not in an SG.
