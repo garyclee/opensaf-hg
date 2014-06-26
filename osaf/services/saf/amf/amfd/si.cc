@@ -886,19 +886,14 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		break;
 
 	case SA_AMF_ADMIN_SI_SWAP:
-		if (si->sg_of_si->si_swap != NULL) {
-			rc = si->sg_of_si->si_swap(si, invocation);
-			if (rc != SA_AIS_OK) {
-				report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
-						"SI Swap of %s failed", objectName->value);
-				goto done;
-			}
-		} else {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
-					"SI SWAP of %s failed, not supported for redundancy model",
-					objectName->value);
+		rc = si->sg_of_si->si_swap(si, invocation);
+		if (rc != SA_AIS_OK) {
+			report_admin_op_error(immOiHandle, invocation,
+				SA_AIS_ERR_BAD_OPERATION, NULL,
+				"SI Swap of %s failed", objectName->value);
 			goto done;
-		}
+		} else
+			;  // response done later
 		break;
 
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:

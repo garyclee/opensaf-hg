@@ -1664,3 +1664,11 @@ uint32_t sg_instantiated_su_count(const AVD_SG *sg)
 	return inst_su_count;
 }
 
+// default implementation
+SaAisErrorT AVD_SG::si_swap(AVD_SI *si, SaInvocationT invocation) {
+	saflog(LOG_NOTICE, amfSvcUsrName,
+		"SI SWAP is not supported for redundancy model %u", sg_redundancy_model);
+
+	return SA_AIS_ERR_NOT_SUPPORTED;
+}
+
