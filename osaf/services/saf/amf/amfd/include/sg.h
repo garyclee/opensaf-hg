@@ -270,8 +270,13 @@ public:
 	 */
 	virtual uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su) = 0;
 
-	// Handle SU failure and switch over assignments
-	uint32_t (*su_fault)(AVD_CL_CB *cb, AVD_SU *su);
+	/**
+	 * Handle SU failure and switch over assignments
+	 * @param cb
+	 * @param su
+	 * @return
+	 */
+	virtual uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su) = 0;
 
 	// Handle SU admin op LOCK/SHUTDOWN
 	uint32_t (*su_admin_down)(AVD_CL_CB *cb, AVD_SU *su,
@@ -306,6 +311,7 @@ public:
 	SaAisErrorT si_swap(AVD_SI *si, SaInvocationT invocation);
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
+	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
 };
 
 /**
@@ -320,6 +326,7 @@ public:
 	uint32_t si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
+	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
 };
 
 /**
@@ -334,6 +341,7 @@ public:
 	uint32_t si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
+	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
 };
 
 /**
@@ -348,6 +356,7 @@ public:
 	uint32_t si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
+	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
 };
 
 /**
@@ -362,6 +371,7 @@ public:
 	uint32_t si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
+	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
 };
 
 
