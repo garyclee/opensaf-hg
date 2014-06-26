@@ -229,8 +229,13 @@ public:
 	 */
 	virtual uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg) = 0;
 
-	// Handle new SI or admin op UNLOCK of SI
-	uint32_t (*si_func)(AVD_CL_CB *cb, AVD_SI *si);
+	/**
+	 * Handle new SI or admin op UNLOCK of SI
+	 * @param cb
+	 * @param si
+	 * @return
+	 */
+	virtual uint32_t si_assign(AVD_CL_CB *cb, AVD_SI *si) = 0;
 
 	// Handle SI admin op LOCK/SHUTDOWN
 	uint32_t (*si_admin_down)(AVD_CL_CB *cb, AVD_SI *si);
@@ -275,6 +280,7 @@ public:
 	~SG_2N();
 	void node_fail(AVD_CL_CB*, AVD_SU*);
 	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
+	uint32_t si_assign(AVD_CL_CB *cb, AVD_SI *si);
 };
 
 /**
@@ -285,6 +291,7 @@ public:
 	~SG_NORED();
 	void node_fail(AVD_CL_CB*, AVD_SU*);
 	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
+	uint32_t si_assign(AVD_CL_CB *cb, AVD_SI *si);
 };
 
 /**
@@ -295,6 +302,7 @@ public:
 	~SG_NPM();
 	void node_fail(AVD_CL_CB*, AVD_SU*);
 	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
+	uint32_t si_assign(AVD_CL_CB *cb, AVD_SI *si);
 };
 
 /**
@@ -305,6 +313,7 @@ public:
 	~SG_NACV();
 	void node_fail(AVD_CL_CB*, AVD_SU*);
 	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
+	uint32_t si_assign(AVD_CL_CB *cb, AVD_SI *si);
 };
 
 /**
@@ -315,6 +324,7 @@ public:
 	~SG_NWAY();
 	void node_fail(AVD_CL_CB*, AVD_SU*);
 	uint32_t realign(AVD_CL_CB *cb, AVD_SG *sg);
+	uint32_t si_assign(AVD_CL_CB *cb, AVD_SI *si);
 };
 
 

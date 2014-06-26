@@ -718,28 +718,7 @@ done:
 	return return_su;
 }
 
-/*****************************************************************************
- * Function: avd_sg_2n_si_func
- *
- * Purpose:  This function is called when a new SI is added to a SG. The SG is
- * of type 2N redundancy model. This function will perform the functionality
- * described in the SG FSM design. 
- *
- * Input: cb - the AVD control block
- *        si - The pointer to the service instance.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: This is a 2N redundancy model specific function. If there are
- * any SIs being transitioned due to operator, this call will return
- * failure.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_2n_si_func(AVD_CL_CB *cb, AVD_SI *si)
-{
+uint32_t SG_2N::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
 	AVD_SU *l_su;
 
 	TRACE_ENTER2("'%s', %u", si->name.value, si->sg_of_si->sg_fsm_state);
@@ -4132,7 +4111,6 @@ AVD_SU *get_other_su_from_oper_list(AVD_SU *su)
  */
 void avd_sg_2n_init(AVD_SG *sg)
 {
-	sg->si_func = avd_sg_2n_si_func;
 	sg->si_admin_down = avd_sg_2n_si_admin_down;
 	sg->si_swap = avd_sg_2n_siswap_func;
 	sg->sg_admin_down = avd_sg_2n_sg_admin_down;

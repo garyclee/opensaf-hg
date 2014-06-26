@@ -225,28 +225,7 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	return sg->su_oper_list.su;
 }
 
-/*****************************************************************************
- * Function: avd_sg_nacvred_si_func
- *
- * Purpose:  This function is called when a new SI is added to a SG. The SG is
- * of type N-way active redundancy model. This function will perform the functionality
- * described in the SG FSM design. 
- *
- * Input: cb - the AVD control block
- *        si - The pointer to the service instance.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: This is a N-way active redundancy model specific function. If there are
- * any SIs being transitioned due to operator, this call will just return
- * success.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_nacvred_si_func(AVD_CL_CB *cb, AVD_SI *si)
-{
+uint32_t SG_NACV::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
 	TRACE_ENTER2("%u", si->sg_of_si->sg_fsm_state);
 
 	/* If the SG FSM state is not stable just return success. */
@@ -2121,7 +2100,6 @@ done:
  */
 void avd_sg_nacv_init(AVD_SG *sg)
 {
-	sg->si_func = avd_sg_nacvred_si_func;
 	sg->si_admin_down = avd_sg_nacvred_si_admin_down;
 	sg->sg_admin_down = avd_sg_nacvred_sg_admin_down;
 	sg->su_insvc = avd_sg_nacvred_su_insvc_func;

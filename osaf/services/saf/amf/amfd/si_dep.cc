@@ -474,7 +474,7 @@ uint32_t sidep_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
 	if ((si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) &&
 		(cb->init_state == AVD_APP_STATE)) {
 		LOG_NO("Assigning due to dep '%s'",si->name.value);
-		if (si->sg_of_si->si_func(cb, si) != NCSCC_RC_SUCCESS) {
+		if (si->sg_of_si->si_assign(cb, si) != NCSCC_RC_SUCCESS) {
 			goto done;
 		}
 
