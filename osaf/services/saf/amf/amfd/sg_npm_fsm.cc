@@ -1353,26 +1353,7 @@ static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 	return NCSCC_RC_SUCCESS;
 }
 
- /*****************************************************************************
- * Function: avd_sg_npm_su_fault_func
- *
- * Purpose:  This function is called when a SU readiness state changes to
- * OOS due to a fault. It will do the functionality specified in
- * SG FSM.
- *
- * Input: cb - the AVD control block
- *        su - The pointer to the service unit.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_npm_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
-{
+uint32_t SG_NPM::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 	AVD_SU_SI_REL *a_susi;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
@@ -4500,7 +4481,6 @@ uint32_t SG_NPM::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
  */
 void avd_sg_npm_init(AVD_SG *sg)
 {
-	sg->su_fault = avd_sg_npm_su_fault_func;
 	sg->su_admin_down = avd_sg_npm_su_admin_fail;
 	sg->susi_success = avd_sg_npm_susi_sucss_func;
 	sg->susi_failed = avd_sg_npm_susi_fail_func;

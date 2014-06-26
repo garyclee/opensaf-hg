@@ -1191,26 +1191,7 @@ done:
 	return rc;
 }
 
- /*****************************************************************************
- * Function: avd_sg_2n_su_fault_func
- *
- * Purpose:  This function is called when a SU readiness state changes to
- * OOS due to a fault. It will do the functionality specified in
- * SG FSM.
- *
- * Input: cb - the AVD control block
- *        su - The pointer to the service unit.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
-{
+uint32_t SG_2N::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 	AVD_SU *a_su;
 	AVD_SU_SI_REL *l_susi, *o_susi;
 	uint32_t rc = NCSCC_RC_FAILURE;
@@ -4043,7 +4024,6 @@ AVD_SU *get_other_su_from_oper_list(AVD_SU *su)
  */
 void avd_sg_2n_init(AVD_SG *sg)
 {
-	sg->su_fault = avd_sg_2n_su_fault_func;
 	sg->su_admin_down = avd_sg_2n_su_admin_fail;
 	sg->susi_success = avd_sg_2n_susi_sucss_func;
 	sg->susi_failed = avd_sg_2n_susi_fail_func;

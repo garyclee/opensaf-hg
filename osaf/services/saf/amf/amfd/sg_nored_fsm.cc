@@ -137,26 +137,7 @@ uint32_t SG_NORED::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
 	return NCSCC_RC_SUCCESS;
 }
 
- /*****************************************************************************
- * Function: avd_sg_nored_su_fault_func
- *
- * Purpose:  This function is called when a SU readiness state changes to
- * OOS due to a fault. It will do the functionality specified in
- * SG FSM.
- *
- * Input: cb - the AVD control block
- *        su - The pointer to the service unit.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_nored_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
-{
+uint32_t SG_NORED::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 
@@ -1320,7 +1301,6 @@ uint32_t SG_NORED::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
  */
 void avd_sg_nored_init(AVD_SG *sg)
 {
-	sg->su_fault = avd_sg_nored_su_fault_func;
 	sg->su_admin_down = avd_sg_nored_su_admin_fail;
 	sg->susi_success = avd_sg_nored_susi_sucss_func;
 	sg->susi_failed = avd_sg_nored_susi_fail_func;
