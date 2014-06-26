@@ -538,34 +538,8 @@ uint32_t SG_NACV::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
 
 }
 
-/*****************************************************************************
- * Function: avd_sg_nacvred_susi_sucss_func
- *
- * Purpose:  This function is called when a SU SI ack function is
- * received from the AVND with success value. The SG FSM for N-way active redundancy
- * model will be run. The SUSI fsm state will
- * be changed to assigned or it will freed for the SU SI. 
- * 
- *
- * Input: cb - the AVD control block
- *        su - In case of entire SU related operation the SU for
- *               which the ack is received.
- *        susi - The pointer to the service unit service instance relationship.
- *        act  - The action received in the ack message.
- *        state - The HA state in the message.
- * 
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: This is a N-way active redundancy model specific function.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
-				     AVSV_SUSI_ACT act, SaAmfHAStateT state)
-{
+uint32_t SG_NACV::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
+				     AVSV_SUSI_ACT act, SaAmfHAStateT state) {
 	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 	AVD_SU_SI_REL *tmp_susi;
@@ -2002,7 +1976,6 @@ done:
  */
 void avd_sg_nacv_init(AVD_SG *sg)
 {
-	sg->susi_success = avd_sg_nacvred_susi_sucss_func;
 	sg->susi_failed = avd_sg_nacvred_susi_fail_func;
 }
 

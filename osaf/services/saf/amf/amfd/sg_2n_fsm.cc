@@ -2348,34 +2348,8 @@ done:
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_sg_2n_susi_sucss_func
- *
- * Purpose:  This function is called when a SU SI ack function is
- * received from the AVND with success value. The SG FSM for 2N redundancy
- * model will be run. The SUSI fsm state will
- * be changed to assigned or it will freed for the SU SI. 
- * 
- *
- * Input: cb - the AVD control block
- *        su - In case of entire SU related operation the SU for
- *               which the ack is received.
- *        susi - The pointer to the service unit service instance relationship.
- *        act  - The action received in the ack message.
- *        state - The HA state in the message.
- * 
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: This is a 2N redundancy model specific function.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
-								   AVSV_SUSI_ACT act, SaAmfHAStateT state)
-{
+uint32_t SG_2N::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
+								   AVSV_SUSI_ACT act, SaAmfHAStateT state) {
 
 	AVD_SU_SI_REL *s_susi, *n_susi;
 	AVD_SU *i_su, *a_su;
@@ -4002,7 +3976,6 @@ AVD_SU *get_other_su_from_oper_list(AVD_SU *su)
  */
 void avd_sg_2n_init(AVD_SG *sg)
 {
-	sg->susi_success = avd_sg_2n_susi_sucss_func;
 	sg->susi_failed = avd_sg_2n_susi_fail_func;
 }
 

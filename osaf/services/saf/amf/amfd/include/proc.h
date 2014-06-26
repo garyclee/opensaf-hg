@@ -53,38 +53,28 @@ uint32_t avd_sg_susi_mod_snd_honouring_si_dependency(AVD_SU *su, SaAmfHAStateT s
 uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su);
 
 /* The following are for 2N redundancy model */
-uint32_t avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
-					 AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					AVSV_SUSI_ACT act, SaAmfHAStateT state);
 void avd_sg_2n_init(AVD_SG *sg);
 
 /* The following are for N-Way redundancy model */
 uint32_t avd_sg_nway_si_assign(AVD_CL_CB *, AVD_SG *);
-uint32_t avd_sg_nway_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
-					   AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state);
 void avd_sg_nway_init(AVD_SG *sg);
 
 /* The following are for N+M redundancy model */
-uint32_t avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
-					  AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					 AVSV_SUSI_ACT act, SaAmfHAStateT state);
 void avd_sg_npm_init(AVD_SG *sg);
 
 /* The following are for No redundancy model */
-uint32_t avd_sg_nored_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
-					    AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_nored_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					   AVSV_SUSI_ACT act, SaAmfHAStateT state);
 void avd_sg_nored_init(AVD_SG *sg);
 
 /* The following are for N-way Active redundancy model */
 AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg);
-uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
-					      AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					     AVSV_SUSI_ACT act, SaAmfHAStateT state);
 void avd_sg_nacv_init(AVD_SG *sg);
