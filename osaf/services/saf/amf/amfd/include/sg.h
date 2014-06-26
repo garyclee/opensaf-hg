@@ -300,9 +300,28 @@ public:
 	virtual uint32_t susi_success(AVD_CL_CB *cb, AVD_SU *su,
 			struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state) = 0;
 
-	// Handle failed SUSI assignment
-	uint32_t (*susi_failed)(AVD_CL_CB *cb, AVD_SU *su,
-			struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
+	/**
+	 * Handle failed SUSI assignment
+	 *
+	 * Called when a SU SI ack function is received from the ND with some error
+	 * value. The message may be an ack for a particular SU SI or for the entire
+	 * SU. Since if a CSI set callback returns error it is considered as
+	 * failure of the component, ND would have updated that info for each of
+	 * the components that failed and also for the SU an operation state
+	 * message would be sent the processing will be done in that event context.
+	 * For faulted SU this event would be considered as completion of action,
+	 * for healthy SU no SUSI state change will be done.
+	 *
+	 * @param cb
+	 * @param su
+	 * @param susi
+	 * @param act
+	 * @param state
+	 * @return
+	 */
+	virtual uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
+		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act,
+		SaAmfHAStateT state) = 0;
 
 private:
 	// disallow copy and assign, TODO(hafe) add common macro for this
@@ -329,6 +348,8 @@ public:
 	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
 	uint32_t susi_success(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
+	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
+		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 };
 
 /**
@@ -346,6 +367,8 @@ public:
 	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
 	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
 	uint32_t susi_success(AVD_CL_CB *cb, AVD_SU *su,
+		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
+	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 };
 
@@ -365,6 +388,8 @@ public:
 	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
 	uint32_t susi_success(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
+	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
+		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 };
 
 /**
@@ -383,6 +408,8 @@ public:
 	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
 	uint32_t susi_success(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
+	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
+		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 };
 
 /**
@@ -400,6 +427,8 @@ public:
 	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
 	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
 	uint32_t susi_success(AVD_CL_CB *cb, AVD_SU *su,
+		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
+	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 };
 
