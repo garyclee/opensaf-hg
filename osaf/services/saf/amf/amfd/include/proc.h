@@ -53,7 +53,6 @@ uint32_t avd_sg_susi_mod_snd_honouring_si_dependency(AVD_SU *su, SaAmfHAStateT s
 uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su);
 
 /* The following are for 2N redundancy model */
-uint32_t avd_sg_2n_si_func(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_2n_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su);
 extern SaAisErrorT avd_sg_2n_siswap_func(AVD_SI *si, SaInvocationT invocation);
 uint32_t avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su);
@@ -61,16 +60,13 @@ uint32_t avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 					 AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					AVSV_SUSI_ACT act, SaAmfHAStateT state);
-uint32_t avd_sg_2n_realign_func(AVD_CL_CB *cb, AVD_SG *sg);
 uint32_t avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 uint32_t avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_2n_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
-void avd_sg_2n_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
 void avd_sg_2n_init(AVD_SG *sg);
 
 /* The following are for N-Way redundancy model */
 uint32_t avd_sg_nway_si_assign(AVD_CL_CB *, AVD_SG *);
-uint32_t avd_sg_nway_si_func(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nway_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su);
 uint32_t avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nway_su_fault_func(AVD_CL_CB *cb, AVD_SU *su);
@@ -78,15 +74,12 @@ uint32_t avd_sg_nway_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *s
 					   AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state);
-uint32_t avd_sg_nway_realign_func(AVD_CL_CB *cb, AVD_SG *sg);
 uint32_t avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 uint32_t avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
-void avd_sg_nway_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
 void avd_sg_nway_init(AVD_SG *sg);
 
 /* The following are for N+M redundancy model */
-uint32_t avd_sg_npm_si_func(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_npm_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su);
 uint32_t avd_sg_npm_siswitch_func(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_npm_su_fault_func(AVD_CL_CB *cb, AVD_SU *su);
@@ -94,42 +87,34 @@ uint32_t avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					 AVSV_SUSI_ACT act, SaAmfHAStateT state);
-uint32_t avd_sg_npm_realign_func(AVD_CL_CB *cb, AVD_SG *sg);
 uint32_t avd_sg_npm_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 uint32_t avd_sg_npm_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_npm_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
-void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
 void avd_sg_npm_init(AVD_SG *sg);
 
 /* The following are for No redundancy model */
-uint32_t avd_sg_nored_si_func(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nored_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su);
 uint32_t avd_sg_nored_su_fault_func(AVD_CL_CB *cb, AVD_SU *su);
 uint32_t avd_sg_nored_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					    AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_nored_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					   AVSV_SUSI_ACT act, SaAmfHAStateT state);
-uint32_t avd_sg_nored_realign_func(AVD_CL_CB *cb, AVD_SG *sg);
 uint32_t avd_sg_nored_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 uint32_t avd_sg_nored_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nored_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
-void avd_sg_nored_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
 void avd_sg_nored_init(AVD_SG *sg);
 
 /* The following are for N-way Active redundancy model */
 AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg);
-uint32_t avd_sg_nacvred_si_func(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nacvred_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su);
 uint32_t avd_sg_nacvred_su_fault_func(AVD_CL_CB *cb, AVD_SU *su);
 uint32_t avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					      AVSV_SUSI_ACT act, SaAmfHAStateT state);
 uint32_t avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					     AVSV_SUSI_ACT act, SaAmfHAStateT state);
-uint32_t avd_sg_nacvred_realign_func(AVD_CL_CB *cb, AVD_SG *sg);
 uint32_t avd_sg_nacvred_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 uint32_t avd_sg_nacvred_si_admin_down(AVD_CL_CB *cb, AVD_SI *si);
 uint32_t avd_sg_nacvred_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
-void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
 void avd_sg_nacv_init(AVD_SG *sg);
 
 void avd_node_up_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);

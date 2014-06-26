@@ -809,7 +809,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 
-		err = si->sg_of_si->si_func(avd_cb, si);
+		err = si->sg_of_si->si_assign(avd_cb, si);
 		if (si->list_of_sisu == NULL)
 			LOG_NO("'%s' could not be assigned to any SU", si->name.value);
 

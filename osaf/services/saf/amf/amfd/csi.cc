@@ -921,7 +921,7 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 	}/* if (NULL != csi->si->list_of_sisu) */
 	else if (csi->si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) {
 		/* CSI has been added into an SI, now SI can be assigned */
-		csi->si->sg_of_si->si_func(avd_cb, csi->si);
+		csi->si->sg_of_si->si_assign(avd_cb, csi->si);
 	}
 done:
 	return rc;
