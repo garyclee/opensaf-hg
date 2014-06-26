@@ -3940,15 +3940,6 @@ AVD_SU *get_other_su_from_oper_list(AVD_SU *su)
 	return o_su;
 }
 
-
-/**
- * Initialize redundancy model specific handlers
- * @param sg
- */
-void avd_sg_2n_init(AVD_SG *sg)
-{
-}
-
 SG_2N::~SG_2N() {
 }
 

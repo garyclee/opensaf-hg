@@ -1217,14 +1217,6 @@ uint32_t SG_NORED::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 	return NCSCC_RC_SUCCESS;
 }
 
-/**
- * Initialize redundancy model specific handlers
- * @param sg
- */
-void avd_sg_nored_init(AVD_SG *sg)
-{
-}
-
 SG_NORED::~SG_NORED() {
 }
 

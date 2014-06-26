@@ -3503,14 +3503,6 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 	return;
 }
 
-/**
- * Initialize redundancy model specific handlers
- * @param sg
- */
-void avd_sg_nway_init(AVD_SG *sg)
-{
-}
-
 SG_NWAY::~SG_NWAY() {
 }
 

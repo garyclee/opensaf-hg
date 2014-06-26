@@ -1940,14 +1940,6 @@ done:
 	return;
 }
 
-/**
- * Initialize redundancy model specific handlers
- * @param sg
- */
-void avd_sg_nacv_init(AVD_SG *sg)
-{
-}
-
 SG_NACV::~SG_NACV() {
 }
 
