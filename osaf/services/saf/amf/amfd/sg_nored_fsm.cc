@@ -339,26 +339,7 @@ uint32_t avd_sg_nored_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 	return NCSCC_RC_SUCCESS;
 }
 
- /*****************************************************************************
- * Function: avd_sg_nored_su_insvc_func
- *
- * Purpose:  This function is called when a SU readiness state changes
- * to inservice from out of service. The SG is of type No redundancy
- * model. It will do the functionality specified in the SG FSM.
- *
- * Input: cb - the AVD control block
- *        su - The pointer to the service unit.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_nored_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
-{
+uint32_t SG_NORED::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
 	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
 
 	/* An SU will not become in service when the SG is being locked or shutdown.
@@ -1339,7 +1320,6 @@ uint32_t SG_NORED::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
  */
 void avd_sg_nored_init(AVD_SG *sg)
 {
-	sg->su_insvc = avd_sg_nored_su_insvc_func;
 	sg->su_fault = avd_sg_nored_su_fault_func;
 	sg->su_admin_down = avd_sg_nored_su_admin_fail;
 	sg->susi_success = avd_sg_nored_susi_sucss_func;

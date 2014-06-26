@@ -1406,26 +1406,7 @@ done:
 	return rc;
 }
 
- /*****************************************************************************
- * Function: avd_sg_2n_su_insvc_func
- *
- * Purpose:  This function is called when a SU readiness state changes
- * to inservice from out of service. The SG is of type 2N redundancy
- * model. It will do the functionality specified in the SG FSM.
- *
- * Input: cb - the AVD control block
- *        su - The pointer to the service unit.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_2n_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
-{
+uint32_t SG_2N::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SU *l_su;
 
@@ -4062,7 +4043,6 @@ AVD_SU *get_other_su_from_oper_list(AVD_SU *su)
  */
 void avd_sg_2n_init(AVD_SG *sg)
 {
-	sg->su_insvc = avd_sg_2n_su_insvc_func;
 	sg->su_fault = avd_sg_2n_su_fault_func;
 	sg->su_admin_down = avd_sg_2n_su_admin_fail;
 	sg->susi_success = avd_sg_2n_susi_sucss_func;
