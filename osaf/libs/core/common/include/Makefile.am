@@ -34,4 +34,5 @@ noinst_HEADERS = \
 	osaf_unicode.h \
 	osaf_poll.h \
 	osaf_time.h \
-        saf_error.h
+	saf_error.h \
+	osaf_secutil.h
