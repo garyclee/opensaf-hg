@@ -4376,7 +4376,9 @@ static uint32_t mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DAT
 			mds_mcm_free_msg_memory(recv->msg);
 			return NCSCC_RC_FAILURE;
 		}
-
+		cbinfo.info.receive.pid = recv->pid;
+		cbinfo.info.receive.uid = recv->uid;
+		cbinfo.info.receive.gid = recv->gid;
 		rc = svccb->cback_ptr(&cbinfo);
 		if (rc != NCSCC_RC_SUCCESS) {
 			mds_mcm_free_msg_memory(recv->msg);

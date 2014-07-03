@@ -731,7 +731,9 @@ unpack individual structure members. */
 		 */
 		MDS_HDL sender_pwe_hdl;
 		MDS_CLIENT_MSG_FORMAT_VER i_msg_fmt_ver;
-
+		pid_t pid;
+		uid_t uid;
+		gid_t gid;
 	} MDS_CALLBACK_RECEIVE_INFO;
 
 	typedef struct {

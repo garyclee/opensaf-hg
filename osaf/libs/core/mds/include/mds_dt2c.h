@@ -106,6 +106,9 @@ typedef struct mds_data_recv {
 	MDS_SVC_PVT_SUB_PART_VER src_svc_sub_part_ver;
 	MDS_SVC_ARCHWORD_TYPE msg_arch_word;
 	uint32_t src_seq_num;
+	pid_t pid;
+	uid_t uid;
+	gid_t gid;
 
 } MDS_DATA_RECV;
 

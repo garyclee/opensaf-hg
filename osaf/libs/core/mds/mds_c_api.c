@@ -1598,6 +1598,12 @@ else (entry exists)
     }
 */
 
+	MDS_PROCESS_INFO *info = mds_process_info_get(adest);
+	if (info != NULL) {
+		info->count++;
+		TRACE("svc %d up cnt:%d, db cnt:%d", svc_id, info->count, mds_process_info_cnt());
+	}
+
 	status = mds_svc_tbl_query(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
 				   m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
 
@@ -2646,6 +2652,16 @@ else (entry exists)
           (Event=DOWN)
     }
 */
+
+	MDS_PROCESS_INFO *info = mds_process_info_get(adest);
+	if (info != NULL) {
+		info->count--;
+		TRACE("svc %d down cnt:%d, db cnt:%d", svc_id, info->count, mds_process_info_cnt());
+		if (info->count == 0) {
+			mds_process_info_del(info);
+			free(info);
+		}
+	}
 
 	status = mds_svc_tbl_query(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
 				   m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
@@ -3806,6 +3822,13 @@ uint32_t mds_mcm_init(void)
 	vdest_for_adest_node->node.key_info = (uint8_t *)&vdest_for_adest_node->vdest_id;
 
 	ncs_patricia_tree_add(&gl_mds_mcm_cb->vdest_list, (NCS_PATRICIA_NODE *)vdest_for_adest_node);
+
+	memset(&pat_tree_params, 0, sizeof(pat_tree_params));
+	pat_tree_params.key_size = sizeof(MDS_DEST);
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&gl_mds_mcm_cb->process_info_db, &pat_tree_params)) {
+		m_MDS_LOG_ERR("MCM_API : patricia_tree_init:proc_info :failure, L mds_mcm_init");
+		return NCSCC_RC_FAILURE;
+	}
 
 	return NCSCC_RC_SUCCESS;
 }

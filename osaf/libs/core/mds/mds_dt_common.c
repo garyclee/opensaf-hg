@@ -14,12 +14,16 @@
  * Author(s): GoAhead Software
  *
  */
+#define _GNU_SOURCE
 
 #include "mds_dt.h"
+#include "mds_core.h"
 #include "mds_log.h"
 #include "ncssysf_def.h"
 #include "ncssysf_tsk.h"
 #include "ncssysf_mem.h"
+#include "osaf_utility.h"
+#include <osaf_secutil.h>
 
 static SYSF_MBX mdtm_mbx_common;
 static MDTM_TX_TYPE mdtm_transport;
@@ -266,6 +270,8 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 		abort();
 	}
 
+	MDS_PROCESS_INFO *info = mds_process_info_get(adest);
+
 	if (MDTM_DIRECT == flag) {
 		uint32_t xch_id = 0;
 		uint8_t prot_ver = 0;
@@ -423,6 +429,11 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 		reassem_queue->recv.pri = (prot_ver & MDTM_PRI_MASK) + 1;
 		reassem_queue->recv.snd_type = msg_snd_type;
 		reassem_queue->recv.src_seq_num = svc_seq_num;
+		if (info != NULL) {
+			reassem_queue->recv.pid = info->pid;
+			reassem_queue->recv.uid = info->uid;
+			reassem_queue->recv.gid = info->gid;
+		}
 
 		m_MDS_LOG_DBG("MDTM: Recd Unfragmented message with SVC Seq num =%d, from src_Tipc_id=<%llx>",
 			      svc_seq_num, transport_adest);
