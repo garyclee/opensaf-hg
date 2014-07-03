@@ -24,6 +24,7 @@
 ******************************************************************************/
 
 #define _GNU_SOURCE
+#include <configmake.h>
 #include <string.h>
 
 #include "imma.h"
@@ -267,6 +268,10 @@ unsigned int imma_startup(NCSMDS_SVC_ID sv_id)
 		imma_use_count++;
 		goto done;
 	}
+
+	const char *name = PKGLOCALSTATEDIR "/immnd.sock";
+	setenv("MDS_SOCK_SERVER_NAME", name, 1);
+	putenv("MDS_SOCK_SERVER_CONNECT=YES");
 
 	if ((rc = ncs_agents_startup()) != NCSCC_RC_SUCCESS) {
 		TRACE_3("Agents_startup failed");

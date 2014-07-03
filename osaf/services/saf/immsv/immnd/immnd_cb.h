@@ -48,7 +48,6 @@ typedef struct immnd_immom_client_node {
 	SaImmHandleT imm_app_hdl;	/* index for the client tree */
 	MDS_DEST agent_mds_dest;	/* mds dest of the agent */
 	SaVersionT version;
-	SaUint32T client_pid;	/*Used to recognize loader */
 	IMMSV_SEND_INFO tmpSinfo;	/*needed for replying to 
 					   syncronousrequests */
 
@@ -171,6 +170,7 @@ typedef struct immnd_cb_tag {
 	NCS_SEL_OBJ usr1_sel_obj;	/* Selection object for USR1 signal events */
 	SaSelectionObjectT amf_sel_obj;	/* Selection Object for AMF events */
 	int nid_started;	/* true if started by NID */
+	const char *admin_group_name;  // linux group name for admins
 } IMMND_CB;
 
 /* CB prototypes */
