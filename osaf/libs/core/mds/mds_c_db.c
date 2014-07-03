@@ -2331,6 +2331,34 @@ uint32_t mds_subtn_res_tbl_cleanup(void)
 	return NCSCC_RC_SUCCESS;
 }
 
+MDS_PROCESS_INFO *mds_process_info_get(MDS_DEST mds_dest)
+{
+       return (MDS_PROCESS_INFO *) ncs_patricia_tree_get(&gl_mds_mcm_cb->process_info_db,
+               (uint8_t *)&mds_dest);
+}
+
+int mds_process_info_add(MDS_PROCESS_INFO *info)
+{
+       TRACE_ENTER2("dest:%lx, pid:%d", info->mds_dest, info->pid);
+       info->patnode.key_info = (uint8_t *)&info->mds_dest;
+       int rc = ncs_patricia_tree_add(&gl_mds_mcm_cb->process_info_db,
+    		   (NCS_PATRICIA_NODE *)&info->patnode);
+       return rc;
+}
+
+int mds_process_info_del(MDS_PROCESS_INFO *info)
+{
+       TRACE_ENTER2("dest:%lx, pid:%d", info->mds_dest, info->pid);
+       int rc = ncs_patricia_tree_del(&gl_mds_mcm_cb->process_info_db,
+    		   (NCS_PATRICIA_NODE *)&info->patnode);
+       return rc;
+}
+
+int mds_process_info_cnt(void)
+{
+	return gl_mds_mcm_cb->process_info_db.n_nodes;
+}
+
 /*********************************************************
   Function NAME: mds_mcm_cleanup
 *********************************************************/

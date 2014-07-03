@@ -45,6 +45,7 @@
 #include <config.h>
 #include "osaf_utility.h"
 #include "osaf_poll.h"
+#include <osaf_secutil.h>
 #ifdef ENABLE_TIPC_TRANSPORT
 #include "mds_dt_tipc.h"
 #include <configmake.h>
@@ -108,6 +109,129 @@ uint32_t MDS_AWAIT_ACTIVE_TMR_VAL = 18000;
 uint32_t MDS_SUBSCRIPTION_TMR_VAL = 500;
 uint32_t MDTM_REASSEMBLE_TMR_VAL = 500;
 uint32_t MDTM_CACHED_EVENTS_TMR_VAL = 24000;
+
+enum {
+	MDS_REGISTER_REQ = 77,
+	MDS_REGISTER_RESP = 78
+};
+
+/**
+ * Handler for mds register requests
+ * Note: executed by and in context of the auth thread!
+ * Communicates with the main thread (where the
+ * real work is done) to get outcome of initialization request which is then
+ * sent back to the client.
+ * @param fd
+ * @param creds credentials for client
+ */
+static void mds_register_callback(int fd, const struct ucred *creds)
+{
+	uint8_t buf[32];
+	uint8_t *p = buf;
+
+	TRACE_ENTER2("fd:%d, pid:%u", fd, creds->pid);
+
+	int n = recv(fd, buf, sizeof(buf), 0);
+	if (n == -1) {
+		syslog(LOG_ERR, "%s: recv failed - %s", __FUNCTION__, strerror(errno));
+		goto done;
+	}
+
+	if (n != 12) {
+		syslog(LOG_ERR, "%s: recv failed - %d bytes", __FUNCTION__, n);
+		goto done;
+	}
+
+	int type = ncs_decode_32bit(&p);
+	if (type != MDS_REGISTER_REQ) {
+		syslog(LOG_ERR, "%s: recv failed - wrong type %d", __FUNCTION__, type);
+		goto done;
+	}
+
+	MDS_DEST mds_dest = ncs_decode_64bit(&p);
+	TRACE("mds: received %d from %lx, pid %d", type, mds_dest, creds->pid);
+
+	osaf_mutex_lock_ordie(&gl_mds_library_mutex);
+
+	if (mds_process_info_get(mds_dest) == NULL) {
+		MDS_PROCESS_INFO *info = malloc(sizeof(MDS_PROCESS_INFO));
+		osafassert(info);
+		info->mds_dest = mds_dest;
+		info->uid = creds->uid;
+		info->pid = creds->pid;
+		info->gid = creds->gid;
+		int rc = mds_process_info_add(info);
+		osafassert(rc == NCSCC_RC_SUCCESS);
+	} else {
+		// can this ever happen?
+		syslog(LOG_WARNING, "%s: dest %lx already exist", __FUNCTION__, mds_dest);
+	}
+
+	osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
+
+	p = buf;
+	uint32_t sz = ncs_encode_32bit(&p, MDS_REGISTER_RESP);
+	sz += ncs_encode_32bit(&p, 0); // result OK
+
+	if ((n = send(fd, buf, sz, 0)) == -1)
+		syslog(LOG_ERR, "%s: send to pid %d failed - %s",
+			__FUNCTION__, creds->pid, strerror(errno));
+
+	done:
+	TRACE_LEAVE();
+}
+
+/**
++ * Sends and receives an initialize message using osaf_secutil
++ * @param evt_type
++ * @param mds_dest
++ * @param version
++ * @param out_evt
++ * @param timeout max time to wait for a response in ms unit
++ * @return NCSCC_RC_SUCCESS - response stored in out_evt, NCSCC_RC_FAILURE or
++ *                     NCSCC_RC_REQ_TIMOUT
++ */
+static uint32_t mds_dest_register(const char *name, MDS_DEST mds_dest, int timeout)
+{
+	uint32_t rc;
+	uint8_t msg[32];
+	uint8_t *p = msg;
+	uint32_t sz;
+	int n;
+
+	sz = ncs_encode_32bit(&p, MDS_REGISTER_REQ);
+	sz += ncs_encode_64bit(&p, mds_dest);
+
+	n = osaf_auth_server_connect(name, msg, sz, msg,
+			sizeof(msg), timeout);
+
+	if (n < 0) {
+		TRACE_3("err n:%d", n);
+		rc = NCSCC_RC_FAILURE;
+		goto fail;
+	} else if (n == 0) {
+		TRACE_3("tmo");
+		rc = NCSCC_RC_REQ_TIMOUT;
+		goto fail;
+	} else if (n == 8) {
+		p = msg;
+		int type = ncs_decode_32bit(&p);
+		if (type != MDS_REGISTER_RESP) {
+			TRACE_3("wrong type %d", type);
+			rc = NCSCC_RC_FAILURE;
+		}
+		int status = ncs_decode_32bit(&p);
+		TRACE("received type:%d, status:%d", type, status);
+		status == 0 ? (rc = NCSCC_RC_SUCCESS) : (rc = NCSCC_RC_FAILURE);
+	} else {
+		TRACE_3("err n:%d", n);
+		rc = NCSCC_RC_FAILURE;
+		goto fail;
+	}
+
+	fail:
+	return rc;
+ }
 
 /* ******************************************** */
 /* ******************************************** */
@@ -291,6 +415,31 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 			snprintf(buff, sizeof(buff), PKGLOGDIR "/mds.log");
 			snprintf(pref, sizeof(pref), "<%u>", mds_tipc_ref);
 			mds_log_init(buff, pref);
+		}
+
+		if (getenv("MDS_SOCK_SERVER_CREATE")) {
+			const char *name = getenv("MDS_SOCK_SERVER_NAME");
+			if (name) {
+				if (osaf_auth_server_create(name, mds_register_callback) != 0) {
+					syslog(LOG_ERR, "MDS_LIB_CREATE: osaf_auth_server_create failed");
+					/*  todo cleanup ? */
+					osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
+					return NCSCC_RC_FAILURE;
+				}
+			}
+		}
+
+		if (getenv("MDS_SOCK_SERVER_CONNECT")) {
+			const char *name = getenv("MDS_SOCK_SERVER_NAME");
+			if (name) {
+				status = mds_dest_register(name, gl_mds_mcm_cb->adest, 10000);
+				if (status != NCSCC_RC_SUCCESS) {
+					syslog(LOG_ERR, "MDS_LIB_CREATE: mds_dest_register failed %u", status);
+					/*  todo cleanup ? */
+					osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
+					return NCSCC_RC_FAILURE;
+				}
+			}
 		}
 
 		osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
