@@ -115,10 +115,19 @@ static uint32_t immnd_initialize(char *progname)
 	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
 		immnd_cb->nid_started = 1;
 
+	const char *name = PKGLOCALSTATEDIR "/immnd.sock";
+	setenv("MDS_SOCK_SERVER_NAME", name, 1);
+	putenv("MDS_SOCK_SERVER_CREATE=YES");
+
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_agents_startup FAILED");
 		goto done;
 	}
+
+	/* unset so that forked processes (e.g. loader) does not create MDS server */
+	unsetenv("MDS_SOCK_SERVER_CREATE");
+
+	immnd_cb->admin_group_name = getenv("IMM_ADMIN_GROUP_NAME");
 
 	/* Initialize immnd control block */
 	immnd_cb->ha_state = SA_AMF_HA_ACTIVE;

@@ -507,6 +507,9 @@ static uint32_t immnd_mds_rcv(IMMND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	pEvt->sinfo.ctxt = rcv_info->i_msg_ctxt;
 	pEvt->sinfo.dest = rcv_info->i_fr_dest;
 	pEvt->sinfo.to_svc = rcv_info->i_fr_svc_id;
+	pEvt->sinfo.pid = rcv_info->pid;
+	pEvt->sinfo.uid = rcv_info->uid;
+	pEvt->sinfo.gid = rcv_info->gid;
 	if (rcv_info->i_rsp_reqd) {
 		pEvt->sinfo.stype = MDS_SENDTYPE_SNDRSP;
 	}

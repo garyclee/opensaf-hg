@@ -25,6 +25,7 @@
 ******************************************************************************/
 
 #define _GNU_SOURCE
+#include <osaf_secutil.h>
 #include "immnd.h"
 #include "immsv_api.h"
 #include "ncssysf_mem.h"
@@ -719,19 +720,35 @@ static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	int pbe_pid =  (!load_pid && (cb->pbePid > 0))?(cb->pbePid):0;
 
 	if (load_pid > 0) {
-		if (evt->info.initReq.client_pid == load_pid) {
+		if (sinfo->pid == load_pid) {
 			TRACE_2("Loader attached, pid: %u", load_pid);
 		} else {
 			TRACE_2("Rejecting OM client attach during loading, pid %u != %u",
-				evt->info.initReq.client_pid, load_pid);
+				sinfo->pid , load_pid);
 			error = SA_AIS_ERR_TRY_AGAIN;
 			goto agent_rsp;
 		}
-	} else if (evt->info.initReq.client_pid == cb->preLoadPid) {
+	} else if (sinfo->pid == cb->preLoadPid) {
 		LOG_IN("2PBE Pre-loader attached");
 	} else if (load_pid < 0) {
 		TRACE_2("Rejecting OM client attach. Waiting for loading or sync to complete");
 		error = SA_AIS_ERR_TRY_AGAIN;
+		goto agent_rsp;
+	}
+
+	/* allow access using white list approach */
+	if (sinfo->uid == 0) {
+		TRACE("superuser");
+	} else if (getgid() == sinfo->gid) {
+		TRACE("same group");
+	} else if ((immnd_cb->admin_group_name != NULL) &&
+		 (osaf_user_is_member_of_group(sinfo->uid, immnd_cb->admin_group_name) == true)) {
+		TRACE("configured group");
+	} else {
+		syslog(LOG_AUTH, "access denied, uid:%d, pid:%d", sinfo->uid, sinfo->pid);
+		TRACE_2("access denied, uid:%d, pid:%d, group_name:%s",	sinfo->uid, sinfo->pid,
+			immnd_cb->admin_group_name);
+		error = SA_AIS_ERR_ACCESS_DENIED;
 		goto agent_rsp;
 	}
 
@@ -760,7 +777,6 @@ static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 
 	cl_node->agent_mds_dest = sinfo->dest;
 	cl_node->version = evt->info.initReq.version;
-	cl_node->client_pid = evt->info.initReq.client_pid;
 	cl_node->sv_id = (isOm) ? NCSMDS_SVC_ID_IMMA_OM : NCSMDS_SVC_ID_IMMA_OI;
 
 	if (immnd_client_node_add(cb, cl_node) != NCSCC_RC_SUCCESS) {
@@ -773,10 +789,10 @@ static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	TRACE_2("Added client with id: %llx <node:%x, count:%u>",
 		cl_node->imm_app_hdl, cb->node_id, (SaUint32T)clientId);
 
-	if (sync_pid && (cl_node->client_pid == sync_pid)) {
+	if (sync_pid && (sinfo->pid == sync_pid)) {
 		TRACE_2("Sync agent attached, pid: %u", sync_pid);
 		cl_node->mIsSync = 1;
-	} else 	if (pbe_pid && (cl_node->client_pid == pbe_pid) && !isOm && !(cl_node->mIsPbe)) {
+	} else 	if (pbe_pid && (sinfo->pid == pbe_pid) && !isOm && !(cl_node->mIsPbe)) {
 		LOG_NO("Persistent Back End OI attached, pid: %u", pbe_pid);
 		cl_node->mIsPbe = 1;
 	}
@@ -2047,7 +2063,6 @@ static uint32_t immnd_evt_proc_imm_resurrect(IMMND_CB *cb,
     cl_node->imm_app_hdl = m_IMMSV_PACK_HANDLE(clientId, cb->node_id);
     cl_node->agent_mds_dest=sinfo->dest;
     /*cl_node->version= .. TODO correct version (not used today)*/
-    cl_node->client_pid = 0; /* TODO correct PID (not important here) */
     cl_node->sv_id = (isOm)?NCSMDS_SVC_ID_IMMA_OM:NCSMDS_SVC_ID_IMMA_OI;
 
     if (immnd_client_node_add(cb,cl_node) != NCSCC_RC_SUCCESS)
