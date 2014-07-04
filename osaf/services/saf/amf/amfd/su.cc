@@ -1380,36 +1380,159 @@ done:
 }
 
 /**
+ * Validates if a node's admin state is valid for creating an SU
+ * Should only be called if the SU admin state is UNLOCKED, otherwise the
+ * logged errors could be misleading.
+ * @param su_dn
+ * @param attributes
+ * @param opdata
+ * @return true if so
+ */
+static bool node_admin_state_is_valid_for_su_create(const SaNameT *su_dn,
+        const SaImmAttrValuesT_2 **attributes,
+        const CcbUtilOperationData_t *opdata)
+{
+	SaNameT node_name = {0};
+	(void) immutil_getAttr("saAmfSUHostNodeOrNodeGroup", attributes, 0, &node_name);
+	if (node_name.length == 0) {
+		// attribute empty but this is probably not an error, just trace
+		TRACE("Create '%s', saAmfSUHostNodeOrNodeGroup not configured",
+			su_dn->value);
+		return false;
+	}
+
+	if (strncmp((char*)node_name.value, "safAmfNode=", 11) != 0) {
+		// attribute non empty but does not contain a node DN, not OK
+		amflog(SA_LOG_SEV_NOTICE,
+			"Create '%s', saAmfSUHostNodeOrNodeGroup not configured with a node (%s)",
+			su_dn->value, node_name.value);
+		return false;
+	}
+
+	const AVD_AVND *node = avd_node_get(&node_name);
+	if (node == NULL) {
+		// node must exist in the current model, not created in the same CCB
+		amflog(SA_LOG_SEV_WARNING,
+			"Create '%s', configured with a non existing node (%s)",
+			su_dn->value, node_name.value);
+		return false;
+	}
+
+	// configured with a node DN, accept only locked-in state
+	if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+		TRACE("Create '%s', configured node '%s' is not locked instantiation",
+			su_dn->value, node_name.value);
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Validates if an SG's admin state is valid for creating an SU
+ * Should only be called if the SU admin state is UNLOCKED, otherwise the
+ * logged errors could be misleading.
+ * @param su_dn
+ * @param attributes
+ * @param opdata
+ * @return true if so
+ */
+static bool sg_admin_state_is_valid_for_su_create(const SaNameT *su_dn,
+        const SaImmAttrValuesT_2 **attributes,
+        const CcbUtilOperationData_t *opdata)
+{
+	SaNameT sg_name = {0};
+	SaAmfAdminStateT admin_state;
+
+	avsv_sanamet_init(su_dn, &sg_name, "safSg");
+	const AVD_SG *sg = sg_db->find(Amf::to_string(&sg_name));
+	if (sg != NULL) {
+		admin_state = sg->saAmfSGAdminState;
+	} else {
+		// SG does not exist in current model, check CCB
+		const CcbUtilOperationData_t *tmp =
+			ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg_name);
+		osafassert(tmp != NULL); // already validated
+
+		(void) immutil_getAttr("saAmfSGAdminState",
+			tmp->param.create.attrValues, 0, &admin_state);
+	}
+
+	if (admin_state != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+		TRACE("'%s' created UNLOCKED but '%s' is not locked instantiation",
+			su_dn->value, sg_name.value);
+		return false;
+	}
+
+	return true;
+}
+
+/**
  * Validation performed when an SU is dynamically created with a CCB.
  * @param dn
  * @param attributes
  * @param opdata
  * 
- * @return int
+ * @return bool
  */
-static int is_ccb_create_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes,
-	const CcbUtilOperationData_t *opdata)
+static bool is_ccb_create_config_valid(const SaNameT *dn,
+                                       const SaImmAttrValuesT_2 **attributes,
+                                       const CcbUtilOperationData_t *opdata)
 {
 	SaAmfAdminStateT admstate;
-	int is_app_su = 1;
+	SaAisErrorT rc;
 
+	assert(opdata != NULL);  // must be called in CCB context
+
+	bool is_mw_su = false;
 	if (strstr((char *)dn->value, "safApp=OpenSAF") != NULL)
-		is_app_su = 0;
+		is_mw_su = true;
 
-	if (is_app_su && (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUAdminState"), attributes, 0, &admstate) != SA_AIS_OK)) {
-		report_ccb_validation_error(opdata, "saAmfSUAdminState not configured for '%s'", dn->value);
-		return 0;
-	}
+	rc = immutil_getAttr("saAmfSUAdminState", attributes, 0, &admstate);
 
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUAdminState"), attributes, 0, &admstate) == SA_AIS_OK) {
-		if (admstate != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_ccb_validation_error(opdata, "saAmfSUAdminState must be LOCKED_INSTANTIATION(%u) for"
-					" dynamically created SUs", SA_AMF_ADMIN_LOCKED_INSTANTIATION);
-			return 0;
+	if (is_mw_su == true) {
+		// Allow MW SUs to be created without an admin state
+		if (rc != SA_AIS_OK)
+			return true;
+
+		// value exist, it must be unlocked
+		if (admstate == SA_AMF_ADMIN_UNLOCKED)
+			return true;
+		else {
+			report_ccb_validation_error(opdata,
+				"admin state must be UNLOCKED for dynamically created MW SUs");
+			return false;
 		}
 	}
 
-	return 1;
+	// A non MW SU (application SU), check admin state
+	// Default value is UNLOCKED if created without a value
+	if (rc != SA_AIS_OK)
+		admstate = SA_AMF_ADMIN_UNLOCKED;
+
+	// locked-in state is fine
+	if (admstate == SA_AMF_ADMIN_LOCKED_INSTANTIATION)
+		return true;
+
+	if (admstate != SA_AMF_ADMIN_UNLOCKED) {
+		report_ccb_validation_error(opdata,
+			"'%s' created with invalid saAmfSUAdminState (%u)",
+			dn->value, admstate);
+		return false;
+	}
+
+	if (node_admin_state_is_valid_for_su_create(dn, attributes, opdata))
+		return true;
+
+	if (sg_admin_state_is_valid_for_su_create(dn, attributes, opdata))
+		return true;
+
+	amflog(SA_LOG_SEV_NOTICE, "CCB %d creation of '%s' failed",
+		opdata->ccbId, dn->value);
+	report_ccb_validation_error(opdata,
+		"SG or node not configured properly to allow creation of UNLOCKED SU");
+
+	return false;
 }
 
 static SaAisErrorT su_ccb_completed_cb(CcbUtilOperationData_t *opdata)
