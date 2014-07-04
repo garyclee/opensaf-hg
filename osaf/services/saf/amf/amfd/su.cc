@@ -1361,9 +1361,21 @@ static SaAisErrorT su_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 	su = su_db->find(Amf::to_string(&opdata->objectName));
 	osafassert(su != NULL);
 
-	if (is_app_su && (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
-		report_ccb_validation_error(opdata, "Admin state is not locked instantiation required for deletion");
-		goto done;
+	if (is_app_su) {
+		if (su->su_on_node->node_state == AVD_AVND_STATE_ABSENT)
+			goto done_ok;
+
+		if (su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)
+			goto done_ok;
+
+		if (su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)
+			goto done_ok;
+
+		if (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+			report_ccb_validation_error(opdata,
+				"Admin state is not locked instantiation required for deletion");
+			goto done;
+		}
 	}
 
 	if (!is_app_su && (su->su_on_node->node_state != AVD_AVND_STATE_ABSENT)) {
@@ -1371,6 +1383,7 @@ static SaAisErrorT su_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 		goto done;
 	}
 
+done_ok:
 	rc = SA_AIS_OK;
 	opdata->userData = su;
 
