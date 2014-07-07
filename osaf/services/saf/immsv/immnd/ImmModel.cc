@@ -446,6 +446,7 @@ static const std::string saImmRepositoryInit("saImmRepositoryInit");
 
 static SaImmRepositoryInitModeT immInitMode = SA_IMM_INIT_FROM_FILE;
 
+static SaUint32T ccbIdLongDnGuard  = 0; /* Disallow long DN creates if longDnsAllowed is being changed in ccb*/
 
 struct AttrFlagIncludes
 {
@@ -1010,7 +1011,7 @@ immModel_cleanTheBasement(IMMND_CB *cb,
                     clearCounter++;
                 } else {
                     if(opSearchTime < nextSearch) {
-                    	nextSearch = opSearchTime;
+                        nextSearch = opSearchTime;
                     }
                     prevSearchOp = &searchOp->next;
                     searchOp = searchOp->next;
@@ -2532,17 +2533,25 @@ ImmModel::getMaxSyncBatchSize()
 }
 
 bool
-ImmModel::getLongDnsAllowed()
+ImmModel::getLongDnsAllowed(ObjectInfo* immObject)
 {
     TRACE_ENTER();
     bool longDnsAllowed = false;
-    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
-    if(oi == sObjectMap.end()) {
-        TRACE_LEAVE();
+    if(ccbIdLongDnGuard)  {
+        /* A ccb is currently mutating longDnsAllowed */
         return false;
     }
 
-    ObjectInfo* immObject =  oi->second;
+    ObjectMap::iterator oi;
+    if(immObject == NULL) {
+        oi = sObjectMap.find(immObjectDn);
+        if(oi == sObjectMap.end()) {
+            TRACE_LEAVE();
+            return false;
+        }
+        immObject =  oi->second;
+    }
+
     ImmAttrValueMap::iterator avi = 
         immObject->mAttrValueMap.find(immLongDnsAllowed);
     if(avi != immObject->mAttrValueMap.end()) {
@@ -5176,6 +5185,8 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     }//for
     
     ccb->mMutations.clear();
+
+    if(ccbIdLongDnGuard == ccbId) {ccbIdLongDnGuard= 0;}
     
     //If there are implementers involved then send the final apply callback 
     //to them and remove the implementers from the Ccb.
@@ -5358,6 +5369,9 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
             TRACE_5("Ccb abort upcall for ccb %u for local PBE ", ccbId);
         }
     }
+
+    if(ccbIdLongDnGuard == ccbId) {ccbIdLongDnGuard= 0;}
+
     return true;
 }
 
@@ -7913,7 +7927,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             oMut->mAfterImage = afim;
         }
 
-        // Prepare for call on object implementor 
+        // Prepare for call on object implementer
         // and add implementer to ccb.
 
         bool hasImpl = object->mImplementer && object->mImplementer->mNodeId;
@@ -7925,6 +7939,61 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             LOG_IN("Skipping OI upcall for modify on %s since OI is same "
                "as the originator of the modify (OI augmented ccb)",
                objectName.c_str());
+        } else if(objectName == immObjectDn) {
+            ignoreImpl = true;
+            /* Ignore implemepter also for the implementer of the OpenSAF IMM service object,
+               which is actually the PBE. The PBE is the OI for the OpenSAF IMM service object
+               mainly to have the PBE receive and handle admin-operations directed at the
+               that object.  But the OpenSAF IMM service object also has some config attributes
+               and we then dont want the PBE to receive redundant ccb-related callbacks.
+               The PBE gets such ccb related callbacks for *all* persistent objects anyway.
+               So we discard the "normal" OI callback in this case since the PBE will get
+               the callback as PBE. 
+            */    
+            LOG_IN("Skipping OI callback for modify on %s since OI is same as PBE",
+               objectName.c_str());
+
+            /* Pre validate any changes. More efficent here than in apply/completed and
+               we need to guard against race on long DN creation allowed. Such long DNs
+               are themselves created in CCBs or RTO creates.
+               For longDnsAllowed we must check for interference and if setting to 0,
+               i.e. not allowed, then verify that no long DNs *exis*t in the IMM DB.
+               For opensafImmSyncBatchSize we accept anything.
+            */
+
+            bool longDnsAllowedBefore = getLongDnsAllowed();
+            bool longDnsAllowedAfter =  getLongDnsAllowed(afim);
+
+            /* Check if *this* ccb is attempting to alter longDnsAllowed.*/
+            if(longDnsAllowedBefore != longDnsAllowedAfter) {
+                if(ccbIdLongDnGuard) {
+                    /* This case should never happen since it is guarded by regular ccb handling. */
+                    setCcbErrorString(ccb, "ERR_BUSY: Other Ccb (%u) already using %s",
+                        ccbIdLongDnGuard, immLongDnsAllowed.c_str());
+                    LOG_IN("ERR_BUSY: Other Ccb (%u) already using %s",
+                        ccbIdLongDnGuard, immLongDnsAllowed.c_str());
+                    err = SA_AIS_ERR_BUSY;
+                } else {
+                    if(!longDnsAllowedAfter) {
+                        /* Check that NO LONG DNS EXIST! */
+                        ObjectMap::iterator omi = sObjectMap.begin();
+                        while(omi != sObjectMap.end()) {
+                            if(omi->first.length() > 255) {
+                                LOG_WA("Setting attr %s to 0 in %s not allowed when long DN exists: '%s'",
+                                    immLongDnsAllowed.c_str(),immObjectDn.c_str(), omi->first.c_str());
+                                err = SA_AIS_ERR_BAD_OPERATION;
+                                goto bypass_impl;
+                            }
+                            ++omi;
+                        }
+                    }
+
+                    ccbIdLongDnGuard = ccbId;
+                }
+            }
+        }
+
+        if(ignoreImpl) {
             goto bypass_impl;
         } else if(hasImpl && ccb->mAugCcbParent) {
             TRACE("impl found & not ignored Node %u %u ImpllId: %u %u",
@@ -8583,7 +8652,7 @@ ImmModel::setCcbErrorString(CcbInfo *ccb, const char *errorString, ...)
     va_end(vl);
 
     osafassert(len >= 0);
-    len++;	/* Reserve one byte for null-terminated sign '\0' */
+    len++;     /* Reserve one byte for null-terminated sign '\0' */
     if(len > errLen) {
         fmtError = (char *)realloc(fmtError, len);
         va_start(vl, errorString);
