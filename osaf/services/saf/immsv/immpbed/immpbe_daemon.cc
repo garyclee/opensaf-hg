@@ -1098,17 +1098,8 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 
 	numOps = (SaUint64T) ccbUtilCcbData->userData;
 
-	if(strncmp((char *) objectName->value, (char *) OPENSAF_IMM_OBJECT_DN, objectName->length) ==0) {
-		char buf[sBufsize];
-		snprintf(buf, sBufsize,
-			"PBE will not allow modifications to object %s", (char *) OPENSAF_IMM_OBJECT_DN);
-		LOG_NO("%s", buf);
-		saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
-		rc = SA_AIS_ERR_BAD_OPERATION;
-		/* We will actually get invoked twice on this object, both as normal implementer and as PBE
-		   the response on the modify upcall from PBE is discarded, but not for the regular implemener.
-		 */
-		goto done;
+	if(strncmp((char *) objectName->value, (char *) OPENSAF_IMM_OBJECT_DN, objectName->length) ==0) {			
+		LOG_NO("PBE allowing modification to object %s", (char *) OPENSAF_IMM_OBJECT_DN);
 	}
 
 	/* memorize the modification request */
