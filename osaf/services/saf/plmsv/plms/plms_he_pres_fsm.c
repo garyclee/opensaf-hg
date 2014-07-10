@@ -3565,7 +3565,7 @@ static SaUint32T plms_inv_data_compare(PLMS_INV_DATA conf_inv, PLMS_INV_DATA hpi
 			LOG_ER("Product_info->product name did not match.\
 			Conf: %d, Published: %d",
 			conf_inv.product_area.product_name.DataLength,
-			conf_inv.product_area.product_name.DataLength);
+			hpi_inv.product_area.product_name.DataLength);
 			return NCSCC_RC_FAILURE;
 		}
 		if (0 == memcmp(conf_inv.product_area.product_name.Data,

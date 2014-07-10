@@ -423,10 +423,13 @@ static SaUint32T hrb_get_resourceid(SaInt8T *epath_str,
 		return NCSCC_RC_FAILURE;
 	}
 
+	*resourceid = 0;
+
 	/* Iterate through the RPT table to get the resource_id of the 
 	corresponding entity_path */ 
 	next = SAHPI_FIRST_ENTRY;
 	do{
+		int i = 0;
 		current = next;
 		rc = saHpiRptEntryGet(cb->session_id, current,
 				&next, &rpt_entry);
@@ -438,15 +441,34 @@ static SaUint32T hrb_get_resourceid(SaInt8T *epath_str,
                 }
 
 		/* got the entry, check for matching entity path */
-		if (memcmp(&epath, (int8_t *)&rpt_entry.ResourceEntity.Entry,
-			sizeof(SaHpiEntityT))){
-			continue;
+		for (i=0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+			if (epath.Entry[i].EntityType !=
+				rpt_entry.ResourceEntity.Entry[i].EntityType ||
+				epath.Entry[i].EntityLocation !=
+				rpt_entry.ResourceEntity.Entry[i].EntityLocation)
+			{
+				/* not it */
+				break;
+			}
+			else if (epath.Entry[i].EntityType == SAHPI_ENT_ROOT &&
+					rpt_entry.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_ROOT)
+			{
+				*resourceid = rpt_entry.ResourceId;
+				entry = &rpt_entry;
+				TRACE("found resourceid %d for epath:%s",
+					*resourceid, epath_str);
+				break;
+			}
+			else if (epath.Entry[i].EntityType == SAHPI_ENT_ROOT ||
+					rpt_entry.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_ROOT)
+			{
+				/* if one of them is ROOT, not the same */
+				break;
+			}
 		}
-		else{
-			*resourceid = rpt_entry.ResourceId;
-			entry = &rpt_entry;
+
+		if (*resourceid)
 			break;
-		}  
 	} while (next != SAHPI_LAST_ENTRY);
 
 	return rc;

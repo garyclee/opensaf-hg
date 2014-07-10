@@ -1426,7 +1426,7 @@ SaUint32T hsm_get_idr_info(SaHpiRptEntryT  *rpt_entry,
 		}
 	} while(next_entry  != SAHPI_LAST_ENTRY);
 
-	if(next_entry  == SAHPI_LAST_ENTRY){
+	if (rdr.RdrType != SAHPI_INVENTORY_RDR) {
 		LOG_ER("HSM:RDR table is empty ");
 		return NCSCC_RC_FAILURE;
 	}
