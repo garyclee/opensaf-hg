@@ -6629,7 +6629,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             
             /* size includes null termination byte. */
             if(((size_t)attrValues->n.attrValue.val.x.size > 65) &&  
-                (i4->second->mValueType == SA_IMM_ATTR_SASTRINGT))
+                (i4->second->mValueType == SA_IMM_ATTR_SASTRINGT) && !getLongDnsAllowed())
             {
                 LOG_NO("ERR_INVALID_PARAM: RDN attribute value %s is too large: %u. Max length is 64 "
                     "for SaStringT", attrValues->n.attrValue.val.x.buf, (attrValues->n.attrValue.val.x.size -1));
@@ -13088,7 +13088,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
             
             /* size includes null termination byte. */
             if(((size_t)attrValues->n.attrValue.val.x.size > 65) &&
-                (attrValues->n.attrValueType == SA_IMM_ATTR_SASTRINGT))
+                (attrValues->n.attrValueType == SA_IMM_ATTR_SASTRINGT) && !getLongDnsAllowed())
             {
                 LOG_NO("ERR_INVALID_PARAM: RDN attribute value %s is too large: %u. Max length is 64 "
                     "for SaStringT", attrValues->n.attrValue.val.x.buf, (attrValues->n.attrValue.val.x.size-1));
