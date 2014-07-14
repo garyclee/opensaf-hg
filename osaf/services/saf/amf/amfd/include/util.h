@@ -86,6 +86,7 @@ extern const char *avd_readiness_state_name[];
 extern const char *avd_ass_state[];
 extern const char *avd_ha_state[];
 extern const char *avd_proxy_status_name[];
+extern const char *amf_recovery[];
 
 struct cl_cb_tag;
 struct avd_avnd_tag;

@@ -107,6 +107,19 @@ const char *avd_ha_state[] = {
 	"QUIESCING"
 };
 
+const char *amf_recovery[] = {
+    "UNKNOWN_RECOVERY",
+    "NO_RECOMMENDATION" ,
+    "COMPONENT_RESTART",
+    "COMPONENT_FAILOVER",
+    "NODE_SWITCHOVER",
+    "NODE_FAILOVER",
+    "NODE_FAILFAST",
+    "CLUSTER_RESET",
+    "APPLICATION_RESTART",
+    "CONTAINER_RESTART" 
+};
+
 std::string to_string(const SaNameT &s) 
 {
 	return std::string((char*)s.value, s.length);
