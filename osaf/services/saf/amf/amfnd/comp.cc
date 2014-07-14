@@ -2714,6 +2714,9 @@ void avnd_comp_pres_state_set(AVND_COMP *comp, SaAmfPresenceStateT newstate)
 	if (comp->pres == SA_AMF_PRESENCE_TERMINATION_FAILED)
 		avnd_failed_state_file_create();
 
+	/* Inform AMFD to generate ErrorClear() notification */
+	clear_error_report_alarm(comp);
+
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PRES_STATE);
 }
 
@@ -2751,4 +2754,19 @@ void comp_reset_restart_count(AVND_COMP *comp)
 				&comp->name, comp->err_info.restart_cnt);
 	}
 }
+/**
+ * @brief Inform AMFD to clear error report alarm.
+ * @param comp
+ */
 
+void clear_error_report_alarm(AVND_COMP *comp)
+{
+	if ((comp->error_report_sent == true) &&
+			((comp->pres == SA_AMF_PRESENCE_UNINSTANTIATED) ||
+			 (comp->pres == SA_AMF_PRESENCE_INSTANTIATED)) &&
+			(comp->oper == SA_AMF_OPERATIONAL_ENABLED)) {
+		avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompRecoveryOnError_ID,
+				&comp->name, 0);
+		comp->error_report_sent = false;
+	}
+}

@@ -960,6 +960,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
+			clear_error_report_alarm(comp);
 		}
 
 		/* instantiating -> inst-failed */
@@ -987,6 +988,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
+				clear_error_report_alarm(comp);
 			}
 
 			/* reassign the comp-csis.. if su-restart recovery is not active */
@@ -1114,6 +1116,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
+				clear_error_report_alarm(comp);
 			}
 
 			/* csi-set succeeded.. generate csi-done indication */
@@ -1160,6 +1163,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
+			clear_error_report_alarm(comp);
 		}
 
 		/* terminating -> uninstantiated */

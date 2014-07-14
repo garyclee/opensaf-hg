@@ -742,6 +742,9 @@ void avd_send_error_report_ntf(const SaNameT *name, SaAmfRecommendedRecoveryT re
 				(NCSCONTEXT) &add_info,
 				1 /* No add_info */);
 
+	} else {
+		avd_alarm_clear(name, SA_AMF_NTFID_ERROR_CLEAR,
+				SA_NTF_SOFTWARE_ERROR);
 	}
 
 	TRACE_LEAVE();
