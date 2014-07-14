@@ -361,6 +361,8 @@ typedef struct avnd_comp_tag {
 	bool assigned_flag; /* Used in finding multiple csi for a single comp while csi mod.*/
 	bool pending_delete; /* Used in deleting component when su is in
 				instantiated state.*/
+	bool error_report_sent; /* true when error is repoted on component using 
+				   saAmfComponentErrorReport() or saAmfComponentErrorReport_4()*/ 
 
 } AVND_COMP;
 
