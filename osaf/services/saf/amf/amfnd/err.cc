@@ -280,6 +280,9 @@ uint32_t avnd_evt_ava_err_clear_evh(AVND_CB *cb, AVND_EVT *evt)
 		err_info->src = static_cast<AVND_ERR_SRC>(0);
 		err_info->detect_time = 0;
 
+		/* Inform AMFD to generate ErrorClear() notification */
+		clear_error_report_alarm(comp);
+
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_ERR_INFO);
 	}
 

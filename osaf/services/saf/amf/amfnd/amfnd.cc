@@ -395,6 +395,26 @@ uint32_t avnd_evt_avd_reboot_evh(AVND_CB *cb, AVND_EVT *evt)
 	avnd_msgid_assert(info->msg_id);
 	cb->rcv_msg_id = info->msg_id;
 
+	/* Clear error report related alarms before reboot. 
+	   TODO: This for loop can be removed if AVD remembers and checkpoints 
+	   alarms sent due to error report.
+	 */
+	for (AVND_COMP *comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb, (uint8_t *)0);
+		  comp;
+		  comp = (AVND_COMP *) ncs_patricia_tree_getnext(&avnd_cb->compdb, (uint8_t *)&comp->name)) {
+
+		/* Skip OpenSAF and external components */
+		if (comp->su->is_ncs || comp->su->su_is_external)
+			continue;
+
+		if (comp->error_report_sent == true) {
+			avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompRecoveryOnError_ID,
+					&comp->name, 0);
+			comp->error_report_sent = false;
+		}
+
+	}
+
 	LOG_NO("Received reboot order, ordering reboot now!");
 	opensaf_reboot(cb->node_info.nodeId,
 				   (char *)cb->node_info.executionEnvironment.value,
