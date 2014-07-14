@@ -85,6 +85,7 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 					      SaUint16T minorId,
 					      uint32_t sourceIndicator,
 					      SaUint16T stateId,
+					      SaUint16T oldState,
 					      SaUint16T newState,
 					      NCSCONTEXT add_info,
 					      int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
