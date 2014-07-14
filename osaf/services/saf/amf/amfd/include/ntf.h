@@ -93,4 +93,6 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 /* Clearing of alarms */
 void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uint32_t probableCause);
 
+void avd_send_error_report_ntf(const SaNameT *name, SaAmfRecommendedRecoveryT recovery);
+
 #endif

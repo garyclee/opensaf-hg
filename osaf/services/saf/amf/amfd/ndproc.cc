@@ -707,6 +707,20 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 									value_len);
 				}
 				break;
+			case saAmfCompRecoveryOnError_ID:
+				/* This attribute Id is currently used by AMFD to update AMFND 
+				   for the modification of "saAmfCompRecoveryOnError" in any 
+				   component. There is no update from AMFND to AMFD for this 
+				   attribute.  
+				   So AMFND can currently use this attribute id for sending 
+				   error report message to AMFD when error is reported on a 
+				   component. This received message is translated into a 
+				   alarm notification by AMFD.
+				 */ 
+				l_val = ntohl(*((uint32_t*)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
+				avd_send_error_report_ntf(&comp->comp_info.name,
+						static_cast<SaAmfRecommendedRecoveryT>(l_val));
+				break;
 			default:
 				/* log error that a the object value is invalid */
 				LOG_EM("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.attr_id);

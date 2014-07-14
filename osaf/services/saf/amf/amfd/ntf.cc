@@ -157,7 +157,7 @@ void avd_send_si_unassigned_alarm(const SaNameT *si_name)
 }
 
 /*****************************************************************************
-  Name          :  avd_send_comp_proxy_status_unproxied_alarm
+  
 
   Description   :  This function generates a Proxy Status of a Component 
                    Changed to Unproxied alarm.
@@ -504,31 +504,42 @@ SaAisErrorT fill_ntf_header_part_avd(SaNtfNotificationHeaderT *notificationHeade
 
 	/* Fill the additional info if present */
 	if (type != 0) {
-		SaStringT dest_ptr;
-		SaAisErrorT ret;
-		SaNameT *name = (SaNameT*)(add_info);
-		if (type == 1) {
-			/* node_name */
-			notificationHeader->additionalInfo[0].infoId = SA_AMF_NODE_NAME;
-			notificationHeader->additionalInfo[0].infoType = SA_NTF_VALUE_LDAP_NAME;
+		switch (minorId) {
+		case SA_AMF_NTFID_ERROR_REPORT: 
+			SaNtfAdditionalInfoT *info; 
+			info = (SaNtfAdditionalInfoT *) add_info;	
+			notificationHeader->additionalInfo[0].infoId = info->infoId;
+			notificationHeader->additionalInfo[0].infoType = info->infoType;
+			notificationHeader->additionalInfo[0].infoValue = info->infoValue;
+			break;
+		default:
+			SaStringT dest_ptr;
+			SaAisErrorT ret;
+			SaNameT *name = (SaNameT*)(add_info);
+			if (type == 1) {
+				/* node_name */
+				notificationHeader->additionalInfo[0].infoId = SA_AMF_NODE_NAME;
+				notificationHeader->additionalInfo[0].infoType = SA_NTF_VALUE_LDAP_NAME;
 
-		} else if (type == 2) {
-			/* si_name */
-			notificationHeader->additionalInfo[0].infoId = SA_AMF_SI_NAME;
-			notificationHeader->additionalInfo[0].infoType = SA_NTF_VALUE_LDAP_NAME;
+			} else if (type == 2) {
+				/* si_name */
+				notificationHeader->additionalInfo[0].infoId = SA_AMF_SI_NAME;
+				notificationHeader->additionalInfo[0].infoType = SA_NTF_VALUE_LDAP_NAME;
 
+			}
+			ret = saNtfPtrValAllocate(notificationHandle,
+					sizeof (SaNameT) + 1,
+					(void**)&dest_ptr,
+					&(notificationHeader->additionalInfo[0].infoValue));
+
+			if (ret != SA_AIS_OK) {
+				LOG_ER("%s: saNtfPtrValAllocate Failed (%u)", __FUNCTION__, ret);
+				return static_cast<SaAisErrorT>(NCSCC_RC_FAILURE);
+			}
+
+			memcpy(dest_ptr, name, sizeof(SaNameT));
+			break;
 		}
-		ret = saNtfPtrValAllocate(notificationHandle,
-				sizeof (SaNameT) + 1,
-				(void**)&dest_ptr,
-				&(notificationHeader->additionalInfo[0].infoValue));
-				
-		if (ret != SA_AIS_OK) {
-			LOG_ER("%s: saNtfPtrValAllocate Failed (%u)", __FUNCTION__, ret);
-			return static_cast<SaAisErrorT>(NCSCC_RC_FAILURE);
-		}
-
-		memcpy(dest_ptr, name, sizeof(SaNameT));
 	}
 	return SA_AIS_OK;
 
@@ -707,3 +718,33 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 	return status;
 
 }
+
+
+void avd_send_error_report_ntf(const SaNameT *name, SaAmfRecommendedRecoveryT recovery)
+{
+
+        TRACE_ENTER();
+	if ((recovery > SA_AMF_NO_RECOMMENDATION) && (recovery < SA_AMF_CONTAINER_RESTART)) {
+		char add_text[ADDITION_TEXT_LENGTH];
+		SaNtfAdditionalInfoT add_info;
+		add_info.infoId = SA_AMF_AI_RECOMMENDED_RECOVERY;
+		add_info.infoType = SA_NTF_VALUE_UINT64;
+		add_info.infoValue.uint64Val = recovery;
+		snprintf(add_text, ADDITION_TEXT_LENGTH, "Error reported on %s with recovery %s", name->value,
+				amf_recovery[recovery]);
+		sendAlarmNotificationAvd(avd_cb,
+				*name,
+				(SaUint8T*)add_text,
+				SA_SVC_AMF,
+				SA_AMF_NTFID_ERROR_REPORT,
+				SA_NTF_SOFTWARE_ERROR,
+				SA_NTF_SEVERITY_MAJOR,
+				(NCSCONTEXT) &add_info,
+				1 /* No add_info */);
+
+	}
+
+	TRACE_LEAVE();
+}
+
+
