@@ -96,6 +96,13 @@ void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state)
 			SA_AMF_NTFID_COMP_CLEANUP_FAILED, SA_NTF_SOFTWARE_ERROR);
 	}
 
+	if ((comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
+			(pres_state == SA_AMF_PRESENCE_UNINSTANTIATED)){
+		avd_alarm_clear(&comp->comp_info.name,
+				SA_AMF_NTFID_COMP_INSTANTIATION_FAILED, SA_NTF_SOFTWARE_ERROR);
+	}
+
+
 	comp->saAmfCompPresenceState = pres_state;
 	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompPresenceState",
 		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);

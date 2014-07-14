@@ -2334,8 +2334,8 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 		/* if(m_AVND_COMP_TYPE_IS_INTER_NODE)  */
  /*************************   Section  1 Ends Here **************************/
 		if (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(rec->pxied_comp)) {
-			m_AVND_COMP_PROXY_STATUS_SET(comp, SA_AMF_PROXY_STATUS_UNPROXIED);
-			m_AVND_COMP_PROXY_STATUS_AVD_SYNC(cb, comp, rc_send);
+			m_AVND_COMP_PROXY_STATUS_SET(rec->pxied_comp, SA_AMF_PROXY_STATUS_UNPROXIED);
+			m_AVND_COMP_PROXY_STATUS_AVD_SYNC(cb, rec->pxied_comp, rc_send);
 		}
 
 		/* process proxied comp unregistration */
