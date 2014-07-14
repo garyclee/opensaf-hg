@@ -217,6 +217,7 @@ void avd_send_admin_state_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT
 					minor_id,
 					SA_NTF_MANAGEMENT_OPERATION,
 					SA_AMF_ADMIN_STATE,
+					old_state,
 					new_state,
 					NULL,
 					0);
@@ -252,6 +253,7 @@ void avd_send_oper_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_
 					minor_id,
 					SA_NTF_OBJECT_OPERATION,
 					SA_AMF_OP_STATE,
+					old_state,
 					new_state,
 					NULL,
 					0);
@@ -286,6 +288,7 @@ void avd_send_su_pres_state_chg_ntf(const SaNameT *su_name,
 					SA_AMF_NTFID_SU_PRESENCE_STATE,
 					SA_NTF_OBJECT_OPERATION,
 					SA_AMF_PRESENCE_STATE,
+					old_state,
 					new_state,
 					NULL,
 					0);
@@ -324,6 +327,7 @@ void avd_send_su_ha_state_chg_ntf(const SaNameT *su_name,
 					SA_AMF_NTFID_SU_SI_HA_STATE,
 					SA_NTF_OBJECT_OPERATION,
 					SA_AMF_HA_STATE,
+					old_state,
 					new_state,
 					(NCSCONTEXT)si_name,
 					2 /* Si_name */);
@@ -360,6 +364,7 @@ void avd_send_su_ha_readiness_state_chg_ntf(const SaNameT *su_name, const SaName
 					SA_AMF_NTFID_SU_SI_HA_READINESS_STATE,
 					SA_NTF_OBJECT_OPERATION,
 					SA_AMF_HA_READINESS_STATE,
+					old_state,
 					new_state,
 					(NCSCONTEXT)si_name,
 					2 /* Si_name */);
@@ -394,6 +399,7 @@ void avd_send_si_assigned_ntf(const SaNameT *si_name, SaAmfAssignmentStateT old_
 					SA_AMF_NTFID_SI_ASSIGNMENT_STATE,
 					SA_NTF_OBJECT_OPERATION,
 					SA_AMF_ASSIGNMENT_STATE,
+					old_state,
 					new_state,
 					NULL,
 					0);
@@ -430,6 +436,7 @@ void avd_send_comp_proxy_status_proxied_ntf(const SaNameT *comp_name,
 					SA_AMF_NTFID_COMP_PROXY_STATUS,
 					SA_NTF_OBJECT_OPERATION,
 					SA_AMF_PROXY_STATUS,
+					old_status,
 					new_status,
 					NULL,
 					0);
@@ -620,6 +627,7 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 				     SaUint16T minorId,
 				     uint32_t sourceIndicator,
 				     SaUint16T stateId,
+				     SaUint16T oldstate,
 				     SaUint16T newState,
 				     NCSCONTEXT add_info,
 				     int type)
@@ -677,7 +685,8 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 
 	*(myStateNotification.sourceIndicator) = static_cast<SaNtfSourceIndicatorT>(sourceIndicator);
 	myStateNotification.changedStates->stateId = stateId;
-	myStateNotification.changedStates->oldStatePresent = SA_FALSE;
+	myStateNotification.changedStates->oldStatePresent = SA_TRUE;
+	myStateNotification.changedStates->oldState = oldstate;
 	myStateNotification.changedStates->newState = newState;
 
 	status = saNtfNotificationSend(myStateNotification.notificationHandle);
