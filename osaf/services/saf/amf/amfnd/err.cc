@@ -371,6 +371,12 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	/* if time's not specified, use current time TBD */
 	if (err_info->src != AVND_ERR_SRC_REP)
 		m_GET_TIME_STAMP(comp->err_info.detect_time);
+	else if (comp->error_report_sent == false){
+		/* Inform AMFD to generate ErrorReport() notification */
+		avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompRecoveryOnError_ID,
+				&comp->name, err_info->rec_rcvr.raw);
+		comp->error_report_sent = true;
+	}
 
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_ERR_INFO);
 

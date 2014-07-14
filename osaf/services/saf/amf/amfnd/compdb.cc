@@ -1594,6 +1594,7 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 	m_AVND_SUDB_REC_COMP_ADD(*su, *comp, rc);
 
 	comp->su = su;
+	comp->error_report_sent = false;
 
 	if (true == su->su_is_external) {
 		m_AVND_COMP_TYPE_SET_EXT_CLUSTER(comp);
