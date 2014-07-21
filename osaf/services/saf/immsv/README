@@ -484,6 +484,10 @@ CHANGE of an existing attribute if it is one of the following:
      New instances of the class will get the new default,
      old instances retain the old value.
 
+   * Adding default-value for an attribute (config or runtime).
+     New instances of the class will get the new default,
+     old instances retain the null value (untill the next cluster restart).
+
    * Adding 'multivalued' flag for an attribute (config or runtime).
 
    * Adding 'writable' flag for an attribute (config).
@@ -494,7 +498,7 @@ CHANGE of an existing attribute if it is one of the following:
 
 
 All other changes, such as change of attribute type, removal of default,
-addition of default, etc are not allowed.
+are not allowed.
 
 There is no API change. The existing saImmOmClassCreate_2 call is used
 to insert the new class version. The standard behavior is to reject
@@ -1842,7 +1846,6 @@ not to create deadlock cycles between the involved processes. Any such deadlock 
 be resolved by the timeout of the synchronous admin-ops, so the problem would be lack
 of progress on some task, not a permanently hung set of processes.
 
-
 Attribute 'longDnsAllowed' added to class 'OpensafImm' (4.5)
 ===========================================================
 https://sourceforge.net/p/opensaf/tickets/897
@@ -1869,10 +1872,27 @@ The xml file should be used for upgrading the class when older OpenSAF systems a
 upgraded to OpenSAF 4.5 and that system must be capable of supporting long DNs.
 
 
+Allow schema change to add attribute default (4.5)
+==================================================
+https://sourceforge.net/p/opensaf/tickets/895
+
+The restriction of not allowing a default value to be added to an attribute definition
+that previously had no default, has been removed. Only new instances of the class will
+get the default assigned when no value is provided for the attribute at object-create
+time. Old instances with a null-value for the attribute will still have a null-value
+for that attribute even after the schema change. However, a cluster restart will
+cause all instances that used to have a null value to get the default value.
+
+A general rule for schema changes is that the immsv never alters the value of existing
+attributes as part of a schema change. Doing so would require the OI to be notified,
+which is not realistic since the shcema change is not performed as a CCB.
+This new feature is only available after an upgrade to OpensAF 4.5 has completed. 
+
+
 Notes on upgrading from OpenSAF 4.[1,2,3,4] to OpenSAF 4.5
 ==========================================================
 Several enhancements in OpenSAF4.5 add new message types or add new imm server states
-for ccb handling (#798,  #799, #16). During a rolling upgrade from an earlier OpenSAF
+for ccb handling (#798,  #799, #16, #895). During a rolling upgrade from an earlier OpenSAF
 release to the 4.5 release there will be nodes executing the older release concurrently
 with nodes executing OpenSAF 4.5. Nodes executing the earlier release will not
 recognize new message types originating from nodes executing 4.5 and messages from
