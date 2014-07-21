@@ -3728,9 +3728,15 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
         }
 
         if(oldAttr->mDefaultValue.empty() && !newAttr->mDefaultValue.empty()) {
-            LOG_NO("Impossible upgrade, attribute %s:%s adds default value",
-                className.c_str(), attName.c_str());
-            return true;
+            if(protocol45Allowed()){
+                LOG_NO("Allowed upgrade, attribute %s:%s adds default value",
+                    className.c_str(), attName.c_str());            
+                change = true;
+            } else {
+                LOG_NO("Impossible upgrade, attribute %s:%s adds default value",
+                    className.c_str(), attName.c_str());
+                return true;
+            }
         }
 
         if(!oldAttr->mDefaultValue.empty() && newAttr->mDefaultValue.empty()) {
@@ -7778,7 +7784,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                             attrName.c_str(), objectName.c_str(), newRim);
                         err = SA_AIS_ERR_BAD_OPERATION;
                         break;
-		    }
+                    }
                 }
 
 
