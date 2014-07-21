@@ -365,7 +365,7 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 	/* determine if the su is ranked per si */
 	for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
 			it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
-		AVD_SUS_PER_SI_RANK *su_rank_rec = it->second;
+		su_rank_rec = it->second;
 		if ((memcmp(&(su_rank_rec->indx.si_name), &si_name, sizeof(SaNameT))
 					== 0) &&
 				(memcmp(&su_rank_rec->su_name.value, 
