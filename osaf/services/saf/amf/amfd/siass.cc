@@ -173,7 +173,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	/* determine if the su is ranked per si */
 	for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
 			it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
-		AVD_SUS_PER_SI_RANK *su_rank_rec = it->second;
+		su_rank_rec = it->second;
 		if (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, si->name) != 0)
 			continue;
 		curr_su = su_db->find(Amf::to_string(&su_rank_rec->su_name));
@@ -194,7 +194,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 			/* determine the su_rank rec for this rec */
 			for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
 					it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
-				AVD_SUS_PER_SI_RANK *i_su_rank_rec = it->second;
+				i_su_rank_rec = it->second;
 				if (m_CMP_HORDER_SANAMET(i_su_rank_rec->indx.si_name, si->name) != 0)
 					continue;
 				curr_su = su_db->find(Amf::to_string(&i_su_rank_rec->su_name));
