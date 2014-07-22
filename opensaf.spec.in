@@ -15,6 +15,18 @@
 %define is_ais_msg %(test "@AIS_MSG_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_ais_smf %(test "@AIS_SMF_ENABLED@" = "yes" && echo 1 || echo 0)
 
+%if 0%{?suse_version} >= 1210
+%define use_systemd 1
+%define _systemd_preun() %{service_del_preun}
+%define _systemd_post() %{service_add_post}
+%endif
+
+%if 0%{?fedora} >= 18
+%define use_systemd 1
+%define _systemd_preun() %{systemd_preun}
+%define _systemd_post() %{systemd_post}
+%endif
+
 %define _pkglibdir %{_libdir}/%{name}
 %define _pkgsysconfdir %{_sysconfdir}/%{name}
 %define _initddir @initscriptdir@
@@ -42,9 +54,15 @@ URL: http://www.opensaf.org
 Source: http://download.opensaf.org/releases/%{name}-%{version}.tar.gz
 Packager: @OPENSAF_BUGREPORT@
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+%if %use_systemd
+BuildRequires: systemd
+%systemd_requires
+%endif
 Requires(pre): /usr/bin/getent /usr/sbin/groupadd /usr/sbin/useradd
+%if ! %use_systemd
 Requires(post): /usr/lib/lsb/install_initd /sbin/service
 Requires(preun): /usr/lib/lsb/remove_initd /sbin/service
+%endif
 Requires: /lib/lsb/init-functions
 Requires: %{name}-libs = %{version}-%{release}
 
@@ -391,6 +409,10 @@ running on the System Controller nodes only.
 %package plm-coordinator
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-PLM Service
+%if %use_systemd
+BuildRequires: systemd-devel
+%systemd_requires
+%endif
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Requires: /lib/lsb/init-functions
@@ -756,17 +778,29 @@ exit 0
 %post
 # $1 == 1 (install), $1 == 2 (upgrade)
 if [ $1 -gt 1 ]; then
-   /sbin/service opensafd try-restart >/dev/null 2>&1 || :
+   %if %use_systemd
+      /bin/systemctl try-restart opensafd.service
+   %else
+      /sbin/service opensafd try-restart >/dev/null 2>&1 || :
+   %endif
 else
-   /usr/lib/lsb/install_initd %{_initddir}/opensafd
+   %if %use_systemd
+      %_systemd_post opensafd.service
+   %else
+      /usr/lib/lsb/install_initd %{_initddir}/opensafd
+   %endif
 fi
 
 %preun
 # $1 == 1 (upgrade), $1 == 0, (uninstall)
 if [ $1 = 0 ]; then
-    /sbin/service opensafd stop >/dev/null 2>&1 || :
-    /usr/lib/lsb/remove_initd %{_initddir}/opensafd
-    sed -i '/%{opensaf_user}/d' /etc/sudoers
+    %if %use_systemd
+        %_systemd_preun opensafd.service
+    %else
+        /sbin/service opensafd stop >/dev/null 2>&1 || :
+        /usr/lib/lsb/remove_initd %{_initddir}/opensafd
+        sed -i '/%{opensaf_user}/d' /etc/sudoers
+    %endif
 fi
 
 %post amf-libs -p /sbin/ldconfig
@@ -782,15 +816,25 @@ fi
 if [ $1 -gt 1 ]; then
    echo "" >/dev/null 2>&1 || :
 else
-   /usr/lib/lsb/install_initd %{_initddir}/plmcboot
-   /usr/lib/lsb/install_initd %{_initddir}/plmcd
+   %if %use_systemd
+      %_systemd_post plmcboot.service
+      %_systemd_post plmcd.service
+   %else
+      /usr/lib/lsb/install_initd %{_initddir}/plmcboot
+      /usr/lib/lsb/install_initd %{_initddir}/plmcd
+   %endif
 fi
 
 %preun plm-coordinator
 # $1 == 1 (upgrade), $1 == 0, (uninstall)
 if [ $1 = 0 ]; then
-    /usr/lib/lsb/remove_initd %{_initddir}/plmcboot
-    /usr/lib/lsb/remove_initd %{_initddir}/plmcd
+    %if %use_systemd
+        %_systemd_preun plmcboot.service
+        %_systemd_preun plmcd.service
+    %else
+        /usr/lib/lsb/remove_initd %{_initddir}/plmcboot
+        /usr/lib/lsb/remove_initd %{_initddir}/plmcd
+    %endif
 fi
 %endif
 
@@ -895,6 +939,9 @@ fi
 %config(noreplace) %{_pkgsysconfdir}/node_name
 %config %{_pkgsysconfdir}/osafdir.conf
 %config %{_pkgsysconfdir}/nid.conf
+%if %use_systemd
+%config %_unitdir/opensafd.service
+%endif
 %config %{_initddir}/opensafd
 %{_pkglibdir}/opensafd
 %{_pkglibdir}/opensaf_reboot
@@ -1125,8 +1172,13 @@ fi
 %config(noreplace) %{_sysconfdir}/plmcd.conf
 %{_sbindir}/plmcd
 %{_libdir}/libplmc_utils.so.*
+%if %use_systemd
+%_unitdir/plmcboot.service
+%_unitdir/plmcd.service
+%else
 %{_initddir}/plmcboot
 %{_initddir}/plmcd
+%endif
 
 %files plm-hpi
 %defattr(-,root,root)

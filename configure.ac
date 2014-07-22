@@ -245,6 +245,22 @@ fi
 AM_CONDITIONAL([ENABLE_TIPC_TRANSPORT], [test "$enable_tipc" = yes])
 AC_SUBST([TIPC_TRANSPORT_ENABLED], ["$enable_tipc"])
 
+#
+# Enable/disable use of systemd
+#
+PKG_CHECK_MODULES([SYSTEMD], [systemd], [enable_systemd=yes], [enable_systemd=no])
+ 
+if test "$enable_systemd" = yes; then
+       PKG_CHECK_MODULES([SYSTEMD], [systemd])
+       AC_DEFINE([ENABLE_SYSTEMD], 1, [Define if systemd is enabled])
+       systemdunitdir=$(pkg-config --variable=systemdsystemunitdir systemd)
+       systemdversion=$(pkg-config --modversion systemd)
+fi
+ 
+AM_CONDITIONAL([ENABLE_SYSTEMD], [test "$enable_systemd" = yes])
+AC_SUBST([SYSTEMD_ENABLED], ["$enable_systemd"])
+AC_SUBST([systemdsystemunitdir], ["$systemdunitdir"])
+AC_SUBST([systemdmodversion], ["$systemdversion"])
 
 #
 # Enable/disable building the OpenSAF tests
@@ -767,6 +783,7 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/fm/fms/scripts/osaf-fmd
         osaf/services/infrastructure/nid/Makefile
         osaf/services/infrastructure/nid/config/Makefile
+        osaf/services/infrastructure/nid/config/opensafd.service
         osaf/services/infrastructure/nid/scripts/Makefile
         osaf/services/infrastructure/nid/scripts/configure_tipc
         osaf/services/infrastructure/nid/scripts/opensafd
@@ -966,5 +983,6 @@ echo "${ECHO_T}  Enable Java AIS Mapping: ${enable_java}"
 echo "${ECHO_T}  Enable AM4J: ${enable_am4j}"
 echo "${ECHO_T}  Enable PLM support: ${enable_ais_plm}"
 echo "${ECHO_T}  Enable TIPC transport: ${enable_tipc}"
+echo "${ECHO_T}  Enable systemd: ${enable_systemd}"
 echo "======================================================="
 echo ""

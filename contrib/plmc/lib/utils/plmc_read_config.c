@@ -26,6 +26,10 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -187,6 +191,7 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config)
 					tag = 0;
 					break;
 				case PLMC_SERVICES:
+#if (ENABLE_SYSTEMD == 0)
 					if (checkfile(line)) {
 						syslog(LOG_ERR, "plmc_read_"
 							"config.c: Service "
@@ -195,6 +200,7 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config)
 									line);
 						return -1;
 					}
+#endif
 					strncpy(config->services[num_services],
 						 line, PLMC_MAX_TAG_LEN -1);
 					num_services++;
@@ -212,6 +218,7 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config)
 					}
 					break;
 				case PLMC_OSAF:
+#if (ENABLE_SYSTEMD == 0)
 					if (checkfile(line)) {
 						syslog(LOG_ERR, "plmc_read_"
 							"config.c: Osaf "
@@ -220,6 +227,7 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config)
 									line);
 						return -1;
 					}
+#endif
 					strncpy(config->osaf, line, 
 							PLMC_MAX_TAG_LEN -1);
 					tag = 0;

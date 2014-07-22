@@ -31,6 +31,10 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -53,6 +57,10 @@
 #include <sys/file.h>
 
 #include <arpa/inet.h>
+
+#if (ENABLE_SYSTEMD == 1)
+#include <systemd/sd-daemon.h>
+#endif
 
 #include "plmc.h"
 #include "plmc_cmds.h"
@@ -135,37 +143,65 @@ void *plmc_child_thread(void *arg)
 		case PLMC_SA_PLM_ADMIN_UNLOCK_CMD:
 			/* Unlock the OS - start OpenSAF-related services, then start OpenSAF. */
 			for(i=0; i<config.num_services; i++) {
+#if (ENABLE_SYSTEMD == 1)
+				tmp_retval = sysexec("/bin/systemctl start", config.services[i]);
+#else
 				tmp_retval = sysexec(config.services[i], "start");
+#endif
 				if (tmp_retval) retval = tmp_retval;
 			}
+#if (ENABLE_SYSTEMD == 1)
+			tmp_retval = sysexec("/bin/systemctl start", config.osaf);
+#else
 			tmp_retval = sysexec(config.osaf, "start");
+#endif
 			if (tmp_retval) retval = tmp_retval;
 			break;
 
 		case PLMC_SA_PLM_ADMIN_LOCK_CMD:
 			/* Lock the OS - stop OpenSAF, then stop OpenSAF-related services. */
+#if (ENABLE_SYSTEMD == 1)
+			tmp_retval = sysexec("/bin/systemctl stop", config.osaf);
+#else
 			tmp_retval = sysexec(config.osaf, "stop");
+#endif
 			if (tmp_retval) retval = tmp_retval;
 			for(i = config.num_services -1; i >= 0;  i--) {
+#if (ENABLE_SYSTEMD == 1)
+				tmp_retval = sysexec("/bin/systemctl stop", config.services[i]);
+#else
 				tmp_retval = sysexec(config.services[i], "stop");
+#endif
 				if (tmp_retval) retval = tmp_retval;
 			}
 			break;
 
 		case PLMC_OSAF_START_CMD:
 			/* Start OpenSAF. */
+#if (ENABLE_SYSTEMD == 1)
+			retval = sysexec("/bin/systemctl start", config.osaf);
+#else
 			retval = sysexec(config.osaf, "start");
+#endif
 			break;
 
 		case PLMC_OSAF_STOP_CMD:
 			/* Stop OpenSAF. */
+#if (ENABLE_SYSTEMD == 1)
+			retval = sysexec("/bin/systemctl stop", config.osaf);
+#else
 			retval = sysexec(config.osaf, "stop");
+#endif
 			break;
 
 		case PLMC_OSAF_SERVICES_START_CMD:
 			/* Start OpenSAF-related services. */
 			for(i=0; i<config.num_services; i++) {
+#if (ENABLE_SYSTEMD == 1)
+				tmp_retval = sysexec("/bin/systemctl start", config.services[i]);
+#else
 				tmp_retval = sysexec(config.services[i], "start");
+#endif
 				if (tmp_retval) retval = tmp_retval;
 			}
 			break;
@@ -173,7 +209,11 @@ void *plmc_child_thread(void *arg)
 		case PLMC_OSAF_SERVICES_STOP_CMD:
 			/* Stop OpenSAF-related services. */
 			for(i = config.num_services -1; i >= 0;  i--) {
+#if (ENABLE_SYSTEMD == 1)
+				tmp_retval = sysexec("/bin/systemctl stop", config.services[i]);
+#else
 				tmp_retval = sysexec(config.services[i], "stop");
+#endif
 				if (tmp_retval) retval = tmp_retval;
 			}
 			break;
@@ -625,7 +665,10 @@ int main(int argc, char** argv)
 	int tcp_keepidle_time, tcp_keepalive_intvl, tcp_keepalive_probes;
 	int so_keepalive;
 	socklen_t optlen;
-	int controller = 1, time = 1, pid=0; 
+	int controller = 1, time = 1;
+#if (ENABLE_SYSTEMD == 0)
+	int pid=0; 
+#endif
 	struct sockaddr_in sin;
 	unsigned int option= 0x0;
 
@@ -710,6 +753,7 @@ int main(int argc, char** argv)
 			usage(basename(argv[0]));
 	}
 	
+#if (ENABLE_SYSTEMD == 0)
 	/* Check the lock file to make sure we are not already runing */
 	if ((pid=chkpid(PLMCD_PID))){
 		fprintf(stderr, "plmcd already running? %d\n", pid);
@@ -724,15 +768,18 @@ int main(int argc, char** argv)
 		syslog(LOG_ERR, "Error, daemon:  %m");
 		exit(PLMC_EXIT_FAILURE);
 	}
+#endif
 
 	umask(027);
 
+#if (ENABLE_SYSTEMD == 0)
 	/* write a PID file */
 	/* Check the lock file to make sure we are not already runing */
 	if (!writepid(PLMCD_PID)){
 		syslog(LOG_ERR, "Error, can not create pid file %s", PLMCD_PID);
 		exit(PLMC_EXIT_FAILURE);
 	}
+#endif
 
 
 	/* Set up termination signal handler here. */
@@ -741,6 +788,9 @@ int main(int argc, char** argv)
 	/* Send UDP datagram that the EE has instantiated.  */
 	plmc_send_udp_msg(PLMC_D_START_MSG);
 
+#if (ENABLE_SYSTEMD == 1)
+       sd_notify(0, "READY=1");
+#endif
 
 	/* Attempts to establish a connection to a PLM server. If the connection
 	 * to controller 1 fails or times out try to connect to conrtoller 2. If

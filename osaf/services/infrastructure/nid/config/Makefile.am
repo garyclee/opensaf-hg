@@ -23,6 +23,11 @@ dist_pkgsysconf_DATA = \
 	$(top_srcdir)/osaf/services/infrastructure/nid/config/nodeinit.conf.payload \
 	$(top_srcdir)/osaf/services/infrastructure/nid/config/nid.conf
 
+if ENABLE_SYSTEMD
+dist_systemd_DATA = \
+        $(top_builddir)/osaf/services/infrastructure/nid/config/opensafd.service
+endif
+
 set-default-node-config:
 	@echo "*** Setting default controller node configuration ***"
 	echo "2" > $(DESTDIR)$(pkgsysconfdir)/chassis_id
@@ -33,4 +38,11 @@ set-default-node-config:
 install-data-hook: set-default-node-config
 if !ENABLE_AIS_PLM
 	sed -i '/plmd/d'  $(DESTDIR)$(pkgsysconfdir)/nodeinit.conf.controller
+endif
+
+install-data-hook:
+if ENABLE_SYSTEMD
+	if [ ${systemdmodversion} -gt 204 ]; then \
+		sed -i '/ControlGroup/d'  $(DESTDIR)$(systemddir)/opensafd.service; \
+	fi
 endif

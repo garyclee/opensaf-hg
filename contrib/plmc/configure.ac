@@ -47,6 +47,20 @@ AC_CONFIG_COMMANDS([libtool-rpath-patch],
 	fi],
 [libtool_patch_use_rpath=$enable_rpath])
 
+#
+# Enable/disable use of systemd
+#
+PKG_CHECK_MODULES([SYSTEMD], [systemd], [enable_systemd=yes], [enable_systemd=no])
+ 
+if test "$enable_systemd" = yes; then
+       PKG_CHECK_MODULES([SYSTEMD], [systemd])
+       AC_DEFINE([ENABLE_SYSTEMD], 1, [Define if systemd is enabled])
+       systemdunitdir=$(pkg-config --variable=systemdsystemunitdir systemd)
+fi
+ 
+AM_CONDITIONAL([ENABLE_SYSTEMD], [test "$enable_systemd" = yes])
+AC_SUBST([SYSTEMD_ENABLED], ["$enable_systemd"])
+AC_SUBST([systemdsystemunitdir], ["$systemdunitdir"])
 
 #
 # Many distros use different init.d directory depending on their LSB compliance
@@ -133,6 +147,8 @@ AC_TYPE_INT64_T
 AC_CONFIG_FILES([ \
         Makefile \
         config/Makefile \
+        config/plmcboot.service \
+        config/plmcd.service \
         include/Makefile \
         lib/Makefile \
         lib/utils/Makefile \
