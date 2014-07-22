@@ -20,3 +20,9 @@ MAINTAINERCLEANFILES = Makefile.in
 
 dist_sysconf_DATA = \
 	$(top_srcdir)/config/plmcd.conf
+
+if ENABLE_SYSTEMD
+dist_systemd_DATA = \
+        $(top_builddir)/config/plmcboot.service \
+        $(top_builddir)/config/plmcd.service
+endif

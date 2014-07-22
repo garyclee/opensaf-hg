@@ -18,6 +18,8 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+if ! ENABLE_SYSTEMD
 nodist_lsbinit_SCRIPTS = \
 	$(top_builddir)/scripts/plmcboot \
 	$(top_builddir)/scripts/plmcd
+endif

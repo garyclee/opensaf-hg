@@ -31,5 +31,9 @@ plmcd_SOURCES = \
 
 plmcd_LDFLAGS = -lpthread
 
+if ENABLE_SYSTEMD
+plmcd_LDFLAGS += -lsystemd-daemon
+endif
+
 plmcd_LDADD = \
 	$(top_builddir)/lib/utils/libplmc_utils.la

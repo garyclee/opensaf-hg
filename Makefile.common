@@ -16,6 +16,7 @@ AM_CFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC @OSAF_HARDEN_FLAGS@ -DINTER
 AM_CXXFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC -D__STDC_FORMAT_MACROS @OSAF_HARDEN_FLAGS@ -DINTERNAL_VERSION_ID='"@INTERNAL_VERSION_ID@"' 
 AM_LDFLAGS = -ldl -lrt -lpthread
 
+systemdversion = $(systemdmodversion)
 #
 # Define some useful directory prefixes/suffixes
 #
@@ -31,5 +32,6 @@ docdir = $(datadir)/doc/$(PACKAGE_NAME)-$(PACKAGE_VERSION)
 javadir = $(datadir)/java
 javadocdir = $(datadir)/javadoc
 lsbinitdir = $(initscriptdir)
+systemddir = $(systemdsystemunitdir)
 lockdir = $(localstatedir)/lock/subsys
 pkgpyosafdir = $(pythondir)/pyosaf
