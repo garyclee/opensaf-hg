@@ -688,6 +688,11 @@ the following command shall start the OpenSAF services:
 
 % /etc/init.d/opensafd start [start|stop|status]
 
+If your distro uses systemd (e.g. OpenSUSE 12.1 or greater, Fedora 15 or
+greater) use the following command to start the OpenSAF services:
+
+% systemctl [start|stop|status] opensafd.service
+
 Commands to Start OpenSAF When PLM is enabled:
 ==============================================
 After a minimum configuration of 
@@ -702,6 +707,12 @@ The following commands shall be executed:
 % /etc/init.d/plmcd start
 
 % /etc/init.d/opensafd start [start|stop|status]
+
+If your distro uses systemd (e.g. OpenSUSE 12.1 or greater, Fedora 15 or
+greater) use the following commands:
+
+% systemctl start plmcd.service
+% systemctl [start|stop|status] opensafd.service
 
 Note: Its not necessary to start OpenSAF if an entry to start OpenSAF is
 set/specified in the plmcd.conf file.
