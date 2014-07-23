@@ -1,0 +1,13 @@
+[Unit]
+Description=OpenSAF PLMC Daemon
+After=local-fs.target remote-fs.target syslog.target network.target plmcboot.service
+Wants=plmcboot.service
+
+[Service]
+ExecStart=@sbindir@/plmcd -c @sysconfdir@/plmcd.conf
+Type=notify
+Restart=always
+NotifyAccess=main
+
+[Install]
+WantedBy=multi-user.target
