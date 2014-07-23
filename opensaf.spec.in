@@ -15,16 +15,18 @@
 %define is_ais_msg %(test "@AIS_MSG_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_ais_smf %(test "@AIS_SMF_ENABLED@" = "yes" && echo 1 || echo 0)
 
-%if 0%{?suse_version} >= 1210
+%if (0%{?suse_version} >= 1210 || 0%{?fedora} >= 18)
 %define use_systemd 1
+%if 0%{?suse_version} >= 1210
 %define _systemd_preun() %{service_del_preun}
 %define _systemd_post() %{service_add_post}
 %endif
-
 %if 0%{?fedora} >= 18
-%define use_systemd 1
 %define _systemd_preun() %{systemd_preun}
 %define _systemd_post() %{systemd_post}
+%endif
+%else
+%define use_systemd 0
 %endif
 
 %define _pkglibdir %{_libdir}/%{name}
