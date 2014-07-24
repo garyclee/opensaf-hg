@@ -380,7 +380,8 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 		m_AVD_EVT_QUEUE_ENQUEUE(cb, queue_evt);
 	}
 
-	if (cb->node_list.n_nodes == 0) {
+	std::map<uint32_t, AVD_FAIL_OVER_NODE *>::const_iterator it = node_list_db->begin();
+	if (it == node_list_db->end()) {
 		AVD_EVT_QUEUE *queue_evt;
 
 		/* We have received the info from all the nodes. */
@@ -455,7 +456,6 @@ static void rda_cb(uint32_t notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_COD
 static uint32_t initialize(void)
 {
 	AVD_CL_CB *cb = avd_cb;
-	NCS_PATRICIA_PARAMS patricia_params = {0};
 	int rc = NCSCC_RC_FAILURE;
 	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
 	SaAmfHAStateT role;
@@ -523,13 +523,7 @@ static uint32_t initialize(void)
 			cb->heartbeat_tmr_period = AVSV_DEF_HB_PERIOD;
 		}
 	}
-
-	patricia_params.key_size = sizeof(SaClmNodeIdT);
-	if (ncs_patricia_tree_init(&cb->node_list, &patricia_params) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncs_patricia_tree_init FAILED");
-		goto done;
-	}
-
+	node_list_db = new AmfDb<uint32_t, AVD_FAIL_OVER_NODE>;
 	/* get the node id of the node on which the AVD is running. */
 	cb->node_id_avd = m_NCS_GET_NODE_ID;
 

@@ -62,7 +62,6 @@ typedef enum {
 /* Fail-over Node List */
 typedef struct avd_fail_over_node {
 
-	NCS_PATRICIA_NODE tree_node_id_node;
 	SaClmNodeIdT node_id;
 } AVD_FAIL_OVER_NODE;
 
@@ -147,6 +146,7 @@ struct NodeNameCompare: public std::binary_function<AVD_AVND*, AVD_AVND*, bool> 
 
 extern AmfDb<std::string, AVD_AVND> *node_name_db;
 extern AmfDb<uint32_t, AVD_AVND> *node_id_db;
+extern AmfDb<uint32_t, AVD_FAIL_OVER_NODE> *node_list_db;
 
 typedef struct avd_ng_tag {
 

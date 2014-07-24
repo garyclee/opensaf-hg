@@ -29,6 +29,8 @@
 #include <cluster.h>
 #include <daemon.h>
 
+AmfDb<uint32_t, AVD_FAIL_OVER_NODE> *node_list_db = 0;      /* SaClmNodeIdT index */
+
 /*****************************************************************************
  * Function: avd_node_up_func
  *
@@ -350,13 +352,14 @@ void avd_mds_avnd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* Find if node is there in the f-over node list.
 		 * If yes then remove entry
 		 */
-		AVD_FAIL_OVER_NODE *node_fovr;
-		node_fovr = (AVD_FAIL_OVER_NODE *)ncs_patricia_tree_get(&cb->node_list,
-					(uint8_t *)&evt->info.node_id);
-
-		if (NULL != node_fovr) {
-			ncs_patricia_tree_del(&cb->node_list, &node_fovr->tree_node_id_node);
-			delete node_fovr;
+		for (std::map<uint32_t, AVD_FAIL_OVER_NODE *>::const_iterator it = node_list_db->begin();
+				it != node_list_db->end(); it++) {
+			AVD_FAIL_OVER_NODE *node_fovr = it->second;
+			if (node_fovr->node_id == evt->info.node_id) {
+				node_list_db->erase(node_fovr->node_id);
+				delete node_fovr;
+				break;
+			}
 		}
 	}
 	TRACE_LEAVE();
@@ -421,12 +424,8 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 			node_to_add = new AVD_FAIL_OVER_NODE();
 
 			node_to_add->node_id = avnd->node_info.nodeId;
-			node_to_add->tree_node_id_node.key_info = (uint8_t *)&(node_to_add->node_id);
-			node_to_add->tree_node_id_node.bit = 0;
-			node_to_add->tree_node_id_node.left = NCS_PATRICIA_NODE_NULL;
-			node_to_add->tree_node_id_node.right = NCS_PATRICIA_NODE_NULL;
 
-			if (ncs_patricia_tree_add(&cb->node_list, &node_to_add->tree_node_id_node) != NCSCC_RC_SUCCESS) {
+			if (node_list_db->insert(avnd->node_info.nodeId, node_to_add) != NCSCC_RC_SUCCESS) {
 				/* log an error */
 				delete node_to_add;
 				return;
@@ -467,8 +466,8 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_AVND *avnd;
 	AVD_SU *su_ptr;
 	AVD_SU_SI_REL *rel_ptr;
-	AVD_FAIL_OVER_NODE *node_fovr;
 	AVD_DND_MSG *n2d_msg;
+	bool node_found = false;
 
 	TRACE_ENTER();
 
@@ -476,13 +475,19 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* Find if node is there in the f-over node list. If yes then remove entry
 	 * and process the message. Else just return.
 	 */
-	if (NULL != (node_fovr =
-		     (AVD_FAIL_OVER_NODE *)ncs_patricia_tree_get(&cb->node_list,
-								 (uint8_t *)&evt->info.avnd_msg->msg_info.
-								 n2d_ack_nack_info.node_id))) {
-		ncs_patricia_tree_del(&cb->node_list, &node_fovr->tree_node_id_node);
-		delete node_fovr;
-	} else {
+	for (std::map<uint32_t, AVD_FAIL_OVER_NODE *>::const_iterator it = node_list_db->begin();
+			it != node_list_db->end(); it++) {
+		AVD_FAIL_OVER_NODE *node_fovr = it->second;
+		if (node_fovr->node_id == evt->info.avnd_msg->msg_info.
+				n2d_ack_nack_info.node_id) {
+			node_found = true;
+			node_list_db->erase(node_fovr->node_id);
+			delete node_fovr;
+			break;
+		}
+	}
+
+	if (node_found == false) {
 		/* do i need to log an error */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
