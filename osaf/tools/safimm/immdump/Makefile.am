@@ -30,6 +30,7 @@ immdump_SOURCES = \
 	imm_xmlw_dump.cc
 
 immdump_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 

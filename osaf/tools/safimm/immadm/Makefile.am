@@ -21,6 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 bin_PROGRAMS = immadm
 
 immadm_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/tools/safimm/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include

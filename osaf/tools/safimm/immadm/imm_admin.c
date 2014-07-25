@@ -201,7 +201,7 @@ void print_param(SaImmAdminOperationParamsT_2 *param) {
 			}
 			break;
 		case SA_IMM_ATTR_SANAMET :
-			printf("%-50s %-12s %s\n", param->paramName, "SA_NAME_T", (*((SaNameT *)param->paramBuffer)).value);
+			printf("%-50s %-12s %s\n", param->paramName, "SA_NAME_T", saAisNameBorrow((SaNameT*) param->paramBuffer));
 			break;
 		case SA_IMM_ATTR_SAFLOATT :
 			printf("%-50s %-12s %f\n", param->paramName, "SA_FLOAT_T", (*((SaFloatT *)param->paramBuffer)));
@@ -371,10 +371,9 @@ int main(int argc, char *argv[])
 	}
 
 	if((optind < argc) && (!explicitAdmo)) {
-		strncpy((char *)objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
-		objectName.length = strlen((char *)objectName.value);
+		saAisNameLend(argv[optind], &objectName);
 
-		if(strcmp((char *) objectName.value, OPENSAF_IMM_OBJECT_DN)==0) {
+		if(strcmp(saAisNameBorrow(&objectName), OPENSAF_IMM_OBJECT_DN)==0) {
 			releaseAdmo=false;
 			adminOwnerName = (SaImmAdminOwnerNameT) malloc(strlen(OPENSAF_IMM_SERVICE_NAME) + 1);
 			strcpy(adminOwnerName, OPENSAF_IMM_SERVICE_NAME);
@@ -390,18 +389,17 @@ int main(int argc, char *argv[])
 
 	/* Remaining arguments should be object names on which the admin op should be performed. */
 	while (optind < argc) {
-		strncpy((char *)objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
-		objectName.length = strlen((char *)objectName.value);
+		saAisNameLend(argv[optind], &objectName);
 
 		error = immutil_saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
 		if (error != SA_AIS_OK) {
 			if (error == SA_AIS_ERR_NOT_EXIST) {
-				if(strcmp(adminOwnerName, (const char *) objectName.value)==0) {
+				if(strcmp(adminOwnerName, saAisNameBorrow(&objectName))==0) {
 					fprintf(stderr, "AdminOwnerName == ImplementerName (%s) - Could be direct admin-op on OI\n", adminOwnerName);
 					goto retry;
 				}
 				fprintf(stderr, "error - saImmOmAdminOwnerSet - object '%s' does not exist\n",
-					objectName.value);
+					saAisNameBorrow(&objectName));
 			}
 			else
 				fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));

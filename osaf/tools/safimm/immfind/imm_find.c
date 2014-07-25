@@ -39,6 +39,7 @@
 #include <saImmOm.h>
 #include <immutil.h>
 #include <saf_error.h>
+#include "osaf_extended_name.h"
 
 static SaVersionT immVersion = { 'A', 2, 11 };
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
@@ -102,10 +103,10 @@ int main(int argc, char *argv[])
 	SaImmSearchParametersT_2 searchParam;
 	SaNameT objectName;
 	SaImmAttrValuesT_2 **attributes;
-	SaNameT rootName = { 0, "" };
+	SaNameT rootName;
+	osaf_extended_name_clear(&rootName);
 	SaImmScopeT scope = SA_IMM_SUBTREE;	/* default search scope */
-	char classNameBuf[SA_MAX_NAME_LENGTH] = {0};
-	const char *className = classNameBuf;
+	const char* className = "";
 	unsigned long timeoutVal = 60;
 
 	while (1) {
@@ -116,7 +117,7 @@ int main(int argc, char *argv[])
 
 		switch (c) {
 		case 'c':
-			strncpy(classNameBuf, optarg, SA_MAX_NAME_LENGTH);
+			className = optarg;
 			break;
 		case 's':
 			if (strcmp(optarg, "sublevel") == 0)
@@ -155,10 +156,7 @@ int main(int argc, char *argv[])
         immutilWrapperProfile.nTries = timeoutVal;
         immutilWrapperProfile.retryInterval = 1000;
 
-	if (optind < argc) {
-		strncpy((char *)rootName.value, argv[optind], SA_MAX_NAME_LENGTH);
-		rootName.length = strlen((char *)rootName.value);
-	}
+	if (optind < argc) osaf_extended_name_lend(argv[optind], &rootName);
 
 	error = immutil_saImmOmInitialize(&immHandle, NULL, &immVersion);
 	if (error != SA_AIS_OK) {
@@ -190,7 +188,7 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 		if (error == SA_AIS_OK)
-			printf("%s\n", objectName.value);
+			printf("%s\n", osaf_extended_name_borrow(&objectName));
 	} while (error != SA_AIS_ERR_NOT_EXIST);
 
 	error = immutil_saImmOmSearchFinalize(searchHandle);
