@@ -44,6 +44,7 @@
 #include <saf_error.h>
 #include <immsv_api.h>
 
+#include "osaf_extended_name.h"
 
 static SaVersionT immVersion = { 'A', 2, 13 };
 int verbose = 0;
@@ -183,6 +184,8 @@ static void free_attr_value(SaImmValueTypeT attrValueType, SaImmAttrValueT attrV
 	if(attrValue) {
 		if(attrValueType == SA_IMM_ATTR_SASTRINGT)
 			free(*((SaStringT *)attrValue));
+		else if(attrValueType == SA_IMM_ATTR_SANAMET)
+			osaf_extended_name_free((SaNameT*) attrValue);
 		else if(attrValueType == SA_IMM_ATTR_SAANYT)
 			free(((SaAnyT*)attrValue)->bufferAddr);
 		free(attrValue);
@@ -233,7 +236,7 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 	SaImmAttrModificationTypeT modType = SA_IMM_ATTR_VALUES_REPLACE;
 
 	if (className == NULL) {
-		fprintf(stderr, "Object with DN '%s' does not exist\n", objectName->value);
+		fprintf(stderr, "Object with DN '%s' does not exist\n", osaf_extended_name_borrow(objectName));
 		res = -1;
 		goto done;
 	}
@@ -434,7 +437,7 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 
 	i = 0;
 	while (objectNames[i] != NULL) {
-		str = strdup((char*)objectNames[i]->value);
+		str = strdup(osaf_extended_name_borrow(objectNames[i]));
 		if ((delim = strchr(str, ',')) != NULL) {
 			/* a parent exist */
 			while (delim && *(delim - 1) == 0x5c) {
@@ -451,14 +454,15 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 					goto done;
 				}
 
-				dn.length = sprintf((char*)dn.value, "%s", parent);
+
+				osaf_extended_name_lend(parent, &dn);
 				parentName = &dn;
 				parentNames[0] = parentName;
 
 				VERBOSE_INFO("call saImmOmAdminOwnerSet for parent: %s\n", parent);
 				if ((error = immutil_saImmOmAdminOwnerSet(ownerHandle, parentNames, SA_IMM_SUBTREE)) != SA_AIS_OK) {
 					if (error == SA_AIS_ERR_NOT_EXIST)
-						fprintf(stderr, "error - parent '%s' does not exist\n", dn.value);
+						fprintf(stderr, "error - parent '%s' does not exist\n", osaf_extended_name_borrow(&dn));
 					else {
 						fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
 						goto done;
@@ -565,7 +569,7 @@ int object_modify(const SaNameT **objectNames, char **optargs, int optargs_len)
 
 	if ((error = immutil_saImmOmAdminOwnerSet(ownerHandle, (const SaNameT **)objectNames, SA_IMM_ONE)) != SA_AIS_OK) {
 		if (error == SA_AIS_ERR_NOT_EXIST)
-			fprintf(stderr, "error - object '%s' does not exist\n", objectNames[0]->value);
+			fprintf(stderr, "error - object '%s' does not exist\n", osaf_extended_name_borrow(objectNames[0]));
 		else
 			fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
 
@@ -656,7 +660,7 @@ int object_delete(const SaNameT **objectNames)
 	while (objectNames[i] != NULL) {
 		if ((error = immutil_saImmOmCcbObjectDelete(ccbHandle, objectNames[i])) != SA_AIS_OK) {
 			fprintf(stderr, "error - saImmOmCcbObjectDelete for '%s' FAILED: %s\n",
-				objectNames[i]->value, saf_error(error));
+				osaf_extended_name_borrow(objectNames[i]), saf_error(error));
 
 			SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
 			if(errStrings) {
@@ -746,8 +750,8 @@ static int class_change(SaImmHandleT immHandle, const SaImmClassNameT className,
 {
 	SaAisErrorT error;
 	SaImmAccessorHandleT accessorHandle;
-	SaNameT opensafImmObjectName = { strlen("opensafImm=opensafImm,safApp=safImmService"),
-									"opensafImm=opensafImm,safApp=safImmService" };
+	SaNameT opensafImmObjectName;
+	osaf_extended_name_lend("opensafImm=opensafImm,safApp=safImmService", &opensafImmObjectName);
 	const SaNameT *objectNameList[] = { &opensafImmObjectName, NULL };
 	SaImmAttrNameT opensafImmAttrName[2] = { "opensafImmNostdFlags", NULL };
 	SaImmAttrValuesT_2 **attributes;
@@ -1402,7 +1406,7 @@ static int imm_operation(int argc, char *argv[])
 			objectNames = realloc(objectNames, (objectNames_len + 1) * sizeof(SaNameT*));
 			objectName = objectNames[objectNames_len - 1] = malloc(sizeof(SaNameT));
 			objectNames[objectNames_len++] = NULL;
-			objectName->length = snprintf((char*)objectName->value, SA_MAX_NAME_LENGTH, "%s", argv[optind++]);
+			osaf_extended_name_lend(argv[optind++], objectName);
 		}
 	}
 

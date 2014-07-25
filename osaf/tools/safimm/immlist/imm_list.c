@@ -103,7 +103,7 @@ static void print_attr_value_raw(SaImmValueTypeT attrValueType, SaImmAttrValueT 
 		break;
 	case SA_IMM_ATTR_SANAMET: {
 		SaNameT *myNameT = (SaNameT *)attrValue;
-		printf("%s", myNameT->value);
+		printf("%s", saAisNameBorrow(myNameT));
 		break;
 	}
 	case SA_IMM_ATTR_SASTRINGT:
@@ -166,7 +166,8 @@ static void print_attr_value(SaImmValueTypeT attrValueType, SaImmAttrValueT *att
 	case SA_IMM_ATTR_SANAMET:
 		{
 			SaNameT *myNameT = (SaNameT *)attrValue;
-			printf("%s (%u) ", myNameT->value, myNameT->length);
+			printf("%s (%zu) ", saAisNameBorrow(myNameT),
+				strlen(saAisNameBorrow(myNameT)));
 			break;
 		}
 	case SA_IMM_ATTR_SASTRINGT:
@@ -371,8 +372,7 @@ static void display_object(const char *name,
 	SaAisErrorT error;
 	SaImmAttrValuesT_2 **attributes;
 
-	strncpy((char *)objectName.value, name, SA_MAX_NAME_LENGTH);
-	objectName.length = strlen((char *)objectName.value);
+	saAisNameLend(name, &objectName);
 
 	error = immutil_saImmOmAccessorGet_2(accessorHandle, &objectName, attributeNames, &attributes);
 	if (SA_AIS_OK != error) {

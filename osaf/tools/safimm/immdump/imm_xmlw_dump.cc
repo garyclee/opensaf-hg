@@ -20,8 +20,9 @@
 #include <iostream>
 #include <libxml/encoding.h>
 #include <unistd.h>
-#include <osaf_unicode.h>
-
+#include "saAis.h"
+#include "osaf_unicode.h"
+#include "osaf_extended_name.h"
 
 
 /* Functions */
@@ -40,8 +41,7 @@ void dumpObjectsXMLw(SaImmHandleT immHandle,
     unsigned int           tryCount=0;
     TRACE_ENTER();
 
-    root.length = 0;
-    strncpy((char*)root.value, "", 3);
+    osaf_extended_name_clear(&root);
 
     /* Initialize immOmSearch */
 
@@ -93,7 +93,7 @@ void dumpObjectsXMLw(SaImmHandleT immHandle,
             continue;
         }
 
-        objectToXMLw(std::string((char*)objectName.value, objectName.length),
+        objectToXMLw(std::string(osaf_extended_name_borrow(&objectName)),
                     attrs,
                     immHandle,
                     classRDNMap,

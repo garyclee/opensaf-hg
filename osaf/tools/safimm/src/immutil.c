@@ -15,11 +15,13 @@
  *
  */
 
+#define _GNU_SOURCE
+#ifndef SA_EXTENDED_NAME_SOURCE
+#define SA_EXTENDED_NAME_SOURCE
+#endif
+#include "immutil.h"
 #include <stdio.h>
 #include <unistd.h>
-#ifndef __USE_ISOC99
-#define __USE_ISOC99 // strtof and LLONG_MAX in older gcc versions like 4.3.2
-#endif
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
@@ -28,12 +30,11 @@
 #include <syslog.h>
 #include <errno.h>
 
-#include <immutil.h>
-
-#include <logtrace.h>
+#include "saAis.h"
+#include "logtrace.h"
+#include "osaf_extended_name.h"
 
 static const SaVersionT immVersion = { 'A', 2, 11 };
-size_t strnlen(const char *s, size_t maxlen);
 
 /* Memory handling functions */
 #define CHUNK	4000
@@ -107,9 +108,17 @@ void ccbutil_deleteCcbData(struct CcbUtilCcbData *ccb)
 {
 	struct CcbUtilCcbData *item = ccbList;
 	struct CcbUtilCcbData *prev = NULL;
+	struct CcbUtilOperationData *op;
 	if (ccb == NULL)
 		return;
 	while (item != NULL) {
+		op = item->operationListHead;
+		while(op) {
+			osaf_extended_name_free(&op->objectName);
+			op = op->next;
+			if(op == item->operationListTail)
+				break;
+		}
 		if (ccb->ccbId == item->ccbId) {
 			if (prev == NULL) {
 				ccbList = item->next;
@@ -152,7 +161,7 @@ CcbUtilOperationData_t *ccbutil_ccbAddCreateOperation(struct CcbUtilCcbData *ccb
 	operation->param.create.className = dupSaImmClassNameT(clist, className);
 	operation->param.create.parentName = dupSaNameT(clist, parentName);
 	operation->param.create.attrValues = dupSaImmAttrValuesT_array(clist, attrValues);
-	operation->objectName.length = 0;
+	saAisNameLend("", &operation->objectName);
 	return operation;
 }
 
@@ -162,26 +171,39 @@ CcbUtilOperationData_t *ccbutil_ccbAddCreateOperation_2(struct CcbUtilCcbData *c
 	const SaNameT *parentName,
 	const SaImmAttrValuesT_2 **attrValues)
 {
+	const char *str;
+	size_t len;
 	struct Chunk *clist = (struct Chunk *)ccb->memref;
 	struct CcbUtilOperationData *operation = newOperationData(ccb, CCBUTIL_CREATE);
 	operation->param.create.className = dupSaImmClassNameT(clist, className);
 	operation->param.create.parentName = dupSaNameT(clist, parentName);
 	operation->param.create.attrValues = dupSaImmAttrValuesT_array(clist, attrValues);
-	operation->objectName = *objectName;
+
+	str = saAisNameBorrow(objectName);
+	len = strlen(str);
+	saAisNameLend(len < SA_MAX_UNEXTENDED_NAME_LENGTH ? str : strdup(str), &operation->objectName);
+
 	return operation;
 }
 
 void ccbutil_ccbAddDeleteOperation(struct CcbUtilCcbData *ccb, const SaNameT *objectName)
 {
+	const char *str;
+	size_t len;
 	struct Chunk *clist = (struct Chunk *)ccb->memref;
 	struct CcbUtilOperationData *operation = newOperationData(ccb, CCBUTIL_DELETE);
 	operation->param.deleteOp.objectName = dupSaNameT(clist, objectName);
-	operation->objectName = *objectName;
+
+	str = saAisNameBorrow(objectName);
+	len = strlen(str);
+	saAisNameLend(len < SA_MAX_UNEXTENDED_NAME_LENGTH ? str : strdup(str), &operation->objectName);
 }
 
 int ccbutil_ccbAddModifyOperation(struct CcbUtilCcbData *ccb,
 				   const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods)
 {
+	const char *str;
+	size_t len;
 	struct Chunk *clist = (struct Chunk *)ccb->memref;
 	struct CcbUtilOperationData *operation;
 
@@ -191,8 +213,11 @@ int ccbutil_ccbAddModifyOperation(struct CcbUtilCcbData *ccb,
 
 	operation = newOperationData(ccb, CCBUTIL_MODIFY);
 	operation->param.modify.objectName = dupSaNameT(clist, objectName);
-	operation->objectName = *objectName;
 	operation->param.modify.attrMods = dupSaImmAttrModificationT_array(clist, attrMods);
+
+	str = saAisNameBorrow(objectName);
+	len = strlen(str);
+	saAisNameLend(len < SA_MAX_UNEXTENDED_NAME_LENGTH ? str : strdup(str), &operation->objectName);
 
 	return 0;
 }
@@ -212,8 +237,7 @@ CcbUtilOperationData_t *ccbutil_getCcbOpDataByDN(SaImmOiCcbIdT ccbId, const SaNa
         CcbUtilOperationData_t *opData = ccbutil_getNextCcbOp(ccbId, NULL);
 
         while (opData != NULL) {
-                if ((dn->length == opData->objectName.length) &&
-                    (memcmp(dn->value, opData->objectName.value, dn->length) == 0))
+		if (strcmp(saAisNameBorrow(dn), saAisNameBorrow(&opData->objectName)) == 0)
                         break;
 
                 opData = ccbutil_getNextCcbOp(ccbId, opData);
@@ -267,13 +291,10 @@ char const *immutil_getClassName(struct CcbUtilCcbData *ccb, SaImmHandleT immHan
 
 char const *immutil_getStringValue(char const *key, SaNameT const *name)
 {
-	static char buffer[SA_MAX_NAME_LENGTH + 1];
+	const char* buffer = saAisNameBorrow(name);
 	unsigned int klen;
 	char *cp;
 
-	assert(name->length <= SA_MAX_NAME_LENGTH);
-	memcpy(buffer, name->value, name->length);
-	buffer[name->length] = 0;
 	assert(key != NULL);
 	klen = strlen(key);
 	assert(klen > 1 || key[klen - 1] == '=');
@@ -297,14 +318,13 @@ char const *immutil_getStringValue(char const *key, SaNameT const *name)
 
 char const *immutil_getDnItem(SaNameT const *name, unsigned int index)
 {
-	static char buffer[SA_MAX_NAME_LENGTH + 1];
+	static char* buffer = NULL;
 	char *cp;
 	char *value;
+	size_t size = strlen(saAisNameBorrow(name)) + 1;
 
-	assert(name->length <= SA_MAX_NAME_LENGTH);
-	memcpy(buffer, name->value, name->length);
-	buffer[name->length] = 0;
-
+	buffer = realloc(buffer, size);
+	memcpy(buffer, saAisNameBorrow(name), size);
 	value = buffer;
 	cp = strchr(value, ',');
 	while (index > 0) {
@@ -494,10 +514,9 @@ const SaUint32T *immutil_getUint32Attr(const SaImmAttrValuesT_2 **attr, char con
 
 int immutil_matchName(SaNameT const *name, regex_t const *preg)
 {
-	char buffer[SA_MAX_NAME_LENGTH + 1];
+	const char* buffer;
 	assert(name != NULL && preg != NULL);
-	memcpy(buffer, name->value, name->length);
-	buffer[name->length] = 0;
+	buffer = saAisNameBorrow(name);
 	return regexec(preg, buffer, 0, NULL, 0);
 }
 
@@ -510,8 +529,7 @@ SaAisErrorT immutil_update_one_rattr(SaImmOiHandleT immOiHandle,
 	SaImmAttrValueT attrValues[] = { value };
 	SaNameT objectName;
 
-	strncpy((char *)objectName.value, dn, SA_MAX_NAME_LENGTH);
-	objectName.length = strlen((char *)objectName.value);
+	saAisNameLend(dn, &objectName);
 
 	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
 	attrMod.modAttr.attrName = attributeName;
@@ -531,7 +549,7 @@ SaImmClassNameT immutil_get_className(const SaNameT *objectName)
 
 	(void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
 	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
-        if (immutil_saImmOmAccessorGet_2(accessorHandle, objectName, attributeNames, &attributes) == SA_AIS_OK)
+	if (immutil_saImmOmAccessorGet_2(accessorHandle, objectName, attributeNames, &attributes) == SA_AIS_OK)
 		className = strdup(*((char **)attributes[0]->attrValues[0]));
 	(void)immutil_saImmOmAccessorFinalize(accessorHandle);
 	(void)immutil_saImmOmFinalize(omHandle);
@@ -549,7 +567,7 @@ SaAisErrorT immutil_get_attrValueType(const SaImmClassNameT className,
 	SaImmAttrDefinitionT_2 **attrDefinitions;
 	int i = 0;
 
-        (void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
+	(void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
 
 	if ((rc = saImmOmClassDescriptionGet_2(omHandle, className, &classCategory, &attrDefinitions)) != SA_AIS_OK)
 		goto done;
@@ -665,13 +683,8 @@ void *immutil_new_attrValue(SaImmValueTypeT attrValueType, const char *str)
 	case SA_IMM_ATTR_SANAMET: {
 		SaNameT *mynamet;
 		len = strlen(str);
-		if (len > SA_MAX_NAME_LENGTH) {
-			fprintf(stderr, "too long SaNameT\n");
-			return NULL;
-		}
 		attrValue = mynamet = malloc(sizeof(SaNameT));
-		mynamet->length = len;
-		strncpy((char *)mynamet->value, str, SA_MAX_NAME_LENGTH);
+		saAisNameLend(len < SA_MAX_UNEXTENDED_NAME_LENGTH ? str : strdup(str), mynamet);
 		break;
 	}
 	case SA_IMM_ATTR_SASTRINGT: {
@@ -741,8 +754,9 @@ static const SaNameT *dupSaNameT(struct Chunk *clist, const SaNameT *original)
 	SaNameT *copy;
 	if (original == NULL)
 		return NULL;
+	const char* value = saAisNameBorrow(original);
 	copy = (SaNameT *)clistMalloc(clist, sizeof(SaNameT));
-	memcpy(copy, original, sizeof(SaNameT));
+	saAisNameLend(strlen(value) < SA_MAX_UNEXTENDED_NAME_LENGTH ? value : dupStr(clist, value), copy);
 	return copy;
 }
 
@@ -823,6 +837,12 @@ static void copySaImmAttrValuesT(struct Chunk *clist, SaImmAttrValuesT_2 *copy, 
 			char *cporig = *((char **)original->attrValues[i]);
 			char **cpp = (char **)databuffer;
 			*cpp = dupStr(clist, cporig);
+		} else if(original->attrValueType == SA_IMM_ATTR_SANAMET) {
+			SaNameT* cporig = (SaNameT*) original->attrValues[i];
+			SaNameT* cpdest = (SaNameT*) copy->attrValues[i];
+			const char* value = saAisNameBorrow(cporig);
+			saAisNameLend(strlen(value) < SA_MAX_UNEXTENDED_NAME_LENGTH ? value :
+				dupStr(clist, value), cpdest);
 		} else if(original->attrValueType == SA_IMM_ATTR_SAANYT) {
 			SaAnyT* cporig = (SaAnyT *) original->attrValues[i];
 			SaAnyT* cpdest = (SaAnyT *) copy->attrValues[i];

@@ -37,6 +37,8 @@
 #include <saImmOm.h>
 #include <immutil.h>
 
+#include "osaf_extended_name.h"
+
 #define MAX_DEPTH 10
 #define MAX_CHAR_BUFFER_SIZE 8192  //8k
 
@@ -240,6 +242,8 @@ static void free_attr_value(SaImmValueTypeT attrValueType, SaImmAttrValueT attrV
 	if(attrValue) {
 		if(attrValueType == SA_IMM_ATTR_SASTRINGT)
 			free(*((SaStringT *)attrValue));
+		else if(attrValueType == SA_IMM_ATTR_SANAMET)
+			osaf_extended_name_free((SaNameT*) attrValue);
 		else if(attrValueType == SA_IMM_ATTR_SAANYT)
 			free(((SaAnyT*)attrValue)->bufferAddr);
 		free(attrValue);
@@ -308,6 +312,8 @@ static void free_parserState(ParserState *state) {
 			if(it->attrDefaultValue) {
 				if(it->attrValueType == SA_IMM_ATTR_SASTRINGT && *(void **)(it->attrDefaultValue))
 					free(*(void **)(it->attrDefaultValue));
+				else if(it->attrValueType == SA_IMM_ATTR_SANAMET && (SaNameT*) (it->attrDefaultValue))
+					osaf_extended_name_free((SaNameT*) (it->attrDefaultValue));
 				else if(it->attrValueType == SA_IMM_ATTR_SAANYT && (SaAnyT *)(it->attrDefaultValue))
 					free(((SaAnyT *)(it->attrDefaultValue))->bufferAddr);
 				free(it->attrDefaultValue);
@@ -330,7 +336,9 @@ static void free_parserState(ParserState *state) {
 				if(it->attrValueType == SA_IMM_ATTR_SASTRINGT
 						|| it->attrValueType == SA_IMM_ATTR_SAANYT) {
 					free(*(void **)(it->attrValues[i]));
-				}
+				} else if (it->attrValueType == SA_IMM_ATTR_SANAMET) {
+					osaf_extended_name_free((SaNameT*) it->attrValues[i]);
+                                }
 				free(it->attrValues[i]);
 			}
 			free(it->attrValues);
@@ -491,13 +499,10 @@ void setAdminOwnerHelper(ParserState* state, SaNameT *parentOfObject)
 	 * This function checks if there is a need to call
 	   saImmOmAdminOwnerSet on the parent or if a call is redundant */
 
-	// safe conversion of SaNameT to  char*
-	int len = parentOfObject->length;
-	char tmpStr[len+1];
-	strncpy(tmpStr, (char*) parentOfObject->value, len);
-	tmpStr[len] = '\0';
+	// safe conversion of SaNameT to const char*
+	const char* tmpStr = osaf_extended_name_borrow(parentOfObject);
 
-	if (len < 1) {
+	if (osaf_is_extended_name_empty(parentOfObject)) {
 		// this is a root object, no need to set AdminOwner
 		LOG_IN("  This is a root object, no need to call saImmOmAdminOwnerSet");
 		// state->adminOwnerSetSet.insert(state->objectName);
@@ -637,14 +642,11 @@ static void createImmObject(ParserState* state)
 	/* Set the class name */
 	className = state->objectClass;
 
-	objectName.length = snprintf((char*) objectName.value,
-								 sizeof(objectName.value),
-								 "%s", state->objectName);
-
 	/* Set the parent name */
-	parentName.length = 0;
+	osaf_extended_name_clear(&parentName);
 	if (state->objectName != NULL) {
 		char* parent;
+        	osaf_extended_name_lend(state->objectName, &objectName);
 
 		/* ',' is the delimeter */
 		/* but '\' is the escape character, used for association objects */
@@ -658,11 +660,7 @@ static void createImmObject(ParserState* state)
 			parent = NULL;
 		}
 
-		if (parent != NULL) {
-			parentName.length = (SaUint16T)strlen(parent);
-			strncpy((char*)parentName.value, parent, parentName.length);
-			parentName.value[parentName.length] = 0;
-		}
+		if (parent != NULL) osaf_extended_name_lend(parent, &parentName);
 	} else {
 		LOG_ER("Empty DN for object");
 		stopParser(state);
@@ -679,8 +677,8 @@ static void createImmObject(ParserState* state)
 
 #ifdef TRACE_8
 	/* Get the length of the DN and truncate state->objectName */
-	if (parentName.length > 0) {
-		DNlen = strlen(state->objectName) - (parentName.length + 1);
+	if (!osaf_is_extended_name_empty(&parentName)) {
+		DNlen = strlen(state->objectName) - (strlen(osaf_extended_name_borrow(&parentName)) + 1);
 	} else {
 		DNlen = strlen(state->objectName);
 	}
@@ -833,7 +831,9 @@ done:
 			if(it->attrValueType == SA_IMM_ATTR_SASTRINGT
 					|| it->attrValueType == SA_IMM_ATTR_SAANYT) {
 				free(*(void **)(it->attrValues[i]));
-			}
+			} else if (it->attrValueType == SA_IMM_ATTR_SANAMET) {
+				osaf_extended_name_free((SaNameT*) it->attrValues[i]);
+                        }
 			free(it->attrValues[i]);
 		}
 		free(it->attrValues);
@@ -899,8 +899,11 @@ static bool attrvalue_is_equal(SaImmValueTypeT valueType, SaImmAttrValueT val1, 
 		return *((SaTimeT*) val1) == *((SaTimeT*) val2);
 		break;
 	case SA_IMM_ATTR_SANAMET:
-		return (memcmp(val1, val2, sizeof(SaNameT)) == 0);
-		break;
+        {
+		const char* s1 = osaf_extended_name_borrow((SaNameT*) val1);
+		const char* s2 = osaf_extended_name_borrow((SaNameT*) val2);
+		return strcmp(s1, s2) == 0;
+	}
 	case SA_IMM_ATTR_SAFLOATT:
 		return *((SaFloatT*) val1) == *((SaFloatT*) val2);
 		break;
@@ -1113,6 +1116,8 @@ static void createImmClass(ParserState* state)
 		if(it->attrDefaultValue) {
 			if(it->attrValueType == SA_IMM_ATTR_SASTRINGT && *(void **)(it->attrDefaultValue))
 				free(*(void **)(it->attrDefaultValue));
+			else if (it->attrValueType == SA_IMM_ATTR_SANAMET && (SaNameT*) (it->attrDefaultValue))
+				osaf_extended_name_free((SaNameT*) it->attrDefaultValue);
 			else if(it->attrValueType == SA_IMM_ATTR_SAANYT && (SaAnyT *)(it->attrDefaultValue))
 				free(((SaAnyT *)(it->attrDefaultValue))->bufferAddr);
 			free(it->attrDefaultValue);
@@ -1758,7 +1763,7 @@ static void charactersHandler(void* userData,
 		break;
 	case DN:
 		/* Copy the distinguished name */
-		if(len >= SA_MAX_NAME_LENGTH) {
+		if (len > kMaxDnLength) {
 			LOG_ER("DN is too long (%d characters)", len);
 			stopParser(state);
 			state->parsingStatus = 1;
@@ -2184,6 +2189,8 @@ static void addObjectAttributeDefinition(ParserState* state)
 		while(attrValues.attrValues[i]) {
 			if(attrValues.attrValueType == SA_IMM_ATTR_SASTRINGT)
 				free(*((SaStringT *)attrValues.attrValues[i]));
+			else if(attrValues.attrValueType == SA_IMM_ATTR_SANAMET)
+				osaf_extended_name_free((SaNameT*) attrValues.attrValues[i]);
 			else if(attrValues.attrValueType == SA_IMM_ATTR_SAANYT)
 				free(((SaAnyT*)attrValues.attrValues[i])->bufferAddr);
 			free(attrValues.attrValues[i]);
@@ -2467,14 +2474,12 @@ static int charsToValueHelper(SaImmAttrValueT* value,
 		break;
 	case SA_IMM_ATTR_SANAMET:
 		len = strlen(str);
-		if(len >= SA_MAX_NAME_LENGTH) {
+		if (len > kMaxDnLength) {
 			LOG_ER("SaNameT value is too long: %d characters", len);
 			return 1;
 		}
 		*value = malloc(sizeof(SaNameT));
-		((SaNameT*)*value)->length = (SaUint16T)len;
-		strncpy((char*)((SaNameT*)*value)->value, str, len);
-		((SaNameT*)*value)->value[len] = '\0';
+		osaf_extended_name_alloc(str, (SaNameT*) *value);
 		break;
 	case SA_IMM_ATTR_SAFLOATT:
 		*value = malloc(sizeof(SaFloatT));
