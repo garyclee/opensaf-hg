@@ -25,6 +25,8 @@
 #include "imma.h"
 #include "immsv_api.h"
 #include "ncssysf_mem.h"
+#include "osaf_extended_name.h"
+#include "saAis.h"
 
 #include <string.h>
 
@@ -379,10 +381,7 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 
 		callback->invocation = saInv;
 
-		callback->name.length = strnlen(evt->info.admOpReq.objectName.buf, evt->info.admOpReq.objectName.size);
-		osafassert(callback->name.length <= SA_MAX_NAME_LENGTH);
-		memcpy((char *)callback->name.value, evt->info.admOpReq.objectName.buf, callback->name.length);
-		free(evt->info.admOpReq.objectName.buf);
+		osaf_extended_name_steal(evt->info.admOpReq.objectName.buf, &callback->name);
 		evt->info.admOpReq.objectName.buf = NULL;
 		evt->info.admOpReq.objectName.size = 0;
 		callback->operationId = evt->info.admOpReq.operationId;
@@ -775,11 +774,7 @@ static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
 		callback->type = IMMA_CALLBACK_OI_RT_ATTR_UPDATE;
 		callback->lcl_imm_hdl = implHandle;
 
-		callback->name.length = strnlen(evt->info.searchRemote.objectName.buf,
-						evt->info.searchRemote.objectName.size);
-		osafassert(callback->name.length <= SA_MAX_NAME_LENGTH);
-		memcpy((char *)callback->name.value, evt->info.searchRemote.objectName.buf, callback->name.length);
-		free(evt->info.searchRemote.objectName.buf);
+		osaf_extended_name_steal(evt->info.searchRemote.objectName.buf, &callback->name);
 		evt->info.searchRemote.objectName.buf = NULL;
 		evt->info.searchRemote.objectName.size = 0;
 
@@ -1022,11 +1017,7 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 		callback->lcl_imm_hdl = implHandle;
 		callback->ccbID = evt->info.objDelete.ccbId;
 		callback->inv = evt->info.objDelete.adminOwnerId;	/*ugly */
-		callback->name.length = strnlen(evt->info.objDelete.objectName.buf,
-						evt->info.objDelete.objectName.size);
-		osafassert(callback->name.length <= SA_MAX_NAME_LENGTH);
-		memcpy((char *)callback->name.value, evt->info.objDelete.objectName.buf, callback->name.length);
-		free(evt->info.objDelete.objectName.buf);
+		osaf_extended_name_steal(evt->info.objDelete.objectName.buf, &callback->name);
 		evt->info.objDelete.objectName.buf = NULL;
 		evt->info.objDelete.objectName.size = 0;
 
@@ -1051,7 +1042,7 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 			} else if(cl_node->isPbe) { /* PBE. */
 				TRACE("PBe case inv:%u", callback->inv);
 				if((callback->inv != 0) && 
-					(strcmp((char *)callback->name.value, OPENSAF_IMM_OBJECT_DN))) {
+					strcmp(osaf_extended_name_borrow(&callback->name), OPENSAF_IMM_OBJECT_DN) != 0) {
 					/* callback->inv must be zero, except for operations on
 					 OPENSAF_IMM_OBJECT_DN  */
 					LOG_ER("PBE: callback->inv != 0, LINE:%u", __LINE__);
@@ -1124,11 +1115,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 		callback->ccbID = evt->info.objCreate.ccbId;
 		callback->inv = evt->info.objCreate.adminOwnerId;	/*Actually continuationId */
 
-		callback->name.length = strnlen(evt->info.objCreate.parentName.buf,
-						evt->info.objCreate.parentName.size);
-		osafassert(callback->name.length <= SA_MAX_NAME_LENGTH);
-		memcpy((char *)callback->name.value, evt->info.objCreate.parentName.buf, callback->name.length);
-		free(evt->info.objCreate.parentName.buf);
+		osaf_extended_name_steal(evt->info.objCreate.parentName.buf, &callback->name);
 		evt->info.objCreate.parentName.buf = NULL;
 		evt->info.objCreate.parentName.size = 0;
 
@@ -1212,11 +1199,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 		callback->inv = evt->info.objModify.adminOwnerId;
 		/*Actually continuationId */
 
-		callback->name.length = strnlen(evt->info.objModify.objectName.buf,
-						evt->info.objModify.objectName.size);
-		osafassert(callback->name.length <= SA_MAX_NAME_LENGTH);
-		memcpy((char *)callback->name.value, evt->info.objModify.objectName.buf, callback->name.length);
-		free(evt->info.objModify.objectName.buf);
+		osaf_extended_name_steal(evt->info.objModify.objectName.buf, &callback->name);
 		evt->info.objModify.objectName.buf = NULL;
 		evt->info.objModify.objectName.size = 0;
 
@@ -1891,13 +1874,15 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 #ifdef IMMA_OI
 	bool isPbeOp = false;
+	bool isExtendedNameValid = false;
 	switch (callback->type) {
 		case IMMA_CALLBACK_PBE_ADMIN_OP:
 			isPbeOp = true;
 			osafassert(cl_node->isPbe);
 			TRACE("PBE Admin OP callback");
 		case IMMA_CALLBACK_OM_ADMIN_OP:
-			if (cl_node->o.iCallbk.saImmOiAdminOperationCallback) {
+			isExtendedNameValid = osaf_is_extended_name_valid(&(callback->name));
+			if (cl_node->o.iCallbk.saImmOiAdminOperationCallback && isExtendedNameValid) {
 				cl_node->o.iCallbk.saImmOiAdminOperationCallback(callback->lcl_imm_hdl,
 					callback->invocation,
 					&(callback->name),
@@ -1905,17 +1890,28 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					(const SaImmAdminOperationParamsT_2 **)
 					callback->params);
 			} else {
+				SaAisErrorT error = IMMSV_IMPOSSIBLE_ERROR;
+				if(!isExtendedNameValid) {
+					if (osaf_is_extended_names_enabled()) {
+						TRACE_3("Object name is too long: %s", osaf_extended_name_borrow(&callback->name));
+					} else {
+						TRACE_3("Extended name feature is disabled. Object name is too long: %s", osaf_extended_name_borrow(&callback->name));
+					}
+					error = SA_AIS_ERR_BAD_OPERATION;
+				}
 				/*No callback registered for admin-op!! */
 				SaAisErrorT localErr = saImmOiAdminOperationResult(callback->lcl_imm_hdl,
 					callback->invocation,
-					IMMSV_IMPOSSIBLE_ERROR);
+					error);
 				if (localErr == SA_AIS_OK) {
 					TRACE_3("Object %s has implementer but "
-						"saImmOiAdminOperationCallback is set to NULL", callback->name.value);
+						"saImmOiAdminOperationCallback is set to NULL",
+						osaf_extended_name_borrow(&callback->name));
 				} else {
 					TRACE_3("Object %s has implementer but "
 						"saImmOiAdminOperationCallback is set to NULL "
-						"and could not send error result, error: %u", callback->name.value, localErr);
+						"and could not send error result, error: %u",
+						osaf_extended_name_borrow(&callback->name), localErr);
 				}
 			}
 			break;
@@ -1942,7 +1938,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						/* PRTO delete reply only on completed*/
 						//callback->inv = 0; 
 						TRACE("Pseudo ccb %llx for PRTO deletes completed upcall on %s",
-							ccbid, callback->name.value);
+							ccbid, osaf_extended_name_borrow(&callback->name));
 						if(!imma_oi_ccb_record_ok_for_critical(cl_node, ccbid, callback->implId)) {
 							TRACE("ERROR: RtObjectDelete record for pseudo-ccb %llx does not have"
 								"correct op-count", ccbid); /* Already logged in ok_for_critical */
@@ -2131,7 +2127,6 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						}
 					}
 
-					SaNameT parentName = callback->name;
 					const SaImmClassNameT className = callback->className;	/*0 */
 					callback->className = NULL;
 					int noOfAttributes = 0;
@@ -2193,11 +2188,20 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					 */
 					callback->attrValsForCreateUc = (const SaImmAttrValuesT_2 **)attr;
 
-					localEr = cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback(callback->lcl_imm_hdl,
-						ccbid,
-						className,
-						&parentName,
-						callback->attrValsForCreateUc);
+					if (osaf_is_extended_name_valid(&(callback->name))) {
+						localEr = cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback(callback->lcl_imm_hdl,
+							ccbid,
+							className,
+							&(callback->name),
+							callback->attrValsForCreateUc);
+					} else {
+						if (osaf_is_extended_names_enabled()) {
+							TRACE_3("Object name is too long: %s", osaf_extended_name_borrow(&(callback->name)));
+						} else {
+							TRACE_3("Extended name feature is disabled. Object name is too long: %s", osaf_extended_name_borrow(&(callback->name)));
+						}
+						localEr = SA_AIS_ERR_BAD_OPERATION;
+					}
 
 					TRACE("ccb-object-create callback returned RC:%u", localEr);
 					if (!(localEr == SA_AIS_OK ||
@@ -2342,14 +2346,23 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						/* PRTO delete reply only on completed*/
 						callback->inv = 0; 
 						TRACE("Pseudo ccb %llx for PRTO delete upcall on %s",
-							ccbid, callback->name.value);
+							ccbid, osaf_extended_name_borrow(&callback->name));
 					} else {
 						ccbid = callback->ccbID;
 						if(!(cl_node->isApplier)) {imma_oi_ccb_allow_error_string(cl_node, ccbid);}
 					}
 
-					localEr = cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback(callback->lcl_imm_hdl,
-						ccbid, &(callback->name));
+					if (osaf_is_extended_name_valid(&(callback->name))) {
+						localEr = cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback(callback->lcl_imm_hdl,
+							ccbid, &(callback->name));
+					} else {
+						if (osaf_is_extended_names_enabled()) {
+							TRACE_3("Object name is too long: %s", osaf_extended_name_borrow(&(callback->name)));
+						} else {
+							TRACE_3("Extended name feature is disabled. Object name is too long: %s", osaf_extended_name_borrow(&(callback->name)));
+						}
+						localEr = SA_AIS_ERR_BAD_OPERATION;
+					}
 
 					TRACE("ccb-object-delete callback returned RC:%u", localEr);
 					if (!(localEr == SA_AIS_OK ||
@@ -2385,7 +2398,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
 					ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
 					ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
-					ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.name = callback->name;
+					osaf_extended_name_lend(osaf_extended_name_borrow(&(callback->name)), &(ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.name));
 
 					osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 					locked = true;
@@ -2470,9 +2483,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 							/* Error strings are not relevant for PRT ops. */
 							imma_oi_ccb_allow_error_string(cl_node, callback->ccbID);
 						}
-					}					
+					}
 
-					SaNameT objectName = callback->name;
 					int noOfAttrMods = 0;
 
 					IMMSV_ATTR_MODS_LIST *p = callback->attrMods;
@@ -2527,8 +2539,17 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					const SaImmAttrModificationT_2 **constPtrForStupidCompiler =
 						(const SaImmAttrModificationT_2 **)attr;
 
-					localEr = cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback(callback->lcl_imm_hdl, ccbid, &objectName,
-						constPtrForStupidCompiler);
+					if (osaf_is_extended_name_valid(&(callback->name))) {
+						localEr = cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback(callback->lcl_imm_hdl,
+								ccbid, &(callback->name), constPtrForStupidCompiler);
+					} else {
+						if (osaf_is_extended_names_enabled()) {
+							TRACE_3("Object name is too long: %s", osaf_extended_name_borrow(&(callback->name)));
+						} else {
+							TRACE_3("Extended name feature is disabled. Object name is too long: %s", osaf_extended_name_borrow(&(callback->name)));
+						}
+						localEr = SA_AIS_ERR_BAD_OPERATION;
+					}
 
 					TRACE("ccb-object-modify callback returned RC:%u", localEr);
 					if (!(localEr == SA_AIS_OK ||
@@ -2707,10 +2728,20 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 					/*attributeNames[noOfAttrNames] = NULL; calloc=> redundant */
 
-					TRACE("Invoking saImmOiRtAttrUpdateCallback");
-					localEr = cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback(callback->lcl_imm_hdl,
-						&callback->name,
-						attributeNames);
+					if (osaf_is_extended_name_valid(&(callback->name))) {
+						TRACE("Invoking saImmOiRtAttrUpdateCallback");
+						localEr = cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback(callback->lcl_imm_hdl,
+							&callback->name,
+							attributeNames);
+					} else {
+						if (osaf_is_extended_names_enabled()) {
+							TRACE_3("Object name is too long: %s", osaf_extended_name_borrow(&(callback->name)));
+						} else {
+							TRACE_3("Extended name feature is disabled. Object name is too long: %s", osaf_extended_name_borrow(&(callback->name)));
+						}
+						localEr = SA_AIS_ERR_BAD_OPERATION;
+					}
+
 
 					TRACE("saImmOiRtAttrUpdateCallback returned RC:%u", localEr);
 					if (!(localEr == SA_AIS_OK ||
@@ -2752,9 +2783,9 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.remoteNodeId = owner;
 
 				/*Adding one to get the terminating null sent */
-				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.objectName.size = callback->name.length + 1;
+				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.objectName.size = osaf_extended_name_length(&callback->name) + 1;
 				/* Only borowing the name string from the SaName in the callback */
-				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.objectName.buf = (char *)callback->name.value;
+				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.objectName.buf = (char*) osaf_extended_name_borrow(&callback->name);
 				/* Only borowing the attributeNames list from callback. */
 				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.attributeNames = callback->attrNames;
 				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.requestNodeId = callback->requestNodeId;
@@ -2827,6 +2858,7 @@ static void imma_proc_free_callback(IMMA_CALLBACK_INFO *callback)
 		callback->attrNames = NULL;
 	}
 
+	osaf_extended_name_free(&callback->name);
 	free(callback);
 }
 

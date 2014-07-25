@@ -28,6 +28,8 @@
 
 #include "imma.h"
 #include "osaf_poll.h"
+#include "osaf_extended_name.h"
+#include "saAis.h"
 
 /*****************************************************************************
  global data used by IMMA
@@ -354,7 +356,10 @@ void imma_freeAttrValue3(SaImmAttrValueT p, const SaImmValueTypeT attrValueType)
 		case SA_IMM_ATTR_SATIMET:
 		case SA_IMM_ATTR_SAFLOATT:
 		case SA_IMM_ATTR_SADOUBLET:
+			break;
+
 		case SA_IMM_ATTR_SANAMET:
+			osaf_extended_name_free((SaNameT*) p);
 			break;
 
 		case SA_IMM_ATTR_SASTRINGT:
@@ -413,15 +418,7 @@ void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL *p, const SaImmValueTypeT attrValueTy
 
 		case SA_IMM_ATTR_SANAMET:
 			saNameTp = (SaNameT *)attrValue;
-			if (saNameTp) {
-				osafassert(saNameTp->length < SA_MAX_NAME_LENGTH);
-				valueSize = strnlen((char *)saNameTp->value, SA_MAX_NAME_LENGTH) + 1;
-				if (saNameTp->length + 1 < valueSize) {
-					valueSize = saNameTp->length + 1;
-				}
-			} else {
-				valueSize = 0;
-			}
+			valueSize = saNameTp ? osaf_extended_name_length(saNameTp) + 1 : 0;
 			break;
 
 		case SA_IMM_ATTR_SASTRINGT:
@@ -454,7 +451,7 @@ void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL *p, const SaImmValueTypeT attrValueTy
 				(void)memcpy(p->val.x.buf, *saStringTp, valueSize);
 				break;
 			case SA_IMM_ATTR_SANAMET:
-				(void)memcpy(p->val.x.buf, saNameTp->value, valueSize);
+				(void)memcpy(p->val.x.buf, osaf_extended_name_borrow(saNameTp), valueSize - 1);
 				break;
 			case SA_IMM_ATTR_SAANYT:
 				(void)memcpy(p->val.x.buf, saAnyTp->bufferAddr, valueSize - 1);
@@ -548,9 +545,14 @@ SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType, IMMSV_E
 
 		case SA_IMM_ATTR_SANAMET:
 			saNameTp = (SaNameT *)retVal;
-			saNameTp->length = strnlen(attrValue->val.x.buf, attrValue->val.x.size);
-			osafassert(saNameTp->length <= SA_MAX_NAME_LENGTH);
-			memcpy(saNameTp->value, attrValue->val.x.buf, saNameTp->length);
+			/* Steal the buffer. */
+			if (attrValue->val.x.size) {
+				osaf_extended_name_steal(attrValue->val.x.buf, saNameTp);
+				attrValue->val.x.buf = NULL;
+				attrValue->val.x.size = 0;
+			} else {
+				osaf_extended_name_clear(saNameTp);
+			}
 			break;
 
 		case SA_IMM_ATTR_SASTRINGT:
