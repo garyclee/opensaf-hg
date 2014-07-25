@@ -16,6 +16,7 @@
  */
 
 #include "immtest.h"
+#include "osaf_extended_name.h"
 
 
 static char *objects[] = {
@@ -31,6 +32,7 @@ static char *objects[] = {
 		"123456789012345678901234567890123456789012345678901234567890123,123456789012345678901234567890123456789012345678901234567890123,123456789012345678901234567890123456789012345678901234567890123,rdn=root",
 		"Test,rdn=root",
 		"rdn=root",
+		"longdn=012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
 		NULL
 };
 
@@ -41,6 +43,7 @@ static char *classes[] = {
 		NULL
 };
 
+extern void addOiLongDnTestCases();
 
 static void cleanup() {
 	SaVersionT version = { 'A', 2, 11 };
@@ -64,26 +67,25 @@ static void cleanup() {
 	assert(rc == SA_AIS_OK);
 
 	/* Delete objects */
-	int len;
 	SaNameT objectName = {0};
 	SaNameT *objectNames[2] = { &objectName, NULL };
 	obj = objects;
 	while(*obj) {
-		len = strlen(*obj);
-		objectName.length = (len > SA_MAX_NAME_LENGTH) ? SA_MAX_NAME_LENGTH : len;
-		strncpy((char *)objectName.value, *obj, objectName.length);
+		if(osaf_is_extended_names_enabled() || strlen(*obj) < SA_MAX_NAME_LENGTH) {
+			osaf_extended_name_lend(*obj, &objectName);
 
-		rc = saImmOmAdminOwnerSet(ownerHandle, (const SaNameT **)objectNames, SA_IMM_ONE);
-		if(rc == SA_AIS_ERR_NOT_EXIST) {
-			obj++;
-			continue;
+			rc = saImmOmAdminOwnerSet(ownerHandle, (const SaNameT **)objectNames, SA_IMM_ONE);
+			if(rc == SA_AIS_ERR_NOT_EXIST) {
+				obj++;
+				continue;
+			}
+			assert(rc == SA_AIS_OK);
+
+			rc = saImmOmCcbObjectDelete(ccbHandle, &objectName);
+			if(rc != SA_AIS_OK && rc != SA_AIS_ERR_NOT_EXIST)
+				fprintf(stderr, "Failed to delete object '%s' with error code: %d\n", *obj, rc);
+			assert(rc == SA_AIS_OK || rc == SA_AIS_ERR_NOT_EXIST);
 		}
-		assert(rc == SA_AIS_OK);
-
-		rc = saImmOmCcbObjectDelete(ccbHandle, &objectName);
-		if(rc != SA_AIS_OK && rc != SA_AIS_ERR_NOT_EXIST)
-			fprintf(stderr, "Failed to delete object '%s' with error code: %d\n", *obj, rc);
-		assert(rc == SA_AIS_OK || rc == SA_AIS_ERR_NOT_EXIST);
 
 		obj++;
 	}
@@ -132,6 +134,14 @@ static void startup() {
 	safassert(object_create(immOmHandle, ownerHandle, configClassName, &rootObj, NULL, NULL), SA_AIS_OK);
 	safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
 	safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+
+	/* Add long DN test cases */
+	char *env;
+	if((env = getenv("SA_ENABLE_EXTENDED_NAMES"))) {
+		if(!strcmp(env, "1")) {
+			addOiLongDnTestCases();
+		}
+	}
 }
 
 __attribute__ ((constructor)) static void cleanup_constructor(void)

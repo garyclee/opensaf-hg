@@ -41,6 +41,9 @@
 #include <immutil.h>
 #include "saf_error.h"
 #include <poll.h>
+
+#include "osaf_extended_name.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -74,7 +77,7 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 						  const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	printf("Modify callback on %s - object:%s ccbId:%llu\n", implName, objectName->value, ccbId);
+	printf("Modify callback on %s - object:%s ccbId:%llu\n", implName, osaf_extended_name_borrow(objectName), ccbId);
 
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
@@ -100,7 +103,7 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
-	printf("Create callback on %s - parent:%s ccbId:%llu\n", implName, parentName->value, ccbId);
+	printf("Create callback on %s - parent:%s ccbId:%llu\n", implName, osaf_extended_name_borrow(parentName), ccbId);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
@@ -120,7 +123,7 @@ static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle, Sa
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
-	printf("Delete callback on %s - object:%s ccbId:%llu\n", implName, objectName->value, ccbId);
+	printf("Delete callback on %s - object:%s ccbId:%llu\n", implName, osaf_extended_name_borrow(objectName), ccbId);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
@@ -187,7 +190,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle, SaInvocati
 	const SaImmAdminOperationParamsT_2 **params)
 {
 	printf("AdminOperationCallback received by impl %s on object %s operation:%llu invocation:%llu\n", 
-		implName, (char *) objectName->value, operationId, invocation);
+		implName, (char *) osaf_extended_name_borrow(objectName), operationId, invocation);
 	SaAisErrorT err = saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
 	if(err != SA_AIS_OK) {
 		fprintf(stderr, "Reply on admin operation failed, err:%u\n", err);
@@ -273,12 +276,13 @@ int main(int argc, char *argv[])
 
 	/* Remaining arguments should be class names for which implementer is set. */
 	while (optind < argc) {
-		strncpy((char *)objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
-		objectName.length = strlen((char *)objectName.value);
+		osaf_extended_name_alloc(argv[optind], &objectName);
+//		strncpy((char *)objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
+//		objectName.length = strlen((char *)objectName.value);
 
-		printf("Class: %s\n", objectName.value);
+		printf("Class: %s\n", osaf_extended_name_borrow(&objectName));
 
-		if(!strcmp((const char *) objectName.value, "OpensafImmRtTest")) {
+		if(!strcmp((const char *) osaf_extended_name_borrow(&objectName), "OpensafImmRtTest")) {
 			/* Special test case for RTO's. 
 			   Class OpensafImmRtTest foundd at samples/immsv/immsv_test_classes_rtobj.xml
 			*/
@@ -287,7 +291,7 @@ int main(int argc, char *argv[])
 			SaImmAttrValuesT_2 v1 = { "testRdn",  SA_IMM_ATTR_SASTRINGT, 1, (void**)strValues };
 			const SaImmAttrValuesT_2* attrValues[] = {&v1, NULL};
 
-			error = saImmOiRtObjectCreate_2(immOiHandle, (SaImmClassNameT) objectName.value, NULL, attrValues);
+			error = saImmOiRtObjectCreate_2(immOiHandle, (SaImmClassNameT) osaf_extended_name_borrow(&objectName), NULL, attrValues);
 			if (error != SA_AIS_OK && error != SA_AIS_ERR_EXIST) {
 				fprintf(stderr, "error - saImmOiClassImplementerSet FAILED: %s\n", saf_error(error));
 				exit(EXIT_FAILURE);
@@ -298,7 +302,7 @@ int main(int argc, char *argv[])
 				printf("Runtime object: %s exists\n", str1);
 			}
 		} else {
-			error = saImmOiClassImplementerSet(immOiHandle, (SaImmClassNameT) objectName.value);
+			error = saImmOiClassImplementerSet(immOiHandle, (SaImmClassNameT) osaf_extended_name_borrow(&objectName));
 			if (error != SA_AIS_OK) {
 				fprintf(stderr, "error - saImmOiClassImplementerSet FAILED: %s\n", saf_error(error));
 				exit(EXIT_FAILURE);

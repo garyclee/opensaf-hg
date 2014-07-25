@@ -44,6 +44,7 @@ immoitest_SOURCES = \
 	test_SaImmOiCcb.c \
 	test_SaImmOiAdminOperation.c \
 	test_saImmOiAugmentCcbInitialize.c \
+	test_saImmOiLongDn.c \
 	test_cleanup.c
 
 immoitest_LDADD = \

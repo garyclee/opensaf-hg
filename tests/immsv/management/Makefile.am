@@ -53,6 +53,7 @@ immomtest_SOURCES = \
 	test_saImmOmCcbFinalize.c \
 	test_saImmOmAdminOperationContinue.c \
 	test_saImmOmThreadInterference.c \
+	test_saImmOmLongDn.c \
 	test_cleanup.c
 
 immomtest_LDADD = \
