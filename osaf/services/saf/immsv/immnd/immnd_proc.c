@@ -637,7 +637,7 @@ immnd_getOsafImmPbeAdmopParam(SaImmAdminOperationIdT operationId, void* evt,
 		case OPENSAF_IMM_PBE_CLASS_CREATE:
 		case OPENSAF_IMM_PBE_CLASS_DELETE:
 			classDescr = (IMMSV_OM_CLASS_DESCR *) evt;
-			param->paramName.size = (SaUint32T) strlen(classNameParamName);
+			param->paramName.size = (SaUint32T) strlen(classNameParamName) + 1;
 			param->paramName.buf = (char *) classNameParamName;
 			param->paramType = SA_IMM_ATTR_SASTRINGT;
 			param->paramBuffer.val.x = classDescr->className;
@@ -646,7 +646,7 @@ immnd_getOsafImmPbeAdmopParam(SaImmAdminOperationIdT operationId, void* evt,
 
 		case OPENSAF_IMM_PBE_UPDATE_EPOCH:
 			cb = (IMMND_CB *) evt;
-			param->paramName.size = (SaUint32T) strlen(epochStr);
+			param->paramName.size = (SaUint32T) strlen(epochStr) + 1;
 			param->paramName.buf = (char *) epochStr;
 			param->paramType = SA_IMM_ATTR_SAUINT32T;
 			param->paramBuffer.val.sauint32 = cb->mMyEpoch;
@@ -727,7 +727,7 @@ void immnd_adjustEpoch(IMMND_CB *cb, SaBoolT increment)
 			send_evt.info.imma.info.admOpReq.continuationId = implHandle;
 			send_evt.info.imma.info.admOpReq.invocation = continuationId;
 			send_evt.info.imma.info.admOpReq.timeout = 0;
-			send_evt.info.imma.info.admOpReq.objectName.size = (SaUint32T) strlen(osafImmDn);
+			send_evt.info.imma.info.admOpReq.objectName.size = (SaUint32T) strlen(osafImmDn) + 1;
 			send_evt.info.imma.info.admOpReq.objectName.buf = (char *) osafImmDn;
 			send_evt.info.imma.info.admOpReq.params =
 				immnd_getOsafImmPbeAdmopParam(OPENSAF_IMM_PBE_UPDATE_EPOCH,

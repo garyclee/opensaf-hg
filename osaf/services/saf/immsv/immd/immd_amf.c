@@ -19,6 +19,7 @@
 #include <nid_start_util.h>
 #include "immd.h"
 #include "immsv.h"
+#include "osaf_extended_name.h"
 
 /**
  * Return string describing HA state
@@ -439,6 +440,6 @@ uint32_t immd_amf_init(IMMD_CB *immd_cb)
 	res = NCSCC_RC_SUCCESS;
 
  done:
-	TRACE_LEAVE2("%u, %s", res, immd_cb->comp_name.value);
+	TRACE_LEAVE2("%u, %s", res, osaf_extended_name_borrow(&immd_cb->comp_name));
 	return res;
 }

@@ -66,6 +66,11 @@ extern "C" {
 
 #define IMMSV_MAX_OBJECTS 10000
 #define IMMSV_MAX_ATTRIBUTES 128
+#define IMMSV_MAX_ADMO_NAME_LENGTH 256
+#define IMMSV_MAX_ATTR_NAME_LENGTH 256
+#define IMMSV_MAX_PARAM_NAME_LENGTH 256
+#define IMMSV_MAX_IMPL_NAME_LENGTH 256
+#define IMMSV_MAX_CLASS_NAME_LENGTH 256
 
 /* The pair of magic names for special appliers (#2873)
    If such an appliers are attached, then the immsv will generate

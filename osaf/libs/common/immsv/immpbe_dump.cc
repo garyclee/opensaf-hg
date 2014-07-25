@@ -29,6 +29,8 @@
 #include <stdint.h>
 #include <sys/stat.h>
 
+#include "saAis.h"
+#include "osaf_extended_name.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -214,7 +216,7 @@ static int bindValue(sqlite3_stmt *stmt, int position, SaImmAttrValueT value, Sa
         	return sqlite3_bind_double(stmt, position, *((double *) value));
         case SA_IMM_ATTR_SANAMET:
             name = (SaNameT *)value;
-        	return sqlite3_bind_text(stmt, position, (char *)name->value, name->length, NULL);
+        	return sqlite3_bind_text(stmt, position, osaf_extended_name_borrow(name), osaf_extended_name_length(name), NULL);
         case SA_IMM_ATTR_SASTRINGT:
             str = *((SaStringT *) value);
         	return sqlite3_bind_text(stmt, position, str, -1, NULL);
@@ -1975,7 +1977,7 @@ unsigned int purgeInstancesOfClassToPBE(SaImmHandleT immHandle, std::string clas
 
 		//assert(attrs[0] == NULL);
 
-		objectDeleteToPBE(std::string((const char *) objectName.value), db_handle);
+		objectDeleteToPBE(std::string(osaf_extended_name_borrow(&objectName)), db_handle);
 		++nrofDeletes;
 	} while (true);
 
@@ -2052,7 +2054,7 @@ int dumpInstancesOfClassToPBE(SaImmHandleT immHandle, ClassMap *classIdMap,
 
 		assert(attrs[0] != NULL);
 
-		if(!objectToPBE(std::string((const char*)objectName.value),
+		if(!objectToPBE(std::string(osaf_extended_name_borrow(&objectName)),
 			(const SaImmAttrValuesT_2**) attrs, classIdMap, dbHandle,
 			++(*objIdCount), (SaImmClassNameT) className.c_str(), 0)) 
 		{goto bailout;}
@@ -2533,8 +2535,7 @@ int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
 	TRACE_ENTER();
 	unsigned int object_id=0;
-	root.length = 0;
-	strncpy((char*)root.value, "", 3);
+	osaf_extended_name_clear(&root);
 
 	/* Initialize immOmSearch */
 
@@ -2587,11 +2588,11 @@ int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 		if (attrs[0] == NULL)
 		{
 			TRACE_2("Skipping object %s because no attributes from searchNext",
-				(char *) objectName.value);
+				osaf_extended_name_borrow(&objectName));
 			continue;
 		}
 
-		if(!objectToPBE(std::string((char*)objectName.value, objectName.length),
+		if(!objectToPBE(std::string(osaf_extended_name_borrow(&objectName)),
 			(const SaImmAttrValuesT_2**) attrs, classIdMap, dbHandle, ++object_id, 
 			NULL, 0)) {
 			goto bailout;
@@ -3134,9 +3135,7 @@ std::string getClassName(const SaImmAttrValuesT_2** attrs)
 			if (attrs[i]->attrValueType == SA_IMM_ATTR_SANAMET)
 			{
 				className =
-					std::string((char*)
-								((SaNameT*)*attrs[i]->attrValues)->value,
-								(size_t) ((SaNameT*)*attrs[i]->attrValues)->length);
+					std::string(osaf_extended_name_borrow((SaNameT*) *attrs[i]->attrValues));
 				TRACE_LEAVE();
 				return className;
 			}
@@ -3196,10 +3195,9 @@ std::string valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
 		case SA_IMM_ATTR_SANAMET:
 			namep = (SaNameT *) value;
 
-			if (namep->length > 0)
+			if (!osaf_is_extended_name_empty(namep))
 			{
-				namep->value[namep->length] = 0;
-				ost << (char*) namep->value;
+				ost << osaf_extended_name_borrow(namep);
 			}
 			break;
 		case SA_IMM_ATTR_SASTRINGT:
@@ -3235,8 +3233,7 @@ std::list<std::string> getClassNames(SaImmHandleT immHandle)
 	std::list<std::string> classNamesList;
 	TRACE_ENTER();
 
-	strcpy((char*)opensafObjectName.value, OPENSAF_IMM_OBJECT_DN);
-	opensafObjectName.length = strlen(OPENSAF_IMM_OBJECT_DN);
+	osaf_extended_name_lend(OPENSAF_IMM_OBJECT_DN, &opensafObjectName);
 
 	/* Initialize immOmSearch */
 	errorCode = saImmOmAccessorInitialize(immHandle,
@@ -3295,8 +3292,7 @@ std::list<std::string> getClassNames(SaImmHandleT immHandle)
 		{
 		//std::cout << "SANAMET" << std::endl;
 			std::string classNameString =
-				std::string((char*)((SaNameT*)(*attributes)->attrValues + i)->value,
-							((SaNameT*)(*attributes)->attrValues + i)->length);
+				std::string(osaf_extended_name_borrow(((SaNameT*) (*attributes)->attrValues + i)));
 
 			classNamesList.push_front(classNameString);
 		}

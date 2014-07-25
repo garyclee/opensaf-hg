@@ -28,6 +28,7 @@
 #include "immsv_evt.h"
 #include "immd.h"
 #include "ncssysf_mem.h"
+#include "osaf_extended_name.h"
 
 uint32_t immd_evt_proc_cb_dump(IMMD_CB *cb);
 
@@ -1626,7 +1627,7 @@ static uint32_t immd_evt_proc_adminit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 	uba.start = NULL;
 	TRACE_ENTER();
 
-	TRACE_5("Admin owner name:%s", adminit_req->i.adminOwnerName.value);
+	TRACE_5("Admin owner name:%s", osaf_extended_name_borrow(&adminit_req->i.adminOwnerName));
 
 	globalId = ++(cb->admo_id_count);
 	if (cb->admo_id_count == 0xffffffff) {

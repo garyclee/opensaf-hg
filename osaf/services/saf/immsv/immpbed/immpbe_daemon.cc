@@ -26,6 +26,8 @@
 #include <nid_api.h> /* To define NCS_SEL_OBJ */
 #include <immsv_evt_model.h>
 
+#include "saAis.h"
+#include "osaf_extended_name.h"
 
 #define FD_IMM_PBE_OI 0
 #define FD_IMM_PBE_OM 1
@@ -100,8 +102,8 @@ static SaAisErrorT sqlite_prepare_ccb(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT 
 			case CCBUTIL_CREATE:
 				do {
 					TRACE("Create of object with DN: %s",
-						ccbUtilOperationData->objectName.value);
-					if(!objectToPBE(std::string((const char *) ccbUtilOperationData->objectName.value), 
+						osaf_extended_name_borrow(&ccbUtilOperationData->objectName));
+					if(!objectToPBE(std::string(osaf_extended_name_borrow(&ccbUtilOperationData->objectName)), 
 						ccbUtilOperationData->param.create.attrValues,
 						sClassIdMap, sDbHandle, ++sObjCount,
 						ccbUtilOperationData->param.create.className, ccbId))
@@ -114,9 +116,8 @@ static SaAisErrorT sqlite_prepare_ccb(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT 
 
 			case CCBUTIL_DELETE:
 				TRACE("Delete of object with DN: %s",
-					ccbUtilOperationData->param.deleteOp.objectName->value);
-				objectDeleteToPBE(std::string((const char *) 
-					ccbUtilOperationData->param.deleteOp.objectName->value),
+					osaf_extended_name_borrow(ccbUtilOperationData->param.deleteOp.objectName));
+				objectDeleteToPBE(std::string(osaf_extended_name_borrow(ccbUtilOperationData->param.deleteOp.objectName)),
 					sDbHandle);
 					
 				break;
@@ -133,10 +134,10 @@ static SaAisErrorT sqlite_prepare_ccb(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT 
 				   unmodified ccbObjectModify upcall.
 				 */
 				TRACE("Modify of object with DN: %s",
-					ccbUtilOperationData->param.modify.objectName->value);
+					osaf_extended_name_borrow(ccbUtilOperationData->param.modify.objectName));
 
-				objName.append((const char *) ccbUtilOperationData->
-					param.modify.objectName->value);
+				objName.append(osaf_extended_name_borrow(ccbUtilOperationData->
+					param.modify.objectName));
 				attrMods = ccbUtilOperationData->param.modify.attrMods;
 				while((attMod = attrMods[ix++]) != NULL) {
 					switch(attMod->modType) {
@@ -224,7 +225,8 @@ static bool pbe2_start_prepare_ccb_A_to_B(SaImmOiCcbIdT ccbId, SaUint32T numOps)
 	unsigned int msecs_waited = 0;
 	SaAisErrorT rc2B = SA_AIS_OK;
 	SaAisErrorT slavePbeRtReply = SA_AIS_OK;
-	SaNameT slavePbeRtObjName = {sizeof(OPENSAF_IMM_PBE_RT_OBJECT_DN_B), OPENSAF_IMM_PBE_RT_OBJECT_DN_B};
+	SaNameT slavePbeRtObjName;
+	osaf_extended_name_lend(OPENSAF_IMM_PBE_RT_OBJECT_DN_B, &slavePbeRtObjName);
 	
 	const SaImmAdminOperationParamsT_2 param0 = {
 		ccb_id_string,
@@ -384,7 +386,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 	if(sPbe2B) {
 		opensafObj.append(OPENSAF_IMM_OBJECT_DN);
 	} else {
-		opensafObj.append((const char *) objectName->value);
+		opensafObj.append(osaf_extended_name_borrow(objectName));
 		/* Weak ccb-id assigned at primary PBE (1PBE or 2PBE) 
 		   Slave PBE will get same ccbId as a parameter appended to the admin-op
 		   forwarded and "replicated" from primary. 
@@ -428,7 +430,8 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		if(sPbe2 && !sPbe2B) {
 			/* Primary PBE forwards class create to slave PBE. */
 			SaAisErrorT rc2B = SA_AIS_OK;
-			SaNameT slavePbeRtObjName = {sizeof(OPENSAF_IMM_PBE_RT_OBJECT_DN_B), OPENSAF_IMM_PBE_RT_OBJECT_DN_B};
+			SaNameT slavePbeRtObjName;
+			osaf_extended_name_lend(OPENSAF_IMM_PBE_RT_OBJECT_DN_B, &slavePbeRtObjName);
 			SaAisErrorT slavePbeRtReply = SA_AIS_OK;
 			const SaImmAdminOperationParamsT_2 *paramsToSlave[] = 
 				{params[0], &ccbIdParam, NULL};
@@ -637,7 +640,8 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		if(sPbe2 && !sPbe2B) {
 			/* Primary PBE forwards class delete to slave PBE. */
 			SaAisErrorT rc2B = SA_AIS_OK;
-			SaNameT slavePbeRtObjName = {sizeof(OPENSAF_IMM_PBE_RT_OBJECT_DN_B), OPENSAF_IMM_PBE_RT_OBJECT_DN_B};
+			SaNameT slavePbeRtObjName;
+			osaf_extended_name_lend(OPENSAF_IMM_PBE_RT_OBJECT_DN_B, &slavePbeRtObjName);
 			SaAisErrorT slavePbeRtReply = SA_AIS_OK;
 			const SaImmAdminOperationParamsT_2 *paramsToSlave[] = 
 				{params[0], &ccbIdParam, NULL};
@@ -761,7 +765,8 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		if(sPbe2 && !sPbe2B) {
 			/* Primary PBE forward update epoch to slave PBE. */
 			SaAisErrorT rc2B = SA_AIS_OK;
-			SaNameT slavePbeRtObjName = {sizeof(OPENSAF_IMM_PBE_RT_OBJECT_DN_B), OPENSAF_IMM_PBE_RT_OBJECT_DN_B};
+			SaNameT slavePbeRtObjName;
+			osaf_extended_name_lend(OPENSAF_IMM_PBE_RT_OBJECT_DN_B, &slavePbeRtObjName);
 			SaAisErrorT slavePbeRtReply = SA_AIS_OK;
 			const SaImmAdminOperationParamsT_2 *paramsToSlave[] = 
 				{params[0], &ccbIdParam, NULL};
@@ -844,9 +849,6 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 	reply_ok:
 		rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_QUEUE_NOT_AVAILABLE);
 	} else if(opId == OPENSAF_IMM_NOST_FLAG_ON) {
-		SaNameT myObj;
-		strcpy((char *) myObj.value, OPENSAF_IMM_OBJECT_DN);
-		myObj.length = strlen((const char *) myObj.value);
 		SaImmAttrValueT val = &sNoStdFlags;
 		SaImmAttrModificationT_2 attMod = {SA_IMM_ATTR_VALUES_REPLACE,
 						   {(char *) OPENSAF_IMM_ATTR_NOSTD_FLAGS, SA_IMM_ATTR_SAUINT32T, 1, &val}};
@@ -865,7 +867,8 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		if(sPbe2 && !sPbe2B) {
 			/* Forward nost flag ON to slave PBE. */
 			SaAisErrorT rc2B = SA_AIS_OK;
-			SaNameT slavePbeRtObjName = {sizeof(OPENSAF_IMM_PBE_RT_OBJECT_DN_B), OPENSAF_IMM_PBE_RT_OBJECT_DN_B};
+			SaNameT slavePbeRtObjName;
+			osaf_extended_name_lend(OPENSAF_IMM_PBE_RT_OBJECT_DN_B, &slavePbeRtObjName);
 			SaAisErrorT slavePbeRtReply = SA_AIS_OK;
 			rc2B = saImmOmAdminOperationInvoke_2(sOwnerHandle, &slavePbeRtObjName, 0, OPENSAF_IMM_NOST_FLAG_ON,
 				params, &slavePbeRtReply, SA_TIME_ONE_SECOND * 10);
@@ -896,6 +899,9 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 			sNoStdFlags |= flagsToSet;
 			LOG_NO("NOSTD FLAGS value 0x%x switched ON result:0x%x", flagsToSet, sNoStdFlags);
 			if(!sPbe2B) { /* Only primary PBE updates the cached RTA. */
+				SaNameT myObj;
+				osaf_extended_name_lend(OPENSAF_IMM_OBJECT_DN, &myObj);
+
 				rc = saImmOiRtObjectUpdate_2(immOiHandle, &myObj, attrMods);
 				if(rc != SA_AIS_OK) { 
 					/* Should never get TRY_AGAIN here. RTA update is always accepted,
@@ -903,7 +909,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 					 */
 					sNoStdFlags &= ~flagsToSet; /* restore the flag value */
 					LOG_WA("Update of cached attr %s in %s failed, rc=%u",
-						attMod.modAttr.attrName, (char *) myObj.value, rc);
+						attMod.modAttr.attrName, OPENSAF_IMM_OBJECT_DN, rc);
 					/* ABT shoot down or undo for slave ?
 					   The flags value in the slave is not really used.
 					   Slave only "becomes" primary by process restart,
@@ -916,9 +922,6 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 
 		rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
 	} else if(opId == OPENSAF_IMM_NOST_FLAG_OFF) {
-		SaNameT myObj;
-		strcpy((char *) myObj.value, OPENSAF_IMM_OBJECT_DN);
-		myObj.length = strlen((const char *) myObj.value);
 		SaImmAttrValueT val = &sNoStdFlags;
 		SaImmAttrModificationT_2 attMod = {SA_IMM_ATTR_VALUES_REPLACE,
 						   {(char *) OPENSAF_IMM_ATTR_NOSTD_FLAGS, SA_IMM_ATTR_SAUINT32T, 1, &val}};
@@ -937,7 +940,8 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		if(sPbe2 && !sPbe2B) {
 			/* Forward nost flag OFF to slave PBE. */
 			SaAisErrorT rc2B = SA_AIS_OK;
-			SaNameT slavePbeRtObjName = {sizeof(OPENSAF_IMM_PBE_RT_OBJECT_DN_B), OPENSAF_IMM_PBE_RT_OBJECT_DN_B};
+			SaNameT slavePbeRtObjName;
+			osaf_extended_name_lend(OPENSAF_IMM_PBE_RT_OBJECT_DN_B, &slavePbeRtObjName);
 			SaAisErrorT slavePbeRtReply = SA_AIS_OK;
 			rc2B = saImmOmAdminOperationInvoke_2(sOwnerHandle, &slavePbeRtObjName, 0, OPENSAF_IMM_NOST_FLAG_OFF,
 				params, &slavePbeRtReply, SA_TIME_ONE_SECOND * 10);
@@ -968,11 +972,14 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 			sNoStdFlags &= ~flagsToUnSet;
 			LOG_NO("NOSTD FLAGS value 0x%x switched OFF result:0x%x", flagsToUnSet, sNoStdFlags);
 			if(!sPbe2B) { /* Only primary PBE updates the cached RTA. */
+				SaNameT myObj;
+				osaf_extended_name_lend(OPENSAF_IMM_OBJECT_DN, &myObj);
+
 				rc = saImmOiRtObjectUpdate_2(immOiHandle, &myObj, attrMods);
 				if(rc != SA_AIS_OK) {
 					sNoStdFlags |= flagsToUnSet; /* restore the flag value */
 					LOG_WA("Update of cached attribute attr %s in %s failed, rc=%u",
-						attMod.modAttr.attrName, (char *) myObj.value, rc);
+						attMod.modAttr.attrName, OPENSAF_IMM_OBJECT_DN, rc);
 					/* ABT shoot down or undo for slave ?
 					   The flags value in the slave is not really used.
 					   Slave only "becomes" primary by process restart,
@@ -1087,7 +1094,7 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 	SaUint64T numOps=0LL;
 	unsigned int msecs_waited = 0;
 
-	TRACE_ENTER2("Modify callback for CCB:%llu object:%s", ccbId, objectName->value);
+	TRACE_ENTER2("Modify callback for CCB:%llu object:%s", ccbId, osaf_extended_name_borrow(objectName));
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
 			LOG_ER("Failed to get CCB objectfor %llx/%llu", ccbId, ccbId);
@@ -1098,7 +1105,9 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 
 	numOps = (SaUint64T) ccbUtilCcbData->userData;
 
-	if(strncmp((char *) objectName->value, (char *) OPENSAF_IMM_OBJECT_DN, objectName->length) ==0) {			
+	if(strncmp(osaf_extended_name_borrow(objectName),
+			(char *) OPENSAF_IMM_OBJECT_DN,
+			osaf_extended_name_length(objectName)) ==0) {
 		LOG_NO("PBE allowing modification to object %s", (char *) OPENSAF_IMM_OBJECT_DN);
 	}
 
@@ -1134,7 +1143,7 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 			(s2PbeBCcbOpCountNowAtB == 0) ||
 			(!pbeTransIsPrepared())) {
 			LOG_NO("Slave PBE time-out in waiting on porepare for PRTA update ccb:%llx dn:%s", ccbId,
-				(const char *) objectName->value);
+				osaf_extended_name_borrow(objectName));
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto abort_prta_trans;
 		}
@@ -1156,7 +1165,7 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 	osafassert((numOps == 1) && (!sPbe2B));
 
 	TRACE("Update of PERSISTENT runtime attributes in object with DN: %s",
-		(const char *) objectName->value);
+		osaf_extended_name_borrow(objectName));
 
 	rc = pbeBeginTrans(sDbHandle);
 	if(rc != SA_AIS_OK) {
@@ -1423,10 +1432,10 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 	ClassInfo* classInfo = (*sClassIdMap)[classNameString];
 	SaUint64T numOps=0LL;
 	unsigned int msecs_waited = 0;
-	
+        std::string objectDn;
 
-	if(parentName && parentName->length) {
-		TRACE_ENTER2("CREATE CALLBACK CCB:%llu class:%s parent:%s", ccbId, className, parentName->value);
+	if(parentName != NULL && !osaf_is_extended_name_empty(parentName)) {
+		TRACE_ENTER2("CREATE CALLBACK CCB:%llu class:%s parent:%s", ccbId, className, osaf_extended_name_borrow(parentName));
 	} else {
 		TRACE_ENTER2("CREATE CALLBACK CCB:%llu class:%s ROOT OBJECT (no parent)", ccbId, className);
 	}
@@ -1484,28 +1493,11 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 				goto done;				
 			}
 			rdnFound = true;
+                        const char* rdnVal;
 			if(attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
-				SaStringT rdnVal = *((SaStringT *) attrValue->attrValues[0]);
-				if((parentName==NULL) || (parentName->length == 0)) {
-					operation->objectName.length =
-						sprintf((char *) operation->objectName.value,
-							"%s", rdnVal);
-				} else {
-					operation->objectName.length = 
-						sprintf((char *) operation->objectName.value,
-							"%s,%s", rdnVal, parentName->value);
-				}
+				rdnVal = *((SaStringT *) attrValue->attrValues[0]);
 			} else if(attrValue->attrValueType == SA_IMM_ATTR_SANAMET) {
-				SaNameT *rdnVal = ((SaNameT *) attrValue->attrValues[0]);
-				if((parentName==NULL) || (parentName->length == 0)) {
-					operation->objectName.length =
-						sprintf((char *) operation->objectName.value,
-							"%s", rdnVal->value);
-				} else {
-					operation->objectName.length = 
-						sprintf((char *) operation->objectName.value,
-							"%s,%s", rdnVal->value, parentName->value);
-				}
+				rdnVal = osaf_extended_name_borrow((SaNameT*) attrValue->attrValues[0]);
 			} else {
 				snprintf(buf, sBufsize,
 					"PBE: Rdn attribute %s for class '%s' is neither SaStringT nor SaNameT!", 
@@ -1515,7 +1507,12 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
-			TRACE("Extracted DN: %s(%u)", operation->objectName.value,  operation->objectName.length);
+                        objectDn = rdnVal;
+                        if (parentName != NULL && !osaf_is_extended_name_empty(parentName)) {
+                                objectDn.append(",");
+                                objectDn.append(osaf_extended_name_borrow(parentName));
+			}
+			TRACE("Extracted DN: %s(%zu)", objectDn.c_str(), static_cast<size_t>(objectDn.size()));
 		}
 	}
 
@@ -1527,12 +1524,13 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 		goto done;
 	}
 
-	if(operation->objectName.length <= 0) {
+	if(objectDn.empty()) {
 		LOG_ER("operation->objectName.length can not be zero or negative");
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;		
 	}
 
+	osaf_extended_name_alloc(objectDn.c_str(), &operation->objectName);
 	ccbUtilCcbData->userData = (void *) ++numOps;
 
 	if(ccbId < 0x100000000LL) {
@@ -1559,7 +1557,7 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 			(!pbeTransIsPrepared()))
 		{
 			LOG_NO("Slave PBE time-out in waiting on porepare for PRTO create ccb:%llx dn:%s", ccbId,
-				(const char *) operation->objectName.value);
+				osaf_extended_name_borrow(&operation->objectName));
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto abort_prto_trans;
 		}
@@ -1581,7 +1579,7 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 	osafassert((numOps == 1) && (!sPbe2B));
 
 	TRACE("Create of PERSISTENT runtime object with DN: %s",
-		(const char *) operation->objectName.value);
+		objectDn.c_str());
 
 	rc = pbeBeginTrans(sDbHandle);
 	if(rc != SA_AIS_OK) {
@@ -1651,7 +1649,7 @@ static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle, Sa
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	char buf[sBufsize];
 	long long unsigned int opCount=0;
-	TRACE_ENTER2("DELETE CALLBACK CCB:%llu object:%s", ccbId, objectName->value);
+	TRACE_ENTER2("DELETE CALLBACK CCB:%llu object:%s", ccbId, osaf_extended_name_borrow(objectName));
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
@@ -1665,8 +1663,8 @@ static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle, Sa
 
 	opCount = (long long unsigned int) ccbUtilCcbData->userData;
 
-	if(strncmp((char *) objectName->value, (char *) OPENSAF_IMM_OBJECT_DN, objectName->length) ==0) {
-		snprintf(buf, sBufsize, "PBE: will not allow delete of object %s", (char *) OPENSAF_IMM_OBJECT_DN);
+	if (strcmp(osaf_extended_name_borrow(objectName), OPENSAF_IMM_OBJECT_DN) == 0) {
+		snprintf(buf, sBufsize, "PBE: will not allow delete of object %s", OPENSAF_IMM_OBJECT_DN);
 		LOG_NO("%s", buf);
 		saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 		rc = SA_AIS_ERR_BAD_OPERATION;
@@ -1697,10 +1695,10 @@ static SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 {
 	SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
 	TRACE_ENTER2("RT ATTR UPDATE CALLBACK PBE2B:%u DN:%s A:%s", sPbe2B, 
-		(const char *) objectName->value, OPENSAF_IMM_PBE_RT_OBJECT_DN_A);
+		osaf_extended_name_borrow(objectName), OPENSAF_IMM_PBE_RT_OBJECT_DN_A);
 
-	if((sPbe2B && strcmp((const char *) objectName->value, OPENSAF_IMM_PBE_RT_OBJECT_DN_B)==0) ||
-	   (!sPbe2B && strcmp((const char *) objectName->value, OPENSAF_IMM_PBE_RT_OBJECT_DN_A)==0))
+	if ((sPbe2B && strcmp(osaf_extended_name_borrow(objectName), OPENSAF_IMM_PBE_RT_OBJECT_DN_B) == 0) ||
+	   (!sPbe2B && strcmp(osaf_extended_name_borrow(objectName), OPENSAF_IMM_PBE_RT_OBJECT_DN_A) == 0))
 	{
 		SaImmAttrValueT attrUpdateValues1[] = {&sEpoch};
 		SaImmAttrValueT attrUpdateValues2[] = {&sLastCcbCommit};
@@ -1817,7 +1815,8 @@ SaAisErrorT pbe_daemon_imm_init(SaImmHandleT immHandle)
         SaImmAccessorHandleT accessorHandle;
 	std::string pbeImplName; /* Used for PBE-OI and PBE-applier */
 	std::string pbeRtImplName; /* Used for handling PBE runtime data */
-	const SaNameT myParent = {sizeof(OPENSAF_IMM_OBJECT_DN), OPENSAF_IMM_OBJECT_DN};
+	SaNameT myParent;
+	osaf_extended_name_lend(OPENSAF_IMM_OBJECT_DN, &myParent);
 	const SaStringT rdnStr=(SaStringT) ((sPbe2B)?"osafImmPbeRt=B":"osafImmPbeRt=A");
 	const SaImmAttrValueT nameValues[] = {(SaImmAttrValueT) &rdnStr};
 	const SaImmAttrValuesT_2 v1 = {(SaImmAttrNameT) OPENSAF_IMM_ATTR_PBE_RT_RDN, SA_IMM_ATTR_SASTRINGT, 1, 
@@ -1828,8 +1827,10 @@ SaAisErrorT pbe_daemon_imm_init(SaImmHandleT immHandle)
 	SaImmClassCategoryT classCategory;
 	SaImmAttrDefinitionT_2 **attrDefinitions;
 
-	SaNameT pbeRtObjNameA = {sizeof(OPENSAF_IMM_PBE_RT_OBJECT_DN_A),OPENSAF_IMM_PBE_RT_OBJECT_DN_A};
-	SaNameT pbeRtObjNameB = {sizeof(OPENSAF_IMM_PBE_RT_OBJECT_DN_B),OPENSAF_IMM_PBE_RT_OBJECT_DN_B};
+	SaNameT pbeRtObjNameA;
+	osaf_extended_name_lend(OPENSAF_IMM_PBE_RT_OBJECT_DN_A, &pbeRtObjNameA);
+	SaNameT pbeRtObjNameB;
+	osaf_extended_name_lend(OPENSAF_IMM_PBE_RT_OBJECT_DN_B, &pbeRtObjNameB);
 
 	const SaNameT* admOwnNames[] = {(sPbe2B)?(&pbeRtObjNameB):(&pbeRtObjNameA), &myParent, NULL};
 
@@ -1999,8 +2000,7 @@ SaAisErrorT pbe_daemon_imm_init(SaImmHandleT immHandle)
 	if(rc == SA_AIS_OK) {
 		const SaImmAttrNameT attName = (char *) OPENSAF_IMM_ATTR_NOSTD_FLAGS;
 		SaNameT myObj;
-		strcpy((char *) myObj.value, OPENSAF_IMM_OBJECT_DN);
-		myObj.length = strlen((const char *) myObj.value);
+		osaf_extended_name_lend(OPENSAF_IMM_OBJECT_DN, &myObj);
 		SaImmAttrNameT attNames[] = {attName, NULL};
 		SaImmAttrValuesT_2 ** resultAttrs;
 		rc = saImmOmAccessorGet_2(accessorHandle, &myObj, attNames, &resultAttrs);

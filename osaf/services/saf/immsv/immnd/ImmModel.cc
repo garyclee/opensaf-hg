@@ -27,6 +27,7 @@
 #include "immnd.h"
 #include "immsv_api.h"
 #include "osaf_unicode.h"
+#include "osaf_extended_name.h"
 
 // Local types
 #define DEFAULT_TIMEOUT_SEC 6 /* Should be saImmOiTimeout in SaImmMngt */
@@ -607,8 +608,7 @@ immModel_ccbObjectCreate(IMMND_CB *cb,
             pbeConn, pbeNodeId, objectName);
 
     if(err == SA_AIS_OK) {
-        objName->length = (SaUint16T) objectName.size();
-        strncpy((char *)objName->value, objectName.c_str(), objName->length+1);
+        osaf_extended_name_alloc(objectName.c_str(), objName);
     }
 
     return err;
@@ -730,8 +730,7 @@ immModel_ccbObjectModify(IMMND_CB *cb,
             pbeConn, pbeNodeId, objectName);
 
     if(err == SA_AIS_OK) {
-        objName->length = (SaUint16T) objectName.size();
-        strncpy((char *)objName->value, objectName.c_str(), objName->length+1);
+        osaf_extended_name_alloc(objectName.c_str(), objName);
     }
 
     return err;
@@ -2964,14 +2963,21 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
 
             if(attr->attrValueType == SA_IMM_ATTR_SANAMET) {
                 immsv_edu_attr_val* v = attr->attrDefaultValue;
-                if(v->val.x.size >= SA_MAX_NAME_LENGTH) {
+                if(!(osaf_is_extended_names_enabled() && getLongDnsAllowed())
+                        && v->val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                    LOG_NO("ERR_LIBRARY: attr '%s' of type SaNameT is too long:%u. "
+                        "Extended names is not enabled",
+                        attNm, v->val.x.size - 1);
+                    err = SA_AIS_ERR_LIBRARY;
+                    illegal = 1;
+                } else if (v->val.x.size > kMaxDnLength) {
                     LOG_NO("ERR_LIBRARY: attr '%s' of type SaNameT is too long:%u",
-                        attNm, v->val.x.size);
+                        attNm, v->val.x.size - 1);
                     err = SA_AIS_ERR_LIBRARY;
                     illegal = 1;
                 }
                 else {
-                    std::string tmpName(v->val.x.buf, v->val.x.size);
+                    std::string tmpName(v->val.x.buf, v->val.x.size ? v->val.x.size - 1 : 0);
                     if(!(nameCheck(tmpName) || nameToInternal(tmpName))) {
                         LOG_NO("ERR_INVALID_PARAM: attr '%s' of type SaNameT contains non "
                             "printable characters", attNm);
@@ -4027,8 +4033,7 @@ ImmModel::adminOwnerCreate(const ImmsvOmAdminOwnerInitialize* req,
         return SA_AIS_ERR_TRY_AGAIN;
     }
     
-    if(strncmp("IMMLOADER", (const char *) req->adminOwnerName.value,
-        (size_t) req->adminOwnerName.length) == 0) {
+    if (strcmp("IMMLOADER", osaf_extended_name_borrow(&req->adminOwnerName)) == 0) {
         if(sImmNodeState != IMM_NODE_LOADING) {
             LOG_NO("ERR_INVALID_PARAM: Admin Owner 'IMMLOADER' only allowed for loading");
             TRACE_LEAVE();
@@ -4040,8 +4045,7 @@ ImmModel::adminOwnerCreate(const ImmsvOmAdminOwnerInitialize* req,
     
     info->mId = ownerId;
     
-    info->mAdminOwnerName.append((const char*)req->adminOwnerName.value,
-        (size_t)req->adminOwnerName.length);
+    info->mAdminOwnerName.append(osaf_extended_name_borrow(&req->adminOwnerName));
     if(info->mAdminOwnerName.empty() || !nameCheck(info->mAdminOwnerName)) {
         LOG_NO("ERR_INVALID_PARAM: Not a valid Admin Owner Name");
         delete info;
@@ -5640,10 +5644,8 @@ ImmModel::ccbAugmentInit(immsv_oi_ccb_upcall_rsp* rsp,
     ObjectMap::iterator oi;
 
     TRACE_ENTER();
-    size_t sz = strnlen((char *) rsp->name.value, 
-        (size_t)rsp->name.length);
     /*Note: objectName is parent-name for the create case! */
-    std::string objectName((const char*)rsp->name.value, sz);
+    std::string objectName(osaf_extended_name_borrow(&rsp->name));
     osafassert(nameCheck(objectName)||nameToInternal(objectName));
 
     i = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
@@ -5902,7 +5904,7 @@ void ImmModel::getLocalAppliersForObj(const SaNameT* objName, SaUint32T ccbId,
     CcbVector::iterator i1;
     cv.clear(); 
 
-    std::string objectName((const char *)objName->value);
+    std::string objectName(osaf_extended_name_borrow(objName));
     if(externalRep && !(nameCheck(objectName)||nameToInternal(objectName))) {
         LOG_ER("Not a proper object name");
         abort();
@@ -5910,7 +5912,7 @@ void ImmModel::getLocalAppliersForObj(const SaNameT* objName, SaUint32T ccbId,
 
     ObjectMap::iterator i5 = sObjectMap.find(objectName);
     if(i5 == sObjectMap.end()) {
-        LOG_ER("Could not find expected object:%s", objName->value);
+        LOG_ER("Could not find expected object:%s", objectName.c_str());
         abort();
     }
 
@@ -6432,12 +6434,21 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     bool rdnAttFound=false;
     bool isAugAdmo=false;
     bool isSpecialApplForClass=false;
+    bool longDnsPermitted = osaf_is_extended_names_enabled() && getLongDnsAllowed();
 
     ObjectSet refObjectSet;
 
     //int isLoading = this->getLoader() > 0;
     int isLoading = (sImmNodeState == IMM_NODE_LOADING);
     
+    if(!longDnsPermitted && sz >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+        LOG_NO("ERR_NOT_EXIST: Parent name '%s' has a long DN. "
+            "Not allowed by IMM service or extended names are disabled",
+            parentName.c_str());
+        err = SA_AIS_ERR_NOT_EXIST;
+        goto ccbObjectCreateExit;
+    }
+
     if(!nameCheck(parentName)) {
         if(nameToInternal(parentName)) {
             nameCorrected = true;
@@ -6607,7 +6618,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         err = SA_AIS_ERR_FAILED_OPERATION;     //Should never happen!
         goto ccbObjectCreateExit;
     }
-    
+
     attrValues = req->attrValues;
     
     while(attrValues) {
@@ -6632,10 +6643,10 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 err = SA_AIS_ERR_INVALID_PARAM;
                 goto ccbObjectCreateExit;
             }
-            
+
             /* size includes null termination byte. */
             if(((size_t)attrValues->n.attrValue.val.x.size > 65) &&  
-                (i4->second->mValueType == SA_IMM_ATTR_SASTRINGT) && !getLongDnsAllowed())
+                (i4->second->mValueType == SA_IMM_ATTR_SASTRINGT) && !longDnsPermitted)
             {
                 LOG_NO("ERR_INVALID_PARAM: RDN attribute value %s is too large: %u. Max length is 64 "
                     "for SaStringT", attrValues->n.attrValue.val.x.buf, (attrValues->n.attrValue.val.x.size -1));
@@ -6654,11 +6665,39 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 }
             }
             
-            
             objectName.append((const char*)attrValues->n.attrValue.val.x.buf, 
                 strnlen((const char*)attrValues->n.attrValue.val.x.buf,
                     (size_t)attrValues->n.attrValue.val.x.size));
+        } else if (attrValues->n.attrValueType == SA_IMM_ATTR_SANAMET
+                && !longDnsPermitted) {
+            AttrMap::iterator it = classInfo->mAttrMap.find(attrName);
+            if(it == classInfo->mAttrMap.end()) {
+                LOG_ER("ERR_INVALID_PARAM: Cannot find attribute '%s'",
+                    attrName.c_str());
+                err = SA_AIS_ERR_INVALID_PARAM;     //Should never happen!
+                goto ccbObjectCreateExit;
+            }
+            if(attrValues->n.attrValue.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                LOG_NO("ERR_NAME_TOO_LONG: Attribute '%s' has long name. "
+                    "Not allowed by IMM service or extended names are disabled",
+                    attrName.c_str());
+                err = SA_AIS_ERR_NAME_TOO_LONG;
+                goto ccbObjectCreateExit;
+            }
+
+            IMMSV_EDU_ATTR_VAL_LIST *value = attrValues->n.attrMoreValues;
+            while(value) {
+                if(value->n.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                    LOG_NO("ERR_NAME_TOO_LONG: Attribute '%s' has long DN. "
+                        "Not allowed by IMM service or extended names are disabled",
+                        attrName.c_str());
+                    err = SA_AIS_ERR_NAME_TOO_LONG;
+                    goto ccbObjectCreateExit;
+                }
+                value = value->next;
+            }
         }
+
         attrValues = attrValues->next;
     }
     
@@ -6690,9 +6729,9 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         objectName.append(parentName);
     }
     
-    if (objectName.size() >= SA_MAX_NAME_LENGTH) {
+    if (objectName.size() > ((longDnsPermitted) ? kMaxDnLength : (SA_MAX_UNEXTENDED_NAME_LENGTH - 1))) {
         TRACE_7("ERR_NAME_TOO_LONG: DN is too long, size:%u, max size is:%u",
-            (unsigned int) objectName.size(), SA_MAX_NAME_LENGTH);
+            (unsigned int) objectName.size(), kMaxDnLength);
         err = SA_AIS_ERR_NAME_TOO_LONG;
         goto ccbObjectCreateExit;
     }
@@ -6805,14 +6844,15 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             }
 
             if(attr->mValueType == SA_IMM_ATTR_SANAMET) {
-                if(p->n.attrValue.val.x.size >= SA_MAX_NAME_LENGTH) {
+                if(p->n.attrValue.val.x.size > kMaxDnLength) {
                     LOG_NO("ERR_LIBRARY: attr '%s' of type SaNameT is too long:%u",
-                        attrName.c_str(), p->n.attrValue.val.x.size);
+                        attrName.c_str(), p->n.attrValue.val.x.size - 1);
                     err = SA_AIS_ERR_LIBRARY;
                     break; //out of for-loop
                 }
 
-                std::string tmpName(p->n.attrValue.val.x.buf, p->n.attrValue.val.x.size);
+                std::string tmpName(p->n.attrValue.val.x.buf,
+                                    p->n.attrValue.val.x.size ? p->n.attrValue.val.x.size - 1 : 0);
                 if(!(nameCheck(tmpName) || nameToInternal(tmpName))) {
                     LOG_NO("ERR_INVALID_PARAM: attr '%s' of type SaNameT contains non "
                         "printable characters", attrName.c_str());
@@ -7402,8 +7442,9 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     //osafassert(!immNotWritable());
     //It should be safe to allow old ccbs to continue to mutate the IMM.
     //The sync does not realy start until all ccb's are completed.
-    size_t sz = 0; 
-    objectName.append((const char*)req->objectName.buf);
+    size_t sz = strnlen(req->objectName.buf,
+            (size_t)req->objectName.size);
+    objectName.append((const char*)req->objectName.buf, sz);
     
     SaUint32T ccbId = req->ccbId;
     SaUint32T ccbIdOfObj = 0;
@@ -7429,11 +7470,19 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     bool chainedOp = false;
     immsv_attr_mods_list* p = req->attrMods;
     bool modifiedNotifyAttr=false;
+    bool longDnsPermitted = osaf_is_extended_names_enabled() && getLongDnsAllowed();
 
     ObjectNameSet afimPreOpNDRefs;  // Set of NO_DANGLING references from after image before CCB operation
     bool hasNoDanglingRefs = false;
     bool modifiedImmMngt = false;  /* true => modification of the SAF immManagement object. */
     
+    if(!longDnsPermitted && sz >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+        LOG_NO("ERR_NAME_TOO_LONG: Object name has a long DN. "
+            "Not allowed by IMM service or extended names are disabled");
+        err = SA_AIS_ERR_NAME_TOO_LONG;
+        goto ccbObjectModifyExit;
+    }
+
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
         err = SA_AIS_ERR_INVALID_PARAM;
@@ -7666,14 +7715,41 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         if(attr->mFlags & SA_IMM_ATTR_NOTIFY) {modifiedNotifyAttr=true;}
 
         if(attr->mValueType == SA_IMM_ATTR_SANAMET) {
-            if(p->attrValue.attrValue.val.x.size >= SA_MAX_NAME_LENGTH) {
+            if(!longDnsPermitted) {
+                if(p->attrValue.attrValue.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                    LOG_NO("ERR_BAD_OPERATION: Attribute '%s' has long DN. "
+                        "Not allowed by IMM service or extended names are disabled",
+                        attrName.c_str());
+                    err = SA_AIS_ERR_BAD_OPERATION;
+                    break;
+                }
+                if((attr->mFlags & SA_IMM_ATTR_MULTI_VALUE) && p->attrValue.attrValuesNumber > 1) {
+                    IMMSV_EDU_ATTR_VAL_LIST *values = p->attrValue.attrMoreValues;
+                    while(values) {
+                        if(values->n.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                            LOG_NO("ERR_BAD_OPERATION: Attribute '%s' has long DN. "
+                                "Not allowed by IMM service or extended names are disabled",
+                                attrName.c_str());
+                            err = SA_AIS_ERR_BAD_OPERATION;
+                            break;
+                        }
+                        values = values->next;
+                    }
+                    if(err != SA_AIS_OK) {
+                        break;
+                    }
+                }
+            }
+
+            if(p->attrValue.attrValue.val.x.size > kMaxDnLength) {
                 LOG_NO("ERR_LIBRARY: attr '%s' of type SaNameT is too long:%u",
-                    attrName.c_str(), p->attrValue.attrValue.val.x.size);
+                    attrName.c_str(), p->attrValue.attrValue.val.x.size - 1);
                 err = SA_AIS_ERR_LIBRARY;
                 break; //out of for-loop
             }
 
-            std::string tmpName(p->attrValue.attrValue.val.x.buf, p->attrValue.attrValue.val.x.size);
+            std::string tmpName(p->attrValue.attrValue.val.x.buf,
+                                p->attrValue.attrValue.val.x.size ? p->attrValue.attrValue.val.x.size - 1 : 0);
             if(!(nameCheck(tmpName) || nameToInternal(tmpName))) {
                  LOG_NO("ERR_INVALID_PARAM: attr '%s' of type SaNameT contains non "
                      "printable characters", attrName.c_str());
@@ -8230,6 +8306,14 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     ObjectMap::iterator oi, oi2;
     ObjectInfo* deleteRoot=NULL;
     
+    if(!(osaf_is_extended_names_enabled() && getLongDnsAllowed())
+            && sz >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+        LOG_NO("ERR_NAME_TOO_LONG: Object name is too long. "
+            "Not allowed by IMM service or extended names are disabled");
+        err = SA_AIS_ERR_NAME_TOO_LONG;
+        goto ccbObjectDeleteExit;
+    }
+
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
         err = SA_AIS_ERR_INVALID_PARAM;
@@ -8984,9 +9068,7 @@ ImmModel::ccbObjDelContinuation(immsv_oi_ccb_upcall_rsp* rsp,
     SaUint32T* reqConn, bool* augDelete)
 {
     TRACE_ENTER();
-    size_t sz = strnlen((char *) rsp->name.value, 
-        (size_t)rsp->name.length);
-    std::string objectName((const char*)rsp->name.value, sz);
+    std::string objectName(osaf_extended_name_borrow(&rsp->name));
 
     SaUint32T ccbId = rsp->ccbId;
     CcbInfo* ccb = 0;
@@ -9452,7 +9534,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                 "or PRTO PBE, not yet applied", objectName.c_str());  
         err = SA_AIS_ERR_NOT_EXIST;
         goto accessorExit;
-    } 
+    }
     
     // Validate scope
     if (scope != SA_IMM_ONE) {
@@ -12978,6 +13060,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
     bool nameCorrected = false;
     bool rdnAttFound=false;
     bool isSpecialApplForClass=false;
+    bool longDnsPermitted = osaf_is_extended_names_enabled() && getLongDnsAllowed();
     
     /*Should rename member adminOwnerId. Used to store implid here.*/
     ImplementerInfo* info = findImplementer(req->adminOwnerId);
@@ -13001,6 +13084,14 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
     //We rely on FEVS to guarantee that the same handleId is produced at
     //all nodes for the same implementer. 
     
+    if(!longDnsPermitted && sz >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+        LOG_NO("ERR_NOT_EXIST: Parent name '%s' has a long DN. "
+            "Not allowed by IMM service or extended names are disabled",
+            parentName.c_str());
+        err = SA_AIS_ERR_NOT_EXIST;
+        goto rtObjectCreateExit;
+    }
+
     if(!nameCheck(parentName)) {
         if(nameToInternal(parentName)) {
             nameCorrected = true;
@@ -13094,7 +13185,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
             
             /* size includes null termination byte. */
             if(((size_t)attrValues->n.attrValue.val.x.size > 65) &&
-                (attrValues->n.attrValueType == SA_IMM_ATTR_SASTRINGT) && !getLongDnsAllowed())
+                (attrValues->n.attrValueType == SA_IMM_ATTR_SASTRINGT) && !longDnsPermitted)
             {
                 LOG_NO("ERR_INVALID_PARAM: RDN attribute value %s is too large: %u. Max length is 64 "
                     "for SaStringT", attrValues->n.attrValue.val.x.buf, (attrValues->n.attrValue.val.x.size-1));
@@ -13136,6 +13227,34 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
             objectName.append((const char*)attrValues->n.attrValue.val.x.buf, 
                 strnlen((const char*)attrValues->n.attrValue.val.x.buf,
                     (size_t)attrValues->n.attrValue.val.x.size));
+        } else if (attrValues->n.attrValueType == SA_IMM_ATTR_SANAMET
+                && !longDnsPermitted) {
+            AttrMap::iterator it = classInfo->mAttrMap.find(attrName);
+            if(it == classInfo->mAttrMap.end()) {
+                LOG_ER("ERR_INVALID_PARAM: Cannot find attribute '%s'",
+                    attrName.c_str());
+                err = SA_AIS_ERR_INVALID_PARAM;
+                goto rtObjectCreateExit;
+            }
+            if(attrValues->n.attrValue.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                LOG_NO("ERR_NAME_TOO_LONG: Attribute '%s' has long DN. "
+                    "Not allowed by IMM service or extended names are disabled",
+                    attrName.c_str());
+                err = SA_AIS_ERR_NAME_TOO_LONG;
+                goto rtObjectCreateExit;
+            }
+
+            IMMSV_EDU_ATTR_VAL_LIST *value = attrValues->n.attrMoreValues;
+            while(value) {
+                if(value->n.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                    LOG_NO("ERR_NAME_TOO_LONG: Attribute '%s' has long DN. "
+                        "Not allowed by IMM service or extended names are disabled",
+                        attrName.c_str());
+                    err = SA_AIS_ERR_NAME_TOO_LONG;
+                    goto rtObjectCreateExit;
+                }
+                value = value->next;
+            }
         }
         attrValues = attrValues->next;
     }
@@ -13169,9 +13288,9 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
         objectName.append(parentName);
     }
     
-    if (objectName.size() >= SA_MAX_NAME_LENGTH) {
+    if (objectName.size() > ((longDnsPermitted) ? kMaxDnLength : (SA_MAX_UNEXTENDED_NAME_LENGTH -1))) {
         TRACE_7("ERR_NAME_TOO_LONG: DN is too long, size:%u, max size is:%u", 
-            (unsigned int) objectName.size(), SA_MAX_NAME_LENGTH);
+            (unsigned int) objectName.size(), kMaxDnLength);
         err = SA_AIS_ERR_NAME_TOO_LONG;     
         goto rtObjectCreateExit;
     }
@@ -13278,14 +13397,15 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                 break; //out of for-loop
             }
             if(attr->mValueType == SA_IMM_ATTR_SANAMET) {
-                if(p->n.attrValue.val.x.size >= SA_MAX_NAME_LENGTH) {
+                if(p->n.attrValue.val.x.size > kMaxDnLength) {
                     LOG_NO("ERR_LIBRARY: attr '%s' of type SaNameT is too long:%u",
-                        attrName.c_str(), p->n.attrValue.val.x.size);
+                        attrName.c_str(), p->n.attrValue.val.x.size - 1);
                     err = SA_AIS_ERR_LIBRARY;
                     break; //out of for-loop
                 }
 
-                std::string tmpName(p->n.attrValue.val.x.buf, p->n.attrValue.val.x.size);
+                std::string tmpName(p->n.attrValue.val.x.buf,
+                                    p->n.attrValue.val.x.size ? p->n.attrValue.val.x.size - 1 : 0);
                 if(!(nameCheck(tmpName) || nameToInternal(tmpName))) {
                     LOG_NO("ERR_INVALID_PARAM: attr '%s' of type SaNameT contains non "
                         "printable characters", attrName.c_str());
@@ -14203,6 +14323,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     ImplementerInfo* info = NULL;
     bool wasLocal = *isPureLocal;
     bool isSyncClient = (sImmNodeState == IMM_NODE_W_AVAILABLE);
+    bool longDnsPermitted = osaf_is_extended_names_enabled() && getLongDnsAllowed();
     if(wasLocal) {osafassert(conn);} 
     
     if (objectName.empty()) {
@@ -14451,14 +14572,41 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             }
 
             if(attr->mValueType == SA_IMM_ATTR_SANAMET) {
-                if(p->attrValue.attrValue.val.x.size >= SA_MAX_NAME_LENGTH) {
+                if(!longDnsPermitted) {
+                    if(p->attrValue.attrValue.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                        LOG_NO("ERR_BAD_OPERATION: Attribute '%s' has long DN. "
+                            "Not allowed by IMM service or extended names are disabled",
+                            attrName.c_str());
+                        err = SA_AIS_ERR_BAD_OPERATION;
+                        break;
+                    }
+                    if((attr->mFlags & SA_IMM_ATTR_MULTI_VALUE) && p->attrValue.attrValuesNumber > 1) {
+                        IMMSV_EDU_ATTR_VAL_LIST *values = p->attrValue.attrMoreValues;
+                        while(values) {
+                            if(values->n.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                                LOG_NO("ERR_BAD_OPERATION: Attribute '%s' has long DN. "
+                                    "Not allowed by IMM service or extended names are disabled",
+                                    attrName.c_str());
+                                err = SA_AIS_ERR_BAD_OPERATION;
+                                break;
+                            }
+                            values = values->next;
+                        }
+                        if(err != SA_AIS_OK) {
+                            break;
+                        }
+                    }
+                }
+
+                if (p->attrValue.attrValue.val.x.size > kMaxDnLength) {
                     LOG_NO("ERR_LIBRARY: attr '%s' of type SaNameT is too long:%u",
-                        attrName.c_str(), p->attrValue.attrValue.val.x.size);
+                        attrName.c_str(), p->attrValue.attrValue.val.x.size - 1);
                     err = SA_AIS_ERR_LIBRARY;
                     break; //out of for-loop
                 }
 
-                std::string tmpName(p->attrValue.attrValue.val.x.buf, p->attrValue.attrValue.val.x.size);
+                std::string tmpName(p->attrValue.attrValue.val.x.buf,
+                                    p->attrValue.attrValue.val.x.size ? p->attrValue.attrValue.val.x.size - 1 : 0);
                 if(!(nameCheck(tmpName) || nameToInternal(tmpName))) {
                      LOG_NO("ERR_INVALID_PARAM: attr '%s' of type SaNameT contains non "
                          "printable characters", attrName.c_str());

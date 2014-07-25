@@ -29,6 +29,7 @@
 #include "immsv_api.h"
 #include "ncssysf_mem.h"
 #include "mds_papi.h"
+#include "osaf_extended_name.h"
 
 /* Adjust to 90% of MDS_DIRECT_BUF_MAXSIZE  */
 #define IMMND_SEARCH_BUNDLE_SIZE ((MDS_DIRECT_BUF_MAXSIZE / 100) * 90)   
@@ -4257,7 +4258,7 @@ static void immnd_evt_pbe_rt_obj_deletes_rsp(IMMND_CB *cb,
 
 		for (; ix < arrSize ; ++ix) {
 			send_evt.info.imma.info.objDelete.objectName.size = 
-				(SaUint32T) strlen(objNameArr[ix]);
+				(SaUint32T) strlen(objNameArr[ix]) + 1;
 			send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
 
 			TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT RT-OBJ DELETE upcalls");
@@ -4945,7 +4946,7 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
 				send_evt.info.imma.info.admOpReq.continuationId = implHandle;
 				send_evt.info.imma.info.admOpReq.invocation = continuationId;
 				send_evt.info.imma.info.admOpReq.timeout = 0;
-				send_evt.info.imma.info.admOpReq.objectName.size = (SaUint32T) strlen(osafImmDn);
+				send_evt.info.imma.info.admOpReq.objectName.size = (SaUint32T) strlen(osafImmDn) + 1;
 				send_evt.info.imma.info.admOpReq.objectName.buf =
 					(char *) osafImmDn;
 				send_evt.info.imma.info.admOpReq.params =
@@ -5091,7 +5092,7 @@ static void immnd_evt_proc_class_delete(IMMND_CB *cb,
 				send_evt.info.imma.info.admOpReq.continuationId = implHandle;
 				send_evt.info.imma.info.admOpReq.invocation = continuationId;
 				send_evt.info.imma.info.admOpReq.timeout = 0;
-				send_evt.info.imma.info.admOpReq.objectName.size = (SaUint32T) strlen(osafImmDn);
+				send_evt.info.imma.info.admOpReq.objectName.size = (SaUint32T) strlen(osafImmDn) + 1;
 				send_evt.info.imma.info.admOpReq.objectName.buf =
 					(char *) osafImmDn;
 				send_evt.info.imma.info.admOpReq.params =
@@ -5577,7 +5578,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
 	SaNameT objName;
-	objName.length=0;
+	osaf_extended_name_clear(&objName);
 	TRACE_ENTER();
 
 #if 0				/*ABT DEBUG PRINTOUTS START */
@@ -5690,7 +5691,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 		}
 	}
 
-	if((objName.length) && (err == SA_AIS_OK)) {
+	if (!osaf_is_extended_name_empty(&objName) && (err == SA_AIS_OK)) {
 		/* Generate applier upcalls for the object create */
 		SaUint32T *applConnArr = NULL;
 		int ix = 0;
@@ -5743,6 +5744,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
 			LOG_WA("IMMND - Client went down so no response");
+			osaf_extended_name_free(&objName);
 			return;
 		}
 
@@ -5763,6 +5765,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 		}
 		immsv_evt_free_attrNames(send_evt.info.imma.info.errRsp.errStrings);
 	}
+	osaf_extended_name_free(&objName);
 	TRACE_LEAVE();
 }
 
@@ -5802,7 +5805,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
 	SaNameT objName;
-	objName.length=0;
+	osaf_extended_name_clear(&objName);
 
 	TRACE_ENTER();
 #if 0				/*ABT DEBUG PRINTOUTS START */
@@ -5921,7 +5924,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 		}
 	}
 
-	if((objName.length) && (err == SA_AIS_OK)) {
+	if (!osaf_is_extended_name_empty(&objName) && (err == SA_AIS_OK)) {
 		/* Generate applier upcalls for the object modify */
 		SaUint32T *applConnArr = NULL;
 		int ix = 0;
@@ -6003,6 +6006,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 	evt->info.objModify.objectName.size = 0;
 	immsv_free_attrmods(evt->info.objModify.attrMods);
 	evt->info.objModify.attrMods = NULL;
+	osaf_extended_name_free(&objName);
 	TRACE_LEAVE();
 }
 
@@ -6545,7 +6549,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 			int ix = 0;
 			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
 				send_evt.info.imma.info.objDelete.objectName.size = 
-					(SaUint32T) strlen(objNameArr[ix]);
+					(SaUint32T) strlen(objNameArr[ix]) + 1;
 				send_evt.info.imma.info.objDelete.objectName.buf = 
 					objNameArr[ix];
 
@@ -6596,7 +6600,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 					   No implementer upcalls are generated for any runtime objects
 					   (persistent or not) that are deleted as a side effect.
 					 */
-					send_evt.info.imma.info.objDelete.objectName.size = (SaUint32T) strlen(objNameArr[ix]);
+					send_evt.info.imma.info.objDelete.objectName.size = (SaUint32T) strlen(objNameArr[ix]) + 1;
 					send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
 					send_evt.info.imma.info.objDelete.adminOwnerId = invocArr[ix];
 					send_evt.info.imma.info.objDelete.immHandle = implHandle;
@@ -6641,10 +6645,8 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 		for (; ix < arrSize && err == SA_AIS_OK; ++ix) { /* Iterate over deleted objects */
 			SaUint32T *applConnArr = NULL;
 			SaNameT objName;
-			objName.length = (SaUint32T) strlen(objNameArr[ix]);
-			send_evt.info.imma.info.objDelete.objectName.size = objName.length;
-			osafassert(objName.length < SA_MAX_NAME_LENGTH);
-			strncpy((char *) objName.value, objNameArr[ix], SA_MAX_NAME_LENGTH);
+			osaf_extended_name_lend(objNameArr[ix], &objName);
+			send_evt.info.imma.info.objDelete.objectName.size = strlen(objNameArr[ix]) + 1;
 			send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
 			
 			SaUint32T arrSize2 = immModel_getLocalAppliersForObj(cb, &objName,
@@ -6855,7 +6857,7 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 				int ix = 0;
 				for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
 					send_evt.info.imma.info.objDelete.objectName.size = 
-						(SaUint32T) strlen(objNameArr[ix]);
+						(SaUint32T) strlen(objNameArr[ix]) + 1;
 					send_evt.info.imma.info.objDelete.objectName.buf = 
 						objNameArr[ix];
 
@@ -6930,7 +6932,7 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 				int ix = 0;
 				for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
 					send_evt.info.imma.info.objDelete.objectName.size = 
-						(SaUint32T) strlen(objNameArr[ix]);
+						(SaUint32T) strlen(objNameArr[ix]) + 1;
 					send_evt.info.imma.info.objDelete.objectName.buf = 
 						objNameArr[ix];
 
@@ -6981,7 +6983,7 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 
 		for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
 			send_evt.info.imma.info.objDelete.objectName.size = 
-				(SaUint32T) strlen(objNameArr[ix]);
+				(SaUint32T) strlen(objNameArr[ix]) + 1;
 			send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
 
 			TRACE_2("MAKING PBE-IMPLEMENTER RT-OBJ DELETE upcalls");
@@ -8291,7 +8293,7 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 				fake_evt.info.immnd.info.admOpReq.objectName.size = strlen(opensafImmObj)+1;
 				fake_evt.info.immnd.info.admOpReq.params = &param;
 				fake_evt.info.immnd.info.admOpReq.params->paramName.buf = nostParam;
-				fake_evt.info.immnd.info.admOpReq.params->paramName.size = strlen(nostParam);
+				fake_evt.info.immnd.info.admOpReq.params->paramName.size = strlen(nostParam) + 1;
 				fake_evt.info.immnd.info.admOpReq.params->paramType = SA_IMM_ATTR_SAUINT32T;
 				fake_evt.info.immnd.info.admOpReq.params->paramBuffer.val.sauint32 = 
 					OPENSAF_IMM_FLAG_2PBE1_ALLOW;
