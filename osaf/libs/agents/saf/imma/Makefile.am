@@ -28,7 +28,7 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = libimmaOm.la libimmaOi.la
 
 libimmaOm_la_CPPFLAGS = \
-	-DIMMA_OM \
+	-DIMMA_OM -DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
@@ -42,7 +42,7 @@ libimmaOm_la_SOURCES = \
 	imma_proc.c
 
 libimmaOi_la_CPPFLAGS = \
-	-DIMMA_OI \
+	-DIMMA_OI -DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 

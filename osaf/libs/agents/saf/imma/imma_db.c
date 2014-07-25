@@ -1200,6 +1200,9 @@ uint32_t imma_search_node_delete(IMMA_CB *cb, IMMA_SEARCH_NODE *search_node)
 		search_node->mLastAttributes = NULL;
 	}
 
+	free(search_node->mLastObjectName);
+	search_node->mLastObjectName = NULL;
+
 	/* Remove the Node from the tree */
 	if (ncs_patricia_tree_del(&cb->search_tree, &search_node->patnode) != NCSCC_RC_SUCCESS) {
 		rc = NCSCC_RC_FAILURE;

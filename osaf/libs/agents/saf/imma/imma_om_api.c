@@ -38,9 +38,12 @@
 
 #define _GNU_SOURCE
 #include <string.h>
+#include <stdlib.h>
 
 #include "imma.h"
 #include "immsv_api.h"
+#include "saAis.h"
+#include "osaf_extended_name.h"
 
 static const char *immLoaderName = IMMSV_LOADERNAME;	/*Defined in immsv_evt.h */
 
@@ -926,8 +929,8 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	if (nameLen >= SA_MAX_NAME_LENGTH) {
-		TRACE_2("ERR_INVALID_PARAM: Admin owner name too long, size: %u max:%u", nameLen, SA_MAX_NAME_LENGTH - 1);
+	if (nameLen >= IMMSV_MAX_ADMO_NAME_LENGTH) {
+		TRACE_2("ERR_INVALID_PARAM: Admin owner name too long, size: %u max:%u", nameLen, IMMSV_MAX_ADMO_NAME_LENGTH - 1);
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
@@ -997,8 +1000,8 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 	evt.type = IMMSV_EVT_TYPE_IMMND;
 	evt.info.immnd.type = IMMND_EVT_A2ND_IMM_ADMINIT;
 	evt.info.immnd.info.adminitReq.client_hdl = immHandle;
-	evt.info.immnd.info.adminitReq.i.adminOwnerName.length = nameLen;
-	memcpy(evt.info.immnd.info.adminitReq.i.adminOwnerName.value, adminOwnerName, nameLen + 1);
+	osaf_extended_name_alloc(adminOwnerName,
+		&evt.info.immnd.info.adminitReq.i.adminOwnerName);
 	if (releaseOwnershipOnFinalize) {
 		evt.info.immnd.info.adminitReq.i.releaseOwnershipOnFinalize = true;
 		/* Release on finalize can not be undone in case of IMMND crash.
@@ -1777,20 +1780,15 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	}
 	strncpy(evt.info.immnd.info.objCreate.className.buf, className, evt.info.immnd.info.objCreate.className.size);
 
-	if (parentName && parentName->length) {
-		evt.info.immnd.info.objCreate.parentName.size = strlen((char *)parentName->value) + 1;
-
-		if (parentName->length + 1 < evt.info.immnd.info.objCreate.parentName.size) {
-			evt.info.immnd.info.objCreate.parentName.size = parentName->length + 1;
-		}
-
-		if (evt.info.immnd.info.objCreate.parentName.size > SA_MAX_NAME_LENGTH) {
+	if (parentName && !osaf_is_extended_name_empty(parentName)) {
+		if (!osaf_is_extended_name_valid(parentName)) {
 			rc = SA_AIS_ERR_INVALID_PARAM;
-			TRACE_2("ERR_INVALID_PARAM: Parent name too long for SaNameT: %u",
-				evt.info.immnd.info.objCreate.parentName.size);
+			TRACE_2("ERR_INVALID_PARAM: Parent name invalid");
 			goto mds_send_fail;
-
 		}
+
+		evt.info.immnd.info.objCreate.parentName.size =
+			osaf_extended_name_length(parentName) + 1;
 
 		/*alloc-2 */
 		evt.info.immnd.info.objCreate.parentName.buf = malloc(evt.info.immnd.info.objCreate.parentName.size);
@@ -1798,8 +1796,9 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto mds_send_fail;
 		}
-		strncpy(evt.info.immnd.info.objCreate.parentName.buf,
-			(char *)parentName->value, evt.info.immnd.info.objCreate.parentName.size);
+		memcpy(evt.info.immnd.info.objCreate.parentName.buf,
+			osaf_extended_name_borrow(parentName),
+			evt.info.immnd.info.objCreate.parentName.size - 1);
 		evt.info.immnd.info.objCreate.parentName.buf[evt.info.immnd.info.objCreate.parentName.size - 1] = '\0';
 	} else {
 		evt.info.immnd.info.objCreate.parentName.size = 0;
@@ -1866,7 +1865,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		p = calloc(1, sizeof(IMMSV_ATTR_VALUES_LIST));
 
 		p->n.attrName.size = strlen(attr->attrName) + 1;
-		if (p->n.attrName.size >= SA_MAX_NAME_LENGTH) {
+		if (p->n.attrName.size >= IMMSV_MAX_ATTR_NAME_LENGTH) {
 			TRACE_2("ERR_INVALID_PARAM: Attribute name too long");
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			free(p);
@@ -2088,6 +2087,12 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
+	if (osaf_is_extended_name_empty(objectName)) {
+		TRACE_2("ERR_INVALID_PARAM: objectName is empty");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
 	if (attrMods == NULL) {
 		TRACE_2("ERR_INVALID_PARAM: attrMods is NULL");
 		TRACE_LEAVE();
@@ -2287,21 +2292,17 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 	evt.info.immnd.info.objModify.adminOwnerId = adminOwnerId;
 	evt.info.immnd.info.objModify.ccbId = ccb_node->mCcbId;
 
-	if (objectName->length) {
-		evt.info.immnd.info.objModify.objectName.size = strlen((char *)objectName->value) + 1;
-
-		if (objectName->length + 1 < evt.info.immnd.info.objModify.objectName.size) {
-			evt.info.immnd.info.objModify.objectName.size = objectName->length + 1;
-		}
-
+	evt.info.immnd.info.objModify.objectName.size = osaf_extended_name_length(objectName) + 1;
+	if (evt.info.immnd.info.objModify.objectName.size != 1) {
 		/*alloc-1 */
 		evt.info.immnd.info.objModify.objectName.buf = malloc(evt.info.immnd.info.objModify.objectName.size);
 		if (evt.info.immnd.info.objModify.objectName.buf == NULL) {
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto mds_send_fail;
 		}
-		strncpy(evt.info.immnd.info.objModify.objectName.buf,
-			(char *)objectName->value, evt.info.immnd.info.objModify.objectName.size);
+		memcpy(evt.info.immnd.info.objModify.objectName.buf,
+			osaf_extended_name_borrow(objectName),
+			evt.info.immnd.info.objModify.objectName.size - 1);
 		evt.info.immnd.info.objModify.objectName.buf[evt.info.immnd.info.objModify.objectName.size - 1] = '\0';
 	} else {
 		evt.info.immnd.info.objModify.objectName.size = 0;
@@ -2537,7 +2538,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
-	if (!objectName || (objectName->length == 0)) {
+	if (!objectName || osaf_is_extended_name_empty(objectName)) {
 		TRACE_2("ERR_INVALID_PARAM: Empty object-name");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
@@ -2735,11 +2736,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	evt.info.immnd.info.objDelete.adminOwnerId = adminOwnerId;
 	evt.info.immnd.info.objDelete.ccbId = ccb_node->mCcbId;
 
-	evt.info.immnd.info.objDelete.objectName.size = strlen((char *)objectName->value) + 1;
-
-	if (objectName->length + 1 < evt.info.immnd.info.objDelete.objectName.size) {
-		evt.info.immnd.info.objDelete.objectName.size = objectName->length + 1;
-	}
+	evt.info.immnd.info.objDelete.objectName.size = osaf_extended_name_length(objectName) + 1;
 
 	/*alloc-1 */
 	evt.info.immnd.info.objDelete.objectName.buf = malloc(evt.info.immnd.info.objDelete.objectName.size);
@@ -2747,8 +2744,9 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto mds_send_fail;
 	}
-	strncpy(evt.info.immnd.info.objDelete.objectName.buf,
-		(char *)objectName->value, evt.info.immnd.info.objDelete.objectName.size);
+	memcpy(evt.info.immnd.info.objDelete.objectName.buf,
+		osaf_extended_name_borrow(objectName),
+		evt.info.immnd.info.objDelete.objectName.size - 1);
 	evt.info.immnd.info.objDelete.objectName.buf[evt.info.immnd.info.objDelete.objectName.size - 1] = '\0';
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, false);
@@ -3468,7 +3466,7 @@ static SaAisErrorT admin_op_invoke_common(
 	}
 
 	if ((objectName == NULL) || (operationReturnValue == NULL) ||
-	    (objectName->length == 0) || (objectName->length >= SA_MAX_NAME_LENGTH)
+	    osaf_is_extended_name_empty(objectName) || !osaf_is_extended_name_valid(objectName)
 	    || (params == NULL)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
@@ -3595,16 +3593,14 @@ static SaAisErrorT admin_op_invoke_common(
 	TRACE("immInvocations:%i", immInvocations);
 	evt.info.immnd.info.admOpReq.invocation = ++immInvocations;
 
-	evt.info.immnd.info.admOpReq.objectName.size = strnlen((char *)objectName->value, objectName->length) + 1;
-	if (objectName->length + 1 < evt.info.immnd.info.admOpReq.objectName.size) {
-		evt.info.immnd.info.admOpReq.objectName.size = objectName->length + 1;
-	}
+	evt.info.immnd.info.admOpReq.objectName.size = osaf_extended_name_length(objectName) + 1;
 
 	/*alloc-1 */
 	evt.info.immnd.info.admOpReq.objectName.buf = malloc(evt.info.immnd.info.admOpReq.objectName.size);
 
-	strncpy(evt.info.immnd.info.admOpReq.objectName.buf,
-		(char *)objectName->value, evt.info.immnd.info.admOpReq.objectName.size);
+	memcpy(evt.info.immnd.info.admOpReq.objectName.buf,
+		osaf_extended_name_borrow(objectName),
+		evt.info.immnd.info.admOpReq.objectName.size - 1);
 	evt.info.immnd.info.admOpReq.objectName.buf[evt.info.immnd.info.admOpReq.objectName.size - 1] = '\0';
 
 	osafassert(evt.info.immnd.info.admOpReq.params == NULL);
@@ -3630,7 +3626,7 @@ static SaAisErrorT admin_op_invoke_common(
 		}
 
 		p->paramName.size = strlen(param->paramName) + 1;
-		if (p->paramName.size >= SA_MAX_NAME_LENGTH) {
+		if (p->paramName.size >= IMMSV_MAX_PARAM_NAME_LENGTH) {
 			TRACE_2("ERR_INVALID_PARAM: Param name too long");
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			free(p);
@@ -3692,6 +3688,25 @@ static SaAisErrorT admin_op_invoke_common(
 				if(returnParams) {
 					*returnParams = imma_proc_get_params(out_evt->info.imma.info.admOpRsp.parms);
 					//imma_proc_free_pointers(cb, &(out_evt->info.imma)); ABT: Crashes, figure out why!
+
+					/* Check SaNameT values if the client side does not support extended names.
+					 * In this case if everything is ok, but the client does not support extended names,
+					 * operationReturnValue should be set to SA_AIS_ERR_NAME_TOO_LONG,
+					 * and SaNameT values should be cleared */
+					if(!osaf_is_extended_names_enabled()) {
+						i = 0;
+						while((*returnParams)[i]) {
+							if((*returnParams)[i]->paramType == SA_IMM_ATTR_SANAMET
+									&& osaf_is_extended_name_valid((SaNameT *)(*returnParams)[i]->paramBuffer)) {
+								if(*operationReturnValue == SA_AIS_OK) {
+									*operationReturnValue = SA_AIS_ERR_NAME_TOO_LONG;
+								}
+								osaf_extended_name_free((SaNameT *)(*returnParams)[i]->paramBuffer);
+								osaf_extended_name_clear((SaNameT *)(*returnParams)[i]->paramBuffer);
+							}
+							i++;
+						}
+					}
 				} else {
 					imma_proc_free_pointers(cb, &(out_evt->info.imma));
 				}
@@ -3951,8 +3966,8 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
-	if ((objectName == NULL) || (objectName->length == 0) ||
-	    (objectName->length >= SA_MAX_NAME_LENGTH) || (params == NULL)) {
+	if ((objectName == NULL) || osaf_is_extended_name_empty(objectName) ||
+	    !osaf_is_extended_name_valid(objectName) || (params == NULL)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -4064,17 +4079,15 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 	evt.info.immnd.info.admOpReq.invocation = -(++immInvocations);
 	/*Negate invoc to encode async */
 
-	evt.info.immnd.info.admOpReq.objectName.size = strnlen((char *)objectName->value, objectName->length) + 1;
-	if (objectName->length + 1 < evt.info.immnd.info.admOpReq.objectName.size) {
-		evt.info.immnd.info.admOpReq.objectName.size = objectName->length + 1;
-	}
+	evt.info.immnd.info.admOpReq.objectName.size = osaf_extended_name_length(objectName) + 1;
 
 	/*alloc-1 */
-	evt.info.immnd.info.admOpReq.objectName.buf = calloc(1, evt.info.immnd.info.admOpReq.objectName.size);
+	evt.info.immnd.info.admOpReq.objectName.buf = malloc(evt.info.immnd.info.admOpReq.objectName.size);
 
-	strncpy(evt.info.immnd.info.admOpReq.objectName.buf,
-		(char *)objectName->value, evt.info.immnd.info.admOpReq.objectName.size);
-	/* evt.info.immnd.info.admOpReq.objectName.buf[objectName->length] = '\0'; */
+	memcpy(evt.info.immnd.info.admOpReq.objectName.buf,
+		osaf_extended_name_borrow(objectName),
+		evt.info.immnd.info.admOpReq.objectName.size - 1);
+	evt.info.immnd.info.admOpReq.objectName.buf[evt.info.immnd.info.admOpReq.objectName.size - 1] = '\0';
 
 	osafassert(evt.info.immnd.info.admOpReq.params == NULL);
 
@@ -4100,7 +4113,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 		}
 
 		p->paramName.size = strlen(param->paramName) + 1;
-		if (p->paramName.size >= SA_MAX_NAME_LENGTH) {
+		if (p->paramName.size >= IMMSV_MAX_PARAM_NAME_LENGTH) {
 			TRACE_2("ERR_INVALID_PARAM: Param name too long");
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			free(p);
@@ -4819,7 +4832,6 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 							break;
 
 						case SA_IMM_ATTR_SANAMET:
-							osafassert(q->attrDefaultValue->val.x.size <= SA_MAX_NAME_LENGTH);
 							size = sizeof(SaNameT);
 							break;
 
@@ -4871,11 +4883,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 
 						case SA_IMM_ATTR_SANAMET:
 							namep = (SaNameT *)copyv;
-							memset(namep, 0, sizeof(SaNameT));
-							namep->length = strnlen(q->attrDefaultValue->val.x.buf,
-								q->attrDefaultValue->val.x.size);
-							osafassert(namep->length <= SA_MAX_NAME_LENGTH);
-							memcpy(namep->value, q->attrDefaultValue->val.x.buf, namep->length);
+							osaf_extended_name_alloc(q->attrDefaultValue->val.x.buf, namep); /*alloc-5 */
 							break;
 
 						case SA_IMM_ATTR_SAANYT:
@@ -5319,6 +5327,8 @@ SaAisErrorT saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 		imma_freeSearchAttrs((SaImmAttrValuesT_2 **)search_node->mLastAttributes);
 		search_node->mLastAttributes = NULL;
 	}
+	free(search_node->mLastObjectName);
+	search_node->mLastObjectName = NULL;
 
 	immHandle = search_node->mImmHandle;
 	proc_rc = imma_search_node_delete(cb, search_node);
@@ -5376,7 +5386,8 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
-	if ((objectName == NULL) || (objectName->length == 0) || (objectName->length >= SA_MAX_NAME_LENGTH)) {
+	if ((objectName == NULL) || osaf_is_extended_name_empty(objectName) ||
+		!osaf_is_extended_name_valid(objectName)) {
 		TRACE_2("ERR_INVALID_PARAM: Incorrect parameter contents: objectName");
 		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
@@ -5454,11 +5465,9 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 	evt.info.immnd.type = IMMND_EVT_A2ND_ACCESSOR_GET;
 	IMMSV_OM_SEARCH_INIT *req = &(evt.info.immnd.info.searchInit);
 	req->client_hdl = immHandle;
-	req->rootName.size = strlen((char *)objectName->value) + 1;
-	if(objectName->length + 1 < req->rootName.size)
-		req->rootName.size = objectName->length + 1;
+	req->rootName.size = osaf_extended_name_length(objectName) + 1;
 	req->rootName.buf = malloc(req->rootName.size);	/* alloc-1 */
-	strncpy(req->rootName.buf, (char *)objectName->value, (size_t)req->rootName.size);
+	memcpy(req->rootName.buf, osaf_extended_name_borrow(objectName), (size_t)req->rootName.size - 1);
 	req->rootName.buf[req->rootName.size - 1] = 0;
 
 	req->scope = SA_IMM_ONE;
@@ -5551,6 +5560,8 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 		imma_freeSearchAttrs((SaImmAttrValuesT_2 **)search_node->mLastAttributes);
 		search_node->mLastAttributes = NULL;
 	}
+	free(search_node->mLastObjectName);
+	search_node->mLastObjectName = NULL;
 
 	if(out_evt) {
 		osafassert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
@@ -5821,7 +5832,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
 
 	/* (attrValues != NULL) Case B or C */
 
-	osafassert((objectName->length != 0) && (objectName->length < SA_MAX_NAME_LENGTH));
+	osafassert(!osaf_is_extended_name_empty(objectName) && osaf_is_extended_name_valid(objectName));
 
 	evt.info.immnd.info.obj_sync.className.size = strlen(className) + 1;
 
@@ -5829,16 +5840,13 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
 	evt.info.immnd.info.obj_sync.className.buf = malloc(evt.info.immnd.info.obj_sync.className.size);
 	strncpy(evt.info.immnd.info.obj_sync.className.buf, className, evt.info.immnd.info.obj_sync.className.size);
 
-	evt.info.immnd.info.obj_sync.objectName.size = strlen((char *)objectName->value) + 1;
-
-	if (objectName->length + 1 < evt.info.immnd.info.obj_sync.objectName.size) {
-		evt.info.immnd.info.obj_sync.objectName.size = objectName->length + 1;
-	}
+	evt.info.immnd.info.obj_sync.objectName.size = osaf_extended_name_length(objectName) + 1;
 
 	/*alloc-2 */
 	evt.info.immnd.info.obj_sync.objectName.buf = malloc(evt.info.immnd.info.obj_sync.objectName.size);
-	strncpy(evt.info.immnd.info.obj_sync.objectName.buf,
-		(char *)objectName->value, evt.info.immnd.info.obj_sync.objectName.size);
+	memcpy(evt.info.immnd.info.obj_sync.objectName.buf,
+		osaf_extended_name_borrow(objectName),
+		evt.info.immnd.info.obj_sync.objectName.size - 1);
 	evt.info.immnd.info.obj_sync.objectName.buf[evt.info.immnd.info.obj_sync.objectName.size - 1] = '\0';
 
 	osafassert(evt.info.immnd.info.obj_sync.attrValues == NULL);
@@ -5857,7 +5865,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
 		IMMSV_ATTR_VALUES_LIST *p = calloc(1, sizeof(IMMSV_ATTR_VALUES_LIST));
 
 		p->n.attrName.size = strlen(attr->attrName) + 1;
-		if (p->n.attrName.size >= SA_MAX_NAME_LENGTH) {
+		if (p->n.attrName.size >= IMMSV_MAX_ATTR_NAME_LENGTH) {
 			TRACE_2("ERR_INVALID_PARAM: Attribute name too long: %u", p->n.attrName.size);
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			free(p);
@@ -6327,12 +6335,12 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	evt.info.immnd.type = IMMND_EVT_A2ND_SEARCHINIT;
 	IMMSV_OM_SEARCH_INIT *req = &(evt.info.immnd.info.searchInit);
 	req->client_hdl = immHandle;
-	if (rootName && rootName->length && (rootName->length < SA_MAX_NAME_LENGTH)) {
-		req->rootName.size = strlen((char *)rootName->value) + 1;
-		if (rootName->length + 1 < req->rootName.size)
-			req->rootName.size = rootName->length + 1;
+	if (rootName && !osaf_is_extended_name_empty(rootName) &&
+		osaf_is_extended_name_valid(rootName)) {
+		req->rootName.size = osaf_extended_name_length(rootName) + 1;
 		req->rootName.buf = malloc(req->rootName.size);	/* alloc-1 */
-		strncpy(req->rootName.buf, (char *)rootName->value, (size_t)req->rootName.size);
+		memcpy(req->rootName.buf, osaf_extended_name_borrow(rootName),
+			(size_t) req->rootName.size - 1);
 		req->rootName.buf[req->rootName.size - 1] = 0;
 	} else {
 		req->rootName.size = 0;
@@ -6388,8 +6396,8 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		}
 	}
 
-	if (rootName && rootName->length) {
-		TRACE("root: %s param:%p", rootName->value, searchParam);
+	if (rootName && !osaf_is_extended_name_empty(rootName)) {
+		TRACE("root: %s param:%p", osaf_extended_name_borrow(rootName), searchParam);
 	}
 
 	tmpSearchHandle = search_node->search_hdl;
@@ -6593,8 +6601,10 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 
 	if (search_node->mLastAttributes) {
 		imma_freeSearchAttrs((SaImmAttrValuesT_2 **)search_node->mLastAttributes);
-		search_node->mLastAttributes = 0;
+		search_node->mLastAttributes = NULL;
 	}
+	free(search_node->mLastObjectName);
+	search_node->mLastObjectName = NULL;
 
 	/* Check if there is any result in the buffer */
 	if (search_node->searchBundle) {
@@ -6760,11 +6770,9 @@ searchresult:
 		size_t attrDataSize = 0;
 		SaImmAttrValuesT_2 **attr = NULL;
 
-		objectName->length = 0;
-		m_IMMSV_SET_SANAMET(objectName);
-		objectName->length = strnlen(res_body->objectName.buf, res_body->objectName.size);
-		osafassert(objectName->length <= SA_MAX_NAME_LENGTH);
-		memcpy(objectName->value, res_body->objectName.buf, objectName->length);
+		memset(objectName, 0, sizeof(*objectName));
+		search_node->mLastObjectName = strdup(res_body->objectName.buf);
+		osaf_extended_name_lend(search_node->mLastObjectName, objectName);
 
 		IMMSV_ATTR_VALUES_LIST *p = res_body->attrValuesList;
 		while (p) {
@@ -6905,6 +6913,8 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 		imma_freeSearchAttrs((SaImmAttrValuesT_2 **)search_node->mLastAttributes);
 		search_node->mLastAttributes = NULL;
 	}
+	free(search_node->mLastObjectName);
+	search_node->mLastObjectName = NULL;
 
 	if (search_node->searchBundle) {
 		uint32_t i;
@@ -7180,14 +7190,11 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 	int i;
 	for (i = 0; objectNames[i]; ++i) {
 		objectName = objectNames[i];
-		osafassert(objectName->length < SA_MAX_NAME_LENGTH);
 		IMMSV_OBJ_NAME_LIST *ol = calloc(1, sizeof(IMMSV_OBJ_NAME_LIST));	/*a */
-		ol->name.size = strnlen((char *)objectName->value, SA_MAX_NAME_LENGTH) + 1;
-		if (ol->name.size > objectName->length) {
-			ol->name.size = objectName->length;
-		}
+		ol->name.size = osaf_extended_name_length(objectName) + 1;
 		ol->name.buf = malloc(ol->name.size);	/*b */
-		memcpy(ol->name.buf, objectName->value, ol->name.size);
+		memcpy(ol->name.buf, osaf_extended_name_borrow(objectName), ol->name.size - 1);
+		ol->name.buf[ol->name.size - 1] = '\0';
 		ol->next = admo_set_evt.info.immnd.info.admReq.objectNames;	/*null initially */
 		admo_set_evt.info.immnd.info.admReq.objectNames = ol;
 	}
@@ -7376,14 +7383,11 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 	int i;
 	for (i = 0; objectNames[i]; ++i) {
 		objectName = objectNames[i];
-		osafassert(objectName->length < SA_MAX_NAME_LENGTH);
 		IMMSV_OBJ_NAME_LIST *ol = calloc(1, sizeof(IMMSV_OBJ_NAME_LIST));	/*a */
-		ol->name.size = strnlen((char *)objectName->value, SA_MAX_NAME_LENGTH) + 1;
-		if (ol->name.size > objectName->length) {
-			ol->name.size = objectName->length;
-		}
+		ol->name.size = osaf_extended_name_length(objectName) + 1;
 		ol->name.buf = malloc(ol->name.size);	/*b */
-		memcpy(ol->name.buf, objectName->value, ol->name.size);
+		memcpy(ol->name.buf, osaf_extended_name_borrow(objectName), ol->name.size - 1);
+		ol->name.buf[ol->name.size - 1] = '\0';
 		ol->next = admo_set_evt.info.immnd.info.admReq.objectNames;	/*null initially */
 		admo_set_evt.info.immnd.info.admReq.objectNames = ol;
 	}
@@ -7537,14 +7541,11 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 	int i;
 	for (i = 0; objectNames[i]; ++i) {
 		objectName = objectNames[i];
-		osafassert(objectName->length < SA_MAX_NAME_LENGTH);
 		IMMSV_OBJ_NAME_LIST *ol = calloc(1, sizeof(IMMSV_OBJ_NAME_LIST));	/*a */
-		ol->name.size = strnlen((char *)objectName->value, SA_MAX_NAME_LENGTH) + 1;
-		if (ol->name.size > objectName->length) {
-			ol->name.size = objectName->length;
-		}
+		ol->name.size = osaf_extended_name_length(objectName) + 1;
 		ol->name.buf = malloc(ol->name.size);	/*b */
-		memcpy(ol->name.buf, objectName->value, ol->name.size);
+		memcpy(ol->name.buf, osaf_extended_name_borrow(objectName), ol->name.size - 1);
+		ol->name.buf[ol->name.size - 1] = '\0';
 		ol->next = admo_set_evt.info.immnd.info.admReq.objectNames;	/*null initially */
 		admo_set_evt.info.immnd.info.admReq.objectNames = ol;
 	}
@@ -8014,7 +8015,6 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 	IMMA_ADMIN_OWNER_NODE *adm_found_node = NULL;
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
-	SaUint32T nameLen = 0;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	bool locked = false;
 	SaUint32T timeout = 0;
@@ -8069,16 +8069,13 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 		goto fail;
 	}
 
-	nameLen = strlen(adm_found_node->mAdminOwnerName);
-
 	/* Populate & Send the Event to IMMND */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
 	evt.type = IMMSV_EVT_TYPE_IMMND;
 	evt.info.immnd.type = IMMND_EVT_A2ND_IMM_ADMINIT;
 	evt.info.immnd.info.adminitReq.client_hdl = immHandle;
-	evt.info.immnd.info.adminitReq.i.adminOwnerName.length = nameLen;
-	memcpy(evt.info.immnd.info.adminitReq.i.adminOwnerName.value, 
-		adm_found_node->mAdminOwnerName, nameLen + 1);
+	osaf_extended_name_alloc(adm_found_node->mAdminOwnerName,
+		&evt.info.immnd.info.adminitReq.i.adminOwnerName);
 	evt.info.immnd.info.adminitReq.i.releaseOwnershipOnFinalize = false;
 	
 	temp_hdl = adm_found_node->admin_owner_hdl;
@@ -8625,6 +8622,7 @@ SaAisErrorT immsv_om_augment_ccb_get_admo_name(
 	SaImmAttrValuesT_2 *attrVal = NULL;
 	SaImmAccessorHandleT acHdl=0LL;
 	TRACE_ENTER();	
+	osaf_extended_name_clear(admoNameOut);
 
 	rc = saImmOmAccessorInitialize(privateOmHandle, &acHdl);
 	if(rc != SA_AIS_OK) {goto done;}
@@ -8638,7 +8636,7 @@ SaAisErrorT immsv_om_augment_ccb_get_admo_name(
 		goto finalize;
 	}
 
-	strncpy((char *)admoNameOut->value, *(SaStringT*) attrVal->attrValues[0], SA_MAX_NAME_LENGTH);
+	osaf_extended_name_alloc(*(SaStringT*) attrVal->attrValues[0], admoNameOut);
 
  finalize:
     if(acHdl) {
