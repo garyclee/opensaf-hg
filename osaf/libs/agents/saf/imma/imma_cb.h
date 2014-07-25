@@ -71,6 +71,7 @@ typedef struct imma_client_node {
      * enviroment variable IMMA_MAX_OPEN_SEARCHES_PER_HANDLE */
     uint32_t maxSearchHandles;
 	uint32_t searchHandleSize;	/* Number of open search handles */
+	uint32_t oiTimeout;	/* Timeout for OI callback. If the value is 0, the default timeout (6s) will be used */
 } IMMA_CLIENT_NODE;
 
 /* Node to store adminOwner info */
