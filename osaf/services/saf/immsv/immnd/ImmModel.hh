@@ -379,7 +379,8 @@ public:
                                        SaUint32T con,
                                        SaUint32T nodeId,
                                        SaUint32T ownerId,
-                                       SaUint64T mds_dest);
+                                       SaUint64T mds_dest,
+                                       SaUint32T implTimeout);
     
     SaAisErrorT         classImplementerSet(
                                             const struct ImmsvOiImplSetReq* req,
@@ -545,7 +546,8 @@ public:
                                                  SaUint32T* reqConn); //in-out?
     void              setSearchReqContinuation(
                                                SaInvocationT& inv,
-                                               SaUint32T conn);
+                                               SaUint32T conn,
+                                               SaUint32T implTimeout);
 
     void              setAdmReqContinuation(
                                                SaInvocationT& inv,

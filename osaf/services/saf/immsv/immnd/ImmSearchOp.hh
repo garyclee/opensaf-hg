@@ -42,12 +42,10 @@ typedef std::list<SearchAttribute> AttributeList;
 struct SearchObject
 {
     SearchObject(const std::string& objectName) : name(objectName),
-                                                  implConn(0), implNodeId(0), implDest(0LL) { }
+                                                  implInfo(NULL) { }
     std::string name;
     AttributeList attributeList;
-    SaUint32T implConn;
-    unsigned int implNodeId;
-    SaUint64T implDest;
+    void *implInfo; /* ImplementerInfo * */
 
     ~SearchObject();
 };
@@ -66,21 +64,16 @@ public:
                                SaUint32T valueType,
                                SaImmAttrFlagsT flags);
     void          addAttrValue(const ImmAttrValue& value);
-    void          setImplementer(
-                                 SaUint32T conn, 
-                                 unsigned int nodeId,
-                                 SaUint64T mds_dest);
+    void          setImplementer(void *implInfo);
 
     SaAisErrorT   testTopResult(
-                                unsigned int* nodeIdp,
+                                void** implInfo,
                                 SaBoolT* bRtsToFetch);
 
     SaAisErrorT   nextResult(
                              IMMSV_OM_RSP_SEARCH_NEXT** rsp,
-                             SaUint32T* connp,
-                             unsigned int* nodeIdp,
-                             AttributeList** rtsToFetch,
-                             SaUint64T* implDest);
+                             void** implInfo,
+                             AttributeList** rtsToFetch);
     
     IMMSV_OM_RSP_SEARCH_NEXT*
     fetchLastResult() {return mLastResult;}

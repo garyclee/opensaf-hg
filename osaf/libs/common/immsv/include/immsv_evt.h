@@ -205,6 +205,8 @@ typedef enum immnd_evt_type {
 
 	IMMND_EVT_A2ND_ACCESSOR_GET = 94,	/* saImmOmAccessorGet_2 */
 	IMMND_EVT_A2ND_CCB_VALIDATE = 95,	/* saImmOmCcbValidate */
+	IMMND_EVT_A2ND_OI_IMPL_SET_2 = 96,	/* saImmOiImplementerSet */
+	IMMND_EVT_D2ND_IMPLSET_RSP_2 = 97,	/* Implementer set reply from D with impl id */
 
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
@@ -250,6 +252,8 @@ typedef enum immd_evt_type {
 	IMMD_EVT_ND2D_LOADING_COMPLETED = 25, /* loading completes sucessfully */
 
 	IMMD_EVT_ND2D_2PBE_PRELOAD = 26, /* Redundant PBE preload stats to IMMD. */
+
+	IMMD_EVT_ND2D_IMPLSET_REQ_2 = 27, /* OiImplementerSet */
 
 	IMMD_EVT_MAX
 } IMMD_EVT_TYPE;

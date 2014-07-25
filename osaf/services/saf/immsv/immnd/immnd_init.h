@@ -199,7 +199,9 @@ extern "C" {
 	    immModel_nextResult(IMMND_CB *cb, void *searchOp,
 				IMMSV_OM_RSP_SEARCH_NEXT **rsp,
 				SaUint32T *implConn, SaUint32T *implNodeId,
-				struct ImmsvAttrNameList **rtAttrsToFetch, MDS_DEST *implDest, SaBoolT retardSync);
+				struct ImmsvAttrNameList **rtAttrsToFetch,
+				MDS_DEST *implDest, SaBoolT retardSync,
+				SaUint32T *implTimeout);
 
 	void immModel_deleteSearchOp(void *searchOp);
 
@@ -211,14 +213,15 @@ extern "C" {
 
 	void immModel_setAdmReqContinuation(IMMND_CB *cb, SaInvocationT invoc, SaUint32T reqCon);
 
-	void immModel_setSearchReqContinuation(IMMND_CB *cb, SaInvocationT invoc, SaUint32T reqCon);
+	void immModel_setSearchReqContinuation(IMMND_CB *cb, SaInvocationT invoc, SaUint32T reqCon, SaUint32T implTimeout);
 
 	void immModel_setSearchImplContinuation(IMMND_CB *cb, SaUint32T searchId,
 						SaUint32T requestnodeId, MDS_DEST reply_dest);
 
 	SaAisErrorT
 	    immModel_implementerSet(IMMND_CB *cb, const IMMSV_OCTET_STRING *implName,
-				    SaUint32T implConn, SaUint32T implNodeId, SaUint32T implId, MDS_DEST mds_dest);
+				    SaUint32T implConn, SaUint32T implNodeId, SaUint32T implId,
+				    MDS_DEST mds_dest, SaUint32T implTimeout);
 
 	SaAisErrorT
 	    immModel_implementerClear(IMMND_CB *cb, const struct ImmsvOiImplSetReq *req,

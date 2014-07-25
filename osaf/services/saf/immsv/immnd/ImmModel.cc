@@ -80,7 +80,8 @@ struct AttrInfo
 struct ImplementerInfo
 {
     ImplementerInfo():mId(0), mConn(0), mNodeId(0), mMds_dest(0LL),
-                      mAdminOpBusy(0), mDying(false), mApplier(false){}
+                      mAdminOpBusy(0), mDying(false), mApplier(false),
+                      mTimeout(DEFAULT_TIMEOUT_SEC) {}
     SaUint32T       mId;
     SaUint32T       mConn; //Current implementer, only valid on one node.
     //NULL otherwise.
@@ -90,6 +91,7 @@ struct ImplementerInfo
     unsigned int    mAdminOpBusy;
     bool            mDying;
     bool            mApplier; //This is an applier OI
+    SaUint32T       mTimeout; //OI callback timeout
 };
 
 typedef std::vector<ImplementerInfo*> ImplementerVector;
@@ -1315,8 +1317,14 @@ immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit* req,
 SaAisErrorT
 immModel_testTopResult(void* searchOp, SaUint32T* implNodeId, SaBoolT* bRtAttrsToFetch)
 {
+    SaAisErrorT err;
+    ImplementerInfo *implInfo = NULL;
     ImmSearchOp* op = (ImmSearchOp *) searchOp;
-    return op->testTopResult(implNodeId, bRtAttrsToFetch);
+
+    err = op->testTopResult((void **)&implInfo, bRtAttrsToFetch);
+    *implNodeId = (implInfo) ? implInfo->mNodeId : 0;
+
+    return err;
 }
 
 SaAisErrorT
@@ -1324,7 +1332,7 @@ immModel_nextResult(IMMND_CB *cb, void* searchOp,
     IMMSV_OM_RSP_SEARCH_NEXT** rsp,
     SaUint32T* implConn, SaUint32T* implNodeId,
     struct ImmsvAttrNameList** rtAttrsToFetch,
-    MDS_DEST* implDest, SaBoolT retardSync)
+    MDS_DEST* implDest, SaBoolT retardSync, SaUint32T *implTimeout)
 {
     AttributeList* rtAttrs = NULL;
     SaAisErrorT err = SA_AIS_OK;
@@ -1346,12 +1354,26 @@ immModel_nextResult(IMMND_CB *cb, void* searchOp,
         }
         err = ImmModel::instance(&cb->immModel)->nextSyncResult(rsp, *op);
     } else {
+        ImplementerInfo *implInfo = NULL;
         /* Reset search time */
         op->updateSearchTime();
 
-        err = op->nextResult(rsp, implConn, implNodeId,
-            (rtAttrsToFetch)?(&rtAttrs):NULL,
-            (SaUint64T*) implDest);
+        err = op->nextResult(rsp, (void **)&implInfo,
+            (rtAttrsToFetch)?(&rtAttrs):NULL);
+
+        if(err == SA_AIS_OK) {
+            if(implInfo) {
+                if(implConn) { *implConn = implInfo->mConn; }
+                if(implNodeId) { *implNodeId = implInfo->mNodeId; }
+                if(implDest) { *implDest = implInfo->mMds_dest; }
+                if(implTimeout) { *implTimeout = implInfo->mTimeout; }
+            } else {
+                if(implConn) { *implConn = 0; }
+                if(implNodeId) { *implNodeId = 0; }
+                if(implDest) { *implDest = 0; }
+                if(implTimeout) { *implTimeout = 0; }
+            }
+        }
     }
 
     if(err != SA_AIS_OK) { return err; }
@@ -1428,9 +1450,9 @@ immModel_setAdmReqContinuation(IMMND_CB *cb, SaInvocationT invoc,
 
 void
 immModel_setSearchReqContinuation(IMMND_CB *cb, SaInvocationT invoc, 
-    SaUint32T reqConn)
+    SaUint32T reqConn, SaUint32T implTimeout)
 {
-    ImmModel::instance(&cb->immModel)->setSearchReqContinuation(invoc, reqConn);
+    ImmModel::instance(&cb->immModel)->setSearchReqContinuation(invoc, reqConn, implTimeout);
 }
 
 void
@@ -1445,14 +1467,16 @@ immModel_setSearchImplContinuation(IMMND_CB *cb, SaUint32T searchId,
 SaAisErrorT
 immModel_implementerSet(IMMND_CB *cb, const IMMSV_OCTET_STRING* implName,
     SaUint32T implConn, SaUint32T implNodeId,
-    SaUint32T implId, MDS_DEST mds_dest)
+    SaUint32T implId, MDS_DEST mds_dest,
+    SaUint32T implTimeout)
 {
     return 
         ImmModel::instance(&cb->immModel)->implementerSet(implName, 
             implConn,
             implNodeId,
             implId,
-            (SaUint64T) mds_dest);
+            (SaUint64T) mds_dest,
+            implTimeout);
 }
 
 SaAisErrorT 
@@ -9634,9 +9658,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                 
                 if(implNotSet && !(k->second->mFlags & SA_IMM_ATTR_CACHED)) {
                     //Non-cached rtattr and implementer exists => fetch it
-                    op.setImplementer(obj->mImplementer->mConn,
-                        obj->mImplementer->mNodeId,
-                        obj->mImplementer->mMds_dest);
+                    op.setImplementer(obj->mImplementer);
                     implNotSet = false;
                 }
             } else {
@@ -10142,10 +10164,7 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                                             SA_IMM_ATTR_CACHED)) {
                                         //Non cached rtattr and implementer
                                         //exists => fetch it
-                                        op.setImplementer(obj->mImplementer->
-                                            mConn,
-                                            obj->mImplementer->mNodeId,
-                                            obj->mImplementer->mMds_dest);
+                                        op.setImplementer(obj->mImplementer);
                                         implNotSet = false;
                                     }
                                 } else {
@@ -10557,11 +10576,11 @@ ImmModel::setAdmReqContinuation(SaInvocationT& saInv, SaUint32T reqConn)
 }
 
 void
-ImmModel::setSearchReqContinuation(SaInvocationT& saInv, SaUint32T reqConn)
+ImmModel::setSearchReqContinuation(SaInvocationT& saInv, SaUint32T reqConn, SaUint32T implTimeout)
 {
     TRACE_ENTER();
-    TRACE_5("setSearchReqContinuation <%llu, %u>", saInv, reqConn);
-    sSearchReqContinuationMap[saInv] = ContinuationInfo2(reqConn, DEFAULT_TIMEOUT_SEC);
+    TRACE_5("setSearchReqContinuation <%llu, %u, %usec>", saInv, reqConn, implTimeout);
+    sSearchReqContinuationMap[saInv] = ContinuationInfo2(reqConn, implTimeout);
     TRACE_LEAVE();
 }
 
@@ -11570,8 +11589,7 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
     for(ci2=sSearchReqContinuationMap.begin(); 
         ci2!=sSearchReqContinuationMap.end();
         ++ci2) {
-        //TODO the timeout should not be hardwired, but for now it is.
-        if(now - ci2->second.mCreateTime >= DEFAULT_TIMEOUT_SEC) {
+        if(now - ci2->second.mCreateTime >= ci2->second.mTimeout) {
             TRACE_5("Timeout on Search continuation %llu", ci2->first);
             searchReqs.push_back(ci2->first);
         } 
@@ -11602,14 +11620,25 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
                 (*i3)->mId);
             TRACE("state:%u waitsart:%u PberestartId:%u",(*i3)->mState, 
                 (unsigned int) (*i3)->mWaitStartTime, (*i3)->mPbeRestartId);
+
+            CcbImplementerMap::iterator cim;
+            uint32_t max_oi_timeout = DEFAULT_TIMEOUT_SEC;
+            for(cim = (*i3)->mImplementers.begin(); cim != (*i3)->mImplementers.end(); ++cim) {
+                if(cim->second->mImplementer->mTimeout > max_oi_timeout) {
+                    max_oi_timeout = cim->second->mImplementer->mTimeout;
+                }
+            }
+
+            uint32_t oi_timeout = ((*i3)->mState == IMM_CCB_CRITICAL) ? DEFAULT_TIMEOUT_SEC : max_oi_timeout;
             if(((*i3)->mWaitStartTime &&
-                (now - (*i3)->mWaitStartTime >= DEFAULT_TIMEOUT_SEC)) ||
+                (now - (*i3)->mWaitStartTime >= oi_timeout)) ||
                 ((*i3)->mPbeRestartId)) {
-                //TODO Timeout value should be fetched from IMM service object.
-                if((*i3)->mPbeRestartId) { 
+                if((*i3)->mPbeRestartId) {
+                    oi_timeout = 0;
                     TRACE_5("PBE restarted id:%u with ccb:%u in critical",
                         (*i3)->mPbeRestartId, (*i3)->mId);
-                } else {
+                } else if(now - (*i3)->mWaitStartTime >= max_oi_timeout) {
+                    oi_timeout = 0;
                     TRACE_5("CCB %u timeout while waiting on implementer reply",
                         (*i3)->mId);
                 }
@@ -11630,7 +11659,8 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
                             (DEFAULT_TIMEOUT_SEC + addSecs), (*i3)->mId);
                         ccbsStuck=1;
                     }
-                } else {
+                } else if(!oi_timeout) {
+                    // oi_timeout set to 0 means that the ccb should be added to the vector
                     ccbs.push_back((*i3)->mId); /*Non critical ccb to abort.*/
                 }
             }
@@ -11740,7 +11770,8 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     SaUint32T conn,
     SaUint32T nodeId,
     SaUint32T implementerId,
-    SaUint64T mds_dest)
+    SaUint64T mds_dest,
+    SaUint32T implTimeout)
 {
     SaAisErrorT err = SA_AIS_OK;
     CcbVector::iterator i;
@@ -11750,7 +11781,11 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
         TRACE_LEAVE();
         return SA_AIS_ERR_TRY_AGAIN;
     }    
-    
+
+    if(!implTimeout) {
+        implTimeout = DEFAULT_TIMEOUT_SEC;
+    }
+
     //Check first if implementer name already exists.
     //If so check if occupied, if not re-use.
     size_t sz = strnlen((char *) implementerName->buf,
@@ -11851,6 +11886,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     info->mAdminOpBusy = 0;
     info->mMds_dest = mds_dest;
     info->mDying = false;
+    info->mTimeout = implTimeout;
     
     if(isApplier) {
         info->mApplier = true;
