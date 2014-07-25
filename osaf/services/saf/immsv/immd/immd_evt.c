@@ -134,6 +134,7 @@ void immd_process_evt(void)
 		rc = immd_evt_proc_adminit_req(cb, &evt->info.immd, &evt->sinfo);
 		break;
 	case IMMD_EVT_ND2D_IMPLSET_REQ:
+	case IMMD_EVT_ND2D_IMPLSET_REQ_2:
 		rc = immd_evt_proc_impl_set_req(cb, &evt->info.immd, &evt->sinfo);
 		break;
 	case IMMD_EVT_ND2D_DISCARD_IMPL:
@@ -1767,11 +1768,17 @@ static uint32_t immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEN
 
 	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));
 	fevs_evt.type = IMMSV_EVT_TYPE_IMMND;
-	fevs_evt.info.immnd.type = IMMND_EVT_D2ND_IMPLSET_RSP;
 	fevs_evt.info.immnd.info.implSet.impl_id = globalId;
 	fevs_evt.info.immnd.info.implSet.impl_name.size = impl_req->impl_name.size;
 	fevs_evt.info.immnd.info.implSet.impl_name.buf = impl_req->impl_name.buf;	/*Warning, borrowing pointer, dont deallocate */
 	fevs_evt.info.immnd.info.implSet.client_hdl = impl_req->client_hdl;	/*redundant */
+
+	if(evt->type == IMMD_EVT_ND2D_IMPLSET_REQ_2) {
+		fevs_evt.info.immnd.info.implSet.oi_timeout = impl_req->oi_timeout;
+		fevs_evt.info.immnd.type = IMMND_EVT_D2ND_IMPLSET_RSP_2;
+	} else {
+		fevs_evt.info.immnd.type = IMMND_EVT_D2ND_IMPLSET_RSP;
+	}
 
 	proc_rc = ncs_enc_init_space(&uba);
 	if (proc_rc != NCSCC_RC_SUCCESS) {

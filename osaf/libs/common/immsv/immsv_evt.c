@@ -67,6 +67,7 @@ static const char *immd_evt_names[] = {
 	"IMMD_EVT_ND2D_FEVS_REQ_2",
 	"IMMD_EVT_ND2D_LOADING_COMPLETED",
 	"IMMD_EVT_ND2D_2PBE_PRELOAD",
+	"IMMD_EVT_ND2D_IMPLSET_REQ_2",
 	"undefined (high)"
 };
 
@@ -176,6 +177,8 @@ static const char *immnd_evt_names[] = {
 	"IMMND_EVT_A2ND_CL_TIMEOUT",
 	"IMMND_EVT_A2ND_ACCESSOR_GET",
 	"IMMND_EVT_A2ND_CCB_VALIDATE",	/* saImmOmCcbValidate */
+	"IMMND_EVT_A2ND_OI_IMPL_SET_2", /* saImmOiImplementerSet */
+	"IMMND_EVT_D2ND_IMPLSET_RSP_2",	/* Implementer set reply from D with impl id */
 	"undefined (high)"
 };
 
@@ -1513,7 +1516,8 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			(i_evt->info.immd.type == IMMD_EVT_ND2D_FEVS_REQ_2)) {
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immd.info.fevsReq.msg);
 			immsv_evt_enc_inline_string(o_ub, os);
-		} else if (i_evt->info.immd.type == IMMD_EVT_ND2D_IMPLSET_REQ) {
+		} else if ((i_evt->info.immd.type == IMMD_EVT_ND2D_IMPLSET_REQ) ||
+				(i_evt->info.immd.type == IMMD_EVT_ND2D_IMPLSET_REQ_2)) {
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immd.info.impl_set.r.impl_name);
 			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
 				return NCSCC_RC_OUT_OF_MEM;
@@ -1566,7 +1570,9 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.fevsReq.msg);
 			immsv_evt_enc_inline_string(o_ub, os);
 		} else if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_OI_IMPL_SET) ||
+			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_OI_IMPL_SET_2) ||
 			   (i_evt->info.immnd.type == IMMND_EVT_D2ND_IMPLSET_RSP) ||
+			   (i_evt->info.immnd.type == IMMND_EVT_D2ND_IMPLSET_RSP_2) ||
 			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_OI_CL_IMPL_SET) ||
 			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_OI_CL_IMPL_REL) ||
 			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_IMPL_SET) ||
@@ -2143,7 +2149,8 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 		    (o_evt->info.immd.type == IMMD_EVT_ND2D_FEVS_REQ_2)) {
 			IMMSV_OCTET_STRING *os = &(o_evt->info.immd.info.fevsReq.msg);
 			immsv_evt_dec_inline_string(i_ub, os);
-		} else if (o_evt->info.immd.type == IMMD_EVT_ND2D_IMPLSET_REQ) {
+		} else if ((o_evt->info.immd.type == IMMD_EVT_ND2D_IMPLSET_REQ) ||
+				(o_evt->info.immd.type == IMMD_EVT_ND2D_IMPLSET_REQ_2)) {
 			IMMSV_OCTET_STRING *os = &(o_evt->info.immd.info.impl_set.r.impl_name);
 			immsv_evt_dec_inline_string(i_ub, os);
 		} else if (o_evt->info.immd.type == IMMD_EVT_ND2D_OI_OBJ_MODIFY) {
@@ -2179,7 +2186,9 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			immsv_evt_dec_inline_string(i_ub, os);
 		} else
 		    if ((o_evt->info.immnd.type == IMMND_EVT_A2ND_OI_IMPL_SET) ||
+			(o_evt->info.immnd.type == IMMND_EVT_A2ND_OI_IMPL_SET_2) ||
 			(o_evt->info.immnd.type == IMMND_EVT_D2ND_IMPLSET_RSP) ||
+			(o_evt->info.immnd.type == IMMND_EVT_D2ND_IMPLSET_RSP_2) ||
 			(o_evt->info.immnd.type == IMMND_EVT_A2ND_OI_CL_IMPL_SET) ||
 			(o_evt->info.immnd.type == IMMND_EVT_A2ND_OI_CL_IMPL_REL) ||
 			(o_evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_IMPL_SET) ||
@@ -2961,6 +2970,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMD_EVT_ND2D_IMPLSET_REQ:	/*OiImplementerSet */
+		case IMMD_EVT_ND2D_IMPLSET_REQ_2:	/*OiImplementerSet */
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
 			ncs_encode_64bit(&p8, immdevt->info.impl_set.reply_dest);
 			ncs_enc_claim_space(o_ub, 8);
@@ -2977,6 +2987,12 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 			ncs_encode_32bit(&p8, immdevt->info.impl_set.r.scope);
 			ncs_enc_claim_space(o_ub, 4);
+
+			if(immdevt->type == IMMD_EVT_ND2D_IMPLSET_REQ_2) {
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+				ncs_encode_32bit(&p8, immdevt->info.impl_set.r.oi_timeout);
+				ncs_enc_claim_space(o_ub, 4);
+			}
 
 			/*intentional fall through - encode impl_id */
 		case IMMD_EVT_ND2D_DISCARD_IMPL:	/*Internal discard implementer message */
@@ -3296,6 +3312,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMND_EVT_A2ND_OI_IMPL_SET:	/* saImmOiImplementerSet */
+		case IMMND_EVT_A2ND_OI_IMPL_SET_2:	/* saImmOiImplementerSet */
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
 			ncs_encode_64bit(&p8, immndevt->info.implSet.client_hdl);
 			ncs_enc_claim_space(o_ub, 8);
@@ -3306,6 +3323,12 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/* immndevt->info.implSet.impl_name.buf encoded by sublevel */
 
 			/*skip scope & impl_id */
+
+			if(immndevt->type == IMMND_EVT_A2ND_OI_IMPL_SET_2) {
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+				ncs_encode_32bit(&p8, immndevt->info.implSet.oi_timeout);
+				ncs_enc_claim_space(o_ub, 4);
+			}
 			break;
 
 			/*Fevs call IMMA->IMMD->IMMNDs have to suport non-flat encoding */
@@ -3794,6 +3817,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMND_EVT_D2ND_IMPLSET_RSP:	/* Impl set reply from D with impl id */
+		case IMMND_EVT_D2ND_IMPLSET_RSP_2:
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
 			ncs_encode_64bit(&p8, immndevt->info.implSet.client_hdl);
 			ncs_enc_claim_space(o_ub, 8);
@@ -3810,6 +3834,12 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 			ncs_encode_32bit(&p8, immndevt->info.implSet.scope);
 			ncs_enc_claim_space(o_ub, 4);
+
+			if(immndevt->type == IMMND_EVT_D2ND_IMPLSET_RSP_2) {
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+				ncs_encode_32bit(&p8, immndevt->info.implSet.oi_timeout);
+				ncs_enc_claim_space(o_ub, 4);
+			}
 			break;
 
 		case IMMND_EVT_D2ND_DISCARD_IMPL:	/* Discard implementer broadcast to NDs */
@@ -4308,6 +4338,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			break;
 
 		case IMMD_EVT_ND2D_IMPLSET_REQ:	/*OiImplementerSet */
+		case IMMD_EVT_ND2D_IMPLSET_REQ_2:	/*OiImplementerSet */
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 8);
 			immdevt->info.impl_set.reply_dest = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(i_ub, 8);
@@ -4324,6 +4355,12 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
 			immdevt->info.impl_set.r.scope = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
+
+			if(immdevt->type == IMMD_EVT_ND2D_IMPLSET_REQ_2) {
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+				immdevt->info.impl_set.r.oi_timeout = ncs_decode_32bit(&p8);
+				ncs_dec_skip_space(i_ub, 4);
+			}
 
 			/*intentional fall through - decode impl_id */
 		case IMMD_EVT_ND2D_DISCARD_IMPL:	/*Internal discard implementer message */
@@ -4659,6 +4696,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			break;
 
 		case IMMND_EVT_A2ND_OI_IMPL_SET:	/* saImmOiImplementerSet */
+		case IMMND_EVT_A2ND_OI_IMPL_SET_2:	/* saImmOiImplementerSet */
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 8);
 			immndevt->info.implSet.client_hdl = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(i_ub, 8);
@@ -4669,6 +4707,11 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			/* immndevt->info.implSet.impl_name.buf decoded by sublevel */
 
 			/*skip scope & impl_id */
+			if(immndevt->type == IMMND_EVT_A2ND_OI_IMPL_SET_2) {
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+				immndevt->info.implSet.oi_timeout = ncs_decode_32bit(&p8);
+				ncs_dec_skip_space(i_ub, 4);
+			}
 			break;
 
 			/*Fevs call IMMA->IMMD->IMMNDs have to suport non-flat encoding */
@@ -5200,6 +5243,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			break;
 
 		case IMMND_EVT_D2ND_IMPLSET_RSP:	/* Implter set reply from D with impl id */
+		case IMMND_EVT_D2ND_IMPLSET_RSP_2:
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 8);
 			immndevt->info.implSet.client_hdl = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(i_ub, 8);
@@ -5216,6 +5260,12 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
 			immndevt->info.implSet.scope = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
+
+			if(immndevt->type == IMMND_EVT_D2ND_IMPLSET_RSP_2) {
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+				immndevt->info.implSet.oi_timeout = ncs_decode_32bit(&p8);
+				ncs_dec_skip_space(i_ub, 4);
+			}
 			break;
 
 		case IMMND_EVT_D2ND_DISCARD_IMPL:	/* Discard implementer broadcast to NDs */

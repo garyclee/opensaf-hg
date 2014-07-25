@@ -274,6 +274,7 @@ extern "C" {
 		IMMSV_OCTET_STRING impl_name;	/*and className and objName */
 		SaUint32T impl_id;
 		SaUint32T scope;	/*Only for obj impl set/rel */
+		SaUint32T oi_timeout;	/* Timeout for OI callbacks */
 	} IMMSV_OI_IMPLSET_REQ;
 
 	typedef struct immsv_oi_ccb_upcall_rsp {

@@ -76,19 +76,16 @@ ImmSearchOp::addAttrValue(const ImmAttrValue& value)
 }
 
 void
-ImmSearchOp::setImplementer(SaUint32T conn, unsigned int nodeId,
-    SaUint64T mds_dest)
+ImmSearchOp::setImplementer(void *implInfo)
 {
      //TRACE_ENTER();
     SearchObject& obj = mResultList.back();
-    obj.implConn = conn;
-    obj.implNodeId = nodeId;
-    obj.implDest = mds_dest;
+    obj.implInfo = implInfo;
     //TRACE_LEAVE();
 }
 
 SaAisErrorT
-ImmSearchOp::testTopResult(unsigned int* nodeIdp, SaBoolT* bRtsToFetch)
+ImmSearchOp::testTopResult(void** implInfo, SaBoolT* bRtsToFetch)
 {
     SaAisErrorT err = SA_AIS_ERR_NOT_EXIST;
 
@@ -100,10 +97,11 @@ ImmSearchOp::testTopResult(unsigned int* nodeIdp, SaBoolT* bRtsToFetch)
         // Check for pure runtime attribute
         AttributeList::iterator i;
         for (i = obj.attributeList.begin(); i != obj.attributeList.end(); i++) {
-            if(bRtsToFetch && ((*i).flags & SA_IMM_ATTR_RUNTIME) &&
+            if(bRtsToFetch && obj.implInfo &&
+                            ((*i).flags & SA_IMM_ATTR_RUNTIME) &&
                             ! ((*i).flags & SA_IMM_ATTR_CACHED)) {
                 *bRtsToFetch = SA_TRUE;
-                *nodeIdp = obj.implNodeId;
+                *implInfo = obj.implInfo;
                 break;
             }
         }
@@ -113,10 +111,8 @@ ImmSearchOp::testTopResult(unsigned int* nodeIdp, SaBoolT* bRtsToFetch)
 }
 
 SaAisErrorT
-ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, SaUint32T* connp, 
-    unsigned int* nodeIdp,
-    AttributeList** rtsToFetch,
-    SaUint64T* implDest)
+ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, void** implInfo,
+    AttributeList** rtsToFetch)
 {
     SaAisErrorT err = SA_AIS_ERR_NOT_EXIST;
     if(!mRtsToFetch.empty()) {mRtsToFetch.clear();}
@@ -152,9 +148,7 @@ ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, SaUint32T* connp,
                 mRtsToFetch.push_back(*i);
                 mRtsToFetch.back().valuep=NULL;/*Unused & crashes destructor.*/
                 *rtsToFetch = &mRtsToFetch;
-                *connp = obj.implConn;
-                *nodeIdp = obj.implNodeId;
-                *implDest = obj.implDest;
+                *implInfo = obj.implInfo;
             }
             
             if((*i).valuep) {

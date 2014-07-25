@@ -448,7 +448,9 @@ uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
 		evt->info.immnd.info.classDescr.attrDefinitions = NULL;
 
 	} else if ((evt->info.immnd.type == IMMND_EVT_A2ND_OI_IMPL_SET) ||
+		   (evt->info.immnd.type == IMMND_EVT_A2ND_OI_IMPL_SET_2) ||
 		   (evt->info.immnd.type == IMMND_EVT_D2ND_IMPLSET_RSP) ||
+		   (evt->info.immnd.type == IMMND_EVT_D2ND_IMPLSET_RSP_2) ||
 		   (evt->info.immnd.type == IMMND_EVT_A2ND_OI_CL_IMPL_SET) ||
 		   (evt->info.immnd.type == IMMND_EVT_A2ND_OI_CL_IMPL_REL) ||
 		   (evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_IMPL_SET) ||
@@ -564,6 +566,7 @@ void immnd_process_evt(void)
 		break;
 
 	case IMMND_EVT_A2ND_OI_IMPL_SET:
+	case IMMND_EVT_A2ND_OI_IMPL_SET_2:
 		rc = immnd_evt_proc_impl_set(cb, &evt->info.immnd, &evt->sinfo);
 		break;
 
@@ -1179,7 +1182,7 @@ static uint32_t immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMM
 		if (err == SA_AIS_OK) {
 			TRACE_2("oi_att_pull_rpl searchInit returned OK, calling searchNext");
 			IMMSV_OM_RSP_SEARCH_NEXT *rsp = 0;
-			err = immModel_nextResult(cb, searchOp, &rsp, NULL, NULL, NULL, NULL, SA_FALSE);
+			err = immModel_nextResult(cb, searchOp, &rsp, NULL, NULL, NULL, NULL, SA_FALSE, NULL);
 			if (err == SA_AIS_OK) {
 				rspo->runtimeAttrs.attrValuesList = rsp->attrValuesList;
 				/*STEALING*/ rsp->attrValuesList = NULL;
@@ -1391,6 +1394,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 	IMMSV_OM_RSP_SEARCH_BUNDLE_NEXT bundleSearch = {0, NULL};
 	int ix;
 	SaBoolT isAccessor = SA_FALSE;
+	SaUint32T oiTimeout = 0;
 
 	TRACE_ENTER();
 
@@ -1435,7 +1439,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 	}
 
 	error = immModel_nextResult(cb, sn->searchOp, &rsp, &implConn, &implNodeId, &rtAttrsToFetch,
-		&implDest, retardSync);
+		&implDest, retardSync, &oiTimeout);
 	if (error != SA_AIS_OK) {
 		goto agent_rsp;
 	}
@@ -1521,7 +1525,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 
 		TRACE_2("SETTING SEARCH REQ CONTINUATION FOR %u|%x->%u", sn->searchId, implNodeId, clientId);
 
-		immModel_setSearchReqContinuation(cb, invoc, clientId);
+		immModel_setSearchReqContinuation(cb, invoc, clientId, oiTimeout);
 
 		cl_node->tmpSinfo = *sinfo;	//TODO should be part of continuation?
 
@@ -1548,7 +1552,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 				break;
 
 			err = immModel_nextResult(cb, sn->searchOp, &rsp1, &implConn, &implNodeId, &rtAttrs,
-					&implDest, retardSync);
+					&implDest, retardSync, NULL);
 			if(err != SA_AIS_OK) {
 				osafassert(err == SA_AIS_ERR_NOT_EXIST);
 				break;
@@ -2317,6 +2321,14 @@ static uint32_t immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		goto agent_rsp;
 	}
 
+	if(evt->type == IMMND_EVT_A2ND_OI_IMPL_SET_2 && !immModel_protocol45Allowed(cb)) {
+		LOG_WA("Failed to set OI implementer (%u) with OI callback timeout "
+				"(OpenSAF 4.5 features are disabled)",
+				evt->info.implSet.impl_id);
+		send_evt.info.imma.info.implSetRsp.error = SA_AIS_ERR_NO_RESOURCES;
+		goto agent_rsp;
+	}
+
 	if (cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) {
 		TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages (> %u) rejecting impl_set request",
 			IMMSV_DEFAULT_FEVS_MAX_PENDING);
@@ -2375,11 +2387,17 @@ static uint32_t immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	}
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
-	send_evt.info.immd.type = IMMD_EVT_ND2D_IMPLSET_REQ;
 	send_evt.info.immd.info.impl_set.r.client_hdl = client_hdl;
 	send_evt.info.immd.info.impl_set.r.impl_name.size = evt->info.implSet.impl_name.size;
 	send_evt.info.immd.info.impl_set.r.impl_name.buf = evt->info.implSet.impl_name.buf;	/*Warning re-using buffer, no copy. */
 	send_evt.info.immd.info.impl_set.reply_dest = cb->immnd_mdest_id;
+
+	if(evt->type == IMMND_EVT_A2ND_OI_IMPL_SET_2) {
+		send_evt.info.immd.info.impl_set.r.oi_timeout = evt->info.implSet.oi_timeout;
+		send_evt.info.immd.type = IMMD_EVT_ND2D_IMPLSET_REQ_2;
+	} else {
+		send_evt.info.immd.type = IMMD_EVT_ND2D_IMPLSET_REQ;
+	}
 
 	/* send the request to the IMMD, reply comes back over fevs. */
 
@@ -3128,6 +3146,11 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq)
 
 	case IMMND_EVT_D2ND_IMPLSET_RSP:
 		LOG_WA("ERR_LIBRARY: IMMND_EVT_D2ND_IMPLSET_RSP can not arrive from client lib");
+		error = SA_AIS_ERR_LIBRARY;
+		break;
+
+	case IMMND_EVT_D2ND_IMPLSET_RSP_2:
+		LOG_WA("ERR_LIBRARY: IMMND_EVT_D2ND_IMPLSET_RSP_2 can not arrive from client lib");
 		error = SA_AIS_ERR_LIBRARY;
 		break;
 
@@ -7445,7 +7468,8 @@ static uint32_t immnd_restricted_ok(IMMND_CB *cb, uint32_t id)
 		    id == IMMND_EVT_A2ND_OI_IMPL_CLR ||
 		    id == IMMND_EVT_D2ND_SYNC_FEVS_BASE ||
 		    id == IMMND_EVT_A2ND_OI_OBJ_MODIFY ||
-		    id == IMMND_EVT_D2ND_IMPLSET_RSP) {
+		    id == IMMND_EVT_D2ND_IMPLSET_RSP ||
+		    id == IMMND_EVT_D2ND_IMPLSET_RSP_2) {
 			return 1;
 		}
 	}
@@ -7601,6 +7625,7 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 		break;
 
 	case IMMND_EVT_D2ND_IMPLSET_RSP:
+	case IMMND_EVT_D2ND_IMPLSET_RSP_2:
 		immnd_evt_proc_impl_set_rsp(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
@@ -9005,8 +9030,15 @@ static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 	TRACE_2("originated here?:%u nodeId:%x conn: %u", originatedAtThisNd, nodeId, conn);
 
+	if(evt->type == IMMND_EVT_D2ND_IMPLSET_RSP) {
+		/* In immModel_implementerSet, 0 will be replaced with DEFAULT_TIMEOUT_SEC
+		 * as the default value */
+		evt->info.implSet.oi_timeout = 0;
+	}
+
 	err = immModel_implementerSet(cb, &(evt->info.implSet.impl_name),
-				      (originatedAtThisNd) ? conn : 0, nodeId, evt->info.implSet.impl_id, reply_dest);
+			(originatedAtThisNd) ? conn : 0, nodeId, evt->info.implSet.impl_id,
+			reply_dest, evt->info.implSet.oi_timeout);
 
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
