@@ -140,6 +140,20 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 		cl_node->syncr_timeout = IMMSV_WAIT_TIME; /* Default */
 	}
 
+	if(cl_node->isImmA2e && (timeout_env_value = getenv("IMMA_OI_CALLBACK_TIMEOUT"))!=NULL) {
+		char *endp = NULL;
+		cl_node->oiTimeout = strtol(timeout_env_value, &endp, 10);
+		if(!endp || *endp) {
+			TRACE_2("Failed to parse IMMA_OI_CALLBACK_TIMEOUT. "
+					"OI timeout will be set to the default value");
+			cl_node->oiTimeout = 0;
+		} else {
+			TRACE_2("IMMA library OI timeout set to:%u", cl_node->oiTimeout);
+		}
+	} else {
+		cl_node->oiTimeout = 0;
+	}
+
 	/* Take the CB Lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 		TRACE_4("ERR_LIBRARY: LOCK failed");
@@ -1271,10 +1285,16 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 	/* Populate & Send the Open Event to IMMND */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
 	evt.type = IMMSV_EVT_TYPE_IMMND;
-	evt.info.immnd.type = IMMND_EVT_A2ND_OI_IMPL_SET;
 	evt.info.immnd.info.implSet.client_hdl = immOiHandle;
 	evt.info.immnd.info.implSet.impl_name.size = nameLen;
 	evt.info.immnd.info.implSet.impl_name.buf = implementerName;
+
+	if(cl_node->isImmA2e && cl_node->oiTimeout) {
+		evt.info.immnd.info.implSet.oi_timeout = cl_node->oiTimeout;
+		evt.info.immnd.type = IMMND_EVT_A2ND_OI_IMPL_SET_2;
+	} else {
+		evt.info.immnd.type = IMMND_EVT_A2ND_OI_IMPL_SET;
+	}
 
 	/* Unlock before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
