@@ -16,6 +16,7 @@
  */
 
 #include "immtest.h"
+#include "osaf_extended_name.h"
 
 static const SaNameT rdnObj1 = {sizeof("Obj1"), "Obj1"};
 static const SaNameT rdnObj2 = {sizeof("Obj2"), "Obj2"};
@@ -175,7 +176,11 @@ void saImmOiRtObjectCreate_2_07(void)
     /*Create of fourth rt object should fail. */
     rc = saImmOiRtObjectCreate_2(immOiHandle, className, &tmpName, attrValues27);/*299!!   (63 + 236)*/
 
-    test_validate(rc, SA_AIS_ERR_NAME_TOO_LONG);
+    if(!osaf_is_extended_names_enabled()) {
+        test_validate(rc, SA_AIS_ERR_NAME_TOO_LONG);
+    } else {
+        test_validate(rc, SA_AIS_OK);
+    }
 
     /*Tear down*/
 
@@ -212,7 +217,8 @@ __attribute__ ((constructor)) static void saImmOiRtObjectCreate_2_constructor(vo
     test_case_add(3, saImmOiRtObjectCreate_2_04, "saImmOiRtObjectCreate_2 - SA_AIS_ERR_BAD_HANDLE - immOiHandle not associated with implementer name");
     test_case_add(3, saImmOiRtObjectCreate_2_05, "saImmOiRtObjectCreate_2 - SA_AIS_ERR_NOT_EXIST - className non existing");
     test_case_add(3, saImmOiRtObjectCreate_2_06, "saImmOiRtObjectCreate_2 - SA_AIS_ERR_EXIST - object already created");
-    test_case_add(3, saImmOiRtObjectCreate_2_07, "saImmOiRtObjectCreate_2 - SA_AIS_ERR_NAME_TOO_LONG - size of dn for new object too big");
+
+    test_case_add(3, saImmOiRtObjectCreate_2_07, "saImmOiRtObjectCreate_2 - SA_AIS_ERR_NAME_TOO_LONG - size of dn for new object too big. Not valid test with extended names");
 
     test_case_add(3, saImmOiRtObjectDelete_01, "saImmOiRtObjectDelete - SA_AIS_OK");
     test_case_add(3, saImmOiRtObjectDelete_03, "saImmOiRtObjectDelete - SA_AIS_ERR_BAD_HANDLE - invalid handle");

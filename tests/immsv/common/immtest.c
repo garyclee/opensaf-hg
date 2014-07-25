@@ -16,6 +16,7 @@
  */
 
 #include <stdlib.h>
+#include <libgen.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -43,21 +44,59 @@ const SaNameT rootObj = {
 void (*test_setup)(void) = NULL;
 void (*test_cleanup)(void) = NULL;
 
+void usage(const char *progname) {
+	printf("Usage: %s [-h] [--help] [--longDn] [suite [testcase]]\n\n", progname);
+	printf("OPTIONS:\n");
+	printf("\t-h, --help    this help\n");
+	printf("\t--longDn      enable extended names support\n");
+	printf("\tsuite         suite for testing. 0 for listing all tests\n");
+	printf("\ttestcase      test case for testing in specific suite\n");
+}
+
 int main(int argc, char **argv) 
 {
     int suite = ALL_SUITES, tcase = ALL_TESTS;
     int rc = 0;
+    int i;
+    int index = 0;
+    int longDn = 0;
+    int failed = 0;
+    char *endptr;
 
     srandom(getpid());
 
-    if (argc > 1)
-    {
-        suite = atoi(argv[1]);
+    for(i=1; i<argc; i++) {
+    	if(!strcmp(argv[i], "--longDn")) {
+    		longDn = 1;
+    	} else if(!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
+    		usage(basename(argv[0]));
+    		return 0;
+    	} else if(index == 0) {
+    		suite = strtol(argv[i], &endptr, 10);
+    		if(endptr && *endptr) {
+    			failed = 1;
+    		} else {
+    			index++;
+    		}
+    	} else if(index == 1) {
+    		tcase = strtol(argv[i], &endptr, 10);
+    		if(endptr && *endptr) {
+    			failed = 1;
+    		} else {
+    			index++;
+    		}
+    	} else {
+    		failed = 1;
+    	}
+
+    	if(failed) {
+    		fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
+    		return EXIT_FAILURE;
+    	}
     }
 
-    if (argc > 2)
-    {
-        tcase = atoi(argv[2]);
+    if(longDn) {
+        setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1);
     }
 
     if(test_setup)
@@ -111,7 +150,10 @@ SaAisErrorT config_class_create(SaImmHandleT immHandle)
     SaImmAttrDefinitionT_2 attr7 = {
         "attr7", SA_IMM_ATTR_SAANYT, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE | SA_IMM_ATTR_MULTI_VALUE | SA_IMM_ATTR_NO_DUPLICATES, NULL};
 
-    const SaImmAttrDefinitionT_2* attributes[] = {&rdn, &attr1, &attr2, &attr3, &attr4, &attr5, &attr6, &attr7, NULL};
+    SaImmAttrDefinitionT_2 attr8 = {
+        "attr8", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE, NULL};
+
+    const SaImmAttrDefinitionT_2* attributes[] = {&rdn, &attr1, &attr2, &attr3, &attr4, &attr5, &attr6, &attr7, &attr8, NULL};
 
     err = saImmOmClassCreate_2(immHandle, configClassName, SA_IMM_CLASS_CONFIG,
         attributes);
@@ -142,8 +184,10 @@ SaAisErrorT runtime_class_create(SaImmHandleT immHandle)
 
     SaImmAttrDefinitionT_2 attr1 = {
         "attr1", SA_IMM_ATTR_SAUINT32T, SA_IMM_ATTR_RUNTIME, NULL};
+    SaImmAttrDefinitionT_2 attr2 = {
+        "attr2", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_RUNTIME, NULL};
 
-    const SaImmAttrDefinitionT_2* attributes[] = {&rdn, &attr1, NULL};
+    const SaImmAttrDefinitionT_2* attributes[] = {&rdn, &attr1, &attr2, NULL};
 
     return  saImmOmClassCreate_2(immHandle, runtimeClassName, SA_IMM_CLASS_RUNTIME,
         attributes);
