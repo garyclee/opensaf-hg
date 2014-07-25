@@ -29,6 +29,7 @@ osafimmloadd_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@ @SQLITE3_CFLAGS@
 osafimmloadd_SOURCES = imm_loader.cc imm_pbe_load.cc
 
 osafimmloadd_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 

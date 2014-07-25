@@ -24,8 +24,11 @@
 
 #define _GNU_SOURCE
 #include <string.h>
+#include <stdlib.h>
 #include "immsv.h"
 #include "immsv_api.h"
+#include "osaf_extended_name.h"
+#include "saAis.h"
 
 #define IMMSV_MAX_CLASSES 1000
 #define IMMSV_MAX_IMPLEMENTERS 3000
@@ -236,7 +239,6 @@ static void immsv_evt_enc_att_val(NCS_UBAID *o_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 
 	switch (t) {
 	case SA_IMM_ATTR_SANAMET:
-		osafassert(v->val.x.size <= SA_MAX_NAME_LENGTH);
 		/* Intentional fall through */
 	case SA_IMM_ATTR_SASTRINGT:
 		os = &(v->val.x);
@@ -2887,18 +2889,27 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMD_EVT_ND2D_ADMINIT_REQ:	/* AdminOwnerInitialize */
+		{
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
 			ncs_encode_64bit(&p8, immdevt->info.admown_init.client_hdl);
 			ncs_enc_claim_space(o_ub, 8);
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 2);
-			ncs_encode_16bit(&p8, immdevt->info.admown_init.i.adminOwnerName.length);
+			const char* value = osaf_extended_name_borrow(&immdevt->info.admown_init.i.adminOwnerName);
+			size_t length = strlen(value);
+			if(length >= IMMSV_MAX_ADMO_NAME_LENGTH) {
+				// With this check we don't need to check for extended names
+				LOG_WA("Admin owner name is too long (max. 255 characters)");
+				rc = NCSCC_RC_FAILURE;
+				break;
+			}
+			ncs_encode_16bit(&p8, length);
 			ncs_enc_claim_space(o_ub, 2);
 
 			/* adminOwnerName.value is top level because type is SaNameT */
 			if(ncs_encode_n_octets_in_uba(o_ub,
-				   immdevt->info.admown_init.i.adminOwnerName.value,
-				   immdevt->info.admown_init.i.adminOwnerName.length)
+				   (uint8_t*) value,
+				   length)
 				!= NCSCC_RC_SUCCESS) {
 				LOG_WA("Failure inside ncs_encode_n_octets_in_uba");
 				rc = NCSCC_RC_FAILURE;
@@ -2909,6 +2920,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_encode_8bit(&p8, immdevt->info.admown_init.i.releaseOwnershipOnFinalize);
 			ncs_enc_claim_space(o_ub, 1);
 			break;
+		}
 
 		case IMMD_EVT_ND2D_FEVS_REQ:	/*Fake EVS over Director. */
 		case IMMD_EVT_ND2D_FEVS_REQ_2:
@@ -3085,18 +3097,27 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMND_EVT_A2ND_IMM_ADMINIT:	/* AdminOwnerInitialize */
+		{
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
 			ncs_encode_64bit(&p8, immndevt->info.adminitReq.client_hdl);
 			ncs_enc_claim_space(o_ub, 8);
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 2);
-			ncs_encode_16bit(&p8, immndevt->info.adminitReq.i.adminOwnerName.length);
+			const char* value = osaf_extended_name_borrow(&immndevt->info.adminitReq.i.adminOwnerName);
+			size_t length = strlen(value);
+			if(length >= IMMSV_MAX_ADMO_NAME_LENGTH) {
+				// With this check we don't need to check for extended names
+				LOG_WA("Admin owner name is too long (max. 255 characters)");
+				rc = NCSCC_RC_FAILURE;
+				break;
+			}
+			ncs_encode_16bit(&p8, length);
 			ncs_enc_claim_space(o_ub, 2);
 
 			/* adminOwnerName.value is top level because type is SaNameT */
 			if(ncs_encode_n_octets_in_uba(o_ub,
-				   immndevt->info.adminitReq.i.adminOwnerName.value,
-				   immndevt->info.adminitReq.i.adminOwnerName.length)
+				   (uint8_t*) value,
+				   length)
 				!= NCSCC_RC_SUCCESS) {
 				LOG_WA("Failure inside ncs_encode_n_octets_in_uba");
 				rc = NCSCC_RC_FAILURE;
@@ -3107,6 +3128,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_encode_8bit(&p8, immndevt->info.adminitReq.i.releaseOwnershipOnFinalize);
 			ncs_enc_claim_space(o_ub, 1);
 			break;
+		}
 
 		case IMMND_EVT_A2ND_IMM_FEVS:	/*Fake EVS msg from Agent (forward) */
 		case IMMND_EVT_A2ND_IMM_FEVS_2:
@@ -3500,7 +3522,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 		case IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP:/*Pbe PRTO deletes done */
 		case IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP:/* Pbe OI rt attr update response*/
 		case IMMND_EVT_A2ND_OI_CCB_AUG_INIT:/*OI augments CCB inside ccb upcall. #1963 */
-
+		{
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
 			ncs_encode_64bit(&p8, immndevt->info.ccbUpcallRsp.oi_client_hdl);
 			ncs_enc_claim_space(o_ub, 8);
@@ -3522,17 +3544,20 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_enc_claim_space(o_ub, 4);
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 2);
-			ncs_encode_16bit(&p8, immndevt->info.ccbUpcallRsp.name.length);
+			const char* value = osaf_extended_name_borrow(&immndevt->info.ccbUpcallRsp.name);
+			size_t length = strlen(value);
+			osafassert(length <= 0xffff);
+			ncs_encode_16bit(&p8, length);
 			ncs_enc_claim_space(o_ub, 2);
 
 			/* name.value is top level because type is SaNameT */
 			if((immndevt->type == IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP) ||
 				(immndevt->type == IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2) ||
 				(immndevt->type == IMMND_EVT_A2ND_OI_CCB_AUG_INIT)) {
-				if(immndevt->info.ccbUpcallRsp.name.length) {
+				if (length) {
 					if(ncs_encode_n_octets_in_uba(o_ub,
-						   immndevt->info.ccbUpcallRsp.name.value,
-						   immndevt->info.ccbUpcallRsp.name.length)
+						   (uint8_t*) value,
+						   length)
 						!= NCSCC_RC_SUCCESS) {
 						LOG_WA("Failure inside ncs_encode_n_octets_in_uba");
 						rc = NCSCC_RC_FAILURE;
@@ -3552,6 +3577,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			}
 
 			break;
+		}
 
 			/* Events IMMND->IMMND (asyncronous) type); */
 		case IMMND_EVT_ND2ND_ADMOP_RSP:	/* AdminOperation sync fevs Reply */
@@ -3723,13 +3749,21 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_enc_claim_space(o_ub, 4);
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 2);
-			ncs_encode_16bit(&p8, immndevt->info.adminitGlobal.i.adminOwnerName.length);
+			const char* value = osaf_extended_name_borrow(&immndevt->info.adminitGlobal.i.adminOwnerName);
+			size_t length = strlen(value);
+			if(length >= IMMSV_MAX_ADMO_NAME_LENGTH) {
+				// With this check we don't need to check for extended names
+				LOG_WA("Admin owner name is too long (max. 255 characters)");
+				rc = NCSCC_RC_FAILURE;
+				break;
+			}
+			ncs_encode_16bit(&p8, length);
 			ncs_enc_claim_space(o_ub, 2);
 
 			/* adminOwnerName.value is top level because type is SaNameT */
 			if(ncs_encode_n_octets_in_uba(o_ub,
-				   immndevt->info.adminitGlobal.i.adminOwnerName.value,
-				   immndevt->info.adminitGlobal.i.adminOwnerName.length)
+				   (uint8_t*) value,
+				   length)
 				!= NCSCC_RC_SUCCESS) {
 				LOG_WA("Failure inside ncs_encode_n_octets_in_uba");
 				rc = NCSCC_RC_FAILURE;
@@ -4203,28 +4237,39 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			break;
 
 		case IMMD_EVT_ND2D_ADMINIT_REQ:	/* AdminOwnerInitialize */
+		{
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 8);
 			immdevt->info.admown_init.client_hdl = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(i_ub, 8);
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 2);
-			immdevt->info.admown_init.i.adminOwnerName.length = ncs_decode_16bit(&p8);
+			size_t length = ncs_decode_16bit(&p8);
 			ncs_dec_skip_space(i_ub, 2);
+			if(length >= IMMSV_MAX_ADMO_NAME_LENGTH) {
+				LOG_WA("Admin owner name is too long (max. 255 characters)");
+				rc = NCSCC_RC_FAILURE;
+				break;
+			}
 
 			/* adminOwnerName.value is top level because type is SaNameT */
-			if(ncs_decode_n_octets_from_uba(i_ub,
-				   immdevt->info.admown_init.i.adminOwnerName.value,
-				   immdevt->info.admown_init.i.adminOwnerName.length) !=
+			char* value = (char*) malloc(length + 1);
+			if (value == NULL || ncs_decode_n_octets_from_uba(i_ub,
+				   (uint8_t*) value,
+				   length) !=
 				NCSCC_RC_SUCCESS) {
+				free(value);
 				LOG_WA("Failure inside ncs_decode_n_octets_from_uba");
 				rc = NCSCC_RC_FAILURE;
 				break;
 			}
+			value[length] = '\0';
+			osaf_extended_name_steal(value, &immdevt->info.admown_init.i.adminOwnerName);
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 1);
 			immdevt->info.admown_init.i.releaseOwnershipOnFinalize = ncs_decode_8bit(&p8);
 			ncs_dec_skip_space(i_ub, 1);
 			break;
+		}
 
 		case IMMD_EVT_ND2D_FEVS_REQ:	/*Fake EVS over Director. */
 		case IMMD_EVT_ND2D_FEVS_REQ_2:
@@ -4404,28 +4449,39 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			break;
 
 		case IMMND_EVT_A2ND_IMM_ADMINIT:	/* AdminOwnerInitialize */
+		{
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 8);
 			immndevt->info.adminitReq.client_hdl = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(i_ub, 8);
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 2);
-			immndevt->info.adminitReq.i.adminOwnerName.length = ncs_decode_16bit(&p8);
+			size_t length = ncs_decode_16bit(&p8);
 			ncs_dec_skip_space(i_ub, 2);
+			if(length >= IMMSV_MAX_ADMO_NAME_LENGTH) {
+				LOG_WA("Admin owner name is too long (max. 255 characters)");
+				rc = NCSCC_RC_FAILURE;
+				break;
+			}
 
 			/* adminOwnerName.value is top level because type is SaNameT */
-			if(ncs_decode_n_octets_from_uba(i_ub,
-				   immndevt->info.adminitReq.i.adminOwnerName.value,
-				   immndevt->info.adminitReq.i.adminOwnerName.length) !=
+			char* value = (char*) malloc(length + 1);
+			if (value == NULL || ncs_decode_n_octets_from_uba(i_ub,
+				   (uint8_t*) value,
+				   length) !=
 				NCSCC_RC_SUCCESS) {
+				free(value);
 				LOG_WA("Failure inside ncs_decode_n_octets_from_uba");
 				rc = NCSCC_RC_FAILURE;
 				break;
 			}
+			value[length] = '\0';
+			osaf_extended_name_steal(value, &immndevt->info.adminitReq.i.adminOwnerName);
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 1);
 			immndevt->info.adminitReq.i.releaseOwnershipOnFinalize = ncs_decode_8bit(&p8);
 			ncs_dec_skip_space(i_ub, 1);
 			break;
+		}
 
 		case IMMND_EVT_A2ND_IMM_FEVS:	  /* Fake EVS msg from Agent (forward) */
 		case IMMND_EVT_A2ND_IMM_FEVS_2:
@@ -4844,7 +4900,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 		case IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP:/*Pbe PRTO deletes done */
 		case IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP:/* Pbe OI rt attr update response*/
 		case IMMND_EVT_A2ND_OI_CCB_AUG_INIT:/*OI augments CCB inside ccb upcall. #1963 */
-
+		{
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 8);
 			immndevt->info.ccbUpcallRsp.oi_client_hdl = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(i_ub, 8);
@@ -4866,22 +4922,27 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			ncs_dec_skip_space(i_ub, 4);
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 2);
-			immndevt->info.ccbUpcallRsp.name.length = ncs_decode_16bit(&p8);
+			size_t length = ncs_decode_16bit(&p8);
 			ncs_dec_skip_space(i_ub, 2);
 
+			osaf_extended_name_clear(&immndevt->info.ccbUpcallRsp.name);
 			if((immndevt->type == IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP) ||
 				(immndevt->type == IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP_2) ||
 				(immndevt->type == IMMND_EVT_A2ND_OI_CCB_AUG_INIT)) {
 				/* name.value is top level because type is SaNameT */
-				if(immndevt->info.ccbUpcallRsp.name.length) {
-					if(ncs_decode_n_octets_from_uba(i_ub,
-						   immndevt->info.ccbUpcallRsp.name.value,
-						   immndevt->info.ccbUpcallRsp.name.length) !=
+				if (length) {
+					char* value = (char*) malloc(length + 1);
+					if (value == NULL || ncs_decode_n_octets_from_uba(i_ub,
+						   (uint8_t*) value,
+						   length) !=
 						NCSCC_RC_SUCCESS) {
+						free(value);
 						LOG_WA("Failure inside ncs_decode_n_octets_from_uba");
 						rc = NCSCC_RC_FAILURE;
 						break;
 					}
+					value[length] = '\0';
+					osaf_extended_name_steal(value, &immndevt->info.ccbUpcallRsp.name);
 				}
 			}
 
@@ -4896,6 +4957,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			}
 
 			break;
+		}
 
 			/* Events IMMND->IMMND (asyncronous) */
 		case IMMND_EVT_ND2ND_ADMOP_RSP:	/* AdminOperation sync fevs Reply */
@@ -5090,28 +5152,34 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			break;
 
 		case IMMND_EVT_D2ND_ADMINIT:	/* Admin Owner init reply */
+		{
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
 			immndevt->info.adminitGlobal.globalOwnerId = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 2);
-			immndevt->info.adminitGlobal.i.adminOwnerName.length = ncs_decode_16bit(&p8);
+			size_t length = ncs_decode_16bit(&p8);
 			ncs_dec_skip_space(i_ub, 2);
 
 			/* adminOwnerName.value is top level because type is SaNameT */
-			if(ncs_decode_n_octets_from_uba(i_ub,
-				   immndevt->info.adminitGlobal.i.adminOwnerName.value,
-				   immndevt->info.adminitGlobal.i.adminOwnerName.length) !=
+			char* value = (char*) malloc(length + 1);
+			if (value == NULL || ncs_decode_n_octets_from_uba(i_ub,
+				   (uint8_t*) value,
+				   length) !=
 				NCSCC_RC_SUCCESS) {
+				free(value);
 				LOG_ER("Failure inside ncs_decode_n_octets_from_uba");
 				rc = NCSCC_RC_FAILURE;
 				break;
 			}
+			value[length] = '\0';
+			osaf_extended_name_steal(value, &immndevt->info.adminitGlobal.i.adminOwnerName);
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 1);
 			immndevt->info.adminitGlobal.i.releaseOwnershipOnFinalize = ncs_decode_8bit(&p8);
 			ncs_dec_skip_space(i_ub, 1);
 			break;
+		}
 
 		case IMMND_EVT_D2ND_CCBINIT:	/* Ccb init reply */
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);

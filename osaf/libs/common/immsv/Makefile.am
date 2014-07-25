@@ -23,6 +23,7 @@ SUBDIRS = include
 noinst_LTLIBRARIES = libimmsv_common.la libimmpbe_dump.la
 
 libimmsv_common_la_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 

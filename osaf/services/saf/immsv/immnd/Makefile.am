@@ -32,7 +32,7 @@ osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osafimmnd
 
 osafimmnd_CPPFLAGS = \
-	-DSA_CLM_B01 \
+	-DSA_CLM_B01 -DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 

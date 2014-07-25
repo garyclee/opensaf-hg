@@ -32,6 +32,9 @@
 #include <errno.h>
 #include <ncsgl_defs.h>
 
+#include "saAis.h"
+#include "osaf_extended_name.h"
+
 #define MAX_DEPTH 10
 #define MAX_CHAR_BUFFER_SIZE 8192  //8k
 
@@ -404,13 +407,11 @@ static void opensafObjectCreate(SaImmCcbHandleT ccbHandle)
     int retries=0;
     SaNameT rdn;
     SaNameT parent;
-    rdn.length = strlen(OPENSAF_IMM_OBJECT_RDN);
-    strcpy((char *) rdn.value, OPENSAF_IMM_OBJECT_RDN);
+    osaf_extended_name_lend(OPENSAF_IMM_OBJECT_RDN, &rdn);
     void*     nameValues[1];
     nameValues[0] = &rdn;
 
-    parent.length = strlen(OPENSAF_IMM_OBJECT_PARENT);
-    strcpy((char *) parent.value, OPENSAF_IMM_OBJECT_PARENT);
+    osaf_extended_name_lend(OPENSAF_IMM_OBJECT_PARENT, &parent);
 
     SaUint32T epochValue=1;
     void* intValues[1];
@@ -477,7 +478,7 @@ bool createImmObject(SaImmClassNameT className,
         classRDNMap?classRDNMap->size():0);
 
     /* Set the parent name */
-    parentName.length = 0;
+    osaf_extended_name_lend("", &parentName);
     if (objectName != NULL)
     {
         char* parent;
@@ -497,8 +498,7 @@ bool createImmObject(SaImmClassNameT className,
 
         if (parent != NULL)
         {
-            parentName.length = (SaUint16T)strlen(parent);
-            strncpy((char*)parentName.value, parent, parentName.length);
+            osaf_extended_name_lend(parent, &parentName);
         }
     } else {
         LOG_ER("Empty DN for object");
@@ -507,9 +507,9 @@ bool createImmObject(SaImmClassNameT className,
     }
 
     /* Get the length of the RDN and truncate objectName */
-    if (parentName.length > 0)
+    if (!osaf_is_extended_name_empty(&parentName))
     {
-        RDNlen = strlen(objectName) - (parentName.length + 1);
+        RDNlen = strlen(objectName) - (strlen(osaf_extended_name_borrow(&parentName)) + 1);
         objectName[RDNlen] = '\0';
     }
     else
@@ -1367,7 +1367,6 @@ static void charactersHandler(void* userData,
             break;
         case DN:
             /* Copy the distinguished name */
-            assert(len < SA_MAX_NAME_LENGTH);
             state->objectName = (char*)malloc((size_t)len + 1);
 
             strncpy(state->objectName, (const char*)chars, (size_t)len);
@@ -2052,12 +2051,8 @@ static void charsToValueHelper(SaImmAttrValueT* value,
             *((SaTimeT*)*value) = (SaTimeT)strtoll(str, NULL, 0);
             break;
         case SA_IMM_ATTR_SANAMET:
-            len = strlen(str);
-            assert(len < SA_MAX_NAME_LENGTH);
             *value = malloc(sizeof(SaNameT));
-            ((SaNameT*)*value)->length = (SaUint16T)len;
-            strncpy((char*)((SaNameT*)*value)->value, str, len);
-            ((SaNameT*)*value)->value[len] = '\0';
+            osaf_extended_name_alloc(str, (SaNameT*) *value);
             break;
         case SA_IMM_ATTR_SAFLOATT:
             *value = malloc(sizeof(SaFloatT));
@@ -2227,8 +2222,7 @@ int getClassNames(SaImmHandleT& immHandle, std::list<std::string>& classNamesLis
         exit(1);
     }
 
-    strcpy((char*)tspSaObjectName.value, OPENSAF_IMM_OBJECT_DN);
-    tspSaObjectName.length = strlen(OPENSAF_IMM_OBJECT_DN);
+    osaf_extended_name_lend(OPENSAF_IMM_OBJECT_DN, &tspSaObjectName);
 
     SaImmAttrNameT attNames[2] = {(char *) OPENSAF_IMM_ATTR_CLASSES,0};
 
@@ -2281,9 +2275,8 @@ int getClassNames(SaImmHandleT& immHandle, std::list<std::string>& classNamesLis
         }
         else if ((*attributes)->attrValueType == SA_IMM_ATTR_SANAMET)
         {
-            std::string classNameString((char*)((SaNameT*)(*attributes)->attrValues
-                                                + i)->value,
-                                        ((SaNameT*)(*attributes)->attrValues + i)->length);
+            std::string classNameString(osaf_extended_name_borrow((SaNameT*)(*attributes)->attrValues
+                                                + i));
 
             classNamesList.push_front(classNameString);
         }
@@ -2444,8 +2437,7 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle, int maxBa
 
     //Iterate over objects
     SaNameT objectName;
-    objectName.value[0] = 0;
-    objectName.length = 0;
+    osaf_extended_name_clear(&objectName);
     SaImmAttrValuesT_2 **attributes=NULL;
     bool message_buffered=false;
     void* batch=NULL;
@@ -2482,15 +2474,15 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle, int maxBa
 		exit(1);
 	}
 
-
-	if(objectName.length <= 1) {
+        size_t objectNameLength = strlen(osaf_extended_name_borrow(&objectName));
+	if (objectNameLength <= 1) {
 		LOG_ER("syncObjectsOfClass: objectName.length <= 1");
 		exit(1);
 	}
 
-	if(objectName.length >= SA_MAX_NAME_LENGTH) {
-		LOG_ER("syncObjectsOfClass: objectName.length(%u) >= SA_MAX_NAME_LENGTH",
-			objectName.length);
+	if (objectNameLength > kMaxDnLength) {
+		LOG_ER("syncObjectsOfClass: objectName.length(%zu) > %zu",
+			objectNameLength, static_cast<size_t>(kMaxDnLength));
 		exit(1);
 	}
 
@@ -2515,11 +2507,10 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle, int maxBa
             exit(1);
 	}
 
-        TRACE("Synced object: %s", objectName.value);
+        TRACE("Synced object: %s", osaf_extended_name_borrow(&objectName));
 
 	attributes=NULL;
-        objectName.value[0] = 0;
-        objectName.length = 0;
+        osaf_extended_name_clear(&objectName);
     }
 
  done:
@@ -2792,7 +2783,8 @@ void sendPreloadParams(SaImmHandleT immHandle, SaImmAdminOwnerHandleT ownerHandl
 	SaStringT ccb_id_string = (SaStringT) "ccb_id";
 	SaStringT weak_commit_time_string = (SaStringT)"weak_commit_time";
 	SaStringT weak_ccb_id_string = (SaStringT) "weak_ccb_id";
-	const SaNameT objectName = {sizeof(OPENSAF_IMM_OBJECT_DN), OPENSAF_IMM_OBJECT_DN};
+	SaNameT objectName;
+	osaf_extended_name_lend(OPENSAF_IMM_OBJECT_DN, &objectName);
 	SaAisErrorT operationReturnValue = SA_AIS_OK;
 	SaAisErrorT            errorCode = SA_AIS_OK;
 

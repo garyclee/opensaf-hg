@@ -17,6 +17,7 @@
 
 #include "immnd.h"
 #include <nid_start_util.h>
+#include "osaf_extended_name.h"
 
 /****************************************************************************
  * Name          : immnd_saf_health_chk_callback
@@ -265,6 +266,6 @@ uint32_t immnd_amf_init(IMMND_CB *cb)
 	res = NCSCC_RC_SUCCESS;
 
  done:
-	TRACE_LEAVE2("%u, %s", res, cb->comp_name.value);
+	TRACE_LEAVE2("%u, %s", res, osaf_extended_name_borrow(&cb->comp_name));
 	return (res);
 }
