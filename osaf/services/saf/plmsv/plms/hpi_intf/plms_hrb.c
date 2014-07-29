@@ -266,6 +266,7 @@ static SaUint32T hrb_process_hpi_req( PLMS_HPI_REQ  *hpi_req )
 	PLMS_INV_DATA  	   inv_data; 
 	SaHpiRptEntryT     rpt_entry;
 	SaUint32T	   rc = NCSCC_RC_SUCCESS;
+	SaErrorT	   hpirc = SA_OK;
 
 	TRACE_ENTER();
 
@@ -318,21 +319,21 @@ static SaUint32T hrb_process_hpi_req( PLMS_HPI_REQ  *hpi_req )
 		case PLMS_HPI_CMD_ACTION_REQUEST:
 			/* insertion or extraction request depending upon 
 			the hpi_req->arg  type */
-			rc = saHpiHotSwapActionRequest(cb->session_id,
+			hpirc = saHpiHotSwapActionRequest(cb->session_id,
 						      resourceid,hpi_req->arg);
 			break; 
 
 		case PLMS_HPI_CMD_RESOURCE_ACTIVE_SET:
 			/* Transition from INSERTION PENDING or 
 			EXTRACTION PENDING state to ACTIVE */ 
-			rc = saHpiResourceActiveSet(cb->session_id,
+			hpirc = saHpiResourceActiveSet(cb->session_id,
 						   resourceid);
 			break;
 
 		case PLMS_HPI_CMD_RESOURCE_INACTIVE_SET:
 			/* Transition from INSERTION PENDING or 
 			EXTRACTION PENDING state to INACTIVE */
-			rc =  saHpiResourceInactiveSet(cb->session_id,
+			hpirc =  saHpiResourceInactiveSet(cb->session_id,
 							resourceid);
 			break;
 
@@ -340,41 +341,41 @@ static SaUint32T hrb_process_hpi_req( PLMS_HPI_REQ  *hpi_req )
 		case PLMS_HPI_CMD_RESOURCE_POWER_OFF:
 			/* Perform power control operation
 			be based on the value of hpi_req->arg*/ 
-			rc = saHpiResourcePowerStateSet(cb->session_id,
+			hpirc = saHpiResourcePowerStateSet(cb->session_id,
 						resourceid, hpi_req->arg); 
 			break;
 
 		case PLMS_HPI_CMD_RESOURCE_RESET:
-			rc = saHpiResourceResetStateSet(
-				cb->session_id,
-				resourceid, 
-				(SaHpiResetActionT)hpi_req->arg);
-			if (SA_OK != rc && hpi_req->arg == SAHPI_WARM_RESET ){
-				TRACE("warm reset failed ret val:%u so \
-					attempting cold reset",rc);
-				rc = saHpiResourceResetStateSet(
+			hpirc = saHpiResourceResetStateSet(
+					cb->session_id,
+					resourceid, 
+					(SaHpiResetActionT)hpi_req->arg);
+			if (SA_OK != hpirc && hpi_req->arg == SAHPI_WARM_RESET ){
+				TRACE("warm reset failed ret val:%i so \
+					attempting cold reset",hpirc);
+				hpirc = saHpiResourceResetStateSet(
 						cb->session_id,
 						resourceid,
 						(SaHpiResetActionT)
 						SAHPI_COLD_RESET);
 				TRACE("cold reset saHpiResourceResetStateSet \
-					ret val:%u",rc);
+					ret val:%i",hpirc);
 			}
 			break;
 
 		case PLMS_HPI_CMD_RESOURCE_IDR_GET:
 			/* Retrieve IDR info */
-			rc = hsm_get_idr_info(&rpt_entry,&inv_data); 
+			hpirc = hsm_get_idr_info(&rpt_entry,&inv_data); 
 			break;
 
 		default:
 			LOG_ER("HRB:Invalid request from PLMS");
 			return NCSCC_RC_FAILURE;
 	}
-	TRACE("Processing Status for hpi request for res:%u HPI resp:%u",
-			resourceid,rc);
+	TRACE("Processing Status for hpi request for res:%u HPI resp:%i",
+			resourceid,hpirc);
 
-	if(rc)
+	if(hpirc != SA_OK)
 		 response->ret_val = NCSCC_RC_FAILURE; 
 	else
 		response->ret_val  = NCSCC_RC_SUCCESS; 

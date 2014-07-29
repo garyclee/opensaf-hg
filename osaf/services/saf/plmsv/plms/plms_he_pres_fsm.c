@@ -3734,8 +3734,8 @@ SaUint32T plms_he_deactivate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt
 			ent->entity.he_entity.saPlmHEPresenceState){
 			if (!ent->deact_in_pro){	
 				ret_err = plms_hrb_req(ent,
-					PLMS_HPI_CMD_RESOURCE_POWER_OFF,
-					SAHPI_POWER_OFF/*arg*/);
+					PLMS_HPI_CMD_ACTION_REQUEST,
+					SAHPI_HS_ACTION_EXTRACTION/*arg*/);
 				if (NCSCC_RC_SUCCESS == ret_err)
 					ent->deact_in_pro = true;
 			}else{
@@ -3864,8 +3864,8 @@ SaUint32T plms_he_activate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_c
 			ent->entity.he_entity.saPlmHEPresenceState){
 			if (!ent->act_in_pro){	
 				ret_err = plms_hrb_req(ent,
-					PLMS_HPI_CMD_RESOURCE_POWER_ON,
-					SAHPI_POWER_ON/*arg*/);
+					PLMS_HPI_CMD_ACTION_REQUEST,
+					SAHPI_HS_ACTION_INSERTION/*arg*/);
 				if (NCSCC_RC_SUCCESS == ret_err){
 					ent->act_in_pro = true;
 				}
