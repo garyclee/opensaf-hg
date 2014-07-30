@@ -41,6 +41,9 @@
       - modifyOperation
       - activationUnit added
 
+   Wed Jun 10 13:46:22, Ingvar Bergstrom <ingvar.bergstrom@ericsson.com>
+      SaNameT size changed to maxLength=2048 to support long DN.
+
   -->
   <xs:element name="upgradeCampaign">
     <xs:annotation>
@@ -1095,7 +1098,7 @@
       <xs:documentation>An LDAP name as used in SAF</xs:documentation>
     </xs:annotation>
     <xs:restriction base="xs:string">
-      <xs:maxLength value="256" />
+      <xs:maxLength value="2048" />
       <xs:minLength value="1" />
       <xs:whiteSpace value="collapse" />
       <!--xs:pattern value="{Name}={Name}(,{Name})*" /-->

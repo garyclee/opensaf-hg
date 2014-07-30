@@ -24,6 +24,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "saAis.h"
 #include <saImmOm.h>
 #include <saImmOi.h>
 
@@ -41,6 +42,7 @@
 #include "SmfUtils.hh"
 #include "SmfCampState.hh"
 #include "SmfCbkUtil.hh"
+#include "osaf_extended_name.h"
 
 static SaVersionT immVersion = { 'A', 2, 1 };
 static const SaImmOiImplementerNameT implementerName = (SaImmOiImplementerNameT) "safSmfService";
@@ -77,7 +79,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle, SaInvocati
 	/* Find Campaign object out of objectName */
 	SmfCampaign *campaign = SmfCampaignList::instance()->get(objectName);
 	if (campaign == NULL) {
-		LOG_NO("Campaign %s not found", objectName->value);
+		LOG_NO("Campaign %s not found", osaf_extended_name_borrow(objectName));
 		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
 		goto done;
 	}
@@ -111,7 +113,7 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 	/* "memorize the creation request" */
 	if (ccbutil_ccbAddCreateOperation(ccbUtilCcbData, className, parentName, attrMods) == 0) {
 		LOG_NO("saImmOiCcbObjectCreateCallback: Fail to add create operation for instance of %s to parent %s",
-		       className, parentName->value);
+		       className, osaf_extended_name_borrow(parentName));
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		goto done;
 	}
@@ -165,7 +167,7 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle, Sa
 	/* "memorize the modification request" */
 	if (ccbutil_ccbAddModifyOperation(ccbUtilCcbData, objectName, attrMods) != 0) {
 		LOG_NO("saImmOiCcbObjectModifyCallback: Fail to add modify operation for %s",
-		       objectName->value);
+		       osaf_extended_name_borrow(objectName));
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		goto done;	
 	}
@@ -237,7 +239,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
                 case CCBUTIL_DELETE:
                 {
                         //Get the DN to the object to delete and read the class name
-                        const std::string objToDelete = (char *)ccbUtilOperationData->param.deleteOp.objectName->value;
+                        const std::string objToDelete = osaf_extended_name_borrow(ccbUtilOperationData->param.deleteOp.objectName);
 
                         std::string className;
                         if (immUtil.getClassNameForObject(objToDelete, className) == false) {
@@ -337,7 +339,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
                 case CCBUTIL_MODIFY:
                 {
                         //Get the DN to the object to modify and read the class name
-                        std::string objToModify = (char *)ccbUtilOperationData->param.modify.objectName->value;
+                        std::string objToModify = osaf_extended_name_borrow(ccbUtilOperationData->param.modify.objectName);
  
                         std::string className;
                         if (immUtil.getClassNameForObject(objToModify, className) == false) {
@@ -451,7 +453,7 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 		{
 			//Handle the campaign object
                         if ((long)ccbUtilOperationData->userData == SMF_CLASS_CAMPAIGN) {
-				TRACE("Deleting campaign %s", (char*)ccbUtilOperationData->param.deleteOp.objectName->value);
+				TRACE("Deleting campaign %s", osaf_extended_name_borrow(ccbUtilOperationData->param.deleteOp.objectName));
 				SmfCampaignList::instance()->del(ccbUtilOperationData->param.deleteOp.objectName);
 			}
 			break;
@@ -461,13 +463,13 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 		{
 			//Handle the campaign object
                         if ((long)ccbUtilOperationData->userData == SMF_CLASS_CAMPAIGN) {
-				TRACE("Modifying campaign %s", (char*)ccbUtilOperationData->param.modify.objectName->value);
+				TRACE("Modifying campaign %s", osaf_extended_name_borrow(ccbUtilOperationData->param.modify.objectName));
 
 				/* Find Campaign object */
 				SmfCampaign *campaign =
 					SmfCampaignList::instance()->get(ccbUtilOperationData->param.modify.objectName);
 				if (campaign == NULL) {
-					LOG_NO("Campaign %s not found", (char *)ccbUtilOperationData->param.modify.objectName->value);
+					LOG_NO("Campaign %s not found", osaf_extended_name_borrow(ccbUtilOperationData->param.modify.objectName));
 					goto done;
 				}
 
@@ -475,7 +477,7 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 
 			//Handle the OpenSAFSmfConfig object
                         } else if ((long)ccbUtilOperationData->userData == SMF_CLASS_CONFIG){
-				TRACE("Modifying configuration object %s", (char *)ccbUtilOperationData->param.modify.objectName->value);
+				TRACE("Modifying configuration object %s", osaf_extended_name_borrow(ccbUtilOperationData->param.modify.objectName));
                                 openSAFSmfConfigApply = true;
 			}
 			break;
@@ -527,7 +529,7 @@ static SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle, const
 	/* Find Campaign out of objectName */
 	SmfCampaign *campaign = SmfCampaignList::instance()->get(objectName);
 	if (campaign == NULL) {
-		LOG_NO("saImmOiRtAttrUpdateCallback, campaign %s not found", objectName->value);
+		LOG_NO("saImmOiRtAttrUpdateCallback, campaign %s not found", osaf_extended_name_borrow(objectName));
 		rc = SA_AIS_ERR_FAILED_OPERATION;	/* not really covered in spec */
 		goto done;
 	}

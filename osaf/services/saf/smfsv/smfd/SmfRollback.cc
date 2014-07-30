@@ -23,11 +23,13 @@
 #include <string>
 #include "stdio.h"
 #include "logtrace.h"
+#include "osaf_extended_name.h"
 #include "SmfRollback.hh"
 #include "SmfImmOperation.hh"
 #include "SmfCampaignThread.hh"
 #include "SmfUtils.hh"
 
+#include "saAis.h"
 #include <saImmOm.h>
 #include <immutil.h>
 #include <saImm.h>
@@ -295,7 +297,7 @@ SmfRollbackData::rollbackCreateOperation(const SaImmAttrValuesT_2 ** i_attribute
                 return SA_AIS_ERR_FAILED_OPERATION;
         }
 
-        TRACE("Rollback create object %s no of attributes %d", (const char*) dnAttr->value, noOfAttrValues);
+        TRACE("Rollback create object %s no of attributes %d", osaf_extended_name_borrow(dnAttr), noOfAttrValues);
 
         if (noOfAttrValues == 0) {
                 LOG_ER("SmfRollbackData::rollbackCreateOperation, at least one attribute (rdn) is needed when createing object");
@@ -308,7 +310,7 @@ SmfRollbackData::rollbackCreateOperation(const SaImmAttrValuesT_2 ** i_attribute
                 return SA_AIS_ERR_FAILED_OPERATION;
         }
 
-        immOp->setParentDn((const char*) dnAttr->value);
+        immOp->setParentDn(osaf_extended_name_borrow(dnAttr));
         immOp->setClassName(classAttr);
 
         for (unsigned int index = 0; index < noOfAttrValues; index ++) {
@@ -362,9 +364,9 @@ SmfRollbackData::rollbackDeleteOperation(const SaImmAttrValuesT_2 ** i_attribute
                 return SA_AIS_ERR_FAILED_OPERATION;
         }
 
-        TRACE("Rollback delete object %s", (const char*) dnAttr->value);
+        TRACE("Rollback delete object %s", osaf_extended_name_borrow(dnAttr));
 
-        immOp->setDn((const char*) dnAttr->value);
+        immOp->setDn(osaf_extended_name_borrow(dnAttr));
 
         io_operationList.push_back(immOp);
 
@@ -413,9 +415,9 @@ SmfRollbackData::rollbackModifyOperation(const SaImmAttrValuesT_2 ** i_attribute
                 return SA_AIS_ERR_FAILED_OPERATION;
         }
 
-        TRACE("Rollback modify object %s, no of attributes %d", dnAttr->value, noOfAttrValues);
+        TRACE("Rollback modify object %s, no of attributes %d", osaf_extended_name_borrow(dnAttr), noOfAttrValues);
 
-        immOp->setDn((const char*)dnAttr->value);
+        immOp->setDn(osaf_extended_name_borrow(dnAttr));
         immOp->setOp("SA_IMM_ATTR_VALUES_REPLACE");
 
         for (unsigned int index = 0; index < noOfAttrValues; index ++) {

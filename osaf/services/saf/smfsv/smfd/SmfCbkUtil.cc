@@ -15,14 +15,18 @@
  *
  */
 
+#include <string.h>
+#include <stdlib.h>
 #include <sched.h>
 #include <poll.h>
+#include "saAis.h"
 #include <saSmf.h>
 
 #include <ncssysf_def.h>
 #include <ncssysf_ipc.h>
 #include <logtrace.h>
 #include <saf_error.h>
+#include "osaf_extended_name.h"
 
 #include "SmfCbkUtil.hh"
 #include "SmfUtils.hh"
@@ -39,15 +43,16 @@ void smf_cbk_util (SaSmfHandleT smfHandle, SaInvocationT invocation, SaSmfCallba
 {
 	SaAisErrorT rc;
 	SaAisErrorT cmdResult = SA_AIS_OK;
-	char label[callbackLabel->labelSize + 1];
-	char obj[objectName->length + 1];
+	char* label = (char*) malloc(callbackLabel->labelSize + 1);
+        size_t objectNameLength = strlen(osaf_extended_name_borrow(objectName));
+	char* obj = (char*) malloc(objectNameLength + 1);
 	int result;
 
 	memcpy(label, callbackLabel->label, callbackLabel->labelSize);
 	label[callbackLabel->labelSize] = 0;
 
-	memcpy(obj, objectName->value, objectName->length);
-	obj[objectName->length] = 0;
+	memcpy(obj, osaf_extended_name_borrow(objectName), objectNameLength);
+	obj[objectNameLength] = 0;
 
 	TRACE("smf_cbk_util Cbk received.hdl: %llu, inv_id: %llu, scope_id: %d, obj_name: %s, phase: %d, label: %s, params: %s\n",
 	       smfHandle, invocation, scopeId, obj, phase, label, params);
@@ -101,6 +106,10 @@ void smf_cbk_util (SaSmfHandleT smfHandle, SaInvocationT invocation, SaSmfCallba
 	}
 
 	rc = saSmfResponse(smfHandle, invocation, cmdResult);
+
+	free(label);
+	free(obj);
+
 	if (SA_AIS_OK != rc){
 		LOG_ER("smf_cbk_util saSmfResponse failed, rc=%s", saf_error(rc));
 		return;

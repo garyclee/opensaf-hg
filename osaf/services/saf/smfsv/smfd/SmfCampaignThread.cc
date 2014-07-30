@@ -17,6 +17,7 @@
 
 #include <sched.h>
 #include <poll.h>
+#include "saAis.h"
 #include <saImmOm.h>
 #include <saImmOi.h>
 #include <immutil.h>
@@ -28,6 +29,7 @@
 #include <ncssysf_tsk.h>
 #include <logtrace.h>
 #include <rda_papi.h>
+#include "osaf_extended_name.h"
 
 #include "smfd.h"
 #include "SmfCampaignThread.hh"
@@ -469,22 +471,38 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uint32_t cl
 	}
 
 	/* Notifying object */
-	SaUint16T length = sizeof(SMF_NOTIFYING_OBJECT);
-	if (length >= SA_MAX_NAME_LENGTH) {
-		TRACE("notifyingObject length was %d, truncated to %d", length, SA_MAX_NAME_LENGTH - 1);
-		length = 255;
+	size_t length = sizeof(SMF_NOTIFYING_OBJECT);
+	if (length > static_cast<size_t>(kMaxDnLength)) {
+		TRACE("notifyingObject length was %zu, truncated to %zu",
+                length, static_cast<size_t>(kMaxDnLength));
+		length = kMaxDnLength;
 	}
-	ntfStateNot.notificationHeader.notifyingObject->length = length;
-	strncpy((char *)ntfStateNot.notificationHeader.notifyingObject->value, SMF_NOTIFYING_OBJECT, length);
+        char* value = (char*) malloc(length + 1);
+	if (value == NULL) {
+		LOG_ER("saNtfStateChangeNotificationAllocate FAILED, out of memory");
+		result = -1;
+                goto done;
+	}
+        memcpy(value, SMF_NOTIFYING_OBJECT, length - 1);
+        value[length] = '\0';
+	osaf_extended_name_steal(value, ntfStateNot.notificationHeader.notifyingObject);
 
 	/* Notification object */
 	length = dn.length();
-	if (length >= SA_MAX_NAME_LENGTH) {
-		TRACE("notificationHeader length was %d, truncated to  %d", length, SA_MAX_NAME_LENGTH - 1);
-		length = 255;
+	if (length > static_cast<size_t>(kMaxDnLength)) {
+		TRACE("notificationHeader length was %zu, truncated to %zu",
+                length, static_cast<size_t>(kMaxDnLength));
+		length = kMaxDnLength;
 	}
-	ntfStateNot.notificationHeader.notificationObject->length = length;
-	strncpy((char *)ntfStateNot.notificationHeader.notificationObject->value, dn.c_str(), length);
+        value = (char*) malloc(length + 1);
+	if (value == NULL) {
+		LOG_ER("saNtfStateChangeNotificationAllocate FAILED, out of memory");
+		result = -1;
+                goto done;
+	}
+        memcpy(value, dn.c_str(), length - 1);
+        value[length] = '\0';
+	osaf_extended_name_steal(value, ntfStateNot.notificationHeader.notificationObject);
 
 	/* Event type */
 	*(ntfStateNot.notificationHeader.eventType) = SA_NTF_OBJECT_STATE_CHANGE;

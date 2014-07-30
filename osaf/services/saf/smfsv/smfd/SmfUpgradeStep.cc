@@ -25,6 +25,7 @@
 #include <logtrace.h>
 #include <sstream>
 #include <saf_error.h>
+#include "osaf_extended_name.h"
 
 #include "SmfUpgradeStep.hh"
 #include "SmfCampaign.hh"
@@ -740,9 +741,7 @@ SmfUpgradeStep::modifyInformationModel()
         modifyRollbackCcbDn += this->getDn();
 
         SaNameT objectName;
-	objectName.length = modifyRollbackCcbDn.length();
-	strncpy((char *)objectName.value, modifyRollbackCcbDn.c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
+        osaf_extended_name_lend(modifyRollbackCcbDn.c_str(), &objectName);
 
         /* In case of a undoing the rollback could already exists, delete it and recreate a new one */
 	rc = immutil_saImmOiRtObjectDelete(getProcedure()->getProcThread()->getImmHandle(), &objectName);
@@ -852,7 +851,7 @@ SmfUpgradeStep::setMaintenanceState(SmfActivationUnit& i_units)
                                                                     "saAmfSUHostedByNode",
                                                                     0);
                                         if ((hostedByNode != NULL)
-                                            && (strcmp((*it).c_str(), (char *)hostedByNode->value) == 0)) {
+                                            && (strcmp((*it).c_str(), osaf_extended_name_borrow(hostedByNode)) == 0)) {
                                                 /* The SU is hosted by the AU node */
                                                 suList.push_back(*suit);
                                         }
@@ -904,9 +903,8 @@ SmfUpgradeStep::setMaintenanceState(SmfActivationUnit& i_units)
 										0);
 		//If a value is set, this shall be the current campaign DN
 		if(saAmfSUMaintenanceCampaign != NULL) {
-                        if((saAmfSUMaintenanceCampaign->length != campDn.length()) || 
-                           (strncmp((char *)saAmfSUMaintenanceCampaign->value, campDn.c_str(), saAmfSUMaintenanceCampaign->length) != 0)){ //Exist, but no match
-                                   LOG_NO("saAmfSUMaintenanceCampaign already set to unknown campaign dn = %s", (char *)saAmfSUMaintenanceCampaign->value);
+			if (strcmp(osaf_extended_name_borrow(saAmfSUMaintenanceCampaign), campDn.c_str()) != 0) { //Exist, but no match
+                                   LOG_NO("saAmfSUMaintenanceCampaign already set to unknown campaign dn = %s", osaf_extended_name_borrow(saAmfSUMaintenanceCampaign));
                                    rc = false;
                                    goto exit;
                            }
@@ -1446,8 +1444,8 @@ SmfUpgradeStep::isCurrentNode(const std::string & i_amfNodeDN)
 								  "saAmfSUHostedByNode", 
 								  0);
 		if (hostedByNode != NULL){
-			TRACE("The SU is hosted by node %s", (char *)hostedByNode->value);
-			if (strcmp(i_amfNodeDN.c_str(), (char *)hostedByNode->value) == 0) {
+			TRACE("The SU is hosted by node %s", osaf_extended_name_borrow(hostedByNode));
+			if (strcmp(i_amfNodeDN.c_str(), osaf_extended_name_borrow(hostedByNode)) == 0) {
 				/* The SU is hosted by the node */
 				TRACE("SmfUpgradeStep::isCurrentNode:MATCH, component %s hosted by %s", comp_name.c_str(), i_amfNodeDN.c_str());
 				rc = true;

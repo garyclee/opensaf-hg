@@ -30,11 +30,13 @@
 #include <ncssysf_ipc.h>
 #include <ncssysf_tsk.h>
 
+#include "saAis.h"
 #include <saAmf.h>
 #include <saImmOm.h>
 #include <saImmOi.h>
 #include <immutil.h>
 #include <saf_error.h>
+#include "osaf_extended_name.h"
 
 #include "stdio.h"
 #include "logtrace.h"
@@ -1062,7 +1064,7 @@ SmfUpgradeProcedure::calculateNodeList(const std::string & i_objectDn, std::list
 				for (j = 0; j < attributes[i]->attrValuesNumber; j++) {
 					SaNameT *amfNode = (SaNameT *) attributes[i]->attrValues[j];
 					std::string amfNodeDn;
-					amfNodeDn.append((char *)amfNode->value, amfNode->length);
+					amfNodeDn.append(osaf_extended_name_borrow(amfNode));
 					TRACE("calculateNodeList adding amf group node %s to node list",
 					      amfNodeDn.c_str());
 					o_nodeList.push_back(amfNodeDn);
@@ -2492,10 +2494,10 @@ SmfUpgradeProcedure::readCampaignImmModel(SmfUpgradeStep *i_newStep)
 			const SaNameT * au;
 			for(ix = 0; (au = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, 
 							      "saSmfAuActedOn", ix)) != NULL; ix++) {
-				TRACE("addActivationUnit %s", (char *)au->value);
-				std::string str = (char *)au->value;
+				TRACE("addActivationUnit %s", osaf_extended_name_borrow(au));
+				std::string str = osaf_extended_name_borrow(au);
 				if(str != "") {
-					i_newStep->addActivationUnit((char *)au->value);
+					i_newStep->addActivationUnit(osaf_extended_name_borrow(au));
 				} else {
 					TRACE("No activation unit, must be SW install");
 				}
@@ -2529,14 +2531,14 @@ SmfUpgradeProcedure::readCampaignImmModel(SmfUpgradeStep *i_newStep)
 							TRACE_LEAVE();
 							return SA_AIS_ERR_NOT_EXIST;
 						}
-						TRACE("Rolling saSmfINNode->value = %s", (char*)saSmfINNode->value);
-						i_newStep->setSwNode((char*)saSmfINNode->value);
+						TRACE("Rolling saSmfINNode->value = %s", osaf_extended_name_borrow(saSmfINNode));
+						i_newStep->setSwNode(osaf_extended_name_borrow(saSmfINNode));
 					}  else {  //SA_SMF_SINGLE_STEP
 						const SaNameT * saSmfINNode;
 						for(ix = 0; (saSmfINNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, 
 											       "saSmfINNode", ix)) != NULL; ix++) {
-							TRACE("Single step saSmfINNode->value = %s (%u)", (char*)saSmfINNode->value, ix);
-							i_newStep->addSwNode((char*)saSmfINNode->value);
+							TRACE("Single step saSmfINNode->value = %s (%u)", osaf_extended_name_borrow(saSmfINNode), ix);
+							i_newStep->addSwNode(osaf_extended_name_borrow(saSmfINNode));
 						}
 						if ( ix == 0 ) {
 							LOG_NO("SmfUpgradeProcedure::readCampaignImmModel: saSmfINNode does not exist");  
@@ -2574,10 +2576,10 @@ SmfUpgradeProcedure::readCampaignImmModel(SmfUpgradeStep *i_newStep)
 			const SaNameT * du;
 			for(ix = 0; (du = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, 
 							      "saSmfDuActedOn", ix)) != NULL; ix++) {
-				TRACE("addDeactivationUnit %s", (char *)du->value);
-				std::string str = (char *)du->value;
+				TRACE("addDeactivationUnit %s", osaf_extended_name_borrow(du));
+				std::string str = osaf_extended_name_borrow(du);
 				if(str != "") {
-					i_newStep->addDeactivationUnit((char *)du->value);
+					i_newStep->addDeactivationUnit(osaf_extended_name_borrow(du));
 				} else {
 					TRACE("No deactivation unit, must be SW remove");
 				}
@@ -2612,14 +2614,14 @@ SmfUpgradeProcedure::readCampaignImmModel(SmfUpgradeStep *i_newStep)
 							TRACE_LEAVE();
 							return SA_AIS_ERR_NOT_EXIST;
 						}
-						TRACE("Rolling saSmfINNode->value = %s", (char*)saSmfINNode->value);
-						i_newStep->setSwNode((char*)saSmfINNode->value);
+						TRACE("Rolling saSmfINNode->value = %s", osaf_extended_name_borrow(saSmfINNode));
+						i_newStep->setSwNode(osaf_extended_name_borrow(saSmfINNode));
 					}  else {  //SA_SMF_SINGLE_STEP
 						const SaNameT * saSmfINNode;
 						for(ix = 0; (saSmfINNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, 
 											       "saSmfINNode", ix)) != NULL; ix++) {
-							TRACE("Single step saSmfINNode->value = %s (%u)", (char*)saSmfINNode->value, ix);
-							i_newStep->addSwNode((char*)saSmfINNode->value);
+							TRACE("Single step saSmfINNode->value = %s (%u)", osaf_extended_name_borrow(saSmfINNode), ix);
+							i_newStep->addSwNode(osaf_extended_name_borrow(saSmfINNode));
 						}
 						if ( ix == 0 ) {
 							LOG_NO("SmfUpgradeProcedure::readCampaignImmModel: saSmfINNode does not exist");  
@@ -2758,8 +2760,8 @@ bool SmfUpgradeProcedure::isCompRestartable(const std::string &i_compDN)
 			goto done;
 		}
 
-		if (immUtil.getObject((char *)saAmfCompType->value, &attributes) == false) {
-			LOG_NO("SmfUpgradeProcedure::isCompRestartable: Can not find object %s", (char *)saAmfCompType->value);
+		if (immUtil.getObject(osaf_extended_name_borrow(saAmfCompType), &attributes) == false) {
+			LOG_NO("SmfUpgradeProcedure::isCompRestartable: Can not find object %s", osaf_extended_name_borrow(saAmfCompType));
 			rc = false;
 			goto done;
 		}
@@ -2864,7 +2866,7 @@ SmfUpgradeProcedure::getImmComponentInfo(std::multimap<std::string, objectInst> 
 
 	while (immutil_saImmOmSearchNext_2(immSearchHandle, &objectName, &attributes) == SA_AIS_OK) {
 		const SaNameT *typeRef;
-		std::string comp((char *)objectName.value);
+		std::string comp(osaf_extended_name_borrow(&objectName));
 
 		typeRef = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saAmfCompType", 0);
 		if (typeRef == NULL) {
@@ -2873,7 +2875,7 @@ SmfUpgradeProcedure::getImmComponentInfo(std::multimap<std::string, objectInst> 
 			goto done;	
 		}
 
-		std::string compType((char *)typeRef->value);
+		std::string compType(osaf_extended_name_borrow(typeRef));
 		std::string su(comp.substr(comp.find(',') + 1, std::string::npos));
 		std::string sg(su.substr(su.find(',') + 1, std::string::npos));
 
@@ -2917,9 +2919,9 @@ SmfUpgradeProcedure::getImmComponentInfo(std::multimap<std::string, objectInst> 
                         //No hostedByNode was set, read the same object again
                 } //End  while(true)
 
-                std::string node((char *)hostedByNode->value);
+                std::string node(osaf_extended_name_borrow(hostedByNode));
                 typeRef = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saAmfSUType", 0);
-                std::string suType((char *)typeRef->value);
+                std::string suType(osaf_extended_name_borrow(typeRef));
 
                 //Save result in a multimap
                 //Node as key

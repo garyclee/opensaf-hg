@@ -27,8 +27,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "saAis.h"
 #include <logtrace.h>
 #include <saf_error.h>
+#include "osaf_extended_name.h"
 
 #include "smfd.h"
 #include "smfd_smfnd.h"
@@ -74,7 +76,8 @@ bool smfnd_for_name(const char *i_nodeName, SmfndNodeDest* o_nodeDest)
         pthread_mutex_lock(&smfnd_list_lock);
         smfnd = firstSmfnd;     
 	while (smfnd != NULL) {
-		if (!strcmp((char *)smfnd->clmInfo.nodeName.value, i_nodeName)) {
+		if (strcmp(osaf_extended_name_borrow(&smfnd->clmInfo.nodeName),
+			i_nodeName) == 0) {
                         o_nodeDest->dest = smfnd->dest;
                         o_nodeDest->rem_svc_pvt_ver = smfnd->rem_svc_pvt_ver;
                         pthread_mutex_unlock(&smfnd_list_lock);
@@ -147,9 +150,6 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
 		LOG_ER("saClmFinalize failed, rc=%s", saf_error(rc));
 	}
 
-	/* Make shure the name string is null terminated */
-	smfnd->clmInfo.nodeName.value[smfnd->clmInfo.nodeName.length] = 0;
-
 	/* Store the destination to the smfnd */
 	smfnd->dest = i_smfnd_dest;
 
@@ -157,7 +157,8 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
         smfnd->rem_svc_pvt_ver = i_rem_svc_pvt_ver;
 
 	TRACE("Adding SMFND for node name %s, id %x, version %u",
-	      smfnd->clmInfo.nodeName.value, smfnd->clmInfo.nodeId, smfnd->rem_svc_pvt_ver);
+		osaf_extended_name_borrow(&smfnd->clmInfo.nodeName),
+		smfnd->clmInfo.nodeId, smfnd->rem_svc_pvt_ver);
 
         pthread_mutex_lock(&smfnd_list_lock);
 
@@ -176,7 +177,8 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
 	firstSmfnd = smfnd;
 
 	TRACE("SMFND added for node name %s, id %x, version %u",
-	      smfnd->clmInfo.nodeName.value, smfnd->clmInfo.nodeId, smfnd->rem_svc_pvt_ver);
+		osaf_extended_name_borrow(&smfnd->clmInfo.nodeName),
+		smfnd->clmInfo.nodeId, smfnd->rem_svc_pvt_ver);
 
         pthread_mutex_unlock(&smfnd_list_lock);
 
@@ -208,7 +210,7 @@ uint32_t smfnd_down(SaClmNodeIdT i_node_id)
 			}
 
 			TRACE("SMFND removed for node name %s, id %x",
-			      smfnd->clmInfo.nodeName.value,
+			      osaf_extended_name_borrow(&smfnd->clmInfo.nodeName),
 			      smfnd->clmInfo.nodeId);
 			free(smfnd);
 

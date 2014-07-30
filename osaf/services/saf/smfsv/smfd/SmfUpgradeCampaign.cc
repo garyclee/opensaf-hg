@@ -21,6 +21,7 @@
  */
 
 #include <algorithm>
+#include "saAis.h"
 #include "logtrace.h"
 #include <immutil.h>
 #include <saf_error.h>
@@ -34,6 +35,7 @@
 #include "smfd.h"
 
 #include <saf_error.h>
+#include "osaf_extended_name.h"
 
 class SmfUpgradeProcedure;
 
@@ -666,9 +668,7 @@ SmfUpgradeCampaign::restorePbe()
 	//Delete the "safRdn=smfPbeIndicator,safApp=safSmfService" object
 	std::string dn("safRdn=smfPbeIndicator,safApp=safSmfService");
         SaNameT objectName;
-	objectName.length = dn.length();
-	strncpy((char *)objectName.value, dn.c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
+	osaf_extended_name_lend(dn.c_str(), &objectName);
 
 	rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),
 					   &objectName);
@@ -1037,7 +1037,7 @@ SmfUpgradeCampaign::resetMaintenanceState()
 						    "saAmfSUMaintenanceCampaign",
 						    0);
 
-			if ((maintCamp != NULL) && (maintCamp->length > 0)) {
+			if ((maintCamp != NULL) && !osaf_is_extended_name_empty(maintCamp)) {
 				SmfImmModifyOperation *modop = new (std::nothrow) SmfImmModifyOperation;
 				osafassert(modop != 0);
 				modop->setDn(*suit);
@@ -1078,9 +1078,7 @@ SmfUpgradeCampaign::removeRunTimeObjects()
 
         SaNameT objectName;
 	std::string dn = "smfRestartInfo=info," + SmfCampaignThread::instance()->campaign()->getDn(); 
-	objectName.length = dn.length();
-	strncpy((char *)objectName.value, dn.c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
+	osaf_extended_name_lend(dn.c_str(), &objectName);
 
 	SaAisErrorT rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),	//The OI handle
 					   &objectName);
@@ -1091,9 +1089,7 @@ SmfUpgradeCampaign::removeRunTimeObjects()
 
 	/* Remove campaign rollback element runtime objects */
         dn = "smfRollbackElement=AddToImmCcb," + SmfCampaignThread::instance()->campaign()->getDn(); 
-	objectName.length = dn.length();
-	strncpy((char *)objectName.value, dn.c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
+	osaf_extended_name_lend(dn.c_str(), &objectName);
 
 	rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),	//The OI handle
                                            &objectName);
@@ -1103,9 +1099,7 @@ SmfUpgradeCampaign::removeRunTimeObjects()
 	}
 
         dn = "smfRollbackElement=CampInit," + SmfCampaignThread::instance()->campaign()->getDn(); 
-	objectName.length = dn.length();
-	strncpy((char *)objectName.value, dn.c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
+	osaf_extended_name_lend(dn.c_str(), &objectName);
 
 	rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),	//The OI handle
 					   &objectName);
@@ -1115,9 +1109,7 @@ SmfUpgradeCampaign::removeRunTimeObjects()
 	}
 
         dn = "smfRollbackElement=CampComplete," + SmfCampaignThread::instance()->campaign()->getDn(); 
-	objectName.length = dn.length();
-	strncpy((char *)objectName.value, dn.c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
+	osaf_extended_name_lend(dn.c_str(), &objectName);
 
 	rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),	//The OI handle
 					   &objectName);
@@ -1252,9 +1244,7 @@ SmfUpgradeCampaign::checkSmfRestartIndicator()
 		TRACE("OpenSafSmfRestartIndicator object exist, the campaign restart was expected");
 		//Remove the indicator object
 		SaNameT objectName;
-		objectName.length = objDn.length();
-		strncpy((char *)objectName.value, objDn.c_str(), objectName.length);
-		objectName.value[objectName.length] = 0;
+                osaf_extended_name_lend(objDn.c_str(), &objectName);
 
 		retries = 1;
 		rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),

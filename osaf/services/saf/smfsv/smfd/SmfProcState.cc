@@ -19,10 +19,12 @@
  *   INCLUDE FILES
  * ========================================================================
  */
+#include "saAis.h"
 #include <immutil.h>
 #include <saf_error.h>
 
 #include "logtrace.h"
+#include "osaf_extended_name.h"
 #include "SmfUpgradeProcedure.hh"
 #include "SmfUpgradeStep.hh"
 #include "SmfProcState.hh"
@@ -153,9 +155,7 @@ SmfProcState::commit(SmfUpgradeProcedure * i_proc)
 	   -OpenSafSmfSingleStepInfo
 	*/
 
-	objectName.length = i_proc->getDn().length();
-	strncpy((char *)objectName.value, i_proc->getDn().c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
+	osaf_extended_name_lend(i_proc->getDn().c_str(), &objectName);
 
 	rc = immutil_saImmOiRtObjectDelete(i_proc->getProcThread()->getImmHandle(),	//The OI handle
 					   &objectName);

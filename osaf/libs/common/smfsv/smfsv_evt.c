@@ -22,8 +22,11 @@
   structures in an SMFSV_EVT.
 *****************************************************************************/
 
+#include <stdint.h>
+#include "saAis.h"
 #include <ncsencdec_pub.h>
 #include <logtrace.h>
+#include "osaf_extended_name.h"
 
 #include "smfsv_evt.h"
 
@@ -58,6 +61,8 @@ void smfsv_evt_destroy(SMFSV_EVT *evt)
                                 switch (evt->info.smfnd.event.cbk_req_rsp.evt_type) {
                                 case SMF_CLBK_EVT:
                                         {
+						osaf_extended_name_free(&evt->info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name);
+						osaf_extended_name_clear(&evt->info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name);
                                                 free(evt->info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label);
                                                 evt->info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label = NULL;
                                                 free(evt->info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params);
@@ -617,11 +622,16 @@ uint32_t smf_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
         LOG_ER("ncs_enc_reserve_space failed");
         goto err;
     }
-    ncs_encode_32bit(&p8, i_evt->object_name.length);
+    uint64_t length = osaf_extended_name_length(&i_evt->object_name);
+    if (length > 0xffffffff) {
+        LOG_ER("object name too long");
+        goto err;
+    }
+    ncs_encode_32bit(&p8, length);
     ncs_enc_claim_space(o_ub, 4);
     
-    ncs_encode_n_octets_in_uba(o_ub, (uint8_t*) i_evt->object_name.value, 
-				i_evt->object_name.length);
+    ncs_encode_n_octets_in_uba(o_ub, (uint8_t*) osaf_extended_name_borrow(&i_evt->object_name),
+				length);
     //ncs_enc_claim_space(o_ub, i_evt->object_name.length);
 
     p8 = ncs_enc_reserve_space(o_ub, 4);
@@ -754,12 +764,17 @@ uint32_t smf_dec_cbk_req(NCS_UBAID *i_ub, SMF_CBK_EVT *o_evt)
     ncs_dec_skip_space(i_ub, 4);
 
     p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
-    o_evt->object_name.length = ncs_decode_32bit(&p8);
+    uint32_t length = ncs_decode_32bit(&p8);
     ncs_dec_skip_space(i_ub, 4);
 
-    if (o_evt->object_name.length != 0)
+    if (length != 0)
     {
-        ncs_decode_n_octets_from_uba(i_ub,(uint8_t *)o_evt->object_name.value, o_evt->object_name.length);
+	    char* value = (char*) malloc(length + 1);
+	    ncs_decode_n_octets_from_uba(i_ub, (uint8_t*) value, length);
+	    value[length] = '\0';
+	    osaf_extended_name_steal(value, &o_evt->object_name);
+    } else {
+	    osaf_extended_name_clear(&o_evt->object_name);
     }
 
     p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);

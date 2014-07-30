@@ -29,7 +29,7 @@ noinst_HEADERS = \
 	smfnd_evt.h
 
 osafsmfnd_CPPFLAGS = \
-	-DSA_CLM_B01=1 \
+	-DSA_CLM_B01=1 -DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/smfsv/include
 

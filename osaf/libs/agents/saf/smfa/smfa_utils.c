@@ -21,6 +21,7 @@
  * @author	GoAhead Software
 *****************************************************************************/
 #include "smfa.h"
+#include "osaf_extended_name.h"
 
 extern SMFA_CB _smfa_cb;
 
@@ -617,9 +618,8 @@ uint32_t smfa_cbk_filter_match(SMFA_CLIENT_INFO *client_info,SMF_CBK_EVT *cbk_ev
 				evt->evt.cbk_evt.inv_id = cbk_evt->inv_id;
 				evt->evt.cbk_evt.scope_id = scope_info->scope_id;
 				evt->evt.cbk_evt.camp_phase = cbk_evt->camp_phase;
-				evt->evt.cbk_evt.object_name.length = cbk_evt->object_name.length;
-				strncpy((char *)evt->evt.cbk_evt.object_name.value,(char *)cbk_evt->object_name.value,
-				cbk_evt->object_name.length);
+				osaf_extended_name_alloc(osaf_extended_name_borrow(&cbk_evt->object_name),
+					&evt->evt.cbk_evt.object_name);
 			
 				if (m_NCS_IPC_SEND(&client_info->cbk_mbx,(NCSCONTEXT)evt,NCS_IPC_PRIORITY_NORMAL)){
 					/* Increment the cbk count.*/
@@ -733,6 +733,7 @@ uint32_t smfa_cbk_list_cleanup(SaSmfHandleT hdl)
 void smfa_evt_free(SMF_EVT *evt)
 {
 	if (evt){
+		osaf_extended_name_free(&evt->evt.cbk_evt.object_name);
 		free(evt->evt.cbk_evt.params);
 		free(evt->evt.cbk_evt.cbk_label.label);
 		free(evt);

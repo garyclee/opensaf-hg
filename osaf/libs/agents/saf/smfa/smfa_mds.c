@@ -21,6 +21,7 @@
 *****************************************************************************/
 
 #include "smfa.h"
+#include "osaf_extended_name.h"
 
 extern SMFA_CB _smfa_cb;
 
@@ -266,6 +267,7 @@ uint32_t smfa_mds_rcv_cbk(MDS_CALLBACK_RECEIVE_INFO *rcv_evt)
 	}
 
 	/* This is not the same evt we are putting in client MBX, so free it.*/
+	osaf_extended_name_free(&evt->evt.cbk_evt.object_name);
 	free(evt->evt.cbk_evt.params);
 	free(evt->evt.cbk_evt.cbk_label.label);
 	free(smfsv_evt);
