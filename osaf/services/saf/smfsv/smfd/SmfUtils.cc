@@ -21,6 +21,7 @@
  */
 #include <unistd.h>
 
+#include "saAis.h"
 #include <saAmf.h>
 #include <saSmf.h>
 #include <saAis.h>
@@ -32,6 +33,7 @@
 #include <string.h>
 #include <algorithm>
 
+#include "osaf_extended_name.h"
 #include "osaf_time.h"
 #include "logtrace.h"
 #include "SmfUtils.hh"
@@ -122,7 +124,7 @@ getNodeDestination(const std::string & i_node, SmfndNodeDest* o_nodeDest)
 			return false;
 		}
 
-		char *nodeName = strndup((const char *)clmNode->value, clmNode->length);
+		char *nodeName = strdup(osaf_extended_name_borrow(clmNode));
                 bool result = smfnd_for_name(nodeName, o_nodeDest);
 		if (!result) {
 			LOG_NO("Failed to get node dest for clm node %s", nodeName);
@@ -288,14 +290,13 @@ SmfImmUtils::getObject(const std::string & i_dn, SaImmAttrValuesT_2 *** o_attrib
 	SaAisErrorT rc = SA_AIS_OK;
 	SaNameT objectName;
 
-        if (i_dn.length() >= SA_MAX_NAME_LENGTH) {
-		LOG_NO("getObject error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH - 1);
+        if (i_dn.length() > kMaxDnLength) {
+		LOG_NO("getObject error, dn too long (%zu), max %zu",
+                        i_dn.length(), static_cast<size_t>(kMaxDnLength));
 		return false;
         }
 
-	objectName.length = i_dn.length();
-	strncpy((char *)objectName.value, i_dn.c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
+	osaf_extended_name_lend(i_dn.c_str(), &objectName);
 
 	rc = immutil_saImmOmAccessorGet_2(m_accessorHandle, &objectName, NULL, o_attributes);
 
@@ -316,14 +317,13 @@ SmfImmUtils::getObjectAisRC(const std::string & i_dn, SaImmAttrValuesT_2 *** o_a
 	SaAisErrorT rc = SA_AIS_OK;
 	SaNameT objectName;
 
-        if (i_dn.length() >= SA_MAX_NAME_LENGTH) {
-		LOG_NO("getObjectAisRC error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH - 1);
+        if (i_dn.length() > kMaxDnLength) {
+		LOG_NO("getObjectAisRC error, dn too long (%zu), max %zu",
+                        i_dn.length(), static_cast<size_t>(kMaxDnLength));
 		return SA_AIS_ERR_NAME_TOO_LONG;
         }
 
-	objectName.length = i_dn.length();
-	strncpy((char *)objectName.value, i_dn.c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
+        osaf_extended_name_lend(i_dn.c_str(), &objectName);
 
 	rc = immutil_saImmOmAccessorGet_2(m_accessorHandle, &objectName, NULL, o_attributes);
 
@@ -359,14 +359,13 @@ SmfImmUtils::getChildren(const std::string & i_dn, std::list < std::string > &o_
 	TRACE_ENTER();
 
 	if (i_dn.size() > 0) {
-                if (i_dn.length() >= SA_MAX_NAME_LENGTH) {
-                        LOG_NO("getChildren error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH - 1);
+                if (i_dn.length() > kMaxDnLength) {
+                        LOG_NO("getChildren error, dn too long (%zu), max %zu",
+                                i_dn.length(), static_cast<size_t>(kMaxDnLength));
                         return false;
                 }
-                
-		objectName.length = i_dn.length();
-		strncpy((char *)objectName.value, i_dn.c_str(), objectName.length);
-		objectName.value[objectName.length] = 0;
+
+                osaf_extended_name_lend(i_dn.c_str(), &objectName);
 		objectNamePtr = &objectName;
 	}
 
@@ -410,7 +409,7 @@ SmfImmUtils::getChildren(const std::string & i_dn, std::list < std::string > &o_
 	while (immutil_saImmOmSearchNext_2(immSearchHandle, &objectName, &attributes) == SA_AIS_OK) {
 		/* Stor found child in child list */
 		std::string childDn;
-		childDn.append((char *)objectName.value, objectName.length);
+		childDn.append(osaf_extended_name_borrow(&objectName));
 
 		o_childList.push_back(childDn);
 	}
@@ -444,15 +443,14 @@ SmfImmUtils::getChildrenAndAttrBySearchHandle(const std::string& i_dn,
 	TRACE_ENTER();
 
 	if (i_dn.size() > 0) {
-                if (i_dn.length() >= SA_MAX_NAME_LENGTH) {
-                        LOG_NO("getChildren error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH - 1);
+                if (i_dn.length() > kMaxDnLength) {
+                        LOG_NO("getChildren error, dn too long (%zu), max %zu",
+                                i_dn.length(), static_cast<size_t>(kMaxDnLength));
 			rc =  false;
 			goto done;
                 }
-                
-		objectName.length = i_dn.length();
-		strncpy((char *)objectName.value, i_dn.c_str(), objectName.length);
-		objectName.value[objectName.length] = 0;
+
+                osaf_extended_name_lend(i_dn.c_str(), &objectName);
 		objectNamePtr = &objectName;
 	}
 
@@ -511,14 +509,14 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 	SaNameT objectName;
 	int retry          = 100;
 
-        if (i_dn.length() > SA_MAX_NAME_LENGTH) {
-                LOG_NO("callAdminOperation error, dn too long (%zu), max %d", i_dn.length(), SA_MAX_NAME_LENGTH);
+        if (i_dn.length() > kMaxDnLength) {
+                LOG_NO("callAdminOperation error, dn too long (%zu), max %zu",
+                        i_dn.length(), static_cast<size_t>(kMaxDnLength));
                 return SA_AIS_ERR_NAME_TOO_LONG;
         }
 
 	/* First set admin owner on the object */
-	objectName.length = i_dn.length();
-	memcpy(objectName.value, i_dn.c_str(), objectName.length);
+        osaf_extended_name_lend(i_dn.c_str(), &objectName);
 
 	const SaNameT *objectNames[2];
 	objectNames[0] = &objectName;
@@ -806,15 +804,14 @@ smf_stringToValue(SaImmValueTypeT i_type, SaImmAttrValueT *i_value, const char* 
         case SA_IMM_ATTR_SANAMET:
                 len = strlen(i_str);
 
-                if (len >= SA_MAX_NAME_LENGTH) {
-                        LOG_NO("smf_stringToValue error, SaNameT value too long (%zu), max %d", len, SA_MAX_NAME_LENGTH - 1);
+                if (len > kMaxDnLength) {
+                        LOG_NO("smf_stringToValue error, SaNameT value too long (%zu), max %zu",
+                                len, static_cast<size_t>(kMaxDnLength));
                         return false;
                 }
 
                 *i_value = malloc(sizeof(SaNameT));
-                ((SaNameT *) * i_value)->length = (SaUint16T) len;
-                strncpy((char *)((SaNameT *) * i_value)->value, i_str, len);
-                ((SaNameT *) * i_value)->value[len] = '\0';
+                osaf_extended_name_alloc(i_str, ((SaNameT *) * i_value));
                 break;
         case SA_IMM_ATTR_SAFLOATT:
                 *i_value = malloc(sizeof(SaFloatT));
@@ -898,10 +895,9 @@ std::string smf_valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
         case SA_IMM_ATTR_SANAMET:
             namep = (SaNameT *) value;
 
-            if (namep->length > 0)
+            if (!osaf_is_extended_name_empty(namep))
             {
-                namep->value[namep->length] = 0;
-                ost << (char*) namep->value;
+                ost << (char*) osaf_extended_name_borrow(namep);
             }
             break;
         case SA_IMM_ATTR_SASTRINGT:

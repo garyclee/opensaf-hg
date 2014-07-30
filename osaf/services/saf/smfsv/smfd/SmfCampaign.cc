@@ -30,10 +30,12 @@
 #include "SmfUpgradeProcedure.hh"
 #include "SmfProcedureThread.hh"
 
+#include "saAis.h"
 #include <saSmf.h>
 #include <logtrace.h>
 #include <immutil.h>
 #include <saf_error.h>
+#include "osaf_extended_name.h"
 
 /* We need some DN space for the step (~15),activation/deactivation (~30)
    and image node (~15) objects */
@@ -58,9 +60,9 @@ SmfCampaign::SmfCampaign(const SaNameT * parent, const SaImmAttrValuesT_2 ** att
 {
 	init(attrValues);
 	m_dn = m_cmpg;
-	if(parent->length > 0) {
+	if (!osaf_is_extended_name_empty(parent)) {
 		m_dn += ",";
-		m_dn.append((char *)parent->value, parent->length);
+		m_dn.append(osaf_extended_name_borrow(parent));
 	}
 }
 
@@ -76,7 +78,7 @@ SmfCampaign::SmfCampaign(const SaNameT * dn):
         m_adminOpBusy(false),
         m_previousUpdateTime(0)
 {
-	m_dn.append((char *)dn->value, dn->length);
+	m_dn.append(osaf_extended_name_borrow(dn));
 }
 
 /** 
@@ -634,10 +636,11 @@ SmfCampaign::initExecution(void)
         	while (iter != procedures.end()) {
         		//Set the DN of the procedure
         		std::string dn = (*iter)->getProcName() + "," + SmfCampaignThread::instance()->campaign()->getDn();
-                        if (dn.length() > (SA_MAX_NAME_LENGTH - OSAF_STEP_ACT_LENGTH)) {
+                        if (dn.length() > static_cast<size_t>(kMaxDnLength - OSAF_STEP_ACT_LENGTH)) {
                                 std::string error = "Procedure dn too long " + dn;
-                                LOG_ER("Procedure dn too long (max %d) %s", 
-                                       SA_MAX_NAME_LENGTH - OSAF_STEP_ACT_LENGTH, dn.c_str());
+                                LOG_ER("Procedure dn too long (max %zu) %s",
+                                       static_cast<size_t>(kMaxDnLength - OSAF_STEP_ACT_LENGTH),
+                                       dn.c_str());
                                 setError(error);
                                 delete p_uc; // To terminate and remove any previously started procedure threads
                                 /* Don't change campaign state to allow reexecution */
@@ -921,7 +924,7 @@ SmfCampaignList::get(const SaNameT * dn)
 
 	while (it != m_campaignList.end()) {
 		SmfCampaign *campaign = *it;
-		if (strcmp(campaign->getDn().c_str(), (char *)dn->value) == 0) {
+		if (strcmp(campaign->getDn().c_str(), osaf_extended_name_borrow(dn)) == 0) {
 			return campaign;
 		}
 		it++;
@@ -951,7 +954,7 @@ SmfCampaignList::del(const SaNameT * dn)
 
 	while (it != m_campaignList.end()) {
 		SmfCampaign *campaign = *it;
-		if (strcmp(campaign->getDn().c_str(), (char *)dn->value) == 0) {
+		if (strcmp(campaign->getDn().c_str(), osaf_extended_name_borrow(dn)) == 0) {
 			delete campaign;
 			m_campaignList.erase(it);
 			return SA_AIS_OK;

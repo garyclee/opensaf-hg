@@ -38,6 +38,7 @@
 #include <saImmOm.h>
 #include <immutil.h>
 #include <saf_error.h>
+#include "osaf_extended_name.h"
 
 #include "smfd.h"
 #include "smfsv_defs.h"
@@ -59,15 +60,19 @@ extern struct ImmutilWrapperProfile immutilWrapperProfile;
  * ========================================================================
  */
 
-static smfd_cb_t _smfd_cb;
-smfd_cb_t *smfd_cb = &_smfd_cb;
+static smfd_cb_t smfd_cb_instance;
+smfd_cb_t *smfd_cb = &smfd_cb_instance;
 
-static const SaNameT _smfApplDN = {
-        .value = "safApp=safSmfService",
-        .length = sizeof("safApp=safSmfService") - 1
-};
+static SaNameT smfApplDN_instance;
 
-const SaNameT *smfApplDN = &_smfApplDN;
+static void smfApplDN_instance_constructor(void) __attribute__ ((constructor));
+
+static void smfApplDN_instance_constructor(void)
+{
+	osaf_extended_name_lend("safApp=safSmfService", &smfApplDN_instance);
+}
+
+const SaNameT *smfApplDN = &smfApplDN_instance;
 
 
 /* ========================================================================

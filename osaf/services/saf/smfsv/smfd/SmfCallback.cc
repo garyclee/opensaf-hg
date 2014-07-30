@@ -35,6 +35,7 @@
 #include "SmfUpgradeProcedure.hh"
 #include "SmfProcedureThread.hh"
 #include "logtrace.h"
+#include "osaf_extended_name.h"
 
 #include <smfsv_evt.h>
 #include <saf_error.h>
@@ -201,11 +202,9 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
 		TRACE_2("stringToPass %s", m_stringToPass.c_str());
 	}
 
-	smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name.length = dn.size();
-	memcpy(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name.value, dn.c_str(), 
-		smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name.length);
-	TRACE_2("dn %s, size %d", dn.c_str(), 
-		smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name.length);
+        osaf_extended_name_alloc(dn.c_str(),
+                &smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name);
+	TRACE_2("dn %s, size %zu", dn.c_str(), dn.size());
 
 	inv_id_sent = smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.inv_id;
 	if (m_time != 0){
@@ -213,6 +212,7 @@ SaAisErrorT SmfCallback::send_callback_msg(SaSmfPhaseT phase, std::string & step
 		new_inv_id = (SMFD_SMFND_ADEST_INVID_MAP*)calloc (1, sizeof(SMFD_SMFND_ADEST_INVID_MAP));
 		if (new_inv_id == NULL) {
 			if (m_stringToPass.c_str() != NULL) {
+                                osaf_extended_name_free(&smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name);
 				free(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label);
 				free(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params);
 			}
@@ -327,6 +327,7 @@ rem_invid:
 		}
 		smfd_cb_unlock();
 	}
+        osaf_extended_name_free(&smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.object_name);
 	free(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.cbk_label.label);
 	if (smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params != NULL) {
 		free(smfsv_evt.info.smfnd.event.cbk_req_rsp.evt.cbk_evt.params);

@@ -29,10 +29,12 @@
 #include <ncssysf_ipc.h>
 #include <ncssysf_tsk.h>
 #include <logtrace.h>
+#include "saAis.h"
 #include <saImmOm.h>
 #include <saImmOi.h>
 #include <immutil.h>
 #include <saf_error.h>
+#include "osaf_extended_name.h"
 
 /*====================================================================*/
 /*  Data Declarations                                                 */
@@ -470,8 +472,10 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 
 	const char *safSmfProcedure = procedure->getProcName().c_str();
 	uint32_t saSmfProcExecLevel = procedure->getExecLevel();
-	SaNameT saSmfProcMustKeepSIs = { 0 };
-	SaNameT saSmfProcAcceptSIOutage = { 0 };
+	SaNameT saSmfProcMustKeepSIs;
+        osaf_extended_name_clear(&saSmfProcMustKeepSIs);
+	SaNameT saSmfProcAcceptSIOutage;
+        osaf_extended_name_clear(&saSmfProcAcceptSIOutage);
 	uint32_t saSmfProcMaxNumSIsOutage = 0;
 	uint32_t saSmfProcUpgrMethod = 0;
 
@@ -578,15 +582,13 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 		NULL
 	};
 
-	parentName.length = campaign->getDn().length();
-	strncpy((char *)parentName.value, campaign->getDn().c_str(), parentName.length);
-	parentName.value[parentName.length] = 0;
+        osaf_extended_name_lend(campaign->getDn().c_str(), &parentName);
 
 	rc = immutil_saImmOiRtObjectCreate_2(getImmHandle(), (char*)"SaSmfProcedure", &parentName, attrValues);
 
 	if (rc != SA_AIS_OK) {
 		TRACE("saImmOiRtObjectCreate_2 returned %u for %s, parent %s", rc, procedure->getProcName().c_str(),
-		      parentName.value);
+		      osaf_extended_name_borrow(&parentName));
 		goto done;
 	}
 

@@ -54,7 +54,7 @@ noinst_HEADERS = \
 osafsmfd_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 
 osafsmfd_CPPFLAGS = \
-	-DSA_CLM_B01=1 \
+	-DSA_CLM_B01=1 -DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/smfsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include \

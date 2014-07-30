@@ -28,10 +28,12 @@
 #include "SmfRollback.hh"
 #include "SmfUtils.hh"
 
+#include "saAis.h"
 #include <saImmOm.h>
 #include <immutil.h>
 #include <saImm.h>
 #include <saf_error.h>
+#include "osaf_extended_name.h"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -389,8 +391,10 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
 
 	const char *className = m_className.c_str();
 
-	if (m_parentDn.length() >= SA_MAX_NAME_LENGTH) {
-		LOG_NO("Object create op failed, parent name too long [%zu] max=[%d], parent=[%s]", m_parentDn.length(), SA_MAX_NAME_LENGTH - 1,  m_parentDn.c_str());
+	if (m_parentDn.length() > kMaxDnLength) {
+		LOG_NO("Object create op failed, parent name too long [%zu] max=[%zu], parent=[%s]",
+                        m_parentDn.length(), static_cast<size_t>(kMaxDnLength),
+                        m_parentDn.c_str());
 		TRACE_LEAVE();
 		return SA_AIS_ERR_NAME_TOO_LONG;
 	}
@@ -427,12 +431,11 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
 #endif
 
 	SaNameT objectName;
-	objectName.length = (SaUint16T) m_parentDn.length();
-	memcpy(objectName.value, m_parentDn.c_str(), objectName.length);
+        osaf_extended_name_lend(m_parentDn.c_str(), &objectName);
 
         //Set IMM ownership.
         //When creating objects at top level the parent name is empty and the ownership shall not be set
-        if (objectName.length > 0) { 
+        if (!osaf_is_extended_name_empty(&objectName)) {
 		const SaNameT *objectNames[2];
 		objectNames[0] = &objectName;
 		objectNames[1] = NULL;
@@ -626,7 +629,7 @@ SmfImmDeleteOperation::execute(SmfRollbackData* o_rollbackData)
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
 
-	if (m_dn.length() >= SA_MAX_NAME_LENGTH) {
+	if (m_dn.length() > kMaxDnLength) {
 		LOG_NO("SmfImmDeleteOperation::execute: failed Too long dn %zu",
 		       m_dn.length());
                 TRACE_LEAVE();
@@ -635,8 +638,7 @@ SmfImmDeleteOperation::execute(SmfRollbackData* o_rollbackData)
 
 	//Set IMM ownership
 	SaNameT objectName;
-	objectName.length = (SaUint16T) m_dn.length();
-	memcpy(objectName.value, m_dn.c_str(), objectName.length);
+        osaf_extended_name_lend(m_dn.c_str(), &objectName);
 
 	const SaNameT *objectNames[2];
 	objectNames[0] = &objectName;
@@ -1003,7 +1005,7 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
 
-	if (m_dn.length() >= SA_MAX_NAME_LENGTH) {
+	if (m_dn.length() > kMaxDnLength) {
 		LOG_NO("SmfImmModifOperation::execute: failed Too long dn %zu",
 		       m_dn.length());
                 TRACE_LEAVE();
@@ -1012,8 +1014,7 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
 
 	//Set IMM ownership
 	SaNameT objectName;
-	objectName.length = (SaUint16T) m_dn.length();
-	memcpy(objectName.value, m_dn.c_str(), objectName.length);
+        osaf_extended_name_lend(m_dn.c_str(), &objectName);
 
 	const SaNameT *objectNames[2];
 	objectNames[0] = &objectName;
@@ -1289,7 +1290,7 @@ SmfImmRTCreateOperation::execute()
 
 	const char *className = m_className.c_str();
 
-	if (m_parentDn.length() >= SA_MAX_NAME_LENGTH) {
+	if (m_parentDn.length() > kMaxDnLength) {
 		LOG_NO("SmfImmRTCreateOperation::execute, createObject failed Too long parent name %zu",
 		       m_parentDn.length());
                 TRACE_LEAVE();
@@ -1303,9 +1304,7 @@ SmfImmRTCreateOperation::execute()
 	}
 
 	SaNameT parentName;
-	parentName.length = m_parentDn.length();
-	strncpy((char *)parentName.value, m_parentDn.c_str(), parentName.length);
-	parentName.value[parentName.length] = 0;
+        osaf_extended_name_lend(m_parentDn.c_str(), &parentName);
 
 	result = immutil_saImmOiRtObjectCreate_2(m_immHandle,
                                                  (char*)className, 
@@ -1313,7 +1312,7 @@ SmfImmRTCreateOperation::execute()
                                                  (const SaImmAttrValuesT_2**)m_immAttrValues);
 
 	if (result != SA_AIS_OK) {
-		TRACE("saImmOiRtObjectCreate_2 returned %s for %s, parent %s", saf_error(result), className, parentName.value);
+		TRACE("saImmOiRtObjectCreate_2 returned %s for %s, parent %s", saf_error(result), className, osaf_extended_name_borrow(&parentName));
 	}
 
 	//Free the m_immAttrValues mem
@@ -1322,6 +1321,8 @@ SmfImmRTCreateOperation::execute()
 		for (unsigned int k = 0; m_immAttrValues[i]->attrValuesNumber > k; k++) {
 			if (m_immAttrValues[i]->attrValueType == SA_IMM_ATTR_SASTRINGT) {
 				free(*((SaStringT *) *value));
+			} else if (m_immAttrValues[i]->attrValueType == SA_IMM_ATTR_SANAMET) {
+				osaf_extended_name_free((SaNameT *) * value);
 			} else if (m_immAttrValues[i]->attrValueType == SA_IMM_ATTR_SAANYT) {
 				free(((SaAnyT *) * value)->bufferAddr);
 			}
@@ -1482,8 +1483,9 @@ SmfImmRTUpdateOperation::execute()
 		goto exit;
 	}
 
-	if (m_dn.length() >= SA_MAX_NAME_LENGTH) {
-		LOG_NO("SmfImmRTUpdateOperation::execute, too long DN [%zu], max=[%d], dn=[%s]", m_dn.length(), SA_MAX_NAME_LENGTH - 1, m_dn.c_str());
+	if (m_dn.length() > kMaxDnLength) {
+		LOG_NO("SmfImmRTUpdateOperation::execute, too long DN [%zu], max=[%zu], dn=[%s]",
+                 m_dn.length(), static_cast<size_t>(kMaxDnLength), m_dn.c_str());
 		result = SA_AIS_ERR_NAME_TOO_LONG;
 		goto exit;
 	}
@@ -1495,16 +1497,14 @@ SmfImmRTUpdateOperation::execute()
 	}
 
 	SaNameT objectName;
-	objectName.length = m_dn.length();
-	strncpy((char *)objectName.value, m_dn.c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
+        osaf_extended_name_lend(m_dn.c_str(), &objectName);
 
 	result = immutil_saImmOiRtObjectUpdate_2(m_immHandle,
                                                  &objectName, 
                                                  (const SaImmAttrModificationT_2**)m_immAttrMods);
 
 	if (result != SA_AIS_OK) {
-		TRACE("saImmOiRtObjectUpdate_2 returned %s for %s", saf_error(result), objectName.value);
+		TRACE("saImmOiRtObjectUpdate_2 returned %s for %s", saf_error(result), osaf_extended_name_borrow(&objectName));
 	}
 
 exit:
