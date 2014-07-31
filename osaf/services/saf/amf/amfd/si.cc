@@ -70,15 +70,17 @@ static void osafassert_if_loops_in_csideps(SaNameT *csi_name, struct avd_csi_tag
 	TRACE_LEAVE();
 }
 
-static void avd_si_arrange_dep_csi(struct avd_csi_tag* csi)
+void AVD_SI::arrange_dep_csi(struct avd_csi_tag* csi)
 {
 	AVD_CSI *temp_csi = NULL;
 	AVD_SI *temp_si = NULL;
 
 	TRACE_ENTER2("%s", csi->name.value);
+	
+	osafassert(csi->si == this);
 
 	/* Check whether any of the CSI's in the existing CSI list is dependant on the newly added CSI */
-	for (temp_csi = csi->si->list_of_csi; temp_csi; temp_csi = temp_csi->si_list_of_csi_next) {
+	for (temp_csi = list_of_csi; temp_csi; temp_csi = temp_csi->si_list_of_csi_next) {
 		AVD_CSI_DEPS *csi_dep_ptr;
 
 		/* Go through the all the dependencies of exising CSI */
@@ -105,7 +107,7 @@ static void avd_si_arrange_dep_csi(struct avd_csi_tag* csi)
 					 * This recursive logic is required to update the ranks of the
 					 * CSIs which are dependant on the temp_csi
 					 */
-					avd_si_arrange_dep_csi(temp_csi);
+					temp_si->arrange_dep_csi(temp_csi);
 				}
 			}
 		}
@@ -154,7 +156,7 @@ void AVD_SI::add_csi(struct avd_csi_tag* avd_csi)
         }
 
         /* We need to check whether any other previously added CSI(with rank = 0) was dependent on this CSI. */
-        avd_si_arrange_dep_csi(avd_csi);
+        arrange_dep_csi(avd_csi);
 add_csi:
         avd_si_add_csi_db(avd_csi);
 
