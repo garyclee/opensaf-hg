@@ -47,6 +47,8 @@
 #include <ckpt_msg.h>
 #include <vector>
 
+class AVD_APP;
+
 /* Enum values defines different SI-SI dependency FSM states. */
 typedef enum {
 	AVD_SI_NO_DEPENDENCY = 1,
@@ -98,7 +100,7 @@ public:
 	uint32_t tol_timer_count;
 	struct avd_amf_svc_type_tag *svc_type;
 	AVD_SI *si_list_svc_type_next;
-	struct avd_app_tag *app;
+	AVD_APP *app;
 	AVD_SI *si_list_app_next;
 	struct avd_sus_per_si_rank_tag *list_of_sus_per_si_rank;
 	avd_sirankedsu_t *rankedsu_list_head;
@@ -151,7 +153,7 @@ extern AVD_SI *avd_si_new(const SaNameT *dn);
 extern void avd_si_delete(AVD_SI *si);
 extern void avd_si_db_add(AVD_SI *si);
 extern AVD_SI *avd_si_get(const SaNameT *si_name);
-extern SaAisErrorT avd_si_config_get(struct avd_app_tag *app);
+extern SaAisErrorT avd_si_config_get(AVD_APP *app);
 extern void avd_si_constructor(void);
 
 #endif
