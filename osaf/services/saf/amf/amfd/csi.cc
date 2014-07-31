@@ -39,7 +39,7 @@ void avd_csi_delete(AVD_CSI *csi)
 	}
 
 	avd_cstype_remove_csi(csi);
-	avd_si_remove_csi(csi);
+	csi->si->remove_csi(csi);
 
 	csi_db->erase(Amf::to_string(&csi->name));
 	
@@ -322,7 +322,7 @@ static void csi_get_attr_and_add_to_model(AVD_CSI *csi, const SaImmAttrValuesT_2
 	csi->si = avd_si_get(si_name);
 
 	avd_cstype_add_csi(csi);
-	avd_si_add_csi(csi);
+	csi->si->add_csi(csi);
 
 	rc = 0;
 

@@ -2379,7 +2379,7 @@ void avd_sidep_send_active_to_dependents(const AVD_SI *si)
 				else
 					/* As susi failover is not possible, delete all the 
 					   assignments */
-					avd_si_assignments_delete(avd_cb, dep_si);
+					dep_si->delete_assignments(avd_cb);
 				break;
 			default:
 				break;
