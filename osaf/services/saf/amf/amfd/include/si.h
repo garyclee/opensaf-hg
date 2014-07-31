@@ -134,6 +134,8 @@ public:
 	void delete_assignments(AVD_CL_CB *cb);
 	void delete_csis();
 	void si_add_to_model();
+	
+	void arrange_dep_csi(struct avd_csi_tag* csi);
 
 private:
 	AVD_SI(const AVD_SI&);
