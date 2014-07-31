@@ -29,8 +29,6 @@
 
 AmfDb<std::string, AVD_SI> *si_db = NULL;
 
-static void avd_si_add_csi_db(struct avd_csi_tag* csi);
-
 /**
  * @brief Checks if the dependencies configured leads to loop
  *	  If loop is detected amf will just osafassert
@@ -102,7 +100,7 @@ void AVD_SI::arrange_dep_csi(struct avd_csi_tag* csi)
 					temp_si = temp_csi->si;
 					temp_si->remove_csi(temp_csi);
 					temp_csi->si = temp_si;
-					avd_si_add_csi_db(temp_csi);
+					temp_csi->si->add_csi_db(temp_csi);
 					/* We need to check whether any other CSI is dependent on temp_csi.
 					 * This recursive logic is required to update the ranks of the
 					 * CSIs which are dependant on the temp_csi
@@ -158,20 +156,24 @@ void AVD_SI::add_csi(struct avd_csi_tag* avd_csi)
         /* We need to check whether any other previously added CSI(with rank = 0) was dependent on this CSI. */
         arrange_dep_csi(avd_csi);
 add_csi:
-        avd_si_add_csi_db(avd_csi);
+        add_csi_db(avd_csi);
 
 	TRACE_LEAVE();
 	return;
 }
 
-static void avd_si_add_csi_db(struct avd_csi_tag* csi)
+void AVD_SI::add_csi_db(struct avd_csi_tag* csi)
 {
+	TRACE_ENTER2("%s", csi->name.value);
+
 	AVD_CSI *i_csi = NULL;
 	AVD_CSI *prev_csi = NULL;
 	bool found_pos =  false;
 
 	osafassert((csi != NULL) && (csi->si != NULL));
-	i_csi = csi->si->list_of_csi;
+	osafassert(csi->si == this);
+
+	i_csi = list_of_csi;
 	while ((i_csi != NULL) && (csi->rank <= i_csi->rank)) {
 		while ((i_csi != NULL) && (csi->rank == i_csi->rank)) {
 
@@ -195,12 +197,14 @@ static void avd_si_add_csi_db(struct avd_csi_tag* csi)
 	}
 
 	if (prev_csi == NULL) {
-		csi->si_list_of_csi_next = csi->si->list_of_csi;
-		csi->si->list_of_csi = csi;
+		csi->si_list_of_csi_next = list_of_csi;
+		list_of_csi = csi;
 	} else {
 		prev_csi->si_list_of_csi_next = csi;
 		csi->si_list_of_csi_next = i_csi;
 	}
+
+	TRACE_LEAVE();
 }
 
 /**
